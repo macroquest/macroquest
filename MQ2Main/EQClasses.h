@@ -328,10 +328,7 @@ class SharedString;
 class SHistoryElement;
 class SimpleLogicalPacket;
 class SLinkInfo;
-class SListWndCell;
 class SListWndCellEditUpdate;
-class SListWndColumn;
-class SListWndLine;
 class SListWndSortInfo;
 class SoundAsset;
 class SoundControl;
@@ -2881,13 +2878,21 @@ EQLIB_OBJECT int CInvSlotWnd::WndNotification(class CXWnd *,unsigned __int32,voi
 //EQLIB_OBJECT void * CInvSlotWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CInvSlotWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 };
+enum ItemDisplayFlags
+{
+	PREVENT_LINK = 0x00000001,
+	RECYCLE_WINDOW = 0x00000002,
+	FROM_LINK = 0x00000004,
+    FROM_BAZAAR_SEARCH = 0x00000008,
+    FROM_BARTER_SEARCH = 0x00000010
+};
 
 class CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(class CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);
-EQLIB_OBJECT void CItemDisplayWnd::SetItem(class EQ_Item *,bool);
+EQLIB_OBJECT void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags);
 EQLIB_OBJECT void CItemDisplayWnd::SetItemText(char *);
 EQLIB_OBJECT void CItemDisplayWnd::SetSpell(int SpellID,bool HasSpellDescr,int);
 EQLIB_OBJECT void CItemDisplayWnd::UpdateStrings(void);
@@ -3046,7 +3051,7 @@ EQLIB_OBJECT int CreateWindowInstance();
 class CItemDisplayManager : public CWndDisplayManager
 {
 public:
-
+EQLIB_OBJECT int CItemDisplayManager::CreateWindowInstance(void);
 };
 
 class CLineBase
@@ -3108,6 +3113,72 @@ EQLIB_OBJECT int CUITextureInfo::Tile(class CXRect,unsigned long *,unsigned long
 EQLIB_OBJECT int CUITextureInfo::Tile(class CXRect,unsigned long,unsigned long)const;
 EQLIB_OBJECT class CUITextureInfo & CUITextureInfo::operator=(class CUITextureInfo const &);
 };
+struct SListWndCell
+{
+    SListWndCell() {
+		pTA = NULL;
+        Color = RGB(255, 255, 255);
+		bOnlyDrawTexture = false;
+		pWnd = NULL;
+    }
+    const CTextureAnimation *pTA;
+    struct _CXSTR *Text;
+    COLORREF Color;
+	bool bOnlyDrawTexture;
+	CXWnd *pWnd;
+};
+struct TreeData
+{
+	TreeData() : Depth(0), bIsExpandable(false) {}
+	int		Depth;
+	bool	bIsExpandable;
+};
+struct SListWndLine
+{
+	ArrayClass<SListWndCell> Cells;
+	UINT	Data;
+	int		Height;
+	bool	bSelected;
+	bool	bEnabled;
+	TreeData Treedata;
+	CHAR	TooltipText[256];
+	bool	bVisible;
+	SListWndLine() : Data(0), Height(-1), bSelected(false), bEnabled(true), bVisible(true) {
+	}
+
+};
+struct SListWndColumn
+{
+	int	Width;
+	int	MinWidth;
+	SIZE	TextureSize;
+	POINT	TextureOffset;
+    PCXSTR	StrLabel;
+    UINT	Data;
+    UINT	Flags;
+	UINT	Type;
+    CTextureAnimation	*pTextureAnim;
+	CTextureAnimation	*pSelected;
+	CTextureAnimation	*pMouseOver;
+	PCXSTR	Tooltip;
+	bool	bResizeable;
+	//SListWndColumn() {};
+	SListWndColumn(PCXSTR strLabel = 0, int width = 0, CTextureAnimation *pta = NULL, UINT flags = 0,
+		UINT type = 0x03, CTextureAnimation *pselected = NULL, CTextureAnimation *pmouseOver = NULL,
+		PCXSTR tooltip = 0, bool bResizeable = false, SIZE textureSize = { 0 }, POINT textureOffset = { 0 }) {
+		Width = width;
+		MinWidth = 10;
+		StrLabel = strLabel;
+		pTextureAnim = pta;
+		Flags = flags;
+		Type = type;
+		pSelected = pselected;
+		pMouseOver = pmouseOver;
+		Tooltip = tooltip;
+		TextureSize = textureSize;
+		TextureOffset = textureOffset;
+	}
+};
 //Size is 0x288 in eqgame Nov 14 2016 Live (see 8D1D4C) eqmule
 class CListWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the constructor, and we dont want that... so... : public CXWnd
 {
@@ -3164,11 +3235,11 @@ EQLIB_OBJECT class CXStr CListWnd::GetColumnLabel(int)const;
 EQLIB_OBJECT class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const;
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,int,unsigned __int32,unsigned __int32);
-EQLIB_OBJECT int CListWnd::AddLine(class SListWndLine const *);
+EQLIB_OBJECT int CListWnd::AddLine(SListWndLine *);
 #ifndef EMU
-EQLIB_OBJECT int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *pta, const char * p5 = 0, bool bdebug = false);
+EQLIB_OBJECT int CListWnd::AddString(CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *pta, const char * p5 = 0, bool bdebug = false);
 #else
-EQLIB_OBJECT int CListWnd::AddString(class CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
+EQLIB_OBJECT int CListWnd::AddString(CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
 #endif
 EQLIB_OBJECT int CListWnd::AddString(char *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
 EQLIB_OBJECT int CListWnd::GetColumnJustification(int)const;
@@ -3187,10 +3258,11 @@ EQLIB_OBJECT void CListWnd::CalculateVSBRange(void);
 EQLIB_OBJECT void CListWnd::ClearAllSel(void);
 EQLIB_OBJECT void CListWnd::ClearSel(int);
 EQLIB_OBJECT void CListWnd::CloseAndUpdateEditWindow(void);
-EQLIB_OBJECT void CListWnd::EnableLine(int,bool);
+EQLIB_OBJECT void CListWnd::EnableLine(int Index, bool bVal);
 EQLIB_OBJECT void CListWnd::EnsureVisible(int);
 EQLIB_OBJECT void CListWnd::ExtendSel(int);
 EQLIB_OBJECT void CListWnd::GetItemAtPoint(CXPoint *pt,int *ID,int *SubItem)const;
+EQLIB_OBJECT void CListWnd::InsertLine(int ID, SListWndLine *rEntry);
 EQLIB_OBJECT void CListWnd::RemoveLine(int);
 EQLIB_OBJECT void CListWnd::RemoveString(int);
 EQLIB_OBJECT void CListWnd::SetColors(unsigned long,unsigned long,unsigned long);
@@ -3199,10 +3271,10 @@ EQLIB_OBJECT void CListWnd::SetColumnLabel(int,class CXStr);
 EQLIB_OBJECT void CListWnd::SetColumnWidth(int,int);
 EQLIB_OBJECT void CListWnd::SetCurSel(int);
 EQLIB_OBJECT void CListWnd::SetItemColor(int,int,unsigned long);
-#ifndef EMU
-EQLIB_OBJECT void CListWnd::SetItemData(int,unsigned __int32,BOOL bSomething = false);
+#ifndef EMU 
+EQLIB_OBJECT void CListWnd::SetItemData(int ID,unsigned __int32 Data, BOOL bSomething = false);
 #else
-EQLIB_OBJECT void CListWnd::SetItemData(int,unsigned __int32);
+EQLIB_OBJECT void CListWnd::SetItemData(int ID, unsigned __int32 Data);
 #endif
 EQLIB_OBJECT void CListWnd::SetItemText(int,int,class CXStr *);
 EQLIB_OBJECT void CListWnd::ShiftColumnSeparator(int,int);
@@ -3210,7 +3282,7 @@ EQLIB_OBJECT void CListWnd::ToggleSel(int);
 // virtual
 EQLIB_OBJECT CListWnd::~CListWnd(void);
 EQLIB_OBJECT class CTextureAnimation * CListWnd::GetCursorToDisplay(void)const;
-EQLIB_OBJECT int CListWnd::Compare(class SListWndLine const &,class SListWndLine const &)const;
+EQLIB_OBJECT int CListWnd::Compare(SListWndLine const &,SListWndLine const &)const;
 EQLIB_OBJECT int CListWnd::Draw(void)const;
 EQLIB_OBJECT int CListWnd::DrawBackground(void)const;
 EQLIB_OBJECT int CListWnd::DrawColumnSeparators(void)const;
@@ -3241,8 +3313,9 @@ public:
 /*0x288*/ int NumItems;
 /*0x28C*/ int Unknown0x28C;
 /*0x290*/
+EQLIB_OBJECT int CContextMenu::InsertMenuItemA(CXStr *str,unsigned int position, unsigned int ItemID, bool bChecked, COLORREF Color, bool bEnable);
 EQLIB_OBJECT CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &);
-EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr const &str,unsigned long menuid,unsigned __int32 arg3,unsigned __int32 arg4,bool arg5);
+EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr const &str,unsigned int MenuID/*Set HighPart as the ID for submenus and LowPart is then the subindex*/,bool bChecked,COLORREF Color,bool bEnable);
 EQLIB_OBJECT int CContextMenu::AddSeparator(void);
 EQLIB_OBJECT void CContextMenu::Activate(class CXPoint,int,int);
 EQLIB_OBJECT void CContextMenu::CheckMenuItem(int ID, bool bVal = true, bool bUncheckAll = false);
@@ -5064,7 +5137,11 @@ EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CX
 EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr *,int,int,int,class CXRect *,unsigned long,unsigned short,int)const;
 EQLIB_OBJECT int CTextureFont::GetHeight(void)const;
 EQLIB_OBJECT int CTextureFont::GetKerning(unsigned short,unsigned short)const;
-EQLIB_OBJECT int CTextureFont::GetTextExtent(class CXStr)const;
+#ifndef EMU
+EQLIB_OBJECT int CTextureFont::GetTextExtent(CXStr *);
+#else
+EQLIB_OBJECT int CTextureFont::GetTextExtent(void);
+#endif
 EQLIB_OBJECT int CTextureFont::GetWidth(unsigned short)const;
 // virtual
 EQLIB_OBJECT CTextureFont::~CTextureFont(void);
@@ -5739,7 +5816,7 @@ EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
-EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems, int subindex, bool bIncludeAA, bool bincludeBuffs);
+EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
 };
 
 class EQ_Character
@@ -5935,6 +6012,26 @@ enum KeyRingType
 	eIllusion,
 	eFamiliar,
 };
+enum eAugFitRet
+{
+	AF_FITS,
+	AF_RACE_MISMATCH,
+	AF_CLASS_MISMATCH,
+	AF_DEITY_MISMATCH,
+	AF_LOC_MISMATCH,
+	AF_SLOTFULL,
+	AF_INVALIDSLOT,
+	AF_AUG_MISMATCH,
+	AF_SKIN_MISMATCH,
+	AF_AUGCLASS,
+	AF_ERR_DUPLICATE,
+	AF_NOTRANSFER,
+	AF_ITEMRANK_MISMATCH,
+	AF_APPEARANCE_MISMATCH,
+	AF_ERR_STACKABLE,
+	AF_ERR_NOTANAUG,
+	AF_ERR_NOEQUIPPEDLOC,
+};
 //this is really the ItemBase class
 //eqmule 2014 feb 06
 class EQ_Item
@@ -5958,7 +6055,7 @@ EQLIB_OBJECT int EQ_Item::GetItemValue(bool)const;
 EQLIB_OBJECT bool EQ_Item::IsKeyRingItem(KeyRingType type)const;
 EQLIB_OBJECT bool EQ_Item::CanGoInBag(PCONTENTS *pCont, int unused, bool mustbefalse = false)const;
 EQLIB_OBJECT int EQ_Item::GetMaxItemCount(void)const;
-
+EQLIB_OBJECT int EQ_Item::GetAugmentFitBySlot(PCONTENTS *Aug, int Slot, bool bCheckSlot = true, bool bCheckDup = true)const; 
 ITEMINFO Data;
 };
 
@@ -6915,65 +7012,12 @@ EQLIB_OBJECT SLinkInfo::SLinkInfo(void);
 EQLIB_OBJECT class SLinkInfo & SLinkInfo::operator=(class SLinkInfo const &);
 };
 
-class SListWndCell
-{
-public:
-	CXStr		*Text;
-    COLORREF	Color;
-	bool		bOnlyDrawTexture;
-	CXWnd		*Wnd;
-EQLIB_OBJECT SListWndCell::~SListWndCell(void);
-EQLIB_OBJECT SListWndCell::SListWndCell(void);
-EQLIB_OBJECT class SListWndCell & SListWndCell::operator=(class SListWndCell const &);
-//EQLIB_OBJECT void * SListWndCell::`vector deleting destructor'(unsigned int);
-};
-
 class SListWndCellEditUpdate
 {
 public:
 EQLIB_OBJECT SListWndCellEditUpdate::~SListWndCellEditUpdate(void);
 };
 
-class SListWndColumn
-{
-public:
-	int	Width;
-	int	MinWidth;
-	SIZE	TextureSize;
-	POINT	TextureOffset;
-    CXStr	*StrLabel;
-    UINT	Data;
-    UINT	Flags;
-	UINT	Type;
-    CTextureAnimation	*pTextureAnim;
-	CTextureAnimation	*pSelected;
-	CTextureAnimation	*pMouseOver;
-	CXStr	*Tooltip;
-	bool	bResizeable;
-EQLIB_OBJECT SListWndColumn::~SListWndColumn(void);
-EQLIB_OBJECT SListWndColumn::SListWndColumn(class CXStr,int,class CTextureAnimation *,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *);
-//EQLIB_OBJECT void SListWndColumn::`default constructor closure'(void);
-};
-struct TreeData
-{
-	int		Depth;
-	bool	bIsExpandable;
-};
-class SListWndLine
-{
-public:
-	ArrayClass<SListWndCell> Cells;
-	UINT	Data;
-	int		Height;
-	bool	bSelected;
-	bool	bEnabled;
-	TreeData Treedata;
-	CHAR	TooltipText[256];
-	bool	bVisible;
-EQLIB_OBJECT SListWndLine::~SListWndLine(void);
-EQLIB_OBJECT SListWndLine::SListWndLine(void);
-EQLIB_OBJECT class SListWndLine & SListWndLine::operator=(class SListWndLine const &);
-};
 
 class SListWndSortInfo
 {
@@ -7547,8 +7591,9 @@ EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
 #else
 EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
 #endif
+EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex *itemindex/*out*/);
+EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
 };
-
 };
 using namespace EQClasses;
 #pragma pack(pop)

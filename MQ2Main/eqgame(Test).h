@@ -474,9 +474,13 @@ GNU General Public License for more details.
 #define CItemDisplayWnd__UpdateStrings_x                           0x6D2A70
 #define CItemDisplayWnd__InsertAugmentRequest_x                    0x6DF9B0
 #define CItemDisplayWnd__RemoveAugmentRequest_x                    0x6DFED0
+#define CItemDisplayWnd__SetItem_x                                 0x6E5930
 
 //CWndDisplayManager
 #define CWndDisplayManager__FindWindowA_x                          0x7CFE70
+
+//CItemDisplayManager
+#define CItemDisplayManager__CreateWindowInstance_x                0x6D9860
 
 // CLabel 
 #define CLabel__Draw_x                                             0x6EC640
@@ -500,6 +504,7 @@ GNU General Public License for more details.
 #define CListWnd__DrawItem_x                                       0x8A97F0
 #define CListWnd__DrawLine_x                                       0x8A9F60
 #define CListWnd__DrawSeparator_x                                  0x8AA360
+#define CListWnd__EnableLine_x                                     0x8A7AF0
 #define CListWnd__EnsureVisible_x                                  0x8A8760
 #define CListWnd__ExtendSel_x                                      0x8A9700
 #define CListWnd__GetColumnMinWidth_x                              0x8A72C0
@@ -514,6 +519,7 @@ GNU General Public License for more details.
 #define CListWnd__GetItemText_x                                    0x8A6DA0
 #define CListWnd__GetSelList_x                                     0x8ABAB0
 #define CListWnd__GetSeparatorRect_x                               0x8A9090
+#define CListWnd__InsertLine_x                                     0x8ABA20
 #define CListWnd__RemoveLine_x                                     0x8ABA30
 #define CListWnd__SetColors_x                                      0x8A6B10
 #define CListWnd__SetColumnJustification_x                         0x8A7550
@@ -623,6 +629,7 @@ GNU General Public License for more details.
 
 // CTextureFont
 #define CTextureFont__DrawWrappedText_x                            0x8BF110
+#define CTextureFont__GetTextExtent_x                              0x8BEE70
 
 //CWebManager
 #define CWebManager__CreateHtmlWnd_x                               0x62A1D0
@@ -730,6 +737,7 @@ GNU General Public License for more details.
 #define EQ_Item__CanGoInBag_x                                      0x58B400
 #define EQ_Item__GetMaxItemCount_x                                 0x832CB0
 #define EQ_Item__GetHeldItem_x                                     0x834650
+#define EQ_Item__GetAugmentFitBySlot_x                             0x83E450
 
 // EQ_LoadingS 
 #define EQ_LoadingS__SetProgressBar_x                              0x4C9650
@@ -800,6 +808,8 @@ GNU General Public License for more details.
 #define PcZoneClient__GetCurrentMod_x                              0x458810
 #define PcZoneClient__GetModCap_x                                  0x455FD0
 #define PcZoneClient__CanEquipItem_x                               0x5B4F10
+#define PcZoneClient__GetItemByID_x                                0x5B9910
+#define PcZoneClient__GetItemByItemClass_x                         0x5BA350
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x547B00

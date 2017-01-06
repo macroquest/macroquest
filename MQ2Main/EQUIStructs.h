@@ -1135,10 +1135,10 @@ typedef struct _EQCASTSPELLGEM {
 /*0x01d8*/ BYTE         Unknown0x01d8[0x44];
 /*0x021c*/ DWORD        TimeStamp;
 /*0x0220*/ DWORD        RecastTime;
-/*0x0224*/ BYTE         Unknown0x0224[0xb4];
-/*0x02d8*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
-/*0x02dc*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
-/*0x02e0*/ BYTE         Unknown0x02e0[0x28];
+/*0x0224*/ BYTE         Unknown0x0224[0xb8];
+/*0x02dc*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
+/*0x02e0*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
+/*0x02e4*/ BYTE         Unknown0x02e4[0x24];
 /*0x0308*/
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 

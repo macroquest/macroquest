@@ -1116,7 +1116,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CItemDisplayWnd__UpdateStrings;
 	EQLIB_VAR DWORD CItemDisplayWnd__InsertAugmentRequest;
 	EQLIB_VAR DWORD CItemDisplayWnd__RemoveAugmentRequest;
-	
+	EQLIB_VAR DWORD CItemDisplayWnd__SetItem;
+
 	EQLIB_VAR DWORD CLabel__Draw;
 
 	EQLIB_VAR DWORD CListWnd__CListWnd;
@@ -1137,6 +1138,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__DrawItem;
 	EQLIB_VAR DWORD CListWnd__DrawLine;
 	EQLIB_VAR DWORD CListWnd__DrawSeparator;
+	EQLIB_VAR DWORD CListWnd__EnableLine;
 	EQLIB_VAR DWORD CListWnd__EnsureVisible;
 	EQLIB_VAR DWORD CListWnd__ExtendSel;
 	EQLIB_VAR DWORD CListWnd__GetColumnMinWidth;
@@ -1151,6 +1153,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__GetItemText;
 	EQLIB_VAR DWORD CListWnd__GetSelList;
 	EQLIB_VAR DWORD CListWnd__GetSeparatorRect;
+	EQLIB_VAR DWORD CListWnd__InsertLine;
 	EQLIB_VAR DWORD CListWnd__RemoveLine;
 	EQLIB_VAR DWORD CListWnd__SetColors;
 	EQLIB_VAR DWORD CListWnd__SetColumnJustification;
@@ -1249,7 +1252,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTextOverlay__DisplayText;
 
 	EQLIB_VAR DWORD CTextureFont__DrawWrappedText;
-
+	EQLIB_VAR DWORD CTextureFont__GetTextExtent;
+	
 	EQLIB_VAR DWORD CWebManager__CreateHtmlWnd;
 
 	EQLIB_VAR DWORD CXMLDataManager__GetXMLData;
@@ -1342,6 +1346,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Item__IsKeyRingItem;
 	EQLIB_VAR DWORD EQ_Item__CanGoInBag;
 	EQLIB_VAR DWORD EQ_Item__GetMaxItemCount;
+	EQLIB_VAR DWORD EQ_Item__GetAugmentFitBySlot;
 	
 	EQLIB_VAR DWORD EQ_LoadingS__SetProgressBar;
 	EQLIB_VAR DWORD EQ_LoadingS__Array;
@@ -1405,7 +1410,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__GetCurrentMod;
 	EQLIB_VAR DWORD PcZoneClient__GetModCap;
 	EQLIB_VAR DWORD PcZoneClient__CanEquipItem;
-
+	EQLIB_VAR DWORD PcZoneClient__GetItemByID;
+	EQLIB_VAR DWORD PcZoneClient__GetItemByItemClass;
+	
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
 	EQLIB_VAR BOOL gbTimeStampChat;
@@ -1450,6 +1457,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD ItemGlobalIndex__IsValidIndex;
 	EQLIB_VAR DWORD CLargeDialogWnd__Open;
 	EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;
+	EQLIB_VAR DWORD CItemDisplayManager__CreateWindowInstance;
 	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor;
 	EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 }

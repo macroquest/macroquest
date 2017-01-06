@@ -681,8 +681,35 @@ public:
 		Stuck = 114,
 		Aggressive = 115,
 		CanSplashLand = 116,
-		EQLoc = 117,
-		MQLoc = 118,
+		IsBerserk = 117,
+		pTouchingSwitch = 118,
+		bShowHelm = 119,
+		CorpseDragCount = 120,
+		bBetaBuffed = 121,
+		CombatSkillTicks = 122,
+		FD = 123,
+		InPvPArea = 124,
+		bAlwaysShowAura = 125,
+		GMRank = 126,
+		WarCry = 127,
+		IsPassenger = 128,
+		LastCastTime = 129,
+		DragNames = 130,
+		DraggingPlayer = 131,
+		bStationary = 132,
+		BearingToTarget = 133,
+		bTempPet = 134,
+		HoldingAnimation = 135,
+		Blind = 136,
+		LastCastNum = 137,
+		CollisionCounter = 138,
+		CeilingHeightAtCurrLocation = 139,
+		AssistName = 140,
+		SeeInvis = 141,
+		SpawnStatus = 142,
+		bWaitingForPort = 143,
+		EQLoc = 144,
+		MQLoc = 145,
 	};
 	enum SpawnMethods
 	{
@@ -812,6 +839,33 @@ public:
 		TypeMember(Stuck);
 		TypeMember(Aggressive);
 		TypeMember(CanSplashLand);
+		TypeMember(IsBerserk);
+		TypeMember(pTouchingSwitch);
+		TypeMember(bShowHelm);
+		TypeMember(CorpseDragCount);
+		TypeMember(bBetaBuffed);
+		TypeMember(CombatSkillTicks);
+		TypeMember(FD);
+		TypeMember(InPvPArea);
+		TypeMember(bAlwaysShowAura);
+		TypeMember(GMRank);
+		TypeMember(WarCry);
+		TypeMember(IsPassenger);
+		TypeMember(LastCastTime);
+		TypeMember(DragNames);
+		TypeMember(DraggingPlayer);
+		TypeMember(bStationary);
+		TypeMember(BearingToTarget);
+		TypeMember(bTempPet);
+		TypeMember(HoldingAnimation);
+		TypeMember(Blind);
+		TypeMember(LastCastNum);
+		TypeMember(CollisionCounter);
+		TypeMember(CeilingHeightAtCurrLocation);
+		TypeMember(AssistName);
+		TypeMember(SeeInvis);
+		TypeMember(SpawnStatus);
+		TypeMember(bWaitingForPort);
 		TypeMember(EQLoc);
 		TypeMember(MQLoc);
 
@@ -1131,6 +1185,7 @@ public:
 		GuildID = 252,
 		ExpansionFlags = 253,
 		SPA = 254,
+		BoundLocation = 255,
 	};
 	enum CharacterMethods
 	{
@@ -1385,6 +1440,7 @@ public:
 		TypeMember(GuildID);
 		TypeMember(ExpansionFlags);
 		TypeMember(SPA);
+		TypeMember(BoundLocation);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1900,6 +1956,7 @@ public:
 		ContentSize = 149,
 		Open = 150,
 		NoTrade = 151,
+		AugSlot = 152,
 	};
 	enum ItemMethods
 	{
@@ -2057,6 +2114,7 @@ public:
 		TypeMember(ContentSize);
 		TypeMember(Open);
 		TypeMember(NoTrade);
+		TypeMember(AugSlot);
 	}
 
 	~MQ2ItemType()
@@ -5134,6 +5192,109 @@ public:
 		DWORD theitem = HIWORD(VarPtr.DWord);
 		sprintf_s(Destination, 128, "${Alert[%d].List[%d].Name}", (int)theindex, (int)theitem);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2WorldLocationType : public MQ2Type
+{
+public:
+	enum WorldLocationTypeMembers
+	{
+		ID = 1,
+		Y = 2,
+		X = 3,
+		Z = 4,
+		Heading = 5,
+		Zone = 6,
+	};
+	MQ2WorldLocationType() :MQ2Type("worldlocation")
+	{
+		TypeMember(ID);
+		TypeMember(Y);
+		TypeMember(X);
+		TypeMember(Z);
+		TypeMember(Heading);
+		TypeMember(Zone);
+	}
+	~MQ2WorldLocationType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int index = VarPtr.DWord;
+			if (index < 0)
+				index = 0;
+			if (index > 4)
+				index = 4;
+			int zindex = pChar2->BoundLocations[index].ZoneBoundID & 0x7FFF;
+			if (zindex < MAX_ZONES)
+			{
+				if (PZONELIST pList = ((PWORLDDATA)pWorldData)->ZoneArray[zindex]) {
+					strcpy_s(Destination, MAX_STRING, pList->ShortName);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2AugType : public MQ2Type
+{
+public:
+	enum AugTypeMembers
+	{
+		Slot = 1,
+		Type = 2,
+		Visible = 3,
+		Infusable = 4,
+		Empty = 5,
+		Name = 6,
+		Item = 7,
+	};
+	MQ2AugType() :MQ2Type("augtype")
+	{
+		TypeMember(Slot);
+		TypeMember(Type);
+		TypeMember(Visible);
+		TypeMember(Infusable);
+		TypeMember(Empty);
+		TypeMember(Name);
+		TypeMember(Item);
+	}
+	~MQ2AugType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (PCONTENTS pCont = (PCONTENTS)VarPtr.HighPart) {
+			if (PCONTENTS pAug = pCont->GetContent(VarPtr.DWord)) {
+				if (PITEMINFO pAugItem = GetItemFromContents(pAug)) {
+					strcpy_s(Destination, MAX_STRING, pAugItem->Name);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{

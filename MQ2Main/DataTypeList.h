@@ -79,6 +79,8 @@ DATATYPE(MQ2XTargetType, pXTargetType, pSpawnType, 0);
 DATATYPE(MQ2ZoneType, pZoneType, nullptr, 0);
 DATATYPE(MQ2KeyRingType, pKeyRingType, nullptr, 0);
 DATATYPE(MQ2CharSelectListType, pCharSelectListType, nullptr, 0);
+DATATYPE(MQ2WorldLocationType, pWorldLocationType, nullptr, 0);
+DATATYPE(MQ2AugType, pAugType, nullptr, 0);
 
 #pragma warning( pop )
 #undef DATATYPE // In case the includer forgets

@@ -706,7 +706,7 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 		DoCommand(pCharInfo->pSpawn, "/charinfo");
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			sprintf_s(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->ZoneBoundX, pChar2->ZoneBoundY, pChar2->ZoneBoundZ);
+			sprintf_s(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->BoundLocations[0].ZoneBoundX, pChar2->BoundLocations[0].ZoneBoundY, pChar2->BoundLocations[0].ZoneBoundZ);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 	}

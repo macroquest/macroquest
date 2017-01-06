@@ -1185,7 +1185,7 @@ FUNCTION_AT_ADDRESS( CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,c
 FUNCTION_AT_ADDRESS( CContextMenu::~CContextMenu(void),CContextMenu__dCContextMenu);
 #endif
 #ifdef CContextMenu__AddMenuItem_x
-FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(class CXStr const &,unsigned long,unsigned __int32,unsigned __int32,bool),CContextMenu__AddMenuItem);
+FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(CXStr const &,unsigned int,bool,COLORREF,bool),CContextMenu__AddMenuItem);
 #endif
 #ifdef CContextMenu__AddSeparator_x
 FUNCTION_AT_ADDRESS(int  CContextMenu::AddSeparator(void),CContextMenu__AddSeparator);
@@ -1568,17 +1568,11 @@ FUNCTION_AT_ADDRESS(void  CGroupSearchWnd::ResetGroupList(void),CGroupSearchWnd_
 #ifdef CGroupSearchWnd__AddGroupResult_x
 FUNCTION_AT_ADDRESS(void  CGroupSearchWnd::AddGroupResult(struct LfgGroupResult const *),CGroupSearchWnd__AddGroupResult);
 #endif
-#ifdef SListWndLine__dSListWndLine_x
-FUNCTION_AT_ADDRESS( SListWndLine::~SListWndLine(void),SListWndLine__dSListWndLine);
-#endif
 #ifdef CUITextureInfo__dCUITextureInfo_x
 FUNCTION_AT_ADDRESS( CUITextureInfo::~CUITextureInfo(void),CUITextureInfo__dCUITextureInfo);
 #endif
 #ifdef CUITexturePiece__dCUITexturePiece_x
 FUNCTION_AT_ADDRESS( CUITexturePiece::~CUITexturePiece(void),CUITexturePiece__dCUITexturePiece);
-#endif
-#ifdef SListWndCell__dSListWndCell_x
-FUNCTION_AT_ADDRESS( SListWndCell::~SListWndCell(void),SListWndCell__dSListWndCell);
 #endif
 #ifdef STextureAnimationFrame__dSTextureAnimationFrame_x
 FUNCTION_AT_ADDRESS( STextureAnimationFrame::~STextureAnimationFrame(void),STextureAnimationFrame__dSTextureAnimationFrame);
@@ -1750,9 +1744,6 @@ FUNCTION_AT_ADDRESS(int __cdecl Util::SetBit(int,void *,int),Util__SetBit);
 #endif
 #ifdef _partyGroup__getNumMembers_x
 FUNCTION_AT_ADDRESS(int  _partyGroup::getNumMembers(void)const ,_partyGroup__getNumMembers);
-#endif
-#ifdef SListWndCell__SListWndCell_x
-FUNCTION_AT_ADDRESS( SListWndCell::SListWndCell(void),SListWndCell__SListWndCell);
 #endif
 #ifdef CGroupWnd__CGroupWnd_x
 FUNCTION_AT_ADDRESS( CGroupWnd::CGroupWnd(class CXWnd *),CGroupWnd__CGroupWnd);
@@ -1984,7 +1975,7 @@ FUNCTION_AT_ADDRESS(void CItemDisplayWnd::InsertAugmentRequest(int AugSlot),CIte
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot),CItemDisplayWnd__RemoveAugmentRequest);
 #endif
 #ifdef CItemDisplayWnd__SetItem_x
-FUNCTION_AT_ADDRESS(void  CItemDisplayWnd::SetItem(class EQ_Item *,bool),CItemDisplayWnd__SetItem);
+FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags),CItemDisplayWnd__SetItem);
 #endif
 #ifdef CItemDisplayWnd__SetItemText_x
 FUNCTION_AT_ADDRESS(void  CItemDisplayWnd::SetItemText(char *),CItemDisplayWnd__SetItemText);
@@ -4593,6 +4584,9 @@ FUNCTION_AT_ADDRESS(bool EQ_Item::CanGoInBag(PCONTENTS *pCont,int unused,bool mu
 #endif
 #ifdef EQ_Item__ValueSellMerchant_x
 FUNCTION_AT_ADDRESS(long  EQ_Item::ValueSellMerchant(float,long)const,EQ_Item__ValueSellMerchant);
+#endif
+#ifdef EQ_Item__GetAugmentFitBySlot_x
+FUNCTION_AT_ADDRESS(int EQ_Item::GetAugmentFitBySlot(PCONTENTS *, int, bool, bool index)const,EQ_Item__GetAugmentFitBySlot); 
 #endif
 #ifdef EQ_Item__ValueSSell_x
 FUNCTION_AT_ADDRESS(char *  EQ_Item::ValueSSell(float,long),EQ_Item__ValueSSell);
@@ -7825,7 +7819,7 @@ FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetColumnAnimatio
 FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetColumnAnimationMouseOver(int)const ,CListWnd__GetColumnAnimationMouseOver);
 #endif
 #ifdef CListWnd__AddLine_x
-FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(class SListWndLine const *),CListWnd__AddLine);
+FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(SListWndLine *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString_x
 #ifndef EMU
@@ -7836,6 +7830,9 @@ FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsi
 #endif
 #ifdef CListWnd__RemoveString_x
 FUNCTION_AT_ADDRESS(void  CListWnd::RemoveString(int),CListWnd__RemoveString);
+#endif
+#ifdef CListWnd__InsertLine_x
+FUNCTION_AT_ADDRESS(void CListWnd::InsertLine(int ID, SListWndLine *rEntry),CListWnd__InsertLine);
 #endif
 #ifdef CListWnd__RemoveLine_x
 FUNCTION_AT_ADDRESS(void  CListWnd::RemoveLine(int),CListWnd__RemoveLine);
@@ -7875,7 +7872,7 @@ FUNCTION_AT_ADDRESS(void  CListWnd::SetItemColor(int,int,unsigned long),CListWnd
 FUNCTION_AT_ADDRESS(bool  CListWnd::IsLineEnabled(int)const ,CListWnd__IsLineEnabled);
 #endif
 #ifdef CListWnd__EnableLine_x
-FUNCTION_AT_ADDRESS(void  CListWnd::EnableLine(int,bool),CListWnd__EnableLine);
+FUNCTION_AT_ADDRESS(void CListWnd::EnableLine(int,bool),CListWnd__EnableLine);
 #endif
 #ifdef CListWnd__AddColumn_x
 FUNCTION_AT_ADDRESS(int  CListWnd::AddColumn(class CXStr,int,unsigned __int32,unsigned __int32),CListWnd__AddColumn);
@@ -7883,17 +7880,11 @@ FUNCTION_AT_ADDRESS(int  CListWnd::AddColumn(class CXStr,int,unsigned __int32,un
 #ifdef CListWnd__AddColumn1_x
 FUNCTION_AT_ADDRESS(int  CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *),CListWnd__AddColumn1);
 #endif
-#ifdef SListWndColumn__SListWndColumn_x
-FUNCTION_AT_ADDRESS( SListWndColumn::SListWndColumn(class CXStr,int,class CTextureAnimation *,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *),SListWndColumn__SListWndColumn);
-#endif
 #ifdef SLinkInfo__dSLinkInfo_x
 //FUNCTION_AT_ADDRESS( SLinkInfo::~SLinkInfo(void),SLinkInfo__dSLinkInfo);
 #endif
 #ifdef SListWndCellEditUpdate__dSListWndCellEditUpdate_x
 FUNCTION_AT_ADDRESS( SListWndCellEditUpdate::~SListWndCellEditUpdate(void),SListWndCellEditUpdate__dSListWndCellEditUpdate);
-#endif
-#ifdef SListWndColumn__dSListWndColumn_x
-FUNCTION_AT_ADDRESS( SListWndColumn::~SListWndColumn(void),SListWndColumn__dSListWndColumn);
 #endif
 #ifdef CListWnd__SetColumnLabel_x
 FUNCTION_AT_ADDRESS(void  CListWnd::SetColumnLabel(int,class CXStr),CListWnd__SetColumnLabel);
@@ -7939,15 +7930,6 @@ FUNCTION_AT_ADDRESS( SListWndSortInfo::~SListWndSortInfo(void),SListWndSortInfo_
 #endif
 #ifdef CListWnd__GetHeaderRect_x
 FUNCTION_AT_ADDRESS(class CXRect  CListWnd::GetHeaderRect(int)const ,CListWnd__GetHeaderRect);
-#endif
-#ifdef SListWndLine__SListWndLine_x
-FUNCTION_AT_ADDRESS( SListWndLine::SListWndLine(void),SListWndLine__SListWndLine);
-#endif
-#ifdef SListWndCell__operator_equal_x
-FUNCTION_AT_ADDRESS(struct SListWndCell &  SListWndCell::operator=(struct SListWndCell const &),SListWndCell__operator_equal);
-#endif
-#ifdef SListWndLine__operator_equal_x
-FUNCTION_AT_ADDRESS(class SListWndLine &  SListWndLine::operator=(class SListWndLine const &),SListWndLine__operator_equal);
 #endif
 #ifdef CScreenPieceTemplate__CScreenPieceTemplate_x
 FUNCTION_AT_ADDRESS( CScreenPieceTemplate::CScreenPieceTemplate(class CParamScreenPiece *),CScreenPieceTemplate__CScreenPieceTemplate);
@@ -8011,6 +7993,9 @@ FUNCTION_AT_ADDRESS(void CLargeDialogWnd::Open(bool bYesNoEnabled, class CXStr D
 #endif
 #ifdef CWndDisplayManager__FindWindowA_x
 FUNCTION_AT_ADDRESS(int CWndDisplayManager::FindWindowA(bool bNewWnd),CWndDisplayManager__FindWindowA);
+#endif
+#ifdef CItemDisplayManager__CreateWindowInstance_x
+FUNCTION_AT_ADDRESS(int CItemDisplayManager::CreateWindowInstance(void),CItemDisplayManager__CreateWindowInstance);
 #endif
 #ifdef CSTMLboxTemplate__CSTMLboxTemplate_x
 FUNCTION_AT_ADDRESS( CSTMLboxTemplate::CSTMLboxTemplate(class CParamSTMLbox *),CSTMLboxTemplate__CSTMLboxTemplate);
@@ -8875,7 +8860,11 @@ FUNCTION_AT_ADDRESS(int  CTextureFont::GetWidth(unsigned short)const ,CTextureFo
 FUNCTION_AT_ADDRESS(int  CTextureFont::GetKerning(unsigned short,unsigned short)const ,CTextureFont__GetKerning);
 #endif
 #ifdef CTextureFont__GetTextExtent_x
-FUNCTION_AT_ADDRESS(int  CTextureFont::GetTextExtent(class CXStr)const ,CTextureFont__GetTextExtent);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(CXStr *),CTextureFont__GetTextExtent);
+#else
+FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(void),CTextureFont__GetTextExtent);
+#endif
 #endif
 #ifdef CTextureFont__GetHeight_x
 FUNCTION_AT_ADDRESS(int  CTextureFont::GetHeight(void)const ,CTextureFont__GetHeight);
@@ -9913,6 +9902,12 @@ FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, b
 #else
 FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool), PcZoneClient__HasAlternateAbility);
 #endif
+#endif
+#ifdef PcZoneClient__GetItemByID_x
+FUNCTION_AT_ADDRESS(PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex */*out*/), PcZoneClient__GetItemByID);
+#endif
+#ifdef PcZoneClient__GetItemByItemClass_x
+FUNCTION_AT_ADDRESS(PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex */*out*/), PcZoneClient__GetItemByItemClass);
 #endif
 #ifdef PcZoneClient__CanEquipItem_x
 FUNCTION_AT_ADDRESS(bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel), PcZoneClient__CanEquipItem);

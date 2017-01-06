@@ -859,36 +859,248 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
-
+enum eAugTypes
+{
+	AT_1 = 0x00000001,
+	AT_2 = 0x00000002,
+	AT_3 = 0x00000004,
+	AT_4 = 0x00000008,
+	AT_5 = 0x00000010,
+	AT_6 = 0x00000020,
+	AT_7 = 0x00000040,
+	AT_8 = 0x00000080,
+	AT_9 = 0x00000100,
+	AT_10 = 0x00000200,
+	AT_11 = 0x00000400,
+	AT_12 = 0x00000800,
+	AT_13 = 0x00001000,
+	AT_14 = 0x00002000,
+	AT_15 = 0x00004000,
+	AT_16 = 0x00008000,
+	AT_17 = 0x00010000,
+	AT_18 = 0x00020000,
+	AT_19 = 0x00040000,
+	AT_20 = 0x00080000,
+	AT_21 = 0x00100000,
+	AT_22 = 0x00200000,
+	AT_23 = 0x00400000,
+	AT_24 = 0x00800000,
+	AT_25 = 0x01000000,
+	AT_26 = 0x02000000,
+	AT_27 = 0x04000000,
+	AT_28 = 0x08000000,
+	AT_29 = 0x10000000,
+	AT_30 = 0x20000000,
+	AT_31 = 0x40000000,
+	AT_32 = 0x80000000
+};
 #ifndef ISXEQ
 void InsertAug(PSPAWNINFO pChar, PCHAR szLine)
 {
 	try {
+		CHAR szArg1[MAX_STRING] = { 0 };
+		CHAR szArg2[MAX_STRING] = { 0 };
+		GetArg(szArg1, szLine, 1);
+		GetArg(szArg2, szLine, 2);
 
+		PCONTENTS pCont = 0;
+		if (szArg1[0] != '\0' && IsNumber(szArg1)) {
+			if (szArg2[0] == '\0') {
+				//its an itemid...
+				int iID = atoi(szArg1);
+				pCont = FindItemByID(iID);
+			} else {
+				//it must be a slot then...
+				int slot1 = atoi(szArg1);
+				int slot2 = -1;
+				if (szArg2[0] != '\0') {
+					slot2 = atoi(szArg2);
+				}
+				pCont = FindItemBySlot(slot1, slot2);
+			}
+		} else if (szArg1[0] != '\0') {
+			//its a itemname....
+			pCont = FindItemByName(szArg1);
+		}
+		if (!pCont) {
+			WriteChatColor("/insertaug USAGE: /insertaug \ay#######\ax where ####### is the itemid OR \ay\"Item Name in Quotes\"\ax OR \ay## ##\ax where ## ## are slotnumbers the item is in.", CONCOLOR_WHITE);
+			WriteChatColor("Example1: /insertaug \ay41302\ax", CONCOLOR_WHITE);
+			WriteChatColor("Example2: /insertaug \ay\"Darkened Thick Banded Belt\"\ax", CONCOLOR_WHITE);
+			WriteChatColor("Example3: /insertaug \ay20 -1\ax", CONCOLOR_WHITE);
+			return;
+		}
 		if (PCHARINFO2 pMe = GetCharInfo2()) {
 			if (pMe->pInventoryArray) {
 				if (PCONTENTS pCursor = pMe->pInventoryArray->Inventory.Cursor) {
-					CItemDisplayManager*mgr =  pItemDisplayManager;
-					int index = mgr->FindWindowA(false);
-					//CXWnd* pwnd = pItemDisplayManager->pWindows;
-					PEQITEMWINDOW itemdis = (PEQITEMWINDOW)mgr->pWindows[0];
-					//itemdis->pItem = pCursor;
-					//CItemDisplayWnd*citemdisp = (CItemDisplayWnd*)itemdis;
-					//citemdisp->InsertAugmentRequest(5);
-					Sleep(0);
+					int Slot = 0;
+					bool bFits = false;
+					for (; Slot < 6; Slot++) {
+						int fit = ((EQ_Item*)pCont)->GetAugmentFitBySlot(&pCursor, Slot);
+						if (fit == 0) {
+							bFits = true;
+							break;
+						}
+					}
+					/*int TheAugType = pCursor->Item2->AugType;
+					int TheType1 = pCont->Item2->AugData.Sockets[0].Type;
+					int TheType2 = pCont->Item2->AugData.Sockets[1].Type;
+					int Check = (1 << (TheType1 - 1));
+					if ((TheAugType & Check) == 0)
+					{
+						Sleep(0);
+						//its a mismatch; 
+					}*/
+					if (bFits) {
+						if (CItemDisplayManager*mgr = pItemDisplayManager) {
+							int index = mgr->FindWindowA(true);
+							if (index == -1) {
+								index = mgr->CreateWindowInstance();
+							}
+							if (index > -1 && index < mgr->pWindows.Count) {
+								if (PEQITEMWINDOW itemdis = (PEQITEMWINDOW)mgr->pWindows[index]) {
+									CItemDisplayWnd*citemdisp = (CItemDisplayWnd*)itemdis;
+									citemdisp->SetItem(&pCont, 0);
+									if (PITEMINFO ptheAug = GetItemFromContents(pCursor)) {
+										//hack to bypass popupdialog...
+										int oldsolv = ptheAug->SolventItemID;
+										bool oldattn = ptheAug->Attuneable;
+										ptheAug->SolventItemID = 0;
+										ptheAug->Attuneable = false;
+										//now the actual function call...
+										citemdisp->InsertAugmentRequest(Slot);
+										//ok so lets restore the org values...
+										ptheAug->SolventItemID = oldsolv;
+										ptheAug->Attuneable = oldattn;
+									}
+									Sleep(0);
+								}
+							}
+						}
+					} else {
+						if (PITEMINFO ptheAug = GetItemFromContents(pCursor)) {
+							if (PITEMINFO ptheItem = GetItemFromContents(pCont)) {
+								WriteChatf("\ayCould NOT insert the\ax \at%s\ax into the \ag%s\ax", ptheAug->Name, ptheItem->Name);
+							}
+						}
+					}
 				}
 			}
-			//CItemDisplayWnd *itemdisp = new CItemDisplayWnd;
 		}
 	}
 	catch (...) {
 		Sleep(0);
 	}
-	WriteChatColor("Not Implemented fully yet.");
 }
 void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
 {
-	WriteChatColor("Not Implemented fully yet.");
+	try {
+		if (PCHARINFO2 pMe = GetCharInfo2()) {
+			if (pMe->pInventoryArray) {
+				if (PCONTENTS pCursor = pMe->pInventoryArray->Inventory.Cursor) {
+					if (PCHAR pError = pStringTable->getString(5478, NULL)) {
+						WriteChatColor(pError, CONCOLOR_YELLOW);
+					}
+					return;
+
+				}
+			}
+		}
+		CHAR szArg1[MAX_STRING] = { 0 };
+		CHAR szArg2[MAX_STRING] = { 0 };
+		GetArg(szArg1, szLine, 1);
+		GetArg(szArg2, szLine, 2);
+
+		PCONTENTS pCont = 0;
+		if (szArg2[0] != '\0' && IsNumber(szArg2)) {
+			//its an id
+			int iID = atoi(szArg2);
+			pCont = FindItemByID(iID);
+		} else if(szArg2[0] != '\0') {
+			//its a name...
+			pCont = FindItemByName(szArg2,true);
+		}
+		if (!pCont || szArg1[0] == '\0') {
+			WriteChatColor("/removeaug USAGE: /removeaug \ay<augid>\ax <#####> OR \ay<augname>\ax \"Name in quotes\" \ay<itemid>\ax <#####> OR \ay<itemname>\ax \"Name in quotes\"", CONCOLOR_WHITE);
+			WriteChatColor("NOTE! /removeaug \ayIS A CASE SENSITIVE FUNCTION\ax", CONCOLOR_WHITE);
+			WriteChatColor("Example1: /removeaug \ay50502\ax \ay41302\ax", CONCOLOR_WHITE);
+			WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
+			WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \ay41302\ax", CONCOLOR_WHITE);
+			WriteChatColor("Example2: /removeaug \ay50502\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
+			return;
+		}
+		int Slot = 0;
+		bool bFound = false;
+		int iID = 0;
+		if (IsNumber(szArg1)) {
+			//its an id
+			iID = atoi(szArg1);
+		}
+		PITEMINFO ptheAug = 0;
+		if (iID) {
+			for (; Slot < 6; Slot++) {
+				if (PCONTENTS pAug = pCont->GetContent(Slot)) {
+					if (iID == pAug->ID) {
+						if (ptheAug = GetItemFromContents(pAug)) {
+							//found it...
+							bFound = true;
+							break;
+						}
+					}
+				}
+			}
+		} else {
+			for (; Slot < 6; Slot++) {
+				if (PCONTENTS pAug = pCont->GetContent(Slot)) {
+					if (ptheAug = GetItemFromContents(pAug)) {
+						if (!_stricmp(ptheAug->Name, szArg1)) {
+							bFound = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		if (bFound) {
+			if (CItemDisplayManager*mgr = pItemDisplayManager) {
+				int index = mgr->FindWindowA(true);
+				if (index == -1) {
+					index = mgr->CreateWindowInstance();
+				}
+				if (index > -1 && index < mgr->pWindows.Count) {
+					if (PEQITEMWINDOW itemdis = (PEQITEMWINDOW)mgr->pWindows[index]) {
+						CItemDisplayWnd*citemdisp = (CItemDisplayWnd*)itemdis;
+						citemdisp->SetItem(&pCont, 0);
+						if (ptheAug) {
+							ItemIndex ii = { 0 };
+							PCONTENTS contout = 0;
+							PCONTENTS *pContsolv = ((PcZoneClient*)pPCData)->GetItemByID(&contout, ptheAug->SolventItemID, &ii);
+							if (!contout) {
+								pContsolv = ((PcZoneClient*)pPCData)->GetItemByItemClass(&contout, 64/*Universal Augment Solvent... aka perfect distiller...*/, &ii);
+							}
+							if (contout) {
+								//we shouldnt do the solvent thing for removals, people who macro this can click the ok button on the confirmation window...
+								citemdisp->RemoveAugmentRequest(Slot);
+							} else {
+								if (PCHAR pError = pStringTable->getString(5474, NULL)) {
+									WriteChatColor(pError, CONCOLOR_YELLOW);
+								}
+								return;
+							}
+						}
+					}
+				}
+			}
+		} else {
+			if (ptheAug) {
+				if (PITEMINFO ptheItem = GetItemFromContents(pCont)) {
+					WriteChatf("\ayCould NOT remove the\ax \at%s\ax from the \ag%s\ax", ptheAug->Name, ptheItem->Name);
+				}
+			}
+		}
+	}
+	catch (...) {
+		Sleep(0);
+	}
 }
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
 { 

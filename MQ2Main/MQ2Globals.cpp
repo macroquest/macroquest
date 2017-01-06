@@ -1648,6 +1648,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__UpdateStrings);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__InsertAugmentRequest);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__RemoveAugmentRequest);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetItem);
 	
 	INITIALIZE_EQGAME_OFFSET(CLabel__Draw);
 
@@ -1669,6 +1670,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__DrawItem);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__DrawLine);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__DrawSeparator);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__EnableLine);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__EnsureVisible);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ExtendSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetColumnMinWidth);
@@ -1683,6 +1685,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetItemText);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetSelList);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetSeparatorRect);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__InsertLine);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__RemoveLine);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColors);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColumnJustification);
@@ -1781,6 +1784,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 
 	INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText);
+	INITIALIZE_EQGAME_OFFSET(CTextureFont__GetTextExtent);
 
 	INITIALIZE_EQGAME_OFFSET(CWebManager__CreateHtmlWnd);
 
@@ -1875,7 +1879,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsKeyRingItem);
 #endif
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanGoInBag);
-
+	INITIALIZE_EQGAME_OFFSET(EQ_Item__GetAugmentFitBySlot);
+	
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__SetProgressBar);
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__Array);
 
@@ -1938,6 +1943,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetCurrentMod);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetModCap);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetItemByID);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetItemByItemClass);
+	
 	INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 	INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenContainer);
@@ -1972,6 +1980,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
 	INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__CreateWindowInstance);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
 	

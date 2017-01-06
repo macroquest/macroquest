@@ -525,7 +525,7 @@ typedef struct _CXSTR {
 } CXSTR, *PCXSTR;
 
 #define ITEM_NAME_LEN                   0x40
-#define LORE_NAME_LEN                   0x70
+#define LORE_NAME_LEN                   0x50
 
 // size is 0x64 02-16-2007
 typedef struct _ITEMSPELLS { 
@@ -571,33 +571,36 @@ public:
 typedef struct _ITEMINFO {
 	/*0x0000*/ CHAR         Name[ITEM_NAME_LEN];
 	/*0x0040*/ CHAR         LoreName[LORE_NAME_LEN];
-	/*0x00b0*/ CHAR         IDFile[0x20];
-	/*0x00d0*/ BYTE         Unknown0x00d0[0x1c];
-	/*0x00ec*/ DWORD        ItemNumber;//m_iRecordNum
-	/*0x00f0*/ DWORD        EquipSlots;
+	/*0x0040*/ CHAR         AdvancedLoreName[0x20];
+	/*0x00b0*/ CHAR         IDFile[0x1e];
+	/*0x00ce*/ CHAR         IDFile2[0x1e];
+	/*0x00ec*/ DWORD        ItemNumber;//recordnum
+	/*0x00f0*/ DWORD        EquipSlots;//its position, where it can be equipped
 	/*0x00f4*/ DWORD        Cost;
 	/*0x00f8*/ DWORD        IconNumber;
-	/*0x00fc*/ BYTE         Unknown0x00fc[0x4];
+	/*0x00fc*/ BYTE         eGMRequirement;//todo figure out this enum
+	/*0x00fd*/ bool         bPoofOnDeath;
 	/*0x0100*/ DWORD        Weight;
-	/*0x0104*/ BYTE         NoRent; // 0=temp, 1=default
-	/*0x0105*/ BYTE         NoDrop; // 0=no drop, 1=can drop
-	/*0x0106*/ BYTE         Attuneable;
-	/*0x0107*/ BYTE         Heirloom;
-	/*0x0108*/ BYTE         Collectible;
-	/*0x0109*/ BYTE         NoDestroy;
-	/*0x010a*/ BYTE         Unknown0x010a;
-	/*0x010b*/ BYTE         NoZone;
+	/*0x0104*/ bool         NoRent; // 0=temp, 1=default
+	/*0x0105*/ bool         NoDrop; // 0=no drop, 1=can drop
+	/*0x0106*/ bool         Attuneable;
+	/*0x0107*/ bool         Heirloom;
+	/*0x0108*/ bool         Collectible;
+	/*0x0109*/ bool         NoDestroy;
+	/*0x010a*/ bool         bNoNPC;
+	/*0x010b*/ bool         NoZone;
 	/*0x010c*/ DWORD        MakerID;//0-?? I did up to 12, I think it asks server for the name - eqmule
-	/*0x0110*/ BYTE         NoGround;
-	/*0x0111*/ BYTE         Unknown0x0111;
-	/*0x0112*/ BYTE         MarketPlace;
-	/*0x0113*/ BYTE         Unknown0x0113[0x2];
+	/*0x0110*/ bool         NoGround;
+	/*0x0111*/ bool         bNoLoot;
+	/*0x0112*/ bool         MarketPlace;
+	/*0x0113*/ bool         bFreeSlot;
+	/*0x0114*/ bool         bAutoUse;
 	/*0x0115*/ BYTE         Size;
 	/*0x0116*/ BYTE         Type;
-	/*0x0117*/ BYTE         TradeSkills;
-	/*0x0118*/ DWORD        Lore;
-	/*0x011c*/ BYTE         Artifact;
-	/*0x011d*/ BYTE         Summoned;
+	/*0x0117*/ bool         TradeSkills;
+	/*0x0118*/ int	        Lore;//-1=Lore 0=Not Lore >=1=Lore Group
+	/*0x011c*/ bool         Artifact;
+	/*0x011d*/ bool         Summoned;
 	/*0x011e*/ CHAR         SvCold;
 	/*0x011f*/ CHAR         SvFire;
 	/*0x0120*/ CHAR         SvMagic;
@@ -611,37 +614,34 @@ typedef struct _ITEMINFO {
 	/*0x0128*/ CHAR         CHA;
 	/*0x0129*/ CHAR         INT;
 	/*0x012a*/ CHAR         WIS;
-	/*0x012b*/ BYTE         HitPoints;
-	/*0x012c*/ DWORD        HP;
-	/*0x0130*/ DWORD        Mana;
-	/*0x0134*/ DWORD        AC;
-	/*0x0138*/ DWORD        RequiredLevel;
-	/*0x013c*/ DWORD        RecommendedLevel;
-	/*0x0140*/ BYTE         RecommendedSkill;
-	/*0x0141*/ BYTE         Unknown0x0141[0x3];
-	/*0x0144*/ DWORD        SkillModType;
-	/*0x0148*/ DWORD        SkillModValue;
-	/*0x014c*/ DWORD        SkillModMax;
-	/*0x0150*/ BYTE         Unknown0x0150[0x4];
-	/*0x0154*/ DWORD        BaneDMGRace;
-	/*0x0158*/ DWORD        BaneDMGBodyType;
-	/*0x015c*/ BYTE         BaneDMGBodyTypeValue;
-	/*0x015d*/ BYTE         BaneDMGRaceValue;
-	/*0x015e*/ BYTE         Unknown0x015e[0x6];
-	/*0x0164*/ DWORD        InstrumentType;
-	/*0x0168*/ DWORD        InstrumentMod;
-	/*0x016c*/ DWORD        Classes;
-	/*0x0170*/ DWORD        Races;
-	/*0x0174*/ DWORD        Diety;
-	/*0x0178*/ BYTE         Unknown0x0178[0x4];
-	/*0x017c*/ BYTE         Magic;
+	/*0x012b*/ //BYTE         HitPoints;
+	/*0x012c*/ int	        HP;
+	/*0x0130*/ int	        Mana;
+	/*0x0134*/ int	        AC;
+	/*0x0138*/ int	        RequiredLevel;
+	/*0x013c*/ int	        RecommendedLevel;
+	/*0x0140*/ int	        RecommendedSkill;
+	/*0x0144*/ int	        SkillModType;
+	/*0x0148*/ int	        SkillModValue;
+	/*0x014c*/ int	        SkillModMax;
+	/*0x0150*/ int	        SkillModBonus;
+	/*0x0154*/ int		    BaneDMGRace;
+	/*0x0158*/ int          BaneDMGBodyType;
+	/*0x015c*/ int          BaneDMGBodyTypeValue;
+	/*0x0160*/ int          BaneDMGRaceValue;
+	/*0x0164*/ int	        InstrumentType;
+	/*0x0168*/ int	        InstrumentMod;
+	/*0x016c*/ int	        Classes;
+	/*0x0170*/ int	        Races;
+	/*0x0174*/ int	        Diety;
+	/*0x0178*/ UINT         MaterialTintIndex;
+	/*0x017c*/ bool         Magic;
 	/*0x017d*/ BYTE         Light;
 	/*0x017e*/ BYTE         Delay;
 	/*0x017f*/ BYTE         ElementalFlag;//used to be called DmgBonusType;
 	/*0x0180*/ BYTE         ElementalDamage;//used to be called DmgBonusVal
 	/*0x0181*/ BYTE         Range;
-	/*0x0182*/ BYTE         Unknown0x0182[0x2];
-	/*0x0184*/ DWORD        Damage;
+	/*0x0184*/ DWORD        Damage;//BaseDamage
 	/*0x0188*/ DWORD        BackstabDamage;
 	/*0x018c*/ DWORD        HeroicSTR;
 	/*0x0190*/ DWORD        HeroicINT;
@@ -658,14 +658,14 @@ typedef struct _ITEMINFO {
 	/*0x01bc*/ DWORD        HeroicSvCorruption;
 	/*0x01c0*/ DWORD        HealAmount;
 	/*0x01c4*/ DWORD        SpellDamage;
-	/*0x01c8*/ DWORD        Prestige;
+	/*0x01c8*/ int	        Prestige;
 	/*0x01cc*/ BYTE         ItemType;
 	/*0x01d0*/ ArmorProperties ArmorProps;//size is 0x14
 	/*0x01e4*/ ItemSocketData AugData;
 	/*0x0214*/ DWORD        AugType;
-	/*0x0218*/ BYTE         AugMaskOfSomeSort;
+	/*0x0218*/ DWORD        AugSkinTypeMask;
 	/*0x021c*/ DWORD        AugRestrictions;
-	/*0x0220*/ DWORD        SolventNeeded; //ID# of Solvent (Augs only)
+	/*0x0220*/ DWORD        SolventItemID; //ID# of Solvent (Augs only)
 	/*0x0224*/ DWORD        LDTheme;
 	/*0x0228*/ DWORD        LDCost;
 	/*0x022c*/ DWORD        LDType;
@@ -701,28 +701,52 @@ typedef struct _ITEMINFO {
 	/*0x062a*/ CHAR         BookFile[0x1e];
 	/*0x0648*/ DWORD        Favor;         // Tribute Value
 	/*0x064c*/ DWORD        GuildFavor;
-	/*0x0650*/ BYTE         Unknown0x0650[0x4];
+	/*0x0650*/ bool         bIsFVNoDrop;
 	/*0x0654*/ DWORD        Endurance;
 	/*0x0658*/ DWORD        Attack;
 	/*0x065c*/ DWORD        HPRegen;
 	/*0x0660*/ DWORD        ManaRegen;
 	/*0x0664*/ DWORD        EnduranceRegen;
 	/*0x0668*/ DWORD        Haste;
-	/*0x066c*/ BYTE         Unknown0x066c[0x8];
-	/*0x0674*/ BYTE         NoPet;
-	/*0x0675*/ BYTE         Unknown0x0675[0xb];
+	/*0x066c*/ int          AnimationOverride;
+	/*0x0670*/ int          PaletteTintIndex;
+	/*0x0674*/ bool         bNoPetGive;
+	/*0x0675*/ bool			bSomeProfile;
+	/*0x0676*/ bool			bPotionBeltAllowed;
+	/*0x0678*/ int			NumPotionSlots;
+	/*0x067c*/ int			SomeIDFlag;
 	/*0x0680*/ DWORD        StackSize;
-	/*0x0684*/ BYTE         Unknown0x0684[0x4];
+	/*0x0684*/ bool         bNoStorage;
 	/*0x0688*/ DWORD        MaxPower;
 	/*0x068c*/ DWORD        Purity;
-	/*0x0690*/ BYTE         Unknown0x0690[0xc];
+	/*0x0690*/ bool         bIsEpic;
+	/*0x0694*/ int          RightClickScriptID;
+	/*0x0698*/ int          ItemLaunchScriptID;
 	/*0x069c*/ BYTE         QuestItem;
 	/*0x069d*/ BYTE         Expendable;
-	/*0x069e*/ BYTE         Unknown0x069e[0x2];
 	/*0x06a0*/ DWORD        Clairvoyance;
-	/*0x06a4*/ BYTE         Unknown0x06a4[0x8];
+	/*0x06a4*/ int          SubClass;
+	/*0x06a8*/ bool         bLoginRegReqItem;
 	/*0x06ac*/ DWORD        Placeable;
-	/*0x06b0*/ BYTE			Unknown0x06b0[0x84];
+	/*0x06b0*/ bool         bPlaceableIgnoreCollisions;
+	/*0x06b4*/ int          PlacementType;//todo: this is an enum need to figure out.
+	/*0x06b8*/ int          RealEstateDefID;
+	/*0x06bc*/ FLOAT        PlaceableScaleRangeMin;
+	/*0x06c0*/ FLOAT        PlaceableScaleRangeMax;
+	/*0x06c4*/ int          RealEstateUpkeepID;
+	/*0x06c8*/ int          MaxPerRealEstate;
+	/*0x06cc*/ CHAR			HousepetFileName[0x20];
+	/*0x06ec*/ int			TrophyBenefitID;
+	/*0x06f0*/ bool			bDisablePlacementRotation;
+	/*0x06f1*/ bool			bDisableFreePlacement;
+	/*0x06f4*/ int			NpcRespawnInterval;
+	/*0x06f8*/ FLOAT		PlaceableDefScale;
+	/*0x06fc*/ FLOAT		PlaceableDefHeading;
+	/*0x0700*/ FLOAT		PlaceableDefPitch;
+	/*0x0704*/ FLOAT		PlaceableDefRoll;
+	/*0x0708*/ bool			bInteractiveObject;
+	/*0x0709*/ BYTE			SocketSubClassCount;
+	/*0x070c*/ int			SocketSubClass[0xa];
 	/*0x0734*/
 } ITEMINFO, *PITEMINFO;
 
@@ -799,6 +823,10 @@ public:
 class CDynamicArrayBase
 {
 public:
+	inline int GetLength() const
+	{
+		return Count;
+	}
 /*0x1188*/	int Count;
 };
 //this class has some members like Reset and so on
@@ -850,14 +878,107 @@ template <typename ArrayType> ArrayClass2<ArrayType>& ArrayClass2<ArrayType>::op
 	return *this;
 }
 
-template <typename ElementType> class ArrayClass : public CDynamicArrayBase
+template <typename ArrayType> class ArrayClass : public CDynamicArrayBase
 {
-private:
-/*0x118c*/	ElementType* elements;
+public:
+/*0x118c*/	ArrayType* elements;
 /*0x1190*/	int elementAlloc;
-/*0x1194*/	bool isValid;
+/*0x1194*/	bool bIsValid;
 /*0x1198*/
+ArrayClass();
+~ArrayClass();
+void ArrayClass<ArrayType>::Add(const ArrayType& element);
+void ArrayClass<ArrayType>::SetElementIdx(int Index, const ArrayType& element);
+void ArrayClass<ArrayType>::Assure(int MemAlloc);
+void ArrayClass<ArrayType>::InsertElement(int Index, const ArrayType& element);
+void ArrayClass<ArrayType>::Reset(bool bDeleteItems = true);
+ArrayType& ArrayClass<ArrayType>::operator[] (int Index);
 };
+template <typename ArrayType> inline ArrayType& ArrayClass<ArrayType>::operator[] (int Index)
+{
+	if (Index >= 0 && Index < Count && elements)
+	{
+		return elements[Index];
+	}
+}
+template <typename ArrayType> inline ArrayClass<ArrayType>::ArrayClass()
+{
+	elements = 0;
+	Count = 0;
+	elementAlloc = 0;
+	bIsValid = true;
+}
+template <typename ArrayType> inline void ArrayClass<ArrayType>::Reset(bool bDeleteItems)
+{
+	if (bDeleteItems && elements)
+	{
+		delete [] elements;
+	}
+	Count = 0;
+	elements = 0;
+	elementAlloc = 0;
+}
+template <typename ArrayType> inline ArrayClass<ArrayType>::~ArrayClass()
+{
+	Reset();
+}
+template <typename ArrayType> inline void ArrayClass<ArrayType>::Assure(int MemAlloc)
+{
+	if (MemAlloc) {
+		if (MemAlloc > elementAlloc || !elements) {
+			ArrayType* AT = new ArrayType[(MemAlloc+4)*2];
+			if (AT)	{
+				if (elements) {
+					for (int i = 0; i < Count; i++)	{
+						AT[i] = elements[i];
+					}
+					delete [] elements;
+				}
+				elements = AT;
+				elementAlloc = (MemAlloc+4)*2;
+			} else {
+				delete [] elements;
+				elements = 0;
+				elementAlloc = 0;
+				bIsValid = false;
+			}
+		}
+	}
+}
+template <typename ArrayType> inline void ArrayClass<ArrayType>::SetElementIdx(int Index, const ArrayType& element)
+{
+	if (Index < 0)
+		return;
+	if (Index >= Count)
+	{
+		Assure(Index+1);
+		if (elements)
+			Count = Index+1;
+	}
+	if (elements)
+		elements[Index] = element;
+}
+template <typename ArrayType> inline void ArrayClass<ArrayType>::Add(const ArrayType& element)
+{
+	SetElementIdx(Count, element);
+}
+template <typename ArrayType> inline void ArrayClass<ArrayType>::InsertElement(int Index, const ArrayType& element)
+{
+	if (Index < 0)
+		return;
+	if (Index >= Count) {
+		SetElementIdx(Index, element);
+		return;
+	}
+	Assure(Count+1);
+	if (!elements)
+		return;
+	for (int i = Count; i > Index; i--) {
+		elements[i] = elements[i - 1];
+	}
+	elements[Index] = element;
+	Count++;
+}
 class ItemArray
 {
 public:
@@ -1278,12 +1399,30 @@ union {
 };
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
+struct WorldLocation
+{
+/*0x00*/ DWORD        ZoneBoundID;
+/*0x04*/ FLOAT        ZoneBoundY;
+/*0x08*/ FLOAT        ZoneBoundX;
+/*0x0c*/ FLOAT        ZoneBoundZ;
+/*0x10*/ FLOAT        ZoneBoundHeading;
+/*0x14*/
+};
+template <typename TheType, unsigned int _Size> class TSafeArrayStatic
+{
+public:
+	TheType Data[_Size];
+	inline TheType& operator[](UINT index)
+	{ 
+		return Data[index]; 
+	}
+};
 //aSdeityD CharInfo2__CharInfo2
 // actual size: 0x9a28 2016 04 13 test (see 85B22A) - eqmule
 typedef struct _CHARINFO2 {
 /*0x0000*/ BYTE         Unknown0x0000[0x10];
-/*0x0010*/ DWORD        BaseProfile;
-/*0x0014*/ DWORD        Unknown0x0014;
+/*0x0010*/ DWORD         BaseProfile;
+/*0x0014*/ DWORD         Unknown0x0014;
 /*0x0018*/ struct _INVENTORYARRAY*      pInventoryArray;
 /*0x001c*/ BYTE         Unknown0x001c[0x48];
 /*0x0064*/ struct _SPELLBUFF    Buff[NUM_LONG_BUFFS];
@@ -1325,12 +1464,7 @@ typedef struct _CHARINFO2 {
 /*0x34ec*/ BYTE         Unknown0x34ec[0x4];
 /*0x34f0*/ DWORD        Shrouded;
 /*0x34f4*/ BYTE         Unknown0x34f4[0x74];
-/*0x3568*/ DWORD        ZoneBoundID;
-/*0x356c*/ FLOAT        ZoneBoundY;
-/*0x3570*/ FLOAT        ZoneBoundX;
-/*0x3574*/ FLOAT        ZoneBoundZ;
-/*0x3578*/ FLOAT        ZoneBoundHeading;
-/*0x357c*/ BYTE         Unknown0x357c[0x50];
+/*0x3568*/ TSafeArrayStatic<WorldLocation, 5> BoundLocations;//size 0x64
 /*0x35cc*/ DWORD        ArmorType[0x16];
 /*0x3624*/ BYTE         Unknown0x3624[0x160];
 /*0x3784*/ AALIST       AAList[AA_CHAR_MAX_REAL];
@@ -1895,11 +2029,7 @@ enum InvisibleTypes
 	eUndead,
 	eAnimal
 };
-template <typename TheType, unsigned int _Size> class TSafeArrayStatic
-{
-public:
-	TheType Data[_Size];
-};
+
 enum GravityBehavior
 {
 	Ground,
@@ -2117,7 +2247,7 @@ SPAWNINFOHEADER
 /*0x12a0*/ FLOAT	MaxSpeakDistance;
 /*0x12a4*/ FLOAT	WalkSpeed;//how much we will slow down while sneaking
 /*0x12a8*/ bool		bHideCorpse;// IT IS 0x12a8
-/*0x12a9*/ BYTE		AssistName[0x40];
+/*0x12a9*/ CHAR		AssistName[0x40];
 /*0x12E9*/ bool		InvitedToGroup;//IT IS 12E9!
 /*0x12ec*/ int		GroupMemberTargeted;//12ec for sure!    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x12f0*/ bool		bRemovalPending;

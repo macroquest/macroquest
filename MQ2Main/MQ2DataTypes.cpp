@@ -1939,6 +1939,148 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord = pCharSpawn->CanSeeTargetIndicator(&sv3);
 		Dest.Type = pBoolType;
 		return true;
+	case IsBerserk:
+		Dest.DWord = pSpawn->berserker;
+		Dest.Type = pIntType;
+		return true;
+	case pTouchingSwitch:
+		Dest.DWord = (DWORD)pSpawn->pTouchingSwitch;
+		Dest.Type = pIntType;
+		return true;
+	case bShowHelm:
+		Dest.DWord = pSpawn->bShowHelm;
+		Dest.Type = pBoolType;
+		return true;
+	case CorpseDragCount:
+		Dest.DWord = pSpawn->CorpseDragCount;
+		Dest.Type = pIntType;
+		return true;
+	case bBetaBuffed:
+		Dest.DWord = pSpawn->bBetaBuffed;
+		Dest.Type = pBoolType;
+		return true;
+	case CombatSkillTicks:
+		if (ISNUMBER()) {
+			int index = GETNUMBER();
+			if (index < 0)
+				index = 0;
+			if (index > 1)
+				index = 1;
+			Dest.DWord = pSpawn->CombatSkillTicks[index];
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case FD:
+		Dest.DWord = pSpawn->FD;
+		Dest.Type = pIntType;
+		return true;
+	case InPvPArea:
+		Dest.DWord = pSpawn->InPvPArea;
+		Dest.Type = pIntType;
+		return true;
+	case bAlwaysShowAura:
+		Dest.DWord = pSpawn->bAlwaysShowAura;
+		Dest.Type = pBoolType;
+		return true;
+	case GMRank:
+		Dest.DWord = pSpawn->GMRank;
+		Dest.Type = pIntType;
+		return true;
+	case WarCry:
+		Dest.DWord = pSpawn->WarCry;
+		Dest.Type = pIntType;
+		return true;
+	case IsPassenger:
+		Dest.DWord = pSpawn->IsPassenger;
+		Dest.Type = pIntType;
+		return true;
+	case LastCastTime:
+		Dest.DWord = pSpawn->LastCastTime;
+		Dest.Type = pIntType;
+		return true;
+	case DragNames:
+		if (ISNUMBER()) {
+			int index = GETNUMBER();
+			if (index < 0)
+				index = 0;
+			if (index > 1)
+				index = 1;
+			strcpy_s(DataTypeTemp, pSpawn->DragNames[index]);
+			Dest.Ptr = DataTypeTemp;
+			Dest.Type = pStringType;
+			return true;
+		}
+		break;
+	case DraggingPlayer:
+		strcpy_s(DataTypeTemp, pSpawn->DraggingPlayer);
+		Dest.Ptr = DataTypeTemp;
+		Dest.Type = pStringType;
+	case bStationary:
+		Dest.DWord = pSpawn->bStationary;
+		Dest.Type = pBoolType;
+		return true;
+	case BearingToTarget:
+		Dest.Float = pSpawn->BearingToTarget;
+		Dest.Type = pFloatType;
+		return true;
+	case bTempPet:
+		Dest.DWord = pSpawn->bTempPet;
+		Dest.Type = pBoolType;
+		return true;
+	case HoldingAnimation:
+		Dest.DWord = pSpawn->HoldingAnimation;
+		Dest.Type = pIntType;
+		return true;
+	case Blind:
+		Dest.DWord = pSpawn->Blind;
+		Dest.Type = pIntType;
+		return true;
+	case LastCastNum:
+		Dest.DWord = pSpawn->LastCastNum;
+		Dest.Type = pIntType;
+		return true;
+	case CollisionCounter:
+		Dest.DWord = pSpawn->CollisionCounter;
+		Dest.Type = pIntType;
+		return true;
+	case CeilingHeightAtCurrLocation:
+		Dest.Float = pSpawn->CeilingHeightAtCurrLocation;
+		Dest.Type = pFloatType;
+		return true;
+	case AssistName:
+		strcpy_s(DataTypeTemp, pSpawn->AssistName);
+		Dest.Ptr = DataTypeTemp;
+		Dest.Type = pStringType;
+		return true;
+	case SeeInvis:
+		if (ISNUMBER()) {
+			int index = GETNUMBER();
+			if (index < 0)
+				index = 0;
+			if (index > 2)
+				index = 2;
+			Dest.DWord = pSpawn->SeeInvis[index];
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case SpawnStatus:
+		if (ISNUMBER()) {
+			int index = GETNUMBER();
+			if (index < 0)
+				index = 0;
+			if (index > 5)
+				index = 5;
+			Dest.DWord = pSpawn->SpawnStatus[index];
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case bWaitingForPort:
+		Dest.DWord = pSpawn->bWaitingForPort;
+		Dest.Type = pBoolType;
+		return true;
 	default:
 		return false;
 		}
@@ -4206,8 +4348,8 @@ bool MQ2CharacterType::GETMEMBER()
 		break;
 	case ZoneBound:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			if (pChar2->ZoneBoundID) {
-				Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar2->ZoneBoundID];
+			if (pChar2->BoundLocations[0].ZoneBoundID) {
+				Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar2->BoundLocations[0].ZoneBoundID];
 				Dest.Type = pZoneType;
 				return true;
 			}
@@ -4216,21 +4358,21 @@ bool MQ2CharacterType::GETMEMBER()
 	case ZoneBoundX:
 		Dest.Float = 0;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			Dest.Float = pChar2->ZoneBoundX;
+			Dest.Float = pChar2->BoundLocations[0].ZoneBoundX;
 		}
 		Dest.Type = pFloatType;
 		return true;
 	case ZoneBoundY:
 		Dest.Float = 0;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			Dest.Float = pChar2->ZoneBoundY;
+			Dest.Float = pChar2->BoundLocations[0].ZoneBoundY;
 		}
 		Dest.Type = pFloatType;
 		return true;
 	case ZoneBoundZ:
 		Dest.Float = 0;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			Dest.Float = pChar2->ZoneBoundZ;
+			Dest.Float = pChar2->BoundLocations[0].ZoneBoundZ;
 		}
 		Dest.Type = pFloatType;
 		return true;
@@ -4879,9 +5021,6 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case GuildID:
 	{
-		LARGE_INTEGER theguildid = { 0 };
-		theguildid.QuadPart = pChar->GuildID;
-		//Dest.DWord = theguildid.LowPart;
 		Dest.UInt64 = pChar->GuildID;
 		Dest.Type = pInt64Type;
 		return true;
@@ -4890,6 +5029,18 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->ExpansionFlags;
 		Dest.Type = pIntType;
 		return true;
+	case BoundLocation:
+		if (ISNUMBER()) {
+			int index = GETNUMBER();
+			if (index < 0)
+				index = 0;
+			if (index > 4)
+				index = 4;
+			Dest.DWord = index;
+			Dest.Type = pWorldLocationType;
+			return true;
+		}
+		break;
 		//end of MQ2CharacterType
 	}
 	return false;
@@ -6544,6 +6695,23 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->AugRestrictions;
 		Dest.Type = pIntType;
 		return true;
+	case AugSlot:
+		if (ISNUMBER()) {
+			if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) {
+				Dest.DWord = 0;
+			} else {
+				int index = GETNUMBER();
+				if (index < 0)
+					index = 0;
+				if (index > 5)
+					index = 5;
+				Dest.DWord = index;
+				Dest.HighPart = (LONG)pItem;
+			}
+			Dest.Type = pAugType;
+			return true;
+		}
+		break;
 	case AugSlot1:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -6551,6 +6719,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[0].Type;
 		Dest.Type = pIntType;
 		return true;
+
 	case AugSlot2:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -12319,6 +12488,132 @@ bool MQ2AlertListType::GETMEMBER()
 	}
 	catch (...) {
 		MessageBox(NULL, "CRAP! in AlertType", "An exception occured", MB_OK);
+	}
+	return false;
+}
+
+bool MQ2WorldLocationType::GETMEMBER()
+{
+	try {
+		DWORD index = VarPtr.DWord;
+		PMQ2TYPEMEMBER pMember = MQ2WorldLocationType::FindMember(Member);
+		if (!pMember)
+			return false;
+		PCHARINFO2 pChar2 = GetCharInfo2();
+		if (!pChar2)
+			return false;
+
+		switch ((WorldLocationTypeMembers)pMember->ID)
+		{
+			case ID:
+			{	
+				int zindex = pChar2->BoundLocations[index].ZoneBoundID;
+				Dest.DWord = zindex;
+				Dest.Type = pIntType;
+				return true;
+			}
+			case Zone:
+			{
+				int zindex = pChar2->BoundLocations[index].ZoneBoundID & 0x7FFF;
+				if (zindex < MAX_ZONES)
+				{
+					Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[zindex];
+					Dest.Type = pZoneType;
+				}
+				if (!Dest.Ptr)
+					return false;
+				return true;
+			}
+			case Y:
+				Dest.Float = pChar2->BoundLocations[index].ZoneBoundY;
+				Dest.Type = pFloatType;
+				return true;
+			case X:
+				Dest.Float = pChar2->BoundLocations[index].ZoneBoundX;
+				Dest.Type = pFloatType;
+				return true;
+			case Z:
+				Dest.Float = pChar2->BoundLocations[index].ZoneBoundZ;
+				Dest.Type = pFloatType;
+				return true;
+			case Heading:
+				Dest.Float = pChar2->BoundLocations[index].ZoneBoundHeading;
+				Dest.Type = pFloatType;
+				return true;
+			default:
+				return false;
+		};
+	}
+	catch (...) {
+		MessageBox(NULL, "CRAP! in MQ2WorldLocationType", "An exception occured", MB_OK);
+	}
+	return false;
+}
+
+bool MQ2AugType::GETMEMBER()
+{
+	try {
+		DWORD index = VarPtr.DWord;
+		PCONTENTS pCont = (PCONTENTS)VarPtr.HighPart;
+		if (!pCont)
+			return false;
+		PITEMINFO pItem = GetItemFromContents(pCont);
+		if (!pItem)
+			return false;
+
+		PMQ2TYPEMEMBER pMember = MQ2AugType::FindMember(Member);
+		if (!pMember)
+			return false;
+		switch ((AugTypeMembers)pMember->ID)
+		{
+			case Slot:
+			{	
+				Dest.DWord = index+1;
+				Dest.Type = pIntType;
+				return true;
+			}
+			case Type:
+				Dest.DWord = pItem->AugData.Sockets[index].Type;
+				Dest.Type = pIntType;
+				return true;
+			case Visible:
+				Dest.DWord = pItem->AugData.Sockets[index].bVisible;
+				Dest.Type = pBoolType;
+				return true;
+			case Infusable:
+				Dest.DWord = pItem->AugData.Sockets[index].bInfusible;
+				Dest.Type = pBoolType;
+				return true;
+			case Empty:
+				Dest.DWord = true;
+				if (PCONTENTS pCret = pCont->GetContent(index)) {
+					Dest.DWord = false;
+				}
+				Dest.Type = pBoolType;
+				return true;
+			case Name:
+				if (PCONTENTS pCret = pCont->GetContent(index)) {
+					if (PITEMINFO pAug = GetItemFromContents(pCret)) {
+						strcpy_s(DataTypeTemp, pAug->Name);
+						Dest.Ptr = DataTypeTemp;
+						Dest.Type = pStringType;
+						return true;
+					}
+				}
+				break;
+			case Item:
+				if (PCONTENTS pCret = pCont->GetContent(index)) {
+					Dest.Ptr = pCret;
+					Dest.Type = pItemType;
+					return true;
+				}
+				break;
+			default:
+				return false;
+		};
+	}
+	catch (...) {
+		MessageBox(NULL, "CRAP! in AugType", "An exception occured", MB_OK);
 	}
 	return false;
 }
