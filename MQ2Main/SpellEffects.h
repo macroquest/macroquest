@@ -17,7 +17,7 @@
  * https://forums.station.sony.com/eq/index.php?threads/enumerated-spa-list.206288/
  * Enumerated SPA list
  */
-		"HP",                                   // 000
+        "HP",                                   // 000
         "AC",                                   // 001
         "ATK",                                  // 002
         "Movement Rate",                        // 003
@@ -56,7 +56,7 @@
         "Poison Counter",                       // 036
         "Detect Hostile",                       // 037
         "Detect Magic",                         // 038
-        "Stacking: No Twincast",				// 039
+        "Stacking: No Twincast",                // 039
         "Invulnerability",                      // 040
         "Banish",                               // 041
         "Shadow Step",                          // 042
@@ -313,8 +313,8 @@
         "StunResist2",                          // 293
         "Spell Crit Chance",                    // 294
         "Reduce Timer Special",                 // 295
-        "Incoming Spell Damage",                // 296
-        "Empathy",                              // 297
+		"Incoming Spell Damage",                // 296
+		"Incoming Spell Damage Amt",            // 297
         "Pet Height",                           // 298
         "Wake the Dead",                        // 299
         "Doppelganger",                         // 300
@@ -452,7 +452,7 @@
         "ExpandMaxActiveTrophyBenefits",        // 432
         "Min Damage",                           // 433
         "Min Damage",                           // 434
-        "Fragile Defense",						// 435
+        "Fragile Defense",                      // 435
         "Beneficial Countdown Hold",            // 436
         "Teleport",                             // 437
         "Translocate",                          // 438
@@ -476,41 +476,40 @@
         "Add Hate Over Time",                   // 456
         "Resource Tap",                         // 457
         "Faction",                              // 458
-		"Skill Damage Mod 2",					// 459
-		"Limit: Include Non-Focusable",			// 460
-		"Spell Damage 2",						// 461
-		"Spell Damage Amt 2",					// 462
-		"Shield Target",						// 463
-		"PC Pet Rampage",						// 464
-		"PC Pet AE Rampage",					// 465
-		"PC Pet Flurry Chance",					// 466
-		"DS Mitigation Amt",					// 467
-		"DS Mitigation Percentage",				// 468
-		"Chance Best in Spell Group",			// 469
-		"Trigger Best in Spell Group",			// 470
-		"Double Melee Round(PC Only)",			// 471
-		"Toggle Passive AA Rank",				// 472 
-		"Double Backstab From Front",			// 473 
-		"Pet Crit Melee Damage",				// 474 
-		"Trigger Spell Non-Item",				// 475
-		"Weapon Stance",						// 476
-		"Move to Top of Hatelist",				// 477
-		"Move to Bottom of Hatelist",			// 478
-		"Limit: Value",							// 479
-		"Limit: Value",							// 480
-		"Trigger Spell",						// 481
-		"Base Hit Damage",						// 482
-		"Spell Damage taken",					// 483
-		"Spell Damage taken",					// 484
-		"Limit: CasterClass",					// 485
-		"Limit: Caster",						// 486
-		"Extend Tradeskill Cap",				// 487
-		"Defender Melee Force % (PC)",			// 488
-		"Worn Endurance Regen Cap",				// 489
-		"Ff_ReuseTimeMin",						// 490
-		"Ff_ReuseTimeMax",						// 491
-		"Ff_Endurance_Min",						// 492
-		"Ff_Endurance_Max",						// 493
-		"Pet Add Atk",							// 494
-		"Ff_DurationMax",						// 495
-
+        "Skill Damage Mod 2",                   // 459
+        "Limit: Include Non-Focusable",         // 460
+        "Spell Damage 2",                       // 461
+        "Spell Damage Amt 2",                   // 462
+        "Shield Target",                        // 463
+        "PC Pet Rampage",                       // 464
+        "PC Pet AE Rampage",                    // 465
+        "PC Pet Flurry Chance",                 // 466
+        "DS Mitigation Amt",                    // 467
+        "DS Mitigation Percentage",             // 468
+        "Chance Best in Spell Group",           // 469
+        "Trigger Best in Spell Group",          // 470
+        "Double Melee Round(PC Only)",          // 471
+        "Toggle Passive AA Rank",               // 472
+        "Double Backstab From Front",           // 473
+        "Pet Crit Melee Damage",                // 474
+        "Trigger Spell Non-Item",               // 475
+        "Weapon Stance",                        // 476
+        "Move to Top of Hatelist",              // 477
+        "Move to Bottom of Hatelist",           // 478
+        "Limit: Value",                         // 479
+        "Limit: Value",                         // 480
+        "Trigger Spell",                        // 481
+        "Base Hit Damage",                      // 482
+        "Spell Damage taken",                   // 483
+        "Spell Damage taken",                   // 484
+        "Limit: CasterClass",                   // 485
+        "Limit: Caster",                        // 486
+        "Extend Tradeskill Cap",                // 487
+        "Defender Melee Force % (PC)",          // 488
+        "Worn Endurance Regen Cap",             // 489
+        "Ff_ReuseTimeMin",                      // 490
+        "Ff_ReuseTimeMax",                      // 491
+        "Ff_Endurance_Min",                     // 492
+        "Ff_Endurance_Max",                     // 493
+        "Pet Add Atk",                          // 494
+        "Ff_DurationMax",                       // 495

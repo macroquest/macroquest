@@ -4731,6 +4731,12 @@ FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int),EQ_PC__GetC
 #ifdef EQ_PC__HasLoreItem_x
 FUNCTION_AT_ADDRESS(bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int),EQ_PC__HasLoreItem);
 #endif
+#ifdef EQ_PC__GetItemContainedRealEstateIds_x
+FUNCTION_AT_ADDRESS(void EQ_PC::GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate>&, bool, bool, bool),EQ_PC__GetItemContainedRealEstateIds);
+#endif
+#ifdef EQ_PC__GetNonArchivedOwnedRealEstates_x
+FUNCTION_AT_ADDRESS(void EQ_PC::GetNonArchivedOwnedRealEstates(ArrayClass<int>&),EQ_PC__GetNonArchivedOwnedRealEstates);
+#endif
 #ifdef CInvSlot__HandleLButtonDown_x
 FUNCTION_AT_ADDRESS(void  CInvSlot::HandleLButtonDown(class CXPoint),CInvSlot__HandleLButtonDown);
 #endif
@@ -5420,6 +5426,9 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::HasProperty(unsigned int,int,int),PlayerBase_
 #ifdef PlayerBase__GetVisibilityLineSegment_x
 FUNCTION_AT_ADDRESS(class CLineSegment &EQPlayer::GetVisibilityLineSegment(class CLineSegment&, class EQPlayer&,unsigned int),PlayerBase__GetVisibilityLineSegment);
 #endif
+#ifdef EQPlayer__GetAdjustedSkill_x
+FUNCTION_AT_ADDRESS(int EQPlayer::GetAdjustedSkill(int),EQPlayer__GetAdjustedSkill);
+#endif
 #ifdef EQPlayer__SetEyeMaterial_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::SetEyeMaterial(unsigned char,int),EQPlayer__SetEyeMaterial);
 #endif
@@ -5601,7 +5610,7 @@ FUNCTION_AT_ADDRESS(unsigned char  EQSwitch::SwitchWasOpenedActual(int,int,class
 FUNCTION_AT_ADDRESS(unsigned char  EQSwitch::SwitchIsNotUsable(int),EQSwitch__SwitchIsNotUsable);
 #endif
 #ifdef EQSwitch__UseSwitch_x
-FUNCTION_AT_ADDRESS(void  EQSwitch::UseSwitch(DWORD,DWORD,DWORD,DWORD),EQSwitch__UseSwitch);
+FUNCTION_AT_ADDRESS(void  EQSwitch::UseSwitch(UINT,int,int,const CVector3*),EQSwitch__UseSwitch);
 #endif
 #ifdef EQSwitch__LoadSwitchSounds_x
 FUNCTION_AT_ADDRESS(void  EQSwitch::LoadSwitchSounds(int),EQSwitch__LoadSwitchSounds);

@@ -154,6 +154,7 @@ namespace MQ2Globals
 		ppFriendsWnd = (CFriendsWnd**)pinstCFriendsWnd;
 		ppMusicPlayerWnd = (CMusicPlayerWnd**)pinstCMusicPlayerWnd;
 		
+		ppRealEstateItemsWnd = (CRealEstateItemsWnd**)pinstCRealEstateItemsWnd;
 		ppAchievementsWnd = (CAchievementsWnd**)pinstCAchievementsWnd;
 		ppAlarmWnd = (CAlarmWnd**)pinstCAlarmWnd;
 		ppLoadskinWnd = (CLoadskinWnd**)pinstCLoadskinWnd;
@@ -1137,6 +1138,8 @@ namespace MQ2Globals
 	CBookWnd **ppBookWnd = 0;
 	CFriendsWnd **ppFriendsWnd = 0;
 	CMusicPlayerWnd **ppMusicPlayerWnd = 0;
+	
+	CRealEstateItemsWnd **ppRealEstateItemsWnd = 0;
 	CAchievementsWnd **ppAchievementsWnd = 0;
 	CAlarmWnd **ppAlarmWnd = 0;
 	CLoadskinWnd **ppLoadskinWnd = 0;
@@ -1353,7 +1356,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstPlayerPath);
 	INITIALIZE_EQGAME_OFFSET(pinstTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(pinstCTargetManager);
+	INITIALIZE_EQGAME_OFFSET(EQObject_Top);
+	INITIALIZE_EQGAME_OFFSET(pinstRealEstateItems);
 		
+	INITIALIZE_EQGAME_OFFSET(pinstCRealEstateItemsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCAchievementsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTextOverlay);
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
@@ -1892,6 +1898,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetCombatAbilityTimer);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetItemRecastTimer);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__HasLoreItem);
+	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetItemContainedRealEstateIds);
+	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetNonArchivedOwnedRealEstates);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__RemoveMyAffect);
 #ifndef EMU
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetKeyRingItems);
@@ -1915,6 +1923,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
+	INITIALIZE_EQGAME_OFFSET(EQPlayer__GetAdjustedSkill);
 	
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);

@@ -519,6 +519,7 @@ namespace MQ2Globals
 	EQLIB_VAR CFriendsWnd **ppFriendsWnd;
 	EQLIB_VAR CMusicPlayerWnd **ppMusicPlayerWnd;
 	
+	EQLIB_VAR CRealEstateItemsWnd **ppRealEstateItemsWnd;
 	EQLIB_VAR CAchievementsWnd **ppAchievementsWnd;
 	EQLIB_VAR CAlarmWnd **ppAlarmWnd;
 	EQLIB_VAR CLoadskinWnd **ppLoadskinWnd;
@@ -615,6 +616,7 @@ namespace MQ2Globals
 #define pBookWnd (*ppBookWnd)
 #define pFriendsWnd (*ppFriendsWnd)
 #define pMusicPlayerWnd (*ppMusicPlayerWnd)
+#define pRealEstateItemsWnd (*ppRealEstateItemsWnd)
 #define pAchievementsWnd (*ppAchievementsWnd)
 #define pAlarmWnd (*ppAlarmWnd)
 #define pLoadskinWnd (*ppLoadskinWnd)
@@ -821,7 +823,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstPlayerPath;
 	EQLIB_VAR DWORD pinstTargetIndicator;
 	EQLIB_VAR DWORD pinstCTargetManager;
+	EQLIB_VAR DWORD EQObject_Top;
+	EQLIB_VAR DWORD pinstRealEstateItems;
 	
+	EQLIB_VAR DWORD pinstCRealEstateItemsWnd;
 	EQLIB_VAR DWORD pinstCAchievementsWnd;
 	EQLIB_VAR DWORD pinstCTextOverlay;
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
@@ -1361,7 +1366,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_PC__HasLoreItem;
 	EQLIB_VAR DWORD EQ_PC__RemoveMyAffect;
 	EQLIB_VAR DWORD EQ_PC__GetKeyRingItems;
-
+	EQLIB_VAR DWORD EQ_PC__GetItemContainedRealEstateIds;
+	EQLIB_VAR DWORD EQ_PC__GetNonArchivedOwnedRealEstates;
+	
 	EQLIB_VAR DWORD ItemBaseContainer__ItemBaseContainer;
 	EQLIB_VAR DWORD ItemBaseContainer__CreateItemGlobalIndex;
 
@@ -1384,6 +1391,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
 	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
+	EQLIB_VAR DWORD EQPlayer__GetAdjustedSkill;
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;

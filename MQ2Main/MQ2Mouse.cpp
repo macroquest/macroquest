@@ -391,25 +391,36 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 				if (!_strnicmp(szArg1, "left", 4)) {
 					if(DoorEnviroTarget.Name[0]!=0) {
 						if(DistanceToSpawn((PSPAWNINFO)pCharSpawn,&DoorEnviroTarget)<20.0f) {
-							srand((unsigned int)time(0));
-							int randclickY = rand() % 3;
-							int randclickX = rand() % 3;
-							int randclickZ = rand() % 3;
-							PSWITCHCLICK pclick = new SWITCHCLICK;
-							if (pclick) {
-								pclick->Y = pDoorTarget->Y + randclickY;
-								pclick->X = pDoorTarget->X + randclickX;
-								pclick->Z = pChar->Z + pChar->AvatarHeight + randclickZ;
-								randclickY = rand() % 3;
-								randclickX = rand() % 3;
-								randclickZ = rand() % 3;
-								pclick->Y1 = pclick->Y + randclickY;
-								pclick->X1 = pclick->X + randclickX;
-								pclick->Z1 = pclick->Z + randclickZ;
-								((EQSwitch *)pDoorTarget)->UseSwitch(pChar->SpawnID, 0xFFFFFFFF, 0, (DWORD)pclick);
-								delete pclick;
+							int KeyID = 0;
+							int Skill = 0;
+							if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor && pChar2->pInventoryArray->Inventory.Cursor->ItemType == ITEMTYPE_NORMAL) {
+									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
+										switch (pItem->Type)
+										{
+										case 33://EQIC_KEY
+											KeyID = pItem->ItemNumber;
+											Skill = 0;
+											break;
+										case 35://EQIC_LOCKPICK
+											KeyID = pItem->ItemNumber;
+											Skill = pLocalPlayer->GetAdjustedSkill(35);
+											break;
+										default:
+											KeyID = pItem->ItemNumber;
+											Skill = 0;
+											break;
+										}
+									}
+								}
+								else {
+									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
+										KeyID = pItem->ItemNumber;
+										Skill = 0;
+									}
+								}
 							}
-							//DoorEnviroTarget.Name[0]='\0';
+							((EQSwitch *)pDoorTarget)->UseSwitch(pChar->SpawnID, KeyID, Skill);
 							if (pTarget==(EQPlayer*)&DoorEnviroTarget) {//this should NEVER happen
 								pTarget=NULL;
 							}

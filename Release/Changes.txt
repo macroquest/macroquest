@@ -1,3 +1,11 @@
+12 Jan 2017 by eqmule
+- Updated for TEST
+- ZonePoint in the DOORS struct has ben renamed to SpellID
+
+06 Jan 2017 by rswiders
+- Updated spell effects display
+- Updated buff stacking testing
+
 06 Jan 2017 by eqmule
 - Fixed the _EQCASTSPELLGEM struct, thanks JimBob
   this should make features that relies on the spellicon and spellstate members of that struct work again.
@@ -11,7 +19,7 @@
 -
 - SolventNeeded in the iteminfo struct has been renamed to SolventItemID 
 - Added some new members to the iteminfo struct and cleaned it up a little.
-- Added MQ2AugType TLO, iy has these members: Slot (pIntType), Type (pIntType), Visible (pBoolType), Infusable (pBoolType), Empty (pBoolType), Name (pStringType), Item (pItemType)
+- Added MQ2AugType TLO, it has these members: Slot (pIntType), Type (pIntType), Visible (pBoolType), Infusable (pBoolType), Empty (pBoolType), Name (pStringType), Item (pItemType)
 - New Member: AugSlot added to the item TLO 
   it returns a pAugType
   Usage: (Items can have MAX 6 slots for augs so... [x] can ONLY be 0-5)

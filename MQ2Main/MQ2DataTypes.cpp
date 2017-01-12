@@ -5278,6 +5278,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (pChar->Buff[nBuff].SpellID > 0) {
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->Buff[nBuff].Duration;
+#if 0
 					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
@@ -5291,6 +5292,7 @@ bool MQ2SpellType::GETMEMBER()
 							}
 						}
 					}
+#endif
 					if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 						buffduration = 99999 + 1;
 					}
@@ -5307,6 +5309,7 @@ bool MQ2SpellType::GETMEMBER()
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->ShortBuff[nBuff].Duration;
 					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_ILLUSION) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
+#if 0
 						for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 								if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
@@ -5320,6 +5323,7 @@ bool MQ2SpellType::GETMEMBER()
 								}
 							}
 						}
+#endif
 						if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 							buffduration = 99999 + 1;
 						}
@@ -5347,6 +5351,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff] == 0xFFFFFFFF || pPet->Buff[nBuff] == 0)) {
 				if (PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
 					petbuffduration = ((pPet->PetBuffTimer[nBuff] + 5999) / 1000) / 6;
+#if 0
 					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
@@ -5360,6 +5365,7 @@ bool MQ2SpellType::GETMEMBER()
 							}
 						}
 					}
+#endif
 					if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 						petbuffduration = 99999 + 1;
 					}
@@ -5386,7 +5392,8 @@ bool MQ2SpellType::GETMEMBER()
 			tmpSpell = GetSpellByName(GETFIRST());
 		if (!tmpSpell)
 			return true;
-		for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
+#if 0
+ 		for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 			if (TriggeringEffectSpell(pSpell, nSlot) && TriggeringEffectSpell(tmpSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 																										//WriteChatf("Checking triggering effect for slot %d", nSlot);
 				PSPELL pSpellTriggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot));
@@ -5400,7 +5407,7 @@ bool MQ2SpellType::GETMEMBER()
 				}
 			}
 		}
-
+#endif
 		Dest.DWord = BuffStackTest(pSpell, tmpSpell, TRUE);
 		return true;
 	}
@@ -6719,7 +6726,6 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[0].Type;
 		Dest.Type = pIntType;
 		return true;
-
 	case AugSlot2:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -7843,27 +7849,41 @@ bool MQ2SwitchType::GETMEMBER()
 	if (pMethod) {
 		switch ((SwitchMethods)pMethod->ID)
 		{
-		case Toggle:
-			srand((unsigned int)time(0));
-			int randclickY = rand() % 3;
-			int randclickX = rand() % 3;
-			int randclickZ = rand() % 3;
-			PSWITCHCLICK pclick = new SWITCHCLICK;
-			if (pclick) {
-				pclick->Y = pTheSwitch->Y + randclickY;
-				pclick->X = pTheSwitch->X + randclickX;
-				pclick->Z = pTheSwitch->Z + randclickZ;
-				randclickY = rand() % 3;
-				randclickX = rand() % 3;
-				randclickZ = rand() % 3;
-				pclick->Y1 = pclick->Y + randclickY;
-				pclick->X1 = pclick->X + randclickX;
-				pclick->Z1 = pclick->Z + randclickZ;
-				((EQSwitch *)pTheSwitch->pSwitch)->UseSwitch(((PSPAWNINFO)pLocalPlayer)->SpawnID, 0xFFFFFFFF, 0, (DWORD)pclick);
-				delete pclick;
+			case Toggle:
+			{
+				int KeyID = 0;
+				int Skill = 0;
+				if(PCHARINFO2 pChar2 = GetCharInfo2()) {
+					if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor && pChar2->pInventoryArray->Inventory.Cursor->ItemType == ITEMTYPE_NORMAL) {
+						if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
+							switch (pItem->Type)
+							{
+							case 33://EQIC_KEY
+								KeyID = pItem->ItemNumber;
+								Skill = 0;
+								break;
+							case 35://EQIC_LOCKPICK
+								KeyID = pItem->ItemNumber;
+								Skill = pLocalPlayer->GetAdjustedSkill(35);
+								break;
+							default:
+								KeyID = pItem->ItemNumber;
+								Skill = 0;
+								break;
+							}
+						}
+					} else {
+						if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
+							KeyID = pItem->ItemNumber;
+							Skill = 0;
+						}
+					}
+				}
+				((EQSwitch *)pTheSwitch->pSwitch)->UseSwitch(((PSPAWNINFO)pLocalPlayer)->SpawnID, KeyID, Skill);
 				return true;
 			}
-			break;
+			default:
+				break;
 		}
 		return false;
 	}

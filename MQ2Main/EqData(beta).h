@@ -732,7 +732,7 @@ typedef struct _CONTENTS {
 /*0x0020*/ BYTE		Unknown0x0020[0x1e];
 /*0x003e*/ BYTE		EvolvingExpOn;
 /*0x003f*/ BYTE		Unknown0x003f[0xd];
-/*0x004c*/ DWORD	Size;//ItemSlot is this address + 0x16 in 20130708
+/*0x004c*/ DWORD	ContentSize;//ItemSlot is this address + 0x16 in 20130708
 /*0x0050*/ DWORD	ItemLocation;//0x1b mount 0x1d illusion
 /*0x0054*/ struct _CONTENTSARRAY*	pContentsArray;
 /*0x0058*/ DWORD	Size;

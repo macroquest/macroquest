@@ -2553,4 +2553,8 @@ GNU General Public License for more details.
 23631, -1, "Swan Pond",
 23640, -1, "Painting: Tahka Estarim",
 23641, -1, "Painting: Balebri Estarim",
+60094, -1, "Phantom Spear",
+60105, -1, "Barbed Royal Impaler",
 67367, -1, "Shield",
+67900, -1, "Wingblade",
+67911, -1, "Spike of Rituals",

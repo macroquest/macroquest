@@ -645,10 +645,9 @@ void TellCheck(char *szClean)
 							return;//its an npc or something, dont flash on it
 						}
 						if (pNpc->Trader || pNpc->Buyer) {
-							return;//its a merchantplayrer...
+							return;//its a merchantplayer...
 						}
-					}
-					else {
+					} else {
 						CHAR szSearch[MAX_STRING] = { 0 };
 						sprintf_s(szSearch, "npc %s", name);
 						SEARCHSPAWN ssSpawn;
@@ -682,7 +681,7 @@ void TellCheck(char *szClean)
 							return;//its an npc or something, dont beep on it
 						}
 						if (pNpc->Trader || pNpc->Buyer) {
-							return;//its a merchantplayrer...
+							return;//its a merchantplayer...
 						}
 					} else {
 						CHAR szSearch[MAX_STRING] = { 0 };

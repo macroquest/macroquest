@@ -37,6 +37,7 @@ class bad_word_class;
 class CAAWnd;
 class CActionsWnd;
 class CAchievementsWnd;
+class CRealEstateItemsWnd;
 class CAlarmWnd;
 class CBankWnd;
 class CBazaarSearchWnd;
@@ -882,8 +883,13 @@ class CAchievementsWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CAchievementsWnd::CAchievementsWnd(class CXWnd *);
-
 };
+class CRealEstateItemsWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CRealEstateItemsWnd::CRealEstateItemsWnd(class CXWnd *);
+};
+
 class CAlarmWnd : public CSidlScreenWnd
 {
 public:
@@ -6081,7 +6087,11 @@ EQLIB_OBJECT EQ_Note::~EQ_Note(void);
 EQLIB_OBJECT EQ_Note::EQ_Note(void);
 EQLIB_OBJECT void EQ_Note::SendTextRequestMsg(void);
 };
-
+struct ItemContainingRealEstate
+{
+	int RealEstateID;
+	ItemGlobalIndex ItemLocation;
+};
 class EQ_PC
 {
 public:
@@ -6136,6 +6146,9 @@ EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemRecastTimer(class EQ_Item *item);
 #endif
 EQLIB_OBJECT bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int);
+EQLIB_OBJECT void EQ_PC::GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate> &Out, bool bCurrentProfileOnly = false, bool bIncludeAltStorage = true, bool bIncludeArchived = true);
+EQLIB_OBJECT void EQ_PC::GetNonArchivedOwnedRealEstates(ArrayClass<int>& output);
+
 };
 
 class EQ_Skill
@@ -6427,6 +6440,7 @@ EQLIB_OBJECT unsigned char EQPlayer::GetAlternateAnimVariation(int,unsigned char
 EQLIB_OBJECT unsigned int EQPlayer::GetUnusedID(void);
 EQLIB_OBJECT void EQPlayer::FindDefaultEyeMaterialIndexes(void);
 EQLIB_OBJECT void EQPlayer::InitializeIDArray(void);
+EQLIB_OBJECT int EQPlayer::GetAdjustedSkill(int);
 SPAWNINFO Data;
 };
 
@@ -6519,7 +6533,7 @@ EQLIB_OBJECT void EQSwitch::PostInit(void);
 EQLIB_OBJECT void EQSwitch::PreInit(void);
 EQLIB_OBJECT void EQSwitch::RepopSwitch(void);
 EQLIB_OBJECT void EQSwitch::ResetSwitchState(unsigned char);
-EQLIB_OBJECT void EQSwitch::UseSwitch(DWORD,DWORD,DWORD,DWORD);
+EQLIB_OBJECT void EQSwitch::UseSwitch(UINT SpawnID,int KeyID,int PickSkill,const CVector3* hitloc = 0);
 };
 
 class EqSwitchManager

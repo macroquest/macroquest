@@ -571,7 +571,7 @@ public:
 typedef struct _ITEMINFO {
 	/*0x0000*/ CHAR         Name[ITEM_NAME_LEN];
 	/*0x0040*/ CHAR         LoreName[LORE_NAME_LEN];
-	/*0x0040*/ CHAR         AdvancedLoreName[0x20];
+	/*0x0090*/ CHAR         AdvancedLoreName[0x20];
 	/*0x00b0*/ CHAR         IDFile[0x1e];
 	/*0x00ce*/ CHAR         IDFile2[0x1e];
 	/*0x00ec*/ DWORD        ItemNumber;//recordnum
@@ -2435,54 +2435,84 @@ typedef struct _SWITCHCLICK
 	FLOAT X1;
 	FLOAT Z1;
 } SWITCHCLICK,*PSWITCHCLICK;
-// this is actually ActorInterface
-// actual size: 0x120 3-3-2009
-// semi corrected on dec 16 2013 eqmule
-// i *think* the size is 0x190
-//however i couldnt confirm from 0x38 to 0x114
-//more work is needed... anyone feel free to step up...
+enum eMemPoolType
+{
+	eGlobal,
+	eOnDemand,
+	eClearOnZone,
+};
 
-//updated on dec 16 2015 by brainiac
+// this is actually a CActor Class
+// actual size: 0x120 3-3-2009
+//Size is 0x190 dec 13 2016 live - eqmule
+//see Cactor::CActor in EQGraphicsDX9.dll
 typedef struct _EQSWITCH {
-/*0x00*/    DWORD        Unknown0x0[0x2];
-/*0x08*/    float        UnknownData0x08;
-/*0x0c*/    float        UnknownData0x0c;
-/*0x10*/    float        Unknown0x10[0x2];
-/*0x18*/    float        UnknownData0x18;
-/*0x1c*/    float        Unknown0x1c;
-/*0x20*/    float        UnknownData0x20;
-/*0x24*/    float        Unknown0x24[0x2];
-/*0x2C*/    FLOAT        Y;
-/*0x30*/    FLOAT        X;
-/*0x34*/    FLOAT        Z;
-/*0x38*/    BYTE         Unknown0x38[0x4c]; //A lot of data here.
-/*0x84*/    float        yAdjustment1;//from this point on im not sure -eqmule 2013 dec 16
-/*0x88*/    float        xAdjustment1;
-/*0x8c*/    float        zAdjustment1;
-/*0x90*/    float        headingAdjustment1;
-/*0x94*/    float        yAdjustment2;
-/*0x98*/    float        xAdjustment2;
-/*0x9c*/    float        zAdjustment2;
-/*0xa0*/    float        headingAdjustment2;
-/*0xa4*/    float        yAdjustment3;
-/*0xa8*/    float        xAdjustment3;
-/*0xac*/    float        zAdjustment3;
-/*0xb0*/    float        headingAdjustment3;
-/*0xb4*/    BYTE         Unknown0xb4[0x30];
-/*0xe4*/    Matrix4x4    transformMatrix;
-/*0x124*/   FLOAT        Heading;
-/*0x128*/   BYTE         Unknown0x128[0x18];
+/*0x00*/    void*		vfTable;
+/*0x04*/    eMemPoolType  MemType;
+/*0x08*/    bool        bIsS3DCreated;
+/*0x09*/    bool        bHasParentBone;
+/*0x0a*/    bool        bUpdateScaledAmbient;
+/*0x0c*/    float		ScaledAmbient;
+/*0x10*/    float		ScaledAmbientTarget;
+/*0x14*/    float		ParticleScaleFactor;
+/*0x18*/    float		CollisionSphereScaleFactor;
+/*0x1c*/    UINT        UpdateAmbientTick;
+/*0x20*/    UINT        InterpolateAmbientTick;
+/*0x24*/    void*		pParentActor;//its a  CActor*
+/*0x28*/    void*       pDPVSObject;
+/*0x2C*/    FLOAT		Y;
+/*0x30*/    FLOAT		X;
+/*0x34*/    FLOAT		Z;
+/*0x38*/    FLOAT		SurfaceNormalY;
+/*0x3c*/    FLOAT		SurfaceNormalX;
+/*0x40*/    FLOAT		SurfaceNormalZ;
+/*0x44*/    UINT        VisibleIndex;
+/*0x48*/    FLOAT       Alpha;
+/*0x4c*/    bool	    bCastShadow;
+/*0x4d*/    bool	    bNeverClip;
+/*0x4e*/    bool	    bClientCreated;
+/*0x50*/    FLOAT       ZOffset;
+/*0x54*/    FLOAT       EmitterScalingRadius;
+/*0x58*/    void*		pDuplicateActor;//its a  CActor*
+/*0x5c*/    bool	    bShowParticlesWhenInvisible;
+/*0x60*/    void*       pAreaPortalVolumeList;//CAreaPortalVolumeList*
+/*0x64*/    void*       CleanupList;//a TListNode<CActor*>? not sure
+/*0x68*/    BYTE        CleanupListFiller[0xc];
+/*0x74*/    void*       pActorApplicationData;//CActorApplicationData* 74 for sure see 1003AE70
+/*0x78*/    EActorType  ActorType;
+/*0x7c*/    void*       pTerrainObject;//CTerrainObject*
+/*0x80*/    void*       HighlightData;//HighlightData*
+/*0x84*/__declspec(align(16))    float        yAdjustment1;//well this is actually a Matrix4x4... but whatever...
+/*0x88*/__declspec(align(16))    float        xAdjustment1;
+/*0x8c*/ __declspec(align(16))   float        zAdjustment1;
+/*0x90*/ __declspec(align(16))   float        headingAdjustment1;
+/*0x94*/__declspec(align(16))    float        yAdjustment2;
+/*0x98*/ __declspec(align(16))   float        xAdjustment2;
+/*0x9c*/ __declspec(align(16))   float        zAdjustment2;
+/*0xa0*/ __declspec(align(16))   float        headingAdjustment2;
+/*0xa4*/__declspec(align(16))    float        yAdjustment3;
+/*0xa8*/__declspec(align(16))    float        xAdjustment3;
+/*0xac*/__declspec(align(16))    float        zAdjustment3;
+/*0xb0*/__declspec(align(16))    float        headingAdjustment3;
+/*0xb4*/__declspec(align(16))    float        yAdjustment4;
+/*0xb8*/ __declspec(align(16))   float        xAdjustment4;
+/*0xbc*/ __declspec(align(16))   float        zAdjustment4;
+/*0xc0*/__declspec(align(16))    float        headingAdjustment4;
+/*0xd0*/   bool        bbHasAttachSRT;
+/*0xd1*/   bool        bDisableDesignOverride;
+/*0xd4*/   int         Unknown0x1d4[4];
+/*0xe4*/  __declspec(align(16)) Matrix4x4   transformMatrix;//used for new armor
+/*0x128*/   FLOAT        Heading;
+/*0x12c*/   BYTE         Unknown0x12c[0x14];
 /*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
 /*0x144*/   BYTE         Unknown0x144[0x4c];
 /*0x190*/
 } EQSWITCH, *PEQSWITCH;
 
-// actual size 0xdc 2-9-2009
-//updated on dec 16 2015 by brainiac
-//not sure about its size - eqmule
+//Size is 0xe0 see 54933E in dec 13 2016 live - eqmule
 typedef struct _DOOR {
 /*0x00*/ void  *vtable;
-/*0x04*/ BYTE  Unknown0x4;          // always 5
+/*0x04*/ BYTE  ObjType;          // always 5
 /*0x05*/ BYTE  ID;
 /*0x06*/ CHAR  Name[0x20];
 /*0x26*/ BYTE  Type;
@@ -2499,19 +2529,39 @@ typedef struct _DOOR {
 /*0x4c*/ FLOAT Z;
 /*0x50*/ FLOAT Heading;
 /*0x54*/ FLOAT DoorAngle;
-/*0x58*/ BYTE  Unknown0x58[0x18];
-/*0x70*/ int   Unknown0x70;         // always 0xFFFFFFFF
+/*0x58*/ BYTE  DefaultState;
+/*0x59*/ BYTE  SelfActivated;
+/*0x5a*/ BYTE  Dependent;
+/*0x5b*/ bool  bTemplate;
+/*0x5c*/ BYTE  Difficulty;//pick/disarm...
+/*0x5d*/ BYTE  AffectSlots[5];
+/*0x62*/ BYTE  CurrentCombination[5];
+/*0x67*/ BYTE  ReqCombination[5];
+/*0x6c*/ BYTE  RandomCombo;
+/*0x70*/ int   Key;
 /*0x74*/ SHORT ScaleFactor;         // divide by 100 to get scale multiplier
-/*0x76*/ BYTE  Unknown0x76[2];
-/*0x78*/ DWORD ZonePoint;
-/*0x7c*/ BYTE  Unknown0x7c[0x5];
-/*0x81*/ BYTE  Unknown0x81;
-/*0x82*/ BYTE  Unknown0x82[0x22];
+/*0x78*/ int SpellID;
+/*0x7c*/ BYTE  TargetID[0x5];
+/*0x81*/ CHAR  Script[0x20];
 /*0xa4*/ PEQSWITCH pSwitch;         // (CActorInterface*)
-/*0xa8*/ void  *pUnknown0xa8;       // (CParticleCloudInterface*)
-/*0xac*/ DWORD TimeStamp;
-/*0xb0*/ BYTE  Unknown0xb0[0x2c];
-/*0xdc*/
+/*0xa8*/ void  *particle;       // (CParticleCloudInterface*)
+/*0xac*/ DWORD TimeStamp;//last time UseSwitch
+/*0xb0*/ FLOAT Accel;
+/*0xb4*/ BYTE  AlwaysActive;
+/*0xb8*/ int   AdventureDoorID;
+/*0xbc*/ FLOAT ReturnY;
+/*0xc0*/ FLOAT ReturnX;
+/*0xc4*/ FLOAT ReturnZ;
+/*0xc8*/ int   DynDoorID;
+/*0xcc*/ bool  bHasScript;
+/*0xd0*/ int   SomeID;
+/*0xd4*/ bool  bUsable;
+/*0xd5*/ bool  bRemainOpen;
+/*0xd6*/ bool  bVisible;
+/*0xd7*/ bool  bHeadingChanged;
+/*0xd8*/ bool  bAllowCorpseDrag;
+/*0xdc*/ int   RealEstateDoorID;
+/*0xe0*/
 } DOOR, *PDOOR; 
 
 // 7-21-2003    Stargazer

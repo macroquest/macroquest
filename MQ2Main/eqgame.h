@@ -163,10 +163,13 @@ GNU General Public License for more details.
 #define pinstPlayerPath_x                                          0xFBFA58
 #define pinstTargetIndicator_x                                     0xFC03F0
 #define pinstCTargetManager_x                                      0xFC0450
-
+#define EQObject_Top_x                                             0xF2CAD0
+#define pinstRealEstateItems_x                                     0xFBFFFC
+ 
 //// 
 //Section 2:  UI Related Offsets 
 //// 
+#define pinstCRealEstateItemsWnd_x                                 0xE795B8
 #define pinstCAchievementsWnd_x                                    0xE79614
 #define pinstCTextOverlay_x                                        0xD36BE0
 #define pinstCAudioTriggersWindow_x                                0xD36A70
@@ -758,6 +761,8 @@ GNU General Public License for more details.
 #define EQ_PC__GetPcZoneClient_x                                   0x5D53E0
 #define EQ_PC__RemoveMyAffect_x                                    0x5B4170
 #define EQ_PC__GetKeyRingItems_x                                   0x843060
+#define EQ_PC__GetItemContainedRealEstateIds_x                     0x855650
+#define EQ_PC__GetNonArchivedOwnedRealEstates_x                    0x849E30
 
 // EQItemList 
 #define EQItemList__EQItemList_x                                   0x514D10
@@ -782,6 +787,7 @@ GNU General Public License for more details.
 #define PlayerZoneClient__ChangeHeight_x                           0x5DB180
 #define EQPlayer__CanSeeTargetIndicator_x                          0x91A800
 #define PlayerBase__GetVisibilityLineSegment_x                     0x91A4A0
+#define EQPlayer__GetAdjustedSkill_x                               0x4634B0
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5CF990
