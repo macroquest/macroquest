@@ -1186,6 +1186,7 @@ public:
 		ExpansionFlags = 253,
 		SPA = 254,
 		BoundLocation = 255,
+		SkillBase = 256,
 	};
 	enum CharacterMethods
 	{
@@ -1441,6 +1442,7 @@ public:
 		TypeMember(ExpansionFlags);
 		TypeMember(SPA);
 		TypeMember(BoundLocation);
+		TypeMember(SkillBase);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -2811,6 +2813,7 @@ public:
 		Params = 5,
 		Param = 6,
 		CurLine = 7,
+		MemUse = 8,
 	};
 	MQ2MacroType() :MQ2Type("macro")
 	{
@@ -2821,6 +2824,7 @@ public:
 		TypeMember(Params);
 		TypeMember(Param);
 		TypeMember(CurLine);
+		TypeMember(MemUse);
 	}
 
 	~MQ2MacroType()

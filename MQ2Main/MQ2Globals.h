@@ -406,7 +406,7 @@ namespace MQ2Globals
 #define pSpawnManager (*ppSpawnManager)
 #define pSpawnList (((struct _SPAWNMANAGER *)pSpawnManager)->FirstSpawn)
 #define pChatService ((CChatService*)((PEVERQUEST)pEverQuest)->ChatService)
-#define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PlayerPointManager)
+#define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PointManager.vfTable)
 
 	EQLIB_VAR EQPlayer **ppLocalPlayer;
 #define pLocalPlayer (*ppLocalPlayer)
@@ -1336,6 +1336,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__GetPCSpellAffect;
 	EQLIB_VAR DWORD EQ_Character__SpellDuration;
 	EQLIB_VAR DWORD EQ_Character__FindItemByRecord;
+	EQLIB_VAR DWORD EQ_Character__GetAdjustedSkill;
+	EQLIB_VAR DWORD EQ_Character__GetBaseSkill;
 
 	EQLIB_VAR DWORD CCharacterSelect__SelectCharacter;
 	EQLIB_VAR DWORD CCharacterSelect__EnterWorld;
@@ -1391,7 +1393,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
 	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
-	EQLIB_VAR DWORD EQPlayer__GetAdjustedSkill;
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;

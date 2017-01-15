@@ -757,8 +757,8 @@ PCHAR GetFilenameFromFullPath(PCHAR Filename)
 PCHAR GetSubFromLine(PMACROBLOCK pLine, PCHAR szSub, size_t Sublen)
 {
 	while (pLine != NULL) {
-		if (!_strnicmp(pLine->Line, "sub ", 4)) {
-			strcpy_s(szSub, Sublen, pLine->Line + 4);
+		if (!_strnicmp(pLine->Line.c_str(), "sub ", 4)) {
+			strcpy_s(szSub, Sublen, pLine->Line.c_str() + 4);
 			return szSub;
 		}
 		pLine = pLine->pPrev;
@@ -7218,6 +7218,8 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 // ***************************************************************************
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, BOOL bTriggeredEffectCheck)
 {
+	if (!aSpell || !bSpell)
+		return true;
 	if (aSpell->ID == bSpell->ID)
 		return true;
 
@@ -7246,8 +7248,16 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			bBase2 = GetSpellBase2(bSpell, i);
 		}
 		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
-		if (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)) {
-			if (!BuffStackTest(GetSpellByID(TriggeringEffectSpell(aSpell, i) ? aBase2 : aSpell->ID), GetSpellByID(TriggeringEffectSpell(bSpell, i) ? bBase2 : bSpell->ID), bIgnoreTriggeringEffects, TRUE))
+		BOOL bTriggerA = TriggeringEffectSpell(aSpell, i);
+		BOOL bTriggerB = TriggeringEffectSpell(bSpell, i);
+		if (bTriggerA || bTriggerB) {
+			PSPELL pRetSpellA = GetSpellByID(bTriggerA ? aBase2 : aSpell->ID);
+			PSPELL pRetSpellB = GetSpellByID(bTriggerB ? bBase2 : bSpell->ID);
+#if 0
+			if (!pRetSpellA || !pRetSpellB)
+				WriteChatf("BuffStackTest ERROR: aSpell[%d]:%s, bSpell[%d]:%s", aSpell->ID, aSpell->Name, bSpell->ID, bSpell->Name);
+#endif
+			if (!BuffStackTest(pRetSpellA, pRetSpellB, bIgnoreTriggeringEffects, true))
 				return false;
 		}
 		if (bAttrib == aAttrib && !SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects, bTriggeredEffectCheck)) {

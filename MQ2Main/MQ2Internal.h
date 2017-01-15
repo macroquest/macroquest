@@ -213,8 +213,8 @@ namespace MQ2Internal {
     } PACKLOC, *PPACKLOC;
 
     typedef struct _MACROBLOCK {
-        CHAR Line[MAX_STRING];
-        CHAR SourceFile[MAX_STRING];
+        std::string Line;
+        std::string SourceFile;
         DWORD LineNumber;
         BOOL MacroCmd;
         DWORD LoopLine;//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated. -eqmule
@@ -1234,6 +1234,7 @@ namespace MQ2Internal {
         struct _EVENTQUEUE *pPrev;
         struct _EVENTQUEUE *pNext;
         DWORD Type;
+		std::string Name;
         PEVENTLIST pEventList;
         PDATAVAR Parameters;
     } EVENTQUEUE, *PEVENTQUEUE;

@@ -22,85 +22,204 @@ GNU General Public License for more details.
 
 #include "MQ2Main.h"
 
+#include <memory>
+#include <unordered_map>
 
+std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 
-map<string, DWORD> MQ2DataTypeMap;
-CIndex<MQ2Type*> MQ2DataTypes;
-
-/*inline/**/ MQ2Type *FindMQ2DataType(PCHAR Name)
+MQ2Type *FindMQ2DataType(PCHAR Name)
 {
-	unsigned long N = MQ2DataTypeMap[Name];
-	if (!N)
-		return 0;
-	N--;
-	return MQ2DataTypes[N];
+	auto iter = MQ2DataTypeMap.find(Name);
+	if (iter == MQ2DataTypeMap.end())
+		return nullptr;
+
+	return iter->second;
 }
 
-namespace MQ2Internal
+BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
 {
-	BOOL AddMQ2Type(MQ2Type &Type)
-	{
-		if (FindMQ2DataType(Type.GetName()))
-			return false;
-		unsigned long N = MQ2DataTypes.GetUnused();
-		MQ2DataTypes[N] = &Type;
-		MQ2DataTypeMap[Type.GetName()] = N + 1;
-		return true;
-	}
+	// returns pair with iterator pointing to the constructed
+	// element, and a bool indicating if it was actually inserted.
+	// this will not replace existing elements.
+	auto result = MQ2DataTypeMap.emplace(Type.GetName(), &Type);
+	return result.second;
+}
 
-	BOOL RemoveMQ2Type(MQ2Type &Type)
-	{
-		unsigned long N = MQ2DataTypeMap[Type.GetName()];
-		if (!N)
-			return 0;
-		N--;
-		if (MQ2Type *pType = MQ2DataTypes[N])
-		{
-			MQ2DataTypes[N] = 0;
-			return false;
-		}
-		MQ2DataTypeMap[Type.GetName()] = 0;
-		return true;
-	}
-};
+BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
+{
+	// use iterator to erase. allows us to check for existence
+	// and erase it without any waste
+	auto iter = MQ2DataTypeMap.find(Type.GetName());
+	if (iter == MQ2DataTypeMap.end())
+		return false;
 
-map<string, DWORD> MQ2DataMap;
-CIndex<PMQ2DATAITEM> MQ2DataItems;
+	// The type existed. Erase it.
+	MQ2DataTypeMap.erase(iter);
+	return true;
+}
+
+std::unordered_map<string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
 
 inline PMQ2DATAITEM FindMQ2Data(PCHAR szName)
 {
-	unsigned long N = MQ2DataMap[szName];
-	if (!N)
-		return 0;
-	N--;
-	return MQ2DataItems[N];
+	auto iter = MQ2DataMap.find(szName);
+	if (iter == MQ2DataMap.end())
+		return nullptr;
+
+	return iter->second.get();
 }
 
 BOOL AddMQ2Data(PCHAR szName, fMQData Function)
 {
-	if (FindMQ2Data(szName))
+	// check if the item exists first, so we don't construct
+	// something we don't actually need.
+	if (MQ2DataMap.find(szName) != MQ2DataMap.end())
 		return false;
-	unsigned long N = MQ2DataItems.GetUnused();
-	PMQ2DATAITEM pNew = new MQ2DATAITEM;
-	strcpy_s(pNew->Name, szName);
-	pNew->Function = Function;
-	MQ2DataItems[N] = pNew;
-	MQ2DataMap[szName] = N + 1;
+
+	// create new MQ2DATAITEM inside a unique_ptr
+	auto newItem = std::make_unique<MQ2DATAITEM>();
+	strcpy_s(newItem->Name, szName);
+	newItem->Function = Function;
+
+	// put the new item into the map
+	MQ2DataMap.emplace(szName, std::move(newItem));
 	return true;
 }
 
 BOOL RemoveMQ2Data(PCHAR szName)
 {
-	unsigned long N = MQ2DataMap[szName];
-	if (!N)
-		return 0;
-	N--;
-	if (PMQ2DATAITEM pItem = MQ2DataItems[N])
+	auto iter = MQ2DataMap.find(szName);
+	if (iter == MQ2DataMap.end())
+		return false;
+
+	MQ2DataMap.erase(iter);
+	return true;
+}
+
+std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
+
+bool AddMQ2TypeExtension(const char* szName, MQ2Type* extension)
+{
+	// get the extension record for this type name
+	auto& record = MQ2DataExtensions[szName];
+
+	// check if we already have this extension added
+	if (std::find(record.begin(), record.end(), extension) != record.end())
+		return false;
+
+	// insert extension into the record
+	record.push_back(extension);
+	return true;
+}
+
+bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
+{
+	// check if we have a record for this type name
+	auto iter = MQ2DataExtensions.find(szName);
+	if (iter == MQ2DataExtensions.end())
+		return false;
+
+	// check if this extension is registered in this record
+	auto& record = iter->second;
+	auto iter2 = std::find(record.begin(), record.end(), extension);
+	if (iter2 == record.end())
+		return false;
+
+	// delete the existing record
+	record.erase(iter2);
+
+	// if the record is empty, remove it
+	if (record.empty())
+		MQ2DataExtensions.erase(iter);
+
+	return true;
+}
+
+// -1 = no exists, 0 = fail, 1 = success
+int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, PCHAR pStart, PCHAR pIndex,
+	bool checkFirst = false)
+{
+	// search for extensions on this type
+	auto extIter = MQ2DataExtensions.find(type->GetName());
+	if (extIter != MQ2DataExtensions.end())
 	{
-		MQ2DataItems[N] = 0;
-		delete pItem;
+		// we have at least one extension. process each one until a match is found
+		for (MQ2Type* ext : extIter->second)
+		{
+			// optimize for failure case, check if exists first
+			int result = FindMacroDataMember(ext, Result, pStart, pIndex, true);
+			if (result != -1)
+				return result;
+		}
 	}
-	MQ2DataMap[szName] = 0;
+
+	// the difference between these two branches is whether we check for existence
+	// first or not. Because we assume extensions aren't going to be the common case,
+	// we will check for existence first to avoid multiple lookups in failure cases.
+
+	if (checkFirst)
+	{
+		if (!type->FindMember(pStart) && !type->InheritedMember(pStart))
+		{
+			return -1;
+		}
+
+		return type->GetMember(Result.VarPtr, pStart, pIndex, Result) ? 1 : 0;
+	}
+	
+	if (type->GetMember(Result.VarPtr, pStart, pIndex, Result))
+		return 1;
+
+	if (!type->FindMember(pStart) && !type->InheritedMember(pStart))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+bool EvaluateDataExpression(MQ2TYPEVAR& Result, PCHAR pStart, PCHAR pIndex)
+{
+	if (!Result.Type)
+	{
+		if (PMQ2DATAITEM DataItem = FindMQ2Data(pStart))
+		{
+			if (!DataItem->Function(pIndex, Result))
+			{
+				return false;
+			}
+		}
+		else if (PDATAVAR DataVar = FindMQ2DataVariable(pStart))
+		{
+			if (pIndex[0])
+			{
+				if (DataVar->Var.Type == pArrayType)
+				{
+					if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex, Result))
+					{
+						return false;
+					}
+				}
+			}
+			else
+				Result = DataVar->Var;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		int result = FindMacroDataMember(Result.Type, Result, pStart, pIndex);
+		if (result < 0)
+		{
+			MQ2DataError("No such '%s' member '%s'", Result.Type->GetName(), pStart);
+		}
+		if (result <= 0)
+			return false;
+	}
+
 	return true;
 }
 
@@ -180,11 +299,9 @@ void InitializeMQ2Data()
 	AddMQ2Data("Alert", dataAlert);
 }
 
-
-
 void ShutdownMQ2Data()
 {
-	MQ2DataItems.Cleanup();
+	MQ2DataMap.clear();
 }
 
 BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
@@ -209,58 +326,16 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					MQ2DataError("Nothing to parse");
 					return FALSE;
 				}
-				//Result.Type->ToString(Result.VarPtr,szCurrent);
 				return TRUE;
 			}
-			else
-			{
-				if (!Result.Type)
-				{
-					if (PMQ2DATAITEM DataItem = FindMQ2Data(pStart))
-					{
-						if (!DataItem->Function(pIndex, Result))
-						{
-							return FALSE;
-						}
-					}
-					else if (PDATAVAR DataVar = FindMQ2DataVariable(pStart))
-					{
-						if (pIndex[0])
-						{
-							if (DataVar->Var.Type == pArrayType)
-							{
-								if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex, Result))
-								{
-									return FALSE;
-								}
-							}
-						}
-						else
-							Result = DataVar->Var;
-					}
-					else
-					{
-						//MQ2DataError("No such Top-Level Object '%s'",pStart);
-						return FALSE;
-					}
-				}
-				else
-				{
-					if (!Result.Type->GetMember(Result.VarPtr, pStart, pIndex, Result))
-					{
-						if (!Result.Type->FindMember(pStart) && !Result.Type->InheritedMember(pStart))
-						{
-							MQ2DataError("No such '%s' member '%s'", Result.Type->GetName(), pStart);
-						}
-						return FALSE;
-					}
-				}
-			}
-			//Result.Type->ToString(Result.VarPtr,szCurrent);
+			
+			if (!EvaluateDataExpression(Result, pStart, pIndex))
+				return FALSE;
 
 			// done processing
 			return TRUE;
 		}
+
 		if (*pPos == '(')
 		{
 			*pPos = 0;
@@ -271,53 +346,13 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					MQ2DataError("Encountered typecast without object to cast");
 					return FALSE;
 				}
-				//Result.Type->ToString(Result.VarPtr,szCurrent);
+
 				return TRUE;
 			}
 			else
 			{
-				if (!Result.Type)
-				{
-					if (PMQ2DATAITEM DataItem = FindMQ2Data(pStart))
-					{
-						if (!DataItem->Function(pIndex, Result))
-						{
-							return FALSE;
-						}
-					}
-					else if (PDATAVAR DataVar = FindMQ2DataVariable(pStart))
-					{
-						if (pIndex[0])
-						{
-							if (DataVar->Var.Type == pArrayType)
-							{
-								if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex, Result))
-								{
-									return FALSE;
-								}
-							}
-						}
-						else
-							Result = DataVar->Var;
-					}
-					else
-					{
-						//MQ2DataError("No such Top-Level Object '%s'",pStart);
-						return FALSE;
-					}
-
-				}
-				else
-				{
-					if (!Result.Type->GetMember(Result.VarPtr, pStart, pIndex, Result))
-					{
-						if (!Result.Type->FindMember(pStart) && !Result.Type->InheritedMember(pStart))
-						{
-							MQ2DataError("No such '%s' member '%s'", Result.Type->GetName(), pStart);
-						}
-						return FALSE;
-					}
-				}
+				if (!EvaluateDataExpression(Result, pStart, pIndex))
+					return FALSE;
 			}
 			if (!Result.Type)
 			{
@@ -370,6 +405,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			}
 		}
 		else
+		{
 			if (*pPos == '[')
 			{
 				// index
@@ -428,6 +464,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				*pPos = 0;
 			}
 			else
+			{
 				if (*pPos == '.')
 				{
 					// end of this one, but more to come!
@@ -439,57 +476,18 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 							MQ2DataError("Encountered member access without object");
 							return FALSE;
 						}
-						//Result.Type->ToString(Result.VarPtr,szCurrent);
+
 						return TRUE;
 					}
-					else
-					{
-						if (!Result.Type)
-						{
-							if (PMQ2DATAITEM DataItem = FindMQ2Data(pStart))
-							{
-								if (!DataItem->Function(pIndex, Result))
-								{
-									return FALSE;
-								}
-							}
-							else if (PDATAVAR DataVar = FindMQ2DataVariable(pStart))
-							{
-								if (pIndex[0])
-								{
-									if (DataVar->Var.Type == pArrayType)
-									{
-										if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex, Result))
-										{
-											return FALSE;
-										}
-									}
-								}
-								else
-									Result = DataVar->Var;
-							}
-							else
-							{
-								//MQ2DataError("No such Top-Level Object '%s'",pStart);
-								return FALSE;
-							}
+					
+					if (!EvaluateDataExpression(Result, pStart, pIndex))
+						return FALSE;
 
-						}
-						else
-						{
-							if (!Result.Type->GetMember(Result.VarPtr, pStart, pIndex, Result))
-							{
-								if (!Result.Type->FindMember(pStart) && !Result.Type->InheritedMember(pStart))
-								{
-									MQ2DataError("No such '%s' member '%s'", Result.Type->GetName(), pStart);
-								}
-								return FALSE;
-							}
-						}
-					}
 					pStart = &pPos[1];
 					Index[0] = 0;
 				}
+			}
+		}
 		++pPos;
 	}
 

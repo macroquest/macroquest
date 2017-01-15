@@ -488,11 +488,18 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
     PEVENTQUEUE pEvent = NULL; 
     if (!gEventFunc[Event]) 
         return; 
-    pEvent = (PEVENTQUEUE)malloc(sizeof(EVENTQUEUE)); 
+	//this is deleted in 2 locations DoEvents and EndMacro
+	DebugSpewNoFile("Adding Event %d %s", Event, FirstArg);
+	pEvent = new EVENTQUEUE;
     if (!pEvent) 
         return;
-
-    ZeroMemory(pEvent,sizeof(EVENTQUEUE)); 
+	pEvent->Parameters = 0;
+	pEvent->pEventList = 0;
+	pEvent->pNext = 0;
+	pEvent->pPrev = 0;
+	pEvent->Type = 0;
+    //ZeroMemory(pEvent,sizeof(EVENTQUEUE)); 
+	pEvent->Name = FirstArg;
     pEvent->Type = Event; 
     pEvent->pEventList = NULL; 
     if (FirstArg) {
@@ -505,7 +512,7 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
         {
             CHAR szParamName[MAX_STRING] = {0};
             CHAR szParamType[MAX_STRING] = {0};
-            GetFuncParam(gEventFunc[Event]->Line,i,szParamName, MAX_STRING,szParamType, MAX_STRING);
+            GetFuncParam((PCHAR)gEventFunc[Event]->Line.c_str(),i,szParamName, MAX_STRING,szParamType, MAX_STRING);
             MQ2Type *pType = FindMQ2DataType(szParamType);
             if (!pType)
                 pType=pStringType;
@@ -548,7 +555,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     pEvent->pEventList = pEList;
     CHAR szParamName[MAX_STRING] = {0};
     CHAR szParamType[MAX_STRING] = {0};
-    GetFuncParam(pEList->pEventFunc->Line,0,szParamName, MAX_STRING,szParamType, MAX_STRING);
+    GetFuncParam((PCHAR)pEList->pEventFunc->Line.c_str(),0,szParamName, MAX_STRING,szParamType, MAX_STRING);
     MQ2Type *pType = FindMQ2DataType(szParamType);
     if (!pType)
         pType=pStringType;
@@ -559,7 +566,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     {
         if (pValues->Name[0]!='*')
         {
-            GetFuncParam(pEList->pEventFunc->Line,atoi(pValues->Name),szParamName, MAX_STRING,szParamType, MAX_STRING);
+            GetFuncParam((PCHAR)pEList->pEventFunc->Line.c_str(),atoi(pValues->Name),szParamName, MAX_STRING,szParamType, MAX_STRING);
             MQ2Type *pType = FindMQ2DataType(szParamType);
             if (!pType)
                 pType=pStringType;

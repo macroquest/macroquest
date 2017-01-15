@@ -1869,6 +1869,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__SpellDuration);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__FindItemByRecord);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAdjustedSkill);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetBaseSkill);
 
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__SelectCharacter);
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__EnterWorld);
@@ -1923,7 +1925,6 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
-	INITIALIZE_EQGAME_OFFSET(EQPlayer__GetAdjustedSkill);
 	
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);

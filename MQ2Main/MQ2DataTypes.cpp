@@ -815,7 +815,7 @@ bool MQ2MathType::GETMEMBER()
 			else
 				P1[0] = (FLOAT)atof(Index);
 
-			DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)", P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
+			//DebugSpewNoFile("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)", P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
 			Dest.Float = (FLOAT)GetDistance3D(P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
 			Dest.Type = pFloatType;
 			return true;
@@ -872,6 +872,39 @@ bool MQ2MacroType::GETMEMBER()
 			return true;
 		}
 		break;
+		case MemUse:
+		{	
+			int size = 0;
+			if (gMacroStack) {
+				PMACROSTACK pStack = gMacroStack;
+				while (pStack) {
+					size += sizeof(pStack);
+					pStack = pStack->pNext;
+				}
+				PMACROBLOCK pBlock = gMacroStack->Location;
+				while (pBlock) {
+					size += sizeof(pBlock);
+					pBlock = pBlock->pNext;
+				}
+			}
+			if (gMacroBlock) {
+				PMACROBLOCK pBlock = gMacroBlock;
+				while (pBlock) {
+					size += sizeof(pBlock);
+					pBlock = pBlock->pNext;
+				}
+			}
+			if (gEventQueue) {
+				PEVENTQUEUE pQueue = gEventQueue;
+				while (pQueue) {
+					size += sizeof(pQueue);
+					pQueue = pQueue->pNext;
+				}
+			}
+			Dest.DWord = size;
+			Dest.Type = pIntType;
+			return true;
+		}
 	}
 	return false;
 }
@@ -2284,8 +2317,8 @@ bool MQ2CharacterType::GETMEMBER()
 	switch ((CharacterMembers)pMember->ID)
 	{
 	case Exp:
-		Dest.DWord = pChar->Exp;
-		Dest.Type = pIntType;
+		Dest.Int64 = pChar->Exp;
+		Dest.Type = pInt64Type;
 		return true;
 	case PctExp:
 	{
@@ -3278,75 +3311,103 @@ bool MQ2CharacterType::GETMEMBER()
 	case Skill:
 		if (ISINDEX())
 		{
-			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			if (PCHARINFO2 pChar2 = GetCharInfo2())
+			{
+				int nSkill = 0;
+
 				if (ISNUMBER())
 				{
 					// numeric
-					int nSkill = GETNUMBER() - 1;
+					nSkill = GETNUMBER() - 1;
 					if (nSkill < 0)
 						return false;
-					if (nSkill < NUM_SKILLS)
-					{
-						Dest.DWord = pChar2->Skill[nSkill];
-						Dest.Type = pIntType;
-						if (!Dest.DWord) {
-							if (pSkillMgr->pSkill[nSkill]->Activated) {
-								for (int btn = 0; !Dest.DWord && btn < 10; btn++) {
-									if (EQADDR_DOABILITYLIST[btn] == nSkill) Dest.DWord = 1;
-								}
-							}
-						}
-						return true;
-					}
 				}
 				else
 				{
 					// name
-					for (DWORD nSkill = 0; nSkill < NUM_SKILLS; nSkill++) {
+					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
 						if (!_stricmp(GETFIRST(), szSkills[nSkill]))
-						{
-							Dest.DWord = pChar2->Skill[nSkill];
-							Dest.Type = pIntType;
-							// note: this change fixes the problem where ${Me.Skill[Forage]} returns
-							// 0 even if you have bought the aa for cultural forage...
-							if (!Dest.DWord) {
-								if (pSkillMgr->pSkill[nSkill]->Activated) {
-									for (int btn = 0; !Dest.DWord && btn < 10; btn++) {
-										if (EQADDR_DOABILITYLIST[btn] == nSkill) Dest.DWord = 1;
-									}
-								}
-							}
-							return true;
-						}
+							break;
+				}
+				if (nSkill < NUM_SKILLS)
+				{
+					Dest.DWord = 0;
+					Dest.Type = pIntType;
+					if (pChar2->Skill[nSkill])
+					{
+						Dest.DWord = pCharData1->GetAdjustedSkill(nSkill);
 					}
+					return true;
+				}
+			}
+		}
+		return false;
+	case SkillBase:
+		if (ISINDEX())
+		{
+			if (PCHARINFO2 pChar2 = GetCharInfo2())
+			{
+				int nSkill = 0;
+
+				if (ISNUMBER())
+				{
+					// numeric
+					nSkill = GETNUMBER() - 1;
+					if (nSkill < 0)
+						return false;
+				}
+				else
+				{
+					// name
+					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+						if (!_stricmp(GETFIRST(), szSkills[nSkill]))
+							break;
+				}
+				if (nSkill < NUM_SKILLS)
+				{
+					Dest.DWord = 0;
+					Dest.Type = pIntType;
+					if (pChar2->Skill[nSkill])
+					{
+						Dest.DWord = pCharData1->GetBaseSkill(nSkill);
+					}
+					return true;
 				}
 			}
 		}
 		return false;
 	case SkillCap:
-		if (ISINDEX()) {
-			class PcZoneClient *p = (PcZoneClient *)GetCharInfo();
-			unsigned long nSkill = 0;
+		if (ISINDEX())
+		{
+			if (PCHARINFO2 pChar2 = GetCharInfo2())
+			{
+				int nSkill = 0;
 
-			if (ISNUMBER()) {
-				// numeric
-				nSkill = GETNUMBER() - 1;
-				if (nSkill < 0)
-					return false;
-			}
-			else {
-				for (nSkill = 0; nSkill<NUM_SKILLS; nSkill++)
-					if (!_stricmp(GETFIRST(), szSkills[nSkill]))
-						break;
-			}
-			if (nSkill < NUM_SKILLS) {
-				Dest.Type = pIntType;
-				Dest.DWord = p->GetPcSkillLimit(nSkill);
-				return true;
+				if (ISNUMBER())
+				{
+					// numeric
+					nSkill = GETNUMBER() - 1;
+					if (nSkill < 0)
+						return false;
+				}
+				else
+				{
+					// name
+					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+						if (!_stricmp(GETFIRST(), szSkills[nSkill]))
+							break;
+				}
+				if (nSkill < NUM_SKILLS)
+				{
+					if (PCHARINFO pCharInfo = GetCharInfo()) {
+						Dest.Type = pIntType;
+						Dest.DWord = pCSkillMgr->GetSkillCap((EQ_Character*)pCharInfo, pChar2->Level, pChar2->Class, nSkill, true, true, true);
+						return true;
+					}
+				}
 			}
 		}
 		return false;
-
 	case Ability:
 		if (ISINDEX())
 		{
@@ -4382,8 +4443,8 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pFloatType;
 		return true;
 	case MercAAExp:
-		Dest.DWord = pChar->MercAAExp;
-		Dest.Type = pIntType;
+		Dest.Int64 = pChar->MercAAExp;
+		Dest.Type = pInt64Type;
 		return true;
 	case Krono:
 		Dest.DWord = pChar->Krono;
@@ -7864,7 +7925,7 @@ bool MQ2SwitchType::GETMEMBER()
 								break;
 							case 35://EQIC_LOCKPICK
 								KeyID = pItem->ItemNumber;
-								Skill = pLocalPlayer->GetAdjustedSkill(35);
+								Skill = pCharData1->GetAdjustedSkill(SKILL_PICKLOCK);
 								break;
 							default:
 								KeyID = pItem->ItemNumber;

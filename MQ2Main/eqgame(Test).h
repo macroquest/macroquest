@@ -722,6 +722,8 @@ GNU General Public License for more details.
 #define EQ_Character__GetPCSpellAffect_x                           0x447690
 #define EQ_Character__SpellDuration_x                              0x445590
 #define EQ_Character__FindItemByRecord_x                           0x460230
+#define EQ_Character__GetAdjustedSkill_x                           0x463570
+#define EQ_Character__GetBaseSkill_x                               0x4593E0
 
 //CCharacterSelect
 #define CCharacterSelect__SelectCharacter_x                        0x4428E0
@@ -783,7 +785,6 @@ GNU General Public License for more details.
 #define PlayerZoneClient__ChangeHeight_x                           0x5DB3D0
 #define EQPlayer__CanSeeTargetIndicator_x                          0x91A690
 #define PlayerBase__GetVisibilityLineSegment_x                     0x91A330
-#define EQPlayer__GetAdjustedSkill_x                               0x463570
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5CFC70

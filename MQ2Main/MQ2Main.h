@@ -426,6 +426,8 @@ LEGACY_API MQ2Type *FindMQ2DataType(PCHAR szName);
 LEGACY_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
 LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
+LEGACY_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
+LEGACY_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 #endif
 
 

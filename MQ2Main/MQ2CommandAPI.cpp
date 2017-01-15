@@ -55,6 +55,7 @@ PMACROBLOCK GetWhileBlock(DWORD line)
 	}
 	return pblock->pPrev;
 }
+
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
 	

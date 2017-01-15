@@ -60,7 +60,7 @@ BOOL DoNextCommand()
 		PMACROBLOCK ThisMacroBlock = gMacroBlock;
 #endif
 		gMacroBlock->MacroCmd = 0;
-		DoCommand(pChar, gMacroBlock->Line);
+		DoCommand(pChar, (PCHAR)gMacroBlock->Line.c_str());
 		if (gMacroBlock) {
 #ifdef MQ2_PROFILING
 			LARGE_INTEGER AfterCommand;

@@ -111,6 +111,8 @@ typedef struct _BodyInfo
 //#define SPAWN_ANY                       3
 //#define SPAWN_PET                       4
 
+#define SKILL_PICKLOCK					35
+
 #define ITEM_NORMAL1                    0x0031
 #define ITEM_NORMAL2                    0x0036
 #define ITEM_NORMAL3                    0x315f
@@ -1232,9 +1234,152 @@ typedef struct _KEYRINGARRAY {
 	};
 	/*0x28*/
 } KEYRINGARRAY, *PKEYRINGARRAY;
-
+#pragma pack(push)
+#pragma pack(8)
+union EqGuid
+{
+	unsigned __int64 GUID;
+	struct Split
+	{
+		UINT UniqueEntityID;
+		WORD WorldUniqueID;
+		WORD Unknown;
+	};
+};
+#pragma pack(pop)
+struct Point 
+{
+	UINT PointType;
+	UINT PointSubtype;
+	UINT CurrentCount;
+	UINT TotalEver;
+};
+class CPlayerPointManager
+{
+public:
+/*0x00*/	PVOID vfTable;
+/*0x04*/	ArrayClass<Point *>Points;
+/*0x14*/
+};
+struct PointNamesEntry
+{
+	UINT PointTypeId;
+	UINT PointSubtypeId;
+	int DBStringId;
+	int PointItemId;
+	int ImageId;
+	int MaxStackSize;
+	bool bStationCashRelated;
+};
+class PointSystemBase
+{
+public:
+/*0x00*/	PVOID vfTable;
+/*0x04*/	ArrayClass<PointNamesEntry *>PointNameEntries;
+/*0x14*/
+};
+template<class T> class Node
+{
+public:
+    T		Object;
+	Node	*pNext;
+	Node	*pPrev;
+};
+template <class T> class DoublyLinkedList
+{
+public:
+/*0x00*/	PVOID vfTable;
+/*0x04*/    Node<T> *pHead;
+/*0x08*/   Node<T> *pTail;
+/*0x0c*/   Node<T> *pCurObject;
+/*0x10*/    Node<T> *pCurObjectNext;
+/*0x14*/    Node<T> *pCurObjectPrev;
+/*0x18*/    int NumObjects;
+/*0x1c*/	int RefCount;
+/*0x20*/
+};
+class PendingReward
+{
+public:
+	PVOID vfTable;
+	int		ID;
+	int		SetID;
+	FLOAT	RewardAdjustment;
+	CHAR	RewardTitle[0x80];
+};
+class PendingRewardList : public DoublyLinkedList<PendingReward*>
+{
+public:
+/*0x20*/	int	NextUID;
+/*0x24*/	int MaxPending;
+/*0x28*/	int ZoneMaxPending;
+/*0x2c*/
+};
+enum ELockoutCharacterReason
+{
+	LCR_AllowNormalPlay,
+	LCR_InvalidWornItem,
+	LCR_Something,
+};
+struct ProgressionExperience
+{
+/*0x00*/	int ProgressionID;
+/*0x08*/	double ProgressionExp;
+/*0x10*/
+};
+class ResizePolicyNoShrink
+{
+public:
+};
+class ResizePolicyNoResize
+{
+public:
+};
+template<typename T, typename Key = int, typename ResizePolicy = ResizePolicyNoResize>
+class HashTable
+{
+public:
+	struct HashEntry
+	{
+		T Obj;
+		Key Key;
+		HashEntry *NextEntry;
+	};
+	template<typename K>
+	static unsigned HashValue( const K& key )
+	{
+		return key;
+	}
+	HashEntry **Table;
+	int TableSize;
+	int EntryCount;
+	int StatUsedSlots;
+	T *FindFirst(const Key& key) const;
+	int GetTotalEntries() const;
+};
+template<typename T, typename Key, typename ResizePolicy> int HashTable<T, Key, ResizePolicy>::GetTotalEntries() const
+{
+	return EntryCount;
+}
+template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, ResizePolicy>::FindFirst( const Key& key ) const
+{
+	if (Table==NULL)
+		return NULL;
+	HashEntry *entry = Table[( HashValue<Key>(key) ) % TableSize];
+	while (entry != NULL)
+	{
+		if (entry->Key == key)
+			return(&entry->Obj);
+		entry = entry->NextEntry;
+	}
+	return(NULL);
+}
+typedef HashTable<ProgressionExperience> ProgressionExperienceHash;
 //aStartingLoad_
 // actual size: 0x27c8 in Oct 11 2016 beta (see 57B8C7) - eqmule
+/*0x1c4c*/ //ItemIndex	StatKeyRingItemIndex[3];//0xe46 confirmed
+//this thing here is an abomination, todo: fix it once and for all.
+// its like a frankenstruct mixing in PcBase etc.
 typedef struct _CHARINFO {
 /*0x0000*/ void*        vtable1;
 /*0x0004*/ void*        punknown;
@@ -1260,11 +1405,22 @@ typedef struct _CHARINFO {
 /*0x1198*/ DWORD        KeyRing3;//always 0x7d
 /*0x119c*/ DWORD        eFamiliar ;//always eItemContainerViewModFamiliarKeyRingItems (31)
 /*0x11a0*/ struct _KEYRINGARRAY*        pFamiliarArray;
-/*0x11a4*/ BYTE         Unknown0x11a4[0xd4];
-/*0x1278*/ __int64      GuildID;//GuildID_0
-/*0x1280*/ BYTE         Unknown0x1280[0x2c];
+/*0x11a4*/ BYTE         Unknown0x11a4[0xd4];//PCBase begins in here somwhere, todo: figure it out
+/*0x1278*/ __int64		GuildID;//GuildID_0
+/*0x1280*/ __int64		FellowshipID;
+/*0x1288*/ int			Unknown0x1288;
+/*0x128c*/ int			GuildStatus;
+/*0x1290*/ int			GuildFlags;
+/*0x1294*/ bool			GuildShowSprite;
+/*0x1298*/ UINT			CreationTime;
+/*0x129c*/ UINT			AccountCreationTime;
+/*0x12a0*/ UINT			LastPlayedTime;
+/*0x12a4*/ DWORD		MinutesPlayed;
+/*0x12a8*/ BYTE			Anonymous;
+/*0x12a9*/ bool			bGM;
+/*0x12aa*/ bool			bGMStealth;
 /*0x12ac*/ DWORD        AAExp;
-/*0x12b0*/ BYTE         Unknown0x12b0;
+/*0x12b0*/ BYTE         NobilityRank;
 /*0x12b1*/ BYTE         PercentEXPtoAA;
 /*0x12b2*/ BYTE         Unknown0x12b2[0x36];
 /*0x12e8*/ DWORD        TributeTimer;
@@ -1277,24 +1433,76 @@ typedef struct _CHARINFO {
 /*0x1408*/ BYTE         Unknown0x1408[0x4];
 /*0x140c*/ DWORD        EbonCrystals;
 /*0x1410*/ BYTE         Unknown0x1410[0x678];
-/*0x1a88*/ DWORD        Exp;
-/*0x1a8c*/ BYTE         Unknown0x1a90[0x64];
-/*0x1af0*/ void*        PlayerPointManager;
-/*0x1af4*/ BYTE         Unknown0x1af4[0x1aa];
-/*0x1c9e*/ BYTE         UseAdvancedLooting;                     //0=off 1=on
+/*0x1a88*/ __int64      Exp;
+/*0x1a90*/ int	        DaysEntitled;
+/*0x1a94*/ int	        SpentVeteranRewards;
+/*0x1a98*/ bool	        bVeteranRewardEntitled;
+/*0x1a99*/ bool	        bAutoConsentGroup;
+/*0x1a9a*/ bool	        bAutoConsentRaid;
+/*0x1a9b*/ bool	        bAutoConsentGuild;
+/*0x1a9c*/ bool	        bPrivateForEqPlayers;
+/*0x1aa0*/ long	        AchievementFilesModificationTime;
+/*0x1aa4*/ CHAR	        StationID[0x20];
+/*0x1ac8*/ EqGuid       Guid;//size 8
+/*0x1ad0*/ bool	        bBetaBuffed;
+/*0x1ad4*/ int	        Unknown0x1ad4;
+/*0x1ad8*/ int	        StartingCity;
+/*0x1adc*/ int	        MainLevel;
+/*0x1ae0*/ bool	        bShowHelm;
+/*0x1ae8*/ __int64      LastTestCopyTime;
+/*0x1af0*/ CPlayerPointManager PointManager;
+/*0x1b04*/ PointSystemBase PointSystem;
+/*0x1B18*/ UINT			LoyaltyVelocity;
+/*0x1B1c*/ UINT			LoyaltyTokens;
+/*0x1B20*/ bool			bHasLoyaltyInfo;
+/*0x1B24*/ ArrayClass<int> OwnedRealEstates;
+/*0x1B34*/ ArrayClass<int> OwnedItemRealEstates;
+/*0x1B44*/ ArrayClass<int> ArchivedRealEstates;
+/*0x1B54*/ CHAR			OverridePetName[0x40];
+/*0x1B94*/ bool			bCanRequestPetNameChange;
+/*0x1B95*/ CHAR			OverrideFamiliarName[0x40];//guessing 
+/*0x1Bd5*/ bool         bCanRequestFamiliarNameChange;//still a guess todo: confirm
+/*0x1Bd8*/ _CXSTR		*OverrideMercName[0xb];//0x1Bd8 for sure
+/*0x1c04*/ bool			bCanRequestMercNameChange;
+/*0x1c08*/ PendingRewardList PendingRewards;//size 0x2c
+/*0x1c34*/ UINT         DowntimeReductionTime;
+/*0x1c38*/ UINT         DowntimeTimerStart;
+/*0x1c3c*/ FLOAT        ActivityValue;
+/*0x1c40*/ UINT         NextItemId;
+/*0x1c44*/ _CXSTR        *SharedBank;
+/*0x1c48*/ _CXSTR        *BankBuffer;
+/*0x1c4c*/ _CXSTR        *LimboBuffer;
+/*0x1c50*/ _CXSTR        *MercenaryBuffer;
+/*0x1c54*/ _CXSTR        *KeyRingBuffer[3];
+/*0x1c60*/ _CXSTR        *AltStorageBuffer;
+/*0x1c64*/ UINT         AltStorageTimestamp;
+/*0x1c68*/ ELockoutCharacterReason LCR;
+/*0x1c6c*/ ProgressionExperienceHash ProgressionExp;
+/*0x1c7c*/ _CXSTR        *ArchivedStorageBuffer;
+/*0x1c80*/ PCXSTR       MailItemsBuffer;
+/*0x1c84*/ PCXSTR       MailItemsDataBuffer;
+/*0x1c88*/ int          MailItemsOverCapWarningCount;//1C88
+/*0x1c8c*/ int			Unknown0x1c8c;
+/*0x1c90*/ int			Unknown0x1c90;
+/*0x1c94*/ int			Unknown0x1c94;
+/*0x1c98*/ int			Unknown0x1c98;
+/*0x1c9c*/ BYTE			Unknown0x1c9c;
+/*0x1c9d*/ BYTE			Unknown0x1c9d;
+/*0x1c9e*/ BYTE         UseAdvancedLooting;     //1c9e confirmed see 49A90C               //0=off 1=on
 /*0x1c9f*/ BYTE         MasterLootCandidate;                     //0=off 1=on
 /*0x1ca0*/ BYTE         Unknown0x1ca0[0x2bc];
 /*0x1f5c*/ DWORD        Krono;
 /*0x1f60*/ DWORD        CursorKrono;
 /*0x1f64*/ BYTE         Unknown0x1f64[0x4];
-/*0x1f68*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
-/*0x1f6c*/ BYTE         Unknown0x1f6c[0x4];
+/*0x1f68*/ __int64      MercAAExp;// divide this with 3.30f and you get the percent - eqmule
 /*0x1f70*/ DWORD        MercAAPoints;//number of unspent merc AA points
 /*0x1f74*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
 /*0x1f78*/ BYTE		    Unknown0x1f78[0x48];
 /*0x1fc0*/ __int64      Vitality;
 /*0x1fc8*/ int		    AAVitality;
-/*0x1fcc*/ BYTE         Unknown0x1fd0[0x74];
+/*0x1fcc*/ int          FPStuff[0x1d];
+/******************* End PCBASE ************/
+/************ Todo: Straighten this mess out ***********************/
 /*0x2040*/ void*        vtable2;//vtable2_0 below aTimeIsDAndCanU
 /*0x2044*/ struct _EQC_INFO*    eqc_info;
 /*0x2048*/ struct _SPAWNINFO*   pSpawn;//pSpawn_0
@@ -1433,7 +1641,8 @@ typedef struct _CHARINFO2 {
 /*0x3144*/ DWORD        MemorizedSpells[0x10];
 /*0x3184*/ DWORD        Skill[0x64];
 /*0x3314*/ DWORD        InnateSkill[0x19];
-/*0x3378*/ BYTE         Unknown0x3378[0xd8];
+/*0x3378*/ BYTE         Unknown0x3378[0xb4];
+/*0x342c*/ DWORD		Unknown0x342c[0x9];
 /*0x3450*/ DWORD        Gender;
 /*0x3454*/ DWORD        Race;
 /*0x3458*/ DWORD        Class;
@@ -2392,39 +2601,74 @@ typedef struct _SWITCHCLICK
 //more work is needed... anyone feel free to step up...
 
 //updated on dec 16 2015 by brainiac
+enum eMemPoolType
+{
+	eGlobal,
+	eOnDemand,
+	eClearOnZone,
+};
 typedef struct _EQSWITCH {
-	/*0x00*/    DWORD        Unknown0x0[0x2];
-	/*0x08*/    float        UnknownData0x08;
-	/*0x0c*/    float        UnknownData0x0c;
-	/*0x10*/    float        Unknown0x10[0x2];
-	/*0x18*/    float        UnknownData0x18;
-	/*0x1c*/    float        Unknown0x1c;
-	/*0x20*/    float        UnknownData0x20;
-	/*0x24*/    float        Unknown0x24[0x2];
-	/*0x2C*/    FLOAT        Y;
-	/*0x30*/    FLOAT        X;
-	/*0x34*/    FLOAT        Z;
-	/*0x38*/    BYTE         Unknown0x38[0x4c]; //A lot of data here.
-	/*0x84*/    float        yAdjustment1;//from this point on im not sure -eqmule 2013 dec 16
-	/*0x88*/    float        xAdjustment1;
-	/*0x8c*/    float        zAdjustment1;
-	/*0x90*/    float        headingAdjustment1;
-	/*0x94*/    float        yAdjustment2;
-	/*0x98*/    float        xAdjustment2;
-	/*0x9c*/    float        zAdjustment2;
-	/*0xa0*/    float        headingAdjustment2;
-	/*0xa4*/    float        yAdjustment3;
-	/*0xa8*/    float        xAdjustment3;
-	/*0xac*/    float        zAdjustment3;
-	/*0xb0*/    float        headingAdjustment3;
-	/*0xb4*/    BYTE         Unknown0xb4[0x30];
-	/*0xe4*/    Matrix4x4    transformMatrix;
-	/*0x124*/   FLOAT        Heading;
-	/*0x128*/   BYTE         Unknown0x128[0x18];
-	/*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
-	/*0x144*/   BYTE         Unknown0x144[0x4c];
-	/*0x190*/
+/*0x00*/    void*		vfTable;
+/*0x04*/    eMemPoolType  MemType;
+/*0x08*/    bool        bIsS3DCreated;
+/*0x09*/    bool        bHasParentBone;
+/*0x0a*/    bool        bUpdateScaledAmbient;
+/*0x0c*/    float		ScaledAmbient;
+/*0x10*/    float		ScaledAmbientTarget;
+/*0x14*/    float		ParticleScaleFactor;
+/*0x18*/    float		CollisionSphereScaleFactor;
+/*0x1c*/    UINT        UpdateAmbientTick;
+/*0x20*/    UINT        InterpolateAmbientTick;
+/*0x24*/    void*		pParentActor;//its a  CActor*
+/*0x28*/    void*       pDPVSObject;
+/*0x2C*/    FLOAT		Y;
+/*0x30*/    FLOAT		X;
+/*0x34*/    FLOAT		Z;
+/*0x38*/    FLOAT		SurfaceNormalY;
+/*0x3c*/    FLOAT		SurfaceNormalX;
+/*0x40*/    FLOAT		SurfaceNormalZ;
+/*0x44*/    UINT        VisibleIndex;
+/*0x48*/    FLOAT       Alpha;
+/*0x4c*/    bool	    bCastShadow;
+/*0x4d*/    bool	    bNeverClip;
+/*0x4e*/    bool	    bClientCreated;
+/*0x50*/    FLOAT       ZOffset;
+/*0x54*/    FLOAT       EmitterScalingRadius;
+/*0x58*/    void*		pDuplicateActor;//its a  CActor*
+/*0x5c*/    bool	    bShowParticlesWhenInvisible;
+/*0x60*/    void*       pAreaPortalVolumeList;//CAreaPortalVolumeList*
+/*0x64*/    void*       CleanupList;//a TListNode<CActor*>? not sure
+/*0x68*/    BYTE        CleanupListFiller[0xc];
+/*0x74*/    void*       pActorApplicationData;//CActorApplicationData* 74 for sure see 1003AE70
+/*0x78*/    EActorType  ActorType;
+/*0x7c*/    void*       pTerrainObject;//CTerrainObject*
+/*0x80*/    void*       HighlightData;//HighlightData*
+/*0x84*/    float        yAdjustment1;//from this point on im not sure -eqmule 2013 dec 16
+/*0x88*/    float        xAdjustment1;
+/*0x8c*/    float        zAdjustment1;
+/*0x90*/    float        headingAdjustment1;
+/*0x94*/    float        yAdjustment2;
+/*0x98*/    float        xAdjustment2;
+/*0x9c*/    float        zAdjustment2;
+/*0xa0*/    float        headingAdjustment2;
+/*0xa4*/    float        yAdjustment3;
+/*0xa8*/    float        xAdjustment3;
+/*0xac*/    float        zAdjustment3;
+/*0xb0*/    float        headingAdjustment3;
+/*0xb4*/    float        adjustments4[3];
+/*0xc0*/    float        adjustments5[4];
+/*0xd0*/    bool        bbHasAttachSRT;
+/*0xd1*/    bool        bDisableDesignOverride;
+/*0xd4*/    int         Unknown0x1d4[4];
+/*0xe4*/    Matrix4x4   transformMatrix;//used for new armor
+/*0x128*/   FLOAT        Heading;
+/*0x12c*/   BYTE         Unknown0x12c[0x14];
+/*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
+/*0x144*/   BYTE         Unknown0x144[0x4c];
+/*0x190*/
 } EQSWITCH, *PEQSWITCH;
+
+
 
 //Size is 0xe0 see 54933E in dec 13 2016 live - eqmule
 typedef struct _DOOR {

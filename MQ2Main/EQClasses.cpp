@@ -4534,6 +4534,12 @@ FUNCTION_AT_ADDRESS(unsigned long EQ_Character::GetConLevel(class EQPlayer *),EQ
 #ifdef EQ_Character__TotalEffect_x
 FUNCTION_AT_ADDRESS(int EQ_Character1::TotalEffect(int, bool, int, bool, bool), EQ_Character__TotalEffect);
 #endif
+#ifdef EQ_Character__GetAdjustedSkill_x
+FUNCTION_AT_ADDRESS(int EQ_Character1::GetAdjustedSkill(int), EQ_Character__GetAdjustedSkill);
+#endif
+#ifdef EQ_Character__GetBaseSkill_x
+FUNCTION_AT_ADDRESS(int EQ_Character1::GetBaseSkill(int), EQ_Character__GetBaseSkill);
+#endif
 #ifdef EQ_Container__EQ_Container_x
 FUNCTION_AT_ADDRESS( EQ_Container::EQ_Container(void),EQ_Container__EQ_Container);
 #endif
@@ -5425,9 +5431,6 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::HasProperty(unsigned int,int,int),PlayerBase_
 #endif
 #ifdef PlayerBase__GetVisibilityLineSegment_x
 FUNCTION_AT_ADDRESS(class CLineSegment &EQPlayer::GetVisibilityLineSegment(class CLineSegment&, class EQPlayer&,unsigned int),PlayerBase__GetVisibilityLineSegment);
-#endif
-#ifdef EQPlayer__GetAdjustedSkill_x
-FUNCTION_AT_ADDRESS(int EQPlayer::GetAdjustedSkill(int),EQPlayer__GetAdjustedSkill);
 #endif
 #ifdef EQPlayer__SetEyeMaterial_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::SetEyeMaterial(unsigned char,int),EQPlayer__SetEyeMaterial);

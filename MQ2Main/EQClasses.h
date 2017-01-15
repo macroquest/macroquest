@@ -5823,6 +5823,8 @@ EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
 EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
+EQLIB_OBJECT int EQ_Character1::GetAdjustedSkill(int);
+EQLIB_OBJECT int EQ_Character1::GetBaseSkill(int);
 };
 
 class EQ_Character
@@ -6440,7 +6442,6 @@ EQLIB_OBJECT unsigned char EQPlayer::GetAlternateAnimVariation(int,unsigned char
 EQLIB_OBJECT unsigned int EQPlayer::GetUnusedID(void);
 EQLIB_OBJECT void EQPlayer::FindDefaultEyeMaterialIndexes(void);
 EQLIB_OBJECT void EQPlayer::InitializeIDArray(void);
-EQLIB_OBJECT int EQPlayer::GetAdjustedSkill(int);
 SPAWNINFO Data;
 };
 
