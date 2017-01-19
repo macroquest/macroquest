@@ -8531,7 +8531,11 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 		if (buffID > 0 && buffID != -1) {
 			if (PSPELL pSpell = GetSpellByID(buffID)) {
 				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
-					//int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell,0,0,NULL,1,1);
+					//if (PCHARINFO pChar = GetCharInfo()) {
+					//	if (pChar->vtable2) {
+					//		int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell, 0, 0, NULL, 1, true);
+					//	}
+					//}
 					switch (spa)
 					{
 					case 3: //Movement Rate
@@ -9074,7 +9078,11 @@ void InitKeyRings()
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
 VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine)
 {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
 	((CharacterZoneClient*)pCharData1)->MakeMeVisible(0, 0);
+		}
+	}
 }
 // ***************************************************************************
 // Function:    RemoveAura

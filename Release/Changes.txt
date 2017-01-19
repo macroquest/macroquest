@@ -1,3 +1,13 @@
+18 Jan 2017 by eqmule
+- Updated for LIVE
+- Bunch of other stuff, thanks Brainiac for the arrayclass mod
+- Exp has been changed to a __int64, because, well it is, and has been for a few years...
+
+14 Jan 2017 by rswiders
+- Corrected potential crashes in the following routines: GetAdjustedSkill, GetBaseSkill, GetModCap, 
+  GetAACastingTimeModifier, GetFocusCastingTimeModifier, GetFocusRangeModifier, HasSkill, MakeMeVisible.
+- Corrected a bug in BuffStackTest when checking triggering spas.
+
 13 Jan 2017 by rswiders
 - Added SkillBase to character. This will give you the static base maximum for your skills.
 - Updated Skill and SkillCap to handle the new TS aas allowing for above the cap values.
@@ -12,7 +22,7 @@
   named .CursorKrono which tells you how many Krono you have on your cursor
   you could then do /echo ${Me.CursorKrono}
 
-  Below is a plugin example for how you would do this: ([CODE] tags added for forum post to show up correctly)
+  Below is a plugin example for how you would do this: (tags added for forum post to show up correctly)
 [CODE]
 // MQ2ExtensionTest.cpp : Defines the entry point for the DLL application.
 //

@@ -2087,6 +2087,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case SeeInvis:
+#ifndef EMU
 		if (ISNUMBER()) {
 			int index = GETNUMBER();
 			if (index < 0)
@@ -2097,6 +2098,7 @@ bool MQ2SpawnType::GETMEMBER()
 			Dest.Type = pIntType;
 			return true;
 		}
+#endif
 		break;
 	case SpawnStatus:
 		if (ISNUMBER()) {
@@ -2516,56 +2518,56 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case CombatEffectsBonus:
 	{
-		DWORD CombatEffectsCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_COMBAT_EFFECTS);
+		DWORD CombatEffectsCap = GetModCap(HEROIC_MOD_COMBAT_EFFECTS);
 		Dest.DWord = (pChar->CombatEffectsBonus > CombatEffectsCap ? CombatEffectsCap : pChar->CombatEffectsBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case ShieldingBonus:
 	{
-		DWORD ShieldingCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_MELEE_SHIELDING);
+		DWORD ShieldingCap = GetModCap(HEROIC_MOD_MELEE_SHIELDING);
 		Dest.DWord = (pChar->ShieldingBonus > ShieldingCap ? ShieldingCap : pChar->ShieldingBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case SpellShieldBonus:
 	{
-		DWORD SpellShieldCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_SPELL_SHIELDING);
+		DWORD SpellShieldCap = GetModCap(HEROIC_MOD_SPELL_SHIELDING);
 		Dest.DWord = (pChar->SpellShieldBonus > SpellShieldCap ? SpellShieldCap : pChar->SpellShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case AvoidanceBonus:
 	{
-		DWORD AvoidanceCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_AVOIDANCE);
+		DWORD AvoidanceCap = GetModCap(HEROIC_MOD_AVOIDANCE);
 		Dest.DWord = (pChar->AvoidanceBonus > AvoidanceCap ? AvoidanceCap : pChar->AvoidanceBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case AccuracyBonus:
 	{
-		DWORD AccuracyCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_ACCURACY);
+		DWORD AccuracyCap = GetModCap(HEROIC_MOD_ACCURACY);
 		Dest.DWord = (pChar->AccuracyBonus > AccuracyCap ? AccuracyCap : pChar->AccuracyBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case StunResistBonus:
 	{
-		DWORD StunResistCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_STUN_RESIST);
+		DWORD StunResistCap = GetModCap(HEROIC_MOD_STUN_RESIST);
 		Dest.DWord = (pChar->StunResistBonus > StunResistCap ? StunResistCap : pChar->StunResistBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case StrikeThroughBonus:
 	{
-		DWORD StrikeThroughCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_STRIKETHROUGH);
+		DWORD StrikeThroughCap = GetModCap(HEROIC_MOD_STRIKETHROUGH);
 		Dest.DWord = (pChar->StrikeThroughBonus > StrikeThroughCap ? StrikeThroughCap : pChar->StrikeThroughBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case DoTShieldBonus:
 	{
-		DWORD DoTShieldCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_DOT_SHIELDING);
+		DWORD DoTShieldCap = GetModCap(HEROIC_MOD_DOT_SHIELDING);
 		Dest.DWord = (pChar->DoTShieldBonus > DoTShieldCap ? DoTShieldCap : pChar->DoTShieldBonus);
 		Dest.Type = pIntType;
 		return true;
@@ -2584,14 +2586,14 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case DamageShieldBonus:
 	{
-		DWORD DamageShieldCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_DAMAGE_SHIELDING);
+		DWORD DamageShieldCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELDING);
 		Dest.DWord = (pChar->DamageShieldBonus > DamageShieldCap ? DamageShieldCap : pChar->DamageShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 	case DamageShieldMitigationBonus:
 	{
-		DWORD DamageShieldMitigationCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_DAMAGE_SHIELD_MITIG);
+		DWORD DamageShieldMitigationCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELD_MITIG);
 		Dest.DWord = (pChar->DamageShieldMitigationBonus > DamageShieldMitigationCap ? DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
 		Dest.Type = pIntType;
 		return true;
@@ -3335,7 +3337,7 @@ bool MQ2CharacterType::GETMEMBER()
 					Dest.Type = pIntType;
 					if (pChar2->Skill[nSkill])
 					{
-						Dest.DWord = pCharData1->GetAdjustedSkill(nSkill);
+						Dest.DWord = GetAdjustedSkill(nSkill);
 					}
 					return true;
 				}
@@ -3369,7 +3371,7 @@ bool MQ2CharacterType::GETMEMBER()
 					Dest.Type = pIntType;
 					if (pChar2->Skill[nSkill])
 					{
-						Dest.DWord = pCharData1->GetBaseSkill(nSkill);
+						Dest.DWord = GetBaseSkill(nSkill);
 					}
 					return true;
 				}
@@ -4283,18 +4285,29 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case Haste:
-		Dest.DWord = pCharData1->TotalEffect(0xb, 1, 0, 1, 1);
-		Dest.Type = pIntType;
-		return true;
+	{
+		if (PCHARINFO pCharInfo = GetCharInfo()) {
+			if (pCharInfo->vtable2) {
+				Dest.DWord = pCharData1->TotalEffect(0xb, true, 0, true, true);
+				Dest.Type = pIntType;
+				return true;
+			}
+		}
+		return false;
+	}
 	case SPA:
 	{
 		if (!ISINDEX())
 			return false;
 		if (ISNUMBER())
 		{
-			Dest.DWord = pCharData1->TotalEffect(GETNUMBER(), true, 0, true, true);
-			Dest.Type = pIntType;
-			return true;
+			if (PCHARINFO pCharInfo = GetCharInfo()) {
+				if (pCharInfo->vtable2) {
+					Dest.DWord = pCharData1->TotalEffect(GETNUMBER(), true, 0, true, true);
+					Dest.Type = pIntType;
+					return true;
+				}
+			}
 		}
 		return false;
 	}
@@ -5260,7 +5273,7 @@ bool MQ2SpellType::GETMEMBER()
 	case MyCastTime:
 	{
 		DWORD n = 0;
-		__int64 mct = (__int64)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell) + pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n, 0) + pSpell->CastTime);
+		__int64 mct = (__int64)(GetAACastingTimeModifier((EQ_Spell*)pSpell) + GetFocusCastingTimeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n, 0) + pSpell->CastTime);
 		if (mct < (pSpell->CastTime/2))
 			Dest.UInt64 = pSpell->CastTime/2;
 		else
@@ -5493,7 +5506,7 @@ bool MQ2SpellType::GETMEMBER()
 	case MyRange:
 	{
 		DWORD n = 0;
-		Dest.Float = pSpell->Range + (float)pCharData1->GetFocusRangeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n);
+		Dest.Float = pSpell->Range + (float)GetFocusRangeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n);
 		Dest.Type = pFloatType;
 		return true;
 	}
@@ -7925,7 +7938,7 @@ bool MQ2SwitchType::GETMEMBER()
 								break;
 							case 35://EQIC_LOCKPICK
 								KeyID = pItem->ItemNumber;
-								Skill = pCharData1->GetAdjustedSkill(SKILL_PICKLOCK);
+								Skill = GetAdjustedSkill(SKILL_PICKLOCK);
 								break;
 							default:
 								KeyID = pItem->ItemNumber;

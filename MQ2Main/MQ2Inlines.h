@@ -196,6 +196,66 @@ static inline LONG GetMaxMana() {
 	}
 	return 0;
 }
+static inline int GetAdjustedSkill(int nSkill) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->GetAdjustedSkill(nSkill);
+		}
+	}
+	return 0;
+}
+static inline int GetBaseSkill(int nSkill) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->GetBaseSkill(nSkill);
+		}
+	}
+	return 0;
+}
+static inline int GetModCap(int index, bool bToggle = false) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			#ifndef EMU
+			return ((PcZoneClient*)pCharData1)->GetModCap(index, bToggle);
+			#else
+			return ((PcZoneClient*)pCharData1)->GetModCap(index);
+			#endif
+		}
+	}
+	return 0;
+}
+static inline int const GetAACastingTimeModifier(class EQ_Spell const * cSpell) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->GetAACastingTimeModifier(cSpell);
+		}
+	}
+	return 0;
+}
+static inline int const GetFocusCastingTimeModifier(class EQ_Spell const * cSpell, class EQ_Equipment * * cEquipment, int i) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->GetFocusCastingTimeModifier(cSpell, cEquipment, i);
+		}
+	}
+	return 0;
+}
+static inline int const GetFocusRangeModifier(class EQ_Spell const * cSpell, class EQ_Equipment * * cEquipment) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->GetFocusRangeModifier(cSpell, cEquipment);
+		}
+	}
+	return 0;
+}
+static inline bool HasSkill(int nSkill) {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return ((CharacterZoneClient*)pCharData1)->HasSkill(nSkill);
+		}
+	}
+	return false;
+}
 
 // ***************************************************************************
 // Function:    GetCharMaxBuffSlots
@@ -204,9 +264,11 @@ static inline LONG GetMaxMana() {
 static inline DWORD GetCharMaxBuffSlots()
 {
 	DWORD NumBuffs = 15;
-	NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
 
 	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
+		}
 		if (pChar->pSpawn->Level > 70) NumBuffs++;
 		if (pChar->pSpawn->Level > 74) NumBuffs++;
 	}

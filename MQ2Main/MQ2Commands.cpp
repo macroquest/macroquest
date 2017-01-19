@@ -2177,7 +2177,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 			// display skills that have activated state
 			for (Index = 0; Index < NUM_SKILLS; Index++)
 			{
-				if (((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+				if (HasSkill(Index))
 				{
 					bool Avail = pSkillMgr->pSkill[Index]->Activated;
 
@@ -2221,12 +2221,16 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (!_stricmp(szBuffer, szSkills[Index]))
 				{
-					if (!((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+					if (!HasSkill(Index))
 					{
 						WriteChatf("you do not have this skill");
 						return;
 					}
-					pCharData1->UseSkill((unsigned char)Index, (EQPlayer*)pCharData1);
+					if (PCHARINFO pChar = GetCharInfo()) {
+						if (pChar->vtable2) {
+							pCharData1->UseSkill((unsigned char)Index, (EQPlayer*)pCharData1);
+						}
+					}
 					return;
 				}
 			}

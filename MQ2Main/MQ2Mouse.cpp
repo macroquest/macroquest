@@ -403,10 +403,8 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 											Skill = 0;
 											break;
 										case 35://EQIC_LOCKPICK
-											if (pCharData1) {
-												KeyID = pItem->ItemNumber;
-												Skill = pCharData1->GetAdjustedSkill(SKILL_PICKLOCK);
-											}
+											KeyID = pItem->ItemNumber;
+											Skill = GetAdjustedSkill(SKILL_PICKLOCK);
 											break;
 										default:
 											KeyID = pItem->ItemNumber;

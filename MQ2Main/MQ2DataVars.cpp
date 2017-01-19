@@ -784,15 +784,19 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy_s(Arg2, pDest +8);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
-			} else if ((CHATEVENT(CHAT_CHAT)) && (pDest = strstr(szClean," tells ")) && (strstr(szClean,":")) && (strstr(szClean,", '"))) {
-				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy_s(Arg3, pDest +7);
-				Arg3[strlen(Arg3)-1]=0;
-				if (pDest = strstr(Arg3, ", '")) {
-					strcpy_s(Arg2, pDest + 3);
-				}
-				Arg3[strstr(Arg3,":")-Arg3]=0; 
-				AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
+			} else if( (CHATEVENT( CHAT_CHAT )) && (strstr( szClean, "You told " ) == NULL) && (pDest = strstr( szClean, " tells " )) && (strstr( szClean, ":" )) && (strstr( szClean, ", '" )) ) {
+                strncpy_s( Arg1, szClean, (DWORD)(pDest - szClean) );
+                strcpy_s( Arg3, pDest + 7 );
+                Arg3[strlen( Arg3 ) - 1] = 0;
+                if( pDest = strstr( Arg3, ", '" ) ) {
+                    strcpy_s( Arg2, pDest + 3 );
+                }
+                const char* colPos = strstr( Arg3, ":" );
+                if( colPos != NULL )
+                {
+                    Arg3[colPos - Arg3] = 0;
+                }            
+                AddEvent( EVENT_CHAT, Arg3, Arg1, Arg2, NULL ); 
 		#ifndef USEBLECHEVENTS
 			} else { 
 				PEVENTLIST pEvent = pEventList; 

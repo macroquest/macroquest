@@ -314,7 +314,7 @@ VFTABLE
 /*0x0174*/ UINT		BlinkFadeFreq; \
 /*0x0178*/ bool		bMaximizable; \
 /*0x0179*/ bool		bScreenClipRectChanged; \
-/*0x017C*/ ArrayClass2<UINT> RuntimeTypes; \
+/*0x017C*/ ArrayClass2_RO<UINT> RuntimeTypes; \
 /*0x0198*/ struct _CXSTR*	XMLToolTip; /* found in CSidlManager__CreateLabel_x */ \
 /*0x019C*/ RECT		ClipRectClient; \
 /*0x01AC*/ struct _CSIDLWND* pWndFocusOther; \
@@ -459,7 +459,7 @@ typedef struct _CONTENTSARRAY {
     struct _CONTENTS* Array[1];
 } CONTENTSARRAY, *PCONTENTSARRAY;
 
-//Size is 0x45 see 68A992 in Jan 10 2017 live exe -eqmule
+//Size is 0x45 see 68A992 in Jan 10 2017 test exe -eqmule
 enum ChatFilterEnum {
 	CHAT_FILTER_SAY,
 	CHAT_FILTER_TELL,
