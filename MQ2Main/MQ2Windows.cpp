@@ -1272,8 +1272,8 @@ int ItemNotify(int argc, char *argv[])
     EQINVSLOT *pSlot=NULL;
     DWORD i;
     PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
-    int bagslot = -1;
-    int invslot = -1;
+    short bagslot = -1;
+    short invslot = -1;
     ItemContainerInstance type = eItemContainerInvalid;
 
     if (!_stricmp(szArg1,"in"))
@@ -1380,7 +1380,7 @@ int ItemNotify(int argc, char *argv[])
 				CHAR szType[MAX_STRING] = {0};
                 for (i=0;i<pInvMgr->TotalSlots;i++) {
                     pSlot = pInvMgr->SlotArray[i];
-                    if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlot == invslot) {
+                    if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && (short)pSlot->pInvSlotWnd->InvSlot == invslot) {
 						CXMLData *pXMLData=((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 						if(pXMLData) {		
 							GetCXStr(pXMLData->ScreenID.Ptr,szType,MAX_STRING);

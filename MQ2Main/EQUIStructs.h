@@ -631,11 +631,12 @@ typedef struct _EQCHATWINDOW {
 // actual size 0x14 10-12-2010
 //I think this is correct:
 //see (69FF1E) in eqgame.exe dated 2013 11 13 -eqmule
+//Invslot MUST be an int
 typedef struct _EQINVSLOT {
 /*0x00*/    LPVOID pvfTable;        // not based on cxwnd
 /*0x04*/    struct _EQINVSLOTWND *pInvSlotWnd;
 /*0x08*/    DWORD Unknown0x08;
-/*0x0C*/    DWORD InvSlot;
+/*0x0C*/    int InvSlot;
 /*0x10*/    BYTE Valid;
 /*0x11*/    BYTE Unknown0x11[3];
 /*0x14*/    
@@ -1159,6 +1160,7 @@ typedef struct _EQCASTSPELLWINDOW {
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 // Actual Size: 0x2d8 (see 790459) in Jan 17 2017 Live - eqmule
+//note that Invslot needs to be a short or pickupitem wont work
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CXWND        Wnd;      //----/ actually CButtonWnd
 /*0x01f0*/ BYTE         Unknown0x01f0[0x8c];
@@ -1170,10 +1172,10 @@ typedef struct _EQINVSLOTWND {
 											// 03 for trader window
 											// 04 for World/Tradeskill/Combine
 											// 11 for loot window
-/*0x0290*/ WORD         InvSlot;
-/*0x0292*/ WORD         BagSlot;
-/*0x0294*/ WORD         GlobalSlot;
-/*0x0296*/ WORD         RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
+/*0x0290*/ short         InvSlot;
+/*0x0292*/ short         BagSlot;
+/*0x0294*/ short         GlobalSlot;
+/*0x0296*/ short         RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
 /*0x0298*/ BYTE         Unknown0x0298[0x20];
 /*0x02b8*/ struct _EQINVSLOT *  pInvSlot;
 /*0x02bc*/ BYTE         Unknown0x02bc[0x8];

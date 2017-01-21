@@ -709,7 +709,6 @@ GNU General Public License for more details.
 #define EQ_Character__Cur_HP_x                                     0x462D30
 #define EQ_Character__Cur_Mana_x                                   0x4567F0
 #define EQ_Character__GetAACastingTimeModifier_x                   0x4472B0
-#define EQ_Character__GetCharInfo2_x                               0x85C800
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43F5B0
 #define EQ_Character__GetFocusRangeModifier_x                      0x43F610
 #define EQ_Character__GetHPRegen_x                                 0x465F40
@@ -728,6 +727,12 @@ GNU General Public License for more details.
 #define EQ_Character__FindItemByRecord_x                           0x460190
 #define EQ_Character__GetAdjustedSkill_x                           0x4634E0
 #define EQ_Character__GetBaseSkill_x                               0x459350
+
+//ProfileManager
+#define ProfileManager__GetCurrentProfile_x                        0x85C800
+
+//PlayerClient (to us known as EQPlayer)
+#define PlayerClient__GetPcClient_x                                0x5C11C0
 
 //CCharacterSelect
 #define CCharacterSelect__SelectCharacter_x                        0x4428E0

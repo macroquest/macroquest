@@ -1,3 +1,12 @@
+19 Jan 2017 by eqmule
+- Fixed a bug in the EQINVSLOTWND struct where slots where WORD instead of short
+  this will take care of any remaining problems with /itemnotify
+- stuff in progress, nothing to see here yet...
+- Fixed a buffer overflow in the UPCNotificationFlush_Detour -Thanks Maskoi
+
+19 Jan 2017 by rswiders
+- Fixed BuffStackTest to correctly test spells with triggering spas.
+
 18 Jan 2017 by eqmule
 - Updated for LIVE
 - Bunch of other stuff, thanks Brainiac for the arrayclass mod

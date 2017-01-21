@@ -7219,7 +7219,7 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, BOOL bTriggeredEffectCheck)
 {
 	if (!aSpell || !bSpell)
-		return true;
+		return false;
 	if (aSpell->ID == bSpell->ID)
 		return true;
 
@@ -7251,12 +7251,10 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 		BOOL bTriggerA = TriggeringEffectSpell(aSpell, i);
 		BOOL bTriggerB = TriggeringEffectSpell(bSpell, i);
 		if (bTriggerA || bTriggerB) {
-			PSPELL pRetSpellA = GetSpellByID(bTriggerA ? aBase2 : aSpell->ID);
-			PSPELL pRetSpellB = GetSpellByID(bTriggerB ? bBase2 : bSpell->ID);
-#if 0
-			if (!pRetSpellA || !pRetSpellB)
-				WriteChatf("BuffStackTest ERROR: aSpell[%d]:%s, bSpell[%d]:%s", aSpell->ID, aSpell->Name, bSpell->ID, bSpell->Name);
-#endif
+			PSPELL pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == 374 ? aBase2 : aBase) : aSpell->ID);
+			PSPELL pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == 374 ? bBase2 : bBase) : bSpell->ID);
+			//if (!pRetSpellA || !pRetSpellB)
+			//	WriteChatf("BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s", aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
 			if (!BuffStackTest(pRetSpellA, pRetSpellB, bIgnoreTriggeringEffects, true))
 				return false;
 		}
@@ -8075,7 +8073,7 @@ PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
 		CHAR szType[MAX_STRING] = { 0 };
 		for (DWORD i = 0; i<pInvMgr->TotalSlots; i++) {
 			pSlot = pInvMgr->SlotArray[i];
-			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlot == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
+			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && (short)pSlot->pInvSlotWnd->InvSlot == invslot && (short)pSlot->pInvSlotWnd->BagSlot == bagslot) {
 				CXMLData *pXMLData = ((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 				if (pXMLData) {
 					GetCXStr(pXMLData->ScreenID.Ptr, szType, MAX_STRING);
@@ -9080,7 +9078,7 @@ VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
-	((CharacterZoneClient*)pCharData1)->MakeMeVisible(0, 0);
+			((CharacterZoneClient*)pCharData1)->MakeMeVisible(0, 0);
 		}
 	}
 }

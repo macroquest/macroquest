@@ -1128,34 +1128,16 @@ public:
 /*0x04*/	ArrayClass_RO<PointNamesEntry *>PointNameEntries;
 /*0x14*/
 };
-template<class T> class LinkedListNode
-{
-public:
-	T               Object;
-	LinkedListNode* pNext;
-	LinkedListNode* pPrev;
-};
-template <class T> class DoublyLinkedList
-{
-public:
-/*0x00*/    PVOID vfTable;
-/*0x04*/    LinkedListNode<T>* pHead;
-/*0x08*/    LinkedListNode<T>* pTail;
-/*0x0c*/    LinkedListNode<T>* pCurObject;
-/*0x10*/    LinkedListNode<T>* pCurObjectNext;
-/*0x14*/    LinkedListNode<T>* pCurObjectPrev;
-/*0x18*/    int NumObjects;
-/*0x1c*/    int RefCount;
-/*0x20*/
-};
+
 class PendingReward
 {
 public:
-	PVOID vfTable;
-	int		ID;
-	int		SetID;
-	FLOAT	RewardAdjustment;
-	CHAR	RewardTitle[0x80];
+/*0x00*/	PVOID vfTable;
+/*0x04*/	int		ID;
+/*0x08*/	int		SetID;
+/*0x0c*/	FLOAT	RewardAdjustment;
+/*0x10*/	CHAR	RewardTitle[0x80];
+/*0x90*/
 };
 class PendingRewardList : public DoublyLinkedList<PendingReward*>
 {
@@ -1178,15 +1160,481 @@ struct ProgressionExperience
 /*0x10*/
 };
 
-typedef HashTable<ProgressionExperience> ProgressionExperienceHash;
+//start if reorganisation for charinfo etc...
+//todo: finish it...
+
+template <typename TItem> class ItemContainer
+{
+public:
+/*0x00*/	UINT Size;
+/*0x04*/	int Spec;
+/*0x08*/	VeArray<VePointer<TItem>> Items;
+/*0x0c*/	BYTE AtDepth;
+/*0x10*/	short Slots[2];
+/*0x14*/	bool bDynamic;
+/*0x18*/
+};
+
+class ItemBaseContainer : public ItemContainer<PCONTENTS>
+{
+public:
+
+};
+
+class CharacterPropertyHash : public HashTable<int>
+{
+public:
+
+};
+
+enum eProfileType {
+	ePTMain,
+	ePTAlt,
+	ePTMonsterMission,
+	ePTUnknown
+};
+
+enum eProfileListType
+{
+	ePLT_Regular,
+	cPLT_MonsterMission
+};
+//BaseProfile Todo: fill it in...
+class BaseProfile
+{
+	//has a vftable
+public:
+/*0x0000*/	PVOID vfTable;
+/*0x0004*/	BaseProfile*		pNextProfile;
+/*0x0008*/	BaseProfile*		pPrevProfile;
+/*0x000c*/  eProfileListType	profileListType;
+/*0x0010*/	ItemBaseContainer	pInventoryArray;
+/*0x0000*/	ItemBaseContainer	TributeBenefitItems;
+/*0x0000*/	ItemBaseContainer	TrophyTributeBenefitItems;
+/*0x0000*/	TSafeArrayStatic<struct _SPELLBUFF, NUM_LONG_BUFFS>		Buff; 
+/*0x0000*/	TSafeArrayStatic<struct _SPELLBUFF, NUM_SHORT_BUFFS>	ShortBuff;
+/*0x0000*/	TSafeArrayStatic<unsigned int, NUM_BUFF_SLOTS>	CasterSpellIDs;
+/*0x0000*/	TSafeArrayStatic<unsigned int, NUM_BUFF_SLOTS>	DiseaseSpreadTimers;
+/*0x0000*/	TSafeArrayStatic<int, NUM_BOOK_SLOTS>	SpellBook;
+/*0x0000*/	TSafeArrayStatic<int, 0x10>	MemorizedSpells;
+/*0x0000*/	TSafeArrayStatic<int, 0x64>	Skill;
+/*0x0000*/	TSafeArrayStatic<int, 0x19>	InnateSkill;
+	//todo: add tthe rest sync it up with charinfo2
+};
+
+class ProfileList
+{
+	//has no vftable
+public:
+/*0x00*/	eProfileListType ListType;
+/*0x04*/	BaseProfile* pFirst;
+/*0x08*/	BaseProfile* pLast;
+/*0x0c*/	ProfileList* pNext;
+/*0x10*/	ProfileList* pPrev;
+/*0x14*/
+};
+
+class CProfileManager
+{
+	//has no vftable
+public:
+/*0x00*/	ProfileList* pFirst;
+/*0x04*/	eProfileListType CurProfileList;
+/*0x08*/
+};
+struct PCTaskStatus
+{
+/*0x00*/	int TaskID;
+/*0x04*/	int MovingStartTime;
+/*0x08*/	int InitialStartTime;
+/*0x0c*/	bool ElementActive[0x14];
+/*0x20*/	int CurrentCounts[0x14];
+/*0x70*/
+};
+
+struct BenefitSelection
+{
+/*0x00*/	int BenefitID;
+/*0x04*/	int BenefitTier;
+/*0x08*/
+};
+struct MailItemData
+{
+/*0x00*/	UINT	SendTime;
+/*0x04*/	PCXSTR	SenderName;
+/*0x08*/	PCXSTR	Note;
+/*0x0c*/
+};
+
+enum eDynamicZoneType
+{
+	eDZT_Unknown,
+	eDZT_Expedition,
+	eDZT_Tutorial,
+	eDZT_Task,
+	eDZT_Mission,
+	eDZT_Quest
+};
+
+struct DynamicZoneData
+{
+/*0x00*/	int		DynamicZoneID;
+/*0x04*/	int		SetID;
+/*0x08*/	eDynamicZoneType	Type;
+/*0x0c*/
+};
+struct TradeskillRecipeCount
+{
+/*0x00*/	int		SkillID;
+/*0x04*/	int		RecipeCount;
+/*0x08*/
+};
+
+struct DynamicZoneTimerData
+{
+/*0x00*/	int		DataSetID;
+/*0x04*/	UINT	TimerExpiration;
+/*0x08*/	int		EventID;
+/*0x0c*/	int		DynamicZoneID;
+/*0x10*/	DynamicZoneTimerData	*pNext;
+/*0x14*/
+};
+
+struct PvPKill
+{
+/*0x00*/	CHAR VictimName[0x40];
+/*0x04*/	int VictimLevel;
+/*0x08*/	DWORD VictimRace;
+/*0x0c*/	DWORD VictimClass;
+/*0x10*/	int ZoneID;
+/*0x14*/	long Lastkilltime;
+/*0x18*/	int PointsEarned;
+/*0x1c*/
+};
+
+struct PvPDeath
+{
+/*0x00*/	CHAR KillerName[0x40];
+/*0x04*/	int KillerLevel;
+/*0x08*/	DWORD KillerRace;
+/*0x0c*/	DWORD KillerClass;
+/*0x10*/	int ZoneID;
+/*0x14*/	long LastDeathTime;
+/*0x18*/	int PointsLost;
+/*0x1c*/
+};
+
+struct PvPKill24HourData : public PvPKill
+{
+	//nothing here?
+};
+
+enum eAreaCorner
+{
+	eAC_None = -1,
+	eAC_TopLeftCorner,
+	eAC_TopRightCorner,
+	eAC_BottomLeftCorner,
+	eAC_BottomRightCorner,
+};
+
+struct PCAdventureThemeStats
+{
+/*0x00*/	int SucceededNormal;
+/*0x04*/	int FailedNormal;
+/*0x08*/	int SucceededHard;
+/*0x0c*/	int FailedHard;
+/*0x10*/	int AdventureTotalPointsEarned;
+/*0x14*/
+};
+
+struct PCAdventureData
+{
+/*0x000*/	int AdventureLastAdventureDefinitionSeen[5];
+/*0x014*/	UINT AdventureLastAdventureDefinitionSeenTime[5];
+/*0x028*/	int AdventureActiveAdventureId;
+/*0x02c*/	int AdventureActiveAdventureTheme;
+/*0x030*/	int AdventureActiveAdventureRisk;
+/*0x034*/	int AdventureSafeReturnZoneId;
+/*0x038*/	FLOAT AdventureSafeReturnX;
+/*0x03c*/	FLOAT AdventureSafeReturnY;
+/*0x040*/	FLOAT AdventureSafeReturnZ;
+/*0x044*/	int AdventureStatAccepted;
+/*0x048*/	int AdventureStatRejected;
+/*0x04c*/	int AdventureStatEntered;
+/*0x050*/	int AdventureStatFailedEnter;
+/*0x054*/	int AdventurePointsAvailable;
+/*0x058*/	int AdventurePointsAvailableMax;
+/*0x05c*/	UINT AdventureLastSuccessTime;
+/*0x060*/	PCAdventureThemeStats ThemeStats[6];
+/*0x078*/
+};
+
+struct MonsterMissionTemplate
+{
+/*0x00*/	int		TemplateID;
+/*0x04*/	int		Min;
+/*0x08*/	int		Max;
+/*0x0c*/	int		NumSelected;
+/*0x10*/	bool	CanSelect;
+/*0x14*/	CHAR	TemplateName[0x40];
+/*0x54*/
+};
+
+struct PCSharedTaskData
+{
+/*0x00*/	int	ActiveSharedTaskID;
+/*0x04*/	bool bIsMonsterMission;
+/*0x08*/	PCTaskStatus Status;//size 0x70
+/*0x78*/	ArrayClass_RO<MonsterMissionTemplate> Templates;//size is 0x10
+/*0x88*/	FLOAT	RewardAdjustment;
+/*0x8c*/
+};
+
+struct TaskTimerData
+{
+/*0x00*/	int GroupID;
+/*0x04*/	int TimerSeconds;
+/*0x08*/	UINT TimerExpiration;
+/*0x0c*/	int TimerType;
+/*0x10*/	int OrigTaskID;
+/*0x14*/	TaskTimerData *pNext;
+/*0x18*/
+};
+
+struct PCCompletedQuest
+{
+/*0x00*/	int QuestID;
+/*0x04*/	int ElementBitmask;
+/*0x08*/	UINT TimeCompleted;
+/*0x0c*/
+};
+
+struct PCQuestHistoryData
+{
+/*0x000*/	PCCompletedQuest Quests[0x32];//size 0xc * 0x32 = 0x258
+/*0x258*/
+};
+
+class StatCounter
+{
+public:
+/*0x00*/	UINT Value;
+/*0x04*/
+};
+
+class StatElapsedTime
+{
+public:
+/*0x00*/	UINT StartTick;
+/*0x04*/	UINT ElapsedTotal;
+/*0x08*/	bool bCurrentState;
+/*0x0c*/
+};
+
+class PCStatistics
+{
+public:
+	enum eStatisticType {
+		S_TotalExpEarned,
+		S_GroupExpEarned,
+		S_ExpRaidEarned,
+		S_ExpSoloEarned,
+		S_NonExpKills,
+		S_ExpKills,
+		S_ZonesVisited,
+		S_ChatShouts,
+		S_ChatOOCs,
+		S_ChatSays,
+		S_ChatGroup,
+		S_ChatTells,
+		S_Deaths, 
+		S_Resurrections, 
+		S_PlatEarned,
+		S_TradeskillCombines,
+		S_Forages,
+		S_Quests,
+		S_LastStat,
+	};
+/*0x000*/	StatElapsedTime StatTimeSession; //size 0xc
+/*0x00c*/	StatElapsedTime StatTimeLFG;
+/*0x018*/	StatElapsedTime StatTimeGrouped;
+/*0x024*/	StatElapsedTime StatTimeSolo;
+/*0x030*/	StatElapsedTime StatTimeRaid;
+/*0x03c*/	StatElapsedTime StatTimeInBazaar;
+/*0x048*/	StatCounter Statistics[S_LastStat];//size is 0x48
+/*0x090*/	UINT LastUpdateTime;
+/*0x094*/	CHAR PlayerName[0x40];
+/*0x0d4*/	CHAR PlayerStationID[0x20];
+/*0x0f4*/	int PlayerLevel;
+/*0x0f8*/	DWORD PlayerRace;
+/*0x0fc*/	DWORD PlayerClass;
+/*0x100*/	UINT UniquePlayerID;
+/*0x104*/
+};
+
+class GroupMemberStats
+{
+public:
+	enum eStatisticType {
+		S_Mez,
+		S_Root,
+		S_Charmed,
+		S_Stunned,
+		S_Slowed,
+		S_FirstAgro,
+		S_DmgMelee,
+		S_DmgRanged,
+		S_DmgSpell,
+		S_DmgDot,
+		S_DmgPet,
+		S_DmgTaken,
+		S_DmgHealed,
+		S_ExpTotalEarned,
+		S_Deaths,
+		S_ExpKills,
+		S_NonExpKills,
+		S_ManaUsed,
+		S_EnduranceUsed,
+		S_LastStat,
+	};
+/*0x000*/	CHAR PlayerName[0x40];
+/*0x040*/	int PlayerLevel;
+/*0x044*/	int PlayerRace;
+/*0x048*/	int PlayerClass;
+/*0x04c*/	UINT UniquePlayerId;
+/*0x050*/	UINT LastMemberUpdateTime;
+/*0x054*/	PCXSTR StationID;
+/*0x058*/	int PlayerGuild;
+/*0x05c*/	TSafeArrayStatic<int, NUM_LONG_BUFFS> BuffIDs;
+/*0xxxx*/	TSafeArrayStatic<StatCounter, S_LastStat> Statistics;
+/*0xxxx*/
+};
+
+struct ClaimData
+{
+/*0x00*/	int FeatureID;
+/*0x04*/	int Count;
+/*0x08*/
+};
+
+class ClaimDataCollection
+{
+public:
+/*0x00*/	ArrayClass<ClaimData> ClaimData;
+/*0x10*/
+};
+
+class MercenaryAbilityInfo
+{
+public:
+/*0x00*/	int Index;
+/*0x04*/	int Cost;
+/*0x08*/
+};
+
+struct CompletedAchievementData
+{
+/*0x00*/	int AchievementID;
+/*0x04*/	UINT CompletedTimestamp;
+/*0x08*/	int CompletedVersion;
+/*0x0c*/
+};
+
+enum eAchievementSubReqType
+{ 
+	eASCRT_Invalid, 
+	eASCRT_Requirement, 
+	eASCRT_KillNpcRaceMat, 
+	eASCRT_RightClickItem,
+	eASCRT_KillNpc,
+	eASCRT_Count,
+};
+
+struct AchievementSubComponentCountData
+{
+/*0x00*/	int AchievementID;
+/*0x04*/	int ComponentID;
+/*0x08*/	int RequirementID;
+/*0x0c*/	eAchievementSubReqType SubReqType;
+/*0x10*/	int Count;
+/*0x14*/
+};
+
+struct WorldLocation
+{
+/*0x00*/ DWORD        ZoneBoundID;
+/*0x04*/ FLOAT        ZoneBoundY;
+/*0x08*/ FLOAT        ZoneBoundX;
+/*0x0c*/ FLOAT        ZoneBoundZ;
+/*0x10*/ FLOAT        ZoneBoundHeading;
+/*0x14*/
+};
+
+struct RaidData
+{
+/*0x00*/	int MainAssists[3];
+/*0x0c*/	CHAR MainAssistNames[3][0x40];
+/*0xcc*/	int MainMarkers[3];
+/*0xd8*/	int MasterLooter;
+/*0xdc*/
+};
+
+class CCharacterBase
+{
+public:
+	PVOID vfTable;
+	CProfileManager ProfileManager;
+	//todo: fil in the rest and sync it
+};
+
+//need to check CHARINFO
+class PcBase : public CCharacterBase
+{
+public:
+	TSafeArrayStatic<int, 0xa>	RecentTasks;
+	TSafeArrayStatic<PCTaskStatus, 1>	Tasks;
+	TSafeArrayStatic<PCTaskStatus, 0x1d>	Quests;
+	TSafeArrayStatic<BYTE, 6400 / 8>	BitFlags;
+	TSafeArrayStatic<BenefitSelection, 5> ActiveTributeBenefits;
+	TSafeArrayStatic<BenefitSelection, 10> ActiveTrophyTributeBenefits;
+	ItemBaseContainer	BankItems;
+	ItemBaseContainer	SharedBankItems;
+	ItemBaseContainer	LimboBufferItems;
+    ItemBaseContainer	MercenaryItems;
+	ItemBaseContainer	MountKeyRingItems;
+	ItemBaseContainer	IllusionKeyRingItems;
+	ItemBaseContainer	FamiliarKeyRingItems;
+	ItemBaseContainer	AltStorageItems;
+	ItemBaseContainer	ArchivedDeletedItems;
+	ItemBaseContainer	MailItems;
+	HashTable<MailItemData, EqItemGuid, ResizePolicyNoShrink>	MailItemsData;
+	TSafeArrayStatic<UINT, 1>	RecentMoves;
+	HashTable<DynamicZoneData>	CurrentDynamicZones;
+	HashTable<int>	LearnedRecipes;	
+	EQList<TradeskillRecipeCount*>	QualifyingRecipeCounts;
+	HashTable<int>	NonrepeatableQuests;
+	HashTable<int>	CompletedTasks;
+	UINT	AlchemyTimestamp;
+	bool	bSomethingHome;
+	DWORD	LoginTime;
+	// more todo here:
+	// ...
+	//
+	__int64 Vitality;
+	int AAVitality;
+	int FPStuff[0x1d];
+};
+
 //aStartingLoad_
 // actual size: 0x27c8 in Oct 11 2016 beta (see 57B8C7) - eqmule
 /*0x1c4c*/ //ItemIndex	StatKeyRingItemIndex[3];//0xe46 confirmed
 //this thing here is an abomination, todo: fix it once and for all.
 // its like a frankenstruct mixing in PcBase etc.
+//class PcBase: public CharacterBase
 typedef struct _CHARINFO {
 /*0x0000*/ void*        vtable1;
-/*0x0004*/ void*        punknown;
+/*0x0004*/ void*		punknown;
 /*0x0008*/ struct _CI_INFO*     charinfo_info;
 /*0x000c*/ BYTE         Unknown0x000c[0x10ec];
 /*0x10f8*/ struct _BANKARRAY*   pBankArray;
@@ -1281,7 +1729,7 @@ typedef struct _CHARINFO {
 /*0x1c60*/ _CXSTR        *AltStorageBuffer;
 /*0x1c64*/ UINT         AltStorageTimestamp;
 /*0x1c68*/ ELockoutCharacterReason LCR;
-/*0x1c6c*/ ProgressionExperienceHash ProgressionExp;
+/*0x1c6c*/ HashTable<ProgressionExperience> ProgressionExp;
 /*0x1c7c*/ _CXSTR        *ArchivedStorageBuffer;
 /*0x1c80*/ PCXSTR       MailItemsBuffer;
 /*0x1c84*/ PCXSTR       MailItemsDataBuffer;
@@ -1410,24 +1858,6 @@ union {
 };
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
-struct WorldLocation
-{
-/*0x00*/ DWORD        ZoneBoundID;
-/*0x04*/ FLOAT        ZoneBoundY;
-/*0x08*/ FLOAT        ZoneBoundX;
-/*0x0c*/ FLOAT        ZoneBoundZ;
-/*0x10*/ FLOAT        ZoneBoundHeading;
-/*0x14*/
-};
-template <typename TheType, unsigned int _Size> class TSafeArrayStatic
-{
-public:
-	TheType Data[_Size];
-	inline TheType& operator[](UINT index)
-	{ 
-		return Data[index]; 
-	}
-};
 //aSdeityD CharInfo2__CharInfo2
 // actual size: 0x9a28 2016 04 13 test (see 85B22A) - eqmule
 typedef struct _CHARINFO2 {

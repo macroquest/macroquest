@@ -1322,7 +1322,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__Cur_HP;
 	EQLIB_VAR DWORD EQ_Character__Cur_Mana;
 	EQLIB_VAR DWORD EQ_Character__GetAACastingTimeModifier;
-	EQLIB_VAR DWORD EQ_Character__GetCharInfo2;
 	EQLIB_VAR DWORD EQ_Character__GetFocusCastingTimeModifier;
 	EQLIB_VAR DWORD EQ_Character__GetFocusRangeModifier;
 	EQLIB_VAR DWORD EQ_Character__Max_Endurance;
@@ -1338,6 +1337,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__FindItemByRecord;
 	EQLIB_VAR DWORD EQ_Character__GetAdjustedSkill;
 	EQLIB_VAR DWORD EQ_Character__GetBaseSkill;
+
+	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
 	EQLIB_VAR DWORD CCharacterSelect__SelectCharacter;
 	EQLIB_VAR DWORD CCharacterSelect__EnterWorld;
@@ -1393,6 +1394,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
 	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
+	
+	EQLIB_VAR DWORD PlayerClient__GetPcClient;
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;

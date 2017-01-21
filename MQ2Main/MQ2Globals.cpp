@@ -1855,7 +1855,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetEnduranceRegen);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__Cur_Mana);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAACastingTimeModifier);
-	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetCharInfo2);
+	INITIALIZE_EQGAME_OFFSET(ProfileManager__GetCurrentProfile);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetFocusCastingTimeModifier);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetFocusRangeModifier);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__Max_Endurance);
@@ -1925,6 +1925,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
+
+	INITIALIZE_EQGAME_OFFSET(PlayerClient__GetPcClient);
 	
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);

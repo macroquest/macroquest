@@ -4782,6 +4782,9 @@ FUNCTION_AT_ADDRESS(void  EQ_PC::InitializeNewPCVariables(int),EQ_PC__Initialize
 #ifdef EQ_PC__DestroyHeldItemOrMoney_x
 FUNCTION_AT_ADDRESS(void  EQ_PC::DestroyHeldItemOrMoney(void),EQ_PC__DestroyHeldItemOrMoney);
 #endif
+#ifdef ProfileManager__GetCurrentProfile_x
+FUNCTION_AT_ADDRESS(BaseProfile *ProfileManager::GetCurrentProfile(void),ProfileManager__GetCurrentProfile);
+#endif
 #ifdef EQ_Skill__EQ_Skill_x
 FUNCTION_AT_ADDRESS( EQ_Skill::EQ_Skill(int),EQ_Skill__EQ_Skill);
 #endif
@@ -5398,6 +5401,9 @@ FUNCTION_AT_ADDRESS(struct S3D_STRINGSPRITE *  EQPlayer::ChangeBoneStringSprite(
 #endif
 #ifdef EQPlayer__SetNameSpriteTint_x
 FUNCTION_AT_ADDRESS(bool  EQPlayer::SetNameSpriteTint(void),EQPlayer__SetNameSpriteTint);
+#endif
+#ifdef PlayerClient__GetPcClient_x
+FUNCTION_AT_ADDRESS(PcClient *PlayerClient::GetPcClient(void)const,PlayerClient__GetPcClient);
 #endif
 #ifdef EQPlayer__UpdateNameSprite_x
 FUNCTION_AT_ADDRESS(void  EQPlayer::UpdateNameSprite(void),EQPlayer__UpdateNameSprite);

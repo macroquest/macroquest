@@ -674,7 +674,7 @@ GNU General Public License for more details.
 #define EQ_Character__Cur_HP_x                                     0x462C70
 #define EQ_Character__Cur_Mana_x                                   0x456790
 #define EQ_Character__GetAACastingTimeModifier_x                   0x447260
-#define EQ_Character__GetCharInfo2_x                               0x865E80
+#define ProfileManager__GetCurrentProfile_x                        0x865E80
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43F550
 #define EQ_Character__GetFocusRangeModifier_x                      0x43F5B0
 #define EQ_Character__Max_Endurance_x                              0x5C2920

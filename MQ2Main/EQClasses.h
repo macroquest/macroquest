@@ -322,6 +322,7 @@ class PackFile;
 class PackFS;
 class PooledLogicalPacket;
 class public_key;
+class PcClient;
 class SAmpersandEntry;
 class SFormattedText;
 class ShareBase;
@@ -6153,6 +6154,13 @@ EQLIB_OBJECT void EQ_PC::GetNonArchivedOwnedRealEstates(ArrayClass<int>& output)
 
 };
 
+class ProfileManager
+{
+public:
+EQLIB_OBJECT BaseProfile* ProfileManager::GetCurrentProfile(void);
+
+};
+
 class EQ_Skill
 {
 public:
@@ -6444,7 +6452,116 @@ EQLIB_OBJECT void EQPlayer::FindDefaultEyeMaterialIndexes(void);
 EQLIB_OBJECT void EQPlayer::InitializeIDArray(void);
 SPAWNINFO Data;
 };
+//work in progress -eqmule
+class ExtendedTargetList
+{
+	//has a vftable
+public:	
+	//tddo fix:
+	//ArrayClass<ExtendedTargetSlot> TargetSlots;
+	bool bAutoAddHaters;
+};
+class ExtendedTargetListClient : public ExtendedTargetList
+{
+	//has no vftable
+public:
+	int CurrentSlot;
+	int ContextSlot;
+};
+enum eParcelStatus
+{
+	ePS_NoParcels,
+	ePS_HasParcels,
+	ePS_OverParcelsLimit,
+};
 
+class CGroupMemberBase
+{
+	//has a vftable
+public:
+	PCXSTR	Name;
+	short	Type;
+	PCXSTR	OwnerName;
+	int		Level;
+	bool	bIsOffline;
+	UINT UniquePlayerID;
+	bool bRoleStates[6];
+	UINT CurrentRoleBits;
+	UINT OnlineTimestamp;
+};
+class CGroupBase
+{
+	//has a vftable
+public:
+	CGroupMemberBase* pMembers[6];
+	CGroupMemberBase* pGroupLeader;
+	UINT ID;
+};
+class CGroupClient : public CGroupBase
+{
+	//has no vftable
+public:
+	int GroupSelectID;
+};
+
+class PlayerClient//this is what we call EQPlayer maybe i should just rename that one but too late now?
+{
+public:
+EQLIB_OBJECT PcClient * PlayerClient::GetPcClient(void)const;//call this using pLocalPlayer->GetPcClient();
+};
+
+class CharacterZoneClient : virtual public CharacterBase
+{
+public:
+	PlayerClient *me;
+	//more stuff here fill in later
+EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel/*well the level you want to calc the value for, but yeah usually its the chars current level*/,unsigned char Slot/*0-0xb*/,class EQ_Affect *,int Base/*spell Base[x]*/,bool bCap/*cap the calculation at max*/);
+EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
+EQLIB_OBJECT int CharacterZoneClient::GetItemCountWorn(int);
+EQLIB_OBJECT int CharacterZoneClient::GetItemCountInInventory(int);
+EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
+EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
+};
+
+class PcZoneClient: public PcBase , public CharacterZoneClient
+{
+public:
+EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
+EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
+EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
+EQLIB_OBJECT bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel);
+#ifndef EMU
+EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool);
+#else
+EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool);
+#endif
+EQLIB_OBJECT int PcZoneClient::GetCurrentMod(int index);
+#ifndef EMU
+EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
+#else
+EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
+#endif
+EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex *itemindex/*out*/);
+EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
+};
+
+class PcClient : public PcZoneClient
+{
+	//has a vftable
+public:
+    ExtendedTargetListClient* ExtendedTargetList;
+	bool bInCombat;
+	UINT DowntTimeAmount;
+	UINT DowntimeStart;
+	bool bOverrideAvatarProximity;
+	CGroupClient *pGroup;
+	bool bIAmCreatingGroup;
+	VeArray<VePointer<PCONTENTS>> ItemsPendingID;
+	eParcelStatus ParcelStatus;
+	int SubscriptionDays;
+	short BaseKeyRingSlots[3];
+	bool bPickZoneFewest;
+};
 
 class EQPlayerManager
 {
@@ -7576,38 +7693,7 @@ public:
 EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long b=1);
 };
 
-class CharacterZoneClient
-{
-public:
-EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel/*well the level you want to calc the value for, but yeah usually its the chars current level*/,unsigned char Slot/*0-0xb*/,class EQ_Affect *,int Base/*spell Base[x]*/,bool bCap/*cap the calculation at max*/);
-EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
-EQLIB_OBJECT int CharacterZoneClient::GetItemCountWorn(int);
-EQLIB_OBJECT int CharacterZoneClient::GetItemCountInInventory(int);
-EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
-EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
-};
 
-class PcZoneClient
-{
-public:
-EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
-EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
-EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
-EQLIB_OBJECT bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel);
-#ifndef EMU
-EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool);
-#else
-EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool);
-#endif
-EQLIB_OBJECT int PcZoneClient::GetCurrentMod(int index);
-#ifndef EMU
-EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
-#else
-EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
-#endif
-EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex *itemindex/*out*/);
-EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
-};
 };
 using namespace EQClasses;
 #pragma pack(pop)

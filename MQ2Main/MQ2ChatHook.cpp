@@ -143,43 +143,26 @@ public:
     VOID UPCNotificationFlush_Trampoline();
     VOID UPCNotificationFlush_Detour()
     {
-        PEVERQUEST eq = (PEVERQUEST)this;
-        char szBuf[MAX_STRING] = {0};
-
-        if(eq->ChannelQty > 0)
-        {
-            int len = 0;
-            char *pTmp;
-
-            if(eq->bJoinedChannel)
-            {
-                pTmp = "* %s has entered channel ";
-            }
-            else
-            {
-                pTmp = "* %s has left channel ";
-            }
-
-            sprintf_s(szBuf, pTmp, eq->ChannelPlayerName);
-
-            for(DWORD i = 0; i < eq->ChannelQty; i++)
-            {
-                if(i)
-                {
-                    pTmp = ", %s:%d";
-                }
-                else
-                {
-                    pTmp = "%s:%d";
-                }
-
-                len = strlen(szBuf);
-                sprintf_s(&szBuf[len], MAX_STRING, pTmp, eq->ChannelName[i], eq->ChannelNumber[i] + 1);
-            }
-
-            CheckChatForEvent(szBuf);
-        }
-
+		if (PEVERQUEST eq = (PEVERQUEST)this) {
+			CHAR szBuf[MAX_STRING] = { 0 };
+			if (eq->ChannelQty > 0) {
+				int len = 0;
+				sprintf_s(szBuf, "* %s has %s channel ", eq->ChannelPlayerName, eq->bJoinedChannel ? "entered":"left");
+				CHAR szTemp[MAX_STRING] = { 0 };
+				int max = eq->ChannelQty;
+				if (max > 9)
+					max = 9;
+				for (int i = 0; i < max; i++) {
+					if (i) {
+						sprintf_s(szTemp, ", %s:%d", eq->ChannelName[i], eq->ChannelNumber[i] + 1);
+					} else {
+						sprintf_s(szTemp, "%s:%d", eq->ChannelName[i], eq->ChannelNumber[i] + 1);
+					}
+					strcat_s(szBuf, szTemp);
+				}
+				CheckChatForEvent(szBuf);
+			}
+		}
         UPCNotificationFlush_Trampoline();
     }
 }; 

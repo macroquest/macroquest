@@ -550,4 +550,84 @@ template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, R
 	}
 	return NULL;
 }
+
+//lists
+template<typename T, int _cnt> class EQList;
+template<typename T> class EQList<T, -1>
+{
+public:
+    class Node 
+    {
+        public:
+            T Value;
+            Node *pNext;
+            Node *pPrev;
+    };
+    Node *pFirst;
+    Node *pLast;
+    int Count;
+};
+template<typename T, int _cnt = -1> class EQList : public EQList<T, -1>
+{
+    public:
+};
+//strings
+template <typename TheType, unsigned int _Size> class TSafeArrayStatic
+{
+public:
+	TheType Data[_Size];
+	inline TheType& operator[](UINT index)
+	{ 
+		return Data[index]; 
+	}
+};
+template <UINT _Len> class TString : public TSafeArrayStatic<CHAR, _Len>
+{
+public:
+};
+template <UINT _Len> class TSafeString : public TString<_Len>
+{
+public:
+};
+
+class VePointerBase
+{
+public:
+    UINT Address;
+};
+template< class T > class VePointer : public VePointerBase
+{
+public:
+    T* pObject;
+};
+template< typename T > class VeArray
+{
+public:
+    T* Begin;
+    UINT Size;
+    UINT Capacity;
+};
+
+//LinkedLists
+template<class T> class LinkedListNode
+{
+public:
+/*0x00*/	T	Object;
+/*0x04*/	LinkedListNode* pNext;
+/*0x08*/	LinkedListNode* pPrev;
+/*0x0c*/
+};
+template <class T> class DoublyLinkedList
+{
+public:
+/*0x00*/    PVOID vfTable;
+/*0x04*/    LinkedListNode<T>* pHead;
+/*0x08*/    LinkedListNode<T>* pTail;
+/*0x0c*/    LinkedListNode<T>* pCurObject;
+/*0x10*/    LinkedListNode<T>* pCurObjectNext;
+/*0x14*/    LinkedListNode<T>* pCurObjectPrev;
+/*0x18*/    int NumObjects;
+/*0x1c*/    int RefCount;
+/*0x20*/
+};
 #pragma pack(pop)
