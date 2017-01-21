@@ -1160,7 +1160,7 @@ struct ProgressionExperience
 /*0x10*/
 };
 
-//start if reorganisation for charinfo etc...
+//start of reorganisation for charinfo etc...
 //todo: finish it...
 
 template <typename TItem> class ItemContainer
@@ -2142,6 +2142,10 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x50*/ bool    bIgnoreRange;
 /*0x51*/ bool    bResetAAOnNotTakeHoldSuccess;
 /*0x52*/
+bool IsCasting() const
+{
+	return (SpellID != -1);
+}
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
 template <class Type> class TListNode

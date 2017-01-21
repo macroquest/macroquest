@@ -1,4 +1,7 @@
-19 Jan 2017 by eqmule
+21 Jan 2017 by eqmule
+- Updated for TEST
+
+20 Jan 2017 by eqmule
 - Fixed a bug in the EQINVSLOTWND struct where slots where WORD instead of short
   this will take care of any remaining problems with /itemnotify
 - stuff in progress, nothing to see here yet...
