@@ -310,6 +310,10 @@ GNU General Public License for more details.
 #define __ProcessMouseEvent_x                                      0x570E80
 #define CrashDetected_x                                            0x62EA20
 #define wwsCrashReportCheckForUploader_x                           0x7EBF20
+#define __AppCrashWrapper_x                                        0xC49E90
+#define __pCrashHandler_x                                          0x10BD790
+#define __CrashHandler_x                                           0x7EB980
+#define wwsCrashReportPlatformLaunchUploader_x                     0x7EE130
 #define DrawNetStatus_x                                            0x5A7920
 #define Util__FastTime_x                                           0x88C4C0
 #define Expansion_HoT_x                                            0xF17F60
@@ -423,6 +427,7 @@ GNU General Public License for more details.
 #define CEditWnd__SetEditable_x                                    0x8D5590
 
 // CEverQuest 
+#define CEverQuest__DoPercentConvert_x                             0x558DB0
 #define CEverQuest__ClickedPlayer_x                                0x552740
 #define CEverQuest__CreateTargetIndicator_x                        0x553630
 #define CEverQuest__DeleteTargetIndicator_x                        0x5536B0
@@ -555,6 +560,7 @@ GNU General Public License for more details.
 #define CPacketScrambler__hton_x                                   0x83FAF0
 
 // CSidlManager 
+#define CSidlManager__FindScreenPieceTemplate_x                    0x8CB9B0
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x8CBA90
 #define CSidlManager__CreateLabel_x                                0x7900D0
 #define CSidlManager__CreateXWndFromTemplate_x                     0x8C9F50

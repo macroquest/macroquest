@@ -3424,7 +3424,7 @@ typedef struct _CMDLIST {
     VOID  (__cdecl *fAddress)(PSPAWNINFO, PCHAR);
     DWORD Restriction;
     DWORD Category;
-    DWORD Unknown;
+    DWORD Flags;
 } CMDLIST, *PCMDLIST;
 
 typedef struct _EQSOCIAL {

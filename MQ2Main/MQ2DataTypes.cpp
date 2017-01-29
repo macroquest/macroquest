@@ -4364,16 +4364,17 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case HaveExpansion:
+	{
 		if (!ISINDEX())
 			return false;
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
 		if (ISNUMBER())
 		{
 			DWORD nExpansion = GETNUMBER();
 			if (nExpansion > NUM_EXPANSIONS)
-				return false;
+				return true;
 			Dest.DWord = GetCharInfo()->ExpansionFlags & EQ_EXPANSION(nExpansion);
-			Dest.Type = pBoolType;
-			return true;
 		}
 		else
 		{
@@ -4382,12 +4383,12 @@ bool MQ2CharacterType::GETMEMBER()
 				if (!_stricmp(GETFIRST(), szExpansions[n]))
 				{
 					Dest.DWord = GetCharInfo()->ExpansionFlags & EQ_EXPANSION(n + 1);
-					Dest.Type = pBoolType;
 					return true;
 				}
 			}
 		}
-		return false;
+		return true;
+	}
 	case PctAggro:
 		if (pAggroInfo)
 		{

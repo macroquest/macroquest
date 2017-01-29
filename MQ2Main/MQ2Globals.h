@@ -965,6 +965,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __ProcessGameEvents;
 	EQLIB_VAR DWORD CrashDetected;
 	EQLIB_VAR DWORD wwsCrashReportCheckForUploader;
+	EQLIB_VAR DWORD wwsCrashReportPlatformLaunchUploader;
+	EQLIB_VAR DWORD __AppCrashWrapper;
+	EQLIB_VAR DWORD __pCrashHandler;
+	EQLIB_VAR DWORD __CrashHandler;
 	EQLIB_VAR DWORD DrawNetStatus;
 	EQLIB_VAR DWORD Util__FastTime;
 	EQLIB_VAR DWORD Expansion_HoT;
@@ -1064,6 +1068,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEditWnd__SelectableCharFromPoint;
 	EQLIB_VAR DWORD CEditWnd__SetEditable;
 
+	EQLIB_VAR DWORD CEverQuest__DoPercentConvert;
 	EQLIB_VAR DWORD CEverQuest__ClickedPlayer;
 	EQLIB_VAR DWORD CEverQuest__DoTellWindow;
 	EQLIB_VAR DWORD CEverQuest__OutputTextToLog;
@@ -1182,6 +1187,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CPacketScrambler__ntoh;
 	EQLIB_VAR DWORD CPacketScrambler__hton;
 
+	
+	EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate;
 	EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate1;
 	EQLIB_VAR DWORD CSidlManager__CreateLabel;
 	EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate;

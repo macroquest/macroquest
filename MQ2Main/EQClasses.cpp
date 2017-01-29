@@ -9068,7 +9068,7 @@ FUNCTION_AT_ADDRESS(class CXWndDrawTemplate *  CSidlManager::FindDrawTemplate(un
 FUNCTION_AT_ADDRESS(class CXWndDrawTemplate *  CSidlManager::FindDrawTemplate(class CXStr)const ,CSidlManager__FindDrawTemplate1);
 #endif
 #ifdef CSidlManager__FindScreenPieceTemplate_x
-FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(unsigned __int32)const ,CSidlManager__FindScreenPieceTemplate);
+FUNCTION_AT_ADDRESS(class CScreenPieceTemplate * CSidlManager::FindScreenPieceTemplate(unsigned __int32)const ,CSidlManager__FindScreenPieceTemplate);
 #endif
 #ifdef CSidlManager__FindScreenPieceTemplate1_x
 FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(class CXStr *)const ,CSidlManager__FindScreenPieceTemplate1);

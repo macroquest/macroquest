@@ -5,22 +5,15 @@
 #define LINES_PER_FRAME 3 
 #include "../MQ2Plugin.h" 
 #include <vector>
+#include <list>
+#include <string>
 PreSetup("MQ2ChatWnd"); 
 
-struct ChatBuffer 
-{ 
-    CHAR Text[MAX_STRING]; 
-    ChatBuffer *pNext; 
-    ChatBuffer *pPrev; 
-}; 
-
-ChatBuffer* pPendingChat=0; 
-ChatBuffer* pPendingChatTail=0; 
+list<string> sPendingChat;
 
 const unsigned int CMD_HIST_MAX=50;
 DWORD ulOldVScrollPos=0; 
 DWORD bmStripFirstStmlLines=0; 
-DWORD PendingChatLines=0; 
 CHAR szChatINISection[MAX_STRING]={0}; 
 bool bAutoScroll=true; 
 bool bNoCharSelect=false; 
@@ -334,6 +327,7 @@ VOID DestroyChatWnd()
 { 
     if (MQChatWnd) 
     { 
+        sPendingChat.clear();
         SaveChatToINI((PCSIDLWND)MQChatWnd); 
         delete MQChatWnd; 
         MQChatWnd=0; 
@@ -508,20 +502,9 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
     strcat_s(szProcessed,"<br>"); 
     CXStr NewText(szProcessed); 
     DebugTry(ConvertItemTags(NewText,FALSE)); 
-    ChatBuffer *pNewBuffer = new ChatBuffer; 
-    GetCXStr(NewText.Ptr,pNewBuffer->Text,MAX_STRING); 
-    pNewBuffer->pPrev=pPendingChatTail; 
-    pNewBuffer->pNext=0; 
-    if (pPendingChatTail) 
-    { 
-        pPendingChatTail->pNext=pNewBuffer; 
-    } 
-    else 
-    { 
-        pPendingChat=pNewBuffer; 
-    } 
-    pPendingChatTail=pNewBuffer; 
-    PendingChatLines++; 
+    
+    sPendingChat.push_back( NewText.Ptr->Text );
+
     return 0; 
 } 
 
@@ -551,7 +534,7 @@ PLUGIN_API VOID OnPulse()
 				break;
 			} 
 		}
-        if(PendingChatLines) 
+        if(!sPendingChat.empty()) 
         { 
             // set 'old' to current 
             ulOldVScrollPos=MQChatWnd->OutputBox->VScrollPos; 
@@ -559,12 +542,12 @@ PLUGIN_API VOID OnPulse()
             // scroll down if autoscroll enabled, or current position is the bottom of chatwnd 
             bool bScrollDown=bAutoScroll?true:(MQChatWnd->OutputBox->VScrollPos==MQChatWnd->OutputBox->VScrollMax?true:false); 
 
-            DWORD ThisPulse=PendingChatLines; 
+            DWORD ThisPulse = sPendingChat.size();
             if (ThisPulse>LINES_PER_FRAME) 
             { 
                 ThisPulse=LINES_PER_FRAME; 
             } 
-            PendingChatLines-=ThisPulse; 
+            
             MQChatWnd->OutBoxLines+=ThisPulse; 
             if (MQChatWnd->OutBoxLines>MAX_CHAT_SIZE) 
             { 
@@ -574,17 +557,12 @@ PLUGIN_API VOID OnPulse()
             } 
             for (DWORD N=0 ; N<ThisPulse ; N++) 
             {
-				if(pPendingChat) {
-					DebugTry(MQChatWnd->OutputBox->AppendSTML(pPendingChat->Text)); 
-					ChatBuffer *pNext=pPendingChat->pNext; 
-					delete pPendingChat; 
-					pPendingChat=pNext; 
+				if(!sPendingChat.empty()) 
+                {
+					DebugTry(MQChatWnd->OutputBox->AppendSTML( sPendingChat.begin()->c_str() ));
+                    sPendingChat.pop_front();
 				}
                 //DebugSpew("NEW: max %u - pos: %u",MQChatWnd->OutputBox->VScrollMax,MQChatWnd->OutputBox->VScrollPos); 
-            } 
-            if (!pPendingChat) 
-            { 
-                pPendingChatTail=0; 
             } 
 
             if(bScrollDown) 
@@ -625,14 +603,8 @@ PLUGIN_API VOID InitializePlugin()
 PLUGIN_API VOID ShutdownPlugin() 
 { 
     DebugSpewAlways("Shutting down MQ2ChatWnd"); 
-    while(pPendingChat) 
-    { 
-        ChatBuffer *pNext=pPendingChat->pNext; 
-        delete pPendingChat; 
-        pPendingChat=pNext; 
-    } 
-    pPendingChatTail=0; 
-    PendingChatLines=0; 
+    sPendingChat.clear();
+
     // Remove commands, macro parameters, hooks, etc. 
     RemoveCommand("/style"); 
     RemoveCommand("/mqfont"); 

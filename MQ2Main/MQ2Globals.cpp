@@ -899,6 +899,7 @@ namespace MQ2Globals
 		"Call of the Forsaken",
 		"The Darkened Sea",
 		"The Broken Mirror",
+		"Empires of Kunark",
 		NULL
 	};
 
@@ -1495,12 +1496,17 @@ namespace MQ2Globals
 #ifndef EMU
 	INITIALIZE_EQGAME_OFFSET(__ToggleKeyRingItem);
 	INITIALIZE_EQGAME_OFFSET(wwsCrashReportCheckForUploader);
+	INITIALIZE_EQGAME_OFFSET(wwsCrashReportPlatformLaunchUploader);
+	INITIALIZE_EQGAME_OFFSET(__AppCrashWrapper);
+	INITIALIZE_EQGAME_OFFSET(__pCrashHandler);
+	INITIALIZE_EQGAME_OFFSET(__CrashHandler);
 #endif
 	INITIALIZE_EQGAME_OFFSET(__GetXTargetType);
 	INITIALIZE_EQGAME_OFFSET(__LoadFrontEnd);
 	INITIALIZE_EQGAME_OFFSET(__NewUIINI);
 	INITIALIZE_EQGAME_OFFSET(__ProcessGameEvents);
 	INITIALIZE_EQGAME_OFFSET(CrashDetected);
+
 	INITIALIZE_EQGAME_OFFSET(DrawNetStatus);
 	INITIALIZE_EQGAME_OFFSET(Util__FastTime);
 	INITIALIZE_EQGAME_OFFSET(Expansion_HoT);
@@ -1595,13 +1601,13 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SelectableCharFromPoint);
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SetEditable);
 
+	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoPercentConvert);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__ClickedPlayer);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoTellWindow);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__OutputTextToLog);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DropHeldItemOnGround);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__dsp_chat);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__trimName);
-
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__Emote);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__EnterZone);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__GetBodyTypeDesc);
@@ -1715,6 +1721,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CPacketScrambler__ntoh);
 	INITIALIZE_EQGAME_OFFSET(CPacketScrambler__hton);
 
+	
+	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindScreenPieceTemplate);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindScreenPieceTemplate1);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateLabel);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWndFromTemplate);

@@ -179,6 +179,7 @@ void RemoveDetour(DWORD address)
 	}
 	DebugSpew("Detour for %x not found in RemoveDetour()",((DWORD)GetModuleHandle(NULL) - address + 0x400000));
 }
+
 void DeleteDetour(DWORD address)
 {
 	CAutoLock Lock(&gDetourCS);
@@ -202,6 +203,7 @@ void DeleteDetour(DWORD address)
 	}
 	DebugSpew("Failed Deleting (%X)", ((DWORD)GetModuleHandle(NULL) - address + 0x400000));
 }
+
 void RemoveOurDetours()
 {
 	CAutoLock Lock(&gDetourCS);
@@ -1208,17 +1210,57 @@ typedef struct _Launchinfo
 	/*0x000*/	PCHAR eqgamepath;
 	/*0x004*/	PCHAR CmdLine;
 } Launchinfo, *PLaunchinfo;
+class SessionFolderDescription {
+public:
+	UINT TimeStamp;
+	UINT RootFolderId;
+};
+
+class SessionFolderLock {
+    public:
+        HANDLE hLockFile;
+};
+
 typedef struct _EQCrash
 {
-	/*0x000*/	DWORD funcaddress;//some function
-	/*0x004*/	PLaunchinfo pLinfo;
-	/*0x008*/	DWORD ErrorCode;
-	/*0x00C*/	PCHAR ClientVersion;//EverQuest 1 Client ( Live )
-	/*0x010*/	BYTE Unknown0x010[0x40];
-	/*0x050*/	PCHAR uploadername;//wws_crashreport_uploader.exe
-	/*0x054*/	PCHAR uploaderservername;//recap.daybreakgames.com:15081
-	/*0x058*/	PCHAR something;
-	/*0x05c*/	PCHAR buildversion;//87717
+/*0x000*/	PVOID		CrashCallback;
+/*0x004*/	char **		argv;
+/*0x008*/	int			argc;
+/*0x00C*/	PCHAR		pAppName;//EverQuest 1 Client ( Live )
+/*0x010*/	PVOID		ReservedMemory;
+/*0x014*/	UINT		ReservedMeminMB;
+/*0x018*/	PCHAR		SomeName;
+/*0x01c*/	UINT		MinidumpFlags;
+/*0x020*/	HANDLE		MinidumpThread;
+/*0x024*/	HANDLE		MinidumpThreadEvent;
+/*0x028*/	HANDLE		MinidumpAPCComplete;
+/*0x02c*/	HANDLE		MinidumpMutex;
+/*0x030*/	UINT		CrashedThreadId;
+/*0x034*/	UINT	    BreakpointMode;
+/*0x038*/	UINT        PromptMode;
+/*0x03c*/	UINT		UploadTransport;
+/*0x040*/	PCHAR		PublicKeyBase64;
+/*0x044*/	PVOID		PostUploadCallback;
+/*0x048*/	PVOID		PostUploadContext;
+/*0x04c*/	bool		bLocalFullDump;
+/*0x04d*/	bool		bContinueExecutionAfterDump;
+/*0x04e*/	bool		bInInit;
+/*0x050*/	PCHAR		pPathToUploader;//wws_crashreport_uploader.exe
+/*0x054*/	PCHAR		pConnectHostName;//recap.daybreakgames.com:15081
+/*0x058*/	PCHAR		pRecapSessionName;
+/*0x05c*/	PCHAR		pProductVersion;//87717
+/*0x060*/	UINT        LogLevel;
+/*0x064*/   PVOID       LogFunc;
+/*0x068*/   PVOID       LogContext;
+/*0x06c*/   SessionFolderDescription SessionFolderDesc;
+/*0x074*/   SessionFolderLock SFLock;
+/*0x078*/   bool		bNoUploaderUi;
+/*0x079*/   bool		bRequestCallstack;
+/*0x07a*/   bool		bCoreDumpInProgress;
+/*0x07b*/   BYTE		NoExceptionHandler;
+/*0x07c*/   bool		bDisplaySessionURL;
+/*0x07d*/   bool		bUploadSupplemental;
+/*0x080*/
 } EQCrash, *PEQCrash;
 typedef struct _CrashReport
 {
@@ -1226,20 +1268,21 @@ typedef struct _CrashReport
 	/*0x024*/	PCHAR sessionpath;
 } CrashReport, *PCrashReport;
 
-int wwsCrashReportCheckForUploader_Trampoline(PEQCrash, PCHAR, size_t);
-int wwsCrashReportCheckForUploader_Detour(PEQCrash crash, PCHAR crashuploder, size_t ncrashuploder)
+
+bool wwsCrashReportCheckForUploader_Trampoline(PEQCrash, PCHAR, size_t);
+bool wwsCrashReportCheckForUploader_Detour(PEQCrash crash, PCHAR crashuploder, size_t maxsystempath)
 {
-	//MessageBox(NULL,"crash","crash",MB_OK);
-	wwsCrashReportCheckForUploader_Trampoline(crash, crashuploder, ncrashuploder);
+	MessageBox(NULL,"crash","crash",MB_OK);
+	bool bret = wwsCrashReportCheckForUploader_Trampoline(crash, crashuploder, maxsystempath);
 	//should we redirect the upload? we could have our own server for these dumps I suppose...
 	//strcpy_s(crashuploder,ncrashuploder,"mq2_crashreport_uploader.exe");
 	//for now im just renaming the folder and returning 0 this will stop any uploads.
 	//hmm... -eqmule
 
-	ZeroMemory(crashuploder, ncrashuploder);
+	ZeroMemory(crashuploder, maxsystempath);
 	CHAR szMessage[MAX_STRING] = { 0 };
 	CHAR szNewPath[MAX_STRING] = { 0 };
-	if (PCrashReport pTheCrash = (PCrashReport)(((DWORD)crashuploder) + ncrashuploder)) {
+	if (PCrashReport pTheCrash = (PCrashReport)(((DWORD)crashuploder) + maxsystempath)) {
 		sprintf_s(szNewPath, "%s.Copy", pTheCrash->sessionpath);
 		MoveFile(pTheCrash->sessionpath, szNewPath);
 	}
@@ -1250,7 +1293,7 @@ int wwsCrashReportCheckForUploader_Detour(PEQCrash crash, PCHAR crashuploder, si
 	//and return 0 (no uploader found)
 	return 0;
 }
-DETOUR_TRAMPOLINE_EMPTY(int wwsCrashReportCheckForUploader_Trampoline(PEQCrash, PCHAR, size_t));
+DETOUR_TRAMPOLINE_EMPTY(bool wwsCrashReportCheckForUploader_Trampoline(PEQCrash, PCHAR, size_t));
 
 //changed in jan 21 2014 eqgame.exe - eqmule
 PCHAR __cdecl CrashDetected_Trampoline(BOOL, PCHAR);
@@ -1293,8 +1336,9 @@ void InitializeMQ2Detours()
 	HookMemChecker(TRUE);
 #endif
 #ifndef EMU
-	EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
-	EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
+	//this is handled by mq2ic from now on
+	//EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
+	//EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
 #endif
 #ifndef TESTMEM
 	EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline,"__LoadFrontEnd");
@@ -1303,14 +1347,15 @@ void InitializeMQ2Detours()
 
 void ShutdownMQ2Detours()
 {
-#ifndef EMU
-	RemoveDetour(CrashDetected);
-	RemoveDetour(wwsCrashReportCheckForUploader);
-#endif
+
 	RemoveDetour(__LoadFrontEnd);
 #ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();
+#ifndef EMU
+	//RemoveDetour(CrashDetected);
+	//RemoveDetour(wwsCrashReportCheckForUploader);
+#endif
 	DeleteCriticalSection(&gDetourCS);
 #endif
 }

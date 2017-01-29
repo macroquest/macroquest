@@ -1994,7 +1994,7 @@ EQLIB_OBJECT void CEverQuest::DoLoadScreen(int);
 EQLIB_OBJECT void CEverQuest::doLoot(void);
 EQLIB_OBJECT void CEverQuest::DoMainLoop(struct HWND__ *);
 EQLIB_OBJECT void CEverQuest::DoNewCharacterCreation(void);
-EQLIB_OBJECT void CEverQuest::DoPercentConvert(char *,bool);
+EQLIB_OBJECT void CEverQuest::DoPercentConvert(char *line, bool bOutGoing);
 EQLIB_OBJECT void CEverQuest::DoSplit(char *);
 EQLIB_OBJECT void CEverQuest::DoTellWindow(char *,char *,char *,void *,int,bool);
 EQLIB_OBJECT void CEverQuest::OutputTextToLog(const char*Text);

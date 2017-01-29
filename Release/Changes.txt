@@ -1,3 +1,14 @@
+29 Jan 2017 by eqmule
+- I finally had time to sit down and look at the crash reporting
+  it has been given a major overhaul
+  you will know what I mean next time you crash.
+  Please READ the crash message carefully.
+  Do what it says. Or not.
+
+24 Jan 2017 by eqmule
+- Fix for ${Me.HaveExpansion[Empires of Kunark]} crash - cred maskoi
+- A few changes to mq2chatwnd to deal with potential memleaks - cred Derple
+
 21 Jan 2017 by eqmule
 - Updated for TEST
 
