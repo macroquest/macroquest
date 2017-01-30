@@ -5127,6 +5127,8 @@ bool MQ2SpellType::GETMEMBER()
 #define pSpell ((PSPELL)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+	if (IsBadReadPtr((void*)pSpell, 4))
+		return false;
 	PMQ2TYPEMEMBER pMember = MQ2SpellType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -8268,6 +8270,10 @@ bool MQ2MacroQuestType::GETMEMBER()
 		sprintf_s(DataTypeTemp, "%d%d%d", st.wYear, st.wMonth, st.wDay);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
+		return true;
+	case Build:
+		Dest.DWord = gBuild;
+		Dest.Type = pIntType;
 		return true;
 	}
 	return false;

@@ -7220,6 +7220,10 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 {
 	if (!aSpell || !bSpell)
 		return false;
+	if (IsBadReadPtr((void*)aSpell, 4))
+		return false;
+	if (IsBadReadPtr((void*)bSpell, 4))
+		return false;
 	if (aSpell->ID == bSpell->ID)
 		return true;
 

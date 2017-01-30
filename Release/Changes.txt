@@ -1,3 +1,7 @@
+30 Jan 2017 by eqmule
+- Added ${MacroQuest.Build} it returns an int where LIVE = 1 TEST = 2 BETA = 3 and EMU = 4
+- Added Start EQBC Server to the tray icon menu.
+
 29 Jan 2017 by eqmule
 - I finally had time to sit down and look at the crash reporting
   it has been given a major overhaul

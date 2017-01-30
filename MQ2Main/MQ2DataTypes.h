@@ -3109,6 +3109,7 @@ public:
 		SyntaxError = 2,
 		MQ2DataError = 3,
 		BuildDate = 4,
+		Build = 5,
 	};
 	MQ2MacroQuestType() :MQ2Type("macroquest")
 	{
@@ -3116,6 +3117,7 @@ public:
 		TypeMember(SyntaxError);
 		TypeMember(MQ2DataError);
 		TypeMember(BuildDate);
+		TypeMember(Build);
 	}
 	~MQ2MacroQuestType()
 	{
