@@ -7692,8 +7692,223 @@ class PlayerPointManager
 public:
 EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long b=1);
 };
-
-
+#pragma pack(push)
+#pragma pack(4)
+enum eKeyboardMode
+{
+	Typing,
+	KBM_Command,
+};
+typedef struct _USINGSKILL {
+/*0x00*/	int Skill;
+/*0x04*/	void* Target;
+/*0x08*/
+} USINGSKILL,*PUSINGSKILL;
+typedef struct _EVERQUESTINFO
+{
+/*0x00000*/	HWND		Wnd;
+/*0x00004*/ HINSTANCE	hInst;
+/*0x00008*/	int		Render_MinX;
+/*0x0000c*/	int		Render_MinY;
+/*0x00010*/	int		Render_MaxX;
+/*0x00014*/	int		Render_MaxY;
+/*0x00018*/	int		Render_XScale;
+/*0x0001c*/	int		Render_YScale;
+/*0x00020*/	int		Render_WidthScale;
+/*0x00024*/	int		Render_HeightScale;
+/*0x00028*/	int		ReadyEnterWorld;
+/*0x0002c*/	bool	InsideDoMainWhileLoop;
+/*0x00030*/	int		Hidden;//not sure
+/*0x00034*/ DWORD	Displayflags;
+/*0x00038*/ DWORD	Command;
+/*0x0003c*/	BYTE	Unknown0x0003c;
+/*0x00040*/	int		ScreenXRes;
+/*0x00044*/	int		ScreenYRes;
+/*0x00048*/	int		WindowXOffset;
+/*0x0004c*/	int		WindowYOffset;
+/*0x00050*/	BOOL	FullscreenMode;
+/*0x00054*/	eKeyboardMode	KeyboardMode;
+/*0x00058*/	BYTE	Runmode;
+/*0x00059*/	BYTE	Unknown0x00059;
+/*0x0005a*/	BYTE	Unknown0x0005a;
+/*0x0005b*/	BYTE	MouseCntrl;
+/*0x0005c*/	BYTE	MouseActive;
+/*0x0005d*/	BYTE	ForceCrouch;
+/*0x00060*/	UINT	ForceCrouchTimer;
+/*0x00064*/	float	Unknown0x00064;
+/*0x00068*/	float	Unknown0x00068;
+/*0x0006c*/	int		MouseX;
+/*0x00070*/	int		MouseY;
+/*0x00074*/	int		MouseZ;
+/*0x00078*/	int		Lastmx;
+/*0x0007c*/	int		Lastmy;
+/*0x00080*/	bool	MouseInClientRect;
+/*0x00084*/ int		MXSensitivity;
+/*0x00088*/ int		MYSensitivity;
+/*0x0008c*/	int		MousePointerSpeedMod;
+/*0x00090*/	bool	ServerFilter;
+/*0x00094*/	int		IsTrader;
+/*0x00098*/	BYTE	CurrentChan;
+/*0x0009c*/	int		CurrentLang;
+/*0x000a0*/	char	TellTarget[0x40];
+/*0x000e0*/	UINT	LastMinute;
+/*0x000e4*/	UINT	LastLocal;
+/*0x000e8*/	UINT	LastControlled;
+/*0x000ec*/	BYTE	MInverse;
+/*0x000ed*/	BYTE	Unknown0x000ed;//mouse related
+/*0x000ee*/	BYTE	MouseLook;
+/*0x000ef*/	bool	bDefaultMouseLook;
+/*0x000f0*/	BYTE	Strafe;
+/*0x000f1*/	bool	bNetstat;
+/*0x000f2*/	BYTE	ModInventory;
+/*0x000f4*/	UINT	LastHitter;//check this
+/*0x000f8*/	BYTE	Harmless;
+/*0x000f9*/	BYTE	Silenced;
+/*0x000fc*/	UINT	JumpTimer;
+/*0x00100*/	UINT	EventJump;
+/*0x00104*/	UINT	LastJump;
+/*0x00108*/	UINT	FrameTime;
+/*0x0010c*/	int		AutoRun;
+/*0x00110*/	UINT	PoisonTimer;
+/*0x00114*/	ItemGlobalIndex2	PoisonGI;
+/*0x00120*/	int		OldX;
+/*0x00124*/	int		OldY;
+/*0x00128*/	BYTE	OldMouseButtons[8];
+/*0x00130*/	BYTE	MouseButtons[8];
+/*0x00138*/	bool	bIsMouseRightHanded;
+/*0x0013c*/	int		Unknown0x0013c;
+/*0x00140*/	int		CharStatePending;
+/*0x00144*/	char	PendingCharacterName[0x40];
+/*0x00184*/	int		TutorialMode;
+/*0x00188*/	int		RMouseSecond;
+/*0x0018c*/	int		LMouseSecond;
+/*0x00190*/	UINT	RMouseDown;
+/*0x00194*/	UINT	LMouseDown;
+/*0x00198*/	CHAR	Unknown0x00198[0x40];
+/*0x001d8*/	UINT	DuelTarget;
+/*0x001dc*/	UINT	DuelMe;
+/*0x001e0*/	BYTE	DuelOn;
+/*0x001e4*/	UINT	AutoHelp;
+/*0x001e8*/	BYTE	OldMouseLook;
+/*0x001ec*/	UINT	LastLocalUpdate;
+/*0x001f0*/	UINT	LastControlledUpdate;
+/*0x001f4*/	UINT	DataRate;
+/*0x001f8*/	int		SavedPC;
+/*0x001fc*/	int		InfraRed;
+/*0x00200*/	int		InfraGreen;
+/*0x00204*/	int		InfraBlue;
+/*0x00208*/	int		UltraRed;
+/*0x0020c*/	int		UltraGreen;
+/*0x00210*/	int		UltraBlue;
+/*0x00214*/	int		Unknown0x00214;
+/*0x00218*/	int		IOLines;
+/*0x0021c*/	int		IOLineSpacing;
+/*0x00220*/	char	ObjTag[0x14];
+/*0x00234*/	long	NumObjects;
+/*0x00238*/	long	NumLights;
+/*0x0023c*/	long	DecrTime[0xa];
+/*0x00264*/	long	DecrMsg[0xa];
+/*0x0028c*/	long	DecrIndex;
+/*0x00290*/	BYTE	AffectsOn;
+/*0x00291*/	BYTE	InspectMode;
+/*0x00292*/	BYTE	UpMouseAnim;
+/*0x00294*/	UINT	ExitCounter;
+/*0x00298*/	UINT	ExitStart;
+/*0x0029c*/	UINT	ForcedExitCounter;
+/*0x002a0*/	UINT	OfflineModeRequestTime;
+/*0x002a4*/	int		SwimJump;
+/*0x002a8*/	BYTE	DisplayCamp;
+/*0x002ac*/	int		PolysOff;
+/*0x002b0*/	float	CampY;
+/*0x002b4*/	float	CampX;
+/*0x002b8*/	float	CampZ;
+/*0x002bc*/ int		Hits;
+/*0x002c0*/	int		Bandage;
+/*0x002c4*/	UINT	BackSpace;
+/*0x002c8*/	long	StartBandage;
+/*0x002cc*/	long	MyY;
+/*0x002d0*/	long	MyX;
+/*0x002d4*/	long	MyZ;
+/*0x002d8*/	long	TargetY;
+/*0x002dc*/	long	TargetX;
+/*0x002e0*/	long	TargetZ;
+/*0x002e4*/	ZONEINFO	ZoneInfo;//size 0x3a8
+/*0x0068c*/	BYTE	ZDefined;
+/*0x00690*/	int		TrackTimer;
+/*0x00694*/	long	StartTrack;
+/*0x00698*/	int		bTrackPlayers;
+/*0x0069c*/ bool	bTrackMercs;
+/*0x0069d*/ bool	bTrackPets;
+/*0x006a0*/	int		iTrackSortType;
+/*0x006a4*/	int		iTrackFilterType;
+/*0x006a8*/	UINT	MouseTimer;
+/*0x006ac*/	int		SoundUpdate;
+/*0x006b0*/	BOOL	MouseOn;
+/*0x006b4*/	USINGSKILL		UsingSkill;//size 0x8
+/*0x006bc*/	int		Unknown0x006bc[4];
+/*0x006cc*/ BYTE	ClickThroughMask;
+/*0x006d0*/	int		ShowSpellDescriptions;
+/*0x006d4*/	bool	ReceivedWorldObjects;
+/*0x006d5*/	BYTE	Unknown0x006d5;
+/*0x006d6*/	bool	Unknown0x006d6;
+/*0x006d8*/	float	SavedViewPitch;
+/*0x006dc*/	int		SendPcReceived;
+/*0x006e0*/	int		WeatherReceived;
+/*0x006e4*/	int		PixelInit;
+/*0x006e8*/	bool	bIsPressedShift;
+/*0x006e9*/	bool	bIsPressedControl;
+/*0x006ea*/	bool	bIsPressedAlt;
+/*0x006eb*/	bool	bIsPressedLShift;
+/*0x006ec*/	bool	bIsPressedLControl;
+/*0x006ed*/	bool	bIsPressedLAlt;
+/*0x006ee*/	bool	bIsPressedRShift;
+/*0x006ef*/	bool	bIsPressedRControl;
+/*0x006f0*/	bool	bIsPressedRAlt;
+/*0x006f4*/	int		Currkeypress;
+/*0x006f8*/	int		Lastkeypress;
+/*0x006fc*/	int		Rateup;
+/*0x00700*/	int		Ratedown;
+/*0x00704*/	int		Rateforward;
+/*0x00708*/	int		Rateback;
+/*0x0070c*/	int		Rateleft;
+/*0x00710*/	int		Rateright;
+/*0x00714*/	int		RaceWar;
+/*0x00718*/	int		Ruleset;
+/*0x0071c*/	bool	bRpServer;
+/*0x0071d*/	bool	bAcceleratedServer;
+/*0x0071e*/	bool	bProgressionServer;
+/*0x00720*/	int		ProgressionOpenExpansions;
+/*0x00724*/ bool	bIsDevServer;
+/*0x00725*/ bool	bIsBetaServer;
+/*0x00726*/ bool	bIsTestServer;
+/*0x00727*/ bool	bIsStageServer;
+/*0x00728*/	bool	bUseMailSystem;
+/*0x00729*/	bool	bIsEscapeServer;
+/*0x0072a*/	bool	bIsTutorialEnabled;
+/*0x0072b*/	bool	bCanCreateHeadStartCharacter;
+/*0x0072c*/ bool	bCanCreateHeroicCharacter;
+/*0x00730*/ int		HeroicSlots;
+/*0x00734*/	bool	bAutoIdentify;
+/*0x00735*/	bool	bNameGen;
+/*0x00736*/	bool	bGibberish;
+/*0x00738*/	int		Locale;
+/*0x0073c*/	BYTE	UpdateControlled;
+/*0x0073d*/	BYTE	UpdateLocal;
+/*0x0073e*/	BYTE	EnterZone;
+/*0x0073f*/	BYTE	ExitGame;
+/*0x00740*/ int		EnterZoneReason;
+/*0x00744*/	bool	UseVoiceMacros;
+/*0x00748*/	int		Deltax;
+/*0x0074c*/	int		Deltay;
+/*0x00750*/	int		OldRate1;
+/*0x00754*/	int		OldRate2;
+/*0x00758*/	float	StrafeRate;
+/*0x0075c*/	int		SaveIndex;
+/*0x00760*/	float	Unknown0x00760;
+/*0x00764*/
+//more data here will finish later.
+}EVERQUESTINFO,*PEVERQUESTINFO;
+#pragma pack(pop)
 };
 using namespace EQClasses;
 #pragma pack(pop)

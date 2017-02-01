@@ -1267,44 +1267,23 @@ typedef struct _CrashReport
 	/*0x000*/	BYTE Unknown0x000[0x24];
 	/*0x024*/	PCHAR sessionpath;
 } CrashReport, *PCrashReport;
-
-
-bool wwsCrashReportCheckForUploader_Trampoline(PEQCrash, PCHAR, size_t);
-bool wwsCrashReportCheckForUploader_Detour(PEQCrash crash, PCHAR crashuploder, size_t maxsystempath)
+//you can customize the crash dialog message here if this doesn't suit you.
+EQLIB_API VOID GetCrashDialogMessage(std::string &Title, std::string &Message1,std::string &Message2,std::string &Message3,std::string &Message4)
 {
-	MessageBox(NULL,"crash","crash",MB_OK);
-	bool bret = wwsCrashReportCheckForUploader_Trampoline(crash, crashuploder, maxsystempath);
-	//should we redirect the upload? we could have our own server for these dumps I suppose...
-	//strcpy_s(crashuploder,ncrashuploder,"mq2_crashreport_uploader.exe");
-	//for now im just renaming the folder and returning 0 this will stop any uploads.
-	//hmm... -eqmule
-
-	ZeroMemory(crashuploder, maxsystempath);
-	CHAR szMessage[MAX_STRING] = { 0 };
-	CHAR szNewPath[MAX_STRING] = { 0 };
-	if (PCrashReport pTheCrash = (PCrashReport)(((DWORD)crashuploder) + maxsystempath)) {
-		sprintf_s(szNewPath, "%s.Copy", pTheCrash->sessionpath);
-		MoveFile(pTheCrash->sessionpath, szNewPath);
-	}
-	sprintf_s(szMessage, "MacroQuest2 is blocking the sending of Sony crash info for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.\n\nA MiniDump has been generated in %s, you can mail the .dmp file in that directory to eqmule@hotmail.com if you think this crash is mq2 related.\n\nFull dumps are located in C:\\Crash if one was generated.\n\nIf you like to break into debugger at this point click yes.", szNewPath);
-	int ret = MessageBox(0, szMessage, "EverQuest Crash Report Sending Detected", MB_YESNO);
-	if (ret == IDYES)
-		DebugBreak();
-	//and return 0 (no uploader found)
-	return 0;
+	Title = "MQ2 Crash Notification";
+	Message1 = "MQ2 has detected that your client may have crashed.";
+	Message2 = "It is often possible to determine where and why the crash occurred.";
+	Message3 = "Click OK to send this data back to EqMule in an effort to help improve the stability of MQ2.";
+	Message4 = "Also, if you have a moment, please enter details about what you were doing when you crashed:";
 }
-DETOUR_TRAMPOLINE_EMPTY(bool wwsCrashReportCheckForUploader_Trampoline(PEQCrash, PCHAR, size_t));
-
-//changed in jan 21 2014 eqgame.exe - eqmule
-PCHAR __cdecl CrashDetected_Trampoline(BOOL, PCHAR);
-PCHAR __cdecl CrashDetected_Detour(BOOL flag, PCHAR SessionPath)
+//this function is called after a crashdump has been generated and it points to that file
+EQLIB_API VOID MQ2CrashCallBack(PCHAR DumpFile)
 {
-	//this function returns a pointer to whatever it writes to the log.
-	//yeah uhm we don't need to show this dialog or we could show our own to have crashdumps sent to us
-	//but for now im just gonna put a pin in that idea. -eqmule
-	return 0;
+	//add your own handling here if you dont want like the default one or have other ideas on how to handle crashes yourself
+	//you can delete the file, copy/move it or just upload to your own dump server etc...
+
 }
-DETOUR_TRAMPOLINE_EMPTY(PCHAR CrashDetected_Trampoline(BOOL, PCHAR));
+
 #endif
 DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
 #ifndef TESTMEM

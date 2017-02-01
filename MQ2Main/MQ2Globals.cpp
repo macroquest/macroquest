@@ -114,6 +114,7 @@ namespace MQ2Globals
 		pGuild = (CGuild*)__Guilds;
 		ppSkillMgr = (_SKILLMGR**)pinstSkillMgr;
 
+		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
 		ppDisplay = (CDisplay**)pinstCDisplay;
 		ppPCData = (EQ_PC**)pinstPCData;
@@ -1095,6 +1096,7 @@ namespace MQ2Globals
 	CSkillMgr **ppCSkillMgr = 0;
 	CGuild *pGuild = 0;
 	_SKILLMGR **ppSkillMgr = 0;
+	_EVERQUESTINFO *ppEverQuestInfo = 0;
 
 	CEverQuest **ppEverQuest = 0;
 	CDisplay **ppDisplay = 0;
@@ -1315,6 +1317,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCDBStr);
 	INITIALIZE_EQGAME_OFFSET(pinstCDisplay);
 	INITIALIZE_EQGAME_OFFSET(pinstCEverQuest);
+	INITIALIZE_EQGAME_OFFSET(pinstEverQuestInfo);
 	INITIALIZE_EQGAME_OFFSET(pinstCharData);
 	INITIALIZE_EQGAME_OFFSET(pinstCharSpawn);
 	INITIALIZE_EQGAME_OFFSET(pinstControlledMissile);

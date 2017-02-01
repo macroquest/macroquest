@@ -1,3 +1,7 @@
+01 Feb 2017 by eqmule
+- Crash handling is now somewhat configurable
+  See the MQ2CrashCallBack function and GetCrashDialogMessage
+
 30 Jan 2017 by eqmule
 - Added ${MacroQuest.Build} it returns an int where LIVE = 1 TEST = 2 BETA = 3 and EMU = 4
 - Added Start EQBC Server to the tray icon menu.

@@ -213,7 +213,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQADDR_HWND;
 
 	EQLIB_VAR _SKILLMGR **ppSkillMgr;
-#define pSkillMgr (*ppSkillMgr)
+	#define pSkillMgr (*ppSkillMgr)
+	EQLIB_VAR _EVERQUESTINFO *ppEverQuestInfo;
+	#define pEverQuestInfo (ppEverQuestInfo)
 
 	EQLIB_VAR PCMDLIST EQADDR_CMDLIST;
 
@@ -783,6 +785,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCDBStr;
 	EQLIB_VAR DWORD pinstCDisplay;
 	EQLIB_VAR DWORD pinstCEverQuest;
+	EQLIB_VAR DWORD pinstEverQuestInfo;
 	EQLIB_VAR DWORD pinstCharData;
 	EQLIB_VAR DWORD pinstCharSpawn;
 	EQLIB_VAR DWORD pinstControlledMissile;
