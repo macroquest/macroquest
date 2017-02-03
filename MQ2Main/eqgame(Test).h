@@ -121,6 +121,7 @@ GNU General Public License for more details.
 #define pinstCDBStr_x                                              0xE558BC
 #define pinstCDisplay_x                                            0xF097C8
 #define pinstCEverQuest_x                                          0x10A86A0
+#define pinstEverQuestInfo_x                                       0xF16B98
 #define pinstCharData_x                                            0xF09784
 #define pinstCharSpawn_x                                           0xF097AC
 #define pinstControlledMissile_x                                   0xF09780

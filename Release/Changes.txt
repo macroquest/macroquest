@@ -1,3 +1,6 @@
+03 Feb 2017 by eqmule
+- Updated for latest LIVE and TEST patches
+
 01 Feb 2017 by eqmule
 - Crash handling is now somewhat configurable
   See the MQ2CrashCallBack function and GetCrashDialogMessage
