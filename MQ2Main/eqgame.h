@@ -344,6 +344,7 @@ GNU General Public License for more details.
 #define CharacterZoneClient__GetItemCountWorn_x                    0x461690
 #define CharacterZoneClient__GetItemCountInInventory_x             0x461770
 #define CharacterZoneClient__GetCursorItemCount_x                  0x461850
+#define CharacterZoneClient__FindAffectSlot_x                      0x44D180
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x65CA50

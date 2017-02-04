@@ -5340,6 +5340,58 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = 0;
 		return true;
 	}
+	case NewStacks:
+	{
+		PSPELL thespell = pSpell;
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
+		if (PCHARINFO pMe = GetCharInfo()) {
+			if (pMe->vtable2) {
+				int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
+				EQ_Affect*ret = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pMe, &SlotIndex, true, pMe->MainLevel);
+				if (ret) {
+					Dest.DWord = 1;
+				}
+			}
+		}
+		return true;
+	}
+	case NewStacksWith:
+	{
+		//work in progress dont expect this to work yet. -eqmule
+		Dest.Type = pBoolType;
+		Dest.DWord = false;
+
+		if (!ISINDEX())
+			return true;
+		PSPELL tmpSpell = NULL;
+		if (ISNUMBER())
+			tmpSpell = GetSpellByID(GETNUMBER());
+		else
+			tmpSpell = GetSpellByName(GETFIRST());
+		if (!tmpSpell)
+			return true;
+		PSPELL thespell = pSpell;
+		if (PCHARINFO pMe = GetCharInfo()) {
+			if (pMe->vtable2) {
+				int SlotIndex = -1;
+				EQ_Affect eff;
+				eff.ID = thespell->ID;
+				eff.Type = thespell->SpellType;
+				eff.Activatable = thespell->Activated;
+				//eff.BaseDmgMod = thespell->BaseEffectsFocusCap;
+				eff.CasterID = pMe->pSpawn->SpawnID;
+				eff.CasterLevel = pMe->MainLevel;
+				//eff.ChargesRemaining = thespell->ReagentCount;
+				//= (EQ_Affect*)thespell;
+				EQ_Affect*ret = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pMe, &SlotIndex, true, pMe->MainLevel, &eff, 1);
+				if (ret) {
+					Dest.DWord = 1;
+				}
+			}
+		}
+		return true;
+	}
 	case Stacks:
 	{
 		unsigned long buffduration;
@@ -5355,21 +5407,6 @@ bool MQ2SpellType::GETMEMBER()
 			if (pChar->Buff[nBuff].SpellID > 0) {
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->Buff[nBuff].Duration;
-#if 0
-					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
-						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
-							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
-								if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
-									buffduration = 99999 + 1;
-								}
-								if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell == triggeredSpell) && (buffduration>duration))) {
-									Dest.DWord = false;
-									return true;
-								}
-							}
-						}
-					}
-#endif
 					if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 						buffduration = 99999 + 1;
 					}
@@ -5386,21 +5423,6 @@ bool MQ2SpellType::GETMEMBER()
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->ShortBuff[nBuff].Duration;
 					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_ILLUSION) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
-#if 0
-						for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
-							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
-								if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
-									if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
-										buffduration = 99999 + 1;
-									}
-									if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell == triggeredSpell) && (buffduration>duration))) {
-										Dest.DWord = false;
-										return true;
-									}
-								}
-							}
-						}
-#endif
 						if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 							buffduration = 99999 + 1;
 						}
@@ -5428,21 +5450,6 @@ bool MQ2SpellType::GETMEMBER()
 			if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff] == 0xFFFFFFFF || pPet->Buff[nBuff] == 0)) {
 				if (PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
 					petbuffduration = ((pPet->PetBuffTimer[nBuff] + 5999) / 1000) / 6;
-#if 0
-					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
-						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
-							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
-								if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
-									petbuffduration = 99999 + 1;
-								}
-								if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell == triggeredSpell) && (petbuffduration>duration))) {
-									Dest.DWord = false;
-									return true;
-								}
-							}
-						}
-					}
-#endif
 					if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 						petbuffduration = 99999 + 1;
 					}
@@ -5469,22 +5476,6 @@ bool MQ2SpellType::GETMEMBER()
 			tmpSpell = GetSpellByName(GETFIRST());
 		if (!tmpSpell)
 			return true;
-#if 0
- 		for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
-			if (TriggeringEffectSpell(pSpell, nSlot) && TriggeringEffectSpell(tmpSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
-																										//WriteChatf("Checking triggering effect for slot %d", nSlot);
-				PSPELL pSpellTriggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot));
-				PSPELL tmpSpellTriggeredSpell = GetSpellByID(GetSpellBase2(tmpSpell, nSlot));
-				if (pSpellTriggeredSpell && tmpSpellTriggeredSpell) {
-					//WriteChatf("pSpellTriggeredSpell->Name=%s tmpSpellTriggeredSpell->Name=%s", pSpellTriggeredSpell->Name, tmpSpellTriggeredSpell->Name);
-					if (!BuffStackTest(pSpellTriggeredSpell, tmpSpellTriggeredSpell)) {
-						Dest.DWord = false;
-						return true;
-					}
-				}
-			}
-		}
-#endif
 		Dest.DWord = BuffStackTest(pSpell, tmpSpell, TRUE);
 		return true;
 	}

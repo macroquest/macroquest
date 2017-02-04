@@ -1000,6 +1000,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterZoneClient__GetItemCountWorn;
 	EQLIB_VAR DWORD CharacterZoneClient__GetItemCountInInventory;
 	EQLIB_VAR DWORD CharacterZoneClient__GetCursorItemCount;
+	EQLIB_VAR DWORD CharacterZoneClient__FindAffectSlot;
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 

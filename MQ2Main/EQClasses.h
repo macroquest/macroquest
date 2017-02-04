@@ -5794,6 +5794,21 @@ class EQ_Affect
 {
 public:
 EQLIB_OBJECT void EQ_Affect::Reset(void);
+/*0x00*/	BYTE Type;
+/*0x01*/	BYTE CasterLevel;
+/*0x02*/	BYTE ChargesRemaining;
+/*0x03*/	BYTE Activatable;
+/*0x04*/	FLOAT BaseDmgMod;
+/*0x08*/	int ID;
+/*0x0c*/	int DurationTick;
+/*0x10*/	int CasterID;
+/*0x14*/	int HitCounter;
+/*0x18*/	FLOAT HitLocationY;
+/*0x1c*/	FLOAT HitLocationX;
+/*0x20*/	float HitLocationZ;
+/*0x24*/	UINT Flags;//twincast
+/*0x28*/	int Data[0xc];
+/*0x58*/
 };
 
 class EQ_AltAbility
@@ -5846,7 +5861,6 @@ EQLIB_OBJECT char * EQ_Character::Class(int);
 EQLIB_OBJECT char * EQ_Character::KunarkClass(int,int,int,bool);
 EQLIB_OBJECT char * EQ_Character::Race(int);
 EQLIB_OBJECT class EQ_Affect & EQ_Character::GetEffect(int);
-EQLIB_OBJECT class EQ_Affect * EQ_Character::FindAffectSlot(int,class EQPlayer *,int *,int);
 EQLIB_OBJECT class EQ_Affect * EQ_Character::GetPCSpellAffect(int,int *,int *);
 EQLIB_OBJECT class EQ_Equipment * EQ_Character::GetFocusItem(class EQ_Spell const *,int);
 EQLIB_OBJECT class EQ_Spell * EQ_Character::GetFocusEffect(class EQ_Spell const *,int);
@@ -6521,6 +6535,8 @@ EQLIB_OBJECT int CharacterZoneClient::GetItemCountWorn(int);
 EQLIB_OBJECT int CharacterZoneClient::GetItemCountInInventory(int);
 EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
 EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
+EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlot(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
+
 };
 
 class PcZoneClient: public PcBase , public CharacterZoneClient

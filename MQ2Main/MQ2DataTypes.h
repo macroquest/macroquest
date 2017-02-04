@@ -1561,6 +1561,8 @@ public:
 		IsSwarmSpell = 64,
 		IsSkill = 65,
 		DurationValue1 = 66,
+		NewStacks = 67,
+		NewStacksWith = 68,
 	};
 	enum SpellMethods
 	{
@@ -1633,7 +1635,8 @@ public:
 		TypeMember(IsSwarmSpell);
 		TypeMember(IsSkill);
 		TypeMember(DurationValue1);
-		
+		TypeMember(NewStacks);
+		TypeMember(NewStacksWith);
 	}
 
 	~MQ2SpellType()

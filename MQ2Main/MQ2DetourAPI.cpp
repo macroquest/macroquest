@@ -1268,13 +1268,15 @@ typedef struct _CrashReport
 	/*0x024*/	PCHAR sessionpath;
 } CrashReport, *PCrashReport;
 //you can customize the crash dialog message here if this doesn't suit you.
-EQLIB_API VOID GetCrashDialogMessage(std::string &Title, std::string &Message1,std::string &Message2,std::string &Message3,std::string &Message4)
+//these args needs to be allocated properly if u call this func, but you shouldnt...
+//just know that you can customize it for now as long as u keep the string lenghts < MAX_STRING
+EQLIB_API VOID GetCrashDialogMessage(char *Title, char *Message1,char *Message2,char *Message3,char *Message4)
 {
-	Title = "MQ2 Crash Notification";
-	Message1 = "MQ2 has detected that your client may have crashed.";
-	Message2 = "It is often possible to determine where and why the crash occurred.";
-	Message3 = "Click OK to send this data back to EqMule in an effort to help improve the stability of MQ2.";
-	Message4 = "Also, if you have a moment, please enter details about what you were doing when you crashed:";
+	strcpy_s(Title ,MAX_STRING, "MQ2 Crash Notification");
+	strcpy_s(Message1 ,MAX_STRING, "MQ2 has detected that your client may have crashed.");
+	strcpy_s(Message2 ,MAX_STRING, "It is often possible to determine where and why the crash occurred.");
+	strcpy_s(Message3 ,MAX_STRING, "Click OK to send this data back to EqMule in an effort to help improve the stability of MQ2.");
+	strcpy_s(Message4 ,MAX_STRING, "Also, if you have a moment, please enter details about what you were doing when you crashed:");
 }
 //this function is called after a crashdump has been generated and it points to that file
 EQLIB_API VOID MQ2CrashCallBack(PCHAR DumpFile)

@@ -1,4 +1,10 @@
 03 Feb 2017 by eqmule
+- Updated for TEST, yes there was a new patch.
+- Fixed a issue that would hang the client and sometimes even crash it.
+  this should fix the problem with using Untamed Rage on a berserker
+  as well as other buff stacking check problems.
+
+03 Feb 2017 by eqmule
 - Updated for latest LIVE and TEST patches
 
 01 Feb 2017 by eqmule
