@@ -2433,10 +2433,12 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{
-						if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1))
-						{
-							CXPoint p; p.A = 0; p.B = 0;
-							pSlot->HandleRButtonUp(&p);
+						if (pInvSlotMgr) {
+							if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1))
+							{
+								CXPoint p; p.A = 0; p.B = 0;
+								pSlot->HandleRButtonUp(&p);
+							}
 						}
 					}
 				}

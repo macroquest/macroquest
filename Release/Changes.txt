@@ -1,3 +1,12 @@
+08 Feb 2017 by eqmule
+- Fixed a few places which would use pInvSlotMgr without NULL checking it
+- Added .TimeBeenDead to the spawn tlo You can use it to figure out how long a corpse has been dead.
+  NOTE: The timer is dependant on if you where in the zone when the corpse spawned.
+  If you enter a zone and check this tlo member it will display the time of the death 
+  as the time you entered the zone.
+- Fixed a potential stack corruption in EndMacro
+- Updated for TEST
+
 03 Feb 2017 by eqmule
 - Updated for TEST, yes there was a new patch.
 - Fixed a issue that would hang the client and sometimes even crash it.

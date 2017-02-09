@@ -710,6 +710,7 @@ public:
 		bWaitingForPort = 143,
 		EQLoc = 144,
 		MQLoc = 145,
+		TimeBeenDead = 146,
 	};
 	enum SpawnMethods
 	{
@@ -868,7 +869,8 @@ public:
 		TypeMember(bWaitingForPort);
 		TypeMember(EQLoc);
 		TypeMember(MQLoc);
-
+		TypeMember(TimeBeenDead);
+		
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);

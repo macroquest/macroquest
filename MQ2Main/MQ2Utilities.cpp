@@ -8163,13 +8163,17 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	PCONTENTS pItem = (PCONTENTS)i64tmp->HighPart;
 	int timeout = 0;
 	if (PCONTENTS pcont = FindItemBySlot(pItem->GlobalIndex.Index.Slot1)) {
-		if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1)) {
-			if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
-				while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
-					Sleep(10);
-					timeout += 100;
-					if (timeout >= 1000) {
-						break;
+		if (pInvSlotMgr) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1)) {
+				if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
+					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
+						if (GetGameState() != GAMESTATE_INGAME)
+							break;
+						Sleep(10);
+						timeout += 100;
+						if (timeout >= 1000) {
+							break;
+						}
 					}
 				}
 			}
@@ -8188,16 +8192,19 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 		}*/
 	}
 	Sleep(100);
-	bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = 1;
-	if (ItemOnCursor()) {
-		DropItem(type, pItem->GlobalIndex.Index.Slot1,pItem->GlobalIndex.Index.Slot1);
-	} else {
-		PickupItem(type, pItem);
+	if (pWndMgr) {
+		bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
+		((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = 1;
+		if (ItemOnCursor()) {
+			DropItem(type, pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot1);
+		}
+		else {
+			PickupItem(type, pItem);
+		}
+		((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = Old;
+		LocalFree(pData);
+		//CloseContainer(pItem);
 	}
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = Old;
-	LocalFree(pData);
-	//CloseContainer(pItem);
 	return 1;
 }
 bool ItemOnCursor()
@@ -8210,7 +8217,7 @@ bool ItemOnCursor()
 }
 BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 {
-	if (!pItem) {
+	if (!pItem || !pInvSlotMgr) {
 		return FALSE;
 	}
 	bool bSelectSlot = false;
@@ -8228,16 +8235,18 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 			return FALSE;
 		}
 		if (bSelectSlot) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1)) {
-				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
-				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
-				To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
-				To.Index.Slot3 = -1;
-				pMerchantWnd->ActualSelect(&To);
-				return TRUE;
+			if (pInvSlotMgr) {
+				if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1)) {
+					PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+					pInvSlotMgr->SelectSlot(theslot);
+					ItemGlobalIndex To;
+					To.Location = eItemContainerPossessions;
+					To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+					To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
+					To.Index.Slot3 = -1;
+					pMerchantWnd->ActualSelect(&To);
+					return TRUE;
+				}
 			}
 		} else {
 			//just move it from the slot to the cursor
@@ -8258,16 +8267,18 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 	}
 	else {//BagSlot is NOT -1 so they want to pick it up from INSIDE a bag
 		if (bSelectSlot) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot2)) {
-				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
-				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
-				To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
-				To.Index.Slot3 = -1;
-				pMerchantWnd->ActualSelect(&To);
-				return TRUE;
+			if (pInvSlotMgr) {
+				if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot2)) {
+					PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+					pInvSlotMgr->SelectSlot(theslot);
+					ItemGlobalIndex To;
+					To.Location = eItemContainerPossessions;
+					To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+					To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
+					To.Index.Slot3 = -1;
+					pMerchantWnd->ActualSelect(&To);
+					return TRUE;
+				}
 			}
 			else {
 				//well now is where it gets complicated then... or not...
@@ -8373,20 +8384,22 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 			return FALSE;
 		}
 		if (bSelectSlot) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(ToInvSlot)) {
-				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
-				//ok so here is how this works:
-				//we select the slot, and thet will set pSelectedItem correctly
-				//we do this cause later on we need that address for the .Selection member
-				//
-				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
-				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
-				To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
-				pMerchantWnd->ActualSelect(&To);
-				return TRUE;
+			if (pInvSlotMgr) {
+				if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(ToInvSlot)) {
+					PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+					//ok so here is how this works:
+					//we select the slot, and thet will set pSelectedItem correctly
+					//we do this cause later on we need that address for the .Selection member
+					//
+					pInvSlotMgr->SelectSlot(theslot);
+					ItemGlobalIndex To;
+					To.Location = eItemContainerPossessions;
+					To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
+					To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+					To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
+					pMerchantWnd->ActualSelect(&To);
+					return TRUE;
+				}
 			}
 		} else {
 			//just move it from cursor to the slot
@@ -8406,17 +8419,20 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 		}
 	} else {//BagSlot is NOT -1 so they want to drop it INSIDE a bag
 		if (bSelectSlot) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(ToInvSlot,ToBagSlot)) {
-				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
-				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
-				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
-				To.Index.Slot3 = -1;
-				pMerchantWnd->ActualSelect(&To);
-				return TRUE;
-			} else {
+			if (pInvSlotMgr) {
+				if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(ToInvSlot, ToBagSlot)) {
+					PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+					pInvSlotMgr->SelectSlot(theslot);
+					ItemGlobalIndex To;
+					To.Location = eItemContainerPossessions;
+					To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
+					To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+					To.Index.Slot3 = -1;
+					pMerchantWnd->ActualSelect(&To);
+					return TRUE;
+				}
+			}
+			else {
 				//well now is where it gets comlicated then...
 				//so we need to open the bag...
 				ItemGlobalIndex To;

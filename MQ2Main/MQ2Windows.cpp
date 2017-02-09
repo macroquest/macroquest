@@ -1355,7 +1355,7 @@ int ItemNotify(int argc, char *argv[])
 		{
 			_strlwr_s(szArg1);
             Slot=ItemSlotMap[szArg1];
-            if (Slot<NUM_INV_SLOTS) {
+            if (Slot<NUM_INV_SLOTS && pInvSlotMgr) {
                 DebugTry(pSlot=(EQINVSLOT *)pInvSlotMgr->FindInvSlot(Slot));
             } else {
                 if (!_strnicmp(szArg1, "loot", 4)) {
@@ -1414,7 +1414,9 @@ int ItemNotify(int argc, char *argv[])
 						if (IsItemInsideContainer(ptheitem)) {
 							OpenContainer(ptheitem, true);
 						}
-						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->GlobalIndex.Index.Slot1, ptheitem->GlobalIndex.Index.Slot2);
+						if (pInvSlotMgr) {
+							pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->GlobalIndex.Index.Slot1, ptheitem->GlobalIndex.Index.Slot2);
+						}
 						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification)) {
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}

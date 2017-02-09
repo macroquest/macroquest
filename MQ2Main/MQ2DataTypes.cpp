@@ -1480,6 +1480,11 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord = pSpawn->StandState == STANDSTATE_SIT;
 		Dest.Type = pBoolType;
 		return true;
+	case TimeBeenDead:
+		Dest.DWord = EQGetTime() - pSpawn->RespawnTimer;
+		Dest.Type = pTimeStampType;
+		return true;
+
 	case Ducking:
 		Dest.DWord = pSpawn->StandState == STANDSTATE_DUCK;
 		Dest.Type = pBoolType;

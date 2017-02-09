@@ -695,7 +695,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 		gMacroBlock=gMacroBlock->pNext;
     while (gMacroBlock) {
         pPrev = gMacroBlock->pPrev;
-		DebugSpewNoFile("EndMacro: Deleting gMacroBlock %s", gMacroBlock->Line);
+		DebugSpewNoFile("EndMacro: Deleting gMacroBlock %s", gMacroBlock->Line.c_str());
         //free(gMacroBlock);
         delete gMacroBlock;
         gMacroBlock = pPrev;

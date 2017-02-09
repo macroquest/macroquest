@@ -42,9 +42,30 @@ DWORD __stdcall FlashOnTellThread(PVOID pData)
 	}	
 	return 0;
 }
+#ifdef EMU
+VOID OutputTextToLog_Trampoline(char*); 
+VOID OutputTextToLog_Detour(char*szMsg)
+{
+	try {
+		if (gbTimeStampChat) {
+			if (szMsg && szMsg[0]) {
+				if (char*pDest = strchr(szMsg, ']')) {
+					if (strlen(szMsg) > (size_t)(pDest - szMsg) + 2) {
+						szMsg = pDest + 2;
+					}
+				}
+			}
+		}
+	} catch(...) {
+		//nm...
+	}
+	OutputTextToLog_Trampoline(szMsg);
+}
+#endif
 class CChatHook 
 { 
 public:
+#ifndef EMU
     VOID OutputTextToLog_Trampoline(char*); 
 	VOID OutputTextToLog_Detour(char*szMsg)
 	{
@@ -63,6 +84,7 @@ public:
 		}
 		OutputTextToLog_Trampoline(szMsg);
 	}
+#endif
     VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst); 
     VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst) 
     { 
@@ -168,7 +190,11 @@ public:
 }; 
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::OutputTextToLog_Trampoline(char *)); 
+#ifndef EMU
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::OutputTextToLog_Trampoline(char *));
+#else
+DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
+#endif
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
@@ -280,7 +306,11 @@ VOID InitializeChatHook()
     pMQ2Blech=new Blech('#','|',MQ2DataVariableLookup);
     DebugSpew("%s",pMQ2Blech->Version);
 #endif
+#ifndef EMU
 	EzDetourwName(CEverQuest__OutputTextToLog,&CChatHook::OutputTextToLog_Detour,&CChatHook::OutputTextToLog_Trampoline,"CEverQuest__OutputTextToLog");
+#else
+	EzDetourwName(CEverQuest__OutputTextToLog,OutputTextToLog_Detour,OutputTextToLog_Trampoline,"OutputTextToLog");
+#endif
 	EzDetourwName(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline,"CEverQuest__dsp_chat");
     EzDetourwName(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline,"CEverQuest__DoTellWindow");
     EzDetourwName(CEverQuest__UPCNotificationFlush,&CChatHook::UPCNotificationFlush_Detour,&CChatHook::UPCNotificationFlush_Trampoline,"CEverQuest__UPCNotificationFlush");
