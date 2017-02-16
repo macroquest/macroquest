@@ -11,10 +11,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+
 #pragma pack(push)
 #pragma pack(8)
 
 #include "ArrayClass.h"
+#include "SharedClasses.h"
 
 namespace EQData
 {
@@ -1814,7 +1816,7 @@ typedef struct _CHARINFO {
 /*0x2138*/ DWORD        EnduranceRegenBonus;//vtable2+f8
 /*0x213c*/ DWORD        AttackSpeed;//vtable2+fc
 /*0x2140*/ BYTE         Unknown0x2140[0x320];
-/*0x2460*/ struct _XTARGETMGR*  pXTargetMgr;
+/*0x2460*/ ExtendedTargetList*  pXTargetMgr;
 /*0x2464*/ DWORD        InCombat;
 /*0x2468*/ DWORD        Downtime;
 /*0x246c*/ DWORD        DowntimeStamp;
@@ -3917,36 +3919,6 @@ enum xTargetTypes
     XTARGET_MY_MERCENARY,
     XTARGET_MY_MERCENTARY_TARGET
 };
-
-// size 0x4c 12-25-09 - ieatacid
-typedef struct _XTARGETDATA
-{
-/*0x00*/ DWORD  xTargetType;
-/*0x04*/ DWORD  Unknown0x4;
-/*0x08*/ DWORD  SpawnID;
-/*0x0c*/ char   Name[0x40];
-/*0x4c*/
-} XTARGETDATA, *PXTARGETDATA;
-
-typedef struct _XTARGETARRAY
-{
-    XTARGETDATA pXTargetData[MAX_XTARGETS];
-} XTARGETARRAY, *PXTARGETARRAY;
-
-// size 0x20 12-25-09 - ieatacid
-typedef struct _XTARGETMGR
-{
-/*0x00*/ void  *vftable;
-/*0x04*/ DWORD TargetSlots; // MAX_XTARGETS
-/*0x08*/ PXTARGETARRAY pXTargetArray;
-/*0x0c*/ DWORD Unknown0xc;  // same as TargetSlots?
-/*0x10*/ BYTE  Unknown0x10[0x4];
-/*0x14*/ BYTE  AutoAddHaters; // 1 = auto add haters, 0 = do not auto add haters
-/*0x15*/ BYTE  Unknown0x15[0x3];
-/*0x18*/ BYTE  Unknown0x18[0x4];
-/*0x1c*/ BYTE  Unknown0x1c[0x4];
-/*0x20*/
-} XTARGETMGR, *PXTARGETMGR;
 
 typedef struct _AGGRODATA {
 /*0x00*/ DWORD Unknown0x0;

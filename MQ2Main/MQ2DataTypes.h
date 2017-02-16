@@ -1189,6 +1189,7 @@ public:
 		SPA = 254,
 		BoundLocation = 255,
 		SkillBase = 256,
+		Name = 257,
 	};
 	enum CharacterMethods
 	{
@@ -1445,6 +1446,7 @@ public:
 		TypeMember(SPA);
 		TypeMember(BoundLocation);
 		TypeMember(SkillBase);
+		TypeMember(Name);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -4536,6 +4538,8 @@ public:
 		Cursed = 36,
 		Corrupted = 37,
 		BuffsPopulated = 38,
+        MyBuff = 39,
+        MyBuffCount = 40,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -4582,6 +4586,8 @@ public:
 		TypeMember(Cursed);
 		TypeMember(Corrupted);
 		TypeMember(BuffsPopulated);
+        TypeMember(MyBuff);
+        TypeMember(MyBuffCount);
 	}
 
 	~MQ2TargetType()
@@ -4817,10 +4823,13 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (GetCharInfo() && GetCharInfo()->pXTargetMgr)
-		{
-			XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
-			strcpy_s(Destination,MAX_STRING, xtd.Name);
+		int index = VarPtr.DWord;
+		if (PCHARINFO pChar = GetCharInfo()) {
+			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count) {
+				//XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
+				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
+				strcpy_s(Destination, MAX_STRING, xtd.Name);
+			}
 		}
 		else
 			strcpy_s(Destination,MAX_STRING, "NULL");
@@ -4845,13 +4854,16 @@ public:
 		}
 		else
 		{
-			if (GetCharInfo() && GetCharInfo()->pXTargetMgr)
-			{
-				XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[Source.DWord];
-				if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
-				{
-					memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-					return true;
+			int index = Source.DWord;
+			if (PCHARINFO pChar = GetCharInfo()) {
+				if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count) {
+					//XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[Source.DWord];
+					XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
+					if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
+					{
+						memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+						return true;
+					}
 				}
 			}
 		}
@@ -4859,13 +4871,16 @@ public:
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		if (GetCharInfo() && GetCharInfo()->pXTargetMgr)
-		{
-			XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[atoi(Source)];
-			if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
-			{
-				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-				return true;
+		int index = atoi(Source);
+		if (PCHARINFO pChar = GetCharInfo()) {
+			if (index<=23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count) {
+				//XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[atoi(Source)];
+				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
+				if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
+				{
+					memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+					return true;
+				}
 			}
 		}
 		return false;

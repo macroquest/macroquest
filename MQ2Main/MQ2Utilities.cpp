@@ -5949,12 +5949,13 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if (pSearchSpawn->bXTarHater) {
 		bool foundhater = 0;
 		if(PCHARINFO pmyChar = GetCharInfo()) {
-			if (PXTARGETMGR xtm = pmyChar->pXTargetMgr)
+			if (ExtendedTargetList *xtm = pmyChar->pXTargetMgr)
 			{
-				if (PXTARGETARRAY xta = xtm->pXTargetArray) {
-					for (DWORD i = 0; i < pmyChar->pXTargetMgr->TargetSlots; i++) {
-						if (xta->pXTargetData[i].xTargetType == XTARGET_AUTO_HATER && xta->pXTargetData[i].Unknown0x4 && xta->pXTargetData[i].SpawnID) {
-							if (PSPAWNINFO pxtarSpawn = (PSPAWNINFO)GetSpawnByID(xta->pXTargetData[i].SpawnID)) {
+				if (xtm->XTargetSlots.Count) {
+					for (int i = 0; i < pmyChar->pXTargetMgr->XTargetSlots.Count; i++) {
+						XTARGETSLOT xts = xtm->XTargetSlots[i];
+						if (xts.xTargetType == XTARGET_AUTO_HATER && xts.XTargetSlotStatus && xts.SpawnID) {
+							if (PSPAWNINFO pxtarSpawn = (PSPAWNINFO)GetSpawnByID(xts.SpawnID)) {
 								if(pxtarSpawn->SpawnID == pSpawn->SpawnID) {
 									foundhater = true;
 								}

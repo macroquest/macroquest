@@ -90,8 +90,7 @@ public:
     { 
         //DebugSpew("CChatHook::Detour(%s)",szMsg); 
         gbInChat = TRUE; 
-
-
+		
         CheckChatForEvent(szMsg);
 
         BOOL Filtered=FALSE; 
@@ -113,21 +112,72 @@ public:
             //if (gTelnetServer && gTelnetConnection && !gPauseTelnetOutput) TelnetServer_Write(szMsg); 
             BOOL SkipTrampoline;
             Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,dwColor));
-            if (!SkipTrampoline) {
-				if (gbTimeStampChat) {
-					CHAR tmpbuf[32] = {0};
-					_strtime_s( tmpbuf, 32 );
+			if (!SkipTrampoline) {
+				if (gAnonymize) {
 					int len = strlen(szMsg);
-					char *szTimeStamedMsg = (char *)LocalAlloc(LPTR,len+64);
-					if(szTimeStamedMsg) {
-						sprintf_s(szTimeStamedMsg,len+63,"[%s] %s",tmpbuf,szMsg);
-						Trampoline(szTimeStamedMsg, dwColor, EqLog, dopercentsubst);
-						LocalFree(szTimeStamedMsg);
-					} else {
-						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+					char *szAnonMsg = (char *)LocalAlloc(LPTR, len + 64);
+					if (szAnonMsg) {
+						strcpy_s(szAnonMsg, len + 64, szMsg);
+						if (char *pDest = strchr(szAnonMsg, ' ')) {
+							int len = strlen(szAnonMsg) - strlen(pDest);
+							if (len >= 2) {
+								if (szAnonMsg[0] == 0x12) {
+									for (int i = 3; i < len-2; i++) {
+										szAnonMsg[i] = '*';
+									}
+								} else {
+									if (strstr(szAnonMsg, "You have healed ")) {
+										int namelen = strlen(((PSPAWNINFO)pLocalPlayer)->Name);
+										for (int i = 17; i < 17+namelen-1; i++) {
+											szAnonMsg[i] = '*';
+										}
+									} else if (_strnicmp(szAnonMsg, "you ", 4) && _strnicmp(szAnonMsg, "your ", 5)) {
+										for (int i = 1; i < len-1; i++) {
+											szAnonMsg[i] = '*';
+										}
+									}
+								}
+							}
+						}
+						if (gbTimeStampChat) {
+							CHAR tmpbuf[32] = { 0 };
+							_strtime_s(tmpbuf, 32);
+							int len = strlen(szAnonMsg);
+							char *szTimeStamedMsg = (char *)LocalAlloc(LPTR, len + 64);
+							if (szTimeStamedMsg) {
+								sprintf_s(szTimeStamedMsg, len + 64, "[%s] %s", tmpbuf, szAnonMsg);
+								Trampoline(szTimeStamedMsg, dwColor, EqLog, dopercentsubst);
+								LocalFree(szTimeStamedMsg);
+								LocalFree(szAnonMsg);
+							}
+							else {
+								Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
+								LocalFree(szAnonMsg);
+							}
+						}
+						else {
+							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
+							LocalFree(szAnonMsg);
+						}
 					}
 				} else {
-					Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+					if (gbTimeStampChat) {
+						CHAR tmpbuf[32] = { 0 };
+						_strtime_s(tmpbuf, 32);
+						int len = strlen(szMsg);
+						char *szTimeStamedMsg = (char *)LocalAlloc(LPTR, len + 64);
+						if (szTimeStamedMsg) {
+							sprintf_s(szTimeStamedMsg, len + 64, "[%s] %s", tmpbuf, szMsg);
+							Trampoline(szTimeStamedMsg, dwColor, EqLog, dopercentsubst);
+							LocalFree(szTimeStamedMsg);
+						}
+						else {
+							Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+						}
+					}
+					else {
+						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+					}
 				}
 			}
         } 

@@ -1306,6 +1306,11 @@ void HandleWindows()
 					//MessageBox(NULL,"Setting bLogin to false due to \"password were not valid\"","",MB_OK);
 					bLogin = false;
 					return;
+				} else if (szTemp[0] && strstr(szTemp, "This login requires a valid")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
 				} else if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
 					if (pWnd)

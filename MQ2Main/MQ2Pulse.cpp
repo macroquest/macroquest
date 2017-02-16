@@ -407,6 +407,62 @@ BOOL Detour_ProcessGameEvents(VOID)
 	return ret2;
 }
 
+struct cBasicPacket
+{
+    const char*		m_pBuffer;
+    unsigned int	m_uLength;
+    unsigned int	m_uReadOffset;
+
+    void Reset() { m_uReadOffset = 0; }
+
+    template< typename T> void Read( T& r )
+    {
+        r = *(T*)(m_pBuffer + m_uReadOffset);
+        m_uReadOffset += sizeof( T );
+        return;
+    }
+
+    void ReadString( string& out )
+    {
+        int len = 0;
+        while( m_pBuffer[m_uReadOffset] != '\0' )
+        {
+            out.append( 1, (char)(m_pBuffer[m_uReadOffset]) );
+            m_uReadOffset++;
+        }
+        m_uReadOffset++;
+    }
+	template <unsigned int _Size>void ReadpChar(char(&_Buffer)[_Size])
+    {
+		_Buffer[0] = '\0';
+		int len = 0;
+        while( m_pBuffer[m_uReadOffset] != '\0' && len<_Size)
+        {
+			_Buffer[len++] = (char)(m_pBuffer[m_uReadOffset]);
+            m_uReadOffset++;
+        }
+		//take null term into account...
+        m_uReadOffset++;
+    }
+};
+std::map<int, std::string>targetBuffSlotToCasterMap; 
+
+struct cTargetHeader
+{
+    int m_id;
+    int m_timeNext;
+    bool m_bComplete;
+    short m_count;
+};
+
+struct cTargetBuff
+{
+    int slot;
+    int spellId;
+    int duration;
+    int count;
+    CHAR casterName[64];
+};
 DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID));
 class CEverQuestHook {
 public:
@@ -421,7 +477,7 @@ public:
 	VOID SetGameState_Trampoline(DWORD GameState);
 	VOID SetGameState_Detour(DWORD GameState)
 	{
-		//        DebugSpew("SetGameState_Detour(%d)",GameState);
+		//DebugSpew("SetGameState_Detour(%d)",GameState);
 		SetGameState_Trampoline(GameState);
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 	}
@@ -430,10 +486,38 @@ public:
 	{
 		gTargetbuffs = FALSE;
 		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
-		gTargetbuffs = TRUE;
+
+        targetBuffSlotToCasterMap.clear();
+
+        cBasicPacket* packet = (cBasicPacket*)buffer;
+        packet->Reset();
+
+        cTargetHeader header;
+            
+        packet->Read( header.m_id );
+        packet->Read( header.m_timeNext );
+        packet->Read( header.m_bComplete );
+        packet->Read( header.m_count );
+        cTargetBuff curBuff;
+
+        for( int i = 0; i < header.m_count; i++ ) {
+			ZeroMemory(&curBuff, sizeof(cTargetBuff));
+            packet->Read( curBuff.slot );
+            packet->Read( curBuff.spellId );
+            packet->Read( curBuff.duration );
+            packet->Read( curBuff.count );
+            packet->ReadpChar( curBuff.casterName );
+			if (pTarget) {
+				if ((curBuff.slot >= 42 && (pTarget->Data.Type == SPAWN_PLAYER || pTarget->Data.Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
+					continue;
+				}
+				targetBuffSlotToCasterMap[curBuff.slot] = curBuff.casterName;
+			}
+        }
 		if (gbAssistComplete == 1) {
 			gbAssistComplete = 2;
 		}
+		gTargetbuffs = TRUE;
 	}
 };
 

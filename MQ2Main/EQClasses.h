@@ -6466,15 +6466,7 @@ EQLIB_OBJECT void EQPlayer::FindDefaultEyeMaterialIndexes(void);
 EQLIB_OBJECT void EQPlayer::InitializeIDArray(void);
 SPAWNINFO Data;
 };
-//work in progress -eqmule
-class ExtendedTargetList
-{
-	//has a vftable
-public:	
-	//tddo fix:
-	//ArrayClass<ExtendedTargetSlot> TargetSlots;
-	bool bAutoAddHaters;
-};
+
 class ExtendedTargetListClient : public ExtendedTargetList
 {
 	//has no vftable

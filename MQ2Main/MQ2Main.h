@@ -578,6 +578,7 @@ EQLIB_API __int64 GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 #endif
+extern std::map<int, std::string>targetBuffSlotToCasterMap; 
 
 EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);

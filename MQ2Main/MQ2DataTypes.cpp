@@ -2323,6 +2323,16 @@ bool MQ2CharacterType::GETMEMBER()
 	}
 	switch ((CharacterMembers)pMember->ID)
 	{
+	case Name:
+	{
+		if(!gAnonymize)
+			strcpy_s(DataTypeTemp, ((PSPAWNINFO)pLocalPlayer)->Name);
+		else
+			strcpy_s(DataTypeTemp,"*****");
+		Dest.Type = pStringType;
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+	}
 	case Exp:
 		Dest.Int64 = pChar->Exp;
 		Dest.Type = pInt64Type;
@@ -4235,24 +4245,24 @@ bool MQ2CharacterType::GETMEMBER()
 		break;
 	case XTargetSlots:
 		Dest.DWord = 0;
-		if (PXTARGETMGR xtm = pChar->pXTargetMgr)
+		if (ExtendedTargetList *xtm = pChar->pXTargetMgr)
 		{
-			Dest.DWord = xtm->TargetSlots;
+			Dest.DWord = xtm->XTargetSlots.Count;
 		}
 		Dest.Type = pIntType;
 		return true;
 	case XTarget:
-		if (PXTARGETMGR xtm = pChar->pXTargetMgr)
+		if (ExtendedTargetList *xtm = pChar->pXTargetMgr)
 		{
-			DWORD n = 0;
-			if (PXTARGETARRAY xta = xtm->pXTargetArray)
+			int n = 0;
+			if (xtm->XTargetSlots.Count)
 			{
 				if (ISINDEX())
 				{
 					if (ISNUMBER())
 					{
 						int N = GETNUMBER();
-						if (N > 0 && N <= (int)xtm->TargetSlots)
+						if (N > 0 && N <= (int)xtm->XTargetSlots.Count)
 						{
 							Dest.DWord = GETNUMBER() - 1;
 							Dest.Type = pXTargetType;
@@ -4261,9 +4271,10 @@ bool MQ2CharacterType::GETMEMBER()
 					}
 					else
 					{
-						for (n = 0; n < xtm->TargetSlots; n++)
+						for (n = 0; n < xtm->XTargetSlots.Count; n++)
 						{
-							if (xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4 && !_stricmp(GETFIRST(), xta->pXTargetData[n].Name))
+							XTARGETSLOT xts = xtm->XTargetSlots[n];
+							if (xts.xTargetType && xts.XTargetSlotStatus && !_stricmp(GETFIRST(), xts.Name))
 							{
 								Dest.DWord = n;
 								Dest.Type = pXTargetType;
@@ -4275,9 +4286,10 @@ bool MQ2CharacterType::GETMEMBER()
 				else
 				{
 					DWORD x = 0;
-					for (n = 0; n < xtm->TargetSlots; n++)
+					for (n = 0; n < xtm->XTargetSlots.Count; n++)
 					{
-						if (xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4)
+						XTARGETSLOT xts = xtm->XTargetSlots[n];
+						if (xts.xTargetType && xts.XTargetSlotStatus)
 						{
 							x++;
 						}
@@ -5719,11 +5731,9 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return false;
 	case Caster:
-		if (CXStr *ptr = pTargetWnd->GetBuffCaster(pSpell->ID))
-		{
-			CHAR szBuffer[MAX_STRING] = { 0 };
-			if (GetCXStr(ptr->Ptr, szBuffer, MAX_STRING)) {
-				strcpy_s(DataTypeTemp, szBuffer);
+		if (targetBuffSlotToCasterMap.size()) {
+			if (targetBuffSlotToCasterMap.find(VarPtr.HighPart) != targetBuffSlotToCasterMap.end()) {
+				strcpy_s(DataTypeTemp, targetBuffSlotToCasterMap[VarPtr.HighPart].c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
@@ -8328,7 +8338,10 @@ bool MQ2EverQuestType::GETMEMBER()
 	case Server:
 		if (EQADDR_SERVERNAME[0])
 		{
-			strcpy_s(DataTypeTemp, EQADDR_SERVERNAME);
+			if(!gAnonymize)
+				strcpy_s(DataTypeTemp, EQADDR_SERVERNAME);
+			else
+				strcpy_s(DataTypeTemp, "Server");
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;
@@ -10958,6 +10971,7 @@ bool MQ2TargetType::GETMEMBER()
 				buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[nBuff];
 				if (buffID && buffID != -1) {
 					if (Dest.Ptr = GetSpellByID((DWORD)buffID)) {
+						Dest.HighPart = nBuff;
 						Dest.Type = pSpellType;
 						return true;
 					}
@@ -10971,6 +10985,7 @@ bool MQ2TargetType::GETMEMBER()
 					if (buffID && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST())))
 					{
 						if (Dest.Ptr = GetSpellByID((DWORD)buffID)) {
+							Dest.HighPart = i;
 							Dest.Type = pSpellType;
 							return true;
 						}
@@ -10997,6 +11012,74 @@ bool MQ2TargetType::GETMEMBER()
 			}
 		}
 		return false;
+    case MyBuff:
+        if( !(((PCTARGETWND)pTargetWnd)->Type > 0) )
+            return false;
+        if( ISINDEX() )
+        {
+            if( ISNUMBER() )
+            {
+                DWORD nBuff = GETNUMBER();
+                if( nBuff > NUM_BUFF_SLOTS )
+                    return false;
+                if( nBuff >= 1 )
+                    nBuff--;
+                buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[nBuff];
+                if( GetCharInfo() && buffID && buffID != -1 ) {
+                    if( targetBuffSlotToCasterMap.size() && targetBuffSlotToCasterMap.find( nBuff ) != targetBuffSlotToCasterMap.end() ) {
+                        if( !strcmp( GetCharInfo()->Name, targetBuffSlotToCasterMap[nBuff].c_str() ) ) {
+                            if( Dest.Ptr = GetSpellByID( (DWORD)buffID ) ) {
+                                Dest.HighPart = nBuff;
+                                Dest.Type = pSpellType;
+                                return true;
+                            }
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                if( targetBuffSlotToCasterMap.size() && GetCharInfo() ) {
+                    for( i = 0; i < NUM_BUFF_SLOTS; i++ )
+                    {
+                        if( targetBuffSlotToCasterMap.find( i ) != targetBuffSlotToCasterMap.end() && !strcmp( GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str() ) ) {
+                            buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+                            if( buffID && !_strnicmp( GETFIRST(), GetSpellNameByID( buffID ), strlen( GETFIRST() ) ) ) {
+                                if( Dest.Ptr = GetSpellByID( (DWORD)buffID ) ) {
+                                    Dest.HighPart = i;
+                                    Dest.Type = pSpellType;
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            // return first buff
+            if( targetBuffSlotToCasterMap.size() && GetCharInfo() ) {
+                for( i = 0; i < NUM_BUFF_SLOTS; i++ )
+                {
+                    if( targetBuffSlotToCasterMap.find( i ) != targetBuffSlotToCasterMap.end() && !strcmp( GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str() ) ) {
+                        buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+                        if( buffID )
+                        {
+                            if( PSPELL pSpell = GetSpellByID( buffID ) )
+                            {
+                                strcpy_s( DataTypeTemp, pSpell->Name );
+                                Dest.Ptr = &DataTypeTemp[0];
+                                Dest.Type = pStringType;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
 	case BuffCount:
 		if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
 			return false;
@@ -11006,6 +11089,24 @@ bool MQ2TargetType::GETMEMBER()
 				Dest.DWord++;
 		Dest.Type = pIntType;
 		return true;
+    case MyBuffCount:
+        if( !(((PCTARGETWND)pTargetWnd)->Type > 0) )
+            return false;
+        Dest.DWord = 0;
+        if( targetBuffSlotToCasterMap.size() && GetCharInfo() ) {
+            for( i = 0; i < NUM_BUFF_SLOTS; i++ )
+            {
+                if( targetBuffSlotToCasterMap.find( i ) != targetBuffSlotToCasterMap.end() && !strcmp( GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str() ) ) {
+                    buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+                    if( buffID )
+                    {
+                        Dest.DWord++;
+                    }
+                }
+            }
+        }
+        Dest.Type = pIntType;
+        return true;
 	case BuffDuration:
 		if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
 			return false;
@@ -11890,20 +11991,21 @@ bool MQ2TaskType::GETMEMBER()
 
 bool MQ2XTargetType::GETMEMBER()
 {
-	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr)
+	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord>23)
 		return false;
 	if (PMQ2TYPEMEMBER pMember = MQ2XTargetType::FindMember(Member))
 	{
-		XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
+		//XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
+		XTARGETSLOT xts = GetCharInfo()->pXTargetMgr->XTargetSlots[VarPtr.DWord];
 		switch ((xTargetMembers)pMember->ID)
 		{
 		case xAddress:
-			Dest.DWord = (DWORD)GetCharInfo()->pXTargetMgr->pXTargetArray;
+			Dest.DWord = (DWORD)GetCharInfo()->pXTargetMgr;
 			Dest.Type = pIntType;
 			return true;
 		case TargetType:
 		{
-			if (char *ptr = GetXtargetType(xtd.xTargetType))
+			if (char *ptr = GetXtargetType(xts.xTargetType))
 				strcpy_s(DataTypeTemp, ptr);
 			else
 				strcpy_s(DataTypeTemp, "UNKNOWN");
@@ -11912,12 +12014,12 @@ bool MQ2XTargetType::GETMEMBER()
 			return true;
 		}
 		case ID:
-			Dest.DWord = xtd.SpawnID;
+			Dest.DWord = xts.SpawnID;
 			Dest.Type = pIntType;
 			return true;
 		case Name:
-			if(xtd.Name[0]!='\0')
-				strcpy_s(DataTypeTemp, xtd.Name);
+			if(xts.Name[0]!='\0')
+				strcpy_s(DataTypeTemp, xts.Name);
 			else
 				strcpy_s(DataTypeTemp, "NULL");
 			Dest.Ptr = &DataTypeTemp[0];
@@ -11933,8 +12035,8 @@ bool MQ2XTargetType::GETMEMBER()
 		}
 	}
 	else {
-		XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
-		PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID);
+		XTARGETSLOT xts = GetCharInfo()->pXTargetMgr->XTargetSlots[VarPtr.DWord];
+		PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(xts.SpawnID);
 		if (pSpawn) {
 #ifndef ISXEQ
 			return pSpawnType->GetMember(*(MQ2VARPTR*)&pSpawn, Member, Index, Dest);

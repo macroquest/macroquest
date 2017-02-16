@@ -1,3 +1,101 @@
+15 Feb 2017 by eqmule
+- Updated for LIVE
+- XTARGETDATA has been renamed to XTARGETSLOT
+- New include added SharedClasses.h
+- the XTARGETSLOT struct has been moved to SharedClasses.h
+- Unknown0x4 in the XTARGETSLOT struct has been renamed to XTargetSlotStatus, change plugins accordingly.
+- XTarget stuff has gone through a make over, this will break plugins.
+  Here are ONE example of how to fix this:
+  MQ2Melee.cpp:
+  change:
+  [code]case XTaggro:
+		{
+			Dest.DWord = true;
+			Dest.Type = pBoolType;
+			if (PCHARINFO pChar = GetCharInfo()) {
+				if (PXTARGETMGR xtm = pChar->pXTargetMgr) {
+					if (PXTARGETARRAY xta = xtm->pXTargetArray) {
+						DWORD x = 0;
+						for (DWORD n = 0; n < xtm->TargetSlots; n++)
+						{
+							if (xta->pXTargetData[n].xTargetType == XTARGET_AUTO_HATER && xta->pXTargetData[n].Unknown0x4)
+							{
+								x++;
+							}
+						}
+						if (x>1) {
+							if (pAggroInfo) {
+								for (DWORD i = 0; i<xtm->TargetSlots; i++) {
+									if (DWORD spID = xta->pXTargetData[i].SpawnID) {
+										if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+											if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
+												continue;
+											if (pSpawn->Type == SPAWN_NPC && xta->pXTargetData[i].xTargetType == XTARGET_AUTO_HATER) {
+												DWORD agropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
+												//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
+												if (agropct<100) {
+													Dest.DWord = false;
+													break;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}[/code]
+			to
+			[code]case XTaggro:
+				{
+					Dest.DWord = true;
+					Dest.Type = pBoolType;
+					if (PCHARINFO pChar = GetCharInfo()) {
+						if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
+							DWORD x = 0;
+							for (int n = 0; n < xtm->XTargetSlots.Count; n++)
+							{
+								XTARGETSLOT xts = xtm->XTargetSlots[n];
+								if (xts.xTargetType == XTARGET_AUTO_HATER && xts.XTargetSlotStatus)
+								{
+									x++;
+								}
+							}
+							if (x > 1) {
+								if (pAggroInfo) {
+									for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
+										XTARGETSLOT xts = xtm->XTargetSlots[i];
+										if (DWORD spID = xts.SpawnID) {
+											if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+												if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
+													continue;
+												if (pSpawn->Type == SPAWN_NPC && xts.xTargetType == XTARGET_AUTO_HATER) {
+													DWORD agropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
+													//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
+													if (agropct < 100) {
+														Dest.DWord = false;
+														break;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}[/code]
+- Good Luck.
+
+13 Feb 2017 by derple
+- Fixed ${Target.Buff[x].Caster} so it takes multiple casters of the same spell into account.
+  Before this fix, only the first caster of a spell would be returned.
+- Added ${Target.MyBuff[x]} it returns a pSpellType
+  Example Usage:
+  [code]holyshit0=/if (!${Debuff.Silenced} && ${Me.PctMana} > 10 && ${Target.MyBuff[Envenomed Breath].ID} == NULL && ${Target.CurrentHPs}<95) /casting "Envenomed Breath"[/code]
+- Added ${Target.MyBuffCount} it returns a int of all buffs YOU have casted on the target.
+
 08 Feb 2017 by eqmule
 - Fixed a few places which would use pInvSlotMgr without NULL checking it
 - Added .TimeBeenDead to the spawn tlo You can use it to figure out how long a corpse has been dead.
@@ -6,6 +104,7 @@
   as the time you entered the zone.
 - Fixed a potential stack corruption in EndMacro
 - Updated for TEST
+- Made some changes to MacroQuest2.exe to deal with it not detecting eqgame version correctly sometimes.
 
 03 Feb 2017 by eqmule
 - Updated for TEST, yes there was a new patch.
