@@ -1206,6 +1206,10 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pFloatPtrType;
 		FLOATPTR(pSpawn->Z);
 		return true;
+	case FloorZ:
+		Dest.Type = pFloatPtrType;
+		FLOATPTR(pSpawn->FloorHeight);
+		return true;
 	case Next:
 		if (Dest.Ptr = pSpawn->pNext)
 		{

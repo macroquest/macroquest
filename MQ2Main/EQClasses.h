@@ -3143,7 +3143,11 @@ struct TreeData
 struct SListWndLine
 {
 	ArrayClass<SListWndCell> Cells;
+#ifdef EMU
 	UINT	Data;
+#else
+	unsigned __int64	Data;
+#endif
 	int		Height;
 	bool	bSelected;
 	bool	bEnabled;
@@ -3156,19 +3160,24 @@ struct SListWndLine
 };
 struct SListWndColumn
 {
-	int	Width;
-	int	MinWidth;
-	SIZE	TextureSize;
-	POINT	TextureOffset;
-    PCXSTR	StrLabel;
-    UINT	Data;
-    UINT	Flags;
-	UINT	Type;
-    CTextureAnimation	*pTextureAnim;
-	CTextureAnimation	*pSelected;
-	CTextureAnimation	*pMouseOver;
-	PCXSTR	Tooltip;
-	bool	bResizeable;
+/*0x00*/	int	Width;
+/*0x04*/	int	MinWidth;
+/*0x08*/	SIZE	TextureSize;
+/*0x10*/	POINT	TextureOffset;
+/*0x18*/    PCXSTR	StrLabel;
+#ifdef EMU
+/*0x20*/    UINT	Data;
+#else
+/*0x20*/    unsigned __int64	Data;
+#endif
+/*0x28*/    UINT	Flags;
+/*0x2c*/	UINT	Type;
+/*0x30*/    CTextureAnimation	*pTextureAnim;
+/*0x34*/	CTextureAnimation	*pSelected;
+/*0x38*/	CTextureAnimation	*pMouseOver;
+/*0x3c*/	PCXSTR	Tooltip;
+/*0x40*/	bool	bResizeable;
+/*0x44*/
 	//SListWndColumn() {};
 	SListWndColumn(PCXSTR strLabel = 0, int width = 0, CTextureAnimation *pta = NULL, UINT flags = 0,
 		UINT type = 0x03, CTextureAnimation *pselected = NULL, CTextureAnimation *pmouseOver = NULL,
@@ -3194,6 +3203,11 @@ public:
 /*0x000*/ PCCONTEXTMENUVFTABLE pvfTable;
 /*0x004*/ CXW_NO_VTABLE
 	//alright now that we got that settled, it also has members of its own:
+	//look, as a reminder to myself and future maintainers:
+	//NOTE: ItemsArray has subids and this is the reason why you WILL NOT see
+	//anything useful in the debugger sometimes if you cursor over it and expand it...
+	//So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
+	//while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
 /*0x1e0*/ ArrayClass_RO<SListWndLine> ItemsArray;
 /*0x1f0*/ ArrayClass_RO<SListWndColumn> Columns;
 /*0x200*/ int	CurSel;

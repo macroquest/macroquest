@@ -711,6 +711,7 @@ public:
 		EQLoc = 144,
 		MQLoc = 145,
 		TimeBeenDead = 146,
+		FloorZ = 147,
 	};
 	enum SpawnMethods
 	{
@@ -870,6 +871,7 @@ public:
 		TypeMember(EQLoc);
 		TypeMember(MQLoc);
 		TypeMember(TimeBeenDead);
+		TypeMember(FloorZ);
 		
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);

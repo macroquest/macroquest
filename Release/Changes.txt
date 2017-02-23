@@ -1,3 +1,16 @@
+22 Feb 2017 by eqmule
+- Tip for macro authors:
+- Added FloorZ to the Spawn TLO it returns a float.
+  FloorZ usage: ok so... eh, spawns are sometimes (always?) "planted" a few inches below or above the floor...
+  This member represent where the floor is ACTUALLY at.
+  So if you for example do a /echo ${Target.Z} and it returns 219
+  and then you do a ${Target.FloorZ} it will return like 216 or something...
+  Why is this important, well for brainiacs new mq2nav, I discovered that
+  sometimes, when a spawns z location is outside of the geometry... (above or below)
+  you cannot just do a /nav target or a /nav locxyz ${Target.X} ${Target.Y} ${Target.Z}
+  BUT doing a /nav locxyz ${Target.X} ${Target.Y} ${Target.FloorZ} works.
+  So... this is how you get /nav working correctly with problematic spawns which have their feet outside of the geometry.
+
 15 Feb 2017 by eqmule
 - Updated for LIVE
 - XTARGETDATA has been renamed to XTARGETSLOT
