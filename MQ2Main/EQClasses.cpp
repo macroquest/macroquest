@@ -7798,7 +7798,7 @@ FUNCTION_AT_ADDRESS(unsigned __int32  CListWnd::GetItemData(int)const ,CListWnd_
 FUNCTION_AT_ADDRESS(class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const ,CListWnd__GetItemText);
 #endif
 #ifdef CListWnd__GetItemIcon_x
-FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetItemIcon(int,int)const ,CListWnd__GetItemIcon);
+FUNCTION_AT_ADDRESS(class CTextureAnimation const *CListWnd::GetItemIcon(int,int)const ,CListWnd__GetItemIcon);
 #endif
 #ifdef CListWnd__GetItemColor_x
 FUNCTION_AT_ADDRESS(unsigned long  CListWnd::GetItemColor(int,int)const ,CListWnd__GetItemColor);

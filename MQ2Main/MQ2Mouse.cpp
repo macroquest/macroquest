@@ -137,8 +137,8 @@ BOOL MoveMouse(DWORD x, DWORD y,BOOL bClick)
 			EQADDR_MOUSE->X = EQADDR_DIMOUSECOPY->x;
 			EQADDR_DIMOUSECHECK->x = EQADDR_DIMOUSECOPY->x;
 			PCXWNDMGR px = (PCXWNDMGR)pWndMgr;
-			px->ScreenMouseX=pt.x;
-			px->ScreenMouseY=pt.y;
+			px->MousePoint.x=pt.x;
+			px->MousePoint.y=pt.y;
 			px->ScreenMouseXCopy=pt.x;
 			px->ScreenMouseYCopy=pt.y;
 			if(bClick) {

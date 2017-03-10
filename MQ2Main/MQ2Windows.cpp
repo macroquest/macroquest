@@ -108,6 +108,7 @@ DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(cla
 class CXWndManagerHook
 {
 public:
+    int RemoveWnd_Trampoline(class CXWnd *);
     int RemoveWnd_Detour(class CXWnd *pWnd)
     {
 		if (pWnd) {
@@ -123,7 +124,6 @@ public:
 		}
         return RemoveWnd_Trampoline(pWnd);
     }
-    int RemoveWnd_Trampoline(class CXWnd *);
 };
 DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd *));
 

@@ -3685,18 +3685,49 @@ typedef struct _CHATCHANNELS {
 /*0x000*/ PCHAR  ChannelName[0xa];
 /*0x004*/
 } CHATCHANNELS, *PCHATCHANNELS;
+enum eFriendStatus
+{
+	eFriendRemoved,
+	eFriendOffline,
+	eFriendOnline,
+	eFriendOnlineAway,
+	eFriendOnlineInvisible,
+	eFriendInGame,
+	eFriendInGameAway,
+	eFriendInGameInvisible
+};
 
+struct FriendEntry
+{
+	CHAR Name[0x30];
+	eFriendStatus Status;
+	bool bName;//not sure.
+};
 typedef struct _CHATSERVICE {
-/*0x000*/ BYTE   Unknown0x0[0xc];
-/*0x00c*/ struct _CHATCHANNELS *ChannelList;
-/*0x010*/ DWORD  ActiveChannels;   // number of channels joined
-/*0x014*/ BYTE   Unknown0x14[0x8];
-/*0x01c*/ CHAR   ChatID[0x30];     // "ServerName.CharName" (0x60?)
-/*0x04c*/ BYTE   Unknown0x4c[0x30];
-/*0x07c*/ CHAR   ServerName[0x30]; // "ServerName."
-/*0x0b0*/ // more data
+/*0x000*/ PVOID vfTable;
+/*0x004*/ PVOID pChatProxyHandler;
+/*0x008*/ PVOID pUdpManager;
+/*0x00c*/ struct _CHATCHANNELS *ChannelList;//really just a char**
+/*0x010*/ DWORD  ActiveChannels;   // number of channels joined, aka channelcount
+/*0x014*/ bool mAuthenticated;
+/*0x015*/ bool bLoginSent;
+/*0x016*/ bool bInvisible;
+/*0x017*/ bool bFullNotifyMode;
+/*0x018*/ void *UdpConnection;
+/*0x01c*/ CHAR ChatID[0x30];     // "ServerName.CharName"
+/*0x04c*/ CHAR ChatPass[0x30];
+/*0x07c*/ CHAR ServerName[0x30]; // "ServerName."
+/*0x0ac*/ int ServerNameLen;
+/*0x0b0*/ CHAR Locale[0x10];
+/*0x0c0*/ const char *ChatPrefix;
+/*0x0c4*/ int LastDisconnectCheckTime;
+/*0x0c8*/ FriendEntry **BuddyList;
+/*0x0cc*/ int BuddyListCount;
+/*0x0d0*/ ArrayClass_RO<PCXSTR> IgnoreList;
+/*0x0e0*/
 } CHATSERVICE, *PCHATSERVICE;
 
+		
 //size 0x164 Oct 12 2016 eqmule see 441FE3 in oct 17 2016 live
 typedef struct _CSINFO
 {
@@ -3756,7 +3787,7 @@ typedef struct _EVERQUEST {
 	/*0x3b1*/ CHAR   ChannelName[0xa][0x30];
 	/*0x591*/ BYTE   Unknown0x591[0x3];
 	/*0x594*/ DWORD  ChannelNumber[0xa];
-	/*0x5bc*/ DWORD  ChannelQty;
+	/*0x5bc*/ int  ChannelQty;
 	/*0x5c0*/ DWORD  TargetRing;
 	/*0x5c4*/ DWORD	 WorldState;//0 everything is fine, 1 we are getting disconnected 2 player not released from zone
 	/*0x5c8*/ DWORD  GameState;

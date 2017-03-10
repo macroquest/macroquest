@@ -286,7 +286,7 @@ namespace MQ2Internal {
         CHAR Command[64];
 		fEQCommand Function;
         BOOL EQ;
-        BOOL Parse;
+		BOOL Parse;
         BOOL InGameOnly;
         struct _MQCOMMAND* pLast;
         struct _MQCOMMAND* pNext;

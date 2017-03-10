@@ -1,3 +1,10 @@
+10 Mar 2017 by eqmule
+- Updated for TEST
+- Stuff
+
+23 Feb 2017 by eqmule
+- Added the offline trader acceptance to mq2autologin.
+
 22 Feb 2017 by eqmule
 - Tip for macro authors:
 - Added FloorZ to the Spawn TLO it returns a float.

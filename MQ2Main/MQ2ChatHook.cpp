@@ -65,7 +65,7 @@ VOID OutputTextToLog_Detour(char*szMsg)
 class CChatHook 
 { 
 public:
-#ifndef EMU
+#ifdef LIVE
     VOID OutputTextToLog_Trampoline(char*); 
 	VOID OutputTextToLog_Detour(char*szMsg)
 	{
@@ -139,6 +139,7 @@ public:
 								}
 							}
 						}
+#ifdef LIVE
 						if (gbTimeStampChat) {
 							CHAR tmpbuf[32] = { 0 };
 							_strtime_s(tmpbuf, 32);
@@ -156,11 +157,15 @@ public:
 							}
 						}
 						else {
+#endif
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
 							LocalFree(szAnonMsg);
+#ifdef LIVE
 						}
+#endif
 					}
 				} else {
+#ifdef LIVE
 					if (gbTimeStampChat) {
 						CHAR tmpbuf[32] = { 0 };
 						_strtime_s(tmpbuf, 32);
@@ -176,8 +181,11 @@ public:
 						}
 					}
 					else {
+#endif
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
-					}
+#ifdef LIVE
+				}
+#endif
 				}
 			}
         } 
@@ -241,7 +249,9 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
 #ifndef EMU
+#ifdef LIVE
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::OutputTextToLog_Trampoline(char *));
+#endif
 #else
 DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
 #endif
@@ -357,7 +367,9 @@ VOID InitializeChatHook()
     DebugSpew("%s",pMQ2Blech->Version);
 #endif
 #ifndef EMU
+	#ifdef LIVE
 	EzDetourwName(CEverQuest__OutputTextToLog,&CChatHook::OutputTextToLog_Detour,&CChatHook::OutputTextToLog_Trampoline,"CEverQuest__OutputTextToLog");
+#endif
 #else
 	EzDetourwName(CEverQuest__OutputTextToLog,OutputTextToLog_Detour,OutputTextToLog_Trampoline,"OutputTextToLog");
 #endif
@@ -380,7 +392,9 @@ VOID ShutdownChatHook()
 #endif
 	RemoveDetour(CEverQuest__dsp_chat);
 	RemoveDetour(CEverQuest__OutputTextToLog);
-    RemoveDetour(CEverQuest__DoTellWindow);
+#ifndef TEST
+	RemoveDetour(CEverQuest__DoTellWindow);
+#endif
     RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ
 #ifdef USEBLECHEVENTS

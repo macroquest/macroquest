@@ -121,18 +121,5 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize)
     ExitMQ2Benchmark(bmParseMacroParameter);
     return (szOriginal);
 }
-/*template <unsigned int _Size>__declspec(dllexport) PCHAR ParseMacroParameter<unsigned int>(PSPAWNINFO pChar, CHAR(&szOriginal)[_Size])
-//PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
-{
-	CHAR szCmd[MAX_STRING] = { 0 };
-	strcpy_s(szCmd, szOriginal);
-    PCHARINFO pCharInfo = GetCharInfo();
-    if (!pCharInfo) 
-        return szOriginal;
-    EnterMQ2Benchmark(bmParseMacroParameter);
 
-    ParseMacroData(szCmd, sizeof(szCmd));
-    ExitMQ2Benchmark(bmParseMacroParameter);
-    return (szOriginal);
-}*/
 #endif

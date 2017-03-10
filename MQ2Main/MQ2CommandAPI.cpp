@@ -178,7 +178,8 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
             if (pCommand->Parse && bAllowCommandParse)
             {
                 pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
-            } else {
+            }
+			else {
                 pCommand->Function(pChar,szParam);
 			}
             strcpy_s(szLastCommand,szOriginalLine);
@@ -306,8 +307,9 @@ public:
                 }
                 if (Pos==0)
                 {
-                    if (pCommand->Parse && bAllowCommandParse)
-                        ParseMacroParameter(pChar,szArgs); 
+					if (pCommand->Parse && bAllowCommandParse) {
+						ParseMacroParameter(pChar, szArgs);
+					}
                     if (pCommand->EQ)
                     {
                         strcat_s(szCommand," "); 

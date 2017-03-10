@@ -1522,6 +1522,12 @@ void HandleWindows()
                         pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					//MessageBoxA(NULL,"Setting bLogin to false due to \"You already have a character logged into a world server from this account.\"","",MB_OK);
                     bLogin = false;
+                } else if(szTemp[0] && strstr(szTemp, "You have a character logged into a world server as an OFFLINE TRADER from this account."))
+                {
+                    pWnd = WindowMap["yesnodialog"]->_GetChildItem("YESNO_YesButton");
+                    if(pWnd)
+                        pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+                    bLogin = false;
                 }
             }
 			bWait = false;

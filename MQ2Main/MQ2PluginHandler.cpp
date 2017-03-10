@@ -506,8 +506,16 @@ VOID PluginsSetGameState(DWORD GameState)
     if (!bPluginCS)
         return;
     gGameState=GameState;
+	if (GameState!=GAMESTATE_INGAME) {
+		gbSpelldbLoaded = 0;
+		ghInitializeMQ2SpellDb = 0;
+	}
     if (GameState==GAMESTATE_INGAME)
     {
+		if (!gbSpelldbLoaded && ghInitializeMQ2SpellDb==0) {
+			DWORD nThreadId = 0;
+			ghInitializeMQ2SpellDb = CreateThread(NULL, 0, InitializeMQ2SpellDb, 0, 0, &nThreadId);
+		}
         gZoning=false;
         gbDoAutoRun=TRUE;
         if (!AutoExec)
@@ -542,13 +550,9 @@ DebugSpew("PluginsSetGameState( %d class)",pCharInfo2->Class);
             AutoExec=true;
             LoadCfgFile("AutoExec",false);
         }
-		if (!gbSpelldbLoaded && ghInitializeMQ2SpellDb==0) {
-			DWORD nThreadId = 0;
-			ghInitializeMQ2SpellDb = CreateThread(NULL, 0, InitializeMQ2SpellDb, 0, 0, &nThreadId);
-		}
         CharSelect=true;
         LoadCfgFile("CharSelect",false);
-    }
+	}
 
     CAutoLock Lock(&gPluginCS);
     DebugSpew("PluginsSetGameState(%d)",GameState);
