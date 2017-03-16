@@ -5168,8 +5168,8 @@ EQLIB_OBJECT int CTextureFont::GetWidth(unsigned short)const;
 EQLIB_OBJECT CTextureFont::~CTextureFont(void);
 //EQLIB_OBJECT void * CTextureFont::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CTextureFont::`vector deleting destructor'(unsigned int);
-void  *Unknown0x0;
-DWORD Font;
+void  *vftable;
+DWORD FontStyle;
 };
 
 class CTimeLeftWnd : public CSidlScreenWnd
@@ -5720,8 +5720,7 @@ EQLIB_OBJECT bool CXWndManager::IsWindowMovingOrSizing(class CXWnd *)const;
 EQLIB_OBJECT bool CXWndManager::IsWindowPieceDown(class CXWnd const *,int)const;
 EQLIB_OBJECT bool CXWndManager::OkayToSendMouseMessage(class CXWnd *)const;
 EQLIB_OBJECT class CTextureAnimation const * CXWndManager::GetCursorToDisplay(void)const;
-EQLIB_OBJECT class CTextureFont * CXWndManager::GetFont(class CXStr);
-EQLIB_OBJECT class CTextureFont * CXWndManager::GetFont(int)const;
+//EQLIB_OBJECT class CTextureFont * CXWndManager::GetFont(class CXStr);
 EQLIB_OBJECT class CXWnd * CXWndManager::FindWnd(class CXPoint,int *)const;
 EQLIB_OBJECT class CXWnd * CXWndManager::GetFirstChildWnd(class CXWnd const *)const;
 EQLIB_OBJECT class CXWnd * CXWndManager::GetFocusWnd(void)const;
@@ -5775,6 +5774,9 @@ EQLIB_OBJECT void CXWndManager::SetSystemFont(class CTextureFont *);
 EQLIB_OBJECT void CXWndManager::UpdateChildAndSiblingInfo(void);
 // virtual
 EQLIB_OBJECT CXWndManager::~CXWndManager(void);
+EQLIB_OBJECT class CTextureFont *GetFont(int FontIndex) const {
+	return (CTextureFont *)((PCXWNDMGR)this)->FontsArray[FontIndex];
+}
 //EQLIB_OBJECT void * CXWndManager::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CXWndManager::`vector deleting destructor'(unsigned int);
 };
