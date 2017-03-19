@@ -707,14 +707,14 @@ typedef struct _EQCHATWINDOW {
 /*0x284*/ int Language;
 /*0x288*/ bool bIsMainChat;
 /*0x289*/ bool bIsTellWnd;
-/*0x28c*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
-/*0x32c*/ int HistoryIndex;
-/*0x330*/ int HistoryLastShown;
-/*0x334*/ int FontSize;//style but yeah...
-/*0x338*/ int AlwaysChathereIndex;//menu
-/*0x33c*/ int Unknown0x33c;
-/*0x340*/ int Unknown0x340;//timestamp?
-/*0x344*/ int Unknown0x344;//timestamp color?
+/*0x28c*/ int Unknown0x28c;
+/*0x290*/ int Unknown0x290;//timestamp?
+/*0x294*/ int Unknown0x294;//timestamp color?
+/*0x298*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
+/*0x338*/ int HistoryIndex;
+/*0x33c*/ int HistoryLastShown;
+/*0x340*/ int FontSize;//style but yeah...
+/*0x344*/ int AlwaysChathereIndex;//menu
 /*0x348*/
 } EQCHATWINDOW, *PEQCHATWINDOW;
 
