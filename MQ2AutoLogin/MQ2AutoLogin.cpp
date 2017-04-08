@@ -1403,6 +1403,65 @@ void HandleWindows()
 						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
 						ScreenMode = oldscreenmode;
 					}
+					else if (char *pDest = strchr(szStationName, ';')) {//special login
+						//basically this allows for a piped login
+						//where password,server, and name are sent directly.
+						//should not be used under normal circumstances
+						//but its hady when u want a quick way to login a char(s)
+						//that is not a regular from your profile(s)
+						//format is: Server;Character;Password
+						
+						pDest[0] = '\0';
+						pDest++;
+						sprintf_s(szCharacterName, "%s", pDest);
+						CHAR szProfile[128] = { 0 };
+						strcpy_s(szProfile, szCharacterName);
+						if (char *pDest2 = strchr(szProfile, ':')) {
+							pDest2[0] = '\0';
+							strcpy_s(szServerName, szProfile);
+						} else {
+							strcpy_s(szServerName, szStationName);
+						}
+						//now that we have the server and the charname, we can figure out the stationname and password from the blob
+						CHAR szBlob[2048] = { 0 };
+						if (GetPrivateProfileString(szStationName, szCharacterName, "", szBlob, sizeof(szBlob), INIFileName)) {
+							if (pDest = strrchr(szBlob, '=')) {
+								pDest[0] = '\0';
+							}
+							DATA_BLOB db = { 0 };
+							DATA_BLOB dbout = { 0 };
+							if (StrToBlobA(szBlob, &db)) {
+								if (DecryptData(&db, &dbout)) {
+									if (char *thestring = (char*)dbout.pbData) {
+										//we should parse out Login, CharName, Pass
+										CHAR szTemp[2048] = { 0 };
+										strcpy_s(szTemp, thestring);
+										LocalFree(db.pbData);//always remember to free this (MSDN)
+										LocalFree(dbout.pbData);//always remember to free this (MSDN)
+										if (char *pDest = strchr(szTemp, ':')) {
+											pDest[0] = '\0';
+											strcpy_s(szStationName, szTemp);
+											pDest++;
+											if (pDest[0]) {
+												strcpy_s(szTemp, pDest);
+												if (pDest = strchr(szTemp, ':')) {
+													pDest[0] = '\0';
+													strcpy_s(szCharacterName, szTemp);
+													pDest++;
+													strcpy_s(szPassword, pDest);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						DWORD oldscreenmode = ScreenMode;
+						ScreenMode = 3;
+						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, "");
+						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
+						ScreenMode = oldscreenmode;
+					}
 				}
 			} else if(bUseStationNamesInsteadOfSessions) {
                 AutoLoginDebug("HandleWindows(): Using station name instead of session number");
