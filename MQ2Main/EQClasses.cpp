@@ -4273,7 +4273,11 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::AntiTwinkAdj(class EQ_Equipment *,int,int
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::GetSkillBaseDamage(unsigned char,class EQPlayer *),EQ_Character__GetSkillBaseDamage);
 #endif
 #ifdef EQ_Character__UseSkill_x
-FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char,class EQPlayer *),EQ_Character__UseSkill);
+#ifndef TEST
+FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *target),EQ_Character__UseSkill);
+#else
+FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto),EQ_Character__UseSkill);
+#endif
 #endif
 #ifdef EQ_Character__DoIntimidationEvent_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::DoIntimidationEvent(void),EQ_Character__DoIntimidationEvent);

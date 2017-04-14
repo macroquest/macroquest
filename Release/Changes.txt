@@ -1,3 +1,6 @@
+14 Apr 2017 by eqmule
+- Fix for /doability crash in the TEST build.
+
 13 Apr 2017 by eqmule
 - Updated for TEST
 

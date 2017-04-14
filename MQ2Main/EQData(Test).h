@@ -414,7 +414,7 @@ enum MOUSE_DATA_TYPES {
 #define nEQMappableCommands             0x208
 
 #define MAX_PC_LEVEL                    105
-#define MAX_NPC_LEVEL                   125
+#define MAX_NPC_LEVEL                   200
 #define MAX_SPELL_LEVEL					255
 #define NUM_SPELL_GEMS                  0xc
 #define NUM_SPELL_SETS                  30
@@ -3513,21 +3513,27 @@ public:
 	HashTable<StackingGroupData> StackingData;
 };
 // actual size: 0x148 10-25-2006  ieatacid
+// actual size: 0x148 04-11-2017 confirmed see 5F7150 -eqmule
+enum eSkillCombatType
+{
+	SCT_NonCombat,
+	SCT_Combat,
+	SCT_Special 
+};
 typedef struct _SKILL {
-/*0x000*/  PVOID  pUnknown0x0;       //_SKILL *pNext?
-/*0x004*/  PVOID  pUnknown0x4;
+/*0x000*/  int    ImageNumber;
+/*0x004*/  int	  ImageDep;
 /*0x008*/  DWORD  nName;
 /*0x00c*/  DWORD  ReuseTimer;
 /*0x010*/  DWORD  BaseDamage;
-/*0x014*/  DWORD  SkillCombatType;   //0 means not a Combat Skill
-/*0x018*/  DWORD  Unknown0x18;
+/*0x014*/  eSkillCombatType  SkillCombatType;
+/*0x018*/  int    EnduranceCost;
 /*0x01c*/  FLOAT  Force;
 /*0x020*/  bool   Activated;
-/*0x021*/  BYTE   LevelCappedSkill;
-/*0x022*/  BYTE   Unknown0x22[0x2];
-/*0x024*/  DWORD  MinLevel[0x24];
-/*0x0b4*/  DWORD  Available[0x24];   //FF=not available for that class
-/*0x144*/  DWORD  Unknown0x144;
+/*0x021*/  bool   LevelCappedSkill;
+/*0x024*/  DWORD  MinLevel[0x24];//the level each class gains this skill
+/*0x0b4*/  DWORD  Available[0x24];   //FF=not available for that class (its actually how difficult it is to learn... low num easy, high hard...)
+/*0x144*/  bool  bSkillupable;//thats not a real word...
 /*0x148*/  
 } SKILL, *PSKILL;
 
@@ -3535,12 +3541,25 @@ typedef struct _SKILL {
 #define NUM_SKILLS 0x63 //uhm shouldnt this be 0x64?
 //SkillManager__SkillManager
 //Actual Size: 0x2C68AC see 5465F8 in eqgame dated 20140611 -eqmule
+//Actual Size: 0x2E9B2C see 571E37 in eqgame dated 20170411 test -eqmule
 typedef struct _SKILLMGR {
 /*0x000000*/	struct _SKILL *pSkill[NUM_SKILLS];
-/*0x00018c*/	BYTE  Unknown0x00018c[0x2C6720];
-/*0x2C68AC*/
+/*0x00018c*/	BYTE  Unknown0x00018c[0x2E99A0];
+/*0x2E9B2C*/
 } SKILLMGR, *PSKILLMGR;
-
+class SkillManager
+{
+	TSafeArrayStatic<PSKILL, NUM_SKILLS+1> pSkill;
+	int SkillCaps[0x24][NUM_SKILLS+1][MAX_PC_LEVEL+1];
+	FLOAT SkillMods[0x24][NUM_SKILLS+1][MAX_PC_LEVEL+1];
+	CHAR SkillCapsFilename[MAX_PATH];
+	UINT SkillLastUsed[0x64];
+	UINT SkillTimerDuration[0x64];
+	UINT CombatSkillLastUsed[2];
+	UINT CombatSkillDuration[2];
+	bool bSkillCanUse[0x64];
+	bool bCombatSkillCanUse[2];
+};
 //actual size 0x3a8 11-15-11  ieatacid
 //actual size ? last checked by rlane187 may 19 2015
 typedef struct _GUILDMEMBER {

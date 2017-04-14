@@ -5851,7 +5851,11 @@ EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
 EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,bool,bool,bool);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
-EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
+#ifndef TEST
+EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target);
+#else
+EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto = false);
+#endif
 EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
 EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);

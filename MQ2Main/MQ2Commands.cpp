@@ -2166,7 +2166,8 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		cmdDoAbility(pChar, szLine);
 		return;
 	}
-
+	//SkillManager*pSkillm = (SkillManager*)pSkillMgr;
+	PSKILLMGR pSkmgr = pSkillMgr;
 	DWORD Index;
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
@@ -2179,7 +2180,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (HasSkill(Index))
 				{
-					bool Avail = pSkillMgr->pSkill[Index]->Activated;
+					bool Avail = pSkmgr->pSkill[Index]->Activated;
 
 					// make sure remove trap is added, they give it to everyone except rogues
 					if (Index == 75 && strncmp(pEverQuest->GetClassDesc(pChar2->Class & 0xFF), "Rogue", 6))
@@ -2216,7 +2217,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		// scan for matching abilities name
 		for (Index = 0; Index < 128; Index++) {
-			if ((Index < NUM_SKILLS && (pSkillMgr->pSkill[Index])->Activated) ||
+			if ((Index < NUM_SKILLS && (pSkmgr->pSkill[Index])->Activated) ||
 				(Index >= NUM_SKILLS && pChar2->InnateSkill[Index - 100] != 0xFF))
 			{
 				if (!_stricmp(szBuffer, szSkills[Index]))
