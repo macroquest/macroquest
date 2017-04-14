@@ -2144,7 +2144,8 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x4c*/ FLOAT   AnchorPosZ;
 /*0x50*/ bool    bIgnoreRange;
 /*0x51*/ bool    bResetAAOnNotTakeHoldSuccess;
-/*0x52*/
+/*0x54*/
+
 bool IsCasting() const
 {
 	return (SpellID != -1);

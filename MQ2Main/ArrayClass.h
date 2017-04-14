@@ -630,4 +630,49 @@ public:
 /*0x1c*/    int RefCount;
 /*0x20*/
 };
+template<typename T_KEY, typename T, int _Size, int _Cnt> class HashListMap;
+
+template<typename T_KEY, typename T, int _Size> class HashListMap<T_KEY, T, _Size, -1>
+{
+public:
+	PVOID vfTable;
+	enum {
+		cTTableSize = _Size
+	};
+    class Node
+    {
+        public:
+            T Value;
+            Node *pNext;
+            Node *pPrev;
+            T_KEY Key;
+            Node *pHashNext;
+    };
+    Node *NodeGet(const T *cur) const
+    {
+        return((Node *)(void *)((byte *)(void *)cur - (size_t)((byte *)(&((Node *)1)->Value) - (byte *)1)));
+    }
+	enum {
+		cTableSize = ((cTTableSize == 0) ? 1 : cTTableSize)
+	};
+    int DynSize;
+    int MaxDynSize;
+    Node *pHead;
+    Node *pTail;
+    int Count;
+    union
+    {
+        Node *Table[cTableSize];
+        Node **DynTable;
+    };
+};
+template<typename T_KEY, typename T, int _Size, int _Cnt = -1> class HashListMap : public HashListMap<T_KEY, T, _Size, -1>
+{
+    public:
+
+};
+template<typename T, int _Size, int _Cnt = -1> class HashList : public HashListMap<int, T, _Size, _Cnt>
+{
+    public:
+};
 #pragma pack(pop)

@@ -212,7 +212,9 @@ namespace MQ2Globals
 		ppJournalTextWnd = (CJournalTextWnd**)pinstCJournalTextWnd;
 		ppJournalCatWnd = (CJournalCatWnd**)pinstCJournalCatWnd;
 		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
+		#ifndef TEST
 		ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
+		#endif
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
 		ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
@@ -1199,7 +1201,9 @@ namespace MQ2Globals
 	CJournalTextWnd **ppJournalTextWnd = 0;
 	CJournalCatWnd **ppJournalCatWnd = 0;
 	CPetitionQWnd **ppPetitionQWnd = 0;
+#ifndef TEST
 	CSoulmarkWnd **ppSoulmarkWnd = 0;
+#endif
 	CTaskWnd **ppTaskWnd = 0;
 	CTaskSomething *ppTaskSomething = 0;
 	CTimeLeftWnd **ppTimeLeftWnd = 0;
@@ -1431,7 +1435,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCGemsGameWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTimeLeftWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPetitionQWnd);
+#ifndef TEST
 	INITIALIZE_EQGAME_OFFSET(pinstCSoulmarkWnd);
+#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCStoryWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCJournalTextWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCJournalCatWnd);

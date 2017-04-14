@@ -514,6 +514,11 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 		while (ppSpellMgr && pSpellMgr && (!((PSPELLMGR)pSpellMgr)->Spells || (((PSPELLMGR)pSpellMgr)->Spells && !((PSPELLMGR)pSpellMgr)->Spells[TOTAL_SPELL_COUNT-1]))) {
 			Sleep(0);
 		}
+		//test
+		/*if (ClientSpellManager*pSMgr = (ClientSpellManager*)pSpellMgr) {
+			pSMgr->Spells;
+			Sleep(0);
+		}*/
 		//ok everything checks out lets fill our own map with spells
 		PopulateSpellMap();
 	}

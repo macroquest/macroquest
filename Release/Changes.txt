@@ -1,3 +1,6 @@
+13 Apr 2017 by eqmule
+- Updated for TEST
+
 08 Apr 2017 by eqmule
 - Changed max npc level to 125
   this fixes spawnsearch etc where npc's higher than level 115 would not show up.

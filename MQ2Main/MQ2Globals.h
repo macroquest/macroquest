@@ -588,7 +588,9 @@ namespace MQ2Globals
 	//EQLIB_VAR CTributeBenefitWnd **ppTributeBenefitWnd;
 	//EQLIB_VAR CTributeMasterWnd **ppTributeMasterWnd;
 	EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
+	#ifndef TEST
 	EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
+	#endif
 	EQLIB_VAR CTaskWnd **ppTaskWnd;
 	EQLIB_VAR CTaskSomething *ppTaskSomething;
 	EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
@@ -685,7 +687,9 @@ namespace MQ2Globals
 #define pTributeBenefitWnd (*ppTributeBenefitWnd)
 #define pTributeMasterWnd (*ppTributeMasterWnd)
 #define pPetitionQWnd (*ppPetitionQWnd)
+#ifndef TEST
 #define pSoulmarkWnd (*ppSoulmarkWnd)
+#endif
 #define pTaskWnd (*ppTaskWnd)
 #define pTaskSomething (ppTaskSomething)
 #define pTimeLeftWnd (*ppTimeLeftWnd)

@@ -695,7 +695,7 @@ typedef struct _EQCHATMGR {
 } EQCHATMGR, *PEQCHATMGR;
 
 //CChatWindow__CChatWindow_x
-//Size 0x348 see 68910D in 10 Mar 2017 Live exe -eqmule
+//Size 0x348 see 68B6CD in 11 Apr 2017 Test exe -eqmule
 typedef struct _EQCHATWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x230*/ struct _EQCHATMGR *ChatManager; 
@@ -703,14 +703,14 @@ typedef struct _EQCHATWINDOW {
 /*0x238*/ struct _CSIDLWND* OutputWnd;
 /*0x23c*/ int ChatChannel;
 /*0x240*/ int ChatChannelIndex;
-/*0x244*/ CHAR TellTarget[0x40];
+/*0x244*/ CHAR TellTarget[0x40];//for sure
 /*0x284*/ int Language;
 /*0x288*/ bool bIsMainChat;
 /*0x289*/ bool bIsTellWnd;
-/*0x28c*/ int Unknown0x28c;
-/*0x290*/ int Unknown0x290;//timestamp?
-/*0x294*/ int Unknown0x294;//timestamp color?
-/*0x298*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
+/*0x28c*/ int TimestampFormat;
+/*0x290*/ COLORREF TimestampColor;
+/*0x294*/ bool bTimestampMatchChatColor;
+/*0x298*/ struct _CXSTR *CommandHistory[0x28]; // see 690DAA in apr 11 2017 test
 /*0x338*/ int HistoryIndex;
 /*0x33c*/ int HistoryLastShown;
 /*0x340*/ int FontSize;//style but yeah...
