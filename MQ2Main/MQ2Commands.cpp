@@ -427,7 +427,8 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 			strcpy_s(szBuffer, szName);
 			_strlwr_s(szBuffer);
-			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
+			//DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ItemPtr.pObject[0]->ID, pItem->DropID, szName, pItem->Name);
+			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ItemPtr, pItem->DropID, szName, pItem->Name);
 			if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
 				ZeroMemory(&TempSpawn, sizeof(TempSpawn));
 				TempSpawn.Y = pItem->Y;

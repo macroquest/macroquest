@@ -2994,19 +2994,21 @@ typedef struct _DOORTABLE {
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;
 /*0x04*/ struct _GROUNDITEM *pNext;
-/*0x08*/ DWORD  ID;
+/*0x08*/ VePointer<PCONTENTS>  ItemPtr;
 /*0x0c*/ DWORD  DropID;
 /*0x10*/ DWORD  ZoneID;
-/*0x14*/ DWORD  DropSubID;
+/*0x14*/ DWORD  DropSubID;//well zonefile id, but yeah...
 /*0x18*/ PEQSWITCH pSwitch; // (class EQSwitch *)
-/*0x1c*/ CHAR   Name[0x20];
-/*0x3c*/ BYTE   Unknown0x3c[0x24];
+/*0x1c*/ CHAR   Name[0x40];
+/*0x5c*/ long	Expires;
 /*0x60*/ FLOAT  Heading;
-/*0x64*/ BYTE   Unknown0x64[0xc];
+/*0x64*/ FLOAT	Pitch;
+/*0x68*/ FLOAT	Roll;
+/*0x6c*/ FLOAT	Scale;
 /*0x70*/ FLOAT  Y;
 /*0x74*/ FLOAT  X;
 /*0x78*/ FLOAT  Z;
-/*0x7c*/ BYTE   Unknown0x7c[0x4];
+/*0x7c*/ int   Weight;//-1 means it can't be picked up
 /*0x80*/
 } GROUNDITEM, *PGROUNDITEM;
 

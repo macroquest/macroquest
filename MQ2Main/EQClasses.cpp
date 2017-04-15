@@ -5217,11 +5217,15 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *), EQPla
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
-#if defined(EMU)
-FUNCTION_AT_ADDRESS(int  EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *),EQPlayer__DoAttack);
-#else
-FUNCTION_AT_ADDRESS(int  EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *,int),EQPlayer__DoAttack);
-#endif
+	#if defined(EMU)
+		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
+	#else
+		#ifdef TEST
+			FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
+		#else
+			FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool),EQPlayer__DoAttack);
+		#endif
+	#endif
 #endif
 #ifdef EQPlayer__HandleAmmo_x
 FUNCTION_AT_ADDRESS(unsigned char  EQPlayer::HandleAmmo(void),EQPlayer__HandleAmmo);
