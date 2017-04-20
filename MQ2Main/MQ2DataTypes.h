@@ -1192,6 +1192,7 @@ public:
 		BoundLocation = 255,
 		SkillBase = 256,
 		Name = 257,
+		AutoSkill = 258,
 	};
 	enum CharacterMethods
 	{
@@ -1449,6 +1450,7 @@ public:
 		TypeMember(BoundLocation);
 		TypeMember(SkillBase);
 		TypeMember(Name);
+		TypeMember(AutoSkill);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -3713,6 +3715,7 @@ public:
 		SkillCap = 5,
 		AltTimer = 6,
 		Activated = 7,
+		Auto = 8,
 	};
 	enum SkillMethods
 	{
@@ -3726,6 +3729,7 @@ public:
 		TypeMember(SkillCap);
 		TypeMember(AltTimer);
 		TypeMember(Activated);
+		TypeMember(Auto);
 	}
 
 	~MQ2SkillType()

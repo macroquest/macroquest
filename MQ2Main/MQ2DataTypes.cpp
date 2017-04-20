@@ -5137,6 +5137,25 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		break;
+	#ifndef EMU
+	case AutoSkill:
+		if (ISNUMBER()) {
+			int index = GETNUMBER();
+			index--;
+			if (index < 0)
+				index = 0;
+			if (index > 1)
+				index = 1;
+			int skillid = gAutoSkill.Skill[index];
+			if (skillid > 0 && skillid < NUM_SKILLS) {
+				Dest.Ptr = &pSkillMgr->pSkill[skillid];
+				Dest.Type = pSkillType;
+				return true;
+			}
+			return false;
+		}
+		break;
+	#endif
 		//end of MQ2CharacterType
 	}
 	return false;
@@ -9667,6 +9686,16 @@ bool MQ2SkillType::GETMEMBER()
 			Dest.DWord = pSkill->Activated;
 			Dest.Type = pBoolType;
 			return true;
+		#ifndef EMU
+		case Auto://return a bool representing if a skill has /autoskill on or off.
+			Dest.DWord = false;
+			int id = GetSkillIDFromName(pStringTable->getString(pSkill->nName, 0));
+			if (gAutoSkill.Skill[0] == id || gAutoSkill.Skill[1] == id) {
+				Dest.DWord = true;
+			}
+			Dest.Type = pBoolType;
+			return true;
+		#endif
 		}
 	}
 	return false;

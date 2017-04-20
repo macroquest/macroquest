@@ -1616,7 +1616,7 @@ TLO(dataSkill)
 		int nSkill = GETNUMBER() - 1;
 		if (nSkill < 0)
 			nSkill = 0;
-		if (nSkill >= NUM_SKILLS)
+		if (nSkill > NUM_SKILLS)
 			return false;
 		if (Ret.Ptr = &pSkillMgr->pSkill[nSkill])
 		{

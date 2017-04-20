@@ -428,7 +428,7 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 			strcpy_s(szBuffer, szName);
 			_strlwr_s(szBuffer);
 			//DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ItemPtr.pObject[0]->ID, pItem->DropID, szName, pItem->Name);
-			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ItemPtr, pItem->DropID, szName, pItem->Name);
+			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
 			if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
 				ZeroMemory(&TempSpawn, sizeof(TempSpawn));
 				TempSpawn.Y = pItem->Y;
@@ -2219,7 +2219,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		// scan for matching abilities name
 		for (Index = 0; Index < 128; Index++) {
 			if ((Index < NUM_SKILLS && (pSkmgr->pSkill[Index])->Activated) ||
-				(Index >= NUM_SKILLS && pChar2->InnateSkill[Index - 100] != 0xFF))
+				(Index > NUM_SKILLS && pChar2->InnateSkill[Index - 100] != 0xFF))
 			{
 				if (!_stricmp(szBuffer, szSkills[Index]))
 				{

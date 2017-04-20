@@ -521,7 +521,7 @@ EQLIB_OBJECT bool CXWnd::IsActive(void)const;
 EQLIB_OBJECT bool CXWnd::IsDescendantOf(class CXWnd const *)const;
 EQLIB_OBJECT bool CXWnd::IsEnabled(void)const;
 EQLIB_OBJECT bool CXWnd::IsReallyVisible(void)const;
-//EQLIB_OBJECT bool CXWnd::IsType(enum EWndRuntimeType)const;
+EQLIB_OBJECT bool CXWnd::IsType(enum EWndRuntimeType)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetCloseBoxTemplate(void)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetMinimizeBoxTemplate(void)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetTileBoxTemplate(void)const;
@@ -5851,7 +5851,7 @@ EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
 EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,bool,bool,bool);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
-#ifndef TEST
+#ifdef EMU
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target);
 #else
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto = false);
@@ -6365,11 +6365,7 @@ EQLIB_OBJECT int EQPlayer::CheckForJump(void);
 #if defined(EMU)
 EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill,class EQPlayer *Target);
 #else
-#ifdef TEST
 EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill, EQPlayer *Target, bool bSomething = false, bool bAuto = false);
-#else
-EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill, EQPlayer *Target, bool bSomething = false);
-#endif
 #endif
 EQLIB_OBJECT int EQPlayer::GetAlternateTrackNumber(int,unsigned char *);
 EQLIB_OBJECT int EQPlayer::GetArmorType(int);

@@ -55,6 +55,7 @@ GNU General Public License for more details.
 #define DI8__Mouse_x                                               0x10A8B30
 #define DI8__Mouse_Copy_x                                          0xF16EF4
 #define DI8__Mouse_Check_x                                         0xFA0814
+#define __AutoSkillArray_x                                         0xF17E08
 #define __Attack_x                                                 0xF9B3FB
 #define __Autofire_x                                               0xF9B3FC
 #define __BindList_x                                               0xC00110
@@ -682,7 +683,8 @@ GNU General Public License for more details.
 #define CXWnd__IsActive_x                                          0x8B5850
 #define CXWnd__IsDescendantOf_x                                    0x8BAB60
 #define CXWnd__IsReallyVisible_x                                   0x8BDEE0
-#define CXWnd__IsType_x                                            0x8ED9D0
+#define CXWnd__IsType_x                                            0x8C0350
+#define CScreenPieceTemplate__IsType_x                             0x8ED9D0
 #define CXWnd__Move_x                                              0x8BD5C0
 #define CXWnd__Move1_x                                             0x8BFBD0
 #define CXWnd__ProcessTransition_x                                 0x8BA0E0

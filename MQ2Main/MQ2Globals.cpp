@@ -61,6 +61,9 @@ namespace MQ2Globals
 		gpPCNames = (DWORD*)__PCNames;
 		pTributeActive = (PBYTE)instTributeActive;
 		gpAutoFire = (PBYTE)__Autofire;
+		#ifndef EMU
+			gpAutoSkill = (PAUTOSKILL)__AutoSkillArray;
+		#endif
 		gpShiftKeyDown = (PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
 		gpMouseEventTime = (DWORD*)__MouseEventTime;
 		gpbCommandEvent = (DWORD*)__gpbCommandEvent;
@@ -212,7 +215,7 @@ namespace MQ2Globals
 		ppJournalTextWnd = (CJournalTextWnd**)pinstCJournalTextWnd;
 		ppJournalCatWnd = (CJournalCatWnd**)pinstCJournalCatWnd;
 		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
-		#ifndef TEST
+		#ifdef EMU
 		ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
 		#endif
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
@@ -1039,6 +1042,9 @@ namespace MQ2Globals
 	DWORD *gpPCNames = 0;
 	PBYTE pTributeActive = 0;
 	PBYTE gpAutoFire = 0;
+	#ifndef EMU
+	PAUTOSKILL gpAutoSkill = 0;
+	#endif
 	PBYTE gpShiftKeyDown = 0; // addr+1=ctrl, addr+2=alt
 	DWORD *gpMouseEventTime = 0;
 	DWORD *gpbCommandEvent = 0;
@@ -1201,7 +1207,7 @@ namespace MQ2Globals
 	CJournalTextWnd **ppJournalTextWnd = 0;
 	CJournalCatWnd **ppJournalCatWnd = 0;
 	CPetitionQWnd **ppPetitionQWnd = 0;
-#ifndef TEST
+#ifdef EMU
 	CSoulmarkWnd **ppSoulmarkWnd = 0;
 #endif
 	CTaskWnd **ppTaskWnd = 0;
@@ -1262,6 +1268,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Copy);
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Check);
 
+	#ifndef EMU
+	INITIALIZE_EQGAME_OFFSET(__AutoSkillArray);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(__Attack);
 	INITIALIZE_EQGAME_OFFSET(__Autofire);
 	INITIALIZE_EQGAME_OFFSET(__BindList);
@@ -1435,7 +1444,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCGemsGameWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTimeLeftWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPetitionQWnd);
-#ifndef TEST
+#ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(pinstCSoulmarkWnd);
 #endif
 	INITIALIZE_EQGAME_OFFSET(pinstCStoryWnd);
@@ -1844,6 +1853,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CXWnd__IsDescendantOf);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__IsReallyVisible);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__IsType);
+	INITIALIZE_EQGAME_OFFSET(CScreenPieceTemplate__IsType);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__Move);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__Move1);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__ProcessTransition);

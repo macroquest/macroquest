@@ -846,6 +846,8 @@ typedef struct _AALIST {
 #define NUM_COMBAT_ABILITIES            0x12c
 #define BAG_SLOT_START                  23
 #define ExactLocation                   0
+#define NUM_SKILLS						0x64
+#define CONCURRENT_SKILLS				2
 
 typedef struct _LEADERABILITIES {
 /*0x00*/ DWORD MarkNPC;
@@ -1734,7 +1736,7 @@ typedef struct _DOORTABLE {
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;
 /*0x04*/ struct _GROUNDITEM *pNext;
-/*0x08*/ VePointer<PCONTENTS>  ItemPtr;
+/*0x08*/ int ID;
 /*0x0c*/ DWORD  DropID;
 /*0x10*/ DWORD  ZoneID;
 /*0x14*/ DWORD  DropSubID;//well zonefile id, but yeah...
@@ -2078,6 +2080,13 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 } SPELL, *PSPELL;
 
 // actual size: 0x148 10-25-2006  ieatacid
+// actual size: 0x148 04-11-2017 confirmed see 5F7150 -eqmule
+enum eSkillCombatType
+{
+	SCT_NonCombat,
+	SCT_Combat,
+	SCT_Special 
+};
 typedef struct _SKILL {
 /*0x000*/  PVOID  pUnknown0x0;       //_SKILL *pNext?
 /*0x004*/  PVOID  pUnknown0x4;
@@ -2096,12 +2105,35 @@ typedef struct _SKILL {
 /*0x148*/  
 } SKILL, *PSKILL;
 
-#define NUM_SKILLS 99
 typedef struct _SKILLMGR {
-/*0x000*/ struct _SKILL *pSkill[NUM_SKILLS];
-/*0x004*/ //more data
+/*0x000000*/	struct _SKILL *pSkill[NUM_SKILLS];
+/*0x000190*/	int SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x174C10*/	FLOAT SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x2E9690*/	CHAR SkillCapsFilename[MAX_PATH];
+/*0x2E9794*/	UINT SkillLastUsed[NUM_SKILLS];
+/*0x2E9924*/	UINT SkillTimerDuration[NUM_SKILLS];
+/*0x2E9AB4*/	UINT CombatSkillLastUsed[CONCURRENT_SKILLS];
+/*0x2E9ABC*/	UINT CombatSkillDuration[CONCURRENT_SKILLS];
+/*0x2E9AC4*/	bool bSkillCanUse[NUM_SKILLS];
+/*0x2E9B28*/	bool bCombatSkillCanUse[CONCURRENT_SKILLS];
+/*0x2E9B2C*/
 } SKILLMGR, *PSKILLMGR;
 
+class SkillManager
+{
+public:
+/*0x000000*/ TSafeArrayStatic<PSKILL, NUM_SKILLS> pSkill;
+/*0x000190*/ int SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x174C10*/ FLOAT SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x2E9690*/ CHAR SkillCapsFilename[MAX_PATH];
+/*0x2E9794*/ UINT SkillLastUsed[NUM_SKILLS];
+/*0x2E9924*/ UINT SkillTimerDuration[NUM_SKILLS];
+/*0x2E9AB4*/ UINT CombatSkillLastUsed[CONCURRENT_SKILLS];
+/*0x2E9ABC*/ UINT CombatSkillDuration[CONCURRENT_SKILLS];
+/*0x2E9AC4*/ bool bSkillCanUse[NUM_SKILLS];
+/*0x2E9B28*/ bool bCombatSkillCanUse[CONCURRENT_SKILLS];
+/*0x2E9B2C*/
+};
 //actual size 0x3a8 11-15-11  ieatacid
 //actual size ? last checked by rlane187 may 19 2015
 typedef struct _GUILDMEMBER {

@@ -1,3 +1,16 @@
+19 Apr 2017 by Dr. Sneerstell
+- Updated for LIVE
+- ${Skill[someskill].Auto} returns true or false if the skill is set to use /autoskill on/off
+- ${Me.AutoSkill[1]} returns a pSkillType
+- ${Me.AutoSkill[2]} returns a pSkillType
+- Example usage:
+- ${Me.AutoSkill[1].Name} returns the name of whatever skill is set as the first autoskill.
+- ${Me.AutoSkill[2].ID} returns the ID of whatever skill is set as the second autoskill.
+- Fixed /items crash
+- The previous change to the GROUNDITEM Struct member "ID", the renaming of it to "ItemPtr",
+  caused a crash, and has been reverted.
+- Reorganized skills a bit. NUM_SKILLS is now 0x64 (it always was) so change plugins if needed.
+
 15 Apr 2017 by eqmule
 - Fix for /ranged crash in the TEST build.
 - The GROUNDITEM Struct member "ID" has been renamed to "ItemPtr". (just accept it)

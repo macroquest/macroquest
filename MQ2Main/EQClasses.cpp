@@ -4273,7 +4273,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::AntiTwinkAdj(class EQ_Equipment *,int,int
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::GetSkillBaseDamage(unsigned char,class EQPlayer *),EQ_Character__GetSkillBaseDamage);
 #endif
 #ifdef EQ_Character__UseSkill_x
-#ifndef TEST
+#ifdef EMU
 FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *target),EQ_Character__UseSkill);
 #else
 FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto),EQ_Character__UseSkill);
@@ -5220,11 +5220,7 @@ FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),
 	#if defined(EMU)
 		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
 	#else
-		#ifdef TEST
-			FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
-		#else
-			FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool),EQPlayer__DoAttack);
-		#endif
+		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
 	#endif
 #endif
 #ifdef EQPlayer__HandleAmmo_x
@@ -7442,7 +7438,7 @@ FUNCTION_AT_ADDRESS(class CXSize  CButtonDrawTemplate::GetSize(void)const ,CButt
 FUNCTION_AT_ADDRESS( CXWnd::CXWnd(class CXWnd *,unsigned __int32,class CXRect),CXWnd__CXWnd);
 #endif
 #ifdef CXWnd__IsType_x
-//FUNCTION_AT_ADDRESS(bool  CXWnd::IsType(enum EWndRuntimeType)const ,CXWnd__IsType);
+FUNCTION_AT_ADDRESS(bool CXWnd::IsType(enum EWndRuntimeType)const ,CXWnd__IsType);
 #endif
 #ifdef CXWnd__SetFocus_x
 FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::SetFocus(void),CXWnd__SetFocus);
@@ -7961,7 +7957,7 @@ FUNCTION_AT_ADDRESS(class CXRect  CListWnd::GetHeaderRect(int)const ,CListWnd__G
 FUNCTION_AT_ADDRESS( CScreenPieceTemplate::CScreenPieceTemplate(class CParamScreenPiece *),CScreenPieceTemplate__CScreenPieceTemplate);
 #endif
 #ifdef CScreenPieceTemplate__IsType_x
-FUNCTION_AT_ADDRESS(bool  CScreenPieceTemplate::IsType(unsigned __int32)const ,CScreenPieceTemplate__IsType);
+FUNCTION_AT_ADDRESS(bool CScreenPieceTemplate::IsType(unsigned __int32)const ,CScreenPieceTemplate__IsType);
 #endif
 #ifdef CStaticScreenPieceTemplate__CStaticScreenPieceTemplate_x
 FUNCTION_AT_ADDRESS( CStaticScreenPieceTemplate::CStaticScreenPieceTemplate(class CParamStaticScreenPiece *),CStaticScreenPieceTemplate__CStaticScreenPieceTemplate);

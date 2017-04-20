@@ -259,6 +259,10 @@ namespace MQ2Globals
 #define gPCNames (*gpPCNames)
 	EQLIB_VAR PBYTE gpAutoFire;
 #define gAutoFire (*gpAutoFire)
+	#ifndef EMU
+		EQLIB_VAR PAUTOSKILL gpAutoSkill;
+		#define gAutoSkill (*gpAutoSkill)
+	#endif
 	EQLIB_VAR PBYTE gpShiftKeyDown;
 #define gShiftKeyDown (*gpShiftKeyDown)
 	EQLIB_VAR DWORD *gpMouseEventTime;
@@ -588,7 +592,7 @@ namespace MQ2Globals
 	//EQLIB_VAR CTributeBenefitWnd **ppTributeBenefitWnd;
 	//EQLIB_VAR CTributeMasterWnd **ppTributeMasterWnd;
 	EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
-	#ifndef TEST
+	#ifdef EMU
 	EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
 	#endif
 	EQLIB_VAR CTaskWnd **ppTaskWnd;
@@ -687,7 +691,7 @@ namespace MQ2Globals
 #define pTributeBenefitWnd (*ppTributeBenefitWnd)
 #define pTributeMasterWnd (*ppTributeMasterWnd)
 #define pPetitionQWnd (*ppPetitionQWnd)
-#ifndef TEST
+#ifdef EMU
 #define pSoulmarkWnd (*ppSoulmarkWnd)
 #endif
 #define pTaskWnd (*ppTaskWnd)
@@ -729,6 +733,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD DI8__Mouse;
 	EQLIB_VAR DWORD DI8__Mouse_Copy;
 	EQLIB_VAR DWORD DI8__Mouse_Check;
+	EQLIB_VAR DWORD __AutoSkillArray;
 	EQLIB_VAR DWORD __Attack;
 	EQLIB_VAR DWORD __Autofire;
 	EQLIB_VAR DWORD __BindList;
@@ -1308,6 +1313,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXWnd__IsDescendantOf;
 	EQLIB_VAR DWORD CXWnd__IsReallyVisible;
 	EQLIB_VAR DWORD CXWnd__IsType;
+	EQLIB_VAR DWORD CScreenPieceTemplate__IsType;
 	EQLIB_VAR DWORD CXWnd__Move;
 	EQLIB_VAR DWORD CXWnd__Move1;
 	EQLIB_VAR DWORD CXWnd__ProcessTransition;

@@ -645,7 +645,8 @@ GNU General Public License for more details.
 #define CXWnd__IsActive_x                                          0x8B9730
 #define CXWnd__IsDescendantOf_x                                    0x8BEA60
 #define CXWnd__IsReallyVisible_x                                   0x8C1DC0
-#define CXWnd__IsType_x                                            0x8F1900
+#define CXWnd__IsType_x                                            0x8BEDD0
+#define CScreenPieceTemplate__IsType_x                             0x8EC360
 #define CXWnd__Move_x                                              0x8C1560
 #define CXWnd__Move1_x                                             0x8C3AE0
 #define CXWnd__ProcessTransition_x                                 0x8BDFD0
