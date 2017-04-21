@@ -1,3 +1,7 @@
+21 Apr 2017 by The Undertaker
+- Updated for TEST
+- Fixed a couple offsets that where wrong for LIVE.
+
 19 Apr 2017 by Dr. Sneerstell
 - Updated for LIVE
 - ${Skill[someskill].Auto} returns true or false if the skill is set to use /autoskill on/off

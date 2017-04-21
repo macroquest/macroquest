@@ -569,8 +569,8 @@ GNU General Public License for more details.
 #define CSidlManager__CreateXWndFromTemplate1_x                    0x8D0A30
 
 // CSidlScreenWnd 
-#define CSidlScreenWnd__CalculateHSBRange_x                        0x6589F0
-#define CSidlScreenWnd__CalculateVSBRange_x                        0x658920
+#define CSidlScreenWnd__CalculateHSBRange_x                        0x8C7BA0
+#define CSidlScreenWnd__CalculateVSBRange_x                        0x8C7AA0
 #define CSidlScreenWnd__ConvertToRes_x                             0x8EBD40
 #define CSidlScreenWnd__CreateChildrenFromSidl_x                   0x8C84C0
 #define CSidlScreenWnd__CSidlScreenWnd1_x                          0x8C9680
