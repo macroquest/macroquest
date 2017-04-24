@@ -6671,7 +6671,7 @@ EQLIB_OBJECT void EqSoundManager::UpdateEmitterStates(void);
 	SoundAsset *pZoneMidiAsset;
 	SoundAsset *pScriptMp3Asset;
 	bool bDisabled;
-	int NextMusicII;
+	int NextMusicID;
 	SoundEmitter *pEmitters[1000];
 	int EmittersCount;
 	SoundEmitter *pRainEmitter;
