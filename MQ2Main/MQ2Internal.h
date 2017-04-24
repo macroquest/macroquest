@@ -268,6 +268,11 @@ namespace MQ2Internal {
 #endif
     } EVENTLIST, *PEVENTLIST;
 
+    typedef struct _BINDLIST {
+        struct _BINDLIST *pNext;
+        CHAR szName[MAX_STRING];
+        CHAR szFuncName[MAX_STRING];
+    } BINDLIST, *PBINDLIST;
 
     typedef struct _ALIAS {
         struct _ALIAS *pNext;

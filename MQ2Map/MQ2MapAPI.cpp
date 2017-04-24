@@ -827,11 +827,11 @@ DWORD MapHighlight(SEARCHSPAWN *pSearch)
 
 PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 {
-	CHAR Name[MAX_STRING] = { 0 };
-	unsigned long outpos = 0;
-#define AddString(str) {strcpy_s(&Name[outpos],sizeof(Name)-outpos,str);outpos+=strlen(&Name[outpos]);}
-#define AddInt(yourint) {_itoa_s(yourint,&Name[outpos], sizeof(Name)-outpos,10);outpos+=strlen(&Name[outpos]);}
-#define AddFloat10th(yourfloat) {outpos+=sprintf_s(&Name[outpos], sizeof(Name)-outpos,"%.1f",yourfloat);}
+    string sOutput;
+#define AddString(str) {sOutput.append( str );}
+#define AddInt(yourint) {sOutput.append( to_string( yourint ) );}
+#define AddFloat10th(yourfloat) {sOutput.append( to_string( yourfloat ) );}
+
 	for (unsigned long N = 0; NameString[N]; N++)
 	{
 		if (NameString[N] == '%')
@@ -840,8 +840,11 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			switch (NameString[N])
 			{
 			case 'N':// cleaned up name
-				strcpy_s(&Name[outpos], sizeof(Name) - outpos, pSpawn->DisplayedName);
-				outpos += strlen(&Name[outpos]);
+                sOutput.append( pSpawn->DisplayedName );
+                if( pSpawn->Type == SPAWN_CORPSE )
+                {
+                    sOutput.append( "'s Corpse" );
+                }
 				break;
 			case 'n':// original name
 				AddString(pSpawn->Name);
@@ -874,17 +877,17 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 				AddInt(pSpawn->Level);
 				break;
 			case '%':
-				Name[outpos++] = NameString[N];
+				sOutput.append( 1, NameString[N] );
 				break;
 			}
 		}
 		else
-			Name[outpos++] = NameString[N];
+            sOutput.append( 1, NameString[N] );
 	}
-	Name[outpos] = 0;
-	int len = strlen(Name) + 1;
+	
+    int len = sOutput.length() + 1;
 	if (PCHAR ret = (PCHAR)malloc(len)) {
-		strcpy_s(ret, len, Name);
+		strcpy_s(ret, len, sOutput.c_str());
 		return ret;
 	}
 	return 0;

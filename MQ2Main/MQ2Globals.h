@@ -184,6 +184,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL bAllowCommandParse;
 	EQLIB_VAR BOOL gTurbo;
 	EQLIB_VAR PDEFINE pDefines;
+    EQLIB_VAR PBINDLIST pBindList;
 	//EQLIB_VAR CHAR gLastFindSlot[MAX_STRING];
 	//EQLIB_VAR CHAR gLastError[MAX_STRING];
 	//EQLIB_VAR HWND ghWnd;
@@ -506,7 +507,9 @@ namespace MQ2Globals
 #define pLargeDialog (*ppLargeDialog)
 	EQLIB_VAR CItemDisplayManager **ppItemDisplayManager;
 #define pItemDisplayManager (*ppItemDisplayManager)
-
+	EQLIB_VAR EqSoundManager **ppEqSoundManager;
+#define pEqSoundManager (*ppEqSoundManager)
+	
 	/* WINDOW INSTANCES */
 	EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 	EQLIB_VAR CCursorAttachment **ppCursorAttachment;
@@ -1473,6 +1476,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTargetWnd__WndNotification;
 	EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 	EQLIB_VAR DWORD EqSoundManager__WavePlay;
+	EQLIB_VAR DWORD EqSoundManager__PlayScriptMp3;
 	EQLIB_VAR DWORD CCombatSkillsSelectWnd__ShouldDisplayThisSkill;
 	EQLIB_VAR DWORD ActorClient__GetPosition;
 	EQLIB_VAR DWORD ActorClient__GetPosition1;

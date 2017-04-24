@@ -158,8 +158,6 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         return;
     }
 
-
-
     PMQCOMMAND pCommand=pCommands;
     while(pCommand)
     {
@@ -187,13 +185,50 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         }
         pCommand=pCommand->pNext;
     }
-    if (!_strnicmp(szOriginalLine,"sub ",4)) {
-        FatalError("Flow ran into another subroutine.");
-        return;
+
+    PBINDLIST pBind = pBindList;
+    while( pBind )
+    {
+        if( gGameState != GAMESTATE_INGAME )
+        {
+            // Macro Binds only supported in-game
+            pBind = pBind->pNext;
+            continue;
+        }
+
+        int Pos = _strnicmp( szArg1, pBind->szName, strlen( szArg1 ) );
+
+        if( Pos == 0 )
+        {
+            // found it!
+            if( pBind->szFuncName )
+            {
+                if( PCHARINFO pCharInfo = (PCHARINFO)GetCharInfo() )
+                {
+                    std::string szCallFunc( pBind->szFuncName );
+                    szCallFunc += " ";
+                    szCallFunc += szParam;
+
+                    Call( pCharInfo->pSpawn, (PCHAR)szCallFunc.c_str() );
+                }
+            }
+            strcpy_s( szLastCommand, szOriginalLine );
+            return;
+        }
+
+        pBind = pBind->pNext;
     }
 
-    strcpy_s(szLastCommand,szOriginalLine);
-    MacroError("DoCommand - Couldn't parse '%s'",szOriginalLine);
+    // skip this logic for Bind Commands.
+    if( _strnicmp( szOriginalLine, "sub bind_", 9 ) != 0 ) {
+        if( !_strnicmp( szOriginalLine, "sub ", 4 ) ) {
+            FatalError( "Flow ran into another subroutine. (%s)", szOriginalLine );
+            return;
+        }
+
+        strcpy_s( szLastCommand, szOriginalLine );
+        MacroError( "DoCommand - Couldn't parse '%s'", szOriginalLine );
+    }
 }
 
 class CCommandHook 
@@ -324,6 +359,39 @@ public:
                     return;
                 }
                 pCommand=pCommand->pNext;
+            }
+
+            PBINDLIST pBind = pBindList;
+            while( pBind )
+            {
+                if( gGameState != GAMESTATE_INGAME )
+                {
+                    // Macro Binds only supported in-game
+                    pBind = pBind->pNext;
+                    continue;
+                }
+
+                int Pos = _strnicmp( szCommand, pBind->szName, strlen( szCommand ) );
+
+                if( Pos == 0 )
+                {
+                    // found it!
+                    if( pBind->szFuncName )
+                    {
+                        if( PCHARINFO pCharInfo = (PCHARINFO)GetCharInfo() )
+                        {
+                            std::string szCallFunc( pBind->szFuncName );
+                            szCallFunc += " ";
+                            szCallFunc += szArgs;
+
+                            Call( pCharInfo->pSpawn, (PCHAR)szCallFunc.c_str() );
+                        }
+                    }
+                    strcpy_s( szLastCommand, szFullCommand );
+                    return;
+                }
+
+                pBind = pBind->pNext;
             }
         }
         Trampoline(pChar,szFullLine); 

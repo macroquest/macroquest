@@ -6653,10 +6653,35 @@ EQLIB_OBJECT void EqSoundManager::LoadOldEmitters(void);
 EQLIB_OBJECT void EqSoundManager::OldMp3ClearSelections(void);
 EQLIB_OBJECT void EqSoundManager::OldMp3Init(void);
 EQLIB_OBJECT void EqSoundManager::OldMp3Terminate(void);
+EQLIB_OBJECT void EqSoundManager::PlayScriptMp3(char *Name, float Vol = 1.00f);
 EQLIB_OBJECT void EqSoundManager::ReleaseZoneSpecificEmitters(void);
 EQLIB_OBJECT void EqSoundManager::ReleaseZoneSpecificMidi(void);
 EQLIB_OBJECT void EqSoundManager::ReleaseZoneSpecificWaves(void);
 EQLIB_OBJECT void EqSoundManager::UpdateEmitterStates(void);
+	Mp3Manager *pMp3Manager;
+	SoundManager *pSoundManager;
+	EmitterManager *pEmitterManager;
+	MusicManager *pMusicManager;
+	SoundAsset *pGlobalMidiAsset;
+	SoundAsset *pOpenerMidiAsset;
+	SoundAsset *pOpenerMp3Asset;
+	SoundAsset *pDeathMp3Asset;
+	SoundAsset *pCombatMp3Asset;
+	SoundAsset *pMerchantMp3Asset;
+	SoundAsset *pZoneMidiAsset;
+	SoundAsset *pScriptMp3Asset;
+	bool bDisabled;
+	int NextMusicII;
+	SoundEmitter *pEmitters[1000];
+	int EmittersCount;
+	SoundEmitter *pRainEmitter;
+	SoundEmitter *pWindEmitter;
+	int EnvironmentHigh;
+	int EnvironmentLow;
+	int EnvironmentOutside;
+	float fEffectsLevel;
+	float fWaveVolumeLevel;
+	//more here but i only need volume for now so...
 };
 
 class EQSwitch

@@ -244,6 +244,7 @@ namespace MQ2Globals
 		ppAggroInfo = (AGGROINFO **)pinstAggroInfo;
 		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
 		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
+		ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
 		
 		return true;
 	}
@@ -420,6 +421,7 @@ namespace MQ2Globals
 	BOOL bRunNextCommand = FALSE;
 	BOOL gTurbo = FALSE;
 	PDEFINE pDefines = NULL;
+    PBINDLIST pBindList = NULL;
 	CHAR gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = NULL;
 
@@ -1234,6 +1236,7 @@ namespace MQ2Globals
 	AGGROINFO **ppAggroInfo = 0;
 	CLargeDialogWnd**ppLargeDialog = 0;
 	CItemDisplayManager**ppItemDisplayManager = 0;
+	EqSoundManager**ppEqSoundManager = 0;
 
 #define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + baseAddress)
 
@@ -2002,6 +2005,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
+	INITIALIZE_EQGAME_OFFSET(EqSoundManager__PlayScriptMp3);
 	INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
 	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindAnimation1);

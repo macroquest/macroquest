@@ -870,6 +870,7 @@ GNU General Public License for more details.
 
 //EqSoundManager
 #define EqSoundManager__WavePlay_x                                 0x4E0FC0
+#define EqSoundManager__PlayScriptMp3_x                            0x4E2A60
 
 //CCombatSkillsSelectWnd
 #define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x49C9B0

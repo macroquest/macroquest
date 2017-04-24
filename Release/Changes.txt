@@ -1,3 +1,60 @@
+24 Apr 2017 by The Undertaker
+- Maintenance Update
+
+21 Apr 2017 by Derple
+- Added new #bind command for macros.
+  Short Explaination, this allows you to execute macro sub routines.
+  Long Explaination:
+#bind allows you to bind an ingame slash command to a macro function.
+Before you had to do this with #events and capture text that you sent to yourself for example: 
+#event SayMana "#*#SayManaPercent#*#"
+Now you can do 
+#bind SayMana /saymana
+Instead of sending yourself the keyword you can just type /saymana and it will execute the function called "Sub Bind_SayMana"
+Example:
+[code]
+| Old Way
+| #event StartCoh "#*#COH --GRP--#*#"
+| New Way you can now just type /coh or /bcaa //coh or /bct mage //coh
+#bind StartCoh /coh
+
+Sub CastSpell(string spellToCast)
+    /declare delayTime int local 0
+    /echo Casting: ${Target.Name} with ${spellToCast}
+    /casting "${spellToCast}" -maxtries|5
+    /call WaitCastFinish
+/return
+
+Sub Event_StartCoh
+    /if ( ${Bool[${Me.Book["Call of the Hero"]}]} == FALSE ) {
+        /echo I don't have COH - Bailing...
+        /return
+    }
+ 
+    /declare i int local 0
+    /declare GroupCount int local ${Group.Members}
+    /for i 1 to ${GroupCount}
+        /doevents
+        /if ( ${Group.Member[${i}].Distance} > 50 ) {
+            /target id ${Group.Member[${i}].ID}
+            /call CastSpell "Call of the Hero"
+        }
+        /call WaitCastReady "Call of the Hero"
+    /next i
+/return
+
+Sub Bind_StartCoh
+    /call Event_StartCoh
+/return
+
+Sub Main
+    :Loop
+    /doevents
+    /delay 1s
+    /goto :Loo
+/return
+[/code]
+
 21 Apr 2017 by The Undertaker
 - Updated for TEST
 - Fixed a couple offsets that where wrong for LIVE.

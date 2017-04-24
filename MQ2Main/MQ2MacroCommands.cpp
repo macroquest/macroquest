@@ -310,6 +310,24 @@ PMACROBLOCK AddMacroLine(PCHAR szLine, size_t Linelen)
             } else {
                 MacroError("Bad #event: %s",szLine);
             }
+        }
+        else if( !_strnicmp( szLine, "#bind ", 6 ) ) 
+        {
+            CHAR szArg1[MAX_STRING] = { 0 };
+            CHAR szArg2[MAX_STRING] = { 0 };
+            PBINDLIST pBind = (PBINDLIST)malloc( sizeof( BINDLIST ) );
+            GetArg( szArg1, szLine, 2 );
+            GetArg( szArg2, szLine, 3 );
+            if( (szArg1[0] != 0) && (szArg2[0] != 0) ) {
+                sprintf_s( pBind->szFuncName, "Bind_%s", szArg1 );
+                strcpy_s( pBind->szName,  szArg2 );
+                pBind->pNext = pBindList;
+                pBindList = pBind;
+            }
+            else 
+            {
+                MacroError( "Bad #event: %s", szLine );
+            }
         } else if (!_strnicmp(szLine,"#chat ",6)) {
             szLine+=5;
             while (szLine[0]==' ') szLine++;
@@ -592,6 +610,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     PMACROSTACK pStack;
     PEVENTQUEUE pEvent;
     PEVENTLIST pEventL;
+    PBINDLIST pBindL;
     BOOL bKeepKeys = gKeepKeys;
     if (szLine && szLine[0]!=0) {
         GetArg(Buffer,szLine,1);
@@ -724,6 +743,12 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         free(pEventList);
         pEventList = pEventL;
     }
+    while( pBindList ) {
+        pBindL = pBindList->pNext;
+        DebugSpewNoFile( "EndMacro: Deleting pBindList %s", pBindList->szName );
+        free( pBindList );
+        pBindList = pBindL;
+    }
 #ifdef USEBLECHEVENTS
     pEventBlech->Reset();
 #endif
@@ -780,6 +805,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     CHAR SubLineP[MAX_STRING] = {0};
     DWORD StackNum = 0;
     bRunNextCommand = TRUE;
+
     if (szLine[0]==0) {
         SyntaxError("Usage: /call <subroutine> [param [param...]]");
         return;

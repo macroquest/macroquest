@@ -4936,6 +4936,9 @@ FUNCTION_AT_ADDRESS(void  EqSoundManager::OldMp3Terminate(void),EqSoundManager__
 #ifdef EqSoundManager__OldMp3GetSelection_x
 FUNCTION_AT_ADDRESS(class SoundAsset *  EqSoundManager::OldMp3GetSelection(int),EqSoundManager__OldMp3GetSelection);
 #endif
+#ifdef EqSoundManager__PlayScriptMp3_x
+FUNCTION_AT_ADDRESS(void EqSoundManager::PlayScriptMp3(char *Name, float Vol),EqSoundManager__PlayScriptMp3);
+#endif
 #ifdef EqSoundManager__EmitterLoad_x
 FUNCTION_AT_ADDRESS(bool  EqSoundManager::EmitterLoad(char *),EqSoundManager__EmitterLoad);
 #endif
