@@ -855,6 +855,14 @@ TLO(dataGameTime)
 	Ret.Type = pTimeType;
 	return true;
 }
+
+TLO(dataRange)
+{
+	Ret.DWord = 1;
+	Ret.Type = pRangeType;
+	return true;
+}
+
 TLO(dataIni)
 {
 #ifndef ISXEQ /* CONVERT */

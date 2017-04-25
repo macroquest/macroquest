@@ -297,6 +297,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("AdvLoot", dataAdvLoot);
 #endif
 	AddMQ2Data("Alert", dataAlert);
+	AddMQ2Data("Range", dataRange);
 }
 
 void ShutdownMQ2Data()

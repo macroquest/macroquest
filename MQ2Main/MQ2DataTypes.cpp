@@ -12849,3 +12849,63 @@ bool MQ2AugType::GETMEMBER()
 	}
 	return false;
 }
+bool MQ2RangeType::GETMEMBER()
+{
+	int P1, P2, P3;
+	PMQ2TYPEMEMBER pMember = MQ2RangeType::FindMember(Member);
+	if (!pMember)
+		return false;
+	if (!ISINDEX())
+		return false;
+	switch ((RangeMembers)pMember->ID) {
+	case Inside:
+		P1 = 0;
+		P2 = 0;
+		P3 = 0;
+		if (ISINDEX()) {
+			if (PCHAR pColon = strchr(Index, ':')) {
+				*pColon = 0;
+				P3 = atoi(&pColon[1]);
+				if (PCHAR pComma = strchr(Index, ',')) {
+					*pComma = 0;
+					P2 = atoi(&pComma[1]);
+					P1 = atoi(Index);
+					//WriteChatf("Range.Inside(%d,%d:%d)",P1,P2,P3);
+					if (P3>P1 && P3<P2) {
+						Dest.DWord = true;
+						Dest.Type = pBoolType;
+						return true;
+					}
+				}
+			}
+		}
+		Dest.DWord = false;
+		Dest.Type = pBoolType;
+		return true;
+	case Between:
+		P1 = 0;
+		P2 = 0;
+		P3 = 0;
+		if (ISINDEX()) {
+			if (PCHAR pColon = strchr(Index, ':')) {
+				*pColon = 0;
+				P3 = atoi(&pColon[1]);
+				if (PCHAR pComma = strchr(Index, ',')) {
+					*pComma = 0;
+					P2 = atoi(&pComma[1]);
+					P1 = atoi(Index);
+					//WriteChatf("Range.Between(%d,%d:%d)",P1,P2,P3);
+					if (P3 >= P1 && P3 <= P2) {
+						Dest.DWord = true;
+						Dest.Type = pBoolType;
+						return true;
+					}
+				}
+			}
+		}
+		Dest.DWord = false;
+		Dest.Type = pBoolType;
+		return true;
+	}
+	return false;
+}

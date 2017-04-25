@@ -59,4 +59,5 @@ LEGACY_API BOOL dataFamiliar(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataAlias(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataAdvLoot(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataAlert(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataRange(PCHAR szIndex, MQ2TYPEVAR &Ret);
 #endif

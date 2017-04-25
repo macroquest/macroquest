@@ -5337,3 +5337,39 @@ public:
 		return false;
 	}
 };
+class MQ2RangeType : public MQ2Type
+{
+public:
+
+	enum RangeMembers {
+		Between = 1,
+		Inside = 2,
+	};
+
+	MQ2RangeType() :MQ2Type("Range")
+	{
+		TypeMember(Between);
+		TypeMember(Inside);
+	}
+
+	~MQ2RangeType()
+	{
+	}
+
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type != pRangeType)
+			return false;
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
