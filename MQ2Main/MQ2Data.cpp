@@ -875,6 +875,7 @@ TLO(dataIni)
 	std::string Section;
 	std::string Key;
 	std::string Default;
+	bool bNoParse = false;
 	std::map<DWORD, DWORD>argmap;
 	std::string sTemp = szIndex;
 	//lets see how many commas are in the string
@@ -894,6 +895,12 @@ TLO(dataIni)
 			if (argmap.size() >= 3) {
 				Key.erase(argmap[2] - argmap[1] - 1);
 				Default = sTemp.substr(argmap[2] + 1);
+				if (argmap.size() >= 4) {
+					Default.erase(argmap[3] - argmap[2] - 1);
+					std::string Parse = sTemp.substr(argmap[3] + 1);
+					if (Parse == "noparse")
+						bNoParse = true;
+				}
 			}
 		}
 	}
@@ -911,11 +918,12 @@ TLO(dataIni)
 	if (IniFile.find(".") == IniFile.npos) {
 		IniFile.append(".ini");
 	}
-
 	if (!_FileExists(IniFile.c_str()))
 	{
 		if (Default.size())
 		{
+			if (bNoParse)
+				bAllowCommandParse = false;
 			strcpy_s(DataTypeTemp, Default.c_str());
 			Ret.Ptr = &DataTypeTemp[0];
 			Ret.Type = pStringType;
@@ -944,13 +952,16 @@ TLO(dataIni)
 					DataTypeTemp[N] = '|';
 		if ((Section.size() == 0 || Key.size() == 0) && (nSize<MAX_STRING - 3))
 			strcat_s(DataTypeTemp, "||");
-
+		if (bNoParse)
+			bAllowCommandParse = false;
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;
 		return true;
 	}
 	if (Default.size())
 	{
+		if (bNoParse)
+			bAllowCommandParse = false;
 		strcpy_s(DataTypeTemp, Default.c_str());
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;

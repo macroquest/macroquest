@@ -580,8 +580,13 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 		memmove(&pBrace[NewLength], &pEnd[1], strlen(&pEnd[1]) + 1);
 		int addrlen = (int)(pBrace - szOriginal);
 		memcpy_s(pBrace, BufferSize-addrlen,szCurrent, NewLength);
-		Changed = true;
-
+		if (bAllowCommandParse==false) {
+			bAllowCommandParse = true;
+			break;
+		}
+		else {
+			Changed = true;
+		}
 	pmdbottom:;
 	} while (pBrace = strstr(&pBrace[1], "${"));
 	if (Changed)

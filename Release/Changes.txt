@@ -1,3 +1,27 @@
+01 May 2017 by The Undertaker
+- ${Ini} now takes an optional 4th argument "noparse"
+  This means you can now (finally) read ini settings into a variable without parsing the actual setting.
+Example:
+INIFILE:
+[code]
+[DPS]
+DPS1Condition=${Me.XTarget[1].PctHPs} > 50
+[/code]
+[code]
+Sub Main
+	/declare DPS1Condition string local
+	/echo This is the actual setting for DPS1Condition : ${Ini[MySettings.ini,DPS,DPS1Condition,NULL,noparse]}
+	/varset DPS1Condition ${Ini[MySettings.ini,DPS,DPS1Condition,NULL,noparse]}
+
+	|looping it here so you can see the condition actually changes as the xtarget mobs HP changes and no need 
+	|for reading the ini over and over anymore... you're welcome...
+:loop
+	/echo ${DPS1Condition}
+	/delay 1s
+	/goto :loop
+/return
+[/code]
+
 29 Apr 2017 by The Undertaker
 - Updated for TEST
 
