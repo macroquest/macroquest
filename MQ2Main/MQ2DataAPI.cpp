@@ -582,6 +582,7 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 		memcpy_s(pBrace, BufferSize-addrlen,szCurrent, NewLength);
 		if (bAllowCommandParse==false) {
 			bAllowCommandParse = true;
+			Changed = false;
 			break;
 		}
 		else {

@@ -922,7 +922,7 @@ TLO(dataIni)
 	{
 		if (Default.size())
 		{
-			if (bNoParse)
+			if (bNoParse && strchr(DataTypeTemp, '$'))
 				bAllowCommandParse = false;
 			strcpy_s(DataTypeTemp, Default.c_str());
 			Ret.Ptr = &DataTypeTemp[0];
@@ -952,7 +952,7 @@ TLO(dataIni)
 					DataTypeTemp[N] = '|';
 		if ((Section.size() == 0 || Key.size() == 0) && (nSize<MAX_STRING - 3))
 			strcat_s(DataTypeTemp, "||");
-		if (bNoParse)
+		if (bNoParse && strchr(DataTypeTemp,'$'))
 			bAllowCommandParse = false;
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;
@@ -960,7 +960,7 @@ TLO(dataIni)
 	}
 	if (Default.size())
 	{
-		if (bNoParse)
+		if (bNoParse && strchr(DataTypeTemp, '$'))
 			bAllowCommandParse = false;
 		strcpy_s(DataTypeTemp, Default.c_str());
 		Ret.Ptr = &DataTypeTemp[0];
