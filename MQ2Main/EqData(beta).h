@@ -464,6 +464,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_PLAYERSIZE                  89
 #define SPA_SUMMONCORPSE                91
 #define SPA_BARDOVERHASTE               98
+#define SPA_COMPLETEHEAL                101
 #define SPA_SPELLDAMAGE                 124
 #define SPA_HEALING                     125
 #define SPA_REAGENTCHANCE               131
@@ -485,6 +486,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_DAMAGECRITMOD               302
 #define SPA_SHIELDBLOCKCHANCE           320
 #define SPA_AC2                         416
+#define SPA_GRAVITATE                   424
 #define SPA_SPELLDAMAGETAKEN			484
 
 #define TT_PBAE                         0x04

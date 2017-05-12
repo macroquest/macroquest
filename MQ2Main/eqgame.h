@@ -337,6 +337,7 @@ GNU General Public License for more details.
 #define AltAdvManager__CanSeeAbility_x                             0x4CCAC0
 
 // CharacterZoneClient
+#define CharacterZoneClient__CharacterZoneClient_x                 0x469070
 #define CharacterZoneClient__HasSkill_x                            0x465F20
 #define CharacterZoneClient__MakeMeVisible_x                       0x46A600
 #define CharacterZoneClient__IsStackBlocked_x                      0x44A5D0
@@ -345,6 +346,12 @@ GNU General Public License for more details.
 #define CharacterZoneClient__GetItemCountInInventory_x             0x463F80
 #define CharacterZoneClient__GetCursorItemCount_x                  0x464060
 #define CharacterZoneClient__FindAffectSlot_x                      0x44FB20
+#define CharacterZoneClient__BardCastBard_x                        0x449210
+#define CharacterZoneClient__GetMaxEffects_x                       0x447F50
+#define CharacterZoneClient__GetEffect_x                           0x449CC0
+#define CharacterZoneClient__GetOpenEffectSlot_x                   0x44F980
+#define CharacterZoneClient__GetFirstEffectSlot_x                  0x4480F0
+#define CharacterZoneClient__GetLastEffectSlot_x                   0x44E4D0
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x661520
@@ -743,6 +750,9 @@ GNU General Public License for more details.
 //PlayerClient (to us known as EQPlayer)
 #define PlayerClient__GetPcClient_x                                0x5C5F30
 
+//PcClient
+#define PcClient__PcClient_x                                       0x5B2550
+
 //CCharacterSelect
 #define CCharacterSelect__SelectCharacter_x                        0x445460
 #define CCharacterSelect__EnterWorld_x                             0x444C30
@@ -804,6 +814,9 @@ GNU General Public License for more details.
 #define EQPlayer__CanSeeTargetIndicator_x                          0x91EA80
 #define PlayerBase__GetVisibilityLineSegment_x                     0x91E720
 
+//PlayerZoneClient
+#define PlayerZoneClient__GetLevel_x                               0x5DA4D0
+
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5D4980
 #define EQPlayerManager__GetSpawnByName_x                          0x5D4DE0
@@ -856,9 +869,22 @@ GNU General Public License for more details.
 #define EQ_Spell__GetSpellLevelNeeded_x                            0x4E8380
 #define EQ_Spell__SpellAffects_x                                   0x4E5A30
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4E5AA0
-#define CharacterZoneClient__CalcAffectChange_x                    0x449270
+#define CharacterZoneClient__CalcAffectChange_x                    0x44A030
+#define CharacterZoneClient__CalcAffectChangeGeneric_x             0x449270
 #define CLootWnd__LootAll_x                                        0x6FA250
 #define CLootWnd__RequestLootSlot_x                                0x6FAA60
+#define EQ_Spell__IsStackable_x                                    0x447D10
+#define EQ_Spell__GetSpellAffectBySlot_x                           0x447DC0
+#define EQ_Spell__GetSpellAffectByIndex_x                          0x43D980
+#define EQ_Spell__IsSPAStacking_x                                  0x4E55E0
+#define EQ_Spell__IsSPAIgnoredByStacking_x                         0x4E50B0
+#define EQ_Spell__IsNoRemove_x                                     0x433B40
+#define EQ_Spell__IsDegeneratingLevelMod_x                         0x4E5600
+
+#define __IsResEffectSpell_x                                       0x447E40
+
+//EQ_Affect
+#define EQ_Affect__GetAffectData_x                                 0x86AAE0
 
 //CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x7AABB0
@@ -893,6 +919,7 @@ GNU General Public License for more details.
 #define CharacterBase__CreateItemIndex_x                           0x5129A0
 #define CharacterBase__GetItemPossession_x                         0x442CF0
 #define CharacterBase__GetItemByGlobalIndex_x                      0x86F120
+#define CharacterBase__GetEffectId_x                               0x4579C0
 
 //CCastSpellWnd
 #define CCastSpellWnd__ForgetMemorizedSpell_x                      0x681AD0

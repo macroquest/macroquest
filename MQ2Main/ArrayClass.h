@@ -675,4 +675,5 @@ template<typename T, int _Size, int _Cnt = -1> class HashList : public HashListM
 {
     public:
 };
+
 #pragma pack(pop)

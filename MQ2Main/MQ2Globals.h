@@ -344,7 +344,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQToggleKeyRingItem     cmdToggleKeyRingItem;
 #endif
 	EQLIB_VAR BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3);
-
+	EQLIB_VAR bool IsResEffectSpell(int);
 	//EQLIB_VAR PCHAR szItemName[];
 	//EQLIB_VAR PCHAR szItemName4xx[];
 	EQLIB_VAR ACTORDEFENTRY ActorDefList[];
@@ -425,7 +425,7 @@ namespace MQ2Globals
 #define pIconCache (*ppIconCache)
 	EQLIB_VAR EQWorldData **ppWorldData;
 #define pWorldData (*ppWorldData)
-	EQLIB_VAR SpellManager **ppSpellMgr;
+	EQLIB_VAR ClientSpellManager **ppSpellMgr;
 #define pSpellMgr (*ppSpellMgr)
 	EQLIB_VAR EQPlayer **ppTarget;
 #define pTarget (*ppTarget)
@@ -1003,7 +1003,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CAltAbilityData__GetMercCurrentRank;
 	EQLIB_VAR DWORD CAltAbilityData__GetMercMaxRank;
 	EQLIB_VAR DWORD CAltAbilityData__GetMaxRank;
-
+	
+	EQLIB_VAR DWORD CharacterZoneClient__CharacterZoneClient;
 	EQLIB_VAR DWORD CharacterZoneClient__HasSkill;
 	EQLIB_VAR DWORD CharacterZoneClient__MakeMeVisible;
 	EQLIB_VAR DWORD CharacterZoneClient__ApplyDamage;
@@ -1013,6 +1014,12 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterZoneClient__GetItemCountInInventory;
 	EQLIB_VAR DWORD CharacterZoneClient__GetCursorItemCount;
 	EQLIB_VAR DWORD CharacterZoneClient__FindAffectSlot;
+	EQLIB_VAR DWORD CharacterZoneClient__BardCastBard;
+	EQLIB_VAR DWORD CharacterZoneClient__GetMaxEffects;
+	EQLIB_VAR DWORD CharacterZoneClient__GetEffect;
+	EQLIB_VAR DWORD CharacterZoneClient__GetOpenEffectSlot;
+	EQLIB_VAR DWORD CharacterZoneClient__GetFirstEffectSlot;
+	EQLIB_VAR DWORD CharacterZoneClient__GetLastEffectSlot;
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 
@@ -1123,6 +1130,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterBase__CreateItemIndex;
 	EQLIB_VAR DWORD CharacterBase__GetItemPossession;
 	EQLIB_VAR DWORD CharacterBase__GetItemByGlobalIndex;
+	EQLIB_VAR DWORD CharacterBase__GetEffectId;
 	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 
@@ -1416,10 +1424,12 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayer__IsTargetable;
 	EQLIB_VAR DWORD EQPlayer__CanSee;
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
+	EQLIB_VAR DWORD PlayerZoneClient__GetLevel;
 	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
 	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
 	
 	EQLIB_VAR DWORD PlayerClient__GetPcClient;
+	EQLIB_VAR DWORD PcClient__PcClient;
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;
@@ -1468,7 +1478,19 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CHelpWnd__SetFile;
 	EQLIB_VAR DWORD EQ_Spell__GetSpellLevelNeeded;
 	EQLIB_VAR DWORD EQ_Spell__SpellAffects;
+	EQLIB_VAR DWORD EQ_Spell__IsStackable;
+	EQLIB_VAR DWORD EQ_Spell__GetSpellAffectBySlot;
+	EQLIB_VAR DWORD EQ_Spell__GetSpellAffectByIndex;
+	EQLIB_VAR DWORD EQ_Spell__IsSPAStacking;
+	EQLIB_VAR DWORD EQ_Spell__IsSPAIgnoredByStacking;
 	EQLIB_VAR DWORD EQ_Spell__GetSpellBaseByAttrib;
+	EQLIB_VAR DWORD EQ_Spell__IsNoRemove;
+	EQLIB_VAR DWORD EQ_Spell__IsDegeneratingLevelMod;
+	
+	EQLIB_VAR DWORD __IsResEffectSpell;
+	EQLIB_VAR DWORD EQ_Affect__GetAffectData;
+
+	EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChangeGeneric;
 	EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
 	EQLIB_VAR DWORD CLootWnd__LootAll;
 	EQLIB_VAR DWORD CLootWnd__RequestLootSlot;

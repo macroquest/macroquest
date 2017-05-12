@@ -2554,13 +2554,101 @@ EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
 EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
 EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
 };
-
-class CharacterBase
+class SomeClass
 {
 public:
-	EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
-	EQLIB_OBJECT class ItemGlobalIndex CreateItemGlobalIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
-	EQLIB_OBJECT class ItemIndex CreateItemIndex(int Slot0, int Slot1=-1, int Slot2=-1);
+	PVOID vfTable;
+};
+//we call this charinfo (kinda)
+class CharacterBase : public SomeClass
+{
+public:
+	CProfileManager ProfileManager;
+	TSafeArrayStatic<BYTE, 32>	languages;
+/*0x24f8*/ BYTE         Unknown0x24f8[0x10];
+	TSafeString<0x40>	Name;
+	TSafeString<0x20>	Lastname;
+	TSafeString<0x80>	Title;
+	TSafeString<0x40>	VehicleName;
+	char			Stunned;//well status really
+	EQZoneIndex		zoneId;
+	BYTE	standstate;
+	RaidData		raidData;//size 0xdc
+	int				ExpansionFlags;
+	bool			bSuperPKILL;
+	bool			bUnclone;
+	bool			bDead;
+	int				LD_Timer;
+	int				SpellInterruptCount;
+	bool			bAutoSplit;
+	bool			bTellsOff;
+	bool			bGmInvis;
+	int				KillMe;
+	bool			bCheaterLdFlag;
+	bool			bNoRent;
+	bool			bCorpse;
+	int				SoulMarkCount;
+	bool			bClientGmFlagSet;
+/*0x272c*/ DWORD        BankSharedPlat;//31e4 CharBaseBegin+488
+/*0x2730*/ DWORD        BankSharedGold;//CharBaseBegin+48c
+/*0x2734*/ DWORD        BankSharedSilver;//CharBaseBegin+490
+/*0x2738*/ DWORD        BankSharedCopper;//CharBaseBegin+494
+/*0x273c*/ DWORD        BankPlat;//CharBaseBegin+498
+/*0x2740*/ DWORD        BankGold;//CharBaseBegin+49c
+/*0x2744*/ DWORD        BankSilver;//CharBaseBegin+4a0
+/*0x2748*/ DWORD        BankCopper;//CharBaseBegin+4a4
+/*0x274c*/ DWORD        STR;//CharBaseBegin+4a8
+/*0x2750*/ DWORD        STA;//CharBaseBegin+4ac
+/*0x2754*/ DWORD        CHA;//CharBaseBegin+4b0
+/*0x2758*/ DWORD        DEX;//CharBaseBegin+4b4
+/*0x275c*/ DWORD        INT;//CharBaseBegin+4b8
+/*0x2760*/ DWORD        AGI;//CharBaseBegin+4bc
+/*0x2764*/ DWORD        WIS;//CharBaseBegin+4c0
+/*0x2768*/ DWORD        SavePoison;//CharBaseBegin+4c4
+/*0x276c*/ DWORD        SaveMagic;//CharBaseBegin+4c8
+/*0x2770*/ DWORD        SaveDisease;//CharBaseBegin+4cc
+/*0x2774*/ DWORD        SaveCorruption;//CharBaseBegin+4d0
+/*0x2778*/ DWORD        SaveFire;//CharBaseBegin+4d4
+/*0x277c*/ DWORD        SaveCold;//CharBaseBegin+4d8
+/*0x2780*/ DWORD        SavePhysical;
+/*0x2784*/ int			UncappedStr;
+/*0x2788*/ int  		UncappedSta;
+/*0x278c*/ int			UncappedCha;
+/*0x2790*/ int			UncappedDex;
+/*0x2794*/ int			UncappedInt;
+/*0x2798*/ int			UncappedAgi;
+/*0x279c*/ int			UncappedWis;
+/*0x27a0*/ int			UncappedResistPoison;
+/*0x27a4*/ int			UncappedResistMagic;
+/*0x27a8*/ int			UncappedResistDisease;
+/*0x27ac*/ int			UncappedResistCorruption;
+/*0x27b0*/ int			UncappedResistFire;
+/*0x27b4*/ int			UncappedResistCold;
+/*0x27b8*/ int			NoBuffStr;
+/*0x27bc*/ int			NoBuffSta;
+/*0x27c0*/ int			NoBuffCha;
+/*0x27c4*/ int			NoBuffDex;
+/*0x27c8*/ int			NoBuffInt;
+/*0x27cc*/ int			NoBuffAgi;
+/*0x27d0*/ int			NoBuffWis;
+/*0x27d4*/ int			NoBuffResistPoison;
+/*0x27d8*/ int			NoBuffResistMagic;
+/*0x27dc*/ int			NoBuffResistDisease;
+/*0x27e0*/ int			NoBuffResistCorruption;
+/*0x27e4*/ int			NoBuffResistFire;
+/*0x27e8*/ int			NoBuffResistCold;
+/*0x27ec*/ int			NoBuffResistPhysical;
+
+EQLIB_OBJECT unsigned int CharacterBase::GetEffectId(int index);
+
+EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
+EQLIB_OBJECT class ItemGlobalIndex CreateItemGlobalIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
+EQLIB_OBJECT class ItemIndex CreateItemIndex(int Slot0, int Slot1=-1, int Slot2=-1);
+inline const BaseProfile& GetCurrentBaseProfile() const
+{
+	return *ProfileManager.GetCurrentProfile();
+}
+
 };
 
 class CHashCXStrInt32
@@ -5810,6 +5898,8 @@ class EQ_Affect
 {
 public:
 EQLIB_OBJECT void EQ_Affect::Reset(void);
+EQLIB_OBJECT int EQ_Affect::GetAffectData(int)const;
+
 /*0x00*/	BYTE Type;
 /*0x01*/	BYTE CasterLevel;
 /*0x02*/	BYTE ChargesRemaining;
@@ -5871,11 +5961,6 @@ EQLIB_OBJECT EQ_Character::EQ_Character(void);
 EQLIB_OBJECT bool EQ_Character::DoesSpellMatchFocusFilters(class EQ_Spell const *,class EQ_Spell const *);
 EQLIB_OBJECT bool EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *);
 EQLIB_OBJECT bool EQ_Character::CanUseMemorizedSpellSlot(int gem);
-#ifndef EMU
-EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD, DWORD, DWORD, bool);
-#else
-EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD);
-#endif
 EQLIB_OBJECT bool EQ_Character::IsValidAffect(int);
 EQLIB_OBJECT char * EQ_Character::Class(int);
 EQLIB_OBJECT char * EQ_Character::KunarkClass(int,int,int,bool);
@@ -5974,7 +6059,6 @@ EQLIB_OBJECT unsigned char EQ_Character::FindItemByClass(int,int *,int *);
 EQLIB_OBJECT unsigned char EQ_Character::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup);
 EQLIB_OBJECT unsigned char EQ_Character::FindItemQty(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::FroglockCanWorship(unsigned char,unsigned char);
-EQLIB_OBJECT unsigned char EQ_Character::GetMaxEffects(void)const;
 EQLIB_OBJECT unsigned char EQ_Character::GetSkillBaseDamage(unsigned char,class EQPlayer *);
 EQLIB_OBJECT unsigned char EQ_Character::GnomeCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::HalfElfCanWorship(unsigned char,unsigned char);
@@ -5988,7 +6072,6 @@ EQLIB_OBJECT unsigned char EQ_Character::OgreCanWorship(unsigned char,unsigned c
 EQLIB_OBJECT unsigned char EQ_Character::SpellFizzled(unsigned char,class EQ_Spell *);
 EQLIB_OBJECT unsigned char EQ_Character::TrollCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::VahShirCanWorship(unsigned char,unsigned char);
-EQLIB_OBJECT unsigned int EQ_Character::GetEffectId(int);
 EQLIB_OBJECT void EQ_Character::CalcFoodDrinkBonus(int);
 EQLIB_OBJECT void EQ_Character::DoFishingEvent(void);
 EQLIB_OBJECT void EQ_Character::DoIntimidationEvent(void);
@@ -6208,15 +6291,45 @@ public:
 EQLIB_OBJECT EQ_Spell::~EQ_Spell(void);
 EQLIB_OBJECT EQ_Spell::EQ_Spell(char *);
 EQLIB_OBJECT bool EQ_Spell::IsStackableDot(void)const;
+EQLIB_OBJECT bool EQ_Spell::IsStackable(void) const;
 EQLIB_OBJECT int EQ_Spell::IsPermIllusionSpell(void)const;
 EQLIB_OBJECT int EQ_Spell::SpellUsesDragonBreathEffect(void);
-EQLIB_OBJECT static bool __cdecl EQ_Spell::IsSPAIgnoredByStacking(int);
 EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;//this one takes an attrib(soe calls it affect) and returns the index for it...
 EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int)const;//takes a Class, druid for example is 6
 EQLIB_OBJECT LONG EQ_Spell::GetSpellBaseByAttrib(int)const;//takes a attrib, returns the baseval for it.
+EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int Slot) const;
+EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int Index) const;
+EQLIB_OBJECT bool EQ_Spell::IsNoRemove(void)const;
+EQLIB_OBJECT static bool EQ_Spell::IsDegeneratingLevelMod(int);
+
+EQLIB_OBJECT static bool EQ_Spell::IsSPAStacking(int Spa);
+EQLIB_OBJECT static bool EQ_Spell::IsSPAIgnoredByStacking(int Spa);
+inline bool EQ_Spell::IsNoDispell() const
+{
+	return Data.NoDisspell;
+}
+inline bool EQ_Spell::IsStackableOnAnyone() const
+{
+	return SpellAffects(424) != 0;
+}
+inline int GetNoOverwrite() const
+{
+	return Data.NoOverwrite;
+}
+inline bool IsBeneficialSpell() const
+{
+	return (Data.SpellType >= 1);
+}
+inline bool IsShortEffectDuration() const 
+{
+	return Data.DurationWindow;
+}
+inline bool GetIsSkillSpell() const
+{ 
+	return Data.IsSkill;
+}
 SPELL Data;
 };
-
 class EQAnimation
 {
 public:
@@ -6484,6 +6597,8 @@ EQLIB_OBJECT unsigned char EQPlayer::GetAlternateAnimVariation(int,unsigned char
 EQLIB_OBJECT unsigned int EQPlayer::GetUnusedID(void);
 EQLIB_OBJECT void EQPlayer::FindDefaultEyeMaterialIndexes(void);
 EQLIB_OBJECT void EQPlayer::InitializeIDArray(void);
+EQLIB_OBJECT BYTE EQPlayer::GetLevel(void) const;
+
 SPAWNINFO Data;
 };
 
@@ -6530,10 +6645,267 @@ public:
 	int GroupSelectID;
 };
 
-class PlayerClient//this is what we call EQPlayer maybe i should just rename that one but too late now?
+
+class PlayerBaseVfTable
+{
+	/*0x0000*/ void*	vtable;
+};
+class PlayerBase : public TListNode<PlayerBase>, public CActorApplicationData 
+
+//class PlayerBase : public PlayerBaseVfTable,public TListNode<PlayerBase>
 {
 public:
+/*0x0010*/ FLOAT	JumpStrength;
+/*0x0014*/ FLOAT	SwimStrength;
+/*0x0018*/ FLOAT	SpeedMultiplier;
+/*0x001c*/ FLOAT	AreaFriction;
+/*0x0020*/ FLOAT	AccelerationFriction;
+/*0x0024*/ EActorType CollidingType; /* ok finally had time to get this one right, when we collide with something this gets set. */
+/*0x0028*/ FLOAT	FloorHeight;
+/*0x002c*/ bool		bSinksInWater;
+/*0x0030*/ UINT		PlayerTimeStamp; /* doesn't update when on a Vehicle (mounts/boats etc) */
+/*0x0034*/ UINT		LastTimeIdle;
+/*0x0038*/ CHAR		Lastname[0x20];
+/*0x0058*/ FLOAT	AreaHPRegenMod; /*from guild hall pools etc. */
+/*0x005c*/ FLOAT	AreaEndRegenMod;
+/*0x0060*/ FLOAT	AreaManaRegenMod;
+/*0x0064*/ FLOAT	Y;
+/*0x0068*/ FLOAT	X;
+/*0x006c*/ FLOAT	Z;
+/*0x0070*/ FLOAT	SpeedY;
+/*0x0074*/ FLOAT	SpeedX;
+/*0x0078*/ FLOAT	SpeedZ;
+/*0x007c*/ FLOAT	SpeedRun;
+/*0x0080*/ FLOAT	Heading;
+/*0x0084*/ FLOAT	Angle;
+/*0x0088*/ FLOAT	AccelAngle;
+/*0x008c*/ FLOAT	SpeedHeading;
+/*0x0090*/ FLOAT	CameraAngle;
+/*0x0094*/ UINT		UnderWater; /*LastHeadEnvironmentType */
+/*0x0098*/ UINT		LastBodyEnvironmentType;
+/*0x009c*/ UINT		LastFeetEnvironmentType;
+/*0x00a0*/ BYTE		HeadWet; /*these really are environment related, like lava as well for example */
+/*0x00a1*/ BYTE		FeetWet;
+/*0x00a2*/ BYTE		BodyWet;
+/*0x00a3*/ BYTE		LastBodyWet;
+/*0x00a4*/ CHAR		Name[0x40];             /* ie priest_of_discord00 */
+/*0x00e4*/ CHAR		DisplayedName[0x40];    /* ie Priest of Discord*/
+/*0x0124*/ BYTE		PossiblyStuck;          /* never seen this be 1 so maybe it was used a a point but not now... */
+/*0x0125*/ BYTE		Type;
+/*0x0128*/ DWORD**	BodyType;	/* this really should be renamed to charprops or something its broken anyway*/
+/*0x012c*/ BYTE		CharPropFiller[0xc]; /* well since the above is a CharacterPropertyHash we have to pad here...*/
+/*0x0138*/ FLOAT	AvatarHeight;           /* height of avatar from groundwhen standing*/
+/*0x013c*/ FLOAT	Height;
+/*0x0140*/ FLOAT	Width;
+/*0x0144*/ FLOAT	Length;
+/*0x0148*/ DWORD	SpawnID;
+/*0x014c*/ DWORD	PlayerState;         /* 0=Idle 1=Open 2=WeaponSheathed 4=Aggressive 8=ForcedAggressive 0x10=InstrumentEquipped 0x20=Stunned 0x40=PrimaryWeaponEquipped 0x80=SecondaryWeaponEquipped */
+/*0x0150*/ struct _SPAWNINFO*	Vehicle;    /* NULL until you collide with a vehicle (boat,airship etc) */
+/*0x0154*/ struct _SPAWNINFO*	Mount;      /* NULL if no mount present */
+/*0x0158*/ struct _SPAWNINFO*	Rider;      /* _SPAWNINFO of mount's rider */
+/*0x015c*/ DWORD	Unknown0x015c;
+/*0x0160*/ bool		Targetable;	/* true if mob is targetable */
+/*0x0161*/ bool		bTargetCyclable;
+/*0x0162*/ bool		bClickThrough;
+/*0x0163*/ bool		bBeingFlung;
+/*0x0164*/ UINT		FlingActiveTimer;
+/*0x0168*/ UINT		FlingTimerStart;
+/*0x016c*/ bool		bFlingSomething;
+/*0x0170*/ FLOAT	FlingY;
+/*0x0174*/ FLOAT	FlingX;
+/*0x0178*/ FLOAT	FlingZ;
+/*0x017c*/ bool		bFlingSnapToDest;
+/*0x0180*/ int		SplineID;
+/*0x0184*/ int		SplineRiderID;
+inline unsigned int GetId() const
+{
+	return SpawnID;
+}
+};
+
+class PlayerZoneClient : public PlayerBase
+{
+public:
+/*0x0188*/ UINT		LastIntimidateUse;
+/*0x018c*/ PLAYERZONECLIENT
+/*0x05FC*/ TCircularBuffer<SDoCollisionMovementStats, 0x14>MovementStats; /* size (0x74 * 0x14) +8 = 0x918 */ \
+/*0x0F14*/ struct _SPAWNINFO*	WhoFollowing; // NULL if autofollow off I think this isnt a full spawninfo struct, it looks like its a PlayerClient* so todo: fix that...
+/*0x0f18*/ UINT		GroupAssistNPC[0x1];
+/*0x0f1C*/ UINT		RaidAssistNPC[0x3];
+/*0x0f28*/ UINT		GroupMarkNPC[0x3];
+/*0x0f34*/ UINT		RaidMarkNPC[0x3];
+/*0x0f40*/ UINT		TargetOfTarget;
+/*0x0f44*/ BYTE		PhysStuff[0x20];
+/*0x0f64*/ UINT		ParticleCastStartTime;
+/*0x0f68*/ UINT		ParticleCastDuration;
+/*0x0f6c*/ int		ParticleVisualSpellNum;
+/*0x0f70*/ int		Filler0x0f70;
+/*0x0f74*/ ActorClient	mActorClient;
+/*0x1130*/ PlayerAnimationBase *pAnimation;
+/*0x1134*/ FLOAT	MeleeRadius;  // used by GetMeleeRange
+/*0x1138*/ UINT		CollisionCounter;
+/*0x113c*/ FLOAT	CachedFloorLocationY;
+/*0x1140*/ FLOAT	CachedFloorLocationX;
+/*0x1144*/ FLOAT	CachedFloorLocationZ;
+/*0x1148*/ FLOAT	CachedFloorHeight;
+/*0x114c*/ FLOAT	CachedCeilingLocationY;
+/*0x1150*/ FLOAT	CachedCeilingLocationX;
+/*0x1154*/ FLOAT	CachedCeilingLocationZ;
+/*0x1158*/ FLOAT	CachedCeilingHeight;
+/*0x115c*/ CCapsule StaticCollision;//size 0x1c
+/*0x1178*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
+/*0x1188*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
+
+};
+//this is what we call EQPlayer maybe i should just rename that one but too late now?
+class PlayerClient : public PlayerZoneClient
+{
+public:
+/*0x1198*/ int		Animation; //0x1198 confirmed Apr 24 2017 always on 8 alignment? /* Current Animation Playing. */
+/*0x11xx*/ int		NextAnim;
+/*0x11xx*/ int		CurrLowerBodyAnim;
+/*0x1194*/ int		NextLowerBodyAnim;
+/*0x1198*/ int		CurrLowerAnimVariation;
+/*0x119c*/ int		CurrAnimVariation;
+/*0x11a0*/ int		CurrAnimRndVariation;
+/* ********************sound ID's BEGIN ******************* */
+/*0x11a4*/ int		Loop3d_SoundID;
+
+/*0x11a8*/ int		Step_SoundID;;
+/*0x11ac*/ int		CurLoop_SoundID;
+/*0x11b0*/ int		Idle3d1_SoundID;
+/*0x11b4*/ int		Idle3d2_SoundID;
+/*0x11b8*/ int		Jump_SoundID;
+/*0x11bc*/ int		Hit1_SoundID;
+/*0x11c0*/ int		Hit2_SoundID;
+/*0x11c4*/ int		Hit3_SoundID;
+
+/*0x11c8*/ int		Hit4_SoundID;
+/*0x11cc*/ int		Gasp1_SoundID;
+/*0x11d0*/ int		Gasp2_SoundID;
+/*0x11d4*/ int		Drown_SoundID;
+/*0x11d8*/ int		Death_SoundID;
+/*0x11dc*/ int		Attk1_SoundID;
+/*0x11e0*/ int		Attk2_SoundID;
+/*0x11e4*/ int		Attk3_SoundID;
+
+/*0x11e8*/ int		Walk_SoundID;
+/*0x11ec*/ int		Run_SoundID;
+/*0x11f0*/ int		Crouch_SoundID;
+/*0x11f4*/ int		Swim_SoundID;
+/*0x11f8*/ int		TreadWater_SoundID;
+/*0x11fc*/ int		Climb_SoundID;
+/*0x1200*/ int		Sit_SoundID;
+/*0x1204*/ int		Kick_SoundID;
+
+/*0x1208*/ int		Bash_SoundID;
+/*0x120c*/ int		FireBow_SoundID;
+/*0x1210*/ int		MonkAttack1_SoundID;
+/*0x1214*/ int		MonkAttack2_SoundID;
+/*0x1218*/ int		MonkSpecial_SoundID;
+/*0x121c*/ int		PrimaryBlunt_SoundID;
+/*0x1220*/ int		PrimarySlash_SoundID;
+/*0x1224*/ int		PrimaryStab_SoundID;
+
+/*0x1228*/ int		Punch_SoundID;
+/*0x122c*/ int		Roundhouse_SoundID;
+/*0x1230*/ int		SecondaryBlunt_SoundID;
+/*0x1234*/ int		SecondarySlash_SoundID;
+/*0x1238*/ int		SecondaryStab_SoundID;
+/*0x123c*/ int		SwimAttack_SoundID;
+/*0x1240*/ int		TwoHandedBlunt_SoundID;
+/*0x1244*/ int		TwoHandedSlash_SoundID;
+
+/*0x1248*/ int		TwoHandedStab_SoundID;
+/*0x124c*/ int		SecondaryPunch_SoundID;
+/*0x1250*/ int		JumpAcross_SoundID;
+/*0x1254*/ int		WalkBackwards_SoundID;
+/*0x1258*/ int		CrouchWalk_SoundID;
+/* ******************** sound ID's END ****************** */
+/*0x125c*/ UINT		LastHurtSound;
+/*0x1260*/ UINT		LastWalkTime;//used for animations
+/*0x1264*/ int		ShipRelated;//ID? look into.
+/*0x1268*/ int		RightHolding;//Nothing=0 Other/Weapon=1 shield=2
+/*0x126c*/ int		LeftHolding;//old Holding
+/*0x1270*/ UINT		DeathAnimationFinishTime;
+/*0x1274*/ bool		bRemoveCorpseAfterDeathAnim;//0x1274 for sure used by /hidecorpse
+/*0x1278*/ UINT		LastBubblesTime;
+/*0x127c*/ UINT		LastBubblesTime1;
+/*0x1280*/ UINT		LastColdBreathTime;
+/*0x1284*/ UINT		LastParticleUpdateTime;
+/*0x1288*/ UINT		MercID;    // IT IS 0x1288      //if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
+/*0x128c*/ UINT		ContractorID;    //if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
+/*0x1290*/ FLOAT	CeilingHeightAtCurrLocation;
+/*0x1294*/ void		*MobileEmitter;//todo: change and map to EqMobileEmitter*
+/*0x1298*/ bool		bInstantHPGaugeChange;
+/*0x129c*/ UINT		LastUpdateReceivedTime;
+/*0x12a0*/ FLOAT	MaxSpeakDistance;
+/*0x12a4*/ FLOAT	WalkSpeed;//how much we will slow down while sneaking
+/*0x12a8*/ bool		bHideCorpse;// IT IS 0x12a8
+/*0x12a9*/ CHAR		AssistName[0x40];
+/*0x12E9*/ bool		InvitedToGroup;//IT IS 12E9!
+/*0x12ec*/ int		GroupMemberTargeted;//12ec for sure!    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x12f0*/ bool		bRemovalPending;
+/*0x12f4*/ void		*pCorpse;//look into 0x12f4 for sure!
+/*0x12f8*/ FLOAT	EmitterScalingRadius;//0x12f8 FOR SURE
+/*0x12fc*/ int		DefaultEmitterID;
+/*0x1300*/ bool		bDisplayNameSprite;
+/*0x1301*/ bool		bIdleAnimationOff;
+/*0x1302*/ bool		bIsInteractiveObject;
+/*0x1303*/ BYTE		InteractiveObjectModelName[0x80];
+/*0x1383*/ BYTE		InteractiveObjectOtherName[0x80];
+/*0x1403*/ BYTE		InteractiveObjectName[0x40];
+/*0x1443*/
+/*0x1444*/ CPhysicsInfo PhysicsBeforeLastPort;//size IS /*0x30*/
+/*0x1474*/ DWORD notsure;
+/*0x1478*/ struct _FELLOWSHIPINFO	Fellowship; // IT IS AT 0x1478 // size 0x9e8 //it IS at 1478
+/*0x1E60*/ FLOAT	CampfireY;
+/*0x1e64*/ FLOAT	CampfireX;
+/*0x1e68*/ FLOAT	CampfireZ;
+/*0x1e6c*/ int		CampfireZoneID;         // zone ID where campfire is
+/*0x1e70*/ int		CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1e74*/ int		CampfireTimestamp2;
+/*0x1e78*/ int		FellowShipID;
+/*0x1e7c*/ int		FellowShipID2;
+/*0x1e80*/ int		CampType;
+/*0x1e84*/ bool		Campfire;
+/*0x1e88*/ TSafeArrayStatic<int,3> SeeInvis;
+/*0x1E94*/ struct _EQUIPMENT	Equipment;// size 0xb4
+/*0x1F48*/ bool		bIsPlacingItem;
+/*0x1f49*/ bool		bGMCreatedNPC;
+/*0x1f4c*/ int		ObjectAnimationID;
+/*0x1f50*/ bool		bInteractiveObjectCollidable;
+/*0x1f54*/ int		InteractiveObjectType;
+/*0x1f58*/ int		SoundIDs[0xa];//0x28 bytes
+/*0x1f80*/ UINT		LastHistorySentTime;
+/*0x1f84*/ ArrayClass2_RO<UINT>	BardTwistSpells;//size 0x1c
+/*0x1fA0*/ UINT		CurrentBardTwistIndex;
+/*0x1fA4*/ PlayerPhysicsClient mPlayerPhysicsClient;//size 0x28
+/*0x1FCC*/ int		SpawnStatus[6];//todo: look closer at these i think they can show like status of mobs slowed, mezzed etc, but not sure
+/*0x1fe4*/ int		BannerIndex0;//guild banners
+/*0x1fe8*/ int		BannerIndex1;
+/*0x1fec*/ ARGBCOLOR BannerTint0;
+/*0x1ff0*/ ARGBCOLOR BannerTint1;
+/*0x1ff4*/ int		MountAnimationRelated;
+/*0x1ff8*/ bool		bGuildShowAnim;//or sprite? need to check
+/*0x1ff9*/ bool		bWaitingForPort;//check this
 EQLIB_OBJECT PcClient * PlayerClient::GetPcClient(void)const;//call this using pLocalPlayer->GetPcClient();
+inline signed int GetClass()
+{
+	return mActorClient.Class;
+}
+inline void*GetCharacter()
+{
+	return (void*)spawneqc_info;//its a CharacterZoneClient*
+}
+inline BYTE GetCharacterType()
+{
+	return Type;
+}
+inline CHAR IsGm()
+{
+	return GM;
+}
 };
 
 class CharacterZoneClient : virtual public CharacterBase
@@ -6541,19 +6913,252 @@ class CharacterZoneClient : virtual public CharacterBase
 public:
 	PlayerClient *me;
 	//more stuff here fill in later
-EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel/*well the level you want to calc the value for, but yeah usually its the chars current level*/,unsigned char Slot/*0-0xb*/,class EQ_Affect *,int Base/*spell Base[x]*/,bool bCap/*cap the calculation at max*/);
+
+EQLIB_OBJECT CharacterZoneClient::CharacterZoneClient(void);
+EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(const EQ_Spell *spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect *theAffect, int EffectIndex = 0, PlayerZoneClient *pCaster = NULL,bool overrideChangeVal = false, int ChangeVal = -1,bool bCap = true);
+EQLIB_OBJECT int CharacterZoneClient::CalcAffectChangeGeneric(const EQ_Spell *spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect *theAffect, int EffectIndex, bool bCap = true);
 EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
 EQLIB_OBJECT int CharacterZoneClient::GetItemCountWorn(int);
 EQLIB_OBJECT int CharacterZoneClient::GetItemCountInInventory(int);
 EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
 EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlot(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
-
+EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlotMine(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
+#ifndef EMU
+EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
+#else
+EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);
+#endif
+EQLIB_OBJECT int CharacterZoneClient::BardCastBard(const EQ_Spell* pSpell, signed int caster_class) const;
+EQLIB_OBJECT unsigned char CharacterZoneClient::GetMaxEffects(void)const;
+EQLIB_OBJECT EQ_Affect & CharacterZoneClient::GetEffect(int)const;
+EQLIB_OBJECT int CharacterZoneClient::GetOpenEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill, int Index = -1);
+EQLIB_OBJECT int CharacterZoneClient::GetFirstEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill);
+EQLIB_OBJECT int CharacterZoneClient::GetLastEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill, bool bIsDisplay = false);
 };
 
+enum EAreaCorner
+{
+	eAC_None			  = -1,
+	eAC_TopLeftCorner     = 0,
+	eAC_TopRightCorner    = 1,
+	eAC_BottomLeftCorner  = 2,
+	eAC_BottomRightCorner = 3,
+};
+struct ALCHEMYBONUSSKILLDATA
+{
+	int SkillID;
+	int BonusPoints;
+};
+//move on nothing to see here yet, work in progress - eqmule
+class PcBase : public CCharacterBase
+{
+public:
+	TSafeArrayStatic<int, 0xa>	RecentTasks;
+	TSafeArrayStatic<PCTaskStatus, 1>	Tasks;
+	TSafeArrayStatic<PCTaskStatus, 0x1d>	Quests;
+	TSafeArrayStatic<BYTE, 6400 / 8>	BitFlags;
+	TSafeArrayStatic<BenefitSelection, 5> ActiveTributeBenefits;
+	TSafeArrayStatic<BenefitSelection, 10> ActiveTrophyTributeBenefits;
+	ItemBaseContainer	BankItems;
+	ItemBaseContainer	SharedBankItems;
+	ItemBaseContainer	LimboBufferItems;
+    ItemBaseContainer	MercenaryItems;
+	ItemBaseContainer	MountKeyRingItems;
+	ItemBaseContainer	IllusionKeyRingItems;
+	ItemBaseContainer	FamiliarKeyRingItems;
+	ItemBaseContainer	AltStorageItems;
+	ItemBaseContainer	ArchivedDeletedItems;
+	ItemBaseContainer	MailItems;
+	HashTable<MailItemData, EqItemGuid, ResizePolicyNoShrink>	MailItemsData;
+	TSafeArrayStatic<UINT, 1>	RecentMoves;
+	HashTable<DynamicZoneData>	CurrentDynamicZones;
+	HashTable<int>	LearnedRecipes;	
+	EQList<TradeskillRecipeCount*>	QualifyingRecipeCounts;
+	HashTable<int>	NonrepeatableQuests;
+/*0x12xx*/ HashTable<int>	CompletedTasks;
+/*0x129c*/ UINT	AlchemyTimestamp;
+/*0x12a0*/ bool	bSomethingHome;
+/*0x12a4*/ DWORD	LoginTime;
+/*0x12a8*/ __int64      GuildID;//GuildID_0
+/*0x12b0*/ __int64		FellowshipID;
+/*0x12b8*/ PFELLOWSHIPINFO pFellowship;
+/*0x12bc*/ int			GuildStatus;
+/*0x12c0*/ int			GuildFlags;
+/*0x12c4*/ bool			GuildShowSprite;
+/*0x12c8*/ UINT			CreationTime;
+/*0x12cc*/ UINT			AccountCreationTime;
+/*0x12d0*/ UINT			LastPlayedTime;
+/*0x12d4*/ DWORD		MinutesPlayed;
+/*0x12d8*/ BYTE			Anonymous;
+/*0x12d9*/ bool			bGM;
+/*0x12da*/ bool			bGMStealth;
+/*0x12dc*/ DWORD        AAExp;
+/*0x12e0*/ BYTE         NobilityRank;
+/*0x12e1*/ BYTE         PercentEXPtoAA;
+/*0x12e4*/ int			AirSupply;
+/*0x12e8*/ int			SerialNum;
+/*0x12ec*/ bool			bNewCharacter;
+/*0x12f0*/ int			TasksAssigned;
+/*0x12f4*/ int			TasksCompleted;
+/*0x12f8*/ long			TaskRequestTimer;
+/*0x12fc*/ unsigned int UniquePlayerID;
+/*0x1300*/ WorldLocation	DynamicZoneSafeReturnLocation;//size 0x14
+/*0x1314*/ DynamicZoneTimerData* pDZTimerRoot;
+/*0x1318*/ DWORD        TributeTimer;
+/*0x131c*/ DWORD        BenefitTimer;
+/*0x1320*/ __int64      CareerFavor;
+/*0x1328*/ __int64      CurrFavor;
+/*0x1330*/ bool			bBenefitsActive;
+/*0x1331*/ bool			bTrophyBenefitsActive;
+/*0x1332*/ bool			bHasResetStartingCity;
+/*0x1333*/ bool			bIsHeadStartCharacter;
+/*0x1334*/ int			PvPKills;
+/*0x1338*/ int			PvPDeaths;
+/*0x133c*/ int			PvPCurrentPoints;
+/*0x1340*/ int			PvPTotalPointsEarned;
+/*0x1344*/ int			PvPKillStreak;
+/*0x1348*/ int			PvPDeathStreak;
+/*0x134c*/ int			PvPCurrentStreak;
+/*0x1350*/ PvPKill		LastKill;//size 0x58
+/*0x13a8*/ PvPDeath		LastDeath;//size 0x58
+/*0x1400*/ HashTable<PvPKill24HourData>	PvPLast24HoursKillHash;
+/*0x1410*/ int			PvPInfamyLevel;
+/*0x1414*/ int			PvPVitality;
+/*0x1418*/ UINT			PvPLastInfamyTime;
+/*0x141c*/ int			LastLastNameChange;
+/*0x1420*/ int			LastNameChangePriv;
+/*0x1424*/ UINT			PvPLastVitalityTime;
+/*0x1428*/ bool			bKeepItemsOnDeath;
+/*0x1429*/ bool			bResetSpecializationSkills;
+/*0x142c*/ int			CharityPointsAvailable;
+/*0x1430*/ int			CharityTotalPointsEarned;
+/*0x1434*/ int			GoodPointsAvailable;
+/*0x1438*/ int			GoodTotalPointsEarned;
+/*0x143c*/ int			EvilPointsAvailable;
+/*0x1440*/ int			EvilTotalPointsEarned;
+/*0x1444*/ bool			bCanRequestNameChange;
+/*0x1445*/ bool			bCanRequestNameChange2;
+/*0x1446*/ bool			bCanRequestServerTransfer;
+/*0x1447*/ bool			bIsCopied;
+/*0x1448*/ int			ServerTransferGrantTime;
+/*0x144c*/ bool			bCanRequestRaceChange;
+/*0x1450*/ UINT			LastAAResetTime;
+/*0x1454*/ UINT			LastMercAAResetTime;
+/*0x1458*/ EQZoneIndex	NewZoneID;
+/*0x145c*/ int			NewAreaID;
+/*0x1460*/ EAreaCorner	eNewAreaCorner;
+/*0x1464*/ EQZoneIndex	PreviousZoneID;
+/*0x1468*/ int			RealEstateZoneID;
+/*0x146c*/ CHAR			ServerCreated[0x20];
+/*0x1470*/ PCAdventureData	AdventureData;
+/*0x14xx*/ PCSharedTaskData	SharedTaskData;
+/*0x14xx*/ TaskTimerData*	pTaskTimerData;
+/*0x14xx*/ PCQuestHistoryData	QuestHistoryData;
+/*0x14xx*/ PCStatistics		PcStatistics;
+/*0x1954*/ GroupMemberStats		GroupStats;//size 0x150 i think
+/*0x1aa4*/ bool			bIsLfg;
+/*0x1aa8*/ int			RaidId;
+/*0x1aac*/ UINT			GroupID;
+/*0x1ab0*/ __int64		UniqueGuildID;
+/*0x1ab8*/ __int64      Exp;//confirmed mar 7 2017 test
+/*0x1ac0*/ int	        DaysEntitled;
+/*0x1ac4*/ int	        SpentVeteranRewards;
+/*0x1ac8*/ bool	        bVeteranRewardEntitled;
+/*0x1ac9*/ bool	        bAutoConsentGroup;
+/*0x1aca*/ bool	        bAutoConsentRaid;
+/*0x1acb*/ bool	        bAutoConsentGuild;
+/*0x1acc*/ bool	        bPrivateForEqPlayers;
+/*0x1ad0*/ long	        AchievementFilesModificationTime;
+/*0x1ad4*/ CHAR	        StationID[0x20];
+/*0x1af8*/ EqGuid       Guid;//size 8 so it MUST start at a int64 sized address.. i.e. 0 or 8
+/*0x1b00*/ bool	        bBetaBuffed;
+/*0x1b04*/ int	        Unknown0x1ad4;
+/*0x1b08*/ int	        StartingCity;
+/*0x1b0c*/ int	        MainLevel;
+/*0x1b10*/ bool	        bShowHelm;
+/*0x1b18*/ __int64      LastTestCopyTime;
+/*0x1b20*/ CPlayerPointManager PointManager;//size 0x14
+/*0x1b34*/ PointSystemBase PointSystem;
+/*0x1B48*/ UINT			LoyaltyVelocity;
+/*0x1B4c*/ UINT			LoyaltyTokens;
+/*0x1B50*/ bool			bHasLoyaltyInfo;
+/*0x1B54*/ ArrayClass_RO<int> OwnedRealEstates;
+/*0x1B64*/ ArrayClass_RO<int> OwnedItemRealEstates;
+/*0x1B74*/ ArrayClass_RO<int> ArchivedRealEstates;
+/*0x1B84*/ CHAR			OverridePetName[0x40];
+/*0x1Bc4*/ bool			bCanRequestPetNameChange;
+/*0x1Bc5*/ CHAR			OverrideFamiliarName[0x40];
+/*0x1c05*/ bool			bCanRequestFamiliarNameChange;
+/*0x1c08*/ _CXSTR		*OverrideMercName[0xb];
+/*0x1c34*/ bool			bCanRequestMercNameChange;
+/*0x1c38*/ PendingRewardList PendingRewards;//size 0x2c must be at 1c28
+/*0x1c64*/ UINT         DowntimeReductionTime;
+/*0x1c68*/ UINT         DowntimeTimerStart;
+/*0x1c6c*/ FLOAT        ActivityValue;
+/*0x1c70*/ UINT         NextItemId;
+/*0x1c74*/ _CXSTR        *SharedBank;
+/*0x1c78*/ _CXSTR        *BankBuffer;
+/*0x1c7c*/ _CXSTR        *LimboBuffer;
+/*0x1c80*/ _CXSTR        *MercenaryBuffer;
+/*0x1c84*/ _CXSTR        *KeyRingBuffer[3];
+/*0x1c90*/ _CXSTR        *AltStorageBuffer;
+/*0x1c94*/ UINT         AltStorageTimestamp;
+/*0x1c98*/ UINT         Unknown0x1c98;
+/*0x1c9c*/ ELockoutCharacterReason LCR;
+/*0x1ca0*/ HashTable<ProgressionExperience> ProgressionExp;//pretty sure its at 1c90
+/*0x1cb0*/ PCXSTR       ArchivedStorageBuffer;
+/*0x1cb4*/ PCXSTR       MailItemsBuffer;
+/*0x1cb8*/ PCXSTR       MailItemsDataBuffer;
+/*0x1cbc*/ int          MailItemsOverCapWarningCount;//1C88
+/*0x1cc0*/ ItemIndex	StatKeyRingItemIndex[3];
+/*0x1cd2*/ bool         UseAdvancedLooting;     //1cc2 confirmed mar 7 2017 test //0=off 1=on
+/*0x1cd3*/ bool         MasterLootCandidate;	//0=off 1=on
+/*0x1cd4*/ bool			bIsCorrupted;
+/*0x1cd8*/ char*		pCorruptionReport;
+/*0x1cdc*/ TString<0x100> InspectText;
+/*0x1ddc*/ HashTable<int>		BlockedSpellsHash;
+/*0x1dec*/ int			BlockedSpell[40];
+	HashTable<int>		BlockedPetSpellsHash;
+	int			BlockedPetSpell[40];
+	ClaimDataCollection     ConsumableFeatures;
+	bool		bGrantItemsRegistered;
+	unsigned int	CreatedGuildID;
+	UINT		GuildCreateTime;
+	PCXSTR	GuildCreateCharacter;
+	bool	bInventoryUnserialized;
+	bool	bAltStorageUnserialized;
+	bool	bArchivedStorageUnserialized;
+	bool	bMailUnserialized;
+	bool	bPendingInventorySerialization;	
+	PCXSTR	BuyLines;
+	ArrayClass<PCXSTR>	OfflineTraderSoldItems;
+	ArrayClass<PCXSTR>	OfflineBuyerBoughtItems;
+/*0x1f8c*/ UINT        Krono;//confirmed mar 7 2017 test
+/*0x1f90*/ UINT        CursorKrono;
+/*0x1f98*/ __int64      MercAAExp;// divide this with 3.30f and you get the percent - eqmule
+/*0x1fa0*/ DWORD        MercAAPoints;//number of unspent merc AA points
+/*0x1fa4*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
+	ArrayClass<MercenaryAbilityInfo*>	MercenaryAbilities;
+	HashTable<CompletedAchievementData, int, ResizePolicyNoShrink> CompletedAchievements;
+	HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;
+	HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;
+/*0x1fec*/ int		LastFellowshipJoin;
+/*0x1ff0*/ __int64      Vitality;
+/*0x1ff8*/ int		    AAVitality;
+/*0x1ffc*/ int          FPStuff[0x1d];
+};
 class PcZoneClient: public PcBase , public CharacterZoneClient
 {
 public:
+	TSafeArrayStatic<unsigned long, 3> Flags;//hmm
+	unsigned __int32 TransfersReceived;
+	int	LastLanguageSpoken;
+	int CurPowerSourceDrain;
+	EQList<ALCHEMYBONUSSKILLDATA*> AlchemyBaseSkillBonusList;
+	UINT MomentumBalance; 
+	UINT LoyaltyRewardBalance;
+
 EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
 EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
@@ -6577,6 +7182,7 @@ class PcClient : public PcZoneClient
 {
 	//has a vftable
 public:
+	EQLIB_OBJECT PcClient::PcClient();
     ExtendedTargetListClient* ExtendedTargetList;
 	bool bInCombat;
 	UINT DowntTimeAmount;
@@ -7313,21 +7919,203 @@ class SParseVariables
 public:
 EQLIB_OBJECT SParseVariables::~SParseVariables(void);
 };
-
-class SpellManager
+class FileStatMgr
 {
 public:
-EQLIB_OBJECT int SpellManager::dSpellManager(void *, bool);
-EQLIB_OBJECT SpellManager::SpellManager(char *, char *, char *);
-EQLIB_OBJECT SpellManager::SpellManager(char *);//need to check out what these do
-EQLIB_OBJECT int SpellManager::Unknown0x0C(int, int);//need to check out what these do
-EQLIB_OBJECT int SpellManager::Unknown0x10(int);//need to check out what these do
-EQLIB_OBJECT int SpellManager::Unknown0x14(int);//need to check out what these do
-EQLIB_OBJECT int SpellManager::Unknown0x18(int);//need to check out what these do
-EQLIB_OBJECT PSPELL SpellManager::GetSpellByID(int);
-EQLIB_OBJECT struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int index);
-EQLIB_OBJECT bool SpellManager::Unknown0x24(bool);//need to check out what these do
-SPELLMGR Data;
+	struct FileStat
+	{
+		struct _stat32	Stats;
+		PCXSTR			Filename;
+		PCXSTR			Key;
+	};
+	HashTable<FileStat*> FileStats;
+};
+enum ReqType
+{ 
+	RT_None, 
+	RT_Sex,	
+	RT_MinLevel, 
+	RT_MaxLevel, 
+	RT_LevelRange, 
+	RT_Class,
+	RT_Race,
+	//there are like 72 more of these I dont have time to add them all now.
+};
+class RequirementAssociationManager : public FileStatMgr
+{
+public:
+	PVOID vfTable;
+	HashTable<HashTable<DoublyLinkedList<int>*>*> Requirements;
+	char AssocFilename[512];
+	ReqType LastFailReason;
+	int LastFailGroupID;
+	int LastFailReqID;
+};
+class SpellRequirementAssociationManager : public RequirementAssociationManager
+{
+public:
+	HashList<HashList<HashList<int, 10>, 10>, 1000> ReqAssData;
+};
+
+typedef struct _EQRGB
+{
+	BYTE Red;
+	BYTE Green;
+	BYTE Blue;
+} EQRGB;
+struct StageType
+{
+    CHAR BlitSprite[3][0x20];
+    CHAR AttachTag[0x20];
+    int DAGnum[3];
+    int pcloud[3];
+    CHAR SpriteTAG[0xc][0x20];
+    int SpritEffect;
+    int SoundNum;
+    ARGBCOLOR Tint[3];
+    FLOAT Gravity[3];
+    FLOAT NormalX1;
+    FLOAT NormalY1;
+    FLOAT NormalZ1;
+    FLOAT NormalX2;
+    FLOAT NormalY2;
+    FLOAT NormalZ2;
+	FLOAT NormalX3;
+    FLOAT NormalY3;
+    FLOAT NormalZ3;
+    FLOAT Radius[3];
+    FLOAT Angle[3];
+    ULONG Lifespan[3];
+    FLOAT Velocity[3];
+    ULONG Rate[3];
+    FLOAT Scale[3];
+    EQRGB SpriteRGB[0xc];
+    FLOAT RollRate[0xc];
+    short HdgOffset[0xc];
+    short PitchOffset[0xc];
+    FLOAT Distance[0xc];
+    short EffectType[12];
+    FLOAT ScaleFactor[12];
+};
+struct OldSpellEffect
+{
+	int Tgts;
+	int Perm;
+	StageType stages[3];
+};
+enum EEffectActor
+{
+    EEA_None,
+    EEA_Caster,
+    EEA_Missile,
+    EEA_Target,
+    EEA_COUNT,
+};
+enum EAttachPoint
+{
+    EAP_None,
+    EAP_Default,
+    EAP_Chest,
+    EAP_Head,
+    EAP_LeftHand,
+    EAP_RightHand,
+    EAP_LeftFoot,
+    EAP_RightFoot,
+    EAP_Weapon,
+	EAP_LeftEye,
+	EAP_RightEye,
+	EAP_Mouth,
+	EAP_Ground,
+    EAP_Cnt,
+};
+
+typedef struct _SpellEffectEmitter {
+    int DefIndex;
+    int RequiredLevel;
+    EEffectActor EffectActor;
+    EAttachPoint AttachPoint;
+} SpellEffectEmitter,*PSpellEffectEmitter;
+
+typedef struct _SpellEffectStage
+{
+	int SoundNum;
+    SpellEffectEmitter Emitters[4];
+} SpellEffectStage,*PSpellEffectStage;
+
+typedef struct _NewSpellEffect
+{
+    char szSpellEffectName[0x40];
+	SpellEffectStage Stages[3];
+} NewSpellEffect,*PNewSpellEffect;
+
+class EQSpellExtra
+{
+public:
+	OldSpellEffect *OldSpellEff;
+	NewSpellEffect *NewSpellEff;
+};
+//Matching stack group ID rules
+enum ESpellStackingRules
+{
+	ESSR_None,//default
+	ESSR_SingleCaster,
+	ESSR_AllCasters,
+	ESSR_SingleCasterOnlyGreater,
+	ESSR_AllCastersOnlyGreater,
+	ESSR_SingleCasterNeverOverwrite,
+	ESSR_AllCastersNeverOverwrite,
+	ESSR_SingleCasterAlwaysOverwrite,
+	ESSR_AllCastersAlwaysOverwrite,
+	ESSR_Invalid,
+};
+struct StackingGroupData
+{
+	int StackingGroupID;
+	int StackingGroupRank;
+	ESpellStackingRules StackingGroupRuleType;
+};
+//really would like to get this to work and align
+//but its kinda complicated, maybe another day. -eqmule
+class SpellManager : public FileStatMgr
+{
+public:
+
+/*0x000000*/ PVOID vfTable;
+/*0x000004*/ int SpellsCrc32[TOTAL_SPELL_COUNT+1];
+/*0x03A988*/ PSPELL MissingSpell;
+/*0x03A98c*/ PSPELLCALCINFO* MissingSpellAffect;
+/*0x03A990*/ PSPELLCALCINFO* MissingSpellAffectAC;
+/*0x03A994*/ int MissingSpellCrc32;
+/*0x03A998*/ int SpellFileCRC;
+/*0x03A99c*/ int SpellAssocFileCRC;
+/*0x03A9A0*/ int SpellStackingFileCRC;
+/*0x03A9A4*/ SpellRequirementAssociationManager ReqAssocManager;
+/*0x03BB8C not sure*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
+/*0x03BB9C*/
+
+/*0x00*/ EQLIB_OBJECT SpellManager::SpellManager(char *);
+};
+class ClientSpellManager : public SpellManager
+{
+public:
+/*0x00*/ EQLIB_OBJECT int ClientSpellManager::dSpellManager(void *, bool);
+/*0x04*/ EQLIB_OBJECT bool ClientSpellManager::LoadSpells(char const*FileName, char const*AssocFilename, char const*StackingFileName);
+/*0x08*/ EQLIB_OBJECT bool ClientSpellManager::LoadSpellStackingData(const char *StackingFileName);
+#ifndef EMU
+/*0x0c*/ EQLIB_OBJECT bool ClientSpellManager::DoesMeetRequirement(CharacterZoneClient *pPlayer,int SpellAssocID);
+#endif
+/*0x10*/ EQLIB_OBJECT void ClientSpellManager::PrintFailedRequirementString(int StrToken, int StringID);
+/*0x14*/ EQLIB_OBJECT int ClientSpellManager::GetSpellStackingGroupID(int SpellID);
+/*0x18*/ EQLIB_OBJECT int ClientSpellManager::GetSpellStackingGroupRank(int SpellID);
+/*0x1c*/ EQLIB_OBJECT ESpellStackingRules ClientSpellManager::GetSpellStackingGroupRule(int SpellID);
+/*0x20*/ EQLIB_OBJECT PSPELL ClientSpellManager::GetSpellByID(int SpellID);
+/*0x24*/ EQLIB_OBJECT struct _SPELLCALCINFO* ClientSpellManager::GetSpellAffect(int index);
+/*0x28*/ EQLIB_OBJECT bool ClientSpellManager::GetSpellAffectEmpty(bool);
+
+/*0x03BBAC*/ struct _SPELL* Spells[TOTAL_SPELL_COUNT+1];//60001 last one is the unknown spell...
+/*0x076530*/ struct _SPELLCALCINFO* CalcInfo[CalcInfoSize];//175000
+	EQSpellExtra SpellExtraData[TOTAL_SPELL_COUNT+1];
+	HashTable<StackingGroupData> StackingData;
 };
 
 class STable

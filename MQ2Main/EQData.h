@@ -458,26 +458,37 @@ enum MOUSE_DATA_TYPES {
 #define CALC_12TICK						122
 #define CALC_RANDOM						123
 
+#define SPA_HP                          0
 #define SPA_AC                          1
 #define SPA_MOVEMENTRATE                3
-#define SPA_LURE                        10
+#define SPA_CHA							10
 #define SPA_HASTE                       11
-#define SPA_ILLUSION                    58
+#define SPA_MANA                        15
+#define SPA_VAMPIRISM                   45
+#define SPA_CHANGE_FORM                 58
+#define SPA_EYE_OF_ZOMM					67
 #define SPA_MAGNIFICATION               87
 #define SPA_PLAYERSIZE                  89
 #define SPA_SUMMONCORPSE                91
 #define SPA_BARDOVERHASTE               98
+#define SPA_HEALDOT                     100
+#define SPA_COMPLETEHEAL                101
+#define SPA_SUMMON_MOUNT                113
 #define SPA_SPELLDAMAGE                 124
 #define SPA_HEALING                     125
 #define SPA_REAGENTCHANCE               131
 #define SPA_SPELLMANACOST               132
+#define SPA_MIRROR   					156
+#define SPA_SPELL_GUARD					161
+#define SPA_MELEE_GUARD					162
 #define SPA_DOUBLEATTACK                177
 #define SPA_STUNRESIST                  195
 #define SPA_PROCMOD                     200
 #define SPA_DIVINEREZ                   232
 #define SPA_METABOLISM                  233
-#define SPA_PLACEHOLDER                 254
+#define SPA_NOSPELL                     254
 #define SPA_TRIPLEBACKSTAB              258
+#define SPA_INCREASE_CASTING_LEVEL      272
 #define SPA_DOTCRIT                     273
 #define SPA_HEALCRIT                    274
 #define SPA_MENDCRIT                    275
@@ -487,7 +498,18 @@ enum MOUSE_DATA_TYPES {
 #define SPA_INCSPELLDMG                 296
 #define SPA_DAMAGECRITMOD               302
 #define SPA_SHIELDBLOCKCHANCE           320
+#define SPA_NO_MOVE_HP                  334
+#define SPA_MANA_IGNITE					401
+#define SPA_ENDURANCE_IGNITE			402
+#define SPA_LIMIT_HP        			408
+#define SPA_LIMIT_MANA					409
+#define SPA_LIMIT_ENDURANCE				410
 #define SPA_AC2                         416
+#define SPA_MANA2                       417
+#define SPA_IMPROVED_TAUNT              444
+#define SPA_DOT_GUARD					450
+#define SPA_MELEE_THRESHOLD_GUARD		451
+#define SPA_SPELL_THRESHOLD_GUARD		452
 #define SPA_SPELLDAMAGETAKEN			483
 
 #define TT_PBAE                         0x04
@@ -914,20 +936,21 @@ __declspec(dllexport)  struct _CONTENTS *GetContent(UINT index);
 
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
+// this is EQ_Affect
 typedef struct _SPELLBUFF {
-	/*0x00*/    BYTE      Unknown0x0;
-	/*0x01*/    BYTE      Level;
-	/*0x02*/    BYTE      Unknown0x2;    // pretty sure is padding
-	/*0x03*/    CHAR      DamageShield;  // also probably padding now
-	/*0x04*/    FLOAT     Modifier;      // Bard song modifier, 1.0 is default
+	/*0x00*/    BYTE      Type;
+	/*0x01*/    BYTE      Level;//casterlevel
+	/*0x02*/    BYTE      ChargesRemaining;    // pretty sure is padding
+	/*0x03*/    CHAR      DamageShield;  // Activatable
+	/*0x04*/    FLOAT     Modifier;      // Bard song modifier, 1.0 is default BaseDmgMod
 	/*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
 	/*0x0c*/    DWORD     Duration;
-	/*0x10*/    DWORD     Unknown0x10;   // This might be source ID?
+	/*0x10*/    DWORD     CasterID;
 	/*0x14*/    DWORD     HitCount;
 	/*0x18*/    FLOAT     Y;             // Referenced by SPA 441 (distance removal)
 	/*0x1c*/    FLOAT     X;
 	/*0x20*/    FLOAT     Z;
-	/*0x24*/    DWORD     Unknown0x24;
+	/*0x24*/    UINT      Flags;
 	/*0x28*/    DWORD     SlotData[0xC]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
 	/*0x58*/
 } SPELLBUFF, *PSPELLBUFF;
@@ -1244,6 +1267,28 @@ public:
 /*0x00*/	ProfileList* pFirst;
 /*0x04*/	eProfileListType CurProfileList;
 /*0x08*/
+inline const ProfileList* CProfileManager::GetCurrentProfileList() const
+{
+	ProfileList *pWalk = pFirst;
+	while ( pWalk != NULL ) {
+		if ( pWalk->ListType == CurProfileList )
+		{
+			return pWalk;
+		}
+		pWalk = pWalk->pNext;
+	}
+	return NULL;
+}
+
+inline const BaseProfile* CProfileManager::GetCurrentProfile() const
+{
+	const ProfileList *pList = GetCurrentProfileList();
+	if ( pList != NULL )
+	{
+		return pList->pFirst;
+	}
+	return NULL;
+}
 };
 struct PCTaskStatus
 {
@@ -1306,25 +1351,25 @@ struct DynamicZoneTimerData
 struct PvPKill
 {
 /*0x00*/	CHAR VictimName[0x40];
-/*0x04*/	int VictimLevel;
-/*0x08*/	DWORD VictimRace;
-/*0x0c*/	DWORD VictimClass;
-/*0x10*/	int ZoneID;
-/*0x14*/	long Lastkilltime;
-/*0x18*/	int PointsEarned;
-/*0x1c*/
+/*0x40*/	int VictimLevel;
+/*0x44*/	DWORD VictimRace;
+/*0x48*/	DWORD VictimClass;
+/*0x4c*/	int ZoneID;
+/*0x50*/	long Lastkilltime;
+/*0x54*/	int PointsEarned;
+/*0x58*/
 };
 
 struct PvPDeath
 {
 /*0x00*/	CHAR KillerName[0x40];
-/*0x04*/	int KillerLevel;
-/*0x08*/	DWORD KillerRace;
-/*0x0c*/	DWORD KillerClass;
-/*0x10*/	int ZoneID;
-/*0x14*/	long LastDeathTime;
-/*0x18*/	int PointsLost;
-/*0x1c*/
+/*0x40*/	int KillerLevel;
+/*0x44*/	DWORD KillerRace;
+/*0x48*/	DWORD KillerClass;
+/*0x4c*/	int ZoneID;
+/*0x50*/	long LastDeathTime;
+/*0x54*/	int PointsLost;
+/*0x58*/
 };
 
 struct PvPKill24HourData : public PvPKill
@@ -1509,9 +1554,9 @@ public:
 /*0x050*/	UINT LastMemberUpdateTime;
 /*0x054*/	PCXSTR StationID;
 /*0x058*/	int PlayerGuild;
-/*0x05c*/	TSafeArrayStatic<int, NUM_LONG_BUFFS> BuffIDs;
-/*0xxxx*/	TSafeArrayStatic<StatCounter, S_LastStat> Statistics;
-/*0xxxx*/
+/*0x05c*/	TSafeArrayStatic<int, NUM_LONG_BUFFS> BuffIDs;//size 0xa8
+/*0x104*/	TSafeArrayStatic<StatCounter, S_LastStat> Statistics;//size 0x4c
+/*0x150*/
 };
 
 struct ClaimData
@@ -1591,43 +1636,39 @@ public:
 	//todo: fil in the rest and sync it
 };
 
-//need to check CHARINFO
-class PcBase : public CCharacterBase
+// 10-14-07 - ieatacid
+typedef struct _FELLOWSHIPMEMBER {
+/*0x00*/  DWORD   WorldID;
+/*0x04*/  CHAR    Name[0x40];
+/*0x44*/  DWORD   ZoneID;
+/*0x48*/  DWORD   Level;
+/*0x4c*/  DWORD   Class;
+/*0x50*/  DWORD   LastOn;    // FastTime() timestamp
+/*0x54*/
+} FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
+struct FSDATA
 {
-public:
-	TSafeArrayStatic<int, 0xa>	RecentTasks;
-	TSafeArrayStatic<PCTaskStatus, 1>	Tasks;
-	TSafeArrayStatic<PCTaskStatus, 0x1d>	Quests;
-	TSafeArrayStatic<BYTE, 6400 / 8>	BitFlags;
-	TSafeArrayStatic<BenefitSelection, 5> ActiveTributeBenefits;
-	TSafeArrayStatic<BenefitSelection, 10> ActiveTrophyTributeBenefits;
-	ItemBaseContainer	BankItems;
-	ItemBaseContainer	SharedBankItems;
-	ItemBaseContainer	LimboBufferItems;
-    ItemBaseContainer	MercenaryItems;
-	ItemBaseContainer	MountKeyRingItems;
-	ItemBaseContainer	IllusionKeyRingItems;
-	ItemBaseContainer	FamiliarKeyRingItems;
-	ItemBaseContainer	AltStorageItems;
-	ItemBaseContainer	ArchivedDeletedItems;
-	ItemBaseContainer	MailItems;
-	HashTable<MailItemData, EqItemGuid, ResizePolicyNoShrink>	MailItemsData;
-	TSafeArrayStatic<UINT, 1>	RecentMoves;
-	HashTable<DynamicZoneData>	CurrentDynamicZones;
-	HashTable<int>	LearnedRecipes;	
-	EQList<TradeskillRecipeCount*>	QualifyingRecipeCounts;
-	HashTable<int>	NonrepeatableQuests;
-	HashTable<int>	CompletedTasks;
-	UINT	AlchemyTimestamp;
-	bool	bSomethingHome;
-	DWORD	LoginTime;
-	// more todo here:
-	// ...
-	//
-	__int64 Vitality;
-	int AAVitality;
-	int FPStuff[0x1d];
+	CHAR Strings[0x20];//need to check what these are...
 };
+// 20121128 - ieatacid  0x9e4
+// Dec 13 2016 - eqmule  0x9e8 see 5C3F9F
+typedef struct _FELLOWSHIPINFO {
+/*0x000*/  DWORD  Version;
+/*0x004*/  DWORD  Version2;//just place holders for now, ill fix these later
+/*0x008*/  DWORD  Version3;
+/*0x00c*/  DWORD  Version4;
+/*0x010*/  DWORD  FellowshipID;
+/*0x014*/  DWORD  FellowshipID2;//guild does this to, need to figure out why
+/*0x018*/  CHAR   Leader[0x40];
+/*0x058*/  CHAR   MotD[0x400];
+/*0x458*/  DWORD  Members;
+/*0x45c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];//size 0xc * 0x54 = 0x3f0
+/*0x84c*/  DWORD  Sync;
+/*0x850*/  FSDATA Somedata[0xc];//size 0x180
+/*0x9d0*/  bool bExpSharingEnabled[0xc];
+/*0x9dc*/  bool bSharedExpCapped[0xc];
+/*0x9e8*/
+} FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 //aStartingLoad_
 // actual size: 0x27f0 in Apr 11 2017 test (see 5773D7) - eqmule
@@ -1662,7 +1703,7 @@ typedef struct _CHARINFO {
 /*0x11c0*/ BYTE         Unknown0x11c0[0xe8];//PCBase
 /*0x12a8*/ __int64      GuildID;//GuildID_0
 /*0x12b0*/ __int64		FellowshipID;
-/*0x12b8*/ int			Unknown0x12b8;
+/*0x12b8*/ PFELLOWSHIPINFO pFellowship;
 /*0x12bc*/ int			GuildStatus;
 /*0x12c0*/ int			GuildFlags;
 /*0x12c4*/ bool			GuildShowSprite;
@@ -1674,15 +1715,14 @@ typedef struct _CHARINFO {
 /*0x12d9*/ bool			bGM;
 /*0x12da*/ bool			bGMStealth;
 /*0x12dc*/ DWORD        AAExp;
-/*0x12e0*/ BYTE         Unknown0x12e0;
+/*0x12e0*/ BYTE         NobilityRank;
 /*0x12e1*/ BYTE         PercentEXPtoAA;
 /*0x12e2*/ BYTE         Unknown0x12e2[0x36];
 /*0x1318*/ DWORD        TributeTimer;
 /*0x131c*/ DWORD        BenefitTimer;
-/*0x1320*/ DWORD        CareerFavor;
-/*0x1324*/ BYTE         Unknown0x1324[0x4];
-/*0x1328*/ DWORD        CurrFavor;
-/*0x132c*/ BYTE         Unknown0x132c[0x108];
+/*0x1320*/ __int64      CareerFavor;
+/*0x1328*/ __int64      CurrFavor;
+/*0x1330*/ BYTE         Unknown0x1330[0x104];
 /*0x1434*/ DWORD        RadiantCrystals;
 /*0x1438*/ BYTE         Unknown0x1438[0x4];
 /*0x143c*/ DWORD        EbonCrystals;
@@ -1851,7 +1891,34 @@ typedef struct _CHARINFO {
 /*0x2774*/ DWORD        SaveCorruption;//CharBaseBegin+4d0
 /*0x2778*/ DWORD        SaveFire;//CharBaseBegin+4d4
 /*0x277c*/ DWORD        SaveCold;//CharBaseBegin+4d8
-/*0x2780*/ BYTE			Unknown0x2780[0x70];
+/*0x2780*/ DWORD        SavePhysical;//CharBaseBegin+4d8
+/*0x2784*/ int			UncappedStr;
+/*0x2788*/ int  		UncappedSta;
+/*0x278c*/ int			UncappedCha;
+/*0x2790*/ int			UncappedDex;
+/*0x2794*/ int			UncappedInt;
+/*0x2798*/ int			UncappedAgi;
+/*0x279c*/ int			UncappedWis;
+/*0x27a0*/ int			UncappedResistPoison;
+/*0x27a4*/ int			UncappedResistMagic;
+/*0x27a8*/ int			UncappedResistDisease;
+/*0x27ac*/ int			UncappedResistCorruption;
+/*0x27b0*/ int			UncappedResistFire;
+/*0x27b4*/ int			UncappedResistCold;
+/*0x27b8*/ int			NoBuffStr;
+/*0x27bc*/ int			NoBuffSta;
+/*0x27c0*/ int			NoBuffCha;
+/*0x27c4*/ int			NoBuffDex;
+/*0x27c8*/ int			NoBuffInt;
+/*0x27cc*/ int			NoBuffAgi;
+/*0x27d0*/ int			NoBuffWis;
+/*0x27d4*/ int			NoBuffResistPoison;
+/*0x27d8*/ int			NoBuffResistMagic;
+/*0x27dc*/ int			NoBuffResistDisease;
+/*0x27e0*/ int			NoBuffResistCorruption;
+/*0x27e4*/ int			NoBuffResistFire;
+/*0x27e8*/ int			NoBuffResistCold;
+/*0x27ec*/ int			NoBuffResistPhysical;
 /*0x27f0*/
 } CHARINFO, *PCHARINFO;
 
@@ -1870,7 +1937,7 @@ typedef struct _CHARINFO2 {
 /*0x0014*/ DWORD         Unknown0x0014;
 /*0x0018*/ struct _INVENTORYARRAY*      pInventoryArray;
 /*0x001c*/ BYTE         Unknown0x001c[0x48];
-/*0x0064*/ struct _SPELLBUFF    Buff[NUM_LONG_BUFFS];
+/*0x0064*/ struct _SPELLBUFF    Buff[NUM_LONG_BUFFS];//EQ_Affect
 /*0x0ed4*/ struct _SPELLBUFF    ShortBuff[NUM_SHORT_BUFFS];
 /*0x21bc*/ DWORD        ZoneBuffs[NUM_BUFF_SLOTS]; // caster IDs for the Effects Window of whoever cast the buff on you in the same zone...
 /*0x2340*/ DWORD        ZoneSongs[NUM_BUFF_SLOTS]; // just a guess
@@ -2060,39 +2127,6 @@ typedef struct _EQUIPMENT {
    };
 } EQUIPMENT, *PEQUIPMENT;
 
-// 10-14-07 - ieatacid
-typedef struct _FELLOWSHIPMEMBER {
-/*0x00*/  DWORD   WorldID;
-/*0x04*/  CHAR    Name[0x40];
-/*0x44*/  DWORD   ZoneID;
-/*0x48*/  DWORD   Level;
-/*0x4c*/  DWORD   Class;
-/*0x50*/  DWORD   LastOn;    // FastTime() timestamp
-/*0x54*/
-} FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
-struct FSDATA
-{
-	CHAR Strings[0x20];//need to check what these are...
-};
-// 20121128 - ieatacid  0x9e4
-// Dec 13 2016 - eqmule  0x9e8 see 5C3F9F
-typedef struct _FELLOWSHIPINFO {
-/*0x000*/  DWORD  Version;
-/*0x004*/  DWORD  Version2;//just place holders for now, ill fix these later
-/*0x008*/  DWORD  Version3;
-/*0x00c*/  DWORD  Version4;
-/*0x010*/  DWORD  FellowshipID;
-/*0x014*/  DWORD  FellowshipID2;//guild does this to, need to figure out why
-/*0x018*/  CHAR   Leader[0x40];
-/*0x058*/  CHAR   MotD[0x400];
-/*0x458*/  DWORD  Members;
-/*0x45c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];//size 0xc * 0x54 = 0x3f0
-/*0x84c*/  DWORD  Sync;
-/*0x850*/  FSDATA Somedata[0xc];//size 0x180
-/*0x9d0*/  bool bExpSharingEnabled[0xc];
-/*0x9dc*/  bool bSharedExpCapped[0xc];
-/*0x9e8*/
-} FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 //found these at B0DD28 in eqgame.exe dated Aug 15 2016 -eqmule
 
 // offsets are relative to their position in _LAUNCHSPELLDATA
@@ -2154,22 +2188,6 @@ bool IsCasting() const
 	return (SpellID != -1);
 }
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
-
-template <class Type> class TListNode
-{
-	/*0x0004*/ Type *pPrev;
-	/*0x0008*/ Type *pNext;
-	/*0x000c*/ BYTE		Unknown0x000c[0xc];
-};
-class PlayerBaseVfTable
-{
-	/*0x0000*/ void*	vtable;
-};
-class PlayerBase : public PlayerBaseVfTable,public TListNode<PlayerBase>
-{
-public:
-
-};
 
 enum EActorType
 {
@@ -2353,7 +2371,6 @@ struct SDoCollisionMovementStats
 /*0x05F8*/ bool		LFG;
 /*0x05FC*/
 
-
 class CParticlePointInterface
 {
 	//we dont actually need this for now.
@@ -2373,6 +2390,12 @@ public:
 	TheType* pFirst;
 	TheType* pLast;
 };
+template <class Type> class TListNode
+{
+	/*0x0004*/ Type *pPrev;
+	/*0x0008*/ Type *pNext;
+	/*0x000c*/ BYTE		Unknown0x000c[0xc];
+};
 class CObjectGroupStageInstance : public TListNode<CObjectGroupStageInstance>
 {
 public:
@@ -2382,7 +2405,7 @@ public:
 };
 class CActorApplicationData
 {
-
+	void *vfTable;
 };
 class ActorBase
 {
@@ -2420,7 +2443,7 @@ public:
 public:
 /*0x0f7C*/ int		LeftEyeMaterialIndex;
 /*0x0f80*/ int		RightEyeMaterialIndex;
-/*0x0f84*/ CParticlePointInterface* m_pParticlePoints[0xa];
+/*0x0f84*/ CParticlePointInterface* pParticlePoints[0xa];
 /*0x0fac*/ void* pLowerBones;
 /*0x10e0*/ void* pUpperBones;
 /*0x10fc*/ void*	pcactorex; // todo: move to ActorInterface*
@@ -2748,6 +2771,22 @@ typedef struct _SPAWNINFO {
 /*0x1ff9*/ bool		bWaitingForPort;//check this
 /* ********************** PlayerClient Ends Here ******************** */
 /*0x2000*/ //see SpawnInfoSize
+	inline signed int GetClass()
+	{
+		return mActorClient.Class;
+	}
+	inline void*GetCharacter()
+	{
+		return (void*)spawneqc_info;//its a CharacterZoneClient*
+	}
+	inline BYTE GetCharacterType()
+	{
+		return Type;
+	}
+	inline unsigned int GetId() const
+	{
+		return SpawnID;
+	}
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64
@@ -3237,7 +3276,7 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x14c*/   BYTE    NoResist;
 /*0x14d*/   BYTE    UsesPersistentParticles;
 /*0x14e*/   BYTE    SmallTargetsOnly;
-/*0x14f*/   BYTE    DurationWindow;     //0=Long, 1=Short
+/*0x14f*/   bool    DurationWindow;     //0=Long, 1=Short
 /*0x150*/   BYTE    Uninterruptable;
 /*0x151*/   BYTE    NotStackableDot;
 /*0x152*/   BYTE    Deletable;
@@ -3248,9 +3287,9 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x157*/   BYTE    OnlyDuringFastRegen;
 /*0x158*/   BYTE    CastNotStanding;
 /*0x159*/   BYTE    CanMGB;
-/*0x15a*/   BYTE    NoDisspell;
+/*0x15a*/   bool    NoDisspell;
 /*0x15b*/   BYTE    AffectInanimate; //ldon trap spells etc
-/*0x15c*/   BYTE    IsSkill;
+/*0x15c*/   bool    IsSkill;
 /*0x15d*/   BYTE    ShowDoTMessage;
 /*0x15e*/   BYTE    ClassLevel[0x24];        //per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014 -eqmule
 /*0x182*/   BYTE    LightType;
@@ -3287,58 +3326,21 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x3f9*/   BYTE    Scribable;
 /*0x3fa*/   BYTE    NoStripOnDeath;
 /*0x3fb*/   BYTE    NoRemove; // spell can't be clicked off?
-/*0x3fc*/   DWORD   Unknown177; // new spell field valid range (0, 3], will set to 1 if not in that range (0, 1, 2)
+/*0x3fc*/   int     NoOverwrite; //an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
 /*0x400*/   DWORD   SpellRecourseType;
-/*0x404*/   BYTE    Padding; //nothing here? I don't see it setting this at least
+/*0x404*/   BYTE    CRC32Marker;
 /*0x405*/   FLOAT   DistanceMod; // set to (DistanceModFarMult - DistanceModCloseMult) / (DistanceModFarDist - DistanceModCloseDist). Divisor has some bounds checking too
 /*0x409*/
 } SPELL, *PSPELL;
 
-class FileStatMgr
-{
-public:
-	struct FileStat
-	{
-		struct _stat32	Stats;
-		PCXSTR			Filename;
-		PCXSTR			Key;
-	};
-	HashTable<FileStat*> FileStats;
-};
-enum ReqType
-{ 
-	RT_None, 
-	RT_Sex,	
-	RT_MinLevel, 
-	RT_MaxLevel, 
-	RT_LevelRange, 
-	RT_Class,
-	RT_Race,
-	//there are like 72 more of these I dont have time to add them all now.
-};
-class RequirementAssociationManager : public FileStatMgr
-{
-public:
-	PVOID vfTable;
-	HashTable<HashTable<DoublyLinkedList<int>*>*> Requirements;
-	char AssocFilename[512];
-	ReqType LastFailReason;
-	int LastFailGroupID;
-	int LastFailReqID;
-};
-class SpellRequirementAssociationManager : public RequirementAssociationManager
-{
-public:
-	HashList<HashList<HashList<int, 10>, 10>, 1000> ReqAssData;
-};
 typedef struct _SPELLCALCINFO
 {
-/*0x00*/	LONG Slot;
-/*0x04*/	LONG Base;
-/*0x08*/	LONG Base2;
-/*0x0c*/	LONG Max;
-/*0x10*/	LONG Calc;
-/*0x14*/	LONG Attrib;
+/*0x00*/	int Slot;
+/*0x04*/	int Base;
+/*0x08*/	int Base2;
+/*0x0c*/	int Max;
+/*0x10*/	int Calc;
+/*0x14*/	int Attrib;
 } SPELLCALCINFO,*PSPELLCALCINFO;
 
 #define   TOTAL_SPELL_COUNT             0xEA60      // # of spells allocated in memory (04/11/2017 test 47D105) -eqmule
@@ -3356,149 +3358,6 @@ typedef struct _SPELLMGR {
 /*0x1213A8*/ DWORD What2[0x1D4C0];//120000
 /*0x1966A8*/ //(1664680) 1.6 mill? hmm large struct in memory for sure...
 } SPELLMGR, *PSPELLMGR;
-
-//really would like to get this to work and align
-//but its kinda complicated, maybe another day. -eqmule
-class SpellMgr : public FileStatMgr
-{
-/*0x000000*/ PVOID vfTable;
-/*0x000004*/ int SpellsCrc32[TOTAL_SPELL_COUNT+1];
-/*0x03A988*/ PSPELL MissingSpell;
-/*0x03A98c*/ PSPELLCALCINFO* MissingSpellAffect;
-/*0x03A990*/ PSPELLCALCINFO* MissingSpellAffectAC;
-/*0x03A994*/ int MissingSpellCrc32;
-/*0x03A998*/ int SpellFileCRC;
-/*0x03A99c*/ int SpellAssocFileCRC;
-/*0x03A9A0*/ int SpellStackingFileCRC;
-/*0x03A9A4*/ SpellRequirementAssociationManager ReqAssocManager;
-/*0x03BB8C not sure*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
-/*0x03BB9C*/
-};
-typedef struct _EQRGB
-{
-	BYTE Red;
-	BYTE Green;
-	BYTE Blue;
-} EQRGB;
-struct StageType
-{
-    CHAR BlitSprite[3][0x20];
-    CHAR AttachTag[0x20];
-    int DAGnum[3];
-    int pcloud[3];
-    CHAR SpriteTAG[0xc][0x20];
-    int SpritEffect;
-    int SoundNum;
-    ARGBCOLOR Tint[3];
-    FLOAT Gravity[3];
-    FLOAT NormalX1;
-    FLOAT NormalY1;
-    FLOAT NormalZ1;
-    FLOAT NormalX2;
-    FLOAT NormalY2;
-    FLOAT NormalZ2;
-	FLOAT NormalX3;
-    FLOAT NormalY3;
-    FLOAT NormalZ3;
-    FLOAT Radius[3];
-    FLOAT Angle[3];
-    ULONG Lifespan[3];
-    FLOAT Velocity[3];
-    ULONG Rate[3];
-    FLOAT Scale[3];
-    EQRGB SpriteRGB[0xc];
-    FLOAT RollRate[0xc];
-    short HdgOffset[0xc];
-    short PitchOffset[0xc];
-    FLOAT Distance[0xc];
-    short EffectType[12];
-    FLOAT ScaleFactor[12];
-};
-struct OldSpellEffect
-{
-	int Tgts;
-	int Perm;
-	StageType stages[3];
-};
-enum EEffectActor
-{
-    EEA_None,
-    EEA_Caster,
-    EEA_Missile,
-    EEA_Target,
-    EEA_COUNT,
-};
-enum EAttachPoint
-{
-    EAP_None,
-    EAP_Default,
-    EAP_Chest,
-    EAP_Head,
-    EAP_LeftHand,
-    EAP_RightHand,
-    EAP_LeftFoot,
-    EAP_RightFoot,
-    EAP_Weapon,
-	EAP_LeftEye,
-	EAP_RightEye,
-	EAP_Mouth,
-	EAP_Ground,
-    EAP_Cnt,
-};
-typedef struct _SpellEffectEmitter {
-    int DefIndex;
-    int RequiredLevel;
-    EEffectActor EffectActor;
-    EAttachPoint AttachPoint;
-} SpellEffectEmitter,*PSpellEffectEmitter;
-
-typedef struct _SpellEffectStage
-{
-	int SoundNum;
-    SpellEffectEmitter Emitters[4];
-} SpellEffectStage,*PSpellEffectStage;
-
-typedef struct _NewSpellEffect
-{
-    char szSpellEffectName[0x40];
-	SpellEffectStage Stages[3];
-} NewSpellEffect,*PNewSpellEffect;
-
-class EQSpellExtra
-{
-public:
-	OldSpellEffect *OldSpellEff;
-	NewSpellEffect *NewSpellEff;
-};
-//Matching stack group ID rules
-enum ESpellStackingRules
-{
-	ESSR_None,//default
-	ESSR_SingleCaster,
-	ESSR_AllCasters,
-	ESSR_SingleCasterOnlyGreater,
-	ESSR_AllCastersOnlyGreater,
-	ESSR_SingleCasterNeverOverwrite,
-	ESSR_AllCastersNeverOverwrite,
-	ESSR_SingleCasterAlwaysOverwrite,
-	ESSR_AllCastersAlwaysOverwrite,
-	ESSR_Invalid,
-};
-struct StackingGroupData
-{
-	int StackingGroupID;
-	int StackingGroupRank;
-	ESpellStackingRules StackingGroupRuleType;
-};
-
-class ClientSpellManager : public SpellMgr
-{
-public:
-/*0x03BBAC*/ struct _SPELL* Spells[TOTAL_SPELL_COUNT+1];//60001 last one is the unknown spell...
-/*0x076530*/ struct _SPELLCALCINFO* CalcInfo[CalcInfoSize];//175000
-	EQSpellExtra SpellExtraData[TOTAL_SPELL_COUNT+1];
-	HashTable<StackingGroupData> StackingData;
-};
 
 // actual size: 0x148 10-25-2006  ieatacid
 // actual size: 0x148 04-11-2017 test confirmed see 5F7150 -eqmule
@@ -3903,6 +3762,7 @@ typedef struct _CHATCHANNELS {
 /*0x000*/ PCHAR  ChannelName[0xa];
 /*0x004*/
 } CHATCHANNELS, *PCHATCHANNELS;
+
 enum eFriendStatus
 {
 	eFriendRemoved,
@@ -3996,6 +3856,7 @@ typedef struct _CharSelectPlayerArray
 	//note that CharSelectPlayerCount determines how many are actully here
 	CSINFO CharacterInfo[13];//is 13 chars the max u can have?
 } CharSelectPlayerArray,*PCharSelectPlayerArray;
+
 typedef struct _EVERQUEST {
 	/*0x000*/ BYTE   Unknown[0x2a4];
 	/*0x2a4*/ struct _CHATSERVICE *ChatService;

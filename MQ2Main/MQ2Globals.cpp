@@ -129,7 +129,7 @@ namespace MQ2Globals
 		ppControlledPlayer = (EQPlayer**)pinstControlledPlayer;
 		ppWorldData = (EQWorldData**)pinstWorldData;
 		ppIconCache = (IconCache**)pinstIconCache;
-		ppSpellMgr = (SpellManager**)pinstSpellManager;
+		ppSpellMgr = (ClientSpellManager**)pinstSpellManager;
 		ppTarget = (EQPlayer**)pinstTarget;
 		ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
 		ppItemList = (EQItemList**)pinstEQItemList;
@@ -1119,7 +1119,7 @@ namespace MQ2Globals
 	EQPlayer **ppControlledPlayer = 0;
 	EQWorldData **ppWorldData = 0;
 	IconCache **ppIconCache = 0;
-	SpellManager **ppSpellMgr = 0;
+	ClientSpellManager **ppSpellMgr = 0;
 	EQPlayer **ppTarget = 0;
 	EqSwitchManager **ppSwitchMgr = 0;
 	EQItemList **ppItemList = 0;
@@ -1551,6 +1551,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__ForgetMemorizedSpell);
 	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__IsBardSongPlaying);
 	
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CharacterZoneClient);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__HasSkill);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__MakeMeVisible);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__IsStackBlocked);
@@ -1559,6 +1560,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetItemCountInInventory);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetCursorItemCount);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__FindAffectSlot);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__BardCastBard);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetMaxEffects);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetEffect);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetOpenEffectSlot);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetFirstEffectSlot);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetLastEffectSlot);
 	
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);
@@ -1663,7 +1670,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex);
-
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetEffectId);
+	
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__FindInvSlot);
@@ -1954,10 +1962,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__IsTargetable);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
+	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__GetLevel);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
 
 	INITIALIZE_EQGAME_OFFSET(PlayerClient__GetPcClient);
+	INITIALIZE_EQGAME_OFFSET(PcClient__PcClient);
 	
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);
@@ -1997,8 +2007,20 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CHelpWnd__SetFile);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellLevelNeeded);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffects);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsStackable);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectBySlot);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectByIndex);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAStacking);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAIgnoredByStacking);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellBaseByAttrib);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsNoRemove);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsDegeneratingLevelMod);
+	
+	INITIALIZE_EQGAME_OFFSET(__IsResEffectSpell);
+	INITIALIZE_EQGAME_OFFSET(EQ_Affect__GetAffectData);
+
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChange);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChangeGeneric);
 	INITIALIZE_EQGAME_OFFSET(CLootWnd__LootAll);
 	INITIALIZE_EQGAME_OFFSET(CLootWnd__RequestLootSlot);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
@@ -2027,7 +2049,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__CreateWindowInstance);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
-	
+
+#ifdef __IsResEffectSpell_x
+FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);
+#endif
 #ifdef __ExecuteCmd_x
 #ifndef EMU
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);

@@ -191,20 +191,27 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
 #endif
 
+//ClientSpellManager
+FUNCTION_AT_VIRTUAL_ADDRESS(int ClientSpellManager::dSpellManager(void *, bool), 0x00);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpells(char const*, char const*, char const*), 0x04);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpellStackingData(const char *), 0x08);
 #if defined(EMU)
-FUNCTION_AT_VIRTUAL_ADDRESS(int SpellManager::dSpellManager(void *, bool), 0x00);
-FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *, char *, char *), 0x04);
-//FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *), 0x08);
-FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x0C(int, int), 0x0c);
-FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x10(int), 0x10);
-FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x14(int), 0x14);
-FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x18(int), 0x18);
-FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL SpellManager::GetSpellByID(int), 0x1c);
-FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int), 0x20);
-FUNCTION_AT_VIRTUAL_ADDRESS( bool SpellManager::Unknown0x24(bool), 0x24);
+FUNCTION_AT_VIRTUAL_ADDRESS( void ClientSpellManager::PrintFailedRequirementString(int, int), 0x0c);
+FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupID(int), 0x10);
+FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRank(int), 0x14);
+FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRule(int), 0x18);
+FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL ClientSpellManager::GetSpellByID(int), 0x1c);
+FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* ClientSpellManager::GetSpellAffect(int), 0x20);
+FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::GetSpellAffectEmpty(bool), 0x24);
 #else
-FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL SpellManager::GetSpellByID(int), 0x20);
-FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int), 0x24);
+FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::DoesMeetRequirement(CharacterZoneClient *,int), 0x0c);
+FUNCTION_AT_VIRTUAL_ADDRESS( void ClientSpellManager::PrintFailedRequirementString(int, int), 0x10);
+FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupID(int), 0x14);
+FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRank(int), 0x18);
+FUNCTION_AT_VIRTUAL_ADDRESS( ESpellStackingRules ClientSpellManager::GetSpellStackingGroupRule(int), 0x1c);
+FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL ClientSpellManager::GetSpellByID(int), 0x20);
+FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* ClientSpellManager::GetSpellAffect(int), 0x24);
+FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::GetSpellAffectEmpty(bool), 0x28);
 #endif
 
 // AUTO IMPORTS
@@ -4021,7 +4028,10 @@ FUNCTION_AT_ADDRESS(void  AltAdvManager::GetAbilityReqs(char *,int),AltAdvManage
 FUNCTION_AT_ADDRESS(void  EQ_CharacterData::EQ_CharacterDataResetAllMembers(void),EQ_CharacterData__EQ_CharacterDataResetAllMembers);
 #endif
 #ifdef EQ_Affect__Reset_x
-FUNCTION_AT_ADDRESS(void  EQ_Affect::Reset(void),EQ_Affect__Reset);
+FUNCTION_AT_ADDRESS(void EQ_Affect::Reset(void),EQ_Affect__Reset);
+#endif
+#ifdef EQ_Affect__GetAffectData_x
+FUNCTION_AT_ADDRESS(int EQ_Affect::GetAffectData(int)const,EQ_Affect__GetAffectData);
 #endif
 #ifdef EQ_Character__EQ_Character_x
 FUNCTION_AT_ADDRESS( EQ_Character::EQ_Character(void),EQ_Character__EQ_Character);
@@ -4399,14 +4409,23 @@ FUNCTION_AT_ADDRESS(bool  EQ_Character::DoesSpellMatchFocusFilters(class EQ_Spel
 #ifdef EQ_Character__GetMyPetPlayer_x
 FUNCTION_AT_ADDRESS(class EQPlayer *  EQ_Character::GetMyPetPlayer(void),EQ_Character__GetMyPetPlayer);
 #endif
-#ifdef EQ_Character__GetMaxEffects_x
-FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::GetMaxEffects(void)const ,EQ_Character__GetMaxEffects);
+#ifdef CharacterZoneClient__GetMaxEffects_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::GetMaxEffects(void)const ,CharacterZoneClient__GetMaxEffects);
 #endif
-#ifdef EQ_Character__GetEffect_x
-FUNCTION_AT_ADDRESS(class EQ_Affect &  EQ_Character::GetEffect(int),EQ_Character__GetEffect);
+#ifdef CharacterZoneClient__GetEffect_x
+FUNCTION_AT_ADDRESS(EQ_Affect & CharacterZoneClient::GetEffect(int)const,CharacterZoneClient__GetEffect);
 #endif
-#ifdef EQ_Character__GetEffectId_x
-FUNCTION_AT_ADDRESS(unsigned int EQ_Character::GetEffectId(int),EQ_Character__GetEffectId);
+#ifdef CharacterZoneClient__GetOpenEffectSlot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetOpenEffectSlot(bool, bool, int),CharacterZoneClient__GetOpenEffectSlot);
+#endif
+#ifdef CharacterZoneClient__GetFirstEffectSlot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetFirstEffectSlot(bool, bool),CharacterZoneClient__GetFirstEffectSlot);
+#endif
+#ifdef CharacterZoneClient__GetLastEffectSlot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetLastEffectSlot(bool, bool, bool),CharacterZoneClient__GetLastEffectSlot);
+#endif
+#ifdef CharacterBase__GetEffectId_x
+FUNCTION_AT_ADDRESS(unsigned int CharacterBase::GetEffectId(int),CharacterBase__GetEffectId);
 #endif
 #ifdef EQ_Character__SetEffectId_x
 FUNCTION_AT_ADDRESS(void  EQ_Character1::SetEffectId(unsigned char,unsigned int),EQ_Character__SetEffectId);
@@ -4426,8 +4445,8 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::CastingRequirementsMet(int),EQ_
 #ifdef EQ_Character__GetAACastingTimeModifier_x
 FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *),EQ_Character__GetAACastingTimeModifier);
 #endif
-#ifdef EQ_Character__BardCastBard_x
-FUNCTION_AT_ADDRESS(int  EQ_Character::BardCastBard(class EQ_Spell const *,int)const ,EQ_Character__BardCastBard);
+#ifdef CharacterZoneClient__BardCastBard_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::BardCastBard(const EQ_Spell*, signed int)const ,CharacterZoneClient__BardCastBard);
 #endif
 #ifdef EQ_Character__IsValidAffect_x
 FUNCTION_AT_ADDRESS(bool  EQ_Character::IsValidAffect(int),EQ_Character__IsValidAffect);
@@ -4439,7 +4458,10 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::LaunchSpell(unsigned char,int,c
 FUNCTION_AT_ADDRESS(void  EQ_Character::HandleSpecialPCAffects(int),EQ_Character__HandleSpecialPCAffects);
 #endif
 #ifdef CharacterZoneClient__CalcAffectChange_x
-FUNCTION_AT_ADDRESS(int  CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel,unsigned char Slot,class EQ_Affect *,int Base,bool bCap),CharacterZoneClient__CalcAffectChange);
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::CalcAffectChange(const EQ_Spell *spell, BYTE, BYTE, const EQ_Affect *, int, PlayerZoneClient *,bool, int,bool),CharacterZoneClient__CalcAffectChange);
+#endif
+#ifdef CharacterZoneClient__CalcAffectChangeGeneric_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::CalcAffectChangeGeneric(const EQ_Spell *spell, BYTE, BYTE, const EQ_Affect *, int, bool),CharacterZoneClient__CalcAffectChangeGeneric);
 #endif
 #ifdef EQ_Character__GetPCSpellAffect_x
 FUNCTION_AT_ADDRESS(class EQ_Affect *  EQ_Character::GetPCSpellAffect(int,int *,int *),EQ_Character__GetPCSpellAffect);
@@ -4470,9 +4492,9 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__Get
 #endif
 #ifdef CharacterZoneClient__IsStackBlocked_x
 #ifndef EMU
-FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD, DWORD, DWORD, bool), CharacterZoneClient__IsStackBlocked);
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*, int, bool), CharacterZoneClient__IsStackBlocked);
 #else
-FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD),CharacterZoneClient__IsStackBlocked);
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*,int),CharacterZoneClient__IsStackBlocked);
 #endif
 #endif
 #ifdef CharacterZoneClient__CanUseMemorizedSpellSlot_x
@@ -4486,6 +4508,27 @@ FUNCTION_AT_ADDRESS(void  EQ_Character::HitBySpell(struct _EQMissileHitinfo *),E
 #endif
 #ifdef EQ_Spell__IsStackableDot_x
 FUNCTION_AT_ADDRESS(bool  EQ_Spell::IsStackableDot(void)const ,EQ_Spell__IsStackableDot);
+#endif
+#ifdef EQ_Spell__IsStackable_x
+FUNCTION_AT_ADDRESS(bool EQ_Spell::IsStackable(void)const ,EQ_Spell__IsStackable);
+#endif
+#ifdef EQ_Spell__GetSpellAffectBySlot_x
+FUNCTION_AT_ADDRESS(const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int)const ,EQ_Spell__GetSpellAffectBySlot);
+#endif
+#ifdef EQ_Spell__GetSpellAffectByIndex_x
+FUNCTION_AT_ADDRESS(const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int)const ,EQ_Spell__GetSpellAffectByIndex);
+#endif
+#ifdef EQ_Spell__IsSPAStacking_x
+FUNCTION_AT_ADDRESS(bool EQ_Spell::IsSPAStacking(int) ,EQ_Spell__IsSPAStacking);
+#endif
+#ifdef EQ_Spell__IsSPAIgnoredByStacking_x
+FUNCTION_AT_ADDRESS(bool EQ_Spell::IsSPAIgnoredByStacking(int) ,EQ_Spell__IsSPAIgnoredByStacking);
+#endif
+#ifdef EQ_Spell__IsNoRemove_x
+FUNCTION_AT_ADDRESS(bool EQ_Spell::IsNoRemove(void)const ,EQ_Spell__IsNoRemove);
+#endif
+#ifdef EQ_Spell__IsDegeneratingLevelMod_x
+FUNCTION_AT_ADDRESS(bool EQ_Spell::IsDegeneratingLevelMod(int) ,EQ_Spell__IsDegeneratingLevelMod);
 #endif
 #ifdef EQ_Character__EQSPA_Feign_Death_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::EQSPA_Feign_Death(int),EQ_Character__EQSPA_Feign_Death);
@@ -4975,9 +5018,6 @@ FUNCTION_AT_ADDRESS( EQ_Spell::EQ_Spell(char *),EQ_Spell__EQ_Spell);
 #ifdef EQ_Spell__dEQ_Spell_x
 FUNCTION_AT_ADDRESS( EQ_Spell::~EQ_Spell(void),EQ_Spell__dEQ_Spell);
 #endif
-#ifdef EQ_Spell__IsSPAIgnoredByStacking_x
-FUNCTION_AT_ADDRESS(bool __cdecl EQ_Spell::IsSPAIgnoredByStacking(int),EQ_Spell__IsSPAIgnoredByStacking);
-#endif
 #ifdef EQ_Spell__SpellAffects_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Spell::SpellAffects(int)const ,EQ_Spell__SpellAffects);
 #endif
@@ -5391,6 +5431,9 @@ FUNCTION_AT_ADDRESS(void  EQPlayer::SetAndReserveID(unsigned int),EQPlayer__SetA
 #ifdef EQPlayer__InitializeIDArray_x
 FUNCTION_AT_ADDRESS(void  EQPlayer::InitializeIDArray(void),EQPlayer__InitializeIDArray);
 #endif
+#ifdef PlayerZoneClient__GetLevel_x
+FUNCTION_AT_ADDRESS(BYTE EQPlayer::GetLevel(void) const,PlayerZoneClient__GetLevel);
+#endif
 #ifdef EQPlayer__Levitating_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::Levitating(void),EQPlayer__Levitating);
 #endif
@@ -5411,6 +5454,9 @@ FUNCTION_AT_ADDRESS(bool  EQPlayer::SetNameSpriteTint(void),EQPlayer__SetNameSpr
 #endif
 #ifdef PlayerClient__GetPcClient_x
 FUNCTION_AT_ADDRESS(PcClient *PlayerClient::GetPcClient(void)const,PlayerClient__GetPcClient);
+#endif
+#ifdef PcClient__PcClient_x
+FUNCTION_AT_ADDRESS(PcClient::PcClient(void),PcClient__PcClient);
 #endif
 #ifdef EQPlayer__UpdateNameSprite_x
 FUNCTION_AT_ADDRESS(void  EQPlayer::UpdateNameSprite(void),EQPlayer__UpdateNameSprite);
@@ -9893,6 +9939,9 @@ FUNCTION_AT_ADDRESS(char *CChatService::GetFriendName(int),CChatService__GetFrie
 #endif
 #ifdef PlayerPointManager__GetAltCurrency_x
 FUNCTION_AT_ADDRESS(unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long),PlayerPointManager__GetAltCurrency);
+#endif
+#ifdef CharacterZoneClient__CharacterZoneClient_x
+FUNCTION_AT_ADDRESS(CharacterZoneClient::CharacterZoneClient(void), CharacterZoneClient__CharacterZoneClient);
 #endif
 #ifdef CharacterZoneClient__HasSkill_x
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient__HasSkill);

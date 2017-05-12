@@ -2717,12 +2717,12 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CurrentFavor:
-		Dest.DWord = pChar->CurrFavor;
-		Dest.Type = pIntType;
+		Dest.Int64 = pChar->CurrFavor;
+		Dest.Type = pInt64Type;
 		return true;
 	case CareerFavor:
-		Dest.DWord = pChar->CareerFavor;
-		Dest.Type = pIntType;
+		Dest.Int64 = pChar->CareerFavor;
+		Dest.Type = pInt64Type;
 		return true;
 	case Inventory:
 		if (ISINDEX())
@@ -5462,7 +5462,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (pChar->ShortBuff[nBuff].SpellID>0) {
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->ShortBuff[nBuff].Duration;
-					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_ILLUSION) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
+					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_CHANGE_FORM) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
 						if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 							buffduration = 99999 + 1;
 						}
@@ -5471,6 +5471,46 @@ bool MQ2SpellType::GETMEMBER()
 							return true;
 						}
 					}
+				}
+			}
+		}
+		return true;
+	}
+	case NewStacksTarget:
+	{
+		//nothing to see here yet, work in progress. -eqmule
+		//noone should use this yet. it is NOT reliable right now. (but it will be)
+		Dest.Type = pBoolType;
+		Dest.DWord = false;
+		if (PCHARINFO pMe = GetCharInfo()) {
+			if (pTarget) {
+				EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+				int buffID = 0;
+				int j = 0;
+				for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
+					if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
+						if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+							if (pBuff->SpellType) {
+								pAffects[j].Type = pBuff->SpellType;
+							}
+							else {
+								pAffects[j].Type = 1;
+							}
+							pAffects[j].ID = pBuff->ID;
+							pAffects[j].Activatable = pBuff->Activated;
+							pAffects[j].CasterID = pMe->pSpawn->SpawnID;
+							pAffects[j].CasterLevel = pMe->MainLevel;
+							pAffects[j].BaseDmgMod = 1.0;
+							j++;
+						}
+					}
+				}
+				EQ_Affect*affe = 0;
+				int siindex = -1;
+				affe = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pMe->pSpawn, &siindex, true, pMe->MainLevel, pAffects, j);
+				if (!affe)
+				{
+					Dest.DWord = true;
 				}
 			}
 		}

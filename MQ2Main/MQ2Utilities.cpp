@@ -1031,8 +1031,9 @@ void PopulateSpellMap()
 	gbSpelldbLoaded = FALSE;
 	g_SpellNameMap.clear();
 	std::string lowname, threelow;
+	PSPELLMGR psmgr = (PSPELLMGR)pSpellMgr;
 	for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-		if (PSPELL pSpell = ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]) {
+		if (PSPELL pSpell = psmgr->Spells[dwSpellID]) {
 			if (pSpell->Name[0] != '\0') {
 				lowname = pSpell->Name;
 				std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
@@ -2477,8 +2478,8 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 #if !defined(EMU)
 	if (pSpell) {
 		if (GetSpellNumEffects(pSpell) > index) {
-			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Attrib;
 				}
 			}
@@ -2498,8 +2499,8 @@ LONG GetSpellBase(PSPELL pSpell, int index)
 #if !defined(EMU)
 	if (pSpell) {
 		if (GetSpellNumEffects(pSpell) > index) {
-			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Base;
 				}
 			}
@@ -2519,8 +2520,8 @@ LONG GetSpellBase2(PSPELL pSpell, int index)
 #if !defined(EMU)
 	if (pSpell) {
 		if (GetSpellNumEffects(pSpell) > index) {
-			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Base2;
 				}
 			}
@@ -2540,8 +2541,8 @@ LONG GetSpellMax(PSPELL pSpell, int index)
 #if !defined(EMU)
 	if (pSpell) {
 		if (GetSpellNumEffects(pSpell) > index) {
-			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Max;
 				}
 			}
@@ -2561,8 +2562,8 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 #if !defined(EMU)
 	if (pSpell) {
 		if (GetSpellNumEffects(pSpell) > index) {
-			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Calc;
 				}
 			}
@@ -2594,10 +2595,10 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	LONG targettype = pSpell->TargetType;
 	LONG skill = pSpell->Skill;
 
-	if (spa == SPA_PLACEHOLDER)
+	if (spa == SPA_NOSPELL)
 		return szBuffer;
 
-	if (spa == SPA_LURE && (base <= 1 || base > 255))
+	if (spa == SPA_CHA && (base <= 1 || base > 255))
 		return szBuffer;
 
 	// Adjust for Base=100
@@ -8555,7 +8556,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
 					//if (PCHARINFO pChar = GetCharInfo()) {
 					//	if (pChar->vtable2) {
-					//		int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell, 0, 0, NULL, 1, true);
+					//		int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChangeGeneric((EQ_Spell*)pSpell, 0, 0, NULL, 1, true);
 					//	}
 					//}
 					switch (spa)

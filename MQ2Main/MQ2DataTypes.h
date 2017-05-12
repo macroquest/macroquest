@@ -1571,6 +1571,8 @@ public:
 		DurationValue1 = 66,
 		NewStacks = 67,
 		NewStacksWith = 68,
+		NewStacksTarget = 69,
+		StacksWithDiscs = 70,
 	};
 	enum SpellMethods
 	{
@@ -1645,6 +1647,8 @@ public:
 		TypeMember(DurationValue1);
 		TypeMember(NewStacks);
 		TypeMember(NewStacksWith);
+		TypeMember(NewStacksTarget);
+		TypeMember(StacksWithDiscs);
 	}
 
 	~MQ2SpellType()
