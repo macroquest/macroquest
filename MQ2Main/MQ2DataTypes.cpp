@@ -8614,6 +8614,32 @@ bool MQ2EverQuestType::GETMEMBER()
 			}
 		}
 		break;
+	case CurrentUI:
+	{
+		if (PCHARINFO pCharInfo = GetCharInfo()) {
+			CHAR szFilename[MAX_STRING] = { 0 };
+			sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+			GetPrivateProfileString("Main", "UISkin", "default", DataTypeTemp, MAX_STRING, szFilename);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		}
+		break;
+	}
+	case IsDefaultUILoaded:
+	{
+		Dest.DWord = 1;//it is by default...
+		Dest.Type = pBoolType;
+		if (PCHARINFO pCharInfo = GetCharInfo()) {
+			CHAR szFilename[MAX_STRING] = { 0 };
+			sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+			GetPrivateProfileString("Main", "UISkin", "default", DataTypeTemp, MAX_STRING, szFilename);
+			if (_stricmp(DataTypeTemp, "default")) {
+				Dest.DWord = 0;
+			}
+		}
+		return true;
+	}
 	}
 	return false;
 }

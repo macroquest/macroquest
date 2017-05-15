@@ -292,6 +292,7 @@ GNU General Public License for more details.
 #define pinstCTradeskillWnd_x                                      0x10B96B8
 #define pinstCAdvancedLootWnd_x                                    0xE5EE30
 #define pinstRewardSelectionWnd_x                                  0x10B7E70
+#define pinstEQSuiteTextureLoader_x                                0xD0A458
 
 //// 
 // Section 3: Miscellaneous Offsets 
@@ -953,3 +954,6 @@ GNU General Public License for more details.
 //CCursorAttachment
 #define CCursorAttachment__AttachToCursor_x                        0x6A3220
 #define CCursorAttachment__Deactivate_x                            0x6A2770
+
+//CEQSuiteTextureLoader
+#define CEQSuiteTextureLoader__GetDefaultUIPath_x                  0x8F0950

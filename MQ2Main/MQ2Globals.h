@@ -517,6 +517,7 @@ namespace MQ2Globals
 	EQLIB_VAR CContainerMgr **ppContainerMgr;
 	EQLIB_VAR CChatManager **ppChatManager;
 	EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
+
 	EQLIB_VAR CFacePick **ppFacePick;
 	EQLIB_VAR CInvSlotMgr **ppInvSlotMgr;
 	//EQLIB_VAR CPopupWndManager **ppPopupWndManager;
@@ -605,8 +606,8 @@ namespace MQ2Globals
 	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	EQLIB_VAR CAdvancedLootWnd **ppAdvancedLootWnd;
 	EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
-	EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
-
+	EQLIB_VAR CEQSuiteTextureLoader *ppEQSuiteTextureLoader;
+	
 
 #define pConfirmationDialog (*ppConfirmationDialog)
 #define pRewardSelectionWnd (*ppRewardSelectionWnd)
@@ -616,7 +617,7 @@ namespace MQ2Globals
 #define pSocialEditWnd (*ppSocialEditWnd)
 #define pContainerMgr (*ppContainerMgr)
 #define pChatManager (*ppChatManager)
-#define pConfirmationDialog (*ppConfirmationDialog)
+#define pEQSuiteTextureLoader (ppEQSuiteTextureLoader)
 #define pFacePick (*ppFacePick)
 #define pInvSlotMgr (*ppInvSlotMgr)
 #define pPopupWndManager (*ppPopupWndManager)
@@ -964,7 +965,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstIconCache;
 	EQLIB_VAR DWORD pinstRewardSelectionWnd;
 	EQLIB_VAR DWORD pinstCConfirmationDialog;
-
+	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
+	
 
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __ConvertItemTags;
@@ -1519,5 +1521,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CItemDisplayManager__CreateWindowInstance;
 	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor;
 	EQLIB_VAR DWORD CCursorAttachment__Deactivate;
+	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
+	
 }
 using namespace MQ2Globals;

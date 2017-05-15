@@ -1284,6 +1284,9 @@ FUNCTION_AT_ADDRESS(void  CEQSuiteTextureLoader::UnloadAllTextures(void),CEQSuit
 #ifdef CEQSuiteTextureLoader__GetTexture_x
 FUNCTION_AT_ADDRESS(struct T3D_tagBMINFO *  CEQSuiteTextureLoader::GetTexture(class CUITextureInfo const &),CEQSuiteTextureLoader__GetTexture);
 #endif
+#ifdef CEQSuiteTextureLoader__GetDefaultUIPath_x
+FUNCTION_AT_ADDRESS(const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const,CEQSuiteTextureLoader__GetDefaultUIPath);
+#endif
 #ifdef CUITextureInfo__GetName_x
 FUNCTION_AT_ADDRESS(class CXStr  CUITextureInfo::GetName(void)const ,CUITextureInfo__GetName);
 #endif

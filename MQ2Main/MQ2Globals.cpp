@@ -228,7 +228,8 @@ namespace MQ2Globals
 #endif
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
-
+		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
+		
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
 		ppWndMgr = (CXWndManager**)pinstCXWndManager;
 		ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
@@ -1220,6 +1221,7 @@ namespace MQ2Globals
 	CAdvancedLootWnd **ppAdvancedLootWnd = 0;
 	CRewardSelectionWnd **ppRewardSelectionWnd = 0;
 	CConfirmationDialog **ppConfirmationDialog = 0;
+	CEQSuiteTextureLoader *ppEQSuiteTextureLoader = 0;
 
 	CSidlManager **ppSidlMgr = 0;
 	CXWndManager **ppWndMgr = 0;
@@ -1504,7 +1506,8 @@ namespace MQ2Globals
 #endif
 	INITIALIZE_EQGAME_OFFSET(pinstIconCache);
 	INITIALIZE_EQGAME_OFFSET(pinstRewardSelectionWnd);
-
+	INITIALIZE_EQGAME_OFFSET(pinstEQSuiteTextureLoader);
+	
 
 	INITIALIZE_EQGAME_OFFSET(__CastRay);
 	INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);
@@ -2049,7 +2052,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__CreateWindowInstance);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
-
+	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetDefaultUIPath);
+	
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);
 #endif

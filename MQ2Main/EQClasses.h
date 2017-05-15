@@ -1914,6 +1914,7 @@ EQLIB_OBJECT CEQSuiteTextureLoader::CEQSuiteTextureLoader(void);
 EQLIB_OBJECT struct T3D_tagBMINFO * CEQSuiteTextureLoader::GetTexture(class CUITextureInfo const &);
 EQLIB_OBJECT unsigned int CEQSuiteTextureLoader::CreateTexture(class CUITextureInfo const &);
 EQLIB_OBJECT void CEQSuiteTextureLoader::UnloadAllTextures(void);
+EQLIB_OBJECT const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const;
 };
 
 class CEverQuest

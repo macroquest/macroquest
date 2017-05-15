@@ -3061,6 +3061,8 @@ public:
 		LayoutCopyInProgress = 23,
 		LastMouseOver = 24,
 		CharSelectList = 25,
+		CurrentUI = 26,
+		IsDefaultUILoaded = 27,
 	};
 	enum EverQuestMethods
 	{
@@ -3092,6 +3094,8 @@ public:
 		TypeMember(LayoutCopyInProgress);
 		TypeMember(LastMouseOver);
 		TypeMember(CharSelectList);
+		TypeMember(CurrentUI);
+		TypeMember(IsDefaultUILoaded);
 	}
 
 	~MQ2EverQuestType()
