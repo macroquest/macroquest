@@ -3181,7 +3181,6 @@ typedef struct _ZONEINFO {
 /*0x3b0*/
 } ZONEINFO, *PZONEINFO;
 
-// actual size: 0x409 2016 08 10 test se 4DE521 - eqmule
 // actual size: 0x40a 2017 05 09 test se 4ECF26 - eqmule
 // Filled in missing values see Mar 11 2016 test eqgame / 4DF9C0 - demonstar55
 // EQ_Spell__EQ_Spell_x    numeffects  attrib1  base1  base2_1  calc1  max1
