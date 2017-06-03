@@ -966,7 +966,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstRewardSelectionWnd;
 	EQLIB_VAR DWORD pinstCConfirmationDialog;
 	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
-	
 
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __ConvertItemTags;

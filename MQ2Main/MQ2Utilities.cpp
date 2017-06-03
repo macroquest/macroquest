@@ -5460,7 +5460,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 		(!_strnicmp(Cmd, "Ward", 4)) ||
 		//(!_strnicmp(szTemp,"Shroudkeeper",12))  ||
 		(!_strnicmp(Cmd, "Eye of", 6)) ||
-		(!_strnicmp(Cmd, "Imperial Crypt", 13)) ||
+		(!_strnicmp(Cmd, "Imperial_Crypt", 14)) ||
 		(!_strnicmp(Cmd, "Diaku", 5)))
 		return false;
 	if (isupper(Cmd[0]) || Cmd[0] == '#')

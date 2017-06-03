@@ -8534,6 +8534,7 @@ class PlayerPointManager
 public:
 EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long b=1);
 };
+
 #pragma pack(push)
 #pragma pack(4)
 enum eKeyboardMode

@@ -213,7 +213,6 @@ VFTABLE
 #define EQ_CHAT_FONT_OFFSET    0x11c
 
 
-
 #define CXW_NO_VTABLE_BEGIN \
 /*0x0004*/ struct _CSIDLWND**	WindowPtrs; \
 /*0x0008*/ struct _CSIDLWND*	pPrevSiblingWnd; \
@@ -347,7 +346,7 @@ CXW_NO_VTABLE_BEGIN \
 #define CXW \
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable; \
 CXW_NO_VTABLE \
-/*0x1f0*/
+/*0x1e8*/
 
 typedef struct _CXWND {
 CXW
@@ -391,6 +390,7 @@ CXW
 /*0x228*/ DWORD Unknown0x228; /* CTextureAnimation */ \
 /*0x22c*/ DWORD Unknown0x22c; \
 /*0x230*/
+
 #define CSW \
 /*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable; \
 CXW_NO_VTABLE \

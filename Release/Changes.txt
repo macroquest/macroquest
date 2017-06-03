@@ -1,9 +1,12 @@
+02 Jun 2017 by eqmule
+- Updated for TEST
+
 17 May 2017 by The Undertaker
 - Updated for LIVE
 
 15 May 2017 by maskoi
 - EverQuest.CurrentUI now return a string representing the currently loaded UI skin.
-- EverQuest.IsCurrentUILoaded returns a bool true or false if the "Default" UI skin is the one loaded.
+- EverQuest.IsDefaultUILoaded returns a bool true or false if the "Default" UI skin is the one loaded.
 
 10 May 2017 by The Undertaker
 - Updated for TEST

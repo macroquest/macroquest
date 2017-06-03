@@ -1507,7 +1507,6 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstIconCache);
 	INITIALIZE_EQGAME_OFFSET(pinstRewardSelectionWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstEQSuiteTextureLoader);
-	
 
 	INITIALIZE_EQGAME_OFFSET(__CastRay);
 	INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);
