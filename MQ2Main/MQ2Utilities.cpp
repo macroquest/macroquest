@@ -1932,6 +1932,7 @@ TS PCHAR GetFactionName(LONG FactionType, CHAR(&szBuffer)[_Size])
 	switch (FactionType)
 	{
 	case 304: strcat_s(szBuffer, "(Ring of Scale)"); break;
+	case 306: strcat_s(szBuffer, "(Blackburrow Gnolls)"); break;
 	case 430: strcat_s(szBuffer, "(Claws of Veeshan)"); break;
 	case 1150: strcat_s(szBuffer, "(Jewel of Atiiki Efreetis)"); break;
 	case 1178: strcat_s(szBuffer, "(S.H.I.P. Workshop Base Population)"); break;

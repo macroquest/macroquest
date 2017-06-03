@@ -1,6 +1,9 @@
 02 Jun 2017 by eqmule
 - Updated for TEST
 
+18 May 2017 by rswiders
+- Updated faction names
+
 17 May 2017 by The Undertaker
 - Updated for LIVE
 
