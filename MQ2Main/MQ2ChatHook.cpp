@@ -65,8 +65,13 @@ VOID OutputTextToLog_Detour(char*szMsg)
 class CChatHook 
 { 
 public:
+#ifdef TEST
+	VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool, bool,int); 
+    VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst,int something) 
+#else
     VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst); 
     VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst) 
+#endif
     { 
         //DebugSpew("CChatHook::Detour(%s)",szMsg); 
         gbInChat = TRUE; 
@@ -138,7 +143,11 @@ public:
 						}
 						else {
 #endif
+							#ifdef TEST
+							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst,something);
+							#else
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
+							#endif
 							LocalFree(szAnonMsg);
 #ifdef EMU
 						}
@@ -162,7 +171,11 @@ public:
 					}
 					else {
 #endif
+						#ifdef TEST
+						Trampoline(szMsg, dwColor, EqLog, dopercentsubst,something);
+						#else
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+						#endif
 #ifdef EMU
 				}
 #endif
@@ -230,17 +243,28 @@ public:
         UPCNotificationFlush_Trampoline();
     }
 }; 
-
+#ifdef TEST
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst,int something));
+#else
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
+#endif
 #ifdef EMU
 DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
 #endif
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
+#ifdef TEST
+VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst,int something)
+#else
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst)
+#endif
 {
+#ifdef TEST
+    ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst,something);
+#else
     ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst);
+#endif
 }
 
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value,size_t ValueLen)

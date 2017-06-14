@@ -8101,15 +8101,48 @@ bool MQ2SwitchType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Distance:
-		Dest.Float = GetDistance(pTheSwitch->X, pTheSwitch->Y);
+	{
+		float BoundingRadius = 0;
+		if (ActorBase*pBase = (ActorBase*)pTheSwitch->pSwitch) {
+			BoundingRadius = pBase->GetBoundingRadius();
+		}
+		else {
+			BoundingRadius = pTheSwitch->ScaleFactor * 0.01f;
+		}
+		if (BoundingRadius)
+		{
+			float thedist = GetDistance(pTheSwitch->X, pTheSwitch->Y) - (BoundingRadius / 2);
+			if (thedist < 0.0f)
+				thedist = 0.0f;
+			Dest.Float = thedist;
+		} else {
+			Dest.Float = GetDistance(pTheSwitch->X, pTheSwitch->Y);
+		}
 		Dest.Type = pFloatType;
 		return true;
+	}
 	case Distance3D:
 	{
 		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pTheSwitch->X;
 		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pTheSwitch->Y;
 		FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pTheSwitch->Z;
-		Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
+		float BoundingRadius = 0;
+		float thedist = 0;
+		if (ActorBase*pBase = (ActorBase*)pTheSwitch->pSwitch) {
+			BoundingRadius = pBase->GetBoundingRadius();
+		}
+		else {
+			BoundingRadius = pTheSwitch->ScaleFactor * 0.01f;
+		}
+		if (BoundingRadius)
+		{
+			thedist = sqrtf(X*X + Y*Y + Z*Z) - (BoundingRadius / 2);
+			if (thedist < 0.0f)
+				thedist = 0.0f;
+			Dest.Float = thedist;
+		} else {
+			Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
+		}
 		Dest.Type = pFloatType;
 		return true;
 	}

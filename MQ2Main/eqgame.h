@@ -420,6 +420,7 @@ GNU General Public License for more details.
 #define CDisplay__is3dON_x                                         0x4B4930
 #define CDisplay__ReloadUI_x                                       0x4CA120
 #define CDisplay__WriteTextHD2_x                                   0x4BAF10
+#define CDisplay__TrueDistance_x                                   0x4B80A0
 
 // CEditBaseWnd 
 #define CEditBaseWnd__SetSel_x                                     0x8F28F0

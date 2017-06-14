@@ -1708,7 +1708,7 @@ EQLIB_OBJECT float CDisplay::PlayerDistance(class EQPlayer *,class EQPlayer *,fl
 EQLIB_OBJECT float CDisplay::PlayerSimpleDistance(class EQPlayer *,class EQPlayer *,float);
 EQLIB_OBJECT float CDisplay::SetActorBoundingRadius(struct T3D_tagACTORINSTANCE *,float,float);
 EQLIB_OBJECT float CDisplay::SimpleDistance(float,float,float,float,float,float,float);
-EQLIB_OBJECT float CDisplay::TrueDistance(float,float,float,float,float,float,float);
+EQLIB_OBJECT float CDisplay::TrueDistance(float fromx,float fromy,float fromz,float tox,float toy,float toz,float zfactor);
 EQLIB_OBJECT int CDisplay::GetItemType(int);
 EQLIB_OBJECT int CDisplay::GetNewPCIniFlag(int,int);
 EQLIB_OBJECT int CDisplay::GetSkyTime(int *,int *);

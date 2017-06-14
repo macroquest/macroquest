@@ -1078,7 +1078,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CDisplay__is3dON;
 	EQLIB_VAR DWORD CDisplay__ReloadUI;
 	EQLIB_VAR DWORD CDisplay__WriteTextHD2;
-
+	EQLIB_VAR DWORD CDisplay__TrueDistance;
+	
 	EQLIB_VAR DWORD CEditBaseWnd__SetSel;
 
 	EQLIB_VAR DWORD CEditWnd__DrawCaret;

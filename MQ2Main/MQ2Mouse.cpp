@@ -19,7 +19,8 @@ GNU General Public License for more details.
 #define DBG_SPEW 
 
 
-#include "MQ2Main.h" 
+#include "MQ2Main.h"
+
 VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
 // ***************************************************************************
 // EqMule Mar 08 2014
@@ -324,6 +325,10 @@ int Click(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
+//class ActorClient
+//{
+//	EQLIB_OBJECT float ActorBase::GetBoundingRadius();
+//};
 VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
@@ -390,19 +395,29 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			if(pDoorTarget) {
 				if (!_strnicmp(szArg1, "left", 4)) {
 					if(DoorEnviroTarget.Name[0]!=0) {
-						if(DistanceToSpawn((PSPAWNINFO)pCharSpawn,&DoorEnviroTarget)<20.0f) {
+						//the distance needs to be calculated by the outer radius of the door and the characters reach...
+						float BoundingRadius = 0;
+						if (ActorBase*pBase = (ActorBase*)pDoorTarget->pSwitch) {
+							BoundingRadius = pBase->GetBoundingRadius();
+						} else {
+							BoundingRadius = pDoorTarget->ScaleFactor * 0.01f;
+						}
+						float Dist = pDisplay->TrueDistance(((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Z, pDoorTarget->Y, pDoorTarget->X, pDoorTarget->Z, 0.0f);
+						float reach = ((PSPAWNINFO)pCharSpawn)->Height + 20.0f + BoundingRadius;
+						if(Dist <= reach) {
 							int KeyID = 0;
 							int Skill = 0;
 							if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor && pChar2->pInventoryArray->Inventory.Cursor->ItemType == ITEMTYPE_NORMAL) {
+								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
-										switch (pItem->Type)
+										switch (pItem->ItemType)
 										{
-										case 33://EQIC_KEY
+										case 33://Key
 											KeyID = pItem->ItemNumber;
 											Skill = 0;
 											break;
-										case 35://EQIC_LOCKPICK
+										case 11://Misc (some keys have this type)
+										case 12://Lockpicks
 											KeyID = pItem->ItemNumber;
 											Skill = GetAdjustedSkill(SKILL_PICKLOCK);
 											break;

@@ -164,6 +164,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,bool),EQ_Character__Max_HP);
 #ifdef EQ_Character__doCombatAbility_x
 FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), EQ_Character__doCombatAbility); 
 #endif 
+FUNCTION_AT_VIRTUAL_ADDRESS(float ActorBase::GetBoundingRadius(), 0x60);
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x4);

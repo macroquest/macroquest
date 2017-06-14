@@ -248,6 +248,7 @@ char szCustomIni[64] = { 0 };
 char szPassword[64] = {0};
 char szServerName[32] = {0};
 char szCharacterName[64] = {0};
+char szSelectCharacterName[64] = { 0 };
 char szNewChar[0x40] = {0};
 ULONGLONG dwTime = 0;
 ULONGLONG switchTime = 0;
@@ -800,6 +801,7 @@ void AddOurPulse()
 				GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
 				GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
 				GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
+                GetPrivateProfileString(szSession, "SelectCharacter", 0, szSelectCharacterName, 64, INIFileName);
 			}
 		}
 	}
@@ -958,6 +960,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
             GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
             GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
             GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
+            GetPrivateProfileString(szSession, "SelectCharacter", 0, szSelectCharacterName, 64, INIFileName);
 		} else {
 			if(char *pLogin = GetLoginName())
             {
@@ -965,6 +968,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
                 GetPrivateProfileString(szStationName, "Password", 0, szPassword, 64, INIFileName);
                 GetPrivateProfileString(szStationName, "Server", 0, szServerName, 32, INIFileName);
                 GetPrivateProfileString(szStationName, "Character", 0, szCharacterName, 64, INIFileName);
+                GetPrivateProfileString(szStationName, "SelectCharacter", 0, szSelectCharacterName, 64, INIFileName);
             }
 		}
 		if(!dwServerID || dwServerID==-1 && EQADDR_SERVERNAME[0]) {
@@ -1101,6 +1105,14 @@ PLUGIN_API VOID OnPulse(VOID)
             SelectCharacter( szNewChar );
 			return;
 		}
+        if( switchTime && switchTime <= MQGetTickCount64() && szSelectCharacterName[0] != '\0' )
+        {
+            //ok at this point the user has 3 seconds to read the message and abort.
+            WriteChatf( "Selecting \ag%s\ax in 3 seconds. please Wait... or press the END key to abort", szSelectCharacterName );
+            switchTime = 0;
+            SelectCharacter( szSelectCharacterName );
+            return;
+        }
 		if (szNewChar[0] != '\0' && dwTime && dwTime <= MQGetTickCount64())
 		{
 			SwitchCharacter(szNewChar);
@@ -1473,6 +1485,8 @@ void HandleWindows()
                     GetPrivateProfileString(szStationName, "Password", 0, szPassword, 64, INIFileName);
                     GetPrivateProfileString(szStationName, "Server", 0, szServerName, 32, INIFileName);
                     GetPrivateProfileString(szStationName, "Character", 0, szCharacterName, 64, INIFileName);
+                    GetPrivateProfileString(szStationName, "SelectCharacter", 0, szSelectCharacterName, 64, INIFileName);
+
                 }
                 else
                 {

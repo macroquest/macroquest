@@ -2435,6 +2435,7 @@ public:
 /*0x0ff4*/ int		Details;                //drakkin only face setting
 /*0x0ff8*/ struct _EQUIPMENT	ActorEquipment;  //0x0ff8 is confirmed // size 0xb4
 /*0x10ac*/
+EQLIB_OBJECT float ActorBase::GetBoundingRadius();
 };
 class ActorClient : public ActorBase
 {
