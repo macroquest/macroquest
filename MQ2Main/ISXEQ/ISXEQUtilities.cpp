@@ -167,22 +167,25 @@ unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &
             }
          ExtraUsed=1;
          SearchSpawn.bLight=TRUE;
-        } else if (!strcmp(argv[arg],"GUILD")) {
+        } else if (!strcmp(argv[arg],"guild")) {
          SearchSpawn.GuildID=GetCharInfo()->pSpawn->GuildID;
-        } else if (!stricmp(argv[arg],"guild")) {
-         if (arg+1<argc)
-         {
-            DWORD GuildID=0xFFFF;
-            GuildID=GetGuildIDByName(argv[arg+1]);
-            if (GuildID!=0xFFFF)
-            {
-               ExtraUsed=1;
-               SearchSpawn.GuildID=GuildID;
-            }
-         }
-         else {
-                SearchSpawn.GuildID = GetCharInfo()->pSpawn->GuildID;
-            }
+        } else if (!stricmp(argv[arg],"guildname")) {
+			if (arg + 1 < argc)
+			{
+#ifndef EMU
+				__int64 GuildID = -1;
+#else
+				DWORD GuildID = -1;
+#endif
+				GuildID = GetGuildIDByName(argv[arg + 1]);
+				if (GuildID != -1 && GuildID != 0) {
+					ExtraUsed = 1;
+					SearchSpawn.GuildID = GuildID;
+				}
+			}
+			else {
+				SearchSpawn.GuildID = GetCharInfo()->pSpawn->GuildID;
+			}
         } else if (!stricmp(argv[arg],"alert")) {
          if (arg+1<argc)
             SearchSpawn.AlertList=atoi(argv[arg+1]);

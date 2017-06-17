@@ -475,8 +475,8 @@ int CMD_Where(int argc, char* argv[])
         sprintf(szMsg,"The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
             CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
             pSpawnClosest->Level,
-            pEverQuest->GetRaceDesc(pSpawnClosest->Race),
-            GetClassDesc(pSpawnClosest->Class),
+            pEverQuest->GetRaceDesc(pSpawnClosest->mActorClient.Race),
+			GetClassDesc(pSpawnClosest->mActorClient.Class),
             DistanceToSpawn(pChar,pSpawnClosest),
             szHeading[Angle],
             pSpawnClosest->Z-pChar->Z);

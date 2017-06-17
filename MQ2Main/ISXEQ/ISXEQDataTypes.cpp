@@ -582,3 +582,18 @@ bool MQ2XTargetType::GETMETHOD()
       return true;
 #undef pPtr
 }
+
+bool MQ2CharSelectListType::GETMETHOD()
+{
+	PMQ2TYPEMETHOD pMethod=MQ2CharSelectListType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((CharSelectListMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}
+

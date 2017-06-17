@@ -1405,12 +1405,19 @@ long MakeTime()
 
 VOID UpdateDefaultMapLoc()
 {
+#ifdef ISXEQ
+	DefaultMapLoc->lineSize = 50;
+	DefaultMapLoc->width = 10;
+	DefaultMapLoc->r_color = 255;
+	DefaultMapLoc->g_color = 0;
+	DefaultMapLoc->b_color = 0;
+#else
 	DefaultMapLoc->lineSize = GetPrivateProfileInt("MapLoc", "Size", 50, INIFileName);
 	DefaultMapLoc->width = GetPrivateProfileInt("MapLoc", "Width", 10, INIFileName);
 	DefaultMapLoc->r_color = GetPrivateProfileInt("MapLoc", "Red", 255, INIFileName);
 	DefaultMapLoc->g_color = GetPrivateProfileInt("MapLoc", "Green", 0, INIFileName);
 	DefaultMapLoc->b_color = GetPrivateProfileInt("MapLoc", "Blue", 0, INIFileName);
-
+#endif
 	// Update existing default maplocs
 	for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
 	{

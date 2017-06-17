@@ -181,7 +181,7 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	DWORD BodyType=GetBodyType(pNewSpawn);
-	PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
+	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->mActorClient.Race, pNewSpawn->BodyType);
 	SpawnByName[pNewSpawn->Name]=pNewSpawn;
 	if (gGameState>GAMESTATE_CHARSELECT)
 		SetNameSpriteState(pNewSpawn,1);

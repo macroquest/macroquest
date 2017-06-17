@@ -64,7 +64,7 @@ public:
 
 		InputBox = (CTextEntryWnd*)GetChildItem("CWChatInput");
 		InputBox->WindowStyle |= 0x800C0;
-		InputBox->UnknownCW |= 0xFFFFFFFF;
+		InputBox->CRNormal |= 0xFFFFFFFF;
 		InputBox->SetMaxChars(512);
 
 		OutputBox = (CStmlWnd*)GetChildItem("CWChatOutput");
@@ -467,14 +467,17 @@ void LoadChatFromXML(PCSIDLWND pWindow)
 	}
 	GetIntSetting("Locked", pWindow->Locked, 0);
 	GetIntSetting("Fades", pWindow->Fades, 1);
-	GetIntSetting("Delay", pWindow->TimeMouseOver, 2000);
+	GetIntSetting("Delay", pWindow->FadeDelay, 2000);
 	GetIntSetting("Duration", pWindow->FadeDuration, 500);
 	GetIntSetting("Alpha", pWindow->Alpha, 255);
 	GetIntSetting("FadeToAlpha", pWindow->FadeToAlpha, 255);
 	GetIntSetting("BGType", pWindow->BGType, 1);
-	GetIntSetting("BGTint.red", pWindow->BGColor.R, 255);
-	GetIntSetting("BGTint.green", pWindow->BGColor.G, 255);
-	GetIntSetting("BGTint.blue", pWindow->BGColor.B, 255);
+	ARGBCOLOR rgb;
+	rgb.ARGB = pWindow->BGColor;
+	GetIntSetting("BGTint.red", rgb.R, 255);
+	GetIntSetting("BGTint.green", rgb.G, 255);
+	GetIntSetting("BGTint.blue", rgb.B, 255);
+	pWindow->BGColor = rgb.ARGB;
 	GetIntSetting("AutoScroll", MQChatWnd->AutoScroll, 1);
 
 	GetIntSetting("FontSize", MQChatWnd->FontSize, 4);
@@ -508,14 +511,17 @@ void SaveChatToXML(PCSIDLWND pWindow)
 	}
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "Locked", pWindow->Locked);
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "Fades", pWindow->Fades);
-	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "Delay", pWindow->TimeMouseOver);
+	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "Delay", pWindow->FadeDelay);
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "Duration", pWindow->FadeDuration);
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "Alpha", pWindow->Alpha);
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "FadeToAlpha", pWindow->FadeToAlpha);
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGType", pWindow->BGType);
-	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGTint.red", pWindow->BGColor.R);
-	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGTint.green", pWindow->BGColor.G);
-	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGTint.blue", pWindow->BGColor.B);
+	RGBCOLOR rgb;
+	rgb.ARGB = pWindow->BGColor;
+	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGTint.red", rgb.R);
+	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGTint.green", rgb.G);
+	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "BGTint.blue", rgb.B);
+	pWindow->BGColor = rgb.ARGB;
 	pISInterface->SetSettingi(XMLFileName, szChatXMLSection, "FontSize", MQChatWnd->FontSize);
 
 	pISInterface->SaveSettings(XMLFileName);

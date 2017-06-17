@@ -12962,13 +12962,13 @@ bool MQ2RangeType::GETMEMBER()
 		P2 = 0;
 		P3 = 0;
 		if (ISINDEX()) {
-			if (PCHAR pColon = strchr(Index, ':')) {
+			if (PCHAR pColon = strchr(GETFIRST(), ':')) {
 				*pColon = 0;
 				P3 = atoi(&pColon[1]);
-				if (PCHAR pComma = strchr(Index, ',')) {
+				if (PCHAR pComma = strchr(GETFIRST(), ',')) {
 					*pComma = 0;
 					P2 = atoi(&pComma[1]);
-					P1 = atoi(Index);
+					P1 = atoi(GETFIRST());
 					//WriteChatf("Range.Inside(%d,%d:%d)",P1,P2,P3);
 					if (P3>P1 && P3<P2) {
 						Dest.DWord = true;
@@ -12986,13 +12986,13 @@ bool MQ2RangeType::GETMEMBER()
 		P2 = 0;
 		P3 = 0;
 		if (ISINDEX()) {
-			if (PCHAR pColon = strchr(Index, ':')) {
+			if (PCHAR pColon = strchr(GETFIRST(), ':')) {
 				*pColon = 0;
 				P3 = atoi(&pColon[1]);
-				if (PCHAR pComma = strchr(Index, ',')) {
+				if (PCHAR pComma = strchr(GETFIRST(), ',')) {
 					*pComma = 0;
 					P2 = atoi(&pComma[1]);
-					P1 = atoi(Index);
+					P1 = atoi(GETFIRST());
 					//WriteChatf("Range.Between(%d,%d:%d)",P1,P2,P3);
 					if (P3 >= P1 && P3 <= P2) {
 						Dest.DWord = true;
