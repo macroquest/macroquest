@@ -556,6 +556,7 @@ template<typename T, int _cnt> class EQList;
 template<typename T> class EQList<T, -1>
 {
 public:
+	/*0x00*/    PVOID vfTable;
     class Node 
     {
         public:
@@ -636,11 +637,7 @@ template<typename T_KEY, typename T, int _Size> class HashListMap<T_KEY, T, _Siz
 {
 public:
 	PVOID vfTable;
-	enum {
-		cTTableSize = _Size
-	};
-    class Node
-    {
+    class Node {
         public:
             T Value;
             Node *pNext;
@@ -653,16 +650,16 @@ public:
         return((Node *)(void *)((byte *)(void *)cur - (size_t)((byte *)(&((Node *)1)->Value) - (byte *)1)));
     }
 	enum {
-		cTableSize = ((cTTableSize == 0) ? 1 : cTTableSize)
+		TheSize = ((_Size == 0) ? 1 : _Size)
 	};
-    int DynSize;
+	int DynSize;
     int MaxDynSize;
     Node *pHead;
     Node *pTail;
     int Count;
     union
     {
-        Node *Table[cTableSize];
+        Node *Table[TheSize];
         Node **DynTable;
     };
 };
@@ -676,4 +673,41 @@ template<typename T, int _Size, int _Cnt = -1> class HashList : public HashListM
     public:
 };
 
+template<typename T, int _Size, int _Cnt> class HashListSet;
+template<typename T, int _Size> class HashListSet<T, _Size, -1>
+{
+public:
+	PVOID vfTable;
+    typedef T ValueType;
+    class Node {
+        public:
+            T Value;
+            Node *pNext;
+            Node *pPrev;
+            Node *pNextHash;
+    };
+ 	enum {
+		TheSize = ((_Size == 0) ? 1 : _Size)
+	};
+    int DynSize;
+    int MaxDynSize;
+    Node *Head;
+    Node *Tail;
+    int Count;
+    union
+    {
+        Node *Table[TheSize];
+        Node **DynTable;
+    };
+};
+
+template<typename T, int _Size, int _Cnt = -1> class HashListSet : public HashListSet<T, _Size, -1>
+{
+
+};
+
+template<typename T, int _Size> class HashListSet<T, _Size, -2> : public HashListSet<T, _Size, -1>
+{
+    void *MemPool;//todo: change to whatever stl replacement this it, for now we just void* it...
+};
 #pragma pack(pop)

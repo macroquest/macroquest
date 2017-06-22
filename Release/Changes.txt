@@ -1,3 +1,11 @@
+21 Jun 2017 by eqmule
+- Updated for TEST
+- Updated for LIVE
+
+21 Jun 2017 by rswiders
+- Updated ground spawn names
+- Update MQ2Hud for occasional crash - cred demonstar55
+
 17 Jun 2017 by eqmule
 - Updated for ISXEQ so it once again builds...
   I loaded the ISXEQ.sln in VS 2015 and set the projects to the v140_xp toolset, and it built.

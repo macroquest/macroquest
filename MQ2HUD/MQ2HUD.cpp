@@ -143,6 +143,7 @@ VOID AddElement(PCHAR IniString)
     pElement->X=X;
     pElement->Y=Y;
     strcpy_s(pElement->Text,IniString);
+	ZeroMemory(pElement->PreParsed,sizeof(pElement->PreParsed));
     pElement->Size=Size;
 
     DebugSpew("New element '%s' in color %X",pElement->Text,pElement->Color);

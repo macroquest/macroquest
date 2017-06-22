@@ -325,7 +325,7 @@ EQLIB_API VOID DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();
 EQLIB_API VOID ShutdownChatHook();
-#ifdef TEST
+#ifndef EMU
 EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1,int = 0);
 #else
 EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1);

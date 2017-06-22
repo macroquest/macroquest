@@ -2555,102 +2555,6 @@ EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
 EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
 EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
 };
-class SomeClass
-{
-public:
-	PVOID vfTable;
-};
-//we call this charinfo (kinda)
-class CharacterBase : public SomeClass
-{
-public:
-	CProfileManager ProfileManager;
-	TSafeArrayStatic<BYTE, 32>	languages;
-/*0x24f8*/ BYTE         Unknown0x24f8[0x10];
-	TSafeString<0x40>	Name;
-	TSafeString<0x20>	Lastname;
-	TSafeString<0x80>	Title;
-	TSafeString<0x40>	VehicleName;
-	char			Stunned;//well status really
-	EQZoneIndex		zoneId;
-	BYTE	standstate;
-	RaidData		raidData;//size 0xdc
-	int				ExpansionFlags;
-	bool			bSuperPKILL;
-	bool			bUnclone;
-	bool			bDead;
-	int				LD_Timer;
-	int				SpellInterruptCount;
-	bool			bAutoSplit;
-	bool			bTellsOff;
-	bool			bGmInvis;
-	int				KillMe;
-	bool			bCheaterLdFlag;
-	bool			bNoRent;
-	bool			bCorpse;
-	int				SoulMarkCount;
-	bool			bClientGmFlagSet;
-/*0x272c*/ DWORD        BankSharedPlat;//31e4 CharBaseBegin+488
-/*0x2730*/ DWORD        BankSharedGold;//CharBaseBegin+48c
-/*0x2734*/ DWORD        BankSharedSilver;//CharBaseBegin+490
-/*0x2738*/ DWORD        BankSharedCopper;//CharBaseBegin+494
-/*0x273c*/ DWORD        BankPlat;//CharBaseBegin+498
-/*0x2740*/ DWORD        BankGold;//CharBaseBegin+49c
-/*0x2744*/ DWORD        BankSilver;//CharBaseBegin+4a0
-/*0x2748*/ DWORD        BankCopper;//CharBaseBegin+4a4
-/*0x274c*/ DWORD        STR;//CharBaseBegin+4a8
-/*0x2750*/ DWORD        STA;//CharBaseBegin+4ac
-/*0x2754*/ DWORD        CHA;//CharBaseBegin+4b0
-/*0x2758*/ DWORD        DEX;//CharBaseBegin+4b4
-/*0x275c*/ DWORD        INT;//CharBaseBegin+4b8
-/*0x2760*/ DWORD        AGI;//CharBaseBegin+4bc
-/*0x2764*/ DWORD        WIS;//CharBaseBegin+4c0
-/*0x2768*/ DWORD        SavePoison;//CharBaseBegin+4c4
-/*0x276c*/ DWORD        SaveMagic;//CharBaseBegin+4c8
-/*0x2770*/ DWORD        SaveDisease;//CharBaseBegin+4cc
-/*0x2774*/ DWORD        SaveCorruption;//CharBaseBegin+4d0
-/*0x2778*/ DWORD        SaveFire;//CharBaseBegin+4d4
-/*0x277c*/ DWORD        SaveCold;//CharBaseBegin+4d8
-/*0x2780*/ DWORD        SavePhysical;
-/*0x2784*/ int			UncappedStr;
-/*0x2788*/ int  		UncappedSta;
-/*0x278c*/ int			UncappedCha;
-/*0x2790*/ int			UncappedDex;
-/*0x2794*/ int			UncappedInt;
-/*0x2798*/ int			UncappedAgi;
-/*0x279c*/ int			UncappedWis;
-/*0x27a0*/ int			UncappedResistPoison;
-/*0x27a4*/ int			UncappedResistMagic;
-/*0x27a8*/ int			UncappedResistDisease;
-/*0x27ac*/ int			UncappedResistCorruption;
-/*0x27b0*/ int			UncappedResistFire;
-/*0x27b4*/ int			UncappedResistCold;
-/*0x27b8*/ int			NoBuffStr;
-/*0x27bc*/ int			NoBuffSta;
-/*0x27c0*/ int			NoBuffCha;
-/*0x27c4*/ int			NoBuffDex;
-/*0x27c8*/ int			NoBuffInt;
-/*0x27cc*/ int			NoBuffAgi;
-/*0x27d0*/ int			NoBuffWis;
-/*0x27d4*/ int			NoBuffResistPoison;
-/*0x27d8*/ int			NoBuffResistMagic;
-/*0x27dc*/ int			NoBuffResistDisease;
-/*0x27e0*/ int			NoBuffResistCorruption;
-/*0x27e4*/ int			NoBuffResistFire;
-/*0x27e8*/ int			NoBuffResistCold;
-/*0x27ec*/ int			NoBuffResistPhysical;
-
-EQLIB_OBJECT unsigned int CharacterBase::GetEffectId(int index);
-
-EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
-EQLIB_OBJECT class ItemGlobalIndex CreateItemGlobalIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
-EQLIB_OBJECT class ItemIndex CreateItemIndex(int Slot0, int Slot1=-1, int Slot2=-1);
-inline const BaseProfile& GetCurrentBaseProfile() const
-{
-	return *ProfileManager.GetCurrentProfile();
-}
-
-};
 
 class CHashCXStrInt32
 {
@@ -6621,6 +6525,7 @@ class CGroupMemberBase
 {
 	//has a vftable
 public:
+	/*0x00*/ void   *vftable;
 	PCXSTR	Name;
 	short	Type;
 	PCXSTR	OwnerName;
@@ -6631,12 +6536,21 @@ public:
 	UINT CurrentRoleBits;
 	UINT OnlineTimestamp;
 };
+class CGroupMemberClient : public CGroupMemberBase
+{
+public:
+	CharacterZoneClient*pCharacter;
+	PSPAWNINFO pSpawn;
+	int GroupIndex;
+
+};
 class CGroupBase
 {
 	//has a vftable
 public:
-	CGroupMemberBase* pMembers[6];
-	CGroupMemberBase* pGroupLeader;
+/*0x00*/ void   *vftable;
+	CGroupMemberClient* pMembers[6];
+	CGroupMemberClient* pGroupLeader;
 	UINT ID;
 };
 class CGroupClient : public CGroupBase
@@ -6909,11 +6823,233 @@ inline CHAR IsGm()
 }
 };
 
+class SpellCache
+{
+	//has no vftable
+public:
+	struct EffectCache {
+		int SubIndex;
+		int TotalPlayerEffects;
+		int TotalItemEffects;
+		bool bDegenerating;
+		int TotalContrib;
+	};
+	struct AltEffectCache {
+		int SubIndex;
+		int AltTotal;
+	};
+    struct CachedFocusItem {
+        PCONTENTS         pContents;
+        int	Percent;
+        ItemSpellTypes SpellType;
+    };
+    struct CachedFocusEffect {
+        const PSPELL     pSpell;
+        int	Percent;
+		short AffectIndex;
+    };
+    struct CachedFocusAbility {
+        const void*pEffectData;
+        int Percent;
+    };
+    struct CachedFocusMercAbility {
+        const void* pAbilityEffectDef;//todo change this to a MercenaryAbilityEffectsDefinition*
+        int Percent;
+    };
+/*0x00*/ HashTable<EffectCache> *pCachedEffects;
+/*0x04*/ bool bCachedSpellEffects;
+/*0x08*/ HashTable<AltEffectCache> *pCachedAltAbilityEffects;
+/*0x0c*/ bool bCachedAltEffects;
+/*0x10*/ HashTable<EffectCache> *pCachedLimitedEffects;
+/*0x14*/ bool bCachedLimitedEffects;
+/*0x18*/ HashTable<CachedFocusItem, __int64>		CachedFocusItems;
+/*0x28*/ HashTable<CachedFocusEffect, __int64>		CachedFocusEffects;
+/*0x38*/ HashTable<CachedFocusAbility, __int64>		CachedFocusAbilities;
+/*0x48*/ HashTable<CachedFocusMercAbility, __int64>	CachedFocusMercAbilities;
+/*0x58*/ 
+};
+
+class SomeClass
+{
+public:
+/*0x0000*/ void *CharacterBase_vftable;
+};
+
+class CharacterBase: public SomeClass
+{
+public:
+/*0x0004*/ CProfileManager ProfileManager;//size 0x8
+/*0x000C*/ TSafeArrayStatic<BYTE, 0x20>	languages;
+/*0x002C*/ FLOAT         X;
+/*0x0030*/ FLOAT         Y;
+/*0x0034*/ FLOAT         Z;
+/*0x0038*/ FLOAT         Heading;
+/*0x003c*/ TSafeString<0x40>	Name;
+/*0x007c*/ TSafeString<0x20>	Lastname;
+/*0x009c*/ TSafeString<0x80>	Title;
+/*0x011c*/ TSafeString<0x40>	VehicleName;
+/*0x015c*/ char			Stunned;//well status really
+/*0x0160*/ EQZoneIndex		zoneId;
+/*0x0164*/ BYTE	standstate;
+/*0x0168*/ RaidData raidData;//size 0xdc
+/*0x0244*/ int			ExpansionFlags;
+/*0x0248*/ bool			bSuperPKILL;
+/*0x024a*/ bool			bUnclone;
+/*0x024b*/ bool			bDead;
+/*0x024C*/ int			LD_Timer;
+/*0x0250*/ int			SpellInterruptCount;
+/*0x0254*/ bool			bAutoSplit;
+/*0x0255*/ bool			bTellsOff;
+/*0x0256*/ bool			bGmInvis;
+/*0x0258*/ int			KillMe;
+/*0x025c*/ bool			CheaterLdFlag;//likely this is int SoulMarkCount instead.
+/*0x025d*/ bool			NoRent;
+/*0x025e*/ bool			Corpse;
+/*0x025f*/ bool			ClientGmFlagSet;
+/*0x0260*/ int          BankSharedPlat;//31e4 CharBaseBegin+488
+/*0x0264*/ int          BankSharedGold;//CharBaseBegin+48c
+/*0x0268*/ int          BankSharedSilver;//CharBaseBegin+490
+/*0x026c*/ int          BankSharedCopper;//CharBaseBegin+494
+/*0x0270*/ int          BankPlat;//CharBaseBegin+498
+/*0x0274*/ int          BankGold;//CharBaseBegin+49c
+/*0x0278*/ int          BankSilver;//CharBaseBegin+4a0
+/*0x027c*/ int          BankCopper;//CharBaseBegin+4a4
+/*0x0280*/ int          STR;//CharBaseBegin+4a8
+/*0x0284*/ int          STA;//CharBaseBegin+4ac
+/*0x0288*/ int          CHA;//CharBaseBegin+4b0
+/*0x028c*/ int          DEX;//CharBaseBegin+4b4
+/*0x0290*/ int          INT;//CharBaseBegin+4b8
+/*0x0294*/ int          AGI;//CharBaseBegin+4bc
+/*0x0298*/ int          WIS;//CharBaseBegin+4c0
+/*0x029c*/ int          SavePoison;//CharBaseBegin+4c4
+/*0x02a0*/ int          SaveMagic;//CharBaseBegin+4c8
+/*0x02a4*/ int          SaveDisease;//CharBaseBegin+4cc
+/*0x02a8*/ int          SaveCorruption;//CharBaseBegin+4d0
+/*0x02ac*/ int          SaveFire;//CharBaseBegin+4d4
+/*0x02b0*/ int          SaveCold;//CharBaseBegin+4d8
+/*0x02b4*/ int          SavePhysical;
+/*0x02b8*/ int			UncappedStr;
+/*0x02bc*/ int  		UncappedSta;
+/*0x02c0*/ int			UncappedCha;
+/*0x02c4*/ int			UncappedDex;
+/*0x02c8*/ int			UncappedInt;
+/*0x02cc*/ int			UncappedAgi;
+/*0x02d0*/ int			UncappedWis;
+/*0x02d4*/ int			UncappedResistPoison;
+/*0x02d8*/ int			UncappedResistMagic;
+/*0x02dc*/ int			UncappedResistDisease;
+/*0x02e0*/ int			UncappedResistCorruption;
+/*0x02e4*/ int			UncappedResistFire;
+/*0x02e8*/ int			UncappedResistCold;
+/*0x02ec*/ int			NoBuffStr;
+/*0x02f0*/ int			NoBuffSta;
+/*0x02f4*/ int			NoBuffCha;
+/*0x02f8*/ int			NoBuffDex;
+/*0x02fc*/ int			NoBuffInt;
+/*0x0300*/ int			NoBuffAgi;
+/*0x0304*/ int			NoBuffWis;
+/*0x0308*/ int			NoBuffResistPoison;
+/*0x030c*/ int			NoBuffResistMagic;
+/*0x0310*/ int			NoBuffResistDisease;
+/*0x0314*/ int			NoBuffResistCorruption;
+/*0x0318*/ int			NoBuffResistFire;
+/*0x031c*/ int			NoBuffResistCold;
+/*0x0320*/ int			NoBuffResistPhysical;
+/*0x0324*/
+	EQLIB_OBJECT unsigned int CharacterBase::GetEffectId(int index);
+
+	EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
+	EQLIB_OBJECT ItemGlobalIndex CreateItemGlobalIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
+	EQLIB_OBJECT ItemIndex CreateItemIndex(int Slot0, int Slot1=-1, int Slot2=-1);
+	inline const BaseProfile& GetCurrentBaseProfile() const
+	{
+		return *ProfileManager.GetCurrentProfile();
+	}
+};
+
 class CharacterZoneClient : virtual public CharacterBase
 {
 public:
-	PlayerClient *me;
-	//more stuff here fill in later
+/*0x2074*/ //virtual void vftableph(void) {};
+/*0x2074*/ void		*CharacterZoneClient_vfTable;
+union {
+/*0x2078*/ PlayerClient *me;//just here for comparing the 2, todo: fix
+/*0x2078*/ PSPAWNINFO me2;
+};
+/*0x207c*/ bool		bUpdateStuff;
+/*0x207c*/ bool		bZoningStatProcessing;
+/*0x2080*/ int		ArmorClassBonus;
+/*0x2084*/ int		CurrWeight;		
+/*0x2088*/ int		astHitPointSendPercent;
+/*0x208c*/ int		LastManaPointSendPercent;
+/*0x2090*/ int		LastEndurancePointSendPercent;
+/*0x2094*/ int		HPBonus;//vtable2+24
+/*0x2098*/ int		ManaBonus;//vtable2+28
+/*0x209c*/ int		EnduranceBonus;//vtable2+2c
+/*0x20a0*/ int		EnduranceCostPerSecond;
+/*0x20a4*/ int		CombatEffectsBonus;//vtable2+34 Combat Effects in UI
+/*0x20a8*/ int		ShieldingBonus;//vtable2+38 Melee Shielding in UI
+/*0x20ac*/ int		SpellShieldBonus;//vtable2+3c Spell Shielding in UI
+/*0x20b0*/ int		AvoidanceBonus;//vtable2+40 Avoidance in UI
+/*0x20b4*/ int		AccuracyBonus;//vtable2+44 Accuracy in UI
+/*0x20b8*/ int		StunResistBonus;//vtable2+48 Stun Resist in UI
+/*0x20bc*/ int		StrikeThroughBonus;//vtable2+4c Strike Through in UI
+/*0x20c0*/ int		DoTShieldBonus;//vtable2+50 Dot Shielding in UI
+/*0x20c4*/ int		DamageShieldMitigationBonus;//vtable2+54 Damage Shield Mitig in UI
+/*0x20c8*/ int		DamageShieldBonus;//vtable2+58 Damage Shielding in UI
+/*0x20cc*/ TSafeArrayStatic<int, 9> ItemSkillMinDamageMod;
+/*0x20f0*/ TSafeArrayStatic<int, 9> SkillMinDamageModBonus;
+/*0x2114*/ DWORD	HeroicSTRBonus;//vtable2+a4
+/*0x2118*/ DWORD	HeroicINTBonus;//vtable2+a8
+/*0x211c*/ DWORD	HeroicWISBonus;//vtable2+ac
+/*0x2120*/ DWORD	HeroicAGIBonus;//vtable2+b0
+/*0x2124*/ DWORD	HeroicDEXBonus;//vtable2+b4
+/*0x2128*/ DWORD	HeroicSTABonus;//vtable2+b8
+/*0x212c*/ DWORD	HeroicCHABonus;//vtable2+bc
+/*0x2130*/ DWORD	HeroicSvMagicBonus;//vtable2+c0
+/*0x2134*/ DWORD	HeroicSvFireBonus;//vtable2+c4
+/*0x2138*/ DWORD	HeroicSvColdBonus;//vtable2+c8
+/*0x213c*/ DWORD	HeroicSvDiseaseBonus;//vtable2+cc
+/*0x2140*/ DWORD	HeroicSvPoisonBonus;//vtable2+d0
+/*0x2144*/ DWORD	HeroicSvCorruptionBonus;//vtable2+d4
+/*0x2148*/ DWORD	HealAmountBonus;//vtable2+d8
+/*0x214c*/ DWORD	SpellDamageBonus;//vtable2+dc
+/*0x2150*/ int		ItemHealAmountDotMod;
+/*0x2154*/ int		ItemSpellDamageDotMod;
+/*0x2158*/ DWORD	ClairvoyanceBonus;//vtable2+e8
+/*0x215c*/ DWORD	AttackBonus;//vtable2+ec
+/*0x2160*/ DWORD	HPRegenBonus;//vtable2+f0
+/*0x2164*/ DWORD	ManaRegenBonus;//vtable2+f4
+/*0x2168*/ DWORD	EnduranceRegenBonus;//vtable2+f8
+/*0x216c*/ DWORD	AttackSpeed;//vtable2+fc
+/*0x2170*/ int		ItemPotionBelt;
+/*0x2174*/ int		NoBuffItemHitpointAdjustment;
+/*0x2178*/ int		NoBuffItemManaAdjustment;
+/*0x217c*/ int		NoBuffItemEnduranceAdjustment;
+/*0x2180*/ int		NoBuffItemBaseChanceProc;
+/*0x2184*/ int		NoBuffItemMinDamageMod;
+/*0x2188*/ int		NoBuffItemInnateSpellRune;
+/*0x218c*/ int		NoBuffItemAvoidance;
+/*0x2190*/ int		NoBuffItemToHit;
+/*0x2194*/ int		NoBuffItemResistStunChance;
+/*0x2198*/ int		NoBuffItemDotShieldingEffect;
+/*0x219c*/ int		NoBuffItemStrikeThroughChance;
+/*0x21a0*/ int		NoBuffItemAttack;
+/*0x21a4*/ int		NoBuffItemHitPointRegen;
+/*0x21a8*/ int		NoBuffItemManaRegen;
+/*0x21ac*/ int		NoBuffItemEnduranceRegen;
+/*0x21b0*/ int		NoBuffItemDamageShield;
+/*0x21b4*/ int		NoBuffItemDamageShieldMitigation;
+/*0x21b8*/ int		NoBuffItemHaste;
+/*0x21bc*/ int		NoBuffItemPotionBelt;
+/*0x21c0*/ TSafeArrayStatic<int, 9>   NoBuffItemSkillMinDamageMod;
+/*0x21e4*/ bool		bOutputHpRegen;
+/*0x21e5*/ bool		bInvulnerable;
+/*0x21e6*/ bool		bOnAVehicle;
+/*0x21e8*/ SpellCache spellCache;//size 0x58
+/*0x2240*/ HashListSet<int, 0x80> DoomEffectsBySlot;//size 0x18 + (0x80 * 4)
+/*0x2458*/ UINT		LastHitEval;
+/*0x245c*/
 
 EQLIB_OBJECT CharacterZoneClient::CharacterZoneClient(void);
 EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(const EQ_Spell *spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect *theAffect, int EffectIndex = 0, PlayerZoneClient *pCaster = NULL,bool overrideChangeVal = false, int ChangeVal = -1,bool bCap = true);
@@ -6946,39 +7082,45 @@ enum EAreaCorner
 	eAC_BottomLeftCorner  = 2,
 	eAC_BottomRightCorner = 3,
 };
-struct ALCHEMYBONUSSKILLDATA
-{
-	int SkillID;
-	int BonusPoints;
-};
+
 //move on nothing to see here yet, work in progress - eqmule
-class PcBase : public CCharacterBase
+class PcBase : virtual public CharacterBase
 {
 public:
-	TSafeArrayStatic<int, 0xa>	RecentTasks;
-	TSafeArrayStatic<PCTaskStatus, 1>	Tasks;
-	TSafeArrayStatic<PCTaskStatus, 0x1d>	Quests;
-	TSafeArrayStatic<BYTE, 6400 / 8>	BitFlags;
-	TSafeArrayStatic<BenefitSelection, 5> ActiveTributeBenefits;
-	TSafeArrayStatic<BenefitSelection, 10> ActiveTrophyTributeBenefits;
-	ItemBaseContainer	BankItems;
-	ItemBaseContainer	SharedBankItems;
-	ItemBaseContainer	LimboBufferItems;
-    ItemBaseContainer	MercenaryItems;
-	ItemBaseContainer	MountKeyRingItems;
-	ItemBaseContainer	IllusionKeyRingItems;
-	ItemBaseContainer	FamiliarKeyRingItems;
-	ItemBaseContainer	AltStorageItems;
-	ItemBaseContainer	ArchivedDeletedItems;
-	ItemBaseContainer	MailItems;
-	HashTable<MailItemData, EqItemGuid, ResizePolicyNoShrink>	MailItemsData;
-	TSafeArrayStatic<UINT, 1>	RecentMoves;
-	HashTable<DynamicZoneData>	CurrentDynamicZones;
-	HashTable<int>	LearnedRecipes;	
-	EQList<TradeskillRecipeCount*>	QualifyingRecipeCounts;
-	HashTable<int>	NonrepeatableQuests;
-/*0x12xx*/ HashTable<int>	CompletedTasks;
-/*0x129c*/ UINT	AlchemyTimestamp;
+	//*0x0008*/void *vfTable_CharacterZoneClient;
+//*0x0008*/void *vfTable_CharacterBase;
+//*0x000C*/void *vfTable_PcBase;
+//last one changed 
+	/*0x000C*/ virtual void vftableph(void) {};
+/*0x0010*/ TSafeArrayStatic<int, 0xa>	RecentTasks;
+/*0x0038*/ TSafeArrayStatic<PCTaskStatus, 1>	Tasks;
+/*0x00A8*/ TSafeArrayStatic<PCTaskStatus, 0x1d>	Quests;
+/*0x0D58*/ TSafeArrayStatic<BYTE, 6400 / 8>	BitFlags;
+/*0x1078*/ TSafeArrayStatic<BenefitSelection, 5> ActiveTributeBenefits;
+/*0x10A0*/ TSafeArrayStatic<BenefitSelection, 10> ActiveTrophyTributeBenefits;
+/*0x10f0*/ TSafeArrayStatic<BYTE, 0x320>	BitFlags2;
+/*0x10f0*/ ItemBaseContainer	BankItems;//size 0x1c correct addr
+/*0x110c*/ ItemBaseContainer	SharedBankItems;
+/*0x1128*/ ItemBaseContainer	OverflowBufferItems;
+/*0x1144*/ ItemBaseContainer	LimboBufferItems;
+/*0x1160*/ ItemBaseContainer	MercenaryItems;
+/*0x117c*/ ItemBaseContainer	MountKeyRingItems;
+/*0x1198*/ ItemBaseContainer	IllusionKeyRingItems;
+/*0x11b4*/ ItemBaseContainer	FamiliarKeyRingItems;
+/*0x11d0*/ ItemBaseContainer	AltStorageItems;
+/*0x11ec*/ ItemBaseContainer	ArchivedDeletedItems;
+/*0x1208*/ ItemBaseContainer	MailItems;
+/*0x1224*/ HashTable<MailItemData, EqItemGuid, ResizePolicyNoShrink> MailItemsData;//size 0x10
+/*0x1234*/ TSafeArrayStatic<UINT, 1>	RecentMoves;
+//fine to this point
+/*0x1238*/ HashTable<DynamicZoneData>	CurrentDynamicZones;
+/*0x1248*/ HashTable<int>	LearnedRecipes;	
+/*0x1258*/ EQList<TradeskillRecipeCount*>	QualifyingRecipeCounts;
+/*0x1268*/ HashTable<int>	NonrepeatableQuests;
+/*0x1278*/ HashTable<int>	CompletedTasks;
+/*0x1288*/ HashTable<int>	CompletedTasks2;
+/*0x1298*/ UINT	AlchemyTimestamp;
+/*0x129c*/ bool	bWhat;//it i a bool for sure...
 /*0x12a0*/ bool	bSomethingHome;
 /*0x12a4*/ DWORD	LoginTime;
 /*0x12a8*/ __int64      GuildID;//GuildID_0
@@ -7059,9 +7201,8 @@ public:
 /*0x14xx*/ PCStatistics		PcStatistics;
 /*0x1954*/ GroupMemberStats		GroupStats;//size 0x150 i think
 /*0x1aa4*/ bool			bIsLfg;
-/*0x1aa8*/ int			RaidId;
-/*0x1aac*/ UINT			GroupID;
-/*0x1ab0*/ __int64		UniqueGuildID;
+/*0x1aa8*/ __int64		RaidId;//could be int
+/*0x1ab0*/ __int64		GroupID;//could be int
 /*0x1ab8*/ __int64      Exp;//confirmed mar 7 2017 test
 /*0x1ac0*/ int	        DaysEntitled;
 /*0x1ac4*/ int	        SpentVeteranRewards;
@@ -7098,14 +7239,14 @@ public:
 /*0x1c68*/ UINT         DowntimeTimerStart;
 /*0x1c6c*/ FLOAT        ActivityValue;
 /*0x1c70*/ UINT         NextItemId;
-/*0x1c74*/ _CXSTR        *SharedBank;
-/*0x1c78*/ _CXSTR        *BankBuffer;
-/*0x1c7c*/ _CXSTR        *LimboBuffer;
-/*0x1c80*/ _CXSTR        *MercenaryBuffer;
-/*0x1c84*/ _CXSTR        *KeyRingBuffer[3];
-/*0x1c90*/ _CXSTR        *AltStorageBuffer;
-/*0x1c94*/ UINT         AltStorageTimestamp;
-/*0x1c98*/ UINT         Unknown0x1c98;
+/*0x1c74*/ _CXSTR       *SharedBank;
+/*0x1c78*/ _CXSTR       *BankBuffer;
+/*0x1c7c*/ _CXSTR       *OverflowBuffer;
+/*0x1c80*/ _CXSTR       *LimboBuffer;
+/*0x1c84*/ _CXSTR       *MercenaryBuffer;
+/*0x1c88*/ _CXSTR       *KeyRingBuffer[3];
+/*0x1c94*/ _CXSTR       *AltStorageBuffer;
+/*0x1c98*/ UINT         AltStorageTimestamp;
 /*0x1c9c*/ ELockoutCharacterReason LCR;
 /*0x1ca0*/ HashTable<ProgressionExperience> ProgressionExp;//pretty sure its at 1c90
 /*0x1cb0*/ PCXSTR       ArchivedStorageBuffer;
@@ -7119,46 +7260,56 @@ public:
 /*0x1cd8*/ char*		pCorruptionReport;
 /*0x1cdc*/ TString<0x100> InspectText;
 /*0x1ddc*/ HashTable<int>		BlockedSpellsHash;
-/*0x1dec*/ int			BlockedSpell[40];
-	HashTable<int>		BlockedPetSpellsHash;
-	int			BlockedPetSpell[40];
-	ClaimDataCollection     ConsumableFeatures;
-	bool		bGrantItemsRegistered;
-	unsigned int	CreatedGuildID;
-	UINT		GuildCreateTime;
-	PCXSTR	GuildCreateCharacter;
-	bool	bInventoryUnserialized;
-	bool	bAltStorageUnserialized;
-	bool	bArchivedStorageUnserialized;
-	bool	bMailUnserialized;
-	bool	bPendingInventorySerialization;	
-	PCXSTR	BuyLines;
-	ArrayClass<PCXSTR>	OfflineTraderSoldItems;
-	ArrayClass<PCXSTR>	OfflineBuyerBoughtItems;
+/*0x1dec*/ int			BlockedSpell[0x28];
+/*0x1e8c*/ HashTable<int>		BlockedPetSpellsHash;
+/*0x1e9c*/ int			BlockedPetSpell[0x28];
+/*0x1f3c*/ ClaimDataCollection     ConsumableFeatures;//size 0x10
+/*0x1f4c*/ bool		bGrantItemsRegistered;
+/*0x1f50*/ unsigned __int64	CreatedGuildID;
+/*0x1f58*/ UINT		GuildCreateTime;
+/*0x1f5c*/ PCXSTR	GuildCreateCharacter;
+/*0x1f60*/ bool	bInventoryUnserialized;
+/*0x1f61*/ bool	bAltStorageUnserialized;
+/*0x1f62*/ bool	bArchivedStorageUnserialized;
+/*0x1f63*/ bool	bMailUnserialized;
+/*0x1f64*/ bool	bPendingInventorySerialization;	
+/*0x1f68*/ PCXSTR	BuyLines;
+/*0x1f6c*/ ArrayClass_RO<PCXSTR>	OfflineTraderSoldItems;
+/*0x1f7c*/ ArrayClass_RO<PCXSTR>	OfflineBuyerBoughtItems;
 /*0x1f8c*/ UINT        Krono;//confirmed mar 7 2017 test
 /*0x1f90*/ UINT        CursorKrono;
 /*0x1f98*/ __int64      MercAAExp;// divide this with 3.30f and you get the percent - eqmule
 /*0x1fa0*/ DWORD        MercAAPoints;//number of unspent merc AA points
 /*0x1fa4*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
-	ArrayClass<MercenaryAbilityInfo*>	MercenaryAbilities;
-	HashTable<CompletedAchievementData, int, ResizePolicyNoShrink> CompletedAchievements;
-	HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;
-	HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;
-/*0x1fec*/ int		LastFellowshipJoin;
+/*0x1fa8*/ ArrayClass_RO<MercenaryAbilityInfo*>	MercenaryAbilities;
+/*0x1fb8*/ HashTable<CompletedAchievementData, int, ResizePolicyNoShrink> CompletedAchievements;
+/*0x1fc8*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;
+/*0x1fd8*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;
+/*0x1fe8*/ int		LastFellowshipJoin;
 /*0x1ff0*/ __int64      Vitality;
 /*0x1ff8*/ int		    AAVitality;
-/*0x1ffc*/ int          FPStuff[0x1d];
+/*0x1ffc*/ int		    Unknown0x1ffc;
+/*0x2000*/ int          FPStuff[0x1c];
+/*0x2070*/ //CharacterZoneClient
 };
-class PcZoneClient: public PcBase , public CharacterZoneClient
+class DebugText
 {
 public:
-	TSafeArrayStatic<unsigned long, 3> Flags;//hmm
-	unsigned __int32 TransfersReceived;
-	int	LastLanguageSpoken;
-	int CurPowerSourceDrain;
-	EQList<ALCHEMYBONUSSKILLDATA*> AlchemyBaseSkillBonusList;
-	UINT MomentumBalance; 
-	UINT LoyaltyRewardBalance;
+	//virtual void vftableph(void) {};
+	//void *vfTable_DebugText;
+};
+class PcZoneClient: public PcBase , public CharacterZoneClient , public DebugText
+{
+public:
+/*0x245c*/ void *vfTable_PcZoneClient;
+/*0x2460*/ TSafeArrayStatic<unsigned long, 3> Flags;//hmm
+/*0x246C*/ unsigned __int32 TransfersReceived;
+/*0x2470*/ int	LastLanguageSpoken;
+/*0x2474*/ int CurPowerSourceDrain;
+/*0x2478*/ EQList<ALCHEMYBONUSSKILLDATA*> AlchemyBaseSkillBonusList;
+/*0x2488*/ UINT MomentumBalance; 
+/*0x248C*/ UINT LoyaltyRewardBalance;
+/*0x2490*/
 
 EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
@@ -7181,21 +7332,23 @@ EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, in
 
 class PcClient : public PcZoneClient
 {
-	//has a vftable
+	//has a vftable but we get it from PcZoneClient
 public:
 	EQLIB_OBJECT PcClient::PcClient();
-    ExtendedTargetListClient* ExtendedTargetList;
-	bool bInCombat;
-	UINT DowntTimeAmount;
-	UINT DowntimeStart;
-	bool bOverrideAvatarProximity;
-	CGroupClient *pGroup;
-	bool bIAmCreatingGroup;
-	VeArray<VePointer<PCONTENTS>> ItemsPendingID;
-	eParcelStatus ParcelStatus;
-	int SubscriptionDays;
-	short BaseKeyRingSlots[3];
-	bool bPickZoneFewest;
+/*0x2490*/ ExtendedTargetListClient* ExtendedTargetList;
+/*0x2494*/ bool bInCombat;
+/*0x2498*/ UINT Downtime;
+/*0x249c*/ UINT DowntimeStamp;
+/*0x24a0*/ bool bOverrideAvatarProximity;
+/*0x24a4*/ CGroupClient *pGroup;
+/*0x24a8*/ bool bIAmCreatingGroup;
+/*0x24AC*/ VeArray<VePointer<PCONTENTS>> ItemsPendingID;//size 0xc
+/*0x24B8*/ eParcelStatus ParcelStatus;//24B8 for sure see 4F1184 in may 11 2017 live exe
+/*0x24BC*/ int SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2017 live exe
+/*0x24C0*/ short BaseKeyRingSlots[3];
+/*0x24c6*/ bool bPickZoneFewest;//for sure see 4A424A in may 11 2017 live exe
+/*0x24c7*/ bool filler;//might not be needed: todo check
+/*0x24c8*/
 };
 
 class EQPlayerManager

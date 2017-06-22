@@ -65,7 +65,7 @@ VOID OutputTextToLog_Detour(char*szMsg)
 class CChatHook 
 { 
 public:
-#ifdef TEST
+#ifndef EMU
 	VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool, bool,int); 
     VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst,int something) 
 #else
@@ -143,7 +143,7 @@ public:
 						}
 						else {
 #endif
-							#ifdef TEST
+							#ifndef EMU
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst,something);
 							#else
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
@@ -171,7 +171,7 @@ public:
 					}
 					else {
 #endif
-						#ifdef TEST
+						#ifndef EMU
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst,something);
 						#else
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
@@ -243,7 +243,7 @@ public:
         UPCNotificationFlush_Trampoline();
     }
 }; 
-#ifdef TEST
+#ifndef EMU
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst,int something));
 #else
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
@@ -254,13 +254,13 @@ DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
-#ifdef TEST
+#ifndef EMU
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst,int something)
 #else
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst)
 #endif
 {
-#ifdef TEST
+#ifndef EMU
     ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst,something);
 #else
     ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst);
