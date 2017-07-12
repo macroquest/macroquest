@@ -4570,7 +4570,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		break;
-	case Malod:
+	case Maloed:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage))) != -1)
@@ -11384,7 +11384,7 @@ bool MQ2TargetType::GETMEMBER()
 			return true;
 		}
 		break;
-	case Malod:
+	case Maloed:
 		if ((Dest.Int = GetTargetBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage))) != -1)
 		{
 			Dest.Type = pTargetBuffType;

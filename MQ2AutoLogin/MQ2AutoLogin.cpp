@@ -1225,10 +1225,14 @@ void HandleWindows()
 				if (CXWnd *pWnd = WindowMap["okdialog"]->_GetChildItem("OK_Display"))
 				{
 					char szTemp[MAX_STRING * 8] = { 0 };
-					if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-						GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szTemp, MAX_STRING * 8);
-					else
-						GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
+					if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
+						CStmlWnd*cstm = (CStmlWnd*)pWnd;
+						GetCXStr(cstm->SidlText, szTemp, MAX_STRING * 8);
+					}
+					else {
+						CSidlScreenWnd*cwnd = (CSidlScreenWnd*)pWnd;
+						GetCXStr(cwnd->WindowText, szTemp, MAX_STRING * 8);
+					}
 					if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
 						bLogin = true;
 					}
@@ -1339,6 +1343,11 @@ void HandleWindows()
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					return;
 				} else if (szTemp[0] && strstr(szTemp, "A connection to the server could not be reached.")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "An unknown login error occurred")) {
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
 					if (pWnd)
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);

@@ -6955,6 +6955,8 @@ public:
 /*0x0318*/ int			NoBuffResistFire;
 /*0x031c*/ int			NoBuffResistCold;
 /*0x0320*/ int			NoBuffResistPhysical;
+/*0x0320*/ int			NoBuffResistPhysical2;
+/*0x0320*/ int			NoBuffResistPhysical3;
 /*0x0324*/
 	EQLIB_OBJECT unsigned int CharacterBase::GetEffectId(int index);
 
@@ -7091,7 +7093,7 @@ public:
 //*0x0008*/void *vfTable_CharacterBase;
 //*0x000C*/void *vfTable_PcBase;
 //last one changed 
-	/*0x000C*/ virtual void vftableph(void) {};
+/*0x000C*/ virtual void vftableph(void) {};
 /*0x0010*/ TSafeArrayStatic<int, 0xa>	RecentTasks;
 /*0x0038*/ TSafeArrayStatic<PCTaskStatus, 1>	Tasks;
 /*0x00A8*/ TSafeArrayStatic<PCTaskStatus, 0x1d>	Quests;
@@ -7330,12 +7332,16 @@ EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemi
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
 };
 
-class PcClient : public PcZoneClient
+class PcClient// : public PcZoneClient
 {
 	//has a vftable but we get it from PcZoneClient
 public:
 	EQLIB_OBJECT PcClient::PcClient();
-/*0x2490*/ ExtendedTargetListClient* ExtendedTargetList;
+	BYTE Filler[0x2b10];
+};
+class tettt
+{
+/*0x2490*/ ExtendedTargetListClient* pXTargetMgr;
 /*0x2494*/ bool bInCombat;
 /*0x2498*/ UINT Downtime;
 /*0x249c*/ UINT DowntimeStamp;

@@ -1147,7 +1147,7 @@ public:
 		Rooted = 210,
 		Mezzed = 211,
 		Crippled = 212,
-		Malod = 213,
+		Maloed = 213,
 		Tashed = 214,
 		Snared = 215,
 		Hasted = 216,
@@ -1405,7 +1405,7 @@ public:
 		TypeMember(Rooted);
 		TypeMember(Mezzed);
 		TypeMember(Crippled);
-		TypeMember(Malod);
+		TypeMember(Maloed);
 		TypeMember(Tashed);
 		TypeMember(Snared);
 		TypeMember(Hasted);
@@ -4525,7 +4525,7 @@ public:
 		Rooted = 9,
 		Mezzed = 10,
 		Crippled = 11,
-		Malod = 12,
+		Maloed = 12,
 		Tashed = 13,
 		Snared = 14,
 		Hasted = 15,
@@ -4573,7 +4573,7 @@ public:
 		TypeMember(Rooted);
 		TypeMember(Mezzed);
 		TypeMember(Crippled);
-		TypeMember(Malod);
+		TypeMember(Maloed);
 		TypeMember(Tashed);
 		TypeMember(Snared);
 		TypeMember(Hasted);

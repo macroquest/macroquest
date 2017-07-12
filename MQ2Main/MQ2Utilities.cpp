@@ -8523,12 +8523,7 @@ int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 								for (int N = 0; N < 16; N++)
 								{
 									if (classmask & (1 << N)) {
-										if (pSpell->ClassLevel[N] == 255) {
-											continue;
-										}
-										else {
-											return i;
-										}
+										return i;
 									}
 								}
 							}

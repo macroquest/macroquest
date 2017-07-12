@@ -1,3 +1,11 @@
+12 Jul 2017 by eqmule
+- Updated for TEST
+- All instances of "Malod" has been renamed to "Maloed"
+- Darkened Malosenia is now correctly returned when doing a ${Target.Maloed}
+
+10 Jul 2017 by rswiders
+- added optional <z> parameter to /face loc
+
 21 Jun 2017 by eqmule
 - Updated for TEST
 - Updated for LIVE
@@ -1663,7 +1671,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 - switches got some love - thanks brainiac.
 
 14 Dec 2015 by rswiders
-- Added Slowed, Rooted, Mezzed, Crippled, Malod, Tashed, Snared, Hasted, Aego,
+- Added Slowed, Rooted, Mezzed, Crippled, Maloed, Tashed, Snared, Hasted, Aego,
 	Skin, Focus, Regen, Symbol, Clarity, Pred, Strength, Brells, SV, SE,
 	HybridHP, Growth, Shining, Beneficial, DSed, RevDSed, Charmed to ${Target}
 - Added Aego, Skin, Focus, Regen, Symbol, Clarity, Pred, Strength, Brells, SV, SE,
@@ -2586,7 +2594,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
    Example: /echo there are ${SpawnCount[npc los radius 200 range 100 110]} mobs within a radius of 200 that i can see between level 100 and 110
    Ouptut there are 3 mobs within a radius of 200 that i can see between level 100 and 110
 
-- Splitted ${Target.Malod} and ${Target.Tashed}
+- Splitted ${Target.Maloed} and ${Target.Tashed}
   Maloed only returns a spelltype if the mob actually has a resist debuff casted by a mage or a shaman
   and Tashed only returns a spelltype if the mob actually has a resist debuff casted by a enchanter.
 
@@ -2841,7 +2849,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 
 25 August 2014 by eqmule
 - Updated for patch.
-- Added Malod and Tashed to the Target TLO
+- Added Maloed and Tashed to the Target TLO
   they both return a pTargetBuffType TLO which has 3 members:
   Address (pIntType), Index (pIntType) and Duration (pTicksType).
   It also inherits pSpellType.

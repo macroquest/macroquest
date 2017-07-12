@@ -1963,6 +1963,11 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 			}
 			szFilter++;
 			pSpawnClosest->X = (FLOAT)atof(szFilter);
+			while ((szFilter[0] != ',') && (szFilter[0] != 0)) szFilter++;
+			if (szFilter[0] != 0) {
+				szFilter++;
+				pSpawnClosest->Z = (FLOAT)atof(szFilter);
+			}
 		}
 		else if (!_stricmp(szArg, "item")) {
 			if (EnviroTarget.Name[0] == 0) {
