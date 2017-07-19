@@ -534,6 +534,7 @@ EQLIB_API BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CL
 #endif
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
+EQLIB_API int RangeRandom(int min, int max);
 EQLIB_API DWORD __stdcall BeepOnTellThread(PVOID pData);
 EQLIB_API DWORD __stdcall FlashOnTellThread(PVOID pData);
 EQLIB_API CMQ2Alerts CAlerts;

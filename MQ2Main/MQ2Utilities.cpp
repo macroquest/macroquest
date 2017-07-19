@@ -9460,6 +9460,16 @@ struct _CONTENTS *CONTENTS::GetContent(UINT index)
 	}
 	return NULL;
 }
+//this function performs a better rand since it removes the random bias towards the low end if the range of rand() isn't divisible by max - min + 1
+int RangeRandom(int min, int max) {
+	int n = max - min + 1;
+	int remainder = RAND_MAX % n;
+	int x;
+	do {
+		x = rand();
+	} while (x >= RAND_MAX - remainder);
+	return min + x % n;
+}
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

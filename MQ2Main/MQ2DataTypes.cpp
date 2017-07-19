@@ -677,12 +677,27 @@ bool MQ2MathType::GETMEMBER()
 		}
 		return false;
 	case Rand:
-		Dest.DWord = atol(Index);
-		if (Dest.DWord == 0 || Dest.DWord == 0xFFFFFFFF)
-			return false;
-		Dest.DWord = rand() % Dest.DWord;
-		Dest.Type = pIntType;
-		return true;
+		if (char*Arg = GETFIRST()) {
+			CHAR szMin[MAX_STRING] = { 0 };
+			CHAR szMax[MAX_STRING] = { 0 };
+			int Min = 0;
+			int Max = 0;
+			if (char*pDest = strchr(Arg, ',')) {
+				pDest[0] = '\0';
+				Min = atol(Arg);
+				pDest++;
+				Max = atol(pDest);
+			}
+			else {
+				Max = atol(Arg);
+			}
+			if (Max == 0 || Max > RAND_MAX)
+				return false;
+			Dest.DWord = RangeRandom(Min, Max);
+			Dest.Type = pIntType;
+			return true;
+		}
+		return false;
 	case Sqrt:
 		if (Calculate(Index, CalcResult))
 		{
@@ -5156,7 +5171,77 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		break;
 	#endif
-		//end of MQ2CharacterType
+	case BaseSTR:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseSTR;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case BaseSTA:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseSTA;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case BaseAGI:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseAGI;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case BaseDEX:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseDEX;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case BaseWIS:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseWIS;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case BaseINT:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseINT;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case BaseCHA:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			Dest.DWord = pChar2->BaseCHA;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case Beneficial:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+			{
+				if ((pChar2->Buff[i].SpellID == -1) || (pChar2->Buff[i].SpellID == 0))
+					continue;
+				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID)) {
+					if (pSpell->SpellType != 0)
+					{
+						Dest.Int = i;
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+			}
+		}
+		break;
+	case CursorKrono:
+		Dest.DWord = pChar->CursorKrono;
+		Dest.Type = pIntType;
+		break;
+	//end of MQ2CharacterType
 	}
 	return false;
 #undef pChar
@@ -11442,7 +11527,7 @@ bool MQ2TargetType::GETMEMBER()
 				}
 			}
 		}
-		return false;
+		break;
 	}
 	case DSed:
 		if ((Dest.Int = GetTargetBuffBySPA(59, 1)) != -1)//Damage Shield

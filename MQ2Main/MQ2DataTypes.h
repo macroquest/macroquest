@@ -1193,6 +1193,7 @@ public:
 		SkillBase = 256,
 		Name = 257,
 		AutoSkill = 258,
+		CursorKrono = 259,
 	};
 	enum CharacterMethods
 	{
@@ -1451,7 +1452,8 @@ public:
 		TypeMember(SkillBase);
 		TypeMember(Name);
 		TypeMember(AutoSkill);
-		
+		TypeMember(CursorKrono);
+
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);

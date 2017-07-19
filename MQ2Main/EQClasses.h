@@ -5326,6 +5326,11 @@ public:
 EQLIB_OBJECT float CVector3::GetLength(void)const;
 EQLIB_OBJECT float CVector3::NormalizeAndReturnLength(void);
 EQLIB_OBJECT void CVector3::Normalize(void);
+EQLIB_OBJECT void CVector3::Set(float x, float y, float z) {
+	X = x;
+	Y = y;
+	Z = z;
+}
 	float X;
 	float Y;
 	float Z;

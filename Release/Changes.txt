@@ -1,3 +1,17 @@
+19 Jul 2017 by eqmule
+- Updated for LIVE
+- The crash callback will once again produce dump files and zip them.
+- Math.Rand now takes an optional min argument so you can get a random number between 2 variables.
+  Example: /echo ${Math.Rand[5,10]}
+  this would return a randum number between 5 and 10.
+  You can still use the original just specifying the max.
+  Example: ${Math.Rand[10]}
+  in which case it behaves as before. (in this example, rand between 1 and 10) 
+
+17 Jul 2017 by rswiders
+- Added ${Me.Beneficial}, ${Me.BASExxx} back into the source code.
+- Added ${Me.CursorKrono}
+
 12 Jul 2017 by eqmule
 - Updated for TEST
 - All instances of "Malod" has been renamed to "Maloed"
@@ -415,13 +429,15 @@ public:
 		PMQ2TYPEMEMBER pMember = FindMember(Member);
 		if (!pMember)
 			return false;
-		switch (pMember->ID) {
-		case CursorKrono:
+		switch (pMember->ID)
 		{
-			if(PCHARINFO pCharInf = GetCharInfo()) {
-				Dest.DWord = pCharInf->CursorKrono;
-				Dest.Type = pIntType;
-				return true;
+			case CursorKrono:
+			{
+				if(PCHARINFO pCharInf = GetCharInfo()) {
+					Dest.DWord = pCharInf->CursorKrono;
+					Dest.Type = pIntType;
+					return true;
+				}
 			}
 		}
 		return false;
