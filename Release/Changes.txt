@@ -1,3 +1,13 @@
+23 Jul 2017 by eqmule
+- Updated for LIVE
+- Updated for TEST
+
+20 Jul 2017 by eqmule
+- Improved /face to mimic exactly how the client AI faces mobs.
+  This means its looks very natural and smooth now.
+  Please don't use /face fast anymore, it looks "bottish"
+  and there is no good reason to use it.
+
 19 Jul 2017 by eqmule
 - Updated for LIVE
 - The crash callback will once again produce dump files and zip them.

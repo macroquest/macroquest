@@ -816,6 +816,18 @@ VOID InjectDisable()
 #ifdef __CastRay_x
 FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 #endif
+#ifdef __CastRay2_x
+FUNCTION_AT_ADDRESS(int CastRayLoc(const CVector3& SourcePos, int Race, float DestX, float DestY, float DestZ),__CastRay2);
+#endif
+#ifdef __HeadingDiff_x
+FUNCTION_AT_ADDRESS(float HeadingDiff(float h1, float h2, float *DiffOut),__HeadingDiff);
+#endif
+#ifdef __FixHeading_x
+FUNCTION_AT_ADDRESS(float FixHeading(float Heading),__FixHeading);
+#endif
+#ifdef __get_bearing_x
+FUNCTION_AT_ADDRESS(float get_bearing(float x1, float y1, float x2, float y2),__get_bearing)
+#endif
 #ifdef Util__FastTime_x
 FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
 #endif

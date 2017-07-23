@@ -84,7 +84,62 @@ BOOL DoNextCommand()
 	return FALSE;
 }
 #endif
-
+//added these so I can work on making face look natural - eqmule
+void NaturalTurnOld(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
+{
+	if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f) {
+		pCharOrMount->Heading = (FLOAT)gFaceAngle;
+		pCharOrMount->SpeedHeading = 0.0f;
+		gFaceAngle = 10000.0f;
+	}
+	else {
+		TurnNotDone = TRUE;
+		DOUBLE c1 = pCharOrMount->Heading + 256.0f;
+		DOUBLE c2 = gFaceAngle;
+		if (c2<pChar->Heading) c2 += 512.0f;
+		DOUBLE turn = (DOUBLE)(rand() % 200) / 10;
+		if (c2<c1) {
+			pCharOrMount->Heading += (FLOAT)turn;
+			pCharOrMount->SpeedHeading = 12.0f;
+			if (pCharOrMount->Heading >= 512.0f) pCharOrMount->Heading -= 512.0f;
+		}
+		else {
+			pCharOrMount->Heading -= (FLOAT)turn;
+			pCharOrMount->SpeedHeading = -12.0f;
+			if (pCharOrMount->Heading<0.0f) pCharOrMount->Heading += 512.0f;
+		}
+	}
+}
+	
+void NaturalTurn(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
+{
+	//ok we need to turn now, but there are some things we need to take into account
+	//first of all the turn rate mkay...
+	float TurnRate = 4.0f;
+	float fHeadingDiff = 0.0f;
+	float AbsHeadingDiff = HeadingDiff(pCharOrMount->Heading, (float)gFaceAngle, &fHeadingDiff);
+	if (AbsHeadingDiff < 1.0f) {
+		//thats nothing... just set it...
+		pCharOrMount->Heading = (float)gFaceAngle;
+		pCharOrMount->SpeedHeading = 0.0f;
+		gFaceAngle = 10000.0f;
+	}
+	else {
+		TurnNotDone = TRUE;
+		//lets make this look natural mkay...
+		if (AbsHeadingDiff < TurnRate) {
+			TurnRate = AbsHeadingDiff;
+		} else if (AbsHeadingDiff > 128.0f)	{
+			TurnRate = 9.0f;
+		}
+		if (((pCharOrMount->Heading < gFaceAngle) && (fHeadingDiff < 0.0f)) || ((gFaceAngle < pCharOrMount->Heading) && (fHeadingDiff > 0.0f)))	{
+			pCharOrMount->Heading = pCharOrMount->Heading - TurnRate;
+		} else {
+			pCharOrMount->Heading = pCharOrMount->Heading + TurnRate;
+		}
+		pCharOrMount->Heading = FixHeading(pCharOrMount->Heading);
+	}
+}
 void Pulse()
 {
 	if (!ppCharSpawn || !pCharSpawn) return;
@@ -180,30 +235,8 @@ void Pulse()
 	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
 		TurnNotDone = FALSE;
 		if (gFaceAngle != 10000.0f) {
-			if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f) {
-				pCharOrMount->Heading = (FLOAT)gFaceAngle;
-				pCharOrMount->SpeedHeading = 0.0f;
-				gFaceAngle = 10000.0f;
-			}
-			else {
-				TurnNotDone = TRUE;
-				DOUBLE c1 = pCharOrMount->Heading + 256.0f;
-				DOUBLE c2 = gFaceAngle;
-				if (c2<pChar->Heading) c2 += 512.0f;
-				DOUBLE turn = (DOUBLE)(rand() % 200) / 10;
-				if (c2<c1) {
-					pCharOrMount->Heading += (FLOAT)turn;
-					pCharOrMount->SpeedHeading = 12.0f;
-					if (pCharOrMount->Heading >= 512.0f) pCharOrMount->Heading -= 512.0f;
-				}
-				else {
-					pCharOrMount->Heading -= (FLOAT)turn;
-					pCharOrMount->SpeedHeading = -12.0f;
-					if (pCharOrMount->Heading<0.0f) pCharOrMount->Heading += 512.0f;
-				}
-			}
+			NaturalTurn(pCharOrMount,pChar);
 		}
-
 		if (gLookAngle != 10000.0f) {
 			if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f) {
 				pChar->CameraAngle = (FLOAT)gLookAngle;

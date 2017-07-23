@@ -968,6 +968,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
 
 	EQLIB_VAR DWORD __CastRay;
+	EQLIB_VAR DWORD __CastRay2;
+	EQLIB_VAR DWORD __HeadingDiff;
+	EQLIB_VAR DWORD __FixHeading;
+	EQLIB_VAR DWORD __get_bearing;
 	EQLIB_VAR DWORD __ConvertItemTags;
 	EQLIB_VAR DWORD __ExecuteCmd;
 	EQLIB_VAR DWORD __EQGetTime;

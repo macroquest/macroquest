@@ -872,7 +872,7 @@ public:
 /*0xb8*/
 };
 
-//Actual Size: 0x148 (see 6D369C in eqgame.exe Live dated Jul 13 2017) - eqmule
+//Actual Size: 0x148 (see 6D33DC in eqgame.exe Live dated Jul 20 2017) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ DWORD	ItemType;           // ? 1 = normal, 2 = pack ?
