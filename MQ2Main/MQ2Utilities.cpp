@@ -546,7 +546,13 @@ VOID StripMQChat(PCHAR in, PCHAR out)
 	out[o] = 0;
 	//DebugSpew("StripMQChat=>(%s)",out);
 }
-
+bool ReplaceSafely(PCHAR *out, DWORD *pchar_out_string_position, char chr,DWORD maxlen)
+{
+	if ((*pchar_out_string_position) + 1 > maxlen)
+		return false;
+	(*out)[(*pchar_out_string_position)++] = chr;
+	return true;
+}
 DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 {
 	//DebugSpew("MQToSTML(%s)",in);
@@ -556,7 +562,7 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 	//strcpy_s(szCmd, out);
 	int outlen = maxlen;
 	if (maxlen>14)
-		maxlen -= 14; // huh...
+		maxlen -= 14; // make room for this: <c "#123456">
 	DWORD pchar_in_string_position = 0;
 	DWORD pchar_out_string_position = 0;
 	BOOL bFirstColor = false;
@@ -571,15 +577,22 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 		if (in[pchar_in_string_position] == ' ')
 		{
 			if (bNBSpace) {
-				out[pchar_out_string_position++] = '&';
-				out[pchar_out_string_position++] = 'N';
-				out[pchar_out_string_position++] = 'B';
-				out[pchar_out_string_position++] = 'S';
-				out[pchar_out_string_position++] = 'P';
-				out[pchar_out_string_position++] = ';';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '&', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'N', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'B', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'S', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'P', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ';', maxlen))
+					break;
 			}
 			else {
-				out[pchar_out_string_position++] = ' ';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ' ', maxlen))
+					break;
 			}
 			bNBSpace = 1;
 		}
@@ -596,6 +609,8 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 				{
 					CurrentColor = -1;
 					pchar_out_string_position += InsertStopColorSafe(&out[pchar_out_string_position],outlen-pchar_out_string_position);
+					if (pchar_out_string_position >= maxlen)
+						break;
 				}
 				else
 					if (in[pchar_in_string_position] == '#')
@@ -612,6 +627,8 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 						//pchar_out_string_position += sprintf_s(&out[pchar_out_string_position],outlen-pchar_out_string_position, "<c \"#%s\">", &temp[0]);
 						pchar_out_string_position += sprintf_s(&out[pchar_out_string_position],outlen-pchar_out_string_position, "<c \"#%s\">", &temp[0]);
 						TotalColors++;
+						if (pchar_out_string_position >= maxlen)
+							break;
 					}
 					else
 					{
@@ -686,48 +703,78 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 						{
 							//pchar_out_string_position += InsertColor(&out[pchar_out_string_position], CurrentColor);
 							pchar_out_string_position += InsertColorSafe(&out[pchar_out_string_position],outlen-pchar_out_string_position, CurrentColor);
+							if (pchar_out_string_position >= maxlen)
+								break;
 						}
 					}
 				break;
 			case '&':
-				out[pchar_out_string_position++] = '&';
-				out[pchar_out_string_position++] = 'A';
-				out[pchar_out_string_position++] = 'M';
-				out[pchar_out_string_position++] = 'P';
-				out[pchar_out_string_position++] = ';';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '&', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'A', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'M', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'P', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ';', maxlen))
+					break;
 				break;
 			case '%':
-				out[pchar_out_string_position++] = '&';
-				out[pchar_out_string_position++] = 'P';
-				out[pchar_out_string_position++] = 'C';
-				out[pchar_out_string_position++] = 'T';
-				out[pchar_out_string_position++] = ';';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '&', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'P', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'C', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'T', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ';', maxlen))
+					break;
 				break;
 			case '<':
-				out[pchar_out_string_position++] = '&';
-				out[pchar_out_string_position++] = 'L';
-				out[pchar_out_string_position++] = 'T';
-				out[pchar_out_string_position++] = ';';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '&', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'L', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'T', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ';', maxlen))
+					break;
 				break;
 			case '>':
-				out[pchar_out_string_position++] = '&';
-				out[pchar_out_string_position++] = 'G';
-				out[pchar_out_string_position++] = 'T';
-				out[pchar_out_string_position++] = ';';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '&', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'G', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'T', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ';', maxlen))
+					break;
 				break;
 			case '"':
-				out[pchar_out_string_position++] = '&';
-				out[pchar_out_string_position++] = 'Q';
-				out[pchar_out_string_position++] = 'U';
-				out[pchar_out_string_position++] = 'O';
-				out[pchar_out_string_position++] = 'T';
-				out[pchar_out_string_position++] = ';';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '&', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'Q', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'U', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'O', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'T', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, ';', maxlen))
+					break;
 				break;
 			case '\n':
-				out[pchar_out_string_position++] = '<';
-				out[pchar_out_string_position++] = 'B';
-				out[pchar_out_string_position++] = 'R';
-				out[pchar_out_string_position++] = '>';
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '<', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'B', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, 'R', maxlen))
+					break;
+				if (!ReplaceSafely(&out, &pchar_out_string_position, '>', maxlen))
+					break;
 				break;
 			default:
 				out[pchar_out_string_position++] = in[pchar_in_string_position];
@@ -735,7 +782,13 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 				break;
 			}
 		}
-		pchar_in_string_position++;
+		if (pchar_out_string_position >= maxlen)
+			break;
+		else
+			pchar_in_string_position++;
+	}
+	if (pchar_out_string_position > maxlen)	{
+		pchar_out_string_position = maxlen;
 	}
 	for (TotalColors; TotalColors>0;)
 	{

@@ -700,7 +700,6 @@ LEGACY_API DWORD      Include(PCHAR szFile);
 EQLIB_API PCHAR       GetFullZone(DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID(PCHAR ZoneShortName);
 EQLIB_API PCHAR       GetShortZone(DWORD ZoneID);
-EQLIB_API PCHAR       CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
 //EQLIB_API VOID        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
 //EQLIB_API VOID        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
 //EQLIB_API VOID        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);

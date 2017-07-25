@@ -728,7 +728,8 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				}
 			}
 		} else {
-			strcpy_s(EventMsg,szClean);
+			strncpy_s(EventMsg,_countof(EventMsg),szClean,MAX_STRING-1);
+			EventMsg[MAX_STRING-1] = 0;
 		}
 		if (pMQ2Blech)
 			pMQ2Blech->Feed(EventMsg);

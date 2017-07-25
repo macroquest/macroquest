@@ -200,7 +200,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpellStackingData(const
 FUNCTION_AT_VIRTUAL_ADDRESS( void ClientSpellManager::PrintFailedRequirementString(int, int), 0x0c);
 FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupID(int), 0x10);
 FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRank(int), 0x14);
-FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRule(int), 0x18);
+FUNCTION_AT_VIRTUAL_ADDRESS( ESpellStackingRules ClientSpellManager::GetSpellStackingGroupRule(int), 0x18);
 FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL ClientSpellManager::GetSpellByID(int), 0x1c);
 FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* ClientSpellManager::GetSpellAffect(int), 0x20);
 FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::GetSpellAffectEmpty(bool), 0x24);

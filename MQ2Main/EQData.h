@@ -3940,32 +3940,39 @@ public:
 };
 //actual size 0x3a8 11-15-11  ieatacid
 //actual size ? last checked by rlane187 may 19 2015
-typedef struct _GUILDMEMBER {
+typedef struct _GUILDMEMBERCLIENT {
+	//Start of GuildMember
 /*0x000*/ struct  _GUILDMEMBER *pNext;
-/*0x004*/ BYTE    Online;
-/*0x005*/ BYTE    Unknown0x5[0x3];
+/*0x004*/ bool    bOnline;
+/*0x005*/ BYTE    Filler0x005[0x3];
 /*0x008*/ WORD    ZoneID;
 /*0x00a*/ WORD    Instance;
-/*0x00C*/ BYTE	  Unknown0xC[0x6];
+/*0x00C*/ DWORD	  PlayerSerial;
+/*0x010*/ bool	  bMainProfile;
+/*0x011*/ bool	  bOfflineMode;
 /*0x012*/ CHAR	  Name[0x40];
-/*0x052*/ BYTE	  Unknown0x52[0x2];
-/*0x054*/ DWORD	  Level;
-/*0x058*/ DWORD   Flags; //1=banker, 2=alt
+/*0x052*/ BYTE	  Filler0x52[0x2];
+/*0x054*/ int	  Level;
+/*0x058*/ int	  Flags; //1=banker, 2=alt
 /*0x05c*/ DWORD   Class;
 /*0x060*/ DWORD   Rank; //0=member 1=officer 2=leader
-
-// not updated
-#if 0
-/*0x060*/ DWORD   LastSeen; //last seen timestamp
-/*0x064*/ CHAR    PublicNote[0x100];//0x1a0
-/*0x164*/ CHAR    PersonalNote[0x100];
-/*0x264*/ DWORD   TributeStatus;
-/*0x268*/ DWORD   TributeDonations;
-/*0x26c*/ DWORD   LastDonation;//timestamp
-/*0x270*/ DWORD   Unknown0x270;
-/*0x274*/
-#endif
-} GUILDMEMBER, *PGUILDMEMBER;
+/*0x064*/ CHAR	  PlayerHandle[0x20];
+/*0x084*/ CHAR    PlayerComments[0x100];
+/*0x184*/ DWORD   LastLoginTime;
+/*0x188*/ EqGuid  PlayerGuild;//size is 8
+/*0x190*/ bool    bGuildShowSprite;
+/*0x191*/ bool    bTributeStatus;//active on/off
+/*0x192*/ bool    bTrophyStatus;//active on/off
+/*0x194*/ int     TributeDonations;
+/*0x198*/ DWORD   LastDonation;//timestamp
+/*0x19c*/ //end of GuildMember
+//start of GuildMemberClient
+/*0x1a0*/ CHAR    PublicNote[0x100];
+/*0x2a0*/ CHAR    PersonalNote[0x100];
+/*0x3a0*/ bool	  bTributeOptIn;
+/*0x3a1*/ bool	  bTrophyTributeOptIn;
+/*0x3a4*/
+} GUILDMEMBERCLIENT,*PGUILDMEMBERCLIENT;
 
 typedef struct _GUILDDATA
 {
@@ -4179,11 +4186,12 @@ typedef struct _EQRAID {
 /*0x2d0c*/ DWORD    RaidMemberCount;
 /*0x2d10*/ CHAR     RaidLeaderName[0x40];
 /*0x2d50*/ CHAR     RaidMOTD[0x400];
-/*0x3150*/ BYTE     Unknown0x3150[0x40];
-/*0x3190*/ BYTE     Invited; // 1 = default?, 2 = invited, 4 = in raid
-/*0x3191*/ BYTE     Unknown0x3191[0x8];
-/*0x3199*/ BYTE     IsRaidLeader;
-/*0x319a*/ BYTE     Unknown0x0x319a[0x2];
+/*0x3150*/ CHAR     Inviter[0x40];
+/*0x3190*/ int      Invited; // this is an enum, 1 = not in raid, 2 = invited, 4 = in raid
+/*0x3194*/ UINT		RaidID;//not sure
+/*0x3198*/ bool		bCreateRaidInvite;
+/*0x3199*/ bool     IsRaidLeader;
+/*0x319a*/ BYTE     Filler0x319a[0x2];
 /*0x319c*/ DWORD    RaidTarget;
 /*0x31a0*/ DWORD    LootType;
 /*0x31a4*/ CHAR     RaidLooters[0x13][0x40];

@@ -494,17 +494,17 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
         pFilter = pFilter->pNext; 
     } 
     Color=pChatManager->GetRGBAFromIndex(Color); 
-    CHAR szProcessed[MAX_STRING]; 
+	CHAR szProcessed[MAX_STRING] = { 0 };
 	
-	pPlugins;
-    MQToSTML(Line,szProcessed,MAX_STRING,Color); 
-	pPlugins;
-    strcat_s(szProcessed,"<br>"); 
-    CXStr NewText(szProcessed); 
-    DebugTry(ConvertItemTags(NewText,FALSE)); 
-    
-    sPendingChat.push_back( NewText.Ptr->Text );
-
+    int pos = MQToSTML(Line,szProcessed,MAX_STRING-4,Color); 
+	try {
+		strcat_s(szProcessed, "<br>");//we left room for this above...
+		CXStr NewText(szProcessed);
+		DebugTry(ConvertItemTags(NewText, FALSE));
+		sPendingChat.push_back(NewText.Ptr->Text);
+	} catch (...) {
+		Sleep(0);
+	}
     return 0; 
 } 
 

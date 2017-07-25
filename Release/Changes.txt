@@ -1,3 +1,8 @@
+25 Jul 2017 by eqmule
+- Minor Maintenance Release
+- IsGroupMember returns true for mercenaries as well now.
+- Fixed a buffer overflow in mq2chatwindow
+
 23 Jul 2017 by eqmule
 - Updated for LIVE
 - Updated for TEST

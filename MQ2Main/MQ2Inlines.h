@@ -11,6 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
+EQLIB_API PCHAR       CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
 
 static inline PCHARINFO GetCharInfo(VOID) {
 	//   if (!ppCharData) return NULL;
@@ -463,10 +464,12 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
 }
 static inline BOOL IsRaidMember(char * SpawnName)
 {
-	for (DWORD N = 0; N < 72; N++)
-	{
-		if (pRaid->RaidMemberUsed[N] && !_stricmp(SpawnName, pRaid->RaidMember[N].Name))
-			return 1;
+	if (pRaid && pRaid->Invited == 4) {
+		for (DWORD N = 0; N < 72; N++)
+		{
+			if (pRaid->RaidMemberUsed[N] && !_stricmp(SpawnName, pRaid->RaidMember[N].Name))
+				return 1;
+		}
 	}
 	return 0;
 }
@@ -490,6 +493,7 @@ static inline BOOL IsGroupMember(char * SpawnName)
 			{
 				CHAR Name[MAX_STRING] = { 0 };
 				GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
+				CleanupName(Name,sizeof(Name), FALSE, FALSE);
 				if (!_stricmp(SpawnName, Name))
 					return 1;
 			}
@@ -497,6 +501,34 @@ static inline BOOL IsGroupMember(char * SpawnName)
 	}
 	return 0;
 }
+static inline BOOL IsFellowshipMember(char * SpawnName)
+{
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (!pChar->pFellowship)
+			return 0;
+		for (DWORD i = 0; i < pChar->pFellowship->Members; i++)
+		{
+			if (!_stricmp(SpawnName, pChar->pFellowship->FellowshipMember[i].Name))
+				return 1;
+		}
+	}
+	return 0;
+}
+static inline BOOL IsGuildMember(char * SpawnName)
+{
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->GuildID == 0)
+			return 0;
+		if (pGuild) {
+			if (PGUILDMEMBERCLIENT mem = (PGUILDMEMBERCLIENT)pGuild->FindMemberByName(SpawnName)) {
+				if (!_stricmp(SpawnName, mem->Name))
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
