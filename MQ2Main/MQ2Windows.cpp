@@ -212,45 +212,39 @@ void InitializeMQ2Windows()
     pISInterface->AddCommand("EQItemSlots",ListItemSlots);
 #endif 
 
-    if (pWndMgr)
-    {
-        CHAR Name[MAX_STRING]={0};
-        PCSIDLWND *ppWnd=((_CXWNDMGR*)pWndMgr)->pWindows;
-        PCSIDLWND pWnd=*ppWnd;
-        DWORD count = ((_CXWNDMGR*)pWndMgr)->Count; 
-
-        while(pWnd = *ppWnd)
-        {
-            if(count-- == 0) 
-                break;
-
-            // process window
-            if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
-            {
-                if (pXMLData->Type==UI_Screen)
-                {
-                    GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
-                    std::string WindowName=Name;
-                    MakeLower((WindowName));
-					if(WindowMap.find(WindowName)!=WindowMap.end()) {
-						_WindowInfo wi;
-						wi.Name = WindowName;
-						wi.pWnd = (CXWnd*)pWnd;
-						wi.ppWnd = 0;
-						WindowList[(CXWnd*)pWnd] = wi;
-                    } else {
-                        _WindowInfo wi;
-						wi.Name = WindowName;
-						wi.pWnd = (CXWnd*)pWnd;
-						wi.ppWnd = 0;
-						WindowList[(CXWnd*)pWnd] = wi;
-						WindowMap[WindowName];
-                    }
-                }
-            }
-            ppWnd++;
-        }
-    }
+	if (pWndMgr)
+	{
+		CHAR Name[MAX_STRING] = { 0 };
+		for (int i = 0; i < ((_CXWNDMGR*)pWndMgr)->pWindows.Count; i++)
+		{
+			if (PCXWND pWnd = ((_CXWNDMGR*)pWndMgr)->pWindows[i]) {
+				if (CXMLData *pXMLData = ((CXWnd*)pWnd)->GetXMLData())
+				{
+					if (pXMLData->Type == UI_Screen)
+					{
+						GetCXStr(pXMLData->Name.Ptr, Name, MAX_STRING);
+						std::string WindowName = Name;
+						MakeLower((WindowName));
+						if (WindowMap.find(WindowName) != WindowMap.end()) {
+							_WindowInfo wi;
+							wi.Name = WindowName;
+							wi.pWnd = (CXWnd*)pWnd;
+							wi.ppWnd = 0;
+							WindowList[(CXWnd*)pWnd] = wi;
+						}
+						else {
+							_WindowInfo wi;
+							wi.Name = WindowName;
+							wi.pWnd = (CXWnd*)pWnd;
+							wi.ppWnd = 0;
+							WindowList[(CXWnd*)pWnd] = wi;
+							WindowMap[WindowName];
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void ShutdownMQ2Windows()

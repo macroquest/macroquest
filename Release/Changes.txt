@@ -1,3 +1,19 @@
+27 Jul 2017 by eqmule
+- Polished up the window manager a bit, it was overdue.
+  This means some plugins might break, but its easy to fix.
+	Example:
+	[code]PCSIDLWND* ppWnd = pWindowManager->pWindows;
+	PCSIDLWND pWnd=*ppWnd;
+	while (pWnd = *ppWnd)
+	...
+	[/code]
+	becomes:
+	[code]for(int i=0;i<pWindowManager->pWindows.Count;i++)
+	{
+		if (PCXWND pWnd = pWindowManager->pWindows[i]) {
+		...
+	[/code]
+
 25 Jul 2017 by eqmule
 - Minor Maintenance Release
 - IsGroupMember returns true for mercenaries as well now.

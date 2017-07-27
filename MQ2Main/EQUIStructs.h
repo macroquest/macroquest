@@ -421,21 +421,65 @@ typedef struct _CSIDLMGR {
 /*0x298*/
 } CSIDLMGR, *PCSIDLMGR;
 
-//11-6-2003 lax
-//Actual size 0x1b0 in Oct 11 2016 Beta (see 4B10D5) - eqmule
+struct DragDropInfo {
+/*0xb8*/	bool bRightButton;
+/*0xbc*/	PCXWND FromWnd;
+/*0xc0*/	PCXWND ToWnd;
+/*0xc4*/	POINT FromPoint;
+/*0xcc*/	POINT ToPoint; 
+/*0xd4*/	int   Code;
+/*0xd8*/	void *Data;
+/*0xdc*/
+};
+struct ClickStickInfo
+{
+/*0x00*/	DWORD vfTable;
+/*0x04*/	PCXWND FromWnd;
+/*0x08*/	PCXWND ToWnd;
+/*0x0c*/	POINT FromPoint;
+/*0x14*/	POINT ToPoint; 
+/*0x1c*/	int   Code;
+/*0x20*/	void  *Data;
+/*0x24*/
+};
+class ControllerStuff
+{
+/*0x00*/	void *vfTable;
+/*0x04*/	HashTable<void*, int, ResizePolicyNoShrink> Stuff;//this really isnt a HashTable I think its a variation that just stores pointers to stuff
+/*0x14*/	//but for our purposes it won't matter, i don't want to spend any more time on these kind of array classes. -eqmule
+};
+class ControllerManager
+{
+public:
+/*0x00*/	void* pvfTable;
+/*0x04*/	ControllerStuff *pControllerStuff;
+/*0x08*/	HashTable<ControllerStuff*> CStuff;
+/*0x18*/
+};
+
+//Actual size 0x1b0 in Jul 20 2017 Beta (see 4B10D5) - eqmule
+//this should really be renamed to EQCXWNDMGR
+//becuase its a class that looks like this:
+//class EQCXWndManager : CXWndManager
 typedef struct _CXWNDMGR {
+/******************* Begin of CXWNDMGR ***************/
 /*0x000*/ LPVOID CXWNDMGR__vtable;
-/*0x004*/ struct _CSIDLWND **pWindowPtrs;
-/*0x008*/ DWORD Count;
-/*0x00c*/ struct _CSIDLWND **pWindows;
-/*0x010*/ BYTE Unknown0x010[0x40];
-/*0x050*/ DWORD LastInteractionTimeStamp;//when mouse or keyboard was last clicked
+/*0x004*/ LPVOID CXWNDMGR__vtable2;
+/*0x008*/ ArrayClass_RO<PCXWND> pWindows;
+/*0x018*/ ArrayClass_RO<PCXWND> ParentAndContextMenuWindows;
+/*0x028*/ ArrayClass_RO<PCXWND> TransitionWindows;
+/*0x038*/ ArrayClass_RO<PCXWND> PendingDeletionWindows;
+/*0x048*/ UINT TypematicKey;
+/*0x04c*/ UINT LastKeyDownTime;
+/*0x050*/ UINT LastMouseClickTime;//when mouse was last clicked
 /*0x054*/ DWORD MouseMoveTimeStamp;//when mouse was last moved
-/*0x058*/ DWORD KeyHeldTimeStamp;//how long current/last key has been held
-/*0x05c*/ BYTE Unknown0x05c[0xc];
-/*0x068*/ PCSIDLWND LastWindowSelected;//when you select a window its pointer shows up here
+/*0x058*/ int StrokesSent;
+/*0x05c*/ int ToolTipHitTest;//this is really an enum //0 outside 1 transparent 2 client 3 minimizebox 4 tilebox 5 qmark 6 maxbox 7 closebox 8 titlebar 9 vscrollup 10 vscrolldown 11 vscroll thumb 12 vscroll pgup 13 vscroll pgdn 14 hscroll left 15 hscroll right 16 hscroll thumb 17 hscroll pgup 18 hscroll pgdn 19 border left 20 border top 21 border right 22 border bottom 23 border topleft 24 border topright 25 border bott left 26 bott right 27 left top 28 left bott 29 right top 30 right bott 31 no hit
+/*0x060*/ PCSIDLWND LastClickedWindow;
+/*0x064*/ PCSIDLWND MainWindow;
+/*0x068*/ PCSIDLWND FocusWindow;//when you select a window its pointer shows up here
 /*0x06c*/ PCSIDLWND CurrDraggedWindow;//when you drag a window its pointer shows up here
-/*0x070*/ BYTE Unknown0x070[0x4];
+/*0x070*/ PCSIDLWND ActiveWindow;
 /*0x074*/ PCSIDLWND LastMouseOver;//Current window pointer is over if this is 0 we are above MAIN Window
 /*0x078*/ PCSIDLWND Tooltip;//Last Tooltip to show?
 /*0x07c*/ ArrayClass_RO<PCXWND> GlobalFocusWindows;
@@ -443,25 +487,39 @@ typedef struct _CXWNDMGR {
 /*0x08d*/ bool bSidlManagerOwner;
 /*0x090*/ int CaptureCount;
 /*0x094*/ bool bMouseMoveRelative;
-/*0x098*/ POINT MousePoint;
+/*0x098*/ POINT MousePoint;//for sure 8BE7CA
 /*0x0a0*/ bool bCapsLock;
 /*0x0a1*/ bool KeyboardFlags[4];    // 7d-80
-/*0x0a5*/ BYTE Unknown0x0a5[0x27];
-/*0x0cc*/ DWORD ScreenMouseXCopy;
-/*0x0d0*/ DWORD ScreenMouseYCopy;
-/*0x0d4*/ CHAR Unknown0x0d4[0x40];
+/*0x0a5*/ bool bChatMessage;
+/*0x0a6*/ bool bDrawWindows;
+/*0x0a7*/ BYTE MouseMoveFlags;
+/*0x0a8*/ UINT ManagerMode;//enum but i dont have time to do it now. its like moving, sizing etc.
+/*0x0ac*/ int  DecorButtonHitTest;
+/*0x0b0*/ POINT MoveResize; //for sure 8BE7D6 
+/*0x0b8*/ DragDropInfo DDI;//size 0x24
+/*0x0dc*/ ClickStickInfo CSI;//size 0x24
+/*0x100*/ int Really;
+/*0x104*/ bool bModal;//for sure
+/*0x108*/ UINT TTCheckTimer;//for sure
+/*0x10c*/ UINT Flags;//for sure
+/*0x110*/ PCXSTR ClipText;
 /*0x114*/ DWORD ScreenExtentX;
 /*0x118*/ DWORD ScreenExtentY;
 /*0x11c*/ ArrayClass_RO<void *>  FontsArray;
 /*0x12c*/ void *pfontSystem;
-/*0x130*/ bool bWindowModeToggling;
+/*0x130*/ bool bSomething;
 /*0x134*/ HWND* pGlobalHwnd;
-/*0x138*/ DWORD ScreenMouseLookX;//last position MouseX was at before we mouselooked
-/*0x13c*/ DWORD ScreenMouseLookY;//last position MouseY was at before we mouselooked
-/*0x140*/ BYTE Unknown0x140[0x70];
+/*0x138*/ POINT StoredMousePos;//last position Mouse was at before we moved it
+/*0x140*/ bool bManagerDeletionPending;
+/*0x144*/ CursorClass CC;//size 0x3c
+/******************* End of CXWNDMGR ***************/
+/******************* Begin of EQCXWNDMGR ***************/
+/*0x180*/ ControllerStuff Stuff;//size 0x14
+/*0x194*/ ControllerManager ControllerMgr;//size 0x18
+/*0x1AC*/ bool Unknown0x1AC;
+/******************* End of EQCXWNDMGR ***************/
 /*0x1b0*/ 
 } CXWNDMGR, *PCXWNDMGR;
-
 
 typedef struct _CONTENTSARRAY {
     struct _CONTENTS* Array[1];

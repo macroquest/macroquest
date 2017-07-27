@@ -140,8 +140,8 @@ BOOL MoveMouse(DWORD x, DWORD y,BOOL bClick)
 			PCXWNDMGR px = (PCXWNDMGR)pWndMgr;
 			px->MousePoint.x=pt.x;
 			px->MousePoint.y=pt.y;
-			px->ScreenMouseXCopy=pt.x;
-			px->ScreenMouseYCopy=pt.y;
+			px->StoredMousePos.x=pt.x;
+			px->StoredMousePos.y=pt.y;
 			if(bClick) {
 				MouseButtonUp(x,y,"left");
 			}

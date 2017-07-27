@@ -701,25 +701,20 @@ bool GetAllOffsets(DWORD dweqmain)
         pLoginViewManager = (CLoginViewManager*)*(DWORD*)dwLoginMgr;
     }
 	WindowMap.clear();
-	PCSIDLWND* ppWnd = pWindowManager->pWindows;
-	PCSIDLWND pWnd=*ppWnd;
-	DWORD count = pWindowManager->Count;
 	CHAR Name[MAX_STRING] = { 0 };
-	while (pWnd = *ppWnd)
+	for(int i=0;i<pWindowManager->pWindows.Count;i++)
 	{
-		if (count-- == 0)
-			break;
-		if (CXMLData *pXMLData = ((CXWnd2*)pWnd)->GetXMLData())
-		{
-			GetCXStr(pXMLData->Name.Ptr, Name, MAX_STRING);
-
-			if (Name[0])
+		if (PCXWND pWnd = pWindowManager->pWindows[i]) {
+			if (CXMLData *pXMLData = ((CXWnd2*)pWnd)->GetXMLData())
 			{
-				AutoLoginDebug("bLogin loop: adding window '%s'", Name);
-				WindowMap[Name] = (CXWnd2*)pWnd;
+				GetCXStr(pXMLData->Name.Ptr, Name, MAX_STRING);
+				if (Name[0])
+				{
+					AutoLoginDebug("bLogin loop: adding window '%s'", Name);
+					WindowMap[Name] = (CXWnd2*)pWnd;
+				}
 			}
 		}
-		ppWnd++;
 	}
 	bGotOffsets = true;
 	return true;

@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#include "SharedClasses.h"
 #pragma pack(push)
 #pragma pack(8)
 namespace EQClasses
@@ -1412,7 +1413,16 @@ EQLIB_OBJECT CClickStickInfo::CClickStickInfo(void);
 EQLIB_OBJECT CClickStickInfo::~CClickStickInfo(void);
 //EQLIB_OBJECT void * CClickStickInfo::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CClickStickInfo::`vector deleting destructor'(unsigned int);
+/*0x00*/	DWORD vfTable;
+/*0x04*/	CXWnd *FromWnd;
+/*0x08*/	CXWnd *ToWnd;
+/*0x10*/	POINT FromPoint;
+/*0x18*/	POINT ToPoint; 
+/*0x20*/	int   Code;
+/*0x24*/	void  *Data;
+/*0x28*/
 };
+
 class CCollisionInfoTargetVisibility
 {
 public:
