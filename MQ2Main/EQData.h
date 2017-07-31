@@ -4397,7 +4397,7 @@ typedef struct _EVERQUEST {
 	/*0x591*/ BYTE   Unknown0x591[0x3];
 	/*0x594*/ DWORD  ChannelNumber[0xa];
 	/*0x5bc*/ int  ChannelQty;
-	/*0x5c0*/ DWORD  TargetRing;
+	/*0x5c0*/ void *pFreeTargetRing;//PTARGETRING
 	/*0x5c4*/ DWORD	 WorldState;//0 everything is fine, 1 we are getting disconnected 2 player not released from zone
 	/*0x5c8*/ DWORD  GameState;
 	/*0x5cc*/ BYTE  Unknown0x5cc[0x388B0];

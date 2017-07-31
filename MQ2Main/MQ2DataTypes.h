@@ -712,6 +712,7 @@ public:
 		MQLoc = 145,
 		TimeBeenDead = 146,
 		FloorZ = 147,
+		IsSummoned = 148,
 	};
 	enum SpawnMethods
 	{
@@ -872,6 +873,7 @@ public:
 		TypeMember(MQLoc);
 		TypeMember(TimeBeenDead);
 		TypeMember(FloorZ);
+		TypeMember(IsSummoned);//if its a summoned pet
 		
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);

@@ -1503,7 +1503,10 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord = EQGetTime() - pSpawn->RespawnTimer;
 		Dest.Type = pTimeStampType;
 		return true;
-
+	case IsSummoned://if its a summoned being (pet for example)
+		Dest.DWord = pSpawn->bSummoned;
+		Dest.Type = pBoolType;
+		return true;
 	case Ducking:
 		Dest.DWord = pSpawn->StandState == STANDSTATE_DUCK;
 		Dest.Type = pBoolType;
@@ -1989,11 +1992,11 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case CanSplashLand:
-		ScreenVector3 sv3;
-		sv3.x = pSpawn->Y;
-		sv3.y = pSpawn->X;
-		sv3.z = pSpawn->Z;
-		Dest.DWord = pCharSpawn->CanSeeTargetIndicator(&sv3);
+		CVector3 sv3;
+		sv3.X = pSpawn->Y;
+		sv3.Y = pSpawn->X;
+		sv3.Z = pSpawn->Z;
+		Dest.DWord = pCharSpawn->CanSee(&sv3);
 		Dest.Type = pBoolType;
 		return true;
 	case IsBerserk:

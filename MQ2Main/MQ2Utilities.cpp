@@ -1644,6 +1644,11 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 	pSearchSpawn->GuildID = -1;
 	pSearchSpawn->ZRadius = 10000.0f;
 	pSearchSpawn->FRadius = 10000.0f;
+	if(pCharSpawn)
+		pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
+	else if(pLocalPlayer)
+		pSearchSpawn->zLoc = ((PSPAWNINFO)pLocalPlayer)->Z;
+
 }
 
 // *************************************************************************** 
@@ -1656,7 +1661,17 @@ FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
 	FLOAT Y = pSpawn->Y - yLoc;
 	return sqrtf(X*X + Y*Y);
 }
-
+// *************************************************************************** 
+// Function:    Distance3DToPoint 
+// Description: Return the distance between a spawn and the specified point 
+// *************************************************************************** 
+FLOAT Distance3DToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc, FLOAT zLoc)
+{
+	FLOAT dX = pSpawn->X - xLoc;
+	FLOAT dY = pSpawn->Y - yLoc;
+	FLOAT dZ = pSpawn->Z - zLoc;
+	return sqrtf(dX*dX + dY*dY + dZ*dZ);
+}
 // *************************************************************************** 
 // Function:    IsBardSong
 // Description: Return TRUE if the spell is a bard song
@@ -5369,7 +5384,7 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 	{
 		if (!IsInGroup(pClose) && (pClose->Type == SPAWN_PLAYER))
 		{
-			if ((pClose != pSpawn) && (DistanceToSpawn(pClose, pSpawn)<Radius))
+			if ((pClose != pSpawn) && (Distance3DToSpawn(pClose, pSpawn)<Radius))
 				return TRUE;
 		}
 		pClose = pClose->pNext;
@@ -6063,17 +6078,17 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if (pSearchSpawn->bKnownLocation)
 	{
 		if ((pSearchSpawn->xLoc != pSpawn->X || pSearchSpawn->yLoc != pSpawn->Y))
-			if (pSearchSpawn->FRadius<10000.0f && DistanceToPoint(pSpawn, pSearchSpawn->xLoc, pSearchSpawn->yLoc)>pSearchSpawn->FRadius)
+			if (pSearchSpawn->FRadius<10000.0f && Distance3DToPoint(pSpawn, pSearchSpawn->xLoc, pSearchSpawn->yLoc, pSearchSpawn->zLoc)>pSearchSpawn->FRadius)
 				return FALSE;
 	}
-	else if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
+	else if (pSearchSpawn->FRadius<10000.0f && Distance3DToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
 		return FALSE;
 
 	if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn, pSearchSpawn->Radius))
 		return FALSE;
-	if (gZFilter<10000.0f && ((pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
+	if (gZFilter<10000.0f && ((pSpawn->Z > pSearchSpawn->zLoc + gZFilter) || (pSpawn->Z < pSearchSpawn->zLoc - gZFilter)))
 		return FALSE;
-	if (pSearchSpawn->ZRadius<10000.0f && (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius || pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
+	if (pSearchSpawn->ZRadius<10000.0f && (pSpawn->Z > pSearchSpawn->zLoc + pSearchSpawn->ZRadius || pSpawn->Z < pSearchSpawn->zLoc - pSearchSpawn->ZRadius))
 		return FALSE;
 	if (pSearchSpawn->bLight)
 	{
@@ -6259,7 +6274,14 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->xLoc = (FLOAT)atof(szArg);
 			GetArg(szArg, szRest, 2);
 			pSearchSpawn->yLoc = (FLOAT)atof(szArg);
-			szRest = GetNextArg(szRest, 2);
+			GetArg(szArg, szRest, 3);
+			pSearchSpawn->zLoc = (FLOAT)atof(szArg);
+			if (pSearchSpawn->zLoc == 0.0) {
+				pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
+				szRest = GetNextArg(szRest, 2);
+			} else {
+				szRest = GetNextArg(szRest, 3);
+			}
 		}
 		else if (!_stricmp(szArg, "id")) {
 			GetArg(szArg, szRest, 1);

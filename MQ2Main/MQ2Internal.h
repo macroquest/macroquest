@@ -101,7 +101,8 @@ namespace MQ2Internal {
         DOUBLE ZRadius;
         DOUBLE FRadius;
         FLOAT xLoc;
-        FLOAT yLoc;
+		FLOAT yLoc;
+		FLOAT zLoc;
         BOOL bKnownLocation;
         BOOL bNoPet;
         DWORD SortBy;

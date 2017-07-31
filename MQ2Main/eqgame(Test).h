@@ -816,7 +816,7 @@ GNU General Public License for more details.
 #define EQPlayer__IsTargetable_x                                   0x925D10
 #define EQPlayer__CanSee_x                                         0x926270
 #define PlayerZoneClient__ChangeHeight_x                           0x5E5700
-#define EQPlayer__CanSeeTargetIndicator_x                          0x926360
+#define EQPlayer__CanSee1_x                                        0x926360
 #define PlayerBase__GetVisibilityLineSegment_x                     0x926000
 
 //PlayerZoneClient

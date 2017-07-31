@@ -126,15 +126,15 @@ PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 }
 
 // This is called when we receive the EQ_BEGIN_ZONE packet is received
-PLUGIN_API VOID BeginZone(VOID)
+PLUGIN_API VOID OnBeginZone(VOID)
 {
-    DebugSpewAlways("MQ2Template::BeginZone");
+    DebugSpewAlways("MQ2Template::OnBeginZone");
 }
 
 // This is called when we receive the EQ_END_ZONE packet is received
-PLUGIN_API VOID EndZone(VOID)
+PLUGIN_API VOID OnEndZone(VOID)
 {
-    DebugSpewAlways("MQ2Template::EndZone");
+    DebugSpewAlways("MQ2Template::OnEndZone");
 }
 // This is called when pChar!=pCharOld && We are NOT zoning
 // honestly I have no idea if its better to use this one or EndZone (above)

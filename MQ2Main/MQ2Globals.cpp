@@ -1971,7 +1971,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__GetLevel);
-	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
+	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee1);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
 
 	INITIALIZE_EQGAME_OFFSET(PlayerClient__GetPcClient);

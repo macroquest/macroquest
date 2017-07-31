@@ -1,3 +1,27 @@
+31 Jul 2017 by eqmule
+- /cast now takes an optional loc x y z argument useful for splashspells.
+  Example: /cast "Reforming Spash" loc 123 456 789
+  would cast the splash spell at that location...
+  just doing a /cast "Reforming Spash" will cast it either on your targets location
+  and if you have no target on your own location.
+-
+- Added IsSummoned to the spawn tlo, returns true/false if its a summoned being (pet for example)
+- MQ2Template now (correcty) creates OnBeginZone & OnEndZone functions. - cred htw
+- Distances in searchspawn now return the true 3D distance (instead of 2d distance)
+- Added zLoc to searchspawn. cred ctaylor
+  this means you can search location and zradius at a specific zloc.
+  Example:
+  /echo ${Spawn[npc loc 10 20 30 radius 20 zradius 15]}
+  IF there is a npc within 20 radius of loc 10,20 AND within +-15 Z of 30 (so max 45 or min 15)
+  THEN it will return that spawn...
+  NOTE: You can still use ${Spawn[npc loc 10 20 radius 20 zradius 15]}
+  like before this addition, and then it will just use YOUR Z (thats how it has worked up til now.)
+  If you use the loc keyword and there is a NUMBER as parameter 3, it will ALWAYS be assumed its the z loc...
+  IF there is NO NUMBER as the third parameter after loc, then its NOT a Z.
+  Just to make this perfectly clear: ALWAYS specify the radius keyword AFTER your loc keyword, and you will
+  be fine no matter if you feed it 2 or 3 args.
+  Makes sense? yeah... right...
+
 27 Jul 2017 by eqmule
 - Polished up the window manager a bit, it was overdue.
   This means some plugins might break, but its easy to fix.

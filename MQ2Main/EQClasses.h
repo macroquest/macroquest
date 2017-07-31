@@ -1926,13 +1926,33 @@ EQLIB_OBJECT unsigned int CEQSuiteTextureLoader::CreateTexture(class CUITextureI
 EQLIB_OBJECT void CEQSuiteTextureLoader::UnloadAllTextures(void);
 EQLIB_OBJECT const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const;
 };
-
+class ItemGlobalIndex
+{
+public:
+	ItemGlobalIndex::ItemContainerInstance Location;
+	ItemGlobalIndex::ItemIndex Index;
+	//CHAR morestuff[2048];
+EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
+EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
+EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
+EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
+};
+//oct 26 2015 - eqmule 
+typedef struct _TARGETRING {
+/*0x00*/	DWORD Gem;//the gem the spell below is memmed in... 0-11
+/*0x04*/	PSPELL thespell;
+/*0x08*/	ItemGlobalIndex ItemLoc;//size 0xc
+/*0x14*/	ItemSpellTypes SpellType;
+/*0x18*/	FLOAT SquaredRange;
+/*0x1c*/	bool bCursorVisible;
+/*0x20*/
+} TARGETRING, *PTARGETRING;
 class CEverQuest
 {
 public:
 EQLIB_OBJECT CEverQuest::~CEverQuest(void);
 EQLIB_OBJECT CEverQuest::CEverQuest(struct HWND__ *);
-EQLIB_OBJECT CTargetRing *CEverQuest::CreateTargetIndicator(int, PSPELL, ScreenVector3*, int);
+EQLIB_OBJECT void CEverQuest::CreateTargetIndicator(int Slot, PSPELL pSpell, const ItemGlobalIndex& ItemLoc, ItemSpellTypes spelltype);
 EQLIB_OBJECT int CEverQuest::DeleteTargetIndicator(void);
 EQLIB_OBJECT bool CEverQuest::IsInTypingMode(void);
 EQLIB_OBJECT bool CEverQuest::IsOkToTransact(void);
@@ -2552,18 +2572,6 @@ public:
 // virtual
 EQLIB_OBJECT void ChannelServerHandler::CshOnLoginConfirm(bool);
 EQLIB_OBJECT void ChannelServerHandler::CshOnPacket(void *,int,char *,int,char *,bool);
-};
-
-class ItemGlobalIndex
-{
-public:
-	ItemGlobalIndex::ItemContainerInstance Location;
-	ItemGlobalIndex::ItemIndex Index;
-	//CHAR morestuff[2048];
-EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
-EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
-EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
-EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
 };
 
 class CHashCXStrInt32
@@ -5060,12 +5068,14 @@ EQLIB_OBJECT void CTargetManager::Update(void);
 class CTargetRing
 {
 public:
-EQLIB_OBJECT int CTargetRing::Cast(ScreenVector3 *);
+EQLIB_OBJECT int CTargetRing::Cast(CVector3 *pos);
 /*0x00*/	DWORD Gem;//the gem the spell below is memmed in... 0-11
 /*0x04*/	PSPELL thespell;
-/*0x08*/	ScreenVector3 thevec;
-/*0x14*/	BOOL Param;
-/*0x18*/
+/*0x08*/	ItemGlobalIndex ItemLoc;//size 0xc
+/*0x14*/	ItemSpellTypes SpellType;
+/*0x18*/	FLOAT SquaredRange;
+/*0x1c*/	bool bCursorVisible;
+/*0x20*/
 };
 
 class CTargetWnd : public CSidlScreenWnd
@@ -6376,7 +6386,7 @@ EQLIB_OBJECT bool EQPlayer::CanChangeForm(int,unsigned char);
 EQLIB_OBJECT bool EQPlayer::CanIFitHere(float,float,float);
 EQLIB_OBJECT bool EQPlayer::CanIHit(class EQPlayer *,float);
 EQLIB_OBJECT bool EQPlayer::CanSee(class EQPlayer *);
-EQLIB_OBJECT bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *);
+EQLIB_OBJECT bool EQPlayer::CanSee(CVector3 *pos);
 EQLIB_OBJECT bool EQPlayer::GetBoneCoords(struct T3D_DAG *,struct _EQLOC *);
 EQLIB_OBJECT bool EQPlayer::IsAMount(void);
 EQLIB_OBJECT bool EQPlayer::IsFlyer(void);

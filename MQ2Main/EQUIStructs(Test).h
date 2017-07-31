@@ -1208,14 +1208,6 @@ typedef struct _ScreenVector3
 		DWORD dz;
 	};
 } ScreenVector3, *PScreenVector3;
-//oct 26 2015 - eqmule 
-typedef struct _TARGETRING {
-/*0x00*/	DWORD Gem;//the gem the spell below is memmed in... 0-11
-/*0x04*/	PSPELL thespell;
-/*0x08*/	ScreenVector3 thevec;
-/*0x14*/	BOOL Param;
-/*0x18*/
-} TARGETRING, *PTARGETRING;
 
 //see ref to pinstCInventoryWnd_x in __GetGaugeValueFromEQ_x
 //Apr 17 Test 2017 see 7A4B12 - eqmule

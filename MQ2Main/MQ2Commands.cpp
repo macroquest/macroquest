@@ -2338,34 +2338,46 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void CastSplash(int Index, PSPELL pSpell)
+void CastSplash(int Index, PSPELL pSpell,CVector3 *pos)
 {
-	ScreenVector3 sv3;
-	sv3.dx = 0xFFFFFFFF;//setting up the default for the targetindicator (splashring)
-	sv3.dy = 0xFFFFFFFF;
-	sv3.dz = 0xFFFF;// weird right? shouldn't it be 0xFFFFFFFF ? well maybe a bug but thats what the client has it as... -eqmule
-	if (CTargetRing *pTR = pEverQuest->CreateTargetIndicator(Index, pSpell, &sv3, 0)) {
-		if (pTarget) {
-			sv3.x = ((PSPAWNINFO)pTarget)->Y;//yes we really need to set Y to x, this is not a bug.
-			sv3.y = ((PSPAWNINFO)pTarget)->X;
-			sv3.z = ((PSPAWNINFO)pTarget)->Z;
+	CVector3 vec3;
+	ItemGlobalIndex IGE;
+	IGE.Location = eItemContainerInvalid;//setting up the defaults for the targetindicator (splashring)
+	IGE.Index.Slot1 = -1;
+	IGE.Index.Slot2 = -1;
+	IGE.Index.Slot3 = -1;
+	pEverQuest->CreateTargetIndicator(Index, pSpell, IGE, eActivatableSpell);
+	if (CTargetRing *pTR = (CTargetRing *)((PEVERQUEST)pEverQuest)->pFreeTargetRing) {
+		if (pos) {
+			vec3.X = pos->Y;
+			vec3.Y = pos->X;
+			vec3.Z = pos->Z;
+		} else if (pTarget) {
+			vec3.X = ((PSPAWNINFO)pTarget)->Y;//yes we really need to set Y to x, this is not a bug.
+			vec3.Y = ((PSPAWNINFO)pTarget)->X;
+			vec3.Z = ((PSPAWNINFO)pTarget)->Z;
 		}
 		else {//ok fine, this is probably not what the user wants but if he doesnt have a target im just gonna splash myself...
-			sv3.x = ((PSPAWNINFO)pLocalPlayer)->Y;
-			sv3.y = ((PSPAWNINFO)pLocalPlayer)->X;
-			sv3.z = ((PSPAWNINFO)pLocalPlayer)->Z;
+			vec3.X = ((PSPAWNINFO)pLocalPlayer)->Y;
+			vec3.Y = ((PSPAWNINFO)pLocalPlayer)->X;
+			vec3.Z = ((PSPAWNINFO)pLocalPlayer)->Z;
 		}
 		//ok we better check if splash can be cast in the location
-		bool cansee = pLocalPlayer->CanSeeTargetIndicator(&sv3);
+		bool cansee = pLocalPlayer->CanSee(&vec3);
 		if (cansee) {
-			//ok its all good, lets cast it.
-			pTR->Cast(&sv3);
-			//need to delete it...
-			pEverQuest->DeleteTargetIndicator();
+			float dist = Get3DDistance(vec3.Y, vec3.X, vec3.Z, ((PSPAWNINFO)pLocalPlayer)->X, ((PSPAWNINFO)pLocalPlayer)->Y, ((PSPAWNINFO)pLocalPlayer)->Z);
+			if (dist < pTR->thespell->Range) {
+				pTR->Cast(&vec3);
+			}
+			else {
+				WriteChatColor("You too far away from your target", CONCOLOR_LIGHTBLUE);
+			}
 		}
 		else {
 			WriteChatColor("You cannot see your target", CONCOLOR_LIGHTBLUE);
 		}
+		//need to delete it...
+		pEverQuest->DeleteTargetIndicator();
 	}
 	else {
 		WriteChatColor("Creation of a TargetIndicator Failed.", CONCOLOR_YELLOW);
@@ -2375,18 +2387,42 @@ void CastSplash(int Index, PSPELL pSpell)
 // ***************************************************************************
 // Function:    Cast
 // Description: Our '/cast' command
-// Usage:       /cast [list|#|"name of spell"|item "name of item"]
+// Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (spash location)
 // ***************************************************************************
 VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (!cmdCast) return;
+	if (!cmdCast)
+		return;
+	DWORD Index;
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR szArg1[MAX_STRING] = { 0 };
+	CHAR szArg2[MAX_STRING] = { 0 };
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+	//DebugSpew("Cast: szArg1 = %s szArg2 = %s", szArg1, szArg2);
 	if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData) {
 		int Index = atoi(szLine);
 		Index--;
 		if (Index >= 0 && Index < NUM_SPELL_GEMS) {
 			if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(Index))) {
 				if (pSpell->TargetType == 0x2d) {//is it a splashspell?
-					CastSplash(Index, pSpell);
+					if (!_stricmp(szArg2, "loc")) {
+						//ok they want to cast it at a specific location
+						CHAR locx[MAX_STRING] = { 0 };
+						CHAR locy[MAX_STRING] = { 0 };
+						CHAR locz[MAX_STRING] = { 0 };
+						GetArg(locx, szLine, 3);
+						GetArg(locy, szLine, 4);
+						GetArg(locz, szLine, 5);
+						CVector3 castloc;
+						castloc.X = (float)atof(locx);
+						castloc.Y = (float)atof(locy);
+						castloc.Z = (float)atof(locz);
+						CastSplash(Index, pSpell, &castloc);
+					}
+					else {
+						CastSplash(Index, pSpell, NULL);
+					}
 					return;
 				}
 			}
@@ -2394,10 +2430,6 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		cmdCast(pChar, szLine);
 		return;
 	}
-	DWORD Index;
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
 	if (!_stricmp(szLine, "list")) {
 		WriteChatColor("Spells:", USERCOLOR_DEFAULT);
 		for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
@@ -2413,9 +2445,6 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-	DebugSpew("Cast: szArg1 = %s szArg2 = %s", szArg1, szArg2);
 	if (!_stricmp(szArg1, "item"))
 	{
 		if (HasExpansion(EXPANSION_VoA))
@@ -2457,14 +2486,29 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	GetArg(szBuffer, szLine, 1);
-
 	for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
 		LONG Spellid = GetMemorizedSpell(Index);
 		if (Spellid != 0xFFFFFFFF) {
 			if (PSPELL pSpell = GetSpellByID(Spellid)) {
 				if (!_stricmp(szBuffer, pSpell->Name)) {
 					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
-						CastSplash(Index, pSpell);
+						if (!_stricmp(szArg2, "loc")) {
+							//ok they want to cast it at a specific location
+							CHAR locx[MAX_STRING] = { 0 };
+							CHAR locy[MAX_STRING] = { 0 };
+							CHAR locz[MAX_STRING] = { 0 };
+							GetArg(locx, szLine, 3);
+							GetArg(locy, szLine, 4);
+							GetArg(locz, szLine, 5);
+							CVector3 castloc;
+							castloc.X = (float)atof(locx);
+							castloc.Y = (float)atof(locy);
+							castloc.Z = (float)atof(locz);
+							CastSplash(Index, pSpell, &castloc);
+						}
+						else {
+							CastSplash(Index, pSpell, NULL);
+						}
 						return;
 					}
 					else {//nope normal, so just pipe it through

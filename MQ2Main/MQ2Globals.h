@@ -1431,7 +1431,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayer__CanSee;
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 	EQLIB_VAR DWORD PlayerZoneClient__GetLevel;
-	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
+	EQLIB_VAR DWORD EQPlayer__CanSee1;
 	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
 	
 	EQLIB_VAR DWORD PlayerClient__GetPcClient;

@@ -2874,7 +2874,7 @@ FUNCTION_AT_ADDRESS(void  CSpellBookWnd::DeleteSpellFromBook(int,int),CSpellBook
 FUNCTION_AT_ADDRESS(class CXStr  CXStr::Mid(int,int)const ,CXStr__Mid);
 #endif
 #ifdef CTargetRing__Cast_x
-FUNCTION_AT_ADDRESS(int CTargetRing::Cast(ScreenVector3 *), CTargetRing__Cast);
+FUNCTION_AT_ADDRESS(int CTargetRing::Cast(CVector3 *), CTargetRing__Cast);
 #endif
 #ifdef CTargetWnd__CTargetWnd_x
 FUNCTION_AT_ADDRESS(CTargetWnd::CTargetWnd(class CXWnd *), CTargetWnd__CTargetWnd);
@@ -5256,8 +5256,8 @@ FUNCTION_AT_ADDRESS(bool  EQPlayer::CanIHit(class EQPlayer *,float),EQPlayer__Ca
 #ifdef EQPlayer__CanSee_x
 FUNCTION_AT_ADDRESS(bool  EQPlayer::CanSee(class EQPlayer *), EQPlayer__CanSee);
 #endif
-#ifdef EQPlayer__CanSeeTargetIndicator_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *), EQPlayer__CanSeeTargetIndicator);
+#ifdef EQPlayer__CanSee1_x
+FUNCTION_AT_ADDRESS(bool EQPlayer::CanSee(CVector3 *pos), EQPlayer__CanSee1);
 #endif
 
 #ifdef EQPlayer__ModifyAttackSpeed_x
@@ -6191,7 +6191,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::CleanupBadFiles(void),CEverQuest__CleanupB
 FUNCTION_AT_ADDRESS(void  CEverQuest::CreateInitialActors(void), CEverQuest__CreateInitialActors);
 #endif
 #ifdef CEverQuest__CreateTargetIndicator_x
-FUNCTION_AT_ADDRESS(CTargetRing *CEverQuest::CreateTargetIndicator(int,PSPELL,ScreenVector3*,int), CEverQuest__CreateTargetIndicator);
+FUNCTION_AT_ADDRESS(void CEverQuest::CreateTargetIndicator(int Slot, PSPELL pSpell, const ItemGlobalIndex& ItemLoc, ItemSpellTypes spelltype), CEverQuest__CreateTargetIndicator);
 #endif
 #ifdef CEverQuest__DeleteTargetIndicator_x
 FUNCTION_AT_ADDRESS(int CEverQuest::DeleteTargetIndicator(void), CEverQuest__DeleteTargetIndicator);
