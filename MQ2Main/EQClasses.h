@@ -6415,7 +6415,7 @@ EQLIB_OBJECT int EQPlayer::GetArmorType(int);
 EQLIB_OBJECT int EQPlayer::GetAttachedHelmITNum(int,int *);
 EQLIB_OBJECT int EQPlayer::GetGuild(void)const;
 EQLIB_OBJECT int EQPlayer::GetRaceSexITOffset(void);
-EQLIB_OBJECT int EQPlayer::IsValidTeleport(float,float,float,float,float);
+EQLIB_OBJECT bool EQPlayer::IsValidTeleport(float X, float Y, float Z, float Heading, float Distance);
 EQLIB_OBJECT int EQPlayer::LegalPlayerRace(int);
 EQLIB_OBJECT int EQPlayer::Levitating(void);
 EQLIB_OBJECT int EQPlayer::MountableRace(void);
@@ -8726,11 +8726,7 @@ enum eKeyboardMode
 	Typing,
 	KBM_Command,
 };
-typedef struct _USINGSKILL {
-/*0x00*/	int Skill;
-/*0x04*/	void* Target;
-/*0x08*/
-} USINGSKILL,*PUSINGSKILL;
+
 typedef struct _EVERQUESTINFO
 {
 /*0x00000*/	HWND		Wnd;
@@ -8755,7 +8751,7 @@ typedef struct _EVERQUESTINFO
 /*0x0004c*/	int		WindowYOffset;
 /*0x00050*/	BOOL	FullscreenMode;
 /*0x00054*/	eKeyboardMode	KeyboardMode;
-/*0x00058*/	BYTE	Runmode;
+/*0x00058*/	BYTE	Runmode;//dont EVER set this to something > 1 unless you WANT to get banned.
 /*0x00059*/	BYTE	Unknown0x00059;
 /*0x0005a*/	BYTE	Unknown0x0005a;
 /*0x0005b*/	BYTE	MouseCntrl;

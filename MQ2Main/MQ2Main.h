@@ -687,6 +687,7 @@ EQLIB_API VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggl
 EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API VOID RewriteSubstitutions(VOID);
 EQLIB_API VOID RewriteAliases(VOID);
+EQLIB_API VOID WriteAliasToIni(char*Name, char*Command);
 EQLIB_API DWORD FindSpellListByName(PCHAR szName);
 EQLIB_API FLOAT StateHeightMultiplier(DWORD StandState);
 EQLIB_API DWORD WINAPI thrMsgBox(LPVOID lpParameter);

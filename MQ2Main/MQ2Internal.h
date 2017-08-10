@@ -275,13 +275,6 @@ namespace MQ2Internal {
         CHAR szFuncName[MAX_STRING];
     } BINDLIST, *PBINDLIST;
 
-    typedef struct _ALIAS {
-        struct _ALIAS *pNext;
-        struct _ALIAS *pLast;
-        CHAR szName[MAX_STRING];
-        CHAR szCommand[MAX_STRING];
-    } ALIAS, *PALIAS;
-
     typedef struct _SUB {
         struct _SUB *pNext;
         struct _SUB *pLast;

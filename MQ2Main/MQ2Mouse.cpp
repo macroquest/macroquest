@@ -336,6 +336,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
 		RETURN(0);
 	} 
+	if (gZoning) RETURN(0);
 	CHAR szMouseLoc[MAX_STRING] = { 0 };
     MOUSE_DATA_TYPES mdType = MD_Unknown; 
     DWORD RightOrLeft = 0; 

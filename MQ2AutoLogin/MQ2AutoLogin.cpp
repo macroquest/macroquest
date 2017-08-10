@@ -256,7 +256,7 @@ map<string, class CXWnd2 *> WindowMap;
 
 
 // this changes frequently so it needs to be done this way
-#define pLoginClient ((CLoginClient*)*(DWORD*)dwLoginClient)
+#define pLoginClient ((LoginServerAPI*)*(DWORD*)dwLoginClient)
 
 
 bool SetOffsets();
@@ -374,15 +374,15 @@ public:
     int SendLMouseClick(CXPoint &);
 };
 
-class CLoginClient
+class LoginServerAPI
 {
-public:
-    int EnterGame(DWORD serverID, DWORD zero = 0, DWORD ten = 0xa);
+public://see 100129F0 in eqmain.dll dated jul 13 2017 - eqmule
+    unsigned int JoinServer(int serverID, void * userdata = 0, int timoutseconds = 10);
 };
 
 FUNCTION_AT_VARIABLE_ADDRESS(CXMLData *CXMLDataManager2::GetXMLData(int,int), dwGetXMLDataAddr);
 FUNCTION_AT_VARIABLE_ADDRESS(int CLoginViewManager::SendLMouseClick(CXPoint &), dwSendLMouseClickAddr);
-FUNCTION_AT_VARIABLE_ADDRESS(int CLoginClient::EnterGame(DWORD, DWORD, DWORD), dwEnterGameAddr);
+FUNCTION_AT_VARIABLE_ADDRESS(unsigned int LoginServerAPI::JoinServer(int, void *, int), dwEnterGameAddr);
 
 
 class CXWnd2 *_RecurseAndFindName(class CXWnd2 *pWnd, PCHAR Name)
@@ -437,6 +437,46 @@ template <unsigned int _Size>bool GetPassword(CHAR(&szBuffer)[_Size])
 	}
 	return false;
 }
+//todo fix this to do an actual select on the listitem
+template <unsigned int _Size>DWORD SelectServer(CHAR(&szShortName)[_Size])
+{
+	if (GetGameState() != GAMESTATE_PRECHARSELECT) {
+		bGotOffsets = false;
+		return 0;
+	}
+	CHAR szLongName[MAX_STRING] = { 0 };
+	if (GetServerLongName(szShortName, szLongName)) {
+		if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end()) {
+			if (CListWnd*serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"]) {
+				if (serverlist->ItemsArray.Count && dwServerInfo) {
+					if (PSERVERSTUFF serveridoff = *(PSERVERSTUFF*)dwServerInfo) {
+						if (serveridoff->pServerList && serveridoff->pServerList->Info) {
+							PSERVERLIST pList = serveridoff->pServerList;
+							while (pList) {
+								if (pList->Info) {
+									CHAR szServer[MAX_STRING] = { 0 };
+									GetCXStr(pList->Info->ServerName, szServer);
+									if (szServer[0] != '\0') {
+										if (!_stricmp(szServer, szLongName)) {
+											return pList->Info->ID;
+										}
+										//CHAR szID[MAX_STRING] = { 0 };
+										//sprintf_s(szID, "%d", pList->Info->ID);
+										//WritePrivateProfileString("Servers", szServer, szID, "C:\\eqservers.ini");
+									}
+								}
+								pList = pList->Next;
+							}
+						} else {
+							bGotOffsets = false;
+						}
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
 template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size])
 {
 	if (GetGameState() != GAMESTATE_PRECHARSELECT) {
@@ -478,6 +518,7 @@ template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size]
 }
 template <unsigned int _Size>DWORD GetServerID(CHAR(&szName)[_Size])
 {
+	//MessageBox(NULL, "break in", "", MB_SYSTEMMODAL | MB_OK);
     for(DWORD n = 0; ServerData[n].ID; n++)
     {
         if(!_stricmp(szName, ServerData[n].Name))
@@ -1620,7 +1661,7 @@ void HandleWindows()
 			if (bServerWait)
 				return;
 			if (dwServerID = GetServerID(szServerName)) {
-				pLoginClient->EnterGame(dwServerID);
+				pLoginClient->JoinServer(dwServerID);
 				bSwitchServer = false;
 				bServerWait = true;
 			} else {

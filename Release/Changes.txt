@@ -1,3 +1,12 @@
+10 Aug 2017 by eqmule
+- Updated for TEST
+- Improved AddAlias, RemoveAlias and the rest of the alias stuff.
+  macros that use /addalias should notice a significant increase in performance.
+
+03 Aug 2017 by rswiders
+- Updated /cast to cast the memorized rank of the spell when the rank is not given in the name.
+- Fixed random crashes with /click when zoning.
+
 31 Jul 2017 by eqmule
 - /cast now takes an optional loc x y z argument useful for splashspells.
   Example: /cast "Reforming Spash" loc 123 456 789

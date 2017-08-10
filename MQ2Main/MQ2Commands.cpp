@@ -2490,7 +2490,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		LONG Spellid = GetMemorizedSpell(Index);
 		if (Spellid != 0xFFFFFFFF) {
 			if (PSPELL pSpell = GetSpellByID(Spellid)) {
-				if (!_stricmp(szBuffer, pSpell->Name)) {
+				if (!_strnicmp(szBuffer, pSpell->Name, strlen(szBuffer))) {
 					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
 						if (!_stricmp(szArg2, "loc")) {
 							//ok they want to cast it at a specific location
@@ -2703,21 +2703,18 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(szName, szLine, 1);
 	szCommand = GetNextArg(szLine);
 	if (!_stricmp(szName, "list")) {
-		PALIAS pLoop = pAliases;
 		DWORD Count = 0;
 		WriteChatColor("Aliases", USERCOLOR_WHO);
 		WriteChatColor("--------------------------", USERCOLOR_WHO);
-		while (pLoop) {
-			sprintf_s(szName, "%s: %s", pLoop->szName, pLoop->szCommand);
+		for (std::map<std::string, std::string>::iterator i = mAliases.begin(); i != mAliases.end(); i++) {
+			sprintf_s(szName, "%s: %s", i->first.c_str(),i->second.c_str());
 			WriteChatColor(szName, USERCOLOR_WHO);
-			Count++;
-			pLoop = pLoop->pNext;
 		}
-		if (Count == 0) {
+		if (mAliases.size() == 0) {
 			WriteChatColor("No aliases defined.", USERCOLOR_WHO);
 		}
 		else {
-			sprintf_s(szName, "%d alias%s displayed.", Count, (Count == 1) ? "" : "es");
+			sprintf_s(szName, "%d alias%s displayed.", mAliases.size(), (mAliases.size() == 1) ? "" : "es");
 			WriteChatColor(szName, USERCOLOR_WHO);
 		}
 		return;
@@ -2731,7 +2728,6 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 		if (RemoveAlias(szName))
 		{
 			sprintf_s(szBuffer, "Alias '%s' deleted.", szName);
-			RewriteAliases();
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 		else
@@ -2747,7 +2743,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 		AddAlias(szName, szCommand);
 		sprintf_s(szBuffer, "Alias '%s' %sed.", szName, (New) ? "add" : "updat");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		RewriteAliases();
+		WriteAliasToIni(szName,szCommand);
 	}
 }
 

@@ -2012,16 +2012,12 @@ TLO(dataAlias)
 {
 	if (ISINDEX())
 	{
-		PALIAS pLoop = pAliases;
-		while (pLoop)
-		{
-			if (!_stricmp(pLoop->szName, GETFIRST()))
-			{
-				Ret.DWord = 1;
-				Ret.Type = pBoolType;
-				return true;
-			}
-			pLoop = pLoop->pNext;
+		std::string sName = GETFIRST();
+		std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
+		if (mAliases.find(sName) != mAliases.end()) {
+			Ret.DWord = 1;
+			Ret.Type = pBoolType;
+			return true;
 		}
 	}
 	return false;

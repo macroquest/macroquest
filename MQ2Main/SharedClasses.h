@@ -46,3 +46,8 @@ public:
 	HCURSOR CursorList[eNumCursors];
 	bool bScreenShotMode;
 };
+typedef struct _USINGSKILL {
+/*0x00*/	int Skill;
+/*0x04*/	void* Target;
+/*0x08*/
+} USINGSKILL,*PUSINGSKILL;

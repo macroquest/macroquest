@@ -93,14 +93,11 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     CHAR szOriginalLine[MAX_STRING] = {0};
     strcpy_s(szOriginalLine,szTheCmd);
     GetArg(szArg1,szTheCmd,1);
-    PALIAS pLoop = pAliases;
-    while (pLoop) {
-        if (!_stricmp(szArg1,pLoop->szName)) {
-			sprintf_s(szTheCmd, "%s%s", pLoop->szCommand, szOriginalLine + strlen(pLoop->szName));
-            break;
-        }
-        pLoop = pLoop->pNext;
-    }
+	std::string sName = szArg1;
+	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
+	if (mAliases.find(sName) != mAliases.end()) {
+		sprintf_s(szTheCmd, "%s%s", mAliases[sName].c_str(), szOriginalLine + sName.size());
+	}
 
     GetArg(szArg1,szTheCmd,1);
     if (szArg1[0]==0)
@@ -246,7 +243,8 @@ public:
         std::string szSubFullCommand = "";
         unsigned int k=0;
         bool OneCharacterSub = false;
-        PALIAS pLoop = pAliases; 
+        
+		//PALIAS pLoop = pAliases; 
         PSUB pSubLoop = pSubs;
 
         if (szFullLine[0]!=0) { 
@@ -315,15 +313,13 @@ public:
                 }
             }
 			sprintf_s(szFullCommand, "%s", szSubFullCommand.c_str() );
+			std::string sName = szCommand;
+			std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
+			if (mAliases.find(sName) != mAliases.end()) {
+				sprintf_s(szCommand,"%s%s",mAliases[sName].c_str(),szFullCommand+sName.size());
+                strcpy_s(szFullCommand,szCommand); 
+			}
 
-            while (pLoop) { 
-                if (!_stricmp(szCommand,pLoop->szName)) { 
-					sprintf_s(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName));
-                    strcpy_s(szFullCommand,szCommand); 
-                    break;
-                } 
-                pLoop = pLoop->pNext; 
-            } 
             GetArg(szCommand,szFullCommand,1); 
             strcpy_s(szArgs, GetNextArg(szFullCommand)); 
 
@@ -475,74 +471,21 @@ BOOL RemoveCommand(PCHAR Command)
 
 void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
 {
-    DebugSpew("AddAlias(%s,%s)",ShortCommand,LongCommand);
-    // perform insertion sort
-    if (!pAliases)
-    {
-        PALIAS pAlias=new ALIAS;
-        memset(pAlias,0,sizeof(ALIAS));
-        strcpy_s(pAlias->szName,ShortCommand);
-		strcpy_s(pAlias->szCommand,LongCommand);
-        pAliases=pAlias;
-        return;
-    }
-    PALIAS pInsert=pAliases;
-    PALIAS pLast=0;
-    while(pInsert)
-    {
-        int Pos=_stricmp(ShortCommand,pInsert->szName);
-        if (Pos<0)
-        {
-            // insert here.
-            PALIAS pAlias=new ALIAS;
-            memset(pAlias,0,sizeof(ALIAS));
-			strcpy_s(pAlias->szName,ShortCommand);
-			strcpy_s(pAlias->szCommand,LongCommand);
-            if (pLast)
-                pLast->pNext=pAlias;
-            else
-                pAliases=pAlias;
-            pAlias->pLast=pLast;
-            pInsert->pLast=pAlias;
-            pAlias->pNext=pInsert;
-            return;
-        }
-        if (Pos==0)
-        {
-			strcpy_s(pInsert->szName,ShortCommand);
-			strcpy_s(pInsert->szCommand,LongCommand);
-            return;
-        }
-        pLast=pInsert;
-        pInsert=pInsert->pNext;
-    }
-    // End of list
-    PALIAS pAlias=new ALIAS;
-    memset(pAlias,0,sizeof(ALIAS));
-	strcpy_s(pAlias->szName,ShortCommand);
-	strcpy_s(pAlias->szCommand,LongCommand);
-    pLast->pNext=pAlias;
-    pAlias->pLast=pLast;
+	std::string sName = ShortCommand;
+	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
+    DebugSpew("AddAlias(%s,%s)",sName.c_str(),LongCommand);
+	mAliases[sName] = LongCommand;
 }
 
 BOOL RemoveAlias(PCHAR ShortCommand)
 {
-    PALIAS pAlias=pAliases;
-    while(pAlias)
-    {
-        if (!_stricmp(ShortCommand,pAlias->szName))
-        {
-            if (pAlias->pNext)
-                pAlias->pNext->pLast=pAlias->pLast;
-            if (pAlias->pLast)
-                pAlias->pLast->pNext=pAlias->pNext;
-            else
-                pAliases=pAlias->pNext;
-            delete pAlias;
-            return 1;
-        }
-        pAlias=pAlias->pNext;
-    }
+	std::string sName = ShortCommand;
+	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
+	WritePrivateProfileString("Aliases", sName.c_str(),NULL, gszINIFilename);
+	if (mAliases.find(sName) != mAliases.end()) {
+		mAliases.erase(sName);
+		return 1;
+	}
     return 0;
 }
 
@@ -856,12 +799,7 @@ void ShutdownMQ2Commands()
         delete pTimedCommands;
         pTimedCommands=pNext;
     }
-    while(pAliases)
-    {
-        PALIAS pNext=pAliases->pNext;
-        delete pAliases;
-        pAliases=pNext;
-    }
+	mAliases.clear();
     while(pSubs)
     {
         PSUB pNext=pSubs->pNext;

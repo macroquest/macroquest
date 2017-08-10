@@ -372,7 +372,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD nColorMQ2DataError;
 	EQLIB_VAR DWORD nColorFatalError;
 
-	EQLIB_VAR PALIAS pAliases;
+	EQLIB_VAR std::map<std::string,std::string> mAliases;
 	EQLIB_VAR PSUB pSubs;
 	EQLIB_VAR PMQCOMMAND pCommands;
 	EQLIB_VAR PMQPLUGIN pPlugins;
@@ -1431,6 +1431,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayer__CanSee;
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 	EQLIB_VAR DWORD PlayerZoneClient__GetLevel;
+	EQLIB_VAR DWORD PlayerZoneClient__IsValidTeleport;
 	EQLIB_VAR DWORD EQPlayer__CanSee1;
 	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
 	

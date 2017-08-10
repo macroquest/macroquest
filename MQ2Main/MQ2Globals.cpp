@@ -1010,7 +1010,7 @@ namespace MQ2Globals
 
 	PMQPLUGIN pPlugins = 0;
 	PMQXMLFILE pXMLFiles = 0;
-	PALIAS pAliases = 0;
+	std::map<std::string,std::string> mAliases;
 	PSUB pSubs = 0;
 	PMQCOMMAND pCommands = 0;
 
@@ -1971,6 +1971,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__GetLevel);
+	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__IsValidTeleport);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee1);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
 

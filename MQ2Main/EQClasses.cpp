@@ -5537,8 +5537,8 @@ FUNCTION_AT_ADDRESS(int  EQPlayer::SwapHead(int,int,unsigned long,int),EQPlayer_
 #ifdef EQPlayer__SetPlayerPitchType_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::SetPlayerPitchType(void),EQPlayer__SetPlayerPitchType);
 #endif
-#ifdef EQPlayer__IsValidTeleport_x
-FUNCTION_AT_ADDRESS(int  EQPlayer::IsValidTeleport(float,float,float,float,float),EQPlayer__IsValidTeleport);
+#ifdef PlayerZoneClient__IsValidTeleport_x
+FUNCTION_AT_ADDRESS(bool EQPlayer::IsValidTeleport(float X, float Y, float Z, float Heading, float Distance),PlayerZoneClient__IsValidTeleport);
 #endif
 #ifdef EQPlayer__ReplaceSpecialCloakMaterials_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::ReplaceSpecialCloakMaterials(void),EQPlayer__ReplaceSpecialCloakMaterials);

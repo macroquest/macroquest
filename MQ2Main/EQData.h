@@ -4387,6 +4387,28 @@ typedef struct _CharSelectPlayerArray
 	CSINFO CharacterInfo[13];//is 13 chars the max u can have?
 } CharSelectPlayerArray,*PCharSelectPlayerArray;
 
+class PickZoneTimerHandler
+{
+public:
+	struct PickZoneRecord {
+		PCXSTR ZoneName;
+		int Time;
+	};
+	EQArray<PickZoneRecord> Records;
+};
+typedef struct _PETITIONSTATUS{
+/*0x00*/ int ID;
+/*0x04*/ int Priority;//todo: check
+/*0x08*/ int State;//todo: figure out.
+/*0x0c*/ DWORD ArrivalTime;
+/*0x10*/ CHAR User[0x20];
+/*0x30*/ CHAR Player[0x40];
+/*0x70*/ int NumActive;
+/*0x74*/ CHAR Player2[0x40];
+/*0xb4*/ DWORD TimeStamp;//not sure what its for
+/*0xb8*/
+} PETITIONSTATUS,*PPETITIONSTATUS;
+
 typedef struct _EVERQUEST {
 	/*0x000*/ BYTE   Unknown[0x2a4];
 	/*0x2a4*/ struct _CHATSERVICE *ChatService;
@@ -4400,7 +4422,32 @@ typedef struct _EVERQUEST {
 	/*0x5c0*/ void *pFreeTargetRing;//PTARGETRING
 	/*0x5c4*/ DWORD	 WorldState;//0 everything is fine, 1 we are getting disconnected 2 player not released from zone
 	/*0x5c8*/ DWORD  GameState;
-	/*0x5cc*/ BYTE  Unknown0x5cc[0x388B0];
+	/*0x5cc*/ bool	bStopAreaProcessing;
+	/*0x5cd*/ bool	bRAFEnabled;
+	/*0x5d0*/ __int64	ServerTimeSync;
+	/*0x5d8*/ __int64	ServerTimeBase;
+	/*0x5e0*/ __int64	ServerTimeLastReported;
+	/*0x5e8*/ bool	bServerTimeHasWrapped;
+	/*0x5ec*/ FLOAT	TargetCameraDistance;
+	/*0x5f0*/ bool	bUnknown0x5f0;
+	/*0x5f4*/ int	TotalCharacterSlots;
+	/*0x5f8*/ int	MarketplaceCharacterSlots;
+	/*0x5fc*/ int	Unknown0x5fc;
+	/*0x600*/ void*	CampDialog;//CPopDialogWnd
+	/*0x604*/ PickZoneTimerHandler pickZoneTimerHandler;//size 0x10?
+	/*0x614*/ USINGSKILL	UsingSkill;//size 0x8
+	/*0x61c*/ PETITIONSTATUS	PetitionStatus[0x200];// size 0xb8 * 0x200 = 0x17000
+	/*0x1761c*/ int	TotalQ;
+	/*0x17620*/ int	TotalClientPetitions;
+	/*0x17624*/ CHAR	ChatText[0x840];
+	/*0x17e64*/ int	TrimIdx;//correct
+	/*0x17e68*/ CHAR ChatChanged;//1 or 0?
+	/*0x17e69*/ CHAR Trim[0x40][0x840];//correct. size 0x40*0x840= 0x21000
+	/*0x38E6c*/ BOOL bChat;
+	/*0x38E70*/ int Unknown0x38E70;
+	/*0x38E74*/ int	Red;
+	/*0x38E78*/ int	Green;
+	/*0x38E7c*/ int Blue;
 	/*0x38E80*/ DWORD CharSelectPlayerMaxCount;
 	/*0x38E84*/ DWORD CharSelectPlayerCount;
 	/*0x38E88*/ PCharSelectPlayerArray pCharSelectPlayerArray;

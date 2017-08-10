@@ -822,6 +822,7 @@ GNU General Public License for more details.
 
 //PlayerZoneClient
 #define PlayerZoneClient__GetLevel_x                               0x5E1070
+#define PlayerZoneClient__IsValidTeleport_x                        0x54C9E0
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5DB500

@@ -6964,17 +6964,19 @@ DWORD FindSpellListByName(PCHAR szName)
 	}
 	return -1;
 }
-
+//this function is SUPER expensive, DO NOT use it unless you absolutely have to.
 VOID RewriteAliases(VOID)
 {
-	PALIAS pLoop = pAliases;
 	WritePrivateProfileSection("Aliases", "", gszINIFilename);
-	while (pLoop) {
-		WritePrivateProfileString("Aliases", pLoop->szName, pLoop->szCommand, gszINIFilename);
-		pLoop = pLoop->pNext;
+	for (std::map<std::string, std::string>::iterator i = mAliases.begin(); i != mAliases.end(); i++) {
+		WritePrivateProfileString("Aliases", i->first.c_str(),i->second.c_str(), gszINIFilename);
 	}
 }
-
+//better single write them instead...
+VOID WriteAliasToIni(char*Name, char*Command)
+{
+	WritePrivateProfileString("Aliases", Name,Command, gszINIFilename);
+}
 VOID RewriteSubstitutions(VOID)
 {
 	PSUB pSubLoop = pSubs;

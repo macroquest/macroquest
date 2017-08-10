@@ -710,4 +710,22 @@ template<typename T, int _Size> class HashListSet<T, _Size, -2> : public HashLis
 {
     void *MemPool;//todo: change to whatever stl replacement this it, for now we just void* it...
 };
+template<typename T, int _Size, bool _bGrow> class EQArray;
+
+template<typename T> class EQArray<T, 0, true>
+{
+public:
+/*0x00*/ void* pvfTable;
+/*0x04*/ T *m_array;
+/*0x08*/ int m_length;
+/*0x0c*/ int m_space;
+/*0x10*/ 
+};
+
+template<typename T, int _Size = 0, bool _bGrow = true> class EQArray : public EQArray<T, 0, true>
+{
+    public:
+        enum { cTCount = _Size };
+        static const bool cTGrow = _bGrow;
+};
 #pragma pack(pop)
