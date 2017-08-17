@@ -243,10 +243,7 @@ public:
         std::string szSubFullCommand = "";
         unsigned int k=0;
         bool OneCharacterSub = false;
-        
-		//PALIAS pLoop = pAliases; 
         PSUB pSubLoop = pSubs;
-
         if (szFullLine[0]!=0) { 
 			strcpy_s(szFullCommand,szFullLine);
             GetArg(szCommand,szFullCommand,1); 

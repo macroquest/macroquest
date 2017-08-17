@@ -1,3 +1,6 @@
+16 Aug 2017 by eqmule
+- Updated for LIVE
+
 11 Aug 2017 by eqmule
 - Fixed a crash in the TEST build.
 
@@ -12,9 +15,9 @@
 
 31 Jul 2017 by eqmule
 - /cast now takes an optional loc x y z argument useful for splashspells.
-  Example: /cast "Reforming Spash" loc 123 456 789
+  Example: /cast "Reforming Splash" loc 123 456 789
   would cast the splash spell at that location...
-  just doing a /cast "Reforming Spash" will cast it either on your targets location
+  just doing a /cast "Reforming Splash" will cast it either on your targets location
   and if you have no target on your own location.
 -
 - Added IsSummoned to the spawn tlo, returns true/false if its a summoned being (pet for example)
