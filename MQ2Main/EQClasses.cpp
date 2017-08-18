@@ -5031,8 +5031,8 @@ FUNCTION_AT_ADDRESS(int  EQ_Spell::IsPermIllusionSpell(void)const ,EQ_Spell__IsP
 #ifdef EQ_Spell__GetSpellLevelNeeded_x
 FUNCTION_AT_ADDRESS(unsigned char EQ_Spell::GetSpellLevelNeeded(int)const ,EQ_Spell__GetSpellLevelNeeded);
 #endif
-#ifdef EQ_Spell__GetSpellBaseByAttrib_x
-FUNCTION_AT_ADDRESS(LONG  EQ_Spell::GetSpellBaseByAttrib(int)const ,EQ_Spell__GetSpellBaseByAttrib);
+#ifdef EQ_Spell__SpellAffectBase_x
+FUNCTION_AT_ADDRESS(int EQ_Spell::SpellAffectBase(int)const ,EQ_Spell__SpellAffectBase);
 #endif
 #ifdef EQOldPlayerAnimation__InitAnimationData_x
 FUNCTION_AT_ADDRESS(void __cdecl EQOldPlayerAnimation::InitAnimationData(void),EQOldPlayerAnimation__InitAnimationData);

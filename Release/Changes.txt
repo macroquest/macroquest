@@ -1,3 +1,14 @@
+17 Aug 2017 by eqmule
+- Fixed Me.Aego and some other stuff related to it.
+  Unfortunately for us and everyone else that parses the spells db
+  Category and Subcategory are now 0 for all spells that cannot be scribed.
+  Lets hope this was just a mistake and it will be reversed in a future patch.
+
+- Me.Aura now returns a pAuraType cred: xowis
+  Members: ID, Name, SpawnID
+  Methods: Remove
+- Me.Aura[] now accept partial matches
+
 16 Aug 2017 by eqmule
 - Updated for LIVE
 

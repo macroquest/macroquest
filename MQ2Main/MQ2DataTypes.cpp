@@ -3978,7 +3978,6 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			if (pAura->NumAuras)
 			{
-				DataTypeTemp[0] = 0;
 				PAURAS pAuras = (PAURAS)(*pAura->pAuraInfo);
 				if (ISINDEX())
 				{
@@ -3989,28 +3988,31 @@ bool MQ2CharacterType::GETMEMBER()
 						if (n > pAura->NumAuras)
 							return false;
 						n--;
-						strcpy_s(DataTypeTemp, pAuras->Aura[n].Name);
+						Dest.Ptr = &pAuras->Aura[n]; 
+						Dest.HighPart = n; 
+						Dest.Type = pAuraType;
+						return true;
 					}
 					else
 					{
 						for (n = 0; n < pAura->NumAuras; n++)
 						{
-							if (!_stricmp(GETFIRST(), pAuras->Aura[n].Name))
+							if (!_strnicmp(GETFIRST(), pAuras->Aura[n].Name, strlen(GETFIRST())))
 							{
-								strcpy_s(DataTypeTemp, pAuras->Aura[n].Name);
+								Dest.Ptr = &pAuras->Aura[n]; 
+								Dest.HighPart = n; 
+								Dest.Type = pAuraType; 
+								return true; 
 							}
 						}
 					}
 				}
 				else
 				{
-					strcpy_s(DataTypeTemp, pAuras->Aura[0].Name);
-				}
-				if (DataTypeTemp[0])
-				{
-					Dest.Ptr = &DataTypeTemp[0];
-					Dest.Type = pStringType;
-					return true;
+					Dest.Ptr = &pAuras->Aura[0]; 
+					Dest.HighPart = 0; 
+					Dest.Type = pAuraType; 
+					return true; 
 				}
 			}
 		}
@@ -4671,28 +4673,15 @@ bool MQ2CharacterType::GETMEMBER()
 		break;
 	case Aego:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric)) != -1)//Aegolism Line
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
+			for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 				{
-					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
-					{
-						if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112))
-						{
-							if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(1))
-							{
-								Dest.Ptr = &pChar2->Buff[nBuff];
-								Dest.Type = pBuffType;
-								return true;
-							}
-						}
+					if (IsAegoSpell(pSpell)) {
+						Dest.Ptr = &pChar2->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
 					}
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
+				}		
 			}
 		}
 		break;
@@ -4705,7 +4694,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 46)
+						if (GetSpellSubcategory(pSpell) == 46)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4729,7 +4718,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 87)
+						if (GetSpellSubcategory(pSpell) == 87)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4753,7 +4742,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
+						if ((((EQ_Spell *)pSpell)->SpellAffectBase(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4821,7 +4810,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 112)
+						if (GetSpellSubcategory(pSpell) == 112)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4845,7 +4834,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
+						if ((((EQ_Spell *)pSpell)->SpellAffectBase(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4869,7 +4858,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 7)
+						if (GetSpellSubcategory(pSpell) == 7)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4893,7 +4882,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 47)
+						if (GetSpellSubcategory(pSpell) == 47)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4917,7 +4906,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 47)
+						if (GetSpellSubcategory(pSpell) == 47)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4941,7 +4930,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 59)
+						if (GetSpellSubcategory(pSpell) == 59)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4965,7 +4954,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 44)
+						if (GetSpellSubcategory(pSpell) == 44)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -4989,7 +4978,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 46)
+						if (GetSpellSubcategory(pSpell) == 46)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -5013,7 +5002,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 141)
+						if (GetSpellSubcategory(pSpell) == 141)
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.Type = pBuffType;
@@ -5037,9 +5026,9 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (PSPELL pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (pSpell->Subcategory == 62)
+						if (GetSpellSubcategory(pSpell) == 62)
 						{
-							if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(162))
+							if (((EQ_Spell *)pSpell)->SpellAffectBase(162))
 							{
 								Dest.Ptr = &pChar2->Buff[nBuff];
 								Dest.Type = pBuffType;
@@ -5686,7 +5675,7 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	case Category:
 		strcpy_s(DataTypeTemp,"Unknown");
-		if (DWORD cat = pSpell->Category) {
+		if (DWORD cat = GetSpellCategory(pSpell)) {
 			if (char * ptr = pCDBStr->GetString(cat, 5, NULL)) {
 				strcpy_s(DataTypeTemp,ptr);
 			}
@@ -5696,7 +5685,7 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	case Subcategory:
 		strcpy_s(DataTypeTemp,"Unknown");
-		if (DWORD cat = pSpell->Subcategory) {
+		if (DWORD cat = GetSpellSubcategory(pSpell)) {
 			if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
 				strcpy_s(DataTypeTemp, ptr);
 			}
@@ -11561,9 +11550,9 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112))
+					if ((GetSpellSubcategory(pSpell) == 1) || (GetSpellSubcategory(pSpell) == 112))
 					{
-						if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(1))
+						if (((EQ_Spell *)pSpell)->SpellAffectBase(1))
 						{
 							Dest.Type = pTargetBuffType;
 							return true;
@@ -11585,7 +11574,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 46)
+					if (GetSpellSubcategory(pSpell) == 46)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11606,7 +11595,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 87)
+					if (GetSpellSubcategory(pSpell) == 87)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11627,7 +11616,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
+					if ((((EQ_Spell *)pSpell)->SpellAffectBase(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11676,7 +11665,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 112)
+					if (GetSpellSubcategory(pSpell) == 112)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11697,7 +11686,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
+					if ((((EQ_Spell *)pSpell)->SpellAffectBase(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11718,7 +11707,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 7)
+					if (GetSpellSubcategory(pSpell) == 7)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11739,7 +11728,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 47)
+					if (GetSpellSubcategory(pSpell) == 47)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11760,7 +11749,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 47)
+					if (GetSpellSubcategory(pSpell) == 47)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11781,7 +11770,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 59)
+					if (GetSpellSubcategory(pSpell) == 59)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11802,7 +11791,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 44)
+					if (GetSpellSubcategory(pSpell) == 44)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11823,7 +11812,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 46)
+					if (GetSpellSubcategory(pSpell) == 46)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11844,7 +11833,7 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 141)
+					if (GetSpellSubcategory(pSpell) == 141)
 					{
 						Dest.Type = pTargetBuffType;
 						return true;
@@ -11865,9 +11854,9 @@ bool MQ2TargetType::GETMEMBER()
 			{
 				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
 				{
-					if (pSpell->Subcategory == 62)
+					if (GetSpellSubcategory(pSpell) == 62)
 					{
-						if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(162))
+						if (((EQ_Spell *)pSpell)->SpellAffectBase(162))
 						{
 							Dest.Type = pTargetBuffType;
 							return true;
@@ -13093,6 +13082,67 @@ bool MQ2RangeType::GETMEMBER()
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 		return true;
+	}
+	return false;
+}
+
+bool MQ2AuraType::GETMEMBER()
+{
+	try {
+		int index = VarPtr.HighPart;
+		PAURAINFO pAura = (PAURAINFO)VarPtr.Ptr;
+		if (!pAura)
+			return false;
+
+		PMQ2TYPEMEMBER pMember = MQ2AuraType::FindMember(Member);
+		if (pMember) {
+			switch ((AuraTypeMembers)pMember->ID)
+			{
+			case ID:
+			{
+				Dest.DWord = index + 1;
+				Dest.Type = pIntType;
+				return true;
+			}
+			case Name:
+			{
+				strcpy_s(DataTypeTemp, pAura->Name);
+				Dest.Ptr = DataTypeTemp;
+				Dest.Type = pStringType;
+				return true;
+			}
+			case SpawnID:
+			{
+				Dest.DWord = pAura->SpawnID;
+				Dest.Type = pIntType;
+				return true;
+			}
+			default:
+				return false;
+			};
+		}
+
+		PMQ2TYPEMEMBER pMethod = MQ2AuraType::FindMethod(Member);
+		if (pMethod) {
+			switch ((AuraTypeMethods)pMethod->ID)
+			{
+				case Remove:
+				if (!pAuraWnd)
+					break;
+				if (CListWnd*clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList")) {
+					if (index > clist->ItemsArray.Count)
+						break;
+					clist->SetCurSel(index);
+					((CXWnd*)pAuraWnd)->WndNotification((CXWnd*)clist, XWM_MENUSELECT, (PVOID)1);
+					return true;
+				}
+				break;
+			}
+			return false;
+		}
+	}
+	catch (...) {
+		MessageBox(NULL, "CRAP! in AuraType", "An exception occured", MB_OK);
 	}
 	return false;
 }

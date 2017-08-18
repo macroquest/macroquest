@@ -1077,17 +1077,56 @@ typedef struct _SpellCompare
 	std::map<DWORD, PSPELL>Duplicates;
 } SpellCompare, *PSpellCompare;
 std::map<std::string, std::map<std::string, SpellCompare>>g_SpellNameMap;
+bool IsRecursiveEffect2(int spa)
+{
+	switch (spa)
+	{
+	case 374:
+	case 475:
+	case 340:
+	case 470:
+	case 469:
+		return true;
+	}
+	return false;
+}
+std::map<int, int>g_TriggeredSpells;
 
+void PopulateTriggeredmap(PSPELL pSpell)
+{
+#ifndef EMU
+	if (pSpell->CannotBeScribed == 1)
+		return;
+	LONG slots = GetSpellNumEffects(pSpell);
+	for (LONG i = 0; i < slots; i++) {
+		LONG attrib = GetSpellAttrib(pSpell, i);
+		if (IsRecursiveEffect2(attrib)) {
+			if (int triggeredspellid = GetSpellBase2(pSpell, i)) {
+				g_TriggeredSpells[triggeredspellid] = pSpell->ID;
+			}
+		}
+	}
+#endif
+}
+PSPELL GetSpellParent(int id)
+{
+	if (g_TriggeredSpells.find(id) != g_TriggeredSpells.end()) {
+		return GetSpellByID(g_TriggeredSpells[id]);
+	}
+	return NULL;
+}
 void PopulateSpellMap()
 {
 	lockit lk(ghLockSpellMap,"PopulateSpellMap");
 	gbSpelldbLoaded = FALSE;
+	g_TriggeredSpells.clear();
 	g_SpellNameMap.clear();
 	std::string lowname, threelow;
 	PSPELLMGR psmgr = (PSPELLMGR)pSpellMgr;
 	for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
 		if (PSPELL pSpell = psmgr->Spells[dwSpellID]) {
 			if (pSpell->Name[0] != '\0') {
+				PopulateTriggeredmap(pSpell);
 				lowname = pSpell->Name;
 				std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
 				threelow = lowname;
@@ -8573,7 +8612,7 @@ int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if (buffID > 0) {
 			if (PSPELL pSpell = GetSpellByID(buffID)) {
-				if (pSpell->Category == category && IsSpellUsableForClass(pSpell, classmask))
+				if (GetSpellCategory(pSpell) == category && IsSpellUsableForClass(pSpell, classmask))
 				{
 					return i;
 				}
@@ -8592,7 +8631,7 @@ int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if (buffID > 0) {
 			if (PSPELL pSpell = GetSpellByID(buffID)) {
-				if (DWORD cat = pSpell->Subcategory) {
+				if (DWORD cat = GetSpellSubcategory(pSpell)) {
 					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
 						if (!_stricmp(ptr, subcat))
 						{
@@ -8627,7 +8666,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if (buffID > 0 && buffID != -1) {
 			if (PSPELL pSpell = GetSpellByID(buffID)) {
-				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+				if (LONG base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa)) {
 					//if (PCHARINFO pChar = GetCharInfo()) {
 					//	if (pChar->vtable2) {
 					//		int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChangeGeneric((EQ_Spell*)pSpell, 0, 0, NULL, 1, true);
@@ -8683,7 +8722,7 @@ int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
 		{
 			if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 			{
-				if (pSpell->Category == category && IsSpellUsableForClass(pSpell, classmask))
+				if (GetSpellCategory(pSpell) == category && IsSpellUsableForClass(pSpell, classmask))
 				{
 					return i;
 				}
@@ -8699,7 +8738,7 @@ int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 		{
 			if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 			{
-				if (DWORD cat = pSpell->Subcategory)
+				if (DWORD cat = GetSpellSubcategory(pSpell))
 				{
 					if (char *ptr = pCDBStr->GetString(cat, 5, NULL))
 					{
@@ -8721,7 +8760,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 		{
 			if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 			{
-				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+				if (LONG base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa)) {
 					switch (spa)
 					{
 					case 3: //Movement Rate
@@ -8764,6 +8803,69 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 		}
 	}
 	return -1;
+}
+int GetSpellCategory(PSPELL pSpell)
+{
+	if (pSpell) {
+#ifdef EMU
+		return pSpell->Category;
+#else
+		if (pSpell->CannotBeScribed) {
+			if (PSPELL pTrigger = GetSpellParent(pSpell->ID)) {
+				return pTrigger->Category;
+			}
+		}
+		else {
+			return pSpell->Category;
+		}
+#endif
+	}
+	return 0;
+}
+int GetSpellSubcategory(PSPELL pSpell)
+{
+	if (pSpell) {
+#ifdef EMU
+		return pSpell->Subcategory;
+#else
+		if (pSpell->CannotBeScribed) {
+			if (PSPELL pTrigger = GetSpellParent(pSpell->ID)) {
+				return pTrigger->Subcategory;
+			}
+		}
+		else {
+			return pSpell->Subcategory;
+		}
+#endif
+	}
+	return 0;
+}
+bool IsAegoSpell(PSPELL pSpell)
+{
+#ifndef EMU
+	if (pSpell->CannotBeScribed) {
+		if (PSPELL pTrigger = GetSpellParent(pSpell->ID)) {
+			if ((pTrigger->Subcategory == 1) || (pTrigger->Subcategory == 112)) {
+				int base = ((EQ_Spell *)pSpell)->SpellAffectBase(1);//check if it has ac?
+				if (base) {
+					return true;
+				}
+			}
+		}
+	}
+	else {
+#endif
+		if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112)) {
+			int base = ((EQ_Spell *)pSpell)->SpellAffectBase(1);
+			if (base)
+			{
+				return true;
+			}
+		}
+#ifndef EMU
+	}
+#endif
+	return false;
 }
 bool IsSpellUsableForClass(PSPELL pSpell, DWORD classmask)
 {

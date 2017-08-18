@@ -326,27 +326,27 @@ class Spellmanager
 {
 public:
 #ifndef EMU
-	bool CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD, DWORD);
-	bool CheckSpellRequirementAssociations_Detour(char*A, char*B, DWORD C, DWORD D)
+	bool LoadTextSpells_Tramp(char*, char*, EQ_Spell*, PSPELLCALCINFO);
+	bool LoadTextSpells_Detour(char*FileName, char*AssocFileName, EQ_Spell* SpellArray, PSPELLCALCINFO EffectArray)//SpellAffectData*
 #else
-	bool CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD);
-	bool CheckSpellRequirementAssociations_Detour(char*A, char*B, DWORD C)
+	bool LoadTextSpells_Tramp(char*, char*, EQ_Spell*);
+	bool LoadTextSpells_Detour(char*FileName, char*AssocFileName, EQ_Spell* SpellArray)
 #endif
 	{
 		gbDoingSpellChecks = true;
 		#ifndef EMU
-		bool ret = CheckSpellRequirementAssociations_Tramp(A, B, C, D);
+		bool ret = LoadTextSpells_Tramp(FileName, AssocFileName, SpellArray, EffectArray);
 		#else
-		bool ret = CheckSpellRequirementAssociations_Tramp(A, B, C);
+		bool ret = LoadTextSpells_Tramp(FileName, AssocFileName, SpellArray);
 		#endif
 		gbDoingSpellChecks = false;
 		return ret;
 	}
 };
 #ifndef EMU
-DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD, DWORD));
+DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ_Spell*, PSPELLCALCINFO));
 #else
-DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD));
+DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ_Spell*));
 #endif
 // we need this detour to clean up the stack because
 // emote sends 1024 bytes no matter how many bytes in the string
@@ -522,7 +522,7 @@ VOID HookMemChecker(BOOL Patch)
 		EzDetourwName(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp,"CPacketScrambler__hton");
 		EzDetourwName(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp,"CPacketScrambler__ntoh");
 		EzDetourwName(CEverQuest__Emote, &CEmoteHook::Detour, &CEmoteHook::Trampoline,"CEverQuest__Emote");
-		EzDetourwName(Spellmanager__CheckSpellRequirementAssociations, &Spellmanager::CheckSpellRequirementAssociations_Detour, &Spellmanager::CheckSpellRequirementAssociations_Tramp,"Spellmanager__CheckSpellRequirementAssociations");
+		EzDetourwName(Spellmanager__LoadTextSpells, &Spellmanager::LoadTextSpells_Detour, &Spellmanager::LoadTextSpells_Tramp,"Spellmanager__LoadTextSpells");
 		
 
 		HookInlineChecks(Patch);
@@ -561,7 +561,7 @@ VOID HookMemChecker(BOOL Patch)
 		RemoveDetour(CPacketScrambler__hton);
 
 		RemoveDetour(CEverQuest__Emote);
-		RemoveDetour(Spellmanager__CheckSpellRequirementAssociations);
+		RemoveDetour(Spellmanager__LoadTextSpells);
 	}
 }
 

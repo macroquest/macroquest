@@ -745,7 +745,11 @@ EQLIB_API int		  GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int 
 EQLIB_API int		  GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);
 EQLIB_API bool        IsSpellUsableForClass(PSPELL pSpell, DWORD classmask = 0);
+EQLIB_API bool        IsAegoSpell(PSPELL pSpell);
+EQLIB_API int         GetSpellCategory(PSPELL pSpell);
+EQLIB_API int         GetSpellSubcategory(PSPELL pSpell);
 EQLIB_API void		  PopulateSpellMap();
+EQLIB_API PSPELL      GetSpellParent(int id);
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(PVOID pData);
 EQLIB_API HMODULE GetCurrentModule();
 EQLIB_API DWORD WINAPI MQ2End(LPVOID lpParameter);
@@ -805,12 +809,27 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_HISTORY             22
 #define XWM_LCLICKHOLD          23
 #define XWM_LINK                27
+#define XWM_ACHIEVEMENTLINK     31
+//not sure what 32 is now, they inserted a new message smack in the middle instead of adding it to the end
+//i think its achievement related. -eqmule
 #ifndef EMU
+#define XWN_DIALOGRESPONSELINK  33
 #define XWM_FOCUS               34
 #define XWM_LOSTFOCUS           35
+#define XWM_TEXTENTRY_COMPLETE  41
+#define XWN_OUTPUT_TEXT         49
+#define XWN_COMMANDLINK         50
+//ok so here we have 2 new messages 51 and 52 see https://forums.daybreakgames.com/eq/index.php?threads/game-update-notes-july-19-2017.242705/
+//I think they where added in that patch
+//they are dynamiczone/raid related or something
+//need to investigate further to know for sure -eqmule
 #else
+#define XWN_DIALOGRESPONSELINK  32
 #define XWM_FOCUS               33
 #define XWM_LOSTFOCUS           34
+#define XWM_TEXTENTRY_COMPLETE  40
+#define XWN_OUTPUT_TEXT         48
+#define XWN_COMMANDLINK         49
 #endif
 
 #define XKF_SHIFT               1

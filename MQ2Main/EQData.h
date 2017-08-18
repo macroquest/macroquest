@@ -1726,7 +1726,7 @@ enum ItemSpellTypes
 	eFamiliarSpell
 };
 
-// actual size: 0x40a 2017 05 09 test se 4ECF26 - eqmule
+// actual size: 0x40b Aug 10 2017 live see 4ED9E6 - eqmule
 // Filled in missing values see Mar 11 2016 test eqgame / 4DF9C0 - demonstar55
 // EQ_Spell__EQ_Spell_x    numeffects  attrib1  base1  base2_1  calc1  max1
 typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
@@ -1857,15 +1857,16 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x3f6*/   BYTE    NotFocusable; //ignores all(?) focus effects
 /*0x3f7*/   BYTE    NoDetrimentalSpellAggro;
 /*0x3f8*/   BYTE    StacksWithSelf;
-/*0x3f9*/   BYTE    NoBuffBlock;
-/*0x3fa*/   BYTE    Scribable;
-/*0x3fb*/   BYTE    NoStripOnDeath;
-/*0x3fc*/   BYTE    NoRemove; // spell can't be clicked off?
-/*0x3fd*/   int     NoOverwrite; //an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
-/*0x401*/   DWORD   SpellRecourseType;
-/*0x405*/   BYTE    CRC32Marker;
-/*0x406*/   FLOAT   DistanceMod; // set to (DistanceModFarMult - DistanceModCloseMult) / (DistanceModFarDist - DistanceModCloseDist). Divisor has some bounds checking too
-/*0x40a*/
+/*0x3f9*/   BYTE    CannotBeScribed;//this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
+/*0x3fa*/   BYTE    NoBuffBlock;
+/*0x3fb*/   BYTE    Scribable;
+/*0x3fc*/   BYTE    NoStripOnDeath;
+/*0x3fd*/   BYTE    NoRemove; // spell can't be clicked off?
+/*0x3fe*/   int     NoOverwrite; //an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
+/*0x402*/   DWORD   SpellRecourseType;
+/*0x406*/   BYTE    CRC32Marker;
+/*0x407*/   FLOAT   DistanceMod; // set to (DistanceModFarMult - DistanceModCloseMult) / (DistanceModFarDist - DistanceModCloseDist). Divisor has some bounds checking too
+/*0x40b*/
 } SPELL, *PSPELL;
 
 struct FocusEffectData
@@ -4454,7 +4455,9 @@ typedef struct _EVERQUEST {
 
 typedef struct _AURAINFO {
 /*0x000*/ CHAR    Name[0x40];
-/*0x040*/ BYTE    Unknown0x14[0xc];
+/*0x040*/ int     SpawnID;
+/*0x044*/ int     Cost;
+/*0x048*/ int     IconnID;
 /*0x04c*/
 } AURAINFO, *PAURAINFO;
 

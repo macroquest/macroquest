@@ -5385,3 +5385,46 @@ public:
 		return false;
 	}
 };
+
+class MQ2AuraType : public MQ2Type
+{
+public:
+	enum AuraTypeMembers
+	{
+		ID = 1,
+		Name = 2,
+		SpawnID = 3,
+	};
+	enum AuraTypeMethods
+	{
+		Remove = 1,
+	};
+	MQ2AuraType() :MQ2Type("auratype")
+	{
+		TypeMember(ID);
+		TypeMember(Name);
+		TypeMember(SpawnID);
+
+		TypeMethod(Remove);
+	}
+	~MQ2AuraType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (PAURAINFO pAura = (PAURAINFO)VarPtr.Ptr) {
+			strcpy_s(Destination, MAX_STRING, pAura->Name);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};

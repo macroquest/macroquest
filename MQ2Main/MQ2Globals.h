@@ -1490,7 +1490,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Spell__GetSpellAffectByIndex;
 	EQLIB_VAR DWORD EQ_Spell__IsSPAStacking;
 	EQLIB_VAR DWORD EQ_Spell__IsSPAIgnoredByStacking;
-	EQLIB_VAR DWORD EQ_Spell__GetSpellBaseByAttrib;
+	EQLIB_VAR DWORD EQ_Spell__SpellAffectBase;
 	EQLIB_VAR DWORD EQ_Spell__IsNoRemove;
 	EQLIB_VAR DWORD EQ_Spell__IsDegeneratingLevelMod;
 	
@@ -1515,7 +1515,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD msg_new_text;
 	EQLIB_VAR DWORD msgTokenTextParam;
 	EQLIB_VAR DWORD SpellManager__SpellManager;
-	EQLIB_VAR DWORD Spellmanager__CheckSpellRequirementAssociations;
+	EQLIB_VAR DWORD Spellmanager__LoadTextSpells;
 	EQLIB_VAR DWORD CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility;
 	EQLIB_VAR DWORD ItemGlobalIndex__IsKeyRingLocation;
 	EQLIB_VAR DWORD ItemGlobalIndex__ItemGlobalIndex;

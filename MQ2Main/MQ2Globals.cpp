@@ -2021,7 +2021,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectByIndex);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAStacking);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAIgnoredByStacking);
-	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellBaseByAttrib);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffectBase);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsNoRemove);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsDegeneratingLevelMod);
 	
@@ -2046,7 +2046,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(msg_new_text);
 	INITIALIZE_EQGAME_OFFSET(msgTokenTextParam);
 	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
-	INITIALIZE_EQGAME_OFFSET(Spellmanager__CheckSpellRequirementAssociations);
+	INITIALIZE_EQGAME_OFFSET(Spellmanager__LoadTextSpells);
 	INITIALIZE_EQGAME_OFFSET(CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__ItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsEquippedLocation);

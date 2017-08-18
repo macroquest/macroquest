@@ -874,7 +874,7 @@ GNU General Public License for more details.
 //EQ_Spell
 #define EQ_Spell__GetSpellLevelNeeded_x                            0x4EDAE0
 #define EQ_Spell__SpellAffects_x                                   0x4EB170
-#define EQ_Spell__GetSpellBaseByAttrib_x                           0x4EB1E0
+#define EQ_Spell__SpellAffectBase_x                           0x4EB1E0
 #define CharacterZoneClient__CalcAffectChange_x                    0x44B3F0
 #define CharacterZoneClient__CalcAffectChangeGeneric_x             0x44A630
 #define CLootWnd__LootAll_x                                        0x7017E0
@@ -939,7 +939,7 @@ GNU General Public License for more details.
 //SpellManager
 #define SpellManager__vftable_x                                    0xABD178
 #define SpellManager__SpellManager_x                               0x47E300
-#define Spellmanager__CheckSpellRequirementAssociations_x          0x604F30
+#define Spellmanager__LoadTextSpells_x          0x604F30
 
 //CCollisionInfoTargetVisibility
 #define CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x   0x92BA30
