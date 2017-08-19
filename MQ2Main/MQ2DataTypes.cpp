@@ -13104,6 +13104,24 @@ bool MQ2AuraType::GETMEMBER()
 				Dest.Type = pIntType;
 				return true;
 			}
+			case Find:
+			{
+				if (!ISINDEX())
+					return false;
+				char A[MAX_STRING] = { 0 };
+				char B[MAX_STRING] = { 0 };
+				strcpy_s(A, (char*)pAura->Name);
+				strcpy_s(B, (char*)Index);
+				_strlwr_s(A);
+				_strlwr_s(B);
+				if (char *pFound = strstr(A, B))
+				{
+					Dest.DWord = (pFound - &A[0]) + 1;
+					Dest.Type = pIntType;
+					return true;
+				}
+				return false;
+			}
 			case Name:
 			{
 				strcpy_s(DataTypeTemp, pAura->Name);

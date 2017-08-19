@@ -5394,6 +5394,7 @@ public:
 		ID = 1,
 		Name = 2,
 		SpawnID = 3,
+		Find = 4,
 	};
 	enum AuraTypeMethods
 	{
@@ -5404,6 +5405,7 @@ public:
 		TypeMember(ID);
 		TypeMember(Name);
 		TypeMember(SpawnID);
+		TypeMember(Find);
 
 		TypeMethod(Remove);
 	}
