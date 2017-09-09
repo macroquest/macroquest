@@ -19,20 +19,14 @@ GNU General Public License for more details.
 
 #define DBG_SPEW
 
-
 #include "MQ2Main.h"
 
-
-
-
-
-
-map<string,PDATAVAR> VariableMap;
+std::map<std::string,PDATAVAR> VariableMap;
 
 inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 {
-    if (pVar->ppHead==&pMacroVariables || pVar->ppHead==&pGlobalVariables)
-        VariableMap[pVar->szName]=0;
+	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
+		VariableMap.erase(pVar->szName);
     if (pVar->pNext)
         pVar->pNext->pPrev=pVar->pPrev;
     if (pVar->pPrev)
@@ -45,7 +39,10 @@ inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 
 inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 {
-    PDATAVAR pFind=VariableMap[Name];
+	PDATAVAR pFind = 0;
+	if (VariableMap.find(Name) != VariableMap.end())
+		pFind = VariableMap[Name];
+
     if (pFind)
         return pFind;
     // local?
@@ -204,7 +201,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
     {
-        SyntaxError("Usage: /declare <varname|varname[array extents]> [type] [global|outer|local] [default value]");
+        SyntaxError("Usage: /declare <varname|varname[array extents]> [type] [global|outer|local|bind] [default value]");
         return;
     }
     PDATAVAR *pScope=0;
@@ -214,8 +211,8 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szName,szLine,1);
     CHAR Arg[MAX_STRING]={0};
     GetArg(Arg,szLine,2);
-    PCHAR pDefault;
-    if (pScope=FindVariableScope(Arg))
+    PCHAR pDefault = 0;
+	if (pScope=FindVariableScope(Arg))
     {
         // scope comes AFTER type, so next must be default
         pDefault=GetNextArg(szLine,2);
@@ -242,8 +239,9 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     }
     if (!pScope)
     { 
-        if (gMacroStack)
-            pScope=&gMacroStack->LocalVariables;
+		if (gMacroStack) {
+				pScope = &gMacroStack->LocalVariables;
+		}
         else
         {
             MacroError("/declare '%s' failed.  No macro in execution and no variable scope given",szName);
@@ -512,13 +510,16 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
         {
             CHAR szParamName[MAX_STRING] = {0};
             CHAR szParamType[MAX_STRING] = {0};
-            GetFuncParam((PCHAR)gEventFunc[Event]->Line.c_str(),i,szParamName, MAX_STRING,szParamType, MAX_STRING);
-            MQ2Type *pType = FindMQ2DataType(szParamType);
-            if (!pType)
-                pType=pStringType;
-            AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,CurrentArg);
-            i++;
-            CurrentArg = va_arg(marker,PCHAR);
+			int index = gEventFunc[Event];
+			if (gMacroBlock->Line.find(index) != gMacroBlock->Line.end()) {
+				GetFuncParam((PCHAR)gMacroBlock->Line[index].Command.c_str(), i, szParamName, MAX_STRING, szParamType, MAX_STRING);
+				MQ2Type *pType = FindMQ2DataType(szParamType);
+				if (!pType)
+					pType = pStringType;
+				AddMQ2DataEventVariable(szParamName, "", pType, &pEvent->Parameters, CurrentArg);
+				i++;
+				CurrentArg = va_arg(marker, PCHAR);
+			}
         }
         va_end(marker);
     }
@@ -555,7 +556,9 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     pEvent->pEventList = pEList;
     CHAR szParamName[MAX_STRING] = {0};
     CHAR szParamType[MAX_STRING] = {0};
-    GetFuncParam((PCHAR)pEList->pEventFunc->Line.c_str(),0,szParamName, MAX_STRING,szParamType, MAX_STRING);
+	if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
+		GetFuncParam((PCHAR)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
+	}
     MQ2Type *pType = FindMQ2DataType(szParamType);
     if (!pType)
         pType=pStringType;
@@ -566,8 +569,10 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     {
         if (pValues->Name[0]!='*')
         {
-            GetFuncParam((PCHAR)pEList->pEventFunc->Line.c_str(),atoi(pValues->Name),szParamName, MAX_STRING,szParamType, MAX_STRING);
-            MQ2Type *pType = FindMQ2DataType(szParamType);
+			if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
+				GetFuncParam((PCHAR)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), atoi(pValues->Name), szParamName, MAX_STRING, szParamType, MAX_STRING);
+			}
+			MQ2Type *pType = FindMQ2DataType(szParamType);
             if (!pType)
                 pType=pStringType;
             AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,pValues->Value);    
@@ -735,7 +740,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			pMQ2Blech->Feed(EventMsg);
 		EventMsg[0]=0;
 		TellCheck(szClean);
-		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
+		if ((gMacroBlock && gMacroBlock->Line.size()) && (!gMacroPause) && (!gbUnload) && (!gZoning)) {
 			CHAR Arg1[MAX_STRING] = {0}; 
 			CHAR Arg2[MAX_STRING] = {0}; 
 			CHAR Arg3[MAX_STRING] = {0}; 
@@ -816,7 +821,6 @@ VOID CheckChatForEvent(PCHAR szMsg)
 		#endif
 		}
 		if (szClean != pszCleanOrg) {
-			Sleep(0);
 			LocalFree(pszCleanOrg);
 		}
 		else {

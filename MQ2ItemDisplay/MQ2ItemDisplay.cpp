@@ -25,6 +25,7 @@ PreSetup("MQ2ItemDisplay");
 #include "../ISXEQClient.h"
 #include "ISXEQItemDisplay.h"
 #endif
+using namespace std;
 
 // thanks, finally, SOE. we'll leave this here for a while and eventually remove it
 #define DISABLE_TOOLTIP_TIMERS

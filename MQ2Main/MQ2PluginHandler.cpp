@@ -79,7 +79,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     }
 	//im disabling this check in debug builds because i can't just make a minor change and rebuild just mq2main
 	//without having to actually rebuild ALL my plugins even though its technically not needed for them to work -eqmule sep 11 2016
-#ifndef _DEBUG
+#if !defined(_DEBUG) && !defined(NO_TIMESTAMP_CHECK)
 	if (!mq2mainstamp) {
         mq2mainstamp = checkme((char*)GetCurrentModule());
     }

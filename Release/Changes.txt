@@ -1,11 +1,87 @@
-18 Aug 2017 by eqmule
+07 Sep 2017 by eqmule
+- using namespace std; has been removed from mq2main.h
+  THIS MEANS your plugins will ERROR with lines like this:
+  error C2143: syntax error: missing ';' before '<'
+  The line: map<string, class CXWnd2 *> WindowMap;
+  To fix: Find #include "../MQ2Plugin.h" in your plugin and add using namespace std; under it.
+  Example:
+	[code]
+	#include "../MQ2Plugin.h"
+	using namespace std;
+	[/code]
+	OR just change the line to say std:: map<std::string, class CXWnd2 *> WindowMap;
+-
+-  The reason for that change is that right now we litter ALL projects with the std namespace and it is just not good.
+   Let everyone that needs that namespace use it in their own projects from now on.
+-
+- #bind(s) are now fixed and won't screw up the macrostack anymore.
+- Todays update is significant because I rebuilt the macro engine to improve performance,
+  it was well overdue. The biggest change is that gMacroBlock is now a map.
+- Undeclared Variables are no longer tolerated, and the macroengine will not run at optimal speed
+  if they exist. I have added a TLO to check for them because of this and a new macro keyword #warning as well
+  so there is no good reason to run old macros where these kinds of variables hog cpu power:
+AGAIN:   IMPORTANT: Undeclared variables will slow down macro performance a LOT if they are used over and over, so, fix your macros.
+-
+- The Macro TLO has a new method: .Undeclared
+  Usage: /invoke ${Macro.Undeclared} and it will list all undeclared variables.
+- New macro keyword: #warning
+  add it at the top of your macro, and you will get warnings if there are undeclared variables used in it.
+-
+- /while loops can now be nested inside /while and /for loops.
+- /continue and /break should work properly inside /for loops now.
+- /break works in /while loops now.
+- /for loops can now have nested /for loops inside them
+-
+- Updated MQ2Rez and MQ2Cast to not hog the cpu looking up windows over and over.
+- Other stuff to optimize and cut down on cpu intensive tasks.
+
+Files changed outside of core:
+\MQ2Cast\MQ2Cast.cpp
+\MQ2Rez\MQ2Rez.cpp
+
+01 Sep 2017 by eqmule
+- You can now call functions inside if statements in your macros - cred eqholic
+  Example:
+  [code]
+Sub Testsub
+    /echo Enter Testsub
+    /return Hello world
+/return
+
+Sub Testargs(int arg1,int arg2)
+    /if (${arg1} > ${arg2}) {
+        /return Testargs: ${arg1} > ${arg2}
+    } else {
+        /return Testargs: ${arg1} <= ${arg2}
+    }
+/return
+
+Sub IsHuuge(int arg1)
+    /echo IsHuuge ${arg1} ?
+    /if (${arg1} > 1000) {
+        /echo TRUE
+        /return TRUE
+    } else {
+        /echo FALSE
+        /return FALSE
+    }
+/return
+
+Sub Main 
+    /echo ${Testsub}
+    /echo ${Testargs[10 9]}
+    /if (${IsHuuge[2000]} && !${IsHuuge[1]}) /echo Huuge and smaaal
+/return
+  [/code]
+
+19 Aug 2017 by eqmule
 - Updated for TEST
 
 17 Aug 2017 by eqmule
 - Fixed Me.Aego and some other stuff related to it.
   Unfortunately for us and everyone else that parses the spells db
   Category and Subcategory are now 0 for all spells that cannot be scribed.
-  Lets hope this will be reversed in a future patch.
+  Lets hope this was just a mistake and it will be reversed in a future patch.
 
 - Me.Aura now returns a pAuraType cred: xowis
   Members: ID, Name, SpawnID
@@ -1812,10 +1888,10 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
   Recent changes to the client released with the new Broken Mirror expansion
   added a new type of MQ2 detection which is meant to prevent mq2 usage on the new Phinigel server.
   We fully support the NO MQ2 policy on Phinigel, and we want to continue
-  supporting that policy and backup DBG any way we can that’s within reason.
+  supporting that policy and backup DBG any way we can thatâ€™s within reason.
   We have therefor decided to add a new type of integrity checker to MQ2.
   We have placed the code in a MQ2 plugin that has been named MQ2Ic.dll. (MQ2 Integrity checker)
-  We feel strongly that MQ2 is in a symbiosis with Everquest, and it’s important to us
+  We feel strongly that MQ2 is in a symbiosis with Everquest, and itâ€™s important to us
   that all MQ2 users feel safe while they use MQ2.
   MQ2 users are an important part of the Everquest community and we wish to keep it that way.
   In short, we recommend you keep MQ2Ic.dll loaded while you are playing Everquest.

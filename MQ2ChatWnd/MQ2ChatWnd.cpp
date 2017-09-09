@@ -7,6 +7,9 @@
 #include <vector>
 #include <list>
 #include <string>
+
+using namespace std;
+
 PreSetup("MQ2ChatWnd"); 
 
 list<string> sPendingChat;
@@ -29,7 +32,7 @@ public:
     CXWnd* OutWnd;
     struct _CSIDLWND* OutStruct;
 private:
-    vector<string> sCmdHistory;
+    std::vector<std::string> sCmdHistory;
     int iCurrentCmd;
 public: 
     CMQChatWnd(CXStr *Template):CCustomWnd(Template) 

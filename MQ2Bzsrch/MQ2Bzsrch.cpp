@@ -23,6 +23,7 @@ GNU General Public License for more details.
 #include "../MQ2Plugin.h"
 #include "netstream.h"
 
+using namespace std;
 
 PLUGIN_VERSION(2.0);
 HANDLE bzsrchhandle = 0;

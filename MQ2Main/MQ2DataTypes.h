@@ -2833,7 +2833,14 @@ public:
 		Param = 6,
 		CurLine = 7,
 		MemUse = 8,
+		CurCommand = 9,
+		StackSize = 10,
 	};
+	enum MacroMethods
+	{
+		Undeclared = 1,
+	};
+
 	MQ2MacroType() :MQ2Type("macro")
 	{
 		TypeMember(Name);
@@ -2844,6 +2851,10 @@ public:
 		TypeMember(Param);
 		TypeMember(CurLine);
 		TypeMember(MemUse);
+		TypeMember(CurCommand);
+		TypeMember(StackSize);
+		
+		TypeMethod(Undeclared);
 	}
 
 	~MQ2MacroType()

@@ -310,15 +310,17 @@ namespace MQ2Globals
 	HINSTANCE ghInstance = NULL;
 	//PHOTKEY pHotkey = NULL;
 	BOOL gbUnload = FALSE;
+	bool gBindInProgress = false;
 	BOOL gbLoad = TRUE;
 	DWORD gpHook = NULL;
 	HMODULE ghmq2ic = 0;
 #ifndef ISXEQ
 	PMACROBLOCK gMacroBlock = NULL;
 	PMACROSTACK gMacroStack = NULL;
-	map<string, PMACROBLOCK> gMacroSubLookupMap;
+	decltype(gMacroSubLookupMap) gMacroSubLookupMap;
+	decltype(gUndeclaredVars) gUndeclaredVars;
 	PEVENTQUEUE gEventQueue = NULL;
-	PMACROBLOCK gEventFunc[NUM_EVENTS] = { NULL };
+	int gEventFunc[NUM_EVENTS] = { NULL };
 #endif
 	UCHAR gLastFind = 0;
 	DOUBLE gZFilter = 10000.0f;
@@ -421,6 +423,7 @@ namespace MQ2Globals
 	PITEMDB gItemDB = NULL;
 	BOOL bRunNextCommand = FALSE;
 	BOOL gTurbo = FALSE;
+	BOOL gWarning = FALSE;
 	PDEFINE pDefines = NULL;
     PBINDLIST pBindList = NULL;
 	CHAR gLastFindSlot[MAX_STRING] = { 0 };
@@ -450,11 +453,11 @@ namespace MQ2Globals
 
 	DWORD gnNormalEQMappableCommands;
 	PCHAR szEQMappableCommands[nEQMappableCommands];
-	map<string, unsigned long> ItemSlotMap;
+	decltype(ItemSlotMap) ItemSlotMap;
 
 	CHAR DataTypeTemp[MAX_STRING] = { 0 };
 
-	map<string, PSPAWNINFO> SpawnByName;
+	decltype(SpawnByName) SpawnByName;
 	MQRANK EQP_DistArray[3000];
 	DWORD gSpawnCount = 0;
 

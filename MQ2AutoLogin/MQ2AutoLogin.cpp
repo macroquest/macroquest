@@ -115,6 +115,7 @@ PLUGIN_VERSION(2.7);
 PreSetup("MQ2AutoLogin");
 #include <wincrypt.h>
 #pragma comment( lib, "Crypt32.lib" )
+using namespace std;
 
 #define MAX_WINDOWS 150 // had to lower this for CotF patch it never reaches 200...
 

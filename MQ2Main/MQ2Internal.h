@@ -213,18 +213,22 @@ namespace MQ2Internal {
         DWORD Y;
     } PACKLOC, *PPACKLOC;
 
-    typedef struct _MACROBLOCK {
-        std::string Line;
-        std::string SourceFile;
-        DWORD LineNumber;
-        BOOL MacroCmd;
-        DWORD LoopLine;//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated. -eqmule
+	typedef struct _MACROLINE {
+		std::string Command;
+		std::string SourceFile;
+		int LoopStart;
+		int LoopEnd;//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated. -eqmule
+		int LineNumber;
 #ifdef MQ2_PROFILING
-        DWORD ExecutionCount;
-        LONGLONG ExecutionTime;
+		DWORD ExecutionCount;
+		LONGLONG ExecutionTime;
 #endif
-        struct _MACROBLOCK *pNext;
-        struct _MACROBLOCK *pPrev;
+	} MACROLINE,*PMACROLINE;
+	typedef struct _MACROBLOCK {
+		int CurrIndex;//the current macro line we are on
+		int BindStackIndex;//where we were at before calling the bind.
+		std::string BindCmd;//the actual command including parameters
+		std::map<int, MACROLINE>Line;
     } MACROBLOCK, *PMACROBLOCK;
 
     typedef struct _MQTIMER {
@@ -263,7 +267,7 @@ namespace MQ2Internal {
         struct _EVENTLIST *pNext;
         CHAR szName[MAX_STRING];
         CHAR szMatch[MAX_STRING];
-        PMACROBLOCK pEventFunc;
+        int pEventFunc;
 #ifdef USEBLECHEVENTS
         DWORD BlechID;
 #endif
@@ -954,8 +958,8 @@ namespace MQ2Internal {
         BOOL Official;
         CIndex<PMQ2TYPEMEMBER> Members;
         CIndex<PMQ2TYPEMEMBER> Methods;
-        map<string,DWORD> MemberMap;
-        map<string,DWORD> MethodMap;
+        std::map<std::string,DWORD> MemberMap;
+        std::map<std::string,DWORD> MethodMap;
         MQ2Type *pInherits;
     };
 
@@ -1222,7 +1226,7 @@ namespace MQ2Internal {
 
 #ifndef ISXEQ
     typedef struct _MACROSTACK {
-        PMACROBLOCK Location;
+        int LocationIndex;
         struct _MACROSTACK *pNext;
         CHAR Return[MAX_STRING];
         PDATAVAR Parameters;

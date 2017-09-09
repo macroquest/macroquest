@@ -27,6 +27,7 @@ GNU General Public License for more details.
 #endif
 #define DIRECTINPUT_VERSION 0x800
 
+//#define MQ2_PROFILING
 
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
@@ -56,7 +57,10 @@ GNU General Public License for more details.
 #include <stack>
 #include <string>
 #include <algorithm>
-using namespace std;
+//dont enable this again, because we littler all the rest of the code with this namespace if we do.
+//namespaces don't belong in gloabl header files
+//let everyone that needs this one put it in their own projects.
+//using namespace std;
 
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 // MQ2
@@ -415,7 +419,7 @@ template <unsigned int _Size>__declspec(dllexport) PCHAR ParseMacroParameter(PSP
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
 #ifndef ISXEQ
-LEGACY_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All = FALSE);
+LEGACY_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, int pStartLine, BOOL All = FALSE);
 LEGACY_API VOID InitializeParser();
 LEGACY_API VOID ShutdownParser();
 
@@ -494,7 +498,7 @@ EQLIB_API DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen = MAX_STRIN
 EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
 EQLIB_API VOID StripMQChat(PCHAR in, PCHAR out);
 EQLIB_API VOID STMLToPlainText(PCHAR in, PCHAR out);
-EQLIB_API PCHAR GetSubFromLine(PMACROBLOCK pLine, PCHAR szSub, size_t Sublen);
+EQLIB_API PCHAR GetSubFromLine(int Line, PCHAR szSub, size_t Sublen);
 EQLIB_API PCHAR GetFilenameFromFullPath(PCHAR Filename);
 EQLIB_API BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime);
 EQLIB_API VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
@@ -572,7 +576,7 @@ namespace EQData {
 #include "MQ2DataTypes.h"
 
 #ifndef ISXEQ
-LEGACY_API PMACROBLOCK AddMacroLine(PCHAR szLine, size_t Linelen);
+LEGACY_API BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber, int localLine);
 #endif
 
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
@@ -697,7 +701,7 @@ LEGACY_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 
 EQLIB_API VOID        OverwriteTable(DWORD Address);
 #ifndef ISXEQ
-LEGACY_API DWORD      Include(PCHAR szFile);
+LEGACY_API DWORD      Include(PCHAR szFile, int *LineNumber);
 #endif
 EQLIB_API PCHAR       GetFullZone(DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID(PCHAR ZoneShortName);

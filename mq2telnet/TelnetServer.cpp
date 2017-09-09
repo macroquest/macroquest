@@ -22,7 +22,7 @@ BOOL ANSI=true;
 CHAR TelnetLoginPrompt[MAX_STRING]={0};
 CHAR TelnetPasswordPrompt[MAX_STRING]={0};
 CHAR TelnetWelcome[MAX_STRING]={0};
-
+extern int PortUsed;
 
 DWORD WINAPI ProcessingThread(LPVOID lpParam)
 {
@@ -322,6 +322,7 @@ bool CTelnetServer::Listen(int Port)
         closesocket(Listener);
         return false;
     }
+	PortUsed = Port;
     unsigned long nonblocking = 1;
     ioctlsocket(Listener,FIONBIO,&nonblocking);
     bListening=true;

@@ -807,14 +807,16 @@ PCHAR GetFilenameFromFullPath(PCHAR Filename)
 	return Filename;
 }
 
-PCHAR GetSubFromLine(PMACROBLOCK pLine, PCHAR szSub, size_t Sublen)
+PCHAR GetSubFromLine(int Line, PCHAR szSub, size_t Sublen)
 {
-	while (pLine != NULL) {
-		if (!_strnicmp(pLine->Line.c_str(), "sub ", 4)) {
-			strcpy_s(szSub, Sublen, pLine->Line.c_str() + 4);
+	std::map<int, MACROLINE>::reverse_iterator ri(gMacroBlock->Line.find(Line));
+	for (; ri != gMacroBlock->Line.rend();ri++) {
+	//while (pLine != NULL) {
+		if (!_strnicmp(ri->second.Command.c_str(), "sub ", 4)) {
+			strcpy_s(szSub, Sublen, ri->second.Command.c_str() + 4);
 			return szSub;
 		}
-		pLine = pLine->pPrev;
+		//pLine = pLine->pPrev;
 	}
 	strcpy_s(szSub, Sublen, "NULL");
 	return szSub;

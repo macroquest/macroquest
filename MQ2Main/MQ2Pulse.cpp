@@ -23,6 +23,30 @@ GNU General Public License for more details.
 BOOL TurnNotDone = FALSE;
 CRITICAL_SECTION gPulseCS;
 #ifndef ISXEQ
+
+#include <locale>//for tolower
+// templated version of my_equal so it can work with both char and wchar_t
+template<typename charT>
+struct my_equal {
+    my_equal( const std::locale& loc ) : loc_(loc) {}
+    bool operator()(charT ch1, charT ch2) {
+        return std::tolower(ch1, loc_) == std::tolower(ch2, loc_);
+    }
+private:
+    const std::locale& loc_;
+};
+
+// find substring (case insensitive)
+template<typename T>
+int ci_find_substr( const T& str1, const char* charin, const std::locale& loc = std::locale() )
+{
+	std::string str2 = charin;
+    typename T::const_iterator it = std::search( str1.begin(), str1.end(), 
+        str2.begin(), str2.end(), my_equal<typename T::value_type>(loc) );
+    if ( it != str1.end() ) return it - str1.begin();
+    else return -1; // not found
+}
+
 BOOL DoNextCommand()
 {
 	if (!ppCharSpawn || !pCharSpawn) return FALSE;
@@ -50,33 +74,59 @@ BOOL DoNextCommand()
 			gDelay = 0;
 		}
 	}
-	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
-		gMacroBlock && gMacroStack) {
-		PMACROBLOCK tmpBlock = gMacroBlock;
-		gMacroStack->Location = gMacroBlock;
+	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) && gMacroBlock && gMacroStack) {
+		MACROLINE ml = gMacroBlock->Line[gMacroBlock->CurrIndex];
+		if (gMacroBlock->BindStackIndex == gMacroBlock->CurrIndex) {
+			WriteChatf("Ending Bind @ %d %s",gMacroBlock->CurrIndex,ml.Command.c_str());
+			gBindInProgress = false;
+			gMacroBlock->BindStackIndex = -1;
+		}
+		gMacroStack->LocationIndex = gMacroBlock->CurrIndex;
 #ifdef MQ2_PROFILING
 		LARGE_INTEGER BeforeCommand;
 		QueryPerformanceCounter(&BeforeCommand);
-		PMACROBLOCK ThisMacroBlock = gMacroBlock;
+		int ThisMacroBlock = gMacroBlock->CurrIndex;
 #endif
-		gMacroBlock->MacroCmd = 0;
-		DoCommand(pChar, (PCHAR)gMacroBlock->Line.c_str());
+		DoCommand(pChar, (PCHAR)ml.Command.c_str());
 		if (gMacroBlock) {
+			if (gMacroBlock->BindCmd.size() && gMacroBlock->BindStackIndex==-1) {
+				if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
+					std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+					if (i != gMacroBlock->Line.end()) {
+						i++;
+						if (i != gMacroBlock->Line.end()) {
+							WriteChatf("Starting %s @ %d %s", gMacroBlock->BindCmd.c_str(), i->first, i->second.Command.c_str());
+							gMacroBlock->BindStackIndex = i->first;
+						}
+						else {
+							FatalError("Reached end of macro.");
+						}
+					}
+					Call(pChar, (PCHAR)gMacroBlock->BindCmd.c_str());
+					gMacroBlock->BindCmd.clear();
+				}
+			}
 #ifdef MQ2_PROFILING
 			LARGE_INTEGER AfterCommand;
 			QueryPerformanceCounter(&AfterCommand);
-			ThisMacroBlock->ExecutionCount++;
-			ThisMacroBlock->ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
+			gMacroBlock->Line[ThisMacroBlock].ExecutionCount++;
+			gMacroBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
 #endif
-			if (!gMacroBlock->pNext) {
+			int lastindex = gMacroBlock->Line.rbegin()->first;
+			if (gMacroBlock->CurrIndex>lastindex) {
 				FatalError("Reached end of macro.");
 			}
 			else {
-				// if the macro block changed and there was a /macro 
-				// command don't bump the line 
-				//if (gMacroBlock == tmpBlock || !gMacroBlock->MacroCmd) {
-				gMacroBlock = gMacroBlock->pNext;
-				//}
+				std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+				if (i != gMacroBlock->Line.end()) {
+					i++;
+					if (i != gMacroBlock->Line.end()) {
+						gMacroBlock->CurrIndex = i->first;
+					}
+				}
+				else {
+					FatalError("Reached end of macro.");
+				}
 			}
 		}
 		return TRUE;
@@ -223,13 +273,15 @@ void Pulse()
 		/* autorun for everyone */
 		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, gszINIFilename);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
-		if (szAutoRun[0] != 0) DoCommand(pChar, pAutoRun);
+		if (szAutoRun[0] != 0)
+			DoCommand(pChar, pAutoRun);
 		/* autorun for toon */
 		ZeroMemory(szAutoRun, MAX_STRING); pAutoRun = szAutoRun;
 		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharInfo->Name);
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, gszINIFilename);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
-		if (szAutoRun[0] != 0) DoCommand(pChar, pAutoRun);
+		if (szAutoRun[0] != 0)
+			DoCommand(pChar, pAutoRun);
 	}
 
 	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
@@ -455,7 +507,7 @@ struct cBasicPacket
         return;
     }
 
-    void ReadString( string& out )
+    void ReadString( std::string& out )
     {
         int len = 0;
         while( m_pBuffer[m_uReadOffset] != '\0' )

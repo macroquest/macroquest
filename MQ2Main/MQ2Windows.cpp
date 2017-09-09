@@ -26,7 +26,7 @@ GNU General Public License for more details.
 #include <algorithm>
 using namespace std;
 
-map<string,unsigned long> WindowMap;
+map<string,CXWnd*> WindowMap;
 
 PCHAR szClickNotification[] = { 
     "leftmouse",        //0
@@ -77,7 +77,7 @@ public:
 			wi.pWnd = (CXWnd*)this;
 			wi.ppWnd = 0;
 			WindowList[(CXWnd*)this] = wi;
-            WindowMap[WindowName]=N+1;
+            WindowMap[WindowName]= (CXWnd*)this;
 			if(Name[0]!='\0')
 				DebugSpew("Adding WndNotification target '%s'",Name);
 			else
@@ -238,7 +238,7 @@ void InitializeMQ2Windows()
 							wi.pWnd = (CXWnd*)pWnd;
 							wi.ppWnd = 0;
 							WindowList[(CXWnd*)pWnd] = wi;
-							WindowMap[WindowName];
+							WindowMap[WindowName] = (CXWnd*)pWnd;
 						}
 					}
 				}
@@ -451,7 +451,10 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
     std::string Name=WindowName;
     MakeLower(Name);
 	//check toplevel windows first
-	if (WindowMap.find(Name) == WindowMap.end()) {
+	if (WindowMap.find(Name) != WindowMap.end()) {
+		//found it no need to look further...
+		return WindowMap[Name];
+	} else {
 		//didnt find one, is it a container?
 		PCONTENTS pPack = 0;
 		if (!_strnicmp(WindowName, "bank", 4)) {
@@ -899,7 +902,7 @@ void AddWindow(char *WindowName, CXWnd **ppWindow)
         pWnd.pWnd=0;
         pWnd.ppWnd=ppWindow;
         WindowList[*ppWindow]=pWnd;
-		WindowMap[Name];
+		WindowMap[Name] = *ppWindow;
     }
 }
 

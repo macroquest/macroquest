@@ -71,15 +71,17 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gbEQWLoaded;
 	//EQLIB_VAR PHOTKEY pHotkey;
 	EQLIB_VAR BOOL gbUnload;
+	EQLIB_VAR bool gBindInProgress;
 	EQLIB_VAR BOOL gbLoad;
 	EQLIB_VAR DWORD gpHook;
 	EQLIB_VAR HMODULE ghmq2ic;
 #ifndef ISXEQ
 	LEGACY_VAR PMACROBLOCK gMacroBlock;
 	LEGACY_VAR PMACROSTACK gMacroStack;
-	LEGACY_VAR map<string, PMACROBLOCK> gMacroSubLookupMap;
+	LEGACY_VAR std::map<std::string, int> gMacroSubLookupMap;
+	LEGACY_VAR std::map<std::string, int> gUndeclaredVars;
 	LEGACY_VAR PEVENTQUEUE gEventQueue;
-	LEGACY_VAR PMACROBLOCK gEventFunc[NUM_EVENTS];
+	LEGACY_VAR int gEventFunc[NUM_EVENTS];
 #endif
 	EQLIB_VAR UCHAR gLastFind;
 	EQLIB_VAR BOOL gInClick;
@@ -183,6 +185,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL bRunNextCommand;
 	EQLIB_VAR BOOL bAllowCommandParse;
 	EQLIB_VAR BOOL gTurbo;
+	EQLIB_VAR BOOL gWarning;
 	EQLIB_VAR PDEFINE pDefines;
     EQLIB_VAR PBINDLIST pBindList;
 	//EQLIB_VAR CHAR gLastFindSlot[MAX_STRING];
@@ -190,7 +193,7 @@ namespace MQ2Globals
 	//EQLIB_VAR HWND ghWnd;
 	EQLIB_VAR PFILTER gpFilters;
 
-	EQLIB_VAR map<string, unsigned long> ItemSlotMap;
+	EQLIB_VAR std::map<std::string, unsigned long> ItemSlotMap;
 
 	EQLIB_VAR BOOL g_bInDXMouse;
 	EQLIB_VAR PMOUSESPOOF gMouseData;
@@ -380,7 +383,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;
 
-	EQLIB_VAR map<string, PSPAWNINFO> SpawnByName;
+	EQLIB_VAR std::map<std::string, PSPAWNINFO> SpawnByName;
 	//EQLIB_VAR EQPlayer **ppEQP_IDArray;
 	EQLIB_VAR MQRANK EQP_DistArray[3000];
 	EQLIB_VAR DWORD gSpawnCount;
