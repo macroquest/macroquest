@@ -777,6 +777,27 @@ bool MQ2MathType::GETMEMBER()
 			return true;
 		}
 		return false;
+    case Clamp:
+        if( char*Arg = GETFIRST() ) {
+            CHAR szMin[MAX_STRING] = { 0 };
+            CHAR szN[MAX_STRING] = { 0 };
+            CHAR szMax[MAX_STRING] = { 0 };
+
+            GetArg( szMin, Arg, 1, 0, 0, 1 );
+            GetArg( szN, Arg, 2, 0, 0, 1 );
+            GetArg( szMax, Arg, 3, 0, 0, 1 );
+
+            int Min = atol( szMin );
+            int n = atol( szN );
+            int Max = atol( szMax );
+
+            //WriteChatf( "\Clamp:\ax %s min: %d n: %d max: %d", Arg, Min, n, Max );
+
+            Dest.Int = max( Min, min( n, Max ) );
+            Dest.Type = pIntType;
+            return true;
+        }
+        return false;
 	case Distance:
 		if (ISINDEX())
 		{
@@ -890,6 +911,22 @@ bool MQ2MacroType::GETMEMBER()
 		strcpy_s(DataTypeTemp, gMacroStack->Return);
 		Dest.Type = pStringType;
 		return true;
+	case IsTLO:
+	{
+		Dest.DWord = 0;
+		if (MQ2DataMap.find(GETFIRST()) != MQ2DataMap.end())
+			Dest.DWord = 1;
+		Dest.Type = pBoolType;
+		return true;
+	}
+	case IsOuterVariable:
+	{
+		Dest.DWord = 0;
+		if (VariableMap.find(GETFIRST()) != VariableMap.end())
+			Dest.DWord = 1;
+		Dest.Type = pBoolType;
+		return true;
+	}
 	case StackSize:
 	{
 		Dest.DWord = 0;

@@ -1,3 +1,4 @@
+.gitignore
 global.mak
 ISXEQ.sln
 ISXEQClient.h

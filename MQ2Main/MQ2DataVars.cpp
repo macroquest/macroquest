@@ -21,8 +21,6 @@ GNU General Public License for more details.
 
 #include "MQ2Main.h"
 
-std::map<std::string,PDATAVAR> VariableMap;
-
 inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 {
 	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)

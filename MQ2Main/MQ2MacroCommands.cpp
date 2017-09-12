@@ -318,6 +318,16 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			GetArg(szArg2, szLine, 3);
 			if ((szArg1[0] != 0) && (szArg2[0] != 0)) {
 				sprintf_s(pEvent->szName, "Sub Event_%s", szArg1);
+				if (char*pDest = strstr(szArg2, "${")) {//its a variable...
+					CHAR szVar[MAX_STRING] = { 0 };
+					strcpy_s(szVar, &pDest[2]);
+					if (pDest = strchr(szVar, '}')) {
+						pDest[0] = '\0';
+						if (VariableMap.find(szVar) == VariableMap.end()) {
+							AddMQ2DataVariable(szVar, "", pStringType, &pMacroVariables, "");
+						}
+					}
+				}
 				strcpy_s(pEvent->szMatch, szArg2);
 #ifdef USEBLECHEVENTS
 				pEvent->BlechID = pEventBlech->AddEvent(pEvent->szMatch, EventBlechCallback, pEvent);
@@ -463,7 +473,6 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		gRunning = 0;
 		return;
 	}
-	gRunning = MQGetTickCount64();
 	gEventChat = 0;
 	strcpy_s(gszMacroName, szTemp);
 	DebugSpew("Macro - Loading macro: %s", Filename);
@@ -497,6 +506,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	fclose(fMacro);
+
 	PDEFINE pDef;
 	while (pDefines) {
 		pDef = pDefines->pNext;
@@ -534,6 +544,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		IS_ScriptEngineScriptBegins(pExtension, pISInterface, hScriptEngineService, &g_LegacyEngine, ShortName);
 	}
 #endif
+	gRunning = MQGetTickCount64();
 	gBindInProgress = false;
 }
 
@@ -578,65 +589,61 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-
-/* MQ2DataVars */
+// ***************************************************************************
+// Function:    Goto
+// Description: Our '/goto' command
+// Usage:       /goto :label
+// ***************************************************************************
 VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
-	int Start = gMacroBlock->CurrIndex;
-	int FromLine = Start;
-	//PMACROBLOCK pFromLine = gMacroBlock->CurrIndex;
-	bRunNextCommand = TRUE;
-	if (gMacroBlock->Line.find(Start) == gMacroBlock->Line.end()) {
+	if (!gMacroBlock) {
 		MacroError("Cannot goto when a macro isn't running.");
 		return;
 	}
-	std::map<int, MACROLINE>::reverse_iterator ri(gMacroBlock->Line.find(FromLine));
+	bRunNextCommand = TRUE;
+	int FromIndex = gMacroBlock->CurrIndex;
+	const auto goto_line = gMacroBlock->Line.find(FromIndex);
+	if (goto_line->second.LoopEnd)
+	{
+		gMacroBlock->CurrIndex = goto_line->second.LoopEnd;
+		return;
+	}
+	std::map<int, MACROLINE>::reverse_iterator ri(goto_line);
 	//search up first we only search until we find a "Sub "
 	for (; ri != gMacroBlock->Line.rend(); ri++)
 	{
 		if (!_strnicmp(ri->second.Command.c_str(), "Sub ", 4)) {
 			ri--;
-			FromLine = ri->first;
+			FromIndex = ri->first;
 			break;
 		}
 		if (!_stricmp(szLine, ri->second.Command.c_str()))
 		{
 			//Label found....
 			gMacroBlock->CurrIndex = ri->first;
+			goto_line->second.LoopEnd = ri->first;
 			return;
 		}
 	}
 	//now that we found our start lets look forward for the goto label:
-	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(FromLine);
-
+	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(FromIndex);
 	for (; i != gMacroBlock->Line.end(); i++)
 	{
-		gMacroBlock->CurrIndex = i->first;
-		//gMacroBlock=gMacroBlock->pNext;
 		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
 		{
-			FatalError("Couldn't find label %s", szLine);
-			return;
+			break;
 		}
 		if (!_stricmp(szLine, i->second.Command.c_str()))
 		{
 			//Label found....
 			//            DebugSpewNoFile("Goto - went to label %s",szLine);
+			gMacroBlock->CurrIndex = i->first;
+			goto_line->second.LoopEnd = i->first;
 			return;
 		}
 	}
-	//what the heck... ok one last check then:
-	if (!_stricmp(szLine, gMacroBlock->Line[Start].Command.c_str()))
-	{
-		//        DebugSpewNoFile("Goto - went to label %s",szLine);
-		return;
-	}
-	gMacroBlock->CurrIndex = FromLine;
 	FatalError("Couldn't find label %s", szLine);
 }
-
-
 
 VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -694,12 +701,11 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 	/////////////// 
 	// Code allowing for a routine for "OnExit"
 	for (std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.begin(); i != gMacroBlock->Line.end(); i++)
-		//while (gMacroBlock->pNext) 
 	{
-		//gMacroBlock=gMacroBlock->pNext;
-		//DebugSpew("%s",gMacroBlock->Line);
 		if (!_stricmp(":OnExit", i->second.Command.c_str()))
 		{
+			i++;
+			gMacroBlock->CurrIndex = i->first;
 			if (gReturn)            // return to the macro the first time around
 			{
 				gReturn = false;    // We don't want to return the 2nd time.
@@ -760,17 +766,8 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 		fclose(fMacro);
 	}
 #endif
-	//fast forward to end?
-	//while (gMacroBlock->pNext)
-	//	gMacroBlock=gMacroBlock->pNext;
-	//while (gMacroBlock) {
-	//   pPrev = gMacroBlock->pPrev;
-	//	DebugSpewNoFile("EndMacro: Deleting gMacroBlock %s", gMacroBlock->Line.c_str());
-	//free(gMacroBlock);
 	delete gMacroBlock;
 	gMacroBlock = 0;
-	//    gMacroBlock = pPrev;
-	//}
 	while (gMacroStack) {
 		pStack = gMacroStack->pNext;
 		if (gMacroStack->LocalVariables)
@@ -786,7 +783,6 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 	while (gEventQueue) {
 		pEvent = gEventQueue->pNext;
 		DebugSpewNoFile("EndMacro: Deleting gEventQueue %d %s", gEventQueue->Type, gEventQueue->Name.c_str());
-		//free(gEventQueue);
 		delete gEventQueue;
 		gEventQueue = pEvent;
 	}
@@ -858,13 +854,6 @@ int GetNumArgsFromSub(std::string &Sub)
 // ***************************************************************************
 VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 {
-	//PMACROBLOCK pCallingPoint = gMacroBlock;
-	CHAR SubName[MAX_STRING] = { 0 };
-	PCHAR SubParam = NULL;
-	CHAR SubLine[MAX_STRING] = { 0 };
-	CHAR SubLineP[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
-
 	if (szLine[0] == 0) {
 		SyntaxError("Usage: /call <subroutine> [param [param...]]");
 		return;
@@ -873,63 +862,49 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("Cannot call when a macro isn't running.");
 		return;
 	}
-	PMACROSTACK pStack = 0;
-	int CallingPoint = gMacroBlock->CurrIndex;
-	MACROLINE CallingML = gMacroBlock->Line[CallingPoint];
-
+	bRunNextCommand = TRUE;
+	CHAR SubName[MAX_STRING];
 	GetArg(SubName, szLine, 1);
-	bool bBind = false;
-	if (!_strnicmp(SubName, "bind_", 5))
-		bBind = true;
+	PCHAR SubParam = GetNextArg(szLine);
 
-	SubParam = GetNextArg(szLine);
-
-	sprintf_s(SubLine, "sub %s", SubName);
-	sprintf_s(SubLineP, "sub %s(", SubName);
-	int MacroLine = 0;
 	// Sub in Map?
-	if (gMacroSubLookupMap.find(SubName) != gMacroSubLookupMap.end()) {
-		MacroLine = gMacroSubLookupMap[SubName];
+	auto iter = gMacroSubLookupMap.find(SubName);
+	if (iter == gMacroSubLookupMap.end()) {
+		FatalError("Subroutine %s wasn't found", SubName);
+		return;
 	}
-	// If not, find it and add.
-	if (!MacroLine) {
-		for (std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.begin(); i != gMacroBlock->Line.end(); i++) {
-			//rewind to beginning... this is slow.
-			//while (gMacroBlock->pPrev)
-			//	gMacroBlock = gMacroBlock->pPrev;
-			//while (gMacroBlock->pNext) {
-			if (!_stricmp(i->second.Command.c_str(), SubLine) || !_strnicmp(i->second.Command.c_str(), SubLineP, strlen(SubLineP))) {
-				MacroLine = i->first;
-				break;
-			}
-			//gMacroBlock = gMacroBlock->pNext;
-		}
-		if (!MacroLine) {
-			gMacroBlock->CurrIndex = CallingPoint;
-			FatalError("Subroutine %s wasn't found", SubName);
-			return;
-		}
-		else {
-			gMacroSubLookupMap[SubName] = MacroLine;
-		}
-	}
+	int MacroLine = iter->second;
 
 	// Prep to call the Sub
-
-	pStack = (PMACROSTACK)calloc(1, sizeof(MACROSTACK));
-	if (pStack == NULL) {
+	auto pStack = (PMACROSTACK)calloc(1, sizeof(MACROSTACK));
+	if (pStack == nullptr) {
 		MacroError("Failed to allocate pStack for /call");
 		return;
 	}
-	//if (bBind && gBindInProgress)
-	//	pStack->BindIndex = gMacroStack->LocationIndex;
 	gMacroBlock->CurrIndex = MacroLine;
 	pStack->LocationIndex = MacroLine;
+	pStack->bIsBind = false;
 	pStack->Return[0] = '\0';
 	pStack->Parameters = NULL;
 	pStack->LocalVariables = NULL;
 	pStack->pNext = gMacroStack;
+	if (gMacroStack && gMacroBlock->BindStackIndex != -1) {
+		//we need to check the stackchain now for the start of the bind
+		PMACROSTACK pBindStack = gMacroStack;
+		bool bBindStackFound = false;
+		while (pBindStack) {
+			if (pBindStack->bIsBind == true) {
+				bBindStackFound = true;
+				break;
+			}
+			pBindStack = pBindStack->pNext;
+		}
+		if (!bBindStackFound) {
+			pStack->bIsBind = true;
+		}
+	}
 	gMacroStack = pStack;
+
 	MACROLINE ml = gMacroBlock->Line[MacroLine];
 	int numsubargs = GetNumArgsFromSub(ml.Command);
 	if ((SubParam && SubParam[0]!='\0') || numsubargs) {
@@ -1005,15 +980,12 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	*pEnd = ' ';
 	++pEnd;
 
-
-
 	DOUBLE Result = 0;
 	if (!Calculate(szCond, Result))
 	{
 		FatalError("Failed to parse /if condition '%s', non-numeric encountered", szCond);
 		return;
 	}
-
 
 	if (Result != 0) {
 		DoCommand(pChar, pEnd);
@@ -1026,80 +998,82 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-VOID EndWhile(PSPAWNINFO pChar, PCHAR szCommand, int StartLine, BOOL All = 0)
+void pop_loop()
 {
-	if (gMacroBlock->Line.find(StartLine) != gMacroBlock->Line.end()) {
-		gMacroBlock->CurrIndex = gMacroBlock->Line[StartLine].LoopEnd;
-		gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart = 0;
-		gMacroBlock->Line[StartLine].LoopEnd = 0;
-		bRunNextCommand = TRUE;
-	}
-	gBindInProgress = false;
+	gMacroStack->loop_stack.pop_back();
 }
-VOID MarkWhile(PSPAWNINFO pChar, PCHAR szCommand, BOOL All = 0)
+
+static void push_loop(const Loop& loop)
 {
-	int OrgLine = gMacroBlock->CurrIndex;
-	int SaveLine = OrgLine;
-	BOOL bDelay = 0;
-	DWORD Scope = 1;
-	int WhileStart = 0;
+	auto size = gMacroStack->loop_stack.size();
+	if (size > 0 && gMacroStack->loop_stack[size - 1].first_line == loop.first_line)
+		return;
+	gMacroStack->loop_stack.push_back(loop);
+}
+
+static void EndWhile()
+{
+	gMacroBlock->CurrIndex = gMacroBlock->Line[gMacroBlock->CurrIndex].LoopEnd;
+	bRunNextCommand = TRUE;
+}
+
+static void MarkWhile(PCHAR szCommand, Loop& loop)
+{
 	if (szCommand[strlen(szCommand) - 1] == '{') {
-		if (gMacroBlock->Line.find(SaveLine) == gMacroBlock->Line.end()) {
-			DebugSpewNoFile("MarkWhile - Macro was ended before we could handle the command");
+		loop.type = Loop::Type::While;
+		auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+		if (i->second.LoopStart && i->second.LoopEnd)
+		{
+			loop.first_line = i->second.LoopStart;
+			loop.last_line = i->second.LoopEnd;
 			return;
 		}
-		std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(SaveLine);
-		std::map<int, MACROLINE>::iterator backoff = i;
-		backoff--;//we need the line BEFORE the actual /while line, otherwise it wont evaluate it again when we loop back
-		WhileStart = backoff->first;
-		if (i != gMacroBlock->Line.end())
-			i++;//we know THIS line does NOT hava } on it so might as well just move down quickly
-		for (; i != gMacroBlock->Line.end() && Scope>0; i++)
+		const auto current_line = i;
+		--i;
+		current_line->second.LoopStart = i->first;
+		loop.first_line = i->first;
+		++i;
+		int Scope = 1;
+		while (++i != gMacroBlock->Line.end())
 		{
-			gMacroBlock->CurrIndex = i->first;
 			if (i->second.Command[0] == '}') {
-				Scope--;
+				--Scope;
+				if (Scope == 0) break;
 			}
-			if (All) {
-				if (i->second.Command[i->second.Command.size() - 1] == '{') {
-					Scope++;
-				}
+			if (i->second.Command[i->second.Command.size() - 1] == '{') {
+				++Scope;
 			}
-			if (Scope>0) {
-				if (!All) {
-					if (i->second.Command[i->second.Command.size() - 1] == '{') {
-						Scope++;
-					}
-				}
-				if (!_strnicmp(i->second.Command.c_str(), "sub ", 4)) {
-					gMacroBlock->CurrIndex = SaveLine;
-					FatalError("{} pairing ran into anther subroutine");
-					return;
-				}
-				std::map<int, MACROLINE>::iterator next = i;
-				next++;
-				if (next == gMacroBlock->Line.end()) {
-					gMacroBlock->CurrIndex = SaveLine;
-					FatalError("Bad {} block pairing");
-					return;
-				}
-				//gMacroBlock = gMacroBlock->pNext;
+			else if (!_strnicmp(i->second.Command.c_str(), "sub ", 4)) {
+				FatalError("{} pairing ran into anther subroutine");
+				return;
 			}
 		}
+		if (Scope != 0)
+		{
+			FatalError("No } found for /while");
+			return;
+		}
+		i->second.LoopStart = loop.first_line;
+		loop.last_line = i->first;
+		current_line->second.LoopEnd = i->first;
 	}
 	else {
 		//its a /while (something) /dosomething
 		//we cant support that kind of /while cause I cant figure out how to do it -eqmule
 		//feel free to enlighten me.
 		//se we loop to same line over and over i guess...
-		FatalError("You have a /while condition that's not enclosed in {}");
+		FatalError("You have a /while block that's not enclosed in {}");
 		return;
 	}
-	gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart = WhileStart;
-	gMacroBlock->Line[SaveLine].LoopEnd = gMacroBlock->CurrIndex;
-	gMacroBlock->CurrIndex = OrgLine;
 }
-//yes this is going to work, i just need some more time testing it -eqmule
+
+// ***************************************************************************
+// Function:    While
+// Description: Our '/while' command
+// Usage:       /while (cond) {
+//                   ....
+//              }
+// ***************************************************************************
 VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szCond[MAX_STRING] = { 0 };
@@ -1146,8 +1120,6 @@ VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 	*pEnd = ' ';
 	++pEnd;
 
-
-
 	DOUBLE Result = 0;
 	if (!Calculate(szCond, Result))
 	{
@@ -1155,18 +1127,18 @@ VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	//ok so we have a loop...
 	//lets check all the lines within it
 	//and mark the end so the interpreter knows when to exit it
-	MarkWhile(pChar, pEnd);
+	Loop loop;
+	MarkWhile(pEnd, loop);
 	if (!gMacroBlock)
 		return;
-
 	if (Result != 0)
-		DoCommand(pChar, pEnd);
+		push_loop(loop);
 	else
-		EndWhile(pChar, pEnd, gMacroBlock->CurrIndex);
+		EndWhile();
 }
+
 // ***************************************************************************
 // Function:    DoEvents
 // Description: Our '/doevents' command
@@ -1280,6 +1252,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 			pParam->ppHead = &pStack->Parameters;
 			pParam = pParam->pNext;
 		}
+		pStack->bIsBind = false;
 		pStack->LocalVariables = NULL;
 		pStack->pNext = gMacroStack;
 		gMacroStack = pStack;
@@ -1312,7 +1285,7 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("Cannot return when a macro isn't running.");
 		return;
 	}
-if (!pStack->pNext)
+	if (!pStack->pNext)
 	{
 		// Top of stack (ie. returning from Sub Main)
 		EndMacro(pChar, "");
@@ -1322,7 +1295,8 @@ if (!pStack->pNext)
 		ClearMQ2DataVariables(&pStack->LocalVariables);
 	if (pStack->Parameters)
 		ClearMQ2DataVariables(&pStack->Parameters);
-	strcpy_s(pStack->pNext->Return, szLine);
+	if (!pStack->bIsBind)//binds dont return values...
+		strcpy_s(pStack->pNext->Return, szLine);
 	gMacroBlock->CurrIndex = pStack->pNext->LocationIndex;
 	gMacroStack = pStack->pNext;
 	free(pStack);
@@ -1373,6 +1347,11 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
 		FatalError("/for loop could not assign value '%s' to variable", ArgStart);
 		return;
 	}
+	Loop loop;
+	loop.type = Loop::Type::For;
+	loop.first_line = gMacroBlock->CurrIndex;
+	loop.last_line = 0;
+	push_loop(loop);
 	/*I want to do this, but people have been doing shit like /for i 1 to 1 for years and they count on it to go through once... 
 	int iStart = atoi(ArgStart);
 	int iEnd = atoi(ArgEnd);
@@ -1390,15 +1369,8 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
 VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	CHAR szComp[MAX_STRING] = { 0 };
-	CHAR ForLine[MAX_STRING] = { 0 };
-	CHAR szNext[MAX_STRING] = { 0 };
-	char *pDest = 0;
-	int OrgLine = gMacroBlock->CurrIndex;
-	int MacroLine = OrgLine;
-	LONG StepSize = 1;
+	CHAR szNext[MAX_STRING];
 	GetArg(szNext, szLine, 1);
-
 	PDATAVAR pVar = FindMQ2DataVariable(szNext);
 	if (!pVar)
 	{
@@ -1410,78 +1382,70 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 		FatalError("/for loops must use an int variable");
 		return;
 	}
-
 	if (!gMacroBlock) {
 		MacroError("Can only use /next during a macro.");
 		return;
 	}
-	sprintf_s(szComp, "/for %s ", pVar->szName);
-	if (strstr(szComp,"${"))
-		Sleep(0);
-	//move backward
-	std::map<int, MACROLINE>::reverse_iterator ri(gMacroBlock->Line.find(MacroLine));
-	for (; ri != gMacroBlock->Line.rend(); ri++) {
-		MacroLine = ri->first;
-		strcpy_s(ForLine, ri->second.Command.c_str());
-		if (!_strnicmp(ForLine, "sub ", 4)) {
-			FatalError("/next without matching /for");
-			return;
-		}
-		if (_strnicmp(ForLine, szComp, strlen(szComp))) {
-			continue;
-		}
-		if (!_strnicmp(ParseMacroParameter(pChar, ForLine), szComp, strlen(szComp))) {
-			if (!gMacroBlock || (gMacroBlock && gMacroBlock->Line.size() == 0)) {
-				// PMP bailed on us, we need to exit...
-				return;
-			}
-			CHAR szTemp[MAX_STRING] = { 0 };
-			DWORD VarNum = atoi(szLine + 1);
-			LONG Loop = 0;
-			strcpy_s(szTemp, ForLine);
-			_strlwr_s(szTemp);
-			if (strstr(szTemp, "step")) {
-				if (PCHAR pTemp = strstr(szTemp, "step") + 4) {
-					while ((pTemp[0] != 0) && (pTemp[0] != ' ') && (pTemp[0] != '\t'))
-						pTemp++;
-					if (pTemp[0] != 0)
-						StepSize = atoi(pTemp);
-				}
-			}
-
-			pVar = FindMQ2DataVariable(szNext);
-			if (!pVar)
-			{
-				FatalError("/next without badly matching /for");
-				return;
-			}
-			strcpy_s(szTemp, ForLine);
-			_strlwr_s(szTemp);
-			if (strstr(szTemp, "downto"))
-			{
-				if (pDest = strstr(szTemp, "downto"))
-					Loop = atoi(pDest + 7);
-				//DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
-				pVar->Var.Int -= StepSize;
-				if (pVar->Var.Int >= Loop) {
-					gMacroBlock->CurrIndex = MacroLine;
-				}
-			}
-			else
-			{
-				if (pDest = strstr(szTemp, "to"))
-					Loop = atoi(pDest + 3);
-				//DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
-				pVar->Var.Int += StepSize;
-				if (pVar->Var.Int <= Loop) {
-					gMacroBlock->CurrIndex = MacroLine;
-				}
-			}
-			return;
+	const auto size = gMacroStack->loop_stack.size();
+	if (size == 0 || gMacroStack->loop_stack[size-1].type != Loop::Type::For)
+	{
+		FatalError("/next without matching /for");
+		return;
+	}
+	gMacroStack->loop_stack[size-1].last_line = gMacroBlock->CurrIndex;
+	auto MacroLine = gMacroStack->loop_stack[size-1].first_line;
+	auto iter = gMacroBlock->Line.find(MacroLine);
+	CHAR ForLine[MAX_STRING];
+	strcpy_s(ForLine, iter->second.Command.c_str());
+	ParseMacroParameter(pChar, ForLine);
+	DWORD VarNum = atoi(szLine + 1);
+	CHAR szTemp[MAX_STRING];
+	strcpy_s(szTemp, ForLine);
+	_strlwr_s(szTemp);
+	LONG StepSize = 1;
+	if (strstr(szTemp, "step")) {
+		if (PCHAR pTemp = strstr(szTemp, "step") + 4) {
+			while ((pTemp[0] != 0) && (pTemp[0] != ' ') && (pTemp[0] != '\t'))
+				pTemp++;
+			if (pTemp[0] != 0)
+				StepSize = atoi(pTemp);
 		}
 	}
-
-	FatalError("/next without matching /for");
+	pVar = FindMQ2DataVariable(szNext);
+	if (!pVar)
+	{
+		FatalError("/next without badly matching /for");
+		return;
+	}
+	strcpy_s(szTemp, ForLine);
+	_strlwr_s(szTemp);
+	char *pDest = nullptr;
+	if (pDest=strstr(szTemp, "downto"))
+	{
+		auto Loop = atoi(pDest + 7);
+		//DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
+		pVar->Var.Int -= StepSize;
+		if (pVar->Var.Int >= Loop) {
+			gMacroBlock->CurrIndex = MacroLine;
+		}
+		else {
+			pop_loop();
+		}
+	}
+	else
+	{
+		auto Loop = 0;
+		if (pDest = strstr(szTemp, "to"))
+			Loop = atoi(pDest + 3);
+		//DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
+		pVar->Var.Int += StepSize;
+		if (pVar->Var.Int <= Loop) {
+			gMacroBlock->CurrIndex = MacroLine;
+		}
+		else {
+			pop_loop();
+		}
+	}
 }
 
 // ***************************************************************************
@@ -1496,34 +1460,41 @@ VOID Continue(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("Can only use /continue during a macro.");
 		return;
 	}
-	int OrgPos = gMacroBlock->CurrIndex;
-	int CurrLine = OrgPos;
-	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
-	i++;//we know for a fact that THIS line is NOT the "/next" line so lets just speed things up and forward it...
-
-	bool bFound = false;
-	for (; i != gMacroBlock->Line.end(); i++)
+	const auto size = gMacroStack->loop_stack.size();
+	if (size == 0)
 	{
-		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
-		{
-			FatalError("/continue without matching /for ... /next block");
-			break;
-		}
+		FatalError("/continue without matching /for or /while block");
+		return;
+	}
+	auto& loop = gMacroStack->loop_stack[size-1];
+	if (loop.type == Loop::Type::While)
+	{
+		gMacroBlock->CurrIndex = loop.first_line;
+		return;
+	}
+	else if (loop.last_line) // /for after 1st /next encountered
+	{
+		auto i = gMacroBlock->Line.find(loop.last_line);
+		--i;
+		gMacroBlock->CurrIndex = i->first;
+		return;
+	}
+	auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+	while (++i != gMacroBlock->Line.end())
+	{
 		if (!_strnicmp(i->second.Command.c_str(), "/next", 5))
 		{
-			//gMacroBlock = gMacroBlock->pPrev;
-			//std::map<int, MACROLINE>::iterator backoff = i;
-			//backoff--;
-			//gMacroBlock->CurrIndex = backoff->first;
-			bFound = true;
+			loop.last_line = i->first;
+			--i;
+			gMacroBlock->CurrIndex = i->first;
+			return;
+		}
+		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
+		{
 			break;
 		}
-		gMacroBlock->CurrIndex = i->first;
 	}
-	if (!bFound) {
-		gMacroBlock->CurrIndex = OrgPos;
-		FatalError("/continue without matching /for ... /next block");
-	}
+	FatalError("/continue without matching /for ... /next block");
 }
 
 // ***************************************************************************
@@ -1538,36 +1509,34 @@ VOID Break(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("Can only use /break during a macro.");
 		return;
 	}
-	int OrgPos = gMacroBlock->CurrIndex;
-	int CurrLine = OrgPos;
-	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(OrgPos);
-	bool bFound = false;
-	for (; i != gMacroBlock->Line.end(); i++)
+	auto size = gMacroStack->loop_stack.size();
+	if (size == 0)
 	{
-		gMacroBlock->CurrIndex = i->first;
+		FatalError("/break without matching /for or /while block");
+		return;
+	}
+	auto& loop = gMacroStack->loop_stack[size-1];
+	if (loop.last_line) // takes care of /while and /for after 1st /next encountered
+	{
+		gMacroBlock->CurrIndex = loop.last_line;
+		pop_loop();
+		return;
+	}
+	auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+	while (++i != gMacroBlock->Line.end())
+	{
+		if (!_strnicmp(i->second.Command.c_str(), "/next", 5))
+		{
+			gMacroBlock->CurrIndex = i->first;
+			loop.last_line = i->first;;
+			pop_loop();
+			return;
+		}
 		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
 		{
 			break;
 		}
-		if (!_strnicmp(i->second.Command.c_str(), "/next", 5))
-		{
-			bFound = true;
-			break;
-		}
-		if (i->second.LoopStart) {
-			std::map<int, MACROLINE>::iterator forw = gMacroBlock->Line.find(i->second.LoopStart);
-			if (forw != gMacroBlock->Line.end()) {
-				forw++;
-				gMacroBlock->Line[forw->first].LoopEnd = 0;
-				gMacroBlock->Line[i->first].LoopStart = 0;
-			}
-			//we are inside a while loop
-			bFound = true;
-			break;
-		}
 	}
-	if (!bFound) {
-		FatalError("/break without matching /for ... /next (or while) block");
-	}
+	FatalError("/break without matching /for ... /next (or while) block");
 }
 #endif

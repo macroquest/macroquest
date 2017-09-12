@@ -1,12 +1,56 @@
-07 Sep 2017 by eqmule
+12 Sep 2017 by eqmule and eqholic
+- All plugin sources for this zip are attached to this post:
+  http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174415#p174415
+- Changed MQ2MoveUtils to save stuff faster.
+- MQ2ChatWnd got a new tlo /echo ${ChatWnd.Title}
+- MQ2ChatWnd got a new command /setchattitle
+- MQ2Melee updated - it has flags for down and holyshits called downflag0-60 and holyflag0-60
+  you SHOULD set those flag to 2 if you parse ANY macro variables.
+  Example:
+  [code]
+  downflag0=2
+  downshit0=/if (${Macro.Paused}) /echo ${Macro} is PAUSED!
+  [/code]
+- MQ2Hud now updated with a new type HUDTYPE_MACRO which is 16
+  This means you can now set the type to any combination of 1 2 4 8 and 16
+  see http://www.macroquest2.com/wiki/index.php/MQ2HUD for more info.
+  Basically using a hud that tries to parse variables that are used in macros, before they are declared will fail.
+  This new flag lets mq2hud know to not even try unless its set.
+-
+- Adding events from a macro will now also automatically /declare variable as outer if used.
+  Example: #Event Burn              "[MQ2] |${BurnText}|"
+  As you can see this event uses the variable ${BurnText} and it will therefor /declare it as well.
+  This means you can remove /declare BurnText in your Sub Main since adding the event did it for you already.
+-
+- Added ${Macro.IsOuterVariable[xxx]} which returns TRUE/FALSE, it checks if a outer variable exists. (read is declared)
+  I would recommend NOT using this in macros unless its for debug purposes because it can get quickly get expensive in terms of cpu cycles.
+-
+- Added ${Macro.IsTLO[xxx]} which returns TRUE/FALSE, it checks if a Top Level Object exists. This should be faster than checking if a plugin is loaded. *should*
+  Usage:
+    [code]
+    /if (${Macro.IsTLO[Melee]}) {
+        /echo yes there is a Melee Top Level Object loaded...
+		/echo this means I CAN actually do stuff with it without it throwing the Undeclared warning:
+		/delay 25 !${Melee.Combat}
+    } else {
+        /echo no there is no such TLO, maybe you should load mq2melee?
+		/end
+    }
+    [/code]
+
+07 Sep 2017 by eqmule and eqholic
+- All Plugin Sources changed outside of core for this zip are attached to the post here:
+http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174399#p174399
 - using namespace std; has been removed from mq2main.h
   THIS MEANS your plugins will ERROR with lines like this:
   error C2143: syntax error: missing ';' before '<'
   The line: map<string, class CXWnd2 *> WindowMap;
-  To fix: Find #include "../MQ2Plugin.h" in your plugin and add using namespace std; under it.
+  To fix: Find #include "../MQ2Plugin.h" in your plugin and add using namespace std; under the LAST #include below it.
   Example:
 	[code]
 	#include "../MQ2Plugin.h"
+	#include <otherheader>
+	...
 	using namespace std;
 	[/code]
 	OR just change the line to say std:: map<std::string, class CXWnd2 *> WindowMap;
@@ -27,10 +71,9 @@ AGAIN:   IMPORTANT: Undeclared variables will slow down macro performance a LOT 
 - New macro keyword: #warning
   add it at the top of your macro, and you will get warnings if there are undeclared variables used in it.
 -
-- /while loops can now be nested inside /while and /for loops.
+- /while and /for loops can now be nested inside each other.
 - /continue and /break should work properly inside /for loops now.
-- /break works in /while loops now.
-- /for loops can now have nested /for loops inside them
+- /continue and /break works in /while loops now.
 -
 - Updated MQ2Rez and MQ2Cast to not hog the cpu looking up windows over and over.
 - Other stuff to optimize and cut down on cpu intensive tasks.
@@ -39,8 +82,8 @@ Files changed outside of core:
 \MQ2Cast\MQ2Cast.cpp
 \MQ2Rez\MQ2Rez.cpp
 
-01 Sep 2017 by eqmule
-- You can now call functions inside if statements in your macros - cred eqholic
+01 Sep 2017 by eqmule and eqholic
+- You can now call functions inside if statements in your macros
   Example:
   [code]
 Sub Testsub
@@ -68,7 +111,7 @@ Sub IsHuuge(int arg1)
 /return
 
 Sub Main 
-    /echo ${Testsub}
+    /echo ${Testsub[]}
     /echo ${Testargs[10 9]}
     /if (${IsHuuge[2000]} && !${IsHuuge[1]}) /echo Huuge and smaaal
 /return

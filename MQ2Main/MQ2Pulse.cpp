@@ -87,6 +87,9 @@ BOOL DoNextCommand()
 		QueryPerformanceCounter(&BeforeCommand);
 		int ThisMacroBlock = gMacroBlock->CurrIndex;
 #endif
+		//CHAR szLine[MAX_STRING];
+		//sprintf_s(szLine, "/SetChatTitle MQ - MacroLine: %d", ml.LineNumber);
+		//EzCommand(szLine);
 		DoCommand(pChar, (PCHAR)ml.Command.c_str());
 		if (gMacroBlock) {
 			if (gMacroBlock->BindCmd.size() && gMacroBlock->BindStackIndex==-1) {

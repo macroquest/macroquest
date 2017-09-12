@@ -41,7 +41,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     if (delayed)
     {
 		lockit lk(ghLockDelayCommand,"HideDoCommand");
-		CHAR szTheCmd[MAX_STRING] = { 0 };
+		CHAR szTheCmd[MAX_STRING];
 		strcpy_s(szTheCmd, szLine);
 		PCHATBUF pChat = 0;
 		try {
@@ -64,14 +64,13 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         return;
     }
     CAutoLock DoCommandLock(&gCommandCS);
-	CHAR szTheCmd[MAX_STRING] = { 0 };
+	CHAR szTheCmd[MAX_STRING];
 	strcpy_s(szTheCmd, szLine);
 	WeDidStuff();
-    CHAR szArg1[MAX_STRING] = {0};
-    CHAR szParam[MAX_STRING] = {0};
-    CHAR szOriginalLine[MAX_STRING] = {0};
+    CHAR szOriginalLine[MAX_STRING];
     strcpy_s(szOriginalLine,szTheCmd);
-    GetArg(szArg1,szTheCmd,1);
+	CHAR szArg1[MAX_STRING];
+	GetArg(szArg1,szTheCmd,1);
 	std::string sName = szArg1;
 	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
 	if (mAliases.find(sName) != mAliases.end()) {
@@ -81,16 +80,20 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     GetArg(szArg1,szTheCmd,1);
     if (szArg1[0]==0)
 		return;
-    strcpy_s(szParam, GetNextArg(szTheCmd));
+	CHAR szParam[MAX_STRING];
+	strcpy_s(szParam, GetNextArg(szTheCmd));
 
     if ((szArg1[0]==':') || (szArg1[0]=='{')) {
         bRunNextCommand = TRUE;
         return;
     }
-	if(gMacroBlock && gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart !=0) {
-		gMacroBlock->CurrIndex = gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart;
-		return;
-	} else if (szArg1[0]=='}') {
+	if (szArg1[0]=='}') {
+		if (gMacroBlock && gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart != 0) {
+			gMacroBlock->CurrIndex = gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart;
+			extern void pop_loop();
+			pop_loop();
+			return;
+		}
 		if (strstr(szTheCmd,"{")) {
 			GetArg(szArg1,szTheCmd,2);
 			if (_stricmp(szArg1,"else")) {

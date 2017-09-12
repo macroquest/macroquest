@@ -24,6 +24,7 @@ GNU General Public License for more details.
 #define DBG_SPEW
 
 #include "MQ2Main.h"
+
 namespace MQ2Globals
 {
 
@@ -1014,6 +1015,8 @@ namespace MQ2Globals
 	PMQPLUGIN pPlugins = 0;
 	PMQXMLFILE pXMLFiles = 0;
 	std::map<std::string,std::string> mAliases;
+	std::map<std::string,PDATAVAR> VariableMap;
+	std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
 	PSUB pSubs = 0;
 	PMQCOMMAND pCommands = 0;
 

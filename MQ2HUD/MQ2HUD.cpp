@@ -1,6 +1,7 @@
 // MQ2HUD.cpp : Defines the entry point for the DLL application.
 //
 // Cr4zyb4rd patch: 1/7/2005
+// Updated Sep 09 2017 by eqmule to take undeclared macro variables into account
 
 #include "../MQ2Plugin.h"
 
@@ -21,9 +22,10 @@ typedef struct _HUDELEMENT {
 } HUDELEMENT, *PHUDELEMENT;
 
 #define HUDTYPE_NORMAL      1
-#define HUDTYPE_FULLSCREEN   2
+#define HUDTYPE_FULLSCREEN  2
 #define HUDTYPE_CURSOR      4
 #define HUDTYPE_CHARSELECT  8
+#define HUDTYPE_MACRO      16
 
 PreSetup("MQ2HUD");
 
@@ -406,9 +408,110 @@ PLUGIN_API VOID OnZoned(VOID)
     if (bZoneHUD) HandleINI();
 }
 
+BOOL ParseMacroLine(PCHAR szOriginal, SIZE_T BufferSize,std::list<std::string>&out)
+{
+	// find each {}
+	PCHAR pBrace = strstr(szOriginal, "${");
+	if (!pBrace)
+		return false;
+	unsigned long NewLength;
+	BOOL Changed = false;
+	//PCHAR pPos;
+	//PCHAR pStart;
+	//PCHAR pIndex;
+	CHAR szCurrent[MAX_STRING] = { 0 };
+	//MQ2TYPEVAR Result = { 0 };
+	do
+	{
+		// find this brace's end
+		PCHAR pEnd = &pBrace[1];
+		BOOL Quote = false;
+		BOOL BeginParam = false;
+		int nBrace = 1;
+		while (nBrace)
+		{
+			++pEnd;
+			if (BeginParam)
+			{
+				BeginParam = false;
+				if (*pEnd == '\"')
+				{
+					Quote = true;
+				}
+				continue;
+			}
+			if (*pEnd == 0)
+			{// unmatched brace or quote
+				goto pmdbottom;
+			}
+			if (Quote)
+			{
+				if (*pEnd == '\"')
+				{
+					if (pEnd[1] == ']' || pEnd[1] == ',')
+					{
+						Quote = false;
+					}
+				}
+			}
+			else
+			{
+				if (*pEnd == '}')
+				{
+					nBrace--;
+				}
+				else if (*pEnd == '{')
+				{
+					nBrace++;
+				}
+				else if (*pEnd == '[' || *pEnd == ',')
+					BeginParam = true;
+			}
+
+		}
+		*pEnd = 0;
+		strcpy_s(szCurrent, &pBrace[2]);
+		if (szCurrent[0] == 0)
+		{
+			goto pmdbottom;
+		}
+		if (ParseMacroLine(szCurrent, sizeof(szCurrent),out))
+		{
+			unsigned long NewLength = strlen(szCurrent);
+			memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
+			int addrlen = (int)(pBrace - szOriginal);
+			memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
+			pEnd = &pBrace[NewLength];
+			*pEnd = 0;
+		}
+		if(!strchr(szCurrent,'[') && !strchr(szCurrent,'.'))
+			out.push_back(szCurrent);
+
+		NewLength = strlen(szCurrent);
+		memmove(&pBrace[NewLength], &pEnd[1], strlen(&pEnd[1]) + 1);
+		int addrlen = (int)(pBrace - szOriginal);
+		memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
+		if (bAllowCommandParse == false) {
+			bAllowCommandParse = true;
+			Changed = false;
+			break;
+		}
+		else {
+			Changed = true;
+		}
+	pmdbottom:;
+	} while (pBrace = strstr(&pBrace[1], "${"));
+	if (Changed)
+		while (ParseMacroLine(szOriginal, BufferSize,out))
+		{
+			Sleep(0);
+		}
+	return Changed;
+}
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
 PLUGIN_API VOID OnDrawHUD(VOID)
 {
+	static bool bOkToCheck = true;
     static int N=0;
     CHAR szBuffer[MAX_STRING]={0};
 
@@ -458,8 +561,45 @@ PLUGIN_API VOID OnDrawHUD(VOID)
                 Y=SX+pElement->Y;
             }
             if (!(N%SkipParse)) {
+				bOkToCheck = true;
                 strcpy_s(pElement->PreParsed,pElement->Text);
-                ParseMacroParameter(GetCharInfo()->pSpawn,pElement->PreParsed);
+				if (pElement->Type & HUDTYPE_MACRO) {
+					if (gRunning) {
+						CHAR szTemp[MAX_STRING] = { 0 };
+						strcpy_s(szTemp, pElement->Text);
+						std::list<std::string>out;
+						ParseMacroLine(szTemp, MAX_STRING, out);
+						if (out.size()) {
+							for (std::list<std::string>::iterator i = out.begin(); i != out.end(); i++) {
+								bOkToCheck = false;
+								if (MQ2DataMap.find(*i) != MQ2DataMap.end()) {
+									bOkToCheck = true;
+									continue;
+								}
+								if (!bOkToCheck)
+								{
+									//ok fine we didnt find it in the tlo map...
+									//lets check variables
+									if (VariableMap.find(*i) != VariableMap.end()) {
+										bOkToCheck = true;
+										continue;
+									}
+								}
+								if (!bOkToCheck)
+								{
+									//still not found...
+									break;
+								}
+							}
+						}
+					}
+				}
+				if(bOkToCheck) {
+					ParseMacroParameter(GetCharInfo()->pSpawn, pElement->PreParsed);
+				}
+				else {
+					pElement->PreParsed[0] = '\0';
+				}
             }
             strcpy_s(szBuffer,pElement->PreParsed);
             if (szBuffer[0] && strcmp(szBuffer,"NULL"))

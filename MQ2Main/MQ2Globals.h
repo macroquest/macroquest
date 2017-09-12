@@ -11,6 +11,18 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
+#pragma once
+
+#include <memory>
+#include <unordered_map>
+
+struct CaseInsensitiveLess
+{
+	bool operator()(const std::string& lhs, const std::string& rhs) const noexcept
+	{
+		return (::_stricmp(lhs.c_str(), rhs.c_str()) < 0);
+	};
+};
 
 namespace MQ2Globals
 {
@@ -78,7 +90,7 @@ namespace MQ2Globals
 #ifndef ISXEQ
 	LEGACY_VAR PMACROBLOCK gMacroBlock;
 	LEGACY_VAR PMACROSTACK gMacroStack;
-	LEGACY_VAR std::map<std::string, int> gMacroSubLookupMap;
+	LEGACY_VAR std::map <std::string, int, CaseInsensitiveLess> gMacroSubLookupMap;
 	LEGACY_VAR std::map<std::string, int> gUndeclaredVars;
 	LEGACY_VAR PEVENTQUEUE gEventQueue;
 	LEGACY_VAR int gEventFunc[NUM_EVENTS];
@@ -376,6 +388,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD nColorFatalError;
 
 	EQLIB_VAR std::map<std::string,std::string> mAliases;
+	EQLIB_VAR std::map<std::string,PDATAVAR> VariableMap;
+	EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
 	EQLIB_VAR PSUB pSubs;
 	EQLIB_VAR PMQCOMMAND pCommands;
 	EQLIB_VAR PMQPLUGIN pPlugins;

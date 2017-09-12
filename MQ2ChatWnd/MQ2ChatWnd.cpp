@@ -394,6 +394,13 @@ VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)
     } 
 } 
 
+VOID SetChatTitle(PSPAWNINFO pChar, PCHAR Line)
+{
+	if (MQChatWnd) 
+    {
+		SetCXStr(&MQChatWnd->WindowText,Line); 
+    } 
+} 
 VOID MQChatClear(PSPAWNINFO pChar, PCHAR Line) 
 { 
 	//int sizeofCXWnd = sizeof(CXWnd);
@@ -589,15 +596,81 @@ PLUGIN_API VOID OnPulse()
     } 
 } 
 
+class MQ2ChatWndType *pChatWndType=0; 
 
+class MQ2ChatWndType : public MQ2Type 
+{ 
+    public: 
+        enum ChatWndMembers { 
+            Title=1, 
+        }; 
+
+        MQ2ChatWndType():MQ2Type("chatwnd") { 
+            TypeMember(Title); 
+        } 
+
+        ~MQ2ChatWndType() {}
+
+        bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) { 
+            PMQ2TYPEMEMBER pMember=MQ2ChatWndType::FindMember(Member); 
+            if (!pMember) 
+                return false; 
+            switch((ChatWndMembers)pMember->ID) { 
+                case Title:
+				{
+					if (MQChatWnd)
+					{
+						GetCXStr(MQChatWnd->WindowText, DataTypeTemp);
+						Dest.Ptr = &DataTypeTemp[0];
+						Dest.Type = pStringType;
+						return true;
+					}
+					break;
+				}
+				default:
+					break;
+            } 
+            return false; 
+        } 
+
+        bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)  { 
+			if (MQChatWnd)
+			{
+				GetCXStr(MQChatWnd->WindowText, Destination);
+			}
+			else {
+				strcpy_s(Destination, MAX_STRING, "");
+			}
+            return true; 
+        } 
+
+        bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source) { 
+            return false; 
+        } 
+
+        bool FromString(MQ2VARPTR &VarPtr, PCHAR Source) { 
+            return false; 
+        } 
+}; 
+
+BOOL dataChatWnd(PCHAR szName, MQ2TYPEVAR &Dest) 
+{ 
+    Dest.DWord=1; 
+    Dest.Type=pChatWndType; 
+    return true; 
+} 
 PLUGIN_API VOID InitializePlugin() 
 { 
     DebugSpewAlways("Initializing MQ2ChatWnd"); 
     // Add commands, macro parameters, hooks, etc. 
+	AddMQ2Data("ChatWnd",dataChatWnd); 
+    pChatWndType = new MQ2ChatWndType; 
+
     AddCommand("/style",Style,0,1,0); 
     AddCommand("/mqfont",MQChatFont); 
     AddCommand("/mqmin",MQChatMin); 
-    AddCommand("/mqclear",MQChatClear); 
+    AddCommand("/mqclear",MQChatClear);
+    AddCommand("/setchattitle",SetChatTitle);
     AddMQ2KeyBind("MQ2CHAT",DoMQ2ChatBind); 
     bmStripFirstStmlLines=AddMQ2Benchmark("StripFirstStmlLines"); 
     LoadChatSettings(); 
@@ -609,11 +682,14 @@ PLUGIN_API VOID ShutdownPlugin()
     sPendingChat.clear();
 
     // Remove commands, macro parameters, hooks, etc. 
+    RemoveCommand("/setchattitle"); 
     RemoveCommand("/style"); 
     RemoveCommand("/mqfont"); 
     RemoveCommand("/mqmin"); 
     RemoveCommand("/mqclear"); 
     RemoveMQ2KeyBind("MQ2CHAT"); 
+	RemoveMQ2Data("ChatWnd"); 
+    delete pChatWndType; 
     RemoveMQ2Benchmark(bmStripFirstStmlLines); 
     DestroyChatWnd(); 
 } 

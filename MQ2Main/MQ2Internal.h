@@ -1224,14 +1224,24 @@ namespace MQ2Internal {
         return 1;
     }
 
+struct Loop
+{
+	enum Type {None,For,While};
+	Type type{None};
+	int	first_line{0};
+	int last_line{0};
+};
+
 #ifndef ISXEQ
-    typedef struct _MACROSTACK {
-        int LocationIndex;
-        struct _MACROSTACK *pNext;
+    typedef struct MACROSTACK {
+		bool bIsBind;
+         int LocationIndex;
+        struct MACROSTACK *pNext;
         CHAR Return[MAX_STRING];
         PDATAVAR Parameters;
         PDATAVAR LocalVariables;
-    } MACROSTACK, *PMACROSTACK;
+		std::vector<Loop> loop_stack;
+	} *PMACROSTACK;
 
     typedef struct _EVENTQUEUE {
         struct _EVENTQUEUE *pPrev;
