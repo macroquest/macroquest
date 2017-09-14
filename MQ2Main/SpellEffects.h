@@ -513,3 +513,6 @@
         "Ff_Endurance_Max",                     // 493
         "Pet Add Atk",                          // 494
         "Ff_DurationMax",                       // 495
+		"Critical Hit Damage (Non-stacking)",   // 496
+		"Fc_NoProc",							// 497 
+

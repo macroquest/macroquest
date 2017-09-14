@@ -236,7 +236,7 @@ VFTABLE
 // actual size 0x1F0 in Aug 10 2017 Live (see 0x6994BF) - eqmule
 #define CXW_NO_VTABLE \
 CXW_NO_VTABLE_BEGIN \
-/*0x001C*/ bool bShowClickThroughMenuItem;	/*shows/hides the click through option on the window menu*/ \
+/*0x001C*/ bool		bShowClickThroughMenuItem;	/*shows/hides the click through option on the window menu*/ \
 /*0x001D*/ bool		Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
 /*0x001E*/ bool		bClientRectChanged; \
 /*0x0020*/ UINT		LastBlinkFadeRefreshTime; \
@@ -353,42 +353,24 @@ CXW
 } CXWND, *PCXWND;
 #define GateBind          0
 //CSidlScreenWnd__CSidlScreenWnd1_x
-//updated from Jul 11 2016 test exe - eqmule
+//Size 0x238 in Sep 11 2017 Test exe see 6043FD - eqmule
 #define SIDL \
-/*0x1f0*/ union { \
-                        struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
-                        LONG Items; \
-                }; \
-/*0x1f4*/ union { \
-                        struct _CXSTR* SidlScreen; \
-                        LONG SlotID; \
-                }; \
-/*0x1f8*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
-/*0x1fc*/ union { /*find in CSidlScreenWnd__dCSidlScreenWnd_x*/ \
-                struct { \
-                        BYTE Checked; \
-                        BYTE Highlighted; \
-                        BYTE Unused0x1fe[0x2]; \
-                }; \
-                DWORD MaxChars; \
-        }; \
-/*0x200*/ DWORD TextureAnim; \
-/*0x204*/ struct  _CXSTR* InputText; /*found in CChatWindow__CChatWindow_x*/\
-/*0x208*/ DWORD Selector; /*found in CSidlScreenWnd__CSidlScreenWnd1_x*/\
-/*0x20c*/ DWORD PushToSelector; /*found in CSidlScreenWnd__LoadIniInfo_x*/\
-/*0x210*/ DWORD EnableINIStorage; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-/*0x214*/ union { \
-                struct _CXSTR* INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-                struct _EQINVSLOT* pEQInvSlot; \
-        }; \
-/*0x218*/ int	IniVersion; \
-/*0x21c*/ int	LastResX; \
-/*0x220*/ int	LastResY; \
-/*0x224*/ bool bLastResFullscreen; \
-/*0x228*/ LPVOID ContextMenu; /* CTextureAnimation */ \
-/*0x22c*/ DWORD Unknown0x22c; /* CTextureAnimation */ \
-/*0x230*/ DWORD Unknown0x230; /* CTextureAnimation */ \
-/*0x234*/ DWORD Unknown0x234; \
+/*0x1f0*/ PCXSTR SidlText; /*found in CChatWindow__WndNotification_x*/\
+/*0x1f4*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
+/*0x1f8*/ ArrayClass_RO<void*>RadioGroup; /*CRadioGroup*/ \
+/*0x208*/ bool bInitVisibility; \
+/*0x209*/ bool bVisibleBeforeResize; \
+/*0x20c*/ int IniFlags; \
+/*0x210*/ PCXSTR INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
+/*0x214*/ int	IniVersion; \
+/*0x218*/ int	LastResX; \
+/*0x21c*/ int	LastResY; \
+/*0x220*/ bool bLastResFullscreen; \
+/*0x224*/ int  ContextMenu; \
+/*0x228*/ PCXWND pFirstVScrollChild; \
+/*0x22c*/ int ContextMenuTipID; \
+/*0x230*/ bool bHasActivatedFirstTimeAlert; \
+/*0x234*/ int Unknown0x234;
 /*0x238*/
 
 #define CSW \
@@ -597,6 +579,11 @@ enum ChatFilterEnum {
 	CHAT_FILTER_EVENT_MESSAGES,
 	CHAT_FILTER_OVERWRITTEN_DETRIMENTAL_SPELL_MESSAGES,
 	CHAT_FILTER_OVERWRITTEN_BENEFICIAL_SPELL_MESSAGES,
+
+	CHAT_FILTER_YOU_CANT_USE_THAT_COMMAND, //- Added chat color and filtering options for 'You can't use that command' messages.
+	CHAT_FILTER_COMBAT_AND_AA_REUSE_TIME,  //- Added chat color and filtering options for combat ability and AA ability reuse time messages.
+	CHAT_FILTER_BEGIN_CASTING,
+	//CHAT_FILTER_ITEM_DESTROYED,
 	MAX_CHAT_FILTERS,
 };
 enum eContextMenuFilterIDs

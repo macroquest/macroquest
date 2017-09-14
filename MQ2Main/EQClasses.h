@@ -82,6 +82,7 @@ class CEQSuiteTextureLoader;
 class CEverQuest;
 class CExploreModeWnd;
 class CFacePick;
+class CFindItemWnd;
 class CFeedbackWnd;
 class CFileSelectionWnd;
 class CFriendsWnd;
@@ -330,7 +331,6 @@ class ShareBase;
 class SharedString;
 class SHistoryElement;
 class SimpleLogicalPacket;
-class SLinkInfo;
 class SListWndCellEditUpdate;
 class SListWndSortInfo;
 class SoundAsset;
@@ -346,7 +346,6 @@ class STableCell;
 class STempTable;
 class STempTableCell;
 class STempTableRow;
-class STextLine;
 class STextureAnimationFrame;
 class StringItem;
 class StringTable;
@@ -1138,9 +1137,9 @@ public:
 /*0x200*/	COLORREF	DecalTint;
 /*0x204*/	RECT		TextOffsets;
 /*0x214*/	int			TextMode;
-/*0x218*/	COLORREF	Mouseover;
-/*0x21c*/	COLORREF	Pressed;
-/*0x220*/	COLORREF	Disabled;
+/*0x218*/	COLORREF	MouseoverColor;
+/*0x21c*/	COLORREF	PressedColor;
+/*0x220*/	COLORREF	DisabledColor;
 /*0x224*/	UINT		CoolDownStartTime;
 /*0x228*/	UINT		CoolDownDuration;
 /*0x22c*/	struct  _CXSTR*Indicator;
@@ -1386,9 +1385,10 @@ EQLIB_OBJECT void CChatWindow::Deactivate(void);
 //EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
 };
 
-class CCheckBoxWnd : public CSidlScreenWnd
+class CCheckBoxWnd : public CButtonWnd
 {
 public:
+	bool bOrgState;  
 EQLIB_OBJECT CCheckBoxWnd::CCheckBoxWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT void CCheckBoxWnd::SetRadioLook(void);
 // virtual
@@ -1493,7 +1493,11 @@ public:
 	CTextureAnimation   *PressedDisabledDecal;
 EQLIB_OBJECT CComboWnd::CComboWnd(class CXWnd *,unsigned __int32,class CXRect,int,class CButtonDrawTemplate,class CListWnd *);
 EQLIB_OBJECT class CXRect CComboWnd::GetButtonRect(void)const;
+#ifdef TEST
+EQLIB_OBJECT class CXRect CComboWnd::GetListRect(bool)const;
+#else
 EQLIB_OBJECT class CXRect CComboWnd::GetListRect(void)const;
+#endif
 EQLIB_OBJECT class CXRect CComboWnd::GetTextRect(void)const;
 EQLIB_OBJECT class CXStr CComboWnd::GetCurChoiceText(void)const;
 EQLIB_OBJECT int CComboWnd::GetCurChoice(void)const;
@@ -1830,10 +1834,33 @@ EQLIB_OBJECT void CDisplay::CleanUpNewUI(void);
 EQLIB_OBJECT void CDisplay::InitGameUI(void);
 EQLIB_OBJECT void CDisplay::InitNewUI(void);
 };
-
-class CEditBaseWnd : public CSidlScreenWnd
+enum eTextAlign
+{
+    eta_Left,
+    eta_Center,
+    eta_Right,
+};
+class CEditBaseWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the constructor, and we dont want that... so... : public CXWnd
 {
 public:
+	//we include CXW instead...
+/*0x000*/ CXW
+/*0x1F0*/ eTextAlign eAlign;//see 8EAC07 in eqgame 11 sep 2017 test - eqmule
+/*0x1F4*/ int	StartPos;
+/*0x1F8*/ int	EndPos;
+/*0x1Fc*/ int	MaxChars;
+/*0x200*/ int MaxBytesUTF8;
+/*0x204*/ PCXSTR InputText;
+/*0x208*/ int TagPrintableStarts[0xa];
+/*0x230*/ int TagPrintableEnds[0xa];
+/*0x258*/ int TagOriginalStarts[0xa];
+/*0x280*/ int TagOriginalEnds[0xa];
+/*0x2a8*/ int TagDynamicSize[0xa];
+/*0x2d0*/ int TagCodes[0xa];
+/*0x2f8*/ PCXSTR TagStrings[0xa];
+/*0x320*/ int TagCount;
+/*0x324*/ unsigned __int32 EditWndStyle;
+/*0x328*/
 EQLIB_OBJECT void CEditBaseWnd::SetMaxChars(int);
 EQLIB_OBJECT void CEditBaseWnd::SetSel(int,int);
 // virtual
@@ -1868,9 +1895,19 @@ EQLIB_OBJECT int CEditLabelWnd::WndNotification(class CXWnd *,unsigned __int32,v
 EQLIB_OBJECT void CEditLabelWnd::Deactivate(void);
 };
 
+//size 0x358 see 8DCCF8 in eqgame test sep 11 2017 - eqmule
 class CEditWnd : public CEditBaseWnd
 {
 public:
+/*0x328*/ bool	 bAnchorAtStart;
+/*0x329*/ bool	 bCaretAtEnd;
+/*0x32a*/ bool	 bAutoVScrollCalc;
+/*0x32b*/ bool	 bEditable;
+/*0x32c*/ PCXSTR FilterChars;
+/*0x330*/ int	 EditMode;
+/*0x334*/ wchar_t PasswordChar;
+/*0x338*/ ArrayClass2_RO<unsigned __int32> LineIndices;//size 0x1c see 8EB1CB in eqgae 11 sep 2017 test - eqmule
+/*0x354*/
 EQLIB_OBJECT CEditWnd::CEditWnd(class CXWnd *,unsigned __int32,class CXRect,unsigned __int32);
 EQLIB_OBJECT class CXPoint CEditWnd::GetCharIndexPt(int)const;
 EQLIB_OBJECT class CXPoint CEditWnd::GetSelEndPt(void)const;
@@ -1910,7 +1947,7 @@ EQLIB_OBJECT int CEditWnd::ResetWnd(void);
 EQLIB_OBJECT void CEditWnd::SetWindowTextA(class CXStr);
 // protected
 EQLIB_OBJECT static class CDIMap CEditWnd::m_mapKeys;
-EQLIB_OBJECT virtual int CEditWnd::GetHorzOffset(void)const;
+//EQLIB_OBJECT virtual int CEditWnd::GetHorzOffset(void)const;
 EQLIB_OBJECT void CEditWnd::FillIndexArray(class CXStr)const;
 EQLIB_OBJECT void CEditWnd::FilterInputStr(class CXStr &);
 EQLIB_OBJECT void CEditWnd::ProcessText(void);
@@ -2180,6 +2217,12 @@ EQLIB_OBJECT void CFacePick::Init(void);
 EQLIB_OBJECT void CFacePick::ShowButtonGroup(int,bool);
 };
 
+class CFindItemWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CFindItemWnd::CFindItemWnd(class CXWnd *);
+EQLIB_OBJECT int CFindItemWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+};
 class CFeedbackWnd : public CSidlScreenWnd
 {
 public:
@@ -2791,7 +2834,11 @@ class CInvSlotMgr
 public:
 EQLIB_OBJECT CInvSlotMgr::CInvSlotMgr(void);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *);
-EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int,int x=-1);
+#ifdef TEST
+EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int TopSlot,int SubSlot=-1,int FindWindowRelated = 0,bool bSomething = 1);
+#else
+EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int TopSlot,int SubSlot=-1);
+#endif
 EQLIB_OBJECT bool CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGlobalIndex *to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag = false, bool MoveToIntoFromBag = false);
 EQLIB_OBJECT void CInvSlotMgr::Process(void);
 EQLIB_OBJECT void CInvSlotMgr::SelectSlot(class CInvSlot *);
@@ -3206,51 +3253,52 @@ struct SListWndColumn
 		TextureOffset = textureOffset;
 	}
 };
-//Size is 0x288 in eqgame Nov 14 2016 Live (see 8D1D4C) eqmule
+//Size is 0x298 in eqgame Sep 11 2017 Test (see 8D1D4C) eqmule
 class CListWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the constructor, and we dont want that... so... : public CXWnd
 {
 public:
 	//we include CXW instead...
 /*0x000*/ PCCONTEXTMENUVFTABLE pvfTable;
 /*0x004*/ CXW_NO_VTABLE
-	//alright now that we got that settled, it also has members of its own:
-	//look, as a reminder to myself and future maintainers:
-	//NOTE: ItemsArray has subids and this is the reason why you WILL NOT see
-	//anything useful in the debugger sometimes if you cursor over it and expand it...
-	//So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
-	//while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
-/*0x1e0*/ ArrayClass_RO<SListWndLine> ItemsArray;
-/*0x1f0*/ ArrayClass_RO<SListWndColumn> Columns;
-/*0x200*/ int	CurSel;
-/*0x204*/ int	CurCol;
-/*0x208*/ int	DownItem;
-/*0x20c*/ int	ScrollOffsetY;
-/*0x210*/ int	HeaderHeight;
-/*0x214*/ int	FirstVisibleLine;
-/*0x218*/ int	SortCol;
-/*0x21c*/ bool	bSortAsc;
-/*0x21d*/ bool	bFixedHeight;
-/*0x21e*/ bool	bOwnerDraw;
-/*0x21f*/ bool	bCalcHeights;
-/*0x220*/ bool	bColumnSizable;
-/*0x224*/ int	LineHeight;
-/*0x228*/ int	ColumnSepDragged;
-/*0x22c*/ int	ColumnSepMouseOver;
-/*0x230*/ COLORREF	HeaderText;
-/*0x234*/ COLORREF	Highlight;
-/*0x238*/ COLORREF	Selected;
-/*0x23c*/ CUITextureInfo2	BGHeader;//size 0x18
-/*0x254*/ COLORREF	BGHeaderTint;
-/*0x258*/ CTextureAnimation	*pRowSep;
-/*0x25c*/ CTextureAnimation	*pColumnSep;
-/*0x260*/ CEditBaseWnd	*pEditCell;
-/*0x264*/ void	*pItemDataSomething;
-/*0x268*/ bool	bHasItemTooltips;
-/*0x26c*/ RECT	PrevInsideRect;
-/*0x27c*/ UINT	ListWndStyle;
-/*0x280*/ LONG	LastVisibleTime;//change to a __time32_t? not really important...
-/*0x284*/ LONG	NoIdea;
-/*0x288*/
+//alright now that we got that settled, it also has members of its own:
+//look, as a reminder to myself and future maintainers:
+//NOTE: ItemsArray has subids and this is the reason why you WILL NOT see
+//anything useful in the debugger sometimes if you cursor over it and expand it...
+//So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
+//while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
+/*0x1f0*/ int Filler0x1f0;
+/*0x1f4*/ ArrayClass_RO<SListWndLine> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
+/*0x204*/ ArrayClass_RO<SListWndColumn> Columns;
+/*0x214*/ int	CurSel;
+/*0x218*/ int	CurCol;
+/*0x21c*/ int	DownItem;
+/*0x220*/ int	ScrollOffsetY;
+/*0x224*/ int	HeaderHeight;
+/*0x228*/ int	FirstVisibleLine;
+/*0x22c*/ int	SortCol;
+/*0x230*/ bool	bSortAsc;
+/*0x231*/ bool	bFixedHeight;
+/*0x232*/ bool	bOwnerDraw;
+/*0x233*/ bool	bCalcHeights;
+/*0x234*/ bool	bColumnSizable;
+/*0x238*/ int	LineHeight;
+/*0x23c*/ int	ColumnSepDragged;
+/*0x240*/ int	ColumnSepMouseOver;
+/*0x244*/ COLORREF	HeaderText;
+/*0x248*/ COLORREF	Highlight;
+/*0x24c*/ COLORREF	Selected;
+/*0x250*/ CUITextureInfo2	BGHeader;//size 0x18
+/*0x268*/ COLORREF	BGHeaderTint;
+/*0x26c*/ CTextureAnimation	*pRowSep;
+/*0x270*/ CTextureAnimation	*pColumnSep;
+/*0x274*/ CEditBaseWnd	*pEditCell;
+/*0x278*/ void	*pItemDataSomething;
+/*0x27c*/ bool	bHasItemTooltips;
+/*0x280*/ RECT	PrevInsideRect;
+/*0x290*/ UINT	ListWndStyle;
+/*0x294*/ LONG	LastVisibleTime;//change to a __time32_t? not really important...
+/*0x298*/
+
 EQLIB_OBJECT CListWnd::CListWnd(class CXWnd *,unsigned __int32,class CXRect const &);
 EQLIB_OBJECT CListWnd::CListWnd() {};
 EQLIB_OBJECT bool CListWnd::IsLineEnabled(int)const;
@@ -4583,7 +4631,11 @@ EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(class CXStr c
 EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(unsigned __int32)const;
 EQLIB_OBJECT class CTextureAnimation CSidlManager::CreateTextureAnimationFromSidlAnimation(class CParamUi2DAnimation const *)const;
 EQLIB_OBJECT class CXStr CSidlManager::GetParsingErrorMsg(void)const;
+#ifdef TEST
+EQLIB_OBJECT class CXWnd * CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *, bool bSomething = 0);
+#else
 EQLIB_OBJECT class CXWnd * CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *);
+#endif
 EQLIB_OBJECT CXWnd * CSidlManager::CreateXWndFromTemplate(CXWnd *,CXStr &);
 EQLIB_OBJECT class CXWndDrawTemplate * CSidlManager::FindDrawTemplate(class CXStr)const;
 EQLIB_OBJECT class CXWndDrawTemplate * CSidlManager::FindDrawTemplate(unsigned __int32)const;
@@ -4893,12 +4945,111 @@ public:
 EQLIB_OBJECT class CXStr CStmlReport::GetReport(void)const;
 EQLIB_OBJECT static class CStmlReport * __cdecl CStmlReport::CreateReport(class CXStr);
 // private
-EQLIB_OBJECT static unsigned __int32 CStmlReport::m_uLastId;
+EQLIB_OBJECT static unsigned __int32 CStmlReport::LastID;
+};
+enum eSTMLLinkType
+{
+	estmlt_File,
+	estmlt_Unit,
+	estmlt_Building,
+	estmlt_Msg,
+	estmlt_Camera,
+	estmlt_Report,
+	estmlt_WndNotify,
+	estmlt_Empty,
+	estmlt_Url,
+	estmlt_Player,
+	estmlt_Spam,
+	estmlt_Achievement,
+	estmlt_Help,
+	estmlt_Dlg_Response,
+    estmlt_Cmd,
+};
+enum estmlTargetType
+{
+	estmltt_Self,
+	estmltt_Empty,
+};
+struct SLinkInfo
+{
+	eSTMLLinkType Type;
+	unsigned __int32 MsgID;
+	PCXSTR Name;
+	estmlTargetType TargetType;
+};
+struct HistoryElement
+{
+	SLinkInfo sLink;
+	PCXSTR STMLText;
+};
+enum eSTMLParseState
+{
+	sps_Body,
+	sps_Head,
+};
+struct _FontTag
+{
+	CTextureFont* Face;
+	COLORREF Color;
+};
+struct _FormattedText
+{
+	_FontTag Font;
+	unsigned __int32 Style;
+	int	Left;
+	int	Right;
+	PCXSTR Text;
+	__int32	LinkID;
+	CTextureAnimation *Texture;
+	__int32 TableID;
+	__int32 IndexStart;
 };
 
-class CStmlWnd : public CSidlScreenWnd
+struct STextLine
+{
+	ArrayClass_RO<_FormattedText> TextPieces;
+	int yBottom;
+	int yTop;
+	__int32	IndexStart;
+};
+
+//size is 0x2b8 in sep 11 2017 test see 8DCF69 -eqmule
+class CStmlWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the constructor, and we dont want that... so... : public CXWnd
 {
 public:
+	//we include CXW instead...
+/*0x000*/ CXW
+/*0x1F0*/ PCXSTR STMLText;
+/*0x1F4*/ CircularArrayClass2<STextLine> TextLines;//size 0x28
+/*0x21c*/ __int32 TextTotalHeight;
+/*0x220*/ __int32 TextTotalWidth;//0x220 see 8F5A6F in sep 11 2017 test - eqmule
+#ifndef EMU
+/*0x224*/ __int32 Unknown0x224;//this value was first added in the apr 27 2017 test patch see 8EAB3B, timestamp related? heroic stuff? calendar? something... dont know - eqmule
+#endif
+/*0x228*/ ArrayClass2_RO<SLinkInfo> Links;//size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test - eqmule
+/*0x244*/ ArrayClass_RO<STable>	Tables;
+/*0x254*/ bool		bReparseNow;
+/*0x255*/ bool		bResized;
+/*0x256*/ bool		bAlignCenter;
+/*0x258*/ int		LineSpacingAdjust;
+/*0x25c*/ __int32	CapturedLinkID;
+/*0x260*/ __int32	MousedOverLinkID;
+/*0x264*/ COLORREF	BackGroundColor;
+/*0x268*/ COLORREF	TextColor;
+/*0x26c*/ COLORREF	LinkColor;
+/*0x270*/ COLORREF	VLinkColor;
+/*0x274*/ COLORREF	ALinkColor;
+/*0x278*/ COLORREF	MLinkColor;
+/*0x27c*/ eSTMLParseState	CurrentParseState;
+/*0x280*/ ArrayClass2_RO<HistoryElement> HistoryArray;
+/*0x29c*/ __int32		HistoryIndex;
+/*0x2a0*/ CStmlReport	*pStmlReport;
+/*0x2a4*/ int		MaxLines;
+/*0x2a8*/ int		PlayerContextMenuIndex;
+/*0x2ac*/ int		Unknown0x2ac;
+/*0x2b0*/ int		Unknown0x2b0;
+/*0x2b4*/ int		Unknown0x2b4;
+/*0x2b8*/ 
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
 EQLIB_OBJECT class CXSize CStmlWnd::AppendSTML(class CXStr); // lax 11-15-2003
@@ -4906,11 +5057,11 @@ EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisibleText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr&,class CXStr&);
-EQLIB_OBJECT void CStmlWnd::ActivateLink(class SLinkInfo);
+EQLIB_OBJECT void CStmlWnd::ActivateLink(SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ForceParseNow(void);
 EQLIB_OBJECT void CStmlWnd::GoToBackHistoryLink(void);
 //EQLIB_OBJECT void CStmlWnd::LoadPage(class CXStr,enum ESTMLTargetValue,bool);
-EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *);
+EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr,bool,SLinkInfo *);
 EQLIB_OBJECT void CStmlWnd::SetSTMLTextWithoutHistory(class CXStr);
 // virtual
 EQLIB_OBJECT CStmlWnd::~CStmlWnd(void);
@@ -4930,7 +5081,7 @@ EQLIB_OBJECT int CStmlWnd::OnVScroll(EScrollCode,int);
 //EQLIB_OBJECT void * CStmlWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CStmlWnd::SetWindowTextA(class CXStr);
 // protected
-EQLIB_OBJECT bool CStmlWnd::IsLinkActive(class SLinkInfo)const;
+EQLIB_OBJECT bool CStmlWnd::IsLinkActive(SLinkInfo)const;
 EQLIB_OBJECT bool CStmlWnd::ParseAmpersand(class CXStr,char *)const;
 EQLIB_OBJECT static bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short);
 EQLIB_OBJECT static bool __cdecl CStmlWnd::IsCharacterNotASpaceAndNotNULL(unsigned short);
@@ -4943,11 +5094,11 @@ EQLIB_OBJECT unsigned short CStmlWnd::FastForwardToEndOfTag(class CXStr&,class C
 EQLIB_OBJECT unsigned short CStmlWnd::GetNextChar(int *,class CXStr&);
 EQLIB_OBJECT unsigned short CStmlWnd::GetNextTagPiece(class CXStr&,class CXStr *,int *,bool (__cdecl*)(unsigned short),bool);
 EQLIB_OBJECT unsigned short CStmlWnd::GetThisChar(int,class CXStr&);
-EQLIB_OBJECT void CStmlWnd::ActivateLinkFile(class SLinkInfo);
-EQLIB_OBJECT void CStmlWnd::ActivateLinkMessageId(class SLinkInfo);
-EQLIB_OBJECT void CStmlWnd::ActivateLinkReport(class SLinkInfo,bool);
-EQLIB_OBJECT void CStmlWnd::ActivateLinkWndNotify(class SLinkInfo);
-EQLIB_OBJECT void CStmlWnd::AddLinkToHistory(class SLinkInfo,class CXStr);
+EQLIB_OBJECT void CStmlWnd::ActivateLinkFile(SLinkInfo);
+EQLIB_OBJECT void CStmlWnd::ActivateLinkMessageId(SLinkInfo);
+EQLIB_OBJECT void CStmlWnd::ActivateLinkReport(SLinkInfo,bool);
+EQLIB_OBJECT void CStmlWnd::ActivateLinkWndNotify(SLinkInfo);
+EQLIB_OBJECT void CStmlWnd::AddLinkToHistory(SLinkInfo,class CXStr);
 EQLIB_OBJECT void CStmlWnd::AddTextPieceToLine(class SParseVariables *);
 EQLIB_OBJECT void CStmlWnd::CalculateHSBRange(int);
 EQLIB_OBJECT void CStmlWnd::CalculateVSBRange(int);
@@ -5160,7 +5311,7 @@ EQLIB_OBJECT CTextureAnimation::~CTextureAnimation(void);
 //EQLIB_OBJECT void * CTextureAnimation::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CTextureAnimation::`vector deleting destructor'(unsigned int);
 // protected
-EQLIB_OBJECT static unsigned __int32 CTextureAnimation::sm_uMaxId;
+EQLIB_OBJECT static unsigned __int32 CTextureAnimation::MaxID;
 };
 
 class CTextureFont
@@ -7979,15 +8130,6 @@ EQLIB_OBJECT virtual SimpleLogicalPacket::~SimpleLogicalPacket(void);
 //EQLIB_OBJECT virtual void * SimpleLogicalPacket::`vector deleting destructor'(unsigned int);
 };
 
-class SLinkInfo
-{
-public:
-EQLIB_OBJECT SLinkInfo::~SLinkInfo(void);
-EQLIB_OBJECT SLinkInfo::SLinkInfo(class SLinkInfo const &);
-EQLIB_OBJECT SLinkInfo::SLinkInfo(void);
-EQLIB_OBJECT class SLinkInfo & SLinkInfo::operator=(class SLinkInfo const &);
-};
-
 class SListWndCellEditUpdate
 {
 public:
@@ -8337,15 +8479,6 @@ class STempTableRow
 public:
 EQLIB_OBJECT STempTableRow::~STempTableRow(void);
 EQLIB_OBJECT STempTableRow::STempTableRow(void);
-};
-
-class STextLine
-{
-public:
-EQLIB_OBJECT STextLine::~STextLine(void);
-EQLIB_OBJECT STextLine::STextLine(void);
-EQLIB_OBJECT class STextLine & STextLine::operator=(class STextLine const &);
-//EQLIB_OBJECT void * STextLine::`vector deleting destructor'(unsigned int);
 };
 
 class STextureAnimationFrame

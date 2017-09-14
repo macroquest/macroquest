@@ -1918,7 +1918,7 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 {
 	//we CAN do an abs here cause IF it is negative, it just means we should display is as "Exclude: "
 	ULONG absEffectID = abs(EffectID);
-	if ((SIZE_T)absEffectID <= MAX_SPELLEFFECTS) {
+	if ((SIZE_T)absEffectID < MAX_SPELLEFFECTS) {
 		strcat_s(szBuffer, BufferSize, szSPATypes[absEffectID]);
 	}
 	else {
@@ -4608,8 +4608,8 @@ case '.':
 Arg[j][k] = Buffer[i];
 k++;
 break;
-case ' ':
-case '²':
+case 'Â ':
+case 'Â²':
 //              GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
 return false;
 default:
@@ -5679,7 +5679,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpa
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
 	if (pSearchSpawn->ZRadius<10000.0f) {
-		sprintf_s(szTemp, " Z:±%1.2f", pSearchSpawn->ZRadius);
+		sprintf_s(szTemp, " Z:Â±%1.2f", pSearchSpawn->ZRadius);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
 	if (pSearchSpawn->Radius>0.0f) {
@@ -9053,7 +9053,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 					pTab->SetPage(0, true);//tab 0 is the mount key ring page...
 					if (clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 						ULONGLONG now = MQGetTickCount64();
-						while (!((CSidlScreenWnd*)clist)->Items) {
+						while (!clist->ItemsArray.Count) {
 							Sleep(10);
 							if (now + 5000 < MQGetTickCount64()) {
 								WriteChatColor("Timed out waiting for mount keyring refresh", CONCOLOR_YELLOW);
@@ -9066,7 +9066,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 					pTab->SetPage(1, true);//tab 1 is the illusion key ring page...
 					if (clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 						ULONGLONG now = MQGetTickCount64();
-						while (!((CSidlScreenWnd*)clist)->Items) {
+						while (!clist->ItemsArray.Count) {
 							Sleep(10);
 							if (now + 5000 < MQGetTickCount64()) {
 								WriteChatColor("Timed out waiting for illusion keyring refresh", CONCOLOR_YELLOW);
@@ -9079,7 +9079,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 					pTab->SetPage(2, true);//tab 2 is the familiar key ring page...
 					if (clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
 						ULONGLONG now = MQGetTickCount64();
-						while (!((CSidlScreenWnd*)clist)->Items) {
+						while (!clist->ItemsArray.Count) {
 							Sleep(10);
 							if (now + 5000 < MQGetTickCount64()) {
 								WriteChatColor("Timed out waiting for familiar keyring refresh", CONCOLOR_YELLOW);
@@ -9095,7 +9095,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 				((CSidlScreenWnd*)krwnd)->StoreIniVis();
 			}
 #ifndef ISXEQ
-			if (bUseCmd && clist && ((CSidlScreenWnd*)clist)->Items) {
+			if (bUseCmd && clist && clist->ItemsArray.Count) {
 				UseItemCmd(GetCharInfo()->pSpawn, szItemName);
 			}
 #endif
@@ -9174,7 +9174,7 @@ DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExa
 		else
 			clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
 		if(clist) {
-			if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+			if (DWORD numitems = clist->ItemsArray.Count) {
 				for (DWORD i = 0; i<numitems; i++) {
 					CXStr Str;
 					clist->GetItemText(&Str, i, 2);
@@ -9241,21 +9241,21 @@ void InitKeyRings()
 		int familiarcount = GetFamiliarCount();
 		if (mountcount) {
 			if (clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-				if (!((CSidlScreenWnd*)clist)->Items) {
+				if (!clist->ItemsArray.Count) {
 					bRefresh = true;
 				}
 			}
 		}
 		if (illusioncount) {
 			if (clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
-				if (!((CSidlScreenWnd*)clist)->Items) {
+				if (!clist->ItemsArray.Count) {
 					bRefresh = true;
 				}
 			}
 		}
 		if (familiarcount) {
 			if (clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
-				if (!((CSidlScreenWnd*)clist)->Items) {
+				if (!clist->ItemsArray.Count) {
 					bRefresh = true;
 				}
 			}

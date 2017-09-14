@@ -1264,7 +1264,7 @@ void HandleWindows()
 					char szTemp[MAX_STRING * 8] = { 0 };
 					if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 						CStmlWnd*cstm = (CStmlWnd*)pWnd;
-						GetCXStr(cstm->SidlText, szTemp, MAX_STRING * 8);
+						GetCXStr(cstm->STMLText, szTemp, MAX_STRING * 8);
 					}
 					else {
 						CSidlScreenWnd*cwnd = (CSidlScreenWnd*)pWnd;
@@ -1324,10 +1324,14 @@ void HandleWindows()
 			if (pWnd = WindowMap["okdialog"]->_GetChildItem("OK_Display"))
 			{	
 				char szTemp[MAX_STRING * 8] = { 0 };
-				if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-					GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText, szTemp, MAX_STRING * 8);
-				else
-					GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
+				if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
+					CStmlWnd *stmlwnd = (CStmlWnd*)pWnd;
+					GetCXStr(stmlwnd->STMLText, szTemp, MAX_STRING * 8);
+				}
+				else {
+					CSidlScreenWnd *cpwnd = (CSidlScreenWnd*)pWnd;
+					GetCXStr(cpwnd->WindowText, szTemp, MAX_STRING * 8);
+				}
 				if (szTemp[0] && strstr(szTemp, "Logging in to the server.  Please wait...."))
 				{
 					return;
@@ -1396,7 +1400,8 @@ void HandleWindows()
 		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_PasswordEdit"))
 		{
 			CHAR szTempPass[MAX_STRING] = { 0 };
-			GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szTempPass, MAX_STRING);
+			CEditWnd *csidlwnd = (CEditWnd*)pWnd;
+			GetCXStr(csidlwnd->InputText, szTempPass, MAX_STRING);
 			if (szTempPass[0] == '\0')
 				bWait = false;
 		}
@@ -1405,7 +1410,7 @@ void HandleWindows()
 		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_UsernameEdit")) {
 			if (bUseMQ2Login) {
 				AutoLoginDebug("HandleWindows(): Using MQ2Login Method");
-				CSidlScreenWnd *csidlwnd = (CSidlScreenWnd*)pWnd;
+				CEditWnd *csidlwnd = (CEditWnd*)pWnd;
 				GetCXStr(csidlwnd->InputText, szStationName, 64);
 				if (szStationName[0]) {
 					if (char *pDest = strchr(szStationName, '_')) {
@@ -1457,8 +1462,8 @@ void HandleWindows()
 						}
 						DWORD oldscreenmode = ScreenMode;
 						ScreenMode = 3;
-						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, "");
-						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
+						SetCXStr(&((CEditWnd*)pWnd)->InputText, "");
+						SetCXStr(&((CEditWnd*)pWnd)->InputText, szStationName);
 						ScreenMode = oldscreenmode;
 					}
 					else if (char *pDest = strchr(szStationName, ';')) {//special login
@@ -1516,15 +1521,15 @@ void HandleWindows()
 						}
 						DWORD oldscreenmode = ScreenMode;
 						ScreenMode = 3;
-						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, "");
-						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
+						SetCXStr(&((CEditWnd*)pWnd)->InputText, "");
+						SetCXStr(&((CEditWnd*)pWnd)->InputText, szStationName);
 						ScreenMode = oldscreenmode;
 					}
 				}
 			} else if(bUseStationNamesInsteadOfSessions) {
                 AutoLoginDebug("HandleWindows(): Using station name instead of session number");
 				bLoginCheckDone = true;
-                GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szStationName, 64);
+                GetCXStr(((CEditWnd*)pWnd)->InputText, szStationName, 64);
 
                 if(szStationName[0])
                 {
@@ -1552,13 +1557,15 @@ void HandleWindows()
 			if (bUseMQ2Login) {
 				//dont need to do anything, we already done this.
 			} else if (!bUseStationNamesInsteadOfSessions) {
-				SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, "");
-				SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
+				CEditWnd *edwnd = (CEditWnd*)pWnd;
+				SetCXStr(&edwnd->InputText, "");
+				SetCXStr(&edwnd->InputText, szStationName);
 			}
 
 			if(pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_PasswordEdit"))
             {
-                SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szPassword);
+				CEditWnd *edwnd = (CEditWnd*)pWnd;
+                SetCXStr(&edwnd->InputText, szPassword);
 				if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_ConnectButton"))
 				{
 					DWORD oldscreenmode = ScreenMode;

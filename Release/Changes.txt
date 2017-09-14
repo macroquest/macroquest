@@ -1,3 +1,21 @@
+14 Sep 2017 by eqmule
+- Updated for TEST
+- Fixed ${Familiar[x].} it will return familiars and not illusions now...
+-
+- Fixed a bunch of window structs that we where completely misusing anyway.
+  this could require some plugin changes, contact me for help if you get errors.
+-
+- Inspecting the Blessed Spiritstaff of the Heyokah will no longer ctd you.
+- Added Math.Clamp ${Math.Clamp[Min, N, Max]} will clamp N between Min and Max. - cred derple
+  Example:
+  ${Math.Clamp[1, 15, 30]} => 15
+  ${Math.Clamp[20, 15, 30]} => 20
+  ${Math.Clamp[1, 15, 10]} => 10
+  Practical usage:
+  /bct ranger //stick id ${Target.ID} ${Math.Clamp[25,${Target.Distance},150]} 
+  this will make your ranger stay put if he is already between 25-150 meters away
+  otherwise it will move him at most 150 away and at least 25 away.
+  dd
 12 Sep 2017 by eqmule and eqholic
 - All plugin sources for this zip are attached to this post:
   http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174415#p174415
@@ -5,7 +23,7 @@
 - MQ2ChatWnd got a new tlo /echo ${ChatWnd.Title}
 - MQ2ChatWnd got a new command /setchattitle
 - MQ2Melee updated - it has flags for down and holyshits called downflag0-60 and holyflag0-60
-  you SHOULD set those flag to 2 if you parse ANY macro variables.
+  you SHOULD set those flags to 2 if you parse ANY macro variables.
   Example:
   [code]
   downflag0=2
@@ -84,6 +102,11 @@ Files changed outside of core:
 
 01 Sep 2017 by eqmule and eqholic
 - You can now call functions inside if statements in your macros
+  Use [] after your sub inside the if statement to tell the macro its a sub
+  so /if (blah[]) /call dostuff
+  or if it actually have parameters
+  /if (blah[${arg1} "hi there" 0]) /call dostuff
+
   Example:
   [code]
 Sub Testsub

@@ -3327,7 +3327,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					if (DWORD index = GetKeyRingIndex(0, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+								if (DWORD numitems = clist->ItemsArray.Count) {
 									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
 									int listdata = clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(0, &pItem, listdata);
@@ -3342,7 +3342,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					if (DWORD index = GetKeyRingIndex(1, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
-								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+								if (DWORD numitems = clist->ItemsArray.Count) {
 									SendListSelect(KeyRingWindowParent, IllusionWindowList, index - 1);
 									int listdata = clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(1, &pItem, listdata);
@@ -3357,7 +3357,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					if (DWORD index = GetKeyRingIndex(2, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
-								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+								if (DWORD numitems = clist->ItemsArray.Count) {
 									SendListSelect(KeyRingWindowParent, FamiliarWindowList, index - 1);
 									int listdata = clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(2, &pItem, listdata);
@@ -4274,7 +4274,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 		if (CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd")) {
 			if (krwnd->dShow) {
 				if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList")) {
-					if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+					if (DWORD numitems = clist->ItemsArray.Count) {
 						if (CButtonWnd *cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton")) {
 							CHAR szOut[MAX_STRING] = { 0 };
 							CXStr Str;

@@ -728,4 +728,18 @@ template<typename T, int _Size = 0, bool _bGrow = true> class EQArray : public E
         enum { cTCount = _Size };
         static const bool cTGrow = _bGrow;
 };
+
+template <typename ET> class CircularArrayClass2 : public CDynamicArrayBase
+{
+public:
+	int HeadIndex;
+	int WrapIndex;
+	int ArraySize;
+	int ChunkSize;
+	int ChunkMask;
+	int ChunkShift;
+	ET** Chunks;
+	int ChunkAlloc;
+	bool bValid;
+};
 #pragma pack(pop)

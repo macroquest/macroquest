@@ -919,15 +919,6 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 			if (!pType)
 				pType = pStringType;
 
-			if (szNewValue[0] == '\0') {
-				if (pType==pStringType) {
-					strcpy_s(szNewValue, "NULL");
-				}
-				else {
-					strcpy_s(szNewValue, "0");
-				}
-			}
-
 			AddMQ2DataVariable(szParamName, "", pType, &gMacroStack->Parameters, szNewValue);
 			SubParam = GetNextArg(SubParam);
 		}

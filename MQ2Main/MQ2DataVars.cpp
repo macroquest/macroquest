@@ -38,8 +38,9 @@ inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 {
 	PDATAVAR pFind = 0;
-	if (VariableMap.find(Name) != VariableMap.end())
-		pFind = VariableMap[Name];
+	auto it = VariableMap.find(Name); 
+	if (it != VariableMap.end())
+	  pFind = it->second;
 
     if (pFind)
         return pFind;

@@ -1318,6 +1318,9 @@ FUNCTION_AT_ADDRESS(void  CFacePick::SetFaceSelectionsFromPlayer(void),CFacePick
 #ifdef CFacePick__CycleThroughFHEB_x
 FUNCTION_AT_ADDRESS(void  CFacePick::CycleThroughFHEB(int,int),CFacePick__CycleThroughFHEB);
 #endif
+#ifdef CFindItemWnd__CFindItemWnd_x
+FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(class CXWnd *),CFindItemWnd__CFindItemWnd);
+#endif
 #ifdef CFeedbackWnd__CFeedbackWnd_x
 FUNCTION_AT_ADDRESS( CFeedbackWnd::CFeedbackWnd(class CXWnd *),CFeedbackWnd__CFeedbackWnd);
 #endif
@@ -1965,7 +1968,11 @@ FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGloba
 FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *),CInvSlotMgr__CreateInvSlot);
 #endif
 #ifdef CInvSlotMgr__FindInvSlot_x
-FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int),CInvSlotMgr__FindInvSlot);
+	#ifdef TEST
+		FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int,int,bool),CInvSlotMgr__FindInvSlot);
+	#else
+		FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int),CInvSlotMgr__FindInvSlot);
+	#endif
 #endif
 #ifdef CInvSlotMgr__SelectSlot_x
 FUNCTION_AT_ADDRESS(void  CInvSlotMgr::SelectSlot(class CInvSlot *),CInvSlotMgr__SelectSlot);
@@ -8232,10 +8239,10 @@ FUNCTION_AT_ADDRESS(void  CStmlWnd::CompleteParse(void),CStmlWnd__CompleteParse)
 FUNCTION_AT_ADDRESS(void  CStmlWnd::StripFirstSTMLLines(int),CStmlWnd__StripFirstSTMLLines);
 #endif
 #ifdef CStmlWnd__ActivateLink_x
-//FUNCTION_AT_ADDRESS(void  CStmlWnd::ActivateLink(class SLinkInfo),CStmlWnd__ActivateLink);
+//FUNCTION_AT_ADDRESS(void  CStmlWnd::ActivateLink(SLinkInfo),CStmlWnd__ActivateLink);
 #endif
 #ifdef SLinkInfo__SLinkInfo_x
-//FUNCTION_AT_ADDRESS( SLinkInfo::SLinkInfo(class SLinkInfo const &),SLinkInfo__SLinkInfo);
+//FUNCTION_AT_ADDRESS( SLinkInfo::SLinkInfo(SLinkInfo const &),SLinkInfo__SLinkInfo);
 #endif
 #ifdef CStmlWnd__CanBreakAtCharacter_x
 FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),CStmlWnd__CanBreakAtCharacter);
@@ -8265,7 +8272,7 @@ FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),C
 FUNCTION_AT_ADDRESS(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr&),CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText_x
-FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);
+FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr,bool,SLinkInfo *),CStmlWnd__SetSTMLText);
 #endif
 #ifdef SLinkInfo__SLinkInfo1_x
 //FUNCTION_AT_ADDRESS( SLinkInfo::SLinkInfo(void),SLinkInfo__SLinkInfo1);
@@ -8686,7 +8693,11 @@ FUNCTION_AT_ADDRESS(void  CButtonWnd::SetCheck(bool),CButtonWnd__SetCheck);
 FUNCTION_AT_ADDRESS(int  CXWnd::GetWidth(void)const ,CXWnd__GetWidth);
 #endif
 #ifdef CComboWnd__GetListRect_x
-FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__GetListRect);
+	#ifdef TEST
+		FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(bool)const ,CComboWnd__GetListRect);
+	#else
+		FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__GetListRect);
+	#endif
 #endif
 #ifdef CComboWnd__SetColors_x
 FUNCTION_AT_ADDRESS(void  CComboWnd::SetColors(unsigned long,unsigned long,unsigned long),CComboWnd__SetColors);
@@ -9158,7 +9169,11 @@ FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTem
 FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTemplate(unsigned __int32)const ,CSidlManager__FindSliderDrawTemplate1);
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate_x
-FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *),CSidlManager__CreateXWndFromTemplate);
+	#ifdef TEST
+		FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *, bool),CSidlManager__CreateXWndFromTemplate);
+	#else
+		FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *),CSidlManager__CreateXWndFromTemplate);
+	#endif
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate1_x
 FUNCTION_AT_ADDRESS(class CXWnd * CSidlManager::CreateXWndFromTemplate(CXWnd *,CXStr &),CSidlManager__CreateXWndFromTemplate1);

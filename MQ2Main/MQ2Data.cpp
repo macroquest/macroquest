@@ -1893,7 +1893,7 @@ TLO(dataMount)
 		n--;
 		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
+				int numitems = clist->ItemsArray.Count;
 				if (numitems >= n) {
 					CXStr Str;
 					clist->GetItemText(&Str, n, 2);
@@ -1935,7 +1935,7 @@ TLO(dataIllusion)
 		n--;
 		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
-				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
+				int numitems = clist->ItemsArray.Count;
 				if (numitems >= n) {
 					CXStr Str;
 					clist->GetItemText(&Str, n, 2);
@@ -1977,14 +1977,14 @@ TLO(dataFamiliar)
 		n--;
 		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
-				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
+				int numitems = clist->ItemsArray.Count;
 				if (numitems >= n) {
 					CXStr Str;
 					clist->GetItemText(&Str, n, 2);
 					CHAR szOut[MAX_STRING] = { 0 };
 					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					if (szOut[0] != '\0') {
-						Ret.DWord = MAKELPARAM(n, 1);
+						Ret.DWord = MAKELPARAM(n, 2);
 						Ret.Type = pKeyRingType;
 						return true;
 					}
@@ -2001,7 +2001,7 @@ TLO(dataFamiliar)
 		}
 		if (DWORD n = GetKeyRingIndex(2, pName, bExact)) {
 			n--;
-			Ret.DWord = MAKELPARAM(n, 1);
+			Ret.DWord = MAKELPARAM(n, 2);
 			Ret.Type = pKeyRingType;
 			return true;
 		}

@@ -153,6 +153,9 @@ namespace MQ2Globals
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
+		#ifdef TEST
+		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
+		#endif
 		ppInvSlotMgr = (CInvSlotMgr**)pinstCInvSlotMgr;
 		ppNoteWnd = (CNoteWnd**)pinstCNoteWnd;
 		ppBookWnd = (CBookWnd**)pinstCBookWnd;
@@ -671,7 +674,7 @@ namespace MQ2Globals
 #include "SpellEffects.h"
 		NULL
 	};
-	SIZE_T MAX_SPELLEFFECTS = sizeof(szSPATypes) / sizeof(PCHAR);
+	SIZE_T MAX_SPELLEFFECTS = (sizeof(szSPATypes) / sizeof(PCHAR))-1;
 
 	PCHAR szZoneExpansionName[] = {
 		"Original EQ",              //0
@@ -1151,6 +1154,7 @@ namespace MQ2Globals
 	CContainerMgr **ppContainerMgr = 0;
 	CChatManager **ppChatManager = 0;
 	CFacePick **ppFacePick = 0;
+	CFindItemWnd **ppFindItemWnd = 0;
 	CInvSlotMgr **ppInvSlotMgr = 0;
 	CNoteWnd **ppNoteWnd = 0;
 	CTipWnd **ppTipWndOFDAY = 0;
@@ -1393,6 +1397,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterSelect);
 	INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
+	#ifdef TEST
+	INITIALIZE_EQGAME_OFFSET(pinstCFindItemWnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCNoteWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBookWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPetInfoWnd);
@@ -1669,7 +1676,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__IssuePetCommand);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__CreateTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DeleteTargetIndicator);
-
+	#ifdef TEST
+	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__CFindItemWnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcFillRect);
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcLinesFillRect);
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__Draw);

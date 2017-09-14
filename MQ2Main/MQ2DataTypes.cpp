@@ -7693,13 +7693,19 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Checked:
-		Dest.Int = pWnd->Checked;
+		Dest.Int = ((CButtonWnd*)pWnd)->Checked;
 		Dest.Type = pBoolType;
 		return true;
-	case Highlighted:
-		Dest.Int = pWnd->Highlighted;
+	case Highlighted://if the window in question has focus...
+	{
+		Dest.Int = false;
+		if (PCXWNDMGR pMgr = (PCXWNDMGR)pWndMgr) {
+			if ((PCSIDLWND)pWnd == pMgr->FocusWindow)
+				Dest.Int = true;
+		}
 		Dest.Type = pBoolType;
 		return true;
+	}
 	case Enabled:
 		Dest.Int = (pWnd->Enabled != 0);
 		Dest.Type = pBoolType;
@@ -7823,12 +7829,12 @@ bool MQ2WindowType::GETMEMBER()
 	case Items:
 		if (((CXWnd*)pWnd)->GetType() == UI_Listbox)
 		{
-			Dest.DWord = ((CSidlScreenWnd*)pWnd)->Items;
+			Dest.DWord = ((CListWnd*)pWnd)->ItemsArray.Count;
 			Dest.Type = pIntType;
 		}
 		else if (((CXWnd*)pWnd)->GetType() == UI_Combobox)
 		{
-			Dest.DWord = ((CSidlScreenWnd*)pWnd->SidlText)->Items;
+			Dest.DWord = ((CListWnd*)pWnd->SidlText)->ItemsArray.Count;
 			Dest.Type = pIntType;
 		}
 		return true;
