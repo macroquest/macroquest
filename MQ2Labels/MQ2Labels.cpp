@@ -85,23 +85,20 @@ struct _CControl {
 
 class CSidlManagerHook {
 public:
-    class CXWnd * CreateLabel_Trampoline(class CXWnd *, struct _CControl *);
-    class CXWnd * CreateLabel_Detour(class CXWnd *CWin, struct _CControl *CControl)
+    class CXWnd * CreateLabel_Trampoline(CXWnd *, CControlTemplate *);
+    class CXWnd * CreateLabel_Detour(CXWnd *CWin, CControlTemplate *CControl)
     {
-        CLABELWND *p;
-        class CXWnd *tmp = CreateLabel_Trampoline(CWin, CControl);
-        p = (CLABELWND *)tmp;
-        if (CControl->EQType) {
-            *((DWORD *)&p->SidlPiece) = atoi(CControl->EQType->Text);
+		CLabel *clabel = (CLabel *)CreateLabel_Trampoline(CWin, CControl);
+        if (CControl->Controller) {
+			clabel->EQType = atoi(CControl->Controller->Text);
         } else {
-            *((DWORD *)&p->SidlPiece) = 0;
+			clabel->EQType = 0;
         }
-
-        return tmp;
+        return clabel;
     }
 };
 
-DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(class CXWnd *, struct _CControl *));
+DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(CXWnd *, CControlTemplate *));
 
 #pragma optimize ("g", on)
 
@@ -182,7 +179,7 @@ public:
     VOID Draw_Trampoline(VOID);
     VOID Draw_Detour(VOID)
     {
-        PCLABELWND pThisLabel = (PCLABELWND)this;
+		CLabel* pThisLabel = (CLabel*)this;
         CHAR Buffer[MAX_STRING] = {0};
         BOOL Found=FALSE;
         DWORD index;
@@ -193,8 +190,8 @@ public:
 				EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline,"__GetLabelFromEQ");
 				bTrimnames = 1;
 			}
-			if (pThisLabel && pThisLabel->Wnd.WindowText) {
-				GetCXStr(pThisLabel->Wnd.WindowText, Buffer);
+			if (pThisLabel && pThisLabel->WindowText) {
+				GetCXStr(pThisLabel->WindowText, Buffer);
 				Anonymize(Buffer);
 			}
 		} else {
@@ -206,21 +203,21 @@ public:
 			}
 		}
 		Draw_Trampoline();
-       if ((DWORD)pThisLabel->SidlPiece==9999) {
-            if (!pThisLabel->Wnd.XMLToolTip) {
+       if ((DWORD)pThisLabel->EQType==9999) {
+            if (!pThisLabel->XMLToolTip) {
                 strcpy_s(Buffer,"BadCustom");
                 Found=TRUE;
             } else {
                 //strcpy_s(Buffer,&pThisLabel->XMLToolTip->Text[0]);
-                STMLToPlainText(&pThisLabel->Wnd.XMLToolTip->Text[0],Buffer);
+                STMLToPlainText(&pThisLabel->XMLToolTip->Text[0],Buffer);
                 ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
                 if (!strcmp(Buffer,"NULL"))
                     Buffer[0]=0;
                 Found=TRUE;
             }
-        } else if ((DWORD)pThisLabel->SidlPiece>=1000) {
+        } else if (pThisLabel->EQType==1000) {
             for (index=0;Id_PMP[index].ID>0 && !Found;index++) {
-                if (Id_PMP[index].ID==(DWORD)pThisLabel->SidlPiece) {
+                if (Id_PMP[index].ID==(DWORD)pThisLabel->EQType) {
                     strcpy_s(Buffer,Id_PMP[index].PMP);
                     ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
                     if (!strcmp(Buffer,"NULL"))
@@ -230,7 +227,7 @@ public:
             }
         }
         if (Found)
-			SetCXStr(&(pThisLabel->Wnd.WindowText),Buffer);
+			SetCXStr(&(pThisLabel->WindowText),Buffer);
     }
 }; 
 

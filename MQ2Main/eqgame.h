@@ -964,3 +964,7 @@ GNU General Public License for more details.
 
 //CEQSuiteTextureLoader
 #define CEQSuiteTextureLoader__GetDefaultUIPath_x                  0x8F3790
+
+//ScreenWndManager (has the size of CSidlScreenWnd__CSidlScreenWnd1_x
+//and thats the reason I added it here, we dont actually call it. - eqmule
+#define ScreenWndManager__RegisterManaged_x                                0x5FC750

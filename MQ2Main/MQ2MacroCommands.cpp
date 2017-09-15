@@ -1342,6 +1342,7 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
 	loop.type = Loop::Type::For;
 	loop.first_line = gMacroBlock->CurrIndex;
 	loop.last_line = 0;
+	loop.for_variable = ArgLoop;
 	push_loop(loop);
 	/*I want to do this, but people have been doing shit like /for i 1 to 1 for years and they count on it to go through once... 
 	int iStart = atoi(ArgStart);
@@ -1473,14 +1474,19 @@ VOID Continue(PSPAWNINFO pChar, PCHAR szLine)
 	auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
 	while (++i != gMacroBlock->Line.end())
 	{
-		if (!_strnicmp(i->second.Command.c_str(), "/next", 5))
+		const char* line = i->second.Command.c_str();
+		if (!_strnicmp(line, "/next", 5))
 		{
+			CHAR for_var[MAX_STRING];
+			GetArg(for_var, line, 2);
+			if (_stricmp(for_var, loop.for_variable.c_str()))
+				continue;
 			loop.last_line = i->first;
 			--i;
 			gMacroBlock->CurrIndex = i->first;
 			return;
 		}
-		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
+		if (!_strnicmp(line, "Sub ", 4))
 		{
 			break;
 		}
@@ -1516,14 +1522,18 @@ VOID Break(PSPAWNINFO pChar, PCHAR szLine)
 	auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
 	while (++i != gMacroBlock->Line.end())
 	{
-		if (!_strnicmp(i->second.Command.c_str(), "/next", 5))
+		const char *line = i->second.Command.c_str();
+		if (!_strnicmp(line, "/next", 5))
 		{
+			CHAR for_var[MAX_STRING];
+			GetArg(for_var, line, 2);
+			if (_stricmp(for_var, loop.for_variable.c_str())) continue;
 			gMacroBlock->CurrIndex = i->first;
 			loop.last_line = i->first;;
 			pop_loop();
 			return;
 		}
-		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
+		if (!_strnicmp(line, "Sub ", 4))
 		{
 			break;
 		}

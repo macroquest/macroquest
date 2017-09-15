@@ -507,12 +507,12 @@
         "Extend Tradeskill Cap",                // 487
         "Defender Melee Force % (PC)",          // 488
         "Worn Endurance Regen Cap",             // 489
-        "Ff_ReuseTimeMin",                      // 490
-        "Ff_ReuseTimeMax",                      // 491
-        "Ff_Endurance_Min",                     // 492
-        "Ff_Endurance_Max",                     // 493
-        "Pet Add Atk",                          // 494
-        "Ff_DurationMax",                       // 495
-		"Critical Hit Damage (Non-stacking)",   // 496
-		"Fc_NoProc",							// 497 
+        "Limit: ReuseTime Min",                 // 490
+        "Limit: ReuseTime Max",                 // 491
+        "Limit: Endurance Min",                 // 492
+        "Limit: Endurance Max",                 // 493
+        "Pet Add Attack",                       // 494
+        "Limit: Duration Max",                  // 495
+		"Critical Hit Damage",                  // 496
+		"NoProc",                               // 497 
 

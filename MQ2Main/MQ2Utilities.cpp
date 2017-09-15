@@ -4022,12 +4022,20 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	case 487: //Extend Tradeskill Cap
 	case 488: //Defender Melee Force % (PC)
 	case 489: //Worn Endurance Regen Cap
-	case 490: //Ff_ReuseTimeMin
-	case 491: //Ff_ReuseTimeMax
-	case 492: //Ff_Endurance_Min
-	case 493: //Ff_Endurance_Max
-	case 494: //Pet Add Atk
-	case 495: //Ff_DurationMax
+	case 490: //Limit: ReuseTime Min
+	case 491: //Limit: ReuseTime Max
+	case 492: //Limit: Endurance Min
+	case 493: //Limit: Endurance Max
+	case 494: //Pet Add Attack
+	case 495: //Limit: Duration Max
+		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
+		strcat_s(szBuff, szTemp);
+		break;
+	case 496: //Critical Hit Damage (Non-stacking)
+		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		strcat_s(szBuff, " of Base Damage (Non Stacking)");
+		break;
+	case 497: //NoProc
 	default: //undefined effect 
 		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
 		strcat_s(szBuff, szTemp);

@@ -353,24 +353,25 @@ CXW
 } CXWND, *PCXWND;
 #define GateBind          0
 //CSidlScreenWnd__CSidlScreenWnd1_x
-//Size 0x238 in Sep 11 2017 Test exe see 6043FD - eqmule
+//Size 0x238 in Aug 10 2017 Live exe see 5FC76D - eqmule
+//to check do : CSidlScreenWnd*csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");
 #define SIDL \
-/*0x1f0*/ PCXSTR SidlText; /*found in CChatWindow__WndNotification_x*/\
-/*0x1f4*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
-/*0x1f8*/ ArrayClass_RO<void*>RadioGroup; /*CRadioGroup*/ \
-/*0x208*/ bool bInitVisibility; \
-/*0x209*/ bool bVisibleBeforeResize; \
-/*0x20c*/ int IniFlags; \
-/*0x210*/ PCXSTR INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-/*0x214*/ int	IniVersion; \
-/*0x218*/ int	LastResX; \
-/*0x21c*/ int	LastResY; \
-/*0x220*/ bool bLastResFullscreen; \
-/*0x224*/ int  ContextMenu; \
-/*0x228*/ PCXWND pFirstVScrollChild; \
-/*0x22c*/ int ContextMenuTipID; \
-/*0x230*/ bool bHasActivatedFirstTimeAlert; \
-/*0x234*/ int Unknown0x234;
+/*0x1F0*/ bool bControlsCreated; /*yes this REALLY is here, see 8D255E in aug 10 2017 live - eqmule*/ \
+/*0x1f4*/ PCXSTR SidlText; /*found in CChatWindow__WndNotification_x*/\
+/*0x1f8*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
+/*0x1fc*/ ArrayClass_RO<void*>RadioGroup; /*CRadioGroup*/ \
+/*0x20c*/ bool bInitVisibility; \
+/*0x20d*/ bool bVisibleBeforeResize; \
+/*0x210*/ int IniFlags; \
+/*0x214*/ PCXSTR INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
+/*0x218*/ int	IniVersion; \
+/*0x21c*/ int	LastResX; \
+/*0x220*/ int	LastResY; \
+/*0x224*/ bool bLastResFullscreen; \
+/*0x228*/ int  ContextMenuID; \
+/*0x22c*/ PCXWND pFirstVScrollChild; \
+/*0x230*/ int ContextMenuTipID; \
+/*0x234*/ bool bHasActivatedFirstTimeAlert; \
 /*0x238*/
 
 #define CSW \
@@ -1048,12 +1049,21 @@ typedef struct _CTEXTENTRYWND {
 /*0x140*/
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
-typedef struct _CLABELWND {
+//size is 0x208 see 79C989 in Aug 10 2017 Live -eqmule
+typedef struct _CLABEL {
+//Begin CLABELWND
 /*0x000*/ struct    _CXWND Wnd;
-/*0x1c4*/ BYTE      Unknown[0x8];
-/*0x1cc*/ DWORD     SidlPiece;
-/*0x1d0*/
-} CLABELWND, *PCLABELWND;
+/*0x1f0*/ bool bNoWrap;
+/*0x1f1*/ bool bAlignRight;
+/*0x1f2*/ bool bAlignCenter;
+/*0x1f4*/ int  xOffset;
+/*0x1f8*/ bool bResizeHeightToText;
+/*0x1fc*/ int Unknown0x1fc;
+/*0x200*/ //begin CLABEL
+/*0x200*/ int EQType;//renamed from SidlPiece
+/*0x204*/ int Unknown0x204;
+/*0x208*/
+} CLABEL, *PCLABEL;
 
 typedef struct _LOOTDETAILS
 {

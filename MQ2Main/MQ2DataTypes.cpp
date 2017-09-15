@@ -7679,10 +7679,13 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pArgbType;
 		return true;
 	case Text:
-		if (((CXWnd*)pWnd)->GetType() == UI_STMLBox)
-			GetCXStr(pWnd->SidlText, DataTypeTemp, MAX_STRING);
-		else
+		if (((CXWnd*)pWnd)->GetType() == UI_STMLBox) {
+			CStmlWnd*cstmlwnd = (CStmlWnd*)pWnd;
+			GetCXStr(cstmlwnd->STMLText, DataTypeTemp, MAX_STRING);
+		}
+		else {
 			GetCXStr(pWnd->WindowText, DataTypeTemp, MAX_STRING);
+		}
 		DataTypeTemp[MAX_STRING - 1] = '\0';
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -7717,12 +7720,14 @@ bool MQ2WindowType::GETMEMBER()
 	case List:
 	{
 		int n = 0;
-		if (((CXWnd*)pWnd)->GetType() == UI_Combobox)
-			VarPtr.Ptr = pWnd->SidlText;
+		if (((CXWnd*)pWnd)->GetType() == UI_Combobox) {
+			CComboWnd*combownd = (CComboWnd*)pWnd;
+			VarPtr.Ptr = combownd->pListWnd;
+		}
 		else if (((CXWnd*)pWnd)->GetType() != UI_Listbox)
 			return false;
 #ifndef ISXEQ
-		if (PCHAR pComma = strchr(Index, ',')) {
+		if (PCHAR pComma = strchr(GETFIRST(), ',')) {
 			n = atoi(pComma + 1) - 1;
 			if (n < 0) n = 0;
 			DebugSpew("List: index is %d\n", n);
@@ -7835,11 +7840,11 @@ bool MQ2WindowType::GETMEMBER()
 		}
 		else if (((CXWnd*)pWnd)->GetType() == UI_Combobox)
 		{
-			//this is a crap way of doing it, ill fix the ccombownd class someday
-			//CListWnd*clist = (CListWnd*)pWnd;
-			CSidlScreenWnd *csidl = (CSidlScreenWnd*)pWnd;
-			Dest.DWord = ((CListWnd*)csidl->SidlText)->ItemsArray.Count;
-			Dest.Type = pIntType;
+			CComboWnd *ccombo = (CComboWnd*)pWnd;
+			if (ccombo->pListWnd) {
+				Dest.DWord = ccombo->pListWnd->ItemsArray.Count;
+				Dest.Type = pIntType;
+			}
 		}
 		return true;
 	case HisTradeReady:
@@ -7855,8 +7860,10 @@ bool MQ2WindowType::GETMEMBER()
 			return true;
 		}
 	case GetCurSel:
-		if (((CXWnd*)pWnd)->GetType() == UI_Combobox)
-			VarPtr.Ptr = pWnd->SidlText;
+		if (((CXWnd*)pWnd)->GetType() == UI_Combobox) {
+			CComboWnd *combo = (CComboWnd*)pWnd;
+			VarPtr.Ptr = combo->pListWnd;
+		}
 		else if (((CXWnd*)pWnd)->GetType() != UI_Listbox)
 			return false;
 		Dest.DWord = 1 + ((CListWnd*)pWnd)->GetCurSel();

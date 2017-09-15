@@ -1,9 +1,22 @@
+15 Sep 2017 starring rswiders as "the captain", eqmule as "crew member number 6" and special guest star: eqholic
+- Updated to handle the new SPA's
+- Fixed a bug in /next not taking its argument into account for nested for loops.
+- Fix for labels
+- Fixed the CSIDLWND struct (the SIDL define...) so since we have never had this right it was time, but note that
+  if your plugin uses stuff like: pwnd->SidlText and its NOT an actual CSidlScreenWnd then you need to change it to whatever window it actually is.
+  I guess questions about this should be directed to me (eqmule)
+
+plugins changed outside of core:
+MQ2AutoAccept,MQ2Rez
+
 14 Sep 2017 by eqmule
 - Updated for TEST
 - Fixed ${Familiar[x].} it will return familiars and not illusions now...
 -
 - Fixed a bunch of window structs that we where completely misusing anyway.
   this could require some plugin changes, contact me for help if you get errors.
+-
+- Fix: Variables that are undeclared but supplied as paramters now default to an actual NULL or 0 not the string "NULL"
 -
 - Inspecting the Blessed Spiritstaff of the Heyokah will no longer ctd you.
 - Added Math.Clamp ${Math.Clamp[Min, N, Max]} will clamp N between Min and Max. - cred derple

@@ -1646,9 +1646,59 @@ EQLIB_OBJECT void CContextMenuManager::Deactivate(void);
 EQLIB_OBJECT void CContextMenuManager::CreateDefaultMenu(void);
 };
 
-class CControlTemplate
+class CScreenPieceTemplate
 {
 public:
+	PVOID vfTable;
+	ArrayClass2_RO<unsigned __int32> RuntimeTypes;
+	PCXSTR Name;
+	unsigned __int32 ParamObjectID;
+    PCXSTR ScreenID;
+	unsigned __int32 Font;
+    bool	bRelativePosition;
+    bool	bAutoStretchVertical;
+	bool	bAutoStretchHorizontal;
+    bool	bTopAnchorToTop;
+    bool	bBottomAnchorToTop;
+    bool	bLeftAnchorToLeft;
+    bool	bRightAnchorToLeft;
+    int 	TopOffset;
+    int 	BottomOffset;
+    int 	LeftOffset;
+    int 	RightOffset;
+	int 	MinVSize;
+	int 	MinHSize;
+	int 	MaxVSize;
+	int 	MaxHSize;
+    RECT    Rect;
+    PCXSTR	Text;
+    D3DCOLOR	TextColor;
+	D3DCOLOR    DisabledColor;
+	D3DCOLOR    EnabledColor;
+	bool		bUseInLayoutHorizontal;
+	bool		bUseInLayoutVertical;
+	D3DCOLOR    BackgroundTextureTint;
+	D3DCOLOR    DisabledBackgroundTextureTint;
+
+EQLIB_OBJECT CScreenPieceTemplate::CScreenPieceTemplate(class CParamScreenPiece *);
+EQLIB_OBJECT bool CScreenPieceTemplate::IsType(unsigned __int32)const;
+EQLIB_OBJECT class CXStr CScreenPieceTemplate::GetName(void)const;
+// virtual
+EQLIB_OBJECT CScreenPieceTemplate::~CScreenPieceTemplate(void);
+//EQLIB_OBJECT void * CScreenPieceTemplate::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CScreenPieceTemplate::`vector deleting destructor'(unsigned int);
+};
+
+class CControlTemplate : public CScreenPieceTemplate
+{
+public:
+    unsigned __int32 StyleBits;
+	BYTE SizableMask;
+	bool bEscapable;
+    PCXSTR Tooltip;
+    CXWndDrawTemplate *pDrawTemplate;
+	PCXSTR Controller;
+	void *pLayoutStrategyTemplate;//CLayoutStrategyTemplate
 EQLIB_OBJECT CControlTemplate::CControlTemplate(class CParamControl *);
 // virtual
 EQLIB_OBJECT CControlTemplate::~CControlTemplate(void);
@@ -3070,9 +3120,25 @@ EQLIB_OBJECT CKeyCXStrValueInt32::CKeyCXStrValueInt32(void);
 //EQLIB_OBJECT void * CKeyCXStrValueInt32::`vector deleting destructor'(unsigned int);
 };
 
-class CLabel
+//size 0x200 see 8D5699 in Aug 10 2017 Live -eqmule
+class CLabelWnd : public CXWnd
 {
 public:
+/*0x1f0*/ bool bNoWrap;
+/*0x1f1*/ bool bAlignRight;
+/*0x1f2*/ bool bAlignCenter;
+/*0x1f4*/ int  xOffset;
+/*0x1f8*/ bool bResizeHeightToText;
+/*0x1fc*/ int Unknown0x1fc;
+/*0x200*/
+};
+//size is 0x208 see 79C989 in Aug 10 2017 Live -eqmule
+class CLabel : public CLabelWnd
+{
+public:
+/*0x200*/ int EQType;
+/*0x204*/ int Unknown0x204;
+/*0x208*/
 EQLIB_OBJECT CLabel::CLabel(class CXWnd *,unsigned __int32,class CXRect,int);
 EQLIB_OBJECT void CLabel::SetAlignCenter(bool);
 EQLIB_OBJECT void CLabel::SetAlignRight(bool);
@@ -4565,17 +4631,6 @@ EQLIB_OBJECT static int CResolutionHandler::ms_windowedOffsetX;
 EQLIB_OBJECT static int CResolutionHandler::ms_windowedOffsetY;
 };
 
-class CScreenPieceTemplate
-{
-public:
-EQLIB_OBJECT CScreenPieceTemplate::CScreenPieceTemplate(class CParamScreenPiece *);
-EQLIB_OBJECT bool CScreenPieceTemplate::IsType(unsigned __int32)const;
-EQLIB_OBJECT class CXStr CScreenPieceTemplate::GetName(void)const;
-// virtual
-EQLIB_OBJECT CScreenPieceTemplate::~CScreenPieceTemplate(void);
-//EQLIB_OBJECT void * CScreenPieceTemplate::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CScreenPieceTemplate::`vector deleting destructor'(unsigned int);
-};
 
 class CScreenTemplate
 {

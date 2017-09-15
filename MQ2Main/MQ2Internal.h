@@ -1230,6 +1230,7 @@ struct Loop
 	Type type{None};
 	int	first_line{0};
 	int last_line{0};
+	std::string for_variable;
 };
 
 #ifndef ISXEQ

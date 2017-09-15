@@ -1594,7 +1594,7 @@ void HandleWindows()
                 char szTemp[MAX_STRING * 8] = {0};
 
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                    GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
 				bGotOffsets = false;
@@ -1632,7 +1632,7 @@ void HandleWindows()
                 char szTemp[MAX_STRING * 8] = {0};
 
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                    GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
 
@@ -1685,7 +1685,7 @@ void HandleWindows()
             char szTemp[MAX_STRING] = {0};
 
             if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText,szTemp,MAX_STRING);
+                GetCXStr(((CStmlWnd*)pWnd)->STMLText,szTemp,MAX_STRING);
             else
                 GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText,szTemp,MAX_STRING);
 
