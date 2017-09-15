@@ -5679,7 +5679,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpa
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
 	if (pSearchSpawn->ZRadius<10000.0f) {
-		sprintf_s(szTemp, " Z:±%1.2f", pSearchSpawn->ZRadius);
+		sprintf_s(szTemp, " Z:%1.2f", pSearchSpawn->ZRadius);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
 	if (pSearchSpawn->Radius>0.0f) {

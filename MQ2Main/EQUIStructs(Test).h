@@ -233,7 +233,7 @@ VFTABLE
 // actual size 0x1D8 in Jul 10 2017 Test (see 0x6991BF) - eqmule
 // actual size 0x1E0 in Jul 20 2017 Test (see 0x698A29) - eqmule
 // actual size 0x1E8 in Aug 07 2017 Test (see 0x699BAF) - eqmule
-// actual size 0x1F0 in Sep 11 2017 Test (see 0x6A06EF) - eqmule
+// actual size 0x1F0 in Sep 11 2017 Test (see 0x8D386D) - eqmule
 #define CXW_NO_VTABLE \
 CXW_NO_VTABLE_BEGIN \
 /*0x001C*/ BYTE		TargetAlpha; \

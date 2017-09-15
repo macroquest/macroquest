@@ -7829,12 +7829,16 @@ bool MQ2WindowType::GETMEMBER()
 	case Items:
 		if (((CXWnd*)pWnd)->GetType() == UI_Listbox)
 		{
-			Dest.DWord = ((CListWnd*)pWnd)->ItemsArray.Count;
+			CListWnd*clist = (CListWnd*)pWnd;
+			Dest.DWord = clist->ItemsArray.Count;
 			Dest.Type = pIntType;
 		}
 		else if (((CXWnd*)pWnd)->GetType() == UI_Combobox)
 		{
-			Dest.DWord = ((CListWnd*)pWnd->SidlText)->ItemsArray.Count;
+			//this is a crap way of doing it, ill fix the ccombownd class someday
+			//CListWnd*clist = (CListWnd*)pWnd;
+			CSidlScreenWnd *csidl = (CSidlScreenWnd*)pWnd;
+			Dest.DWord = ((CListWnd*)csidl->SidlText)->ItemsArray.Count;
 			Dest.Type = pIntType;
 		}
 		return true;

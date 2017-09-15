@@ -15,7 +15,7 @@
   /bct ranger //stick id ${Target.ID} ${Math.Clamp[25,${Target.Distance},150]} 
   this will make your ranger stay put if he is already between 25-150 meters away
   otherwise it will move him at most 150 away and at least 25 away.
-  dd
+
 12 Sep 2017 by eqmule and eqholic
 - All plugin sources for this zip are attached to this post:
   http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174415#p174415

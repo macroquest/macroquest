@@ -3266,7 +3266,9 @@ public:
 //anything useful in the debugger sometimes if you cursor over it and expand it...
 //So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
 //while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
+#ifdef TEST
 /*0x1f0*/ int Filler0x1f0;
+#endif
 /*0x1f4*/ ArrayClass_RO<SListWndLine> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
 /*0x204*/ ArrayClass_RO<SListWndColumn> Columns;
 /*0x214*/ int	CurSel;

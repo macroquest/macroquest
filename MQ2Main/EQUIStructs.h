@@ -233,7 +233,7 @@ VFTABLE
 // actual size 0x1E8 in May 11 2017 Live (see 0x698EEF) - eqmule
 // actual size 0x1E0 in Jun 19 2017 Live (see 0x698F0F) - eqmule
 // actual size 0x1D8 in Jul 13 2017 Live (see 0x699A4F) - eqmule
-// actual size 0x1F0 in Aug 10 2017 Live (see 0x6994BF) - eqmule
+// actual size 0x1F0 in Aug 10 2017 Live (see 0x8CC06D) - eqmule
 #define CXW_NO_VTABLE \
 CXW_NO_VTABLE_BEGIN \
 /*0x001C*/ bool		bShowClickThroughMenuItem;	/*shows/hides the click through option on the window menu*/ \
