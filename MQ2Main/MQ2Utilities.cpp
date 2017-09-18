@@ -4616,8 +4616,8 @@ case '.':
 Arg[j][k] = Buffer[i];
 k++;
 break;
-case 'Â ':
-case 'Â²':
+case ' ':
+case '²':
 //              GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
 return false;
 default:

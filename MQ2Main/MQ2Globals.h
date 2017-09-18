@@ -625,8 +625,10 @@ namespace MQ2Globals
 	EQLIB_VAR CAdvancedLootWnd **ppAdvancedLootWnd;
 	EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
 	EQLIB_VAR CEQSuiteTextureLoader *ppEQSuiteTextureLoader;
+	EQLIB_VAR PointMerchantWnd **ppPointMerchantWnd;
 	
-
+	
+#define pPointMerchantWnd (*ppPointMerchantWnd)
 #define pConfirmationDialog (*ppConfirmationDialog)
 #define pRewardSelectionWnd (*ppRewardSelectionWnd)
 #define pAdvancedLootWnd (*ppAdvancedLootWnd)
@@ -986,7 +988,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstRewardSelectionWnd;
 	EQLIB_VAR DWORD pinstCConfirmationDialog;
 	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
-
+	EQLIB_VAR DWORD pinstCPointMerchantWnd;
+	
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __CastRay2;
 	EQLIB_VAR DWORD __HeadingDiff;

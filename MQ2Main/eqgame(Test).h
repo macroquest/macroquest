@@ -294,6 +294,7 @@ GNU General Public License for more details.
 #define pinstCAdvancedLootWnd_x                                    0xE739D0
 #define pinstRewardSelectionWnd_x                                  0x10CD410
 #define pinstEQSuiteTextureLoader_x                                0xD1EC18
+#define pinstCPointMerchantWnd_x                                   0x10CCC90
 
 //// 
 // Section 3: Miscellaneous Offsets 

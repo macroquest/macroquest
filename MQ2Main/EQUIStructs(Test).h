@@ -1048,7 +1048,7 @@ typedef struct _CTEXTENTRYWND {
 /*0x140*/
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
-//size is 0x208 see 79C989 in Aug 10 2017 Live -eqmule
+//size is 0x218 see 7A3819 in Sep 11 2017 Test -eqmule
 typedef struct _CLABEL {
 //Begin CLABELWND
 /*0x000*/ struct    _CXWND Wnd;
@@ -1058,10 +1058,14 @@ typedef struct _CLABEL {
 /*0x1f4*/ int  xOffset;
 /*0x1f8*/ bool bResizeHeightToText;
 /*0x1fc*/ int Unknown0x1fc;
-/*0x200*/ //begin CLABEL
-/*0x200*/ int EQType;//renamed from SidlPiece
+/*0x200*/ PCXSTR Text;
 /*0x204*/ int Unknown0x204;
-/*0x208*/
+/*0x208*/ bool Unknown0x208;
+/*0x20c*/ int Unknown0x20c;
+/*0x210*/ //begin CLABEL
+/*0x210*/ int EQType;//renamed from SidlPiece
+/*0x214*/ int Unknown0x214;
+/*0x218*/
 } CLABEL, *PCLABEL;
 
 typedef struct _LOOTDETAILS

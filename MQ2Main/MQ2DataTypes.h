@@ -2464,6 +2464,111 @@ public:
 		return false;
 	}
 };
+
+class MQ2PointMerchantItemType : public MQ2Type
+{
+public:
+	enum PointMerchantItemMembers
+	{
+		Name = 1,
+		ItemID = 2,
+		Price = 3,
+		ThemeID = 4,
+		IsStackable = 5,
+		IsLore = 6,
+		RaceMask = 7,
+		ClassMask = 8,
+		CanUse = 9,
+	};
+	enum PointMerchantMethods
+	{
+	};
+	MQ2PointMerchantItemType() :MQ2Type("pointmerchantitem")
+	{
+		TypeMember(Name);
+		TypeMember(ItemID);
+		TypeMember(Price);
+		TypeMember(ThemeID);
+		TypeMember(IsStackable);
+		TypeMember(IsLore);
+		TypeMember(RaceMask);
+		TypeMember(ClassMask);
+		TypeMember(CanUse);
+	}
+
+	~MQ2PointMerchantItemType()
+	{
+	}
+
+	bool GETMEMBER();
+	DECLAREGETMETHOD();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (pPointMerchantWnd && pPointMerchantWnd->NumItems)
+		{
+			if (VarPtr.Int >= 0 && VarPtr.Int < pPointMerchantWnd->NumItems) {
+				strcpy_s(Destination, MAX_STRING, pPointMerchantWnd->Items[VarPtr.Int]->ItemName);
+				return true;
+			}
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2PointMerchantType : public MQ2Type
+{
+public:
+	enum PointMerchantMembers
+	{
+		Item = 1,
+	};
+	enum PointMerchantMethods
+	{
+	};
+	MQ2PointMerchantType() :MQ2Type("pointmerchant")
+	{
+		TypeMember(Item);
+	}
+
+	~MQ2PointMerchantType()
+	{
+
+	}
+
+	bool GETMEMBER();
+	DECLAREGETMETHOD();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (pPointMerchantWnd && pPointMerchantWnd->dShow)
+		{
+			strcpy_s(Destination,MAX_STRING, "TRUE");
+		}
+		else
+		{
+			strcpy_s(Destination,MAX_STRING, "FALSE");
+		}
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
 class MQ2MercenaryType : public MQ2Type
 {
 public:

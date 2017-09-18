@@ -1,3 +1,13 @@
+17 Sep 2017 by eqmule
+- Fixed ${Me.GukEarned}, ${Me.MMEarned}, ${Me.RujEarned}, ${Me.TakEarned}, ${Me.MirEarned} and ${Me.LDoNPoints}
+- Added a new TLO PointMercant it only have one member : Item which is a pPointMerchantItemType.
+  The pPointMerchantitemType has the following members: Name, ItemID, Price, ThemeID, IsStackable, IsLore, RaceMask, ClassMask, bCanUse
+  Usage:
+  /echo ${PointMercant} returns true if the LDON Mercant window is open and FALSE if not.
+  /echo ${PointMercant.Item[1].Price} OR /echo ${PointMercant.Item[Ebon Hammer].Price}
+  returns the Price for index 1 or whatever index Ebon Hammer is in if you do it by name.
+  etc.
+
 15 Sep 2017 starring rswiders as "the captain", eqmule as "crew member number 6" and special guest star: eqholic
 - Updated to handle the new SPA's
 - Fixed a bug in /next not taking its argument into account for nested for loops.
@@ -6,7 +16,8 @@
   if your plugin uses stuff like: pwnd->SidlText and its NOT an actual CSidlScreenWnd then you need to change it to whatever window it actually is.
   I guess questions about this should be directed to me (eqmule)
 
-plugins changed outside of core:
+plugins changed outside of core are attached here:
+http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174467#p174467
 MQ2AutoAccept,MQ2Rez
 
 14 Sep 2017 by eqmule

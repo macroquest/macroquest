@@ -303,6 +303,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Ground", dataGroundItem);
 	AddMQ2Data("GroundItemCount", dataGroundItemCount);
 	AddMQ2Data("Merchant", dataMerchant);
+	AddMQ2Data("PointMerchant", dataPointMerchant);
 	AddMQ2Data("Mercenary", dataMercenary);
 	AddMQ2Data("Pet", dataPet);
 	AddMQ2Data("Window", dataWindow);

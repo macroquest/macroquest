@@ -128,6 +128,7 @@ class CLootWnd;
 class CMapToolbarWnd;
 class CMapViewWnd;
 class CMemoryStream;
+class PointMerchantWnd;
 class CMerchantWnd;
 class CMusicPlayerWnd;
 class CMutexLock;
@@ -3121,6 +3122,7 @@ EQLIB_OBJECT CKeyCXStrValueInt32::CKeyCXStrValueInt32(void);
 };
 
 //size 0x200 see 8D5699 in Aug 10 2017 Live -eqmule
+//size 0x210 see 8DCE59 in Sep 11 2017 Test -eqmule
 class CLabelWnd : public CXWnd
 {
 public:
@@ -3129,15 +3131,27 @@ public:
 /*0x1f2*/ bool bAlignCenter;
 /*0x1f4*/ int  xOffset;
 /*0x1f8*/ bool bResizeHeightToText;
+#ifndef EMU
 /*0x1fc*/ int Unknown0x1fc;
+#endif
+#ifdef TEST
+/*0x200*/ PCXSTR Text;
+/*0x204*/ int Unknown0x204;
+/*0x208*/ bool Unknown0x208;
+/*0x20c*/ int Unknown0x20c;
+/*0x210*/
+#endif
 /*0x200*/
 };
 //size is 0x208 see 79C989 in Aug 10 2017 Live -eqmule
+//size is 0x218 see 7A3819 in Sep 11 2017 Test -eqmule
 class CLabel : public CLabelWnd
 {
 public:
 /*0x200*/ int EQType;
+#ifndef EMU
 /*0x204*/ int Unknown0x204;
+#endif
 /*0x208*/
 EQLIB_OBJECT CLabel::CLabel(class CXWnd *,unsigned __int32,class CXRect,int);
 EQLIB_OBJECT void CLabel::SetAlignCenter(bool);
@@ -3533,10 +3547,14 @@ EQLIB_OBJECT int CMapToolbarWnd::WndNotification(class CXWnd *,unsigned __int32,
 //EQLIB_OBJECT void * CMapToolbarWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CMapToolbarWnd::Deactivate(void);
 };
-
-class CMapViewWnd : public CSidlScreenWnd
+//class CMapViewWnd : public CSidlScreenWnd, public WndEventHandler
+class CMapViewWnd
 {
 public:
+/*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable; \
+	CXW_NO_VTABLE
+	SIDL
+
 EQLIB_OBJECT CMapViewWnd::CMapViewWnd(class CXWnd *);
 EQLIB_OBJECT bool CMapViewWnd::IsMappingEnabled(void);
 EQLIB_OBJECT void CMapViewWnd::Activate(void);
@@ -3570,7 +3588,55 @@ EQLIB_OBJECT static int __cdecl CMemoryStream::GetStringSize(class CXStr &);
 EQLIB_OBJECT void CMemoryStream::GetString(class CXStr &);
 EQLIB_OBJECT void CMemoryStream::PutString(class CXStr &);
 };
-
+typedef struct _POINTMERCHANTITEM
+{ 
+/*0x00*/ char ItemName[0x40]; 
+/*0x40*/ int ItemID;
+/*0x44*/ DWORD Price; 
+/*0x48*/ int ThemeID;
+/*0x4c*/ int IsStackable;
+/*0x50*/ int IsLore;
+/*0x54*/ int RaceMask;
+/*0x58*/ int ClassMask;
+/*0x5c*/ bool bCanUse;
+/*0x60*/ 
+} POINTMERCHANTITEM, *PPOINTMERCHANTITEM;
+class PointMerchantWnd : public CSidlScreenWnd
+{
+public:
+	int Unknown0x000;
+	int Unknown0x004;
+	int Unknown0x008;
+	int NumItems;
+	bool HdrItemName;
+	bool HdrTheme;
+	bool HdrPrice;
+	CHAR OriginalPointsLabel[0x40];
+	CLabel *MerchantNameLabel;
+	CListWnd *ItemList;
+	CListWnd *PointList;
+	CButtonWnd *EquipButton;
+	CButtonWnd *PurchaseButton;
+	CButtonWnd *SellButton;
+	CButtonWnd *DoneButton;
+	CLabel *PointsAvailableValue;
+	CLabel *PointsEverEarnedLabel;
+	CLabel *PointsAvailableLabel;
+	UINT NextRefreshTime;
+	PSPAWNINFO ActiveMerchant;
+	PPOINTMERCHANTITEM *Items;
+	int MerchantThemeId;
+	int CurrentSelection;
+	int CurrentSort;
+	bool bCurrentAscending;
+	ItemGlobalIndex ItemLocation;
+	PCONTENTS pSelectedItem;
+	bool bInventoryWasActive;
+	int CurrentItem;
+	int CurrentQuantity;
+	int SliderType;
+	void *pHandler;//PointMerchantInterface*
+};
 class CMerchantWnd : public CSidlScreenWnd
 {
 public:

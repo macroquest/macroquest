@@ -14,6 +14,15 @@ GNU General Public License for more details.
 EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
 namespace MQ2Internal {
 
+	enum eAdventureTheme
+	{
+		eAT_None,
+		eAT_DeepGuk,
+		eAT_Miraguls,
+		eAT_Mistmoore,
+		eAT_Rujarkian,
+		eAT_Takish,
+	};
     enum ePVPServer
     {
         PVP_NONE = 0,

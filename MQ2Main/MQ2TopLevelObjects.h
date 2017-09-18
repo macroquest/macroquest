@@ -11,6 +11,7 @@ LEGACY_API BOOL dataGroundItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMercenary(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataPointMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataEverQuest(PCHAR szIndex, MQ2TYPEVAR &Ret);

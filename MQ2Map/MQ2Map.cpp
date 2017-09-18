@@ -211,8 +211,9 @@ public:
 	DWORD Constructor_Trampoline(class CXWnd *);
 	DWORD Constructor_Detour(class CXWnd *wnd)
 	{
-		CMapViewWnd *pWnd = (CMapViewWnd*)this;
 		DWORD Ret = Constructor_Trampoline(wnd);
+		CMapViewWnd *pWnd = (CMapViewWnd*)this;
+		PEQMAPWINDOW mwnd = (PEQMAPWINDOW)pWnd;
 		PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE;
 		PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
 		*pvfTable = *pWnd->pvfTable;
@@ -220,14 +221,14 @@ public:
 
 		CMyMapViewWnd__OldvfTable = pWnd->pvfTable;
 		pWnd->pvfTable = pvfTable;
-		MapViewMap_OldvfTable = ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
-		((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable = pMapViewMapVfTable;
-		CMyMapViewWnd__OldPostDraw = (DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2;
+		MapViewMap_OldvfTable = mwnd->pMapViewMapVfTable;
+		mwnd->pMapViewMapVfTable = pMapViewMapVfTable;
+		CMyMapViewWnd__OldPostDraw = (DWORD)mwnd->pMapViewMapVfTable->PostDraw2;
 		CMyMapViewWnd__OldDestructor = (DWORD)pWnd->pvfTable->vector_deleting_destructor;
 		pWnd->pvfTable->vector_deleting_destructor = CMyMapViewWnd__Destructor;
-		((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2 = CMyMapViewWnd__PostDraw;
-		MapViewMap__OldHandleRButtonDown = (DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown;
-		((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown = MapViewMap__HandleRButtonDown;
+		mwnd->pMapViewMapVfTable->PostDraw2 = CMyMapViewWnd__PostDraw;
+		MapViewMap__OldHandleRButtonDown = (DWORD)mwnd->pMapViewMapVfTable->HandleRButtonDown;
+		mwnd->pMapViewMapVfTable->HandleRButtonDown = MapViewMap__HandleRButtonDown;
 		return Ret;
 	}
 

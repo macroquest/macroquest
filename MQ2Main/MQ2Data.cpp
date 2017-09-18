@@ -2050,3 +2050,13 @@ TLO(dataAlert)
 	}
 	return false;
 }
+TLO(dataPointMerchant)
+{
+	if (pPointMerchantWnd)
+	{
+		Ret.Ptr = pPointMerchantWnd;
+		Ret.Type = pPointMerchantType;
+		return true;
+	}
+	return false;
+}

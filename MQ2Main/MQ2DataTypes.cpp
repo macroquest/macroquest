@@ -2423,10 +2423,10 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 	case Name:
 	{
-		if(!gAnonymize)
+		if (!gAnonymize)
 			strcpy_s(DataTypeTemp, ((PSPAWNINFO)pLocalPlayer)->Name);
 		else
-			strcpy_s(DataTypeTemp,"*****");
+			strcpy_s(DataTypeTemp, "*****");
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
@@ -2459,8 +2459,8 @@ bool MQ2CharacterType::GETMEMBER()
 			__int64 cap = pInventoryWnd->VitalityCap;
 			if (vitality > cap)
 				vitality = cap;
-			if(cap>0)
-				Dest.Float = (float)vitality * 100 /cap;
+			if (cap > 0)
+				Dest.Float = (float)vitality * 100 / cap;
 		}
 		Dest.Type = pFloatType;
 		return true;
@@ -2477,7 +2477,7 @@ bool MQ2CharacterType::GETMEMBER()
 			int aacap = pInventoryWnd->AAVitalityCap;
 			if (aavitality > aacap)
 				aavitality = aacap;
-			if(aacap>0)
+			if (aacap > 0)
 				Dest.Float = (float)aavitality * 100 / aacap;
 		}
 		Dest.Type = pFloatType;
@@ -2530,7 +2530,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			for (unsigned long nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++) {
-				if (pChar2->Buff[nBuff].SpellID>0) {
+				if (pChar2->Buff[nBuff].SpellID > 0) {
 					Dest.DWord++;
 				}
 			}
@@ -2541,8 +2541,8 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			for (unsigned long nBuff = 0; nBuff<NUM_SHORT_BUFFS; nBuff++) {
-				if (pChar2->ShortBuff[nBuff].SpellID>0) {
+			for (unsigned long nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++) {
+				if (pChar2->ShortBuff[nBuff].SpellID > 0) {
 					Dest.DWord++;
 				}
 			}
@@ -2781,33 +2781,45 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return true;
 	case GukEarned:
-		return false;//TODO
-					 //Dest.DWord=pChar->GukEarned;
+		Dest.DWord = 0;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_DeepGuk].AdventureTotalPointsEarned;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case MMEarned:
-		return false;//TODO
-					 //Dest.DWord=pChar->MMEarned;
+		Dest.DWord = 0;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Mistmoore].AdventureTotalPointsEarned;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case RujEarned:
-		return false;//TODO
-					 //Dest.DWord=pChar->RujEarned;
+		Dest.DWord = 0;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Rujarkian].AdventureTotalPointsEarned;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case TakEarned:
-		return false;//TODO
-					 //Dest.DWord=pChar->TakEarned;
+		Dest.DWord = 0;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Takish].AdventureTotalPointsEarned;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case MirEarned:
-		return false;//TODO
-					 //Dest.DWord=pChar->MirEarned;
+		Dest.DWord = 0;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Miraguls].AdventureTotalPointsEarned;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case LDoNPoints:
-		return false;//TODO
-					 //Dest.DWord=pChar->LDoNPoints;
+		Dest.DWord = 0;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			Dest.DWord = pCharnew->AdventureData.AdventurePointsAvailable;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case CurrentFavor:
@@ -9067,7 +9079,6 @@ bool MQ2CorpseType::GETMEMBER()
 	return false;
 #undef pLoot
 }
-
 bool MQ2MerchantType::GETMEMBER()
 {
 	if (!pActiveMerchant || !pMerchantWnd)
@@ -9188,6 +9199,99 @@ bool MQ2MerchantType::GETMEMBER()
 	return false;
 #undef pMerch
 }
+
+bool MQ2PointMerchantItemType::GETMEMBER()
+{
+	if (!VarPtr.Int)
+		return false;
+	int index = VarPtr.Int;
+	PointMerchantWnd *pPointWnd = (PointMerchantWnd *)pPointMerchantWnd;
+	PMQ2TYPEMEMBER pMember = MQ2PointMerchantItemType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch ((PointMerchantItemMembers)pMember->ID)
+	{
+	case Name:
+		strcpy_s(DataTypeTemp, pPointWnd->Items[index]->ItemName);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	case ItemID:
+		Dest.Int = pPointWnd->Items[index]->ItemID;
+		Dest.Type = pIntType;
+		return true;
+	case Price:
+		Dest.Int = pPointWnd->Items[index]->Price;
+		Dest.Type = pIntType;
+		return true;
+	case ThemeID:
+		Dest.Int = pPointWnd->Items[index]->ThemeID;
+		Dest.Type = pIntType;
+		return true;
+	case IsStackable:
+		Dest.Int = pPointWnd->Items[index]->IsStackable;
+		Dest.Type = pBoolType;
+		return true;
+	case IsLore:
+		Dest.Int = pPointWnd->Items[index]->IsLore;
+		Dest.Type = pBoolType;
+		return true;
+	case RaceMask:
+		Dest.Int = pPointWnd->Items[index]->RaceMask;
+		Dest.Type = pIntType;
+		return true;
+	case ClassMask:
+		Dest.Int = pPointWnd->Items[index]->ClassMask;
+		Dest.Type = pIntType;
+		return true;
+	case CanUse:
+		Dest.Int = pPointWnd->Items[index]->bCanUse;
+		Dest.Type = pBoolType;
+		return true;
+	}
+	return false;
+}
+bool MQ2PointMerchantType::GETMEMBER()
+{
+	if (!pPointMerchantWnd)
+		return false;
+	PointMerchantWnd *pPointWnd = (PointMerchantWnd *)pPointMerchantWnd;
+	PMQ2TYPEMEMBER pMember = MQ2PointMerchantType::FindMember(Member);
+	if (!pMember)
+	{
+#ifndef ISXEQ
+		return pSpawnType->GetMember(*(MQ2VARPTR*)&pPointMerchantWnd->ActiveMerchant, Member, Index, Dest);
+#else
+		return pSpawnType->GetMember(*(LSVARPTR*)&pPointMerchantWnd->ActiveMerchant, Member, argc, argv, Dest);
+#endif
+	}
+
+	switch ((PointMerchantMembers)pMember->ID)
+	{
+	case Item:
+		if (ISNUMBER()) {
+			int index = GETNUMBER() - 1;
+			if (index >= 0 && index < pPointWnd->NumItems) {
+				Dest.Int = index;
+				Dest.Type = pPointMerchantItemType;
+				return true;
+			}
+		}
+		else {
+			if (GETFIRST()[0] != '\0') {
+				for (int i = 0; i < pPointWnd->NumItems; i++) {
+					if (!_stricmp(pPointWnd->Items[i]->ItemName, GETFIRST())) {
+						Dest.Int = i;
+						Dest.Type = pPointMerchantItemType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool MQ2MercenaryType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
