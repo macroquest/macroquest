@@ -1,3 +1,26 @@
+18 Sep 2017 by eqmule
+- Fixed an infinite loop bug and a variable parse bug in Eval functions. -cred bug report: creamo
+- Eval functions that take multiple arguments MUST separate those with comma(s) from now on
+  Example: (run with a cleric, war or shaman)
+  [code]
+  Sub Main
+	/declare c_argueString string outer shm clr war
+	/declare ChatSender string local ${Me} 
+
+	/if (!${checkbot["shm war clr", ${ChatSender}]}) { <-NOTE the COMMA
+		/echo ${Time} Only Func3: FALSE, this should be TRUE
+	} else {
+		/echo ${Time} Only Func3: TRUE, this should be TRUE
+	}
+  /return
+
+  Sub checkbot(selectedBots, chatSender)
+    /declare botSelected bool local FALSE
+	/echo ${Time} in Sub checkbot selectedBots=${selectedBots} chatSender=${chatSender}
+    /if (${Select[${Me.Class.ShortName},${selectedBots}]}) /varset botSelected TRUE
+  /return ${botSelected}
+  [/code]
+
 17 Sep 2017 by eqmule
 - Fixed ${Me.GukEarned}, ${Me.MMEarned}, ${Me.RujEarned}, ${Me.TakEarned}, ${Me.MirEarned} and ${Me.LDoNPoints}
 - Added a new TLO PointMercant it only have one member : Item which is a pPointMerchantItemType.

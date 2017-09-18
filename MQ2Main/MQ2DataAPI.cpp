@@ -23,6 +23,7 @@ GNU General Public License for more details.
 
 #include <memory>
 #include <unordered_map>
+#include <regex>
 
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 
@@ -195,18 +196,49 @@ static bool function_exists(const PCHAR name)
 
 static bool call_function(const PCHAR name, const PCHAR args)
 {
+	std::list<std::string>csvColumn;
+	const char *mystart=args;
+	bool instring{false};        
+	std::string str;
+	for (const char* p=mystart; *p; p++) {
+		if (*p==',') {
+			str = std::string(mystart, p - mystart);
+			str = std::regex_replace(str, std::regex("^ +| +$|( ) +"), "$1");//remove leading and trailing spaces
+			str.erase(std::remove(str.begin(), str.end(), '\"'), str.end());
+			csvColumn.push_back(str);
+			mystart=p+1;
+		}
+	}
+	str = mystart;
+	if (str.size()) {
+		str = std::regex_replace(str, std::regex("^ +| +$|( ) +"), "$1");//remove leading and trailing spaces
+		str.erase(std::remove(str.begin(), str.end(), '\"'), str.end());
+		csvColumn.push_back(str);
+	}
 	const auto saved_block = gMacroBlock->CurrIndex;
 	const auto pChar = (PSPAWNINFO)pCharSpawn;
 	CHAR sub_line[MAX_STRING];
 	strcpy_s(sub_line, name);
-	strcat_s(sub_line, " ");
-	strcat_s(sub_line, args);
+	if (csvColumn.size()) {
+		strcat_s(sub_line, " ");
+		for (std::list<std::string>::iterator i = csvColumn.begin(); i != csvColumn.end();i++) {
+			strcat_s(sub_line, "\"");
+			strcat_s(sub_line, (*i).c_str());
+			strcat_s(sub_line, "\"");
+			std::list<std::string>::iterator j = i;
+			j++;
+			if(j!=csvColumn.end())
+				strcat_s(sub_line, " ");
+		}
+		//strcat_s(sub_line, "\"");
+	}
 	Call(pChar, sub_line);
 	auto sub_block = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
 	sub_block++;
 	gMacroBlock->CurrIndex = sub_block->first;
 	while (gMacroBlock && sub_block != gMacroBlock->Line.end())
 	{
+		gMacroStack->LocationIndex = gMacroBlock->CurrIndex;
 		DoCommand(pChar, (PCHAR)sub_block->second.Command.c_str());
 		if (!gMacroBlock)
 			break;
