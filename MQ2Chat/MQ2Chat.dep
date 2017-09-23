@@ -1,0 +1,14 @@
+# Microsoft Developer Studio Generated Dependency File, included by MQ2Chat.mak
+
+.\MQ2Chat.cpp : \
+	"..\detours\inc\detours.h"\
+	"..\MQ2Main\EQClasses.h"\
+	"..\MQ2Main\EQData.h"\
+	"..\MQ2Main\eqgame.h"\
+	"..\MQ2Main\EQUIStructs.h"\
+	"..\MQ2Main\MQ2Globals.h"\
+	"..\MQ2Main\MQ2Internal.h"\
+	"..\MQ2Main\MQ2Main.h"\
+	"..\MQ2Main\MQ2Prototypes.h"\
+	"..\mq2plugin.h"\
+	

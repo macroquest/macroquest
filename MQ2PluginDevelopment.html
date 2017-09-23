@@ -1,0 +1,128 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>MQ2 Plugin Development</title>
+</head>
+
+<body>
+
+<p><b>MQ2 Plugin Development</b>&nbsp; </p>
+<p>MQ2 Plugins by design inherit any and all functionality used in the MQ2 main 
+DLL (MQ2Main.dll).&nbsp; This means developing plugins and developing the 
+MQ2Main API are 99% equal, and if one can develop for one they can definitely 
+develop for the other.</p>
+<p>MQ2 Plugins provide added functionality to MQ2.&nbsp; The default set of 
+functionality is more or less the core &quot;macro&quot; commands and other general-use 
+commands, parameters, and required API to make the entire system work.&nbsp; 
+Everything else belongs in plugins.&nbsp; Because we don't want a new plugin for 
+every command, most general-use commands will be implemented into the main DLL 
+rather than plugins.&nbsp; Commands specific to plugins with other functionality 
+will of course go in the plugin itself.</p>
+<p><b>Creating a new plugin</b></p>
+<p><b>Before selecting an option, read the paragraph under &quot;The functionses, my 
+precious&quot; that says <font size="4">TAKE OUT THE ONES YOUR PLUGIN DOES NOT USE</font> 
+at the end.</b></p>
+<blockquote>
+<p><b>OPTION 1:</b> MQ2Template is an empty plugin, and will always contain the newest possible 
+plugin template.&nbsp; The absolute first thing to do is to copy the contents of 
+the MQ2Template directory, except for the readme.txt, to a new directory.&nbsp; 
+For example purposes, we will use MQ2MyPlugin, but you would of course insert 
+your own plugin name.&nbsp; Next, open each file in notepad or another text 
+editor and replace every instance of MQ2Template with MQ2MyPlugin.&nbsp; Also, 
+rename each file from MQ2Template.* to MQ2MyPlugin.*.&nbsp; After doing so, your 
+plugin will be fully functional as a MQ2 plugin, and will compile to the Release 
+directory.&nbsp; </p>
+<p><b>OPTION 2: </b>&quot;mkplugin&quot; has been created to automate the creation of one 
+or more plugins at once, automating the process given in option one.&nbsp; From 
+the command line, &quot;mkplugin &lt;name&gt;&quot; will create a plugin. The plugin will 
+automatically be prefixed with &quot;MQ2&quot; and the next letter capitalized (though the 
+rest is untouched).&nbsp; For example, &quot;<b>mkplugin myPlugin</b>&quot; and the name 
+given to the plugin will be &quot;MQ2MyPlugin&quot;.&nbsp; If you do &quot;<b>mkplugin 
+mq2myplugin</b>&quot; the name given will be &quot;MQ2Myplugin&quot;.&nbsp; To create multiple 
+plugins at once, just add a parameter to the command line for every plugin.&nbsp; 
+Example: &quot;<b>mkplugin one two three four</b>&quot; will create &quot;MQ2One&quot;, &quot;MQ2Two&quot;, 
+&quot;MQ2Three&quot; and &quot;MQ2Four&quot;.&nbsp; mkplugin.exe is found in the Macroquest2 
+workspace/solution root directory.&nbsp; If you aren't familiar with DOS, simply 
+do this: Start-&gt;Run &quot;<b>c:\mq2\mkplugin.exe one two three four</b>&quot;,&nbsp; but 
+replace c:\mq2 with the actual path to your MQ2.</p>
+</blockquote>
+<p>Now you can open your project in visual studio or open the main file with 
+whatever you happen to code with.&nbsp; Immediately you will see several very 
+concise functions, most of which simply DebugSpew.&nbsp; Make sure to not muck 
+with <b>PreSetup(&quot;MQ2MyPlugin&quot;);</b>.<b>&nbsp; </b>It is where it is supposed to 
+be, and sets up your plugin's DllMain and sets the INI filename and path.</p>
+<p><b>The functionses, my precious</b>&nbsp; </p>
+<p>The MQ2 Plugin system is based on <b>callback</b> functions.&nbsp; This means 
+that MQ2 is going to call certain functions in your plugin, if they exist.&nbsp; 
+None of the callbacks are absolutely mandatory, but you will at least want 
+InitializePlugin and ShutdownPlugin. <b><font size="4">TAKE OUT THE ONES YOUR 
+PLUGIN DOES NOT USE.</font></b></p>
+<p>PLUGIN_API VOID InitializePlugin(VOID)&nbsp; </p>
+<p>This function is called immediately after your plugin is loaded by the 
+system.&nbsp; Add any commands, aliases, detours, macro params here.&nbsp; It is 
+not safe to assume that EQ is &quot;in-game&quot; when this is called. </p>
+<p>PLUGIN_API VOID ShutdownPlugin(VOID)&nbsp; </p>
+<p>This function is called immediately before your plugin is unloaded by the 
+system.&nbsp; Remove any commands, aliases, detours, macro params here.&nbsp; It 
+is not safe to assume that EQ is &quot;in-game&quot; when this is called. OnCleanUI is 
+explicitly called immediately before ShutdownPlugin(), so it is not necessary to 
+do anything found in OnCleanUI here.</p>
+<p>PLUGIN_API VOID OnZoned(VOID)</p>
+<p>This function is called immediately after the EQ client finishes entering a 
+new zone.&nbsp; It is safe to assume that EQ is &quot;in-game&quot; when this is called.</p>
+<p>PLUGIN_API VOID OnCleanUI(VOID)</p>
+<p>This function is called when EQ cleans its game ui.&nbsp; This could be from 
+in game or at character select, and I believe one other point.&nbsp; If you need 
+to clean up, make sure to check your data for existence first.</p>
+<p>PLUGIN_API VOID SetGameState(DWORD GameState)</p>
+<p>This function is called when EQ changes game state.&nbsp; If you do not need 
+to know when these changes occur, you do not need this function.&nbsp; You can 
+access MQ2's game state value with the gGameState global variable.</p>
+<p>PLUGIN_API VOID OnPulse(VOID)</p>
+<p>This function is called immediately after the MQ2Main Pulse function, many 
+many times per second.&nbsp; If you need continuous processing in your plugin, 
+this is what you're looking for.</p>
+<p>PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)</p>
+<p>This function is called every time WriteChatColor is called by MQ2Main or any 
+plugin, ignoring the filters built into MQ2Main.&nbsp; If you need to filter 
+this data, you need to implement the filters yourself.&nbsp; Note the Filter 
+parameter.&nbsp; This is for future use, it will currently always be 0.&nbsp; 
+It's intended to allow chat plugins to redirect MQ output, etc, regardless of 
+EQ's filters.&nbsp; Eventually, MQ2 calls to WriteChatColor will use a dynamic 
+filter system.&nbsp; For now, ignore it.</p>
+<p>PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)</p>
+<p>This function is called every time EQ shows a line of chat with 
+CEverQuest::dsp_chat, but after MQ filters and chat events are taken care of.&nbsp;
+</p>
+<p><b>Using your plugin's INI file</b></p>
+<p>Plugin INI files are not created until used, so even though the INI file name 
+is always defined for your plugin, it will not clutter up the directory if you 
+do not use it.&nbsp; The <b>INIFileName </b>variable is to be used as your 
+plugin's INI filename.&nbsp; Don't modify it, it's set for you to 
+MQ2MyPlugin.ini in the correct directory.</p>
+<p><b>Adding Commands</b></p>
+<p>Adding commands is incredibly simple with MQ2.&nbsp; Make your command 
+function with the standard prototype</p>
+<p>VOID MyCommand(PSPAWNINFO pChar, PCHAR szLine)</p>
+<p>Then, in InitializePlugin: <b>AddCommand(&quot;/mycommand&quot;,MyCommand);</b></p>
+<p>and in ShutdownPlugin: <b>RemoveCommand(&quot;/mycommand&quot;);</b></p>
+<p>Follow the pre-existing rules for coding your command function.</p>
+<p><b>Adding Macro Parameters</b></p>
+<p>Adding macro parameters is also incredibly simple.&nbsp; Make your param 
+function with the standard prototype</p>
+<p>DWORD parmMyParm(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)</p>
+<p>Then, in InitializePlugin: <b>AddParm(&quot;$myparm&quot;,parmMyParm);</b></p>
+<p>and in ShutdownPlugin: <b>RemoveParm(&quot;$myparm&quot;);</b></p>
+<p>Follow the pre-existing rules for coding your parameter function.</p>
+<p><b>Adding Detours</b></p>
+<p>Adding detours is almost equally simple.. but I'm going back to sleep very 
+soon and don't want to show how to do this at the moment.&nbsp; Take a look at 
+the existing plugins for examples.</p>
+
+</body>
+
+</html>

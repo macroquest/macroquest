@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Plugin.Release.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Plugin.Debug.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.51106.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <ExceptionHandling />
+      <PrecompiledHeader />
+      <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StructMemberAlignment>4Bytes</StructMemberAlignment>
+    </ClCompile>
+    <Link>
+      <BaseAddress>0x03000000</BaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StructMemberAlignment>4Bytes</StructMemberAlignment>
+    </ClCompile>
+    <Link>
+      <BaseAddress>0x03000000</BaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="EQClasses.cpp" />
+    <ClCompile Include="MQ2Auth.cpp" />
+    <ClCompile Include="MQ2Benchmarks.cpp" />
+    <ClCompile Include="MQ2ChatHook.cpp" />
+    <ClCompile Include="MQ2CleanUI.cpp" />
+    <ClCompile Include="MQ2CommandAPI.cpp" />
+    <ClCompile Include="MQ2Commands.cpp" />
+    <ClCompile Include="MQ2DInput.cpp" />
+    <ClCompile Include="MQ2Data.cpp" />
+    <ClCompile Include="MQ2DataAPI.cpp" />
+    <ClCompile Include="MQ2DataTypes.cpp" />
+    <ClCompile Include="MQ2DataVars.cpp" />
+    <ClCompile Include="MQ2DetourAPI.cpp" />
+    <ClCompile Include="MQ2Globals.cpp" />
+    <ClCompile Include="MQ2KeyBinds.cpp" />
+    <ClCompile Include="MQ2MacroCommands.cpp" />
+    <ClCompile Include="MQ2Main.cpp" />
+    <ClCompile Include="MQ2Mouse.cpp" />
+    <ClCompile Include="MQ2ParseAPI.cpp" />
+    <ClCompile Include="MQ2PluginHandler.cpp" />
+    <ClCompile Include="MQ2Pulse.cpp" />
+    <ClCompile Include="MQ2Spawns.cpp" />
+    <ClCompile Include="MQ2Utilities.cpp" />
+    <ClCompile Include="MQ2Windows.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Blech\Blech.h" />
+    <ClInclude Include="combines.h" />
+    <ClInclude Include="DataTypeList.h" />
+    <ClInclude Include="EQClasses.h" />
+    <ClInclude Include="EQData.h" />
+    <ClInclude Include="EQUIStructs.h" />
+    <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQ2DataTypes.h" />
+    <ClInclude Include="MQ2Globals-private_default.h" />
+    <ClInclude Include="MQ2Globals.h" />
+    <ClInclude Include="MQ2Inlines.h" />
+    <ClInclude Include="MQ2Internal.h" />
+    <ClInclude Include="MQ2Main.h" />
+    <ClInclude Include="MQ2Prototypes.h" />
+    <ClInclude Include="MQ2TopLevelObjects.h" />
+    <ClInclude Include="dikeys.h" />
+    <ClInclude Include="eqgame.h" />
+    <ClInclude Include="itemtypes.h" />
+    <ClInclude Include="skills.h" />
+    <ClInclude Include="SpellEffects.h" />
+    <ClInclude Include="actordef.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
