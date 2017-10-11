@@ -327,6 +327,8 @@ bool MQ2StringType::GETMEMBER()
 			int Len = GETNUMBER();
 			if (Len == 0)
 				return false;
+			if (Len > MAX_STRING)
+				Len = MAX_STRING;
 			if (Len>0)
 			{
 				unsigned long StrLen = strlen((char *)VarPtr.Ptr);
@@ -1583,6 +1585,12 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord = pSpawn->bSummoned;
 		Dest.Type = pBoolType;
 		return true;
+	case TargetOfTarget:
+		if (Dest.Ptr = GetSpawnByID(pSpawn->TargetOfTarget)) {
+				Dest.Type = pSpawnType;
+				return true;
+			}
+		return false;
 	case Ducking:
 		Dest.DWord = pSpawn->StandState == STANDSTATE_DUCK;
 		Dest.Type = pBoolType;
@@ -3179,15 +3187,15 @@ bool MQ2CharacterType::GETMEMBER()
 						{
 							DWORD timeNow = (DWORD)time(NULL);
 							#ifndef EMU
-							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) > timeNow)
+							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
 							#else
-							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
 							#endif
 							{
 								#ifndef EMU
-								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) - timeNow + 6;
+								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
 								#else
-								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) - timeNow + 6;
+								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
 								#endif
 								Dest.Int /= 6;
 							}
@@ -3210,15 +3218,15 @@ bool MQ2CharacterType::GETMEMBER()
 							{
 								DWORD timeNow = (DWORD)time(NULL);
 								#ifndef EMU
-								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) > timeNow)
+								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
 								#else
-								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
 								#endif
 								{
 									#ifndef EMU
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) - timeNow + 6;
+									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
 									#else
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) - timeNow + 6;
+									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
 									#endif
 									Dest.Int /= 6;
 								}
@@ -3248,9 +3256,9 @@ bool MQ2CharacterType::GETMEMBER()
 						{
 							DWORD timeNow = (DWORD)time(NULL);
 							#ifndef EMU
-							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) < timeNow)
+							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
 							#else
-							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
 							#endif
 							{
 								Dest.DWord = 1;
@@ -3272,9 +3280,9 @@ bool MQ2CharacterType::GETMEMBER()
 							{
 								DWORD timeNow = (DWORD)time(NULL);
 								#ifndef EMU
-								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) < timeNow)
+								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
 								#else
-								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
 								#endif
 								{
 									Dest.DWord = 1;
@@ -5368,7 +5376,7 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return false;
 	case Mana:
-		Dest.DWord = pSpell->Mana;
+		Dest.DWord = pSpell->ManaCost;
 		Dest.Type = pIntType;
 		return true;
 	case ResistAdj:
@@ -5393,7 +5401,7 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	case RecoveryTime:
 	case FizzleTime:
-		Dest.UInt64 = pSpell->FizzleTime;
+		Dest.UInt64 = pSpell->RecoveryTime;
 		Dest.Type = pTimeStampType;
 		return true;
 	case RecastTime:
@@ -5880,7 +5888,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case RecastTimerID:
-		Dest.DWord = pSpell->CARecastTimerID;
+		Dest.DWord = pSpell->ReuseTimerIndex;
 		Dest.Type = pIntType;
 		return true;
 	case SPA:
@@ -5897,7 +5905,7 @@ bool MQ2SpellType::GETMEMBER()
 			int nIndex = GETNUMBER() - 1;
 			if (nIndex < 0)
 				return false;
-			Dest.DWord = pSpell->ReagentId[nIndex];
+			Dest.DWord = pSpell->ReagentID[nIndex];
 			Dest.Type = pIntType;
 		}
 		return true;
@@ -5950,7 +5958,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Description:
-		if (char *ptr = pCDBStr->GetString(pSpell->DescriptionNumber, 6, NULL))
+		if (char *ptr = pCDBStr->GetString(pSpell->DescriptionIndex, 6, NULL))
 		{
 			strcpy_s(DataTypeTemp, ptr);
 			Dest.Ptr = &DataTypeTemp[0];
@@ -6064,7 +6072,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case SubSpellGroup:
-		Dest.DWord = pSpell->SubSpellGroup;
+		Dest.DWord = pSpell->SpellSubGroup;
 		Dest.Type = pIntType;
 		return true;
 	case Beneficial:
@@ -6076,7 +6084,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Location:
-		Dest.DWord = pSpell->Location;
+		Dest.DWord = pSpell->ZoneType;
 		Dest.Type = pIntType;
 		return true;
 	case IsSwarmSpell:
@@ -6094,7 +6102,7 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	}
 	case DurationValue1:
-		Dest.DWord = pSpell->DurationValue1;
+		Dest.DWord = pSpell->DurationCap;
 		Dest.Type = pIntType;
 		return true;
 	case IllusionOkWhenMounted:

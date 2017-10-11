@@ -617,7 +617,7 @@ FUNCTION_AT_ADDRESS( STextureAnimationFrame::STextureAnimationFrame(void),STextu
 FUNCTION_AT_ADDRESS( CUITexturePiece::CUITexturePiece(void),CUITexturePiece__CUITexturePiece);
 #endif
 #ifdef STextureAnimationFrame__operator_equal_x
-FUNCTION_AT_ADDRESS(class STextureAnimationFrame &  STextureAnimationFrame::operator=(class STextureAnimationFrame const &),STextureAnimationFrame__operator_equal);
+FUNCTION_AT_ADDRESS(STextureAnimationFrame &  STextureAnimationFrame::operator=(class STextureAnimationFrame const &),STextureAnimationFrame__operator_equal);
 #endif
 #ifdef CUITexturePiece__operator_equal_x
 FUNCTION_AT_ADDRESS(class CUITexturePiece &  CUITexturePiece::operator=(class CUITexturePiece const &),CUITexturePiece__operator_equal);
@@ -1283,7 +1283,7 @@ FUNCTION_AT_ADDRESS(unsigned int  CEQSuiteTextureLoader::CreateTexture(class CUI
 FUNCTION_AT_ADDRESS(void  CEQSuiteTextureLoader::UnloadAllTextures(void),CEQSuiteTextureLoader__UnloadAllTextures);
 #endif
 #ifdef CEQSuiteTextureLoader__GetTexture_x
-FUNCTION_AT_ADDRESS(struct T3D_tagBMINFO *  CEQSuiteTextureLoader::GetTexture(class CUITextureInfo const &),CEQSuiteTextureLoader__GetTexture);
+FUNCTION_AT_ADDRESS(BMI *CEQSuiteTextureLoader::GetTexture(const CUITextureInfo2 &ti),CEQSuiteTextureLoader__GetTexture);
 #endif
 #ifdef CEQSuiteTextureLoader__GetDefaultUIPath_x
 FUNCTION_AT_ADDRESS(const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const,CEQSuiteTextureLoader__GetDefaultUIPath);
@@ -10014,6 +10014,9 @@ FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index, bool bToggle), PcZone
 #else
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index), PcZoneClient__GetModCap);
 #endif
+#endif
+#ifdef PcZoneClient__RemoveBuffEffect_x
+FUNCTION_AT_ADDRESS(void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID), PcZoneClient__RemoveBuffEffect);
 #endif
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);

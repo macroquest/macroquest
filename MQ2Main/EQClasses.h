@@ -347,7 +347,6 @@ class STableCell;
 class STempTable;
 class STempTableCell;
 class STempTableRow;
-class STextureAnimationFrame;
 class StringItem;
 class StringTable;
 class TextFileReader;
@@ -2003,13 +2002,87 @@ EQLIB_OBJECT void CEditWnd::FillIndexArray(class CXStr)const;
 EQLIB_OBJECT void CEditWnd::FilterInputStr(class CXStr &);
 EQLIB_OBJECT void CEditWnd::ProcessText(void);
 };
+enum eBitmapType
+{
+	eBT_Normal,
+	eBT_Layer,
+	eBT_SingleDetail,
+	eBT_PaletteDetailMain,
+	eBT_PaletteDetailPalette,
+	eBT_PaletteDetailDetail
+};
+
+class CEQGBitmap//have to fake these i dont wanna map them now... we dont need them anyway : public CThreadLoader, public TListNode<CEQGBitmap>
+{
+public:
+/*0x000*/ PVOID vftable;
+/*0x004*/ BYTE Header[0x1c];
+/*0x020*/ eBitmapType	eType;
+	int	eMemoryPoolManagerType;//eMemoryPoolManagerType need to figure out this enum
+	PCHAR	FileName;
+	UINT	SourceWidth;
+	UINT	SourceHeight;
+	FLOAT	DetailScale;
+	UINT	GrassDensity;
+	UINT	Width;
+	UINT	Height;
+	bool	bHasTexture;
+	union {
+		void*pD3DTexture;//IDirect3DBaseTexture9
+		void*pRawBitmap;
+	};
+	UINT	ObjectIndex;
+	UINT	Size;
+	bool	bForceMipMap;
+	int		TrackingType;
+	FLOAT	SQDistanceToCamera;
+	UINT	LastDistanceTime;
+	UINT	LastRenderTime;
+	UINT	LoadedTime;
+};
+struct BMI {
+	PCHAR Name;
+	UINT Flags;
+	CEQGBitmap *pBmp;
+};
+
+enum enDir
+{
+	UI_DefaultDir,
+	UI_AtlasDir,
+	UI_TextureDir,
+	UI_MapsDir,
+};
+
+class CUITextureInfo2
+{
+public:
+	/*0x00*/ bool	bValid;
+	/*0x04*/ enDir	Dir;
+	/*0x08*/ PCXSTR Name;
+	/*0x0c*/ SIZE	TextureSize;
+	/*0x14*/ UINT	TextureID;
+	/*0x18*/
+};
+typedef struct _SuiteTexture {
+	bool bUsed;
+	PCXSTR Name;
+	enDir Directory;
+	BMI* pBMInfo;
+
+} SuiteTexture,*PSuiteTexture;
 
 class CEQSuiteTextureLoader
 {
 public:
+	void *pWadFile;//SWadFile
+    ArrayClass_RO<SuiteTexture> Textures;
+    PCXSTR UIPath[4];
+    PCXSTR DefaultUIPath[4];
+
 EQLIB_OBJECT CEQSuiteTextureLoader::~CEQSuiteTextureLoader(void);
 EQLIB_OBJECT CEQSuiteTextureLoader::CEQSuiteTextureLoader(void);
-EQLIB_OBJECT struct T3D_tagBMINFO * CEQSuiteTextureLoader::GetTexture(class CUITextureInfo const &);
+EQLIB_OBJECT BMI *CEQSuiteTextureLoader::GetTexture(const CUITextureInfo2 &ti);
 EQLIB_OBJECT unsigned int CEQSuiteTextureLoader::CreateTexture(class CUITextureInfo const &);
 EQLIB_OBJECT void CEQSuiteTextureLoader::UnloadAllTextures(void);
 EQLIB_OBJECT const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const;
@@ -3220,24 +3293,7 @@ EQLIB_OBJECT CListboxTemplate::~CListboxTemplate(void);
 //EQLIB_OBJECT void * CListboxTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CListboxTemplate::`vector deleting destructor'(unsigned int);
 };
-enum enDir
-{
-	UI_DefaultDir,
-	UI_AtlasDir,
-	UI_TextureDir,
-	UI_MapsDir,
-};
 
-class CUITextureInfo2
-{
-public:
-	/*0x00*/ bool	bValid;
-	/*0x04*/ enDir	Dir;
-	/*0x08*/ CXStr	*Name;
-	/*0x0c*/ SIZE	TextureSize;
-	/*0x14*/ UINT	TextureID;
-	/*0x18*/
-};
 class CUITextureInfo
 {
 public:
@@ -4694,6 +4750,13 @@ EQLIB_OBJECT static int CResolutionHandler::ms_windowedOffsetX;
 EQLIB_OBJECT static int CResolutionHandler::ms_windowedOffsetY;
 };
 
+class CRespawnWnd
+{
+public:
+EQLIB_OBJECT CRespawnWnd::CRespawnWnd(CXWnd *pParent);
+// virtual
+EQLIB_OBJECT CRespawnWnd::~CRespawnWnd(void);
+};
 
 class CScreenTemplate
 {
@@ -5408,9 +5471,33 @@ EQLIB_OBJECT void CTextEntryWnd::UpdateButtons(void);
 /*0x164*/// CSidlScreenWnd *Cancel;
 };
 
+class CUITexturePiece
+{
+public:
+	CUITextureInfo2 TInfo;
+    RECT Rect;
+EQLIB_OBJECT CUITexturePiece::~CUITexturePiece(void);
+EQLIB_OBJECT CUITexturePiece::CUITexturePiece(class CUITexturePiece const &);
+EQLIB_OBJECT CUITexturePiece::CUITexturePiece(class CUITextureInfo,class CXRect);
+EQLIB_OBJECT CUITexturePiece::CUITexturePiece(void);
+EQLIB_OBJECT class CUITexturePiece & CUITexturePiece::operator=(class CUITexturePiece const &);
+EQLIB_OBJECT int CUITexturePiece::Draw(class CXRect,class CXRect,class CXRect,unsigned long,unsigned long)const;
+EQLIB_OBJECT int CUITexturePiece::Draw(class CXRect,class CXRect,unsigned long,unsigned long)const;
+};
+
+struct STextureAnimationFrame
+{
+    CUITexturePiece TPiece;
+    unsigned __int32 Ticks;
+    POINT Hotspot;
+};
 class CTextureAnimation
 {
 public:
+	PVOID vfTable;
+	PCXSTR Name;
+    ArrayClass_RO<STextureAnimationFrame> Frames;
+
 EQLIB_OBJECT CTextureAnimation::CTextureAnimation(class CXStr);
 EQLIB_OBJECT CTextureAnimation::CTextureAnimation(void);
 EQLIB_OBJECT class CTextureAnimation & CTextureAnimation::operator=(class CTextureAnimation const &);
@@ -5595,20 +5682,6 @@ public:
 EQLIB_OBJECT CTreeView::CTreeView(class CXWnd *,unsigned __int32,class CXRect,int);
 // virtual
 EQLIB_OBJECT CTreeView::~CTreeView(void);
-};
-
-
-
-class CUITexturePiece
-{
-public:
-EQLIB_OBJECT CUITexturePiece::~CUITexturePiece(void);
-EQLIB_OBJECT CUITexturePiece::CUITexturePiece(class CUITexturePiece const &);
-EQLIB_OBJECT CUITexturePiece::CUITexturePiece(class CUITextureInfo,class CXRect);
-EQLIB_OBJECT CUITexturePiece::CUITexturePiece(void);
-EQLIB_OBJECT class CUITexturePiece & CUITexturePiece::operator=(class CUITexturePiece const &);
-EQLIB_OBJECT int CUITexturePiece::Draw(class CXRect,class CXRect,class CXRect,unsigned long,unsigned long)const;
-EQLIB_OBJECT int CUITexturePiece::Draw(class CXRect,class CXRect,unsigned long,unsigned long)const;
 };
 
 class CVector3
@@ -7649,6 +7722,7 @@ EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
 #else
 EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
 #endif
+EQLIB_OBJECT void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID);
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex *itemindex/*out*/);
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
 };
@@ -7895,9 +7969,21 @@ public:
 EQLIB_OBJECT GuildMember::GuildMember(void);
 };
 
+enum eIconCacheType
+{
+	eit_Items,
+	eit_Spells,
+	eit_Menus,
+	eit_Vivox,
+};
 class IconCache
 {
 public:
+	HashTable<CTextureAnimation*>IconTextures;
+	PCXSTR pAnimationName;
+	int Offset;
+	int MinValue;
+	int MaxValue;
 EQLIB_OBJECT IconCache::~IconCache(void);
 EQLIB_OBJECT IconCache::IconCache(void);
 EQLIB_OBJECT class CTextureAnimation * IconCache::GetIcon(int);
@@ -8624,16 +8710,6 @@ class STempTableRow
 public:
 EQLIB_OBJECT STempTableRow::~STempTableRow(void);
 EQLIB_OBJECT STempTableRow::STempTableRow(void);
-};
-
-class STextureAnimationFrame
-{
-public:
-EQLIB_OBJECT STextureAnimationFrame::~STextureAnimationFrame(void);
-EQLIB_OBJECT STextureAnimationFrame::STextureAnimationFrame(class CUITexturePiece,unsigned __int32,class CXPoint);
-EQLIB_OBJECT STextureAnimationFrame::STextureAnimationFrame(void);
-EQLIB_OBJECT class STextureAnimationFrame & STextureAnimationFrame::operator=(class STextureAnimationFrame const &);
-//EQLIB_OBJECT void * STextureAnimationFrame::`vector deleting destructor'(unsigned int);
 };
 
 class StringItem

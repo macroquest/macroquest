@@ -282,7 +282,7 @@ public:
             strcat_s(out, temp);
         }
 
-        sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
+        sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->RecoveryTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
         strcat_s(out,temp);
 
         if (pSpell->Range > 0.0f ) {
@@ -450,7 +450,7 @@ public:
             strcat_s(out, temp);
         }
 
-        sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
+        sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->RecoveryTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
         strcat_s(out,temp);
 
         if (pSpell->Range > 0.0f ) {

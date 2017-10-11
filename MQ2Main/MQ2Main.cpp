@@ -139,6 +139,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	gUseTradeOnTarget = 1 == GetPrivateProfileInt("MacroQuest", "UseTradeOnTarget", 1, Filename);
     gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",1,Filename);
     gbFlashOnTells = 1==GetPrivateProfileInt("MacroQuest","FlashOnTells",1,Filename);
+	gbIgnoreAlertRecursion = 1==GetPrivateProfileInt("MacroQuest","IgnoreAlertRecursion",0,Filename);
+	gTurboLimit = GetPrivateProfileInt("MacroQuest","TurboLimit",240,Filename);
 	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
 	gNetStatusXPos = GetPrivateProfileInt("MacroQuest","NetStatusXPos",0,Filename);
 	gNetStatusYPos = GetPrivateProfileInt("MacroQuest","NetStatusYPos",0,Filename);
@@ -842,5 +844,8 @@ FUNCTION_AT_ADDRESS(void msg_successful_hit(struct _EQSuccessfulHit*),__msg_succ
 #endif
 #ifdef __STMLToText_x
 FUNCTION_AT_ADDRESS(CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool bFlag), __STMLToText);
+#endif
+#ifdef __GetAnimationCache_x
+FUNCTION_AT_ADDRESS(class IconCache *__cdecl GetAnimationCache(int index), __GetAnimationCache);
 #endif
 

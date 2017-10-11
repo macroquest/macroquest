@@ -785,7 +785,7 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 		if (pchar_out_string_position >= maxlen)
 			break;
 		else
-			pchar_in_string_position++;
+		pchar_in_string_position++;
 	}
 	if (pchar_out_string_position > maxlen)	{
 		pchar_out_string_position = maxlen;
@@ -1271,32 +1271,32 @@ DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
 		return 0;
 	case 1:
 	case 6:
-		return unsigned long(min(ceil(double(pSpawn->Level) / 2), pSpell->DurationValue1));
+		return unsigned long(min(ceil(double(pSpawn->Level) / 2), pSpell->DurationCap));
 	case 3:
 	case 4:
 	case 11:
 	case 12:
 	case 15:
-		if (pSpell->DurationValue1) {
-			return (pSpell->DurationValue1);
+		if (pSpell->DurationCap) {
+			return (pSpell->DurationCap);
 		}
 		else {
 			return (pSpell->DurationType * 10);
 		}
 	case 2:
-		return unsigned long(min(ceil(double(pSpawn->Level) * 0.6), pSpell->DurationValue1));
+		return unsigned long(min(ceil(double(pSpawn->Level) * 0.6), pSpell->DurationCap));
 	case 5:
 		return 3;
 	case 7:
-		return min(pSpawn->Level, pSpell->DurationValue1 ? pSpell->DurationValue1 : pSpawn->Level);
+		return min(pSpawn->Level, pSpell->DurationCap ? pSpell->DurationCap : pSpawn->Level);
 	case 8:
-		return min(unsigned int(pSpawn->Level) + 10, pSpell->DurationValue1);
+		return min(unsigned int(pSpawn->Level) + 10, pSpell->DurationCap);
 	case 9:
-		return min(unsigned int(pSpawn->Level) * 2 + 10, pSpell->DurationValue1);
+		return min(unsigned int(pSpawn->Level) * 2 + 10, pSpell->DurationCap);
 	case 10:
-		return min(unsigned int(pSpawn->Level) * 3 + 10, pSpell->DurationValue1);
+		return min(unsigned int(pSpawn->Level) * 3 + 10, pSpell->DurationCap);
 	case 13:
-		return pSpell->DurationValue1 * 6 / 10;
+		return pSpell->DurationCap * 6 / 10;
 	case 50:
 		return 0xFFFFFFFF;
 	case 3600:
@@ -2700,7 +2700,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	LONG max = GetSpellMax(pSpell,i);// GetSpellMax(pSpell,i);
 	LONG calc = GetSpellCalc(pSpell,i); //GetSpellCalc(pSpell,i);
 	LONG spellgroup = pSpell->SpellGroup;
-	LONG ticks = pSpell->DurationValue1;
+	LONG ticks = pSpell->DurationCap;
 	LONG targets = pSpell->MaxTargets;
 	LONG targettype = pSpell->TargetType;
 	LONG skill = pSpell->Skill;
@@ -4067,7 +4067,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
 
 VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 {
-	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell,i), GetSpellBase(pSpell,i), GetSpellMax(pSpell,i), pSpell->DurationValue1));
+	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell,i), GetSpellBase(pSpell,i), GetSpellMax(pSpell,i), pSpell->DurationCap));
 	return;
 }
 
@@ -6327,7 +6327,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->zLoc = (FLOAT)atof(szArg);
 			if (pSearchSpawn->zLoc == 0.0) {
 				pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
-				szRest = GetNextArg(szRest, 2);
+			szRest = GetNextArg(szRest, 2);
 			} else {
 				szRest = GetNextArg(szRest, 3);
 			}
@@ -6543,6 +6543,8 @@ BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
 
 BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List)
 {
+	if (gbIgnoreAlertRecursion)
+		return FALSE;
 	if (!pSearchSpawn) return FALSE;
 	std::list<SEARCHSPAWN>ss;
 	if (CAlerts.GetAlert(List, ss)) {
@@ -8649,10 +8651,10 @@ int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 								for (int N = 0; N < 16; N++)
 								{
 									if (classmask & (1 << N)) {
-										return i;
+											return i;
+										}
 									}
 								}
-							}
 							else {
 								return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
 							}
@@ -8970,10 +8972,35 @@ DWORD GetSpellRankByName(PCHAR SpellName)
 
 VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 {
+	bool bPet = false;
+	bool bAll = false;
 	CHAR szCmd[MAX_STRING] = { 0 };
-	strcpy_s(szCmd, szLine);
-	StripQuotes(szCmd);
+	GetArg(szCmd, szLine, 1);
+	if (!_stricmp(szCmd, "-pet")) {
+		bPet = true;
+		GetArg(szCmd, szLine, 2);
+	}
+	else if (!_stricmp(szCmd, "-both")) {
+		bAll = true;
+		GetArg(szCmd, szLine, 2);
+	}
 	if (szCmd && szCmd[0] != '\0') {
+		if (bPet || bAll) {
+			if (PEQPETINFOWINDOW pPetInfoWindow = ((PEQPETINFOWINDOW)pPetInfoWnd)) {
+				if (szLine && szLine[0] != '\0') {
+					for (unsigned long nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++) {
+						if (PSPELL pBuffSpell = GetSpellByID(pPetInfoWindow->Buff[nBuff])) {
+							if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
+								((PcZoneClient*)pPCData)->RemovePetEffect(nBuff);
+								break;
+							}
+						}
+					}
+				}
+			}
+			if (bPet)
+				return;
+		}
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			for (unsigned long nBuff = 0; nBuff<NUM_LONG_BUFFS; nBuff++)
 			{
@@ -8981,7 +9008,7 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 					continue;
 				if (PSPELL pBuffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
 					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
-						pPCData->RemoveMyAffect(nBuff);
+						((PcZoneClient*)pPCData)->RemoveBuffEffect(nBuff, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
 						return;
 					}
 				}
@@ -8992,7 +9019,8 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 					continue;
 				if (PSPELL pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID)) {
 					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
-						pPCData->RemoveMyAffect(nBuff + NUM_LONG_BUFFS);
+						((PcZoneClient*)pPCData)->RemoveBuffEffect(nBuff + NUM_LONG_BUFFS, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+						//pPCData->RemoveMyAffect(nBuff + NUM_LONG_BUFFS);
 						return;
 					}
 				}

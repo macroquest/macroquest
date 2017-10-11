@@ -18,7 +18,6 @@ GNU General Public License for more details.
 #ifndef ISXEQ
 
 #define DBG_SPEW
-#define MAXTURBO 240
 
 #ifdef ISXEQ_LEGACY
 #include "../ISXEQLegacy/ISXEQLegacy.h"
@@ -110,7 +109,21 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	gDelay = VarValue;
 	bRunNextCommand = false;
-	//    DebugSpewNoFile("Delay - %d",gDelay);
+	if (gDelayCondition[0]) {
+		CHAR szCond[MAX_STRING];
+		strcpy_s(szCond, gDelayCondition);
+		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
+		DOUBLE Result;
+		if (!Calculate(szCond, Result)) {
+			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
+			return;
+		}
+		if (Result != 0) {
+			// DebugSpewNoFile("/delay ending early, conditions met");
+			gDelay = 0;
+			bRunNextCommand = true;
+		}
+	}
 }
 PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen)
 {
@@ -287,11 +300,11 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			GetArg(szArg, szLine, 2);
 			gMaxTurbo = atoi(szArg);
 			if (gMaxTurbo == 0)
-				gMaxTurbo = 40;
-			else if (gMaxTurbo>MAXTURBO)
+				gMaxTurbo = 80;
+			else if (gMaxTurbo>gTurboLimit)
 			{
-				MacroError("#turbo %d is too high, setting at %d (maximum)", gMaxTurbo, MAXTURBO);
-				gMaxTurbo = MAXTURBO;
+				MacroError("#turbo %d is too high, setting at %d (maximum)", gMaxTurbo, gTurboLimit);
+				gMaxTurbo = gTurboLimit;
 			}
 		}
 		else if (!_strnicmp(szLine, "#define ", 8)) {
@@ -455,7 +468,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 	gMacroBlock->CurrIndex = 0;
 	gMacroBlock->BindStackIndex = -1;
 
-	gMaxTurbo = 40;
+	gMaxTurbo = 80;
 	gTurbo = true;
 	GetArg(szTemp, szLine, 1);
 	Params = GetNextArg(szLine);
@@ -1261,7 +1274,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		DebugSpewNoFile("DoEvents - Deleted event: %d %s", pEvent->Type, pEvent->Name.c_str());
 		delete pEvent;
-		bRunNextCommand = FALSE;
+		bRunNextCommand = TRUE;
 	}
 }
 

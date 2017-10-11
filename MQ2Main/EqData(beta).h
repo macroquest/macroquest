@@ -1949,20 +1949,20 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x008*/   FLOAT   PushBack;
 /*0x00c*/   FLOAT   PushUp;
 /*0x010*/   DWORD   CastTime;
-/*0x014*/   DWORD   FizzleTime;
+/*0x014*/   DWORD   RecoveryTime;
 /*0x018*/   DWORD   RecastTime;
 /*0x01c*/   DWORD   DurationType;       //DurationFormula on Lucy
-/*0x020*/   DWORD   DurationValue1;
+/*0x020*/   DWORD   DurationCap;
 /*0x024*/   DWORD   AEDuration;
-/*0x028*/   DWORD   Mana;
-/*0x02c*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
+/*0x028*/   DWORD   ManaCost;
+/*0x02c*/   DWORD   ReagentID[0x4];     //ReagentId1-ReagentId4d
 /*0x03c*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
 /*0x04c*/   DWORD   NoExpendReagent[0x4];
 /*0x05c*/   LONG    CalcIndex;
 /*0x060*/   LONG    NumEffects;
 /*0x064*/   DWORD   BookIcon;
 /*0x068*/   DWORD   GemIcon;
-/*0x06C*/   DWORD   DescriptionNumber;
+/*0x06C*/   DWORD   DescriptionIndex;
 /*0x070*/   DWORD   ResistAdj;
 /*0x074*/   DWORD   Diety;
 /*0x078*/   DWORD   spaindex;
@@ -1979,7 +1979,7 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x0a4*/   DWORD   ResistPerLevel;
 /*0x0a8*/   DWORD   ResistCap;
 /*0x0ac*/   DWORD   EnduranceCost;      //CA Endurance Cost
-/*0x0b0*/   DWORD   CARecastTimerID;    //ID of combat timer, i think.
+/*0x0b0*/   DWORD   ReuseTimerIndex;    //ID of combat timer, i think.
 /*0x0b4*/   DWORD   EndurUpkeep;
 /*0x0b8*/   DWORD   HateGenerated;      //Hate override
 /*0x0bc*/   DWORD   HitCountType;
@@ -1995,7 +1995,7 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x0e4*/   DWORD   PCNPCOnlyFlag;      // no idea
 /*0x0e8*/   DWORD   NPCMemCategory;
 /*0x0ec*/   DWORD   SpellGroup;
-/*0x0f0*/   DWORD   SubSpellGroup;		//unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
+/*0x0f0*/   DWORD   SpellSubGroup;		//unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
 /*0x0f4*/   DWORD   SpellRank;			//Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on -eqmule
 /*0x0f8*/   DWORD   SpellClass;         //Unknown222 from Lucy
 /*0x0fc*/   DWORD   SpellSubClass;         //Unknown223 from Lucy
@@ -2047,7 +2047,7 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x186*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
 /*0x187*/   BYTE    FizzleAdj;
 /*0x188*/   BYTE    Skill;
-/*0x189*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
+/*0x189*/   BYTE    ZoneType;           //01=Outdoors, 02=dungeons, ff=Any
 /*0x18a*/   BYTE    Environment;
 /*0x18b*/   BYTE    TimeOfDay;          // 0=any, 1=day only, 2=night only
 /*0x18c*/   BYTE    CastingAnim;

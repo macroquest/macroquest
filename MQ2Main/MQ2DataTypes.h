@@ -713,6 +713,7 @@ public:
 		TimeBeenDead = 146,
 		FloorZ = 147,
 		IsSummoned = 148,
+		TargetOfTarget = 149,
 	};
 	enum SpawnMethods
 	{
@@ -874,7 +875,8 @@ public:
 		TypeMember(TimeBeenDead);
 		TypeMember(FloorZ);
 		TypeMember(IsSummoned);//if its a summoned pet
-		
+		TypeMember(TargetOfTarget);
+
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);

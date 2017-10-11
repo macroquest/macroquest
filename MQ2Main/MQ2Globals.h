@@ -126,6 +126,8 @@ namespace MQ2Globals
 	EQLIB_VAR ULONGLONG gRunning;
 	EQLIB_VAR BOOL gbMoving;
 	EQLIB_VAR DWORD gMaxTurbo;
+	EQLIB_VAR DWORD gTurboLimit;
+	
 	EQLIB_VAR BOOL gReturn;
 
 	EQLIB_VAR PCHATBUF gDelayedCommands;
@@ -437,9 +439,6 @@ namespace MQ2Globals
 	EQLIB_VAR EQPlayer **ppControlledPlayer;
 #define pControlledPlayer (*ppControlledPlayer)
 
-
-	EQLIB_VAR IconCache **ppIconCache;
-#define pIconCache (*ppIconCache)
 	EQLIB_VAR EQWorldData **ppWorldData;
 #define pWorldData (*ppWorldData)
 	EQLIB_VAR ClientSpellManager **ppSpellMgr;
@@ -583,7 +582,7 @@ namespace MQ2Globals
 	EQLIB_VAR CTextEntryWnd **ppTextEntryWnd;
 	EQLIB_VAR CFileSelectionWnd **ppFileSelectionWnd;
 	EQLIB_VAR CLootWnd **ppLootWnd;
-	EQLIB_VAR CPetInfoWnd **ppPetInfoWnd;
+	EQLIB_VAR CRespawnWnd **ppRespawnWnd;
 	EQLIB_VAR CActionsWnd **ppActionsWnd;
 	EQLIB_VAR CCombatAbilityWnd **ppCombatAbilityWnd;
 	EQLIB_VAR CMerchantWnd **ppMerchantWnd;
@@ -686,7 +685,7 @@ namespace MQ2Globals
 #define pTextEntryWnd (*ppTextEntryWnd)
 #define pFileSelectionWnd (*ppFileSelectionWnd)
 #define pLootWnd (*ppLootWnd)
-#define pPetInfoWnd (*ppPetInfoWnd)
+#define pRespawnWnd (*ppRespawnWnd)
 #define pActionsWnd (*ppActionsWnd)
 #define pMerchantWnd (*ppMerchantWnd)
 #define pTradeWnd (*ppTradeWnd)
@@ -984,7 +983,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCContextMenuManager;
 	EQLIB_VAR DWORD pinstCVoiceMacroWnd;
 	EQLIB_VAR DWORD pinstCHtmlWnd;
-	EQLIB_VAR DWORD pinstIconCache;
+	EQLIB_VAR DWORD pinstItemIconCache;
 	EQLIB_VAR DWORD pinstRewardSelectionWnd;
 	EQLIB_VAR DWORD pinstCConfirmationDialog;
 	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
@@ -1017,6 +1016,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD Expansion_HoT;
 	EQLIB_VAR DWORD __HelpPath;
 	EQLIB_VAR DWORD __STMLToText;
+	EQLIB_VAR DWORD __GetAnimationCache;
 
 	EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
@@ -1491,6 +1491,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__CanEquipItem;
 	EQLIB_VAR DWORD PcZoneClient__GetItemByID;
 	EQLIB_VAR DWORD PcZoneClient__GetItemByItemClass;
+	EQLIB_VAR DWORD PcZoneClient__RemoveBuffEffect;
 	
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
@@ -1499,7 +1500,8 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gUseTradeOnTarget;
 	EQLIB_VAR BOOL gbBeepOnTells;
 	EQLIB_VAR BOOL gbFlashOnTells;
-
+	EQLIB_VAR BOOL gbIgnoreAlertRecursion;
+	
 	EQLIB_VAR DWORD IconCache__GetIcon;
 
 	EQLIB_VAR DWORD CContainerMgr__OpenContainer;
@@ -1553,6 +1555,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor;
 	EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
+	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
 	
 }
 using namespace MQ2Globals;

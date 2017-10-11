@@ -283,7 +283,7 @@ GNU General Public License for more details.
 #define pinstCContextMenuManager_x                                 0x181D91C
 #define pinstCVoiceMacroWnd_x                                      0x10A6C28
 #define pinstCHtmlWnd_x                                            0x10A6D18
-#define pinstIconCache_x                                           0x11B447C
+#define pinstItemIconCache_x                                       0x11B447C
 #define pinstCTradeskillWnd_x                                      0x11BA028
 #define pinstCAdvancedLootWnd_x                                    0xF5FAE8
 #define pinstRewardSelectionWnd_x                                  0x11B8798
@@ -311,6 +311,7 @@ GNU General Public License for more details.
 #define Expansion_HoT_x                                            0x10216B8
 #define __HelpPath_x                                               0x10A4DB0
 #define __STMLToText_x                                             0x8DB3E0
+#define __GetAnimationCache_x                                      0x6B0710
 
 //// 
 // Section 4: Function Offsets 
