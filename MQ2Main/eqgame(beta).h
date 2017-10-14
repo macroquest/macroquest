@@ -627,7 +627,9 @@ GNU General Public License for more details.
 #define CXStr__operator_equal1_x                                   0x892660
 #define CXStr__operator_plus_equal1_x                              0x893760
 
-// CXWnd 
+// CXWnd
+//CTileLayoutWnd__SetOriginalAutoStretchInfo_x is here because its where I lookup the actual CXWnd Size.
+#define CTileLayoutWnd__SetOriginalAutoStretchInfo_x               0x8D5950
 #define CXWnd__BringToTop_x                                        0x8BE020
 #define CXWnd__Center_x                                            0x8C41F0
 #define CXWnd__ClrFocus_x                                          0x8BDC00

@@ -207,8 +207,6 @@ typedef struct _CXWNDVFTABLE {
 VFTABLE
 } CXWNDVFTABLE, *PCXWNDVFTABLE;
 
-// in CChatWindow__CChatWindow
-#define EQ_CHAT_HISTORY_OFFSET 0x298
 // in CChatWindow__SetChatFont
 #define EQ_CHAT_FONT_OFFSET    0x11c
 

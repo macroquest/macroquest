@@ -69,7 +69,8 @@ public:
 
 		OutputBox = (CStmlWnd*)GetChildItem("CWChatOutput");
 		OutputBox->Clickable = 1;
-		*(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET]) = 400;
+		OutputBox->MaxLines = 400;
+		//*(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET]) = 400;
 
 		OutBoxLines = 0;
 		AutoScroll = true;

@@ -53,8 +53,9 @@ public:
 		OutputBox->pParentWindow = (_CSIDLWND *)this;
 		InputBox->pParentWindow = (_CSIDLWND *)this;
         OutWnd=(CXWnd*)OutputBox;
-        OutBoxLines=0; 
-        *(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=0x190; 
+        OutBoxLines=0;
+		OutputBox->MaxLines = 0x190;
+       //(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=0x190; 
         OutputBox->Clickable=1; 
         iCurrentCmd=-1;
 		ZLayer = 1; // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
