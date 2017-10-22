@@ -3194,27 +3194,31 @@ EQLIB_OBJECT CKeyCXStrValueInt32::CKeyCXStrValueInt32(void);
 //EQLIB_OBJECT void * CKeyCXStrValueInt32::`vector deleting destructor'(unsigned int);
 };
 
+//CLabelWnd__CLabelWnd_x
 //size 0x200 see 8D5699 in Aug 10 2017 Live -eqmule
 //size 0x210 see 8DCE59 in Sep 11 2017 Test -eqmule
+//size 0x200 see 668D5B in Oct 17 2017 Live -eqmule
 class CLabelWnd : public CXWnd
 {
 public:
-/*0x1f0*/ bool bNoWrap;
-/*0x1f1*/ bool bAlignRight;
-/*0x1f2*/ bool bAlignCenter;
-/*0x1f4*/ int  xOffset;
-/*0x1f8*/ bool bResizeHeightToText;
+/*0x1e0*/ bool bNoWrap;
+/*0x1e1*/ bool bAlignRight;
+/*0x1e2*/ bool bAlignCenter;
+/*0x1e4*/ int  xOffset;
+/*0x1e8*/ bool bResizeHeightToText;
 #ifndef EMU
+/*0x1ec*/ int Unknown0x1ec;
+/*0x1f0*/ PCXSTR Text;
+/*0x1f4*/ int Unknown0x1f4;
+/*0x1f8*/ bool Unknown0x1f8;
 /*0x1fc*/ int Unknown0x1fc;
-/*0x200*/ PCXSTR Text;
-/*0x204*/ int Unknown0x204;
-/*0x208*/ bool Unknown0x208;
-/*0x20c*/ int Unknown0x20c;
-/*0x210*/
+/*0x200*/
 #endif
 };
+//CLabel__CLabel_x
 //size is 0x208 see 79C989 in Aug 10 2017 Live -eqmule
 //size is 0x218 see 7A3819 in Sep 11 2017 Test -eqmule
+//size 0x208 see 7A5739 in Oct 17 2017 Live -eqmule
 class CLabel : public CLabelWnd
 {
 public:
@@ -3702,7 +3706,11 @@ EQLIB_OBJECT void CMerchantWnd::ClearMerchantSlot(int);
 EQLIB_OBJECT void CMerchantWnd::FinishBuyingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
+#ifdef BETA
+EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *,int Unknown = -1);
+#else
 EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *);
+#endif
 // virtual
 EQLIB_OBJECT CMerchantWnd::~CMerchantWnd(void);
 EQLIB_OBJECT int CMerchantWnd::OnProcessFrame(void);

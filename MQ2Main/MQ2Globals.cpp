@@ -919,6 +919,7 @@ namespace MQ2Globals
 		"The Darkened Sea",
 		"The Broken Mirror",
 		"Empires of Kunark",
+		"Ring of Scale",
 		NULL
 	};
 

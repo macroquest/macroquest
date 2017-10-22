@@ -7,5 +7,6 @@ typedef DWORD    (__cdecl *FNCB)(DWORD,HINSTANCE,DWORD&);
 #undef MQ2AUTH
 #define    MQ2AUTH(z) VOID z(DWORD x){FNCB f=(FNCB)x;f((DWORD)proc,ghInstance,gh);}
 #include "MQ2Auth0.h"
+//#define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);
 
 #endif
