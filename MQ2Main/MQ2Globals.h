@@ -1146,6 +1146,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEverQuest__CreateTargetIndicator;
 	EQLIB_VAR DWORD CEverQuest__DeleteTargetIndicator;
 	EQLIB_VAR DWORD CFindItemWnd__CFindItemWnd;
+	EQLIB_VAR DWORD IString__Append;
+	
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;

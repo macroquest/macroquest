@@ -374,7 +374,11 @@ public:
 
         if (out[0]!=17) {
             strcat_s(out,"</c>");
-            AppendCXStr(&This->ItemInfo,&out[0]);  
+			#ifdef BETA
+				This->ItemInfo.Append(&out[0]);
+			#else
+				AppendCXStr(&This->ItemInfo,&out[0]);
+			#endif
         }
     }
 

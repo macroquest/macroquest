@@ -721,7 +721,42 @@ public:
 /*0x0c*/ int m_space;
 /*0x10*/ 
 };
+template<typename T> class IString
+{
+	//yes it has a vftable...
+public:
+/*0x00*/	PVOID vfTable;
+/*0x04*/	T *String;
+/*0x08*/	int Len;
+/*0x0c*/	int Space;
+/*0x14*/
 
+};
+class IString2
+{
+public:
+	/*0x00*/	PVOID vfTable;
+/*0x04*/	char*String;
+/*0x08*/	int Len;
+/*0x0c*/	int Space;
+EQLIB_OBJECT void Append(char *c);
+};
+
+class AtomicInt
+{
+public:
+	volatile int Value;
+};
+template<typename T, int T_SIZE> class IStringFixed : public IString<T>
+{
+public:
+	BYTE FixedData[(T_SIZE * sizeof(T)) + sizeof(AtomicInt)];
+};
+template<int T_SIZE> class StringFixed : public IStringFixed<char, T_SIZE>
+{
+public:
+
+};
 template<typename T, int _Size = 0, bool _bGrow = true> class EQArray : public EQArray<T, 0, true>
 {
     public:

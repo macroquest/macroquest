@@ -1321,6 +1321,9 @@ FUNCTION_AT_ADDRESS(void  CFacePick::CycleThroughFHEB(int,int),CFacePick__CycleT
 #ifdef CFindItemWnd__CFindItemWnd_x
 FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(class CXWnd *),CFindItemWnd__CFindItemWnd);
 #endif
+#ifdef IString__Append_x
+FUNCTION_AT_ADDRESS(void IString2::Append(char *c),IString__Append);
+#endif
 #ifdef CFeedbackWnd__CFeedbackWnd_x
 FUNCTION_AT_ADDRESS( CFeedbackWnd::CFeedbackWnd(class CXWnd *),CFeedbackWnd__CFeedbackWnd);
 #endif

@@ -1691,7 +1691,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcFillRect);
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcLinesFillRect);
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__Draw);
-
+	INITIALIZE_EQGAME_OFFSET(IString__Append);
+	
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
 	#if !defined(EMU)
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);

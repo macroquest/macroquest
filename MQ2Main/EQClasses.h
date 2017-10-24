@@ -3079,6 +3079,58 @@ enum ItemDisplayFlags
 class CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
+	CStmlWnd *pDescription;
+	CStmlWnd *pName;
+	CButtonWnd *pIconButton;
+	CStmlWnd *pLore;
+	CTabWnd *pItemDescriptionTab;
+	CPageWnd *pDescriptionPage;
+	CPageWnd *pLorePage;
+	CSidlScreenWnd *pAppearanceSocketScreen;
+	CButtonWnd *pAppearanceSocketItem;
+	CButtonWnd *pAppearanceSocketBuyButton;
+	CStmlWnd *pAppearanceSocketDescription;
+	CSidlScreenWnd *pItemSocketScreen[6];
+	CButtonWnd *pItemSocketItemButton[6];
+	CStmlWnd *pItemSocketDescription[6];
+	PCXSTR ItemInfo;
+	PCXSTR MoreText;
+	PCXSTR LoreText;
+	PCXSTR CreatorName;
+	PCXSTR BackupTabTitle;
+	PCXSTR SolventText;
+	PCXSTR InformationText;
+	PCONTENTS pCurrentItem;
+	bool bActiveItem;
+    bool bItemTextSet;
+	CTextureAnimation* pTABuffIcons;
+	CTextureAnimation* pTADragIcons;
+	bool bTaggable;
+	bool bFailed;
+	UINT TabCount;
+	CLabel *pModButtonLabel;
+    CStmlWnd *pConvertButtonStml;
+	CLabel *pMadeByLabel;
+	CLabel *pCollectedLabel;
+	int Row;
+	bool bAntiTwink;
+	CButtonWnd *pModButton;
+    CButtonWnd *pConvertButton;
+	bool bCollected;
+	bool bReceivedCollectableStatus;
+	int Group[6];
+	bool bClickedTwink;
+	int HeroicCount;
+	int ItemInfoCount;
+	CLabel *pItemInfoLabel[13];
+	CLabel *pStatLabel[26][3];
+	CLabel *pValueLabel[26][3];
+	CLabel *pHeroicLabel[13];
+	int RightClickMenuID;
+	int RightClickMenuSocketSlot;
+	int WindowID;
+
+
 EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(class CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);
 EQLIB_OBJECT void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags);
@@ -3403,7 +3455,7 @@ public:
 //anything useful in the debugger sometimes if you cursor over it and expand it...
 //So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
 //while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
-#if defined(TEST) || defined(LIVE)
+#if defined(TEST) || defined(LIVE) || defined(BETA)
 /*0x1f0*/ int Filler0x1f0;
 #endif
 /*0x1f4*/ ArrayClass_RO<SListWndLine> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h

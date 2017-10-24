@@ -974,3 +974,6 @@ GNU General Public License for more details.
 
 //CFindItemWnd
 #define CFindItemWnd__CFindItemWnd_x                               0x48D880
+
+//IString
+#define IString__Append_x                                          0x47FE50
