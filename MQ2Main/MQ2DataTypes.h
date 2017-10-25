@@ -4687,6 +4687,7 @@ public:
 		BuffsPopulated = 38,
         MyBuff = 39,
         MyBuffCount = 40,
+		MyBuffDuration = 41,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -4735,6 +4736,7 @@ public:
 		TypeMember(BuffsPopulated);
         TypeMember(MyBuff);
         TypeMember(MyBuffCount);
+		TypeMember(MyBuffDuration);
 	}
 
 	~MQ2TargetType()

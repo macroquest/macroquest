@@ -11571,6 +11571,48 @@ bool MQ2TargetType::GETMEMBER()
         }
         Dest.Type = pIntType;
         return true;
+	case MyBuffDuration:
+		if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
+			return false;
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				DWORD nBuff = GETNUMBER();
+				if (nBuff > NUM_BUFF_SLOTS)
+					return false;
+				if (nBuff >= 1)
+					nBuff--;
+				buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[nBuff];
+				if (GetCharInfo() && buffID && buffID != -1) {
+					if (targetBuffSlotToCasterMap.size() && targetBuffSlotToCasterMap.find(nBuff) != targetBuffSlotToCasterMap.end()) {
+						if (!strcmp(GetCharInfo()->Name, targetBuffSlotToCasterMap[nBuff].c_str())) {
+							Dest.UInt64 = ((PCTARGETWND)pTargetWnd)->BuffTimer[nBuff];
+							Dest.Type = pTimeStampType;
+							return true;
+						}
+					}
+
+				}
+			}
+			else
+			{
+				if (targetBuffSlotToCasterMap.size() && GetCharInfo()) {
+					for (i = 0; i < NUM_BUFF_SLOTS; i++)
+					{
+						if (targetBuffSlotToCasterMap.find(i) != targetBuffSlotToCasterMap.end() && !strcmp(GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str())) {
+							buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+							if (buffID && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST()))) {
+								Dest.UInt64 = ((PCTARGETWND)pTargetWnd)->BuffTimer[i];
+								Dest.Type = pTimeStampType;
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
 	case BuffDuration:
 		if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
 			return false;
