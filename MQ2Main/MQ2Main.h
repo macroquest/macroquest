@@ -851,11 +851,6 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
 //#define MAX_WEAPONS             0x000000ff
 
-#ifndef ISXEQ
-#define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);
-#include "MQ2Auth0.h"
-#endif
-
 EQLIB_API VOID memchecks_tramp(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API VOID memchecks(PCHAR, DWORD, PVOID, DWORD, BOOL);
 
