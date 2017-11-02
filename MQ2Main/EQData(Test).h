@@ -2733,6 +2733,30 @@ typedef struct _CAMERAINFO {
 /*0x20*/
 } CAMERAINFO, *PCAMERAINFO;
 
+//is this possibly my old CAMERAINFO struct? -eqmule
+typedef struct _EQCAMERABASE {
+/*0x000*/ void      *vftable;
+/*0x004*/ float     Y;
+/*0x008*/ float     X;
+/*0x00c*/ float     Z;
+/*0x010*/ float     Orientation_Y;	// old name Heading
+/*0x014*/ float     Orientation_X;	// old name LookAngle
+/*0x018*/ float     Orientation_Z;
+/*0x01c*/ float     OldPosition_Y;
+/*0x020*/ float     OldPosition_X;
+/*0x024*/ float     OldPosition_Z;
+/*0x028*/ float     Heading;
+/*0x02C*/ float     Height;
+/*0x030*/ float     Pitch;
+/*0x034*/ float     Distance;
+/*0x038*/ float     DirectionalHeading;
+/*0x03c*/ float     SideMovement;
+/*0x040*/ float     Zoom;          // old name: ViewAngle
+/*0x044*/ bool      bAutoPitch;
+/*0x045*/ bool      bAutoHeading;
+/*0x046*/ bool      bSkipFrame;
+/*0x048*/
+} EQCAMERABASE,*PEQCAMERABASE;
 
 #define MODEL_LABEL                     0 
 #define MODEL_LABELINFO                 1

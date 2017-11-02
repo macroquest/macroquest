@@ -977,3 +977,7 @@ GNU General Public License for more details.
 
 //IString
 #define IString__Append_x                                          0x47FE50
+
+//Camera
+#define CDisplay__cameraType_x                                     0xE75A18
+#define EverQuest__Cameras_x                                       0xF37D20
