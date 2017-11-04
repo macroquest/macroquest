@@ -596,7 +596,7 @@ class VePointerBase
 public:
     UINT Address;
 };
-template< class T > class VePointer : public VePointerBase
+template< class T > class VePointer// : public VePointerBase
 {
 public:
     T* pObject;

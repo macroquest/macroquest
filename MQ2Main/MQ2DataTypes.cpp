@@ -9121,7 +9121,7 @@ bool MQ2MerchantType::GETMEMBER()
 {
 	if (!pActiveMerchant || !pMerchantWnd)
 		return false;
-#define pMerch ((PEQMERCHWINDOW)pMerchantWnd)
+	PEQMERCHWINDOW pMerch = ((PEQMERCHWINDOW)pMerchantWnd);
 	PMQ2TYPEMEMBER pMember = MQ2MerchantType::FindMember(Member);
 	if (!pMember)
 	{
@@ -9147,9 +9147,13 @@ bool MQ2MerchantType::GETMEMBER()
 					int nIndex = GETNUMBER() - 1;
 					if (nIndex < 0)
 						return false;
-					if (nIndex < (int)pMerch->pMerchOther->pMerchData->MerchSlots)
+					if (nIndex < (int)pMerch->pMerchOther->pMerchData->MerchMaxSlots)
 					{
+#ifdef BETA
+						if (Dest.Ptr = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex].pCont)
+#else
 						if (Dest.Ptr = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+#endif
 						{
 							Dest.Type = pItemType;
 							return true;
@@ -9170,9 +9174,13 @@ bool MQ2MerchantType::GETMEMBER()
 					strcpy_s(szNameTemp, pName1);
 					_strlwr_s(szNameTemp);
 					CHAR Temp[MAX_STRING] = { 0 };
-					for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots; nIndex++)
+					for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchMaxSlots; nIndex++)
 					{
+#ifdef BETA
+						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex].pCont)
+#else
 						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+#endif
 						{
 							if (bExact)
 							{
@@ -9204,7 +9212,7 @@ bool MQ2MerchantType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		if (pMerch && pMerch->pMerchOther && pMerch->pMerchOther->pMerchData) {
-			Dest.DWord = pMerch->pMerchOther->pMerchData->MerchSlots;
+			Dest.DWord = pMerch->pMerchOther->pMerchData->MerchMaxSlots;
 		}
 		Dest.Type = pIntType;
 		return true;
@@ -9216,14 +9224,18 @@ bool MQ2MerchantType::GETMEMBER()
 	case Full:
 		if (pMerch && pMerch->pMerchOther && pMerch->pMerchOther->pMerchData) {
 			Dest.DWord = 1;
-			if (pMerch->pMerchOther->pMerchData->MerchSlots < 0x80) {
+			if (pMerch->pMerchOther->pMerchData->MerchMaxSlots < 0x80) {
 				Dest.DWord = 0;
 				Dest.Type = pBoolType;
 				return true;
 			}
-			for (unsigned long N = 0; N < pMerch->pMerchOther->pMerchData->MerchSlots; N++)
+			for (unsigned long N = 0; N < pMerch->pMerchOther->pMerchData->MerchMaxSlots; N++)
 			{
+#ifdef BETA
+				if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N].pCont)
+#else
 				if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N])
+#endif
 				{
 					Dest.DWord = 0;
 					break;
@@ -9237,14 +9249,134 @@ bool MQ2MerchantType::GETMEMBER()
 	return false;
 #undef pMerch
 }
-
+#ifdef BETA
 bool MQ2PointMerchantItemType::GETMEMBER()
 {
-	if (!VarPtr.Int)
+	CMerchantWnd *pMerch = (CMerchantWnd *)pMerchantWnd;
+	if (!pMerch)
 		return false;
+	if (VarPtr.Int < 0 || VarPtr.Int > pMerch->PageHandlers.Begin->pObject->ItemContainer.m_length)
+		return false;
+
 	int index = VarPtr.Int;
-	PointMerchantWnd *pPointWnd = (PointMerchantWnd *)pPointMerchantWnd;
 	PMQ2TYPEMEMBER pMember = MQ2PointMerchantItemType::FindMember(Member);
+
+	if (!pMember)
+		return false;
+	PITEMINFO pItem = 0;
+	PCONTENTS pCont = 0;
+	if (pCont = pMerch->PageHandlers.Begin->pObject->ItemContainer.m_array[index].pCont) {
+		pItem = GetItemFromContents(pCont);
+	}
+	switch ((PointMerchantItemMembers)pMember->ID)
+	{
+	case Name:
+		strcpy_s(DataTypeTemp, pItem->Name);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	case ItemID:
+		Dest.Int = pCont->ID;
+		Dest.Type = pIntType;
+		return true;
+	case Price:
+		if (pItem->LDTheme)
+			Dest.Int = pItem->LDCost;
+		else
+			Dest.Int = pCont->Price;
+		Dest.Type = pIntType;
+		return true;
+	case ThemeID:
+		Dest.Int = pItem->LDTheme;
+		Dest.Type = pIntType;
+		return true;
+	case IsStackable:
+		Dest.Int = ((EQ_Item*)pCont)->IsStackable();
+		Dest.Type = pBoolType;
+		return true;
+	case IsLore:
+		Dest.Int = pItem->Lore;
+		Dest.Type = pBoolType;
+		return true;
+	case RaceMask:
+		Dest.Int = pItem->Races;
+		Dest.Type = pIntType;
+		return true;
+	case ClassMask:
+		Dest.Int = pItem->Classes;
+		Dest.Type = pIntType;
+		return true;
+	case CanUse:
+		Dest.Int = 0;//neeed ::CanUseItem
+		Dest.Type = pBoolType;
+		return true;
+	}
+	return false;
+}
+bool MQ2PointMerchantType::GETMEMBER()
+{
+	if (!pMerchantWnd)
+		return false;
+	CMerchantWnd *pMercWnd = (CMerchantWnd *)pMerchantWnd;
+	PEQMERCHWINDOW peqMercWnd = (PEQMERCHWINDOW)pMerchantWnd;
+	int k = 0;
+	PCONTENTS pitem = peqMercWnd->pMerchOther->pMerchData->pMerchArray->Array[k].pCont;
+	PMQ2TYPEMEMBER pMember = MQ2PointMerchantType::FindMember(Member);
+	if (!pMember)
+	{
+#ifndef ISXEQ
+		return pSpawnType->GetMember(*(MQ2VARPTR*)&pActiveMerchant, Member, Index, Dest);
+#else
+		return pSpawnType->GetMember(*(LSVARPTR*)&pActiveMerchant, Member, argc, argv, Dest);
+#endif
+	}
+
+	switch ((PointMerchantMembers)pMember->ID)
+	{
+		//for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots; nIndex++)
+					//{
+						//if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+	case Item:
+		if (ISNUMBER()) {
+			int index = GETNUMBER() - 1;
+			if (index >= 0 && index < pMercWnd->PageHandlers.Begin->pObject->ItemContainer.m_length) {
+				Dest.Int = index;
+				Dest.Type = pPointMerchantItemType;
+				return true;
+			}
+		}
+		else {
+			if (GETFIRST()[0] != '\0') {
+				for (int i = 0; i < pMercWnd->PageHandlers.Begin->pObject->ItemContainer.m_length; i++) {
+					//pMercWnd->PageHandlers.Begin->pObject->Items.Items[i];
+					//pMerc->PageHandlers.Begin->pObject->Items.Items.Begin[1].pObject;
+					auto name = pMercWnd->PageHandlers.Begin->pObject->ItemContainer.m_array[i].pCont->Item2->Name;
+					if (!_stricmp(name, GETFIRST())) {
+						Dest.Int = i;
+						Dest.Type = pPointMerchantItemType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+#else 
+bool MQ2PointMerchantItemType::GETMEMBER()
+{
+	PointMerchantWnd *pPointWnd = (PointMerchantWnd *)pPointMerchantWnd;
+	if (!pPointWnd)
+		return false;
+
+	if (VarPtr.Int < 0 || VarPtr.Int > pPointWnd->ItemList->ItemsArray.Count)
+		return false;
+
+	int index = VarPtr.Int;
+	PMQ2TYPEMEMBER pMember = MQ2PointMerchantItemType::FindMember(Member);
+	#ifdef BETA
+	return false;
+#endif
 	if (!pMember)
 		return false;
 	switch ((PointMerchantItemMembers)pMember->ID)
@@ -9329,7 +9461,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 	}
 	return false;
 }
-
+#endif
 bool MQ2MercenaryType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)

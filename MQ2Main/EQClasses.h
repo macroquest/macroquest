@@ -3746,9 +3746,189 @@ public:
 	int SliderType;
 	void *pHandler;//PointMerchantInterface*
 };
-class CMerchantWnd : public CSidlScreenWnd
+
+class VeBaseReferenceCount
 {
 public:
+	DWORD vfTable;
+    int References;
+};
+
+class WndEventHandler
+{
+public:
+	UINT LastCheckTime;
+	UINT Filler;
+};
+class CMerchantWnd : public CSidlScreenWnd, public WndEventHandler
+{
+public:
+#ifndef BETA
+	template <typename TItem> class ItemContainer
+	{
+	public:
+	/*0x00*/	UINT Size;//see 87DFAB in Nov 03 2017 Beta
+	/*0x04*/	int Spec;
+	/*0x08*/	VeArray<VePointer<TItem>> Items;//size 0xc
+	/*0x14*/	BYTE AtDepth;
+	/*0x16*/	short Slots[2];
+	/*0x1a*/	bool bDynamic;
+	/*0x1C*/
+	};
+	class ItemBaseContainer : public ItemContainer<CONTENTS>
+	{
+	public:
+		//size is 0x1c
+	};
+	class MerchantPageHandler : public VeBaseReferenceCount
+	{
+	public:
+	/*0x08*/ CMerchantWnd *pParent;
+	/*0x0c*/ ItemBaseContainer ItemContainer;//size 0x1c
+	/*0x28*/ int MaxItems;
+	/*0x2c*/ int LastIndex;
+	/*0x30*/ CListWnd* ItemsList;
+	/*0x34*/ CPageWnd* Page;
+	/*0x38*/ bool bListNeedsRefresh;
+	/*0x3c*/ 
+	};
+	class PurchasePageHandler : public MerchantPageHandler
+	{
+	public:
+	/*0x3c*/ bool bShowAllItems;
+	/*0x40*/
+	};
+/*0x228*/ UINT NextRefreshTime;
+/*0x22c*/ bool bInventoryWasActive;
+/*0x238*/ VeArray<VePointer<MerchantPageHandler>> PageHandlers;
+/*0x244*/ float MerchantGreed;
+/*0x248*/ ItemGlobalIndex ItemLocation;
+/*0x258*/ VePointer<CONTENTS>pSelectedItem;
+/*0x25c*/ __time32_t MailExpireTime;
+/*0x260*/ bool bAutoRetrieveingMail;
+/*0x264*/ CLabel *plabelMerchantName;
+	CLabel *plabelSelectedItem;
+	CLabel *plabelSelectedPrice;
+	CButtonWnd  *InspectButton;
+	CButtonWnd  *PreviewButton;
+    CButtonWnd  *SelectedItemLabel;
+    CButtonWnd  *BuyButton;
+    CButtonWnd  *SellButton;
+/*0x2dc*/ CButtonWnd	*RecoverButton;
+/*0x2e0*/ CButtonWnd	*RetrieveButton;
+/*0x2e4*/ CButtonWnd	*RetrieveAllButton;
+/*0x2e8*/ CButtonWnd	*SendButton;
+/*0x2f0*/ CLabel	*SendToLabel;
+/*0x2f4*/ CEditWnd	*SendToEdit;
+/*0x2f8*/ CLabel      *NoteLabel;
+/*0x2fc*/ CEditWnd    *NoteEdit;
+/*0x300*/ CButtonWnd	*ClearNoteButton;
+/*0x304*/ CListWnd	*ItemsList;//at 0x304 for sure! see 742D04 Nov 03 2017 Beta -eqmule
+/*0x308*/ CListWnd	*ItemsRecoveryList;
+/*0x30c*/ CListWnd	*ItemsMailList;
+/*0x310*/ CButtonWnd	*DoneButton;
+/*0x314*/ CPageWnd	*PurchasePage;
+/*0x318*/ CPageWnd	*RecoveryPage;
+/*0x31c*/ CPageWnd	*MailPage;
+/*0x320*/ CTabWnd	*TabWindow;
+/*0x324*/ CButtonWnd	*UsableButton;
+#else
+	class MerchantPageHandler : public VeBaseReferenceCount
+	{
+	public:
+	/*0x08*/ CMerchantWnd *pParent;
+	/*0x0c*/ int MaxItems;
+	/*0x10*/ int LastIndex;
+	/*0x14*/ CListWnd	*ItemsList;
+	/*0x18*/ CPageWnd	*PurchasePage;
+	/*0x1c*/ bool bListNeedsRefresh;
+	/*0x20*/ EQArray<_CONTENTDATA> ItemContainer;
+	/*0x40*/ int Unknown0x40;
+	/*0x44*/ int Unknown0x44;
+	/*0x48*/ int Unknown0x48;
+	/*0x4c*/ int Unknown0x4c;
+	/*0x50*/ int Unknown0x50;
+	/*0x54*/ int Unknown0x54;
+	/*0x58*/ int Unknown0x58;
+	/*0x5c*/ int Unknown0x5c;
+	/*0x60*/ int Unknown0x60;
+	/*0x64*/ int Unknown0x64;
+	/*0x68*/ int Unknown0x68;
+	/*0x6c*/ int Unknown0x6c;
+	/*0x70*/ int Unknown0x70;
+	/*0x74*/ int Unknown0x74;
+	/*0x78*/ int Unknown0x78;
+	/*0x7c*/ int Unknown0x7c;
+	/*0x80*/ int Unknown0x80;
+	/*0x84*/ 
+	};
+	class PurchasePageHandler : public MerchantPageHandler
+	{
+	public:
+	/*0x84*/ bool bShowAllItems;
+	/*0x88*/ int Unknown0x88;
+	/*0x8c*/ int Unknown0x8c;
+	/*0x90*/ int Unknown0x90;
+	/*0x94*/ int Unknown0x94;
+	/*0x98*/ int Unknown0x98;
+	/*0x9c*/ int Unknown0x9c;
+	/*0xa0*/ int Unknown0xa0;
+	/*0xa4*/ int Unknown0xa4;
+	/*0xa8*/
+	};
+//size 0x420 in Nov 02 2017 Beta  -eqmule
+/*0x230*/ UINT NextRefreshTime;
+/*0x234*/ bool bInventoryWasActive;
+/*0x240*/ VeArray<VePointer<MerchantPageHandler>> PageHandlers;
+/*0x24c*/ float MerchantGreed;
+/*0x250*/ ItemGlobalIndex ItemLocation;//size 0xc
+/*0x25c*/ BYTE Unknown0x254[0x8];
+/*0x264*/ VePointer<CONTENTS>pSelectedItem;
+/*0x268*/ __time32_t MailExpireTime;
+/*0x26c*/ bool bAutoRetrieveingMail;
+/*0x270*/ BYTE Unknown0x268[0x10];
+/*0x280*/ PCHAR Labels[0xc];
+/*0x2b0*/ CEditWnd    *SearchEdit;//0x2b0 for sure
+/*0x2b4*/ CButtonWnd  *SearchButton;
+/*0x2b8*/ CLabel *MerchantNameLabel;
+/*0x2bc*/ CLabel *SelectedItemLabel;
+/*0x2c0*/ CLabel *SelectedPriceLabel;
+/*0x2c4*/ CButtonWnd  *InspectButton;
+/*0x2c8*/ CButtonWnd  *PreviewButton;
+/*0x2cc*/ CButtonWnd  *SelectedItemButton;
+/*0x2d0*/ CButtonWnd  *BuyButton;
+/*0x2d4*/ CButtonWnd  *BuyMarketPlaceButton;
+/*0x2d8*/ CButtonWnd  *SellButton;
+/*0x2dc*/ CButtonWnd	*RecoverButton;
+/*0x2e0*/ CButtonWnd	*RetrieveButton;
+/*0x2e4*/ CButtonWnd	*RetrieveAllButton;
+/*0x2e8*/ CButtonWnd	*SendButton;
+/*0x2ec*/ CButtonWnd	*AdventureButton;
+/*0x2f0*/ CLabel		*SendToLabel;
+/*0x2f4*/ CEditWnd	*SendToEdit;
+/*0x2f8*/ CLabel      *NoteLabel;
+/*0x2fc*/ CEditWnd    *NoteEdit;
+/*0x300*/ CButtonWnd	*ClearNoteButton;
+/*0x304*/ CListWnd	*ItemsList;//at 0x304 for sure! see 742D04 Nov 03 2017 Beta -eqmule
+/*0x308*/ CListWnd	*ItemsRecoveryList;
+/*0x30c*/ CListWnd	*ItemsMailList;
+/*0x310*/ CButtonWnd	*DoneButton;
+/*0x314*/ CPageWnd	*PurchasePage;
+/*0x318*/ CPageWnd	*RecoveryPage;
+/*0x31c*/ CPageWnd	*MailPage;
+/*0x320*/ CTabWnd		*TabWindow;
+/*0x324*/ CButtonWnd	*UsableButton;
+/*0x328*/ CLabel		*CurrentCurrencyLabel;
+/*0x32c*/ int Unknown0x32c;
+/*0x330*/ int Unknown0x330;
+/*0x334*/ int Unknown0x334;
+/*0x338*/ int Unknown0x338;
+/*0x33C*/ int Unknown0x33C;
+/*0x340*/ int Guk_Currency;
+/*0x344*/ BYTE Unknown0x340[0x100];
+/*0x444*/
+#endif
+
 EQLIB_OBJECT CMerchantWnd::CMerchantWnd(class CXWnd *);
 EQLIB_OBJECT void CMerchantWnd::Activate(class EQPlayer *,float);
 EQLIB_OBJECT void CMerchantWnd::AddContainerToMercArray(class EQ_Container *);
