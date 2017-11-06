@@ -1200,7 +1200,7 @@ public:
 /*0x18*/
 };
 
-class ItemBaseContainer : public ItemContainer<PCONTENTS>
+class ItemBaseContainer : public ItemContainer<CONTENTS>
 {
 public:
 
