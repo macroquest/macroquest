@@ -4660,7 +4660,7 @@ typedef struct _GROUPAGGRO {
 /*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
 } GROUPAGGRO, *PGROUPAGGRO;
 
-#define EQ_ASSIST_COMPLETE              0x4592   // aMsg_time_stamp
+#define EQ_ASSIST_COMPLETE              0x68d2   // aMsg_time_stamp
 #define EQ_BEGIN_ZONE                   0x2E56   // CEverQuest__SavePCForce
 #define EQ_END_ZONE                     0x5711   // CEverQuest__DoMainLoop+B2F
 #define EQ_ASSIST                       0x40B4   // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
