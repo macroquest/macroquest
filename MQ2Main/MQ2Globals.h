@@ -1147,7 +1147,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEverQuest__DeleteTargetIndicator;
 	EQLIB_VAR DWORD CFindItemWnd__CFindItemWnd;
 	EQLIB_VAR DWORD IString__Append;
-	
+	EQLIB_VAR DWORD CDisplay__cameraType;
+	EQLIB_VAR DWORD EverQuest__Cameras;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
@@ -1502,6 +1503,9 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gUseTradeOnTarget;
 	EQLIB_VAR BOOL gbBeepOnTells;
 	EQLIB_VAR BOOL gbFlashOnTells;
+	EQLIB_VAR BOOL gbShowCurrentCamera;
+	EQLIB_VAR int  oldcameratype;
+	EQLIB_VAR CHAR CameraText[2048];
 	EQLIB_VAR BOOL gbIgnoreAlertRecursion;
 	
 	EQLIB_VAR DWORD IconCache__GetIcon;

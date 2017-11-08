@@ -9149,7 +9149,7 @@ bool MQ2MerchantType::GETMEMBER()
 						return false;
 					if (nIndex < (int)pMerch->pMerchOther->pMerchData->MerchMaxSlots)
 					{
-#ifdef BETA
+#if defined(BETA) || defined(TEST)
 						if (Dest.Ptr = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex].pCont)
 #else
 						if (Dest.Ptr = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
@@ -9176,7 +9176,7 @@ bool MQ2MerchantType::GETMEMBER()
 					CHAR Temp[MAX_STRING] = { 0 };
 					for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchMaxSlots; nIndex++)
 					{
-#ifdef BETA
+#if defined(BETA) || defined(TEST)
 						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex].pCont)
 #else
 						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
@@ -9231,7 +9231,7 @@ bool MQ2MerchantType::GETMEMBER()
 			}
 			for (unsigned long N = 0; N < pMerch->pMerchOther->pMerchData->MerchMaxSlots; N++)
 			{
-#ifdef BETA
+#if defined(BETA) || defined(TEST)
 				if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N].pCont)
 #else
 				if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N])
@@ -9249,7 +9249,7 @@ bool MQ2MerchantType::GETMEMBER()
 	return false;
 #undef pMerch
 }
-#ifdef BETA
+#if defined(BETA) || defined(TEST)
 bool MQ2PointMerchantItemType::GETMEMBER()
 {
 	CMerchantWnd *pMerch = (CMerchantWnd *)pMerchantWnd;
@@ -9374,9 +9374,6 @@ bool MQ2PointMerchantItemType::GETMEMBER()
 
 	int index = VarPtr.Int;
 	PMQ2TYPEMEMBER pMember = MQ2PointMerchantItemType::FindMember(Member);
-	#ifdef BETA
-	return false;
-#endif
 	if (!pMember)
 		return false;
 	switch ((PointMerchantItemMembers)pMember->ID)

@@ -2510,7 +2510,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-#ifdef BETA
+#if defined(BETA) || defined(TEST)
 		CMerchantWnd *pcm = (CMerchantWnd*)pMerchantWnd;
 		PEQMERCHWINDOW peqm = (PEQMERCHWINDOW)pMerchantWnd;
 		if (pcm)
@@ -2570,7 +2570,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-#ifdef BETA
+#if defined(BETA) || defined(TEST)
 		if (pMerchantWnd && pMerchantWnd->dShow)
 #else
 		if (pPointMerchantWnd && pPointMerchantWnd->dShow)

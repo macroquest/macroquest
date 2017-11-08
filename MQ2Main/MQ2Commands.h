@@ -108,5 +108,6 @@ LEGACY_API VOID AssistCmd                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID InvokeCmd                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SetProcessPriority                  (PSPAWNINFO,PCHAR);
 LEGACY_API VOID ScreenModeCmd                       (PSPAWNINFO,PCHAR);
+LEGACY_API VOID UserCameraCmd                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PluginCmdSort                       (VOID);
 #endif

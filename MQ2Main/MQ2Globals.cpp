@@ -234,7 +234,7 @@ namespace MQ2Globals
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
-		#ifndef BETA
+		#if !defined(BETA) && !defined(TEST)
 		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
 		#endif
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
@@ -1070,7 +1070,9 @@ namespace MQ2Globals
 	BOOL gbBeepOnTells = 0;
 	BOOL gbFlashOnTells = 0;
 	BOOL gbIgnoreAlertRecursion = 0;
-
+	BOOL gbShowCurrentCamera = 1;
+	int  oldcameratype = 0;
+	CHAR CameraText[2048] = { "Window Selector (Camera 0)" };
 	PVOID EQADDR_GWORLD = 0;
 	PDWORD EQADDR_DOABILITYLIST = 0;
 
@@ -1508,7 +1510,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCLFGuildWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCMIZoneSelectWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCConfirmationDialog);
-	#ifndef BETA
+	#if !defined(BETA) && !defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(pinstCPointMerchantWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCPopupWndManager);
@@ -1695,7 +1697,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcLinesFillRect);
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__Draw);
 	INITIALIZE_EQGAME_OFFSET(IString__Append);
-	
+	INITIALIZE_EQGAME_OFFSET(CDisplay__cameraType);
+	INITIALIZE_EQGAME_OFFSET(EverQuest__Cameras);
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
 	#if !defined(EMU)
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);

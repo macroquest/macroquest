@@ -140,6 +140,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",1,Filename);
     gbFlashOnTells = 1==GetPrivateProfileInt("MacroQuest","FlashOnTells",1,Filename);
 	gbIgnoreAlertRecursion = 1==GetPrivateProfileInt("MacroQuest","IgnoreAlertRecursion",0,Filename);
+	gbShowCurrentCamera = 1==GetPrivateProfileInt("MacroQuest","ShowCurrentCamera",1,Filename);	
 	gTurboLimit = GetPrivateProfileInt("MacroQuest","TurboLimit",240,Filename);
 	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
 	gNetStatusXPos = GetPrivateProfileInt("MacroQuest","NetStatusXPos",0,Filename);

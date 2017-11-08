@@ -4418,4 +4418,138 @@ VOID ScreenModeCmd(PSPAWNINFO pChar, char *szLine)
 	ScreenMode = newprio;
 	WriteChatf("Screen Mode Set to \ag%d\ax", newprio);
 }
+template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+{
+	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
+	if (!err) {
+		return _Buffer;
+	}
+	return "";
+}
+template <unsigned int _Size>char* ftoa_s(float fNum, char(&szText)[_Size])
+{
+    sprintf_s(szText, "%.2f", fNum);
+    return szText;
+}
+// ***************************************************************************
+// Function:    UserCameraCmd
+// Description: '/usercamera' command
+// Purpose:     Adds the ability to load and save the User 1 Camera
+// Example:		/usercamera on/off toggle the camera text in the Window Selector on/off
+// Example:		/usercamera save saves the user 1 camera settings
+// Example:		/usercamera load loades the user 1 camera settings
+// Author:      EqMule
+// ***************************************************************************
+#define EQ_USER_CAM_1 3
+VOID UserCameraCmd(PSPAWNINFO pChar, char *szLine)
+{
+	if(szLine && szLine[0]=='\0') {
+		WriteChatf("Usage: /usercamera 0-7 sets camera to the number specified.");
+		WriteChatf("Usage: /usercamera save <optional charname> to save the user 1 camera");
+		WriteChatf("Usage: /usercamera load <optional charname> to load your saved user 1 camera");
+		WriteChatf("Usage: /usercamera on/off to toggle Window Selector Display of Current Camera");
+		return;
+	}
+	CHAR szArg1[2048] = { 0 };
+	CHAR szArg2[2048] = { 0 };
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+	PEQCAMERABASE pUserCam1 = (PEQCAMERABASE)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
+	CHAR szTemp[2048] = { 0 };
+	if (!_stricmp(szArg1, "0")) {
+		*(DWORD*)CDisplay__cameraType = 0;
+	} else if (!_stricmp(szArg1, "0")) {
+		*(DWORD*)CDisplay__cameraType = 0;
+	} else if (!_stricmp(szArg1, "1")) {
+		*(DWORD*)CDisplay__cameraType = 1;
+	} else if (!_stricmp(szArg1, "2")) {
+		*(DWORD*)CDisplay__cameraType = 2;
+	} else if (!_stricmp(szArg1, "3")) {
+		*(DWORD*)CDisplay__cameraType = 3;
+	} else if (!_stricmp(szArg1, "4")) {
+		*(DWORD*)CDisplay__cameraType = 4;
+	} else if (!_stricmp(szArg1, "5")) {
+		*(DWORD*)CDisplay__cameraType = 5;
+	} else if (!_stricmp(szArg1, "6")) {
+		*(DWORD*)CDisplay__cameraType = 6;
+	} else if (!_stricmp(szArg1, "7")) {
+		*(DWORD*)CDisplay__cameraType = 7;
+	} else if (!_stricmp(szArg1, "on")) {
+		gbShowCurrentCamera = 1;
+		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "1", gszINIFilename);
+		if (pSelectorWnd) {
+			CHAR szOut[2048] = { 0 };
+			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
+			SetCXStr(&pSelectorWnd->WindowText, szOut);
+		}
+	} else if (!_stricmp(szArg1, "off")) {
+		gbShowCurrentCamera = 0;
+		if (pSelectorWnd) {
+			SetCXStr(&pSelectorWnd->WindowText, "Selector Window");
+		}
+		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", gszINIFilename);
+	} else if (!_stricmp(szArg1, "save")) {
+		CHAR szIniFile[2048] = { 0 };
+		strcpy_s(szIniFile, gszINIFilename);
+		if (szArg2 && szArg2[0] != '\0') {
+			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
+		}
+		WritePrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10), szIniFile);
+		WritePrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10), szIniFile);
+		WritePrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Distance", ftoa_s(pUserCam1->Distance, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Heading", ftoa_s(pUserCam1->Heading, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Height", ftoa_s(pUserCam1->Height, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Pitch", ftoa_s(pUserCam1->Pitch, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szIniFile);
+        WritePrivateProfileString("User Camera 1",   "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szIniFile);
+	} else if (!_stricmp(szArg1, "load")) {
+		CHAR szIniFile[2048] = { 0 };
+		strcpy_s(szIniFile, gszINIFilename);
+		CHAR szOut[2048] = { 0 };
+		if (szArg2 && szArg2[0] != '\0') {
+			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
+		}
+		GetPrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10),szOut,2048, szIniFile);
+		pUserCam1->bAutoHeading = atoi(szOut)!=0;
+		GetPrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10),szOut,2048, szIniFile);
+		pUserCam1->bAutoPitch = atoi(szOut)!=0;
+		GetPrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10),szOut,2048, szIniFile);
+		pUserCam1->bSkipFrame = atoi(szOut)!=0;
+		GetPrivateProfileString("User Camera 1", "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp),szOut,2048, szIniFile);
+		pUserCam1->DirectionalHeading = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Distance", ftoa_s(pUserCam1->Distance, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Distance = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Heading", ftoa_s(pUserCam1->Heading, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Heading = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Height", ftoa_s(pUserCam1->Height, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Height = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp),szOut,2048, szIniFile);
+		pUserCam1->OldPosition_X = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp),szOut,2048, szIniFile);
+		pUserCam1->OldPosition_Y = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp),szOut,2048, szIniFile);
+		pUserCam1->OldPosition_Z = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Orientation_X = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Orientation_Y = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Orientation_Z = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Pitch", ftoa_s(pUserCam1->Pitch, szTemp),szOut,2048, szIniFile);
+		pUserCam1->Pitch = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp),szOut,2048, szIniFile);
+		pUserCam1->SideMovement = (float)atof(szOut);
+		GetPrivateProfileString("User Camera 1", "Zoom", ftoa_s(pUserCam1->Zoom, szTemp),szOut,2048,szIniFile);
+		pUserCam1->Zoom = (float)atof(szOut);
+		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
+	}
+}
 #endif

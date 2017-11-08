@@ -1393,6 +1393,11 @@ void HandleWindows()
 					if (pWnd)
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					return;
+				} else if (szTemp[0] && strstr(szTemp, "Invalid Session")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
 				}
 			}
 			return;

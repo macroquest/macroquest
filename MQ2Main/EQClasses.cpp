@@ -2350,7 +2350,7 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd_
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
 #endif
 #ifdef CMerchantWnd__ActualSelect_x
-	#ifdef BETA
+	#if defined(BETA) || defined(TEST)
 		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *, int Unknown),CMerchantWnd__ActualSelect);
 	#else
 		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *),CMerchantWnd__ActualSelect);

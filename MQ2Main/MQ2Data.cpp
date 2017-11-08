@@ -2097,7 +2097,7 @@ TLO(dataAlert)
 }
 TLO(dataPointMerchant)
 {
-#ifdef BETA 
+#if defined(BETA) || defined(TEST)
 	if (pMerchantWnd)
 	{
 		Ret.Ptr = pMerchantWnd;

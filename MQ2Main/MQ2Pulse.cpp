@@ -286,7 +286,15 @@ void Pulse()
 		if (szAutoRun[0] != 0)
 			DoCommand(pChar, pAutoRun);
 	}
-
+	if (gbShowCurrentCamera) {
+		if (pWndMgr && pSelectorWnd) {
+			if (oldcameratype != *(DWORD*)CDisplay__cameraType) {
+				oldcameratype = *(DWORD*)CDisplay__cameraType;
+				sprintf_s(CameraText, "Selector Window (Camera %d)", oldcameratype);
+			}
+			SetCXStr(&pSelectorWnd->WindowText, CameraText);
+		}
+	}
 	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
 		TurnNotDone = FALSE;
 		if (gFaceAngle != 10000.0f) {
