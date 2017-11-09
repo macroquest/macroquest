@@ -693,6 +693,7 @@ void InitializeMQ2Commands()
 		{"/setprio",    SetProcessPriority,1,0},
 		{"/screenmode", ScreenModeCmd,1,0},
 		{"/usercamera", UserCameraCmd,1,0},
+		{"/mapzoom",    MapZoomCmd,1,0},
 		
         {NULL,          NULL,0,1},
     };

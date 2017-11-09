@@ -2320,7 +2320,7 @@ FUNCTION_AT_ADDRESS(void  MapViewMap::JoinLinesAtIntersect(bool),MapViewMap__Joi
 FUNCTION_AT_ADDRESS(void  MapViewMap::SetZoneExtents(int,int,int,int),MapViewMap__SetZoneExtents);
 #endif
 #ifdef MapViewMap__SetZoom_x
-FUNCTION_AT_ADDRESS(void  MapViewMap::SetZoom(float),MapViewMap__SetZoom);
+FUNCTION_AT_ADDRESS(void MapViewMap::SetZoom(float),MapViewMap__SetZoom);
 #endif
 #ifdef MapViewMap__GetMinZ_x
 FUNCTION_AT_ADDRESS(int  MapViewMap::GetMinZ(void),MapViewMap__GetMinZ);

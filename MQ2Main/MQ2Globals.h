@@ -1480,7 +1480,8 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD MapViewMap__Clear;
 	EQLIB_VAR DWORD MapViewMap__SaveEx;
-
+	EQLIB_VAR DWORD MapViewMap__SetZoom;
+	
 	EQLIB_VAR DWORD PlayerPointManager__GetAltCurrency;
 
 	EQLIB_VAR DWORD StringTable__getString;

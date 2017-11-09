@@ -844,6 +844,7 @@ GNU General Public License for more details.
 // MapViewMap 
 #define MapViewMap__Clear_x                                        0x7138E0
 #define MapViewMap__SaveEx_x                                       0x716C10
+#define MapViewMap__SetZoom_x                                      0x713560
 
 #define PlayerPointManager__GetAltCurrency_x                       0x872430
 

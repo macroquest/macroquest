@@ -2025,7 +2025,8 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(MapViewMap__Clear);
 	INITIALIZE_EQGAME_OFFSET(MapViewMap__SaveEx);
-
+	INITIALIZE_EQGAME_OFFSET(MapViewMap__SetZoom);
+	
 	INITIALIZE_EQGAME_OFFSET(PlayerPointManager__GetAltCurrency);
 
 	INITIALIZE_EQGAME_OFFSET(StringTable__getString);
