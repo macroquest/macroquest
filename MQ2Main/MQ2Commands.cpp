@@ -4587,7 +4587,7 @@ VOID MapZoomCmd(PSPAWNINFO pChar, char *szLine)
 		//todo: get the formulae right...
 		float theabs = fTemp / 360.0f / (fZoom + 1) * 10000;
 		int Range = (int)fTemp;
-		((MapViewMap*)&pMap->pMapViewMapVfTable)->SetZoom(theabs);
+		((MapViewMap*)pMapView)->SetZoom(theabs);
 	}
 }
 #endif
