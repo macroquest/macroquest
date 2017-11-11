@@ -1187,7 +1187,7 @@ FUNCTION_AT_ADDRESS(bool  CContainerWnd::ContainsNoDrop(void),CContainerWnd__Con
 FUNCTION_AT_ADDRESS(class CXRect  CXRect::operator|(class CXRect)const ,CXRect__operator_or);
 #endif
 #ifdef CContextMenu__CContextMenu_x
-FUNCTION_AT_ADDRESS( CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &),CContextMenu__CContextMenu);
+FUNCTION_AT_ADDRESS( CContextMenu::CContextMenu(CXWnd *pParent, unsigned __int32 MenuID, const CXRect& rect),CContextMenu__CContextMenu);
 #endif
 #ifdef CContextMenu__dCContextMenu_x
 FUNCTION_AT_ADDRESS( CContextMenu::~CContextMenu(void),CContextMenu__dCContextMenu);

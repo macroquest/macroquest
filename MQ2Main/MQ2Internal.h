@@ -544,35 +544,9 @@ namespace MQ2Internal {
 	
 	class CCustomMenu : public CContextMenu
 	{
-	public:
-		CCustomMenu(CXRect rect):CContextMenu(0,0,rect)
+	public://class CXWnd *,unsigned __int32,class CXRect const &
+		CCustomMenu(CXWnd *pParent, unsigned __int32 MenuID, const CXRect& rect):CContextMenu(pParent,MenuID,rect)
 		{
-			this->CurSel = -1;
-			this->DownItem = -1;
-			this->SortCol = -1;
-			this->bSortAsc = true;
-			this->ScrollOffsetY = 0;
-			this->bOwnerDraw = false;
-			this->bCalcHeights = false;
-			//this->HeaderHeight = CTextureFont_GetHeight(3) + 4;
-			this->CRNormal = RGB(255, 255, 255);
-			this->WindowStyle |= 0x40;//add BORDER
-			this->WindowStyle &= (~0x400);//remove TRANSPARENT
-			this->WindowStyle |= 0x1;//add VSCROLL
-			this->WindowStyle |= 0x80000;//add AUTOVSCROLL
-			this->FirstVisibleLine = 0;
-			this->bFixedHeight = true;
-			//this->LineHeight =  CTextureFont_GetHeight(3);
-			this->pEditCell = 0;
-			//Add columns etc...
-			//
-			//
-			this->ListWndStyle = 0x00010000;//selectable
-			this->ZLayer = 1000;//default for contextmenus...
-			this->NumItems = 0;
-			this->CloseOnESC = false;
-			this->bEscapableLocked = true;
-
 			ReplacevfTable();
 		};
 

@@ -1620,9 +1620,24 @@ EQLIB_OBJECT void CContainerWnd::Init(void);
 
 
 
-class CContextMenuManager
+class CContextMenuManager : public CXWnd
 {
 public:
+	CXWnd *pParentMenuWnd;
+    CContextMenu *pCurrMenus[8];
+    int		NumVisibleMenus;
+    int		CurrMenu;
+    CContextMenu	*pMenus[0x400];
+    int		NumMenus;
+    CXWnd*	pHandlerWnd;
+    int		HandlerCmd;
+    int		DefaultMenuIndex;
+	int		DefaultHelpItem;
+    int		DefaultBGItem;
+    int		DefaultMinItem;
+    int		DefaultCloseItem;
+    int		DefaultLockItem;
+	int		DefaultEscapeItem;
 EQLIB_OBJECT CContextMenuManager::CContextMenuManager(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT int CContextMenuManager::AddMenu(class CContextMenu *);
 EQLIB_OBJECT int CContextMenuManager::GetDefaultMenuIndex(void);
@@ -3578,14 +3593,53 @@ EQLIB_OBJECT void CListWnd::DeleteAll(void);
 EQLIB_OBJECT void CListWnd::Sort(void);
 };
 //Size is 0x290 in eagame 2016 Nov 14 eqmule
-class CContextMenu : public CListWnd
+class CContextMenu// cant do this it calls the constructor if we create a menu so no... : public CListWnd
 {
 public:
+//we include the CListWnd class manually instead... it has a CXWnd first...
+/*0x000*/ PCCONTEXTMENUVFTABLE pvfTable;
+/*0x004*/ CXW_NO_VTABLE
+#if !defined(EMU)
+/*0x1e0*/ int Filler0x1e0;
+#endif
+/*0x1e4*/ ArrayClass_RO<SListWndLine> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
+/*0x1f4*/ ArrayClass_RO<SListWndColumn> Columns;
+/*0x204*/ int	CurSel;
+/*0x208*/ int	CurCol;
+/*0x20c*/ int	DownItem;
+/*0x210*/ int	ScrollOffsetY;
+/*0x214*/ int	HeaderHeight;
+/*0x218*/ int	FirstVisibleLine;
+/*0x21c*/ int	SortCol;
+/*0x220*/ bool	bSortAsc;
+/*0x221*/ bool	bFixedHeight;
+/*0x222*/ bool	bOwnerDraw;
+/*0x223*/ bool	bCalcHeights;
+/*0x224*/ bool	bColumnSizable;
+/*0x228*/ int	LineHeight;
+/*0x22c*/ int	ColumnSepDragged;
+/*0x230*/ int	ColumnSepMouseOver;
+/*0x234*/ COLORREF	HeaderText;
+/*0x238*/ COLORREF	Highlight;
+/*0x23c*/ COLORREF	Selected;
+/*0x240*/ CUITextureInfo2	BGHeader;//size 0x18
+/*0x258*/ COLORREF	BGHeaderTint;
+/*0x25c*/ CTextureAnimation	*pRowSep;
+/*0x260*/ CTextureAnimation	*pColumnSep;
+/*0x264*/ CEditBaseWnd	*pEditCell;
+/*0x268*/ void	*pItemDataSomething;
+/*0x26c*/ bool	bHasItemTooltips;
+/*0x270*/ RECT	PrevInsideRect;
+/*0x280*/ UINT	ListWndStyle;
+/*0x284*/ LONG	LastVisibleTime;//change to a __time32_t? not really important...
+/*0x288*/
+
+
 /*0x288*/ int NumItems;
 /*0x28C*/ int Unknown0x28C;
 /*0x290*/
 EQLIB_OBJECT int CContextMenu::InsertMenuItemA(CXStr *str,unsigned int position, unsigned int ItemID, bool bChecked, COLORREF Color, bool bEnable);
-EQLIB_OBJECT CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &);
+EQLIB_OBJECT CContextMenu::CContextMenu(CXWnd *pParent, unsigned __int32 MenuID, const CXRect& rect);
 EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr const &str,unsigned int MenuID/*Set HighPart as the ID for submenus and LowPart is then the subindex*/,bool bChecked,COLORREF Color,bool bEnable);
 EQLIB_OBJECT int CContextMenu::AddSeparator(void);
 EQLIB_OBJECT void CContextMenu::Activate(class CXPoint,int,int);
