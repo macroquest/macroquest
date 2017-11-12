@@ -547,12 +547,14 @@ namespace MQ2Internal {
 	public://class CXWnd *,unsigned __int32,class CXRect const &
 		CCustomMenu(CXWnd *pParent, unsigned __int32 MenuID, const CXRect& rect):CContextMenu(pParent,MenuID,rect)
 		{
-			ReplacevfTable();
+			Sleep(0);
+			//ReplacevfTable();
 		};
 
 		~CCustomMenu()
 		{
-			RemovevfTable();
+			Sleep(0);
+			//RemovevfTable();
 		};
 		void ReplacevfTable()
         {

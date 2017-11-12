@@ -3396,11 +3396,25 @@ struct SListWndCell
 	bool bOnlyDrawTexture;
 	CXWnd *pWnd;
 };
+struct SListWndCell_RO
+{
+    CTextureAnimation *pTA;
+    struct _CXSTR *Text;
+    COLORREF Color;
+	bool bOnlyDrawTexture;
+	CXWnd *pWnd;
+};
 struct TreeData
 {
 	TreeData() : Depth(0), bIsExpandable(false) {}
 	int		Depth;
 	bool	bIsExpandable;
+};
+struct TreeData_RO
+{
+/*0x00*/ int		Depth;
+/*0x04*/ bool	bIsExpandable;
+/*0x08*/
 };
 struct SListWndLine
 {
@@ -3418,7 +3432,23 @@ struct SListWndLine
 	bool	bVisible;
 	SListWndLine() : Data(0), Height(-1), bSelected(false), bEnabled(true), bVisible(true) {
 	}
-
+};
+struct SListWndLine_RO
+{
+/*0x00*/ ArrayClass_RO<SListWndCell_RO> Cells;
+#ifdef EMU
+/*0x10*/ UINT	Data;
+#else
+/*0x10*/ unsigned __int64	Data;
+#endif
+/*0x18*/ int		Height;
+/*0x1c*/ bool	bSelected;
+/*0x1d*/ bool	bEnabled;
+/*0x20*/ TreeData_RO Treedata;
+/*0x28*/ CHAR	TooltipText[0x100];
+/*0x128*/ bool	bVisible;
+/*0x12C*/ int Filler0x12C;
+/*0x130*/
 };
 struct SListWndColumn
 {
@@ -3457,6 +3487,28 @@ struct SListWndColumn
 		TextureOffset = textureOffset;
 	}
 };
+struct SListWndColumn_RO
+{
+/*0x00*/	int	Width;
+/*0x04*/	int	MinWidth;
+/*0x08*/	SIZE	TextureSize;
+/*0x10*/	POINT	TextureOffset;
+/*0x18*/    PCXSTR	StrLabel;
+#ifdef EMU
+/*0x20*/    UINT	Data;
+#else
+/*0x20*/    unsigned __int64	Data;
+#endif
+/*0x28*/    UINT	Flags;
+/*0x2c*/	UINT	Type;
+/*0x30*/    CTextureAnimation	*pTextureAnim;
+/*0x34*/	CTextureAnimation	*pSelected;
+/*0x38*/	CTextureAnimation	*pMouseOver;
+/*0x3c*/	PCXSTR	Tooltip;
+/*0x40*/	bool	bResizeable;
+/*0x44*/	int Filler0x44;
+/*0x48*/
+};
 //Size is 0x298 in eqgame Sep 11 2017 Test (see 8D1D4C) eqmule
 class CListWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the constructor, and we dont want that... so... : public CXWnd
 {
@@ -3473,8 +3525,8 @@ public:
 #if defined(TEST) || defined(LIVE) || defined(BETA)
 /*0x1f0*/ int Filler0x1f0;
 #endif
-/*0x1f4*/ ArrayClass_RO<SListWndLine> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
-/*0x204*/ ArrayClass_RO<SListWndColumn> Columns;
+/*0x1f4*/ ArrayClass_RO<SListWndLine_RO> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
+/*0x204*/ ArrayClass_RO<SListWndColumn_RO> Columns;
 /*0x214*/ int	CurSel;
 /*0x218*/ int	CurCol;
 /*0x21c*/ int	DownItem;
@@ -3602,8 +3654,8 @@ public:
 #if !defined(EMU)
 /*0x1e0*/ int Filler0x1e0;
 #endif
-/*0x1e4*/ ArrayClass_RO<SListWndLine> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
-/*0x1f4*/ ArrayClass_RO<SListWndColumn> Columns;
+/*0x1e4*/ ArrayClass_RO<SListWndLine_RO> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
+/*0x1f4*/ ArrayClass_RO<SListWndColumn_RO> Columns;
 /*0x204*/ int	CurSel;
 /*0x208*/ int	CurCol;
 /*0x20c*/ int	DownItem;
@@ -3648,6 +3700,9 @@ EQLIB_OBJECT void CContextMenu::EnableMenuItem(int,bool);
 EQLIB_OBJECT void CContextMenu::RemoveAllMenuItems(void);
 // virtual
 EQLIB_OBJECT CContextMenu::~CContextMenu(void);
+EQLIB_OBJECT CContextMenu::CContextMenu() {
+	Sleep(0);
+};
 EQLIB_OBJECT int CContextMenu::OnKillFocus(class CXWnd *);
 //EQLIB_OBJECT void * CContextMenu::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CContextMenu::`vector deleting destructor'(unsigned int);
