@@ -383,16 +383,16 @@ CSW
 
 typedef struct _CCONTEXTMENUVFTABLE {
 VFTABLE
-/*0x168*/ LPVOID CListWnd__DrawColumnSeparators;
-/*0x16c*/ LPVOID CListWnd__DrawSeparator;
-/*0x170*/ LPVOID CListWnd__DrawLine;
-/*0x174*/ LPVOID CListWnd__DrawHeader;
-/*0x178*/ LPVOID CListWnd__DrawItem;
-/*0x17c*/ LPVOID CListWnd__DeleteAll;
-/*0x180*/ LPVOID CListWnd__Compare;
-/*0x184*/ LPVOID CListWnd__Sort;
-/*0x188*/ LPVOID CContextMenu__ShowAt;
-/*0x18c*/
+/*0x16c*/ LPVOID CListWnd__DrawColumnSeparators;
+/*0x170*/ LPVOID CListWnd__DrawSeparator;
+/*0x174*/ LPVOID CListWnd__DrawLine;
+/*0x178*/ LPVOID CListWnd__DrawHeader;
+/*0x17c*/ LPVOID CListWnd__DrawItem;
+/*0x180*/ LPVOID CListWnd__DeleteAll;
+/*0x184*/ LPVOID CListWnd__Compare;
+/*0x188*/ LPVOID CListWnd__Sort;
+/*0x18c*/ LPVOID CContextMenu__ShowAt;
+/*0x190*/
 } CCONTEXTMENUVFTABLE, *PCCONTEXTMENUVFTABLE; 
 
 // size 0x298  09-03-2008

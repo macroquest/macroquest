@@ -97,7 +97,7 @@ void  CComboWnd::InsertChoice(char *str)
     InsertChoice(&CXStr(str),0);
 }
 
-int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, class CTextureAnimation const *p4, const char* p5)
+int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, CTextureAnimation *p4, const char* p5)
 {
     return AddString(&CXStr(p1), p2, p3, p4);
 }
@@ -121,8 +121,8 @@ CXPoint CXRect::CenterPoint()const
 {
     CXPoint p;
 
-    p.A = this->A + ((this->C - this->A) / 2);
-    p.B = this->B + ((this->D - this->B) / 2); // (bottom - top / 2) + top
+    p.X = this->left + ((this->right - this->left) / 2);
+    p.Y = this->top + ((this->bottom - this->top) / 2); // (bottom - top / 2) + top
 
     return p;
 }
@@ -187,8 +187,8 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
 #else
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xfc);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x12c);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x13c);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
 #endif
 
@@ -1013,7 +1013,7 @@ FUNCTION_AT_ADDRESS(CContextMenu *CContextMenuManager::GetMenu(int), CContextMen
 FUNCTION_AT_ADDRESS( CChatWindow::CChatWindow(class CXWnd *),CChatWindow__CChatWindow);
 #endif
 #ifdef CChatWindow__AddOutputText_x
-FUNCTION_AT_ADDRESS(void  CChatWindow::AddOutputText(class CXStr,int),CChatWindow__AddOutputText);
+FUNCTION_AT_ADDRESS(void  CChatWindow::AddOutputText(PCXSTR,int),CChatWindow__AddOutputText);
 #endif
 #ifdef CChatWindow__HistoryBack_x
 FUNCTION_AT_ADDRESS(void  CChatWindow::HistoryBack(void),CChatWindow__HistoryBack);
@@ -1022,7 +1022,7 @@ FUNCTION_AT_ADDRESS(void  CChatWindow::HistoryBack(void),CChatWindow__HistoryBac
 FUNCTION_AT_ADDRESS(void  CChatWindow::HistoryForward(void),CChatWindow__HistoryForward);
 #endif
 #ifdef CChatWindow__AddHistory_x
-FUNCTION_AT_ADDRESS(void  CChatWindow::AddHistory(class CXStr),CChatWindow__AddHistory);
+FUNCTION_AT_ADDRESS(void  CChatWindow::AddHistory(CXStr *pText),CChatWindow__AddHistory);
 #endif
 #ifdef CChatWindow__GetInputText_x
 FUNCTION_AT_ADDRESS(class CXStr  CChatWindow::GetInputText(void),CChatWindow__GetInputText);
@@ -1209,6 +1209,9 @@ FUNCTION_AT_ADDRESS(void CContextMenu::CheckMenuItem(int,bool,bool),CContextMenu
 #endif
 #ifdef CContextMenu__Activate_x
 FUNCTION_AT_ADDRESS(void  CContextMenu::Activate(class CXPoint,int,int),CContextMenu__Activate);
+#endif
+#ifdef CContextMenu__SetMenuItem_x
+FUNCTION_AT_ADDRESS(void CContextMenu::SetMenuItem(int, const CXStr&, bool, COLORREF, bool),CContextMenu__SetMenuItem);
 #endif
 #ifdef CContextMenuManager__CContextMenuManager_x
 FUNCTION_AT_ADDRESS( CContextMenuManager::CContextMenuManager(class CXWnd *,unsigned __int32,class CXRect),CContextMenuManager__CContextMenuManager);
@@ -6100,7 +6103,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::send_auction(void),CEverQuest__send_auctio
 FUNCTION_AT_ADDRESS(void  CEverQuest::send_ooc(void),CEverQuest__send_ooc);
 #endif
 #ifdef CEverQuest__GetCurrentLanguage_x
-FUNCTION_AT_ADDRESS(int  CEverQuest::GetCurrentLanguage(void),CEverQuest__GetCurrentLanguage);
+FUNCTION_AT_ADDRESS(int  CEverQuest::GetCurrentLanguage(void)const,CEverQuest__GetCurrentLanguage);
 #endif
 #ifdef CEverQuest__SendNewText_x
 FUNCTION_AT_ADDRESS(void  CEverQuest::SendNewText(int,char *,char *),CEverQuest__SendNewText);
@@ -7445,7 +7448,7 @@ FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CalculateHSBRange(void),CSidlScreenWnd
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const ,CSidlScreenWnd__DrawSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPiece_x
-FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlScreenWnd::GetSidlPiece(class CXStr*, int dummy)const ,CSidlScreenWnd__GetSidlPiece);
+FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlScreenWnd::GetSidlPiece(class CXStr*, bool bTopLevel)const ,CSidlScreenWnd__GetSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPieceRect_x
 FUNCTION_AT_ADDRESS(class CXRect  CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const ,CSidlScreenWnd__GetSidlPieceRect);
@@ -7912,7 +7915,7 @@ FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(SListWndLine *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString_x
 #ifndef EMU
-FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *p5, const char * pstr, bool bdebug),CListWnd__AddString);
+FUNCTION_AT_ADDRESS(int CListWnd::AddString(CXStr *, COLORREF, unsigned __int32, CTextureAnimation *, char*, bool),CListWnd__AddString);
 #else
 FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *p5, const char * pstr),CListWnd__AddString);
 #endif
@@ -7964,7 +7967,7 @@ FUNCTION_AT_ADDRESS(bool  CListWnd::IsLineEnabled(int)const ,CListWnd__IsLineEna
 FUNCTION_AT_ADDRESS(void CListWnd::EnableLine(int,bool),CListWnd__EnableLine);
 #endif
 #ifdef CListWnd__AddColumn_x
-FUNCTION_AT_ADDRESS(int  CListWnd::AddColumn(class CXStr,int,unsigned __int32,unsigned __int32),CListWnd__AddColumn);
+FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(CXStr *, int, unsigned __int32, unsigned __int32),CListWnd__AddColumn);
 #endif
 #ifdef CListWnd__AddColumn1_x
 FUNCTION_AT_ADDRESS(int  CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *),CListWnd__AddColumn1);
@@ -8000,7 +8003,7 @@ FUNCTION_AT_ADDRESS(void  CListWnd::EnsureVisible(int),CListWnd__EnsureVisible);
 FUNCTION_AT_ADDRESS(class CXRect  CListWnd::GetItemRect(int,int)const ,CListWnd__GetItemRect);
 #endif
 #ifdef CListWnd__GetItemAtPoint_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetItemAtPoint(CXPoint *)const ,CListWnd__GetItemAtPoint);
+FUNCTION_AT_ADDRESS(int CListWnd::GetItemAtPoint(POINT *)const ,CListWnd__GetItemAtPoint);
 #endif
 #ifdef CListWnd__GetItemAtPoint1_x
 FUNCTION_AT_ADDRESS(void  CListWnd::GetItemAtPoint(CXPoint *,int *,int *)const ,CListWnd__GetItemAtPoint1);
@@ -8333,7 +8336,7 @@ FUNCTION_AT_ADDRESS(class STable &  STable::operator=(class STable const &),STab
 FUNCTION_AT_ADDRESS( STableCell::STableCell(void),STableCell__STableCell);
 #endif
 #ifdef CTabWnd__CTabWnd_x
-FUNCTION_AT_ADDRESS( CTabWnd::CTabWnd(class CXWnd *,unsigned __int32,class CXRect,class CTabBoxTemplate *),CTabWnd__CTabWnd);
+FUNCTION_AT_ADDRESS( CTabWnd::CTabWnd(CXWnd *pParent, UINT uId, RECT *rect, CTabBoxTemplate *pTabContents),CTabWnd__CTabWnd);
 #endif
 #ifdef CTabWnd__GetNumTabs_x
 FUNCTION_AT_ADDRESS(int  CTabWnd::GetNumTabs(void)const ,CTabWnd__GetNumTabs);
@@ -8966,7 +8969,7 @@ FUNCTION_AT_ADDRESS(int  CTextureFont::GetHeight(void)const ,CTextureFont__GetHe
 FUNCTION_AT_ADDRESS(class CXStr  CTextureFont::GetName(void)const ,CTextureFont__GetName);
 #endif
 #ifdef CTextureFont__DrawWrappedText_x
-FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(class CXStr *,int,int,int,class CXRect *,unsigned long,unsigned short,int)const ,CTextureFont__DrawWrappedText);
+FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(CXStr *, int, int, int, CXRect *, COLORREF, WORD, int)const ,CTextureFont__DrawWrappedText);
 #endif
 #ifdef CTextureFont__DrawWrappedText1_x
 FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CXRect,unsigned long,unsigned short,int)const ,CTextureFont__DrawWrappedText1);
@@ -9315,7 +9318,7 @@ FUNCTION_AT_ADDRESS(void  CInvSlotWnd::SetInvSlot(class CInvSlot *),CInvSlotWnd_
 FUNCTION_AT_ADDRESS(int CInvSlotWnd::DrawTooltip(class CXWnd const *)const,CInvSlotWnd__DrawTooltip);
 #endif
 #ifdef CLabel__CLabel_x
-FUNCTION_AT_ADDRESS( CLabel::CLabel(class CXWnd *,unsigned __int32,class CXRect,int),CLabel__CLabel);
+FUNCTION_AT_ADDRESS(CLabel::CLabel(CXWnd *, unsigned __int32, CXRect *, int),CLabel__CLabel);
 #endif
 #ifdef CLabel__SetNoWrap_x
 FUNCTION_AT_ADDRESS(void  CLabel::SetNoWrap(bool),CLabel__SetNoWrap);

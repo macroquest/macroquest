@@ -384,6 +384,7 @@ GNU General Public License for more details.
 #define CContextMenu__RemoveMenuItem_x                             0x8E8950
 #define CContextMenu__RemoveAllMenuItems_x                         0x8E8970
 #define CContextMenu__CheckMenuItem_x                              0x8E89F0
+#define CContextMenu__SetMenuItem_x                                0x8E8880
 
 //CContextMenuManager
 #define CContextMenuManager__AddMenu_x                             0x8D4A30

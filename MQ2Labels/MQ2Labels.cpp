@@ -94,7 +94,7 @@ public:
         } else {
 			clabel->EQType = 0;
         }
-        return clabel;
+        return (CXWnd*)clabel;
     }
 };
 

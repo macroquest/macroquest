@@ -1305,8 +1305,8 @@ void HandleWindows()
 	else if (WindowActive(SPLASH))
 	{
 		CXPoint pt;
-		pt.A = 1;
-		pt.B = 1;
+		pt.X = 1;
+		pt.Y = 1;
 		pLoginViewManager->SendLMouseClick(pt); // WndNotification doesn't work on this
 	}
 	else if (WindowActive("main"))

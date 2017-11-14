@@ -1618,7 +1618,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__PopupMenu);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveMenuItem);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveAllMenuItems);
-	INITIALIZE_EQGAME_OFFSET(CContextMenu__CheckMenuItem);	
+	INITIALIZE_EQGAME_OFFSET(CContextMenu__CheckMenuItem);
+	INITIALIZE_EQGAME_OFFSET(CContextMenu__SetMenuItem);
+	
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__Flush);
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__GetMenu);
 

@@ -2472,7 +2472,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 						if (pInvSlotMgr) {
 							if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1))
 							{
-								CXPoint p; p.A = 0; p.B = 0;
+								CXPoint p; p.X = 0; p.Y = 0;
 								pSlot->HandleRButtonUp(&p);
 							}
 						}

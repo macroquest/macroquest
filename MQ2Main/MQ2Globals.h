@@ -1073,6 +1073,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContextMenu__RemoveAllMenuItems;
 	EQLIB_VAR DWORD CContextMenu__CheckMenuItem;
 	EQLIB_VAR DWORD CContextMenu__RemoveMenuItem;
+	EQLIB_VAR DWORD CContextMenu__SetMenuItem;
+	
 	EQLIB_VAR DWORD CContextMenuManager__Flush;
 	EQLIB_VAR DWORD CContextMenuManager__GetMenu;
 
