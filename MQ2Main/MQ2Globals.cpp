@@ -234,7 +234,7 @@ namespace MQ2Globals
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
-		#if !defined(BETA) && !defined(TEST)
+		#ifdef EMU
 		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
 		#endif
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
@@ -1510,7 +1510,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCLFGuildWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCMIZoneSelectWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCConfirmationDialog);
-	#if !defined(BETA) && !defined(TEST)
+	#ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(pinstCPointMerchantWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCPopupWndManager);

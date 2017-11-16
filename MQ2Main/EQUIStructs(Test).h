@@ -166,29 +166,28 @@ typedef struct _EQCURRENTSELECTION {
 /*0x108*/ LPVOID  GetMaxSize; \
 /*0x10c*/ LPVOID  GetUntileSize; \
 /*0x110*/ LPVOID  IsPointTransparent; \
-/*0x114*/ LPVOID  Unknown10c; \
-/*0x118*/ LPVOID  Unknown110; \
-/*0x11c*/ LPVOID  Unknown114; \
-/*0x120*/ LPVOID  SetDrawTemplate; \
-/*0x124*/ LPVOID  Move_Rect; /*CXWnd__Move1_x*/ \
-/*0x128*/ LPVOID  Move_Point; /*CXWnd__Move_x*/ \
-/*0x12c*/ LPVOID  SetWindowTextA; \
-/*0x130*/ LPVOID  GetChildWndAt; /*CXWnd__GetChildWndAt_x*/ \
-/*0x134*/ LPVOID  GetSidlPiece; /*CSidlScreenWnd__GetSidlPiece_x*/ \
-/*0x138*/ LPVOID  CSidlScreenWnd__OnPreZone1a; \
-/*0x13c*/ LPVOID  SetVScrollPos; \
-/*0x140*/ LPVOID  SetHScrollPos; \
-/*0x144*/ LPVOID  AutoSetVScrollPos; \
-/*0x148*/ LPVOID  AutoSetHScrollPos; \
-/*0x14c*/ LPVOID  SetAttributesFromSidl; \
-/*0x150*/ LPVOID  nullsub_1a; \
-/*0x154*/ LPVOID  Unknown0x14c; \
-/*0x158*/ LPVOID  nullsub_1b; \
-/*0x15c*/ LPVOID  GetMinClientSize; \
-/*0x160*/ LPVOID  GetMaxClientSize; \
-/*0x164*/ LPVOID  CSidlScreenWnd__OnPreZone1b; \
-/*0x168*/ LPVOID  UpdateLayout;
-/*0x16c*/
+/*0x114*/ LPVOID  Unknown114; \
+/*0x118*/ LPVOID  Unknown118; \
+/*0x11c*/ LPVOID  SetDrawTemplate; \
+/*0x120*/ LPVOID  Move_Rect; /*CXWnd__Move1_x*/ \
+/*0x124*/ LPVOID  Move_Point; /*CXWnd__Move_x*/ \
+/*0x128*/ LPVOID  SetWindowTextA; \
+/*0x12c*/ LPVOID  GetChildWndAt; /*CXWnd__GetChildWndAt_x*/ \
+/*0x130*/ LPVOID  GetSidlPiece; /*CSidlScreenWnd__GetSidlPiece_x*/ \
+/*0x134*/ LPVOID  CSidlScreenWnd__OnPreZone1a; \
+/*0x138*/ LPVOID  SetVScrollPos; \
+/*0x13c*/ LPVOID  SetHScrollPos; \
+/*0x140*/ LPVOID  AutoSetVScrollPos; \
+/*0x144*/ LPVOID  AutoSetHScrollPos; \
+/*0x148*/ LPVOID  SetAttributesFromSidl; \
+/*0x14c*/ LPVOID  nullsub_1a; \
+/*0x150*/ LPVOID  Unknown0x14c; \
+/*0x154*/ LPVOID  nullsub_1b; \
+/*0x158*/ LPVOID  GetMinClientSize; \
+/*0x15c*/ LPVOID  GetMaxClientSize; \
+/*0x160*/ LPVOID  CSidlScreenWnd__OnPreZone1b; \
+/*0x164*/ LPVOID  UpdateLayout;
+/*0x168*/
 
 //CSidlScreenWnd see B1116C in Nov  7 2016 eqgame.exe (Test) -eqmule
 typedef struct _CSIDLWNDVFTABLE {
@@ -383,6 +382,7 @@ CSW
 
 typedef struct _CCONTEXTMENUVFTABLE {
 VFTABLE
+/*0x168*/ LPVOID CListWnd__OnHeaderClick;
 /*0x16c*/ LPVOID CListWnd__DrawColumnSeparators;
 /*0x170*/ LPVOID CListWnd__DrawSeparator;
 /*0x174*/ LPVOID CListWnd__DrawLine;

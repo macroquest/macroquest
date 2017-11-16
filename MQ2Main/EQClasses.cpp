@@ -187,8 +187,8 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
 #else
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xfc);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x12c);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x13c);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);//don't ever doubt this one, double check CXWnd__CXWnd vftable and count
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
 #endif
 
@@ -2353,7 +2353,7 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd_
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
 #endif
 #ifdef CMerchantWnd__ActualSelect_x
-	#if defined(BETA) || defined(TEST)
+	#ifndef EMU
 		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *, int Unknown),CMerchantWnd__ActualSelect);
 	#else
 		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *),CMerchantWnd__ActualSelect);

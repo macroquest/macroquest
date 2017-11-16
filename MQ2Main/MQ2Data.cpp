@@ -2097,7 +2097,7 @@ TLO(dataAlert)
 }
 TLO(dataPointMerchant)
 {
-#if defined(BETA) || defined(TEST)
+#ifndef EMU
 	if (pMerchantWnd)
 	{
 		Ret.Ptr = pMerchantWnd;

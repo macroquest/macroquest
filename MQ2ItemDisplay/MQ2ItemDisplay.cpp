@@ -374,7 +374,7 @@ public:
 
         if (out[0]!=17) {
             strcat_s(out,"</c>");
-			#if defined(BETA) || defined (TEST)
+			#ifndef EMU
 				This->ItemInfo.Append(&out[0]);
 			#else
 				AppendCXStr(&This->ItemInfo, &out[0]);

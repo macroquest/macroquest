@@ -3540,7 +3540,7 @@ public:
 //anything useful in the debugger sometimes if you cursor over it and expand it...
 //So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
 //while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
-#if defined(TEST) || defined(LIVE) || defined(BETA)
+#ifndef EMU
 /*0x1f0*/ int Filler0x1f0;
 #endif
 /*0x1f4*/ ArrayClass_RO<SListWndLine_RO> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
@@ -3895,7 +3895,7 @@ public:
 class CMerchantWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
-#if defined(BETA) || defined(TEST)
+#ifndef EMU
 	class MerchantPageHandler : public VeBaseReferenceCount
 	{
 	public:
@@ -4070,7 +4070,7 @@ EQLIB_OBJECT void CMerchantWnd::ClearMerchantSlot(int);
 EQLIB_OBJECT void CMerchantWnd::FinishBuyingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
-#if defined(BETA) || defined (TEST)
+#ifndef EMU
 EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *,int Unknown = -1);
 #else
 EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *);
