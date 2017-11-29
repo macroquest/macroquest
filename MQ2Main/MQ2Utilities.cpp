@@ -7687,6 +7687,97 @@ VOID ListMercAltAbilities()
 	}
 }
 #endif
+PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance location)
+{
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if (location == eItemContainerPossessions) {
+		//check regular inventory
+		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
+						return pItem;
+					}
+				}
+			}
+		}
+		//not found? ok check inside bags
+		if (pChar2 && pChar2->pInventoryArray) {
+			for (unsigned long nPack = 0; nPack < 10; nPack++) {
+				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+							if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
+									return pItem;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (location == eItemContainerBank) {
+		//check bank
+		PCHARINFO pChar = GetCharInfo();
+		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
+			for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++) {
+				if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot]) {
+					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
+						return pItem;
+					}
+				}
+			}
+		}
+		//not found? ok check inside bank bags
+		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
+			for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+				if (PCONTENTS pPack = pChar->pBankArray->Bank[nPack]) {
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+							if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
+									return pItem;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (location == eItemContainerSharedBank) {
+		PCHARINFO pChar = GetCharInfo();
+		//what? still not found? ok fine, check shared bank
+		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
+			for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++) {
+				if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot]) {
+					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
+						return pItem;
+					}
+				}
+			}
+		}
+		//not found? ok check inside sharedbank bags
+		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
+			for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+				if (PCONTENTS pPack = pChar->pSharedBankArray->SharedBank[nPack]) {
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+							if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
+									return pItem;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
 PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 {
 	CHAR Name[MAX_STRING] = { 0 };
@@ -7694,29 +7785,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	PCHARINFO2 pChar2 = GetCharInfo2();
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
-			{
-				if (bExact)
-				{
-					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-					{
-						return pItem;
-					}
-				}
-				else {
-					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
-					_strlwr_s(Temp);
-					if (strstr(Temp, Name))
-					{
-						return pItem;
-					}
-				}
-			}
-		}
-	}
+
 	//check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 		if (PCONTENTS pItem = pChar2->pInventoryArray->Inventory.Cursor) {
@@ -7732,32 +7801,104 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 					return pItem;
 				}
 			}
-		}
-	}
-	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++)
-		{
-			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
-			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-				{
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-					{
-						if (PCONTENTS pItem = pPack->GetContent(nItem))
-						{
-							if (bExact)
-							{
-								if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-								{
-									return pItem;
+			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+						if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+								if (bExact) {
+									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+										return pAugItem;
+									}
+								}
+								else {
+									strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+									_strlwr_s(Temp);
+									if (strstr(Temp, Name)) {
+										return pAugItem;
+									}
 								}
 							}
-							else {
-								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
-								_strlwr_s(Temp);
-								if (strstr(Temp, Name))
-								{
-									return pItem;
+						}
+					}
+				}
+			}
+			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+				PCONTENTS pPack = pItem;
+				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+					if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+						if (bExact) {
+							if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+								return pItem;
+							}
+						}
+						else {
+							strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+							_strlwr_s(Temp);
+							if (strstr(Temp, Name)) {
+								return pItem;
+							}
+						}
+						// Check for augs next
+						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+								if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+										if (bExact) {
+											if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+												return pAugItem;
+											}
+										}
+										else {
+											strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+											_strlwr_s(Temp);
+											if (strstr(Temp, Name)) {
+												return pAugItem;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	//check toplevel slots
+	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						return pItem;
+					}
+				}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						return pItem;
+					}
+				}
+				// Check for augs next
+				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+						if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+								if (bExact) {
+									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+										return pAugItem;
+									}
+								}
+								else {
+									strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+									_strlwr_s(Temp);
+									if (strstr(Temp, Name)) {
+										return pAugItem;
+									}
 								}
 							}
 						}
@@ -7766,77 +7907,109 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 			}
 		}
 	}
+
+	//check the bags
+	if (pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (bExact) {
+								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+									return pItem;
+								}
+							}
+							else {
+								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+								_strlwr_s(Temp);
+								if (strstr(Temp, Name)) {
+									return pItem;
+								}
+							}
+							// We should check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (bExact) {
+												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+													return pAugItem;
+												}
+											}
+											else {
+												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+												_strlwr_s(Temp);
+												if (strstr(Temp, Name)) {
+													return pAugItem;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 #ifndef EMU
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
-		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
-			{
-				if (bExact)
-				{
-					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-					{
-						return pItem;;
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						return pItem;
 					}
 				}
-				else
-				{
+				else {
 					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
 					_strlwr_s(Temp);
-					if (strstr(Temp, Name))
-					{
+					if (strstr(Temp, Name)) {
 						return pItem;
 					}
 				}
 			}
 		}
 	}
+
 	//still not found? fine... check illusions keyring
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
-		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
-			{
-				if (bExact)
-				{
-					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-					{
-						return pItem;;
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						return pItem;
 					}
 				}
-				else
-				{
+				else {
 					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
 					_strlwr_s(Temp);
-					if (strstr(Temp, Name))
-					{
+					if (strstr(Temp, Name)) {
 						return pItem;
 					}
 				}
 			}
 		}
 	}
+
 	//still not found? fine... check familiars keyring
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
-		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])
-			{
-				if (bExact)
-				{
-					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-					{
-						return pItem;;
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						return pItem;
 					}
 				}
-				else
-				{
+				else {
 					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
 					_strlwr_s(Temp);
-					if (strstr(Temp, Name))
-					{
+					if (strstr(Temp, Name)) {
 						return pItem;
 					}
 				}
@@ -7849,40 +8022,39 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 PCONTENTS FindItemByID(int ItemID)
 {
 	PCHARINFO2 pChar2 = GetCharInfo2();
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
-			{
-				if (ItemID == GetItemFromContents(pItem)->ItemNumber)
-				{
-					return pItem;
-				}
-			}
-		}
-	}
+
 	//check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 		if (PCONTENTS pItem = pChar2->pInventoryArray->Inventory.Cursor) {
-			if (ItemID == GetItemFromContents(pItem)->ItemNumber)
-			{
+			if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 				return pItem;
 			}
-		}
-	}
-	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++)
-		{
-			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
-			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-				{
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-					{
-						if (PCONTENTS pItem = pPack->GetContent(nItem))
-						{
-							if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
-								return pItem;
+			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+						if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+								return pAugItem;
+							}
+						}
+					}
+				}
+			}
+			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+				PCONTENTS pPack = pItem;
+				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+					if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+						if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+							return pItem;
+						}
+						// Check for augs next
+						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+								if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+										return pAugItem;
+									}
+								}
 							}
 						}
 					}
@@ -7890,35 +8062,83 @@ PCONTENTS FindItemByID(int ItemID)
 			}
 		}
 	}
+
+	//check toplevel slots
+	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+					return pItem;
+				}
+				// Check for augs next
+				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+						if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+								return pAugItem;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//check the bags
+	if (pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+								return pItem;
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+											return pAugItem;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 #ifndef EMU
 	PCHARINFO pChar = GetCharInfo();
+	//still not found? fine... check mount keyring
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
-		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
-			{
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
 			}
 		}
 	}
+
+	//still not found? fine... check illusions keyring
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
-		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
-			{
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
 			}
 		}
 	}
+
+	//still not found? fine... check familiars keyring
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
-		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])
-			{
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
@@ -7928,37 +8148,158 @@ PCONTENTS FindItemByID(int ItemID)
 #endif
 	return 0;
 }
-PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance location)
+DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 {
+	DWORD Count = 0;
+	CHAR Name[MAX_STRING] = { 0 };
+	CHAR Temp[MAX_STRING] = { 0 };
+	strcpy_s(Name, pName);
+	_strlwr_s(Name);
 	PCHARINFO2 pChar2 = GetCharInfo2();
-	if (location == eItemContainerPossessions) {
-		//check regular inventory
-		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++)
-			{
-				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
-				{
-					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot)
-					{
-						return pItem;
+
+	//check cursor
+	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		if (PCONTENTS pItem = pChar2->pInventoryArray->Inventory.Cursor) {
+			if (bExact) {
+				if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+						Count++;
+					}
+					else {
+						Count += pItem->StackCount;
+					}
+				}
+			}
+			else {
+				strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+				_strlwr_s(Temp);
+				if (strstr(Temp, Name)) {
+					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+						Count++;
+					}
+					else {
+						Count += pItem->StackCount;
+					}
+				}
+			}
+			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+						if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+								if (bExact) {
+									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+										Count++;
+									}
+								}
+								else {
+									strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+									_strlwr_s(Temp);
+									if (strstr(Temp, Name)) {
+										Count++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+				PCONTENTS pPack = pItem;
+				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+					if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+						if (bExact) {
+							if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+								if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+									Count++;
+								}
+								else {
+									Count += pItem->StackCount;
+								}
+							}
+						}
+						else {
+							strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+							_strlwr_s(Temp);
+							if (strstr(Temp, Name)) {
+								if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+									Count++;
+								}
+								else {
+									Count += pItem->StackCount;
+								}
+							}
+						}
+						// Check for augs next
+						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+								if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+										if (bExact) {
+											if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+												Count++;
+											}
+										}
+										else {
+											strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+											_strlwr_s(Temp);
+											if (strstr(Temp, Name)) {
+												Count++;
+											}
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}
 		}
-		//not found? ok check inside bags
-		if (pChar2 && pChar2->pInventoryArray) {
-			for (unsigned long nPack = 0; nPack < 10; nPack++)
-			{
-				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
-				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-					{
-						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-						{
-							if (PCONTENTS pItem = pPack->GetContent(nItem))
-							{
-								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
-									return pItem;
+
+	}
+
+	//check toplevel slots
+	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
+					}
+				}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
+					}
+				}
+				// Check for augs next
+				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+						if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+								if (bExact) {
+									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+										Count++;
+									}
+								}
+								else {
+									strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+									_strlwr_s(Temp);
+									if (strstr(Temp, Name)) {
+										Count++;
+									}
 								}
 							}
 						}
@@ -7967,35 +8308,55 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			}
 		}
 	}
-	else if (location == eItemContainerBank) {
-		//check bank
-		PCHARINFO pChar = GetCharInfo();
-		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
-			for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++)
-			{
-				if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot])
-				{
-					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot)
-					{
-						return pItem;
-					}
-				}
-			}
-		}
-		//not found? ok check inside bank bags
-		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
-			for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
-			{
-				if (PCONTENTS pPack = pChar->pBankArray->Bank[nPack])
-				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-					{
-						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-						{
-							if (PCONTENTS pItem = pPack->GetContent(nItem))
-							{
-								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
-									return pItem;
+
+	//check the bags
+	if (pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (bExact) {
+								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+										Count++;
+									}
+									else {
+										Count += pItem->StackCount;
+									}
+								}
+							}
+							else {
+								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+								_strlwr_s(Temp);
+								if (strstr(Temp, Name)) {
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+										Count++;
+									}
+									else {
+										Count += pItem->StackCount;
+									}
+								}
+							}
+							// We should check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (bExact) {
+												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+													Count++;
+												}
+											}
+											else {
+												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+												_strlwr_s(Temp);
+												if (strstr(Temp, Name)) {
+													Count++;
+												}
+											}
+										}
+									}
 								}
 							}
 						}
@@ -8004,44 +8365,100 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			}
 		}
 	}
-	else if (location == eItemContainerSharedBank) {
-		PCHARINFO pChar = GetCharInfo();
-		//what? still not found? ok fine, check shared bank
-		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
-			for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++)
-			{
-				if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot])
-				{
-					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot)
-					{
-						return pItem;
+
+#ifndef EMU
+	//still not found? fine... check mount keyring
+	PCHARINFO pChar = GetCharInfo();
+	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
 					}
 				}
-			}
-		}
-		//not found? ok check inside sharedbank bags
-		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
-			for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
-			{
-				if (PCONTENTS pPack = pChar->pSharedBankArray->SharedBank[nPack])
-				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-					{
-						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-						{
-							if (PCONTENTS pItem = pPack->GetContent(nItem))
-							{
-								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
-									return pItem;
-								}
-							}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
 						}
 					}
 				}
 			}
 		}
 	}
-	return 0;
+
+	//still not found? fine... check illusions keyring
+	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
+					}
+				}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//still not found? fine... check familiars keyring
+	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
+					}
+				}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pItem->StackCount;
+						}
+					}
+				}
+			}
+		}
+	}
+#endif
+	return Count;
 }
 PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 {
@@ -8050,52 +8467,80 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	PCHARINFO pCharInfo = GetCharInfo();
-	unsigned long nPack;
 
-	for (nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
-	{
-		PCHARINFO pCharInfo = GetCharInfo();
-		PCONTENTS pPack;
-
-		if (pCharInfo->pBankArray && (pPack = pCharInfo->pBankArray->Bank[nPack]))
-		{
-			if (bExact)
-			{
-				if (!_stricmp(Name, GetItemFromContents(pPack)->Name))
-				{
-					return pPack;
+	// Check bank slots
+	if (pCharInfo->pBankArray) {
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
+						return pPack;
+					}
 				}
-			}
-			else
-			{
-				strcpy_s(Temp, GetItemFromContents(pPack)->Name);
-				_strlwr_s(Temp);
-				if (strstr(Temp, Name))
-				{
-					return pPack;
+				else {
+					strcpy_s(Temp, GetItemFromContents(pPack)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						return pPack;
+					}
 				}
-			}
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-			{
-				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					PCONTENTS pItem;
-					if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem)))
-					{
-						if (bExact)
-						{
-							if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-							{
-								return pItem;
+				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
+						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
+							if (PCONTENTS pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+									if (bExact) {
+										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+											return pAugItem;
+										}
+									}
+									else {
+										strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+										_strlwr_s(Temp);
+										if (strstr(Temp, Name)) {
+											return pAugItem;
+										}
+									}
+								}
 							}
 						}
-						else
-						{
-							strcpy_s(Temp, GetItemFromContents(pItem)->Name);
-							_strlwr_s(Temp);
-							if (strstr(Temp, Name))
-							{
-								return pItem;
+					}
+				}
+				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (bExact) {
+								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+									return pItem;
+								}
+							}
+							else {
+								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+								_strlwr_s(Temp);
+								if (strstr(Temp, Name)) {
+									return pItem;
+								}
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (bExact) {
+												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+													return pAugItem;
+												}
+											}
+											else {
+												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+												_strlwr_s(Temp);
+												if (strstr(Temp, Name)) {
+													return pAugItem;
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 					}
@@ -8103,49 +8548,80 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 			}
 		}
 	}
-	for (nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
-	{
-		PCHARINFO pCharInfo = GetCharInfo();
-		PCONTENTS pPack;
-		if (pCharInfo->pSharedBankArray && (pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]))
-		{
-			if (bExact)
-			{
-				if (!_stricmp(Name, GetItemFromContents(pPack)->Name))
-				{
-					return pPack;
+
+	// Check shared bank slots
+	if (pCharInfo->pSharedBankArray) {
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) 		{
+			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
+						return pPack;
+					}
 				}
-			}
-			else
-			{
-				strcpy_s(Temp, GetItemFromContents(pPack)->Name);
-				_strlwr_s(Temp);
-				if (strstr(Temp, Name))
-				{
-					return pPack;
+				else {
+					strcpy_s(Temp, GetItemFromContents(pPack)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						return pPack;
+					}
 				}
-			}
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-			{
-				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					PCONTENTS pItem;
-					if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem)))
-					{
-						if (bExact)
-						{
-							if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-							{
-								return pItem;
+				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
+						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
+							if (PCONTENTS pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+									if (bExact) {
+										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+											return pAugItem;
+										}
+									}
+									else {
+										strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+										_strlwr_s(Temp);
+										if (strstr(Temp, Name)) {
+											return pAugItem;
+										}
+									}
+								}
 							}
 						}
-						else
-						{
-							strcpy_s(Temp, GetItemFromContents(pItem)->Name);
-							_strlwr_s(Temp);
-							if (strstr(Temp, Name))
-							{
-								return pItem;
+					}
+				}
+				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (bExact) {
+								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+									return pItem;
+								}
+							}
+							else {
+								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+								_strlwr_s(Temp);
+								if (strstr(Temp, Name)) {
+									return pItem;
+								}
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (bExact) {
+												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+													return pAugItem;
+												}
+											}
+											else {
+												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+												_strlwr_s(Temp);
+												if (strstr(Temp, Name)) {
+													return pAugItem;
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 					}
@@ -8155,23 +8631,45 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 	}
 	return NULL;
 }
-PCONTENTS FindBankItemByID(int ID)
+PCONTENTS FindBankItemByID(int ItemID)
 {
-	if (PCHARINFO pCharInfo = GetCharInfo()) {
-		PCONTENTS pPack = 0;
+	PCHARINFO pCharInfo = GetCharInfo();
+
+	// Check bank slots
+	if (pCharInfo->pBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
-			if (pCharInfo->pBankArray && (pPack = pCharInfo->pBankArray->Bank[nPack])) {
-				if (PITEMINFO ptheItem = GetItemFromContents(pPack)) {
-					if (ptheItem->ItemNumber == ID) {
-						return pPack;
+			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+				if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
+					return pPack;
+				}
+				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
+						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
+							if (PCONTENTS pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+									if (ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+										return pAugItem;
+									}
+								}
+							}
+						}
 					}
-					if (ptheItem->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
-						PCONTENTS pItem = 0;
-						for (unsigned long nItem = 0; nItem < ptheItem->Slots; nItem++) {
-							if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem))) {
-								if (PITEMINFO ppackItem = GetItemFromContents(pItem)) {
-									if (ppackItem->ItemNumber == ID) {
-										return pItem;
+				}
+				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+								return pItem;
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+												return pItem;
+											}
+										}
 									}
 								}
 							}
@@ -8180,19 +8678,43 @@ PCONTENTS FindBankItemByID(int ID)
 				}
 			}
 		}
+	}
+
+	// Check shared bank slots
+	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
-			if (pCharInfo->pSharedBankArray && (pPack = pCharInfo->pSharedBankArray->SharedBank[nPack])) {
-				if (PITEMINFO ptheItem = GetItemFromContents(pPack)) {
-					if (ptheItem->ItemNumber == ID) {
-						return pPack;
+			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+				if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
+					return pPack;
+				}
+				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
+						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
+							if (PCONTENTS pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+									if (ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+										return pAugItem;
+									}
+								}
+							}
+						}
 					}
-					if (ptheItem->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
-						PCONTENTS pItem = 0;
-						for (unsigned long nItem = 0; nItem < ptheItem->Slots; nItem++) {
-							if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem))) {
-								if (PITEMINFO ppackItem = GetItemFromContents(pItem)) {
-									if (ppackItem->ItemNumber == ID) {
-										return pItem;
+				}
+				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
+								return pPack;
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
+												return pAugItem;
+											}
+										}
 									}
 								}
 							}
@@ -8203,6 +8725,219 @@ PCONTENTS FindBankItemByID(int ID)
 		}
 	}
 	return NULL;
+}
+DWORD FindBankItemCountByName(char *pName, BOOL bExact)
+{
+	DWORD Count = 0;
+	CHAR Name[MAX_STRING] = { 0 };
+	CHAR Temp[MAX_STRING] = { 0 };
+	strcpy_s(Name, pName);
+	_strlwr_s(Name);
+	PCHARINFO pCharInfo = GetCharInfo();
+
+	// Check bank slots
+	if (pCharInfo->pBankArray) {
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
+						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pPack->StackCount;
+						}
+					}
+				}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pPack)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pPack->StackCount;
+						}
+					}
+				}
+				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
+						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
+							if (PCONTENTS pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+									if (bExact) {
+										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+											Count++;
+										}
+									}
+									else {
+										strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+										_strlwr_s(Temp);
+										if (strstr(Temp, Name)) {
+											Count++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (bExact) {
+								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+										Count++;
+									}
+									else {
+										Count += pItem->StackCount;
+									}
+								}
+							}
+							else {
+								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+								_strlwr_s(Temp);
+								if (strstr(Temp, Name)) {
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+										Count++;
+									}
+									else {
+										Count += pItem->StackCount;
+									}
+								}
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (bExact) {
+												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+													Count++;
+												}
+											}
+											else {
+												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+												_strlwr_s(Temp);
+												if (strstr(Temp, Name)) {
+													Count++;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Check shared bank slots
+	if (pCharInfo->pSharedBankArray) {
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+				if (bExact) {
+					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
+						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pPack->StackCount;
+						}
+					}
+				}
+				else {
+					strcpy_s(Temp, GetItemFromContents(pPack)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name)) {
+						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
+							Count++;
+						}
+						else {
+							Count += pPack->StackCount;
+						}
+					}
+				}
+				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
+					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
+						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
+							if (PCONTENTS pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+									if (bExact) {
+										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+											Count++;
+										}
+									}
+									else {
+										strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+										_strlwr_s(Temp);
+										if (strstr(Temp, Name)) {
+											Count++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
+					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+						if (PCONTENTS pItem = pPack->GetContent(nItem)) {
+							if (bExact) {
+								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+										Count++;
+									}
+									else {
+										Count += pItem->StackCount;
+									}
+								}
+							}
+							else {
+								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+								_strlwr_s(Temp);
+								if (strstr(Temp, Name)) {
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+										Count++;
+									}
+									else {
+										Count += pItem->StackCount;
+									}
+								}
+							}
+							// Check for augs next
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
+									if (PCONTENTS pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
+											if (bExact) {
+												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
+													Count++;
+												}
+											}
+											else {
+												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
+												_strlwr_s(Temp);
+												if (strstr(Temp, Name)) {
+													Count++;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return Count;
 }
 PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
 {
