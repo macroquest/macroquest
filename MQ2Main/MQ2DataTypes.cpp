@@ -3744,13 +3744,26 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return true;
 	}
+	case BardSongPlaying:
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
+		if (pCastSpellWnd && pCastSpellWnd->IsBardSongPlaying()) {
+			Dest.DWord = 1;
+		}
+		return true;
 	case SpellReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
+		if (pCastingWnd && pCastingWnd->dShow) {
+			return true;
+		}
+		if (pCastSpellWnd && pCastSpellWnd->IsBardSongPlaying()) {
+			Dest.DWord = 1;
+			return true;
+		}
 		if (pDisplay && pLocalPlayer && ISINDEX())
 		{
-			if (pCastSpellWnd && pCastSpellWnd->IsBardSongPlaying())
-				return true;
+
 			if (ISNUMBER())
 			{
 				// numeric 

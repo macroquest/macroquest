@@ -1198,6 +1198,7 @@ public:
 		Name = 257,
 		AutoSkill = 258,
 		CursorKrono = 259,
+		BardSongPlaying = 260,
 	};
 	enum CharacterMethods
 	{
@@ -1457,7 +1458,8 @@ public:
 		TypeMember(Name);
 		TypeMember(AutoSkill);
 		TypeMember(CursorKrono);
-
+		TypeMember(BardSongPlaying);
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
