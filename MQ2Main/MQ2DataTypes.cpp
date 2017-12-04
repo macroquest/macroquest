@@ -4384,6 +4384,46 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		Dest.Type = pIntType;
 		return true;
+	case XTAggroCount:
+		Dest.DWord = 0;
+		if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
+			DWORD x = 0;
+			DWORD AggroPct = 100;
+			if (ISNUMBER()) {
+				AggroPct = GETNUMBER();
+				if (AggroPct < 1 || AggroPct > 100) {
+					AggroPct = 100;
+				}
+			}
+			for (int n = 0; n < xtm->XTargetSlots.Count; n++) {
+				XTARGETSLOT xts = xtm->XTargetSlots[n];
+				if (xts.xTargetType == XTARGET_AUTO_HATER && xts.XTargetSlotStatus) {
+					x++;
+				}
+			}
+			if (x > 1) {
+				if (pAggroInfo) {
+					for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
+						XTARGETSLOT xts = xtm->XTargetSlots[i];
+						if (DWORD spID = xts.SpawnID) {
+							if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+								if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
+									continue;
+								if (pSpawn->Type == SPAWN_NPC && xts.xTargetType == XTARGET_AUTO_HATER) {
+									DWORD aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
+									//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
+									if (aggropct < AggroPct) {
+										Dest.DWord++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		Dest.Type = pIntType;
+		return true;
 	case XTarget:
 		if (ExtendedTargetList *xtm = pChar->pXTargetMgr)
 		{
@@ -12652,7 +12692,6 @@ bool MQ2XTargetType::GETMEMBER()
 			Dest.Type = pIntType;
 			return true;
 		case TargetType:
-		{
 			if (char *ptr = GetXtargetType(xts.xTargetType))
 				strcpy_s(DataTypeTemp, ptr);
 			else
@@ -12660,7 +12699,6 @@ bool MQ2XTargetType::GETMEMBER()
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;
-		}
 		case ID:
 			Dest.DWord = xts.SpawnID;
 			Dest.Type = pIntType;
