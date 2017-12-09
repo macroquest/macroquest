@@ -1451,7 +1451,7 @@ void *other2;
 };
 //CMerchantWnd__CMerchantWnd_x (aMerchantwnd)
 // CMerchantWnd_size: 0x438 (see 4CCC3E) in Dec  9 2017 Beta - eqmule
-struct _EQMERCHWINDOW {
+typedef struct _EQMERCHWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0220*/ BYTE Unknown0x0220[0x10];
 /*0x0230*/ merch_other * pMerchOther;//found in CMerchantWnd__CMerchantWnd
