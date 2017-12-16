@@ -469,6 +469,7 @@ GNU General Public License for more details.
 #define CEverQuest__SetGameState_x                                 0x564510
 #define CEverQuest__UPCNotificationFlush_x                         0x55C920
 #define CEverQuest__IssuePetCommand_x                              0x56C1D0
+#define CEverQuest__ReportSuccessfulHit_x                          0x574EA0
 
 // CGaugeWnd 
 #define CGaugeWnd__CalcFillRect_x                                  0x6B9A80

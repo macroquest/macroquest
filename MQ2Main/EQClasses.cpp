@@ -5840,7 +5840,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::ReportDeath(struct _EQPlayerDeath *),CEver
 FUNCTION_AT_ADDRESS(void  CEverQuest::SetDefaultDamageDescByRace(char *,int,unsigned char),CEverQuest__SetDefaultDamageDescByRace);
 #endif
 #ifdef CEverQuest__ReportSuccessfulHit_x
-FUNCTION_AT_ADDRESS(void  CEverQuest::ReportSuccessfulHit(struct _EQSuccessfulHit *,unsigned char,int),CEverQuest__ReportSuccessfulHit);
+FUNCTION_AT_ADDRESS(void CEverQuest::ReportSuccessfulHit(EQSuccessfulHit *pHit,unsigned char bOutputText,int ActualHeal),CEverQuest__ReportSuccessfulHit);
 #endif
 #ifdef CEverQuest__GetCombatSound_x
 FUNCTION_AT_ADDRESS(int  CEverQuest::GetCombatSound(class EQPlayer *,class EQPlayer *),CEverQuest__GetCombatSound);

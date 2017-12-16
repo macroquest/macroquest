@@ -1145,6 +1145,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEverQuest__SetGameState;
 	EQLIB_VAR DWORD CEverQuest__UPCNotificationFlush;
 	EQLIB_VAR DWORD CEverQuest__IssuePetCommand;
+	EQLIB_VAR DWORD CEverQuest__ReportSuccessfulHit;
 	EQLIB_VAR DWORD CEverQuest__CreateTargetIndicator;
 	EQLIB_VAR DWORD CEverQuest__DeleteTargetIndicator;
 	EQLIB_VAR DWORD CFindItemWnd__CFindItemWnd;

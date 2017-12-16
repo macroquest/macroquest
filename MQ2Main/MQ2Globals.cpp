@@ -1690,6 +1690,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__SetGameState);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__UPCNotificationFlush);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__IssuePetCommand);
+	INITIALIZE_EQGAME_OFFSET(CEverQuest__ReportSuccessfulHit);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__CreateTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DeleteTargetIndicator);
 	#ifndef EMU

@@ -2138,6 +2138,24 @@ typedef struct _TARGETRING {
 /*0x1c*/	bool bCursorVisible;
 /*0x20*/
 } TARGETRING, *PTARGETRING;
+
+typedef struct _EQSuccessfulHit 
+{
+/*0x00*/ unsigned short	DamagedID;//Spawn that was hit
+/*0x02*/ unsigned short	AttackerID;//spawn who did the hit
+/*0x04*/ unsigned char	Skill;//1 HS etc...
+/*0x05*/ BYTE	Filler0x5[0x3];
+/*0x08*/ int	SpellID;
+/*0x0c*/ int	DamageCaused;
+/*0x10*/ float	Force;
+/*0x14*/ float	HitHeading;
+/*0x18*/ float	HitPitch;
+/*0x1c*/ bool	bSecondary;
+/*0x1d*/ BYTE	Filler0x1d[0x3];
+/*0x20*/ int	SpecialCase;//origin of damage? need to investigate further -eqmule
+/*0x24*/ 
+} EQSuccessfulHit, *pEQSuccessfulHit;
+
 class CEverQuest
 {
 public:
@@ -2281,7 +2299,7 @@ EQLIB_OBJECT void CEverQuest::ProcessLocalPCIni(int);
 EQLIB_OBJECT void CEverQuest::procMouse(int);
 EQLIB_OBJECT void CEverQuest::RemoveCharacterOptionFile(char *);
 EQLIB_OBJECT void CEverQuest::ReportDeath(struct _EQPlayerDeath *);
-EQLIB_OBJECT void CEverQuest::ReportSuccessfulHit(struct _EQSuccessfulHit *,unsigned char,int);
+EQLIB_OBJECT void CEverQuest::ReportSuccessfulHit(EQSuccessfulHit *pHit,unsigned char bOutputText,int ActualHeal);
 EQLIB_OBJECT void CEverQuest::reqChannel(void);
 EQLIB_OBJECT void CEverQuest::ResetVisionRGBs(void);
 EQLIB_OBJECT void CEverQuest::RightClickedOnPlayer(class EQPlayer *, int);
