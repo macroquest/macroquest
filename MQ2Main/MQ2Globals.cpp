@@ -1566,7 +1566,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__HelpPath);
 	INITIALIZE_EQGAME_OFFSET(__STMLToText);
 	INITIALIZE_EQGAME_OFFSET(__GetAnimationCache);
-	
+	INITIALIZE_EQGAME_OFFSET(Teleport_Table);
+	INITIALIZE_EQGAME_OFFSET(Teleport_Table_Size);
+
 #ifndef EMU
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);

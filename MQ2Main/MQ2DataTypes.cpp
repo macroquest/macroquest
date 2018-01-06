@@ -10485,7 +10485,7 @@ bool MQ2GroupType::GETMEMBER()
 		else
 		{
 			Dest.DWord = 0;
-			for (i = 1; i<6; i++)
+			for (i = 1; i < 6; i++)
 				if (pChar->pGroupInfo->pMember[i])
 				{
 					Dest.DWord++;
@@ -10509,7 +10509,7 @@ bool MQ2GroupType::GETMEMBER()
 	case Members:
 	{
 		Dest.DWord = 0;
-		for (i = 1; i<6; i++)
+		for (i = 1; i < 6; i++)
 			if (pChar->pGroupInfo->pMember[i])
 				Dest.DWord++;
 		Dest.Type = pIntType;
@@ -10526,7 +10526,7 @@ bool MQ2GroupType::GETMEMBER()
 			Dest.Type = pGroupMemberType;
 			return true;
 		}
-		for (i = 1; i<6; i++)
+		for (i = 1; i < 6; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -10551,7 +10551,7 @@ bool MQ2GroupType::GETMEMBER()
 	case GroupSize:
 	{
 		Dest.DWord = 0;
-		for (i = 1; i<6; i++)
+		for (i = 1; i < 6; i++)
 			if (pChar->pGroupInfo->pMember[i])
 				Dest.DWord++;
 		if (Dest.DWord) Dest.DWord++;
@@ -10673,7 +10673,7 @@ bool MQ2GroupType::GETMEMBER()
 	case AnyoneMissing:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		for (i = 1; i<6; i++) {
+		for (i = 1; i < 6; i++) {
 			if (pChar->pGroupInfo->pMember[i] && (pChar->pGroupInfo->pMember[i]->Offline || (pChar->pGroupInfo->pMember[i]->Offline == 0 && pChar->pGroupInfo->pMember[i]->pSpawn == 0) || (pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type == SPAWN_CORPSE))) {
 				Dest.DWord = 1;
 				break;
@@ -10683,7 +10683,7 @@ bool MQ2GroupType::GETMEMBER()
 	case Present:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		for (i = 1; i<6; i++) {
+		for (i = 1; i < 6; i++) {
 			if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE) {
 				Dest.DWord++;
 			}
@@ -10729,6 +10729,43 @@ bool MQ2GroupType::GETMEMBER()
 		}
 		return true;
 	}
+	case Injured:
+	{
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		if (int threshold = GETNUMBER()) {
+			int hps = 0;
+			for (i = 0; i < 6; i++) {
+				if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE && pChar->pGroupInfo->pMember[i]->Offline == 0) {
+					if (i == 0) {
+						if (pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent && pChar->pGroupInfo->pMember[i]->pSpawn->HPMax) {
+							float fhpc = (float)pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent;
+							float fhpm = (float)pChar->pGroupInfo->pMember[i]->pSpawn->HPMax;
+							hps = (int)((fhpc / fhpm) * 100);
+						}
+					}
+					else {
+						hps = pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent;
+					}
+					if (hps > 0 && hps < threshold) {
+						Dest.DWord++;
+					}
+				}
+			}
+
+		}
+		return true;
+	}
+	case XCleric:
+		Dest.Ptr = 0;
+		Dest.Type = pSpawnType;
+		for (i = 0; i < 6; i++) {
+			if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->Mercenary==0 && pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->GetClass()==Cleric) {
+				Dest.Ptr = pChar->pGroupInfo->pMember[i]->pSpawn;
+				return true;
+			}
+		}
+		return false;
 	case MouseOver:
 		if (PCXWNDMGR pwndmgr = (PCXWNDMGR)pWndMgr) {
 			if (CXWnd*pWnd = (CXWnd*)pwndmgr->LastMouseOver) {

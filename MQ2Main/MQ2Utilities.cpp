@@ -5756,7 +5756,7 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 				TotalMatching++;
 				PMQRANK pNewRank = new MQRANK;
 				pNewRank->VarPtr.Ptr = pSpawn;
-				pNewRank->Value.Float = GetDistance(pOrigin->X, pOrigin->Y, pSpawn->X, pSpawn->Y);
+				pNewRank->Value.Float = GetDistance3D(pOrigin->X, pOrigin->Y, pOrigin->Z, pSpawn->X, pSpawn->Y, pSpawn->Z);
 				SpawnSet += pNewRank;
 			}
 			pSpawn = pSpawn->pNext;
@@ -5772,7 +5772,7 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 				TotalMatching++;
 				PMQRANK pNewRank = new MQRANK;
 				pNewRank->VarPtr.Ptr = pSpawn;
-				pNewRank->Value.Float = GetDistance(pOrigin->X, pOrigin->Y, pSpawn->X, pSpawn->Y);
+				pNewRank->Value.Float = GetDistance3D(pOrigin->X, pOrigin->Y, pOrigin->Z, pSpawn->X, pSpawn->Y, pSpawn->Z);
 				SpawnSet += pNewRank;
 			}
 			pSpawn = pSpawn->pNext;

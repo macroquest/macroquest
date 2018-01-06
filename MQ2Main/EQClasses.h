@@ -9679,6 +9679,20 @@ typedef struct _EVERQUESTINFO
 //more data here will finish later.
 }EVERQUESTINFO,*PEVERQUESTINFO;
 #pragma pack(pop)
+
+// size 0x20 -- brainiac 11/14/2016
+typedef struct _tp_coords
+{
+/*0x00*/ int	Index;
+/*0x04*/ FLOAT	Y;
+/*0x08*/ FLOAT	X;
+/*0x0C*/ FLOAT	Z;
+/*0x10*/ FLOAT	Heading;
+/*0x14*/ int	ZoneId;
+/*0x18*/ int    FilterID;
+/*0x1C*/ UINT   VehicleID;
+/*0x20*/
+} tp_coords,*Ptp_coords;
 };
 using namespace EQClasses;
 #pragma pack(pop)

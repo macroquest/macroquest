@@ -327,6 +327,8 @@ GNU General Public License for more details.
 #define __HelpPath_x                                               0xFB4F60
 #define __STMLToText_x                                             0x8E89D0
 #define __GetAnimationCache_x                                      0x6AEC10
+#define Teleport_Table_x                                           0xF20C98
+#define Teleport_Table_Size_x                                      0xF22F6C
 
 //// 
 // Section 4: Function Offsets 

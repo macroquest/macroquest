@@ -4180,6 +4180,8 @@ public:
 		CasterMercCount = 17,
 		MouseOver = 18,
 		AvgHPs = 19,
+		Injured = 20,
+		XCleric = 21,
 	};
 	enum GroupMethods
 	{
@@ -4205,6 +4207,8 @@ public:
 		TypeMember(CasterMercCount);
 		TypeMember(MouseOver);
 		TypeMember(AvgHPs);
+		TypeMember(Injured);
+		AddMember(XCleric, "Cleric");
 	}
 
 	~MQ2GroupType()
