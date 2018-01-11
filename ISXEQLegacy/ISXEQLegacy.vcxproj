@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4BFF15E4-0C88-4D8A-8F4C-7B3B8F4F790C}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/DCINTERFACE  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;CINTERFACE;ISXEQ_LEGACY;EQLIB_IMPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/OPT:NOICF %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)ISXEQLegacy.dll</OutputFile>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <BaseAddress>0x04000000</BaseAddress>
+      <ImportLibrary>$(OutDir)ISXEQLegacy.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\MQ2Main\MQ2ChatHook.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2CommandAPI.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Commands.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Data.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2DataAPI.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2DataTypes.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2DataVars.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2MacroCommands.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Mouse.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2ParseAPI.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Pulse.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Spawns.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Utilities.cpp" />
+    <ClCompile Include="..\MQ2Main\MQ2Windows.cpp" />
+    <ClCompile Include="ISXEQLegacy.cpp" />
+    <ClCompile Include="ISXEQLegacyEngine.cpp" />
+    <ClCompile Include="LegacyGlobals.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\MQ2Main\combines.h" />
+    <ClInclude Include="..\MQ2Main\dikeys.h" />
+    <ClInclude Include="..\MQ2Main\EQClasses.h" />
+    <ClInclude Include="..\MQ2Main\EQData.h" />
+    <ClInclude Include="..\MQ2Main\eqgame.h" />
+    <ClInclude Include="..\MQ2Main\EQUIStructs.h" />
+    <ClInclude Include="..\MQ2Main\grounds.h" />
+    <ClInclude Include="..\MQ2Main\itemtypes.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Auth0.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Commands.h" />
+    <ClInclude Include="..\MQ2Main\MQ2DataTypes.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Globals.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Inlines.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Internal.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Main.h" />
+    <ClInclude Include="..\MQ2Main\MQ2Prototypes.h" />
+    <ClInclude Include="..\MQ2Main\MQ2TopLevelObjects.h" />
+    <ClInclude Include="..\MQ2Main\skills.h" />
+    <ClInclude Include="..\MQ2Main\weapons.h" />
+    <ClInclude Include="ISXEQLegacy.h" />
+    <ClInclude Include="ISXEQLegacyEngine.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

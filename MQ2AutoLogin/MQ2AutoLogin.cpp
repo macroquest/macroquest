@@ -1689,10 +1689,14 @@ void HandleWindows()
         {
             char szTemp[MAX_STRING] = {0};
 
-            if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                GetCXStr(((CStmlWnd*)pWnd)->STMLText,szTemp,MAX_STRING);
-            else
-                GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText,szTemp,MAX_STRING);
+			if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
+				CStmlWnd*pcstm = (CStmlWnd*)pWnd;
+				GetCXStr(pcstm->STMLText, szTemp, MAX_STRING);
+			}
+			else {
+				CSidlScreenWnd*pcsidl = (CSidlScreenWnd*)pWnd;
+				GetCXStr(pcsidl->WindowText, szTemp, MAX_STRING);
+			}
 
             // click OK button if news window is open
             if(szTemp[0] && !strcmp(szTemp, "NEWS"))

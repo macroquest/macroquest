@@ -2694,11 +2694,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	CHAR szTemp2[MAX_STRING] = { 0 };
 
 	LONG id = pSpell->ID;
-	LONG spa = GetSpellAttrib(pSpell,i);// pSpell->Attrib[i];
-	LONG base = GetSpellBase(pSpell,i);// GetSpellBase(pSpell,i);
-	LONG base2 = GetSpellBase2(pSpell,i); //pSpell->Base2[i];
-	LONG max = GetSpellMax(pSpell,i);// GetSpellMax(pSpell,i);
-	LONG calc = GetSpellCalc(pSpell,i); //GetSpellCalc(pSpell,i);
+	LONG spa = GetSpellAttrib(pSpell,i);
+	LONG base = GetSpellBase(pSpell,i);
+	LONG base2 = GetSpellBase2(pSpell,i);
+	LONG max = GetSpellMax(pSpell,i);
+	LONG calc = GetSpellCalc(pSpell,i);
 	LONG spellgroup = pSpell->SpellGroup;
 	LONG ticks = pSpell->DurationCap;
 	LONG targets = pSpell->MaxTargets;
@@ -2711,29 +2711,25 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	if (spa == SPA_CHA && (base <= 1 || base > 255))
 		return szBuffer;
 
-	// Adjust for Base=100
-	// Adjust for base/max swapped
-	// Adjust for base2 used as max
-	// Adjust for base2 used as base
 	switch (spa)
 	{
 	case SPA_HASTE:
 	case SPA_PLAYERSIZE:
-	case SPA_BARDOVERHASTE:
+	case SPA_BARDOVERHASTE: //Adjust for Base=100
 		base -= 100;
 		max -= 100;
 		break;
-	case SPA_SUMMONCORPSE:
+	case SPA_SUMMONCORPSE: //Adjust for base/max swapped
 		max = base;
 		base = 0;
 		break;
 	case SPA_SPELLDAMAGE:
 	case SPA_HEALING:
-	case SPA_SPELLMANACOST:
+	case SPA_SPELLMANACOST: //Adjust for base2 used as max
 		max = base2;
 		break;
 	case SPA_REAGENTCHANCE:
-	case SPA_INCSPELLDMG:
+	case SPA_INCSPELLDMG: //Adjust for base2 used as base
 		base = base2;
 		break;
 	}
@@ -4020,23 +4016,71 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatExtra(spelleffectname, base ? "(Same)" : "(Different)", szTemp2, "", ""));
 		 break;
 	case 487: //Extend Tradeskill Cap
-	case 488: //Defender Melee Force % (PC)
+		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
+		strcat_s(szBuff, szTemp);
+		break;
+	case 488: //Push Taken
+		strcat_s(szBuff, FormatBase(spelleffectname, -base, szTemp2));
+		break;
 	case 489: //Worn Endurance Regen Cap
+		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
 	case 490: //Limit: ReuseTime Min
 	case 491: //Limit: ReuseTime Max
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value/1000.0f, szTemp2));
+		break;
 	case 492: //Limit: Endurance Min
 	case 493: //Limit: Endurance Max
 	case 494: //Pet Add Attack
+		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
+		break;
 	case 495: //Limit: Duration Max
-		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
-		strcat_s(szBuff, szTemp);
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value*6, szTemp2));
 		break;
 	case 496: //Critical Hit Damage (Non-stacking)
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		strcat_s(szBuff, " of Base Damage (Non Stacking)");
 		break;
 	case 497: //NoProc
-	default: //undefined effect 
+		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
+		strcat_s(szBuff, szTemp);
+		break;
+	case 498: //Extra Attack % (1H Primary)
+	case 499: //Extra Attack % (1H Secondary)
+	case 500: //Spell Haste v2
+		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
+	case 501: //Spell Cast Time
+	case 502: //Stun and Fear
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value/1000.0f, szTemp2));
+		break;
+	case 503: //Rear Arc Melee Damage Mod
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value/10.0f, szTemp2));
+		break;
+	case 504: //Rear Arc Melee Damage
+		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
+		break;
+	case 505: //Rear Arc Damage Taken Mod
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value / 10.0f, szTemp2));
+		break;
+	case 506: //Rear Arc Damage Taken
+		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
+		break;
+	case 507: //Spell Damage v4 Mod
+		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		strcat_s(szBuff, " (Before DoT Crit, After Nuke Crit)");
+		break;
+	case 508: //Spell Damage v4
+		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
+		break;
+	case 509: //Health Transfer
+		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
+		strcat_s(szBuff, szTemp);
+		break;
+	case 510: //Resist Incoming
+		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
+		break;
+	default: //undefined effect
 		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
 		strcat_s(szBuff, szTemp);
 		break;

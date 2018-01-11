@@ -1843,13 +1843,15 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	case xGroupLeader:
-		if (GetCharInfo()->pGroupInfo && GetCharInfo()->pGroupInfo->pLeader)
-		{
-			CHAR Name[MAX_STRING] = { 0 };
-			GetCXStr(GetCharInfo()->pGroupInfo->pLeader->pName, Name, MAX_STRING);
-			Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
-			Dest.Type = pBoolType;
-			return true;
+		if (PCHARINFO pCharInfo = GetCharInfo()) {
+			if (pCharInfo->pGroupInfo && pCharInfo->pGroupInfo->pLeader)
+			{
+				CHAR Name[MAX_STRING] = { 0 };
+				GetCXStr(pCharInfo->pGroupInfo->pLeader->pName, Name, MAX_STRING);
+				Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
+				Dest.Type = pBoolType;
+				return true;
+			}
 		}
 		break;
 	case Assist:
@@ -4709,7 +4711,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case Rooted:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(90, 0)) != -1)//Root
+			if ((nBuff = GetSelfBuffBySPA(99, 0)) != -1)//Root
 			{
 				Dest.Ptr = &pChar2->Buff[nBuff];
 				Dest.Type = pBuffType;
@@ -4775,7 +4777,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case Hasted:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(11, 1)) != -1)
+			if ((nBuff = GetSelfBuffBySPA(11, 1)) != -1)//Haste
 			{
 				Dest.Ptr = &pChar2->Buff[nBuff];
 				Dest.Type = pBuffType;
@@ -5381,8 +5383,16 @@ bool MQ2CharacterType::GETMEMBER()
 	case CursorKrono:
 		Dest.DWord = pChar->CursorKrono;
 		Dest.Type = pIntType;
-		break;
-	//end of MQ2CharacterType
+		return true;
+	case MercAAPoints:
+		Dest.DWord = pChar->MercAAPoints;
+		Dest.Type = pIntType;
+		return true;
+	case MercAAPointsSpent:
+		Dest.DWord = pChar->MercAAPointsSpent;
+		Dest.Type = pIntType;
+		return true;
+		//end of MQ2CharacterType
 	}
 	return false;
 #undef pChar
@@ -5552,6 +5562,10 @@ bool MQ2SpellType::GETMEMBER()
 	}
 	case Duration:
 		Dest.DWord = GetSpellDuration(pSpell, (PSPAWNINFO)pLocalPlayer);
+		Dest.Type = pTicksType;
+		return true;
+	case EQSpellDuration:
+		Dest.DWord = EQGetSpellDuration(pSpell, NULL, false);
 		Dest.Type = pTicksType;
 		return true;
 	case CastOnYou:
@@ -10526,7 +10540,7 @@ bool MQ2GroupType::GETMEMBER()
 			Dest.Type = pGroupMemberType;
 			return true;
 		}
-		for (i = 1; i < 6; i++)
+		for (i = 1; i<6; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -10551,7 +10565,7 @@ bool MQ2GroupType::GETMEMBER()
 	case GroupSize:
 	{
 		Dest.DWord = 0;
-		for (i = 1; i < 6; i++)
+		for (i = 1; i<6; i++)
 			if (pChar->pGroupInfo->pMember[i])
 				Dest.DWord++;
 		if (Dest.DWord) Dest.DWord++;
@@ -10673,7 +10687,7 @@ bool MQ2GroupType::GETMEMBER()
 	case AnyoneMissing:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		for (i = 1; i < 6; i++) {
+		for (i = 1; i<6; i++) {
 			if (pChar->pGroupInfo->pMember[i] && (pChar->pGroupInfo->pMember[i]->Offline || (pChar->pGroupInfo->pMember[i]->Offline == 0 && pChar->pGroupInfo->pMember[i]->pSpawn == 0) || (pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type == SPAWN_CORPSE))) {
 				Dest.DWord = 1;
 				break;
@@ -10683,7 +10697,7 @@ bool MQ2GroupType::GETMEMBER()
 	case Present:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		for (i = 1; i < 6; i++) {
+		for (i = 1; i<6; i++) {
 			if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE) {
 				Dest.DWord++;
 			}

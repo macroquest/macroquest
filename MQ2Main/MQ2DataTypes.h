@@ -1200,6 +1200,8 @@ public:
 		CursorKrono = 259,
 		BardSongPlaying = 260,
 		XTAggroCount = 261,
+		MercAAPoints = 262,
+		MercAAPointsSpent = 263,
 	};
 	enum CharacterMethods
 	{
@@ -1461,6 +1463,8 @@ public:
 		TypeMember(CursorKrono);
 		TypeMember(BardSongPlaying);
 		TypeMember(XTAggroCount);
+		TypeMember(MercAAPoints);
+		TypeMember(MercAAPointsSpent);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1584,6 +1588,7 @@ public:
 		NewStacksTarget = 69,
 		StacksWithDiscs = 70,
 		IllusionOkWhenMounted = 71,
+		EQSpellDuration = 72,
 	};
 	enum SpellMethods
 	{
@@ -1661,6 +1666,7 @@ public:
 		TypeMember(NewStacksTarget);
 		TypeMember(StacksWithDiscs);
 		TypeMember(IllusionOkWhenMounted);
+		TypeMember(EQSpellDuration);
 		
 	}
 

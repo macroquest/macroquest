@@ -505,7 +505,7 @@
         "Limit: CasterClass",                   // 485
         "Limit: Caster",                        // 486
         "Extend Tradeskill Cap",                // 487
-        "Defender Melee Force % (PC)",          // 488
+        "Push Taken",                           // 488
         "Worn Endurance Regen Cap",             // 489
         "Limit: ReuseTime Min",                 // 490
         "Limit: ReuseTime Max",                 // 491
@@ -513,6 +513,18 @@
         "Limit: Endurance Max",                 // 493
         "Pet Add Attack",                       // 494
         "Limit: Duration Max",                  // 495
-		"Critical Hit Damage",                  // 496
-		"NoProc",                               // 497 
-
+        "Critical Hit Damage",                  // 496
+        "NoProc",                               // 497 
+        "Extra Attack % (1H Primary)",          // 498
+        "Extra Attack % (1H Secondary)",        // 499
+        "Spell Haste v2",                       // 500
+        "Spell Cast Time",                      // 501
+        "Stun and Fear",                        // 502
+        "Rear Arc Melee Damage Mod",            // 503
+        "Rear Arc Melee Damage",                // 504
+        "Rear Arc Damage Taken Mod",            // 505
+        "Rear Arc Damage Taken",                // 506
+        "Spell Damage v4 Mod",                  // 507
+        "Spell Damage v4",                      // 508
+        "Health Transfer",                      // 509
+        "Resist Incoming",                      // 510
