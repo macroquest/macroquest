@@ -313,6 +313,7 @@ class JournalNPC;
 class KeyCombo;
 class KeypressHandler;
 class LogicalPacket;
+class LootFiltersManager;
 class MapViewMap;
 class MemoryPoolManager;
 class MidiInstance;
@@ -3189,7 +3190,7 @@ EQLIB_OBJECT void CItemDisplayWnd::UpdateStrings(void);
 EQLIB_OBJECT CItemDisplayWnd::~CItemDisplayWnd(void);
 EQLIB_OBJECT int CItemDisplayWnd::HandleKeyboardMsg(unsigned __int32,unsigned __int32,bool);
 EQLIB_OBJECT int CItemDisplayWnd::OnProcessFrame(void);
-EQLIB_OBJECT int CItemDisplayWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+EQLIB_OBJECT int CItemDisplayWnd::WndNotification(CXWnd *pWnd, unsigned __int32 Message, void *pData);
 //EQLIB_OBJECT void * CItemDisplayWnd::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CItemDisplayWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CItemDisplayWnd::Activate(void);
@@ -3202,6 +3203,7 @@ EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateRaceString(class EQ_Equipment *)
 EQLIB_OBJECT void CItemDisplayWnd::GetSizeString(int,char *);
 EQLIB_OBJECT void CItemDisplayWnd::InsertAugmentRequest(int AugSlot);
 EQLIB_OBJECT void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot);
+EQLIB_OBJECT bool CItemDisplayWnd::AboutToShow(void);
 
 };
 
@@ -6614,6 +6616,7 @@ EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
 EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
 EQLIB_OBJECT int EQ_Character1::GetAdjustedSkill(int);
 EQLIB_OBJECT int EQ_Character1::GetBaseSkill(int);
+EQLIB_OBJECT bool EQ_Character1::CanUseItem(PCONTENTS *pItem, bool bUseRequiredLvl, bool bOutput);
 };
 
 class EQ_Character
@@ -6649,7 +6652,6 @@ EQLIB_OBJECT int EQ_Character::basesave_fire(void);
 EQLIB_OBJECT int EQ_Character::basesave_magic(void);
 EQLIB_OBJECT int EQ_Character::basesave_poison(void);
 EQLIB_OBJECT int EQ_Character::CalculateBardSongMod(int);
-EQLIB_OBJECT int EQ_Character::CanUseItem(class EQ_Item *);
 EQLIB_OBJECT int EQ_Character::CapStat(int,int);
 EQLIB_OBJECT int EQ_Character::Cha(void);
 EQLIB_OBJECT int EQ_Character::CheckFoodAndWater(void);
@@ -8497,6 +8499,12 @@ EQLIB_OBJECT void LogicalPacket::Release(void)const;
 EQLIB_OBJECT virtual LogicalPacket::~LogicalPacket(void);
 //EQLIB_OBJECT virtual void * LogicalPacket::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT virtual void * LogicalPacket::`vector deleting destructor'(unsigned int);
+};
+
+class LootFiltersManager
+{
+public:
+EQLIB_OBJECT bool LootFiltersManager::AddItemLootFilter(int ItemID, int IconID, const char* ItemName, int FilterTypes, bool bFromFile = false);
 };
 
 class MapViewMap

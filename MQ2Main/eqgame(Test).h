@@ -507,6 +507,8 @@ GNU General Public License for more details.
 #define CItemDisplayWnd__InsertAugmentRequest_x                    0x6F5AA0
 #define CItemDisplayWnd__RemoveAugmentRequest_x                    0x6F5FD0
 #define CItemDisplayWnd__SetItem_x                                 0x6FB880
+#define CItemDisplayWnd__AboutToShow_x                             0x6EF950
+#define CItemDisplayWnd__WndNotification_x                         0x6FC050
 
 //CWndDisplayManager
 #define CWndDisplayManager__FindWindowA_x                          0x7E8100
@@ -756,6 +758,7 @@ GNU General Public License for more details.
 #define EQ_Character__FindItemByRecord_x                           0x464400
 #define EQ_Character__GetAdjustedSkill_x                           0x466F60
 #define EQ_Character__GetBaseSkill_x                               0x45E490
+#define EQ_Character__CanUseItem_x                                 0x468E40
 
 //ProfileManager
 #define ProfileManager__GetCurrentProfile_x                        0x8758A0
@@ -985,3 +988,7 @@ GNU General Public License for more details.
 //Camera
 #define CDisplay__cameraType_x                                     0xE727E8
 #define EverQuest__Cameras_x                                       0xF34AE8
+
+//LootFiltersManager
+#define LootFiltersManager__AddItemLootFilter_x                    0x494490
+#define pinstLootFiltersManager_x                                  0xD40248

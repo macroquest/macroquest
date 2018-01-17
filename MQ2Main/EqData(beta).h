@@ -289,6 +289,7 @@ typedef struct _BodyInfo
 #define DEITY_TheTribunal               214
 #define DEITY_Tunare                    215
 #define DEITY_Veeshan                   216
+#define NUM_DEITIES                     16
 
 #define ITEMTYPE_NORMAL                 0
 #define ITEMTYPE_PACK                   1
@@ -421,6 +422,7 @@ enum MOUSE_DATA_TYPES {
 #define NUM_BUFF_SLOTS					0x61
 #define NUM_LONG_BUFFS                  0x2a
 #define NUM_SHORT_BUFFS                 0x37
+#define NUM_RACES                       17
 
 #define EQ_EXPANSION(x)                 (1 << (x - 1))
 #define EXPANSION_RoK                   EQ_EXPANSION(1)
@@ -561,16 +563,15 @@ typedef struct _CXSTR {
 typedef struct _ITEMSPELLS { 
 /*0x00*/ DWORD SpellID; 
 /*0x04*/ BYTE  RequiredLevel; 
-/*0x05*/ BYTE  EffectType; 
-/*0x06*/ BYTE  Unknown[0x2]; 
-/*0x08*/ DWORD Unknown0x08;
+/*0x05*/ BYTE  EffectType; //bIsActivated
+/*0x08*/ DWORD EffectiveCasterLevel;
 /*0x0c*/ DWORD MaxCharges;
 /*0x10*/ DWORD CastTime;
-/*0x14*/ DWORD TimerID;
+/*0x14*/ DWORD TimerID;//RecastTime
 /*0x18*/ DWORD RecastType;
-/*0x1c*/ DWORD ProcRate;
+/*0x1c*/ DWORD ProcRate;//chance to proc
 /*0x20*/ CHAR  OtherName[0x40];//some kind of override
-/*0x60*/ DWORD OtherID;
+/*0x60*/ DWORD OtherID;//Description ID
 /*0x64*/ 
 } ITEMSPELLS, *PITEMSPELLS;
 

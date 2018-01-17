@@ -515,6 +515,9 @@ namespace MQ2Globals
 #ifndef EMU
 	EQLIB_VAR EQMERCALTABILITIES **ppMercAltAbilities;
 #define pMercAltAbilities (*ppMercAltAbilities)
+	EQLIB_VAR LootFiltersManager **ppLootFiltersManager;
+#define pLootFiltersManager (*ppLootFiltersManager)
+
 #endif
 
 	EQLIB_VAR AGGROINFO **ppAggroInfo;
@@ -525,7 +528,7 @@ namespace MQ2Globals
 #define pItemDisplayManager (*ppItemDisplayManager)
 	EQLIB_VAR EqSoundManager **ppEqSoundManager;
 #define pEqSoundManager (*ppEqSoundManager)
-	
+
 	/* WINDOW INSTANCES */
 	EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 	EQLIB_VAR CCursorAttachment **ppCursorAttachment;
@@ -1154,7 +1157,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD IString__Append;
 	EQLIB_VAR DWORD CDisplay__cameraType;
 	EQLIB_VAR DWORD EverQuest__Cameras;
-	
+	EQLIB_VAR DWORD pinstLootFiltersManager;
+	EQLIB_VAR DWORD LootFiltersManager__AddItemLootFilter;
+
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__Draw;
@@ -1189,7 +1194,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CItemDisplayWnd__InsertAugmentRequest;
 	EQLIB_VAR DWORD CItemDisplayWnd__RemoveAugmentRequest;
 	EQLIB_VAR DWORD CItemDisplayWnd__SetItem;
-
+	EQLIB_VAR DWORD CItemDisplayWnd__AboutToShow;
+	EQLIB_VAR DWORD CItemDisplayWnd__WndNotification;
+	
 	EQLIB_VAR DWORD CLabel__Draw;
 
 	EQLIB_VAR DWORD CListWnd__CListWnd;
@@ -1407,6 +1414,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__FindItemByRecord;
 	EQLIB_VAR DWORD EQ_Character__GetAdjustedSkill;
 	EQLIB_VAR DWORD EQ_Character__GetBaseSkill;
+	EQLIB_VAR DWORD EQ_Character__CanUseItem;
 
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 

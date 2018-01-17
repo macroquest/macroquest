@@ -26,7 +26,8 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 using namespace std;
-
+std::map<CItemDisplayWnd *, CButtonWnd*>ButtonMap;
+	
 // thanks, finally, SOE. we'll leave this here for a while and eventually remove it
 #define DISABLE_TOOLTIP_TIMERS
 
@@ -52,6 +53,7 @@ extern "C" {
 	__declspec(dllexport) HANDLE hDisplayItemLock = 0;
 	__declspec(dllexport) std::map<DWORD,DISPLAYITEMSTRINGS>contentsitemstrings;
 }
+
 class MQ2DisplayItemType : public MQ2Type {
 private:
 	char Temps[MAX_STRING];
@@ -64,6 +66,10 @@ public:
 		Information = 5,
 		DisplayIndex = 6
 	};
+	enum DisplayItemMethods
+	{
+		AddLootFilter = 1,
+	};
 	MQ2DisplayItemType() :MQ2Type("DisplayItem") {
 		TypeMember(Info);
 		TypeMember(WindowTitle);
@@ -71,10 +77,35 @@ public:
 		TypeMember(MadeBy);
 		TypeMember(Information);
 		TypeMember(DisplayIndex);
+		TypeMethod(AddLootFilter);
 	}
 	bool MQ2DisplayItemType::GETMEMBER() {
 		int index = VarPtr.DWord;
 		PCONTENTS pCont = &g_Contents[index];
+		if (!pCont)
+			return false;
+		PMQ2TYPEMEMBER pMethod = MQ2DisplayItemType::FindMethod(Member);
+		if (pMethod) {
+			Dest.DWord = 0;
+			Dest.Type = pBoolType;
+			switch ((DisplayItemMethods)pMethod->ID)
+			{
+				case AddLootFilter:
+				{
+#ifndef EMU
+					if (PITEMINFO pItem = GetItemFromContents(pCont)) {
+						DWORD ptr = (DWORD)pLootFiltersManager;
+						Sleep(0);
+						pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
+						WriteChatf("Added %s to AG and Roll LootFilters.",pItem->Name);
+						Dest.DWord = 1;
+					}
+#endif
+					break;
+				}
+			}
+			return true;
+		}
 		PMQ2TYPEMEMBER pMember = MQ2DisplayItemType::FindMember(Member);
 		if (!pMember)
 		{
@@ -187,7 +218,7 @@ public:
 
         GetCXStr(*Str, cTemp, MAX_STRING);
 
-        string ItemDisplay;
+        std::string ItemDisplay;
         ItemDisplay = cTemp;
 
         char ActualDmgBonus[3];
@@ -654,6 +685,10 @@ public:
             sprintf_s(temp,"Item ID: %d<br>", Item->ItemNumber); 
             strcat_s(out, temp); 
         }
+		if ( Item->ItemNumber > 0 ) { 
+            sprintf_s(temp,"Icon ID: %d<br>", Item->IconNumber); 
+            strcat_s(out, temp); 
+        }
 
 #ifndef ISXEQ
 		// Dewey 2461 - user defined score 12-22-2012
@@ -868,11 +903,61 @@ public:
         bNoSpellTramp=false;
         eEffectType = None;
     }
+	int WndNotification_Trampoline(CXWnd*, unsigned __int32, void*);
+	int WndNotification_Detour(CXWnd* pWnd, unsigned __int32 Message, void* pData)
+    {
+#ifndef EMU
+		if (Message == XWM_LCLICK)
+		{
+			for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end();i++) {
+				//find(pWnd) != ButtonMap.end()) {
+				if (i->second == (CButtonWnd*)pWnd) {
+					if (i->first->pCurrentItem) {
+						if (PITEMINFO pItem = GetItemFromContents(i->first->pCurrentItem)) {
+							//WriteChatf("User just clicked save to loot filters button for %s", pItem->Name);
+							pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
+							WriteChatf("Added %s to AG and Roll LootFilters.",pItem->Name);
+						}
+					}
+					break;
+				}
+			}
+		}
+#endif
+        return WndNotification_Trampoline(pWnd, Message, pData);
+    };
+
+	bool AboutToShow_Trampoline(void);
+	bool AboutToShow_Detour(void)
+	{
+		if (CItemDisplayWnd *pWnd = (CItemDisplayWnd*)this) {
+			if(ButtonMap.find(pWnd)==ButtonMap.end()) {
+				if (CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton")) {
+					btntemplate->Font = 2;
+					btntemplate->TextColor = 0xFFFFFF00;
+					if (CButtonWnd *pBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate)) {
+						pBtn->dShow = true;
+						pBtn->Location.top = 30;
+						pBtn->Location.left = 330;
+						pBtn->Location.right = 370;
+						pBtn->Location.bottom = 70;
+						((CXWnd*)pBtn)->SetWindowTextA(CXStr("Add To Loot Filters"));
+						ButtonMap[pWnd] = pBtn;
+						pBtn->BGColor = 0xFF0000FF;
+						pBtn->DecalTint = 0xFF00FFFF;
+					}
+				}
+			}
+		}
+		return AboutToShow_Trampoline();
+	}
 };
 
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
+DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, unsigned __int32, void*));
+DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline(void));
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
 enum eAugTypes
@@ -911,6 +996,34 @@ enum eAugTypes
 	AT_32 = 0x80000000
 };
 #ifndef ISXEQ
+
+void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
+{
+#ifdef EMU
+	WriteChatf("This is not supported on EMUs");
+#else
+	if (!pLootFiltersManager)
+		return;
+	if (szLine[0] == '\0') {
+		WriteChatf("AddLootFilter Usage: /AddLootFilter <itemID> <ItemIconID> \"Item Name\"");
+		return;
+	}
+	CHAR szArg1[MAX_STRING] = { 0 };
+	CHAR szArg2[MAX_STRING] = { 0 };
+	CHAR szArg3[MAX_STRING] = { 0 };
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+	GetArg(szArg3, szLine, 3);
+	if (szArg1[0] == '\0' || szArg2[0] == '\0' || szArg3[0] == '\0') {
+		WriteChatf("AddLootFilter Usage: /AddLootFilter <itemID> <ItemIconID> \"Item Name\"");
+		return;
+	}
+	int itemid = atoi(szArg1);
+	int itemicon = atoi(szArg2);
+	pLootFiltersManager->AddItemLootFilter(itemid, itemicon, szArg3, 5);
+	WriteChatf("Added %s to AG and Roll LootFilters.",szArg3);
+#endif
+}
 void InsertAug(PSPAWNINFO pChar, PCHAR szLine)
 {
 	try {
@@ -1989,10 +2102,16 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		return;
 	}
 	pGearScoreType = new MQ2GearScoreType;
-
-    EzDetourwName(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline,"CItemDisplayWnd__SetSpell");
+	
+	#ifndef EMU
+	EzDetourwName(CItemDisplayWnd__WndNotification,&ItemDisplayHook::WndNotification_Detour,&ItemDisplayHook::WndNotification_Trampoline,"CItemDisplayWnd__WndNotification");
+    EzDetourwName(CItemDisplayWnd__AboutToShow,&ItemDisplayHook::AboutToShow_Detour,&ItemDisplayHook::AboutToShow_Trampoline,"CItemDisplayWnd__AboutToShow");
+	#endif
+	EzDetourwName(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline,"CItemDisplayWnd__SetSpell");
     EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline,"CItemDisplayWnd__UpdateStrings");
 
+	
+    AddCommand("/addlootfilter",AddLootFilter); 
     AddCommand("/insertaug",InsertAug); 
     AddCommand("/removeaug",RemoveAug); 
     AddCommand("/inote",Comment); 
@@ -2020,6 +2139,14 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     // Remove commands, macro parameters, hooks, etc.
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CItemDisplayWnd__UpdateStrings);
+#ifndef EMU
+	RemoveDetour(CItemDisplayWnd__AboutToShow);
+	RemoveDetour(CItemDisplayWnd__WndNotification);
+	for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->second->Destroy();
+	}
+	ButtonMap.clear();
+#endif
 	delete pGearScoreType;
 	pGearScoreType = 0;
 
@@ -2031,6 +2158,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveCommand("/inote");
 	RemoveCommand("/iScore");
 	RemoveCommand("/GearScore");
+	RemoveCommand("/addlootfilter");
+	
 	delete pDisplayItemType;
 	if (hDisplayItemLock) {
 		ReleaseMutex(hDisplayItemLock);
@@ -2038,7 +2167,25 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 		hDisplayItemLock = 0;
 	}
 }
+PLUGIN_API void OnCleanUI()
+{
+#ifndef EMU
+	for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->second->Destroy();
+	}
+	ButtonMap.clear();
+#endif
+}
 
+PLUGIN_API void OnReloadUI()
+{
+#ifndef EMU
+	for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->second->Destroy();
+	}
+	ButtonMap.clear();
+#endif
+}
 #define LINK_LEN 55
 
 PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color) 

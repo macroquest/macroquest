@@ -1836,6 +1836,82 @@ public:
 		return true;
 	}
 };
+class MQ2ItemSpellType : public MQ2Type
+{
+public:
+	enum ItemSpellMembers
+	{
+		SpellID = 1,
+		RequiredLevel = 2,
+		EffectType = 3,
+		EffectiveCasterLevel = 4,
+		MaxCharges = 5,
+		CastTime = 6,
+		TimerID = 7,
+		RecastType = 8,
+		ProcRate = 9,
+		OtherName = 10,
+		OtherID = 11,
+		Spell = 12,
+	};
+	MQ2ItemSpellType() :MQ2Type("itemspell")
+	{
+		TypeMember(SpellID); 
+		TypeMember(RequiredLevel);
+		TypeMember(EffectType);
+		TypeMember(EffectiveCasterLevel);
+		TypeMember(MaxCharges);
+		TypeMember(CastTime);
+		TypeMember(TimerID);
+		TypeMember(RecastType);
+		TypeMember(ProcRate);
+		TypeMember(OtherName);
+		TypeMember(OtherID);
+		TypeMember(Spell);
+	};
+	~MQ2ItemSpellType()
+	{
+	}
+
+	bool GETMEMBER();
+	DECLAREGETMETHOD();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (!VarPtr.Ptr)
+			return false;
+		if (int spellid = ((PITEMSPELLS)VarPtr.Ptr)->SpellID) {
+			if (PSPELL pSpell = GetSpellByID(spellid)) {
+				strcpy_s(Destination, MAX_STRING, pSpell->Name);
+				return true;
+			}
+		}
+		return false;
+	}
+	void InitVariable(MQ2VARPTR &VarPtr)
+	{
+		VarPtr.Ptr = malloc(sizeof(ITEMSPELLS));
+		VarPtr.HighPart = 0;
+		ZeroMemory(VarPtr.Ptr, sizeof(ITEMSPELLS));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr)
+	{
+		free(VarPtr.Ptr);
+	}
+
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type != pItemSpellType)
+			return false;
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
 class MQ2ItemType : public MQ2Type
 {
 public:
@@ -1892,107 +1968,116 @@ public:
 		Light = 49,
 		Level = 50,
 		BaneDMG = 51,
-		Proc = 52,
-		SkillModValue = 53,
-		InstrumentType = 54,
-		InstrumentMod = 55,
-		RequiredLevel = 56,
-		BaneDMGType = 57,
-		AC = 58,
-		HP = 59,
-		Mana = 60,
-		STR = 61,
-		STA = 62,
-		AGI = 63,
-		DEX = 64,
-		CHA = 65,
-		INT = 66,
-		WIS = 67,
-		svCold = 68,
-		svFire = 69,
-		svMagic = 70,
-		svDisease = 71,
-		svPoison = 72,
-		Summoned = 73,
-		Artifact = 74,
-		PendingLore = 75,
-		LoreText = 76,
-		Items = 77,
-		Item = 78,
-		Container = 79,
-		Stackable = 80,
-		InvSlot = 81,
-		SellPrice = 82,
-		WornSlot = 83,
-		WornSlots = 84,
-		CastTime = 85,
-		Spell = 86,
-		EffectType = 87,
-		Tribute = 88,
-		Attuneable = 89,
-		Timer = 90,
-		ItemDelay = 91,
-		TimerReady = 92,
-		StackSize = 93,
-		Stacks = 94,
-		StackCount = 95,
-		FreeStack = 96,
-		MerchQuantity = 97,
-		Classes = 98,
-		Class = 99,
-		Races = 100,
-		Race = 101,
-		Deities = 102,
-		Deity = 103,
-		Evolving = 104,
-		svCorruption = 105,
-		Power = 106,
-		MaxPower = 107,
-		Purity = 108,
-		Accuracy = 109,
-		CombatEffects = 110,
-		DoTShielding = 111,
-		HeroicSTR = 112,
-		HeroicINT = 113,
-		HeroicWIS = 114,
-		HeroicAGI = 115,
-		HeroicDEX = 116,
-		HeroicSTA = 117,
-		HeroicCHA = 118,
-		HeroicSvMagic = 119,
-		HeroicSvFire = 120,
-		HeroicSvCold = 121,
-		HeroicSvDisease = 122,
-		HeroicSvPoison = 123,
-		HeroicSvCorruption = 124,
-		EnduranceRegen = 125,
-		HealAmount = 126,
-		Clairvoyance = 127,
-		DamageShieldMitigation = 128,
-		SpellDamage = 129,
-		Augs = 130,
-		Tradeskills = 131,
-		ItemSlot = 132,
-		ItemSlot2 = 133,
-		Address = 134,
-		PctPower = 135,
-		Prestige = 136,
-		FirstFreeSlot = 137,
-		SlotsUsedByItem = 138,
-		Heirloom = 139,
-		Collectible = 140,
-		NoDestroy = 141,
-		Quest = 142,
-		Expendable = 143,
-		ContAddress = 144,
-		ItemLink = 145,
-		Icon = 146,
-		SkillModMax = 147,
-		OrnamentationIcon = 148,
-		ContentSize = 149,
-		Open = 150,
-		NoTrade = 151,
-		AugSlot = 152,
+		SkillModValue = 52,
+		InstrumentType = 53,
+		InstrumentMod = 54,
+		RequiredLevel = 55,
+		BaneDMGType = 56,
+		AC = 57,
+		HP = 58,
+		Mana = 59,
+		STR = 60,
+		STA = 61,
+		AGI = 62,
+		DEX = 63,
+		CHA = 64,
+		INT = 65,
+		WIS = 66,
+		svCold = 67,
+		svFire = 68,
+		svMagic = 69,
+		svDisease = 70,
+		svPoison = 71,
+		Summoned = 72,
+		Artifact = 73,
+		PendingLore = 74,
+		LoreText = 75,
+		Items = 76,
+		Item = 77,
+		Container = 78,
+		Stackable = 79,
+		InvSlot = 80,
+		SellPrice = 81,
+		WornSlot = 82,
+		WornSlots = 83,
+		CastTime = 84,
+		Spell = 85,
+		EffectType = 86,
+		Tribute = 87,
+		Attuneable = 88,
+		Timer = 89,
+		ItemDelay = 90,
+		TimerReady = 91,
+		StackSize = 92,
+		Stacks = 93,
+		StackCount = 94,
+		FreeStack = 95,
+		MerchQuantity = 96,
+		Classes = 97,
+		Class = 98,
+		Races = 99,
+		Race = 100,
+		Deities = 101,
+		Deity = 102,
+		Evolving = 103,
+		svCorruption = 104,
+		Power = 105,
+		MaxPower = 106,
+		Purity = 107,
+		Accuracy = 108,
+		CombatEffects = 109,
+		DoTShielding = 110,
+		HeroicSTR = 111,
+		HeroicINT = 112,
+		HeroicWIS = 113,
+		HeroicAGI = 114,
+		HeroicDEX = 115,
+		HeroicSTA = 116,
+		HeroicCHA = 117,
+		HeroicSvMagic = 118,
+		HeroicSvFire = 119,
+		HeroicSvCold = 120,
+		HeroicSvDisease = 121,
+		HeroicSvPoison = 122,
+		HeroicSvCorruption = 123,
+		EnduranceRegen = 124,
+		HealAmount = 125,
+		Clairvoyance = 126,
+		DamageShieldMitigation = 127,
+		SpellDamage = 128,
+		Augs = 129,
+		Tradeskills = 130,
+		ItemSlot = 131,
+		ItemSlot2 = 132,
+		Address = 133,
+		PctPower = 134,
+		Prestige = 135,
+		FirstFreeSlot = 136,
+		SlotsUsedByItem = 137,
+		Heirloom = 138,
+		Collectible = 139,
+		NoDestroy = 140,
+		Quest = 141,
+		Expendable = 142,
+		ContAddress = 143,
+		ItemLink = 144,
+		Icon = 145,
+		SkillModMax = 146,
+		OrnamentationIcon = 147,
+		ContentSize = 148,
+		Open = 149,
+		NoTrade = 150,
+		AugSlot = 151,
+		Clicky = 152,
+		Proc = 153,
+		Worn = 154,
+		Focus = 155,
+		Scroll = 156,
+		Focus2 = 157,
+		Mount = 158,
+		Illusion = 159,
+		Familiar = 160,
+		CanUse = 161,
 	};
 	enum ItemMethods
 	{
@@ -2050,7 +2135,6 @@ public:
 		TypeMember(Light);
 		TypeMember(Level);
 		TypeMember(BaneDMG);
-		TypeMember(Proc);
 		TypeMember(SkillModValue);
 		TypeMember(InstrumentType);
 		TypeMember(InstrumentMod);
@@ -2151,6 +2235,16 @@ public:
 		TypeMember(Open);
 		TypeMember(NoTrade);
 		TypeMember(AugSlot);
+		TypeMember(Clicky);
+		TypeMember(Proc);
+		TypeMember(Worn);
+		TypeMember(Focus);
+		TypeMember(Scroll);
+		TypeMember(Focus2);
+		TypeMember(Mount);
+		TypeMember(Illusion);
+		TypeMember(Familiar);
+		TypeMember(CanUse);
 	}
 
 	~MQ2ItemType()

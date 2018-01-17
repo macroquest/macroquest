@@ -57,6 +57,7 @@ DATATYPE(MQ2GroupType, pGroupType, nullptr, 0);
 DATATYPE(MQ2HeadingType, pHeadingType, nullptr, 0);
 DATATYPE(MQ2InvSlotType, pInvSlotType, nullptr, 0);
 DATATYPE(MQ2ItemType, pItemType, nullptr, 0);
+DATATYPE(MQ2ItemSpellType, pItemSpellType, nullptr, 0);
 DATATYPE(MQ2MacroQuestType, pMacroQuestType, pEverQuestType, 0);
 DATATYPE(MQ2MercenaryType, pMercenaryType, pSpawnType, 0);
 DATATYPE(MQ2MerchantType, pMerchantType, nullptr, 0);

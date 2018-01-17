@@ -1327,6 +1327,9 @@ FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(class CXWnd *),CFindItemWnd__CFi
 #ifdef IString__Append_x
 FUNCTION_AT_ADDRESS(void IString2::Append(char *c),IString__Append);
 #endif
+#ifdef LootFiltersManager__AddItemLootFilter_x
+FUNCTION_AT_ADDRESS(bool LootFiltersManager::AddItemLootFilter(int, int, const char*, int, bool),LootFiltersManager__AddItemLootFilter);
+#endif
 #ifdef CFeedbackWnd__CFeedbackWnd_x
 FUNCTION_AT_ADDRESS( CFeedbackWnd::CFeedbackWnd(class CXWnd *),CFeedbackWnd__CFeedbackWnd);
 #endif
@@ -2000,6 +2003,12 @@ FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot),CIte
 #endif
 #ifdef CItemDisplayWnd__SetItem_x
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags),CItemDisplayWnd__SetItem);
+#endif
+#ifdef CItemDisplayWnd__AboutToShow_x
+FUNCTION_AT_ADDRESS(bool CItemDisplayWnd::AboutToShow(void),CItemDisplayWnd__AboutToShow);
+#endif
+#ifdef CItemDisplayWnd__WndNotification_x
+FUNCTION_AT_ADDRESS(int CItemDisplayWnd::WndNotification(CXWnd *, unsigned __int32, void *),CItemDisplayWnd__WndNotification);
 #endif
 #ifdef CItemDisplayWnd__SetItemText_x
 FUNCTION_AT_ADDRESS(void  CItemDisplayWnd::SetItemText(char *),CItemDisplayWnd__SetItemText);
@@ -4205,7 +4214,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::ApplyFatigue(int),EQ_Character__ApplyFati
 FUNCTION_AT_ADDRESS(int  EQ_Character::max_encumbrance(void),EQ_Character__max_encumbrance);
 #endif
 #ifdef EQ_Character__CanUseItem_x
-FUNCTION_AT_ADDRESS(int  EQ_Character::CanUseItem(class EQ_Item *),EQ_Character__CanUseItem);
+FUNCTION_AT_ADDRESS(bool EQ_Character1::CanUseItem(PCONTENTS *, bool, bool),EQ_Character__CanUseItem);
 #endif
 #ifdef EQ_Character__encum_factor_x
 FUNCTION_AT_ADDRESS(float  EQ_Character::encum_factor(void),EQ_Character__encum_factor);

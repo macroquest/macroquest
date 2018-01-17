@@ -1845,13 +1845,13 @@ bool MQ2SpawnType::GETMEMBER()
 	case xGroupLeader:
 		if (PCHARINFO pCharInfo = GetCharInfo()) {
 			if (pCharInfo->pGroupInfo && pCharInfo->pGroupInfo->pLeader)
-			{
-				CHAR Name[MAX_STRING] = { 0 };
+		{
+			CHAR Name[MAX_STRING] = { 0 };
 				GetCXStr(pCharInfo->pGroupInfo->pLeader->pName, Name, MAX_STRING);
-				Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
-				Dest.Type = pBoolType;
-				return true;
-			}
+			Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
+			Dest.Type = pBoolType;
+			return true;
+		}
 		}
 		break;
 	case Assist:
@@ -6205,7 +6205,68 @@ bool MQ2SpellType::GETMEMBER()
 #undef pSpell
 	return false;
 }
-
+bool MQ2ItemSpellType::GETMEMBER()
+{
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMEMBER pMember = MQ2ItemSpellType::FindMember(Member);
+	if (!pMember)
+		return false;
+	PITEMSPELLS pItemSpell = (PITEMSPELLS)VarPtr.Ptr;
+	switch ((ItemSpellMembers)pMember->ID)
+	{
+		case SpellID:
+			Dest.DWord = pItemSpell->SpellID;
+			Dest.Type = pIntType;
+			return true;
+		case RequiredLevel:
+			Dest.DWord = pItemSpell->RequiredLevel;
+			Dest.Type = pIntType;
+			return true;
+		case EffectType:
+			Dest.DWord = pItemSpell->EffectType;
+			Dest.Type = pIntType;
+			return true;
+		case EffectiveCasterLevel:
+			Dest.DWord = pItemSpell->EffectiveCasterLevel;
+			Dest.Type = pIntType;
+			return true;
+		case MaxCharges:
+			Dest.DWord = pItemSpell->MaxCharges;
+			Dest.Type = pIntType;
+			return true;
+		case CastTime:
+			Dest.DWord = pItemSpell->CastTime;
+			Dest.Type = pIntType;
+			return true;
+		case TimerID:
+			Dest.DWord = pItemSpell->TimerID;
+			Dest.Type = pIntType;
+			return true;
+		case RecastType:
+			Dest.DWord = pItemSpell->RecastType;
+			Dest.Type = pIntType;
+			return true;
+		case ProcRate:
+			Dest.DWord = pItemSpell->ProcRate;
+			Dest.Type = pIntType;
+			return true;
+		case OtherName:
+			strcpy_s(DataTypeTemp, pItemSpell->OtherName);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case OtherID:
+			Dest.DWord = pItemSpell->OtherID;
+			Dest.Type = pIntType;
+			return true;
+		case Spell:
+			Dest.Ptr = GetSpellByID(pItemSpell->SpellID);
+			Dest.Type = pSpellType;
+			return true;
+	}
+	return false;
+}
 bool MQ2ItemType::GETMEMBER()
 {
 	DWORD N, cmp, tmp;
@@ -6346,6 +6407,44 @@ bool MQ2ItemType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case Clicky:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Clicky;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Proc:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Proc;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Worn:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Worn;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Focus:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Focus;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Scroll:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Scroll;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Focus2:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Focus2;
+		Dest.Type = pItemSpellType;
+		return true;
+	#ifndef EMU
+	case Mount:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Mount;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Illusion:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Illusion;
+		Dest.Type = pItemSpellType;
+		return true;
+	case Familiar:
+		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Familiar;
+		Dest.Type = pItemSpellType;
+		return true;
+	#endif
 	case Item:
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && ISNUMBER())
 		{
@@ -6805,7 +6904,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		// count bits
 		cmp = GetItemFromContents(pItem)->Races;
-		for (N = 0; N < 17; N++)
+		for (N = 0; N < NUM_RACES; N++)
 		{
 			if (cmp&(1 << N))
 				Dest.DWord++;
@@ -6821,7 +6920,7 @@ bool MQ2ItemType::GETMEMBER()
 				if (!Count)
 					return false;
 				cmp = GetItemFromContents(pItem)->Races;
-				for (N = 0; N < 17; N++)
+				for (N = 0; N < NUM_RACES; N++)
 				{
 					if (cmp&(1 << N))
 					{
@@ -6850,7 +6949,7 @@ bool MQ2ItemType::GETMEMBER()
 			{
 				// by name
 				cmp = GetItemFromContents(pItem)->Races;
-				for (N = 0; N < 17; N++) {
+				for (N = 0; N < NUM_RACES; N++) {
 					if (cmp&(1 << N)) {
 						tmp = N + 1;
 						switch (N) {
@@ -6879,7 +6978,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		// count bits
 		cmp = GetItemFromContents(pItem)->Diety;
-		for (N = 0; N < 15; N++)
+		for (N = 0; N < NUM_DEITIES; N++)
 		{
 			if (cmp&(1 << N))
 				Dest.DWord++;
@@ -6895,7 +6994,7 @@ bool MQ2ItemType::GETMEMBER()
 				if (!Count)
 					return false;
 				cmp = GetItemFromContents(pItem)->Diety;
-				for (N = 0; N < 15; N++)
+				for (N = 0; N < NUM_DEITIES; N++)
 				{
 					if (cmp&(1 << N))
 					{
@@ -6913,7 +7012,7 @@ bool MQ2ItemType::GETMEMBER()
 			{
 				// by name
 				cmp = GetItemFromContents(pItem)->Diety;
-				for (N = 0; N < 16; N++) {
+				for (N = 0; N < NUM_DEITIES; N++) {
 					if (cmp&(1 << N)) {
 						if (!_stricmp(GETFIRST(), pEverQuest->GetDeityDesc(N + 200))) {
 							Dest.DWord = N + 200;
@@ -7595,6 +7694,13 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = pItem->Contents.ContentSize;
 		Dest.Type = pIntType;
 		return true;
+	case CanUse:
+		if (PCONTENTS pCont = pItem) {
+			Dest.DWord = pCharData1->CanUseItem(&pCont, false, false);
+			Dest.Type = pBoolType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 #undef pItem
@@ -9374,7 +9480,7 @@ bool MQ2PointMerchantItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CanUse:
-		Dest.Int = 0;//neeed ::CanUseItem
+		Dest.Int = pCharData1->CanUseItem(&pCont, false, false);
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -10499,7 +10605,7 @@ bool MQ2GroupType::GETMEMBER()
 		else
 		{
 			Dest.DWord = 0;
-			for (i = 1; i < 6; i++)
+			for (i = 1; i<6; i++)
 				if (pChar->pGroupInfo->pMember[i])
 				{
 					Dest.DWord++;
@@ -10523,7 +10629,7 @@ bool MQ2GroupType::GETMEMBER()
 	case Members:
 	{
 		Dest.DWord = 0;
-		for (i = 1; i < 6; i++)
+		for (i = 1; i<6; i++)
 			if (pChar->pGroupInfo->pMember[i])
 				Dest.DWord++;
 		Dest.Type = pIntType;

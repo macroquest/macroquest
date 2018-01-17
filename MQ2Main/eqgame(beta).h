@@ -756,6 +756,7 @@ GNU General Public License for more details.
 #define EQ_Character__FindItemByRecord_x                           0x463F40
 #define EQ_Character__GetAdjustedSkill_x                           0x466AA0
 #define EQ_Character__GetBaseSkill_x                               0x45E330
+#define EQ_Character__CanUseItem_x                                 0x45E330
 
 //ProfileManager
 #define ProfileManager__GetCurrentProfile_x                        0x8727F0
@@ -985,3 +986,7 @@ GNU General Public License for more details.
 //Camera
 #define CDisplay__cameraType_x                                     0xE6F7C8
 #define EverQuest__Cameras_x                                       0xF31AC8
+
+//LootFiltersManager
+#define pinstLootFiltersManager_x                                  0xD3C248
+#define LootFiltersManager__AddItemLootFilter_x                    0x4940E0

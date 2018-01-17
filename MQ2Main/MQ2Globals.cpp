@@ -139,6 +139,9 @@ namespace MQ2Globals
 		ppConnection = (PCONNECTION_T*)__gWorld;
 		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
 		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
+		#ifndef EMU
+		ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
+		#endif
 		ppEQChatMgr = (EQCHATMGR**)pinstCChatWindowManager;
 
 		ppTradeTarget = (EQPlayer **)pinstTradeTarget;
@@ -1153,7 +1156,7 @@ namespace MQ2Globals
 	EQPlayer **ppActiveCorpse = 0;
 
 	/* WINDOW INSTANCES */
-
+	LootFiltersManager **ppLootFiltersManager = 0;
 	CAuraWnd **ppAuraWnd = 0;
 	CContextMenuManager **ppContextMenuManager = 0;
 	CCursorAttachment **ppCursorAttachment = 0;
@@ -1706,6 +1709,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EverQuest__Cameras);
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
 	#if !defined(EMU)
+	INITIALIZE_EQGAME_OFFSET(pinstLootFiltersManager);
+	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__AddItemLootFilter);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildIndex);
 	#endif
@@ -1735,6 +1740,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__InsertAugmentRequest);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__RemoveAugmentRequest);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetItem);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__AboutToShow);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__WndNotification);
 	
 	INITIALIZE_EQGAME_OFFSET(CLabel__Draw);
 
@@ -1954,7 +1961,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__FindItemByRecord);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAdjustedSkill);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetBaseSkill);
-
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__CanUseItem);
+	
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__SelectCharacter);
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__EnterWorld);
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__Quit);
