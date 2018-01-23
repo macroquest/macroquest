@@ -85,3 +85,4 @@ MQ2Main/Logs
 /buildaccesslive.php
 /MQ2Melee/MQ2Meleeold.cpp
 /buildipn.php
+*.php

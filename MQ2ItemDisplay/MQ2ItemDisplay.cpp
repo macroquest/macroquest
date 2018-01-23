@@ -997,6 +997,10 @@ enum eAugTypes
 };
 #ifndef ISXEQ
 
+void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+
+}
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
 #ifdef EMU
@@ -2111,6 +2115,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline,"CItemDisplayWnd__UpdateStrings");
 
 	
+    AddCommand("/itemdisplay",ItemDisplayCmd); 
     AddCommand("/addlootfilter",AddLootFilter); 
     AddCommand("/insertaug",InsertAug); 
     AddCommand("/removeaug",RemoveAug); 
@@ -2149,7 +2154,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 #endif
 	delete pGearScoreType;
 	pGearScoreType = 0;
-
+	
     RemoveMQ2Data("InsertAug");
     RemoveMQ2Data("RemoveAug");
     RemoveMQ2Data("DisplayItem");
@@ -2159,6 +2164,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/iScore");
 	RemoveCommand("/GearScore");
 	RemoveCommand("/addlootfilter");
+	RemoveCommand("/itemdisplay");
 	
 	delete pDisplayItemType;
 	if (hDisplayItemLock) {
