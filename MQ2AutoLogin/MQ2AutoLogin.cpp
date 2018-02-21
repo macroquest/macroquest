@@ -763,7 +763,7 @@ DWORD Login__Pulse_x = 0;
 bool bGotOffsets = false;
 bool GetAllOffsets(DWORD dweqmain)
 {
-	MessageBox(NULL, "Injet", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
+	//MessageBox(NULL, "Injet", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
 	if (!dweqmain)
 		return false;
 	if(dwLoginClient = _FindPattern(dweqmain, 0x100000, lcPattern, lcMask))
