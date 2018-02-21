@@ -615,7 +615,6 @@ DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(void *,int,int,in
 
 VOID InitializeMQ2Spawns()
 {
-	MessageBox(NULL, "Inject now", "InitializeMQ2Spawns", MB_OK | MB_SYSTEMMODAL);
     InitializeCriticalSection(&csPendingGrounds);
     DebugSpew("Initializing Spawn-related Hooks");
     bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
