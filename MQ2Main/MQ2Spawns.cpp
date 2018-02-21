@@ -68,9 +68,10 @@ void RemoveGroundItem(PGROUNDITEM pGroundItem)
     PluginsRemoveGroundItem((PGROUNDITEM)pGroundItem);
 }
 
-class EQItemListHook
+class EQGroundItemListManager
 {
 public:
+	PGROUNDITEM pGItem;
     void FreeItemList_Trampoline();
     void FreeItemList_Detour()
     {
@@ -87,13 +88,19 @@ public:
     }
 
 	//if this IS NOT a PGROUNDITEM you have the wrong offset... -eqmule 2016 Apr 13
-    PGROUNDITEM AddItem_Trampoline(PGROUNDITEM);
-    PGROUNDITEM AddItem_Detour(PGROUNDITEM pItem)
+    void Add_Trampoline(PGROUNDITEM);
+    void Add_Detour(PGROUNDITEM pItem)
     {
+		if (pGItem) {
+			pGItem->pPrev = pItem;
+			pItem->pNext = pGItem;
+		}
+		pGItem = pItem;
 		//if you drop something on the ground and this doesnt get called... you have the wrong offset -eqmule 2016 Apr 13
-        PGROUNDITEM ret = AddItem_Trampoline(pItem);
+		//dont call the tramp we just do the exact same thing the tramp does above...
+		//if we call the tramp we crash cause reasons... -eqmule
+        //Add_Trampoline(pItem);
         AddGroundItem();
-		return ret;
     }
 
     PGROUNDITEM DeleteItem_Trampoline(PGROUNDITEM);
@@ -103,9 +110,9 @@ public:
         return DeleteItem_Trampoline(pItem);
     }
 };
-DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::FreeItemList_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(PGROUNDITEM EQItemListHook::AddItem_Trampoline(PGROUNDITEM));
-DETOUR_TRAMPOLINE_EMPTY(PGROUNDITEM EQItemListHook::DeleteItem_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::FreeItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::Add_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(PGROUNDITEM EQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
 
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn);
 
@@ -132,15 +139,17 @@ public:
     }
     /**/
 
-    void EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD,DWORD,DWORD);
-    void EQPlayer_Detour(DWORD p1,DWORD p2,DWORD p3,DWORD p4,DWORD p5, DWORD p6, DWORD p7)
+    void EQPlayer_Trampoline(void *,int,int,int,char *,char *,char *);
+    void EQPlayer_Detour(void* pNetPlayer,int Sex,int Race,int Class,char *PlayerName,char *GroupName, char *ReplaceName)
     {
-        PSPAWNINFO pSpawn;
+        PSPAWNINFO pSpawn2 = (PSPAWNINFO)this;
+        PSPAWNINFO pSpawn = (PSPAWNINFO)this;
         __asm {mov [pSpawn], ecx};
 
-        EQPlayer_Trampoline(p1,p2,p3,p4,p5,p6,p7);
+        EQPlayer_Trampoline(pNetPlayer,Sex,Race,Class,PlayerName,GroupName,ReplaceName);
         EQPlayer_ExtraDetour(pSpawn);
         /**/
+		Sleep(0);
     }
 
     void dEQPlayer_Trampoline(void);
@@ -602,10 +611,11 @@ VOID UpdateSpawnCaptions()
 DETOUR_TRAMPOLINE_EMPTY(bool EQPlayerHook::SetNameSpriteTint_Trampoline(void));
 DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::SetNameSpriteState_Trampoline(bool Show));
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::dEQPlayer_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD,DWORD,DWORD)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(void *,int,int,int,char *,char *,char *)); 
 
 VOID InitializeMQ2Spawns()
 {
+	MessageBox(NULL, "Inject now", "InitializeMQ2Spawns", MB_OK | MB_SYSTEMMODAL);
     InitializeCriticalSection(&csPendingGrounds);
     DebugSpew("Initializing Spawn-related Hooks");
     bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
@@ -617,9 +627,9 @@ VOID InitializeMQ2Spawns()
     EzDetourwName(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline,"EQPlayer__dEQPlayer");
     EzDetourwName(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline,"EQPlayer__SetNameSpriteState");
     EzDetourwName(EQPlayer__SetNameSpriteTint,&EQPlayerHook::SetNameSpriteTint_Detour,&EQPlayerHook::SetNameSpriteTint_Trampoline,"EQPlayer__SetNameSpriteTint");
-    EzDetourwName(EQItemList__FreeItemList, &EQItemListHook::FreeItemList_Detour, &EQItemListHook::FreeItemList_Trampoline,"EQItemList__FreeItemList");
-    EzDetourwName(EQItemList__add_item, &EQItemListHook::AddItem_Detour, &EQItemListHook::AddItem_Trampoline,"EQItemList__add_item");
-    EzDetourwName(EQItemList__delete_item, &EQItemListHook::DeleteItem_Detour, &EQItemListHook::DeleteItem_Trampoline,"EQItemList__delete_item");
+    EzDetourwName(EQItemList__FreeItemList, &EQGroundItemListManager::FreeItemList_Detour, &EQGroundItemListManager::FreeItemList_Trampoline,"EQItemList__FreeItemList");
+    EzDetourwName(EQItemList__add_item, &EQGroundItemListManager::Add_Detour, &EQGroundItemListManager::Add_Trampoline,"EQGroundItemListManager__add");
+    EzDetourwName(EQItemList__delete_item, &EQGroundItemListManager::DeleteItem_Detour, &EQGroundItemListManager::DeleteItem_Trampoline,"EQItemList__delete_item");
 
     ProcessPending=true;
     ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));

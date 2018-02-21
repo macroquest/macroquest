@@ -54,7 +54,7 @@ class CButtonWnd;
 class CCastingWnd;
 class CCastSpellWnd;
 class CCharacterCreation;
-class CCharacterSelect;
+class CCharacterListWnd;
 class CChatManager;
 class CChatWindow;
 class CCheckBoxWnd;
@@ -314,6 +314,7 @@ class KeyCombo;
 class KeypressHandler;
 class LogicalPacket;
 class LootFiltersManager;
+class EQSpellStrings;
 class MapViewMap;
 class MemoryPoolManager;
 class MidiInstance;
@@ -559,7 +560,7 @@ EQLIB_OBJECT int CXWnd::Move(class CXPoint);
 //CXWnd::Move (this is CXWnd__Move1_x) was checked on apr 29 2016 - eqmule
 EQLIB_OBJECT int CXWnd::Move(class CXRect *, bool, bool, bool, bool);
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
-EQLIB_OBJECT int CXWnd::Resize(int,int);
+EQLIB_OBJECT int CXWnd::Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
 EQLIB_OBJECT int CXWnd::Show(bool,bool,bool mq_c = 1);
 EQLIB_OBJECT int CXWnd::Tile(bool);
 EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize);
@@ -1282,40 +1283,42 @@ EQLIB_OBJECT void CCharacterCreation::UpdatePlayerFromNewPC(void);
 EQLIB_OBJECT void CCharacterCreation::UpdateScreenZeroButtons(bool);
 };
 
-class CCharacterSelect : public CSidlScreenWnd
+
+class CCharacterListWnd : public CSidlScreenWnd
 {
 public:
-EQLIB_OBJECT CCharacterSelect::CCharacterSelect(class CXWnd *);
-EQLIB_OBJECT int CCharacterSelect::IsEmptyCharacterSlot(int);
-EQLIB_OBJECT int CCharacterSelect::IsValidCharacterSelected(void);
-EQLIB_OBJECT int CCharacterSelect::NumberOfCharacters(void);
-EQLIB_OBJECT unsigned char CCharacterSelect::IsEvil(int,int,int);
-EQLIB_OBJECT void CCharacterSelect::Activate(void);
-EQLIB_OBJECT void CCharacterSelect::DeleteCharacter(void);
-EQLIB_OBJECT void CCharacterSelect::EnterExplorationMode(void);
-EQLIB_OBJECT void CCharacterSelect::EnterWorld(void);
-EQLIB_OBJECT void CCharacterSelect::LeaveExplorationMode(void);
-EQLIB_OBJECT void CCharacterSelect::Quit(void);
-EQLIB_OBJECT void CCharacterSelect::SelectCharacter(int charindex,bool bSwitchVisually = true,bool bForceUpdate = false /*dont mess with this*/);
-EQLIB_OBJECT void CCharacterSelect::SetLoadZonePlayerLocation(void);
-EQLIB_OBJECT void CCharacterSelect::SwitchModel(class EQPlayer *,unsigned char,int,unsigned char,unsigned char);
-EQLIB_OBJECT void CCharacterSelect::UpdateButtonNames(void);
+EQLIB_OBJECT CCharacterListWnd::CCharacterListWnd(class CXWnd *);
+EQLIB_OBJECT int CCharacterListWnd::IsEmptyCharacterSlot(int);
+EQLIB_OBJECT int CCharacterListWnd::IsValidCharacterSelected(void);
+EQLIB_OBJECT int CCharacterListWnd::NumberOfCharacters(void);
+EQLIB_OBJECT unsigned char CCharacterListWnd::IsEvil(int,int,int);
+EQLIB_OBJECT void CCharacterListWnd::Activate(void);
+EQLIB_OBJECT void CCharacterListWnd::DeleteCharacter(void);
+EQLIB_OBJECT void CCharacterListWnd::EnterExplorationMode(void);
+EQLIB_OBJECT void CCharacterListWnd::EnterWorld(void);
+EQLIB_OBJECT void CCharacterListWnd::LeaveExplorationMode(void);
+EQLIB_OBJECT void CCharacterListWnd::Quit(void);
+EQLIB_OBJECT void CCharacterListWnd::UpdateList(bool bForceUpdate = false);
+EQLIB_OBJECT void CCharacterListWnd::SelectCharacter(int charindex,bool bSwitchVisually = true,bool bForceUpdate = false /*dont mess with this*/);
+EQLIB_OBJECT void CCharacterListWnd::SetLoadZonePlayerLocation(void);
+EQLIB_OBJECT void CCharacterListWnd::SwitchModel(class EQPlayer *,unsigned char,int,unsigned char,unsigned char);
+EQLIB_OBJECT void CCharacterListWnd::UpdateButtonNames(void);
 // virtual
-EQLIB_OBJECT CCharacterSelect::~CCharacterSelect(void);
-EQLIB_OBJECT int CCharacterSelect::Draw(void)const;
-EQLIB_OBJECT int CCharacterSelect::OnProcessFrame(void);
-EQLIB_OBJECT int CCharacterSelect::WndNotification(class CXWnd *,unsigned __int32,void *);
-//EQLIB_OBJECT void * CCharacterSelect::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CCharacterSelect::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CCharacterSelect::Deactivate(void);
+EQLIB_OBJECT CCharacterListWnd::~CCharacterListWnd(void);
+EQLIB_OBJECT int CCharacterListWnd::Draw(void)const;
+EQLIB_OBJECT int CCharacterListWnd::OnProcessFrame(void);
+EQLIB_OBJECT int CCharacterListWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+//EQLIB_OBJECT void * CCharacterListWnd::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CCharacterListWnd::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CCharacterListWnd::Deactivate(void);
 // private
-EQLIB_OBJECT void CCharacterSelect::CreateExplorationModePlayers(void);
-EQLIB_OBJECT void CCharacterSelect::EnableButtons(bool);
-EQLIB_OBJECT void CCharacterSelect::EnableEqMovementCommands(bool);
-EQLIB_OBJECT void CCharacterSelect::Init(void);
-EQLIB_OBJECT void CCharacterSelect::RemoveExplorationModePlayers(void);
-EQLIB_OBJECT void CCharacterSelect::SetLocationByClass(class EQPlayer *,bool,int);
-EQLIB_OBJECT void CCharacterSelect::SetRoomLocationByIndex(int,class EQPlayer *);
+EQLIB_OBJECT void CCharacterListWnd::CreateExplorationModePlayers(void);
+EQLIB_OBJECT void CCharacterListWnd::EnableButtons(bool);
+EQLIB_OBJECT void CCharacterListWnd::EnableEqMovementCommands(bool);
+EQLIB_OBJECT void CCharacterListWnd::Init(void);
+EQLIB_OBJECT void CCharacterListWnd::RemoveExplorationModePlayers(void);
+EQLIB_OBJECT void CCharacterListWnd::SetLocationByClass(class EQPlayer *,bool,int);
+EQLIB_OBJECT void CCharacterListWnd::SetRoomLocationByIndex(int,class EQPlayer *);
 };
 
 class CChatManager
@@ -3128,57 +3131,59 @@ enum ItemDisplayFlags
 class CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
-	CStmlWnd *pDescription;
-	CStmlWnd *pName;
-	CButtonWnd *pIconButton;
-	CStmlWnd *pLore;
-	CTabWnd *pItemDescriptionTab;
-	CPageWnd *pDescriptionPage;
-	CPageWnd *pLorePage;
-	CSidlScreenWnd *pAppearanceSocketScreen;
-	CButtonWnd *pAppearanceSocketItem;
-	CButtonWnd *pAppearanceSocketBuyButton;
-	CStmlWnd *pAppearanceSocketDescription;
-	CSidlScreenWnd *pItemSocketScreen[6];
-	CButtonWnd *pItemSocketItemButton[6];
-	CStmlWnd *pItemSocketDescription[6];
-	PCXSTR ItemInfo;
-	PCXSTR MoreText;
-	PCXSTR LoreText;
-	PCXSTR CreatorName;
-	PCXSTR BackupTabTitle;
-	PCXSTR SolventText;
-	PCXSTR InformationText;
-	PCONTENTS pCurrentItem;
-	bool bActiveItem;
-    bool bItemTextSet;
-	CTextureAnimation* pTABuffIcons;
-	CTextureAnimation* pTADragIcons;
-	bool bTaggable;
-	bool bFailed;
-	UINT TabCount;
-	CLabel *pModButtonLabel;
-    CStmlWnd *pConvertButtonStml;
-	CLabel *pMadeByLabel;
-	CLabel *pCollectedLabel;
-	int Row;
-	bool bAntiTwink;
-	CButtonWnd *pModButton;
-    CButtonWnd *pConvertButton;
-	bool bCollected;
-	bool bReceivedCollectableStatus;
-	int Group[6];
-	bool bClickedTwink;
-	int HeroicCount;
-	int ItemInfoCount;
-	CLabel *pItemInfoLabel[13];
-	CLabel *pStatLabel[26][3];
-	CLabel *pValueLabel[26][3];
-	CLabel *pHeroicLabel[13];
-	int RightClickMenuID;
-	int RightClickMenuSocketSlot;
-	int WindowID;
-
+/*0x0238*/ CStmlWnd *pDescription;
+/*0x023c*/ CStmlWnd *pName;
+/*0x0240*/ CButtonWnd *pIconButton;
+/*0x0244*/ CStmlWnd *pLore;
+/*0x0248*/ CTabWnd *pItemDescriptionTab;
+/*0x024c*/ CPageWnd *pDescriptionPage;
+/*0x0250*/ CPageWnd *pLorePage;
+/*0x0254*/ CSidlScreenWnd *pAppearanceSocketScreen;
+/*0x0258*/ CButtonWnd *pAppearanceSocketItem;
+/*0x025c*/ CButtonWnd *pAppearanceSocketBuyButton;
+/*0x0260*/ CStmlWnd *pAppearanceSocketDescription;
+/*0x0264*/ CSidlScreenWnd *pItemSocketScreen[6];
+/*0x027c*/ CButtonWnd *pItemSocketItemButton[6];
+/*0x0294*/ CStmlWnd *pItemSocketDescription[6];
+/*0x02ac*/ PCXSTR ItemInfo;
+/*0x02b0*/ PCXSTR MoreText;
+/*0x02b4*/ PCXSTR LoreText;
+/*0x02b8*/ PCXSTR CreatorName;
+/*0x02bc*/ PCXSTR BackupTabTitle;
+/*0x02c0*/ PCXSTR SolventText;
+/*0x02c4*/ PCXSTR InformationText;
+/*0x02c8*/ PCONTENTS pCurrentItem;
+/*0x02cc*/ bool bActiveItem;
+/*0x02cd*/ bool bItemTextSet;
+/*0x02d0*/ CTextureAnimation* pTABuffIcons;
+/*0x02d4*/ CTextureAnimation* pTADragIcons;
+/*0x02d8*/ bool bTaggable;
+/*0x02d9*/ bool bFailed;
+/*0x02dc*/ UINT TabCount;
+/*0x02e0*/ CLabel *pModButtonLabel;
+/*0x02e4*/ CStmlWnd *pConvertButtonStml;
+/*0x02e8*/ CLabel *pMadeByLabel;
+/*0x02ec*/ CLabel *pCollectedLabel;//for sure
+/*0x02f0*/ CLabel *pScribedLabel;
+/*0x02f4*/ int Row;
+/*0x02f8*/ bool bAntiTwink;
+/*0x02fc*/ CButtonWnd *pModButton;
+/*0x0300*/ CButtonWnd *pPrintRealEstateItems;
+/*0x0304*/ CButtonWnd *pConvertButton;
+/*0x0308*/ bool bCollected;
+/*0x0309*/ bool bReceivedCollectableStatus;
+/*0x030c*/ int Group[6];
+/*0x0324*/ bool bClickedTwink;
+/*0x0328*/ int HeroicCount;
+/*0x032c*/ int ItemInfoCount;
+/*0x0330*/ CLabel *pItemInfoLabel[13];//for sure at 0x330
+/*0x0364*/ CLabel *pStatLabel[0x1a][3];//size 0x138
+/*0x049c*/ CLabel *pValueLabel[0x1a][3];//size 0x138
+/*0x05d4*/ CLabel *pHeroicLabel[0xd];
+/*0x0608*/ int RightClickMenuID;
+/*0x060c*/ int RightClickMenuSocketSlot;
+/*0x0610*/ int WindowID;
+/*0x0614*/
 
 EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(class CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);
@@ -5819,6 +5824,7 @@ EQLIB_OBJECT void CTargetWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTargetWnd::Init(void);
 EQLIB_OBJECT void CTargetWnd::RefreshTargetBuffs(PBYTE buffer);
+EQLIB_OBJECT void CTargetWnd::HandleBuffRemoveRequest(CXWnd *pWnd);
 };
 
 class CTaskWnd : public CSidlScreenWnd
@@ -6112,11 +6118,60 @@ EQLIB_OBJECT void CVideoModesWnd::Deactivate(void);
 EQLIB_OBJECT void CVideoModesWnd::Init(void);
 EQLIB_OBJECT void CVideoModesWnd::UpdateSelection(unsigned int);
 };
+//work in progress
+class CNotification
+{
+public:
+	int Type;
+};
+class IObserver;
+class CObservable
+{
+public:
+EQLIB_OBJECT void NotifyObservers(CNotification *Notification = 0)
+{
+
+	Sleep(0);
+}
+
+private:
+	std::list<IObserver*> ObserverList;
+};
+class IObserver
+{
+public:
+	//EQLIB_OBJECT virtual void IObserver::Notify(CObservable *Src, const CNotification* const Notification) = 0;
+};
+class Window
+{
+public:
+	EQLIB_OBJECT float Window::getProgress(bool &bIsLoading);
+	EQLIB_OBJECT const wchar_t *Window::getStatus() const;
+	EQLIB_OBJECT const char *Window::getURI() const;
+};
+class CHtmlComponentWnd //: public CXWnd, public mozilla::ICallback, public CObservable
+{
+public:
+	CXW;
+};
+class CHtmlWnd : public CSidlScreenWnd, public TListNode<CHtmlWnd>
+{
+public:
+	EQLIB_OBJECT void CHtmlWnd::SetClientCallbacks(void* cb);
+	EQLIB_OBJECT void CHtmlWnd::AddObserver(IObserver *Observer);
+	EQLIB_OBJECT void CHtmlWnd::RemoveObserver(IObserver *Observer);
+	CHtmlComponentWnd* pHtmlComponentMain;
+	CButtonWnd* pBackBtn;
+	CButtonWnd* pForwardBtn;
+	CGaugeWnd* pProgressGauge;
+	CLabelWnd* pStatusLabel;
+	CXStr *WindowID;
+};
 
 class CWebManager
 {
 public:
-EQLIB_OBJECT int CWebManager::CreateHtmlWnd(void*, void*, void* = 0, char = 0, void* = 0);
+EQLIB_OBJECT CHtmlWnd* CWebManager::CreateHtmlWnd(const char*Url, const char* IDString, const char* PostString= NULL, bool bBypasFilter = false, const char*OverrideTitle = NULL);
 };
 
 class CXFileXML
@@ -8501,12 +8556,28 @@ EQLIB_OBJECT virtual LogicalPacket::~LogicalPacket(void);
 //EQLIB_OBJECT virtual void * LogicalPacket::`vector deleting destructor'(unsigned int);
 };
 
+typedef struct _ItemFilterData
+{
+    int	Types;
+    int	ID;
+    int	Icon;
+    char Name[0x40];
+}ItemFilterData,*PItemFilterData;
+
 class LootFiltersManager
 {
 public:
 EQLIB_OBJECT bool LootFiltersManager::AddItemLootFilter(int ItemID, int IconID, const char* ItemName, int FilterTypes, bool bFromFile = false);
+EQLIB_OBJECT const PItemFilterData GetItemFilterData(int ItemID);
+EQLIB_OBJECT bool LootFiltersManager::RemoveItemLootFilter(int ItemID, int FilterTypes);
+EQLIB_OBJECT bool LootFiltersManager::SetItemLootFilter(int ItemID, int IconID, const char* ItemName, int FilterTypes, bool bKeepRndSetting, bool bScrollToIt);
 };
 
+class EQSpellStrings
+{
+public:
+	EQLIB_OBJECT char* EQSpellStrings::GetString(int SpellID, int StrIndex);
+};
 class MapViewMap
 {
 public:

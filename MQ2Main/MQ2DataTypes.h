@@ -5216,6 +5216,61 @@ public:
 	}
 };
 #ifndef EMU
+class MQ2ItemFilterDataType : public MQ2Type
+{
+public:
+	enum ItemFilterDataMembers
+	{
+		Name = 1,
+		ID = 2,
+		IconID = 3,
+		AutoRoll = 4,
+		Need = 5,
+		Greed = 6,
+		Never = 7,
+		Types = 8,
+	};
+	enum MQ2ItemFilterDataMethods
+	{
+	};
+	MQ2ItemFilterDataType() :MQ2Type("itemfilterdata")
+	{
+		TypeMember(Name);
+		TypeMember(ID);
+		TypeMember(IconID);
+		TypeMember(AutoRoll);
+		TypeMember(Need);
+		TypeMember(Greed);
+		TypeMember(Never);
+		TypeMember(Types);
+	}
+
+	~MQ2ItemFilterDataType()
+	{
+	}
+
+	bool GETMEMBER();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (PItemFilterData pitem = (PItemFilterData)VarPtr.Ptr) {
+			strcpy_s(Destination, 64, pitem->Name);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type != pItemFilterDataType)
+			return false;
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
 class MQ2AdvLootItemType : public MQ2Type
 {
 public:
@@ -5300,6 +5355,7 @@ public:
 		PWantCount = 5,
 		SWantCount = 6,
 		xLootInProgress = 7,
+		Filter = 8,
 	};
 	MQ2AdvLootType() :MQ2Type("advloot")
 	{
@@ -5310,6 +5366,8 @@ public:
 		TypeMember(PWantCount);
 		TypeMember(SWantCount);
 		AddMember(xLootInProgress,"LootInProgress");
+		TypeMember(Filter);
+
 	}
 	~MQ2AdvLootType()
 	{

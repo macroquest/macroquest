@@ -6556,7 +6556,7 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 	if (CAlerts.GetAlert(List, ss)) {
 		for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
 			if (pSpawn = SearchThroughSpawns(&(*i), pChar)) {
-				if (DistanceToSpawn(pChar, pSpawn)<ClosestDistance) {
+				if (Distance3DToSpawn(pChar, pSpawn)<ClosestDistance) {
 					pClosest = pSpawn;
 				}
 			}

@@ -272,37 +272,115 @@ unsigned long _FindPattern(unsigned long dwAddress,unsigned long dwLen,unsigned 
 unsigned long _GetDWordAt(unsigned long address, unsigned long numBytes);
 unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long addressOffset, unsigned long numBytes);
 
+//__LoadFrontEnd_x not used?
+//ida style sig1 just mov     ecx, hLibModule : 8B 0D ? ? ? ? 68 ? ? ? ? 51 FF D6 A3 ? ? ? ? 85 C0 75 18
+//ida style sig2 func start: 68 ? ? ? ? FF 15 ? ? ? ? A3 ? ? ? ? 85 C0
+//8B 0D ?? ?? ?? ?? 68 ?? ?? ?? ?? 51 FF D6 A3 ?? ?? ?? ?? 85 C0 75 ?? FF 15 ?? ?? ?? ?? 50 68 ?? ?? ?? ?? E8 ?? ?? ?? ?? 83 C4 ?? 33 C0 5E C3
+//x   x  ?  ?  ?  ?  x  ?  ?  ?  ?  x  x  x  x  ?  ?  ?  ?  x  x  x  ?  x  x  ?  ?  ?  ?  x  x  ?  ?  ?  ?  x  ?  ?  ?  ?  x  x  ?  x  x  x  x
 
+//search in eqgame.exe
+//Feb 16 2018 Test
+//IDA Style Sig: FF 35 ? ? ? ? FF 15 ? ? ? ? A3
+#ifndef TEST
 PBYTE eqmainPattern = (PBYTE)"\x8B\x0D\x00\x00\x00\x00\x68\x00\x00\x00\x00\x51\xFF\xD6\xA3\x00\x00\x00\x00\x85\xC0\x75\x00\xFF\x15\x00\x00\x00\x00\x50\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x00\x33\xC0\x5E\xC3";
 char eqmainMask[] = "xx????x????xxxx????xxx?xx????xx????x????xx?xxxx";
-
+#else
+PBYTE eqmainPattern = (PBYTE)"\xFF\x35\x00\x00\x00\x00\xFF\x15\x00\x00\x00\x00\xA3";
+char eqmainMask[] = "xx????xx????x";
+#endif
+//A3 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 8B 96 ? ? ? ? 52 57 8B C8 E8 ? ? ? ? EB ?
+//eqmain.dll
+//Feb 16 2018 Test
+//A3 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
+#ifndef TEST
 PBYTE lvmPattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x00\x85\xC0\x74\x00\x8B\x96\x00\x00\x00\x00\x52\x57\x8B\xC8\xE8\x00\x00\x00\x00\xEB\x00";
 char lvmMask[] = "x????x????xx?xxx?xx????xxxxx????x?";
-
+#else
+PBYTE lvmPattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x04\x85\xC0";
+char lvmMask[] = "x????x????xxxxx";
+#endif
+//8B 15 ? ? ? ? 89 82 ? ? ? ? A1 ? ? ? ? C6 80 ? ? ? ? ? 8B 0D ? ? ? ? 89 1D ? ? ? ? 8B 11 8B 42 ? FF D0 85 C0 74 ?
+//eqmain.dll
+//Feb 16 2018 Test
+//A1 BC ? ? ? ? 88 18
+#ifndef TEST
 PBYTE xwmPattern = (PBYTE)"\x8B\x15\x00\x00\x00\x00\x89\x82\x00\x00\x00\x00\xA1\x00\x00\x00\x00\xC6\x80\x00\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x89\x1D\x00\x00\x00\x00\x8B\x11\x8B\x42\x00\xFF\xD0\x85\xC0\x74\x00";
 char xwmMask[] = "xx????xx????x????xx?????xx????xx????xxxx?xxxxx?";
-
+#else
+PBYTE xwmPattern = (PBYTE)"\xA1\xBC\x00\x00\x00\x00\x88\x18";
+char xwmMask[] = "xx????xx";
+#endif
+// A1 ? ? ? ? 80 B8 ? ? ? ? ? 0F 84 ? ? ? ? 8D 88 ? ? ? ? 8B 01 3B C3 74 ? 89 45 ? 33 DB 8B 45 ? F0 FF ? 0F 94 C3 89 5D ?
+//eqmain.dll
+//Feb 16 2018 Test
+//8B 35 ? ? ? ? 8a 86
+#ifndef TEST
 PBYTE swmPattern = (PBYTE)"\xA1\x00\x00\x00\x00\x80\xB8\x00\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\x8D\x88\x00\x00\x00\x00\x8B\x01\x3B\xC3\x74\x00\x89\x45\x00\x33\xDB\x8B\x45\x00\xF0\xFF\x00\x0F\x94\xC3\x89\x5D\x00";
 char swmMask[] = "x????xx?????xx????xx????xxxxx?xx?xxxx?xxxxxxxx?";
-
+#else
+PBYTE swmPattern = (PBYTE)"\x8B\x35\x00\x00\x00\x00\x8a\x86";
+char swmMask[] = "xx????xx";
+#endif
+// 8B 54 24 ? 56 8B 74 24 ? 8B C1 85 D2 75 ? 85 F6 75 ? 33 C0 5E C2 ? ?
+//eqmain.dll func start
+//Feb 16 2018 Test
+//IDA Style Sig: 53 8B 5C 24 0C 8B C1 57
+//Code Style Signature: \x53\x8B\x5C\x24\x0C\x8B\xC1\x57 xxxxxxxx
+#ifndef TEST
 PBYTE xmldataPattern = (PBYTE)"\x8B\x54\x24\x00\x56\x8B\x74\x24\x00\x8B\xC1\x85\xD2\x75\x00\x85\xF6\x75\x00\x33\xC0\x5E\xC2\x00\x00";
 char xmldataMask[] = "xxx?xxxx?xxxxx?xxx?xxxx??";
-
+#else
+PBYTE xmldataPattern = (PBYTE)"\x53\x8B\x5C\x24\x0C\x8B\xC1\x57";
+char xmldataMask[] = "xxxxxxxx";
+#endif
+// 55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 83 7E ? ?
+//eqmain.dll func start
+//Feb 16 2018 Test
+//55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 08 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 83 7E 14 00 74 5D 51 8B CC 89 65 F0 68 ? ? ? ? E8 ? ? ? ? 51 8B CC 89 65 EC 68 ? ? ? ? C7 45 ? ? ? ? ? E8 ? ? ? ? 8B 4E 14 C6 45 FC 01 E8 ? ? ? ? 8B F8 51 8B DC 8B 0F 85 C9 74 09 51 E8 ? ? ? ? 83 C4 04 8B 07 8B CE 89 03 C7 45 ? ? ? ? ? E8 ? ? ? ? 84 C0 75 17 8B 4E 1C 8B 7D 08 85 C9 74 26 8B 01 57 FF 90 ? ? ? ? 85 C0 74 29 B8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00 8B 4E 14 85 C9 74 09 8B 01 57 FF 90 ? ? ? ? 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00
+#ifndef TEST
 PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\x00\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x00\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\x00\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x00\x00";
 char lmouseMask[] = "xxxx?x????xx????xxx?xxxx????xxxxx?xx????xxxx??";
-
+#else
+PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x08\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x14\x00\x74\x5D\x51\x8B\xCC\x89\x65\xF0\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x51\x8B\xCC\x89\x65\xEC\x68\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x8B\x4E\x14\xC6\x45\xFC\x01\xE8\x00\x00\x00\x00\x8B\xF8\x51\x8B\xDC\x8B\x0F\x85\xC9\x74\x09\x51\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x07\x8B\xCE\x89\x03\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x84\xC0\x75\x17\x8B\x4E\x1C\x8B\x7D\x08\x85\xC9\x74\x26\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x85\xC0\x74\x29\xB8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00\x8B\x4E\x14\x85\xC9\x74\x09\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00";
+char lmouseMask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????x????xxxxxxx????xx?????x????xxxxxxxx????xxxxxxxxxxxxx????xxxxxxxxxxx?????x????xxxxxxxxxxxxxxxxxxx????xxxxx????xxxxxx????xxxxxxxxxxxxxxxxxxxxxx????xx????xx????xxxxxx????xxxxxxxxxx";
+#endif
+// A3 ? ? ? ? 8B 56 ? 8B 4A ? 6A ? 51 52 8B C8 C7 45 ? ? ? ? ? E8 ? ? ? ?
+//eqmain.dll dword in func
+//Feb 16 2018 Test
+//IDA Style Sig: 89 0D ? ? ? ? 8B 46 2C
+#ifndef TEST
 PBYTE lcPattern = (PBYTE)"\xA3\x00\x00\x00\x00\x8B\x56\x00\x8B\x4A\x00\x6A\x00\x51\x52\x8B\xC8\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00";
 char lcMask[] = "x????xx?xx?x?xxxxxx?????x????";
-
-//login::pulse
+#else
+PBYTE lcPattern = (PBYTE)"\x89\x0D\x00\x00\x00\x00\x8B\x46\x2C";
+char lcMask[] = "xx????xxx";
+#endif
+//Login__Pulse_x
+// 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
+//Feb 16 2018 Test
+//IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
+#ifndef TEST
 PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\xFD\xFF\xFF\x8B\xCE\x5E\xE9\x00\x00\xFF\xFF\xC7\x01";
 char lpMask[] = "xxxx?xxxxxxx??xxxx";
-
+#else
+PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
+char lpMask[] = "xxxx????xx";
+#endif
 
 #ifndef EMU
 #define SPLASH "dbgsplash"
-PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x33\xDB\xC7\x45\x00\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x89\x5D\xEC\x89\x5D\xE8\x8D\x45\xE0\x50\x89\x5D\xFC\xE8\x00\x00\x00\x00\x8D\x4D\xF0\x51\xE8\x00\x00\x00\x00\x83\xC4\x08\x8D\x4D\xC0\xE8\x00\x00\x00\x00\x8B\x45\xE4\x8B\x55\x08\x50\x8D\x4D\xD8\xC6\x45\xFC\x01\x89\x55\xD4\xE8\x00\x00\x00\x00\x8B\x4D\xF0\x8B\x55\x10\x8B\x45\x0C\x52\x89\x4D\xDC\x50\x8D\x4D\xC0\x51\x8B\xCE\xE8\x00\x00\x00\x00\x8D\x4D\xC0\x8B\xF0\x88\x5D\xFC\xE8\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x39\x5D\xEC\x7E\x20\x8B\x45\xE4\x83\xC0\xFC\x8B\xD0\x83\xC9\xFF\xF0\x0F\xC1\x0A\x49\x85\xC9\x7F\x0C\x8B\x55\xE0\x50\x8B\x42\x08\x8D\x4D\xE0\xFF\xD0\x8B\xC6\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5E\x5B\x8B\xE5\x5D\xC2\x0C\x00";
-char lcEGMask[] = "xxxxxx????xx????xxxxxxx????xxxxxxxx????xxxxxx?????xx?????xxxxxxxxxxxxxx????xxxxx????xxxxxxx????xxxxxxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxxx????xxxxxxxxx????xx?????xx?????xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxxxxxxx";
+// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 33 DB C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 89 5D EC 89 5D E8 8D 45 E0 50 89 5D FC E8 ? ? ? ? 8D 4D F0 51 E8 ? ? ? ? 83 C4 08 8D 4D C0 E8 ? ? ? ? 8B 45 E4 8B 55 08 50 8D 4D D8 C6 45 FC 01 89 55 D4 E8 ? ? ? ? 8B 4D F0 8B 55 10 8B 45 0C 52 89 4D DC 50 8D 4D C0 51 8B CE E8 ? ? ? ? 8D 4D C0 8B F0 88 5D FC E8 ? ? ? ? C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 39 5D EC 7E 20 8B 45 E4 83 C0 FC 8B D0 83 C9 FF F0 0F C1 0A 49 85 C9 7F 0C 8B 55 E0 50 8B 42 08 8D 4D E0 FF D0 8B C6 8B 4D F4 64 89 0D ? ? ? ? 59 5E 5B 8B E5 5D C2 0C ?
+//eqmain.dll start func
+//55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
+//Feb 16 2018 Test
+//IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
+#ifndef TEST
+PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1";
+char lcEGMask[] = "xxxxxx????xx????xxxxxxx";
+#else
+PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x56";
+char lcEGMask[] = "xxxxxx????xx????xxxxx";
+#endif
 #else
 #define SPLASH "soesplash"
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x18\x56\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x8d\x4d\xDC\xE8\x00\x00\x00\x00\x00\x4d\x10\x00\x00\x00\x00\x00\x0c\x51\x89\x45\xf0\x52\x8D\x45";
@@ -434,6 +512,17 @@ template <unsigned int _Size>bool GetPassword(CHAR(&szBuffer)[_Size])
 					return true;
 				}
 			}
+		}
+	}
+	return false;
+}
+
+template <unsigned int _Size>bool GetServerName(CHAR(&szBuffer)[_Size])
+{
+	if (EQADDR_SERVERNAME) {
+		strcpy_s(szBuffer,_Size,EQADDR_SERVERNAME);
+		if (szBuffer[0] != '\0') {
+			return true;
 		}
 	}
 	return false;
@@ -674,11 +763,16 @@ DWORD Login__Pulse_x = 0;
 bool bGotOffsets = false;
 bool GetAllOffsets(DWORD dweqmain)
 {
+	MessageBox(NULL, "Injet", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
 	if (!dweqmain)
 		return false;
 	if(dwLoginClient = _FindPattern(dweqmain, 0x100000, lcPattern, lcMask))
     {
-        dwLoginClient = _GetDWordAt(dwLoginClient, 1);
+		#ifdef TEST
+		dwLoginClient = _GetDWordAt(dwLoginClient, 2);
+		#else
+		dwLoginClient = _GetDWordAt(dwLoginClient, 1);
+		#endif
     }
     else
     {
@@ -706,7 +800,11 @@ bool GetAllOffsets(DWORD dweqmain)
 
     if(dwSidlMgr = _FindPattern(dweqmain, 0x100000, swmPattern, swmMask))
     {
-        dwSidlMgr = _GetDWordAt(dwSidlMgr, 1);
+		#ifdef TEST
+		dwSidlMgr = _GetDWordAt(dwSidlMgr, 2);
+		#else
+		dwSidlMgr = _GetDWordAt(dwSidlMgr, 1);
+		#endif
     }
     else
     {
@@ -716,7 +814,11 @@ bool GetAllOffsets(DWORD dweqmain)
 
     if(dwWndMgr = _FindPattern(dweqmain, 0x100000, xwmPattern, xwmMask))
     {
-        dwWndMgr = _GetDWordAt(dwWndMgr, 2);
+        #ifdef TEST
+		dwWndMgr = _GetDWordAt(dwWndMgr, 1);
+		#else
+		dwWndMgr = _GetDWordAt(dwWndMgr, 2);
+		#endif
     }
     else
     {
@@ -1097,7 +1199,27 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
         bInGame = true;
     }
 }
-
+template <unsigned int _Size>bool CurrentCharacter(CHAR(&szBuffer)[_Size])
+{
+	if (CXWnd*pWnd = FindMQ2Window("CLW_CharactersScreen")) {
+		if (CListWnd *charlist = (CListWnd *)pWnd->GetChildItem("Character_List")) {
+			if (charlist->ItemsArray.Count) {
+				CXStr Str;
+				int column = 2;
+				CHAR szOut[MAX_STRING] = { 0 };
+				charlist->GetItemText(&Str, charlist->CurSel, column);
+				GetCXStr(Str.Ptr, szOut, MAX_STRING);
+				if (szOut[0] != '\0') {
+					strcpy_s(szBuffer, _Size, szOut);
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+int BugTimer = 0;
+int retrylogincounter = 0;
 PLUGIN_API VOID OnPulse(VOID)
 {
 	//ok since in game pulse starts at charselect we can use that for charswitching and serverswithcing as well as relog...
@@ -1108,8 +1230,40 @@ PLUGIN_API VOID OnPulse(VOID)
         bLogin = true;
         return;
     }
-
-    if (GetGameState() == GAMESTATE_CHARSELECT) {
+	if (GetGameState() == GAMESTATE_INGAME) {
+		if (retrylogincounter)
+			retrylogincounter = 0;
+	}
+	if (GetGameState() == GAMESTATE_CHARSELECT) {
+		//fix for the stuck at char select "Loading Characters" bug.
+		BugTimer++;
+		if (BugTimer > 100 && retrylogincounter==0) {
+			BugTimer = 0;
+			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox")) {
+				if (pWnd->dShow == 1) {
+					if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
+						CHAR InputCXStr[MAX_STRING] = { 0 };
+						GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
+						if (strstr(InputCXStr, "Loading Characters")) {
+							if (DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd) {
+								retrylogincounter = 1;
+								bLogin = true;
+								if (szServerName && szServerName[0] == '\0') {
+									GetServerName(szServerName);
+								}
+								if (szNewChar && szNewChar[0] == '\0') {
+									CurrentCharacter(szNewChar);
+								}
+								switchTime = MQGetTickCount64() + 3000;
+								Beep(1000, 100);
+								((CCharacterListWnd *)pCharSelect)->Quit();
+								AutoLoginDebug("Quit() called due to charselect list being empty");
+							}
+						}
+					}
+				}
+			}
+		}
 		if(dwTime && szNewChar[0] && GetAsyncKeyState(VK_END) & 1)
         {
             WriteChatf("END key pressed. Login of %s aborted.",szNewChar);
@@ -1122,8 +1276,8 @@ PLUGIN_API VOID OnPulse(VOID)
         {
             // world -> char select
 			AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): bSwitchServer = true");
-			DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
-			((CCharacterSelect *)pCharSelect)->Quit();
+			DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd;
+			((CCharacterListWnd *)pCharSelect)->Quit();
 			return;
 		}
 		if (bSwitchChar) 
@@ -1179,9 +1333,9 @@ void SwitchCharacter(char *szName)
 						GetCXStr(Str.Ptr, szOut, MAX_STRING);
 						if (szOut[0] != '\0') {
 							if (!_stricmp(szName, szOut)) {
-								DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
-								((CCharacterSelect *)pCharSelect)->SelectCharacter(i);
-								((CCharacterSelect *)pCharSelect)->EnterWorld();
+								DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd;
+								((CCharacterListWnd *)pCharSelect)->SelectCharacter(i);
+								((CCharacterListWnd *)pCharSelect)->EnterWorld();
                                 
                                 if (bEndAfterCharSelect)
 								{
@@ -1218,8 +1372,8 @@ void SelectCharacter( char *szName )
                         GetCXStr( Str.Ptr, szOut, MAX_STRING );
                         if( szOut[0] != '\0' ) {
                             if( !_stricmp( szName, szOut ) ) {
-                                DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
-                                ((CCharacterSelect *)pCharSelect)->SelectCharacter(i);
+                                DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd;
+                                ((CCharacterListWnd *)pCharSelect)->SelectCharacter(i);
                                 return;
                             }
                         }

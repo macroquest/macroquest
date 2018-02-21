@@ -870,3 +870,42 @@ static inline std::string trim_copy(std::string s) {
     trim(s);
     return s;
 }
+static inline char* GetSpellString(int ID, int SpellIndex)
+{
+#ifdef TEST
+	if (pEQSpellStrings) {
+		if(char*str = pEQSpellStrings->GetString(ID, SpellIndex)) {
+			return str;
+		}
+	}
+#else
+	if (PSPELL pSpell = GetSpellByID(ID)) {
+		switch (SpellIndex)
+		{
+			case 0:
+				if (pSpell->CastByMe[0])
+					return pSpell->CastByMe;
+				break;
+			case 1:
+				if (pSpell->CastByOther[0])
+					return pSpell->CastByOther;
+				break;
+			case 2:
+				if (pSpell->CastOnYou[0])
+					return pSpell->CastOnYou;
+				break;
+			case 3:
+				if (pSpell->CastOnAnother[0])
+					return pSpell->CastOnAnother;
+				break;
+			case 4:
+				if (pSpell->WearOff[0])
+					return pSpell->WearOff;
+				break;
+			default:
+				break;
+		};
+	}
+#endif
+	return NULL;
+}

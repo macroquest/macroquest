@@ -26,7 +26,15 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 using namespace std;
-std::map<CItemDisplayWnd *, CButtonWnd*>ButtonMap;
+bool gLootButton = true;
+bool gLucyButton = true;
+typedef struct _ButtonInfo
+{
+	CItemDisplayWnd *ItemDisplayWnd;
+	int ID;
+} ButtonInfo,*PButtonInfo;
+
+std::map<CButtonWnd *, ButtonInfo>ButtonMap;
 	
 // thanks, finally, SOE. we'll leave this here for a while and eventually remove it
 #define DISABLE_TOOLTIP_TIMERS
@@ -194,6 +202,104 @@ BOOL dataLastItem(PCHAR szName, MQ2TYPEVAR &Ret)
 	return false;
 }
 
+class ICallback
+{
+public:
+
+    virtual void onURIChanged( Window * ) = 0;
+    virtual void onProgressChanged( Window * ) = 0;
+    virtual void onStatusChanged( Window * ) = 0;
+    virtual bool doValidateURI( Window *, const char * ) = 0;
+};
+class ItemInfoManager : public ICallback, public CObservable, public IObserver
+{
+	virtual void ItemInfoManager::onStatusChanged(Window *wnd);
+	virtual void ItemInfoManager::onURIChanged(Window *wnd);
+	virtual void ItemInfoManager::onProgressChanged(Window *wnd);
+	virtual bool ItemInfoManager::doValidateURI(Window *wnd, const char *uri);
+
+public:
+	CHtmlWnd* htmlwnd;
+	ItemInfoManager()
+	{
+		htmlwnd = 0;
+		Sleep(0);
+	};
+	~ItemInfoManager()
+	{
+		this->GetInstance().htmlwnd->SetClientCallbacks(NULL);
+		//this->GetInstance().htmlwnd->RemoveObserver(this);
+		Sleep(0);
+	};
+	static ItemInfoManager& GetInstance();
+	void Notify(CObservable *Src, const CNotification* const Notification);
+};
+ItemInfoManager& ItemInfoManager::GetInstance()
+{
+	static std::auto_ptr<ItemInfoManager> instance;
+	if( instance.get() == NULL )
+	{
+		instance.reset( new ItemInfoManager );
+	}
+	return *instance;
+}
+//work in progress
+enum EHTMLNotification
+{
+	URISelected,
+	WindowClosed,
+};
+
+void ItemInfoManager::Notify(CObservable *Src, const CNotification* const Notification)
+{
+	if (!Src || !Notification)
+		return;
+
+	switch (Notification->Type)
+	{
+	case URISelected:
+		{
+		//stuff? need to fix
+		break;
+		}
+		break;
+	}
+}
+void ItemInfoManager::onStatusChanged(Window *wnd)
+{
+	if (const wchar_t *status = wnd->getStatus()) {
+		//WriteChatf("Status changed: %s", status);
+	}
+}
+void ItemInfoManager::onURIChanged(Window *wnd)
+{
+	if (const char *uri = wnd->getURI()) {
+		//WriteChatf("URI changed: %s", uri);
+	}
+}
+
+void ItemInfoManager::onProgressChanged(Window *wnd)
+{
+	bool bIsLoading;
+	float pct = wnd->getProgress(bIsLoading);
+	//WriteChatf("Progress %0.2f Loading is %s", pct, bIsLoading ? "TRUE":"FALSE");
+	//ghettofix for resize, i need to detect this better... another detour? gah... -eqmule
+	/*if (!bIsLoading) {
+		ItemInfoManager& manager = ItemInfoManager::GetInstance();
+		if (manager.htmlwnd) {
+			//int width = manager.htmlwnd->Location.right - manager.htmlwnd->Location.left;
+			//int height = manager.htmlwnd->Location.bottom - manager.htmlwnd->Location.top;
+			//((CXWnd*)manager.htmlwnd)->Resize(width+1, height+1);
+			//Beep(1000, 100);
+		}
+	}
+	Sleep(0);*/
+}
+bool ItemInfoManager::doValidateURI(Window *wnd, const char *uri)
+{
+	return true;
+}
+
 // *************************************************************************** 
 // Function:    ItemDisplayHook
 // Description: Our Item display hook 
@@ -248,8 +354,13 @@ public:
         return dmgbonus;
     }
 
-    VOID SetSpell_Trampoline(int SpellID,bool HasSpellDescr);
-    VOID SetSpell_Detour(int SpellID,bool HasSpellDescr)
+	#ifndef TEST
+	VOID SetSpell_Trampoline(int, bool);
+    VOID SetSpell_Detour(int SpellID,bool bFullInfo)
+	#else
+	VOID SetSpell_Trampoline(int);
+    VOID SetSpell_Detour(int SpellID)
+	#endif
     {
         PEQSPELLINFOWINDOW This=(PEQSPELLINFOWINDOW)this;
         PCHARINFO pCharInfo = NULL;
@@ -261,7 +372,11 @@ public:
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
-            SetSpell_Trampoline(SpellID,HasSpellDescr);
+			#ifndef TEST
+			SetSpell_Trampoline(SpellID,bFullInfo);
+			#else
+			SetSpell_Trampoline(SpellID);
+			#endif
             strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
             char * cColour = "FF0000", * cName = "Blub";
@@ -387,19 +502,18 @@ public:
             }
         } 
         if (bUseableClasses) strcat_s(out, "<br><br>" ); 
-
-        if (pSpell->CastOnYou[0]) { 
-            sprintf_s(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+        if (char*str = GetSpellString(pSpell->ID,2)) { 
+            sprintf_s(temp, "Cast on you: %s<br>", str); 
             strcat_s(out,temp); 
         } 
 
-        if (pSpell->CastOnAnother[0]) { 
-            sprintf_s(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+        if (char*str = GetSpellString(pSpell->ID,3)) { 
+            sprintf_s(temp, "Cast on another: %s<br>", str); 
             strcat_s(out,temp); 
         } 
-
-        if (pSpell->WearOff[0]) { 
-            sprintf_s(temp, "Wears off: %s<br>", pSpell->WearOff); 
+		
+        if (char*str = GetSpellString(pSpell->ID,4)) { 
+            sprintf_s(temp, "Wears off: %s<br>", str); 
             strcat_s(out,temp); 
         } 
 		if (DWORD cat = GetSpellCategory(pSpell)) {
@@ -423,8 +537,11 @@ public:
 			#endif
         }
     }
-
-    VOID ItemSetSpell_Detour(int SpellID,bool HasSpellDescr)
+	#ifndef TEST
+    VOID ItemSetSpell_Detour(int SpellID,bool bFullInfo)
+	#else
+	VOID ItemSetSpell_Detour(int SpellID)
+	#endif
     {
         PEQITEMWINDOW This=(PEQITEMWINDOW)this;
         PCHARINFO pCharInfo = NULL;
@@ -437,7 +554,11 @@ public:
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
-            SetSpell_Trampoline(SpellID,HasSpellDescr);
+			#ifndef TEST
+			SetSpell_Trampoline(SpellID,bFullInfo);
+			#else
+			SetSpell_Trampoline(SpellID);
+			#endif
             strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
             char * cColour = "FF0000", * cName = "Blub";
@@ -571,18 +692,17 @@ public:
         } 
         if (bUseableClasses) strcat_s(out, "<br><br>" ); 
 
-        if (pSpell->CastOnYou[0]) { 
-            sprintf_s(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+        if (char*str = GetSpellString(pSpell->ID,2)) { 
+            sprintf_s(temp, "Cast on you: %s<br>", str); 
             strcat_s(out,temp); 
         } 
 
-        if (pSpell->CastOnAnother[0]) { 
-            sprintf_s(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+        if (char*str = GetSpellString(pSpell->ID,3)) { 
+            sprintf_s(temp, "Cast on another: %s<br>", str); 
             strcat_s(out,temp); 
         } 
-
-        if (pSpell->WearOff[0]) { 
-            sprintf_s(temp, "Wears off: %s<br>", pSpell->WearOff); 
+		if (char*str = GetSpellString(pSpell->ID,4)) { 
+            sprintf_s(temp, "Wears off: %s<br>", str); 
             strcat_s(out,temp); 
         } 
 
@@ -823,103 +943,355 @@ public:
         if (Item->LDType == 1) {
             if(Item->LDCost == 0)
                 sprintf_s(temp,"This drops in %s dungeons<BR>", GetLDoNTheme(Item->LDTheme));
-            else
-                sprintf_s(temp,"LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
-            strcat_s(out,temp);
-        }
-        if (Item->LDType == 2 && Item->LDCost > 0) {
-            sprintf_s(temp,"Discord Cost: %d points<BR>", Item->LDCost);
-            strcat_s(out,temp);
-        }
-        if (Item->LDType == 4 && Item->LDCost > 0) {
-            sprintf_s(temp,"DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
-            strcat_s(out,temp);
-        }
-        if (Item->LDType == 5 && Item->LDCost > 0) {
-            sprintf_s(temp,"DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
-            strcat_s(out,temp); 
-        } 
-        // TheColonel (1/18/2004)
-        /*
-        if (Item->InstrumentType != 0){ 
-        float instrumentmod = ((float)Item->InstrumentMod)/10.0f; 
-        sprintf_s(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]); 
-        strcat_s(out,temp);       
-        } 
-        /**/
+			else
+				sprintf_s(temp, "LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
+				strcat_s(out, temp);
+		}
+		if (Item->LDType == 2 && Item->LDCost > 0) {
+			sprintf_s(temp, "Discord Cost: %d points<BR>", Item->LDCost);
+			strcat_s(out, temp);
+		}
+		if (Item->LDType == 4 && Item->LDCost > 0) {
+			sprintf_s(temp, "DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
+			strcat_s(out, temp);
+		}
+		if (Item->LDType == 5 && Item->LDCost > 0) {
+			sprintf_s(temp, "DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
+			strcat_s(out, temp);
+		}
+		// TheColonel (1/18/2004)
+		/*
+		if (Item->InstrumentType != 0){
+		float instrumentmod = ((float)Item->InstrumentMod)/10.0f;
+		sprintf_s(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]);
+		strcat_s(out,temp);
+		}
+		/**/
 
-        if (Item->Type == ITEMTYPE_PACK) {
-            sprintf_s(temp,"Container Type: %s<BR>",szCombineTypes[Item->Combine]);
-            strcat_s(out,temp);
-        }
+		if (Item->Type == ITEMTYPE_PACK) {
+			sprintf_s(temp, "Container Type: %s<BR>", szCombineTypes[Item->Combine]);
+			strcat_s(out, temp);
+		}
 
 
-        sprintf_s(temp,"%07d",Item->ItemNumber); 
+		sprintf_s(temp, "%07d", Item->ItemNumber);
 #ifndef ISXEQ
-        CHAR temp2[MAX_STRING] = {0};
-        GetPrivateProfileString("Notes",temp,"",temp2,MAX_STRING,INIFileName); 
-        if (strlen(temp2)>0) 
-        { 
-            sprintf_s(temp,"Note: %s<br>",temp2); 
-            strcat_s(out, temp); 
-        }  
+		CHAR temp2[MAX_STRING] = { 0 };
+		GetPrivateProfileString("Notes", temp, "", temp2, MAX_STRING, INIFileName);
+		if (strlen(temp2) > 0)
+		{
+			sprintf_s(temp, "Note: %s<br>", temp2);
+			strcat_s(out, temp);
+		}
 #endif
 
-        if (out[0]!=17) {
-            strcat_s(out,"</c>");
-            ((CStmlWnd*)This->DisplayWnd)->AppendSTML(&out[0]);
-        }
+		if (out[0] != 17) {
+			strcat_s(out, "</c>");
+			((CStmlWnd*)This->Description)->AppendSTML(&out[0]);
+		}
 
-        // Ziggy - Items showing their spell details:
-        bNoSpellTramp=true;
-        if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
-            eEffectType = Clicky;
-            ItemSetSpell_Detour(Item->Clicky.SpellID, false);
-        }
+		// Ziggy - Items showing their spell details:
+		bNoSpellTramp = true;
+		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
+			eEffectType = Clicky;
+			#ifndef TEST
+			ItemSetSpell_Detour(Item->Clicky.SpellID, false);
+			#else
+			ItemSetSpell_Detour(Item->Clicky.SpellID);
+			#endif
+		}
 
-        if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
-            eEffectType = Proc;
-            ItemSetSpell_Detour(Item->Proc.SpellID, false);
-        }
+		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
+			eEffectType = Proc;
+			#ifndef TEST
+			ItemSetSpell_Detour(Item->Proc.SpellID, false);
+			#else
+			ItemSetSpell_Detour(Item->Proc.SpellID);
+			#endif
+		}
 
-        if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
-            eEffectType = Worn;
-            ItemSetSpell_Detour(Item->Worn.SpellID, false);
-        }
+		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
+			eEffectType = Worn;
+			#ifndef TEST
+			ItemSetSpell_Detour(Item->Worn.SpellID, false);
+			#else
+			ItemSetSpell_Detour(Item->Worn.SpellID);
+			#endif
+		}
 
-        if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
-            eEffectType = Focus;
-            ItemSetSpell_Detour(Item->Focus.SpellID, false);
-        }
+		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
+			eEffectType = Focus;
+			#ifndef TEST
+			ItemSetSpell_Detour(Item->Focus.SpellID, false);
+			#else
+			ItemSetSpell_Detour(Item->Focus.SpellID);
+			#endif
+		}
 
-        if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
-            eEffectType = Scroll;
-            ItemSetSpell_Detour(Item->Scroll.SpellID, false);
-        }
+		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
+			eEffectType = Scroll;
+			#ifndef TEST
+			ItemSetSpell_Detour(Item->Scroll.SpellID, false);
+			#else
+			ItemSetSpell_Detour(Item->Scroll.SpellID);
+			#endif
+		}
 		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1) {
-            eEffectType = Focus2;
-            ItemSetSpell_Detour(Item->Focus2.SpellID, false);
-        }
-        bNoSpellTramp=false;
-        eEffectType = None;
-    }
+			eEffectType = Focus2;
+			#ifndef TEST
+			ItemSetSpell_Detour(Item->Focus2.SpellID, false);
+			#else
+			ItemSetSpell_Detour(Item->Focus2.SpellID);
+			#endif
+		}
+		bNoSpellTramp = false;
+		eEffectType = None;
+	}
+	virtual void onURIChanged(void *);
+	virtual void onProgressChanged(void *);
+	virtual void onStatusChanged(void *);
+	virtual bool doValidateURI(void *, const char *);
+
 	int WndNotification_Trampoline(CXWnd*, unsigned __int32, void*);
 	int WndNotification_Detour(CXWnd* pWnd, unsigned __int32 Message, void* pData)
-    {
+	{
 #ifndef EMU
 		if (Message == XWM_LCLICK)
 		{
-			for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end();i++) {
-				//find(pWnd) != ButtonMap.end()) {
-				if (i->second == (CButtonWnd*)pWnd) {
-					if (i->first->pCurrentItem) {
-						if (PITEMINFO pItem = GetItemFromContents(i->first->pCurrentItem)) {
-							//WriteChatf("User just clicked save to loot filters button for %s", pItem->Name);
-							pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
-							WriteChatf("Added %s to AG and Roll LootFilters.",pItem->Name);
+			std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.find((CButtonWnd*)pWnd);
+			if (i != ButtonMap.end()) {
+				switch (i->second.ID)
+				{
+					case 2://Toggle the Need Loot Filter
+					{
+						if (i->first->Checked) {//check need
+							//uncheck 3 and 4
+							for (std::map<CButtonWnd*, ButtonInfo>::iterator j = ButtonMap.begin(); j != ButtonMap.end(); j++) {
+								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
+									if (j->second.ID == 3 || j->second.ID == 4) {
+										j->first->Checked = false;
+									}
+								}
+							}
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 2, true, true);
+								}
+							}
 						}
+						else {//uncheck need
+							bool bAutoRollisChecked = false;
+							for (std::map<CButtonWnd*, ButtonInfo>::iterator j = ButtonMap.begin(); j != ButtonMap.end(); j++) {
+								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
+									if (j->second.ID == 5) {
+										bAutoRollisChecked = j->first->Checked;
+										break;
+									}
+								}
+							}
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
+										bool bAutoRoll = ( pData->Types & ( 1<<0 ) ) != 0;
+										if (bAutoRoll) {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 2);
+										}
+										else {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
+										}
+									}
+									else {
+										//its not currently in lootfilters
+										if (bAutoRollisChecked) {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 2);
+										}
+										else {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
+										}
+									}
+								}
+							}
+						}
+						return 0;
 					}
-					break;
+					case 3://Toggle the Greed Loot Filter
+					{
+						if (i->first->Checked) {//check greed
+							//uncheck 2 and 4
+							bool bAutoRollisChecked = false;
+							for (std::map<CButtonWnd*, ButtonInfo>::iterator j = ButtonMap.begin(); j != ButtonMap.end(); j++) {
+								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
+									if (j->second.ID == 2 || j->second.ID == 4) {
+										j->first->Checked = false;
+									}
+									else if (j->second.ID == 5) {
+										bAutoRollisChecked = j->first->Checked;
+									}
+								}
+							}
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 4, true, true);
+								}
+							}
+						}
+						else {//uncheck greed
+							bool bAutoRollisChecked = false;
+							for (std::map<CButtonWnd*, ButtonInfo>::iterator j = ButtonMap.begin(); j != ButtonMap.end(); j++) {
+								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
+									if (j->second.ID == 5) {
+										bAutoRollisChecked = j->first->Checked;
+										break;
+									}
+								}
+							}
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
+										bool bAutoRoll = (pData->Types & (1 << 0)) != 0;
+										if (bAutoRoll) {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 4);
+										}
+										else {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
+										}
+									}
+									else {
+										//its not currently in lootfilters
+										if (bAutoRollisChecked) {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 4);
+										}
+										else {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
+										}
+									}
+								}
+							}	
+						}
+						return 0;
+					}
+					case 4://Toggle the Never Loot Filter
+					{
+						if (i->first->Checked) {//check never
+							//uncheck 2 and 3
+							bool bAutoRollisChecked = false;
+							for (std::map<CButtonWnd*, ButtonInfo>::iterator j = ButtonMap.begin(); j != ButtonMap.end(); j++) {
+								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
+									if (j->second.ID == 2 || j->second.ID == 3) {
+										j->first->Checked = false;
+									}
+									else if (j->second.ID == 5) {
+										bAutoRollisChecked = j->first->Checked;
+									}
+								}
+							}
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, true, true);
+								}
+							}
+						}
+						else {//uncheck never
+							bool bAutoRollisChecked = false;
+							for (std::map<CButtonWnd*, ButtonInfo>::iterator j = ButtonMap.begin(); j != ButtonMap.end(); j++) {
+								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
+									if (j->second.ID == 5) {
+										bAutoRollisChecked = j->first->Checked;
+										break;
+									}
+								}
+							}
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
+										bool bAutoRoll = (pData->Types & (1 << 0)) != 0;
+										if (bAutoRoll) {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 8);
+										}
+										else {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
+										}
+									}
+									else {
+										//its not currently in lootfilters
+										if (bAutoRollisChecked) {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 8);
+										}
+										else {
+											pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
+										}
+									}
+								}
+							}
+						}
+						return 0;
+					}
+					case 5://Toggle the Auto Roll Loot Filter
+					{
+						if (i->first->Checked) {//check autoroll
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								if (pLootFiltersManager) {
+									if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
+										bool bNeed = (pData->Types & (1 << 1)) != 0;
+										bool bGreed = (pData->Types & (1 << 2)) != 0;
+										bool bNever = (pData->Types & (1 << 3)) != 0;
+										if (bNeed) {
+											pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 3, false, true);
+										}
+										else  if (bGreed) {
+											pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5, false, true);
+										}
+										else  if (bNever) {
+											pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 9, false, true);
+										}
+										else {
+											pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 1);
+										}
+									}
+									else {
+										pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 1);
+									}
+								}
+							}
+						}
+						else {//uncheck autoroll
+							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+								pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 1);
+							}
+						}
+						return 0;
+					}			
+					case 6://open in lucy
+					{
+						if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+							std::string url = "http://lucy.allakhazam.com/item.html?id=";
+							CHAR szID[64] = { 0 };
+							_itoa_s(pItem->ItemNumber, szID, 10);
+							url.append(szID);
+							if (CHtmlWnd *ItemHtmlwnd = pCWebManager->CreateHtmlWnd(url.c_str(), pItem->Name, NULL, true, pItem->Name))
+							{
+								ItemHtmlwnd->MinClientSize.cx = 0;
+								ItemHtmlwnd->MinClientSize.cy = 0;
+								ItemHtmlwnd->bMaximizable = true;
+								ItemHtmlwnd->WindowStyle = CWS_USEMYALPHA | CWS_RESIZEBORDER | CWS_MAXIMIZE | CWS_CLOSE | CWS_TITLE | CWS_MINIMIZE;
+								int oldwidth = ItemHtmlwnd->Location.right - ItemHtmlwnd->Location.left;
+								int oldheight = ItemHtmlwnd->Location.bottom - ItemHtmlwnd->Location.top;
+								ItemHtmlwnd->Location.right = ItemHtmlwnd->Location.left + 759;
+								ItemHtmlwnd->Location.bottom = ItemHtmlwnd->Location.top + 539;
+								ItemInfoManager& manager = ItemInfoManager::GetInstance();
+								manager.htmlwnd = ItemHtmlwnd;
+								int width = manager.htmlwnd->Location.right - manager.htmlwnd->Location.left;
+								int height = manager.htmlwnd->Location.bottom - manager.htmlwnd->Location.top;
+								CXWnd*cxwnd = (CXWnd*)ItemHtmlwnd;
+								cxwnd->Resize(width+1, height+1);
+								ItemHtmlwnd->SetClientCallbacks(&manager);
+								//maybe later im not 100% sure what observers are for
+								//ItemHtmlwnd->AddObserver(&manager);
+								Sleep(0);
+							}
+						}
+						return 0;
+					}
 				}
 			}
 		}
@@ -930,22 +1302,144 @@ public:
 	bool AboutToShow_Trampoline(void);
 	bool AboutToShow_Detour(void)
 	{
+		//return AboutToShow_Trampoline();
 		if (CItemDisplayWnd *pWnd = (CItemDisplayWnd*)this) {
-			if(ButtonMap.find(pWnd)==ButtonMap.end()) {
+			bool doit = false;
+			//get rid of old buttons. we really should destroy them in abouttohide but i dont want another detour.
+			for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
+				if (i->second.ItemDisplayWnd == pWnd) {
+					i->first->Destroy();
+					std::map<CButtonWnd*, ButtonInfo>::iterator next = i;
+					next++;
+					ButtonMap.erase(i);		
+					i = next;
+				}
+				else {
+					i++;
+				}
+			}
+			//create add to loot filters button
+			if (gLootButton) {
+				CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("LF_CheckBoxTemplate");
+				CControlTemplate *labeltemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButtonLabel");
+				if (btntemplate && labeltemplate) {
+					UINT oldfont = labeltemplate->Font;
+					labeltemplate->Font = 1;
+					//labeltemplate->TextColor = 0xFF0094FF;
+					CLabelWnd *pheader = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, labeltemplate);
+					pheader->CRNormal = 0xFF0094FF;
+					CButtonWnd *pAlwaysNeedBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
+					CButtonWnd *pAlwaysGreedBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
+					CButtonWnd *pNeverBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
+					CButtonWnd *pAutoRollBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
+					if (pAlwaysNeedBtn && pAlwaysGreedBtn && pNeverBtn && pAutoRollBtn && pheader) {
+						SetCXStr(&pheader->WindowText, "AN | AG | NV | AR");
+						SetCXStr(&pAlwaysNeedBtn->Tooltip, "Always roll need on this item");
+						SetCXStr(&pAlwaysGreedBtn->Tooltip, "Always roll greed on this item");
+						SetCXStr(&pNeverBtn->Tooltip, "Never loot this item");
+						SetCXStr(&pAutoRollBtn->Tooltip, "Always roll on this item");
+						ButtonInfo bi;
+						bi.ItemDisplayWnd = pWnd;	
+						if (CXWnd*orgbutton = pWnd->GetChildItem("IDW_ModButtonLabel")) {
+							int spacing = 22;
+							//header
+							pheader->Location.top = orgbutton->Location.top + 22;
+							pheader->Location.bottom = pheader->Location.top + 12;
+							pheader->Location.left = orgbutton->Location.left;
+							pheader->Location.left += 80;
+							pheader->Location.right += 160;
+							//always need
+							pAlwaysNeedBtn->Location.top = orgbutton->Location.top + 36;
+							pAlwaysNeedBtn->Location.bottom = pAlwaysNeedBtn->Location.top + 14;
+							pAlwaysNeedBtn->Location.left = orgbutton->Location.left;
+							pAlwaysNeedBtn->Location.left += 80;
+							pAlwaysNeedBtn->Location.right = pAlwaysNeedBtn->Location.left + 14;
+							//always greed
+							pAlwaysGreedBtn->Location.top = pAlwaysNeedBtn->Location.top;
+							pAlwaysGreedBtn->Location.bottom = pAlwaysNeedBtn->Location.bottom;
+							pAlwaysGreedBtn->Location.left = pAlwaysNeedBtn->Location.left + spacing;
+							pAlwaysGreedBtn->Location.right = pAlwaysNeedBtn->Location.right + spacing;
+							//never
+							pNeverBtn->Location.top = pAlwaysGreedBtn->Location.top;
+							pNeverBtn->Location.bottom = pAlwaysGreedBtn->Location.bottom;
+							pNeverBtn->Location.left = pAlwaysGreedBtn->Location.left + spacing;
+							pNeverBtn->Location.right = pAlwaysGreedBtn->Location.right + spacing;
+							//autoroll
+							pAutoRollBtn->Location.top = pNeverBtn->Location.top;
+							pAutoRollBtn->Location.bottom = pNeverBtn->Location.bottom;
+							pAutoRollBtn->Location.left = pNeverBtn->Location.left + spacing;
+							pAutoRollBtn->Location.right = pNeverBtn->Location.right + spacing;
+						}
+						bi.ID = 1;
+						pheader->Data = bi.ID;
+						ButtonMap[(CButtonWnd*)pheader] = bi;
+						bi.ID = 2;
+						pAlwaysNeedBtn->Data = bi.ID;
+						ButtonMap[pAlwaysNeedBtn] = bi;
+						bi.ID = 3;
+						pAlwaysGreedBtn->Data = bi.ID;
+						ButtonMap[pAlwaysGreedBtn] = bi;
+						bi.ID = 4;
+						pNeverBtn->Data = bi.ID;
+						ButtonMap[pNeverBtn] = bi;
+						bi.ID = 5;
+						pAutoRollBtn->Data = bi.ID;
+						ButtonMap[pAutoRollBtn] = bi;
+						if (PITEMINFO pItem = GetItemFromContents(pWnd->pCurrentItem)) {
+							if (pLootFiltersManager) {
+								if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
+									bool bAutoRoll = ( pData->Types & ( 1<<0 ) ) != 0;
+									bool bNeed = ( pData->Types & ( 1<<1 ) ) != 0;
+									bool bGreed = ( pData->Types & ( 1<<2 ) ) != 0;
+									bool bNever = ( pData->Types & ( 1<<3 ) ) != 0;
+									if (bNeed) {
+										pAlwaysNeedBtn->Checked = true;
+									}
+									if (bGreed) {
+										pAlwaysGreedBtn->Checked = true;
+									}
+									if (bNever) {
+										pNeverBtn->Checked = true;
+									}
+									if (bAutoRoll) {
+										pAutoRollBtn->Checked = true;
+									}
+								}
+								else {
+									pAlwaysNeedBtn->Checked = false;
+									pAlwaysGreedBtn->Checked = false;
+									pNeverBtn->Checked = false;
+									pAutoRollBtn->Checked = false;
+								}
+							}
+						}
+					}
+					labeltemplate->Font = oldfont;
+				}
+			}
+			//ok now create the lucy button
+			if (gLucyButton) {
 				if (CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton")) {
-					btntemplate->Font = 2;
-					btntemplate->TextColor = 0xFFFFFF00;
+					UINT oldfont = btntemplate->Font;
+					btntemplate->Font = 1;
+					//btntemplate->TextColor = 0xFFFFFF00;
 					if (CButtonWnd *pBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate)) {
-						pBtn->dShow = true;
-						pBtn->Location.top = 30;
-						pBtn->Location.left = 330;
-						pBtn->Location.right = 370;
-						pBtn->Location.bottom = 70;
-						((CXWnd*)pBtn)->SetWindowTextA(CXStr("Add To Loot Filters"));
-						ButtonMap[pWnd] = pBtn;
+						pBtn->CRNormal = 0xFFFFFF00;
+						//pBtn->dShow = true;
+						pBtn->Location.top = 10;
+						pBtn->Location.bottom = 30;
+						pBtn->Location.left = 20;
+						pBtn->Location.right = 60;
+						((CXWnd*)pBtn)->SetWindowTextA(CXStr("Lucy"));
+						ButtonInfo bi;
+						bi.ItemDisplayWnd = pWnd;
+						bi.ID = 6;
+						pBtn->Data = bi.ID;
+						ButtonMap[pBtn] = bi;
 						pBtn->BGColor = 0xFF0000FF;
 						pBtn->DecalTint = 0xFF00FFFF;
 					}
+					btntemplate->Font = oldfont;
 				}
 			}
 		}
@@ -958,7 +1452,11 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline(void));
-DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
+#ifndef TEST
+DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool bFullInfo));
+#else
+DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID));
+#endif
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
 enum eAugTypes
 {
@@ -996,11 +1494,86 @@ enum eAugTypes
 	AT_32 = 0x80000000
 };
 #ifndef ISXEQ
-
+PLUGIN_API void OnCleanUI()
+{
+#ifndef EMU
+	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->first->Destroy();
+	}
+	ButtonMap.clear();
+#endif
+}
 void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-
+	if (szLine && szLine[0] == '\0') {
+		WriteChatf("Usage: /itemdisplay LootButton optional:off/on");
+		WriteChatf("Usage: /itemdisplay LucyButton optional:off/on");
+		return;
+	}
+	CHAR Filename[MAX_STRING] = {0};
+	sprintf_s(Filename,"%s\\MacroQuest.ini",gszINIPath);
+	
+	CHAR szArg1[MAX_STRING] = { 0 };
+	CHAR szArg2[MAX_STRING] = { 0 };
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+	bool bon = true;
+	bool bToggle = true;
+	if (szArg2 && szArg2[0] != '\0') {	
+		if (!_stricmp(szArg2, "off")) {
+			bToggle = false;
+			bon = false;
+		} else if (!_stricmp(szArg2, "on")) {
+			bToggle = false;
+		}
+	}
+	if (!_stricmp(szArg1, "LootButton")) {
+		if (bToggle) {
+			gLootButton = !gLootButton;
+		}
+		else {
+			gLootButton = bon;
+		}
+		WriteChatf("Display of the %s is now \ay%s\ax.",szArg1, (gLootButton ? "Enabled" : "Disabled"));
+		_itoa_s(gLootButton, szArg1, 10);
+		WritePrivateProfileString("ItemDisplay","LootButton",szArg1,Filename);
+		for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
+			if (i->second.ID == 1) {
+				i->first->Destroy();
+				std::map<CButtonWnd*, ButtonInfo>::iterator next = i;
+				next++;
+				ButtonMap.erase(i);
+				i = next;
+			}
+			else {
+				i++;
+			}
+		}
+	} else if (!_stricmp(szArg1, "LucyButton")) {
+		if (bToggle) {
+			gLucyButton = !gLucyButton;
+		}
+		else {
+			gLucyButton = bon;
+		}
+		WriteChatf("Display of the %s is now \ay%s\ax.",szArg1, (gLucyButton ? "Enabled" : "Disabled"));
+		_itoa_s(gLucyButton, szArg1, 10);
+		WritePrivateProfileString("ItemDisplay","LucyButton",szArg1,Filename);
+		for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
+			if (i->second.ID == 2) {
+				i->first->Destroy();
+				std::map<CButtonWnd*, ButtonInfo>::iterator next = i;
+				next++;
+				ButtonMap.erase(i);
+				i = next;
+			}
+			else {
+				i++;
+			}
+		}
+	}
 }
+
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
 #ifdef EMU
@@ -2114,7 +2687,11 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	EzDetourwName(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline,"CItemDisplayWnd__SetSpell");
     EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline,"CItemDisplayWnd__UpdateStrings");
 
-	
+	CHAR Filename[MAX_STRING] = {0};
+	sprintf_s(Filename,"%s\\MacroQuest.ini",gszINIPath);
+	gLootButton = 1==GetPrivateProfileInt("ItemDisplay","LootButton",1,Filename);
+	gLucyButton = 1==GetPrivateProfileInt("ItemDisplay","LucyButton",1,Filename);
+	//GetPrivateProfileInt()
     AddCommand("/itemdisplay",ItemDisplayCmd); 
     AddCommand("/addlootfilter",AddLootFilter); 
     AddCommand("/insertaug",InsertAug); 
@@ -2147,8 +2724,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 #ifndef EMU
 	RemoveDetour(CItemDisplayWnd__AboutToShow);
 	RemoveDetour(CItemDisplayWnd__WndNotification);
-	for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
-		i->second->Destroy();
+	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->first->Destroy();
 	}
 	ButtonMap.clear();
 #endif
@@ -2173,21 +2750,12 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 		hDisplayItemLock = 0;
 	}
 }
-PLUGIN_API void OnCleanUI()
-{
-#ifndef EMU
-	for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
-		i->second->Destroy();
-	}
-	ButtonMap.clear();
-#endif
-}
 
 PLUGIN_API void OnReloadUI()
 {
 #ifndef EMU
-	for (std::map<CItemDisplayWnd*, CButtonWnd*>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
-		i->second->Destroy();
+	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->first->Destroy();
 	}
 	ButtonMap.clear();
 #endif

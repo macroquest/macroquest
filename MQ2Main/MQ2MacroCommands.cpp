@@ -30,7 +30,7 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, int StartLine, BOOL All)
 {
 	DWORD Scope = 1;
 	if (szCommand[strlen(szCommand) - 1] == '{') {
-		if (gMacroBlock->Line.find(StartLine) == gMacroBlock->Line.end()) {
+		if (!gMacroBlock || gMacroBlock && gMacroBlock->Line.find(StartLine) == gMacroBlock->Line.end()) {
 			DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
 			return;
 		}

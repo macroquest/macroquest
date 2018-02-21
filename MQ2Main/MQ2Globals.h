@@ -517,7 +517,8 @@ namespace MQ2Globals
 #define pMercAltAbilities (*ppMercAltAbilities)
 	EQLIB_VAR LootFiltersManager **ppLootFiltersManager;
 #define pLootFiltersManager (*ppLootFiltersManager)
-
+	EQLIB_VAR EQSpellStrings **ppEQSpellStrings;
+#define pEQSpellStrings (*ppEQSpellStrings)
 #endif
 
 	EQLIB_VAR AGGROINFO **ppAggroInfo;
@@ -619,6 +620,9 @@ namespace MQ2Globals
 	#ifdef EMU
 	EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
 	#endif
+
+	EQLIB_VAR CWebManager **ppCWebManager;
+	#define pCWebManager (*ppCWebManager)
 	EQLIB_VAR CTaskWnd **ppTaskWnd;
 	EQLIB_VAR CTaskSomething *ppTaskSomething;
 	EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
@@ -834,6 +838,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstEQItemList;
 	EQLIB_VAR DWORD instEQMisc;
 	EQLIB_VAR DWORD pinstEQSoundManager;
+	EQLIB_VAR DWORD pinstEQSpellStrings;
 	EQLIB_VAR DWORD instExpeditionLeader;
 	EQLIB_VAR DWORD instExpeditionName;
 	EQLIB_VAR DWORD pinstGroup;
@@ -869,7 +874,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCAchievementsWnd;
 	EQLIB_VAR DWORD pinstCTextOverlay;
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
-	EQLIB_VAR DWORD pinstCCharacterSelect;
+	EQLIB_VAR DWORD pinstCCharacterListWnd;
 	EQLIB_VAR DWORD pinstCFacePick;
 	EQLIB_VAR DWORD pinstCFindItemWnd;
 	EQLIB_VAR DWORD pinstCNoteWnd;
@@ -985,7 +990,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCAdvancedLootWnd;
 	EQLIB_VAR DWORD pinstCContextMenuManager;
 	EQLIB_VAR DWORD pinstCVoiceMacroWnd;
-	EQLIB_VAR DWORD pinstCHtmlWnd;
+	EQLIB_VAR DWORD pinstCWebManager;
 	EQLIB_VAR DWORD pinstItemIconCache;
 	EQLIB_VAR DWORD pinstRewardSelectionWnd;
 	EQLIB_VAR DWORD pinstCConfirmationDialog;
@@ -1159,7 +1164,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EverQuest__Cameras;
 	EQLIB_VAR DWORD pinstLootFiltersManager;
 	EQLIB_VAR DWORD LootFiltersManager__AddItemLootFilter;
-
+	EQLIB_VAR DWORD LootFiltersManager__GetItemFilterData;
+	EQLIB_VAR DWORD LootFiltersManager__RemoveItemLootFilter;
+	EQLIB_VAR DWORD LootFiltersManager__SetItemLootFilter;
+	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__Draw;
@@ -1329,6 +1337,7 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CTargetRing__Cast;
 	EQLIB_VAR DWORD CTargetWnd__RefreshTargetBuffs;
+	EQLIB_VAR DWORD CTargetWnd__HandleBuffRemoveRequest;
 	
 	EQLIB_VAR DWORD CTextOverlay__DisplayText;
 
@@ -1336,7 +1345,14 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTextureFont__GetTextExtent;
 	
 	EQLIB_VAR DWORD CWebManager__CreateHtmlWnd;
-
+	EQLIB_VAR DWORD CHtmlComponentWnd__ValidateUri;
+	EQLIB_VAR DWORD CHtmlWnd__SetClientCallbacks;
+	EQLIB_VAR DWORD CHtmlWnd__AddObserver;
+	EQLIB_VAR DWORD CHtmlWnd__RemoveObserver;
+	EQLIB_VAR DWORD Window__getProgress;
+	EQLIB_VAR DWORD Window__getStatus;
+	EQLIB_VAR DWORD Window__getURI;
+	
 	EQLIB_VAR DWORD CXMLDataManager__GetXMLData;
 
 	EQLIB_VAR DWORD CXMLSOMDocumentBase__XMLRead;
@@ -1418,9 +1434,10 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
-	EQLIB_VAR DWORD CCharacterSelect__SelectCharacter;
-	EQLIB_VAR DWORD CCharacterSelect__EnterWorld;
-	EQLIB_VAR DWORD CCharacterSelect__Quit;
+	EQLIB_VAR DWORD CCharacterListWnd__SelectCharacter;
+	EQLIB_VAR DWORD CCharacterListWnd__EnterWorld;
+	EQLIB_VAR DWORD CCharacterListWnd__Quit;
+	EQLIB_VAR DWORD CCharacterListWnd__UpdateList;
 	
 	EQLIB_VAR DWORD EQ_Item__CanDrop;
 	EQLIB_VAR DWORD EQ_Item__CreateItemTagString;
@@ -1541,6 +1558,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Spell__SpellAffectBase;
 	EQLIB_VAR DWORD EQ_Spell__IsNoRemove;
 	EQLIB_VAR DWORD EQ_Spell__IsDegeneratingLevelMod;
+
+	EQLIB_VAR DWORD EQSpellStrings__GetString;
 	
 	EQLIB_VAR DWORD __IsResEffectSpell;
 	EQLIB_VAR DWORD EQ_Affect__GetAffectData;
@@ -1561,7 +1580,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManager__FindAnimation1;
 	EQLIB_VAR DWORD msg_spell_worn_off;
 	EQLIB_VAR DWORD msg_new_text;
-	EQLIB_VAR DWORD msgTokenTextParam;
+	EQLIB_VAR DWORD __msgTokenTextParam;
+	EQLIB_VAR DWORD msgTokenText;
 	EQLIB_VAR DWORD SpellManager__SpellManager;
 	EQLIB_VAR DWORD Spellmanager__LoadTextSpells;
 	EQLIB_VAR DWORD CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility;

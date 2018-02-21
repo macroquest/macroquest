@@ -175,7 +175,7 @@ GNU General Public License for more details.
 #define pinstCAchievementsWnd_x                                    0xE6F72C
 #define pinstCTextOverlay_x                                        0xD2C980
 #define pinstCAudioTriggersWindow_x                                0xD2C768
-#define pinstCCharacterSelect_x                                    0xE6F63C
+#define pinstCCharacterListWnd_x                                   0xE6F63C
 #define pinstCFacePick_x                                           0xE6F3EC
 #define pinstCFindItemWnd_x                                        0xE6F6CC
 #define pinstCNoteWnd_x                                            0xE6F5F4
@@ -288,7 +288,7 @@ GNU General Public License for more details.
 #define pinstCTitleWnd_x                                           0x10CAA00
 #define pinstCContextMenuManager_x                                 0x1730D00
 #define pinstCVoiceMacroWnd_x                                      0xFB6F50
-#define pinstCHtmlWnd_x                                            0xFB7040
+#define pinstCWebManager_x                                         0xFB7040
 #define pinstItemIconCache_x                                       0x10C4E08
 #define pinstCTradeskillWnd_x                                      0x10CAB00
 #define pinstCAdvancedLootWnd_x                                    0xE6F7A0
@@ -666,6 +666,11 @@ GNU General Public License for more details.
 
 //CWebManager
 #define CWebManager__CreateHtmlWnd_x                               0x63D840
+#define CHtmlComponentWnd__ValidateUri_x                           0x0
+#define CHtmlWnd__SetClientCallbacks_x                             0x0
+#define Window__getProgress_x                                      0x0
+#define Window__getStatus_x                                        0x0
+#define Window__getURI_x                                           0x0
 
 // CXMLDataManager 
 #define CXMLDataManager__GetXMLData_x                              0x903630
@@ -767,10 +772,11 @@ GNU General Public License for more details.
 //PcClient
 #define PcClient__PcClient_x                                       0x5C0100
 
-//CCharacterSelect
-#define CCharacterSelect__SelectCharacter_x                        0x446B20
-#define CCharacterSelect__EnterWorld_x                             0x4462F0
-#define CCharacterSelect__Quit_x                                   0x444EB0
+//CCharacterListWnd
+#define CCharacterListWnd__SelectCharacter_x                       0x446B20
+#define CCharacterListWnd__EnterWorld_x                            0x4462F0
+#define CCharacterListWnd__Quit_x                                  0x444EB0
+#define CCharacterListWnd__UpdateList_x                            0x444EB0
 
 // EQ_Item (ItemClient)
 #define EQ_Item__CanDrop_x                                         0x59E350
@@ -908,6 +914,7 @@ GNU General Public License for more details.
 #define CTargetWnd__GetBuffCaster_x                                0x7BAE70
 #define CTargetWnd__WndNotification_x                              0x7BA960
 #define CTargetWnd__RefreshTargetBuffs_x                           0x7BB050
+#define CTargetWnd__HandleBuffRemoveRequest_x                      0x0
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x7BFFB0
@@ -946,7 +953,8 @@ GNU General Public License for more details.
 //messages
 #define msg_spell_worn_off_x                                       0x4FC950
 #define msg_new_text_x                                             0x5060D0
-#define msgTokenTextParam_x                                        0x5028D0
+#define __msgTokenTextParam_x                                      0x0
+#define msgTokenText_x                                             0x5028D0
 
 //SpellManager
 #define SpellManager__vftable_x                                    0xAC9260
@@ -990,3 +998,6 @@ GNU General Public License for more details.
 //LootFiltersManager
 #define pinstLootFiltersManager_x                                  0xD3C248
 #define LootFiltersManager__AddItemLootFilter_x                    0x4940E0
+#define LootFiltersManager__GetItemFilterData_x                    0x0
+#define LootFiltersManager__RemoveItemLootFilter_x                 0x0
+#define LootFiltersManager__SetItemLootFilter_x                    0x0

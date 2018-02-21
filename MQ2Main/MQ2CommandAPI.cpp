@@ -240,9 +240,10 @@ public:
             }
 
             szSubFullCommand = szFullCommand;
-            for (unsigned int i=0; i < sizeof(szFullCommand); i++ ) 
+            size_t len = strnlen_s(szFullCommand, MAX_STRING);
+			for (unsigned int i=0; i < sizeof(szFullCommand); i++ ) 
             {
-                if (szFullCommand[i] == '%') 
+                if (szFullCommand[i] == '%' && ((i+2)<len))
                 {
                     if (szFullCommand[i+2] == ' ' || szFullCommand[i+2] == '\0' ||
                         !isalnum(szFullCommand[i+2]) ) {
