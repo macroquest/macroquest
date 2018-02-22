@@ -1014,7 +1014,7 @@ GNU General Public License for more details.
 //messages
 #define msg_spell_worn_off_x                                       0x61C0B0
 #define msg_new_text_x                                             0x610DD0
-#define __msgTokenTextParam_x                                      0x61E9E0
+#define __msgTokenTextParam_x                                      0x61E770
 #define msgTokenText_x                                             0x61E9E0
 
 //SpellManager

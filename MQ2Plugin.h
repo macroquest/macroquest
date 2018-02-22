@@ -24,12 +24,6 @@
 
 #pragma comment(lib, "MQ2Main")
 
-#ifdef EQLIB_EXPORTS
-#pragma message("EQLIB_EXPORTS")
-#else
-#pragma message("EQLIB_IMPORTS")
-#endif
-
 #define PLUGIN_API extern "C" __declspec(dllexport)
 #define PLUGIN_VERSION(X) __declspec(dllexport) float MQ2Version = (float)X
 
