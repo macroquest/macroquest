@@ -5568,6 +5568,24 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = EQGetSpellDuration(pSpell, NULL, false);
 		Dest.Type = pTicksType;
 		return true;
+	case CastByMe:
+		/*CastByMe,CastByOther,CastOnYou,CastOnAnother,WearOff*/
+		strcpy_s(DataTypeTemp, " casts Unknown Spell.");
+		if (char*str = GetSpellString(pSpell->ID, 0)) {
+			strcpy_s(DataTypeTemp, str);
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	case CastByOther:
+		/*CastByMe,CastByOther,CastOnYou,CastOnAnother,WearOff*/
+		strcpy_s(DataTypeTemp, " casts Unknown Spell.");
+		if (char*str = GetSpellString(pSpell->ID, 1)) {
+			strcpy_s(DataTypeTemp, str);
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	case CastOnYou:
 		strcpy_s(DataTypeTemp, "You feel bogus as an unknown spell accosts you.");
 		if (char*str = GetSpellString(pSpell->ID, 2)) {
@@ -6000,15 +6018,6 @@ bool MQ2SpellType::GETMEMBER()
 			Dest.DWord = pSpell->ReagentCount[nIndex];
 			Dest.Type = pIntType;
 		}
-		return true;
-	case CastByOther:
-		/*CastByMe,CastByOther,CastOnYou,CastOnAnother,WearOff*/
-		strcpy_s(DataTypeTemp, " casts Unknown Spell.");
-		if (char*str = GetSpellString(pSpell->ID, 1)) {
-			strcpy_s(DataTypeTemp, str);
-		}
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
 		return true;
 	case TimeOfDay:
 		Dest.DWord = pSpell->TimeOfDay;

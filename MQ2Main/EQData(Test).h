@@ -2627,9 +2627,9 @@ union {
 typedef struct _CHARINFO2 {
 /*0x0000*/ BYTE         Unknown0x0000[0x10];
 /*0x0010*/ DWORD        BaseProfile;
-/*0x0014*/ BYTE         Unknown0x0014[0x4];
-/*0x0018*/ struct _INVENTORYARRAY*      pInventoryArray;
-/*0x001c*/ BYTE         Unknown0x001c[0x4c];
+/*0x0014*/ BYTE         Unknown0x0014[0x8];
+/*0x001C*/ struct _INVENTORYARRAY*      pInventoryArray;
+/*0x0020*/ BYTE         Unknown0x0020[0x48];
 /*0x0068*/ struct _SPELLBUFF    Buff[NUM_LONG_BUFFS];//EQ_Affect
 /*0x0ed8*/ struct _SPELLBUFF    ShortBuff[NUM_SHORT_BUFFS];
 /*0x21c0*/ DWORD        ZoneBuffs[NUM_BUFF_SLOTS]; // caster IDs for the Effects Window of whoever cast the buff on you in the same zone...

@@ -281,7 +281,7 @@ unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long address
 //search in eqgame.exe
 //Feb 16 2018 Test
 //IDA Style Sig: FF 35 ? ? ? ? FF 15 ? ? ? ? A3
-#ifndef TEST
+#ifdef EMU
 PBYTE eqmainPattern = (PBYTE)"\x8B\x0D\x00\x00\x00\x00\x68\x00\x00\x00\x00\x51\xFF\xD6\xA3\x00\x00\x00\x00\x85\xC0\x75\x00\xFF\x15\x00\x00\x00\x00\x50\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x00\x33\xC0\x5E\xC3";
 char eqmainMask[] = "xx????x????xxxx????xxx?xx????xx????x????xx?xxxx";
 #else
@@ -292,7 +292,7 @@ char eqmainMask[] = "xx????xx????x";
 //eqmain.dll
 //Feb 16 2018 Test
 //A3 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
-#ifndef TEST
+#ifdef EMU
 PBYTE lvmPattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x00\x85\xC0\x74\x00\x8B\x96\x00\x00\x00\x00\x52\x57\x8B\xC8\xE8\x00\x00\x00\x00\xEB\x00";
 char lvmMask[] = "x????x????xx?xxx?xx????xxxxx????x?";
 #else
@@ -303,7 +303,7 @@ char lvmMask[] = "x????x????xxxxx";
 //eqmain.dll
 //Feb 16 2018 Test
 //A1 BC ? ? ? ? 88 18
-#ifndef TEST
+#ifdef EMU
 PBYTE xwmPattern = (PBYTE)"\x8B\x15\x00\x00\x00\x00\x89\x82\x00\x00\x00\x00\xA1\x00\x00\x00\x00\xC6\x80\x00\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x89\x1D\x00\x00\x00\x00\x8B\x11\x8B\x42\x00\xFF\xD0\x85\xC0\x74\x00";
 char xwmMask[] = "xx????xx????x????xx?????xx????xx????xxxx?xxxxx?";
 #else
@@ -314,7 +314,7 @@ char xwmMask[] = "xx????xx";
 //eqmain.dll
 //Feb 16 2018 Test
 //8B 35 ? ? ? ? 8a 86
-#ifndef TEST
+#ifdef EMU
 PBYTE swmPattern = (PBYTE)"\xA1\x00\x00\x00\x00\x80\xB8\x00\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\x8D\x88\x00\x00\x00\x00\x8B\x01\x3B\xC3\x74\x00\x89\x45\x00\x33\xDB\x8B\x45\x00\xF0\xFF\x00\x0F\x94\xC3\x89\x5D\x00";
 char swmMask[] = "x????xx?????xx????xx????xxxxx?xx?xxxx?xxxxxxxx?";
 #else
@@ -326,7 +326,7 @@ char swmMask[] = "xx????xx";
 //Feb 16 2018 Test
 //IDA Style Sig: 53 8B 5C 24 0C 8B C1 57
 //Code Style Signature: \x53\x8B\x5C\x24\x0C\x8B\xC1\x57 xxxxxxxx
-#ifndef TEST
+#ifdef EMU
 PBYTE xmldataPattern = (PBYTE)"\x8B\x54\x24\x00\x56\x8B\x74\x24\x00\x8B\xC1\x85\xD2\x75\x00\x85\xF6\x75\x00\x33\xC0\x5E\xC2\x00\x00";
 char xmldataMask[] = "xxx?xxxx?xxxxx?xxx?xxxx??";
 #else
@@ -337,7 +337,7 @@ char xmldataMask[] = "xxxxxxxx";
 //eqmain.dll func start
 //Feb 16 2018 Test
 //55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 08 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 83 7E 14 00 74 5D 51 8B CC 89 65 F0 68 ? ? ? ? E8 ? ? ? ? 51 8B CC 89 65 EC 68 ? ? ? ? C7 45 ? ? ? ? ? E8 ? ? ? ? 8B 4E 14 C6 45 FC 01 E8 ? ? ? ? 8B F8 51 8B DC 8B 0F 85 C9 74 09 51 E8 ? ? ? ? 83 C4 04 8B 07 8B CE 89 03 C7 45 ? ? ? ? ? E8 ? ? ? ? 84 C0 75 17 8B 4E 1C 8B 7D 08 85 C9 74 26 8B 01 57 FF 90 ? ? ? ? 85 C0 74 29 B8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00 8B 4E 14 85 C9 74 09 8B 01 57 FF 90 ? ? ? ? 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00
-#ifndef TEST
+#ifdef EMU
 PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\x00\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x00\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\x00\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x00\x00";
 char lmouseMask[] = "xxxx?x????xx????xxx?xxxx????xxxxx?xx????xxxx??";
 #else
@@ -348,7 +348,7 @@ char lmouseMask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????
 //eqmain.dll dword in func
 //Feb 16 2018 Test
 //IDA Style Sig: 89 0D ? ? ? ? 8B 46 2C
-#ifndef TEST
+#ifdef EMU
 PBYTE lcPattern = (PBYTE)"\xA3\x00\x00\x00\x00\x8B\x56\x00\x8B\x4A\x00\x6A\x00\x51\x52\x8B\xC8\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00";
 char lcMask[] = "x????xx?xx?x?xxxxxx?????x????";
 #else
@@ -359,7 +359,7 @@ char lcMask[] = "xx????xxx";
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
 //Feb 16 2018 Test
 //IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
-#ifndef TEST
+#ifdef EMU
 PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\xFD\xFF\xFF\x8B\xCE\x5E\xE9\x00\x00\xFF\xFF\xC7\x01";
 char lpMask[] = "xxxx?xxxxxxx??xxxx";
 #else
@@ -374,7 +374,7 @@ char lpMask[] = "xxxx????xx";
 //55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
 //Feb 16 2018 Test
 //IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
-#ifndef TEST
+#ifdef EMU
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1";
 char lcEGMask[] = "xxxxxx????xx????xxxxxxx";
 #else
@@ -763,12 +763,12 @@ DWORD Login__Pulse_x = 0;
 bool bGotOffsets = false;
 bool GetAllOffsets(DWORD dweqmain)
 {
-	//MessageBox(NULL, "Injet", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
+	//MessageBox(NULL, "Inject", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
 	if (!dweqmain)
 		return false;
 	if(dwLoginClient = _FindPattern(dweqmain, 0x100000, lcPattern, lcMask))
     {
-		#ifdef TEST
+		#ifndef EMU
 		dwLoginClient = _GetDWordAt(dwLoginClient, 2);
 		#else
 		dwLoginClient = _GetDWordAt(dwLoginClient, 1);
@@ -800,7 +800,7 @@ bool GetAllOffsets(DWORD dweqmain)
 
     if(dwSidlMgr = _FindPattern(dweqmain, 0x100000, swmPattern, swmMask))
     {
-		#ifdef TEST
+		#ifndef EMU
 		dwSidlMgr = _GetDWordAt(dwSidlMgr, 2);
 		#else
 		dwSidlMgr = _GetDWordAt(dwSidlMgr, 1);
@@ -812,9 +812,9 @@ bool GetAllOffsets(DWORD dweqmain)
         return false;
     }
 
-    if(dwWndMgr = _FindPattern(dweqmain, 0x100000, xwmPattern, xwmMask))
+    if(dwWndMgr = _FindPattern(dweqmain, 0x200000, xwmPattern, xwmMask))
     {
-        #ifdef TEST
+        #ifndef EMU
 		dwWndMgr = _GetDWordAt(dwWndMgr, 1);
 		#else
 		dwWndMgr = _GetDWordAt(dwWndMgr, 2);
@@ -826,7 +826,7 @@ bool GetAllOffsets(DWORD dweqmain)
         return false;
     }
 
-    if(dwLoginMgr = _FindPattern(dweqmain, 0x100000, lvmPattern, lvmMask))
+    if(dwLoginMgr = _FindPattern(dweqmain, 0x200000, lvmPattern, lvmMask))
     {
         dwLoginMgr = _GetDWordAt(dwLoginMgr, 1);
 		dwServerInfo = dwLoginMgr - 4;

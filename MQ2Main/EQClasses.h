@@ -3131,59 +3131,59 @@ enum ItemDisplayFlags
 class CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
-/*0x0238*/ CStmlWnd *pDescription;
-/*0x023c*/ CStmlWnd *pName;
-/*0x0240*/ CButtonWnd *pIconButton;
-/*0x0244*/ CStmlWnd *pLore;
-/*0x0248*/ CTabWnd *pItemDescriptionTab;
-/*0x024c*/ CPageWnd *pDescriptionPage;
-/*0x0250*/ CPageWnd *pLorePage;
-/*0x0254*/ CSidlScreenWnd *pAppearanceSocketScreen;
-/*0x0258*/ CButtonWnd *pAppearanceSocketItem;
-/*0x025c*/ CButtonWnd *pAppearanceSocketBuyButton;
-/*0x0260*/ CStmlWnd *pAppearanceSocketDescription;
-/*0x0264*/ CSidlScreenWnd *pItemSocketScreen[6];
-/*0x027c*/ CButtonWnd *pItemSocketItemButton[6];
-/*0x0294*/ CStmlWnd *pItemSocketDescription[6];
-/*0x02ac*/ PCXSTR ItemInfo;
-/*0x02b0*/ PCXSTR MoreText;
-/*0x02b4*/ PCXSTR LoreText;
-/*0x02b8*/ PCXSTR CreatorName;
-/*0x02bc*/ PCXSTR BackupTabTitle;
-/*0x02c0*/ PCXSTR SolventText;
-/*0x02c4*/ PCXSTR InformationText;
-/*0x02c8*/ PCONTENTS pCurrentItem;
-/*0x02cc*/ bool bActiveItem;
-/*0x02cd*/ bool bItemTextSet;
-/*0x02d0*/ CTextureAnimation* pTABuffIcons;
-/*0x02d4*/ CTextureAnimation* pTADragIcons;
-/*0x02d8*/ bool bTaggable;
-/*0x02d9*/ bool bFailed;
-/*0x02dc*/ UINT TabCount;
-/*0x02e0*/ CLabel *pModButtonLabel;
-/*0x02e4*/ CStmlWnd *pConvertButtonStml;
-/*0x02e8*/ CLabel *pMadeByLabel;
-/*0x02ec*/ CLabel *pCollectedLabel;//for sure
-/*0x02f0*/ CLabel *pScribedLabel;
-/*0x02f4*/ int Row;
-/*0x02f8*/ bool bAntiTwink;
-/*0x02fc*/ CButtonWnd *pModButton;
-/*0x0300*/ CButtonWnd *pPrintRealEstateItems;
-/*0x0304*/ CButtonWnd *pConvertButton;
-/*0x0308*/ bool bCollected;
-/*0x0309*/ bool bReceivedCollectableStatus;
-/*0x030c*/ int Group[6];
-/*0x0324*/ bool bClickedTwink;
-/*0x0328*/ int HeroicCount;
-/*0x032c*/ int ItemInfoCount;
-/*0x0330*/ CLabel *pItemInfoLabel[13];//for sure at 0x330
-/*0x0364*/ CLabel *pStatLabel[0x1a][3];//size 0x138
-/*0x049c*/ CLabel *pValueLabel[0x1a][3];//size 0x138
-/*0x05d4*/ CLabel *pHeroicLabel[0xd];
-/*0x0608*/ int RightClickMenuID;
-/*0x060c*/ int RightClickMenuSocketSlot;
-/*0x0610*/ int WindowID;
-/*0x0614*/
+/*0x0230*/ CStmlWnd *pDescription;
+/*0x0234*/ CStmlWnd *pName;
+/*0x0238*/ CButtonWnd *pIconButton;
+/*0x023c*/ CStmlWnd *pLore;
+/*0x0240*/ CTabWnd *pItemDescriptionTab;
+/*0x0244*/ CPageWnd *pDescriptionPage;
+/*0x0248*/ CPageWnd *pLorePage;
+/*0x024c*/ CSidlScreenWnd *pAppearanceSocketScreen;
+/*0x0250*/ CButtonWnd *pAppearanceSocketItem;
+/*0x0254*/ CButtonWnd *pAppearanceSocketBuyButton;
+/*0x0258*/ CStmlWnd *pAppearanceSocketDescription;
+/*0x025c*/ CSidlScreenWnd *pItemSocketScreen[6];
+/*0x0274*/ CButtonWnd *pItemSocketItemButton[6];
+/*0x028c*/ CStmlWnd *pItemSocketDescription[6];
+/*0x02a4*/ PCXSTR ItemInfo;
+/*0x02a8*/ PCXSTR MoreText;
+/*0x02ac*/ PCXSTR LoreText;
+/*0x02b0*/ PCXSTR CreatorName;
+/*0x02b4*/ PCXSTR BackupTabTitle;
+/*0x02b8*/ PCXSTR SolventText;
+/*0x02bc*/ PCXSTR InformationText;
+/*0x02c0*/ PCONTENTS pCurrentItem;
+/*0x02c4*/ bool bActiveItem;
+/*0x02c5*/ bool bItemTextSet;
+/*0x02c8*/ CTextureAnimation* pTABuffIcons;
+/*0x02cc*/ CTextureAnimation* pTADragIcons;
+/*0x02d0*/ bool bTaggable;
+/*0x02d1*/ bool bFailed;
+/*0x02d4*/ UINT TabCount;
+/*0x02d8*/ CLabel *pModButtonLabel;
+/*0x02dc*/ CStmlWnd *pConvertButtonStml;
+/*0x02e0*/ CLabel *pMadeByLabel;
+/*0x02e4*/ CLabel *pCollectedLabel;//for sure
+/*0x02e8*/ CLabel *pScribedLabel;
+/*0x02ec*/ int Row;
+/*0x02f0*/ bool bAntiTwink;
+/*0x02f4*/ CButtonWnd *pModButton;
+/*0x02f8*/ CButtonWnd *pPrintRealEstateItems;
+/*0x02fc*/ CButtonWnd *pConvertButton;
+/*0x0300*/ bool bCollected;
+/*0x0301*/ bool bReceivedCollectableStatus;
+/*0x0304*/ int Group[6];
+/*0x031c*/ bool bClickedTwink;
+/*0x0320*/ int HeroicCount;
+/*0x0324*/ int ItemInfoCount;
+/*0x0328*/ CLabel *pItemInfoLabel[13];//for sure at 0x330
+/*0x035c*/ CLabel *pStatLabel[0x1a][3];//size 0x138
+/*0x0494*/ CLabel *pValueLabel[0x1a][3];//size 0x138
+/*0x05cc*/ CLabel *pHeroicLabel[0xd];
+/*0x0600*/ int RightClickMenuID;
+/*0x0604*/ int RightClickMenuSocketSlot;
+/*0x0608*/ int WindowID;
+/*0x060c*/
 
 EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(class CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);

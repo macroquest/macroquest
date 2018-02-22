@@ -97,6 +97,8 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 			return "Real Estate Merchant";
 		case 73:
 			return "Loyalty Merchant";
+		case 74:
+			return "Tribute Master";
 		case 0xFF:
 			return "Aura";
 		case 0xFE:
@@ -872,10 +874,11 @@ static inline std::string trim_copy(std::string s) {
 }
 static inline char* GetSpellString(int ID, int SpellIndex)
 {
-#ifdef TEST
+#ifndef EMU
 	if (pEQSpellStrings) {
 		if(char*str = pEQSpellStrings->GetString(ID, SpellIndex)) {
-			return str;
+			if (str[0])
+				return str;
 		}
 	}
 #else

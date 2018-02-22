@@ -35,7 +35,7 @@ typedef struct _ButtonInfo
 } ButtonInfo,*PButtonInfo;
 
 std::map<CButtonWnd *, ButtonInfo>ButtonMap;
-	
+
 // thanks, finally, SOE. we'll leave this here for a while and eventually remove it
 #define DISABLE_TOOLTIP_TIMERS
 
@@ -306,7 +306,7 @@ bool ItemInfoManager::doValidateURI(Window *wnd, const char *uri)
 // *************************************************************************** 
 class ItemDisplayHook
 {
-    typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2} SEffectType;
+    typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Mount, Illusion, Familiar} SEffectType;
 
     static bool bNoSpellTramp;
     static SEffectType eEffectType;
@@ -354,11 +354,11 @@ public:
         return dmgbonus;
     }
 
-	#ifndef TEST
-	VOID SetSpell_Trampoline(int, bool);
+	#ifdef EMU
+	VOID SetSpell_Trampoline(int SpellID, bool bFullInfo);
     VOID SetSpell_Detour(int SpellID,bool bFullInfo)
 	#else
-	VOID SetSpell_Trampoline(int);
+	VOID SetSpell_Trampoline(int SpellID);
     VOID SetSpell_Detour(int SpellID)
 	#endif
     {
@@ -372,7 +372,7 @@ public:
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
-			#ifndef TEST
+			#ifdef EMU
 			SetSpell_Trampoline(SpellID,bFullInfo);
 			#else
 			SetSpell_Trampoline(SpellID);
@@ -404,7 +404,19 @@ public:
                 cColour = "9F9F9F";
                 cName = "Scroll";
                 break;
-            }
+			case Mount:
+				cColour = "00FF00";
+				cName = "Mount";
+				break;
+			case Illusion:
+				cColour = "00FF00";
+				cName = "Illusion";
+				break;
+			case Familiar:
+				cColour = "00FF00";
+				cName = "Familiar";
+				break;
+			}
 
             sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
 			strcat_s(out,temp);
@@ -511,7 +523,7 @@ public:
             sprintf_s(temp, "Cast on another: %s<br>", str); 
             strcat_s(out,temp); 
         } 
-		
+
         if (char*str = GetSpellString(pSpell->ID,4)) { 
             sprintf_s(temp, "Wears off: %s<br>", str); 
             strcat_s(out,temp); 
@@ -537,16 +549,16 @@ public:
 			#endif
         }
     }
-	#ifndef TEST
-    VOID ItemSetSpell_Detour(int SpellID,bool bFullInfo)
+	#ifdef EMU
+    VOID ItemSetSpell_Detour(_ITEMSPELLS Effect, bool bFullInfo)
 	#else
-	VOID ItemSetSpell_Detour(int SpellID)
+	VOID ItemSetSpell_Detour(_ITEMSPELLS Effect)
 	#endif
     {
         PEQITEMWINDOW This=(PEQITEMWINDOW)this;
         PCHARINFO pCharInfo = NULL;
         if (NULL == (pCharInfo = GetCharInfo())) return;
-        PSPELL pSpell = GetSpellByID(SpellID);
+        PSPELL pSpell = GetSpellByID(Effect.SpellID);
         if (pSpell == NULL) {
             return;
         }
@@ -554,10 +566,10 @@ public:
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
-			#ifndef TEST
-			SetSpell_Trampoline(SpellID,bFullInfo);
+			#ifdef EMU
+			SetSpell_Trampoline(Effect.SpellID, bFullInfo);
 			#else
-			SetSpell_Trampoline(SpellID);
+			SetSpell_Trampoline(Effect.SpellID);
 			#endif
             strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
@@ -588,7 +600,9 @@ public:
                 break;
             }
 
-            sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+			CHAR aliased[MAX_STRING] = {0};
+			sprintf_s(aliased, "%s%s", Effect.OtherName, " (aliased)");
+            sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, Effect.OtherName[0] ? aliased : pSpell->Name);
 			strcat_s(out,temp);
 
             if(This->ItemInfo && GetCXStr(This->ItemInfo, temp))
@@ -730,7 +744,7 @@ public:
         PCHAR lore = NULL;
 
         UpdateStrings_Trampoline();
-		lockit lockid(hDisplayItemLock,"UpdateStrings_Detour");
+        lockit lockid(hDisplayItemLock,"UpdateStrings_Detour");
 
 		//add the strings to our map
 		try {
@@ -790,7 +804,7 @@ public:
 				contentsitemstrings[index].WindowTitle.clear();
 			}
 		} catch (...) {
-			MessageBox(NULL,"An exception occurd in mq2itemdisplay","Error",MB_OK);
+			MessageBox(NULL,"An exception occurred in mq2itemdisplay","Error",MB_OK);
 			//handle stuff
 		}
         // keep a global copy of the last item displayed...
@@ -943,35 +957,35 @@ public:
         if (Item->LDType == 1) {
             if(Item->LDCost == 0)
                 sprintf_s(temp,"This drops in %s dungeons<BR>", GetLDoNTheme(Item->LDTheme));
-			else
+            else
 				sprintf_s(temp, "LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
-				strcat_s(out, temp);
-		}
-		if (Item->LDType == 2 && Item->LDCost > 0) {
+			strcat_s(out, temp);
+        }
+        if (Item->LDType == 2 && Item->LDCost > 0) {
 			sprintf_s(temp, "Discord Cost: %d points<BR>", Item->LDCost);
 			strcat_s(out, temp);
-		}
-		if (Item->LDType == 4 && Item->LDCost > 0) {
+        }
+        if (Item->LDType == 4 && Item->LDCost > 0) {
 			sprintf_s(temp, "DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
 			strcat_s(out, temp);
-		}
-		if (Item->LDType == 5 && Item->LDCost > 0) {
+        }
+        if (Item->LDType == 5 && Item->LDCost > 0) {
 			sprintf_s(temp, "DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
 			strcat_s(out, temp);
-		}
-		// TheColonel (1/18/2004)
-		/*
-		if (Item->InstrumentType != 0){
-		float instrumentmod = ((float)Item->InstrumentMod)/10.0f;
-		sprintf_s(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]);
-		strcat_s(out,temp);
-		}
-		/**/
+        } 
+        // TheColonel (1/18/2004)
+        /*
+        if (Item->InstrumentType != 0){ 
+        float instrumentmod = ((float)Item->InstrumentMod)/10.0f; 
+        sprintf_s(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]); 
+        strcat_s(out,temp);       
+        } 
+        /**/
 
-		if (Item->Type == ITEMTYPE_PACK) {
+        if (Item->Type == ITEMTYPE_PACK) {
 			sprintf_s(temp, "Container Type: %s<BR>", szCombineTypes[Item->Combine]);
 			strcat_s(out, temp);
-		}
+        }
 
 
 		sprintf_s(temp, "%07d", Item->ItemNumber);
@@ -979,74 +993,17 @@ public:
 		CHAR temp2[MAX_STRING] = { 0 };
 		GetPrivateProfileString("Notes", temp, "", temp2, MAX_STRING, INIFileName);
 		if (strlen(temp2) > 0)
-		{
+        { 
 			sprintf_s(temp, "Note: %s<br>", temp2);
-			strcat_s(out, temp);
-		}
+            strcat_s(out, temp); 
+        }  
 #endif
 
 		if (out[0] != 17) {
 			strcat_s(out, "</c>");
 			((CStmlWnd*)This->Description)->AppendSTML(&out[0]);
-		}
-
-		// Ziggy - Items showing their spell details:
-		bNoSpellTramp = true;
-		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
-			eEffectType = Clicky;
-			#ifndef TEST
-			ItemSetSpell_Detour(Item->Clicky.SpellID, false);
-			#else
-			ItemSetSpell_Detour(Item->Clicky.SpellID);
-			#endif
-		}
-
-		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
-			eEffectType = Proc;
-			#ifndef TEST
-			ItemSetSpell_Detour(Item->Proc.SpellID, false);
-			#else
-			ItemSetSpell_Detour(Item->Proc.SpellID);
-			#endif
-		}
-
-		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
-			eEffectType = Worn;
-			#ifndef TEST
-			ItemSetSpell_Detour(Item->Worn.SpellID, false);
-			#else
-			ItemSetSpell_Detour(Item->Worn.SpellID);
-			#endif
-		}
-
-		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
-			eEffectType = Focus;
-			#ifndef TEST
-			ItemSetSpell_Detour(Item->Focus.SpellID, false);
-			#else
-			ItemSetSpell_Detour(Item->Focus.SpellID);
-			#endif
-		}
-
-		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
-			eEffectType = Scroll;
-			#ifndef TEST
-			ItemSetSpell_Detour(Item->Scroll.SpellID, false);
-			#else
-			ItemSetSpell_Detour(Item->Scroll.SpellID);
-			#endif
-		}
-		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1) {
-			eEffectType = Focus2;
-			#ifndef TEST
-			ItemSetSpell_Detour(Item->Focus2.SpellID, false);
-			#else
-			ItemSetSpell_Detour(Item->Focus2.SpellID);
-			#endif
-		}
-		bNoSpellTramp = false;
-		eEffectType = None;
-	}
+        }
+    }
 	virtual void onURIChanged(void *);
 	virtual void onProgressChanged(void *);
 	virtual void onStatusChanged(void *);
@@ -1054,7 +1011,7 @@ public:
 
 	int WndNotification_Trampoline(CXWnd*, unsigned __int32, void*);
 	int WndNotification_Detour(CXWnd* pWnd, unsigned __int32 Message, void* pData)
-	{
+    {
 #ifndef EMU
 		if (Message == XWM_LCLICK)
 		{
@@ -1142,8 +1099,8 @@ public:
 									if (j->second.ID == 5) {
 										bAutoRollisChecked = j->first->Checked;
 										break;
-									}
-								}
+						}
+					}
 							}
 							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
 								if (pLootFiltersManager) {
@@ -1197,10 +1154,10 @@ public:
 								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
 									if (j->second.ID == 5) {
 										bAutoRollisChecked = j->first->Checked;
-										break;
-									}
-								}
-							}
+					break;
+				}
+			}
+		}
 							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
 								if (pLootFiltersManager) {
 									if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
@@ -1302,7 +1259,97 @@ public:
 	bool AboutToShow_Trampoline(void);
 	bool AboutToShow_Detour(void)
 	{
-		//return AboutToShow_Trampoline();
+		PEQITEMWINDOW This = (PEQITEMWINDOW)this;
+		int index = This->ItemWndIndex;
+		if (index > 5 || index < 0)
+		{
+			index = 0;
+			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
+		}
+		PCONTENTS item = (PCONTENTS)This->pItem;
+		volatile PITEMINFO Item = GetItemFromContents(item);
+
+		// Ziggy - Items showing their spell details:
+		bNoSpellTramp = true;
+		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
+			eEffectType = Clicky;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Clicky, false);
+#else
+			ItemSetSpell_Detour(Item->Clicky);
+#endif
+		}
+
+		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
+			eEffectType = Proc;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Proc, false);
+#else
+			ItemSetSpell_Detour(Item->Proc);
+#endif
+		}
+
+		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
+			eEffectType = Worn;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Worn, false);
+#else
+			ItemSetSpell_Detour(Item->Worn);
+#endif
+		}
+
+		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
+			eEffectType = Focus;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Focus, false);
+#else
+			ItemSetSpell_Detour(Item->Focus);
+#endif
+		}
+
+		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
+			eEffectType = Scroll;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Scroll, false);
+#else
+			ItemSetSpell_Detour(Item->Scroll);
+#endif
+		}
+		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1) {
+			eEffectType = Focus2;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Focus2, false);
+#else
+			ItemSetSpell_Detour(Item->Focus2);
+#endif
+		}
+		if (Item->Mount.SpellID > 0 && Item->Mount.SpellID != -1) {
+			eEffectType = Mount;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Mount, false);
+#else
+			ItemSetSpell_Detour(Item->Mount);
+#endif
+		}
+		if (Item->Illusion.SpellID > 0 && Item->Illusion.SpellID != -1) {
+			eEffectType = Illusion;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Illusion, false);
+#else
+			ItemSetSpell_Detour(Item->Illusion);
+#endif
+		}
+		if (Item->Familiar.SpellID > 0 && Item->Familiar.SpellID != -1) {
+			eEffectType = Familiar;
+#ifdef EMU
+			ItemSetSpell_Detour(Item->Familiar, false);
+#else
+			ItemSetSpell_Detour(Item->Familiar);
+#endif
+		}
+		bNoSpellTramp = false;
+		eEffectType = None;
+
 		if (CItemDisplayWnd *pWnd = (CItemDisplayWnd*)this) {
 			bool doit = false;
 			//get rid of old buttons. we really should destroy them in abouttohide but i dont want another detour.
@@ -1452,7 +1499,7 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline(void));
-#ifndef TEST
+#ifdef EMU
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool bFullInfo));
 #else
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID));
@@ -1494,15 +1541,7 @@ enum eAugTypes
 	AT_32 = 0x80000000
 };
 #ifndef ISXEQ
-PLUGIN_API void OnCleanUI()
-{
-#ifndef EMU
-	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
-		i->first->Destroy();
-	}
-	ButtonMap.clear();
-#endif
-}
+
 void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine && szLine[0] == '\0') {
@@ -1512,7 +1551,7 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	CHAR Filename[MAX_STRING] = {0};
 	sprintf_s(Filename,"%s\\MacroQuest.ini",gszINIPath);
-	
+
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
@@ -1573,7 +1612,6 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
-
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
 #ifdef EMU
@@ -2679,19 +2717,17 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		return;
 	}
 	pGearScoreType = new MQ2GearScoreType;
-	
+	gLootButton = 1==GetPrivateProfileInt("Settings","LootButton",1,INIFileName);
+	gLucyButton = 1==GetPrivateProfileInt("Settings","LucyButton",1,INIFileName);
+
 	#ifndef EMU
 	EzDetourwName(CItemDisplayWnd__WndNotification,&ItemDisplayHook::WndNotification_Detour,&ItemDisplayHook::WndNotification_Trampoline,"CItemDisplayWnd__WndNotification");
-    EzDetourwName(CItemDisplayWnd__AboutToShow,&ItemDisplayHook::AboutToShow_Detour,&ItemDisplayHook::AboutToShow_Trampoline,"CItemDisplayWnd__AboutToShow");
+	EzDetourwName(CItemDisplayWnd__AboutToShow,&ItemDisplayHook::AboutToShow_Detour,&ItemDisplayHook::AboutToShow_Trampoline,"CItemDisplayWnd__AboutToShow");
 	#endif
 	EzDetourwName(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline,"CItemDisplayWnd__SetSpell");
     EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline,"CItemDisplayWnd__UpdateStrings");
 
-	CHAR Filename[MAX_STRING] = {0};
-	sprintf_s(Filename,"%s\\MacroQuest.ini",gszINIPath);
-	gLootButton = 1==GetPrivateProfileInt("ItemDisplay","LootButton",1,Filename);
-	gLucyButton = 1==GetPrivateProfileInt("ItemDisplay","LucyButton",1,Filename);
-	//GetPrivateProfileInt()
+	
     AddCommand("/itemdisplay",ItemDisplayCmd); 
     AddCommand("/addlootfilter",AddLootFilter); 
     AddCommand("/insertaug",InsertAug); 
@@ -2749,6 +2785,15 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 		CloseHandle(hDisplayItemLock);
 		hDisplayItemLock = 0;
 	}
+}
+PLUGIN_API void OnCleanUI()
+{
+#ifndef EMU
+	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
+		i->first->Destroy();
+	}
+	ButtonMap.clear();
+#endif
 }
 
 PLUGIN_API void OnReloadUI()

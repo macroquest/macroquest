@@ -1589,6 +1589,7 @@ public:
 		StacksWithDiscs = 70,
 		IllusionOkWhenMounted = 71,
 		EQSpellDuration = 72,
+		CastByMe = 73,
 	};
 	enum SpellMethods
 	{
@@ -1667,6 +1668,7 @@ public:
 		TypeMember(StacksWithDiscs);
 		TypeMember(IllusionOkWhenMounted);
 		TypeMember(EQSpellDuration);
+		TypeMember(CastByMe);
 		
 	}
 
