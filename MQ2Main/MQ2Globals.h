@@ -1027,6 +1027,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __GetAnimationCache;
 	EQLIB_VAR DWORD Teleport_Table;
 	EQLIB_VAR DWORD Teleport_Table_Size;
+	EQLIB_VAR DWORD __SaveColors;
 	
 	EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;

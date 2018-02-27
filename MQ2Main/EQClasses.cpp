@@ -2530,9 +2530,6 @@ FUNCTION_AT_ADDRESS(int  COptionsWnd::ChatPageWndNotification(class CXWnd *,unsi
 #ifdef COptionsWnd__ColorPageWndNotification_x
 FUNCTION_AT_ADDRESS(int  COptionsWnd::ColorPageWndNotification(class CXWnd *,unsigned __int32,void *),COptionsWnd__ColorPageWndNotification);
 #endif
-#ifdef COptionsWnd__SaveColors_x
-FUNCTION_AT_ADDRESS(void  COptionsWnd::SaveColors(int,int,int,int),COptionsWnd__SaveColors);
-#endif
 #ifdef COptionsWnd__RestoreDefaultColors_x
 FUNCTION_AT_ADDRESS(void  COptionsWnd::RestoreDefaultColors(void),COptionsWnd__RestoreDefaultColors);
 #endif

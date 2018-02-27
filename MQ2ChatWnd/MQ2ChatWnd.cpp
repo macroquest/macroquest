@@ -659,7 +659,70 @@ BOOL dataChatWnd(PCHAR szName, MQ2TYPEVAR &Dest)
     Dest.DWord=1; 
     Dest.Type=pChatWndType; 
     return true; 
-} 
+}
+void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
+{
+	if (GetGameState() == GAMESTATE_INGAME) {
+		if (pOptionsWnd) {
+			pOptionsWnd->BGColor = 0xFF000000;
+		}
+		if (pTargetWnd) {
+			pTargetWnd->BGColor = 0xFF000000;
+		}
+		if (pOptionsWnd) {
+			if (CButtonWnd*check = (CButtonWnd*)pOptionsWnd->GetChildItem("OGP_UseTellWindowsCheckbox")) {
+				if (!check->Checked) {
+					SendWndClick2(check, "leftmouseup");
+					WriteChatf("Use Tell Windows set to ON");
+				}
+			}
+			if (CButtonWnd*check = (CButtonWnd*)pOptionsWnd->GetChildItem("OGP_AutoConsentGroupCheckbox")) {
+				if (!check->Checked) {
+					SendWndClick2(check, "leftmouseup");
+					WriteChatf("AutoConsentGroup set to ON");
+				}
+			}
+			if (CButtonWnd*check = (CButtonWnd*)pOptionsWnd->GetChildItem("OGP_AutoConsentRaidCheckbox")) {
+				if (!check->Checked) {
+					SendWndClick2(check, "leftmouseup");
+					WriteChatf("AutoConsentRaid set to ON");
+				}
+			}
+			if (CButtonWnd*check = (CButtonWnd*)pOptionsWnd->GetChildItem("OGP_AutoConsentGuildCheckbox")) {
+				if (!check->Checked) {
+					SendWndClick2(check, "leftmouseup");
+					WriteChatf("AutoConsentGuild set to ON");
+				}
+			}
+			if (CButtonWnd*check = (CButtonWnd*)pOptionsWnd->GetChildItem("ODP_ShowHelmCheckbox")) {
+				if (check->Checked) {
+					SendWndClick2(check, "leftmouseup");
+					WriteChatf("ShowHelm set to OFF");
+				}
+			}
+			if (CSliderWnd*check = (CSliderWnd*)pOptionsWnd->GetChildItem("ODP_FadeToAlphaSlider")) {
+				check->SetValue(100);
+				SendWndNotification("Optionswindow", "ODP_FadeToAlphaSlider", 14, (void*)255);
+				WriteChatf("FadeToAlpha set to 100%%");
+			}
+			if (CSliderWnd*check = (CSliderWnd*)pOptionsWnd->GetChildItem("ODP_WindowAlphaSlider")) {
+				check->SetValue(74);
+				SendWndNotification("Optionswindow", "ODP_WindowAlphaSlider", 14, (void*)229);
+				WriteChatf("WindowAlpha set to 100%%");
+			}
+			if (CListWnd*check = (CListWnd*)pOptionsWnd->GetChildItem("OptionsChatFilterPage")) {
+				//check->SetValue(74);
+				//pColorPickerWnd->
+				//SendWndNotification("Optionswindow", "OptionsChatFilterPage", 39, (void*)0x00FF00);
+				for (int i = 0; i < 60; i++) {
+					SaveColors(i, 0, 255, 0);
+				}
+				WriteChatf("TextColor set to green");
+			}
+			
+		}
+	}
+}
 PLUGIN_API VOID InitializePlugin() 
 { 
     DebugSpewAlways("Initializing MQ2ChatWnd"); 
@@ -672,6 +735,7 @@ PLUGIN_API VOID InitializePlugin()
     AddCommand("/mqmin",MQChatMin); 
     AddCommand("/mqclear",MQChatClear);
     AddCommand("/setchattitle",SetChatTitle);
+    AddCommand("/muleui",MuleUI);
     AddMQ2KeyBind("MQ2CHAT",DoMQ2ChatBind); 
     bmStripFirstStmlLines=AddMQ2Benchmark("StripFirstStmlLines"); 
     LoadChatSettings(); 
@@ -683,6 +747,7 @@ PLUGIN_API VOID ShutdownPlugin()
     sPendingChat.clear();
 
     // Remove commands, macro parameters, hooks, etc. 
+    RemoveCommand("/muleui"); 
     RemoveCommand("/setchattitle"); 
     RemoveCommand("/style"); 
     RemoveCommand("/mqfont"); 

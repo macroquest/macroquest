@@ -849,4 +849,7 @@ FUNCTION_AT_ADDRESS(CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool 
 #ifdef __GetAnimationCache_x
 FUNCTION_AT_ADDRESS(class IconCache *__cdecl GetAnimationCache(int index), __GetAnimationCache);
 #endif
+#ifdef __SaveColors_x
+FUNCTION_AT_ADDRESS(void SaveColors(int,int,int,int),__SaveColors);
+#endif
 

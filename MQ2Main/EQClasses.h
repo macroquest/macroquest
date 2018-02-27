@@ -4254,7 +4254,6 @@ EQLIB_OBJECT void COptionsWnd::AddKeyboardAssignment(int,int,int);
 EQLIB_OBJECT void COptionsWnd::InitKeyboardAssignments(void);
 EQLIB_OBJECT void COptionsWnd::InitKeyboardPage(void);
 EQLIB_OBJECT void COptionsWnd::KeyboardPageCancelKeypressAssignment(void);
-EQLIB_OBJECT void COptionsWnd::SaveColors(int,int,int,int);
 EQLIB_OBJECT void COptionsWnd::SetBagOptions(int,int);
 EQLIB_OBJECT void COptionsWnd::SyncChatPage(void);
 EQLIB_OBJECT void COptionsWnd::SyncColorPage(void);
