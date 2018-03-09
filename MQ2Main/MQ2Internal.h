@@ -491,14 +491,19 @@ namespace MQ2Internal {
     public:
         CCustomWnd(CXStr *screenpiece):CSidlScreenWnd(0,screenpiece,-1,1,0)
         {
+			CXWnd *mepre = (CXWnd *)this;
             CreateChildrenFromSidl();
-            pXWnd()->Show(1,1);
+			CXWnd *mepost = (CXWnd *)this;
+			CXWnd* stuff = (CXWnd *)pXWnd();
+            mepre->Show(true,true,true);
+
             ReplacevfTable();
             CloseOnESC=0;
         }
 
         CCustomWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
         {
+			this;
             CreateChildrenFromSidl();
             pXWnd()->Show(1,1);
             ReplacevfTable();

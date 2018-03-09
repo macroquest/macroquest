@@ -767,12 +767,14 @@ static inline DWORD GetGroupMainAssistTargetID()
 {
 	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
 		bool bMainAssist = false;
-		if (pChar->pGroupInfo && pChar->pGroupInfo->pMember) {
-			for (int i = 0; i < 6; i++) {
-				if (pChar->pGroupInfo->pMember[i]) {
-					if (pChar->pGroupInfo->pMember[i]->MainAssist) {
-						bMainAssist = true;
-						break;
+		if (PGROUPINFO pGroup = pChar->pGroupInfo) {
+			if (PGROUPMEMBER pMember = pGroup->pMember[0]) {
+				for (int i = 0; i < 6; i++) {
+					if (pGroup->pMember[i]) {
+						if (pGroup->pMember[i]->MainAssist) {
+							bMainAssist = true;
+							break;
+						}
 					}
 				}
 			}

@@ -28,6 +28,7 @@ std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 
 MQ2Type *FindMQ2DataType(PCHAR Name)
 {
+	lockit lk(ghVariableLock);
 	auto iter = MQ2DataTypeMap.find(Name);
 	if (iter == MQ2DataTypeMap.end())
 		return nullptr;
@@ -37,6 +38,7 @@ MQ2Type *FindMQ2DataType(PCHAR Name)
 
 BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
 {
+	lockit lk(ghVariableLock);
 	// returns pair with iterator pointing to the constructed
 	// element, and a bool indicating if it was actually inserted.
 	// this will not replace existing elements.
@@ -46,6 +48,7 @@ BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
 
 BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
 {
+	lockit lk(ghVariableLock);
 	// use iterator to erase. allows us to check for existence
 	// and erase it without any waste
 	auto iter = MQ2DataTypeMap.find(Type.GetName());
@@ -59,6 +62,7 @@ BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
 
 inline PMQ2DATAITEM FindMQ2Data(PCHAR szName)
 {
+	lockit lk(ghVariableLock);
 	auto iter = MQ2DataMap.find(szName);
 	if (iter == MQ2DataMap.end())
 		return nullptr;
@@ -68,6 +72,7 @@ inline PMQ2DATAITEM FindMQ2Data(PCHAR szName)
 
 BOOL AddMQ2Data(PCHAR szName, fMQData Function)
 {
+	lockit lk(ghVariableLock);
 	// check if the item exists first, so we don't construct
 	// something we don't actually need.
 	if (MQ2DataMap.find(szName) != MQ2DataMap.end())
@@ -85,6 +90,7 @@ BOOL AddMQ2Data(PCHAR szName, fMQData Function)
 
 BOOL RemoveMQ2Data(PCHAR szName)
 {
+	lockit lk(ghVariableLock);
 	auto iter = MQ2DataMap.find(szName);
 	if (iter == MQ2DataMap.end())
 		return false;
@@ -394,6 +400,7 @@ void InitializeMQ2Data()
 
 void ShutdownMQ2Data()
 {
+	lockit lk(ghVariableLock);
 	MQ2DataMap.clear();
 }
 

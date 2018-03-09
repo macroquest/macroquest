@@ -572,7 +572,8 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 						if (out.size()) {
 							for (std::list<std::string>::iterator i = out.begin(); i != out.end(); i++) {
 								bOkToCheck = false;
-								if (MQ2DataMap.find(*i) != MQ2DataMap.end()) {
+								PCHAR pChar = (PCHAR)(*i).c_str();
+								if (FindMQ2Data(pChar)) {
 									bOkToCheck = true;
 									continue;
 								}
@@ -580,7 +581,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 								{
 									//ok fine we didnt find it in the tlo map...
 									//lets check variables
-									if (VariableMap.find(*i) != VariableMap.end()) {
+									if (FindMQ2DataVariable(pChar)) {
 										bOkToCheck = true;
 										continue;
 									}

@@ -561,7 +561,7 @@ EQLIB_OBJECT int CXWnd::Move(class CXPoint);
 EQLIB_OBJECT int CXWnd::Move(class CXRect *, bool, bool, bool, bool);
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
 EQLIB_OBJECT int CXWnd::Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
-EQLIB_OBJECT int CXWnd::Show(bool,bool,bool mq_c = 1);
+EQLIB_OBJECT int CXWnd::Show(bool bShow = true, bool bBringToTop = true, bool bUpdateLayout = true);
 EQLIB_OBJECT int CXWnd::Tile(bool);
 EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize);
 //it looks like CXWnd::GetTooltipRect has 2 parameters in IDA but it only has 1. Note thats its a __cdecl so not a class member func... - eqmule apr 29 2016
@@ -4260,6 +4260,7 @@ EQLIB_OBJECT void COptionsWnd::SyncColorPage(void);
 EQLIB_OBJECT void COptionsWnd::SyncDisplayPage(void);
 EQLIB_OBJECT void COptionsWnd::SyncGeneralPage(void);
 EQLIB_OBJECT void COptionsWnd::SyncMousePage(void);
+EQLIB_OBJECT void COptionsWnd::FillChatFilterList(void);
 };
 
 class CPageTemplate

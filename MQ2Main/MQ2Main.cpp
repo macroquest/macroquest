@@ -346,6 +346,9 @@ bool __cdecl MQ2Initialize()
 		//do an extra second for good measure...
 		Sleep(1000);
 	}
+	
+	if (!ghVariableLock)
+		ghVariableLock = CreateMutex(NULL, FALSE, NULL);
     if(!InitOffsets())
     {
         DebugSpewAlways("InitOffsets returned false - thread aborted.");
@@ -503,6 +506,11 @@ void __cdecl MQ2Shutdown()
 		ReleaseMutex(ghLockDelayCommand);
 		CloseHandle(ghLockDelayCommand);
 		ghLockDelayCommand = 0;
+	}
+	if (ghVariableLock) {
+		ReleaseMutex(ghVariableLock);
+		CloseHandle(ghVariableLock);
+		ghVariableLock = 0;
 	}
 }
 

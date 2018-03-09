@@ -70,6 +70,7 @@ namespace MQ2Globals
 	EQLIB_VAR HANDLE ghLockPickZone;
 	EQLIB_VAR HANDLE ghLockDelayCommand;
 	EQLIB_VAR HANDLE ghCCommandLock;
+	EQLIB_VAR HANDLE ghVariableLock;
 	EQLIB_VAR BOOL g_Loaded;
 	EQLIB_VAR DWORD ThreadID;
 
@@ -619,6 +620,7 @@ namespace MQ2Globals
 	EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
 	#ifdef EMU
 	EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
+	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	#endif
 
 	EQLIB_VAR CWebManager **ppCWebManager;
@@ -627,7 +629,6 @@ namespace MQ2Globals
 	EQLIB_VAR CTaskSomething *ppTaskSomething;
 	EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 	EQLIB_VAR CTextOverlay **ppTextOverlay;
-	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	EQLIB_VAR CAdvancedLootWnd **ppAdvancedLootWnd;
 	EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
 	EQLIB_VAR CEQSuiteTextureLoader *ppEQSuiteTextureLoader;
@@ -1168,6 +1169,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD LootFiltersManager__GetItemFilterData;
 	EQLIB_VAR DWORD LootFiltersManager__RemoveItemLootFilter;
 	EQLIB_VAR DWORD LootFiltersManager__SetItemLootFilter;
+	EQLIB_VAR DWORD COptionsWnd__FillChatFilterList;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;

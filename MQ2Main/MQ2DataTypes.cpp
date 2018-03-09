@@ -916,7 +916,7 @@ bool MQ2MacroType::GETMEMBER()
 	case IsTLO:
 	{
 		Dest.DWord = 0;
-		if (MQ2DataMap.find(GETFIRST()) != MQ2DataMap.end())
+		if (FindMQ2Data(GETFIRST()))
 			Dest.DWord = 1;
 		Dest.Type = pBoolType;
 		return true;
@@ -2452,6 +2452,15 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.Type = pFloatType;
 			return true;
 		}
+	}
+	case PctExpToAA:
+	{
+		if (PCHARINFO pMe = (PCHARINFO)pChar) {
+			Dest.Int = (int)pMe->PercentEXPtoAA;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
 	}
 	case PctAAExp:
 		Dest.Float = (float)pChar->AAExp / 3.30f;

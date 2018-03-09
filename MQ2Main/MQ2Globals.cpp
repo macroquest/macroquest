@@ -231,7 +231,9 @@ namespace MQ2Globals
 		ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
 		ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
+#ifdef EMU
 		ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
+#endif
 #ifndef EMU
 		ppAdvancedLootWnd = (CAdvancedLootWnd**)pinstCAdvancedLootWnd;
 #endif
@@ -273,6 +275,7 @@ namespace MQ2Globals
 	HANDLE ghLockDelayCommand = 0;
 	HANDLE ghInitializeMQ2SpellDb = 0;
 	HANDLE ghCCommandLock = 0;
+	HANDLE ghVariableLock = 0;
 	/* BENCHMARKS */
 	DWORD bmWriteChatColor = 0;
 	DWORD bmPluginsIncomingChat = 0;
@@ -1236,13 +1239,13 @@ namespace MQ2Globals
 	CPetitionQWnd **ppPetitionQWnd = 0;
 #ifdef EMU
 	CSoulmarkWnd **ppSoulmarkWnd = 0;
+	CPotionBeltWnd **ppPotionBeltWnd = 0;
 #endif
 	CWebManager **ppCWebManager = 0;
 	CTaskWnd **ppTaskWnd = 0;
 	CTaskSomething *ppTaskSomething = 0;
 	CTimeLeftWnd **ppTimeLeftWnd = 0;
 	CTextOverlay **ppTextOverlay = 0;
-	CPotionBeltWnd **ppPotionBeltWnd = 0;
 	CAdvancedLootWnd **ppAdvancedLootWnd = 0;
 	CRewardSelectionWnd **ppRewardSelectionWnd = 0;
 	CConfirmationDialog **ppConfirmationDialog = 0;
@@ -1428,7 +1431,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAuraWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCRespawnWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBandolierWnd);
+	#ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(pinstCPotionBeltWnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCAAWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCGroupSearchFiltersWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCLoadskinWnd);
@@ -1723,6 +1728,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildIndex);
 	#endif
+	
+	INITIALIZE_EQGAME_OFFSET(COptionsWnd__FillChatFilterList);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetMemorizedSpell);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemIndex);

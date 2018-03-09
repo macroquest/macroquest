@@ -23,6 +23,7 @@ GNU General Public License for more details.
 
 inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 {
+	lockit lk(ghVariableLock);
 	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
 		VariableMap.erase(pVar->szName);
     if (pVar->pNext)
@@ -37,6 +38,7 @@ inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 
 inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 {
+	lockit lk(ghVariableLock);
 	PDATAVAR pFind = 0;
 	auto it = VariableMap.find(Name); 
 	if (it != VariableMap.end())
@@ -67,6 +69,7 @@ inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 
 BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
 {
+	lockit lk(ghVariableLock);
     if (!ppHead || !Name[0])
         return FALSE;
     if (!Index)
@@ -109,6 +112,7 @@ BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *
 
 BOOL AddMQ2DataVariableBy(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default, BOOL ByData)
 {
+	lockit lk(ghVariableLock);
     if (!ppHead || !Name[0])
         return FALSE;
     if (!Index)

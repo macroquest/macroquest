@@ -179,7 +179,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d8);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool, bool, bool),0x0d8);
 #if defined (EMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
@@ -2439,6 +2439,9 @@ FUNCTION_AT_ADDRESS(void  CNoteWnd::SetNote(char *),CNoteWnd__SetNote);
 #endif
 #ifdef CXStr__operator_lb_rb_x
 FUNCTION_AT_ADDRESS(char  CXStr::operator[](int)const ,CXStr__operator_lb_rb);
+#endif
+#ifdef COptionsWnd__FillChatFilterList_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::FillChatFilterList(void),COptionsWnd__FillChatFilterList);
 #endif
 #ifdef COptionsWnd__COptionsWnd_x
 FUNCTION_AT_ADDRESS( COptionsWnd::COptionsWnd(class CXWnd *),COptionsWnd__COptionsWnd);

@@ -660,6 +660,44 @@ BOOL dataChatWnd(PCHAR szName, MQ2TYPEVAR &Dest)
     Dest.Type=pChatWndType; 
     return true; 
 }
+typedef struct _CBUTTONDRAWTEMPLATE {
+/*0x238*/	PCXSTR Name;
+/*0x23c*/	void   *pNormal;//CTextureAnimation
+/*0x240*/	void   *pPressed;//CTextureAnimation
+/*0x244*/	void   *pFlyby;//CTextureAnimation
+/*0x248*/	void   *pDisabled;//CTextureAnimation
+/*0x24c*/	void   *pPressedFlyby;//CTextureAnimation
+/*0x250*/	void   *pPressedDisabled;//CTextureAnimation
+/*0x254*/	void   *pNormalDecal;//CTextureAnimation
+/*0x258*/	void   *pPressedDecal;//CTextureAnimation
+/*0x25c*/	void   *pFlybyDecal;//CTextureAnimation
+/*0x260*/	void   *pDisabledDecal;//CTextureAnimation
+/*0x264*/	void   *pPressedFlybyDecal;//CTextureAnimation
+/*0x268*/	void   *pPressedDisabledDecal;//CTextureAnimation
+/*0x26c*/
+} CBUTTONDRAWTEMPLATE, *PCBUTTONDRAWTEMPLATE;
+class CHotButton// : public CXWnd
+{
+	CXW;
+public:
+	int BarIndex;
+	int ButtonIndex;
+	unsigned int Timer;
+	CTextureAnimation* DecalIcon;
+	int LastButtonType;
+	int LastButtonSlot;
+	char LastButtonPage;
+	EqItemGuid LastItemGuid;
+	int LastItemId;
+	int LastIconType;
+	int LastIconSlot;
+	PCXSTR LastLabel;
+	PCXSTR DefaultLabel;
+	bool bForceUpdate;
+	void *pKeyMapText;
+	CButtonWnd *pButtonWnd;
+};
+
 void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
 {
 	if (GetGameState() == GAMESTATE_INGAME) {
@@ -711,15 +749,57 @@ void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
 				WriteChatf("WindowAlpha set to 100%%");
 			}
 			if (CListWnd*check = (CListWnd*)pOptionsWnd->GetChildItem("OptionsChatFilterPage")) {
-				//check->SetValue(74);
-				//pColorPickerWnd->
-				//SendWndNotification("Optionswindow", "OptionsChatFilterPage", 39, (void*)0x00FF00);
-				for (int i = 0; i < 60; i++) {
-					SaveColors(i, 0, 255, 0);
-				}
-				WriteChatf("TextColor set to green");
+				int color = 25;// /who color to green
+				SaveColors(color, 0, 255, 0);
+				SaveColors(1, 0, 255, 0);//tells
+				SaveColors(70, 0, 255, 0);//item links
+				SaveColors(31, 255, 50, 255);//my dice
+				SaveColors(103, 240, 127, 0);//others dice
+				SaveColors(104, 240, 127, 0);//group/raid dice
+				pOptionsWnd->FillChatFilterList();
+				WriteChatf("Who Color set to green");
 			}
-			
+			if (CXWnd*wnd = FindMQ2Window("HotButtonWnd")) {
+				if (CXWnd*child = wnd->GetChildItem("HB_Button1")) {
+					CHotButton *hbtn = (CHotButton*)child;
+					if (hbtn && hbtn->pButtonWnd && hbtn->pButtonWnd->DrawTemplate) {
+						PCBUTTONDRAWTEMPLATE btemp = (PCBUTTONDRAWTEMPLATE)hbtn->pButtonWnd->DrawTemplate;
+						Sleep(0);
+					}
+					//btn->DrawTemplate
+					if (CXWnd*child2 = child->GetChildItem("HB_SpellGem")) {
+						child2->BGColor = 0xFF000000;
+					}
+					if (CXWnd*child2 = child->GetChildItem("HB_InvSlot")) {
+						if (CXWnd*child3 = child2->GetChildItem("A_RecessedBox")) {
+							child3->BGColor = 0xFF000000;
+						}
+						child2->BGColor = 0xFF000000;
+					}
+					if (CXWnd*child2 = child->GetChildItem("A_HotButton1Normal")) {
+						child2->BGColor = 0xFF000000;
+					}
+					/*A_HotButton1Normal</Normal>
+			<Pressed>A_HotButton1Pressed</Pressed>
+			<Flyby>A_HotButton1Flyby</Flyby>
+			<Disabled>A_HotButton1Disabled</Disabled>
+			<PressedFlyby>A_HotButton1PressedFlyby</PressedFlyby>*/
+					CScreenPieceTemplate *btntemplate = pSidlMgr->FindScreenPieceTemplate("A_RecessedBox");
+					if (btntemplate) {
+						btntemplate->BackgroundTextureTint = 0xFF000000;
+					}
+					child->BGColor = 0xFF000000;
+				}
+				wnd->CRNormal = 0xFF000000;
+				wnd->BGColor = 0xFF000000;
+			}
+			if (CXWnd*wnd = FindMQ2Window("HotButtonWnd2")) {
+				if (CXWnd*child = wnd->GetChildItem("HB_Button1")) {
+					child->BGColor = 0xFF000000;
+				}
+				wnd->CRNormal = 0xFF000000;
+				wnd->BGColor = 0xFF000000;
+			}
 		}
 	}
 }
