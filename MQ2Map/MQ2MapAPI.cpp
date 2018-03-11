@@ -4,7 +4,7 @@
 #define pMap     ((PEQMAPWINDOW)pMapViewWnd)
 typedef struct _MAPSPAWN
 {
-	PSPAWNINFO pSpawn;
+	PSPAWNINFO pSpawn = 0;
 	eSpawnType SpawnType;
 
 	PMAPLABEL pMapLabel;
@@ -110,13 +110,21 @@ inline void DeleteLabel(PMAPLABEL pLabel)
 inline PMAPSPAWN InitSpawn()
 {
 	try {
-		PMAPSPAWN pSpawn = new MAPSPAWN;
-		pSpawn->pLast = 0;
-		pSpawn->pNext = pActiveSpawns;
+		PMAPSPAWN pMapSpawn = new MAPSPAWN;
+		pMapSpawn->SpawnType = NONE;
+		pMapSpawn->pVector = 0;
+		pMapSpawn->Highlight = 0;
+		pMapSpawn->Explicit = 0;
+		pMapSpawn->Marker = 0;
+		pMapSpawn->MarkerSize = 0;
+		pMapSpawn->pSpawn = 0;
+		pMapSpawn->pMapLabel = 0;
+		pMapSpawn->pLast = 0;
+		pMapSpawn->pNext = pActiveSpawns;
 		if (pActiveSpawns)
-			pActiveSpawns->pLast = pSpawn;
-		pActiveSpawns = pSpawn;
-		return pSpawn;
+			pActiveSpawns->pLast = pMapSpawn;
+		pActiveSpawns = pMapSpawn;
+		return pMapSpawn;
 	}
 	catch (std::bad_alloc& exc)
 	{
@@ -317,26 +325,39 @@ void MapClear()
 
 	while (pActiveSpawns)
 	{
-		PMAPSPAWN pNextActive = pActiveSpawns->pNext;
+		PMAPSPAWN pNextActive = 0;
+		if(pActiveSpawns->pNext)
+			pNextActive = pActiveSpawns->pNext;
 
-		PMAPLABEL pLabel = pActiveSpawns->pMapLabel;
-		DebugTry(free(pLabel->Label));
-		DeleteLabel(pLabel);
+		PMAPLABEL pLabel = 0;
+		if(pActiveSpawns->pMapLabel)
+			pLabel = pActiveSpawns->pMapLabel;
+		if(pLabel && pLabel->Label)
+			DebugTry(free(pLabel->Label));
+		if(pLabel)
+			DeleteLabel(pLabel);
 
-		if (pActiveSpawns->pVector)
+		if (pActiveSpawns && pActiveSpawns->pVector)
 		{
 			DeleteLine(pActiveSpawns->pVector);
 			pActiveSpawns->pVector = 0;
 		}
 
-		if (pActiveSpawns->Marker)
+		if (pActiveSpawns && pActiveSpawns->Marker)
 			RemoveMarker(pActiveSpawns);
-		if (pActiveSpawns->pSpawn && pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE) // fake!
-		{
-			delete pActiveSpawns->pSpawn;
-		}
+		if (pActiveSpawns && pActiveSpawns->pSpawn) {
+			if (!IsBadReadPtr(pActiveSpawns->pSpawn, 4)) {
+				if (pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE) { // fake!
 
-		DeleteSpawn(pActiveSpawns);
+					delete pActiveSpawns->pSpawn;
+				}
+			}
+			else {
+				Sleep(0);//need to figure out why this can happen... -eqmule
+			}
+		}
+		if (pActiveSpawns)
+			DeleteSpawn(pActiveSpawns);
 		pActiveSpawns = pNextActive;
 	}
 
