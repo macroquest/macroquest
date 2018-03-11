@@ -7487,7 +7487,11 @@ FUNCTION_AT_ADDRESS( CRadioGroup::CRadioGroup(class CXStr),CRadioGroup__CRadioGr
 FUNCTION_AT_ADDRESS(class CXStr  CRadioGroup::GetName(void)const ,CRadioGroup__GetName);
 #endif
 #ifdef CSidlScreenWnd__CreateChildrenFromSidl_x
-FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(void),CSidlScreenWnd__CreateChildrenFromSidl);
+#if defined(TEST)
+FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(DWORD), CSidlScreenWnd__CreateChildrenFromSidl);
+#else
+FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(void), CSidlScreenWnd__CreateChildrenFromSidl);
+#endif
 #endif
 #ifdef CSidlScreenWnd__StoreIniVis_x
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::StoreIniVis(void),CSidlScreenWnd__StoreIniVis);
