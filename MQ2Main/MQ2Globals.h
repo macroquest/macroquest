@@ -81,6 +81,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR HMODULE ghModule;
 	EQLIB_VAR HINSTANCE ghInstance;
+	EQLIB_VAR HWND ghInjectorWnd;
 	EQLIB_VAR BOOL gbEQWLoaded;
 	//EQLIB_VAR PHOTKEY pHotkey;
 	EQLIB_VAR BOOL gbUnload;

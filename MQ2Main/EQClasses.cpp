@@ -7487,7 +7487,7 @@ FUNCTION_AT_ADDRESS( CRadioGroup::CRadioGroup(class CXStr),CRadioGroup__CRadioGr
 FUNCTION_AT_ADDRESS(class CXStr  CRadioGroup::GetName(void)const ,CRadioGroup__GetName);
 #endif
 #ifdef CSidlScreenWnd__CreateChildrenFromSidl_x
-#if defined(TEST)
+#if !defined(EMU)
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(DWORD), CSidlScreenWnd__CreateChildrenFromSidl);
 #else
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(void), CSidlScreenWnd__CreateChildrenFromSidl);

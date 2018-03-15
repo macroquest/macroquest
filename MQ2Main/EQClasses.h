@@ -689,7 +689,7 @@ EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,clas
 EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateVSBRange(void);
-#if defined(TEST)
+#if !defined(EMU)
 EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(DWORD = 0);
 #else
 EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(void);

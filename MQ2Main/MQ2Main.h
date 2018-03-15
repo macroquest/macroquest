@@ -850,9 +850,13 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define CHATMENU_RENAME			44
 #define CHATMENU_SCROLLBAR		45
 
-//#define MAX_ITEM4xx             416
-
-//#define MAX_WEAPONS             0x000000ff
+// DO NOT CHANGE these user message id's.
+// They must be identical between MQ2 and the
+// injector process (macroquest2.exe).
+//#define WM_USER_REGISTER_HK		(WM_USER + 1000)
+//#define WM_USER_UNREGISTER_HK	(WM_USER + 1001)
+//#define WM_USER_RESETLOADED		(WM_USER + 1002)
+//#define WM_USER_SETLOADED		(WM_USER + 1003)
 
 EQLIB_API VOID memchecks_tramp(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API VOID memchecks(PCHAR, DWORD, PVOID, DWORD, BOOL);

@@ -4398,7 +4398,6 @@ bool MQ2CharacterType::GETMEMBER()
 	case XTAggroCount:
 		Dest.DWord = 0;
 		if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
-			DWORD x = 0;
 			DWORD AggroPct = 100;
 			if (ISNUMBER()) {
 				AggroPct = GETNUMBER();
@@ -4406,27 +4405,40 @@ bool MQ2CharacterType::GETMEMBER()
 					AggroPct = 100;
 				}
 			}
-			for (int n = 0; n < xtm->XTargetSlots.Count; n++) {
-				XTARGETSLOT xts = xtm->XTargetSlots[n];
-				if (xts.xTargetType == XTARGET_AUTO_HATER && xts.XTargetSlotStatus) {
-					x++;
+			if (pAggroInfo) {
+				for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
+					XTARGETSLOT xts = xtm->XTargetSlots[i];
+					if (DWORD spID = xts.SpawnID && xts.xTargetType == XTARGET_AUTO_HATER) {
+						if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+							if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
+								continue;
+							if (pSpawn->Type == SPAWN_NPC) {
+								DWORD aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
+								//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
+								if (aggropct < AggroPct) {
+									Dest.DWord++;
+								}
+							}
+						}
+					}
 				}
 			}
-			if (x > 1) {
-				if (pAggroInfo) {
-					for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
-						XTARGETSLOT xts = xtm->XTargetSlots[i];
-						if (DWORD spID = xts.SpawnID) {
-							if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
-								if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
-									continue;
-								if (pSpawn->Type == SPAWN_NPC && xts.xTargetType == XTARGET_AUTO_HATER) {
-									DWORD aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
-									//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
-									if (aggropct < AggroPct) {
-										Dest.DWord++;
-									}
-								}
+		}
+		Dest.Type = pIntType;
+		return true;
+	case XTHaterCount:
+		Dest.DWord = 0;
+		if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
+			DWORD x = 0;
+			if (pAggroInfo) {
+				for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
+					XTARGETSLOT xts = xtm->XTargetSlots[i];
+					if (DWORD spID = xts.SpawnID && xts.xTargetType == XTARGET_AUTO_HATER) {
+						if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+							if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
+								continue;
+							if (pSpawn->Type == SPAWN_NPC) {
+								Dest.DWord++;
 							}
 						}
 					}

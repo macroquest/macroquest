@@ -323,6 +323,7 @@ namespace MQ2Globals
 
 	HMODULE ghModule = NULL;
 	HINSTANCE ghInstance = NULL;
+	HWND ghInjectorWnd = NULL;
 	//PHOTKEY pHotkey = NULL;
 	BOOL gbUnload = FALSE;
 	bool gBindInProgress = false;
@@ -1573,7 +1574,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__ProcessGameEvents);
 	INITIALIZE_EQGAME_OFFSET(CrashDetected);
 	INITIALIZE_EQGAME_OFFSET(__SaveColors);
-	
+
 	INITIALIZE_EQGAME_OFFSET(DrawNetStatus);
 	INITIALIZE_EQGAME_OFFSET(Util__FastTime);
 	INITIALIZE_EQGAME_OFFSET(Expansion_HoT);

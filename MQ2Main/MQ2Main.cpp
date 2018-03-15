@@ -42,7 +42,8 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     PCHAR szProcessName;
     ghModule = (HMODULE)hModule;
     ghInstance = (HINSTANCE)hModule;
-
+	ghInjectorWnd = FindWindow(__MacroQuestWinClassName, __MacroQuestWinName);
+	
     GetModuleFileName(ghModule,szFilename,MAX_STRING);
     szProcessName = strrchr(szFilename,'\\');
     szProcessName[0] = '\0';

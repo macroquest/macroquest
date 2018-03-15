@@ -1959,8 +1959,8 @@ struct ALCHEMYBONUSSKILLDATA
 	int BonusPoints;
 };
 
-//aStartingLoad_
-// actual size: 0x2B98 in Mar 06 2018 test (see 6727EE) - eqmule
+//aStartingLoad
+#define CHARINFO_Size 0x2B98 //in Mar 06 2018 test (see 6727EE) - eqmule
 /*0x1c4c*/ //ItemIndex	StatKeyRingItemIndex[3];//0xe46 confirmed
 //this thing here is an abomination, todo: fix it once and for all.
 // its like a frankenstruct mixing in PcBase etc. 
@@ -2625,7 +2625,7 @@ union {
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
 //aSdeityD CharInfo2__CharInfo2
-// actual size: 0x9CC8 Feb 16 2018 Test (see 94FDCE) - eqmule
+#define CHARINFO2_Size 0x9CC8 // Feb 16 2018 Test (see 94FDCE) - eqmule
 typedef struct _CHARINFO2 {
 /*0x0000*/ BYTE         Unknown0x0000[0x10];
 /*0x0010*/ DWORD        BaseProfile;

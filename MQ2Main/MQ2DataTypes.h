@@ -1203,6 +1203,7 @@ public:
 		MercAAPoints = 262,
 		MercAAPointsSpent = 263,
 		PctExpToAA = 264,
+		XTHaterCount = 265,
 	};
 	enum CharacterMethods
 	{
@@ -1467,6 +1468,7 @@ public:
 		TypeMember(MercAAPoints);
 		TypeMember(MercAAPointsSpent);
 		TypeMember(PctExpToAA);
+		TypeMember(XTHaterCount);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);
