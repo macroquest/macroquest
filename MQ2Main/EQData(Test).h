@@ -608,7 +608,7 @@ public:
 };
 //ItemDefinition class
 //CItemInfo__CItemInfo
-// actual size: 0x734 Feb 16 2018 Test (see 6E338B) - eqmule
+// actual size: 0x730 Mar 13 2018 (see 7DAD5E) - eqmule
 typedef struct _ITEMINFO {
 	/*0x0000*/ CHAR         Name[ITEM_NAME_LEN];
 	/*0x0040*/ CHAR         LoreName[LORE_NAME_LEN];
@@ -753,8 +753,8 @@ typedef struct _ITEMINFO {
 	/*0x0670*/ int          PaletteTintIndex;
 	/*0x0674*/ bool         bNoPetGive;
 	/*0x0675*/ bool			bSomeProfile;
-	/*0x0676*/ bool			bPotionBeltAllowed;
-	/*0x0678*/ int			NumPotionSlots;
+	/*0x0676*/ //bool			bPotionBeltAllowed; not removing this right away in case they put belt back
+	/*0x0678*/ //int			NumPotionSlots;
 	/*0x067c*/ int			SomeIDFlag;
 	/*0x0680*/ DWORD        StackSize;
 	/*0x0684*/ bool         bNoStorage;
