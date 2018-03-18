@@ -19,7 +19,7 @@ struct _TELNET {
     char Username[32];
     char Password[32];
     int PasswordTries;
-    char Buffer[2048];
+    char Buffer[MAX_STRING];
     PCHATBUF Received;
     _TELNET *pLast;
     _TELNET *pNext;

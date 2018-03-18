@@ -276,6 +276,13 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 			}
 			return TRUE;
 }
+VOID InitializeMQ2IcExports()
+{
+	IC_LoaderSetLoaded = (fLoaderSetLoaded)GetProcAddress(ghmq2ic, "IC_LoaderSetLoaded");
+	IC_LoaderClearLoaded = (fLoaderClearLoaded)GetProcAddress(ghmq2ic, "IC_LoaderClearLoaded");
+	IC_MQ2Unload = (fMQ2Unload)GetProcAddress(ghmq2ic, "IC_MQ2Unload");
+	IC_ClassLvl = (fClassLvl)GetProcAddress(ghmq2ic, "IC_ClassLvl");
+}
 #ifdef ISXEQ
 void LoadMQ2Plugin(PMQPLUGIN hMQ2icplugin, const PCHAR pszFilename, char *modulepath, size_t bufflen, HMODULE *module)
 {
@@ -425,7 +432,8 @@ bool __cdecl MQ2Initialize()
 #else
 	LoadMQ2Plugin("mq2ic");
 #endif
-	ghmq2ic = GetModuleHandle("mq2ic.dll");
+	if (ghmq2ic = GetModuleHandle("mq2ic.dll"))
+		InitializeMQ2IcExports();
     InitializeMQ2Benchmarks();
 #ifndef ISXEQ
     InitializeParser();

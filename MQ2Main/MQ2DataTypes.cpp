@@ -481,7 +481,7 @@ bool MQ2StringType::GETMEMBER()
 			pComma++;
 			PCHAR pStr = (char *)VarPtr.Ptr;
 			int nStart = GETNUMBER() - 1;
-			int Len = atoi(pComma);
+			DWORD Len = atoi(pComma);//dont change this to an int we want them to be able to specify max len as -1
 			if ((size_t)nStart >= strlen(pStr))
 			{
 				strcpy_s(DataTypeTemp, "");
@@ -8814,6 +8814,11 @@ bool MQ2MacroQuestType::GETMEMBER()
 		Dest.DWord = gBuild;
 		Dest.Type = pIntType;
 		return true;
+	case Path:
+		strcpy_s(DataTypeTemp, gszINIPath);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	}
 	return false;
 }
@@ -8824,6 +8829,29 @@ bool MQ2CharSelectListType::GETMEMBER()
 		return false;
 	switch ((CharSelectListMembers)pMember->ID)
 	{
+		case Name:
+		{
+			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+				if (VarPtr.Int < ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+					strcpy_s(DataTypeTemp, ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray[VarPtr.Int].Name);
+					Dest.Ptr = &DataTypeTemp[0];
+					Dest.Type = pStringType;
+					return true;
+				}
+			}
+			break;
+		}
+		case Level:
+		{
+			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+				if (VarPtr.Int < ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+					Dest.DWord = ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray[VarPtr.Int].Level;
+					Dest.Type = pIntType;
+					return true;
+				}
+			}
+			break;
+		}
 		case ZoneID:
 		{
 			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
@@ -8835,6 +8863,15 @@ bool MQ2CharSelectListType::GETMEMBER()
 				}
 			}
 			break;
+		}
+		case Count:
+		{
+			Dest.DWord = 0;
+			Dest.Type = pIntType;
+			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+				Dest.DWord = ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count;
+			}
+			return true;
 		}
 		break;
 	}

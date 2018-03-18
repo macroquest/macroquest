@@ -42,6 +42,7 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
+	IC_MQ2Unload(GetCurrentProcessId());
 }
 // ***************************************************************************
 // Function:    ListMacros

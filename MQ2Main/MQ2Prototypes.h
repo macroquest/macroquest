@@ -55,5 +55,11 @@ namespace MQ2Prototypes
 	typedef VOID(__cdecl *fMQGroundItem)(PGROUNDITEM);
 	typedef VOID(__cdecl *fMQBeginZone)(VOID);
 	typedef VOID(__cdecl *fMQEndZone)(VOID);
+
+	/* UTILITIES */
+	typedef DWORD(__cdecl *fLoaderSetLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
+	typedef DWORD(__cdecl *fLoaderClearLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
+	typedef DWORD(__cdecl *fMQ2Unload)(DWORD pid);
+	typedef DWORD(__cdecl *fClassLvl)(DWORD playerClass, DWORD playerLevel, DWORD pid);
 };
 using namespace MQ2Prototypes;

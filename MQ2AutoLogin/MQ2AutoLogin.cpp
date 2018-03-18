@@ -268,11 +268,6 @@ map<string, class CXWnd2 *> WindowMap;
 // this changes frequently so it needs to be done this way
 #define pLoginClient ((LoginServerAPI*)*(DWORD*)dwLoginClient)
 
-typedef DWORD(__cdecl *fLoaderSetLoaded)(PCHAR profile, PCHAR servername, PCHAR charactername, DWORD pid);
-fLoaderSetLoaded LoaderSetLoaded = 0;
-typedef DWORD(__cdecl *fLoaderClearLoaded)(PCHAR profile, PCHAR servername, PCHAR charactername, DWORD pid);
-fLoaderClearLoaded LoaderClearLoaded = 0;
-
 bool SetOffsets();
 bool SetOffsetsUI();
 void HandleWindows();
@@ -1071,11 +1066,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
     bool bUseCustomClientIni = GetPrivateProfileInt( "Settings", "EnableCustomClientIni", 0, INIFileName ) == 1;
     bEndAfterCharSelect = GetPrivateProfileInt( "Settings", "EndAfterCharSelect", 0, INIFileName ) == 1;
 
-	if (ghmq2ic) {
-		LoaderSetLoaded = (fLoaderSetLoaded)GetProcAddress(ghmq2ic, "LoaderSetLoaded");
-		LoaderClearLoaded = (fLoaderClearLoaded)GetProcAddress(ghmq2ic, "LoaderClearLoaded");
-	}
-
 	//is eqmain.dll loaded
 	if (GetModuleHandle("eqmain.dll")) {
 		//well well well... what do u know... it's loaded...
@@ -1301,9 +1291,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			((CCharacterListWnd *)pCharSelect)->Quit();
 			if (bInjectorUpdate)
 			{
-				LoaderClearLoaded(szProfile, szServerName, szCharacterName, GetCurrentProcessId());
-				//SendMessage(ghInjectorWnd, WM_USER_RESETLOADED, 1, GetCurrentProcessId());
-				//SendMessage(ghInjectorWnd, WM_USER_UNREGISTER_HK, 1, GetCurrentProcessId());
+				IC_LoaderClearLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 			}
 			bInjectorUpdate = false;
 			return;
@@ -1315,9 +1303,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			bSwitchChar = false;
 			if (bInjectorUpdate)
 			{
-				LoaderClearLoaded(szProfile, szServerName, szCharacterName, GetCurrentProcessId());
-				//SendMessage(ghInjectorWnd, WM_USER_RESETLOADED, 2, GetCurrentProcessId());
-				//SendMessage(ghInjectorWnd, WM_USER_UNREGISTER_HK, 2, GetCurrentProcessId());
+				IC_LoaderClearLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 			}
 			bInjectorUpdate = false;
 			return;
@@ -1329,7 +1315,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			switchTime = 0;
 			dwTime = MQGetTickCount64() + 3000;
             SelectCharacter( szNewChar );
-			LoaderSetLoaded(szProfile, szServerName, szNewChar, GetCurrentProcessId());
+			IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szNewChar, GetCurrentProcessId());
 			return;
 		}
         if( switchTime && switchTime <= MQGetTickCount64() && szSelectCharacterName[0] != '\0' )
@@ -1338,7 +1324,7 @@ PLUGIN_API VOID OnPulse(VOID)
             WriteChatf( "Selecting \ag%s\ax in 3 seconds. please Wait... or press the END key to abort", szSelectCharacterName );
             switchTime = 0;
             SelectCharacter( szSelectCharacterName );
-			LoaderSetLoaded(szProfile, szServerName, szCharacterName, GetCurrentProcessId());
+			IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 			return;
         }
 		if (szNewChar[0] != '\0' && dwTime && dwTime <= MQGetTickCount64())
@@ -1610,50 +1596,50 @@ void HandleWindows()
 				GetCXStr(csidlwnd->InputText, szUserName, 64);
 				if (szUserName[0]) {
 					strcpy_s(szProfile, szUserName);
-					DebugSpewAlways("%s::HandleWindows(MQ2Login Method) szUserName(%s)", PLUGIN_NAME, szUserName);
+					AutoLoginDebug("HandleWindows() szUserName(%s)", szUserName);
 					if (PCHAR pDest = strchr(szProfile, '_')) {
 						//we have a mq2login user... good boy/girl :) welcome to 2016.
 						pDest[0] = '\0';
 						pDest++;
 						sprintf_s(szBlobKey, "%s_Blob", pDest);
 						strcpy_s(szCharacterName, szBlobKey);
-						DebugSpewAlways("%s::HandleWindows(MQ2Login Method) szProfile(%s), szCharacterName(%s)", PLUGIN_NAME, szProfile, szCharacterName);
+						AutoLoginDebug("HandleWindows() szProfile(%s), szCharacterName(%s)", szProfile, szCharacterName);
 						if (PCHAR pDest2 = strchr(szCharacterName, ':')) {
 							pDest2[0] = '\0';
 							strcpy_s(szServerName, szCharacterName);
 						} else {
 							strcpy_s(szServerName, szUserName);
 						}
-						DebugSpewAlways("%s::HandleWindows(MQ2Login Method) szProfile(%s), szBlobKey(%s), szServerName(%s)", PLUGIN_NAME, szProfile, szBlobKey, szServerName);
+						AutoLoginDebug("HandleWindows() szProfile(%s), szBlobKey(%s), szServerName(%s)", szProfile, szBlobKey, szServerName);
 						//now that we have the server and the charname, we can figure out the stationname and password from the blob
-						CHAR szBlob[2048] = { 0 };
+						CHAR szBlob[MAX_STRING] = { 0 };
 						if (GetPrivateProfileString(szProfile, szBlobKey, "", szBlob, sizeof(szBlob), INIFileName)) {
 							if (pDest = strrchr(szBlob, '=')) {
 								pDest[0] = '\0';
 							}
-							DebugSpewAlways("%s::HandleWindows(MQ2Login Method) szBlob(%s)", PLUGIN_NAME, szBlob);
+							AutoLoginDebug("HandleWindows() szBlob(%s)", szBlob);
 							DATA_BLOB db = { 0 };
 							DATA_BLOB dbout = { 0 };
 							if (StrToBlobA(szBlob, &db)) {
 								if (DecryptData(&db, &dbout)) {
 									if (PCHAR thestring = (PCHAR)dbout.pbData) {
-										DebugSpewAlways("%s::HandleWindows(MQ2Login Method) thestring(%s)", PLUGIN_NAME, thestring);
+										AutoLoginDebug("HandleWindows() thestring(%s)", thestring);
 										//we should parse out Login, CharName, Pass, hotkey
-										CHAR szTemp[2048] = { 0 };
+										CHAR szTemp[MAX_STRING] = { 0 };
 										strcpy_s(szTemp, thestring);
 										LocalFree(db.pbData);//always remember to free this (MSDN)
 										LocalFree(dbout.pbData);//always remember to free this (MSDN)
 										if (PCHAR pDest = strchr(szTemp, ':')) {
 											pDest[0] = '\0';
 											strcpy_s(szStationName, szTemp);
-											DebugSpewAlways("%s::HandleWindows(MQ2Login Method) szStationName(%s)", PLUGIN_NAME, szStationName);
+											AutoLoginDebug("HandleWindows() szStationName(%s)", szStationName);
 											pDest++;
 											if (pDest[0]) {
 												strcpy_s(szTemp, pDest);
 												if (pDest = strchr(szTemp, ':')) {
 													pDest[0] = '\0';
 													strcpy_s(szCharacterName, szTemp);
-													DebugSpewAlways("%s::HandleWindows(MQ2Login Method) szCharacterName(%s)", PLUGIN_NAME, szCharacterName);
+													AutoLoginDebug("HandleWindows() szCharacterName(%s)", szCharacterName);
 													pDest++;
 													strcpy_s(szPassword, pDest);
 													if (pDest[0]) {
@@ -1665,11 +1651,8 @@ void HandleWindows()
 															strcpy_s(szHotkey, pDest);
 														}
 													}
-													DebugSpewAlways("%s::HandleWindows(MQ2 Login method) szProfile(%s), szStationName(%s), szServerName(%s), szCharacterName(%s)", 
-														PLUGIN_NAME, szProfile, szStationName, szServerName, szCharacterName);
-													LoaderSetLoaded(szProfile, szServerName, szCharacterName, GetCurrentProcessId());
-													//SendMessage(ghInjectorWnd, WM_USER_SETLOADED, 3, GetCurrentProcessId());
-													//SendMessage(ghInjectorWnd, WM_USER_REGISTER_HK, 3, GetCurrentProcessId());
+													AutoLoginDebug("HandleWindows() szProfile(%s), szStationName(%s), szServerName(%s), szCharacterName(%s)", szProfile, szStationName, szServerName, szCharacterName);
+													IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 												}
 											}
 										}
@@ -1694,7 +1677,7 @@ void HandleWindows()
 						pDest[0] = '\0';
 						pDest++;
 						sprintf_s(szCharacterName, "%s", pDest);
-						CHAR szProfile[128] = { 0 };
+						//CHAR szProfile[128] = { 0 };
 						strcpy_s(szProfile, szCharacterName);
 						if (PCHAR pDest2 = strchr(szProfile, ':')) {
 							pDest2[0] = '\0';
@@ -1703,7 +1686,7 @@ void HandleWindows()
 							strcpy_s(szServerName, szUserName);
 						}
 						//now that we have the server and the charname, we can figure out the stationname and password from the blob
-						CHAR szBlob[2048] = { 0 };
+						CHAR szBlob[MAX_STRING] = { 0 };
 						if (GetPrivateProfileString(szUserName, szCharacterName, "", szBlob, sizeof(szBlob), INIFileName)) {
 							if (pDest = strrchr(szBlob, '=')) {
 								pDest[0] = '\0';
@@ -1714,7 +1697,7 @@ void HandleWindows()
 								if (DecryptData(&db, &dbout)) {
 									if (PCHAR thestring = (PCHAR)dbout.pbData) {
 										//we should parse out Login, CharName, Pass, Hotkey
-										CHAR szTemp[2048] = { 0 };
+										CHAR szTemp[MAX_STRING] = { 0 };
 										strcpy_s(szTemp, thestring);
 										LocalFree(db.pbData);//always remember to free this (MSDN)
 										LocalFree(dbout.pbData);//always remember to free this (MSDN)
@@ -1738,9 +1721,7 @@ void HandleWindows()
 															strcpy_s(szHotkey, pDest);
 														}
 													}
-													LoaderSetLoaded(szProfile, szServerName, szCharacterName, GetCurrentProcessId());
-													//SendMessage(ghInjectorWnd, WM_USER_SETLOADED, 4, GetCurrentProcessId());
-													//SendMessage(ghInjectorWnd, WM_USER_REGISTER_HK, 4, GetCurrentProcessId());
+													IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 												}
 											}
 										}

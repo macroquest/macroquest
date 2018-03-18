@@ -3261,14 +3261,20 @@ class MQ2CharSelectListType : public MQ2Type
 public:
 	enum CharSelectListMembers
 	{
-		ZoneID = 1,
+		Name = 1,
+		Level = 2,
+		ZoneID = 3,
+		Count = 4,
 	};
 	enum CharSelectListMethods
 	{
 	};
 	MQ2CharSelectListType() :MQ2Type("charselectlist")
 	{
+		TypeMember(Name);
+		TypeMember(Level);
 		TypeMember(ZoneID);
+		TypeMember(Count);
 	}
 	~MQ2CharSelectListType()
 	{
@@ -3388,6 +3394,7 @@ public:
 		MQ2DataError = 3,
 		BuildDate = 4,
 		Build = 5,
+		Path = 6,
 	};
 	MQ2MacroQuestType() :MQ2Type("macroquest")
 	{
@@ -3396,6 +3403,7 @@ public:
 		TypeMember(MQ2DataError);
 		TypeMember(BuildDate);
 		TypeMember(Build);
+		TypeMember(Path);
 	}
 	~MQ2MacroQuestType()
 	{

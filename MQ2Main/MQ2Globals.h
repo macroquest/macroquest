@@ -356,12 +356,17 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand			cmdPickZone;
 	EQLIB_VAR fEQCommand			cmdAssist;
 
-	EQLIB_VAR fEQNewUIINI        NewUIINI;
-	EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
-	EQLIB_VAR fEQGetMelee		 get_melee_range;
+	EQLIB_VAR fEQNewUIINI			NewUIINI;
+	EQLIB_VAR fEQProcGameEvts		ProcessGameEvents;
+	EQLIB_VAR fEQGetMelee			get_melee_range;
 #ifndef EMU
-	EQLIB_VAR fEQToggleKeyRingItem     cmdToggleKeyRingItem;
+	EQLIB_VAR fEQToggleKeyRingItem	cmdToggleKeyRingItem;
 #endif
+	EQLIB_VAR fLoaderSetLoaded		IC_LoaderSetLoaded;
+	EQLIB_VAR fLoaderClearLoaded	IC_LoaderClearLoaded;
+	EQLIB_VAR fMQ2Unload            IC_MQ2Unload;
+	EQLIB_VAR fClassLvl				IC_ClassLvl;
+
 	EQLIB_VAR BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3);
 	EQLIB_VAR bool IsResEffectSpell(int);
 	//EQLIB_VAR PCHAR szItemName[];

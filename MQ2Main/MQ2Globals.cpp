@@ -1126,6 +1126,10 @@ namespace MQ2Globals
 #ifndef EMU
 	fEQToggleKeyRingItem  cmdToggleKeyRingItem = 0;
 #endif
+	fLoaderSetLoaded	IC_LoaderSetLoaded = 0;
+	fLoaderClearLoaded	IC_LoaderClearLoaded = 0;
+	fMQ2Unload			IC_MQ2Unload = 0;
+	fClassLvl			IC_ClassLvl = 0;
 
 	StringTable **ppStringTable = 0;
 	CDBStr **ppCDBStr = 0;
