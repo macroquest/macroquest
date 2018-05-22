@@ -13848,6 +13848,54 @@ bool MQ2WorldLocationType::GETMEMBER()
 	return false;
 }
 
+bool MQ2SolventType::GETMEMBER()
+{
+	try {
+		DWORD itemid = VarPtr.DWord;
+		if (itemid == -1)
+			itemid = 52023;
+		PMQ2TYPEMEMBER pMember = MQ2SolventType::FindMember(Member);
+		if (!pMember)
+			return false;
+		switch ((SolventTypeMembers)pMember->ID)
+		{
+			case Name:
+				strcpy_s(DataTypeTemp, GetAugmentNameByID(itemid));
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			case ID:
+				Dest.DWord = itemid;
+				Dest.Type = pIntType;
+				return true;
+			case Item://do we have this solvent?
+				if (PCONTENTS pItem = FindItemByID(itemid))
+				{
+					Dest.Ptr = pItem;
+					Dest.Type = pItemType;
+					return true;
+				}
+				break;
+			case Count://do we have this solvent and if so how many?
+				Dest.DWord = 0;
+				if (PCONTENTS pCont= FindItemByID(itemid))
+				{
+					if (PITEMINFO pItem = GetItemFromContents(pCont))
+					{
+						Dest.DWord = FindItemCountByName(pItem->Name);		
+					}
+				}
+				Dest.Type = pIntType;
+				return true;
+			default:
+				return false;
+		};
+	}
+	catch (...) {
+		MessageBox(NULL, "CRAP! in SolventType", "An exception occured", MB_OK);
+	}
+	return false;
+}
 bool MQ2AugType::GETMEMBER()
 {
 	try {
@@ -13904,6 +13952,15 @@ bool MQ2AugType::GETMEMBER()
 					Dest.Ptr = pCret;
 					Dest.Type = pItemType;
 					return true;
+				}
+				break;
+			case Solvent:
+				if (PCONTENTS pCret = pCont->GetContent(index)) {
+					if (PITEMINFO ptheAug = GetItemFromContents(pCret)) {
+						Dest.DWord = ptheAug->SolventItemID;
+						Dest.Type = pSolventType;
+						return true;
+					}
 				}
 				break;
 			default:

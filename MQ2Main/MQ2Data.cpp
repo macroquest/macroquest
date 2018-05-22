@@ -1016,6 +1016,15 @@ TLO(dataFindItemBank)
 {
 	if (!ISINDEX())
 		return false;
+	PCONTENTS pItem = 0;
+	if (ISNUMBER()) {
+		if (pItem = FindBankItemByID(GETNUMBER())) {
+			Ret.Ptr = pItem;
+			Ret.Type = pItemType;
+			return true;
+		}
+		return false;
+	}
 	PCHAR pName = GETFIRST();
 	BOOL bExact = false;
 
@@ -1025,7 +1034,7 @@ TLO(dataFindItemBank)
 		pName++;
 	}
 
-	if (PCONTENTS pItem = FindBankItemByName(pName, bExact)) {
+	if (pItem = FindBankItemByName(pName, bExact)) {
 		Ret.Ptr = pItem;
 		Ret.Type = pItemType;
 		return true;
@@ -1037,6 +1046,15 @@ TLO(dataFindItem)
 {
 	if (!ISINDEX())
 		return false;
+	PCONTENTS pItem = 0;
+	if (ISNUMBER()) {
+		if (pItem = FindItemByID(GETNUMBER())) {
+			Ret.Ptr = pItem;
+			Ret.Type = pItemType;
+			return true;
+		}
+		return false;
+	}
 	PCHAR pName = GETFIRST();
 	BOOL bExact = false;
 
@@ -1045,7 +1063,7 @@ TLO(dataFindItem)
 		bExact = true;
 		pName++;
 	}
-	if (PCONTENTS pItem = FindItemByName(pName, bExact)) {
+	if (pItem = FindItemByName(pName, bExact)) {
 		Ret.Ptr = pItem;
 		Ret.Type = pItemType;
 		return true;
@@ -1057,9 +1075,13 @@ TLO(dataFindItemCount)
 {
 	if (!ISINDEX())
 		return false;
+	if (ISNUMBER()) {
+		Ret.DWord = FindItemCountByID(GETNUMBER());
+		Ret.Type = pIntType;
+		return true;
+	}
 	PCHAR pName = GETFIRST();
 	BOOL bExact = false;
-
 	if (*pName == '=')
 	{
 		bExact = true;
@@ -1074,6 +1096,11 @@ TLO(dataFindItemBankCount)
 {
 	if (!ISINDEX())
 		return false;
+	if (ISNUMBER()) {
+		Ret.DWord = FindBankItemCountByID(GETNUMBER());
+		Ret.Type = pIntType;
+		return true;
+	}
 	PCHAR pName = GETFIRST();
 	BOOL bExact = false;
 

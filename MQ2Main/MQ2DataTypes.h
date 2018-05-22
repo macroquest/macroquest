@@ -5635,7 +5635,94 @@ public:
 		return false;
 	}
 };
-
+class MQ2SolventType : public MQ2Type
+{
+public:
+	enum SolventTypeMembers
+	{
+		Name = 1,
+		ID = 2,
+		Item = 3,
+		Count = 4,
+	};
+	MQ2SolventType() :MQ2Type("solventtype")
+	{
+		TypeMember(Name);
+		TypeMember(ID);
+		TypeMember(Item);
+		TypeMember(Count);
+	}
+	~MQ2SolventType()
+	{
+	}
+	bool GETMEMBER();
+	static const char*GetAugmentNameByID(int itemid)
+	{
+		switch (itemid)
+		{
+			case 47001:
+				return "Class I Augmentation Distiller";
+			case 47002:
+				return "Class II Augmentation Distiller";
+			case 47003:
+				return "Class III Augmentation Distiller";
+			case 47004:
+				return "Class IV Augmentation Distiller";
+			case 47005:
+				return "Class V Augmentation Distiller";
+			case 47006:
+				return "Class VI Augmentation Distiller";
+			case 47007:
+				return "Class VII Augmentation Distiller";
+			case 47008:
+				return "Class VIII Augmentation Distiller";
+			case 47009:
+				return "Class IX Augmentation Distiller";
+			case 47010:
+				return "Class X Augmentation Distiller";
+			case 47011:
+				return "Class XI Augmentation Distiller";
+			case 47012:
+				return "Class XII Augmentation Distiller";
+			case 47013:
+				return "Class XIII Augmentation Distiller";
+			case 47014:
+				return "Class XIV Augmentation Distiller";
+			case 47015:
+				return "Class XV Augmentation Distiller";
+			case 47016:
+				return "Class XVI Augmentation Distiller";
+			case 47017:
+				return "Class XVII Augmentation Distiller";
+			case 47018:
+				return "Class XVIII Augmentation Distiller";
+			case 47019:
+				return "Class XIX Augmentation Distiller";
+			case 47020:
+				return "Class XX Augmentation Distiller";
+			case 47021:
+				return "Class XXI Augmentation Distiller";
+			default:
+				return "Perfected Augmentation Distiller";
+		};
+	}
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if(const char*pstr = GetAugmentNameByID(VarPtr.DWord)) {
+			strcpy_s(Destination, MAX_STRING, pstr);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
 class MQ2AugType : public MQ2Type
 {
 public:
@@ -5648,6 +5735,7 @@ public:
 		Empty = 5,
 		Name = 6,
 		Item = 7,
+		Solvent = 8,
 	};
 	MQ2AugType() :MQ2Type("augtype")
 	{
@@ -5658,6 +5746,7 @@ public:
 		TypeMember(Empty);
 		TypeMember(Name);
 		TypeMember(Item);
+		TypeMember(Solvent);
 	}
 	~MQ2AugType()
 	{

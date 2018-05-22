@@ -1397,7 +1397,15 @@ int ItemNotify(int argc, char *argv[])
         {
             //could it be an itemname?
 			//lets check:
-			if(PCONTENTS ptheitem = FindItemByName(szArg1,1)) {
+			PCONTENTS ptheitem = 0;
+			if (szArg1[0] == '#') {
+				int id = atoi(&szArg1[1]);
+				ptheitem = FindItemByID(id);
+			}
+			else {
+				ptheitem = FindItemByName(szArg1, 1);
+			}
+			if(ptheitem) {
 				if(pNotification && !_strnicmp(pNotification,"leftmouseup",11)) {
 					if (ItemOnCursor()) {
 						DropItem(eItemContainerPossessions, bagslot, invslot);
@@ -1436,7 +1444,7 @@ int ItemNotify(int argc, char *argv[])
 			}
 			WriteChatf("[/itemnotify] Invalid item slot '%s'",szArg1);
             RETURN(0);
-        } else if (Slot && !pSlot) {
+        } else if (Slot > 0 && Slot < 0x800 && !pSlot) {
             pSlot = pInvMgr->SlotArray[Slot];
         }
     }

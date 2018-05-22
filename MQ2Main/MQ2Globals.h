@@ -941,7 +941,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCTrackingWnd;
 	EQLIB_VAR DWORD pinstCInspectWnd;
 	EQLIB_VAR DWORD pinstCSocialEditWnd;
+	#ifndef TEST
 	EQLIB_VAR DWORD pinstCFeedbackWnd;
+	#endif
 	EQLIB_VAR DWORD pinstCBugReportWnd;
 	EQLIB_VAR DWORD pinstCVideoModesWnd;
 	EQLIB_VAR DWORD pinstCTextEntryWnd;

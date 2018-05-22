@@ -736,9 +736,11 @@ EQLIB_API PCONTENTS	  FindItemBySlot(short InvSlot, short BagSlot = -1, ItemCont
 EQLIB_API PCONTENTS	  FindItemByName(PCHAR pName, BOOL bExact = false);
 EQLIB_API PCONTENTS	  FindItemByID(int ItemID);
 EQLIB_API DWORD	      FindItemCountByName(PCHAR pName, BOOL bExact = false);
+EQLIB_API DWORD	      FindItemCountByID(int ItemID);
 EQLIB_API PCONTENTS   FindBankItemByName(char *pName, BOOL bExact);
 EQLIB_API PCONTENTS   FindBankItemByID(int ItemID);
 EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
+EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
 EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
 EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
 EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, PCONTENTS pItem);

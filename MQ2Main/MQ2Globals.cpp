@@ -215,7 +215,9 @@ namespace MQ2Globals
 		ppSelectorWnd = (CSelectorWnd**)pinstCSelectorWnd;
 		ppTrackingWnd = (CTrackingWnd**)pinstCTrackingWnd;
 		ppInspectWnd = (CInspectWnd**)pinstCInspectWnd;
+		#ifndef TEST
 		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
+		#endif
 		ppBugReportWnd = (CBugReportWnd**)pinstCBugReportWnd;
 		ppVideoModesWnd = (CVideoModesWnd**)pinstCVideoModesWnd;
 		ppCompassWnd = (CCompassWnd**)pinstCCompassWnd;
@@ -1490,7 +1492,6 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCTrackingWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCInspectWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCSocialEditWnd);
-	INITIALIZE_EQGAME_OFFSET(pinstCFeedbackWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBugReportWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCVideoModesWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTextEntryWnd);
@@ -1502,6 +1503,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCPetitionQWnd);
 #ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(pinstCSoulmarkWnd);
+#endif
+#ifndef TEST
+	INITIALIZE_EQGAME_OFFSET(pinstCFeedbackWnd);
 #endif
 	INITIALIZE_EQGAME_OFFSET(pinstCStoryWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCJournalTextWnd);
