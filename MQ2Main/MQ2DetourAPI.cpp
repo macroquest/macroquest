@@ -629,7 +629,7 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 			OurDetours *detour = ourdetours;
 			while (detour)
 			{
-				if (detour->Name[0]!='\0' && !_stricmp(detour->Name, "Login__Pulse_x")) {
+				if (detour->Name[0]!='\0' && !_stricmp(detour->Name, "LoginController__GiveTime")) {
 					//its not a valid detour to check at this point
 					detour = detour->pNext;
 					continue;
@@ -1296,7 +1296,10 @@ int LoadFrontEnd_Detour()
 	DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
 
 	int ret = LoadFrontEnd_Trampoline();
-	PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
+	if (ret) {//means it was loaded properly
+		InitializeLoginPulse();
+		PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
+	}
 	return ret;
 }
 #endif

@@ -682,13 +682,14 @@ VOID ShutdownMQ2Spawns()
 
     ProcessPending=false;
     EnterCriticalSection(&csPendingGrounds);
-    DeleteCriticalSection(&csPendingGrounds);
     while(pPendingGrounds)
     {
         PMQGROUNDPENDING pNext=pPendingGrounds->pNext;
         delete pPendingGrounds;
         pPendingGrounds=pNext;
     }
+	LeaveCriticalSection(&csPendingGrounds);
+    DeleteCriticalSection(&csPendingGrounds);
     ZeroMemory(EQP_DistArray,sizeof(EQP_DistArray));
     gSpawnCount=0;
     RemoveMQ2Benchmark(bmUpdateSpawnSort);
@@ -697,60 +698,64 @@ VOID ShutdownMQ2Spawns()
 
 VOID ProcessPendingGroundItems()
 {
-    if (ProcessPending && pPendingGrounds)
-    {
-        EnterCriticalSection(&csPendingGrounds);
-        while(pPendingGrounds)
-        {
-            PMQGROUNDPENDING pNext=pPendingGrounds->pNext;
-			PluginsAddGroundItem(pPendingGrounds->pGroundItem);
-			delete pPendingGrounds;
-            pPendingGrounds=pNext;
-        }
-        LeaveCriticalSection(&csPendingGrounds);
-    }
+	if (gGameState == GAMESTATE_INGAME) {//no point in checking this unless in game
+		if (ProcessPending && pPendingGrounds)
+		{
+			EnterCriticalSection(&csPendingGrounds);
+			while (pPendingGrounds)
+			{
+				PMQGROUNDPENDING pNext = pPendingGrounds->pNext;
+				PluginsAddGroundItem(pPendingGrounds->pGroundItem);
+				delete pPendingGrounds;
+				pPendingGrounds = pNext;
+			}
+			LeaveCriticalSection(&csPendingGrounds);
+		}
+	}
 }
 
 VOID UpdateMQ2SpawnSort()
 {
-    EnterMQ2Benchmark(bmUpdateSpawnSort);
-    ZeroMemory(EQP_DistArray,sizeof(EQP_DistArray));
-    gSpawnCount=0;
-    PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
-    while(pSpawn)
-    {
-        EQP_DistArray[gSpawnCount].VarPtr.Ptr=pSpawn;
-        EQP_DistArray[gSpawnCount].Value.Float=GetDistance(pSpawn->X,pSpawn->Y);
-        gSpawnCount++;
-        pSpawn=pSpawn->pNext;
-    }
-	std::sort(EQP_DistArray, EQP_DistArray + gSpawnCount, MQRankFloatCompare);
-    ExitMQ2Benchmark(bmUpdateSpawnSort);
-    static unsigned long nCaptions=100;
-    static unsigned long LastTarget=0;
-    ++nCaptions;
-    if (LastTarget)
-    {
-        if (PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByID(LastTarget))
-        {
-            if (pSpawn!=(PSPAWNINFO)pTarget)
-            {
-                SetNameSpriteState(pSpawn,false);
-            }
-        }
-        LastTarget=0;
-    }
-    if (gGameState==GAMESTATE_INGAME && nCaptions>7)
-    {
-        nCaptions=0;
-        Benchmark(bmUpdateSpawnCaptions,UpdateSpawnCaptions());
-    }
-    if (pTarget)
-    {
-        LastTarget=((PSPAWNINFO)pTarget)->SpawnID;
-        ((EQPlayerHook*)pTarget)->SetNameSpriteTint_Trampoline();
-        SetNameSpriteState((PSPAWNINFO)pTarget,true);
-    }
+	if (gGameState == GAMESTATE_INGAME) {//no point in doing any of this stuff unless we are in game
+		EnterMQ2Benchmark(bmUpdateSpawnSort);
+		ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
+		gSpawnCount = 0;
+		PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
+		while (pSpawn)
+		{
+			EQP_DistArray[gSpawnCount].VarPtr.Ptr = pSpawn;
+			EQP_DistArray[gSpawnCount].Value.Float = GetDistance(pSpawn->X, pSpawn->Y);
+			gSpawnCount++;
+			pSpawn = pSpawn->pNext;
+		}
+		std::sort(EQP_DistArray, EQP_DistArray + gSpawnCount, MQRankFloatCompare);
+		ExitMQ2Benchmark(bmUpdateSpawnSort);
+		static unsigned long nCaptions = 100;
+		static unsigned long LastTarget = 0;
+		++nCaptions;
+		if (LastTarget)
+		{
+			if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(LastTarget))
+			{
+				if (pSpawn != (PSPAWNINFO)pTarget)
+				{
+					SetNameSpriteState(pSpawn, false);
+				}
+			}
+			LastTarget = 0;
+		}
+		if (nCaptions > 7)
+		{
+			nCaptions = 0;
+			Benchmark(bmUpdateSpawnCaptions, UpdateSpawnCaptions());
+		}
+		if (pTarget)
+		{
+			LastTarget = ((PSPAWNINFO)pTarget)->SpawnID;
+			((EQPlayerHook*)pTarget)->SetNameSpriteTint_Trampoline();
+			SetNameSpriteState((PSPAWNINFO)pTarget, true);
+		}
+	}
 }
 #endif
 

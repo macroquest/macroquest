@@ -559,6 +559,7 @@ struct cTargetBuff
     int count;
     CHAR casterName[64];
 };
+void RemoveLoginPulse();
 DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID));
 class CEverQuestHook {
 public:
@@ -576,6 +577,9 @@ public:
 		//DebugSpew("SetGameState_Detour(%d)",GameState);
 		SetGameState_Trampoline(GameState);
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
+		if (GameState == GAMESTATE_LOGGINGIN) {
+			RemoveLoginPulse();
+		}
 	}
 	VOID CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
 	VOID CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
@@ -615,8 +619,45 @@ public:
 		}
 		gTargetbuffs = TRUE;
 	}
+	//This is called continually during the login mainloop so we can use it as our pulse when the MAIN gameloop pulse is not active but login is. -eqmule
+	//that will allow plugins to work and execute commands all the way back pre login and server select etc.
+	void LoginController__GiveTime_Tramp();
+	void LoginController__GiveTime_Detour()
+	{
+		CAutoLock Lock(&gPulseCS);
+		PulsePlugins();
+		LoginController__GiveTime_Tramp();
+	}
 };
-
+void RemoveLoginPulse()
+{
+	if (LoginController__GiveTime) {
+		if (!IsBadReadPtr((PVOID)LoginController__GiveTime, 4)) {
+			RemoveDetour(LoginController__GiveTime);
+			LoginController__GiveTime = 0;
+		}
+		else {
+			DeleteDetour(LoginController__GiveTime);
+			LoginController__GiveTime = 0;
+		}
+	}
+}
+void InitializeLoginPulse()
+{
+	if (*(DWORD*)__heqmain && !LoginController__GiveTime) {
+		if (!(LoginController__GiveTime = FindPattern(*(DWORD*)__heqmain, 0x200000, lpPattern, lpMask)))
+		{
+			MessageBox(NULL, "MQ2 needs an update.", "Couldn't find LoginController__GiveTime", MB_SYSTEMMODAL | MB_OK);
+			return;
+		}
+		if (LoginController__GiveTime) {
+			if (*(BYTE*)LoginController__GiveTime != 0xe9) {
+				EzDetourwName(LoginController__GiveTime, &CEverQuestHook::LoginController__GiveTime_Detour, &CEverQuestHook::LoginController__GiveTime_Tramp, "LoginController__GiveTime");
+			}
+		}
+	}
+}
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::LoginController__GiveTime_Tramp());
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
@@ -631,14 +672,17 @@ void InitializeMQ2Pulse()
 	EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
 	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
 	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline,"CTargetWnd__RefreshTargetBuffs");
+	InitializeLoginPulse();
 }
 void ShutdownMQ2Pulse()
 {
 	EnterCriticalSection(&gPulseCS);
+	RemoveLoginPulse();
 	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);
+
 	LeaveCriticalSection(&gPulseCS);
 	DeleteCriticalSection(&gPulseCS);
 }

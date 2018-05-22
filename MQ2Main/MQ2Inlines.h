@@ -914,3 +914,31 @@ static inline char* GetSpellString(int ID, int SpellIndex)
 #endif
 	return NULL;
 }
+//inlines by ieatacid for pattern finding
+static inline bool DataCompare(const unsigned char *pData, const unsigned char *bMask, const char *szMask)
+{
+    for(;*szMask;++szMask,++pData,++bMask)
+        if(*szMask=='x' && *pData!=*bMask )
+            return false;
+    return (*szMask) == 0;
+}
+
+static inline unsigned long FindPattern(unsigned long dwAddress,unsigned long dwLen,const unsigned char *bPattern,const char *szMask)
+{
+    for(unsigned long i=0; i < dwLen; i++)
+        if(DataCompare( (unsigned char *)( dwAddress+i ),bPattern,szMask) )
+            return (unsigned long)(dwAddress+i);
+   
+    return 0;
+}
+
+static inline unsigned long GetDWordAt(unsigned long address, unsigned long numBytes)
+{
+    if(address)
+    {
+        address += numBytes;
+        if(*(unsigned long*)address)
+            return *(unsigned long*)address;
+    }
+    return 0;
+}

@@ -315,19 +315,24 @@ char lvmMask[] = "x????x????xxxxx";
 PBYTE xwmPattern = (PBYTE)"\x8B\x15\x00\x00\x00\x00\x89\x82\x00\x00\x00\x00\xA1\x00\x00\x00\x00\xC6\x80\x00\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x89\x1D\x00\x00\x00\x00\x8B\x11\x8B\x42\x00\xFF\xD0\x85\xC0\x74\x00";
 char xwmMask[] = "xx????xx????x????xx?????xx????xx????xxxx?xxxxx?";
 #else
-PBYTE xwmPattern = (PBYTE)"\xA1\xBC\x00\x00\x00\x00\x88\x18";
-char xwmMask[] = "xx????xx";
+//Apr 10 2018 Test
+//A1 ? ? ? ? 89 88 ? ? ? ?
+PBYTE xwmPattern = (PBYTE)"\xA1\x00\x00\x00\x00\x89\x88\x00\x00\x00\x00";
+char xwmMask[] = "x????xx????";
 #endif
 // A1 ? ? ? ? 80 B8 ? ? ? ? ? 0F 84 ? ? ? ? 8D 88 ? ? ? ? 8B 01 3B C3 74 ? 89 45 ? 33 DB 8B 45 ? F0 FF ? 0F 94 C3 89 5D ?
 //eqmain.dll
 //Feb 16 2018 Test
 //8B 35 ? ? ? ? 8a 86
+ 
 #ifdef EMU
 PBYTE swmPattern = (PBYTE)"\xA1\x00\x00\x00\x00\x80\xB8\x00\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\x8D\x88\x00\x00\x00\x00\x8B\x01\x3B\xC3\x74\x00\x89\x45\x00\x33\xDB\x8B\x45\x00\xF0\xFF\x00\x0F\x94\xC3\x89\x5D\x00";
 char swmMask[] = "x????xx?????xx????xx????xxxxx?xx?xxxx?xxxxxxxx?";
 #else
-PBYTE swmPattern = (PBYTE)"\x8B\x35\x00\x00\x00\x00\x8a\x86";
-char swmMask[] = "xx????xx";
+//Apr 10 2018 Test
+//8B 35 ? ? ? ? C6 45 FC 08
+PBYTE swmPattern = (PBYTE)"\x8B\x35\x00\x00\x00\x00\xC6\x45\xFC\x08";
+char swmMask[] = "xx????xxxx";
 #endif
 // 8B 54 24 ? 56 8B 74 24 ? 8B C1 85 D2 75 ? 85 F6 75 ? 33 C0 5E C2 ? ?
 //eqmain.dll func start
@@ -363,17 +368,7 @@ char lcMask[] = "x????xx?xx?x?xxxxxx?????x????";
 PBYTE lcPattern = (PBYTE)"\x89\x0D\x00\x00\x00\x00\x8B\x46\x2C";
 char lcMask[] = "xx????xxx";
 #endif
-//Login__Pulse_x
-// 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
-//Feb 16 2018 Test
-//IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
-#ifdef EMU
-PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\xFD\xFF\xFF\x8B\xCE\x5E\xE9\x00\x00\xFF\xFF\xC7\x01";
-char lpMask[] = "xxxx?xxxxxxx??xxxx";
-#else
-PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
-char lpMask[] = "xxxx????xx";
-#endif
+
 
 #ifndef EMU
 #define SPLASH "dbgsplash"
@@ -770,7 +765,6 @@ void Cmd_Relog(PSPAWNINFO pChar, PCHAR szLine)
 		bInjectorUpdate = true;
     }
 }
-DWORD Login__Pulse_x = 0;
 bool bGotOffsets = false;
 bool GetAllOffsets(DWORD dweqmain)
 {
@@ -903,37 +897,13 @@ void LoginPulse()
 			HandleWindows();
 	}
 }
-class Login
-{
-public:
-	int Pulse_Tramp();
-	int Pulse_Detour()
-	{
-		LoginPulse();
-		return Pulse_Tramp();
-	}
-};
-void RemoveLoginPulse();
-
-DETOUR_TRAMPOLINE_EMPTY(int Login::Pulse_Tramp());
 void AddOurPulse()
 {
-	if (GetModuleHandle("eqmain.dll")) {
+	if (*(DWORD*)__heqmain) {
 		bEnd = false;
-		if (dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll")) {
-			if (Login__Pulse_x)
-				RemoveLoginPulse();
-			if (!(Login__Pulse_x = _FindPattern(dwEQMainBase, 0x200000, lpPattern, lpMask)))
-			{
-				MessageBox(NULL, "MQ2AutoLogin needs an update.", "Couldn't find Login__Pulse_x", MB_SYSTEMMODAL | MB_OK);
-				return;
-			}
-			if (Login__Pulse_x) {// = (DWORD)dwEQMainBase + 0x11030;
+		if (dwEQMainBase = *(DWORD*)__heqmain) {
+			if (LoginController__GiveTime) {
 				bGotOffsets = false;
-				if (*(BYTE*)Login__Pulse_x != 0xe9) {
-					bLoginCheckDone = false;
-					EzDetourwName(Login__Pulse_x, &Login::Pulse_Detour, &Login::Pulse_Tramp,"Login__Pulse_x");
-				}
 			}
 		}
 		if (!bInGame && !bSwitchServer && !dwTime)
@@ -1140,27 +1110,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	}
 }
 
-void RemoveLoginPulse()
-{
-	if (Login__Pulse_x) {
-		if (!IsBadReadPtr((PVOID)Login__Pulse_x, 4)) {
-			RemoveDetour(Login__Pulse_x);
-			Login__Pulse_x = 0;
-		}
-		else {
-			DeleteDetour(Login__Pulse_x);
-			Login__Pulse_x = 0;
-		}
-	}
-	if (dwEQMainBase)
-		dwEQMainBase = 0;
-	bGotOffsets = false;
-    bEnd = false;
-}
+
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
-	RemoveLoginPulse();
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
@@ -1173,7 +1126,13 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
         RemoveDetour( wpps );
 	LoginReset();
 }
-
+void RemovePulse()
+{
+	if(dwEQMainBase)
+		dwEQMainBase = 0;
+	if(bGotOffsets)
+		bGotOffsets = false;
+}
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
     bEndAfterCharSelect = GetPrivateProfileInt( "Settings", "EndAfterCharSelect", 0, INIFileName ) == 1;
@@ -1184,18 +1143,17 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
         {
 			//well well well... what do u know... it's loaded...
 			//ok fine that means we wont get any frontload notification, so lets fake it
-			if(!Login__Pulse_x)
+			if(!LoginController__GiveTime)
 				AddOurPulse();
 		}
-	}
-	if (GameState == GAMESTATE_POSTFRONTLOAD) 
+	} else if (GameState == GAMESTATE_POSTFRONTLOAD) 
     {
 		//we know eqmain.dll is loaded now...
-		if(!Login__Pulse_x)
+		if(!LoginController__GiveTime)
 			AddOurPulse();
 	} else if(GameState == GAMESTATE_CHARSELECT) 
     {
-		RemoveLoginPulse();
+		RemovePulse();
 		if (dwServerID) {
 			dwServerID = 0;
 			if (!bSwitchChar) {
@@ -1206,7 +1164,6 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
     }
     else if(GameState == GAMESTATE_INGAME)
     {
-		RemoveLoginPulse();
         bInGame = true;
     }
 }
@@ -1244,8 +1201,7 @@ PLUGIN_API VOID OnPulse(VOID)
 	if (GetGameState() == GAMESTATE_INGAME) {
 		if (retrylogincounter)
 			retrylogincounter = 0;
-	}
-	if (GetGameState() == GAMESTATE_CHARSELECT) {
+	} else if (GetGameState() == GAMESTATE_CHARSELECT) {
 		//fix for the stuck at char select "Loading Characters" bug.
 		BugTimer++;
 		if (BugTimer > 100 && retrylogincounter==0) {
@@ -1339,6 +1295,10 @@ PLUGIN_API VOID OnPulse(VOID)
             bLogin = false;
             WriteChatf( "\ayAutologin now ended... press HOME to Re-Enable.", szNewChar );
         }
+	}
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT) {
+		dwEQMainBase = *(DWORD*)__heqmain;
+		LoginPulse();
 	}
 }
 

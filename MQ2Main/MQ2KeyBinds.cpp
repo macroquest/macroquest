@@ -366,9 +366,15 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         // list eq binds
         WriteChatColor("EQ Binds");
         WriteChatColor("--------------");
+		//ok first of all, the 0x11111111 constant for ac1 is not even used anymore they stopped using those ones years ago
+		//its just left in there, legacy code, I suppose it would cause more problems removing it, than leaving it, and if a eq dev sees this, please
+		//just leave that stuff alone because i dont want to have to worry about where it went or if its active again. -eqmule
+		//second, even though its not active, now that eqgame uses aslr, we have to take that into account and actually add load address to the constant, thus the line below:
+
+		//anyway... from now on we will just use the size of the image... not reliable to have it hardcoded
         for (i = 0 ; i < nEQMappableCommands ; i++)
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > g_eqgameimagesize)
                 continue;
             sprintf_s(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal, sizeof(szNormal)),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt, sizeof(szAlt)));
             WriteChatColor(szArg1);            
@@ -406,11 +412,10 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
                 }
             }
         }
-
         // eq binds
         for (i = 0; i < nEQMappableCommands; i++) 
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > g_eqgameimagesize)
                 continue;
             if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
             {
@@ -484,7 +489,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         WriteChatColor("--------------");
         for (i = 0 ; i < nEQMappableCommands ; i++)
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > g_eqgameimagesize)
                 continue;
 			WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax", szEQMappableCommands[i], DescribeKeyCombo(pKeypressHandler->NormalKey[i], szNormal, sizeof(szNormal)), DescribeKeyCombo(pKeypressHandler->AltKey[i], szAlt, sizeof(szAlt)));
         }
@@ -520,11 +525,10 @@ int CMD_MQ2Bind(int argc, char *argv[])
                 }
             }
         }
-
         // eq binds
         for (i = 0; i < nEQMappableCommands; i++) 
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > g_eqgameimagesize)
                 continue;
             if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
             {
@@ -604,7 +608,7 @@ BOOL DumpBinds(PCHAR Filename)
     unsigned long N;
     for ( N = 0 ; N < nEQMappableCommands ; N++)
     {
-        if((DWORD)szEQMappableCommands[N] == 0 || (DWORD)szEQMappableCommands[N] > (DWORD)__AC1_Data)
+        if((DWORD)szEQMappableCommands[N] == 0 || (DWORD)szEQMappableCommands[N] > g_eqgameimagesize)
             continue;
         fprintf(file,"/bind %s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer, sizeof(szBuffer)));
         fprintf(file,"/bind ~%s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->AltKey[N],szBuffer, sizeof(szBuffer)));
@@ -620,5 +624,3 @@ BOOL DumpBinds(PCHAR Filename)
     fclose(file);
     return true;
 }
-
-

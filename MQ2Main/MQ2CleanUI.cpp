@@ -84,23 +84,25 @@ void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,PVOID c,unsigned i
 
 void DrawHUD()
 {
-    if (gbAlwaysDrawMQHUD || (gGameState==GAMESTATE_INGAME && gbHUDUnderUI && gbShowNetStatus))
-    {
-        if (DrawHUDParams[0] && gGameState==GAMESTATE_INGAME && gbShowNetStatus)
-        {
-            DrawHUD_Trampoline((unsigned short)DrawHUDParams[0],(unsigned short)DrawHUDParams[1],(PVOID)DrawHUDParams[2],DrawHUDParams[3]);
-            DrawHUDParams[0]=0;
-        }
-        Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
-        if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
-        {
-            if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_DrawIndicator"))
-                pEQPlayNicePulse();
-        }
+	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT) {//no point in drawing hud anywhere else
+		if (gbAlwaysDrawMQHUD || (gGameState == GAMESTATE_INGAME && gbHUDUnderUI && gbShowNetStatus))
+		{
+			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
+			{
+				DrawHUD_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (PVOID)DrawHUDParams[2], DrawHUDParams[3]);
+				DrawHUDParams[0] = 0;
+			}
+			Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
+			if (HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll"))
+			{
+				if (fMQPulse pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_DrawIndicator"))
+					pEQPlayNicePulse();
+			}
 
-    }
-    else
-        DrawHUDParams[0]=0;
+		}
+		else
+			DrawHUDParams[0] = 0;
+	}
 }
 
 VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb, DWORD Font)

@@ -102,7 +102,9 @@ namespace MQ2Globals
 
 		pGuildList = (PGUILDS)__Guilds;
 		pSocialList = (PEQSOCIAL)__Socials;
+		#ifdef EMU
 		pgHotkeyPage = (PBYTE)__HotkeyPage;
+		#endif
 		pgCurrentSocial = (PINT)__CurrentSocial;
 
 		NewUIINI = (fEQNewUIINI)__NewUIINI;
@@ -155,6 +157,7 @@ namespace MQ2Globals
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
+		ppFindLocationWnd = (CFindLocationWnd**)pinstCFindLocationWnd;
 		#ifndef EMU
 		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
 		#endif
@@ -263,7 +266,7 @@ namespace MQ2Globals
 		
 		return true;
 	}
-
+	DWORD LoginController__GiveTime = 0;
 	struct _actordefentry ActorDefList[] = {
 #include "actordef.h"
 		0, 0, "NULL"
@@ -1071,6 +1074,7 @@ namespace MQ2Globals
 	#ifndef EMU
 	PAUTOSKILL gpAutoSkill = 0;
 	#endif
+	size_t g_eqgameimagesize = 0;
 	PBYTE gpShiftKeyDown = 0; // addr+1=ctrl, addr+2=alt
 	DWORD *gpMouseEventTime = 0;
 	DWORD *gpbCommandEvent = 0;
@@ -1176,6 +1180,7 @@ namespace MQ2Globals
 	CChatManager **ppChatManager = 0;
 	CFacePick **ppFacePick = 0;
 	CFindItemWnd **ppFindItemWnd = 0;
+	CFindLocationWnd **ppFindLocationWnd = 0;
 	CInvSlotMgr **ppInvSlotMgr = 0;
 	CNoteWnd **ppNoteWnd = 0;
 	CTipWnd **ppTipWndOFDAY = 0;
@@ -1324,8 +1329,11 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__GroupAggro);
 	INITIALIZE_EQGAME_OFFSET(__Guilds);
 	INITIALIZE_EQGAME_OFFSET(__gWorld);
+	#ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(__HotkeyPage);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(__HWnd);
+	INITIALIZE_EQGAME_OFFSET(__heqmain);
 	INITIALIZE_EQGAME_OFFSET(__InChatMode);
 	INITIALIZE_EQGAME_OFFSET(__Inviter);
 	INITIALIZE_EQGAME_OFFSET(__LastTell);

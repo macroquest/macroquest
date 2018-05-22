@@ -4119,7 +4119,7 @@ int FindMappableCommand(const char *name)
 {
 	for (unsigned long i = 0; i < nEQMappableCommands; i++)
 	{
-		if ((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] >(DWORD)__AC1_Data)
+		if ((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > g_eqgameimagesize)
 			continue;
 		if (!_stricmp(name, szEQMappableCommands[i]))
 			return i;

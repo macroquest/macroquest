@@ -547,6 +547,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR CFacePick **ppFacePick;
 	EQLIB_VAR CFindItemWnd **ppFindItemWnd;
+	EQLIB_VAR CFindLocationWnd **ppFindLocationWnd;
 	EQLIB_VAR CInvSlotMgr **ppInvSlotMgr;
 	//EQLIB_VAR CPopupWndManager **ppPopupWndManager;
 	EQLIB_VAR CNoteWnd **ppNoteWnd;
@@ -611,7 +612,6 @@ namespace MQ2Globals
 	EQLIB_VAR CPlayerNotesWnd **ppPlayerNotesWnd;
 	EQLIB_VAR CGemsGameWnd **ppGemsGameWnd;
 	EQLIB_VAR CStoryWnd **ppStoryWnd;
-	//EQLIB_VAR CFindLocationWnd **ppFindLocationWnd;
 	//EQLIB_VAR CAdventureRequestWnd **ppAdventureRequestWnd;
 	//EQLIB_VAR CAdventureMerchantWnd **ppAdventureMerchantWnd;
 	//EQLIB_VAR CAdventureStatsWnd **ppAdventureStatsWnd;
@@ -653,6 +653,7 @@ namespace MQ2Globals
 #define pEQSuiteTextureLoader (ppEQSuiteTextureLoader)
 #define pFacePick (*ppFacePick)
 #define pFindItemWnd (*ppFindItemWnd)
+#define pFindLocationWnd (*ppFindLocationWnd)
 #define pInvSlotMgr (*ppInvSlotMgr)
 #define pPopupWndManager (*ppPopupWndManager)
 #define pNoteWnd (*ppNoteWnd)
@@ -716,7 +717,6 @@ namespace MQ2Globals
 #define pPlayerNotesWnd (*ppPlayerNotesWnd)
 #define pGemsGameWnd (*ppGemsGameWnd)
 #define pStoryWnd (*ppStoryWnd)
-#define pFindLocationWnd (*ppFindLocationWnd)
 #define pAdventureRequestWnd (*ppAdventureRequestWnd)
 #define pAdventureMerchantWnd (*ppAdventureMerchantWnd)
 #define pAdventureStatsWnd (*ppAdventureStatsWnd)
@@ -788,6 +788,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __gWorld;
 	EQLIB_VAR DWORD __HotkeyPage;
 	EQLIB_VAR DWORD __HWnd;
+	EQLIB_VAR DWORD __heqmain;
+	EQLIB_VAR DWORD LoginController__GiveTime;
 	EQLIB_VAR DWORD __InChatMode;
 	EQLIB_VAR DWORD __Inviter;
 	EQLIB_VAR DWORD __LastTell;
@@ -1539,7 +1541,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
 	EQLIB_VAR BOOL gbTimeStampChat;
-
+	EQLIB_VAR size_t g_eqgameimagesize;
+	
 	EQLIB_VAR BOOL gUseTradeOnTarget;
 	EQLIB_VAR BOOL gbBeepOnTells;
 	EQLIB_VAR BOOL gbFlashOnTells;
@@ -1605,6 +1608,5 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
-	
 }
 using namespace MQ2Globals;

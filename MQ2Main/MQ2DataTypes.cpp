@@ -490,7 +490,7 @@ bool MQ2StringType::GETMEMBER()
 				return true;
 			}
 			pStr += nStart;
-			int StrLen = (int)strlen(pStr);
+			DWORD StrLen = (DWORD)strlen(pStr);
 			if (Len>StrLen)
 				Len = StrLen;
 			memmove(DataTypeTemp, pStr, Len);
@@ -2581,6 +2581,7 @@ bool MQ2CharacterType::GETMEMBER()
 				if (pChar2->Buff[nBuff].SpellID <= 0)
 					return false;
 				Dest.Ptr = &pChar2->Buff[nBuff];
+				Dest.HighPart = nBuff;
 				Dest.Type = pBuffType;
 				return true;
 			}
@@ -2593,6 +2594,7 @@ bool MQ2CharacterType::GETMEMBER()
 						if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
+							Dest.HighPart = nBuff;
 							Dest.Type = pBuffType;
 							return true;
 						}
@@ -2616,6 +2618,7 @@ bool MQ2CharacterType::GETMEMBER()
 					return false;
 
 				Dest.Ptr = &pChar2->ShortBuff[nBuff];
+				Dest.HighPart = nBuff;
 				Dest.Type = pBuffType;
 				return true;
 			}
@@ -2628,6 +2631,7 @@ bool MQ2CharacterType::GETMEMBER()
 						if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
 						{
 							Dest.Ptr = &pChar2->ShortBuff[nBuff];
+							Dest.HighPart = nBuff;
 							Dest.Type = pBuffType;
 							return true;
 						}
@@ -5708,7 +5712,7 @@ bool MQ2SpellType::GETMEMBER()
 				EQ_Affect eff;
 				eff.ID = thespell->ID;
 				eff.Type = thespell->SpellType;
-				eff.Activatable = thespell->Activated;
+				eff.Activatable = 0;// thespell->Activated;
 				//eff.BaseDmgMod = thespell->BaseEffectsFocusCap;
 				eff.CasterID = pMe->pSpawn->SpawnID;
 				eff.CasterLevel = pMe->MainLevel;
@@ -5787,7 +5791,7 @@ bool MQ2SpellType::GETMEMBER()
 								pAffects[j].Type = 1;
 							}
 							pAffects[j].ID = pBuff->ID;
-							pAffects[j].Activatable = pBuff->Activated;
+							pAffects[j].Activatable = 0;// pBuff->Activated;
 							pAffects[j].CasterID = pMe->pSpawn->SpawnID;
 							pAffects[j].CasterLevel = pMe->MainLevel;
 							pAffects[j].BaseDmgMod = 1.0;

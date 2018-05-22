@@ -21,6 +21,8 @@ GNU General Public License for more details.
 #define DEBUG_TRY
 
 #include "MQ2Main.h"
+#include <Psapi.h>
+#pragma comment( lib, "Psapi.lib" )
 #ifdef ISXEQ
 CRITICAL_SECTION gPluginCS = { 0 };
 #endif
@@ -336,6 +338,10 @@ bool __cdecl MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t buffl
 bool __cdecl MQ2Initialize()
 {
 #endif
+	MODULEINFO modinfo = {0};
+	HMODULE heagamemod = GetModuleHandle(NULL);
+	GetModuleInformation(GetCurrentProcess(), heagamemod, &modinfo, sizeof(MODULEINFO));
+	g_eqgameimagesize = (DWORD)heagamemod + modinfo.SizeOfImage;
 	if (HMODULE hmLavish=GetModuleHandle("Lavish.dll")) {
 		//I dont know why but if we dont sleep here for a while
 		//we will crash but only if I have a detour on wwsCrashReportCheckForUploader
@@ -375,11 +381,10 @@ bool __cdecl MQ2Initialize()
     for (i = 0 ; gDiKeyID[i].Id ; i++) {
         gDiKeyName[gDiKeyID[i].Id]=gDiKeyID[i].szName;
     }
-
     ZeroMemory(szEQMappableCommands,sizeof(szEQMappableCommands));
     for (i = 0 ; i < nEQMappableCommands; i++)
     {
-        if((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > (DWORD)__AC1_Data) {
+        if((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > g_eqgameimagesize) {
 			//Sleep(0);//for debugging
             continue;
 		}
@@ -394,28 +399,28 @@ bool __cdecl MQ2Initialize()
 	// but at least they are at the end again and nEQMappableCommands was 0x201 today,
 	//but yeah I see no use for them... - eqmule
 	// last update Mar 10 2015 nEQMappableCommands was 0x207
-	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x1f4";//"Magic"
-    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x1f5";//"Fire"
-    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x1f6";//"Cold"
-    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x1f7";//"Disease"
+	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x207";//"Magic"
+    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x208";//"Fire"
+    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x209";//"Cold"
+    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x20a";//"Disease"
     szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SEMICOLON";//"Poison"
     szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SLASH";//"Physical"
     szEQMappableCommands[nEQMappableCommands - 16]="INSTANT_CAMP";//"Corruption" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x1fb";//"Unknown"
-    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x1fc";//"Avatar"
-    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x1fd";//"RemoveButton"
+    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x20e";//"Unknown"
+    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x20f";//"Avatar"
+    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x210";//"RemoveButton"
     szEQMappableCommands[nEQMappableCommands - 12]="CHAT_EMPTY";//"ClearAll"
     szEQMappableCommands[nEQMappableCommands - 11]="TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x200";//"NoPlayersLeft"
-    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x201";//"CreatedSharedTask"
+    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x213";//"NoPlayersLeft"
+    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x214";//"CreatedSharedTask"
     szEQMappableCommands[nEQMappableCommands -  8]="CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x203";//Expired
-    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x204";//Script
-    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x205";//LeaderRemoved
-    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x206";
-    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x207";
-    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x208";
-    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x209";
+    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x216";//Expired
+    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x217";//Script
+    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x218";//LeaderRemoved
+    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x219";
+    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x21a";
+    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x21b";
+    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x21c";
 
     for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
     for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}
@@ -869,4 +874,3 @@ FUNCTION_AT_ADDRESS(class IconCache *__cdecl GetAnimationCache(int index), __Get
 #ifdef __SaveColors_x
 FUNCTION_AT_ADDRESS(void SaveColors(int,int,int,int),__SaveColors);
 #endif
-
