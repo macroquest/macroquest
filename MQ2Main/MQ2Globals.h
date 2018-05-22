@@ -290,6 +290,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD *gpbCommandEvent;
 #define gbCommandEvent (*gpbCommandEvent)
 
+  EQLIB_VAR CResolutionHandler **ppCResolutionHandler;
+#define pCResolutionHandler (*ppCResolutionHandler)
 	EQLIB_VAR DWORD *g_ppDrawHandler;
 #define g_pDrawHandler (*g_ppDrawHandler)
 
@@ -858,6 +860,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstMercAltAbilities;
 	EQLIB_VAR DWORD pinstModelPlayer;
 	EQLIB_VAR DWORD pinstPCData;
+	EQLIB_VAR DWORD pinstCResolutionHandler;
 	EQLIB_VAR DWORD pinstSkillMgr;
 	EQLIB_VAR DWORD pinstSpawnManager;
 	EQLIB_VAR DWORD pinstSpellManager;
@@ -1178,6 +1181,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD LootFiltersManager__RemoveItemLootFilter;
 	EQLIB_VAR DWORD LootFiltersManager__SetItemLootFilter;
 	EQLIB_VAR DWORD COptionsWnd__FillChatFilterList;
+	EQLIB_VAR DWORD CResolutionHandler__UpdateResolution;
+	EQLIB_VAR DWORD CResolutionHandler__GetWindowedStyle;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;

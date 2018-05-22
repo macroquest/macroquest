@@ -53,6 +53,7 @@ namespace MQ2Globals
 		EQADDR_ZONETYPE = (PBYTE)__ZoneType;
 		gbUseTellWindows = *(BOOL*)__UseTellWindows;
 		gpbRangedAttackReady = (PCHAR)__RangeAttackReady;
+		ppCResolutionHandler = (CResolutionHandler**)pinstCResolutionHandler;
 		gpbShowNetStatus = (PCHAR)__NetStatusToggle;
 		g_ppDrawHandler = (DWORD*)__DrawHandler;
 		gpShowNames = (DWORD*)__ShowNames;
@@ -1067,6 +1068,7 @@ namespace MQ2Globals
 	PCHAR gpbRangedAttackReady = 0;
 	PCHAR gpbShowNetStatus = 0;
 	DWORD *g_ppDrawHandler = 0;
+	CResolutionHandler **ppCResolutionHandler = 0;
 	DWORD *gpShowNames = 0;
 	DWORD *gpPCNames = 0;
 	PBYTE pTributeActive = 0;
@@ -1382,6 +1384,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCharSpawn);
 	INITIALIZE_EQGAME_OFFSET(pinstControlledMissile);
 	INITIALIZE_EQGAME_OFFSET(pinstControlledPlayer);
+	INITIALIZE_EQGAME_OFFSET(pinstCResolutionHandler);
 	INITIALIZE_EQGAME_OFFSET(pinstCSidlManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCXWndManager);
 	INITIALIZE_EQGAME_OFFSET(instDynamicZone);
@@ -1741,7 +1744,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildIndex);
 	#endif
-	
+	INITIALIZE_EQGAME_OFFSET(CResolutionHandler__GetWindowedStyle);
+	INITIALIZE_EQGAME_OFFSET(CResolutionHandler__UpdateResolution);
 	INITIALIZE_EQGAME_OFFSET(COptionsWnd__FillChatFilterList);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetMemorizedSpell);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemGlobalIndex);

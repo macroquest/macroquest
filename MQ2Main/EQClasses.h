@@ -5138,33 +5138,77 @@ EQLIB_OBJECT unsigned int CRC32Generator::updateCRC32(unsigned int,unsigned char
 // private
 EQLIB_OBJECT static unsigned int * CRC32Generator::_crcTable;
 };
+typedef struct _ResolutionUpdateData 
+{
+	int Width;
+	int Height;
+	int BitsPerPixel;
+	int RefreshRate;
+	bool bFullscreen;
+	void Set(int width, int height, int bitsPerPixel, int refreshRate, bool bfullscreen = false)
+	{
+		Width = width;
+		Height = height;
+		BitsPerPixel = bitsPerPixel;
+		RefreshRate = refreshRate;
+		bFullscreen = bfullscreen;
+	}
+}ResolutionUpdateData,*PResolutionUpdateData;
+typedef struct _SDeviceInfo
+{
+	CHAR Name[0x80];
+}SDeviceInfo,*PSDeviceInfo;
 
-class CResolutionHandler
+class CResolutionHandlerBase
 {
 public:
-EQLIB_OBJECT static bool __cdecl CResolutionHandler::IsFullscreenAvailable(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::GetDesktopBitsPerPixel(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::GetDesktopHeight(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::GetDesktopRefreshRate(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::GetDesktopWidth(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::GetHeight(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::GetWidth(void);
-EQLIB_OBJECT static int __cdecl CResolutionHandler::Init(void);
-EQLIB_OBJECT static void __cdecl CResolutionHandler::ChangeToResolution(int,int,int,int,int);
-EQLIB_OBJECT static void __cdecl CResolutionHandler::SaveSettings(void);
-EQLIB_OBJECT static void __cdecl CResolutionHandler::Shutdown(void);
-EQLIB_OBJECT static void __cdecl CResolutionHandler::ToggleScreenMode(void);
-EQLIB_OBJECT static void __cdecl CResolutionHandler::UpdateWindowPosition(void);
-// private
-EQLIB_OBJECT static bool CResolutionHandler::ms_isFullscreen;
-EQLIB_OBJECT static int CResolutionHandler::ms_fullscreenBitsPerPixel;
-EQLIB_OBJECT static int CResolutionHandler::ms_fullscreenRefreshRate;
-EQLIB_OBJECT static int CResolutionHandler::ms_height;
-EQLIB_OBJECT static int CResolutionHandler::ms_width;
-EQLIB_OBJECT static int CResolutionHandler::ms_windowedOffsetX;
-EQLIB_OBJECT static int CResolutionHandler::ms_windowedOffsetY;
-};
+EQLIB_OBJECT static bool __cdecl CResolutionHandlerBase::IsFullscreenAvailable(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::GetDesktopBitsPerPixel(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::GetDesktopHeight(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::GetDesktopRefreshRate(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::GetDesktopWidth(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::GetHeight(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::GetWidth(void);
+EQLIB_OBJECT static int __cdecl CResolutionHandlerBase::Init(void);
+EQLIB_OBJECT static void __cdecl CResolutionHandlerBase::ChangeToResolution(int,int,int,int,int);
+EQLIB_OBJECT static void __cdecl CResolutionHandlerBase::SaveSettings(void);
+EQLIB_OBJECT static void __cdecl CResolutionHandlerBase::Shutdown(void);
+EQLIB_OBJECT static void __cdecl CResolutionHandlerBase::ToggleScreenMode(void);
+EQLIB_OBJECT static void __cdecl CResolutionHandlerBase::UpdateWindowPosition(void);
 
+
+	DWORD vfTable;
+	bool bIsFullscreen;
+	int FullscreenBitsPerPixel;
+	int FullscreenRefreshRate;
+	int FullscreenWidth;
+	int FullscreenHeight;
+	int WindowedWidth;
+	int WindowedHeight;
+    int WindowOffsetX;
+    int WindowOffsetY;
+	int RestoredWidth;
+	int RestoredHeight;
+	int RestoredOffsetX;
+	int RestoredOffsetY;
+	SDeviceInfo DeviceTable[0x10];
+	int DeviceCount;
+	long DeviceIndex;
+	bool bUseD3DTextureCompression;
+	bool bResizable;
+	bool bMaximized;
+	bool bAlwaysOnTop;
+	bool bActive;
+	UINT ActiveThreadID;
+	HWND ActiveWnd;
+	bool bChangingScreenResolutions;
+};
+class CResolutionHandler : public CResolutionHandlerBase
+{
+public:
+	EQLIB_OBJECT void UpdateResolution(ResolutionUpdateData& data);
+	EQLIB_OBJECT DWORD GetWindowedStyle() const;
+};
 class CRespawnWnd
 {
 public:

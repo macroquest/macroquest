@@ -6498,6 +6498,12 @@ FUNCTION_AT_ADDRESS(void __cdecl CResolutionHandler::ChangeToResolution(int,int,
 #ifdef CResolutionHandler__UpdateWindowPosition_x
 FUNCTION_AT_ADDRESS(void __cdecl CResolutionHandler::UpdateWindowPosition(void),CResolutionHandler__UpdateWindowPosition);
 #endif
+#ifdef CResolutionHandler__UpdateResolution_x
+FUNCTION_AT_ADDRESS(void CResolutionHandler::UpdateResolution(ResolutionUpdateData& data),CResolutionHandler__UpdateResolution);
+#endif
+#ifdef CResolutionHandler__GetWindowedStyle_x
+FUNCTION_AT_ADDRESS(DWORD CResolutionHandler::GetWindowedStyle() const,CResolutionHandler__GetWindowedStyle);
+#endif
 #ifdef CResolutionHandler__GetDesktopWidth_x
 FUNCTION_AT_ADDRESS(int __cdecl CResolutionHandler::GetDesktopWidth(void),CResolutionHandler__GetDesktopWidth);
 #endif
