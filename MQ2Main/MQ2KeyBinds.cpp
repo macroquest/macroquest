@@ -71,7 +71,7 @@ BOOL SetEQKeyBindByNumber(DWORD N, BOOL Alternate, KeyCombo &Combo)
         else
             pKeypressHandler->NormalKey[N] = Combo;
 
-        if(N < gnNormalEQMappableCommands)
+        if(N < nNormalEQMappableCommands)
             pKeypressHandler->SaveKeymapping( N, Combo, Alternate );
         return TRUE;
     }
@@ -447,6 +447,12 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("Unknown bind command name");
         return;
     }
+	else if (N>nNormalEQMappableCommands)
+	{
+		WriteChatColor("Unmappable bind command name");
+		return;
+	}
+
 
     if (SetEQKeyBindByNumber(N,AltKey,NewCombo))
     {

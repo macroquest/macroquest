@@ -1146,6 +1146,7 @@ GNU General Public License for more details.
 11509, -1, "Healsprite Familiar",
 11511, -1, "Greater Blue Essence",
 11512, 295, "Fifth Fragment",
+11513, -1, "Flayed Ogre Skin",
 11515, -1, "Airship Safety Suppression Device",
 11516, 730, "Infuser of Light",
 11517, -1, "Cache of Water",

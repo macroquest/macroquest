@@ -4,7 +4,7 @@
 // Updated Sep 09 2017 by eqmule to take undeclared macro variables into account
 
 #include "../MQ2Plugin.h"
-
+HANDLE hHudLock = 0;
 bool bEQHasFocus=true;
 HMODULE EQWhMod=0; // Module handle used to check for eqw
 typedef HWND   (__stdcall *fEQW_GetDisplayWindow)(VOID);
@@ -55,6 +55,7 @@ BOOL Stat(PCHAR Filename, struct _stat &Dest)
 
 VOID ClearElements()
 {
+	lockit lk(hHudLock,"HudLock");
     while(pHud)
     {
         PHUDELEMENT pNext=pHud->pNext;
@@ -65,6 +66,7 @@ VOID ClearElements()
 
 VOID AddElement(PCHAR IniString)
 {
+	lockit lk(hHudLock,"HudLock");
     LONG X;
     LONG Y;
     DWORD Type;
@@ -154,6 +156,7 @@ VOID AddElement(PCHAR IniString)
 VOID LoadElements()
 {
     ClearElements();
+	lockit lk(hHudLock,"HudLock");
     CHAR ElementList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING], CurrentHUD[MAX_STRING] = {0};
     CHAR ClassDesc[MAX_STRING], ZoneName[MAX_STRING] = {0};
@@ -213,6 +216,7 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 }
 VOID HandleINI()
 {
+	lockit lk(hHudLock,"HudLock");
     CHAR szBuffer[MAX_STRING] = {0};
     WritePrivateProfileString(HUDSection,"Last",HUDNames,INIFileName);
     SkipParse = GetPrivateProfileInt(HUDSection,"SkipParse",1,INIFileName);
@@ -358,6 +362,8 @@ BOOL dataHUD(PCHAR szIndex, MQ2TYPEVAR &Ret)
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
+	hHudLock = CreateMutex(NULL, FALSE, NULL);
+	
     CHAR szBuffer[MAX_STRING] = {0};
     // check for eqw running, and steal its function to check the foreground window if available
     if (EQWhMod=GetModuleHandle("eqw.dll"))
@@ -383,13 +389,19 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2HUD");
     ClearElements();
-    RemoveCommand("/loadhud");
+ 	lockit lk(hHudLock,"HudLock");
+	RemoveCommand("/loadhud");
     RemoveCommand("/unloadhud");
     RemoveCommand("/defaulthud");
     RemoveCommand("/backgroundhud");
     RemoveCommand("/classhud");
     RemoveCommand("/zonehud");
     RemoveMQ2Data("HUD");
+	if (hHudLock) {
+		ReleaseMutex(hHudLock);
+		CloseHandle(hHudLock);
+		hHudLock = 0;
+	}
 }
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
@@ -511,6 +523,9 @@ BOOL ParseMacroLine(PCHAR szOriginal, SIZE_T BufferSize,std::list<std::string>&o
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
 PLUGIN_API VOID OnDrawHUD(VOID)
 {
+	if (hHudLock == 0)
+		return;
+	lockit lk(hHudLock,"HudLock");
 	static bool bOkToCheck = true;
     static int N=0;
     CHAR szBuffer[MAX_STRING]={0};

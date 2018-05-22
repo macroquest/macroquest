@@ -215,9 +215,6 @@ namespace MQ2Globals
 		ppSelectorWnd = (CSelectorWnd**)pinstCSelectorWnd;
 		ppTrackingWnd = (CTrackingWnd**)pinstCTrackingWnd;
 		ppInspectWnd = (CInspectWnd**)pinstCInspectWnd;
-		#ifndef TEST
-		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
-		#endif
 		ppBugReportWnd = (CBugReportWnd**)pinstCBugReportWnd;
 		ppVideoModesWnd = (CVideoModesWnd**)pinstCVideoModesWnd;
 		ppCompassWnd = (CCompassWnd**)pinstCCompassWnd;
@@ -231,6 +228,7 @@ namespace MQ2Globals
 		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
 		#ifdef EMU
 		ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
+		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
 		#endif
 		ppCWebManager = (CWebManager**)pinstCWebManager;
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
@@ -474,7 +472,6 @@ namespace MQ2Globals
 	fEQCommand        cmdPickZone = NULL;
 	fEQCommand        cmdAssist = NULL;
 
-	DWORD gnNormalEQMappableCommands;
 	PCHAR szEQMappableCommands[nEQMappableCommands];
 	decltype(ItemSlotMap) ItemSlotMap;
 
@@ -1503,8 +1500,6 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCPetitionQWnd);
 #ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(pinstCSoulmarkWnd);
-#endif
-#ifndef TEST
 	INITIALIZE_EQGAME_OFFSET(pinstCFeedbackWnd);
 #endif
 	INITIALIZE_EQGAME_OFFSET(pinstCStoryWnd);
@@ -1689,6 +1684,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CDisplay__ReloadUI);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__WriteTextHD2);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__TrueDistance);
+	INITIALIZE_EQGAME_OFFSET(CDisplay__SetViewActor);
 	
 	INITIALIZE_EQGAME_OFFSET(CEditBaseWnd__SetSel);
 
@@ -2136,6 +2132,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__PlayScriptMp3);
+	INITIALIZE_EQGAME_OFFSET(EqSoundManager__SoundAssistPlay);
+	INITIALIZE_EQGAME_OFFSET(EqSoundManager__WaveInstancePlay);
 	INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
 	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindAnimation1);
@@ -2160,7 +2158,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetDefaultUIPath);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetTexture);
-	
+
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);
 #endif

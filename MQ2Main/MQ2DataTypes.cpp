@@ -2317,13 +2317,17 @@ bool MQ2BuffType::GETMEMBER()
 				for (LONG i = 0; i < slots; i++) {
 					LONG attrib = GetSpellAttrib(pSpell, i);
 					if (attrib == 55 || attrib == 78 || attrib == 161 || attrib == 162 || attrib == 450 || attrib == 451 || attrib == 452)
-						Dest.DWord += pBuff->SlotData[i];
+						for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+							if (pBuff->SlotData[j].Slot == i) {
+								Dest.DWord += pBuff->SlotData[j].Value;
+							}
+						}
 				}
 				return true;
 			}
 		}
 		return false;
-	case Counters:
+	case TotalCounters:
 		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
 		{
 			if (pSpell->SpellType == 0) {
@@ -2333,7 +2337,91 @@ bool MQ2BuffType::GETMEMBER()
 				for (LONG i = 0; i < slots; i++) {
 					LONG attrib = GetSpellAttrib(pSpell, i);
 					if (attrib == 35 || attrib == 36 || attrib == 116 || attrib == 369)
-						Dest.DWord += pBuff->SlotData[i];
+						for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+							if (pBuff->SlotData[j].Slot == i) {
+								Dest.DWord += pBuff->SlotData[j].Value;
+							}
+						}
+				}
+				return true;
+			}
+		}
+		return false;
+	case CountersDisease:
+		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
+		{
+			if (pSpell->SpellType == 0) {
+				Dest.DWord = 0;
+				Dest.Type = pIntType;
+				LONG slots = GetSpellNumEffects(pSpell);
+				for (LONG i = 0; i < slots; i++) {
+					LONG attrib = GetSpellAttrib(pSpell, i);
+					if (attrib == 35)
+						for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+							if (pBuff->SlotData[j].Slot == i) {
+								Dest.DWord += pBuff->SlotData[j].Value;
+							}
+						}
+				}
+				return true;
+			}
+		}
+		return false;
+	case CountersPoison:
+		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
+		{
+			if (pSpell->SpellType == 0) {
+				Dest.DWord = 0;
+				Dest.Type = pIntType;
+				LONG slots = GetSpellNumEffects(pSpell);
+				for (LONG i = 0; i < slots; i++) {
+					LONG attrib = GetSpellAttrib(pSpell, i);
+					if (attrib == 36)
+						for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+							if (pBuff->SlotData[j].Slot == i) {
+								Dest.DWord += pBuff->SlotData[j].Value;
+							}
+						}
+				}
+				return true;
+			}
+		}
+		return false;
+	case CountersCurse:
+		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
+		{
+			if (pSpell->SpellType == 0) {
+				Dest.DWord = 0;
+				Dest.Type = pIntType;
+				LONG slots = GetSpellNumEffects(pSpell);
+				for (LONG i = 0; i < slots; i++) {
+					LONG attrib = GetSpellAttrib(pSpell, i);
+					if (attrib == 116)
+						for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+							if (pBuff->SlotData[j].Slot == i) {
+								Dest.DWord += pBuff->SlotData[j].Value;
+							}
+						}
+				}
+				return true;
+			}
+		}
+		return false;
+	case CountersCorruption:
+		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
+		{
+			if (pSpell->SpellType == 0) {
+				Dest.DWord = 0;
+				Dest.Type = pIntType;
+				LONG slots = GetSpellNumEffects(pSpell);
+				for (LONG i = 0; i < slots; i++) {
+					LONG attrib = GetSpellAttrib(pSpell, i);
+					if (attrib == 369)
+						for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+							if (pBuff->SlotData[j].Slot == i) {
+								Dest.DWord += pBuff->SlotData[j].Value;
+							}
+						}
 				}
 				return true;
 			}
@@ -4308,7 +4396,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			for (unsigned long k = 0; k < NUM_LONG_BUFFS; k++) {
 				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[k].SpellID)) {
-					if (pSpell->SpellType != 1) {
+					if (pSpell->SpellType != 0) {
 						LONG slots = GetSpellNumEffects(pSpell);
 						for (LONG i = 0; i < slots; i++) {
 							LONG attrib = GetSpellAttrib(pSpell, i);
@@ -4316,7 +4404,11 @@ bool MQ2CharacterType::GETMEMBER()
 								|| attrib == 161 /*Mitigate Spell Damage*/ || attrib == 162 /*Mitigate Melee Damage*/
 								|| attrib == 450 /*DoT Guard*/ || attrib == 451 /*Melee Threshold Guard*/
 								|| attrib == 452 /*Spell Threshold Guard*/) {
-								Dest.DWord += pChar2->Buff[k].SlotData[i];
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->Buff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
 							}
 						}
 					}
@@ -4324,7 +4416,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return true;
-	case Counters://this case adds all resist Counters and returns that, why is this useful?
+	case TotalCounters://this case adds all resist Counters and returns that, why is this useful?
 		Dest.DWord = 0;//should we split these into 4? one for each debuff?
 		Dest.Type = pIntType;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
@@ -4335,7 +4427,103 @@ bool MQ2CharacterType::GETMEMBER()
 						for (LONG i = 0; i < slots; i++) {
 							LONG attrib = GetSpellAttrib(pSpell, i);
 							if (attrib == 35 /*Disease Counter*/ || attrib == 36 /*Poison*/ || attrib == 116 /*Curse*/ || attrib == 369/*Corruption*/) {
-								Dest.DWord += pChar2->Buff[k].SlotData[i];
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->Buff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return true;
+	case CountersDisease://this case adds all resist Counters and returns that, why is this useful?
+		Dest.DWord = 0;//should we split these into 4? one for each debuff?
+		Dest.Type = pIntType;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (unsigned long k = 0; k < NUM_LONG_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 35 /*Disease Counter*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->Buff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return true;
+	case CountersPoison://this case adds all resist Counters and returns that, why is this useful?
+		Dest.DWord = 0;//should we split these into 4? one for each debuff?
+		Dest.Type = pIntType;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (unsigned long k = 0; k < NUM_LONG_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 36 /*Poison*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->Buff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return true;
+	case CountersCurse://this case adds all resist Counters and returns that, why is this useful?
+		Dest.DWord = 0;//should we split these into 4? one for each debuff?
+		Dest.Type = pIntType;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (unsigned long k = 0; k < NUM_LONG_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 116 /*Curse*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->Buff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return true;
+	case CountersCorruption://this case adds all resist Counters and returns that, why is this useful?
+		Dest.DWord = 0;//should we split these into 4? one for each debuff?
+		Dest.Type = pIntType;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (unsigned long k = 0; k < NUM_LONG_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->Buff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 369/*Corruption*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->Buff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
 							}
 						}
 					}

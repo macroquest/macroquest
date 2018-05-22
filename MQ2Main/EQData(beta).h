@@ -433,6 +433,7 @@ enum MOUSE_DATA_TYPES {
 #define NUM_LONG_BUFFS                  0x2a
 #define NUM_SHORT_BUFFS                 0x37
 #define NUM_RACES                       17
+#define NUM_SLOTDATA                    0x6
 
 #define EQ_EXPANSION(x)                 (1 << (x - 1))
 #define EXPANSION_RoK                   EQ_EXPANSION(1)
@@ -945,6 +946,10 @@ typedef struct _CONTENTS {
 __declspec(dllexport)  struct _CONTENTS *GetContent(UINT index);
 } CONTENTS, *PCONTENTS;
 
+typedef struct _SlotData {
+	LONG Slot;
+	DWORD Value;
+} SlotData;
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
 // this is EQ_Affect
@@ -962,7 +967,7 @@ typedef struct _SPELLBUFF {
 	/*0x1c*/    FLOAT     X;
 	/*0x20*/    FLOAT     Z;
 	/*0x24*/    UINT      Flags;
-	/*0x28*/    DWORD     SlotData[0xC]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
+	/*0x28*/    SlotData  SlotData[NUM_SLOTDATA]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
 	/*0x58*/
 } SPELLBUFF, *PSPELLBUFF;
 

@@ -423,6 +423,8 @@ enum MOUSE_DATA_TYPES {
 //eqmule May 11 2017
 //KeypressHandler__HandleKeyUp_x has this one
 #define nEQMappableCommands             0x21e
+//found using __BindList_x
+#define nNormalEQMappableCommands       0x208
 
 #define MAX_PC_LEVEL                    110
 #define MAX_NPC_LEVEL                   200
@@ -433,6 +435,7 @@ enum MOUSE_DATA_TYPES {
 #define NUM_LONG_BUFFS                  0x2a
 #define NUM_SHORT_BUFFS                 0x37
 #define NUM_RACES                       17
+#define NUM_SLOTDATA                    0x6
 
 #define EQ_EXPANSION(x)                 (1 << (x - 1))
 #define EXPANSION_RoK                   EQ_EXPANSION(1)
@@ -944,6 +947,7 @@ typedef struct _CONTENTS {
 /*0x0158*/
 __declspec(dllexport)  struct _CONTENTS *GetContent(UINT index);
 } CONTENTS, *PCONTENTS;
+
 #pragma pack(push)
 #pragma pack(8)
 typedef union _EqGuid {
@@ -955,10 +959,15 @@ typedef union _EqGuid {
     unsigned __int64 GUID;
 } EqGuid;
 #pragma pack(pop)
+
+typedef struct _SlotData {
+	LONG Slot;
+	DWORD Value;
+} SlotData;
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
 // Size 0x68 Apr 10 2018 test see 8B2FD5 - eqmule
-// this is EQ_Affect tofo: ceck the new stuff in it
+// this is EQ_Affect tofo: check the new stuff in it
 typedef struct _SPELLBUFF {
 	/*0x00*/    BYTE      Type;
 	/*0x01*/    BYTE      Level;//casterlevel
@@ -975,7 +984,7 @@ typedef struct _SPELLBUFF {
 	/*0x28*/    FLOAT     X;
 	/*0x2c*/    FLOAT     Z;
 	/*0x30*/    UINT      Flags;
-	/*0x34*/    DWORD     SlotData[0xC]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
+	/*0x34*/    SlotData  SlotData[NUM_SLOTDATA]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
 	/*0x64*/    DWORD     Unknown0x64;
 	/*0x68*/
 } SPELLBUFF, *PSPELLBUFF;
@@ -2626,8 +2635,7 @@ union {
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
 //aSdeityD CharInfo2__CharInfo2
-//#define CHARINFO2_Size 0x9CC8 // Feb 16 2018 Test (see 94FDCE) - eqmule
-#define CHARINFO2_Size 0xA2D8 // Apr 10 2018 Test (see 88A7B9) - eqmule
+#define CHARINFO2_Size 0xA2D8 // May 10 2018 (see 88AA69) - eqmule
 typedef struct _CHARINFO2 {
 /*0x0000*/ BYTE         Unknown0x0000[0x10];
 /*0x0010*/ DWORD        BaseProfile;
@@ -2667,12 +2675,12 @@ typedef struct _CHARINFO2 {
 /*0x3d54*/ DWORD        CursorGold;
 /*0x3d58*/ DWORD        CursorSilver;
 /*0x3d5c*/ DWORD        CursorCopper;
-/*0x3d60*/ BYTE         Unknown0x3d60[0x28];
-/*0x3d88*/ DWORD        thirstlevel;
-/*0x3d8c*/ DWORD        hungerlevel;
-/*0x3d90*/ BYTE         Unknown0x3d90[0x4];
-/*0x3d94*/ DWORD        Shrouded;
-/*0x3d98*/ BYTE         Unknown0x3d98[0x78];
+/*0x3d60*/ BYTE         Unknown0x3d60[0x2c];
+/*0x3d8c*/ DWORD        thirstlevel;
+/*0x3d90*/ DWORD        hungerlevel;
+/*0x3d94*/ BYTE         Unknown0x3d94[0x4];
+/*0x3d98*/ DWORD        Shrouded;
+/*0x3d9c*/ BYTE         Unknown0x3d9c[0x74];
 /*0x3e10*/ TSafeArrayStatic<WorldLocation,5>    BoundLocations;//size 0x64
 /*0x3e74*/ DWORD        ArmorType[0x16];
 /*0x3ecc*/ BYTE         Unknown0x3ecc[0x160];
@@ -4420,6 +4428,27 @@ typedef struct _CHATSERVICE {
 /*0x0e0*/
 } CHATSERVICE, *PCHATSERVICE;
 
+class PickZoneTimerHandler
+{
+public:
+	struct PickZoneRecord {
+		PCXSTR ZoneName;
+		int Time;
+	};
+	EQArray<PickZoneRecord> Records;
+};
+typedef struct _PETITIONSTATUS{
+/*0x00*/ int ID;
+/*0x04*/ int Priority;//todo: check
+/*0x08*/ int State;//todo: figure out.
+/*0x0c*/ DWORD ArrivalTime;
+/*0x10*/ CHAR User[0x20];
+/*0x30*/ CHAR Player[0x40];
+/*0x70*/ int NumActive;
+/*0x74*/ CHAR Player2[0x40];
+/*0xb4*/ DWORD TimeStamp;//not sure what its for
+/*0xb8*/
+} PETITIONSTATUS,*PPETITIONSTATUS;
 
 //size is 0x170 see 4467A5 in Sep 18 2017 Live
 typedef struct _CSINFO
@@ -4470,28 +4499,6 @@ typedef struct _CharSelectPlayerArray
 	//note that CharSelectPlayerCount determines how many are actully here
 	CSINFO CharacterInfo[13];//is 13 chars the max u can have?
 } CharSelectPlayerArray,*PCharSelectPlayerArray;
-
-class PickZoneTimerHandler
-{
-public:
-	struct PickZoneRecord {
-		PCXSTR ZoneName;
-		int Time;
-	};
-	EQArray<PickZoneRecord> Records;
-};
-typedef struct _PETITIONSTATUS{
-/*0x00*/ int ID;
-/*0x04*/ int Priority;//todo: check
-/*0x08*/ int State;//todo: figure out.
-/*0x0c*/ DWORD ArrivalTime;
-/*0x10*/ CHAR User[0x20];
-/*0x30*/ CHAR Player[0x40];
-/*0x70*/ int NumActive;
-/*0x74*/ CHAR Player2[0x40];
-/*0xb4*/ DWORD TimeStamp;//not sure what its for
-/*0xb8*/
-} PETITIONSTATUS,*PPETITIONSTATUS;
 
 typedef struct _EVERQUEST {
 	/*0x000*/ BYTE   Unknown[0x2a4];

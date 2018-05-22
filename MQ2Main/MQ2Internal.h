@@ -401,7 +401,7 @@ namespace MQ2Internal {
 			_hMutex = hMutex;
 			ok = 0;
 			_locked = 0;
-			DWORD ret = WaitForSingleObject(_hMutex,10000);
+			DWORD ret = WaitForSingleObject(_hMutex,5000);
 			if(ret==WAIT_OBJECT_0)
 			{
 				_locked = 1;

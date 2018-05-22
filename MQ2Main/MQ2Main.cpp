@@ -389,8 +389,8 @@ bool __cdecl MQ2Initialize()
             continue;
 		}
         szEQMappableCommands[i]=EQMappableCommandList[i];
-    }
-    gnNormalEQMappableCommands=i;
+	}
+
 
     // as long nEQMappableCommands is right and these remain at the end, these should never need updating
     // who uses the unknowns anyway? - ieatacid
@@ -399,28 +399,53 @@ bool __cdecl MQ2Initialize()
 	// but at least they are at the end again and nEQMappableCommands was 0x201 today,
 	//but yeah I see no use for them... - eqmule
 	// last update Mar 10 2015 nEQMappableCommands was 0x207
-	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x207";//"Magic"
-    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x208";//"Fire"
-    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x209";//"Cold"
-    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x20a";//"Disease"
+#ifdef EMU
+	szEQMappableCommands[nEQMappableCommands - 22] = "UNKNOWN0x1de";//"Magic"
+	szEQMappableCommands[nEQMappableCommands - 21] = "UNKNOWN0x1df";//"Fire"
+	szEQMappableCommands[nEQMappableCommands - 20] = "CHAT_SEMICOLON";//"Cold"
+	szEQMappableCommands[nEQMappableCommands - 19] = "CHAT_SLASH";//"Disease"
+	szEQMappableCommands[nEQMappableCommands - 18] = "INSTANT_CAMP";//"Poison"
+	szEQMappableCommands[nEQMappableCommands - 17] = "UNKNOWN0x1e3";//"Physical"
+	szEQMappableCommands[nEQMappableCommands - 16] = "UNKNOWN0x1e4";//"Corruption" confirmed 16 jul 2014 -eqmule
+	szEQMappableCommands[nEQMappableCommands - 15] = "UNKNOWN0x1e5";//"Unknown"
+	szEQMappableCommands[nEQMappableCommands - 14] = "UNKNOWN0x1e6";//"Avatar"
+	szEQMappableCommands[nEQMappableCommands - 13] = "UNKNOWN0x1e7";//"RemoveButton"
+	szEQMappableCommands[nEQMappableCommands - 12] = "CHAT_EMPTY";//"ClearAll"
+	szEQMappableCommands[nEQMappableCommands - 11] = "TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
+	szEQMappableCommands[nEQMappableCommands - 10] = "UNKNOWN0x1ea";//"NoPlayersLeft"
+	szEQMappableCommands[nEQMappableCommands - 9] = "UNKNOWN0x1eb";//"CreatedSharedTask"
+	szEQMappableCommands[nEQMappableCommands - 8] = "CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
+	szEQMappableCommands[nEQMappableCommands - 7] = "UNKNOWN0x1ed";//Expired
+	szEQMappableCommands[nEQMappableCommands - 6] = "UNKNOWN0x1ee";//Script
+	szEQMappableCommands[nEQMappableCommands - 5] = "UNKNOWN0x1ef";//LeaderRemoved
+	szEQMappableCommands[nEQMappableCommands - 4] = "UNKNOWN0x1f0";
+	szEQMappableCommands[nEQMappableCommands - 3] = "UNKNOWN0x1f1";
+	szEQMappableCommands[nEQMappableCommands - 2] = "UNKNOWN0x1f2";
+	szEQMappableCommands[nEQMappableCommands - 1] = "UNKNOWN0x1f3";
+#else
+	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x208";//"Magic"
+    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x209";//"Fire"
+    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x20a";//"Cold"
+    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x20b";//"Disease"
     szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SEMICOLON";//"Poison"
     szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SLASH";//"Physical"
     szEQMappableCommands[nEQMappableCommands - 16]="INSTANT_CAMP";//"Corruption" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x20e";//"Unknown"
-    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x20f";//"Avatar"
-    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x210";//"RemoveButton"
+    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x20f";//"Unknown"
+    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x210";//"Avatar"
+    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x211";//"RemoveButton"
     szEQMappableCommands[nEQMappableCommands - 12]="CHAT_EMPTY";//"ClearAll"
     szEQMappableCommands[nEQMappableCommands - 11]="TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x213";//"NoPlayersLeft"
-    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x214";//"CreatedSharedTask"
+    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x214";//"NoPlayersLeft"
+    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x215";//"CreatedSharedTask"
     szEQMappableCommands[nEQMappableCommands -  8]="CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
     szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x216";//Expired
     szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x217";//Script
-    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x218";//LeaderRemoved
-    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x219";
-    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x21a";
-    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x21b";
-    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x21c";
+    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x219";//LeaderRemoved
+    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x21a";
+    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x21b";
+    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x21c";
+    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x21d";
+#endif
 
     for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
     for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}

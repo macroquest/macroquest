@@ -256,6 +256,8 @@ char szPassword[64] = { 0 };
 char szHotkey[64] = { 0 };
 char szServerName[32] = { 0 };
 char szCharacterName[64] = { 0 };
+char szCharClass[64] = { 0 };
+char szCharLevel[64] = { 0 };
 char szSelectCharacterName[64] = { 0 };
 char szNewChar[0x40] = { 0 };
 char szUserName[64] = { 0 };
@@ -324,7 +326,7 @@ char xwmMask[] = "x????xx????";
 //eqmain.dll
 //Feb 16 2018 Test
 //8B 35 ? ? ? ? 8a 86
- 
+
 #ifdef EMU
 PBYTE swmPattern = (PBYTE)"\xA1\x00\x00\x00\x00\x80\xB8\x00\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\x8D\x88\x00\x00\x00\x00\x8B\x01\x3B\xC3\x74\x00\x89\x45\x00\x33\xDB\x8B\x45\x00\xF0\xFF\x00\x0F\x94\xC3\x89\x5D\x00";
 char swmMask[] = "x????xx?????xx????xx????xxxxx?xx?xxxx?xxxxxxxx?";
@@ -422,6 +424,82 @@ int StrToBlobA(LPCSTR szIn,DATA_BLOB *BlobOut)
 	BlobOut->pbData[out++] = '\0';
 	delete[] szArg;
 	return BlobOut->cbData;
+}
+char *gettok(char *_String, int _Delimiter)
+{
+	static char theString[MAX_STRING] = { 0 };
+	static char *szString = theString;
+	char *szToken;
+	char *szRet;
+
+	if (_String != NULL) {
+		strcpy_s(theString, _String);
+		szString = theString;
+	}
+	if (szString) {
+		if (szToken = strchr(szString, _Delimiter)) {
+			szToken[0] = '\0';
+			szRet = szString;
+			szString = ++szToken;
+		}
+		else {
+			szRet = szString;
+			szString = NULL;
+		}
+		return szRet;
+	}
+	else {
+		return NULL;
+	}
+}
+template <unsigned int _BSize, unsigned int _SNSize, unsigned int _CNSize, unsigned int _PSize, unsigned int _HKSize, unsigned int _CCSize, unsigned int _CLSize>
+	bool ParseBlob(CHAR(&szBlob)[_BSize], CHAR(&szStationName)[_SNSize], CHAR(&szCharacterName)[_CNSize], CHAR(&szPassword)[_PSize], CHAR(&szHotkey)[_HKSize], CHAR(&szCharClass)[_CCSize], CHAR(&szCharLevel)[_CLSize])
+{
+	DATA_BLOB db = { 0 };
+	DATA_BLOB dbout = { 0 };
+	if (szBlob[0]) {
+		if (StrToBlobA(szBlob, &db)) {
+			if (DecryptData(&db, &dbout)) {
+				if (PCHAR thestring = (PCHAR)dbout.pbData) {
+					CHAR szTemp[MAX_STRING] = { 0 };
+					strcpy_s(szTemp, thestring);
+					LocalFree(db.pbData);//always remember to free this (MSDN)
+					LocalFree(dbout.pbData);//always remember to free this (MSDN)
+
+					INT token = 0;
+					CHAR *pToken = gettok(szTemp, ':');
+					while (pToken)
+					{
+						token++;
+						switch (token)
+						{
+						case 1:
+							strcpy_s(szStationName, pToken);
+							break;
+						case 2:
+							strcpy_s(szCharacterName, pToken);
+							break;
+						case 3:
+							strcpy_s(szPassword, pToken);
+							break;
+						case 4:
+							strcpy_s(szHotkey, pToken);
+							break;
+						case 5:
+							strcpy_s(szCharClass, pToken);
+							break;
+						case 6:
+							strcpy_s(szCharLevel, pToken);
+							break;
+						}
+						pToken = gettok(NULL, ':');
+					}
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 class CXMLDataManager2
 {
@@ -1578,48 +1656,11 @@ void HandleWindows()
 								pDest[0] = '\0';
 							}
 							AutoLoginDebug("HandleWindows() szBlob(%s)", szBlob);
-							DATA_BLOB db = { 0 };
-							DATA_BLOB dbout = { 0 };
-							if (StrToBlobA(szBlob, &db)) {
-								if (DecryptData(&db, &dbout)) {
-									if (PCHAR thestring = (PCHAR)dbout.pbData) {
-										AutoLoginDebug("HandleWindows() thestring(%s)", thestring);
-										//we should parse out Login, CharName, Pass, hotkey
-										CHAR szTemp[MAX_STRING] = { 0 };
-										strcpy_s(szTemp, thestring);
-										LocalFree(db.pbData);//always remember to free this (MSDN)
-										LocalFree(dbout.pbData);//always remember to free this (MSDN)
-										if (PCHAR pDest = strchr(szTemp, ':')) {
-											pDest[0] = '\0';
-											strcpy_s(szStationName, szTemp);
-											AutoLoginDebug("HandleWindows() szStationName(%s)", szStationName);
-											pDest++;
-											if (pDest[0]) {
-												strcpy_s(szTemp, pDest);
-												if (pDest = strchr(szTemp, ':')) {
-													pDest[0] = '\0';
-													strcpy_s(szCharacterName, szTemp);
-													AutoLoginDebug("HandleWindows() szCharacterName(%s)", szCharacterName);
-													pDest++;
-													strcpy_s(szPassword, pDest);
-													if (pDest[0]) {
-														strcpy_s(szTemp, pDest);
-														if (pDest = strchr(szTemp, ':')) {
-															pDest[0] = '\0';
-															strcpy_s(szPassword, szTemp);
-															pDest++;
-															strcpy_s(szHotkey, pDest);
-														}
-													}
-													AutoLoginDebug("HandleWindows() szProfile(%s), szStationName(%s), szServerName(%s), szCharacterName(%s)", szProfile, szStationName, szServerName, szCharacterName);
-													IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
-												}
-											}
-										}
-									}
-								}
+							if (ParseBlob(szBlob, szStationName, szCharacterName, szPassword, szHotkey, szCharClass, szCharLevel)) {
+								IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 							}
 						}
+
 						DWORD oldscreenmode = ScreenMode;
 						ScreenMode = 3;
 						SetCXStr(&((CEditWnd*)pWnd)->InputText, "");
@@ -1651,42 +1692,8 @@ void HandleWindows()
 							if (pDest = strrchr(szBlob, '=')) {
 								pDest[0] = '\0';
 							}
-							DATA_BLOB db = { 0 };
-							DATA_BLOB dbout = { 0 };
-							if (StrToBlobA(szBlob, &db)) {
-								if (DecryptData(&db, &dbout)) {
-									if (PCHAR thestring = (PCHAR)dbout.pbData) {
-										//we should parse out Login, CharName, Pass, Hotkey
-										CHAR szTemp[MAX_STRING] = { 0 };
-										strcpy_s(szTemp, thestring);
-										LocalFree(db.pbData);//always remember to free this (MSDN)
-										LocalFree(dbout.pbData);//always remember to free this (MSDN)
-										if (PCHAR pDest = strchr(szTemp, ':')) {
-											pDest[0] = '\0';
-											strcpy_s(szStationName, szTemp);
-											pDest++;
-											if (pDest[0]) {
-												strcpy_s(szTemp, pDest);
-												if (pDest = strchr(szTemp, ':')) {
-													pDest[0] = '\0';
-													strcpy_s(szCharacterName, szTemp);
-													pDest++;
-													strcpy_s(szPassword, pDest);
-													if (pDest[0]) {
-														strcpy_s(szTemp, pDest);
-														if (pDest = strchr(szTemp, ':')) {
-															pDest[0] = '\0';
-															strcpy_s(szPassword, szTemp);
-															pDest++;
-															strcpy_s(szHotkey, pDest);
-														}
-													}
-													IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
-												}
-											}
-										}
-									}
-								}
+							if (ParseBlob(szBlob, szStationName, szCharacterName, szPassword, szHotkey, szCharClass, szCharLevel)) {
+								IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 							}
 						}
 						DWORD oldscreenmode = ScreenMode;

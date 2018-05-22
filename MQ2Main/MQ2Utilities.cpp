@@ -2587,7 +2587,10 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (GetSpellNumEffects(pSpell) > index) {
+		int numeff = GetSpellNumEffects(pSpell);
+		if (numeff == 0)
+			return 0;//this is so stupid, it didnt use to do this prior to test on may 7 2018, what changed? we need to check that. -eqmule
+		if (numeff > index) {
 			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Attrib;
@@ -2608,7 +2611,10 @@ LONG GetSpellBase(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (GetSpellNumEffects(pSpell) > index) {
+		int numeff = GetSpellNumEffects(pSpell);
+		if (numeff == 0)
+			return 0;
+		if (numeff > index) {
 			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Base;
@@ -2629,7 +2635,10 @@ LONG GetSpellBase2(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (GetSpellNumEffects(pSpell) > index) {
+		int numeff = GetSpellNumEffects(pSpell);
+		if (numeff == 0)
+			return 0;
+		if (numeff > index) {
 			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Base2;
@@ -2650,7 +2659,10 @@ LONG GetSpellMax(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (GetSpellNumEffects(pSpell) > index) {
+		int numeff = GetSpellNumEffects(pSpell);
+		if (numeff == 0)
+			return 0;
+		if (numeff > index) {
 			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Max;
@@ -2671,7 +2683,10 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (GetSpellNumEffects(pSpell) > index) {
+		int numeff = GetSpellNumEffects(pSpell);
+		if (numeff == 0)
+			return 0;
+		if (numeff > index) {
 			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Calc;

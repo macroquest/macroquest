@@ -1591,7 +1591,17 @@ EQLIB_OBJECT void CConfirmationDialog::ResetFocusOnClose(void);
 /*0x170*/    BYTE    Unknown0x170[0x18];
 /*0x188*/
 };
-
+class ItemGlobalIndex
+{
+public:
+	ItemGlobalIndex::ItemContainerInstance Location;
+	ItemGlobalIndex::ItemIndex Index;
+	//CHAR morestuff[2048];
+EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
+EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
+EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
+EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
+};
 class CContainerMgr
 {
 public:
@@ -1632,6 +1642,31 @@ EQLIB_OBJECT void CContainerWnd::Deactivate(void);
 EQLIB_OBJECT bool CContainerWnd::ContainsNoDrop(void);
 EQLIB_OBJECT void CContainerWnd::HandleCombine(void);
 EQLIB_OBJECT void CContainerWnd::Init(void);
+
+/*0x04*/ PCONTENTS pCont;
+/*0x08*/ ItemGlobalIndex	Location;
+/*0x14*/ VeArray<CInvSlotWnd*> InvSlotWnds;
+/*0x18*/ CButtonWnd *pCombineButton;
+/*0x1c*/ CButtonWnd *pDoneButton;
+/*0x20*/ CButtonWnd *pStandardDoneButton;
+/*0x24*/ CButtonWnd *pCombineDoneButton;
+/*0x28*/ CButtonWnd *pContainerIcon;
+/*0x2c*/ CButtonWnd *pContainerStandardIcon;
+/*0x30*/ CButtonWnd *pContainerCombineIcon;
+/*0x34*/ CTextureAnimation *pIconAnimation;
+/*0x38*/ CLabel*ContainerLabel;
+/*0x3c*/ CInvSlotWnd *pContainerSlotTemplate;
+/*0x40*/ CXWnd *pStandardItems;
+/*0x44*/ CXWnd *pStandardItemsWithDone;
+/*0x48*/ CXWnd *pCombineItems;
+/*0x4c*/ CStmlWnd *pStandardSize;
+/*0x50*/ CStmlWnd *pCombineSize;
+/*0x54*/ bool bCombineValid;
+/*0x55*/ bool bUserCloseable;
+/*0x58*/ int ContainerType;//classic = 0,stamdard = 1, combine = 2
+/*0x5c*/ int IndexDoneButton;
+/*0x60*/ CContextMenu *ContextMenu;
+/*0x64*/ 
 };
 
 
@@ -2129,17 +2164,7 @@ EQLIB_OBJECT unsigned int CEQSuiteTextureLoader::CreateTexture(class CUITextureI
 EQLIB_OBJECT void CEQSuiteTextureLoader::UnloadAllTextures(void);
 EQLIB_OBJECT const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const;
 };
-class ItemGlobalIndex
-{
-public:
-	ItemGlobalIndex::ItemContainerInstance Location;
-	ItemGlobalIndex::ItemIndex Index;
-	//CHAR morestuff[2048];
-EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
-EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
-EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
-EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
-};
+
 //oct 26 2015 - eqmule 
 typedef struct _TARGETRING {
 /*0x00*/	DWORD Gem;//the gem the spell below is memmed in... 0-11
@@ -6706,7 +6731,12 @@ EQLIB_OBJECT void CXWndManager::UpdateChildAndSiblingInfo(void);
 // virtual
 EQLIB_OBJECT CXWndManager::~CXWndManager(void);
 EQLIB_OBJECT class CTextureFont *GetFont(int FontIndex) const {
-	return (CTextureFont *)((PCXWNDMGR)this)->FontsArray[FontIndex];
+	if (PCXWNDMGR wndmgr = (PCXWNDMGR)this) {
+		if (wndmgr->FontsArray.Count >= FontIndex) {
+			return (CTextureFont *)wndmgr->FontsArray[FontIndex];
+		}
+	}
+	return 0;
 }
 EQLIB_OBJECT int CXWndManager::DestroyWnd(CXWnd *wnd);
 //EQLIB_OBJECT void * CXWndManager::`scalar deleting destructor'(unsigned int);

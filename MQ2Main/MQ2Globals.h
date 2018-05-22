@@ -297,7 +297,6 @@ namespace MQ2Globals
 
 	EQLIB_VAR PCHAR *EQMappableCommandList;
 	EQLIB_VAR PBYTE EQbCommandStates;
-	EQLIB_VAR DWORD gnNormalEQMappableCommands;
 
 #ifndef ISXEQ
 	EQLIB_VAR DWORD EQADDR_DIMAIN;
@@ -941,7 +940,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCTrackingWnd;
 	EQLIB_VAR DWORD pinstCInspectWnd;
 	EQLIB_VAR DWORD pinstCSocialEditWnd;
-	#ifndef TEST
+	#ifdef EMU
 	EQLIB_VAR DWORD pinstCFeedbackWnd;
 	#endif
 	EQLIB_VAR DWORD pinstCBugReportWnd;
@@ -1133,6 +1132,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CDisplay__ReloadUI;
 	EQLIB_VAR DWORD CDisplay__WriteTextHD2;
 	EQLIB_VAR DWORD CDisplay__TrueDistance;
+	EQLIB_VAR DWORD CDisplay__SetViewActor;
 	
 	EQLIB_VAR DWORD CEditBaseWnd__SetSel;
 
@@ -1549,7 +1549,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR BOOL gbTimeStampChat;
 	EQLIB_VAR size_t g_eqgameimagesize;
-	
+
 	EQLIB_VAR BOOL gUseTradeOnTarget;
 	EQLIB_VAR BOOL gbBeepOnTells;
 	EQLIB_VAR BOOL gbFlashOnTells;
@@ -1592,6 +1592,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 	EQLIB_VAR DWORD EqSoundManager__WavePlay;
 	EQLIB_VAR DWORD EqSoundManager__PlayScriptMp3;
+	EQLIB_VAR DWORD EqSoundManager__SoundAssistPlay;
+	EQLIB_VAR DWORD EqSoundManager__WaveInstancePlay;
 	EQLIB_VAR DWORD CCombatSkillsSelectWnd__ShouldDisplayThisSkill;
 	EQLIB_VAR DWORD ActorClient__GetPosition;
 	EQLIB_VAR DWORD ActorClient__GetPosition1;

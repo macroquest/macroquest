@@ -102,6 +102,15 @@ GNU General Public License for more details.
 #define __Inviter_x                                                0xF094E0
 #define __AttackOnAssist_x                                         0xE6BBDC
 #define __UseTellWindows_x                                         0xE6BED8
+#define __gfMaxZoomCameraDistance_x                                0xAB2AD0
+#define __gfMaxCameraDistance_x                                    0xADFBF0
+#define __pulAutoRun_x                                             0xE6A910
+#define __pulForward_x                                             0xE6BF10
+#define __pulBackward_x                                            0xE6BF14
+#define __pulTurnRight_x                                           0xE6BF18
+#define __pulTurnLeft_x                                            0xE6BF1C
+#define __pulStrafeLeft_x                                          0xE6BF20
+#define __pulStrafeRight_x                                         0xE6BF24
 
 //// 
 //Section 1: Vital Offsets 
@@ -208,7 +217,7 @@ GNU General Public License for more details.
 #define pinstCButtonWnd_x                                          0x16998B8
 #define pinstCCastingWnd_x                                         0xDA8BCC
 #define pinstCCastSpellWnd_x                                       0xDA8E70
-//#define pinstCCharacterCreationWnd_x                               0xDAAE5C
+//#define pinstCCharacterCreationWnd_x                               0xDA8EBC
 #define pinstCCharacterListWnd_x                                   0xDA8C00
 #define pinstCChatWindowManager_x                                  0x101AC00
 #define pinstCClaimWnd_x                                           0x101AD58
@@ -255,7 +264,7 @@ GNU General Public License for more details.
 #define pinstCItemExpTransferWnd_x                                 0x101E794
 #define pinstCItemOverflowWnd_x                                    0xDA8E5C
 #define pinstCJournalCatWnd_x                                      0xDA9410
-//#define pinstCJournalNPCWnd_x                                      0xDAB354
+//#define pinstCJournalNPCWnd_x                                      0xDA93B0
 #define pinstCJournalTextWnd_x                                     0xDA93B0
 #define pinstCKeyRingWnd_x                                         0xDA93C0
 #define pinstCLargeDialogWnd_x                                     0x10208D8
@@ -285,7 +294,7 @@ GNU General Public License for more details.
 #define pinstCOptionsWnd_x                                         0xDA9368
 #define pinstCPetInfoWnd_x                                         0xDA9408
 #define pinstCPetitionQWnd_x                                       0xDA9420
-//#define pinstCPlayerCustomizationWnd_x                             0xDAADC4
+//#define pinstCPlayerCustomizationWnd_x                             0xDA8E24
 #define pinstCPlayerNotesWnd_x                                     0xDA8BF0
 #define pinstCPlayerWnd_x                                          0xDA8E6C
 #define pinstCPopupWndManager_x                                    0x101FC58
@@ -305,7 +314,7 @@ GNU General Public License for more details.
 #define pinstCRealEstatePlotSearchWnd_x                            0xDA8E68
 #define pinstCRealEstatePurchaseWnd_x                              0xDA8E78
 #define pinstCRespawnWnd_x                                         0xDA8EC8
-//#define pinstCRewardSelectionWnd_x                                 0x1022600
+//#define pinstCRewardSelectionWnd_x                                 0x10205B0
 #define pinstCSelectorWnd_x                                        0xDA8E98
 #define pinstCSendMoneyWnd_x                                       0xDA93A8
 #define pinstCServerListWnd_x                                      0xDA8E8C
@@ -486,6 +495,7 @@ GNU General Public License for more details.
 #define CDisplay__ReloadUI_x                                       0x5319B0
 #define CDisplay__WriteTextHD2_x                                   0x527310
 #define CDisplay__TrueDistance_x                                   0x52DEF0
+#define CDisplay__SetViewActor_x                                   0x52A190
 
 // CEditBaseWnd 
 #define CEditBaseWnd__SetSel_x                                     0x93CEF0
@@ -993,6 +1003,8 @@ GNU General Public License for more details.
 //EqSoundManager
 #define EqSoundManager__WavePlay_x                                 0x5539F0
 #define EqSoundManager__PlayScriptMp3_x                            0x553B50
+#define EqSoundManager__SoundAssistPlay_x                          0x65F210
+#define EqSoundManager__WaveInstancePlay_x                         0x65E750
 
 //CCombatSkillsSelectWnd
 #define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x510F70
