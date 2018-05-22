@@ -9262,9 +9262,9 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 						PCONTENTS pContAfter = pChar2->pInventoryArray->Inventory.Cursor;
 						DWORD ig = 0;
 						EqItemGuid g;
-						memcpy(&g.guid, &pContAfter->ItemGUID, g.GUID);
+						strcpy_s(g.guid,18, "0000000000000000");
 						CCursorAttachment *pCursAtch = pCursorAttachment;
-						pCursAtch->AttachToCursor(NULL, NULL, 2/*ATC_ITEM*/, 0, g, GetItemFromContents(pContAfter)->ItemNumber, NULL, -1);
+						pCursAtch->AttachToCursor(NULL, NULL, 2/*Normal Item*/, -1, g, 0, NULL, NULL);
 					}
 					else {
 						pCursorAttachment->Deactivate();
@@ -9375,10 +9375,9 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 					PCONTENTS pContAfter = pChar2->pInventoryArray->Inventory.Cursor;
 					DWORD ig = 0;
 					EqItemGuid g;
-					memcpy(&g.guid, &pContAfter->ItemGUID, g.GUID);
+					strcpy_s(g.guid,18, "0000000000000000");
 					CCursorAttachment *pCursAtch = pCursorAttachment;
-					pCursAtch->AttachToCursor(NULL, NULL, 2/*ITEM*/, 0, g, GetItemFromContents(pContAfter)->ItemNumber, NULL, -1);
-
+					pCursAtch->AttachToCursor(NULL, NULL, 2/*Normal Item*/,-1, g, 0, NULL, NULL);
 				}
 				else {
 					pCursorAttachment->Deactivate();

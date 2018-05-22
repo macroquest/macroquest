@@ -421,7 +421,12 @@ public:
 			m_length--;
 		}
 	}
-
+	void SetLength(int size)
+	{
+		AssureExact(size);
+		if (this->m_array)
+			this->m_length = size;
+	}
 private:
 	// this function will ensure that there is enough space allocated for the
 	// requested size. the underlying array is one contiguous block of memory.

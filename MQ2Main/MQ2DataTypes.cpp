@@ -20,6 +20,7 @@ GNU General Public License for more details.
 
 
 #include "MQ2Main.h"
+#pragma comment(lib, "version.lib")
 
 #ifdef ISXEQ
 #define ISINDEX() (argc>0)
@@ -413,39 +414,32 @@ bool MQ2StringType::GETMEMBER()
 		}
 		return false;
 	case Replace:
+	{
 		if (!ISINDEX())
 			return false;
+		if (PCHAR pComma = strchr(Index, ','))
 		{
-			char A[MAX_STRING] = { 0 };
-			char B[MAX_STRING] = { 0 };
-			char C[MAX_STRING] = { 0 };
-			char *pos;
-			if (!ISINDEX())
+			std::string subject = (char*)VarPtr.Ptr;
+			*pComma = 0;
+			const std::string search = (char*)Index;
+			*pComma = ',';
+			const std::string replace = (char*)&pComma[1];
+			if (!subject.size() || !search.size())
 				return false;
-			if (PCHAR pComma = strchr(Index, ','))
+			size_t pos = 0;
+			while((pos = subject.find(search, pos)) != std::string::npos) {
+				 subject.replace(pos, search.length(), replace);
+				 pos += replace.length();
+			}
+			strcpy_s(DataTypeTemp,subject.c_str());
+			if (Dest.Ptr = DataTypeTemp)
 			{
-				strcpy_s(A, (char*)VarPtr.Ptr);
-				*pComma = 0;
-				strcpy_s(B, (char*)Index);
-				*pComma = ',';
-				strcpy_s(C, (char*)&pComma[1]);
-				if (!A || !B || !C)
-					return false;
-				while ((pos = strstr(A, B)) != NULL)  /* if -> while */
-				{
-					DataTypeTemp[0] = '\0';
-					strncat_s(DataTypeTemp, A, pos - A);
-					strcat_s(DataTypeTemp, C);
-					strcat_s(DataTypeTemp, pos + strlen(B));
-					strcpy_s(A, DataTypeTemp); /* added */
-				}
-				if (Dest.Ptr = DataTypeTemp)
-				{
-					Dest.Type = pStringType;
-					return true;
-				}
+				Dest.Type = pStringType;
+				return true;
 			}
 		}
+		return false;
+	}
 	case Upper:
 		strcpy_s(DataTypeTemp, (char*)VarPtr.Ptr);
 		_strupr_s(DataTypeTemp);
@@ -4412,7 +4406,8 @@ bool MQ2CharacterType::GETMEMBER()
 			if (pAggroInfo) {
 				for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
 					XTARGETSLOT xts = xtm->XTargetSlots[i];
-					if (DWORD spID = xts.SpawnID && xts.xTargetType == XTARGET_AUTO_HATER) {
+					DWORD spID = xts.SpawnID;
+					if (spID && xts.xTargetType == XTARGET_AUTO_HATER) {
 						if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
 							if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
 								continue;
@@ -4437,7 +4432,8 @@ bool MQ2CharacterType::GETMEMBER()
 			if (pAggroInfo) {
 				for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
 					XTARGETSLOT xts = xtm->XTargetSlots[i];
-					if (DWORD spID = xts.SpawnID && xts.xTargetType == XTARGET_AUTO_HATER) {
+					DWORD spID = xts.SpawnID;
+					if (spID && xts.xTargetType == XTARGET_AUTO_HATER) {
 						if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
 							if (pTarget && ((PSPAWNINFO)pTarget)->SpawnID == pSpawn->SpawnID)
 								continue;
@@ -8810,7 +8806,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 		// Convert the creation time time to local time. 
 		FileTimeToSystemTime(&FileData.ftLastWriteTime, &st);
 		FindClose(hFile);
-		sprintf_s(DataTypeTemp, "%d%d%d", st.wYear, st.wMonth, st.wDay);
+		sprintf_s(DataTypeTemp, "%04d%02d%02d", st.wYear, st.wMonth, st.wDay);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -8823,6 +8819,96 @@ bool MQ2MacroQuestType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
+	case Version:
+	{
+		DataTypeTemp[0] = '\0';
+		HRESULT ret = S_FALSE;
+		CHAR    szGetName[256];
+		CHAR    szResult[2048];
+		LPCSTR   lpVersion;        // String pointer to Item text
+		DWORD   dwVerInfoSize;    // Size of version information block
+		DWORD   dwVerHnd = 0;        // An 'ignored' parameter, always '0'
+		UINT    uVersionLen;
+		BOOL    bRetCode;
+		HMODULE hMq2Main = 0;// GetModuleHandle("mq2main.dll");
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)&DataTypeTemp, &hMq2Main);
+		GetModuleFileName(hMq2Main, szResult, 2048);
+		dwVerInfoSize = GetFileVersionInfoSize(szResult, &dwVerHnd);
+		if (dwVerInfoSize) {
+			LPSTR   lpstrVffInfo;
+			HANDLE  hMem;
+			hMem = GlobalAlloc(GMEM_MOVEABLE, dwVerInfoSize);
+			lpstrVffInfo = (LPSTR)GlobalLock(hMem);
+			GetFileVersionInfo(szResult, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
+
+			sprintf_s(szGetName,"%s","\\VarFileInfo\\Translation");
+			uVersionLen = 0;
+			lpVersion = NULL;
+			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			if (bRetCode && uVersionLen && lpVersion) {
+				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD *)lpVersion)),(WORD)(*((DWORD *)lpVersion) >> 16));
+			}
+			else {
+				sprintf_s(szResult, "%s","041904b0");
+			}
+			sprintf_s(szGetName, "\\StringFileInfo\\%s\\FileVersion", szResult);
+			uVersionLen = 0;
+			lpVersion = NULL;
+			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			if (bRetCode && uVersionLen && lpVersion) {
+				sprintf_s(DataTypeTemp,"%s", lpVersion);
+			}
+			GlobalFree(hMem);
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
+	case InternalName:
+	{
+		DataTypeTemp[0] = '\0';
+		HRESULT ret = S_FALSE;
+		CHAR    szGetName[256];
+		CHAR    szResult[2048];
+		LPCSTR   lpVersion;        // String pointer to Item text
+		DWORD   dwVerInfoSize;    // Size of version information block
+		DWORD   dwVerHnd = 0;        // An 'ignored' parameter, always '0'
+		UINT    uVersionLen;
+		BOOL    bRetCode;
+		HMODULE hMq2Main = 0;// GetModuleHandle("mq2main.dll");
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)&DataTypeTemp, &hMq2Main);
+		GetModuleFileName(hMq2Main, szResult, 2048);
+		dwVerInfoSize = GetFileVersionInfoSize(szResult, &dwVerHnd);
+		if (dwVerInfoSize) {
+			LPSTR   lpstrVffInfo;
+			HANDLE  hMem;
+			hMem = GlobalAlloc(GMEM_MOVEABLE, dwVerInfoSize);
+			lpstrVffInfo = (LPSTR)GlobalLock(hMem);
+			GetFileVersionInfo(szResult, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
+
+			sprintf_s(szGetName,"%s","\\VarFileInfo\\Translation");
+			uVersionLen = 0;
+			lpVersion = NULL;
+			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			if (bRetCode && uVersionLen && lpVersion) {
+				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD *)lpVersion)),(WORD)(*((DWORD *)lpVersion) >> 16));
+			}
+			else {
+				sprintf_s(szResult, "%s","041904b0");
+			}
+			sprintf_s(szGetName, "\\StringFileInfo\\%s\\InternalName", szResult);
+			uVersionLen = 0;
+			lpVersion = NULL;
+			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			if (bRetCode && uVersionLen && lpVersion) {
+				sprintf_s(DataTypeTemp,"%s", lpVersion);
+			}
+			GlobalFree(hMem);
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	}
 	return false;
 }

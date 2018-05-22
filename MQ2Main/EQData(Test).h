@@ -3802,8 +3802,15 @@ typedef struct _WORLDDATA {
 /*0x005*/ BYTE Minute;
 /*0x006*/ BYTE Day;
 /*0x007*/ BYTE Month;
-/*0x008*/ DWORD Year;
-/*0x00C*/ BYTE Unknown0x00C[0x14];
+/*0x008*/ int Year;
+/*0x00C*/ BYTE LastHour;
+/*0x00D*/ BYTE LastMinute;
+/*0x00E*/ BYTE LastDay;
+/*0x00F*/ BYTE LastMonth;
+/*0x010*/ int LastYear;
+/*0x014*/ UINT LastAdvance;
+/*0x018*/ UINT LastTime;
+/*0x01C*/ UINT Unknown0x01C;
 /*0x020*/ PZONELIST ZoneArray[MAX_ZONES];// see 867D1B in eqgame.exe live 21 apr 2016
 /*0xFC0*/
 } WORLDDATA, *PWORLDDATA;

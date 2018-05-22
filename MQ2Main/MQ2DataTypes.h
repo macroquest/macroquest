@@ -3395,6 +3395,8 @@ public:
 		BuildDate = 4,
 		Build = 5,
 		Path = 6,
+		Version = 7,
+		InternalName = 8,
 	};
 	MQ2MacroQuestType() :MQ2Type("macroquest")
 	{
@@ -3404,6 +3406,8 @@ public:
 		TypeMember(BuildDate);
 		TypeMember(Build);
 		TypeMember(Path);
+		TypeMember(Version);
+		TypeMember(InternalName);
 	}
 	~MQ2MacroQuestType()
 	{

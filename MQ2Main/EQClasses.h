@@ -1770,7 +1770,11 @@ EQLIB_OBJECT void CCursorAttachment::Deactivate(void);
 EQLIB_OBJECT void CCursorAttachment::DrawButtonText(void)const;
 EQLIB_OBJECT void CCursorAttachment::DrawQuantity(void)const;
 EQLIB_OBJECT void CCursorAttachment::Init(void);
+#ifndef EMU
+EQLIB_OBJECT void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *assigned_name, char const *name, int qty = -1, int IconID = -1);
+#else
 EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *overlay, CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty);
+#endif
 };
 
 class CDIMap
@@ -6886,7 +6890,11 @@ EQLIB_OBJECT void EQ_Character::InitInnates(unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character::InitMyLanguages(void);
 EQLIB_OBJECT void EQ_Character::InitSkills(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character::ItemSold(long);
-EQLIB_OBJECT void EQ_Character::ModifyCurHP(int,class EQPlayer *);
+#ifdef EMU
+EQLIB_OBJECT void EQ_Character::ModifyCurHP(int modification,class PlayerZoneClient *resposibleplayer,int skilltype);
+#else
+EQLIB_OBJECT void EQ_Character::ModifyCurHP(__int64 modification, class PlayerZoneClient *resposibleplayer,int skilltype);
+#endif
 EQLIB_OBJECT void EQ_Character::NotifyPCAffectChange(int,int);
 EQLIB_OBJECT void EQ_Character::ProcessAllStats(void);
 EQLIB_OBJECT void EQ_Character::ProcessEnvironment(void);

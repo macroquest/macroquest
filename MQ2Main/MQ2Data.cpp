@@ -846,11 +846,15 @@ TLO(dataGameTime)
 {
 	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
 	ZeroMemory(pTime, sizeof(struct tm));
-	pTime->tm_mday = ((PWORLDDATA)pWorldData)->Day;
-	pTime->tm_hour = ((PWORLDDATA)pWorldData)->Hour - 1;
+	pTime->tm_sec = 0;
 	pTime->tm_min = ((PWORLDDATA)pWorldData)->Minute;
-	pTime->tm_mon = ((PWORLDDATA)pWorldData)->Month;
+	pTime->tm_hour = ((PWORLDDATA)pWorldData)->Hour - 1;
+	pTime->tm_mday = ((PWORLDDATA)pWorldData)->Day;
+	pTime->tm_mon = ((PWORLDDATA)pWorldData)->Month - 1;
 	pTime->tm_year = ((PWORLDDATA)pWorldData)->Year - 1900;
+	pTime->tm_wday = (((PWORLDDATA)pWorldData)->Day - 1) % 7;
+	pTime->tm_isdst = 0;
+
 	Ret.Ptr = pTime;
 	Ret.Type = pTimeType;
 	return true;
