@@ -2423,6 +2423,8 @@ public:
 		Distance3D = 15,
 		SubID = 16,
 		ZoneID = 17,
+		Next = 18,
+		Prev = 19,
 	};
 	enum GroundMethods
 	{
@@ -2446,6 +2448,8 @@ public:
 		TypeMember(Distance3D);
 		TypeMember(SubID);
 		TypeMember(ZoneID);
+		TypeMember(Next);
+		TypeMember(Prev);
 		//methods
 		TypeMethod(Grab);
 		TypeMethod(DoTarget);
@@ -2489,6 +2493,17 @@ public:
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
+		int id = atoi(Source);
+		PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
+		while (pGroundItem)
+		{
+			if (pGroundItem->ID == id)
+			{
+					VarPtr.Ptr = pGroundItem;
+					return true;
+			}
+			pGroundItem = pGroundItem->pNext;
+		}
 		return false;
 	}
 };

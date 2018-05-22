@@ -4602,7 +4602,7 @@ bool MQ2CharacterType::GETMEMBER()
 							if (pSpawn->Type == SPAWN_NPC) {
 								DWORD aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
 								//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
-								if (aggropct < AggroPct) {
+								if (aggropct <= AggroPct) {
 									Dest.DWord++;
 								}
 							}
@@ -8945,6 +8945,20 @@ bool MQ2GroundType::GETMEMBER()
 		Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z));
 		Dest.Type = pBoolType;
 		return true;
+	case Next:
+        if (Dest.Ptr = pGround->pNext)
+        {
+            Dest.Type = pGroundType;
+            return true;
+        }
+        return false;
+    case Prev:
+		if (Dest.Ptr = pGround->pPrev)
+		{
+			Dest.Type = pGroundType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 #undef pGround

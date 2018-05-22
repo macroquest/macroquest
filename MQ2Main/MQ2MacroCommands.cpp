@@ -524,7 +524,6 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	fclose(fMacro);
-
 	PDEFINE pDef;
 	while (pDefines) {
 		pDef = pDefines->pNext;
@@ -538,6 +537,12 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	DebugSpew("Macro - Starting macro with '/call %s'", szTemp);
 	Call(pChar, szTemp);
+	if (!gMacroBlock) {
+		MacroError("Not a valid macrofile %s no Sub Main found.",Macroname);
+		gszMacroName[0] = 0;
+		gRunning = 0;
+		return;
+	}
 	//std::advance(gMacroBlock->CurrIndex, 1);
 	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
 	if (i != gMacroBlock->Line.end()) {
