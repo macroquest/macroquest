@@ -7413,7 +7413,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 {
 	EQ_Affect eff;
 	eff.ID = bSpell->ID;
-	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, true);
+	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, false);
 	if (bItWillNotStack) {
 		Sleep(0);
 		//return false;
