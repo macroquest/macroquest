@@ -424,7 +424,7 @@ enum MOUSE_DATA_TYPES {
 //KeypressHandler__HandleKeyUp_x has this one
 #define nEQMappableCommands             0x21e
 //found using __BindList_x
-#define nNormalEQMappableCommands       0x208
+#define nNormalEQMappableCommands       (nEQMappableCommands - 0x16)
 
 #define MAX_PC_LEVEL                    110
 #define MAX_NPC_LEVEL                   200
@@ -2310,7 +2310,7 @@ typedef struct _CHARINFONEW {
 /*0x166c*/ int			PvPCurrentStreak;
 /*0x1670*/ PvPKill		LastKill;//size 0x58
 /*0x16c8*/ PvPDeath		LastDeath;//size 0x58
-/*0x1720*/ HashTable<PvPKill24HourData>	PvPLast24HoursKillHash;
+/*0x1720*/ HashTable<PvPKill24HourData>	PvPLast24HoursKillHash;//for sure see 5843D0
 /*0x1730*/ int			PvPInfamyLevel;
 /*0x1734*/ int			PvPVitality;
 /*0x1738*/ UINT			PvPLastInfamyTime;
@@ -2319,9 +2319,6 @@ typedef struct _CHARINFONEW {
 /*0x1744*/ UINT			PvPLastVitalityTime;
 /*0x1748*/ bool			bKeepItemsOnDeath;
 /*0x1749*/ bool			bResetSpecializationSkills;
-/*0x174c*/ int			CharityPointsAvailable;
-/*0x1750*/ int			CharityTotalPointsEarned;
-//to here
 /*0x174c*/ DWORD        RadiantCrystals;//GoodPointsAvailable
 /*0x1750*/ int			GoodTotalPointsEarned;
 /*0x1754*/ DWORD        EbonCrystals;//EvilPointsAvailable
@@ -2514,7 +2511,7 @@ typedef struct _CHARINFONEW {
 /*0x258d*/ bool		bInvulnerable;
 /*0x258e*/ bool		bOnAVehicle;
 /*0x2590*/ EQData::SpellCache spellCache;//size 0x58
-/*0x25e8*/ HashListSet<int, 0x80> DoomEffectsBySlot;//size 0x18 + (0x80 * 4)
+/*0x25e8*/ HashListSet<int, 0x80> DoomEffectsBySlot;//size 0x10 + (0x80 * 4)
 /*0x27f8*/ UINT		LastHitEval;
 /*0x27fc*/
 /*********************** CharacterZoneClient End ***********************/

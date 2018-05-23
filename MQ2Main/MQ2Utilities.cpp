@@ -2765,7 +2765,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 
 	LONG minspelllvl = CalcMinSpellLevel(pSpell);
 	LONG maxspelllvl = CalcMaxSpellLevel(calc, base, max, ticks, minspelllvl, level);
-	LONG value = CalcValue(calc, base, max, 1, minspelllvl, minspelllvl);
+	LONG value = CalcValue(calc, (spa == SPA_STACKING_BLOCK) ? max : base, max, 1, minspelllvl, minspelllvl);
 	LONG finish = CalcValue(calc, (spa == SPA_SPELLDAMAGETAKEN) ? base2 : base, max, ticks, minspelllvl, level);
 
 	BOOL usePercent = (spa == SPA_MOVEMENTRATE || spa == SPA_HASTE || spa == SPA_BARDOVERHASTE || spa == SPA_SPELLDAMAGE || spa == SPA_HEALING || spa == SPA_DOUBLEATTACK || spa == SPA_STUNRESIST || spa == SPA_PROCMOD ||
@@ -3204,6 +3204,8 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatMax(spelleffectname, value, max, szTemp2));
 		break;
 	case 148: //Stacking: Block 
+		strcat_s(szBuff, FormatStacking(spelleffectname, base2, value, /*(max>1000 ? max - 1000 : max)*/ max, spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
+		break;
 	case 149: //Stacking: Overwrite 
 		strcat_s(szBuff, FormatStacking(spelleffectname, calc - 200, value, (max>1000 ? max - 1000 : max), spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
 		break;
@@ -7409,6 +7411,16 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 // ***************************************************************************
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, BOOL bTriggeredEffectCheck)
 {
+	EQ_Affect eff;
+	eff.ID = bSpell->ID;
+	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, true);
+	if (bItWillNotStack) {
+		Sleep(0);
+		//return false;
+	}
+	else {
+		//return true;
+	}
 	if (!aSpell || !bSpell)
 		return false;
 	if (IsBadReadPtr((void*)aSpell, 4))
@@ -7479,7 +7491,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 		//149: Stacking: Overwrite existing spell if slot %d is effect
 		if (bAttrib == 148 || bAttrib == 149) {
 			// in this branch we know bSpell has enough slots
-			int tmpSlot = GetSpellCalc(bSpell, i) - 200 - 1;
+			int tmpSlot = (bAttrib == 148 ? bBase2 - 1 : GetSpellCalc(bSpell, i) - 200 - 1);
 			int tmpAttrib = bBase;
 			if (GetSpellNumEffects(aSpell) > tmpSlot) { // verify aSpell has that slot
 				//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
@@ -7496,13 +7508,14 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 				}
 			}
 		}
+		/*
 		//Now Check to see if the first buff blocks second buff. This is necessary 
 		//because only some spells carry the Block Slot. Ex. Brells and Spiritual 
 		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2 
 		//of which block Brells.
 		if (aAttrib == 148 || aAttrib == 149) {
 			// in this branch we know aSpell has enough slots
-			int tmpSlot = GetSpellCalc(aSpell, i) - 200 - 1;
+			int tmpSlot = (aAttrib == 148 ? aBase2 - 1 : GetSpellCalc(aSpell, i) - 200 - 1);
 			int tmpAttrib = aBase;
 			if (GetSpellNumEffects(bSpell) > tmpSlot) { // verify bSpell has that slot
 				//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(bSpell, tmpSlot), tmpSlot, GetSpellBase(bSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(aSpell, i)));
@@ -7519,6 +7532,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 				}
 			}
 		}
+		*/
 	}
 	//WriteChatf("returning TRUE");
 	return true;

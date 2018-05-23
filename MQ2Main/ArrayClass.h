@@ -696,8 +696,6 @@ public:
 	};
     int DynSize;
     int MaxDynSize;
-    Node *Head;
-    Node *Tail;
     int Count;
     union
     {
