@@ -1602,6 +1602,8 @@ public:
 		IllusionOkWhenMounted = 71,
 		EQSpellDuration = 72,
 		CastByMe = 73,
+		HasSPA = 74,
+		Trigger = 75,
 	};
 	enum SpellMethods
 	{
@@ -1681,6 +1683,8 @@ public:
 		TypeMember(IllusionOkWhenMounted);
 		TypeMember(EQSpellDuration);
 		TypeMember(CastByMe);
+		TypeMember(HasSPA);
+		TypeMember(Trigger);
 		
 	}
 

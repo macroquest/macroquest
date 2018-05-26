@@ -6846,6 +6846,9 @@ FUNCTION_AT_ADDRESS( SpellManager::SpellManager(char *),SpellManager__SpellManag
 #ifdef SpellManager__dSpellManager_x
 FUNCTION_AT_ADDRESS( SpellManager::~SpellManager(void),SpellManager__dSpellManager);
 #endif
+#ifdef SpellManager__GetSpellByGroupAndRank_x
+FUNCTION_AT_ADDRESS(const EQ_Spell* SpellManager::GetSpellByGroupAndRank(int Group, int SubGroup, int Rank, bool bLesserRanksOk),SpellManager__GetSpellByGroupAndRank);
+#endif
 #ifdef CStoryWnd__CStoryWnd_x
 FUNCTION_AT_ADDRESS( CStoryWnd::CStoryWnd(class CXWnd *),CStoryWnd__CStoryWnd);
 #endif

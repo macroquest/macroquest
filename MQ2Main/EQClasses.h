@@ -369,6 +369,7 @@ class ZoneNPCLoadTextManager;
 class CTextOverlay;
 class PcZoneClient;
 class CharacterZoneClient;
+class CZoneGuideWnd;
 // End forward class declarations
 typedef struct _Personal_Loot
 {
@@ -9282,6 +9283,7 @@ public:
 /*0x03BB9C*/
 
 /*0x00*/ EQLIB_OBJECT SpellManager::SpellManager(char *);
+EQLIB_OBJECT const EQ_Spell* SpellManager::GetSpellByGroupAndRank(int Group, int SubGroup, int Rank = -1, bool bLesserRanksOk = false);
 };
 class ClientSpellManager : public SpellManager
 {
@@ -9701,6 +9703,149 @@ class PlayerPointManager
 {
 public:
 EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long b=1);
+};
+enum eZoneGuideConnectionsView
+{
+	eZGCV_None,
+	eZGCV_Selected,
+	eZGCV_PreviewPath,
+	eZGCV_ActivePath,
+	eZGCV_Disabled,
+};
+
+class ZoneGuideConnection
+{
+public:
+	EQZoneIndex DestZone;
+	int TransferTypeIndex; 
+	int RequiredExpansions;//EQExpansionOwned
+	bool bDisabled;
+};
+class ZoneGuideZone
+{
+public:
+	EQZoneIndex ID;
+	PCXSTR Name;
+	int ContinentIndex;
+	int MinLevel;
+	int MaxLevel;
+	DynamicBitField<unsigned short, short> Types;
+	ArrayClass_RO<ZoneGuideConnection> ZoneConnections;
+};
+class ZoneGuideContinent
+{
+public:
+	int ID;
+	int DisplaySequence;
+	PCXSTR Name;
+};
+class ZoneGuideZoneType
+{
+public:
+	int ID;
+	int DisplaySequence;
+	PCXSTR Name;
+};
+class ZoneGuideTransferType
+{
+public:
+	int ID;
+	PCXSTR Description;
+};
+
+class ZoneGuideManagerBase
+{
+public:
+	PVOID vfTable;
+	ZoneGuideZone Zones[829];//see 8D35C1 in may 10 2018 exe -eqmule
+	ArrayClass_RO<ZoneGuideContinent> Continents;
+	ArrayClass_RO<ZoneGuideZoneType> ZoneTypes;
+	ArrayClass_RO<ZoneGuideTransferType> TransferTypes;
+};
+typedef struct _ZonePathData
+{
+	EQZoneIndex ZoneID;
+	int TransferTypeIndex;
+}ZonePathData,*PZonePathData;
+
+class ZoneGuideManagerClient : public ZoneGuideManagerBase
+{
+public:
+EQLIB_OBJECT static ZoneGuideManagerClient& ZoneGuideManagerClient::Instance(void);
+	bool bZoneGuideDataSet;
+	ArrayClass_RO<ZonePathData> ActivePath;
+	ArrayClass_RO<ZonePathData> PreviewPath;
+	int HerosJourneyIndex;
+	bool bIncludeBindZoneInPath;
+	bool bAutoFindActivePath;
+	bool bFindActivePath;
+	EQZoneIndex CurrZone;
+};
+class WndEventHandler2
+{
+public:
+	UINT LastCheckTime;
+};
+class CZoneGuideWnd : public CSidlScreenWnd, public WndEventHandler2
+{
+public:
+	void * VerticalLayout;//CVerticalLayoutWnd
+	CButtonWnd *FilterMyLevelButton;
+	CButtonWnd *FilterAllLevelsButton;
+	CButtonWnd *FilterZonesActiveButton;
+	CButtonWnd *FilterZonesInactiveButton;
+	CButtonWnd *ZoneRunSearchButton;
+	CButtonWnd *ZoneClearSearchButton;	
+	CButtonWnd *SelectCurrentZoneButton;
+	CEditWnd *LevelFilterEdit;
+	CEditWnd *ZoneSearchEdit;
+	CComboWnd *TypeFilterCombo;
+	CComboWnd *ContinentFilterCombo;
+	CListWnd *ZonesList;
+	CLabelWnd *ViewZoneConnectionsSelectedZoneLabel;
+	CLabelWnd *ViewZoneConnectionsPreviewPathLabel;
+	CLabelWnd *ViewZoneConnectionsActivePathLabel;
+	CLabelWnd *ViewZoneConnectionsDisabledLabel;
+	CButtonWnd *ViewZoneConnectionsSelectedZoneButton;
+	CButtonWnd *ViewZoneConnectionsPreviewPathButton;
+	CButtonWnd *ViewZoneConnectionsActivePathButton;
+	CButtonWnd *ViewZoneConnectionsDisabledButton;
+	CButtonWnd *DisableConnectionTemplateButton;
+	CListWnd *ZoneConnectionsList;
+	CButtonWnd *ResetPathStartZoneButton;
+	CButtonWnd *SetPathStartZoneButton;
+	CButtonWnd *SetPathEndZoneButton;
+	CButtonWnd *ShowPathWndButton;
+	CButtonWnd *HidePathWndButton;
+	CButtonWnd *FindPathButton;
+	CButtonWnd *EndFindButton;
+	CButtonWnd *ClearPathWndButton;
+	CButtonWnd *ActivatePathButton;
+	CButtonWnd *IncludeBindZoneInPathGenerationButton;
+	CButtonWnd *ShowPathWndOnPathActivationButton;
+	CButtonWnd *AutoFindActivePathButton;
+	CEditWnd *PathStartZoneEdit;
+	CEditWnd *PathEndZoneEdit;
+	UINT NextButtonRefreshTime;
+	EQZoneIndex eCurrentZone;
+	bool bFilterActive;
+	int FilterLevel;
+	int FilterContinentIndex;
+	int FilterZoneTypeIndex;
+	bool bSelectCurrentZone;
+	PCXSTR ZoneSearchString;
+	eZoneGuideConnectionsView eCurrConnectionsView;
+	EQZoneIndex CurrConnectionsViewSelectedZone;
+	bool bCurrentConnectionsViewPreviewPathChanged;
+	bool bCurrentConnectionsViewActivePathChanged;
+	bool bSetPathStartZoneToCurrentZone;
+	EQZoneIndex StartZone;
+	EQZoneIndex EndZone;
+	bool bZoneGuideDataChanged;
+	bool bZoneListChanged;
+	bool bZoneConnectionsListChanged;
+	bool bPathStartZoneChanged;
+	int RightClickMenuID;
 };
 
 #pragma pack(push)

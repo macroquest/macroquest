@@ -6434,6 +6434,55 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		return true;
+	case HasSPA:
+		Dest.DWord = false;
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				int spa = GETNUMBER();
+				if (IsSPAEffect(pSpell, spa))
+				{
+					Dest.DWord = true;
+				}
+			}
+		}
+		Dest.Type = pBoolType;
+		return true;
+	case Trigger:
+	{
+		PSPELL pmyspell = pSpell;
+		bool spafound = false;
+		if(IsSPAEffect(pSpell,SPA_TRIGGER_BEST_SPELL_GROUP))
+		{
+			spafound = true;
+		}
+		if (pSpellMgr && spafound)
+		{
+			int index = 0;
+			if (ISINDEX())
+			{
+				if (ISNUMBER())
+				{
+					index = GETNUMBER();
+					if (index > 0)
+						index--;
+					else
+						index = 0;
+				}
+			}
+			int numeffects = GetSpellNumEffects(pSpell);
+			if (numeffects > index) {
+				if (int groupid = GetSpellBase2(pmyspell, index)) {
+					PSPELL pTrigger = (PSPELL)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
+					Dest.Ptr = pTrigger;
+					Dest.Type = pSpellType;
+					return true;
+				}
+			}
+		}
+		break;
+	}
 	}
 #undef pSpell
 	return false;

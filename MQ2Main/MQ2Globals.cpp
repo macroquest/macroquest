@@ -247,6 +247,7 @@ namespace MQ2Globals
 		#ifdef EMU
 		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
 		#endif
+		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
 		ppWndMgr = (CXWndManager**)pinstCXWndManager;
 		ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
@@ -1262,7 +1263,8 @@ namespace MQ2Globals
 	CConfirmationDialog **ppConfirmationDialog = 0;
 	CEQSuiteTextureLoader *ppEQSuiteTextureLoader = 0;
 	PointMerchantWnd **ppPointMerchantWnd = 0;
-
+	CZoneGuideWnd **ppCZoneGuideWnd = 0;
+	
 	CSidlManager **ppSidlMgr = 0;
 	CXWndManager **ppWndMgr = 0;
 	KeypressHandler **ppKeypressHandler = 0;
@@ -1541,6 +1543,7 @@ namespace MQ2Globals
 	#ifdef EMU
 	INITIALIZE_EQGAME_OFFSET(pinstCPointMerchantWnd);
 	#endif
+	INITIALIZE_EQGAME_OFFSET(pinstCZoneGuideWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPopupWndManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCProgressionSelectionWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPvPStatsWnd);
@@ -2145,6 +2148,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(msgTokenText);
 	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
 	INITIALIZE_EQGAME_OFFSET(Spellmanager__LoadTextSpells);
+	INITIALIZE_EQGAME_OFFSET(SpellManager__GetSpellByGroupAndRank);
 	INITIALIZE_EQGAME_OFFSET(CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__ItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsEquippedLocation);

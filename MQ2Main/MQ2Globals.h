@@ -640,9 +640,11 @@ namespace MQ2Globals
 	EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
 	EQLIB_VAR CEQSuiteTextureLoader *ppEQSuiteTextureLoader;
 	EQLIB_VAR PointMerchantWnd **ppPointMerchantWnd;
+	EQLIB_VAR CZoneGuideWnd **ppCZoneGuideWnd;
 	
 	
 #define pPointMerchantWnd (*ppPointMerchantWnd)
+#define pCZoneGuideWnd (*ppCZoneGuideWnd)
 #define pConfirmationDialog (*ppConfirmationDialog)
 #define pRewardSelectionWnd (*ppRewardSelectionWnd)
 #define pAdvancedLootWnd (*ppAdvancedLootWnd)
@@ -1009,7 +1011,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCConfirmationDialog;
 	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
 	EQLIB_VAR DWORD pinstCPointMerchantWnd;
-	
+	EQLIB_VAR DWORD pinstCZoneGuideWnd;
+
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __CastRay2;
 	EQLIB_VAR DWORD __HeadingDiff;
@@ -1605,6 +1608,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD msgTokenText;
 	EQLIB_VAR DWORD SpellManager__SpellManager;
 	EQLIB_VAR DWORD Spellmanager__LoadTextSpells;
+	EQLIB_VAR DWORD SpellManager__GetSpellByGroupAndRank;
 	EQLIB_VAR DWORD CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility;
 	EQLIB_VAR DWORD ItemGlobalIndex__IsKeyRingLocation;
 	EQLIB_VAR DWORD ItemGlobalIndex__ItemGlobalIndex;

@@ -1042,6 +1042,7 @@ GNU General Public License for more details.
 #define SpellManager__vftable_x                                    0xAA3810
 #define SpellManager__SpellManager_x                               0x663AB0
 #define Spellmanager__LoadTextSpells_x                             0x663E30
+#define SpellManager__GetSpellByGroupAndRank_x                     0x663C80
 
 //CCollisionInfoTargetVisibility
 #define CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x   0x96DE40

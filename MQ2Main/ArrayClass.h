@@ -780,4 +780,12 @@ public:
 	int ChunkAlloc;
 	bool bValid;
 };
+template <typename TNumBitsType, typename TElementType> class DynamicBitField
+{
+	typedef TNumBitsType NumBitsType;
+	typedef TElementType ElementType;
+	NumBitsType NumBits;
+	ElementType Element;
+	ElementType* Elements;
+};
 #pragma pack(pop)

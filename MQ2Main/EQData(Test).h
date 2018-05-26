@@ -494,6 +494,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_HEALING                     125
 #define SPA_REAGENTCHANCE               131
 #define SPA_SPELLMANACOST               132
+#define SPA_STACKING_BLOCK              148
 #define SPA_MIRROR   					156
 #define SPA_SPELL_GUARD					161
 #define SPA_MELEE_GUARD					162
@@ -527,6 +528,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_MELEE_THRESHOLD_GUARD		451
 #define SPA_SPELL_THRESHOLD_GUARD		452
 #define SPA_SPELLDAMAGETAKEN			483
+#define SPA_TRIGGER_BEST_SPELL_GROUP	470
 
 #define TT_PBAE                         0x04
 #define TT_TARGETED_AE                  0x08
