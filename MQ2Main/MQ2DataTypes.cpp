@@ -10656,9 +10656,10 @@ bool MQ2InvSlotType::GETMEMBER()
 							}
 							if (pInvslotwnd) {
 								if (CInvSlot*pcinvslot = pInvslotwnd->pEQInvSlot) {
-									Dest.Ptr = NULL;
-									pcinvslot->GetItemBase(&(PCONTENTS)Dest.Ptr);
-									if (Dest.Ptr) {
+									struct _CONTENTS *pC = NULL;
+									pcinvslot->GetItemBase(&pC);
+									if (pC) {
+										Dest.Ptr = pC;
 										Dest.Type = pItemType;
 										return true;
 									}
