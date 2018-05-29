@@ -5590,61 +5590,63 @@ BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
 
 BOOL IsNamed(PSPAWNINFO pSpawn)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	if (pSpawn) {
+		CHAR szTemp[MAX_STRING] = { 0 };
 
-	if (GetSpawnType(pSpawn) != NPC)
-		return false;
-	if (!IsTargetable(pSpawn))
-		return false;
-	if (pSpawn->mActorClient.Class >= 20 && pSpawn->mActorClient.Class <= 35)  // NPC GMs
-		return false;
-	if (pSpawn->mActorClient.Class == 40)  // NPC bankers
-		return false;
-	if (pSpawn->mActorClient.Class == 41 || pSpawn->mActorClient.Class == 70)  // NPC/Quest/TBS merchants
-		return false;
-	if (pSpawn->mActorClient.Class == 60 || pSpawn->mActorClient.Class == 61)  //Ldon Merchants/Recruiters
-		return false;
-	if (pSpawn->mActorClient.Class == 62)  // Destructible Objects
-		return false;
-	if (pSpawn->mActorClient.Class == 63 || pSpawn->mActorClient.Class == 64)  // Tribute Master/Guild Tribute Master
-		return false;
-	if (pSpawn->mActorClient.Class == 66)  // Guild Banker
-		return false;
-	if (pSpawn->mActorClient.Class == 67 || pSpawn->mActorClient.Class == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
-		return false;
-	if (pSpawn->mActorClient.Class == 69)  // Fellowship Registrar
-		return false;
-	if (pSpawn->mActorClient.Class == 71)  // Mercenary Liason
-		return false;
-
-	strcpy_s(szTemp, pSpawn->Name);
-	char *Next_Token1 = 0;
-	PCHAR Cmd = strtok_s(szTemp, " ",&Next_Token1);
-
-	// Checking for mobs that have 'A' or 'An' as their first name
-	if (Cmd[0] == 'A')
-	{
-		if (Cmd[1] == '_')
+		if (GetSpawnType(pSpawn) != NPC)
 			return false;
-		else if (Cmd[1] == 'n')
-			if (Cmd[2] == '_')
-				return false;
-	}
-	if ((!_strnicmp(Cmd, "Guard", 5)) ||
-		(!_strnicmp(Cmd, "Defender", 8)) ||
-		(!_strnicmp(Cmd, "Soulbinder", 10)) ||
-		(!_strnicmp(Cmd, "Aura", 4)) ||
-		(!_strnicmp(Cmd, "Sage", 4)) ||
-		//(!_strnicmp(szTemp,"High_Priest",11))   ||
-		(!_strnicmp(Cmd, "Ward", 4)) ||
-		//(!_strnicmp(szTemp,"Shroudkeeper",12))  ||
-		(!_strnicmp(Cmd, "Eye of", 6)) ||
-		(!_strnicmp(Cmd, "Imperial_Crypt", 14)) ||
-		(!_strnicmp(Cmd, "Diaku", 5)))
-		return false;
-	if (isupper(Cmd[0]) || Cmd[0] == '#')
-		return true;
+		if (!IsTargetable(pSpawn))
+			return false;
+		if (pSpawn->mActorClient.Class >= 20 && pSpawn->mActorClient.Class <= 35)  // NPC GMs
+			return false;
+		if (pSpawn->mActorClient.Class == 40)  // NPC bankers
+			return false;
+		if (pSpawn->mActorClient.Class == 41 || pSpawn->mActorClient.Class == 70)  // NPC/Quest/TBS merchants
+			return false;
+		if (pSpawn->mActorClient.Class == 60 || pSpawn->mActorClient.Class == 61)  //Ldon Merchants/Recruiters
+			return false;
+		if (pSpawn->mActorClient.Class == 62)  // Destructible Objects
+			return false;
+		if (pSpawn->mActorClient.Class == 63 || pSpawn->mActorClient.Class == 64)  // Tribute Master/Guild Tribute Master
+			return false;
+		if (pSpawn->mActorClient.Class == 66)  // Guild Banker
+			return false;
+		if (pSpawn->mActorClient.Class == 67 || pSpawn->mActorClient.Class == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
+			return false;
+		if (pSpawn->mActorClient.Class == 69)  // Fellowship Registrar
+			return false;
+		if (pSpawn->mActorClient.Class == 71)  // Mercenary Liason
+			return false;
 
+		strcpy_s(szTemp, pSpawn->Name);
+		char *Next_Token1 = 0;
+		if (PCHAR Cmd = strtok_s(szTemp, " ", &Next_Token1)) {
+
+			// Checking for mobs that have 'A' or 'An' as their first name
+			if (Cmd[0] == 'A')
+			{
+				if (Cmd[1] == '_')
+					return false;
+				else if (Cmd[1] == 'n')
+					if (Cmd[2] == '_')
+						return false;
+			}
+			if ((!_strnicmp(Cmd, "Guard", 5)) ||
+				(!_strnicmp(Cmd, "Defender", 8)) ||
+				(!_strnicmp(Cmd, "Soulbinder", 10)) ||
+				(!_strnicmp(Cmd, "Aura", 4)) ||
+				(!_strnicmp(Cmd, "Sage", 4)) ||
+				//(!_strnicmp(szTemp,"High_Priest",11))   ||
+				(!_strnicmp(Cmd, "Ward", 4)) ||
+				//(!_strnicmp(szTemp,"Shroudkeeper",12))  ||
+				(!_strnicmp(Cmd, "Eye of", 6)) ||
+				(!_strnicmp(Cmd, "Imperial_Crypt", 14)) ||
+				(!_strnicmp(Cmd, "Diaku", 5)))
+				return false;
+			if (isupper(Cmd[0]) || Cmd[0] == '#')
+				return true;
+		}
+	}
 	return false;
 }
 

@@ -269,10 +269,11 @@ VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsub
 
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value,size_t ValueLen)
 {
-    strcpy_s(Value,ValueLen,VarName);
-    if (!GetCharInfo())
-		return strlen(Value);
-    return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value, ValueLen));
+	strcpy_s(Value, ValueLen, VarName);
+	if (PCHARINFO pChar = GetCharInfo()) {
+		return strlen(ParseMacroParameter(pChar->pSpawn, Value, ValueLen));
+	}
+	return strlen(Value);
 }
 #ifdef ISXEQ
 int CMD_FlashOnTells(int argc, char *argv[])

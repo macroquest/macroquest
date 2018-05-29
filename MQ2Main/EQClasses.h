@@ -2574,10 +2574,26 @@ EQLIB_OBJECT void CGemsGameWnd::Update(void);
 EQLIB_OBJECT void CGemsGameWnd::UpdateDisplay(void);
 EQLIB_OBJECT void CGemsGameWnd::WriteHighScores(void);
 };
-
-class CGiveWnd : public CSidlScreenWnd
+class WndEventHandler2
 {
 public:
+	UINT LastCheckTime;
+};
+class PopDialogHandler
+{
+public:
+	//this has a vftable
+	DWORD vfTable;
+};
+class CGiveWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler2
+{
+public:
+	CButtonWnd  *pMoneyButton[4];
+    CButtonWnd  *TradeButton;
+    CButtonWnd *CancelButton;
+	CLabel *NPCNameLabel;
+	CInvSlotWnd *pInvSlotWnd[4];
+
 EQLIB_OBJECT CGiveWnd::CGiveWnd(class CXWnd *);
 EQLIB_OBJECT void CGiveWnd::Activate(void);
 EQLIB_OBJECT void CGiveWnd::UpdateGiveDisplay(void);
@@ -6105,9 +6121,25 @@ EQLIB_OBJECT void CTrackingWnd::UpdateTrackingControls(void);
 EQLIB_OBJECT void CTrackingWnd::UpdateTrackingList(bool);
 };
 
-class CTradeWnd : public CSidlScreenWnd
+class CTradeWnd : public CSidlScreenWnd, public WndEventHandler2
 {
 public:
+	UINT NextRefreshTime;
+	bool bInventoryWasOpen;
+    CButtonWnd *HisMoneyButton[4];
+    CButtonWnd *MyMoneyButton[4];
+    CButtonWnd *TradeButton;
+    CButtonWnd *CancelButton;
+	CLabel *HisNameLabel;
+	CLabel *MyNameLabel;
+	CInvSlotWnd *pInvSlotWnd[16];
+	long HisMoney[4];
+	long MyMoney[4];
+	ItemBaseContainer TradeItems;//16 items
+	bool bHisReadyTrade;
+	bool bMyReadyTrade;
+	bool bIsTrading;
+
 EQLIB_OBJECT CTradeWnd::CTradeWnd(class CXWnd *);
 EQLIB_OBJECT bool CTradeWnd::IsMyTradeSlot(int,bool *);
 EQLIB_OBJECT void CTradeWnd::Activate(class EQPlayer *,bool);
@@ -9781,11 +9813,7 @@ EQLIB_OBJECT static ZoneGuideManagerClient& ZoneGuideManagerClient::Instance(voi
 	bool bFindActivePath;
 	EQZoneIndex CurrZone;
 };
-class WndEventHandler2
-{
-public:
-	UINT LastCheckTime;
-};
+
 class CZoneGuideWnd : public CSidlScreenWnd, public WndEventHandler2
 {
 public:

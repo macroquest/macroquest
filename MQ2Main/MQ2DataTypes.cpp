@@ -10482,7 +10482,7 @@ bool MQ2PetType::GETMEMBER()
 
 bool MQ2InvSlotType::GETMEMBER()
 {
-#define nInvSlot (VarPtr.Int)
+	int nInvSlot = VarPtr.Int;
 	PMQ2TYPEMEMBER pMember = MQ2InvSlotType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -10494,11 +10494,14 @@ bool MQ2InvSlotType::GETMEMBER()
 		return true;
 	case Item:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			if (pChar2->pInventoryArray) {
-				if (Dest.Ptr = pChar2->pInventoryArray->InventoryArray[nInvSlot])
+			if (pChar2->pInventoryArray && nInvSlot) {
+				if (nInvSlot < NUM_INV_SLOTS)
 				{
-					Dest.Type = pItemType;
-					return true;
+					if (Dest.Ptr = pChar2->pInventoryArray->InventoryArray[nInvSlot])
+					{
+						Dest.Type = pItemType;
+						return true;
+					}
 				}
 				else
 				{
@@ -10573,6 +10576,92 @@ bool MQ2InvSlotType::GETMEMBER()
 								{
 									Dest.Type = pItemType;
 									return true;
+								}
+							}
+						}
+						else if (nInvSlot > 2999 && nInvSlot < 3016)
+						{
+							CInvSlotWnd *pInvslotwnd = 0;
+							if (pGiveWnd && pGiveWnd->dShow) {
+								CGiveWnd *pWnd = (CGiveWnd*)pGiveWnd;
+								switch (nInvSlot)
+								{
+								case 3001:
+									pInvslotwnd = pWnd->pInvSlotWnd[1];
+									break;
+								case 3002:
+									pInvslotwnd = pWnd->pInvSlotWnd[2];
+									break;
+								case 3003:
+									pInvslotwnd = pWnd->pInvSlotWnd[3];
+									break;	
+								default:
+									pInvslotwnd = pWnd->pInvSlotWnd[0];
+									break;
+								}
+							}
+							else if (pTradeWnd && pTradeWnd->dShow) {
+								CTradeWnd *pWnd = (CTradeWnd*)pTradeWnd;
+								switch (nInvSlot)
+								{
+								case 3001:
+									pInvslotwnd = pWnd->pInvSlotWnd[1];
+									break;
+								case 3002:
+									pInvslotwnd = pWnd->pInvSlotWnd[2];
+									break;
+								case 3003:
+									pInvslotwnd = pWnd->pInvSlotWnd[3];
+									break;
+								case 3004:
+									pInvslotwnd = pWnd->pInvSlotWnd[4];
+									break;
+								case 3005:
+									pInvslotwnd = pWnd->pInvSlotWnd[5];
+									break;
+								case 3006:
+									pInvslotwnd = pWnd->pInvSlotWnd[6];
+									break;
+								case 3007:
+									pInvslotwnd = pWnd->pInvSlotWnd[7];
+									break;
+								case 3008:
+									pInvslotwnd = pWnd->pInvSlotWnd[8];
+									break;
+								case 3009:
+									pInvslotwnd = pWnd->pInvSlotWnd[9];
+									break;
+								case 3010:
+									pInvslotwnd = pWnd->pInvSlotWnd[10];
+									break;
+								case 3011:
+									pInvslotwnd = pWnd->pInvSlotWnd[11];
+									break;
+								case 3012:
+									pInvslotwnd = pWnd->pInvSlotWnd[12];
+									break;
+								case 3013:
+									pInvslotwnd = pWnd->pInvSlotWnd[13];
+									break;
+								case 3014:
+									pInvslotwnd = pWnd->pInvSlotWnd[14];
+									break;
+								case 3015:
+									pInvslotwnd = pWnd->pInvSlotWnd[15];
+									break;
+								default:
+									pInvslotwnd = pWnd->pInvSlotWnd[0];
+									break;
+								}
+							}
+							if (pInvslotwnd) {
+								if (CInvSlot*pcinvslot = pInvslotwnd->pEQInvSlot) {
+									Dest.Ptr = NULL;
+									pcinvslot->GetItemBase(&(PCONTENTS)Dest.Ptr);
+									if (Dest.Ptr) {
+										Dest.Type = pItemType;
+										return true;
+									}
 								}
 							}
 						}
@@ -10698,7 +10787,6 @@ bool MQ2InvSlotType::GETMEMBER()
 	}
 
 	return false;
-#undef nInvSlot
 }
 
 

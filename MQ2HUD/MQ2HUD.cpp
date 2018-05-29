@@ -611,7 +611,9 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 					}
 				}
 				if(bOkToCheck) {
-					ParseMacroParameter(GetCharInfo()->pSpawn, pElement->PreParsed);
+					if (PCHARINFO pChar = GetCharInfo()) {
+						ParseMacroParameter(pChar->pSpawn, pElement->PreParsed);
+					}
 				}
 				else {
 					pElement->PreParsed[0] = '\0';
