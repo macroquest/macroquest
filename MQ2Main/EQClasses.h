@@ -1606,6 +1606,16 @@ EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
 class CContainerMgr
 {
 public:
+	DWORD vfTable;
+	CContainerWnd *pContainerWnds[38];
+	ArrayClass<CContainerWnd*> ContainerWndsToDelete;
+	VePointer<CONTENTS> pWorldContainer;
+	DWORD WorldContainerSerialNumber;
+	int WorldContainerRealEstateID;
+	int WorldContainerRealEstateItemID;
+	DWORD Timer;
+	bool bShowDone;
+
 EQLIB_OBJECT CContainerMgr::CContainerMgr(void);
 EQLIB_OBJECT bool CContainerMgr::CloseAllContainers(void);
 EQLIB_OBJECT class EQ_Item * CContainerMgr::GetWorldContainerItem(int);
@@ -1622,6 +1632,7 @@ EQLIB_OBJECT CContainerMgr::~CContainerMgr(void);
 //EQLIB_OBJECT void * CContainerMgr::`vector deleting destructor'(unsigned int);
 // private
 EQLIB_OBJECT class CContainerWnd * CContainerMgr::GetFreeContainerWnd(void);
+EQLIB_OBJECT void CContainerMgr::OpenExperimentContainer(const VePointer<CONTENTS>& pCont, const ItemGlobalIndex& Location);
 };
 
 class CContainerWnd : public CSidlScreenWnd

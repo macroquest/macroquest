@@ -1091,6 +1091,9 @@ GNU General Public License for more details.
 #define CResolutionHandler__UpdateResolution_x                     0x973B60
 #define CResolutionHandler__GetWindowedStyle_x                     0x65B8E0
 
+//CContainerMgr
+#define CContainerMgr__OpenExperimentContainer_x                   0x6F2B60
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01

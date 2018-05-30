@@ -1130,8 +1130,12 @@ TLO(dataInvSlot)
 		CHAR Temp[MAX_STRING] = { 0 };
 		strcpy_s(Temp, GETFIRST());
 		_strlwr_s(Temp);
-		Ret.DWord = ItemSlotMap[Temp];
-		if (Ret.DWord || !_stricmp(Temp, "charm"))
+		Ret.DWord = 0;
+		if (ItemSlotMap.find(Temp) != ItemSlotMap.end())
+		{
+			Ret.DWord = ItemSlotMap[Temp];
+		}
+		if (Ret.DWord || !_stricmp(Temp, "charm") || !_stricmp(Temp, "enviro"))
 		{
 			Ret.Type = pInvSlotType;
 			return true;

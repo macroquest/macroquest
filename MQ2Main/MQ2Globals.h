@@ -1188,6 +1188,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD COptionsWnd__FillChatFilterList;
 	EQLIB_VAR DWORD CResolutionHandler__UpdateResolution;
 	EQLIB_VAR DWORD CResolutionHandler__GetWindowedStyle;
+	EQLIB_VAR DWORD CContainerMgr__OpenExperimentContainer;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;

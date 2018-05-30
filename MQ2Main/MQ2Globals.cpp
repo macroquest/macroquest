@@ -2162,6 +2162,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetDefaultUIPath);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetTexture);
+	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenExperimentContainer);
+	
 
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);

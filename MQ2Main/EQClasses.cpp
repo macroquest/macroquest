@@ -1138,6 +1138,9 @@ FUNCTION_AT_ADDRESS( int CConfirmationDialog::WndNotification(class CXWnd *,unsi
 #ifdef CContainerMgr__GetFreeContainerWnd_x
 FUNCTION_AT_ADDRESS(class CContainerWnd *  CContainerMgr::GetFreeContainerWnd(void),CContainerMgr__GetFreeContainerWnd);
 #endif
+#ifdef CContainerMgr__OpenExperimentContainer_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::OpenExperimentContainer(const VePointer<CONTENTS>& pCont, const ItemGlobalIndex& Location),CContainerMgr__OpenExperimentContainer);
+#endif
 #ifdef CContainerMgr__CContainerMgr_x
 FUNCTION_AT_ADDRESS( CContainerMgr::CContainerMgr(void),CContainerMgr__CContainerMgr);
 #endif

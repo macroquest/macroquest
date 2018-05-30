@@ -189,6 +189,7 @@ void InitializeMQ2Windows()
     AddSlotArray(trade,16,3000);
     AddSlotArray(world,10,4000);
     AddSlotArray(enviro,10,4000);
+    ItemSlotMap["enviro"] = 4100;
     AddSlotArray(loot,31,5000);
     AddSlotArray(merchant,80,6000);
     AddSlotArray(bazaar,80,7000);

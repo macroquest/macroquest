@@ -7882,24 +7882,33 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case FirstFreeSlot:
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
+	{
+		PCONTENTS pTheCont = pItem;
+		if (PITEMINFO pTheItem = GetItemFromContents(pItem))
 		{
-			Dest.DWord = 0;
-			if (pItem->Contents.ContainedItems.pItems) {
-				for (unsigned long N = 0; N < GetItemFromContents(pItem)->Slots; N++) {
-					if (!pItem->Contents.ContainedItems.pItems->Item[N]) {
-						Dest.DWord = N + 1;
-						break;
+			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))//a worldcontainer has its item in Item1
+			{
+				Dest.DWord = 1;
+				if (pTheCont->Contents.ContainedItems.pItems) {
+					for (unsigned long N = 0; N < pTheItem->Slots; N++) {
+						if (!pTheCont->Contents.ContainedItems.pItems->Item[N]) {
+							Dest.DWord = N + 1;
+							break;
+						}
 					}
 				}
+				Dest.Type = pIntType;
+				return true;
 			}
-			Dest.Type = pIntType;
-			return true;
 		}
 		return false;
+	}
 	case SlotsUsedByItem:
-		if (PCONTENTS pthecontent = ((PCONTENTS)VarPtr.Ptr)) {
-			if (GetItemFromContents(pthecontent)->Type == ITEMTYPE_PACK)
+	{
+		PCONTENTS pTheCont = pItem;
+		if (PITEMINFO pTheItem = GetItemFromContents(pItem))
+		{
+			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))
 			{
 				Dest.DWord = 0;
 				BOOL bExact = FALSE;
@@ -7912,10 +7921,10 @@ bool MQ2ItemType::GETMEMBER()
 				CHAR szNameTemp[MAX_STRING] = { 0 };
 				strcpy_s(szNameTemp, pName1);
 				_strlwr_s(szNameTemp);
-				if (pthecontent->Contents.ContainedItems.pItems) {
-					for (unsigned long N = 0; N < GetItemFromContents(pthecontent)->Slots; N++) {
-						if (pthecontent->Contents.ContainedItems.pItems->Item[N]) {
-							if (PITEMINFO bagitem = GetItemFromContents(pthecontent->Contents.ContainedItems.pItems->Item[N])) {
+				if (pTheCont->Contents.ContainedItems.pItems) {
+					for (unsigned long N = 0; N < pTheItem->Slots; N++) {
+						if (pTheCont->Contents.ContainedItems.pItems->Item[N]) {
+							if (PITEMINFO bagitem = GetItemFromContents(pTheCont->Contents.ContainedItems.pItems->Item[N])) {
 								strcpy_s(DataTypeTemp, bagitem->Name);
 								_strlwr_s(DataTypeTemp);
 								if (bExact) {
@@ -7937,6 +7946,7 @@ bool MQ2ItemType::GETMEMBER()
 			}
 		}
 		return false;
+	}
 	case Heirloom:
 		Dest.DWord = GetItemFromContents(pItem)->Heirloom;
 		Dest.Type = pBoolType;
@@ -10479,7 +10489,15 @@ bool MQ2PetType::GETMEMBER()
 #undef pPetInfoWindow
 	return false;
 }
-
+// item slots:
+// 2000-2015 bank window
+// 2500-2503 shared bank
+// 5000-5031 loot window
+// 3000-3015 trade window (including npc) 3000-3007 are your slots, 3008-3015 are other character's slots
+// 4000-4010 world container window
+// 6000-6080 merchant window
+// 7000-7080 bazaar window
+// 8000-8031 inspect window
 bool MQ2InvSlotType::GETMEMBER()
 {
 	int nInvSlot = VarPtr.Int;
@@ -10572,11 +10590,11 @@ bool MQ2InvSlotType::GETMEMBER()
 									Dest.Ptr = pCharInfo->pBankArray->Bank[22];
 								else if (nInvSlot == 2501)
 									Dest.Ptr = pCharInfo->pBankArray->Bank[23];
-								if (Dest.Ptr)
-								{
-									Dest.Type = pItemType;
-									return true;
-								}
+									if (Dest.Ptr)
+									{
+										Dest.Type = pItemType;
+										return true;
+									}
 							}
 						}
 						else if (nInvSlot > 2999 && nInvSlot < 3016)
@@ -10594,7 +10612,7 @@ bool MQ2InvSlotType::GETMEMBER()
 									break;
 								case 3003:
 									pInvslotwnd = pWnd->pInvSlotWnd[3];
-									break;	
+									break;
 								default:
 									pInvslotwnd = pWnd->pInvSlotWnd[0];
 									break;
@@ -10663,6 +10681,32 @@ bool MQ2InvSlotType::GETMEMBER()
 										Dest.Type = pItemType;
 										return true;
 									}
+								}
+							}
+						}
+						else if (nInvSlot > 3999 && nInvSlot < 4011)//enviro slots
+						{
+							if (CContainerMgr*pWnd = pContainerMgr)
+							{
+								int index = nInvSlot - 4000;
+								if (pWnd->pWorldContainer.pObject) {
+									if (index < (int)pWnd->pWorldContainer.pObject->Contents.ContainedItems.Size && pWnd->pWorldContainer.pObject->Contents.ContainedItems.pItems)
+									{
+										Dest.Ptr = pWnd->pWorldContainer.pObject->Contents.ContainedItems.pItems->Item[index];
+										Dest.Type = pItemType;
+										return true;
+									}
+								}
+							}
+						}
+						else if (nInvSlot == 4100)//enviro
+						{
+							if (CContainerMgr*pWnd = pContainerMgr)
+							{
+								if (pWnd->pWorldContainer.pObject) {
+									Dest.Ptr = pWnd->pWorldContainer.pObject;
+									Dest.Type = pItemType;
+									return true;
 								}
 							}
 						}
@@ -10762,6 +10806,19 @@ bool MQ2InvSlotType::GETMEMBER()
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;
+		}
+		else if (nInvSlot == 4100)//its the worldcontainer
+		{
+			if (CContainerMgr *pContmgr = pContainerMgr)
+			{
+				if (PITEMINFO pIteminf = GetItemFromContents(pContmgr->pWorldContainer.pObject))
+				{
+					strcpy_s(DataTypeTemp, pIteminf->Name);
+					Dest.Ptr = &DataTypeTemp[0];
+					Dest.Type = pStringType;
+					return true;
+				}
+			}
 		}
 		else if (nInvSlot >= 6000 && nInvSlot<6080)
 		{
