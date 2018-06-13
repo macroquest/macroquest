@@ -2223,6 +2223,13 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord = pSpawn->bWaitingForPort;
 		Dest.Type = pBoolType;
 		return true;
+	case ActorDef:
+	{
+		strcpy_s(DataTypeTemp, pSpawn->mActorClient.ActorDef);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	default:
 		return false;
 		}
@@ -3983,7 +3990,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case TargetOfTarget:
-		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
+		if (gGameState == GAMESTATE_INGAME && pLocalPlayer && pChar->pSpawn)
 			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->TargetOfTarget)) {
 				Dest.Type = pSpawnType;
 				return true;
@@ -4013,7 +4020,7 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case RaidMarkNPC:
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
+		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
 			if (ISINDEX() && ISNUMBER())
 			{
 				int N = GETNUMBER() - 1;
@@ -4029,7 +4036,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		return false;
 	case GroupMarkNPC:
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
+		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
 			if (ISINDEX() && ISNUMBER())
 			{
 				int N = GETNUMBER() - 1;
@@ -4380,9 +4387,13 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Fellowship:
-		Dest.Ptr = &pChar->pSpawn->Fellowship;
-		Dest.Type = pFellowshipType;
-		return true;
+		if (pChar->pSpawn)
+		{
+			Dest.Ptr = &pChar->pSpawn->Fellowship;
+			Dest.Type = pFellowshipType;
+			return true;
+		}
+		return false;
 	case Downtime:
 		if (pChar->DowntimeStamp)
 			Dest.DWord = ((pChar->Downtime - (GetFastTime() - pChar->DowntimeStamp)) / 6) + 1;
@@ -11173,24 +11184,29 @@ bool MQ2GroupType::GETMEMBER()
 		}
 		else
 		{
-			Dest.DWord = 0;
-			for (i = 1; i<6; i++)
-				if (pChar->pGroupInfo->pMember[i])
+			if (pChar->pSpawn)
+			{
+				Dest.DWord = 0;
+				if (!_stricmp(pChar->pSpawn->Name, GETFIRST())) {
+					Dest.DWord = 0;
+					Dest.Type = pGroupMemberType;
+					return true;
+				}
+				for (i = 1; i < 6; i++)
 				{
-					Dest.DWord++;
-					CHAR Name[MAX_STRING] = { 0 };
-					GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);
-					CleanupName(Name, sizeof(Name), FALSE, FALSE);//we do this to fix the mercenaryname bug
-					if (GETFIRST()[0] != '\0' && !_stricmp(Name, GETFIRST()))
+					if (pChar->pGroupInfo->pMember[i])
 					{
-						Dest.Type = pGroupMemberType;
-						return true;
+						Dest.DWord++;
+						CHAR Name[MAX_STRING] = { 0 };
+						GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);
+						CleanupName(Name, sizeof(Name), FALSE, FALSE);//we do this to fix the mercenaryname bug
+						if (GETFIRST()[0] != '\0' && !_stricmp(Name, GETFIRST()))
+						{
+							Dest.Type = pGroupMemberType;
+							return true;
+						}
 					}
 				}
-			if (!_stricmp(pChar->pSpawn->Name, GETFIRST())) {
-				Dest.DWord = 0;
-				Dest.Type = pGroupMemberType;
-				return true;
 			}
 			return false;
 		}
@@ -11206,7 +11222,8 @@ bool MQ2GroupType::GETMEMBER()
 	return true;
 	case Leader:
 	{
-		if (!pChar->pGroupInfo->pLeader) return false;
+		if (!pChar->pGroupInfo->pLeader || !pChar->pSpawn)
+			return false;
 		CHAR LeaderName[MAX_STRING] = { 0 };
 		GetCXStr(pChar->pGroupInfo->pLeader->pName, LeaderName, MAX_STRING);
 		Dest.DWord = 0;
@@ -11405,8 +11422,10 @@ bool MQ2GroupType::GETMEMBER()
 		int nummembers = 1;
 
 		__int64 hps = 0;
-		if (pChar->pSpawn->HPCurrent && pChar->pSpawn->HPMax)
+		if (pChar->pSpawn && pChar->pSpawn->HPCurrent && pChar->pSpawn->HPMax)
+		{
 			hps = (pChar->pSpawn->HPCurrent / pChar->pSpawn->HPMax) * 100;
+		}
 		for (i = 1; i < 6; i++) {
 			if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE) {
 				hps += pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent;

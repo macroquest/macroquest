@@ -1446,26 +1446,49 @@ public:
 	//CCollisionInfoTargetVisibility(const CLineSegment& rLineSegment, const PlayerBase* pPlayerSelf, const PlayerBase* pPlayerOther);
 EQLIB_OBJECT CCollisionInfoTargetVisibility::CCollisionInfoTargetVisibility(CLineSegment *rLineSegment, EQPlayer* pSelf, EQPlayer* pOther);
 };
-class CColorPickerWnd : public CSidlScreenWnd
+class WndEventHandler2
 {
 public:
-EQLIB_OBJECT CColorPickerWnd::CColorPickerWnd(class CXWnd *);
-EQLIB_OBJECT void CColorPickerWnd::Activate(class CXWnd *,unsigned long);
+	UINT LastCheckTime;
+EQLIB_OBJECT WndEventHandler2::WndEventHandler2();
+EQLIB_OBJECT void WndEventHandler2::OnWndEvent(CXWnd *pwndSender)const;
+};
+class CColorPickerWnd : public CSidlScreenWnd, public WndEventHandler2
+{
+public:
+	int ContextMenuIndex;
+	int MaxSliderValue;
+	CXWnd * pwndCaller;
+	CButtonWnd * ColorButton[16];
+	int RedSliderValue;
+	CSliderWnd *RedSlider;
+	CEditWnd *RedSliderInputEdit;
+	int GreenSliderValue;
+	CSliderWnd *GreenSlider;
+	CEditWnd *GreenSliderInputEdit;
+	int BlueSliderValue;
+	CSliderWnd *BlueSlider;
+	CEditWnd *BlueSliderInputEdit;
+	CButtonWnd *AcceptButton;
+
+EQLIB_OBJECT CColorPickerWnd::CColorPickerWnd(CXWnd *pwndParent);
+EQLIB_OBJECT void CColorPickerWnd::Activate(CXWnd *,unsigned long);
 EQLIB_OBJECT void CColorPickerWnd::CheckMaxEditWnd(void);
 EQLIB_OBJECT void CColorPickerWnd::SetCurrentColor(unsigned long);
 EQLIB_OBJECT void CColorPickerWnd::SetTemplateColor(int,unsigned long);
 EQLIB_OBJECT void CColorPickerWnd::UpdateCurrentColor(void);
-EQLIB_OBJECT void CColorPickerWnd::UpdateEditWndFromSlider(class CSliderWnd *,class CEditWnd *,int *);
-EQLIB_OBJECT void CColorPickerWnd::UpdateSliderFromEditWnd(class CSliderWnd *,class CEditWnd *,int *);
-// virtual
-EQLIB_OBJECT CColorPickerWnd::~CColorPickerWnd(void);
-EQLIB_OBJECT int CColorPickerWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
-//EQLIB_OBJECT void * CColorPickerWnd::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CColorPickerWnd::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CColorPickerWnd::UpdateEditWndFromSlider(CSliderWnd *pSlider,class CEditWnd *pEdit,int *value);
+EQLIB_OBJECT void CColorPickerWnd::UpdateSliderFromEditWnd(CSliderWnd *pSlider,class CEditWnd *pEdit,int *value);
 EQLIB_OBJECT void CColorPickerWnd::Deactivate(void);
-// private
 EQLIB_OBJECT void CColorPickerWnd::Init(void);
+EQLIB_OBJECT int CColorPickerWnd::Open(CXWnd* pwndCaller, D3DCOLOR CurrentColor = 0x00FFFFFF);
+EQLIB_OBJECT virtual bool AboutToHide();
+EQLIB_OBJECT virtual int WndNotification(CXWnd *pwndSender, UINT Msg, LPVOID pData);
+EQLIB_OBJECT virtual void OnWndNotification();// {
+	//OnWndEvent((CXWnd *)this);
+//}
 };
+
 
 class CCombatSkillsSelectWnd : public CSidlScreenWnd
 {
@@ -1641,7 +1664,7 @@ public:
 EQLIB_OBJECT CContainerWnd::CContainerWnd(class CXWnd *);
 EQLIB_OBJECT void CContainerWnd::Activate(void);
 EQLIB_OBJECT void CContainerWnd::CheckCloseable(void);
-EQLIB_OBJECT void CContainerWnd::SetContainer(class EQ_Container *,int);
+EQLIB_OBJECT void CContainerWnd::SetContainer(PCONTENTS &pContainer, const ItemGlobalIndex& location);
 // virtual
 EQLIB_OBJECT CContainerWnd::~CContainerWnd(void);
 EQLIB_OBJECT int CContainerWnd::OnProcessFrame(void);
@@ -2585,11 +2608,7 @@ EQLIB_OBJECT void CGemsGameWnd::Update(void);
 EQLIB_OBJECT void CGemsGameWnd::UpdateDisplay(void);
 EQLIB_OBJECT void CGemsGameWnd::WriteHighScores(void);
 };
-class WndEventHandler2
-{
-public:
-	UINT LastCheckTime;
-};
+
 class PopDialogHandler
 {
 public:
@@ -3112,44 +3131,51 @@ public:
 /****** CXwnd inherits ******/
 	CXW
 /****** ButtonWnd inherits ******/
-	int		MouseButtonState;
-	bool	bPicture;
-	CRadioGroup	*pGroup;
-	bool	bChecked;
-    bool	bMouseOverLastFrame;
-	tagPOINT	DecalOffset;
-	tagSIZE		DecalSize;
-	COLORREF	DecalTint;
-	RECT		TextOffsets;
-	int		TextModeBits;
-	COLORREF	Mouseover;
-	COLORREF	Pressed;
-	COLORREF	Disabled;
-	UINT		CoolDownBeginTime;
-	UINT		CoolDownDuration;
-	CXStr		*Indicator;
-	UINT		IndicatorVal;
-	void		*pIndicatorTextObject;
+/*0x01e8*/ int		MouseButtonState;
+/*0x01ec*/ bool	bPicture;
+/*0x01f0*/ CRadioGroup	*pGroup;
+/*0x01f4*/ bool	bChecked;
+/*0x01f5*/ bool	bMouseOverLastFrame;
+/*0x01f8*/ tagPOINT	DecalOffset;
+/*0x0200*/ tagSIZE		DecalSize;
+/*0x0208*/ COLORREF	DecalTint;
+/*0x020c*/ RECT		TextOffsets;
+/*0x021c*/ int		TextModeBits;
+/*0x0220*/ COLORREF	Mouseover;
+/*0x0224*/ COLORREF	Pressed;
+/*0x0228*/ COLORREF	Disabled;
+/*0x022c*/ UINT		CoolDownBeginTime;
+/*0x0230*/ UINT		CoolDownDuration;
+#if !defined(EMU)
+/*0x0234*/ CXStr		*Indicator;
+/*0x0238*/ UINT		IndicatorVal;
+/*0x023c*/ void		*pIndicatorTextObject;
+#endif
 	/* CButtonDrawTemplate Start */
-    CXStr	*Name;
-    CTextureAnimation   *Normal;
-    CTextureAnimation   *taPressed;
-    CTextureAnimation   *Flyby;
-    CTextureAnimation   *taDisabled;
-    CTextureAnimation   *PressedFlyby;
-	CTextureAnimation   *PressedDisabled;
-    CTextureAnimation   *NormalDecal;
-    CTextureAnimation   *PressedDecal;
-    CTextureAnimation   *FlybyDecal;
-    CTextureAnimation   *DisabledDecal;
-    CTextureAnimation   *PressedFlybyDecal;
-	CTextureAnimation   *PressedDisabledDecal;
-	bool		bAllowButtonClickThrough;
-	bool		bCoolDownDoDelayedStart;
-	bool		bIsCheckbox;
-	bool		bIsDrawLasso;
-	UINT		ButtonStyle;
-	CLabel		*pButtonLabel;
+/*0x0240*/ CXStr	*Name;
+/*0x0244*/ CTextureAnimation   *Normal;
+/*0x0248*/ CTextureAnimation   *taPressed;
+/*0x024c*/ CTextureAnimation   *Flyby;
+/*0x0250*/ CTextureAnimation   *taDisabled;
+/*0x0254*/ CTextureAnimation   *PressedFlyby;
+/*0x0258*/ CTextureAnimation   *PressedDisabled;
+/*0x025c*/ CTextureAnimation   *NormalDecal;
+/*0x0260*/ CTextureAnimation   *PressedDecal;
+/*0x0264*/ CTextureAnimation   *FlybyDecal;
+/*0x0268*/ CTextureAnimation   *DisabledDecal;
+/*0x026c*/ CTextureAnimation   *PressedFlybyDecal;
+/*0x0270*/ CTextureAnimation   *PressedDisabledDecal;
+#if !defined(EMU)
+/*0x0274*/ bool		bAllowButtonClickThrough;
+/*0x0275*/ bool		bCoolDownDoDelayedStart;
+#endif
+/*0x0276*/ bool		bIsCheckbox;
+/*0x0277*/ bool		bIsDrawLasso;
+/*0x0278*/ UINT		ButtonStyle;
+#if !defined(EMU)
+/*0x027c*/ CLabel		*pButtonLabel;
+#endif
+/*0x0280*/
 /****** CInvSlotWnd Start ******/
 	CTextureAnimation	*pBackground;
 	//ItemGlobalIndex	ItemLocation;
@@ -8109,7 +8135,7 @@ EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
 EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlot(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlotMine(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
-#ifndef EMU
+#if !defined(EMU)
 EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
 #else
 EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);

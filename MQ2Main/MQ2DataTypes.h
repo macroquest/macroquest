@@ -714,6 +714,7 @@ public:
 		FloorZ = 147,
 		IsSummoned = 148,
 		TargetOfTarget = 149,
+		ActorDef = 150,
 	};
 	enum SpawnMethods
 	{
@@ -876,7 +877,8 @@ public:
 		TypeMember(FloorZ);
 		TypeMember(IsSummoned);//if its a summoned pet
 		TypeMember(TargetOfTarget);
-
+		TypeMember(ActorDef);
+		
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);

@@ -1078,6 +1078,9 @@ FUNCTION_AT_ADDRESS(void  CColorPickerWnd::UpdateEditWndFromSlider(class CSlider
 #ifdef CColorPickerWnd__UpdateSliderFromEditWnd_x
 FUNCTION_AT_ADDRESS(void  CColorPickerWnd::UpdateSliderFromEditWnd(class CSliderWnd *,class CEditWnd *,int *),CColorPickerWnd__UpdateSliderFromEditWnd);
 #endif
+#ifdef CColorPickerWnd__Open_x
+FUNCTION_AT_ADDRESS(int CColorPickerWnd::Open(CXWnd* pwndCaller, D3DCOLOR CurrentColor),CColorPickerWnd__Open);
+#endif
 #ifdef CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x
 FUNCTION_AT_ADDRESS(bool  CCombatSkillsSelectWnd::ShouldDisplayThisSkill(int),CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
 #endif
@@ -1184,7 +1187,7 @@ FUNCTION_AT_ADDRESS(void  CHelpWnd::Activate(void),CHelpWnd__Activate);
 FUNCTION_AT_ADDRESS(void  CContainerWnd::HandleCombine(void),CContainerWnd__HandleCombine);
 #endif
 #ifdef CContainerWnd__SetContainer_x
-FUNCTION_AT_ADDRESS(void  CContainerWnd::SetContainer(class EQ_Container *,int),CContainerWnd__SetContainer);
+FUNCTION_AT_ADDRESS(void CContainerWnd::SetContainer(PCONTENTS &pContainer, const ItemGlobalIndex& location),CContainerWnd__SetContainer);
 #endif
 #ifdef CContainerWnd__CheckCloseable_x
 FUNCTION_AT_ADDRESS(void  CContainerWnd::CheckCloseable(void),CContainerWnd__CheckCloseable);
@@ -4547,7 +4550,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetFirstEffectSlot(bool),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__GetLastEffectSlot);
 #endif
 #ifdef CharacterZoneClient__IsStackBlocked_x
-#ifndef EMU
+#if !defined(EMU)
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*, int, bool), CharacterZoneClient__IsStackBlocked);
 #else
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*,int),CharacterZoneClient__IsStackBlocked);

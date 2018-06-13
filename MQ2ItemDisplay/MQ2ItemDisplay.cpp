@@ -1323,30 +1323,21 @@ public:
 			ItemSetSpell_Detour(Item->Focus2);
 #endif
 		}
+#ifndef EMU
 		if (Item->Mount.SpellID > 0 && Item->Mount.SpellID != -1) {
 			eEffectType = Mount;
-#ifdef EMU
-			ItemSetSpell_Detour(Item->Mount, false);
-#else
 			ItemSetSpell_Detour(Item->Mount);
-#endif
 		}
 		if (Item->Illusion.SpellID > 0 && Item->Illusion.SpellID != -1) {
 			eEffectType = Illusion;
-#ifdef EMU
-			ItemSetSpell_Detour(Item->Illusion, false);
-#else
 			ItemSetSpell_Detour(Item->Illusion);
-#endif
 		}
 		if (Item->Familiar.SpellID > 0 && Item->Familiar.SpellID != -1) {
 			eEffectType = Familiar;
-#ifdef EMU
-			ItemSetSpell_Detour(Item->Familiar, false);
-#else
 			ItemSetSpell_Detour(Item->Familiar);
-#endif
+
 		}
+#endif
 		bNoSpellTramp = false;
 		eEffectType = None;
 
@@ -1366,6 +1357,7 @@ public:
 				}
 			}
 			//create add to loot filters button
+#ifndef EMU
 			if (gLootButton) {
 				CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("LF_CheckBoxTemplate");
 				CControlTemplate *labeltemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButtonLabel");
@@ -1464,6 +1456,7 @@ public:
 					labeltemplate->Font = oldfont;
 				}
 			}
+#endif
 			//ok now create the lucy button
 			if (gLucyButton) {
 				if (CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton")) {

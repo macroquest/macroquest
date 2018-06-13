@@ -1213,7 +1213,69 @@ namespace MQ2Internal {
             return -1;
         return 1;
     }
-
+	static bool nonalpha ( int value ) {
+		int ret = isalnum(value);
+		if(ret==0)
+			return true;
+	   return false;
+	}
+	static bool noblank ( char value ) {
+		if(value == ' ' || value == '\t')
+			return true;
+	   return false;
+	}
+	static errno_t _httoi_s(const CHAR *thevalue,size_t _Size)
+	{
+		struct CHexMap {
+			CHAR chr;
+			int avalue;
+		};
+		const int HexMapL = 16;
+		CHexMap HexMap[HexMapL] =
+		{
+			{'0', 0}, {'1', 1},
+			{'2', 2}, {'3', 3},
+			{'4', 4}, {'5', 5},
+			{'6', 6}, {'7', 7},
+			{'8', 8}, {'9', 9},
+			{'A', 10}, {'B', 11},
+			{'C', 12}, {'D', 13},
+			{'E', 14}, {'F', 15}
+		};
+		CHAR *mstr = _strdup(thevalue);
+		mstr[_Size] = '\0';
+		_strupr_s(mstr,_Size+1);
+		CHAR *s = mstr;
+		int result = 0;
+		std::string s1 = mstr;
+	
+		s1.erase(remove_if(s1.begin(),s1.end(), nonalpha), s1.end());
+	
+		s = (char *)s1.c_str();
+		if (*s == '0' && *(s + 1) == 'X')
+			s += 2;
+		bool firsttime = true;
+		while (*s != '\0') {
+			bool found = false;
+			for (int i = 0; i < HexMapL; i++) {
+				if (*s == HexMap[i].chr) {
+					if (!firsttime) {
+						result <<= 4;
+					}
+					result |= HexMap[i].avalue;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				break;
+			}
+			s++;
+			firsttime = false;
+		}
+		free(mstr);
+		return result;
+	}
 struct Loop
 {
 	enum Type {None,For,While};

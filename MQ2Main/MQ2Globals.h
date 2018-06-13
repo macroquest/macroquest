@@ -1123,9 +1123,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CComboWnd__GetItemCount;
 	EQLIB_VAR DWORD CComboWnd__GetCurChoiceText;
 	
-
 	EQLIB_VAR DWORD CContainerWnd__HandleCombine;
 	EQLIB_VAR DWORD CContainerWnd__vftable;
+	EQLIB_VAR DWORD CContainerWnd__SetContainer;
 
 	EQLIB_VAR DWORD CDisplay__CleanGameUI;
 	EQLIB_VAR DWORD CDisplay__GetClickedActor;
@@ -1189,6 +1189,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CResolutionHandler__UpdateResolution;
 	EQLIB_VAR DWORD CResolutionHandler__GetWindowedStyle;
 	EQLIB_VAR DWORD CContainerMgr__OpenExperimentContainer;
+	EQLIB_VAR DWORD CColorPickerWnd__Open;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
@@ -1218,6 +1219,7 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CInvSlotWnd__DrawTooltip;
 	EQLIB_VAR DWORD CInvSlotWnd__CInvSlotWnd;
+	EQLIB_VAR DWORD CInvSlotWnd__HandleLButtonUp;
 	
 	EQLIB_VAR DWORD CItemDisplayWnd__SetSpell;
 	EQLIB_VAR DWORD CItemDisplayWnd__UpdateStrings;

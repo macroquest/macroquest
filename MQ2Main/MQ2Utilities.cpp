@@ -7415,7 +7415,11 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 {
 	EQ_Affect eff;
 	eff.ID = bSpell->ID;
+	#if !defined(EMU)
 	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, false);
+	#else
+	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
+	#endif
 	if (bItWillNotStack) {
 		Sleep(0);
 		//return false;

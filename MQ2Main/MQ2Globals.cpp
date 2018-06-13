@@ -1678,7 +1678,8 @@ namespace MQ2Globals
 	
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__HandleCombine);
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__vftable);
-
+	INITIALIZE_EQGAME_OFFSET(CContainerWnd__SetContainer);
+	
 	INITIALIZE_EQGAME_OFFSET(CDisplay__CleanGameUI);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__GetClickedActor);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__GetUserDefinedColor);
@@ -1770,6 +1771,7 @@ namespace MQ2Globals
 	
 	INITIALIZE_EQGAME_OFFSET(CInvSlotWnd__DrawTooltip);
 	INITIALIZE_EQGAME_OFFSET(CInvSlotWnd__CInvSlotWnd);
+	INITIALIZE_EQGAME_OFFSET(CInvSlotWnd__HandleLButtonUp);
 	
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetSpell);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__UpdateStrings);
@@ -2163,6 +2165,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetDefaultUIPath);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetTexture);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenExperimentContainer);
+	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
 	
 
 #ifdef __IsResEffectSpell_x

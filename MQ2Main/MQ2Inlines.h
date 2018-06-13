@@ -277,8 +277,8 @@ static inline DWORD GetCharMaxBuffSlots()
 		if (pChar->vtable2) {
 			NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
 		}
-		if (pChar->pSpawn->Level > 70) NumBuffs++;
-		if (pChar->pSpawn->Level > 74) NumBuffs++;
+		if (pChar->pSpawn && pChar->pSpawn->Level > 70) NumBuffs++;
+		if (pChar->pSpawn && pChar->pSpawn->Level > 74) NumBuffs++;
 	}
 	return NumBuffs;
 }
@@ -779,7 +779,7 @@ static inline DWORD GetGroupMainAssistTargetID()
 				}
 			}
 		}
-		if (bMainAssist) {
+		if (bMainAssist && pChar->pSpawn) {
 			return pChar->pSpawn->GroupAssistNPC[0];
 		}
 	}

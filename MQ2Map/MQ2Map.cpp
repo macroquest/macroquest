@@ -156,7 +156,7 @@ bool RButtonDown()
 		return false;
 	return true;
 }
-
+//int MapViewMap::HandleRButtonDown(const CXPoint& point, UINT Flags) - should probably just change to this
 VOID __declspec(naked) MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown)
 {
 	__asm {
