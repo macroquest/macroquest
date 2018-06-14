@@ -2822,9 +2822,9 @@ typedef struct _ARGBCOLOR {
 typedef struct _ARMOR {
 /*0x00*/ UINT  ID; //idfile on Lucy
 /*0x04*/ UINT  Var;
-/*0x08*/ UINT  Var2;
+/*0x08*/ UINT  Material;
 /*0x0c*/ UINT  NewArmorID;
-/*0x10*/ UINT  NewArmorID2;
+/*0x10*/ UINT  NewArmorType;
 /*0x14*/
 } ARMOR, *PARMOR;
 

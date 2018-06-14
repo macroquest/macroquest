@@ -1135,7 +1135,7 @@ TLO(dataInvSlot)
 		{
 			Ret.DWord = ItemSlotMap[Temp];
 		}
-		if (Ret.DWord || !_stricmp(Temp, "charm") || !_stricmp(Temp, "enviro"))
+		if (Ret.DWord || !_stricmp(Temp, "charm"))
 		{
 			Ret.Type = pInvSlotType;
 			return true;

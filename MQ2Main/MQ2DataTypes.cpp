@@ -6739,11 +6739,13 @@ bool MQ2ItemType::GETMEMBER()
 		return true;
 	#endif
 	case Item:
+	{
+		PCONTENTS pCont = (PCONTENTS)pItem;
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && ISNUMBER())
 		{
 			unsigned long N = GETNUMBER();
 			N--;
-			if (N<GetItemFromContents(pItem)->Slots)
+			if (N < GetItemFromContents(pItem)->Slots)
 			{
 				if (pItem->Contents.ContainedItems.pItems)
 					if (Dest.Ptr = pItem->GetContent(N))
@@ -6784,6 +6786,7 @@ bool MQ2ItemType::GETMEMBER()
 				return true;
 		}
 		return false;
+	}
 	case Stackable:
 		Dest.DWord = ((EQ_Item*)pItem)->IsStackable();
 		Dest.Type = pBoolType;
@@ -7773,6 +7776,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->HeroicCHA;
 		Dest.Type = pIntType;
 		return true;
+#if !defined(TEST)
 	case HeroicSvMagic:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -7815,6 +7819,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->HeroicSvCorruption;
 		Dest.Type = pIntType;
 		return true;
+#endif
 	case EnduranceRegen:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -10523,7 +10528,7 @@ bool MQ2InvSlotType::GETMEMBER()
 		return true;
 	case Item:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			if (pChar2->pInventoryArray && nInvSlot) {
+			if (pChar2->pInventoryArray && nInvSlot >= 0) {
 				if (nInvSlot < NUM_INV_SLOTS)
 				{
 					if (Dest.Ptr = pChar2->pInventoryArray->InventoryArray[nInvSlot])
