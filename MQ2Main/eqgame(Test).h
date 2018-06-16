@@ -43,7 +43,7 @@ GNU General Public License for more details.
 #define __AC2_x                                                    0x5C3F0F
 #define __AC3_x                                                    0x5CAD9F
 #define __AC4_x                                                    0x5CEC20
-#define __AC5_x                                                    0x5D4E50
+#define __AC5_x                                                    0x5D4E60
 #define __AC6_x                                                    0x5D93A2
 #define __AC7_x                                                    0x5C3980
 #define __AC1_Data                                                 0x11111111

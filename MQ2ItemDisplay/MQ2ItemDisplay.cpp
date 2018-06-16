@@ -26,6 +26,7 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 using namespace std;
+bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
 typedef struct _ButtonInfo
@@ -304,6 +305,115 @@ bool ItemInfoManager::doValidateURI(Window *wnd, const char *uri)
 // Function:    ItemDisplayHook
 // Description: Our Item display hook 
 // *************************************************************************** 
+PCONTENTS pOldCont = 0;
+class CCompareTipWnd;
+CCompareTipWnd *pCompareTipWnd=0;
+class CCompareTipWnd : public CSidlScreenWnd
+{
+public:
+    CCompareTipWnd(CXStr *screenpiece):CSidlScreenWnd(0,screenpiece,-1,1,0)
+    {
+        CreateChildrenFromSidl();
+        pXWnd()->Show(1,1);
+        ReplacevfTable();
+        CloseOnESC=0;
+    }
+
+    CCompareTipWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
+    {
+        CreateChildrenFromSidl();
+		//pXWnd()->Show(1,1);
+        ReplacevfTable();
+        CloseOnESC=0;
+		SetWndNotification(CCompareTipWnd);
+		Display=(CStmlWnd*)GetChildItem("CT_Display");
+		this->Faded = true;
+		this->ZLayer = 100;
+		this->Alpha = 0xfa;
+		this->BGColor = 0xFF000000;
+		this->BGType = 1;
+		this->bClickThrough = 1;
+    }
+
+    ~CCompareTipWnd()
+    {
+        RemovevfTable();
+    }
+    int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
+    {    
+		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
+    }
+
+    void ReplacevfTable()
+    {
+        OldvfTable=((_CSIDLWND*)this)->pvfTable;
+        PCSIDLWNDVFTABLE NewvfTable=new CSIDLWNDVFTABLE;
+        memcpy(NewvfTable,OldvfTable,sizeof(CSIDLWNDVFTABLE));
+        ((_CSIDLWND*)this)->pvfTable=NewvfTable;
+    }
+
+    void RemovevfTable()
+    {
+        PCSIDLWNDVFTABLE NewvfTable=((_CSIDLWND*)this)->pvfTable;
+        ((_CSIDLWND*)this)->pvfTable=OldvfTable;
+        delete NewvfTable;
+    }
+
+    void SetvfTable(DWORD index, DWORD value)
+    {
+        DWORD* vtable=(DWORD*)((_CSIDLWND*)this)->pvfTable;
+        vtable[index]=value;
+    }
+/*0x218*/   CStmlWnd   *Display;
+/*0x22C*/	PCSIDLWNDVFTABLE OldvfTable;
+};
+
+int CanIUseThisItem(PITEMINFO pItem)
+{
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (!pChar2->Class)
+			return -1;
+		DWORD ClassMask = (1 << (pChar2->Class - 1));
+		if ((ClassMask & pItem->Classes) == 0)
+			return -2;
+		return 1;
+	}
+	return -1;
+}
+template <unsigned int _Size>char* GetSlots(PITEMINFO pItem,char(&_Buffer)[_Size])
+{
+	DWORD cmp = pItem->EquipSlots;
+	for (int N = 0; N < 32; N++)
+	{
+		if (cmp&(1 << N))
+		{
+			strcat_s(_Buffer, _Size, szItemSlot[N]);
+			strcat_s(_Buffer, _Size, " ");
+		}
+	}
+	return _Buffer;
+}
+PCONTENTS GetEquippedSlot(PCONTENTS pCont)
+{
+	if (PITEMINFO pItem = GetItemFromContents(pCont))
+	{
+		DWORD cmp = pItem->EquipSlots;
+		for (int N = 0; N < 32; N++)
+		{
+			if (cmp&(1 << N))
+			{
+				if (PCHARINFO2 pChar2 = GetCharInfo2())
+				{
+					if (PCONTENTS pInvSlot = pChar2->pInventoryArray->InventoryArray[N])
+					{
+						return pInvSlot;
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
 class ItemDisplayHook
 {
     typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Mount, Illusion, Familiar} SEffectType;
@@ -1485,11 +1595,79 @@ public:
 		}
 		return AboutToShow_Trampoline();
 	}
+	
+	static void PrintItem(PCONTENTS pCont,PCONTENTS pEquipped)
+	{
+		if (PITEMINFO pItem = GetItemFromContents(pCont))
+		{
+			if (CanIUseThisItem(pItem))
+			{
+				if (PITEMINFO pItem2 = GetItemFromContents(pEquipped))
+				{
+					CXPoint pt;
+					pt.X = EQADDR_MOUSE->X + 5;
+					pt.Y = EQADDR_MOUSE->Y + 5;
+					((CXWnd *)pCompareTipWnd)->Move(pt);
+					pCompareTipWnd->ZLayer = 0;
+
+					((CStmlWnd*)pCompareTipWnd->Display)->SetSTMLText("", 1, 0);
+					((CStmlWnd*)pCompareTipWnd->Display)->ForceParseNow();
+					CHAR szTemp[MAX_STRING] = { 0 };
+					CHAR szTemp2[MAX_STRING] = { 0 };
+					DWORD realcolor = 0xFF00FF00;// ConColorToARGB(argbcolor) & 0x00FFFFFF;
+					sprintf_s(szTemp, "<c \"#FFFF00\">%s<br></c><c \"#FFFFFF\">%s %s </c><br>", pItem->Name, pItem->Lore ? "[Lore]" : "", pItem->NoDrop ? "" : "[No Drop]");
+					((CStmlWnd*)pCompareTipWnd->Display)->SetSTMLText(szTemp, 1, 0);
+					
+					sprintf_s(szTemp, "<c \"#FFFF00\">%s<br></c>", GetSlots(pItem, szTemp2));
+					((CStmlWnd*)pCompareTipWnd->Display)->AppendSTML(szTemp);
+					DWORD color = 0xFF0000;
+					int ACStat = pItem->AC - pItem2->AC;
+					if (ACStat > 0)
+						color = 0x00FF00;
+					sprintf_s(szTemp, "<c \"#FFFFFF\">Rec Level: </c><c \"#00FF00\">%d</c><c \"#FFFFFF\">&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;AC: </c><c \"#%06X\">%d</c><br>", pItem->RequiredLevel,color, ACStat);
+					((CStmlWnd*)pCompareTipWnd->Display)->AppendSTML(szTemp);
+
+					((CStmlWnd*)pCompareTipWnd->Display)->ForceParseNow();
+					pCompareTipWnd->dShow = 1;
+				}
+			}
+		}
+	}
+	int CInvSlotWnd_DrawTooltipTramp(const CXWnd *pwnd) const;
+	int CInvSlotWnd_DrawTooltipDetour(const CXWnd *pwnd) const
+	{
+		if (gCompareTip)
+		{
+			if (CInvSlotWnd*wnd = (CInvSlotWnd*)this)
+			{
+				PCONTENTS pCont = 0;
+				if (wnd->pEQInvSlot) {
+					wnd->pEQInvSlot->GetItemBase(&pCont);
+				}
+				if (pCont && pCont != pOldCont) {
+					pOldCont = pCont;
+					if (PITEMINFO pItem = GetItemFromContents(pCont))
+					{
+						if (pCompareTipWnd && pCompareTipWnd->Display)
+						{
+							if (PCONTENTS pEquipped = GetEquippedSlot(pCont))
+							{
+								PrintItem(pCont, pEquipped);
+							}
+						}
+						WriteChatf("CInvSlotWnd_DrawTooltipDetour called for %s", pItem->Name);
+					}
+				}
+			}
+		}
+		return CInvSlotWnd_DrawTooltipTramp(pwnd);
+	}
 };
 
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
+DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp(const CXWnd *pwnd) const);
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline(void));
 #ifdef EMU
@@ -1542,8 +1720,6 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatf("Usage: /itemdisplay LucyButton optional:off/on");
 		return;
 	}
-	CHAR Filename[MAX_STRING] = {0};
-	sprintf_s(Filename,"%s\\MacroQuest.ini",gszINIPath);
 
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szArg2[MAX_STRING] = { 0 };
@@ -1568,7 +1744,7 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		WriteChatf("Display of the %s is now \ay%s\ax.",szArg1, (gLootButton ? "Enabled" : "Disabled"));
 		_itoa_s(gLootButton, szArg1, 10);
-		WritePrivateProfileString("ItemDisplay","LootButton",szArg1,Filename);
+		WritePrivateProfileString("Settings","LootButton",szArg1,INIFileName);
 		for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
 			if (i->second.ID == 1) {
 				i->first->Destroy();
@@ -1590,7 +1766,7 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		WriteChatf("Display of the %s is now \ay%s\ax.",szArg1, (gLucyButton ? "Enabled" : "Disabled"));
 		_itoa_s(gLucyButton, szArg1, 10);
-		WritePrivateProfileString("ItemDisplay","LucyButton",szArg1,Filename);
+		WritePrivateProfileString("Settings","LucyButton",szArg1,INIFileName);
 		for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
 			if (i->second.ID == 2) {
 				i->first->Destroy();
@@ -1603,6 +1779,16 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 				i++;
 			}
 		}
+	}
+	else if (!_stricmp(szArg1, "Compare")) {
+		if (bToggle) {
+			gCompareTip = !gCompareTip;
+		}else {
+			gCompareTip = bon;
+		}
+		WriteChatf("Display of Compare Tip is now \ay%s\ax.", (gCompareTip ? "Enabled" : "Disabled"));
+		_itoa_s(gCompareTip, szArg1, 10);
+		WritePrivateProfileString("Settings","CompareTip",szArg1,INIFileName);
 	}
 }
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
@@ -2648,28 +2834,14 @@ template <unsigned int _Size> void AddGearScores_CheckItems(PCONTENTS pSlot,ITEM
 	}
 }
 
-int CanIUseThisItem(PCONTENTS pSlot, ITEMINFO *pItem)
-{
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-		if (!pChar2->Class)
-			return -1;
-		DWORD ClassMask = (1 << (pChar2->Class - 1));
-		if ((ClassMask & pItem->Classes) == 0)
-			return -2;
-		return 1;
-	}
-	return -1;
-}
-
-
-
-template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem, CHAR(&out)[_Size],char *br)
+template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,PITEMINFO pItem, CHAR(&out)[_Size],char *br)
 {
 	static ULONGLONG lastTick = 0;
 	ReportBestStr[0] = 0;
 	ReportBestSlot[0] = 0;
 	ReportBestName[0] = 0;
-	if (CanIUseThisItem(pSlot,pItem)<1) return ;
+	if (CanIUseThisItem(pItem)<1)
+		return;
 
 	ClearAttribListScores();
 	CurrScore = CalcItemGearScore(pItem);
@@ -2700,6 +2872,33 @@ template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem
 	}
 }
 
+VOID DestroyCompareTipWnd() 
+{ 
+    if (pCompareTipWnd) 
+    { 
+		//SaveWindowSettings((PCSIDLWND)pCompareTipWnd);
+        delete pCompareTipWnd; 
+        pCompareTipWnd=0;  
+    } 
+}
+
+void CreateCompareTipWnd()
+{
+	try {
+		if (pCompareTipWnd) {
+			return; 
+		}
+		if (pSidlMgr->FindScreenPieceTemplate("CompareTipWnd")) { 
+			if(pCompareTipWnd = new CCompareTipWnd("CompareTipWnd")) {
+				Sleep(0);
+				//LoadWindowSettings((PCSIDLWND)pToolTipWnd);
+			}
+		}
+	} 
+	catch(...) { 
+		MessageBox(NULL,"CRAP! in CreateCompareTipWnd","An exception occured",MB_OK);
+	}
+}
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
@@ -2712,6 +2911,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	pGearScoreType = new MQ2GearScoreType;
 	gLootButton = 1==GetPrivateProfileInt("Settings","LootButton",1,INIFileName);
 	gLucyButton = 1==GetPrivateProfileInt("Settings","LucyButton",1,INIFileName);
+	gCompareTip = 1==GetPrivateProfileInt("Settings","CompareTip",0,INIFileName);
 
 	#ifndef EMU
 	EzDetourwName(CItemDisplayWnd__WndNotification,&ItemDisplayHook::WndNotification_Detour,&ItemDisplayHook::WndNotification_Trampoline,"CItemDisplayWnd__WndNotification");
@@ -2732,8 +2932,16 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	pDisplayItemType = new MQ2DisplayItemType;
     AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore",dataGearScore);
+
+	AddXMLFile("MQUI_CompareTipWnd.xml");
+    EzDetourwName(CInvSlotWnd__DrawTooltip, &ItemDisplayHook::CInvSlotWnd_DrawTooltipDetour, &ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp,"CInvSlotWnd__DrawTooltip");
+
 	if (gGameState == GAMESTATE_INGAME)
-		ReadProfile(GetCharInfo()->Name,FALSE);
+	{
+		ReadProfile(GetCharInfo()->Name, FALSE);
+		CreateCompareTipWnd();
+	}
+	
 }
 
 PLUGIN_API VOID SetGameState(DWORD GameState) 
@@ -2748,6 +2956,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     DebugSpewAlways("Shutting down MQ2ItemDisplay");
 
     // Remove commands, macro parameters, hooks, etc.
+	RemoveDetour(CInvSlotWnd__DrawTooltip);
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CItemDisplayWnd__UpdateStrings);
 #ifndef EMU
@@ -2778,6 +2987,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 		CloseHandle(hDisplayItemLock);
 		hDisplayItemLock = 0;
 	}
+	DestroyCompareTipWnd();
 }
 PLUGIN_API void OnCleanUI()
 {
@@ -2787,6 +2997,7 @@ PLUGIN_API void OnCleanUI()
 	}
 	ButtonMap.clear();
 #endif
+	DestroyCompareTipWnd();
 }
 
 PLUGIN_API void OnReloadUI()
@@ -2797,6 +3008,9 @@ PLUGIN_API void OnReloadUI()
 	}
 	ButtonMap.clear();
 #endif
+	if (GetGameState() == GAMESTATE_INGAME && pCharSpawn) {
+		CreateCompareTipWnd();
+	}
 }
 #define LINK_LEN 55
 
@@ -2839,5 +3053,12 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 		}
 	}
     return 0; 
-} 
+}
+PLUGIN_API VOID OnPulse(VOID)
+{
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		CreateCompareTipWnd();
+	}
+}
 #endif
