@@ -162,7 +162,6 @@ int __cdecl GetLabelFromEQ_Detour(int EQType, class CXStr *out, bool *arg3, unsi
 	}
 	return ret;
 }
-
 BOOL bTrimnames = 0;
 // CLabelHook::Draw_Detour
 class CLabelHook {

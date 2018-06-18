@@ -332,7 +332,9 @@ public:
 		this->Alpha = 0xfa;
 		this->BGColor = 0xFF000000;
 		this->BGType = 1;
+		#if !defined(EMU)
 		this->bClickThrough = 1;
+		#endif
     }
 
     ~CCompareTipWnd()

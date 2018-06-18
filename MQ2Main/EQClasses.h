@@ -1750,37 +1750,39 @@ EQLIB_OBJECT void CContextMenuManager::CreateDefaultMenu(void);
 class CScreenPieceTemplate
 {
 public:
-	PVOID vfTable;
-	ArrayClass2_RO<unsigned __int32> RuntimeTypes;
-	PCXSTR Name;
-	unsigned __int32 ParamObjectID;
-    PCXSTR ScreenID;
-	unsigned __int32 Font;
-    bool	bRelativePosition;
-    bool	bAutoStretchVertical;
-	bool	bAutoStretchHorizontal;
-    bool	bTopAnchorToTop;
-    bool	bBottomAnchorToTop;
-    bool	bLeftAnchorToLeft;
-    bool	bRightAnchorToLeft;
-    int 	TopOffset;
-    int 	BottomOffset;
-    int 	LeftOffset;
-    int 	RightOffset;
-	int 	MinVSize;
-	int 	MinHSize;
-	int 	MaxVSize;
-	int 	MaxHSize;
-    RECT    Rect;
-    PCXSTR	Text;
-    D3DCOLOR	TextColor;
-	D3DCOLOR    DisabledColor;
-	D3DCOLOR    EnabledColor;
-	bool		bUseInLayoutHorizontal;
-	bool		bUseInLayoutVertical;
-	D3DCOLOR    BackgroundTextureTint;
-	D3DCOLOR    DisabledBackgroundTextureTint;
-
+/*0x00*/	PVOID vfTable;
+/*0x04*/	ArrayClass2_RO<unsigned __int32> RuntimeTypes;
+/*0x20*/	PCXSTR Name;
+/*0x24*/	unsigned __int32 ParamObjectID;
+/*0x28*/	PCXSTR ScreenID;
+/*0x2c*/	unsigned __int32 Font;
+/*0x30*/    bool	bRelativePosition;
+/*0x31*/    bool	bAutoStretchVertical;
+/*0x32*/	bool	bAutoStretchHorizontal;
+/*0x33*/    bool	bTopAnchorToTop;
+/*0x34*/    bool	bBottomAnchorToTop;
+/*0x35*/    bool	bLeftAnchorToLeft;
+/*0x36*/    bool	bRightAnchorToLeft;
+/*0x38*/    int 	TopOffset;
+/*0x3c*/    int 	BottomOffset;
+/*0x40*/    int 	LeftOffset;
+/*0x44*/    int 	RightOffset;
+/*0x48*/	int 	MinVSize;
+/*0x4c*/	int 	MinHSize;
+/*0x50*/	int 	MaxVSize;
+/*0x54*/	int 	MaxHSize;
+/*0x58*/    RECT    Rect;
+/*0x68*/    PCXSTR	Text;
+/*0x6c*/    D3DCOLOR	TextColor;
+/*0x70*/	D3DCOLOR    DisabledColor;
+/*0x74*/	D3DCOLOR    EnabledColor;
+/*0x78*/	bool		bUseInLayoutHorizontal;
+/*0x79*/	bool		bUseInLayoutVertical;
+/*0x7c*/	D3DCOLOR    BackgroundTextureTint;
+#if !defined(EMU)
+/*0x80*/	D3DCOLOR    DisabledBackgroundTextureTint;
+/*0x84*/
+#endif
 EQLIB_OBJECT CScreenPieceTemplate::CScreenPieceTemplate(class CParamScreenPiece *);
 EQLIB_OBJECT bool CScreenPieceTemplate::IsType(unsigned __int32)const;
 EQLIB_OBJECT class CXStr CScreenPieceTemplate::GetName(void)const;
@@ -1793,19 +1795,22 @@ EQLIB_OBJECT CScreenPieceTemplate::~CScreenPieceTemplate(void);
 class CControlTemplate : public CScreenPieceTemplate
 {
 public:
-    unsigned __int32 StyleBits;
-	BYTE SizableMask;
-	bool bEscapable;
-    PCXSTR Tooltip;
-    CXWndDrawTemplate *pDrawTemplate;
-	PCXSTR Controller;
-	void *pLayoutStrategyTemplate;//CLayoutStrategyTemplate
+/*0x84*/ unsigned __int32 StyleBits;
+/*0x88*/	BYTE SizableMask;
+/*0x89*/	bool bEscapable;
+/*0x8c*/	PCXSTR Tooltip;
+/*0x90*/	CXWndDrawTemplate *pDrawTemplate;
+/*0x94*/	PCXSTR Controller;
+/*0x98*/	void *pLayoutStrategyTemplate;//CLayoutStrategyTemplate
+/*0x9c*/
+
 EQLIB_OBJECT CControlTemplate::CControlTemplate(class CParamControl *);
 // virtual
 EQLIB_OBJECT CControlTemplate::~CControlTemplate(void);
 //EQLIB_OBJECT void * CControlTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CControlTemplate::`vector deleting destructor'(unsigned int);
 };
+
 class HasATimer
 {
 	UINT Timer;
@@ -3402,38 +3407,40 @@ EQLIB_OBJECT CKeyCXStrValueInt32::CKeyCXStrValueInt32(void);
 //size 0x200 see 8D5699 in Aug 10 2017 Live -eqmule
 //size 0x210 see 8DCE59 in Sep 11 2017 Test -eqmule
 //size 0x200 see 668D5B in Oct 17 2017 Live -eqmule
+//size 0x1e4 see 86BFC9 in rof2 -eqmule
 class CLabelWnd// : public CXWnd
 {
 public:
 EQLIB_OBJECT CLabelWnd::CLabelWnd(CXWnd *pParent, unsigned __int32 ID, const CXRect *rect);
 /*0x000*/ PCXWNDVFTABLE pvfTable;
-/*0x004*/ CXW_NO_VTABLE
-/*0x1e0*/ bool bNoWrap;
-/*0x1e1*/ bool bAlignRight;
-/*0x1e2*/ bool bAlignCenter;
-/*0x1e4*/ int  xOffset;
-/*0x1e8*/ bool bResizeHeightToText;
+/*0x004*/ CXW_NO_VTABLE				//rof2				
+/*0x1e0*/ bool bNoWrap;				/*0x1d8*/
+/*0x1e1*/ bool bAlignRight;			/*0x1d9*/
+/*0x1e2*/ bool bAlignCenter;		/*0x1da*/
+/*0x1e4*/ int  xOffset;				/*0x1dc*/
+/*0x1e8*/ bool bResizeHeightToText;	/*0x1e0*/
 #ifndef EMU
 /*0x1ec*/ int Unknown0x1ec;
 /*0x1f0*/ PCXSTR Text;
 /*0x1f4*/ int Unknown0x1f4;
 /*0x1f8*/ bool Unknown0x1f8;
 /*0x1fc*/ int Unknown0x1fc;
-/*0x200*/
+/*0x200*/							/*0x1e4*/
 #endif
 };
 //CLabel__CLabel_x
 //size is 0x208 see 79C989 in Aug 10 2017 Live -eqmule
 //size is 0x218 see 7A3819 in Sep 11 2017 Test -eqmule
 //size 0x208 see 7A5739 in Oct 17 2017 Live -eqmule
+//size 0x1e8 see 755709 in Rof2 -eqmule
 class CLabel : public CLabelWnd
 {
-public:
-/*0x200*/ int EQType;
+public:								//rof2
+/*0x200*/ int EQType;				/*0x1e4*/
 #ifndef EMU
 /*0x204*/ int Unknown0x204;
 #endif
-/*0x208*/
+/*0x208*/							/*0x1e8*/
 EQLIB_OBJECT CLabel::CLabel(class CXWnd *pParent,unsigned __int32 id,CXRect *rect,int eqtype = 0);
 EQLIB_OBJECT void CLabel::SetAlignCenter(bool);
 EQLIB_OBJECT void CLabel::SetAlignRight(bool);
