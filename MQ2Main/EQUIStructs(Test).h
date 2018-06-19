@@ -1295,7 +1295,7 @@ typedef struct _INVENTORYWND {
 //everything below it is 100% checked -eqmule
 
 //CBazaarSearchWnd__CBazaarSearchWnd_x aBazaarsearchwn
-// CBazaarSearchWnd_size: 0x92e0 (see 53572D) in Jun 11 2018 Test - eqmule
+// CBazaarSearchWnd_size: 0x92e0 (see 53576D) in Jun 18 2018 Test - eqmule
 typedef struct _BAZAARSEARCHWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0x8ff8];
@@ -1307,7 +1307,7 @@ typedef struct _BAZAARSEARCHWND {
 
 //CPlayerWindow__CPlayerWindow aPlayerwindow
 //Note to self: cant actually find CombatState in it, so no point in looking through IDA for it, but it IS the last dword... so... until that changes, im just gonna accept it...
-// CPlayerWindow_size: 0x2f8 (see 535020) in Jun 11 2018 Test - eqmule
+// CPlayerWindow_size: 0x2f8 (see 535060) in Jun 18 2018 Test - eqmule
 typedef struct _CPLAYERWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0xb4];
@@ -1316,7 +1316,7 @@ typedef struct _CPLAYERWND {
 } CPLAYERWND, *PCPLAYERWND;
 
 // CTargetWindow__CTargetWindow aTargetwindow
-// CTargetWindow_size: 0x8d8 (see 534EBB) in Jun 11 2018 Test - eqmule
+// CTargetWindow_size: 0x8d8 (see 534EFB) in Jun 18 2018 Test - eqmule
 typedef struct _CTARGETWND {
 /*0x0000*/ struct  _CSIDLWND    Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0x198];
@@ -1331,7 +1331,7 @@ typedef struct _CTARGETWND {
 
 // CBuffWindow__CBuffWindow aBuffwindow
 // this is used for both long and shortbuffs...
-// CBuffWindow_size: 0x728 (see 534D5F) in Jun 11 2018 Test - eqmule
+// CBuffWindow_size: 0x728 (see 534D9F) in Jun 18 2018 Test - eqmule
 typedef struct _EQBUFFWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0xbc];
@@ -1348,7 +1348,7 @@ typedef struct _EQBUFFWINDOW {
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
-// CSpellGemWnd_size: 0x330 (see 7E098B) in Jun 11 2018 Test - eqmule
+// CSpellGemWnd_size: 0x330 (see 7E098B) in Jun 18 2018 Test - eqmule
 typedef struct _EQCASTSPELLGEM {
 /*0x0000*/ struct _CXWND        Wnd;
 /*0x01f8*/ BYTE         Unknown0x01f8[0x44];
@@ -1363,7 +1363,7 @@ typedef struct _EQCASTSPELLGEM {
 
 //pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// CCastSpellWnd_size: 0x2e0 (see 535119) in Jun 11 2018 Test - eqmule
+// CCastSpellWnd_size: 0x2e0 (see 535159) in Jun 18 2018 Test - eqmule
 typedef struct _EQCASTSPELLWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0x14];
@@ -1373,7 +1373,7 @@ typedef struct _EQCASTSPELLWINDOW {
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 //note that Invslot needs to be a short or pickupitem wont work
-// CInvSlotWnd_size: 0x2e0 (see 7E0A9C) in Jun 11 2018 Test - eqmule
+// CInvSlotWnd_size: 0x2e0 (see 7E0A9C) in Jun 18 2018 Test - eqmule
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CXWND        Wnd;      //----/ actually CButtonWnd
 /*0x01f8*/ BYTE         Unknown0x01f8[0x8c];
@@ -1398,7 +1398,7 @@ typedef struct _EQINVSLOTWND {
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin
-// CItemDisplayWindow_size: 0x630 (see 7412B2) in Jun 11 2018 Test - eqmule
+// CItemDisplayWindow_size: 0x630 (see 741312) in Jun 18 2018 Test - eqmule
 typedef struct _EQITEMWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ struct _CSIDLWND *Description;
@@ -1434,7 +1434,7 @@ typedef struct _EQITEMWINDOW {
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd
-// CLootWnd_size: 0x3a8 (see 535485) in Jun 11 2018 Test - eqmule
+// CLootWnd_size: 0x3a8 (see 5354C5) in Jun 18 2018 Test - eqmule
 typedef struct _EQLOOTWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ void *       vftable; // for CLootWnd::DialogResponse handler
@@ -1461,7 +1461,7 @@ typedef struct _EQLOOTWINDOW {
 
 // pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
 // CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x668 (see 534BC0) in Jun 11 2018 Test - eqmule
+// CMapViewWnd_size: 0x668 (see 534C00) in Jun 18 2018 Test - eqmule
 typedef struct _EQMAPWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0x40];
@@ -1497,7 +1497,7 @@ void *other;
 void *other2;
 };
 //CMerchantWnd__CMerchantWnd_x (aMerchantwnd)
-// CMerchantWnd_size: 0x458 (see 5355E1) in Jun 11 2018 Test - eqmule
+// CMerchantWnd_size: 0x458 (see 535621) in Jun 18 2018 Test - eqmule
 typedef struct _EQMERCHWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0240*/ BYTE Unknown0x0240[0x10];
@@ -1511,7 +1511,7 @@ typedef struct _EQMERCHWINDOW {
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 //CPetInfoWindow__CPetInfoWindow aPetinfowindow
-// CPetInfoWindow_size: 0x8d8 (see 5345FA) in Jun 11 2018 Test - eqmule
+// CPetInfoWindow_size: 0x8d8 (see 53463A) in Jun 18 2018 Test - eqmule
 typedef struct _EQPETINFOWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ DWORD PetSpawnID;//The pets SpawnID
@@ -1545,7 +1545,7 @@ typedef struct _EQPETINFOWINDOW {
 
 //CRaidWindow__CRaidWindow
 //aClasscolorD
-// CRaidWindow_size: 0x3b8 (see 5348EB) in Jun 11 2018 Test - eqmule
+// CRaidWindow_size: 0x3b8 (see 53492B) in Jun 18 2018 Test - eqmule
 typedef struct _EQRAIDWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0xb8];
@@ -1555,7 +1555,7 @@ typedef struct _EQRAIDWINDOW {
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 //CTradeWnd__CTradeWnd aTradewnd
-// CTradeWnd__size: 0x300 (see 535687) in Jun 11 2018 Test - eqmule
+// CTradeWnd__size: 0x300 (see 5356C7) in Jun 18 2018 Test - eqmule
 typedef struct _EQTRADEWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0240*/ BYTE         Unknown0x0240[0xb8];
