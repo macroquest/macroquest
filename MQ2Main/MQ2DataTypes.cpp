@@ -7776,7 +7776,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->HeroicCHA;
 		Dest.Type = pIntType;
 		return true;
-#if !defined(TEST)
+#if defined(EMU)
 	case HeroicSvMagic:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
