@@ -27,6 +27,7 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 using namespace std;
+bool bDisabledComparetip = false;
 bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
@@ -2888,14 +2889,39 @@ VOID DestroyCompareTipWnd()
 void CreateCompareTipWnd()
 {
 	try {
-		if (pCompareTipWnd) {
+		if (pCompareTipWnd || bDisabledComparetip) {
 			return; 
 		}
-		if (pSidlMgr->FindScreenPieceTemplate("CompareTipWnd")) { 
-			if(pCompareTipWnd = new CCompareTipWnd("CompareTipWnd")) {
-				Sleep(0);
-				//LoadWindowSettings((PCSIDLWND)pToolTipWnd);
+		HMODULE hMe = 0;
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)CreateCompareTipWnd, &hMe);
+		void* pMyBinaryData = 0;
+		CHAR szEQPath[2048] = { "C:\\Users\\Public\\Daybreak Game Company\\Installed Games\\EverQuest\\eqgame.exe" };
+		CHAR szMQUI_CompareTipWndPath[2048] = { 0 };
+		GetModuleFileName(NULL, szEQPath, 2048);
+		if (char *pDest = strstr(szEQPath,"eqgame.exe"))
+		{
+			pDest[0] = '\0';
+			strcpy_s(szMQUI_CompareTipWndPath, szEQPath);
+			strcat_s(szMQUI_CompareTipWndPath, "UIFiles\\Default\\MQUI_CompareTipWnd.xml");
+		}
+		WIN32_FIND_DATA FindFile = { 0 };
+		HANDLE hSearch = FindFirstFile(szMQUI_CompareTipWndPath, &FindFile);
+		if (hSearch != INVALID_HANDLE_VALUE) {
+			CloseHandle(hSearch);
+			if (pSidlMgr->FindScreenPieceTemplate("CompareTipWnd")) {
+				if (pCompareTipWnd = new CCompareTipWnd("CompareTipWnd")) {
+					Sleep(0);
+					//LoadWindowSettings((PCSIDLWND)pCompareTipWnd);
+				}
 			}
+			else {
+				bDisabledComparetip = true;
+				MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\nI will disable this feature for now.\nYou can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
+			}
+		}
+		else {
+			bDisabledComparetip = true;
+			MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\nI will disable this feature for now.\nYou can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
 		}
 	} 
 	catch(...) { 
@@ -2935,7 +2961,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	pDisplayItemType = new MQ2DisplayItemType;
     AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore",dataGearScore);
-
+	//MessageBox(NULL, "inject", "", MB_SYSTEMMODAL | MB_OK);
 	HMODULE hMe = 0;
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
 	void* pMyBinaryData = 0;
@@ -2946,7 +2972,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	{
 		pDest[0] = '\0';
 		strcpy_s(szMQUI_CompareTipWndPath, szEQPath);
-		strcat_s(szMQUI_CompareTipWndPath, "UIFiles\\Default\\EQUI_Animations2.xml");
+		strcat_s(szMQUI_CompareTipWndPath, "UIFiles\\Default\\MQUI_CompareTipWnd.xml");
 	}
 	WIN32_FIND_DATA FindFile = { 0 };
 	HANDLE hSearch = FindFirstFile(szMQUI_CompareTipWndPath, &FindFile);
@@ -2972,8 +2998,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	} else {
 		FindClose(hSearch);
 	}
-
-
 	AddXMLFile("MQUI_CompareTipWnd.xml");
     EzDetourwName(CInvSlotWnd__DrawTooltip, &ItemDisplayHook::CInvSlotWnd_DrawTooltipDetour, &ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp,"CInvSlotWnd__DrawTooltip");
 
@@ -3050,6 +3074,7 @@ PLUGIN_API void OnReloadUI()
 	ButtonMap.clear();
 #endif
 	if (GetGameState() == GAMESTATE_INGAME && pCharSpawn) {
+		bDisabledComparetip = false;
 		CreateCompareTipWnd();
 	}
 }

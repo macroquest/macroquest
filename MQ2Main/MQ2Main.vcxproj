@@ -47,6 +47,7 @@
       <PrecompiledHeader />
       <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
