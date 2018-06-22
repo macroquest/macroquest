@@ -198,6 +198,9 @@ MQ2ItemDisplay\ISXEQItemDisplay.h
 MQ2ItemDisplay\ISXEQItemDisplay.vcxproj
 MQ2ItemDisplay\ISXEQItemDisplay.vcxproj.filters
 MQ2ItemDisplay\MQ2ItemDisplay.cpp
+MQ2ItemDisplay\resource.h
+MQ2ItemDisplay\MQUI_CompareTipWnd.xml
+MQ2ItemDisplay\MQ2ItemDisplay.rc
 MQ2ItemDisplay\MQ2ItemDisplay.vcxproj
 MQ2ItemDisplay\MQ2ItemDisplay.vcxproj.filters
 MQ2Labels\ISXEQLabels.cpp

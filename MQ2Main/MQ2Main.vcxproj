@@ -46,6 +46,7 @@
       <ExceptionHandling />
       <PrecompiledHeader />
       <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -58,6 +59,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -94,7 +96,13 @@
     <ClInclude Include="combines.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="EQClasses.h" />
+    <ClInclude Include="EqData(beta).h" />
+    <ClInclude Include="EQData(Test).h" />
     <ClInclude Include="EQData.h" />
+    <ClInclude Include="eqgame(beta).h" />
+    <ClInclude Include="eqgame(Test).h" />
+    <ClInclude Include="EQUIStructs(beta).h" />
+    <ClInclude Include="EQUIStructs(Test).h" />
     <ClInclude Include="EQUIStructs.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
@@ -108,9 +116,13 @@
     <ClInclude Include="dikeys.h" />
     <ClInclude Include="eqgame.h" />
     <ClInclude Include="itemtypes.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="skills.h" />
     <ClInclude Include="SpellEffects.h" />
     <ClInclude Include="actordef.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

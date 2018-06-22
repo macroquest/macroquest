@@ -20,6 +20,7 @@
 
 #ifndef ISXEQ
 #include "../MQ2Plugin.h"
+#include "resource.h"
 PreSetup("MQ2ItemDisplay");
 #else
 #include "../ISXEQClient.h"
@@ -2934,6 +2935,44 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	pDisplayItemType = new MQ2DisplayItemType;
     AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore",dataGearScore);
+
+	HMODULE hMe = 0;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
+	void* pMyBinaryData = 0;
+	CHAR szEQPath[2048] = { "C:\\Users\\Public\\Daybreak Game Company\\Installed Games\\EverQuest\\eqgame.exe" };
+	CHAR szMQUI_CompareTipWndPath[2048] = { 0 };
+	GetModuleFileName(NULL, szEQPath, 2048);
+	if (char *pDest = strstr(szEQPath,"eqgame.exe"))
+	{
+		pDest[0] = '\0';
+		strcpy_s(szMQUI_CompareTipWndPath, szEQPath);
+		strcat_s(szMQUI_CompareTipWndPath, "UIFiles\\Default\\EQUI_Animations2.xml");
+	}
+	WIN32_FIND_DATA FindFile = { 0 };
+	HANDLE hSearch = FindFirstFile(szMQUI_CompareTipWndPath, &FindFile);
+	if (hSearch == INVALID_HANDLE_VALUE) {
+		//need to unpack our resource.
+		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_XML1), "XML")) {
+			if (HGLOBAL bin = LoadResource(hMe, hRes)) {
+				BOOL bResult = 0;
+				if (pMyBinaryData = LockResource(bin)) {
+					//save it...
+					DWORD ressize = SizeofResource(hMe, hRes);
+					FILE *File = 0;
+					errno_t err = fopen_s(&File, szMQUI_CompareTipWndPath, "wb");
+					if (!err) {
+						fwrite(pMyBinaryData, ressize, 1, File);
+						fclose(File);
+					}
+					bResult = UnlockResource(hRes);
+				}
+				bResult = FreeResource(hRes);
+			}
+		}
+	} else {
+		FindClose(hSearch);
+	}
+
 
 	AddXMLFile("MQUI_CompareTipWnd.xml");
     EzDetourwName(CInvSlotWnd__DrawTooltip, &ItemDisplayHook::CInvSlotWnd_DrawTooltipDetour, &ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp,"CInvSlotWnd__DrawTooltip");

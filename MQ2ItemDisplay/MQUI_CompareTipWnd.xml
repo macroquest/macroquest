@@ -1,0 +1,44 @@
+<?xml version = "1.0"?> 
+<XML ID = "EQInterfaceDefinitionLanguage"> 
+	<Schema xmlns = "EverQuestData" xmlns:dt = "EverQuestDataTypes"/> 
+	
+	<STMLbox item="CT_Display">
+		<ScreenID>CT_Display</ScreenID>
+		<DrawTemplate>WDT_Inner</DrawTemplate>
+		<RelativePosition>true</RelativePosition>
+		<Style_VScroll>false</Style_VScroll>
+		<Style_Transparent>true</Style_Transparent> 
+		<AutoStretch>true</AutoStretch>
+		<LeftAnchorOffset>2</LeftAnchorOffset>
+		<TopAnchorOffset>3</TopAnchorOffset>
+		<RightAnchorOffset>2</RightAnchorOffset>
+		<BottomAnchorOffset>3</BottomAnchorOffset>
+		<RightAnchorToLeft>false</RightAnchorToLeft>
+		<BottomAnchorToTop>false</BottomAnchorToTop>
+		<Style_Border>false</Style_Border>
+	</STMLbox>
+	
+	<Screen item = "CompareTipWnd">
+    <ScreenID>CompareTipWnd</ScreenID>
+		<DrawTemplate>WDT_Def</DrawTemplate> 
+		<RelativePosition>false</RelativePosition> 
+		<Location> 
+			<X>50</X> 
+			<Y>100</Y> 
+		</Location> 
+		<Size> 
+			<CX>220</CX> 
+			<CY>120</CY> 
+		</Size> 
+		<Text>CompareTip</Text> 
+		<Style_VScroll>false</Style_VScroll> 
+		<Style_HScroll>false</Style_HScroll> 
+		<Style_Transparent>false</Style_Transparent> 
+		<Style_Titlebar>true</Style_Titlebar> 
+		<Style_Closebox>false</Style_Closebox> 
+		<Style_Minimizebox>false</Style_Minimizebox> 
+		<Style_Border>true</Style_Border> 
+		<Style_Sizable>true</Style_Sizable>
+		<Pieces>CT_Display</Pieces>
+	</Screen> 
+</XML>

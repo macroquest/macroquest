@@ -15,6 +15,12 @@
     <Filter Include="Header Files\Test">
       <UniqueIdentifier>{ea315069-e311-43ea-a26c-d8dd921da24f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{f444558d-0978-4637-9574-41e30a49f137}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Beta">
+      <UniqueIdentifier>{39520b44-137e-44c2-b71e-506042358ab9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EQClasses.cpp">
@@ -154,5 +160,31 @@
     <ClInclude Include="EQUIStructs.h">
       <Filter>Header Files\Live</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EQData(Test).h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="eqgame(Test).h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQUIStructs(Test).h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EqData(beta).h">
+      <Filter>Header Files\Beta</Filter>
+    </ClInclude>
+    <ClInclude Include="eqgame(beta).h">
+      <Filter>Header Files\Beta</Filter>
+    </ClInclude>
+    <ClInclude Include="EQUIStructs(beta).h">
+      <Filter>Header Files\Beta</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MQ2Main.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
