@@ -2916,12 +2916,12 @@ void CreateCompareTipWnd()
 			}
 			else {
 				bDisabledComparetip = true;
-				MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\nI will disable this feature for now.\nYou can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
+				WriteChatf("Could not find CompareTipWnd\nPlease do /loadskin default");
 			}
 		}
 		else {
 			bDisabledComparetip = true;
-			MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\nI will disable this feature for now.\nYou can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
+			MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\\default\nI will disable this feature for now.\nYou can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
 		}
 	} 
 	catch(...) { 
