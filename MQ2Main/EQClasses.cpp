@@ -205,7 +205,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL ClientSpellManager::GetSpellByID(int), 0x1c)
 FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* ClientSpellManager::GetSpellAffect(int), 0x20);
 FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::GetSpellAffectEmpty(bool), 0x24);
 #else
-FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::DoesMeetRequirement(CharacterZoneClient *,int), 0x0c);
+FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::DoesMeetRequirement(PlayerZoneClient *,int), 0x0c);
 FUNCTION_AT_VIRTUAL_ADDRESS( void ClientSpellManager::PrintFailedRequirementString(int, int), 0x10);
 FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupID(int), 0x14);
 FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRank(int), 0x18);
@@ -6288,10 +6288,10 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::LMouseDown(int,int),CEverQuest__LMouseDown
 FUNCTION_AT_ADDRESS(void  CEverQuest::RMouseDown(int,int),CEverQuest__RMouseDown);
 #endif
 #ifdef CEverQuest__RMouseUp_x
-FUNCTION_AT_ADDRESS(void  CEverQuest::RMouseUp(int,int),CEverQuest__RMouseUp);
+FUNCTION_AT_ADDRESS(void CEverQuest::RMouseUp(int,int),CEverQuest__RMouseUp);
 #endif
 #ifdef CEverQuest__MouseWheelScrolled_x
-FUNCTION_AT_ADDRESS(void  CEverQuest::MouseWheelScrolled(int),CEverQuest__MouseWheelScrolled);
+FUNCTION_AT_ADDRESS(void CEverQuest::MouseWheelScrolled(int),CEverQuest__MouseWheelScrolled);
 #endif
 #ifdef CEverQuest__ClickedSwitch_x
 FUNCTION_AT_ADDRESS(class EQSwitch *  CEverQuest::ClickedSwitch(int,int),CEverQuest__ClickedSwitch);

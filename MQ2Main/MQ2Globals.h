@@ -1044,6 +1044,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD Teleport_Table;
 	EQLIB_VAR DWORD Teleport_Table_Size;
 	EQLIB_VAR DWORD __SaveColors;
+	EQLIB_VAR DWORD __HandleMouseWheel;
 	
 	EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
@@ -1176,6 +1177,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEverQuest__ReportSuccessfulHit;
 	EQLIB_VAR DWORD CEverQuest__CreateTargetIndicator;
 	EQLIB_VAR DWORD CEverQuest__DeleteTargetIndicator;
+	
 	EQLIB_VAR DWORD CFindItemWnd__CFindItemWnd;
 	EQLIB_VAR DWORD IString__Append;
 	EQLIB_VAR DWORD CDisplay__cameraType;

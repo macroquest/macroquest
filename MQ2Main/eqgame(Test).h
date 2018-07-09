@@ -392,7 +392,7 @@ GNU General Public License for more details.
 #define Util__FastTime_x                                           0x8D84A0
 #define wwsCrashReportCheckForUploader_x                           0x83CC60
 #define wwsCrashReportPlatformLaunchUploader_x                     0x83F340
-#define __SaveColors_x                                             0x537450
+#define __HandleMouseWheel_x                                       0x6960D0
 
 //// 
 // Section 4: Function Offsets 

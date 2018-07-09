@@ -9368,7 +9368,7 @@ public:
 /*0x04*/ EQLIB_OBJECT bool ClientSpellManager::LoadSpells(char const*FileName, char const*AssocFilename, char const*StackingFileName);
 /*0x08*/ EQLIB_OBJECT bool ClientSpellManager::LoadSpellStackingData(const char *StackingFileName);
 #ifndef EMU
-/*0x0c*/ EQLIB_OBJECT bool ClientSpellManager::DoesMeetRequirement(CharacterZoneClient *pPlayer,int SpellAssocID);
+/*0x0c*/ EQLIB_OBJECT bool ClientSpellManager::DoesMeetRequirement(PlayerZoneClient *pPlayer,int SpellAssocID);
 #endif
 /*0x10*/ EQLIB_OBJECT void ClientSpellManager::PrintFailedRequirementString(int StrToken, int StringID);
 /*0x14*/ EQLIB_OBJECT int ClientSpellManager::GetSpellStackingGroupID(int SpellID);

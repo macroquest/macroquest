@@ -629,16 +629,44 @@ public:
 		LoginController__GiveTime_Tramp();
 	}
 };
+int isNotOKToReadMemory(void *ptr, DWORD size)
+{
+	SIZE_T	dw;
+	MEMORY_BASIC_INFORMATION	mbi;
+	int	ok;
+
+	dw = VirtualQuery(ptr, &mbi, sizeof(mbi));
+	ok = ((mbi.Protect & PAGE_READONLY) ||
+		  (mbi.Protect & PAGE_READWRITE) ||
+		  (mbi.Protect & PAGE_WRITECOPY) ||
+		  (mbi.Protect & PAGE_EXECUTE_READ) ||
+		  (mbi.Protect & PAGE_EXECUTE_READWRITE) ||
+		  (mbi.Protect & PAGE_EXECUTE_WRITECOPY));
+	if (mbi.Protect & PAGE_GUARD)
+		ok = FALSE;
+	if (mbi.Protect & PAGE_NOACCESS)
+		ok = FALSE;
+	return !ok;
+}
+
 void RemoveLoginPulse()
 {
 	if (LoginController__GiveTime) {
-		if (!IsBadReadPtr((PVOID)LoginController__GiveTime, 4)) {
-			RemoveDetour(LoginController__GiveTime);
-			LoginController__GiveTime = 0;
+		try
+		{
+			if (!isNotOKToReadMemory((PVOID)LoginController__GiveTime, 4)) {
+				RemoveDetour(LoginController__GiveTime);
+				LoginController__GiveTime = 0;
+			}
+			else {
+				DeleteDetour(LoginController__GiveTime);
+				LoginController__GiveTime = 0;
+			}
 		}
-		else {
-			DeleteDetour(LoginController__GiveTime);
-			LoginController__GiveTime = 0;
+		catch (...)
+		{
+			//do nothing ita not a crash its just a exception that happens when in fact the memory is not readable
+			OutputDebugString("Bad ReadPointer detected in RemoveLoginPulse, no action taken, all is good.");
 		}
 	}
 }

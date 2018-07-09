@@ -1659,7 +1659,7 @@ public:
 								PrintItem(pCont, pEquipped);
 							}
 						}
-						WriteChatf("CInvSlotWnd_DrawTooltipDetour called for %s", pItem->Name);
+						//WriteChatf("CInvSlotWnd_DrawTooltipDetour called for %s", pItem->Name);
 					}
 				}
 			}
@@ -2895,9 +2895,9 @@ void CreateCompareTipWnd()
 		HMODULE hMe = 0;
 		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)CreateCompareTipWnd, &hMe);
 		void* pMyBinaryData = 0;
-		CHAR szEQPath[2048] = { "C:\\Users\\Public\\Daybreak Game Company\\Installed Games\\EverQuest\\eqgame.exe" };
-		CHAR szMQUI_CompareTipWndPath[2048] = { 0 };
-		GetModuleFileName(NULL, szEQPath, 2048);
+		CHAR szEQPath[MAX_PATH] = { "C:\\Users\\Public\\Daybreak Game Company\\Installed Games\\EverQuest\\eqgame.exe" };
+		CHAR szMQUI_CompareTipWndPath[MAX_PATH] = { 0 };
+		GetModuleFileName(NULL, szEQPath, MAX_PATH);
 		if (char *pDest = strstr(szEQPath,"eqgame.exe"))
 		{
 			pDest[0] = '\0';
@@ -2907,14 +2907,15 @@ void CreateCompareTipWnd()
 		WIN32_FIND_DATA FindFile = { 0 };
 		HANDLE hSearch = FindFirstFile(szMQUI_CompareTipWndPath, &FindFile);
 		if (hSearch != INVALID_HANDLE_VALUE) {
-			CloseHandle(hSearch);
-			if (pSidlMgr->FindScreenPieceTemplate("CompareTipWnd")) {
+			FindClose(hSearch);
+			if (pSidlMgr && pSidlMgr->FindScreenPieceTemplate("CompareTipWnd")) {
 				if (pCompareTipWnd = new CCompareTipWnd("CompareTipWnd")) {
 					Sleep(0);
 					//LoadWindowSettings((PCSIDLWND)pCompareTipWnd);
 				}
 			}
-			else {
+			else
+			{
 				bDisabledComparetip = true;
 				WriteChatf("Could not find CompareTipWnd\nPlease do /loadskin default");
 			}
