@@ -6002,6 +6002,8 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	if (pSearchSpawn1->bMerchant != pSearchSpawn2->bMerchant)
 		return false;
+	if (pSearchSpawn1->bBanker != pSearchSpawn2->bBanker)
+		return false;
 	if (pSearchSpawn1->bNamed != pSearchSpawn2->bNamed)
 		return false;
 	if (pSearchSpawn1->bNearAlert != pSearchSpawn2->bNearAlert)
@@ -6105,6 +6107,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if (pSearchSpawn->bNamed && !IsNamed(pSpawn))
 		return FALSE;
 	if (pSearchSpawn->bMerchant && pSpawn->mActorClient.Class != 41)
+		return FALSE;
+	if (pSearchSpawn->bBanker && pSpawn->mActorClient.Class != 40)
 		return FALSE;
 	if (pSearchSpawn->bTributeMaster && pSpawn->mActorClient.Class != 63)
 		return FALSE;
@@ -6348,6 +6352,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 		}
 		else if (!_stricmp(szArg, "merchant")) {
 			pSearchSpawn->bMerchant = TRUE;
+		}
+		else if (!_stricmp(szArg, "banker")) {
+			pSearchSpawn->bBanker = TRUE;
 		}
 		else if (!_stricmp(szArg, "tribute")) {
 			pSearchSpawn->bTributeMaster = TRUE;
@@ -7413,20 +7420,6 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 // ***************************************************************************
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, BOOL bTriggeredEffectCheck)
 {
-	EQ_Affect eff;
-	eff.ID = bSpell->ID;
-	#if !defined(EMU)
-	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, false);
-	#else
-	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
-	#endif
-	if (bItWillNotStack) {
-		Sleep(0);
-		//return false;
-	}
-	else {
-		//return true;
-	}
 	if (!aSpell || !bSpell)
 		return false;
 	if (IsBadReadPtr((void*)aSpell, 4))
@@ -7439,6 +7432,22 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 	//CHAR szEcho[MAX_STRING] = { 0 };
 	//snprintf(szEcho, sizeof(szEcho), "aSpell->Name=%s(%d) bSpell->Name=%s(%d)", aSpell->Name, aSpell->ID, bSpell->Name, bSpell->ID);
 	//WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
+
+	EQ_Affect eff;
+	eff.ID = bSpell->ID;
+	#if !defined(EMU)
+	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, false);
+	#else
+	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
+	#endif
+	if (bItWillNotStack) {
+		Sleep(0);
+		//WriteChatf("EQ Client says spell is BLOCKED");
+		//return false;
+	}
+	else {
+		//return true;
+	}
 
 	// We need to loop over the largest of the two, this may seem silly but one could have stacking command blocks
 	// which we will always need to check.

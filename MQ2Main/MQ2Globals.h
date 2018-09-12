@@ -427,6 +427,8 @@ namespace MQ2Globals
 #define pEverQuest (*ppEverQuest)
 	EQLIB_VAR CDisplay **ppDisplay;
 #define pDisplay (*ppDisplay)
+	EQLIB_VAR CDistillerInfo **ppDistillerInfo;
+#define pDistillerInfo (*ppDistillerInfo)
 	EQLIB_VAR EQ_PC **ppPCData;
 #define pPCData (*ppPCData)
 	EQLIB_VAR EQ_Character **ppCharData;
@@ -973,6 +975,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCBarterSearchWnd;
 	EQLIB_VAR DWORD pinstCBarterWnd;
 	EQLIB_VAR DWORD pinstCChatWindowManager;
+	EQLIB_VAR DWORD pinstCDistillerInfo;
 	EQLIB_VAR DWORD pinstCDynamicZoneWnd;
 	EQLIB_VAR DWORD pinstCEQMainWnd;
 	EQLIB_VAR DWORD pinstCFellowshipWnd;
@@ -1013,38 +1016,38 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCPointMerchantWnd;
 	EQLIB_VAR DWORD pinstCZoneGuideWnd;
 
+	EQLIB_VAR DWORD __AppCrashWrapper;
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __CastRay2;
-	EQLIB_VAR DWORD __HeadingDiff;
+	EQLIB_VAR DWORD __ConvertItemTags;
+	EQLIB_VAR DWORD __CrashHandler;
+	EQLIB_VAR DWORD __EQGetTime;
+	EQLIB_VAR DWORD __ExecuteCmd;
 	EQLIB_VAR DWORD __FixHeading;
 	EQLIB_VAR DWORD __get_bearing;
-	EQLIB_VAR DWORD __ConvertItemTags;
-	EQLIB_VAR DWORD __ExecuteCmd;
-	EQLIB_VAR DWORD __EQGetTime;
 	EQLIB_VAR DWORD __get_melee_range;
+	EQLIB_VAR DWORD __GetAnimationCache;
 	EQLIB_VAR DWORD __GetGaugeValueFromEQ;
 	EQLIB_VAR DWORD __GetLabelFromEQ;
-	EQLIB_VAR DWORD __ToggleKeyRingItem;
 	EQLIB_VAR DWORD __GetXTargetType;
+	EQLIB_VAR DWORD __HandleMouseWheel;
+	EQLIB_VAR DWORD __HeadingDiff;
+	EQLIB_VAR DWORD __HelpPath;
 	EQLIB_VAR DWORD __LoadFrontEnd;
 	EQLIB_VAR DWORD __NewUIINI;
-	EQLIB_VAR DWORD __ProcessGameEvents;
-	EQLIB_VAR DWORD CrashDetected;
-	EQLIB_VAR DWORD wwsCrashReportCheckForUploader;
-	EQLIB_VAR DWORD wwsCrashReportPlatformLaunchUploader;
-	EQLIB_VAR DWORD __AppCrashWrapper;
 	EQLIB_VAR DWORD __pCrashHandler;
-	EQLIB_VAR DWORD __CrashHandler;
-	EQLIB_VAR DWORD DrawNetStatus;
-	EQLIB_VAR DWORD Util__FastTime;
-	EQLIB_VAR DWORD Expansion_HoT;
-	EQLIB_VAR DWORD __HelpPath;
+	EQLIB_VAR DWORD __ProcessGameEvents;
+	EQLIB_VAR DWORD __SaveColors;
 	EQLIB_VAR DWORD __STMLToText;
-	EQLIB_VAR DWORD __GetAnimationCache;
+	EQLIB_VAR DWORD __ToggleKeyRingItem;
+	EQLIB_VAR DWORD CrashDetected;
+	EQLIB_VAR DWORD DrawNetStatus;
+	EQLIB_VAR DWORD Expansion_HoT;
 	EQLIB_VAR DWORD Teleport_Table;
 	EQLIB_VAR DWORD Teleport_Table_Size;
-	EQLIB_VAR DWORD __SaveColors;
-	EQLIB_VAR DWORD __HandleMouseWheel;
+	EQLIB_VAR DWORD Util__FastTime;
+	EQLIB_VAR DWORD wwsCrashReportCheckForUploader;
+	EQLIB_VAR DWORD wwsCrashReportPlatformLaunchUploader;
 	
 	EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
@@ -1192,6 +1195,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CResolutionHandler__GetWindowedStyle;
 	EQLIB_VAR DWORD CContainerMgr__OpenExperimentContainer;
 	EQLIB_VAR DWORD CColorPickerWnd__Open;
+	EQLIB_VAR DWORD CDistillerInfo__GetIDFromRecordNum;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;

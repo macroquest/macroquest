@@ -591,6 +591,20 @@ class CXWnd *GetChildByIndex(class CXWnd *pWnd, PCHAR Name,int index)
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!_stricmp(WindowName, "RewardSelectionWnd"))
+	{
+		//							 Parent      TabWindow        PageTemplate
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+
+		while (pWnd)
+		{
+			if (((PCSIDLWND)pWnd)->dShow)
+			{
+				break;
+			}
+			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+		}
+	}
     if (!pWnd)
     {
         MacroError("Window '%s' not available.",WindowName);
@@ -683,7 +697,20 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 
 bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 {
-    CXWnd *pWnd=FindMQ2Window(WindowName);
+	CXWnd *pWnd = FindMQ2Window(WindowName);
+	if (!_stricmp(WindowName, "RewardSelectionWnd"))
+	{
+		//							 Parent      TabWindow        PageTemplate
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		while (pWnd) 
+		{
+			if (((PCSIDLWND)pWnd)->dShow) 
+			{
+				break;
+			}
+			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+		}
+	}
     CXWnd *pParentWnd = 0;
     if (!pWnd)
     {
@@ -784,6 +811,19 @@ bool SendListSelect2(CXWnd *pList, LONG ListIndex)
 bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!_stricmp(WindowName, "RewardSelectionWnd"))
+	{
+		//							 Parent      TabWindow        PageTemplate
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		while (pWnd)
+		{
+			if (((PCSIDLWND)pWnd)->dShow)
+			{
+				break;
+			}
+			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+		}
+	}
     CXWnd *pParentWnd = 0;
     if (!pWnd)
     {
@@ -825,6 +865,19 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!_stricmp(WindowName, "RewardSelectionWnd"))
+	{
+		//							 Parent      TabWindow        PageTemplate
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		while (pWnd)
+		{
+			if (((PCSIDLWND)pWnd)->dShow)
+			{
+				break;
+			}
+			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+		}
+	}
     if (!pWnd)
     {
         MacroError("Window '%s' not available.",WindowName);

@@ -4169,27 +4169,36 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 									GetArg(szEntity, szLine, 4);
 									CHAR szQty[MAX_STRING] = { 0 };
 									GetArg(szQty, szLine, 5);
+									CHAR szOut[MAX_STRING] = { 0 };
+									WriteChatf("DEBUG: Giveto Entity %s  Qty %s", szEntity, szQty);
 									if (szEntity[0] != '\0') {
 										if (PCHARINFO pCI = GetCharInfo()) {
 											if (pCI->pGroupInfo) {
-												CHAR szOut[MAX_STRING] = { 0 };
 												for (int i = 0; i < 6; i++) {
 													if (pCI->pGroupInfo->pMember[i] && pCI->pGroupInfo->pMember[i]->Mercenary == 0 && pCI->pGroupInfo->pMember[i]->pName) {
 														GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, MAX_STRING);
-														if (!_stricmp(szOut, szEntity)) {
-															int qty = atoi(szQty);
-															if (pitem && pitem->LootDetails) {
-																if (qty == 0 || qty > pitem->LootDetails->StackCount) {
-																	qty = pitem->LootDetails->StackCount;
-																	if (qty == 0) {
-																		qty = 1;
-																	}
-																}
-																pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(szOut), 0, qty);
-																return;
-															}
+													}
+												}
+											}
+											if (pRaid) {
+												for (DWORD nMember = 0; nMember < 72; nMember++) {
+													if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity)) {
+														strcpy_s(szOut, pRaid->RaidMember[nMember].Name);
+														nMember = 72;
+													}
+												}
+											}
+											if (!_stricmp(szOut, szEntity)) {
+												int qty = atoi(szQty);
+												if (pitem && pitem->LootDetails) {
+													if (qty == 0 || qty > pitem->LootDetails->StackCount) {
+														qty = pitem->LootDetails->StackCount;
+														if (qty == 0) {
+															qty = 1;
 														}
 													}
+													pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(szOut), 0, qty);
+													return;
 												}
 											}
 										}

@@ -124,6 +124,7 @@ namespace MQ2Globals
 		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
 		ppDisplay = (CDisplay**)pinstCDisplay;
+		ppDistillerInfo = (CDistillerInfo**)pinstCDistillerInfo;
 		ppPCData = (EQ_PC**)pinstPCData;
 		ppCharData = (EQ_Character**)pinstCharData;
 		ppCharSpawn = (EQPlayer**)pinstCharSpawn;
@@ -1147,6 +1148,7 @@ namespace MQ2Globals
 
 	CEverQuest **ppEverQuest = 0;
 	CDisplay **ppDisplay = 0;
+	CDistillerInfo **ppDistillerInfo = 0;
 	EQ_PC **ppPCData = 0;
 	EQ_Character **ppCharData = 0;
 	EQPlayer **ppCharSpawn = 0;
@@ -1522,6 +1524,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterSearchWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCChatWindowManager);
+	INITIALIZE_EQGAME_OFFSET(pinstCDistillerInfo);
 	INITIALIZE_EQGAME_OFFSET(pinstCDynamicZoneWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCEQMainWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFellowshipWnd);
@@ -2167,6 +2170,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetTexture);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenExperimentContainer);
 	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
+	INITIALIZE_EQGAME_OFFSET(CDistillerInfo__GetIDFromRecordNum);
 	
 
 #ifdef __IsResEffectSpell_x

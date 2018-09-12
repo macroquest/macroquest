@@ -4613,7 +4613,7 @@ bool MQ2CharacterType::GETMEMBER()
 							if (pSpawn->Type == SPAWN_NPC) {
 								DWORD aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
 								//WriteChatf("Checking aggro on %s its %d",xta->pXTargetData[i].Name,agropct);
-								if (aggropct <= AggroPct) {
+								if (aggropct < AggroPct) {
 									Dest.DWord++;
 								}
 							}
@@ -5482,7 +5482,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = 8;
 		if (pCastSpellWnd) {
 			CHAR szWnd[32] = { 0 };
-			for (int i = 8; i < 12; i++) {
+			for (int i = 8; i < NUM_SPELL_GEMS; i++) {
 				sprintf_s(szWnd, "CSPW_Spell%d", i);
 				if (CXWnd *wnd = (CXWnd *)pCastSpellWnd->GetChildItem(szWnd)) {
 					if (wnd->dShow==1) {
@@ -6415,6 +6415,10 @@ bool MQ2SpellType::GETMEMBER()
 	case DurationValue1:
 		Dest.DWord = pSpell->DurationCap;
 		Dest.Type = pIntType;
+		return true;
+	case StacksWithDiscs:
+		Dest.DWord = pSpell->bStacksWithDiscs;
+		Dest.Type = pBoolType;
 		return true;
 	case IllusionOkWhenMounted:
 		Dest.DWord = true;
@@ -14065,6 +14069,10 @@ bool MQ2AlertListType::GETMEMBER()
 					return true;
 				case bMerchant:
 					Dest.DWord = (*si).bMerchant;
+					Dest.Type = pBoolType;
+					return true;
+				case bBanker:
+					Dest.DWord = (*si).bBanker;
 					Dest.Type = pBoolType;
 					return true;
 				case bTributeMaster:

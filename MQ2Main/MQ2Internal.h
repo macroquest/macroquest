@@ -93,6 +93,7 @@ namespace MQ2Internal {
         BOOL bGM;
         BOOL bNamed;
         BOOL bMerchant;
+		BOOL bBanker;
         BOOL bTributeMaster;
         BOOL bKnight;
         BOOL bTank;

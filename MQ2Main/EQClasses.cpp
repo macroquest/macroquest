@@ -3952,6 +3952,9 @@ FUNCTION_AT_ADDRESS(void  CDisplay::SetupEQPlayers(void),CDisplay__SetupEQPlayer
 #ifdef CDisplay__MoveLight_x
 FUNCTION_AT_ADDRESS(void  CDisplay::MoveLight(struct T3D_POINTLIGHT *,struct _physicsinfo *),CDisplay__MoveLight);
 #endif
+#ifdef CDistillerInfo__GetIDFromRecordNum_x
+FUNCTION_AT_ADDRESS(int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat),CDistillerInfo__GetIDFromRecordNum);
+#endif
 #ifdef ZoneNPCLoadTextManager__ZoneNPCLoadTextManager_x
 FUNCTION_AT_ADDRESS( ZoneNPCLoadTextManager::ZoneNPCLoadTextManager(char *),ZoneNPCLoadTextManager__ZoneNPCLoadTextManager);
 #endif

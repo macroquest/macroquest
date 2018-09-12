@@ -1994,6 +1994,13 @@ EQLIB_OBJECT void CDisplay::CleanUpNewUI(void);
 EQLIB_OBJECT void CDisplay::InitGameUI(void);
 EQLIB_OBJECT void CDisplay::InitNewUI(void);
 };
+
+class CDistillerInfo
+{
+public:
+EQLIB_OBJECT int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat);
+};
+
 enum eTextAlign
 {
     eta_Left,
