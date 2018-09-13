@@ -56,6 +56,8 @@ typedef struct _DISPLAYITEMSTRINGS
 	std::string ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
 	bool bCollected;
 	bool bCollectedRecieved;
+	bool bScribed;
+	bool bScribedRecieved;
 } DISPLAYITEMSTRINGS,*PDISPLAYITEMSTRINGS;
 
 extern "C" {
@@ -78,8 +80,10 @@ public:
 		MadeBy = 4,
 		CollectedRecieved = 5,
 		Collected = 6,
-		Information = 7,
-		DisplayIndex = 8
+		ScribedRecieved = 7,
+		Scribed = 8,
+		Information = 9,
+		DisplayIndex = 10
 	};
 	enum DisplayItemMethods
 	{
@@ -92,6 +96,8 @@ public:
 		TypeMember(MadeBy);
 		TypeMember(CollectedRecieved);
 		TypeMember(Collected);
+		TypeMember(ScribedRecieved);
+		TypeMember(Scribed);
 		TypeMember(Information);
 		TypeMember(DisplayIndex);
 
@@ -162,6 +168,14 @@ public:
 				return true;
 			case CollectedRecieved:
 				Dest.DWord = contentsitemstrings[index].bCollectedRecieved;
+				Dest.Type = pBoolType;
+				return true;
+			case Scribed:
+				Dest.DWord = contentsitemstrings[index].bScribed;
+				Dest.Type = pBoolType;
+				return true;
+			case ScribedRecieved:
+				Dest.DWord = contentsitemstrings[index].bScribedRecieved;
 				Dest.Type = pBoolType;
 				return true;
 			case Information:
@@ -908,6 +922,16 @@ public:
 			{
 				contentsitemstrings[index].bCollectedRecieved = false;
 				contentsitemstrings[index].bCollected = false;
+			}
+			if (This->bScribedReceived)
+			{
+				contentsitemstrings[index].bScribedRecieved = true;
+				contentsitemstrings[index].bScribed = This->bScribed;
+			}
+			else
+			{
+				contentsitemstrings[index].bScribedRecieved = false;
+				contentsitemstrings[index].bScribed = false;
 			}
 			if (This->ItemMadeByText) {
 				GetCXStr(This->ItemMadeByText, temp);
