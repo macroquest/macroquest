@@ -279,7 +279,7 @@ namespace MQ2Globals
 #define gPCNames (*gpPCNames)
 	EQLIB_VAR PBYTE gpAutoFire;
 #define gAutoFire (*gpAutoFire)
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 		EQLIB_VAR PAUTOSKILL gpAutoSkill;
 		#define gAutoSkill (*gpAutoSkill)
 	#endif
@@ -360,7 +360,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQNewUIINI			NewUIINI;
 	EQLIB_VAR fEQProcGameEvts		ProcessGameEvents;
 	EQLIB_VAR fEQGetMelee			get_melee_range;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR fEQToggleKeyRingItem	cmdToggleKeyRingItem;
 #endif
 	EQLIB_VAR fLoaderSetLoaded		IC_LoaderSetLoaded;
@@ -522,7 +522,7 @@ namespace MQ2Globals
 	EQLIB_VAR MERCENARYINFO **ppMercInfo;
 #define pMercInfo (*ppMercInfo)
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR EQMERCALTABILITIES **ppMercAltAbilities;
 #define pMercAltAbilities (*ppMercAltAbilities)
 	EQLIB_VAR LootFiltersManager **ppLootFiltersManager;
@@ -627,7 +627,7 @@ namespace MQ2Globals
 	//EQLIB_VAR CTributeBenefitWnd **ppTributeBenefitWnd;
 	//EQLIB_VAR CTributeMasterWnd **ppTributeMasterWnd;
 	EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
 	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	#endif
@@ -734,7 +734,7 @@ namespace MQ2Globals
 #define pTributeBenefitWnd (*ppTributeBenefitWnd)
 #define pTributeMasterWnd (*ppTributeMasterWnd)
 #define pPetitionQWnd (*ppPetitionQWnd)
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 #define pSoulmarkWnd (*ppSoulmarkWnd)
 #endif
 #define pTaskWnd (*ppTaskWnd)
@@ -944,7 +944,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCTrackingWnd;
 	EQLIB_VAR DWORD pinstCInspectWnd;
 	EQLIB_VAR DWORD pinstCSocialEditWnd;
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR DWORD pinstCFeedbackWnd;
 	#endif
 	EQLIB_VAR DWORD pinstCBugReportWnd;

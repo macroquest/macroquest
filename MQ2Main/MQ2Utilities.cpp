@@ -1096,7 +1096,7 @@ std::map<int, int>g_TriggeredSpells;
 
 void PopulateTriggeredmap(PSPELL pSpell)
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell->CannotBeScribed == 1)
 		return;
 	LONG slots = GetSpellNumEffects(pSpell);
@@ -1229,7 +1229,7 @@ PSPELL GetSpellByName(PCHAR szName)
 //This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
 PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
 {
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	return pAltAdvManager->GetAAById(nAbilityId);
 #else
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
@@ -1331,7 +1331,7 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 		return 0;
 	}
 }
-#if defined(EMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 PCHAR GetGuildByID(DWORD GuildID)
 {
 	if (PGUILD pGuild = pGuildList->GuildList[GuildID % pGuildList->HashValue])
@@ -1365,7 +1365,7 @@ PCHAR GetGuildByID(DWORD GuildID)
 	}
 #endif
 
-#if defined(EMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
 	DWORD n;
@@ -2585,7 +2585,7 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2609,7 +2609,7 @@ LONG GetSpellBase(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2633,7 +2633,7 @@ LONG GetSpellBase2(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2657,7 +2657,7 @@ LONG GetSpellMax(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2681,7 +2681,7 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -6446,7 +6446,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->GuildID = GetCharInfo()->GuildID;
 		}
 		else if (!_stricmp(szArg, "guildname")) {
-			#ifndef EMU
+			#if !defined(ROF2EMU) && !defined(UFEMU)
 			__int64 GuildID = -1;
 			#else
 			DWORD GuildID = -1;
@@ -7212,7 +7212,7 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
 
 DWORD GetItemTimer(PCONTENTS pItem)
 {
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem,eActivatableSpell);
 #else
 	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem);
@@ -7435,7 +7435,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 
 	EQ_Affect eff;
 	eff.ID = bSpell->ID;
-	#if !defined(EMU)
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, false);
 	#else
 	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
@@ -7638,13 +7638,15 @@ float GetMeleeRange(class EQPlayer *pSpawn1, class EQPlayer *pSpawn2)
 	}
 	return 14.0f;
 }
-
+//todo: check manually
 DWORD GetSpellGemTimer(DWORD nGem)
 {
 	_EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
-	if (g->TimeStamp) {
-		return g->TimeStamp + g->RecastTime - EQGetTime();
+#if !defined(UFEMU)//todo: check manually for uf
+	if (g->Wnd.CoolDownBeginTime) {
+		return g->Wnd.CoolDownBeginTime + g->Wnd.CoolDownDuration - EQGetTime();
 	}
+#endif
 	return 0;
 }
 
@@ -7753,7 +7755,7 @@ bool HasExpansion(DWORD nExpansion)
 }
 //Just a Function that needs more work
 //I use this to test merc aa struct -eqmule
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 VOID ListMercAltAbilities()
 {
 	if (pMercAltAbilities) {
@@ -8043,7 +8045,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 		}
 	}
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
@@ -8199,7 +8201,7 @@ PCONTENTS FindItemByID(int ItemID)
 		}
 	}
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	PCHARINFO pChar = GetCharInfo();
 	//still not found? fine... check mount keyring
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
@@ -8454,7 +8456,7 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 		}
 	}
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
@@ -8673,7 +8675,7 @@ DWORD FindItemCountByID(int ItemID)
 		}
 	}
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
@@ -9936,7 +9938,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 int GetSpellCategory(PSPELL pSpell)
 {
 	if (pSpell) {
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 		return pSpell->Category;
 #else
 		if (pSpell->CannotBeScribed) {
@@ -9954,7 +9956,7 @@ int GetSpellCategory(PSPELL pSpell)
 int GetSpellSubcategory(PSPELL pSpell)
 {
 	if (pSpell) {
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 		return pSpell->Subcategory;
 #else
 		if (pSpell->CannotBeScribed) {
@@ -9971,7 +9973,7 @@ int GetSpellSubcategory(PSPELL pSpell)
 }
 bool IsAegoSpell(PSPELL pSpell)
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell->CannotBeScribed) {
 		if (PSPELL pTrigger = GetSpellParent(pSpell->ID)) {
 			if ((pTrigger->Subcategory == 1) || (pTrigger->Subcategory == 112)) {
@@ -9991,7 +9993,7 @@ bool IsAegoSpell(PSPELL pSpell)
 				return true;
 			}
 		}
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	}
 #endif
 	return false;
@@ -10172,7 +10174,7 @@ bool StripQuotes(char *str)
 	return bRet;
 }
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 {
 	pkrdata kr = (pkrdata)pData;
@@ -10309,7 +10311,7 @@ int GetFamiliarCount()
 	return Count;
 }
 #endif
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName,SIZE_T BuffLen, bool bExact, bool usecmd)
 {
 	return 0;
@@ -10686,7 +10688,7 @@ CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*
 	}
 	return NULL;
 }
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList)
 {
 	if (pPersonalList) {

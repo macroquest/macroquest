@@ -30,7 +30,7 @@ DATATYPE(MQ2EverQuestType, pEverQuestType, nullptr, 0);
 DATATYPE(MQ2SpawnType, pSpawnType, nullptr, PersistentPointerClass);
 DATATYPE(MQ2SpellType, pSpellType, nullptr, 0);
 // Define all inherited types first so that the SetInheritence works properly
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr, 0);
 DATATYPE(MQ2AdvLootItemType, pAdvLootItemType, nullptr, 0);
 DATATYPE(MQ2ItemFilterDataType, pItemFilterDataType, nullptr, 0);

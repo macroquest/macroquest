@@ -223,7 +223,7 @@ static inline int GetBaseSkill(int nSkill) {
 static inline int GetModCap(int index, bool bToggle = false) {
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
-			#ifndef EMU
+			#if !defined(ROF2EMU) && !defined(UFEMU)
 			return ((PcZoneClient*)pCharData1)->GetModCap(index, bToggle);
 			#else
 			return ((PcZoneClient*)pCharData1)->GetModCap(index);
@@ -756,7 +756,7 @@ return pGetTickCount64();
 
 static inline LONG GetSpellNumEffects(PSPELL pSpell)
 {
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		return pSpell->NumEffects;
 	}
@@ -876,7 +876,7 @@ static inline std::string trim_copy(std::string s) {
 }
 static inline char* GetSpellString(int ID, int SpellIndex)
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pEQSpellStrings) {
 		if(char*str = pEQSpellStrings->GetString(ID, SpellIndex)) {
 			if (str[0])

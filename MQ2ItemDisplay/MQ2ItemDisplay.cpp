@@ -116,7 +116,7 @@ public:
 			{
 				case AddLootFilter:
 				{
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 					if (PITEMINFO pItem = GetItemFromContents(pCont)) {
 						DWORD ptr = (DWORD)pLootFiltersManager;
 						Sleep(0);
@@ -363,7 +363,7 @@ public:
 		this->Alpha = 0xfa;
 		this->BGColor = 0xFF000000;
 		this->BGType = 1;
-		#if !defined(EMU)
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		this->bClickThrough = 1;
 		#endif
     }
@@ -497,7 +497,7 @@ public:
         return dmgbonus;
     }
 
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
 	VOID SetSpell_Trampoline(int SpellID, bool bFullInfo);
     VOID SetSpell_Detour(int SpellID,bool bFullInfo)
 	#else
@@ -515,7 +515,7 @@ public:
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
-			#ifdef EMU
+			#if defined(ROF2EMU) || defined(UFEMU)
 			SetSpell_Trampoline(SpellID,bFullInfo);
 			#else
 			SetSpell_Trampoline(SpellID);
@@ -685,14 +685,14 @@ public:
 		}
         if (out[0]!=17) {
             strcat_s(out,"</c>");
-			#ifndef EMU
+			#if !defined(ROF2EMU) && !defined(UFEMU)
 				This->ItemInfo.Append(&out[0]);
 			#else
 				AppendCXStr(&This->ItemInfo, &out[0]);
 			#endif
         }
     }
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
     VOID ItemSetSpell_Detour(_ITEMSPELLS Effect, bool bFullInfo)
 	#else
 	VOID ItemSetSpell_Detour(_ITEMSPELLS Effect)
@@ -709,7 +709,7 @@ public:
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
-			#ifdef EMU
+			#if defined(ROF2EMU) || defined(UFEMU)
 			SetSpell_Trampoline(Effect.SpellID, bFullInfo);
 			#else
 			SetSpell_Trampoline(Effect.SpellID);
@@ -913,6 +913,7 @@ public:
 			} else {
 				contentsitemstrings[index].ItemInfo.clear();
 			}
+#if !defined(UFEMU)//uf
 			if (This->bCollectedReceived)
 			{
 				contentsitemstrings[index].bCollectedRecieved = true;
@@ -923,6 +924,8 @@ public:
 				contentsitemstrings[index].bCollectedRecieved = false;
 				contentsitemstrings[index].bCollected = false;
 			}
+#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (This->bScribedReceived)
 			{
 				contentsitemstrings[index].bScribedRecieved = true;
@@ -933,6 +936,7 @@ public:
 				contentsitemstrings[index].bScribedRecieved = false;
 				contentsitemstrings[index].bScribed = false;
 			}
+#endif
 			if (This->ItemMadeByText) {
 				GetCXStr(This->ItemMadeByText, temp);
 				CXStr szin = temp;
@@ -1179,7 +1183,7 @@ public:
 	int WndNotification_Trampoline(CXWnd*, unsigned __int32, void*);
 	int WndNotification_Detour(CXWnd* pWnd, unsigned __int32 Message, void* pData)
     {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (Message == XWM_LCLICK)
 		{
 			std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.find((CButtonWnd*)pWnd);
@@ -1440,7 +1444,7 @@ public:
 		bNoSpellTramp = true;
 		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
 			eEffectType = Clicky;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			ItemSetSpell_Detour(Item->Clicky, false);
 #else
 			ItemSetSpell_Detour(Item->Clicky);
@@ -1449,7 +1453,7 @@ public:
 
 		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
 			eEffectType = Proc;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			ItemSetSpell_Detour(Item->Proc, false);
 #else
 			ItemSetSpell_Detour(Item->Proc);
@@ -1458,7 +1462,7 @@ public:
 
 		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
 			eEffectType = Worn;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			ItemSetSpell_Detour(Item->Worn, false);
 #else
 			ItemSetSpell_Detour(Item->Worn);
@@ -1467,7 +1471,7 @@ public:
 
 		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
 			eEffectType = Focus;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			ItemSetSpell_Detour(Item->Focus, false);
 #else
 			ItemSetSpell_Detour(Item->Focus);
@@ -1476,7 +1480,7 @@ public:
 
 		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
 			eEffectType = Scroll;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			ItemSetSpell_Detour(Item->Scroll, false);
 #else
 			ItemSetSpell_Detour(Item->Scroll);
@@ -1484,13 +1488,13 @@ public:
 		}
 		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1) {
 			eEffectType = Focus2;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			ItemSetSpell_Detour(Item->Focus2, false);
 #else
 			ItemSetSpell_Detour(Item->Focus2);
 #endif
 		}
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (Item->Mount.SpellID > 0 && Item->Mount.SpellID != -1) {
 			eEffectType = Mount;
 			ItemSetSpell_Detour(Item->Mount);
@@ -1524,7 +1528,7 @@ public:
 				}
 			}
 			//create add to loot filters button
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (gLootButton) {
 				CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("LF_CheckBoxTemplate");
 				CControlTemplate *labeltemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButtonLabel");
@@ -1641,7 +1645,9 @@ public:
 						ButtonInfo bi;
 						bi.ItemDisplayWnd = pWnd;
 						bi.ID = 6;
+						#if !defined(UFEMU)
 						pBtn->Data = bi.ID;
+						#endif
 						ButtonMap[pBtn] = bi;
 						pBtn->BGColor = 0xFF0000FF;
 						pBtn->DecalTint = 0xFF00FFFF;
@@ -1727,7 +1733,7 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp(const CXWnd *pwnd) const);
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline(void));
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool bFullInfo));
 #else
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID));
@@ -1850,7 +1856,7 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 }
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	WriteChatf("This is not supported on EMUs");
 #else
 	if (!pLootFiltersManager)
@@ -1877,6 +1883,7 @@ void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
 }
 void InsertAug(PSPAWNINFO pChar, PCHAR szLine)
 {
+#if !defined(UFEMU)//todo: check manually
 	try {
 		CHAR szArg1[MAX_STRING] = { 0 };
 		CHAR szArg2[MAX_STRING] = { 0 };
@@ -1970,9 +1977,11 @@ void InsertAug(PSPAWNINFO pChar, PCHAR szLine)
 	catch (...) {
 		Sleep(0);
 	}
+#endif
 }
 void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
 {
+#if !defined(UFEMU)//todo: check manually
 	try {
 		if (PCHARINFO2 pMe = GetCharInfo2()) {
 			if (pMe->pInventoryArray) {
@@ -2056,6 +2065,7 @@ void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
 							PCONTENTS *pContsolv = 0;
 							int realID = 0;
 							//we need to check for all distillers
+							#if !defined(ROF2EMU) && !defined(UFEMU)
 							int minreqid = ptheAug->SolventItemID;
 							if (pDistillerInfo)
 							{
@@ -2069,6 +2079,9 @@ void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
 									}
 								}
 							}
+							#else
+								pContsolv = ((PcZoneClient*)pPCData)->GetItemByID(&contout, ptheAug->SolventItemID, &ii);
+							#endif
 							if (!contout) {
 								pContsolv = ((PcZoneClient*)pPCData)->GetItemByItemClass(&contout, 64/*Universal Augment Solvent... aka perfect distiller...*/, &ii);
 							}
@@ -2096,6 +2109,7 @@ void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
 	catch (...) {
 		Sleep(0);
 	}
+#endif
 }
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
 { 
@@ -2327,7 +2341,7 @@ void LoadAttribListVal(ITEMINFO *pItem)
    AttribList[13].Val = cvtfloat(pItem->SpellDamage);
    AttribList[14].Val = cvtfloat(pItem->Clairvoyance);
    AttribList[15].Val = cvtfloat(pItem->Attack);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
    AttribList[16].Val = 0;//FIX THIS cvtfloat(pItem->Accuracy);
    AttribList[17].Val = 0;//FIX THIS cvtfloat(pItem->CombatEffects);
    AttribList[18].Val = 0;//FIX THIS cvtfloat(pItem->StrikeThrough);
@@ -3011,7 +3025,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	gLucyButton = 1==GetPrivateProfileInt("Settings","LucyButton",1,INIFileName);
 	gCompareTip = 1==GetPrivateProfileInt("Settings","CompareTip",0,INIFileName);
 
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	EzDetourwName(CItemDisplayWnd__WndNotification,&ItemDisplayHook::WndNotification_Detour,&ItemDisplayHook::WndNotification_Trampoline,"CItemDisplayWnd__WndNotification");
 	EzDetourwName(CItemDisplayWnd__AboutToShow,&ItemDisplayHook::AboutToShow_Detour,&ItemDisplayHook::AboutToShow_Trampoline,"CItemDisplayWnd__AboutToShow");
 	#endif
@@ -3093,7 +3107,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveDetour(CInvSlotWnd__DrawTooltip);
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CItemDisplayWnd__UpdateStrings);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	RemoveDetour(CItemDisplayWnd__AboutToShow);
 	RemoveDetour(CItemDisplayWnd__WndNotification);
 	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
@@ -3125,7 +3139,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 }
 PLUGIN_API void OnCleanUI()
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
 		i->first->Destroy();
 	}
@@ -3136,7 +3150,7 @@ PLUGIN_API void OnCleanUI()
 
 PLUGIN_API void OnReloadUI()
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
 		i->first->Destroy();
 	}

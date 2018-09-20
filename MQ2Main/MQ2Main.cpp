@@ -399,7 +399,7 @@ bool __cdecl MQ2Initialize()
 	// but at least they are at the end again and nEQMappableCommands was 0x201 today,
 	//but yeah I see no use for them... - eqmule
 	// last update Mar 10 2015 nEQMappableCommands was 0x207
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	szEQMappableCommands[nEQMappableCommands - 22] = "UNKNOWN0x1de";//"Magic"
 	szEQMappableCommands[nEQMappableCommands - 21] = "UNKNOWN0x1df";//"Fire"
 	szEQMappableCommands[nEQMappableCommands - 20] = "CHAT_SEMICOLON";//"Cold"
@@ -576,7 +576,7 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 	return 0;
 }
 #ifndef ISXEQ
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 //need to include any headers for your emu? add them here
 #include "emu.h"
 #endif
@@ -632,7 +632,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	PCHAR lpINIPath = (PCHAR)lpParameter;
 	strcpy_s(gszINIPath, lpINIPath);
 	free(lpINIPath);
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	MQ2StartEmu();//or whatever...
 #endif
 	CHAR szBuffer[MAX_STRING] = { 0 };

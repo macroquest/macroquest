@@ -42,7 +42,7 @@ DWORD __stdcall FlashOnTellThread(PVOID pData)
 	}	
 	return 0;
 }
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 VOID OutputTextToLog_Trampoline(char*); 
 VOID OutputTextToLog_Detour(char*szMsg)
 {
@@ -65,7 +65,7 @@ VOID OutputTextToLog_Detour(char*szMsg)
 class CChatHook 
 { 
 public:
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool, bool,int); 
     VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst,int something) 
 #else
@@ -124,7 +124,7 @@ public:
 								}
 							}
 						}
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 						if (gbTimeStampChat) {
 							CHAR tmpbuf[32] = { 0 };
 							_strtime_s(tmpbuf, 32);
@@ -143,18 +143,18 @@ public:
 						}
 						else {
 #endif
-							#ifndef EMU
+							#if !defined(ROF2EMU) && !defined(UFEMU)
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst,something);
 							#else
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
 							#endif
 							LocalFree(szAnonMsg);
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 						}
 #endif
 					}
 				} else {
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 					if (gbTimeStampChat) {
 						CHAR tmpbuf[32] = { 0 };
 						_strtime_s(tmpbuf, 32);
@@ -171,12 +171,12 @@ public:
 					}
 					else {
 #endif
-						#ifndef EMU
+						#if !defined(ROF2EMU) && !defined(UFEMU)
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst,something);
 						#else
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
 						#endif
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 				}
 #endif
 				}
@@ -199,7 +199,7 @@ public:
 		}
 
         if(!SkipTrampoline) {
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 			if (gbTimeStampChat && szMsg) {
 				CHAR tmpbuf[32] = {0};
 				_strtime_s( tmpbuf, 32 );
@@ -243,24 +243,24 @@ public:
         UPCNotificationFlush_Trampoline();
     }
 }; 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst,int something));
 #else
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
 #endif
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
 #endif
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst,int something)
 #else
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst)
 #endif
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
     ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst,something);
 #else
     ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst);
@@ -371,7 +371,7 @@ VOID InitializeChatHook()
     pMQ2Blech=new Blech('#','|',MQ2DataVariableLookup);
     DebugSpew("%s",pMQ2Blech->Version);
 #endif
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	EzDetourwName(CEverQuest__OutputTextToLog,OutputTextToLog_Detour,OutputTextToLog_Trampoline,"OutputTextToLog");
 #endif
 	EzDetourwName(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline,"CEverQuest__dsp_chat");
@@ -393,7 +393,7 @@ VOID ShutdownChatHook()
 #endif
 	RemoveDetour(CEverQuest__dsp_chat);
 	RemoveDetour(CEverQuest__OutputTextToLog);
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	RemoveDetour(CEverQuest__DoTellWindow);
 #endif
     RemoveDetour(CEverQuest__UPCNotificationFlush);

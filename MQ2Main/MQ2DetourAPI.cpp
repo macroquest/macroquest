@@ -325,7 +325,7 @@ bool gbDoingSpellChecks = false;
 class Spellmanager
 {
 public:
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	bool LoadTextSpells_Tramp(char*, char*, EQ_Spell*, PSPELLCALCINFO);
 	bool LoadTextSpells_Detour(char*FileName, char*AssocFileName, EQ_Spell* SpellArray, PSPELLCALCINFO EffectArray)//SpellAffectData*
 #else
@@ -334,7 +334,7 @@ public:
 #endif
 	{
 		gbDoingSpellChecks = true;
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		bool ret = LoadTextSpells_Tramp(FileName, AssocFileName, SpellArray, EffectArray);
 		#else
 		bool ret = LoadTextSpells_Tramp(FileName, AssocFileName, SpellArray);
@@ -343,7 +343,7 @@ public:
 		return ret;
 	}
 };
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ_Spell*, PSPELLCALCINFO));
 #else
 DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ_Spell*));
@@ -1192,7 +1192,7 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 #endif
 	return eax;
 }
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PCHAR __cdecl CrashDetected_Trampoline();
 PCHAR __cdecl CrashDetected_Detour()
 {
@@ -1319,7 +1319,7 @@ void InitializeMQ2Detours()
 
 	HookMemChecker(TRUE);
 #endif
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	//this is handled by mq2ic from now on
 	//EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
 	//EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
@@ -1336,7 +1336,7 @@ void ShutdownMQ2Detours()
 #ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	//RemoveDetour(CrashDetected);
 	//RemoveDetour(wwsCrashReportCheckForUploader);
 #endif

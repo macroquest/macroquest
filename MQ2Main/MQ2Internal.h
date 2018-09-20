@@ -70,7 +70,7 @@ namespace MQ2Internal {
         CHAR szRace[MAX_STRING];
         CHAR szClass[MAX_STRING];
         CHAR szLight[MAX_STRING];
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		__int64 GuildID;
 		#else
 		DWORD GuildID;
@@ -860,29 +860,35 @@ namespace MQ2Internal {
 
         BOOL GetMemberID(PCHAR Name, DWORD &Result)
         {
-            unsigned long N=MemberMap[Name];
-            if (N==0)
-                return false;
-            N--;
-            PMQ2TYPEMEMBER pMember = Members[N];
-            Result=pMember->ID;
-            return true;
+			if (MemberMap.find(Name) == MemberMap.end())
+				return false;
+			unsigned long N = MemberMap[Name];
+			if (N == 0)
+				return false;
+			N--;
+			PMQ2TYPEMEMBER pMember = Members[N];
+			Result = pMember->ID;
+			return true;
         }
         PMQ2TYPEMEMBER FindMember(PCHAR Name)
         {
-            unsigned long N=MemberMap[Name];
-            if (!N)
-                return 0;
-            N--;
-            return Members[N];
+			if (MemberMap.find(Name) == MemberMap.end())
+				return 0;
+			unsigned long N=MemberMap[Name];
+			if (!N)
+				return 0;
+			N--;
+			return Members[N];
         }
 		PMQ2TYPEMEMBER FindMethod(PCHAR Name)
         {
-            unsigned long N=MethodMap[Name];
-            if (!N)
-                return 0;
-            N--;
-            return Methods[N];
+			if (MethodMap.find(Name) == MethodMap.end())
+				return 0;
+			unsigned long N = MethodMap[Name];
+			if (!N)
+				return 0;
+			N--;
+			return Methods[N];
         }
         BOOL InheritedMember(PCHAR Name)
         {
@@ -899,6 +905,8 @@ namespace MQ2Internal {
 
         inline BOOL AddMember(DWORD ID, PCHAR Name)
         {
+			if (MemberMap.find(Name) != MemberMap.end())
+				return false;
             unsigned long N=MemberMap[Name];
             if (N>0)
                 return false;
@@ -913,6 +921,8 @@ namespace MQ2Internal {
         }
 		inline BOOL AddMethod(DWORD ID, PCHAR Name)
         {
+			if (MethodMap.find(Name) != MethodMap.end())
+				 return false;
             unsigned long N=MethodMap[Name];
             if (N>0)
                 return false;
@@ -927,6 +937,8 @@ namespace MQ2Internal {
         }
         inline BOOL RemoveMember(PCHAR Name)
         {
+			if (MemberMap.find(Name) == MemberMap.end())
+				 return false;
             unsigned long N=MemberMap[Name];
             if (N==0)
                 return false;
@@ -937,6 +949,8 @@ namespace MQ2Internal {
         }
 		inline BOOL RemoveMethod(PCHAR Name)
         {
+			if (MethodMap.find(Name) == MethodMap.end())
+				 return false;
             unsigned long N=MethodMap[Name];
             if (N==0)
                 return false;

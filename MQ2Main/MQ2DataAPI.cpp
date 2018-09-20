@@ -391,7 +391,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Illusion", dataIllusion);
 	AddMQ2Data("Familiar", dataFamiliar);
 	AddMQ2Data("Alias", dataAlias);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	AddMQ2Data("AdvLoot", dataAdvLoot);
 #endif
 	AddMQ2Data("Alert", dataAlert);

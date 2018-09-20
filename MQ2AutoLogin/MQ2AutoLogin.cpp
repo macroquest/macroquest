@@ -291,7 +291,7 @@ unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long address
 //search in eqgame.exe
 //Feb 16 2018 Test
 //IDA Style Sig: FF 35 ? ? ? ? FF 15 ? ? ? ? A3
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE eqmainPattern = (PBYTE)"\x8B\x0D\x00\x00\x00\x00\x68\x00\x00\x00\x00\x51\xFF\xD6\xA3\x00\x00\x00\x00\x85\xC0\x75\x00\xFF\x15\x00\x00\x00\x00\x50\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x00\x33\xC0\x5E\xC3";
 char eqmainMask[] = "xx????x????xxxx????xxx?xx????xx????x????xx?xxxx";
 #else
@@ -302,7 +302,7 @@ char eqmainMask[] = "xx????xx????x";
 //eqmain.dll
 //Feb 16 2018 Test
 //A3 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lvmPattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x00\x85\xC0\x74\x00\x8B\x96\x00\x00\x00\x00\x52\x57\x8B\xC8\xE8\x00\x00\x00\x00\xEB\x00";
 char lvmMask[] = "x????x????xx?xxx?xx????xxxxx????x?";
 #else
@@ -313,7 +313,7 @@ char lvmMask[] = "x????x????xxxxx";
 //eqmain.dll
 //Feb 16 2018 Test
 //A1 BC ? ? ? ? 88 18
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE xwmPattern = (PBYTE)"\x8B\x15\x00\x00\x00\x00\x89\x82\x00\x00\x00\x00\xA1\x00\x00\x00\x00\xC6\x80\x00\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x89\x1D\x00\x00\x00\x00\x8B\x11\x8B\x42\x00\xFF\xD0\x85\xC0\x74\x00";
 char xwmMask[] = "xx????xx????x????xx?????xx????xx????xxxx?xxxxx?";
 #else
@@ -327,7 +327,7 @@ char xwmMask[] = "x????xx????";
 //Feb 16 2018 Test
 //8B 35 ? ? ? ? 8a 86
 
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE swmPattern = (PBYTE)"\xA1\x00\x00\x00\x00\x80\xB8\x00\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\x8D\x88\x00\x00\x00\x00\x8B\x01\x3B\xC3\x74\x00\x89\x45\x00\x33\xDB\x8B\x45\x00\xF0\xFF\x00\x0F\x94\xC3\x89\x5D\x00";
 char swmMask[] = "x????xx?????xx????xx????xxxxx?xx?xxxx?xxxxxxxx?";
 #else
@@ -341,7 +341,7 @@ char swmMask[] = "xx????xxxx";
 //Feb 16 2018 Test
 //IDA Style Sig: 53 8B 5C 24 0C 8B C1 57
 //Code Style Signature: \x53\x8B\x5C\x24\x0C\x8B\xC1\x57 xxxxxxxx
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE xmldataPattern = (PBYTE)"\x8B\x54\x24\x00\x56\x8B\x74\x24\x00\x8B\xC1\x85\xD2\x75\x00\x85\xF6\x75\x00\x33\xC0\x5E\xC2\x00\x00";
 char xmldataMask[] = "xxx?xxxx?xxxxx?xxx?xxxx??";
 #else
@@ -352,7 +352,7 @@ char xmldataMask[] = "xxxxxxxx";
 //eqmain.dll func start
 //Feb 16 2018 Test
 //55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 08 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 83 7E 14 00 74 5D 51 8B CC 89 65 F0 68 ? ? ? ? E8 ? ? ? ? 51 8B CC 89 65 EC 68 ? ? ? ? C7 45 ? ? ? ? ? E8 ? ? ? ? 8B 4E 14 C6 45 FC 01 E8 ? ? ? ? 8B F8 51 8B DC 8B 0F 85 C9 74 09 51 E8 ? ? ? ? 83 C4 04 8B 07 8B CE 89 03 C7 45 ? ? ? ? ? E8 ? ? ? ? 84 C0 75 17 8B 4E 1C 8B 7D 08 85 C9 74 26 8B 01 57 FF 90 ? ? ? ? 85 C0 74 29 B8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00 8B 4E 14 85 C9 74 09 8B 01 57 FF 90 ? ? ? ? 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\x00\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x00\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\x00\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x00\x00";
 char lmouseMask[] = "xxxx?x????xx????xxx?xxxx????xxxxx?xx????xxxx??";
 #else
@@ -363,7 +363,7 @@ char lmouseMask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????
 //eqmain.dll dword in func
 //Feb 16 2018 Test
 //IDA Style Sig: 89 0D ? ? ? ? 8B 46 2C
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lcPattern = (PBYTE)"\xA3\x00\x00\x00\x00\x8B\x56\x00\x8B\x4A\x00\x6A\x00\x51\x52\x8B\xC8\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00";
 char lcMask[] = "x????xx?xx?x?xxxxxx?????x????";
 #else
@@ -372,14 +372,14 @@ char lcMask[] = "xx????xxx";
 #endif
 
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 #define SPLASH "dbgsplash"
 // 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 33 DB C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 89 5D EC 89 5D E8 8D 45 E0 50 89 5D FC E8 ? ? ? ? 8D 4D F0 51 E8 ? ? ? ? 83 C4 08 8D 4D C0 E8 ? ? ? ? 8B 45 E4 8B 55 08 50 8D 4D D8 C6 45 FC 01 89 55 D4 E8 ? ? ? ? 8B 4D F0 8B 55 10 8B 45 0C 52 89 4D DC 50 8D 4D C0 51 8B CE E8 ? ? ? ? 8D 4D C0 8B F0 88 5D FC E8 ? ? ? ? C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 39 5D EC 7E 20 8B 45 E4 83 C0 FC 8B D0 83 C9 FF F0 0F C1 0A 49 85 C9 7F 0C 8B 55 E0 50 8B 42 08 8D 4D E0 FF D0 8B C6 8B 4D F4 64 89 0D ? ? ? ? 59 5E 5B 8B E5 5D C2 0C ?
 //eqmain.dll start func
 //55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
 //Feb 16 2018 Test
 //IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1";
 char lcEGMask[] = "xxxxxx????xx????xxxxxxx";
 #else
@@ -851,7 +851,7 @@ bool GetAllOffsets(DWORD dweqmain)
 		return false;
 	if(dwLoginClient = _FindPattern(dweqmain, 0x100000, lcPattern, lcMask))
     {
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		dwLoginClient = _GetDWordAt(dwLoginClient, 2);
 		#else
 		dwLoginClient = _GetDWordAt(dwLoginClient, 1);
@@ -883,7 +883,7 @@ bool GetAllOffsets(DWORD dweqmain)
 
     if(dwSidlMgr = _FindPattern(dweqmain, 0x100000, swmPattern, swmMask))
     {
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		dwSidlMgr = _GetDWordAt(dwSidlMgr, 2);
 		#else
 		dwSidlMgr = _GetDWordAt(dwSidlMgr, 1);
@@ -897,7 +897,7 @@ bool GetAllOffsets(DWORD dweqmain)
 
     if(dwWndMgr = _FindPattern(dweqmain, 0x200000, xwmPattern, xwmMask))
     {
-        #ifndef EMU
+        #if !defined(ROF2EMU) && !defined(UFEMU)
 		dwWndMgr = _GetDWordAt(dwWndMgr, 1);
 		#else
 		dwWndMgr = _GetDWordAt(dwWndMgr, 2);

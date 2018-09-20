@@ -812,6 +812,7 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 // uses private: void __thiscall CMerchantWnd::RequestBuyItem(int)
 // will buy the specified quantity of the currently selected item
 // ***************************************************************************
+#if !defined(UFEMU)
 VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = FALSE;
@@ -831,6 +832,30 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 		pmercho->RequestBuyItem(Qty);
 	}
 }
+#else
+//todo: check manually
+VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
+{
+    bRunNextCommand = FALSE;
+    if (!pMerchantWnd) return;
+
+    CHAR szBuffer[MAX_STRING] = {0};
+    CHAR szQty[MAX_STRING] = {0};
+    PCHARINFO pCharInfo = NULL;
+    DWORD Qty;
+    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem) return;
+    if (PCONTENTS pBase=(PCONTENTS)*((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem)
+    {
+        GetArg(szQty,szLine,1);
+        Qty = (DWORD)atoi(szQty);
+        if (Qty < 1) return;
+		if (PITEMINFO pIInfo = GetItemFromContents(pBase))
+		{
+			pMerchantWnd->RequestBuyItem(Qty > pIInfo->StackSize ? pIInfo->StackSize : Qty);
+		}
+    }
+}
+#endif
 // ***************************************************************************
 // Function:    sellitem
 // Description: Our '/sellitem' command
@@ -838,6 +863,7 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 // uses private: void __thiscall CMerchantWnd::RequestSellItem(int)
 // will sell the specified quantity of the currently selected item
 // ***************************************************************************
+#if !defined(UFEMU)
 VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = FALSE;
@@ -857,6 +883,31 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
 		pmercho->RequestSellItem(Qty);
 	}
 }
+#else
+//todo: check manually
+VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
+{
+    bRunNextCommand = FALSE;
+    if (!pMerchantWnd) return;
+
+    CHAR szBuffer[MAX_STRING] = {0};
+    CHAR szQty[MAX_STRING] = {0};
+    PCHARINFO pCharInfo = NULL;
+    DWORD Qty;
+    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem) return;
+	if (PCONTENTS pBase = (PCONTENTS)*((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem)
+	{
+		GetArg(szQty, szLine, 1);
+		Qty = (DWORD)atoi(szQty);
+		if (Qty < 1)
+			return;
+		if (PITEMINFO pIInfo = GetItemFromContents(pBase))
+		{
+			pMerchantWnd->RequestSellItem(Qty > pIInfo->StackSize ? pIInfo->StackSize : Qty);
+		}
+	}
+}
+#endif
 // ***************************************************************************
 // Function:    Help
 // Description: Our '/help' command
@@ -3303,7 +3354,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 		else {
 			if (PCONTENTS pItem = FindItemByName(szCmd, stripped)) {
 				bool bKeyring = false;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 				if (PCHARINFO pCharInfo = GetCharInfo()) {
 					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
 						ItemGlobalIndex location;
@@ -3321,7 +3372,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					cmdUseItem(pChar, szTemp);
 					RETURN(0);
 				}
-#ifndef EMU		
+#if !defined(ROF2EMU) && !defined(UFEMU)		
 				bool bMount = ((EQ_Item*)pItem)->IsKeyRingItem(eMount);
 				bool bIllusion = ((EQ_Item*)pItem)->IsKeyRingItem(eIllusion);
 				bool bFamiliar = ((EQ_Item*)pItem)->IsKeyRingItem(eFamiliar);
@@ -3981,7 +4032,7 @@ VOID MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Or:    /advloot shared #(listid) item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name
 // Or:    /advloot shared set "item from the shared set to all combo box, can be player name any of the other items that exist in that box..."
 // ***************************************************************************
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 }
@@ -4573,6 +4624,7 @@ VOID UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 // Example:		/mapzoom 750
 // Author:      EqMule
 // ***************************************************************************
+//todo: check manually
 VOID MapZoomCmd(PSPAWNINFO pChar, char *szLine)
 {
 	// Added a new command: /mapzoom - feature request by Bogreaper

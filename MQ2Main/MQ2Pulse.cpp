@@ -267,7 +267,7 @@ void Pulse()
 
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		InitKeyRings();
 #endif
 		CHAR szServerAndName[MAX_STRING] = { 0 };

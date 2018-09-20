@@ -2657,7 +2657,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 		CMerchantWnd *pcm = (CMerchantWnd*)pMerchantWnd;
 		PEQMERCHWINDOW peqm = (PEQMERCHWINDOW)pMerchantWnd;
 		if (pcm)
@@ -2717,7 +2717,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (pMerchantWnd && pMerchantWnd->dShow)
 #else
 		if (pPointMerchantWnd && pPointMerchantWnd->dShow)
@@ -5270,7 +5270,7 @@ public:
 		return false;
 	}
 };
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 class MQ2ItemFilterDataType : public MQ2Type
 {
 public:

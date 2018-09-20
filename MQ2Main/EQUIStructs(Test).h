@@ -198,7 +198,7 @@ typedef struct _CSIDLWNDVFTABLE {
 	/*0x170*/ LPVOID  LoadIniInfo;
 	/*0x174*/ LPVOID  StoreIniInfo;
 	/*0x178*/ LPVOID  EQObject__AsObject;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	/*0x17c*/ LPVOID  CTreeViewPropertySet__IsPropertySet;
 #endif
 	/*0x180*/
@@ -1367,16 +1367,29 @@ typedef struct _EQBUFFWINDOW {
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
-// CSpellGemWnd_size: 0x330 (see 7E291B) in Sep 10 2018 Test - eqmule
+// CSpellGemWnd_size: 0x330 (see 7E206B) in Aug  9 2018 Live - eqmule
 typedef struct _EQCASTSPELLGEM {
-/*0x0000*/ struct _CXWND        Wnd;
-/*0x01f8*/ BYTE         Unknown0x01f8[0x44];
-/*0x023c*/ DWORD        TimeStamp;
-/*0x0240*/ DWORD        RecastTime;
-/*0x0244*/ BYTE         Unknown0x0244[0xc0];
-/*0x0304*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
-/*0x0308*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
-/*0x030c*/ BYTE         Unknown0x030c[0x24];
+/*0x0000*/ struct _CBUTTONWND        Wnd;
+/*0x0290*/ int			MouseButtonState;//correct
+/*0x0294*/ bool			bChecked;
+/*0x0298*/ UINT			LastRefresh;
+/*0x029C*/ DWORD		SpellGemTintArray[0xb];//I dont understand why there are only 11 of these when we have 13 gems noaways, probably a bug or unused?
+/*0x02C8*/ int			SpellGemAlphaArray[0xb];
+/*0x02f4*/ int			Unknown0x02f4;
+/*0x02f8*/ int			Unknown0x02f8;
+/*0x02fC*/ int			SpellIconOffsetX;
+/*0x0300*/ int			SpellIconOffsetY;
+/*0x0304*/ DWORD        spellicon;		//if this is equal to FFFFFFFF there is no spell memmed in this slot...
+/*0x0308*/ DWORD        spellstate;		//1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast, should really rename this to tintstage
+/*0x030c*/ int			TintIndex;
+/*0x0310*/ void			*SpellIconTexture;//CTextureAnimation
+/*0x0314*/ void			*CustomIconTexture;//CTextureAnimation
+/*0x0318*/ int			SpellSlot;
+/*0x031c*/ int			Percent;
+/*0x0320*/ PCXWND		TemplateName;
+/*0x0324*/ void			*TemplateBG;//CTextureAnimation
+/*0x0328*/ void			*TemplateHolder;//CTextureAnimation
+/*0x032C*/ void			*TemplateHighlight;//CTextureAnimation
 /*0x0330*/
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 

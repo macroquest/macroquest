@@ -1581,7 +1581,7 @@ TLO(dataAlias)
 	}
 	return false;
 }
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 TLO(dataAdvLoot)
 {
 	Ret.DWord = 0;
@@ -1611,7 +1611,7 @@ TLO(dataAlert)
 }
 TLO(dataPointMerchant)
 {
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pMerchantWnd)
 	{
 		Ret.Ptr = pMerchantWnd;

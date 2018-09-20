@@ -63,7 +63,7 @@ namespace MQ2Globals
 		gpPCNames = (DWORD*)__PCNames;
 		pTributeActive = (PBYTE)instTributeActive;
 		gpAutoFire = (PBYTE)__Autofire;
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 			gpAutoSkill = (PAUTOSKILL)__AutoSkillArray;
 		#endif
 		gpShiftKeyDown = (PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
@@ -103,7 +103,7 @@ namespace MQ2Globals
 
 		pGuildList = (PGUILDS)__Guilds;
 		pSocialList = (PEQSOCIAL)__Socials;
-		#ifdef EMU
+		#if defined(ROF2EMU) || defined(UFEMU)
 		pgHotkeyPage = (PBYTE)__HotkeyPage;
 		#endif
 		pgCurrentSocial = (PINT)__CurrentSocial;
@@ -111,7 +111,7 @@ namespace MQ2Globals
 		NewUIINI = (fEQNewUIINI)__NewUIINI;
 		ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
 		GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		cmdToggleKeyRingItem = (fEQToggleKeyRingItem)__ToggleKeyRingItem;
 #endif
 		ppStringTable = (StringTable**)pinstStringTable;
@@ -124,7 +124,9 @@ namespace MQ2Globals
 		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
 		ppDisplay = (CDisplay**)pinstCDisplay;
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppDistillerInfo = (CDistillerInfo**)pinstCDistillerInfo;
+		#endif
 		ppPCData = (EQ_PC**)pinstPCData;
 		ppCharData = (EQ_Character**)pinstCharData;
 		ppCharSpawn = (EQPlayer**)pinstCharSpawn;
@@ -143,7 +145,7 @@ namespace MQ2Globals
 		ppConnection = (PCONNECTION_T*)__gWorld;
 		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
 		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
 		#endif
 		ppEQChatMgr = (EQCHATMGR**)pinstCChatWindowManager;
@@ -160,7 +162,7 @@ namespace MQ2Globals
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
 		ppFindLocationWnd = (CFindLocationWnd**)pinstCFindLocationWnd;
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
 		#endif
 		ppInvSlotMgr = (CInvSlotMgr**)pinstCInvSlotMgr;
@@ -227,7 +229,7 @@ namespace MQ2Globals
 		ppJournalTextWnd = (CJournalTextWnd**)pinstCJournalTextWnd;
 		ppJournalCatWnd = (CJournalCatWnd**)pinstCJournalCatWnd;
 		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
-		#ifdef EMU
+		#if defined(ROF2EMU) || defined(UFEMU)
 		ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
 		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
 		#endif
@@ -236,16 +238,16 @@ namespace MQ2Globals
 		ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
 		ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 		ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
 #endif
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppAdvancedLootWnd = (CAdvancedLootWnd**)pinstCAdvancedLootWnd;
 #endif
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
-		#ifdef EMU
+		#if defined(ROF2EMU) || defined(UFEMU)
 		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
 		#endif
 		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
@@ -258,7 +260,7 @@ namespace MQ2Globals
 		ppTaskMember = (TASKMEMBER**)pinstTaskMember;
 		pDynamicZone = (DYNAMICZONE*)instDynamicZone;
 		ppMercInfo = (MERCENARYINFO**)pinstMercenaryData;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppMercAltAbilities = (EQMERCALTABILITIES**)pinstMercAltAbilities;
 		ppEQSpellStrings = (EQSpellStrings**)pinstEQSpellStrings;
 #endif
@@ -311,8 +313,10 @@ namespace MQ2Globals
 		int gBuild = 2;//TEST
 	#elif defined(BETA)
 		int gBuild = 3;//BETA
-	#elif defined(EMU)
-		int gBuild = 4;//EMU
+	#elif defined(ROF2EMU)
+		int gBuild = 4;//ROF2EMU
+	#elif defined(UFEMU)
+		int gBuild = 5;//UFEMU
 	#else
 		int gBuild = 1;//LIVE
 	#endif
@@ -1074,7 +1078,7 @@ namespace MQ2Globals
 	DWORD *gpPCNames = 0;
 	PBYTE pTributeActive = 0;
 	PBYTE gpAutoFire = 0;
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	PAUTOSKILL gpAutoSkill = 0;
 	#endif
 	size_t g_eqgameimagesize = 0;
@@ -1130,7 +1134,7 @@ namespace MQ2Globals
 
 	fEQGetMelee     get_melee_range = GetMeleeRange;
 	fGetLabelFromEQ GetLabelFromEQ = 0;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	fEQToggleKeyRingItem  cmdToggleKeyRingItem = 0;
 #endif
 	fLoaderSetLoaded	IC_LoaderSetLoaded = 0;
@@ -1251,7 +1255,7 @@ namespace MQ2Globals
 	CJournalTextWnd **ppJournalTextWnd = 0;
 	CJournalCatWnd **ppJournalCatWnd = 0;
 	CPetitionQWnd **ppPetitionQWnd = 0;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	CSoulmarkWnd **ppSoulmarkWnd = 0;
 	CPotionBeltWnd **ppPotionBeltWnd = 0;
 #endif
@@ -1276,7 +1280,7 @@ namespace MQ2Globals
 	TASKMEMBER **ppTaskMember = 0;
 	DYNAMICZONE *pDynamicZone = 0;
 	MERCENARYINFO **ppMercInfo = 0;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQMERCALTABILITIES **ppMercAltAbilities = 0;
 #endif
 	AGGROINFO **ppAggroInfo = 0;
@@ -1317,7 +1321,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Copy);
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Check);
 
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(__AutoSkillArray);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(__Attack);
@@ -1334,7 +1338,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__GroupAggro);
 	INITIALIZE_EQGAME_OFFSET(__Guilds);
 	INITIALIZE_EQGAME_OFFSET(__gWorld);
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(__HotkeyPage);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(__HWnd);
@@ -1402,7 +1406,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstImeManager);
 	INITIALIZE_EQGAME_OFFSET(pinstLocalPlayer);
 	INITIALIZE_EQGAME_OFFSET(pinstMercenaryData);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstEQSpellStrings);
 	INITIALIZE_EQGAME_OFFSET(pinstMercenaryStats);
 	INITIALIZE_EQGAME_OFFSET(pinstMercAltAbilities);
@@ -1436,7 +1440,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterListWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCFindItemWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCNoteWnd);
@@ -1450,7 +1454,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAuraWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCRespawnWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBandolierWnd);
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCPotionBeltWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCAAWnd);
@@ -1502,7 +1506,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCGemsGameWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTimeLeftWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPetitionQWnd);
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCSoulmarkWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFeedbackWnd);
 #endif
@@ -1524,7 +1528,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterSearchWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCChatWindowManager);
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCDistillerInfo);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCDynamicZoneWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCEQMainWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFellowshipWnd);
@@ -1543,7 +1549,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCLFGuildWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCMIZoneSelectWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCConfirmationDialog);
-	#ifdef EMU
+	#if defined(ROF2EMU) || defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCPointMerchantWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCZoneGuideWnd);
@@ -1560,7 +1566,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCContextMenuManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCVoiceMacroWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCWebManager);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCAdvancedLootWnd);
 #endif
 	INITIALIZE_EQGAME_OFFSET(pinstItemIconCache);
@@ -1580,7 +1586,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__get_melee_range);
 	INITIALIZE_EQGAME_OFFSET(__GetGaugeValueFromEQ);
 	INITIALIZE_EQGAME_OFFSET(__GetLabelFromEQ);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(__ToggleKeyRingItem);
 	INITIALIZE_EQGAME_OFFSET(wwsCrashReportCheckForUploader);
 	INITIALIZE_EQGAME_OFFSET(wwsCrashReportPlatformLaunchUploader);
@@ -1605,7 +1611,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(Teleport_Table);
 	INITIALIZE_EQGAME_OFFSET(Teleport_Table_Size);
 
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoSharedAdvLootAction);
@@ -1733,7 +1739,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__ReportSuccessfulHit);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__CreateTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DeleteTargetIndicator);
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__CFindItemWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcFillRect);
@@ -1743,7 +1749,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CDisplay__cameraType);
 	INITIALIZE_EQGAME_OFFSET(EverQuest__Cameras);
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
-	#if !defined(EMU)
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstLootFiltersManager);
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__AddItemLootFilter);
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__GetItemFilterData);
@@ -2025,7 +2031,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemClient);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__GetItemValue);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__ValueSellMerchant);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsKeyRingItem);
 #endif
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanGoInBag);
@@ -2045,7 +2051,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetItemContainedRealEstateIds);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetNonArchivedOwnedRealEstates);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__RemoveMyAffect);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetKeyRingItems);
 #endif
 	INITIALIZE_EQGAME_OFFSET(EQItemList__EQItemList);
@@ -2069,7 +2075,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__IsValidTeleport);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee1);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__LegalPlayerRace);
 	#endif
 	
@@ -2099,7 +2105,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemovePetEffect);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__HasAlternateAbility);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__CanEquipItem);
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsKeyRingLocation);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetCurrentMod);
 	#endif
@@ -2125,7 +2131,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsNoRemove);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsDegeneratingLevelMod);
 
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(EQSpellStrings__GetString);
 	#endif
 	
@@ -2169,15 +2175,17 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetDefaultUIPath);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetTexture);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenExperimentContainer);
-	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CDistillerInfo__GetIDFromRecordNum);
+#endif
+	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
 	
 
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);
 #endif
 #ifdef __ExecuteCmd_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);
 #else
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3), __ExecuteCmd);
@@ -2185,7 +2193,7 @@ FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3)
 #endif
 	BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3)
 	{
-		#ifndef EMU
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		return EQExecuteCmd(arg1,arg2,arg3,0);
 		#else
 		return EQExecuteCmd(arg1,arg2,arg3);

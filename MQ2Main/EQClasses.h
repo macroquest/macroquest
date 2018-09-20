@@ -553,7 +553,7 @@ EQLIB_OBJECT int CXWnd::DrawTileBox(void)const;
 EQLIB_OBJECT int CXWnd::DrawVScrollbar(int,int,int)const;
 EQLIB_OBJECT int CXWnd::GetWidth(void)const;
 EQLIB_OBJECT int CXWnd::Minimize(bool);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CXWnd::Move(class CXPoint const &);
 #else
 EQLIB_OBJECT int CXWnd::Move(class CXPoint);
@@ -690,7 +690,7 @@ EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,clas
 EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateVSBRange(void);
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(DWORD = 0);
 #else
 EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(void);
@@ -756,7 +756,7 @@ class CAdvancedLootWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CAdvancedLootWnd::CAdvancedLootWnd(class CXWnd *);
 EQLIB_OBJECT DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD listindex, CXStr *Name, DWORD Action, DWORD Quantity);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT DWORD CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem,CXStr *Assignee, DWORD Action, DWORD Quantity);
 #endif
 // virtual
@@ -809,7 +809,7 @@ EQLIB_OBJECT int AltAdvManager::MeetsPoPLevelReqs(class EQ_PC *,int,int);
 EQLIB_OBJECT int AltAdvManager::TotalPointsInSkill(int,int);
 EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY);
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index, int level = -1);
 #else
 EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index);
@@ -1533,7 +1533,7 @@ public:
 	CTextureAnimation   *PressedDisabledDecal;
 EQLIB_OBJECT CComboWnd::CComboWnd(class CXWnd *,unsigned __int32,class CXRect,int,class CButtonDrawTemplate,class CListWnd *);
 EQLIB_OBJECT class CXRect CComboWnd::GetButtonRect(void)const;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT class CXRect CComboWnd::GetListRect(bool)const;
 #else
 EQLIB_OBJECT class CXRect CComboWnd::GetListRect(void)const;
@@ -1779,7 +1779,7 @@ public:
 /*0x78*/	bool		bUseInLayoutHorizontal;
 /*0x79*/	bool		bUseInLayoutVertical;
 /*0x7c*/	D3DCOLOR    BackgroundTextureTint;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x80*/	D3DCOLOR    DisabledBackgroundTextureTint;
 /*0x84*/
 #endif
@@ -1845,7 +1845,7 @@ EQLIB_OBJECT void CCursorAttachment::Deactivate(void);
 EQLIB_OBJECT void CCursorAttachment::DrawButtonText(void)const;
 EQLIB_OBJECT void CCursorAttachment::DrawQuantity(void)const;
 EQLIB_OBJECT void CCursorAttachment::Init(void);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *assigned_name, char const *name, int qty = -1, int IconID = -1);
 #else
 EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *overlay, CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty);
@@ -1998,7 +1998,9 @@ EQLIB_OBJECT void CDisplay::InitNewUI(void);
 class CDistillerInfo
 {
 public:
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat);
+#endif
 };
 
 enum eTextAlign
@@ -2331,7 +2333,7 @@ EQLIB_OBJECT void CEverQuest::dsp_chat(char const *line,int color,bool bLogIsOk,
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool);
 EQLIB_OBJECT void CEverQuest::Emote(void);
 EQLIB_OBJECT void CEverQuest::EnterZone(struct HWND__ *);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CEverQuest::Follow(int);
 #else
 EQLIB_OBJECT int CEverQuest::Follow(void);
@@ -2354,7 +2356,7 @@ EQLIB_OBJECT void CEverQuest::Invite(int);
 EQLIB_OBJECT void CEverQuest::InviteOk(char *);
 EQLIB_OBJECT void CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *);
 EQLIB_OBJECT void CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery *);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CEverQuest::IssuePetCommand(ePetCommandType, int TargetID, bool bQuiet, bool bsomethingelse = 1);
 #else
 EQLIB_OBJECT void CEverQuest::IssuePetCommand(ePetCommandType, int TargetID, bool bQuiet);
@@ -2798,7 +2800,7 @@ EQLIB_OBJECT CGuild::CGuild(void);
 EQLIB_OBJECT bool CGuild::ValidGuildName(int);
 EQLIB_OBJECT char * CGuild::GetGuildMotd(void);
 EQLIB_OBJECT char * CGuild::GetGuildMotdAuthor(void);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT char * CGuild::GetGuildName(__int64);
 EQLIB_OBJECT __int64 CGuild::GetGuildIndex(char *);
 #else
@@ -2930,7 +2932,7 @@ class CHotButtonWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CHotButtonWnd::CHotButtonWnd(class CXWnd *);
 EQLIB_OBJECT void CHotButtonWnd::Activate(void);
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CHotButtonWnd::DoHotButton(int Button,int AllowAutoRightClick,int something);
 #else
 EQLIB_OBJECT void CHotButtonWnd::DoHotButton(int Button,int AllowAutoRightClick);
@@ -3112,7 +3114,7 @@ class CInvSlotMgr
 public:
 EQLIB_OBJECT CInvSlotMgr::CInvSlotMgr(void);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int TopSlot,int SubSlot=-1,int FindWindowRelated = 0,bool bSomething = 1);
 #else
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int TopSlot,int SubSlot=-1);
@@ -3158,7 +3160,7 @@ public:
 /*0x0228*/ COLORREF	Disabled;
 /*0x022c*/ UINT		CoolDownBeginTime;
 /*0x0230*/ UINT		CoolDownDuration;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x0234*/ CXStr		*Indicator;
 /*0x0238*/ UINT		IndicatorVal;
 /*0x023c*/ void		*pIndicatorTextObject;
@@ -3177,14 +3179,14 @@ public:
 /*0x0268*/ CTextureAnimation   *DisabledDecal;
 /*0x026c*/ CTextureAnimation   *PressedFlybyDecal;
 /*0x0270*/ CTextureAnimation   *PressedDisabledDecal;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x0274*/ bool		bAllowButtonClickThrough;
 /*0x0275*/ bool		bCoolDownDoDelayedStart;
 #endif
 /*0x0276*/ bool		bIsCheckbox;
 /*0x0277*/ bool		bIsDrawLasso;
 /*0x0278*/ UINT		ButtonStyle;
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x027c*/ CLabel		*pButtonLabel;
 #endif
 /*0x0280*/
@@ -3426,7 +3428,7 @@ EQLIB_OBJECT CLabelWnd::CLabelWnd(CXWnd *pParent, unsigned __int32 ID, const CXR
 /*0x1e2*/ bool bAlignCenter;		/*0x1da*/
 /*0x1e4*/ int  xOffset;				/*0x1dc*/
 /*0x1e8*/ bool bResizeHeightToText;	/*0x1e0*/
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x1ec*/ int Unknown0x1ec;
 /*0x1f0*/ PCXSTR Text;
 /*0x1f4*/ int Unknown0x1f4;
@@ -3444,7 +3446,7 @@ class CLabel : public CLabelWnd
 {
 public:								//rof2
 /*0x200*/ int EQType;				/*0x1e4*/
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x204*/ int Unknown0x204;
 #endif
 /*0x208*/							/*0x1e8*/
@@ -3573,7 +3575,7 @@ struct TreeData_RO
 struct SListWndLine
 {
 	ArrayClass<SListWndCell> Cells;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 	UINT	Data;
 #else
 	unsigned __int64	Data;
@@ -3590,7 +3592,7 @@ struct SListWndLine
 struct SListWndLine_RO
 {
 /*0x00*/ ArrayClass_RO<SListWndCell_RO> Cells;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 /*0x10*/ UINT	Data;
 #else
 /*0x10*/ unsigned __int64	Data;
@@ -3611,7 +3613,7 @@ struct SListWndColumn
 /*0x08*/	SIZE	TextureSize;
 /*0x10*/	POINT	TextureOffset;
 /*0x18*/    PCXSTR	StrLabel;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 /*0x20*/    UINT	Data;
 #else
 /*0x20*/    unsigned __int64	Data;
@@ -3648,7 +3650,7 @@ struct SListWndColumn_RO
 /*0x08*/	SIZE	TextureSize;
 /*0x10*/	POINT	TextureOffset;
 /*0x18*/    PCXSTR	StrLabel;
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 /*0x20*/    UINT	Data;
 #else
 /*0x20*/    unsigned __int64	Data;
@@ -3676,7 +3678,7 @@ public:
 //anything useful in the debugger sometimes if you cursor over it and expand it...
 //So... list->ItemsArray.m_array[0].Cells.m_array[1] might display something
 //while list->ItemsArray.m_array[0].Cells.m_array[0] might not -eqmule
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x1f0*/ int Filler0x1f0;
 #endif
 /*0x1f4*/ ArrayClass_RO<SListWndLine_RO> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
@@ -3728,7 +3730,7 @@ EQLIB_OBJECT class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const;
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT int CListWnd::AddColumn(CXStr *Label,int Width,unsigned __int32 Flags,unsigned __int32 Type = 3/*icon type*/);
 EQLIB_OBJECT int CListWnd::AddLine(SListWndLine *);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CListWnd::AddString(CXStr *str, COLORREF cref, unsigned __int32 data = 0, CTextureAnimation *pta = NULL, char* tooltipstr = NULL, bool bDebug = false);
 #else
 EQLIB_OBJECT int CListWnd::AddString(CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
@@ -3764,7 +3766,7 @@ EQLIB_OBJECT void CListWnd::SetColumnLabel(int,class CXStr);
 EQLIB_OBJECT void CListWnd::SetColumnWidth(int,int);
 EQLIB_OBJECT void CListWnd::SetCurSel(int);
 EQLIB_OBJECT void CListWnd::SetItemColor(int,int,unsigned long);
-#ifndef EMU 
+#if !defined(ROF2EMU) && !defined(UFEMU) 
 EQLIB_OBJECT void CListWnd::SetItemData(int ID,unsigned __int32 Data, BOOL bSomething = false);
 #else
 EQLIB_OBJECT void CListWnd::SetItemData(int ID, unsigned __int32 Data);
@@ -3808,7 +3810,7 @@ public:
 //we include the CListWnd class manually instead... it has a CXWnd first...
 /*0x000*/ PCCONTEXTMENUVFTABLE pvfTable;
 /*0x004*/ CXW_NO_VTABLE
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x1e0*/ int Filler0x1e0;
 #endif
 /*0x1e4*/ ArrayClass_RO<SListWndLine_RO> ItemsArray; //see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
@@ -4031,7 +4033,7 @@ public:
 class CMerchantWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	class MerchantPageHandler : public VeBaseReferenceCount
 	{
 	public:
@@ -4206,7 +4208,7 @@ EQLIB_OBJECT void CMerchantWnd::ClearMerchantSlot(int);
 EQLIB_OBJECT void CMerchantWnd::FinishBuyingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *,int Unknown = -1);
 #else
 EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *);
@@ -5366,7 +5368,7 @@ EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(class CXStr c
 EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(unsigned __int32)const;
 EQLIB_OBJECT class CTextureAnimation CSidlManager::CreateTextureAnimationFromSidlAnimation(class CParamUi2DAnimation const *)const;
 EQLIB_OBJECT class CXStr CSidlManager::GetParsingErrorMsg(void)const;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT class CXWnd * CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *, bool bSomething = 0);
 #else
 EQLIB_OBJECT class CXWnd * CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *);
@@ -5758,7 +5760,7 @@ public:
 /*0x1F4*/ CircularArrayClass2<STextLine> TextLines;//size 0x28
 /*0x21c*/ __int32 TextTotalHeight;
 /*0x220*/ __int32 TextTotalWidth;//0x220 see 8F5A6F in sep 11 2017 test - eqmule
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x224*/ __int32 Unknown0x224;//this value was first added in the apr 27 2017 test patch see 8EAB3B, timestamp related? heroic stuff? calendar? something... dont know - eqmule
 #endif
 /*0x228*/ ArrayClass2_RO<SLinkInfo> Links;//size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test - eqmule
@@ -5898,7 +5900,7 @@ EQLIB_OBJECT int CTabWnd::GetCurrentTabIndex(void)const;
 EQLIB_OBJECT int CTabWnd::GetNumTabs(void)const;
 EQLIB_OBJECT void CTabWnd::InsertPage(class CPageWnd *,int);
 EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool);
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CTabWnd::SetPage(int,bool,bool = true);
 #else
 EQLIB_OBJECT void CTabWnd::SetPage(int,bool);
@@ -6083,7 +6085,7 @@ EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CX
 EQLIB_OBJECT int CTextureFont::DrawWrappedText(CXStr *Str, int x, int y, int Width, CXRect *BoundRect, COLORREF Color, WORD Flags = 0, int StartX = 0)const;
 EQLIB_OBJECT int CTextureFont::GetHeight(void)const;
 EQLIB_OBJECT int CTextureFont::GetKerning(unsigned short,unsigned short)const;
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CTextureFont::GetTextExtent(CXStr *);
 #else
 EQLIB_OBJECT int CTextureFont::GetTextExtent(void);
@@ -6899,7 +6901,7 @@ EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
 EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,bool,bool,bool);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target);
 #else
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto = false);
@@ -7048,7 +7050,7 @@ EQLIB_OBJECT void EQ_Character::InitInnates(unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character::InitMyLanguages(void);
 EQLIB_OBJECT void EQ_Character::InitSkills(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character::ItemSold(long);
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_OBJECT void EQ_Character::ModifyCurHP(int modification,class PlayerZoneClient *resposibleplayer,int skilltype);
 #else
 EQLIB_OBJECT void EQ_Character::ModifyCurHP(__int64 modification, class PlayerZoneClient *resposibleplayer,int skilltype);
@@ -7220,7 +7222,7 @@ EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
 //EQ_PC::GetCombatAbilityTimer has 2 parameters confirmed apr 21 2016 eqgame.exe (live) -eqmule
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemRecastTimer(class EQ_Item *item,ItemSpellTypes etype);
 #else
@@ -7437,7 +7439,7 @@ EQLIB_OBJECT int EQPlayer::AimAtTarget(class EQPlayer *,class EQMissile *);
 EQLIB_OBJECT int EQPlayer::AttachPlayerToPlayerBone(class EQPlayer *,struct T3D_DAG *);
 EQLIB_OBJECT int EQPlayer::CanBeBald(void);
 EQLIB_OBJECT int EQPlayer::CheckForJump(void);
-#if defined(EMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill,class EQPlayer *Target);
 #else
 EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill, EQPlayer *Target, bool bSomething = false, bool bAuto = false);
@@ -7735,7 +7737,7 @@ public:
 /*0x115c*/ CCapsule StaticCollision;//size 0x1c
 /*0x1178*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
 /*0x1188*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race);
 #else
 //this function doesnt exist in the emu build, so well... im adding it i guess...
@@ -8149,7 +8151,7 @@ EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
 EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlot(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlotMine(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
 #else
 EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);
@@ -8403,13 +8405,13 @@ EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
 EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
 EQLIB_OBJECT bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool);
 #else
 EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool);
 #endif
 EQLIB_OBJECT int PcZoneClient::GetCurrentMod(int index);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
 #else
 EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
@@ -9374,7 +9376,7 @@ public:
 /*0x00*/ EQLIB_OBJECT int ClientSpellManager::dSpellManager(void *, bool);
 /*0x04*/ EQLIB_OBJECT bool ClientSpellManager::LoadSpells(char const*FileName, char const*AssocFilename, char const*StackingFileName);
 /*0x08*/ EQLIB_OBJECT bool ClientSpellManager::LoadSpellStackingData(const char *StackingFileName);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x0c*/ EQLIB_OBJECT bool ClientSpellManager::DoesMeetRequirement(PlayerZoneClient *pPlayer,int SpellAssocID);
 #endif
 /*0x10*/ EQLIB_OBJECT void ClientSpellManager::PrintFailedRequirementString(int StrToken, int StringID);

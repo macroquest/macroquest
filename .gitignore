@@ -132,3 +132,7 @@ MQ2Main/Logs
 /MQ2Radar/DSurfaceexe.id2
 /MQ2Radar/DSurfaceexe.id1
 /MQ2Radar/DSurfaceexe.id0
+/MQ2Main/tempui.h
+/MQ2DanNetDeps/libczmq/include/.gitignore
+/MQ2Main/tempdata.h
+/_buildertemplate/global plugins.txt

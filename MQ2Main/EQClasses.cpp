@@ -180,7 +180,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool, bool, bool),0x0d8);
-#if defined (EMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
@@ -196,7 +196,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWn
 FUNCTION_AT_VIRTUAL_ADDRESS(int ClientSpellManager::dSpellManager(void *, bool), 0x00);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpells(char const*, char const*, char const*), 0x04);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpellStackingData(const char *), 0x08);
-#if defined(EMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_VIRTUAL_ADDRESS( void ClientSpellManager::PrintFailedRequirementString(int, int), 0x0c);
 FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupID(int), 0x10);
 FUNCTION_AT_VIRTUAL_ADDRESS( int ClientSpellManager::GetSpellStackingGroupRank(int), 0x14);
@@ -1274,7 +1274,7 @@ FUNCTION_AT_ADDRESS(bool  CCursorAttachment::IsOkToActivate(int),CCursorAttachme
 FUNCTION_AT_ADDRESS(bool  CCursorAttachment::RemoveAttachment(void),CCursorAttachment__RemoveAttachment);
 #endif
 #ifdef CCursorAttachment__AttachToCursor_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *assigned_name, char const *name, int qty, int IconID),CCursorAttachment__AttachToCursor);
 #else
 FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty),CCursorAttachment__AttachToCursor);
@@ -1908,7 +1908,7 @@ FUNCTION_AT_ADDRESS(void  CHotButtonWnd::Activate(void),CHotButtonWnd__Activate)
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::UpdatePage(void),CHotButtonWnd__UpdatePage);
 #endif
 #ifdef CHotButtonWnd__DoHotButton_x
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButton(int,int,int),CHotButtonWnd__DoHotButton);
 #else
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButton(int,int),CHotButtonWnd__DoHotButton);
@@ -2002,7 +2002,7 @@ FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGloba
 FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *),CInvSlotMgr__CreateInvSlot);
 #endif
 #ifdef CInvSlotMgr__FindInvSlot_x
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 		FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int,int,bool),CInvSlotMgr__FindInvSlot);
 	#else
 		FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int),CInvSlotMgr__FindInvSlot);
@@ -2387,7 +2387,7 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd_
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
 #endif
 #ifdef CMerchantWnd__ActualSelect_x
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *, int Unknown),CMerchantWnd__ActualSelect);
 	#else
 		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *),CMerchantWnd__ActualSelect);
@@ -3156,14 +3156,14 @@ FUNCTION_AT_ADDRESS(void  CVideoModesWnd::RestoreOldMode(void),CVideoModesWnd__R
 FUNCTION_AT_ADDRESS( CGuild::CGuild(void),CGuild__CGuild);
 #endif
 #ifdef CGuild__GetGuildName_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(__int64),CGuild__GetGuildName);
 #else
 FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(DWORD), CGuild__GetGuildName);
 #endif
 #endif
 #ifdef CGuild__GetGuildIndex_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(__int64 CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
 #else
 FUNCTION_AT_ADDRESS(int CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
@@ -4004,7 +4004,7 @@ FUNCTION_AT_ADDRESS( EQ_AltAbility::EQ_AltAbility(int),EQ_AltAbility__EQ_AltAbil
 FUNCTION_AT_ADDRESS( AltAdvManager::AltAdvManager(void),AltAdvManager__AltAdvManager);
 #endif
 #ifdef AltAdvManager__GetAAById_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS( struct _ALTABILITY *AltAdvManager::GetAAById(int,int), AltAdvManager__GetAAById);
 #else
 FUNCTION_AT_ADDRESS(struct _ALTABILITY *AltAdvManager::GetAAById(int), AltAdvManager__GetAAById);
@@ -4101,7 +4101,7 @@ FUNCTION_AT_ADDRESS( EQ_Character::~EQ_Character(void),EQ_Character__dEQ_Charact
 FUNCTION_AT_ADDRESS(void  EQ_Character::EQ_CharacterResetAllMembers(void),EQ_Character__EQ_CharacterResetAllMembers);
 #endif
 #ifdef EQ_Character__ModifyCurHP_x
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  EQ_Character::ModifyCurHP(__int modification, class PlayerZoneClient *resposibleplayer,int skilltype),EQ_Character__ModifyCurHP);
 #else
 FUNCTION_AT_ADDRESS(void  EQ_Character::ModifyCurHP(__int64 modification, class PlayerZoneClient *resposibleplayer,int skilltype),EQ_Character__ModifyCurHP);
@@ -4345,7 +4345,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::AntiTwinkAdj(class EQ_Equipment *,int,int
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::GetSkillBaseDamage(unsigned char,class EQPlayer *),EQ_Character__GetSkillBaseDamage);
 #endif
 #ifdef EQ_Character__UseSkill_x
-#ifdef EMU
+#if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *target),EQ_Character__UseSkill);
 #else
 FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto),EQ_Character__UseSkill);
@@ -4553,7 +4553,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetFirstEffectSlot(bool),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__GetLastEffectSlot);
 #endif
 #ifdef CharacterZoneClient__IsStackBlocked_x
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*, int, bool), CharacterZoneClient__IsStackBlocked);
 #else
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*,int),CharacterZoneClient__IsStackBlocked);
@@ -4821,7 +4821,7 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::numInParty(void),EQ_PC__numInParty);
 FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit);
 #endif
 #ifdef EQ_PC__GetItemRecastTimer_x
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemRecastTimer(class EQ_Item *item,ItemSpellTypes etype),EQ_PC__GetItemRecastTimer);
 #else
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemRecastTimer(class EQ_Item *item),EQ_PC__GetItemRecastTimer);
@@ -4837,7 +4837,7 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::GetCombatAbility(int),EQ_PC__GetCombatAbility);
 FUNCTION_AT_ADDRESS(class PcZoneClient *EQ_PC::GetPcZoneClient(void)const,EQ_PC__GetPcZoneClient);
 #endif
 #ifdef EQ_PC__GetCombatAbilityTimer_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int,int),EQ_PC__GetCombatAbilityTimer);
 #else
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int),EQ_PC__GetCombatAbilityTimer);
@@ -5322,7 +5322,7 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::CanSee(CVector3 *pos), EQPlayer__CanSee1);
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
-	#if defined(EMU)
+	#if defined(ROF2EMU) || defined(UFEMU)
 		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
 	#else
 		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
@@ -5959,7 +5959,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::Invite(int),CEverQuest__Invite);
 FUNCTION_AT_ADDRESS(void  CEverQuest::doInvite(unsigned __int32,char *),CEverQuest__doInvite);
 #endif
 #ifdef CEverQuest__Follow_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int  CEverQuest::Follow(int), CEverQuest__Follow);
 #else
 FUNCTION_AT_ADDRESS(int  CEverQuest::Follow(void),CEverQuest__Follow);
@@ -6324,7 +6324,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery 
 FUNCTION_AT_ADDRESS(void  CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *),CEverQuest__IssueLfgGroupQuery);
 #endif
 #ifdef CEverQuest__IssuePetCommand_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(ePetCommandType,int,bool,bool),CEverQuest__IssuePetCommand);
 #else
 FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(ePetCommandType,int,bool),CEverQuest__IssuePetCommand);
@@ -7513,7 +7513,7 @@ FUNCTION_AT_ADDRESS( CRadioGroup::CRadioGroup(class CXStr),CRadioGroup__CRadioGr
 FUNCTION_AT_ADDRESS(class CXStr  CRadioGroup::GetName(void)const ,CRadioGroup__GetName);
 #endif
 #ifdef CSidlScreenWnd__CreateChildrenFromSidl_x
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(DWORD), CSidlScreenWnd__CreateChildrenFromSidl);
 #else
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CreateChildrenFromSidl(void), CSidlScreenWnd__CreateChildrenFromSidl);
@@ -7604,7 +7604,7 @@ FUNCTION_AT_ADDRESS(int  CXWnd::DrawHScrollbar(int,int,int)const ,CXWnd__DrawHSc
 FUNCTION_AT_ADDRESS(void  CXWnd::Refade(void),CXWnd__Refade);
 #endif
 #ifdef CXWnd__Move_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint const &), CXWnd__Move);
 #else
 FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
@@ -7968,7 +7968,7 @@ FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetColumnAnimatio
 FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(SListWndLine *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int CListWnd::AddString(CXStr *, COLORREF, unsigned __int32, CTextureAnimation *, char*, bool),CListWnd__AddString);
 #else
 FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *p5, const char * pstr),CListWnd__AddString);
@@ -8002,7 +8002,7 @@ FUNCTION_AT_ADDRESS(void CListWnd::ClearSel(int),CListWnd__ClearSel);
 FUNCTION_AT_ADDRESS(int CListWnd::DrawColumnSeparators(void)const,CListWnd__DrawColumnSeparators);
 #endif
 #ifdef CListWnd__SetItemData_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32,BOOL),CListWnd__SetItemData);
 #else
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32),CListWnd__SetItemData);
@@ -8411,7 +8411,7 @@ FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageClientRect(void)const ,CTabWnd
 FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageInnerRect(void)const ,CTabWnd__GetPageInnerRect);
 #endif
 #ifdef CTabWnd__SetPage_x
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool,bool),CTabWnd__SetPage);
 #else
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool),CTabWnd__SetPage);
@@ -8775,7 +8775,7 @@ FUNCTION_AT_ADDRESS(void  CButtonWnd::SetCheck(bool),CButtonWnd__SetCheck);
 FUNCTION_AT_ADDRESS(int  CXWnd::GetWidth(void)const ,CXWnd__GetWidth);
 #endif
 #ifdef CComboWnd__GetListRect_x
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 		FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(bool)const ,CComboWnd__GetListRect);
 	#else
 		FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__GetListRect);
@@ -9028,7 +9028,7 @@ FUNCTION_AT_ADDRESS(int  CTextureFont::GetWidth(unsigned short)const ,CTextureFo
 FUNCTION_AT_ADDRESS(int  CTextureFont::GetKerning(unsigned short,unsigned short)const ,CTextureFont__GetKerning);
 #endif
 #ifdef CTextureFont__GetTextExtent_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(CXStr *),CTextureFont__GetTextExtent);
 #else
 FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(void),CTextureFont__GetTextExtent);
@@ -9251,7 +9251,7 @@ FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTem
 FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTemplate(unsigned __int32)const ,CSidlManager__FindSliderDrawTemplate1);
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate_x
-	#ifndef EMU
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 		FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *, bool),CSidlManager__CreateXWndFromTemplate);
 	#else
 		FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *),CSidlManager__CreateXWndFromTemplate);
@@ -10072,7 +10072,7 @@ FUNCTION_AT_ADDRESS(bool PcZoneClient::HasCombatAbility(int), PcZoneClient__HasC
 FUNCTION_AT_ADDRESS(void PcZoneClient::RemovePetEffect(int), PcZoneClient__RemovePetEffect);
 #endif
 #ifdef PcZoneClient__HasAlternateAbility_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool), PcZoneClient__HasAlternateAbility);
 #else
 FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool), PcZoneClient__HasAlternateAbility);
@@ -10091,7 +10091,7 @@ FUNCTION_AT_ADDRESS(bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetCurrentMod(int index), PcZoneClient__GetCurrentMod);
 #endif
 #ifdef PcZoneClient__GetModCap_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index, bool bToggle), PcZoneClient__GetModCap);
 #else
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index), PcZoneClient__GetModCap);
@@ -10107,7 +10107,7 @@ FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
 FUNCTION_AT_ADDRESS(CCollisionInfoTargetVisibility::CCollisionInfoTargetVisibility(class CLineSegment *, class EQPlayer *, class EQPlayer *), CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
 #endif
 #ifdef EQSpellStrings__GetString_x
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(char* EQSpellStrings::GetString(int SpellID, int StrIndex), EQSpellStrings__GetString);
 #endif
 #endif

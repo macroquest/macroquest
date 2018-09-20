@@ -92,11 +92,11 @@ GNU General Public License for more details.
 #endif
 
 extern CRITICAL_SECTION gPluginCS;
-#if defined(LIVE) || defined(TEST) || defined(BETA) || defined(EMU)
+#if defined(LIVE) || defined(TEST) || defined(BETA) || defined(ROF2EMU) || defined(UFEMU)
 //do nothing because the user has set one of these as a preprocessor argument instead...
 //we default to LIVE though...
 #else
-//define LIVE, TEST, BETA or EMU here depending on which eqgame you are building for. -eqmule sep 27 2014
+//define LIVE, TEST, BETA ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
 #define LIVE
 #endif
 #if defined(LIVE)
@@ -105,8 +105,10 @@ extern CRITICAL_SECTION gPluginCS;
 #include "eqgame(Test).h"
 #elif defined(BETA)
 #include "eqgame(beta).h"
-#elif defined(EMU)
+#elif defined(ROF2EMU)
 #include "eqgame(emu).h"
+#elif defined(UFEMU)
+#include "eqgame(uf).h"
 #endif
 #ifndef ISXEQ
 #define RETURN(x) return;
@@ -122,7 +124,7 @@ extern CRITICAL_SECTION gPluginCS;
 #define FamiliarWindowList "KRW_Familiars_list"
 #define KeyRingTab "KRW_Subwindows"
 
-#if defined(EMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 #define csnOffset 0x1a4
 #define sncOffset 0x190
 #define cbssOffset 0x18c
@@ -268,9 +270,12 @@ typedef double DOUBLE;
 #elif defined(BETA)
 #include "EQData(beta).h"
 #include "EQUIStructs(beta).h"
-#elif defined(EMU)
+#elif defined(ROF2EMU)
 #include "EQData(emu).h"
 #include "EQUIStructs(emu).h"
+#elif defined(UFEMU)
+#include "EQData(uf).h"
+#include "EQUIStructs(uf).h"
 #endif
 
 //class CXMLData *GetXMLData(class CXWnd *pWnd)
@@ -329,7 +334,7 @@ EQLIB_API VOID DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();
 EQLIB_API VOID ShutdownChatHook();
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1,int = 0);
 #else
 EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1);
@@ -539,7 +544,7 @@ EQLIB_API void InitKeyRings();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
 EQLIB_API CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
 EQLIB_API CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_API BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList);
 #endif
 EQLIB_API void WeDidStuff();
@@ -586,7 +591,7 @@ EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
-#if !defined(EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_API PCHAR GetGuildByID(__int64 GuildID);
 EQLIB_API __int64 GetGuildIDByName(PCHAR szGuild);
 #else
@@ -822,7 +827,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_ACHIEVEMENTLINK     31
 //not sure what 32 is now, they inserted a new message smack in the middle instead of adding it to the end
 //i think its achievement related. -eqmule
-#ifndef EMU
+#if !defined(ROF2EMU) && !defined(UFEMU)
 #define XWN_DIALOGRESPONSELINK  33
 #define XWM_FOCUS               34
 #define XWM_LOSTFOCUS           35
