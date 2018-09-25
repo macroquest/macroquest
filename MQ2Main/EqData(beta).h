@@ -946,7 +946,8 @@ typedef struct _CONTENTS {
 /*0x0140*/ struct _CXSTR *ClientString;
 /*0x0144*/ BYTE Filler0x0144[0x4];
 /*0x0148*/
-__declspec(dllexport)  struct _CONTENTS *GetContent(UINT index);
+__declspec(dllexport) struct _CONTENTS *GetContent(UINT index);
+__declspec(dllexport) ItemGlobalIndex2 &GetGlobalIndex();
 } CONTENTS, *PCONTENTS;
 
 typedef struct _SlotData {

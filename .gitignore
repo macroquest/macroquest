@@ -136,3 +136,5 @@ MQ2Main/Logs
 /MQ2DanNetDeps/libczmq/include/.gitignore
 /MQ2Main/tempdata.h
 /_buildertemplate/global plugins.txt
+/MQ2Main/MQ2Commandstemp.cpp
+/_buildertemplate/MQ2TakeADump.cpp

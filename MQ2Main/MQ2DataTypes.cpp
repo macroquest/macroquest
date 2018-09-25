@@ -6808,11 +6808,11 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return false;
 	case ItemSlot:
-		Dest.Int = pItem->GlobalIndex.Index.Slot1;
+		Dest.Int = pItem->GetGlobalIndex().Index.Slot1;
 		Dest.Type = pIntType;
 		return true;
 	case ItemSlot2:
-		Dest.Int = pItem->GlobalIndex.Index.Slot2;
+		Dest.Int = pItem->GetGlobalIndex().Index.Slot2;
 		Dest.Type = pIntType;
 		return true;
 	case BuyPrice:
@@ -7013,9 +7013,14 @@ bool MQ2ItemType::GETMEMBER()
 					  //If this was properly named it should be called MaxStack... but ah well... to late now...
 		Dest.DWord = 1; //we know its at least 1
 		if (pItem) {
+			#if !defined(UFEMU)
 			if (pItem->punknown) {// since the call to >IsStackable() needs this vtable... we crash if its 0...
-				if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
+			#else
+			if (pItem) {
+			#endif
+			if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 					//do nothing
+					Sleep(0);
 				}
 				else {
 					Dest.DWord = GetItemFromContents(pItem)->StackSize;
@@ -8007,10 +8012,12 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = GetItemFromContents(pItem)->IconNumber;
 		Dest.Type = pIntType;
 		return true;
+	#if !defined(UFEMU)
 	case OrnamentationIcon:
 		Dest.DWord = pItem->OrnamentationIcon;
 		Dest.Type = pIntType;
 		return true;
+	#endif
 	case ContentSize:
 		Dest.DWord = pItem->Contents.ContentSize;
 		Dest.Type = pIntType;

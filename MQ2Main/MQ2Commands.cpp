@@ -2520,12 +2520,12 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		else {
 			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
-				if (pItem->GlobalIndex.Index.Slot1 < NUM_INV_SLOTS)
+				if (pItem->GetGlobalIndex().Index.Slot1 < NUM_INV_SLOTS)
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{
 						if (pInvSlotMgr) {
-							if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1))
+							if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1))
 							{
 								CXPoint p; p.X = 0; p.Y = 0;
 								pSlot->HandleRButtonUp(&p);
@@ -3368,7 +3368,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 				if (!bKeyring) {
 					CHAR szTemp[32] = { 0 };
-					sprintf_s(szTemp, "%d %d", pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot2);
+					sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2);
 					cmdUseItem(pChar, szTemp);
 					RETURN(0);
 				}
