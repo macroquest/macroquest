@@ -4240,7 +4240,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 											}
 											//not found? check raid
 											if (!szOut[0]) {
-												if (pRaid && pRaid->RaidID) {
+												if (pRaid && pRaid->RaidMemberCount) {
 													for (DWORD nMember = 0; nMember < 72; nMember++) {
 														if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity)) {
 															strcpy_s(szOut, pRaid->RaidMember[nMember].Name);

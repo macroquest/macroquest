@@ -1140,6 +1140,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CDisplay__WriteTextHD2;
 	EQLIB_VAR DWORD CDisplay__TrueDistance;
 	EQLIB_VAR DWORD CDisplay__SetViewActor;
+	EQLIB_VAR DWORD CDisplay__SetRenderWindow;
+	EQLIB_VAR DWORD CDisplay__ToggleScreenshotMode;
 	
 	EQLIB_VAR DWORD CEditBaseWnd__SetSel;
 

@@ -1699,6 +1699,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CDisplay__WriteTextHD2);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__TrueDistance);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__SetViewActor);
+	INITIALIZE_EQGAME_OFFSET(CDisplay__SetRenderWindow);
+	INITIALIZE_EQGAME_OFFSET(CDisplay__ToggleScreenshotMode);
 	
 	INITIALIZE_EQGAME_OFFSET(CEditBaseWnd__SetSel);
 

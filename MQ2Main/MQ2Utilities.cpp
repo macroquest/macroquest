@@ -19,6 +19,8 @@ GNU General Public License for more details.
 #endif
 
 #include "MQ2Main.h"
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
 #define TS template <unsigned int _Size>
 #ifndef ISXEQ_LEGACY
 // ***************************************************************************
@@ -6040,10 +6042,9 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	return true;
 }
+
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
-	CHAR szName[MAX_STRING] = { 0 };
-	CHAR szSearchName[MAX_STRING] = { 0 };
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
 	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET)) {
 		if (PSPAWNINFO pTheMaster = (PSPAWNINFO)GetSpawnByID(pSpawn->MasterID)) {
@@ -6080,14 +6081,6 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 				return FALSE;
 		}
 	}
-	strcpy_s(szName, pSpawn->Name);
-	_strlwr_s(szName);
-	strcpy_s(szSearchName, pSearchSpawn->szName);
-	_strlwr_s(szSearchName);
-	if (!strstr(szName, szSearchName) && !strstr(CleanupName(szName, sizeof(szName), FALSE), szSearchName))
-		return FALSE;
-	if (pSearchSpawn->bExactName && _stricmp(CleanupName(szName, sizeof(szName), FALSE, !gbExactSearchCleanNames), pSearchSpawn->szName))
-		return FALSE;
 	if (pSearchSpawn->MinLevel && pSpawn->Level < pSearchSpawn->MinLevel)
 		return FALSE;
 	if (pSearchSpawn->MaxLevel && pSpawn->Level > pSearchSpawn->MaxLevel)
@@ -6240,6 +6233,19 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->PlayerState && !(pSpawn->PlayerState & pSearchSpawn->PlayerState)) // if player state isn't 0 and we have that bit set
 		return FALSE;
+
+	if (pSearchSpawn->szName[0])
+	{
+		if (pSearchSpawn->bExactName)
+		{
+			if (_stricmp(CleanupName(pSpawn->Name, sizeof(pSpawn->Name), FALSE, !gbExactSearchCleanNames), pSearchSpawn->szName))
+			{
+				return FALSE;
+			}
+		}
+		if (!StrStrIA(pSpawn->Name, pSearchSpawn->szName) && !StrStrIA(CleanupName(pSpawn->Name, sizeof(pSpawn->Name), FALSE), pSearchSpawn->szName))
+			return FALSE;
+	}
 	return TRUE;
 }
 #endif

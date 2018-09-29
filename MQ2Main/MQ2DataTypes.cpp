@@ -6383,7 +6383,11 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case SubSpellGroup:
+		#if !defined(UFEMU)
 		Dest.DWord = pSpell->SpellSubGroup;
+		#else
+		Dest.DWord = 0;
+		#endif
 		Dest.Type = pIntType;
 		return true;
 	case Beneficial:
@@ -6469,6 +6473,7 @@ bool MQ2SpellType::GETMEMBER()
 	case Trigger:
 	{
 		PSPELL pmyspell = pSpell;
+		#if !defined(UFEMU)
 		bool spafound = false;
 		if(IsSPAEffect(pSpell,SPA_TRIGGER_BEST_SPELL_GROUP))
 		{
@@ -6498,6 +6503,9 @@ bool MQ2SpellType::GETMEMBER()
 				}
 			}
 		}
+		#else
+		return false;
+		#endif
 		break;
 	}
 	}
@@ -7020,7 +7028,7 @@ bool MQ2ItemType::GETMEMBER()
 			#endif
 			if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 					//do nothing
-					Sleep(0);
+					//Sleep(0);
 				}
 				else {
 					Dest.DWord = GetItemFromContents(pItem)->StackSize;

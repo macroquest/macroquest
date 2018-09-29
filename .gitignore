@@ -138,3 +138,6 @@ MQ2Main/Logs
 /_buildertemplate/global plugins.txt
 /MQ2Main/MQ2Commandstemp.cpp
 /_buildertemplate/MQ2TakeADump.cpp
+*.diagsession
+*.psess
+*.vspx

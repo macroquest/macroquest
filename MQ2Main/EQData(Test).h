@@ -3150,62 +3150,68 @@ public:
 	virtual const void* AsPlacedItem() const = 0;
 	virtual void* AsPlacedItem() = 0;
 };
+
 class ActorBase
 {
 public:
-/*0x0f7C*/ void		*vfTableActorClient;
-/*0x0f68*/ CHAR		TextureType;
-/*0x0f69*/ CHAR		Material;
-/*0x0f6a*/ CHAR		Variation;
-/*0x0f6b*/ CHAR		HeadType;
-/*0x0f6c*/ BYTE		FaceStyle;
-/*0x0f6d*/ BYTE		HairColor;
-/*0x0f6e*/ BYTE		FacialHairColor;
-/*0x0f6f*/ BYTE		EyeColor1;
-/*0x0f70*/ BYTE		EyeColor2;
-/*0x0f71*/ BYTE		HairStyle;
-/*0x0f72*/ BYTE		FacialHair;
-/*0x0f74*/ signed int	Race;
-/*0x0f78*/ signed int	Race2;
-/*0x0f94*/ signed int	Class;
-/*0x0f98*/ BYTE		Gender;
-/*0x0f81*/ CHAR		ActorDef[0x40];
-/*0x0fc4*/ UINT		ArmorColor[0x9];
-/*0x0fe8*/ bool		bShowHelm;
-/*0x0fec*/ int		Heritage;               //drakkin only face setting
-/*0x0ff0*/ int		Tattoo;                 //drakkin only face setting
-/*0x0ff4*/ int		Details;                //drakkin only face setting
-/*0x0ff8*/ struct _EQUIPMENT	ActorEquipment;  //0x0ff8 is confirmed // size 0xb4
-/*0x10ac*/
+/*0x0f84*/ void		*vfTableActorClient;
+/*0x0f88*/ CHAR		TextureType;
+/*0x0f89*/ CHAR		Material;
+/*0x0f8a*/ CHAR		Variation;
+/*0x0f8b*/ CHAR		HeadType;
+/*0x0f8c*/ BYTE		FaceStyle;
+/*0x0f8d*/ BYTE		HairColor;
+/*0x0f8e*/ BYTE		FacialHairColor;
+/*0x0f8f*/ BYTE		EyeColor1;
+/*0x0f90*/ BYTE		EyeColor2;
+/*0x0f91*/ BYTE		HairStyle;
+/*0x0f92*/ BYTE		FacialHair;
+/*0x0f94*/ signed int	Race;
+/*0x0f98*/ signed int	Race2;
+/*0x0f9c*/ signed int	Class;
+/*0x0fa0*/ BYTE		Gender;
+/*0x0fa1*/ CHAR		ActorDef[0x40];
+/*0x0fe4*/ UINT		ArmorColor[0x9];
+/*0x1008*/ bool		bShowHelm;
+/*0x100c*/ int		Heritage;               //drakkin only face setting
+/*0x1010*/ int		Tattoo;                 //drakkin only face setting
+/*0x1014*/ int		Details;                //drakkin only face setting
+/*0x1018*/ struct _EQUIPMENT	ActorEquipment;  //0x0ff8 is confirmed // size 0xb4
+/*0x10cc*/
 EQLIB_OBJECT float ActorBase::GetBoundingRadius();
 };
+
+//size 0x1140 see 63D777 in Sep 25 2018 Test - eqmule
+//.text:0063D777                 mov     [edi+1B8h], eax so last member is at 1B8h which makes the struct size 0x1bc
+//0x1bc + 0x0f84 is 0x1140
 class ActorClient : public ActorBase
 {
 public:
 //EQLIB_OBJECT class CVector3 const & ActorClient::GetPosition(void)const;
 //EQLIB_OBJECT void ActorClient::GetPosition(class CVector3 *)const;
 public:
-/*0x0f7C*/ int		LeftEyeMaterialIndex;
-/*0x0f80*/ int		RightEyeMaterialIndex;
-/*0x0f84*/ CParticlePointInterface* pParticlePoints[0xa];
-/*0x0fac*/ void* pLowerBones;
-/*0x10e0*/ void* pUpperBones;
-/*0x10fc*/ void*	pcactorex; // todo: move to ActorInterface*
-/*0x10e8*/ CLightInterface	*pLight;
-/*0x10ec*/ ActorAnimation	*pActorAnimation;
-/*0x10f0*/ TList<CObjectGroupStageInstance> StageInstances;//size 0x8
-/*0x10f8*/ bool		bActiveTransition;
-/*0x10Fc*/ UINT		CurrentStage;
-/*0x1100*/ FLOAT	ZOffset;
-/*0x1104*/ FLOAT	TempY;//related to ZOffset adjustments I *think*
-/*0x1108*/ FLOAT	TempX;
-/*0x110c*/ FLOAT	TempZ;
-/*0x1110*/ bool		bReplacedStaticObject;
-/*0x1114*/ int		PartialFaceNumber;
-/*0x1118*/ bool		bNewArmorDisabled;
-/*0x111c*/ CActorApplicationData* pAppData;
-/*0x1120*/
+/*0x10cc*/ int		LeftEyeMaterialIndex;
+/*0x10d0*/ int		RightEyeMaterialIndex;
+/*0x10d4*/ CParticlePointInterface* pParticlePoints[0xa];
+/*0x10fc*/ void* pLowerBones;
+/*0x1100*/ void* pUpperBones;
+/*0x1104*/ void*	pcactorex; // todo: move to ActorInterface*
+/*0x1108*/ CLightInterface	*pLight;
+/*0x110c*/ ActorAnimation	*pActorAnimation;
+/*0x1110*/ TList<CObjectGroupStageInstance> StageInstances;//size 0x8
+/*0x1118*/ bool		bActiveTransition;
+/*0x111c*/ UINT		CurrentStage;
+/*0x1120*/ FLOAT	ZOffset;
+/*0x1124*/ FLOAT	TempY;//related to ZOffset adjustments I *think*
+/*0x1128*/ FLOAT	TempX;
+/*0x112c*/ FLOAT	TempZ;
+/*0x1130*/ bool		bReplacedStaticObject;
+/*0x1134*/ int		PartialFaceNumber;
+/*0x1138*/ bool		bNewArmorDisabled;
+/*0x113c*/ CActorApplicationData* pAppData;
+/*0x1140*/
 };
+
 class PlayerAnimationBase
 {
 	//todo: add members and maybe a vftable

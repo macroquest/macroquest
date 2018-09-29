@@ -3784,6 +3784,12 @@ FUNCTION_AT_ADDRESS(void  CDisplay::DDrawUpdateDisplay(void),CDisplay__DDrawUpda
 #ifdef CDisplay__SetViewActor_x
 FUNCTION_AT_ADDRESS(void  CDisplay::SetViewActor(struct T3D_tagACTORINSTANCE *),CDisplay__SetViewActor);
 #endif
+#ifdef CDisplay__SetRenderWindow_x
+FUNCTION_AT_ADDRESS(void CDisplay::SetRenderWindow(int mode),CDisplay__SetRenderWindow);
+#endif
+#ifdef CDisplay__ToggleScreenshotMode_x
+FUNCTION_AT_ADDRESS(void CDisplay::ToggleScreenshotMode(void),CDisplay__ToggleScreenshotMode);
+#endif
 #ifdef CDisplay__SwitchToDefaultCameraMode_x
 FUNCTION_AT_ADDRESS(void  CDisplay::SwitchToDefaultCameraMode(void),CDisplay__SwitchToDefaultCameraMode);
 #endif

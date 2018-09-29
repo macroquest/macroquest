@@ -1968,6 +1968,8 @@ EQLIB_OBJECT void CDisplay::SetSunLight(void);
 EQLIB_OBJECT void CDisplay::SetupEmitterEnvironment(void);
 EQLIB_OBJECT void CDisplay::SetupEQPlayers(void);
 EQLIB_OBJECT void CDisplay::SetViewActor(struct T3D_tagACTORINSTANCE *);
+EQLIB_OBJECT void CDisplay::SetRenderWindow(int mode);
+EQLIB_OBJECT void CDisplay::ToggleScreenshotMode(void);
 EQLIB_OBJECT void CDisplay::SetViewActorByName(char *);
 EQLIB_OBJECT void CDisplay::SetViewAngle(int);
 EQLIB_OBJECT void CDisplay::SetYon(float);
