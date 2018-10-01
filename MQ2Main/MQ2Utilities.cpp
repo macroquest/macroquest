@@ -19,8 +19,6 @@ GNU General Public License for more details.
 #endif
 
 #include "MQ2Main.h"
-#include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
 #define TS template <unsigned int _Size>
 #ifndef ISXEQ_LEGACY
 // ***************************************************************************
@@ -1162,8 +1160,7 @@ PSPELL GetSpellByName(PCHAR szName)
 	//echo ${Spell[Nature's Serenity].Level}
 	try {
 		if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
-			WriteChatColor("Initializing SpellMap from GetSpellByName, this will take a few seconds, please wait", CONCOLOR_YELLOW);
-			InitializeMQ2SpellDb(NULL);
+			InitializeMQ2SpellDb((void*)2);
 			if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
 				return NULL;
 			}
@@ -6042,7 +6039,6 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	return true;
 }
-
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
@@ -6149,6 +6145,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 			return FALSE;
 		}
 	}
+
+
 	if (pSearchSpawn->bGroup) {
 		BOOL ingrp = 0;
 		if (pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE) {
@@ -6219,7 +6217,6 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn, pSearchSpawn->NearAlertList)))
 		return FALSE;
-
 	if (pSearchSpawn->szClass[0] && _stricmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->mActorClient.Class)))
 		return FALSE;
 	if (pSearchSpawn->szBodyType[0] && _stricmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(GetBodyType(pSpawn))))
@@ -6233,17 +6230,17 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->PlayerState && !(pSpawn->PlayerState & pSearchSpawn->PlayerState)) // if player state isn't 0 and we have that bit set
 		return FALSE;
-
-	if (pSearchSpawn->szName[0])
+	if (pSearchSpawn->szName[0] && pSpawn->Name[0])
 	{
-		if (pSearchSpawn->bExactName)
-		{
-			if (_stricmp(CleanupName(pSpawn->Name, sizeof(pSpawn->Name), FALSE, !gbExactSearchCleanNames), pSearchSpawn->szName))
-			{
-				return FALSE;
-			}
-		}
-		if (!StrStrIA(pSpawn->Name, pSearchSpawn->szName) && !StrStrIA(CleanupName(pSpawn->Name, sizeof(pSpawn->Name), FALSE), pSearchSpawn->szName))
+		CHAR szName[MAX_STRING] = { 0 };
+		CHAR szSearchName[MAX_STRING] = { 0 };
+		strcpy_s(szName, pSpawn->Name);
+		_strlwr_s(szName);
+		strcpy_s(szSearchName, pSearchSpawn->szName);
+		_strlwr_s(szSearchName);
+		if (!strstr(szName, szSearchName) && !strstr(CleanupName(szName, sizeof(szName), FALSE), szSearchName))
+			return FALSE;
+		if (pSearchSpawn->bExactName && _stricmp(CleanupName(szName, sizeof(szName), FALSE, !gbExactSearchCleanNames), pSearchSpawn->szName))
 			return FALSE;
 	}
 	return TRUE;

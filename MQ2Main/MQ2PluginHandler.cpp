@@ -514,7 +514,7 @@ VOID PluginsSetGameState(DWORD GameState)
     {
 		if (!gbSpelldbLoaded && ghInitializeMQ2SpellDb==0) {
 			DWORD nThreadId = 0;
-			ghInitializeMQ2SpellDb = CreateThread(NULL, 0, InitializeMQ2SpellDb, 0, 0, &nThreadId);
+			ghInitializeMQ2SpellDb = CreateThread(NULL, 0, InitializeMQ2SpellDb, (void*)1, 0, &nThreadId);
 		}
         gZoning=false;
         gbDoAutoRun=TRUE;
