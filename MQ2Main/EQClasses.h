@@ -1864,6 +1864,85 @@ EQLIB_OBJECT static char * CDIMap::mKeymapShiftArray;
 EQLIB_OBJECT void CDIMap::LoadMappingFromFile(char *);
 };
 
+class CVector3
+{
+public:
+EQLIB_OBJECT CVector3::CVector3(float x, float y, float z) : X(x), Y(y), Z(z) {}
+EQLIB_OBJECT CVector3::CVector3() {}
+//EQLIB_OBJECT float CVector3::GetLength(void)const;
+EQLIB_OBJECT float CVector3::NormalizeAndReturnLength(void);
+EQLIB_OBJECT void CVector3::Normalize(void);
+EQLIB_OBJECT void CVector3::Set(float x, float y, float z)
+{
+	X = x;
+	Y = y;
+	Z = z;
+}
+inline CVector3& operator-=(const CVector3& vec)
+{
+	X -= vec.X;
+	Y -= vec.Y;
+	Z -= vec.Z;
+	return *this;
+}
+inline CVector3& operator+=(const CVector3& vec)
+{
+	X += vec.X;
+	Y += vec.Y;
+	Z += vec.Z;
+	return *this;
+}
+inline void Scale(float val)
+{
+	X *= val;
+	Y *= val;
+	Z *= val;
+}
+inline CVector3 operator*(float val)const
+{
+	CVector3 ret(*this);
+	ret.Scale(val);
+	return ret;
+}
+EQLIB_OBJECT void SetMax()
+{
+    X = Y = Z = 3.402823466e+38F;
+}
+EQLIB_OBJECT float GetLengthSquared()const
+{
+    return ((X * X) + (Y * Y) + (Z * Z));
+}
+EQLIB_OBJECT float GetLength()const
+{ 
+    return sqrtf(GetLengthSquared()); 
+}
+EQLIB_OBJECT CVector3 operator-()const
+{
+	CVector3 res;
+	res.Set(-X, -Y, -Z);
+	return res;
+}
+EQLIB_OBJECT CVector3 operator-(const CVector3& vec) const
+{
+	CVector3 res;
+	res.Set(X - vec.X, Y - vec.Y, Z - vec.Z);
+	return res;
+}
+EQLIB_OBJECT CVector3 operator+(const CVector3& vec)const
+{
+	CVector3 res;
+	res.Set(vec.X + X, vec.Y + Y, vec.Z + Z);
+	return res;
+}
+EQLIB_OBJECT float GetDistanceSquared(const CVector3& vec)const
+{
+	CVector3 Delta = *this - vec;
+	return Delta.GetLengthSquared();
+}
+	float X;
+	float Y;
+	float Z;
+};
 class CDisplay
 {
 public:
@@ -1876,7 +1955,7 @@ EQLIB_OBJECT char * CDisplay::GetIniRaceName(int);
 EQLIB_OBJECT class EQPlayer * CDisplay::GetNearestPlayerInView(float,bool);
 EQLIB_OBJECT float CDisplay::FindZoneTopZ(float,float,float);
 EQLIB_OBJECT float CDisplay::FixHeading(float);
-EQLIB_OBJECT float CDisplay::GetFloorHeight(float,float,float);
+EQLIB_OBJECT float CDisplay::GetFloorHeight(float X,float Y,float F,float Radius = 0.0f,CVector3& CollisionVector = CVector3(-1, -1, 1), CActorApplicationData* pAppData = 0,EActorType eActorType = Undefined,float ZOffset = 1.0f);
 EQLIB_OBJECT float CDisplay::HeadingDiff(float,float,float *);
 EQLIB_OBJECT float CDisplay::PlayerDistance(class EQPlayer *,class EQPlayer *,float);
 EQLIB_OBJECT float CDisplay::PlayerSimpleDistance(class EQPlayer *,class EQPlayer *,float);
@@ -3944,7 +4023,7 @@ EQLIB_OBJECT void CMapViewWnd::DeactivateAutoMapping(void);
 //EQLIB_OBJECT void CMapViewWnd::SetCurrentZone(EQZoneIndex,struct T3D_XYZ *,struct T3D_XYZ *);
 // virtual
 EQLIB_OBJECT CMapViewWnd::~CMapViewWnd(void);
-EQLIB_OBJECT int CMapViewWnd::HandleLButtonDown(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CMapViewWnd::HandleLButtonDown(class CXPoint&,unsigned __int32);
 EQLIB_OBJECT int CMapViewWnd::HandleLButtonHeld(class CXPoint,unsigned __int32);
 EQLIB_OBJECT int CMapViewWnd::HandleLButtonUp(class CXPoint,unsigned __int32);
 EQLIB_OBJECT int CMapViewWnd::HandleLButtonUpAfterHeld(class CXPoint,unsigned __int32);
@@ -3957,6 +4036,7 @@ EQLIB_OBJECT int CMapViewWnd::WndNotification(class CXWnd *,unsigned __int32,voi
 EQLIB_OBJECT void CMapViewWnd::Deactivate(void);
 EQLIB_OBJECT void CMapViewWnd::LoadIniInfo(void);
 EQLIB_OBJECT void CMapViewWnd::StoreIniInfo(void);
+EQLIB_OBJECT void CMapViewWnd::GetWorldCoordinates(float*);
 // private
 EQLIB_OBJECT void CMapViewWnd::Init(void);
 };
@@ -6256,84 +6336,6 @@ public:
 EQLIB_OBJECT CTreeView::CTreeView(class CXWnd *,unsigned __int32,class CXRect,int);
 // virtual
 EQLIB_OBJECT CTreeView::~CTreeView(void);
-};
-
-class CVector3
-{
-public:
-//EQLIB_OBJECT float CVector3::GetLength(void)const;
-EQLIB_OBJECT float CVector3::NormalizeAndReturnLength(void);
-EQLIB_OBJECT void CVector3::Normalize(void);
-EQLIB_OBJECT void CVector3::Set(float x, float y, float z)
-{
-	X = x;
-	Y = y;
-	Z = z;
-}
-inline CVector3& operator-=(const CVector3& vec)
-{
-	X -= vec.X;
-	Y -= vec.Y;
-	Z -= vec.Z;
-	return *this;
-}
-inline CVector3& operator+=(const CVector3& vec)
-{
-	X += vec.X;
-	Y += vec.Y;
-	Z += vec.Z;
-	return *this;
-}
-inline void Scale(float val)
-{
-	X *= val;
-	Y *= val;
-	Z *= val;
-}
-inline CVector3 operator*(float val)const
-{
-	CVector3 ret(*this);
-	ret.Scale(val);
-	return ret;
-}
-EQLIB_OBJECT void SetMax()
-{
-    X = Y = Z = 3.402823466e+38F;
-}
-EQLIB_OBJECT float GetLengthSquared()const
-{
-    return ((X * X) + (Y * Y) + (Z * Z));
-}
-EQLIB_OBJECT float GetLength()const
-{ 
-    return sqrtf(GetLengthSquared()); 
-}
-EQLIB_OBJECT CVector3 operator-()const
-{
-	CVector3 res;
-	res.Set(-X, -Y, -Z);
-	return res;
-}
-EQLIB_OBJECT CVector3 operator-(const CVector3& vec) const
-{
-	CVector3 res;
-	res.Set(X - vec.X, Y - vec.Y, Z - vec.Z);
-	return res;
-}
-EQLIB_OBJECT CVector3 operator+(const CVector3& vec)const
-{
-	CVector3 res;
-	res.Set(vec.X + X, vec.Y + Y, vec.Z + Z);
-	return res;
-}
-EQLIB_OBJECT float GetDistanceSquared(const CVector3& vec)const
-{
-	CVector3 Delta = *this - vec;
-	return Delta.GetLengthSquared();
-}
-	float X;
-	float Y;
-	float Z;
 };
 
 class CVideoModesWnd : public CSidlScreenWnd

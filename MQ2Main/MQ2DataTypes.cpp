@@ -2072,13 +2072,15 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case CanSplashLand:
-		CVector3 sv3;
-		sv3.X = pSpawn->Y;
-		sv3.Y = pSpawn->X;
-		sv3.Z = pSpawn->Z;
-		Dest.DWord = pCharSpawn->CanSee(&sv3);
-		Dest.Type = pBoolType;
-		return true;
+    {
+        CVector3 sv3;
+        sv3.X = pSpawn->Y;
+        sv3.Y = pSpawn->X;
+        sv3.Z = pSpawn->Z;
+        Dest.DWord = pCharSpawn->CanSee(&sv3);
+        Dest.Type = pBoolType;
+        return true;
+    }
 	case IsBerserk:
 		Dest.DWord = pSpawn->berserker;
 		Dest.Type = pIntType;

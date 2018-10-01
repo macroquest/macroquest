@@ -812,6 +812,101 @@ bool MapSelectTarget()
 	return false;
 }
 
+void MapClickLocation(float world_point[2], std::vector<float> z_hits) {
+    PCHARINFO pCharInfo = GetCharInfo();
+    std::vector<float> sorted_z(z_hits);
+    std::sort(sorted_z.begin(), sorted_z.end());
+
+    float point_z = (pCharInfo && pCharInfo->pSpawn) ? pCharInfo->pSpawn->Z : 0.f;
+    auto closest_z_it = std::lower_bound(sorted_z.begin(), sorted_z.end(), point_z);
+    if (closest_z_it == sorted_z.end() && closest_z_it != sorted_z.begin()) {
+        --closest_z_it;
+    } else if (closest_z_it != sorted_z.end() && closest_z_it != sorted_z.begin() &&
+        (std::abs(*closest_z_it - point_z) > std::abs(*(closest_z_it - 1) - point_z))) {
+        --closest_z_it;
+    }
+
+    DWORD Flags = pWndMgr->GetKeyboardFlags();
+    if (pCharInfo && Flags && MapLeftClickString[Flags][0]) {
+        CHAR CommandString[MAX_STRING];
+        strcpy_s(CommandString, MapLeftClickString[Flags]);
+        std::string sOutput;
+
+        for (unsigned short N = 0; CommandString[N]; ++N) {
+            if (CommandString[N] == '%') {
+                ++N;
+                switch (CommandString[N]) {
+                case 'x':
+                    sOutput.append(std::to_string(world_point[1]));
+                    break;
+                case 'y':
+                    sOutput.append(std::to_string(world_point[0]));
+                    break;
+                case 'z': // closest z
+                    if (closest_z_it != sorted_z.end())
+                        sOutput.append(std::to_string(*closest_z_it));
+                    else
+                        sOutput.append(std::to_string(point_z));
+                    break;
+                case 'u': // up one z
+                    if (closest_z_it != sorted_z.end()) {
+                        if (closest_z_it + 1 != sorted_z.end())
+                            sOutput.append(std::to_string(*(closest_z_it + 1)));
+                        else
+                            sOutput.append(std::to_string(*closest_z_it));
+                    } else
+                        sOutput.append(std::to_string(point_z));
+                    break;
+                case 'd': // down one z
+                    if (closest_z_it != sorted_z.begin())
+                        sOutput.append(std::to_string(*(closest_z_it - 1)));
+                    else if (closest_z_it != sorted_z.end())
+                        sOutput.append(std::to_string(*closest_z_it));
+                    else
+                        sOutput.append(std::to_string(point_z));
+                    break;
+                case 't': // top z
+                    if (!sorted_z.empty())
+                        sOutput.append(std::to_string(sorted_z.back()));
+                    else
+                        sOutput.append(std::to_string(point_z));
+                    break;
+                case 'b': // bottom z
+                    if (!sorted_z.empty())
+                        sOutput.append(std::to_string(sorted_z.front()));
+                    else
+                        sOutput.append(std::to_string(point_z));
+                    break;
+                case '%':
+                    sOutput.append(1, CommandString[N]);
+                    break;
+                }
+            } else
+                sOutput.append(1, CommandString[N]);
+        }
+
+        strcpy_s(CommandString, sOutput.c_str());
+
+#ifndef ISXEQ
+        DoCommand(pCharInfo->pSpawn, CommandString);
+#else
+        pISInterface->ExecuteCommand(CommandString);
+#endif
+#if 0
+        // debugging
+        WriteChatf("COMMAND: %s", sOutput.c_str());
+#endif
+    }
+
+#if 0
+    // debugging
+    for (auto z : z_hits) {
+        WriteChatf("Z HIT: %f", z);
+    }
+    WriteChatf("I CLICKED: X: %f Y: %f", world_point[1], world_point[0]);
+#endif
+}
+
 DWORD MapHighlight(SEARCHSPAWN *pSearch)
 {
 	if (!pSearch)

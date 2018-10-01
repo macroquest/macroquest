@@ -52,6 +52,26 @@ CHAR MapSpecialClickString[16][MAX_STRING] =
 	"" //RALT|LALT|SHIFT|CTRL
 };
 
+CHAR MapLeftClickString[16][MAX_STRING] =
+{
+	"",// unused, will always target
+	"",//SHIFT 
+	"",//CTRL
+	"",//CTRL|SHIFT
+	"/nav locxyz %x %y %z",//LALT 
+	"/nav locxyz %x %y %u",//LALT|SHIFT
+	"/nav locxyz %x %y %d",//LALT|CTRL
+	"",//LALT|SHIFT|CTRL
+	"",//RALT
+	"",//RALT|SHIFT
+	"",//RALT|CTRL
+	"",//RALT|SHIFT|CTRL
+	"",//RALT|LALT
+	"",//RALT|LALT|SHIFT
+	"",//RALT|LALT|CTRL
+	"" //RALT|LALT|SHIFT|CTRL
+};
+
 CHAR MapNameString[MAX_STRING] = { "%N" };
 CHAR MapTargetNameString[MAX_STRING] = { "%N" };
 CHAR mapshowStr[MAX_STRING] = { "" };
@@ -96,7 +116,6 @@ MAPFILTER MapFilterOptions[] = {
 	{ "TargetPath",   FALSE,(DWORD)-1,         TRUE,MAPFILTER_Target,FALSE,  "Draws EQ Path to selected target" },
 	{ NULL,           FALSE,(DWORD)-1,         FALSE,(DWORD)MAPFILTER_Invalid,FALSE,  NULL }
 };
-
 
 PCSIDLWNDVFTABLE CMyMapViewWnd__OldvfTable = 0;
 PCSIDLWNDVFTABLE MapViewMap_OldvfTable = 0;
@@ -157,7 +176,7 @@ bool RButtonDown()
 	return true;
 }
 //int MapViewMap::HandleRButtonDown(const CXPoint& point, UINT Flags) - should probably just change to this
-VOID __declspec(naked) MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown)
+int __declspec(naked) MapViewMap__HandleRButtonDown(CXPoint& point, unsigned __int32 flags)
 {
 	__asm {
 		push ecx;
@@ -182,7 +201,6 @@ VOID __declspec(naked) MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown)
 	}
 }
 
-
 VOID __declspec(naked) CMyMapViewWnd__PostDraw()
 {
 	__asm {
@@ -204,10 +222,47 @@ VOID __declspec(naked) CMyMapViewWnd__PostDraw()
 		ret;
 	};
 }
-
+#define INVALID_FLOOR ((float)-1.0e27)
 class CMyMapViewWnd
 {
 public:
+    int HandleLButtonDown_Trampoline(class CXPoint&, unsigned __int32);
+    int HandleLButtonDown_Detour(class CXPoint& point, unsigned __int32 flags) {
+        CMapViewWnd *pWnd = reinterpret_cast<CMapViewWnd*>(this);
+		float points[3] = { 0 ,0,0};
+        points[0] = (float)point.X;
+        points[1] = (float)point.Y;
+        points[2] = 0;
+        pWnd->GetWorldCoordinates(points); // this writes the world X & Y coords into points
+
+        PZONEINFO pZone = reinterpret_cast<PZONEINFO>(pZoneInfo);
+        CDisplay *pDsp = reinterpret_cast<CDisplay*>(pDisplay);
+        std::vector<float> z_hits;
+        if (pZone && pDsp) {
+			FLOAT curr_z = 0.0f;
+			for(float f = pZone->Ceiling;f>pZone->Floor;f-=2.0f)
+			{
+				curr_z = pDsp->GetFloorHeight(points[0], points[1], f);
+				if (curr_z != INVALID_FLOOR)
+				{
+					//Sleep(0);
+					break;
+				}
+			}
+			do {
+				z_hits.push_back(curr_z);
+				curr_z = pDsp->GetFloorHeight(points[0], points[1], curr_z - 2.f);
+			} while (curr_z >= pZone->Floor - 1.f);
+        } else if (auto pSpawn = reinterpret_cast<PSPAWNINFO>(pLocalPlayer)) {
+            // if no zone or pDsp, let's just put our own Z here. Shouldn't actually happen...
+            z_hits.push_back(pSpawn->Z);
+        }
+
+        MapClickLocation(points, z_hits);
+
+        return HandleLButtonDown_Trampoline(point, flags);
+    }
+
 	DWORD Constructor_Trampoline(class CXWnd *);
 	DWORD Constructor_Detour(class CXWnd *wnd)
 	{
@@ -269,6 +324,7 @@ public:
 };
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD CMyMapViewWnd::Constructor_Trampoline(class CXWnd *));
+DETOUR_TRAMPOLINE_EMPTY(int CMyMapViewWnd::HandleLButtonDown_Trampoline(class CXPoint&, unsigned __int32));
 
 bool Update = true;
 
@@ -319,6 +375,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	{
 		sprintf_s(szBuffer, "KeyCombo%d", i);
 		GetPrivateProfileString("Right Click", szBuffer, MapSpecialClickString[i], MapSpecialClickString[i], MAX_STRING, INIFileName);
+		GetPrivateProfileString("Left Click", szBuffer, MapLeftClickString[i], MapLeftClickString[i], MAX_STRING, INIFileName);
 	}
 
 	// Do not use Custom, since the string isn't stored
@@ -337,6 +394,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	EzDetourwName(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline,"CMapViewWnd__CMapViewWnd");
 	CMyMapViewWnd::StealVFTable();
+
+    EzDetourwName(CMapViewWnd__HandleLButtonDown, &CMyMapViewWnd::HandleLButtonDown_Detour, &CMyMapViewWnd::HandleLButtonDown_Trampoline, "CMapViewWnd__HandleLButton");
+
 	AddMQ2Data("MapSpawn", dataMapSpawn);
 	ClearSearchSpawn(&MapFilterNamed);
 	ParseSearchSpawn("#", &MapFilterNamed);
@@ -350,6 +410,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveMQ2Data("MapSpawn");
 
 	RemoveDetour(CMapViewWnd__CMapViewWnd);
+    RemoveDetour(CMapViewWnd__HandleLButtonDown);
 
 	MapClear();
 	CMyMapViewWnd::RestoreVFTable();

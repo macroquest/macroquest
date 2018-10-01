@@ -94,6 +94,7 @@ extern SEARCHSPAWN MapFilterCustom;
 extern SEARCHSPAWN MapFilterNamed;
 extern MAPFILTER MapFilterOptions[];
 extern CHAR MapSpecialClickString[16][MAX_STRING];
+extern CHAR MapLeftClickString[16][MAX_STRING];
 extern BOOL repeatMapshow;
 extern BOOL repeatMaphide;
 
@@ -128,6 +129,7 @@ VOID ClearMapLocLines(PMAPLOC mapLoc);
 VOID UpdateMapLocLines(PMAPLOC mapLoc);
 
 bool MapSelectTarget();
+void MapClickLocation(float world_point[2], std::vector<float> z_hits);
 DWORD FindMarker(PCHAR szMark);
 long  MakeTime();
 

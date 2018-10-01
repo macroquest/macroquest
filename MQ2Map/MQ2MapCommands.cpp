@@ -810,65 +810,69 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		SyntaxError("Usage: /mapclick <list|<key[+key[...]]> <clear|command>>");
+		SyntaxError("Usage: /mapclick [left] <list|<key[+key[...]]> <clear|command>>");
 		return;
 	}
 	bRunNextCommand = TRUE;
 
+    auto f = [](CHAR szArg[MAX_STRING], PCHAR szRest, CHAR(&command_array)[16][MAX_STRING], const char *szSection) {
+        CHAR szBuffer[MAX_STRING] = { 0 };
+
+        if (!_stricmp(szArg, "list")) {
+            int Count = 0;
+            for (int i = 1; i < 16; i++) {
+                if (command_array[i][0]) {
+                    sprintf_s(szBuffer, "%s: %s", DescribeCombo(i), command_array[i]);
+                    WriteChatColor(szBuffer);
+                    Count++;
+                }
+            }
+            sprintf_s(szBuffer, "%d special right-click commands", Count);
+            WriteChatColor(szBuffer);
+            return;
+        }
+
+        DWORD Combo = ParseCombo(szArg);
+        if (!Combo) {
+            sprintf_s(szBuffer, "Invalid combo '%s'", szArg);
+            WriteChatColor(szBuffer);
+            return;
+        }
+
+        if (!szRest[0]) {
+            sprintf_s(szBuffer, "%s: %s", DescribeCombo(Combo), command_array[Combo]);
+            WriteChatColor(szBuffer);
+            return;
+        }
+
+        if (!_stricmp(szRest, "clear")) {
+
+            command_array[Combo][0] = 0;
+
+            sprintf_s(szBuffer, "KeyCombo%d", Combo);
+            WritePrivateProfileString(szSection, szBuffer, command_array[Combo], INIFileName);
+            sprintf_s(szBuffer, "%s -- %s cleared", szSection, DescribeCombo(Combo));
+            WriteChatColor(szBuffer);
+            return;
+        }
+
+        strcpy_s(command_array[Combo], szRest);
+        sprintf_s(szBuffer, "KeyCombo%d", Combo);
+        WritePrivateProfileString(szSection, szBuffer, command_array[Combo], INIFileName);
+        sprintf_s(szBuffer, "%s -- %s: %s", szSection, DescribeCombo(Combo), command_array[Combo]);
+        WriteChatColor(szBuffer);
+    };
+
 	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szBuffer[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 	PCHAR szRest = GetNextArg(szLine);
 
-	if (!_stricmp(szArg, "list"))
-	{
-		int Count = 0;
-		for (int i = 1; i < 16; i++)
-		{
-			if (MapSpecialClickString[i][0])
-			{
-				sprintf_s(szBuffer, "%s: %s", DescribeCombo(i), MapSpecialClickString[i]);
-				WriteChatColor(szBuffer);
-				Count++;
-			}
-		}
-		sprintf_s(szBuffer, "%d special right-click commands", Count);
-		WriteChatColor(szBuffer);
-		return;
-	}
-
-	DWORD Combo = ParseCombo(szArg);
-	if (!Combo)
-	{
-		sprintf_s(szBuffer, "Invalid combo '%s'", szArg);
-		WriteChatColor(szBuffer);
-		return;
-	}
-
-	if (!szRest[0])
-	{
-		sprintf_s(szBuffer, "%s: %s", DescribeCombo(Combo), MapSpecialClickString[Combo]);
-		WriteChatColor(szBuffer);
-		return;
-	}
-
-	if (!_stricmp(szRest, "clear"))
-	{
-
-		MapSpecialClickString[Combo][0] = 0;
-
-		sprintf_s(szBuffer, "KeyCombo%d", Combo);
-		WritePrivateProfileString("Right Click", szBuffer, MapSpecialClickString[Combo], INIFileName);
-		sprintf_s(szBuffer, "%s cleared", DescribeCombo(Combo));
-		WriteChatColor(szBuffer);
-		return;
-	}
-
-	strcpy_s(MapSpecialClickString[Combo], szRest);
-	sprintf_s(szBuffer, "KeyCombo%d", Combo);
-	WritePrivateProfileString("Right Click", szBuffer, MapSpecialClickString[Combo], INIFileName);
-	sprintf_s(szBuffer, "%s: %s", DescribeCombo(Combo), MapSpecialClickString[Combo]);
-	WriteChatColor(szBuffer);
+    if (!_stricmp(szArg, "left")) {
+        GetArg(szArg, szRest, 1);
+        szRest = GetNextArg(szRest);
+        f(szArg, szRest, MapLeftClickString, "Left Click");
+    } else
+        f(szArg, szRest, MapSpecialClickString, "Right Click");
 }
 
 // marker code

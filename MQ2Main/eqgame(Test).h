@@ -498,8 +498,10 @@ GNU General Public License for more details.
 #define CDisplay__WriteTextHD2_x                                   0x527830
 #define CDisplay__TrueDistance_x                                   0x52E430
 #define CDisplay__SetViewActor_x                                   0x52A6D0
+#define CDisplay__GetFloorHeight_x                                 0x527B10
 #define CDisplay__SetRenderWindow_x                                0x526440
 #define CDisplay__ToggleScreenshotMode_x                           0x52A1A0
+
 // CEditBaseWnd 
 #define CEditBaseWnd__SetSel_x                                     0x9408A0
 
@@ -641,6 +643,8 @@ GNU General Public License for more details.
 
 // CMapViewWnd 
 #define CMapViewWnd__CMapViewWnd_x                                 0x75ED40
+#define CMapViewWnd__GetWorldCoordinates_x                         0x75D450
+#define CMapViewWnd__HandleLButtonDown_x                           0x75A4B0
 
 // CMerchantWnd 
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x781F50

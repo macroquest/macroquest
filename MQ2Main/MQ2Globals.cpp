@@ -1699,6 +1699,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CDisplay__WriteTextHD2);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__TrueDistance);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__SetViewActor);
+    INITIALIZE_EQGAME_OFFSET(CDisplay__GetFloorHeight);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__SetRenderWindow);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__ToggleScreenshotMode);
 	
@@ -1842,6 +1843,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ToggleSel);
 
 	INITIALIZE_EQGAME_OFFSET(CMapViewWnd__CMapViewWnd);
+    INITIALIZE_EQGAME_OFFSET(CMapViewWnd__HandleLButtonDown);
+    INITIALIZE_EQGAME_OFFSET(CMapViewWnd__GetWorldCoordinates);
 
 	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__DisplayBuyOrSellPrice);
 	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__RequestBuyItem);

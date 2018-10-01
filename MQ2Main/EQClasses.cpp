@@ -2251,6 +2251,12 @@ FUNCTION_AT_ADDRESS(void  CMapViewWnd::ActivateAutoMapping(void),CMapViewWnd__Ac
 #ifdef CMapViewWnd__DeactivateAutoMapping_x
 FUNCTION_AT_ADDRESS(void  CMapViewWnd::DeactivateAutoMapping(void),CMapViewWnd__DeactivateAutoMapping);
 #endif
+#ifdef CMapViewWnd__HandleLButtonDown_x
+FUNCTION_AT_ADDRESS(int CMapViewWnd::HandleLButtonDown(class CXPoint&, unsigned __int32),CMapViewWnd__HandleLButtonDown);
+#endif
+#ifdef CMapViewWnd__GetWorldCoordinates_x
+FUNCTION_AT_ADDRESS(void CMapViewWnd::GetWorldCoordinates(float*),CMapViewWnd__GetWorldCoordinates);
+#endif
 #ifdef CMapViewWnd__SetCurrentZone_x
 //FUNCTION_AT_ADDRESS(void  CMapViewWnd::SetCurrentZone(enum EQZoneIndex,struct T3D_XYZ *,struct T3D_XYZ *),CMapViewWnd__SetCurrentZone);
 #endif
@@ -3589,6 +3595,9 @@ FUNCTION_AT_ADDRESS(void  CDisplay::HandleMaterial(class EQ_PC *,int,class EQ_It
 #ifdef CDisplay__FixHeading_x
 FUNCTION_AT_ADDRESS(float  CDisplay::FixHeading(float),CDisplay__FixHeading);
 #endif
+#ifdef CDisplay__GetFloorHeight_x
+FUNCTION_AT_ADDRESS(float CDisplay::GetFloorHeight(float, float, float, float, CVector3&, CActorApplicationData*, EActorType, float), CDisplay__GetFloorHeight);
+#endif
 #ifdef CDisplay__HeadingDiff_x
 FUNCTION_AT_ADDRESS(float  CDisplay::HeadingDiff(float,float,float *),CDisplay__HeadingDiff);
 #endif
@@ -3936,9 +3945,6 @@ FUNCTION_AT_ADDRESS(int  CGroupSearchWnd::PlayerListPageOnProcessFrame(void),CGr
 #endif
 #ifdef COptionsWnd__KeyboardPageOnProcessFrame_x
 FUNCTION_AT_ADDRESS(int  COptionsWnd::KeyboardPageOnProcessFrame(void),COptionsWnd__KeyboardPageOnProcessFrame);
-#endif
-#ifdef CDisplay__GetFloorHeight_x
-FUNCTION_AT_ADDRESS(float  CDisplay::GetFloorHeight(float,float,float),CDisplay__GetFloorHeight);
 #endif
 #ifdef CDisplay__GenericSphereColl_x
 FUNCTION_AT_ADDRESS(bool  CDisplay::GenericSphereColl(float,float,float,float,float,float,float *,float *,float *,unsigned char),CDisplay__GenericSphereColl);
