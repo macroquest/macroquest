@@ -141,3 +141,4 @@ MQ2Main/Logs
 *.diagsession
 *.psess
 *.vspx
+/_buildertemplate

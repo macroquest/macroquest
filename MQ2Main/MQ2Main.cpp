@@ -555,7 +555,7 @@ void __cdecl MQ2Shutdown()
 
 DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 {
-	WriteChatfSafe("Initializing SpellMap from %d, this will take a few seconds, please wait",(DWORD)pData);
+	WriteChatfSafe("Initializing SpellMap. (%d)",(DWORD)pData);
 	if (!ghLockSpellMap)
 		ghLockSpellMap = CreateMutex(NULL, FALSE, NULL);
 	if (ghLockSpellMap) {
@@ -573,6 +573,7 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 		//ok everything checks out lets fill our own map with spells
 		PopulateSpellMap();
 	}
+	WriteChatfSafe("SpellMap Initialized. (%d)",(DWORD)pData);
 	ghInitializeMQ2SpellDb = 0;
 	return 0;
 }

@@ -506,7 +506,7 @@ VOID PluginsSetGameState(DWORD GameState)
     if (!bPluginCS)
         return;
     gGameState=GameState;
-	if (GameState!=GAMESTATE_INGAME) {
+	if (GameState!=GAMESTATE_INGAME && GameState!=GAMESTATE_LOGGINGIN) {
 		gbSpelldbLoaded = 0;
 		ghInitializeMQ2SpellDb = 0;
 	}
