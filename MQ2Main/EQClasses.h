@@ -184,6 +184,7 @@ class CPetitionQWnd;
 class CPlayerNotesWnd;
 class CPlayerWnd;
 class CPotionBeltWnd;
+class CBandolierWnd;
 class CQuantityWnd;
 class CRadioGroup;
 class CRaid;
@@ -510,7 +511,31 @@ EQLIB_OBJECT void CXStr::CheckNoLock(void);
     PCXSTR Ptr;
 
 };
-
+enum EWndRuntimeType
+{
+    WRT_WND = 0,
+    WRT_LISTWND,
+    WRT_EDITWND,
+    WRT_TREEWND,
+    WRT_PAGEWND,
+    WRT_TABWND,
+    WRT_HTMLWND,
+    WRT_HOTKEYWND,
+    WRT_EDITHOTKEYWND,
+    WRT_RANGESLIDERWND,
+    WRT_STMLWND,
+    WRT_BROWSERWND,
+    WRT_MODALMESSAGEWND,
+    WRT_CHECKBOXWND,
+    WRT_SIDLSCREENWND,
+    WRT_SLIDERWND,
+    WRT_LABEL,
+	WRT_BUTTON,
+	WRT_GAUGE,
+	WRT_COMBOBOX,
+    WRT_CHATWND,
+    WRT_HELPWND,
+};
 class CXWnd
 {
 public:
@@ -526,7 +551,7 @@ EQLIB_OBJECT bool CXWnd::IsActive(void)const;
 EQLIB_OBJECT bool CXWnd::IsDescendantOf(class CXWnd const *)const;
 EQLIB_OBJECT bool CXWnd::IsEnabled(void)const;
 EQLIB_OBJECT bool CXWnd::IsReallyVisible(void)const;
-EQLIB_OBJECT bool CXWnd::IsType(enum EWndRuntimeType)const;
+EQLIB_OBJECT bool CXWnd::IsType(EWndRuntimeType)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetCloseBoxTemplate(void)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetMinimizeBoxTemplate(void)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetTileBoxTemplate(void)const;
@@ -2574,7 +2599,55 @@ EQLIB_OBJECT int CFeedbackWnd::WndNotification(class CXWnd *,unsigned __int32,vo
 //EQLIB_OBJECT void * CFeedbackWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CFeedbackWnd::Deactivate(void);
 };
+class CUnSerializeBuffer
+{
+public:
+    const char*		m_pBuffer;
+    unsigned int	m_uLength;
+    unsigned int	m_uReadOffset;
 
+    void Reset() { m_uReadOffset = 0; }
+
+    template< typename T> void Read( T& r )
+    {
+        r = *(T*)(m_pBuffer + m_uReadOffset);
+        m_uReadOffset += sizeof( T );
+        return;
+    }
+
+    void ReadString( std::string& out )
+    {
+        int len = 0;
+        while( m_pBuffer[m_uReadOffset] != '\0' )
+        {
+            out.append( 1, (char)(m_pBuffer[m_uReadOffset]) );
+            m_uReadOffset++;
+        }
+        m_uReadOffset++;
+    }
+	template <typename T> void Read(T* r, size_t size)
+	{
+		size_t savedSize;
+		Read( savedSize );
+		for( size_t i = 0; i < savedSize && i < size; i++ )
+		{
+			Read( r[i] );
+		}
+	}
+	template <unsigned int _Size>void ReadpChar(char(&_Buffer)[_Size])
+    {
+		_Buffer[0] = '\0';
+		int len = 0;
+        while( m_pBuffer[m_uReadOffset] != '\0' && len<_Size)
+        {
+			_Buffer[len++] = (char)(m_pBuffer[m_uReadOffset]);
+            m_uReadOffset++;
+        }
+		//take null term into account...
+        m_uReadOffset++;
+    }
+	
+};
 class CFindLocationWnd : public CSidlScreenWnd
 {
 	//has virtuals, but we get those from CSidlScreenWnd
@@ -2582,7 +2655,7 @@ public:
 	EQLIB_OBJECT bool CFindLocationWnd::HandleFindBegin();
 	EQLIB_OBJECT void CFindLocationWnd::HandleFindEnd();
 	EQLIB_OBJECT void CFindLocationWnd::HandleRowClicked(int Index);
-	EQLIB_OBJECT void CFindLocationWnd::HandleFindableZoneConnectionsMessage(class CUnSerializeBuffer &buf);
+	EQLIB_OBJECT void CFindLocationWnd::HandleFindableZoneConnectionsMessage(CUnSerializeBuffer &buf);
 };
 
 class CFileSelectionWnd : public CSidlScreenWnd
@@ -2631,6 +2704,14 @@ EQLIB_OBJECT void CFriendsWnd::UpdateButtons(void);
 class CGaugeDrawTemplate
 {
 public:
+/*0x00*/ PCXSTR              Name;
+/*0x04*/ CTextureAnimation   *Background;
+/*0x08*/ CTextureAnimation   *Fill;
+/*0x0c*/ CTextureAnimation   *Lines;
+/*0x10*/ CTextureAnimation   *LinesFill;
+/*0x14*/ CTextureAnimation   *EndCapLeft;
+/*0x18*/ CTextureAnimation   *EndCapRight;
+/*0x1c*/ 
 EQLIB_OBJECT CGaugeDrawTemplate::~CGaugeDrawTemplate(void);
 };
 
@@ -2643,10 +2724,34 @@ EQLIB_OBJECT CGaugeTemplate::~CGaugeTemplate(void);
 //EQLIB_OBJECT void * CGaugeTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CGaugeTemplate::`vector deleting destructor'(unsigned int);
 };
-
-class CGaugeWnd : public CSidlScreenWnd
+//size 0x248 see 7E24DB in Sep 21 2018 -eqmule
+class CGaugeWnd : public CXWnd
 {
 public:
+//*0x000*/ PCXWNDVFTABLE pvfTable;
+//*0x004*/ CXW_NO_VTABLE	
+/*0x1e0*/ int			EQType;
+/*0x1e4*/ D3DCOLOR		FillTint;
+/*0x1e8*/ D3DCOLOR		LinesFillTint;
+/*0x1ec*/ bool			bDrawLinesFill;
+/*0x1f0*/ int			TextOffsetX;
+/*0x1f4*/ int			TextOffsetY;
+/*0x1f8*/ int			GaugeOffsetX;
+/*0x1fc*/ int			GaugeOffsetY;
+/*0x200*/ FLOAT			LastFrameVal;
+/*0x204*/ PCXSTR		LastFrameName;
+/*0x208*/ LONG			LastFrameTime;
+/*0x20c*/ int			LastFrameTarget;
+/*0x210*/ PCXSTR		GaugeTooltip;
+/*0x214*/ int			TooltipVal;
+/*0x218*/ CGaugeDrawTemplate	DrawTemplate;//size 0x1c
+/*0x234*/ void*			pTextObject;//CTextObjectInterface
+/*0x238*/ PCXSTR		NextDrawStr;
+/*0x23c*/ bool			bSmooth;
+/*0x240*/ int			TargetVal;
+/*0x244*/ bool			bUseTargetVal;
+/*0x248*/
+
 EQLIB_OBJECT CGaugeWnd::CGaugeWnd(class CXWnd *,unsigned __int32,class CXRect,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,int,unsigned long,unsigned long,bool,int,int,int,int);
 EQLIB_OBJECT class CXRect CGaugeWnd::CalcFillRect(class CXRect *,int)const;
 EQLIB_OBJECT class CXRect CGaugeWnd::CalcLinesFillRect(class CXRect *,int)const;
@@ -2848,10 +2953,46 @@ EQLIB_OBJECT void CGroupSearchWnd::UpdateLfpPostingStatus(void);
 EQLIB_OBJECT void CGroupSearchWnd::UpdatePlayerLabel(void);
 EQLIB_OBJECT void CGroupSearchWnd::UpdateRemainingQueryLockedTime(long);
 };
-
+//Sep 21 2018 -eqmule
 class CGroupWnd : public CSidlScreenWnd
 {
 public:
+	CButtonWnd  *InviteButton;
+    CButtonWnd  *DisbandButton;
+    CButtonWnd  *FollowButton;
+    CButtonWnd  *DeclineButton;
+    CButtonWnd  *LFGButton;
+	CGaugeWnd	*HPGauge[6];
+	CGaugeWnd	*PetGauge[6];
+	CGaugeWnd	*ManaGauge[6];
+	CGaugeWnd	*EnduranceGauge[6];
+	CLabel		*HPLabel[6];
+	CLabel		*HPPercLabel[6];
+	CLabel		*ManaLabel[6];
+	CLabel		*ManaPercLabel[6];
+	CLabel		*EnduranceLabel[6];
+	CLabel		*EndurancePercLabel[6];
+	COLORREF	HPTextColor[6];
+	CButtonWnd	*GroupTankButton[6];
+	CButtonWnd	*GroupAssistButton[6];
+	CButtonWnd	*GroupPullerButton[6];
+    CButtonWnd	*GroupMarkNPCButton[6];
+	CLabel		*AggroPercLabel[6];
+	long		Timer;
+	CContextMenu *GroupContextMenu;
+	bool		bPetbars;
+	bool		bManabars;
+	bool		bEndurancebars;
+	bool		bAggroPct;
+	int			PetBarIndex;
+	int			ManaBarIndex;
+	int			EnduranceBarIndex;
+	int			AggroPctIndex;
+	int			RoleSeparatorID;
+	int			RoleSelectMenu;
+	int			RoleSelectMenuID;
+	bool		bPlayerInvited;
+
 EQLIB_OBJECT CGroupWnd::CGroupWnd(class CXWnd *);
 EQLIB_OBJECT void CGroupWnd::Activate(void);
 EQLIB_OBJECT void CGroupWnd::CreateLocalMenu(void);
@@ -2870,6 +3011,7 @@ EQLIB_OBJECT void CGroupWnd::LoadIniInfo(void);
 EQLIB_OBJECT void CGroupWnd::StoreIniInfo(void);
 // protected
 EQLIB_OBJECT void CGroupWnd::UpdateButtons(void);
+EQLIB_OBJECT void CGroupWnd::UpdateDisplay(int Index, PSPAWNINFO groupmember, COLORREF NameColor, UINT RoleBits);
 // private
 EQLIB_OBJECT void CGroupWnd::Init(void);
 };
@@ -3939,6 +4081,7 @@ EQLIB_OBJECT void CContextMenu::Activate(class CXPoint,int,int);
 EQLIB_OBJECT void CContextMenu::CheckMenuItem(int ID, bool bVal = true, bool bUncheckAll = false);
 EQLIB_OBJECT void CContextMenu::EnableMenuItem(int ID, bool bVal = true);
 EQLIB_OBJECT void CContextMenu::RemoveAllMenuItems(void);
+EQLIB_OBJECT void CContextMenu::RemoveMenuItem(int id);
 EQLIB_OBJECT void CContextMenu::SetMenuItem(int ID, const CXStr &Str, bool bChecked = false, COLORREF Color = 0xFFFFFFFF, bool bEnable = true);
 // virtual
 EQLIB_OBJECT CContextMenu::~CContextMenu(void);
@@ -5165,6 +5308,17 @@ class CPotionBeltWnd : public CSidlScreenWnd
 public:
 // virtual
 EQLIB_OBJECT int CPotionBeltWnd::DrawTooltip(class CXWnd const *)const;
+};
+class CBandolierWnd : public CSidlScreenWnd, public WndEventHandler2
+{
+public:
+	CButtonWnd*	pAddButton;
+	CButtonWnd*	pDeleteButton;
+	CButtonWnd*	pUseButton;
+	CButtonWnd*	pMkHotButton;
+	CButtonWnd* pAutoSwapButton;
+	CButtonWnd* pDisplayButtons[4];
+	CListWnd*	pWeaponSetList;
 };
 class CQuantityWnd : public CSidlScreenWnd
 {
@@ -8423,6 +8577,8 @@ EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
 EQLIB_OBJECT void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID);
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex *itemindex/*out*/);
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
+EQLIB_OBJECT void PcZoneClient::BandolierSwap(int index);
+
 };
 
 class PcClient// : public PcZoneClient

@@ -2622,6 +2622,41 @@ union {
 };
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
+template <typename TheType> class TList
+{
+public:
+	TheType* pFirst;
+	TheType* pLast;
+};
+template <class Type> class TListNode
+{
+	/*0x0004*/ Type *pPrev;
+	/*0x0008*/ Type *pNext;
+	/*0x000c*/ BYTE		Unknown0x000c[0xc];
+};
+struct CombatAbilityTimer : public TListNode<CombatAbilityTimer>
+{
+	int		SpellGroup;
+	UINT	ExpireTimer;
+};
+struct AssociatedNPCSaveStringNode
+{
+	CHAR SaveString[0x2000];//0x1000 in older clients
+	AssociatedNPCSaveStringNode *pNext;
+};
+struct BandolierItemInfo
+{
+/*0x00*/ int ItemID;
+/*0x04*/ int IconID;
+/*0x08*/ CHAR Name[0x40];
+/*0x48*/ 
+};
+struct BandolierSet
+{
+/*0x000*/ CHAR Name[0x20];
+/*0x020*/ BandolierItemInfo Items[4];//0x120 = 0x48 * 4
+/*0x140*/
+};
 //aSdeityD CharInfo2__CharInfo2
 #define CHARINFO2_Size 0xB2D8 // Jun 11 2018 (see 88A719) - eqmule
 typedef struct _CHARINFO2 {
@@ -2669,26 +2704,47 @@ typedef struct _CHARINFO2 {
 /*0x3d94*/ BYTE         Unknown0x3d94[0x4];
 /*0x3d98*/ DWORD        Shrouded;
 /*0x3d9c*/ BYTE         Unknown0x3d9c[0x74];
-/*0x3e10*/ TSafeArrayStatic<WorldLocation,5>    BoundLocations;//size 0x64
-/*0x3e74*/ DWORD        ArmorType[0x16];
-/*0x3ecc*/ BYTE         Unknown0x3ecc[0x160];
-/*0x402c*/ AALIST       AAList[AA_CHAR_MAX_REAL];
-/*0x4e3c*/ DWORD        BodyColor[0x9];
-/*0x4e60*/ BYTE         Unknown0x4e60[0x2000];
-/*0x6e60*/ DWORD        CombatAbilities[NUM_COMBAT_ABILITIES];
-/*0x7310*/ DWORD        SpellRecastTimer[0xC];
-/*0x7340*/ BYTE         Unknown0x7340[0x78];
-/*0x73b8*/ DWORD        CombatAbilityTimes[0x14];
-/*0x7408*/ BYTE         Unknown0x7408[0x1dc4];
-/*0x91cc*/ DWORD        Deity;
-/*0x91d0*/ BYTE         Unknown0x91d0[0xa0];
-/*0x9270*/ DWORD        Drunkenness;
-/*0x9274*/ BYTE         Unknown0x9274[0x10];
-/*0x9284*/ DWORD        AAPoints;
-/*0x9288*/ BYTE         Unknown0x9288[0x200c];
-/*0xb294*/ DWORD        AAPointsSpent;
-/*0xb298*/ DWORD        AAPointsAssigned;
-/*0xb29c*/ BYTE         Unknown0xb29c[0x3c];
+/*0x3e10*/ TSafeArrayStatic<WorldLocation,5>			BoundLocations;//size 0x64
+/*0x3e74*/ TSafeArrayStatic<ArmorProperties, 0x16>		ArmorType;
+/*0x402c*/ TSafeArrayStatic<AALIST, AA_CHAR_MAX_REAL>	AAList; 
+/*0x4e3c*/ TSafeArrayStatic<DWORD, 0x9>					BodyColor;
+/*0x4e60*/ TSafeArrayStatic<int, 0x800>					FactionTable;
+/*0x6e60*/ TSafeArrayStatic<int, NUM_COMBAT_ABILITIES>	CombatAbilities;
+/*0x7310*/ TSafeArrayStatic<UINT, 0xF>		SpellRecastTimer;  //fs
+/*0x734c*/ TSafeArrayStatic<UINT, 0x19>		CombatAbilityTimers; //fs
+/*0x73b0*/ TList<CombatAbilityTimer>		CombatAbilityTimersList;//size 8 for sure
+/*0x73b8*/ TSafeArrayStatic<UINT, 0x19>		LinkedSpellTimers;// for sure, we used to call thius CombatAbilityTimes...
+/*0x741C*/ TSafeArrayStatic<UINT, 0x64>		ItemRecastTimers; //for sure
+/*0x75AC*/ TSafeArrayStatic<UINT, 0x64>		AATimers;//for sure
+/*0x773c*/ TSafeArrayStatic<BandolierSet, 0x14>		Bandolier;// 0x140 * 0x14 for sure see 8CEBF6 sep 21 2018
+/*0x903C*/ TSafeArrayStatic<BandolierItemInfo, 5>	PotionBelt;// 0x168 = 0x48 * 5
+/*0x91a4*/ TSafeArrayStatic<BenefitSelection, 5>	ActiveTributeBenefits;//size 0x28 8 * 5 for sure see 8CEBB7 sep 21 2018
+/*0x91CC*/ TSafeArrayStatic<BenefitSelection, 0xa>	ActiveTrophyTributeBenefits;//size 0x50 8 * 0xa
+/*0x921c*/ ItemBaseContainer		GuildTributeBenefitItems;//for sure see 8C9D9C in 21 Sep 2018
+/*0x9238*/ ItemBaseContainer		GuildTrophyTributeBenefitItems;//size 0x1c
+/*0x9254*/ ArrayClass_RO<PCXSTR>	MercenarySaveStrings;//size 0x10
+/*0x9264*/ AssociatedNPCSaveStringNode *pAssociatedNPCSaveStringTop;//for sure
+/*0x9268*/ DWORD	Deity;//fs see 8CECB2 sep 21 2018
+/*0x926c*/ bool		bPVPFlag;
+/*0x916d*/ BYTE		HighestLevel;
+/*0x9270*/ DWORD	Drunkenness;
+/*0x9274*/ BYTE		HairColor;
+/*0x9275*/ BYTE		BeardColor;
+/*0x9278*/ int		NpcTintIndex;
+/*0x927c*/ BYTE		LeftEye;
+/*0x927d*/ BYTE		RightEye;
+/*0x927e*/ BYTE		Hair;
+/*0x927f*/ BYTE		Beard;
+/*0x9280*/ BYTE		OldFace;	
+/*0x9284*/ DWORD	AAPoints;
+/*0x9288*/ CHAR		PocketPetString[0x2000];//0x1000 in older clients
+/*0xb288*/ PCXSTR	ItemBuffer;
+/*0xb28c*/ UINT		LastShield;
+/*0xb290*/ bool		bSneak;
+/*0xb291*/ bool		bHide;
+/*0xb294*/ DWORD	AAPointsSpent;
+/*0xb298*/ DWORD	AAPointsAssigned[6];//none, general, arch class, special, focus 
+/*0xb2b0*/ BYTE		Unknown0xb2b0[0x28];
 /*0xb2D8*/
 } CHARINFO2, *PCHARINFO2;
 
@@ -3107,18 +3163,7 @@ public:
 	int NumAnimations;
 	int NumAnimationSlots;
 };
-template <typename TheType> class TList
-{
-public:
-	TheType* pFirst;
-	TheType* pLast;
-};
-template <class Type> class TListNode
-{
-	/*0x0004*/ Type *pPrev;
-	/*0x0008*/ Type *pNext;
-	/*0x000c*/ BYTE		Unknown0x000c[0xc];
-};
+
 class CObjectGroupStageInstance : public TListNode<CObjectGroupStageInstance>
 {
 public:
@@ -3767,8 +3812,8 @@ typedef struct _DOORTABLE {
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;
 /*0x04*/ struct _GROUNDITEM *pNext;
-/*0x08*/ int  ID;
-/*0x0c*/ DWORD  DropID;
+/*0x08*/ VePointer<CONTENTS> ID;//well its not an int but plugins use this as one so ill keep the name
+/*0x0c*/ DWORD  DropID;//unique id
 /*0x10*/ DWORD  ZoneID;
 /*0x14*/ DWORD  DropSubID;//well zonefile id, but yeah...
 /*0x18*/ PEQSWITCH pSwitch; // (class EQSwitch *)

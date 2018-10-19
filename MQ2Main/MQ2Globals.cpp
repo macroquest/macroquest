@@ -244,6 +244,7 @@ namespace MQ2Globals
 #if !defined(ROF2EMU) && !defined(UFEMU)
 		ppAdvancedLootWnd = (CAdvancedLootWnd**)pinstCAdvancedLootWnd;
 #endif
+		ppBandolierWnd = (CBandolierWnd**)pinstCBandolierWnd;
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
@@ -1259,6 +1260,7 @@ namespace MQ2Globals
 	CSoulmarkWnd **ppSoulmarkWnd = 0;
 	CPotionBeltWnd **ppPotionBeltWnd = 0;
 #endif
+	CBandolierWnd **ppBandolierWnd = 0;
 	CWebManager **ppCWebManager = 0;
 	CTaskWnd **ppTaskWnd = 0;
 	CTaskSomething *ppTaskSomething = 0;
@@ -1664,6 +1666,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveAllMenuItems);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__CheckMenuItem);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__SetMenuItem);
+	INITIALIZE_EQGAME_OFFSET(CContextMenu__AddSeparator);
 	
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__Flush);
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__GetMenu);
@@ -2118,6 +2121,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetItemByID);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetItemByItemClass);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemoveBuffEffect);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__BandolierSwap);
 	
 	INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 	INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
@@ -2184,8 +2188,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CDistillerInfo__GetIDFromRecordNum);
 #endif
 	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
+	INITIALIZE_EQGAME_OFFSET(CGroupWnd__WndNotification);
+	INITIALIZE_EQGAME_OFFSET(CGroupWnd__UpdateDisplay);
 	
-
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);
 #endif

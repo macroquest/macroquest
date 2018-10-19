@@ -503,44 +503,6 @@ BOOL Detour_ProcessGameEvents(VOID)
 	return ret2;
 }
 
-struct cBasicPacket
-{
-    const char*		m_pBuffer;
-    unsigned int	m_uLength;
-    unsigned int	m_uReadOffset;
-
-    void Reset() { m_uReadOffset = 0; }
-
-    template< typename T> void Read( T& r )
-    {
-        r = *(T*)(m_pBuffer + m_uReadOffset);
-        m_uReadOffset += sizeof( T );
-        return;
-    }
-
-    void ReadString( std::string& out )
-    {
-        int len = 0;
-        while( m_pBuffer[m_uReadOffset] != '\0' )
-        {
-            out.append( 1, (char)(m_pBuffer[m_uReadOffset]) );
-            m_uReadOffset++;
-        }
-        m_uReadOffset++;
-    }
-	template <unsigned int _Size>void ReadpChar(char(&_Buffer)[_Size])
-    {
-		_Buffer[0] = '\0';
-		int len = 0;
-        while( m_pBuffer[m_uReadOffset] != '\0' && len<_Size)
-        {
-			_Buffer[len++] = (char)(m_pBuffer[m_uReadOffset]);
-            m_uReadOffset++;
-        }
-		//take null term into account...
-        m_uReadOffset++;
-    }
-};
 std::map<int, std::string>targetBuffSlotToCasterMap; 
 
 struct cTargetHeader
@@ -589,7 +551,7 @@ public:
 
         targetBuffSlotToCasterMap.clear();
 
-        cBasicPacket* packet = (cBasicPacket*)buffer;
+        CUnSerializeBuffer* packet = (CUnSerializeBuffer*)buffer;
         packet->Reset();
 
         cTargetHeader header;

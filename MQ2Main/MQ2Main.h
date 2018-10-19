@@ -832,6 +832,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_FOCUS               34
 #define XWM_LOSTFOCUS           35
 #define XWM_TEXTENTRY_COMPLETE  41
+#define XWM_RSELITEM_DOWN       47
 #define XWN_OUTPUT_TEXT         49
 #define XWN_COMMANDLINK         50
 //ok so here we have 2 new messages 51 and 52 see https://forums.daybreakgames.com/eq/index.php?threads/game-update-notes-july-19-2017.242705/

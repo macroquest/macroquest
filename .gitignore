@@ -142,3 +142,6 @@ MQ2Main/Logs
 *.psess
 *.vspx
 /_buildertemplate
+/EQChat
+/MQ2NoFlutter/flutter2.h
+/MQ2NoFlutter/flutter2.cpp

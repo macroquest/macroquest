@@ -1210,6 +1210,7 @@ public:
 		CountersPoison = 267,
 		CountersCurse = 268,
 		CountersCorruption = 269,
+		Bandolier = 270,
 	};
 	enum CharacterMethods
 	{
@@ -1479,7 +1480,8 @@ public:
 		TypeMember(CountersPoison);
 		TypeMember(CountersCurse);
 		TypeMember(CountersCorruption);
-
+		TypeMember(Bandolier);
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -2429,8 +2431,10 @@ public:
 		Distance3D = 15,
 		SubID = 16,
 		ZoneID = 17,
-		Next = 18,
-		Prev = 19,
+		First = 18,
+		Last = 19,
+		Next = 20,
+		Prev = 21,
 	};
 	enum GroundMethods
 	{
@@ -2454,6 +2458,8 @@ public:
 		TypeMember(Distance3D);
 		TypeMember(SubID);
 		TypeMember(ZoneID);
+		TypeMember(First);
+		TypeMember(Last);
 		TypeMember(Next);
 		TypeMember(Prev);
 		//methods
@@ -2469,16 +2475,6 @@ public:
 	bool GETMEMBER();
 	DECLAREGETMETHOD();
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
-	{
-		if (VarPtr.Ptr)
-		{
-			GetFriendlyNameForGroundItem((PGROUNDITEM)VarPtr.Ptr, Destination, MAX_STRING);
-			//_itoa_s(((PGROUNDITEM)VarPtr.Ptr)->DropID, Destination, 10);
-			return true;
-		}
-		return false;
-	}
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(GROUNDITEM));
@@ -2489,7 +2485,15 @@ public:
 	{
 		free(VarPtr.Ptr);
 	}
-
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (VarPtr.Ptr)
+		{
+			GetFriendlyNameForGroundItem((PGROUNDITEM)VarPtr.Ptr, Destination, MAX_STRING);
+			return true;
+		}
+		return true;
+	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type != pGroundType)
@@ -2503,10 +2507,10 @@ public:
 		PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
 		while (pGroundItem)
 		{
-			if (pGroundItem->ID == id)
+			if (pGroundItem->DropID == id)
 			{
-					VarPtr.Ptr = pGroundItem;
-					return true;
+				memcpy(VarPtr.Ptr, pGroundItem, sizeof(GROUNDITEM));
+				return true;
 			}
 			pGroundItem = pGroundItem->pNext;
 		}
@@ -5880,6 +5884,95 @@ public:
 	{
 		if (PAURAINFO pAura = (PAURAINFO)VarPtr.Ptr) {
 			strcpy_s(Destination, MAX_STRING, pAura->Name);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+class MQ2BandolierItemType : public MQ2Type
+{
+public:
+	enum BandolierItemTypeMembers
+	{
+		xIndex = 1,
+		ID = 2,
+		IconID = 3,
+		Name = 4,
+	};
+	MQ2BandolierItemType() :MQ2Type("bandolieritem")
+	{
+		AddMember(xIndex, "Index");
+		TypeMember(ID);
+		TypeMember(IconID);
+		TypeMember(Name);
+	}
+	~MQ2BandolierItemType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
+		{
+			strcpy_s(Destination, MAX_STRING, ptr->Name);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+class MQ2BandolierType : public MQ2Type
+{
+public:
+	enum BandolierTypeMembers
+	{
+		xIndex = 1,
+		Active = 2,
+		Name = 3,
+		Item = 4,
+	};
+	enum BandolierTypeMethods
+	{
+		Activate = 1,
+	};
+	MQ2BandolierType() :MQ2Type("bandolier")
+	{
+		AddMember(xIndex, "Index");
+		TypeMember(Active);
+		TypeMember(Name);
+		TypeMember(Item);
+
+		TypeMethod(Activate);
+	}
+	~MQ2BandolierType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (PCHARINFO2 pChar2 = GetCharInfo2())
+		{
+			int index = VarPtr.DWord;
+			if (index < 0)
+				index = 0;
+			if (index > 19)
+				index = 19;
+			strcpy_s(Destination, MAX_STRING, pChar2->Bandolier[index].Name);
 			return true;
 		}
 		return false;

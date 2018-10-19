@@ -479,10 +479,26 @@ private:
 		}
 	}
 };
+struct HashTableStatistics
+{
+	int TableSize;
+	int UsedSlots;
+	int TotalEntries;
+};
 
 class ResizePolicyNoShrink
 {
 public:
+	template<typename Hash>
+	static void ResizeOnAdd( Hash& hash )
+	{
+		HashTableStatistics hashStats;
+		hash.GetStatistics( &hashStats );
+		if( hashStats.TotalEntries * 100 / hashStats.TableSize > 70 )
+		{
+			hash.Resize( hashStats.TableSize * 2 );
+		}
+	}
 };
 class ResizePolicyNoResize
 {
@@ -510,7 +526,67 @@ public:
 	int GetTotalEntries() const;
 	T *WalkFirst() const;
 	T *WalkNext(const T *prevRes) const;
+	void GetStatistics(HashTableStatistics *stats) const;
+	void Resize(int hashSize);
+	void Insert(const T& obj, const Key& key);
 };
+template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key, ResizePolicy>::GetStatistics(HashTableStatistics *stats) const
+{
+	stats->TotalEntries = EntryCount;
+	stats->UsedSlots = StatUsedSlots;
+	stats->TableSize = TableSize;
+}
+inline bool IsPrime(int value)
+{
+	//todo ad code for this
+	return(true);
+}
+
+inline int NextPrime(int value)
+{
+	if (value % 2 == 0)
+		value++;
+	while (!IsPrime(value))
+		value += 2;
+	return(value);
+}
+template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key, ResizePolicy>::Resize(int hashSize)
+{
+	HashEntry **oldTable = Table;
+	int oldSize = TableSize;
+	TableSize = NextPrime(hashSize);
+	if ( TableSize != oldSize )
+	{
+		Table = new HashEntry*[TableSize];
+		memset(Table, 0, sizeof(HashEntry *) * TableSize);
+		StatUsedSlots = 0;
+		if (EntryCount > 0)
+		{
+			for (int i = 0; i < oldSize; i++)
+			{
+				HashEntry* next = oldTable[i];
+				while (next != NULL)
+				{
+					HashEntry* hold = next;
+					next = next->NextEntry;
+					int spot = (HashValue<Key>( hold->Key )) % TableSize;
+					if (Table[spot] == NULL)
+					{
+						hold->NextEntry = NULL;
+						Table[spot] = hold;
+						StatUsedSlots++;
+					}
+					else
+					{
+						hold->NextEntry = Table[spot];
+						Table[spot] = hold;
+					}
+				}
+			}
+		}
+		delete[] oldTable;
+	}
+}
 template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, ResizePolicy>::WalkFirst() const
 {
 	for (int i = 0; i < TableSize; i++)
@@ -555,7 +631,27 @@ template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, R
 	}
 	return NULL;
 }
+template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key, ResizePolicy>::Insert(const T& obj, const Key& key)
+{
+	HashEntry *entry = new HashEntry;
+	entry->Obj = obj;
+	entry->Key = key;
 
+	int spot = (HashValue<Key>( key )) % TableSize;
+	if (Table[spot] == NULL)
+	{
+		entry->NextEntry = NULL;
+		Table[spot] = entry;
+		StatUsedSlots++;
+	}
+	else
+	{
+		entry->NextEntry = Table[spot];
+		Table[spot] = entry;
+	}
+	EntryCount++;
+	ResizePolicy::ResizeOnAdd( *this );
+}
 //lists
 template<typename T, int _cnt> class EQList;
 template<typename T> class EQList<T, -1>

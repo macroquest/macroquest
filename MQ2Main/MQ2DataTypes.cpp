@@ -4122,7 +4122,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case AAPointsAssigned:
 		Dest.DWord = 0;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			Dest.DWord = pChar2->AAPointsAssigned;
+			Dest.DWord = pChar2->AAPointsAssigned[0];
 		}
 		Dest.Type = pIntType;
 		return true;
@@ -5614,6 +5614,36 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->MercAAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
+	case Bandolier:
+	{
+		if (PCHARINFO2 pChar2 = GetCharInfo2())
+		{
+			if (ISNUMBER()) {
+			
+				int index = GETNUMBER();
+				index--;
+				if (index < 0)
+					index = 0;
+				if (index > 19)
+					index = 19;
+				Dest.DWord = index;
+				Dest.Type = pBandolierType;
+				return true;
+			}
+			else
+			{
+				for (int index = 0; index < 20; index++)
+				{
+					if (!_stricmp(GETFIRST(), pChar2->Bandolier[index].Name)) {
+						Dest.DWord = index;
+						Dest.Type = pBandolierType;
+						return true;
+					}
+				}
+			}
+		}
+		break;
+	}
 		//end of MQ2CharacterType
 	}
 	return false;
@@ -8888,6 +8918,7 @@ bool MQ2GroundType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
+	
 #define pGround ((PGROUNDITEM)VarPtr.Ptr)
 	PMQ2TYPEMEMBER pMethod = MQ2GroundType::FindMethod(Member);
 	if (pMethod) {
@@ -9050,6 +9081,24 @@ bool MQ2GroundType::GETMEMBER()
 		Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z));
 		Dest.Type = pBoolType;
 		return true;
+	case First:
+		if (Dest.Ptr = (PVOID)*(DWORD*)pItemList)
+		{
+			Dest.Type = pGroundType;
+            return true;
+		}
+		return false;
+	case Last:
+		if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList)
+		{
+			while (pItem->pNext)
+			{
+				pItem = pItem->pNext;
+			}
+			Dest.Type = pGroundType;
+            return true;
+		}
+		return false;
 	case Next:
         if (Dest.Ptr = pGround->pNext)
         {
@@ -14565,6 +14614,195 @@ bool MQ2AuraType::GETMEMBER()
 	}
 	catch (...) {
 		MessageBox(NULL, "CRAP! in AuraType", "An exception occured", MB_OK);
+	}
+	return false;
+}
+bool MQ2BandolierItemType::GETMEMBER()
+{
+	if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
+	{
+		PMQ2TYPEMEMBER pMember = MQ2BandolierItemType::FindMember(Member);
+		if (pMember) {
+			switch ((BandolierItemTypeMembers)pMember->ID)
+			{
+				case xIndex:
+					Dest.DWord = VarPtr.HighPart;
+					Dest.Type = pIntType;
+					return true;
+				case IconID:
+					Dest.DWord = ptr->IconID;
+					Dest.Type = pIntType;
+					return true;
+				case ID:
+					Dest.DWord = ptr->ItemID;
+					Dest.Type = pIntType;
+					return true;
+				case Name:
+					strcpy_s(DataTypeTemp, ptr->Name);
+					Dest.Ptr = &DataTypeTemp[0];
+					Dest.Type = pStringType;
+					return true;
+				default:
+					return false;
+			};
+		}
+	}
+	return false;
+}
+bool MQ2BandolierType::GETMEMBER()
+{
+	try {
+		if (PCHARINFO2 pChar2 = GetCharInfo2())
+		{
+			int index = VarPtr.DWord;
+			if (index < 0)
+				index = 0;
+			if (index > 19)
+				index = 19;
+			if (BandolierSet *pBand = &pChar2->Bandolier[index])
+			{
+				if (!pBand->Name[0])
+					return false;
+
+				PMQ2TYPEMEMBER pMember = MQ2BandolierType::FindMember(Member);
+				if (pMember) {
+					switch ((BandolierTypeMembers)pMember->ID)
+					{
+					case Active:
+						Dest.DWord = 0;
+						Dest.Type = pBoolType;
+						if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[0])
+						{
+							if (pBand->Items[0].ItemID)
+							{
+								if (pChar2->pInventoryArray->Inventory.Primary)
+								{
+									if (pChar2->pInventoryArray->Inventory.Primary->ID != pBand->Items[0].ItemID)
+									{
+										return true;
+									}
+								}
+								else {
+									return true;
+								}
+							}
+							else if (pChar2->pInventoryArray->Inventory.Primary)
+							{
+								return true;
+							}
+							if (pBand->Items[1].ItemID)
+							{
+								if (pChar2->pInventoryArray->Inventory.Secondary)
+								{
+									if (pChar2->pInventoryArray->Inventory.Secondary->ID != pBand->Items[1].ItemID)
+									{
+										return true;
+									}
+								}
+								else {
+									return true;
+								}
+							}
+							else if (pChar2->pInventoryArray->Inventory.Secondary)
+							{
+								return true;
+							}
+							if (pBand->Items[2].ItemID)
+							{
+								if (pChar2->pInventoryArray->Inventory.Range)
+								{
+									if (pChar2->pInventoryArray->Inventory.Range->ID != pBand->Items[2].ItemID)
+									{
+										return true;
+									}
+								}
+								else {
+									return true;
+								}
+							}
+							else if (pChar2->pInventoryArray->Inventory.Range)
+							{
+								return true;
+							}
+							if (pBand->Items[3].ItemID)
+							{
+								if (pChar2->pInventoryArray->Inventory.Ammo)
+								{
+									if (pChar2->pInventoryArray->Inventory.Ammo->ID != pBand->Items[3].ItemID)
+									{
+										return true;
+									}
+								}
+								else
+								{
+									return true;
+								}
+							}
+							else if (pChar2->pInventoryArray->Inventory.Ammo)
+							{
+								return true;
+							}
+							Dest.DWord = 1;
+						}
+						return true;
+					case xIndex:
+					{
+						
+						Dest.DWord = index + 1;
+						Dest.Type = pIntType;
+						return true;
+					}
+					case Item:
+					{
+						if (!ISINDEX())
+							return false;
+						int index = GETNUMBER();
+						index--;
+						if (index < 0)
+							index = 0;
+						if (index > 3)
+							index = 3;
+						Dest.HighPart = index;
+						Dest.Ptr = (PVOID)&pBand->Items[index];
+						Dest.Type = pBandolierItemType;
+						return true;
+					}
+					case Name:
+					{
+						strcpy_s(DataTypeTemp, pBand->Name);
+						Dest.Ptr = DataTypeTemp;
+						Dest.Type = pStringType;
+						return true;
+					}
+					default:
+						return false;
+					};
+				}
+
+				PMQ2TYPEMEMBER pMethod = MQ2BandolierType::FindMethod(Member);
+				if (pMethod) {
+					switch ((BandolierTypeMethods)pMethod->ID)
+					{
+					case Activate:
+						((PcZoneClient*)pPCData)->BandolierSwap(index);
+						if (CBandolierWnd *pWnd = pBandolierWnd)
+						{
+							if (pWnd->pWeaponSetList)
+							{
+								pWnd->pWeaponSetList->SetCurSel(index);
+							}
+						}
+						Dest.DWord = 1;
+						Dest.Type = pBoolType;
+						return true;
+					}
+					return false;
+				}
+			}
+		}
+	}
+	catch (...) {
+		MessageBox(NULL, "CRAP! in MQ2BandolierType", "An exception occured", MB_OK);
 	}
 	return false;
 }

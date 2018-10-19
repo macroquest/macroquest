@@ -1208,10 +1208,13 @@ FUNCTION_AT_ADDRESS( CContextMenu::~CContextMenu(void),CContextMenu__dCContextMe
 FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(CXStr const &,unsigned int,bool,COLORREF,bool),CContextMenu__AddMenuItem);
 #endif
 #ifdef CContextMenu__AddSeparator_x
-FUNCTION_AT_ADDRESS(int  CContextMenu::AddSeparator(void),CContextMenu__AddSeparator);
+FUNCTION_AT_ADDRESS(int CContextMenu::AddSeparator(void),CContextMenu__AddSeparator);
 #endif
 #ifdef CContextMenu__RemoveAllMenuItems_x
 FUNCTION_AT_ADDRESS(void CContextMenu::RemoveAllMenuItems(void),CContextMenu__RemoveAllMenuItems);
+#endif
+#ifdef CContextMenu__RemoveMenuItem_x
+FUNCTION_AT_ADDRESS(void CContextMenu::RemoveMenuItem(int),CContextMenu__RemoveMenuItem);
 #endif
 #ifdef CContextMenu__EnableMenuItem_x
 FUNCTION_AT_ADDRESS(void  CContextMenu::EnableMenuItem(int,bool),CContextMenu__EnableMenuItem);
@@ -1807,6 +1810,9 @@ FUNCTION_AT_ADDRESS(void  CGroupWnd::SetInvited(bool),CGroupWnd__SetInvited);
 #endif
 #ifdef CGroupWnd__UpdateButtons_x
 FUNCTION_AT_ADDRESS(void  CGroupWnd::UpdateButtons(void),CGroupWnd__UpdateButtons);
+#endif
+#ifdef CGroupWnd__UpdateDisplay_x
+FUNCTION_AT_ADDRESS(void CGroupWnd::UpdateDisplay(int Index, PSPAWNINFO groupmember, COLORREF NameColor, UINT RoleBits),CGroupWnd__UpdateDisplay);
 #endif
 #ifdef CGroupWnd__KeyMapUpdated_x
 FUNCTION_AT_ADDRESS(void  CGroupWnd::KeyMapUpdated(void),CGroupWnd__KeyMapUpdated);
@@ -10111,6 +10117,9 @@ FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index), PcZoneClient__GetMod
 #endif
 #ifdef PcZoneClient__RemoveBuffEffect_x
 FUNCTION_AT_ADDRESS(void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID), PcZoneClient__RemoveBuffEffect);
+#endif
+#ifdef PcZoneClient__BandolierSwap_x
+FUNCTION_AT_ADDRESS(void PcZoneClient::BandolierSwap(int index), PcZoneClient__BandolierSwap);
 #endif
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);

@@ -631,7 +631,7 @@ namespace MQ2Globals
 	EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
 	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	#endif
-
+	EQLIB_VAR CBandolierWnd **ppBandolierWnd;
 	EQLIB_VAR CWebManager **ppCWebManager;
 	#define pCWebManager (*ppCWebManager)
 	EQLIB_VAR CTaskWnd **ppTaskWnd;
@@ -742,6 +742,7 @@ namespace MQ2Globals
 #define pTimeLeftWnd (*ppTimeLeftWnd)
 #define pTextOverlay (*ppTextOverlay)
 #define pPotionBeltWnd (*ppPotionBeltWnd)
+#define pBandolierWnd (*ppBandolierWnd)
 #define pDZMember (*ppDZMember)
 #define pDZTimerInfo (*ppDZTimerInfo)
 #define pTaskMember (*ppTaskMember)
@@ -1105,6 +1106,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContextMenu__CheckMenuItem;
 	EQLIB_VAR DWORD CContextMenu__RemoveMenuItem;
 	EQLIB_VAR DWORD CContextMenu__SetMenuItem;
+	EQLIB_VAR DWORD CContextMenu__AddSeparator;
 	
 	EQLIB_VAR DWORD CContextMenuManager__Flush;
 	EQLIB_VAR DWORD CContextMenuManager__GetMenu;
@@ -1199,6 +1201,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContainerMgr__OpenExperimentContainer;
 	EQLIB_VAR DWORD CColorPickerWnd__Open;
 	EQLIB_VAR DWORD CDistillerInfo__GetIDFromRecordNum;
+	EQLIB_VAR DWORD CGroupWnd__WndNotification;
+	EQLIB_VAR DWORD CGroupWnd__UpdateDisplay;
 	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
@@ -1561,7 +1565,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__GetItemByID;
 	EQLIB_VAR DWORD PcZoneClient__GetItemByItemClass;
 	EQLIB_VAR DWORD PcZoneClient__RemoveBuffEffect;
-	
+	EQLIB_VAR DWORD PcZoneClient__BandolierSwap;
+
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
 	EQLIB_VAR BOOL gbTimeStampChat;

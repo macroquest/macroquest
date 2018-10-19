@@ -454,6 +454,7 @@ GNU General Public License for more details.
 #define CContextMenu__RemoveAllMenuItems_x                         0x920760
 #define CContextMenu__CheckMenuItem_x                              0x9207E0
 #define CContextMenu__SetMenuItem_x                                0x920670
+#define CContextMenu__AddSeparator_x                               0x9205D0
 
 //CContextMenuManager
 #define CContextMenuManager__AddMenu_x                             0x920D80
@@ -959,6 +960,7 @@ GNU General Public License for more details.
 #define PcZoneClient__GetItemByID_x                                0x626F60
 #define PcZoneClient__GetItemByItemClass_x                         0x626FF0
 #define PcZoneClient__RemoveBuffEffect_x                           0x629EE0
+#define PcZoneClient__BandolierSwap_x                              0x6252E0
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x5BCE60
@@ -1105,6 +1107,10 @@ GNU General Public License for more details.
 
 //CDistillerInfo
 #define CDistillerInfo__GetIDFromRecordNum_x                       0x8C40F0
+
+//CGroupWnd
+#define CGroupWnd__WndNotification_x                               0x710120
+#define CGroupWnd__UpdateDisplay_x                                 0x70F480	
 
 //patterns
 //LoginController__GiveTime_x

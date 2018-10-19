@@ -200,13 +200,18 @@ TLO(dataGroundItem)
 			Ret.Type = pGroundType;
 			return true;
 		}
-	} else {
-		if (pGroundTarget)
-		{
-			Ret.Ptr = pGroundTarget;
-			Ret.Type = pGroundType;
-			return true;
-		}
+	}
+	else if (pGroundTarget)
+	{
+		Ret.Ptr = pGroundTarget;
+		Ret.Type = pGroundType;
+		return true;
+	}
+	else if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) 
+	{
+		Ret.Ptr = pItem;
+		Ret.Type = pGroundType;
+		return true;
 	}
 	return false;
 }
