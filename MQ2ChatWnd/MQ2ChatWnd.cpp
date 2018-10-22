@@ -676,27 +676,7 @@ typedef struct _CBUTTONDRAWTEMPLATE {
 /*0x268*/	void   *pPressedDisabledDecal;//CTextureAnimation
 /*0x26c*/
 } CBUTTONDRAWTEMPLATE, *PCBUTTONDRAWTEMPLATE;
-class CHotButton// : public CXWnd
-{
-	CXW;
-public:
-	int BarIndex;
-	int ButtonIndex;
-	unsigned int Timer;
-	CTextureAnimation* DecalIcon;
-	int LastButtonType;
-	int LastButtonSlot;
-	char LastButtonPage;
-	EqItemGuid LastItemGuid;
-	int LastItemId;
-	int LastIconType;
-	int LastIconSlot;
-	PCXSTR LastLabel;
-	PCXSTR DefaultLabel;
-	bool bForceUpdate;
-	void *pKeyMapText;
-	CButtonWnd *pButtonWnd;
-};
+
 
 void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
 {

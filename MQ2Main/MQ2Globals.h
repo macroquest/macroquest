@@ -1220,7 +1220,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterBase__GetEffectId;
 	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
-
+	EQLIB_VAR DWORD CHotButton__SetButtonSize;
+	
 	EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
 	EQLIB_VAR DWORD CInvSlotMgr__MoveItem;
 	EQLIB_VAR DWORD CInvSlotMgr__SelectSlot;
@@ -1309,6 +1310,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManager__CreateLabel;
 	EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate;
 	EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate1;
+	EQLIB_VAR DWORD CSidlManager__CreateXWnd;
+	EQLIB_VAR DWORD CSidlManager__CreateHotButtonWnd;
 	
 	EQLIB_VAR DWORD CSidlScreenWnd__CalculateHSBRange;
 	EQLIB_VAR DWORD CSidlScreenWnd__CalculateVSBRange;

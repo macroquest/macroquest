@@ -101,6 +101,7 @@ class ChannelServerHandler;
 class CharacterBase;
 class CHashCXStrInt32;
 class CHelpWnd;
+class CHotButton;
 class CHotButtonWnd;
 class CIMECandidateList;
 class CIMEComposition;
@@ -551,7 +552,7 @@ EQLIB_OBJECT bool CXWnd::IsActive(void)const;
 EQLIB_OBJECT bool CXWnd::IsDescendantOf(class CXWnd const *)const;
 EQLIB_OBJECT bool CXWnd::IsEnabled(void)const;
 EQLIB_OBJECT bool CXWnd::IsReallyVisible(void)const;
-EQLIB_OBJECT bool CXWnd::IsType(EWndRuntimeType)const;
+EQLIB_OBJECT bool CXWnd::IsType(EWndRuntimeType eType) const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetCloseBoxTemplate(void)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetMinimizeBoxTemplate(void)const;
 EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetTileBoxTemplate(void)const;
@@ -3149,7 +3150,39 @@ EQLIB_OBJECT void CHelpWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CHelpWnd::Init(void);
 };
-
+class CHotButton// : public CXWnd
+{
+public:
+	CXW
+/*0x1e0*/ int					BarIndex;
+/*0x1e4*/ int					ButtonIndex;
+/*0x1e8*/ UINT					Timer;
+/*0x1ec*/ CTextureAnimation*	DecalIcon;
+/*0x1f0*/ int					LastButtonType;
+/*0x1f4*/ int					LastButtonSlot;
+/*0x1f8*/ CHAR					LastButtonPage;
+/*0x1f9*/ EqItemGuid			LastItemGuid;
+/*0x20c*/ int					LastItemId;
+/*0x210*/ int					LastIconType;
+/*0x214*/ int					LastIconSlot;
+/*0x218*/ PCXSTR				LastLabel;
+/*0x21c*/ PCXSTR				DefaultLabel;
+/*0x220*/ bool					bForceUpdate;
+/*0x224*/ void *				pKeyMapText;//CTextObjectInterface
+/*0x228*/ int					Unknown0x228;
+/*0x22c*/ CButtonWnd *			pButtonWnd;
+/*0x230*/ CInvSlotWnd *			pInvSlotWnd;
+/*0x234*/ CSpellGemWnd *		pSpellGemWnd;
+/*0x238*/ tagSIZE				BaseSize;
+/*0x240*/ int					ButtonPercentSize;
+/*0x244*/ tagSIZE				BaseButtonSize;
+/*0x24c*/ tagSIZE				BaseDecalSize;
+/*0x254*/ tagSIZE				BaseInvButtonSize;
+/*0x25c*/ tagSIZE				BaseSpellButtonSize;
+/*0x264*/ int					Unknown0x264;
+/*0x268*/
+EQLIB_OBJECT void CHotButton::SetButtonSize(int percent, bool bUpdateParent = true);
+};
 class CHotButtonWnd : public CSidlScreenWnd
 {
 public:
@@ -5609,6 +5642,8 @@ EQLIB_OBJECT class CXWnd * CSidlManager::CreateXWndFromTemplate(class CXWnd *,cl
 #else
 EQLIB_OBJECT class CXWnd * CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *);
 #endif
+EQLIB_OBJECT CXWnd* CSidlManager::CreateXWnd(CXWnd *pwndParent, CControlTemplate *pControl);
+EQLIB_OBJECT CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, CControlTemplate* pControl);
 EQLIB_OBJECT CXWnd * CSidlManager::CreateXWndFromTemplate(CXWnd *,CXStr &);
 EQLIB_OBJECT class CXWndDrawTemplate * CSidlManager::FindDrawTemplate(CXStr *)const;
 EQLIB_OBJECT class CXWndDrawTemplate * CSidlManager::FindDrawTemplate(unsigned __int32)const;

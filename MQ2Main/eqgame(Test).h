@@ -560,6 +560,9 @@ GNU General Public License for more details.
 // CHotButtonWnd 
 #define CHotButtonWnd__DoHotButton_x                               0x721350
 
+//CHotButton
+#define CHotButton__SetButtonSize_x                                0x5F9950
+
 // CInvSlotMgr 
 #define CInvSlotMgr__FindInvSlot_x                                 0x72E250
 #define CInvSlotMgr__MoveItem_x                                    0x72CFB0
@@ -667,6 +670,8 @@ GNU General Public License for more details.
 #define CSidlManager__CreateLabel_x                                0x7E26E0
 #define CSidlManager__CreateXWndFromTemplate_x                     0x9180E0
 #define CSidlManager__CreateXWndFromTemplate1_x                    0x9182C0
+#define CSidlManager__CreateXWnd_x                                 0x7E2610
+#define CSidlManager__CreateHotButtonWnd_x                         0x7E2BE0
 
 // CSidlScreenWnd 
 #define CSidlScreenWnd__CalculateHSBRange_x                        0x911730

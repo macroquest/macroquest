@@ -1775,7 +1775,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetEffectId);
 	
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
-
+	INITIALIZE_EQGAME_OFFSET(CHotButton__SetButtonSize);
+	
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__FindInvSlot);
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__MoveItem);
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__SelectSlot);
@@ -1864,6 +1865,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateLabel);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWndFromTemplate);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWndFromTemplate1);
+	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWnd);
+	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateHotButtonWnd);
 	
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__CalculateHSBRange);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__CalculateVSBRange);

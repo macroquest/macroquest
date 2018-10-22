@@ -1920,6 +1920,9 @@ FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButton(int,int,int),CHotButtonWnd_
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButton(int,int),CHotButtonWnd__DoHotButton);
 #endif
 #endif
+#ifdef CHotButton__SetButtonSize_x
+FUNCTION_AT_ADDRESS(void CHotButton::SetButtonSize(int percent, bool bUpdateParent),CHotButton__SetButtonSize);
+#endif
 #ifdef CHotButtonWnd__DoHotButtonRightClick_x
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButtonRightClick(int),CHotButtonWnd__DoHotButtonRightClick);
 #endif
@@ -9277,6 +9280,12 @@ FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTem
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate1_x
 FUNCTION_AT_ADDRESS(class CXWnd * CSidlManager::CreateXWndFromTemplate(CXWnd *,CXStr &),CSidlManager__CreateXWndFromTemplate1);
+#endif
+#ifdef CSidlManager__CreateXWnd_x
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWnd(CXWnd *pwndParent, CControlTemplate *pControl),CSidlManager__CreateXWnd);
+#endif
+#ifdef CSidlManager__CreateHotButtonWnd_x
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, CControlTemplate* pControl),CSidlManager__CreateHotButtonWnd);
 #endif
 #ifdef CTAFrameDraw__GetAnimation_x
 FUNCTION_AT_ADDRESS(class CTextureAnimation *  CTAFrameDraw::GetAnimation(int)const ,CTAFrameDraw__GetAnimation);
