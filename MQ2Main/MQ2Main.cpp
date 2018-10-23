@@ -115,7 +115,13 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         return FALSE;
     }
 #endif
-
+	//this is a new addition to core, if they dont have it, I want them to at least see it
+	//from that point on they can chose to unload it.
+	int defval = GetPrivateProfileInt("Plugins", "MQ2TargetInfo", -1, Filename);
+	if (defval == -1)
+	{
+		WritePrivateProfileString("Plugins", "MQ2TargetInfo", "1", Filename);
+	}
 	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", 1, Filename);
 	if (ic==0) {//its set to 0 thats not good
 		WritePrivateProfileString("Plugins", "MQ2Ic", "1", Filename);

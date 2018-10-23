@@ -294,6 +294,13 @@ MQ2Map\MQ2Map.vcxproj
 MQ2Map\MQ2Map.vcxproj.filters
 MQ2Map\MQ2MapAPI.cpp
 MQ2Map\MQ2MapCommands.cpp
+MQ2TargetInfo\db1.bin
+MQ2TargetInfo\LocalDB.h
+MQ2TargetInfo\MQ2TargetInfo.cpp
+MQ2TargetInfo\MQ2TargetInfo.rc
+mq2targetinfo\resource.h
+MQ2TargetInfo\MQ2TargetInfo.vcxproj
+MQ2TargetInfo\MQ2TargetInfo.vcxproj.filters
 mq2telnet\ISXEQTelnet.cpp
 mq2telnet\ISXEQTelnet.h
 mq2telnet\ISXEQTelnet.vcxproj

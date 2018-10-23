@@ -145,3 +145,5 @@ MQ2Main/Logs
 /EQChat
 /MQ2NoFlutter/flutter2.h
 /MQ2NoFlutter/flutter2.cpp
+/MQ2TargetInfo/MQ2TargetInfo(tf).vcxproj.filters
+/MQ2TargetInfo/MQ2TargetInfo(tf).vcxproj

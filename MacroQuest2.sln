@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Main", "MQ2Main\MQ2Main.vcxproj", "{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
 EndProject
@@ -13,6 +13,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2ItemDisplay", "MQ2ItemDisplay\MQ2ItemDisplay.vcxproj", "{FC765D31-8E9E-4171-84E2-307CB8931E06}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2ChatWnd", "MQ2ChatWnd\MQ2ChatWnd.vcxproj", "{BBE410C2-F564-4564-951B-9FADE9BA5041}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2TargetInfo", "MQ2TargetInfo\MQ2TargetInfo.vcxproj", "{8B2DBBE6-0CA1-4C20-AC30-D9C4514784C7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Telnet", "MQ2Telnet\MQ2Telnet.vcxproj", "{1DA0A350-C188-4810-B903-3B603CA2E7D7}"
 EndProject
@@ -103,6 +105,10 @@ Global
 		{BC2C195E-87B3-4974-A398-0E1FA51FBB8E}.Release|Win32.Build.0 = Release|Win32
 		{BC2C195E-87B3-4974-A398-0E1FA51FBB8E}.xDebug|Win32.ActiveCfg = Debug|Win32
 		{BC2C195E-87B3-4974-A398-0E1FA51FBB8E}.xDebug|Win32.Build.0 = Debug|Win32
+		{8B2DBBE6-0CA1-4C20-AC30-D9C4514784C7}.Release|Win32.ActiveCfg = Release|Win32
+		{8B2DBBE6-0CA1-4C20-AC30-D9C4514784C7}.Release|Win32.Build.0 = Release|Win32
+		{8B2DBBE6-0CA1-4C20-AC30-D9C4514784C7}.xDebug|Win32.ActiveCfg = Debug|Win32
+		{8B2DBBE6-0CA1-4C20-AC30-D9C4514784C7}.xDebug|Win32.Build.0 = Debug|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
