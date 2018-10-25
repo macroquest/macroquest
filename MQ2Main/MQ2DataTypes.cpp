@@ -5960,36 +5960,38 @@ bool MQ2SpellType::GETMEMBER()
 		if (ISNUMBER())
 			duration = GETNUMBER();
 		unsigned long nBuff;
-		PCHARINFO2 pChar = GetCharInfo2();
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
 		// Check Buffs
-		for (nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++) {
-			if (pChar->Buff[nBuff].SpellID > 0) {
-				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
-					buffduration = pChar->Buff[nBuff].Duration;
-					if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
-						buffduration = 99999 + 1;
-					}
-					if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell == pSpell) && (buffduration > duration))) {
-						Dest.DWord = false;
-						return true;
-					}
-				}
-			}
-		}
-		// Check Songs
-		for (nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++) {
-			if (pChar->ShortBuff[nBuff].SpellID > 0) {
-				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
-					buffduration = pChar->ShortBuff[nBuff].Duration;
-					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_CHANGE_FORM) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
+		if (PCHARINFO2 pChar2 = GetCharInfo2())
+		{
+			for (nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++) {
+				if (pChar2->Buff[nBuff].SpellID > 0) {
+					if (PSPELL buffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
+						buffduration = pChar2->Buff[nBuff].Duration;
 						if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 							buffduration = 99999 + 1;
 						}
 						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell == pSpell) && (buffduration > duration))) {
 							Dest.DWord = false;
 							return true;
+						}
+					}
+				}
+			}
+			// Check Songs
+			for (nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++) {
+				if (pChar2->ShortBuff[nBuff].SpellID > 0) {
+					if (PSPELL buffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
+						buffduration = pChar2->ShortBuff[nBuff].Duration;
+						if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_CHANGE_FORM) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
+							if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
+								buffduration = 99999 + 1;
+							}
+							if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell == pSpell) && (buffduration > duration))) {
+								Dest.DWord = false;
+								return true;
+							}
 						}
 					}
 				}

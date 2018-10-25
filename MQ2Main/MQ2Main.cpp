@@ -105,7 +105,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
     DebugSpew("Expected Client version: %s %s",__ExpectedVersionDate,__ExpectedVersionTime);
     DebugSpew("    Real Client version: %s %s",__ActualVersionDate,__ActualVersionTime);
-
+	//MessageBox(NULL,"Debug me","MacroQuest",MB_OK);
     // note: __ClientOverride is always #defined as 1 or 0
 #if (!__ClientOverride)
     if (strncmp(__ExpectedVersionDate,(const char *)__ActualVersionDate,strlen(__ExpectedVersionDate)) ||
@@ -353,7 +353,7 @@ bool __cdecl MQ2Initialize()
 	HMODULE heagamemod = GetModuleHandle(NULL);
 	GetModuleInformation(GetCurrentProcess(), heagamemod, &modinfo, sizeof(MODULEINFO));
 	g_eqgameimagesize = (DWORD)heagamemod + modinfo.SizeOfImage;
-	if (HMODULE hmLavish=GetModuleHandle("Lavish.dll")) {
+	if (GetModuleHandle("Lavish.dll") || GetModuleHandle("InnerSpace.dll")) {
 		//I dont know why but if we dont sleep here for a while
 		//we will crash but only if I have a detour on wwsCrashReportCheckForUploader
 		//I suspect Lax would know more about this than me -eqmule
