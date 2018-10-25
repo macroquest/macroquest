@@ -4278,10 +4278,24 @@ public:
 class VeBaseReferenceCount
 {
 public:
-	DWORD vfTable;
-    int References;
+	//just couting the vftable here, dont get confused -eqmule
+/*0x00*/ virtual UINT GetMemUsage() const;
+/*0x04*/ virtual ~VeBaseReferenceCount();
+ 
+/*0x04*/ int References;
 };
-
+enum eMerchantServices
+{
+	Regular,
+	Recovery,
+	Mail,
+	ServiceCount
+};
+class PopDialogHandler2
+{
+public:
+/*0x08*/ virtual void Unknownv0x08();
+};
 class WndEventHandler
 {
 public:
@@ -4319,7 +4333,32 @@ public:
 	/*0x78*/ int Unknown0x78;
 	/*0x7c*/ int Unknown0x7c;
 	/*0x80*/ int Unknown0x80;
-	/*0x84*/ 
+	/*0x84*/
+	//dont pay any attention to the count on these, i needed to figure out the vftable
+	//so thats why they are commented like this.
+/*0x0c*/ virtual void Unknownv0x08();
+/*0x0c*/ virtual void Unknownv0x0c();
+/*0x10*/ virtual void Unknownv0x10();
+/*0x14*/ virtual void Unknownv0x14();
+/*0x18*/ virtual void DestroyItemByUniqueId(__int64 UniqueID);
+/*0x1c*/ virtual void DestroyItemByItemGuid(const EqItemGuid& ItemGuid);
+/*0x20*/ virtual bool AddItemToArray(const VePointer<CONTENTS>& pSentItem);
+/*0x24*/ virtual int Sort(SListWndSortInfo *SortInfo);
+/*0x28*/ virtual void UpdateList();
+/*0x2c*/ virtual int DisplayBuyOrSellPrice(const VePointer<CONTENTS>& pItem, bool bBuy) const;
+/*0x30*/ virtual CXStr GetPriceString(int Price) const;
+/*0x34*/ virtual void UpdateControls();
+/*0x38*/ virtual bool RequestGetItem(int Qty);
+/*0x3c*/ virtual void RequestPutItem(int Qty);
+/*0x40*/ virtual bool CanSelectSlot(const ItemGlobalIndex& Location) const;
+/*0x44*/ virtual void DisablePageSpecificButtons();
+/*0x48*/ virtual eMerchantServices GetHandlerType() const;
+/*0x4c*/ virtual void CXWnd__OnShowANDPostDraw() const;
+/*0x50*/ virtual void Unknownv0x50() const;
+/*0x54*/ virtual void Unknownv0x54() const;
+/*0x58*/ virtual void Unknownv0x58() const;
+//there are 22 of them...
+
 	};
 	class PurchasePageHandler : public MerchantPageHandler
 	{
@@ -4334,6 +4373,8 @@ public:
 	/*0xa0*/ int Unknown0xa0;
 	/*0xa4*/ int Unknown0xa4;
 	/*0xa8*/
+	EQLIB_OBJECT bool CMerchantWnd::PurchasePageHandler::RequestGetItem(int);
+	EQLIB_OBJECT void CMerchantWnd::PurchasePageHandler::RequestPutItem(int);
 	};
 //size 0x420 in Nov 02 2017 Beta  -eqmule
 /*0x230*/ UINT NextRefreshTime;
@@ -4465,11 +4506,12 @@ EQLIB_OBJECT void CMerchantWnd::AddNoteToMercArray(class EQ_Note *);
 EQLIB_OBJECT void CMerchantWnd::ClearMerchantSlot(int);
 EQLIB_OBJECT void CMerchantWnd::FinishBuyingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
-EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
+//older clients and im not really sure that it was correct then
+//EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *,int Unknown = -1);
+EQLIB_OBJECT int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex *,int Unknown = -1);
 #else
-EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *);
+EQLIB_OBJECT int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex *);
 #endif
 // virtual
 EQLIB_OBJECT CMerchantWnd::~CMerchantWnd(void);
@@ -4484,8 +4526,6 @@ EQLIB_OBJECT void CMerchantWnd::DisplayBuyOrSellPrice(bool,class EQ_Item *);
 EQLIB_OBJECT void CMerchantWnd::HandleBuy(int);
 EQLIB_OBJECT void CMerchantWnd::HandleSell(int);
 EQLIB_OBJECT void CMerchantWnd::Init(void);
-EQLIB_OBJECT void CMerchantWnd::RequestBuyItem(int);
-EQLIB_OBJECT void CMerchantWnd::RequestSellItem(int);
 EQLIB_OBJECT void CMerchantWnd::UpdateBuySellButtons(void);
 };
 
@@ -8344,11 +8384,7 @@ EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
 EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlot(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlotMine(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
-#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
-EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
-#else
 EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);
-#endif
 EQLIB_OBJECT int CharacterZoneClient::BardCastBard(const EQ_Spell* pSpell, signed int caster_class) const;
 EQLIB_OBJECT unsigned char CharacterZoneClient::GetMaxEffects(void)const;
 EQLIB_OBJECT EQ_Affect & CharacterZoneClient::GetEffect(int)const;

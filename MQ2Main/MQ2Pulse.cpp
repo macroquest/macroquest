@@ -264,7 +264,8 @@ void Pulse()
 	}
 	if (!pTarget)
 		gTargetbuffs = FALSE;
-
+	if (pMerchantWnd && pMerchantWnd->dShow==false)
+		gItemsReceived = FALSE;
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
 #if !defined(ROF2EMU) && !defined(UFEMU)
@@ -543,6 +544,15 @@ public:
 			RemoveLoginPulse();
 		}
 	}
+	VOID CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
+	VOID CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
+	{
+		CMerchantWnd*me = (CMerchantWnd*)this;
+		CMerchantWnd*me2 = (CMerchantWnd*)pMerchantWnd;
+		gItemsReceived = FALSE;
+		CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
+		gItemsReceived = TRUE;
+	}
 	VOID CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
 	VOID CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
 	{
@@ -651,6 +661,8 @@ DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::LoginController__GiveTime_Tramp());
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
+DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
+
 
 void InitializeMQ2Pulse()
 {
@@ -661,13 +673,16 @@ void InitializeMQ2Pulse()
 	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
 	EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
 	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
-	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline,"CTargetWnd__RefreshTargetBuffs");
+	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline, "CTargetWnd__RefreshTargetBuffs");
+	EzDetourwName(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline,"CMerchantWnd__PurchasePageHandler__UpdateList");
+	
 	InitializeLoginPulse();
 }
 void ShutdownMQ2Pulse()
 {
 	EnterCriticalSection(&gPulseCS);
 	RemoveLoginPulse();
+	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour(CEverQuest__EnterZone);

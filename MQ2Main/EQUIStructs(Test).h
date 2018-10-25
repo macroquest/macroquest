@@ -1563,7 +1563,7 @@ typedef struct _EQMERCHWINDOW {
 /*0x0254*/ BYTE Unknown0x0254[0x8];
 /*0x025c*/ FLOAT Markup;//found in CMerchantWnd__DisplayBuyOrSellPrice_x
 /*0x0260*/ BYTE Unknown0x0260[0xc];
-/*0x026c*/ DWORD SelectedSlotID;//found in CMerchantWnd__RequestBuyItem_x
+/*0x026c*/ DWORD SelectedSlotID;
 /*0x0270*/ BYTE Unknown0x0270[0x1e8];
 /*0x0458*/
 } EQMERCHWINDOW, *PEQMERCHWINDOW;

@@ -804,7 +804,55 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 		}
 	}
 }
-
+// ***************************************************************************
+// Function:    selectitem
+// Description: Our '/selectitem' command
+// Usage:       /selectitem Name
+// 
+// will select the specified item in your inventory if merchantwindow is open
+// ***************************************************************************
+VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
+{
+	bRunNextCommand = FALSE;
+	if (!pMerchantWnd)
+		return;
+	bool bExact = false;
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR szTemp[MAX_STRING] = { 0 };
+	CHAR szTemp2[MAX_STRING] = { 0 };
+	char *pName = 0 ;
+	GetArg(szBuffer, szLine, 1);
+	if (szBuffer[0])
+	{
+		pName = &szBuffer[0];
+		if (*pName == '=')
+		{
+			bExact = true;
+			pName++;
+		}
+		if (PCHARINFO pCharInfo = (PCHARINFO)GetCharInfo())
+		{
+			if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
+			{
+				if (pmercho->dShow)
+				{
+					PITEMINFO pItem = 0;
+					PCONTENTS pCont = 0;
+					bool bFound = false;
+					if (PCONTENTS pCont = FindItemByName(szBuffer, bExact))
+					{
+						ItemGlobalIndex To;
+						To.Location = pCont->GetGlobalIndex().Location;
+						To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
+						To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
+						To.Index.Slot3 = -1;
+						pmercho->SelectBuySellSlot(&To,To.Index.Slot1);
+					}
+				}
+			}
+		}
+	}
+}
 // ***************************************************************************
 // Function:    buyitem
 // Description: Our '/buyitem' command
@@ -828,8 +876,11 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 		GetArg(szQty, szLine, 1);
 		Qty = (DWORD)atoi(szQty);
 		if (Qty < 1) return;
-		CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
-		pmercho->RequestBuyItem(Qty);
+		//CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
+		if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
+		{
+			pmercho->PageHandlers[0].pObject->RequestGetItem(Qty);
+		}
 	}
 }
 #else
@@ -878,9 +929,13 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
 	if (((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther && ((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData) {
 		GetArg(szQty, szLine, 1);
 		Qty = (DWORD)atoi(szQty);
-		if (Qty < 1) return;
-		CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
-		pmercho->RequestSellItem(Qty);
+		if (Qty < 1)
+			return;
+		//CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
+		if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
+		{
+			pmercho->PageHandlers[0].pObject->RequestPutItem(Qty);
+		}
 	}
 }
 #else
@@ -3672,6 +3727,33 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
 		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), gszINIFilename);
 		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
+		return;
+	}
+	else if (!_stricmp(Arg1, "reload")) {
+		CHAR Filename[MAX_STRING] = { 0 };
+		sprintf_s(Filename, "%s", gszINIFilename);
+		GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], gszSpawnPlayerName[3], MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], gszSpawnPlayerName[4], MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], gszSpawnPlayerName[5], MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, Filename);
+		GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, Filename);
+
+		ConvertCR(gszSpawnNPCName, MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[2], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[3], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[4], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[5], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
+		ConvertCR(gszSpawnCorpseName, MAX_STRING);
+		ConvertCR(gszSpawnPetName, MAX_STRING);
+		ConvertCR(gszAnonCaption, MAX_STRING);
+		WriteChatf("Updated Captions from INI.");
 		return;
 	}
 	else

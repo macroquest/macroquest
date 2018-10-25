@@ -652,12 +652,12 @@ GNU General Public License for more details.
 
 // CMerchantWnd 
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x781380
-#define CMerchantWnd__RequestBuyItem_x                             0x781C60
-#define CMerchantWnd__RequestSellItem_x                            0x782190
+#define CMerchantWnd__PurchasePageHandler__RequestGetItem_x        0x781C60
+#define CMerchantWnd__PurchasePageHandler__RequestPutItem_x        0x782190
 #define CMerchantWnd__SelectRecoverySlot_x                         0x784FC0
-//did this get another arg?
-#define CMerchantWnd__SelectBuySellSlot_x                          0x7819E0
-#define CMerchantWnd__ActualSelect_x                               0x78AB50
+#define CMerchantWnd__MerchantPageHandler__SelectBuySellSlot_x     0x77FD70
+#define CMerchantWnd__SelectBuySellSlot_x                          0x78AB50
+#define CMerchantWnd__PurchasePageHandler__UpdateList_x            0x780FC0
 
 // CPacketScrambler
 #define CPacketScrambler__ntoh_x                                   0x88A140

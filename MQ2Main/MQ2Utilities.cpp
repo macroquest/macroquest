@@ -7438,11 +7438,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 
 	EQ_Affect eff;
 	eff.ID = bSpell->ID;
-	#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
-	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1, false);
-	#else
 	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
-	#endif
 	if (bItWillNotStack) {
 		Sleep(0);
 		//WriteChatf("EQ Client says spell is BLOCKED");
@@ -9499,7 +9495,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 					To.Index.Slot1 = pItem->GetGlobalIndex().Index.Slot1;
 					To.Index.Slot2 = pItem->GetGlobalIndex().Index.Slot2;
 					To.Index.Slot3 = -1;
-					pMerchantWnd->ActualSelect(&To);
+					pMerchantWnd->SelectBuySellSlot(&To);
 					return TRUE;
 				}
 			}
@@ -9531,19 +9527,19 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 					To.Index.Slot1 = pItem->GetGlobalIndex().Index.Slot1;
 					To.Index.Slot2 = pItem->GetGlobalIndex().Index.Slot2;
 					To.Index.Slot3 = -1;
-					pMerchantWnd->ActualSelect(&To);
+					pMerchantWnd->SelectBuySellSlot(&To);
 					return TRUE;
 				}
-			}
-			else {
-				//well now is where it gets complicated then... or not...
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = pItem->GetGlobalIndex().Index.Slot1;
-				To.Index.Slot2 = pItem->GetGlobalIndex().Index.Slot2;
-				To.Index.Slot3 = -1;
-				pMerchantWnd->ActualSelect(&To);
-				return TRUE;
+				else {
+					//well now is where it gets complicated then... or not...
+					ItemGlobalIndex To;
+					To.Location = eItemContainerPossessions;
+					To.Index.Slot1 = pItem->GetGlobalIndex().Index.Slot1;
+					To.Index.Slot2 = pItem->GetGlobalIndex().Index.Slot2;
+					To.Index.Slot3 = -1;
+					pMerchantWnd->SelectBuySellSlot(&To);
+					return TRUE;
+				}
 			}
 		}
 		else {//not a selected slot
@@ -9652,7 +9648,7 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 					To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
 					To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
 					To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
-					pMerchantWnd->ActualSelect(&To);
+					pMerchantWnd->SelectBuySellSlot(&To);
 					return TRUE;
 				}
 			}
@@ -9683,7 +9679,7 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 					To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
 					To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
 					To.Index.Slot3 = -1;
-					pMerchantWnd->ActualSelect(&To);
+					pMerchantWnd->SelectBuySellSlot(&To);
 					return TRUE;
 				}
 			}
@@ -9695,7 +9691,7 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 				To.Index.Slot1 = ToInvSlot;
 				To.Index.Slot2 = ToBagSlot;
 				To.Index.Slot3 = -1;
-				pMerchantWnd->ActualSelect(&To);
+				pMerchantWnd->SelectBuySellSlot(&To);
 				return TRUE;
 			}
 		} else {

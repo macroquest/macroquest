@@ -380,6 +380,7 @@ namespace MQ2Globals
 	CHAR gszSpawnNPCName[MAX_STRING] = "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Assist},\">> \",]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist},\" - ${NamingSpawn.PctHPs}%<<\",]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
 	CHAR gszSpawnPetName[MAX_STRING] = "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Assist},\">> \",]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist},\" - ${NamingSpawn.PctHPs}%<<\",]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
 	CHAR gszSpawnCorpseName[MAX_STRING] = "${NamingSpawn.DisplayName}'s corpse";
+	CHAR gszAnonCaption[MAX_STRING] = "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}";
 
 	DWORD DrawHUDParams[4] = { 0,0,0,0 };
 
@@ -401,6 +402,7 @@ namespace MQ2Globals
 	BOOL gInClick = FALSE;
 	DWORD gbAssistComplete = 0;
 	BOOL gTargetbuffs = FALSE;
+	BOOL gItemsReceived = FALSE;
 	BOOL gbInZone = FALSE;
 	BOOL gZoning = FALSE;
 	BOOL WereWeZoning = TRUE;
@@ -1851,11 +1853,11 @@ namespace MQ2Globals
     INITIALIZE_EQGAME_OFFSET(CMapViewWnd__GetWorldCoordinates);
 
 	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__DisplayBuyOrSellPrice);
-	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__RequestBuyItem);
-	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__RequestSellItem);
+	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__PurchasePageHandler__RequestGetItem);
+	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__PurchasePageHandler__RequestPutItem);
 	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__SelectBuySellSlot);
-	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__ActualSelect);
-
+	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__PurchasePageHandler__UpdateList);
+	
 	INITIALIZE_EQGAME_OFFSET(CPacketScrambler__ntoh);
 	INITIALIZE_EQGAME_OFFSET(CPacketScrambler__hton);
 

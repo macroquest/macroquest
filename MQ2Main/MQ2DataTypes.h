@@ -2578,9 +2578,15 @@ public:
 		Items = 3,
 		Open = 4,
 		Full = 5,
+		ItemsRecieved = 6,
 	};
 	enum MerchantMethods
 	{
+		SelectItem = 1,
+		Buy = 2,
+		Sell = 3,
+		OpenWindow = 4,
+		CloseWindow = 5,
 	};
 	MQ2MerchantType() :MQ2Type("merchant")
 	{
@@ -2589,6 +2595,13 @@ public:
 		TypeMember(Items);
 		TypeMember(Open);
 		TypeMember(Full);
+		TypeMember(ItemsRecieved);
+
+		TypeMethod(SelectItem);
+		TypeMethod(Buy);
+		TypeMethod(Sell);
+		TypeMethod(OpenWindow);
+		TypeMethod(CloseWindow);
 	}
 
 	~MQ2MerchantType()

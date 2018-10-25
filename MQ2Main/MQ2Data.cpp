@@ -250,13 +250,9 @@ TLO(dataGroundItemCount)
 }
 TLO(dataMerchant)
 {
-	if (pActiveMerchant)
-	{
-		Ret.Ptr = pActiveMerchant;
-		Ret.Type = pMerchantType;
-		return true;
-	}
-	return false;
+	Ret.Ptr = pActiveMerchant;
+	Ret.Type = pMerchantType;
+	return true;
 }
 TLO(dataMercenary)
 {

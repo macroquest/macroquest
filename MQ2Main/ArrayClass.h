@@ -708,7 +708,20 @@ public:
     T* Begin;
     UINT Size;
     UINT Capacity;
+	T& operator[](unsigned);
+	const T& operator[](unsigned) const;
 };
+template< typename T >
+inline const T& VeArray<T>::operator[](unsigned i) const
+{
+	return Begin[i];
+}
+
+template< typename T >
+inline T& VeArray<T>::operator[](unsigned i)
+{
+	return Begin[i];
+}
 
 //LinkedLists
 template<class T> class LinkedListNode

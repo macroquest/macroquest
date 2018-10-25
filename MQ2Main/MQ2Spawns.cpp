@@ -487,41 +487,53 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 }
 BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
 {
-	CHAR NewCaption[MAX_STRING]={0};
-	if (CaptionString[0] || gAnonymize) {
-		if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
-			strcpy_s(NewCaption, CaptionString);
-			pNamingSpawn = pSpawn;
-			ParseMacroParameter(pChar->pSpawn, NewCaption);
-			pNamingSpawn = 0;
-			if (gAnonymize) {
-				CHAR szType[64] = { 0 };
-				bool oktoanon = false;
-				switch (type) {
-					case MERCENARY:
-						oktoanon = true;
-						strcpy_s(szType, "Mercenary");
+    CHAR NewCaption[MAX_STRING]={0};
+    if (CaptionString[0] || gAnonymize) {
+        if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+            strcpy_s(NewCaption, CaptionString);
+            pNamingSpawn = pSpawn;                                      
+            if (gAnonymize)
+            {
+                CHAR szType[64] = { 0 };
+                bool oktoanon = false;
+                switch (type) {
+                    case MERCENARY:
+                        oktoanon = true;
+                        strcpy_s(szType, "Mercenary");
+                        break;
+                   case NPC:
+					    ParseMacroParameter(pChar->pSpawn, NewCaption);
 						break;
-					case PC:
-						oktoanon = true;
-						strcpy_s(szType, "Player");
-						break;
-					case PET:
-						oktoanon = true;
-						strcpy_s(szType, "PET");
-						break;
-				};
-				if (oktoanon) {
-					char *therace = pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race);
-					char *theclass = pEverQuest->GetClassDesc(pSpawn->mActorClient.Class);
-					sprintf_s(NewCaption, "Anonymous %s Level %d %s %s", szType, pSpawn->Level, therace, theclass);
-				}
-			}
-		}
-		((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0, NewCaption);
-		return 1;
-	}
-	return 0;
+                   case PC:
+                        oktoanon = true;
+                        strcpy_s(szType, "Player");
+                        break;
+                    case PET:
+                        oktoanon = true;
+                        strcpy_s(szType, "PET");
+                        break;
+                };
+                if (oktoanon) {
+                    if (gszAnonCaption[0] == '\0') {
+                        char *therace = pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race);
+                        char *theclass = pEverQuest->GetClassDesc(pSpawn->mActorClient.Class);
+                        sprintf_s(NewCaption, "[%d] %s %s %s", pSpawn->Level, therace, theclass, szType);
+                    }
+                    else {
+                        strcpy_s(NewCaption, gszAnonCaption);
+                        ParseMacroParameter(pChar->pSpawn, NewCaption);
+                    }
+                }
+            }
+            else {
+                ParseMacroParameter(pChar->pSpawn, NewCaption);
+            }
+            pNamingSpawn = 0;
+        }
+        ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0, NewCaption);
+        return 1;
+    }
+    return 0;
 }
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {

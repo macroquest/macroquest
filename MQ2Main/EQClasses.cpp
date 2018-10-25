@@ -2399,26 +2399,24 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::HandleSell(int),CMerchantWnd__HandleSell
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd__UpdateBuySellButtons);
 #endif
 #ifdef CMerchantWnd__SelectBuySellSlot_x
-FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
-#endif
-#ifdef CMerchantWnd__ActualSelect_x
+//FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
 	#if !defined(ROF2EMU) && !defined(UFEMU)
-		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *, int Unknown),CMerchantWnd__ActualSelect);
+		FUNCTION_AT_ADDRESS(int  CMerchantWnd::SelectBuySellSlot(class ItemGlobalIndex *, int Unknown), CMerchantWnd__SelectBuySellSlot);
 	#else
-		FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *),CMerchantWnd__ActualSelect);
+		FUNCTION_AT_ADDRESS(int  CMerchantWnd::SelectBuySellSlot(class ItemGlobalIndex *), CMerchantWnd__SelectBuySellSlot);
 	#endif
 #endif
 #ifdef CMerchantWnd__DisplayBuyOrSellPrice_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::DisplayBuyOrSellPrice(bool,class EQ_Item *),CMerchantWnd__DisplayBuyOrSellPrice);
 #endif
-#ifdef CMerchantWnd__RequestBuyItem_x
-FUNCTION_AT_ADDRESS(void  CMerchantWnd::RequestBuyItem(int),CMerchantWnd__RequestBuyItem);
+#ifdef CMerchantWnd__PurchasePageHandler__RequestGetItem_x
+FUNCTION_AT_ADDRESS(bool CMerchantWnd::PurchasePageHandler::RequestGetItem(int), CMerchantWnd__PurchasePageHandler__RequestGetItem);
 #endif
 #ifdef CMerchantWnd__FinishBuyingItem_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::FinishBuyingItem(struct _sell_msg *),CMerchantWnd__FinishBuyingItem);
 #endif
-#ifdef CMerchantWnd__RequestSellItem_x
-FUNCTION_AT_ADDRESS(void  CMerchantWnd::RequestSellItem(int),CMerchantWnd__RequestSellItem);
+#ifdef CMerchantWnd__PurchasePageHandler__RequestPutItem_x
+FUNCTION_AT_ADDRESS(void CMerchantWnd::PurchasePageHandler::RequestPutItem(int), CMerchantWnd__PurchasePageHandler__RequestPutItem);
 #endif
 #ifdef CMerchantWnd__FinishSellingItem_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::FinishSellingItem(struct _sell_msg *),CMerchantWnd__FinishSellingItem);
@@ -4574,11 +4572,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetFirstEffectSlot(bool),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__GetLastEffectSlot);
 #endif
 #ifdef CharacterZoneClient__IsStackBlocked_x
-#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
-FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*, int, bool), CharacterZoneClient__IsStackBlocked);
-#else
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*,int),CharacterZoneClient__IsStackBlocked);
-#endif
 #endif
 #ifdef CharacterZoneClient__CanUseMemorizedSpellSlot_x
 FUNCTION_AT_ADDRESS(bool EQ_Character::CanUseMemorizedSpellSlot(int),CharacterZoneClient__CanUseMemorizedSpellSlot);

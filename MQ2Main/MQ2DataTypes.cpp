@@ -9820,9 +9820,133 @@ bool MQ2CorpseType::GETMEMBER()
 
 bool MQ2MerchantType::GETMEMBER()
 {
-	if (!pActiveMerchant || !pMerchantWnd)
+	if (!pMerchantWnd)
 		return false;
-	PEQMERCHWINDOW pMerch = ((PEQMERCHWINDOW)pMerchantWnd);
+	PEQMERCHWINDOW pMerch = (PEQMERCHWINDOW)pMerchantWnd;
+	CMerchantWnd *pCMerch = (CMerchantWnd*)pMerchantWnd;
+	PMQ2TYPEMEMBER pMethod = MQ2MerchantType::FindMethod(Member);
+	if (pMethod) {
+		switch ((MerchantMethods)pMethod->ID)
+		{
+		case SelectItem:
+		{
+			if (pMerchantWnd->dShow)
+			{
+				CHAR szTemp[MAX_STRING] = { 0 };
+				CHAR szTemp2[MAX_STRING] = { 0 };
+				BOOL bExact = FALSE;
+				PCHAR pName = GETFIRST();
+				if (*pName == '=')
+				{
+					bExact = TRUE;
+					pName++;
+				}
+				PCONTENTS pCont = 0;
+				PITEMINFO pItem = 0;
+				bool bFound = false;
+				for (int i = 0; i < pCMerch->PageHandlers[0].pObject->ItemContainer.m_length; i++)
+				{
+					if (pCont = pCMerch->PageHandlers[0].pObject->ItemContainer.m_array[i].pCont)
+					{
+						if (pItem = GetItemFromContents(pCont))
+						{
+							if (bExact)
+							{
+								if (!_stricmp(pName, pItem->Name))
+								{
+									bFound = true;
+									break;
+								}
+							}
+							else
+							{
+								strcpy_s(szTemp, pItem->Name);
+								_strlwr_s(szTemp);
+								strcpy_s(szTemp2, pName);
+								_strlwr_s(szTemp2);
+								if (strstr(szTemp,szTemp2)) {
+									bFound = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+				if (bFound)
+				{
+					ItemGlobalIndex To;
+					To.Location = eItemContainerMerchant;
+					To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
+					To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
+					To.Index.Slot3 = -1;
+					pCMerch->SelectBuySellSlot(&To, To.Index.Slot1);
+					return true;
+				}
+			}
+			return true;
+		}
+		case Buy:
+		{
+			if (pMerchantWnd->dShow)
+			{
+				int Qty = GETNUMBER();
+				if (Qty < 1)
+					return false;
+				if (pCMerch->pSelectedItem.pObject && pCMerch->pSelectedItem.pObject->GetGlobalIndex().Location == eItemContainerMerchant)
+				{
+					pCMerch->PageHandlers[0].pObject->RequestGetItem(Qty);
+					return true;
+				}
+			}
+			return true;
+		}
+		case Sell:
+		{
+			if (pMerchantWnd->dShow)
+			{
+				int Qty = GETNUMBER();
+				if (Qty < 1)
+					return false;
+				if (pCMerch->pSelectedItem.pObject && pCMerch->pSelectedItem.pObject->GetGlobalIndex().Location == eItemContainerPossessions)
+				{
+					pCMerch->PageHandlers[0].pObject->RequestPutItem(Qty);
+					return true;
+				}
+			}
+			return true;
+		}
+		case OpenWindow:
+		{
+			SEARCHSPAWN SearchSpawn;
+			ClearSearchSpawn(&SearchSpawn);
+			SearchSpawn.FRadius = 999999.0f;
+			SearchSpawn.bMerchant = true;
+			if (pTarget && ((PSPAWNINFO)pTarget)->mActorClient.Class == 41)
+			{
+				pEverQuest->RightClickedOnPlayer(pTarget, 0);
+				return true;
+			}
+			else if (PSPAWNINFO pSpawn = SearchThroughSpawns(&SearchSpawn, (PSPAWNINFO)pLocalPlayer))
+			{
+				*ppTarget = (EQPlayer*)pSpawn;
+				pEverQuest->RightClickedOnPlayer((EQPlayer*)pSpawn, 0);
+				return true;
+			}
+			return true;
+		}
+		case CloseWindow:
+			if (pMerchantWnd->dShow)
+			{
+				//Need to call deactivate here.
+				WriteChatf("Not implemented yet");
+				return true;
+			}
+			return true;
+		}
+		return false;
+	}
+	if (!pActiveMerchant)
+		return false;
 	PMQ2TYPEMEMBER pMember = MQ2MerchantType::FindMember(Member);
 	if (!pMember)
 	{
@@ -9836,7 +9960,11 @@ bool MQ2MerchantType::GETMEMBER()
 	switch ((MerchantMembers)pMember->ID)
 	{
 	case Open:
-		Dest.DWord = 1; // obviously, since we're this far ;)
+		Dest.DWord = pMerchantWnd->dShow;
+		Dest.Type = pBoolType;
+		return true;
+	case ItemsRecieved:
+		Dest.DWord = gItemsReceived;
 		Dest.Type = pBoolType;
 		return true;
 	case Item://todo: check manually for uf

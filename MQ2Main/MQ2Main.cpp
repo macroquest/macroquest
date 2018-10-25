@@ -191,7 +191,11 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             gMaxSpawnCaptions=GetPrivateProfileInt("Captions","Update",gMaxSpawnCaptions,Filename);
             gMQCaptions = 1==GetPrivateProfileInt("Captions","MQCaptions",1,Filename); 
             gAnonymize = 1==GetPrivateProfileInt("Captions","Anonymize",0,Filename); 
-			
+			GetPrivateProfileString("Captions", "AnonCaption", "", gszAnonCaption, MAX_STRING, Filename);
+			if (gszAnonCaption[0] == '\0')
+			{
+				WritePrivateProfileString("Captions", "AnonCaption", "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}", Filename);
+			}
             ConvertCR(gszSpawnNPCName,MAX_STRING);
             ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
             ConvertCR(gszSpawnPlayerName[2], MAX_STRING);
@@ -201,6 +205,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
             ConvertCR(gszSpawnCorpseName, MAX_STRING);
             ConvertCR(gszSpawnPetName, MAX_STRING);
+			ConvertCR(gszAnonCaption, MAX_STRING);
 
             gFilterSWho.Lastname= GetPrivateProfileInt("SWho Filter","Lastname",1,Filename);
             gFilterSWho.Class    = GetPrivateProfileInt("SWho Filter","Class",1,Filename);

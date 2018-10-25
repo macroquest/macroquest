@@ -25,9 +25,9 @@ namespace MQ2Prototypes
 	typedef VOID(__cdecl *fMQCommand)(PSPAWNINFO, PCHAR Buffer,SIZE_T BuffLen);
 	typedef VOID(__cdecl *fEQMemSpell)(DWORD, DWORD);
 	typedef VOID(__cdecl *fEQLoadSpells)(PSPELLFAVORITE, DWORD);
-	typedef VOID(__cdecl *fEQSelectItem)(int, DWORD);//public: void __thiscall CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *)
-	typedef VOID(__cdecl *fEQBuyItem)(int);//private: void __thiscall CMerchantWnd::RequestBuyItem(int)
-	typedef VOID(__cdecl *fEQSellItem)(int);//private: void __thiscall CMerchantWnd::RequestSellItem(int)
+	typedef VOID(__cdecl *fEQSelectItem)(class ItemGlobalIndex *, int Unknown);
+	typedef VOID(__cdecl *fEQBuyItem)(int);
+	typedef VOID(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem
 	typedef VOID(__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
 	typedef BOOL(__cdecl *fEQProcGameEvts)(VOID);
 	typedef FLOAT(__cdecl *fEQGetMelee)(class EQPlayer *, class EQPlayer *);

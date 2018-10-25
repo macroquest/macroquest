@@ -121,6 +121,7 @@ namespace MQ2Globals
 	EQLIB_VAR CHAR gszSpawnPlayerName[8][MAX_STRING];
 	EQLIB_VAR CHAR gszSpawnPetName[MAX_STRING];
 	EQLIB_VAR CHAR gszSpawnCorpseName[MAX_STRING];
+	EQLIB_VAR CHAR gszAnonCaption[MAX_STRING];
 
 	EQLIB_VAR DWORD DrawHUDParams[4];
 
@@ -136,6 +137,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD gbAssistComplete; 
 	EQLIB_VAR BOOL gTargetbuffs;
+	EQLIB_VAR BOOL gItemsReceived;
 	EQLIB_VAR BOOL gbInZone;
 	EQLIB_VAR BOOL gZoning;
 	EQLIB_VAR BOOL WereWeZoning;
@@ -1296,11 +1298,11 @@ namespace MQ2Globals
     EQLIB_VAR DWORD CMapViewWnd__HandleLButtonDown;
 
 	EQLIB_VAR DWORD CMerchantWnd__DisplayBuyOrSellPrice;
-	EQLIB_VAR DWORD CMerchantWnd__RequestBuyItem;
-	EQLIB_VAR DWORD CMerchantWnd__RequestSellItem;
+	EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__RequestGetItem;
+	EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__RequestPutItem;
 	EQLIB_VAR DWORD CMerchantWnd__SelectBuySellSlot;
-	EQLIB_VAR DWORD CMerchantWnd__ActualSelect;
-
+	EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__UpdateList;
+	
 	EQLIB_VAR DWORD CPacketScrambler__ntoh;
 	EQLIB_VAR DWORD CPacketScrambler__hton;
 
