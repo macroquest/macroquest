@@ -2578,7 +2578,7 @@ public:
 		Items = 3,
 		Open = 4,
 		Full = 5,
-		ItemsRecieved = 6,
+		ItemsReceived = 6,
 	};
 	enum MerchantMethods
 	{
@@ -2595,7 +2595,7 @@ public:
 		TypeMember(Items);
 		TypeMember(Open);
 		TypeMember(Full);
-		TypeMember(ItemsRecieved);
+		TypeMember(ItemsReceived);
 
 		TypeMethod(SelectItem);
 		TypeMethod(Buy);

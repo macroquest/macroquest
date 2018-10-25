@@ -9965,7 +9965,7 @@ bool MQ2MerchantType::GETMEMBER()
 		Dest.DWord = pMerchantWnd->dShow;
 		Dest.Type = pBoolType;
 		return true;
-	case ItemsRecieved:
+	case ItemsReceived:
 		Dest.DWord = gItemsReceived;
 		Dest.Type = pBoolType;
 		return true;
