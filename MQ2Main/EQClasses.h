@@ -4509,7 +4509,7 @@ EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
 //older clients and im not really sure that it was correct then
 //EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex *,int Unknown = -1);
+EQLIB_OBJECT int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex *,int ListIndex = -1);//for itemlists such as merchant items, we also need to send the actual listindex.
 #else
 EQLIB_OBJECT int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex *);
 #endif

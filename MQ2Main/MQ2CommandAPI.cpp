@@ -696,6 +696,7 @@ void InitializeMQ2Commands()
 		{"/screenmode", ScreenModeCmd,1,0},
 		{"/usercamera", UserCameraCmd,1,0},
 		{"/mapzoom",    MapZoomCmd,1,0},
+		{"/foreground", ForeGroundCmd,1,0},
 		
         {NULL,          NULL,0,1},
     };

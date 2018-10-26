@@ -92,7 +92,7 @@ GNU General Public License for more details.
 #endif
 
 extern CRITICAL_SECTION gPluginCS;
-#if defined(LIVE) || defined(TEST) || defined(BETA) || defined(ROF2EMU) || defined(UFEMU)
+#if defined(LIVE) || defined(TEST) || defined(EQBETA) || defined(ROF2EMU) || defined(UFEMU)
 //do nothing because the user has set one of these as a preprocessor argument instead...
 //we default to LIVE though...
 #else
@@ -103,7 +103,7 @@ extern CRITICAL_SECTION gPluginCS;
 #include "eqgame.h"
 #elif defined(TEST)
 #include "eqgame(Test).h"
-#elif defined(BETA)
+#elif defined(EQBETA)
 #include "eqgame(beta).h"
 #elif defined(ROF2EMU)
 #include "eqgame(emu).h"
@@ -267,7 +267,7 @@ typedef double DOUBLE;
 #elif defined(TEST)
 #include "EQData(Test).h"
 #include "EQUIStructs(Test).h"
-#elif defined(BETA)
+#elif defined(EQBETA)
 #include "EQData(beta).h"
 #include "EQUIStructs(beta).h"
 #elif defined(ROF2EMU)

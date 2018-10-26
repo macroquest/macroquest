@@ -10786,6 +10786,7 @@ int GetFreeInventory(int nSize)
 	}
 	return freeslots;
 }
+
 struct _CONTENTS *CONTENTS::GetContent(UINT index)
 {
 	if (Contents.ContainedItems.pItems && Contents.ContainedItems.Capacity) {

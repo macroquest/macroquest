@@ -9325,6 +9325,8 @@ bool MQ2CharSelectListType::GETMEMBER()
 	}
 	return false;
 }
+typedef HWND( __stdcall *fEQW_GetDisplayWindow )(VOID);
+fEQW_GetDisplayWindow EQW_GetDisplayWindow = 0;
 bool MQ2EverQuestType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember = MQ2EverQuestType::FindMember(Member);
@@ -9332,6 +9334,19 @@ bool MQ2EverQuestType::GETMEMBER()
 		return false;
 	switch ((EverQuestMembers)pMember->ID)
 	{
+	case HWND:
+	{
+		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
+		{
+			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
+		}
+		if (EQW_GetDisplayWindow)
+			Dest.DWord = (DWORD)EQW_GetDisplayWindow();
+		else
+			Dest.DWord = *(DWORD*)EQADDR_HWND;
+		Dest.Type = pIntType;
+		return true;
+	}
 	case GameState:
 		if (gGameState == GAMESTATE_CHARSELECT)
 			strcpy_s(DataTypeTemp, "CHARSELECT");
@@ -9846,16 +9861,19 @@ bool MQ2MerchantType::GETMEMBER()
 				PCONTENTS pCont = 0;
 				PITEMINFO pItem = 0;
 				bool bFound = false;
+				int listindex = 0;
 				for (int i = 0; i < pCMerch->PageHandlers[0].pObject->ItemContainer.m_length; i++)
 				{
 					if (pCont = pCMerch->PageHandlers[0].pObject->ItemContainer.m_array[i].pCont)
 					{
 						if (pItem = GetItemFromContents(pCont))
 						{
+							//WriteChatf("[%d] %s %d",i, pItem->Name, pCont->GetGlobalIndex().Index.Slot1);
 							if (bExact)
 							{
 								if (!_stricmp(pName, pItem->Name))
 								{
+									listindex = i;
 									bFound = true;
 									break;
 								}
@@ -9867,6 +9885,7 @@ bool MQ2MerchantType::GETMEMBER()
 								strcpy_s(szTemp2, pName);
 								_strlwr_s(szTemp2);
 								if (strstr(szTemp,szTemp2)) {
+									listindex = i;
 									bFound = true;
 									break;
 								}
@@ -9881,7 +9900,7 @@ bool MQ2MerchantType::GETMEMBER()
 					To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
 					To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
 					To.Index.Slot3 = -1;
-					pCMerch->SelectBuySellSlot(&To, To.Index.Slot1);
+					pCMerch->SelectBuySellSlot(&To, listindex);
 					return true;
 				}
 			}

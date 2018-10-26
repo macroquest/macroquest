@@ -3382,6 +3382,7 @@ public:
 		CharSelectList = 25,
 		CurrentUI = 26,
 		IsDefaultUILoaded = 27,
+		HWND = 28,
 	};
 	enum EverQuestMethods
 	{
@@ -3415,6 +3416,7 @@ public:
 		TypeMember(CharSelectList);
 		TypeMember(CurrentUI);
 		TypeMember(IsDefaultUILoaded);
+		TypeMember(HWND);
 	}
 
 	~MQ2EverQuestType()

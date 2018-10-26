@@ -312,8 +312,8 @@ namespace MQ2Globals
 	CHAR gszTime[32] = TimeString;
 	#if defined(TEST)
 		int gBuild = 2;//TEST
-	#elif defined(BETA)
-		int gBuild = 3;//BETA
+	#elif defined(EQBETA)
+		int gBuild = 3;//EQBETA
 	#elif defined(ROF2EMU)
 		int gBuild = 4;//ROF2EMU
 	#elif defined(UFEMU)

@@ -4747,4 +4747,66 @@ VOID MapZoomCmd(PSPAWNINFO pChar, char *szLine)
 		((MapViewMap*)pMapView)->SetZoom(theabs);
 	}
 }
+void SetForegroundWindowInternal(HWND hWnd)
+{
+	if (!IsWindow(hWnd)) return;
+
+	BYTE keyState[256] = { 0 };
+	//to unlock SetForegroundWindow we need to imitate Alt pressing
+	if (GetKeyboardState((LPBYTE)&keyState))
+	{
+		if (!(keyState[VK_MENU] & 0x80))
+		{
+			keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+		}
+	}
+
+	SetForegroundWindow(hWnd);
+	ShowWindow(hWnd, SW_SHOWNORMAL);
+
+	if (GetKeyboardState((LPBYTE)&keyState))
+	{
+		if (!(keyState[VK_MENU] & 0x80))
+		{
+			keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		}
+	}
+}
+// ***************************************************************************
+// Function:    ForeGroundCmd
+// Description: '/foreground' command
+// Purpose:     Adds the ability to move your eq window to the foreground.
+// Usage:		/foreground
+// Example:		/bct <toonname> //foreground
+// Author:      EqMule
+// ***************************************************************************
+//todo: check manually
+VOID ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
+{
+	typedef HWND( __stdcall *fEQW_GetDisplayWindow )(VOID);
+	fEQW_GetDisplayWindow EQW_GetDisplayWindow = 0;
+	HWND hWnd = 0;
+	DWORD lReturn = GetCurrentProcessId();
+	DWORD pid = lReturn;
+	AllowSetForegroundWindow(pid);
+	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
+	if(lReturn!=pid) {
+		hWnd = (HWND)lReturn;
+		SetForegroundWindowInternal(hWnd);
+		//ShowWindow(hWnd, SW_SHOWNORMAL);
+	}	
+	else
+	{
+		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
+		{
+			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
+		}
+		if (EQW_GetDisplayWindow)
+			hWnd = EQW_GetDisplayWindow();
+		else
+			hWnd = *(HWND*)EQADDR_HWND;
+		SetForegroundWindowInternal(hWnd);
+		//ShowWindow(hWnd, SW_SHOWNORMAL);
+	}
+}
 #endif

@@ -183,6 +183,7 @@ int navmenuid = 0;
 int separatorid = 0;
 int groundmenuid = 0;
 int doormenuid = 0;
+int switchtomenuid = 0;
 
 void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **button,char*label,char*labelscreen, int fontsize, int top, int bottom, int left, int right, COLORREF color, COLORREF bgcolor, char*tooltip, char*text,bool bShow)
 {
@@ -205,7 +206,7 @@ void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **butto
 }
 void AddOurMenu(CGroupWnd*pGwnd)
 {
-	if (pGwnd->GroupContextMenu && !doormenuid)
+	if (pGwnd->GroupContextMenu && !switchtomenuid)
 	{
 		pContextMenuManager->Flush();
 		if (pGwnd->RoleSelectMenuID)
@@ -218,7 +219,8 @@ void AddOurMenu(CGroupWnd*pGwnd)
 		separatorid = pGwnd->GroupContextMenu->AddSeparator();
 		navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", 54);
 		groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", 55);
-		doormenuid = pGwnd->GroupContextMenu->AddMenuItem("CLick Nearest Door", 56);
+		doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", 56);
+		switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", 57);
 	}
 }
 void RemoveOurMenu(CGroupWnd*pGwnd)
@@ -233,10 +235,12 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 			pGwnd->RoleSelectMenuID = 0;
 			pGwnd->RoleSeparatorID = 0;
 		}
+		pGwnd->GroupContextMenu->RemoveMenuItem(switchtomenuid);
 		pGwnd->GroupContextMenu->RemoveMenuItem(doormenuid);
 		pGwnd->GroupContextMenu->RemoveMenuItem(groundmenuid);
 		pGwnd->GroupContextMenu->RemoveMenuItem(navmenuid);
 		pGwnd->GroupContextMenu->RemoveMenuItem(separatorid);
+		switchtomenuid = 0;
 		doormenuid = 0;
 		groundmenuid = 0;
 		navmenuid = 0;
@@ -387,7 +391,7 @@ void Initialize()
 					bottom = ReadSetting("MimicMeBottom", Butt->BottomOffset + 64);
 					left = ReadSetting("MimicMeLeft", 6);
 					right = ReadSetting("MimicMeRight", 44);
-					CreateAButton(pGwnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, top, bottom, left, right, 0xFFFFFF64, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe,gBShowMimicMeButton);
+					CreateAButton(pGwnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe,gBShowMimicMeButton);
 					//
 					GroupHotButton = (CHotButton *)pSidlMgr->CreateHotButtonWnd((CXWnd*)pGwnd, HBButtonTemplate);
 					GroupHotButton->BarIndex = 9;
@@ -790,6 +794,14 @@ public:
 					{
 						DoCommandf("/bct %s //doortarget", pSpawn->Name);
 						DoCommandf("/bct %s //click left door", pSpawn->Name);
+					}
+					return 1;
+				}case 57://switchto
+				{
+					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
+					if (pSpawn)
+					{
+						DoCommandf("/bct %s //foreground", pSpawn->Name);
 					}
 					return 1;
 				}
