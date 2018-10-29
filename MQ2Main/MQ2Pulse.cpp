@@ -197,7 +197,9 @@ void Pulse()
 {
 	if (!ppCharSpawn || !pCharSpawn) return;
 	PSPAWNINFO pCharOrMount = NULL;
+	PCHARINFONEW pCharInfoNew = (PCHARINFONEW)GetCharInfo();
 	PCHARINFO pCharInfo = GetCharInfo();
+	PCHARINFO2 pCharInfo2 = GetCharInfo2();
 	PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
 	if (pCharInfo && pCharInfo->pSpawn) pChar = pCharInfo->pSpawn;
 

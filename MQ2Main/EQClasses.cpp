@@ -4572,7 +4572,11 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetFirstEffectSlot(bool),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__GetLastEffectSlot);
 #endif
 #ifdef CharacterZoneClient__IsStackBlocked_x
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*, int, bool), CharacterZoneClient__IsStackBlocked);
+#else
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *, CharacterZoneClient*, EQ_Affect*,int),CharacterZoneClient__IsStackBlocked);
+#endif
 #endif
 #ifdef CharacterZoneClient__CanUseMemorizedSpellSlot_x
 FUNCTION_AT_ADDRESS(bool EQ_Character::CanUseMemorizedSpellSlot(int),CharacterZoneClient__CanUseMemorizedSpellSlot);
