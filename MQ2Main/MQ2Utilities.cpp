@@ -85,7 +85,7 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 			FILE *fOut = NULL;
 			CHAR Filename[MAX_STRING] = { 0 };
 			sprintf_s(Filename, "%s\\DebugSpew.log", gszLogPath);
-			errno_t err = fopen_s(&fOut,Filename, "at");
+			errno_t err = fopen_s(&fOut, Filename, "at");
 			if (err)
 				return;
 #ifdef DBG_CHARNAME
@@ -101,6 +101,41 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 #endif
 			fclose(fOut);
 		}
+		LocalFree(szOutput);
+	}
+}
+VOID DebugSpewAlwaysFile(PCHAR szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	int headerlen = strlen(DebugHeader) + 1;
+	size_t thelen = len + headerlen + 32;
+	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
+		strcpy_s(szOutput, thelen, DebugHeader " ");
+		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
+		strcat_s(szOutput, thelen, "\n");
+		OutputDebugString(szOutput);
+		//if (gSpewToFile) {
+			FILE *fOut = NULL;
+			CHAR Filename[MAX_STRING] = { 0 };
+			sprintf_s(Filename, "%s\\DebugSpew.log", gszLogPath);
+			errno_t err = fopen_s(&fOut, Filename, "at");
+			if (err)
+				return;
+#ifdef DBG_CHARNAME
+			CHAR Name[256] = "Unknown";
+			PCHARINFO pCharInfo = GetCharInfo();
+			if (pCharInfo)
+			{
+				strcpy_s(Name, pCharInfo->Name);
+			}
+			fprintf(fOut, "%s - %s\r\n", Name, szOutput);
+#else
+			fprintf(fOut, "%s\r\n", szOutput);
+#endif
+			fclose(fOut);
+		//}
 		LocalFree(szOutput);
 	}
 }
@@ -7432,9 +7467,13 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 	if (aSpell->ID == bSpell->ID)
 		return true;
 
-	//CHAR szEcho[MAX_STRING] = { 0 };
-	//snprintf(szEcho, sizeof(szEcho), "aSpell->Name=%s(%d) bSpell->Name=%s(%d)", aSpell->Name, aSpell->ID, bSpell->Name, bSpell->ID);
-	//WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
+	if (gStackingDebug) {
+		CHAR szStackingDebug[MAX_STRING] = { 0 };
+		snprintf(szStackingDebug, sizeof(szStackingDebug), "aSpell->Name=%s(%d) bSpell->Name=%s(%d)", aSpell->Name, aSpell->ID, bSpell->Name, bSpell->ID);
+		DebugSpewAlwaysFile("%s", szStackingDebug);
+		if (gStackingDebug == -1)
+			WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
+	}
 
 	EQ_Affect eff;
 	eff.ID = bSpell->ID;
@@ -7468,22 +7507,43 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			bBase = GetSpellBase(bSpell, i);
 			bBase2 = GetSpellBase2(bSpell, i);
 		}
-		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
+		if (gStackingDebug) {
+			CHAR szStackingDebug[MAX_STRING] = { 0 };
+			snprintf(szStackingDebug, sizeof(szStackingDebug), "Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
+			DebugSpewAlwaysFile("%s", szStackingDebug);
+			if (gStackingDebug == -1)
+				WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
+		}
 		BOOL bTriggerA = TriggeringEffectSpell(aSpell, i);
 		BOOL bTriggerB = TriggeringEffectSpell(bSpell, i);
 		if (bTriggerA || bTriggerB) {
 			PSPELL pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == 374 ? aBase2 : aBase) : aSpell->ID);
 			PSPELL pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == 374 ? bBase2 : bBase) : bSpell->ID);
-			//if (!pRetSpellA || !pRetSpellB)
-			//	WriteChatf("BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s", aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
+			if (!pRetSpellA || !pRetSpellB)
+				if (gStackingDebug) {
+					CHAR szStackingDebug[MAX_STRING] = { 0 };
+					snprintf(szStackingDebug, sizeof(szStackingDebug), "BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s", aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
+					DebugSpewAlwaysFile("%s", szStackingDebug);
+					if (gStackingDebug == -1)
+						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
+				}
 			if (!((bTriggerA && (aSpell->ID == pRetSpellA->ID)) || (bTriggerB && (bSpell->ID == pRetSpellB->ID)))) {
 				if (!BuffStackTest(pRetSpellA, pRetSpellB, bIgnoreTriggeringEffects, true)) {
+					if (gStackingDebug) {
+						DebugSpewAlwaysFile("returning FALSE #1");
+						if (gStackingDebug == -1)
+							WriteChatColor("returning FALSE #1", USERCOLOR_CHAT_CHANNEL);
+					}
 					return false;
 				}
 			}
 		}
 		if (bAttrib == aAttrib && !SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects, bTriggeredEffectCheck)) {
-			//WriteChatf("Inside IF");
+			if (gStackingDebug) {
+				DebugSpewAlwaysFile("Inside IF");
+				if (gStackingDebug == -1)
+					WriteChatColor("Inside IF", USERCOLOR_CHAT_CHANNEL);
+			}
 //			if (aAttrib == 55 && bAttrib == 55) {	//Mitigate Melee Damage
 //				return (aBase >= bBase);
 //			}
@@ -7496,7 +7556,11 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 				(aAttrib == 0 && aBase < 0) ||
 				(bAttrib == 148 || bAttrib == 149) ||
 				(aAttrib == 148 || aAttrib == 149))) {
-				//WriteChatf("returning FALSE #1");
+				if (gStackingDebug) {
+					DebugSpewAlwaysFile("returning FALSE #2");
+					if (gStackingDebug == -1)
+						WriteChatColor("returning FALSE #2", USERCOLOR_CHAT_CHANNEL);
+				}
 				return false;
 			}
 		}
@@ -7508,16 +7572,30 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			int tmpSlot = (bAttrib == 148 ? bBase2 - 1 : GetSpellCalc(bSpell, i) - 200 - 1);
 			int tmpAttrib = bBase;
 			if (GetSpellNumEffects(aSpell) > tmpSlot) { // verify aSpell has that slot
-				//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
+				if (gStackingDebug) {
+					CHAR szStackingDebug[MAX_STRING] = { 0 };
+					snprintf(szStackingDebug, sizeof(szStackingDebug), "aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
+					DebugSpewAlwaysFile("%s", szStackingDebug);
+					if (gStackingDebug == -1)
+						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
+				}
 				if (GetSpellMax(bSpell, i) > 0) {
 					int tmpVal = abs(GetSpellMax(bSpell, i));
 					if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib && GetSpellBase(aSpell, tmpSlot) < tmpVal) {
-						//WriteChatf("returning FALSE #2");
+						if (gStackingDebug) {
+							DebugSpewAlwaysFile("returning FALSE #3");
+							if (gStackingDebug == -1)
+								WriteChatColor("returning FALSE #3", USERCOLOR_CHAT_CHANNEL);
+						}
 						return false;
 					}
 				}
 				else if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib) {
-					//WriteChatf("returning FALSE #3");
+					if (gStackingDebug) {
+						DebugSpewAlwaysFile("returning FALSE #4");
+						if (gStackingDebug == -1)
+							WriteChatColor("returning FALSE #4", USERCOLOR_CHAT_CHANNEL);
+					}
 					return false;
 				}
 			}
@@ -7532,23 +7610,41 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			int tmpSlot = (aAttrib == 148 ? aBase2 - 1 : GetSpellCalc(aSpell, i) - 200 - 1);
 			int tmpAttrib = aBase;
 			if (GetSpellNumEffects(bSpell) > tmpSlot) { // verify bSpell has that slot
-				//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(bSpell, tmpSlot), tmpSlot, GetSpellBase(bSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(aSpell, i)));
+				if (gStackingDebug) {
+					CHAR szStackingDebug[MAX_STRING] = { 0 };
+					snprintf(szStackingDebug, sizeof(szStackingDebug), "bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(bSpell, tmpSlot), tmpSlot, GetSpellBase(bSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(aSpell, i)));
+					DebugSpewAlwaysFile("%s", szStackingDebug);
+					if (gStackingDebug == -1)
+						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
+				}
 				if (GetSpellMax(aSpell, i) > 0) {
 					int tmpVal = abs(GetSpellMax(aSpell, i));
 					if (GetSpellAttrib(bSpell, tmpSlot) == tmpAttrib && GetSpellBase(bSpell, tmpSlot) < tmpVal) {
-						//WriteChatf("returning FALSE #4");
+						if (gStackingDebug) {
+							DebugSpewAlwaysFile("returning FALSE #5");
+							if (gStackingDebug == -1)
+								WriteChatColor("returning FALSE #5", USERCOLOR_CHAT_CHANNEL);
+						}
 						return false;
 					}
 				}
 				else if (GetSpellAttrib(bSpell, tmpSlot) == tmpAttrib) {
-					//WriteChatf("returning FALSE #5");
+					if (gStackingDebug) {
+						DebugSpewAlwaysFile("returning FALSE #6");
+						if (gStackingDebug == -1)
+							WriteChatColor("returning FALSE #6", USERCOLOR_CHAT_CHANNEL);
+					}
 					return false;
 				}
 			}
 		}
 		*/
 	}
-	//WriteChatf("returning TRUE");
+	if (gStackingDebug) {
+		DebugSpewAlwaysFile("returning TRUE");
+		if (gStackingDebug == -1)
+			WriteChatColor("returning TRUE", USERCOLOR_CHAT_CHANNEL);
+	}
 	return true;
 }
 

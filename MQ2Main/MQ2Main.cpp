@@ -97,7 +97,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR FilterList[MAX_STRING*10] = {0};
 	CHAR Delimiter[MAX_STRING] = {0};
     GetEQPath(gszEQPath,MAX_STRING);
-
+	DWORD StackingDebug = 0;
 
     sprintf_s(Filename,"%s\\MacroQuest.ini",lpINIPath);
     sprintf_s(ClientINI,"%s\\eqgame.ini",lpINIPath);
@@ -154,6 +154,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
 	gNetStatusXPos = GetPrivateProfileInt("MacroQuest","NetStatusXPos",0,Filename);
 	gNetStatusYPos = GetPrivateProfileInt("MacroQuest","NetStatusYPos",0,Filename);
+	StackingDebug = GetPrivateProfileInt("MacroQuest","BuffStackTestDebug",0,Filename); gStackingDebug = (StackingDebug == 2 ? -1 : StackingDebug);
 
 	GetPrivateProfileString("Macroquest","IfDelimiter",",",Delimiter,MAX_STRING,Filename); gIfDelimiter = Delimiter[0];
 	GetPrivateProfileString("Macroquest","IfAltDelimiter","~",Delimiter,MAX_STRING,Filename); gIfAltDelimiter = Delimiter[0];
@@ -566,7 +567,12 @@ void __cdecl MQ2Shutdown()
 
 DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 {
-	WriteChatfSafe("Initializing SpellMap. (%d)",(DWORD)pData);
+	switch ((DWORD)pData)
+	{
+		case 1:  { WriteChatfSafe("Initializing SpellMap from SetGameState."); break; }
+		case 2:  { WriteChatfSafe("Initializing SpellMap from GetSpellByName."); break; }
+		default: { WriteChatfSafe("Initializing SpellMap. (%d)", (DWORD)pData); break; }
+	}
 	if (!ghLockSpellMap)
 		ghLockSpellMap = CreateMutex(NULL, FALSE, NULL);
 	if (ghLockSpellMap) {
@@ -584,7 +590,12 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 		//ok everything checks out lets fill our own map with spells
 		PopulateSpellMap();
 	}
-	WriteChatfSafe("SpellMap Initialized. (%d)",(DWORD)pData);
+	switch ((DWORD)pData)
+	{
+		case 1:  { WriteChatfSafe("SpellMap Initialized from SetGameState."); break; }
+		case 2:  { WriteChatfSafe("SpellMap Initialized  from GetSpellByName."); break; }
+		default: { WriteChatfSafe("SpellMap Initialized. (%d)", (DWORD)pData); break; }
+	}
 	ghInitializeMQ2SpellDb = 0;
 	return 0;
 }

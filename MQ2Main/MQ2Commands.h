@@ -51,7 +51,7 @@ LEGACY_API VOID Alias                               (PSPAWNINFO,PCHAR);
 LEGACY_API VOID AltAbility                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID BankList                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Breakin                             (PSPAWNINFO,PCHAR);
-LEGACY_API VOID BuyItem								(PSPAWNINFO, PCHAR);
+LEGACY_API VOID BuyItem								(PSPAWNINFO,PCHAR);
 LEGACY_API VOID SelectItem							(PSPAWNINFO,PCHAR);
 LEGACY_API VOID CharInfo                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Cast                                (PSPAWNINFO,PCHAR);

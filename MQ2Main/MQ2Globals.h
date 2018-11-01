@@ -175,6 +175,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD gNetStatusXPos;
 	EQLIB_VAR DWORD gNetStatusYPos;
 
+	EQLIB_VAR LONG gStackingDebug;
+
 	EQLIB_VAR DOUBLE DegToRad;
 	EQLIB_VAR DOUBLE PI;
 #define ZoneShift             0

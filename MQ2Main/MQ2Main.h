@@ -96,8 +96,8 @@ extern CRITICAL_SECTION gPluginCS;
 //do nothing because the user has set one of these as a preprocessor argument instead...
 //we default to LIVE though...
 #else
-//define LIVE, TEST, BETA ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define LIVE
+//define LIVE, TEST, EQBETA ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
+#define EQBETA
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -486,6 +486,7 @@ EQLIB_API VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb, DWORD Font)
 EQLIB_API VOID FixStringTable();
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
+EQLIB_API VOID DebugSpewAlwaysFile(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...);
 //#ifndef ISXEQ
 LEGACY_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);

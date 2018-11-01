@@ -625,7 +625,7 @@ void InitializeMQ2Commands()
         {"/where",      Where,1,1},
         {"/skills",     Skills,1,1},
         {"/unload",     Unload,1,0},
-		{ "/selectitem",SelectItem,1,1 },
+		{"/selectitem", SelectItem,1,1},
 		{"/buyitem",    BuyItem,1,1},
         {"/sellitem",   SellItem,1,1},
         {"/memspell",   MemSpell,1,1},

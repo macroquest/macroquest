@@ -432,6 +432,7 @@ namespace MQ2Globals
 	CHAR gIfAltDelimiter = '~';
 	DWORD gNetStatusXPos = 0;
 	DWORD gNetStatusYPos = 0;
+	LONG gStackingDebug = 0;
 
 	DOUBLE DegToRad = 57.295779513082320876846364344191;
 	DOUBLE PI = 3.1415926535;

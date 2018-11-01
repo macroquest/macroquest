@@ -1439,7 +1439,8 @@ bool MQ2SpawnType::GETMEMBER()
 		}
 		return false;
 	}
-	case GuildStatus:
+#if defined(UFEMU) || defined(ROF2EMU)
+	(case GuildStatus:
 	{
 		if (pSpawn->GuildID != -1 && pSpawn->GuildID != 0)
 		{
@@ -1450,6 +1451,7 @@ bool MQ2SpawnType::GETMEMBER()
 		}
 		break;
 	}
+#endif
 	case Type:
 		DataTypeTemp[0] = '\0';
 		switch (GetSpawnType(pSpawn))
