@@ -507,7 +507,7 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 	// your toon's spawn id changes and it's no longer zero to start
 	// don't added it all 
 	if (pNewSpawn) {
-		if (PCHARINFO pMe = (PCHARINFO)GetCharInfo()) {
+		if (PCHARINFO pMe = GetCharInfo()) {
 			if (Update && pNewSpawn->SpawnID != 0 && pMe->pSpawn != pNewSpawn) {
 				//DebugSpewAlways("MQ2Map::OnAddSpawn(%s) = %d", pNewSpawn->Name, pNewSpawn->SpawnID);
 				AddSpawn(pNewSpawn);

@@ -171,7 +171,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
             // found it!
             if( pBind->szFuncName )
             {
-                if( PCHARINFO pCharInfo = (PCHARINFO)GetCharInfo() )
+                if( PCHARINFO pCharInfo = GetCharInfo() )
                 {
                     std::string sCallFunc( pBind->szFuncName );
                     sCallFunc += " ";
@@ -355,7 +355,7 @@ public:
                     // found it!
                     if( pBind->szFuncName )
                     {
-                        if( PCHARINFO pCharInfo = (PCHARINFO)GetCharInfo() )
+                        if( PCHARINFO pCharInfo = GetCharInfo() )
                         {
                             std::string sCallFunc( pBind->szFuncName );
                             sCallFunc += " ";
@@ -626,7 +626,7 @@ void InitializeMQ2Commands()
         {"/skills",     Skills,1,1},
         {"/unload",     Unload,1,0},
 		{"/selectitem", SelectItem,1,1},
-		{"/buyitem",    BuyItem,1,1},
+        {"/buyitem",    BuyItem,1,1},
         {"/sellitem",   SellItem,1,1},
         {"/memspell",   MemSpell,1,1},
         {"/loadspells", LoadSpells,1,1},

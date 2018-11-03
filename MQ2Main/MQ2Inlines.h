@@ -26,8 +26,8 @@ static inline PCHARINFO GetCharInfo(VOID) {
 
 static inline PCHARINFO2 GetCharInfo2(VOID) {
 	if (PCHARINFO pChar = (PCHARINFO)pCharData) {
-		if (pChar->pCI2 && pChar->pCI2->pCharInfo2) {
-			return pChar->pCI2->pCharInfo2;
+		if (pChar->ProfileManager.pFirst) {
+			return (PCHARINFO2)pChar->ProfileManager.GetCurrentProfile();
 		}
 	}
 	return NULL;
@@ -134,7 +134,7 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 }
 
 static inline int GetEnduranceRegen() {
-	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
 			return pCharData1->GetEnduranceRegen(true, false);
 		}
@@ -142,7 +142,7 @@ static inline int GetEnduranceRegen() {
 	return 0;
 }
 static inline int GetHPRegen() {
-	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
 			bool bBleed = false;//yes this is correct it should be false initially, the client sets it to true on return if we are indeed bleeding.
 			return pCharData1->GetHPRegen(true, &bBleed, false);
@@ -151,7 +151,7 @@ static inline int GetHPRegen() {
 	return 0;
 }
 static inline int GetManaRegen() {
-	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
 			return pCharData1->GetManaRegen(true, false);
 		}
@@ -159,7 +159,7 @@ static inline int GetManaRegen() {
 	return 0;
 }
 static inline int GetCurMana() {
-	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
 			return ((EQ_Character*)pCharData1)->Cur_Mana(true);
 		}
@@ -167,7 +167,7 @@ static inline int GetCurMana() {
 	return 0;
 }
 static inline int GetCurHPS() {
-	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
 			return pCharData1->Cur_HP(0);
 		}
@@ -714,8 +714,8 @@ inline LONG GetMemorizedSpell(LONG index)
 	if (index < 0 || index>0xF)
 		return -1;
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
-		if (pCharInfo->pCharacterBase) {
-			if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
+		if (pCharInfo->CharacterBase_vftable) {
+			if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable) {
 				return cb->GetMemorizedSpell(index);
 			}
 		}
@@ -765,7 +765,7 @@ static inline LONG GetSpellNumEffects(PSPELL pSpell)
 }
 static inline DWORD GetGroupMainAssistTargetID()
 {
-	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+	if (PCHARINFO pChar = GetCharInfo()) {
 		bool bMainAssist = false;
 		if (PGROUPINFO pGroup = pChar->pGroupInfo) {
 			if (PGROUPMEMBER pMember = pGroup->pMember[0]) {

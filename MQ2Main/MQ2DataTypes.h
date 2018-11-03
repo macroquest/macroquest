@@ -1211,6 +1211,9 @@ public:
 		CountersCurse = 268,
 		CountersCorruption = 269,
 		Bandolier = 270,
+#if defined(EQBETA)
+		LCK = 271,
+#endif
 	};
 	enum CharacterMethods
 	{
@@ -1481,6 +1484,9 @@ public:
 		TypeMember(CountersCurse);
 		TypeMember(CountersCorruption);
 		TypeMember(Bandolier);
+#if defined(EQBETA)
+		TypeMember(LCK);
+#endif
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);

@@ -518,10 +518,11 @@ public:
 	{
 		return key;
 	}
-	HashEntry **Table;
-	int TableSize;
-	int EntryCount;
-	int StatUsedSlots;
+	/*0x00*/	HashEntry **Table;
+	/*0x04*/	int TableSize;
+	/*0x08*/	int EntryCount;
+	/*0x0c*/	int StatUsedSlots;
+	/*0x10*/
 	T *FindFirst(const Key& key) const;
 	int GetTotalEntries() const;
 	T *WalkFirst() const;
@@ -665,9 +666,10 @@ public:
             Node *pNext;
             Node *pPrev;
     };
-    Node *pFirst;
-    Node *pLast;
-    int Count;
+	/*0x04*/    Node *pFirst;
+	/*0x08*/    Node *pLast;
+	/*0x0c*/    int Count;
+	/*0x10*/
 };
 template<typename T, int _cnt = -1> class EQList : public EQList<T, -1>
 {
@@ -705,9 +707,10 @@ public:
 template< typename T > class VeArray
 {
 public:
-    T* Begin;
-    UINT Size;
-    UINT Capacity;
+    /*0x00*/    T* Begin;
+	/*0x04*/    UINT Size;
+	/*0x08*/    UINT Capacity;
+	/*0x0c*/
 	T& operator[](unsigned);
 	const T& operator[](unsigned) const;
 };
@@ -791,7 +794,7 @@ template<typename T, int _Size, int _Cnt> class HashListSet;
 template<typename T, int _Size> class HashListSet<T, _Size, -1>
 {
 public:
-	PVOID vfTable;
+	/*0x00*/ PVOID vfTable;
     typedef T ValueType;
     class Node {
         public:
@@ -803,9 +806,10 @@ public:
  	enum {
 		TheSize = ((_Size == 0) ? 1 : _Size)
 	};
-    int DynSize;
-    int MaxDynSize;
-    int Count;
+	/*0x04*/ int DynSize;
+	/*0x08*/ int MaxDynSize;
+	/*0x0c*/ int Count;
+	/*0x10*/
     union
     {
         Node *Table[TheSize];

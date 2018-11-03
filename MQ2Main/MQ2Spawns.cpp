@@ -489,7 +489,7 @@ BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
 {
     CHAR NewCaption[MAX_STRING]={0};
     if (CaptionString[0] || gAnonymize) {
-        if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+        if (PCHARINFO pChar = GetCharInfo()) {
             strcpy_s(NewCaption, CaptionString);
             pNamingSpawn = pSpawn;                                      
             if (gAnonymize)

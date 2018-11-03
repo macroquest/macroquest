@@ -2539,22 +2539,13 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pInt64Type;
 		return true;
 	case PctExp:
-	{
-		if (PCHARINFO pMe = (PCHARINFO)pChar) {
-			Dest.Float = (float)pMe->Exp / 3.30f;
+		Dest.Float = (float)pChar->Exp / 3.30f;
 			Dest.Type = pFloatType;
 			return true;
-		}
-	}
 	case PctExpToAA:
-	{
-		if (PCHARINFO pMe = (PCHARINFO)pChar) {
-			Dest.Int = (int)pMe->PercentEXPtoAA;
+		Dest.Int = (int)pChar->PercentEXPtoAA;
 			Dest.Type = pIntType;
 			return true;
-		}
-		break;
-	}
 	case PctAAExp:
 		Dest.Float = (float)pChar->AAExp / 3.30f;
 		Dest.Type = pFloatType;
@@ -2566,14 +2557,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case PctVitality:
 	{
 		Dest.Float = 0;
-		if (PCHARINFO pMe = (PCHARINFO)pChar) {
-			__int64 vitality = pMe->Vitality;
+		__int64 vitality = pChar->Vitality;
 			__int64 cap = pInventoryWnd->VitalityCap;
 			if (vitality > cap)
 				vitality = cap;
 			if (cap > 0)
 				Dest.Float = (float)vitality * 100 / cap;
-		}
 		Dest.Type = pFloatType;
 		return true;
 	}
@@ -2584,14 +2573,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case PctAAVitality:
 	{
 		Dest.Float = 0;
-		if (PCHARINFO pMe = (PCHARINFO)pChar) {
-			int aavitality = pMe->AAVitality;
+		int aavitality = pChar->AAVitality;
 			int aacap = pInventoryWnd->AAVitalityCap;
 			if (aavitality > aacap)
 				aavitality = aacap;
 			if (aacap > 0)
 				Dest.Float = (float)aavitality * 100 / aacap;
-		}
 		Dest.Type = pFloatType;
 		return true;
 	}
@@ -4083,6 +4070,12 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->CHA;
 		Dest.Type = pIntType;
 		return true;
+#if defined(EQBETA)
+	case LCK:
+		Dest.DWord = pChar->LCK;
+		Dest.Type = pIntType;
+		return true;
+#endif
 	case svMagic:
 		Dest.DWord = pChar->SaveMagic;
 		Dest.Type = pIntType;

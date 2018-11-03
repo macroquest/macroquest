@@ -10452,7 +10452,7 @@ DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExa
 				if (PCONTENTS pCont = FindItemByName(szItemName, bExact)) {
 					bool bKeyring = false;
 					if (PCHARINFO pCharInfo = GetCharInfo()) {
-						if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
+						if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable) {
 							ItemGlobalIndex location;
 							location.Location = (ItemContainerInstance)pCont->GetGlobalIndex().Location;
 							location.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;

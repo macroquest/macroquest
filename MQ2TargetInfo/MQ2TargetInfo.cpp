@@ -255,11 +255,11 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
-signed char gBShowMimicMeButton = 1;
-signed char gBShowComeToMeButton = 1;
-signed char gBShowFollowMeButton = 1;
-signed char gBShowHotButton = 1;
-signed char gBShowDistance = 1;
+bool gBShowMimicMeButton = TRUE;
+bool gBShowComeToMeButton = TRUE;
+bool gBShowFollowMeButton = TRUE;
+bool gBShowHotButton = TRUE;
+bool gBShowDistance = TRUE;
 
 void WriteSetting(const char*Key, const char*value)
 {
@@ -298,6 +298,7 @@ int ReadSetting(char*Key,int defaultval)
 }
 void ReadIniSettings()
 {
+	int ret;
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
 	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
 	{
@@ -307,28 +308,33 @@ void ReadIniSettings()
 	{
 		sprintf_s(szSettingINISection, "%s_%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
 	}
-	gBShowMimicMeButton = GetPrivateProfileInt(szSettingINISection, "ShowMimicMeButton", -1, INIFileName);
-	if (gBShowMimicMeButton == -1)
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowMimicMeButton", -1, INIFileName);
+	gBShowMimicMeButton = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowMimicMeButton", "1", INIFileName);
 	}
-	gBShowComeToMeButton = GetPrivateProfileInt(szSettingINISection, "ShowComeToMeButton", -1, INIFileName);
-	if (gBShowComeToMeButton == -1)
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowComeToMeButton", -1, INIFileName);
+	gBShowComeToMeButton = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowComeToMeButton", "1", INIFileName);
 	}
-	gBShowFollowMeButton = GetPrivateProfileInt(szSettingINISection, "ShowFollowMeButton", -1, INIFileName);
-	if (gBShowFollowMeButton == -1)
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowFollowMeButton", -1, INIFileName);
+	gBShowFollowMeButton = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowFollowMeButton", "1", INIFileName);
 	}
-	gBShowHotButton = GetPrivateProfileInt(szSettingINISection, "ShowHotButton", -1, INIFileName);
-	if (gBShowHotButton == -1)
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowHotButton", -1, INIFileName);
+	gBShowHotButton = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowHotButton", "1", INIFileName);
 	}
-	gBShowDistance = GetPrivateProfileInt(szSettingINISection, "ShowDistance", -1, INIFileName);
-	if (gBShowDistance == -1)
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowDistance", -1, INIFileName);
+	gBShowDistance = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowDistance", "1", INIFileName);
 	}
