@@ -343,6 +343,7 @@ namespace MQ2Globals
 	HMODULE ghmq2ic = 0;
 #ifndef ISXEQ
 	PMACROBLOCK gMacroBlock = NULL;
+	int BlockIndex = 0;
 	PMACROSTACK gMacroStack = NULL;
 	decltype(gMacroSubLookupMap) gMacroSubLookupMap;
 	decltype(gUndeclaredVars) gUndeclaredVars;
@@ -444,7 +445,7 @@ namespace MQ2Globals
 	BOOL bAllowCommandParse = TRUE;
 	LONG gDelayZoning = 0;
 	std::map<DWORD, std::list<SEARCHSPAWN>> gAlertMap;
-	BOOL gMacroPause = FALSE;
+	
 	SPAWNINFO MercenarySpawn = { 0 };
 	SPAWNINFO PetSpawn = { 0 };
 	SPAWNINFO EnviroTarget = { 0 };

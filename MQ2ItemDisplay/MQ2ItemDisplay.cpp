@@ -913,7 +913,7 @@ public:
 			} else {
 				contentsitemstrings[index].ItemInfo.clear();
 			}
-#if !defined(UFEMU)//uf
+#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (This->bCollectedReceived)
 			{
 				contentsitemstrings[index].bCollectedRecieved = true;
@@ -924,8 +924,6 @@ public:
 				contentsitemstrings[index].bCollectedRecieved = false;
 				contentsitemstrings[index].bCollected = false;
 			}
-#endif
-#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (This->bScribedReceived)
 			{
 				contentsitemstrings[index].bScribedRecieved = true;

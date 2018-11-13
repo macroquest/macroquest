@@ -91,6 +91,7 @@ namespace MQ2Globals
 	EQLIB_VAR HMODULE ghmq2ic;
 #ifndef ISXEQ
 	LEGACY_VAR PMACROBLOCK gMacroBlock;
+	LEGACY_VAR int BlockIndex;
 	LEGACY_VAR PMACROSTACK gMacroStack;
 	LEGACY_VAR std::map <std::string, int, CaseInsensitiveLess> gMacroSubLookupMap;
 	LEGACY_VAR std::map<std::string, int> gUndeclaredVars;
@@ -194,7 +195,6 @@ namespace MQ2Globals
 	EQLIB_VAR PMQTIMER gTimer;
 	EQLIB_VAR LONG gDelay;
 	EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
-	EQLIB_VAR BOOL gMacroPause;
 	EQLIB_VAR SPAWNINFO EnviroTarget;
 	EQLIB_VAR SPAWNINFO PetSpawn;
 	EQLIB_VAR SPAWNINFO MercenarySpawn;
@@ -283,10 +283,10 @@ namespace MQ2Globals
 #define gPCNames (*gpPCNames)
 	EQLIB_VAR PBYTE gpAutoFire;
 #define gAutoFire (*gpAutoFire)
-	#if !defined(ROF2EMU) && !defined(UFEMU)
-		EQLIB_VAR PAUTOSKILL gpAutoSkill;
-		#define gAutoSkill (*gpAutoSkill)
-	#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+	EQLIB_VAR PAUTOSKILL gpAutoSkill;
+#define gAutoSkill (*gpAutoSkill)
+#endif
 	EQLIB_VAR PBYTE gpShiftKeyDown;
 #define gShiftKeyDown (*gpShiftKeyDown)
 	EQLIB_VAR DWORD *gpMouseEventTime;

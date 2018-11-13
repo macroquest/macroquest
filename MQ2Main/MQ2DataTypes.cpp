@@ -899,9 +899,15 @@ bool MQ2MacroType::GETMEMBER()
 		Dest.Type = pInt64Type;
 		return true;
 	case Paused:
-		Dest.DWord = gMacroPause;
+	{
+		Dest.DWord = 0;
+		if (PMACROBLOCK pBlock = GetCurrentMacroBlock())
+		{
+			Dest.DWord = pBlock->Paused;
+		}
 		Dest.Type = pBoolType;
 		return true;
+	}
 	case Return:
 		Dest.Ptr = &DataTypeTemp[0];
 		strcpy_s(DataTypeTemp, gMacroStack->Return);
@@ -1440,7 +1446,7 @@ bool MQ2SpawnType::GETMEMBER()
 		return false;
 	}
 #if defined(UFEMU) || defined(ROF2EMU)
-	(case GuildStatus:
+	case GuildStatus:
 	{
 		if (pSpawn->GuildID != -1 && pSpawn->GuildID != 0)
 		{
@@ -4911,11 +4917,11 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Int64 = pChar->MercAAExp;
 		Dest.Type = pInt64Type;
 		return true;
+#endif
 	case Krono:
 		Dest.DWord = pChar->Krono;
 		Dest.Type = pIntType;
 		return true;
-#endif
 	case Subscription:
 		strcpy_s(DataTypeTemp, "UNKNOWN");
 		if (EQADDR_SUBSCRIPTIONTYPE && *EQADDR_SUBSCRIPTIONTYPE) {
@@ -5643,6 +5649,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->CursorKrono;
 		Dest.Type = pIntType;
 		return true;
+#if !defined(UFEMU) && !defined(ROF2EMU)
 	case MercAAPoints:
 		Dest.DWord = pChar->MercAAPoints;
 		Dest.Type = pIntType;
@@ -5651,6 +5658,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->MercAAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
+#endif
 	case Bandolier:
 	{
 		if (PCHARINFO2 pChar2 = GetCharInfo2())
@@ -9907,10 +9915,17 @@ bool MQ2MerchantType::GETMEMBER()
 				PITEMINFO pItem = 0;
 				bool bFound = false;
 				int listindex = 0;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 				for (int i = 0; i < pCMerch->PageHandlers[0].pObject->ItemContainer.m_length; i++)
 				{
 					if (pCont = pCMerch->PageHandlers[0].pObject->ItemContainer.m_array[i].pCont)
 					{
+#else
+				for (int i = 0; i < (int)pCMerch->PageHandlers[0].pObject->ItemContainer.Items.Size; i++)
+				{
+					if (pCont = pCMerch->PageHandlers[0].pObject->ItemContainer.Items[i].pObject)
+					{
+#endif
 						if (pItem = GetItemFromContents(pCont))
 						{
 							//WriteChatf("[%d] %s %d",i, pItem->Name, pCont->GetGlobalIndex().Index.Slot1);
@@ -9945,7 +9960,11 @@ bool MQ2MerchantType::GETMEMBER()
 					To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
 					To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
 					To.Index.Slot3 = -1;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 					pCMerch->SelectBuySellSlot(&To, listindex);
+#else
+					pCMerch->SelectBuySellSlot(&To);
+#endif
 					return true;
 				}
 			}

@@ -3403,7 +3403,7 @@ public:
 /****** ButtonWnd inherits ******/
 /*0x01e8*/ int		MouseButtonState;
 /*0x01ec*/ bool	bPicture;
-/*0x01f0*/ CRadioGroup	*pGroup;
+/*0x01f0*/ CRadioGroup* pGroup;
 /*0x01f4*/ bool	bChecked;
 /*0x01f5*/ bool	bMouseOverLastFrame;
 /*0x01f8*/ tagPOINT	DecalOffset;
@@ -3417,24 +3417,24 @@ public:
 /*0x022c*/ UINT		CoolDownBeginTime;
 /*0x0230*/ UINT		CoolDownDuration;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-/*0x0234*/ CXStr		*Indicator;
+/*0x0234*/ CXStr*   Indicator;
 /*0x0238*/ UINT		IndicatorVal;
-/*0x023c*/ void		*pIndicatorTextObject;
+/*0x023c*/ void*    pIndicatorTextObject;
 #endif
 	/* CButtonDrawTemplate Start */
-/*0x0240*/ CXStr	*Name;
-/*0x0244*/ CTextureAnimation   *Normal;
-/*0x0248*/ CTextureAnimation   *taPressed;
-/*0x024c*/ CTextureAnimation   *Flyby;
-/*0x0250*/ CTextureAnimation   *taDisabled;
-/*0x0254*/ CTextureAnimation   *PressedFlyby;
-/*0x0258*/ CTextureAnimation   *PressedDisabled;
-/*0x025c*/ CTextureAnimation   *NormalDecal;
-/*0x0260*/ CTextureAnimation   *PressedDecal;
-/*0x0264*/ CTextureAnimation   *FlybyDecal;
-/*0x0268*/ CTextureAnimation   *DisabledDecal;
-/*0x026c*/ CTextureAnimation   *PressedFlybyDecal;
-/*0x0270*/ CTextureAnimation   *PressedDisabledDecal;
+/*0x0240*/ CXStr*	Name;
+/*0x0244*/ CTextureAnimation*  Normal;
+/*0x0248*/ CTextureAnimation*  taPressed;
+/*0x024c*/ CTextureAnimation*  Flyby;
+/*0x0250*/ CTextureAnimation*  taDisabled;
+/*0x0254*/ CTextureAnimation*  PressedFlyby;
+/*0x0258*/ CTextureAnimation*  PressedDisabled;
+/*0x025c*/ CTextureAnimation*  NormalDecal;
+/*0x0260*/ CTextureAnimation*  PressedDecal;
+/*0x0264*/ CTextureAnimation*  FlybyDecal;
+/*0x0268*/ CTextureAnimation*  DisabledDecal;
+/*0x026c*/ CTextureAnimation*  PressedFlybyDecal;
+/*0x0270*/ CTextureAnimation*  PressedDisabledDecal;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x0274*/ bool		bAllowButtonClickThrough;
 /*0x0275*/ bool		bCoolDownDoDelayedStart;
@@ -3443,15 +3443,15 @@ public:
 /*0x0277*/ bool		bIsDrawLasso;
 /*0x0278*/ UINT		ButtonStyle;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-/*0x027c*/ CLabel		*pButtonLabel;
+/*0x027c*/ CLabel*  pButtonLabel;
 #endif
 /*0x0280*/
 /****** CInvSlotWnd Start ******/
-	CTextureAnimation	*pBackground;
+	CTextureAnimation*  pBackground;
 	//ItemGlobalIndex	ItemLocation;
 	ItemContainerInstance ICLocation;
 	ItemIndex iIndex;
-	void	*LinkedItem;
+	void*   LinkedItem;
 	int		ItemOffsetX;
 	int		ItemOffsetY;
 	CTextureAnimation*	ptItem;
@@ -3460,8 +3460,8 @@ public:
 	int		RecastLeft;
 	bool	bHotButton;
 	bool	bInventorySlotLinked;
-	CInvSlot	*pEQInvSlot;
-	void	*pinvslotwndTextObject;
+	CInvSlot*   pEQInvSlot;
+	void*   pinvslotwndTextObject;
 	int		TextFontStyle;
     int		Mode;
 	COLORREF	BGTintRollover;
@@ -4455,12 +4455,26 @@ public:
 	/*0x34*/ CPageWnd* Page;
 	/*0x38*/ bool bListNeedsRefresh;
 	/*0x3c*/ 
+/*0x0c*/ virtual void Unknownv0x10();
+/*0x10*/ virtual void Unknownv0x14();
+/*0x14*/ virtual void DestroyItemByUniqueId(__int64 UniqueID);
+/*0x18*/ virtual void DestroyItemByItemGuid(const EqItemGuid& ItemGuid);
+/*0x1c*/ virtual bool AddItemToArray(const VePointer<CONTENTS>& pSentItem);
+/*0x20*/ virtual int Sort(SListWndSortInfo *SortInfo);
+/*0x24*/ virtual void UpdateList();
+/*0x28*/ virtual int DisplayBuyOrSellPrice(const VePointer<CONTENTS>& pItem, bool bBuy) const;
+/*0x2c*/ virtual CXStr GetPriceString(int Price) const;
+/*0x30*/ virtual void UpdateControls();
+/*0x34*/ virtual bool RequestGetItem(int Qty);
+/*0x38*/ virtual void RequestPutItem(int Qty);
 	};
 	class PurchasePageHandler : public MerchantPageHandler
 	{
 	public:
 	/*0x3c*/ bool bShowAllItems;
 	/*0x40*/
+	EQLIB_OBJECT bool CMerchantWnd::PurchasePageHandler::RequestGetItem(int);
+	EQLIB_OBJECT void CMerchantWnd::PurchasePageHandler::RequestPutItem(int);
 	};
 /*0x228*/ UINT NextRefreshTime;
 /*0x22c*/ bool bInventoryWasActive;
@@ -8303,13 +8317,13 @@ union {
 /*0x242d*/ bool         bZoningStatProcessing;
 /*0x2430*/ DWORD        ArmorClassBonus;//vtable2+10
 /*0x2434*/ DWORD        CurrWeight;//vtable2+14
-/*0x2438*/ int			astHitPointSendPercent;
+/*0x2438*/ int			LastHitPointSendPercent;
 /*0x243c*/ int			LastManaPointSendPercent;
 /*0x2440*/ int			LastEndurancePointSendPercent;
 /*0x2444*/ DWORD        HPBonus;//vtable2+24
 /*0x2448*/ DWORD        ManaBonus;//vtable2+28
 /*0x244c*/ DWORD        EnduranceBonus;//vtable2+2c
-/*0x2450*/ BYTE         Unknown0x2458[0x4];
+/*0x2450*/ BYTE     Unknown0x2450[0x4];
 /*0x2454*/ DWORD        CombatEffectsBonus;//vtable2+34 Combat Effects in UI
 /*0x2458*/ DWORD        ShieldingBonus;//vtable2+38 Melee Shielding in UI
 /*0x245c*/ DWORD        SpellShieldBonus;//vtable2+3c Spell Shielding in UI

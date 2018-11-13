@@ -182,15 +182,18 @@ int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, PCHAR pStart, PCHAR p
 }
 void DumpWarning(PCHAR pStart, int index)
 {
-	MACROLINE ml = gMacroBlock->Line[index];
-	BOOL oldbAllErrorsDumpStack = bAllErrorsDumpStack;
-	BOOL oldbAllErrorsFatal = bAllErrorsFatal;
-	bAllErrorsDumpStack = FALSE;
-	bAllErrorsFatal = FALSE;
-	WriteChatf("\arWARNING: \awUndefined Variable \ag%s\aw used on line %d@%s \ay%s\ax\nMacro Paused.", pStart, ml.LineNumber, ml.SourceFile.c_str(), ml.Command.c_str());
-	gMacroPause = 1;
-	bAllErrorsDumpStack = oldbAllErrorsDumpStack;
-	bAllErrorsFatal = oldbAllErrorsFatal;
+	if (PMACROBLOCK pBlock = GetCurrentMacroBlock())
+	{
+		MACROLINE ml = pBlock->Line[index];
+		BOOL oldbAllErrorsDumpStack = bAllErrorsDumpStack;
+		BOOL oldbAllErrorsFatal = bAllErrorsFatal;
+		bAllErrorsDumpStack = FALSE;
+		bAllErrorsFatal = FALSE;
+		WriteChatf("\arWARNING: \awUndefined Variable \ag%s\aw used on line %d@%s \ay%s\ax\nMacro Paused.", pStart, ml.LineNumber, ml.SourceFile.c_str(), ml.Command.c_str());
+		pBlock->Paused = 1;
+		bAllErrorsDumpStack = oldbAllErrorsDumpStack;
+		bAllErrorsFatal = oldbAllErrorsFatal;
+	}
 }
 
 static bool function_exists(const PCHAR name)

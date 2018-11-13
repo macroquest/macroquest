@@ -37,8 +37,10 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
-	if (gMacroBlock)
-		EndMacro(pChar, szLine);
+	if (GetCurrentMacroBlock())
+	{
+		EndAllMacros();
+	}
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
@@ -241,8 +243,8 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		return;
 	}
-
-	if (!gMacroBlock) {
+	PMACROBLOCK pBlock = GetCurrentMacroBlock();
+	if (!pBlock) {
 		MacroError("You cannot pause a macro when one isn't running.");
 		return;
 	}
@@ -257,14 +259,14 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Syntax: /mqpause [on|off] [chat [on|off]]", USERCOLOR_DEFAULT);
 	}
 	else {
-		Pause = !gMacroPause;
+		Pause = !pBlock->Paused;
 	}
-	if (gMacroPause == Pause) {
+	if (pBlock->Paused == Pause) {
 		sprintf_s(szBuffer, "Macro is already %s.", (Pause) ? "paused" : "running");
 	}
 	else {
 		sprintf_s(szBuffer, "Macro is %s.", (Pause) ? "paused" : "running again");
-		gMacroPause = Pause;
+		pBlock->Paused = Pause;
 	}
 	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 }
@@ -846,7 +848,11 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 						To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
 						To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
 						To.Index.Slot3 = -1;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 						pmercho->SelectBuySellSlot(&To,To.Index.Slot1);
+#else
+						pmercho->SelectBuySellSlot(&To);
+#endif
 					}
 				}
 			}

@@ -437,6 +437,100 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 	}
 	return TRUE;
 }
+std::map<std::string, PMACROBLOCK>MacroBlockMap;
+PMACROBLOCK AddMacroBlock(std::string Name)
+{
+	MacroBlockMap[Name] = new MACROBLOCK;
+	MacroBlockMap[Name]->CurrIndex = 0;
+	MacroBlockMap[Name]->BindStackIndex = -1;
+	MacroBlockMap[Name]->Name = Name;
+	MacroBlockMap[Name]->Paused = 0;
+	return MacroBlockMap[Name];
+}
+void RemoveMacroBlock(std::string &Name)
+{
+	if (MacroBlockMap.find(Name) != MacroBlockMap.end())
+	{
+		std::string TheName = Name;
+		delete MacroBlockMap[Name];
+		MacroBlockMap.erase(TheName);
+	}
+}
+void EndAllMacros()
+{
+	std::map<std::string, PMACROBLOCK>temp = MacroBlockMap;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	for (std::map<std::string, PMACROBLOCK>::iterator i = temp.begin();i!=temp.end();i++)
+	{
+		strcpy_s(szTemp, i->first.c_str());
+		EndMacro((PSPAWNINFO)pLocalPlayer, szTemp);
+	}
+}
+ bool GetMacroBlock(char *Name, PMACROBLOCK*pBlock)
+{
+	if (MacroBlockMap.find(Name)!=MacroBlockMap.end())
+	{
+		*pBlock = MacroBlockMap[Name];
+		return true;
+	}
+	if (MacroBlockMap.size())//we return the first one if they didnt specify a name.
+	{
+		*pBlock = MacroBlockMap.begin()->second;
+	}
+	return false;
+}
+PMACROBLOCK GetNextMacroBlock()
+{
+	//need this here for now until i replace all of them
+	if (!gMacroBlock)
+		return NULL;
+	if (MacroBlockMap.size())
+	{
+		if (MacroBlockMap.size()==1)//no point in checking this any further.
+			return  MacroBlockMap.begin()->second;
+		if (MacroBlockMap.size() > (size_t)BlockIndex)
+		{
+			//all good just advance to index and return
+			auto mbm = MacroBlockMap.begin();
+			std::advance(mbm, BlockIndex);
+			BlockIndex++;
+			return mbm->second;
+		}
+		else {
+			BlockIndex = 0;//time to start over we reached the end
+			return  MacroBlockMap.begin()->second;
+		}
+	}
+	return NULL;
+}
+
+PMACROBLOCK GetCurrentMacroBlock()
+{
+	if (!gMacroBlock)
+		return NULL;
+	if (MacroBlockMap.size())
+	{
+		if (BlockIndex == 0)
+		{
+			return  MacroBlockMap.begin()->second;
+		}
+		if (MacroBlockMap.size() > (size_t)BlockIndex)
+		{
+			//all good just advance to index and return
+			auto mbm = MacroBlockMap.begin();
+			std::advance(mbm, BlockIndex);
+			return mbm->second;
+		}
+		else {
+			return  MacroBlockMap.begin()->second;
+		}
+	}
+	return NULL;
+}
+int GetmacroBlockCount()
+{
+	return MacroBlockMap.size();
+}
 // ***************************************************************************
 // Function:    Macro
 // Description: Our '/macro' command
@@ -444,7 +538,6 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 // ***************************************************************************
 VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 {
-
 	gWarning = FALSE;
 	bRunNextCommand = TRUE;
 	CHAR szTemp[MAX_STRING] = { 0 };
@@ -456,17 +549,23 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /macro <filename> [param [param...]]");
 		return;
 	}
+	PMACROBLOCK pBlock = 0;
+	bool ret = GetMacroBlock(szLine,&pBlock);
+	//work in progress... -eqmule
+	//if (ret && pBlock && pBlock->Line.size())
 	if (gMacroBlock && gMacroBlock->Line.size())
 	{
 		gReturn = false;
-		EndMacro(pChar, "");//"keep keys vars arrays timers");
+		EndMacro(pChar, szLine);//"keep keys vars arrays timers");
 		gReturn = true;
 	}
 	gBindInProgress = true;//we dont want people to use binds until the macro is read.
 	//ok we get ourself a new block, this will be valid until the macro ends.
-	gMacroBlock = new MACROBLOCK;
-	gMacroBlock->CurrIndex = 0;
-	gMacroBlock->BindStackIndex = -1;
+	gMacroBlock = AddMacroBlock(szLine);
+
+	//gMacroBlock = new MACROBLOCK;
+	//gMacroBlock->CurrIndex = 0;
+	//gMacroBlock->BindStackIndex = -1;
 
 	gMaxTurbo = 80;
 	gTurbo = true;
@@ -550,10 +649,6 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		gMacroBlock->CurrIndex = i->first;
 	}
 
-	//if (gMacroBlock->CurrIndex!= gMacroBlock->Line.end())
-	//	gMacroBlock = gMacroBlock->pNext;
-	//if (gMacroBlock)
-	//	gMacroBlock->MacroCmd = 1;
 	if ((!gMacroBlock) || (!gMacroStack)) {
 		gszMacroName[0] = 0;
 		gRunning = 0;
@@ -694,41 +789,41 @@ VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR Buffer[MAX_STRING] = { 0 };
+	CHAR szArg1[MAX_STRING] = { 0 };
+	CHAR szArg2[MAX_STRING] = { 0 };
+	CHAR szArg3[MAX_STRING] = { 0 };
+	CHAR MacroName[MAX_STRING] = { 0 };
+	BOOL bKeepKeys = gKeepKeys;
+	if (strstr(szLine, "keep keys")) {
+		bKeepKeys = TRUE;
+	}
+	GetArg(szArg1, szLine, 1);
+	if (szArg1[0] != '\0') {
+		if (_stricmp(szArg1, "keep")) {
+			strcpy_s(MacroName, szArg1);
+		}
+	}
 	DWORD i;
 	gWarning = FALSE;
 	PMACROSTACK pStack;
 	PEVENTQUEUE pEvent;
 	PEVENTLIST pEventL;
 	PBINDLIST pBindL;
-	BOOL bKeepKeys = gKeepKeys;
-	if (szLine && szLine[0] != 0) {
-		GetArg(Buffer, szLine, 1);
-		szLine = GetNextArg(szLine);
-		if (_stricmp(Buffer, "keep")) {
-			SyntaxError("Usage: /endmacro [keep keys]");
-			return;
-		}
-		while (szLine[0] != 0) {
-			GetArg(Buffer, szLine, 1);
-			szLine = GetNextArg(szLine);
-			if (!_stricmp(Buffer, "keys")) bKeepKeys = TRUE;
-		}
-	}
-
-	if (!gMacroBlock) {
+	PMACROBLOCK pBlock = 0;
+	GetMacroBlock(MacroName,&pBlock);
+	if (!pBlock) {
 		MacroError("Cannot end a macro when one isn't running.");
 		return;
 	}
 
 	/////////////// 
 	// Code allowing for a routine for "OnExit"
-	for (std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.begin(); i != gMacroBlock->Line.end(); i++)
+	for (std::map<int, MACROLINE>::iterator i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
 	{
 		if (!_stricmp(":OnExit", i->second.Command.c_str()))
 		{
 			i++;
-			gMacroBlock->CurrIndex = i->first;
+			pBlock->CurrIndex = i->first;
 			if (gReturn)            // return to the macro the first time around
 			{
 				gReturn = false;    // We don't want to return the 2nd time.
@@ -749,7 +844,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 
 	CHAR Filename[MAX_STRING] = { 0 };
 	FILE *fMacro = NULL;
-	for (std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.begin(); i != gMacroBlock->Line.end(); i++) {
+	for (std::map<int, MACROLINE>::iterator i = pBlock->Line.begin(); i != pBlock->Line.end(); i++) {
 		// Is this a different macro file?
 		if (strcmp(Filename, i->second.SourceFile.c_str())) {
 			// Close existing file
@@ -789,7 +884,9 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 		fclose(fMacro);
 	}
 #endif
-	delete gMacroBlock;
+
+	RemoveMacroBlock(pBlock->Name);
+	//delete gMacroBlock;
 	gMacroBlock = 0;
 	while (gMacroStack) {
 		pStack = gMacroStack->pNext;
@@ -827,8 +924,6 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 	for (i = 0; i<NUM_EVENTS; i++) {
 		gEventFunc[i] = NULL;
 	}
-
-	gMacroPause = FALSE;
 	gEventChat = 0;
 	gFaceAngle = 10000.0f;
 	gLookAngle = 10000.0f;

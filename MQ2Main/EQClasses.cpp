@@ -2011,11 +2011,11 @@ FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGloba
 FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *),CInvSlotMgr__CreateInvSlot);
 #endif
 #ifdef CInvSlotMgr__FindInvSlot_x
-	#if !defined(ROF2EMU) && !defined(UFEMU)
-		FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int,int,bool),CInvSlotMgr__FindInvSlot);
-	#else
-		FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int),CInvSlotMgr__FindInvSlot);
-	#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int,int,bool),CInvSlotMgr__FindInvSlot);
+#else
+FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int),CInvSlotMgr__FindInvSlot);
+#endif
 #endif
 #ifdef CInvSlotMgr__SelectSlot_x
 FUNCTION_AT_ADDRESS(void  CInvSlotMgr::SelectSlot(class CInvSlot *),CInvSlotMgr__SelectSlot);
@@ -2400,11 +2400,11 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd_
 #endif
 #ifdef CMerchantWnd__SelectBuySellSlot_x
 //FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
-	#if !defined(ROF2EMU) && !defined(UFEMU)
-		FUNCTION_AT_ADDRESS(int  CMerchantWnd::SelectBuySellSlot(class ItemGlobalIndex *, int Unknown), CMerchantWnd__SelectBuySellSlot);
-	#else
-		FUNCTION_AT_ADDRESS(int  CMerchantWnd::SelectBuySellSlot(class ItemGlobalIndex *), CMerchantWnd__SelectBuySellSlot);
-	#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(int  CMerchantWnd::SelectBuySellSlot(class ItemGlobalIndex *, int Unknown), CMerchantWnd__SelectBuySellSlot);
+#else
+FUNCTION_AT_ADDRESS(int  CMerchantWnd::SelectBuySellSlot(class ItemGlobalIndex *), CMerchantWnd__SelectBuySellSlot);
+#endif
 #endif
 #ifdef CMerchantWnd__DisplayBuyOrSellPrice_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::DisplayBuyOrSellPrice(bool,class EQ_Item *),CMerchantWnd__DisplayBuyOrSellPrice);
@@ -5336,16 +5336,15 @@ FUNCTION_AT_ADDRESS(bool  EQPlayer::CanSee(class EQPlayer *), EQPlayer__CanSee);
 #ifdef EQPlayer__CanSee1_x
 FUNCTION_AT_ADDRESS(bool EQPlayer::CanSee(CVector3 *pos), EQPlayer__CanSee1);
 #endif
-
 #ifdef EQPlayer__ModifyAttackSpeed_x
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
-	#if defined(ROF2EMU) || defined(UFEMU)
-		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
-	#else
-		FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
-	#endif
+#if defined(ROF2EMU) || defined(UFEMU)
+FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
+#else
+FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
+#endif
 #endif
 #ifdef EQPlayer__HandleAmmo_x
 FUNCTION_AT_ADDRESS(unsigned char  EQPlayer::HandleAmmo(void),EQPlayer__HandleAmmo);
@@ -8794,11 +8793,11 @@ FUNCTION_AT_ADDRESS(void  CButtonWnd::SetCheck(bool),CButtonWnd__SetCheck);
 FUNCTION_AT_ADDRESS(int  CXWnd::GetWidth(void)const ,CXWnd__GetWidth);
 #endif
 #ifdef CComboWnd__GetListRect_x
-	#if !defined(ROF2EMU) && !defined(UFEMU)
-		FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(bool)const ,CComboWnd__GetListRect);
-	#else
-		FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__GetListRect);
-	#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(bool)const ,CComboWnd__GetListRect);
+#else
+FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__GetListRect);
+#endif
 #endif
 #ifdef CComboWnd__SetColors_x
 FUNCTION_AT_ADDRESS(void  CComboWnd::SetColors(unsigned long,unsigned long,unsigned long),CComboWnd__SetColors);
@@ -9270,11 +9269,11 @@ FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTem
 FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTemplate(unsigned __int32)const ,CSidlManager__FindSliderDrawTemplate1);
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate_x
-	#if !defined(ROF2EMU) && !defined(UFEMU)
-		FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *, bool),CSidlManager__CreateXWndFromTemplate);
-	#else
-		FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *),CSidlManager__CreateXWndFromTemplate);
-	#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *, bool),CSidlManager__CreateXWndFromTemplate);
+#else
+FUNCTION_AT_ADDRESS(class CXWnd *  CSidlManager::CreateXWndFromTemplate(class CXWnd *,class CControlTemplate *),CSidlManager__CreateXWndFromTemplate);
+#endif
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate1_x
 FUNCTION_AT_ADDRESS(class CXWnd * CSidlManager::CreateXWndFromTemplate(CXWnd *,CXStr &),CSidlManager__CreateXWndFromTemplate1);

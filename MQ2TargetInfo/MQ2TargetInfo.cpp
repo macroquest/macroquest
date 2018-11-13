@@ -5,8 +5,6 @@
 // are shown below. Remove the ones your plugin does not use.  Always use Initialize
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
-
-
 #include "../MQ2Plugin.h"
 #include "resource.h"
 
@@ -23,6 +21,7 @@ CHAR szFollowMeToolTip[128] = { "Follow Me around." };
 CHAR szFollowMe[128] = { "Follow Me" };
 CHAR szMimicMeToolTip[128] = { "Everyone does what I do, I target something, they do as well, I hail, they hail, etc." };
 CHAR szMimicMe[128] = { "Mimic Me" };
+CHAR szMMainTip[128] = { "MQ2TargetInfo is Active: Type /groupinfo help or rightclick this window to see a menu" };
 
 HANDLE hLockphmap = 0;
 
@@ -181,9 +180,17 @@ bool CreateDistLabel(CGroupWnd*pGwnd,CControlTemplate *DistLabelTemplate,CLabelW
 }
 int navmenuid = 0;
 int separatorid = 0;
+int separatorid2 = 0;
 int groundmenuid = 0;
 int doormenuid = 0;
 int switchtomenuid = 0;
+int cometomeoptionmenuid = 0;
+int mimicmeoptionmenuid = 0;
+int followmeoptionmenuid = 0;
+int hotoptionmenuid = 0;
+int distanceoptionmenuid = 0;
+
+
 
 void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **button,char*label,char*labelscreen, int fontsize, int top, int bottom, int left, int right, COLORREF color, COLORREF bgcolor, char*tooltip, char*text,bool bShow)
 {
@@ -204,28 +211,17 @@ void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **butto
 		(*button)->dShow = bShow;
 	}
 }
-void AddOurMenu(CGroupWnd*pGwnd)
-{
-	if (pGwnd->GroupContextMenu && !switchtomenuid)
-	{
-		pContextMenuManager->Flush();
-		if (pGwnd->RoleSelectMenuID)
-		{
-			pGwnd->GroupContextMenu->RemoveMenuItem(pGwnd->RoleSelectMenuID);
-			pGwnd->GroupContextMenu->RemoveMenuItem(pGwnd->RoleSeparatorID);
-			pGwnd->RoleSelectMenuID = 0;
-			pGwnd->RoleSeparatorID = 0;
-		}
-		separatorid = pGwnd->GroupContextMenu->AddSeparator();
-		navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", 54);
-		groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", 55);
-		doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", 56);
-		switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", 57);
-	}
-}
+
+bool gBUsePerCharSettings = FALSE;
+bool gBShowMimicMeButton = TRUE;
+bool gBShowComeToMeButton = TRUE;
+bool gBShowFollowMeButton = TRUE;
+bool gBShowHotButton = TRUE;
+bool gBShowDistance = TRUE;
+
 void RemoveOurMenu(CGroupWnd*pGwnd)
 {
-	if (pGwnd->GroupContextMenu && separatorid)
+	if (pGwnd->GroupContextMenu)
 	{
 		pContextMenuManager->Flush();
 		if (pGwnd->RoleSelectMenuID)
@@ -235,18 +231,64 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 			pGwnd->RoleSelectMenuID = 0;
 			pGwnd->RoleSeparatorID = 0;
 		}
-		pGwnd->GroupContextMenu->RemoveMenuItem(switchtomenuid);
-		pGwnd->GroupContextMenu->RemoveMenuItem(doormenuid);
-		pGwnd->GroupContextMenu->RemoveMenuItem(groundmenuid);
-		pGwnd->GroupContextMenu->RemoveMenuItem(navmenuid);
-		pGwnd->GroupContextMenu->RemoveMenuItem(separatorid);
-		switchtomenuid = 0;
-		doormenuid = 0;
-		groundmenuid = 0;
-		navmenuid = 0;
-		separatorid = 0;
+		if (separatorid2)
+		{
+			pGwnd->GroupContextMenu->RemoveMenuItem(switchtomenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(doormenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(groundmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(navmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(separatorid2);
+			switchtomenuid = 0;
+			doormenuid = 0;
+			groundmenuid = 0;
+			navmenuid = 0;
+			separatorid2 = 0;
+		}
+		if (separatorid)
+		{
+			pGwnd->GroupContextMenu->RemoveMenuItem(distanceoptionmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(hotoptionmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(followmeoptionmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(mimicmeoptionmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(cometomeoptionmenuid);
+
+			pGwnd->GroupContextMenu->RemoveMenuItem(separatorid);
+
+			distanceoptionmenuid = 0;
+			hotoptionmenuid = 0;
+			followmeoptionmenuid = 0;
+			mimicmeoptionmenuid = 0;
+			cometomeoptionmenuid = 0;
+			separatorid = 0;
+		}
 	}
 }
+void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked)
+{
+	//if (pGwnd->GroupContextMenu && (!distanceoptionmenuid || bMemberClicked))
+	if (pGwnd->GroupContextMenu)
+	{
+		RemoveOurMenu(pGwnd);
+		separatorid = pGwnd->GroupContextMenu->AddSeparator();
+		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", 58, gBShowComeToMeButton);
+		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", 59, gBShowMimicMeButton);
+		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", 60, gBShowFollowMeButton);
+		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Button", 61, gBShowHotButton);
+		distanceoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Distance", 62, gBShowDistance);
+
+		//
+		if (bMemberClicked)
+		{
+			separatorid2 = pGwnd->GroupContextMenu->AddSeparator();
+			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", 54);
+			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", 55);
+			doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", 56);
+			switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", 57);
+		}
+		pContextMenuManager->Flush();
+	}
+}
+
 template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
 {
 	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
@@ -255,16 +297,11 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
-bool gBShowMimicMeButton = TRUE;
-bool gBShowComeToMeButton = TRUE;
-bool gBShowFollowMeButton = TRUE;
-bool gBShowHotButton = TRUE;
-bool gBShowDistance = TRUE;
 
 void WriteSetting(const char*Key, const char*value)
 {
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
-	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0' || !gBUsePerCharSettings)
 	{
 		strcpy_s(szSettingINISection, "Default");
 	}
@@ -279,7 +316,7 @@ void WriteSetting(const char*Key, const char*value)
 int ReadSetting(char*Key,int defaultval)
 {
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
-	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0' || !gBUsePerCharSettings)
 	{
 		strcpy_s(szSettingINISection, "Default");
 	}
@@ -294,13 +331,41 @@ int ReadSetting(char*Key,int defaultval)
 		WritePrivateProfileString(szSettingINISection, Key, SafeItoa(defaultval,szTemp,10), INIFileName);
 		return defaultval;
 	}
+	else {
+		if (!_stricmp(Key, "HotButtonBottom"))
+		{
+			if (ret == 7)
+			{
+				WriteChatf("MQ2TargetInfo.ini changed: Setting HotButtonBottom to %d because it was 7 and that makes it cover the disband button so it can't be clicked.",defaultval);
+				CHAR szTemp[MAX_STRING] = { 0 };
+				WritePrivateProfileString(szSettingINISection, Key, SafeItoa(defaultval,szTemp,10), INIFileName);
+				return defaultval;
+			}
+		}
+	}
 	return ret;
 }
 void ReadIniSettings()
 {
-	int ret;
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
-	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
+	int ret = GetPrivateProfileInt("Default", "UsePerCharSettings", -1, INIFileName);
+	gBUsePerCharSettings = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
+	{
+		gBUsePerCharSettings = 0;
+		WritePrivateProfileString("Default", "UsePerCharSettings", "0", INIFileName);
+		//first run we need to fix a bug with hotbutton covering disband button in old inifiles
+		if (pLocalPlayer && EQADDR_SERVERNAME[0] != '\0')
+		{
+			sprintf_s(szSettingINISection, "%s_%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
+			ret = GetPrivateProfileInt(szSettingINISection, "HotButtonBottom", -1, INIFileName);
+			if (ret == 7)
+			{
+				WritePrivateProfileString(szSettingINISection, "HotButtonBottom", "24", INIFileName);
+			}
+		}
+	}
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0' || gBUsePerCharSettings == FALSE)
 	{
 		strcpy_s(szSettingINISection, "Default");
 	}
@@ -346,10 +411,13 @@ void Initialize()
 		ReadIniSettings();
 		//setup the group info
 		if (CGroupWnd*pGwnd = (CGroupWnd*)pGroupWnd) {
+			SetCXStr(&pGwnd->Tooltip, szMMainTip);
 			if (pGwnd->GroupContextMenu)
 			{
 				pGwnd->GroupContextMenu->CRNormal = 0xFF000000;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 				pGwnd->GroupContextMenu->DisabledBackground = 0xFF000000;
+#endif
 				pGwnd->GroupContextMenu->BGColor = 0xFF000000;
 			}
 			//AddOurMenu(pGwnd);
@@ -418,7 +486,8 @@ void Initialize()
 					GroupHotButton->bBottomAnchoredToTop = Butt->bBottomAnchoredToTop;
 					
 					top = ReadSetting("HotButtonTop", Butt->TopOffset + 39);
-					bottom = ReadSetting("HotButtonBottom", Butt->BottomOffset + 2);
+					bottom = ReadSetting("HotButtonBottom", top-40);
+					
 					left = ReadSetting("HotButtonLeft", 92);
 					right = ReadSetting("HotButtonRight", 132);
 					GroupHotButton->TopOffset = top;
@@ -676,10 +745,12 @@ public:
 				if (index != -1)
 				{
 					//WriteChatf("User Rightclicked group member number %d", index);
-					AddOurMenu(pGwnd);
+					AddOurMenu(pGwnd,true);
 					return true;
 				}
-				RemoveOurMenu(pGwnd);
+				AddOurMenu(pGwnd,false);
+				return true;
+				//RemoveOurMenu(pGwnd);
 			}
 		}
 		return false;
@@ -716,6 +787,7 @@ public:
 			}
 			rightclickindex = this->GetSelectedGroupIndex(pWnd);
 			UpdateOurMenu(rightclickindex);
+			//dont return here or group roles wont be filled in //return 1;
 		}
 		else if (Message == XWM_LCLICK)
 		{
@@ -802,13 +874,99 @@ public:
 						DoCommandf("/bct %s //click left door", pSpawn->Name);
 					}
 					return 1;
-				}case 57://switchto
+				}
+				case 57://switchto
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
 					{
 						DoCommandf("/bct %s //foreground", pSpawn->Name);
 					}
+					return 1;
+				}
+				case 58://gBShowComeToMeButton
+				{
+					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
+					POINT pt;
+					pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+					pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+					gBShowComeToMeButton ^= true;
+					pContextMenu->CheckMenuItem(iItemID,gBShowComeToMeButton);
+					NavButton->dShow = gBShowComeToMeButton;
+					if(gBShowComeToMeButton)
+						WriteSetting("ShowComeToMeButton", "1");
+					else
+						WriteSetting("ShowComeToMeButton", "0");
+					return 1;
+				}
+				case 59://gBShowMimicMeButton
+				{
+					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
+					POINT pt;
+					pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+					pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+					gBShowMimicMeButton ^= true;
+					pContextMenu->CheckMenuItem(iItemID,gBShowMimicMeButton);
+					MimicMeButton->dShow = gBShowMimicMeButton;
+					if(gBShowMimicMeButton)
+						WriteSetting("ShowMimicMeButton", "1");
+					else
+						WriteSetting("ShowMimicMeButton", "0");
+					return 1;
+				}
+				case 60://gBShowFollowMeButton
+				{
+					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
+					POINT pt;
+					pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+					pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+					gBShowFollowMeButton ^= true;
+					pContextMenu->CheckMenuItem(iItemID,gBShowFollowMeButton);
+					FollowMeButton->dShow = gBShowFollowMeButton;
+					if(gBShowFollowMeButton)
+						WriteSetting("ShowFollowMeButton", "1");
+					else
+						WriteSetting("ShowFollowMeButton", "0");
+					return 1;
+				}
+				case 61://gBShowHotButton
+				{
+					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
+					POINT pt;
+					pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+					pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+					gBShowHotButton ^= true;
+					pContextMenu->CheckMenuItem(iItemID,gBShowHotButton);
+					GroupHotButton->dShow = gBShowHotButton;
+					if(gBShowHotButton)
+						WriteSetting("ShowHotButton", "1");
+					else
+						WriteSetting("ShowHotButton", "0");
+					return 1;
+				}
+				case 62://gBShowDistance
+				{
+					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
+					POINT pt;
+					pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+					pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+					gBShowDistance ^= true;
+					pContextMenu->CheckMenuItem(iItemID,gBShowDistance);
+
+					GroupDistLabel1->dShow = gBShowDistance;
+					GroupDistLabel2->dShow = gBShowDistance;
+					GroupDistLabel3->dShow = gBShowDistance;
+					GroupDistLabel4->dShow = gBShowDistance;
+					GroupDistLabel5->dShow = gBShowDistance;
+					if(gBShowDistance)
+						WriteSetting("ShowDistance", "1");
+					else
+						WriteSetting("ShowDistance", "0");
 					return 1;
 				}
 			}
@@ -848,10 +1006,12 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		if (!_stricmp(szArg2, "mimicme"))
 		{
 			MimicMeButton->dShow = true;
+			gBShowMimicMeButton = true;
 			WriteSetting("ShowMimicMeButton", "1");
 		} 
 		else if (!_stricmp(szArg2, "distance"))
 		{
+			gBShowDistance = true;
 			GroupDistLabel1->dShow = true;
 			GroupDistLabel2->dShow = true;
 			GroupDistLabel3->dShow = true;
@@ -861,16 +1021,19 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
+			gBShowHotButton = true;
 			GroupHotButton->dShow = true;
 			WriteSetting("ShowHotButton", "1");
 		}
 		else if (!_stricmp(szArg2, "followme"))
 		{
+			gBShowFollowMeButton = true;
 			FollowMeButton->dShow = true;
 			WriteSetting("ShowFollowMeButton", "1");
 		}
 		else if (!_stricmp(szArg2, "cometome"))
 		{
+			gBShowComeToMeButton = true;
 			NavButton->dShow = true;
 			WriteSetting("ShowComeToMeButton", "1");
 		}
@@ -880,11 +1043,13 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		GetArg(szArg2, szLine, 2);
 		if (!_stricmp(szArg2, "mimicme"))
 		{
+			gBShowMimicMeButton = false;
 			MimicMeButton->dShow = false;
 			WriteSetting("ShowMimicMeButton", "0");
 		}
 		else if (!_stricmp(szArg2, "distance"))
 		{
+			gBShowDistance = false;
 			GroupDistLabel1->dShow = false;
 			GroupDistLabel2->dShow = false;
 			GroupDistLabel3->dShow = false;
@@ -894,16 +1059,19 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
+			gBShowHotButton = false;
 			GroupHotButton->dShow = false;
 			WriteSetting("ShowHotButton", "0");
 		}
 		else if (!_stricmp(szArg2, "followme"))
 		{
+			gBShowFollowMeButton = false;
 			FollowMeButton->dShow = false;
 			WriteSetting("ShowFollowMeButton", "0");
 		}
 		else if (!_stricmp(szArg2, "cometome"))
 		{
+			gBShowComeToMeButton = false;
 			NavButton->dShow = false;
 			WriteSetting("ShowComeToMeButton", "0");
 		}
@@ -1226,7 +1394,7 @@ PLUGIN_API VOID OnPulse(VOID)
 	// DONT leave in this debugspew, even if you leave in all the others
 	//DebugSpewAlways("MQ2TargetInfo::OnPulse()");
 	looper++;
-	if (looper > 20) {
+	if (looper > 40) {
 		looper = 0;
 		if (GetGameState() == GAMESTATE_INGAME) {
 			Initialize();
@@ -1237,25 +1405,49 @@ PLUGIN_API VOID OnPulse(VOID)
 			}
 			//
 			if (CGroupWnd *pGwnd = (CGroupWnd*)pGroupWnd) {
-				if (GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5 && GroupDistLabel1->dShow)
+				if (pContextMenuManager->NumVisibleMenus==0 && separatorid)
 				{
-					if (PCHARINFO pChar = GetCharInfo())
+					RemoveOurMenu(pGwnd);
+				}
+				if (PCHARINFO pChar = GetCharInfo())
+				{
+					if (pChar->pGroupInfo)
 					{
-						if (pChar->pGroupInfo)
+						if (gBShowDistance && GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5)
 						{
-							UpdateGroupDist(pChar,1);
-							UpdateGroupDist(pChar,2);
-							UpdateGroupDist(pChar,3);
-							UpdateGroupDist(pChar,4);
-							UpdateGroupDist(pChar,5);
+							UpdateGroupDist(pChar, 1);
+							UpdateGroupDist(pChar, 2);
+							UpdateGroupDist(pChar, 3);
+							UpdateGroupDist(pChar, 4);
+							UpdateGroupDist(pChar, 5);
 						}
-						else {
+						  
+						if(gBShowMimicMeButton && MimicMeButton && MimicMeButton->dShow==false)
+							MimicMeButton->dShow = true;
+						if(gBShowFollowMeButton && FollowMeButton && FollowMeButton->dShow==false)
+							FollowMeButton->dShow = true;
+						if(gBShowComeToMeButton && NavButton && NavButton->dShow==false)
+							NavButton->dShow = true;
+						//if(gBShowHotButton && GroupHotButton && GroupHotButton->dShow==false)
+						//	GroupHotButton->dShow = true;
+					}
+					else {
+						if (GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5 && GroupDistLabel1->dShow)
+						{
 							GroupDistLabel1->dShow = false;
 							GroupDistLabel2->dShow = false;
 							GroupDistLabel3->dShow = false;
 							GroupDistLabel4->dShow = false;
 							GroupDistLabel5->dShow = false;
 						}
+						if(MimicMeButton && MimicMeButton->dShow==true)
+							MimicMeButton->dShow = false;
+						if(FollowMeButton && FollowMeButton->dShow==true)
+							FollowMeButton->dShow = false;
+						if(NavButton && NavButton->dShow==true)
+							NavButton->dShow = false;
+						//if(GroupHotButton && GroupHotButton->dShow==true)
+						//	GroupHotButton->dShow = false;
 					}
 				}
 			}

@@ -87,9 +87,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         bRunNextCommand = TRUE;
         return;
     }
+	PMACROBLOCK pBlock = GetCurrentMacroBlock();
 	if (szArg1[0]=='}') {
-		if (gMacroBlock && gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart != 0) {
-			gMacroBlock->CurrIndex = gMacroBlock->Line[gMacroBlock->CurrIndex].LoopStart;
+		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0) {
+			pBlock->CurrIndex = pBlock->Line[pBlock->CurrIndex].LoopStart;
 			extern void pop_loop();
 			pop_loop();
 			return;
@@ -100,7 +101,8 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 				FatalError("} and { seen on the same line without an else present");
 			}
 			//          DebugSpew("DoCommand - handing {} off to FailIf");
-			FailIf(pChar,"{",gMacroBlock->CurrIndex,TRUE);
+			if(pBlock)
+				FailIf(pChar,"{",pBlock->CurrIndex,TRUE);
 		} else {
 			// handle this: 
 			//            /if () {
@@ -180,10 +182,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 					strcpy_s(szCallFunc, sCallFunc.c_str());
 					ParseMacroData(szCallFunc, MAX_STRING);
 					//Call(pCharInfo->pSpawn, (PCHAR)szCallFunc.c_str());
-					if (!gMacroBlock->BindCmd.size()) {
+					if (pBlock && !pBlock->BindCmd.size()) {
 						if (!gBindInProgress) {
 							gBindInProgress = true;
-							gMacroBlock->BindCmd = szCallFunc;
+							pBlock->BindCmd = szCallFunc;
 						}
 						else {
 							Beep(1000, 100);
@@ -233,7 +235,7 @@ public:
 
             if (!_stricmp(szCommand,"/camp"))
             {
-                if (gMacroBlock)
+                if (GetmacroBlockCount())
                 {
                     WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW );
                 }
@@ -339,6 +341,7 @@ public:
             }
 
             PBINDLIST pBind = pBindList;
+			PMACROBLOCK pBlock = GetCurrentMacroBlock();
             while( pBind )
             {
                 if( gGameState != GAMESTATE_INGAME )
@@ -363,10 +366,10 @@ public:
 							CHAR szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
 							ParseMacroData(szCallFunc, MAX_STRING);
-							if (!gMacroBlock->BindCmd.size()) {
+							if (pBlock && !pBlock->BindCmd.size()) {
 								if (!gBindInProgress) {
 									gBindInProgress = true;
-									gMacroBlock->BindCmd = szCallFunc;
+									pBlock->BindCmd = szCallFunc;
 								}
 								else {
 									Beep(1000, 100);

@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define EQBETA
+#define TEST
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -106,10 +106,11 @@ extern CRITICAL_SECTION gPluginCS;
 #include "eqgame(Test).h"
 //#define NEWCHARINFO
 #elif defined(EQBETA)
-#define NEWCHARINFO
 #include "eqgame(beta).h"
+//#define NEWCHARINFO
 #elif defined(ROF2EMU)
 #include "eqgame(emu).h"
+//#define NEWCHARINFO
 #elif defined(UFEMU)
 #include "eqgame(uf).h"
 #endif
@@ -781,6 +782,10 @@ EQLIB_API HANDLE hLoadComplete;
 
 EQLIB_API void AttackRanged(EQPlayer *pRangedTarget = pTarget);
 EQLIB_API VOID UseAbility(char *sAbility);
+EQLIB_API PMACROBLOCK GetNextMacroBlock();
+EQLIB_API PMACROBLOCK GetCurrentMacroBlock();
+EQLIB_API int GetmacroBlockCount();
+EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -848,6 +853,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_FOCUS               33
 #define XWM_LOSTFOCUS           34
 #define XWM_TEXTENTRY_COMPLETE  40
+#define XWM_RSELITEM_DOWN       46
 #define XWN_OUTPUT_TEXT         48
 #define XWN_COMMANDLINK         49
 #endif

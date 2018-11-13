@@ -235,12 +235,13 @@ namespace MQ2Internal {
 #endif
 	} MACROLINE,*PMACROLINE;
 	typedef struct _MACROBLOCK {
+		std::string Name;//our macro Name
+		BOOL Paused;
 		int CurrIndex;//the current macro line we are on
 		int BindStackIndex;//where we were at before calling the bind.
 		std::string BindCmd;//the actual command including parameters
 		std::map<int, MACROLINE>Line;
     } MACROBLOCK, *PMACROBLOCK;
-
     typedef struct _MQTIMER {
         CHAR szName[MAX_VARNAME];
         ULONG Original;
