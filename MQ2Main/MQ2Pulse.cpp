@@ -91,46 +91,51 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 		//sprintf_s(szLine, "/SetChatTitle MQ - MacroLine: %d", ml.LineNumber);
 		//EzCommand(szLine);
 		DoCommand(pChar, (PCHAR)ml.Command.c_str());
-		if (pBlock) {
-			if (pBlock->BindCmd.size() && pBlock->BindStackIndex==-1) {
+		PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
+		if (pCurrentBlock)
+		{
+			if (pCurrentBlock->BindCmd.size() && pCurrentBlock->BindStackIndex==-1) {
 				if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
-					std::map<int, MACROLINE>::iterator i = pBlock->Line.find(pBlock->CurrIndex);
-					if (i != pBlock->Line.end()) {
+					std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+					if (i != pCurrentBlock->Line.end()) {
 						i++;
-						if (i != pBlock->Line.end()) {
+						if (i != pCurrentBlock->Line.end()) {
 							//WriteChatf("Starting %s @ %d %s", pBlock->BindCmd.c_str(), i->first, i->second.Command.c_str());
-							pBlock->BindStackIndex = i->first;
+							pCurrentBlock->BindStackIndex = i->first;
 						}
 						else {
 							FatalError("Reached end of macro.");
 						}
 					}
-					Call(pChar, (PCHAR)pBlock->BindCmd.c_str());
-					pBlock->BindCmd.clear();
+					Call(pChar, (PCHAR)pCurrentBlock->BindCmd.c_str());
+					pCurrentBlock->BindCmd.clear();
 				}
 			}
 #ifdef MQ2_PROFILING
 			LARGE_INTEGER AfterCommand;
 			QueryPerformanceCounter(&AfterCommand);
-			pBlock->Line[ThisMacroBlock].ExecutionCount++;
-			pBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
+			pCurrentBlock->Line[ThisMacroBlock].ExecutionCount++;
+			pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
 #endif
-			int lastindex = pBlock->Line.rbegin()->first;
-			if (pBlock->CurrIndex>lastindex) {
+			int lastindex = pCurrentBlock->Line.rbegin()->first;
+			if (pCurrentBlock->CurrIndex>lastindex) {
 				FatalError("Reached end of macro.");
 			}
 			else {
-				std::map<int, MACROLINE>::iterator i = pBlock->Line.find(pBlock->CurrIndex);
-				if (i != pBlock->Line.end()) {
+				std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+				if (i != pCurrentBlock->Line.end()) {
 					i++;
-					if (i != pBlock->Line.end()) {
-						pBlock->CurrIndex = i->first;
+					if (i != pCurrentBlock->Line.end()) {
+						pCurrentBlock->CurrIndex = i->first;
 					}
 				}
 				else {
 					FatalError("Reached end of macro.");
 				}
 			}
+		}
+		else {
+			return FALSE;
 		}
 		return TRUE;
 	}

@@ -559,6 +559,13 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		EndMacro(pChar, szLine);//"keep keys vars arrays timers");
 		gReturn = true;
 	}
+	if (CXWnd*pWnd = FindMQ2Window("RunningMacrosWindow"))
+	{
+		if (CListWnd*list = (CListWnd*)pWnd->GetChildItem("RMW_RunningMacrosList"))
+		{
+			list->DeleteAll();
+		}
+	}
 	gBindInProgress = true;//we dont want people to use binds until the macro is read.
 	//ok we get ourself a new block, this will be valid until the macro ends.
 	gMacroBlock = AddMacroBlock(szLine);
@@ -664,6 +671,15 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 	gRunning = MQGetTickCount64();
 	gBindInProgress = false;
+	if (CXWnd*pWnd = FindMQ2Window("RunningMacrosWindow"))
+	{
+		pWnd->dShow = true;
+		if (CListWnd*list = (CListWnd*)pWnd->GetChildItem("RMW_RunningMacrosList"))
+		{
+			int id = list->AddString("", 0xFF00FF00, 0, 0);
+			list->SetItemText(id, 1, &CXStr(Macroname));
+		}
+	}
 }
 
 // ***************************************************************************

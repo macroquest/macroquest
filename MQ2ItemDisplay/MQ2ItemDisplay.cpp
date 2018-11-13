@@ -3097,7 +3097,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		ReadProfile(GetCharInfo()->Name, FALSE);
 		CreateCompareTipWnd();
 	}
-	
 }
 
 PLUGIN_API VOID SetGameState(DWORD GameState) 
