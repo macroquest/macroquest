@@ -8006,7 +8006,7 @@ bool MQ2ItemType::GETMEMBER()
 		{
 			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))//a worldcontainer has its item in Item1
 			{
-				Dest.DWord = 1;
+				Dest.DWord = 0;
 				if (pTheCont->Contents.ContainedItems.pItems) {
 					for (unsigned long N = 0; N < pTheItem->Slots; N++) {
 						if (!pTheCont->Contents.ContainedItems.pItems->Item[N]) {
