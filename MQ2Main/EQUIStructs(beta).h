@@ -813,7 +813,7 @@ typedef struct _EQINVSLOT {
 // confirmed 2014-03-31 - eqmule
 typedef struct _EQINVSLOTMGR {
 /*0x0000*/    DWORD Unknown0x0000;
-/*0x0004*/    struct _EQINVSLOT *SlotArray[0x800];
+/*0x0004*/    struct _EQINVSLOT *SlotArray[MAX_INV_SLOTS];
 /*0x2004*/    DWORD TotalSlots;
 /*0x2008*/    DWORD Unknown0x2008;
 /*0x200c*/    struct _EQINVSLOT *pSelectedItem;
