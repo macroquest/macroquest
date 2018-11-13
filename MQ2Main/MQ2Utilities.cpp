@@ -4148,14 +4148,17 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szBuff[MAX_STRING] = { 0 };
+	int count = 0;
 	for (int i = 0; i<GetSpellNumEffects(pSpell); i++)
 	{
 		szBuff[0] = szTemp[0] = '\0';
 		strcat_s(szBuff, ParseSpellEffect(pSpell, i, szTemp,sizeof(szTemp)));
-		if (strlen(szBuff)>0) {
+		size_t len = strlen(szBuff);
+		if (len > 0 && count + len < BufferSize) {
 			strcat_s(szBuffer,BufferSize, szBuff);
 			strcat_s(szBuffer,BufferSize, "<br>");
 		}
+		count += len + 4;
 	}
 	return szBuffer;
 }
