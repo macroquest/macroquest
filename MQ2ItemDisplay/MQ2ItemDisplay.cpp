@@ -2806,7 +2806,7 @@ int DoIHave(PITEMINFO Item)
 				PCHARINFO pCharInfo = GetCharInfo();
 				PCONTENTS pPack = NULL;
 #ifdef NEWCHARINFO
-				if (pCharInfo && pCharInfo->SharedBankItems.Items.Size)
+				if (pCharInfo && pCharInfo->SharedBankItems.Items.Size > nPack)
 					pPack = pCharInfo->SharedBankItems.Items[nPack].pObject;
 #else
 				if (pCharInfo && pCharInfo->pSharedBankArray)
