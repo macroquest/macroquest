@@ -439,7 +439,7 @@ PLUGIN_API VOID OnPulse(VOID)
 
 	// Clear MapLocs on zone
 	if (PCHARINFO charInfo = GetCharInfo()) {
-		if (currentZoneId != charInfo->zoneId)
+		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
 		{
 			for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
 			{
@@ -449,7 +449,7 @@ PLUGIN_API VOID OnPulse(VOID)
 				LocationMap.erase(it);
 			}
 			LocationMap.clear();
-			currentZoneId = charInfo->zoneId;
+			currentZoneId = (charInfo->zoneId & 0x7FFF);
 		}
 	}
 	CHAR szBuffer[MAX_STRING] = { 0 };

@@ -7906,9 +7906,15 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 	else if (location == eItemContainerBank) {
 		//check bank
 		PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+		if (pChar && pChar->BankItems.Size) {
+			for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++) {
+				if (PCONTENTS pItem = pChar->BankItems.Items[nSlot].pObject) {
+#else
 		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
 			for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++) {
 				if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot]) {
+#endif
 					if (pItem->GetGlobalIndex().Index.Slot1 == InvSlot && pItem->GetGlobalIndex().Index.Slot2 == BagSlot) {
 						return pItem;
 					}
@@ -7916,9 +7922,15 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			}
 		}
 		//not found? ok check inside bank bags
+#ifdef NEWCHARINFO
+		if (pChar && pChar->BankItems.Size) {
+			for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+				if (PCONTENTS pPack = pChar->BankItems.Items[nPack].pObject) {
+#else
 		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
 			for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
 				if (PCONTENTS pPack = pChar->pBankArray->Bank[nPack]) {
+#endif
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
 							if (PCONTENTS pItem = pPack->GetContent(nItem)) {
@@ -7935,9 +7947,15 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 	else if (location == eItemContainerSharedBank) {
 		PCHARINFO pChar = GetCharInfo();
 		//what? still not found? ok fine, check shared bank
+#ifdef NEWCHARINFO
+		if (pChar && pChar->SharedBankItems.Size) {
+			for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++) {
+				if (PCONTENTS pItem = pChar->SharedBankItems.Items[nSlot].pObject) {
+#else
 		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
 			for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++) {
 				if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot]) {
+#endif
 					if (pItem->GetGlobalIndex().Index.Slot1 == InvSlot && pItem->GetGlobalIndex().Index.Slot2 == BagSlot) {
 						return pItem;
 					}
@@ -7945,9 +7963,15 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			}
 		}
 		//not found? ok check inside sharedbank bags
+#ifdef NEWCHARINFO
+		if (pChar && pChar->SharedBankItems.Size) {
+			for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+				if (PCONTENTS pPack = pChar->SharedBankItems.Items[nPack].pObject) {
+#else
 		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
 			for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
 				if (PCONTENTS pPack = pChar->pSharedBankArray->SharedBank[nPack]) {
+#endif
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
 							if (PCONTENTS pItem = pPack->GetContent(nItem)) {
@@ -8143,9 +8167,15 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+	if (pChar && pChar->MountKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						return pItem;
@@ -8163,9 +8193,15 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 	}
 
 	//still not found? fine... check illusions keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->IllusionKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						return pItem;
@@ -8183,9 +8219,15 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 	}
 
 	//still not found? fine... check familiars keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->FamiliarKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						return pItem;
@@ -8299,9 +8341,15 @@ PCONTENTS FindItemByID(int ItemID)
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	PCHARINFO pChar = GetCharInfo();
 	//still not found? fine... check mount keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->MountKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
+#endif
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
@@ -8310,9 +8358,15 @@ PCONTENTS FindItemByID(int ItemID)
 	}
 
 	//still not found? fine... check illusions keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->IllusionKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+#endif
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
@@ -8321,9 +8375,15 @@ PCONTENTS FindItemByID(int ItemID)
 	}
 
 	//still not found? fine... check familiars keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->FamiliarKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+#endif
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
@@ -8554,9 +8614,15 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+	if (pChar && pChar->MountKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8584,9 +8650,15 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 	}
 
 	//still not found? fine... check illusions keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->IllusionKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8614,9 +8686,15 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 	}
 
 	//still not found? fine... check familiars keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->FamiliarKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8773,9 +8851,15 @@ DWORD FindItemCountByID(int ItemID)
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+	if (pChar && pChar->MountKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot]) {
+#endif
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 						Count++;
@@ -8789,9 +8873,15 @@ DWORD FindItemCountByID(int ItemID)
 	}
 
 	//still not found? fine... check illusions keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->IllusionKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+#endif
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 						Count++;
@@ -8805,9 +8895,15 @@ DWORD FindItemCountByID(int ItemID)
 	}
 
 	//still not found? fine... check familiars keyring
+#ifdef NEWCHARINFO
+	if (pChar && pChar->FamiliarKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
+			if (PCONTENTS pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+#else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
 			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+#endif
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 						Count++;
@@ -8831,9 +8927,15 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 	PCHARINFO pCharInfo = GetCharInfo();
 
 	// Check bank slots
-	if (pCharInfo->pBankArray) {
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->BankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+#else
+	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
 						return pPack;
@@ -8912,9 +9014,15 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 	}
 
 	// Check shared bank slots
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->SharedBankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+#else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) 		{
 			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
 						return pPack;
@@ -8998,9 +9106,15 @@ PCONTENTS FindBankItemByID(int ItemID)
 	PCHARINFO pCharInfo = GetCharInfo();
 
 	// Check bank slots
-	if (pCharInfo->pBankArray) {
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->BankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+#else
+	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+#endif
 				if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
 					return pPack;
 				}
@@ -9043,9 +9157,15 @@ PCONTENTS FindBankItemByID(int ItemID)
 	}
 
 	// Check shared bank slots
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->SharedBankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+#else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+#endif
 				if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
 					return pPack;
 				}
@@ -9098,9 +9218,15 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 	PCHARINFO pCharInfo = GetCharInfo();
 
 	// Check bank slots
-	if (pCharInfo->pBankArray) {
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->BankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+#else
+	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
 						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
@@ -9199,9 +9325,15 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 	}
 
 	// Check shared bank slots
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->SharedBankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+#else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+#endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
 						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
@@ -9308,9 +9440,15 @@ DWORD FindBankItemCountByID(int ItemID)
 	PCHARINFO pCharInfo = GetCharInfo();
 
 	// Check bank slots
-	if (pCharInfo->pBankArray) {
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->BankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+#else
+	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pBankArray->Bank[nPack]) {
+#endif
 				if (ItemID == pPack->ID) {
 					if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
 						Count++;
@@ -9363,9 +9501,15 @@ DWORD FindBankItemCountByID(int ItemID)
 	}
 
 	// Check shared bank slots
+#ifdef NEWCHARINFO
+	if (pCharInfo && pCharInfo->SharedBankItems.Size) {
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+			if (PCONTENTS pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+#else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+#endif
 				if (ItemID == pPack->ID) {
 					if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
 						Count++;
@@ -9894,7 +10038,11 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 			if (PSPELL pSpell = GetSpellByID(buffID)) {
 				if (LONG base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa)) {
 					//if (PCHARINFO pChar = GetCharInfo()) {
-					//	if (pChar->vtable2) {
+#ifdef NEWCHARINFO
+						//  if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
+						//  if (pChar->vtable2) {
+#endif
 					//		int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChangeGeneric((EQ_Spell*)pSpell, 0, 0, NULL, 1, true);
 					//	}
 					//}
@@ -10364,10 +10512,17 @@ int GetMountCount()
 {
 	int Count = 0;
 	PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+	if (pChar && pChar->MountKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->MountKeyRingItems.Items[nSlot].pObject)
+#else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
 			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
+#endif
 			{
 				Count++;
 			}
@@ -10379,10 +10534,17 @@ int GetIllusionCount()
 {
 	int Count = 0;
 	PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+	if (pChar && pChar->IllusionKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject)
+#else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
 			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
+#endif
 			{
 				Count++;
 			}
@@ -10394,10 +10556,17 @@ int GetFamiliarCount()
 {
 	int Count = 0;
 	PCHARINFO pChar = GetCharInfo();
+#ifdef NEWCHARINFO
+	if (pChar && pChar->FamiliarKeyRingItems.Size) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject)
+#else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
 			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])
+#endif
 			{
 				Count++;
 			}
@@ -10530,7 +10699,11 @@ void InitKeyRings()
 VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			((CharacterZoneClient*)pCharData1)->MakeMeVisible(0, 0);
 		}
 	}

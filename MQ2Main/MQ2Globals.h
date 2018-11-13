@@ -437,7 +437,11 @@ namespace MQ2Globals
 #define pPCData (*ppPCData)
 	EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
+#ifdef NEWCHARINFO
+#define pCharData1 ((EQ_Character1 *)&GetCharInfo()->PcClient_CharacterZoneClient_vfTable)
+#else
 #define pCharData1 ((EQ_Character1 *)&GetCharInfo()->vtable2)
+#endif
 	EQLIB_VAR EQPlayer **ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 	EQLIB_VAR EQPlayer **ppActiveMerchant;
@@ -1020,7 +1024,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstEQSuiteTextureLoader;
 	EQLIB_VAR DWORD pinstCPointMerchantWnd;
 	EQLIB_VAR DWORD pinstCZoneGuideWnd;
-
+	
 	EQLIB_VAR DWORD __AppCrashWrapper;
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __CastRay2;
@@ -1225,7 +1229,7 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 	EQLIB_VAR DWORD CHotButton__SetButtonSize;
-	
+
 	EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
 	EQLIB_VAR DWORD CInvSlotMgr__MoveItem;
 	EQLIB_VAR DWORD CInvSlotMgr__SelectSlot;
@@ -1304,7 +1308,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__RequestPutItem;
 	EQLIB_VAR DWORD CMerchantWnd__SelectBuySellSlot;
 	EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__UpdateList;
-	
+
 	EQLIB_VAR DWORD CPacketScrambler__ntoh;
 	EQLIB_VAR DWORD CPacketScrambler__hton;
 
@@ -1573,7 +1577,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__GetItemByItemClass;
 	EQLIB_VAR DWORD PcZoneClient__RemoveBuffEffect;
 	EQLIB_VAR DWORD PcZoneClient__BandolierSwap;
-
+	
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
 	EQLIB_VAR BOOL gbTimeStampChat;

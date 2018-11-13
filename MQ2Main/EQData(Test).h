@@ -2203,7 +2203,7 @@ typedef struct _CHARINFO {
 /*0x2420*/ void*        vtable2;//vtable2_0 below aTimeIsDAndCanU
 /*0x2424*/ struct _EQC_INFO*    eqc_info;
 /*0x2428*/ struct _SPAWNINFO*   pSpawn;//pSpawn_0
-/*0x242c*/ BYTE         UpdateStuff;
+/*0x242c*/ bool         bUpdateStuff;
 /*0x2430*/ DWORD        ArmorClassBonus;//vtable2+10
 /*0x2434*/ DWORD        CurrWeight;//vtable2+14
 /*0x2438*/ int			astHitPointSendPercent;

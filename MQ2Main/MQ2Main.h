@@ -98,6 +98,7 @@ extern CRITICAL_SECTION gPluginCS;
 #else
 //define LIVE, TEST, EQBETA ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
 #define EQBETA
+//#define NEWCHARINFO
 #endif
 #if defined(LIVE)
 #include "eqgame.h"

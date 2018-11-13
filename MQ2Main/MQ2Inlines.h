@@ -27,12 +27,11 @@ static inline PCHARINFO GetCharInfo(VOID) {
 static inline PCHARINFO2 GetCharInfo2(VOID) {
 	if (PCHARINFO pChar = (PCHARINFO)pCharData) {
 		if (pChar->ProfileManager.pFirst) {
-			return (PCHARINFO2)pChar->ProfileManager.GetCurrentProfile();
+		return (PCHARINFO2)pChar->ProfileManager.GetCurrentProfile();
 		}
 	}
 	return NULL;
 }
-
 
 static inline EQPlayer *GetSpawnByID(DWORD dwSpawnID)
 {
@@ -135,7 +134,11 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 
 static inline int GetEnduranceRegen() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetEnduranceRegen(true, false);
 		}
 	}
@@ -143,7 +146,11 @@ static inline int GetEnduranceRegen() {
 }
 static inline int GetHPRegen() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			bool bBleed = false;//yes this is correct it should be false initially, the client sets it to true on return if we are indeed bleeding.
 			return pCharData1->GetHPRegen(true, &bBleed, false);
 		}
@@ -152,7 +159,11 @@ static inline int GetHPRegen() {
 }
 static inline int GetManaRegen() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetManaRegen(true, false);
 		}
 	}
@@ -160,7 +171,11 @@ static inline int GetManaRegen() {
 }
 static inline int GetCurMana() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return ((EQ_Character*)pCharData1)->Cur_Mana(true);
 		}
 	}
@@ -168,7 +183,11 @@ static inline int GetCurMana() {
 }
 static inline int GetCurHPS() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->Cur_HP(0);
 		}
 	}
@@ -176,7 +195,11 @@ static inline int GetCurHPS() {
 }
 static inline LONG GetMaxHPS() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->Max_HP(0);
 		}
 	}
@@ -184,7 +207,11 @@ static inline LONG GetMaxHPS() {
 }
 static inline LONG GetMaxEndurance() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->Max_Endurance();
 		}
 	}
@@ -198,7 +225,11 @@ static inline LONG GetCurEndurance() {
 }
 static inline LONG GetMaxMana() {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->Max_Mana();
 		}
 	}
@@ -206,7 +237,11 @@ static inline LONG GetMaxMana() {
 }
 static inline int GetAdjustedSkill(int nSkill) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetAdjustedSkill(nSkill);
 		}
 	}
@@ -214,7 +249,11 @@ static inline int GetAdjustedSkill(int nSkill) {
 }
 static inline int GetBaseSkill(int nSkill) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetBaseSkill(nSkill);
 		}
 	}
@@ -222,7 +261,11 @@ static inline int GetBaseSkill(int nSkill) {
 }
 static inline int GetModCap(int index, bool bToggle = false) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			#if !defined(ROF2EMU) && !defined(UFEMU)
 			return ((PcZoneClient*)pCharData1)->GetModCap(index, bToggle);
 			#else
@@ -234,7 +277,11 @@ static inline int GetModCap(int index, bool bToggle = false) {
 }
 static inline int const GetAACastingTimeModifier(class EQ_Spell const * cSpell) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetAACastingTimeModifier(cSpell);
 		}
 	}
@@ -242,7 +289,11 @@ static inline int const GetAACastingTimeModifier(class EQ_Spell const * cSpell) 
 }
 static inline int const GetFocusCastingTimeModifier(class EQ_Spell const * cSpell, class EQ_Equipment * * cEquipment, int i) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetFocusCastingTimeModifier(cSpell, cEquipment, i);
 		}
 	}
@@ -250,7 +301,11 @@ static inline int const GetFocusCastingTimeModifier(class EQ_Spell const * cSpel
 }
 static inline int const GetFocusRangeModifier(class EQ_Spell const * cSpell, class EQ_Equipment * * cEquipment) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return pCharData1->GetFocusRangeModifier(cSpell, cEquipment);
 		}
 	}
@@ -258,7 +313,11 @@ static inline int const GetFocusRangeModifier(class EQ_Spell const * cSpell, cla
 }
 static inline bool HasSkill(int nSkill) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			return ((CharacterZoneClient*)pCharData1)->HasSkill(nSkill);
 		}
 	}
@@ -274,7 +333,11 @@ static inline DWORD GetCharMaxBuffSlots()
 	DWORD NumBuffs = 15;
 
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pChar->vtable2) {
+#endif
 			NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
 		}
 		if (pChar->pSpawn && pChar->pSpawn->Level > 70) NumBuffs++;
@@ -725,7 +788,11 @@ inline LONG GetMemorizedSpell(LONG index)
 inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 {
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
+#else
 		if (pCharInfo->vtable2) {
+#endif
 			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
 				return (LONG)cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
 			}

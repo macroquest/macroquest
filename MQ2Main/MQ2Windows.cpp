@@ -461,8 +461,13 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 		if (!_strnicmp(WindowName, "bank", 4)) {
 			unsigned long nPack = atoi(&WindowName[4]);
 			if (nPack && nPack <= NUM_BANK_SLOTS) {
+#ifdef NEWCHARINFO
+				if (pCharData && ((PCHARINFO)pCharData)->BankItems.Size) {
+					pPack = ((PCHARINFO)pCharData)->BankItems.Items[nPack - 1].pObject;
+#else
 				if (pCharData && ((PCHARINFO)pCharData)->pBankArray) {
 					pPack = ((PCHARINFO)pCharData)->pBankArray->Bank[nPack - 1];
+#endif
 				}
 			}
 		}

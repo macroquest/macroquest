@@ -2540,12 +2540,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case PctExp:
 		Dest.Float = (float)pChar->Exp / 3.30f;
-			Dest.Type = pFloatType;
-			return true;
+		Dest.Type = pFloatType;
+		return true;
 	case PctExpToAA:
 		Dest.Int = (int)pChar->PercentEXPtoAA;
-			Dest.Type = pIntType;
-			return true;
+		Dest.Type = pIntType;
+		return true;
 	case PctAAExp:
 		Dest.Float = (float)pChar->AAExp / 3.30f;
 		Dest.Type = pFloatType;
@@ -2558,11 +2558,11 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 		Dest.Float = 0;
 		__int64 vitality = pChar->Vitality;
-			__int64 cap = pInventoryWnd->VitalityCap;
-			if (vitality > cap)
-				vitality = cap;
-			if (cap > 0)
-				Dest.Float = (float)vitality * 100 / cap;
+		__int64 cap = pInventoryWnd->VitalityCap;
+		if (vitality > cap)
+			vitality = cap;
+		if (cap > 0)
+			Dest.Float = (float)vitality * 100 / cap;
 		Dest.Type = pFloatType;
 		return true;
 	}
@@ -2574,11 +2574,11 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 		Dest.Float = 0;
 		int aavitality = pChar->AAVitality;
-			int aacap = pInventoryWnd->AAVitalityCap;
-			if (aavitality > aacap)
-				aavitality = aacap;
-			if (aacap > 0)
-				Dest.Float = (float)aavitality * 100 / aacap;
+		int aacap = pInventoryWnd->AAVitalityCap;
+		if (aavitality > aacap)
+			aavitality = aacap;
+		if (aacap > 0)
+			Dest.Float = (float)aavitality * 100 / aacap;
 		Dest.Type = pFloatType;
 		return true;
 	}
@@ -2885,42 +2885,66 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case GukEarned:
 		Dest.DWord = 0;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_DeepGuk].AdventureTotalPointsEarned;
 		}
 		Dest.Type = pIntType;
 		return true;
 	case MMEarned:
 		Dest.DWord = 0;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Mistmoore].AdventureTotalPointsEarned;
 		}
 		Dest.Type = pIntType;
 		return true;
 	case RujEarned:
 		Dest.DWord = 0;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Rujarkian].AdventureTotalPointsEarned;
 		}
 		Dest.Type = pIntType;
 		return true;
 	case TakEarned:
 		Dest.DWord = 0;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Takish].AdventureTotalPointsEarned;
 		}
 		Dest.Type = pIntType;
 		return true;
 	case MirEarned:
 		Dest.DWord = 0;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Miraguls].AdventureTotalPointsEarned;
 		}
 		Dest.Type = pIntType;
 		return true;
 	case LDoNPoints:
 		Dest.DWord = 0;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			Dest.DWord = pCharnew->AdventureData.AdventurePointsAvailable;
 		}
 		Dest.Type = pIntType;
@@ -2980,8 +3004,13 @@ bool MQ2CharacterType::GETMEMBER()
 					return false;
 				if (nSlot<NUM_BANK_SLOTS)
 				{
-					if (pChar->pBankArray) {
+#ifdef NEWCHARINFO
+					if (pChar && pChar->BankItems.Size > nSlot) {
+						if (Dest.Ptr = pChar->BankItems.Items[nSlot].pObject)
+#else
+					if (pChar && pChar->pBankArray) {
 						if (Dest.Ptr = pChar->pBankArray->Bank[nSlot])
+#endif
 						{
 							Dest.Type = pItemType;
 							return true;
@@ -2992,8 +3021,13 @@ bool MQ2CharacterType::GETMEMBER()
 					nSlot -= NUM_BANK_SLOTS;
 					if (nSlot<NUM_SHAREDBANK_SLOTS)
 					{
-						if (pChar->pSharedBankArray) {
+#ifdef NEWCHARINFO
+						if (pChar && pChar->SharedBankItems.Size > nSlot) {
+							if (Dest.Ptr = pChar->SharedBankItems.Items[nSlot].pObject)
+#else
+						if (pChar && pChar->pSharedBankArray) {
 							if (Dest.Ptr = pChar->pSharedBankArray->SharedBank[nSlot])
+#endif
 							{
 								Dest.Type = pItemType;
 								return true;
@@ -4696,7 +4730,11 @@ bool MQ2CharacterType::GETMEMBER()
 	case Haste:
 	{
 		if (PCHARINFO pCharInfo = GetCharInfo()) {
+#ifdef NEWCHARINFO
+			if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
+#else
 			if (pCharInfo->vtable2) {
+#endif
 				Dest.DWord = pCharData1->TotalEffect(0xb, true, 0, true, true);
 				Dest.Type = pIntType;
 				return true;
@@ -4711,7 +4749,11 @@ bool MQ2CharacterType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			if (PCHARINFO pCharInfo = GetCharInfo()) {
+#ifdef NEWCHARINFO
+				if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
+#else
 				if (pCharInfo->vtable2) {
+#endif
 					Dest.DWord = pCharData1->TotalEffect(GETNUMBER(), true, 0, true, true);
 					Dest.Type = pIntType;
 					return true;
@@ -5902,7 +5944,11 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (PCHARINFO pMe = GetCharInfo()) {
+#ifdef NEWCHARINFO
+			if (pMe->PcClient_CharacterZoneClient_vfTable) {
+#else
 			if (pMe->vtable2) {
+#endif
 				int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
 				EQ_Affect*ret = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pMe, &SlotIndex, true, pMe->MainLevel);
 				if (ret) {
@@ -5929,7 +5975,11 @@ bool MQ2SpellType::GETMEMBER()
 			return true;
 		PSPELL thespell = pSpell;
 		if (PCHARINFO pMe = GetCharInfo()) {
+#ifdef NEWCHARINFO
+			if (pMe->PcClient_CharacterZoneClient_vfTable) {
+#else
 			if (pMe->vtable2) {
+#endif
 				int SlotIndex = -1;
 				EQ_Affect eff;
 				eff.ID = thespell->ID;
@@ -10783,7 +10833,11 @@ bool MQ2InvSlotType::GETMEMBER()
 							unsigned long nPack = (nInvSlot - 2032) / 10;
 							unsigned long nSlot = (nInvSlot - 2) % 10;
 							PCONTENTS pPack = NULL;
-							if (pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
+#ifdef NEWCHARINFO
+							if (pCharInfo && pCharInfo->BankItems.Size) pPack = pCharInfo->BankItems.Items[nPack].pObject;
+#else
+							if (pCharInfo && pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
+#endif
 							if (pPack)
 								if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && nSlot < GetItemFromContents(pPack)->Slots)
 								{
@@ -10800,7 +10854,11 @@ bool MQ2InvSlotType::GETMEMBER()
 							unsigned long nPack = 23 + ((nInvSlot - 2532) / 10);
 							unsigned long nSlot = (nInvSlot - 2) % 10;
 							PCONTENTS pPack = NULL;
-							if (pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
+#ifdef NEWCHARINFO
+							if (pCharInfo && pCharInfo->BankItems.Size) pPack = pCharInfo->BankItems.Items[nPack].pObject;
+#else
+							if (pCharInfo && pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
+#endif
 							if (pPack)
 								if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && nSlot < GetItemFromContents(pPack)->Slots)
 								{
@@ -10814,8 +10872,13 @@ bool MQ2InvSlotType::GETMEMBER()
 						}
 						else if (nInvSlot >= 2000 && nInvSlot < 2024)
 						{
-							if (pCharInfo->pBankArray) {
+#ifdef NEWCHARINFO
+							if (pCharInfo && pCharInfo->BankItems.Size) {
+								if (Dest.Ptr = pCharInfo->BankItems.Items[nInvSlot - 2000].pObject)
+#else
+							if (pCharInfo && pCharInfo->pBankArray) {
 								if (Dest.Ptr = pCharInfo->pBankArray->Bank[nInvSlot - 2000])
+#endif
 								{
 									Dest.Type = pItemType;
 									return true;
@@ -10824,11 +10887,13 @@ bool MQ2InvSlotType::GETMEMBER()
 						}
 						else if (nInvSlot == 2500 || nInvSlot == 2501)
 						{
-							if (pCharInfo->pBankArray) {
-								if (nInvSlot == 2500)
-									Dest.Ptr = pCharInfo->pBankArray->Bank[22];
-								else if (nInvSlot == 2501)
-									Dest.Ptr = pCharInfo->pBankArray->Bank[23];
+#ifdef NEWCHARINFO
+							if (pCharInfo && pCharInfo->BankItems.Size) {
+								if (Dest.Ptr = pCharInfo->BankItems.Items[nInvSlot - 2500 + 22].pObject)
+#else
+							if (pCharInfo && pCharInfo->pBankArray) {
+								if (Dest.Ptr = pCharInfo->pBankArray->Bank[nInvSlot - 2500 + 22])
+#endif
 									if (Dest.Ptr)
 									{
 										Dest.Type = pItemType;

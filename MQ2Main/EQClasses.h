@@ -8299,7 +8299,7 @@ union {
 /*0x2424*/ PlayerClient *me;//just here for comparing the 2, todo: fix
 /*0x2424*/ PSPAWNINFO me2;
 };
-/*0x242c*/ bool		bUpdateStuff;
+/*0x242c*/ bool			bUpdateStuff;
 /*0x242d*/ bool         bZoningStatProcessing;
 /*0x2430*/ DWORD        ArmorClassBonus;//vtable2+10
 /*0x2434*/ DWORD        CurrWeight;//vtable2+14
