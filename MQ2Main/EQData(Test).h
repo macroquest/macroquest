@@ -1084,6 +1084,7 @@ enum eProfileListType
 	ePLT_Regular,
 	cPLT_MonsterMission
 };
+#ifndef NEWCHARINFO
 typedef struct _CI2_INFO {
 /* 0x0000 */    eProfileListType ListType;
 /* 0x0004 */    struct  _CHARINFO2* pCharInfo2;
@@ -1092,6 +1093,7 @@ typedef struct _CI2_INFO {
 /* 0x0010 */    struct  _CHARINFO2* pPrev;
 /* 0x0014 */
 } CI2_INFO, *PCI2_INFO;
+#endif
 
 //size 34 i think in eqgame dated mar 23 2015 but i have no address for it atm -eqmule
 typedef struct _GROUPMEMBER {
@@ -2070,8 +2072,8 @@ typedef struct _CHARINFO {
 /*0x1078*/ TSafeArrayStatic<BenefitSelection, 5> ActiveTributeBenefits;//size 0x28 8 * 5
 /*0x10A0*/ TSafeArrayStatic<BenefitSelection, 0xa> ActiveTrophyTributeBenefits;
 /*0x10f0*/ TSafeArrayStatic<BYTE, 0x320>	BitFlags2;
-/*0x1410*/ int pBankArraySize;
-/*0x1414*/ int pBankArraySpec;
+/*0x1410*/ int          pBankArraySize;
+/*0x1414*/ int          pBankArraySpec;
 /*0x1418*/ struct _BANKARRAY*   pBankArray;
 /*0x141c*/ DWORD        NumBankSlots;//how many bank slots we have
 /*0x1420*/ BYTE         Unknown0x1420[0x14];
@@ -2144,8 +2146,8 @@ typedef struct _CHARINFO {
 /*0x1ebc*/ int	        MainLevel;
 /*0x1ec0*/ bool	        bShowHelm;
 /*0x1ec8*/ __int64      LastTestCopyTime;
-/*0x1ed0*/ CPlayerPointManager PointManager;//size 0x14
-/*0x1ee4*/ PointSystemBase PointSystem;//size 0x14
+/*0x1ed0*/ CPlayerPointManager  PointManager;//size 0x14
+/*0x1ee4*/ PointSystemBase      PointSystem;//size 0x14
 /*0x1ef8*/ UINT			LoyaltyVelocity;
 /*0x1efc*/ UINT			LoyaltyTokens;
 /*0x1f00*/ bool			bHasLoyaltyInfo;
@@ -2270,14 +2272,14 @@ typedef struct _CHARINFO {
 /*0x27e4*/
 /*********************** CharacterZoneClient End ***********************/
 /******************* PcZoneClient Begine ******************/
-/*0x27e4*/ void *PcZoneClient_vfTable; //see 61A04C jun 11 test 2018
+/*0x27e4*/ void*        PcZoneClient_vfTable; //see 61A04C jun 11 test 2018
 /*0x27e8*/ TSafeArrayStatic<unsigned long, 3> Flags;//size 0xc
 /*0x27f4*/ unsigned __int32 TransfersReceived;
-/*0x27f8*/ int	LastLanguageSpoken;
-/*0x27fc*/ int CurPowerSourceDrain;
+/*0x27f8*/ int	        LastLanguageSpoken;
+/*0x27fc*/ int          CurPowerSourceDrain;
 /*0x2800*/ EQList<ALCHEMYBONUSSKILLDATA*> AlchemyBaseSkillBonusList;
-/*0x2810*/ UINT MomentumBalance; 
-/*0x2814*/ UINT LoyaltyRewardBalance;
+/*0x2810*/ UINT         MomentumBalance; 
+/*0x2814*/ UINT         LoyaltyRewardBalance;
 /*0x2818*/
 /******************* PcZoneClient End ******************/
 /******************* PCClient Begin ************************/
@@ -2289,11 +2291,12 @@ typedef struct _CHARINFO {
 /*0x282c*/ struct _GROUPINFO*   pGroupInfo;
 /*0x2830*/ bool bIAmCreatingGroup;
 /*0x2834*/ VeArray<VePointer<PCONTENTS>> ItemsPendingID;//size 0xc
-/*0x2840*/ int ParcelStatus;//eParcelStatus
-/*0x2844*/ int SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2018 live exe
-/*0x2848*/ short BaseKeyRingSlots[3];
-/*0x284e*/ bool bPickZoneFewest;//for sure see 4A424A in may 11 2018 live exe
-/*0x2850*/ int filler;
+/*0x2840*/ int          ParcelStatus;//eParcelStatus
+/*0x2844*/ int          SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2018 live exe
+/*0x2848*/ short        BaseKeyRingSlots[3];
+/*0x284e*/ bool         bPickZoneFewest;//for sure see 4A424A in may 11 2018 live exe
+/*0x2850*/ int          Unknown0x2850;
+/*0x2854*/
 /******************* PCClient End ************************/
 /*0x2854*/ void*        CharacterBase_vftable;
 /*0x2858*/ CProfileManager ProfileManager;
@@ -2376,7 +2379,11 @@ typedef struct _CHARINFO {
 /*0x2b70*/ int			NoBuffResistCold;
 /*0x2b74*/ int			NoBuffResistPhysical;
 /*0x2b78*/
+#ifdef NEWCHARINFO
+} CHARINFOOLD, *PCHARINFOOLD;
+#else
 } CHARINFO, *PCHARINFO;
+#endif
 
 typedef struct _CHARINFONEW {
 /*********************** PcBase Begin ************************/
@@ -2410,9 +2417,9 @@ typedef struct _CHARINFONEW {
 /*0x1588*/ HashTable<int>	NonrepeatableQuests;
 /*0x1598*/ HashTable<int>	CompletedTasks;
 /*0x15a8*/ HashTable<int>	CompletedQuests;
-/*0x15b8*/ UINT	AlchemyTimestamp;
-/*0x15bc*/ bool	bGoHomeOverride;
-/*0x15bd*/ bool	bSomethingHome;
+/*0x15b8*/ UINT	        AlchemyTimestamp;
+/*0x15bc*/ bool	        bGoHomeOverride;
+/*0x15bd*/ bool	        bSomethingHome;
 /*0x15c0*/ DWORD		LoginTime;//next must start on 8 align
 /*0x15c8*/ __int64      GuildID;//GuildID_0
 /*0x15d0*/ __int64		FellowshipID;
@@ -2483,11 +2490,11 @@ typedef struct _CHARINFONEW {
 /*0x177c*/ DWORD		PreviousZoneID;//EQZoneIndex
 /*0x1780*/ int			RealEstateZoneID;
 /*0x1784*/ CHAR			ServerCreated[0x20];
-/*0x17a4*/ PCAdventureData	AdventureData;//size 0x0d8
-/*0x18ac*/ PCSharedTaskData	SharedTaskData;//size 0x8c
-/*0x1908*/ TaskTimerData*	pTaskTimerData;
+/*0x17a4*/ PCAdventureData	    AdventureData;//size 0x0d8
+/*0x18ac*/ PCSharedTaskData	    SharedTaskData;//size 0x8c
+/*0x1908*/ TaskTimerData*	    pTaskTimerData;
 /*0x190c*/ PCQuestHistoryData	QuestHistoryData;//size 0x258
-/*0x1B64*/ PCStatistics		PcStatistics;//size 0x104 i think
+/*0x1B64*/ PCStatistics		    PcStatistics;//size 0x104 i think
 /*0x1C68*/ GroupMemberStats		GroupStats;//size 0x150 i think
 /*0x1Db8*/ BYTE Unknown0x1Db0[0x9c];
 /*0x1e54*/ bool			bIsLfg;
@@ -2511,7 +2518,7 @@ typedef struct _CHARINFONEW {
 /*0x1ec0*/ bool	        bShowHelm;
 /*0x1ec8*/ __int64      LastTestCopyTime;
 /*0x1ed0*/ CPlayerPointManager PointManager;//size 0x14
-/*0x1ee4*/ PointSystemBase PointSystem;//size 0x14
+/*0x1ee4*/ PointSystemBase     PointSystem;//size 0x14
 /*0x1ee8*/ UINT			LoyaltyVelocity;
 /*0x1eec*/ UINT			LoyaltyTokens;
 /*0x1f00*/ bool			bHasLoyaltyInfo;
@@ -2522,7 +2529,7 @@ typedef struct _CHARINFONEW {
 /*0x1f74*/ bool			bCanRequestPetNameChange;
 /*0x1f75*/ CHAR			OverrideFamiliarName[0x40];
 /*0x1fb5*/ bool			bCanRequestFamiliarNameChange;
-/*0x1fb8*/ _CXSTR		*OverrideMercName[0xb];
+/*0x1fb8*/ _CXSTR*		OverrideMercName[0xb];
 /*0x1FE4*/ bool			bCanRequestMercNameChange;
 /*0x1Fe8*/ PendingRewardList PendingRewards;//size 0x2c
 /*0x2014*/ UINT         DowntimeReductionTime;
@@ -2548,13 +2555,13 @@ typedef struct _CHARINFONEW {
 /*0x2083*/ BYTE         MasterLootCandidate;                     //0=off 1=on
 /*0x2084*/ bool			bIsCorrupted;
 /*0x2088*/ char*		pCorruptionReport;
-/*0x208c*/ TString<0x100> InspectText;
-/*0x218c*/ HashTable<int> BlockedSpellsHash;
+/*0x208c*/ TString<0x100>   InspectText;
+/*0x218c*/ HashTable<int>   BlockedSpellsHash;
 /*0x219c*/ int			BlockedSpell[0x28];
-/*0x223c*/ HashTable<int>		BlockedPetSpellsHash;
+/*0x223c*/ HashTable<int>   BlockedPetSpellsHash;
 /*0x224c*/ int			BlockedPetSpell[0x28];
 /*0x22ec*/ ClaimDataCollection     ConsumableFeatures;//size 0x10
-/*0x23fc*/ bool		bGrantItemsRegistered;
+/*0x23fc*/ bool		    bGrantItemsRegistered;
 /*0x2300*/ unsigned __int64	CreatedGuildID;
 /*0x2308*/ UINT			GuildCreateTime;
 /*0x230c*/ PCXSTR		GuildCreateCharacter;
@@ -2575,7 +2582,7 @@ typedef struct _CHARINFONEW {
 /*0x2368*/ HashTable<CompletedAchievementData, int, ResizePolicyNoShrink> CompletedAchievements;//size 0x10
 /*0x2378*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;//size 0x10
 /*0x2388*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;//size 0x10
-/*0x2398*/ int		LastFellowshipJoin;//next is 8 bit aligned
+/*0x2398*/ int		    LastFellowshipJoin;//next is 8 bit aligned
 /*0x23a0*/ __int64      Vitality;
 /*0x23a8*/ int		    AAVitality;
 /*0x23ac*/ int		    Unknown0x23ac;
@@ -2654,14 +2661,14 @@ typedef struct _CHARINFONEW {
 /*0x27e4*/
 /*********************** CharacterZoneClient End ***********************/
 /******************* PcZoneClient Begine ******************/
-/*0x27e4*/ void *PcZoneClient_vfTable; //see 61A04C jun 11 test 2018
+/*0x27e4*/ void*        PcZoneClient_vfTable; //see 61A04C jun 11 test 2018
 /*0x27e8*/ TSafeArrayStatic<unsigned long, 3> Flags;//size 0xc
 /*0x27f4*/ unsigned __int32 TransfersReceived;
-/*0x27f8*/ int	LastLanguageSpoken;
-/*0x27fc*/ int CurPowerSourceDrain;
+/*0x27f8*/ int	        LastLanguageSpoken;
+/*0x27fc*/ int          CurPowerSourceDrain;
 /*0x2800*/ EQList<ALCHEMYBONUSSKILLDATA*> AlchemyBaseSkillBonusList;
-/*0x2810*/ UINT MomentumBalance; 
-/*0x2814*/ UINT LoyaltyRewardBalance;
+/*0x2810*/ UINT         MomentumBalance; 
+/*0x2814*/ UINT         LoyaltyRewardBalance;
 /*0x2818*/
 /******************* PcZoneClient End ******************/
 /******************* PCClient Begin ************************/
@@ -2669,15 +2676,16 @@ typedef struct _CHARINFONEW {
 /*0x281c*/ DWORD        InCombat;
 /*0x2820*/ DWORD        Downtime;
 /*0x2824*/ DWORD        DowntimeStamp;
-/*0x2828*/ bool bOverrideAvatarProximity;
+/*0x2828*/ bool         bOverrideAvatarProximity;
 /*0x282c*/ struct _GROUPINFO*   pGroupInfo;
-/*0x2830*/ bool bIAmCreatingGroup;
+/*0x2830*/ bool         bIAmCreatingGroup;
 /*0x2834*/ VeArray<VePointer<PCONTENTS>> ItemsPendingID;//size 0xc
-/*0x2840*/ int ParcelStatus;//eParcelStatus
-/*0x2844*/ int SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2018 live exe
-/*0x2848*/ short BaseKeyRingSlots[3];
-/*0x284e*/ bool bPickZoneFewest;//for sure see 4A424A in may 11 2018 live exe
-/*0x2850*/ int filler;
+/*0x2840*/ int          ParcelStatus;//eParcelStatus
+/*0x2844*/ int          SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2018 live exe
+/*0x2848*/ short        BaseKeyRingSlots[3];
+/*0x284e*/ bool         bPickZoneFewest;//for sure see 4A424A in may 11 2018 live exe
+/*0x2850*/ int          Unknown0x2850;
+/*0x2854*/
 /******************* PCClient End ************************/
 /******************* CharacterBase Begin ************************/
 /*0x2854*/ void*        CharacterBase_vftable;
@@ -2691,10 +2699,16 @@ typedef struct _CHARINFONEW {
 /*0x28d0*/ CHAR         Lastname[0x20];//CharBaseBegin+84
 /*0x28f0*/ TSafeString<0x80>	Title;
 /*0x2970*/ TSafeString<0x40>	VehicleName;
-/*0x29b0*/ BYTE        Stunned;//CharBaseBegin+104
-/*0x29b4*/ int         zoneId;//CharBaseBegin+108 Zone_0
-/*0x29b8*/ BYTE        standstate;//CharBaseBegin+10c
-/*0x29bc*/ RaidData raidData;//size 0xdc
+/*0x29b0*/ BYTE         Stunned;//CharBaseBegin+104
+union {
+/*0x29b4*/ int          zoneId;//CharBaseBegin+108 Zone_0
+struct {
+/*0x29b4*/ WORD         Unknown0x29b4;
+/*0x29b6*/ WORD         instance;
+};
+};
+/*0x29b8*/ BYTE         standstate;//CharBaseBegin+10c
+/*0x29bc*/ RaidData     raidData;//size 0xdc
 /*0x2a98*/ DWORD        ExpansionFlags;//CharBaseBegin+464
 /*0x2a9c*/ bool			bSuperPKILL;
 /*0x2a9d*/ bool			bUnclone;
@@ -2759,7 +2773,11 @@ typedef struct _CHARINFONEW {
 /*0x2b70*/ int			NoBuffResistCold;
 /*0x2b74*/ int			NoBuffResistPhysical;
 /*0x2b78*/
+#ifdef NEWCHARINFO
+} CHARINFO, *PCHARINFO;
+#else
 } CHARINFONEW, *PCHARINFONEW;
+#endif
 
 typedef struct _INVENTORYARRAY {
 union {

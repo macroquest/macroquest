@@ -3005,7 +3005,7 @@ bool MQ2CharacterType::GETMEMBER()
 				if (nSlot<NUM_BANK_SLOTS)
 				{
 #ifdef NEWCHARINFO
-					if (pChar && pChar->BankItems.Size > nSlot) {
+					if (pChar && pChar->BankItems.Items.Size > (UINT)nSlot) {
 						if (Dest.Ptr = pChar->BankItems.Items[nSlot].pObject)
 #else
 					if (pChar && pChar->pBankArray) {
@@ -3022,7 +3022,7 @@ bool MQ2CharacterType::GETMEMBER()
 					if (nSlot<NUM_SHAREDBANK_SLOTS)
 					{
 #ifdef NEWCHARINFO
-						if (pChar && pChar->SharedBankItems.Size > nSlot) {
+						if (pChar && pChar->SharedBankItems.Items.Size > (UINT)nSlot) {
 							if (Dest.Ptr = pChar->SharedBankItems.Items[nSlot].pObject)
 #else
 						if (pChar && pChar->pSharedBankArray) {
@@ -10834,7 +10834,8 @@ bool MQ2InvSlotType::GETMEMBER()
 							unsigned long nSlot = (nInvSlot - 2) % 10;
 							PCONTENTS pPack = NULL;
 #ifdef NEWCHARINFO
-							if (pCharInfo && pCharInfo->BankItems.Size) pPack = pCharInfo->BankItems.Items[nPack].pObject;
+							if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
+								pPack = pCharInfo->BankItems.Items[nPack].pObject;
 #else
 							if (pCharInfo && pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
 #endif
@@ -10855,7 +10856,8 @@ bool MQ2InvSlotType::GETMEMBER()
 							unsigned long nSlot = (nInvSlot - 2) % 10;
 							PCONTENTS pPack = NULL;
 #ifdef NEWCHARINFO
-							if (pCharInfo && pCharInfo->BankItems.Size) pPack = pCharInfo->BankItems.Items[nPack].pObject;
+							if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
+								pPack = pCharInfo->BankItems.Items[nPack].pObject;
 #else
 							if (pCharInfo && pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
 #endif
@@ -10873,7 +10875,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						else if (nInvSlot >= 2000 && nInvSlot < 2024)
 						{
 #ifdef NEWCHARINFO
-							if (pCharInfo && pCharInfo->BankItems.Size) {
+							if (pCharInfo && pCharInfo->BankItems.Items.Size > (UINT)nInvSlot - 2000) {
 								if (Dest.Ptr = pCharInfo->BankItems.Items[nInvSlot - 2000].pObject)
 #else
 							if (pCharInfo && pCharInfo->pBankArray) {
@@ -10888,7 +10890,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						else if (nInvSlot == 2500 || nInvSlot == 2501)
 						{
 #ifdef NEWCHARINFO
-							if (pCharInfo && pCharInfo->BankItems.Size) {
+							if (pCharInfo && pCharInfo->BankItems.Items.Size > (UINT)nInvSlot - 2500 + 22) {
 								if (Dest.Ptr = pCharInfo->BankItems.Items[nInvSlot - 2500 + 22].pObject)
 #else
 							if (pCharInfo && pCharInfo->pBankArray) {

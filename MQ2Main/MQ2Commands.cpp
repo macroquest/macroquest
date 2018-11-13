@@ -3022,7 +3022,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 	char Link[MAX_STRING] = { 0 };
 	for (int a = 0; a<NUM_BANK_SLOTS; a++) {
 #ifdef NEWCHARINFO
-		if (pCharInfo && pCharInfo->BankItems.Size > a)
+		if (pCharInfo && pCharInfo->BankItems.Items.Size > (UINT)a)
 			pContainer = pCharInfo->BankItems.Items[a].pObject;
 #else
 		if (pCharInfo && pCharInfo->pBankArray)

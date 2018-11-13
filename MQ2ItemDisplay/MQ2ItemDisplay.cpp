@@ -2765,7 +2765,7 @@ int DoIHave(PITEMINFO Item)
 				PCHARINFO pCharInfo = GetCharInfo();
 				PCONTENTS pPack = NULL;
 #ifdef NEWCHARINFO
-				if (pCharInfo && pCharInfo->BankItems.Size > nPack)
+				if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
 					pPack = pCharInfo->BankItems.Items[nPack].pObject;
 #else
 				if (pCharInfo && pCharInfo->pBankArray)
@@ -2806,7 +2806,7 @@ int DoIHave(PITEMINFO Item)
 				PCHARINFO pCharInfo = GetCharInfo();
 				PCONTENTS pPack = NULL;
 #ifdef NEWCHARINFO
-				if (pCharInfo && pCharInfo->SharedBankItems.Size)
+				if (pCharInfo && pCharInfo->SharedBankItems.Items.Size)
 					pPack = pCharInfo->SharedBankItems.Items[nPack].pObject;
 #else
 				if (pCharInfo && pCharInfo->pSharedBankArray)
