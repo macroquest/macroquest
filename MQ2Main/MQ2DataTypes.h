@@ -2114,6 +2114,10 @@ public:
 		Illusion = 159,
 		Familiar = 160,
 		CanUse = 161,
+		LoreEquipped = 162,
+		Luck = 163,
+		MinLuck = 164,
+		MaxLuck = 165,
 	};
 	enum ItemMethods
 	{
@@ -2281,6 +2285,10 @@ public:
 		TypeMember(Illusion);
 		TypeMember(Familiar);
 		TypeMember(CanUse);
+		TypeMember(LoreEquipped);
+		TypeMember(Luck);
+		TypeMember(MinLuck);
+		TypeMember(MaxLuck);
 	}
 
 	~MQ2ItemType()

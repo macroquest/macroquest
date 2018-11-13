@@ -6667,6 +6667,9 @@ bool MQ2ItemType::GETMEMBER()
 #define pItem ((PCONTENTS)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+	PITEMINFO pItemInfo = GetItemFromContents(pItem);
+	if (!pItemInfo)
+		return false;
 	PMQ2TYPEMEMBER pMember = MQ2ItemType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -6683,9 +6686,15 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Lore:
-		Dest.DWord = GetItemFromContents(pItem)->Lore;
+		Dest.DWord = ((ItemBase *)pItem)->IsLore(false);
 		Dest.Type = pBoolType;
 		return true;
+#if defined(EQBETA)
+	case LoreEquipped:
+		Dest.DWord = ((ItemBase *)pItem)->IsLoreEquipped(false);
+		Dest.Type = pBoolType;
+		return true;
+#endif
 	case NoDrop:
 	case NoTrade:
 		Dest.DWord = !((EQ_Item*)pItem)->CanDrop(0, 1);
@@ -8014,11 +8023,11 @@ bool MQ2ItemType::GETMEMBER()
 		{
 			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))//a worldcontainer has its item in Item1
 			{
-				Dest.DWord = 0;
+				Dest.DWord = -1;
 				if (pTheCont->Contents.ContainedItems.pItems) {
 					for (unsigned long N = 0; N < pTheItem->Slots; N++) {
 						if (!pTheCont->Contents.ContainedItems.pItems->Item[N]) {
-							Dest.DWord = N + 1;
+							Dest.DWord = N;
 							break;
 						}
 					}
@@ -8124,6 +8133,20 @@ bool MQ2ItemType::GETMEMBER()
 			return true;
 		}
 		return false;
+#if defined(EQBETA)
+	case Luck:
+		Dest.DWord = pItem->Luck;
+		Dest.Type = pIntType;
+		return true;
+	case MinLuck:
+		Dest.DWord = GetItemFromContents(pItem)->MinLuck;
+		Dest.Type = pIntType;
+		return true;
+	case MaxLuck:
+		Dest.DWord = GetItemFromContents(pItem)->MaxLuck;
+		Dest.Type = pIntType;
+		return true;
+#endif
 	}
 	return false;
 #undef pItem

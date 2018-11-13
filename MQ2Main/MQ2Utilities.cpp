@@ -4394,7 +4394,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 
 #if 1
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	for (unsigned long N = 0; N < 0x800; N++)
+	for (unsigned long N = 0; N < MAX_INV_SLOTS; N++)
 	{
 		class CInvSlot *pCIS = NULL;
 		struct _CONTENTS *pC = NULL;
@@ -4450,7 +4450,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 	_strlwr_s(Name);
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	for (unsigned long N = 0; N < 0x800; N++)
+	for (unsigned long N = 0; N < MAX_INV_SLOTS; N++)
 	{
 		if (pInvMgr->SlotArray[N])
 		{
@@ -4502,7 +4502,7 @@ int FindNextInvSlot(PCHAR pName, BOOL Exact)
 
 #if 0
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	for (unsigned long N = LastFoundInvSlot + 1; N < 0x800; N++)
+	for (unsigned long N = LastFoundInvSlot + 1; N < MAX_INV_SLOTS; N++)
 	{
 		if (pInvMgr->SlotArray[N])
 		{

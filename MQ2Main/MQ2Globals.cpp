@@ -2183,6 +2183,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsValidIndex);
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__ItemBaseContainer);
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
+	INITIALIZE_EQGAME_OFFSET(ItemBase__IsLore);
+	#if defined(EQBETA)
+	INITIALIZE_EQGAME_OFFSET(ItemBase__IsLoreEquipped);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
 	INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__CreateWindowInstance);

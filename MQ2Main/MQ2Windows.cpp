@@ -101,9 +101,20 @@ public:
 		}
 		return CTargetWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
 	}
+	int CSidlScreenWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *);
+	int CSidlScreenWnd__WndNotification_Detour(class CXWnd *pWnd, unsigned int uiMessage, void* pData)
+	{
+		if ((int)uiMessage == XWM_LINK)
+		{
+			Sleep(0);
+		}
+		return CSidlScreenWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
+	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
+
 
 class CXWndManagerHook
 {
@@ -200,6 +211,8 @@ void InitializeMQ2Windows()
     EzDetourwName(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline,"CSidlScreenWnd__Init1");
 	EzDetourwName(CTargetWnd__WndNotification,&CSidlInitHook::CTargetWnd__WndNotification_Detour,&CSidlInitHook::CTargetWnd__WndNotification_Tramp,"CTargetWnd__WndNotification");
     EzDetourwName(CXWndManager__RemoveWnd,&CXWndManagerHook::RemoveWnd_Detour,&CXWndManagerHook::RemoveWnd_Trampoline,"CXWndManager__RemoveWnd");
+    //debugging
+	//EzDetourwName(CChatWindow__WndNotification,&CSidlInitHook::CSidlScreenWnd__WndNotification_Detour,&CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp,"linktest");
 
 #ifndef ISXEQ
     AddCommand("/windows",ListWindows,false,true,false);
@@ -266,6 +279,10 @@ void ShutdownMQ2Windows()
     RemoveDetour(CSidlScreenWnd__Init1);
     RemoveDetour(CTargetWnd__WndNotification);
     RemoveDetour(CXWndManager__RemoveWnd);
+	//for testing notifications, only for debugging
+	//dont leave active for release
+    //RemoveDetour(CChatWindow__WndNotification);
+	
 	//WindowList.clear();
 }
 
@@ -1503,7 +1520,7 @@ int ItemNotify(int argc, char *argv[])
 			}
 			WriteChatf("[/itemnotify] Invalid item slot '%s'",szArg1);
             RETURN(0);
-        } else if (Slot > 0 && Slot < 0x800 && !pSlot) {
+        } else if (Slot > 0 && Slot < MAX_INV_SLOTS && !pSlot) {
             pSlot = pInvMgr->SlotArray[Slot];
         }
     }
@@ -1532,7 +1549,7 @@ int ListItemSlots(int argc, char *argv[])
     unsigned long Count=0;
     WriteChatColor("List of available item slots");
     WriteChatColor("-------------------------");
-    for (unsigned long N = 0 ; N < 0x800 ; N++)
+    for (unsigned long N = 0 ; N < MAX_INV_SLOTS ; N++)
         if (PEQINVSLOT pSlot=pMgr->SlotArray[N])
         {
             if (pSlot->pInvSlotWnd)

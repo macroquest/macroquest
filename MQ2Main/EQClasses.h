@@ -310,6 +310,7 @@ class flex_unit;
 class GrammarRulesClass;
 class GuildMember;
 class IconCache;
+class ItemBase;
 //class ItemBaseContainer;
 class JournalNPC;
 class KeyCombo;
@@ -1640,6 +1641,12 @@ EQLIB_OBJECT void CConfirmationDialog::ResetFocusOnClose(void);
 /*0x16c*/    struct _CXWND *pOKButton;
 /*0x170*/    BYTE    Unknown0x170[0x18];
 /*0x188*/
+};
+class ItemBase
+{
+public:
+	EQLIB_OBJECT bool ItemBase::IsLore(bool bIncludeSockets = false) const;
+	EQLIB_OBJECT bool ItemBase::IsLoreEquipped(bool bIncludeSockets = false) const;
 };
 class ItemGlobalIndex
 {
@@ -7385,7 +7392,7 @@ EQLIB_OBJECT int EQ_Item::Silver(void);
 EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long)const;
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
 EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int); // Lax 11-14-2003
-EQLIB_OBJECT int EQ_Item::CanDrop(bool,int,int mq2_dummy=0, int mq2_dummy2=1);
+EQLIB_OBJECT bool EQ_Item::CanDrop(bool bDisplayText = false, bool bIncludeContainedItems = true, bool bAllowOverrideNoDropCheck = false, bool bCantDropIfContainingRealEstate = true) const;
 EQLIB_OBJECT int EQ_Item::GetImageNum(void)const;
 EQLIB_OBJECT struct  _CONTENTS** __cdecl CreateItemClient(PBYTE*,DWORD);
 EQLIB_OBJECT int EQ_Item::GetItemValue(bool)const;

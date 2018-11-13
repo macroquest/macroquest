@@ -1519,7 +1519,10 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD ItemBaseContainer__ItemBaseContainer;
 	EQLIB_VAR DWORD ItemBaseContainer__CreateItemGlobalIndex;
-
+	
+	EQLIB_VAR DWORD ItemBase__IsLore;
+	EQLIB_VAR DWORD ItemBase__IsLoreEquipped;
+	
 	EQLIB_VAR DWORD EQItemList__EQItemList;
 	EQLIB_VAR DWORD EQItemList__add_item;
 	EQLIB_VAR DWORD EQItemList__delete_item;

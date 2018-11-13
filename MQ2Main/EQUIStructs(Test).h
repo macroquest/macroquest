@@ -77,7 +77,7 @@ enum UIType
    UI_TopLevelWindowList=53,
    UI_HotButton=54,
 };
-
+#define MAX_INV_SLOTS 0x900
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -807,17 +807,17 @@ typedef struct _EQINVSLOT {
 /*0x14*/    
 } EQINVSLOT, *PEQINVSLOT;
 
-// actual size 0x2014 10-12-2010
-// confirmed (size) 2013 dec 10 eqgame.exe at 497E7A -eqmule
-// confirmed 2014-03-31 - eqmule
+// Size 0x2418 see 534532 in Nov 06 2018 Test - eqmule
 typedef struct _EQINVSLOTMGR {
-/*0x0000*/    DWORD Unknown0x0000;
-/*0x0004*/    struct _EQINVSLOT *SlotArray[0x800];
-/*0x2004*/    DWORD TotalSlots;
-/*0x2008*/    DWORD Unknown0x2008;
-/*0x200c*/    struct _EQINVSLOT *pSelectedItem;
-/*0x2010*/    DWORD Unknown0x2010;
-/*0x2014*/
+/*0x0000*/    PVOID vfTable;
+/*0x0004*/    struct _EQINVSLOT *SlotArray[MAX_INV_SLOTS];//size 0x2400 //see 72E00F in Nov 06 2018 Test - eqmule
+/*0x2404*/    DWORD TotalSlots;
+/*0x2408*/    UINT LastUpdate;
+/*0x240c*/    struct _EQINVSLOT *pSelectedItem;//LastSelectedSlot
+/*0x2410*/    int  Unknown0x2410;
+/*0x2414*/    bool bToggleBagsOpen;
+/*0x2415*/    bool bToggleBankBagsOpen;
+/*0x2418*/
 } EQINVSLOTMGR, *PEQINVSLOTMGR;
 
 // onetimehero 09-17-03

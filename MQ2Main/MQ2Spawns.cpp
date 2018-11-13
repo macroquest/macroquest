@@ -512,6 +512,10 @@ BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
                         oktoanon = true;
                         strcpy_s(szType, "PET");
                         break;
+					case CORPSE:
+						oktoanon = true;
+						strcpy_s(szType, "CORPSE");
+						break;
                 };
                 if (oktoanon) {
                     if (gszAnonCaption[0] == '\0') {

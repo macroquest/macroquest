@@ -140,15 +140,14 @@ FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__Cr
 FUNCTION_AT_ADDRESS(int EQ_Item::GetImageNum(void)const,EQ_Item__GetImageNum); // Eqmule 02-07-2014
 #endif
 #ifdef EQ_Item__CreateItemClient_x
-FUNCTION_AT_ADDRESS(struct  _CONTENTS** __cdecl EQ_Item::CreateItemClient(PBYTE*,DWORD),EQ_Item__CreateItemClient); // Eqmule 08-27-2015
+FUNCTION_AT_ADDRESS(_CONTENTS** __cdecl EQ_Item::CreateItemClient(PBYTE*,DWORD),EQ_Item__CreateItemClient); // Eqmule 08-27-2015
 #endif
 #ifdef CStmlWnd__AppendSTML_x
 FUNCTION_AT_ADDRESS(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
 #endif
 #ifdef EQ_Item__CanDrop_x
-FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(bool,int,int,int),EQ_Item__CanDrop); // dkaa 2-11-2011
+FUNCTION_AT_ADDRESS(bool EQ_Item::CanDrop(bool,bool,bool,bool) const,EQ_Item__CanDrop);
 #endif
-
 ///////////////////////////////////////////////////////////////////
 #ifdef EQ_Character__Max_Endurance_x
 FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_Endurance(bool),EQ_Character__Max_Endurance);
@@ -3292,6 +3291,14 @@ FUNCTION_AT_ADDRESS(ItemGlobalIndex CharacterBase::CreateItemGlobalIndex(int, in
 #endif
 #ifdef CharacterBase__CreateItemIndex_x
 FUNCTION_AT_ADDRESS(ItemIndex CharacterBase::CreateItemIndex(int,int,int), CharacterBase__CreateItemIndex);
+#endif
+#if defined(EQBETA)
+#ifdef ItemBase__IsLoreEquipped_x
+FUNCTION_AT_ADDRESS(bool ItemBase::IsLoreEquipped(bool bIncludeSockets) const, ItemBase__IsLoreEquipped);
+#endif
+#endif
+#ifdef ItemBase__IsLore_x
+FUNCTION_AT_ADDRESS(bool ItemBase::IsLore(bool bIncludeSockets) const, ItemBase__IsLore);
 #endif
 #ifdef ItemGlobalIndex__IsKeyRingLocation_x
 FUNCTION_AT_ADDRESS(bool ItemGlobalIndex::IsKeyRingLocation(void), ItemGlobalIndex__IsKeyRingLocation);

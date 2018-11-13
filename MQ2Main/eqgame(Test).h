@@ -1117,6 +1117,9 @@ GNU General Public License for more details.
 #define CGroupWnd__WndNotification_x                               0x711210
 #define CGroupWnd__UpdateDisplay_x                                 0x710570
 
+//ItemBase
+#define ItemBase__IsLore_x                                         0x88AA70
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
