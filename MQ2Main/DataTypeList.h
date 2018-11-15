@@ -88,7 +88,9 @@ DATATYPE(MQ2SolventType, pSolventType, nullptr, 0);
 DATATYPE(MQ2AugType, pAugType, nullptr, 0);
 DATATYPE(MQ2RangeType, pRangeType, nullptr, 0);
 DATATYPE(MQ2AuraType, pAuraType, nullptr, 0);
+#if !defined(UFEMU)
 DATATYPE(MQ2BandolierItemType, pBandolierItemType, nullptr, 0);
 DATATYPE(MQ2BandolierType, pBandolierType, nullptr, 0);
+#endif
 #pragma warning( pop )
 #undef DATATYPE // In case the includer forgets

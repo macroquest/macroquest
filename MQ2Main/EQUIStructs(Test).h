@@ -198,9 +198,7 @@ typedef struct _CSIDLWNDVFTABLE {
 	/*0x170*/ LPVOID  LoadIniInfo;
 	/*0x174*/ LPVOID  StoreIniInfo;
 	/*0x178*/ LPVOID  EQObject__AsObject;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	/*0x17c*/ LPVOID  CTreeViewPropertySet__IsPropertySet;
-#endif
 	/*0x180*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 

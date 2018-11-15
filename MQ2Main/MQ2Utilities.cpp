@@ -1535,21 +1535,30 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 	return fRunSpeed;
 }
 
-VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
+VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize)
 {
-	((EQ_Item*)Item)->CreateItemTagString(Buffer, 0x800);
+#if defined(EQBETA)
+	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize, true);
+#else
+	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize);
+#endif
 }
-//
+
 BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable)
 {
 	char hash[MAX_STRING] = { 0 };
 	bool retVal = FALSE;
+#if defined(EQBETA)
+	GetItemLinkHash(Item, hash);
+#else
 	((EQ_Item*)Item)->CreateItemTagString(hash, sizeof(hash));
-	if (hash[0]) {
-		if (Clickable)
+#endif
+	if (int len=strlen(hash)) {
+		if (Clickable) {
 			sprintf_s(Buffer, BufferSize, "%c0%s%s%c", 0x12, hash, GetItemFromContents(Item)->Name, 0x12);
-		else
+		} else {
 			sprintf_s(Buffer, BufferSize, "0%s%s", hash, GetItemFromContents(Item)->Name);
+		}
 		retVal = TRUE;
 	}
 	#ifdef _DEBUG
@@ -7340,7 +7349,7 @@ float GetMeleeRange(class EQPlayer *pSpawn1, class EQPlayer *pSpawn2)
 DWORD GetSpellGemTimer(DWORD nGem)
 {
 	_EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
-#if !defined(UFEMU) && !defined(ROF2EMU)//todo: check manually
+#if !defined(UFEMU)//todo: check manually
 	if (g->Wnd.CoolDownBeginTime) {
 		return g->Wnd.CoolDownBeginTime + g->Wnd.CoolDownDuration - EQGetTime();
 	}

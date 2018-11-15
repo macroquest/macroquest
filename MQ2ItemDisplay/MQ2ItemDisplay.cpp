@@ -512,7 +512,7 @@ public:
         if (pSpell == NULL) {
             return;
         }
-        CHAR out[4096] = {0};
+        CHAR out[MAX_STRING*2] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
 			#if defined(ROF2EMU) || defined(UFEMU)
@@ -706,7 +706,7 @@ public:
             return;
         }
 
-        CHAR out[4096] = {0};
+        CHAR out[MAX_STRING*2] = {0};
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
 			#if defined(ROF2EMU) || defined(UFEMU)
@@ -882,7 +882,7 @@ public:
 		}
         PCONTENTS item=(PCONTENTS)This->pItem;
         volatile PITEMINFO Item=GetItemFromContents(item);
-        CHAR out[4096] = {0};
+        CHAR out[MAX_STRING*2] = {0};
         CHAR temp[MAX_STRING] = {0};
         PCHAR lore = NULL;
 

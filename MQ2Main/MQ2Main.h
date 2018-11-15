@@ -96,8 +96,8 @@ extern CRITICAL_SECTION gPluginCS;
 //do nothing because the user has set one of these as a preprocessor argument instead...
 //we default to LIVE though...
 #else
-//define LIVE, TEST, EQBETA ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define EQBETA
+//define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
+#define LIVE
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -609,7 +609,11 @@ EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
-EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer);
+EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize);
+template <unsigned int _Size>__declspec(dllexport) VOID GetItemLinkHash(PCONTENTS Item, CHAR(&Buffer)[_Size])
+{
+	return GetItemLinkHash(Item, Buffer, _Size);
+}
 EQLIB_API BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
 template <unsigned int _Size>__declspec(dllexport) BOOL GetItemLink(PCONTENTS Item, CHAR(&Buffer)[_Size], BOOL Clickable = TRUE)
 {

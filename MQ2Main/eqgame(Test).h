@@ -1119,6 +1119,7 @@ GNU General Public License for more details.
 
 //ItemBase
 #define ItemBase__IsLore_x                                         0x88AA70
+#define ItemBase__IsLoreEquipped_x                                 0x88AAE0
 
 //patterns
 //LoginController__GiveTime_x

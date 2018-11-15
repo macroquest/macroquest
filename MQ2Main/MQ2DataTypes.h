@@ -5926,6 +5926,7 @@ public:
 		return false;
 	}
 };
+#if !defined(UFEMU)
 class MQ2BandolierItemType : public MQ2Type
 {
 public:
@@ -6015,3 +6016,4 @@ public:
 		return false;
 	}
 };
+#endif

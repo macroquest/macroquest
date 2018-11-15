@@ -1579,7 +1579,7 @@ struct PCAdventureData
 /*0x058*/	int AdventurePointsAvailableMax;
 /*0x05c*/	UINT AdventureLastSuccessTime;
 /*0x060*/	PCAdventureThemeStats ThemeStats[6];
-/*0x078*/
+/*0x0d8*/
 };
 
 struct MonsterMissionTemplate

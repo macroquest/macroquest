@@ -5659,6 +5659,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 #endif
+#if !defined(UFEMU)
 	case Bandolier:
 	{
 		if (PCHARINFO2 pChar2 = GetCharInfo2())
@@ -5689,6 +5690,7 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		break;
 	}
+#endif
 		//end of MQ2CharacterType
 	}
 	return false;
@@ -6689,7 +6691,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = ((ItemBase *)pItem)->IsLore(false);
 		Dest.Type = pBoolType;
 		return true;
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 	case LoreEquipped:
 		Dest.DWord = ((ItemBase *)pItem)->IsLoreEquipped(false);
 		Dest.Type = pBoolType;
@@ -14870,6 +14872,7 @@ bool MQ2AuraType::GETMEMBER()
 	}
 	return false;
 }
+#if !defined(UFEMU)
 bool MQ2BandolierItemType::GETMEMBER()
 {
 	if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
@@ -15059,3 +15062,4 @@ bool MQ2BandolierType::GETMEMBER()
 	}
 	return false;
 }
+#endif
