@@ -1519,7 +1519,7 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD ItemBaseContainer__ItemBaseContainer;
 	EQLIB_VAR DWORD ItemBaseContainer__CreateItemGlobalIndex;
-	
+
 	EQLIB_VAR DWORD ItemBase__IsLore;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR DWORD ItemBase__IsLoreEquipped;

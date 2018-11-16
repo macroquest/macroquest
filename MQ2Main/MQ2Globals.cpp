@@ -2184,7 +2184,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__ItemBaseContainer);
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(ItemBase__IsLore);
-#if defined(EQBETA)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(ItemBase__IsLoreEquipped);
 #endif
 	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);

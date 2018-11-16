@@ -5691,7 +5691,7 @@ bool MQ2CharacterType::GETMEMBER()
 		break;
 	}
 #endif
-		//end of MQ2CharacterType
+	//end of MQ2CharacterType
 	}
 	return false;
 #undef pChar
@@ -6691,7 +6691,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = ((ItemBase *)pItem)->IsLore(false);
 		Dest.Type = pBoolType;
 		return true;
-#if defined(EQBETA) || defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	case LoreEquipped:
 		Dest.DWord = ((ItemBase *)pItem)->IsLoreEquipped(false);
 		Dest.Type = pBoolType;

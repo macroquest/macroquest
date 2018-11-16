@@ -3296,7 +3296,7 @@ FUNCTION_AT_ADDRESS(ItemGlobalIndex CharacterBase::CreateItemGlobalIndex(int, in
 #ifdef CharacterBase__CreateItemIndex_x
 FUNCTION_AT_ADDRESS(ItemIndex CharacterBase::CreateItemIndex(int,int,int), CharacterBase__CreateItemIndex);
 #endif
-#if defined(EQBETA)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 #ifdef ItemBase__IsLoreEquipped_x
 FUNCTION_AT_ADDRESS(bool ItemBase::IsLoreEquipped(bool bIncludeSockets) const, ItemBase__IsLoreEquipped);
 #endif
