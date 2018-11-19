@@ -15,11 +15,13 @@ CHAR szGroupDistance[128] = { "Member Distance" };
 CHAR szCanSeeTarget[128] = { "Can See Target" };
 CHAR szPHToolTip[128] = { "Target is a Place Holder" };
 CHAR szPH[128] = { "PH" };
-CHAR szNavToolTip[128] = { "ALL will Nav to Me" };
-CHAR szNav[128] = { "Come to Me" };
-CHAR szFollowMeToolTip[128] = { "Follow Me around." };
-CHAR szFollowMe[128] = { "Follow Me" };
-CHAR szMimicMeToolTip[128] = { "Everyone does what I do, I target something, they do as well, I hail, they hail, etc." };
+CHAR szNavToolTip[MAX_STRING] = { 0 };
+CHAR szNavCommand[MAX_STRING] = { 0 };
+CHAR szNav[128] = { 0 };
+CHAR szFollowMeToolTip[MAX_STRING] = { 0 };
+CHAR szFollowMe[128] = { 0 };
+CHAR szFollowMeCommand[MAX_STRING] = { 0 };
+CHAR szMimicMeToolTip[128] = { "Everyone do what I do, I target something, they do as well, I hail, they hail, etc." };
 CHAR szMimicMe[128] = { "Mimic Me" };
 CHAR szMMainTip[128] = { "MQ2TargetInfo is Active: Type /groupinfo help or rightclick this window to see a menu" };
 
@@ -160,6 +162,10 @@ CLabelWnd *GroupDistLabel2 = 0;
 CLabelWnd *GroupDistLabel3 = 0;
 CLabelWnd *GroupDistLabel4 = 0;
 CLabelWnd *GroupDistLabel5 = 0;
+
+CGaugeWnd *ETW_Gauge[23] = { 0 };
+CLabelWnd *ETW_DistLabel[23] = { 0 };
+
 bool CreateDistLabel(CGroupWnd*pGwnd,CControlTemplate *DistLabelTemplate,CLabelWnd **labelwnd,char*label,int top, int bottom, int right,bool bShow)
 {
 	SetCXStr(&DistLabelTemplate->Name, label);
@@ -218,6 +224,7 @@ bool gBShowComeToMeButton = TRUE;
 bool gBShowFollowMeButton = TRUE;
 bool gBShowHotButton = TRUE;
 bool gBShowDistance = TRUE;
+bool gBShowExtDistance = TRUE;
 
 void RemoveOurMenu(CGroupWnd*pGwnd)
 {
@@ -313,6 +320,25 @@ void WriteSetting(const char*Key, const char*value)
 	int ival = atoi(value);
 	WriteChatf("\ayMQ2TargetInfo\ax::\am%s is now %s\ax.",Key, ival ? "\aoON" : "\agOFF");
 }
+template <unsigned int _Size>LPSTR ReadStringSetting(char*Key,char *defaultval,char(&_Out)[_Size])
+{
+	CHAR szSettingINISection[MAX_STRING] = { 0 };
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0' || !gBUsePerCharSettings)
+	{
+		strcpy_s(szSettingINISection, "Default");
+	}
+	else
+	{
+		sprintf_s(szSettingINISection, "%s_%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
+	}
+	int ret = GetPrivateProfileString(szSettingINISection, Key, "",_Out,_Size, INIFileName);
+	if (_Out[0] == '\0')
+	{
+		WritePrivateProfileString(szSettingINISection, Key,defaultval, INIFileName);
+		strcpy_s(_Out, _Size, defaultval);
+	}
+	return _Out;
+}
 int ReadSetting(char*Key,int defaultval)
 {
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
@@ -403,6 +429,13 @@ void ReadIniSettings()
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowDistance", "1", INIFileName);
 	}
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowExtDistance", -1, INIFileName);
+	gBShowExtDistance = (ret == 0 ? FALSE : TRUE);
+	if (ret == -1)
+	{
+		WritePrivateProfileString(szSettingINISection, "ShowExtDistance", "1", INIFileName);
+	}
+	
 }
 void Initialize()
 {
@@ -447,6 +480,10 @@ void Initialize()
 				{
 					CButtonWnd*Butt = (CButtonWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_InviteButton");
 					//Come To Me button
+					//We let people customize what this button does:
+					ReadStringSetting("ComeToMeText","Come To Me",szNav);
+					ReadStringSetting("ComeToMeCommand","/bcg //nav id ${Me.ID}",szNavCommand);
+					ReadStringSetting("ComeToMeToolTip",szNavCommand,szNavToolTip);
 					int top = ReadSetting("ComeToMeTop", Butt->TopOffset + 39);
 					int bottom = ReadSetting("ComeToMeBottom", Butt->BottomOffset + 26);
 					int left = ReadSetting("ComeToMeLeft", 6);
@@ -454,6 +491,9 @@ void Initialize()
 					CreateAButton(pGwnd, NavButtonTemplate, &NavButton, "GW_NavButton", "NavButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szNavToolTip, szNav,gBShowComeToMeButton);
 					
 					//Follow Me button
+					ReadStringSetting("FollowMeText","Follow Me",szFollowMe);
+					ReadStringSetting("FollowMeCommand","/bcg //afollow spawn ${Me.ID}",szFollowMeCommand);
+					ReadStringSetting("FollowMeeToolTip",szFollowMeCommand,szFollowMeToolTip);
 					top = ReadSetting("FollowMeTop", Butt->TopOffset + 39);
 					bottom = ReadSetting("FollowMeBottom", Butt->BottomOffset + 26);
 					left = ReadSetting("FollowMeLeft", 48);
@@ -615,6 +655,25 @@ void Initialize()
 				SetCXStr(&CanSeeLabelTemplate->Name, "Target_AggroNameSecondaryLabel");
 				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_AggroNameSecondaryLabel");
 				SetCXStr(&CanSeeLabelTemplate->Controller, "304");
+			}
+		}
+		if (CXWnd*pExtWnd = FindMQ2Window("ExtendedTargetWnd"))
+		{
+			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
+			if (DistLabelTemplate) {
+
+				SetCXStr(&DistLabelTemplate->Controller, "0");
+				CHAR szTemp[MAX_STRING] = { 0 };
+				for (int i = 0; i < 23; i++)
+				{
+					sprintf_s(szTemp, "ETW_Gauge%d", i);
+					ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp);
+					sprintf_s(szTemp, "ETW_DistLabel%d", i);
+					CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->TopOffset, ETW_Gauge[i]->BottomOffset, ETW_Gauge[i]->RightOffset, gBShowExtDistance);
+				}
+				SetCXStr(&DistLabelTemplate->Name, "Target_AggroPctSecondaryLabel");
+				SetCXStr(&DistLabelTemplate->ScreenID, "Target_AggroPctSecondaryLabel");
+				SetCXStr(&DistLabelTemplate->Controller, "308");
 			}
 		}
 	}
@@ -800,33 +859,80 @@ public:
 			}
 			else if (pWnd == NavButton)
 			{
+				if (strstr(szNavCommand, "/bc"))
+				{
+					bool bConnectedtoEqBCs = false;
+					if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
+					{
+						unsigned short(*fisConnected)();
+						if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
+						{
+							if (fisConnected())
+							{
+								bConnectedtoEqBCs = true;
+							}
+						}
+					}
+					if (!bConnectedtoEqBCs)
+					{
+						WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szNav);
+						return 1;
+					}
+				}
 				StopMovement();
 				CHAR szMe[MAX_STRING] = { 0 };
-				sprintf_s(szMe, "/bcg //nav id %d", ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+				strcpy_s(szMe, szNavCommand);
+				ParseMacroData(szMe, MAX_STRING);
 				DoCommand((PSPAWNINFO)pLocalPlayer, szMe);
 				return 1;
 			} else if (pWnd == FollowMeButton)
 			{
+				if (strstr(szNavCommand, "/bc"))
+				{
+					bool bConnectedtoEqBCs = false;
+					if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
+					{
+						unsigned short(*fisConnected)();
+						if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
+						{
+							if (fisConnected())
+							{
+								bConnectedtoEqBCs = true;
+							}
+						}
+					}
+					if(!bConnectedtoEqBCs)
+					{
+						WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szFollowMe);
+						return 1;
+					}
+				}
 				if(!FollowMeButton->Checked)
 					StopMovement(false);
 				gbFollowme ^= true;
 				FollowMeButton->Checked = gbFollowme;
 				CHAR szMe[MAX_STRING] = { 0 };
+				strcpy_s(szMe, szFollowMeCommand);
+				ParseMacroData(szMe, MAX_STRING);
 				if (gbFollowme)
 				{
-					if (GetModuleHandle("mq2advpath"))
+					if (strstr(szMe, "//afollow"))
 					{
-						sprintf_s(szMe, "/bcg //afollow spawn %d", ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+						if (!GetModuleHandle("mq2advpath"))
+						{
+							WriteChatf("%s only works if mq2advpath is loaded, Please run /plugin mq2advpath",szFollowMe);
+							StopMovement();
+							return 1;
+						}
 					}
-					else if (GetModuleHandle("mq2moveutils"))
+					else if (strstr(szMe, "//stick"))
 					{
-						sprintf_s(szMe, "/bcg //stick id %d 5 uw", ((PSPAWNINFO)pLocalPlayer)->SpawnID);
-					}
-					else
-					{
-						WriteChatf("Please do /plugin mq2advpath or /plugin mq2moveutils.");
-						StopMovement();
-						return 1;
+						if (!GetModuleHandle("mq2moveutils"))
+						{
+							WriteChatf("%s only works if mq2moveutils is loaded, Please run /plugin mq2moveutils", szFollowMe);
+							StopMovement();
+							return 1;
+						}
 					}
 				}
 				else
@@ -993,6 +1099,7 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 	if (!_stricmp(szArg1, "help"))
 	{
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide mimicme\ax\am(it's currently set to: %s)\ax.", MimicMeButton->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide extdistance\ax\am(it's currently set to: %s)\ax.", gBShowExtDistance ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide distance\ax\am(it's currently set to: %s)\ax.", GroupDistLabel1->dShow ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", GroupHotButton->dShow ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->dShow ? "\aoON" : "\agOFF");
@@ -1008,7 +1115,12 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 			MimicMeButton->dShow = true;
 			gBShowMimicMeButton = true;
 			WriteSetting("ShowMimicMeButton", "1");
-		} 
+		}
+		else if (!_stricmp(szArg2, "extdistance"))
+		{
+			gBShowExtDistance = true;
+			WriteSetting("ShowExtDistance", "1");
+		}
 		else if (!_stricmp(szArg2, "distance"))
 		{
 			gBShowDistance = true;
@@ -1046,6 +1158,18 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 			gBShowMimicMeButton = false;
 			MimicMeButton->dShow = false;
 			WriteSetting("ShowMimicMeButton", "0");
+		}
+		else if (!_stricmp(szArg2, "extdistance"))
+		{
+			gBShowExtDistance = false;
+			for (int i = 0; i < 23; i++)
+			{
+				if (ETW_DistLabel[i])
+				{
+					ETW_DistLabel[i]->dShow = false;
+				}
+			}
+			WriteSetting("ShowExtDistance", "0");
 		}
 		else if (!_stricmp(szArg2, "distance"))
 		{
@@ -1134,6 +1258,14 @@ void CleanUp(bool bUnload)
 		if (pGwnd->GroupContextMenu && separatorid)
 		{
 			RemoveOurMenu(pGwnd);
+		}
+	}
+	if (ETW_DistLabel[0])
+	{
+		for (int i = 0; i < 23; i++)
+		{
+			((CButtonWnd*)ETW_DistLabel[i])->Destroy();
+			ETW_DistLabel[i] = 0;
 		}
 	}
 	if (GroupDistLabel1) {
@@ -1308,6 +1440,41 @@ void UpdateGroupDist(PCHARINFO pChar, int index)
 	}
 }
 
+
+void UpdatedExtDistance()
+{
+	if (PCHARINFO pChar = GetCharInfo())
+	{
+		CLabelWnd *pWnd = 0;
+		if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
+			for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
+				pWnd = ETW_DistLabel[i];
+				XTARGETSLOT xts = xtm->XTargetSlots[i];
+				DWORD spID = xts.SpawnID;
+				if (spID) {
+					if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+						float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
+						sprintf_s(szTargetDist, "%.2f", dist);
+						if (dist < 250) {
+							pWnd->CRNormal = 0xFF00FF00;//green
+						}
+						else {
+							pWnd->CRNormal = 0xFFFF0000;//red
+						}
+						SetCXStr(&pWnd->WindowText, szTargetDist);
+						pWnd->dShow = true;
+					}
+					else {
+						pWnd->dShow = false;
+					}
+				}
+				else {
+					pWnd->dShow = false;
+				}
+			}
+		}
+	}
+}
 DWORD LastTargetID = 0;
 void DidTargetChange()
 {
@@ -1404,6 +1571,15 @@ PLUGIN_API VOID OnPulse(VOID)
 				MimicMeFunc();
 			}
 			//
+			if (gBShowExtDistance)
+			{
+				if (CExtendedTargetWnd *pEXTwnd = (CExtendedTargetWnd*)pExtendedTargetWnd) {
+					if (pEXTwnd->dShow)
+					{
+						UpdatedExtDistance();
+					}
+				}
+			}
 			if (CGroupWnd *pGwnd = (CGroupWnd*)pGroupWnd) {
 				if (pContextMenuManager->NumVisibleMenus==0 && separatorid)
 				{

@@ -557,6 +557,8 @@ namespace MQ2Globals
 	EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 
 	EQLIB_VAR CFacePick **ppFacePick;
+	EQLIB_VAR CExtendedTargetWnd **ppExtendedTargetWnd;
+	
 	EQLIB_VAR CFindItemWnd **ppFindItemWnd;
 	EQLIB_VAR CFindLocationWnd **ppFindLocationWnd;
 	EQLIB_VAR CInvSlotMgr **ppInvSlotMgr;
@@ -665,6 +667,7 @@ namespace MQ2Globals
 #define pChatManager (*ppChatManager)
 #define pEQSuiteTextureLoader (ppEQSuiteTextureLoader)
 #define pFacePick (*ppFacePick)
+#define pExtendedTargetWnd (*ppExtendedTargetWnd)
 #define pFindItemWnd (*ppFindItemWnd)
 #define pFindLocationWnd (*ppFindLocationWnd)
 #define pInvSlotMgr (*ppInvSlotMgr)
@@ -899,6 +902,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCTextOverlay;
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
 	EQLIB_VAR DWORD pinstCCharacterListWnd;
+	EQLIB_VAR DWORD pinstCExtendedTargetWnd;
 	EQLIB_VAR DWORD pinstCFacePick;
 	EQLIB_VAR DWORD pinstCFindItemWnd;
 	EQLIB_VAR DWORD pinstCNoteWnd;

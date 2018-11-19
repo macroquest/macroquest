@@ -82,6 +82,7 @@ class CEQSuiteTextureLoader;
 class CEverQuest;
 class CExploreModeWnd;
 class CFacePick;
+class CExtendedTargetWnd;
 class CFindItemWnd;
 class CFeedbackWnd;
 class CFileSelectionWnd;
@@ -2568,7 +2569,11 @@ EQLIB_OBJECT CExploreModeWnd::~CExploreModeWnd(void);
 //EQLIB_OBJECT void * CExploreModeWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CExploreModeWnd::Deactivate(void);
 };
+class CExtendedTargetWnd : public CSidlScreenWnd
+{
+public:
 
+};
 class CFacePick : public CSidlScreenWnd
 {
 public:
