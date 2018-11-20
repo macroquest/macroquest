@@ -148,3 +148,5 @@ MQ2Main/Logs
 /MQ2TargetInfo/MQ2TargetInfo(tf).vcxproj.filters
 /MQ2TargetInfo/MQ2TargetInfo(tf).vcxproj
 /MQ2RipIt
+/MQ2SQLiteDeps
+/MQ2SQLite
