@@ -36,7 +36,7 @@ CButtonWnd*NavButton = 0;
 CButtonWnd*FollowMeButton = 0;
 CButtonWnd*MimicMeButton = 0;
 
-CHotButton*GroupHotButton = 0;
+CHotButton*GroupHotButton[3] = { 0 };
 
 bool gbFollowme = false;
 bool gbMimicme = false;
@@ -217,14 +217,43 @@ void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **butto
 		(*button)->dShow = bShow;
 	}
 }
-
 bool gBUsePerCharSettings = FALSE;
 bool gBShowMimicMeButton = TRUE;
 bool gBShowComeToMeButton = TRUE;
 bool gBShowFollowMeButton = TRUE;
-bool gBShowHotButton = TRUE;
+bool gBShowHotButtons = TRUE;
 bool gBShowDistance = TRUE;
 bool gBShowExtDistance = TRUE;
+#define WSF_AUTOSTRETCHH	0x00400000
+#define WSF_TRANSPARENT		0x00000400
+#define WSF_AUTOSTRETCHV	0x00000100
+#define WSF_RELATIVERECT	0x00000080
+void CreateGroupHotButton(CGroupWnd*pGwnd, CControlTemplate *Template, CHotButton **button, int top, int bottom, int left, int right, int buttonindex)
+{
+	CButtonWnd*Butt = (CButtonWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_InviteButton");
+	(*button) = (CHotButton *)pSidlMgr->CreateHotButtonWnd((CXWnd*)pGwnd, Template);
+	(*button)->BarIndex = 9;
+	(*button)->ButtonIndex = buttonindex;
+	(*button)->SetButtonSize(100, true);
+	(*button)->bUseInLayoutVertical = true;
+					
+	(*button)->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
+	(*button)->bClipToParent = true;
+	(*button)->bUseInLayoutHorizontal = true;
+	(*button)->bLeftAnchoredToLeft = Butt->bLeftAnchoredToLeft;
+	(*button)->bRightAnchoredToLeft = Butt->bRightAnchoredToLeft;
+	(*button)->bTopAnchoredToTop = Butt->bTopAnchoredToTop;
+	(*button)->bBottomAnchoredToTop = Butt->bBottomAnchoredToTop;
+					
+	(*button)->TopOffset = top;
+	(*button)->BottomOffset = bottom;
+	(*button)->LeftOffset = left;
+	(*button)->RightOffset = right;
+
+	(*button)->CRNormal = 0xFF00FFFF;
+	(*button)->BGColor = 0xFFFFFFFF;
+	(*button)->dShow = gBShowHotButtons;
+}
 
 void RemoveOurMenu(CGroupWnd*pGwnd)
 {
@@ -280,7 +309,7 @@ void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked)
 		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", 58, gBShowComeToMeButton);
 		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", 59, gBShowMimicMeButton);
 		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", 60, gBShowFollowMeButton);
-		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Button", 61, gBShowHotButton);
+		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Buttons", 61, gBShowHotButtons);
 		distanceoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Distance", 62, gBShowDistance);
 
 		//
@@ -367,6 +396,18 @@ int ReadSetting(char*Key,int defaultval)
 				WritePrivateProfileString(szSettingINISection, Key, SafeItoa(defaultval,szTemp,10), INIFileName);
 				return defaultval;
 			}
+		} else if (!_stricmp(Key, "MimicMeTop"))
+		{
+			if (ret == 102)
+			{
+				WriteChatf("MQ2TargetInfo.ini changed: Setting MimicMeTop to %d because it was 102 and that is no longer the default.",defaultval);
+				CHAR szTemp[MAX_STRING] = { 0 };
+				WritePrivateProfileString(szSettingINISection, Key, SafeItoa(64,szTemp,10), INIFileName);
+				WritePrivateProfileString(szSettingINISection, "MimicMeBottom", SafeItoa(31,szTemp,10), INIFileName);
+				WritePrivateProfileString(szSettingINISection, "MimicMeLeft", SafeItoa(92,szTemp,10), INIFileName);
+				WritePrivateProfileString(szSettingINISection, "MimicMeRight", SafeItoa(132,szTemp,10), INIFileName);
+				return defaultval;
+			}
 		}
 	}
 	return ret;
@@ -417,11 +458,26 @@ void ReadIniSettings()
 	{
 		WritePrivateProfileString(szSettingINISection, "ShowFollowMeButton", "1", INIFileName);
 	}
-	ret = GetPrivateProfileInt(szSettingINISection, "ShowHotButton", -1, INIFileName);
-	gBShowHotButton = (ret == 0 ? FALSE : TRUE);
+	ret = GetPrivateProfileInt(szSettingINISection, "ShowHotButtons", -1, INIFileName);
+	gBShowHotButtons = (ret == 0 ? FALSE : TRUE);
 	if (ret == -1)
 	{
-		WritePrivateProfileString(szSettingINISection, "ShowHotButton", "1", INIFileName);
+		ret = GetPrivateProfileInt(szSettingINISection, "ShowHotButton", -1, INIFileName);
+
+		WritePrivateProfileString(szSettingINISection, "HotButtonTop", NULL, INIFileName);
+		WritePrivateProfileString(szSettingINISection, "HotButtonBottom", NULL, INIFileName);
+		WritePrivateProfileString(szSettingINISection, "HotButtonLeft", NULL, INIFileName);
+		WritePrivateProfileString(szSettingINISection, "HotButtonRight", NULL, INIFileName);
+		WritePrivateProfileString(szSettingINISection, "ShowHotButton", NULL, INIFileName);
+		if (ret == 0)
+		{
+			WritePrivateProfileString(szSettingINISection, "ShowHotButtons", "0", INIFileName);
+			gBShowHotButtons = 0;
+		}
+		else
+		{
+			WritePrivateProfileString(szSettingINISection, "ShowHotButtons", "1", INIFileName);
+		}
 	}
 	ret = GetPrivateProfileInt(szSettingINISection, "ShowDistance", -1, INIFileName);
 	gBShowDistance = (ret == 0 ? FALSE : TRUE);
@@ -437,6 +493,7 @@ void ReadIniSettings()
 	}
 	
 }
+
 void Initialize()
 {
 	if (!PHButton && GetGameState() == GAMESTATE_INGAME)
@@ -463,7 +520,9 @@ void Initialize()
 			//
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
 			CControlTemplate *NavButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("GW_InviteButton");//borrowing this...
-			CControlTemplate *HBButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button1");
+			CControlTemplate *HBButtonTemplate1 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button1");
+			CControlTemplate *HBButtonTemplate2 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button2");
+			CControlTemplate *HBButtonTemplate3= (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button3");
 			//
 			if (GW_Gauge1 && DistLabelTemplate) {
 
@@ -501,47 +560,32 @@ void Initialize()
 					CreateAButton(pGwnd, NavButtonTemplate, &FollowMeButton, "GW_FollowMeButton", "FollowMeButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szFollowMeToolTip, szFollowMe,gBShowFollowMeButton);
 					
 					//Mimic Me button
-					top = ReadSetting("MimicMeTop", Butt->TopOffset + 77);
-					bottom = ReadSetting("MimicMeBottom", Butt->BottomOffset + 64);
-					left = ReadSetting("MimicMeLeft", 6);
-					right = ReadSetting("MimicMeRight", 44);
+					top = ReadSetting("MimicMeTop", Butt->TopOffset + 39);
+					bottom = ReadSetting("MimicMeBottom", 31);
+					left = ReadSetting("MimicMeLeft", 92);
+					right = ReadSetting("MimicMeRight", 132);
 					CreateAButton(pGwnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe,gBShowMimicMeButton);
-					//
-					GroupHotButton = (CHotButton *)pSidlMgr->CreateHotButtonWnd((CXWnd*)pGwnd, HBButtonTemplate);
-					GroupHotButton->BarIndex = 9;
-					GroupHotButton->ButtonIndex = 0;
-					GroupHotButton->SetButtonSize(100, true);
-					GroupHotButton->bUseInLayoutVertical = true;
-					//WSF_AUTOSTRETCHH		0x00400000
-					//WSF_TRANSPARENT		0x00000400
-					//WSF_AUTOSTRETCHV		0x00000100
-					//WSF_RELATIVERECT	    0x00000080
-					GroupHotButton->WindowStyle = 0x00400580;
-					GroupHotButton->bClipToParent = true;
-					GroupHotButton->bUseInLayoutHorizontal = true;
-					//GroupHotButton->bResizableMask = 0;
-					GroupHotButton->bLeftAnchoredToLeft = Butt->bLeftAnchoredToLeft;
-					GroupHotButton->bRightAnchoredToLeft = Butt->bRightAnchoredToLeft;
-					GroupHotButton->bTopAnchoredToTop = Butt->bTopAnchoredToTop;
-					GroupHotButton->bBottomAnchoredToTop = Butt->bBottomAnchoredToTop;
 					
-					top = ReadSetting("HotButtonTop", Butt->TopOffset + 39);
-					bottom = ReadSetting("HotButtonBottom", top-40);
+					//Hotbutton0
+					top = ReadSetting("HotButton0Top", Butt->TopOffset + 77);
+					bottom = ReadSetting("HotButton0Bottom", Butt->BottomOffset + 64);			
+					left = ReadSetting("HotButton0Left", 6);
+					right = ReadSetting("HotButton0Right", 44);
+					CreateGroupHotButton(pGwnd, HBButtonTemplate1, &GroupHotButton[0], top, bottom, left, right,0);
+					//Hotbutton1
+					top = ReadSetting("HotButton1Top", Butt->TopOffset + 77);
+					bottom = ReadSetting("HotButton1Bottom", Butt->BottomOffset + 64);			
+					left = ReadSetting("HotButton1Left", 48);
+					right = ReadSetting("HotButton1Right", 88);
+					CreateGroupHotButton(pGwnd, HBButtonTemplate2, &GroupHotButton[1], top, bottom, left, right,1);
+					//Hotbutton2
+					top = ReadSetting("HotButton2Top", Butt->TopOffset + 77);
+					bottom = ReadSetting("HotButton2Bottom", Butt->BottomOffset + 64);			
+					left = ReadSetting("HotButton2Left", 92);
+					right = ReadSetting("HotButton2Right", 132);
+					CreateGroupHotButton(pGwnd, HBButtonTemplate3, &GroupHotButton[2], top, bottom, left, right,2);
 					
-					left = ReadSetting("HotButtonLeft", 92);
-					right = ReadSetting("HotButtonRight", 132);
-					GroupHotButton->TopOffset = top;
-					GroupHotButton->BottomOffset = bottom;
-					GroupHotButton->LeftOffset = left;
-					GroupHotButton->RightOffset = right;
-
-					GroupHotButton->CRNormal = 0xFF00FFFF;
-					GroupHotButton->BGColor = 0xFFFFFFFF;
-					GroupHotButton->dShow = gBShowHotButton;
-					/*GroupHotButton->Location.bottom = 120;
-					GroupHotButton->Location.left = 0;
-					GroupHotButton->Location.right = 60;
-					GroupHotButton->Location.top = 0;*/
+					
 					//
 					//now set the template values back
 					SetCXStr(&NavButtonTemplate->Name, "GW_InviteButton");
@@ -819,8 +863,13 @@ public:
 	{
 		if (Message==XWN_OUTPUT_TEXT)
 		{
-			if (pWnd && (pWnd->pParentWindow == (PCSIDLWND)GroupHotButton
-				|| pWnd == (CXWnd*)GroupHotButton
+			if (pWnd && (
+				pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[0]
+				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[1]
+				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[2]
+				|| pWnd == (CXWnd*)GroupHotButton[0]
+				|| pWnd == (CXWnd*)GroupHotButton[1]
+				|| pWnd == (CXWnd*)GroupHotButton[2]
 				|| pWnd == (CXWnd*)NavButton
 				|| pWnd == (CXWnd*)MimicMeButton
 				|| pWnd == (CXWnd*)FollowMeButton))
@@ -834,8 +883,13 @@ public:
 			
 			
 			//return 1;
-			if (pWnd && (pWnd->pParentWindow == (PCSIDLWND)GroupHotButton
-				|| pWnd == (CXWnd*)GroupHotButton
+			if (pWnd && (
+				pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[0]
+				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[1]
+				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[2]
+				|| pWnd == (CXWnd*)GroupHotButton[0]
+				|| pWnd == (CXWnd*)GroupHotButton[1]
+				|| pWnd == (CXWnd*)GroupHotButton[2]
 				|| pWnd == (CXWnd*)NavButton
 				|| pWnd == (CXWnd*)MimicMeButton
 				|| pWnd == (CXWnd*)FollowMeButton))
@@ -1038,20 +1092,22 @@ public:
 						WriteSetting("ShowFollowMeButton", "0");
 					return 1;
 				}
-				case 61://gBShowHotButton
+				case 61://gBShowHotButtons
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
 					pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
 					pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
 					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
-					gBShowHotButton ^= true;
-					pContextMenu->CheckMenuItem(iItemID,gBShowHotButton);
-					GroupHotButton->dShow = gBShowHotButton;
-					if(gBShowHotButton)
-						WriteSetting("ShowHotButton", "1");
+					gBShowHotButtons ^= true;
+					pContextMenu->CheckMenuItem(iItemID,gBShowHotButtons);
+					GroupHotButton[0]->dShow = gBShowHotButtons;
+					GroupHotButton[1]->dShow = gBShowHotButtons;
+					GroupHotButton[2]->dShow = gBShowHotButtons;
+					if(gBShowHotButtons)
+						WriteSetting("ShowHotButtons", "1");
 					else
-						WriteSetting("ShowHotButton", "0");
+						WriteSetting("ShowHotButtons", "0");
 					return 1;
 				}
 				case 62://gBShowDistance
@@ -1101,7 +1157,7 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide mimicme\ax\am(it's currently set to: %s)\ax.", MimicMeButton->dShow ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide extdistance\ax\am(it's currently set to: %s)\ax.", gBShowExtDistance ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide distance\ax\am(it's currently set to: %s)\ax.", GroupDistLabel1->dShow ? "\aoON" : "\agOFF");
-		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", GroupHotButton->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", gBShowHotButtons ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->dShow ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide cometome\ax\am(it's currently set to: %s)\ax.", NavButton->dShow ? "\aoON" : "\agOFF");
 		return;
@@ -1133,9 +1189,11 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
-			gBShowHotButton = true;
-			GroupHotButton->dShow = true;
-			WriteSetting("ShowHotButton", "1");
+			gBShowHotButtons = true;
+			GroupHotButton[0]->dShow = true;
+			GroupHotButton[1]->dShow = true;
+			GroupHotButton[2]->dShow = true;
+			WriteSetting("ShowHotButtons", "1");
 		}
 		else if (!_stricmp(szArg2, "followme"))
 		{
@@ -1183,9 +1241,11 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
-			gBShowHotButton = false;
-			GroupHotButton->dShow = false;
-			WriteSetting("ShowHotButton", "0");
+			gBShowHotButtons = false;
+			GroupHotButton[0]->dShow = false;
+			GroupHotButton[1]->dShow = false;
+			GroupHotButton[2]->dShow = false;
+			WriteSetting("ShowHotButtons", "0");
 		}
 		else if (!_stricmp(szArg2, "followme"))
 		{
@@ -1316,9 +1376,17 @@ void CleanUp(bool bUnload)
 		((CButtonWnd*)MimicMeButton)->Destroy();
 		MimicMeButton = 0;
 	}
-	if (GroupHotButton) {
-		((CXWnd*)GroupHotButton)->Destroy();
-		GroupHotButton = 0;
+	if (GroupHotButton[0]) {
+		((CXWnd*)GroupHotButton[0])->Destroy();
+		GroupHotButton[0] = 0;
+	}
+	if (GroupHotButton[1]) {
+		((CXWnd*)GroupHotButton[1])->Destroy();
+		GroupHotButton[1] = 0;
+	}
+	if (GroupHotButton[2]) {
+		((CXWnd*)GroupHotButton[2])->Destroy();
+		GroupHotButton[2] = 0;
 	}
 	
 	if (GetGameState() == GAMESTATE_INGAME) {
@@ -1604,8 +1672,6 @@ PLUGIN_API VOID OnPulse(VOID)
 							FollowMeButton->dShow = true;
 						if(gBShowComeToMeButton && NavButton && NavButton->dShow==false)
 							NavButton->dShow = true;
-						//if(gBShowHotButton && GroupHotButton && GroupHotButton->dShow==false)
-						//	GroupHotButton->dShow = true;
 					}
 					else {
 						if (GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5 && GroupDistLabel1->dShow)
@@ -1622,8 +1688,6 @@ PLUGIN_API VOID OnPulse(VOID)
 							FollowMeButton->dShow = false;
 						if(NavButton && NavButton->dShow==true)
 							NavButton->dShow = false;
-						//if(GroupHotButton && GroupHotButton->dShow==true)
-						//	GroupHotButton->dShow = false;
 					}
 				}
 			}

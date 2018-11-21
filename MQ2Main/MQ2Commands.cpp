@@ -854,9 +854,16 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 						pmercho->SelectBuySellSlot(&To);
 #endif
 					}
+					else {
+						WriteChatf("/selectitem Could NOT find %s in your inventory to select.\nUse /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer,szBuffer);
+					}
 				}
 			}
 		}
+	}
+	else {
+		WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\nUse /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
+		WriteChatf("Usage: /selectitem \"some item in YOUR inventory\", use \"=some item in YOUR inventory\" for EXACT name search.");
 	}
 }
 // ***************************************************************************

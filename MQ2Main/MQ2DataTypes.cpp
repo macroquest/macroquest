@@ -9985,6 +9985,20 @@ bool MQ2MerchantType::GETMEMBER()
 					To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
 					To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
 					To.Index.Slot3 = -1;
+					for (int i = 0; i < pCMerch->ItemsList->ItemsArray.Count; i++)
+					{
+						CXStr Str;
+						pCMerch->ItemsList->GetItemText(&Str, i, 1);
+						CHAR szOut[MAX_STRING] = { 0 };
+						GetCXStr(Str.Ptr, szOut, MAX_STRING);
+						if (szOut[0] != '\0') {
+							if (!_stricmp(szOut, pItem->Name))
+							{
+								pCMerch->ItemsList->SetCurSel(i);
+								break;
+							}
+						}
+					}
 #if !defined(ROF2EMU) && !defined(UFEMU)
 					pCMerch->SelectBuySellSlot(&To, listindex);
 #else
