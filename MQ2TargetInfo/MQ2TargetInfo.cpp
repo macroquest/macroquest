@@ -575,8 +575,8 @@ void Initialize()
 					//Hotbutton1
 					top = ReadSetting("HotButton1Top", Butt->TopOffset + 77);
 					bottom = ReadSetting("HotButton1Bottom", Butt->BottomOffset + 64);			
-					left = ReadSetting("HotButton1Left", 48);
-					right = ReadSetting("HotButton1Right", 88);
+					left = ReadSetting("HotButton1Left", 49);
+					right = ReadSetting("HotButton1Right", 89);
 					CreateGroupHotButton(pGwnd, HBButtonTemplate2, &GroupHotButton[1], top, bottom, left, right,1);
 					//Hotbutton2
 					top = ReadSetting("HotButton2Top", Butt->TopOffset + 77);
