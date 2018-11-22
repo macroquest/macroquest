@@ -1409,7 +1409,7 @@ TLO(dataFriends)
 TLO(dataTask)
 {
 	Ret.Int = -1;
-	if (pTaskWnd) {
+	if (ppTaskManager) {
 		if (ISINDEX()) {
 			if (ISNUMBER()) {
 				int n = GETNUMBER();
@@ -1419,10 +1419,25 @@ TLO(dataTask)
 				Ret.Int = n;
 			}
 			else {
+				CHAR szOut[MAX_STRING] = { 0 };
+				CHAR szTemp[MAX_STRING] = { 0 };
+				strcpy_s(szTemp, GETFIRST());
+				_strlwr_s(szTemp);
+				//todo: finish this, we can get this stuff done without taskwindow being open.
+				for (int i = 0; i < 29; i++)
+				{
+					if (CTaskEntry * entry = &pTaskManager.QuestEntries[i])
+					{
+						strcpy_s(szOut, entry->TaskTitle);
+						_strlwr_s(szOut);
+						if (strstr(szOut, szTemp)) {
+							//Ret.Int = i;
+							break;
+						}
+					}
+				}
 				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 					CXStr Str;
-					CHAR szOut[MAX_STRING] = { 0 };
-					CHAR szTemp[MAX_STRING] = { 0 };
 					strcpy_s(szTemp, GETFIRST());
 					_strlwr_s(szTemp);
 					for (LONG i = 0; i < clist->ItemsArray.Count; i++) {

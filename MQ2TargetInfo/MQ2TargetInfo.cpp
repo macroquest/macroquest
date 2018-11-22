@@ -9,6 +9,7 @@
 #include "resource.h"
 
 PreSetup("MQ2TargetInfo");
+bool bDisablePluginDueToBadUI = false;
 CHAR szTargetInfo[128] = { "Target Info" };
 CHAR szTargetDistance[128] = { "Target Distance" };
 CHAR szGroupDistance[128] = { "Member Distance" };
@@ -496,9 +497,16 @@ void ReadIniSettings()
 
 void Initialize()
 {
-	if (!PHButton && GetGameState() == GAMESTATE_INGAME)
+	if (!PHButton && GetGameState() == GAMESTATE_INGAME && !bDisablePluginDueToBadUI)
 	{
 		ReadIniSettings();
+		CHAR OldName1[2048] = { "Target_AggroPctSecondaryLabel" };
+		CHAR OldScreenName1[2048] = { "Target_AggroPctSecondaryLabel" };
+		CHAR OldController1[2048] = { "308" };
+			
+		CHAR OldName2[2048] = { "Target_AggroNameSecondaryLabel" };
+		CHAR OldScreenName2[2048] = { "Target_AggroNameSecondaryLabel" };
+		CHAR OldController2[2048] = { "304" };
 		//setup the group info
 		if (CGroupWnd*pGwnd = (CGroupWnd*)pGroupWnd) {
 			SetCXStr(&pGwnd->Tooltip, szMMainTip);
@@ -518,7 +526,7 @@ void Initialize()
 			GW_Gauge5 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_Gauge5");
 
 			//
-			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
+			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			CControlTemplate *NavButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("GW_InviteButton");//borrowing this...
 			CControlTemplate *HBButtonTemplate1 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button1");
 			CControlTemplate *HBButtonTemplate2 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button2");
@@ -594,37 +602,53 @@ void Initialize()
 				}
 				//
 				//now set the template values back
-				SetCXStr(&DistLabelTemplate->Name, "Target_AggroPctSecondaryLabel");
-				SetCXStr(&DistLabelTemplate->ScreenID, "Target_AggroPctSecondaryLabel");
-				SetCXStr(&DistLabelTemplate->Controller, "308");
+				SetCXStr(&DistLabelTemplate->Name, OldName1);
+				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
+				SetCXStr(&DistLabelTemplate->Controller, OldController1);
+			}
+			else {
+				bDisablePluginDueToBadUI = true;
+				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let eqmule know.");
+				return;
 			}
 		}
 		//setup the targetinfo
 		if (PCTARGETWND pTwnd = (PCTARGETWND)pTargetWnd) {
 			//
-			Target_AggroPctPlayerLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctPlayerLabel");
-			Target_AggroNameSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroNameSecondaryLabel");
-			Target_AggroPctSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctSecondaryLabel");
-			Target_BuffWindow = (CSidlScreenWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_BuffWindow");
-
-			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
-			CControlTemplate *CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroNameSecondaryLabel");
-			CControlTemplate *PHButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton");//borrowing this...
-			if (PHButtonTemplate && Target_BuffWindow && CanSeeLabelTemplate && Target_AggroNameSecondaryLabel && Target_AggroPctSecondaryLabel && Target_AggroPctPlayerLabel && DistLabelTemplate) {
-				Target_BuffWindow->BGColor = 0xFF000000;
-				Target_BuffWindow->TopOffset = Target_BuffWindow_TopOffset;
+			if (Target_AggroPctPlayerLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctPlayerLabel"))
+			{
 				Target_AggroPctPlayerLabel->BGColor = 0xFF00000;
-				Target_AggroNameSecondaryLabel->BGColor = 0xFF00000;
-				Target_AggroPctSecondaryLabel->BGColor = 0xFF00000;
 				Target_AggroPctPlayerLabel->TopOffset = dTopOffset;
 				Target_AggroPctPlayerLabel->BottomOffset = dBottomOffset;
+			}
+			if (Target_AggroNameSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroNameSecondaryLabel"))
+			{
+				Target_AggroNameSecondaryLabel->BGColor = 0xFF00000;
 				Target_AggroNameSecondaryLabel->TopOffset = dTopOffset;
 				Target_AggroNameSecondaryLabel->BottomOffset = dBottomOffset;
+			}
+			if (Target_AggroPctSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctSecondaryLabel"))
+			{
+				Target_AggroPctSecondaryLabel->BGColor = 0xFF00000;
 				Target_AggroPctSecondaryLabel->TopOffset = dTopOffset;
 				Target_AggroPctSecondaryLabel->BottomOffset = dBottomOffset;
-				//CHAR szTemp[16];
-				//sprintf_s(szTemp, "\xE2\x8C\x96");// , 0xE2, 0x8C, 0x96);
+			}
+			if (Target_BuffWindow = (CSidlScreenWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_BuffWindow"))
+			{
+				Target_BuffWindow->BGColor = 0xFF000000;
+				Target_BuffWindow->TopOffset = Target_BuffWindow_TopOffset;
+			}
+			
 
+			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
+			//CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_HPLabel");
+			CControlTemplate *CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName2);
+			//CControlTemplate *CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_HPPercLabel");
+			CControlTemplate *PHButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton");//borrowing this...
+			
+			if (PHButtonTemplate && CanSeeLabelTemplate && DistLabelTemplate)
+			{
+				DistLabelTemplate->Font = 2;
 				SetCXStr(&DistLabelTemplate->Controller, "0");
 				SetCXStr(&CanSeeLabelTemplate->Controller, "0");
 				//create the info label
@@ -657,6 +681,7 @@ void Initialize()
 					SetCXStr(&DistanceLabel->Tooltip, szTargetDistance);
 				}
 				//create can see label
+				CanSeeLabelTemplate->Font = 2;
 				SetCXStr(&CanSeeLabelTemplate->Name, "Target_CanSeeLabel");
 				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_CanSeeLabel");
 				if (CanSeeLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, CanSeeLabelTemplate)) {
@@ -673,14 +698,14 @@ void Initialize()
 				PHButtonTemplate->Font = 0;
 				if (PHButton = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, PHButtonTemplate)) {
 					PHButton->dShow = true;
-					PHButton->bBottomAnchoredToTop = Target_AggroPctPlayerLabel->bBottomAnchoredToTop;
-					PHButton->bLeftAnchoredToLeft = Target_AggroPctPlayerLabel->bLeftAnchoredToLeft;
-					PHButton->bRightAnchoredToLeft = Target_AggroPctPlayerLabel->bRightAnchoredToLeft;
-					PHButton->bTopAnchoredToTop = Target_AggroPctPlayerLabel->bTopAnchoredToTop;
+					PHButton->bBottomAnchoredToTop = true;
+					PHButton->bLeftAnchoredToLeft = true;
+					PHButton->bRightAnchoredToLeft = false;
+					PHButton->bTopAnchoredToTop = true;
 					PHButton->TopOffset = InfoTopOffset + 1;
 					PHButton->BottomOffset = dTopOffset - 1;
-					PHButton->LeftOffset = Target_AggroPctPlayerLabel->LeftOffset;
-					PHButton->RightOffset = Target_AggroPctPlayerLabel->RightOffset;
+					PHButton->LeftOffset = 0;
+					PHButton->RightOffset = 0;
 					PHButton->Location.top = InfoTopOffset + 1;
 					PHButton->Location.bottom = PHButton->BottomOffset;
 					PHButton->Location.left = 2;
@@ -692,18 +717,26 @@ void Initialize()
 				}
 				//
 				//now set the template values back
+				DistLabelTemplate->Font = 1;
+				CanSeeLabelTemplate->Font = 1;
 				PHButtonTemplate->Font = 2;
-				SetCXStr(&DistLabelTemplate->Name, "Target_AggroPctSecondaryLabel");
-				SetCXStr(&DistLabelTemplate->ScreenID, "Target_AggroPctSecondaryLabel");
-				SetCXStr(&DistLabelTemplate->Controller, "308");
-				SetCXStr(&CanSeeLabelTemplate->Name, "Target_AggroNameSecondaryLabel");
-				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_AggroNameSecondaryLabel");
-				SetCXStr(&CanSeeLabelTemplate->Controller, "304");
+				SetCXStr(&DistLabelTemplate->Name, OldName1);
+				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
+				SetCXStr(&DistLabelTemplate->Controller, OldController1);
+
+				SetCXStr(&CanSeeLabelTemplate->Name, OldName2);
+				SetCXStr(&CanSeeLabelTemplate->ScreenID, OldScreenName2);
+				SetCXStr(&CanSeeLabelTemplate->Controller, OldController2);
+			}
+			else {
+				bDisablePluginDueToBadUI = true;
+				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let eqmule know.");
+				return;
 			}
 		}
 		if (CXWnd*pExtWnd = FindMQ2Window("ExtendedTargetWnd"))
 		{
-			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
+			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			if (DistLabelTemplate) {
 
 				SetCXStr(&DistLabelTemplate->Controller, "0");
@@ -715,9 +748,14 @@ void Initialize()
 					sprintf_s(szTemp, "ETW_DistLabel%d", i);
 					CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->TopOffset, ETW_Gauge[i]->BottomOffset, ETW_Gauge[i]->RightOffset, gBShowExtDistance);
 				}
-				SetCXStr(&DistLabelTemplate->Name, "Target_AggroPctSecondaryLabel");
-				SetCXStr(&DistLabelTemplate->ScreenID, "Target_AggroPctSecondaryLabel");
-				SetCXStr(&DistLabelTemplate->Controller, "308");
+				SetCXStr(&DistLabelTemplate->Name, OldName1);
+				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
+				SetCXStr(&DistLabelTemplate->Controller, OldController1);
+			}
+			else {
+				bDisablePluginDueToBadUI = true;
+				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let eqmule know.");
+				return;
 			}
 		}
 	}
@@ -1442,6 +1480,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 	DebugSpewAlways("MQ2TargetInfo::OnCleanUI()");
 	// destroy custom windows, etc
 	CleanUp(false);
+	bDisablePluginDueToBadUI = false;
 }
 
 bool IsPlaceHolder(PSPAWNINFO pSpawn)
@@ -1639,7 +1678,7 @@ PLUGIN_API VOID OnPulse(VOID)
 				MimicMeFunc();
 			}
 			//
-			if (gBShowExtDistance)
+			if (gBShowExtDistance && ETW_DistLabel[0])
 			{
 				if (CExtendedTargetWnd *pEXTwnd = (CExtendedTargetWnd*)pExtendedTargetWnd) {
 					if (pEXTwnd->dShow)

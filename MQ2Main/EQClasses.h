@@ -227,7 +227,7 @@ class CTargetManager;
 class CTargetRing;
 class CTargetWnd;
 class CTaskWnd;
-class CTaskSomething;
+class CTaskManager;
 class CTextEntryWnd;
 class CTextureAnimation;
 class CTextureFont;
@@ -6329,13 +6329,105 @@ EQLIB_OBJECT int CTaskWnd::UpdateTaskTimers(unsigned long fasttime);
 // virtual
 EQLIB_OBJECT CTaskWnd::~CTaskWnd(void);
 };
-class CTaskSomething
+enum TaskType {
+	TT_Unknown = -1,
+	TT_None = 0,
+	TT_Deliver,
+	TT_Kill,
+	TT_Loot,
+	TT_Hail,
+	TT_Explore,
+	TT_Tradeskill,
+	TT_Fishing,
+	TT_Foraging,
+	TT_Cast,
+	TT_UseSkill,
+	TT_DZSwitch,
+	TT_DestroyObject,
+	TT_Collect,
+	TT_Dialogue,
+	TT_TotalCount
+};
+enum TaskGroupType {
+	TGT_Solo,
+	TGT_Group,
+	TGT_Raid
+};
+typedef struct _CTaskElement
+{
+/*0x000*/ TaskType Type;
+/*0x004*/ TaskGroupType GroupType;
+/*0x008*/ CHAR TargetName[0x40];
+/*0x048*/ CHAR ZoneID[0x40];
+/*0x088*/ CHAR TargetZoneID[0x40];
+/*0x0c8*/ int RequiredCount;
+/*0x0cc*/ bool bOptional;
+/*0x0d0*/ int ElementGroup;
+/*0x0d4*/ int DZSwitchID;
+/*0x0d8*/ CHAR ElementDescriptionOverride[0x80];
+/*0x158*/ PCXSTR ItemNameList;
+/*0x15c*/ PCXSTR SkillIDList;
+/*0x160*/ PCXSTR SpellIDList;
+/*0x164*/ PCXSTR TaskTitle;
+/*0x168*/
+} CTaskElement, *PCTaskElement;
+typedef struct _CTaskEntry
+{
+/*0x0000*/ int TaskID;
+/*0x0004*/ FLOAT RewardAdjustment;
+/*0x0008*/ CHAR TaskTitle[0x40];
+/*0x0048*/ int DurationSeconds;
+/*0x004C*/ int DurCode;
+/*0x0050*/ CHAR StartText[0xFa0];//4000
+/*0x0FF0*/ bool bShowReward;
+/*0x0FF4*/ int RewardCash;
+/*0x0FF8*/ int RewardExp;
+/*0x0FFC*/ int RewardPoints;
+/*0x1000*/ int RewardFactionID;
+/*0x1004*/ int RewardFactionAmount;
+/*0x1008*/ PCXSTR RewardItemTag;
+/*0x100C*/ CTaskElement Elements[0x14];//0x168 * 0x14 = 0x1C20
+/*0x2C2C*/ int TaskSystem;
+/*0x2C30*/ int PointType;
+/*0x2C34*/ bool StartTextCompiled;//for sure see 51B861 in Nov 13 2018 Live
+/*0x0000*/ CHAR RawStartText[0xFa0];//4000
+/*0x0000*/ bool bElementsReceived;
+/*0x0000*/ __time32_t TimeCompleted;
+/*0x3BDC*/ ArrayClass_RO<MonsterMissionTemplate> MonsterTemplates;
+/*0x3BEC*/ bool bTemplateSelectionLocked;//51B887
+/*0x3BED*/ bool bHasRewardSet;
+/*0x3BF0*/ 
+} CTaskEntry,*PCTaskEntry;
+enum SharedTaskPlayerRole 
+{ 
+	STPR_None,
+	STPR_Leader
+};
+typedef struct _SharedTaskClientPlayerInfo
+{
+	CHAR	Name[0x40];
+	int		TemplateID;
+	SharedTaskPlayerRole m_role;
+	_SharedTaskClientPlayerInfo *pNext;
+}SharedTaskClientPlayerInfo,*PSharedTaskClientPlayerInfo;
+
+class CTaskManager// : public PopDialogHandler /*0x000000*/ 
 {
 public:
-EQLIB_OBJECT CTaskSomething::CTaskSomething(class CXWnd *);
+/*0x000000*/ PVOID vfTable;
+/*0x000004*/ CTaskEntry TaskEntries[1];
+/*0x003BF4*/ CTaskEntry QuestEntries[0x1d];//see 51B93B 0x1d * 0x3BF0 = 0x6CA30
+/*0x070624*/ CTaskEntry SharedTaskEntries[1];
+/*0x074214*/ CTaskEntry QuestHistoryEntries[0x32];
+/*0x12F6F4*/ int AddPlayerID;
+/*0x12F6F8*/ bool bAddPlayerIsSwap;
+/*0x12F6FC*/ CHAR AddPlayerSwapeeName[0x40];
+/*0x12F73C*/ SharedTaskClientPlayerInfo *pFirstMember;//51B9D8
+/*0x12F740*/
+EQLIB_OBJECT CTaskManager::CTaskManager(class CXWnd *);
 // virtual
-EQLIB_OBJECT CTaskSomething::~CTaskSomething(void);
-EQLIB_OBJECT DWORD CTaskSomething::GetTaskByIndex(DWORD arg1,DWORD arg2,DWORD arg3);
+EQLIB_OBJECT CTaskManager::~CTaskManager(void);
+EQLIB_OBJECT CTaskEntry *CTaskManager::GetEntry(int Index, int System, bool bCheckEmpty = true);
 };
 class CTextEntryWnd : public CEditBaseWnd
 {

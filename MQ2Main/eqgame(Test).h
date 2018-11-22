@@ -329,7 +329,7 @@ GNU General Public License for more details.
 #define pinstCTargetWnd_x                                          0xDA9854
 #define pinstCTaskOverlayWnd_x                                     0xDA9108
 #define pinstCTaskSelectWnd_x                                      0x1022310
-#define pinstCTaskSomething_x                                      0xC79680
+#define pinstCTaskManager_x                                        0xC79680
 #define pinstCTaskTemplateSelectWnd_x                              0x10223C0
 #define pinstCTaskWnd_x                                            0x1022470
 #define pinstCTextEntryWnd_x                                       0xDA98F8
@@ -1015,6 +1015,9 @@ GNU General Public License for more details.
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x7FFF80
+
+//CTaskManager
+#define CTaskManager__GetEntry_x                                   0x51DA50
 
 //EqSoundManager
 #define EqSoundManager__WavePlay_x                                 0x554670

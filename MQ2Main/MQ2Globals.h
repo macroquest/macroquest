@@ -645,7 +645,8 @@ namespace MQ2Globals
 	EQLIB_VAR CWebManager **ppCWebManager;
 	#define pCWebManager (*ppCWebManager)
 	EQLIB_VAR CTaskWnd **ppTaskWnd;
-	EQLIB_VAR CTaskSomething *ppTaskSomething;
+	EQLIB_VAR CTaskManager *ppTaskManager;
+	#define pTaskManager (*ppTaskManager)
 	EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 	EQLIB_VAR CTextOverlay **ppTextOverlay;
 	EQLIB_VAR CAdvancedLootWnd **ppAdvancedLootWnd;
@@ -1014,7 +1015,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCTargetOfTargetWnd;
 	EQLIB_VAR DWORD pinstCTaskTemplateSelectWnd;
 	EQLIB_VAR DWORD pinstCTaskWnd;
-	EQLIB_VAR DWORD pinstCTaskSomething;
+	EQLIB_VAR DWORD pinstCTaskManager;
 	EQLIB_VAR DWORD pinstCTipWndOFDAY;
 	EQLIB_VAR DWORD pinstCTipWndCONTEXT;
 	EQLIB_VAR DWORD pinstCTitleWnd;
@@ -1632,6 +1633,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 	EQLIB_VAR DWORD CTargetWnd__WndNotification;
 	EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
+	EQLIB_VAR DWORD CTaskManager__GetEntry;
+
 	EQLIB_VAR DWORD EqSoundManager__WavePlay;
 	EQLIB_VAR DWORD EqSoundManager__PlayScriptMp3;
 	EQLIB_VAR DWORD EqSoundManager__SoundAssistPlay;

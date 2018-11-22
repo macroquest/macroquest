@@ -236,7 +236,7 @@ namespace MQ2Globals
 		#endif
 		ppCWebManager = (CWebManager**)pinstCWebManager;
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
-		ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
+		ppTaskManager = (CTaskManager*)pinstCTaskManager;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
 		ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
 #if defined(ROF2EMU) || defined(UFEMU)
@@ -1269,7 +1269,7 @@ namespace MQ2Globals
 	CBandolierWnd **ppBandolierWnd = 0;
 	CWebManager **ppCWebManager = 0;
 	CTaskWnd **ppTaskWnd = 0;
-	CTaskSomething *ppTaskSomething = 0;
+	CTaskManager *ppTaskManager = 0;
 	CTimeLeftWnd **ppTimeLeftWnd = 0;
 	CTextOverlay **ppTextOverlay = 0;
 	CAdvancedLootWnd **ppAdvancedLootWnd = 0;
@@ -1568,7 +1568,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCPvPStatsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCLargeDialogWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTaskWnd);
-	INITIALIZE_EQGAME_OFFSET(pinstCTaskSomething);
+	INITIALIZE_EQGAME_OFFSET(pinstCTaskManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCTaskTemplateSelectWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTipWndOFDAY);
 	INITIALIZE_EQGAME_OFFSET(pinstCTipWndCONTEXT);
@@ -2165,6 +2165,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
+	INITIALIZE_EQGAME_OFFSET(CTaskManager__GetEntry);
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__PlayScriptMp3);
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__SoundAssistPlay);
