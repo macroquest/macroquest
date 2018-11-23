@@ -166,11 +166,30 @@ CLabelWnd *GroupDistLabel5 = 0;
 
 CGaugeWnd *ETW_Gauge[23] = { 0 };
 CLabelWnd *ETW_DistLabel[23] = { 0 };
+#define WSF_AUTOSTRETCHH	0x00400000
+#define WSF_CLIENTMOVABLE	0x00200000
+#define WSF_NOHITTEST		0x00008000
+#define WSF_USEMYALPHA		0x00000800
+#define WSF_TRANSPARENT		0x00000400
+#define WSF_SIZABLE			0x00000200
+#define WSF_AUTOSTRETCHV	0x00000100
+#define WSF_RELATIVERECT	0x00000080
+#define WSF_BORDER			0x00000040
+#define WSF_TITLEBAR		0x00000004
 
-bool CreateDistLabel(CGroupWnd*pGwnd,CControlTemplate *DistLabelTemplate,CLabelWnd **labelwnd,char*label,int top, int bottom, int right,bool bShow)
+DWORD orgwstyle = 0;
+DWORD orgTargetWindStyle = 0;
+RECT orgloc = { 0,0,0,0 };
+RECT orglocation = { 0,0,0,0 };
+
+bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int top, bool bShow)
 {
 	SetCXStr(&DistLabelTemplate->Name, label);
 	SetCXStr(&DistLabelTemplate->ScreenID, label);
+	int oldfont = DistLabelTemplate->Font;
+	DWORD oldstyle = DistLabelTemplate->StyleBits;
+	DistLabelTemplate->Font = 2;
+	DistLabelTemplate->StyleBits = WSF_AUTOSTRETCHH|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
 	if (*labelwnd = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, DistLabelTemplate)) {
 		(*labelwnd)->dShow = true;
 		(*labelwnd)->TopOffset = top;
@@ -181,8 +200,14 @@ bool CreateDistLabel(CGroupWnd*pGwnd,CControlTemplate *DistLabelTemplate,CLabelW
 		(*labelwnd)->BGColor = 0xFFFFFFFF;
 		SetCXStr(&(*labelwnd)->Tooltip, szGroupDistance);
 		(*labelwnd)->dShow = bShow;
+		(*labelwnd)->bAlignRight = true;
+		(*labelwnd)->bAlignCenter = false;
+		DistLabelTemplate->Font = oldfont;
+		DistLabelTemplate->StyleBits = oldstyle;
 		return true;
 	}
+	DistLabelTemplate->StyleBits = oldstyle;
+	DistLabelTemplate->Font = oldfont;
 	return false;
 }
 int navmenuid = 0;
@@ -225,13 +250,9 @@ bool gBShowFollowMeButton = TRUE;
 bool gBShowHotButtons = TRUE;
 bool gBShowDistance = TRUE;
 bool gBShowExtDistance = TRUE;
-#define WSF_AUTOSTRETCHH	0x00400000
-#define WSF_TRANSPARENT		0x00000400
-#define WSF_AUTOSTRETCHV	0x00000100
-#define WSF_RELATIVERECT	0x00000080
+
 void CreateGroupHotButton(CGroupWnd*pGwnd, CControlTemplate *Template, CHotButton **button, int top, int bottom, int left, int right, int buttonindex)
 {
-	CButtonWnd*Butt = (CButtonWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_InviteButton");
 	(*button) = (CHotButton *)pSidlMgr->CreateHotButtonWnd((CXWnd*)pGwnd, Template);
 	(*button)->BarIndex = 9;
 	(*button)->ButtonIndex = buttonindex;
@@ -241,10 +262,10 @@ void CreateGroupHotButton(CGroupWnd*pGwnd, CControlTemplate *Template, CHotButto
 	(*button)->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
 	(*button)->bClipToParent = true;
 	(*button)->bUseInLayoutHorizontal = true;
-	(*button)->bLeftAnchoredToLeft = Butt->bLeftAnchoredToLeft;
-	(*button)->bRightAnchoredToLeft = Butt->bRightAnchoredToLeft;
-	(*button)->bTopAnchoredToTop = Butt->bTopAnchoredToTop;
-	(*button)->bBottomAnchoredToTop = Butt->bBottomAnchoredToTop;
+	(*button)->bLeftAnchoredToLeft = true;
+	(*button)->bRightAnchoredToLeft = true;
+	(*button)->bTopAnchoredToTop = false;
+	(*button)->bBottomAnchoredToTop = false;
 					
 	(*button)->TopOffset = top;
 	(*button)->BottomOffset = bottom;
@@ -500,6 +521,16 @@ void Initialize()
 	if (!PHButton && GetGameState() == GAMESTATE_INGAME && !bDisablePluginDueToBadUI)
 	{
 		ReadIniSettings();
+		//Player_ManaLabel ManaLabel 20
+		//Player_FatigueLabel FatigueLabel 21
+		CHAR OldName1[2048] = { "Player_ManaLabel" };
+		CHAR OldScreenName1[2048] = { "ManaLabel" };
+		CHAR OldController1[2048] = { "20" };
+			
+		CHAR OldName2[2048] = { "Player_FatigueLabel" };
+		CHAR OldScreenName2[2048] = { "FatigueLabel" };
+		CHAR OldController2[2048] = { "21" };
+		/*
 		CHAR OldName1[2048] = { "Target_AggroPctSecondaryLabel" };
 		CHAR OldScreenName1[2048] = { "Target_AggroPctSecondaryLabel" };
 		CHAR OldController1[2048] = { "308" };
@@ -507,8 +538,46 @@ void Initialize()
 		CHAR OldName2[2048] = { "Target_AggroNameSecondaryLabel" };
 		CHAR OldScreenName2[2048] = { "Target_AggroNameSecondaryLabel" };
 		CHAR OldController2[2048] = { "304" };
+		*/
 		//setup the group info
 		if (CGroupWnd*pGwnd = (CGroupWnd*)pGroupWnd) {
+			//for default ui style is 0xa44
+			orgloc.top = pGwnd->TopOffset;
+			orgloc.right = pGwnd->RightOffset;
+			orgloc.bottom = pGwnd->BottomOffset;
+			orgloc.left = pGwnd->LeftOffset;
+			orglocation = pGwnd->Location;
+			CHAR szLoc[MAX_STRING] = { 0 };
+			CHAR szOutLoc[MAX_STRING] = { 0 };
+			sprintf_s(szLoc, "%d,%d,%d,%d", pGwnd->Location.top, pGwnd->Location.bottom, pGwnd->Location.left, pGwnd->Location.right);
+			ReadStringSetting("WindowLoc", szLoc, szOutLoc);
+			char *token1 = NULL;
+			char *next_token1 = NULL;
+			CHAR szLocs[4][8];
+			token1 = strtok_s(szOutLoc, ",", &next_token1);
+			int j = 0;
+			while (token1 != NULL)
+			{
+				if (token1 != NULL)
+				{
+					strcpy_s(szLocs[j], token1);
+					token1 = strtok_s(NULL, ",", &next_token1);
+					j++;
+				}
+			}
+
+			pGwnd->Location.top = atoi(szLocs[0]);
+			pGwnd->Location.bottom = atoi(szLocs[1]);
+			pGwnd->Location.left = atoi(szLocs[2]);
+			pGwnd->Location.right = atoi(szLocs[3]);
+			orgwstyle = pGwnd->WindowStyle;
+			if (orgwstyle & WSF_TITLEBAR)
+			{
+				pGwnd->WindowStyle = WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER | WSF_TITLEBAR;
+			}
+			else {
+				pGwnd->WindowStyle = WSF_CLIENTMOVABLE | WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER;
+			}
 			SetCXStr(&pGwnd->Tooltip, szMMainTip);
 			if (pGwnd->GroupContextMenu)
 			{
@@ -519,13 +588,14 @@ void Initialize()
 				pGwnd->GroupContextMenu->BGColor = 0xFF000000;
 			}
 			//AddOurMenu(pGwnd);
-			GW_Gauge1 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_Gauge1");
-			GW_Gauge2 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_Gauge2");
-			GW_Gauge3 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_Gauge3");
-			GW_Gauge4 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_Gauge4");
-			GW_Gauge5 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_Gauge5");
+			GW_Gauge1 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("Gauge1");
+			GW_Gauge2 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("Gauge2");
+			GW_Gauge3 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("Gauge3");
+			GW_Gauge4 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("Gauge4");
+			GW_Gauge5 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("Gauge5");
 
 			//
+			//CControlTemplate *DistLabelTemplateOrg = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			CControlTemplate *NavButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("GW_InviteButton");//borrowing this...
 			CControlTemplate *HBButtonTemplate1 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button1");
@@ -533,18 +603,37 @@ void Initialize()
 			CControlTemplate *HBButtonTemplate3= (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button3");
 			//
 			if (GW_Gauge1 && DistLabelTemplate) {
-
 				SetCXStr(&DistLabelTemplate->Controller, "0");
-					//create the distance label 1
+				//create the distance label 1
 
-				bool ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->TopOffset, GW_Gauge1->BottomOffset, GW_Gauge1->RightOffset,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->TopOffset, GW_Gauge2->BottomOffset, GW_Gauge2->RightOffset,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->TopOffset, GW_Gauge3->BottomOffset, GW_Gauge3->RightOffset,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->TopOffset, GW_Gauge4->BottomOffset, GW_Gauge4->RightOffset,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->TopOffset, GW_Gauge5->BottomOffset, GW_Gauge5->RightOffset,gBShowDistance);
+				bool ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->Location.top, gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->Location.top, gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->Location.top, gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->Location.top, gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->Location.top, gBShowDistance);
 				//create Nav All to Me Button
 				if (NavButtonTemplate)
 				{
+					int oldfont = NavButtonTemplate->Font;
+					bool oldbRelativePosition = NavButtonTemplate->bRelativePosition;
+					bool oldbAutoStretchVertical = NavButtonTemplate->bAutoStretchVertical;
+					bool oldbAutoStretchHorizontal = NavButtonTemplate->bAutoStretchHorizontal;
+					bool oldbTopAnchorToTop = NavButtonTemplate->bTopAnchorToTop;
+					bool oldbBottomAnchorToTop = NavButtonTemplate->bBottomAnchorToTop;
+					bool oldbLeftAnchorToLeft = NavButtonTemplate->bLeftAnchorToLeft;
+					bool oldbRightAnchorToLeft = NavButtonTemplate->bRightAnchorToLeft;
+					DWORD oldStyleBits = NavButtonTemplate->StyleBits;
+					
+					//setup our template the way we want it:
+					NavButtonTemplate->StyleBits = WSF_AUTOSTRETCHH | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;
+					NavButtonTemplate->bRightAnchorToLeft = true;
+					NavButtonTemplate->bLeftAnchorToLeft = true;
+					NavButtonTemplate->bBottomAnchorToTop = false;
+					NavButtonTemplate->bTopAnchorToTop = false;
+					NavButtonTemplate->bAutoStretchHorizontal = true;
+					NavButtonTemplate->bAutoStretchVertical = true;
+					NavButtonTemplate->bRelativePosition = true;
+
 					CButtonWnd*Butt = (CButtonWnd*)((CXWnd*)pGwnd)->GetChildItem("GW_InviteButton");
 					//Come To Me button
 					//We let people customize what this button does:
@@ -598,7 +687,15 @@ void Initialize()
 					//now set the template values back
 					SetCXStr(&NavButtonTemplate->Name, "GW_InviteButton");
 					SetCXStr(&NavButtonTemplate->ScreenID, "InviteButton");
-					NavButtonTemplate->Font = 2;
+					NavButtonTemplate->bRelativePosition = oldbRelativePosition;
+					NavButtonTemplate->bAutoStretchVertical = oldbAutoStretchVertical;
+					NavButtonTemplate->bAutoStretchHorizontal = oldbAutoStretchHorizontal;
+					NavButtonTemplate->bTopAnchorToTop = oldbTopAnchorToTop;
+					NavButtonTemplate->bBottomAnchorToTop = oldbBottomAnchorToTop;
+					NavButtonTemplate->bLeftAnchorToLeft = oldbLeftAnchorToLeft;
+					NavButtonTemplate->bRightAnchorToLeft = oldbRightAnchorToLeft;
+					NavButtonTemplate->StyleBits = oldStyleBits;
+					NavButtonTemplate->Font = oldfont;
 				}
 				//
 				//now set the template values back
@@ -614,7 +711,15 @@ void Initialize()
 		}
 		//setup the targetinfo
 		if (PCTARGETWND pTwnd = (PCTARGETWND)pTargetWnd) {
-			//
+			orgTargetWindStyle = pTwnd->Wnd.WindowStyle;
+			//org style for default ui is 0x00200a40
+			if (orgTargetWindStyle & WSF_TITLEBAR)
+			{
+				pTwnd->Wnd.WindowStyle = WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER | WSF_TITLEBAR;
+			}
+			else {
+				pTwnd->Wnd.WindowStyle = WSF_CLIENTMOVABLE | WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER;
+			}
 			if (Target_AggroPctPlayerLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctPlayerLabel"))
 			{
 				Target_AggroPctPlayerLabel->BGColor = 0xFF00000;
@@ -648,6 +753,7 @@ void Initialize()
 			
 			if (PHButtonTemplate && CanSeeLabelTemplate && DistLabelTemplate)
 			{
+				int oldfont = DistLabelTemplate->Font;
 				DistLabelTemplate->Font = 2;
 				SetCXStr(&DistLabelTemplate->Controller, "0");
 				SetCXStr(&CanSeeLabelTemplate->Controller, "0");
@@ -672,6 +778,8 @@ void Initialize()
 				SetCXStr(&DistLabelTemplate->ScreenID, "Target_DistLabel");
 				if (DistanceLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, DistLabelTemplate)) {
 					DistanceLabel->dShow = true;
+					DistanceLabel->bAlignCenter = false;
+					DistanceLabel->bAlignRight = true;
 					DistanceLabel->TopOffset = InfoTopOffset;
 					DistanceLabel->BottomOffset = InfoBottomOffset;
 					DistanceLabel->LeftOffset = dLeftOffset;
@@ -681,11 +789,14 @@ void Initialize()
 					SetCXStr(&DistanceLabel->Tooltip, szTargetDistance);
 				}
 				//create can see label
+				int oldfont2 = CanSeeLabelTemplate->Font;
 				CanSeeLabelTemplate->Font = 2;
 				SetCXStr(&CanSeeLabelTemplate->Name, "Target_CanSeeLabel");
 				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_CanSeeLabel");
 				if (CanSeeLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, CanSeeLabelTemplate)) {
 					CanSeeLabel->dShow = true;
+					CanSeeLabel->bAlignCenter = true;
+					CanSeeLabel->bAlignRight = false;
 					CanSeeLabel->TopOffset = InfoTopOffset;
 					CanSeeLabel->BottomOffset = InfoBottomOffset;
 					CanSeeLabel->LeftOffset = dLeftOffset;
@@ -717,8 +828,8 @@ void Initialize()
 				}
 				//
 				//now set the template values back
-				DistLabelTemplate->Font = 1;
-				CanSeeLabelTemplate->Font = 1;
+				DistLabelTemplate->Font = oldfont;
+				CanSeeLabelTemplate->Font = oldfont2;
 				PHButtonTemplate->Font = 2;
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
 				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
@@ -746,7 +857,7 @@ void Initialize()
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
 					ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp);
 					sprintf_s(szTemp, "ETW_DistLabel%d", i);
-					CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->TopOffset, ETW_Gauge[i]->BottomOffset, ETW_Gauge[i]->RightOffset, gBShowExtDistance);
+					CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->Location.top, gBShowExtDistance);
 				}
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
 				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
@@ -1353,9 +1464,37 @@ PLUGIN_API VOID InitializePlugin(VOID)
 void CleanUp(bool bUnload)
 {
 	if (CGroupWnd*pGwnd = (CGroupWnd*)pGroupWnd) {
+		if (orgwstyle)
+		{
+			CHAR szSize[MAX_STRING] = { 0 };
+			sprintf_s(szSize, "%d,%d,%d,%d", pGwnd->Location.top, pGwnd->Location.bottom, pGwnd->Location.left, pGwnd->Location.right);
+			WriteSetting("WindowLoc", szSize);
+			//we dont need to do this, they might want to move the window after we unload...
+			//pGwnd->WindowStyle = orgwstyle;
+			if (bUnload)
+			{
+				pGwnd->Location = orglocation;
+				pGwnd->TopOffset = orgloc.top;
+				pGwnd->BottomOffset = orgloc.bottom;
+				pGwnd->LeftOffset = orgloc.left;
+				pGwnd->RightOffset = orgloc.right;
+				pGwnd->bNeedsSaving = true;
+				pGwnd->bClientRectChanged = true;
+			}
+			orgwstyle = 0;
+		}
 		if (pGwnd->GroupContextMenu && separatorid)
 		{
 			RemoveOurMenu(pGwnd);
+		}
+	}
+	if (PCTARGETWND pTwnd = (PCTARGETWND)pTargetWnd) {
+		if (orgTargetWindStyle)
+		{
+			//pTwnd->Wnd.WindowStyle = orgTargetWindStyle;
+			pTwnd->Wnd.bNeedsSaving = true;
+			pTwnd->Wnd.bClientRectChanged = true;
+			orgTargetWindStyle = 0;
 		}
 	}
 	if (ETW_DistLabel[0])
@@ -1530,7 +1669,7 @@ void UpdateGroupDist(PCHARINFO pChar, int index)
 		if (pChar->pGroupInfo->pMember[index] && pChar->pGroupInfo->pMember[index]->pSpawn)
 		{
 			float dist = Distance3DToSpawn(pLocalPlayer, pChar->pGroupInfo->pMember[index]->pSpawn);
-			sprintf_s(szTargetDist, "Dist: %.2f", dist);
+			sprintf_s(szTargetDist, "%.2f", dist);
 			if (dist < 250) {
 				pWnd->CRNormal = 0xFF00FF00;//green
 			}
@@ -1761,7 +1900,7 @@ PLUGIN_API VOID OnPulse(VOID)
 						SetCXStr(&InfoLabel->WindowText, szTargetDist);
 						//then distance
 						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
-						sprintf_s(szTargetDist, "Dist: %.2f", dist);
+						sprintf_s(szTargetDist, "%.2f", dist);
 						if (dist < 250) {
 							DistanceLabel->CRNormal = 0xFF00FF00;//green
 						}
