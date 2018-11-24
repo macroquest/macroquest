@@ -855,9 +855,11 @@ void Initialize()
 				for (int i = 0; i < 23; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
-					ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp);
-					sprintf_s(szTemp, "ETW_DistLabel%d", i);
-					CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->Location.top, gBShowExtDistance);
+					if (ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp))
+					{
+						sprintf_s(szTemp, "ETW_DistLabel%d", i);
+						CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->Location.top, gBShowExtDistance);
+					}
 				}
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
 				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
@@ -1501,8 +1503,11 @@ void CleanUp(bool bUnload)
 	{
 		for (int i = 0; i < 23; i++)
 		{
-			((CButtonWnd*)ETW_DistLabel[i])->Destroy();
-			ETW_DistLabel[i] = 0;
+			if (ETW_DistLabel[i])
+			{
+				((CButtonWnd*)ETW_DistLabel[i])->Destroy();
+				ETW_DistLabel[i] = 0;
+			}
 		}
 	}
 	if (GroupDistLabel1) {
@@ -1694,28 +1699,30 @@ void UpdatedExtDistance()
 		CLabelWnd *pWnd = 0;
 		if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
 			for (int i = 0; i < xtm->XTargetSlots.Count; i++) {
-				pWnd = ETW_DistLabel[i];
-				XTARGETSLOT xts = xtm->XTargetSlots[i];
-				DWORD spID = xts.SpawnID;
-				if (spID) {
-					if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
-						float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
-						sprintf_s(szTargetDist, "%.2f", dist);
-						if (dist < 250) {
-							pWnd->CRNormal = 0xFF00FF00;//green
+				if (pWnd = ETW_DistLabel[i])
+				{
+					XTARGETSLOT xts = xtm->XTargetSlots[i];
+					DWORD spID = xts.SpawnID;
+					if (spID) {
+						if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(spID)) {
+							float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
+							sprintf_s(szTargetDist, "%.2f", dist);
+							if (dist < 250) {
+								pWnd->CRNormal = 0xFF00FF00;//green
+							}
+							else {
+								pWnd->CRNormal = 0xFFFF0000;//red
+							}
+							SetCXStr(&pWnd->WindowText, szTargetDist);
+							pWnd->dShow = true;
 						}
 						else {
-							pWnd->CRNormal = 0xFFFF0000;//red
+							pWnd->dShow = false;
 						}
-						SetCXStr(&pWnd->WindowText, szTargetDist);
-						pWnd->dShow = true;
 					}
 					else {
 						pWnd->dShow = false;
 					}
-				}
-				else {
-					pWnd->dShow = false;
 				}
 			}
 		}
