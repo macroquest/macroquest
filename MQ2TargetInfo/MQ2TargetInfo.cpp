@@ -153,6 +153,7 @@ void LoadPHs(char*szMyName) {
 #define InfoTopOffset 33+14;
 #define dLeftOffset 50;
 #define InfoBottomOffset 47+14;
+void CleanUp(bool bUnload);
 CGaugeWnd *GW_Gauge1 = 0;
 CGaugeWnd *GW_Gauge2 = 0;
 CGaugeWnd *GW_Gauge3 = 0;
@@ -179,10 +180,11 @@ CLabelWnd *ETW_DistLabel[23] = { 0 };
 
 DWORD orgwstyle = 0;
 DWORD orgTargetWindStyle = 0;
+DWORD orgExtTargetWindStyle = 0;
 RECT orgloc = { 0,0,0,0 };
 RECT orglocation = { 0,0,0,0 };
 
-bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int top, bool bShow)
+bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int top, int left, bool bAlignRight, bool bShow)
 {
 	SetCXStr(&DistLabelTemplate->Name, label);
 	SetCXStr(&DistLabelTemplate->ScreenID, label);
@@ -194,13 +196,13 @@ bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLab
 		(*labelwnd)->dShow = true;
 		(*labelwnd)->TopOffset = top;
 		(*labelwnd)->BottomOffset = top+12;
-		(*labelwnd)->LeftOffset = 70;
-		(*labelwnd)->RightOffset = 0;
+		(*labelwnd)->LeftOffset = left;
+		(*labelwnd)->RightOffset = left+60;
 		(*labelwnd)->CRNormal = 0xFF00FF00;//green
 		(*labelwnd)->BGColor = 0xFFFFFFFF;
 		SetCXStr(&(*labelwnd)->Tooltip, szGroupDistance);
 		(*labelwnd)->dShow = bShow;
-		(*labelwnd)->bAlignRight = true;
+		(*labelwnd)->bAlignRight = bAlignRight;
 		(*labelwnd)->bAlignCenter = false;
 		DistLabelTemplate->Font = oldfont;
 		DistLabelTemplate->StyleBits = oldstyle;
@@ -371,6 +373,102 @@ void WriteSetting(const char*Key, const char*value)
 	int ival = atoi(value);
 	WriteChatf("\ayMQ2TargetInfo\ax::\am%s is now %s\ax.",Key, ival ? "\aoON" : "\agOFF");
 }
+void WriteUIStringSetting(const char*Key, const char*value)
+{
+	CHAR szSettingINISection[MAX_STRING] = { 0 };
+	CHAR szUI[MAX_STRING] = { 0 };
+	CHAR szFilename[MAX_STRING] = { 0 };
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
+	{
+		return;//better not mess with this if we are not ingame...
+	}
+	else
+	{
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, ((PSPAWNINFO)pLocalPlayer)->Name, EQADDR_SERVERNAME);
+		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
+		sprintf_s(szSettingINISection, "UI_%s", szUI);
+	}
+	WritePrivateProfileString(szSettingINISection, Key, value, INIFileName);
+	int ival = atoi(value);
+	WriteChatf("\ayMQ2TargetInfo\ax::\am%s is now %s\ax.",Key, ival ? "\aoON" : "\agOFF");
+}
+template <unsigned int _Size>LPSTR ReadUIStringSetting(char*Key,char *defaultval,char(&_Out)[_Size])
+{
+	CHAR szSettingINISection[MAX_STRING] = { 0 };
+	CHAR szUI[MAX_STRING] = { 0 };
+	CHAR szFilename[MAX_STRING] = { 0 };
+			
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
+	{
+		strcpy_s(_Out, _Size, defaultval);
+		return _Out;//better not mess with this if we are not ingame...
+	}
+	else
+	{
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, ((PSPAWNINFO)pLocalPlayer)->Name, EQADDR_SERVERNAME);
+		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
+		sprintf_s(szSettingINISection, "UI_%s", szUI);
+	}
+	int ret = GetPrivateProfileString(szSettingINISection, Key, "",_Out,_Size, INIFileName);
+	if (_Out[0] == '\0')
+	{
+		WritePrivateProfileString(szSettingINISection, Key,defaultval, INIFileName);
+		strcpy_s(_Out, _Size, defaultval);
+	}
+	return _Out;
+}
+
+bool ReadUILocSetting(char*Key,int top, int bottom, int left, int right,RECT *RCOut)
+{
+	CHAR szSettingINISection[MAX_STRING] = { 0 };
+	CHAR szUI[MAX_STRING] = { 0 };
+	CHAR szFilename[MAX_STRING] = { 0 };
+			
+	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
+	{
+		(*RCOut).top = top;
+		(*RCOut).bottom = bottom;
+		(*RCOut).left = left;
+		(*RCOut).right = right;
+		return false;
+	}
+	else
+	{
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, ((PSPAWNINFO)pLocalPlayer)->Name, EQADDR_SERVERNAME);
+		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
+		sprintf_s(szSettingINISection, "UI_%s", szUI);
+	}
+	sprintf_s(szUI,"%d,%d,%d,%d", top, bottom, left, right);
+	int ret = GetPrivateProfileString(szSettingINISection, Key, "",szFilename,MAX_STRING, INIFileName);
+	if (szFilename[0] == '\0')
+	{
+		WritePrivateProfileString(szSettingINISection, Key,szUI, INIFileName);
+		(*RCOut).top = top;
+		(*RCOut).bottom = bottom;
+		(*RCOut).left = left;
+		(*RCOut).right = right;
+		return false;
+	}
+	char *token1 = NULL;
+	char *next_token1 = NULL;
+	CHAR szLocs[4][8];
+	token1 = strtok_s(szFilename, ",", &next_token1);
+	int j = 0;
+	while (token1 != NULL)
+	{
+		if (token1 != NULL)
+		{
+			strcpy_s(szLocs[j], token1);
+			token1 = strtok_s(NULL, ",", &next_token1);
+			j++;
+		}
+	}
+	(*RCOut).top = atoi(szLocs[0]);
+	(*RCOut).bottom = atoi(szLocs[1]);
+	(*RCOut).left = atoi(szLocs[2]);
+	(*RCOut).right = atoi(szLocs[3]);
+	return true;
+}
 template <unsigned int _Size>LPSTR ReadStringSetting(char*Key,char *defaultval,char(&_Out)[_Size])
 {
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
@@ -443,17 +541,8 @@ void ReadIniSettings()
 	{
 		gBUsePerCharSettings = 0;
 		WritePrivateProfileString("Default", "UsePerCharSettings", "0", INIFileName);
-		//first run we need to fix a bug with hotbutton covering disband button in old inifiles
-		if (pLocalPlayer && EQADDR_SERVERNAME[0] != '\0')
-		{
-			sprintf_s(szSettingINISection, "%s_%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
-			ret = GetPrivateProfileInt(szSettingINISection, "HotButtonBottom", -1, INIFileName);
-			if (ret == 7)
-			{
-				WritePrivateProfileString(szSettingINISection, "HotButtonBottom", "24", INIFileName);
-			}
-		}
 	}
+
 	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0' || gBUsePerCharSettings == FALSE)
 	{
 		strcpy_s(szSettingINISection, "Default");
@@ -462,6 +551,32 @@ void ReadIniSettings()
 	{
 		sprintf_s(szSettingINISection, "%s_%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
 	}
+		//cleanup old crap
+	WritePrivateProfileString(szSettingINISection, "ComeToMeTop", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "ComeToMeBottom", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "ComeToMeLeft", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "ComeToMeRight", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "FollowMeTop", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "FollowMeBottom", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "FollowMeLeft", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "FollowMeRight", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "MimicMeTop", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "MimicMeBottom", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "MimicMeLeft", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "MimicMeRight", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton0Top", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton0Bottom", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton0Left", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton0Right", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton1Top", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton1Bottom", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton1Left", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton1Right", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton2Top", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton2Bottom", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton2Left", NULL, INIFileName);
+	WritePrivateProfileString(szSettingINISection, "HotButton2Right", NULL, INIFileName);
+
 	ret = GetPrivateProfileInt(szSettingINISection, "ShowMimicMeButton", -1, INIFileName);
 	gBShowMimicMeButton = (ret == 0 ? FALSE : TRUE);
 	if (ret == -1)
@@ -549,8 +664,8 @@ void Initialize()
 			orglocation = pGwnd->Location;
 			CHAR szLoc[MAX_STRING] = { 0 };
 			CHAR szOutLoc[MAX_STRING] = { 0 };
-			sprintf_s(szLoc, "%d,%d,%d,%d", pGwnd->Location.top, pGwnd->Location.bottom, pGwnd->Location.left, pGwnd->Location.right);
-			ReadStringSetting("WindowLoc", szLoc, szOutLoc);
+			sprintf_s(szLoc, "%d,%d,%d,%d", 135,438,953,1098);
+			ReadUIStringSetting("GroupWindowLoc", szLoc, szOutLoc);
 			char *token1 = NULL;
 			char *next_token1 = NULL;
 			CHAR szLocs[4][8];
@@ -605,12 +720,31 @@ void Initialize()
 			if (GW_Gauge1 && DistLabelTemplate) {
 				SetCXStr(&DistLabelTemplate->Controller, "0");
 				//create the distance label 1
-
-				bool ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->Location.top, gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->Location.top, gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->Location.top, gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->Location.top, gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->Location.top, gBShowDistance);
+				CHAR szLoc[MAX_STRING] = { 0 };
+				CHAR szOutLoc[MAX_STRING] = { 0 };
+				sprintf_s(szLoc, "%d,%d",0,-60);
+				ReadUIStringSetting("GroupDistanceLoc", szLoc, szOutLoc);
+				char *token1 = NULL;
+				char *next_token1 = NULL;
+				CHAR szLocs[4][8];
+				token1 = strtok_s(szOutLoc, ",", &next_token1);
+				int j = 0;
+				while (token1 != NULL)
+				{
+					if (token1 != NULL)
+					{
+						strcpy_s(szLocs[j], token1);
+						token1 = strtok_s(NULL, ",", &next_token1);
+						j++;
+					}
+				}
+				int ttop = atoi(szLocs[0]);
+				int tleft = atoi(szLocs[1]);
+				bool ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->Location.top+ttop, tleft,true,gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->Location.top+ttop, tleft,true,gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->Location.top+ttop, tleft,true,gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->Location.top+ttop, tleft,true,gBShowDistance);
+				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->Location.top+ttop, tleft,true,gBShowDistance);
 				//create Nav All to Me Button
 				if (NavButtonTemplate)
 				{
@@ -640,47 +774,32 @@ void Initialize()
 					ReadStringSetting("ComeToMeText","Come To Me",szNav);
 					ReadStringSetting("ComeToMeCommand","/bcg //nav id ${Me.ID}",szNavCommand);
 					ReadStringSetting("ComeToMeToolTip",szNavCommand,szNavToolTip);
-					int top = ReadSetting("ComeToMeTop", Butt->TopOffset + 39);
-					int bottom = ReadSetting("ComeToMeBottom", Butt->BottomOffset + 26);
-					int left = ReadSetting("ComeToMeLeft", 6);
-					int right = ReadSetting("ComeToMeRight", 44);
-					CreateAButton(pGwnd, NavButtonTemplate, &NavButton, "GW_NavButton", "NavButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szNavToolTip, szNav,gBShowComeToMeButton);
+
+					RECT rc = { 0 };
+					ReadUILocSetting("ComeToMeLoc", 61,27,6,46,&rc);
+					CreateAButton(pGwnd, NavButtonTemplate, &NavButton, "GW_NavButton", "NavButton", 1, rc.top, rc.bottom, rc.left, rc.right, 0xFF00FFFF, 0xFFFFFFFF, szNavToolTip, szNav,gBShowComeToMeButton);
 					
 					//Follow Me button
 					ReadStringSetting("FollowMeText","Follow Me",szFollowMe);
 					ReadStringSetting("FollowMeCommand","/bcg //afollow spawn ${Me.ID}",szFollowMeCommand);
 					ReadStringSetting("FollowMeeToolTip",szFollowMeCommand,szFollowMeToolTip);
-					top = ReadSetting("FollowMeTop", Butt->TopOffset + 39);
-					bottom = ReadSetting("FollowMeBottom", Butt->BottomOffset + 26);
-					left = ReadSetting("FollowMeLeft", 48);
-					right = ReadSetting("FollowMeRight", 88);
-					CreateAButton(pGwnd, NavButtonTemplate, &FollowMeButton, "GW_FollowMeButton", "FollowMeButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szFollowMeToolTip, szFollowMe,gBShowFollowMeButton);
+					
+					ReadUILocSetting("FollowMeLoc", 61,27,48,88,&rc);
+					CreateAButton(pGwnd, NavButtonTemplate, &FollowMeButton, "GW_FollowMeButton", "FollowMeButton", 1, rc.top, rc.bottom, rc.left, rc.right, 0xFF00FFFF, 0xFFFFFFFF, szFollowMeToolTip, szFollowMe,gBShowFollowMeButton);
 					
 					//Mimic Me button
-					top = ReadSetting("MimicMeTop", Butt->TopOffset + 39);
-					bottom = ReadSetting("MimicMeBottom", 31);
-					left = ReadSetting("MimicMeLeft", 92);
-					right = ReadSetting("MimicMeRight", 132);
-					CreateAButton(pGwnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, top, bottom, left, right, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe,gBShowMimicMeButton);
+					ReadUILocSetting("MimicMeLoc", 61,27,90,130,&rc);
+					CreateAButton(pGwnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, rc.top, rc.bottom, rc.left, rc.right, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe,gBShowMimicMeButton);
 					
 					//Hotbutton0
-					top = ReadSetting("HotButton0Top", Butt->TopOffset + 77);
-					bottom = ReadSetting("HotButton0Bottom", Butt->BottomOffset + 64);			
-					left = ReadSetting("HotButton0Left", 6);
-					right = ReadSetting("HotButton0Right", 44);
-					CreateGroupHotButton(pGwnd, HBButtonTemplate1, &GroupHotButton[0], top, bottom, left, right,0);
+					ReadUILocSetting("HotButton0Loc", 97,64,6,46,&rc);
+					CreateGroupHotButton(pGwnd, HBButtonTemplate1, &GroupHotButton[0], rc.top, rc.bottom, rc.left, rc.right,0);
 					//Hotbutton1
-					top = ReadSetting("HotButton1Top", Butt->TopOffset + 77);
-					bottom = ReadSetting("HotButton1Bottom", Butt->BottomOffset + 64);			
-					left = ReadSetting("HotButton1Left", 49);
-					right = ReadSetting("HotButton1Right", 89);
-					CreateGroupHotButton(pGwnd, HBButtonTemplate2, &GroupHotButton[1], top, bottom, left, right,1);
+					ReadUILocSetting("HotButton1Loc", 97,64,49,89,&rc);
+					CreateGroupHotButton(pGwnd, HBButtonTemplate2, &GroupHotButton[1], rc.top, rc.bottom, rc.left, rc.right,1);
 					//Hotbutton2
-					top = ReadSetting("HotButton2Top", Butt->TopOffset + 77);
-					bottom = ReadSetting("HotButton2Bottom", Butt->BottomOffset + 64);			
-					left = ReadSetting("HotButton2Left", 92);
-					right = ReadSetting("HotButton2Right", 132);
-					CreateGroupHotButton(pGwnd, HBButtonTemplate3, &GroupHotButton[2], top, bottom, left, right,2);
+					ReadUILocSetting("HotButton2Loc", 97,64,91,131,&rc);
+					CreateGroupHotButton(pGwnd, HBButtonTemplate3, &GroupHotButton[2], rc.top, rc.bottom, rc.left, rc.right,2);
 					
 					
 					//
@@ -746,9 +865,7 @@ void Initialize()
 			
 
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
-			//CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_HPLabel");
 			CControlTemplate *CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName2);
-			//CControlTemplate *CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_HPPercLabel");
 			CControlTemplate *PHButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton");//borrowing this...
 			
 			if (PHButtonTemplate && CanSeeLabelTemplate && DistLabelTemplate)
@@ -762,13 +879,37 @@ void Initialize()
 				SetCXStr(&DistLabelTemplate->ScreenID, "Target_InfoLabel");
 				if (InfoLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, DistLabelTemplate)) {
 					InfoLabel->dShow = true;
+					InfoLabel->bUseInLayoutVertical = true;
+					InfoLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
+					InfoLabel->bClipToParent = true;
+					InfoLabel->bUseInLayoutHorizontal = true;
+					InfoLabel->bLeftAnchoredToLeft = false;
 					InfoLabel->bAlignCenter = false;
 					InfoLabel->bAlignRight = false;
-					InfoLabel->bLeftAnchoredToLeft = true;
-					InfoLabel->TopOffset = 33;
-					InfoLabel->BottomOffset = 47;
-					InfoLabel->LeftOffset = 2;
-					InfoLabel->RightOffset = 60;
+					InfoLabel->bRightAnchoredToLeft = true;
+					CHAR szLoc[MAX_STRING] = { 0 };
+					CHAR szOutLoc[MAX_STRING] = { 0 };
+					sprintf_s(szLoc, "%d,%d",2,160);
+					ReadUIStringSetting("TargetInfoLoc", szLoc, szOutLoc);
+					char *token1 = NULL;
+					char *next_token1 = NULL;
+					CHAR szLocs[4][8];
+					token1 = strtok_s(szOutLoc, ",", &next_token1);
+					int j = 0;
+					while (token1 != NULL)
+					{
+						if (token1 != NULL)
+						{
+							strcpy_s(szLocs[j], token1);
+							token1 = strtok_s(NULL, ",", &next_token1);
+							j++;
+						}
+					}
+					InfoLabel->TopOffset = atoi(szLocs[0]);
+					InfoLabel->BottomOffset = InfoLabel->TopOffset+14;
+					InfoLabel->LeftOffset = atoi(szLocs[1]);
+					InfoLabel->RightOffset = InfoLabel->LeftOffset+600;
+
 					InfoLabel->CRNormal = 0xFF00FF00;//green
 					InfoLabel->BGColor = 0xFFFFFFFF;
 					SetCXStr(&InfoLabel->Tooltip, szTargetInfo);
@@ -778,12 +919,37 @@ void Initialize()
 				SetCXStr(&DistLabelTemplate->ScreenID, "Target_DistLabel");
 				if (DistanceLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, DistLabelTemplate)) {
 					DistanceLabel->dShow = true;
+					DistanceLabel->bUseInLayoutVertical = true;
+					DistanceLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
+					DistanceLabel->bClipToParent = true;
+					DistanceLabel->bUseInLayoutHorizontal = true;
+					DistanceLabel->bLeftAnchoredToLeft = false;
 					DistanceLabel->bAlignCenter = false;
-					DistanceLabel->bAlignRight = true;
-					DistanceLabel->TopOffset = InfoTopOffset;
-					DistanceLabel->BottomOffset = InfoBottomOffset;
-					DistanceLabel->LeftOffset = dLeftOffset;
-					DistanceLabel->RightOffset = 2;
+					DistanceLabel->bAlignRight = false;
+					DistanceLabel->bRightAnchoredToLeft = true;
+					CHAR szLoc[MAX_STRING] = { 0 };
+					CHAR szOutLoc[MAX_STRING] = { 0 };
+					sprintf_s(szLoc, "%d,%d",36, 32);
+					ReadUIStringSetting("TargetDistanceLoc", szLoc, szOutLoc);
+					char *token1 = NULL;
+					char *next_token1 = NULL;
+					CHAR szLocs[4][8];
+					token1 = strtok_s(szOutLoc, ",", &next_token1);
+					int j = 0;
+					while (token1 != NULL)
+					{
+						if (token1 != NULL)
+						{
+							strcpy_s(szLocs[j], token1);
+							token1 = strtok_s(NULL, ",", &next_token1);
+							j++;
+						}
+					}
+					DistanceLabel->TopOffset = atoi(szLocs[0]);
+					DistanceLabel->BottomOffset = DistanceLabel->TopOffset+14;
+					DistanceLabel->LeftOffset = atoi(szLocs[1]);
+					DistanceLabel->RightOffset = DistanceLabel->LeftOffset+600;
+
 					DistanceLabel->CRNormal = 0xFF00FF00;//green
 					DistanceLabel->BGColor = 0xFFFFFFFF;
 					SetCXStr(&DistanceLabel->Tooltip, szTargetDistance);
@@ -798,7 +964,9 @@ void Initialize()
 					CanSeeLabel->bAlignCenter = true;
 					CanSeeLabel->bAlignRight = false;
 					CanSeeLabel->TopOffset = InfoTopOffset;
+					CanSeeLabel->TopOffset += 10;
 					CanSeeLabel->BottomOffset = InfoBottomOffset;
+					CanSeeLabel->BottomOffset += 10;
 					CanSeeLabel->LeftOffset = dLeftOffset;
 					CanSeeLabel->RightOffset = dLeftOffset;
 					CanSeeLabel->CRNormal = 0xFF00FF00;//green
@@ -808,7 +976,7 @@ void Initialize()
 				//create PHButton
 				PHButtonTemplate->Font = 0;
 				if (PHButton = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, PHButtonTemplate)) {
-					PHButton->dShow = true;
+					PHButton->dShow = false;
 					PHButton->bBottomAnchoredToTop = true;
 					PHButton->bLeftAnchoredToLeft = true;
 					PHButton->bRightAnchoredToLeft = false;
@@ -847,18 +1015,55 @@ void Initialize()
 		}
 		if (CXWnd*pExtWnd = FindMQ2Window("ExtendedTargetWnd"))
 		{
+			orgExtTargetWindStyle = pExtWnd->WindowStyle;
+			//org style for default ui is ?
+			if (orgExtTargetWindStyle & WSF_TITLEBAR)
+			{
+				pExtWnd->WindowStyle = WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER | WSF_TITLEBAR;
+			}
+			else {
+				pExtWnd->WindowStyle = WSF_CLIENTMOVABLE | WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER;
+			}
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			if (DistLabelTemplate) {
 
 				SetCXStr(&DistLabelTemplate->Controller, "0");
 				CHAR szTemp[MAX_STRING] = { 0 };
+				CHAR szLoc[MAX_STRING] = { 0 };
+				CHAR szOutLoc[MAX_STRING] = { 0 };
+				sprintf_s(szLoc, "%d,%d", 0,-80);
+				
+				ReadUIStringSetting("ExtDistanceLoc", szLoc, szOutLoc);
+				char *token1 = NULL;
+				char *next_token1 = NULL;
+				CHAR szLocs[4][8];
+				token1 = strtok_s(szOutLoc, ",", &next_token1);
+				int j = 0;
+				while (token1 != NULL)
+				{
+					if (token1 != NULL)
+					{
+						strcpy_s(szLocs[j], token1);
+						token1 = strtok_s(NULL, ",", &next_token1);
+						j++;
+					}
+				}
+				int ttop = atoi(szLocs[0]);
+				int tleft = atoi(szLocs[1]);
 				for (int i = 0; i < 23; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
 					if (ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp))
 					{
 						sprintf_s(szTemp, "ETW_DistLabel%d", i);
-						CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, ETW_Gauge[i]->Location.top, gBShowExtDistance);
+						int left = ETW_Gauge[i]->LeftOffset;
+						int top = ETW_Gauge[i]->TopOffset;
+						if (left==0 && top==0)//weird UI...
+						{
+							left = ETW_Gauge[i]->Location.left;
+							top = ETW_Gauge[i]->Location.top;
+						}
+						CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, top+ttop,left+tleft,true, gBShowExtDistance);
 					}
 				}
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
@@ -1311,6 +1516,13 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", gBShowHotButtons ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->dShow ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide cometome\ax\am(it's currently set to: %s)\ax.", NavButton->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo reload will reload all settings.\ax.");
+		return;
+	}
+	else if (!_stricmp(szArg1, "reload"))
+	{
+		CleanUp(true);
+		bDisablePluginDueToBadUI = false;
 		return;
 	}
 	else if (!_stricmp(szArg1, "show"))
@@ -1463,14 +1675,15 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	DebugSpewAlways("Initializing MQ2TargetInfo");
 	Initialize();
 }
+
 void CleanUp(bool bUnload)
 {
 	if (CGroupWnd*pGwnd = (CGroupWnd*)pGroupWnd) {
 		if (orgwstyle)
 		{
-			CHAR szSize[MAX_STRING] = { 0 };
-			sprintf_s(szSize, "%d,%d,%d,%d", pGwnd->Location.top, pGwnd->Location.bottom, pGwnd->Location.left, pGwnd->Location.right);
-			WriteSetting("WindowLoc", szSize);
+			//CHAR szSize[MAX_STRING] = { 0 };
+			//sprintf_s(szSize, "%d,%d,%d,%d", pGwnd->Location.top, pGwnd->Location.bottom, pGwnd->Location.left, pGwnd->Location.right);
+			//WriteUIStringSetting("GroupWindowLoc", szSize);
 			//we dont need to do this, they might want to move the window after we unload...
 			//pGwnd->WindowStyle = orgwstyle;
 			if (bUnload)
@@ -1497,6 +1710,16 @@ void CleanUp(bool bUnload)
 			pTwnd->Wnd.bNeedsSaving = true;
 			pTwnd->Wnd.bClientRectChanged = true;
 			orgTargetWindStyle = 0;
+		}
+	}
+	if (CXWnd*pExtWnd = FindMQ2Window("ExtendedTargetWnd"))
+	{
+		if (orgExtTargetWindStyle)
+		{
+			//pExtWnd->WindowStyle = orgExtTargetWindStyle;
+			pExtWnd->bNeedsSaving = true;
+			pExtWnd->bClientRectChanged = true;
+			orgExtTargetWindStyle = 0;
 		}
 	}
 	if (ETW_DistLabel[0])
