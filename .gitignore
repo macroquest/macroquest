@@ -25,7 +25,6 @@
 *.zip
 .vs/
 
-Release/
 Debug/
 Intermediate*/
 ISXEQ*Intermediate
@@ -150,3 +149,7 @@ MQ2Main/Logs
 /MQ2RipIt
 /MQ2SQLiteDeps
 /MQ2SQLite
+/MQ2TargetInfo/RCa33148
+/Release
+/MQ2Radar/Release
+/MQ2Auth/Release

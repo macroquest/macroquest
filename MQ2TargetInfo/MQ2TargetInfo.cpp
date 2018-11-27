@@ -9,6 +9,8 @@
 #include "resource.h"
 
 PreSetup("MQ2TargetInfo");
+PLUGIN_VERSION(2.0);
+
 bool bDisablePluginDueToBadUI = false;
 CHAR szTargetInfo[128] = { "Target Info" };
 CHAR szTargetDistance[128] = { "Target Distance" };
@@ -54,7 +56,40 @@ typedef struct _phinfo
 	std::string Named;
 	std::string Link;
 }phinfo,*pphinfo;
-
+void CleanUp(bool bUnload);
+void ResetIni()
+{
+	CopyFile(INIFileName, "MQ2TargetInfo.bak", FALSE);
+	DeleteFile(INIFileName);
+	HMODULE hMe = 0;
+	CHAR szMyIniName[2048] = { 0 };
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)ResetIni, &hMe);
+	void* pMyBinaryData = 0;
+	GetModuleFileName(hMe, szMyIniName, 2048);
+	if (char *pDest = strrchr(szMyIniName, '.')) {
+		pDest[0] = '\0';
+		strcat_s(szMyIniName, ".ini");
+	}
+	if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_INI1), "INI")) {
+		if (HGLOBAL bin = LoadResource(hMe, hRes)) {
+			BOOL bResult = 0;
+			if (pMyBinaryData = LockResource(bin)) {
+				//save it...
+				DWORD ressize = SizeofResource(hMe, hRes);
+				FILE *File = 0;
+				errno_t err = fopen_s(&File, szMyIniName, "wb");
+				if (!err) {
+					fwrite(pMyBinaryData, ressize, 1, File);
+					fclose(File);
+				}
+				bResult = UnlockResource(hRes);
+			}
+			bResult = FreeResource(hRes);
+		}
+	}
+	CleanUp(true);
+	bDisablePluginDueToBadUI = false;
+}
 std::map<std::string, phinfo> phmap;
 bool GetPhMap(PSPAWNINFO pSpawn, phinfo *pinf);
 class MyCTargetWnd
@@ -153,7 +188,7 @@ void LoadPHs(char*szMyName) {
 #define InfoTopOffset 33+14;
 #define dLeftOffset 50;
 #define InfoBottomOffset 47+14;
-void CleanUp(bool bUnload);
+
 CGaugeWnd *GW_Gauge1 = 0;
 CGaugeWnd *GW_Gauge2 = 0;
 CGaugeWnd *GW_Gauge3 = 0;
@@ -544,7 +579,26 @@ int ReadSetting(char*Key,int defaultval)
 void ReadIniSettings()
 {
 	CHAR szSettingINISection[MAX_STRING] = { 0 };
-	int ret = GetPrivateProfileInt("Default", "UsePerCharSettings", -1, INIFileName);
+	CHAR szVersion[MAX_STRING] = { 0 };
+	int ret = GetPrivateProfileString("Default", "PluginVersion", "",szVersion,MAX_STRING, INIFileName);
+	if (szVersion[0] == '\0')
+	{
+		CHAR szTemp[MAX_STRING] = { 0 };
+		sprintf_s(szTemp, "%.1f", MQ2Version);
+		WritePrivateProfileString("Default", "PluginVersion", szTemp, INIFileName);
+		ResetIni();
+	}
+	else {
+		CHAR szTemp[MAX_STRING] = { 0 };
+		sprintf_s(szTemp, "%.1f", MQ2Version);
+		if (_stricmp(szTemp, szVersion))
+		{
+			//they match do nothing
+			//they dont match update ini.
+			ResetIni();
+		}
+	}
+	ret = GetPrivateProfileInt("Default", "UsePerCharSettings", -1, INIFileName);
 	gBUsePerCharSettings = (ret == 0 ? FALSE : TRUE);
 	if (ret == -1)
 	{
@@ -740,7 +794,7 @@ void Initialize()
 				
 				ReadUIStringSetting("UseGroupLayoutBox", "0", szOutLoc);
 				int UseLayoutBox = atoi(szOutLoc);
-				sprintf_s(szLoc, "%d,%d,%d,%d",0,14,-60,0);
+				sprintf_s(szLoc, "%d,%d,%d,%d",0,-20,70,0);
 				ReadUIStringSetting("GroupDistanceLoc", szLoc, szOutLoc);
 				char *token1 = NULL;
 				char *next_token1 = NULL;
@@ -867,7 +921,7 @@ void Initialize()
 					ReadUILocSetting("HotButton1Loc", 97,64,49,89,&rc);
 					CreateGroupHotButton(pGwnd, HBButtonTemplate2, &GroupHotButton[1], rc.top, rc.bottom, rc.left, rc.right,1);
 					//Hotbutton2
-					ReadUILocSetting("HotButton2Loc", 97,64,91,131,&rc);
+					ReadUILocSetting("HotButton2Loc", 97,64,92,132,&rc);
 					CreateGroupHotButton(pGwnd, HBButtonTemplate3, &GroupHotButton[2], rc.top, rc.bottom, rc.left, rc.right,2);
 					
 					
@@ -967,7 +1021,7 @@ void Initialize()
 					InfoLabel->bUseInLayoutHorizontal = true;
 					InfoLabel->bAlignCenter = false;
 					InfoLabel->bAlignRight = false;
-					sprintf_s(szLoc, "%d,%d,%d,%d",34,48,0,100);
+					sprintf_s(szLoc, "%d,%d,%d,%d",34,48,0,40);
 					ReadUIStringSetting("TargetInfoLoc", szLoc, szOutLoc);
 					char *token1 = NULL;
 					char *next_token1 = NULL;
@@ -997,7 +1051,7 @@ void Initialize()
 				SetCXStr(&DistLabelTemplate->ScreenID, "Target_DistLabel");
 				CHAR szLoc[MAX_STRING] = { 0 };
 				CHAR szOutLoc[MAX_STRING] = { 0 };
-				sprintf_s(szLoc, "%d,%d,%d,%d",34,48,0,60);
+				sprintf_s(szLoc, "%d,%d,%d,%d",34,48,90,0);
 				ReadUIStringSetting("TargetDistanceLoc", szLoc, szOutLoc);
 				char *token1 = NULL;
 				char *next_token1 = NULL;
@@ -1099,7 +1153,7 @@ void Initialize()
 				int UseExtLayoutBox = atoi(szOutLoc);
 
 				SetCXStr(&DistLabelTemplate->Controller, "0");
-				sprintf_s(szLoc, "%d,%d,%d,%d", 0,-20,0,0);
+				sprintf_s(szLoc, "%d,%d,%d,%d", 0,-20,70,0);
 				
 				ReadUIStringSetting("ExtDistanceLoc", szLoc, szOutLoc);
 				char *token1 = NULL;
@@ -1598,7 +1652,13 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", gBShowHotButtons ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->dShow ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide cometome\ax\am(it's currently set to: %s)\ax.", NavButton->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo reset will reset all settings to default. Old settings will be in MQ2TargetInfo.bak\ax.");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo reload will reload all settings.\ax.");
+		return;
+	}
+	else if (!_stricmp(szArg1, "reset"))
+	{
+		ResetIni();
 		return;
 	}
 	else if (!_stricmp(szArg1, "reload"))
@@ -1718,11 +1778,14 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	EzDetourwName(CGroupWnd__WndNotification, &CGroupWnd2::WndNotification_Detour, &CGroupWnd2::WndNotification_Trampoline, "GWW");
 	HMODULE hMe = 0;
 	CHAR szMyName[2048] = { 0 };
+	CHAR szMyIniName[2048] = { 0 };
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
 	void* pMyBinaryData = 0;
 	GetModuleFileName(hMe, szMyName, 2048);
 	if (char *pDest = strrchr(szMyName, '.')) {
 		pDest[0] = '\0';
+		strcpy_s(szMyIniName, szMyName);
+		strcat_s(szMyIniName, ".ini");
 		strcat_s(szMyName, ".txt");
 	}
 	WIN32_FIND_DATA FindFile = { 0 };
@@ -1752,6 +1815,30 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	else {
 		FindClose(hSearch);
 		LoadPHs(szMyName);
+	}
+	hSearch = FindFirstFile(szMyIniName, &FindFile);
+	if (hSearch == INVALID_HANDLE_VALUE) {
+		//need to unpack our resource.
+		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_INI1), "INI")) {
+			if (HGLOBAL bin = LoadResource(hMe, hRes)) {
+				BOOL bResult = 0;
+				if (pMyBinaryData = LockResource(bin)) {
+					//save it...
+					DWORD ressize = SizeofResource(hMe, hRes);
+					FILE *File = 0;
+					errno_t err = fopen_s(&File, szMyIniName, "wb");
+					if (!err) {
+						fwrite(pMyBinaryData, ressize, 1, File);
+						fclose(File);
+					}
+					bResult = UnlockResource(hRes);
+				}
+				bResult = FreeResource(hRes);
+			}
+		}
+	}
+	else {
+		FindClose(hSearch);
 	}
 	EzDetourwName(CTargetWnd__HandleBuffRemoveRequest, &MyCTargetWnd::HandleBuffRemoveRequest_Detour, &MyCTargetWnd::HandleBuffRemoveRequest_Tramp, "CTargetWnd__HandleBuffRemoveRequest");
 	DebugSpewAlways("Initializing MQ2TargetInfo");

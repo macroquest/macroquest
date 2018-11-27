@@ -298,7 +298,8 @@ MQ2TargetInfo\db1.bin
 MQ2TargetInfo\LocalDB.h
 MQ2TargetInfo\MQ2TargetInfo.cpp
 MQ2TargetInfo\MQ2TargetInfo.rc
-mq2targetinfo\resource.h
+MQ2TargetInfo\resource.h
+MQ2TargetInfo\MQ2TargetInfo.ini
 MQ2TargetInfo\MQ2TargetInfo.vcxproj
 MQ2TargetInfo\MQ2TargetInfo.vcxproj.filters
 mq2telnet\ISXEQTelnet.cpp
