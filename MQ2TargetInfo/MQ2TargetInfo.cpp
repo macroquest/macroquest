@@ -583,17 +583,17 @@ void ReadIniSettings()
 	int ret = GetPrivateProfileString("Default", "PluginVersion", "",szVersion,MAX_STRING, INIFileName);
 	if (szVersion[0] == '\0')
 	{
+		ResetIni();
 		CHAR szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, "%.1f", MQ2Version);
 		WritePrivateProfileString("Default", "PluginVersion", szTemp, INIFileName);
-		ResetIni();
 	}
 	else {
 		CHAR szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, "%.1f", MQ2Version);
+		//they match do nothing
 		if (_stricmp(szTemp, szVersion))
 		{
-			//they match do nothing
 			//they dont match update ini.
 			ResetIni();
 		}
