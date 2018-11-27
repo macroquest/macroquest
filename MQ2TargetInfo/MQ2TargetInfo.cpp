@@ -181,10 +181,10 @@ CLabelWnd *ETW_DistLabel[23] = { 0 };
 DWORD orgwstyle = 0;
 DWORD orgTargetWindStyle = 0;
 DWORD orgExtTargetWindStyle = 0;
-RECT orgloc = { 0,0,0,0 };
-RECT orglocation = { 0,0,0,0 };
+//RECT orgloc = { 0,0,0,0 };
+//RECT orglocation = { 0,0,0,0 };
 
-bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int top, int left, bool bAlignRight, bool bShow)
+bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int top, int bottom,int left,int right, bool bAlignRight, bool bShow)
 {
 	SetCXStr(&DistLabelTemplate->Name, label);
 	SetCXStr(&DistLabelTemplate->ScreenID, label);
@@ -195,9 +195,9 @@ bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLab
 	if (*labelwnd = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, DistLabelTemplate)) {
 		(*labelwnd)->dShow = true;
 		(*labelwnd)->TopOffset = top;
-		(*labelwnd)->BottomOffset = top+12;
+		(*labelwnd)->BottomOffset = bottom;
 		(*labelwnd)->LeftOffset = left;
-		(*labelwnd)->RightOffset = left+60;
+		(*labelwnd)->RightOffset = right;
 		(*labelwnd)->CRNormal = 0xFF00FF00;//green
 		(*labelwnd)->BGColor = 0xFFFFFFFF;
 		SetCXStr(&(*labelwnd)->Tooltip, szGroupDistance);
@@ -412,6 +412,15 @@ template <unsigned int _Size>LPSTR ReadUIStringSetting(char*Key,char *defaultval
 	int ret = GetPrivateProfileString(szSettingINISection, Key, "",_Out,_Size, INIFileName);
 	if (_Out[0] == '\0')
 	{
+		if (!_stricmp(Key, "DynamicUI"))
+		{
+			//first time they are running this version, reset all their stuff.
+			WritePrivateProfileString(szSettingINISection, "GroupWindowLoc",NULL, INIFileName);
+			WritePrivateProfileString(szSettingINISection, "TargetInfoLoc",NULL, INIFileName);
+			WritePrivateProfileString(szSettingINISection, "TargetDistanceLoc",NULL, INIFileName);
+			WritePrivateProfileString(szSettingINISection, "ExtDistanceLoc", NULL, INIFileName);
+			WritePrivateProfileString(szSettingINISection, "GroupDistanceLoc", NULL, INIFileName);
+		}
 		WritePrivateProfileString(szSettingINISection, Key,defaultval, INIFileName);
 		strcpy_s(_Out, _Size, defaultval);
 	}
@@ -654,18 +663,23 @@ void Initialize()
 		CHAR OldScreenName2[2048] = { "Target_AggroNameSecondaryLabel" };
 		CHAR OldController2[2048] = { "304" };
 		*/
+		CHAR szDynamic[MAX_STRING] = { 0 };
+		ReadUIStringSetting("DynamicUI", "1", szDynamic);
+		int isDynamic = atoi(szDynamic);
 		//setup the group info
 		if (CGroupWnd*pGwnd = (CGroupWnd*)pGroupWnd) {
 			//for default ui style is 0xa44
-			orgloc.top = pGwnd->TopOffset;
-			orgloc.right = pGwnd->RightOffset;
-			orgloc.bottom = pGwnd->BottomOffset;
-			orgloc.left = pGwnd->LeftOffset;
-			orglocation = pGwnd->Location;
-			CHAR szLoc[MAX_STRING] = { 0 };
-			CHAR szOutLoc[MAX_STRING] = { 0 };
-			sprintf_s(szLoc, "%d,%d,%d,%d", 135,438,953,1098);
-			ReadUIStringSetting("GroupWindowLoc", szLoc, szOutLoc);
+			//this was a stupid idea, lets not mess with the location
+			//orgloc.top = pGwnd->TopOffset;
+			//orgloc.right = pGwnd->RightOffset;
+			//orgloc.bottom = pGwnd->BottomOffset;
+			//orgloc.left = pGwnd->LeftOffset;
+			//orglocation = pGwnd->Location;
+			//CHAR szLoc[MAX_STRING] = { 0 };
+			//CHAR szOutLoc[MAX_STRING] = { 0 };
+			//sprintf_s(szLoc, "%d,%d,%d,%d", 135,438,953,1098);
+			//lets not.
+			/*ReadUIStringSetting("GroupWindowLoc", szLoc, szOutLoc);
 			char *token1 = NULL;
 			char *next_token1 = NULL;
 			CHAR szLocs[4][8];
@@ -685,6 +699,7 @@ void Initialize()
 			pGwnd->Location.bottom = atoi(szLocs[1]);
 			pGwnd->Location.left = atoi(szLocs[2]);
 			pGwnd->Location.right = atoi(szLocs[3]);
+			*/
 			orgwstyle = pGwnd->WindowStyle;
 			if (orgwstyle & WSF_TITLEBAR)
 			{
@@ -722,7 +737,10 @@ void Initialize()
 				//create the distance label 1
 				CHAR szLoc[MAX_STRING] = { 0 };
 				CHAR szOutLoc[MAX_STRING] = { 0 };
-				sprintf_s(szLoc, "%d,%d",0,-60);
+				
+				ReadUIStringSetting("UseGroupLayoutBox", "0", szOutLoc);
+				int UseLayoutBox = atoi(szOutLoc);
+				sprintf_s(szLoc, "%d,%d,%d,%d",0,14,-60,0);
 				ReadUIStringSetting("GroupDistanceLoc", szLoc, szOutLoc);
 				char *token1 = NULL;
 				char *next_token1 = NULL;
@@ -739,12 +757,63 @@ void Initialize()
 					}
 				}
 				int ttop = atoi(szLocs[0]);
-				int tleft = atoi(szLocs[1]);
-				bool ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->Location.top+ttop, tleft,true,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->Location.top+ttop, tleft,true,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->Location.top+ttop, tleft,true,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->Location.top+ttop, tleft,true,gBShowDistance);
-				ther = CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->Location.top+ttop, tleft,true,gBShowDistance);
+				int tbottom = atoi(szLocs[1]);
+				int tleft = atoi(szLocs[2]);
+				int tright = atoi(szLocs[3]);
+				if (UseLayoutBox)//they have a weird UI like sars that uses a layout box these UI's dont have any locations we can read
+				{
+					ReadUIStringSetting("GroupDistanceOffset", "0", szOutLoc);
+					int GroupDistanceOffset = atoi(szOutLoc);
+					ReadUIStringSetting("GroupDistanceElementPrefix", "GW_Gauge", szOutLoc);
+					sprintf_s(szLoc, "%s1",szOutLoc);
+					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
+					{
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+					}
+					sprintf_s(szLoc, "%s2", szOutLoc);
+					GroupDistanceOffset += GroupDistanceOffset;
+					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
+					{
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+					}
+					sprintf_s(szLoc, "%s3", szOutLoc);
+					GroupDistanceOffset += GroupDistanceOffset;
+					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
+					{
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+					}
+					sprintf_s(szLoc, "%s4", szOutLoc);
+					GroupDistanceOffset += GroupDistanceOffset;
+					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
+					{
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+					}
+					sprintf_s(szLoc, "%s5", szOutLoc);
+					GroupDistanceOffset += GroupDistanceOffset;
+					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
+					{
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+					}
+				}
+				else {
+					if (isDynamic)
+					{
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->TopOffset + ttop, GW_Gauge1->BottomOffset + tbottom, GW_Gauge1->LeftOffset + tleft, GW_Gauge1->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->TopOffset + ttop, GW_Gauge2->BottomOffset + tbottom, GW_Gauge2->LeftOffset + tleft, GW_Gauge2->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->TopOffset + ttop, GW_Gauge3->BottomOffset + tbottom, GW_Gauge3->LeftOffset + tleft, GW_Gauge3->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->TopOffset + ttop, GW_Gauge4->BottomOffset + tbottom, GW_Gauge4->LeftOffset + tleft, GW_Gauge4->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->TopOffset + ttop, GW_Gauge5->BottomOffset + tbottom, GW_Gauge5->LeftOffset + tleft, GW_Gauge5->RightOffset + tright, true, gBShowDistance);
+					}
+					else
+					{
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->Location.top + ttop, GW_Gauge1->Location.bottom + tbottom, GW_Gauge1->Location.left + tleft, GW_Gauge1->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->Location.top + ttop, GW_Gauge2->Location.bottom + tbottom, GW_Gauge2->Location.left + tleft, GW_Gauge2->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->Location.top + ttop, GW_Gauge3->Location.bottom + tbottom, GW_Gauge3->Location.left + tleft, GW_Gauge3->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->Location.top + ttop, GW_Gauge4->Location.bottom + tbottom, GW_Gauge4->Location.left + tleft, GW_Gauge4->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->Location.top + ttop, GW_Gauge5->Location.bottom + tbottom, GW_Gauge5->Location.left + tleft, GW_Gauge5->Location.right + tright, true, gBShowDistance);
+					}
+				}
+
 				//create Nav All to Me Button
 				if (NavButtonTemplate)
 				{
@@ -878,18 +947,27 @@ void Initialize()
 				SetCXStr(&DistLabelTemplate->Name, "Target_InfoLabel");
 				SetCXStr(&DistLabelTemplate->ScreenID, "Target_InfoLabel");
 				if (InfoLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, DistLabelTemplate)) {
+					CHAR szLoc[MAX_STRING] = { 0 };
+					CHAR szOutLoc[MAX_STRING] = { 0 };
+					ReadUIStringSetting("TargetInfoAnchoredToRight", "0", szOutLoc);
+					int anchoredright = atoi(szOutLoc);
+					if (anchoredright)
+					{
+						InfoLabel->bRightAnchoredToLeft = true;
+						InfoLabel->bLeftAnchoredToLeft = false;
+					}
+					else {
+						InfoLabel->bRightAnchoredToLeft = false;
+						InfoLabel->bLeftAnchoredToLeft = true;
+					}
 					InfoLabel->dShow = true;
 					InfoLabel->bUseInLayoutVertical = true;
 					InfoLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
 					InfoLabel->bClipToParent = true;
 					InfoLabel->bUseInLayoutHorizontal = true;
-					InfoLabel->bLeftAnchoredToLeft = false;
 					InfoLabel->bAlignCenter = false;
 					InfoLabel->bAlignRight = false;
-					InfoLabel->bRightAnchoredToLeft = true;
-					CHAR szLoc[MAX_STRING] = { 0 };
-					CHAR szOutLoc[MAX_STRING] = { 0 };
-					sprintf_s(szLoc, "%d,%d",2,160);
+					sprintf_s(szLoc, "%d,%d,%d,%d",34,48,0,100);
 					ReadUIStringSetting("TargetInfoLoc", szLoc, szOutLoc);
 					char *token1 = NULL;
 					char *next_token1 = NULL;
@@ -906,9 +984,9 @@ void Initialize()
 						}
 					}
 					InfoLabel->TopOffset = atoi(szLocs[0]);
-					InfoLabel->BottomOffset = InfoLabel->TopOffset+14;
-					InfoLabel->LeftOffset = atoi(szLocs[1]);
-					InfoLabel->RightOffset = InfoLabel->LeftOffset+600;
+					InfoLabel->BottomOffset = atoi(szLocs[1]);
+					InfoLabel->LeftOffset = atoi(szLocs[2]);
+					InfoLabel->RightOffset = atoi(szLocs[3]);
 
 					InfoLabel->CRNormal = 0xFF00FF00;//green
 					InfoLabel->BGColor = 0xFFFFFFFF;
@@ -917,43 +995,30 @@ void Initialize()
 				//create the distance label
 				SetCXStr(&DistLabelTemplate->Name, "Target_DistLabel");
 				SetCXStr(&DistLabelTemplate->ScreenID, "Target_DistLabel");
-				if (DistanceLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, DistLabelTemplate)) {
-					DistanceLabel->dShow = true;
-					DistanceLabel->bUseInLayoutVertical = true;
-					DistanceLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
-					DistanceLabel->bClipToParent = true;
-					DistanceLabel->bUseInLayoutHorizontal = true;
-					DistanceLabel->bLeftAnchoredToLeft = false;
-					DistanceLabel->bAlignCenter = false;
-					DistanceLabel->bAlignRight = false;
-					DistanceLabel->bRightAnchoredToLeft = true;
-					CHAR szLoc[MAX_STRING] = { 0 };
-					CHAR szOutLoc[MAX_STRING] = { 0 };
-					sprintf_s(szLoc, "%d,%d",36, 32);
-					ReadUIStringSetting("TargetDistanceLoc", szLoc, szOutLoc);
-					char *token1 = NULL;
-					char *next_token1 = NULL;
-					CHAR szLocs[4][8];
-					token1 = strtok_s(szOutLoc, ",", &next_token1);
-					int j = 0;
-					while (token1 != NULL)
+				CHAR szLoc[MAX_STRING] = { 0 };
+				CHAR szOutLoc[MAX_STRING] = { 0 };
+				sprintf_s(szLoc, "%d,%d,%d,%d",34,48,0,60);
+				ReadUIStringSetting("TargetDistanceLoc", szLoc, szOutLoc);
+				char *token1 = NULL;
+				char *next_token1 = NULL;
+				CHAR szLocs[4][8];
+				token1 = strtok_s(szOutLoc, ",", &next_token1);
+				int j = 0;
+				while (token1 != NULL)
+				{
+					if (token1 != NULL)
 					{
-						if (token1 != NULL)
-						{
-							strcpy_s(szLocs[j], token1);
-							token1 = strtok_s(NULL, ",", &next_token1);
-							j++;
-						}
+						strcpy_s(szLocs[j], token1);
+						token1 = strtok_s(NULL, ",", &next_token1);
+						j++;
 					}
-					DistanceLabel->TopOffset = atoi(szLocs[0]);
-					DistanceLabel->BottomOffset = DistanceLabel->TopOffset+14;
-					DistanceLabel->LeftOffset = atoi(szLocs[1]);
-					DistanceLabel->RightOffset = DistanceLabel->LeftOffset+600;
-
-					DistanceLabel->CRNormal = 0xFF00FF00;//green
-					DistanceLabel->BGColor = 0xFFFFFFFF;
-					SetCXStr(&DistanceLabel->Tooltip, szTargetDistance);
 				}
+				int ttop = atoi(szLocs[0]);
+				int tbottom = atoi(szLocs[1]);
+				int tleft = atoi(szLocs[2]);
+				int tright = atoi(szLocs[3]);
+				CreateDistLabel((CGroupWnd*)pTwnd, DistLabelTemplate, &DistanceLabel, "Target_DistLabel", ttop,tbottom,tleft,tright,true, gBShowExtDistance);
+				
 				//create can see label
 				int oldfont2 = CanSeeLabelTemplate->Font;
 				CanSeeLabelTemplate->Font = 2;
@@ -1027,11 +1092,14 @@ void Initialize()
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			if (DistLabelTemplate) {
 
-				SetCXStr(&DistLabelTemplate->Controller, "0");
 				CHAR szTemp[MAX_STRING] = { 0 };
 				CHAR szLoc[MAX_STRING] = { 0 };
 				CHAR szOutLoc[MAX_STRING] = { 0 };
-				sprintf_s(szLoc, "%d,%d", 0,-80);
+				ReadUIStringSetting("UseExtLayoutBox", "0", szOutLoc);
+				int UseExtLayoutBox = atoi(szOutLoc);
+
+				SetCXStr(&DistLabelTemplate->Controller, "0");
+				sprintf_s(szLoc, "%d,%d,%d,%d", 0,-20,0,0);
 				
 				ReadUIStringSetting("ExtDistanceLoc", szLoc, szOutLoc);
 				char *token1 = NULL;
@@ -1049,21 +1117,35 @@ void Initialize()
 					}
 				}
 				int ttop = atoi(szLocs[0]);
-				int tleft = atoi(szLocs[1]);
+				int tbottom = atoi(szLocs[1]);
+				int tleft = atoi(szLocs[2]);
+				int tright = atoi(szLocs[3]);
 				for (int i = 0; i < 23; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
 					if (ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp))
 					{
 						sprintf_s(szTemp, "ETW_DistLabel%d", i);
-						int left = ETW_Gauge[i]->LeftOffset;
 						int top = ETW_Gauge[i]->TopOffset;
+						int bottom = ETW_Gauge[i]->BottomOffset;
+						int left = ETW_Gauge[i]->LeftOffset;
+						int right = ETW_Gauge[i]->RightOffset;
+
 						if (left==0 && top==0)//weird UI...
 						{
-							left = ETW_Gauge[i]->Location.left;
 							top = ETW_Gauge[i]->Location.top;
+							bottom = ETW_Gauge[i]->Location.bottom;
+							left = ETW_Gauge[i]->Location.left;
+							right = ETW_Gauge[i]->Location.right;
 						}
-						CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, top+ttop,left+tleft,true, gBShowExtDistance);
+						if (UseExtLayoutBox)
+						{
+							CreateDistLabel((CGroupWnd*)ETW_Gauge[i], DistLabelTemplate, &ETW_DistLabel[i], szTemp, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
+						}
+						else
+						{
+							CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
+						}
 					}
 				}
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
@@ -1688,13 +1770,13 @@ void CleanUp(bool bUnload)
 			//pGwnd->WindowStyle = orgwstyle;
 			if (bUnload)
 			{
-				pGwnd->Location = orglocation;
+				/*pGwnd->Location = orglocation;
 				pGwnd->TopOffset = orgloc.top;
 				pGwnd->BottomOffset = orgloc.bottom;
 				pGwnd->LeftOffset = orgloc.left;
 				pGwnd->RightOffset = orgloc.right;
 				pGwnd->bNeedsSaving = true;
-				pGwnd->bClientRectChanged = true;
+				pGwnd->bClientRectChanged = true;*/
 			}
 			orgwstyle = 0;
 		}
@@ -2117,15 +2199,24 @@ PLUGIN_API VOID OnPulse(VOID)
 						PSPAWNINFO pInfo = (PSPAWNINFO)pTarget;
 						switch (pInfo->Anon)
 						{
-						case 1:
-							sprintf_s(szTargetDist, "Anonymous");
-							break;
-						case 2:
-							sprintf_s(szTargetDist, "Roleplaying");
-							break;
-						default:
-							sprintf_s(szTargetDist, "Lvl: %d %s %s", pInfo->Level, pEverQuest->GetRaceDesc(pInfo->mActorClient.Race), GetClassDesc(pInfo->mActorClient.Class));
-							break;
+							case 1:
+								sprintf_s(szTargetDist, "Anonymous");
+								break;
+							case 2:
+								sprintf_s(szTargetDist, "Roleplaying");
+								break;
+							default:
+							{
+								if (pInfo->Type==SPAWN_PLAYER)
+								{
+									sprintf_s(szTargetDist, "%d %s %s", pInfo->Level, pEverQuest->GetRaceDesc(pInfo->mActorClient.Race), pEverQuest->GetClassThreeLetterCode(pInfo->mActorClient.Class));
+								}
+								else
+								{
+									sprintf_s(szTargetDist, "%d %s %s", pInfo->Level, pEverQuest->GetRaceDesc(pInfo->mActorClient.Race), GetClassDesc(pInfo->mActorClient.Class));
+								}
+								break;
+							}
 						}
 						SetCXStr(&InfoLabel->WindowText, szTargetDist);
 						//then distance
