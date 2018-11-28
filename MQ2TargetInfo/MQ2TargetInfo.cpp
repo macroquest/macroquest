@@ -57,6 +57,7 @@ typedef struct _phinfo
 	std::string Link;
 }phinfo,*pphinfo;
 void CleanUp(bool bUnload);
+std::map<DWORD, bool>FollowMeMap;
 void ResetIni()
 {
 	CopyFile(INIFileName, "MQ2TargetInfo.bak", FALSE);
@@ -253,6 +254,8 @@ int separatorid2 = 0;
 int groundmenuid = 0;
 int doormenuid = 0;
 int switchtomenuid = 0;
+int followmenuid = 0;
+
 int cometomeoptionmenuid = 0;
 int mimicmeoptionmenuid = 0;
 int followmeoptionmenuid = 0;
@@ -328,11 +331,13 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 		}
 		if (separatorid2)
 		{
+			pGwnd->GroupContextMenu->RemoveMenuItem(followmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(switchtomenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(doormenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(groundmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(navmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(separatorid2);
+			followmenuid = 0;
 			switchtomenuid = 0;
 			doormenuid = 0;
 			groundmenuid = 0;
@@ -358,18 +363,18 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 		}
 	}
 }
-void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked)
+void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked, int index)
 {
 	//if (pGwnd->GroupContextMenu && (!distanceoptionmenuid || bMemberClicked))
 	if (pGwnd->GroupContextMenu)
 	{
 		RemoveOurMenu(pGwnd);
 		separatorid = pGwnd->GroupContextMenu->AddSeparator();
-		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", 58, gBShowComeToMeButton);
-		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", 59, gBShowMimicMeButton);
-		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", 60, gBShowFollowMeButton);
-		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Buttons", 61, gBShowHotButtons);
-		distanceoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Distance", 62, gBShowDistance);
+		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", 59, gBShowComeToMeButton);
+		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", 60, gBShowMimicMeButton);
+		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", 61, gBShowFollowMeButton);
+		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Buttons", 62, gBShowHotButtons);
+		distanceoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Distance", 63, gBShowDistance);
 
 		//
 		if (bMemberClicked)
@@ -379,6 +384,21 @@ void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked)
 			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", 55);
 			doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", 56);
 			switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", 57);
+			if (FollowMeMap.find(index) != FollowMeMap.end())
+			{
+				if (FollowMeMap[index] == true)
+				{
+					followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Stop Following Me", 58);
+				}
+				else
+				{
+					followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Follow Me", 58);
+				}
+			}
+			else
+			{
+				followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Follow Me", 58);
+			}
 		}
 		pContextMenuManager->Flush();
 	}
@@ -1340,10 +1360,10 @@ public:
 				if (index != -1)
 				{
 					//WriteChatf("User Rightclicked group member number %d", index);
-					AddOurMenu(pGwnd,true);
+					AddOurMenu(pGwnd,true,index);
 					return true;
 				}
-				AddOurMenu(pGwnd,false);
+				AddOurMenu(pGwnd,false,-1);
 				return true;
 				//RemoveOurMenu(pGwnd);
 			}
@@ -1536,7 +1556,33 @@ public:
 					}
 					return 1;
 				}
-				case 58://gBShowComeToMeButton
+				case 58://follow me
+				{
+					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
+					if (pSpawn)
+					{
+						if (FollowMeMap.find(rightclickindex) != FollowMeMap.end())
+						{
+							if (FollowMeMap[rightclickindex] == true)
+							{
+								DoCommandf("/bct %s //afollow off",pSpawn->Name);
+								FollowMeMap[rightclickindex] = false;
+							}
+							else
+							{
+								DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+								FollowMeMap[rightclickindex] = true;
+							}
+						}
+						else
+						{
+							DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+							FollowMeMap[rightclickindex] = true;
+						}
+					}
+					return 1;
+				}
+				case 59://gBShowComeToMeButton
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1552,7 +1598,7 @@ public:
 						WriteSetting("ShowComeToMeButton", "0");
 					return 1;
 				}
-				case 59://gBShowMimicMeButton
+				case 60://gBShowMimicMeButton
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1568,7 +1614,7 @@ public:
 						WriteSetting("ShowMimicMeButton", "0");
 					return 1;
 				}
-				case 60://gBShowFollowMeButton
+				case 61://gBShowFollowMeButton
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1584,7 +1630,7 @@ public:
 						WriteSetting("ShowFollowMeButton", "0");
 					return 1;
 				}
-				case 61://gBShowHotButtons
+				case 62://gBShowHotButtons
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1602,7 +1648,7 @@ public:
 						WriteSetting("ShowHotButtons", "0");
 					return 1;
 				}
-				case 62://gBShowDistance
+				case 63://gBShowDistance
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;

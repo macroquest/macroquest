@@ -526,8 +526,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 	if (hHudLock == 0)
 		return;
 	lockit lk(hHudLock,"HudLock");
-	static bool bOkToCheck = true;
-    static int N=0;
+    static int N=0; // this is an accumulator
     CHAR szBuffer[MAX_STRING]={0};
 
     if (++N>CheckINI)
@@ -557,27 +556,23 @@ PLUGIN_API VOID OnDrawHUD(VOID)
     PHUDELEMENT pElement=pHud;
 
     DWORD X,Y;
-    while(pElement)
-    {
-        if ((gGameState==GAMESTATE_CHARSELECT && pElement->Type&HUDTYPE_CHARSELECT) ||
-            (gGameState==GAMESTATE_INGAME && (
-            (pElement->Type&HUDTYPE_NORMAL && ScreenMode!=3) ||
-            (pElement->Type&HUDTYPE_FULLSCREEN && ScreenMode==3))))
-        {
-            if (pElement->Type&HUDTYPE_CURSOR)
-            {
-                PMOUSEINFO pMouse = (PMOUSEINFO)EQADDR_MOUSE;
-                X=pMouse->X+pElement->X;
-                Y=pMouse->Y+pElement->Y;
-            }
-            else
-            {
-                X=SX+pElement->X;
-                Y=SX+pElement->Y;
-            }
-            if (!(N%SkipParse)) {
-				bOkToCheck = true;
-                strcpy_s(pElement->PreParsed,pElement->Text);
+	if (!(N % SkipParse)) {
+		while (pElement) {
+			if ((gGameState == GAMESTATE_CHARSELECT && pElement->Type&HUDTYPE_CHARSELECT) ||
+				(gGameState == GAMESTATE_INGAME && (
+				(pElement->Type&HUDTYPE_NORMAL && ScreenMode != 3) ||
+					(pElement->Type&HUDTYPE_FULLSCREEN && ScreenMode == 3)))) {
+				if (pElement->Type&HUDTYPE_CURSOR) {
+					PMOUSEINFO pMouse = (PMOUSEINFO)EQADDR_MOUSE;
+					X = pMouse->X + pElement->X;
+					Y = pMouse->Y + pElement->Y;
+				} else {
+					X = SX + pElement->X;
+					Y = SX + pElement->Y;
+				}
+
+				bool bOkToCheck = true;
+				strcpy_s(pElement->PreParsed, pElement->Text);
 				if (pElement->Type & HUDTYPE_MACRO) {
 					if (gRunning) {
 						CHAR szTemp[MAX_STRING] = { 0 };
@@ -592,8 +587,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 									bOkToCheck = true;
 									continue;
 								}
-								if (!bOkToCheck)
-								{
+								if (!bOkToCheck) {
 									//ok fine we didnt find it in the tlo map...
 									//lets check variables
 									if (FindMQ2DataVariable(pChar)) {
@@ -601,8 +595,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 										continue;
 									}
 								}
-								if (!bOkToCheck)
-								{
+								if (!bOkToCheck) {
 									//still not found...
 									break;
 								}
@@ -610,21 +603,20 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 						}
 					}
 				}
-				if(bOkToCheck) {
+				if (bOkToCheck) {
 					if (PCHARINFO pChar = GetCharInfo()) {
 						ParseMacroParameter(pChar->pSpawn, pElement->PreParsed);
 					}
-				}
-				else {
+				} else {
 					pElement->PreParsed[0] = '\0';
 				}
-            }
-            strcpy_s(szBuffer,pElement->PreParsed);
-            if (szBuffer[0] && strcmp(szBuffer,"NULL"))
-            {
-                DrawHUDText(szBuffer,X,Y,pElement->Color,pElement->Size);
-            }
-        }
-        pElement=pElement->pNext;
-    }
+
+				strcpy_s(szBuffer, pElement->PreParsed);
+				if (szBuffer[0] && strcmp(szBuffer, "NULL")) {
+					DrawHUDText(szBuffer, X, Y, pElement->Color, pElement->Size);
+				}
+			}
+			pElement = pElement->pNext;
+		}
+	}
 }
