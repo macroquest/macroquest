@@ -1621,6 +1621,24 @@ typedef struct _EQTRADEWINDOW {
 /*0x02eb*/ BYTE			Unknown0x02eb[0x5];
 /*0x02f0*/
 } EQTRADEWINDOW, *PEQTRADEWINDOW;
+
+//CFactionWnd__CFactionWnd_x aFactionwnd
+// CFactionWnd__size: 0x258 (see 53F643) in Nov 29 2018 Beta - eqmule
+typedef struct _EQFACTIONWINDOW {
+/*0x0000*/ struct _CSIDLWND Wnd;
+/*0x0230*/ int			Unknown0x0230;
+/*0x0234*/ bool			bUnknown0x0234;
+/*0x0238*/ int			Unknown0x0238;
+/*0x023c*/ int			Unknown0x023c;
+/*0x0240*/ int			Unknown0x0240;
+/*0x0244*/ void*		StandingGaugeTemplate;//CGaugeWnd*
+/*0x0248*/ void*		Categories;//CTreeView*
+/*0x024c*/ void*		SearchNameInput;//CEditWnd*
+/*0x0250*/ PCBUTTONWND	SearchButton;//CButtonWnd*
+/*0x0254*/ void*		FactionList;//CListWnd*
+/*0x0258*/
+} EQFACTIONWINDOW, *PEQFACTIONWINDOW;
+
 };
 using namespace EQUIStructs;
 #pragma pack(pop)

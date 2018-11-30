@@ -161,6 +161,9 @@ namespace MQ2Globals
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
+		#if defined (EQBETA)
+		ppFactionWnd = (CFactionWnd**)pinstCFactionWnd;
+		#endif
 		ppExtendedTargetWnd = (CExtendedTargetWnd**)pinstCExtendedTargetWnd;
 		ppFindLocationWnd = (CFindLocationWnd**)pinstCFindLocationWnd;
 		#if !defined(ROF2EMU) && !defined(UFEMU)
@@ -1193,6 +1196,7 @@ namespace MQ2Globals
 	CContainerMgr **ppContainerMgr = 0;
 	CChatManager **ppChatManager = 0;
 	CFacePick **ppFacePick = 0;
+	CFactionWnd **ppFactionWnd = 0;
 	CExtendedTargetWnd **ppExtendedTargetWnd = 0;
 	CFindItemWnd **ppFindItemWnd = 0;
 	CFindLocationWnd **ppFindLocationWnd = 0;
@@ -1448,6 +1452,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterListWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
+	#if defined(EQBETA)
+	INITIALIZE_EQGAME_OFFSET(pinstCFactionWnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCExtendedTargetWnd);
 	
 	#if !defined(ROF2EMU) && !defined(UFEMU)

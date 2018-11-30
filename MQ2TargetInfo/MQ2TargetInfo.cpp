@@ -2205,7 +2205,13 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 			{
 				pDest[0] = '\0';
 			}
-			DoCommandf("/bcg //say %s", szLine);
+			if (!_strnicmp(szLine, "Hail, ", 6))
+			{
+				DoCommandf("/bcg //keypress HAIL");
+			}
+			else {
+				DoCommandf("/bcg //say %s", szLine);
+			}
 		}
 		LocalFree(szLineOrg);
 		OutputDebugString("OnIncomingChat: ");

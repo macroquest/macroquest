@@ -1343,6 +1343,9 @@ FUNCTION_AT_ADDRESS(void  CFacePick::SetFaceSelectionsFromPlayer(void),CFacePick
 #ifdef CFacePick__CycleThroughFHEB_x
 FUNCTION_AT_ADDRESS(void  CFacePick::CycleThroughFHEB(int,int),CFacePick__CycleThroughFHEB);
 #endif
+#ifdef CFactionWnd__CFactionWnd1_x
+FUNCTION_AT_ADDRESS( CFactionWnd::CFactionWnd(class CXWnd *),CFactionWnd__CFactionWnd);
+#endif
 #ifdef CFindItemWnd__CFindItemWnd_x
 FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(class CXWnd *),CFindItemWnd__CFindItemWnd);
 #endif

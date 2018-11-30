@@ -82,6 +82,7 @@ class CEQSuiteTextureLoader;
 class CEverQuest;
 class CExploreModeWnd;
 class CFacePick;
+class CFactionWnd;
 class CExtendedTargetWnd;
 class CFindItemWnd;
 class CFeedbackWnd;
@@ -2573,6 +2574,12 @@ class CExtendedTargetWnd : public CSidlScreenWnd
 {
 public:
 
+};
+//Size: 258h see 53F643 Nov 29 2018 Beta -eqmule 
+class CFactionWnd : public CSidlScreenWnd
+{
+public:
+	EQLIB_OBJECT CFactionWnd::CFactionWnd(class CXWnd *);
 };
 class CFacePick : public CSidlScreenWnd
 {

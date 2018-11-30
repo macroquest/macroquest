@@ -845,16 +845,17 @@ public:
 /*0x04*/	T *String;
 /*0x08*/	int Len;
 /*0x0c*/	int Space;
-/*0x14*/
+/*0x10*/ //0x14? not sure.
 
 };
 class IString2
 {
 public:
-	/*0x00*/	PVOID vfTable;
+/*0x00*/	PVOID vfTable;
 /*0x04*/	char*String;
 /*0x08*/	int Len;
 /*0x0c*/	int Space;
+/*0x10*/
 EQLIB_OBJECT void Append(char *c);
 };
 
