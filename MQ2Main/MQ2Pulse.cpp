@@ -239,6 +239,7 @@ void Pulse()
 		LastMoveTick = MQGetTickCount64();
 		EnviroTarget.Name[0] = 0;
 		pGroundTarget = 0;
+		pObjectTarget = 0;
 		DoorEnviroTarget.Name[0] = 0;
 		DoorEnviroTarget.DisplayedName[0] = 0;
 		pDoorTarget = 0;

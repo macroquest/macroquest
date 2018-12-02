@@ -1124,6 +1124,15 @@ GNU General Public License for more details.
 #define ItemBase__IsLore_x                                         0x889610
 #define ItemBase__IsLoreEquipped_x                                 0x889680
 
+//EQPlacedItemManager
+#define EQPlacedItemManager__Instance_x                            0x5B7080
+#define EQPlacedItemManager__GetItemByGuid_x                       0x5B7230
+#define EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds_x 0x5B7290
+
+//RealEstateManagerClient
+#define RealEstateManagerClient__Instance_x                        0x6526F0
+#define RealEstateManagerClient__GetItemByRealEstateAndItemIds_x   0x656360
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01

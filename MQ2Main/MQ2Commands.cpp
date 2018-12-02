@@ -447,6 +447,48 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 			pItem = pItem->pNext;
 		}
 	}
+	RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+	if (&manager)
+	{
+		CHAR szLineLwr[MAX_STRING] = { 0 };
+		CHAR szName[MAX_STRING] = { 0 };
+		SPAWNINFO TempSpawn = { 0 };
+		iteminfo ii;
+		strcpy_s(szLineLwr, szLine);
+
+		_strlwr_s(szLineLwr);
+		if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
+			if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
+				for (EQPlacedItem *pObj = top; pObj != NULL; pObj = pObj->pNext)
+				{
+					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+					if (pRealEstateItem)
+					{
+						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+						{
+							if (PITEMINFO pItem = GetItemFromContents(pCont))
+							{
+								strcpy_s(szBuffer, pItem->Name);
+								_strlwr_s(szBuffer);
+								DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->Name);
+								if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
+									ZeroMemory(&TempSpawn, sizeof(TempSpawn));
+									TempSpawn.Y = pObj->Y;
+									TempSpawn.X = pObj->X;
+									TempSpawn.Z = pObj->Z;
+									FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+									INT Angle = (INT)((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+									ii.angle = Angle;
+									ii.Name = pItem->Name;
+									itemsmap[Distance] = ii;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	if (itemsmap.size() == 0) {
 		WriteChatColor("No items found.", USERCOLOR_DEFAULT);
 	}
@@ -518,6 +560,56 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 				}
 			}
 			pItem = pItem->pNext;
+		}
+	}
+	if (!pGroundTarget)
+	{
+		FLOAT cDistance = 100000.0f;
+		pObjectTarget = NULL;
+		SPAWNINFO tSpawn = { 0 };
+		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+		if (&manager)
+		{
+			if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
+				if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
+					for (EQPlacedItem *pObj = top; pObj != NULL; pObj = pObj->pNext)
+					{
+						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+						if (pRealEstateItem)
+						{
+							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+							{
+								if (PITEMINFO pItem = GetItemFromContents(pCont))
+								{
+									if (((szLine[0] == 0) || (!_strnicmp(pItem->Name, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter)))) {
+										ZeroMemory(&tSpawn, sizeof(tSpawn));
+										strcpy_s(tSpawn.Name, pItem->Name);
+										PEQSWITCH si = (PEQSWITCH)pObj->pActor;
+										strcpy_s(tSpawn.DisplayedName, pItem->Name);
+										tSpawn.Y = pObj->Y;
+										tSpawn.X = pObj->X;
+										tSpawn.Z = pObj->Z;
+										tSpawn.Type = SPAWN_NPC;
+										tSpawn.HPCurrent = 1;
+										tSpawn.HPMax = 1;
+										tSpawn.Heading = pObj->Heading;
+										tSpawn.mActorClient.Race = pObj->RealEstateItemID;
+										tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+										FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+										if (Distance < cDistance) {
+											CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+											cDistance = Distance;
+											pObjectTarget = si;
+											break;
+										}
+									}
+									//WriteChatf("[%d] %s %0.2f,%0.2f,%0.2f , %0.2f, %0.2f,", pObj->RealEstateItemID, pItem->Name, pObj->Y, pObj->X, pObj->Z, pObj->Heading * 0.703125f, pObj->Angle * 0.703125f);
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	if (EnviroTarget.DisplayedName[0] != 0) {
@@ -2699,6 +2791,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			pTarget = NULL;
 			pDoorTarget = 0;
 			pGroundTarget = 0;
+			pObjectTarget = 0;
 			ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
 			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
 			if (pChar)

@@ -7771,7 +7771,140 @@ EQLIB_OBJECT virtual bool EQOldPlayerAnimation::GetAlternateAnimTag(char *,char 
 EQLIB_OBJECT void EQOldPlayerAnimation::ChangeAttachmentAnimationTrackSpeeds(bool,float);
 EQLIB_OBJECT void EQOldPlayerAnimation::PlayAttachmentAnimationTracks(int,int,bool,bool,float,bool,unsigned char);
 };
+enum ePlacementType
+{
+	PLACEMENT_TYPE_FLOOR,
+	PLACEMENT_TYPE_WALL,
+	PLACEMENT_TYPE_CEILING,
+};
+class EQPlacedItem
+{
+public:
+/*0x00*/ PVOID vftable;
+/*0x04*/ EQPlacedItem *pPrev;
+/*0x08*/ EQPlacedItem *pNext;
+/*0x0c*/ int	RecordNum;
+/*0x10*/ EqItemGuid ItemGuid;
+/*0x22*/
+/*0x24*/ int	RealEstateID;
+/*0x28*/ int	RealEstateItemID;
+/*0x2C*/ bool	bIsNPC;
+/*0x30*/ UINT	PlacingItemNpcID;
+/*0x34*/ void*	pLight;//CLightInterface
+/*0x38*/ void*	pActor;//CActorInterface
+/*0x3c*/ CHAR   Name[0x40];
+/*0x7c*/ FLOAT  Scale;
+/*0x80*/ FLOAT  Heading;
+/*0x84*/ FLOAT  Angle;
+/*0x88*/ FLOAT  Roll;
+/*0x8c*/ FLOAT  Y;
+/*0x90*/ FLOAT  X;
+/*0x94*/ FLOAT  Z;
+/*0x98*/ bool	bIgnoreCollisions;
+/*0x98*/ bool	bDisablePlacementRotation;
+/*0x98*/ bool	bDisableFreePlacement;
+/*0x9c*/ ePlacementType  PlacementType;
+/*0xa0*/ FLOAT  ScaleRangeMin;
+/*0xa4*/ FLOAT  ScaleRangeMax;
+/*0xa8*/ FLOAT  DefaultScale;
+/*0xac*/ FLOAT  DefaultHeading;
+/*0xb0*/ FLOAT  DefaultAngle;
+/*0xb4*/ FLOAT  DefaultRoll;
+/*0xb8*/ int	LightType;
+/*0xbc*/ FLOAT  NPCHeight;
+/*0xC0*/
+};
 
+class EQPlacedItemManager
+{ 
+public:
+EQLIB_OBJECT static EQPlacedItemManager& Instance();
+EQLIB_OBJECT EQPlacedItem* GetItemByGuid(const EqItemGuid& ItemGuid);
+EQLIB_OBJECT EQPlacedItem* GetItemByRealEstateAndRealEstateItemIds(int RealEstateID, int RealEstateItemID);
+
+	EQPlacedItem *Top;
+};
+class RealEstateItemIds
+{
+public:
+	int RealEstateID;
+	int RealEstateItemID;
+};
+class RealEstateItemState
+{
+public:
+	bool		bPlaced;
+	__time32_t	UpkeepExpiredTime;
+};
+class RealEstateItemPosition
+{
+public:
+	FLOAT Heading;
+	FLOAT Pitch;
+	FLOAT Roll;
+	FLOAT Scale;
+	FLOAT X;
+	FLOAT Y;
+	FLOAT Z;
+};
+class RealEstateItemOwnerInfo
+{
+public:
+	PCXSTR	OwnerName;
+	PCXSTR	OwnerHandle;
+	int		OwnerNameHashKey;
+};
+class RealEstateItemObject
+{
+public:
+	VePointer<CONTENTS> pItemBase;
+};
+class RealEstateItem
+{
+public:
+	RealEstateItemState		State;
+	RealEstateItemPosition	Position;
+	RealEstateItemOwnerInfo	OwnerInfo;
+	RealEstateItemObject	Object;
+};
+class RealEstateItemClient : public RealEstateItem
+{
+public:
+	RealEstateItemIds IDs;
+};
+enum eRealEstateType
+{
+	RET_None = 0,
+	RET_Zone = 1,
+	RET_GuildHall,
+	RET_PlayerHousing,
+	RET_PlayerPlot,
+	RET_Neighborhood,
+	RET_Town,
+	RET_MovingCrate,
+	RET_GuildPlot,
+	RET_Count,
+	RET_Unknown,
+	RET_Any
+};
+class RealEstateManagerClient
+{
+public:
+/*0x00*/ PVOID vftable;
+/*0x04*/ BYTE Stuff[0xb4];
+/*0xb8*/ UINT lastRefreshTime;
+/*0xbc*/ int ZoneRealEstateId;
+/*0xc0*/ eRealEstateType ZoneRealEstateType;
+/*0xc4*/ int CurrentRealEstateID;
+/*0xc8*/ int CurrentYardID;
+/*0xcc*/ int CurrentHouseID;
+/*0xa0*/ int CurrentMovingCrateID;
+/*0xa4*/ bool bRequestPending;
+/*0xa8*/ UINT RequestTime;
+/*0xac*/ bool bPrintRequestTimes;
+	EQLIB_OBJECT static RealEstateManagerClient &RealEstateManagerClient::Instance();
+	EQLIB_OBJECT const RealEstateItemClient* GetItemByRealEstateAndItemIds( int RealEstateID, int RealEstateItemID ) const;
+};
 class EQPlayer
 {
 public:

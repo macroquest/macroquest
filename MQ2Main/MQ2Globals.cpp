@@ -454,6 +454,7 @@ namespace MQ2Globals
 	SPAWNINFO PetSpawn = { 0 };
 	SPAWNINFO EnviroTarget = { 0 };
 	PGROUNDITEM pGroundTarget = NULL;
+	PEQSWITCH pObjectTarget = NULL;
 	SPAWNINFO DoorEnviroTarget = { 0 };
 	PDOOR pDoorTarget = NULL;
 	PITEMDB gItemDB = NULL;
@@ -1410,6 +1411,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstDZMember);
 	INITIALIZE_EQGAME_OFFSET(pinstDZTimerInfo);
 	INITIALIZE_EQGAME_OFFSET(pinstEQItemList);
+	INITIALIZE_EQGAME_OFFSET(pinstEQObjectList);
 	INITIALIZE_EQGAME_OFFSET(instEQMisc);
 	INITIALIZE_EQGAME_OFFSET(pinstEQSoundManager);
 	INITIALIZE_EQGAME_OFFSET(instExpeditionLeader);
@@ -2086,7 +2088,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQItemList__FreeItemList);
 
 	INITIALIZE_EQGAME_OFFSET(EQMisc__GetActiveFavorCost);
-
+	
+	INITIALIZE_EQGAME_OFFSET(RealEstateManagerClient__GetItemByRealEstateAndItemIds);
+	INITIALIZE_EQGAME_OFFSET(RealEstateManagerClient__Instance);
+	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__Instance);
+	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__GetItemByGuid);
+	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__ChangeBoneStringSprite);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__dEQPlayer);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__DoAttack);

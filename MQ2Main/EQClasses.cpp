@@ -5275,6 +5275,21 @@ FUNCTION_AT_ADDRESS( EQObject::EQObject(class EQObject *,class EQPlayer *,char *
 #ifdef EQObject__dEQObject_x
 FUNCTION_AT_ADDRESS( EQObject::~EQObject(void),EQObject__dEQObject);
 #endif
+#ifdef EQPlacedItemManager__Instance_x
+FUNCTION_AT_ADDRESS(EQPlacedItemManager& EQPlacedItemManager::Instance(),EQPlacedItemManager__Instance);
+#endif
+#ifdef EQPlacedItemManager__GetItemByGuid_x
+FUNCTION_AT_ADDRESS(EQPlacedItem * EQPlacedItemManager::GetItemByGuid(const EqItemGuid& ItemGuid),EQPlacedItemManager__GetItemByGuid);
+#endif
+#ifdef EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds_x
+FUNCTION_AT_ADDRESS(EQPlacedItem * EQPlacedItemManager::GetItemByRealEstateAndRealEstateItemIds(int RealEstateID, int RealEstateItemID),EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds);
+#endif
+#ifdef RealEstateManagerClient__Instance_x
+FUNCTION_AT_ADDRESS(RealEstateManagerClient &RealEstateManagerClient::Instance(),RealEstateManagerClient__Instance)
+#endif
+#ifdef RealEstateManagerClient__GetItemByRealEstateAndItemIds_x
+FUNCTION_AT_ADDRESS(const RealEstateItemClient *RealEstateManagerClient::GetItemByRealEstateAndItemIds(int realEstateID, int realEstateItemID) const,RealEstateManagerClient__GetItemByRealEstateAndItemIds)
+#endif
 #ifdef EQPlayer__EQPlayer_x
 FUNCTION_AT_ADDRESS( EQPlayer::EQPlayer(class EQPlayer *,unsigned char,unsigned int,unsigned char,char *),EQPlayer__EQPlayer);
 #endif

@@ -36,7 +36,10 @@ public:
 	struct T3D_tagACTORINSTANCE *GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *);
 	struct T3D_tagACTORINSTANCE *GetClickedActor_Detour(unsigned long X,unsigned long Y,unsigned long Flag,void *Vector1,void *Vector2)
 	{
-		if(pGroundTarget && EnviroTarget.Name[0]!=0 && (EnviroTarget.StandState==STANDSTATE_STAND || EnviroTarget.StandState==STANDSTATE_SIT)) {
+		if (pObjectTarget)
+		{
+			return (T3D_tagACTORINSTANCE*)pObjectTarget;
+		} else if(pGroundTarget && EnviroTarget.Name[0] && (EnviroTarget.StandState==STANDSTATE_STAND || EnviroTarget.StandState==STANDSTATE_SIT)) {
 			//we do this to take both mousedown and mouseup into account
 			if(EnviroTarget.StandState==STANDSTATE_STAND) {
 				EnviroTarget.StandState=STANDSTATE_SIT;
@@ -45,7 +48,13 @@ public:
 			}
 			return (T3D_tagACTORINSTANCE*)pGroundTarget->pSwitch;
 		} else {
-			return GetClickedActor_Tramp(X,Y,Flag,Vector1,Vector2);
+			T3D_tagACTORINSTANCE* ret = GetClickedActor_Tramp(X,Y,Flag,Vector1,Vector2);
+			if (PEQSWITCH sw = (PEQSWITCH)ret)
+			{
+				EQPlacedItem *pi = (EQPlacedItem*)sw->pActorApplicationData;
+				Sleep(0);
+			}
+			return ret;
 		}
 	}
 	HRESULT GetViewport(LPVOID This,LPVOID pViewport);
@@ -359,9 +368,54 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
                 WeDidStuff();
             } 
 			RETURN(0);
-        } else if(!_strnicmp(szMouseLoc,"center",6)) {
+        }
+		else if(!_strnicmp(szMouseLoc,"center",6)) {
             sprintf_s(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
-        } else if (!_strnicmp(szMouseLoc, "item", 4)) {
+        }
+		else if (!_strnicmp(szMouseLoc, "object", 4)) {
+			if (!_strnicmp(szArg1, "right", 4)) {
+				if (EnviroTarget.Name[0] != 0) {
+					if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f) {
+						if (pObjectTarget) {
+							*((DWORD*)__RMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
+							if (PCXWNDMGR px = (PCXWNDMGR)pWndMgr)
+							{
+								pEverQuest->RMouseUp(px->MousePoint.x, px->MousePoint.y);
+							}
+							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+							pObjectTarget = NULL;
+						}
+					}
+					else {
+						WriteChatf("You are to far away from the object, please move closer before issuing the /click right object command.");
+					}
+				}
+				else {
+					WriteChatf("No Object targeted, use /itemtarget <theid> before issuing a /click right object command.");
+				}
+			} else if (!_strnicmp(szArg1, "left", 4)) {
+				if (EnviroTarget.Name[0] != 0) {
+					if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f) {
+						if (pObjectTarget) {
+							*((DWORD*)__LMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
+							pEverQuest->LMouseUp(-10000, -10000);
+							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+							pObjectTarget = NULL;
+						}
+					}
+					else {
+						WriteChatf("You are to far away from the object, please move closer before issuing the /click left object command.");
+					}
+				}
+				else {
+					WriteChatf("No Object targeted, use /itemtarget <theid> before issuing a /click left object command.");
+				}
+			} else {
+				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right object command.");
+			}
+			RETURN(0);
+		}
+		else if (!_strnicmp(szMouseLoc, "item", 4)) {
 			if(pGroundTarget) {
 				if (!_strnicmp(szArg1, "left", 4)) {
 					if(EnviroTarget.Name[0]!=0) {
@@ -388,7 +442,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 					WriteChatf("Invalid click args, use \"/click left item\", aborting: %s",szMouseLoc);
 				}
 			} else {
-				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
+				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right item command.");
 			}
 			RETURN(0);
         } else if (!_strnicmp(szMouseLoc, "door", 4)) {

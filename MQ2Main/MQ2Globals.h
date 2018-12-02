@@ -199,6 +199,7 @@ namespace MQ2Globals
 	EQLIB_VAR SPAWNINFO PetSpawn;
 	EQLIB_VAR SPAWNINFO MercenarySpawn;
 	EQLIB_VAR PGROUNDITEM pGroundTarget;
+	EQLIB_VAR PEQSWITCH pObjectTarget;
 	EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 	EQLIB_VAR PDOOR pDoorTarget;
 	EQLIB_VAR PITEMDB gItemDB;
@@ -865,6 +866,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstDZMember;
 	EQLIB_VAR DWORD pinstDZTimerInfo;
 	EQLIB_VAR DWORD pinstEQItemList;
+	EQLIB_VAR DWORD pinstEQObjectList;
 	EQLIB_VAR DWORD instEQMisc;
 	EQLIB_VAR DWORD pinstEQSoundManager;
 	EQLIB_VAR DWORD pinstEQSpellStrings;
@@ -1539,7 +1541,12 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQItemList__FreeItemList;
 
 	EQLIB_VAR DWORD EQMisc__GetActiveFavorCost;
-
+	
+	EQLIB_VAR DWORD RealEstateManagerClient__GetItemByRealEstateAndItemIds;
+	EQLIB_VAR DWORD RealEstateManagerClient__Instance;
+	EQLIB_VAR DWORD EQPlacedItemManager__Instance;
+	EQLIB_VAR DWORD EQPlacedItemManager__GetItemByGuid;
+	EQLIB_VAR DWORD EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds;
 	EQLIB_VAR DWORD EQPlayer__ChangeBoneStringSprite;
 	EQLIB_VAR DWORD EQPlayer__dEQPlayer;
 	EQLIB_VAR DWORD EQPlayer__DoAttack;
