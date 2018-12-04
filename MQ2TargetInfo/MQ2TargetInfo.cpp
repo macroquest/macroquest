@@ -220,16 +220,33 @@ DWORD orgExtTargetWindStyle = 0;
 //RECT orgloc = { 0,0,0,0 };
 //RECT orglocation = { 0,0,0,0 };
 
-bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int top, int bottom,int left,int right, bool bAlignRight, bool bShow)
+bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLabelWnd **labelwnd, char *label, int font, int top, int bottom,int left,int right, bool bAlignRight, bool bShow)
 {
 	SetCXStr(&DistLabelTemplate->Name, label);
 	SetCXStr(&DistLabelTemplate->ScreenID, label);
 	int oldfont = DistLabelTemplate->Font;
 	DWORD oldstyle = DistLabelTemplate->StyleBits;
-	DistLabelTemplate->Font = 2;
+
+
+	bool bRelativePositionOld = DistLabelTemplate->bRelativePosition;
+	bool bAutoStretchVerticalOld = DistLabelTemplate->bAutoStretchVertical;
+	bool bAutoStretchHorizontalOld = DistLabelTemplate->bAutoStretchHorizontal;
+	bool bRightAnchorToLeftOld = DistLabelTemplate->bRightAnchorToLeft;
+/*/new stuff
+	DistLabelTemplate->bRelativePosition = true;
+	DistLabelTemplate->bAutoStretchVertical = true;
+	DistLabelTemplate->bAutoStretchHorizontal = true;
+	DistLabelTemplate->bRightAnchorToLeft = false;
+//*/
+	DistLabelTemplate->Font = font;
 	DistLabelTemplate->StyleBits = WSF_AUTOSTRETCHH|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
 	if (*labelwnd = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, DistLabelTemplate)) {
-		(*labelwnd)->dShow = true;
+/*new stuff
+		(*labelwnd)->Location.bottom = 0;
+		(*labelwnd)->Location.left = 0;
+		(*labelwnd)->Location.right = 0;
+		(*labelwnd)->Location.top = 0;
+*/
 		(*labelwnd)->TopOffset = top;
 		(*labelwnd)->BottomOffset = bottom;
 		(*labelwnd)->LeftOffset = left;
@@ -238,12 +255,29 @@ bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLab
 		(*labelwnd)->BGColor = 0xFFFFFFFF;
 		SetCXStr(&(*labelwnd)->Tooltip, szGroupDistance);
 		(*labelwnd)->dShow = bShow;
+		(*labelwnd)->bNoWrap = true;
+		(*labelwnd)->bLeftAnchoredToLeft = true;
+		(*labelwnd)->bRightAnchoredToLeft;
+		(*labelwnd)->WindowStyle;
+/*new stuff
+		(*labelwnd)->bNoWrap = true;
+		(*labelwnd)->bLeftAnchoredToLeft = true;
+		(*labelwnd)->bRightAnchoredToLeft = false;
+		(*labelwnd)->WindowStyle = WSF_AUTOSTRETCHH | WSF_TRANSPARENT | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;// 0x00400580;
+*/
+		DistLabelTemplate->bRightAnchorToLeft = bRightAnchorToLeftOld;
+		DistLabelTemplate->bRelativePosition = bRelativePositionOld;
+		DistLabelTemplate->bAutoStretchVertical = bAutoStretchVerticalOld;
+		DistLabelTemplate->bAutoStretchHorizontal = bAutoStretchHorizontalOld;
 		(*labelwnd)->bAlignRight = bAlignRight;
 		(*labelwnd)->bAlignCenter = false;
 		DistLabelTemplate->Font = oldfont;
 		DistLabelTemplate->StyleBits = oldstyle;
 		return true;
 	}
+	DistLabelTemplate->bRelativePosition = bRelativePositionOld;
+	DistLabelTemplate->bAutoStretchVertical = bAutoStretchVerticalOld;
+	DistLabelTemplate->bAutoStretchHorizontal = bAutoStretchHorizontalOld;
 	DistLabelTemplate->StyleBits = oldstyle;
 	DistLabelTemplate->Font = oldfont;
 	return false;
@@ -719,6 +753,7 @@ void Initialize()
 	if (!PHButton && GetGameState() == GAMESTATE_INGAME && !bDisablePluginDueToBadUI)
 	{
 		ReadIniSettings();
+		
 		//Player_ManaLabel ManaLabel 20
 		//Player_FatigueLabel FatigueLabel 21
 		CHAR OldName1[2048] = { "Player_ManaLabel" };
@@ -728,15 +763,24 @@ void Initialize()
 		CHAR OldName2[2048] = { "Player_FatigueLabel" };
 		CHAR OldScreenName2[2048] = { "FatigueLabel" };
 		CHAR OldController2[2048] = { "21" };
-		/*
-		CHAR OldName1[2048] = { "Target_AggroPctSecondaryLabel" };
-		CHAR OldScreenName1[2048] = { "Target_AggroPctSecondaryLabel" };
-		CHAR OldController1[2048] = { "308" };
+		ReadUIStringSetting("Label1", "Player_ManaLabel", OldName1);
+		ReadUIStringSetting("Label2", "Player_FatigueLabel", OldName2);
+		/*CHAR OldName1[2048] = { "TargetOfTarget_HPLabel" };
+		CHAR OldScreenName1[2048] = { "TargetOfTarget_HPLabel" };
+		CHAR OldController1[2048] = { "120" };
 			
-		CHAR OldName2[2048] = { "Target_AggroNameSecondaryLabel" };
-		CHAR OldScreenName2[2048] = { "Target_AggroNameSecondaryLabel" };
-		CHAR OldController2[2048] = { "304" };
-		*/
+		CHAR OldName2[2048] = { "TargetOfTarget_HPPercLabel" };
+		CHAR OldScreenName2[2048] = { "TargetOfTarget_HPPercLabel" };
+		CHAR OldController2[2048] = { "0" };
+		
+/*		CHAR OldName1[2048] = { "SL_DestNameLabel" };
+		CHAR OldScreenName1[2048] = { "SL_DestNameLabel" };
+		CHAR OldController1[2048] = { "0" };
+			
+		CHAR OldName2[2048] = { "SL_ServerListPrompt" };
+		CHAR OldScreenName2[2048] = { "SL_ServerListPrompt" };
+		CHAR OldController2[2048] = { "0" };
+*/
 		CHAR szDynamic[MAX_STRING] = { 0 };
 		ReadUIStringSetting("DynamicUI", "1", szDynamic);
 		int isDynamic = atoi(szDynamic);
@@ -777,10 +821,10 @@ void Initialize()
 			orgwstyle = pGwnd->WindowStyle;
 			if (orgwstyle & WSF_TITLEBAR)
 			{
-				pGwnd->WindowStyle = WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER | WSF_TITLEBAR;
+				pGwnd->WindowStyle |= ( WSF_SIZABLE | WSF_BORDER );
 			}
 			else {
-				pGwnd->WindowStyle = WSF_CLIENTMOVABLE | WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER;
+				pGwnd->WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
 			}
 			SetCXStr(&pGwnd->Tooltip, szMMainTip);
 			if (pGwnd->GroupContextMenu)
@@ -800,6 +844,7 @@ void Initialize()
 
 			//
 			//CControlTemplate *DistLabelTemplateOrg = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Target_AggroPctSecondaryLabel");
+			CControlTemplate *DistLabelTemplateOrg = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("SL_DestNameLabel");
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			CControlTemplate *NavButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("GW_InviteButton");//borrowing this...
 			CControlTemplate *HBButtonTemplate1 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button1");
@@ -807,11 +852,17 @@ void Initialize()
 			CControlTemplate *HBButtonTemplate3= (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button3");
 			//
 			if (GW_Gauge1 && DistLabelTemplate) {
+				GetCXStr(DistLabelTemplate->Name, OldName1);
+				GetCXStr(DistLabelTemplate->ScreenID, OldScreenName1);
+				GetCXStr(DistLabelTemplate->Controller, OldController1);
+
 				SetCXStr(&DistLabelTemplate->Controller, "0");
 				//create the distance label 1
 				CHAR szLoc[MAX_STRING] = { 0 };
 				CHAR szOutLoc[MAX_STRING] = { 0 };
 				
+				ReadUIStringSetting("GroupDistanceFontSize", "2", szOutLoc);
+				int GroupDistanceFontSize = atoi(szOutLoc);
 				ReadUIStringSetting("UseGroupLayoutBox", "0", szOutLoc);
 				int UseLayoutBox = atoi(szOutLoc);
 				sprintf_s(szLoc, "%d,%d,%d,%d",0,-20,70,0);
@@ -842,49 +893,49 @@ void Initialize()
 					sprintf_s(szLoc, "%s1",szOutLoc);
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s2", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s3", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s4", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s5", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
 					}
 				}
 				else {
 					if (isDynamic)
 					{
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->TopOffset + ttop, GW_Gauge1->BottomOffset + tbottom, GW_Gauge1->LeftOffset + tleft, GW_Gauge1->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->TopOffset + ttop, GW_Gauge2->BottomOffset + tbottom, GW_Gauge2->LeftOffset + tleft, GW_Gauge2->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->TopOffset + ttop, GW_Gauge3->BottomOffset + tbottom, GW_Gauge3->LeftOffset + tleft, GW_Gauge3->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->TopOffset + ttop, GW_Gauge4->BottomOffset + tbottom, GW_Gauge4->LeftOffset + tleft, GW_Gauge4->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->TopOffset + ttop, GW_Gauge5->BottomOffset + tbottom, GW_Gauge5->LeftOffset + tleft, GW_Gauge5->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->TopOffset + ttop, GW_Gauge1->BottomOffset + tbottom, GW_Gauge1->LeftOffset + tleft, GW_Gauge1->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->TopOffset + ttop, GW_Gauge2->BottomOffset + tbottom, GW_Gauge2->LeftOffset + tleft, GW_Gauge2->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->TopOffset + ttop, GW_Gauge3->BottomOffset + tbottom, GW_Gauge3->LeftOffset + tleft, GW_Gauge3->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->TopOffset + ttop, GW_Gauge4->BottomOffset + tbottom, GW_Gauge4->LeftOffset + tleft, GW_Gauge4->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->TopOffset + ttop, GW_Gauge5->BottomOffset + tbottom, GW_Gauge5->LeftOffset + tleft, GW_Gauge5->RightOffset + tright, true, gBShowDistance);
 					}
 					else
 					{
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GW_Gauge1->Location.top + ttop, GW_Gauge1->Location.bottom + tbottom, GW_Gauge1->Location.left + tleft, GW_Gauge1->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GW_Gauge2->Location.top + ttop, GW_Gauge2->Location.bottom + tbottom, GW_Gauge2->Location.left + tleft, GW_Gauge2->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GW_Gauge3->Location.top + ttop, GW_Gauge3->Location.bottom + tbottom, GW_Gauge3->Location.left + tleft, GW_Gauge3->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GW_Gauge4->Location.top + ttop, GW_Gauge4->Location.bottom + tbottom, GW_Gauge4->Location.left + tleft, GW_Gauge4->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GW_Gauge5->Location.top + ttop, GW_Gauge5->Location.bottom + tbottom, GW_Gauge5->Location.left + tleft, GW_Gauge5->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->Location.top + ttop, GW_Gauge1->Location.bottom + tbottom, GW_Gauge1->Location.left + tleft, GW_Gauge1->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->Location.top + ttop, GW_Gauge2->Location.bottom + tbottom, GW_Gauge2->Location.left + tleft, GW_Gauge2->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->Location.top + ttop, GW_Gauge3->Location.bottom + tbottom, GW_Gauge3->Location.left + tleft, GW_Gauge3->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->Location.top + ttop, GW_Gauge4->Location.bottom + tbottom, GW_Gauge4->Location.left + tleft, GW_Gauge4->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->Location.top + ttop, GW_Gauge5->Location.bottom + tbottom, GW_Gauge5->Location.left + tleft, GW_Gauge5->Location.right + tright, true, gBShowDistance);
 					}
 				}
 
@@ -977,10 +1028,10 @@ void Initialize()
 			//org style for default ui is 0x00200a40
 			if (orgTargetWindStyle & WSF_TITLEBAR)
 			{
-				pTwnd->Wnd.WindowStyle = WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER | WSF_TITLEBAR;
+				pTwnd->Wnd.WindowStyle |= (WSF_SIZABLE | WSF_BORDER);
 			}
 			else {
-				pTwnd->Wnd.WindowStyle = WSF_CLIENTMOVABLE | WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER;
+				pTwnd->Wnd.WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
 			}
 			if (Target_AggroPctPlayerLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctPlayerLabel"))
 			{
@@ -1008,11 +1059,20 @@ void Initialize()
 			
 
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
+			CControlTemplate *CanSeeLabelTemplateOrg = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Player_FatigueLabel");
 			CControlTemplate *CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName2);
+			
 			CControlTemplate *PHButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton");//borrowing this...
 			
 			if (PHButtonTemplate && CanSeeLabelTemplate && DistLabelTemplate)
 			{
+				int oldphfont = PHButtonTemplate->Font;
+				GetCXStr(DistLabelTemplate->Name, OldName1);
+				GetCXStr(DistLabelTemplate->ScreenID, OldScreenName1);
+				GetCXStr(DistLabelTemplate->Controller, OldController1);
+				GetCXStr(CanSeeLabelTemplate->Name, OldName2);
+				GetCXStr(CanSeeLabelTemplate->ScreenID, OldScreenName2);
+				GetCXStr(CanSeeLabelTemplate->Controller, OldController2);
 				int oldfont = DistLabelTemplate->Font;
 				DistLabelTemplate->Font = 2;
 				SetCXStr(&DistLabelTemplate->Controller, "0");
@@ -1091,15 +1151,22 @@ void Initialize()
 				int tbottom = atoi(szLocs[1]);
 				int tleft = atoi(szLocs[2]);
 				int tright = atoi(szLocs[3]);
-				CreateDistLabel((CGroupWnd*)pTwnd, DistLabelTemplate, &DistanceLabel, "Target_DistLabel", ttop,tbottom,tleft,tright,true, gBShowExtDistance);
+				CreateDistLabel((CGroupWnd*)pTwnd, DistLabelTemplate, &DistanceLabel, "Target_DistLabel", 2, ttop,tbottom,tleft,tright,true, gBShowExtDistance);
 				
 				//create can see label
+				CanSeeLabelTemplateOrg;
 				int oldfont2 = CanSeeLabelTemplate->Font;
 				CanSeeLabelTemplate->Font = 2;
 				SetCXStr(&CanSeeLabelTemplate->Name, "Target_CanSeeLabel");
 				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_CanSeeLabel");
 				if (CanSeeLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, CanSeeLabelTemplate)) {
 					CanSeeLabel->dShow = true;
+					CanSeeLabel->bNoWrap = true;
+					CanSeeLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
+					CanSeeLabel->bLeftAnchoredToLeft = true;
+					CanSeeLabel->bRightAnchoredToLeft = false;
+					CanSeeLabel->bBottomAnchoredToTop = true;
+					CanSeeLabel->bTopAnchoredToTop = true;
 					CanSeeLabel->bAlignCenter = true;
 					CanSeeLabel->bAlignRight = false;
 					CanSeeLabel->TopOffset = InfoTopOffset;
@@ -1137,7 +1204,7 @@ void Initialize()
 				//now set the template values back
 				DistLabelTemplate->Font = oldfont;
 				CanSeeLabelTemplate->Font = oldfont2;
-				PHButtonTemplate->Font = 2;
+				PHButtonTemplate->Font = oldphfont;
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
 				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
 				SetCXStr(&DistLabelTemplate->Controller, OldController1);
@@ -1155,17 +1222,20 @@ void Initialize()
 		if (CXWnd*pExtWnd = FindMQ2Window("ExtendedTargetWnd"))
 		{
 			orgExtTargetWindStyle = pExtWnd->WindowStyle;
-			//org style for default ui is ?
+			//org style for default ui is 0xe44
 			if (orgExtTargetWindStyle & WSF_TITLEBAR)
 			{
-				pExtWnd->WindowStyle = WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER | WSF_TITLEBAR;
+				pExtWnd->WindowStyle |= (WSF_SIZABLE | WSF_BORDER);
 			}
 			else {
-				pExtWnd->WindowStyle = WSF_CLIENTMOVABLE | WSF_USEMYALPHA | WSF_SIZABLE | WSF_BORDER;
+				pExtWnd->WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
 			}
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			if (DistLabelTemplate) {
-
+				int oldfont = DistLabelTemplate->Font;
+				GetCXStr(DistLabelTemplate->Name, OldName1);
+				GetCXStr(DistLabelTemplate->ScreenID, OldScreenName1);
+				GetCXStr(DistLabelTemplate->Controller, OldController1);
 				CHAR szTemp[MAX_STRING] = { 0 };
 				CHAR szLoc[MAX_STRING] = { 0 };
 				CHAR szOutLoc[MAX_STRING] = { 0 };
@@ -1194,7 +1264,7 @@ void Initialize()
 				int tbottom = atoi(szLocs[1]);
 				int tleft = atoi(szLocs[2]);
 				int tright = atoi(szLocs[3]);
-				for (int i = 0; i < 23; i++)
+				for (int i = 0; i < 13; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
 					if (ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp))
@@ -1214,14 +1284,15 @@ void Initialize()
 						}
 						if (UseExtLayoutBox)
 						{
-							CreateDistLabel((CGroupWnd*)ETW_Gauge[i], DistLabelTemplate, &ETW_DistLabel[i], szTemp, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
+							CreateDistLabel((CGroupWnd*)ETW_Gauge[i], DistLabelTemplate, &ETW_DistLabel[i], szTemp, 2, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
 						}
 						else
 						{
-							CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
+							CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, 2, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
 						}
 					}
 				}
+				DistLabelTemplate->Font = oldfont;
 				SetCXStr(&DistLabelTemplate->Name, OldName1);
 				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
 				SetCXStr(&DistLabelTemplate->Controller, OldController1);
@@ -1758,7 +1829,8 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 			NavButton->dShow = true;
 			WriteSetting("ShowComeToMeButton", "1");
 		}
-	} else if (!_stricmp(szArg1, "hide"))
+	}
+	else if (!_stricmp(szArg1, "hide"))
 	{
 		CHAR szArg2[MAX_STRING] = { 0 };
 		GetArg(szArg2, szLine, 2);
@@ -1811,7 +1883,117 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 			WriteSetting("ShowComeToMeButton", "0");
 		}
 	}
-
+	else if (!_stricmp(szArg1, "mimicme"))
+	{
+		CHAR szArg2[MAX_STRING] = { 0 };
+		GetArg(szArg2, szLine, 2);
+		if (!_stricmp(szArg2, "off"))
+		{
+			gbMimicme = false;
+			MimicMeButton->Checked = false;
+		}
+		else {
+			gbMimicme = true;
+			MimicMeButton->Checked = true;
+		}
+	}
+	else if (!_stricmp(szArg1, "followme"))
+	{
+		if (strstr(szNavCommand, "/bc"))
+		{
+			bool bConnectedtoEqBCs = false;
+			if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
+			{
+				unsigned short(*fisConnected)();
+				if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
+				{
+					if (fisConnected())
+					{
+						bConnectedtoEqBCs = true;
+					}
+				}
+			}
+			if (!bConnectedtoEqBCs)
+			{
+				WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szFollowMe);
+				return;
+			}
+		}
+		CHAR szArg2[MAX_STRING] = { 0 };
+		GetArg(szArg2, szLine, 2);
+		if (!FollowMeButton->Checked)
+			StopMovement(false);
+		if (!_stricmp(szArg2, "off"))
+		{
+			gbFollowme = false;
+			FollowMeButton->Checked = false;
+		}
+		else {
+			gbFollowme = true;
+			FollowMeButton->Checked = true;
+		}
+		CHAR szMe[MAX_STRING] = { 0 };
+		strcpy_s(szMe, szFollowMeCommand);
+		ParseMacroData(szMe, MAX_STRING);
+		if (gbFollowme)
+		{
+			if (strstr(szMe, "//afollow"))
+			{
+				if (!GetModuleHandle("mq2advpath"))
+				{
+					WriteChatf("%s only works if mq2advpath is loaded, Please run /plugin mq2advpath", szFollowMe);
+					StopMovement();
+					return;
+				}
+			}
+			else if (strstr(szMe, "//stick"))
+			{
+				if (!GetModuleHandle("mq2moveutils"))
+				{
+					WriteChatf("%s only works if mq2moveutils is loaded, Please run /plugin mq2moveutils", szFollowMe);
+					StopMovement();
+					return;
+				}
+			}
+		}
+		else
+		{
+			WriteChatf("\ayMQ2TargetInfo\ax : Group stopped following you.");
+			StopMovement();
+			return;
+		}
+		WriteChatf("\ayMQ2TargetInfo\ax : Group now follow you around.");
+		DoCommand((PSPAWNINFO)pLocalPlayer, szMe);
+		return;
+	}
+	else if (!_stricmp(szArg1, "cometome"))
+	{
+		if (strstr(szNavCommand, "/bc"))
+		{
+			bool bConnectedtoEqBCs = false;
+			if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
+			{
+				unsigned short(*fisConnected)();
+				if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
+				{
+					if (fisConnected())
+					{
+						bConnectedtoEqBCs = true;
+					}
+				}
+			}
+			if (!bConnectedtoEqBCs)
+			{
+				WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szNav);
+				return;
+			}
+		}
+		StopMovement();
+		CHAR szMe[MAX_STRING] = { 0 };
+		strcpy_s(szMe, szNavCommand);
+		ParseMacroData(szMe, MAX_STRING);
+		DoCommand((PSPAWNINFO)pLocalPlayer, szMe);
+	}
 }
 
 PLUGIN_API VOID InitializePlugin(VOID)
