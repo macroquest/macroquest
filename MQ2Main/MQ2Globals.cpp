@@ -161,7 +161,7 @@ namespace MQ2Globals
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
-		#if defined (EQBETA)
+		#if defined (EQBETA) || defined (TEST)
 		ppFactionWnd = (CFactionWnd**)pinstCFactionWnd;
 		#endif
 		ppExtendedTargetWnd = (CExtendedTargetWnd**)pinstCExtendedTargetWnd;
@@ -1454,7 +1454,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterListWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
-	#if defined(EQBETA)
+	#if defined(EQBETA) || defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(pinstCFactionWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCExtendedTargetWnd);

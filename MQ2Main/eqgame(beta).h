@@ -166,7 +166,7 @@ GNU General Public License for more details.
 #define pinstTargetObject_x                                        0xE7B8A4
 #define pinstTargetSwitch_x                                        0xE7BD3C
 #define pinstTaskMember_x                                          0xDC71F4
-#define pinstTrackTarget_x                                         0xE7B8A8
+#define pinstTrackTarget_x                                         0xE7B8A0
 #define pinstTradeTarget_x                                         0xE7B858
 #define instTributeActive_x                                        0xDC7385
 #define pinstViewActor_x                                           0xDC7A84

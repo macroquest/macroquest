@@ -7495,7 +7495,7 @@ EQLIB_OBJECT int EQ_Item::Platinum(void);
 EQLIB_OBJECT int EQ_Item::Silver(void);
 EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long)const;
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int, bool bFlag = true); // SwiftyMUSE 11-09-2018
 #else
 EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int); // Lax 11-14-2003

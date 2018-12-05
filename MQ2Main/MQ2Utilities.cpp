@@ -1537,7 +1537,7 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 
 VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize)
 {
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize, true);
 #else
 	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize);
@@ -1548,7 +1548,7 @@ BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable
 {
 	char hash[MAX_STRING] = { 0 };
 	bool retVal = FALSE;
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 	GetItemLinkHash(Item, hash);
 #else
 	((EQ_Item*)Item)->CreateItemTagString(hash, sizeof(hash));

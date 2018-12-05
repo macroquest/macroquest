@@ -4110,7 +4110,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->CHA;
 		Dest.Type = pIntType;
 		return true;
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 	case LCK:
 		Dest.DWord = pChar->LCK;
 		Dest.Type = pIntType;
@@ -8135,7 +8135,7 @@ bool MQ2ItemType::GETMEMBER()
 			return true;
 		}
 		return false;
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 	case Luck:
 		Dest.DWord = pItem->Luck;
 		Dest.Type = pIntType;

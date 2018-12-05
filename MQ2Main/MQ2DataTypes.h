@@ -1211,7 +1211,7 @@ public:
 		CountersCurse = 268,
 		CountersCorruption = 269,
 		Bandolier = 270,
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 		LCK = 271,
 #endif
 	};
@@ -1484,7 +1484,7 @@ public:
 		TypeMember(CountersCurse);
 		TypeMember(CountersCorruption);
 		TypeMember(Bandolier);
-#if defined(EQBETA)
+#if defined(EQBETA) || defined(TEST)
 		TypeMember(LCK);
 #endif
 		
