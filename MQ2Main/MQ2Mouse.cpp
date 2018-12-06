@@ -36,9 +36,16 @@ public:
 	struct T3D_tagACTORINSTANCE *GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *);
 	struct T3D_tagACTORINSTANCE *GetClickedActor_Detour(unsigned long X,unsigned long Y,unsigned long Flag,void *Vector1,void *Vector2)
 	{
-		if (pObjectTarget)
+		if (GroundObject.Type == GO_ObjectType)
 		{
-			return (T3D_tagACTORINSTANCE*)pObjectTarget;
+			if (EQPlacedItem*pPlaced = (EQPlacedItem*)GroundObject.ObjPtr)
+			{
+				return (T3D_tagACTORINSTANCE*)pPlaced->pActor;
+			}
+			else
+			{
+				return (T3D_tagACTORINSTANCE*)GetClickedActor_Tramp(X,Y,Flag,Vector1,Vector2);
+			}
 		} else if(pGroundTarget && EnviroTarget.Name[0] && (EnviroTarget.StandState==STANDSTATE_STAND || EnviroTarget.StandState==STANDSTATE_SIT)) {
 			//we do this to take both mousedown and mouseup into account
 			if(EnviroTarget.StandState==STANDSTATE_STAND) {
@@ -372,66 +379,42 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 		else if(!_strnicmp(szMouseLoc,"center",6)) {
             sprintf_s(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
         }
-		else if (!_strnicmp(szMouseLoc, "object", 4)) {
-			if (!_strnicmp(szArg1, "right", 4)) {
-				if (EnviroTarget.Name[0] != 0) {
-					if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f) {
-						if (pObjectTarget) {
+		else if (!_strnicmp(szMouseLoc, "item", 4)) {
+			if(GroundObject.Type!=GO_None) {
+				if (!_strnicmp(szArg1, "right", 4)) {
+					if (EnviroTarget.Name[0] != 0) {
+						if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f) {
 							*((DWORD*)__RMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
 							if (PCXWNDMGR px = (PCXWNDMGR)pWndMgr)
 							{
 								pEverQuest->RMouseUp(px->MousePoint.x, px->MousePoint.y);
 							}
 							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-							pObjectTarget = NULL;
+							ZeroMemory(&GroundObject, sizeof(GroundObject));
+							pGroundTarget = NULL;
+						}
+						else {
+							WriteChatf("You are to far away from the item, please move closer before issuing the /click right item command.");
 						}
 					}
 					else {
-						WriteChatf("You are to far away from the object, please move closer before issuing the /click right object command.");
+						WriteChatf("No item targeted, use /itemtarget <theid> before issuing a /click right item command.");
 					}
 				}
-				else {
-					WriteChatf("No Object targeted, use /itemtarget <theid> before issuing a /click right object command.");
-				}
-			} else if (!_strnicmp(szArg1, "left", 4)) {
-				if (EnviroTarget.Name[0] != 0) {
-					if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f) {
-						if (pObjectTarget) {
-							*((DWORD*)__LMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
-							pEverQuest->LMouseUp(-10000, -10000);
-							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-							pObjectTarget = NULL;
-						}
-					}
-					else {
-						WriteChatf("You are to far away from the object, please move closer before issuing the /click left object command.");
-					}
-				}
-				else {
-					WriteChatf("No Object targeted, use /itemtarget <theid> before issuing a /click left object command.");
-				}
-			} else {
-				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right object command.");
-			}
-			RETURN(0);
-		}
-		else if (!_strnicmp(szMouseLoc, "item", 4)) {
-			if(pGroundTarget) {
-				if (!_strnicmp(szArg1, "left", 4)) {
+				else if (!_strnicmp(szArg1, "left", 4)) {
 					if(EnviroTarget.Name[0]!=0) {
 						if(Distance3DToSpawn(pChar,&EnviroTarget)<=20.0f) {
 							//do stuff
-							if(PEQSWITCH pSwitch = (PEQSWITCH)pGroundTarget->pSwitch) {
-								*((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
-								//we "click" at -1000,-1000 because we know the user doesnt have any windows there...
-								//if its possible, i would like to figure out a pixel
-								//on the users screen that isnt covered by a window...
-								//the click need to be issued on the main UI...
-								//but for now this will work -eqmule 8 mar 2014
-								pEverQuest->LMouseUp(-10000, -10000);
-								ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-								pGroundTarget = NULL;
-							}
+							*((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
+							//we "click" at -1000,-1000 because we know the user doesnt have any windows there...
+							//if its possible, i would like to figure out a pixel
+							//on the users screen that isnt covered by a window...
+							//the click need to be issued on the main UI...
+							//but for now this will work -eqmule 8 mar 2014
+							pEverQuest->LMouseUp(-10000, -10000);
+							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+							pGroundTarget = NULL;
+							ZeroMemory(&GroundObject, sizeof(GroundObject));
 						} else {
 							WriteChatf("You are to far away from the item, please move closer before issuing the /click left item command.");
 						}

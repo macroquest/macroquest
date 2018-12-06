@@ -479,7 +479,17 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 									FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
 									INT Angle = (INT)((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 									ii.angle = Angle;
-									ii.Name = pItem->Name;
+									_itoa_s(pObj->RealEstateItemID, szName, 10);
+									ii.Name.append("[");
+									ii.Name = szName;
+									ii.Name.append("] ");
+									ii.Name.append(pItem->Name);
+									ii.Name.append(" ");
+									ii.Name.append(pObj->Name);//
+									ii.Name.append(" (");
+									GetCXStr(pRealEstateItem->OwnerInfo.OwnerName, szName);
+									ii.Name.append(szName);
+									ii.Name.append(")");
 									itemsmap[Distance] = ii;
 								}
 							}
@@ -530,48 +540,60 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR Arg1[MAX_STRING] = { 0 };
 	CHAR Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
+	_strlwr_s(Arg1);
 	GetArg(Arg2, szLine, 2);
 	ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+	ZeroMemory(&GroundObject,sizeof(GroundObject));
+	pGroundTarget = NULL;
 	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
 		CHAR szName[MAX_STRING] = { 0 };
 		FLOAT cDistance = 100000.0f;
-		pGroundTarget = NULL;
 		SPAWNINFO tSpawn = { 0 };
 		while (pItem) {
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
-			if (((szLine[0] == 0) || (!_strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
-				ZeroMemory(&tSpawn, sizeof(tSpawn));
-				strcpy_s(tSpawn.Name, szName);
-				strcpy_s(tSpawn.DisplayedName, szName);
-				tSpawn.Y = pItem->Y;
-				tSpawn.X = pItem->X;
-				tSpawn.Z = pItem->pSwitch->Z;
-				tSpawn.Type = SPAWN_NPC;
-				tSpawn.HPCurrent = 1;
-				tSpawn.HPMax = 1;
-				tSpawn.Heading = pItem->Heading;
-				tSpawn.mActorClient.Race = pItem->DropID;
-				tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-				FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-				if (Distance < cDistance) {
-					CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-					cDistance = Distance;
-					pGroundTarget = pItem;
+			_strlwr_s(szName);
+			if (((szLine[0] == '\0') || (strstr(szName, Arg1))))
+			{
+				if (((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter))))
+				{
+					ZeroMemory(&tSpawn, sizeof(tSpawn));
+					strcpy_s(tSpawn.Name, szName);
+					strcpy_s(tSpawn.DisplayedName, szName);
+					tSpawn.Y = pItem->Y;
+					tSpawn.X = pItem->X;
+					tSpawn.Z = pItem->pSwitch->Z;
+					tSpawn.Type = SPAWN_NPC;
+					tSpawn.HPCurrent = 1;
+					tSpawn.HPMax = 1;
+					tSpawn.Heading = pItem->Heading;
+					tSpawn.mActorClient.Race = pItem->DropID;
+					tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+					FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+					if (Distance < cDistance) {
+						CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+						cDistance = Distance;
+						pGroundTarget = pItem;
+					}
 				}
 			}
 			pItem = pItem->pNext;
 		}
 	}
-	if (!pGroundTarget)
+	if (pGroundTarget)
+	{
+		GroundObject.Type = GO_GroundType;
+		GroundObject.pGroundItem = pGroundTarget;
+	}
+	else
 	{
 		FLOAT cDistance = 100000.0f;
-		pObjectTarget = NULL;
 		SPAWNINFO tSpawn = { 0 };
 		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 		if (&manager)
 		{
 			if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
 				if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
+					CHAR szName[MAX_STRING] = { 0 };
 					for (EQPlacedItem *pObj = top; pObj != NULL; pObj = pObj->pNext)
 					{
 						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
@@ -581,29 +603,34 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 							{
 								if (PITEMINFO pItem = GetItemFromContents(pCont))
 								{
-									if (((szLine[0] == 0) || (!_strnicmp(pItem->Name, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter)))) {
-										ZeroMemory(&tSpawn, sizeof(tSpawn));
-										strcpy_s(tSpawn.Name, pItem->Name);
-										PEQSWITCH si = (PEQSWITCH)pObj->pActor;
-										strcpy_s(tSpawn.DisplayedName, pItem->Name);
-										tSpawn.Y = pObj->Y;
-										tSpawn.X = pObj->X;
-										tSpawn.Z = pObj->Z;
-										tSpawn.Type = SPAWN_NPC;
-										tSpawn.HPCurrent = 1;
-										tSpawn.HPMax = 1;
-										tSpawn.Heading = pObj->Heading;
-										tSpawn.mActorClient.Race = pObj->RealEstateItemID;
-										tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-										FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-										if (Distance < cDistance) {
-											CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-											cDistance = Distance;
-											pObjectTarget = si;
-											break;
+									strcpy_s(szName, pItem->Name);
+									_strlwr_s(szName);
+									if (((szLine[0] == '\0') || (strstr(szName, Arg1)) || (strstr(szName, Arg1))))
+									{
+										if (((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter)))) {
+											ZeroMemory(&tSpawn, sizeof(tSpawn));
+											strcpy_s(tSpawn.Name, pItem->Name);
+											PEQSWITCH si = (PEQSWITCH)pObj->pActor;
+											strcpy_s(tSpawn.DisplayedName, pItem->Name);
+											tSpawn.Y = pObj->Y;
+											tSpawn.X = pObj->X;
+											tSpawn.Z = pObj->Z;
+											tSpawn.Type = SPAWN_NPC;
+											tSpawn.HPCurrent = 1;
+											tSpawn.HPMax = 1;
+											tSpawn.Heading = pObj->Heading;
+											tSpawn.mActorClient.Race = pObj->RealEstateItemID;
+											tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+											FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+											if (Distance < cDistance) {
+												CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+												cDistance = Distance;
+												GroundObject.Type = GO_ObjectType;
+												GroundObject.ObjPtr = (void*)pObj;
+											}
 										}
+										//WriteChatf("[%d] %s %0.2f,%0.2f,%0.2f , %0.2f, %0.2f,", pObj->RealEstateItemID, pItem->Name, pObj->Y, pObj->X, pObj->Z, pObj->Heading * 0.703125f, pObj->Angle * 0.703125f);
 									}
-									//WriteChatf("[%d] %s %0.2f,%0.2f,%0.2f , %0.2f, %0.2f,", pObj->RealEstateItemID, pItem->Name, pObj->Y, pObj->X, pObj->Z, pObj->Heading * 0.703125f, pObj->Angle * 0.703125f);
 								}
 							}
 						}
@@ -611,7 +638,40 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 				}
 			}
 		}
+		if (GroundObject.Type == GO_ObjectType)
+		{
+			EQPlacedItem *ObjPtr = (EQPlacedItem *)GroundObject.ObjPtr;
+			//ok so its not actually a grounditem, we need to fake that for the tlo to be work
+			//we do this because I want people to be able to use ${Ground} in their macros and not worry about if its an object or not.
+			//also I want people to not have to update their macros.
+			//this should make older tradeskill macros for example work in guild halls... -eqmule
+			GroundObject.GroundItem.DropID = ObjPtr->RealEstateItemID;
+			GroundObject.GroundItem.DropSubID = ObjPtr->RealEstateID;
+			GroundObject.GroundItem.Expires = 0;
+			GroundObject.GroundItem.Heading = ObjPtr->Heading;
+			GroundObject.GroundItem.ID.pObject = NULL;
+			if (EnviroTarget.DisplayedName[0] != '\0') {
+				strcpy_s(GroundObject.GroundItem.Name, EnviroTarget.DisplayedName);
+			}
+			else
+			{
+				strcpy_s(GroundObject.GroundItem.Name, ObjPtr->Name);
+			}
+			GroundObject.GroundItem.Pitch = ObjPtr->Angle;
+			GroundObject.GroundItem.pNext = 0;
+			GroundObject.GroundItem.pPrev = 0;
+			GroundObject.GroundItem.pSwitch = (PEQSWITCH)ObjPtr->pActor;
+			GroundObject.GroundItem.Roll = ObjPtr->Roll;
+			GroundObject.GroundItem.Scale = ObjPtr->Scale;
+			GroundObject.GroundItem.Weight = 0;
+			GroundObject.GroundItem.X = ObjPtr->X;
+			GroundObject.GroundItem.Y = ObjPtr->Y;
+			GroundObject.GroundItem.Z = ObjPtr->Z;
+			GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->Zone & 0x7FFF;
+			pGroundTarget = &GroundObject.GroundItem;
+		}
 	}
+
 	if (EnviroTarget.DisplayedName[0] != 0) {
 		sprintf_s(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
@@ -2791,7 +2851,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			pTarget = NULL;
 			pDoorTarget = 0;
 			pGroundTarget = 0;
-			pObjectTarget = 0;
+			ZeroMemory(&GroundObject, sizeof(GroundObject));
 			ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
 			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
 			if (pChar)

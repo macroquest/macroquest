@@ -8999,44 +8999,54 @@ bool MQ2GroundType::GETMEMBER()
 	if (!VarPtr.Ptr)
 		return false;
 	
-#define pGround ((PGROUNDITEM)VarPtr.Ptr)
+	PGROUNDOBJECT pGroundObject = (PGROUNDOBJECT)VarPtr.Ptr;
+	if(pGroundObject->Type==GO_None)
+		return false;
 	PMQ2TYPEMEMBER pMethod = MQ2GroundType::FindMethod(Member);
 	if (pMethod) {
 		switch ((GroundMethods)pMethod->ID)
 		{
 		case Grab:
 		{
-			
 			Dest.DWord = 0;
 			Dest.Type = pBoolType;
-			if (PEQSWITCH pSwitch = (PEQSWITCH)pGround->pSwitch) {
-				CHAR szName[256] = { 0 };
-				GetFriendlyNameForGroundItem(pGround, szName, sizeof(szName));
-				float dist3d = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, pGround->X, pGround->Y, pGround->Z);
-				if (dist3d <= 20.0f) {
-					SPAWNINFO tSpawn = { 0 };
-					strcpy_s(tSpawn.Name, szName);
-					strcpy_s(tSpawn.DisplayedName, szName);
-					tSpawn.Y = pGround->Y;
-					tSpawn.X = pGround->X;
-					tSpawn.Z = pGround->pSwitch->Z;
-					tSpawn.Type = SPAWN_NPC;
-					tSpawn.HPCurrent = 1;
-					tSpawn.HPMax = 1;
-					tSpawn.Heading = pGround->Heading;
-					tSpawn.mActorClient.Race = pGround->DropID;
-					tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-					CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-					pGroundTarget = pGround;
-					*((DWORD*)__LMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
-					pEverQuest->LMouseUp(-10000, -10000);
-					ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-					pGroundTarget = NULL;
-					Dest.DWord = 1;
-					return true;
-				}
-				else {
-					MacroError("You are %.2f away from the %s, move within 20 feet of it to Grab it.", dist3d, szName);
+			PEQSWITCH pSwitch = 0;
+			if (pGroundObject->Type == GO_GroundType)
+			{
+				pSwitch = (PEQSWITCH)pGroundObject->pGroundItem->pSwitch;
+			}
+			if (pSwitch) {
+				if (PGROUNDITEM pGround = pGroundObject->pGroundItem)
+				{
+					CHAR szName[256] = { 0 };
+					GetFriendlyNameForGroundItem(pGround, szName, sizeof(szName));
+					float dist3d = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, pGround->X, pGround->Y, pGround->Z);
+					if (dist3d <= 20.0f) {
+						SPAWNINFO tSpawn = { 0 };
+						strcpy_s(tSpawn.Name, szName);
+						strcpy_s(tSpawn.DisplayedName, szName);
+						tSpawn.Y = pGround->Y;
+						tSpawn.X = pGround->X;
+						tSpawn.Z = pGround->pSwitch->Z;
+						tSpawn.Type = SPAWN_NPC;
+						tSpawn.HPCurrent = 1;
+						tSpawn.HPMax = 1;
+						tSpawn.Heading = pGround->Heading;
+						tSpawn.mActorClient.Race = pGround->DropID;
+						tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+						CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+						pGroundTarget = pGround;
+						*((DWORD*)__LMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
+						pEverQuest->LMouseUp(-10000, -10000);
+						ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+						ZeroMemory(&GroundObject, sizeof(GroundObject));
+						pGroundTarget = NULL;
+						Dest.DWord = 1;
+						return true;
+					}
+					else {
+						MacroError("You are %.2f away from the %s, move within 20 feet of it to Grab it.", dist3d, szName);
+					}
 				}
 			}
 			return true;
@@ -9044,35 +9054,85 @@ bool MQ2GroundType::GETMEMBER()
 		case DoTarget:
 		{
 			CHAR szName[256] = { 0 };
-			GetFriendlyNameForGroundItem(pGround, szName, sizeof(szName));
 			SPAWNINFO tSpawn = { 0 };
+			if (pGroundObject->Type == GO_GroundType)
+			{
+				GetFriendlyNameForGroundItem(pGroundObject->pGroundItem, szName, sizeof(szName));
+				tSpawn.Y = pGroundObject->pGroundItem->Y;
+				tSpawn.X = pGroundObject->pGroundItem->X;
+				tSpawn.Z = pGroundObject->pGroundItem->Z;
+				tSpawn.Heading = pGroundObject->pGroundItem->Heading;
+				tSpawn.mActorClient.Race = pGroundObject->pGroundItem->DropID;
+				pGroundTarget = pGroundObject->pGroundItem;
+				GroundObject.Type = GO_GroundType;
+				GroundObject.pGroundItem = pGroundTarget;
+			}
+			else {
+				if (EQPlacedItem*Placed = (EQPlacedItem*)pGroundObject->ObjPtr)
+				{
+					strcpy_s(szName, Placed->Name);
+					tSpawn.Y = Placed->Y;
+					tSpawn.X = Placed->X;
+					tSpawn.Z = Placed->Z;
+					tSpawn.Heading = Placed->Heading;
+					tSpawn.mActorClient.Race = Placed->RealEstateItemID;
+					GroundObject.Type = GO_ObjectType;
+					GroundObject.ObjPtr = (void*)Placed;
+					
+					GroundObject.GroundItem.DropID = Placed->RealEstateItemID;
+					GroundObject.GroundItem.DropSubID = Placed->RealEstateID;
+					GroundObject.GroundItem.Expires = 0;
+					GroundObject.GroundItem.Heading = Placed->Heading;
+					GroundObject.GroundItem.ID.pObject = NULL;
+					strcpy_s(GroundObject.GroundItem.Name, Placed->Name);
+					GroundObject.GroundItem.Pitch = Placed->Angle;
+					GroundObject.GroundItem.pNext = 0;
+					GroundObject.GroundItem.pPrev = 0;
+					GroundObject.GroundItem.pSwitch = (PEQSWITCH)Placed->pActor;
+					GroundObject.GroundItem.Roll = Placed->Roll;
+					GroundObject.GroundItem.Scale = Placed->Scale;
+					GroundObject.GroundItem.Weight = 0;
+					GroundObject.GroundItem.X = Placed->X;
+					GroundObject.GroundItem.Y = Placed->Y;
+					GroundObject.GroundItem.Z = Placed->Z;
+					GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->Zone & 0x7FFF;
+					pGroundTarget = &GroundObject.GroundItem;
+				}
+			}
 			strcpy_s(tSpawn.Name, szName);
 			strcpy_s(tSpawn.DisplayedName, szName);
-			tSpawn.Y = pGround->Y;
-			tSpawn.X = pGround->X;
-			tSpawn.Z = pGround->Z;
 			tSpawn.Type = SPAWN_NPC;
 			tSpawn.HPCurrent = 1;
 			tSpawn.HPMax = 1;
-			tSpawn.Heading = pGround->Heading;
-			tSpawn.mActorClient.Race = pGround->DropID;
 			tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
 			CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-			pGroundTarget = pGround;
-			Dest.Ptr = pGround;
+			Dest.Ptr = pGroundObject;
 			Dest.Type = pGroundType;
 			return true;
 		}
 		case DoFace:
 		{
-			gFaceAngle = (atan2(pGround->X - ((PSPAWNINFO)pCharSpawn)->X, pGround->Y - ((PSPAWNINFO)pCharSpawn)->Y) * 256.0f / PI);
-			float theDistance = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, pGround->X, pGround->Y, pGround->Z);
-			gLookAngle = (atan2(pGround->Z - ((PSPAWNINFO)pCharSpawn)->Z - ((PSPAWNINFO)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((PSPAWNINFO)pCharSpawn)->StandState), (FLOAT)theDistance)	* 256.0f / PI);
+			float theDistance = 100000.0f;
+			if (pGroundObject->Type == GO_GroundType)
+			{
+
+				gFaceAngle = (atan2(pGroundObject->pGroundItem->X - ((PSPAWNINFO)pCharSpawn)->X, pGroundObject->pGroundItem->Y - ((PSPAWNINFO)pCharSpawn)->Y) * 256.0f / PI);
+				theDistance = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, pGroundObject->pGroundItem->X, pGroundObject->pGroundItem->Y, pGroundObject->pGroundItem->Z);
+				gLookAngle = (atan2(pGroundObject->pGroundItem->Z - ((PSPAWNINFO)pCharSpawn)->Z - ((PSPAWNINFO)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((PSPAWNINFO)pCharSpawn)->StandState), (FLOAT)theDistance) * 256.0f / PI);
+			}
+			else {
+				if (EQPlacedItem*Placed = (EQPlacedItem*)pGroundObject->ObjPtr)
+				{
+					gFaceAngle = (atan2(Placed->X - ((PSPAWNINFO)pCharSpawn)->X, Placed->Y - ((PSPAWNINFO)pCharSpawn)->Y) * 256.0f / PI);
+					theDistance = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, Placed->X, Placed->Y, Placed->Z);
+					gLookAngle = (atan2(Placed->Z - ((PSPAWNINFO)pCharSpawn)->Z - ((PSPAWNINFO)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((PSPAWNINFO)pCharSpawn)->StandState), (FLOAT)theDistance) * 256.0f / PI);
+				}
+			}
 			if (gFaceAngle >= 512.0f)
 				gFaceAngle -= 512.0f;
 			if (gFaceAngle<0.0f)
 				gFaceAngle += 512.0f;
-			Dest.Ptr = pGround;
+			Dest.Ptr = pGroundObject;
 			Dest.Type = pGroundType;
 			return true;
 		}
@@ -9082,120 +9142,281 @@ bool MQ2GroundType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2GroundType::FindMember(Member);
 	if (!pMember)
 		return false;
-	switch ((GroundMembers)pMember->ID)
+	if (pGroundObject->Type == GO_GroundType)
 	{
-	case Address:
-		Dest.DWord = (DWORD)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-	case ID:
-		Dest.DWord = pGround->DropID;
-		Dest.Type = pIntType;
-		return true;
-	case SubID:
-		Dest.DWord = pGround->DropSubID;
-		Dest.Type = pIntType;
-		return true;
-	case ZoneID:
-		Dest.DWord = (pGround->ZoneID & 0x7FFF);
-		Dest.Type = pIntType;
-		return true;
-	case W:
-	case X:
-		Dest.Float = pGround->X;
-		Dest.Type = pFloatType;
-		return true;
-	case N:
-	case Y:
-		Dest.Float = pGround->Y;
-		Dest.Type = pFloatType;
-		return true;
-	case U:
-	case Z:
-		Dest.Float = pGround->Z;
-		Dest.Type = pFloatType;
-		return true;
-	case Name:
-		strcpy_s(DataTypeTemp, pGround->Name);
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	case DisplayName:
-	{
-		DataTypeTemp[0] = '\0';
-		GetFriendlyNameForGroundItem(pGround, DataTypeTemp, sizeof(DataTypeTemp));
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	}
-	case Heading:
-		Dest.Float = pGround->Heading*0.703125f;
-		Dest.Type = pHeadingType;
-		return true;
-	case Distance:
-		Dest.Float = GetDistance(pGround->X, pGround->Y);
-		Dest.Type = pFloatType;
-		return true;
-	case Distance3D:
-	{
-		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pGround->X;
-		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pGround->Y;
-		FLOAT Z = 0;
-		if (pGround->pSwitch)
-			Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->pSwitch->Z;
-		else
-			Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->Z;
-		Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
-		Dest.Type = pFloatType;
-		return true;
-	}
-	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
-		if (Dest.Float<0.0f)
-			Dest.Float += 360.0f;
-		else if (Dest.Float >= 360.0f)
-			Dest.Float -= 360.0f;
-		Dest.Type = pHeadingType;
-		return true;
-	case xLineOfSight:
-		Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z));
-		Dest.Type = pBoolType;
-		return true;
-	case First:
-		if (Dest.Ptr = (PVOID)*(DWORD*)pItemList)
+		PGROUNDITEM pGround = pGroundObject->pGroundItem;
+		switch ((GroundMembers)pMember->ID)
 		{
-			Dest.Type = pGroundType;
-            return true;
-		}
-		return false;
-	case Last:
-		if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList)
+		case Address:
+			Dest.DWord = (DWORD)VarPtr.Ptr;
+			Dest.Type = pIntType;
+			return true;
+		case ID:
+			Dest.DWord = pGround->DropID;
+			Dest.Type = pIntType;
+			return true;
+		case SubID:
+			Dest.DWord = pGround->DropSubID;
+			Dest.Type = pIntType;
+			return true;
+		case ZoneID:
+			Dest.DWord = (pGround->ZoneID & 0x7FFF);
+			Dest.Type = pIntType;
+			return true;
+		case W:
+		case X:
+			Dest.Float = pGround->X;
+			Dest.Type = pFloatType;
+			return true;
+		case N:
+		case Y:
+			Dest.Float = pGround->Y;
+			Dest.Type = pFloatType;
+			return true;
+		case U:
+		case Z:
+			Dest.Float = pGround->Z;
+			Dest.Type = pFloatType;
+			return true;
+		case Name:
+			strcpy_s(DataTypeTemp, pGround->Name);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayName:
 		{
-			while (pItem->pNext)
-			{
-				pItem = pItem->pNext;
-			}
-			Dest.Type = pGroundType;
-            return true;
-		}
-		return false;
-	case Next:
-        if (Dest.Ptr = pGround->pNext)
-        {
-            Dest.Type = pGroundType;
-            return true;
-        }
-        return false;
-    case Prev:
-		if (Dest.Ptr = pGround->pPrev)
-		{
-			Dest.Type = pGroundType;
+			DataTypeTemp[0] = '\0';
+			GetFriendlyNameForGroundItem(pGround, DataTypeTemp, sizeof(DataTypeTemp));
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
 			return true;
 		}
-		return false;
+		case Heading:
+			Dest.Float = pGround->Heading*0.703125f;
+			Dest.Type = pHeadingType;
+			return true;
+		case Distance:
+			Dest.Float = GetDistance(pGround->X, pGround->Y);
+			Dest.Type = pFloatType;
+			return true;
+		case Distance3D:
+		{
+			FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pGround->X;
+			FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pGround->Y;
+			FLOAT Z = 0;
+			if (pGround->pSwitch)
+				Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->pSwitch->Z;
+			else
+				Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->Z;
+			Dest.Float = sqrtf(X*X + Y * Y + Z * Z);
+			Dest.Type = pFloatType;
+			return true;
+		}
+		case HeadingTo:
+			Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+			if (Dest.Float < 0.0f)
+				Dest.Float += 360.0f;
+			else if (Dest.Float >= 360.0f)
+				Dest.Float -= 360.0f;
+			Dest.Type = pHeadingType;
+			return true;
+		case xLineOfSight:
+			Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z));
+			Dest.Type = pBoolType;
+			return true;
+		case First:
+			if (PGROUNDITEM pItem = pGround)
+			{
+				while (pItem->pPrev)
+				{
+					pItem = pItem->pPrev;
+				}
+				GroundObject.Type = GO_GroundType;
+				GroundObject.pGroundItem = pItem;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		case Last:
+			if (PGROUNDITEM pItem = pGround)
+			{
+				while (pItem->pNext)
+				{
+					pItem = pItem->pNext;
+				}
+				GroundObject.Type = GO_GroundType;
+				GroundObject.pGroundItem = pItem;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		case Next:
+			if (pGround->pNext)
+			{
+				GroundObject.Type = GO_GroundType;
+				GroundObject.pGroundItem = pGround->pNext;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		case Prev:
+			if (pGround->pPrev)
+			{
+				GroundObject.Type = GO_GroundType;
+				GroundObject.pGroundItem = pGround->pPrev;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		}
+	}
+	else
+	{
+		EQPlacedItem* pGround = (EQPlacedItem*)pGroundObject->ObjPtr;
+		switch ((GroundMembers)pMember->ID)
+		{
+		case Address:
+			Dest.DWord = (DWORD)VarPtr.Ptr;
+			Dest.Type = pIntType;
+			return true;
+		case ID:
+			Dest.DWord = pGround->RealEstateItemID;
+			Dest.Type = pIntType;
+			return true;
+		case SubID:
+			Dest.DWord = pGround->RealEstateID;
+			Dest.Type = pIntType;
+			return true;
+		case ZoneID:
+			Dest.DWord = (((PSPAWNINFO)pLocalPlayer)->Zone & 0x7FFF);
+			Dest.Type = pIntType;
+			return true;
+		case W:
+		case X:
+			Dest.Float = pGround->X;
+			Dest.Type = pFloatType;
+			return true;
+		case N:
+		case Y:
+			Dest.Float = pGround->Y;
+			Dest.Type = pFloatType;
+			return true;
+		case U:
+		case Z:
+			Dest.Float = pGround->Z;
+			Dest.Type = pFloatType;
+			return true;
+		case Name:
+			strcpy_s(DataTypeTemp, pGround->Name);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayName:
+		{
+			RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+			if (&manager)
+			{
+				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pGround->RealEstateID, pGround->RealEstateItemID);
+				if (pRealEstateItem)
+				{
+					if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+					{
+						if (PITEMINFO pItem = GetItemFromContents(pCont))
+						{
+							strcpy_s(DataTypeTemp, pItem->Name);
+							Dest.Ptr = &DataTypeTemp[0];
+							Dest.Type = pStringType;
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		case Heading:
+			Dest.Float = pGround->Heading*0.703125f;
+			Dest.Type = pHeadingType;
+			return true;
+		case Distance:
+			Dest.Float = GetDistance(pGround->X, pGround->Y);
+			Dest.Type = pFloatType;
+			return true;
+		case Distance3D:
+		{
+			FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pGround->X;
+			FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pGround->Y;
+			FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->Z;
+			Dest.Float = sqrtf(X*X + Y * Y + Z * Z);
+			Dest.Type = pFloatType;
+			return true;
+		}
+		case HeadingTo:
+			Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+			if (Dest.Float < 0.0f)
+				Dest.Float += 360.0f;
+			else if (Dest.Float >= 360.0f)
+				Dest.Float -= 360.0f;
+			Dest.Type = pHeadingType;
+			return true;
+		case xLineOfSight:
+			Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z));
+			Dest.Type = pBoolType;
+			return true;
+		case First:
+			if (EQPlacedItem *pItem = pGround)
+			{
+				while (pItem->pPrev)
+				{
+					pItem = pItem->pPrev;
+				}
+				GroundObject.Type = GO_ObjectType;
+				GroundObject.ObjPtr = (void*)pItem;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		case Last:
+			if (EQPlacedItem *pItem = pGround)
+			{
+				while (pItem->pNext)
+				{
+					pItem = pItem->pNext;
+				}
+				GroundObject.Type = GO_ObjectType;
+				GroundObject.ObjPtr = (void*)pItem;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		case Next:
+			if (pGround->pNext)
+			{
+				GroundObject.Type = GO_ObjectType;
+				GroundObject.ObjPtr = (void*)pGround->pNext;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		case Prev:
+			if (pGround->pPrev)
+			{
+				GroundObject.Type = GO_ObjectType;
+				GroundObject.ObjPtr = (void*)pGround->pPrev;
+				Dest.Ptr = &GroundObject;
+				Dest.Type = pGroundType;
+				return true;
+			}
+			return false;
+		}
 	}
 	return false;
-#undef pGround
 }
 bool MQ2MacroQuestType::GETMEMBER()
 {

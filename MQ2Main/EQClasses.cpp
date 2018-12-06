@@ -5290,6 +5290,12 @@ FUNCTION_AT_ADDRESS(RealEstateManagerClient &RealEstateManagerClient::Instance()
 #ifdef RealEstateManagerClient__GetItemByRealEstateAndItemIds_x
 FUNCTION_AT_ADDRESS(const RealEstateItemClient *RealEstateManagerClient::GetItemByRealEstateAndItemIds(int realEstateID, int realEstateItemID) const,RealEstateManagerClient__GetItemByRealEstateAndItemIds)
 #endif
+#ifdef FactionManagerClient__Instance_x
+FUNCTION_AT_ADDRESS(FactionManagerClient &FactionManagerClient::Instance(),FactionManagerClient__Instance)
+#endif
+#ifdef FactionManagerClient__HandleFactionMessage_x
+FUNCTION_AT_ADDRESS(void FactionManagerClient::HandleFactionMessage(UINT MessageID, PCHAR pData, unsigned int DataLength),FactionManagerClient__HandleFactionMessage)
+#endif
 #ifdef EQPlayer__EQPlayer_x
 FUNCTION_AT_ADDRESS( EQPlayer::EQPlayer(class EQPlayer *,unsigned char,unsigned int,unsigned char,char *),EQPlayer__EQPlayer);
 #endif

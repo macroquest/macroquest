@@ -3997,6 +3997,20 @@ typedef struct _GROUNDITEM {
 /*0x80*/
 } GROUNDITEM, *PGROUNDITEM;
 
+enum eGroundObject
+{
+	GO_None,
+	GO_GroundType,
+	GO_ObjectType
+};
+typedef struct _GROUNDOBJECT
+{
+	eGroundObject Type;
+	GROUNDITEM	GroundItem;//for conversion between switch and gorunditems
+	void *ObjPtr;// EQPlacedItem *
+	PGROUNDITEM	pGroundItem;
+} GROUNDOBJECT,*PGROUNDOBJECT;
+
 #define   MAX_ZONES                     0x3e8
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 

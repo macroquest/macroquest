@@ -2491,9 +2491,9 @@ public:
 
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(GROUNDITEM));
+		VarPtr.Ptr = malloc(sizeof(GROUNDOBJECT));
 		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(GROUNDITEM));
+		ZeroMemory(VarPtr.Ptr, sizeof(GROUNDOBJECT));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
 	{
@@ -2503,8 +2503,34 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			GetFriendlyNameForGroundItem((PGROUNDITEM)VarPtr.Ptr, Destination, MAX_STRING);
-			return true;
+			PGROUNDOBJECT pObj = (PGROUNDOBJECT)VarPtr.Ptr;
+			if (pObj->Type == GO_GroundType)
+			{
+				GetFriendlyNameForGroundItem(pObj->pGroundItem, Destination, MAX_STRING);
+				return true;
+			}
+			else if (pObj->Type == GO_ObjectType)
+			{
+				RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+				if (&manager)
+				{
+					if (EQPlacedItem*pPlaced = (EQPlacedItem*)pObj->ObjPtr)
+					{
+						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
+						if (pRealEstateItem)
+						{
+							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+							{
+								if (PITEMINFO pItem = GetItemFromContents(pCont))
+								{
+									strcpy_s(Destination, MAX_STRING, pItem->Name);
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		return true;
 	}
@@ -2512,21 +2538,45 @@ public:
 	{
 		if (Source.Type != pGroundType)
 			return false;
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(GROUNDITEM));
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(GROUNDOBJECT));
 		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		int id = atoi(Source);
 		PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
+		GROUNDOBJECT go;
+		ZeroMemory(&go, sizeof(go));
 		while (pGroundItem)
 		{
 			if (pGroundItem->DropID == id)
 			{
-				memcpy(VarPtr.Ptr, pGroundItem, sizeof(GROUNDITEM));
+				go.pGroundItem = pGroundItem;
+				go.Type = GO_GroundType;
+				memcpy(VarPtr.Ptr, &go, sizeof(GROUNDOBJECT));
 				return true;
 			}
 			pGroundItem = pGroundItem->pNext;
+		}
+		//didn't find one, check objects...
+		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+		if (&manager)
+		{
+			if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
+				if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
+					while (top)
+					{
+						if (top->RealEstateItemID == id)
+						{
+							go.ObjPtr = (void*)top;
+							go.Type = GO_ObjectType;
+							memcpy(VarPtr.Ptr, &go, sizeof(GROUNDOBJECT));
+							return true;
+						}
+						top = top->pNext;
+					}
+				}
+			}
 		}
 		return false;
 	}

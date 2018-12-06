@@ -63,9 +63,9 @@ namespace MQ2Globals
 		gpPCNames = (DWORD*)__PCNames;
 		pTributeActive = (PBYTE)instTributeActive;
 		gpAutoFire = (PBYTE)__Autofire;
-		#if !defined(ROF2EMU) && !defined(UFEMU)
-			gpAutoSkill = (PAUTOSKILL)__AutoSkillArray;
-		#endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+		gpAutoSkill = (PAUTOSKILL)__AutoSkillArray;
+#endif
 		gpShiftKeyDown = (PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
 		gpMouseEventTime = (DWORD*)__MouseEventTime;
 		gpbCommandEvent = (DWORD*)__gpbCommandEvent;
@@ -103,9 +103,9 @@ namespace MQ2Globals
 
 		pGuildList = (PGUILDS)__Guilds;
 		pSocialList = (PEQSOCIAL)__Socials;
-		#if defined(ROF2EMU) || defined(UFEMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 		pgHotkeyPage = (PBYTE)__HotkeyPage;
-		#endif
+#endif
 		pgCurrentSocial = (PINT)__CurrentSocial;
 
 		NewUIINI = (fEQNewUIINI)__NewUIINI;
@@ -124,9 +124,9 @@ namespace MQ2Globals
 		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
 		ppDisplay = (CDisplay**)pinstCDisplay;
-		#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppDistillerInfo = (CDistillerInfo**)pinstCDistillerInfo;
-		#endif
+#endif
 		ppPCData = (EQ_PC**)pinstPCData;
 		ppCharData = (EQ_Character**)pinstCharData;
 		ppCharSpawn = (EQPlayer**)pinstCharSpawn;
@@ -145,9 +145,9 @@ namespace MQ2Globals
 		ppConnection = (PCONNECTION_T*)__gWorld;
 		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
 		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
-		#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
-		#endif
+#endif
 		ppEQChatMgr = (EQCHATMGR**)pinstCChatWindowManager;
 
 		ppTradeTarget = (EQPlayer **)pinstTradeTarget;
@@ -161,27 +161,27 @@ namespace MQ2Globals
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
-		#if defined (EQBETA) || defined (TEST)
+#if defined(EQBETA) || defined(TEST)
 		ppFactionWnd = (CFactionWnd**)pinstCFactionWnd;
-		#endif
+#endif
 		ppExtendedTargetWnd = (CExtendedTargetWnd**)pinstCExtendedTargetWnd;
 		ppFindLocationWnd = (CFindLocationWnd**)pinstCFindLocationWnd;
-		#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
-		#endif
+#endif
 		ppInvSlotMgr = (CInvSlotMgr**)pinstCInvSlotMgr;
 		ppNoteWnd = (CNoteWnd**)pinstCNoteWnd;
 		ppBookWnd = (CBookWnd**)pinstCBookWnd;
 		ppFriendsWnd = (CFriendsWnd**)pinstCFriendsWnd;
 		ppMusicPlayerWnd = (CMusicPlayerWnd**)pinstCMusicPlayerWnd;
-		
+
 		ppRealEstateItemsWnd = (CRealEstateItemsWnd**)pinstCRealEstateItemsWnd;
 		ppAchievementsWnd = (CAchievementsWnd**)pinstCAchievementsWnd;
 		ppAlarmWnd = (CAlarmWnd**)pinstCAlarmWnd;
 		ppLoadskinWnd = (CLoadskinWnd**)pinstCLoadskinWnd;
 		ppPetInfoWnd = (CPetInfoWnd**)pinstCPetInfoWnd;
 		ppRespawnWnd = (CRespawnWnd**)pinstCRespawnWnd;
-		
+
 		ppTrainWnd = (CTrainWnd**)pinstCTrainWnd;
 		ppSkillsWnd = (CSkillsWnd**)pinstCSkillsWnd;
 		ppSkillsSelectWnd = (CSkillsSelectWnd**)pinstCSkillsSelectWnd;
@@ -233,10 +233,10 @@ namespace MQ2Globals
 		ppJournalTextWnd = (CJournalTextWnd**)pinstCJournalTextWnd;
 		ppJournalCatWnd = (CJournalCatWnd**)pinstCJournalCatWnd;
 		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
-		#if defined(ROF2EMU) || defined(UFEMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 		ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
 		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
-		#endif
+#endif
 		ppCWebManager = (CWebManager**)pinstCWebManager;
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
 		ppTaskManager = (CTaskManager*)pinstCTaskManager;
@@ -252,9 +252,9 @@ namespace MQ2Globals
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
-		#if defined(ROF2EMU) || defined(UFEMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
-		#endif
+#endif
 		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
 		ppWndMgr = (CXWndManager**)pinstCXWndManager;
@@ -273,7 +273,7 @@ namespace MQ2Globals
 		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
 		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
 		ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
-		
+
 		return true;
 	}
 	DWORD LoginController__GiveTime = 0;
@@ -314,17 +314,17 @@ namespace MQ2Globals
 	DWORD gdwLocalPlayer = pinstLocalPlayer_x;
 	CHAR gszVersion[32] = VersionString;
 	CHAR gszTime[32] = TimeString;
-	#if defined(TEST)
-		int gBuild = 2;//TEST
-	#elif defined(EQBETA)
-		int gBuild = 3;//EQBETA
-	#elif defined(ROF2EMU)
-		int gBuild = 4;//ROF2EMU
-	#elif defined(UFEMU)
-		int gBuild = 5;//UFEMU
-	#else
-		int gBuild = 1;//LIVE
-	#endif
+#if defined(TEST)
+	int gBuild = 2;//TEST
+#elif defined(EQBETA)
+	int gBuild = 3;//EQBETA
+#elif defined(ROF2EMU)
+	int gBuild = 4;//ROF2EMU
+#elif defined(UFEMU)
+	int gBuild = 5;//UFEMU
+#else
+	int gBuild = 1;//LIVE
+#endif
 	bool gbDoingModuleChecks = false;
 	DWORD gGameState = 0;
 	DWORD gMaxSpawnCaptions = 30;
@@ -449,12 +449,12 @@ namespace MQ2Globals
 	BOOL bAllowCommandParse = TRUE;
 	LONG gDelayZoning = 0;
 	std::map<DWORD, std::list<SEARCHSPAWN>> gAlertMap;
-	
+
 	SPAWNINFO MercenarySpawn = { 0 };
 	SPAWNINFO PetSpawn = { 0 };
 	SPAWNINFO EnviroTarget = { 0 };
-	PGROUNDITEM pGroundTarget = NULL;
-	PEQSWITCH pObjectTarget = NULL;
+	GROUNDOBJECT GroundObject = { 0 };
+	PGROUNDITEM	pGroundTarget = NULL;
 	SPAWNINFO DoorEnviroTarget = { 0 };
 	PDOOR pDoorTarget = NULL;
 	PITEMDB gItemDB = NULL;
@@ -462,7 +462,7 @@ namespace MQ2Globals
 	BOOL gTurbo = FALSE;
 	BOOL gWarning = FALSE;
 	PDEFINE pDefines = NULL;
-    PBINDLIST pBindList = NULL;
+	PBINDLIST pBindList = NULL;
 	CHAR gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = NULL;
 
@@ -707,6 +707,12 @@ namespace MQ2Globals
 		NULL
 	};
 	SIZE_T MAX_SPELLEFFECTS = (sizeof(szSPATypes) / sizeof(PCHAR))-1;
+
+	PCHAR szFactionNames[] = {
+#include "FactionNames.h"
+		NULL
+	};
+	SIZE_T MAX_FACTIONNAMES = (sizeof(szFactionNames) / sizeof(PCHAR))-1;
 
 	PCHAR szZoneExpansionName[] = {
 		"Original EQ",              //0
@@ -2091,6 +2097,10 @@ namespace MQ2Globals
 	
 	INITIALIZE_EQGAME_OFFSET(RealEstateManagerClient__GetItemByRealEstateAndItemIds);
 	INITIALIZE_EQGAME_OFFSET(RealEstateManagerClient__Instance);
+	#if defined(EQBETA) || defined(TEST)
+	INITIALIZE_EQGAME_OFFSET(FactionManagerClient__Instance);
+	INITIALIZE_EQGAME_OFFSET(FactionManagerClient__HandleFactionMessage);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__Instance);
 	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__GetItemByGuid);
 	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds);

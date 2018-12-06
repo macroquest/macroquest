@@ -7905,6 +7905,15 @@ public:
 	EQLIB_OBJECT static RealEstateManagerClient &RealEstateManagerClient::Instance();
 	EQLIB_OBJECT const RealEstateItemClient* GetItemByRealEstateAndItemIds( int RealEstateID, int RealEstateItemID ) const;
 };
+
+class FactionManagerClient
+{
+public:
+/*0x00*/ PVOID vftable;
+/*0x04*/ //todo: map it
+	EQLIB_OBJECT static FactionManagerClient &FactionManagerClient::Instance();
+	EQLIB_OBJECT void FactionManagerClient::HandleFactionMessage(UINT MessageID, PCHAR pData, unsigned int DataLength);
+};
 class EQPlayer
 {
 public:

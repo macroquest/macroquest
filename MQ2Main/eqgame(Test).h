@@ -1135,6 +1135,17 @@ GNU General Public License for more details.
 #define RealEstateManagerClient__Instance_x                        0x65EAA0
 #define RealEstateManagerClient__GetItemByRealEstateAndItemIds_x   0x6626F0
 
+//CFactionWnd
+#define CFactionWnd__CFactionWnd_x                                 0x4F5ED0
+
+//FactionManagerClient
+#define FactionManagerClient__Instance_x                           0x4E5050
+#define FactionManagerClient__HandleFactionMessage_x               0x4E56D0
+//work in progress, these needs to be investigated
+#define FactionManagerClient__GetFactionStanding_x                 0x4E5CE0
+#define FactionManagerClient__GetMaxFaction_x                      0x4E5D30
+#define FactionManagerClient__GetMinFaction_x                      0x4E5CB0
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01

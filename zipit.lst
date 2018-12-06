@@ -269,6 +269,7 @@ MQ2Main\MQ2Windows.cpp
 MQ2Main\resource.h
 MQ2Main\skills.h
 MQ2Main\SpellEffects.h
+MQ2Main\factionnames.h
 MQ2Main\ISXEQ\ISXEQ.cpp
 MQ2Main\ISXEQ\ISXEQ.h
 MQ2Main\ISXEQ\ISXEQCommandAPI.cpp

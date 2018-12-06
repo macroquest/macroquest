@@ -198,8 +198,8 @@ namespace MQ2Globals
 	EQLIB_VAR SPAWNINFO EnviroTarget;
 	EQLIB_VAR SPAWNINFO PetSpawn;
 	EQLIB_VAR SPAWNINFO MercenarySpawn;
+	EQLIB_VAR GROUNDOBJECT GroundObject;
 	EQLIB_VAR PGROUNDITEM pGroundTarget;
-	EQLIB_VAR PEQSWITCH pObjectTarget;
 	EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 	EQLIB_VAR PDOOR pDoorTarget;
 	EQLIB_VAR PITEMDB gItemDB;
@@ -338,10 +338,12 @@ namespace MQ2Globals
 	EQLIB_VAR PCHAR szCombineTypes[];
 	EQLIB_VAR PCHAR szItemTypes[];
 	EQLIB_VAR PCHAR szSPATypes[];
+	EQLIB_VAR PCHAR szFactionNames[];
 
 	EQLIB_VAR SIZE_T MAX_COMBINES;
 	EQLIB_VAR SIZE_T MAX_ITEMTYPES;
 	EQLIB_VAR SIZE_T MAX_SPELLEFFECTS;
+	EQLIB_VAR SIZE_T MAX_FACTIONNAMES;
 
 	EQLIB_VAR PCHAR szWornLoc[];
 
@@ -910,7 +912,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCExtendedTargetWnd;
 	EQLIB_VAR DWORD pinstCFacePick;
 	EQLIB_VAR DWORD pinstCFactionWnd;
- 	EQLIB_VAR DWORD pinstCFindItemWnd;
+	EQLIB_VAR DWORD pinstCFindItemWnd;
 	EQLIB_VAR DWORD pinstCNoteWnd;
 	EQLIB_VAR DWORD pinstCBookWnd;
 	EQLIB_VAR DWORD pinstCPetInfoWnd;
@@ -1541,9 +1543,12 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQItemList__FreeItemList;
 
 	EQLIB_VAR DWORD EQMisc__GetActiveFavorCost;
-	
+
 	EQLIB_VAR DWORD RealEstateManagerClient__GetItemByRealEstateAndItemIds;
 	EQLIB_VAR DWORD RealEstateManagerClient__Instance;
+	EQLIB_VAR DWORD FactionManagerClient__Instance;
+	EQLIB_VAR DWORD FactionManagerClient__HandleFactionMessage;
+
 	EQLIB_VAR DWORD EQPlacedItemManager__Instance;
 	EQLIB_VAR DWORD EQPlacedItemManager__GetItemByGuid;
 	EQLIB_VAR DWORD EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds;

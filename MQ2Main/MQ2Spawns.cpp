@@ -50,7 +50,7 @@ void RemoveGroundItem(PGROUNDITEM pGroundItem)
         PMQGROUNDPENDING pPending=pPendingGrounds;
         while(pPending)
         {
-            if (pGroundItem==pPending->pGroundItem)
+            if (pGroundItem == pPending->pGroundItem)
             {
                 if (pPending->pNext)
                     pPending->pNext->pLast=pPending->pLast;

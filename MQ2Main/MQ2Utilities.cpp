@@ -1972,7 +1972,7 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
+TS PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (ResistType)
@@ -2078,8 +2078,9 @@ TS PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
 	return szBuffer;
 }
 
-TS PCHAR GetFactionName(LONG FactionType, CHAR(&szBuffer)[_Size])
+TS PCHAR GetFactionName(LONG FactionID, CHAR(&szBuffer)[_Size])
 {
+	/*
 	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (FactionType)
 	{
@@ -2092,6 +2093,15 @@ TS PCHAR GetFactionName(LONG FactionType, CHAR(&szBuffer)[_Size])
 	default: 
 		sprintf_s(szTemp, "(Unknown[%d])", FactionType);
 		strcat_s(szBuffer, szTemp); break;
+	}
+	*/
+	if ((SIZE_T)FactionID < MAX_FACTIONNAMES) {
+		strcat_s(szBuffer, _Size, szFactionNames[FactionID]);
+	}
+	else {
+		CHAR szTemp[MAX_STRING] = { 0 };
+		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
+		strcat_s(szBuffer, _Size, szTemp);
 	}
 	return szBuffer;
 }
@@ -6761,6 +6771,8 @@ VOID RewriteSubstitutions(VOID)
 PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName, SIZE_T BufferSize)
 {
 	szName[0] = 0;
+	if (!pItem)
+		return &szName[0];
 	DWORD Item = atoi(pItem->Name + 2);
 	struct _actordefentry *ptr = MQ2Globals::ActorDefList;
 	while (ptr->Def) {
