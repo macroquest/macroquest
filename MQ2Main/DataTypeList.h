@@ -79,6 +79,7 @@ DATATYPE(MQ2TicksType, pTicksType, nullptr, 0);
 DATATYPE(MQ2TimeStampType, pTimeStampType, nullptr, 0);
 DATATYPE(MQ2TimerType, pTimerType, nullptr, 0);
 DATATYPE(MQ2WindowType, pWindowType, nullptr, 0);
+DATATYPE(MQ2MenuType, pMenuType, nullptr, 0);
 DATATYPE(MQ2XTargetType, pXTargetType, pSpawnType, 0);
 DATATYPE(MQ2ZoneType, pZoneType, nullptr, 0);
 DATATYPE(MQ2KeyRingType, pKeyRingType, nullptr, 0);

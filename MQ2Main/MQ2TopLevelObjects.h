@@ -13,6 +13,7 @@ LEGACY_API BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataPointMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataMenu(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataEverQuest(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMacroQuest(PCHAR szIndex, MQ2TYPEVAR &Ret);

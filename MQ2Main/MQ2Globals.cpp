@@ -453,7 +453,7 @@ namespace MQ2Globals
 	SPAWNINFO MercenarySpawn = { 0 };
 	SPAWNINFO PetSpawn = { 0 };
 	SPAWNINFO EnviroTarget = { 0 };
-	GROUNDOBJECT GroundObject = { 0 };
+	GROUNDOBJECT GroundObject = { GO_None, { 0 } };
 	PGROUNDITEM	pGroundTarget = NULL;
 	SPAWNINFO DoorEnviroTarget = { 0 };
 	PDOOR pDoorTarget = NULL;

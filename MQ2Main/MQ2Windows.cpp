@@ -1192,8 +1192,7 @@ int WndNotify(int argc, char *argv[])
     GetArg(szArg2, szLine, 2);
     GetArg(szArg3, szLine, 3);
     GetArg(szArg4, szLine, 4);
-
-    if (!szArg3[0] && !IsNumber(szArg1))
+    if (!szArg3[0] && !IsNumber(szArg1) && _stricmp(szArg2,"menuselect"))
     {
         SyntaxError("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
         return;
@@ -1213,7 +1212,43 @@ int WndNotify(int argc, char *argv[])
     CHAR *szArg3=argv[3];
     CHAR *szArg4=argv[4];
 #endif 
-
+	if (!_stricmp(szArg2, "menuselect"))
+	{
+		CContextMenuManager*ccmgr = pContextMenuManager;
+		if (ccmgr->NumVisibleMenus == 1)
+		{
+			if (ccmgr->CurrMenu < 8)
+			{
+				int currmen = ccmgr->CurrMenu;
+				if (CContextMenu*menu = ccmgr->pCurrMenus[currmen])
+				{
+					CXStr Str;
+					PCXSTR pStr = 0;
+					_strlwr_s(szArg1);
+					for (int i = 0; i < menu->NumItems; i++)
+					{
+						((CListWnd*)menu)->GetItemText(&Str, i, 1);
+						GetCXStr(Str.Ptr, szArg4);
+						if (szArg4[0] != '\0')
+						{
+							_strlwr_s(szArg4);
+							if (strstr(szArg4, szArg1))
+							{
+								WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", szArg4, i);
+								((CXWnd*)(ccmgr))->WndNotification((CXWnd*)menu, XWM_LMOUSEUP, (void*)i);
+								RETURN(0);
+							}
+						}
+					}
+					WriteChatf("\ar[/notify] FAILED\ax: No Menu item was found with the word %s in it", szArg1);
+				}
+			}
+		}
+		else {
+			WriteChatf("\ar[/notify] FAILED\ax: No Menu is currently open.");
+		}
+		RETURN(0);
+	}
     if (!_stricmp(szArg3,"link")) {
         DebugSpewAlways("WndNotify: link found, Data = 1");
         Data = 1;

@@ -8543,6 +8543,163 @@ bool MQ2WindowType::GETMEMBER()
 	return false;
 #undef pWnd
 }
+bool MQ2MenuType::GETMEMBER()
+{
+	if (!VarPtr.Ptr)
+		return false;
+	CContextMenuManager*pMgr = (CContextMenuManager*)VarPtr.Ptr;
+	PMQ2TYPEMEMBER pMethod = MQ2MenuType::FindMethod(Member);
+	if (pMethod)
+	{
+		switch ((MenuMethods)pMethod->ID)
+		{
+			case Select:
+			{
+				if (ISINDEX())
+				{
+					if (pMgr->NumVisibleMenus == 1)
+					{
+						CHAR szArg[MAX_STRING] = { 0 };
+						CHAR szArg2[MAX_STRING] = { 0 };
+						strcpy_s(szArg,GETFIRST());
+						_strlwr_s(szArg);
+						if (pMgr->CurrMenu < 8)
+						{
+							int currmen = pMgr->CurrMenu;
+							if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
+							{
+								CXStr Str;
+								PCXSTR pStr = 0;
+								for (int i = 0; i < menu->NumItems; i++)
+								{
+									((CListWnd*)menu)->GetItemText(&Str, i, 1);
+									GetCXStr(Str.Ptr, szArg2);
+									if (szArg2[0] != '\0')
+									{
+										_strlwr_s(szArg2);
+										if (strstr(szArg2, szArg))
+										{
+											WriteChatf("\ay[${Menu.Select}] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", szArg2, i);
+											((CXWnd*)(pMgr))->WndNotification((CXWnd*)menu, XWM_LMOUSEUP, (void*)i);
+											Dest.DWord = 1;
+											Dest.Type = pBoolType;
+											return true;
+										}
+									}
+								}
+								WriteChatf("\ar[${Menu.Select}] FAILED\ax: No Menu item was found with the word %s in it", szArg);
+							}
+						}
+					}
+				}
+				break;
+			}
+		};
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
+		return true;
+	}
+	PMQ2TYPEMEMBER pMember = MQ2MenuType::FindMember(Member);
+	if (!pMember)
+	{
+		if (pMgr->NumVisibleMenus == 1)
+		{
+			if (CContextMenu*pMenu = pMgr->pCurrMenus[pMgr->CurrMenu])
+			{
+				return pWindowType->GetMember(*(MQ2VARPTR*)&pMenu, Member, Index, Dest);
+			}
+		}
+		return false;
+	}
+
+	switch ((MenuMembers)pMember->ID)
+	{
+		case Address:
+		{
+			if (pMgr->NumVisibleMenus == 1)
+			{
+				if (CContextMenu*pMenu = pMgr->pCurrMenus[pMgr->CurrMenu])
+				{
+					Dest.DWord = (DWORD)pMenu;
+					Dest.Type = pIntType;
+					return true;
+				}
+			}
+			break;
+		}
+		case NumVisibleMenus:
+			Dest.DWord = pMgr->NumVisibleMenus;
+			Dest.Type = pIntType;
+			return true;
+
+		case CurrMenu:
+			Dest.DWord = pMgr->CurrMenu;
+			Dest.Type = pIntType;
+			return true;
+		case Name:
+			if (pMgr->NumVisibleMenus == 1)
+			{
+				if (pMgr->CurrMenu < 8)
+				{
+					int currmen = pMgr->CurrMenu;
+					if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
+					{
+						CXStr Str;
+						((CListWnd*)menu)->GetItemText(&Str, 0, 1);
+						GetCXStr(Str.Ptr, DataTypeTemp);
+						if (DataTypeTemp[0] != '\0')
+						{
+							Dest.Ptr = &DataTypeTemp[0];
+							Dest.Type = pStringType;
+							return true;
+						}
+					}
+				}
+			}
+			break;
+		case NumItems:
+			if (pMgr->NumVisibleMenus == 1)
+			{
+				if (pMgr->CurrMenu < 8)
+				{
+					int currmen = pMgr->CurrMenu;
+					if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
+					{
+						Dest.DWord = menu->NumItems;
+						Dest.Type = pIntType;
+						return true;
+					}
+				}
+			}
+			break;
+		case Items:
+			if (ISNUMBER())
+			{
+				if (pMgr->NumVisibleMenus == 1)
+				{
+					if (pMgr->CurrMenu < 8)
+					{
+						int index = GETNUMBER();
+						int currmen = pMgr->CurrMenu;
+						if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
+						{
+							if (index < menu->NumItems)
+							{
+								CXStr Str;
+								((CListWnd*)menu)->GetItemText(&Str, index, 1);
+								GetCXStr(Str.Ptr, DataTypeTemp);
+								Dest.Ptr = &DataTypeTemp[0];
+								Dest.Type = pStringType;
+								return true;
+							}
+						}
+					}
+				}
+			}
+			break;
+	}
+	return false;
+}
 bool MQ2CurrentZoneType::GETMEMBER()
 {
 	PZONEINFO pthezone = (PZONEINFO)pZoneInfo;

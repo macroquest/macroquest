@@ -401,6 +401,18 @@ TLO(dataCorpse)
 	return false;
 }
 
+TLO(dataMenu)
+{
+	if (CContextMenuManager*pMrg = pContextMenuManager)
+	{
+		if (Ret.Ptr = pMrg)
+		{
+			Ret.Type = pMenuType;
+			return true;
+		}
+	}
+	return false;
+}
 TLO(dataWindow)
 {
 	if (ISINDEX())

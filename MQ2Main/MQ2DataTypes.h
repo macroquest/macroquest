@@ -3177,6 +3177,72 @@ public:
 	}
 };
 
+class MQ2MenuType : public MQ2Type
+{
+public:
+	enum MenuMembers
+	{
+		Address = 1,
+		NumVisibleMenus = 2,
+		CurrMenu = 3,
+		Name = 4,
+		NumItems = 5,
+		Items = 6,
+	};
+	enum MenuMethods
+	{
+		Select = 1,
+	};
+	MQ2MenuType() : MQ2Type("menu")
+	{
+		TypeMember(Address);
+		TypeMember(NumVisibleMenus);
+		TypeMember(CurrMenu);
+		TypeMember(Name);
+		TypeMember(NumItems);
+		TypeMember(Items);
+		
+		TypeMethod(Select);
+	}
+
+	~MQ2MenuType()
+	{
+	}
+
+	bool GETMEMBER();
+	DECLAREGETMETHOD();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		strcpy_s(Destination, MAX_STRING, "No Menu Open");
+		if (VarPtr.Ptr && ((CContextMenuManager*)VarPtr.Ptr)->NumVisibleMenus == 1)
+		{
+			CContextMenuManager*pMgr = (CContextMenuManager*)VarPtr.Ptr;
+			if (pMgr->CurrMenu < 8)
+			{
+				int currmen = pMgr->CurrMenu;
+				if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
+				{
+					CXStr Str;
+					((CListWnd*)menu)->GetItemText(&Str, 0, 1);
+					GetCXStr(Str.Ptr, Destination);
+				}
+			}
+		}
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type != pMenuType)
+			return false;
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
 #ifndef ISXEQ
 class MQ2MacroType : public MQ2Type
 {

@@ -348,6 +348,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Mercenary", dataMercenary);
 	AddMQ2Data("Pet", dataPet);
 	AddMQ2Data("Window", dataWindow);
+	AddMQ2Data("Menu", dataMenu);
 	AddMQ2Data("Macro", dataMacro);
 	AddMQ2Data("EverQuest", dataEverQuest);
 	AddMQ2Data("MacroQuest", dataMacroQuest);
