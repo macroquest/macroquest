@@ -1247,7 +1247,7 @@ FUNCTION_AT_ADDRESS(int  CContextMenuManager::PopupMenu(int,class CXPoint const 
 FUNCTION_AT_ADDRESS(void  CContextMenuManager::Flush(void),CContextMenuManager__Flush);
 #endif
 #ifdef CContextMenuManager__CreateDefaultMenu_x
-FUNCTION_AT_ADDRESS(void  CContextMenuManager::CreateDefaultMenu(void),CContextMenuManager__CreateDefaultMenu);
+FUNCTION_AT_ADDRESS(void CContextMenuManager::CreateDefaultMenu(void),CContextMenuManager__CreateDefaultMenu);
 #endif
 #ifdef CContextMenuManager__WarnDefaultMenu_x
 FUNCTION_AT_ADDRESS(void  CContextMenuManager::WarnDefaultMenu(class CXWnd *),CContextMenuManager__WarnDefaultMenu);

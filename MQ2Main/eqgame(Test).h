@@ -463,6 +463,7 @@ GNU General Public License for more details.
 #define CContextMenuManager__PopupMenu_x                           0x92F820
 #define CContextMenuManager__Flush_x                               0x92F690
 #define CContextMenuManager__GetMenu_x                             0x496700
+#define CContextMenuManager__CreateDefaultMenu_x                   0x7034D0
 
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x8CAD90

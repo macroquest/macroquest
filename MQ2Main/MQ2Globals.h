@@ -1130,7 +1130,8 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CContextMenuManager__Flush;
 	EQLIB_VAR DWORD CContextMenuManager__GetMenu;
-
+	EQLIB_VAR DWORD CContextMenuManager__CreateDefaultMenu;
+	
 	EQLIB_VAR DWORD CChatService__GetNumberOfFriends;
 	EQLIB_VAR DWORD CChatService__GetFriendName;
 

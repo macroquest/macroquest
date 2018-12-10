@@ -955,6 +955,7 @@ namespace MQ2Globals
 		"The Broken Mirror",
 		"Empires of Kunark",
 		"Ring of Scale",
+		"The Burning Lands",
 		NULL
 	};
 
@@ -1693,7 +1694,8 @@ namespace MQ2Globals
 	
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__Flush);
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__GetMenu);
-
+	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__CreateDefaultMenu);
+	
 	INITIALIZE_EQGAME_OFFSET(CChatService__GetNumberOfFriends);
 	INITIALIZE_EQGAME_OFFSET(CChatService__GetFriendName);
 

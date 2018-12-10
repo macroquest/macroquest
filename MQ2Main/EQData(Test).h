@@ -527,7 +527,8 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_TBM                   EQ_EXPANSION(22)
 #define EXPANSION_EoK                   EQ_EXPANSION(23)
 #define EXPANSION_RoS                   EQ_EXPANSION(24)
-#define NUM_EXPANSIONS                  24
+#define EXPANSION_TBL                   EQ_EXPANSION(25)
+#define NUM_EXPANSIONS                  25
 
 #if _MSC_VER < 1600
 #define nullptr                         NULL
@@ -679,8 +680,7 @@ public:
 //ItemDefinition class
 //CItemInfo__CItemInfo
 //to check this look at ItemBase__ResetItemInstance_x
-// actual size: 0x734 May 06 2016 Test (see 6CB18B) - eqmule
-// actual size: 0x720 Jun 11 2018 test (see 722F0C) - eqmule
+// actual size: 0x704 Nov  6 2018 Test (see 63F00F) - eqmule
 // actual size: 0x70c Oct 31 2018 Beta (see 7291CC) - eqmule
 typedef struct _ITEMINFO {
 	/*0x0000*/ CHAR         Name[ITEM_NAME_LEN];
@@ -714,9 +714,7 @@ typedef struct _ITEMINFO {
 	/*0x011D*/ BYTE         Type;//884BA5 11 jun 2018 test
 	/*0x011E*/ bool         TradeSkills;//886EC5 11 jun 2018 test
 	/*0x0120*/ int	        Lore;//-1=Lore 0=Not Lore >=1=Lore Group see 885EE1 in 11 jun 2018 test
-	
 	/*0x0124*/ int	        LoreEquipped;//just guessing todo: check
-	
 	/*0x0128*/ bool         Artifact;
 	/*0x0129*/ bool         Summoned;
 	/*0x0130*/ CHAR         SvCold;
@@ -2246,12 +2244,7 @@ typedef struct _CHARINFO {
 /*0x205c*/ PCXSTR       MailItemsBuffer;
 /*0x2060*/ PCXSTR       MailItemsDataBuffer;
 /*0x2064*/ int          MailItemsOverCapWarningCount;
-/*0x2068*/ int			Unknown0x2068;
-/*0x206c*/ int			Unknown0x206c;
-/*0x2070*/ int			Unknown0x2070;
-/*0x2074*/ int			Unknown0x2074;
-/*0x2078*/ BYTE			Unknown0x2078;
-/*0x2079*/ BYTE			Unknown0x2079;
+/*0x2068*/ ItemIndex	StatKeyRingItemIndex[3];//size 0x12
 /*0x207a*/ BYTE         UseAdvancedLooting;     //0x1ff2 confirmed jun 12 2017 test               //0=off 1=on
 /*0x207b*/ BYTE         MasterLootCandidate;                     //0=off 1=on
 /*0x207c*/ BYTE         Unknown0x207c[0x2b8];
@@ -2728,7 +2721,7 @@ typedef struct _CHARINFONEW {
 /*0x27dc*/
 /*********************** CharacterZoneClient End ***********************/
 /******************* PcZoneClient Begin ******************/
-/*0x27dc*/ void*         PcZoneClient_vfTable; //see 61A04C jun 11 test 2018
+/*0x27dc*/ void*        PcZoneClient_vfTable; //see 61A04C jun 11 test 2018
 /*0x27e0*/ TSafeArrayStatic<unsigned long, 3> Flags;//size 0xc
 /*0x27ec*/ unsigned __int32 TransfersReceived;
 /*0x27f0*/ int          LastLanguageSpoken;
@@ -2873,11 +2866,12 @@ typedef struct _CHARINFO2 {
 /*0x39d8*/ DWORD    MemorizedSpells[0x12];
 /*0x3a20*/ DWORD    Skill[NUM_SKILLS];
 /*0x3bb0*/ DWORD    InnateSkill[0x19];
-/*0x3c14*/ BYTE     Unknown0x3c14[0xd8];
-/*0x3cec*/ DWORD    Gender;
+/*0x3c14*/ TSafeArrayStatic<ArmorProperties, 9> ArmorProps;//size 0xb4
+/*0x3cc8*/ TSafeArrayStatic<DWORD,9> CharacterTint;//size 0x24
+/*0x3cec*/ BYTE     Gender;
 /*0x3cf0*/ DWORD    Race;
 /*0x3cf4*/ DWORD    Class;
-/*0x3cf8*/ BYTE     Unknown0x3cf8[0x10];
+/*0x3cf8*/ HashTable<int> properties;
 /*0x3d08*/ DWORD    Level;
 /*0x3d0c*/ DWORD    Mana;
 /*0x3d10*/ DWORD    Endurance;
@@ -2889,7 +2883,7 @@ typedef struct _CHARINFO2 {
 /*0x3d30*/ DWORD    BaseINT;
 /*0x3d34*/ DWORD    BaseAGI;
 /*0x3d38*/ DWORD    BaseWIS;
-/*0x3d3c*/ BYTE     Unknown0x3d3c[0x4];
+/*0x3d3c*/ BYTE     Face;
 /*0x3d40*/ DWORD    Plat;
 /*0x3d44*/ DWORD    Gold;
 /*0x3d48*/ DWORD    Silver;
@@ -2898,33 +2892,33 @@ typedef struct _CHARINFO2 {
 /*0x3d54*/ DWORD    CursorGold;
 /*0x3d58*/ DWORD    CursorSilver;
 /*0x3d5c*/ DWORD    CursorCopper;
-/*0x3d60*/ int			_max_allowed_spell_slots;
-/*0x3d64*/ int			practices;
-/*0x3d68*/ int			height;
-/*0x3d6c*/ int			width;
-/*0x3d70*/ int			length;
-/*0x3d74*/ int			view_height;
-/*0x3d78*/ char			texture_type;
-/*0x3d79*/ char			m_armorMat;
-/*0x3d7a*/ char			m_armorVariation;
-/*0x3d7b*/ char			headType;
-/*0x3d7c*/ char			caneditface;
-/*0x3d80*/ int			DisciplineTimer;
-/*0x3d84*/ UINT			MendTimer;
-/*0x3d88*/ int			ForageTimer;
-/*0x3d8c*/ int          thirstlevel;
-/*0x3d90*/ int          hungerlevel;
-/*0x3d94*/ int			PotionCount;
-/*0x3d98*/ int          profileType;//enum PT_Main = 0, PT_Alt, PT_MonsterMission, PT_TypeUnknown
-/*0x3d9c*/ int			Shrouded;//templateId
-/*0x3da0*/ int			systemId;
-/*0x3da4*/ int			designId;
-/*0x3da8*/ int			InventorySlotBitmask;
-/*0x3dac*/ UINT			CurrentProgressionID;
-/*0x3db0*/ BYTE			Unknown0x3db0[0x54];
-/*0x3e04*/ int			ParentId;
-/*0x3e08*/ int			TattooIndex;
-/*0x3e0c*/ int			FacialAttachmentIndex;
+/*0x3d60*/ int      _max_allowed_spell_slots;
+/*0x3d64*/ int      practices;
+/*0x3d68*/ int      height;
+/*0x3d6c*/ int      width;
+/*0x3d70*/ int      length;
+/*0x3d74*/ int      view_height;
+/*0x3d78*/ char     texture_type;
+/*0x3d79*/ char     m_armorMat;
+/*0x3d7a*/ char     m_armorVariation;
+/*0x3d7b*/ char     headType;
+/*0x3d7c*/ char     caneditface;
+/*0x3d80*/ int      DisciplineTimer;
+/*0x3d84*/ UINT     MendTimer;
+/*0x3d88*/ int      ForageTimer;
+/*0x3d8c*/ int      thirstlevel;
+/*0x3d90*/ int      hungerlevel;
+/*0x3d94*/ int      PotionCount;
+/*0x3d98*/ int      profileType;//enum PT_Main = 0, PT_Alt, PT_MonsterMission, PT_TypeUnknown
+/*0x3d9c*/ int      Shrouded;//templateId
+/*0x3da0*/ int      systemId;
+/*0x3da4*/ int      designId;
+/*0x3da8*/ int      InventorySlotBitmask;
+/*0x3dac*/ UINT     CurrentProgressionID;
+/*0x3db0*/ BYTE     Unknown0x3db0[0x54];
+/*0x3e04*/ int      ParentId;
+/*0x3e08*/ int      TattooIndex;
+/*0x3e0c*/ int      FacialAttachmentIndex;
 /******************************** BaseProfile End ********************************/
 /******************************** PcProfile Start ********************************/
 /*0x3e10*/ TSafeArrayStatic<WorldLocation,5>			BoundLocations;//size 0x64
@@ -3148,14 +3142,14 @@ typedef struct _ITEMLOCATION {
 //size 0x58 see 442783 in eqgame.exe 2017 04 11 test -eqmule
 typedef struct _LAUNCHSPELLDATA {
 /*0x00*/ UINT    SpellETA;           //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
-/*0x04*/ int    SpellID;            // -1 = not casting a spell
-/*0x08*/ BYTE     SpellSlot;          // 0xFF if not casting, otherwise it's the spell gem number (0 - 8)
-/*0x09*/ BYTE     SpellLevel;
-/*0x0c*/ struct   _ITEMLOCATION ItemLocation;
+/*0x04*/ int     SpellID;            // -1 = not casting a spell
+/*0x08*/ BYTE    SpellSlot;          // 0xFF if not casting, otherwise it's the spell gem number (0 - 8)
+/*0x09*/ BYTE    SpellLevel;
+/*0x0c*/ struct  _ITEMLOCATION ItemLocation;
 /*0x18*/ ItemSpellTypes ItemCastType;
-/*0x1c*/ int    ItemID;
-/*0x20*/ FLOAT    CastingY;
-/*0x24*/ FLOAT    CastingX;
+/*0x1c*/ int     ItemID;
+/*0x20*/ FLOAT   CastingY;
+/*0x24*/ FLOAT   CastingX;
 /*0x28*/ int     DamageID;
 /*0x2c*/ UINT    TargetID;
 /*0x30*/ bool    bDetrimental;
