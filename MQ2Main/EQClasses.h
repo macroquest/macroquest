@@ -951,9 +951,27 @@ EQLIB_OBJECT void CAlarmWnd::Deactivate(void);
 EQLIB_OBJECT void CAlarmWnd::DoNeverButton(void);
 };
 
-class CBankWnd : public CSidlScreenWnd
+class CBankWnd : public CSidlScreenWnd//, public WndEventHandler but we just add the member LastCheckTime
 {
 public:
+/*0x238*/ UINT LastCheckTime;//from WndEventHandler
+/*0x23c*/ int MoneyButtonIndex;
+/*0x240*/ UINT NextRefreshTime;
+/*0x244*/ bool bInventoryWasActive;
+/*0x245*/ bool bRealEstateManagementWasActive;
+/*0x248*/ CButtonWnd  *MoneyButtons[5];//including shared plat
+/*0x25C*/ CLabel *BankerNameLabel;
+/*0x260*/ CInvSlotWnd *InvSlotWindows[NUM_BANK_SLOTS];
+/*0x2C0*/ CLabel *SharedBankLabel;
+/*0x2C4*/ CInvSlotWnd *SharedSlotWindows[NUM_SHAREDBANK_SLOTS];
+/*0x2DC*/ CButtonWnd *DoneButton;
+/*0x2E0*/ CButtonWnd *ChangeButton;
+/*0x2E4*/ CButtonWnd *AutoButton;
+/*0x2E8*/ CButtonWnd *AltStorageButton;
+/*0x2EC*/ CButtonWnd *FindItemButton;
+/*0x2F0*/ int BankSize;
+/*0x2F4*/ int Unknown0x2F4;
+/*0x2F8*/ 
 EQLIB_OBJECT CBankWnd::CBankWnd(class CXWnd *,class CXStr);
 EQLIB_OBJECT int CBankWnd::GetNumBankSlots(void)const;
 EQLIB_OBJECT void CBankWnd::Activate(class EQPlayer *);
@@ -962,7 +980,7 @@ EQLIB_OBJECT void CBankWnd::Deactivate(bool);
 EQLIB_OBJECT CBankWnd::~CBankWnd(void);
 EQLIB_OBJECT int CBankWnd::OnProcessFrame(void);
 EQLIB_OBJECT int CBankWnd::PostDraw(void)const;
-EQLIB_OBJECT int CBankWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+EQLIB_OBJECT int CBankWnd::WndNotification(CXWnd *pWnd, unsigned int uiMessage, void* pData);
 //EQLIB_OBJECT void * CBankWnd::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CBankWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CBankWnd::Deactivate(void);

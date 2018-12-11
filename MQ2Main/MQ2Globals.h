@@ -1102,7 +1102,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterZoneClient__GetLastEffectSlot;
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
-
+	EQLIB_VAR DWORD CBankWnd__WndNotification;
+	
 	EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
 
 	EQLIB_VAR DWORD CButtonWnd__SetCheck;

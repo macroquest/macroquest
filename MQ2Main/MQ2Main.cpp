@@ -673,7 +673,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 		}
 		Sleep(500);
 	}
-
     InitializeMQ2DInput();
     if (gGameState == GAMESTATE_INGAME) {
         gbInZone = TRUE;

@@ -432,6 +432,7 @@ GNU General Public License for more details.
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6CB220
+#define CBankWnd__WndNotification_x                                0x6CB000
 
 // CBazaarSearchWnd 
 #define CBazaarSearchWnd__HandleBazaarMsg_x                        0x6D8B20

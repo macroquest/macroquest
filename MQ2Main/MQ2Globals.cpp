@@ -1671,6 +1671,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetFirstEffectSlot);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetLastEffectSlot);
 	
+	INITIALIZE_EQGAME_OFFSET(CBankWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);
 	INITIALIZE_EQGAME_OFFSET(CButtonWnd__SetCheck);

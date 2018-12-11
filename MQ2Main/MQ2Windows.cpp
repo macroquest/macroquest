@@ -25,7 +25,16 @@ GNU General Public License for more details.
 #include <string>
 #include <algorithm>
 using namespace std;
-
+CContextMenu *AutoBankMenu = 0;
+int tradeskilloptionID = 0;
+int collectibleoptionID = 0;
+int OurDefaultMenuIndex = 0;
+int OurDefaultBGItem = 0;
+int OurDefaultHelpItem = 0;
+int OurDefaultLockItem = 0;
+int OurDefaultEscapeItem = 0;
+int OurDefaultMinItem = 0;
+int OurDefaultCloseItem = 0;
 map<string,CXWnd*> WindowMap;
 
 PCHAR szClickNotification[] = { 
@@ -101,18 +110,48 @@ public:
 		}
 		return CTargetWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
 	}
+	int CBankWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *);
+	int CBankWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
+	{
+		//we use this to intercept the menu messages for our autobank button extension
+
+		if ((int)uiMessage == XWM_RCLICK)
+		{
+			if (((CBankWnd *)this)->AutoButton == pWnd)
+			{
+				if (pContextMenuManager)
+				{
+					CXPoint Loc;
+					Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+					Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+					#if defined(EQBETA) || defined(TEST)
+					//work in progress -eqmule
+					pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, (CXWnd*)this);
+					WriteChatf("this menu is work in progress, it does NOT do anything useful yet. -eqmule");
+					#endif
+				}
+				//Beep(1000, 100);
+			}
+		}
+		if ((int)uiMessage == XWM_MENUSELECT)
+		{
+			//Beep(1000, 100);
+		}
+		return CBankWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
+	}
 	int CSidlScreenWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *);
 	int CSidlScreenWnd__WndNotification_Detour(class CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
 		if ((int)uiMessage == XWM_LINK)
 		{
-			Sleep(0);
+			//Sleep(0);
 		}
 		return CSidlScreenWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
-DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
 
 
@@ -177,7 +216,56 @@ int ListItemSlots(int argc, char *argv[]);
 #endif
 
 #ifndef ISXEQ_LEGACY
-
+void AddAutoBankMenu()
+{
+	if (OurDefaultMenuIndex == 0)
+	{
+		if (CContextMenuManager *pMgr = pContextMenuManager)
+		{
+			//save org values
+			int DefaultMenuIndex = pMgr->DefaultMenuIndex;
+			int DefaultBGItem = pMgr->DefaultBGItem;
+			int DefaultHelpItem = pMgr->DefaultHelpItem;
+			int DefaultLockItem = pMgr->DefaultLockItem;
+			int DefaultEscapeItem = pMgr->DefaultEscapeItem;
+			int DefaultMinItem = pMgr->DefaultMinItem;
+			int DefaultCloseItem = pMgr->DefaultCloseItem;
+			//create our menu
+			pMgr->CreateDefaultMenu();
+			//set our values
+			OurDefaultMenuIndex = pMgr->DefaultMenuIndex;
+			OurDefaultBGItem = pMgr->DefaultBGItem;
+			OurDefaultHelpItem = pMgr->DefaultHelpItem;
+			OurDefaultLockItem = pMgr->DefaultLockItem;
+			OurDefaultEscapeItem = pMgr->DefaultEscapeItem;
+			OurDefaultMinItem = pMgr->DefaultMinItem;
+			OurDefaultCloseItem = pMgr->DefaultCloseItem;
+			//set org values back, we now have a menu that's ours...
+			pMgr->DefaultMenuIndex = DefaultMenuIndex;
+			pMgr->DefaultBGItem = DefaultBGItem;
+			pMgr->DefaultHelpItem = DefaultHelpItem;
+			pMgr->DefaultLockItem = DefaultLockItem;
+			pMgr->DefaultEscapeItem = DefaultEscapeItem;
+			pMgr->DefaultMinItem = DefaultMinItem;
+			pMgr->DefaultCloseItem = DefaultCloseItem;
+			AutoBankMenu = pContextMenuManager->GetMenu(OurDefaultMenuIndex);
+			AutoBankMenu->RemoveAllMenuItems();
+			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", 50, false);
+			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", 51, false);
+		}
+	}
+}
+void RemoveAutoBankMenu()
+{
+	if (CContextMenuManager *pMgr = pContextMenuManager)
+	{
+		if (OurDefaultMenuIndex != 0)
+		{
+			pMgr->RemoveMenu(OurDefaultMenuIndex, true);
+			OurDefaultMenuIndex = 0;
+		}
+	}
+}
 void InitializeMQ2Windows()
 {
     DebugSpew("Initializing MQ2 Windows");
@@ -206,6 +294,8 @@ void InitializeMQ2Windows()
     AddSlotArray(bazaar,80,7000);
     AddSlotArray(inspect,31,8000);
 #undef AddSlotArray
+	
+	EzDetourwName(CBankWnd__WndNotification,&CSidlInitHook::CBankWnd__WndNotification_Detour,&CSidlInitHook::CBankWnd__WndNotification_Tramp,"CBankWnd__WndNotification");
 
     EzDetourwName(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline,"CXMLSOMDocumentBase__XMLRead");
     EzDetourwName(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline,"CSidlScreenWnd__Init1");
@@ -213,7 +303,6 @@ void InitializeMQ2Windows()
     EzDetourwName(CXWndManager__RemoveWnd,&CXWndManagerHook::RemoveWnd_Detour,&CXWndManagerHook::RemoveWnd_Trampoline,"CXWndManager__RemoveWnd");
     //debugging
 	//EzDetourwName(CChatWindow__WndNotification,&CSidlInitHook::CSidlScreenWnd__WndNotification_Detour,&CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp,"linktest");
-
 #ifndef ISXEQ
     AddCommand("/windows",ListWindows,false,true,false);
     AddCommand("/notify",WndNotify,false,true,false);
@@ -275,7 +364,9 @@ void ShutdownMQ2Windows()
     pISInterface->RemoveCommand("EQItemNotify");
     pISInterface->RemoveCommand("EQItemSlots");
 #endif 
-    RemoveDetour(CXMLSOMDocumentBase__XMLRead);
+    RemoveDetour(CBankWnd__WndNotification);
+	RemoveAutoBankMenu();
+	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
     RemoveDetour(CSidlScreenWnd__Init1);
     RemoveDetour(CTargetWnd__WndNotification);
     RemoveDetour(CXWndManager__RemoveWnd);
