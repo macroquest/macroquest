@@ -121,6 +121,7 @@ PreSetup("MQ2AutoLogin");
 #pragma comment( lib, "Crypt32.lib" )
 using namespace std;
 
+int bNotifyOnServerUP = 0;
 #define MAX_WINDOWS 150 // had to lower this for CotF patch it never reaches 200...
 
 /*** un-comment to enable debug logging ***/
@@ -168,28 +169,36 @@ _ServerData ServerData[] = {
     {"test",         1},
     {0, 0},
 };
-typedef struct _SERVERINFO
+typedef struct _DateStruct
+{
+/*0x00*/ CHAR	Hours;
+/*0x01*/ CHAR	Minutes;
+/*0x02*/ CHAR	Seconds;
+/*0x03*/ CHAR	Month;
+/*0x04*/ CHAR	Day;
+/*0x06*/ WORD	Year;
+/*0x08*/ PCXSTR	Unknown0x08;
+/*0x0c*/ PCXSTR	Unknown0x0c;
+/*0x10*/ PCXSTR	Unknown0x10;
+/*0x18*/ __int64	TimeStamp;
+/*0x20*/ DWORD Unknown0x20;
+/*0x24*/
+}DateStruct,*PDateStruct;
+typedef struct _SERVERINFO//EQClientServerData
 {
 /*0x00*/	DWORD ID;
 /*0x04*/	PCXSTR ServerName;
-/*0x08*/	PCXSTR ServerIP;
-/*0x0C*/	DWORD Unknown0x0C;
-/*0x10*/	DWORD Unknown0x10;
-/*0x14*/	DWORD Unknown0x14;
-/*0x018*/	DWORD Unknown0x018;
-/*0x01C*/	DWORD Unknown0x01C;
-/*0x020*/	DWORD Unknown0x020;
-/*0x024*/	DWORD Unknown0x024;
-/*0x028*/	DWORD Unknown0x028;
-/*0x02C*/	DWORD Unknown0x02C;
-/*0x030*/	DWORD Unknown0x030;
-/*0x034*/	DWORD Unknown0x034;
-/*0x038*/	DWORD Unknown0x038;
-/*0x03C*/	DWORD Unknown0x03C;
-/*0x040*/	DWORD Unknown0x040;
-/*0x044*/	DWORD Players;//only on emu, its not sent for live servers.
-/*0x048*/	DWORD Unknown0x048;
-/*0x04C*/	DWORD Unknown0x04C;
+/*0x08*/	PCXSTR HostName;
+/*0x0C*/	PCXSTR ServerIP;
+/*0x10*/	DWORD ExternalPort;
+/*0x14*/	DWORD InternalPort;
+/*0x018*/	DateStruct DateCreated;
+/*0x03C*/	DWORD Flags;
+/*0x040*/	DWORD ServerType;
+/*0x040*/	PCXSTR LanguageCode;
+/*0x044*/	PCXSTR CountryCode;
+/*0x048*/	DWORD StatusFlags;
+/*0x04C*/	DWORD PopulationRanking;
 /*0x050*/
 }SERVERINFO,*PSERVERINFO;
 typedef struct _SERVERLIST
@@ -604,6 +613,38 @@ template <unsigned int _Size>bool GetServerName(CHAR(&szBuffer)[_Size])
 		strcpy_s(szBuffer,_Size,EQADDR_SERVERNAME);
 		if (szBuffer[0] != '\0') {
 			return true;
+		}
+	}
+	return false;
+}
+#define SERVER_DOWN 1
+#define SERVER_LOCKED 4
+
+bool CheckServerUp(int ID)
+{
+	if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end()) {
+		if (CListWnd*serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"]) {
+			if (serverlist->ItemsArray.Count && dwServerInfo) {
+				if (PSERVERSTUFF serveridoff = *(PSERVERSTUFF*)dwServerInfo) {
+					if (serveridoff->pServerList && serveridoff->pServerList->Info) {
+						PSERVERLIST pList = serveridoff->pServerList;
+						while (pList)
+						{
+							if (pList->Info->ID == ID)
+							{
+								if (pList->Info->StatusFlags & SERVER_LOCKED || pList->Info->StatusFlags & SERVER_DOWN)
+								{
+									return false;
+								}
+								else {
+									return true;
+								}
+							}
+							pList = pList->Next;
+						}
+					}
+				}
+			}
 		}
 	}
 	return false;
@@ -1106,7 +1147,12 @@ PLUGIN_API VOID InitializePlugin(VOID)
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
         strcpy_s(INIFileName, szPath);
-
+	bNotifyOnServerUP = GetPrivateProfileInt("Settings", "NotifyOnServerUP", -1, INIFileName);
+	if (bNotifyOnServerUP == -1)
+	{
+		WritePrivateProfileString("Settings", "NotifyOnServerUP", "0", INIFileName);
+		bNotifyOnServerUP = 0;
+	}
     bKickActiveChar = GetPrivateProfileInt("Settings", "KickActiveCharacter", 1, INIFileName);
     bUseMQ2Login = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, INIFileName);
     bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
@@ -1846,9 +1892,44 @@ void HandleWindows()
 			if (bServerWait)
 				return;
 			if (dwServerID = GetServerID(szServerName)) {
-				pLoginClient->JoinServer(dwServerID);
-				bSwitchServer = false;
-				bServerWait = true;
+				if (CheckServerUp(dwServerID))
+				{
+					if (bNotifyOnServerUP == 2)
+					{
+						if (HMODULE hGmail = GetModuleHandle("MQ2Gmail.dll"))
+						{
+							PMQCOMMAND pCommand = pCommands;
+							while (pCommand)
+							{
+								int Pos = _strnicmp("/gmail", pCommand->Command, 63);
+								if (Pos == 0)
+								{
+									//found it...
+									pCommand->Function(NULL, "\"Server is UP\" \"Time to login!\"");
+									break;
+								}
+								pCommand = pCommand->pNext;
+							}
+						}
+						Beep(1000, 10000);
+						Beep(500, 2000);
+						Beep(1000, 10000);
+						bNotifyOnServerUP = 0;
+					}
+					else if (bNotifyOnServerUP == 1)
+					{
+						Beep(1000, 10000);
+						Beep(500, 2000);
+						Beep(1000, 10000);
+						bNotifyOnServerUP = 0;
+					}
+					pLoginClient->JoinServer(dwServerID);
+					bSwitchServer = false;
+					bServerWait = true;
+				}
+				else {
+					ullerrorwait = MQGetTickCount64() + 2000;
+				}
 			} else {
 				AutoLoginDebug("HandleWindows(): GetServerID(%s) returned 0 at serverselect", szServerName);
 			}

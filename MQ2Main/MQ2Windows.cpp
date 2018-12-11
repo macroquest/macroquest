@@ -124,7 +124,7 @@ public:
 					CXPoint Loc;
 					Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
 					Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
-					#if defined(EQBETA) || defined(TEST)
+					#if !defined(ROF2EMU) && !defined(UFEMU)
 					//work in progress -eqmule
 					pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, (CXWnd*)this);
 					WriteChatf("this menu is work in progress, it does NOT do anything useful yet. -eqmule");
