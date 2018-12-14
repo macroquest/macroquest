@@ -827,6 +827,7 @@ template<typename T, int _Size> class HashListSet<T, _Size, -2> : public HashLis
     void *MemPool;//todo: change to whatever stl replacement this it, for now we just void* it...
 };
 template<typename T, int _Size, bool _bGrow> class EQArray;
+template<typename T, int _Size, bool _bGrow> class EQArray2;
 
 template<typename T> class EQArray<T, 0, true>
 {
@@ -836,6 +837,16 @@ public:
 /*0x08*/ int m_length;
 /*0x0c*/ int m_space;
 /*0x10*/ 
+};
+template<typename T> class EQArray2<T, 0, true>
+{
+public:
+/*0x00*/ void* pvfTable;
+/*0x04*/ void* pvfTable2;
+/*0x08*/ T *m_array;
+/*0x0c*/ int m_length;
+/*0x10*/ int m_space;
+/*0x14*/
 };
 template<typename T> class IString
 {
@@ -875,6 +886,12 @@ public:
 
 };
 template<typename T, int _Size = 0, bool _bGrow = true> class EQArray : public EQArray<T, 0, true>
+{
+    public:
+        enum { cTCount = _Size };
+        static const bool cTGrow = _bGrow;
+};
+template<typename T, int _Size = 0, bool _bGrow = true> class EQArray2 : public EQArray2<T, 0, true>
 {
     public:
         enum { cTCount = _Size };

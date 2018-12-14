@@ -111,8 +111,8 @@ Change log:
 
 #include "../MQ2Plugin.h"
 #define   PLUGIN_NAME  "MQ2AutoLogin"
-#define   PLUGIN_DATE  20180311
-PLUGIN_VERSION(2.8);
+#define   PLUGIN_DATE  20181212
+PLUGIN_VERSION(2.9);
 
 #include <map>
 #include <tlhelp32.h>
@@ -120,7 +120,7 @@ PreSetup("MQ2AutoLogin");
 #include <wincrypt.h>
 #pragma comment( lib, "Crypt32.lib" )
 using namespace std;
-
+bool bWeAreDown = false;
 int bNotifyOnServerUP = 0;
 #define MAX_WINDOWS 150 // had to lower this for CotF patch it never reaches 200...
 
@@ -1894,40 +1894,46 @@ void HandleWindows()
 			if (dwServerID = GetServerID(szServerName)) {
 				if (CheckServerUp(dwServerID))
 				{
-					if (bNotifyOnServerUP == 2)
+					if (bWeAreDown)
 					{
-						if (HMODULE hGmail = GetModuleHandle("MQ2Gmail.dll"))
+						bWeAreDown = false;
+						if (bNotifyOnServerUP == 2)
 						{
-							PMQCOMMAND pCommand = pCommands;
-							while (pCommand)
+							if (HMODULE hGmail = GetModuleHandle("MQ2Gmail.dll"))
 							{
-								int Pos = _strnicmp("/gmail", pCommand->Command, 63);
-								if (Pos == 0)
+								PMQCOMMAND pCommand = pCommands;
+								while (pCommand)
 								{
-									//found it...
-									pCommand->Function(NULL, "\"Server is UP\" \"Time to login!\"");
-									break;
+									int Pos = _strnicmp("/gmail", pCommand->Command, 63);
+									if (Pos == 0)
+									{
+										//found it...
+										pCommand->Function(NULL, "\"Server is UP\" \"Time to login!\"");
+										break;
+									}
+									pCommand = pCommand->pNext;
 								}
-								pCommand = pCommand->pNext;
 							}
+							Beep(1000, 5000);
+							Beep(500, 2000);
+							Beep(1000, 5000);
+							bNotifyOnServerUP = 0;
 						}
-						Beep(1000, 10000);
-						Beep(500, 2000);
-						Beep(1000, 10000);
-						bNotifyOnServerUP = 0;
-					}
-					else if (bNotifyOnServerUP == 1)
-					{
-						Beep(1000, 10000);
-						Beep(500, 2000);
-						Beep(1000, 10000);
-						bNotifyOnServerUP = 0;
+						else if (bNotifyOnServerUP == 1)
+						{
+							Beep(1000, 5000);
+							Beep(500, 2000);
+							Beep(1000, 5000);
+							bNotifyOnServerUP = 0;
+						}
 					}
 					pLoginClient->JoinServer(dwServerID);
 					bSwitchServer = false;
 					bServerWait = true;
 				}
 				else {
+					if (!bWeAreDown)
+						bWeAreDown = true;
 					ullerrorwait = MQGetTickCount64() + 2000;
 				}
 			} else {

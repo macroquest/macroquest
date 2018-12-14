@@ -1151,13 +1151,13 @@ enum eAdvLootState
 	eAdvLootFixedAskCompleted,
 	eAdvLootRemoved
 };
+//size is 0x88 see 0x48AB44 in Dec 10 2018 live -eqmule
 typedef struct _LOOTITEM
 {
-/*0x00*/ DWORD	ItemID;
+/*0x00*/ UINT	ItemID;
 /*0x04*/ CHAR	Name[0x40];
-/*0x44*/ DWORD	IconID;
-/*0x48*/ BYTE  IsStackable;
-/*0x49*/ BYTE   Unknown0x49[0x3];
+/*0x44*/ int	IconID;
+/*0x48*/ bool   bStackable;
 /*0x4c*/ DWORD  MaxStack;
 /*0x50*/ BYTE   NoDrop;
 /*0x51*/ BYTE   Unknown0x51[0x3];
@@ -1170,19 +1170,17 @@ typedef struct _LOOTITEM
 /*0x63*/ BYTE	AskRandomMode; //item is in AskRandom mode
 /*0x64*/ BYTE   CLootInProgress;
 /*0x65*/ BYTE   PLootInProgress;
-/*0x66*/ BYTE   Unknown0x66[0x6];
-/*0x6c*/ struct _LOOTDETAILS	*LootDetails;
-/*0x70*/ BYTE	Unknown0x70[0x8];
-/*0x78*/ DWORD	AskTimer;
-/*0x7c*/ BYTE	AutoRoll;
-/*0x7d*/ BYTE	Unknown0x7d;
-/*0x7e*/ BYTE	Need;
-/*0x7f*/ BYTE	Greed;
-/*0x80*/ BYTE	No;
-/*0x81*/ BYTE	AlwaysNeed;
-/*0x82*/ BYTE	AlwaysGreed;
-/*0x83*/ BYTE	Never;
-/*0x84*/
+/*0x68*/ EQArray2<LOOTDETAILS>LootDetails;
+/*0x7c*/ DWORD	AskTimer;
+/*0x80*/ BYTE	AutoRoll;
+/*0x81*/ BYTE	FG;
+/*0x82*/ BYTE	Need;
+/*0x83*/ BYTE	Greed;
+/*0x84*/ BYTE	No;
+/*0x85*/ BYTE	AlwaysNeed;
+/*0x86*/ BYTE	AlwaysGreed;
+/*0x87*/ BYTE	Never;
+/*0x88*/
 } LOOTITEM,*PLOOTITEM;
 
 typedef struct _LOOTLIST {

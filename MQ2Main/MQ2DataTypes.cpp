@@ -14363,13 +14363,15 @@ bool MQ2AdvLootItemType::GETMEMBER()
 	case StackSize:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
-		if (pItem && pItem->LootDetails && pItem->LootDetails->StackCount>=1) {
-			Dest.DWord = pItem->LootDetails->StackCount;
+		EQArray2<LOOTDETAILS>ploot;
+		ploot = pItem->LootDetails;
+		if (pItem && pItem->LootDetails.m_length && pItem->LootDetails.m_array[0].StackCount>=1) {
+			Dest.DWord = pItem->LootDetails.m_array[0].StackCount;
 		}
 		return true;
 	case Corpse:
-		if (pItem && pItem->LootDetails) {
-			if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pItem->LootDetails->CorpseID)) {
+		if (pItem && pItem->LootDetails.m_length) {
+			if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pItem->LootDetails.m_array[0].CorpseID)) {
 				Dest.Type = pSpawnType;
 				Dest.Ptr = pSpawn;
 				return true;

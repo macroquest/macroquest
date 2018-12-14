@@ -4468,8 +4468,8 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 							if (pitem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
 								if (!_stricmp(szAction, "leave")) {
 									if (PCHARINFO pchar = GetCharInfo()) {
-										if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails) {
-											pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(pchar->Name), 1, pitem->LootDetails->StackCount);
+										if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.m_length) {
+											pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(pchar->Name), 1, pitem->LootDetails.m_array[0].StackCount);
 										}
 									}
 								}
@@ -4509,9 +4509,9 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 											}
 											if (!_stricmp(szOut, szEntity)) {
 												int qty = atoi(szQty);
-												if (pitem && pitem->LootDetails) {
-													if (qty == 0 || qty > pitem->LootDetails->StackCount) {
-														qty = pitem->LootDetails->StackCount;
+												if (pitem && pitem->LootDetails.m_length) {
+													if (qty == 0 || qty > pitem->LootDetails.m_array[0].StackCount) {
+														qty = pitem->LootDetails.m_array[0].StackCount;
 														if (qty == 0) {
 															qty = 1;
 														}
