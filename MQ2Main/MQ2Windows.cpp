@@ -26,14 +26,21 @@ GNU General Public License for more details.
 #include <algorithm>
 using namespace std;
 std::list<ItemGlobalIndex2> autobanklist;
+std::list<ItemGlobalIndex2> autoinventorylist;
 CButtonWnd*gAutoBankButton = 0;
 bool gStartAutoBanking = false;
 bool bAutoBankInProgress = false;
+bool bAutoInventoryInProgress = false;
 int gAutoBankTradeSkillItems = 0;
 int gAutoBankCollectibleItems = 0;
+int gAutoBankQuestItems = 0;
+int gAutoInventoryItems = 0;
 CContextMenu *AutoBankMenu = 0;
 int tradeskilloptionID = 0;
 int collectibleoptionID = 0;
+int questoptionID = 0;
+int separatoroptionID = 0;
+int autoinventoryoptionID = 0;
 int OurDefaultMenuIndex = 0;
 int OurDefaultBGItem = 0;
 int OurDefaultHelpItem = 0;
@@ -133,7 +140,14 @@ public:
 						{
 							if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
 							{
-								gAutoBankButton->Checked = 1;
+								if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
+								{
+									gAutoBankButton->Checked = 0;
+								}
+								else
+								{
+									gAutoBankButton->Checked = 1;
+								}
 							}
 						}
 						break;
@@ -143,9 +157,10 @@ public:
 						{
 							if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
 							{
-								if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems)
+								if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
 								{
-									WriteChatf("\ay[AUTOBANK NOT CONFIGURED]\ax AutoBank Options where empty there is nothing selected for moving, rightclick the autobank button to select options.\n");
+									WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
+									gAutoBankButton->Checked = 0;
 									break;
 								}
 								if (!gStartAutoBanking)
@@ -154,12 +169,12 @@ public:
 									//we will autobank from inventory instead and pick items he wants
 									//by using his menu settings.
 									gStartAutoBanking = true;
-									WriteChatf("\ay[AutoBank started. Please wait...]\ax");
+									WriteChatf("\ay[Auto%s started. Please wait...]\ax", gAutoInventoryItems ? "inventory":"Bank");
 								}
 								else
 								{
 									Beep(1000, 100);
-									WriteChatf("\ar[AutoBank ALREADY in Progress, please wait for it to finish...]\ax");
+									WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax", gAutoInventoryItems ? "inventory":"Bank");
 									return 0;
 								}
 							}
@@ -219,6 +234,30 @@ public:
 					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "1", gszINIFilename);
 				}
 				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankCollectibleItems);
+				break;
+			case 52:
+				if (gAutoBankQuestItems)
+				{
+					gAutoBankQuestItems = 0;
+					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", gszINIFilename);
+				}
+				else {
+					gAutoBankQuestItems = 1;
+					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "1", gszINIFilename);
+				}
+				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankQuestItems);
+				break;
+			case 53:
+				if (gAutoInventoryItems)
+				{
+					gAutoInventoryItems = 0;
+					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", gszINIFilename);
+				}
+				else {
+					gAutoInventoryItems = 1;
+					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "1", gszINIFilename);
+				}
+				AutoBankMenu->CheckMenuItem(iItemID, gAutoInventoryItems);
 				break;
 			};
 		}
@@ -347,9 +386,23 @@ void AddAutoBankMenu()
 				gAutoBankCollectibleItems = 0;
 				WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", gszINIFilename);
 			}
-			
+			gAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", -1, gszINIFilename);
+			if (gAutoBankQuestItems == -1)
+			{
+				gAutoBankQuestItems = 0;
+				WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", gszINIFilename);
+			}
+			gAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", -1, gszINIFilename);
+			if (gAutoInventoryItems == -1)
+			{
+				gAutoInventoryItems = 0;
+				WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", gszINIFilename);
+			}
 			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", 50, gAutoBankTradeSkillItems);
 			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", 51, gAutoBankCollectibleItems);
+			questoptionID = AutoBankMenu->AddMenuItem("Quest Items", 52, gAutoBankQuestItems);
+			separatoroptionID = AutoBankMenu->AddSeparator();
+			questoptionID = AutoBankMenu->AddMenuItem("Autoinventory Checked Items", 53, gAutoInventoryItems);
 		}
 	}
 }
@@ -1787,28 +1840,102 @@ int ListItemSlots(int argc, char *argv[])
         WriteChatf("%d available item slots",Count);
         RETURN(0)
 }
-void DoCommandf(PCHAR szFormat,...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf_s(szOutput, len, szFormat, vaList);
-		HideDoCommand((PSPAWNINFO)pLocalPlayer,szOutput,false);
-		LocalFree(szOutput);
-	}
-}
-extern bool WillFitInBank(PCONTENTS pContent);
+
 void AutoBankPulse()
 {
 	if (!gStartAutoBanking)
 	{
 		return;
 	}
-	//user want us to autobank stuff
-	if (!bAutoBankInProgress)
+	else if (!pBankWnd || (pBankWnd && pBankWnd->dShow==0))
 	{
-		if (autobanklist.size() == 0 && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems))
+		gStartAutoBanking = false;
+		bAutoBankInProgress = false;
+		bAutoInventoryInProgress = false;
+		if (gAutoBankButton && gAutoBankButton->Checked)
+			gAutoBankButton->Checked = 0;
+		autobanklist.clear();
+		autoinventorylist.clear();
+		return;
+	}
+	if (gAutoInventoryItems && !bAutoInventoryInProgress)//user want us to move items FROM bank back to their inventory
+	{
+		if (autoinventorylist.size() == 0 && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
+		{
+			if (PCHARINFONEW pChar = (PCHARINFONEW)GetCharInfo()) {
+				//check toplevel slots
+				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
+					if (PCONTENTS pCont = pChar->BankItems.Items[slot].pObject) {
+						if (PITEMINFO pItem = GetItemFromContents(pCont))
+						{
+							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
+								continue;//dont add bags that has items inside of them...
+							if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+							{
+								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+								autoinventorylist.push_back(ind);
+							}
+							else if (gAutoBankCollectibleItems && pItem->Collectible)
+							{
+								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+								autoinventorylist.push_back(ind);
+							}
+							else if (gAutoBankQuestItems && pItem->QuestItem)
+							{
+								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+								autoinventorylist.push_back(ind);
+							}
+						}
+					}
+				}
+				//check the bags
+				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
+					if (PCONTENTS pPack = pChar->BankItems.Items[slot].pObject) {
+						if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+							for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+								if (PCONTENTS pCont = pPack->GetContent(nItem)) {
+									if (PITEMINFO pItem = GetItemFromContents(pCont)) {
+										if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+										{
+											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+											autoinventorylist.push_back(ind);
+										}
+										else if (gAutoBankCollectibleItems && pItem->Collectible)
+										{
+											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+											autoinventorylist.push_back(ind);
+										}
+										else if (gAutoBankQuestItems && pItem->QuestItem)
+										{
+											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+											autoinventorylist.push_back(ind);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (autoinventorylist.size())
+		{
+			bAutoInventoryInProgress = true;
+		}
+		else
+		{
+			gStartAutoBanking = false;
+			bAutoInventoryInProgress = false;
+			if (gAutoBankButton && gAutoBankButton->Checked)
+				gAutoBankButton->Checked = 0;
+			WriteChatf("\ay[No Items Found for Auto Inventory.]\ax\n");
+			return;
+		}
+	}
+	//user want us to autobank stuff
+	else if (!gAutoInventoryItems && !bAutoBankInProgress)
+	{
+		if (autobanklist.size() == 0 && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
 		{
 			//check toplevel slots
 			PCHARINFO2 pChar2 = GetCharInfo2();
@@ -1816,12 +1943,19 @@ void AutoBankPulse()
 				for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
 					if (PCONTENTS pCont = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 						if (PITEMINFO pItem = GetItemFromContents(pCont)) {
+							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
+								continue;//dont add bags that has items inside of them...
 							if (gAutoBankTradeSkillItems && pItem->TradeSkills)
 							{
 								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
 								autobanklist.push_back(ind);
 							}
 							else if (gAutoBankCollectibleItems && pItem->Collectible)
+							{
+								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+								autobanklist.push_back(ind);
+							}
+							else if (gAutoBankQuestItems && pItem->QuestItem)
 							{
 								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
 								autobanklist.push_back(ind);
@@ -1845,6 +1979,11 @@ void AutoBankPulse()
 											autobanklist.push_back(ind);
 										}
 										else if (gAutoBankCollectibleItems && pItem->Collectible)
+										{
+											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+											autobanklist.push_back(ind);
+										}
+										else if (gAutoBankQuestItems && pItem->QuestItem)
 										{
 											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
 											autobanklist.push_back(ind);
@@ -1875,16 +2014,48 @@ void AutoBankPulse()
 	{
 		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor != 0)
 		{
-			DoCommandf("/autobank");
+			if(bAutoInventoryInProgress)
+				DoCommandf("/autoinventory");
+			else
+				DoCommandf("/autobank");
 			return;
 		}
 	}
-	if (autobanklist.size())
+	if (autoinventorylist.size())
 	{
-		for (std::list<ItemGlobalIndex2>::iterator i = autobanklist.begin(); i != autobanklist.end(); i++)
+		std::list<ItemGlobalIndex2>::iterator i = autoinventorylist.begin();
+		if(i!=autoinventorylist.end())
 		{
 			ItemGlobalIndex2 ind = *i;
-			if (PCONTENTS pCont = FindItemBySlot(ind.Index.Slot1, ind.Index.Slot2))
+			if (PCONTENTS pCont = FindItemBySlot(ind.Index.Slot1, ind.Index.Slot2,ind.Location))
+			{
+				if (PITEMINFO pItem = GetItemFromContents(pCont))
+				{
+					ItemGlobalIndex2 indy = pCont->GetGlobalIndex();
+					if (WillFitInInventory(pCont))
+					{
+						WriteChatf("[%d] Moving %s from slot %d %d to inventory", autoinventorylist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+						PickupItem(indy.Location, pCont);
+					}
+					else {
+						WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax", autoinventorylist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+					}
+				}
+			}
+			else {
+				WriteChatf("[%d] \arAutoinventory for slot %d %d to inventory \ayFAILED\ar, no item was found.\ax", autoinventorylist.size(), ind.Index.Slot1, ind.Index.Slot2);
+			}
+		}
+		autoinventorylist.pop_front();
+		return;
+	}
+	else if (autobanklist.size())
+	{
+		std::list<ItemGlobalIndex2>::iterator i = autobanklist.begin();
+		if(i != autobanklist.end())
+		{
+			ItemGlobalIndex2 ind = *i;
+			if (PCONTENTS pCont = FindItemBySlot(ind.Index.Slot1, ind.Index.Slot2,ind.Location))
 			{
 				if (PITEMINFO pItem = GetItemFromContents(pCont))
 				{
@@ -1895,16 +2066,26 @@ void AutoBankPulse()
 						PickupItem(indy.Location, pCont);
 					}
 					else {
-						WriteChatf("[%d] \arAutobank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax", autobanklist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+						WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax", autobanklist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
 					}
-					autobanklist.pop_front();
-					break;
 				}
 			}
+			else {
+				WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax", autoinventorylist.size(), ind.Index.Slot1, ind.Index.Slot2);
+			}
 		}
+		autobanklist.pop_front();
 		return;
 	}
-	if (bAutoBankInProgress)
+	if (bAutoInventoryInProgress)
+	{
+		if(gAutoBankButton && gAutoBankButton->Checked)
+			gAutoBankButton->Checked = 0;
+		bAutoInventoryInProgress = false;
+		gStartAutoBanking = false;
+		WriteChatf("\ay[Autoinventory Finished.]\ax");
+	}	
+	else if (bAutoBankInProgress)
 	{
 		if(gAutoBankButton && gAutoBankButton->Checked)
 			gAutoBankButton->Checked = 0;

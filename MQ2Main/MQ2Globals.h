@@ -1512,6 +1512,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Item__ValueSellMerchant;
 	EQLIB_VAR DWORD EQ_Item__IsKeyRingItem;
 	EQLIB_VAR DWORD EQ_Item__CanGoInBag;
+	EQLIB_VAR DWORD EQ_Item__IsEmpty;
 	EQLIB_VAR DWORD EQ_Item__GetMaxItemCount;
 	EQLIB_VAR DWORD EQ_Item__GetAugmentFitBySlot;
 	

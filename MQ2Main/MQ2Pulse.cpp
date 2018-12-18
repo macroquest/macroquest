@@ -342,8 +342,6 @@ void Pulse()
 	}
 }
 
-extern void AddAutoBankMenu();
-extern void AutoBankPulse();
 int Heartbeat()
 {
 	if (gbUnload) {

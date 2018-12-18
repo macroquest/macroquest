@@ -883,6 +883,7 @@ GNU General Public License for more details.
 #define EQ_Item__ValueSellMerchant_x                               0x8987B0
 #define EQ_Item__IsKeyRingItem_x                                   0x896920
 #define EQ_Item__CanGoInBag_x                                      0x60C780
+#define EQ_Item__IsEmpty_x                                         0x896450
 #define EQ_Item__GetMaxItemCount_x                                 0x895640
 #define EQ_Item__GetHeldItem_x                                     0x893EE0
 #define EQ_Item__GetAugmentFitBySlot_x                             0x891F00

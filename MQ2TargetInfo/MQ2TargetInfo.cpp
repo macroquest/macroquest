@@ -1305,17 +1305,7 @@ void Initialize()
 		}
 	}
 }
-void DoCommandf(PCHAR szFormat,...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf_s(szOutput, len, szFormat, vaList);
-		HideDoCommand((PSPAWNINFO)pLocalPlayer,szOutput,false);
-		LocalFree(szOutput);
-	}
-}
+
 int rightclickindex = -1;
 void StopMovement(bool bChange = true)
 {

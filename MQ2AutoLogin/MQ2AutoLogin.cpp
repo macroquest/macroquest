@@ -634,6 +634,7 @@ bool CheckServerUp(int ID)
 							{
 								if (pList->Info->StatusFlags & SERVER_LOCKED || pList->Info->StatusFlags & SERVER_DOWN)
 								{
+									bWeAreDown = true;
 									return false;
 								}
 								else {
@@ -1932,8 +1933,6 @@ void HandleWindows()
 					bServerWait = true;
 				}
 				else {
-					if (!bWeAreDown)
-						bWeAreDown = true;
 					ullerrorwait = MQGetTickCount64() + 2000;
 				}
 			} else {

@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define LIVE
+#define TEST
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -883,7 +883,12 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 EQLIB_API VOID memchecks_tramp(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API VOID memchecks(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API void InitializeLoginPulse();
-
+EQLIB_API void RemoveAutoBankMenu();
+EQLIB_API bool WillFitInBank(PCONTENTS pContent);
+EQLIB_API bool WillFitInInventory(PCONTENTS pContent);
+EQLIB_API void AddAutoBankMenu();
+EQLIB_API void AutoBankPulse();
+EQLIB_API void DoCommandf(PCHAR szFormat, ...);
 inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 {
 	for (int qq = 1; qq < argc; qq++) {

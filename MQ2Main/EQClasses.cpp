@@ -4733,6 +4733,9 @@ FUNCTION_AT_ADDRESS(bool EQ_Item::IsKeyRingItem(KeyRingType)const,EQ_Item__IsKey
 #ifdef EQ_Item__CanGoInBag_x
 FUNCTION_AT_ADDRESS(bool EQ_Item::CanGoInBag(PCONTENTS *pCont,int unused,bool mustbefalse)const,EQ_Item__CanGoInBag); 
 #endif
+#ifdef EQ_Item__IsEmpty_x
+FUNCTION_AT_ADDRESS(bool EQ_Item::IsEmpty(void) const,EQ_Item__IsEmpty); 
+#endif
 #ifdef EQ_Item__ValueSellMerchant_x
 FUNCTION_AT_ADDRESS(long  EQ_Item::ValueSellMerchant(float,long)const,EQ_Item__ValueSellMerchant);
 #endif

@@ -9228,17 +9228,17 @@ BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
 {
 	if (!pItem)
 		return FALSE;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2, pItem->GetGlobalIndex().Location)) {
 		if (pcont->Open)
 			return FALSE;
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
-			if (PEQINVSLOT pSlot = GetInvSlot(0, pcont->GetGlobalIndex().Index.Slot1)) {
+			if (PEQINVSLOT pSlot = GetInvSlot(pcont->GetGlobalIndex().Location, pcont->GetGlobalIndex().Index.Slot1,pcont->GetGlobalIndex().Index.Slot2)) {
 				if (hidden) {
 					//put code to hide bag here
 					//until i can figure out how to call moveitemqty
 				}
 				ItemGlobalIndex To;// = { 0 };
-				To.Location = eItemContainerPossessions;
+				To.Location = pcont->GetGlobalIndex().Location;// eItemContainerPossessions;
 				To.Index.Slot1 = pSlot->pInvSlotWnd->InvSlot;
 				To.Index.Slot2 = pSlot->pInvSlotWnd->BagSlot;
 				To.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
@@ -9258,7 +9258,7 @@ BOOL CloseContainer(PCONTENTS pItem)
 {
 	if (!pItem)
 		return FALSE;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,pItem->GetGlobalIndex().Location)) {
 		if (!pcont->Open)
 			return FALSE;
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
@@ -9277,9 +9277,9 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	ItemContainerInstance type = (ItemContainerInstance)i64tmp->LowPart;
 	PCONTENTS pItem = (PCONTENTS)i64tmp->HighPart;
 	int timeout = 0;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,type)) {
 		if (pInvSlotMgr) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1)) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,pItem->GetGlobalIndex().Location)) {
 				if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
 					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
 						if (GetGameState() != GAMESTATE_INGAME)
@@ -9311,7 +9311,7 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 		bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
 		((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = 1;
 		if (ItemOnCursor()) {
-			DropItem(type, pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot1);
+			DropItem(type, pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2);
 		}
 		else {
 			PickupItem(type, pItem);
@@ -9416,7 +9416,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 				PEQINVSLOT pSlot = GetInvSlot(pItem->GetGlobalIndex().Location, pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2);
 				if (!pSlot) {
 					//well lets try to open it then
-					if (PCONTENTS pBag = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1)) {
+					if (PCONTENTS pBag = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,pItem->GetGlobalIndex().Location)) {
 						BOOL wechangedpackopenstatus = OpenContainer(pBag, true);
 						if (wechangedpackopenstatus) {
 							if (PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR, sizeof(LARGE_INTEGER))) {
@@ -10697,8 +10697,23 @@ bool CanItemMergeInPack(PCONTENTS pPack,PCONTENTS pItem)
 	}
 	return false;
 }
+void DoCommandf(PCHAR szFormat,...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+		vsprintf_s(szOutput, len, szFormat, vaList);
+		HideDoCommand((PSPAWNINFO)pLocalPlayer,szOutput,false);
+		LocalFree(szOutput);
+	}
+}
 bool CanItemGoInPack(PCONTENTS pPack, PCONTENTS pItem)
 {
+	//so cangoinbag doesnt actually check if there is any room, all it checks is IF there where room, could the item go in it.
+	bool bRet = ((EQ_Item*)pItem)->CanGoInBag(&pPack);
+	if (!bRet)
+		return false;//no point in checking slots.
 	for (UINT i = 0; i < pPack->Contents.ContainedItems.Size; i++)
 	{
 		if (PCONTENTS pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
@@ -10728,12 +10743,7 @@ bool WillFitInBank(PCONTENTS pContent)
 							}
 							else if (CanItemGoInPack(pCont, pContent))
 							{
-								//so cangoinbag doesnt actually check if there is any room, all it checks is IF there where room, could the item go in it.
-								bool bRet = ((EQ_Item*)pContent)->CanGoInBag(&pCont, 1);
-								if(bRet)
-								{
-									return true;
-								}
+								return true;
 							}
 						}
 						else {//its not a pack but its an item, do we match?
@@ -10749,6 +10759,50 @@ bool WillFitInBank(PCONTENTS pContent)
 				}
 				else {//its empty of course we will fit.
 					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+bool WillFitInInventory(PCONTENTS pContent)
+{
+	if (PITEMINFO pMyItem = GetItemFromContents(pContent))
+	{
+		if (PCHARINFO2 pChar2 = (PCHARINFO2)GetCharInfo2()) {
+			if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray)
+			{	
+				for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+				{
+					if (PCONTENTS pCont = pChar2->pInventoryArray->InventoryArray[slot])
+					{
+						if (PITEMINFO pItem = GetItemFromContents(pCont))
+						{
+							if (pItem->Type == ITEMTYPE_PACK)
+							{
+								if (CanItemMergeInPack(pCont, pContent))
+								{
+									return true;
+								}
+								else if (CanItemGoInPack(pCont, pContent))
+								{
+									return true;
+								}
+							}
+							else {//its not a pack but its an item, do we match?
+								if (pCont->ID == pContent->ID)
+								{
+									if (pCont->StackCount + pContent->StackCount <= (int)pItem->StackSize)
+									{
+										return true;
+									}
+								}
+							}
+						}
+					}
+					else {//its empty of course we will fit.
+						return true;
+					}
 				}
 			}
 		}

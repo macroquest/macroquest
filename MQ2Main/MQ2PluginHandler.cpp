@@ -468,6 +468,7 @@ VOID PluginsCleanUI()
     CAutoLock Lock(&gPluginCS);
     PMQPLUGIN pPlugin=pPlugins;
     DeleteMQ2NewsWindow();
+	RemoveAutoBankMenu();
     while(pPlugin)
     {
         if (pPlugin->CleanUI)

@@ -2070,6 +2070,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsKeyRingItem);
 #endif
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanGoInBag);
+	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsEmpty);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__GetAugmentFitBySlot);
 	
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__SetProgressBar);
