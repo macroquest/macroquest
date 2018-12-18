@@ -343,6 +343,7 @@ void Pulse()
 }
 
 extern void AddAutoBankMenu();
+extern void AutoBankPulse();
 int Heartbeat()
 {
 	if (gbUnload) {
@@ -403,6 +404,7 @@ int Heartbeat()
 	if (gGameState == GAMESTATE_INGAME)
 	{
 		AddAutoBankMenu();
+		AutoBankPulse();
 	}
 	//if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
 	//{

@@ -10677,7 +10677,84 @@ int GetFreeInventory(int nSize)
 	}
 	return freeslots;
 }
+bool CanItemMergeInPack(PCONTENTS pPack,PCONTENTS pItem)
+{
+	for (UINT i = 0; i < pPack->Contents.ContainedItems.Size; i++)
+	{
+		if (PCONTENTS pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
+		{
+			if (pSlot->ID == pItem->ID)
+			{
+				if (PITEMINFO pItem2 = GetItemFromContents(pSlot))
+				{
+					if (pSlot->StackCount + pItem->StackCount <= (int)pItem2->StackSize)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+bool CanItemGoInPack(PCONTENTS pPack, PCONTENTS pItem)
+{
+	for (UINT i = 0; i < pPack->Contents.ContainedItems.Size; i++)
+	{
+		if (PCONTENTS pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
+		{
 
+		}
+		else {
+			return true;//free slot...
+		}
+	}
+	return false;
+}
+bool WillFitInBank(PCONTENTS pContent)
+{
+	if (PITEMINFO pMyItem = GetItemFromContents(pContent))
+	{
+		if (PCHARINFONEW pChar = (PCHARINFONEW)GetCharInfo()) {
+			for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
+				if (PCONTENTS pCont = pChar->BankItems.Items[slot].pObject) {
+					if (PITEMINFO pItem = GetItemFromContents(pCont))
+					{
+						if (pItem->Type == ITEMTYPE_PACK)
+						{
+							if (CanItemMergeInPack(pCont, pContent))
+							{
+								return true;
+							}
+							else if (CanItemGoInPack(pCont, pContent))
+							{
+								//so cangoinbag doesnt actually check if there is any room, all it checks is IF there where room, could the item go in it.
+								bool bRet = ((EQ_Item*)pContent)->CanGoInBag(&pCont, 1);
+								if(bRet)
+								{
+									return true;
+								}
+							}
+						}
+						else {//its not a pack but its an item, do we match?
+							if (pCont->ID == pContent->ID)
+							{
+								if (pCont->StackCount + pContent->StackCount <= (int)pItem->StackSize)
+								{
+									return true;
+								}
+							}
+						}
+					}
+				}
+				else {//its empty of course we will fit.
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 struct _CONTENTS *CONTENTS::GetContent(UINT index)
 {
 	if (Contents.ContainedItems.pItems && Contents.ContainedItems.Capacity) {

@@ -25,6 +25,12 @@ GNU General Public License for more details.
 #include <string>
 #include <algorithm>
 using namespace std;
+std::list<ItemGlobalIndex2> autobanklist;
+CButtonWnd*gAutoBankButton = 0;
+bool gStartAutoBanking = false;
+bool bAutoBankInProgress = false;
+int gAutoBankTradeSkillItems = 0;
+int gAutoBankCollectibleItems = 0;
 CContextMenu *AutoBankMenu = 0;
 int tradeskilloptionID = 0;
 int collectibleoptionID = 0;
@@ -114,28 +120,107 @@ public:
 	int CBankWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
 		//we use this to intercept the menu messages for our autobank button extension
-
-		if ((int)uiMessage == XWM_RCLICK)
+		if (((CBankWnd *)this)->AutoButton == pWnd)
 		{
-			if (((CBankWnd *)this)->AutoButton == pWnd)
+			if (gAutoBankButton != pWnd)
+				gAutoBankButton = (CButtonWnd*)pWnd;
+			if (gAutoBankButton)
 			{
-				if (pContextMenuManager)
+				switch (uiMessage)
 				{
-					CXPoint Loc;
-					Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
-					Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
-					#if !defined(ROF2EMU) && !defined(UFEMU)
-					//work in progress -eqmule
-					pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, (CXWnd*)this);
-					WriteChatf("this menu is work in progress, it does NOT do anything useful yet. -eqmule");
-					#endif
-				}
-				//Beep(1000, 100);
+					case XWM_LCLICK:
+						if (PCHARINFO2 pChar2 = GetCharInfo2())
+						{
+							if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
+							{
+								gAutoBankButton->Checked = 1;
+							}
+						}
+						break;
+					case XWM_LMOUSEUP:
+					{
+						if (PCHARINFO2 pChar2 = GetCharInfo2())
+						{
+							if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
+							{
+								if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems)
+								{
+									WriteChatf("\ay[AUTOBANK NOT CONFIGURED]\ax AutoBank Options where empty there is nothing selected for moving, rightclick the autobank button to select options.\n");
+									break;
+								}
+								if (!gStartAutoBanking)
+								{
+									//user leftclicked the autobank button and nothing on cursor
+									//we will autobank from inventory instead and pick items he wants
+									//by using his menu settings.
+									gStartAutoBanking = true;
+									WriteChatf("\ay[AutoBank started. Please wait...]\ax");
+								}
+								else
+								{
+									Beep(1000, 100);
+									WriteChatf("\ar[AutoBank ALREADY in Progress, please wait for it to finish...]\ax");
+									return 0;
+								}
+							}
+						}
+						break;
+					}
+					case XWM_RCLICK:
+					{
+						if (pContextMenuManager)
+						{
+							CXPoint Loc;
+							Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+							Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+							//work in progress -eqmule
+							pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, (CXWnd*)this);
+							//WriteChatf("this menu is work in progress, it does NOT do anything useful yet. -eqmule");
+						}
+						break;
+					}
+				};
 			}
 		}
-		if ((int)uiMessage == XWM_MENUSELECT)
+		else if (uiMessage == XWM_MENUSELECT)
 		{
-			//Beep(1000, 100);
+			int ItemID = (int)pData;
+			int iItemID = 0;
+			if (CContextMenu* pContextMenu = (CContextMenu*)pWnd)
+			{
+				POINT pt;
+				pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+				pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+				iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+			}
+			switch (ItemID)
+			{
+			case 50:
+				if (gAutoBankTradeSkillItems)
+				{
+					gAutoBankTradeSkillItems = 0;
+					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", gszINIFilename);
+				}
+				else {
+					gAutoBankTradeSkillItems = 1;
+					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "1", gszINIFilename);
+				}
+				//pContextMenuManager->GetMenu(optnio)
+				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankTradeSkillItems);
+				break;
+			case 51:
+				if (gAutoBankCollectibleItems)
+				{
+					gAutoBankCollectibleItems = 0;
+					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", gszINIFilename);
+				}
+				else {
+					gAutoBankCollectibleItems = 1;
+					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "1", gszINIFilename);
+				}
+				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankCollectibleItems);
+				break;
+			};
 		}
 		return CBankWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
 	}
@@ -250,8 +335,21 @@ void AddAutoBankMenu()
 			pMgr->DefaultCloseItem = DefaultCloseItem;
 			AutoBankMenu = pContextMenuManager->GetMenu(OurDefaultMenuIndex);
 			AutoBankMenu->RemoveAllMenuItems();
-			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", 50, false);
-			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", 51, false);
+			gAutoBankTradeSkillItems = GetPrivateProfileInt("AutoBank", "AutoBankTradeSkillItems", -1, gszINIFilename);
+			if (gAutoBankTradeSkillItems == -1)
+			{
+				gAutoBankTradeSkillItems = 0;
+				WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", gszINIFilename);
+			}
+			gAutoBankCollectibleItems = GetPrivateProfileInt("AutoBank", "AutoBankCollectibleItems", -1, gszINIFilename);
+			if (gAutoBankCollectibleItems == -1)
+			{
+				gAutoBankCollectibleItems = 0;
+				WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", gszINIFilename);
+			}
+			
+			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", 50, gAutoBankTradeSkillItems);
+			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", 51, gAutoBankCollectibleItems);
 		}
 	}
 }
@@ -1688,4 +1786,130 @@ int ListItemSlots(int argc, char *argv[])
         }
         WriteChatf("%d available item slots",Count);
         RETURN(0)
+}
+void DoCommandf(PCHAR szFormat,...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+		vsprintf_s(szOutput, len, szFormat, vaList);
+		HideDoCommand((PSPAWNINFO)pLocalPlayer,szOutput,false);
+		LocalFree(szOutput);
+	}
+}
+extern bool WillFitInBank(PCONTENTS pContent);
+void AutoBankPulse()
+{
+	if (!gStartAutoBanking)
+	{
+		return;
+	}
+	//user want us to autobank stuff
+	if (!bAutoBankInProgress)
+	{
+		if (autobanklist.size() == 0 && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems))
+		{
+			//check toplevel slots
+			PCHARINFO2 pChar2 = GetCharInfo2();
+			if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+				for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+					if (PCONTENTS pCont = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+						if (PITEMINFO pItem = GetItemFromContents(pCont)) {
+							if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+							{
+								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+								autobanklist.push_back(ind);
+							}
+							else if (gAutoBankCollectibleItems && pItem->Collectible)
+							{
+								ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+								autobanklist.push_back(ind);
+							}
+						}
+					}
+				}
+			}
+
+			//check the bags
+			if (pChar2 && pChar2->pInventoryArray) {
+				for (unsigned long nPack = 0; nPack < 10; nPack++) {
+					if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+						if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
+							for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+								if (PCONTENTS pCont = pPack->GetContent(nItem)) {
+									if (PITEMINFO pItem = GetItemFromContents(pCont)) {
+										if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+										{
+											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+											autobanklist.push_back(ind);
+										}
+										else if (gAutoBankCollectibleItems && pItem->Collectible)
+										{
+											ItemGlobalIndex2 ind = pCont->GetGlobalIndex();
+											autobanklist.push_back(ind);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (autobanklist.size())
+		{
+			bAutoBankInProgress = true;
+		}
+		else
+		{
+			gStartAutoBanking = false;
+			bAutoBankInProgress = false;
+			if (gAutoBankButton && gAutoBankButton->Checked)
+				gAutoBankButton->Checked = 0;
+			WriteChatf("\ay[No Items Found for Auto Banking.]\ax\n");
+			return;
+		}
+	}
+	if (PCHARINFO2 pChar2 = GetCharInfo2())
+	{
+		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor != 0)
+		{
+			DoCommandf("/autobank");
+			return;
+		}
+	}
+	if (autobanklist.size())
+	{
+		for (std::list<ItemGlobalIndex2>::iterator i = autobanklist.begin(); i != autobanklist.end(); i++)
+		{
+			ItemGlobalIndex2 ind = *i;
+			if (PCONTENTS pCont = FindItemBySlot(ind.Index.Slot1, ind.Index.Slot2))
+			{
+				if (PITEMINFO pItem = GetItemFromContents(pCont))
+				{
+					ItemGlobalIndex2 indy = pCont->GetGlobalIndex();
+					if (WillFitInBank(pCont))
+					{
+						WriteChatf("[%d] Moving %s from slot %d %d to bank", autobanklist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+						PickupItem(indy.Location, pCont);
+					}
+					else {
+						WriteChatf("[%d] \arAutobank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax", autobanklist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+					}
+					autobanklist.pop_front();
+					break;
+				}
+			}
+		}
+		return;
+	}
+	if (bAutoBankInProgress)
+	{
+		if(gAutoBankButton && gAutoBankButton->Checked)
+			gAutoBankButton->Checked = 0;
+		bAutoBankInProgress = false;
+		gStartAutoBanking = false;
+		WriteChatf("\ay[AutoBank Finished.]\ax");
+	}	
 }
