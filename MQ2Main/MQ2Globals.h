@@ -164,6 +164,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gLClickedObject;
 	EQLIB_VAR SWHOFILTER gFilterSWho;
 	EQLIB_VAR BOOL gCreateMQ2NewsWindow;
+	EQLIB_VAR BOOL gUseNewNamedTest;
 
 	EQLIB_VAR BOOL gbHUDUnderUI;
 	EQLIB_VAR BOOL gbAlwaysDrawMQHUD;
@@ -1103,7 +1104,7 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 	EQLIB_VAR DWORD CBankWnd__WndNotification;
-	
+
 	EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
 
 	EQLIB_VAR DWORD CButtonWnd__SetCheck;
@@ -1132,7 +1133,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContextMenuManager__Flush;
 	EQLIB_VAR DWORD CContextMenuManager__GetMenu;
 	EQLIB_VAR DWORD CContextMenuManager__CreateDefaultMenu;
-	
+
 	EQLIB_VAR DWORD CChatService__GetNumberOfFriends;
 	EQLIB_VAR DWORD CChatService__GetFriendName;
 
@@ -1359,7 +1360,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSkillMgr__IsAvailable;
 	EQLIB_VAR DWORD CSkillMgr__GetSkillCap;
 	EQLIB_VAR DWORD CSkillMgr__GetNameToken;
-
+	EQLIB_VAR DWORD CSkillMgr__IsActivatedSkill;
+	EQLIB_VAR DWORD CSkillMgr__IsCombatSkill;
+	
 	EQLIB_VAR DWORD CSliderWnd__GetValue;
 	EQLIB_VAR DWORD CSliderWnd__SetValue;
 	EQLIB_VAR DWORD CSliderWnd__SetNumTicks;
@@ -1605,6 +1608,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__GetItemByItemClass;
 	EQLIB_VAR DWORD PcZoneClient__RemoveBuffEffect;
 	EQLIB_VAR DWORD PcZoneClient__BandolierSwap;
+	EQLIB_VAR DWORD PcZoneClient__GetLinkedSpellReuseTimer;
 	
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
@@ -1645,6 +1649,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Affect__GetAffectData;
 
 	EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChangeGeneric;
+	EQLIB_VAR DWORD CharacterZoneClient__GetFocusReuseMod;
 	EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
 	EQLIB_VAR DWORD CLootWnd__LootAll;
 	EQLIB_VAR DWORD CLootWnd__RequestLootSlot;

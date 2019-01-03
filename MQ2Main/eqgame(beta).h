@@ -429,6 +429,7 @@ GNU General Public License for more details.
 #define CharacterZoneClient__GetLastEffectSlot_x                   0x4C1570
 #define CharacterZoneClient__CalcAffectChange_x                    0x4C16C0
 #define CharacterZoneClient__CalcAffectChangeGeneric_x             0x4C1890
+#define CharacterZoneClient__GetFocusReuseMod_x                    0x0
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6CB220
@@ -973,6 +974,7 @@ GNU General Public License for more details.
 #define PcZoneClient__GetItemByItemClass_x                         0x634070
 #define PcZoneClient__RemoveBuffEffect_x                           0x636F60
 #define PcZoneClient__BandolierSwap_x                              0x631F90
+#define PcZoneClient__GetLinkedSpellReuseTimer_x                   0x0
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x5C86C0

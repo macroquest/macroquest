@@ -3682,85 +3682,86 @@ bool MQ2CharacterType::GETMEMBER()
 		if (ISINDEX())
 		{
 			if (ISNUMBER())
-			{
+			{	
 				// numeric
 				if (unsigned long nSkill = GETNUMBER())
 				{
-					if (nSkill<7)
+					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
 					{
-						nSkill += 3;
-					}
-					else if (nSkill<11)
-					{
-						nSkill -= 7;
-					}
-					else
-						return false;
-					if (EQADDR_DOABILITYLIST[nSkill] != 0xFFFFFFFF)
-					{
-						strcpy_s(DataTypeTemp, szSkills[EQADDR_DOABILITYLIST[nSkill]]);
-						Dest.Ptr = &DataTypeTemp[0];
-						Dest.Type = pStringType;
-						return true;
+						//DWORD bAvail = pCSkillMgr->IsAvailable(nSkill);
+
+						DWORD nToken = pCSkillMgr->GetNameToken(nSkill);
+						if (char *thename = pStringTable->getString(nToken, 0)) {
+							//WriteChatf("[%d] %s bAvail = %d bActivated = %d", nSkill, thename, bAvail, bActivated);
+							strcpy_s(DataTypeTemp, thename);
+							Dest.Ptr = &DataTypeTemp[0];
+							Dest.Type = pStringType;
+							return true;
+						}
 					}
 				}
+				return false;
 			}
 			else
 			{
 				// name
-				for (DWORD nSkill = 0; szSkills[nSkill]; nSkill++)
-					if (!_stricmp(GETFIRST(), szSkills[nSkill]))
-					{
-						// found name
-						for (DWORD nAbility = 0; nAbility<10; nAbility++)
-							if (EQADDR_DOABILITYLIST[nAbility] == nSkill)
+				for(int i=0;i<NUM_SKILLS;i++) {
+					DWORD nToken = pCSkillMgr->GetNameToken(i);
+					if(char *thename = pStringTable->getString(nToken,0)) {
+						if (!_stricmp(GETFIRST(), thename))
+						{
+							//bool bAvail = pCSkillMgr->IsAvailable(i);
+							if (bool bActivated = pCSkillMgr->IsActivatedSkill(i))
 							{
-								if (nAbility<4)
-									nAbility += 7;
-								else
-									nAbility -= 3;
-								Dest.DWord = nAbility;
+								//WriteChatf("[%d] %s Available = %d Activated = %d", i, thename, bAvail, bActivated);
+								Dest.DWord = i;
 								Dest.Type = pIntType;
 								return true;
 							}
+							break;
+						}
 					}
+				}
 			}
 		}
 		return false;
 	case AbilityReady:
 		if (ISINDEX())
 		{
+			Dest.DWord = false;
+			Dest.Type = pBoolType;
 			if (ISNUMBER())
 			{
 				// numeric
 				if (unsigned long nSkill = GETNUMBER())
 				{
-					if (nSkill<7)
+					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
 					{
-						nSkill += 3;
-					}
-					else if (nSkill<11)
-					{
-						nSkill -= 7;
-					}
-					else
-						return false;
-					/**/
-					if (EQADDR_DOABILITYLIST[nSkill] != 0xFFFFFFFF)
-					{
-						//if (pSkillMgr->pSkill[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
-						//    Dest.DWord=gbAltTimerReady;
-						//else
-						Dest.DWord = pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nSkill]);
-						Dest.Type = pBoolType;
-						return true;
+						Dest.DWord = pCSkillMgr->IsAvailable(nSkill);
 					}
 				}
+				return true;
 			}
 			else
 			{
 				// name
-				for (DWORD nSkill = 0; szSkills[nSkill]; nSkill++)
+				
+				for (int i = 0; i < NUM_SKILLS; i++) {
+					DWORD nToken = pCSkillMgr->GetNameToken(i);
+					if (char *thename = pStringTable->getString(nToken, 0)) {
+						if (!_stricmp(GETFIRST(), thename))
+						{
+							if (bool bActivated = pCSkillMgr->IsActivatedSkill(i))
+							{
+								Dest.DWord = pCSkillMgr->IsAvailable(i);
+							}
+							break;
+						}
+					}
+				}
+				return true;
+				//i dont think we need all this crap... the above code should be enough... -eqmule
+				/*for (DWORD nSkill = 0; szSkills[nSkill]; nSkill++)
 				{
 					if (!_stricmp(GETFIRST(), szSkills[nSkill]))
 					{
@@ -3797,7 +3798,7 @@ bool MQ2CharacterType::GETMEMBER()
 							}
 						}
 					}
-				}
+				}*/
 			}
 		}
 		return false;
@@ -4965,7 +4966,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case Slowed:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(11, 0)) != -1)//Snared
+			if ((nBuff = GetSelfBuffBySPA(11, 0)) != -1)//Slowed
 			{
 				Dest.Ptr = &pChar2->Buff[nBuff];
 				Dest.Type = pBuffType;
@@ -5691,6 +5692,45 @@ bool MQ2CharacterType::GETMEMBER()
 		break;
 	}
 #endif
+	case Feared:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int nBuff = -1;
+			if ((nBuff = GetSelfBuffBySPA(23, 0)) != -1)//Feared
+			{
+				Dest.Ptr = &pChar2->Buff[nBuff];
+				Dest.Type = pBuffType;
+				return true;
+			}
+		}
+		break;
+	case Silenced:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int nBuff = -1;
+			if ((nBuff = GetSelfBuffBySPA(96, 0)) != -1)//Silenced
+			{
+				Dest.Ptr = &pChar2->Buff[nBuff];
+				Dest.Type = pBuffType;
+				return true;
+			}
+		}
+		break;
+	case Invulnerable:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int nBuff = -1;
+			if ((nBuff = GetSelfBuffBySPA(40, 0)) != -1)//Invulnerable
+			{
+				Dest.Ptr = &pChar2->Buff[nBuff];
+				Dest.Type = pBuffType;
+				return true;
+			}
+			if ((nBuff = GetSelfShortBuffBySPA(40, 0)) != -1)//Invulnerable
+			{
+				Dest.Ptr = &pChar2->ShortBuff[nBuff];
+				Dest.Type = pBuffType;
+				return true;
+			}
+		}
+		break;
 	//end of MQ2CharacterType
 	}
 	return false;
@@ -6376,6 +6416,34 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		return false;
+	case BaseName:
+	{
+		strcpy_s(DataTypeTemp, pSpell->Name);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+
+		DWORD SpellRank = pSpell->SpellRank;
+
+		switch (pSpell->SpellRank)
+		{
+		case 1://Original
+			SpellRank = 1;
+			break;
+		case 5://Rk. II
+			SpellRank = 2;
+			break;
+		case 10://Rk. III
+			SpellRank = 3;
+			break;
+		}
+		if (!SpellRank) {
+			SpellRank = GetSpellRankByName(pSpell->Name);
+		}
+		if (SpellRank > 1) {
+			TruncateSpellRankName(DataTypeTemp);
+		}
+		return true;
+	}
 	case Rank:
 		Dest.DWord = pSpell->SpellRank;//well I haven't checked all spells, but im pretty sure if it's 0 its not a spell a player can scribe/or not intentional, i.e a eq bug, time will tell - eqmule
 		Dest.Type = pIntType;
@@ -9790,7 +9858,7 @@ bool MQ2EverQuestType::GETMEMBER()
 		return false;
 	switch ((EverQuestMembers)pMember->ID)
 	{
-	case HWND:
+	case xHWND:
 	{
 		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
 		{
@@ -10064,6 +10132,22 @@ bool MQ2EverQuestType::GETMEMBER()
 				Dest.DWord = 0;
 			}
 		}
+		return true;
+	}
+	case Foreground:
+	{
+		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
+		{
+			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
+		}
+		HWND EQhWnd = *(HWND*)EQADDR_HWND;
+		if (EQW_GetDisplayWindow)
+			EQhWnd = EQW_GetDisplayWindow();
+		if (GetForegroundWindow() == EQhWnd)
+			Dest.DWord = TRUE;
+		else
+			Dest.DWord = FALSE;
+		Dest.Type = pBoolType;
 		return true;
 	}
 	}
@@ -13825,6 +13909,28 @@ bool MQ2TargetType::GETMEMBER()
 			}
 		}
 		break;
+	case Feared:
+		if ((Dest.Int = GetTargetBuffBySPA(23, 0)) != -1)//Feared
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+	case Silenced:
+		if ((Dest.Int = GetTargetBuffBySPA(96, 0)) != -1)//Silenced
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+	case Invulnerable:
+		if ((Dest.Int = GetTargetBuffBySPA(40, 0)) != -1)//Invulnerable
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+
 	}
 	return false;
 }

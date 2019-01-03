@@ -1315,7 +1315,7 @@ typedef struct _INVENTORYWND {
 //CBazaarSearchWnd__CBazaarSearchWnd_x aBazaarsearchwn
 // CBazaarSearchWnd_size: 0x92d0 (see 540DED) in Dec 10 2018 Test - eqmule
 typedef struct _BAZAARSEARCHWND {
-/*0x0000*/ struct _CSIDLWND Wnd;
+/*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0x8ff8];
 /*0x9228*/ void ** ppTraderData;
 /*0x922c*/ DWORD hashVal;//find in CBazaarSearchWnd__HandleBazaarMsg_x
@@ -1336,7 +1336,7 @@ typedef struct _CPLAYERWND {
 // CTargetWindow__CTargetWindow aTargetwindow
 // CTargetWindow_size: 0x8c8 (see 54057B) in Dec 10 2018 Test - eqmule
 typedef struct _CTARGETWND {
-/*0x0000*/ struct _CSIDLWND    Wnd;
+/*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE         Unknown0x0230[0x198];
 /*0x03c8*/ struct _CBUTTONWND * pTargetBuff[NUM_BUFF_SLOTS]; // buff icons
 /*0x054c*/ int          BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
@@ -1406,16 +1406,16 @@ typedef struct _EQCASTSPELLWINDOW {
 //note that Invslot needs to be a short or pickupitem wont work
 // CInvSlotWnd_size: 0x2d0 (see 7F0A2C) in Dec 10 2018 Test - eqmule
 typedef struct _EQINVSLOTWND {
-/*0x0000*/ struct _CXWND Wnd;      //----/ actually CButtonWnd
+/*0x0000*/ struct _CXWND        Wnd;      //----/ actually CButtonWnd
 /*0x01e8*/ BYTE			Unknown0x01e8[0x8c];
 /*0x0274*/ BYTE			Unknown0x0274[0x10];
 /*0x0284*/ LONG			WindowType;
-									// 00 for inventory
-									// 01 for bank
-									// 02 for shared bank
-									// 03 for trader window
-									// 04 for World/Tradeskill/Combine
-									// 11 for loot window
+											// 00 for inventory
+											// 01 for bank
+											// 02 for shared bank
+											// 03 for trader window
+											// 04 for World/Tradeskill/Combine
+											// 11 for loot window
 /*0x0288*/ short		InvSlot;
 /*0x028a*/ short		BagSlot;
 /*0x028c*/ short		GlobalSlot;
@@ -1521,7 +1521,7 @@ typedef struct _EQLOOTWINDOW {
 // CMapViewWnd__CMapViewWnd_x
 // CMapViewWnd_size: 0x648 (see 540280) in Dec 10 2018 Test - eqmule
 typedef struct _EQMAPWINDOW {
-/*0x0000*/ struct _CSIDLWND Wnd;
+/*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE			Unknown0x0230[0x40];
 /*0x0270*/ CHAR			shortzonename[0x80];
 /*0x02f0*/ BYTE			Unknown0x02f0[0x3c];
@@ -1615,7 +1615,7 @@ typedef struct _EQRAIDWINDOW {
 //CTradeWnd__CTradeWnd aTradewnd
 // CTradeWnd__size: 0x2f0 (see 540D47) in Dec 10 2018 Test - eqmule
 typedef struct _EQTRADEWINDOW {
-/*0x0000*/ struct _CSIDLWND Wnd;
+/*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE			Unknown0x0230[0xb8];
 /*0x02e8*/ BYTE			HisTradeReady;
 /*0x02e9*/ BYTE			MyTradeReady;
@@ -1642,6 +1642,7 @@ typedef struct _EQFACTIONWINDOW {
 /*0x0274*/ void*		FactionList;//CListWnd*
 /*0x0278*/
 } EQFACTIONWINDOW, *PEQFACTIONWINDOW;
+
 };
 using namespace EQUIStructs;
 #pragma pack(pop)

@@ -180,7 +180,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned 
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x50);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x54);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x0a0);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool, bool, bool),0x0d8);
 #if defined(ROF2EMU) || defined(UFEMU)
@@ -188,11 +188,15 @@ FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
+FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const,0x18c);
+FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const,0x190);
 #else
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xfc);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);//don't ever doubt this one, double check CXWnd__CXWnd vftable and count
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
+FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const,0x190);
+FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const,0x194);
 #endif
 
 //ClientSpellManager
@@ -1389,7 +1393,7 @@ FUNCTION_AT_ADDRESS(void  CFileSelectionWnd::GoSubdirectory(struct _ITEMIDLIST *
 FUNCTION_AT_ADDRESS(void  CFileSelectionWnd::UpdateButtons(void),CFileSelectionWnd__UpdateButtons);
 #endif
 #ifdef CFileSelectionWnd__DirectoryEmpty_x
-FUNCTION_AT_ADDRESS(bool  CFileSelectionWnd::DirectoryEmpty(struct IShellFolder *,struct _ITEMIDLIST *),CFileSelectionWnd__DirectoryEmpty);
+FUNCTION_AT_ADDRESS(bool  CFileSelectionWnd::DirectoryEmpty(IShellFolder *,struct _ITEMIDLIST *),CFileSelectionWnd__DirectoryEmpty);
 #endif
 #ifdef CFileSelectionWnd__UpdateFileList_x
 FUNCTION_AT_ADDRESS(void  CFileSelectionWnd::UpdateFileList(void),CFileSelectionWnd__UpdateFileList);
@@ -1398,7 +1402,7 @@ FUNCTION_AT_ADDRESS(void  CFileSelectionWnd::UpdateFileList(void),CFileSelection
 FUNCTION_AT_ADDRESS(void  CFileSelectionWnd::ClearFileList(void),CFileSelectionWnd__ClearFileList);
 #endif
 #ifdef CFileSelectionWnd__GetPath_x
-FUNCTION_AT_ADDRESS(unsigned long  CFileSelectionWnd::GetPath(struct IShellFolder *,struct _ITEMIDLIST *,bool,class CXStr &),CFileSelectionWnd__GetPath);
+FUNCTION_AT_ADDRESS(unsigned long  CFileSelectionWnd::GetPath(IShellFolder *,struct _ITEMIDLIST *,bool,class CXStr &),CFileSelectionWnd__GetPath);
 #endif
 #ifdef CFileSelectionWnd__GetSelectedFileCount_x
 FUNCTION_AT_ADDRESS(int  CFileSelectionWnd::GetSelectedFileCount(void),CFileSelectionWnd__GetSelectedFileCount);
@@ -4560,6 +4564,9 @@ FUNCTION_AT_ADDRESS(int CharacterZoneClient::CalcAffectChange(const EQ_Spell *sp
 #endif
 #ifdef CharacterZoneClient__CalcAffectChangeGeneric_x
 FUNCTION_AT_ADDRESS(int CharacterZoneClient::CalcAffectChangeGeneric(const EQ_Spell *spell, BYTE, BYTE, const EQ_Affect *, int, bool),CharacterZoneClient__CalcAffectChangeGeneric);
+#endif
+#ifdef CharacterZoneClient__GetFocusReuseMod_x
+FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusReuseMod(const EQ_Spell *pSpell, VePointer<CONTENTS>&pOutItem),CharacterZoneClient__GetFocusReuseMod);
 #endif
 #ifdef EQ_Character__GetPCSpellAffect_x
 FUNCTION_AT_ADDRESS(class EQ_Affect * EQ_Character::GetPCSpellAffect(int theaffect,int *slotnum,int *spaslot) const,EQ_Character__GetPCSpellAffect);
@@ -10079,14 +10086,17 @@ FUNCTION_AT_ADDRESS(int EQMisc::GetActiveFavorCost(void),EQMisc__GetActiveFavorC
 #ifdef CSkillMgr__GetNameToken_x
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetNameToken(int),CSkillMgr__GetNameToken);
 #endif
+#ifdef CSkillMgr__IsCombatSkill_x
+FUNCTION_AT_ADDRESS(bool CSkillMgr::IsCombatSkill(int),CSkillMgr__IsCombatSkill);
+#endif
 #ifdef CSkillMgr__GetSkillCap_x
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int,bool,bool,bool),CSkillMgr__GetSkillCap)
 #endif
 #ifdef CSkillMgr__SkillAvailableAtLevel_x
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::SkillAvailableAtLevel(int,int),CSkillMgr__SkillAvailableAtLevel);
 #endif
-#ifdef CSkillMgr__IsActivatableSkill_x
-FUNCTION_AT_ADDRESS(bool CSkillMgr::IsActivatableSkill(int),CSkillMgr__IsActivatableSkill);
+#ifdef CSkillMgr__IsActivatedSkill_x
+FUNCTION_AT_ADDRESS(bool CSkillMgr::IsActivatedSkill(int),CSkillMgr__IsActivatedSkill);
 #endif
 #ifdef CSkillMgr__GetBaseDamage_x
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetBaseDamage(int),CSkillMgr__GetBaseDamage);
@@ -10167,6 +10177,9 @@ FUNCTION_AT_ADDRESS(void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID),
 #endif
 #ifdef PcZoneClient__BandolierSwap_x
 FUNCTION_AT_ADDRESS(void PcZoneClient::BandolierSwap(int index), PcZoneClient__BandolierSwap);
+#endif
+#ifdef PcZoneClient__GetLinkedSpellReuseTimer_x
+FUNCTION_AT_ADDRESS(UINT PcZoneClient::GetLinkedSpellReuseTimer(int index), PcZoneClient__GetLinkedSpellReuseTimer);
 #endif
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);

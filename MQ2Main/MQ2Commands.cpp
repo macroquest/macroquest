@@ -2442,16 +2442,30 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (!szLine[0] || !cmdDoAbility) return;
-	if (atoi(szLine) || !EQADDR_DOABILITYLIST) {
-		cmdDoAbility(pChar, szLine);
+	if (!szLine[0] || !cmdDoAbility)
 		return;
-	}
-	//SkillManager*pSkillm = (SkillManager*)pSkillMgr;
 	PSKILLMGR pSkmgr = pSkillMgr;
 	DWORD Index;
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
+	int abil = atoi(szBuffer);
+	if (abil && abil > 5 && abil < NUM_SKILLS)//user wants us to activate a ability by its REAL ID...
+	{
+		if (DWORD nToken = pCSkillMgr->GetNameToken(abil))
+		{
+			if (char *thename = pStringTable->getString(nToken, 0)) {
+				strcpy_s(szBuffer, thename);
+			}
+		}
+	}
+	else
+	{
+		if (abil || !EQADDR_DOABILITYLIST) {
+			cmdDoAbility(pChar, szLine);
+			return;
+		}
+	}
+	//SkillManager*pSkillm = (SkillManager*)pSkillMgr;
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 		// display available abilities list
 		if (!_stricmp(szBuffer, "list")) {

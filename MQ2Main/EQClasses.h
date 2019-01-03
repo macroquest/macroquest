@@ -11,9 +11,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+
 #include "SharedClasses.h"
+
+struct IShellFolder;
+
 #pragma pack(push)
 #pragma pack(8)
+
 namespace EQClasses
 {
 // Other
@@ -1242,6 +1247,8 @@ EQLIB_OBJECT int CButtonWnd::OnProcessFrame(void);
 //EQLIB_OBJECT void * CButtonWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CButtonWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 EQLIB_OBJECT void CButtonWnd::SetRadioGroup(class CRadioGroup *);
+EQLIB_OBJECT UINT CButtonWnd::GetCoolDownTotalDuration() const;
+EQLIB_OBJECT UINT CButtonWnd::GetCoolDownTimeRemaining() const;
 };
 
 class CCastingWnd : public CSidlScreenWnd
@@ -2711,8 +2718,8 @@ EQLIB_OBJECT int CFileSelectionWnd::WndNotification(class CXWnd *,unsigned __int
 //EQLIB_OBJECT void * CFileSelectionWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CFileSelectionWnd::Deactivate(void);
 // private
-EQLIB_OBJECT bool CFileSelectionWnd::DirectoryEmpty(struct IShellFolder *,struct _ITEMIDLIST *);
-EQLIB_OBJECT unsigned long CFileSelectionWnd::GetPath(struct IShellFolder *,struct _ITEMIDLIST *,bool,class CXStr &);
+EQLIB_OBJECT bool CFileSelectionWnd::DirectoryEmpty(IShellFolder *,struct _ITEMIDLIST *);
+EQLIB_OBJECT unsigned long CFileSelectionWnd::GetPath(IShellFolder *,struct _ITEMIDLIST *,bool,class CXStr &);
 EQLIB_OBJECT void CFileSelectionWnd::ClearFileList(void);
 EQLIB_OBJECT void CFileSelectionWnd::GoSubdirectory(struct _ITEMIDLIST *);
 EQLIB_OBJECT void CFileSelectionWnd::MakeFilePath(void);
@@ -3439,12 +3446,12 @@ public:
 	CXW
 /****** ButtonWnd inherits ******/
 /*0x01e8*/ int		MouseButtonState;
-/*0x01ec*/ bool	bPicture;
+/*0x01ec*/ bool	    bPicture;
 /*0x01f0*/ CRadioGroup* pGroup;
-/*0x01f4*/ bool	bChecked;
-/*0x01f5*/ bool	bMouseOverLastFrame;
+/*0x01f4*/ bool	    bChecked;
+/*0x01f5*/ bool	    bMouseOverLastFrame;
 /*0x01f8*/ tagPOINT	DecalOffset;
-/*0x0200*/ tagSIZE		DecalSize;
+/*0x0200*/ tagSIZE	DecalSize;
 /*0x0208*/ COLORREF	DecalTint;
 /*0x020c*/ RECT		TextOffsets;
 /*0x021c*/ int		TextModeBits;
@@ -3455,7 +3462,7 @@ public:
 /*0x0230*/ UINT		CoolDownDuration;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x0234*/ CXStr*   Indicator;
-/*0x0238*/ UINT		IndicatorVal;
+/*0x0238*/ UINT	    IndicatorVal;
 /*0x023c*/ void*    pIndicatorTextObject;
 #endif
 	/* CButtonDrawTemplate Start */
@@ -8589,53 +8596,53 @@ union {
 /*0x2424*/ PlayerClient *me;//just here for comparing the 2, todo: fix
 /*0x2424*/ PSPAWNINFO me2;
 };
-/*0x242c*/ bool			bUpdateStuff;
-/*0x242d*/ bool         bZoningStatProcessing;
-/*0x2430*/ DWORD        ArmorClassBonus;//vtable2+10
-/*0x2434*/ DWORD        CurrWeight;//vtable2+14
-/*0x2438*/ int			LastHitPointSendPercent;
-/*0x243c*/ int			LastManaPointSendPercent;
-/*0x2440*/ int			LastEndurancePointSendPercent;
-/*0x2444*/ DWORD        HPBonus;//vtable2+24
-/*0x2448*/ DWORD        ManaBonus;//vtable2+28
-/*0x244c*/ DWORD        EnduranceBonus;//vtable2+2c
+/*0x242c*/ bool		bUpdateStuff;
+/*0x242d*/ bool     bZoningStatProcessing;
+/*0x2430*/ DWORD    ArmorClassBonus;//vtable2+10
+/*0x2434*/ DWORD    CurrWeight;//vtable2+14
+/*0x2438*/ int		LastHitPointSendPercent;
+/*0x243c*/ int		LastManaPointSendPercent;
+/*0x2440*/ int		LastEndurancePointSendPercent;
+/*0x2444*/ DWORD    HPBonus;//vtable2+24
+/*0x2448*/ DWORD    ManaBonus;//vtable2+28
+/*0x244c*/ DWORD    EnduranceBonus;//vtable2+2c
 /*0x2450*/ BYTE     Unknown0x2450[0x4];
-/*0x2454*/ DWORD        CombatEffectsBonus;//vtable2+34 Combat Effects in UI
-/*0x2458*/ DWORD        ShieldingBonus;//vtable2+38 Melee Shielding in UI
-/*0x245c*/ DWORD        SpellShieldBonus;//vtable2+3c Spell Shielding in UI
-/*0x2460*/ DWORD        AvoidanceBonus;//vtable2+40 Avoidance in UI
-/*0x2464*/ DWORD        AccuracyBonus;//vtable2+44 Accuracy in UI
-/*0x2468*/ DWORD        StunResistBonus;//vtable2+48 Stun Resist in UI
-/*0x246c*/ DWORD        StrikeThroughBonus;//vtable2+4c Strike Through in UI
-/*0x2470*/ DWORD        DoTShieldBonus;//vtable2+50 Dot Shielding in UI
-/*0x2474*/ DWORD        DamageShieldMitigationBonus;//vtable2+54 Damage Shield Mitig in UI
-/*0x2478*/ DWORD        DamageShieldBonus;//vtable2+58 Damage Shielding in UI
+/*0x2454*/ DWORD    CombatEffectsBonus;//vtable2+34 Combat Effects in UI
+/*0x2458*/ DWORD    ShieldingBonus;//vtable2+38 Melee Shielding in UI
+/*0x245c*/ DWORD    SpellShieldBonus;//vtable2+3c Spell Shielding in UI
+/*0x2460*/ DWORD    AvoidanceBonus;//vtable2+40 Avoidance in UI
+/*0x2464*/ DWORD    AccuracyBonus;//vtable2+44 Accuracy in UI
+/*0x2468*/ DWORD    StunResistBonus;//vtable2+48 Stun Resist in UI
+/*0x246c*/ DWORD    StrikeThroughBonus;//vtable2+4c Strike Through in UI
+/*0x2470*/ DWORD    DoTShieldBonus;//vtable2+50 Dot Shielding in UI
+/*0x2474*/ DWORD    DamageShieldMitigationBonus;//vtable2+54 Damage Shield Mitig in UI
+/*0x2478*/ DWORD    DamageShieldBonus;//vtable2+58 Damage Shielding in UI
 /*0x247c*/ TSafeArrayStatic<int, 9> ItemSkillMinDamageMod;//size 0x24
 /*0x24a0*/ TSafeArrayStatic<int, 9> SkillMinDamageModBonus;//size 0x24
-/*0x24c4*/ DWORD        HeroicSTRBonus;//vtable2+a4
-/*0x24c8*/ DWORD        HeroicINTBonus;//vtable2+a8
-/*0x24cc*/ DWORD        HeroicWISBonus;//vtable2+ac
-/*0x24d0*/ DWORD        HeroicAGIBonus;//vtable2+b0
-/*0x24d4*/ DWORD        HeroicDEXBonus;//vtable2+b4
-/*0x24d8*/ DWORD        HeroicSTABonus;//vtable2+b8
-/*0x24dc*/ DWORD        HeroicCHABonus;//vtable2+bc
-/*0x24e0*/ DWORD        HeroicSvMagicBonus;//vtable2+c0
-/*0x24e4*/ DWORD        HeroicSvFireBonus;//vtable2+c4
-/*0x24e8*/ DWORD        HeroicSvColdBonus;//vtable2+c8
-/*0x24ec*/ DWORD        HeroicSvDiseaseBonus;//vtable2+cc
-/*0x24f0*/ DWORD        HeroicSvPoisonBonus;//vtable2+d0
-/*0x24f4*/ DWORD        HeroicSvCorruptionBonus;//vtable2+d4
-/*0x24f8*/ DWORD        HealAmountBonus;//vtable2+d8
-/*0x24fc*/ DWORD        SpellDamageBonus;//vtable2+dc
-/*0x2500*/ int			ItemHealAmountDotMod;
-/*0x2504*/ int			ItemSpellDamageDotMod;
-/*0x2508*/ DWORD        ClairvoyanceBonus;//vtable2+e8
-/*0x250c*/ DWORD        AttackBonus;//vtable2+ec
-/*0x2510*/ DWORD        HPRegenBonus;//vtable2+f0
-/*0x2514*/ DWORD        ManaRegenBonus;//vtable2+f4
-/*0x2518*/ DWORD        EnduranceRegenBonus;//vtable2+f8
-/*0x251c*/ DWORD        AttackSpeed;//vtable2+fc
-/*0x2520*/ //int		ItemPotionBelt;
+/*0x24c4*/ DWORD    HeroicSTRBonus;//vtable2+a4
+/*0x24c8*/ DWORD    HeroicINTBonus;//vtable2+a8
+/*0x24cc*/ DWORD    HeroicWISBonus;//vtable2+ac
+/*0x24d0*/ DWORD    HeroicAGIBonus;//vtable2+b0
+/*0x24d4*/ DWORD    HeroicDEXBonus;//vtable2+b4
+/*0x24d8*/ DWORD    HeroicSTABonus;//vtable2+b8
+/*0x24dc*/ DWORD    HeroicCHABonus;//vtable2+bc
+/*0x24e0*/ DWORD    HeroicSvMagicBonus;//vtable2+c0
+/*0x24e4*/ DWORD    HeroicSvFireBonus;//vtable2+c4
+/*0x24e8*/ DWORD    HeroicSvColdBonus;//vtable2+c8
+/*0x24ec*/ DWORD    HeroicSvDiseaseBonus;//vtable2+cc
+/*0x24f0*/ DWORD    HeroicSvPoisonBonus;//vtable2+d0
+/*0x24f4*/ DWORD    HeroicSvCorruptionBonus;//vtable2+d4
+/*0x24f8*/ DWORD    HealAmountBonus;//vtable2+d8
+/*0x24fc*/ DWORD    SpellDamageBonus;//vtable2+dc
+/*0x2500*/ int		ItemHealAmountDotMod;
+/*0x2504*/ int		ItemSpellDamageDotMod;
+/*0x2508*/ DWORD    ClairvoyanceBonus;//vtable2+e8
+/*0x250c*/ DWORD    AttackBonus;//vtable2+ec
+/*0x2510*/ DWORD    HPRegenBonus;//vtable2+f0
+/*0x2514*/ DWORD    ManaRegenBonus;//vtable2+f4
+/*0x2518*/ DWORD    EnduranceRegenBonus;//vtable2+f8
+/*0x251c*/ DWORD    AttackSpeed;//vtable2+fc
+/*0x2520*/ //int	  ItemPotionBelt;
 /*0x2520*/ int		NoBuffItemHitpointAdjustment;
 /*0x2524*/ int		NoBuffItemManaAdjustment;
 /*0x2528*/ int		NoBuffItemEnduranceAdjustment;
@@ -8654,13 +8661,13 @@ union {
 /*0x255c*/ int		NoBuffItemDamageShield;
 /*0x2560*/ int		NoBuffItemDamageShieldMitigation;
 /*0x2564*/ int		NoBuffItemHaste;
-/*0x256c*/ //int		NoBuffItemPotionBelt;
-/*0x2568*/ TSafeArrayStatic<int, 9>   NoBuffItemSkillMinDamageMod;//size 0x24
+/*0x256c*/ //int	  NoBuffItemPotionBelt;
+/*0x2568*/ TSafeArrayStatic<int, 9> NoBuffItemSkillMinDamageMod;//size 0x24
 /*0x258c*/ bool		bOutputHpRegen;
 /*0x258d*/ bool		bInvulnerable;
 /*0x258e*/ bool		bOnAVehicle;
-/*0x2590*/ EQData::SpellCache spellCache;//size 0x58
-/*0x25e8*/ HashListSet<int, 0x80> DoomEffectsBySlot;//size 0x10 + (0x80 * 4)
+/*0x2590*/ EQData::SpellCache       spellCache;//size 0x58
+/*0x25e8*/ HashListSet<int, 0x80>   DoomEffectsBySlot;//size 0x10 + (0x80 * 4)
 /*0x27f8*/ UINT		LastHitEval;
 /*0x27fc*/
 
@@ -8685,6 +8692,7 @@ EQLIB_OBJECT EQ_Affect & CharacterZoneClient::GetEffect(int)const;
 EQLIB_OBJECT int CharacterZoneClient::GetOpenEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill, int Index = -1);
 EQLIB_OBJECT int CharacterZoneClient::GetFirstEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill);
 EQLIB_OBJECT int CharacterZoneClient::GetLastEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill, bool bIsDisplay = false);
+EQLIB_OBJECT const int CharacterZoneClient::GetFocusReuseMod(const EQ_Spell *pSpell, VePointer<CONTENTS>&pOutItem);
 };
 
 enum EAreaCorner
@@ -8943,7 +8951,7 @@ EQLIB_OBJECT void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID);
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByID(PCONTENTS *contOut, int itemid, ItemIndex *itemindex/*out*/);
 EQLIB_OBJECT PCONTENTS * PcZoneClient::GetItemByItemClass(PCONTENTS *contOut, int itemclass, ItemIndex *itemindex/*out*/);
 EQLIB_OBJECT void PcZoneClient::BandolierSwap(int index);
-
+EQLIB_OBJECT UINT PcZoneClient::GetLinkedSpellReuseTimer(int index);
 };
 
 class PcClient// : public PcZoneClient
@@ -10296,10 +10304,11 @@ public:
 EQLIB_OBJECT unsigned long CSkillMgr::GetNameToken(int);
 EQLIB_OBJECT unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int,bool,bool,bool);
 EQLIB_OBJECT unsigned long CSkillMgr::SkillAvailableAtLevel(int,int);
-EQLIB_OBJECT bool CSkillMgr::IsActivatableSkill(int);
+EQLIB_OBJECT bool CSkillMgr::IsActivatedSkill(int);
 EQLIB_OBJECT unsigned long CSkillMgr::GetBaseDamage(int);
 EQLIB_OBJECT unsigned long CSkillMgr::GetReuseTime(int);
 EQLIB_OBJECT bool CSkillMgr::IsAvailable(int);
+EQLIB_OBJECT bool CSkillMgr::IsCombatSkill(int);
 };
 
 class CChatService

@@ -1214,6 +1214,9 @@ public:
 #if !defined(ROF2EMU) && !defined(UFEMU)
 		LCK = 271,
 #endif
+		Feared = 272,
+		Silenced = 273,
+		Invulnerable = 274,
 	};
 	enum CharacterMethods
 	{
@@ -1487,6 +1490,9 @@ public:
 #if !defined(ROF2EMU) && !defined(UFEMU)
 		TypeMember(LCK);
 #endif
+		TypeMember(Feared);
+		TypeMember(Silenced);
+		TypeMember(Invulnerable);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1614,6 +1620,7 @@ public:
 		CastByMe = 73,
 		HasSPA = 74,
 		Trigger = 75,
+		BaseName = 76,
 	};
 	enum SpellMethods
 	{
@@ -1695,7 +1702,7 @@ public:
 		TypeMember(CastByMe);
 		TypeMember(HasSPA);
 		TypeMember(Trigger);
-		
+		TypeMember(BaseName);		
 	}
 
 	~MQ2SpellType()
@@ -3512,7 +3519,8 @@ public:
 		CharSelectList = 25,
 		CurrentUI = 26,
 		IsDefaultUILoaded = 27,
-		HWND = 28,
+		xHWND = 28,
+		Foreground = 29,
 	};
 	enum EverQuestMethods
 	{
@@ -3546,7 +3554,8 @@ public:
 		TypeMember(CharSelectList);
 		TypeMember(CurrentUI);
 		TypeMember(IsDefaultUILoaded);
-		TypeMember(HWND);
+		AddMember(xHWND, "HWND");
+		TypeMember(Foreground);
 	}
 
 	~MQ2EverQuestType()
@@ -5020,6 +5029,9 @@ public:
         MyBuff = 39,
         MyBuffCount = 40,
 		MyBuffDuration = 41,
+		Feared = 42,
+		Silenced = 43,
+		Invulnerable = 44,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -5069,6 +5081,9 @@ public:
         TypeMember(MyBuff);
         TypeMember(MyBuffCount);
 		TypeMember(MyBuffDuration);
+		TypeMember(Feared);
+		TypeMember(Silenced);
+		TypeMember(Invulnerable);
 	}
 
 	~MQ2TargetType()

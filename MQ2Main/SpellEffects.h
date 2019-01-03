@@ -14,7 +14,7 @@
 /*
  * SpellEffects.h - eqmule Mar 2014
  * Picked these up from the soe forums at
- * https://forums.station.sony.com/eq/index.php?threads/enumerated-spa-list.206288/
+ * https://forums.daybreakgames.com/eq/index.php?threads/enumerated-spa-list.206288/
  * Enumerated SPA list
  */
         "HP",                                   // 000
@@ -528,3 +528,13 @@
         "Spell Damage v4",                      // 508
         "Health Transfer",                      // 509
         "Resist Incoming",                      // 510
+        "Focus Timer Min",                      // 511
+        "Proc Timer Modifier",                  // 512
+        "Mana Max Percent",                     // 513
+        "Endurance Max Percent",                // 514
+        "AC Avoidance Max Percent",             // 515
+        "AC Mitigation Max Percent",            // 516
+        "Attack Offense Max Percent",           // 517
+        "Attack Accuracy Max Percent",          // 518
+        "Luck Amt",                             // 519
+        "Luck Percent",                         // 520

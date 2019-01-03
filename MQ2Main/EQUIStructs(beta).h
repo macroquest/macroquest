@@ -1339,7 +1339,7 @@ typedef struct _CPLAYERWND {
 // CTargetWindow__CTargetWindow aTargetwindow
 // CTargetWindow_size: 0x8d0 (see 53FE3B) in Dec 10 2018 Beta - eqmule
 typedef struct _CTARGETWND {
-/*0x0000*/ struct _CSIDLWND     Wnd;
+/*0x0000*/ struct  _CSIDLWND    Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0x198];
 /*0x03d0*/ struct _CBUTTONWND * pTargetBuff[NUM_BUFF_SLOTS]; // buff icons
 /*0x0554*/ int          BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff

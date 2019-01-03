@@ -1966,7 +1966,7 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 	}
 	else {
 		CHAR szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "UndefinedEffect%03d", absEffectID);
+		sprintf_s(szTemp, "Unknown SPA[%03d]", absEffectID);
 		strcat_s(szBuffer, BufferSize, szTemp);
 	}
 	return szBuffer;
@@ -2467,9 +2467,10 @@ template <unsigned int _Size> PCHAR FormatPenaltyChance(PCHAR szEffectName, LONG
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, LONG max, CHAR(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE)
+template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, LONG max, CHAR(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
 {
-	CHAR szPercent[MAX_STRING] = "%";
+	CHAR szPercent[MAX_STRING] = { 0 };
+	if (usepercent) strcat_s(szPercent, "%");
 	if (hundreds)
 		if (value == max)
 			if (scaling)
@@ -2495,9 +2496,9 @@ template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE)
+template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
 {
-	return FormatPercent(szEffectName, value, value, szBuffer, scaling, hundreds);
+	return FormatPercent(szEffectName, value, value, szBuffer, scaling, hundreds, usepercent);
 }
 
 template <unsigned int _Size> PCHAR FormatRange(PCHAR szEffectName, LONG value, PCHAR range, CHAR(&szBuffer)[_Size], PCHAR extra = "")
@@ -2572,15 +2573,15 @@ template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG v
 	return FormatSkillAttack(szEffectName, base2, base2, value, skill, szBuffer, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG max, LONG skill, CHAR(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG max, LONG skill, CHAR(&szBuffer)[_Size], BOOL usepercent = TRUE, PCHAR preposition = "with")
 {
-	sprintf_s(szBuffer, "%s %s %s", FormatPercent(szEffectName, value, max, szBuffer), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
+	sprintf_s(szBuffer, "%s %s %s", FormatPercent(szEffectName, value, max, szBuffer, TRUE, FALSE, usepercent), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG skill, CHAR(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG skill, CHAR(&szBuffer)[_Size], BOOL percent = TRUE, PCHAR preposition = "with")
 {
-	return FormatSkills(szEffectName, value, value, skill, szBuffer, preposition);
+	return FormatSkills(szEffectName, value, value, skill, szBuffer, usepercent, preposition);
 }
 
 template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
@@ -3319,7 +3320,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatPercent(spelleffectname, -value, -finish, szTemp2));
 		break;
 	case 169: //Chance to Critical Hit 
-		strcat_s(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2, "for"));
+		strcat_s(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2, TRUE, "for"));
 		break;
 	case 170: //Chance to Critical Cast
 	case 171: //Crippling Blow 
@@ -3436,7 +3437,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 220: //Skill Damage Amt 
-		strcat_s(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2));
+		strcat_s(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2, FALSE));
 		break;
 	case 221: //Reduce Weight
 	case 222: //Block Behind 
@@ -3535,7 +3536,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 268: //TS Fail Rate
-		strcat_s(szBuff, FormatSkills(spelleffectname, -value, -finish, base2, szTemp2, "for"));
+		strcat_s(szBuff, FormatSkills(spelleffectname, -value, -finish, base2, szTemp2, TRUE, "for"));
 		break;
 	case 269: //Bandage Perc Limit (no spells currently)
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
@@ -4151,7 +4152,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
 	default: //undefined effect
-		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
+		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname, base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);
 		break;
 	}
@@ -5263,7 +5264,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 			return false;
 		if (pSpawn->mActorClient.Class == 62)  // Destructible Objects
 			return false;
-		if (pSpawn->mActorClient.Class == 63 || pSpawn->mActorClient.Class == 64)  // Tribute Master/Guild Tribute Master
+		if (pSpawn->mActorClient.Class == 63 || pSpawn->mActorClient.Class == 64 || pSpawn->mActorClient.Class == 74)  // Tribute Master/Guild Tribute Master/Personal Tribute Master
 			return false;
 		if (pSpawn->mActorClient.Class == 66)  // Guild Banker
 			return false;
@@ -5287,19 +5288,23 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 					if (Cmd[2] == '_')
 						return false;
 			}
-			if ((!_strnicmp(Cmd, "Guard", 5)) ||
-				(!_strnicmp(Cmd, "Defender", 8)) ||
-				(!_strnicmp(Cmd, "Soulbinder", 10)) ||
-				(!_strnicmp(Cmd, "Aura", 4)) ||
-				(!_strnicmp(Cmd, "Sage", 4)) ||
-				//(!_strnicmp(szTemp,"High_Priest",11))   ||
-				(!_strnicmp(Cmd, "Ward", 4)) ||
-				//(!_strnicmp(szTemp,"Shroudkeeper",12))  ||
-				(!_strnicmp(Cmd, "Eye of", 6)) ||
-				(!_strnicmp(Cmd, "Imperial_Crypt", 14)) ||
-				(!_strnicmp(Cmd, "Diaku", 5)))
-				return false;
-			if (isupper(Cmd[0]) || Cmd[0] == '#')
+			if (!gUseNewNamedTest) {
+				if ((!_strnicmp(Cmd, "Guard", 5)) ||
+					(!_strnicmp(Cmd, "Defender", 8)) ||
+					(!_strnicmp(Cmd, "Soulbinder", 10)) ||
+					(!_strnicmp(Cmd, "Aura", 4)) ||
+					(!_strnicmp(Cmd, "Sage", 4)) ||
+					//(!_strnicmp(szTemp,"High_Priest",11))   ||
+					(!_strnicmp(Cmd, "Ward", 4)) ||
+					//(!_strnicmp(szTemp,"Shroudkeeper",12))  ||
+					(!_strnicmp(Cmd, "Eye of", 6)) ||
+					(!_strnicmp(Cmd, "Imperial_Crypt", 14)) ||
+					(!_strnicmp(Cmd, "Diaku", 5)))
+					return false;
+			}
+			if (Cmd[0] == '#' && (!gUseNewNamedTest || (gUseNewNamedTest && !pSpawn->Lastname[0])))
+				return true;
+			if (isupper(Cmd[0]) && (!gUseNewNamedTest || (gUseNewNamedTest && !pSpawn->Lastname[0])))
 				return true;
 		}
 	}
@@ -7357,18 +7362,91 @@ float GetMeleeRange(class EQPlayer *pSpawn1, class EQPlayer *pSpawn2)
 	}
 	return 14.0f;
 }
+DWORD GetSpellGemTimer2(int nGem);
 //todo: check manually
 DWORD GetSpellGemTimer(DWORD nGem)
 {
-	_EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
+	return GetSpellGemTimer2(nGem);
+/*	_EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
 #if !defined(UFEMU)//todo: check manually
 	if (g->Wnd.CoolDownBeginTime) {
-		return g->Wnd.CoolDownBeginTime + g->Wnd.CoolDownDuration - EQGetTime();
+		UINT cSpellCompletion = g->Wnd.CoolDownBeginTime + g->Wnd.CoolDownDuration;
+		DWORD now = EQGetTime();
+		DWORD oldtime = ((now < cSpellCompletion) ? cSpellCompletion - now : 0);
+		DWORD newtime = GetSpellGemTimer2(nGem);
+		return newtime;
 	}
 #endif
 	return 0;
+	*/
 }
+bool IsValidSpellIndex(int index)
+{
+	if ((index < 1) || (index > TOTAL_SPELL_COUNT))
+		return false;
+	return true;
+}
+inline bool IsValidSpellSlot(int nGem)
+{
+	return nGem >= 0 && nGem < 16;
+}
+//testing new cooldown code... -eqmule work in progress
+DWORD GetSpellGemTimer2(int nGem)
+{
+	//int TheID = ((PSPAWNINFO)pLocalPlayer)->CastingData.SpellID;
+	//bool bValid = IsValidSpellIndex(TheID);
+	bool bValidSlot = IsValidSpellSlot(nGem);
+	//if (bValid == false && bValidSlot)
+	if (bValidSlot)
+	{
+		int memspell = GetMemorizedSpell(nGem);
+		if(PSPELL pSpell = GetSpellByID(memspell))
+		{
+			int ReuseTimerIndex = pSpell->ReuseTimerIndex;
+			UINT linkedtimer = ((PcZoneClient*)pPCData)->GetLinkedSpellReuseTimer(ReuseTimerIndex);
+			__time32_t RecastTime = ReuseTimerIndex > 0 && ReuseTimerIndex < 25 ? linkedtimer : 0;	
+			UINT RecastDuration = 0;
+			UINT LinkedDuration = 0;
+			UINT gemeta = ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem];
+			DWORD now = ((PCDISPLAY)pDisplay)->TimeStamp;
+			if (gemeta > now )
+			{
+				RecastDuration = gemeta - now;
+			}
+			__time32_t fasttime = (__time32_t)GetFastTime();
+			if ( RecastTime > fasttime)
+			{
+				LinkedDuration = (RecastTime - fasttime) * 1000;
+			}
+			PEQCASTSPELLGEM gem = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
+			UINT Timer = max(RecastDuration, LinkedDuration);
+			UINT timeremaining = ((CButtonWnd*)&gem->Wnd)->GetCoolDownTimeRemaining();
+			UINT totaldur = ((CButtonWnd*)&gem->Wnd)->GetCoolDownTotalDuration();
 
+			bool TimerChanged = !(abs(long(Timer - timeremaining)) < 1000 );
+			if( Timer > 0 && (totaldur == 0 || TimerChanged))
+			{
+				int TotalDuration = Timer;
+				if( RecastDuration > LinkedDuration )
+				{
+					VePointer<CONTENTS> pFocusItem;
+					int ReuseMod = ((CharacterZoneClient*)pCharData1)->GetFocusReuseMod((EQ_Spell*)pSpell, pFocusItem);
+					TotalDuration = pSpell->RecastTime - ReuseMod;
+				}
+				//do stuff
+				return TotalDuration;
+			}
+			return Timer;
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
+	return 0;
+}
 DWORD GetSpellBuffTimer(DWORD SpellID)
 {
 	PEQBUFFWINDOW pbuffs = (PEQBUFFWINDOW)pBuffWnd;
@@ -9802,6 +9880,57 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 	}
 	return -1;
 }
+int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		for (unsigned long i = startslot; i < NUM_SHORT_BUFFS; i++)
+		{
+			if (PSPELL pSpell = GetSpellByID(pChar2->ShortBuff[i].SpellID))
+			{
+				if (LONG base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa)) {
+					switch (spa)
+					{
+					case 3: //Movement Rate
+						if (!bIncrease && base < 0) { //below 0 means its a snare above its runspeed increase...
+							return i;
+						}
+						else if (bIncrease && base > 0) {
+							return i;
+						}
+						return -1;
+					case 11: //Melee Speed
+						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
+							return i;
+						}
+						else if (bIncrease && base > 100) {
+							return i;
+						}
+						return -1;
+					case 59: //Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return i;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return i;
+						}
+						return -1;
+					case 121: //Reverse Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return i;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return i;
+						}
+						return -1;
+					default:
+						return i;
+					}
+				}
+			}
+		}
+	}
+	return -1;
+}
 int GetSpellCategory(PSPELL pSpell)
 {
 	if (pSpell) {
@@ -9954,6 +10083,14 @@ DWORD GetSpellRankByName(PCHAR SpellName)
 	else if (endsWith(szTemp, ".III"))
 		return 3;
 	return 0;
+}
+
+VOID TruncateSpellRankName(PCHAR SpellName)
+{
+	if (char* pch = strrchr(SpellName, '.')) {
+		pch -= 3;
+		*pch = '\0';
+	}
 }
 
 VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
@@ -10730,7 +10867,11 @@ bool WillFitInBank(PCONTENTS pContent)
 {
 	if (PITEMINFO pMyItem = GetItemFromContents(pContent))
 	{
+#ifdef NEWCHARINFO
+		if (PCHARINFO pChar = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pChar = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
 				if (PCONTENTS pCont = pChar->BankItems.Items[slot].pObject) {
 					if (PITEMINFO pItem = GetItemFromContents(pCont))

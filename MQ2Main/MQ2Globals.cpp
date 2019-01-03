@@ -436,6 +436,7 @@ namespace MQ2Globals
 	DWORD gNetStatusXPos = 0;
 	DWORD gNetStatusYPos = 0;
 	LONG gStackingDebug = 0;
+	BOOL gUseNewNamedTest = 0;
 
 	DOUBLE DegToRad = 57.295779513082320876846364344191;
 	DOUBLE PI = 3.1415926535;
@@ -1916,6 +1917,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CSkillMgr__IsAvailable);
 	INITIALIZE_EQGAME_OFFSET(CSkillMgr__GetSkillCap);
 	INITIALIZE_EQGAME_OFFSET(CSkillMgr__GetNameToken);
+	INITIALIZE_EQGAME_OFFSET(CSkillMgr__IsActivatedSkill);
+	INITIALIZE_EQGAME_OFFSET(CSkillMgr__IsCombatSkill);
 
 	INITIALIZE_EQGAME_OFFSET(CSliderWnd__GetValue);
 	INITIALIZE_EQGAME_OFFSET(CSliderWnd__SetValue);
@@ -2159,6 +2162,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetItemByItemClass);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemoveBuffEffect);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__BandolierSwap);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetLinkedSpellReuseTimer);
 	
 	INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 	INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
@@ -2186,6 +2190,7 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChange);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChangeGeneric);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetFocusReuseMod);
 	INITIALIZE_EQGAME_OFFSET(CLootWnd__LootAll);
 	INITIALIZE_EQGAME_OFFSET(CLootWnd__RequestLootSlot);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);

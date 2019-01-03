@@ -1862,7 +1862,11 @@ void AutoBankPulse()
 	{
 		if (autoinventorylist.size() == 0 && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
 		{
+#ifdef NEWCHARINFO
+			if (PCHARINFO pChar = GetCharInfo()) {
+#else
 			if (PCHARINFONEW pChar = (PCHARINFONEW)GetCharInfo()) {
+#endif
 				//check toplevel slots
 				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
 					if (PCONTENTS pCont = pChar->BankItems.Items[slot].pObject) {

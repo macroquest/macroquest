@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define TEST
+#define LIVE
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -533,6 +533,7 @@ EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
+EQLIB_API VOID TruncateSpellRankName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API bool StripQuotes(char *str);
@@ -768,6 +769,7 @@ EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
 EQLIB_API int		  GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);
+EQLIB_API int		  GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot = 0);
 EQLIB_API bool        IsSpellUsableForClass(PSPELL pSpell, DWORD classmask = 0);
 EQLIB_API bool        IsAegoSpell(PSPELL pSpell);
 EQLIB_API int         GetSpellCategory(PSPELL pSpell);
