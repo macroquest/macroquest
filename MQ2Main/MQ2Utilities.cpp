@@ -9357,7 +9357,11 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	int timeout = 0;
 	if (PCONTENTS pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,type)) {
 		if (pInvSlotMgr) {
+#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,pItem->GetGlobalIndex().Location)) {
+#else
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2)) {
+#endif
 				if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
 					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
 						if (GetGameState() != GAMESTATE_INGAME)

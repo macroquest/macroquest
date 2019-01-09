@@ -4973,29 +4973,23 @@ void SetForegroundWindowInternal(HWND hWnd)
 //todo: check manually
 VOID ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 {
-	typedef HWND( __stdcall *fEQW_GetDisplayWindow )(VOID);
-	fEQW_GetDisplayWindow EQW_GetDisplayWindow = 0;
-	HWND hWnd = 0;
+	HWND EQhWnd = 0;
 	DWORD lReturn = GetCurrentProcessId();
 	DWORD pid = lReturn;
 	AllowSetForegroundWindow(pid);
 	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
 	if(lReturn!=pid) {
-		hWnd = (HWND)lReturn;
-		SetForegroundWindowInternal(hWnd);
+		EQhWnd = (HWND)lReturn;
+		SetForegroundWindowInternal(EQhWnd);
 		//ShowWindow(hWnd, SW_SHOWNORMAL);
 	}	
 	else
 	{
-		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
-		{
-			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
-		}
 		if (EQW_GetDisplayWindow)
-			hWnd = EQW_GetDisplayWindow();
+			EQhWnd = EQW_GetDisplayWindow();
 		else
-			hWnd = *(HWND*)EQADDR_HWND;
-		SetForegroundWindowInternal(hWnd);
+			EQhWnd = *(HWND*)EQADDR_HWND;
+		SetForegroundWindowInternal(EQhWnd);
 		//ShowWindow(hWnd, SW_SHOWNORMAL);
 	}
 }

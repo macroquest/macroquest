@@ -7672,6 +7672,10 @@ inline bool IsBeneficialSpell() const
 {
 	return (Data.SpellType >= 1);
 }
+inline bool IsDetrimentalSpell() const
+{
+	return (Data.SpellType == 0);
+}
 inline bool IsShortEffectDuration() const 
 {
 	return Data.DurationWindow;
@@ -7679,6 +7683,10 @@ inline bool IsShortEffectDuration() const
 inline bool GetIsSkillSpell() const
 { 
 	return Data.IsSkill;
+}
+inline bool IsDoTSpell() const
+{
+	return SpellAffects(0) || SpellAffects(20) || SpellAffects(69) || SpellAffects(114) || SpellAffects(125);
 }
 SPELL Data;
 };
@@ -8267,7 +8275,7 @@ public:
 /*0x115c*/ CCapsule StaticCollision;//size 0x1c
 /*0x1178*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
 /*0x1188*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
-#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(UFEMU)
 EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race);
 #else
 //this function doesnt exist in the emu build, so well... im adding it i guess...
@@ -9620,6 +9628,14 @@ EQLIB_OBJECT SListWndCellEditUpdate::~SListWndCellEditUpdate(void);
 class SListWndSortInfo
 {
 public:
+	int SortCol;
+	const SListWndLine&	ListWndLine1;
+    PCXSTR	StrLabel1;
+    unsigned __int32 Data1;
+	const SListWndLine&	ListWndLine2;
+    PCXSTR StrLabel2;
+    unsigned __int32 Data2;
+    int SortResult;
 EQLIB_OBJECT SListWndSortInfo::~SListWndSortInfo(void);
 };
 

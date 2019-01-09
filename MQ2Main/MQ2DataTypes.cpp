@@ -5731,6 +5731,32 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		break;
+	case Dotted:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int nBuff = -1;
+			if ((nBuff = GetSelfBuffBySPA(0, 0)) != -1)//HP Mod
+			{
+				int slotnum = nBuff;
+				while (slotnum < NUM_BUFF_SLOTS)
+				{
+					if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[nBuff]))
+					{
+						if (((EQ_Spell *)pSpell)->IsDetrimentalSpell() && ((EQ_Spell *)pSpell)->IsDoTSpell())
+						{
+							Dest.Ptr = &pChar2->Buff[nBuff];
+							Dest.Type = pBuffType;
+							return true;
+						}
+					}
+					if ((nBuff = GetTargetBuffBySPA(0, 0, ++slotnum)) == -1)
+					{
+						break;
+					}
+				}
+			}
+		}
+		break;
+
 	//end of MQ2CharacterType
 	}
 	return false;
@@ -9849,8 +9875,6 @@ bool MQ2CharSelectListType::GETMEMBER()
 	}
 	return false;
 }
-typedef HWND( __stdcall *fEQW_GetDisplayWindow )(VOID);
-fEQW_GetDisplayWindow EQW_GetDisplayWindow = 0;
 bool MQ2EverQuestType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember = MQ2EverQuestType::FindMember(Member);
@@ -9860,10 +9884,6 @@ bool MQ2EverQuestType::GETMEMBER()
 	{
 	case xHWND:
 	{
-		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
-		{
-			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
-		}
 		if (EQW_GetDisplayWindow)
 			Dest.DWord = (DWORD)EQW_GetDisplayWindow();
 		else
@@ -10136,17 +10156,7 @@ bool MQ2EverQuestType::GETMEMBER()
 	}
 	case Foreground:
 	{
-		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
-		{
-			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
-		}
-		HWND EQhWnd = *(HWND*)EQADDR_HWND;
-		if (EQW_GetDisplayWindow)
-			EQhWnd = EQW_GetDisplayWindow();
-		if (GetForegroundWindow() == EQhWnd)
-			Dest.DWord = TRUE;
-		else
-			Dest.DWord = FALSE;
+		Dest.DWord = gbInForeground;
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -13927,6 +13937,34 @@ bool MQ2TargetType::GETMEMBER()
 		if ((Dest.Int = GetTargetBuffBySPA(40, 0)) != -1)//Invulnerable
 		{
 			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+	case Dotted:
+		if ((Dest.Int = GetTargetBuffBySPA(0, 0)) != -1)//HP Mod
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (((EQ_Spell *)pSpell)->IsDetrimentalSpell() && ((EQ_Spell *)pSpell)->IsDoTSpell())
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffBySPA(0, 0, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	case MaxMeleeTo:
+		{
+			Dest.Float = get_melee_range(pCharSpawn, pTarget);
+			Dest.Type = pFloatType;
 			return true;
 		}
 		break;

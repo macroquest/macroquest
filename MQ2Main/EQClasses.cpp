@@ -188,6 +188,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(void),0x184);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const,0x18c);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const,0x190);
 #else
@@ -195,6 +196,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xfc);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);//don't ever doubt this one, double check CXWnd__CXWnd vftable and count
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(void),0x188);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const,0x190);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const,0x194);
 #endif
@@ -8066,6 +8068,9 @@ FUNCTION_AT_ADDRESS(void CListWnd::ClearSel(int),CListWnd__ClearSel);
 #endif
 #ifdef CListWnd__DrawColumnSeparators_x
 FUNCTION_AT_ADDRESS(int CListWnd::DrawColumnSeparators(void)const,CListWnd__DrawColumnSeparators);
+#endif
+#ifdef CListWnd__SetColumnsSizable_x
+FUNCTION_AT_ADDRESS(void CListWnd::SetColumnsSizable(bool),CListWnd__SetColumnsSizable);
 #endif
 #ifdef CListWnd__SetItemData_x
 #if !defined(ROF2EMU) && !defined(UFEMU)

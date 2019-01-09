@@ -165,6 +165,7 @@ namespace MQ2Globals
 	EQLIB_VAR SWHOFILTER gFilterSWho;
 	EQLIB_VAR BOOL gCreateMQ2NewsWindow;
 	EQLIB_VAR BOOL gUseNewNamedTest;
+	EQLIB_VAR BOOL gbInForeground;
 
 	EQLIB_VAR BOOL gbHUDUnderUI;
 	EQLIB_VAR BOOL gbAlwaysDrawMQHUD;
@@ -375,6 +376,8 @@ namespace MQ2Globals
 	EQLIB_VAR fLoaderClearLoaded	IC_LoaderClearLoaded;
 	EQLIB_VAR fMQ2Unload            IC_MQ2Unload;
 	EQLIB_VAR fClassLvl				IC_ClassLvl;
+
+	EQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
 	EQLIB_VAR BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3);
 	EQLIB_VAR bool IsResEffectSpell(int);
@@ -1313,7 +1316,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__ShiftColumnSeparator;
 	EQLIB_VAR DWORD CListWnd__Sort;
 	EQLIB_VAR DWORD CListWnd__ToggleSel;
-
+	EQLIB_VAR DWORD CListWnd__SetColumnsSizable;
+	
 	EQLIB_VAR DWORD CMapViewWnd__CMapViewWnd;
     EQLIB_VAR DWORD CMapViewWnd__GetWorldCoordinates;
     EQLIB_VAR DWORD CMapViewWnd__HandleLButtonDown;

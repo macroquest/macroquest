@@ -133,13 +133,13 @@ BOOL MoveMouse(DWORD x, DWORD y,BOOL bClick)
 		POINT pt = {0};
 		pt.x = x;
 		pt.y = y;
-		if(HWND eqhwnd = *(HWND*)EQADDR_HWND) {
-			ClientToScreen(eqhwnd,&pt);
+		if(HWND EQhWnd = *(HWND*)EQADDR_HWND) {
+			ClientToScreen(EQhWnd,&pt);
 			//mouse_event(MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE,200,200,NULL,NULL);
 			//DWORD pid;
-			//GetWindowThreadProcessId(eqhwnd,&pid);
+			//GetWindowThreadProcessId(EQhWnd,&pid);
 			//AttachThreadInput(pid,)
-			//SendMessage(eqhwnd,WM_MOUSEMOVE,0,MAKELPARAM(pt.x,pt.y));
+			//SendMessage(EQhWnd,WM_MOUSEMOVE,0,MAKELPARAM(pt.x,pt.y));
 			//if(!bClick) {
 				//if(((PCXWNDMGR)pWndMgr)->CurrWindowUnderMouse==0) {
 			//SetCursor(NULL);

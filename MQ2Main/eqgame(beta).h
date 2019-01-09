@@ -376,6 +376,7 @@ GNU General Public License for more details.
 #define __GetGaugeValueFromEQ_x                                    0x7FD690
 #define __GetLabelFromEQ_x                                         0x7FEE10
 #define __GetXTargetType_x                                         0x97D6F0
+#define __HandleMouseWheel_x                                       0x6A5470
 #define __HeadingDiff_x                                            0x97BD00
 #define __HelpPath_x                                               0xF2859C
 #define __LoadFrontEnd_x                                           0x6A1220
@@ -394,7 +395,6 @@ GNU General Public License for more details.
 #define Util__FastTime_x                                           0x8EA910
 #define wwsCrashReportCheckForUploader_x                           0x84CAA0
 #define wwsCrashReportPlatformLaunchUploader_x                     0x84F160
-#define __HandleMouseWheel_x                                       0x6A5470
 
 //// 
 // Section 4: Function Offsets 
@@ -429,7 +429,7 @@ GNU General Public License for more details.
 #define CharacterZoneClient__GetLastEffectSlot_x                   0x4C1570
 #define CharacterZoneClient__CalcAffectChange_x                    0x4C16C0
 #define CharacterZoneClient__CalcAffectChangeGeneric_x             0x4C1890
-#define CharacterZoneClient__GetFocusReuseMod_x                    0x0
+#define CharacterZoneClient__GetFocusReuseMod_x                    0x4AFF70
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6CB220
@@ -648,6 +648,7 @@ GNU General Public License for more details.
 #define CListWnd__ShiftColumnSeparator_x                           0x909200
 #define CListWnd__Sort_x                                           0x908F00
 #define CListWnd__ToggleSel_x                                      0x90A300
+#define CListWnd__SetColumnsSizable_x                              0x0
 
 // CMapViewWnd 
 #define CMapViewWnd__CMapViewWnd_x                                 0x76BE40
@@ -656,14 +657,10 @@ GNU General Public License for more details.
 
 // CMerchantWnd 
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x78F0E0
-// CMerchantWnd__RequestBuyItem_x                             
 #define CMerchantWnd__PurchasePageHandler__RequestGetItem_x        0x78F9C0
-// CMerchantWnd__RequestSellItem_x
 #define CMerchantWnd__PurchasePageHandler__RequestPutItem_x        0x78FF00
 #define CMerchantWnd__SelectRecoverySlot_x                         0x792D40
-//CMerchantWnd__SelectBuySellSlot_x before
 #define CMerchantWnd__MerchantPageHandler__SelectBuySellSlot_x     0x78DAC0
-//CMerchantWnd__ActualSelect_x
 #define CMerchantWnd__SelectBuySellSlot_x                          0x798940
 #define CMerchantWnd__PurchasePageHandler__UpdateList_x            0x78ED10
 
@@ -707,6 +704,8 @@ GNU General Public License for more details.
 #define CSkillMgr__IsAvailable_x                                   0x66A2B0
 #define CSkillMgr__GetSkillCap_x                                   0x66A490
 #define CSkillMgr__GetNameToken_x                                  0x669A40
+#define CSkillMgr__IsActivatedSkill_x                              0x669B80
+#define CSkillMgr__IsCombatSkill_x                                 0x669AC0
 
 // CSliderWnd 
 #define CSliderWnd__GetValue_x                                     0x931120
@@ -888,6 +887,7 @@ GNU General Public License for more details.
 #define EQ_Item__ValueSellMerchant_x                               0x898F60
 #define EQ_Item__IsKeyRingItem_x                                   0x8970E0
 #define EQ_Item__CanGoInBag_x                                      0x60C340
+#define EQ_Item__IsEmpty_x                                         0x896C10
 #define EQ_Item__GetMaxItemCount_x                                 0x895DA0
 #define EQ_Item__GetHeldItem_x                                     0x894640
 #define EQ_Item__GetAugmentFitBySlot_x                             0x892690
@@ -974,7 +974,7 @@ GNU General Public License for more details.
 #define PcZoneClient__GetItemByItemClass_x                         0x634070
 #define PcZoneClient__RemoveBuffEffect_x                           0x636F60
 #define PcZoneClient__BandolierSwap_x                              0x631F90
-#define PcZoneClient__GetLinkedSpellReuseTimer_x                   0x0
+#define PcZoneClient__GetLinkedSpellReuseTimer_x                   0x633A50
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x5C86C0
@@ -1093,6 +1093,10 @@ GNU General Public License for more details.
 #define CCursorAttachment__AttachToCursor_x                        0x704960
 #define CCursorAttachment__Deactivate_x                            0x705940
 
+//CSidlManagerBase
+#define CSidlManagerBase__CreateTabWnd_x                           0x928590
+#define CSidlManagerBase__CreatePageWnd_x                          0x927D90
+
 //CEQSuiteTextureLoader
 #define CEQSuiteTextureLoader__GetDefaultUIPath_x                  0x945440
 #define CEQSuiteTextureLoader__GetTexture_x                        0x945100
@@ -1134,9 +1138,6 @@ GNU General Public License for more details.
 #define ItemBase__IsLore_x                                         0x897140
 #define ItemBase__IsLoreEquipped_x                                 0x8971B0
 
-//CFactionWnd
-#define CFactionWnd__CFactionWnd_x                                 0x4F58A0
-
 //EQPlacedItemManager
 #define EQPlacedItemManager__Instance_x                            0x5C27F0
 #define EQPlacedItemManager__GetItemByGuid_x                       0x5C29A0
@@ -1145,6 +1146,9 @@ GNU General Public License for more details.
 //RealEstateManagerClient
 #define RealEstateManagerClient__Instance_x                        0x65E640
 #define RealEstateManagerClient__GetItemByRealEstateAndItemIds_x   0x662270
+
+//CFactionWnd
+#define CFactionWnd__CFactionWnd_x                                 0x4F58A0
 
 //FactionManagerClient
 #define FactionManagerClient__Instance_x                           0x4E4F60

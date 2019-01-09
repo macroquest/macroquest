@@ -437,6 +437,7 @@ namespace MQ2Globals
 	DWORD gNetStatusYPos = 0;
 	LONG gStackingDebug = 0;
 	BOOL gUseNewNamedTest = 0;
+	BOOL gbInForeground = FALSE;
 
 	DOUBLE DegToRad = 57.295779513082320876846364344191;
 	DOUBLE PI = 3.1415926535;
@@ -1158,6 +1159,8 @@ namespace MQ2Globals
 	fMQ2Unload			IC_MQ2Unload = 0;
 	fClassLvl			IC_ClassLvl = 0;
 
+	fEQW_GetDisplayWindow EQW_GetDisplayWindow = 0;
+
 	StringTable **ppStringTable = 0;
 	CDBStr **ppCDBStr = 0;
 	EQMisc *pEQMisc = 0;
@@ -1786,6 +1789,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__GetItemFilterData);
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__RemoveItemLootFilter);
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__SetItemLootFilter);
+	#endif
+	#if !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildIndex);
 	#endif
@@ -1870,6 +1875,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ShiftColumnSeparator);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__Sort);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ToggleSel);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColumnsSizable);
 
 	INITIALIZE_EQGAME_OFFSET(CMapViewWnd__CMapViewWnd);
     INITIALIZE_EQGAME_OFFSET(CMapViewWnd__HandleLButtonDown);
@@ -2123,7 +2129,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__IsValidTeleport);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee1);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
-	#if !defined(ROF2EMU) && !defined(UFEMU)
+	#if !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__LegalPlayerRace);
 	#endif
 	

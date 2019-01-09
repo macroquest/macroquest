@@ -6,9 +6,6 @@
 #include "../MQ2Plugin.h"
 HANDLE hHudLock = 0;
 bool bEQHasFocus=true;
-HMODULE EQWhMod=0; // Module handle used to check for eqw
-typedef HWND   (__stdcall *fEQW_GetDisplayWindow)(VOID);
-fEQW_GetDisplayWindow EQW_GetDisplayWindow=0;
 
 typedef struct _HUDELEMENT {
     DWORD Type;
@@ -365,11 +362,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	hHudLock = CreateMutex(NULL, FALSE, NULL);
 	
     CHAR szBuffer[MAX_STRING] = {0};
-    // check for eqw running, and steal its function to check the foreground window if available
-    if (EQWhMod=GetModuleHandle("eqw.dll"))
-    {
-        EQW_GetDisplayWindow=(fEQW_GetDisplayWindow)GetProcAddress(EQWhMod,"EQW_GetDisplayWindow");
-    }
     DebugSpewAlways("Initializing MQ2HUD");
 
     GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
@@ -538,9 +530,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
             HandleINI();
 
         // check for EQ in foreground
-        HWND EQhWnd = *(HWND*)EQADDR_HWND;
-        if (EQW_GetDisplayWindow) EQhWnd=EQW_GetDisplayWindow();
-        if (!bBGUpdate && GetForegroundWindow()!=EQhWnd)
+		if (!bBGUpdate && !gbInForeground)
             bEQHasFocus = false;
         else
             bEQHasFocus = true;

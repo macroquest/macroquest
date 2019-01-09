@@ -1217,6 +1217,7 @@ public:
 		Feared = 272,
 		Silenced = 273,
 		Invulnerable = 274,
+		Dotted = 275,
 	};
 	enum CharacterMethods
 	{
@@ -1493,6 +1494,7 @@ public:
 		TypeMember(Feared);
 		TypeMember(Silenced);
 		TypeMember(Invulnerable);
+		TypeMember(Dotted);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -5032,6 +5034,8 @@ public:
 		Feared = 42,
 		Silenced = 43,
 		Invulnerable = 44,
+		Dotted = 45,
+		MaxMeleeTo = 46,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -5084,6 +5088,8 @@ public:
 		TypeMember(Feared);
 		TypeMember(Silenced);
 		TypeMember(Invulnerable);
+		TypeMember(Dotted);
+		TypeMember(MaxMeleeTo);
 	}
 
 	~MQ2TargetType()

@@ -198,8 +198,14 @@ void NaturalTurn(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 		pCharOrMount->Heading = FixHeading(pCharOrMount->Heading);
 	}
 }
+//extern BOOL gbInForeground;
 void Pulse()
 {
+	static HWND EQhWnd = *(HWND*)EQADDR_HWND;
+	if (EQW_GetDisplayWindow)
+		EQhWnd = EQW_GetDisplayWindow();
+	gbInForeground = (GetForegroundWindow() == EQhWnd);
+
 	if (!ppCharSpawn || !pCharSpawn) return;
 	PSPAWNINFO pCharOrMount = NULL;
 #ifndef NEWCHARINFO
@@ -678,7 +684,6 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
 
-
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
@@ -692,6 +697,11 @@ void InitializeMQ2Pulse()
 	EzDetourwName(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline,"CMerchantWnd__PurchasePageHandler__UpdateList");
 	
 	InitializeLoginPulse();
+
+	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
+	{
+		EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
+	}
 }
 void ShutdownMQ2Pulse()
 {

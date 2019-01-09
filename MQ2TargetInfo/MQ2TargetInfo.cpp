@@ -4,12 +4,29 @@
 // PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
 // are shown below. Remove the ones your plugin does not use.  Always use Initialize
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
+// 2.1 Added enums for menu and go to menu item
 
 #include "../MQ2Plugin.h"
 #include "resource.h"
 
 PreSetup("MQ2TargetInfo");
 PLUGIN_VERSION(2.0);
+
+enum TI_MenuCommands
+{
+	TIMC_NavToMe = 54,
+	TIMC_Runto = 55,
+	TIMC_PickupGroundItem = 56,
+	TIMC_ClickNearestDoor = 57,
+	TIMC_SwitchTo = 58,
+	TIMC_FollowMe = 59,
+	//show/hide
+	TIMC_ComeToMeButton = 60,
+	TIMC_MimicMeButton = 61,
+	TIMC_FollowMeButton = 62,
+	TIMC_HotButtons = 63,
+	TIMC_Distance = 64,
+};
 
 bool bDisablePluginDueToBadUI = false;
 CHAR szTargetInfo[128] = { "Target Info" };
@@ -289,6 +306,7 @@ int groundmenuid = 0;
 int doormenuid = 0;
 int switchtomenuid = 0;
 int followmenuid = 0;
+int gotomenuid = 0;
 
 int cometomeoptionmenuid = 0;
 int mimicmeoptionmenuid = 0;
@@ -369,12 +387,14 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 			pGwnd->GroupContextMenu->RemoveMenuItem(switchtomenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(doormenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(groundmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(gotomenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(navmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(separatorid2);
 			followmenuid = 0;
 			switchtomenuid = 0;
 			doormenuid = 0;
 			groundmenuid = 0;
+			gotomenuid = 0;
 			navmenuid = 0;
 			separatorid2 = 0;
 		}
@@ -404,34 +424,35 @@ void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked, int index)
 	{
 		RemoveOurMenu(pGwnd);
 		separatorid = pGwnd->GroupContextMenu->AddSeparator();
-		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", 59, gBShowComeToMeButton);
-		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", 60, gBShowMimicMeButton);
-		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", 61, gBShowFollowMeButton);
-		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Buttons", 62, gBShowHotButtons);
-		distanceoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Distance", 63, gBShowDistance);
+		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", TIMC_ComeToMeButton, gBShowComeToMeButton);
+		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", TIMC_MimicMeButton, gBShowMimicMeButton);
+		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", TIMC_FollowMeButton, gBShowFollowMeButton);
+		hotoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Hot Buttons", TIMC_HotButtons, gBShowHotButtons);
+		distanceoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Distance", TIMC_Distance, gBShowDistance);
 
 		//
 		if (bMemberClicked)
 		{
 			separatorid2 = pGwnd->GroupContextMenu->AddSeparator();
-			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", 54);
-			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", 55);
-			doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", 56);
-			switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", 57);
+			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", TIMC_NavToMe);
+			gotomenuid = pGwnd->GroupContextMenu->AddMenuItem("Run To", TIMC_Runto);	
+			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", TIMC_PickupGroundItem);
+			doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", TIMC_ClickNearestDoor);
+			switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", TIMC_SwitchTo);
 			if (FollowMeMap.find(index) != FollowMeMap.end())
 			{
 				if (FollowMeMap[index] == true)
 				{
-					followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Stop Following Me", 58);
+					followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Stop Following Me", TIMC_FollowMe);
 				}
 				else
 				{
-					followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Follow Me", 58);
+					followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Follow Me", TIMC_FollowMe);
 				}
 			}
 			else
 			{
-				followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Follow Me", 58);
+				followmenuid = pGwnd->GroupContextMenu->AddMenuItem("Follow Me", TIMC_FollowMe);
 			}
 		}
 		pContextMenuManager->Flush();
@@ -1578,7 +1599,7 @@ public:
 			
 			switch ((int)pData)
 			{
-				case 54://our nav menu id
+				case TIMC_NavToMe://our nav menu id
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
@@ -1588,7 +1609,17 @@ public:
 					}
 					return 1;//we dont need to call the tramp, its our message...
 				}
-				case 55://ground
+				case TIMC_Runto://our Run To menu id
+				{
+					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
+					if (pSpawn)
+					{
+						StopMovement(gbFollowme);
+						DoCommandf("/nav id %d", pSpawn->SpawnID);
+					}
+					return 1;//we dont need to call the tramp, its our message...
+				}
+				case TIMC_PickupGroundItem://ground
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
@@ -1598,7 +1629,7 @@ public:
 					}
 					return 1;
 				}
-				case 56://door
+				case TIMC_ClickNearestDoor://door
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
@@ -1608,7 +1639,7 @@ public:
 					}
 					return 1;
 				}
-				case 57://switchto
+				case TIMC_SwitchTo://switchto
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
@@ -1617,7 +1648,7 @@ public:
 					}
 					return 1;
 				}
-				case 58://follow me
+				case TIMC_FollowMe://follow me
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
@@ -1643,7 +1674,7 @@ public:
 					}
 					return 1;
 				}
-				case 59://gBShowComeToMeButton
+				case TIMC_ComeToMeButton://gBShowComeToMeButton
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1659,7 +1690,7 @@ public:
 						WriteSetting("ShowComeToMeButton", "0");
 					return 1;
 				}
-				case 60://gBShowMimicMeButton
+				case TIMC_MimicMeButton://gBShowMimicMeButton
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1675,7 +1706,7 @@ public:
 						WriteSetting("ShowMimicMeButton", "0");
 					return 1;
 				}
-				case 61://gBShowFollowMeButton
+				case TIMC_FollowMeButton://gBShowFollowMeButton
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1691,7 +1722,7 @@ public:
 						WriteSetting("ShowFollowMeButton", "0");
 					return 1;
 				}
-				case 62://gBShowHotButtons
+				case TIMC_HotButtons://gBShowHotButtons
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
@@ -1709,7 +1740,7 @@ public:
 						WriteSetting("ShowHotButtons", "0");
 					return 1;
 				}
-				case 63://gBShowDistance
+				case TIMC_Distance://gBShowDistance
 				{
 					CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 					POINT pt;
