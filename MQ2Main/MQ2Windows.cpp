@@ -25,22 +25,29 @@ GNU General Public License for more details.
 #include <string>
 #include <algorithm>
 using namespace std;
+std::list<ItemGlobalIndex2> deletelist;
 std::list<ItemGlobalIndex2> autobanklist;
 std::list<ItemGlobalIndex2> autoinventorylist;
 CButtonWnd*gAutoBankButton = 0;
 bool gStartAutoBanking = false;
+bool gStartDeleting = false;
 bool bAutoBankInProgress = false;
 bool bAutoInventoryInProgress = false;
 int gAutoBankTradeSkillItems = 0;
+int gCheckBoxFeatureEnabled = 1;
 int gAutoBankCollectibleItems = 0;
 int gAutoBankQuestItems = 0;
 int gAutoInventoryItems = 0;
 CContextMenu *AutoBankMenu = 0;
+CContextMenu *CheckBoxMenu = 0;
+
+int CoolCheckBoxoptionID = 0;
 int tradeskilloptionID = 0;
 int collectibleoptionID = 0;
 int questoptionID = 0;
 int separatoroptionID = 0;
 int autoinventoryoptionID = 0;
+int OurCheckBoxMenuIndex = 0;
 int OurDefaultMenuIndex = 0;
 int OurDefaultBGItem = 0;
 int OurDefaultHelpItem = 0;
@@ -48,6 +55,13 @@ int OurDefaultLockItem = 0;
 int OurDefaultEscapeItem = 0;
 int OurDefaultMinItem = 0;
 int OurDefaultCloseItem = 0;
+
+CTextureAnimation *pChecked = 0;
+CTextureAnimation *pUnChecked = 0;
+
+CButtonWnd *pNLMarkedButton = 0;
+CLabelWnd *pCountLabel = 0;
+
 map<string,CXWnd*> WindowMap;
 
 PCHAR szClickNotification[] = { 
@@ -70,10 +84,55 @@ struct _WindowInfo
 
 std::map<CXWnd *,_WindowInfo>WindowList;
 
-
+int MarkCol = 0;
 bool GenerateMQUI();
 void DestroyMQUI();
 
+bool PickupItemNew(PCONTENTS pCont)
+{
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+#ifndef NEWCHARINFO
+		if (pCharInfo->vtable2) {
+#else
+		if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
+#endif
+			if (CharacterZoneClient *czc = (CharacterZoneClient *)pCharData1) {
+				if ((czc && pInvSlotMgr) && (pCursorAttachment && pCursorAttachment->Type == -1/*none*/))
+				{
+					int slot1 = -1;
+					int slot2 = -1;
+					bool bFound = czc->FindItemByGuid(pCont->ItemGUID, &slot1, &slot2);
+					if (bFound && slot1 > -1)
+					{
+						if (pCharInfo->CharacterBase_vftable)
+						{
+							if (CharacterBase *cbase = (CharacterBase *)&pCharInfo->CharacterBase_vftable)
+							{
+								ItemIndex IIndex = cbase->CreateItemIndex(slot1, slot2);
+								VePointer<CONTENTS> Cont = ((CharacterBase*)cbase)->GetItemPossession(IIndex);
+								if (Cont.pObject != NULL)
+								{
+								if (pInvSlotMgr->MoveItem(&cbase->CreateItemGlobalIndex(slot1, slot2), &cbase->CreateItemGlobalIndex(33/*HELD*/), false, false))
+									{
+										pCursorAttachment->Deactivate();
+										pCursorAttachment->AttachToCursor(NULL, NULL, 2/*ITEM*/, -1, NULL,NULL);
+										if (CDisplay *pDisp = (CDisplay*)pDisplay)
+										{
+											pDisp->DragItem = TRUE;
+										}
+										return true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+    }
+	return false;
+}
+int lastsel = -1;
 class CSidlInitHook
 {
 public:
@@ -122,6 +181,477 @@ public:
 			}
 		}
 		return CTargetWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
+	}
+	void CFindItemWnd__Update_Tramp();
+	void CFindItemWnd__Update_Detour()
+	{
+		CFindItemWnd*pFIWnd = (CFindItemWnd*)this;
+		
+		CFindItemWnd__Update_Tramp();
+
+		//do stuff
+		if (gCheckBoxFeatureEnabled && pFIWnd && MarkCol == 6)
+		{
+			if (CListWnd *list = (CListWnd*)pFIWnd->GetChildItem("FIW_ItemList"))
+			{
+				CHAR szTemp[MAX_STRING] = { 0 };
+				sprintf_s(szTemp, "0/%d", list->ItemsArray.Count);
+				SetCXStr(&pCountLabel->WindowText, szTemp);
+				//we really need the list to fit to the window so people can actually see this new feature.
+				CXRect rectmain = ((CXWnd*)pFIWnd)->GetClientRect();
+				CXRect rect = ((CXWnd*)list)->GetClientRect();
+
+				DWORD TotalWidth = 0;
+
+				for( int i = 0; i < list->Columns.Count; i++ )
+				{
+					TotalWidth +=  list->Columns[i].Width;
+				}
+				DWORD mainwidth = rectmain.right - rectmain.left;
+				TotalWidth += 20;
+				int newwidth = 0;
+				if (TotalWidth > rect.right - rect.left)
+				{
+					newwidth = TotalWidth - (rect.right - rect.left);
+					rect.right += newwidth;
+					rectmain.right += newwidth + 10;
+					((CXWnd*)list)->Move(&rect, false, false, false, false);
+					((CXWnd*)pFIWnd)->Move(&rectmain, false, false, false, false);
+				}
+
+				/*CSidlManager*psidlmg = (CSidlManager*)pSidlMgr;
+				CHAR szOut[MAX_STRING] = { 0 };
+				for (int j = 0; j < psidlmg->ScreenNameArray.Count; j++)
+				{
+					GetCXStr(psidlmg->ScreenNameArray[j].Ptr, szOut);
+					WriteChatf("%s", szOut);
+				}*/
+
+				//lets borrow a checkbox...
+				CControlTemplate* pDisableConnectionTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("OMP_EnablePushToTalkCheckbox");
+				if (pDisableConnectionTemplate)
+				{
+					RECT OldRect = pDisableConnectionTemplate->Rect;
+					/*pDisableConnectionTemplate->Rect.left = 21;
+					pDisableConnectionTemplate->Rect.top = 2;
+					pDisableConnectionTemplate->Rect.right = 32;
+					pDisableConnectionTemplate->Rect.bottom = 13;*/
+					CHAR OldName1[MAX_STRING] = { 0 };
+					CHAR OldScreenName1[MAX_STRING] = { 0 };
+					CHAR OldController1[MAX_STRING] = { 0 };
+					GetCXStr(pDisableConnectionTemplate->Name, OldName1);
+					GetCXStr(pDisableConnectionTemplate->ScreenID, OldScreenName1);
+					GetCXStr(pDisableConnectionTemplate->Controller, OldController1);
+
+					SetCXStr(&pDisableConnectionTemplate->Controller, "0");
+
+					CHAR szTemp[MAX_STRING] = { 0 };
+					CHAR szTemp2[MAX_STRING] = { 0 };
+					CXStr Str;
+					//CCheckBoxWnd *pCheck2 = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate2);
+
+					for (int i = 0; i < list->ItemsArray.Count; i++)
+					{
+						sprintf_s(szTemp, "FIW_CheckBox_%d", i);
+						SetCXStr(&pDisableConnectionTemplate->Name, szTemp);
+						SetCXStr(&pDisableConnectionTemplate->ScreenID, szTemp);
+
+						if (CCheckBoxWnd *pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate))
+						{
+							pCheck->bBottomAnchoredToTop;
+							pCheck->bLeftAnchoredToLeft;
+							pCheck->bRightAnchoredToLeft;
+							pCheck->bTopAnchoredToTop;
+							pCheck->Enabled = true;
+							pCheck->SetCheck(false);
+							pCheck->Data = list->GetItemData(i);
+							pCheck->dShow = true;
+							pCheck->bActive = true;
+							pCheck->bClickThroughMenuItemStatus = true;
+							pCheck->pController = 0x00000000;
+							pCheck->bShowClickThroughMenuItem = true;
+							pCheck->Location.left = 4;
+							pCheck->Location.top = 0;
+							pCheck->Location.right = 16;
+							pCheck->Location.bottom = 12;
+							pCheck->IndicatorValue = 0;
+							;
+							list->GetItemText(&Str, i, 1);
+							GetCXStr(Str.Ptr, szTemp);
+							sprintf_s(szTemp2, "Check to mark %s for Action.\0", szTemp);
+							SetCXStr(&pCheck->Tooltip, szTemp2);
+							SetCXStr(&pCheck->XMLToolTip, szTemp2);
+							list->SetItemWnd(i, MarkCol, pCheck);
+							//list->SetColumnJustification(MarkCol, 2);
+						}
+					}
+					pDisableConnectionTemplate->Rect = OldRect;
+					SetCXStr(&pDisableConnectionTemplate->Name, OldName1);
+					SetCXStr(&pDisableConnectionTemplate->ScreenID, OldScreenName1);
+					SetCXStr(&pDisableConnectionTemplate->Controller, OldController1);
+				}
+			}
+		}
+	}
+	int CFindItemWnd__WndNotification_Tramp(CXWnd *, unsigned __int32, void *);
+	int CFindItemWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
+	{
+		if (uiMessage == XWM_MENUSELECT)
+		{
+			int ItemID = (int)pData;
+			int iItemID = 0;
+			if (CContextMenu* pContextMenu = (CContextMenu*)pWnd)
+			{
+				POINT pt;
+				pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+				pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+				iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+			}
+			switch (ItemID)
+			{
+				case 50:
+				if (gCheckBoxFeatureEnabled)
+				{
+					gCheckBoxFeatureEnabled = 0;
+					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "0", gszINIFilename);
+					if(pNLMarkedButton)
+						pNLMarkedButton->dShow = false;
+					if(pCountLabel)
+						pCountLabel->dShow = false;
+					
+					if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+					{
+						list->Selected = 0xFF004040;
+					}
+				}
+				else {
+					gCheckBoxFeatureEnabled = 1;
+					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
+					if (pNLMarkedButton)
+						pNLMarkedButton->dShow = true;
+					if (pCountLabel)
+						pCountLabel->dShow = true;
+					
+					if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+					{
+						if (list->Columns.Count > 6)
+						{
+							if (SListWndColumn_RO *col6 = &list->Columns[6])
+							{
+								col6->pTextureAnim = pUnChecked;
+							}
+						}
+					}
+				}
+				CheckBoxMenu->CheckMenuItem(iItemID, gCheckBoxFeatureEnabled);
+				pFindItemWnd->Update();
+				break;
+			}
+		}
+		else if (uiMessage == XWM_RCLICK)
+		{	
+			if (CButtonWnd *FIW_DestroyItem = (CButtonWnd*)((CXWnd*)this)->GetChildItem("FIW_DestroyItem"))
+			{
+				if ((CButtonWnd*)pWnd == FIW_DestroyItem || (CButtonWnd*)pWnd == pNLMarkedButton || (CLabelWnd*)pWnd == pCountLabel)
+				{
+					if (pContextMenuManager)
+					{
+						CXPoint Loc;
+						Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
+						Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+						//work in progress -eqmule
+						pContextMenuManager->PopupMenu(OurCheckBoxMenuIndex, Loc, (CXWnd*)this);
+						//WriteChatf("this menu is work in progress, it does NOT do anything useful yet. -eqmule");
+					}
+					return 0;
+				}
+			}
+		}
+		else if (gCheckBoxFeatureEnabled)
+		{
+			if (uiMessage == XWM_LCLICK)//for our checkboxes, they should parent notify to this func...
+			{
+				int itemclicked = (int)pData;
+				if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+				{
+					CXMLData*data = pWnd->GetXMLData();
+					SListWndColumn_RO *col6 = &list->Columns[6];
+					if (bool bCheckBox = pWnd->IsType(WRT_CHECKBOXWND))
+					{
+						bool bChecked = ((CCheckBoxWnd*)pWnd)->Checked;
+						int Selected = 0;
+						int Checked = 0;
+						for (int i = 0; i < list->ItemsArray.Count; i++)
+						{
+							if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+							{
+								if (button->Checked)
+									Checked++;
+								if (button == pWnd)
+								{
+									list->ItemsArray[i].bSelected = bChecked;
+									if (bChecked == true)
+									{
+										list->SetItemColor(i, 1, 0xFFFFFF00);
+										col6->pTextureAnim = pChecked;
+										list->CurSel = i;
+										list->Selected = 0xFFFF0000;
+									}
+									else {
+										list->CurSel = -1;
+									}
+									//break;
+								}
+								if (list->ItemsArray[i].bSelected == true)
+								{
+									if (button->Checked == false)
+									{
+										list->ItemsArray[i].bSelected = false;
+									}
+									Selected++;
+								}
+							}
+						}
+						CHAR szTemp[MAX_STRING] = { 0 };
+						sprintf_s(szTemp, "%d/%d", Checked,list->ItemsArray.Count);
+						SetCXStr(&pCountLabel->WindowText, szTemp);
+						if (Selected == 0)
+						{
+							col6->pTextureAnim = pUnChecked;
+						}
+						else
+						{
+							col6->pTextureAnim = pChecked;
+
+						}
+					}
+					else if (bool bList = pWnd->IsType(WRT_LISTWND))
+					{
+						//they clicked a item maybe...
+						if (itemclicked < list->ItemsArray.Count)
+						{
+							if (itemclicked == list->CurSel)
+							{
+								if (lastsel == itemclicked)
+								{
+									list->ItemsArray[itemclicked].bSelected = false;
+									list->CurSel = -1;
+								}
+							}
+							lastsel = list->CurSel;
+						}
+						int Checked = 0;
+						for (int i = 0; i < list->ItemsArray.Count; i++)
+						{
+							if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+							{
+								if (button->Checked)
+								{
+									list->ItemsArray[i].bSelected = true;
+									Checked++;
+								}
+							}
+						}
+						CHAR szTemp[MAX_STRING] = { 0 };
+						sprintf_s(szTemp, "%d/%d", Checked,list->ItemsArray.Count);
+						SetCXStr(&pCountLabel->WindowText, szTemp);
+						if (Checked == 0)
+						{
+							col6->pTextureAnim = pUnChecked;
+							list->Selected = 0xFF004040;
+						}
+						else {
+							col6->pTextureAnim = pChecked;
+						}
+					}
+				}
+			}
+			else if (uiMessage == XWM_COLUMNCLICK)
+			{
+				int colindex = (int)pData;
+				if (colindex == 6)//its us...
+				{
+					CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList");
+					if (list)
+					{
+						list->CurSel = -1;
+						list->Selected = 0xFF004040;
+						SListWndColumn_RO *col6 = &list->Columns[6];
+						bool checked = true;
+						if (col6->pTextureAnim == pUnChecked)
+						{
+							col6->pTextureAnim = pChecked;
+						}
+						else {
+							col6->pTextureAnim = pUnChecked;
+							checked = false;
+						}
+						int selected = 0;
+						for (int i = 0; i < list->ItemsArray.Count; i++)
+						{
+							if (list->ItemsArray[i].bSelected)
+							{
+								selected++;
+							}
+						}
+						bool bFound = false;
+						int Checked = 0;
+						for (int i = 0; i < list->ItemsArray.Count; i++)
+						{
+							if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+							{
+								if (selected > 1)
+								{
+									if (list->ItemsArray[i].bSelected)
+									{
+										button->Checked = checked;
+									}
+								}
+								else {
+									button->Checked = checked;
+								}
+								if (button->Checked == true)
+								{
+									Checked++;
+									list->SetItemColor(i, 1, 0xFFFFFF00);
+									list->ItemsArray[i].bSelected = true;
+									bFound = true;
+								}
+								else {
+									list->SetItemColor(i, 1, 0xFFFFFFFF);
+									list->ItemsArray[i].bSelected = false;
+								}
+							}
+							CHAR szTemp[MAX_STRING] = { 0 };
+							sprintf_s(szTemp, "%d/%d", Checked,list->ItemsArray.Count);
+							SetCXStr(&pCountLabel->WindowText, szTemp);
+							if (bFound)
+							{
+								list->CurSel = -1;
+								list->Selected = 0xFFFF0000;
+							}
+							else
+							{
+								list->Selected = 0xFF004040;
+							}
+						}
+					}
+					return 1;
+				}
+			}
+			else if (uiMessage == XWM_LMOUSEUP)
+			{
+				//list->SetItemColor()
+				//CButtonWnd *FIW_QueryButton = (CButtonWnd*)((CXWnd*)this)->GetChildItem("FIW_QueryButton");
+				CButtonWnd *FIW_DestroyItem = (CButtonWnd*)((CXWnd*)this)->GetChildItem("FIW_DestroyItem");
+				int clickedrow = (int)pData;
+				if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+				{
+					if (list == (CListWnd*)pWnd)
+					{
+						Sleep(0);
+					}
+					if (FIW_DestroyItem && (CXWnd*)FIW_DestroyItem == pWnd)
+					{
+						if (deletelist.size())
+							return 0;
+						if (PCHARINFO2 pChar2 = GetCharInfo2())
+						{
+							//if we have something on cursor we let eq handle the destroy
+							if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == NULL)//if we have something on cursor we let eq handle the destroy
+							{
+								//IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
+								CXStr Str;
+								CHAR szTemp[MAX_STRING] = { 0 };
+								for (int i = 0; i < list->ItemsArray.Count; i++)
+								{
+									if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+									{
+										if (button->Checked == true)
+										{
+											SListWndLine_RO item = list->ItemsArray[i];
+											list->GetItemText(&Str, i, 1);
+											UINT dta = list->GetItemData(i);
+											GetCXStr(Str.Ptr, szTemp);
+											if (CFindItemWnd*pFIWnd2 = (CFindItemWnd*)this)
+											{
+												if (ItemGlobalIndex2 *igg = (ItemGlobalIndex2 *)pFIWnd2->gi[dta])
+												{
+													deletelist.push_back(*igg);
+												}
+											}
+										}
+									}
+								}
+								if (SListWndColumn_RO *col = &list->Columns[6])
+								{
+									col->pTextureAnim = pUnChecked;
+								}
+								if (deletelist.size())
+									gStartDeleting = true;
+								return 1;
+							}
+						}
+					}
+					else if ((CXWnd*)pNLMarkedButton == pWnd)
+					{
+						if (list)
+						{
+							CXStr Str;
+							CHAR szTemp[MAX_STRING] = { 0 };
+							for (int i = 0; i < list->ItemsArray.Count; i++)
+							{
+								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+								{
+									if (button->Checked == true)
+									{
+										UINT dta = list->GetItemData(i);
+										if (CFindItemWnd*pFIWnd2 = (CFindItemWnd*)this)
+										{
+											if (ItemGlobalIndex *gi = (ItemGlobalIndex *)pFIWnd2->gi[dta])
+											{
+												if (PCHARINFO pCharInfo = GetCharInfo())
+												{
+													if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable)
+													{
+														VePointer<CONTENTS>ptr = cb->GetItemByGlobalIndex(*gi);
+														if (ptr.pObject)
+														{
+															if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+															{
+																WriteChatf("[%d] Marking %s as Never Loot", i, pItem->Name);
+																if (pLootFiltersManager) {
+																	pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						return 1;
+					}
+				}
+			}
+		}
+		else if (!gCheckBoxFeatureEnabled)
+		{
+			if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+			{
+				if (list->Columns.Count > 6)
+				{
+					if (SListWndColumn_RO *col6 = &list->Columns[6])
+					{
+						col6->pTextureAnim = 0;
+					}
+				}
+			}
+		}
+		return CFindItemWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
 	int CBankWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *);
 	int CBankWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
@@ -276,6 +806,8 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CFindItemWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
+DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::CFindItemWnd__Update_Tramp());
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
 
 
@@ -340,10 +872,135 @@ int ListItemSlots(int argc, char *argv[]);
 #endif
 
 #ifndef ISXEQ_LEGACY
+#define WSF_AUTOSTRETCHH	0x00400000
+#define WSF_CLIENTMOVABLE	0x00200000
+#define WSF_NOHITTEST		0x00008000
+#define WSF_USEMYALPHA		0x00000800
+#define WSF_TRANSPARENT		0x00000400
+#define WSF_SIZABLE			0x00000200
+#define WSF_AUTOSTRETCHV	0x00000100
+#define WSF_RELATIVERECT	0x00000080
+#define WSF_BORDER			0x00000040
+#define WSF_MINIMIZEBOX     0x00000020
+#define WSF_CLOSEBOX        0x00000008
+#define WSF_TITLEBAR		0x00000004
+
 void AddAutoBankMenu()
 {
+	if (OurCheckBoxMenuIndex == 0)
+	{
+		if (CContextMenuManager *pMgr = pContextMenuManager)
+		{
+			//save org values
+			int DefaultMenuIndex = pMgr->DefaultMenuIndex;
+			int DefaultBGItem = pMgr->DefaultBGItem;
+			int DefaultHelpItem = pMgr->DefaultHelpItem;
+			int DefaultLockItem = pMgr->DefaultLockItem;
+			int DefaultEscapeItem = pMgr->DefaultEscapeItem;
+			int DefaultMinItem = pMgr->DefaultMinItem;
+			int DefaultCloseItem = pMgr->DefaultCloseItem;
+			//create our menu
+			pMgr->CreateDefaultMenu();
+			OurCheckBoxMenuIndex = pMgr->DefaultMenuIndex;
+
+			//set org values back, we now have a menu that's ours...
+			pMgr->DefaultMenuIndex = DefaultMenuIndex;
+			pMgr->DefaultBGItem = DefaultBGItem;
+			pMgr->DefaultHelpItem = DefaultHelpItem;
+			pMgr->DefaultLockItem = DefaultLockItem;
+			pMgr->DefaultEscapeItem = DefaultEscapeItem;
+			pMgr->DefaultMinItem = DefaultMinItem;
+			pMgr->DefaultCloseItem = DefaultCloseItem;
+
+			CheckBoxMenu = pContextMenuManager->GetMenu(OurCheckBoxMenuIndex);
+			CheckBoxMenu->RemoveAllMenuItems();
+			gCheckBoxFeatureEnabled = GetPrivateProfileInt("AutoBank", "CheckBoxFeatureEnabled", -1, gszINIFilename);
+			if (gCheckBoxFeatureEnabled == -1)
+			{
+				gCheckBoxFeatureEnabled = 1;
+				WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
+			}
+			CoolCheckBoxoptionID = CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", 50, gCheckBoxFeatureEnabled);
+		}
+		if (CFindItemWnd *pFIWnd = pFindItemWnd)
+		{
+			if (CListWnd*list = (CListWnd *)pFIWnd->GetChildItem("FIW_ItemList"))
+			{
+				list->bHasItemTooltips = true;
+				SetCXStr(&list->Tooltip, "Find item Window has a sixth column now.");//if we dont do this the column tooltip is not drawn, i dont know why, possibly a listwindow bug
+				//list->SetItemIcon()
+				list->ListWndStyle |= 0x00020000;//ok to multiselect, if we add a 1 here we can edit lines as well
+				pUnChecked = pSidlMgr->FindAnimation("A_CheckBoxNormal");
+				pChecked = pSidlMgr->FindAnimation("A_CheckBoxPressed");
+				if (list->Columns.Count == 6)
+				{
+
+					CXStr Str = "Toggle Checkboxes On/Off";//cant get this stupid tooltip to show for columns, i dont know why...
+					MarkCol = list->AddColumn(&CXStr(""), pUnChecked, 20, 0, Str, 3, 0, 0, true, { 0,0 }, { 0,0 });
+					//CXStr thetooltip = list->GetColumnTooltip(MarkCol);
+					list->SetColumnJustification(MarkCol, 0);
+				}
+				else {
+					SListWndColumn_RO col = list->Columns[6];
+					MarkCol = 6;
+				}
+				//we need to add a couple controls, Checked count label and Never Loot Button
+				if (CControlTemplate* pCountLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_ItemNameLabel"))
+				{
+					if (pCountLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pCountLabelTemplate))
+					{
+						pCountLabel->bBottomAnchoredToTop = false;
+						pCountLabel->bLeftAnchoredToLeft = false;
+						pCountLabel->bRightAnchoredToLeft = false;
+						pCountLabel->bTopAnchoredToTop = false;
+						
+						pCountLabel->TopOffset = 20;
+						pCountLabel->BottomOffset = 0;
+						pCountLabel->LeftOffset = 220;
+						pCountLabel->RightOffset = 160;
+						pCountLabel->WindowStyle;
+						SetCXStr(&pCountLabel->Tooltip, "Shows you how many items you have selected.");
+						SetCXStr(&pCountLabel->WindowText, "0/10000");
+						//BackgroundTextureTint
+						pCountLabel->BGColor = 0xFF2032FF;
+					}
+				}
+				if (CControlTemplate* pRequestPreviewButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_DestroyItem"))
+				{
+					if (pNLMarkedButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pRequestPreviewButtonTemplate))
+					{
+						pNLMarkedButton->WindowStyle;
+						pNLMarkedButton->bBottomAnchoredToTop;
+						pNLMarkedButton->bLeftAnchoredToLeft;
+						pNLMarkedButton->bRightAnchoredToLeft;
+						pNLMarkedButton->bTopAnchoredToTop;
+						pNLMarkedButton->TopOffset;
+						pNLMarkedButton->BottomOffset;
+						pNLMarkedButton->LeftOffset = 157;
+						pNLMarkedButton->RightOffset = 87;
+						SetCXStr(&pNLMarkedButton->Tooltip, "Click to tag all marked items as NEVER LOOT in advloot filters.");
+						SetCXStr(&pNLMarkedButton->WindowText, "Never Loot");
+						//BackgroundTextureTint
+						pNLMarkedButton->BGColor = 0xFF2032FF;
+					}
+				}
+			}
+		}
+		if (!gCheckBoxFeatureEnabled)
+		{
+			if (pNLMarkedButton)
+				pNLMarkedButton->dShow = false;
+			if (pCountLabel)
+				pCountLabel->dShow = false;
+		}
+		if (pFindItemWnd && pFindItemWnd->dShow == true)
+		{
+			pFindItemWnd->Update();
+		}
+	}
 	if (OurDefaultMenuIndex == 0)
 	{
+		
 		if (CContextMenuManager *pMgr = pContextMenuManager)
 		{
 			//save org values
@@ -415,6 +1072,19 @@ void RemoveAutoBankMenu()
 			pMgr->RemoveMenu(OurDefaultMenuIndex, true);
 			OurDefaultMenuIndex = 0;
 		}
+		if (OurCheckBoxMenuIndex != 0)
+		{
+			if (pNLMarkedButton) {
+				pNLMarkedButton->Destroy();
+				pNLMarkedButton = 0;
+			}
+			if (pCountLabel) {
+				((CXWnd*)pCountLabel)->Destroy();
+				pCountLabel = 0;
+			}
+			pMgr->RemoveMenu(OurCheckBoxMenuIndex, true);
+			OurCheckBoxMenuIndex = 0;
+		}
 	}
 }
 void InitializeMQ2Windows()
@@ -447,7 +1117,9 @@ void InitializeMQ2Windows()
 #undef AddSlotArray
 	
 	EzDetourwName(CBankWnd__WndNotification,&CSidlInitHook::CBankWnd__WndNotification_Detour,&CSidlInitHook::CBankWnd__WndNotification_Tramp,"CBankWnd__WndNotification");
-
+	EzDetourwName(CFindItemWnd__WndNotification,&CSidlInitHook::CFindItemWnd__WndNotification_Detour,&CSidlInitHook::CFindItemWnd__WndNotification_Tramp,"CFindItemWnd__WndNotification");
+	EzDetourwName(CFindItemWnd__Update,&CSidlInitHook::CFindItemWnd__Update_Detour,&CSidlInitHook::CFindItemWnd__Update_Tramp,"CFindItemWnd__Update");
+	
     EzDetourwName(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline,"CXMLSOMDocumentBase__XMLRead");
     EzDetourwName(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline,"CSidlScreenWnd__Init1");
 	EzDetourwName(CTargetWnd__WndNotification,&CSidlInitHook::CTargetWnd__WndNotification_Detour,&CSidlInitHook::CTargetWnd__WndNotification_Tramp,"CTargetWnd__WndNotification");
@@ -515,6 +1187,10 @@ void ShutdownMQ2Windows()
     pISInterface->RemoveCommand("EQItemNotify");
     pISInterface->RemoveCommand("EQItemSlots");
 #endif 
+	
+	
+    RemoveDetour(CFindItemWnd__WndNotification);
+    RemoveDetour(CFindItemWnd__Update);
     RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
@@ -1843,6 +2519,43 @@ int ListItemSlots(int argc, char *argv[])
 
 void AutoBankPulse()
 {
+	if (gStartDeleting)
+	{
+		if (pCursorAttachment && pCursorAttachment->Type == -1/*none*/)
+		{
+			//user want us to delete stuff
+			for (std::list<ItemGlobalIndex2>::iterator g = deletelist.begin(); g != deletelist.end(); g++)
+			{
+				ItemGlobalIndex *gi = (ItemGlobalIndex *)&(*g);
+				if (PCHARINFO pCharInfo = GetCharInfo())
+				{
+					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable)
+					{
+						VePointer<CONTENTS>ptr = cb->GetItemByGlobalIndex(*gi);
+						if (ptr.pObject)
+						{
+							if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+							{
+
+								if (PickupItemNew(ptr.pObject))
+								{
+									deletelist.pop_front();
+									WriteChatf("Destroyed %s", pItem->Name);
+									DoCommandf("/destroyitem");
+									break;
+								}
+							}
+						}
+					}
+				}
+				deletelist.pop_front();
+				break;
+			}
+			if (!deletelist.size())
+				gStartDeleting = false;
+		}
+		return;
+	}
 	if (!gStartAutoBanking)
 	{
 		return;

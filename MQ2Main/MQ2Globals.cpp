@@ -1673,6 +1673,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetFirstEffectSlot);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetLastEffectSlot);
 	
+	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__Update);
+	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__PickupSelectedItem);
+	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);
@@ -1802,6 +1805,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex);
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex1);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetEffectId);
 	
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
@@ -1852,6 +1856,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__EnsureVisible);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ExtendSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetColumnMinWidth);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__GetColumnTooltip);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetColumnWidth);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetCurSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetItemAtPoint);
@@ -1876,7 +1881,11 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__Sort);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ToggleSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColumnsSizable);
-
+	INITIALIZE_EQGAME_OFFSET(CListWnd__SetItemWnd);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__GetItemWnd);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__SetItemIcon);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__CalculateCustomWindowPositions);
+	
 	INITIALIZE_EQGAME_OFFSET(CMapViewWnd__CMapViewWnd);
     INITIALIZE_EQGAME_OFFSET(CMapViewWnd__HandleLButtonDown);
     INITIALIZE_EQGAME_OFFSET(CMapViewWnd__GetWorldCoordinates);
@@ -2058,10 +2067,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__SpellDuration);
-	INITIALIZE_EQGAME_OFFSET(EQ_Character__FindItemByRecord);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__FindItemByGuid);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__FindItemByRecord);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAdjustedSkill);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetBaseSkill);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__CanUseItem);
+	INITIALIZE_EQGAME_OFFSET(BaseProfile__GetItemPossession);
 	
 	INITIALIZE_EQGAME_OFFSET(CCharacterListWnd__SelectCharacter);
 	INITIALIZE_EQGAME_OFFSET(CCharacterListWnd__EnterWorld);
@@ -2233,7 +2244,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__CreateWindowInstance);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor);
+	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor1);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
+	INITIALIZE_EQGAME_OFFSET(CSidlManagerBase__FindButtonDrawTemplate);
+	INITIALIZE_EQGAME_OFFSET(CSidlManagerBase__FindButtonDrawTemplate1);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetDefaultUIPath);
 	INITIALIZE_EQGAME_OFFSET(CEQSuiteTextureLoader__GetTexture);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenExperimentContainer);

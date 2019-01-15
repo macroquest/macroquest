@@ -1107,7 +1107,10 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 	EQLIB_VAR DWORD CBankWnd__WndNotification;
-
+	EQLIB_VAR DWORD CFindItemWnd__WndNotification;
+	EQLIB_VAR DWORD CFindItemWnd__Update;
+	EQLIB_VAR DWORD CFindItemWnd__PickupSelectedItem;
+	
 	EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
 
 	EQLIB_VAR DWORD CButtonWnd__SetCheck;
@@ -1243,6 +1246,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterBase__CreateItemIndex;
 	EQLIB_VAR DWORD CharacterBase__GetItemPossession;
 	EQLIB_VAR DWORD CharacterBase__GetItemByGlobalIndex;
+	EQLIB_VAR DWORD CharacterBase__GetItemByGlobalIndex1;
 	EQLIB_VAR DWORD CharacterBase__GetEffectId;
 	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
@@ -1293,6 +1297,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__EnsureVisible;
 	EQLIB_VAR DWORD CListWnd__ExtendSel;
 	EQLIB_VAR DWORD CListWnd__GetColumnMinWidth;
+	EQLIB_VAR DWORD CListWnd__GetColumnTooltip;
 	EQLIB_VAR DWORD CListWnd__GetColumnWidth;
 	EQLIB_VAR DWORD CListWnd__GetCurSel;
 	EQLIB_VAR DWORD CListWnd__GetItemAtPoint;
@@ -1317,6 +1322,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__Sort;
 	EQLIB_VAR DWORD CListWnd__ToggleSel;
 	EQLIB_VAR DWORD CListWnd__SetColumnsSizable;
+	EQLIB_VAR DWORD CListWnd__SetItemWnd;
+	EQLIB_VAR DWORD CListWnd__GetItemWnd;
+	EQLIB_VAR DWORD CListWnd__SetItemIcon;
+	EQLIB_VAR DWORD CListWnd__CalculateCustomWindowPositions;
 	
 	EQLIB_VAR DWORD CMapViewWnd__CMapViewWnd;
     EQLIB_VAR DWORD CMapViewWnd__GetWorldCoordinates;
@@ -1498,11 +1507,13 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__TotalEffect;
 	EQLIB_VAR DWORD EQ_Character__GetPCSpellAffect;
 	EQLIB_VAR DWORD EQ_Character__SpellDuration;
-	EQLIB_VAR DWORD EQ_Character__FindItemByRecord;
+	EQLIB_VAR DWORD CharacterZoneClient__FindItemByGuid;
+	EQLIB_VAR DWORD CharacterZoneClient__FindItemByRecord;
 	EQLIB_VAR DWORD EQ_Character__GetAdjustedSkill;
 	EQLIB_VAR DWORD EQ_Character__GetBaseSkill;
 	EQLIB_VAR DWORD EQ_Character__CanUseItem;
-
+	EQLIB_VAR DWORD BaseProfile__GetItemPossession;
+	
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
 	EQLIB_VAR DWORD CCharacterListWnd__SelectCharacter;
@@ -1687,8 +1698,11 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;
 	EQLIB_VAR DWORD CItemDisplayManager__CreateWindowInstance;
 	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor;
+	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor1;
 	EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
+	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
+	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
 }
 using namespace MQ2Globals;

@@ -446,7 +446,8 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 							int KeyID = 0;
 							int Skill = 0;
 							if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
+								{
 									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
 										switch (pItem->ItemType)
 										{
@@ -464,12 +465,6 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 											Skill = 0;
 											break;
 										}
-									}
-								}
-								else {
-									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
-										KeyID = pItem->ItemNumber;
-										Skill = 0;
 									}
 								}
 							}

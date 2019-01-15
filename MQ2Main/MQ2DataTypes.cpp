@@ -9091,8 +9091,10 @@ bool MQ2SwitchType::GETMEMBER()
 				int KeyID = 0;
 				int Skill = 0;
 				if(PCHARINFO2 pChar2 = GetCharInfo2()) {
-					if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor && pChar2->pInventoryArray->Inventory.Cursor->ItemType == ITEMTYPE_NORMAL) {
-						if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
+					if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor && pChar2->pInventoryArray->Inventory.Cursor->ItemType == ITEMTYPE_NORMAL)
+					{
+						if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor))
+						{
 							switch (pItem->Type)
 							{
 							case 33://EQIC_KEY
@@ -9108,11 +9110,6 @@ bool MQ2SwitchType::GETMEMBER()
 								Skill = 0;
 								break;
 							}
-						}
-					} else {
-						if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
-							KeyID = pItem->ItemNumber;
-							Skill = 0;
 						}
 					}
 				}

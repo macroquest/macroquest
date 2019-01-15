@@ -430,6 +430,8 @@ GNU General Public License for more details.
 #define CharacterZoneClient__CalcAffectChange_x                    0x4C16C0
 #define CharacterZoneClient__CalcAffectChangeGeneric_x             0x4C1890
 #define CharacterZoneClient__GetFocusReuseMod_x                    0x4AFF70
+#define CharacterZoneClient__FindItemByGuid_x                      0x4D4890
+#define CharacterZoneClient__FindItemByRecord_x                    0x0
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6CB220
@@ -857,7 +859,6 @@ GNU General Public License for more details.
 #define EQ_Character__TotalEffect_x                                0x4C2640
 #define EQ_Character__GetPCSpellAffect_x                           0x4BCBA0
 #define EQ_Character__SpellDuration_x                              0x4BC6D0
-#define EQ_Character__FindItemByRecord_x                           0x4D4890
 #define EQ_Character__GetAdjustedSkill_x                           0x4D1FC0
 #define EQ_Character__GetBaseSkill_x                               0x4D2F60
 #define EQ_Character__CanUseItem_x                                 0x4D6C90
@@ -1053,7 +1054,7 @@ GNU General Public License for more details.
 #define CharacterBase__GetMemorizedSpell_x                         0x4C6C90
 #define CharacterBase__CreateItemGlobalIndex_x                     0x502040
 #define CharacterBase__CreateItemIndex_x                           0x60A640
-#define CharacterBase__GetItemPossession_x                         0x4B3F70
+#define CharacterBase__GetItemPossession_x                         0x0
 #define CharacterBase__GetItemByGlobalIndex_x                      0x8C9030
 #define CharacterBase__GetEffectId_x                               0x4C6C40
 
@@ -1090,7 +1091,7 @@ GNU General Public License for more details.
 #define CLargeDialogWnd__Open_x                                    0x756BC0
 
 //CCursorAttachment
-#define CCursorAttachment__AttachToCursor_x                        0x704960
+#define CCursorAttachment__AttachToCursor1_x                        0x704960
 #define CCursorAttachment__Deactivate_x                            0x705940
 
 //CSidlManagerBase

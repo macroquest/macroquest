@@ -1287,9 +1287,16 @@ FUNCTION_AT_ADDRESS(bool  CCursorAttachment::RemoveAttachment(void),CCursorAttac
 #endif
 #ifdef CCursorAttachment__AttachToCursor_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *assigned_name, char const *name, int qty, int IconID),CCursorAttachment__AttachToCursor);
+FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, CTextureAnimation *pTABG, int Type, int Index, const char  *Assigned_Name, const char *Name, int Qty,int IconID),CCursorAttachment__AttachToCursor);
 #else
-FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty),CCursorAttachment__AttachToCursor);
+FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, CTextureAnimation *pTABG, int Type, int Index, const char *Name, int Qty),CCursorAttachment__AttachToCursor);
+#endif
+#endif
+#ifdef CCursorAttachment__AttachToCursor1_x
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, class CTextureAnimation *pTABG, int Type, int Index, const EqItemGuid& ItemGuid, int ItemID, const char  *Assigned_Name, const char *Name, int Qty, int IconID),CCursorAttachment__AttachToCursor1);
+#else
+FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, CTextureAnimation *pTABG, int Type, int Index, const EqItemGuid &ItemGuid, int ItemID, const char *Name, int Qty),CCursorAttachment__AttachToCursor1);
 #endif
 #endif
 #ifdef CCursorAttachment__Deactivate_x
@@ -1354,6 +1361,12 @@ FUNCTION_AT_ADDRESS( CFactionWnd::CFactionWnd(class CXWnd *),CFactionWnd__CFacti
 #endif
 #ifdef CFindItemWnd__CFindItemWnd_x
 FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(class CXWnd *),CFindItemWnd__CFindItemWnd);
+#endif
+#ifdef CFindItemWnd__Update_x
+FUNCTION_AT_ADDRESS(void CFindItemWnd::Update(),CFindItemWnd__Update);
+#endif
+#ifdef CFindItemWnd__PickupSelectedItem_x
+FUNCTION_AT_ADDRESS(void CFindItemWnd::PickupSelectedItem(),CFindItemWnd__PickupSelectedItem);
 #endif
 #ifdef IString__Append_x
 FUNCTION_AT_ADDRESS(void IString2::Append(char *c),IString__Append);
@@ -3308,6 +3321,18 @@ FUNCTION_AT_ADDRESS(ItemGlobalIndex CharacterBase::CreateItemGlobalIndex(int, in
 #ifdef CharacterBase__CreateItemIndex_x
 FUNCTION_AT_ADDRESS(ItemIndex CharacterBase::CreateItemIndex(int,int,int), CharacterBase__CreateItemIndex);
 #endif
+#ifdef CharacterBase__GetItemByGlobalIndex_x
+FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemByGlobalIndex(const ItemGlobalIndex &GlobalIndex) const, CharacterBase__GetItemByGlobalIndex);
+#endif
+#ifdef CharacterBase__GetItemByGlobalIndex1_x
+FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemByGlobalIndex(const ItemGlobalIndex &GlobalIndex, GILocationOption Option) const, CharacterBase__GetItemByGlobalIndex1);
+#endif
+#ifdef CharacterBase__GetItemPossession_x
+FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemPossession(const ItemIndex &lIndex) const, CharacterBase__GetItemPossession);
+#endif
+#ifdef BaseProfile__GetItemPossession_x
+FUNCTION_AT_ADDRESS(VePointer<CONTENTS> BaseProfile::GetItemPossession(const ItemIndex &lIndex) const,BaseProfile__GetItemPossession);
+#endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
 #ifdef ItemBase__IsLoreEquipped_x
 FUNCTION_AT_ADDRESS(bool ItemBase::IsLoreEquipped(bool bIncludeSockets) const, ItemBase__IsLoreEquipped);
@@ -4462,8 +4487,11 @@ FUNCTION_AT_ADDRESS(void  EQ_Character::DoPassageOfTime(void),EQ_Character__DoPa
 #ifdef EQ_Character__FindItemByClass_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemByClass(int,int *,int *),EQ_Character__FindItemByClass);
 #endif
-#ifdef EQ_Character__FindItemByRecord_x
-FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemByRecord(int, int *, int *, bool),EQ_Character__FindItemByRecord);
+#ifdef CharacterZoneClient__FindItemByGuid_x
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::FindItemByGuid(const EqItemGuid& ItemGuid, int *pos_slot, int *con_slot),CharacterZoneClient__FindItemByGuid);
+#endif
+#ifdef CharacterZoneClient__FindItemByRecord_x
+FUNCTION_AT_ADDRESS(BYTE CharacterZoneClient::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup),CharacterZoneClient__FindItemByRecord);
 #endif
 #ifdef EQ_Character__FindItemQty_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemQty(int,int),EQ_Character__FindItemQty);
@@ -8012,7 +8040,10 @@ FUNCTION_AT_ADDRESS(void  CListWnd::SetColumnWidth(int,int),CListWnd__SetColumnW
 FUNCTION_AT_ADDRESS(void  CListWnd::ShiftColumnSeparator(int,int),CListWnd__ShiftColumnSeparator);
 #endif
 #ifdef CListWnd__GetColumnMinWidth_x
-FUNCTION_AT_ADDRESS(int  CListWnd::GetColumnMinWidth(int)const ,CListWnd__GetColumnMinWidth);
+FUNCTION_AT_ADDRESS(int CListWnd::GetColumnMinWidth(int)const ,CListWnd__GetColumnMinWidth);
+#endif
+#ifdef CListWnd__GetColumnTooltip_x
+FUNCTION_AT_ADDRESS(CXStr CListWnd::GetColumnTooltip(int) const ,CListWnd__GetColumnTooltip);
 #endif
 #ifdef CListWnd__GetColumnJustification_x
 FUNCTION_AT_ADDRESS(int  CListWnd::GetColumnJustification(int)const ,CListWnd__GetColumnJustification);
@@ -8072,6 +8103,18 @@ FUNCTION_AT_ADDRESS(int CListWnd::DrawColumnSeparators(void)const,CListWnd__Draw
 #ifdef CListWnd__SetColumnsSizable_x
 FUNCTION_AT_ADDRESS(void CListWnd::SetColumnsSizable(bool),CListWnd__SetColumnsSizable);
 #endif
+#ifdef CListWnd__GetItemWnd_x
+FUNCTION_AT_ADDRESS(CXWnd *CListWnd::GetItemWnd(int Index, int SubItem) const,CListWnd__GetItemWnd);
+#endif
+#ifdef CListWnd__SetItemIcon_x
+FUNCTION_AT_ADDRESS(void CListWnd::SetItemIcon(int Index, int SubItem, const CTextureAnimation *pTA),CListWnd__SetItemIcon);
+#endif
+#ifdef CListWnd__CalculateCustomWindowPositions_x
+FUNCTION_AT_ADDRESS(void CListWnd::CalculateCustomWindowPositions(),CListWnd__CalculateCustomWindowPositions);
+#endif
+#ifdef CListWnd__SetItemWnd_x
+FUNCTION_AT_ADDRESS(void CListWnd::SetItemWnd(int Index, int SubItem, CXWnd *pWnd),CListWnd__SetItemWnd);
+#endif
 #ifdef CListWnd__SetItemData_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32,BOOL),CListWnd__SetItemData);
@@ -8092,10 +8135,10 @@ FUNCTION_AT_ADDRESS(bool  CListWnd::IsLineEnabled(int)const ,CListWnd__IsLineEna
 FUNCTION_AT_ADDRESS(void CListWnd::EnableLine(int,bool),CListWnd__EnableLine);
 #endif
 #ifdef CListWnd__AddColumn_x
-FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(CXStr *, int, unsigned __int32, unsigned __int32),CListWnd__AddColumn);
+FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr *, int, unsigned __int32, unsigned __int32),CListWnd__AddColumn);
 #endif
 #ifdef CListWnd__AddColumn1_x
-FUNCTION_AT_ADDRESS(int  CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *),CListWnd__AddColumn1);
+FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr *Label, CTextureAnimation*pTA, int Width,unsigned __int32 Flags, CXStr Tooltip, unsigned __int32 Type, CTextureAnimation *pTASelected, CTextureAnimation *pTAMouseOver, bool bResizeable, tagSIZE TextureSize, tagPOINT TextureOffset),CListWnd__AddColumn1);
 #endif
 #ifdef SLinkInfo__dSLinkInfo_x
 //FUNCTION_AT_ADDRESS( SLinkInfo::~SLinkInfo(void),SLinkInfo__dSLinkInfo);
@@ -9312,8 +9355,11 @@ FUNCTION_AT_ADDRESS(class CUITextureInfo *  CSidlManager::FindTexture(class CXSt
 #ifdef CSidlManager__FindTexture1_x
 FUNCTION_AT_ADDRESS(class CUITextureInfo *  CSidlManager::FindTexture(unsigned __int32)const ,CSidlManager__FindTexture1);
 #endif
-#ifdef CSidlManager__FindButtonDrawTemplate_x
-FUNCTION_AT_ADDRESS(class CButtonDrawTemplate *  CSidlManager::FindButtonDrawTemplate(unsigned __int32)const ,CSidlManager__FindButtonDrawTemplate);
+#ifdef CSidlManagerBase__FindButtonDrawTemplate_x
+FUNCTION_AT_ADDRESS(CButtonDrawTemplate * CSidlManager::FindButtonDrawTemplate(unsigned __int32) const ,CSidlManagerBase__FindButtonDrawTemplate);
+#endif
+#ifdef CSidlManagerBase__FindButtonDrawTemplate1_x
+FUNCTION_AT_ADDRESS(CButtonDrawTemplate *CSidlManager::FindButtonDrawTemplate(const CXStr& Name) const ,CSidlManagerBase__FindButtonDrawTemplate1);
 #endif
 #ifdef CSidlManager__FindSliderDrawTemplate_x
 FUNCTION_AT_ADDRESS(class CSliderDrawTemplate *  CSidlManager::FindSliderDrawTemplate(class CXStr)const ,CSidlManager__FindSliderDrawTemplate);

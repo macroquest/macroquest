@@ -1161,7 +1161,7 @@ EQLIB_OBJECT void CBugReportWnd::UpdateLocation(void);
 class CButtonDrawTemplate
 {
 public:
-	CXStr	*Name;
+	CXStr	Name;
     CTextureAnimation   *Normal;
     CTextureAnimation   *Pressed;
     CTextureAnimation   *Flyby;
@@ -1225,7 +1225,11 @@ public:
     CTextureAnimation   *TADisabledDecal;
     CTextureAnimation   *TAPressedFlybyDecal;
 	CTextureAnimation   *TAPressedDisabledDecal;
-
+	bool bAllowButtonPassThrough;
+	bool bCooldownrelated;
+	bool bIsCheckbox;
+	bool bDrawLasso;//draws the yellow border...
+	unsigned __int32 ButtonStyle;
 EQLIB_OBJECT CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT void CButtonWnd::SetCheck(bool);
 // virtual
@@ -1906,9 +1910,11 @@ EQLIB_OBJECT void CCursorAttachment::DrawButtonText(void)const;
 EQLIB_OBJECT void CCursorAttachment::DrawQuantity(void)const;
 EQLIB_OBJECT void CCursorAttachment::Init(void);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *assigned_name, char const *name, int qty = -1, int IconID = -1);
+EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation* Overlay, CTextureAnimation *pTABG, int Type, int Index, const char *Assigned_Name, const char *Name, int Qty = -1, int IconID = -1);
+EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, class CTextureAnimation *pTABG, int Type, int Index, const EqItemGuid& ItemGuid, int ItemID, const char  *Assigned_Name, const char *Name, int Qty = -1, int IconID = -1);
 #else
-EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *overlay, CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty);
+EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, CTextureAnimation *pTABG, int Type, int Index, const char *Name, int Qty = -1);
+EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *Overlay, CTextureAnimation *pTABG, int Type, int Index, const EqItemGuid &ItemGuid, int ItemID, const char *Name, int Qty = -1);
 #endif
 };
 
@@ -2006,6 +2012,28 @@ EQLIB_OBJECT float GetDistanceSquared(const CVector3& vec)const
 class CDisplay
 {
 public:
+/*0x0000*/ BOOL		ErrorFlag;
+/*0x0004*/ BYTE		BFog;
+/*0x0005*/ BYTE		BMoveAnims;
+/*0x0008*/ FLOAT	Yon;
+/*0x000c*/ FLOAT	AmbientLight;
+/*0x0010*/ BYTE		DragItem;
+/*0x0011*/ BYTE		DragMoney;
+/*0x0012*/ BYTE		DragHotButton;
+/*0x0013*/ bool		bInRenderLoop;
+/*0x0014*/ bool		bHideLootedCorpses;
+/*0x0015*/ CHAR		LastTeleportAreaTag[0x100];
+/*0x0118*/ void*	pCamera;//CCameraInterface
+/*0x011c*/ CVector3*CamPos;
+/*0x0120*/ CVector3*CamOrientation;
+/*0x0124*/ void*	WadFileLoadScreen;//SWadFile
+/*0x0128*/ BYTE		NewPCModelsLoaded;
+/*0x0129*/ bool		bHorsesLoaded;
+/*0x012c*/ void		*pActorTagManager;
+/*0x0130*/ BYTE		Unknown0x130[0x24];
+/*0x0154*/ DWORD	TimeStamp;
+/*0x0158*/ BYTE		Unknown0x158[0x2c12];
+/*0x2d6a*/ BYTE		NpcNames; // show npc names
 EQLIB_OBJECT CDisplay::~CDisplay(void);
 EQLIB_OBJECT CDisplay::CDisplay(struct HWND__ *);
 EQLIB_OBJECT bool CDisplay::GenericSphereColl(float,float,float,float,float,float,float *,float *,float *,unsigned char);
@@ -2625,12 +2653,47 @@ EQLIB_OBJECT void CFacePick::CycleThroughFHEB(int,int);
 EQLIB_OBJECT void CFacePick::Init(void);
 EQLIB_OBJECT void CFacePick::ShowButtonGroup(int,bool);
 };
-
-class CFindItemWnd : public CSidlScreenWnd
+class CFindItemWnd : public CSidlScreenWnd//, public WndEventHandler but we just add the member LastCheckTime
 {
 public:
-EQLIB_OBJECT CFindItemWnd::CFindItemWnd(class CXWnd *);
-EQLIB_OBJECT int CFindItemWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+	/*0x230*/ UINT LastCheckTime;//from WndEventHandler
+	/*0x234*/ CComboWnd *SearchCombo0;
+	/*0x238*/ CComboWnd *SearchCombo1;
+	/*0x23c*/ int SelIndex;
+	/*0x240*/ VeArray<ItemGlobalIndex*>gi;
+	/*0x24c*/ int Unknown0x24c;
+	/*0x250*/ int Unknown0x250;
+	/*0x254*/ int Unknown0x254;
+	/*0x258*/ int Unknown0x258;
+	/*0x25c*/ int Unknown0x25c;
+	/*0x260*/ int FIW_ClassAnim;
+	/*0x264*/ CSidlScreenWnd *FIW_CharacterView;
+	/*0x268*/ CListWnd *FIW_ItemList;
+	/*0x26c*/ CButtonWnd * FIW_QueryButton;
+	/*0x270*/ CButtonWnd * FIW_RequestItemButton;
+	/*0x274*/ CButtonWnd * FIW_RequestPreviewButton;
+	/*0x278*/ CButtonWnd * FIW_Default;
+	/*0x27c*/ CButtonWnd * FIW_GrabButton;
+	/*0x280*/ CButtonWnd * FIW_HighlightButton;
+	/*0x284*/ CButtonWnd * FIW_DestroyItem;
+	/*0x288*/ CComboWnd * FIW_ItemLocationCombobox;
+	/*0x28c*/ CComboWnd * FIW_ItemSlotCombobox;
+	/*0x290*/ CComboWnd * FIW_StatSlotCombobox;
+	/*0x294*/ CComboWnd * FIW_RaceSlotCombobox;
+	/*0x298*/ CComboWnd * FIW_ClassSlotCombobox;
+	/*0x29c*/ CComboWnd * FIW_ItemTypeCombobox;
+	/*0x2a0*/ CComboWnd * FIW_ItemPrestigeCombobox;
+	/*0x2a4*/ CComboWnd * FIW_ItemAugmentCombobox;
+	/*0x2a8*/ CEditWnd * FIW_ItemNameInput;
+	/*0x2ac*/ CEditWnd * FIW_MaxLevelInput;
+	/*0x2b0*/ CEditWnd * FIW_MinLevelInput;
+	/*0x2b4*/ CEditWnd * Unknown0x2b4;
+	/*0x2B8*/
+
+	EQLIB_OBJECT CFindItemWnd::CFindItemWnd(class CXWnd *);
+	EQLIB_OBJECT void CFindItemWnd::Update();
+	EQLIB_OBJECT void CFindItemWnd::PickupSelectedItem();
+	EQLIB_OBJECT int CFindItemWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
 };
 class CFeedbackWnd : public CSidlScreenWnd
 {
@@ -4027,18 +4090,18 @@ EQLIB_OBJECT class CXRect CListWnd::GetItemRect(int,int)const;
 EQLIB_OBJECT class CXRect CListWnd::GetSeparatorRect(int)const;
 EQLIB_OBJECT class CXStr CListWnd::GetColumnLabel(int)const;
 EQLIB_OBJECT class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const;
-EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *);
-EQLIB_OBJECT int CListWnd::AddColumn(CXStr *Label,int Width,unsigned __int32 Flags,unsigned __int32 Type = 3/*icon type*/);
+EQLIB_OBJECT int CListWnd::AddColumn(const CXStr *Label, CTextureAnimation*pTA, int Width, unsigned __int32 Flags, CXStr Tooltip = "", unsigned __int32 Type = 3, CTextureAnimation *pTASelected = 0, CTextureAnimation *pTAMouseOver = 0, bool bResizeable = false, tagSIZE TextureSize = { 0,0 }, tagPOINT TextureOffset = { 0,0 });
+EQLIB_OBJECT int CListWnd::AddColumn(const CXStr *Label,int Width,unsigned __int32 Flags,unsigned __int32 Type = 3/*text/icon type*/);
 EQLIB_OBJECT int CListWnd::AddLine(SListWndLine *);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CListWnd::AddString(CXStr *str, COLORREF cref, unsigned __int32 data = 0, CTextureAnimation *pta = NULL, char* tooltipstr = NULL, bool bDebug = false);
 #else
 EQLIB_OBJECT int CListWnd::AddString(CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
 #endif
-EQLIB_OBJECT void CListWnd::SetItemWnd(int ItemID, int SubItemID, CXWnd *pWnd);
 EQLIB_OBJECT int CListWnd::AddString(char *,unsigned long,unsigned __int32,CTextureAnimation *, const char* p5 = 0);
 EQLIB_OBJECT int CListWnd::GetColumnJustification(int)const;
-EQLIB_OBJECT int CListWnd::GetColumnMinWidth(int)const;
+EQLIB_OBJECT int CListWnd::GetColumnMinWidth(int) const;
+EQLIB_OBJECT CXStr CListWnd::GetColumnTooltip(int) const;
 EQLIB_OBJECT int CListWnd::GetColumnWidth(int)const;
 EQLIB_OBJECT int CListWnd::GetCurCol(void)const;
 EQLIB_OBJECT int CListWnd::GetCurSel(void)const;
@@ -4102,6 +4165,10 @@ EQLIB_OBJECT void CListWnd::DeleteAll(void);
 EQLIB_OBJECT void CListWnd::Sort(void);
 EQLIB_OBJECT void CListWnd::SetColumnsSizable(bool bColumnsSizable);
 EQLIB_OBJECT void CListWnd::GetWndPosition(CXWnd *pWnd, int &ItemID, int &SubItemID)const;
+EQLIB_OBJECT void CListWnd::SetItemWnd(int Index, int SubItem, CXWnd *pWnd);
+EQLIB_OBJECT CXWnd *CListWnd::GetItemWnd(int Index, int SubItem) const;
+EQLIB_OBJECT void CListWnd::SetItemIcon(int Index, int SubItem, const CTextureAnimation *pTA);
+EQLIB_OBJECT void CListWnd::CalculateCustomWindowPositions();
 };
 //Size is 0x290 in eagame 2016 Nov 14 eqmule
 class CContextMenu// cant do this it calls the constructor if we create a menu so no... : public CListWnd
@@ -5716,8 +5783,28 @@ EQLIB_OBJECT void CSelectorWnd::Deactivate(void);
 class CSidlManager
 {
 public:
+	void *vftable;
+	int ScreenPieceClassIndex[5];
+	ArrayClass_RO<CUITextureInfo*>		Textures;
+	ArrayClass_RO<CButtonDrawTemplate*>	ButtonDrawTemplateArray;
+	ArrayClass_RO<CScrollbarTemplate*>	ScrollbarTemplateArray;
+	ArrayClass_RO<CSliderDrawTemplate*>	SliderDrawTemplateArray;
+	ArrayClass_RO<CXStr>				ScreenNameArray;
+	ArrayClass_RO<CXWndDrawTemplate*>	DrawTemplateArray;
+	CHashCXStrInt32						DrawTemplateHash;
+	ArrayClass_RO<CTextureAnimation*>	AnimationArray;
+	CHashCXStrInt32						AnimationsHash;
+	ArrayClass_RO<CTAFrameDraw*>		TAFrameArray;
+	CHashCXStrInt32						TAFrameHash;
+	ArrayClass_RO<CScreenPieceTemplate*> ScreenPieceArray;
+	CHashCXStrInt32						ScreenPiecesHash;
+	//there are more below, i dont have time right now.
+	//ArrayClass_RO<CLayoutStrategyTemplate*> LayoutStrategyTemplateArray;
+	//CHashCXStrInt32 LayoutStrategyTemplatesHash;
+
 EQLIB_OBJECT CSidlManager::CSidlManager(void);
-EQLIB_OBJECT class CButtonDrawTemplate * CSidlManager::FindButtonDrawTemplate(unsigned __int32)const;
+EQLIB_OBJECT CButtonDrawTemplate *CSidlManager::FindButtonDrawTemplate(const CXStr& Name) const;
+EQLIB_OBJECT CButtonDrawTemplate *CSidlManager::FindButtonDrawTemplate(unsigned __int32 ID) const;
 EQLIB_OBJECT class CButtonDrawTemplate CSidlManager::GetButtonDrawTemplateFromParamButtonDrawTemplate(class CParamButtonDrawTemplate const &)const;
 EQLIB_OBJECT class CGaugeDrawTemplate CSidlManager::GetGaugeDrawTemplateFromParamGaugeDrawTemplate(class CParamGaugeDrawTemplate const &)const;
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlManager::CreateScreenPieceTemplateFromParamScreenPiece(class CParamScreenPiece const *)const;
@@ -7399,7 +7486,6 @@ EQLIB_OBJECT unsigned char EQ_Character::ElfCanWorship(unsigned char,unsigned ch
 EQLIB_OBJECT unsigned char EQ_Character::EruditeCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::ExpendItemCharge(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::FindItemByClass(int,int *,int *);
-EQLIB_OBJECT unsigned char EQ_Character::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup);
 EQLIB_OBJECT unsigned char EQ_Character::FindItemQty(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::FroglockCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::GetSkillBaseDamage(unsigned char,class EQPlayer *);
@@ -8496,7 +8582,11 @@ class SomeClass
 public:
 /*0x0000*/ void *CharacterBase_vftable;
 };
-
+enum GILocationOption
+{
+	Bag_Or_Base,
+	Socket
+};
 class CharacterBase: public SomeClass
 {
 public:
@@ -8590,7 +8680,11 @@ public:
 		return *ProfileManager.GetCurrentProfile();
 	}
 	EQLIB_OBJECT BYTE CharacterBase::GetLanguageSkill(int)const;
+	EQLIB_OBJECT VePointer<CONTENTS> CharacterBase::GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex) const;
+	EQLIB_OBJECT VePointer<CONTENTS> CharacterBase::GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex, GILocationOption Option) const;
+	EQLIB_OBJECT VePointer<CONTENTS> CharacterBase::GetItemPossession(const ItemIndex &lIndex) const;
 };
+
 EQLIB_OBJECT char * build_token_string_PARAM(char *pBuffer, int token, const char *param0=NULL, const char *param1=NULL,
 								const char *param2=NULL, const char *param3=NULL, const char *param4=NULL, const char *param5=NULL, 
 								const char *param6=NULL, const char *param7=NULL, const char *param8=NULL);
@@ -8701,6 +8795,8 @@ EQLIB_OBJECT int CharacterZoneClient::GetOpenEffectSlot(bool bIsShortBuff, bool 
 EQLIB_OBJECT int CharacterZoneClient::GetFirstEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill);
 EQLIB_OBJECT int CharacterZoneClient::GetLastEffectSlot(bool bIsShortBuff, bool bIsMeleeSkill, bool bIsDisplay = false);
 EQLIB_OBJECT const int CharacterZoneClient::GetFocusReuseMod(const EQ_Spell *pSpell, VePointer<CONTENTS>&pOutItem);
+EQLIB_OBJECT bool CharacterZoneClient::FindItemByGuid(const EqItemGuid& ItemGuid, int *pos_slot, int *con_slot);
+EQLIB_OBJECT BYTE CharacterZoneClient::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup);
 };
 
 enum EAreaCorner
