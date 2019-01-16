@@ -1490,6 +1490,7 @@ public:
 /*0xb2d0*/ DWORD        NewBodyTint;
 /*0xb2d4*/ DWORD        CurrentMercenaryIndex;
 /*0xb2d8*/
+EQLIB_OBJECT VePointer<CONTENTS> BaseProfile::GetItemPossession(const ItemIndex &lIndex) const;
 };
 
 class ProfileList

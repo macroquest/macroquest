@@ -431,7 +431,7 @@ GNU General Public License for more details.
 #define CharacterZoneClient__CalcAffectChangeGeneric_x             0x4C1890
 #define CharacterZoneClient__GetFocusReuseMod_x                    0x4AFF70
 #define CharacterZoneClient__FindItemByGuid_x                      0x4D4890
-#define CharacterZoneClient__FindItemByRecord_x                    0x0
+#define CharacterZoneClient__FindItemByRecord_x                    0x4D4300
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6CB220
@@ -626,7 +626,8 @@ GNU General Public License for more details.
 #define CListWnd__EnableLine_x                                     0x907720
 #define CListWnd__EnsureVisible_x                                  0x90AE10
 #define CListWnd__ExtendSel_x                                      0x90A390
-#define CListWnd__GetColumnMinWidth_x                              0x907260
+#define CListWnd__GetColumnTooltip_x                               0x907260
+#define CListWnd__GetColumnMinWidth_x                              0x9072D0
 #define CListWnd__GetColumnWidth_x                                 0x9071D0
 #define CListWnd__GetCurSel_x                                      0x906B60
 #define CListWnd__GetItemAtPoint_x                                 0x9079A0
@@ -650,7 +651,11 @@ GNU General Public License for more details.
 #define CListWnd__ShiftColumnSeparator_x                           0x909200
 #define CListWnd__Sort_x                                           0x908F00
 #define CListWnd__ToggleSel_x                                      0x90A300
-#define CListWnd__SetColumnsSizable_x                              0x0
+#define CListWnd__SetColumnsSizable_x                              0x9092A0
+#define CListWnd__SetItemWnd_x                                     0x90A940
+#define CListWnd__GetItemWnd_x                                     0x906DC0
+#define CListWnd__SetItemIcon_x                                    0x90A710
+#define CListWnd__CalculateCustomWindowPositions_x                 0x909760
 
 // CMapViewWnd 
 #define CMapViewWnd__CMapViewWnd_x                                 0x76BE40
@@ -1054,8 +1059,9 @@ GNU General Public License for more details.
 #define CharacterBase__GetMemorizedSpell_x                         0x4C6C90
 #define CharacterBase__CreateItemGlobalIndex_x                     0x502040
 #define CharacterBase__CreateItemIndex_x                           0x60A640
-#define CharacterBase__GetItemPossession_x                         0x0
-#define CharacterBase__GetItemByGlobalIndex_x                      0x8C9030
+#define CharacterBase__GetItemPossession_x                         0x4EDC80
+#define CharacterBase__GetItemByGlobalIndex_x                      0x8C8FD0
+#define CharacterBase__GetItemByGlobalIndex1_x                     0x8C9030
 #define CharacterBase__GetEffectId_x                               0x4C6C40
 
 //CCastSpellWnd
@@ -1091,12 +1097,15 @@ GNU General Public License for more details.
 #define CLargeDialogWnd__Open_x                                    0x756BC0
 
 //CCursorAttachment
+#define CCursorAttachment__AttachToCursor_x                        0x704920
 #define CCursorAttachment__AttachToCursor1_x                        0x704960
 #define CCursorAttachment__Deactivate_x                            0x705940
 
 //CSidlManagerBase
 #define CSidlManagerBase__CreateTabWnd_x                           0x928590
 #define CSidlManagerBase__CreatePageWnd_x                          0x927D90
+#define CSidlManagerBase__FindButtonDrawTemplate_x                 0x923EA0//int
+#define CSidlManagerBase__FindButtonDrawTemplate1_x                0x923E30//CXStr
 
 //CEQSuiteTextureLoader
 #define CEQSuiteTextureLoader__GetDefaultUIPath_x                  0x945440
@@ -1104,6 +1113,9 @@ GNU General Public License for more details.
 
 //CFindItemWnd
 #define CFindItemWnd__CFindItemWnd_x                               0x4FF5C0
+#define CFindItemWnd__WndNotification_x                            0x5000A0
+#define CFindItemWnd__Update_x                                     0x500C00
+#define CFindItemWnd__PickupSelectedItem_x                         0x4FEE20
 
 //IString
 #define IString__Append_x                                          0x4EF360
@@ -1158,6 +1170,9 @@ GNU General Public License for more details.
 #define FactionManagerClient__GetFactionStanding_x                 0x4E5BC0
 #define FactionManagerClient__GetMaxFaction_x                      0x4E5C10
 #define FactionManagerClient__GetMinFaction_x                      0x4E5B90
+
+//BaseProfile (PCHARINFO2)
+#define BaseProfile__GetItemPossession_x                           0x4EDC50
 
 //patterns
 //LoginController__GiveTime_x

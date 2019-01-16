@@ -2689,11 +2689,12 @@ public:
 	/*0x2b0*/ CEditWnd * FIW_MinLevelInput;
 	/*0x2b4*/ CEditWnd * Unknown0x2b4;
 	/*0x2B8*/
-
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT CFindItemWnd::CFindItemWnd(class CXWnd *);
 	EQLIB_OBJECT void CFindItemWnd::Update();
 	EQLIB_OBJECT void CFindItemWnd::PickupSelectedItem();
 	EQLIB_OBJECT int CFindItemWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+	#endif
 };
 class CFeedbackWnd : public CSidlScreenWnd
 {

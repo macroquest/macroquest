@@ -1107,9 +1107,11 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 	EQLIB_VAR DWORD CBankWnd__WndNotification;
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR DWORD CFindItemWnd__WndNotification;
 	EQLIB_VAR DWORD CFindItemWnd__Update;
 	EQLIB_VAR DWORD CFindItemWnd__PickupSelectedItem;
+	#endif
 	
 	EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
 

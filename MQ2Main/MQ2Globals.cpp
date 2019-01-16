@@ -1208,7 +1208,9 @@ namespace MQ2Globals
 	CFacePick **ppFacePick = 0;
 	CFactionWnd **ppFactionWnd = 0;
 	CExtendedTargetWnd **ppExtendedTargetWnd = 0;
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	CFindItemWnd **ppFindItemWnd = 0;
+	#endif
 	CFindLocationWnd **ppFindLocationWnd = 0;
 	CInvSlotMgr **ppInvSlotMgr = 0;
 	CNoteWnd **ppNoteWnd = 0;
@@ -1673,9 +1675,11 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetFirstEffectSlot);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetLastEffectSlot);
 	
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__Update);
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__PickupSelectedItem);
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__WndNotification);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);

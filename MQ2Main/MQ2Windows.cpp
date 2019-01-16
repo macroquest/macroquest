@@ -182,6 +182,7 @@ public:
 		}
 		return CTargetWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
 	}
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	void CFindItemWnd__Update_Tramp();
 	void CFindItemWnd__Update_Detour()
 	{
@@ -653,6 +654,7 @@ public:
 		}
 		return CFindItemWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
+#endif
 	int CBankWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *);
 	int CBankWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
@@ -806,8 +808,10 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
+#if !defined(ROF2EMU) && !defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CFindItemWnd__WndNotification_Tramp(CXWnd *,unsigned __int32,void *));
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::CFindItemWnd__Update_Tramp());
+#endif
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
 
 
@@ -887,6 +891,7 @@ int ListItemSlots(int argc, char *argv[]);
 
 void AddAutoBankMenu()
 {
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (OurCheckBoxMenuIndex == 0)
 	{
 		if (CContextMenuManager *pMgr = pContextMenuManager)
@@ -997,6 +1002,7 @@ void AddAutoBankMenu()
 		{
 			pFindItemWnd->Update();
 		}
+#endif
 	}
 	if (OurDefaultMenuIndex == 0)
 	{
@@ -1117,8 +1123,10 @@ void InitializeMQ2Windows()
 #undef AddSlotArray
 	
 	EzDetourwName(CBankWnd__WndNotification,&CSidlInitHook::CBankWnd__WndNotification_Detour,&CSidlInitHook::CBankWnd__WndNotification_Tramp,"CBankWnd__WndNotification");
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	EzDetourwName(CFindItemWnd__WndNotification,&CSidlInitHook::CFindItemWnd__WndNotification_Detour,&CSidlInitHook::CFindItemWnd__WndNotification_Tramp,"CFindItemWnd__WndNotification");
 	EzDetourwName(CFindItemWnd__Update,&CSidlInitHook::CFindItemWnd__Update_Detour,&CSidlInitHook::CFindItemWnd__Update_Tramp,"CFindItemWnd__Update");
+#endif
 	
     EzDetourwName(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline,"CXMLSOMDocumentBase__XMLRead");
     EzDetourwName(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline,"CSidlScreenWnd__Init1");
@@ -1188,9 +1196,10 @@ void ShutdownMQ2Windows()
     pISInterface->RemoveCommand("EQItemSlots");
 #endif 
 	
-	
+#if !defined(ROF2EMU) && !defined(UFEMU)
     RemoveDetour(CFindItemWnd__WndNotification);
     RemoveDetour(CFindItemWnd__Update);
+#endif
     RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
