@@ -1002,8 +1002,8 @@ void AddAutoBankMenu()
 		{
 			pFindItemWnd->Update();
 		}
-#endif
 	}
+#endif
 	if (OurDefaultMenuIndex == 0)
 	{
 		
