@@ -474,8 +474,127 @@ int Heartbeat()
 #endif
 	return 0;
 }
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+
+template <unsigned int _Size>static void make_minidump (char*filename, EXCEPTION_POINTERS* e, CHAR(&dumppath)[_Size])
+//void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
+{
+	char szTemp[MAX_PATH] = { 0 };
+	char name[MAX_PATH] = { 0 };
+	strcpy_s(name, filename);
+	if (char*pDest = strrchr(name, '\\'))
+	{
+		pDest[0] = '\0';
+		pDest++;
+		strcpy_s(szTemp, pDest);
+	}
+
+
+	if (char*pDest = strstr(szTemp, "."))
+		pDest[0] = '\0';
+    SYSTEMTIME t;
+    GetSystemTime(&t);
+    sprintf_s(name,"%s\\%s_%4d%02d%02d_%02d%02d%02d.dmp",gszLogPath,szTemp, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+
+	auto hFile = CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    if(hFile == INVALID_HANDLE_VALUE)
+        return;
+
+    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
+    exceptionInfo.ThreadId = GetCurrentThreadId();
+    exceptionInfo.ExceptionPointers = e;
+    exceptionInfo.ClientPointers = FALSE;
+
+    BOOL dumped = MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        hFile,
+        MINIDUMP_TYPE(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
+        e ? &exceptionInfo : nullptr,
+        nullptr,
+        nullptr);
+	if(dumped)
+		strcpy_s(dumppath, _Size, name);
+    CloseHandle(hFile);
+
+    return;
+}
+
+int filterException(PEXCEPTION_POINTERS ex) {
+	CHAR szOut[MAX_STRING] = { 0 };
+	CHAR szTemp[MAX_STRING] = { 0 };
+	CHAR szDumpPath[MAX_STRING] = { 0 };
+
+//	DWORD  error;
+	HANDLE hProcess;
+
+	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+
+	hProcess = GetCurrentProcess();
+
+	SymInitialize(hProcess, NULL, TRUE);
+
+	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, gszINIFilename);
+	if(szTemp[0])
+		SymSetSearchPath(hProcess, szTemp);
+	SymGetSearchPath(hProcess, szOut, MAX_STRING);
+
+	DWORD64  dwAddress;
+	DWORD  dwDisplacement;
+	IMAGEHLP_LINE64 line;
+
+
+	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+	dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
+	HMODULE hModule = NULL;
+	GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
+	GetModuleFileName(hModule, szOut, MAX_STRING);
+
+	make_minidump(szOut,ex,szDumpPath);
+	DWORD64  dwDisplacement2 = 0;
+	DWORD64  dwAddress2 = (DWORD64)ex->ExceptionRecord->ExceptionAddress;
+	
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+	
+	if (SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol))
+	{
+		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
+		{
+			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
+		}
+		else {
+			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
+		}
+	}
+	else {
+		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s", szOut, dwAddress - (DWORD)hModule, szDumpPath);
+	}
+	MessageBox(NULL, szTemp, szOut, MB_SYSTEMMODAL | MB_OK);
+	
+	return EXCEPTION_EXECUTE_HANDLER;
+}
 
 #ifndef ISXEQ_LEGACY
+void GameLoop_Tramp();
+void GameLoop_Detour()
+{
+	__try
+	{
+		//MessageBox(NULL, "Starting EQ", "", MB_SYSTEMMODAL | MB_OK);
+		GameLoop_Tramp();
+	}
+	__except (filterException(GetExceptionInformation()))
+	{
+		//RemoveDetour(__GameLoop);
+		MessageBox(NULL, "Exception caught in GameLoop", "", MB_SYSTEMMODAL | MB_OK);
+		exit(0);
+	}
+}
 // *************************************************************************** 
 // Function:    ProcessGameEvents 
 // Description: Our ProcessGameEvents Hook
@@ -484,12 +603,16 @@ BOOL Trampoline_ProcessGameEvents(VOID);
 BOOL Detour_ProcessGameEvents(VOID)
 {
 	CAutoLock Lock(&gPulseCS);
-	int ret = Heartbeat();
+	int ret = 0;
+	int ret2 = 0;
+	__try
+	{
+		ret = Heartbeat();
 #ifdef ISXEQ
 	if (!pISInterface->ScriptEngineActive())
 		pISInterface->LavishScriptPulse();
 #endif
-	int ret2 =  Trampoline_ProcessGameEvents();
+	ret2 = Trampoline_ProcessGameEvents();
 #ifndef ISXEQ
 	if(ret==2 && bPluginCS==0) {
 		OutputDebugString("I am loading in ProcessGameEvents");
@@ -522,6 +645,12 @@ BOOL Detour_ProcessGameEvents(VOID)
 
 	}
 #endif
+	}
+	__except (filterException(GetExceptionInformation()))
+	{
+		//MessageBox(NULL, "Exception caught in Detour_ProcessGameEvents", "", MB_SYSTEMMODAL | MB_OK);
+		//return 0;
+	}
 	return ret2;
 }
 
@@ -545,6 +674,8 @@ struct cTargetBuff
 };
 void RemoveLoginPulse();
 DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID));
+DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
+
 class CEverQuestHook {
 public:
 	VOID EnterZone_Trampoline(PVOID pVoid);
@@ -690,6 +821,8 @@ void InitializeMQ2Pulse()
 	if (!ghLockDelayCommand)
 		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
 	InitializeCriticalSection(&gPulseCS);
+	
+	//EzDetourwName(__GameLoop, GameLoop_Detour, GameLoop_Tramp,"GameLoop");
 	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
 	EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
 	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
@@ -712,7 +845,8 @@ void ShutdownMQ2Pulse()
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);
-
+	//RemoveDetour(__GameLoop);
+	
 	LeaveCriticalSection(&gPulseCS);
 	DeleteCriticalSection(&gPulseCS);
 }

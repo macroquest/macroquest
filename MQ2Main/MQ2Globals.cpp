@@ -2078,6 +2078,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__CanUseItem);
 	INITIALIZE_EQGAME_OFFSET(BaseProfile__GetItemPossession);
 	
+	INITIALIZE_EQGAME_OFFSET(ArrayClass__DeleteElement);
+	INITIALIZE_EQGAME_OFFSET(__GameLoop);
+	
 	INITIALIZE_EQGAME_OFFSET(CCharacterListWnd__SelectCharacter);
 	INITIALIZE_EQGAME_OFFSET(CCharacterListWnd__EnterWorld);
 	INITIALIZE_EQGAME_OFFSET(CCharacterListWnd__Quit);

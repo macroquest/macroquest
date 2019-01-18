@@ -3333,6 +3333,9 @@ FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemPossession(const I
 #ifdef BaseProfile__GetItemPossession_x
 FUNCTION_AT_ADDRESS(VePointer<CONTENTS> BaseProfile::GetItemPossession(const ItemIndex &lIndex) const,BaseProfile__GetItemPossession);
 #endif
+#ifdef ArrayClass__DeleteElement_x
+FUNCTION_AT_ADDRESS(void ArrayClass_RO<SListWndColumn_RO>::DeleteElement(int index), ArrayClass__DeleteElement);
+#endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
 #ifdef ItemBase__IsLoreEquipped_x
 FUNCTION_AT_ADDRESS(bool ItemBase::IsLoreEquipped(bool bIncludeSockets) const, ItemBase__IsLoreEquipped);

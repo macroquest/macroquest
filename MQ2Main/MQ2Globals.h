@@ -1516,6 +1516,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__CanUseItem;
 	EQLIB_VAR DWORD BaseProfile__GetItemPossession;
 	
+	EQLIB_VAR DWORD ArrayClass__DeleteElement;
+	EQLIB_VAR DWORD __GameLoop;
+	
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
 	EQLIB_VAR DWORD CCharacterListWnd__SelectCharacter;

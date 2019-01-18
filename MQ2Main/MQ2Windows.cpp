@@ -189,11 +189,14 @@ public:
 		CFindItemWnd*pFIWnd = (CFindItemWnd*)this;
 		
 		CFindItemWnd__Update_Tramp();
+		//char *p = 0;
+		//*p = 5;
 
 		//do stuff
-		if (gCheckBoxFeatureEnabled && pFIWnd && MarkCol == 6)
+		CListWnd *list = (CListWnd*)pFIWnd->GetChildItem("FIW_ItemList");
+		if (gCheckBoxFeatureEnabled && list)
 		{
-			if (CListWnd *list = (CListWnd*)pFIWnd->GetChildItem("FIW_ItemList"))
+			if (MarkCol && list->Columns.Count > MarkCol)
 			{
 				CHAR szTemp[MAX_STRING] = { 0 };
 				sprintf_s(szTemp, "0/%d", list->ItemsArray.Count);
@@ -1090,6 +1093,17 @@ void RemoveAutoBankMenu()
 			}
 			pMgr->RemoveMenu(OurCheckBoxMenuIndex, true);
 			OurCheckBoxMenuIndex = 0;
+			if (pFindItemWnd)
+			{
+				if (CListWnd *list = (CListWnd*)pFindItemWnd->GetChildItem("FIW_ItemList"))
+				{
+					if (list->Columns.Count > MarkCol)
+					{
+						list->Columns.DeleteElement(MarkCol);
+						MarkCol = 0;
+					}
+				}
+			}
 		}
 	}
 }

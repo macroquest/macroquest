@@ -301,6 +301,8 @@ public:
 			ThrowArrayClassException();
 		return m_array[index];
 	}
+	//0090C580
+EQLIB_OBJECT void ArrayClass_RO<T>::DeleteElement(int index);
 
 	T& operator[](int index) { return Get(index); }
 	const T& operator[](int index) const { return Get(index); }

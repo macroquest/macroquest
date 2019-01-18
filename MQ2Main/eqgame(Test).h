@@ -1174,6 +1174,12 @@ GNU General Public License for more details.
 //BaseProfile (PCHARINFO2)
 #define BaseProfile__GetItemPossession_x                           0x4EE3B0
 
+//ArrayClass
+#define ArrayClass__DeleteElement_x                                0x90CAC0
+
+//GameLoop
+#define __GameLoop_x                                               0x6A4E80
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01

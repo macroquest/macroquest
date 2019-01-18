@@ -645,12 +645,21 @@ void ForceUnload()
 	g_Loaded = FALSE;
 	ScreenMode = oldscreenmode;
 }
+
+LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS * ex)
+{
+	filterException(ex);
+	MessageBox(NULL, "MQ2Start caught a crash.\nThis does NOT mean it was a MQ2 crash, it could also be a eqgame crash.", "Crash Detected", MB_OK | MB_SYSTEMMODAL);
+    return EXCEPTION_EXECUTE_HANDLER;
+}
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
 // ***************************************************************************
 DWORD WINAPI MQ2Start(LPVOID lpParameter)
 {
+	SetUnhandledExceptionFilter(OurCrashHandler);
+
 	//_CrtSetDebugFillThreshold(0);
 	hUnloadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hLoadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
