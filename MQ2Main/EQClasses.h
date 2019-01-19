@@ -24,7 +24,9 @@ namespace EQClasses
 // Other
 class CXSize
 {
+public:
     DWORD A,B,C,D,E,F;
+	CXSize::~CXSize() {};
 };
 // Enumerations...
 typedef DWORD EQZoneIndex;
@@ -452,7 +454,7 @@ class CXStr
 {
 public:
 EQLIB_OBJECT operator const char*(void);
-EQLIB_OBJECT CXStr::~CXStr(void);
+EQLIB_OBJECT CXStr::~CXStr();
 EQLIB_OBJECT CXStr::CXStr(char const *);
 EQLIB_OBJECT CXStr::CXStr(char const *,int);
 EQLIB_OBJECT CXStr::CXStr(char);
@@ -2690,10 +2692,10 @@ public:
 	/*0x2b4*/ CEditWnd * Unknown0x2b4;
 	/*0x2B8*/
 	#if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_OBJECT CFindItemWnd::CFindItemWnd(class CXWnd *);
+	EQLIB_OBJECT CFindItemWnd::CFindItemWnd(CXWnd *);
 	EQLIB_OBJECT void CFindItemWnd::Update();
 	EQLIB_OBJECT void CFindItemWnd::PickupSelectedItem();
-	EQLIB_OBJECT int CFindItemWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+	EQLIB_OBJECT int CFindItemWnd::WndNotification(CXWnd *,unsigned __int32,void *);
 	#endif
 };
 class CFeedbackWnd : public CSidlScreenWnd
@@ -6246,7 +6248,7 @@ public:
 /*0x2b8*/ 
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
-EQLIB_OBJECT class CXSize CStmlWnd::AppendSTML(class CXStr); // lax 11-15-2003
+EQLIB_OBJECT CXSize CStmlWnd::AppendSTML(CXStr); // lax 11-15-2003
 EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisibleText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);

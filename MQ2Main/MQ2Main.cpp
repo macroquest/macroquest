@@ -648,9 +648,13 @@ void ForceUnload()
 
 LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS * ex)
 {
-	filterException(ex);
-	MessageBox(NULL, "MQ2Start caught a crash.\nThis does NOT mean it was a MQ2 crash, it could also be a eqgame crash.", "Crash Detected", MB_OK | MB_SYSTEMMODAL);
-    return EXCEPTION_EXECUTE_HANDLER;
+	MQ2ExceptionFilter(0, ex, "OurCrashHandler");
+	int mbret = MessageBox(NULL, "MQ2Start caught a crash.\nThis does NOT mean it was a MQ2 crash, it could also be a eqgame crash.\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", "Crash Detected", MB_RETRYCANCEL|MB_DEFBUTTON1|MB_ICONERROR | MB_SYSTEMMODAL);
+	if (mbret == IDCANCEL)
+	{
+		exit(0);
+	}
+	return EXCEPTION_CONTINUE_EXECUTION;
 }
 // ***************************************************************************
 // Function:    MQ2Start Thread

@@ -9428,7 +9428,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 		PEQINVSLOT pSlot = GetInvSlot(type, pItem->GetGlobalIndex().Index.Slot1);
 		if (!pSlot || !pSlot->pInvSlotWnd) {
 			//if we got all the way here this really shouldnt happen... but why assume...
-			WriteChatf("Could not find the %d itemslot", pItem->GetGlobalIndex().Index.Slot1);
+			WriteChatfSafe("Could not find the %d itemslot", pItem->GetGlobalIndex().Index.Slot1);
 			return FALSE;
 		}
 		if (bSelectSlot) {
@@ -9510,7 +9510,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 							}
 						}
 					} else {
-						WriteChatf("[PickupItem] falied due to no bag found in slot %d", pItem->GetGlobalIndex().Index.Slot1);
+						WriteChatfSafe("[PickupItem] falied due to no bag found in slot %d", pItem->GetGlobalIndex().Index.Slot1);
 						return FALSE;
 					}
 				} else {
@@ -9518,7 +9518,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 					//well we just select it then...
 					if (!pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, "leftmouseup"))
 					{
-						WriteChatf("Could not pickup %s", GetItemFromContents(pItem)->Name);
+						WriteChatfSafe("Could not pickup %s", GetItemFromContents(pItem)->Name);
 					}
 					return TRUE;
 				}

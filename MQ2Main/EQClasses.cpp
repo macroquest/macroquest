@@ -147,7 +147,7 @@ FUNCTION_AT_ADDRESS(int EQ_Item::GetImageNum(void)const,EQ_Item__GetImageNum); /
 FUNCTION_AT_ADDRESS(_CONTENTS** __cdecl EQ_Item::CreateItemClient(PBYTE*,DWORD),EQ_Item__CreateItemClient); // Eqmule 08-27-2015
 #endif
 #ifdef CStmlWnd__AppendSTML_x
-FUNCTION_AT_ADDRESS(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
+FUNCTION_AT_ADDRESS(CXSize CStmlWnd::AppendSTML(CXStr),CStmlWnd__AppendSTML);
 #endif
 #ifdef EQ_Item__CanDrop_x
 FUNCTION_AT_ADDRESS(bool EQ_Item::CanDrop(bool,bool,bool,bool) const,EQ_Item__CanDrop);
@@ -266,7 +266,7 @@ FUNCTION_AT_ADDRESS( CKeyCXStrValueInt32::~CKeyCXStrValueInt32(void),CKeyCXStrVa
 //FUNCTION_AT_ADDRESS( COptionsWnd::KeyboardAssignmentData::~KeyboardAssignmentData(void),COptionsWnd__KeyboardAssignmentData__dKeyboardAssignmentData);
 #endif
 #ifdef CXStr__dCXStr_x
-FUNCTION_AT_ADDRESS( CXStr::~CXStr(void),CXStr__dCXStr);
+FUNCTION_AT_ADDRESS(CXStr::~CXStr(),CXStr__dCXStr);
 #endif
 #ifdef CUITextureInfo__CUITextureInfo_x
 FUNCTION_AT_ADDRESS( CUITextureInfo::CUITextureInfo(class CXStr,int),CUITextureInfo__CUITextureInfo);
@@ -1025,7 +1025,7 @@ FUNCTION_AT_ADDRESS(int  CContextMenuManager::GetDefaultMenuIndex(void),CContext
 FUNCTION_AT_ADDRESS(CContextMenu *CContextMenuManager::GetMenu(int), CContextMenuManager__GetMenu);
 #endif
 #ifdef CChatWindow__CChatWindow_x
-FUNCTION_AT_ADDRESS( CChatWindow::CChatWindow(class CXWnd *),CChatWindow__CChatWindow);
+FUNCTION_AT_ADDRESS( CChatWindow::CChatWindow(CXWnd *),CChatWindow__CChatWindow);
 #endif
 #ifdef CChatWindow__AddOutputText_x
 FUNCTION_AT_ADDRESS(void  CChatWindow::AddOutputText(PCXSTR,int),CChatWindow__AddOutputText);
@@ -1360,7 +1360,7 @@ FUNCTION_AT_ADDRESS(void  CFacePick::CycleThroughFHEB(int,int),CFacePick__CycleT
 FUNCTION_AT_ADDRESS( CFactionWnd::CFactionWnd(class CXWnd *),CFactionWnd__CFactionWnd);
 #endif
 #ifdef CFindItemWnd__CFindItemWnd_x
-FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(class CXWnd *),CFindItemWnd__CFindItemWnd);
+FUNCTION_AT_ADDRESS( CFindItemWnd::CFindItemWnd(CXWnd *),CFindItemWnd__CFindItemWnd);
 #endif
 #ifdef CFindItemWnd__Update_x
 FUNCTION_AT_ADDRESS(void CFindItemWnd::Update(),CFindItemWnd__Update);
@@ -7573,7 +7573,7 @@ FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int
 FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr*,int,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2_x
-FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr),CSidlScreenWnd__CSidlScreenWnd2);
+FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(CXWnd *x,CXStr),CSidlScreenWnd__CSidlScreenWnd2);
 #endif
 #ifdef CSidlScreenWnd__Init_x
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *),CSidlScreenWnd__Init);
@@ -8252,7 +8252,7 @@ FUNCTION_AT_ADDRESS( CSliderTemplate::CSliderTemplate(class CParamSlider *),CSli
 FUNCTION_AT_ADDRESS( CLabelTemplate::CLabelTemplate(class CParamLabel *),CLabelTemplate__CLabelTemplate);
 #endif
 #ifdef CLargeDialogWnd__Open_x
-FUNCTION_AT_ADDRESS(void CLargeDialogWnd::Open(bool bYesNoEnabled, class CXStr DialogText, unsigned long closeTimer/*0 means never*/, class CXStr DialogTitle, bool bShowVolumeControls, class CXStr YesText, class CXStr NoText),CLargeDialogWnd__Open);
+FUNCTION_AT_ADDRESS(void CLargeDialogWnd::Open(bool bYesNoEnabled, class CXStr DialogText, unsigned long closeTimer/*0 means never*/, CXStr DialogTitle, bool bShowVolumeControls, class CXStr YesText, class CXStr NoText),CLargeDialogWnd__Open);
 #endif
 #ifdef CWndDisplayManager__FindWindowA_x
 FUNCTION_AT_ADDRESS(int CWndDisplayManager::FindWindowA(bool bNewWnd),CWndDisplayManager__FindWindowA);
@@ -8450,10 +8450,10 @@ FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),C
 //FUNCTION_AT_ADDRESS(class SLinkInfo &  SLinkInfo::operator=(class SLinkInfo const &),SLinkInfo__operator_equal);
 #endif
 #ifdef CStmlWnd__UpdateHistoryString_x
-FUNCTION_AT_ADDRESS(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr&),CStmlWnd__UpdateHistoryString);
+FUNCTION_AT_ADDRESS(void CStmlWnd::UpdateHistoryString(__int32, CXStr&),CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText_x
-FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr,bool,SLinkInfo *),CStmlWnd__SetSTMLText);
+FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText( CXStr,bool,SLinkInfo *),CStmlWnd__SetSTMLText);
 #endif
 #ifdef SLinkInfo__SLinkInfo1_x
 //FUNCTION_AT_ADDRESS( SLinkInfo::SLinkInfo(void),SLinkInfo__SLinkInfo1);

@@ -893,7 +893,7 @@ EQLIB_API bool WillFitInInventory(PCONTENTS pContent);
 EQLIB_API void AddAutoBankMenu();
 EQLIB_API void AutoBankPulse();
 EQLIB_API void DoCommandf(PCHAR szFormat, ...);
-EQLIB_API int filterException(PEXCEPTION_POINTERS ex);
+EQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 {
 	for (int qq = 1; qq < argc; qq++) {

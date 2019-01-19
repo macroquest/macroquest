@@ -17,9 +17,13 @@ GNU General Public License for more details.
 
 #define DBG_SPEW
 
-
+#pragma warning( disable : 4091 )
 //#define DEBUG_TRY 1
 #include "MQ2Main.h"
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+#include "DebugHandler.h"
+
 BOOL TurnNotDone = FALSE;
 CRITICAL_SECTION gPulseCS;
 #ifndef ISXEQ
@@ -474,8 +478,6 @@ int Heartbeat()
 #endif
 	return 0;
 }
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
 
 template <unsigned int _Size>static void make_minidump (char*filename, EXCEPTION_POINTERS* e, CHAR(&dumppath)[_Size])
 //void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
@@ -520,8 +522,9 @@ template <unsigned int _Size>static void make_minidump (char*filename, EXCEPTION
 
     return;
 }
-
-int filterException(PEXCEPTION_POINTERS ex) {
+int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...)
+{
+//int filterException(PEXCEPTION_POINTERS ex) {
 	CHAR szOut[MAX_STRING] = { 0 };
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szDumpPath[MAX_STRING] = { 0 };
@@ -565,17 +568,20 @@ int filterException(PEXCEPTION_POINTERS ex) {
 	{
 		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
 		{
-			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
+			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
 		}
 		else {
-			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
+			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
 		}
 	}
 	else {
-		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s", szOut, dwAddress - (DWORD)hModule, szDumpPath);
+		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
 	}
-	MessageBox(NULL, szTemp, szOut, MB_SYSTEMMODAL | MB_OK);
-	
+	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
+	if (mbret==IDCANCEL)
+	{
+		exit(0);
+	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -588,7 +594,7 @@ void GameLoop_Detour()
 		//MessageBox(NULL, "Starting EQ", "", MB_SYSTEMMODAL | MB_OK);
 		GameLoop_Tramp();
 	}
-	__except (filterException(GetExceptionInformation()))
+	__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), "GameLoop_Detour"))
 	{
 		//RemoveDetour(__GameLoop);
 		MessageBox(NULL, "Exception caught in GameLoop", "", MB_SYSTEMMODAL | MB_OK);
@@ -605,7 +611,8 @@ BOOL Detour_ProcessGameEvents(VOID)
 	CAutoLock Lock(&gPulseCS);
 	int ret = 0;
 	int ret2 = 0;
-	__try
+	DebugTryBegin();
+	//__try
 	{
 		ret = Heartbeat();
 #ifdef ISXEQ
@@ -646,11 +653,12 @@ BOOL Detour_ProcessGameEvents(VOID)
 	}
 #endif
 	}
-	__except (filterException(GetExceptionInformation()))
+	//__except (filterException(GetExceptionInformation()))
 	{
 		//MessageBox(NULL, "Exception caught in Detour_ProcessGameEvents", "", MB_SYSTEMMODAL | MB_OK);
 		//return 0;
 	}
+	DebugTryEnd();
 	return ret2;
 }
 
