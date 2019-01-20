@@ -1446,7 +1446,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXStr__operator_equal;
 	EQLIB_VAR DWORD CXStr__operator_equal1;
 	EQLIB_VAR DWORD CXStr__operator_plus_equal1;
-
+	EQLIB_VAR DWORD CXStr__SetString;
+	
 	EQLIB_VAR DWORD CXWnd__BringToTop;
 	EQLIB_VAR DWORD CXWnd__Center;
 	EQLIB_VAR DWORD CXWnd__ClrFocus;

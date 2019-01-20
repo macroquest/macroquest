@@ -7946,6 +7946,9 @@ FUNCTION_AT_ADDRESS(class CXStr  CXStr::Copy(long,long)const ,CXStr__Copy);
 #ifdef CXStr__CopySelf_x
 FUNCTION_AT_ADDRESS(void  CXStr::CopySelf(long,long),CXStr__CopySelf);
 #endif
+#ifdef CXStr__SetString_x
+FUNCTION_AT_ADDRESS(void CXStr::SetString(const char* Str, long len),CXStr__SetString);
+#endif
 #ifdef CXStr__StripTrailing_x
 FUNCTION_AT_ADDRESS(void  CXStr::StripTrailing(char),CXStr__StripTrailing);
 #endif

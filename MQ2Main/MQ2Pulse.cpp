@@ -584,7 +584,68 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
+int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
+{
+//int filterException(PEXCEPTION_POINTERS ex) {
+	CHAR szOut[MAX_STRING] = { 0 };
+	CHAR szTemp[MAX_STRING] = { 0 };
+	CHAR szDumpPath[MAX_STRING] = { 0 };
 
+//	DWORD  error;
+	HANDLE hProcess;
+
+	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+
+	hProcess = GetCurrentProcess();
+
+	SymInitialize(hProcess, NULL, TRUE);
+
+	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, gszINIFilename);
+	if(szTemp[0])
+		SymSetSearchPath(hProcess, szTemp);
+	SymGetSearchPath(hProcess, szOut, MAX_STRING);
+
+	DWORD64  dwAddress;
+	DWORD  dwDisplacement;
+	IMAGEHLP_LINE64 line;
+
+
+	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+	dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
+	HMODULE hModule = NULL;
+	GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
+	GetModuleFileName(hModule, szOut, MAX_STRING);
+
+	make_minidump(szOut,ex,szDumpPath);
+	DWORD64  dwDisplacement2 = 0;
+	DWORD64  dwAddress2 = (DWORD64)ex->ExceptionRecord->ExceptionAddress;
+	
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+	
+	if (SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol))
+	{
+		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
+		{
+			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
+		}
+		else {
+			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
+		}
+	}
+	else {
+		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
+	}
+	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
+	if (mbret==IDCANCEL)
+	{
+		exit(0);
+	}
+	return EXCEPTION_EXECUTE_HANDLER;
+}
 #ifndef ISXEQ_LEGACY
 void GameLoop_Tramp();
 void GameLoop_Detour()
@@ -594,7 +655,8 @@ void GameLoop_Detour()
 		//MessageBox(NULL, "Starting EQ", "", MB_SYSTEMMODAL | MB_OK);
 		GameLoop_Tramp();
 	}
-	__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), "GameLoop_Detour"))
+	//__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), "GameLoop_Detour %d",1))
+	__except (MQ2ExceptionFilter2(GetExceptionInformation()))
 	{
 		//RemoveDetour(__GameLoop);
 		MessageBox(NULL, "Exception caught in GameLoop", "", MB_SYSTEMMODAL | MB_OK);
@@ -608,10 +670,10 @@ void GameLoop_Detour()
 BOOL Trampoline_ProcessGameEvents(VOID);
 BOOL Detour_ProcessGameEvents(VOID)
 {
-	CAutoLock Lock(&gPulseCS);
-	int ret = 0;
 	int ret2 = 0;
 	DebugTryBegin();
+	CAutoLock Lock(&gPulseCS);
+	int ret = 0;
 	//__try
 	{
 		ret = Heartbeat();

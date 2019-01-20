@@ -518,7 +518,7 @@ EQLIB_OBJECT void CXStr::FreeRep(struct CStrRep *);
 EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
 // private
 EQLIB_OBJECT void CXStr::CheckNoLock(void);
-
+EQLIB_OBJECT void CXStr::SetString(const char* Str, long len);
     PCXSTR Ptr;
 
 };
