@@ -8337,33 +8337,34 @@ class PlayerZoneClient : public PlayerBase
 public:
 /*0x0188*/ UINT		LastIntimidateUse;
 /*0x018c*/ PLAYERZONECLIENT
-/*0x05FC*/ TCircularBuffer<SDoCollisionMovementStats, 0x14>MovementStats; /* size (0x74 * 0x14) +8 = 0x918 */ \
-/*0x0F14*/ struct _SPAWNINFO*	WhoFollowing; // NULL if autofollow off I think this isnt a full spawninfo struct, it looks like its a PlayerClient* so todo: fix that...
-/*0x0f18*/ UINT		GroupAssistNPC[0x1];
-/*0x0f1C*/ UINT		RaidAssistNPC[0x3];
-/*0x0f28*/ UINT		GroupMarkNPC[0x3];
-/*0x0f34*/ UINT		RaidMarkNPC[0x3];
-/*0x0f40*/ UINT		TargetOfTarget;
-/*0x0f44*/ BYTE		PhysStuff[0x20];
-/*0x0f64*/ UINT		ParticleCastStartTime;
-/*0x0f68*/ UINT		ParticleCastDuration;
-/*0x0f6c*/ int		ParticleVisualSpellNum;
-/*0x0f70*/ int		Filler0x0f70;
-/*0x0f74*/ ActorClient	mActorClient;
-/*0x1130*/ PlayerAnimationBase *pAnimation;
-/*0x1134*/ FLOAT	MeleeRadius;  // used by GetMeleeRange
-/*0x1138*/ UINT		CollisionCounter;
-/*0x113c*/ FLOAT	CachedFloorLocationY;
-/*0x1140*/ FLOAT	CachedFloorLocationX;
-/*0x1144*/ FLOAT	CachedFloorLocationZ;
-/*0x1148*/ FLOAT	CachedFloorHeight;
-/*0x114c*/ FLOAT	CachedCeilingLocationY;
-/*0x1150*/ FLOAT	CachedCeilingLocationX;
-/*0x1154*/ FLOAT	CachedCeilingLocationZ;
-/*0x1158*/ FLOAT	CachedCeilingHeight;
-/*0x115c*/ CCapsule StaticCollision;//size 0x1c
-/*0x1178*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
-/*0x1188*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
+/*0x0614*/ //I wont finetune these comments every single patch cause they change since PLAYERZONECLIENT size change...
+/*0x0614*/ TCircularBuffer<SDoCollisionMovementStats, 0x14>MovementStats; /* size (0x74 * 0x14) +8 = 0x918 */
+/*0x0f2c*/ struct _SPAWNINFO*   WhoFollowing; // NULL if autofollow off
+/*0x0f30*/ DWORD	GroupAssistNPC[0x1];
+/*0x0f34*/ DWORD	RaidAssistNPC[0x3];
+/*0x0f40*/ DWORD	GroupMarkNPC[0x3];
+/*0x0f4c*/ DWORD	RaidMarkNPC[0x3];
+/*0x0f58*/ DWORD	TargetOfTarget;
+/*0x0f5c*/ BYTE		PhysStuff[0x20];
+/*0x0f7c*/ UINT		ParticleCastStartTime;
+/*0x0f80*/ UINT		ParticleCastDuration;
+/*0x0f84*/ int		ParticleVisualSpellNum;
+/*0x0f88*/ BYTE		Filler0x0f88[0x4];
+/*0x0f8c*/ ActorClient	mActorClient;          // start of ActorClient struct  size 0x1BC?
+/*0x1148*/ PlayerAnimationBase *pAnimation;
+/*0x114c*/ FLOAT	MeleeRadius;      // used by GetMeleeRange
+/*0x1150*/ UINT		CollisionCounter;
+/*0x1154*/ FLOAT	CachedFloorLocationY;
+/*0x1158*/ FLOAT	CachedFloorLocationX;
+/*0x115c*/ FLOAT	CachedFloorLocationZ;
+/*0x1160*/ FLOAT	CachedFloorHeight;
+/*0x1164*/ FLOAT	CachedCeilingLocationY;
+/*0x1168*/ FLOAT	CachedCeilingLocationX;
+/*0x116c*/ FLOAT	CachedCeilingLocationZ;
+/*0x1170*/ FLOAT	CachedCeilingHeight;
+/*0x1174*/ CCapsule	StaticCollision;//size 0x1c
+/*0x1190*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
+/*0x11a0*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
 #if !defined(UFEMU)
 EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race);
 #else
@@ -8505,16 +8506,16 @@ public:
 /*0x1f58*/ int		SoundIDs[0xa];//0x28 bytes
 /*0x1f80*/ UINT		LastHistorySentTime;
 /*0x1f84*/ ArrayClass2_RO<UINT>	BardTwistSpells;//size 0x1c
-/*0x1fA0*/ UINT		CurrentBardTwistIndex;
-/*0x1fA4*/ PlayerPhysicsClient mPlayerPhysicsClient;//size 0x28
-/*0x1FCC*/ int		SpawnStatus[6];//todo: look closer at these i think they can show like status of mobs slowed, mezzed etc, but not sure
-/*0x1fe4*/ int		BannerIndex0;//guild banners
-/*0x1fe8*/ int		BannerIndex1;
-/*0x1fec*/ ARGBCOLOR BannerTint0;
-/*0x1ff0*/ ARGBCOLOR BannerTint1;
-/*0x1ff4*/ int		MountAnimationRelated;
-/*0x1ff8*/ bool		bGuildShowAnim;//or sprite? need to check
-/*0x1ff9*/ bool		bWaitingForPort;//check this
+/*0x1fA0*/ __int64		CurrentBardTwistIndex;
+/*0x1fA8*/ PlayerPhysicsClient mPlayerPhysicsClient;//size 0x28
+/*0x1Fd0*/ int		SpawnStatus[6];//todo: look closer at these i think they can show like status of mobs slowed, mezzed etc, but not sure
+/*0x1fe8*/ int		BannerIndex0;//guild banners
+/*0x1fec*/ int		BannerIndex1;
+/*0x1ff0*/ ARGBCOLOR BannerTint0;
+/*0x1ff4*/ ARGBCOLOR BannerTint1;
+/*0x1ff8*/ int		MountAnimationRelated;
+/*0x1ffc*/ bool		bGuildShowAnim;//or sprite? need to check
+/*0x1ffd*/ bool		bWaitingForPort;//check this
 EQLIB_OBJECT PcClient * PlayerClient::GetPcClient(void)const;//call this using pLocalPlayer->GetPcClient();
 inline signed int GetClass()
 {
@@ -8579,20 +8580,21 @@ public:
 /*0x48*/ HashTable<CachedFocusMercAbility, __int64>	CachedFocusMercAbilities;
 /*0x58*/ 
 };
-
 class SomeClass
 {
 public:
-/*0x0000*/ void *CharacterBase_vftable;
+/*0x0000*/ void *CharacterZoneClient_vftable;
 };
+
 enum GILocationOption
 {
 	Bag_Or_Base,
 	Socket
 };
-class CharacterBase: public SomeClass
+class CharacterBase
 {
 public:
+/*0x0000*/ void *CharacterBase_vftable;
 /*0x0004*/ CProfileManager ProfileManager;//size 0x8
 /*0x000C*/ TSafeArrayStatic<BYTE, 0x20>	languages;
 /*0x002C*/ FLOAT         X;
@@ -8680,6 +8682,7 @@ public:
 	EQLIB_OBJECT ItemIndex CreateItemIndex(int Slot0, int Slot1=-1, int Slot2=-1);
 	inline const BaseProfile& GetCurrentBaseProfile() const
 	{
+		//CharacterBase*bp = (CharacterBase*)*this;
 		return *ProfileManager.GetCurrentProfile();
 	}
 	EQLIB_OBJECT BYTE CharacterBase::GetLanguageSkill(int)const;
@@ -8692,11 +8695,9 @@ EQLIB_OBJECT char * build_token_string_PARAM(char *pBuffer, int token, const cha
 								const char *param2=NULL, const char *param3=NULL, const char *param4=NULL, const char *param5=NULL, 
 								const char *param6=NULL, const char *param7=NULL, const char *param8=NULL);
 
-class CharacterZoneClient : virtual public CharacterBase
+class CharacterZoneClient : public SomeClass, virtual public CharacterBase
 {
 public:
-/*0x2074*/ //virtual void vftableph(void) {};
-/*0x2420*/ void		*CharacterZoneClient_vfTable;
 union {
 /*0x2424*/ PlayerClient *me;//just here for comparing the 2, todo: fix
 /*0x2424*/ PSPAWNINFO me2;

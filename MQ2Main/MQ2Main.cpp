@@ -31,7 +31,7 @@ CRITICAL_SECTION gPluginCS = { 0 };
 #else
 #pragma message("EQLIB_IMPORTS")
 #endif
-
+HANDLE ghMemberMapLock = 0;
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 HANDLE hMQ2StartThread = 0;
@@ -351,6 +351,11 @@ bool __cdecl MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t buffl
 bool __cdecl MQ2Initialize()
 {
 #endif
+	if (!ghVariableLock)
+		ghVariableLock = CreateMutex(NULL, FALSE, NULL);
+
+	if (!ghMemberMapLock)
+		ghMemberMapLock = CreateMutex(NULL, FALSE, NULL);
 	MODULEINFO modinfo = {0};
 	HMODULE heagamemod = GetModuleHandle(NULL);
 	GetModuleInformation(GetCurrentProcess(), heagamemod, &modinfo, sizeof(MODULEINFO));
@@ -374,8 +379,9 @@ bool __cdecl MQ2Initialize()
 		Sleep(1000);
 	}
 	
-	if (!ghVariableLock)
-		ghVariableLock = CreateMutex(NULL, FALSE, NULL);
+	
+
+	
     if(!InitOffsets())
     {
         DebugSpewAlways("InitOffsets returned false - thread aborted.");
@@ -563,6 +569,11 @@ void __cdecl MQ2Shutdown()
 		ReleaseMutex(ghVariableLock);
 		CloseHandle(ghVariableLock);
 		ghVariableLock = 0;
+	}
+	if (ghMemberMapLock) {
+		ReleaseMutex(ghMemberMapLock);
+		CloseHandle(ghMemberMapLock);
+		ghMemberMapLock = 0;
 	}
 }
 

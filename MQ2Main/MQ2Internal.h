@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
 EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
+EQLIB_VAR HANDLE ghMemberMapLock;
 namespace MQ2Internal {
 
 	enum eAdventureTheme
@@ -861,6 +862,7 @@ namespace MQ2Internal {
 
         BOOL GetMemberID(PCHAR Name, DWORD &Result)
         {
+			lockit lk(ghMemberMapLock, "GetMemberID");
 			if (MemberMap.find(Name) == MemberMap.end())
 				return false;
 			unsigned long N = MemberMap[Name];
@@ -873,6 +875,7 @@ namespace MQ2Internal {
         }
         PMQ2TYPEMEMBER FindMember(PCHAR Name)
         {
+			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MemberMap.find(Name) == MemberMap.end())
 				return 0;
 			unsigned long N=MemberMap[Name];
@@ -883,6 +886,7 @@ namespace MQ2Internal {
         }
 		PMQ2TYPEMEMBER FindMethod(PCHAR Name)
         {
+			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MethodMap.find(Name) == MethodMap.end())
 				return 0;
 			unsigned long N = MethodMap[Name];
@@ -904,8 +908,9 @@ namespace MQ2Internal {
 
     protected:
 
-        inline BOOL AddMember(DWORD ID, PCHAR Name)
+        BOOL AddMember(DWORD ID, PCHAR Name)
         {
+			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MemberMap.find(Name) != MemberMap.end())
 				return false;
             unsigned long N=MemberMap[Name];
@@ -922,6 +927,7 @@ namespace MQ2Internal {
         }
 		inline BOOL AddMethod(DWORD ID, PCHAR Name)
         {
+			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MethodMap.find(Name) != MethodMap.end())
 				 return false;
             unsigned long N=MethodMap[Name];
@@ -936,8 +942,9 @@ namespace MQ2Internal {
             Methods[N]=pMethod;
             return true;
         }
-        inline BOOL RemoveMember(PCHAR Name)
+        BOOL RemoveMember(PCHAR Name)
         {
+			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MemberMap.find(Name) == MemberMap.end())
 				 return false;
             unsigned long N=MemberMap[Name];
@@ -948,8 +955,9 @@ namespace MQ2Internal {
             delete pMember;
             Members[N]=0;
         }
-		inline BOOL RemoveMethod(PCHAR Name)
+		BOOL RemoveMethod(PCHAR Name)
         {
+			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MethodMap.find(Name) == MethodMap.end())
 				 return false;
             unsigned long N=MethodMap[Name];

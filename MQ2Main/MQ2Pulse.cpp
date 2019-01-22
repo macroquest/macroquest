@@ -522,16 +522,21 @@ template <unsigned int _Size>static void make_minidump (char*filename, EXCEPTION
 
     return;
 }
+bool DirectoryExists(LPCTSTR lpszPath) {
+	DWORD dw = ::GetFileAttributes(lpszPath);
+	return (dw != INVALID_FILE_ATTRIBUTES && (dw & FILE_ATTRIBUTE_DIRECTORY) != 0);
+}
 int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...)
 {
-//int filterException(PEXCEPTION_POINTERS ex) {
 	CHAR szOut[MAX_STRING] = { 0 };
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szDumpPath[MAX_STRING] = { 0 };
 
-//	DWORD  error;
 	HANDLE hProcess;
-
+	if (!DirectoryExists(gszLogPath))
+	{
+		CreateDirectory(gszLogPath, NULL);
+	}
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
 	hProcess = GetCurrentProcess();
@@ -568,14 +573,14 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 	{
 		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
 		{
-			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
+			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
 		}
 		else {
-			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
+			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
 		}
 	}
 	else {
-		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
+		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
 	}
 	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
 	if (mbret==IDCANCEL)

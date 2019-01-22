@@ -7077,7 +7077,488 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
 		|| ((aSpell->SpellType == 1 || aSpell->SpellType == 2) && (bSpell->SpellType == 1 || bSpell->SpellType == 2) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
 }
+#pragma pack(push)
+#pragma pack(4)
+class PhysicsBase2
+{
+public:	
+/*0x1fA4*/ void*	vtable2;
+/*0x1FA8*/	bool bApplyGravity;
+};
+class PlayerPhysics2 : public PhysicsBase2
+{
+public:
+/*0x1FAC*/	struct _SPAWNINFO*	pSpawn;//PlayerBase*
+/*0x1FB0*/	GravityBehavior Levitate;
+//bobbing control
+/*0x1Fb4*/	int UpDownIndex;
+/*0x1Fb8*/	int LeftRightIndex;
+/*0x1Fbc*/	int UpDownSpeed;
+/*0x1Fc0*/	int LeftRightSpeed;
+/*0x1Fc4*/	FLOAT LeftRightDist;
+/*0x1Fc8*/	FLOAT UpDownDist;
+/*0x1Fcc*/
+};
 
+class PlayerPhysicsClient2 : public PlayerPhysics2
+{
+public:
+/*0x1Fb8*/
+};
+#pragma pack(pop)
+#pragma pack(push)
+#pragma pack(8)
+class SomeClass3
+{
+public:
+/*0x0000*/ void *CharacterZoneClient_vftable;
+
+};
+
+enum GILocationOption
+{
+	Bag_Or_Base,
+	Socket
+};
+class CharacterBase2
+{
+public:
+/*0x0000*/ void *CharacterBase_vftable;
+/*0x0004*/ CProfileManager ProfileManager;//size 0x8
+/*0x000C*/ TSafeArrayStatic<BYTE, 0x20>	languages;
+/*0x002C*/ FLOAT         X;
+/*0x0030*/ FLOAT         Y;
+/*0x0034*/ FLOAT         Z;
+/*0x0038*/ FLOAT         Heading;
+/*0x003c*/ TSafeString<0x40>	Name;
+/*0x007c*/ TSafeString<0x20>	Lastname;
+/*0x009c*/ TSafeString<0x80>	Title;
+/*0x011c*/ TSafeString<0x40>	VehicleName;
+/*0x015c*/ char			Stunned;//well status really
+/*0x0160*/ EQZoneIndex		zoneId;
+/*0x0164*/ BYTE	standstate;
+/*0x0168*/ RaidData raidData;//size 0xdc
+/*0x0244*/ int			ExpansionFlags;
+/*0x0248*/ bool			bSuperPKILL;
+/*0x024a*/ bool			bUnclone;
+/*0x024b*/ bool			bDead;
+/*0x024C*/ int			LD_Timer;
+/*0x0250*/ int			SpellInterruptCount;
+/*0x0254*/ bool			bAutoSplit;
+/*0x0255*/ bool			bTellsOff;
+/*0x0256*/ bool			bGmInvis;
+/*0x0258*/ int			KillMe;
+/*0x025c*/ bool			CheaterLdFlag;//likely this is int SoulMarkCount instead.
+/*0x025d*/ bool			NoRent;
+/*0x025e*/ bool			Corpse;
+/*0x025f*/ bool			ClientGmFlagSet;
+/*0x0260*/ int          BankSharedPlat;//31e4 CharBaseBegin+488
+/*0x0264*/ int          BankSharedGold;//CharBaseBegin+48c
+/*0x0268*/ int          BankSharedSilver;//CharBaseBegin+490
+/*0x026c*/ int          BankSharedCopper;//CharBaseBegin+494
+/*0x0270*/ int          BankPlat;//CharBaseBegin+498
+/*0x0274*/ int          BankGold;//CharBaseBegin+49c
+/*0x0278*/ int          BankSilver;//CharBaseBegin+4a0
+/*0x027c*/ int          BankCopper;//CharBaseBegin+4a4
+/*0x0280*/ int          STR;//CharBaseBegin+4a8
+/*0x0284*/ int          STA;//CharBaseBegin+4ac
+/*0x0288*/ int          CHA;//CharBaseBegin+4b0
+/*0x028c*/ int          DEX;//CharBaseBegin+4b4
+/*0x0290*/ int          INT;//CharBaseBegin+4b8
+/*0x0294*/ int          AGI;//CharBaseBegin+4bc
+/*0x0298*/ int          WIS;//CharBaseBegin+4c0
+/*0x029c*/ int          SavePoison;//CharBaseBegin+4c4
+/*0x02a0*/ int          SaveMagic;//CharBaseBegin+4c8
+/*0x02a4*/ int          SaveDisease;//CharBaseBegin+4cc
+/*0x02a8*/ int          SaveCorruption;//CharBaseBegin+4d0
+/*0x02ac*/ int          SaveFire;//CharBaseBegin+4d4
+/*0x02b0*/ int          SaveCold;//CharBaseBegin+4d8
+/*0x02b4*/ int          SavePhysical;
+/*0x02b8*/ int			UncappedStr;
+/*0x02bc*/ int  		UncappedSta;
+/*0x02c0*/ int			UncappedCha;
+/*0x02c4*/ int			UncappedDex;
+/*0x02c8*/ int			UncappedInt;
+/*0x02cc*/ int			UncappedAgi;
+/*0x02d0*/ int			UncappedWis;
+/*0x02d4*/ int			UncappedResistPoison;
+/*0x02d8*/ int			UncappedResistMagic;
+/*0x02dc*/ int			UncappedResistDisease;
+/*0x02e0*/ int			UncappedResistCorruption;
+/*0x02e4*/ int			UncappedResistFire;
+/*0x02e8*/ int			UncappedResistCold;
+/*0x02ec*/ int			NoBuffStr;
+/*0x02f0*/ int			NoBuffSta;
+/*0x02f4*/ int			NoBuffCha;
+/*0x02f8*/ int			NoBuffDex;
+/*0x02fc*/ int			NoBuffInt;
+/*0x0300*/ int			NoBuffAgi;
+/*0x0304*/ int			NoBuffWis;
+/*0x0308*/ int			NoBuffResistPoison;
+/*0x030c*/ int			NoBuffResistMagic;
+/*0x0310*/ int			NoBuffResistDisease;
+/*0x0314*/ int			NoBuffResistCorruption;
+/*0x0318*/ int			NoBuffResistFire;
+/*0x031c*/ int			NoBuffResistCold;
+/*0x0320*/ int			NoBuffResistPhysical;
+/*0x0320*/ int			NoBuffResistPhysical2;
+/*0x0320*/ int			NoBuffResistPhysical3;
+/*0x0324*/
+};
+class CActorApplicationData2
+{
+public:
+	enum EApplicationDataType
+	{
+		ePlayerBase,
+		eMissileBase,
+		eObject,
+		eSwitch,
+		eEnvEmitter,
+		ePlacedItem
+	};
+	virtual EApplicationDataType GetActorApplicationDataType() const = 0;
+	virtual const void* AsMissileBase() const = 0;
+	virtual void* AsMissileBase() = 0;
+	virtual const void* /*PlayerBase*/AsPlayerBase() const = 0;
+	virtual void* /*PlayerBase*/ AsPlayerBase() = 0;
+	virtual const void * /*EQObject*/ AsObject() const = 0;
+	virtual void* /*EQObject*/ AsObject() = 0;
+	virtual const void *AsSwitch() const = 0;
+	virtual void *AsSwitch() = 0;
+	virtual const void* AsPlacedItem() const = 0;
+	virtual void* AsPlacedItem() = 0;
+};
+template <class Type> class TListNode2
+{
+/*0x0008*/ Type*    pPrev;
+/*0x0008*/ Type*    pNext;
+		DWORD blh;
+};
+class PlayerBase2 : public TListNode2<PlayerBase2>, public CActorApplicationData2
+
+//class PlayerBase : public PlayerBaseVfTable,public TListNode<PlayerBase>
+{
+public:
+/* ******************** PlayerBase Starts Here ***************** */
+/*0x0010*/ FLOAT	JumpStrength;
+/*0x0014*/ FLOAT	SwimStrength;
+/*0x0018*/ FLOAT	SpeedMultiplier;
+/*0x001c*/ FLOAT	AreaFriction;
+/*0x0020*/ FLOAT	AccelerationFriction;
+/*0x0024*/ EActorType CollidingType; /* ok finally had time to get this one right, when we collide with something this gets set. */
+/*0x0028*/ FLOAT	FloorHeight;
+/*0x002c*/ bool		bSinksInWater;
+/*0x0030*/ UINT		PlayerTimeStamp; /* doesn't update when on a Vehicle (mounts/boats etc) */
+/*0x0034*/ UINT		LastTimeIdle;
+/*0x0038*/ CHAR		Lastname[0x20];
+/*0x0058*/ FLOAT	AreaHPRegenMod; /*from guild hall pools etc. */
+/*0x005c*/ FLOAT	AreaEndRegenMod;
+/*0x0060*/ FLOAT	AreaManaRegenMod;
+/*0x0064*/ FLOAT	Y;
+/*0x0068*/ FLOAT	X;
+/*0x006c*/ FLOAT	Z;
+/*0x0070*/ FLOAT	SpeedY;
+/*0x0074*/ FLOAT	SpeedX;
+/*0x0078*/ FLOAT	SpeedZ;
+/*0x007c*/ FLOAT	SpeedRun;
+/*0x0080*/ FLOAT	Heading;
+/*0x0084*/ FLOAT	Angle;
+/*0x0088*/ FLOAT	AccelAngle;
+/*0x008c*/ FLOAT	SpeedHeading;
+/*0x0090*/ FLOAT	CameraAngle;
+/*0x0094*/ UINT		UnderWater; /*LastHeadEnvironmentType */
+/*0x0098*/ UINT		LastBodyEnvironmentType;
+/*0x009c*/ UINT		LastFeetEnvironmentType;
+/*0x00a0*/ BYTE		HeadWet; /*these really are environment related, like lava as well for example */
+/*0x00a1*/ BYTE		FeetWet;
+/*0x00a2*/ BYTE		BodyWet;
+/*0x00a3*/ BYTE		LastBodyWet;
+/*0x00a4*/ CHAR		Name[0x40];             /* ie priest_of_discord00 */
+/*0x00e4*/ CHAR		DisplayedName[0x40];    /* ie Priest of Discord*/
+/*0x0124*/ BYTE		PossiblyStuck;          /* never seen this be 1 so maybe it was used a a point but not now... */
+/*0x0125*/ BYTE		Type;
+/*0x0128*/ DWORD**	BodyType;	/* this really should be renamed to charprops or something its broken anyway*/
+/*0x012c*/ BYTE		CharPropFiller[0xc]; /* well since the above is a CharacterPropertyHash we have to pad here...*/
+/*0x0138*/ FLOAT	AvatarHeight;           /* height of avatar from groundwhen standing*/
+/*0x013c*/ FLOAT	Height;
+/*0x0140*/ FLOAT	Width;
+/*0x0144*/ FLOAT	Length;
+/*0x0148*/ DWORD	SpawnID;
+/*0x014c*/ DWORD	PlayerState;         /* 0=Idle 1=Open 2=WeaponSheathed 4=Aggressive 8=ForcedAggressive 0x10=InstrumentEquipped 0x20=Stunned 0x40=PrimaryWeaponEquipped 0x80=SecondaryWeaponEquipped */
+/*0x0150*/ struct _SPAWNINFO*	Vehicle;    /* NULL until you collide with a vehicle (boat,airship etc) */
+/*0x0154*/ struct _SPAWNINFO*	Mount;      /* NULL if no mount present */
+/*0x0158*/ struct _SPAWNINFO*	Rider;      /* _SPAWNINFO of mount's rider */
+/*0x015c*/ DWORD	Unknown0x015c;
+/*0x0160*/ bool		Targetable;	/* true if mob is targetable */
+/*0x0161*/ bool		bTargetCyclable;
+/*0x0162*/ bool		bClickThrough;
+/*0x0163*/ bool		bBeingFlung;
+/*0x0164*/ UINT		FlingActiveTimer;
+/*0x0168*/ UINT		FlingTimerStart;
+/*0x016c*/ bool		bFlingSomething;
+/*0x0170*/ FLOAT	FlingY;
+/*0x0174*/ FLOAT	FlingX;
+/*0x0178*/ FLOAT	FlingZ;
+/*0x017c*/ bool		bFlingSnapToDest;
+/*0x0180*/ int		SplineID;
+/*0x0184*/ int		SplineRiderID;
+
+};
+class PlayerZoneClient2 : public PlayerBase2
+{
+public:
+/*0x0188*/ UINT		LastIntimidateUse;
+/*0x018c*/ PLAYERZONECLIENT
+/*0x0614*/ //I wont finetune these comments every single patch cause they change since PLAYERZONECLIENT size change...
+/*0x0614*/ TCircularBuffer<SDoCollisionMovementStats, 0x14>MovementStats; /* size (0x74 * 0x14) +8 = 0x918 */
+/*0x0f2c*/ struct _SPAWNINFO*   WhoFollowing; // NULL if autofollow off
+/*0x0f30*/ DWORD	GroupAssistNPC[0x1];
+/*0x0f34*/ DWORD	RaidAssistNPC[0x3];
+/*0x0f40*/ DWORD	GroupMarkNPC[0x3];
+/*0x0f4c*/ DWORD	RaidMarkNPC[0x3];
+/*0x0f58*/ DWORD	TargetOfTarget;
+/*0x0f5c*/ BYTE		PhysStuff[0x20];
+/*0x0f7c*/ UINT		ParticleCastStartTime;
+/*0x0f80*/ UINT		ParticleCastDuration;
+/*0x0f84*/ int		ParticleVisualSpellNum;
+/*0x0f88*/ BYTE		Filler0x0f88[0x4];
+/*0x0f8c*/ ActorClient	mActorClient;          // start of ActorClient struct  size 0x1BC?
+/*0x1148*/ PlayerAnimationBase *pAnimation;
+/*0x114c*/ FLOAT	MeleeRadius;      // used by GetMeleeRange
+/*0x1150*/ UINT		CollisionCounter;
+/*0x1154*/ FLOAT	CachedFloorLocationY;
+/*0x1158*/ FLOAT	CachedFloorLocationX;
+/*0x115c*/ FLOAT	CachedFloorLocationZ;
+/*0x1160*/ FLOAT	CachedFloorHeight;
+/*0x1164*/ FLOAT	CachedCeilingLocationY;
+/*0x1168*/ FLOAT	CachedCeilingLocationX;
+/*0x116c*/ FLOAT	CachedCeilingLocationZ;
+/*0x1170*/ FLOAT	CachedCeilingHeight;
+/*0x1174*/ CCapsule	StaticCollision;//size 0x1c
+/*0x1190*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
+/*0x11a0*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
+
+};
+
+
+class PlayerClient2 : public PlayerZoneClient2
+{
+public:
+/* ********************** PlayerClient Starts Here ******************** */
+/*0x11b0*/ int		Animation; /* Current Animation Playing. */
+/*0x11xx*/ int		NextAnim;
+/*0x11xx*/ int		CurrLowerBodyAnim;
+/*0x1194*/ int		NextLowerBodyAnim;
+/*0x1198*/ int		CurrLowerAnimVariation;
+/*0x119c*/ int		CurrAnimVariation;
+/*0x11a0*/ int		CurrAnimRndVariation;
+/* ********************sound ID's BEGIN ******************* */
+/*0x11a4*/ int		Loop3d_SoundID;
+
+/*0x11a8*/ int		Step_SoundID;;
+/*0x11ac*/ int		CurLoop_SoundID;
+/*0x11b0*/ int		Idle3d1_SoundID;
+/*0x11b4*/ int		Idle3d2_SoundID;
+/*0x11b8*/ int		Jump_SoundID;
+/*0x11bc*/ int		Hit1_SoundID;
+/*0x11c0*/ int		Hit2_SoundID;
+/*0x11c4*/ int		Hit3_SoundID;
+
+/*0x11c8*/ int		Hit4_SoundID;
+/*0x11cc*/ int		Gasp1_SoundID;
+/*0x11d0*/ int		Gasp2_SoundID;
+/*0x11d4*/ int		Drown_SoundID;
+/*0x11d8*/ int		Death_SoundID;
+/*0x11dc*/ int		Attk1_SoundID;
+/*0x11e0*/ int		Attk2_SoundID;
+/*0x11e4*/ int		Attk3_SoundID;
+
+/*0x11e8*/ int		Walk_SoundID;
+/*0x11ec*/ int		Run_SoundID;
+/*0x11f0*/ int		Crouch_SoundID;
+/*0x11f4*/ int		Swim_SoundID;
+/*0x11f8*/ int		TreadWater_SoundID;
+/*0x11fc*/ int		Climb_SoundID;
+/*0x1200*/ int		Sit_SoundID;
+/*0x1204*/ int		Kick_SoundID;
+
+/*0x1208*/ int		Bash_SoundID;
+/*0x120c*/ int		FireBow_SoundID;
+/*0x1210*/ int		MonkAttack1_SoundID;
+/*0x1214*/ int		MonkAttack2_SoundID;
+/*0x1218*/ int		MonkSpecial_SoundID;
+/*0x121c*/ int		PrimaryBlunt_SoundID;
+/*0x1220*/ int		PrimarySlash_SoundID;
+/*0x1224*/ int		PrimaryStab_SoundID;
+
+/*0x1228*/ int		Punch_SoundID;
+/*0x122c*/ int		Roundhouse_SoundID;
+/*0x1230*/ int		SecondaryBlunt_SoundID;
+/*0x1234*/ int		SecondarySlash_SoundID;
+/*0x1238*/ int		SecondaryStab_SoundID;
+/*0x123c*/ int		SwimAttack_SoundID;
+/*0x1240*/ int		TwoHandedBlunt_SoundID;
+/*0x1244*/ int		TwoHandedSlash_SoundID;
+
+/*0x1248*/ int		TwoHandedStab_SoundID;
+/*0x124c*/ int		SecondaryPunch_SoundID;
+/*0x1250*/ int		JumpAcross_SoundID;
+/*0x1254*/ int		WalkBackwards_SoundID;
+/*0x1258*/ int		CrouchWalk_SoundID;
+/* ******************** sound ID's END ****************** */
+/*0x125c*/ UINT		LastHurtSound;
+/*0x1260*/ UINT		LastWalkTime;//used for animations
+/*0x1264*/ int		ShipRelated;//ID? look into.
+/*0x1268*/ int		RightHolding;//Nothing=0 Other/Weapon=1 shield=2
+/*0x126c*/ int		LeftHolding;//old Holding
+/*0x1270*/ UINT		DeathAnimationFinishTime;
+/*0x1274*/ bool		bRemoveCorpseAfterDeathAnim;//0x1274 for sure used by /hidecorpse
+/*0x1278*/ UINT		LastBubblesTime;
+/*0x127c*/ UINT		LastBubblesTime1;
+/*0x1280*/ UINT		LastColdBreathTime;
+/*0x1284*/ UINT		LastParticleUpdateTime;
+/*0x1288*/ UINT		MercID;    // IT IS 0x1288      //if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
+/*0x128c*/ UINT		ContractorID;    //if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
+/*0x1290*/ FLOAT	CeilingHeightAtCurrLocation;
+/*0x1294*/ void		*MobileEmitter;//todo: change and map to EqMobileEmitter*
+/*0x1298*/ bool		bInstantHPGaugeChange;
+/*0x129c*/ UINT		LastUpdateReceivedTime;
+/*0x12a0*/ FLOAT	MaxSpeakDistance;
+/*0x12a4*/ FLOAT	WalkSpeed;//how much we will slow down while sneaking
+/*0x12a8*/ bool		bHideCorpse;// IT IS 0x12a8
+/*0x12a9*/ CHAR		AssistName[0x40];
+/*0x12E9*/ bool		InvitedToGroup;//IT IS 12E9!
+/*0x12ec*/ int		GroupMemberTargeted;//12ec for sure!    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x12f0*/ bool		bRemovalPending;
+/*0x12f4*/ void		*pCorpse;//look into 0x12f4 for sure!
+/*0x12f8*/ FLOAT	EmitterScalingRadius;//0x12f8 FOR SURE
+/*0x12fc*/ int		DefaultEmitterID;
+/*0x1300*/ bool		bDisplayNameSprite;
+/*0x1301*/ bool		bIdleAnimationOff;
+/*0x1302*/ bool		bIsInteractiveObject;
+/*0x1303*/ BYTE		InteractiveObjectModelName[0x80];
+/*0x1383*/ BYTE		InteractiveObjectOtherName[0x80];
+/*0x1403*/ BYTE		InteractiveObjectName[0x40];
+/*0x1443*/
+/*0x1444*/ CPhysicsInfo PhysicsBeforeLastPort;//size IS /*0x30*/
+/*0x1474*/ DWORD notsure;
+/*0x1478*/ struct _FELLOWSHIPINFO	Fellowship; // IT IS AT 0x1478 // size 0x9e8 //it IS at 1478
+/*0x1E60*/ FLOAT	CampfireY;
+/*0x1e64*/ FLOAT	CampfireX;
+/*0x1e68*/ FLOAT	CampfireZ;
+/*0x1e6c*/ int		CampfireZoneID;         // zone ID where campfire is
+/*0x1e70*/ int		CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1e74*/ int		CampfireTimestamp2;
+/*0x1e78*/ int		FellowShipID;
+/*0x1e7c*/ int		FellowShipID2;
+/*0x1e80*/ int		CampType;
+/*0x1e84*/ bool		Campfire;
+/*0x1e88*/ TSafeArrayStatic<int,3> SeeInvis;
+/*0x1E94*/ struct _EQUIPMENT	Equipment;// size 0xb4
+/*0x1F48*/ bool		bIsPlacingItem;
+/*0x1f49*/ bool		bGMCreatedNPC;
+/*0x1f4c*/ int		ObjectAnimationID;
+/*0x1f50*/ bool		bInteractiveObjectCollidable;
+/*0x1f54*/ int		InteractiveObjectType;
+/*0x1f58*/ int		SoundIDs[0xa];//0x28 bytes
+/*0x1f80*/ UINT		LastHistorySentTime;
+/*0x1f84*/ ArrayClass2_RO<UINT>	BardTwistSpells;//size 0x1c
+/*0x1fA0*/ UINT		CurrentBardTwistIndex;
+/*0x1fA4*/ PlayerPhysicsClient2 mPlayerPhysicsClient;//size 0x28
+/*0x1FCC*/ int		SpawnStatus[6];//todo: look closer at these i think they can show like status of mobs slowed, mezzed etc, but not sure
+/*0x1fe4*/ int		BannerIndex0;//guild banners
+/*0x1fe8*/ int		BannerIndex1;
+/*0x1fec*/ ARGBCOLOR BannerTint0;
+/*0x1ff0*/ ARGBCOLOR BannerTint1;
+/*0x1ff4*/ int		MountAnimationRelated;
+/*0x1ff8*/ bool		bGuildShowAnim;//or sprite? need to check
+/*0x1ff9*/ bool		bWaitingForPort;//check this
+
+};
+class CharacterZoneClient2 : public SomeClass3, virtual public CharacterBase2
+{
+public:
+union {
+/*0x2424*/ PlayerClient2 *me;//just here for comparing the 2, todo: fix
+/*0x2424*/ PSPAWNINFO me2;
+};
+/*0x242c*/ bool		bUpdateStuff;
+/*0x242d*/ bool     bZoningStatProcessing;
+/*0x2430*/ DWORD    ArmorClassBonus;//vtable2+10
+/*0x2434*/ DWORD    CurrWeight;//vtable2+14
+/*0x2438*/ int		LastHitPointSendPercent;
+/*0x243c*/ int		LastManaPointSendPercent;
+/*0x2440*/ int		LastEndurancePointSendPercent;
+/*0x2444*/ DWORD    HPBonus;//vtable2+24
+/*0x2448*/ DWORD    ManaBonus;//vtable2+28
+/*0x244c*/ DWORD    EnduranceBonus;//vtable2+2c
+/*0x2450*/ BYTE     Unknown0x2450[0x4];
+/*0x2454*/ DWORD    CombatEffectsBonus;//vtable2+34 Combat Effects in UI
+/*0x2458*/ DWORD    ShieldingBonus;//vtable2+38 Melee Shielding in UI
+/*0x245c*/ DWORD    SpellShieldBonus;//vtable2+3c Spell Shielding in UI
+/*0x2460*/ DWORD    AvoidanceBonus;//vtable2+40 Avoidance in UI
+/*0x2464*/ DWORD    AccuracyBonus;//vtable2+44 Accuracy in UI
+/*0x2468*/ DWORD    StunResistBonus;//vtable2+48 Stun Resist in UI
+/*0x246c*/ DWORD    StrikeThroughBonus;//vtable2+4c Strike Through in UI
+/*0x2470*/ DWORD    DoTShieldBonus;//vtable2+50 Dot Shielding in UI
+/*0x2474*/ DWORD    DamageShieldMitigationBonus;//vtable2+54 Damage Shield Mitig in UI
+/*0x2478*/ DWORD    DamageShieldBonus;//vtable2+58 Damage Shielding in UI
+/*0x247c*/ TSafeArrayStatic<int, 9> ItemSkillMinDamageMod;//size 0x24
+/*0x24a0*/ TSafeArrayStatic<int, 9> SkillMinDamageModBonus;//size 0x24
+/*0x24c4*/ DWORD    HeroicSTRBonus;//vtable2+a4
+/*0x24c8*/ DWORD    HeroicINTBonus;//vtable2+a8
+/*0x24cc*/ DWORD    HeroicWISBonus;//vtable2+ac
+/*0x24d0*/ DWORD    HeroicAGIBonus;//vtable2+b0
+/*0x24d4*/ DWORD    HeroicDEXBonus;//vtable2+b4
+/*0x24d8*/ DWORD    HeroicSTABonus;//vtable2+b8
+/*0x24dc*/ DWORD    HeroicCHABonus;//vtable2+bc
+/*0x24e0*/ DWORD    HeroicSvMagicBonus;//vtable2+c0
+/*0x24e4*/ DWORD    HeroicSvFireBonus;//vtable2+c4
+/*0x24e8*/ DWORD    HeroicSvColdBonus;//vtable2+c8
+/*0x24ec*/ DWORD    HeroicSvDiseaseBonus;//vtable2+cc
+/*0x24f0*/ DWORD    HeroicSvPoisonBonus;//vtable2+d0
+/*0x24f4*/ DWORD    HeroicSvCorruptionBonus;//vtable2+d4
+/*0x24f8*/ DWORD    HealAmountBonus;//vtable2+d8
+/*0x24fc*/ DWORD    SpellDamageBonus;//vtable2+dc
+/*0x2500*/ int		ItemHealAmountDotMod;
+/*0x2504*/ int		ItemSpellDamageDotMod;
+/*0x2508*/ DWORD    ClairvoyanceBonus;//vtable2+e8
+/*0x250c*/ DWORD    AttackBonus;//vtable2+ec
+/*0x2510*/ DWORD    HPRegenBonus;//vtable2+f0
+/*0x2514*/ DWORD    ManaRegenBonus;//vtable2+f4
+/*0x2518*/ DWORD    EnduranceRegenBonus;//vtable2+f8
+/*0x251c*/ DWORD    AttackSpeed;//vtable2+fc
+/*0x2520*/ //int	  ItemPotionBelt;
+/*0x2520*/ int		NoBuffItemHitpointAdjustment;
+/*0x2524*/ int		NoBuffItemManaAdjustment;
+/*0x2528*/ int		NoBuffItemEnduranceAdjustment;
+/*0x252c*/ int		NoBuffItemBaseChanceProc;
+/*0x2530*/ int		NoBuffItemMinDamageMod;
+/*0x2534*/ int		NoBuffItemInnateSpellRune;
+/*0x2538*/ int		NoBuffItemAvoidance;
+/*0x253c*/ int		NoBuffItemToHit;
+/*0x2540*/ int		NoBuffItemResistStunChance;
+/*0x2544*/ int		NoBuffItemDotShieldingEffect;
+/*0x2548*/ int		NoBuffItemStrikeThroughChance;
+/*0x254c*/ int		NoBuffItemAttack;
+/*0x2550*/ int		NoBuffItemHitPointRegen;
+/*0x2554*/ int		NoBuffItemManaRegen;
+/*0x2558*/ int		NoBuffItemEnduranceRegen;
+/*0x255c*/ int		NoBuffItemDamageShield;
+/*0x2560*/ int		NoBuffItemDamageShieldMitigation;
+/*0x2564*/ int		NoBuffItemHaste;
+/*0x256c*/ //int	  NoBuffItemPotionBelt;
+/*0x2568*/ TSafeArrayStatic<int, 9> NoBuffItemSkillMinDamageMod;//size 0x24
+/*0x258c*/ bool		bOutputHpRegen;
+/*0x258d*/ bool		bInvulnerable;
+/*0x258e*/ bool		bOnAVehicle;
+/*0x2590*/ EQData::SpellCache       spellCache;//size 0x58
+/*0x25e8*/ HashListSet<int, 0x80>   DoomEffectsBySlot;//size 0x10 + (0x80 * 4)
+/*0x27f8*/ UINT		LastHitEval;
+/*0x27fc*/
+};
+#pragma pack(pop)
 // ***************************************************************************
 // Function:    BuffStackTest
 // Description: Return boolean true if the two spells will stack
@@ -7087,6 +7568,22 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 // ***************************************************************************
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, BOOL bTriggeredEffectCheck)
 {
+	PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer;
+	if (!pSpawn || !pSpawn->spawneqc_info)
+		return true;
+	if (GetGameState() != GAMESTATE_INGAME)
+		return true;
+	if (gZoning)
+		return true;
+	CharacterZoneClient*pCZC = (CharacterZoneClient*)pSpawn->spawneqc_info;
+	//PCHARINFO pCharInfo = GetCharInfo();
+	//CharacterBase*cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
+	//const BaseProfile*pBP = &pCZC->GetCurrentBaseProfile();
+	//int Class = pCZC->GetCurrentBaseProfile().Class;
+	if (IsBadReadPtr((void*)pCZC, 4))
+		return true;
+	if (IsBadReadPtr((void*)&pCZC->GetCurrentBaseProfile().Class, 4)) 
+		return true;
 	if (!aSpell || !bSpell)
 		return false;
 	if (IsBadReadPtr((void*)aSpell, 4))
@@ -7106,7 +7603,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 
 	EQ_Affect eff;
 	eff.ID = bSpell->ID;
-	bool bItWillNotStack = ((CharacterZoneClient*)pCharData1)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
+	bool bItWillNotStack = ((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
 	if (bItWillNotStack) {
 		Sleep(0);
 		//WriteChatf("EQ Client says spell is BLOCKED");

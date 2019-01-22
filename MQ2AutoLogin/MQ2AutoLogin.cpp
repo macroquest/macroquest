@@ -29,7 +29,7 @@ Change log:
 # Version: 2.0 by eqmule 20160616
 - Added Version Support
 - Updated to not crash on /unload
-- Added a feature to login your char if you inject/reinject at char select
+- Added a feature to login your char if you load/reload at char select
 - this setting is called LoginOnReLoadAtCharSelect=1 and should go under Settings if you want to use it.
 
 #  20150711 - eqmule
