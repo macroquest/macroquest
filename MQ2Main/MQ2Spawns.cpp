@@ -103,8 +103,8 @@ public:
         AddGroundItem();
     }
 
-    PGROUNDITEM DeleteItem_Trampoline(PGROUNDITEM);
-    PGROUNDITEM DeleteItem_Detour(PGROUNDITEM pItem)
+    void DeleteItem_Trampoline(PGROUNDITEM);
+    void DeleteItem_Detour(PGROUNDITEM pItem)
     {
         RemoveGroundItem(pItem);
         return DeleteItem_Trampoline(pItem);
@@ -112,7 +112,7 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::FreeItemList_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::Add_Trampoline(PGROUNDITEM));
-DETOUR_TRAMPOLINE_EMPTY(PGROUNDITEM EQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
 
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn);
 

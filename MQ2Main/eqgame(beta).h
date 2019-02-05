@@ -370,6 +370,7 @@ GNU General Public License for more details.
 #define __EQGetTime_x                                              0x8EAD50
 #define __ExecuteCmd_x                                             0x591FB0
 #define __FixHeading_x                                             0x97BC90
+#define __GameLoop_x                                               0x6A47C0
 #define __get_bearing_x                                            0x5991C0
 #define __get_melee_range_x                                        0x5998B0
 #define __GetAnimationCache_x                                      0x708EC0
@@ -792,6 +793,7 @@ GNU General Public License for more details.
 #define CXStr__operator_equal_x                                    0x8E70B0
 #define CXStr__operator_equal1_x                                   0x8E70F0
 #define CXStr__operator_plus_equal1_x                              0x8E7B80
+#define CXStr__SetString_x                                         0x8E9A70
 
 // CXWnd
 //CTileLayoutWnd__SetOriginalAutoStretchInfo_x is here because its where I lookup the actual CXWnd Size.
@@ -1173,6 +1175,9 @@ GNU General Public License for more details.
 
 //BaseProfile (PCHARINFO2)
 #define BaseProfile__GetItemPossession_x                           0x4EDC50
+
+//ArrayClass
+#define ArrayClass__DeleteElement_x                                0x90CBF0
 
 //patterns
 //LoginController__GiveTime_x

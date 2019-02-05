@@ -566,8 +566,10 @@ namespace MQ2Globals
 	EQLIB_VAR CFacePick **ppFacePick;
 	EQLIB_VAR CFactionWnd **ppFactionWnd;
 	EQLIB_VAR CExtendedTargetWnd **ppExtendedTargetWnd;
-	
+
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR CFindItemWnd **ppFindItemWnd;
+#endif
 	EQLIB_VAR CFindLocationWnd **ppFindLocationWnd;
 	EQLIB_VAR CInvSlotMgr **ppInvSlotMgr;
 	//EQLIB_VAR CPopupWndManager **ppPopupWndManager;
@@ -678,7 +680,9 @@ namespace MQ2Globals
 #define pFacePick (*ppFacePick)
 #define pFactionWnd (*ppFactionWnd)
 #define pExtendedTargetWnd (*ppExtendedTargetWnd)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 #define pFindItemWnd (*ppFindItemWnd)
+#endif
 #define pFindLocationWnd (*ppFindLocationWnd)
 #define pInvSlotMgr (*ppInvSlotMgr)
 #define pPopupWndManager (*ppPopupWndManager)

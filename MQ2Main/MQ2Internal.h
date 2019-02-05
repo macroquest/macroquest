@@ -845,7 +845,11 @@ namespace MQ2Internal {
             return true;
         }
 
-        inline PCHAR GetName() {return &TypeName[0];}
+        inline PCHAR GetName() {
+			if(TypeName)
+				return &TypeName[0];
+			return NULL;
+		}
 
         PCHAR GetMemberName(DWORD ID)
         {

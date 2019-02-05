@@ -2200,15 +2200,16 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffects);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsStackable);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectBySlot);
-	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectByIndex);
+
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAStacking);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAIgnoredByStacking);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffectBase);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsNoRemove);
-	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsDegeneratingLevelMod);
 
 	#if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(EQSpellStrings__GetString);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectByIndex);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsDegeneratingLevelMod);
 	#endif
 	
 	INITIALIZE_EQGAME_OFFSET(__IsResEffectSpell);

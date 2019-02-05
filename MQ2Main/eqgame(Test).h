@@ -370,6 +370,7 @@ GNU General Public License for more details.
 #define __EQGetTime_x                                              0x8EAB40
 #define __ExecuteCmd_x                                             0x592180
 #define __FixHeading_x                                             0x97B790
+#define __GameLoop_x                                               0x6A4E80
 #define __get_bearing_x                                            0x599320
 #define __get_melee_range_x                                        0x599A10
 #define __GetAnimationCache_x                                      0x709310
@@ -1177,9 +1178,6 @@ GNU General Public License for more details.
 
 //ArrayClass
 #define ArrayClass__DeleteElement_x                                0x90CAC0
-
-//GameLoop
-#define __GameLoop_x                                               0x6A4E80
 
 //patterns
 //LoginController__GiveTime_x

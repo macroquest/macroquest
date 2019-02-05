@@ -64,8 +64,17 @@ BOOL APIENTRY DllMain( HANDLE hModule,
             szProcessName[0] = '\0';
             g_Loaded = TRUE;
             hMQ2StartThread = CreateThread(NULL,0,&MQ2Start,_strdup(szFilename),0,&ThreadID);
+			//
         } else if (ul_reason_for_call == DLL_PROCESS_DETACH){
 			gbUnload = TRUE;
+			if (hMQ2StartThread)
+			{
+				int dwtime = WaitForSingleObject(hMQ2StartThread, 1000);
+				if (dwtime == WAIT_TIMEOUT) {
+					Sleep(0);
+				}
+				CloseHandle(hMQ2StartThread);
+			}
 			//while(g_Loaded)
 			//	Sleep(0);
             return TRUE;
@@ -637,7 +646,16 @@ DWORD WINAPI MQ2End(LPVOID lpParameter)
 			hUnloadComplete = 0;
 		}
 	}
-	Unload(NULL,NULL);
+	bRunNextCommand = TRUE;
+	if (GetCurrentMacroBlock())
+	{
+		EndAllMacros();
+	}
+	DebugSpew("%s", ToUnloadString);
+	if (gs == GAMESTATE_INGAME || gs == GAMESTATE_CHARSELECT) {
+		WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
+	}
+	gbUnload = TRUE;
 	return 0;
 }
 DWORD WINAPI GetlocalPlayerOffset()
@@ -649,12 +667,12 @@ void ForceUnload()
 	DWORD oldscreenmode = ScreenMode;
 	ScreenMode = 3;
 	WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
-	DebugSpewAlways("%s", UnloadedString);
+	DebugSpewAlways("ForceUnload() called, this is not good %s", UnloadedString);
 	UnloadMQ2Plugins();
 	MQ2Shutdown();
 	DebugSpew("Shutdown completed");
 	g_Loaded = FALSE;
-	ScreenMode = oldscreenmode;
+	ScreenMode = 2;
 }
 
 LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS * ex)
@@ -711,22 +729,26 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     while (!gbUnload) {
         Sleep(500);
     }
+	Sleep(100);
 getout:
 	if(hLoadComplete) {
 		CloseHandle(hLoadComplete);
 		hLoadComplete = 0;
 	}
 	if(hUnloadComplete) {
-		DWORD dwtime = WaitForSingleObject(hUnloadComplete, 60000);
+		DWORD dwtime = WaitForSingleObject(hUnloadComplete, 1800000);//30 mins so i can debug stuff
 		if (dwtime == WAIT_TIMEOUT) {
+			OutputDebugString("I am unloading in MQ2Start due to TIMEOUT");
 			ForceUnload();
 		}
 		CloseHandle(hUnloadComplete);
 		hUnloadComplete = 0;
 	} else {
-		OutputDebugString("I am unloading in MQ2Start");
+		OutputDebugString("I am unloading in MQ2Start this will probably crash");
 		ForceUnload();
 	}
+	if(ScreenMode)
+		ScreenMode = 2;
 	if(HMODULE h = GetCurrentModule())
 		FreeLibraryAndExitThread(h,0);
     return 0;

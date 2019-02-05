@@ -37,12 +37,17 @@ DWORD AddMQ2Benchmark(PCHAR Name)
 
 VOID RemoveMQ2Benchmark(DWORD BMHandle)
 {
-    DebugSpew("RemoveMQ2Benchmark()");
-    if (Benchmarks[BMHandle])
+    DebugSpewAlways("RemoveMQ2Benchmark()");
+    if (BMHandle && Benchmarks[BMHandle])
     {
         delete Benchmarks[BMHandle];
         Benchmarks[BMHandle]=0;
     }
+	else
+	{
+		DebugSpewAlways("RemoveMQ2Benchmark() failed.");
+		Sleep(0);
+	}
 }
 
 VOID EnterMQ2Benchmark(DWORD BMHandle)

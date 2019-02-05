@@ -145,13 +145,29 @@ void RemoveDetour(DWORD address)
 {
 	CAutoLock Lock(&gDetourCS);
 	OurDetours *detour = ourdetours;
+	HMODULE hModule = 0;
+	CHAR szFilename[MAX_STRING] = { 0 };
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)address, &hModule);
+	DWORD myaddress = (DWORD)hModule;
+	GetModuleFileName(hModule, szFilename, MAX_STRING);
+	if (char*pDest = strrchr(szFilename, '\\'))
+	{
+		pDest[0] = '\0';
+		strcpy_s(szFilename, &pDest[1]);
+	}
+	_strlwr_s(szFilename);
 	while (detour)
 	{
 		if (detour->addr == address)
 		{
+			
+			
 			if (detour->pfDetour)
 			{
-				DebugSpew("DetourRemove %s (%X)", detour->Name, ((DWORD)GetModuleHandle(NULL) - address + 0x400000));
+				if(strstr(szFilename,"eqgame"))
+					DebugSpewAlways("DetourRemove %s (%s [0x%08X])", detour->Name, szFilename, address - myaddress + 0x400000);
+				else
+					DebugSpewAlways("DetourRemove %s (%s [0x%08X])", detour->Name, szFilename,address - myaddress + 0x10000000);
 				DetourRemove(detour->pfTrampoline, detour->pfDetour);
 				//sometimes its useful to add and then remove a detour and then add it again... and so on...
 				//the following 2 lines fixes a detours "bug"
@@ -177,7 +193,10 @@ void RemoveDetour(DWORD address)
 		}
 		detour = detour->pNext;
 	}
-	DebugSpew("Detour for %x not found in RemoveDetour()",((DWORD)GetModuleHandle(NULL) - address + 0x400000));
+	if(strstr(szFilename,"eqgame"))
+		DebugSpewAlways("Detour for (%s [0x%08X]) not found in RemoveDetour()", szFilename, address - myaddress + 0x400000);
+	else
+		DebugSpewAlways("Detour for (%s [0x%08X]) not found in RemoveDetour()", szFilename, address - myaddress + 0x10000000);
 }
 
 void DeleteDetour(DWORD address)
@@ -215,13 +234,16 @@ void RemoveOurDetours()
 		if (ourdetours->pfDetour)
 		{
 			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", ourdetours->Name, ourdetours->addr);
-			DetourRemove(ourdetours->pfTrampoline, ourdetours->pfDetour);
+			RemoveDetour(ourdetours->addr);
 		}
-
-		OurDetours *pNext = ourdetours->pNext;
-		delete ourdetours;
-		ourdetours = pNext;
+		if (ourdetours)
+		{
+			OurDetours *pNext = ourdetours->pNext;
+			delete ourdetours;
+			ourdetours = pNext;
+		}
 	}
+	ourdetours = 0;
 }
 #endif
 
@@ -392,11 +414,17 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
 // Function:    HookMemChecker
 // Description: Hook MemChecker
 // ***************************************************************************
-int(__cdecl *memcheck0_tramp)(unsigned char *buffer, int count);
-int(__cdecl *memcheck1_tramp)(unsigned char *buffer, int count, struct mckey key);
-int(__cdecl *memcheck2_tramp)(unsigned char *buffer, int count, struct mckey key);
-int(__cdecl *memcheck3_tramp)(unsigned char *buffer, int count, struct mckey key);
-int(__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key);
+//int(__cdecl *memcheck0_tramp)(unsigned char *buffer, int count);
+//int(__cdecl *memcheck1_tramp)(unsigned char *buffer, int count, struct mckey key);
+//int(__cdecl *memcheck2_tramp)(unsigned char *buffer, int count, struct mckey key);
+//int(__cdecl *memcheck3_tramp)(unsigned char *buffer, int count, struct mckey key);
+//int(__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key);
+DETOUR_TRAMPOLINE_EMPTY(int memcheck0_tramp(unsigned char *buffer, int count));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char *buffer, int count, struct mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char *buffer, int count, struct mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char *buffer, int count, struct mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(unsigned char *buffer, int count, struct mckey key));
+
 VOID HookInlineChecks(BOOL Patch)
 {
 	int i;
@@ -494,30 +522,26 @@ VOID HookMemChecker(BOOL Patch)
 	DebugSpew("HookMemChecker - %satching", (Patch) ? "P" : "Unp");
 	if (Patch) {
 
-		AddDetour((DWORD)EQADDR_MEMCHECK0);
+		EzDetourwName(EQADDR_MEMCHECK0, memcheck0, memcheck0_tramp, "EQADDR_MEMCHECK0");
+		//AddDetour((DWORD)EQADDR_MEMCHECK0);
 
-		(*(PBYTE*)&memcheck0_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK0,
-			(PBYTE)memcheck0);
+		//(*(PBYTE*)&memcheck0_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK0,(PBYTE)memcheck0);
+		EzDetourwName(EQADDR_MEMCHECK1, memcheck1, memcheck1_tramp, "EQADDR_MEMCHECK1");
 
-		AddDetour((DWORD)EQADDR_MEMCHECK1);
+		//AddDetour((DWORD)EQADDR_MEMCHECK1);
+		//(*(PBYTE*)&memcheck1_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK1,(PBYTE)memcheck1);
 
-		(*(PBYTE*)&memcheck1_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK1,
-			(PBYTE)memcheck1);
+		EzDetourwName(EQADDR_MEMCHECK2, memcheck2, memcheck2_tramp, "EQADDR_MEMCHECK2");
+		//AddDetour((DWORD)EQADDR_MEMCHECK2);
+		//(*(PBYTE*)&memcheck2_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK2,(PBYTE)memcheck2);
 
-		AddDetour((DWORD)EQADDR_MEMCHECK2);
+		EzDetourwName(EQADDR_MEMCHECK3, memcheck3, memcheck3_tramp, "EQADDR_MEMCHECK3");
+		//AddDetour((DWORD)EQADDR_MEMCHECK3);
+		//(*(PBYTE*)&memcheck3_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK3,(PBYTE)memcheck3);
 
-		(*(PBYTE*)&memcheck2_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK2,
-			(PBYTE)memcheck2);
-
-		AddDetour((DWORD)EQADDR_MEMCHECK3);
-
-		(*(PBYTE*)&memcheck3_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK3,
-			(PBYTE)memcheck3);
-
-		AddDetour((DWORD)EQADDR_MEMCHECK4);
-
-		(*(PBYTE*)&memcheck4_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK4,
-			(PBYTE)memcheck4);
+		EzDetourwName(EQADDR_MEMCHECK4, memcheck4, memcheck4_tramp, "EQADDR_MEMCHECK4");
+		//AddDetour((DWORD)EQADDR_MEMCHECK4);
+		//(*(PBYTE*)&memcheck4_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK4,(PBYTE)memcheck4);
 
 		EzDetourwName(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp,"CPacketScrambler__hton");
 		EzDetourwName(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp,"CPacketScrambler__ntoh");
@@ -530,31 +554,24 @@ VOID HookMemChecker(BOOL Patch)
 	else {
 		HookInlineChecks(Patch);
 
-
-
-		DetourRemove((PBYTE)memcheck0_tramp,
-			(PBYTE)memcheck0);
-		memcheck0_tramp = NULL;
+		//DetourRemove((PBYTE)memcheck0_tramp,(PBYTE)memcheck0);
+		//memcheck0_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK0);
 
-		DetourRemove((PBYTE)memcheck1_tramp,
-			(PBYTE)memcheck1);
-		memcheck1_tramp = NULL;
+		//DetourRemove((PBYTE)memcheck1_tramp,(PBYTE)memcheck1);
+		//memcheck1_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK1);
 
-		DetourRemove((PBYTE)memcheck2_tramp,
-			(PBYTE)memcheck2);
-		memcheck2_tramp = NULL;
+		//DetourRemove((PBYTE)memcheck2_tramp,(PBYTE)memcheck2);
+		//memcheck2_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK2);
 
-		DetourRemove((PBYTE)memcheck3_tramp,
-			(PBYTE)memcheck3);
-		memcheck3_tramp = NULL;
+		//DetourRemove((PBYTE)memcheck3_tramp,(PBYTE)memcheck3);
+		//memcheck3_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK3);
 
-		DetourRemove((PBYTE)memcheck4_tramp,
-			(PBYTE)memcheck4);
-		memcheck4_tramp = NULL;
+		//DetourRemove((PBYTE)memcheck4_tramp,(PBYTE)memcheck4);
+		//memcheck4_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK4);
 
 		RemoveDetour(CPacketScrambler__ntoh);

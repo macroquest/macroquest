@@ -1010,11 +1010,7 @@ bool MQ2TicksType::GETMEMBER()
 	//	return false;
 	//DWORD TSeconds = VarPtr.DWord / 1000 / 6;
 #define nTicks (VarPtr.DWord)
-	unsigned long N = MemberMap[Member];
-	if (!N)
-		return false;
-	N--;
-	PMQ2TYPEMEMBER pMember = Members[N];
+	PMQ2TYPEMEMBER pMember = FindMember(Member);
 	if (!pMember)
 		return false;
 	switch ((TicksMembers)pMember->ID)
@@ -1080,11 +1076,7 @@ bool MQ2TicksType::GETMEMBER()
 bool MQ2TimeStampType::GETMEMBER()
 {
 #define nTimeStamp (VarPtr.UInt64)
-	unsigned long N = MemberMap[Member];
-	if (!N)
-		return false;
-	N--;
-	PMQ2TYPEMEMBER pMember = Members[N];
+	PMQ2TYPEMEMBER pMember = FindMember(Member);
 	if (!pMember)
 		return false;
 	switch ((TimeStampMembers)pMember->ID)
@@ -1158,11 +1150,7 @@ bool MQ2TimeStampType::GETMEMBER()
 
 bool MQ2ArgbType::GETMEMBER()
 {
-	unsigned long N = MemberMap[Member];
-	if (!N)
-		return false;
-	N--;
-	PMQ2TYPEMEMBER pMember = Members[N];
+	PMQ2TYPEMEMBER pMember = FindMember(Member);
 	if (!pMember)
 		return false;
 	switch ((ArgbMembers)pMember->ID)
@@ -6608,7 +6596,6 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = pSpell->bStacksWithDiscs;
 		Dest.Type = pBoolType;
 		return true;
-	#endif
 	case IllusionOkWhenMounted:
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
@@ -6638,6 +6625,7 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		return true;
+#endif
 	case HasSPA:
 		Dest.DWord = false;
 		if (ISINDEX())

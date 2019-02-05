@@ -420,10 +420,10 @@ VOID ShutdownChatHook()
 	RemoveCommand("/timestamp");
 #endif
 	RemoveDetour(CEverQuest__dsp_chat);
-	RemoveDetour(CEverQuest__OutputTextToLog);
 #if defined(ROF2EMU) || defined(UFEMU)
-	RemoveDetour(CEverQuest__DoTellWindow);
+	RemoveDetour(CEverQuest__OutputTextToLog);
 #endif
+	RemoveDetour(CEverQuest__DoTellWindow);
 	RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ
 #ifdef USEBLECHEVENTS

@@ -51,7 +51,10 @@ BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
 	lockit lk(ghVariableLock);
 	// use iterator to erase. allows us to check for existence
 	// and erase it without any waste
-	auto iter = MQ2DataTypeMap.find(Type.GetName());
+	PCHAR thetypename = Type.GetName();
+	if (!thetypename)
+		return false;
+	auto iter = MQ2DataTypeMap.find(thetypename);
 	if (iter == MQ2DataTypeMap.end())
 		return false;
 

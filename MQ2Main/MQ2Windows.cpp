@@ -1115,6 +1115,7 @@ void RemoveAutoBankMenu()
 			}
 			pMgr->RemoveMenu(OurCheckBoxMenuIndex, true);
 			OurCheckBoxMenuIndex = 0;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (pFindItemWnd)
 			{
 				if (CListWnd *list = (CListWnd*)pFindItemWnd->GetChildItem("FIW_ItemList"))
@@ -1126,6 +1127,7 @@ void RemoveAutoBankMenu()
 					}
 				}
 			}
+#endif
 		}
 	}
 }

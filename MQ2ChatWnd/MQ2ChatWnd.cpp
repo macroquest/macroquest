@@ -816,6 +816,7 @@ PLUGIN_API VOID ShutdownPlugin()
     RemoveMQ2KeyBind("MQ2CHAT"); 
 	RemoveMQ2Data("ChatWnd"); 
     delete pChatWndType; 
-    RemoveMQ2Benchmark(bmStripFirstStmlLines); 
+    RemoveMQ2Benchmark(bmStripFirstStmlLines);
+	bmStripFirstStmlLines = 0;
     DestroyChatWnd(); 
 } 
