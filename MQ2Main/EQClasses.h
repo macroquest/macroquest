@@ -7739,7 +7739,9 @@ EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;//this one takes an 
 EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int)const;//takes a Class, druid for example is 6
 EQLIB_OBJECT int EQ_Spell::SpellAffectBase(int)const;//takes a SPA, returns the first matching base it finds for it
 EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int Slot) const;
+#if !defined(ROF2EMU)
 EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int Index) const;
+#endif
 EQLIB_OBJECT bool EQ_Spell::IsNoRemove(void)const;
 EQLIB_OBJECT static bool EQ_Spell::IsDegeneratingLevelMod(int);
 
