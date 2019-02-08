@@ -2048,9 +2048,6 @@ FUNCTION_AT_ADDRESS(void  CInvSlotMgr::SelectSlot(class CInvSlot *),CInvSlotMgr_
 #ifdef CInvSlotMgr__UpdateSlots_x
 FUNCTION_AT_ADDRESS(void  CInvSlotMgr::UpdateSlots(void),CInvSlotMgr__UpdateSlots);
 #endif
-#ifdef CItemDisplayWnd__CItemDisplayWnd_x
-FUNCTION_AT_ADDRESS( CItemDisplayWnd::CItemDisplayWnd(class CXWnd *),CItemDisplayWnd__CItemDisplayWnd);
-#endif
 #ifdef CItemDisplayWnd__UpdateStrings_x
 FUNCTION_AT_ADDRESS(void  CItemDisplayWnd::UpdateStrings(void),CItemDisplayWnd__UpdateStrings);
 #endif
@@ -2059,6 +2056,15 @@ FUNCTION_AT_ADDRESS(void CItemDisplayWnd::InsertAugmentRequest(int AugSlot),CIte
 #endif
 #ifdef CItemDisplayWnd__RemoveAugmentRequest_x
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot),CItemDisplayWnd__RemoveAugmentRequest);
+#endif
+#ifdef CItemDisplayWnd__RequestConvertItem_x
+FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RequestConvertItem(void),CItemDisplayWnd__RequestConvertItem);
+#endif
+#ifdef CItemDisplayWnd__CItemDisplayWnd_x
+FUNCTION_AT_ADDRESS(CItemDisplayWnd::CItemDisplayWnd(CXWnd *),CItemDisplayWnd__CItemDisplayWnd);
+#endif
+#ifdef CItemDisplayWnd__dCItemDisplayWnd_x
+FUNCTION_AT_ADDRESS(CItemDisplayWnd::~CItemDisplayWnd(),CItemDisplayWnd__dCItemDisplayWnd);
 #endif
 #ifdef CItemDisplayWnd__SetItem_x
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags),CItemDisplayWnd__SetItem);

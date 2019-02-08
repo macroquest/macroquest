@@ -1836,7 +1836,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetItem);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__AboutToShow);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__WndNotification);
-	
+	#if !defined(ROF2EMU) && !defined(UFEMU)
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__RequestConvertItem);
+	#endif
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__CItemDisplayWnd);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__dCItemDisplayWnd);
+
 	INITIALIZE_EQGAME_OFFSET(CLabel__Draw);
 
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CListWnd);

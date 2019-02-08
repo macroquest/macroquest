@@ -3662,14 +3662,14 @@ public:
 /*0x0608*/ int WindowID;
 /*0x060c*/
 
-EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(class CXWnd *);
+EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);
 EQLIB_OBJECT void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags);
 EQLIB_OBJECT void CItemDisplayWnd::SetItemText(char *);
 EQLIB_OBJECT void CItemDisplayWnd::SetSpell(int SpellID,bool HasSpellDescr,int);
 EQLIB_OBJECT void CItemDisplayWnd::UpdateStrings(void);
 // virtual
-EQLIB_OBJECT CItemDisplayWnd::~CItemDisplayWnd(void);
+EQLIB_OBJECT CItemDisplayWnd::~CItemDisplayWnd();
 EQLIB_OBJECT int CItemDisplayWnd::HandleKeyboardMsg(unsigned __int32,unsigned __int32,bool);
 EQLIB_OBJECT int CItemDisplayWnd::OnProcessFrame(void);
 EQLIB_OBJECT int CItemDisplayWnd::WndNotification(CXWnd *pWnd, unsigned __int32 Message, void *pData);
@@ -3686,7 +3686,7 @@ EQLIB_OBJECT void CItemDisplayWnd::GetSizeString(int,char *);
 EQLIB_OBJECT void CItemDisplayWnd::InsertAugmentRequest(int AugSlot);
 EQLIB_OBJECT void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot);
 EQLIB_OBJECT bool CItemDisplayWnd::AboutToShow(void);
-
+EQLIB_OBJECT void CItemDisplayWnd::RequestConvertItem(void);
 };
 
 class CJournalCatWnd : public CSidlScreenWnd

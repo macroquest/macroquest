@@ -1278,6 +1278,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CItemDisplayWnd__SetItem;
 	EQLIB_VAR DWORD CItemDisplayWnd__AboutToShow;
 	EQLIB_VAR DWORD CItemDisplayWnd__WndNotification;
+	EQLIB_VAR DWORD CItemDisplayWnd__RequestConvertItem;
+	EQLIB_VAR DWORD CItemDisplayWnd__CItemDisplayWnd;
+	EQLIB_VAR DWORD CItemDisplayWnd__dCItemDisplayWnd;
 	
 	EQLIB_VAR DWORD CLabel__Draw;
 

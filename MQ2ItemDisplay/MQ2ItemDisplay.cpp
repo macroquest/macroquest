@@ -27,6 +27,8 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 using namespace std;
+CHAR ConvertFrom[2048] = { 0 };
+CHAR ConvertTo[2048] = { 0 };
 bool bDisabledComparetip = false;
 bool gCompareTip = false;
 bool gLootButton = true;
@@ -1852,6 +1854,44 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 		WritePrivateProfileString("Settings","CompareTip",szArg1,INIFileName);
 	}
 }
+
+void RequestConvertItem(PSPAWNINFO pSpawn, PCHAR szLine)
+{
+#if defined(ROF2EMU) || defined(UFEMU)
+	WriteChatf("This is not supported on EMUs");
+#else
+	if (szLine && szLine[0] != '\0')
+	{
+		GetArg(ConvertFrom, szLine, 1);
+		//GetArg(ConvertTo, szLine, 3);
+		if (PCONTENTS pCont = FindItemByName(ConvertFrom))
+		{
+			if (PITEMINFO pItem = GetItemFromContents(pCont))
+			{
+				//if (ConvertTo[0]) {
+				//	WriteChatf("Trying to convert %s to %s", pItem->Name, ConvertTo);
+				//}
+				if (CItemDisplayManager*mgr = pItemDisplayManager) {
+					int index = mgr->FindWindowA(true);
+					if (index == -1) {
+						index = mgr->CreateWindowInstance();
+					}
+					if (index > -1 && index < mgr->pWindows.Count) {
+						if (PEQITEMWINDOW itemdis = (PEQITEMWINDOW)mgr->pWindows[index]) {
+							CItemDisplayWnd*citemdisp = (CItemDisplayWnd*)itemdis;
+							citemdisp->SetItem(&pCont, 0);
+							citemdisp->RequestConvertItem();
+						}
+					}
+				}
+			}
+			return;
+		}
+	}
+	WriteChatf("\agUSAGE:\ax /convertitem \ay\"<item name>\"\ax");
+	WriteChatf("\agEaxmple:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
+#endif
+}
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
 #if defined(ROF2EMU) || defined(UFEMU)
@@ -3042,6 +3082,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	
     AddCommand("/itemdisplay",ItemDisplayCmd); 
+    AddCommand("/convertitem",RequestConvertItem); 
     AddCommand("/addlootfilter",AddLootFilter); 
     AddCommand("/insertaug",InsertAug); 
     AddCommand("/removeaug",RemoveAug); 
@@ -3134,6 +3175,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/iScore");
 	RemoveCommand("/GearScore");
 	RemoveCommand("/addlootfilter");
+	RemoveCommand("/convertitem");
 	RemoveCommand("/itemdisplay");
 	
 	delete pDisplayItemType;

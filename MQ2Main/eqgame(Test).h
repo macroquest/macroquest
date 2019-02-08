@@ -595,6 +595,9 @@ GNU General Public License for more details.
 #define CItemDisplayWnd__SetItem_x                                 0x74BC10
 #define CItemDisplayWnd__AboutToShow_x                             0x74B260
 #define CItemDisplayWnd__WndNotification_x                         0x74D160
+#define CItemDisplayWnd__RequestConvertItem_x                      0x74CCB0
+#define CItemDisplayWnd__CItemDisplayWnd_x                         0x74A2C0
+#define CItemDisplayWnd__dCItemDisplayWnd_x                        0x74B080
 
 //CWndDisplayManager
 #define CWndDisplayManager__FindWindowA_x                          0x831530
