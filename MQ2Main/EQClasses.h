@@ -7326,13 +7326,35 @@ EQLIB_OBJECT unsigned long * engineInterface::ChangeDag(struct T3D_tagWORLD *,st
 EQLIB_OBJECT engineInterface::engineInterface(void);
 EQLIB_OBJECT static class engineInterface * engineInterface::mSelf;
 };
-
+typedef struct _SlotData {
+	LONG Slot;
+	DWORD Value;
+} SlotData;
 class EQ_Affect
 {
 public:
 EQLIB_OBJECT void EQ_Affect::Reset(void);
 EQLIB_OBJECT int EQ_Affect::GetAffectData(int)const;
-
+#if !defined(ROF2EMU) && !defined(UFEMU)
+/*0x00*/	BYTE Type;
+/*0x01*/	BYTE CasterLevel;
+/*0x02*/	BYTE ChargesRemaining;
+/*0x03*/	BYTE Activatable;
+/*0x04*/	FLOAT BaseDmgMod;
+/*0x08*/	int ID;
+/*0x0c*/	int DurationTick;
+/*0x10*/	int MaxDuration;
+/*0x14*/	int Duration3;
+/*0x18*/	EqGuid CasterGuid;
+/*0x20*/	int HitCounter;
+/*0x24*/	FLOAT HitLocationY;
+/*0x28*/	FLOAT HitLocationX;
+/*0x2c*/	FLOAT HitLocationZ;
+/*0x30*/	UINT Flags;//twincast
+/*0x34*/	SlotData Data[NUM_SLOTDATA];
+/*0x64*/	DWORD Unknown0x64;
+/*0x68*/
+#else
 /*0x00*/	BYTE Type;
 /*0x01*/	BYTE CasterLevel;
 /*0x02*/	BYTE ChargesRemaining;
@@ -7344,10 +7366,11 @@ EQLIB_OBJECT int EQ_Affect::GetAffectData(int)const;
 /*0x14*/	int HitCounter;
 /*0x18*/	FLOAT HitLocationY;
 /*0x1c*/	FLOAT HitLocationX;
-/*0x20*/	float HitLocationZ;
+/*0x20*/	FLOAT HitLocationZ;
 /*0x24*/	UINT Flags;//twincast
-/*0x28*/	int Data[0xc];
+/*0x28*/	SlotData Data[NUM_SLOTDATA];
 /*0x58*/
+#endif
 };
 
 class EQ_AltAbility
@@ -8790,9 +8813,9 @@ EQLIB_OBJECT bool CharacterZoneClient::HasSkill(int);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlot(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
 EQLIB_OBJECT EQ_Affect *CharacterZoneClient::FindAffectSlotMine(int SpellID, PSPAWNINFO Caster, int *slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
+EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, PSPAWNINFO pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
 #else
-EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, CharacterZoneClient* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);
+EQLIB_OBJECT bool CharacterZoneClient::IsStackBlocked(const EQ_Spell *pSpell, PSPAWNINFO pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);
 #endif
 EQLIB_OBJECT int CharacterZoneClient::BardCastBard(const EQ_Spell* pSpell, signed int caster_class) const;
 EQLIB_OBJECT unsigned char CharacterZoneClient::GetMaxEffects(void)const;

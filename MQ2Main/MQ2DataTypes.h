@@ -1615,7 +1615,7 @@ public:
 		DurationValue1 = 66,
 		NewStacks = 67,
 		NewStacksWith = 68,
-		NewStacksTarget = 69,
+		StacksTarget = 69,
 		StacksWithDiscs = 70,
 		IllusionOkWhenMounted = 71,
 		EQSpellDuration = 72,
@@ -1697,7 +1697,7 @@ public:
 		TypeMember(DurationValue1);
 		TypeMember(NewStacks);
 		TypeMember(NewStacksWith);
-		TypeMember(NewStacksTarget);
+		TypeMember(StacksTarget);
 		TypeMember(StacksWithDiscs);
 		TypeMember(IllusionOkWhenMounted);
 		TypeMember(EQSpellDuration);

@@ -1031,7 +1031,7 @@ typedef struct _SlotData {
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
 // Size 0x68 Apr 10 2018 test see 8B2FD5 - eqmule
-// this is EQ_Affect tofo: check the new stuff in it
+// this is EQ_Affect todo: check the new stuff in it
 typedef struct _SPELLBUFF {
 /*0x00*/ BYTE      Type;
 /*0x01*/ BYTE      Level;//casterlevel

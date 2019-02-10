@@ -7575,15 +7575,15 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 		return true;
 	if (gZoning)
 		return true;
-	CharacterZoneClient*pCZC = (CharacterZoneClient*)pSpawn->spawneqc_info;
+	//CharacterZoneClient*pCZC = (CharacterZoneClient*)pSpawn->spawneqc_info;
 	//PCHARINFO pCharInfo = GetCharInfo();
 	//CharacterBase*cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
 	//const BaseProfile*pBP = &pCZC->GetCurrentBaseProfile();
 	//int Class = pCZC->GetCurrentBaseProfile().Class;
-	if (IsBadReadPtr((void*)pCZC, 4))
-		return true;
-	if (IsBadReadPtr((void*)&pCZC->GetCurrentBaseProfile().Class, 4)) 
-		return true;
+	//if (IsBadReadPtr((void*)pCZC, 4))
+	//	return true;
+	//if (IsBadReadPtr((void*)&pCZC->GetCurrentBaseProfile().Class, 4)) 
+	//	return true;
 	if (!aSpell || !bSpell)
 		return false;
 	if (IsBadReadPtr((void*)aSpell, 4))
@@ -7601,17 +7601,17 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
 	}
 
-	EQ_Affect eff;
-	eff.ID = bSpell->ID;
-	bool bItWillNotStack = ((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)aSpell, (CharacterZoneClient*)pCharData1, &eff, 1);
-	if (bItWillNotStack) {
-		Sleep(0);
+	//EQ_Affect eff = { 0 };
+	//eff.ID = bSpell->ID;
+	//bool bItWillNotStack = ((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)aSpell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
+	//if (bItWillNotStack) {
+		//Sleep(0);
 		//WriteChatf("EQ Client says spell is BLOCKED");
-		//return false;
-	}
-	else {
-		//return true;
-	}
+	//	return false;
+	//}
+	//else {
+	//	return true;
+	//}
 
 	// We need to loop over the largest of the two, this may seem silly but one could have stacking command blocks
 	// which we will always need to check.

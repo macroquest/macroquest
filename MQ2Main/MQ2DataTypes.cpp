@@ -6007,17 +6007,11 @@ bool MQ2SpellType::GETMEMBER()
 		PSPELL thespell = pSpell;
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (PCHARINFO pMe = GetCharInfo()) {
-#ifdef NEWCHARINFO
-			if (pMe->PcClient_CharacterZoneClient_vfTable) {
-#else
-			if (pMe->vtable2) {
-#endif
-				int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
-				EQ_Affect*ret = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pMe, &SlotIndex, true, pMe->MainLevel);
-				if (ret) {
-					Dest.DWord = 1;
-				}
+		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->spawneqc_info) {
+			int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
+			EQ_Affect*ret = ((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level);
+			if (ret) {
+				Dest.DWord = 1;
 			}
 		}
 		return true;
@@ -6038,27 +6032,10 @@ bool MQ2SpellType::GETMEMBER()
 		if (!tmpSpell)
 			return true;
 		PSPELL thespell = pSpell;
-		if (PCHARINFO pMe = GetCharInfo()) {
-#ifdef NEWCHARINFO
-			if (pMe->PcClient_CharacterZoneClient_vfTable) {
-#else
-			if (pMe->vtable2) {
-#endif
-				int SlotIndex = -1;
-				EQ_Affect eff;
-				eff.ID = thespell->ID;
-				eff.Type = thespell->SpellType;
-				eff.Activatable = 0;// thespell->Activated;
-				//eff.BaseDmgMod = thespell->BaseEffectsFocusCap;
-				eff.CasterID = pMe->pSpawn->SpawnID;
-				eff.CasterLevel = pMe->MainLevel;
-				//eff.ChargesRemaining = thespell->ReagentCount;
-				//= (EQ_Affect*)thespell;
-				EQ_Affect*ret = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pMe, &SlotIndex, true, pMe->MainLevel, &eff, 1);
-				if (ret) {
-					Dest.DWord = 1;
-				}
-			}
+		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->spawneqc_info) {
+			EQ_Affect eff = { 0 };
+			eff.ID = thespell->ID;
+			Dest.DWord = !((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)tmpSpell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
 		}
 		return true;
 	}
@@ -6108,41 +6085,40 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return true;
 	}
-	case NewStacksTarget:
+	case StacksTarget:
 	{
-		//nothing to see here yet, work in progress. -eqmule
-		//noone should use this yet. it is NOT reliable right now. (but it will be)
 		Dest.Type = pBoolType;
 		Dest.DWord = false;
-		if (PCHARINFO pMe = GetCharInfo()) {
+		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->spawneqc_info) {
 			if (pTarget) {
-				EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
-				int buffID = 0;
-				int j = 0;
-				for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
-					if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
-						if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
-							if (pBuff->SpellType) {
-								pAffects[j].Type = pBuff->SpellType;
+				if (PCHARINFO pMe = GetCharInfo())
+				{
+					EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+					int buffID = 0;
+					int j = 0;
+					for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
+						if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
+							if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+								if (pBuff->SpellType) {
+									pAffects[j].Type = pBuff->SpellType;
+								}
+								else {
+									pAffects[j].Type = 1;
+								}
+								pAffects[j].ID = pBuff->ID;
+								pAffects[j].Activatable = 0;// pBuff->Activated;
+								#if !defined(ROF2EMU) && !defined(UFEMU)
+								pAffects[j].CasterGuid = pMe->Guid;
+								#else
+								pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
+								#endif
+								pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
+								pAffects[j].BaseDmgMod = 1.0;
+								j++;
 							}
-							else {
-								pAffects[j].Type = 1;
-							}
-							pAffects[j].ID = pBuff->ID;
-							pAffects[j].Activatable = 0;// pBuff->Activated;
-							pAffects[j].CasterID = pMe->pSpawn->SpawnID;
-							pAffects[j].CasterLevel = pMe->MainLevel;
-							pAffects[j].BaseDmgMod = 1.0;
-							j++;
 						}
 					}
-				}
-				EQ_Affect*affe = 0;
-				int siindex = -1;
-				affe = ((CharacterZoneClient*)pCharData1)->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pMe->pSpawn, &siindex, true, pMe->MainLevel, pAffects, j);
-				if (!affe)
-				{
-					Dest.DWord = true;
+					Dest.DWord = !((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)pSpell, (PSPAWNINFO)pLocalPlayer, pAffects, j);
 				}
 			}
 		}
