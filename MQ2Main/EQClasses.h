@@ -3230,7 +3230,11 @@ public:
 EQLIB_OBJECT void ChannelServerHandler::CshOnLoginConfirm(bool);
 EQLIB_OBJECT void ChannelServerHandler::CshOnPacket(void *,int,char *,int,char *,bool);
 };
-
+struct CKeyUInt32ValueInt32
+{
+	unsigned __int32 key;
+	int value;
+};
 class CHashCXStrInt32
 {
 public:
@@ -3241,6 +3245,7 @@ EQLIB_OBJECT bool CHashCXStrInt32::LookUp(class CXStr const &,int &)const;
 EQLIB_OBJECT void CHashCXStrInt32::Reset(void);
 // private
 EQLIB_OBJECT int CHashCXStrInt32::KeyToBin(class CXStr const &)const;
+	ArrayClass2_RO<ArrayClass2_RO<CKeyUInt32ValueInt32>> HashData;
 };
 
 class CHelpWnd : public CSidlScreenWnd
@@ -5783,28 +5788,138 @@ EQLIB_OBJECT int CSelectorWnd::WndNotification(class CXWnd *,unsigned __int32,vo
 EQLIB_OBJECT void CSelectorWnd::Deactivate(void);
 };
 
-class CSidlManager
+template <class ElementType, int Cnt> class HashCXStrElement
 {
 public:
-	void *vftable;
-	int ScreenPieceClassIndex[5];
-	ArrayClass_RO<CUITextureInfo*>		Textures;
-	ArrayClass_RO<CButtonDrawTemplate*>	ButtonDrawTemplateArray;
-	ArrayClass_RO<CScrollbarTemplate*>	ScrollbarTemplateArray;
-	ArrayClass_RO<CSliderDrawTemplate*>	SliderDrawTemplateArray;
-	ArrayClass_RO<CXStr>				ScreenNameArray;
-	ArrayClass_RO<CXWndDrawTemplate*>	DrawTemplateArray;
-	CHashCXStrInt32						DrawTemplateHash;
-	ArrayClass_RO<CTextureAnimation*>	AnimationArray;
-	CHashCXStrInt32						AnimationsHash;
-	ArrayClass_RO<CTAFrameDraw*>		TAFrameArray;
-	CHashCXStrInt32						TAFrameHash;
-	ArrayClass_RO<CScreenPieceTemplate*> ScreenPieceArray;
-	CHashCXStrInt32						ScreenPiecesHash;
-	//there are more below, i dont have time right now.
-	//ArrayClass_RO<CLayoutStrategyTemplate*> LayoutStrategyTemplateArray;
-	//CHashCXStrInt32 LayoutStrategyTemplatesHash;
+    struct CKeyCXStrElementType
+    {
+		CXStr key;
+		ElementType value;
+    };
+    ArrayClass2_RO<ArrayClass2_RO<CKeyCXStrElementType>> HashData;
+};
+class CXMLSymbolItem
+{
+public:
+	CXStr ItemString;
+	bool bDeclared;
+	bool bValid;
+};
+class CXMLSymbolClass
+{
+public:
+	CXStr Class;
+	ArrayClass2_RO<CXMLSymbolItem> ItemsArray;
+	CHashCXStrInt32 ItemsHashes;
+	bool bValid;
+};
+class CXMLSymbolTable
+{
+public:
+/*0x00*/ PVOID vfTable;
+/*0x04*/ ArrayClass2_RO<CXMLSymbolClass> ClassesArray;
+/*0x20*/ CHashCXStrInt32 ClassesHashes;
+/*0x3C*/
+};
+class CXMLDataManager
+{
+public:
+/*0x00*/ PVOID							vfTable;
+/*0x00*/ CHashCXStrInt32				EnumTypeHashes;
+/*0x00*/ ArrayClass2_RO<CXMLEnumInfo>	XMLEnumArray;//size 0x1c
+/*0x1c*/ HashCXStrElement<CXMLDataPtr, 16 * 1024> ClassItemHashes;//size 0x1c
+/*0x38*/ ArrayClass2_RO<CXMLDataClass>	XMLDataArray;
+/*0x54*/ CXMLSymbolTable				SymbolTable;
+/*0x90*/ CXStr							ErrorString;
+/*0x94*/ 
+EQLIB_OBJECT CXMLDataManager::CXMLDataManager(void);
+EQLIB_OBJECT bool CXMLDataManager::IsDerivedFrom(int,int);
+EQLIB_OBJECT bool CXMLDataManager::ReadFromXMLSOM(class CXMLSOMDocument &);
+EQLIB_OBJECT class CXMLData * CXMLDataManager::GetXMLData(class CXStr,class CXStr);
+EQLIB_OBJECT class CXMLData * CXMLDataManager::GetXMLData(int,int);
+EQLIB_OBJECT int CXMLDataManager::GetClassIdx(class CXStr);
+EQLIB_OBJECT int CXMLDataManager::GetItemIdx(int,class CXStr);
+EQLIB_OBJECT int CXMLDataManager::GetNumClass(void);
+EQLIB_OBJECT int CXMLDataManager::GetNumItem(int);
+// virtual
+EQLIB_OBJECT CXMLDataManager::~CXMLDataManager(void);
+EQLIB_OBJECT bool CXMLDataManager::DataValidate(void);
+EQLIB_OBJECT bool CXMLDataManager::ReadValidate(class CMemoryStream &);
+EQLIB_OBJECT bool CXMLDataManager::WriteValidate(class CMemoryStream &);
+EQLIB_OBJECT int CXMLDataManager::GetStreamSize(void);
+//EQLIB_OBJECT void * CXMLDataManager::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CXMLDataManager::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CXMLDataManager::IndexAll(void);
+EQLIB_OBJECT void CXMLDataManager::ReadFromStream(class CMemoryStream &);
+EQLIB_OBJECT void CXMLDataManager::Set(class CXMLDataManager &);
+EQLIB_OBJECT void CXMLDataManager::WriteToStream(class CMemoryStream &);
+// protected
+EQLIB_OBJECT void CXMLDataManager::AddToSuperType(class CXStr,class CXMLDataPtr);
+EQLIB_OBJECT void CXMLDataManager::SetEnumHash(void);
+};
+class CXMLParamManager : public CXMLDataManager
+{
+public:
+// virtual
+EQLIB_OBJECT CXMLParamManager::~CXMLParamManager(void);
+EQLIB_OBJECT bool CXMLParamManager::XMLDataCopy(class CXMLData *,class CXMLData *);
+EQLIB_OBJECT class CXMLData * CXMLParamManager::AllocPtr(class CXMLDataPtr &,int,class CXMLData const *);
+//EQLIB_OBJECT void * CXMLParamManager::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CXMLParamManager::`vector deleting destructor'(unsigned int);
+};
 
+class CSidlManagerBase
+{
+#if !defined(TEST)
+/*0x000*/ void *vftable;
+/*0x004*/ int ScreenPieceClassIndex[5];
+/*0x018*/ ArrayClass_RO<CUITextureInfo*>		Textures;
+/*0x028*/ ArrayClass_RO<CButtonDrawTemplate*>	ButtonDrawTemplateArray;
+/*0x038*/ ArrayClass_RO<CScrollbarTemplate*>	ScrollbarTemplateArray;
+/*0x048*/ ArrayClass_RO<CSliderDrawTemplate*>	SliderDrawTemplateArray;
+/*0x058*/ ArrayClass_RO<CXStr>				ScreenNameArray;
+/*0x068*/ ArrayClass_RO<CXWndDrawTemplate*>	DrawTemplateArray;
+/*0x078*/ CHashCXStrInt32						DrawTemplateHash;//size 0x1c
+/*0x094*/ ArrayClass_RO<CTextureAnimation*>	AnimationArray;
+/*0x0A4*/ CHashCXStrInt32						AnimationsHash;
+/*0x0C0*/ ArrayClass_RO<CTAFrameDraw*>		TAFrameArray;
+/*0x0D0*/ CHashCXStrInt32						TAFrameHash;
+/*0x0EC*/ ArrayClass_RO<CScreenPieceTemplate*> ScreenPieceArray;
+/*0x0FC*/ CHashCXStrInt32						ScreenPiecesHash;
+/*0x118*/ ArrayClass_RO<void*> LayoutStrategyTemplateArray;//CLayoutStrategyTemplate* todo: map this later...
+/*0x128*/ CHashCXStrInt32 LayoutStrategyTemplatesHash;
+/*0x144*/ CXMLParamManager XMLDataMgr;//size 0xB4
+/*0x1F8*/ bool bLoadError;
+/*0x1FC*/ CXStr ErrorString;
+/*0x200*/
+#else
+/*0x000*/ void *vftable;
+/*0x004*/ int ScreenPieceClassIndex[5];
+/*0x018*/ ArrayClass_RO<CUITextureInfo*>		Textures;
+/*0x028*/ ArrayClass_RO<CButtonDrawTemplate*>	ButtonDrawTemplateArray;
+/*0x038*/ ArrayClass_RO<CScrollbarTemplate*>	ScrollbarTemplateArray;
+/*0x048*/ ArrayClass_RO<CSliderDrawTemplate*>	SliderDrawTemplateArray;
+/*0x058*/ ArrayClass_RO<CXStr>				ScreenNameArray;
+/*0x068*/ ArrayClass_RO<CXWndDrawTemplate*>	DrawTemplateArray;
+/*0x078*/ CHashCXStrInt32						DrawTemplateHash;//size 0x18
+/*0x090*/ ArrayClass_RO<CTextureAnimation*>	AnimationArray;
+/*0x0A0*/ CHashCXStrInt32						AnimationsHash;
+/*0x0B8*/ ArrayClass_RO<CTAFrameDraw*>		TAFrameArray;
+/*0x0C8*/ CHashCXStrInt32						TAFrameHash;
+/*0x0E0*/ ArrayClass_RO<CScreenPieceTemplate*> ScreenPieceArray;
+/*0x0F0*/ CHashCXStrInt32						ScreenPiecesHash;
+/*0x108*/ ArrayClass_RO<void*> LayoutStrategyTemplateArray;//CLayoutStrategyTemplate* todo: map this later...
+/*0x118*/ CHashCXStrInt32 LayoutStrategyTemplatesHash;
+/*0x130*/ CXMLParamManager XMLDataMgr;//size 0x9c
+/*0x1CC*/ bool bLoadError;
+/*0x1D0*/ CXStr ErrorString;
+/*0x1D4*/
+#endif
+};
+//size 0x200 see 53ED93 in 2019 01 11 eqgame.exe -eqmule
+class CSidlManager : public CSidlManagerBase
+{
+public:
 EQLIB_OBJECT CSidlManager::CSidlManager(void);
 EQLIB_OBJECT CButtonDrawTemplate *CSidlManager::FindButtonDrawTemplate(const CXStr& Name) const;
 EQLIB_OBJECT CButtonDrawTemplate *CSidlManager::FindButtonDrawTemplate(unsigned __int32 ID) const;
@@ -6216,7 +6331,7 @@ public:
 	//we include CXW instead...
 /*0x000*/ CXW
 /*0x1F0*/ PCXSTR STMLText;
-/*0x1F4*/ CircularArrayClass2<STextLine> TextLines;//size 0x28
+/*0x1F4*/ CircularArrayClass2<STextLine> TextLines;//size 0x24
 /*0x21c*/ __int32 TextTotalHeight;
 /*0x220*/ __int32 TextTotalWidth;//0x220 see 8F5A6F in sep 11 2017 test - eqmule
 #if !defined(ROF2EMU) && !defined(UFEMU)
@@ -6927,35 +7042,6 @@ EQLIB_OBJECT void CXMLDataClass::ReadFromStream(class CMemoryStream &,class CXML
 EQLIB_OBJECT void CXMLDataClass::WriteToStream(class CMemoryStream &);
 };
 
-class CXMLDataManager
-{
-public:
-EQLIB_OBJECT CXMLDataManager::CXMLDataManager(void);
-EQLIB_OBJECT bool CXMLDataManager::IsDerivedFrom(int,int);
-EQLIB_OBJECT bool CXMLDataManager::ReadFromXMLSOM(class CXMLSOMDocument &);
-EQLIB_OBJECT class CXMLData * CXMLDataManager::GetXMLData(class CXStr,class CXStr);
-EQLIB_OBJECT class CXMLData * CXMLDataManager::GetXMLData(int,int);
-EQLIB_OBJECT int CXMLDataManager::GetClassIdx(class CXStr);
-EQLIB_OBJECT int CXMLDataManager::GetItemIdx(int,class CXStr);
-EQLIB_OBJECT int CXMLDataManager::GetNumClass(void);
-EQLIB_OBJECT int CXMLDataManager::GetNumItem(int);
-// virtual
-EQLIB_OBJECT CXMLDataManager::~CXMLDataManager(void);
-EQLIB_OBJECT bool CXMLDataManager::DataValidate(void);
-EQLIB_OBJECT bool CXMLDataManager::ReadValidate(class CMemoryStream &);
-EQLIB_OBJECT bool CXMLDataManager::WriteValidate(class CMemoryStream &);
-EQLIB_OBJECT int CXMLDataManager::GetStreamSize(void);
-//EQLIB_OBJECT void * CXMLDataManager::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CXMLDataManager::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CXMLDataManager::IndexAll(void);
-EQLIB_OBJECT void CXMLDataManager::ReadFromStream(class CMemoryStream &);
-EQLIB_OBJECT void CXMLDataManager::Set(class CXMLDataManager &);
-EQLIB_OBJECT void CXMLDataManager::WriteToStream(class CMemoryStream &);
-// protected
-EQLIB_OBJECT void CXMLDataManager::AddToSuperType(class CXStr,class CXMLDataPtr);
-EQLIB_OBJECT void CXMLDataManager::SetEnumHash(void);
-};
-
 class CXMLDataPtr
 {
 public:
@@ -6978,17 +7064,6 @@ EQLIB_OBJECT CXMLEnumInfo::CXMLEnumInfo(void);
 EQLIB_OBJECT int CXMLEnumInfo::GetStreamSize(void);
 EQLIB_OBJECT void CXMLEnumInfo::ReadFromStream(class CMemoryStream &);
 EQLIB_OBJECT void CXMLEnumInfo::WriteToStream(class CMemoryStream &);
-};
-
-class CXMLParamManager
-{
-public:
-// virtual
-EQLIB_OBJECT CXMLParamManager::~CXMLParamManager(void);
-EQLIB_OBJECT bool CXMLParamManager::XMLDataCopy(class CXMLData *,class CXMLData *);
-EQLIB_OBJECT class CXMLData * CXMLParamManager::AllocPtr(class CXMLDataPtr &,int,class CXMLData const *);
-//EQLIB_OBJECT void * CXMLParamManager::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CXMLParamManager::`vector deleting destructor'(unsigned int);
 };
 
 class CXMLSOMAttribute

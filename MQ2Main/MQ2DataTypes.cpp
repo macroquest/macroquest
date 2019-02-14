@@ -12784,7 +12784,8 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		Dest.Type = pFloatType;
 		return true;
 	case ExpOn:
-		Dest.DWord = pItem->EvolvingExpOn;
+		//Dest.DWord = pItem->EvolvingExpOn;
+		Dest.DWord = true;
 		Dest.Type = pBoolType;
 		return true;
 	case Level:

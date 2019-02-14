@@ -113,7 +113,9 @@ protected:
 /*0x0c*/ int m_binShift;
 /*0x10*/ T** m_array;
 /*0x14*/ int m_binCount;
+#if !defined(TEST)
 /*0x18*/ bool m_valid;
+#endif
 /*0x1c*/
 };
 
@@ -146,7 +148,9 @@ public:
 		m_array = nullptr;
 		m_length = 0;
 		m_binCount = 0;
+		#if !defined(TEST)
 		m_valid = true;
+		#endif
 	}
 
 	ArrayClass2(const ArrayClass2& rhs) : ArrayClass2()
@@ -167,7 +171,11 @@ public:
 				m_length = 0;
 			if (rhs.m_length) {
 				Assure(rhs.m_length);
+				#if !defined(TEST)
 				if (m_valid) {
+				#else
+				if (m_binCount) {
+				#endif		
 					for (int i = 0; i < rhs.m_length; ++i)
 						Get(i) = rhs.Get(i);
 				}
@@ -214,10 +222,19 @@ public:
 		if (index >= 0) {
 			if (index >= m_length) {
 				Assure(index + 1);
-				if (m_valid)
+				#if !defined(TEST)
+				if (m_valid) {
+				#else
+				if (m_binCount) {
+				#endif
 					m_length = index + 1;
+				}
 			}
+			#if !defined(TEST)
 			if (m_valid) {
+			#else
+			if (m_binCount) {
+			#endif
 				Get(index) = value;
 			}
 		}
@@ -242,7 +259,11 @@ private:
 	// reallocated, they can just be copied to the new list of bins.
 	void Assure(int requestedSize)
 	{
+		#if !defined(TEST)
 		if (m_valid && requestedSize > 0) {
+		#else
+		if (m_binCount && requestedSize > 0) {
+		#endif
 			int newBinCount = ((requestedSize - 1) >> static_cast<int8_t>(m_binShift)) + 1;
 			if (newBinCount > m_binCount) {
 				T** newArray = new T*[newBinCount];
@@ -253,24 +274,40 @@ private:
 						T* newBin = new T[m_maxPerBin];
 						newArray[curBin] = newBin;
 						if (!newBin) {
+							#if !defined(TEST)
 							m_valid = false;
+							#else
+							m_binCount = 0;
+							#endif
 							break;
 						}
 					}
+					#if !defined(TEST)
 					if (m_valid) {
+					#else
+					if (m_binCount) {
+					#endif
 						delete[] m_array;
 						m_array = newArray;
 						m_binCount = newBinCount;
 					}
 				} else {
+					#if !defined(TEST)
 					m_valid = false;
+					#else
+					m_binCount = 0;
+					#endif
 				}
 			}
 			// special note about this exception: the eq function was written this way,
 			// but its worth noting that new will throw if it can't allocate, which means
 			// this will never be hit anyways. The behavior would not change if we removed
 			// all of the checks for null returns values from new in this function.
+			#if !defined(TEST)
 			if (!m_valid) {
+			#else
+			if (!m_binCount) {
+			#endif
 				Reset();
 				ThrowArrayClassException();
 			}
@@ -541,7 +578,7 @@ template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key,
 }
 inline bool IsPrime(int value)
 {
-	//todo ad code for this
+	//todo add code for this
 	return(true);
 }
 
@@ -911,7 +948,9 @@ public:
 	int ChunkShift;
 	ET** Chunks;
 	int ChunkAlloc;
+	#if !defined(TEST)
 	bool bValid;
+	#endif
 };
 template <typename TNumBitsType, typename TElementType> class DynamicBitField
 {
