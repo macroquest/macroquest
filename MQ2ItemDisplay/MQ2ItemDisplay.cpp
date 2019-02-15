@@ -3210,22 +3210,25 @@ PLUGIN_API void OnReloadUI()
 		CreateCompareTipWnd();
 	}
 }
-#define LINK_LEN 55
+#if !defined(ROF2EMU) && !defined(UFEMU)
+// starting position of link text found in MQ2Web__ParseItemLink_x
+#define LINK_LEN 0x5A
+#else
+#define LINK_LEN 0x37
+#endif
 
 PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color) 
 {
 	if (ClickGroup || ClickGuild || ClickRaid || ClickAny) 
 	{
-		char szText[MAX_STRING];
-		char szStart[MAX_STRING];
-		char szCommand[MAX_STRING];
-		char *p;
-		int  doLink = 0;
-
-		
-		sprintf_s(szStart,"%c%c",0x12,0x30);
-		p = strstr(Line,szStart);
-		if (!p) return 0;
+		char *szStart = new char[MAX_STRING];
+		sprintf_s(szStart,MAX_STRING,"%c%c",0x12,0x30);
+		char *p = strstr(Line,szStart);
+		delete szStart;
+		if (!p) {
+			return 0;
+		}
+		int  doLink = 0;	
 
 		if (ClickAny) doLink = 1;
 		if (!doLink && ClickGroup && ( strstr(Line,"tells the group") || strstr(Line,"tell your party"))) doLink = 1;
@@ -3234,20 +3237,14 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 
 		if (doLink && p && strlen(p)>LINK_LEN+2)
 		{
+			char *szText = new char[MAX_STRING];
 			memset(szText,0,100);
-			strncpy_s(szText,p+2,LINK_LEN);
-			sprintf_s(szCommand, "/notify ChatWindow CW_ChatOutput link %s", szText);
+			strncpy_s(szText,MAX_STRING,p+2,LINK_LEN);
+			char *szCommand = new char[MAX_STRING];
+			sprintf_s(szCommand,MAX_STRING, "/notify ChatWindow CW_ChatOutput link %s", szText);
+			delete szText;
 			DoCommand(((PSPAWNINFO)pLocalPlayer), szCommand);
-			
-			/* 
-			WriteChatf("OnIncomingChat::Cmd = %s",Line);
-			int i;
-			for (i=0; Line[i]; i++)
-				WriteChatf("Line[%d] = 0x%02X = %c ",i,Line[i],Line[i]);
-			WriteChatf("OnIncomingChat::Cmd = %s",szCommand);
-			for (i=0; szText[i]; i++)
-				WriteChatf("szText[%d] = 0x%02X = %c ",i,szText[i],szText[i]);
-			*/
+			delete szCommand;
 		}
 	}
     return 0; 
@@ -3258,5 +3255,9 @@ PLUGIN_API VOID OnPulse(VOID)
 	{
 		CreateCompareTipWnd();
 	}
+}
+PLUGIN_API VOID OnBeginZone(VOID)
+{
+	memset(&g_Contents, 0x0, sizeof(CONTENTS)*6);
 }
 #endif
