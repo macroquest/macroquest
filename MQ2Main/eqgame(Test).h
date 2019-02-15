@@ -631,7 +631,7 @@ GNU General Public License for more details.
 #define CListWnd__EnsureVisible_x                                  0x909E10
 #define CListWnd__ExtendSel_x                                      0x9093B0
 #define CListWnd__GetColumnTooltip_x                               0x9062B0
-#define CListWnd__GetColumnMinWidth_x                              0x9062B0
+#define CListWnd__GetColumnMinWidth_x                              0x906320
 #define CListWnd__GetColumnWidth_x                                 0x906220
 #define CListWnd__GetCurSel_x                                      0x905BB0
 #define CListWnd__GetItemAtPoint_x                                 0x9069E0
