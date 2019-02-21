@@ -261,7 +261,17 @@ public:
 	};
 	~ItemInfoManager()
 	{
-		this->GetInstance().htmlwnd->SetClientCallbacks(NULL);
+		ItemInfoManager *im = &this->GetInstance();
+		if (im) {
+			if (im->htmlwnd)
+			{
+				im->htmlwnd->SetClientCallbacks(NULL);
+			}
+		}
+		//this->GetInstance().htmlwnd->SetClientCallbacks(NULL);
+		//if(this->htmlwnd)
+		//	this->htmlwnd->SetClientCallbacks(NULL);
+		//GetInstance().htmlwnd->SetClientCallbacks(NULL);
 		//this->GetInstance().htmlwnd->RemoveObserver(this);
 		Sleep(0);
 	};

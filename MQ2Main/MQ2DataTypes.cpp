@@ -12784,8 +12784,11 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		Dest.Type = pFloatType;
 		return true;
 	case ExpOn:
-		//Dest.DWord = pItem->EvolvingExpOn;
-		Dest.DWord = true;
+	#if defined(ROF2EMU) || defined(UFEMU)
+		Dest.DWord = pItem->EvolvingExpOn;
+	#else
+		Dest.DWord = true;//its always on after 2019-02-14 test patch
+	#endif
 		Dest.Type = pBoolType;
 		return true;
 	case Level:

@@ -5870,7 +5870,7 @@ EQLIB_OBJECT class CXMLData * CXMLParamManager::AllocPtr(class CXMLDataPtr &,int
 
 class CSidlManagerBase
 {
-#if !defined(TEST)
+#if !defined(TEST) && !defined(LIVE)
 /*0x000*/ void *vftable;
 /*0x004*/ int ScreenPieceClassIndex[5];
 /*0x018*/ ArrayClass_RO<CUITextureInfo*>		Textures;
