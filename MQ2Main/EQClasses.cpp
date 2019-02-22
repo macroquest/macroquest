@@ -5427,11 +5427,11 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::CanSee(CVector3 *pos), EQPlayer__CanSee1);
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
-#if defined(ROF2EMU) || defined(UFEMU)
-FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
-#else
-FUNCTION_AT_ADDRESS(int EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool),EQPlayer__DoAttack);
-#endif
+	#if defined(ROF2EMU) || defined(UFEMU)
+		FUNCTION_AT_ADDRESS(bool EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *),EQPlayer__DoAttack);
+	#else
+		FUNCTION_AT_ADDRESS(bool EQPlayer::DoAttack(BYTE,BYTE,EQPlayer *,bool,bool,bool),EQPlayer__DoAttack);
+	#endif
 #endif
 #ifdef EQPlayer__HandleAmmo_x
 FUNCTION_AT_ADDRESS(unsigned char  EQPlayer::HandleAmmo(void),EQPlayer__HandleAmmo);

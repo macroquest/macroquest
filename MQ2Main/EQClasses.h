@@ -8167,9 +8167,9 @@ EQLIB_OBJECT int EQPlayer::AttachPlayerToPlayerBone(class EQPlayer *,struct T3D_
 EQLIB_OBJECT int EQPlayer::CanBeBald(void);
 EQLIB_OBJECT int EQPlayer::CheckForJump(void);
 #if defined(ROF2EMU) || defined(UFEMU)
-EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill,class EQPlayer *Target);
+	EQLIB_OBJECT bool EQPlayer::DoAttack(BYTE slot, BYTE skill,class EQPlayer *Target);
 #else
-EQLIB_OBJECT int EQPlayer::DoAttack(BYTE slot, BYTE skill, EQPlayer *Target, bool bSomething = false, bool bAuto = false);
+	EQLIB_OBJECT bool EQPlayer::DoAttack(BYTE slot, BYTE skill, EQPlayer *Target, bool bSomething = false, bool bAuto = false, bool bDontknow = false);
 #endif
 EQLIB_OBJECT int EQPlayer::GetAlternateTrackNumber(int,unsigned char *);
 EQLIB_OBJECT int EQPlayer::GetArmorType(int);
