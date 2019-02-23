@@ -255,6 +255,7 @@ MQ2Main\MQ2KeyBinds.cpp
 MQ2Main\MQ2MacroCommands.cpp
 MQ2Main\MQ2Main.cpp
 MQ2Main\MQ2Main.h
+MQ2Main\resource.h
 MQ2Main\MQ2Main.rc
 MQ2Main\MQ2Main.vcxproj
 MQ2Main\MQ2Main.vcxproj.filters
