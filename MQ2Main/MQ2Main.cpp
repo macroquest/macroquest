@@ -791,13 +791,13 @@ public:
     CMQNewsWnd(char *Template):CCustomWnd(Template)
     {
         SetWndNotification(CMQNewsWnd);
-        //InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
+        //InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
         //InputBox->WindowStyle|=0x800C0;
         BitOff(WindowStyle,CWS_CLOSE);
         //InputBox->CRNormal|=0xFF000000;
         //InputBox->Enabled=0;
         //InputBox->SetMaxChars(512);
-        OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
+        OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput");
 		//InputBox->pParentWindow = (_CSIDLWND *)this;
 		OutputBox->pParentWindow = (_CSIDLWND *)this;
     }

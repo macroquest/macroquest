@@ -8538,7 +8538,11 @@ FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageInnerRect(void)const ,CTabWnd_
 #endif
 #ifdef CTabWnd__SetPage_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool,bool),CTabWnd__SetPage);
+	#if !defined(TEST)
+		FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(int,bool,bool),CTabWnd__SetPage);
+	#else
+		FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(int,bool,bool,bool),CTabWnd__SetPage);
+	#endif
 #else
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool),CTabWnd__SetPage);
 #endif
@@ -8577,7 +8581,11 @@ FUNCTION_AT_ADDRESS(int  CTabWnd::DrawTab(int)const ,CTabWnd__DrawTab);
 FUNCTION_AT_ADDRESS(int  CTabWnd::DrawCurrentPage(void)const ,CTabWnd__DrawCurrentPage);
 #endif
 #ifdef CPageWnd__GetTabText_x
-FUNCTION_AT_ADDRESS(class CXStr  CPageWnd::GetTabText(void)const ,CPageWnd__GetTabText);
+	#if !defined(TEST)
+		FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText(void) const ,CPageWnd__GetTabText);
+	#else
+		FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText(bool) const ,CPageWnd__GetTabText);
+	#endif
 #endif
 #ifdef CPageWnd__SetTabText_x
 FUNCTION_AT_ADDRESS(void CPageWnd::SetTabText(CXStr &)const,CPageWnd__SetTabText);

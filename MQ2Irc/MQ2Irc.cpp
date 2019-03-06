@@ -79,13 +79,13 @@ public:
     CIRCWnd(CXStr *Template):CCustomWnd(Template)
     {
         SetWndNotification(CIRCWnd);
-        StmlOut = (CStmlWnd *)GetChildItem("CWChatOutput");
+        StmlOut = (CStmlWnd *)GetChildItem("CW_ChatOutput");
         OutWnd = (CXWnd*)StmlOut;
         //      OutWnd = GetChildItem("CWChatOutput");
         // ^ Retarded monkeys should not code ^
-        OutStruct = (_CSIDLWND *)GetChildItem("CWChatOutput");
+        OutStruct = (_CSIDLWND *)GetChildItem("CW_ChatOutput");
 
-        InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
+        InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
         InputBox->WindowStyle|=0x800C0;
         InputBox->CRNormal|=0xFFFFFFFF;
         InputBox->SetMaxChars(512);

@@ -39,14 +39,18 @@ public:
     { 
         DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd);
+
 		BGColor = 0xFF000000;//black background
-        InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput"); 
+        InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput"); 
         InputBox->WindowStyle|=0x800C0; 
         BitOff(WindowStyle,CWS_CLOSE); 
+        BitOn(WindowStyle,CWS_TITLE); 
+        BitOn(WindowStyle,CWS_CLIENTMOVABLE); 
+		
         InputBox->CRNormal=0xFFFFFFFF;//we want a white cursor 
         InputBox->SetMaxChars(512); 
-        OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput"); 
-        OutStruct=(_CSIDLWND*)GetChildItem("CWChatOutput");
+        OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput"); 
+        OutStruct=(_CSIDLWND*)GetChildItem("CW_ChatOutput");
 		//fix for the 0 parent crash at charselect when clicking the children...
 		//wow it only took us 13 years to fix that one... -eqmule
 		OutStruct->pParentWindow = (_CSIDLWND *)this;

@@ -114,7 +114,9 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
     }
     // If we didn't add any keyboard data, and we aren't waiting for a click,
     // and we didn't add any mouse data
-    hResult = DInputDataTrampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
+	if (DInputDataTrampoline) {
+		hResult = DInputDataTrampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
+	}
     if (gbUnload) {
         gbInDInput = FALSE;
         return hResult;

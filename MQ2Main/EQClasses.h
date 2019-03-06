@@ -4821,7 +4821,11 @@ class CPageWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CPageWnd::CPageWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr,class CPageTemplate *);
-EQLIB_OBJECT class CXStr CPageWnd::GetTabText(void)const;
+#if !defined(TEST)
+	EQLIB_OBJECT CXStr CPageWnd::GetTabText(void) const;
+#else
+	EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const;
+#endif
 EQLIB_OBJECT void CPageWnd::SetTabText(CXStr &)const;
 // virtual
 EQLIB_OBJECT CPageWnd::~CPageWnd(void);
@@ -6475,9 +6479,13 @@ EQLIB_OBJECT int CTabWnd::GetNumTabs(void)const;
 EQLIB_OBJECT void CTabWnd::InsertPage(class CPageWnd *,int);
 EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT void CTabWnd::SetPage(int,bool,bool = true);
+	#if !defined(TEST)
+		EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent, bool bBringToTop = true);
+	#else
+		EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent, bool bBringToTop = true, bool bSomething = true);
+	#endif
 #else
-EQLIB_OBJECT void CTabWnd::SetPage(int,bool);
+EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent);
 #endif
 EQLIB_OBJECT void CTabWnd::SetPageRect(class CXRect);
 EQLIB_OBJECT void CTabWnd::UpdatePage(void);
