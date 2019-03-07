@@ -716,7 +716,7 @@ typedef struct _EQCHATMGR {
 /*0x11c*/ DWORD		ActiveWindow;
 /*0x120*/ DWORD		Unknown0x120; // CurrentActive... CChat::GetActiveChatWindow
 /*0x124*/ DWORD		Unknown0x124; // LockedActive... CChatManager__GetLockedActiveChatWindow_x
-/*0x08c*/ PEQCHATWINDOW ChannelMap[MAX_CHAT_FILTERS];   // channel map
+/*0x08c*/ struct _EQCHATWINDOW *ChannelMap[MAX_CHAT_FILTERS];   // channel map
 /*0x1a0*/ LPVOID	pCM_MainMenu;//these are all CContextMenu* but we LPVOID them here since its easy...
 /*0x1a4*/ int		ScrollbarIndex;
 /*0x1a8*/ LPVOID	pCM_LanguageMenu;
