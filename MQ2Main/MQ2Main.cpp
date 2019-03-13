@@ -793,6 +793,8 @@ public:
         SetWndNotification(CMQNewsWnd);
         //InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
         //InputBox->WindowStyle|=0x800C0;
+		BitOn(WindowStyle,CWS_TITLE); 
+        BitOn(WindowStyle,CWS_MINIMIZE);
         BitOff(WindowStyle,CWS_CLOSE);
         //InputBox->CRNormal|=0xFF000000;
         //InputBox->Enabled=0;

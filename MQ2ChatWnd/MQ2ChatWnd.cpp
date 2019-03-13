@@ -39,13 +39,15 @@ public:
     { 
         DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd);
-
+        BitOff(WindowStyle,CWS_TRANSPARENT); 
+		BitOn(WindowStyle, CWS_RESIZEBORDER);
 		BGColor = 0xFF000000;//black background
         InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput"); 
         InputBox->WindowStyle|=0x800C0; 
         BitOff(WindowStyle,CWS_CLOSE); 
-        BitOn(WindowStyle,CWS_TITLE); 
-        BitOn(WindowStyle,CWS_CLIENTMOVABLE); 
+		BitOn(WindowStyle,CWS_TITLE); 
+        BitOn(WindowStyle,CWS_MINIMIZE); 
+        //BitOn(WindowStyle,CWS_CLIENTMOVABLE);
 		
         InputBox->CRNormal=0xFFFFFFFF;//we want a white cursor 
         InputBox->SetMaxChars(512); 
