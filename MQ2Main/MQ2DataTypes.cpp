@@ -665,6 +665,8 @@ bool MQ2MathType::GETMEMBER()
 	switch ((MathMembers)pMember->ID)
 	{
 	case Abs:
+		Dest.Float = 0.0;
+		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
 		{
 			Dest.Float = (FLOAT)CalcResult;
@@ -4325,7 +4327,6 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case CombatState:
-		Dest.Type = pStringType;
 		if (!pPlayerWnd)
 			return false;
 		switch (((PCPLAYERWND)pPlayerWnd)->CombatState)
@@ -4355,6 +4356,7 @@ bool MQ2CharacterType::GETMEMBER()
 			break;
 		}
 		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
 		return true;
 	case svCorruption:
 		Dest.DWord = pChar->SaveCorruption;

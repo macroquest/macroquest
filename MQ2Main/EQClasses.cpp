@@ -54,26 +54,39 @@ class CXMLData * CSidlScreenWnd::GetXMLData()
 
 class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
 {
-    CHAR Buffer[MAX_STRING]={0};
-    class CXWnd *tmp;
+	//wow... this is stupid, we can't put this much stuff on the stack since this function calls itself, for huge windows
+	//with lots of elements this WILL definately crash us...
+    //CHAR Buffer[MAX_STRING]={0};
+	//so lets do this instead:
+	CHAR *Buffer = new CHAR[MAX_STRING];
 
-    if (!pWnd) return pWnd;
+	if (!pWnd)
+	{
+		delete Buffer;
+		return pWnd;
+	}
 
     if (CXMLData *pXMLData=pWnd->GetXMLData()) {
         if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
-            return pWnd;
+            delete Buffer;
+			return pWnd;
         }
         //DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
         if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
-            return pWnd;
+            delete Buffer;
+			return pWnd;
         }
     }
 
     if (pWnd->pFirstChildWnd) {
-        tmp = RecurseAndFindName((class CXWnd *)pWnd->pFirstChildWnd, Name);
-        if (tmp)
-            return tmp;
+        CXWnd *tmp = RecurseAndFindName((class CXWnd *)pWnd->pFirstChildWnd, Name);
+		if (tmp)
+		{
+			delete Buffer;
+			return tmp;
+		}
     }
+	delete Buffer;
     return RecurseAndFindName((class CXWnd *)pWnd->pNextSiblingWnd, Name);
 }
 
