@@ -360,6 +360,9 @@ bool __cdecl MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t buffl
 bool __cdecl MQ2Initialize()
 {
 #endif
+	
+	if (!ghMacroBlockLock)
+		ghMacroBlockLock = CreateMutex(NULL, FALSE, NULL);
 	if (!ghVariableLock)
 		ghVariableLock = CreateMutex(NULL, FALSE, NULL);
 
@@ -579,6 +582,11 @@ void __cdecl MQ2Shutdown()
 		CloseHandle(ghVariableLock);
 		ghVariableLock = 0;
 	}
+	if (ghMacroBlockLock) {
+		ReleaseMutex(ghMacroBlockLock);
+		CloseHandle(ghMacroBlockLock);
+		ghMacroBlockLock = 0;
+	}
 	if (ghMemberMapLock) {
 		ReleaseMutex(ghMemberMapLock);
 		CloseHandle(ghMemberMapLock);
@@ -647,6 +655,7 @@ DWORD WINAPI MQ2End(LPVOID lpParameter)
 		}
 	}
 	bRunNextCommand = TRUE;
+	lockit lk(ghMacroBlockLock);
 	if (GetCurrentMacroBlock())
 	{
 		EndAllMacros();
@@ -795,6 +804,7 @@ public:
         //InputBox->WindowStyle|=0x800C0;
 		BitOn(WindowStyle,CWS_TITLE); 
         BitOn(WindowStyle,CWS_MINIMIZE);
+        BitOff(WindowStyle,CWS_TRANSPARENT);
         BitOff(WindowStyle,CWS_CLOSE);
         //InputBox->CRNormal|=0xFF000000;
         //InputBox->Enabled=0;

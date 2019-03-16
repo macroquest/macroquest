@@ -242,6 +242,7 @@ namespace MQ2Internal {
 		int BindStackIndex;//where we were at before calling the bind.
 		std::string BindCmd;//the actual command including parameters
 		std::map<int, MACROLINE>Line;
+		bool bInValid;//when a block gets deleted this will be true;
     } MACROBLOCK, *PMACROBLOCK;
     typedef struct _MQTIMER {
         CHAR szName[MAX_VARNAME];

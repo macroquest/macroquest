@@ -287,6 +287,7 @@ namespace MQ2Globals
 	HANDLE ghInitializeMQ2SpellDb = 0;
 	HANDLE ghCCommandLock = 0;
 	HANDLE ghVariableLock = 0;
+	HANDLE ghMacroBlockLock = 0;
 
 	/* BENCHMARKS */
 	DWORD bmWriteChatColor = 0;

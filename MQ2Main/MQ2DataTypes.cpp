@@ -4327,6 +4327,7 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case CombatState:
+		Dest.Type = pStringType;
 		if (!pPlayerWnd)
 			return false;
 		switch (((PCPLAYERWND)pPlayerWnd)->CombatState)

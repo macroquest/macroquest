@@ -440,7 +440,9 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 std::map<std::string, PMACROBLOCK>MacroBlockMap;
 PMACROBLOCK AddMacroBlock(std::string Name)
 {
+	lockit lk(ghMacroBlockLock);
 	MacroBlockMap[Name] = new MACROBLOCK;
+	MacroBlockMap[Name]->bInValid = false;
 	MacroBlockMap[Name]->CurrIndex = 0;
 	MacroBlockMap[Name]->BindStackIndex = -1;
 	MacroBlockMap[Name]->Name = Name;
@@ -449,6 +451,7 @@ PMACROBLOCK AddMacroBlock(std::string Name)
 }
 void RemoveMacroBlock(std::string &Name)
 {
+	lockit lk(ghMacroBlockLock);
 	if (MacroBlockMap.find(Name) != MacroBlockMap.end())
 	{
 		std::string TheName = Name;
@@ -468,6 +471,7 @@ void EndAllMacros()
 }
  bool GetMacroBlock(char *Name, PMACROBLOCK*pBlock)
 {
+	lockit lk(ghMacroBlockLock);
 	if (MacroBlockMap.find(Name)!=MacroBlockMap.end())
 	{
 		*pBlock = MacroBlockMap[Name];
@@ -481,6 +485,7 @@ void EndAllMacros()
 }
 PMACROBLOCK GetNextMacroBlock()
 {
+	lockit lk(ghMacroBlockLock);
 	//need this here for now until i replace all of them
 	if (!gMacroBlock)
 		return NULL;
@@ -506,6 +511,7 @@ PMACROBLOCK GetNextMacroBlock()
 
 PMACROBLOCK GetCurrentMacroBlock()
 {
+	lockit lk(ghMacroBlockLock);
 	if (!gMacroBlock)
 		return NULL;
 	if (MacroBlockMap.size())
@@ -529,6 +535,7 @@ PMACROBLOCK GetCurrentMacroBlock()
 }
 int GetmacroBlockCount()
 {
+	lockit lk(ghMacroBlockLock);
 	return MacroBlockMap.size();
 }
 // ***************************************************************************
@@ -538,6 +545,7 @@ int GetmacroBlockCount()
 // ***************************************************************************
 VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 {
+	lockit lk(ghMacroBlockLock);
 	gWarning = FALSE;
 	bRunNextCommand = TRUE;
 	CHAR szTemp[MAX_STRING] = { 0 };
@@ -826,6 +834,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 	PEVENTLIST pEventL;
 	PBINDLIST pBindL;
 	PMACROBLOCK pBlock = 0;
+	lockit lk(ghMacroBlockLock);
 	GetMacroBlock(MacroName,&pBlock);
 	if (!pBlock) {
 		MacroError("Cannot end a macro when one isn't running.");

@@ -87,6 +87,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         bRunNextCommand = TRUE;
         return;
     }
+	lockit lk(ghMacroBlockLock);
 	PMACROBLOCK pBlock = GetCurrentMacroBlock();
 	if (szArg1[0]=='}') {
 		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0) {
@@ -341,6 +342,7 @@ public:
             }
 
             PBINDLIST pBind = pBindList;
+			lockit lk(ghMacroBlockLock);
 			PMACROBLOCK pBlock = GetCurrentMacroBlock();
             while( pBind )
             {

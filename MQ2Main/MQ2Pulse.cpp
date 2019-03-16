@@ -53,6 +53,7 @@ int ci_find_substr( const T& str1, const char* charin, const std::locale& loc = 
 
 BOOL DoNextCommand(PMACROBLOCK pBlock)
 {
+	lockit lk(ghMacroBlockLock);
 	if (!ppCharSpawn || !pCharSpawn) return FALSE;
 	PSPAWNINFO pCharOrMount = NULL;
 	PCHARINFO pCharInfo = GetCharInfo();
@@ -463,8 +464,9 @@ int Heartbeat()
 		delete gDelayedCommands;
 		gDelayedCommands = pNext;
 	}
+	//lockit lk(ghMacroBlockLock);
 	PMACROBLOCK pBlock = GetNextMacroBlock();
-	while (bRunNextCommand) {
+	while (bRunNextCommand && pBlock && pBlock->bInValid==false) {
 		if (!DoNextCommand(pBlock))
 			break;
 		if (gbUnload)
