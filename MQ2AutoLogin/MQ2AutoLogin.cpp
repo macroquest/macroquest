@@ -1823,8 +1823,21 @@ void HandleWindows()
                     GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
 				bGotOffsets = false;
 				ullerrorwait = MQGetTickCount64() + 2000;//we give the server 5 seconds to catch its breath...
-
-                if(szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later."))
+				if (szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity. You have been added to the login queue for this server"))
+				{
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+                    if(pWnd)
+                        pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					ullerrorwait = MQGetTickCount64() + 185000;
+				}
+				else if (szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity. You are still in the login queue for this server"))
+				{
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+                    if(pWnd)
+                        pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					ullerrorwait = MQGetTickCount64() + 185000;//3 mins 5 seconds... no need to click login again and again when this message has been shown...
+				}
+				else if (szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later."))
                 {
                     pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
                     if(pWnd)

@@ -14,18 +14,19 @@ PLUGIN_VERSION(2.0);
 
 enum TI_MenuCommands
 {
-	TIMC_NavToMe = 54,
-	TIMC_Runto = 55,
-	TIMC_PickupGroundItem = 56,
-	TIMC_ClickNearestDoor = 57,
-	TIMC_SwitchTo = 58,
-	TIMC_FollowMe = 59,
+	TIMC_MakeMeLeader = 54,
+	TIMC_NavToMe = 55,
+	TIMC_Runto = 56,
+	TIMC_PickupGroundItem = 57,
+	TIMC_ClickNearestDoor = 58,
+	TIMC_SwitchTo = 59,
+	TIMC_FollowMe = 60,
 	//show/hide
-	TIMC_ComeToMeButton = 60,
-	TIMC_MimicMeButton = 61,
-	TIMC_FollowMeButton = 62,
-	TIMC_HotButtons = 63,
-	TIMC_Distance = 64,
+	TIMC_ComeToMeButton = 61,
+	TIMC_MimicMeButton = 62,
+	TIMC_FollowMeButton = 63,
+	TIMC_HotButtons = 64,
+	TIMC_Distance = 65,
 };
 
 bool bDisablePluginDueToBadUI = false;
@@ -434,6 +435,7 @@ void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked, int index)
 		if (bMemberClicked)
 		{
 			separatorid2 = pGwnd->GroupContextMenu->AddSeparator();
+			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Make Me Leader", TIMC_MakeMeLeader);
 			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", TIMC_NavToMe);
 			gotomenuid = pGwnd->GroupContextMenu->AddMenuItem("Run To", TIMC_Runto);	
 			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", TIMC_PickupGroundItem);
@@ -1599,6 +1601,15 @@ public:
 			
 			switch ((int)pData)
 			{
+				case TIMC_MakeMeLeader:
+				{
+					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
+					if (pSpawn)
+					{
+						DoCommandf("/bct %s //makeleader %s", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->Name);
+					}
+					return 1;
+				}
 				case TIMC_NavToMe://our nav menu id
 				{
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();

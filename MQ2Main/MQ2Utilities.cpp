@@ -9514,7 +9514,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 				PEQINVSLOT pSlot = GetInvSlot(pItem->GetGlobalIndex().Location, pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2);
 				if (!pSlot) {
 					//well lets try to open it then
-					if (PCONTENTS pBag = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,pItem->GetGlobalIndex().Location)) {
+					if (PCONTENTS pBag = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,-1,pItem->GetGlobalIndex().Location)) {
 						BOOL wechangedpackopenstatus = OpenContainer(pBag, true);
 						if (wechangedpackopenstatus) {
 							if (PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR, sizeof(LARGE_INTEGER))) {
