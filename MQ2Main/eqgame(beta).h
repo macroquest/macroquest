@@ -850,7 +850,7 @@ GNU General Public License for more details.
 #define EQ_Character__CastSpell_x                                  0x4B90A0
 #define EQ_Character__Cur_HP_x                                     0x4CF280
 #define EQ_Character__Cur_Mana_x                                   0x4D6980
-#define EQ_Character__GetAACastingTimeModifier_x                   0x4BBFB0
+#define EQ_Character__GetCastingTimeModifier_x                     0x4BBFB0
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x4AFBB0
 #define EQ_Character__GetFocusRangeModifier_x                      0x4AFD00
 #define EQ_Character__GetHPRegen_x                                 0x4DC900

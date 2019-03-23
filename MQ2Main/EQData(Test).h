@@ -952,7 +952,7 @@ public:
 //Actual Size: 0x150 (see 0x60FC4C in eqgame.exe Test dated Mar 14 2019) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
-/*0x0004*/ DWORD	ItemType;           // ? 1 = normal, 2 = pack ?
+/*0x0004*/ mutable int	RefCount;
 /*0x0008*/ void*	punknown;
 //start of ItemBase
 /*0x000C*/ UINT	ItemHash;

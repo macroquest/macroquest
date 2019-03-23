@@ -741,8 +741,27 @@ public:
 template< class T > class VePointer// : public VePointerBase
 {
 public:
+	VePointer();
+	~VePointer();
     T* pObject;
 };
+template< class T >
+inline
+VePointer<T>::VePointer()
+{
+	//absolutely not do this here
+    //pObject = new T;
+	pObject = 0;
+	Sleep(0);
+}
+template< class T >
+inline
+VePointer<T>::~VePointer()
+{
+    //absolutely not do this here
+	//delete pObject;
+	Sleep(0);
+}
 template< typename T > class VeArray
 {
 public:

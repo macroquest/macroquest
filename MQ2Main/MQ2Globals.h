@@ -1506,7 +1506,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__GetEnduranceRegen;
 	EQLIB_VAR DWORD EQ_Character__Cur_HP;
 	EQLIB_VAR DWORD EQ_Character__Cur_Mana;
-	EQLIB_VAR DWORD EQ_Character__GetAACastingTimeModifier;
+	EQLIB_VAR DWORD EQ_Character__GetCastingTimeModifier;
 	EQLIB_VAR DWORD EQ_Character__GetFocusCastingTimeModifier;
 	EQLIB_VAR DWORD EQ_Character__GetFocusRangeModifier;
 	EQLIB_VAR DWORD EQ_Character__Max_Endurance;

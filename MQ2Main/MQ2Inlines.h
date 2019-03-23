@@ -275,38 +275,55 @@ static inline int GetModCap(int index, bool bToggle = false) {
 	}
 	return 0;
 }
-static inline int const GetAACastingTimeModifier(class EQ_Spell const * cSpell) {
+static inline const int GetCastingTimeModifier(const EQ_Spell  * cSpell) {
 	if (PCHARINFO pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
 		if (pChar->vtable2) {
 #endif
-			return pCharData1->GetAACastingTimeModifier(cSpell);
+			return pCharData1->GetCastingTimeModifier(cSpell);
 		}
 	}
 	return 0;
 }
-static inline int const GetFocusCastingTimeModifier(class EQ_Spell const * cSpell, class EQ_Equipment * * cEquipment, int i) {
+//const int EQ_Character1::GetFocusCastingTimeModifier(const EQ_Spell*pSpell, VePointer<ItemBase>&pItemOut, bool bEvalOnly = false);
+static inline const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly) {
 	if (PCHARINFO pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
 		if (pChar->vtable2) {
 #endif
-			return pCharData1->GetFocusCastingTimeModifier(cSpell, cEquipment, i);
+			//ok so as far as i can tell RefCount gets increased by us calling this function
+			//and its weird that it's no decremented properly afterwards
+			//it's possible we don't understand this, but there is also a chance this
+			//is a real serious eq bug, either way, decrementing it after the return
+			//seems to work...
+			//if they ever fix this, we must remove our decrement here...
+			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
+			if (pItemOut.pObject)
+			{
+				InterlockedDecrement((long volatile*)&pItemOut.pObject->RefCount);
+			}
+			return ret;
 		}
 	}
 	return 0;
 }
-static inline int const GetFocusRangeModifier(class EQ_Spell const * cSpell, class EQ_Equipment * * cEquipment) {
+static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<CONTENTS>& pItemOut) {
 	if (PCHARINFO pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
 		if (pChar->vtable2) {
 #endif
-			return pCharData1->GetFocusRangeModifier(cSpell, cEquipment);
+			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusRangeModifier(pSpell, pItemOut);
+			if (pItemOut.pObject)
+			{
+				InterlockedDecrement((long volatile*)&((PCONTENTS)pItemOut.pObject)->RefCount);
+			}
+			return ret;
 		}
 	}
 	return 0;

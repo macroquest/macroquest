@@ -81,7 +81,7 @@ public:
         SetWndNotification(CIRCWnd);
         StmlOut = (CStmlWnd *)GetChildItem("CW_ChatOutput");
         OutWnd = (CXWnd*)StmlOut;
-        //      OutWnd = GetChildItem("CWChatOutput");
+        //      OutWnd = GetChildItem("CW_ChatOutput");
         // ^ Retarded monkeys should not code ^
         OutStruct = (_CSIDLWND *)GetChildItem("CW_ChatOutput");
 

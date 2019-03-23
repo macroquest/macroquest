@@ -853,7 +853,7 @@ GNU General Public License for more details.
 #define EQ_Character__CastSpell_x                                  0x4B9170
 #define EQ_Character__Cur_HP_x                                     0x4CF400
 #define EQ_Character__Cur_Mana_x                                   0x4D6BB0
-#define EQ_Character__GetAACastingTimeModifier_x                   0x4BC090
+#define EQ_Character__GetCastingTimeModifier_x                     0x4BC090
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x4AFB80
 #define EQ_Character__GetFocusRangeModifier_x                      0x4AFCD0
 #define EQ_Character__GetHPRegen_x                                 0x4DCB30

@@ -4543,10 +4543,10 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetIndexSkillMinDamageMod(int),EQ_Charact
 FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusConserveRegChance(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusConserveRegChance);
 #endif
 #ifdef EQ_Character__GetFocusCastingTimeModifier_x
-FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *, int),EQ_Character__GetFocusCastingTimeModifier);
+FUNCTION_AT_ADDRESS(const int EQ_Character1::GetFocusCastingTimeModifier(const EQ_Spell *pSpell, VePointer<CONTENTS>&pItemOut, bool bEvalOnly),EQ_Character__GetFocusCastingTimeModifier);
 #endif
 #ifdef EQ_Character__GetFocusRangeModifier_x
-FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusRangeModifier);
+FUNCTION_AT_ADDRESS(const int EQ_Character1::GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<CONTENTS>&pItemOut),EQ_Character__GetFocusRangeModifier);
 #endif
 #ifdef EQ_Character__IsExpansionFlag_x
 FUNCTION_AT_ADDRESS(int EQ_Character1::IsExpansionFlag(int),EQ_Character__IsExpansionFlag);
@@ -4596,8 +4596,8 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::CalculateBardSongMod(int),EQ_Character__C
 #ifdef EQ_Character__CastingRequirementsMet_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::CastingRequirementsMet(int),EQ_Character__CastingRequirementsMet);
 #endif
-#ifdef EQ_Character__GetAACastingTimeModifier_x
-FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *),EQ_Character__GetAACastingTimeModifier);
+#ifdef EQ_Character__GetCastingTimeModifier_x
+FUNCTION_AT_ADDRESS(const int EQ_Character1::GetCastingTimeModifier(const EQ_Spell*),EQ_Character__GetCastingTimeModifier);
 #endif
 #ifdef CharacterZoneClient__BardCastBard_x
 FUNCTION_AT_ADDRESS(int CharacterZoneClient::BardCastBard(const EQ_Spell*, signed int)const ,CharacterZoneClient__BardCastBard);

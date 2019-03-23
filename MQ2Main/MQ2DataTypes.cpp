@@ -5925,10 +5925,14 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	case MyCastTime:
 	{
-		DWORD n = 0;
-		__int64 mct = (__int64)(GetAACastingTimeModifier((EQ_Spell*)pSpell) + GetFocusCastingTimeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n, 0) + pSpell->CastTime);
-		if (mct < (pSpell->CastTime / 2))
-			Dest.UInt64 = pSpell->CastTime / 2;
+		PSPELL pMySpell = (PSPELL)pSpell;
+		__int64 myaacastingtime = (__int64)GetCastingTimeModifier((EQ_Spell*)pMySpell);
+		VePointer<CONTENTS>pc;
+		int myfocuscastingtime = GetFocusCastingTimeModifier((EQ_Spell*)pMySpell, pc, false);
+		__int64 mycasttime = (__int64)pMySpell->CastTime;
+		__int64 mct = myaacastingtime + myfocuscastingtime + mycasttime;
+		if (pMySpell->CastTime > 0 && mct < (pMySpell->CastTime / 2))
+			Dest.UInt64 = pMySpell->CastTime / 2;
 		else
 			Dest.UInt64 = mct;
 		Dest.Type = pTimeStampType;
@@ -6208,8 +6212,8 @@ bool MQ2SpellType::GETMEMBER()
 	}
 	case MyRange:
 	{
-		DWORD n = 0;
-		Dest.Float = pSpell->Range + (float)GetFocusRangeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n);
+		VePointer<CONTENTS> n;
+		Dest.Float = pSpell->Range + (float)GetFocusRangeModifier((EQ_Spell*)pSpell, n);
 		Dest.Type = pFloatType;
 		return true;
 	}
@@ -9079,24 +9083,27 @@ bool MQ2SwitchType::GETMEMBER()
 				int KeyID = 0;
 				int Skill = 0;
 				if(PCHARINFO2 pChar2 = GetCharInfo2()) {
-					if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor && pChar2->pInventoryArray->Inventory.Cursor->ItemType == ITEMTYPE_NORMAL)
+					if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
 					{
 						if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor))
 						{
-							switch (pItem->Type)
+							if (pItem->Type != ITEMTYPE_NORMAL)
 							{
-							case 33://EQIC_KEY
-								KeyID = pItem->ItemNumber;
-								Skill = 0;
-								break;
-							case 35://EQIC_LOCKPICK
-								KeyID = pItem->ItemNumber;
-								Skill = GetAdjustedSkill(SKILL_PICKLOCK);
-								break;
-							default:
-								KeyID = pItem->ItemNumber;
-								Skill = 0;
-								break;
+								switch (pItem->Type)
+								{
+								case 33://EQIC_KEY
+									KeyID = pItem->ItemNumber;
+									Skill = 0;
+									break;
+								case 35://EQIC_LOCKPICK
+									KeyID = pItem->ItemNumber;
+									Skill = GetAdjustedSkill(SKILL_PICKLOCK);
+									break;
+								default:
+									KeyID = pItem->ItemNumber;
+									Skill = 0;
+									break;
+								}
 							}
 						}
 					}

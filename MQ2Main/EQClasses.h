@@ -7464,8 +7464,9 @@ EQLIB_OBJECT int EQ_Character1::Cur_HP(int Spawntype/*PC = 0 NPC=1 and so on*/,b
 EQLIB_OBJECT int EQ_Character1::Max_Endurance(bool bCapAtMax=true);
 EQLIB_OBJECT int EQ_Character1::Max_HP(int SpawnType, bool bCapAtMax=true); 
 EQLIB_OBJECT int EQ_Character1::Max_Mana(bool bCapAtMax=true);
-EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
-EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *,int);
+EQLIB_OBJECT const int EQ_Character1::GetCastingTimeModifier(const EQ_Spell* pSpell);//used to get aa modifiers
+EQLIB_OBJECT const int EQ_Character1::GetFocusCastingTimeModifier(const EQ_Spell*pSpell, VePointer<CONTENTS>&pItemOut, bool bEvalOnly = false);
+//EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *,int);
 EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, class EQ_Item * *ppItem, class CEQItemLocation * ppitemloc, enum  ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10); 
 EQLIB_OBJECT void EQ_Character1::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
@@ -7477,7 +7478,7 @@ EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Ta
 #else
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char skill,class EQPlayer *Target,bool bAuto = false);
 #endif
-EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
+EQLIB_OBJECT const int EQ_Character1::GetFocusRangeModifier(const EQ_Spell *pSpell,VePointer<CONTENTS>&pItemOut);
 EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
 EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
 EQLIB_OBJECT int EQ_Character1::GetAdjustedSkill(int);

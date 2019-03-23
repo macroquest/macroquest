@@ -2065,7 +2065,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetHPRegen);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetEnduranceRegen);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__Cur_Mana);
-	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAACastingTimeModifier);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetCastingTimeModifier);
 	INITIALIZE_EQGAME_OFFSET(ProfileManager__GetCurrentProfile);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetFocusCastingTimeModifier);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetFocusRangeModifier);
