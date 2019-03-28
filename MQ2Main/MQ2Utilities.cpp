@@ -960,7 +960,7 @@ PCHAR GetShortZone(DWORD ZoneID)
 }
 // ***************************************************************************
 // Function:    GetZoneID
-// Description: Returns a ZoneID from a short zone name
+// Description: Returns a ZoneID from a short or long zone name
 // ***************************************************************************
 
 DWORD GetZoneID(PCHAR ZoneShortName)
@@ -972,6 +972,8 @@ DWORD GetZoneID(PCHAR ZoneShortName)
 		pZone = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
 		if (pZone) {
 			if (!_stricmp(pZone->ShortName, ZoneShortName)) {
+				return nIndex;
+			} else if (!_stricmp(pZone->LongName, ZoneShortName)) {
 				return nIndex;
 			}
 		}

@@ -174,7 +174,7 @@ public:
 				#if !defined(TEST) && !defined(LIVE)
 				if (m_valid) {
 				#else
-				if (m_binCount) {
+				{
 				#endif		
 					for (int i = 0; i < rhs.m_length; ++i)
 						Get(i) = rhs.Get(i);
@@ -225,7 +225,7 @@ public:
 				#if !defined(TEST) && !defined(LIVE)
 				if (m_valid) {
 				#else
-				if (m_binCount) {
+				{
 				#endif
 					m_length = index + 1;
 				}
@@ -233,7 +233,7 @@ public:
 			#if !defined(TEST) && !defined(LIVE)
 			if (m_valid) {
 			#else
-			if (m_binCount) {
+			{
 			#endif
 				Get(index) = value;
 			}
@@ -262,7 +262,8 @@ private:
 		#if !defined(TEST) && !defined(LIVE)
 		if (m_valid && requestedSize > 0) {
 		#else
-		if (m_binCount && requestedSize > 0) {
+		//if (m_binCount && requestedSize > 0) {
+		if (requestedSize > 0) {
 		#endif
 			int newBinCount = ((requestedSize - 1) >> static_cast<int8_t>(m_binShift)) + 1;
 			if (newBinCount > m_binCount) {
@@ -277,7 +278,7 @@ private:
 							#if !defined(TEST) && !defined(LIVE)
 							m_valid = false;
 							#else
-							m_binCount = 0;
+							//m_binCount = 0;
 							#endif
 							break;
 						}
@@ -285,7 +286,7 @@ private:
 					#if !defined(TEST) && !defined(LIVE)
 					if (m_valid) {
 					#else
-					if (m_binCount) {
+					{
 					#endif
 						delete[] m_array;
 						m_array = newArray;
@@ -295,7 +296,7 @@ private:
 					#if !defined(TEST) && !defined(LIVE)
 					m_valid = false;
 					#else
-					m_binCount = 0;
+					//m_binCount = 0;
 					#endif
 				}
 			}
@@ -305,12 +306,10 @@ private:
 			// all of the checks for null returns values from new in this function.
 			#if !defined(TEST) && !defined(LIVE)
 			if (!m_valid) {
-			#else
-			if (!m_binCount) {
-			#endif
 				Reset();
 				ThrowArrayClassException();
 			}
+			#endif
 		}
 	}
 };
@@ -752,7 +751,7 @@ VePointer<T>::VePointer()
 	//absolutely not do this here
     //pObject = new T;
 	pObject = 0;
-	Sleep(0);
+	//Sleep(0);
 }
 template< class T >
 inline
@@ -760,7 +759,7 @@ VePointer<T>::~VePointer()
 {
     //absolutely not do this here
 	//delete pObject;
-	Sleep(0);
+	//Sleep(0);
 }
 template< typename T > class VeArray
 {

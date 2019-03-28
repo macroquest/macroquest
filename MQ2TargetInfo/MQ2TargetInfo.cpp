@@ -300,6 +300,7 @@ bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLab
 	DistLabelTemplate->Font = oldfont;
 	return false;
 }
+int mmlmenuid = 0;
 int navmenuid = 0;
 int separatorid = 0;
 int separatorid2 = 0;
@@ -390,6 +391,7 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 			pGwnd->GroupContextMenu->RemoveMenuItem(groundmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(gotomenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(navmenuid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(mmlmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(separatorid2);
 			followmenuid = 0;
 			switchtomenuid = 0;
@@ -397,6 +399,7 @@ void RemoveOurMenu(CGroupWnd*pGwnd)
 			groundmenuid = 0;
 			gotomenuid = 0;
 			navmenuid = 0;
+			mmlmenuid = 0;
 			separatorid2 = 0;
 		}
 		if (separatorid)
@@ -435,7 +438,7 @@ void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked, int index)
 		if (bMemberClicked)
 		{
 			separatorid2 = pGwnd->GroupContextMenu->AddSeparator();
-			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Make Me Leader", TIMC_MakeMeLeader);
+			mmlmenuid = pGwnd->GroupContextMenu->AddMenuItem("Make Me Leader", TIMC_MakeMeLeader);
 			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", TIMC_NavToMe);
 			gotomenuid = pGwnd->GroupContextMenu->AddMenuItem("Run To", TIMC_Runto);	
 			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", TIMC_PickupGroundItem);
@@ -2266,6 +2269,12 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 // Called after entering a new zone
 PLUGIN_API VOID OnZoned(VOID)
 {
+	gbMimicme = false;
+	if(MimicMeButton)
+		MimicMeButton->Checked = false;
+	gbFollowme = false;
+	if(FollowMeButton)
+		FollowMeButton->Checked = false;
 	DebugSpewAlways("MQ2TargetInfo::OnZoned()");
 }
 
