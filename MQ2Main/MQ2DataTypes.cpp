@@ -10611,10 +10611,20 @@ bool MQ2MerchantType::GETMEMBER()
 			Dest.DWord = pMerch->pMerchOther->pMerchData->MerchMaxSlots;
 		}
 		return true;
+	case SelectedItem:
+	if (CMerchantWnd*pm = (CMerchantWnd*)pMerchantWnd)
+	{
+		Dest.Ptr = pm->pSelectedItem.pObject;
+		Dest.Type = pItemType;
+		return true;
+	}
 	case Markup:
+	{
+		
 		Dest.Float = pMerch->Markup;
 		Dest.Type = pFloatType;
 		return true;
+	}
 	case Full://todo: check manually for uf
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;

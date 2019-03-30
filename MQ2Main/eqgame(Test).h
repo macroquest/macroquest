@@ -142,6 +142,7 @@ GNU General Public License for more details.
 #define pinstDZMember_x                                            0xE820B8
 #define pinstDZTimerInfo_x                                         0xE820BC
 #define pinstEQItemList_x                                          0xE7A658
+#define pinstEqLogin_x                                             0xF2DB98
 #define pinstEQObjectList_x                                        0xE7B848
 #define instEQMisc_x                                               0xDC9A80
 #define pinstEQSoundManager_x                                      0xDCB670

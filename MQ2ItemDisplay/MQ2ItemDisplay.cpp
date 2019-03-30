@@ -1540,7 +1540,7 @@ public:
 			//create add to loot filters button
 #if !defined(ROF2EMU) && !defined(UFEMU)
 			if (gLootButton) {
-				CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("LF_CheckBoxTemplate");
+				CControlTemplate *btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("ADLW_CheckBoxTemplate");
 				CControlTemplate *labeltemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButtonLabel");
 				if (btntemplate && labeltemplate) {
 					UINT oldfont = labeltemplate->Font;
@@ -1563,16 +1563,23 @@ public:
 						if (CXWnd*orgbutton = pWnd->GetChildItem("IDW_ModButtonLabel")) {
 							int spacing = 22;
 							//header
-							pheader->Location.top = orgbutton->Location.top + 22;
+							pheader->Location.top = orgbutton->Location.top + 12;
 							pheader->Location.bottom = pheader->Location.top + 12;
 							pheader->Location.left = orgbutton->Location.left;
-							pheader->Location.left += 80;
-							pheader->Location.right += 160;
+							if (CXWnd*fusebutton = pWnd->GetChildItem("IDW_FuseButtonLabel")) {
+								if (fusebutton->dShow) {
+									pheader->Location.left += 240;
+								}
+								else {
+									pheader->Location.left += 80;
+								}
+							}
+							pheader->Location.right = pheader->Location.left + 80;
 							//always need
-							pAlwaysNeedBtn->Location.top = orgbutton->Location.top + 36;
+							pAlwaysNeedBtn->Location.top = orgbutton->Location.top + 28;
 							pAlwaysNeedBtn->Location.bottom = pAlwaysNeedBtn->Location.top + 14;
 							pAlwaysNeedBtn->Location.left = orgbutton->Location.left;
-							pAlwaysNeedBtn->Location.left += 80;
+							pAlwaysNeedBtn->Location.left = pheader->Location.left;
 							pAlwaysNeedBtn->Location.right = pAlwaysNeedBtn->Location.left + 14;
 							//always greed
 							pAlwaysGreedBtn->Location.top = pAlwaysNeedBtn->Location.top;

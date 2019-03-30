@@ -143,8 +143,33 @@ struct _ServerData {
     DWORD ID;
 };
 
-
 _ServerData ServerData[] = {
+    {"lockjaw",    160},
+    {"ragefire",   159},
+    {"vox",        158},
+    {"trakanon",   155},
+    {"fippy",      156},
+    {"vulak",      157},
+    {"mayong",     163},
+    {"antonius",   100},
+    {"beta",        67},
+    {"brekt",       162},
+    {"bertox",      102},
+    {"bristle",     104},
+    {"cazic",       105},
+    {"drinal",      106},
+    {"erollisi",    109},
+    {"firiona",     111},
+    {"luclin",      116},
+    {"povar",       123},
+    {"rathe",       127},
+    {"tunare",      140},
+    {"xegony",      144},
+    {"zek",         147},
+    {"test",         1},
+    {0, 0},
+};
+/*_ServerData ServerData[] = {
     {"lockjaw",    160},
     {"ragefire",   159},
     {"vox",        158},
@@ -168,7 +193,7 @@ _ServerData ServerData[] = {
     {"zek",         54},
     {"test",         1},
     {0, 0},
-};
+};*/
 typedef struct _DateStruct
 {
 /*0x00*/ CHAR	Hours;
@@ -1510,6 +1535,52 @@ inline bool WindowActive(PCHAR name)
 	}
 	return false;
 }
+typedef struct _HOST
+{
+	CXStr *Name;
+	int Port;
+} HOST,*PHOST;
+typedef struct _EQDEVICE
+{
+	CHAR Name[0x40];
+} EQDEVICE,*PEQDEVICE;
+
+
+typedef struct _EQLOGIN
+{
+	EQDEVICE Devices[0x10];
+	int NumDevices;
+	HWND hEQWnd;
+	int ReturnCode; //-1 = failed login
+    CHAR Login[0x80];
+	CHAR PW[0x80];
+	CHAR PW2[0x80];
+	CHAR ServerLong[0x80];
+	int ServerPort;
+	CHAR AccountKey[0x80];
+	int ActiveDeviceIndex;
+	CHAR LastZoneEntered[0x20];
+	CHAR StationName[0x20];
+	CHAR ExeName[0x20];
+	CHAR CommandLine[0x1c0];
+	char ServerShort[0x80];
+	char Session[0x40];
+	char Character[0x40];
+	//more below I don't need atm
+} EQLOGIN,*PEQLOGIN;
+//work in progress to get short servername... -eqmule
+class LoginClient// : public A_Callback?, public ChannelServerHandler?
+{
+public:
+	void* A_Callback_vfTable;
+	void* ChannelServerHandler_vfTable;
+	PEQLOGIN pLoginData;
+	DoublyLinkedList<PHOST>	Hosts;
+	PHOST pHost;
+	bool bRetryConnect;
+	//more below don't need right now
+};
+
 bool bWait = false;
 bool bServerWait = false;
 void HandleWindows()
@@ -1905,6 +1976,11 @@ void HandleWindows()
 		} else {
 			if (bServerWait)
 				return;
+			//just messing with finding short servername so we don't have to have it hardcoded... -eqmule
+			//not working at all right now, maybe another day.
+			//LoginClient*lc = (LoginClient*)pLoginClient;//wrong one... this address is at 1015E5B0 in eqmain.dll 03/12 2019 patch...
+			//for this to work we would need a patternfind for it.
+			//PEQLOGIN pldd = (PEQLOGIN)pinstEqLogin;//this is correct though...
 			if (dwServerID = GetServerID(szServerName)) {
 				if (CheckServerUp(dwServerID))
 				{

@@ -878,6 +878,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstDZMember;
 	EQLIB_VAR DWORD pinstDZTimerInfo;
 	EQLIB_VAR DWORD pinstEQItemList;
+	EQLIB_VAR DWORD pinstEqLogin;
 	EQLIB_VAR DWORD pinstEQObjectList;
 	EQLIB_VAR DWORD instEQMisc;
 	EQLIB_VAR DWORD pinstEQSoundManager;
