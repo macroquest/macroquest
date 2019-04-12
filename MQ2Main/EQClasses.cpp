@@ -3352,6 +3352,24 @@ FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemPossession(const I
 #ifdef BaseProfile__GetItemPossession_x
 FUNCTION_AT_ADDRESS(VePointer<CONTENTS> BaseProfile::GetItemPossession(const ItemIndex &lIndex) const,BaseProfile__GetItemPossession);
 #endif
+#ifdef AggroMeterManagerClient__Instance_x
+FUNCTION_AT_ADDRESS(AggroMeterManagerClient &AggroMeterManagerClient::Instance(), AggroMeterManagerClient__Instance);
+#endif
+#ifdef ClientSOIManager__GetSingleton_x
+FUNCTION_AT_ADDRESS(ClientSOIManager *ClientSOIManager::GetSingleton(), ClientSOIManager__GetSingleton);
+#endif
+#ifdef MercenaryAlternateAdvancementManagerClient__Instance_x
+FUNCTION_AT_ADDRESS(MercenaryAlternateAdvancementManagerClient &MercenaryAlternateAdvancementManagerClient::Instance(), MercenaryAlternateAdvancementManagerClient__Instance);
+#endif
+#ifdef CTargetManager__Get_x
+FUNCTION_AT_ADDRESS(CTargetManager *CTargetManager::Get(), CTargetManager__Get);
+#endif
+#ifdef CBroadcast__Get_x
+FUNCTION_AT_ADDRESS(CBroadcast *CBroadcast::Get(), CBroadcast__Get);
+#endif
+#ifdef EQGroundItemListManager__Instance_x
+FUNCTION_AT_ADDRESS(EQGroundItemListManager &EQGroundItemListManager::Instance(), EQGroundItemListManager__Instance);
+#endif
 #ifdef ArrayClass__DeleteElement_x
 FUNCTION_AT_ADDRESS(void ArrayClass_RO<SListWndColumn_RO>::DeleteElement(int index), ArrayClass__DeleteElement);
 #endif
@@ -4043,6 +4061,9 @@ FUNCTION_AT_ADDRESS(void  CDisplay::MoveLight(struct T3D_POINTLIGHT *,struct _ph
 #endif
 #ifdef CDistillerInfo__GetIDFromRecordNum_x
 FUNCTION_AT_ADDRESS(int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat),CDistillerInfo__GetIDFromRecordNum);
+#endif
+#ifdef CDistillerInfo__Instance_x
+FUNCTION_AT_ADDRESS(CDistillerInfo &CDistillerInfo::Instance(),CDistillerInfo__Instance);
 #endif
 #ifdef ZoneNPCLoadTextManager__ZoneNPCLoadTextManager_x
 FUNCTION_AT_ADDRESS( ZoneNPCLoadTextManager::ZoneNPCLoadTextManager(char *),ZoneNPCLoadTextManager__ZoneNPCLoadTextManager);
@@ -6525,6 +6546,9 @@ FUNCTION_AT_ADDRESS(bool  KeypressHandler::HandleKeyDown(class KeyCombo const &)
 #endif
 #ifdef KeypressHandler__HandleKeyUp_x
 FUNCTION_AT_ADDRESS(bool  KeypressHandler::HandleKeyUp(class KeyCombo const &),KeypressHandler__HandleKeyUp);
+#endif
+#ifdef KeypressHandler__Get_x
+FUNCTION_AT_ADDRESS(KeypressHandler &KeypressHandler::Get(),KeypressHandler__Get);
 #endif
 #ifdef KeypressHandler__GetKeyAttachedToEqCommand_x
 FUNCTION_AT_ADDRESS(class KeyCombo const &  KeypressHandler::GetKeyAttachedToEqCommand(unsigned int)const ,KeypressHandler__GetKeyAttachedToEqCommand);
@@ -10150,7 +10174,9 @@ FUNCTION_AT_ADDRESS(bool  CXMLSOMDocument::FieldParseItemOfClass(class CXStr,cla
 FUNCTION_AT_ADDRESS(char (* EQOldPlayerAnimation::mAnimationPrefix)[20],EQOldPlayerAnimation__mAnimationPrefix);
 #endif
 #ifdef CTextOverlay__DisplayText_x
-FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(char *,int,int,int,int,int,int),CTextOverlay__DisplayText);
+//this is really:
+//EQLIB_OBJECT void CBroadcast::BroadcastString(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
+FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime),CTextOverlay__DisplayText);
 #endif
 #ifdef CDBStr__GetString_x
 // GetString(index, subindex, &success)

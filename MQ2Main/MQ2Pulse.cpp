@@ -584,6 +584,7 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 	else {
 		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
 	}
+	SymCleanup(hProcess);
 	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
 	if (mbret==IDCANCEL)
 	{
@@ -646,6 +647,7 @@ int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
 	else {
 		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
 	}
+	SymCleanup(hProcess);
 	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
 	if (mbret==IDCANCEL)
 	{

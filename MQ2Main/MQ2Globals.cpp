@@ -124,7 +124,7 @@ namespace MQ2Globals
 		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
 		ppDisplay = (CDisplay**)pinstCDisplay;
-#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
 		ppDistillerInfo = (CDistillerInfo**)pinstCDistillerInfo;
 #endif
 		ppPCData = (EQ_PC**)pinstPCData;
@@ -138,12 +138,13 @@ namespace MQ2Globals
 		ppSpellMgr = (ClientSpellManager**)pinstSpellManager;
 		ppTarget = (EQPlayer**)pinstTarget;
 		ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
-		ppItemList = (EQItemList**)pinstEQItemList;
 		pSpellSets = (SPELLFAVORITE *)pinstSpellSets;
 		pZoneInfo = (EQZoneInfo*)instEQZoneInfo;
 		ppAltAdvManager = (AltAdvManager**)pinstAltAdvManager;
 		ppConnection = (PCONNECTION_T*)__gWorld;
+		#if defined(ROF2EMU) || defined(UFEMU)
 		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
+		#endif
 		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 		ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
@@ -239,7 +240,9 @@ namespace MQ2Globals
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
 		ppTaskManager = (CTaskManager*)pinstCTaskManager;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
+		#if defined(ROF2EMU) || defined(UFEMU)
 		ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
+		#endif
 #if defined(ROF2EMU) || defined(UFEMU)
 		ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
 #endif
@@ -256,7 +259,12 @@ namespace MQ2Globals
 		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
 		ppWndMgr = (CXWndManager**)pinstCXWndManager;
+		#if defined(ROF2EMU) || defined(UFEMU)
+		ppItemList = (EQItemList**)pinstEQItemList;
+		#endif
+		#if !defined(TEST)
 		ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
+		#endif
 		pRaid = (PEQRAID)instCRaid;
 		ppDZMember = (DZMEMBER**)pinstDZMember;
 		ppDZTimerInfo = (DZTIMERINFO**)pinstDZTimerInfo;
@@ -264,10 +272,11 @@ namespace MQ2Globals
 		pDynamicZone = (DYNAMICZONE*)instDynamicZone;
 		ppMercInfo = (MERCENARYINFO**)pinstMercenaryData;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		ppMercAltAbilities = (EQMERCALTABILITIES**)pinstMercAltAbilities;
 		ppEQSpellStrings = (EQSpellStrings**)pinstEQSpellStrings;
 #endif
+		#if defined(ROF2EMU) || defined(UFEMU)
 		ppAggroInfo = (AGGROINFO **)pinstAggroInfo;
+		#endif
 		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
 		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
 		ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
@@ -1156,10 +1165,11 @@ namespace MQ2Globals
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	fEQToggleKeyRingItem  cmdToggleKeyRingItem = 0;
 #endif
-	fLoaderSetLoaded	IC_LoaderSetLoaded = 0;
-	fLoaderClearLoaded	IC_LoaderClearLoaded = 0;
-	fMQ2Unload			IC_MQ2Unload = 0;
-	fClassLvl			IC_ClassLvl = 0;
+	fICGetHashData					IC_GetHashData = 0;
+	fLoaderSetLoaded				IC_LoaderSetLoaded = 0;
+	fLoaderClearLoaded				IC_LoaderClearLoaded = 0;
+	fMQ2Unload						IC_MQ2Unload = 0;
+	fClassLvl						IC_ClassLvl = 0;
 
 	fEQW_GetDisplayWindow EQW_GetDisplayWindow = 0;
 
@@ -1173,7 +1183,9 @@ namespace MQ2Globals
 
 	CEverQuest **ppEverQuest = 0;
 	CDisplay **ppDisplay = 0;
+	#if !defined(TEST)
 	CDistillerInfo **ppDistillerInfo = 0;
+	#endif
 	EQ_PC **ppPCData = 0;
 	EQ_Character **ppCharData = 0;
 	EQPlayer **ppCharSpawn = 0;
@@ -1185,12 +1197,14 @@ namespace MQ2Globals
 	ClientSpellManager **ppSpellMgr = 0;
 	EQPlayer **ppTarget = 0;
 	EqSwitchManager **ppSwitchMgr = 0;
-	EQItemList **ppItemList = 0;
 	SPELLFAVORITE *pSpellSets = 0;
 	EQZoneInfo *pZoneInfo = 0;
 	AltAdvManager** ppAltAdvManager = 0;
 	CONNECTION_T **ppConnection = 0;
-	AURAMGR **ppAuraMgr = 0;
+	#if defined(ROF2EMU) || defined(UFEMU)
+		EQItemList **ppItemList = 0;
+		AURAMGR **ppAuraMgr = 0;
+	#endif
 	EQCHATMGR **ppEQChatMgr = 0;
 
 	EQPlayer **ppTradeTarget = 0;
@@ -1289,7 +1303,6 @@ namespace MQ2Globals
 	CTaskWnd **ppTaskWnd = 0;
 	CTaskManager *ppTaskManager = 0;
 	CTimeLeftWnd **ppTimeLeftWnd = 0;
-	CTextOverlay **ppTextOverlay = 0;
 	CAdvancedLootWnd **ppAdvancedLootWnd = 0;
 	CRewardSelectionWnd **ppRewardSelectionWnd = 0;
 	CConfirmationDialog **ppConfirmationDialog = 0;
@@ -1299,7 +1312,12 @@ namespace MQ2Globals
 	
 	CSidlManager **ppSidlMgr = 0;
 	CXWndManager **ppWndMgr = 0;
+#if defined(ROF2EMU) || defined(UFEMU)
+	CTextOverlay **ppTextOverlay = 0;
+#endif
+#if !defined(TEST)
 	KeypressHandler **ppKeypressHandler = 0;
+#endif
 	PEQRAID pRaid = 0;
 	DZMEMBER **ppDZMember = 0;
 	DZTIMERINFO **ppDZTimerInfo = 0;
@@ -1309,7 +1327,9 @@ namespace MQ2Globals
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	EQMERCALTABILITIES **ppMercAltAbilities = 0;
 #endif
+#if defined(ROF2EMU) || defined(UFEMU)
 	AGGROINFO **ppAggroInfo = 0;
+#endif
 	CLargeDialogWnd**ppLargeDialog = 0;
 	CItemDisplayManager**ppItemDisplayManager = 0;
 	EqSoundManager**ppEqSoundManager = 0;
@@ -1399,14 +1419,18 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__UseTellWindows);
 	INITIALIZE_EQGAME_OFFSET(instCRaid);
 	INITIALIZE_EQGAME_OFFSET(instEQZoneInfo);
+#if defined(ROF2EMU) || defined(UFEMU)
+	INITIALIZE_EQGAME_OFFSET(pinstAggroInfo);
+	INITIALIZE_EQGAME_OFFSET(pinstAuraMgr);
+#endif
+#if !defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(instKeypressHandler);
+#endif
 	INITIALIZE_EQGAME_OFFSET(pinstActiveBanker);
 	INITIALIZE_EQGAME_OFFSET(pinstActiveCorpse);
 	INITIALIZE_EQGAME_OFFSET(pinstActiveGMaster);
 	INITIALIZE_EQGAME_OFFSET(pinstActiveMerchant);
-	INITIALIZE_EQGAME_OFFSET(pinstAggroInfo);
 	INITIALIZE_EQGAME_OFFSET(pinstAltAdvManager);
-	INITIALIZE_EQGAME_OFFSET(pinstAuraMgr);
 	INITIALIZE_EQGAME_OFFSET(pinstBandageTarget);
 	INITIALIZE_EQGAME_OFFSET(pinstCamActor);
 	INITIALIZE_EQGAME_OFFSET(pinstCDBStr);
@@ -1423,9 +1447,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(instDynamicZone);
 	INITIALIZE_EQGAME_OFFSET(pinstDZMember);
 	INITIALIZE_EQGAME_OFFSET(pinstDZTimerInfo);
-	INITIALIZE_EQGAME_OFFSET(pinstEQItemList);
 	INITIALIZE_EQGAME_OFFSET(pinstEqLogin);
-	INITIALIZE_EQGAME_OFFSET(pinstEQObjectList);
 	INITIALIZE_EQGAME_OFFSET(instEQMisc);
 	INITIALIZE_EQGAME_OFFSET(pinstEQSoundManager);
 	INITIALIZE_EQGAME_OFFSET(instExpeditionLeader);
@@ -1437,7 +1459,9 @@ namespace MQ2Globals
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstEQSpellStrings);
 	INITIALIZE_EQGAME_OFFSET(pinstMercenaryStats);
-	INITIALIZE_EQGAME_OFFSET(pinstMercAltAbilities);
+	#if !defined(TEST)
+		//INITIALIZE_EQGAME_OFFSET(pinstMercAltAbilities);
+	#endif
 #endif
 	INITIALIZE_EQGAME_OFFSET(pinstModelPlayer);
 	INITIALIZE_EQGAME_OFFSET(pinstPCData);
@@ -1458,13 +1482,16 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstWorldData);
 	INITIALIZE_EQGAME_OFFSET(pinstPlayerPath);
 	INITIALIZE_EQGAME_OFFSET(pinstTargetIndicator);
+	#if defined(ROF2EMU) || defined(UFEMU)
+	INITIALIZE_EQGAME_OFFSET(pinstEQObjectList);
+	INITIALIZE_EQGAME_OFFSET(pinstEQItemList);
 	INITIALIZE_EQGAME_OFFSET(pinstCTargetManager);
-	INITIALIZE_EQGAME_OFFSET(EQObject_Top);
 	INITIALIZE_EQGAME_OFFSET(pinstRealEstateItems);
-		
+	INITIALIZE_EQGAME_OFFSET(pinstCTextOverlay);
+	#endif
+	INITIALIZE_EQGAME_OFFSET(EQObject_Top);
 	INITIALIZE_EQGAME_OFFSET(pinstCRealEstateItemsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCAchievementsWnd);
-	INITIALIZE_EQGAME_OFFSET(pinstCTextOverlay);
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterListWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
@@ -1561,7 +1588,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterSearchWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCChatWindowManager);
-	#if !defined(ROF2EMU) && !defined(UFEMU)
+	#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(pinstCDistillerInfo);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCDynamicZoneWnd);
@@ -2087,6 +2114,13 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__CanUseItem);
 	INITIALIZE_EQGAME_OFFSET(BaseProfile__GetItemPossession);
 	
+	INITIALIZE_EQGAME_OFFSET(AggroMeterManagerClient__Instance);
+	INITIALIZE_EQGAME_OFFSET(ClientSOIManager__GetSingleton);
+	INITIALIZE_EQGAME_OFFSET(MercenaryAlternateAdvancementManagerClient__Instance);
+	INITIALIZE_EQGAME_OFFSET(CTargetManager__Get);
+	INITIALIZE_EQGAME_OFFSET(CBroadcast__Get);
+	INITIALIZE_EQGAME_OFFSET(EQGroundItemListManager__Instance);
+	
 	INITIALIZE_EQGAME_OFFSET(ArrayClass__DeleteElement);
 	INITIALIZE_EQGAME_OFFSET(__GameLoop);
 	
@@ -2167,6 +2201,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetPlayerFromPartialName);
 	
+	#if defined(KeypressHandler__Get_x)
+	INITIALIZE_EQGAME_OFFSET(KeypressHandler__Get);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(KeypressHandler__AttachAltKeyToEqCommand);
 	INITIALIZE_EQGAME_OFFSET(KeypressHandler__AttachKeyToEqCommand);
 	INITIALIZE_EQGAME_OFFSET(KeypressHandler__ClearCommandStateArray);
@@ -2270,6 +2307,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenExperimentContainer);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CDistillerInfo__GetIDFromRecordNum);
+#endif
+#if defined(TEST) || defined(EQBETA)
+	INITIALIZE_EQGAME_OFFSET(CDistillerInfo__Instance);
 #endif
 	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
 	INITIALIZE_EQGAME_OFFSET(CGroupWnd__WndNotification);

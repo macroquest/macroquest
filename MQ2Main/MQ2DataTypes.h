@@ -63,7 +63,7 @@ GNU General Public License for more details.
 #define Argb RGB
 #define MQ2VARPTR LSVARPTR
 #endif
-
+EQLIB_API EQGroundItemListManager *GetItemList();
 // Datatype Declarations
 #define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) LEGACY_VAR class _class_ *_var_;
 #include "DataTypeList.h"
@@ -2568,11 +2568,12 @@ public:
 			pGroundItem = pGroundItem->pNext;
 		}
 		//didn't find one, check objects...
-		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
-		if (&manager)
+		RealEstateManagerClient *manager = &RealEstateManagerClient::Instance();
+		if (manager)
 		{
-			if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
-				if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
+			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+			{
+				if (EQPlacedItem *top = pPIM->Top) {
 					while (top)
 					{
 						if (top->RealEstateItemID == id)

@@ -97,22 +97,27 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define LIVE
+#define TEST
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
 //#define NEWCHARINFO
+//#define KNIGHTLYPARSE
 #elif defined(TEST)
 #include "eqgame(Test).h"
 //#define NEWCHARINFO
+//#define KNIGHTLYPARSE
 #elif defined(EQBETA)
 #include "eqgame(beta).h"
 //#define NEWCHARINFO
+//#define KNIGHTLYPARSE
 #elif defined(ROF2EMU)
 #include "eqgame(emu).h"
 //#define NEWCHARINFO
+//#define KNIGHTLYPARSE
 #elif defined(UFEMU)
 #include "eqgame(uf).h"
+//#define KNIGHTLYPARSE
 #endif
 #ifndef ISXEQ
 #define RETURN(x) return;
@@ -893,6 +898,13 @@ EQLIB_API bool WillFitInInventory(PCONTENTS pContent);
 EQLIB_API void AddAutoBankMenu();
 EQLIB_API void AutoBankPulse();
 EQLIB_API void DoCommandf(PCHAR szFormat, ...);
+EQLIB_API KeypressHandler *GetKeyPresshandler();
+EQLIB_API AggroMeterManagerClient *GetAggroInfo();
+EQLIB_API ClientSOIManager *GetAuraMgr();
+EQLIB_API CBroadcast *GetTextOverlay();
+EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
+//EQLIB_API EQGroundItemListManager *GetItemList();
+
 EQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 {

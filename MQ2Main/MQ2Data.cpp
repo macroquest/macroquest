@@ -175,7 +175,7 @@ TLO(dataGroundItem)
 		strcpy_s(szSearch, GETFIRST());
 		_strlwr_s(szSearch);
 		CHAR szName[MAX_STRING] = { 0 };
-		if (ppItemList && pItemList)
+		if (pItemList && pItemList->Top)
 		{
 			PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
 			while (pItem) {
@@ -200,27 +200,26 @@ TLO(dataGroundItem)
 		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 		if (&manager)
 		{
-			if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
-				if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
-					for (EQPlacedItem *pObj = top; pObj != NULL; pObj = pObj->pNext)
+			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+			{
+				for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
+				{
+					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+					if (pRealEstateItem)
 					{
-						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-						if (pRealEstateItem)
+						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
-							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+							if (PITEMINFO pItem = GetItemFromContents(pCont))
 							{
-								if (PITEMINFO pItem = GetItemFromContents(pCont))
-								{
-									strcpy_s(szName, pItem->Name);
-									_strlwr_s(szName);
-									if (strstr(szName, szSearch)) {
-										FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pObj->X;
-										FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pObj->Y;
-										FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pObj->Z;
-										float dist = sqrtf(X*X + Y * Y + Z * Z);
-										itemmap[dist].Type = GO_ObjectType;
-										itemmap[dist].ObjPtr = pObj;
-									}
+								strcpy_s(szName, pItem->Name);
+								_strlwr_s(szName);
+								if (strstr(szName, szSearch)) {
+									FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pObj->X;
+									FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pObj->Y;
+									FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pObj->Z;
+									float dist = sqrtf(X*X + Y * Y + Z * Z);
+									itemmap[dist].Type = GO_ObjectType;
+									itemmap[dist].ObjPtr = pObj;
 								}
 							}
 						}
@@ -262,8 +261,10 @@ TLO(dataGroundItem)
 	RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 	if (&manager)
 	{
-		if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
-			if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
+		if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+		{
+			if (EQPlacedItem *top = pPIM->Top)
+			{
 				FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - top->X;
 				FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - top->Y;
 				FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - top->Z;
@@ -292,32 +293,33 @@ TLO(dataGroundItemCount)
 {
 	Ret.DWord = 0;
 	Ret.Type = pIntType;
-	if (!ppItemList)
-		return true;
 	if (!pItemList)
 		return true;
-	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
-	DWORD Count = 0;
-	if (ISINDEX()) {
-		CHAR szSearch[MAX_STRING] = { 0 };
-		strcpy_s(szSearch,GETFIRST());
-		_strlwr_s(szSearch);
-		CHAR szName[MAX_STRING] = { 0 };
-		while (pItem) {
-			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
-			_strlwr_s(szName);
-			if (strstr(szName, szSearch)) {
-				Count++;
+	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList)
+	{
+		DWORD Count = 0;
+		if (ISINDEX()) {
+			CHAR szSearch[MAX_STRING] = { 0 };
+			strcpy_s(szSearch, GETFIRST());
+			_strlwr_s(szSearch);
+			CHAR szName[MAX_STRING] = { 0 };
+			while (pItem) {
+				GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
+				_strlwr_s(szName);
+				if (strstr(szName, szSearch)) {
+					Count++;
+				}
+				pItem = pItem->pNext;
 			}
-			pItem = pItem->pNext;
+			Ret.DWord = Count;
 		}
-		Ret.DWord = Count;
-	} else {
-		while (pItem) {
-			Count++;
-			pItem = pItem->pNext;
+		else {
+			while (pItem) {
+				Count++;
+				pItem = pItem->pNext;
+			}
+			Ret.DWord = Count;
 		}
-		Ret.DWord = Count;
 	}
 	return true;
 }
@@ -1012,8 +1014,20 @@ TLO(dataIni)
 	{
 		if (Default.size())
 		{
+#ifdef KNIGHTLYPARSE
+			// If we're set not to parse and there's a ${
+			if (bNoParse && Default.find("${") != std::string::npos)
+			{
+				// Wrap this in a $Parse[0 so it doesn't get parsed
+				Default = PARSE_PARAM_BEG + "0," + Default + PARSE_PARAM_END;
+			}
+#else // KNIGHTLYPARSE
+			// I think the below is actually wrong, since it's checking whatever was stored in
+			// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
+			// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
 			if (bNoParse && strchr(DataTypeTemp, '$'))
 				bAllowCommandParse = false;
+#endif // KNIGHTLYPARSE
 			strcpy_s(DataTypeTemp, Default.c_str());
 			Ret.Ptr = &DataTypeTemp[0];
 			Ret.Type = pStringType;
@@ -1042,16 +1056,37 @@ TLO(dataIni)
 					DataTypeTemp[N] = '|';
 		if ((Section.size() == 0 || Key.size() == 0) && (nSize<MAX_STRING - 3))
 			strcat_s(DataTypeTemp, "||");
-		if (bNoParse && strchr(DataTypeTemp,'$'))
+#ifdef KNIGHTLYPARSE
+		// If we are not supposed to parse and there is a ${
+		if (bNoParse && strstr(DataTypeTemp, "${"))
+		{
+			// Wrap DataTypeTemp in a ${Parse[0
+			strcpy_s(DataTypeTemp, (PARSE_PARAM_BEG + "0," + std::string(DataTypeTemp) + PARSE_PARAM_END).c_str());
+		}
+#else // KNIGHTLYPARSE
+		if (bNoParse && strchr(DataTypeTemp, '$'))
 			bAllowCommandParse = false;
+#endif // KNIGHTLYPARSE
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;
 		return true;
 	}
 	if (Default.size())
 	{
+#ifdef KNIGHTLYPARSE
+		// If we're set not to parse and there's a ${
+		if (bNoParse && Default.find("${") != std::string::npos)
+		{
+			// Wrap this in a $Parse[0 so it doesn't get parsed
+			Default = PARSE_PARAM_BEG + "0," + Default + PARSE_PARAM_END;
+		}
+#else // KNIGHTLYPARSE
+		// I think the below is actually wrong, since it's checking whatever was stored in
+		// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
+		// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
 		if (bNoParse && strchr(DataTypeTemp, '$'))
 			bAllowCommandParse = false;
+#endif // KNIGHTLYPARSE
 		strcpy_s(DataTypeTemp, Default.c_str());
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;

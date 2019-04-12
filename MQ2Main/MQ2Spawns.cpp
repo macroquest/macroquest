@@ -68,7 +68,7 @@ void RemoveGroundItem(PGROUNDITEM pGroundItem)
     PluginsRemoveGroundItem((PGROUNDITEM)pGroundItem);
 }
 
-class EQGroundItemListManager
+class MyEQGroundItemListManager
 {
 public:
 	PGROUNDITEM pGItem;
@@ -110,9 +110,9 @@ public:
         return DeleteItem_Trampoline(pItem);
     }
 };
-DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::FreeItemList_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::Add_Trampoline(PGROUNDITEM));
-DETOUR_TRAMPOLINE_EMPTY(void EQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
 
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn);
 
@@ -642,9 +642,9 @@ VOID InitializeMQ2Spawns()
     EzDetourwName(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline,"EQPlayer__dEQPlayer");
     EzDetourwName(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline,"EQPlayer__SetNameSpriteState");
     EzDetourwName(EQPlayer__SetNameSpriteTint,&EQPlayerHook::SetNameSpriteTint_Detour,&EQPlayerHook::SetNameSpriteTint_Trampoline,"EQPlayer__SetNameSpriteTint");
-    EzDetourwName(EQItemList__FreeItemList, &EQGroundItemListManager::FreeItemList_Detour, &EQGroundItemListManager::FreeItemList_Trampoline,"EQItemList__FreeItemList");
-    EzDetourwName(EQItemList__add_item, &EQGroundItemListManager::Add_Detour, &EQGroundItemListManager::Add_Trampoline,"EQGroundItemListManager__add");
-    EzDetourwName(EQItemList__delete_item, &EQGroundItemListManager::DeleteItem_Detour, &EQGroundItemListManager::DeleteItem_Trampoline,"EQItemList__delete_item");
+    EzDetourwName(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline,"EQItemList__FreeItemList");
+    EzDetourwName(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline,"EQGroundItemListManager__add");
+    EzDetourwName(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline,"EQItemList__delete_item");
 
     ProcessPending=true;
     ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));

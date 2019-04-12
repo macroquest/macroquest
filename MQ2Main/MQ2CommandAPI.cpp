@@ -145,8 +145,12 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         }
         if (Pos==0)
         {
+#ifdef KNIGHTLYPARSE
+			if (pCommand->Parse) {
+#else
             if (pCommand->Parse && bAllowCommandParse)
             {
+#endif // KNIGHTLYPARSE ndef
                 pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
             }
 			else {
@@ -181,7 +185,13 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
                     sCallFunc += szParam;
 					CHAR szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
-					ParseMacroData(szCallFunc, MAX_STRING);
+#ifdef KNIGHTLYPARSE
+					if (pBind->Parse) {
+#endif //KNIGHTLYPARSE
+						ParseMacroData(szCallFunc, MAX_STRING);
+#ifdef KNIGHTLYPARSE
+					}
+#endif //KNIGHTLYPARSE
 					//Call(pCharInfo->pSpawn, (PCHAR)szCallFunc.c_str());
 					if (pBlock && !pBlock->BindCmd.size()) {
 						if (!gBindInProgress) {
@@ -190,7 +200,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 						}
 						else {
 							Beep(1000, 100);
-							WriteChatf("Can't execute bind while another bind is on progress");
+							WriteChatf("Can't execute bind while another bind is in progress");
 						}
 					}
                 }
@@ -322,7 +332,11 @@ public:
                 }
                 if (Pos==0)
                 {
+#ifdef KNIGHTLYPARSE
+					if (pCommand->Parse) {
+#else
 					if (pCommand->Parse && bAllowCommandParse) {
+#endif // KNIGHTLYPARSE
 						ParseMacroParameter(pChar, szArgs);
 					}
                     if (pCommand->EQ)
@@ -367,7 +381,13 @@ public:
                             sCallFunc += szArgs;
 							CHAR szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
-							ParseMacroData(szCallFunc, MAX_STRING);
+#ifdef KNIGHTLYPARSE
+							if (pBind->Parse) {
+#endif //KNIGHTLYPARSE
+								ParseMacroData(szCallFunc, MAX_STRING);
+#ifdef KNIGHTLYPARSE
+							}
+#endif //KNIGHTLYPARSE
 							if (pBlock && !pBlock->BindCmd.size()) {
 								if (!gBindInProgress) {
 									gBindInProgress = true;
@@ -375,7 +395,7 @@ public:
 								}
 								else {
 									Beep(1000, 100);
-									WriteChatf("Can't execute bind while another bind is on progress");
+									WriteChatf("Can't execute bind while another bind is in progress");
 								}
 							}
 							//CHAR szOrg[MAX_STRING] = {"${Time}"};

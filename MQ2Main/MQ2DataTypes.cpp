@@ -1961,31 +1961,31 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case CurrentMana:
-		Dest.DWord = pSpawn->ManaCurrent;
+		Dest.DWord = pSpawn->GetCurrentMana();
 		Dest.Type = pIntType;
 		return true;
 	case MaxMana:
-		Dest.DWord = pSpawn->ManaMax;
+		Dest.DWord = pSpawn->GetMaxMana();
 		Dest.Type = pIntType;
 		return true;
 	case PctMana:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (unsigned long maxmana = pSpawn->ManaMax)
-			Dest.Int = pSpawn->ManaCurrent * 100 / maxmana;
+		if (int maxmana = pSpawn->GetMaxMana())
+			Dest.Int = pSpawn->GetCurrentMana() * 100 / maxmana;
 		return true;
 	case CurrentEndurance:
-		Dest.DWord = pSpawn->EnduranceCurrent;
+		Dest.DWord = pSpawn->GetCurrentEndurance();
 		Dest.Type = pIntType;
 		return true;
 	case PctEndurance:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (pSpawn->EnduranceMax)
-			Dest.Int = pSpawn->EnduranceCurrent * 100 / pSpawn->EnduranceMax;
+		if (int maxend = pSpawn->GetMaxEndurance())
+			Dest.Int = pSpawn->GetCurrentEndurance() * 100 / maxend;
 		return true;
 	case MaxEndurance:
-		Dest.DWord = pSpawn->EnduranceMax;
+		Dest.DWord = pSpawn->GetMaxEndurance();
 		Dest.Type = pIntType;
 		return true;
 	case Loc:
@@ -3907,7 +3907,7 @@ bool MQ2CharacterType::GETMEMBER()
 				if (nGem < 0 || nGem > NUM_SPELL_GEMS)
 					return false;
 				if (GetSpellByID(GetMemorizedSpell(nGem))) {
-					if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
+					if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && (int)((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->GetSpellCooldownETA()) {
 						Dest.DWord = 1;
 					}
 					return true;
@@ -3921,7 +3921,7 @@ bool MQ2CharacterType::GETMEMBER()
 					{
 						if (!_stricmp(GETFIRST(), pSpell->Name))
 						{
-							if (((PCDISPLAY)pDisplay)->TimeStamp >((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
+							if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && (int)((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->GetSpellCooldownETA()) {
 								Dest.DWord = 1;
 							}
 							return true;
@@ -5465,16 +5465,20 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case InInstance:
 		Dest.DWord = false;
-		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->Zone) {
-			if(WORD instance = HIWORD(((PSPAWNINFO)pLocalPlayer)->Zone))
-				Dest.DWord = true;
+		if (pLocalPlayer)
+		{
+			if (int zoneid = ((PSPAWNINFO)pLocalPlayer)->GetZoneID())
+			{
+				if (WORD instance = HIWORD(zoneid))
+					Dest.DWord = true;
+			}
 		}
 		Dest.Type = pBoolType;
 		return true;
 	case Instance:
 		Dest.DWord = 0;
 		if (pLocalPlayer)
-			Dest.DWord = HIWORD(((PSPAWNINFO)pLocalPlayer)->Zone);
+			Dest.DWord = HIWORD(((PSPAWNINFO)pLocalPlayer)->GetZoneID());
 		Dest.Type = pIntType;
 		return true;
 	case MercListInfo:
@@ -5520,7 +5524,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case SpellInCooldown:
-		Dest.DWord = ((PCDISPLAY)pDisplay)->TimeStamp <= ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA;
+		Dest.DWord = (int)((PCDISPLAY)pDisplay)->TimeStamp <= ((PSPAWNINFO)pLocalPlayer)->GetSpellCooldownETA();
 		Dest.Type = pBoolType;
 		return true;
 	case AssistComplete:
@@ -6032,11 +6036,15 @@ bool MQ2SpellType::GETMEMBER()
 		PSPELL thespell = pSpell;
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->spawneqc_info) {
-			int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
-			EQ_Affect*ret = ((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level);
-			if (ret) {
-				Dest.DWord = 1;
+		if (pLocalPlayer)
+		{
+			if (CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
+			{
+				int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
+				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level);
+				if (ret) {
+					Dest.DWord = 1;
+				}
 			}
 		}
 		return true;
@@ -6057,10 +6065,14 @@ bool MQ2SpellType::GETMEMBER()
 		if (!tmpSpell)
 			return true;
 		PSPELL thespell = pSpell;
-		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->spawneqc_info) {
-			EQ_Affect eff = { 0 };
-			eff.ID = thespell->ID;
-			Dest.DWord = !((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)tmpSpell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
+		if (pLocalPlayer)
+		{
+			if (CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
+			{
+				EQ_Affect eff = { 0 };
+				eff.ID = thespell->ID;
+				Dest.DWord = !pCZC->IsStackBlocked((EQ_Spell*)tmpSpell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
+			}
 		}
 		return true;
 	}
@@ -6114,36 +6126,40 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
-		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->spawneqc_info) {
-			if (pTarget) {
-				if (PCHARINFO pMe = GetCharInfo())
-				{
-					EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
-					int buffID = 0;
-					int j = 0;
-					for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
-						if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
-							if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
-								if (pBuff->SpellType) {
-									pAffects[j].Type = pBuff->SpellType;
+		if (pLocalPlayer)
+		{
+			if(CharacterZoneClient* pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
+			{
+				if (pTarget) {
+					if (PCHARINFO pMe = GetCharInfo())
+					{
+						EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+						int buffID = 0;
+						int j = 0;
+						for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
+							if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
+								if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+									if (pBuff->SpellType) {
+										pAffects[j].Type = pBuff->SpellType;
+									}
+									else {
+										pAffects[j].Type = 1;
+									}
+									pAffects[j].ID = pBuff->ID;
+									pAffects[j].Activatable = 0;// pBuff->Activated;
+#if !defined(ROF2EMU) && !defined(UFEMU)
+									pAffects[j].CasterGuid = pMe->Guid;
+#else
+									pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
+#endif
+									pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
+									pAffects[j].BaseDmgMod = 1.0;
+									j++;
 								}
-								else {
-									pAffects[j].Type = 1;
-								}
-								pAffects[j].ID = pBuff->ID;
-								pAffects[j].Activatable = 0;// pBuff->Activated;
-								#if !defined(ROF2EMU) && !defined(UFEMU)
-								pAffects[j].CasterGuid = pMe->Guid;
-								#else
-								pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
-								#endif
-								pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
-								pAffects[j].BaseDmgMod = 1.0;
-								j++;
 							}
 						}
+						Dest.DWord = !pCZC->IsStackBlocked((EQ_Spell*)pSpell, (PSPAWNINFO)pLocalPlayer, pAffects, j);
 					}
-					Dest.DWord = !((CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->spawneqc_info)->IsStackBlocked((EQ_Spell*)pSpell, (PSPAWNINFO)pLocalPlayer, pAffects, j);
 				}
 			}
 		}
@@ -8783,7 +8799,20 @@ bool MQ2CurrentZoneType::GETMEMBER()
 #define pZone ((PZONEINFO)pZoneInfo)
 	PMQ2TYPEMEMBER pMember = MQ2CurrentZoneType::FindMember(Member);
 	if (!pMember)
-		return false;
+	{
+		int zid = (pZone->ZoneID & 0x7FFF);
+		if (zid < MAX_ZONES)
+		{
+			if (PZONELIST pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
+			{
+#ifndef ISXEQ
+				return pZoneType->GetMember(*(MQ2VARPTR*)&pZList, Member, Index, Dest);
+#else
+				return pZoneType->GetMember(*(LSVARPTR*)&pZList, Member, argc, argv, Dest);
+#endif
+			}
+		}
+	}
 	switch ((CurrentZoneMembers)pMember->ID)
 	{
 	case Address:
@@ -8821,23 +8850,6 @@ bool MQ2CurrentZoneType::GETMEMBER()
 		Dest.DWord = pZone->SkyType;
 		Dest.Type = pIntType;
 		return true;
-#if 0
-	case SafeN:
-	case SafeY:
-		Dest.Float = pZone->SafeYLoc;
-		Dest.Type = pFloatType;
-		return true;
-	case SafeW:
-	case SafeX:
-		Dest.Float = pZone->SafeXLoc;
-		Dest.Type = pFloatType;
-		return true;
-	case SafeU:
-	case SafeZ:
-		Dest.Float = pZone->SafeZLoc;
-		Dest.Type = pFloatType;
-		return true;
-#endif
 	case MinClip:
 		Dest.Float = pZone->MinClip;
 		Dest.Type = pFloatType;
@@ -9338,7 +9350,7 @@ bool MQ2GroundType::GETMEMBER()
 					GroundObject.GroundItem.X = Placed->X;
 					GroundObject.GroundItem.Y = Placed->Y;
 					GroundObject.GroundItem.Z = Placed->Z;
-					GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->Zone & 0x7FFF;
+					GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF;
 					pGroundTarget = &GroundObject.GroundItem;
 				}
 			}
@@ -9535,7 +9547,7 @@ bool MQ2GroundType::GETMEMBER()
 			Dest.Type = pIntType;
 			return true;
 		case ZoneID:
-			Dest.DWord = (((PSPAWNINFO)pLocalPlayer)->Zone & 0x7FFF);
+			Dest.DWord = (((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF);
 			Dest.Type = pIntType;
 			return true;
 		case W:

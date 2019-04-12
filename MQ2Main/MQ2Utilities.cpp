@@ -4205,14 +4205,15 @@ int FindMappableCommand(const char *name)
 
 void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
 {
-	if (!pTextOverlay) {
+	CBroadcast *pBC = GetTextOverlay();
+	if (!pBC) {
 		WriteChatColor(szText, dwColor);
 		return;
 	}
 	DWORD dwAlpha = (DWORD)(dwTransparency * 255 / 100);
 	if (dwAlpha>255) dwAlpha = 255;
 
-	pTextOverlay->DisplayText(
+	((CTextOverlay*)pBC)->DisplayText(
 		szText,
 		dwColor,
 		10, // Always 10 in eqgame.exe,
@@ -7090,7 +7091,7 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, BOOL bTriggeredEffectCheck)
 {
 	PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer;
-	if (!pSpawn || !pSpawn->spawneqc_info)
+	if (!pSpawn || !pSpawn->GetCharacter())
 		return true;
 	if (GetGameState() != GAMESTATE_INGAME)
 		return true;
@@ -7576,7 +7577,7 @@ VOID ListMercAltAbilities()
 	if (pMercAltAbilities) {
 		int mercaapoints = ((PCHARINFO)pCharData)->MercAAPoints;
 		for (int i = 0; i<12; i++) {
-			PEQMERCALTABILITIES pinfo = pMercAltAbilities;
+			PEQMERCALTABILITIES pinfo = (PEQMERCALTABILITIES)pMercAltAbilities;
 			if (pinfo->MercAAInfo[i]) {
 				if (pinfo->MercAAInfo[i]->Ptr) {
 					int nName = pinfo->MercAAInfo[i]->Ptr->nName;
@@ -10980,6 +10981,130 @@ struct _CONTENTS *CONTENTS::GetContent(UINT index)
 		}
 	}
 	return NULL;
+}
+inline void* SPAWNINFO::GetCharacter() const
+{
+#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		void*ret = (void*)IC_GetHashData((void*)this, 0x600060C);
+		return ret;
+	}
+	return 0;
+#else
+	return (void*)this->spawneqc_info;
+#endif
+}
+inline int SPAWNINFO::GetZoneID() const
+{
+	#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		int ret = IC_GetHashData((void*)this, 0x14183610);
+		return ret;
+	}
+	return 0;
+	#else
+		return (int)this->Zone;
+	#endif
+}
+inline int SPAWNINFO::GetCurrentMana() const
+{
+	#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		int ret = IC_GetHashData((void*)this, 0xE020212);
+		return ret;
+	}
+	return 0;
+	#else
+	return (int)this->ManaCurrent;
+	#endif
+}
+inline int SPAWNINFO::GetMaxMana() const
+{
+	#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		int ret = IC_GetHashData((void*)this, 0x13070802);
+		return ret;
+	}
+	return 0;
+	#else
+	return (int)this->ManaMax;
+	#endif
+}
+inline int SPAWNINFO::GetCurrentEndurance() const
+{
+	#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		int ret = IC_GetHashData((void*)this, 0xF070F11);
+		return ret;
+	}
+	return 0;
+	#else
+	return (int)this->EnduranceCurrent;
+	#endif
+}
+inline int SPAWNINFO::GetMaxEndurance() const
+{
+	#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		int ret = IC_GetHashData((void*)this, 0x130F1210);
+		return ret;
+	}
+	return 0;
+	#else
+	return (int)this->EnduranceMax;
+	#endif
+}
+inline int SPAWNINFO::GetSpellCooldownETA() const
+{
+	#if defined(LIVE)
+	if (IC_GetHashData)
+	{
+		int ret = IC_GetHashData((void*)this, 0xEE086410);
+		return ret;
+	}
+	return 0;
+	#else
+	return (int)this->SpellCooldownETA;
+	#endif
+}
+#if defined(TEST)
+KeypressHandler *GetKeyPresshandler()
+{
+	KeypressHandler *kh = &KeypressHandler::Get();
+	return kh;
+}
+#endif
+AggroMeterManagerClient *GetAggroInfo()
+{
+	AggroMeterManagerClient *pAI = &AggroMeterManagerClient::Instance();
+	return pAI;
+}
+ClientSOIManager *GetAuraMgr()
+{
+	ClientSOIManager* pSOI = ClientSOIManager::GetSingleton();
+	return pSOI;
+}
+MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities()
+{
+	//well this is work in progress noone uses this stuff right now except me -eqmule
+	MercenaryAlternateAdvancementManagerClient * pMAAMC = &MercenaryAlternateAdvancementManagerClient::Instance();
+	return pMAAMC;
+}
+CBroadcast *GetTextOverlay()
+{
+	CBroadcast *pBC = CBroadcast::Get();
+	return pBC;
+}
+EQGroundItemListManager *GetItemList()
+{
+	EQGroundItemListManager *ptr = &EQGroundItemListManager::Instance();
+	return ptr;
 }
 ItemGlobalIndex2 ig;
 __declspec(dllexport) ItemGlobalIndex2 &CONTENTS::GetGlobalIndex()

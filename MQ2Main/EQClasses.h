@@ -383,6 +383,23 @@ class PcZoneClient;
 class CharacterZoneClient;
 class CZoneGuideWnd;
 // End forward class declarations
+
+typedef struct _AggroMeterListEntry
+{
+	PVOID vfTable;//yeah its weird but it has one...
+	unsigned short AggroPct;
+} AggroMeterListEntry, *PAggroMeterListEntry;
+
+class AggroMeterManagerClient
+{
+public:
+EQLIB_OBJECT static AggroMeterManagerClient& Instance();
+/*0x00*/ TSafeArrayStatic<AggroMeterListEntry, 0x1e> aggroData;
+/*0xf0*/ DWORD  AggroLockID;//this can be 0, I dont know what it is... -eqmule
+/*0xf4*/ DWORD  AggroTargetID;//this is id of whoever we are fighting -eqmule
+/*0xf8*/ DWORD  AggroSecondaryID;//this is id of whoever the npc is fighting -eqmule
+/*0xfc*/
+};
 typedef struct _Personal_Loot
 {
 	CButtonWnd *NPC_Name;
@@ -851,6 +868,23 @@ EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index, int level =
 EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index);
 #endif
 };
+//we call this _AURAINFO...
+class AssociatedSOIData
+{
+public:
+/*0x000*/ CHAR    Name[0x40];
+/*0x040*/ unsigned int     SpawnID;
+/*0x044*/ int     Cost;
+/*0x048*/ int     IconnID;
+/*0x04c*/
+};
+//we call this _AURAMGR
+class ClientSOIManager
+{
+public:
+	ArrayClass2_RO<AssociatedSOIData> Auras;
+EQLIB_OBJECT static ClientSOIManager* ClientSOIManager::GetSingleton();
+};
 class CAuraWnd : public CSidlScreenWnd
 {
 public:
@@ -941,7 +975,56 @@ class CRealEstateItemsWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CRealEstateItemsWnd::CRealEstateItemsWnd(class CXWnd *);
 };
+class EQGroundItem
+{
+public:
+/*0x00*/ EQGroundItem *pPrev;
+/*0x04*/ EQGroundItem *pNext;
+/*0x08*/ VePointer<CONTENTS> pContents;
+/*0x0c*/ DWORD  DropID;//unique id
+/*0x10*/ DWORD  ZoneID;
+/*0x14*/ DWORD  DropSubID;//well zonefile id, but yeah...
+/*0x18*/ void* pSwitch;//CActorInterface
+/*0x1c*/ CHAR   Name[0x40];
+/*0x5c*/ long	Expires;
+/*0x60*/ FLOAT  Heading;
+/*0x64*/ FLOAT	Pitch;
+/*0x68*/ FLOAT	Roll;
+/*0x6c*/ FLOAT	Scale;
+/*0x70*/ FLOAT  Y;
+/*0x74*/ FLOAT  X;
+/*0x78*/ FLOAT  Z;
+/*0x7c*/ int   Weight;//-1 means it can't be picked up
+/*0x80*/
+};
+class EQGroundItemListManager
+{
+public:
+	static EQGroundItemListManager &EQGroundItemListManager::Instance();
+	EQGroundItem *Top;
+};
+class CBroadcast//well we call this CTextOverlay but whatever should probably rename at some point... -eqmule
+{
+public:
+EQLIB_OBJECT static CBroadcast* CBroadcast::Get();
+EQLIB_OBJECT void CBroadcast::BroadcastString(const CXStr cxStr, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
+EQLIB_OBJECT void CBroadcast::BroadcastString(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
+EQLIB_OBJECT void CBroadcast::EndBroadcast(UINT FadeOutTime);
+EQLIB_OBJECT void CBroadcast::Draw();
 
+	void *TextObject;//CTextObjectInterface
+	bool bBroadcastActive;
+	bool bFadingOut;
+	bool bFadingIn;
+	UINT StartTime;
+	UINT FadeInTime;
+	UINT EndTime;
+	UINT FadeOutTime;
+	UINT DisplayTime;
+	int  BroadcastColor;
+	int  CurrentPriority;
+	int  MaxAlpha;
+};
 class CAlarmWnd : public CSidlScreenWnd
 {
 public:
@@ -2169,9 +2252,8 @@ EQLIB_OBJECT void CDisplay::InitNewUI(void);
 class CDistillerInfo
 {
 public:
-#if !defined(ROF2EMU) && !defined(UFEMU)
+EQLIB_OBJECT static CDistillerInfo &CDistillerInfo::Instance();
 EQLIB_OBJECT int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat);
-#endif
 };
 
 enum eTextAlign
@@ -6524,6 +6606,7 @@ EQLIB_OBJECT void CTAFrameDraw::Set(class CTextureAnimation * * const);
 class CTargetManager
 {
 public:
+EQLIB_OBJECT static CTargetManager *CTargetManager::Get();
 EQLIB_OBJECT void CTargetManager::Update(void);
 };
 
@@ -8622,10 +8705,6 @@ inline signed int GetClass()
 {
 	return mActorClient.Class;
 }
-inline void*GetCharacter()
-{
-	return (void*)spawneqc_info;//its a CharacterZoneClient*
-}
 inline BYTE GetCharacterType()
 {
 	return Type;
@@ -9504,6 +9583,7 @@ EQLIB_OBJECT bool KeyCombo::GetVirtualKeyFromScanCode(unsigned char,int *)const;
 class KeypressHandler
 {
 public:
+EQLIB_OBJECT static KeypressHandler &KeypressHandler::Get();
 EQLIB_OBJECT KeypressHandler::~KeypressHandler(void);
 EQLIB_OBJECT KeypressHandler::KeypressHandler(void);
 EQLIB_OBJECT bool KeypressHandler::AttachAltKeyToEqCommand(class KeyCombo const &,unsigned int);
@@ -9558,7 +9638,39 @@ EQLIB_OBJECT const PItemFilterData GetItemFilterData(int ItemID);
 EQLIB_OBJECT bool LootFiltersManager::RemoveItemLootFilter(int ItemID, int FilterTypes);
 EQLIB_OBJECT bool LootFiltersManager::SetItemLootFilter(int ItemID, int IconID, const char* ItemName, int FilterTypes, bool bKeepRndSetting, bool bScrollToIt);
 };
-
+class MercenaryAbilityReq
+{
+public:    
+    int ReqGroupID;
+    int ReqGroupRank;
+};
+class MercenaryAbilitiesData
+{
+public:
+	int AbilityID;
+	int nName;
+	int nDesc;
+	int	Cost;
+	int GroupID;
+	int	GroupRank;
+	int	Type;
+	int	MinPlayerLevel;//min level to purchase...
+	int RequirementAssociationID;
+	int Refund;
+	int BetaOnly;  
+	int QuestAbility;
+    ArrayClass<MercenaryAbilityReq> AbilityReqs;
+};
+class MercenaryAlternateAdvancementManagerClient
+{
+public:
+	EQLIB_OBJECT static MercenaryAlternateAdvancementManagerClient &MercenaryAlternateAdvancementManagerClient::Instance();
+	HashList<int, 5> MercenaryTypes;
+	HashList<MercenaryAbilitiesData, 0x40> MercenaryAbilities;
+    HashList<int, 0x40> MercenaryAbilitiesByGroupID;
+	HashList<int, 0x40> MercenaryAbilitiesOwnedByGroupID;
+	HashList<HashList<int, 0x10>, 0x40> MercenaryAbilityGroups; 
+};
 class EQSpellStrings
 {
 public:
@@ -10482,7 +10594,8 @@ EQLIB_OBJECT void ZoneNPCLoadTextManager::LoadText(char *);
 class CTextOverlay
 {
 public:
-EQLIB_OBJECT void CTextOverlay::DisplayText(char *,int,int,int,int,int,int);
+//EQLIB_OBJECT void CBroadcast::BroadcastString(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
+EQLIB_OBJECT void CTextOverlay::DisplayText(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
 }; 
 
 class CMyInventory

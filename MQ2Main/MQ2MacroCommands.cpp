@@ -373,9 +373,30 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			}
 			else
 			{
-				MacroError("Bad #event: %s", szLine);
+				MacroError("Bad #bind: %s", szLine);
 			}
 		}
+#ifdef KNIGHTLYPARSE
+		else if (!_strnicmp(szLine, "#bind_noparse ", 14))
+		{
+			CHAR szArg1[MAX_STRING] = { 0 };
+			CHAR szArg2[MAX_STRING] = { 0 };
+			PBINDLIST pBind = (PBINDLIST)malloc(sizeof(BINDLIST));
+			GetArg(szArg1, szLine, 2);
+			GetArg(szArg2, szLine, 3);
+			if ((szArg1[0] != 0) && (szArg2[0] != 0)) {
+				sprintf_s(pBind->szFuncName, "Bind_NoParse_%s", szArg1);
+				strcpy_s(pBind->szName, szArg2);
+				pBind->Parse = false;
+				pBind->pNext = pBindList;
+				pBindList = pBind;
+			}
+			else
+			{
+				MacroError("Bad #bind_noparse: %s", szLine);
+			}
+		}
+#endif // KNIGHTLYPARSE
 		else if (!_strnicmp(szLine, "#chat ", 6)) {
 			szLine += 5;
 			while (szLine[0] == ' ') szLine++;

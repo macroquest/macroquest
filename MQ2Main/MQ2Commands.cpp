@@ -418,8 +418,8 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 		INT angle;
 	}iteminfo;
 	std::map<FLOAT, iteminfo>itemsmap;
-	if (!ppItemList) return;
-	if (!pItemList) return;
+	if (!pItemList)
+		return;
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
 		CHAR szLineLwr[MAX_STRING] = { 0 };
@@ -460,41 +460,40 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 		strcpy_s(szLineLwr, szLine);
 
 		_strlwr_s(szLineLwr);
-		if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
-			if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
-				for (EQPlacedItem *pObj = top; pObj != NULL; pObj = pObj->pNext)
+		if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+		{
+			for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
+			{
+				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+				if (pRealEstateItem)
 				{
-					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-					if (pRealEstateItem)
+					if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
 					{
-						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+						if (PITEMINFO pItem = GetItemFromContents(pCont))
 						{
-							if (PITEMINFO pItem = GetItemFromContents(pCont))
-							{
-								strcpy_s(szBuffer, pItem->Name);
-								_strlwr_s(szBuffer);
-								DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->Name);
-								if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
-									ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-									TempSpawn.Y = pObj->Y;
-									TempSpawn.X = pObj->X;
-									TempSpawn.Z = pObj->Z;
-									FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
-									INT Angle = (INT)((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-									ii.angle = Angle;
-									_itoa_s(pObj->RealEstateItemID, szName, 10);
-									ii.Name.append("[");
-									ii.Name = szName;
-									ii.Name.append("] ");
-									ii.Name.append(pItem->Name);
-									ii.Name.append(" ");
-									ii.Name.append(pObj->Name);//
-									ii.Name.append(" (");
-									GetCXStr(pRealEstateItem->OwnerInfo.OwnerName, szName);
-									ii.Name.append(szName);
-									ii.Name.append(")");
-									itemsmap[Distance] = ii;
-								}
+							strcpy_s(szBuffer, pItem->Name);
+							_strlwr_s(szBuffer);
+							DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->Name);
+							if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
+								ZeroMemory(&TempSpawn, sizeof(TempSpawn));
+								TempSpawn.Y = pObj->Y;
+								TempSpawn.X = pObj->X;
+								TempSpawn.Z = pObj->Z;
+								FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+								INT Angle = (INT)((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+								ii.angle = Angle;
+								_itoa_s(pObj->RealEstateItemID, szName, 10);
+								ii.Name.append("[");
+								ii.Name = szName;
+								ii.Name.append("] ");
+								ii.Name.append(pItem->Name);
+								ii.Name.append(" ");
+								ii.Name.append(pObj->Name);//
+								ii.Name.append(" (");
+								GetCXStr(pRealEstateItem->OwnerInfo.OwnerName, szName);
+								ii.Name.append(szName);
+								ii.Name.append(")");
+								itemsmap[Distance] = ii;
 							}
 						}
 					}
@@ -537,8 +536,9 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 #endif
 	if (!szLine) RETURN(0);
-	if (!ppItemList) RETURN(0);
-	if (!pItemList) RETURN(0);
+	EQGroundItemListManager *pGroundList = GetItemList();
+	if (!pGroundList || (pGroundList && pGroundList->Top==0))
+		RETURN(0);
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR Arg1[MAX_STRING] = { 0 };
 	CHAR Arg2[MAX_STRING] = { 0 };
@@ -594,46 +594,45 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 		if (&manager)
 		{
-			if (EQPlacedItem *top0 = *(EQPlacedItem**)pinstEQObjectList) {
-				if (EQPlacedItem *top = *(EQPlacedItem**)top0) {
-					CHAR szName[MAX_STRING] = { 0 };
-					for (EQPlacedItem *pObj = top; pObj != NULL; pObj = pObj->pNext)
+			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+			{
+				CHAR szName[MAX_STRING] = { 0 };
+				for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
+				{
+					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+					if (pRealEstateItem)
 					{
-						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-						if (pRealEstateItem)
+						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
-							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+							if (PITEMINFO pItem = GetItemFromContents(pCont))
 							{
-								if (PITEMINFO pItem = GetItemFromContents(pCont))
+								strcpy_s(szName, pItem->Name);
+								_strlwr_s(szName);
+								if (((szLine[0] == '\0') || (strstr(szName, Arg1)) || (strstr(szName, Arg1))))
 								{
-									strcpy_s(szName, pItem->Name);
-									_strlwr_s(szName);
-									if (((szLine[0] == '\0') || (strstr(szName, Arg1)) || (strstr(szName, Arg1))))
-									{
-										if (((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter)))) {
-											ZeroMemory(&tSpawn, sizeof(tSpawn));
-											strcpy_s(tSpawn.Name, pItem->Name);
-											PEQSWITCH si = (PEQSWITCH)pObj->pActor;
-											strcpy_s(tSpawn.DisplayedName, pItem->Name);
-											tSpawn.Y = pObj->Y;
-											tSpawn.X = pObj->X;
-											tSpawn.Z = pObj->Z;
-											tSpawn.Type = SPAWN_NPC;
-											tSpawn.HPCurrent = 1;
-											tSpawn.HPMax = 1;
-											tSpawn.Heading = pObj->Heading;
-											tSpawn.mActorClient.Race = pObj->RealEstateItemID;
-											tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-											FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-											if (Distance < cDistance) {
-												CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-												cDistance = Distance;
-												GroundObject.Type = GO_ObjectType;
-												GroundObject.ObjPtr = (void*)pObj;
-											}
+									if (((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter)))) {
+										ZeroMemory(&tSpawn, sizeof(tSpawn));
+										strcpy_s(tSpawn.Name, pItem->Name);
+										PEQSWITCH si = (PEQSWITCH)pObj->pActor;
+										strcpy_s(tSpawn.DisplayedName, pItem->Name);
+										tSpawn.Y = pObj->Y;
+										tSpawn.X = pObj->X;
+										tSpawn.Z = pObj->Z;
+										tSpawn.Type = SPAWN_NPC;
+										tSpawn.HPCurrent = 1;
+										tSpawn.HPMax = 1;
+										tSpawn.Heading = pObj->Heading;
+										tSpawn.mActorClient.Race = pObj->RealEstateItemID;
+										tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+										FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+										if (Distance < cDistance) {
+											CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+											cDistance = Distance;
+											GroundObject.Type = GO_ObjectType;
+											GroundObject.ObjPtr = (void*)pObj;
 										}
-										//WriteChatf("[%d] %s %0.2f,%0.2f,%0.2f , %0.2f, %0.2f,", pObj->RealEstateItemID, pItem->Name, pObj->Y, pObj->X, pObj->Z, pObj->Heading * 0.703125f, pObj->Angle * 0.703125f);
 									}
+									//WriteChatf("[%d] %s %0.2f,%0.2f,%0.2f , %0.2f, %0.2f,", pObj->RealEstateItemID, pItem->Name, pObj->Y, pObj->X, pObj->Z, pObj->Heading * 0.703125f, pObj->Angle * 0.703125f);
 								}
 							}
 						}
@@ -670,7 +669,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 			GroundObject.GroundItem.X = ObjPtr->X;
 			GroundObject.GroundItem.Y = ObjPtr->Y;
 			GroundObject.GroundItem.Z = ObjPtr->Z;
-			GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->Zone & 0x7FFF;
+			GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF;
 			pGroundTarget = &GroundObject.GroundItem;
 		}
 	}
@@ -3967,9 +3966,27 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /noparse <command>");
 		return;
 	}
+#ifdef KNIGHTLYPARSE
+	// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a ${Parse[0, but not the command itself.
+	// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
+	
+	// Convert to a string for easier handling
+	std::string strLine = szLine;
+	// Commands can't have spaces in them so the parameters are after the first space
+	size_t iSpacePos = strLine.find(" ");
+	// If we found a space... (if we didn't, for example /noparse /echo, then nothing to wrap)
+	if (iSpacePos != std::string::npos) {
+		//        Command (including space)                         From after the space to the end
+		strLine = strLine.substr(0, iSpacePos + 1) + PARSE_PARAM_BEG + "0," + strLine.substr(iSpacePos + 1) + PARSE_PARAM_END;
+	}
+
+	// Cast it as a PCHAR and run the command
+	DoCommand(pChar, PCHAR(strLine.c_str()));
+#else // KNIGHTLYPARSE
 	bAllowCommandParse = false;
 	DoCommand(pChar, szLine);
 	bAllowCommandParse = true;
+#endif // KNIGHTLYPARSE
 }
 
 VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)

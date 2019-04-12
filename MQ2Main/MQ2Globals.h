@@ -374,6 +374,7 @@ namespace MQ2Globals
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR fEQToggleKeyRingItem	cmdToggleKeyRingItem;
 #endif
+	EQLIB_VAR fICGetHashData		IC_GetHashData;
 	EQLIB_VAR fLoaderSetLoaded		IC_LoaderSetLoaded;
 	EQLIB_VAR fLoaderClearLoaded	IC_LoaderClearLoaded;
 	EQLIB_VAR fMQ2Unload            IC_MQ2Unload;
@@ -440,10 +441,12 @@ namespace MQ2Globals
 #define pEverQuest (*ppEverQuest)
 	EQLIB_VAR CDisplay **ppDisplay;
 #define pDisplay (*ppDisplay)
+#if !defined(TEST)
 	EQLIB_VAR CDistillerInfo **ppDistillerInfo;
-#define pDistillerInfo (*ppDistillerInfo)
+	#define pDistillerInfo (*ppDistillerInfo)
+#endif
 	EQLIB_VAR EQ_PC **ppPCData;
-#define pPCData (*ppPCData)
+	#define pPCData (*ppPCData)
 	EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
 #ifdef NEWCHARINFO
@@ -474,8 +477,6 @@ namespace MQ2Globals
 #define pTarget (*ppTarget)
 	EQLIB_VAR EqSwitchManager **ppSwitchMgr;
 #define pSwitchMgr (*ppSwitchMgr)
-	EQLIB_VAR EQItemList **ppItemList;
-#define pItemList (*ppItemList)
 	EQLIB_VAR EQZoneInfo *pZoneInfo;
 	EQLIB_VAR PGUILDS pGuildList;
 	EQLIB_VAR PEQSOCIAL   pSocialList;
@@ -498,9 +499,18 @@ namespace MQ2Globals
 	EQLIB_VAR CXWndManager **ppWndMgr;
 #define pWndMgr (*ppWndMgr)
 
+#if defined(ROF2EMU) || defined(UFEMU)
+	EQLIB_VAR EQItemList **ppItemList;
+	#define pItemList (*ppItemList)
+#else
+	#define pItemList GetItemList()
+#endif
+#if defined(TEST)
+	#define pKeypressHandler GetKeyPresshandler()
+#else
 	EQLIB_VAR KeypressHandler **ppKeypressHandler;
-#define pKeypressHandler (*ppKeypressHandler)
-
+	#define pKeypressHandler (*ppKeypressHandler)
+#endif
 	EQLIB_VAR PEQRAID pRaid;
 	EQLIB_VAR DZMEMBER **ppDZMember;
 	EQLIB_VAR TASKMEMBER **ppTaskMember;
@@ -529,8 +539,12 @@ namespace MQ2Globals
 
 	EQLIB_VAR PCONNECTION_T *ppConnection;
 #define pConnection (*ppConnection)
+#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR AURAMGR **ppAuraMgr;
-#define pAuraMgr (*ppAuraMgr)
+	#define pAuraMgr (*ppAuraMgr)
+#else
+	#define pAuraMgr GetAuraMgr()
+#endif
 	EQLIB_VAR CAuraWnd **ppAuraWnd;
 #define pAuraWnd (*ppAuraWnd)
 	EQLIB_VAR EQCHATMGR **ppEQChatMgr;
@@ -540,16 +554,18 @@ namespace MQ2Globals
 #define pMercInfo (*ppMercInfo)
 
 #if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_VAR EQMERCALTABILITIES **ppMercAltAbilities;
-#define pMercAltAbilities (*ppMercAltAbilities)
+	#define pMercAltAbilities GetMercAltAbilities()
 	EQLIB_VAR LootFiltersManager **ppLootFiltersManager;
-#define pLootFiltersManager (*ppLootFiltersManager)
+	#define pLootFiltersManager (*ppLootFiltersManager)
 	EQLIB_VAR EQSpellStrings **ppEQSpellStrings;
-#define pEQSpellStrings (*ppEQSpellStrings)
+	#define pEQSpellStrings (*ppEQSpellStrings)
 #endif
-
+#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR AGGROINFO **ppAggroInfo;
-#define pAggroInfo (*ppAggroInfo)
+	#define pAggroInfo (*ppAggroInfo)
+#else
+	#define pAggroInfo GetAggroInfo()
+#endif
 	EQLIB_VAR CLargeDialogWnd **ppLargeDialog;
 #define pLargeDialog (*ppLargeDialog)
 	EQLIB_VAR CItemDisplayManager **ppItemDisplayManager;
@@ -660,7 +676,9 @@ namespace MQ2Globals
 	EQLIB_VAR CTaskManager *ppTaskManager;
 	#define pTaskManager (*ppTaskManager)
 	EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
+	#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR CTextOverlay **ppTextOverlay;
+	#endif
 	EQLIB_VAR CAdvancedLootWnd **ppAdvancedLootWnd;
 	EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
 	EQLIB_VAR CEQSuiteTextureLoader *ppEQSuiteTextureLoader;
@@ -767,7 +785,11 @@ namespace MQ2Globals
 #define pTaskWnd (*ppTaskWnd)
 #define pTaskSomething (ppTaskSomething)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
+#if defined(ROF2EMU) || defined(UFEMU)
 #define pTextOverlay (*ppTextOverlay)
+#else
+#define pTextOverlay GetTextOverlay()
+#endif
 #define pPotionBeltWnd (*ppPotionBeltWnd)
 #define pBandolierWnd (*ppBandolierWnd)
 #define pDZMember (*ppDZMember)
@@ -854,14 +876,18 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD instCRaid;
 	EQLIB_VAR DWORD instEQZoneInfo;
+	#if !defined(TEST)
 	EQLIB_VAR DWORD instKeypressHandler;
+	#endif
+#if defined(ROF2EMU) || defined(UFEMU)
+	EQLIB_VAR DWORD pinstAggroInfo;
+	EQLIB_VAR DWORD pinstAuraMgr;
+#endif
 	EQLIB_VAR DWORD pinstActiveBanker;
 	EQLIB_VAR DWORD pinstActiveCorpse;
 	EQLIB_VAR DWORD pinstActiveGMaster;
 	EQLIB_VAR DWORD pinstActiveMerchant;
-	EQLIB_VAR DWORD pinstAggroInfo;
 	EQLIB_VAR DWORD pinstAltAdvManager;
-	EQLIB_VAR DWORD pinstAuraMgr;
 	EQLIB_VAR DWORD pinstBandageTarget;
 	EQLIB_VAR DWORD pinstCamActor;
 	EQLIB_VAR DWORD pinstCDBStr;
@@ -877,9 +903,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD instDynamicZone;
 	EQLIB_VAR DWORD pinstDZMember;
 	EQLIB_VAR DWORD pinstDZTimerInfo;
-	EQLIB_VAR DWORD pinstEQItemList;
 	EQLIB_VAR DWORD pinstEqLogin;
-	EQLIB_VAR DWORD pinstEQObjectList;
 	EQLIB_VAR DWORD instEQMisc;
 	EQLIB_VAR DWORD pinstEQSoundManager;
 	EQLIB_VAR DWORD pinstEQSpellStrings;
@@ -890,7 +914,11 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstLocalPlayer;
 	EQLIB_VAR DWORD pinstMercenaryData;
 	EQLIB_VAR DWORD pinstMercenaryStats;
+	#if defined(ROF2EMU) || defined(UFEMU)
+	EQLIB_VAR DWORD pinstEQObjectList;
+	EQLIB_VAR DWORD pinstEQItemList;
 	EQLIB_VAR DWORD pinstMercAltAbilities;
+	#endif
 	EQLIB_VAR DWORD pinstModelPlayer;
 	EQLIB_VAR DWORD pinstPCData;
 	EQLIB_VAR DWORD pinstCResolutionHandler;
@@ -911,13 +939,15 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstWorldData;
 	EQLIB_VAR DWORD pinstPlayerPath;
 	EQLIB_VAR DWORD pinstTargetIndicator;
+	#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR DWORD pinstCTargetManager;
-	EQLIB_VAR DWORD EQObject_Top;
 	EQLIB_VAR DWORD pinstRealEstateItems;
+	EQLIB_VAR DWORD pinstCTextOverlay;
+	#endif
+	EQLIB_VAR DWORD EQObject_Top;
 	
 	EQLIB_VAR DWORD pinstCRealEstateItemsWnd;
 	EQLIB_VAR DWORD pinstCAchievementsWnd;
-	EQLIB_VAR DWORD pinstCTextOverlay;
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
 	EQLIB_VAR DWORD pinstCCharacterListWnd;
 	EQLIB_VAR DWORD pinstCExtendedTargetWnd;
@@ -1007,7 +1037,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCBarterSearchWnd;
 	EQLIB_VAR DWORD pinstCBarterWnd;
 	EQLIB_VAR DWORD pinstCChatWindowManager;
+#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
 	EQLIB_VAR DWORD pinstCDistillerInfo;
+#endif
 	EQLIB_VAR DWORD pinstCDynamicZoneWnd;
 	EQLIB_VAR DWORD pinstCEQMainWnd;
 	EQLIB_VAR DWORD pinstCFellowshipWnd;
@@ -1239,6 +1271,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContainerMgr__OpenExperimentContainer;
 	EQLIB_VAR DWORD CColorPickerWnd__Open;
 	EQLIB_VAR DWORD CDistillerInfo__GetIDFromRecordNum;
+#if defined(TEST)
+	EQLIB_VAR DWORD CDistillerInfo__Instance;
+#endif
 	EQLIB_VAR DWORD CGroupWnd__WndNotification;
 	EQLIB_VAR DWORD CGroupWnd__UpdateDisplay;
 	
@@ -1529,6 +1564,12 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD ArrayClass__DeleteElement;
 	EQLIB_VAR DWORD __GameLoop;
+	EQLIB_VAR DWORD AggroMeterManagerClient__Instance;
+	EQLIB_VAR DWORD ClientSOIManager__GetSingleton;
+	EQLIB_VAR DWORD MercenaryAlternateAdvancementManagerClient__Instance;
+	EQLIB_VAR DWORD CTargetManager__Get;
+	EQLIB_VAR DWORD CBroadcast__Get;
+	EQLIB_VAR DWORD EQGroundItemListManager__Instance;
 	
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
@@ -1613,6 +1654,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;
 	EQLIB_VAR DWORD EQPlayerManager__GetPlayerFromPartialName;
 
+	EQLIB_VAR DWORD KeypressHandler__Get;
 	EQLIB_VAR DWORD KeypressHandler__AttachAltKeyToEqCommand;
 	EQLIB_VAR DWORD KeypressHandler__AttachKeyToEqCommand;
 	EQLIB_VAR DWORD KeypressHandler__ClearCommandStateArray;
@@ -1720,5 +1762,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
+
+#ifdef KNIGHTLYPARSE
+	const std::string PARSE_PARAM_BEG = "${Parse[";
+	const std::string PARSE_PARAM_END = "]}";
+#endif // KNIGHTLYPARSE
 }
 using namespace MQ2Globals;

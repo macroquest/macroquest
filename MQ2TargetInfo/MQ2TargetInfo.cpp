@@ -194,20 +194,23 @@ void LoadPHs(char*szMyName) {
 		fclose(fp);
 	}
 }
-/*#define Target_BuffWindow_TopOffset 62;
-#define dTopOffset 46;
-#define dBottomOffset 60;
-#define InfoTopOffset 33;
-#define dLeftOffset 50;
-#define InfoBottomOffset 47;
-*/
-#define Target_BuffWindow_TopOffset 62+14;
-#define dTopOffset 46+14;
-#define dBottomOffset 60+14;
-#define InfoTopOffset 33+14;
-#define dLeftOffset 50;
-#define InfoBottomOffset 47+14;
 
+int Target_BuffWindow_TopOffset = 62+14;
+int Target_BuffWindow_TopOffsetOld = 50;
+int dTopOffset = 46+14;
+int Target_AggroPctPlayerLabel_TopOffsetOrg = 33;
+int Target_AggroNameSecondaryLabel_TopOffsetOrg = 33;
+int Target_AggroPctSecondaryLabel_TopOffsetOrg = 33;
+int Target_AggroPctPlayerLabel_BottomOffsetOrg = 47;
+int Target_AggroNameSecondaryLabel_BottomOffsetOrg = 47;
+int Target_AggroPctSecondaryLabel_BottomOffsetOrg = 47;
+int dBottomOffset = 60+14;
+int dBottomOffsetOld = 0;
+int CanSeeTopOffset = 33+14;
+int dLeftOffset = 50;
+int dLeftOffsetOld = 0;
+int CanSeeBottomOffset = 47+14;
+int TargetInfoWindowStyle = 0;
 CGaugeWnd *GW_Gauge1 = 0;
 CGaugeWnd *GW_Gauge2 = 0;
 CGaugeWnd *GW_Gauge3 = 0;
@@ -779,7 +782,23 @@ void Initialize()
 	if (!PHButton && GetGameState() == GAMESTATE_INGAME && !bDisablePluginDueToBadUI)
 	{
 		ReadIniSettings();
-		
+		CHAR szBuff[MAX_STRING] = { 0 };
+		ReadUIStringSetting("Target_BuffWindow_TopOffset", "76", szBuff);
+		Target_BuffWindow_TopOffset = atoi(szBuff);
+		ReadUIStringSetting("dTopOffset", "60", szBuff);
+		dTopOffset = atoi(szBuff);
+		ReadUIStringSetting("dBottomOffset", "74", szBuff);
+		dBottomOffset = atoi(szBuff);
+		ReadUIStringSetting("CanSeeTopOffset", "47", szBuff);
+		CanSeeTopOffset = atoi(szBuff);
+		ReadUIStringSetting("CanSeeBottomOffset", "61", szBuff);
+		CanSeeBottomOffset = atoi(szBuff);
+		ReadUIStringSetting("dLeftOffset", "50", szBuff);
+		dLeftOffset = atoi(szBuff);
+		ReadUIStringSetting("TargetInfoWindowStyle", "0", szBuff);
+		TargetInfoWindowStyle = atoi(szBuff);
+
+
 		//Player_ManaLabel ManaLabel 20
 		//Player_FatigueLabel FatigueLabel 21
 		CHAR OldName1[2048] = { "Player_ManaLabel" };
@@ -1057,29 +1076,42 @@ void Initialize()
 				pTwnd->Wnd.WindowStyle |= (WSF_SIZABLE | WSF_BORDER);
 			}
 			else {
-				pTwnd->Wnd.WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
+				if (TargetInfoWindowStyle == 0)
+				{
+					pTwnd->Wnd.WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
+				}
+				else {
+					pTwnd->Wnd.WindowStyle = TargetInfoWindowStyle;
+				}
 			}
 			if (Target_AggroPctPlayerLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctPlayerLabel"))
 			{
 				Target_AggroPctPlayerLabel->BGColor = 0xFF00000;
+				Target_AggroPctPlayerLabel_TopOffsetOrg = Target_AggroPctPlayerLabel->TopOffset;
 				Target_AggroPctPlayerLabel->TopOffset = dTopOffset;
+				Target_AggroPctPlayerLabel_BottomOffsetOrg = Target_AggroPctPlayerLabel->BottomOffset;
 				Target_AggroPctPlayerLabel->BottomOffset = dBottomOffset;
 			}
 			if (Target_AggroNameSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroNameSecondaryLabel"))
 			{
 				Target_AggroNameSecondaryLabel->BGColor = 0xFF00000;
+				Target_AggroNameSecondaryLabel_TopOffsetOrg = Target_AggroNameSecondaryLabel->TopOffset;
 				Target_AggroNameSecondaryLabel->TopOffset = dTopOffset;
+				Target_AggroNameSecondaryLabel_BottomOffsetOrg = Target_AggroNameSecondaryLabel->BottomOffset;
 				Target_AggroNameSecondaryLabel->BottomOffset = dBottomOffset;
 			}
 			if (Target_AggroPctSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctSecondaryLabel"))
 			{
 				Target_AggroPctSecondaryLabel->BGColor = 0xFF00000;
+				Target_AggroPctSecondaryLabel_TopOffsetOrg = Target_AggroPctSecondaryLabel->TopOffset;
 				Target_AggroPctSecondaryLabel->TopOffset = dTopOffset;
+				Target_AggroPctSecondaryLabel_BottomOffsetOrg = Target_AggroPctSecondaryLabel->BottomOffset;
 				Target_AggroPctSecondaryLabel->BottomOffset = dBottomOffset;
 			}
 			if (Target_BuffWindow = (CSidlScreenWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_BuffWindow"))
 			{
 				Target_BuffWindow->BGColor = 0xFF000000;
+				Target_BuffWindow_TopOffsetOld = Target_BuffWindow->TopOffset;
 				Target_BuffWindow->TopOffset = Target_BuffWindow_TopOffset;
 			}
 			
@@ -1195,9 +1227,9 @@ void Initialize()
 					CanSeeLabel->bTopAnchoredToTop = true;
 					CanSeeLabel->bAlignCenter = true;
 					CanSeeLabel->bAlignRight = false;
-					CanSeeLabel->TopOffset = InfoTopOffset;
+					CanSeeLabel->TopOffset = CanSeeTopOffset;
 					CanSeeLabel->TopOffset += 10;
-					CanSeeLabel->BottomOffset = InfoBottomOffset;
+					CanSeeLabel->BottomOffset = CanSeeBottomOffset;
 					CanSeeLabel->BottomOffset += 10;
 					CanSeeLabel->LeftOffset = dLeftOffset;
 					CanSeeLabel->RightOffset = dLeftOffset;
@@ -1213,11 +1245,11 @@ void Initialize()
 					PHButton->bLeftAnchoredToLeft = true;
 					PHButton->bRightAnchoredToLeft = false;
 					PHButton->bTopAnchoredToTop = true;
-					PHButton->TopOffset = InfoTopOffset + 1;
+					PHButton->TopOffset = CanSeeTopOffset + 1;
 					PHButton->BottomOffset = dTopOffset - 1;
 					PHButton->LeftOffset = 0;
 					PHButton->RightOffset = 0;
-					PHButton->Location.top = InfoTopOffset + 1;
+					PHButton->Location.top = CanSeeTopOffset + 1;
 					PHButton->Location.bottom = PHButton->BottomOffset;
 					PHButton->Location.left = 2;
 					PHButton->Location.right = 20;
@@ -2138,7 +2170,7 @@ void CleanUp(bool bUnload)
 	if (PCTARGETWND pTwnd = (PCTARGETWND)pTargetWnd) {
 		if (orgTargetWindStyle)
 		{
-			//pTwnd->Wnd.WindowStyle = orgTargetWindStyle;
+			pTwnd->Wnd.WindowStyle = orgTargetWindStyle;
 			pTwnd->Wnd.bNeedsSaving = true;
 			pTwnd->Wnd.bClientRectChanged = true;
 			orgTargetWindStyle = 0;
@@ -2229,20 +2261,20 @@ void CleanUp(bool bUnload)
 	if (GetGameState() == GAMESTATE_INGAME) {
 		if (bUnload) {
 			if (!IsBadReadPtr(Target_BuffWindow, 4)) {
-				Target_BuffWindow->TopOffset = 50;
+				Target_BuffWindow->TopOffset = Target_BuffWindow_TopOffsetOld;
 			}
 
 			if (!IsBadReadPtr(Target_AggroPctPlayerLabel, 4)) {
-				Target_AggroPctPlayerLabel->TopOffset = 33;
-				Target_AggroPctPlayerLabel->BottomOffset = 47;
+				Target_AggroPctPlayerLabel->TopOffset = Target_AggroPctPlayerLabel_TopOffsetOrg;
+				Target_AggroPctPlayerLabel->BottomOffset = Target_AggroPctPlayerLabel_BottomOffsetOrg;
 			}
 			if (!IsBadReadPtr(Target_AggroNameSecondaryLabel, 4)) {
-				Target_AggroNameSecondaryLabel->TopOffset = 33;
-				Target_AggroNameSecondaryLabel->BottomOffset = 47;
+				Target_AggroNameSecondaryLabel->TopOffset = Target_AggroNameSecondaryLabel_TopOffsetOrg;
+				Target_AggroNameSecondaryLabel->BottomOffset = Target_AggroNameSecondaryLabel_BottomOffsetOrg;
 			}
 			if (!IsBadReadPtr(Target_AggroPctSecondaryLabel, 4)) {
-				Target_AggroPctSecondaryLabel->TopOffset = 33;
-				Target_AggroPctSecondaryLabel->BottomOffset = 47;
+				Target_AggroPctSecondaryLabel->TopOffset = Target_AggroPctSecondaryLabel_TopOffsetOrg;
+				Target_AggroPctSecondaryLabel->BottomOffset = Target_AggroPctSecondaryLabel_BottomOffsetOrg;
 			}
 		}
 	}
