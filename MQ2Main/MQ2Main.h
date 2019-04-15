@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define TEST
+#define LIVE
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -793,9 +793,9 @@ EQLIB_API HANDLE hLoadComplete;
 
 EQLIB_API void AttackRanged(EQPlayer *pRangedTarget = pTarget);
 EQLIB_API VOID UseAbility(char *sAbility);
-EQLIB_API PMACROBLOCK GetNextMacroBlock();
-EQLIB_API PMACROBLOCK GetCurrentMacroBlock();
-EQLIB_API int GetmacroBlockCount();
+EQLIB_OBJECT PMACROBLOCK GetNextMacroBlock();
+EQLIB_OBJECT PMACROBLOCK GetCurrentMacroBlock();
+EQLIB_API int GetMacroBlockCount();
 EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

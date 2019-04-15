@@ -361,9 +361,6 @@ bool __cdecl MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t buffl
 bool __cdecl MQ2Initialize()
 {
 #endif
-	
-	if (!ghMacroBlockLock)
-		ghMacroBlockLock = CreateMutex(NULL, FALSE, NULL);
 	if (!ghVariableLock)
 		ghVariableLock = CreateMutex(NULL, FALSE, NULL);
 
@@ -583,11 +580,6 @@ void __cdecl MQ2Shutdown()
 		CloseHandle(ghVariableLock);
 		ghVariableLock = 0;
 	}
-	if (ghMacroBlockLock) {
-		ReleaseMutex(ghMacroBlockLock);
-		CloseHandle(ghMacroBlockLock);
-		ghMacroBlockLock = 0;
-	}
 	if (ghMemberMapLock) {
 		ReleaseMutex(ghMemberMapLock);
 		CloseHandle(ghMemberMapLock);
@@ -642,6 +634,7 @@ HMODULE GetCurrentModule()
 }
 HANDLE hUnloadComplete = 0;
 HANDLE hLoadComplete = 0;
+
 // ***************************************************************************
 // Function:    MQ2End Thread
 // Description: Where we end execution during the ejection
@@ -656,11 +649,9 @@ DWORD WINAPI MQ2End(LPVOID lpParameter)
 		}
 	}
 	bRunNextCommand = TRUE;
-	lockit lk(ghMacroBlockLock);
-	if (GetCurrentMacroBlock())
-	{
+
 		EndAllMacros();
-	}
+
 	DebugSpew("%s", ToUnloadString);
 	if (gs == GAMESTATE_INGAME || gs == GAMESTATE_CHARSELECT) {
 		WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);

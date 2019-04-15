@@ -11,6 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
+#include <memory>
 EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
 EQLIB_VAR HANDLE ghMemberMapLock;
 namespace MQ2Internal {
@@ -235,15 +236,17 @@ namespace MQ2Internal {
 		LONGLONG ExecutionTime;
 #endif
 	} MACROLINE,*PMACROLINE;
-	typedef struct _MACROBLOCK {
+	struct MACROBLOCK {
 		std::string Name;//our macro Name
 		BOOL Paused;
 		int CurrIndex;//the current macro line we are on
 		int BindStackIndex;//where we were at before calling the bind.
 		std::string BindCmd;//the actual command including parameters
 		std::map<int, MACROLINE>Line;
-		bool bInValid;//when a block gets deleted this will be true;
-    } MACROBLOCK, *PMACROBLOCK;
+		bool Removed;
+	};
+	using PMACROBLOCK = std::shared_ptr<MACROBLOCK>;
+
     typedef struct _MQTIMER {
         CHAR szName[MAX_VARNAME];
         ULONG Original;

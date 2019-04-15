@@ -53,7 +53,6 @@ int ci_find_substr( const T& str1, const char* charin, const std::locale& loc = 
 
 BOOL DoNextCommand(PMACROBLOCK pBlock)
 {
-	lockit lk(ghMacroBlockLock);
 	if (!ppCharSpawn || !pCharSpawn) return FALSE;
 	PSPAWNINFO pCharOrMount = NULL;
 	PCHARINFO pCharInfo = GetCharInfo();
@@ -92,14 +91,12 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 		QueryPerformanceCounter(&BeforeCommand);
 		int ThisMacroBlock = pBlock->CurrIndex;
 #endif
-		//CHAR szLine[MAX_STRING];
-		//sprintf_s(szLine, "/SetChatTitle MQ - MacroLine: %d", ml.LineNumber);
-		//EzCommand(szLine);
 		DoCommand(pChar, (PCHAR)ml.Command.c_str());
 		PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
+
 		if (pCurrentBlock)
 		{
-			if (pCurrentBlock->BindCmd.size() && pCurrentBlock->BindStackIndex==-1) {
+			if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex==-1) {
 				if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
 					std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
 					if (i != pCurrentBlock->Line.end()) {
@@ -464,24 +461,31 @@ int Heartbeat()
 		delete gDelayedCommands;
 		gDelayedCommands = pNext;
 	}
-	//lockit lk(ghMacroBlockLock);
+
 	PMACROBLOCK pBlock = GetNextMacroBlock();
-	while (bRunNextCommand && pBlock && pBlock->bInValid==false) {
+	while (bRunNextCommand)
+	{
+		if (!pBlock)
+			break;
 		if (!DoNextCommand(pBlock))
 			break;
 		if (gbUnload)
 			return 1;
 		if (!gTurbo)
-			break;//bRunNextCommand = FALSE;
+			break;
 		if (++CurTurbo>gMaxTurbo)
-			break;//bRunNextCommand =   FALSE;
+			break;
+
+		// re-fetch current macro block in case one of the previous instructions changed it
+		pBlock = GetCurrentMacroBlock();
 	}
 	DoTimedCommands();
 #endif
 	return 0;
 }
 
-template <unsigned int _Size>static void make_minidump (char*filename, EXCEPTION_POINTERS* e, CHAR(&dumppath)[_Size])
+template <unsigned int _Size>
+static void make_minidump (char* filename, EXCEPTION_POINTERS* e, CHAR(&dumppath)[_Size])
 //void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
 {
 	char szTemp[MAX_PATH] = { 0 };

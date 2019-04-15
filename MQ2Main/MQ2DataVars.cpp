@@ -743,7 +743,6 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			pMQ2Blech->Feed(EventMsg);
 		EventMsg[0]=0;
 		TellCheck(szClean);
-		lockit lk(ghMacroBlockLock);
 		PMACROBLOCK pBlock = GetCurrentMacroBlock();
 		if ((pBlock && pBlock->Line.size()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning)) {
 			CHAR Arg1[MAX_STRING] = {0}; 

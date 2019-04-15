@@ -37,7 +37,6 @@ PTIMEDCOMMAND pTimedCommands=0;
 
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
-	
     if (delayed)
     {
 		lockit lk(ghLockDelayCommand,"HideDoCommand");
@@ -87,7 +86,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         bRunNextCommand = TRUE;
         return;
     }
-	lockit lk(ghMacroBlockLock);
+
 	PMACROBLOCK pBlock = GetCurrentMacroBlock();
 	if (szArg1[0]=='}') {
 		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0) {
@@ -146,11 +145,11 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         if (Pos==0)
         {
 #ifdef KNIGHTLYPARSE
-			if (pCommand->Parse) {
+			if (pCommand->Parse)
 #else
             if (pCommand->Parse && bAllowCommandParse)
+#endif // KNIGHTLYPARSE
             {
-#endif // KNIGHTLYPARSE ndef
                 pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
             }
 			else {
@@ -186,13 +185,14 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 					CHAR szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
 #ifdef KNIGHTLYPARSE
-					if (pBind->Parse) {
+					if (pBind->Parse)
 #endif //KNIGHTLYPARSE
+					{
 						ParseMacroData(szCallFunc, MAX_STRING);
-#ifdef KNIGHTLYPARSE
 					}
-#endif //KNIGHTLYPARSE
-					//Call(pCharInfo->pSpawn, (PCHAR)szCallFunc.c_str());
+
+					// pBlock may have changed after executing commands
+					pBlock = GetCurrentMacroBlock();
 					if (pBlock && !pBlock->BindCmd.size()) {
 						if (!gBindInProgress) {
 							gBindInProgress = true;
@@ -246,7 +246,7 @@ public:
 
             if (!_stricmp(szCommand,"/camp"))
             {
-                if (GetmacroBlockCount())
+                if (GetMacroBlockCount())
                 {
                     WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW );
                 }
@@ -356,7 +356,6 @@ public:
             }
 
             PBINDLIST pBind = pBindList;
-			lockit lk(ghMacroBlockLock);
 			PMACROBLOCK pBlock = GetCurrentMacroBlock();
             while( pBind )
             {

@@ -881,7 +881,7 @@ bool MQ2MacroType::GETMEMBER()
 		{
 			case Undeclared:
 			{
-				if (gMacroBlock && gUndeclaredVars.size()) {
+				if (gMacroBlock && !gUndeclaredVars.empty()) {
 					WriteChatf("----------- Undeclared Variables (bad) -----------");
 					int count = 1;
 					for (std::map<std::string, int>::iterator i = gUndeclaredVars.begin(); i != gUndeclaredVars.end(); i++)

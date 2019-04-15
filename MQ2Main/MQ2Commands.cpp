@@ -37,7 +37,6 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
-	lockit lk(ghMacroBlockLock);
 	if (GetCurrentMacroBlock())
 	{
 		EndAllMacros();
