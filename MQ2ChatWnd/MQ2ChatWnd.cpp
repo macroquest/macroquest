@@ -509,7 +509,54 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
             } 
         } 
         pFilter = pFilter->pNext; 
-    } 
+    }
+	if (gAnonymize) {
+		int len = strlen(Line);
+		char Name[MAX_STRING] = { "*" };
+		int namelen = 0;
+		if (pLocalPlayer) {
+			strcpy_s(Name, MAX_STRING, ((PSPAWNINFO)pLocalPlayer)->Name);
+			namelen = strlen(Name);
+			//DebugSpew("szAnonMsg was valid.");
+			while (strstr(Line, Name)) {
+				if (char *p = strstr(Line, Name)) {
+					for (int i = 1; i < namelen - 1; i++) {
+						p[i] = '*';
+					}
+				}
+			}
+		}
+		//check for group members??
+		if (PCHARINFO pChar = GetCharInfo()) {
+			DWORD n = 0;
+			if (pChar->pGroupInfo) {
+				for (int i = 1; i < 6; i++) {
+					if (GetCharInfo()->pGroupInfo->pMember[i])
+						n++;
+				}
+				if (n) {
+					n++;
+					for (DWORD i = 1; i <= n; i++)
+					{
+						if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn)
+						{
+							strcpy_s(Name, MAX_STRING, pChar->pGroupInfo->pMember[i]->pSpawn->Name);
+							namelen = strlen(Name);
+							while (strstr(Line, Name))
+							{
+								if (char *p = strstr(Line, Name))
+								{
+									for (int i = 1; i < namelen - 1; i++) {
+										p[i] = '*';
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
     Color=pChatManager->GetRGBAFromIndex(Color); 
 	CHAR szProcessed[MAX_STRING] = { 0 };
 	

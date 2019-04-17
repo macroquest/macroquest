@@ -440,10 +440,6 @@ namespace MQ2Globals
 #define pEverQuest (*ppEverQuest)
 	EQLIB_VAR CDisplay **ppDisplay;
 #define pDisplay (*ppDisplay)
-#if !defined(TEST)
-	EQLIB_VAR CDistillerInfo **ppDistillerInfo;
-	#define pDistillerInfo (*ppDistillerInfo)
-#endif
 	EQLIB_VAR EQ_PC **ppPCData;
 	#define pPCData (*ppPCData)
 	EQLIB_VAR EQ_Character **ppCharData;
@@ -497,18 +493,14 @@ namespace MQ2Globals
 
 	EQLIB_VAR CXWndManager **ppWndMgr;
 #define pWndMgr (*ppWndMgr)
-
-#if defined(ROF2EMU) || defined(UFEMU)
-	EQLIB_VAR EQItemList **ppItemList;
-	#define pItemList (*ppItemList)
-#else
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	#define pItemList GetItemList()
-#endif
-#if defined(TEST)
 	#define pKeypressHandler GetKeyPresshandler()
 #else
 	EQLIB_VAR KeypressHandler **ppKeypressHandler;
 	#define pKeypressHandler (*ppKeypressHandler)
+	EQLIB_VAR EQItemList **ppItemList;
+	#define pItemList (*ppItemList)
 #endif
 	EQLIB_VAR PEQRAID pRaid;
 	EQLIB_VAR DZMEMBER **ppDZMember;
@@ -875,10 +867,8 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD instCRaid;
 	EQLIB_VAR DWORD instEQZoneInfo;
-	#if !defined(TEST)
-	EQLIB_VAR DWORD instKeypressHandler;
-	#endif
 #if defined(ROF2EMU) || defined(UFEMU)
+	EQLIB_VAR DWORD instKeypressHandler;
 	EQLIB_VAR DWORD pinstAggroInfo;
 	EQLIB_VAR DWORD pinstAuraMgr;
 #endif
@@ -1036,9 +1026,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCBarterSearchWnd;
 	EQLIB_VAR DWORD pinstCBarterWnd;
 	EQLIB_VAR DWORD pinstCChatWindowManager;
-#if !defined(ROF2EMU) && !defined(UFEMU) && !defined(TEST)
-	EQLIB_VAR DWORD pinstCDistillerInfo;
-#endif
 	EQLIB_VAR DWORD pinstCDynamicZoneWnd;
 	EQLIB_VAR DWORD pinstCEQMainWnd;
 	EQLIB_VAR DWORD pinstCFellowshipWnd;
@@ -1270,7 +1257,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContainerMgr__OpenExperimentContainer;
 	EQLIB_VAR DWORD CColorPickerWnd__Open;
 	EQLIB_VAR DWORD CDistillerInfo__GetIDFromRecordNum;
-#if defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR DWORD CDistillerInfo__Instance;
 #endif
 	EQLIB_VAR DWORD CGroupWnd__WndNotification;

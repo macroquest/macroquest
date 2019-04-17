@@ -11073,7 +11073,7 @@ inline int SPAWNINFO::GetSpellCooldownETA() const
 	return (int)this->SpellCooldownETA;
 	#endif
 }
-#if defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 KeypressHandler *GetKeyPresshandler()
 {
 	KeypressHandler *kh = &KeypressHandler::Get();

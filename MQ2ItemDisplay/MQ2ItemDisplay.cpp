@@ -2122,14 +2122,9 @@ void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
 							//we need to check for all distillers
 							#if !defined(ROF2EMU) && !defined(UFEMU)
 							int minreqid = ptheAug->SolventItemID;
-							#if !defined(TEST)
-							if(pDistillerInfo)
-							{
-							#else
 							CDistillerInfo *pDistillerInfo = &CDistillerInfo::Instance();
 							if (pDistillerInfo)
 							{
-							#endif
 								for (int i = minreqid; i <= 21; i++)
 								{
 									realID = pDistillerInfo->GetIDFromRecordNum(i, 0);
