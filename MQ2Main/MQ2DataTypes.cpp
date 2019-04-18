@@ -10151,6 +10151,21 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.DWord = gbInForeground;
 		Dest.Type = pBoolType;
 		return true;
+	case ValidLoc://usage /echo ${EverQuest.ValidLoc[123 456 789]}
+	{
+		CHAR *szLoc = new CHAR[MAX_STRING];
+		GetArg(szLoc, Index, 1);
+		float X = (float)atof(szLoc);
+		GetArg(szLoc, Index, 2);
+		float Y = (float)atof(szLoc);
+		GetArg(szLoc, Index, 3);
+		float Z = (float)atof(szLoc);
+		delete szLoc;
+
+		Dest.DWord = pLocalPlayer->IsValidTeleport(Y, X, Z, 0, 0);
+		Dest.Type = pBoolType;
+		return true;
+	}
 	}
 	return false;
 }

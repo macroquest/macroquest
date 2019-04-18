@@ -1513,6 +1513,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXWnd__StartFade;
 	EQLIB_VAR DWORD CXWnd__GetChildItem;
 	EQLIB_VAR DWORD CXWnd__SetParent;
+	EQLIB_VAR DWORD CXWnd__Minimize;
 	
 	EQLIB_VAR DWORD CXWndManager__DrawCursor;
 	EQLIB_VAR DWORD CXWndManager__DrawWindows;

@@ -3526,6 +3526,7 @@ public:
 		IsDefaultUILoaded = 27,
 		xHWND = 28,
 		Foreground = 29,
+		ValidLoc = 30,
 	};
 	enum EverQuestMethods
 	{
@@ -3561,6 +3562,7 @@ public:
 		TypeMember(IsDefaultUILoaded);
 		AddMember(xHWND, "HWND");
 		TypeMember(Foreground);
+		TypeMember(ValidLoc);
 	}
 
 	~MQ2EverQuestType()

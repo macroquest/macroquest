@@ -825,6 +825,7 @@ GNU General Public License for more details.
 #define CXWnd__StartFade_x                                         0x9184A0
 #define CXWnd__GetChildItem_x                                      0x919900
 #define CXWnd__SetParent_x                                         0x918370
+#define CXWnd__Minimize_x                                          0x918D20
 
 // CScreenPieceTemplate
 #define CScreenPieceTemplate__IsType_x                             0x94C280

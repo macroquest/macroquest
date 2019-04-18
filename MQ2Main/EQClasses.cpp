@@ -7768,7 +7768,7 @@ FUNCTION_AT_ADDRESS(void  CXWnd::BringToTop(bool),CXWnd__BringToTop);
 FUNCTION_AT_ADDRESS(void  CXWnd::StartFade(unsigned char,unsigned __int32),CXWnd__StartFade);
 #endif
 #ifdef CXWnd__Minimize_x
-FUNCTION_AT_ADDRESS(int  CXWnd::Minimize(bool),CXWnd__Minimize);
+FUNCTION_AT_ADDRESS(int CXWnd::Minimize(bool),CXWnd__Minimize);
 #endif
 #ifdef CXWnd__IsReallyVisible_x
 FUNCTION_AT_ADDRESS(bool  CXWnd::IsReallyVisible(void)const ,CXWnd__IsReallyVisible);

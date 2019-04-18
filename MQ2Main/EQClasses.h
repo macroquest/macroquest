@@ -10673,13 +10673,14 @@ public:
 class ZoneGuideZone
 {
 public:
-	EQZoneIndex ID;
-	PCXSTR Name;
-	int ContinentIndex;
-	int MinLevel;
-	int MaxLevel;
-	DynamicBitField<unsigned short, short> Types;
-	ArrayClass_RO<ZoneGuideConnection> ZoneConnections;
+/*0x00*/ EQZoneIndex ID;
+/*0x04*/ PCXSTR Name;
+/*0x08*/ int ContinentIndex;
+/*0x0C*/ int MinLevel;
+/*0x10*/ int MaxLevel;
+/*0x14*/ DynamicBitField<unsigned short, short> Types;
+/*0x1C*/ ArrayClass_RO<ZoneGuideConnection> ZoneConnections;
+/*0x2C*/ // see 8E87D6 in Apr 15 2019 exe -eqmule
 };
 class ZoneGuideContinent
 {
@@ -10701,15 +10702,23 @@ public:
 	int ID;
 	PCXSTR Description;
 };
-
+//see 8D35C1 in may 10 2018 exe -eqmule
+//see 8E87D1 in Apr 15 2019 exe -eqmule
+#if defined(ROF2EMU) || defined(UFEMU)
+//see 7FEC8D
+#define ZONE_COUNT 768
+#else
+#define ZONE_COUNT 836
+#endif
 class ZoneGuideManagerBase
 {
 public:
-	PVOID vfTable;
-	ZoneGuideZone Zones[829];//see 8D35C1 in may 10 2018 exe -eqmule
-	ArrayClass_RO<ZoneGuideContinent> Continents;
-	ArrayClass_RO<ZoneGuideZoneType> ZoneTypes;
-	ArrayClass_RO<ZoneGuideTransferType> TransferTypes;
+/*0x0000*/ PVOID vfTable;
+/*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];//0x2c * 0x344
+/*0x8FB4*/ ArrayClass_RO<ZoneGuideContinent> Continents;
+/*0x8FC4*/ ArrayClass_RO<ZoneGuideZoneType> ZoneTypes;
+/*0x8FD4*/ ArrayClass_RO<ZoneGuideTransferType> TransferTypes;
+/*0x8FE4*/ 
 };
 typedef struct _ZonePathData
 {
@@ -10717,18 +10726,21 @@ typedef struct _ZonePathData
 	int TransferTypeIndex;
 }ZonePathData,*PZonePathData;
 
+//size: 0x9010 see 6AB098 in Apr 15 2019 exe -eqmule
+//todo fix this for the rof2 emu client...
 class ZoneGuideManagerClient : public ZoneGuideManagerBase
 {
 public:
 EQLIB_OBJECT static ZoneGuideManagerClient& ZoneGuideManagerClient::Instance(void);
-	bool bZoneGuideDataSet;
-	ArrayClass_RO<ZonePathData> ActivePath;
-	ArrayClass_RO<ZonePathData> PreviewPath;
-	int HerosJourneyIndex;
-	bool bIncludeBindZoneInPath;
-	bool bAutoFindActivePath;
-	bool bFindActivePath;
-	EQZoneIndex CurrZone;
+/*0x8FE4*/ ArrayClass_RO<ZonePathData> ActivePath;
+/*0x8FF4*/ ArrayClass_RO<ZonePathData> PreviewPath;//for sure see 6AAE81
+/*0x9004*/ EQZoneIndex CurrZone;//for sure see 6AA3E7
+/*0x9008*/ int HerosJourneyIndex;//for sure see 6AB27D
+/*0x900C*/ bool bZoneGuideDataSet;
+/*0x900D*/ bool bIncludeBindZoneInPath;
+/*0x900E*/ bool bAutoFindActivePath;
+/*0x900F*/ bool bFindActivePath;
+/*0x9010*/ 
 };
 
 class CZoneGuideWnd : public CSidlScreenWnd, public WndEventHandler2
