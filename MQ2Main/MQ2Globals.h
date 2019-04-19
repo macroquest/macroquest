@@ -793,6 +793,8 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD __ActualVersionDate;
 	EQLIB_VAR DWORD __ActualVersionTime;
+	EQLIB_VAR DWORD __ActualVersionBuild;
+	
 	EQLIB_VAR DWORD __MemChecker0;
 	EQLIB_VAR DWORD __MemChecker1;
 	EQLIB_VAR DWORD __MemChecker2;
