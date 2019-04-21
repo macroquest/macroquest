@@ -26,12 +26,14 @@ GNU General Public License for more details.
 #include <string>
 #include <algorithm>
 using namespace std;
+std::list<ItemGlobalIndex2> selllist;
 std::list<ItemGlobalIndex2> deletelist;
 std::list<ItemGlobalIndex2> autobanklist;
 std::list<ItemGlobalIndex2> autoinventorylist;
 CButtonWnd*gAutoBankButton = 0;
 bool gStartAutoBanking = false;
 bool gStartDeleting = false;
+bool gStartSelling = false;
 bool bAutoBankInProgress = false;
 bool bAutoInventoryInProgress = false;
 int gAutoBankTradeSkillItems = 0;
@@ -62,7 +64,7 @@ CTextureAnimation *pUnChecked = 0;
 
 CButtonWnd *pNLMarkedButton = 0;
 CLabelWnd *pCountLabel = 0;
-
+#define FINDWINDOW_CHECKBOXCOLUMN 6
 map<string,CXWnd*> WindowMap;
 
 PCHAR szClickNotification[] = { 
@@ -86,6 +88,7 @@ struct _WindowInfo
 std::map<CXWnd *,_WindowInfo>WindowList;
 
 int MarkCol = 0;
+int ValueCol = 0;
 bool GenerateMQUI();
 void DestroyMQUI();
 
@@ -285,10 +288,57 @@ public:
 							GetCXStr(Str.Ptr, szTemp2);
 							sprintf_s(szTemp3,MAX_STRING, "Check to mark %s for Action.(%d)", szTemp2,i);
 							((CXStr*)&pCheck->Tooltip)->SetString(szTemp3, strlen(szTemp3));
-							//SetCXStr(&pCheck->Tooltip, szTemp3);
-							//SetCXStr(&pCheck->XMLToolTip, szTemp2);
 							list->SetItemWnd(i, MarkCol, pCheck);
-							//list->SetColumnJustification(MarkCol, 2);
+							if (ItemGlobalIndex *gi = (ItemGlobalIndex *)pFIWnd->gi[(int)pCheck->Data])
+							{
+								if (PCHARINFO pCharInfo = GetCharInfo())
+								{
+									if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable)
+									{
+										VePointer<CONTENTS>ptr = cb->GetItemByGlobalIndex(*gi);
+										if (ptr.pObject)
+										{
+											if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+											{
+												if (pItem->TradeSkills) {
+													list->SetItemColor(i, 1, 0xFFFF00FF);
+												}
+												if (pItem->QuestItem) {
+													list->SetItemColor(i, 1, 0xFFFFFF00);
+												}
+												if (pItem->Cost>0) {
+													DWORD cp = pItem->Cost;
+													DWORD sp = cp/10; cp=cp%10;
+													DWORD gp = sp/10; sp=sp%10;
+													DWORD pp = gp/10; gp=gp%10;
+													szTemp3[0] = '\0';
+													if (pp>0) {
+														sprintf_s(szTemp2,MAX_STRING," %dpp",pp);
+														strcat_s(szTemp3,MAX_STRING,szTemp2);
+													}
+													if (gp>0) {
+														sprintf_s(szTemp2,MAX_STRING," %dgp",gp);
+														strcat_s(szTemp3,MAX_STRING,szTemp2);
+													}
+													if (sp>0) {
+														sprintf_s(szTemp2,MAX_STRING," %dsp",sp);
+														strcat_s(szTemp3,MAX_STRING,szTemp2);
+													}
+													if (cp>0) {
+														sprintf_s(szTemp2,MAX_STRING," %dcp",cp);
+														strcat_s(szTemp3,MAX_STRING,szTemp2);
+													}
+												}
+												else {
+													strcpy_s(szTemp3,MAX_STRING,"0");
+												}
+												//sprintf_s(szTemp3,MAX_STRING, "", pItem->Cost);
+												list->SetItemText(i, ValueCol, &CXStr(szTemp3));
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 					delete szTemp2;
@@ -309,7 +359,16 @@ public:
 	int CFindItemWnd__WndNotification_Tramp(CXWnd *, unsigned __int32, void *);
 	int CFindItemWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
-		if (uiMessage == XWM_MENUSELECT)
+		if (uiMessage == XWM_SORTREQUEST)
+		{
+			if (SListWndSortInfo *sortInfo = (SListWndSortInfo *)pData)
+			{
+				if (sortInfo->SortCol == 7)
+					return 0;
+			}
+			Sleep(0);
+		}
+		else if (uiMessage == XWM_MENUSELECT)
 		{
 			int ItemID = (int)pData;
 			int iItemID = 0;
@@ -347,11 +406,11 @@ public:
 					
 					if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
 					{
-						if (list->Columns.Count > 6)
+						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 						{
-							if (SListWndColumn_RO *col6 = &list->Columns[6])
+							if (SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
 							{
-								col6->pTextureAnim = pUnChecked;
+								col->pTextureAnim = pUnChecked;
 							}
 						}
 					}
@@ -388,9 +447,9 @@ public:
 				if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
 				{
 					CXMLData*data = pWnd->GetXMLData();
-					if (list->Columns.Count > 6)
+					if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 					{
-						SListWndColumn_RO *col6 = &list->Columns[6];
+						SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
 						if (bool bCheckBox = pWnd->IsType(WRT_CHECKBOXWND))
 						{
 							bool bChecked = ((CCheckBoxWnd*)pWnd)->Checked;
@@ -398,7 +457,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 								{
 									if (button->Checked)
 										Checked++;
@@ -407,8 +466,8 @@ public:
 										list->ItemsArray[i].bSelected = bChecked;
 										if (bChecked == true)
 										{
-											list->SetItemColor(i, 1, 0xFFFFFF00);
-											col6->pTextureAnim = pChecked;
+											//list->SetItemColor(i, 1, 0xFFFFFF00);
+											col->pTextureAnim = pChecked;
 											list->CurSel = i;
 											list->Selected = 0xFFFF0000;
 										}
@@ -433,11 +492,11 @@ public:
 							delete szTemp;
 							if (Selected == 0)
 							{
-								col6->pTextureAnim = pUnChecked;
+								col->pTextureAnim = pUnChecked;
 							}
 							else
 							{
-								col6->pTextureAnim = pChecked;
+								col->pTextureAnim = pChecked;
 
 							}
 						}
@@ -459,7 +518,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 								{
 									if (button->Checked)
 									{
@@ -474,11 +533,11 @@ public:
 							delete szTemp;
 							if (Checked == 0)
 							{
-								col6->pTextureAnim = pUnChecked;
+								col->pTextureAnim = pUnChecked;
 								list->Selected = 0xFF004040;
 							}
 							else {
-								col6->pTextureAnim = pChecked;
+								col->pTextureAnim = pChecked;
 							}
 						}
 					}
@@ -487,23 +546,28 @@ public:
 			else if (uiMessage == XWM_COLUMNCLICK)
 			{
 				int colindex = (int)pData;
-				if (colindex == 6)//its us...
+				if (colindex == FINDWINDOW_CHECKBOXCOLUMN + 1)//its Value
+				{
+					//echo todo add a actual action like sort list...
+					return 0;
+				}
+				if (colindex == FINDWINDOW_CHECKBOXCOLUMN)//its us...
 				{
 					CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList");
 					if (list)
 					{
-						if (list->Columns.Count > 6)
+						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 						{
 							list->CurSel = -1;
 							list->Selected = 0xFF004040;
-							SListWndColumn_RO *col6 = &list->Columns[6];
+							SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
 							bool checked = true;
-							if (col6->pTextureAnim == pUnChecked)
+							if (col->pTextureAnim == pUnChecked)
 							{
-								col6->pTextureAnim = pChecked;
+								col->pTextureAnim = pChecked;
 							}
 							else {
-								col6->pTextureAnim = pUnChecked;
+								col->pTextureAnim = pUnChecked;
 								checked = false;
 							}
 							int selected = 0;
@@ -518,7 +582,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+								if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 								{
 									if (selected > 1)
 									{
@@ -533,12 +597,12 @@ public:
 									if (button->Checked == true)
 									{
 										Checked++;
-										list->SetItemColor(i, 1, 0xFFFFFF00);
+										//list->SetItemColor(i, 1, 0xFFFFFF00);
 										list->ItemsArray[i].bSelected = true;
 										bFound = true;
 									}
 									else {
-										list->SetItemColor(i, 1, 0xFFFFFFFF);
+										//list->SetItemColor(i, 1, 0xFFFFFFFF);
 										list->ItemsArray[i].bSelected = false;
 									}
 								}
@@ -569,7 +633,7 @@ public:
 				int clickedrow = (int)pData;
 				if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
 				{
-					if (list->Columns.Count > 6)
+					if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 					{
 						if (list == (CListWnd*)pWnd)
 						{
@@ -589,7 +653,7 @@ public:
 									char *szTemp = new char[MAX_STRING];
 									for (int i = 0; i < list->ItemsArray.Count; i++)
 									{
-										if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+										if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 										{
 											if (button->Checked == true)
 											{
@@ -608,7 +672,7 @@ public:
 										}
 									}
 									delete szTemp;
-									if (SListWndColumn_RO *col = &list->Columns[6])
+									if (SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
 									{
 										col->pTextureAnim = pUnChecked;
 									}
@@ -620,13 +684,16 @@ public:
 						}
 						else if ((CXWnd*)pNLMarkedButton == pWnd)
 						{
+							if (pMerchantWnd && pMerchantWnd->dShow)
+							{
+								if (selllist.size())
+									return 0;
+							}
 							if (list)
 							{
-								//CXStr Str;
-								//char *szTemp = new char[MAX_STRING];
 								for (int i = 0; i < list->ItemsArray.Count; i++)
 								{
-									if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, 6))
+									if (CButtonWnd*button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 									{
 										if (button->Checked == true)
 										{
@@ -644,9 +711,17 @@ public:
 															{
 																if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 																{
-																	WriteChatf("[%d] Marking %s as Never Loot", i, pItem->Name);
-																	if (pLootFiltersManager) {
-																		pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
+																	if (pMerchantWnd && pMerchantWnd->dShow)
+																	{
+																		WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
+																		ItemGlobalIndex2 *igg = (ItemGlobalIndex2 *)gi;
+																		selllist.push_back(*igg);
+																	}
+																	else {
+																		WriteChatf("[%d] Marking %s as Never Loot", i, pItem->Name);
+																		if (pLootFiltersManager) {
+																			pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
+																		}
 																	}
 																}
 															}
@@ -657,6 +732,8 @@ public:
 										}
 									}
 								}
+								if (selllist.size())
+									gStartSelling = true;
 							}
 							return 1;
 						}
@@ -668,11 +745,11 @@ public:
 		{
 			if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
 			{
-				if (list->Columns.Count > 6)
+				if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 				{
-					if (SListWndColumn_RO *col6 = &list->Columns[6])
+					if (SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
 					{
-						col6->pTextureAnim = 0;
+						col->pTextureAnim = 0;
 					}
 				}
 			}
@@ -962,17 +1039,27 @@ void AddAutoBankMenu()
 				list->ListWndStyle |= 0x00020000;//ok to multiselect, if we add a 1 here we can edit lines as well
 				pUnChecked = pSidlMgr->FindAnimation("A_CheckBoxNormal");
 				pChecked = pSidlMgr->FindAnimation("A_CheckBoxPressed");
-				if (list->Columns.Count == 6)
+				//add checkbox column
+				if (list->Columns.Count == FINDWINDOW_CHECKBOXCOLUMN)
 				{
-
-					CXStr Str = "Toggle Checkboxes On/Off";//cant get this stupid tooltip to show for columns, i dont know why...
+					CXStr Str = "Toggle Checkboxes On/Off";//can't get this stupid tooltip to show for columns, i dont know why...
 					MarkCol = list->AddColumn(&CXStr(""), pUnChecked, 20, 0, Str, 3, 0, 0, true, { 0,0 }, { 0,0 });
-					//CXStr thetooltip = list->GetColumnTooltip(MarkCol);
 					list->SetColumnJustification(MarkCol, 0);
 				}
 				else {
-					SListWndColumn_RO col = list->Columns[6];
-					MarkCol = 6;
+					SListWndColumn_RO col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
+					MarkCol = FINDWINDOW_CHECKBOXCOLUMN;
+				}
+				//add Value Column
+				if (list->Columns.Count == FINDWINDOW_CHECKBOXCOLUMN+1)
+				{
+					CXStr Str = "Shows Merchant Value of item";
+					ValueCol = list->AddColumn(&CXStr("Value"), NULL, 50, 0, Str, 1, 0, 0, true, { 0,0 }, { 0,0 });
+					list->SetColumnJustification(ValueCol, 0);
+				}
+				else {
+					SListWndColumn_RO col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN+1];
+					ValueCol = FINDWINDOW_CHECKBOXCOLUMN+1;
 				}
 				//we need to add a couple controls, Checked count label and Never Loot Button
 				if (CControlTemplate* pCountLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_ItemNameLabel"))
@@ -1120,6 +1207,11 @@ void RemoveAutoBankMenu()
 			{
 				if (CListWnd *list = (CListWnd*)pFindItemWnd->GetChildItem("FIW_ItemList"))
 				{
+					if (list->Columns.Count > ValueCol)
+					{
+						list->Columns.DeleteElement(ValueCol);
+						ValueCol = 0;
+					}
 					if (list->Columns.Count > MarkCol)
 					{
 						list->Columns.DeleteElement(MarkCol);
@@ -2563,10 +2655,97 @@ int ListItemSlots(int argc, char *argv[])
         WriteChatf("%d available item slots",Count);
         RETURN(0)
 }
-
+bool bChangedNL = false;
+ULONGLONG SellTimer = 0;
 void AutoBankPulse()
 {
-	if (gStartDeleting)
+	if (pMerchantWnd)
+	{
+		if (pMerchantWnd->dShow)
+		{
+			if (!bChangedNL)
+			{
+				if (pNLMarkedButton) {
+					SetCXStr(&pNLMarkedButton->WindowText, "Sell Marked");
+					bChangedNL = true;
+				}
+			}
+		}
+		else {
+			if (bChangedNL)
+			{
+				if (pNLMarkedButton) {
+					SetCXStr(&pNLMarkedButton->WindowText, "Never Loot");
+					bChangedNL = false;
+				}
+			}
+		}
+	}
+	if (gStartSelling)
+	{
+		if (pMerchantWnd && pMerchantWnd->dShow)
+		{
+			if (EverQuestinfo__IsItemPending) {
+				DWORD wecantsell = *(DWORD*)EverQuestinfo__IsItemPending;
+				if (wecantsell)
+					return;
+			}
+			ULONGLONG now = GetTickCount64();
+			if (now < SellTimer + 1200)
+				return;
+			//user want us to sell stuff
+			for (std::list<ItemGlobalIndex2>::iterator g = selllist.begin(); g != selllist.end(); g++)
+			{
+				ItemGlobalIndex *gi = (ItemGlobalIndex *)&(*g);
+				if (PCHARINFO pCharInfo = GetCharInfo())
+				{
+					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable)
+					{
+						VePointer<CONTENTS>ptr = cb->GetItemByGlobalIndex(*gi);
+						if (ptr.pObject)
+						{
+							if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+							{
+								CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd;
+								bool bwesold = false;
+								if (pmercho->pSelectedItem.pObject) {
+									if (pmercho->pSelectedItem.pObject->ID == ptr.pObject->ID)
+									{
+										selllist.pop_front();
+										WriteChatf("Sold %d %s", pItem->StackSize, pItem->Name);
+										if(((EQ_Item*)ptr.pObject)->IsStackable())
+										{
+											DoCommandf("/sellitem %d", pItem->StackSize);
+										}
+										else {
+											DoCommandf("/sellitem 1");
+										}
+										SellTimer = GetTickCount64();
+										bwesold = true;
+										break;
+									}
+								}
+								if (!bwesold) {
+									pmercho->SelectBuySellSlot(gi, gi->Index.Slot1);
+									break;
+								}
+							}
+						}
+					}
+				}
+				selllist.pop_front();
+				break;
+			}
+			if (!selllist.size())
+				gStartSelling = false;
+		}
+		else {
+			selllist.clear();
+			gStartSelling = false;
+		}
+		return;
+	}
+	else if (gStartDeleting)
 	{
 		if (pCursorAttachment && pCursorAttachment->Type == -1/*none*/)
 		{

@@ -1200,6 +1200,9 @@ GNU General Public License for more details.
 //EQGroundItemListManager
 #define EQGroundItemListManager__Instance_x                        0x59ACF0
 
+//EverQuestinfo
+#define EverQuestinfo__IsItemPending_x                             0xF2DD78
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
