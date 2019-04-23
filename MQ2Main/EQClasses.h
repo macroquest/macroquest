@@ -4198,7 +4198,11 @@ EQLIB_OBJECT int CListWnd::GetCurSel(void)const;
 EQLIB_OBJECT int CListWnd::GetItemAtPoint(POINT *pt)const;
 EQLIB_OBJECT int CListWnd::GetItemHeight(int)const;
 EQLIB_OBJECT unsigned __int32 CListWnd::GetColumnFlags(int)const;
+#if !defined(ROF2EMU) && !defined(UFEMU) 
+EQLIB_OBJECT unsigned __int64 CListWnd::GetItemData(int)const;
+#else
 EQLIB_OBJECT unsigned __int32 CListWnd::GetItemData(int)const;
+#endif
 EQLIB_OBJECT unsigned long CListWnd::GetItemColor(int,int)const;
 EQLIB_OBJECT void CListWnd::CalculateFirstVisibleLine(void);
 EQLIB_OBJECT void CListWnd::CalculateLineHeights(void);
@@ -4220,7 +4224,7 @@ EQLIB_OBJECT void CListWnd::SetColumnWidth(int,int);
 EQLIB_OBJECT void CListWnd::SetCurSel(int);
 EQLIB_OBJECT void CListWnd::SetItemColor(int,int,unsigned long);
 #if !defined(ROF2EMU) && !defined(UFEMU) 
-EQLIB_OBJECT void CListWnd::SetItemData(int ID,unsigned __int32 Data, BOOL bSomething = false);
+EQLIB_OBJECT void CListWnd::SetItemData(int ID,unsigned __int64 Data);
 #else
 EQLIB_OBJECT void CListWnd::SetItemData(int ID, unsigned __int32 Data);
 #endif
@@ -9937,20 +9941,37 @@ public:
 EQLIB_OBJECT SListWndCellEditUpdate::~SListWndCellEditUpdate(void);
 };
 
-
+#if !defined(ROF2EMU) && !defined(UFEMU)
 class SListWndSortInfo
 {
 public:
-	int SortCol;
-	const SListWndLine&	ListWndLine1;
-    PCXSTR	StrLabel1;
-    unsigned __int32 Data1;
-	const SListWndLine&	ListWndLine2;
-    PCXSTR StrLabel2;
-    unsigned __int32 Data2;
-    int SortResult;
+/*0x00*/ int SortCol;
+/*0x04*/ const SListWndLine&	ListWndLine1;
+/*0x08*/ PCXSTR	StrLabel1;//for sure
+/*0x10*/ unsigned __int64 Data1;
+/*0x18*/ const SListWndLine&	ListWndLine2;
+/*0x1c*/ PCXSTR StrLabel2;//for sure
+/*0x20*/ unsigned __int64 Data2;
+/*0x28*/ int SortResult;//for sure
+/*0x2c*/ 
 EQLIB_OBJECT SListWndSortInfo::~SListWndSortInfo(void);
 };
+#else
+class SListWndSortInfo
+{
+public:
+/*0x00*/ int SortCol;
+/*0x04*/ const SListWndLine&	ListWndLine1;
+/*0x08*/ PCXSTR	StrLabel1;
+/*0x0c*/ unsigned __int32 Data1;
+/*0x10*/ const SListWndLine&	ListWndLine2;
+/*0x14*/ PCXSTR StrLabel2;
+/*0x18*/ unsigned __int32 Data2;
+/*0x1c*/ int SortResult;
+/*0x20*/ 
+EQLIB_OBJECT SListWndSortInfo::~SListWndSortInfo(void);
+};
+#endif
 
 class SoundAsset
 {

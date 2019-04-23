@@ -43,11 +43,9 @@ public:
 		BitOn(WindowStyle, CWS_RESIZEBORDER);
 		BGColor = 0xFF000000;//black background
         InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput"); 
-        InputBox->WindowStyle|=0x800C0; 
-        BitOff(WindowStyle,CWS_CLOSE); 
-		BitOn(WindowStyle,CWS_TITLE); 
-        BitOn(WindowStyle,CWS_MINIMIZE); 
-        //BitOn(WindowStyle,CWS_CLIENTMOVABLE);
+		InputBox->WindowStyle |= CWS_NOHITTEST | CWS_RELATIVERECT | CWS_BORDER;// 0x800C0;
+  		//this->WindowStyle |= CWS_RESIZEBORDER | CWS_MINIMIZE | CWS_CLOSE | CWS_TITLE;
+       	this->SetStyle(CWS_USEMYALPHA | CWS_RESIZEBORDER | CWS_MINIMIZE | CWS_TITLE); 
 		
         InputBox->CRNormal=0xFFFFFFFF;//we want a white cursor 
         InputBox->SetMaxChars(512); 
@@ -71,6 +69,11 @@ public:
     } 
     int WndNotification(CXWnd *pWnd, unsigned int Message, void *data) 
     {    
+		//if (Message == XWM_MAXIMIZEBOX)
+		//{
+		//	pWnd->Minimize(true);
+		//	return 1;
+		//}
         if (pWnd==(CXWnd*)InputBox) 
         { 
             if (Message==XWM_HITENTER) 
@@ -397,7 +400,7 @@ VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)
 { 
     if (MQChatWnd) 
     { 
-        ((CXWnd*)MQChatWnd)->OnMinimizeBox(); 
+        ((CXWnd*)MQChatWnd)->Minimize(true); 
     } 
 } 
 

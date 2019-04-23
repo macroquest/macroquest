@@ -846,6 +846,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_HISTORY             22
 #define XWM_LCLICKHOLD          23
 #define XWM_LINK                27
+#define XWM_MAXIMIZEBOX         29
 #define XWM_ACHIEVEMENTLINK     31
 //not sure what 32 is now, they inserted a new message smack in the middle instead of adding it to the end
 //i think its achievement related. -eqmule

@@ -6038,10 +6038,11 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pBoolType;
 		if (pLocalPlayer)
 		{
-			if (CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
+			CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter();
+			if (pCZC)
 			{
-				int SlotIndex = -1;//contains the slotindex upon return if there is a slot it will land in...
-				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level);
+				int SlotIndex = -1;
+				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, NULL, 0, true);
 				if (ret) {
 					Dest.DWord = 1;
 				}
@@ -14639,7 +14640,7 @@ bool MQ2AdvLootType::GETMEMBER()
 			if(index < 0)
 				index = 0;
 			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-				LONG listindex = clist->GetItemData(index);
+				int listindex = (int)clist->GetItemData(index);
 				if (pAdvLoot->pPLootList && listindex!=-1) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
 					PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
@@ -14665,7 +14666,7 @@ bool MQ2AdvLootType::GETMEMBER()
 			if(index < 0)
 				index = 0;
 			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-				LONG listindex = clist->GetItemData(index);
+				int listindex = (int)clist->GetItemData(index);
 				if (pAdvLoot->pCLootList && listindex!=-1) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
 					PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
@@ -14685,7 +14686,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
 			for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-				LONG listindex = clist->GetItemData(i);
+				int listindex = (int)clist->GetItemData(i);
 				if (pAdvLoot->pPLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
 					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex))) {
@@ -14702,7 +14703,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
 			for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-				LONG listindex = clist->GetItemData(i);
+				int listindex = (int)clist->GetItemData(i);
 				if (pAdvLoot->pCLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
 					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex))) {

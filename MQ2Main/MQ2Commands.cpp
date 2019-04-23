@@ -3630,7 +3630,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if (DWORD numitems = clist->ItemsArray.Count) {
 									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
-									int listdata = clist->GetItemData(index - 1);
+									int listdata = (int)clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(0, &pItem, listdata);
 									RETURN(0);
 								}
@@ -3645,7 +3645,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 								if (DWORD numitems = clist->ItemsArray.Count) {
 									SendListSelect(KeyRingWindowParent, IllusionWindowList, index - 1);
-									int listdata = clist->GetItemData(index - 1);
+									int listdata = (int)clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(1, &pItem, listdata);
 									Sleep(0);
 								}
@@ -3660,7 +3660,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
 								if (DWORD numitems = clist->ItemsArray.Count) {
 									SendListSelect(KeyRingWindowParent, FamiliarWindowList, index - 1);
-									int listdata = clist->GetItemData(index - 1);
+									int listdata = (int)clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(2, &pItem, listdata);
 									Sleep(0);
 								}
@@ -4378,7 +4378,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 						  //need to roll through the list to get the index
 						if (pAdvLoot->pPLootList) {
 							for (LONG k = 0; k < pPersonalList->ItemsArray.Count; k++) {
-								LONG listindex = pPersonalList->GetItemData(k);
+								int listindex = (int)pPersonalList->GetItemData(k);
 								if (listindex != -1) {
 									DWORD multiplier = sizeof(LOOTITEM) * listindex;
 									if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pPLootList->pLootItem) + multiplier)) {
@@ -4392,7 +4392,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 						}
 					}
-					LONG listindex = pPersonalList->GetItemData(index);
+					int listindex = (int)pPersonalList->GetItemData(index);
 					if (pAdvLoot && pAdvLoot->pPLootList && listindex != -1) {
 						DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
 						pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
@@ -4480,7 +4480,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					  //need to roll through the list to get the index
 					if (pSharedList) {
 						for (LONG k = 0; k < pSharedList->ItemsArray.Count; k++) {
-							LONG listindex = pSharedList->GetItemData(k);
+							int listindex = (int)pSharedList->GetItemData(k);
 							if (listindex != -1) {
 								DWORD multiplier = sizeof(LOOTITEM) * listindex;
 								if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
@@ -4495,7 +4495,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				if (index != -1) {
 					if (pSharedList) {
-						LONG listindex = pSharedList->GetItemData(index);
+						int listindex = (int)pSharedList->GetItemData(index);
 						if (listindex != -1) {
 							DWORD multiplier = sizeof(LOOTITEM) * listindex;
 							if (pitem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {

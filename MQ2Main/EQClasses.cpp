@@ -8065,7 +8065,11 @@ FUNCTION_AT_ADDRESS(int  CListWnd::GetCurSel(void)const,CListWnd__GetCurSel);
 FUNCTION_AT_ADDRESS(int  CListWnd::GetCurCol(void)const ,CListWnd__GetCurCol);
 #endif
 #ifdef CListWnd__GetItemData_x
-FUNCTION_AT_ADDRESS(unsigned __int32  CListWnd::GetItemData(int)const ,CListWnd__GetItemData);
+	#if !defined(ROF2EMU) && !defined(UFEMU) 
+		FUNCTION_AT_ADDRESS(unsigned __int64  CListWnd::GetItemData(int)const ,CListWnd__GetItemData);
+	#else
+		FUNCTION_AT_ADDRESS(unsigned __int32  CListWnd::GetItemData(int)const ,CListWnd__GetItemData);
+	#endif
 #endif
 #ifdef CListWnd__GetItemText_x
 FUNCTION_AT_ADDRESS(class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const ,CListWnd__GetItemText);
@@ -8166,7 +8170,7 @@ FUNCTION_AT_ADDRESS(void CListWnd::SetItemWnd(int Index, int SubItem, CXWnd *pWn
 #endif
 #ifdef CListWnd__SetItemData_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32,BOOL),CListWnd__SetItemData);
+FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int64),CListWnd__SetItemData);
 #else
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32),CListWnd__SetItemData);
 #endif

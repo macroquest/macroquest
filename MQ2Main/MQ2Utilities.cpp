@@ -10743,7 +10743,7 @@ BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSh
 {
 	if (pPersonalList) {
 		for (LONG i = 0; i < pPersonalList->ItemsArray.Count; i++) {
-			LONG listindex = pPersonalList->GetItemData(i);
+			int listindex = (int)pPersonalList->GetItemData(i);
 			if (listindex != -1) {
 				DWORD multiplier = sizeof(LOOTITEM) * listindex;
 				if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pPLootList->pLootItem) + multiplier)) {
@@ -10756,7 +10756,7 @@ BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSh
 	}
 	if (pSharedList) {
 		for (LONG i = 0; i < pSharedList->ItemsArray.Count; i++) {
-			LONG listindex = pSharedList->GetItemData(i);
+			int listindex = (int)pSharedList->GetItemData(i);
 			if (listindex != -1) {
 				DWORD multiplier = sizeof(LOOTITEM) * listindex;
 				if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
@@ -10987,8 +10987,8 @@ inline void* SPAWNINFO::GetCharacter() const
 #if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		void*ret = (void*)IC_GetHashData((void*)this, 0x600060C);
-		return ret;
+		int ret = (int)IC_GetHashData((void*)this, 0x600060C);
+		return (void*)ret;
 	}
 	return 0;
 #else

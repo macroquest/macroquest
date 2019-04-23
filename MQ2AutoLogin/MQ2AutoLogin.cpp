@@ -194,21 +194,24 @@ _ServerData ServerData[] = {
     {"test",         1},
     {0, 0},
 };*/
+#pragma pack(push)
+#pragma pack(8)
+
 typedef struct _DateStruct
 {
-/*0x00*/ CHAR	Hours;
-/*0x01*/ CHAR	Minutes;
-/*0x02*/ CHAR	Seconds;
-/*0x03*/ CHAR	Month;
-/*0x04*/ CHAR	Day;
-/*0x06*/ WORD	Year;
-/*0x08*/ PCXSTR	Unknown0x08;
-/*0x0c*/ PCXSTR	Unknown0x0c;
-/*0x10*/ PCXSTR	Unknown0x10;
-/*0x18*/ __int64	TimeStamp;
-/*0x20*/ DWORD Unknown0x20;
-/*0x24*/
+/*0x18*/ CHAR	Hours;
+/*0x19*/ CHAR	Minutes;
+/*0x1a*/ CHAR	Seconds;
+/*0x1b*/ CHAR	Month;
+/*0x1c*/ CHAR	Day;
+/*0x1e*/ WORD	Year;
+/*0x20*/ PCXSTR	Unknown0x08;
+/*0x24*/ PCXSTR	Unknown0x0c;
+/*0x28*/ PCXSTR	Unknown0x10;
+/*0x30*/ __int64	TimeStamp;
+/*0x38*/
 }DateStruct,*PDateStruct;
+#pragma pack(pop)
 typedef struct _SERVERINFO//EQClientServerData
 {
 /*0x00*/	DWORD ID;
@@ -218,9 +221,9 @@ typedef struct _SERVERINFO//EQClientServerData
 /*0x10*/	DWORD ExternalPort;
 /*0x14*/	DWORD InternalPort;
 /*0x018*/	DateStruct DateCreated;
-/*0x03C*/	DWORD Flags;
-/*0x040*/	DWORD ServerType;
-/*0x040*/	PCXSTR LanguageCode;
+/*0x038*/	DWORD Flags;
+/*0x03C*/	DWORD ServerType;
+/*0x040*/	PCXSTR LanguageCode;//at 0x40 for sure
 /*0x044*/	PCXSTR CountryCode;
 /*0x048*/	DWORD StatusFlags;
 /*0x04C*/	DWORD PopulationRanking;

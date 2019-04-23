@@ -307,7 +307,8 @@ public:
 													list->SetItemColor(i, 1, 0xFFFFFF00);
 												}
 												if (pItem->Cost>0) {
-													DWORD cp = pItem->Cost;
+													int sellprice = ((EQ_Item*)ptr.pObject)->ValueSellMerchant((float)1.05, 1);
+													DWORD cp = sellprice;
 													DWORD sp = cp/10; cp=cp%10;
 													DWORD gp = sp/10; sp=sp%10;
 													DWORD pp = gp/10; gp=gp%10;
@@ -330,9 +331,8 @@ public:
 													}
 												}
 												else {
-													strcpy_s(szTemp3,MAX_STRING,"0");
+													strcpy_s(szTemp3,MAX_STRING,"");
 												}
-												//sprintf_s(szTemp3,MAX_STRING, "", pItem->Cost);
 												list->SetItemText(i, ValueCol, &CXStr(szTemp3));
 											}
 										}
@@ -350,23 +350,85 @@ public:
 					delete OldName1;
 					delete OldScreenName1;
 					delete OldController1;
-
+					if (list->SortCol == 7)
+					{
+						list->Sort();
+					}
 				}
 			}
 		}
 		//DebugTryEnd();
+	}
+	int GetMoneyFromString(char*str)
+	{
+		CHAR *szLabel1 = new CHAR[MAX_STRING];
+		strcpy_s(szLabel1,MAX_STRING, str);
+		int pp = 0;
+		int gp = 0;
+		int sp = 0;
+		int cp = 0;
+		if (char *pDest = strstr(szLabel1, "pp"))
+		{
+			pDest[0] = '\0';
+			pp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+		}
+		if (char *pDest = strstr(szLabel1, "gp"))
+		{
+			pDest[0] = '\0';
+			gp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+		}
+		if (char *pDest = strstr(szLabel1, "sp"))
+		{
+			pDest[0] = '\0';
+			sp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+		}
+		if (char *pDest = strstr(szLabel1, "cp"))
+		{
+			pDest[0] = '\0';
+			cp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+		}
+		delete szLabel1;
+		int total = (pp * 1000) + (gp * 100) + (sp * 10) + cp;
+		return total;
 	}
 	int CFindItemWnd__WndNotification_Tramp(CXWnd *, unsigned __int32, void *);
 	int CFindItemWnd__WndNotification_Detour(CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
 		if (uiMessage == XWM_SORTREQUEST)
 		{
-			if (SListWndSortInfo *sortInfo = (SListWndSortInfo *)pData)
+			CFindItemWnd*wnd = (CFindItemWnd*)this;
+			if (pWnd == (CXWnd*)wnd->FIW_ItemList)
 			{
-				if (sortInfo->SortCol == 7)
-					return 0;
+				if (SListWndSortInfo *pSI = (SListWndSortInfo *)pData)
+				{
+					CHAR *szLabel1 = new CHAR[MAX_STRING];
+					CHAR *szLabel2 = new CHAR[MAX_STRING];
+					switch (pSI->SortCol)
+					{
+					case 7:
+					{
+						GetCXStr(pSI->StrLabel1, szLabel1);
+						int int1 = GetMoneyFromString(szLabel1);
+						GetCXStr(pSI->StrLabel2, szLabel2);
+						int int2 = GetMoneyFromString(szLabel2);
+
+						if (int1 < int2)
+							pSI->SortResult = -1;
+						else if (int1 > int2)
+							pSI->SortResult = 1;
+						else
+							pSI->SortResult = 0;
+					}
+					break;
+					}
+					delete szLabel1;
+					delete szLabel2;
+				}
 			}
-			Sleep(0);
 		}
 		else if (uiMessage == XWM_MENUSELECT)
 		{
@@ -515,6 +577,14 @@ public:
 								}
 								lastsel = list->CurSel;
 							}
+							if (pMerchantWnd && pMerchantWnd->dShow && list->CurSel >= 0)
+							{
+								int dta = (int)list->GetItemData(list->CurSel);
+								if (ItemGlobalIndex *igg = (ItemGlobalIndex *)((CFindItemWnd*)this)->gi[dta])
+								{
+									pMerchantWnd->SelectBuySellSlot(igg, igg->Index.Slot1);
+								}
+							}
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
@@ -546,11 +616,6 @@ public:
 			else if (uiMessage == XWM_COLUMNCLICK)
 			{
 				int colindex = (int)pData;
-				if (colindex == FINDWINDOW_CHECKBOXCOLUMN + 1)//its Value
-				{
-					//echo todo add a actual action like sort list...
-					return 0;
-				}
 				if (colindex == FINDWINDOW_CHECKBOXCOLUMN)//its us...
 				{
 					CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList");
@@ -659,7 +724,7 @@ public:
 											{
 												SListWndLine_RO item = list->ItemsArray[i];
 												list->GetItemText(&Str, i, 1);
-												UINT dta = list->GetItemData(i);
+												int dta = (int)list->GetItemData(i);
 												GetCXStr(Str.Ptr, szTemp);
 												if (CFindItemWnd*pFIWnd2 = (CFindItemWnd*)this)
 												{
@@ -697,7 +762,7 @@ public:
 									{
 										if (button->Checked == true)
 										{
-											UINT dta = list->GetItemData(i);
+											int dta = (int)list->GetItemData(i);
 											if (CFindItemWnd*pFIWnd2 = (CFindItemWnd*)this)
 											{
 												if (ItemGlobalIndex *gi = (ItemGlobalIndex *)pFIWnd2->gi[dta])
@@ -1054,7 +1119,7 @@ void AddAutoBankMenu()
 				if (list->Columns.Count == FINDWINDOW_CHECKBOXCOLUMN+1)
 				{
 					CXStr Str = "Shows Merchant Value of item";
-					ValueCol = list->AddColumn(&CXStr("Value"), NULL, 50, 0, Str, 1, 0, 0, true, { 0,0 }, { 0,0 });
+					ValueCol = list->AddColumn(&CXStr("Value"), NULL, 160, 0, Str, 1, 0, 0, true, { 0,0 }, { 0,0 });
 					list->SetColumnJustification(ValueCol, 0);
 				}
 				else {
@@ -1699,7 +1764,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 					MacroError("Please select a Listitem in '%s' before issuing a '%s' Click",WindowName,ScreenID);
 					return false;
 				}
-				int buttonindex = ((CListWnd*)pList)->GetItemData(selection);
+				int buttonindex = (int)((CListWnd*)pList)->GetItemData(selection);
 				WinCount=0;
 				pButton=GetChildByIndex(pWnd,ScreenID,buttonindex+1);
 			}
@@ -1710,7 +1775,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 					MacroError("Please select a Listitem in '%s' before issuing a '%s' Click",WindowName,ScreenID);
 					return false;
 				}
-				int buttonindex = ((CListWnd*)pList)->GetItemData(selection);
+				int buttonindex = (int)((CListWnd*)pList)->GetItemData(selection);
 				WinCount=0;
 				pButton=GetChildByIndex(pWnd,ScreenID,buttonindex+1);
 			}
