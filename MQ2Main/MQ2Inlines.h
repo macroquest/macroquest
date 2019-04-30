@@ -549,25 +549,25 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
 		return 0xFFFF0000;
 	}
 }
-static inline BOOL IsRaidMember(char * SpawnName)
+static inline int IsRaidMember(char * SpawnName)
 {
 	if (pRaid && pRaid->Invited == 4) {
 		for (DWORD N = 0; N < 72; N++)
 		{
 			if (pRaid->RaidMemberUsed[N] && !_stricmp(SpawnName, pRaid->RaidMember[N].Name))
-				return 1;
+				return N;
 		}
 	}
-	return 0;
+	return -1;
 }
-static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
+static inline int IsRaidMember(PSPAWNINFO pSpawn)
 {
 	for (DWORD N = 0; N < 72; N++)
 	{
 		if (pRaid->RaidMemberUsed[N] && !_stricmp(pSpawn->Name, pRaid->RaidMember[N].Name))
-			return 1;
+			return N;
 	}
-	return 0;
+	return -1;
 }
 static inline BOOL IsGroupMember(char * SpawnName)
 {
@@ -582,7 +582,7 @@ static inline BOOL IsGroupMember(char * SpawnName)
 				GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
 				CleanupName(Name,sizeof(Name), FALSE, FALSE);
 				if (!_stricmp(SpawnName, Name))
-					return 1;
+					return N;
 			}
 		}
 	}

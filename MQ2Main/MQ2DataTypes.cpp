@@ -2534,10 +2534,7 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 	case Name:
 	{
-		if (!gAnonymize)
-			strcpy_s(DataTypeTemp, ((PSPAWNINFO)pLocalPlayer)->Name);
-		else
-			strcpy_s(DataTypeTemp, "*****");
+		strcpy_s(DataTypeTemp, ((PSPAWNINFO)pLocalPlayer)->Name);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
@@ -3433,7 +3430,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (pCombatAbilityWnd) {
 			if (CXWnd *Child = ((CXWnd*)pCombatAbilityWnd)->GetChildItem("CAW_CombatEffectLabel")) {
 				CHAR szBuffer[2048] = { 0 };
-				if (GetCXStr(Child->WindowText, szBuffer, MAX_STRING) && szBuffer[0] != '\0') {
+				if (GetCXStr(Child->CGetWindowText(), szBuffer, MAX_STRING) && szBuffer[0] != '\0') {
 					if (Dest.Ptr = GetSpellByName(szBuffer)) {
 						return true;
 					}
@@ -3890,7 +3887,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case SpellReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (pCastingWnd && pCastingWnd->dShow) {
+		if (pCastingWnd && pCastingWnd->IsVisible()) {
 			return true;
 		}
 		if (pCastSpellWnd && pCastSpellWnd->IsBardSongPlaying()) {
@@ -5538,7 +5535,7 @@ bool MQ2CharacterType::GETMEMBER()
 			for (int i = 8; i < NUM_SPELL_GEMS; i++) {
 				sprintf_s(szWnd, "CSPW_Spell%d", i);
 				if (CXWnd *wnd = (CXWnd *)pCastSpellWnd->GetChildItem(szWnd)) {
-					if (wnd->dShow==1) {
+					if (wnd->IsVisible()==1) {
 						Dest.DWord++;
 					}
 				}
@@ -6383,6 +6380,19 @@ bool MQ2SpellType::GETMEMBER()
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = pSpell->ReagentID[nIndex];
+		}
+		return true;
+	case NoExpendReagentID:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			int nIndex = GETNUMBER() - 1;
+			if (nIndex < 0)
+				return false;
+			Dest.DWord = pSpell->NoExpendReagent[nIndex];
 		}
 		return true;
 	case ReagentCount:
@@ -8342,7 +8352,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Open:
-		Dest.DWord = pWnd->dShow;
+		Dest.DWord = pWnd->IsVisible();
 		Dest.Type = pBoolType;
 		return true;
 	case Child:
@@ -8355,7 +8365,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Parent:
-		if (Dest.Ptr = pWnd->pParentWindow)
+		if (Dest.Ptr = pWnd->GetParentWindow())
 		{
 			Dest.Type = pWindowType;
 			return true;
@@ -8364,7 +8374,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case FirstChild:
-		if (Dest.Ptr = pWnd->pFirstChildWnd)
+		if (Dest.Ptr = pWnd->GetFirstChildWnd())
 		{
 			Dest.Type = pWindowType;
 			return true;
@@ -8373,7 +8383,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Next:
-		if (Dest.Ptr = pWnd->pNextSiblingWnd)
+		if (Dest.Ptr = pWnd->GetNextSiblingWnd())
 		{
 			Dest.Type = pWindowType;
 			return true;
@@ -8382,63 +8392,63 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case VScrollMax:
-		Dest.DWord = pWnd->VScrollMax;
+		Dest.DWord = pWnd->GetVScrollMax();
 		Dest.Type = pIntType;
 		return true;
 	case VScrollPos:
-		Dest.DWord = pWnd->VScrollPos;
+		Dest.DWord = pWnd->GetVScrollPos();
 		Dest.Type = pIntType;
 		return true;
 	case VScrollPct:
-		Dest.DWord = (pWnd->VScrollPos * 100) / pWnd->VScrollMax;
+		Dest.DWord = (pWnd->GetVScrollPos() * 100) / pWnd->GetVScrollMax();
 		Dest.Type = pIntType;
 		return true;
 	case HScrollMax:
-		Dest.DWord = pWnd->HScrollMax;
+		Dest.DWord = pWnd->GetHScrollMax();
 		Dest.Type = pIntType;
 		return true;
 	case HScrollPos:
-		Dest.DWord = pWnd->HScrollPos;
+		Dest.DWord = pWnd->GetHScrollPos();
 		Dest.Type = pIntType;
 		return true;
 	case HScrollPct:
-		Dest.DWord = (pWnd->HScrollPos * 100) / pWnd->HScrollMax;
+		Dest.DWord = (pWnd->GetHScrollPos() * 100) / pWnd->GetHScrollMax();
 		Dest.Type = pIntType;
 		return true;
 	case Children:
-		Dest.DWord = (DWORD)pWnd->pFirstChildWnd;
+		Dest.DWord = (DWORD)pWnd->GetFirstChildWnd();
 		Dest.Type = pBoolType;
 		return true;
 	case Siblings:
-		Dest.DWord = (DWORD)pWnd->pNextSiblingWnd;
+		Dest.DWord = (DWORD)pWnd->GetNextSiblingWnd();
 		Dest.Type = pBoolType;
 		return true;
 	case Minimized:
-		Dest.DWord = pWnd->Minimized;
+		Dest.DWord = pWnd->IsMinimized();
 		Dest.Type = pBoolType;
 		return true;
 	case MouseOver:
-		Dest.DWord = pWnd->MouseOver;
+		Dest.DWord = pWnd->IsMouseOver();
 		Dest.Type = pBoolType;
 		return true;
 	case X:
-		Dest.DWord = pWnd->Location.left;
+		Dest.DWord = pWnd->GetLocation().left;
 		Dest.Type = pIntType;
 		return true;
 	case Y:
-		Dest.DWord = pWnd->Location.top;
+		Dest.DWord = pWnd->GetLocation().top;
 		Dest.Type = pIntType;
 		return true;
 	case Width:
-		Dest.DWord = pWnd->Location.right - pWnd->Location.left;
+		Dest.DWord = pWnd->GetLocation().right - pWnd->GetLocation().left;
 		Dest.Type = pIntType;
 		return true;
 	case Height:
-		Dest.DWord = pWnd->Location.bottom - pWnd->Location.top;
+		Dest.DWord = pWnd->GetLocation().bottom - pWnd->GetLocation().top;
 		Dest.Type = pIntType;
 		return true;
 	case BGColor:
-		Dest.DWord = pWnd->BGColor;
+		Dest.DWord = pWnd->GetBGColor();
 		Dest.Type = pArgbType;
 		return true;
 	case Text:
@@ -8447,14 +8457,14 @@ bool MQ2WindowType::GETMEMBER()
 			GetCXStr(cstmlwnd->STMLText, DataTypeTemp, MAX_STRING);
 		}
 		else {
-			GetCXStr(pWnd->WindowText, DataTypeTemp, MAX_STRING);
+			GetCXStr(pWnd->CGetWindowText(), DataTypeTemp, MAX_STRING);
 		}
 		DataTypeTemp[MAX_STRING - 1] = '\0';
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 	case Tooltip:
-		GetCXStr(pWnd->Tooltip, DataTypeTemp, MAX_STRING);
+		GetCXStr(pWnd->GetTooltip(), DataTypeTemp, MAX_STRING);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -8471,11 +8481,11 @@ bool MQ2WindowType::GETMEMBER()
 		}
 		return true;
 	case Enabled:
-		Dest.Int = (pWnd->Enabled != 0);
+		Dest.Int = (pWnd->IsEnabled() != 0);
 		Dest.Type = pBoolType;
 		return true;
 	case Style:
-		Dest.DWord = pWnd->WindowStyle;
+		Dest.DWord = pWnd->GetWindowStyle();
 		Dest.Type = pIntType;
 		return true;
 	case List:
@@ -9914,10 +9924,7 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.Type = pStringType;
 		if (EQADDR_SERVERNAME[0])
 		{
-			if(!gAnonymize)
-				strcpy_s(DataTypeTemp, EQADDR_SERVERNAME);
-			else
-				strcpy_s(DataTypeTemp, "Server");
+			strcpy_s(DataTypeTemp, EQADDR_SERVERNAME);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -10398,7 +10405,7 @@ bool MQ2MerchantType::GETMEMBER()
 		{
 		case SelectItem:
 		{
-			if (pMerchantWnd->dShow)
+			if (pMerchantWnd->IsVisible())
 			{
 				CHAR szTemp[MAX_STRING] = { 0 };
 				CHAR szTemp2[MAX_STRING] = { 0 };
@@ -10484,7 +10491,7 @@ bool MQ2MerchantType::GETMEMBER()
 		}
 		case Buy:
 		{
-			if (pMerchantWnd->dShow)
+			if (pMerchantWnd->IsVisible())
 			{
 				int Qty = GETNUMBER();
 				if (Qty < 1)
@@ -10499,7 +10506,7 @@ bool MQ2MerchantType::GETMEMBER()
 		}
 		case Sell:
 		{
-			if (pMerchantWnd->dShow)
+			if (pMerchantWnd->IsVisible())
 			{
 				int Qty = GETNUMBER();
 				if (Qty < 1)
@@ -10532,7 +10539,7 @@ bool MQ2MerchantType::GETMEMBER()
 			return true;
 		}
 		case CloseWindow:
-			if (pMerchantWnd->dShow)
+			if (pMerchantWnd->IsVisible())
 			{
 				//Need to call deactivate here.
 				WriteChatf("Not implemented yet");
@@ -10557,7 +10564,7 @@ bool MQ2MerchantType::GETMEMBER()
 	switch ((MerchantMembers)pMember->ID)
 	{
 	case Open:
-		Dest.DWord = pMerchantWnd->dShow;
+		Dest.DWord = pMerchantWnd->IsVisible();
 		Dest.Type = pBoolType;
 		return true;
 	case ItemsReceived:
@@ -11474,7 +11481,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						else if (nInvSlot > 2999 && nInvSlot < 3016)
 						{
 							CInvSlotWnd *pInvslotwnd = 0;
-							if (pGiveWnd && pGiveWnd->dShow) {
+							if (pGiveWnd && pGiveWnd->IsVisible()) {
 								CGiveWnd *pWnd = (CGiveWnd*)pGiveWnd;
 								switch (nInvSlot)
 								{
@@ -11492,7 +11499,7 @@ bool MQ2InvSlotType::GETMEMBER()
 									break;
 								}
 							}
-							else if (pTradeWnd && pTradeWnd->dShow) {
+							else if (pTradeWnd && pTradeWnd->IsVisible()) {
 								CTradeWnd *pWnd = (CTradeWnd*)pTradeWnd;
 								switch (nInvSlot)
 								{

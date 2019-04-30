@@ -18,7 +18,30 @@
 
 #pragma pack(push)
 #pragma pack(4)
+struct CStrPtr
+{
+    int RefCount;
+	long MaxLength;
+    long Length;
+    int Encoding;
+	void *Buff;
+    union
+    {
+		char Ansi[1000];
+		wchar_t Unicode[500];
+		CStrPtr* pNext;
+    };
+};
 
+class CCXStr
+{
+public:
+	//CCXStr& CCXStr::operator= (class CCXStr &str);
+	//EQLIB_OBJECT
+	__declspec(dllexport) CCXStr& CCXStr::operator= (char const *str);
+	
+	CStrPtr* Ptr;
+};
 //----------------------------------------------------------------------------
 
 class CDynamicArrayBase;

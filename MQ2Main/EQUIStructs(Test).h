@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 #include "ArrayClass.h"
+
 #pragma pack(push)
 #pragma pack(8)
 namespace EQUIStructs
@@ -208,7 +209,15 @@ VFTABLE
 
 // in CChatWindow__SetChatFont see 692847 in eqgame.exe Test dated Jun 28 2016
 #define EQ_CHAT_FONT_OFFSET    0x11c
-
+static inline VOID SetCCXStr(PCXSTR *cxstr, PCHAR text)
+{
+	//cxstr=text;
+	CCXStr *Str = (CCXStr*)cxstr;
+	(*Str) = text;
+	cxstr = (PCXSTR*)Str;
+}
+//__declspec(dllexport) __int64 GetClassMember(void*This, int ID);
+//__declspec(dllexport) void SetClassMember(void*This, int ID, __int64 Value);
 
 #define CXW_NO_VTABLE_BEGIN \
 /*0x0004*/ struct _CSIDLWND**	WindowPtrs; \
@@ -231,6 +240,7 @@ VFTABLE
 // actual size 0x1F0 in Apr  9 2019 Test (see 0x9341FD) - eqmule
 // actual size 0x1E8 in Apr 18 2019 Test (see 0x933F5D) - eqmule
 #define CXW_NO_VTABLE \
+private: \
 CXW_NO_VTABLE_BEGIN \
 /*0x001C*/ bool		dShow; \
 /*0x001D*/ bool		bMaximizable; \
@@ -337,8 +347,417 @@ CXW_NO_VTABLE_BEGIN \
 /*0x01DC*/ bool		Enabled; \
 /*0x01DD*/ bool		bMaximized; \
 /*0x01E0*/ UINT		FadeDuration; \
-/*0x01E4*/ BYTE Filler0x01E4[0x4];
-/*0x01E8*/
+/*0x01E4*/ BYTE Filler0x01E4[0x4]; \
+public: \
+			bool IsVisible() \
+			{ \
+				return dShow; \
+				/*return GetClassMember(this,1) ? true:false; /*dShow*/ \
+			} \
+			void SetVisible(bool bValue) \
+			{ \
+				dShow = bValue; \
+				/*SetClassMember(this,1,bValue); /*dShow*/ \
+			} \
+			void SetClickThrough(bool bValue) \
+			{ \
+				bClickThrough = bValue; /*bClickThrough*/ \
+				/*SetClassMember(this,2,bValue); /*bClickThrough*/ \
+			} \
+			void SetMinClientSize(tagSIZE pt) \
+			{ \
+				MinClientSize.cx = pt.cx; \
+				MinClientSize.cy = pt.cy; \
+				/*SetClassMember(this,3,(__int64)&pt); /*MinClientSize*/ \
+			} \
+			void SetMaximizable(bool bValue) \
+			{ \
+				bMaximizable = bValue; \
+				/*SetClassMember(this,4,bValue); /*bMaximizable*/ \
+			} \
+			void *GetFont() \
+			{ \
+				return pFont; \
+				/*return (void *)GetClassMember(this,5); /*pFont*/ \
+			} \
+			void SetEscapable(bool bValue) \
+			{ \
+				CloseOnESC = bValue; /*CloseOnESC*/ \
+				/*SetClassMember(this,6,bValue); /*CloseOnESC*/ \
+			} \
+			void SetEscapableLocked(bool bValue) \
+			{ \
+				bEscapableLocked = bValue; /*bEscapableLocked*/ \
+				/*SetClassMember(this,7,bValue); /*bEscapableLocked*/ \
+			} \
+			struct _CSIDLWND *GetParentWindow() \
+			{ \
+				return pParentWindow; /*pParentWindow*/ \
+				/*return (struct _CSIDLWND *)GetClassMember(this,8); /*pParentWindow*/ \
+			} \
+			void SetParentWindow(struct _CSIDLWND *pWnd) \
+			{ \
+				pParentWindow = pWnd; /*pParentWindow*/ \
+				/*SetClassMember(this,8,(__int64)pWnd); /*pParentWindow*/ \
+			} \
+			struct _CSIDLWND *GetFirstChildWnd() \
+			{ \
+				return pFirstChildWnd; /*pFirstChildWnd*/ \
+				/*return (struct _CSIDLWND *)GetClassMember(this,9); /*pFirstChildWnd*/ \
+			} \
+			struct _CSIDLWND *GetNextSiblingWnd() \
+			{ \
+				return pNextSiblingWnd; /*pNextSiblingWnd*/ \
+				/*return (struct _CSIDLWND *)GetClassMember(this,10); /*pNextSiblingWnd*/ \
+			} \
+			int GetVScrollMax() \
+			{ \
+				return VScrollMax; /*VScrollMax*/ \
+				/*return (int)GetClassMember(this,11); /*VScrollMax*/ \
+			} \
+			int GetVScrollPos() \
+			{ \
+				return VScrollPos; /*VScrollPos*/ \
+				/*return (int)GetClassMember(this,12); /*VScrollPos*/ \
+			} \
+			int GetHScrollMax() \
+			{ \
+				return HScrollMax; /*HScrollMax*/ \
+				/*return (int)GetClassMember(this,13); /*HScrollMax*/ \
+			} \
+			int GetHScrollPos() \
+			{ \
+				return HScrollPos; /*HScrollPos*/ \
+				/*return (int)GetClassMember(this,14); /*HScrollPos*/ \
+			} \
+			bool IsMinimized() \
+			{ \
+				return Minimized; /*Minimized*/ \
+				/*return GetClassMember(this,15) ? true:false; /*Minimized*/ \
+			} \
+			bool IsMouseOver() \
+			{ \
+				return MouseOver; /*MouseOver*/ \
+				/*return GetClassMember(this,16) ? true:false; /*MouseOver*/ \
+			} \
+			RECT GetLocation() \
+			{ \
+				return Location; /*Location*/ \
+				/*RECT ret = *(RECT*)GetClassMember(this,17); /*Location*/ \
+				/*return ret;*/ \
+			} \
+			void SetLocation(RECT rc) /*left top right bottom*/ \
+			{ \
+				Location = rc; /*Location*/ \
+				/*SetClassMember(this,17,(__int64)&rc); /*Location*/ \
+			} \
+			RECT GetOldLocation() \
+			{ \
+				return OldLocation; \
+				/*RECT ret = *(RECT*)GetClassMember(this,18); /*OldLocation*/ \
+				/*return ret;*/ \
+			} \
+			void SetNeedsSaving(bool bValue) \
+			{ \
+				bNeedsSaving = bValue; /*bNeedsSaving*/ \
+				/*SetClassMember(this,19,bValue); /*bNeedsSaving*/ \
+			} \
+			void SetClientRectChanged(bool bValue) \
+			{ \
+				bClientRectChanged = bValue; \
+				/*SetClassMember(this,20,bValue); /*bClientRectChanged*/ \
+			} \
+			void CSetWindowText(char*Value) \
+			{ \
+				SetCCXStr(&WindowText,Value); /*WindowText*/ \
+				/*SetClassMember(this,21,(__int64)Value); /*WindowText*/ \
+			} \
+			struct _CXSTR* CGetWindowText() \
+			{ \
+				return WindowText; /*WindowText*/ \
+				/*return (struct _CXSTR*)GetClassMember(this,21); /*WindowText*/ \
+			} \
+			void SetTooltip(char*Value) \
+			{ \
+				SetCCXStr(&Tooltip,Value); /*Tooltip*/ \
+				/*SetClassMember(this,22,(__int64)Value); /*Tooltip*/ \
+			} \
+			struct _CXSTR* GetTooltip() \
+			{ \
+				return Tooltip; /*Tooltip*/ \
+				/*return (struct _CXSTR*)GetClassMember(this,22); /*Tooltip*/ \
+			} \
+			DWORD GetBGColor() \
+			{ \
+				return BGColor; /*BGColor*/ \
+				/*return (DWORD)GetClassMember(this,23); /*BGColor*/ \
+			} \
+			void SetBGColor(COLORREF Value) \
+			{ \
+				BGColor = Value; /*BGColor*/ \
+				/*SetClassMember(this,23,Value); /*BGColor*/ \
+			} \
+			void SetDisabledBackground(COLORREF Value) \
+			{ \
+				DisabledBackground = Value; /*DisabledBackground*/ \
+				/*SetClassMember(this,24,Value); /*DisabledBackground*/ \
+			} \
+			bool IsEnabled() \
+			{ \
+				return Enabled; /*Enabled*/ \
+				/*return GetClassMember(this,25) ? true:false; /*Enabled*/ \
+			} \
+			void SetEnabled(bool bValue) \
+			{ \
+				Enabled = bValue; /*Enabled*/ \
+				/*SetClassMember(this,25,bValue); /*Enabled*/ \
+			} \
+			DWORD GetWindowStyle() \
+			{ \
+				return WindowStyle; /*WindowStyle*/ \
+				/*return (DWORD)GetClassMember(this,26); /*WindowStyle*/ \
+			} \
+			void SetWindowStyle(DWORD Value) \
+			{ \
+				WindowStyle = Value; /*WindowStyle*/ \
+				/*SetClassMember(this,26,Value); /*WindowStyle*/ \
+			} \
+			void SetClipToParent(bool bValue) \
+			{ \
+				bClipToParent = bValue; /*bClipToParent*/ \
+				/*SetClassMember(this,27,bValue); /*bClipToParent*/ \
+			} \
+			void SetUseInLayoutHorizontal(bool bValue) \
+			{ \
+				bUseInLayoutHorizontal = bValue; /*bUseInLayoutHorizontal*/ \
+				/*SetClassMember(this,28,bValue); /*bUseInLayoutHorizontal*/ \
+			} \
+			void SetUseInLayoutVertical(bool bValue) \
+			{ \
+				bUseInLayoutVertical = bValue; /*bUseInLayoutVertical*/ \
+				/*SetClassMember(this,29,bValue); /*bUseInLayoutVertical*/ \
+			} \
+			void AddStyle(DWORD Value) \
+			{ \
+				WindowStyle|=Value; /*WindowStyle*/ \
+				/*SetClassMember(this,30,Value); /*WindowStyle*/ \
+			} \
+			void RemoveStyle(DWORD Value) \
+			{ \
+				WindowStyle &= ~Value; /*WindowStyle*/ \
+				/*SetClassMember(this,31,Value); /*WindowStyle*/ \
+			} \
+			void SetZLayer(int Value) \
+			{ \
+				ZLayer = Value; /*ZLayer*/ \
+				/*SetClassMember(this,32,Value); /*ZLayer*/ \
+			} \
+			int GetZLayer() \
+			{ \
+				return ZLayer; /*ZLayer*/ \
+				/*return (int)GetClassMember(this,32); /*ZLayer*/ \
+			} \
+			void *GetDrawTemplate() \
+			{ \
+				return DrawTemplate; /*DrawTemplate*/ \
+				/*return (void*)GetClassMember(this,33); /*DrawTemplate*/ \
+			} \
+			void SetActive(bool bValue) \
+			{ \
+				bActive = bValue; /*bActive*/ \
+				/*SetClassMember(this,34,bValue); /*bActive*/ \
+			} \
+			void SetLocked(bool bValue) \
+			{ \
+				Locked = bValue; /*Locked*/ \
+				/*SetClassMember(this,35,bValue); /*Locked*/ \
+			} \
+			bool IsLocked() \
+			{ \
+				return Locked; /*Locked*/ \
+				/*return GetClassMember(this,35) ? true:false; /*Locked*/ \
+			} \
+			void SetFades(bool bValue) \
+			{ \
+				Fades = bValue; /*Fades*/ \
+				/*SetClassMember(this,36,bValue); /*Fades*/ \
+			} \
+			bool GetFades() \
+			{ \
+				return Fades; /*Fades*/ \
+				/*return GetClassMember(this,36) ? true:false; /*Fades*/ \
+			} \
+			void SetFaded(bool bValue) \
+			{ \
+				Faded = bValue; /*Faded*/ \
+				/*SetClassMember(this,37,bValue); /*Faded*/ \
+			} \
+			bool GetFaded() \
+			{ \
+				return Faded; /*Faded*/ \
+				/*return GetClassMember(this,37) ? true:false; /*Faded*/ \
+			} \
+			void SetFadeDelay(int Value) \
+			{ \
+				FadeDelay = Value; /*FadeDelay*/ \
+				/*SetClassMember(this,38,Value); /*FadeDelay*/ \
+			} \
+			int GetFadeDelay() \
+			{ \
+				return FadeDelay; /*FadeDelay*/ \
+				/*return (int)GetClassMember(this,38); /*FadeDelay*/ \
+			} \
+			void SetBGType(DWORD Value) \
+			{ \
+				BGType = Value; /*BGType*/ \
+				/*SetClassMember(this,39,Value); /*BGType*/ \
+			} \
+			DWORD GetBGType() \
+			{ \
+				return BGType; /*BGType*/ \
+				/*return (DWORD)GetClassMember(this,39); /*BGType*/ \
+			} \
+			void SetFadeDuration(UINT Value) \
+			{ \
+				FadeDuration = Value; /*FadeDuration*/ \
+				/*SetClassMember(this,40,Value); /*FadeDuration*/ \
+			} \
+			UINT GetFadeDuration() \
+			{ \
+				return FadeDuration; /*FadeDuration*/ \
+				/*return (UINT)GetClassMember(this,40); /*FadeDuration*/ \
+			} \
+			void SetAlpha(BYTE Value) \
+			{ \
+				Alpha = Value; /*Alpha*/ \
+				/*SetClassMember(this,41,Value); /*Alpha*/ \
+			} \
+			BYTE GetAlpha() \
+			{ \
+				return Alpha; /*Alpha*/ \
+				/*return (BYTE)GetClassMember(this,41); /*Alpha*/ \
+			} \
+			void SetFadeToAlpha(BYTE Value) \
+			{ \
+				FadeToAlpha = Value; /*FadeToAlpha*/ \
+				/*SetClassMember(this,42,Value); /*FadeToAlpha*/ \
+			} \
+			BYTE GetFadeToAlpha() \
+			{ \
+				return FadeToAlpha; /*FadeToAlpha*/ \
+				/*return (BYTE)GetClassMember(this,42); /*FadeToAlpha*/ \
+			} \
+			bool GetClickable() \
+			{ \
+				return Clickable; /*Clickable*/ \
+				/*return GetClassMember(this,43) ? true:false; /*Clickable*/ \
+			} \
+			void SetClickable(bool bValue) \
+			{ \
+				Clickable = bValue; /*Clickable*/ \
+				/*SetClassMember(this,43,bValue); /*Clickable*/ \
+			} \
+			void SetData(__int64 Value) \
+			{ \
+				Data = Value; /*Data*/ \
+				/*SetClassMember(this,44,Value); /*Data*/ \
+			} \
+			__int64 GetData() \
+			{ \
+				return Data; /*Data*/ \
+				/*return GetClassMember(this,44); /*Data*/ \
+			} \
+			void SetClickThroughMenuItemStatus(bool bValue) \
+			{ \
+				bClickThroughMenuItemStatus = bValue; /*bClickThroughMenuItemStatus*/ \
+				/*SetClassMember(this,45,bValue); /*bClickThroughMenuItemStatus*/ \
+			} \
+			void SetController(void* Value) \
+			{ \
+				pController = Value; /*pController*/ \
+				/*SetClassMember(this,46,(__int64)Value); /*pController*/ \
+			} \
+			void SetShowClickThroughMenuItem(bool bValue) \
+			{ \
+				bShowClickThroughMenuItem = bValue; /*bShowClickThroughMenuItem*/ \
+				/*SetClassMember(this,47,bValue); /*bShowClickThroughMenuItem*/ \
+			} \
+			void SetBottomAnchoredToTop(bool bValue) \
+			{ \
+				bBottomAnchoredToTop = bValue; /*bBottomAnchoredToTop*/ \
+				/*SetClassMember(this,48,bValue); /*bBottomAnchoredToTop*/ \
+			} \
+			void SetLeftAnchoredToLeft(bool bValue) \
+			{ \
+				bLeftAnchoredToLeft = bValue; /*bLeftAnchoredToLeft*/ \
+				/*SetClassMember(this,49,bValue); /*bLeftAnchoredToLeft*/ \
+			} \
+			void SetRightAnchoredToLeft(bool bValue) \
+			{ \
+				bRightAnchoredToLeft = bValue; /*bRightAnchoredToLeft*/ \
+				/*SetClassMember(this,50,bValue); /*bRightAnchoredToLeft*/ \
+			} \
+			void SetTopAnchoredToTop(bool bValue) \
+			{ \
+				bTopAnchoredToTop = bValue; /*bTopAnchoredToTop*/ \
+				/*SetClassMember(this,51,bValue); /*bTopAnchoredToTop*/ \
+			} \
+			void SetTopOffset(int Value) \
+			{ \
+				TopOffset = Value; /*TopOffset*/ \
+				/*SetClassMember(this,52,Value); /*TopOffset*/ \
+			} \
+			int GetTopOffset() \
+			{ \
+				return TopOffset; /*TopOffset*/ \
+				/*return (int)GetClassMember(this,52); /*TopOffset*/ \
+			} \
+			void SetBottomOffset(int Value) \
+			{ \
+				BottomOffset = Value; /*BottomOffset*/ \
+				/*SetClassMember(this,53,Value); /*BottomOffset*/ \
+			} \
+			int GetBottomOffset() \
+			{ \
+				return BottomOffset; /*BottomOffset*/ \
+				/*return (int)GetClassMember(this,53); /*BottomOffset*/ \
+			} \
+			void SetLeftOffset(int Value) \
+			{ \
+				LeftOffset = Value; /*LeftOffset*/ \
+				/*SetClassMember(this,54,Value); /*LeftOffset*/ \
+			} \
+			int GetLeftOffset() \
+			{ \
+				return LeftOffset; /*LeftOffset*/ \
+				/*return (int)GetClassMember(this,54); /*LeftOffset*/ \
+			} \
+			void SetRightOffset(int Value) \
+			{ \
+				RightOffset = Value; /*RightOffset*/ \
+				/*SetClassMember(this,55,Value); /*RightOffset*/ \
+			} \
+			int GetRightOffset() \
+			{ \
+				return RightOffset; /*RightOffset*/ \
+				/*return (int)GetClassMember(this,55); /*RightOffset*/ \
+			} \
+			int GetXMLIndex() \
+			{ \
+				return XMLIndex; /*XMLIndex*/ \
+				/*return (int)GetClassMember(this,56); /*XMLIndex*/ \
+			} \
+			struct _CXSTR* GetXMLToolTip() \
+			{ \
+				return XMLToolTip; /*XMLToolTip*/ \
+				/*return (struct _CXSTR*)GetClassMember(this,57); /*XMLToolTip*/ \
+			} \
+			void SetCRNormal(COLORREF Value) \
+			{ \
+				CRNormal = Value; /*CRNormal*/ \
+				/*SetClassMember(this,58,Value); /*CRNormal*/ \
+			} \
+/*0x01E4*/
 
 
 #define CXW \

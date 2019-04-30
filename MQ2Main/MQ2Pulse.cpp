@@ -282,7 +282,7 @@ void Pulse()
 	}
 	if (!pTarget)
 		gTargetbuffs = FALSE;
-	if (pMerchantWnd && pMerchantWnd->dShow==false)
+	if (pMerchantWnd && pMerchantWnd->IsVisible()==false)
 		gItemsReceived = FALSE;
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
@@ -311,7 +311,8 @@ void Pulse()
 				oldcameratype = *(DWORD*)CDisplay__cameraType;
 				sprintf_s(CameraText, "Selector Window (Camera %d)", oldcameratype);
 			}
-			SetCXStr(&pSelectorWnd->WindowText, CameraText);
+			pSelectorWnd->CSetWindowText(CameraText);
+			//SetCXStr(&pSelectorWnd->WindowText, CameraText);
 		}
 	}
 	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
@@ -711,7 +712,7 @@ BOOL Detour_ProcessGameEvents(VOID)
 		#endif
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
-	} else if(ret==1) {
+	} else if(ret==1 && g_Loaded) {
 		OutputDebugString("I am unloading in ProcessGameEvents");
 		//we are unloading stuff
 		DWORD oldscreenmode = ScreenMode;
@@ -727,11 +728,6 @@ BOOL Detour_ProcessGameEvents(VOID)
 
 	}
 #endif
-	}
-	//__except (filterException(GetExceptionInformation()))
-	{
-		//MessageBox(NULL, "Exception caught in Detour_ProcessGameEvents", "", MB_SYSTEMMODAL | MB_OK);
-		//return 0;
 	}
 	DebugTryEnd();
 	return ret2;
@@ -922,15 +918,14 @@ void InitializeMQ2Pulse()
 void ShutdownMQ2Pulse()
 {
 	EnterCriticalSection(&gPulseCS);
-	RemoveLoginPulse();
-	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
-	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);
 	RemoveDetour((DWORD)ProcessGameEvents);
+	RemoveLoginPulse();
 	RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);
-	//RemoveDetour(__GameLoop);
-	
+	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
+	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);
 	LeaveCriticalSection(&gPulseCS);
+	//RemoveDetour(__GameLoop);
 	DeleteCriticalSection(&gPulseCS);
 }
 #endif

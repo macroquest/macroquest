@@ -158,6 +158,8 @@ void LoadPHs(char*szMyName) {
 				if (char *pDest2 = strchr(pDest, '^')) {
 					pDest2[0] = '\0';
 					phs = pDest;
+					if (phs == "an old tyrannosaurus")
+						Sleep(0);
 					*pDest2++;
 					if (pDest = strchr(pDest2, '^')) {
 						pDest[0] = '\0';
@@ -168,6 +170,9 @@ void LoadPHs(char*szMyName) {
 							phinf.Zone = pDest;
 							pDest2++;
 							if (pDest = strchr(pDest2, '\r')) {
+								pDest[0] = '\0';
+							}
+							if (pDest = strchr(pDest2, '\n')) {
 								pDest[0] = '\0';
 							}
 							phinf.Link = pDest2;
@@ -268,18 +273,19 @@ bool CreateDistLabel(CGroupWnd *pGwnd, CControlTemplate *DistLabelTemplate, CLab
 		(*labelwnd)->Location.right = 0;
 		(*labelwnd)->Location.top = 0;
 */
-		(*labelwnd)->TopOffset = top;
-		(*labelwnd)->BottomOffset = bottom;
-		(*labelwnd)->LeftOffset = left;
-		(*labelwnd)->RightOffset = right;
-		(*labelwnd)->CRNormal = 0xFF00FF00;//green
-		(*labelwnd)->BGColor = 0xFFFFFFFF;
-		SetCXStr(&(*labelwnd)->Tooltip, szGroupDistance);
-		(*labelwnd)->dShow = bShow;
+		(*labelwnd)->SetTopOffset(top);
+		(*labelwnd)->SetBottomOffset(bottom);
+		(*labelwnd)->SetLeftOffset(left);
+		(*labelwnd)->SetRightOffset(right);
+		(*labelwnd)->SetCRNormal(0xFF00FF00);//green
+		(*labelwnd)->SetBGColor(0xFFFFFFFF);
+		(*labelwnd)->SetTooltip(szGroupDistance);
+		//SetCXStr(&(*labelwnd)->Tooltip, szGroupDistance);
+		(*labelwnd)->SetVisible(bShow);
 		(*labelwnd)->bNoWrap = true;
-		(*labelwnd)->bLeftAnchoredToLeft = true;
-		(*labelwnd)->bRightAnchoredToLeft;
-		(*labelwnd)->WindowStyle;
+		(*labelwnd)->SetLeftAnchoredToLeft(true);
+		//(*labelwnd)->bRightAnchoredToLeft;
+		//(*labelwnd)->WindowStyle;
 /*new stuff
 		(*labelwnd)->bNoWrap = true;
 		(*labelwnd)->bLeftAnchoredToLeft = true;
@@ -328,16 +334,18 @@ void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **butto
 	SetCXStr(&Template->ScreenID, labelscreen);
 	if (*button = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, Template)) {
 
-		(*button)->dShow = true;
-		(*button)->TopOffset = top;
-		(*button)->BottomOffset = bottom;
-		(*button)->LeftOffset = left;
-		(*button)->RightOffset = right;
-		(*button)->CRNormal = color;
-		(*button)->BGColor = bgcolor;
-		SetCXStr(&(*button)->WindowText, text);
-		SetCXStr(&(*button)->Tooltip, tooltip);
-		(*button)->dShow = bShow;
+		(*button)->SetVisible(true);
+		(*button)->SetTopOffset(top);
+		(*button)->SetBottomOffset(bottom);
+		(*button)->SetLeftOffset(left);
+		(*button)->SetRightOffset(right);
+		(*button)->SetCRNormal(color);
+		(*button)->SetBGColor(bgcolor);
+		(*button)->CSetWindowText(text);
+		//SetCXStr(&(*button)->WindowText, text);
+		(*button)->SetTooltip(tooltip);
+		//SetCXStr(&(*button)->Tooltip, tooltip);
+		(*button)->SetVisible(bShow);
 	}
 }
 bool gBUsePerCharSettings = FALSE;
@@ -354,24 +362,24 @@ void CreateGroupHotButton(CGroupWnd*pGwnd, CControlTemplate *Template, CHotButto
 	(*button)->BarIndex = 9;
 	(*button)->ButtonIndex = buttonindex;
 	(*button)->SetButtonSize(100, true);
-	(*button)->bUseInLayoutVertical = true;
+	(*button)->SetUseInLayoutVertical(true);
 					
-	(*button)->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
-	(*button)->bClipToParent = true;
-	(*button)->bUseInLayoutHorizontal = true;
-	(*button)->bLeftAnchoredToLeft = true;
-	(*button)->bRightAnchoredToLeft = true;
-	(*button)->bTopAnchoredToTop = false;
-	(*button)->bBottomAnchoredToTop = false;
+	(*button)->SetWindowStyle(WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT);
+	(*button)->SetClipToParent(true);
+	(*button)->SetUseInLayoutHorizontal(true);
+	(*button)->SetLeftAnchoredToLeft(true);
+	(*button)->SetRightAnchoredToLeft(true);
+	(*button)->SetTopAnchoredToTop(false);
+	(*button)->SetBottomAnchoredToTop(false);
 					
-	(*button)->TopOffset = top;
-	(*button)->BottomOffset = bottom;
-	(*button)->LeftOffset = left;
-	(*button)->RightOffset = right;
+	(*button)->SetTopOffset(top);
+	(*button)->SetBottomOffset(bottom);
+	(*button)->SetLeftOffset(left);
+	(*button)->SetRightOffset(right);
 
-	(*button)->CRNormal = 0xFF00FFFF;
-	(*button)->BGColor = 0xFFFFFFFF;
-	(*button)->dShow = gBShowHotButtons;
+	(*button)->SetCRNormal(0xFF00FFFF);
+	(*button)->SetBGColor(0xFFFFFFFF);
+	(*button)->SetVisible(gBShowHotButtons);
 }
 
 void RemoveOurMenu(CGroupWnd*pGwnd)
@@ -863,22 +871,23 @@ void Initialize()
 			pGwnd->Location.left = atoi(szLocs[2]);
 			pGwnd->Location.right = atoi(szLocs[3]);
 			*/
-			orgwstyle = pGwnd->WindowStyle;
+			orgwstyle = pGwnd->GetWindowStyle();
 			if (orgwstyle & WSF_TITLEBAR)
 			{
-				pGwnd->WindowStyle |= ( WSF_SIZABLE | WSF_BORDER );
+				pGwnd->AddStyle(WSF_SIZABLE | WSF_BORDER );
 			}
 			else {
-				pGwnd->WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
+				pGwnd->AddStyle(WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
 			}
-			SetCXStr(&pGwnd->Tooltip, szMMainTip);
+			pGwnd->SetTooltip(szMMainTip);
+			//SetCXStr(&pGwnd->Tooltip, szMMainTip);
 			if (pGwnd->GroupContextMenu)
 			{
-				pGwnd->GroupContextMenu->CRNormal = 0xFF000000;
+				pGwnd->GroupContextMenu->SetCRNormal(0xFF000000);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-				pGwnd->GroupContextMenu->DisabledBackground = 0xFF000000;
+				pGwnd->GroupContextMenu->SetDisabledBackground(0xFF000000);
 #endif
-				pGwnd->GroupContextMenu->BGColor = 0xFF000000;
+				pGwnd->GroupContextMenu->SetBGColor(0xFF000000);
 			}
 			//AddOurMenu(pGwnd);
 			GW_Gauge1 = (CGaugeWnd*)((CXWnd*)pGwnd)->GetChildItem("Gauge1");
@@ -938,49 +947,49 @@ void Initialize()
 					sprintf_s(szLoc, "%s1",szOutLoc);
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s2", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s3", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s4", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
 					}
 					sprintf_s(szLoc, "%s5", szOutLoc);
 					GroupDistanceOffset += GroupDistanceOffset;
 					if (CXWnd*wnd = (CXWnd*)((CXWnd*)pGwnd)->GetChildItem(szLoc))
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, wnd->Location.top + ttop + GroupDistanceOffset, wnd->Location.bottom + tbottom, wnd->Location.left + tleft, wnd->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
 					}
 				}
 				else {
 					if (isDynamic)
 					{
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->TopOffset + ttop, GW_Gauge1->BottomOffset + tbottom, GW_Gauge1->LeftOffset + tleft, GW_Gauge1->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->TopOffset + ttop, GW_Gauge2->BottomOffset + tbottom, GW_Gauge2->LeftOffset + tleft, GW_Gauge2->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->TopOffset + ttop, GW_Gauge3->BottomOffset + tbottom, GW_Gauge3->LeftOffset + tleft, GW_Gauge3->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->TopOffset + ttop, GW_Gauge4->BottomOffset + tbottom, GW_Gauge4->LeftOffset + tleft, GW_Gauge4->RightOffset + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->TopOffset + ttop, GW_Gauge5->BottomOffset + tbottom, GW_Gauge5->LeftOffset + tleft, GW_Gauge5->RightOffset + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->GetTopOffset() + ttop, GW_Gauge1->GetBottomOffset() + tbottom, GW_Gauge1->GetLeftOffset() + tleft, GW_Gauge1->GetRightOffset() + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->GetTopOffset() + ttop, GW_Gauge2->GetBottomOffset() + tbottom, GW_Gauge2->GetLeftOffset() + tleft, GW_Gauge2->GetRightOffset() + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->GetTopOffset() + ttop, GW_Gauge3->GetBottomOffset() + tbottom, GW_Gauge3->GetLeftOffset() + tleft, GW_Gauge3->GetRightOffset() + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->GetTopOffset() + ttop, GW_Gauge4->GetBottomOffset() + tbottom, GW_Gauge4->GetLeftOffset() + tleft, GW_Gauge4->GetRightOffset() + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->GetTopOffset() + ttop, GW_Gauge5->GetBottomOffset() + tbottom, GW_Gauge5->GetLeftOffset() + tleft, GW_Gauge5->GetRightOffset() + tright, true, gBShowDistance);
 					}
 					else
 					{
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->Location.top + ttop, GW_Gauge1->Location.bottom + tbottom, GW_Gauge1->Location.left + tleft, GW_Gauge1->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->Location.top + ttop, GW_Gauge2->Location.bottom + tbottom, GW_Gauge2->Location.left + tleft, GW_Gauge2->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->Location.top + ttop, GW_Gauge3->Location.bottom + tbottom, GW_Gauge3->Location.left + tleft, GW_Gauge3->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->Location.top + ttop, GW_Gauge4->Location.bottom + tbottom, GW_Gauge4->Location.left + tleft, GW_Gauge4->Location.right + tright, true, gBShowDistance);
-						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->Location.top + ttop, GW_Gauge5->Location.bottom + tbottom, GW_Gauge5->Location.left + tleft, GW_Gauge5->Location.right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->GetLocation().top + ttop, GW_Gauge1->GetLocation().bottom + tbottom, GW_Gauge1->GetLocation().left + tleft, GW_Gauge1->GetLocation().right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->GetLocation().top + ttop, GW_Gauge2->GetLocation().bottom + tbottom, GW_Gauge2->GetLocation().left + tleft, GW_Gauge2->GetLocation().right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->GetLocation().top + ttop, GW_Gauge3->GetLocation().bottom + tbottom, GW_Gauge3->GetLocation().left + tleft, GW_Gauge3->GetLocation().right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->GetLocation().top + ttop, GW_Gauge4->GetLocation().bottom + tbottom, GW_Gauge4->GetLocation().left + tleft, GW_Gauge4->GetLocation().right + tright, true, gBShowDistance);
+						CreateDistLabel(pGwnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->GetLocation().top + ttop, GW_Gauge5->GetLocation().bottom + tbottom, GW_Gauge5->GetLocation().left + tleft, GW_Gauge5->GetLocation().right + tright, true, gBShowDistance);
 					}
 				}
 
@@ -1069,50 +1078,50 @@ void Initialize()
 		}
 		//setup the targetinfo
 		if (PCTARGETWND pTwnd = (PCTARGETWND)pTargetWnd) {
-			orgTargetWindStyle = pTwnd->Wnd.WindowStyle;
+			orgTargetWindStyle = pTwnd->Wnd.GetWindowStyle();
 			//org style for default ui is 0x00200a40
 			if (orgTargetWindStyle & WSF_TITLEBAR)
 			{
-				pTwnd->Wnd.WindowStyle |= (WSF_SIZABLE | WSF_BORDER);
+				pTwnd->Wnd.AddStyle(WSF_SIZABLE | WSF_BORDER);
 			}
 			else {
 				if (TargetInfoWindowStyle == 0)
 				{
-					pTwnd->Wnd.WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
+					pTwnd->Wnd.AddStyle(WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
 				}
 				else {
-					pTwnd->Wnd.WindowStyle = TargetInfoWindowStyle;
+					pTwnd->Wnd.SetWindowStyle(TargetInfoWindowStyle);
 				}
 			}
 			if (Target_AggroPctPlayerLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctPlayerLabel"))
 			{
-				Target_AggroPctPlayerLabel->BGColor = 0xFF00000;
-				Target_AggroPctPlayerLabel_TopOffsetOrg = Target_AggroPctPlayerLabel->TopOffset;
-				Target_AggroPctPlayerLabel->TopOffset = dTopOffset;
-				Target_AggroPctPlayerLabel_BottomOffsetOrg = Target_AggroPctPlayerLabel->BottomOffset;
-				Target_AggroPctPlayerLabel->BottomOffset = dBottomOffset;
+				Target_AggroPctPlayerLabel->SetBGColor(0xFF00000);
+				Target_AggroPctPlayerLabel_TopOffsetOrg = Target_AggroPctPlayerLabel->GetTopOffset();
+				Target_AggroPctPlayerLabel->SetTopOffset(dTopOffset);
+				Target_AggroPctPlayerLabel_BottomOffsetOrg = Target_AggroPctPlayerLabel->GetBottomOffset();
+				Target_AggroPctPlayerLabel->SetBottomOffset(dBottomOffset);
 			}
 			if (Target_AggroNameSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroNameSecondaryLabel"))
 			{
-				Target_AggroNameSecondaryLabel->BGColor = 0xFF00000;
-				Target_AggroNameSecondaryLabel_TopOffsetOrg = Target_AggroNameSecondaryLabel->TopOffset;
-				Target_AggroNameSecondaryLabel->TopOffset = dTopOffset;
-				Target_AggroNameSecondaryLabel_BottomOffsetOrg = Target_AggroNameSecondaryLabel->BottomOffset;
-				Target_AggroNameSecondaryLabel->BottomOffset = dBottomOffset;
+				Target_AggroNameSecondaryLabel->SetBGColor(0xFF00000);
+				Target_AggroNameSecondaryLabel_TopOffsetOrg = Target_AggroNameSecondaryLabel->GetTopOffset();
+				Target_AggroNameSecondaryLabel->SetTopOffset(dTopOffset);
+				Target_AggroNameSecondaryLabel_BottomOffsetOrg = Target_AggroNameSecondaryLabel->GetBottomOffset();
+				Target_AggroNameSecondaryLabel->SetBottomOffset(dBottomOffset);
 			}
 			if (Target_AggroPctSecondaryLabel = (CLabelWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_AggroPctSecondaryLabel"))
 			{
-				Target_AggroPctSecondaryLabel->BGColor = 0xFF00000;
-				Target_AggroPctSecondaryLabel_TopOffsetOrg = Target_AggroPctSecondaryLabel->TopOffset;
-				Target_AggroPctSecondaryLabel->TopOffset = dTopOffset;
-				Target_AggroPctSecondaryLabel_BottomOffsetOrg = Target_AggroPctSecondaryLabel->BottomOffset;
-				Target_AggroPctSecondaryLabel->BottomOffset = dBottomOffset;
+				Target_AggroPctSecondaryLabel->SetBGColor(0xFF00000);
+				Target_AggroPctSecondaryLabel_TopOffsetOrg = Target_AggroPctSecondaryLabel->GetTopOffset();
+				Target_AggroPctSecondaryLabel->SetTopOffset(dTopOffset);
+				Target_AggroPctSecondaryLabel_BottomOffsetOrg = Target_AggroPctSecondaryLabel->GetBottomOffset();
+				Target_AggroPctSecondaryLabel->SetBottomOffset(dBottomOffset);
 			}
 			if (Target_BuffWindow = (CSidlScreenWnd*)((CXWnd*)pTwnd)->GetChildItem("Target_BuffWindow"))
 			{
-				Target_BuffWindow->BGColor = 0xFF000000;
-				Target_BuffWindow_TopOffsetOld = Target_BuffWindow->TopOffset;
-				Target_BuffWindow->TopOffset = Target_BuffWindow_TopOffset;
+				Target_BuffWindow->SetBGColor(0xFF000000);
+				Target_BuffWindow_TopOffsetOld = Target_BuffWindow->GetTopOffset();
+				Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffset);
 			}
 			
 
@@ -1145,18 +1154,18 @@ void Initialize()
 					int anchoredright = atoi(szOutLoc);
 					if (anchoredright)
 					{
-						InfoLabel->bRightAnchoredToLeft = true;
-						InfoLabel->bLeftAnchoredToLeft = false;
+						InfoLabel->SetRightAnchoredToLeft(true);
+						InfoLabel->SetLeftAnchoredToLeft(false);
 					}
 					else {
-						InfoLabel->bRightAnchoredToLeft = false;
-						InfoLabel->bLeftAnchoredToLeft = true;
+						InfoLabel->SetRightAnchoredToLeft(false);
+						InfoLabel->SetLeftAnchoredToLeft(true);
 					}
-					InfoLabel->dShow = true;
-					InfoLabel->bUseInLayoutVertical = true;
-					InfoLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
-					InfoLabel->bClipToParent = true;
-					InfoLabel->bUseInLayoutHorizontal = true;
+					InfoLabel->SetVisible(true);
+					InfoLabel->SetUseInLayoutVertical(true);
+					InfoLabel->SetWindowStyle(WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT);
+					InfoLabel->SetClipToParent(true);
+					InfoLabel->SetUseInLayoutHorizontal(true);
 					InfoLabel->bAlignCenter = false;
 					InfoLabel->bAlignRight = false;
 					sprintf_s(szLoc, "%d,%d,%d,%d",34,48,0,40);
@@ -1175,14 +1184,15 @@ void Initialize()
 							j++;
 						}
 					}
-					InfoLabel->TopOffset = atoi(szLocs[0]);
-					InfoLabel->BottomOffset = atoi(szLocs[1]);
-					InfoLabel->LeftOffset = atoi(szLocs[2]);
-					InfoLabel->RightOffset = atoi(szLocs[3]);
+					InfoLabel->SetTopOffset(atoi(szLocs[0]));
+					InfoLabel->SetBottomOffset(atoi(szLocs[1]));
+					InfoLabel->SetLeftOffset(atoi(szLocs[2]));
+					InfoLabel->SetRightOffset(atoi(szLocs[3]));
 
-					InfoLabel->CRNormal = 0xFF00FF00;//green
-					InfoLabel->BGColor = 0xFFFFFFFF;
-					SetCXStr(&InfoLabel->Tooltip, szTargetInfo);
+					InfoLabel->SetCRNormal(0xFF00FF00);//green
+					InfoLabel->SetBGColor(0xFFFFFFFF);
+					InfoLabel->SetTooltip(szTargetInfo);
+					//SetCXStr(&InfoLabel->Tooltip, szTargetInfo);
 				}
 				//create the distance label
 				SetCXStr(&DistLabelTemplate->Name, "Target_DistLabel");
@@ -1218,45 +1228,47 @@ void Initialize()
 				SetCXStr(&CanSeeLabelTemplate->Name, "Target_CanSeeLabel");
 				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_CanSeeLabel");
 				if (CanSeeLabel = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, CanSeeLabelTemplate)) {
-					CanSeeLabel->dShow = true;
+					CanSeeLabel->SetVisible(true);
 					CanSeeLabel->bNoWrap = true;
-					CanSeeLabel->WindowStyle = WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT;
-					CanSeeLabel->bLeftAnchoredToLeft = true;
-					CanSeeLabel->bRightAnchoredToLeft = false;
-					CanSeeLabel->bBottomAnchoredToTop = true;
-					CanSeeLabel->bTopAnchoredToTop = true;
+					CanSeeLabel->SetWindowStyle(WSF_AUTOSTRETCHH|WSF_TRANSPARENT|WSF_AUTOSTRETCHV|WSF_RELATIVERECT);
+					CanSeeLabel->SetLeftAnchoredToLeft(true);
+					CanSeeLabel->SetRightAnchoredToLeft(false);
+					CanSeeLabel->SetBottomAnchoredToTop(true);
+					CanSeeLabel->SetTopAnchoredToTop(true);
 					CanSeeLabel->bAlignCenter = true;
 					CanSeeLabel->bAlignRight = false;
-					CanSeeLabel->TopOffset = CanSeeTopOffset;
-					CanSeeLabel->TopOffset += 10;
-					CanSeeLabel->BottomOffset = CanSeeBottomOffset;
-					CanSeeLabel->BottomOffset += 10;
-					CanSeeLabel->LeftOffset = dLeftOffset;
-					CanSeeLabel->RightOffset = dLeftOffset;
-					CanSeeLabel->CRNormal = 0xFF00FF00;//green
-					CanSeeLabel->BGColor = 0xFFFFFFFF;
-					SetCXStr(&CanSeeLabel->Tooltip, szCanSeeTarget);
+					CanSeeLabel->SetTopOffset(CanSeeTopOffset);
+					CanSeeLabel->SetTopOffset( CanSeeLabel->GetTopOffset() + 10);
+					CanSeeLabel->SetBottomOffset(CanSeeBottomOffset);
+					CanSeeLabel->SetBottomOffset( CanSeeLabel->GetBottomOffset() + 10);
+					CanSeeLabel->SetLeftOffset(dLeftOffset);
+					CanSeeLabel->SetRightOffset(dLeftOffset);
+					CanSeeLabel->SetCRNormal(0xFF00FF00);//green
+					CanSeeLabel->SetBGColor(0xFFFFFFFF);
+					CanSeeLabel->SetTooltip(szCanSeeTarget);
+					//SetCXStr(&CanSeeLabel->Tooltip, szCanSeeTarget);
 				}
 				//create PHButton
 				PHButtonTemplate->Font = 0;
 				if (PHButton = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pTwnd, PHButtonTemplate)) {
-					PHButton->dShow = false;
-					PHButton->bBottomAnchoredToTop = true;
-					PHButton->bLeftAnchoredToLeft = true;
-					PHButton->bRightAnchoredToLeft = false;
-					PHButton->bTopAnchoredToTop = true;
-					PHButton->TopOffset = CanSeeTopOffset + 1;
-					PHButton->BottomOffset = dTopOffset - 1;
-					PHButton->LeftOffset = 0;
-					PHButton->RightOffset = 0;
-					PHButton->Location.top = CanSeeTopOffset + 1;
-					PHButton->Location.bottom = PHButton->BottomOffset;
-					PHButton->Location.left = 2;
-					PHButton->Location.right = 20;
-					PHButton->CRNormal = 0xFF00FFFF;//cyan
-					PHButton->BGColor = 0xFFFFFFFF;
-					SetCXStr(&PHButton->Tooltip, szPHToolTip);
-					SetCXStr(&PHButton->WindowText, szPH);
+					PHButton->SetVisible(false);
+					PHButton->SetBottomAnchoredToTop(true);
+					PHButton->SetLeftAnchoredToLeft(true);
+					PHButton->SetRightAnchoredToLeft(false);
+					PHButton->SetTopAnchoredToTop(true);
+					PHButton->SetTopOffset(CanSeeTopOffset + 1);
+					PHButton->SetBottomOffset(dTopOffset - 1);
+					PHButton->SetLeftOffset(0);
+					PHButton->SetRightOffset(0);
+					//left top right bottom
+					PHButton->SetLocation({ 2,CanSeeTopOffset + 1,20,PHButton->GetBottomOffset() });
+					
+					PHButton->SetCRNormal(0xFF00FFFF);//cyan
+					PHButton->SetBGColor(0xFFFFFFFF);
+					PHButton->SetTooltip(szPHToolTip);
+					//SetCXStr(&PHButton->Tooltip, szPHToolTip);
+					PHButton->CSetWindowText(szPH);
+					//SetCXStr(&PHButton->WindowText, szPH);
 				}
 				//
 				//now set the template values back
@@ -1279,14 +1291,14 @@ void Initialize()
 		}
 		if (CXWnd*pExtWnd = FindMQ2Window("ExtendedTargetWnd"))
 		{
-			orgExtTargetWindStyle = pExtWnd->WindowStyle;
+			orgExtTargetWindStyle = pExtWnd->GetWindowStyle();
 			//org style for default ui is 0xe44
 			if (orgExtTargetWindStyle & WSF_TITLEBAR)
 			{
-				pExtWnd->WindowStyle |= (WSF_SIZABLE | WSF_BORDER);
+				pExtWnd->AddStyle(WSF_SIZABLE | WSF_BORDER);
 			}
 			else {
-				pExtWnd->WindowStyle |= (WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
+				pExtWnd->AddStyle(WSF_CLIENTMOVABLE | WSF_SIZABLE | WSF_BORDER);
 			}
 			CControlTemplate *DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			if (DistLabelTemplate) {
@@ -1328,17 +1340,17 @@ void Initialize()
 					if (ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp))
 					{
 						sprintf_s(szTemp, "ETW_DistLabel%d", i);
-						int top = ETW_Gauge[i]->TopOffset;
-						int bottom = ETW_Gauge[i]->BottomOffset;
-						int left = ETW_Gauge[i]->LeftOffset;
-						int right = ETW_Gauge[i]->RightOffset;
+						int top = ETW_Gauge[i]->GetTopOffset();
+						int bottom = ETW_Gauge[i]->GetBottomOffset();
+						int left = ETW_Gauge[i]->GetLeftOffset();
+						int right = ETW_Gauge[i]->GetRightOffset();
 
 						if (left==0 && top==0)//weird UI...
 						{
-							top = ETW_Gauge[i]->Location.top;
-							bottom = ETW_Gauge[i]->Location.bottom;
-							left = ETW_Gauge[i]->Location.left;
-							right = ETW_Gauge[i]->Location.right;
+							top = ETW_Gauge[i]->GetLocation().top;
+							bottom = ETW_Gauge[i]->GetLocation().bottom;
+							left = ETW_Gauge[i]->GetLocation().left;
+							right = ETW_Gauge[i]->GetLocation().right;
 						}
 						if (UseExtLayoutBox)
 						{
@@ -1495,9 +1507,9 @@ public:
 		if (Message==XWN_OUTPUT_TEXT)
 		{
 			if (pWnd && (
-				pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[0]
-				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[1]
-				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[2]
+				pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[0]
+				|| pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[1]
+				|| pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[2]
 				|| pWnd == (CXWnd*)GroupHotButton[0]
 				|| pWnd == (CXWnd*)GroupHotButton[1]
 				|| pWnd == (CXWnd*)GroupHotButton[2]
@@ -1515,9 +1527,9 @@ public:
 			
 			//return 1;
 			if (pWnd && (
-				pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[0]
-				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[1]
-				|| pWnd->pParentWindow == (PCSIDLWND)GroupHotButton[2]
+				pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[0]
+				|| pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[1]
+				|| pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[2]
 				|| pWnd == (CXWnd*)GroupHotButton[0]
 				|| pWnd == (CXWnd*)GroupHotButton[1]
 				|| pWnd == (CXWnd*)GroupHotButton[2]
@@ -1729,7 +1741,7 @@ public:
 					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
 					gBShowComeToMeButton ^= true;
 					pContextMenu->CheckMenuItem(iItemID,gBShowComeToMeButton);
-					NavButton->dShow = gBShowComeToMeButton;
+					NavButton->SetVisible(gBShowComeToMeButton);
 					if(gBShowComeToMeButton)
 						WriteSetting("ShowComeToMeButton", "1");
 					else
@@ -1745,7 +1757,7 @@ public:
 					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
 					gBShowMimicMeButton ^= true;
 					pContextMenu->CheckMenuItem(iItemID,gBShowMimicMeButton);
-					MimicMeButton->dShow = gBShowMimicMeButton;
+					MimicMeButton->SetVisible(gBShowMimicMeButton);
 					if(gBShowMimicMeButton)
 						WriteSetting("ShowMimicMeButton", "1");
 					else
@@ -1761,7 +1773,7 @@ public:
 					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
 					gBShowFollowMeButton ^= true;
 					pContextMenu->CheckMenuItem(iItemID,gBShowFollowMeButton);
-					FollowMeButton->dShow = gBShowFollowMeButton;
+					FollowMeButton->SetVisible(gBShowFollowMeButton);
 					if(gBShowFollowMeButton)
 						WriteSetting("ShowFollowMeButton", "1");
 					else
@@ -1777,9 +1789,9 @@ public:
 					int iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
 					gBShowHotButtons ^= true;
 					pContextMenu->CheckMenuItem(iItemID,gBShowHotButtons);
-					GroupHotButton[0]->dShow = gBShowHotButtons;
-					GroupHotButton[1]->dShow = gBShowHotButtons;
-					GroupHotButton[2]->dShow = gBShowHotButtons;
+					GroupHotButton[0]->SetVisible(gBShowHotButtons);
+					GroupHotButton[1]->SetVisible(gBShowHotButtons);
+					GroupHotButton[2]->SetVisible(gBShowHotButtons);
 					if(gBShowHotButtons)
 						WriteSetting("ShowHotButtons", "1");
 					else
@@ -1796,11 +1808,11 @@ public:
 					gBShowDistance ^= true;
 					pContextMenu->CheckMenuItem(iItemID,gBShowDistance);
 
-					GroupDistLabel1->dShow = gBShowDistance;
-					GroupDistLabel2->dShow = gBShowDistance;
-					GroupDistLabel3->dShow = gBShowDistance;
-					GroupDistLabel4->dShow = gBShowDistance;
-					GroupDistLabel5->dShow = gBShowDistance;
+					GroupDistLabel1->SetVisible(gBShowDistance);
+					GroupDistLabel2->SetVisible(gBShowDistance);
+					GroupDistLabel3->SetVisible(gBShowDistance);
+					GroupDistLabel4->SetVisible(gBShowDistance);
+					GroupDistLabel5->SetVisible(gBShowDistance);
 					if(gBShowDistance)
 						WriteSetting("ShowDistance", "1");
 					else
@@ -1830,12 +1842,12 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 	GetArg(szArg1, szLine, 1);
 	if (!_stricmp(szArg1, "help"))
 	{
-		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide mimicme\ax\am(it's currently set to: %s)\ax.", MimicMeButton->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide mimicme\ax\am(it's currently set to: %s)\ax.", MimicMeButton->IsVisible() ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide extdistance\ax\am(it's currently set to: %s)\ax.", gBShowExtDistance ? "\aoON" : "\agOFF");
-		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide distance\ax\am(it's currently set to: %s)\ax.", GroupDistLabel1->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide distance\ax\am(it's currently set to: %s)\ax.", GroupDistLabel1->IsVisible() ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", gBShowHotButtons ? "\aoON" : "\agOFF");
-		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->dShow ? "\aoON" : "\agOFF");
-		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide cometome\ax\am(it's currently set to: %s)\ax.", NavButton->dShow ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->IsVisible() ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide cometome\ax\am(it's currently set to: %s)\ax.", NavButton->IsVisible() ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo reset will reset all settings to default. Old settings will be in MQ2TargetInfo.bak\ax.");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo reload will reload all settings.\ax.");
 		return;
@@ -1857,7 +1869,7 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		GetArg(szArg2, szLine, 2);
 		if (!_stricmp(szArg2, "mimicme"))
 		{
-			MimicMeButton->dShow = true;
+			MimicMeButton->SetVisible(true);
 			gBShowMimicMeButton = true;
 			WriteSetting("ShowMimicMeButton", "1");
 		}
@@ -1869,31 +1881,31 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		else if (!_stricmp(szArg2, "distance"))
 		{
 			gBShowDistance = true;
-			GroupDistLabel1->dShow = true;
-			GroupDistLabel2->dShow = true;
-			GroupDistLabel3->dShow = true;
-			GroupDistLabel4->dShow = true;
-			GroupDistLabel5->dShow = true;
+			GroupDistLabel1->SetVisible(true);
+			GroupDistLabel2->SetVisible(true);
+			GroupDistLabel3->SetVisible(true);
+			GroupDistLabel4->SetVisible(true);
+			GroupDistLabel5->SetVisible(true);
 			WriteSetting("ShowDistance", "1");
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
 			gBShowHotButtons = true;
-			GroupHotButton[0]->dShow = true;
-			GroupHotButton[1]->dShow = true;
-			GroupHotButton[2]->dShow = true;
+			GroupHotButton[0]->SetVisible(true);
+			GroupHotButton[1]->SetVisible(true);
+			GroupHotButton[2]->SetVisible(true);
 			WriteSetting("ShowHotButtons", "1");
 		}
 		else if (!_stricmp(szArg2, "followme"))
 		{
 			gBShowFollowMeButton = true;
-			FollowMeButton->dShow = true;
+			FollowMeButton->SetVisible(true);
 			WriteSetting("ShowFollowMeButton", "1");
 		}
 		else if (!_stricmp(szArg2, "cometome"))
 		{
 			gBShowComeToMeButton = true;
-			NavButton->dShow = true;
+			NavButton->SetVisible(true);
 			WriteSetting("ShowComeToMeButton", "1");
 		}
 	}
@@ -1904,7 +1916,7 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		if (!_stricmp(szArg2, "mimicme"))
 		{
 			gBShowMimicMeButton = false;
-			MimicMeButton->dShow = false;
+			MimicMeButton->SetVisible(false);
 			WriteSetting("ShowMimicMeButton", "0");
 		}
 		else if (!_stricmp(szArg2, "extdistance"))
@@ -1914,7 +1926,7 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 			{
 				if (ETW_DistLabel[i])
 				{
-					ETW_DistLabel[i]->dShow = false;
+					ETW_DistLabel[i]->SetVisible(false);
 				}
 			}
 			WriteSetting("ShowExtDistance", "0");
@@ -1922,31 +1934,31 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 		else if (!_stricmp(szArg2, "distance"))
 		{
 			gBShowDistance = false;
-			GroupDistLabel1->dShow = false;
-			GroupDistLabel2->dShow = false;
-			GroupDistLabel3->dShow = false;
-			GroupDistLabel4->dShow = false;
-			GroupDistLabel5->dShow = false;
+			GroupDistLabel1->SetVisible(false);
+			GroupDistLabel2->SetVisible(false);
+			GroupDistLabel3->SetVisible(false);
+			GroupDistLabel4->SetVisible(false);
+			GroupDistLabel5->SetVisible(false);
 			WriteSetting("ShowDistance", "0");
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
 			gBShowHotButtons = false;
-			GroupHotButton[0]->dShow = false;
-			GroupHotButton[1]->dShow = false;
-			GroupHotButton[2]->dShow = false;
+			GroupHotButton[0]->SetVisible(false);
+			GroupHotButton[1]->SetVisible(false);
+			GroupHotButton[2]->SetVisible(false);
 			WriteSetting("ShowHotButtons", "0");
 		}
 		else if (!_stricmp(szArg2, "followme"))
 		{
 			gBShowFollowMeButton = false;
-			FollowMeButton->dShow = false;
+			FollowMeButton->SetVisible(false);
 			WriteSetting("ShowFollowMeButton", "0");
 		}
 		else if (!_stricmp(szArg2, "cometome"))
 		{
 			gBShowComeToMeButton = false;
-			NavButton->dShow = false;
+			NavButton->SetVisible(false);
 			WriteSetting("ShowComeToMeButton", "0");
 		}
 	}
@@ -2083,11 +2095,35 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		strcat_s(szMyIniName, ".ini");
 		strcat_s(szMyName, ".txt");
 	}
+	CHAR szDBExpansion[MAX_STRING] = { 0 };
+	bool UpdateDBFile = false;
+	int ret = GetPrivateProfileInt("Default", "DBExpansion", -1, INIFileName);
+	if (ret == -1)
+	{
+		UpdateDBFile = true;
+		ret = NUM_EXPANSIONS;
+		SafeItoa(ret, szDBExpansion, 10);
+		WritePrivateProfileString("Default", "DBExpansion", szDBExpansion, INIFileName);
+	}
+	else {
+		if (ret != NUM_EXPANSIONS) {
+			UpdateDBFile = true;
+			ret = NUM_EXPANSIONS;
+			SafeItoa(ret, szDBExpansion, 10);
+			WritePrivateProfileString("Default", "DBExpansion", szDBExpansion, INIFileName);
+		}
+	}
 	WIN32_FIND_DATA FindFile = { 0 };
 	HANDLE hSearch = FindFirstFile(szMyName, &FindFile);
 	if (hSearch == INVALID_HANDLE_VALUE) {
-		//need to unpack our resource.
-		
+		UpdateDBFile = true;
+	}
+	else {
+		FindClose(hSearch);
+	}
+	//need to unpack our resource.
+	if(UpdateDBFile)
+	{
 		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB")) {
 			if (HGLOBAL bin = LoadResource(hMe, hRes)) {
 				BOOL bResult = 0;
@@ -2105,12 +2141,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 				bResult = FreeResource(hRes);
 			}
 		}
-		LoadPHs(szMyName);
 	}
-	else {
-		FindClose(hSearch);
-		LoadPHs(szMyName);
-	}
+	LoadPHs(szMyName);
 	hSearch = FindFirstFile(szMyIniName, &FindFile);
 	if (hSearch == INVALID_HANDLE_VALUE) {
 		//need to unpack our resource.
@@ -2170,9 +2202,9 @@ void CleanUp(bool bUnload)
 	if (PCTARGETWND pTwnd = (PCTARGETWND)pTargetWnd) {
 		if (orgTargetWindStyle)
 		{
-			pTwnd->Wnd.WindowStyle = orgTargetWindStyle;
-			pTwnd->Wnd.bNeedsSaving = true;
-			pTwnd->Wnd.bClientRectChanged = true;
+			pTwnd->Wnd.SetWindowStyle(orgTargetWindStyle);
+			pTwnd->Wnd.SetNeedsSaving(true);
+			pTwnd->Wnd.SetClientRectChanged(true);
 			orgTargetWindStyle = 0;
 		}
 	}
@@ -2181,8 +2213,8 @@ void CleanUp(bool bUnload)
 		if (orgExtTargetWindStyle)
 		{
 			//pExtWnd->WindowStyle = orgExtTargetWindStyle;
-			pExtWnd->bNeedsSaving = true;
-			pExtWnd->bClientRectChanged = true;
+			pExtWnd->SetNeedsSaving(true);
+			pExtWnd->SetClientRectChanged(true);
 			orgExtTargetWindStyle = 0;
 		}
 	}
@@ -2261,20 +2293,20 @@ void CleanUp(bool bUnload)
 	if (GetGameState() == GAMESTATE_INGAME) {
 		if (bUnload) {
 			if (!IsBadReadPtr(Target_BuffWindow, 4)) {
-				Target_BuffWindow->TopOffset = Target_BuffWindow_TopOffsetOld;
+				Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffsetOld);
 			}
 
 			if (!IsBadReadPtr(Target_AggroPctPlayerLabel, 4)) {
-				Target_AggroPctPlayerLabel->TopOffset = Target_AggroPctPlayerLabel_TopOffsetOrg;
-				Target_AggroPctPlayerLabel->BottomOffset = Target_AggroPctPlayerLabel_BottomOffsetOrg;
+				Target_AggroPctPlayerLabel->SetTopOffset(Target_AggroPctPlayerLabel_TopOffsetOrg);
+				Target_AggroPctPlayerLabel->SetBottomOffset(Target_AggroPctPlayerLabel_BottomOffsetOrg);
 			}
 			if (!IsBadReadPtr(Target_AggroNameSecondaryLabel, 4)) {
-				Target_AggroNameSecondaryLabel->TopOffset = Target_AggroNameSecondaryLabel_TopOffsetOrg;
-				Target_AggroNameSecondaryLabel->BottomOffset = Target_AggroNameSecondaryLabel_BottomOffsetOrg;
+				Target_AggroNameSecondaryLabel->SetTopOffset(Target_AggroNameSecondaryLabel_TopOffsetOrg);
+				Target_AggroNameSecondaryLabel->SetBottomOffset(Target_AggroNameSecondaryLabel_BottomOffsetOrg);
 			}
 			if (!IsBadReadPtr(Target_AggroPctSecondaryLabel, 4)) {
-				Target_AggroPctSecondaryLabel->TopOffset = Target_AggroPctSecondaryLabel_TopOffsetOrg;
-				Target_AggroPctSecondaryLabel->BottomOffset = Target_AggroPctSecondaryLabel_BottomOffsetOrg;
+				Target_AggroPctSecondaryLabel->SetTopOffset(Target_AggroPctSecondaryLabel_TopOffsetOrg);
+				Target_AggroPctSecondaryLabel->SetBottomOffset(Target_AggroPctSecondaryLabel_BottomOffsetOrg);
 			}
 		}
 	}
@@ -2369,17 +2401,18 @@ void UpdateGroupDist(PCHARINFO pChar, int index)
 			float dist = Distance3DToSpawn(pLocalPlayer, pChar->pGroupInfo->pMember[index]->pSpawn);
 			sprintf_s(szTargetDist, "%.2f", dist);
 			if (dist < 250) {
-				pWnd->CRNormal = 0xFF00FF00;//green
+				pWnd->SetCRNormal(0xFF00FF00);//green
 			}
 			else {
-				pWnd->CRNormal = 0xFFFF0000;//red
+				pWnd->SetCRNormal(0xFFFF0000);//red
 			}
-			SetCXStr(&pWnd->WindowText, szTargetDist);
-			pWnd->dShow = true;
+			pWnd->CSetWindowText(szTargetDist);
+			//SetCXStr(&pWnd->WindowText, szTargetDist);
+			pWnd->SetVisible(true);
 		}
 		else
 		{
-			pWnd->dShow = false;
+			pWnd->SetVisible(false);
 		}
 	}
 }
@@ -2401,20 +2434,21 @@ void UpdatedExtDistance()
 							float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
 							sprintf_s(szTargetDist, "%.2f", dist);
 							if (dist < 250) {
-								pWnd->CRNormal = 0xFF00FF00;//green
+								pWnd->SetCRNormal(0xFF00FF00);//green
 							}
 							else {
-								pWnd->CRNormal = 0xFFFF0000;//red
+								pWnd->SetCRNormal(0xFFFF0000);//red
 							}
-							SetCXStr(&pWnd->WindowText, szTargetDist);
-							pWnd->dShow = true;
+							pWnd->CSetWindowText(szTargetDist);
+							//SetCXStr(&pWnd->WindowText, szTargetDist);
+							pWnd->SetVisible(true);
 						}
 						else {
-							pWnd->dShow = false;
+							pWnd->SetVisible(false);
 						}
 					}
 					else {
-						pWnd->dShow = false;
+						pWnd->SetVisible(false);
 					}
 				}
 			}
@@ -2526,7 +2560,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			if (gBShowExtDistance && ETW_DistLabel[0])
 			{
 				if (CExtendedTargetWnd *pEXTwnd = (CExtendedTargetWnd*)pExtendedTargetWnd) {
-					if (pEXTwnd->dShow)
+					if (pEXTwnd->IsVisible())
 					{
 						UpdatedExtDistance();
 					}
@@ -2550,28 +2584,28 @@ PLUGIN_API VOID OnPulse(VOID)
 							UpdateGroupDist(pChar, 5);
 						}
 						  
-						if(gBShowMimicMeButton && MimicMeButton && MimicMeButton->dShow==false)
-							MimicMeButton->dShow = true;
-						if(gBShowFollowMeButton && FollowMeButton && FollowMeButton->dShow==false)
-							FollowMeButton->dShow = true;
-						if(gBShowComeToMeButton && NavButton && NavButton->dShow==false)
-							NavButton->dShow = true;
+						if(gBShowMimicMeButton && MimicMeButton && MimicMeButton->IsVisible()==false)
+							MimicMeButton->SetVisible(true);
+						if(gBShowFollowMeButton && FollowMeButton && FollowMeButton->IsVisible()==false)
+							FollowMeButton->SetVisible(true);
+						if(gBShowComeToMeButton && NavButton && NavButton->IsVisible()==false)
+							NavButton->SetVisible(true);
 					}
 					else {
-						if (GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5 && GroupDistLabel1->dShow)
+						if (GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5 && GroupDistLabel1->IsVisible())
 						{
-							GroupDistLabel1->dShow = false;
-							GroupDistLabel2->dShow = false;
-							GroupDistLabel3->dShow = false;
-							GroupDistLabel4->dShow = false;
-							GroupDistLabel5->dShow = false;
+							GroupDistLabel1->SetVisible(false);
+							GroupDistLabel2->SetVisible(false);
+							GroupDistLabel3->SetVisible(false);
+							GroupDistLabel4->SetVisible(false);
+							GroupDistLabel5->SetVisible(false);
 						}
-						if(MimicMeButton && MimicMeButton->dShow==true)
-							MimicMeButton->dShow = false;
-						if(FollowMeButton && FollowMeButton->dShow==true)
-							FollowMeButton->dShow = false;
-						if(NavButton && NavButton->dShow==true)
-							NavButton->dShow = false;
+						if(MimicMeButton && MimicMeButton->IsVisible()==true)
+							MimicMeButton->SetVisible(false);
+						if(FollowMeButton && FollowMeButton->IsVisible()==true)
+							FollowMeButton->SetVisible(false);
+						if(NavButton && NavButton->IsVisible()==true)
+							NavButton->SetVisible(false);
 					}
 				}
 			}
@@ -2582,11 +2616,12 @@ PLUGIN_API VOID OnPulse(VOID)
 							oldspawn = (PSPAWNINFO)pTarget;
 							phinfo pinf;
 							if (GetPhMap((PSPAWNINFO)pTarget, &pinf)) {
-								SetCXStr(&PHButton->Tooltip, (char*)pinf.Named.c_str());
-								PHButton->dShow = true;
+								PHButton->SetTooltip((char*)pinf.Named.c_str());
+								//SetCXStr(&PHButton->Tooltip, (char*)pinf.Named.c_str());
+								PHButton->SetVisible(true);
 							}
 							else {
-								PHButton->dShow = false;
+								PHButton->SetVisible(false);
 							}
 						}
 						//set info
@@ -2612,33 +2647,39 @@ PLUGIN_API VOID OnPulse(VOID)
 								break;
 							}
 						}
-						SetCXStr(&InfoLabel->WindowText, szTargetDist);
+						InfoLabel->CSetWindowText(szTargetDist);
+						//SetCXStr(&InfoLabel->WindowText, szTargetDist);
 						//then distance
 						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
 						sprintf_s(szTargetDist, "%.2f", dist);
 						if (dist < 250) {
-							DistanceLabel->CRNormal = 0xFF00FF00;//green
+							DistanceLabel->SetCRNormal(0xFF00FF00);//green
 						}
 						else {
-							DistanceLabel->CRNormal = 0xFFFF0000;//red
+							DistanceLabel->SetCRNormal(0xFFFF0000);//red
 						}
-						SetCXStr(&DistanceLabel->WindowText, szTargetDist);
+						DistanceLabel->CSetWindowText(szTargetDist);
+						//SetCXStr(&DistanceLabel->WindowText, szTargetDist);
 						//now do can see
 						bool cansee = pCharSpawn->CanSee((EQPlayer*)pTarget);
 						sprintf_s(szTargetDist, "%s", cansee ? "O" : "X");
 						if (cansee) {
-							CanSeeLabel->CRNormal = 0xFF00FF00;//green
+							CanSeeLabel->SetCRNormal(0xFF00FF00);//green
 						}
 						else {
-							CanSeeLabel->CRNormal = 0xFFFF0000;//red
+							CanSeeLabel->SetCRNormal(0xFFFF0000);//red
 						}
-						SetCXStr(&CanSeeLabel->WindowText, szTargetDist);
+						CanSeeLabel->CSetWindowText(szTargetDist);
+						//SetCXStr(&CanSeeLabel->WindowText, szTargetDist);
 					}
 					else {
-						SetCXStr(&InfoLabel->WindowText, "");
-						SetCXStr(&DistanceLabel->WindowText, "");
-						SetCXStr(&CanSeeLabel->WindowText, "");
-						PHButton->dShow = false;
+						InfoLabel->CSetWindowText("");
+						//SetCXStr(&InfoLabel->WindowText, "");
+						DistanceLabel->CSetWindowText("");
+						//SetCXStr(&DistanceLabel->WindowText, "");
+						CanSeeLabel->CSetWindowText("");
+						//SetCXStr(&CanSeeLabel->WindowText, "");
+						PHButton->SetVisible(false);
 					}
 				}
 			}

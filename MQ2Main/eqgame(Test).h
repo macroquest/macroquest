@@ -396,6 +396,8 @@ GNU General Public License for more details.
 #define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x48B630
 #define CAdvancedLootWnd__DoAdvLootAction_x                        0x4944C0
 #define CAdvancedLootWnd__DoSharedAdvLootAction_x                  0x494280
+#define CAdvancedLootWnd__AddPlayerToList_x                        0x48EB80
+#define CAdvancedLootWnd__UpdateMasterLooter_x                     0x48DFE0
 
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x54D490
@@ -482,6 +484,8 @@ GNU General Public License for more details.
 #define CComboWnd__SetChoice_x                                     0x9315B0
 #define CComboWnd__GetItemCount_x                                  0x9315F0
 #define CComboWnd__GetCurChoiceText_x                              0x931630
+#define CComboWnd__GetChoiceText_x                                 0x931600
+#define CComboWnd__InsertChoiceAtIndex_x                           0x931370
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x706730
@@ -516,6 +520,7 @@ GNU General Public License for more details.
 #define CEditWnd__PointFromPrintableChar_x                         0x9395C0
 #define CEditWnd__SelectableCharFromPoint_x                        0x939730
 #define CEditWnd__SetEditable_x                                    0x938B10
+#define CEditWnd__SetWindowTextA_x                                 0x9381D0
 
 // CEverQuest 
 #define CEverQuest__DoPercentConvert_x                             0x5EA5E0
@@ -652,6 +657,7 @@ GNU General Public License for more details.
 #define CListWnd__GetItemWnd_x                                     0x90BAC0
 #define CListWnd__SetItemIcon_x                                    0x90F3E0
 #define CListWnd__CalculateCustomWindowPositions_x                 0x90E440
+#define CListWnd__SetVScrollPos_x                                  0x90DD20
 
 // CMapViewWnd 
 #define CMapViewWnd__CMapViewWnd_x                                 0x7711E0
@@ -789,6 +795,7 @@ GNU General Public License for more details.
 #define CXStr__operator_equal1_x                                   0x8EC3D0
 #define CXStr__operator_plus_equal1_x                              0x8ECE60
 #define CXStr__SetString_x                                         0x8EED50
+#define CXStr__operator_char_p_x                                   0x8EC8A0
 
 // CXWnd
 //CTileLayoutWnd__SetOriginalAutoStretchInfo_x is here because its where I lookup the actual CXWnd Size.

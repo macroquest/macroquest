@@ -701,17 +701,17 @@ DWORD __stdcall searchthread(PVOID pData)
 	if (CSidlScreenWnd *pQueryButton = (CSidlScreenWnd *)pBazaarSearchWnd->GetChildItem("BZR_QueryButton")) {
 		ULONGLONG startwait = MQGetTickCount64();
 		startwait += 7000;
-		while (pQueryButton->Enabled == 0) {
+		while (pQueryButton->IsEnabled() == 0) {
 			Sleep(0);
 			if (startwait < MQGetTickCount64()) {
 				WriteChatfSafe("1. timed out in /bzsrch waiting for BZR_QueryButton to enable.");
 				break;
 			}
 		}
-		if (pQueryButton->Enabled) {
+		if (pQueryButton->IsEnabled()) {
 			HideDoCommand((PSPAWNINFO)pLocalPlayer,"/bzquery",true);	
 			startwait = MQGetTickCount64() + 2000;
-			while (pQueryButton && pQueryButton->Enabled == 0 && BzDone==FALSE) {
+			while (pQueryButton && pQueryButton->IsEnabled() == 0 && BzDone==FALSE) {
 				Sleep(0);
 				if (startwait < MQGetTickCount64()) {
 					break;
@@ -740,7 +740,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 	bool first = true;
 
 	if (CButtonWnd *pDefaultButton = (CButtonWnd *)pBazaarSearchWnd->GetChildItem("BZR_Default")) {
-		if (pDefaultButton && pDefaultButton->Enabled) {
+		if (pDefaultButton && pDefaultButton->IsEnabled()) {
 			SendWndClick2((CXWnd*)pDefaultButton, "leftmouseup");
 		} else {
 			MacroError("Whats wrong? BZR_Default wasnt enabled.");
@@ -784,7 +784,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 				MacroError("Bad price low.");
 				goto error_out;
 			}
-			if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MinPriceInput")) {
+			if (CEditWnd *pEdit = (CEditWnd *)pBazaarSearchWnd->GetChildItem("BZR_MinPriceInput")) {
 				pEdit->SetWindowTextA(CXStr(szArg));
 			}
 			GetArg(szArg, szLine, 1);
@@ -793,7 +793,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 				MacroError("Bad price high.");
 				goto error_out;
 			}
-			if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxPriceInput")) {
+			if (CEditWnd *pEdit = (CEditWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxPriceInput")) {
 				pEdit->SetWindowTextA(CXStr(szArg));
 			}
 		} else if (!_stricmp(szArg, "trader")) {
@@ -817,12 +817,12 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 			strcat_s(szItem, szArg);
 		}
 	}
-	if (CXWnd *pMaxEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxResultsPerTraderInput")) {
+	if (CEditWnd *pMaxEdit = (CEditWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxResultsPerTraderInput")) {
 		pMaxEdit->SetWindowTextA(CXStr("200"));
 	} else {
 		MacroError("Whats wrong? couldnt find the BZR_MaxResultsPerTraderInput window.");
 	}
-	if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemNameInput")) {
+	if (CEditWnd *pEdit = (CEditWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemNameInput")) {
 		pEdit->SetWindowTextA(CXStr(szItem));
 		DWORD nThreadID = 0;
 		CreateThread(NULL, NULL, searchthread, 0, 0, &nThreadID);

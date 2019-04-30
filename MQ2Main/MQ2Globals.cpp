@@ -332,6 +332,7 @@ namespace MQ2Globals
 	DWORD gMaxSpawnCaptions = 30;
 	BOOL gMQCaptions = TRUE;
 	BOOL gAnonymize = FALSE;
+	DWORD gAnonymizeFlag = 0;
 	DWORD ThreadID = 0;
 	BOOL g_Loaded = FALSE;
 
@@ -1159,6 +1160,7 @@ namespace MQ2Globals
 	fEQToggleKeyRingItem  cmdToggleKeyRingItem = 0;
 #endif
 	fICGetHashData					IC_GetHashData = 0;
+	fICSetHashData					IC_SetHashData = 0;
 	fLoaderSetLoaded				IC_LoaderSetLoaded = 0;
 	fLoaderClearLoaded				IC_LoaderClearLoaded = 0;
 	fMQ2Unload						IC_MQ2Unload = 0;
@@ -1657,6 +1659,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoSharedAdvLootAction);
+	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__AddPlayerToList);
+	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__UpdateMasterLooter);
+
 	INITIALIZE_EQGAME_OFFSET(CAltAbilityData__GetMercCurrentRank);
 	INITIALIZE_EQGAME_OFFSET(CAltAbilityData__GetMercMaxRank);
 #endif
@@ -1735,7 +1740,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__SetChoice);
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__GetItemCount);
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__GetCurChoiceText);
-	
+	INITIALIZE_EQGAME_OFFSET(CComboWnd__GetChoiceText);
+	#if !defined(ROF2EMU) && !defined(UFEMU)
+		INITIALIZE_EQGAME_OFFSET(CComboWnd__InsertChoiceAtIndex);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__HandleCombine);
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__vftable);
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__SetContainer);
@@ -1765,7 +1773,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__PointFromPrintableChar);
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SelectableCharFromPoint);
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SetEditable);
-
+	INITIALIZE_EQGAME_OFFSET(CEditWnd__SetWindowTextA);
+	
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoPercentConvert);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__ClickedPlayer);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoTellWindow);
@@ -1906,6 +1915,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__GetItemWnd);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetItemIcon);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CalculateCustomWindowPositions);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__SetVScrollPos);
 	
 	INITIALIZE_EQGAME_OFFSET(CMapViewWnd__CMapViewWnd);
     INITIALIZE_EQGAME_OFFSET(CMapViewWnd__HandleLButtonDown);
@@ -2025,6 +2035,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CXStr__operator_equal1);
 	INITIALIZE_EQGAME_OFFSET(CXStr__operator_plus_equal1);
 	INITIALIZE_EQGAME_OFFSET(CXStr__SetString);
+	INITIALIZE_EQGAME_OFFSET(CXStr__operator_char_p);
 	
 	INITIALIZE_EQGAME_OFFSET(CXWnd__BringToTop);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__Center);

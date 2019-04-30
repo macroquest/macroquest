@@ -1623,6 +1623,7 @@ public:
 		HasSPA = 74,
 		Trigger = 75,
 		BaseName = 76,
+		NoExpendReagentID = 77,
 	};
 	enum SpellMethods
 	{
@@ -1704,7 +1705,8 @@ public:
 		TypeMember(CastByMe);
 		TypeMember(HasSPA);
 		TypeMember(Trigger);
-		TypeMember(BaseName);		
+		TypeMember(BaseName);
+		TypeMember(NoExpendReagentID);
 	}
 
 	~MQ2SpellType()
@@ -2811,9 +2813,9 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		if (pMerchantWnd && pMerchantWnd->dShow)
+		if (pMerchantWnd && pMerchantWnd->IsVisible())
 #else
-		if (pPointMerchantWnd && pPointMerchantWnd->dShow)
+		if (pPointMerchantWnd && pPointMerchantWnd->IsVisible())
 #endif
 		{
 			strcpy_s(Destination,MAX_STRING, "TRUE");
@@ -3167,7 +3169,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->dShow)
+		if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->IsVisible())
 			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination,MAX_STRING, "FALSE");

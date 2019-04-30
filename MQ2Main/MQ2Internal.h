@@ -508,7 +508,8 @@ namespace MQ2Internal {
             mepre->Show(true,true,true);
 
             ReplacevfTable();
-            CloseOnESC=0;
+			SetEscapable(false);
+//            CloseOnESC=0;
         }
 
         CCustomWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
@@ -517,7 +518,8 @@ namespace MQ2Internal {
             CreateChildrenFromSidl();
             pXWnd()->Show(1,1);
             ReplacevfTable();
-            CloseOnESC=0;
+			SetEscapable(false);
+            //CloseOnESC=0;
         }
 
         ~CCustomWnd()

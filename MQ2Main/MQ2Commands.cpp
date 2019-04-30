@@ -989,7 +989,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
 			{
-				if (pmercho->dShow)
+				if (pmercho->IsVisible())
 				{
 					PITEMINFO pItem = 0;
 					PCONTENTS pCont = 0;
@@ -3241,14 +3241,14 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
 		CHAR szBuffer[MAX_STRING] = { 0 };
-		bool State = pWnd->dShow;
+		bool State = pWnd->IsVisible();
 		if (!_stricmp(Arg2, "open")) State = 1;
 		if (!_stricmp(Arg2, "close")) State = 0;
 		//if (pWnd->dShow == State) State = 99;
 		switch (State) {
 		case 0:
 			((CXWnd*)pWnd)->Show(0, 1);
-			sprintf_s(szBuffer, "Window '%s' is now closed.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
+			sprintf_s(szBuffer, "Window '%s' is now closed.", pWnd->CGetWindowText() ? pWnd->CGetWindowText()->Text : Arg1);
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
 			break;
 		case 1:
@@ -3258,7 +3258,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 				call dword ptr[ShowWindow];
 				pop ecx;
 			}
-			sprintf_s(szBuffer, "Window '%s' is now open.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
+			sprintf_s(szBuffer, "Window '%s' is now open.", pWnd->CGetWindowText() ? pWnd->CGetWindowText()->Text : Arg1);
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
 			break;
 		}
@@ -3840,7 +3840,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg1, szLine, 1);
 	if (!Arg1[0])
 	{
-		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anonymize <on|off>>");
+		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anon <on|off>>");
 		return;
 	}
 	if (!_stricmp(Arg1, "list"))
@@ -3916,6 +3916,9 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	else if (!_stricmp(Arg1, "Anon"))
 	{
 		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
+		if (gAnonymize) {
+			UpdatedMasterLooterLabel();
+		}
 		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), gszINIFilename);
 		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
 		return;
@@ -4637,7 +4640,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 		cmdPickZone(pCharInfo->pSpawn, NULL);
 		Sleep(2000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
 		if (CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd")) {
-			if (krwnd->dShow) {
+			if (krwnd->IsVisible()) {
 				if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList")) {
 					if (DWORD numitems = clist->ItemsArray.Count) {
 						if (CButtonWnd *cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton")) {
@@ -4845,12 +4848,15 @@ VOID UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 		if (pSelectorWnd) {
 			CHAR szOut[2048] = { 0 };
 			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
-			SetCXStr(&pSelectorWnd->WindowText, szOut);
+			pSelectorWnd->CSetWindowText(szOut);
+			//SetCXStr(&pSelectorWnd->WindowText, szOut);
 		}
 	} else if (!_stricmp(szArg1, "off")) {
 		gbShowCurrentCamera = 0;
-		if (pSelectorWnd) {
-			SetCXStr(&pSelectorWnd->WindowText, "Selector Window");
+		if (pSelectorWnd)
+		{
+			pSelectorWnd->CSetWindowText("Selector Window");
+			//SetCXStr(&pSelectorWnd->WindowText, "Selector Window");
 		}
 		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", gszINIFilename);
 	} else if (!_stricmp(szArg1, "save")) {

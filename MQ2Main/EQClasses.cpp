@@ -36,15 +36,15 @@ enum UIType CSidlScreenWnd::GetType()
 
 class CXMLData * CXWnd::GetXMLData()
 {
-    if (XMLIndex)
-        return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+    if (GetXMLIndex())
+        return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(GetXMLIndex()>>16,GetXMLIndex()&0xFFFF);
     //DebugSpew("CXWnd::GetXMLData()=0");
     return 0;
 }
 class CXMLData * CSidlScreenWnd::GetXMLData()
 {
-    if (XMLIndex)
-        return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+    if (GetXMLIndex())
+        return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(GetXMLIndex()>>16,GetXMLIndex()&0xFFFF);
     //DebugSpew("CSidlScreenWnd::GetXMLData()=0");
     return 0;
 }
@@ -78,8 +78,8 @@ class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
         }
     }
 
-    if (pWnd->pFirstChildWnd) {
-        CXWnd *tmp = RecurseAndFindName((class CXWnd *)pWnd->pFirstChildWnd, Name);
+    if (pWnd->GetFirstChildWnd()) {
+        CXWnd *tmp = RecurseAndFindName((class CXWnd *)pWnd->GetFirstChildWnd(), Name);
 		if (tmp)
 		{
 			delete Buffer;
@@ -87,7 +87,7 @@ class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
 		}
     }
 	delete Buffer;
-    return RecurseAndFindName((class CXWnd *)pWnd->pNextSiblingWnd, Name);
+    return RecurseAndFindName((class CXWnd *)pWnd->GetNextSiblingWnd(), Name);
 }
 
 class CXWnd * CXWnd::GetChildItem(PCHAR Name)
@@ -125,7 +125,8 @@ void CEditBaseWnd::SetMaxChars(int maxChars)
         len = this->InputText->Length;
 		if(len > maxChars)
 		{
-			((CXWnd*)this)->SetWindowTextA(CXStr(this->InputText->Text));
+			this->CSetWindowText(this->InputText->Text);
+			//((CXWnd*)this)->SetWindowTextA(CXStr(this->InputText->Text));
 		}
 	}
 }
@@ -198,7 +199,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool, bool, bool),0x0d8);
 #if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(const CXStr&),0x124);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(void),0x184);
@@ -206,7 +207,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const,0x
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const,0x190);
 #else
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xfc);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(const CXStr&),0x128);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);//don't ever doubt this one, double check CXWnd__CXWnd vftable and count
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(void),0x188);
@@ -8011,6 +8012,7 @@ FUNCTION_AT_ADDRESS(void  CXStr::Strip(char),CXStr__Strip);
 //FUNCTION_AT_ADDRESS(void  CXStr::SetEncoding(enum EStringEncoding),CXStr__SetEncoding);
 #endif
 #ifdef CXStr__operator_char_p_x
+FUNCTION_AT_ADDRESS(CXStr::operator const char* (void),CXStr__operator_char_p);
 //FUNCTION_AT_ADDRESS( CXStr::operator char *(void)const ,CXStr__operator_char_p);
 #endif
 #ifdef CXStr__operator_unsigned_short_p_x
@@ -8164,6 +8166,9 @@ FUNCTION_AT_ADDRESS(void CListWnd::SetItemIcon(int Index, int SubItem, const CTe
 #endif
 #ifdef CListWnd__CalculateCustomWindowPositions_x
 FUNCTION_AT_ADDRESS(void CListWnd::CalculateCustomWindowPositions(),CListWnd__CalculateCustomWindowPositions);
+#endif
+#ifdef CListWnd__SetVScrollPos_x
+FUNCTION_AT_ADDRESS(int CListWnd::SetVScrollPos(int),CListWnd__SetVScrollPos);
 #endif
 #ifdef CListWnd__SetItemWnd_x
 FUNCTION_AT_ADDRESS(void CListWnd::SetItemWnd(int Index, int SubItem, CXWnd *pWnd),CListWnd__SetItemWnd);
@@ -9181,6 +9186,9 @@ FUNCTION_AT_ADDRESS(void  CEditWnd::SetEditable(bool),CEditWnd__SetEditable);
 #endif
 #ifdef CEditWnd__GetSTMLSafeText_x
 FUNCTION_AT_ADDRESS(class CXStr  CEditWnd::GetSTMLSafeText(void),CEditWnd__GetSTMLSafeText);
+#endif
+#ifdef CEditWnd__SetWindowTextA_x
+FUNCTION_AT_ADDRESS(void CEditWnd::SetWindowTextA(const CXStr& Str),CEditWnd__SetWindowTextA);
 #endif
 #ifdef CEditWnd__ConvertIndexPrintableToTagged_x
 FUNCTION_AT_ADDRESS(int  CEditWnd::ConvertIndexPrintableToTagged(int),CEditWnd__ConvertIndexPrintableToTagged);

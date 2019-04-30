@@ -202,6 +202,12 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             gMaxSpawnCaptions=GetPrivateProfileInt("Captions","Update",gMaxSpawnCaptions,Filename);
             gMQCaptions = 1==GetPrivateProfileInt("Captions","MQCaptions",1,Filename); 
             gAnonymize = 1==GetPrivateProfileInt("Captions","Anonymize",0,Filename); 
+            gAnonymizeFlag = GetPrivateProfileInt("Captions","AnonymizeFlag",-1,Filename); 
+			if (gAnonymizeFlag == -1)
+			{
+				WritePrivateProfileString("Captions", "AnonymizeFlag", "0", Filename);
+				gAnonymizeFlag = 0;
+			}
 			GetPrivateProfileString("Captions", "AnonCaption", "", gszAnonCaption, MAX_STRING, Filename);
 			if (gszAnonCaption[0] == '\0')
 			{
@@ -303,6 +309,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 VOID InitializeMQ2IcExports()
 {
 	IC_GetHashData = (fICGetHashData)GetProcAddress(ghmq2ic, "IC_GetHashData");
+	IC_SetHashData = (fICSetHashData)GetProcAddress(ghmq2ic, "IC_SetHashData");
 	IC_LoaderSetLoaded = (fLoaderSetLoaded)GetProcAddress(ghmq2ic, "IC_LoaderSetLoaded");
 	IC_LoaderClearLoaded = (fLoaderClearLoaded)GetProcAddress(ghmq2ic, "IC_LoaderClearLoaded");
 	IC_MQ2Unload = (fMQ2Unload)GetProcAddress(ghmq2ic, "IC_MQ2Unload");
@@ -730,7 +737,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     while (!gbUnload) {
         Sleep(500);
     }
-	Sleep(100);
 getout:
 	if(hLoadComplete) {
 		CloseHandle(hLoadComplete);
@@ -792,18 +798,10 @@ public:
     CMQNewsWnd(char *Template):CCustomWnd(Template)
     {
         SetWndNotification(CMQNewsWnd);
-        //InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
-        //InputBox->WindowStyle|=0x800C0;
-		BitOn(WindowStyle,CWS_TITLE); 
-        BitOn(WindowStyle,CWS_MINIMIZE);
-        BitOff(WindowStyle,CWS_TRANSPARENT);
-        BitOff(WindowStyle,CWS_CLOSE);
-        //InputBox->CRNormal|=0xFF000000;
-        //InputBox->Enabled=0;
-        //InputBox->SetMaxChars(512);
+		AddStyle(CWS_TITLE | CWS_MINIMIZE);
+		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
         OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput");
-		//InputBox->pParentWindow = (_CSIDLWND *)this;
-		OutputBox->pParentWindow = (_CSIDLWND *)this;
+		OutputBox->SetParentWindow((_CSIDLWND *)this);
     }
 
     ~CMQNewsWnd()
@@ -816,7 +814,7 @@ public:
         {
             if (Message==XWM_CLOSE)
             {
-                dShow=1;
+                this->SetVisible(true);
                 return 1;
             }
         }
@@ -830,6 +828,12 @@ public:
 
 CMQNewsWnd *pNewsWindow=0;
 VOID InsertMQ2News();
+//#pragma once
+#define CCXStr__operator_equal1_x CXStr__operator_equal1_x
+#define CINITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + (DWORD)GetModuleHandle(NULL))
+CINITIALIZE_EQGAME_OFFSET(CCXStr__operator_equal1);
+FUNCTION_AT_ADDRESS(class CCXStr& CCXStr::operator=(char const *),CCXStr__operator_equal1);
+
 VOID CreateMQ2NewsWindow()
 {
 	//MessageBox(NULL, "inject in news", "news debug", MB_SYSTEMMODAL | MB_OK);
@@ -840,13 +844,10 @@ VOID CreateMQ2NewsWindow()
     if (!pNewsWindow && _FileExists(Filename))
     {
         pNewsWindow = new CMQNewsWnd("ChatWindow");
-		pNewsWindow->BGColor = 0xFF000000;
-        pNewsWindow->Location.top=620;
-        pNewsWindow->Location.bottom=920;
-        pNewsWindow->Location.left=230;
-        pNewsWindow->Location.right=850;
-        SetCXStr(&pNewsWindow->WindowText,"MacroQuest2 Recent Changes");
-		pNewsWindow->ZLayer = 1;
+		pNewsWindow->SetBGColor(0xFF000000);
+		pNewsWindow->SetLocation({ 230,620,850,920 });
+		pNewsWindow->CSetWindowText("MacroQuest2 Recent Changes");
+		pNewsWindow->SetZLayer(1);
     }
     InsertMQ2News();
 }

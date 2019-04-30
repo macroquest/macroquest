@@ -57,7 +57,8 @@ namespace MQ2Prototypes
 	typedef VOID(__cdecl *fMQEndZone)(VOID);
 
 	/* UTILITIES */
-	typedef int(__cdecl *fICGetHashData)(void*,int);
+	typedef __int64(__cdecl *fICGetHashData)(void*,int);
+	typedef void(__cdecl *fICSetHashData)(void*,int,__int64);
 	typedef DWORD(__cdecl *fLoaderSetLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
 	typedef DWORD(__cdecl *fLoaderClearLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
 	typedef DWORD(__cdecl *fMQ2Unload)(DWORD pid);

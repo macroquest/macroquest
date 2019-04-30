@@ -6953,8 +6953,8 @@ CXWnd * GetParentWnd(class CXWnd const * pWnd)
 	CXWnd * tWnd = (CXWnd *)pWnd;
 	while (tWnd)
 	{
-		if (!tWnd->pParentWindow) return tWnd;
-		tWnd = (CXWnd *)tWnd->pParentWindow;
+		if (!tWnd->GetParentWindow()) return tWnd;
+		tWnd = (CXWnd *)tWnd->GetParentWindow();
 	}
 	return NULL;
 }
@@ -9382,7 +9382,7 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2)) {
 #endif
 				if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
-					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
+					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.IsVisible()) {
 						if (GetGameState() != GAMESTATE_INGAME)
 							break;
 						Sleep(10);
@@ -9438,7 +9438,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 	}
 	bool bSelectSlot = false;
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
+	if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->IsVisible()) {
 		//if the merchant window is open, we dont actually drop anything we just select the slot
 		bSelectSlot = true;
 	}
@@ -9588,7 +9588,7 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 {
 	bool bSelectSlot = false;
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
+	if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->IsVisible()) {
 		//if the merchant window is open, we dont actually drop anything we just select the slot
 		bSelectSlot = true;
 	}
@@ -10214,7 +10214,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 		LocalFree(kr);
 		if (krwnd) {
 			bool bToggled = 0;
-			if (!krwnd->dShow) {
+			if (!krwnd->IsVisible()) {
 				bToggled = true;
 				DWORD ShowWindow = (DWORD)krwnd->pvfTable->ShowWindow;
 				__asm {
@@ -10588,28 +10588,28 @@ BOOL IsActiveAA(PCHAR pSpellName)
 CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type)
 {
 	if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-		PCSIDLWND pFirstWnd = clist->pFirstChildWnd;
+		PCSIDLWND pFirstWnd = clist->GetFirstChildWnd();
 		PCSIDLWND pNextWnd = pFirstWnd;
 		Personal_Loot pPAdvLoot = { 0 };
 		bool bFound = false;
 		LONG listindex = -1;
 		for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 			if (pNextWnd) {
-				pPAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pPAdvLoot.Item = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pPAdvLoot.Loot = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pPAdvLoot.Leave = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pPAdvLoot.Never = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pPAdvLoot.AN = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pPAdvLoot.AG = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				if (pNextWnd && pNextWnd->pNextSiblingWnd) {
-					pNextWnd = pNextWnd->pNextSiblingWnd;
+				pPAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pPAdvLoot.Item = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pPAdvLoot.Loot = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pPAdvLoot.Leave = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pPAdvLoot.Never = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pPAdvLoot.AN = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pPAdvLoot.AG = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				if (pNextWnd && pNextWnd->GetNextSiblingWnd()) {
+					pNextWnd = pNextWnd->GetNextSiblingWnd();
 				}
 			}
 			if (ListIndex == i) {
@@ -10650,37 +10650,37 @@ CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/,
 CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type)
 {
 	if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-		PCSIDLWND pFirstWnd = clist->pFirstChildWnd;
+		PCSIDLWND pFirstWnd = clist->GetFirstChildWnd();
 		PCSIDLWND pNextWnd = pFirstWnd;
 		Shared_Loot pSAdvLoot = { 0 };
 		bool bFound = false;
 		for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 			if (pNextWnd) {
-				pSAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.Item = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.Status = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.Action = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.Manage = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.AN = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.AG = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.AutoRoll = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.NV = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.ND = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.GD = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				pNextWnd = pNextWnd->pNextSiblingWnd;
-				pSAdvLoot.NO = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-				if (pNextWnd && pNextWnd->pNextSiblingWnd) {
-					pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.Item = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.Status = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.Action = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.Manage = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.AN = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.AG = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.AutoRoll = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.NV = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.ND = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.GD = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pNextWnd = pNextWnd->GetNextSiblingWnd();
+				pSAdvLoot.NO = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				if (pNextWnd && pNextWnd->GetNextSiblingWnd()) {
+					pNextWnd = pNextWnd->GetNextSiblingWnd();
 				}
 			}
 			if (ListIndex == i) {
@@ -10973,6 +10973,137 @@ bool WillFitInInventory(PCONTENTS pContent)
 	}
 	return false;
 }
+int GetGroupMemberClassByIndex(int N)
+{
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (!pChar->pGroupInfo)
+			return 0;
+		if (pChar->pGroupInfo->pMember[N] && pChar->pGroupInfo->pMember[N]->pSpawn)
+		{
+			return pChar->pGroupInfo->pMember[N]->pSpawn->mActorClient.Class;
+		}
+	}
+	return 0;
+}
+int GetRaidMemberClassByIndex(int N)
+{
+	if (pRaid && pRaid->Invited == 4) {
+		if (pRaid->RaidMemberUsed[N])
+			return pRaid->RaidMember[N].nClass;
+	}
+	return 0;
+}
+bool Anonymize(char *name, int maxlen, bool bLootName)
+{
+	if(GetGameState()!=GAMESTATE_INGAME || !pLocalPlayer)
+		return 0;
+	BOOL bisTarget = false;
+	int isRmember = -1;
+	BOOL isGmember = false;
+	bool bChange = false;
+	int ItsMe = _stricmp(((PSPAWNINFO)pLocalPlayer)->Name, name);
+	if(ItsMe!=0)//well if it is me, then there is no point in checking if its a group member
+		isGmember = IsGroupMember(name);
+	if(!isGmember && ItsMe!=0)//well if it is me or a groupmember, then there is no point in checking if its a raid member
+		isRmember = IsRaidMember(name);
+	if (ItsMe != 0 && !isGmember && isRmember==-1) {
+		//my target?
+		if (pTarget && ((PSPAWNINFO)pTarget)->Type!=SPAWN_NPC)
+		{
+			if (!_strnicmp(((PSPAWNINFO)pTarget)->DisplayedName, name,strlen(((PSPAWNINFO)pTarget)->DisplayedName))) {
+				bisTarget = true;
+			//	Sleep(0);
+			}
+		}
+	}
+	if (ItsMe==0 || isGmember || isRmember!=-1 || (bisTarget && pTarget)) {
+		if (bLootName) {
+			char buffer[L_tmpnam] = { 0 };
+			tmpnam_s(buffer);
+			char*pDest = strrchr(buffer, '\\');
+			
+			int len = strlen(name);
+			for (int i = 1; i < len - 1; i++) {
+				name[i] = '*';
+			}
+			strcat_s(name, 32, &pDest[1]);
+			//strcat_s(name,32, GetClassShortName(theclass));
+			return true;
+		}
+		if (gAnonymizeFlag == EAF_Class)
+		{
+			if (ItsMe == 0)
+			{
+				strncpy_s(name, 16, GetClassDesc(((PSPAWNINFO)pLocalPlayer)->mActorClient.Class), 15);
+				bChange = true;
+			}
+			else if (bisTarget)
+			{
+				strncpy_s(name, 16, GetClassDesc(((PSPAWNINFO)pTarget)->mActorClient.Class), 15);
+				bChange = true;
+			}
+			else if (isGmember)
+			{
+				int theclass = GetGroupMemberClassByIndex(isGmember);
+				strncpy_s(name, 16, GetClassDesc(theclass), 15);
+				bChange = true;
+			}
+			else if (isRmember!=-1)
+			{
+				int theclass = GetRaidMemberClassByIndex(isRmember);
+				strncpy_s(name, 16, GetClassDesc(theclass), 15);
+				bChange = true;
+			}
+		}
+		else {
+			int len = strlen(name);
+			bChange = true;
+			for (int i = 1; i < len - 1; i++) {
+				name[i] = '*';
+			}
+		}
+	}
+	return bChange;
+}
+void UpdatedMasterLooterLabel()
+{
+	if (pAdvancedLootWnd)
+	{
+		CHAR *szText = new CHAR[MAX_STRING];
+		if (CLabelWnd*MasterLooterLabel = (CLabelWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter"))
+		{
+			bool bFound = false;
+			if (PCHARINFO pChar = GetCharInfo())
+			{
+				if (pChar->pGroupInfo)
+				{
+					for (int i = 0; i < 6; i++)
+					{
+						if (pChar->pGroupInfo->pMember[i])
+						{
+							if (pChar->pGroupInfo->pMember[i]->MasterLooter)
+							{
+								GetCXStr(pChar->pGroupInfo->pMember[i]->pName, szText);
+								if (gAnonymize)
+								{
+									Anonymize(szText, MAX_STRING);
+								}
+								bFound = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			if (bFound)
+			{
+				MasterLooterLabel->CSetWindowText(szText);
+				//SetCXStr(&(MasterLooterLabel->WindowText), szText);
+			}
+		}
+		delete szText;
+	}
+}
 struct _CONTENTS *CONTENTS::GetContent(UINT index)
 {
 	if (Contents.ContainedItems.pItems && Contents.ContainedItems.Capacity) {
@@ -11000,7 +11131,7 @@ inline int SPAWNINFO::GetZoneID() const
 	#if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = IC_GetHashData((void*)this, 0x14183610);
+		int ret = (int)IC_GetHashData((void*)this, 0x14183610);
 		return ret;
 	}
 	return 0;
@@ -11013,7 +11144,7 @@ inline int SPAWNINFO::GetCurrentMana() const
 	#if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = IC_GetHashData((void*)this, 0xE020212);
+		int ret = (int)IC_GetHashData((void*)this, 0xE020212);
 		return ret;
 	}
 	return 0;
@@ -11026,7 +11157,7 @@ inline int SPAWNINFO::GetMaxMana() const
 	#if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = IC_GetHashData((void*)this, 0x13070802);
+		int ret = (int)IC_GetHashData((void*)this, 0x13070802);
 		return ret;
 	}
 	return 0;
@@ -11039,7 +11170,7 @@ inline int SPAWNINFO::GetCurrentEndurance() const
 	#if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = IC_GetHashData((void*)this, 0xF070F11);
+		int ret = (int)IC_GetHashData((void*)this, 0xF070F11);
 		return ret;
 	}
 	return 0;
@@ -11052,7 +11183,7 @@ inline int SPAWNINFO::GetMaxEndurance() const
 	#if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = IC_GetHashData((void*)this, 0x130F1210);
+		int ret = (int)IC_GetHashData((void*)this, 0x130F1210);
 		return ret;
 	}
 	return 0;
@@ -11065,7 +11196,7 @@ inline int SPAWNINFO::GetSpellCooldownETA() const
 	#if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = IC_GetHashData((void*)this, 0xEE086410);
+		int ret = (int)IC_GetHashData((void*)this, 0xEE086410);
 		return ret;
 	}
 	return 0;
@@ -11120,6 +11251,25 @@ __declspec(dllexport) ItemGlobalIndex2 &CONTENTS::GetGlobalIndex()
 	return ig;
 #endif
 }
+#if defined(LIVE)
+__declspec(dllexport) __int64 EQUIStructs::GetClassMember(void*This, int ID)
+{
+	if (IC_GetHashData)
+	{
+		__int64 ret = IC_GetHashData((void*)This, ID);
+		return ret;
+	}
+	return false;
+}
+__declspec(dllexport) void EQUIStructs::SetClassMember(void*This, int ID, __int64 Value)
+{
+	if (IC_SetHashData)
+	{
+		IC_SetHashData((void*)This, ID, Value);
+	}
+}
+#endif
+
 //this function performs a better rand since it removes the random bias towards the low end if the range of rand() isn't divisible by max - min + 1
 int RangeRandom(int min, int max) {
 	int n = max - min + 1;

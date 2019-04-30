@@ -488,6 +488,7 @@ EQLIB_OBJECT bool CXStr::FindLast(char,int &);
 EQLIB_OBJECT char CXStr::GetChar(long)const;
 EQLIB_OBJECT char CXStr::operator[](int)const;
 EQLIB_OBJECT char CXStr::SetChar(long,char);
+EQLIB_OBJECT char CXStr::operator const char* ();
 EQLIB_OBJECT class CXStr & CXStr::operator=(char const *);
 EQLIB_OBJECT class CXStr & CXStr::operator=(class CXStr const &);
 EQLIB_OBJECT class CXStr CXStr::Copy(long,long)const;
@@ -642,7 +643,7 @@ EQLIB_OBJECT void CXWnd::SetMouseOver(bool);
 EQLIB_OBJECT void CXWnd::SetNextSibPointer(class CXWnd *);
 EQLIB_OBJECT void CXWnd::SetTooltip(class CXStr);
 EQLIB_OBJECT void CXWnd::SetXMLTooltip(class CXStr);
-EQLIB_OBJECT void CXWnd::SetZLayer(int);
+//EQLIB_OBJECT void CXWnd::SetZLayer(int);
 EQLIB_OBJECT void CXWnd::StartFade(unsigned char,unsigned __int32);
 // virtual
 EQLIB_OBJECT bool CXWnd::IsPointTransparent(class CXPoint)const;
@@ -707,17 +708,18 @@ EQLIB_OBJECT void CXWnd::Deactivate(void);
 EQLIB_OBJECT void CXWnd::OnReloadSidl(void);
 EQLIB_OBJECT void CXWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 EQLIB_OBJECT void CXWnd::SetDrawTemplate(class CXWndDrawTemplate *);
-EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr &);
+EQLIB_OBJECT void CXWnd::SetWindowTextA(const CXStr & Str);
 // protected
 EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
 // private
 EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 EQLIB_OBJECT int CXWnd::SetFont(void*);
-	int GetHScrollRange() const {return HScrollMax;}
-	int GetVScrollRange() const {return VScrollMax;}
-	int GetHScrollPos() const {return HScrollPos;}
-	int GetVScrollPos() const {return VScrollPos;}
+//	int GetHScrollRange() const {return GetHScrollMax();}
+//	int GetVScrollRange() const {return GetVScrollMax();}
+	//int GetHScrollPos() const {return GetHScrollPos();}
+	//int GetVScrollPos() const {return GetVScrollPos();}
 CXW;
+
 
 };
 
@@ -726,8 +728,8 @@ CXW;
 class CSidlScreenWnd
 {
 public:
-	void SetStyle(DWORD Style) {WindowStyle = Style;}
-	DWORD GetStyle() const {return WindowStyle;}
+	//void SetStyle(DWORD Style) {WindowStyle = Style;}
+//	DWORD GetStyle() const {return GetWindowStyle();}
 	int GetContextMenuIndex() { return ContextMenuID; }
 EQLIB_OBJECT enum UIType CSidlScreenWnd::GetType();
 EQLIB_OBJECT class CXMLData * CSidlScreenWnd::GetXMLData();
@@ -775,6 +777,8 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 
 inline CXWnd *pXWnd() {return (CXWnd*)this;};
 CSW
+
+
 };
 
 class _EverQuestinfo
@@ -2366,7 +2370,7 @@ EQLIB_OBJECT int CEditWnd::OnSetFocus(class CXWnd *);
 EQLIB_OBJECT int CEditWnd::ResetWnd(void);
 //EQLIB_OBJECT void * CEditWnd::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CEditWnd::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CEditWnd::SetWindowTextA(class CXStr);
+EQLIB_OBJECT void CEditWnd::SetWindowTextA(const CXStr& Str);
 // protected
 EQLIB_OBJECT static class CDIMap CEditWnd::m_mapKeys;
 //EQLIB_OBJECT virtual int CEditWnd::GetHorzOffset(void)const;
@@ -4251,7 +4255,7 @@ EQLIB_OBJECT int CListWnd::OnHeaderClick(class CXPoint);
 EQLIB_OBJECT int CListWnd::OnMove(class CXRect);
 EQLIB_OBJECT int CListWnd::OnResize(int,int);
 EQLIB_OBJECT int CListWnd::OnVScroll(EScrollCode,int);
-EQLIB_OBJECT int CListWnd::SetVScrollPos(int);
+EQLIB_OBJECT int CListWnd::SetVScrollPos(int Pos);
 EQLIB_OBJECT int CListWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
 //EQLIB_OBJECT void * CListWnd::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CListWnd::`vector deleting destructor'(unsigned int);

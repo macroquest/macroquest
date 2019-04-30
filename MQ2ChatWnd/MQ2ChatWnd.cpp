@@ -39,30 +39,34 @@ public:
     { 
         DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd);
-        BitOff(WindowStyle,CWS_TRANSPARENT); 
-		BitOn(WindowStyle, CWS_RESIZEBORDER);
-		BGColor = 0xFF000000;//black background
-        InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput"); 
-		InputBox->WindowStyle |= CWS_NOHITTEST | CWS_RELATIVERECT | CWS_BORDER;// 0x800C0;
-  		//this->WindowStyle |= CWS_RESIZEBORDER | CWS_MINIMIZE | CWS_CLOSE | CWS_TITLE;
-       	this->SetStyle(CWS_USEMYALPHA | CWS_RESIZEBORDER | CWS_MINIMIZE | CWS_TITLE); 
-		
-        InputBox->CRNormal=0xFFFFFFFF;//we want a white cursor 
+		SetBGColor(0xFF000000);//black background
+        InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
+		InputBox->AddStyle(CWS_AUTOVSCROLL | CWS_RELATIVERECT | CWS_BORDER);// 0x800C0;
+		this->SetFaded(false);
+		this->SetEscapable(false);
+		this->SetClickable(true);
+		this->SetAlpha(0xFF);
+		this->SetBGType(1);
+		this->SetWindowStyle(CWS_CLIENTMOVABLE |CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE); 
+
+
+        InputBox->SetCRNormal(0xFFFFFFFF);//we want a white cursor 
         InputBox->SetMaxChars(512); 
         OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput"); 
         OutStruct=(_CSIDLWND*)GetChildItem("CW_ChatOutput");
 		//fix for the 0 parent crash at charselect when clicking the children...
 		//wow it only took us 13 years to fix that one... -eqmule
-		OutStruct->pParentWindow = (_CSIDLWND *)this;
-		OutputBox->pParentWindow = (_CSIDLWND *)this;
-		InputBox->pParentWindow = (_CSIDLWND *)this;
+		OutStruct->SetParentWindow((_CSIDLWND *)this);
+		OutputBox->SetParentWindow((_CSIDLWND *)this);
+		InputBox->SetParentWindow((_CSIDLWND *)this);
         OutWnd=(CXWnd*)OutputBox;
         OutBoxLines=0;
 		OutputBox->MaxLines = 0x190;
        //(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=0x190; 
-        OutputBox->Clickable=1; 
+        OutputBox->SetClickable(true);
+		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
         iCurrentCmd=-1;
-		ZLayer = 1; // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
+		SetZLayer(1); // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
     } 
     ~CMQChatWnd() 
     { 
@@ -160,7 +164,7 @@ public:
         { 
             if (Message==XWM_CLOSE) 
             { 
-                dShow=1; 
+                SetVisible(1); 
                 return 1; 
             } 
         } 
@@ -221,7 +225,7 @@ public:
         ((CStmlWnd*)MQChatWnd->OutputBox)->SetSTMLText(str,1,0); 
         ((CStmlWnd*)MQChatWnd->OutputBox)->ForceParseNow(); 
         // scroll to bottom of chat window 
-        DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax)); 
+        DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->GetVScrollMax())); 
 
         MQChatWnd->FontSize=size; 
     }; 
@@ -248,28 +252,30 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
 
     sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name); 
     if (!bSaveByChar) sprintf_s(szChatINISection,"Default"); 
+	//left top right bottom
+	pWindow->SetLocation({ (LONG)GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName),
+		(LONG)GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName),
+		(LONG)GetPrivateProfileInt(szChatINISection,"ChatRight",    410,INIFileName),
+		(LONG)GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName) });
 
-    pWindow->Location.top      = GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName); 
-    pWindow->Location.bottom   = GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName); 
-    pWindow->Location.left     = GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName); 
-    pWindow->Location.right    = GetPrivateProfileInt(szChatINISection,"ChatRight",    410,INIFileName); 
-    pWindow->Locked            = (GetPrivateProfileInt(szChatINISection,"Locked",         0,INIFileName) ? true:false); 
-    pWindow->Fades             = (GetPrivateProfileInt(szChatINISection,"Fades",          0,INIFileName) ? true:false); 
-    pWindow->FadeDelay		   = GetPrivateProfileInt(szChatINISection,"Delay",       2000,INIFileName); 
-    pWindow->FadeDuration      = GetPrivateProfileInt(szChatINISection,"Duration",     500,INIFileName); 
-    pWindow->Alpha             = GetPrivateProfileInt(szChatINISection,"Alpha",        255,INIFileName); 
-    pWindow->FadeToAlpha       = GetPrivateProfileInt(szChatINISection,"FadeToAlpha",  255,INIFileName); 
-    pWindow->BGType            = GetPrivateProfileInt(szChatINISection,"BGType",         1,INIFileName); 
+    pWindow->SetLocked((GetPrivateProfileInt(szChatINISection,"Locked",         0,INIFileName) ? true:false)); 
+    pWindow->SetFades((GetPrivateProfileInt(szChatINISection,"Fades",          0,INIFileName) ? true:false)); 
+    pWindow->SetFadeDelay(GetPrivateProfileInt(szChatINISection,"Delay",       2000,INIFileName)); 
+    pWindow->SetFadeDuration(GetPrivateProfileInt(szChatINISection,"Duration",     500,INIFileName)); 
+    pWindow->SetAlpha((BYTE)GetPrivateProfileInt(szChatINISection,"Alpha",        255,INIFileName)); 
+    pWindow->SetFadeToAlpha((BYTE)GetPrivateProfileInt(szChatINISection,"FadeToAlpha",  255,INIFileName)); 
+    pWindow->SetBGType(GetPrivateProfileInt(szChatINISection,"BGType",         1,INIFileName)); 
 	ARGBCOLOR col = { 0 };
-	col.ARGB = pWindow->BGColor;
+	col.ARGB = pWindow->GetBGColor();
     col.A         = GetPrivateProfileInt(szChatINISection,"BGTint.alpha",     255,INIFileName); 
     col.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",     0,INIFileName); 
     col.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green",   0,INIFileName); 
     col.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",    0,INIFileName); 
-	pWindow->BGColor = col.ARGB;
+	pWindow->SetBGColor(col.ARGB);
     MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection,"FontSize",4,INIFileName)); 
     GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",szTemp,MAX_STRING,INIFileName); 
-    SetCXStr(&pWindow->WindowText,szTemp); 
+	pWindow->CSetWindowText(szTemp);
+	//SetCXStr(&pWindow->WindowText,szTemp); 
 } 
 template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
 {
@@ -286,36 +292,37 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
     WritePrivateProfileString("Settings","NoCharSelect", bNoCharSelect?"on":"off",INIFileName); 
     WritePrivateProfileString("Settings","SaveByChar",   bSaveByChar?"on":"off",INIFileName); 
 
-    if (pWindow->Minimized) 
+    if (pWindow->IsMinimized()) 
     { 
-        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->OldLocation.top,    szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->OldLocation.bottom, szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->OldLocation.left,   szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->OldLocation.right,  szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->GetOldLocation().top,    szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->GetOldLocation().bottom, szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->GetOldLocation().left,   szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->GetOldLocation().right,  szTemp,10),INIFileName); 
     } 
     else 
     { 
-        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->Location.top,    szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->Location.bottom, szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->Location.left,   szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->Location.right,  szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->GetLocation().top,    szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->GetLocation().bottom, szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->GetLocation().left,   szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->GetLocation().right,  szTemp,10),INIFileName); 
     } 
-    WritePrivateProfileString(szChatINISection,"Locked",         SafeItoa(pWindow->Locked,          szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Fades",          SafeItoa(pWindow->Fades,           szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->FadeDelay,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->FadeDuration,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->Alpha,           szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->FadeToAlpha,     szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Locked",         SafeItoa(pWindow->IsLocked(),          szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Fades",          SafeItoa(pWindow->GetFades(),           szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->GetFadeDelay(),       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->GetFadeDuration(),    szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->GetAlpha(),           szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->GetFadeToAlpha(),     szTemp,10),INIFileName); 
 	ARGBCOLOR col = { 0 };
-	col.ARGB = pWindow->BGColor;
-    WritePrivateProfileString(szChatINISection,"BGType",         SafeItoa(pWindow->BGType,          szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.alpha",    SafeItoa(col.A,       szTemp,10),INIFileName); 
+	col.ARGB = pWindow->GetBGColor();
+    WritePrivateProfileString(szChatINISection,"BGType",         SafeItoa(pWindow->GetBGType(),          szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.alpha",   SafeItoa(col.A,       szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"BGTint.red",     SafeItoa(col.R,       szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"BGTint.green",   SafeItoa(col.G,       szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"BGTint.blue",    SafeItoa(col.B,       szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"FontSize",       SafeItoa(MQChatWnd->FontSize,      szTemp,10),INIFileName); 
     
-	GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);
+	GetCXStr(pWindow->CGetWindowText(),szTemp, MAX_STRING);
+	//GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);
     WritePrivateProfileString(szChatINISection,"WindowTitle",szTemp,INIFileName); 
 } 
 
@@ -353,7 +360,7 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
     if (!szLine || !szLine[0]) 
     { 
 		char out[256] = { 0 };
-        sprintf_s(out,"Style 0x%X",MQChatWnd->WindowStyle); 
+        sprintf_s(out,"Style 0x%X",MQChatWnd->GetWindowStyle()); 
         WriteChatColor(out); 
         return; 
     } 
@@ -363,7 +370,8 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
         if(sscanf_s(&szLine[1],"%x",&TurnOff)) {
 			//well we set it anyway i guess...
 		}
-		BitOff(MQChatWnd->WindowStyle, TurnOff);
+		MQChatWnd->RemoveStyle(TurnOff);
+		//BitOff(MQChatWnd->WindowStyle, TurnOff);
     } 
     else 
     { 
@@ -371,10 +379,11 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
         if(sscanf_s(&szLine[0],"%x",&TurnOn)) {
 			//hmm can error handle i guess
 		}
-        BitOn(MQChatWnd->WindowStyle,TurnOn); 
+        MQChatWnd->AddStyle(TurnOn); 
+        //BitOn(MQChatWnd->WindowStyle,TurnOn); 
     } 
     char out[256]; 
-    sprintf_s(out,"Style 0x%X",MQChatWnd->WindowStyle); 
+    sprintf_s(out,"Style 0x%X",MQChatWnd->GetWindowStyle()); 
     WriteChatColor(out); 
 } 
 
@@ -408,7 +417,8 @@ VOID SetChatTitle(PSPAWNINFO pChar, PCHAR Line)
 {
 	if (MQChatWnd) 
     {
-		SetCXStr(&MQChatWnd->WindowText,Line); 
+		MQChatWnd->CSetWindowText(Line); 
+		//SetCXStr(&MQChatWnd->WindowText,Line); 
     } 
 } 
 VOID MQChatClear(PSPAWNINFO pChar, PCHAR Line) 
@@ -500,7 +510,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
             return 0; 
         } 
     } 
-    MQChatWnd->dShow=1; 
+    MQChatWnd->SetVisible(true); 
     PFILTER pFilter=gpFilters; 
     while (pFilter) 
     { 
@@ -590,24 +600,24 @@ PLUGIN_API VOID OnPulse()
 		{
 			case GAMESTATE_CHARSELECT: 
 			{
-				if (MQChatWnd->ZLayer != 1)
-					MQChatWnd->ZLayer = 1;
+				if (MQChatWnd->GetZLayer() != 1)
+					MQChatWnd->SetZLayer(1);
 				break;
 			}
 			case GAMESTATE_INGAME:
 			{
-				if (MQChatWnd->ZLayer != 0)
-					MQChatWnd->ZLayer = 0;
+				if (MQChatWnd->GetZLayer() != 0)
+					MQChatWnd->SetZLayer(0);
 				break;
 			} 
 		}
         if(!sPendingChat.empty()) 
         { 
             // set 'old' to current 
-            ulOldVScrollPos=MQChatWnd->OutputBox->VScrollPos; 
+			ulOldVScrollPos = MQChatWnd->OutputBox->GetVScrollPos();
 
             // scroll down if autoscroll enabled, or current position is the bottom of chatwnd 
-            bool bScrollDown=bAutoScroll?true:(MQChatWnd->OutputBox->VScrollPos==MQChatWnd->OutputBox->VScrollMax?true:false); 
+            bool bScrollDown=bAutoScroll?true:(MQChatWnd->OutputBox->GetVScrollPos()==MQChatWnd->OutputBox->GetVScrollMax()?true:false); 
 
             DWORD ThisPulse = sPendingChat.size();
             if (ThisPulse>LINES_PER_FRAME) 
@@ -635,7 +645,7 @@ PLUGIN_API VOID OnPulse()
             if(bScrollDown) 
             { 
                 // set current vscroll position to bottom 
-                DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax)); 
+                DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->GetVScrollMax())); 
             } 
             else 
             { 
@@ -677,7 +687,8 @@ class MQ2ChatWndType : public MQ2Type
 				{
 					if (MQChatWnd)
 					{
-						GetCXStr(MQChatWnd->WindowText, DataTypeTemp);
+						GetCXStr(MQChatWnd->CGetWindowText(),DataTypeTemp);
+						//GetCXStr(MQChatWnd->WindowText, DataTypeTemp);
 						Dest.Ptr = &DataTypeTemp[0];
 						Dest.Type = pStringType;
 						return true;
@@ -693,7 +704,7 @@ class MQ2ChatWndType : public MQ2Type
         bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)  { 
 			if (MQChatWnd)
 			{
-				GetCXStr(MQChatWnd->WindowText, Destination);
+				GetCXStr(MQChatWnd->CGetWindowText(), Destination);
 			}
 			else {
 				strcpy_s(Destination, MAX_STRING, "");
@@ -738,10 +749,10 @@ void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
 {
 	if (GetGameState() == GAMESTATE_INGAME) {
 		if (pOptionsWnd) {
-			pOptionsWnd->BGColor = 0xFF000000;
+			pOptionsWnd->SetBGColor(0xFF000000);
 		}
 		if (pTargetWnd) {
-			pTargetWnd->BGColor = 0xFF000000;
+			pTargetWnd->SetBGColor(0xFF000000);
 		}
 		if (pOptionsWnd) {
 			if (CButtonWnd*check = (CButtonWnd*)pOptionsWnd->GetChildItem("OGP_UseTellWindowsCheckbox")) {
@@ -798,22 +809,22 @@ void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
 			if (CXWnd*wnd = FindMQ2Window("HotButtonWnd")) {
 				if (CXWnd*child = wnd->GetChildItem("HB_Button1")) {
 					CHotButton *hbtn = (CHotButton*)child;
-					if (hbtn && hbtn->pButtonWnd && hbtn->pButtonWnd->DrawTemplate) {
-						PCBUTTONDRAWTEMPLATE btemp = (PCBUTTONDRAWTEMPLATE)hbtn->pButtonWnd->DrawTemplate;
+					if (hbtn && hbtn->pButtonWnd && hbtn->pButtonWnd->GetDrawTemplate()) {
+						PCBUTTONDRAWTEMPLATE btemp = (PCBUTTONDRAWTEMPLATE)hbtn->pButtonWnd->GetDrawTemplate();
 						Sleep(0);
 					}
 					//btn->DrawTemplate
 					if (CXWnd*child2 = child->GetChildItem("HB_SpellGem")) {
-						child2->BGColor = 0xFF000000;
+						child2->SetBGColor(0xFF000000);
 					}
 					if (CXWnd*child2 = child->GetChildItem("HB_InvSlot")) {
 						if (CXWnd*child3 = child2->GetChildItem("A_RecessedBox")) {
-							child3->BGColor = 0xFF000000;
+							child3->SetBGColor(0xFF000000);
 						}
-						child2->BGColor = 0xFF000000;
+						child2->SetBGColor(0xFF000000);
 					}
 					if (CXWnd*child2 = child->GetChildItem("A_HotButton1Normal")) {
-						child2->BGColor = 0xFF000000;
+						child2->SetBGColor(0xFF000000);
 					}
 					/*A_HotButton1Normal</Normal>
 			<Pressed>A_HotButton1Pressed</Pressed>
@@ -824,17 +835,17 @@ void MuleUI(PSPAWNINFO pSpawn, PCHAR szLine)
 					if (btntemplate) {
 						btntemplate->BackgroundTextureTint = 0xFF000000;
 					}
-					child->BGColor = 0xFF000000;
+					child->SetBGColor(0xFF000000);
 				}
-				wnd->CRNormal = 0xFF000000;
-				wnd->BGColor = 0xFF000000;
+				wnd->SetCRNormal(0xFF000000);
+				wnd->SetBGColor(0xFF000000);
 			}
 			if (CXWnd*wnd = FindMQ2Window("HotButtonWnd2")) {
 				if (CXWnd*child = wnd->GetChildItem("HB_Button1")) {
-					child->BGColor = 0xFF000000;
+					child->SetBGColor(0xFF000000);
 				}
-				wnd->CRNormal = 0xFF000000;
-				wnd->BGColor = 0xFF000000;
+				wnd->SetCRNormal(0xFF000000);
+				wnd->SetBGColor(0xFF000000);
 			}
 		}
 	}

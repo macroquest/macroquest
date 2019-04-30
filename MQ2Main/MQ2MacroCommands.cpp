@@ -726,7 +726,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 	gBindInProgress = false;
 	if (CXWnd*pWnd = FindMQ2Window("RunningMacrosWindow"))
 	{
-		pWnd->dShow = true;
+		pWnd->SetVisible(true);
 		if (CListWnd*list = (CListWnd*)pWnd->GetChildItem("RMW_RunningMacrosList"))
 		{
 			int id = list->AddString("", 0xFF00FF00, 0, 0);
@@ -752,7 +752,7 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 		DWORD concount = 2; //Close inv + clear target
 		if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open == 1) concount++;
 		for (i = 0; i<25; i++) {
-			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.dShow == 1) concount++;
+			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.IsVisible() == 1) concount++;
 		}
 		for (i = 0; i<concount; i++)
 		{
@@ -761,7 +761,7 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		if (!ppInventoryWnd) {
 			PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
-			if (pInvWindow && pInvWindow->dShow == 0)
+			if (pInvWindow && pInvWindow->IsVisible() == 0)
 				DoMappable(pChar, "inventory");
 		}
 	}

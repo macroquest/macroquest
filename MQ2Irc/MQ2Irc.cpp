@@ -48,7 +48,7 @@ CHAR strDefault[MAX_STRING] = {0};
 INT         maxLength;
 PTIMESTAMP   pTimestamp=0, pCurrentTimestamp=0;
 
-DWORD irctop = 0, ircbottom = 0, ircleft = 0, ircright = 0;
+LONG irctop = 0, ircbottom = 0, ircleft = 0, ircright = 0;
 
 WORD sockVersion;
 WSADATA wsaData;
@@ -86,10 +86,11 @@ public:
         OutStruct = (_CSIDLWND *)GetChildItem("CW_ChatOutput");
 
         InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
-        InputBox->WindowStyle|=0x800C0;
-        InputBox->CRNormal|=0xFFFFFFFF;
+        InputBox->AddStyle(0x800C);
+        InputBox->SetCRNormal(0xFFFFFFFF);
         InputBox->SetMaxChars(512);
-        BitOff(WindowStyle,CWS_CLOSE);
+		RemoveStyle(CWS_CLOSE);
+        //BitOff(WindowStyle,CWS_CLOSE);
     }
 
     int WndNotification(CXWnd *pWnd, unsigned int Message, void *data)
@@ -131,7 +132,7 @@ public:
         {
             if (Message==XWM_CLOSE)
             {
-                dShow=1;
+                SetVisible(true);
                 return 0;
                 //MyWnd=0;
             }
@@ -175,7 +176,7 @@ void ircout(char *text) {
         strcat_s(processed,"<br>");
         CXStr NewText(processed);
         (MyWnd->StmlOut)->AppendSTML(NewText);
-        (MyWnd->OutWnd)->SetVScrollPos(MyWnd->OutStruct->VScrollMax);
+        (MyWnd->OutWnd)->SetVScrollPos(MyWnd->OutStruct->GetVScrollMax());
     } else {
         WriteChatColor(text,IRCChatColor);
     }
@@ -295,7 +296,8 @@ VOID IrcConnectCmd(PSPAWNINFO pChar, PCHAR szLine)
     WritePrivateProfileString("Settings","Realname",Realname,INIFileName);
     if(MyWnd) {
         sprintf_s(buff,"%s [%s]",IrcChan,IrcServer);
-        SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+        MyWnd->OutStruct->CSetWindowText(buff);
+        //SetCXStr(&MyWnd->OutStruct->WindowText,buff);
     }
     sockVersion = MAKEWORD(1, 1);
     WSAStartup(sockVersion, &wsaData);
@@ -406,7 +408,8 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
             mychan = channels.begin();
         if(MyWnd) {
             sprintf_s(buff,"%s [%s]",*mychan,IrcServer);
-            SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+            MyWnd->OutStruct->CSetWindowText(buff);
+            //SetCXStr(&MyWnd->OutStruct->WindowText,buff);
         }
         sprintf_s(buff, "\ar#\a-w Now speaking in \aw%s\a-w.", *mychan);
         ircout(buff);
@@ -539,7 +542,8 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
 				mychan = channels.begin(); 
 				if(MyWnd) { 
 					sprintf_s(buff,"%s [%s]",*mychan,IrcServer); 
-					SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
+					MyWnd->OutStruct->CSetWindowText(buff); 
+					//SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
 				} 
 				WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName); 
 				WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName); 
@@ -556,7 +560,8 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
             if(channels.size()<1) {
                 if(MyWnd) {
                     sprintf_s(buff,"No Channel [%s]",IrcServer);
-                    SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+                    MyWnd->OutStruct->CSetWindowText(buff);
+                    //SetCXStr(&MyWnd->OutStruct->WindowText,buff);
                 }
                 sprintf_s(buff,"\ar#\a-w No longer on any channels.");
                 return buff;
@@ -564,7 +569,8 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
                 mychan = channels.begin();
                 if(MyWnd) {
                     sprintf_s(buff,"%s [%s]",*mychan,IrcServer);
-                    SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+                    MyWnd->OutStruct->CSetWindowText(buff);
+                    //SetCXStr(&MyWnd->OutStruct->WindowText,buff);
                 }
                 WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName);
                 WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName);
@@ -936,10 +942,10 @@ PLUGIN_API VOID OnCleanUI(VOID)
     DebugSpewAlways("MQ2Irc::OnCleanUI()");
     if (MyWnd)
     {
-        irctop = MyWnd->Location.top;
-        ircbottom = MyWnd->Location.bottom;
-        ircleft = MyWnd->Location.left;
-        ircright = MyWnd->Location.right;
+        irctop = MyWnd->GetLocation().top;
+        ircbottom = MyWnd->GetLocation().bottom;
+        ircleft = MyWnd->GetLocation().left;
+        ircright = MyWnd->GetLocation().right;
 
         WritePrivateProfileString("Settings", "ChatTop", Safe_itoa_s(irctop, szTemp, 10), INIFileName); 
         WritePrivateProfileString("Settings", "ChatBottom", Safe_itoa_s(ircbottom, szTemp, 10), INIFileName); 
@@ -956,15 +962,14 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
     if (GameState==GAMESTATE_INGAME && !MyWnd)
     {
         //if (pSidlMgr->FindScreenPieceTemplate("ChatWindow"))
-        if(!strcmp(UseWnd,"Yes")) {
-            class CXStr ChatWnd("ChatWindow");
-            MyWnd= new CIRCWnd(&ChatWnd);
-            MyWnd->Location.top = irctop;
-            MyWnd->Location.bottom = ircbottom;
-            MyWnd->Location.left = ircleft;
-            MyWnd->Location.right = ircright;
+		if (!strcmp(UseWnd, "Yes")) {
+			class CXStr ChatWnd("ChatWindow");
+			MyWnd = new CIRCWnd(&ChatWnd);
+
+			MyWnd->SetLocation({ ircleft, irctop, ircright, ircbottom });
             DebugTry(((CXWnd*)MyWnd)->Show(1,1));
-            DebugTry(BitOff(MyWnd->OutStruct->WindowStyle,CWS_CLOSE));
+            DebugTry(MyWnd->OutStruct->RemoveStyle(CWS_CLOSE));
+            //DebugTry(BitOff(MyWnd->OutStruct->WindowStyle,CWS_CLOSE));
         }
     }
 }
@@ -977,11 +982,9 @@ PLUGIN_API VOID OnReloadUI()
         //if (pSidlMgr->FindScreenPieceTemplate("TestWindow"))
         class CXStr ChatWnd("ChatWindow");
         MyWnd= new CIRCWnd(&ChatWnd);
-        MyWnd->Location.top = irctop;
-        MyWnd->Location.bottom = ircbottom;
-        MyWnd->Location.left = ircleft;
-        MyWnd->Location.right = ircright;
+		MyWnd->SetLocation({ ircleft,irctop,ircright,ircbottom });
         DebugTry(((CXWnd*)MyWnd)->Show(1,1));
-        DebugTry(BitOff(MyWnd->OutStruct->WindowStyle,CWS_CLOSE));
+        DebugTry(MyWnd->OutStruct->RemoveStyle(CWS_CLOSE));
+        //DebugTry(BitOff(MyWnd->OutStruct->WindowStyle,CWS_CLOSE));
     }
 }

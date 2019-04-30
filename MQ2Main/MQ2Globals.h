@@ -79,7 +79,12 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD gMaxSpawnCaptions;
 	EQLIB_VAR BOOL gMQCaptions;
 	EQLIB_VAR BOOL gAnonymize;
-
+	enum EAnonFlags
+	{
+		EAF_None,
+		EAF_Class,
+	};
+	EQLIB_VAR DWORD gAnonymizeFlag;
 	EQLIB_VAR HMODULE ghModule;
 	EQLIB_VAR HINSTANCE ghInstance;
 	EQLIB_VAR HWND ghInjectorWnd;
@@ -374,6 +379,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQToggleKeyRingItem	cmdToggleKeyRingItem;
 #endif
 	EQLIB_VAR fICGetHashData		IC_GetHashData;
+	EQLIB_VAR fICSetHashData		IC_SetHashData;
 	EQLIB_VAR fLoaderSetLoaded		IC_LoaderSetLoaded;
 	EQLIB_VAR fLoaderClearLoaded	IC_LoaderClearLoaded;
 	EQLIB_VAR fMQ2Unload            IC_MQ2Unload;
@@ -1104,7 +1110,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoSharedAdvLootAction;
-
+	EQLIB_VAR DWORD CAdvancedLootWnd__AddPlayerToList;
+	EQLIB_VAR DWORD CAdvancedLootWnd__UpdateMasterLooter;
+	
 	EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 	EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
 	EQLIB_VAR DWORD AltAdvManager__GetAAById;
@@ -1186,7 +1194,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CComboWnd__SetChoice;
 	EQLIB_VAR DWORD CComboWnd__GetItemCount;
 	EQLIB_VAR DWORD CComboWnd__GetCurChoiceText;
-	
+	EQLIB_VAR DWORD CComboWnd__GetChoiceText;
+	EQLIB_VAR DWORD CComboWnd__InsertChoiceAtIndex;
+
 	EQLIB_VAR DWORD CContainerWnd__HandleCombine;
 	EQLIB_VAR DWORD CContainerWnd__vftable;
 	EQLIB_VAR DWORD CContainerWnd__SetContainer;
@@ -1216,7 +1226,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEditWnd__PointFromPrintableChar;
 	EQLIB_VAR DWORD CEditWnd__SelectableCharFromPoint;
 	EQLIB_VAR DWORD CEditWnd__SetEditable;
-
+	EQLIB_VAR DWORD CEditWnd__SetWindowTextA;
+	
 	EQLIB_VAR DWORD CEverQuest__DoPercentConvert;
 	EQLIB_VAR DWORD CEverQuest__ClickedPlayer;
 	EQLIB_VAR DWORD CEverQuest__DoTellWindow;
@@ -1361,6 +1372,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__GetItemWnd;
 	EQLIB_VAR DWORD CListWnd__SetItemIcon;
 	EQLIB_VAR DWORD CListWnd__CalculateCustomWindowPositions;
+	EQLIB_VAR DWORD CListWnd__SetVScrollPos;
 	
 	EQLIB_VAR DWORD CMapViewWnd__CMapViewWnd;
     EQLIB_VAR DWORD CMapViewWnd__GetWorldCoordinates;
@@ -1480,6 +1492,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXStr__operator_equal1;
 	EQLIB_VAR DWORD CXStr__operator_plus_equal1;
 	EQLIB_VAR DWORD CXStr__SetString;
+	EQLIB_VAR DWORD CXStr__operator_char_p;
 	
 	EQLIB_VAR DWORD CXWnd__BringToTop;
 	EQLIB_VAR DWORD CXWnd__Center;

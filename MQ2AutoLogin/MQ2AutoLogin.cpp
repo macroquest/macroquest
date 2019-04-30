@@ -549,9 +549,9 @@ class CXWnd2 : public CXWnd
 public:
     CXMLData *GetXMLData()
     {
-        if(this->XMLIndex)
+        if(this->GetXMLIndex())
         {
-            return ((CXMLDataManager2*)&((PCSIDLMGR)pSidlManager)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+            return ((CXMLDataManager2*)&((PCSIDLMGR)pSidlManager)->pXMLDataMgr)->GetXMLData(GetXMLIndex()>>16,GetXMLIndex()&0xFFFF);
         }
         return 0;
     }
@@ -599,12 +599,12 @@ class CXWnd2 *_RecurseAndFindName(class CXWnd2 *pWnd, PCHAR Name)
         }
     }
 
-    if (pWnd->pFirstChildWnd) {
-        tmp = _RecurseAndFindName((class CXWnd2 *)pWnd->pFirstChildWnd, Name);
+    if (pWnd->GetFirstChildWnd()) {
+        tmp = _RecurseAndFindName((class CXWnd2 *)pWnd->GetFirstChildWnd(), Name);
         if (tmp)
             return tmp;
     }
-    return _RecurseAndFindName((class CXWnd2 *)pWnd->pNextSiblingWnd, Name);
+    return _RecurseAndFindName((class CXWnd2 *)pWnd->GetNextSiblingWnd(), Name);
 }
 
 class CXWnd * CXWnd2::_GetChildItem(PCHAR Name)
@@ -1360,7 +1360,7 @@ PLUGIN_API VOID OnPulse(VOID)
 		if (BugTimer > 100 && retrylogincounter==0) {
 			BugTimer = 0;
 			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox")) {
-				if (pWnd->dShow == 1) {
+				if (pWnd->IsVisible() == 1) {
 					if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
 						CHAR InputCXStr[MAX_STRING] = { 0 };
 						GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
@@ -1530,7 +1530,7 @@ inline bool WindowActive(PCHAR name)
 	if (dwEQMainBase) {
 		if (WindowMap.find(name) != WindowMap.end()) {
 			if (CXWnd2 *pWnd = WindowMap[name]) {
-				if (pWnd->dShow && pWnd->Enabled) {
+				if (pWnd->IsVisible() && pWnd->IsEnabled()) {
 					return true;
 				}
 			}
@@ -1604,7 +1604,7 @@ void HandleWindows()
 					}
 					else {
 						CSidlScreenWnd*cwnd = (CSidlScreenWnd*)pWnd;
-						GetCXStr(cwnd->WindowText, szTemp, MAX_STRING * 8);
+						GetCXStr(cwnd->CGetWindowText(), szTemp, MAX_STRING * 8);
 					}
 					if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
 						bLogin = true;
@@ -1666,7 +1666,7 @@ void HandleWindows()
 				}
 				else {
 					CSidlScreenWnd *cpwnd = (CSidlScreenWnd*)pWnd;
-					GetCXStr(cpwnd->WindowText, szTemp, MAX_STRING * 8);
+					GetCXStr(cpwnd->CGetWindowText(), szTemp, MAX_STRING * 8);
 				}
 				if (szTemp[0] && strstr(szTemp, "Logging in to the server.  Please wait...."))
 				{
@@ -1894,7 +1894,7 @@ void HandleWindows()
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
                     GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
                 else
-                    GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CSidlScreenWnd*)pWnd)->CGetWindowText(), szTemp, MAX_STRING * 8);
 				bGotOffsets = false;
 				ullerrorwait = MQGetTickCount64() + 2000;//we give the server 5 seconds to catch its breath...
 				if (szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity. You have been added to the login queue for this server"))
@@ -1945,7 +1945,7 @@ void HandleWindows()
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
                     GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
                 else
-                    GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CSidlScreenWnd*)pWnd)->CGetWindowText(), szTemp, MAX_STRING * 8);
 
                 // kick active character?
                 if(szTemp[0] && strstr(szTemp, "You already have a character logged into a world server from this account."))
@@ -2045,7 +2045,7 @@ void HandleWindows()
 			}
 			else {
 				CSidlScreenWnd*pcsidl = (CSidlScreenWnd*)pWnd;
-				GetCXStr(pcsidl->WindowText, szTemp, MAX_STRING);
+				GetCXStr(pcsidl->CGetWindowText(), szTemp, MAX_STRING);
 			}
 
             // click OK button if news window is open

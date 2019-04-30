@@ -38,6 +38,7 @@ bool bAutoBankInProgress = false;
 bool bAutoInventoryInProgress = false;
 int gAutoBankTradeSkillItems = 0;
 int gCheckBoxFeatureEnabled = 1;
+int gColorsFeatureEnabled = 1;
 int gAutoBankCollectibleItems = 0;
 int gAutoBankQuestItems = 0;
 int gAutoInventoryItems = 0;
@@ -45,6 +46,7 @@ CContextMenu *AutoBankMenu = 0;
 CContextMenu *CheckBoxMenu = 0;
 
 int CoolCheckBoxoptionID = 0;
+int CoolColorsoptionID = 0;
 int tradeskilloptionID = 0;
 int collectibleoptionID = 0;
 int questoptionID = 0;
@@ -205,7 +207,8 @@ public:
 			{
 				char *szTemp = new char[MAX_STRING];
 				sprintf_s(szTemp, MAX_STRING,"0/%d", list->ItemsArray.Count);
-				SetCXStr(&pCountLabel->WindowText, szTemp);
+				pCountLabel->CSetWindowText(szTemp);
+				//SetCXStr(&pCountLabel->WindowText, szTemp);
 				delete szTemp;
 				//we really need the list to fit to the window so people can actually see this new feature.
 				CXRect rectmain = ((CXWnd*)pFIWnd)->GetClientRect();
@@ -267,29 +270,28 @@ public:
 
 						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate))
 						{
-							pCheck->bBottomAnchoredToTop;
-							pCheck->bLeftAnchoredToLeft;
-							pCheck->bRightAnchoredToLeft;
-							pCheck->bTopAnchoredToTop;
-							pCheck->Enabled = true;
+							//pCheck->bBottomAnchoredToTop;
+							//pCheck->bLeftAnchoredToLeft;
+							//pCheck->bRightAnchoredToLeft;
+							//pCheck->bTopAnchoredToTop;
+							pCheck->SetEnabled(true);
 							pCheck->SetCheck(false);
-							pCheck->Data = list->GetItemData(i);
-							pCheck->dShow = true;
-							pCheck->bActive = true;
-							pCheck->bClickThroughMenuItemStatus = true;
-							pCheck->pController = 0x00000000;
-							pCheck->bShowClickThroughMenuItem = true;
-							pCheck->Location.left = 4;
-							pCheck->Location.top = 0;
-							pCheck->Location.right = 16;
-							pCheck->Location.bottom = 12;
+							pCheck->SetData(list->GetItemData(i));
+							pCheck->SetVisible(true);
+							pCheck->SetActive(true);
+							pCheck->SetClickThroughMenuItemStatus(true);
+							pCheck->SetController(0x00000000);
+							pCheck->SetShowClickThroughMenuItem(true);
+							pCheck->SetLocation({ 4, 0, 16, 12 });
 							pCheck->IndicatorValue = 0;
 							list->GetItemText(&Str, i, 1);
 							GetCXStr(Str.Ptr, szTemp2);
 							sprintf_s(szTemp3,MAX_STRING, "Check to mark %s for Action.(%d)", szTemp2,i);
-							((CXStr*)&pCheck->Tooltip)->SetString(szTemp3, strlen(szTemp3));
+							//todo check this
+							pCheck->SetTooltip(szTemp3);
+							//this works before private fix((CXStr*)&pCheck->Tooltip)->SetString(szTemp3, strlen(szTemp3));
 							list->SetItemWnd(i, MarkCol, pCheck);
-							if (ItemGlobalIndex *gi = (ItemGlobalIndex *)pFIWnd->gi[(int)pCheck->Data])
+							if (ItemGlobalIndex *gi = (ItemGlobalIndex *)pFIWnd->gi[(int)pCheck->GetData()])
 							{
 								if (PCHARINFO pCharInfo = GetCharInfo())
 								{
@@ -300,11 +302,14 @@ public:
 										{
 											if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 											{
-												if (pItem->TradeSkills) {
-													list->SetItemColor(i, 1, 0xFFFF00FF);
-												}
-												if (pItem->QuestItem) {
-													list->SetItemColor(i, 1, 0xFFFFFF00);
+												if (gColorsFeatureEnabled)
+												{
+													if (pItem->TradeSkills) {
+														list->SetItemColor(i, 1, 0xFFFF00FF);
+													}
+													if (pItem->QuestItem) {
+														list->SetItemColor(i, 1, 0xFFFFFF00);
+													}
 												}
 												if (pItem->Cost>0) {
 													int sellprice = ((EQ_Item*)ptr.pObject)->ValueSellMerchant((float)1.05, 1);
@@ -416,9 +421,9 @@ public:
 						GetCXStr(pSI->StrLabel2, szLabel2);
 						int int2 = GetMoneyFromString(szLabel2);
 
-						if (int1 < int2)
+						if (int1 > int2)
 							pSI->SortResult = -1;
-						else if (int1 > int2)
+						else if (int1 < int2)
 							pSI->SortResult = 1;
 						else
 							pSI->SortResult = 0;
@@ -444,42 +449,55 @@ public:
 			switch (ItemID)
 			{
 				case 50:
-				if (gCheckBoxFeatureEnabled)
-				{
-					gCheckBoxFeatureEnabled = 0;
-					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "0", gszINIFilename);
-					if(pNLMarkedButton)
-						pNLMarkedButton->dShow = false;
-					if(pCountLabel)
-						pCountLabel->dShow = false;
-					
-					if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+					if (gCheckBoxFeatureEnabled)
 					{
-						list->Selected = 0xFF004040;
-					}
-				}
-				else {
-					gCheckBoxFeatureEnabled = 1;
-					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
-					if (pNLMarkedButton)
-						pNLMarkedButton->dShow = true;
-					if (pCountLabel)
-						pCountLabel->dShow = true;
+						gCheckBoxFeatureEnabled = 0;
+						WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "0", gszINIFilename);
+						if(pNLMarkedButton)
+							pNLMarkedButton->SetVisible(false);
+						if(pCountLabel)
+							pCountLabel->SetVisible(false);
 					
-					if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
-					{
-						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
+						if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
 						{
-							if (SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+							list->Selected = 0xFF004040;
+						}
+					}
+					else {
+						gCheckBoxFeatureEnabled = 1;
+						WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
+						if (pNLMarkedButton)
+							pNLMarkedButton->SetVisible(true);
+						if (pCountLabel)
+							pCountLabel->SetVisible(true);
+					
+						if (CListWnd *list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+						{
+							if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 							{
-								col->pTextureAnim = pUnChecked;
+								if (SListWndColumn_RO *col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+								{
+									col->pTextureAnim = pUnChecked;
+								}
 							}
 						}
 					}
-				}
-				CheckBoxMenu->CheckMenuItem(iItemID, gCheckBoxFeatureEnabled);
-				pFindItemWnd->Update();
-				break;
+					CheckBoxMenu->CheckMenuItem(iItemID, gCheckBoxFeatureEnabled);
+					pFindItemWnd->Update();
+					break;
+				case 51:
+					if (gColorsFeatureEnabled)
+					{
+						gColorsFeatureEnabled = 0;
+						WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "0", gszINIFilename);
+					}
+					else {
+						gColorsFeatureEnabled = 1;
+						WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", gszINIFilename);
+					}
+					CheckBoxMenu->CheckMenuItem(iItemID, gColorsFeatureEnabled);
+					pFindItemWnd->Update();
+					break;
 			}
 		}
 		else if (uiMessage == XWM_RCLICK)
@@ -550,7 +568,8 @@ public:
 							}
 							char *szTemp = new char[MAX_STRING];
 							sprintf_s(szTemp,MAX_STRING, "%d/%d", Checked, list->ItemsArray.Count);
-							SetCXStr(&pCountLabel->WindowText, szTemp);
+							pCountLabel->CSetWindowText(szTemp);
+							//SetCXStr(&pCountLabel->WindowText, szTemp);
 							delete szTemp;
 							if (Selected == 0)
 							{
@@ -577,7 +596,7 @@ public:
 								}
 								lastsel = list->CurSel;
 							}
-							if (pMerchantWnd && pMerchantWnd->dShow && list->CurSel >= 0)
+							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
 							{
 								int dta = (int)list->GetItemData(list->CurSel);
 								if (ItemGlobalIndex *igg = (ItemGlobalIndex *)((CFindItemWnd*)this)->gi[dta])
@@ -599,7 +618,8 @@ public:
 							}
 							char *szTemp = new char[MAX_STRING];
 							sprintf_s(szTemp,MAX_STRING, "%d/%d", Checked, list->ItemsArray.Count);
-							SetCXStr(&pCountLabel->WindowText, szTemp);
+							pCountLabel->CSetWindowText(szTemp);
+							//SetCXStr(&pCountLabel->WindowText, szTemp);
 							delete szTemp;
 							if (Checked == 0)
 							{
@@ -673,7 +693,8 @@ public:
 								}
 								char *szTemp = new char[MAX_STRING];
 								sprintf_s(szTemp,MAX_STRING, "%d/%d", Checked, list->ItemsArray.Count);
-								SetCXStr(&pCountLabel->WindowText, szTemp);
+								pCountLabel->CSetWindowText(szTemp);
+								//SetCXStr(&pCountLabel->WindowText, szTemp);
 								delete szTemp;
 								if (bFound)
 								{
@@ -749,7 +770,7 @@ public:
 						}
 						else if ((CXWnd*)pNLMarkedButton == pWnd)
 						{
-							if (pMerchantWnd && pMerchantWnd->dShow)
+							if (pMerchantWnd && pMerchantWnd->IsVisible())
 							{
 								if (selllist.size())
 									return 0;
@@ -776,7 +797,7 @@ public:
 															{
 																if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 																{
-																	if (pMerchantWnd && pMerchantWnd->dShow)
+																	if (pMerchantWnd && pMerchantWnd->IsVisible())
 																	{
 																		WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
 																		ItemGlobalIndex2 *igg = (ItemGlobalIndex2 *)gi;
@@ -1092,14 +1113,22 @@ void AddAutoBankMenu()
 				gCheckBoxFeatureEnabled = 1;
 				WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
 			}
+			gColorsFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "ColorsFeatureEnabled", -1, gszINIFilename);
+			if (gColorsFeatureEnabled == -1)
+			{
+				gColorsFeatureEnabled = 1;
+				WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", gszINIFilename);
+			}
 			CoolCheckBoxoptionID = CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", 50, gCheckBoxFeatureEnabled);
+			CoolColorsoptionID = CheckBoxMenu->AddMenuItem("Cool Colors Feature", 51, gColorsFeatureEnabled);
 		}
 		if (CFindItemWnd *pFIWnd = pFindItemWnd)
 		{
 			if (CListWnd*list = (CListWnd *)pFIWnd->GetChildItem("FIW_ItemList"))
 			{
 				list->bHasItemTooltips = true;
-				SetCXStr(&list->Tooltip, "Find item Window has a sixth column now.");//if we dont do this the column tooltip is not drawn, i dont know why, possibly a listwindow bug
+				list->SetTooltip("Find item Window has a sixth column now.");//if we dont do this the column tooltip is not drawn, i dont know why, possibly a listwindow bug
+				//SetCXStr(&list->Tooltip, "Find item Window has a sixth column now.");//if we dont do this the column tooltip is not drawn, i dont know why, possibly a listwindow bug
 				//list->SetItemIcon()
 				list->ListWndStyle |= 0x00020000;//ok to multiselect, if we add a 1 here we can edit lines as well
 				pUnChecked = pSidlMgr->FindAnimation("A_CheckBoxNormal");
@@ -1131,39 +1160,36 @@ void AddAutoBankMenu()
 				{
 					if (pCountLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pCountLabelTemplate))
 					{
-						pCountLabel->bBottomAnchoredToTop = false;
-						pCountLabel->bLeftAnchoredToLeft = false;
-						pCountLabel->bRightAnchoredToLeft = false;
-						pCountLabel->bTopAnchoredToTop = false;
+						pCountLabel->SetBottomAnchoredToTop(false);
+						pCountLabel->SetLeftAnchoredToLeft(false);
+						pCountLabel->SetRightAnchoredToLeft(false);
+						pCountLabel->SetTopAnchoredToTop(false);
 						
-						pCountLabel->TopOffset = 20;
-						pCountLabel->BottomOffset = 0;
-						pCountLabel->LeftOffset = 220;
-						pCountLabel->RightOffset = 160;
-						pCountLabel->WindowStyle;
-						SetCXStr(&pCountLabel->Tooltip, "Shows you how many items you have selected.");
-						SetCXStr(&pCountLabel->WindowText, "0/10000");
+						pCountLabel->SetTopOffset(20);
+						pCountLabel->SetBottomOffset(0);
+						pCountLabel->SetLeftOffset(220);
+						pCountLabel->SetRightOffset(160);
+						//pCountLabel->WindowStyle;
+						pCountLabel->SetTooltip("Shows you how many items you have selected.");
+						//SetCXStr(&pCountLabel->Tooltip, "Shows you how many items you have selected.");
+						pCountLabel->CSetWindowText("0/10000");
+						//SetCXStr(&pCountLabel->WindowText, "0/10000");
 						//BackgroundTextureTint
-						pCountLabel->BGColor = 0xFF2032FF;
+						pCountLabel->SetBGColor(0xFF2032FF);
 					}
 				}
 				if (CControlTemplate* pRequestPreviewButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_DestroyItem"))
 				{
 					if (pNLMarkedButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pRequestPreviewButtonTemplate))
 					{
-						pNLMarkedButton->WindowStyle;
-						pNLMarkedButton->bBottomAnchoredToTop;
-						pNLMarkedButton->bLeftAnchoredToLeft;
-						pNLMarkedButton->bRightAnchoredToLeft;
-						pNLMarkedButton->bTopAnchoredToTop;
-						pNLMarkedButton->TopOffset;
-						pNLMarkedButton->BottomOffset;
-						pNLMarkedButton->LeftOffset = 157;
-						pNLMarkedButton->RightOffset = 87;
-						SetCXStr(&pNLMarkedButton->Tooltip, "Click to tag all marked items as NEVER LOOT in advloot filters.");
-						SetCXStr(&pNLMarkedButton->WindowText, "Never Loot");
+						pNLMarkedButton->SetLeftOffset(157);
+						pNLMarkedButton->SetRightOffset(87);
+						pNLMarkedButton->SetTooltip("Click to tag all marked items as NEVER LOOT in advloot filters.");
+						//SetCXStr(&pNLMarkedButton->Tooltip, "Click to tag all marked items as NEVER LOOT in advloot filters.");
+						pNLMarkedButton->CSetWindowText("Never Loot");
+						//SetCXStr(&pNLMarkedButton->WindowText, "Never Loot");
 						//BackgroundTextureTint
-						pNLMarkedButton->BGColor = 0xFF2032FF;
+						pNLMarkedButton->SetBGColor(0xFF2032FF);
 					}
 				}
 			}
@@ -1171,11 +1197,11 @@ void AddAutoBankMenu()
 		if (!gCheckBoxFeatureEnabled)
 		{
 			if (pNLMarkedButton)
-				pNLMarkedButton->dShow = false;
+				pNLMarkedButton->SetVisible(false);
 			if (pCountLabel)
-				pCountLabel->dShow = false;
+				pCountLabel->SetVisible(false);
 		}
-		if (pFindItemWnd && pFindItemWnd->dShow == true)
+		if (pFindItemWnd && pFindItemWnd->IsVisible() == true)
 		{
 			pFindItemWnd->Update();
 		}
@@ -1724,12 +1750,12 @@ class CXWnd *GetChildByIndex(class CXWnd *pWnd, PCHAR Name,int index)
     }
 	if(WinCount==index)
 		return pWnd;
-    if (pWnd->pFirstChildWnd) {
-        tmp = GetChildByIndex((class CXWnd *)pWnd->pFirstChildWnd, Name,index);
+    if (pWnd->GetFirstChildWnd()) {
+        tmp = GetChildByIndex((class CXWnd *)pWnd->GetFirstChildWnd(), Name,index);
         if (tmp)
             return tmp;
     }
-    return GetChildByIndex((class CXWnd *)pWnd->pNextSiblingWnd, Name,index);
+    return GetChildByIndex((class CXWnd *)pWnd->GetNextSiblingWnd(), Name,index);
 }
 
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
@@ -1738,15 +1764,15 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
 		//							 Parent      TabWindow        PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
 
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->dShow)
+			if (((PCSIDLWND)pWnd)->IsVisible())
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
 		}
 	}
     if (!pWnd)
@@ -1845,14 +1871,14 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
 		//							 Parent      TabWindow        PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
 		while (pWnd) 
 		{
-			if (((PCSIDLWND)pWnd)->dShow) 
+			if (((PCSIDLWND)pWnd)->IsVisible()) 
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
 		}
 	}
     CXWnd *pParentWnd = 0;
@@ -1958,14 +1984,14 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
 		//							 Parent      TabWindow        PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->dShow)
+			if (((PCSIDLWND)pWnd)->IsVisible())
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
 		}
 	}
     CXWnd *pParentWnd = 0;
@@ -2012,14 +2038,14 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
 		//							 Parent      TabWindow        PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->pFirstChildWnd->pFirstChildWnd;
+		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->dShow)
+			if (((PCSIDLWND)pWnd)->IsVisible())
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->pNextSiblingWnd;
+			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
 		}
 	}
     if (!pWnd)
@@ -2134,19 +2160,19 @@ int RecurseAndListWindows(PCSIDLWND pWnd)
         GetCXStr(pXMLData->Name.Ptr,tmpName,MAX_STRING);
         GetCXStr(pXMLData->ScreenID.Ptr,tmpAltName,MAX_STRING);
         if (tmpAltName[0] && _stricmp(tmpName,tmpAltName)) {
-			if(pWnd->pParentWindow && pWnd->pParentWindow->pParentWindow)
-				WriteChatf("[0x%08X][P:0x%08X][PP:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->pParentWindow,pWnd->pParentWindow->pParentWindow,tmpType,tmpName,tmpAltName);
+			if(pWnd->GetParentWindow() && pWnd->GetParentWindow()->GetParentWindow())
+				WriteChatf("[0x%08X][P:0x%08X][PP:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->GetParentWindow(),pWnd->GetParentWindow()->GetParentWindow(),tmpType,tmpName,tmpAltName);
 			else
-				WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->pParentWindow,tmpType,tmpName,tmpAltName);
+				WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->GetParentWindow(),tmpType,tmpName,tmpAltName);
 		} else {
-			WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax]",pWnd,pWnd->pParentWindow,tmpType,tmpName);
+			WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax]",pWnd,pWnd->GetParentWindow(),tmpType,tmpName);
 		}
     }
-    if (pWnd->pFirstChildWnd)
-        Count += RecurseAndListWindows(pWnd->pFirstChildWnd);
+    if (pWnd->GetFirstChildWnd())
+        Count += RecurseAndListWindows(pWnd->GetFirstChildWnd());
 
-    if (pWnd->pNextSiblingWnd)
-        Count += RecurseAndListWindows(pWnd->pNextSiblingWnd);
+    if (pWnd->GetNextSiblingWnd())
+        Count += RecurseAndListWindows(pWnd->GetNextSiblingWnd());
 
     return Count;
 }
@@ -2203,7 +2229,7 @@ int ListWindows(int argc, char *argv[])
 		for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
 			_WindowInfo Info = N->second;
 			if (bOpen) {
-				if (Info.pWnd && Info.pWnd->dShow == 1 && Info.pWnd->pParentWindow == 0) {
+				if (Info.pWnd && Info.pWnd->IsVisible() == 1 && Info.pWnd->GetParentWindow() == 0) {
 					if (bPartial) {
 						if (Info.Name.find(szArg2) != Info.Name.npos) {
 							WriteChatf("[PARTIAL MATCH][OPEN] %s", Info.Name.c_str());
@@ -2252,7 +2278,7 @@ int ListWindows(int argc, char *argv[])
 		for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
 			_WindowInfo Info = N->second;
 			if (Info.Name == WindowName && Info.pWnd) {
-				if (PCSIDLWND pWnd = Info.pWnd->pFirstChildWnd) {
+				if (PCSIDLWND pWnd = Info.pWnd->GetFirstChildWnd()) {
 					Count = RecurseAndListWindows(pWnd);
 				}
 				WriteChatf("%d child windows", Count);
@@ -2726,12 +2752,13 @@ void AutoBankPulse()
 {
 	if (pMerchantWnd)
 	{
-		if (pMerchantWnd->dShow)
+		if (pMerchantWnd->IsVisible())
 		{
 			if (!bChangedNL)
 			{
 				if (pNLMarkedButton) {
-					SetCXStr(&pNLMarkedButton->WindowText, "Sell Marked");
+					pNLMarkedButton->CSetWindowText("Sell Marked");
+					//SetCXStr(&pNLMarkedButton->WindowText, "Sell Marked");
 					bChangedNL = true;
 				}
 			}
@@ -2740,7 +2767,8 @@ void AutoBankPulse()
 			if (bChangedNL)
 			{
 				if (pNLMarkedButton) {
-					SetCXStr(&pNLMarkedButton->WindowText, "Never Loot");
+					pNLMarkedButton->CSetWindowText("Never Loot");
+					//SetCXStr(&pNLMarkedButton->WindowText, "Never Loot");
 					bChangedNL = false;
 				}
 			}
@@ -2748,7 +2776,7 @@ void AutoBankPulse()
 	}
 	if (gStartSelling)
 	{
-		if (pMerchantWnd && pMerchantWnd->dShow)
+		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
 			if (EverQuestinfo__IsItemPending) {
 				DWORD wecantsell = *(DWORD*)EverQuestinfo__IsItemPending;
@@ -2851,7 +2879,7 @@ void AutoBankPulse()
 	{
 		return;
 	}
-	else if (!pBankWnd || (pBankWnd && pBankWnd->dShow==0))
+	else if (!pBankWnd || (pBankWnd && pBankWnd->IsVisible()==0))
 	{
 		gStartAutoBanking = false;
 		bAutoBankInProgress = false;

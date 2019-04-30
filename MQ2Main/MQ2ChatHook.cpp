@@ -204,15 +204,15 @@ public:
 		gbInChat = FALSE;
 	}
 
-	VOID TellWnd_Trampoline(char *message, char *name, char *name2, void *unknown, int color, bool b);
-	VOID TellWnd_Detour(char *message, char *name, char *name2, void *unknown, int color, bool b)
+	VOID TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk);
+	VOID TellWnd_Detour(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk)
 	{
 		int len = strlen(message);
 		char *szMsg = (char *)LocalAlloc(LPTR, len + 64);
 		BOOL SkipTrampoline = 0;
 		gbInChat = true;
 		if (szMsg) {
-			sprintf_s(szMsg, len + 63, "%s tells you, '%s'", name, message);
+			sprintf_s(szMsg, len + 63, "%s tells you, '%s'", from, message);
 			CheckChatForEvent(szMsg);
 			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, color));
 		}
@@ -222,14 +222,24 @@ public:
 			if (gbTimeStampChat && szMsg) {
 				CHAR tmpbuf[32] = { 0 };
 				_strtime_s(tmpbuf, 32);
-				sprintf_s(szMsg, len + 63, "[%s] %s", tmpbuf, name);
-				TellWnd_Trampoline(message, szMsg, name2, unknown, color, b);
+				sprintf_s(szMsg, len + 63, "[%s] %s", tmpbuf, from);
+				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
 			}
 			else {
-				TellWnd_Trampoline(message, name, name2, unknown, color, b);
+				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
 			}
 #else
-			TellWnd_Trampoline(message, name, name2, unknown, color, b);
+			if (gAnonymize) {
+				CHAR *szName = new CHAR[64];
+				strcpy_s(szName, 64, from);
+				Anonymize(szName,64);
+				TellWnd_Trampoline(message, szName, szName, text, color, bLogOk);
+				delete szName;
+			}
+			else
+			{
+				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
+			}
 #endif
 		}
 		if (szMsg)
@@ -272,7 +282,7 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, b
 #if defined(ROF2EMU) || defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
 #endif
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message, char *name, char *name2, void *unknown, int color, bool b));
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk));
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
 #if !defined(ROF2EMU) && !defined(UFEMU)

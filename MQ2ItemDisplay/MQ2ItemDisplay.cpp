@@ -359,7 +359,7 @@ public:
         CreateChildrenFromSidl();
         pXWnd()->Show(1,1);
         ReplacevfTable();
-        CloseOnESC=0;
+        SetEscapable(false);
     }
 
     CCompareTipWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
@@ -367,16 +367,16 @@ public:
         CreateChildrenFromSidl();
 		//pXWnd()->Show(1,1);
         ReplacevfTable();
-        CloseOnESC=0;
+        SetEscapable(false);
 		SetWndNotification(CCompareTipWnd);
 		Display=(CStmlWnd*)GetChildItem("CT_Display");
-		this->Faded = true;
-		this->ZLayer = 100;
-		this->Alpha = 0xfa;
-		this->BGColor = 0xFF000000;
-		this->BGType = 1;
+		SetFaded(true);
+		this->SetZLayer(100);
+		this->SetAlpha(0xfa);
+		this->SetBGColor(0xFF000000);
+		this->SetBGType(1);
 		#if !defined(ROF2EMU) && !defined(UFEMU)
-		this->bClickThrough = 1;
+		this->SetClickThrough(true);
 		#endif
     }
 
@@ -1408,24 +1408,28 @@ public:
 							url.append(szID);
 							if (CHtmlWnd *ItemHtmlwnd = pCWebManager->CreateHtmlWnd(url.c_str(), pItem->Name, NULL, true, pItem->Name))
 							{
-								ItemHtmlwnd->MinClientSize.cx = 0;
-								ItemHtmlwnd->MinClientSize.cy = 0;
-								ItemHtmlwnd->bMaximizable = true;
-								ItemHtmlwnd->WindowStyle = CWS_USEMYALPHA | CWS_RESIZEBORDER | CWS_MAXIMIZE | CWS_CLOSE | CWS_TITLE | CWS_MINIMIZE;
-								int oldwidth = ItemHtmlwnd->Location.right - ItemHtmlwnd->Location.left;
-								int oldheight = ItemHtmlwnd->Location.bottom - ItemHtmlwnd->Location.top;
-								ItemHtmlwnd->Location.right = ItemHtmlwnd->Location.left + 759;
-								ItemHtmlwnd->Location.bottom = ItemHtmlwnd->Location.top + 539;
+								ItemHtmlwnd->SetMinClientSize({ 10,20 });
+								ItemHtmlwnd->SetMaximizable(true);
+								ItemHtmlwnd->SetWindowStyle(CWS_USEMYALPHA | CWS_RESIZEBORDER | CWS_MAXIMIZE | CWS_CLOSE | CWS_TITLE | CWS_MINIMIZE);
+								int oldwidth = ItemHtmlwnd->GetLocation().right - ItemHtmlwnd->GetLocation().left;
+								int oldheight = ItemHtmlwnd->GetLocation().bottom - ItemHtmlwnd->GetLocation().top;
+								int ourleftloc = ItemHtmlwnd->GetLocation().left;
+								int ourtoploc = ItemHtmlwnd->GetLocation().top;
+								//left top right bottom
+								ItemHtmlwnd->SetLocation({ ourleftloc,
+									ourtoploc,
+									ItemHtmlwnd->GetLocation().left + 759,
+									ItemHtmlwnd->GetLocation().top + 539 });
+
 								ItemInfoManager& manager = ItemInfoManager::GetInstance();
 								manager.htmlwnd = ItemHtmlwnd;
-								int width = manager.htmlwnd->Location.right - manager.htmlwnd->Location.left;
-								int height = manager.htmlwnd->Location.bottom - manager.htmlwnd->Location.top;
+								int width = manager.htmlwnd->GetLocation().right - manager.htmlwnd->GetLocation().left;
+								int height = manager.htmlwnd->GetLocation().bottom - manager.htmlwnd->GetLocation().top;
 								CXWnd*cxwnd = (CXWnd*)ItemHtmlwnd;
 								cxwnd->Resize(width+1, height+1);
 								ItemHtmlwnd->SetClientCallbacks(&manager);
 								//maybe later im not 100% sure what observers are for
 								//ItemHtmlwnd->AddObserver(&manager);
-								Sleep(0);
 							}
 						}
 						return 0;
@@ -1547,70 +1551,101 @@ public:
 					labeltemplate->Font = 1;
 					//labeltemplate->TextColor = 0xFF0094FF;
 					CLabelWnd *pheader = (CLabelWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, labeltemplate);
-					pheader->CRNormal = 0xFF0094FF;
+					pheader->SetCRNormal(0xFF0094FF);
 					CButtonWnd *pAlwaysNeedBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
 					CButtonWnd *pAlwaysGreedBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
 					CButtonWnd *pNeverBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
 					CButtonWnd *pAutoRollBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate);
 					if (pAlwaysNeedBtn && pAlwaysGreedBtn && pNeverBtn && pAutoRollBtn && pheader) {
-						SetCXStr(&pheader->WindowText, "AN | AG | NV | AR");
-						SetCXStr(&pAlwaysNeedBtn->Tooltip, "Always roll need on this item");
-						SetCXStr(&pAlwaysGreedBtn->Tooltip, "Always roll greed on this item");
-						SetCXStr(&pNeverBtn->Tooltip, "Never loot this item");
-						SetCXStr(&pAutoRollBtn->Tooltip, "Always roll on this item");
+						((CXWnd*)pheader)->SetWindowTextA("AN | AG | NV | AR");
+						//SetCXStr(&pheader->WindowText, "AN | AG | NV | AR");
+						pAlwaysNeedBtn->SetTooltip("Always roll need on this item");
+						//SetCXStr(&pAlwaysNeedBtn->Tooltip, "Always roll need on this item");
+						pAlwaysGreedBtn->SetTooltip("Always roll greed on this item");
+						//SetCXStr(&pAlwaysGreedBtn->Tooltip, "Always roll greed on this item");
+						pNeverBtn->SetTooltip("Never loot this item");
+						//SetCXStr(&pNeverBtn->Tooltip, "Never loot this item");
+						pAutoRollBtn->SetTooltip("Always roll on this item");
+						//SetCXStr(&pAutoRollBtn->Tooltip, "Always roll on this item");
 						ButtonInfo bi;
 						bi.ItemDisplayWnd = pWnd;	
 						if (CXWnd*orgbutton = pWnd->GetChildItem("IDW_ModButtonLabel")) {
 							int spacing = 22;
 							//header
-							pheader->Location.top = orgbutton->Location.top + 12;
-							pheader->Location.bottom = pheader->Location.top + 12;
-							pheader->Location.left = orgbutton->Location.left;
+							int pheader_top = orgbutton->GetLocation().top + 12;
+							int pheader_bottom = pheader_top + 12;
+							int pheader_left = orgbutton->GetLocation().left;
 							if (CXWnd*fusebutton = pWnd->GetChildItem("IDW_FuseButtonLabel")) {
-								if (fusebutton->dShow) {
-									pheader->Location.left += 240;
+								if (fusebutton->IsVisible()) {
+									pheader_left += 240;
 								}
 								else {
-									pheader->Location.left += 80;
+									pheader_left += 80;
 								}
 							}
-							pheader->Location.right = pheader->Location.left + 80;
+							int pheader_right = pheader_left + 80;
+							//left top right botton
+							pheader->SetLocation({ pheader_left,
+								pheader_top,
+								pheader_right,
+								pheader_bottom });
+
+							//org				
+							//int pAlwaysNeedBtn_Location_top = orgbutton->GetLocation().top + 36;
+							//int pAlwaysNeedBtn_Location_bottom = pAlwaysNeedBtn_Location_top + 14;
+							//int pAlwaysNeedBtn_Location_left = orgbutton->GetLocation().left;
+							//pAlwaysNeedBtn_Location_left += 80;
+							//int pAlwaysNeedBtn_Location_right = pAlwaysNeedBtn_Location_left + 14;
+							//vs chat change:
+							int pAlwaysNeedBtn_Location_top = orgbutton->GetLocation().top + 28;
+							int pAlwaysNeedBtn_Location_bottom = pAlwaysNeedBtn_Location_top + 14;
+							///int pAlwaysNeedBtn_Location_left = orgbutton->GetLocation().left;
+							int pAlwaysNeedBtn_Location_left = pheader->GetLocation().left;
+							int pAlwaysNeedBtn_Location_right = pAlwaysNeedBtn_Location_left + 14;
+
 							//always need
-							pAlwaysNeedBtn->Location.top = orgbutton->Location.top + 28;
-							pAlwaysNeedBtn->Location.bottom = pAlwaysNeedBtn->Location.top + 14;
-							pAlwaysNeedBtn->Location.left = orgbutton->Location.left;
-							pAlwaysNeedBtn->Location.left = pheader->Location.left;
-							pAlwaysNeedBtn->Location.right = pAlwaysNeedBtn->Location.left + 14;
+							pAlwaysNeedBtn->SetLocation({ pAlwaysNeedBtn_Location_left,
+								pAlwaysNeedBtn_Location_top,
+								pAlwaysNeedBtn_Location_right,
+								pAlwaysNeedBtn_Location_bottom });
+							/*pAlwaysNeedBtn->SetLocation({ pheader->GetLocation().left,
+								orgbutton->GetLocation().top + 28,
+								pAlwaysNeedBtn->GetLocation().left + 14,
+								pAlwaysNeedBtn->GetLocation().top + 14 });
+								*/
 							//always greed
-							pAlwaysGreedBtn->Location.top = pAlwaysNeedBtn->Location.top;
-							pAlwaysGreedBtn->Location.bottom = pAlwaysNeedBtn->Location.bottom;
-							pAlwaysGreedBtn->Location.left = pAlwaysNeedBtn->Location.left + spacing;
-							pAlwaysGreedBtn->Location.right = pAlwaysNeedBtn->Location.right + spacing;
+							pAlwaysGreedBtn->SetLocation({ pAlwaysNeedBtn->GetLocation().left + spacing,
+								pAlwaysNeedBtn->GetLocation().top,
+								pAlwaysNeedBtn->GetLocation().right + spacing,
+								pAlwaysNeedBtn->GetLocation().bottom });
+
 							//never
-							pNeverBtn->Location.top = pAlwaysGreedBtn->Location.top;
-							pNeverBtn->Location.bottom = pAlwaysGreedBtn->Location.bottom;
-							pNeverBtn->Location.left = pAlwaysGreedBtn->Location.left + spacing;
-							pNeverBtn->Location.right = pAlwaysGreedBtn->Location.right + spacing;
+							//left top right bottom
+							pNeverBtn->SetLocation({ pAlwaysGreedBtn->GetLocation().left + spacing,
+								pAlwaysGreedBtn->GetLocation().top,
+								pAlwaysGreedBtn->GetLocation().right + spacing,
+								pAlwaysGreedBtn->GetLocation().bottom });
+							
 							//autoroll
-							pAutoRollBtn->Location.top = pNeverBtn->Location.top;
-							pAutoRollBtn->Location.bottom = pNeverBtn->Location.bottom;
-							pAutoRollBtn->Location.left = pNeverBtn->Location.left + spacing;
-							pAutoRollBtn->Location.right = pNeverBtn->Location.right + spacing;
+							pAutoRollBtn->SetLocation({ pNeverBtn->GetLocation().left + spacing,
+								pNeverBtn->GetLocation().top,
+								pNeverBtn->GetLocation().right + spacing,
+								pNeverBtn->GetLocation().bottom });
 						}
 						bi.ID = 1;
-						pheader->Data = bi.ID;
+						pheader->SetData(bi.ID);
 						ButtonMap[(CButtonWnd*)pheader] = bi;
 						bi.ID = 2;
-						pAlwaysNeedBtn->Data = bi.ID;
+						pAlwaysNeedBtn->SetData(bi.ID);
 						ButtonMap[pAlwaysNeedBtn] = bi;
 						bi.ID = 3;
-						pAlwaysGreedBtn->Data = bi.ID;
+						pAlwaysGreedBtn->SetData(bi.ID);
 						ButtonMap[pAlwaysGreedBtn] = bi;
 						bi.ID = 4;
-						pNeverBtn->Data = bi.ID;
+						pNeverBtn->SetData(bi.ID);
 						ButtonMap[pNeverBtn] = bi;
 						bi.ID = 5;
-						pAutoRollBtn->Data = bi.ID;
+						pAutoRollBtn->SetData(bi.ID);
 						ButtonMap[pAutoRollBtn] = bi;
 						if (PITEMINFO pItem = GetItemFromContents(pWnd->pCurrentItem)) {
 							if (pLootFiltersManager) {
@@ -1652,21 +1687,22 @@ public:
 					btntemplate->Font = 1;
 					//btntemplate->TextColor = 0xFFFFFF00;
 					if (CButtonWnd *pBtn = (CButtonWnd *)pSidlMgr->CreateXWndFromTemplate((CXWnd*)this, btntemplate)) {
-						pBtn->CRNormal = 0xFFFFFF00;
-						//pBtn->dShow = true;
-						pBtn->Location.top = 10;
-						pBtn->Location.bottom = 30;
-						pBtn->Location.left = 20;
-						pBtn->Location.right = 60;
+						pBtn->SetCRNormal(0xFFFFFF00);
+						//left,top,right, bottom
+						pBtn->SetLocation({ 20,
+							10,
+							60,
+							30 });
+
 						((CXWnd*)pBtn)->SetWindowTextA(CXStr("Lucy"));
 						ButtonInfo bi;
 						bi.ItemDisplayWnd = pWnd;
 						bi.ID = 6;
 						#if !defined(UFEMU)
-						pBtn->Data = bi.ID;
+						pBtn->SetData(bi.ID);
 						#endif
 						ButtonMap[pBtn] = bi;
-						pBtn->BGColor = 0xFF0000FF;
+						pBtn->SetBGColor(0xFF0000FF);
 						pBtn->DecalTint = 0xFF00FFFF;
 					}
 					btntemplate->Font = oldfont;
@@ -1688,7 +1724,7 @@ public:
 					pt.X = EQADDR_MOUSE->X + 5;
 					pt.Y = EQADDR_MOUSE->Y + 5;
 					((CXWnd *)pCompareTipWnd)->Move(pt);
-					pCompareTipWnd->ZLayer = 0;
+					pCompareTipWnd->SetZLayer(0);
 
 					((CStmlWnd*)pCompareTipWnd->Display)->SetSTMLText("", 1, 0);
 					((CStmlWnd*)pCompareTipWnd->Display)->ForceParseNow();
@@ -1708,7 +1744,7 @@ public:
 					((CStmlWnd*)pCompareTipWnd->Display)->AppendSTML(szTemp);
 
 					((CStmlWnd*)pCompareTipWnd->Display)->ForceParseNow();
-					pCompareTipWnd->dShow = 1;
+					pCompareTipWnd->SetVisible(true);
 				}
 			}
 		}
