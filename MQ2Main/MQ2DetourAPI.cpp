@@ -610,6 +610,8 @@ DWORD IsAddressDetoured(unsigned int address, int count)
 
 int __cdecl memcheck0(unsigned char *buffer, int count)
 {
+	//MessageBox(NULL, "ddd", "ddd", MB_SYSTEMMODAL | MB_OK);
+	//int realchecksum = checkmemcheck0((const char *)buffer, count);
 #ifndef	ISXEQ
 	int orgret = memcheck0_tramp(buffer, count);
 	unsigned int addr = (int)&buffer[0];
@@ -843,13 +845,12 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 	return ebx;
 }
 
-
-
 int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 {
 	unsigned int i;
 	unsigned int ebx, edx, eax;
-
+	//MessageBox(NULL, "ddddd", "ddddd", MB_SYSTEMMODAL | MB_OK);
+	//int realchecksum = checkmemcheck2(buffer, count, key.x);
 	//DebugSpewAlways("memcheck2: 0x%x", buffer);
 
 	if (!extern_array2) {
@@ -977,6 +978,13 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 #ifdef ISXEQ
 	free(realbuffer);
 #endif
+	/*if (realchecksum != eax)
+	{
+		//crap...
+		MessageBox(NULL, "crap", "memcheck2 hash did not match tell eqmule", MB_SYSTEMMODAL | MB_OK);
+		DebugBreak();
+		return realchecksum;
+	}*/
 	return eax;
 }
 

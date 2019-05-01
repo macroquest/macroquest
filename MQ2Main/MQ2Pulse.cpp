@@ -719,7 +719,8 @@ BOOL Detour_ProcessGameEvents(VOID)
 		ScreenMode = 3;
 		WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
 		DebugSpewAlways("%s", UnloadedString);
-		UnloadMQ2Plugins();
+		//cant unload these here there are detours still in use that call functions from plugins...
+		//UnloadMQ2Plugins();
 		MQ2Shutdown();
 		DebugSpew("Shutdown completed");
 		g_Loaded = FALSE;

@@ -11069,9 +11069,9 @@ void UpdatedMasterLooterLabel()
 {
 	if (pAdvancedLootWnd)
 	{
-		CHAR *szText = new CHAR[MAX_STRING];
 		if (CLabelWnd*MasterLooterLabel = (CLabelWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter"))
 		{
+			CHAR szText[MAX_STRING];
 			bool bFound = false;
 			if (PCHARINFO pChar = GetCharInfo())
 			{
@@ -11101,7 +11101,7 @@ void UpdatedMasterLooterLabel()
 				//SetCXStr(&(MasterLooterLabel->WindowText), szText);
 			}
 		}
-		delete szText;
+		//delete szText;
 	}
 }
 struct _CONTENTS *CONTENTS::GetContent(UINT index)

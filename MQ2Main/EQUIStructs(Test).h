@@ -437,7 +437,7 @@ public: \
 			} \
 			void SetMinimized(bool bValue) \
 			{ \
-				Minimized = bValue; /*Minimized*/ \\
+				Minimized = bValue; /*Minimized*/ \
 			} \
 			bool IsMouseOver() \
 			{ \
