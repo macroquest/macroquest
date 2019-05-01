@@ -692,19 +692,19 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 	return eax;
 }
 
-bool __cdecl memcheck5(DWORD count)
+int __cdecl memcheck5(DWORD count)
 {
 	DWORD dwsum = 0;
 	if (GetHashSum = (fGetHashSum)GetProcAddress(ghmq2ic, "GetHashSum")) {
 		dwsum = GetHashSum(count,__EP1_Data_x);
 	}
-	if (!dwsum)
-		return false;
-	return true;
+	return dwsum;
 }
 
 int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 {
+	//leave this here i uncomment now and then to check the hash -eqmule
+	//int realchecksum = memcheck1Tester(buffer, (UINT)count, (int)key.x);
 	unsigned int i;
 	unsigned int ebx, eax, edx;
 
@@ -722,8 +722,8 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 	//                push    edi
 	//                or      edi, 0FFFFFFFFh
 	//                cmp     [ebp+arg_8], 0
-	bool creset = memcheck5(count);
-	if (key.x != 0 && creset) {
+	int creset = memcheck5(count);
+	if (key.x != 0 && creset==__EncryptPad5_x) {
 		//                mov     esi, 0FFh
 		//                mov     ecx, 0FFFFFFh
 		//                jz      short loc_4C3978
@@ -818,8 +818,8 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 		unsigned int b = (int)&buffer[i];
 		OurDetours *detour = ourdetours;
 		while (detour) {
-			if (detour->count && (b >= detour->addr) &&
-				(b < detour->addr + detour->count)) {
+			if (detour->count && (b >= detour->addr) &&	(b < detour->addr + detour->count)) {
+				//MessageBox(NULL, "realchecksum", "need to fix", MB_SYSTEMMODAL | MB_OK);
 				tmp = detour->array[b - detour->addr];
 				break;
 			}
@@ -835,7 +835,12 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 #ifdef ISXEQ
 	free(realbuffer);
 #endif
-	return ~eax;
+	ebx = ~eax;
+	/*if (realchecksum != ebx)
+	{
+		MessageBox(NULL, "realchecksum", "fail", MB_SYSTEMMODAL | MB_OK);
+	}*/
+	return ebx;
 }
 
 

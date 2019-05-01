@@ -435,6 +435,10 @@ public: \
 				return Minimized; /*Minimized*/ \
 				/*return GetClassMember(this,15) ? true:false; /*Minimized*/ \
 			} \
+			void SetMinimized(bool bValue) \
+			{ \
+				Minimized = bValue; /*Minimized*/ \\
+			} \
 			bool IsMouseOver() \
 			{ \
 				return MouseOver; /*MouseOver*/ \

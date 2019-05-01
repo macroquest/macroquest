@@ -399,7 +399,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
             NewColor=CaptionColors[CC_PCGroupColor].Color;
         else if (CaptionColors[CC_PCClassColor].Enabled)
             NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
-        else if (CaptionColors[CC_PCRaidColor].Enabled && IsRaidMember(pSpawn))
+        else if (CaptionColors[CC_PCRaidColor].Enabled && IsRaidMember(pSpawn)!=-1)
             NewColor=CaptionColors[CC_PCRaidColor].Color;
         else if (CaptionColors[CC_PCPVPTeamColor].Enabled)
         {
