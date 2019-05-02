@@ -816,7 +816,7 @@ GNU General Public License for more details.
 #define CXWnd__GetScreenRect_x                                     0x917660
 #define CXWnd__GetTooltipRect_x                                    0x9155C0
 #define CXWnd__GetWindowTextA_x                                    0x497CE0
-#define CXWnd__IsActive_x                                          0x91C0A0
+#define CXWnd__IsActive_x                                          0x915D00
 #define CXWnd__IsDescendantOf_x                                    0x918070
 #define CXWnd__IsReallyVisible_x                                   0x9180A0
 #define CXWnd__IsType_x                                            0x919860
