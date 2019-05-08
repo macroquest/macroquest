@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define LIVE
+#define TEST
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -344,9 +344,9 @@ EQLIB_API VOID DeleteMQ2NewsWindow();
 EQLIB_API VOID InitializeChatHook();
 EQLIB_API VOID ShutdownChatHook();
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1,int = 0);
+EQLIB_API VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog = true, bool dopercentsubst = true, char *SomeStr = NULL);
 #else
-EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1);
+EQLIB_API VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 #endif
 
 /* DETOURING API */

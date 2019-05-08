@@ -358,6 +358,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 }
 void CleanupLootCombo(bool bupdatemasterlooter)
 {
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (PCHARINFO pChar = GetCharInfo())
 	{
 		if (pChar->pGroupInfo)
@@ -396,6 +397,7 @@ void CleanupLootCombo(bool bupdatemasterlooter)
 		}
 		delete szOut;
 	}*/
+#endif
 }
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)

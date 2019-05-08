@@ -253,7 +253,7 @@ namespace MQ2Globals
 #if defined(ROF2EMU) || defined(UFEMU)
 		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
 		ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
-		ppItemList = (EQItemList**)pinstEQItemList;
+//		ppItemList = (EQItemList**)pinstEQItemList;
 #endif
 		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
 		ppSidlMgr = (CSidlManager **)pinstCSidlManager;
@@ -1706,6 +1706,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CChatManager__FreeChatWindow);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__GetLockedActiveChatWindow);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__SetLockedActiveChatWindow);
+	INITIALIZE_EQGAME_OFFSET(CChatManager__CreateChatWindow);
 	
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__CContextMenu);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__dCContextMenu);
@@ -1729,7 +1730,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CChatWindow__CChatWindow);
 	INITIALIZE_EQGAME_OFFSET(CChatWindow__Clear);
 	INITIALIZE_EQGAME_OFFSET(CChatWindow__WndNotification);
-
+	INITIALIZE_EQGAME_OFFSET(CChatWindow__AddHistory);
+	
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__DeleteAll);
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__Draw);
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__GetCurChoice);
@@ -2168,6 +2170,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(FactionManagerClient__Instance);
 	INITIALIZE_EQGAME_OFFSET(FactionManagerClient__HandleFactionMessage);
 	#endif
+	
+	INITIALIZE_EQGAME_OFFSET(ChatManagerClient__Instance);
 	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__Instance);
 	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__GetItemByGuid);
 	INITIALIZE_EQGAME_OFFSET(EQPlacedItemManager__GetItemByRealEstateAndRealEstateItemIds);

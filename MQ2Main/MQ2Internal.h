@@ -197,7 +197,7 @@ namespace MQ2Internal {
     } SWHOSORT, *PSWHOSORT;
 
     typedef struct _CONNECTION {
-        SOCKET socket;
+        unsigned int socket;
         BOOL Auth;
         struct _CONNECTION *pNext;
     } CONNECTION, *PCONNECTION;

@@ -67,17 +67,19 @@ class CChatHook
 {
 public:
 #if !defined(ROF2EMU) && !defined(UFEMU)
-	VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool, bool, int);
-	VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, int something)
+	VOID Trampoline(const char* szMsg, DWORD dwColor, bool, bool, char *SomeStr);
+	VOID Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr)
 #else
-	VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst);
-	VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)
+	VOID Trampoline(const char * szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst);
+	VOID Detour(const char * szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)
 #endif
 	{
 		//DebugSpew("CChatHook::Detour(%s)",szMsg); 
 		gbInChat = TRUE;
-
-		CheckChatForEvent(szMsg);
+		if (dwColor != 269)
+		{
+			CheckChatForEvent((char*)szMsg);
+		}
 
 		BOOL Filtered = FALSE;
 		PFILTER Filter = gpFilters;
@@ -98,9 +100,10 @@ public:
 		if (!Filtered) {
 			//if (gTelnetServer && gTelnetConnection && !gPauseTelnetOutput) TelnetServer_Write(szMsg); 
 			BOOL SkipTrampoline;
-			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, dwColor));
+			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat((char*)szMsg, dwColor));
 			if (!SkipTrampoline) {
-				if (gAnonymize) {
+				if (gAnonymize && dwColor!=269 /*System messages don't need anon*/)
+				{
 					int len = strlen(szMsg);
 					char myName[MAX_STRING] = "*";
 					int namelen = 0;
@@ -162,7 +165,7 @@ public:
 						else {
 #endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
-							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, something);
+							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 #else
 							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
 #endif
@@ -191,7 +194,7 @@ public:
 					else {
 #endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
-						Trampoline(szMsg, dwColor, EqLog, dopercentsubst, something);
+						Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 #else
 						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
 #endif
@@ -212,7 +215,7 @@ public:
 		BOOL SkipTrampoline = 0;
 		gbInChat = true;
 		if (szMsg) {
-			sprintf_s(szMsg, len + 63, "%s tells you, '%s'", from, message);
+			sprintf_s(szMsg, len + 64, "%s tells you, '%s'", from, message);
 			CheckChatForEvent(szMsg);
 			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, color));
 		}
@@ -275,9 +278,9 @@ public:
 	}
 };
 #if !defined(ROF2EMU) && !defined(UFEMU)
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, int something));
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr));
 #else
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst));
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst));
 #endif
 #if defined(ROF2EMU) || defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
@@ -286,13 +289,13 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char* message, char*f
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
 #if !defined(ROF2EMU) && !defined(UFEMU)
-VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, int something)
+VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, char *SomeStr)
 #else
 VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst)
 #endif
 {
 #if !defined(ROF2EMU) && !defined(UFEMU)
-	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst, something);
+	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst, SomeStr);
 #else
 	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst);
 #endif

@@ -1500,6 +1500,16 @@ EQLIB_OBJECT void CChatManager::SetLockedActiveChatWindow(CChatWindow *);
 EQLIB_OBJECT void CChatManager::UpdateContextMenus(class CChatWindow *);
 EQLIB_OBJECT void CChatManager::UpdateTellMenus(class CChatWindow *);
 EQLIB_OBJECT CChatWindow *CChatManager::GetLockedActiveChatWindow(void);
+#if !defined(ROF2EMU) && !defined(UFEMU)
+EQLIB_OBJECT void CChatManager::CreateChatWindow(CXWnd*pParentWnd, int ID, char* Name, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar, bool bHighLight, COLORREF HighlightColor);
+#else
+EQLIB_OBJECT void CChatManager::CreateChatWindow(char* Name, char *IniName, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar);
+#endif
+};
+class ChatManagerClient : public CChatManager
+{
+public:
+EQLIB_OBJECT static ChatManagerClient& Instance();
 };
 
 class CChatWindow : public CSidlScreenWnd
@@ -1509,7 +1519,7 @@ EQLIB_OBJECT CChatWindow::CChatWindow(class CXWnd *);
 EQLIB_OBJECT class CEditWnd * CChatWindow::GetInputWnd(void);
 EQLIB_OBJECT class CStmlWnd * CChatWindow::GetOutputWnd(void);
 EQLIB_OBJECT class CXStr CChatWindow::GetInputText(void);
-EQLIB_OBJECT void CChatWindow::AddHistory(CXStr *pText);
+EQLIB_OBJECT void CChatWindow::AddHistory(CXStr Text);
 EQLIB_OBJECT void CChatWindow::AddOutputText(PCXSTR,int);
 EQLIB_OBJECT void CChatWindow::Clear(void);
 EQLIB_OBJECT void CChatWindow::HistoryBack(void);
@@ -2586,7 +2596,11 @@ EQLIB_OBJECT void CEverQuest::DropHeldItemOnGround(int);
 EQLIB_OBJECT void CEverQuest::DropHeldMoneyOnGround(int);
 EQLIB_OBJECT void CEverQuest::DropItemOrMoneyOnPlayer(class EQPlayer *);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *);
-EQLIB_OBJECT void CEverQuest::dsp_chat(char const *line,int color,bool bLogIsOk,bool bConvertPercent);
+#if !defined(ROF2EMU) && !defined(UFEMU)
+EQLIB_OBJECT void CEverQuest::dsp_chat(const char  *line,int color = 273,bool bLogIsOk = true,bool bConvertPercent = true, char *SomeStr = NULL);
+#else
+EQLIB_OBJECT void CEverQuest::dsp_chat(const char  *line,int color,bool bLogIsOk,bool bConvertPercent);
+#endif
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool);
 EQLIB_OBJECT void CEverQuest::Emote(void);
 EQLIB_OBJECT void CEverQuest::EnterZone(struct HWND__ *);

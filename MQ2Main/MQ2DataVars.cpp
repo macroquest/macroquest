@@ -722,15 +722,15 @@ VOID CheckChatForEvent(PCHAR szMsg)
 	int len = strlen(szMsg);
 	if(char *szClean = (char *)LocalAlloc(LPTR,len+64)) {
 		char *pszCleanOrg = szClean;
-		strcpy_s(szClean,len+63,szMsg);
+		strcpy_s(szClean,len+64,szMsg);
 		if(szClean[0]==0x12) {//its spamchecked
 			if(len>2) {
 				if(char *szTemp = (char *)LocalAlloc(LPTR,len+64)) {
-					strcpy_s(szTemp,len+63,&szClean[2]);
+					strcpy_s(szTemp,len+64,&szClean[2]);
 					if(char *pDest = strchr(szTemp,'\x12')) {
 						pDest[0] = '\0';
 						sprintf_s(EventMsg,"%s%s",szTemp,&pDest[1]);
-						strcpy_s(szClean,len+63,EventMsg);
+						strcpy_s(szClean,len+64,EventMsg);
 					}
 					LocalFree(szTemp);
 				}

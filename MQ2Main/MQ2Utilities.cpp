@@ -11067,6 +11067,7 @@ bool Anonymize(char *name, int maxlen, bool bLootName)
 }
 void UpdatedMasterLooterLabel()
 {
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pAdvancedLootWnd)
 	{
 		if (CLabelWnd*MasterLooterLabel = (CLabelWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter"))
@@ -11103,6 +11104,7 @@ void UpdatedMasterLooterLabel()
 		}
 		//delete szText;
 	}
+#endif
 }
 struct _CONTENTS *CONTENTS::GetContent(UINT index)
 {
