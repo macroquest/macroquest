@@ -422,7 +422,6 @@ namespace MQ2Globals
 	EQLIB_VAR PSUB pSubs;
 	EQLIB_VAR PMQCOMMAND pCommands;
 	EQLIB_VAR PMQPLUGIN pPlugins;
-	EQLIB_VAR PMQXMLFILE pXMLFiles;
 
 	EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;
 
@@ -1079,6 +1078,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __CastRay2;
 	EQLIB_VAR DWORD __ConvertItemTags;
 	EQLIB_VAR DWORD __CrashHandler;
+	EQLIB_VAR DWORD __DoesFileExist;
 	EQLIB_VAR DWORD __EQGetTime;
 	EQLIB_VAR DWORD __ExecuteCmd;
 	EQLIB_VAR DWORD __FixHeading;
@@ -1098,6 +1098,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __SaveColors;
 	EQLIB_VAR DWORD __STMLToText;
 	EQLIB_VAR DWORD __ToggleKeyRingItem;
+	EQLIB_VAR DWORD CMemoryMappedFile__SetFile;
 	EQLIB_VAR DWORD CrashDetected;
 	EQLIB_VAR DWORD DrawNetStatus;
 	EQLIB_VAR DWORD Expansion_HoT;

@@ -327,13 +327,6 @@ namespace MQ2Internal {
         DWORD (__cdecl *fAddress)(PCHAR, PCHAR, PSPAWNINFO);
     } PARMLIST, *PPARMLIST;
 
-    typedef struct _MQXMLFile
-    {
-        char szFilename[MAX_PATH];
-        _MQXMLFile *pLast;
-        _MQXMLFile *pNext;
-    } MQXMLFILE, *PMQXMLFILE;
-
     typedef struct _MQBENCH
     {
         CHAR szName[64];

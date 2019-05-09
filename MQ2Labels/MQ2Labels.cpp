@@ -251,6 +251,7 @@ public:
         DWORD index;
 		if (gAnonymize) {
 			if (!bTrimnames) {
+				#if !defined(ROF2EMU) && !defined(UFEMU)
 				EzDetourwName(CAdvancedLootWnd__UpdateMasterLooter, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Detour, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Trampoline,"CAdvancedLootWnd__UpdateMasterLooter");
 				EzDetourwName(CComboWnd__GetChoiceText, &CLabelHook::CComboWnd__GetChoiceText_Detour, &CLabelHook::CComboWnd__GetChoiceText_Trampoline,"CComboWnd__GetChoiceText");
 				EzDetourwName(CComboWnd__InsertChoiceAtIndex, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Detour, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Trampoline,"CComboWnd__InsertChoiceAtIndex");
@@ -259,6 +260,7 @@ public:
 				{
 					CleanupLootCombo(true);
 				}
+				#endif
 				EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline,"CEverQuest__trimName");
 				EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline,"__GetGaugeValueFromEQ");
 				EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline,"__GetLabelFromEQ");
@@ -271,14 +273,18 @@ public:
 		} else {
 			if (bTrimnames) {
 				bTrimnames = 0;
+			#if !defined(ROF2EMU) && !defined(UFEMU)
 				RemoveDetour(CComboWnd__GetChoiceText);
 				RemoveDetour(CComboWnd__InsertChoiceAtIndex);
 				RemoveDetour(CAdvancedLootWnd__AddPlayerToList);
+			#endif
 				RemoveDetour(CEverQuest__trimName);
 				RemoveDetour(__GetGaugeValueFromEQ);
 				RemoveDetour(__GetLabelFromEQ);
+			#if !defined(ROF2EMU) && !defined(UFEMU)
 				CleanupLootCombo(false);
 				RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
+			#endif
 			}
 		}
 		Draw_Trampoline();
@@ -340,16 +346,16 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		//EzDetourwName(CListWnd__SetItemText, &CLabelHook::CListWnd__SetItemText_Detour, &CLabelHook::CListWnd__SetItemText_Trampoline,"CListWnd__SetItemText");
 		//EzDetourwName(CComboWnd__InsertChoice, &CLabelHook::CComboWnd__InsertChoice_Detour, &CLabelHook::CComboWnd__InsertChoice_Trampoline,"CComboWnd__InsertChoice");
 		//advloot anonymizing
-		
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		EzDetourwName(CAdvancedLootWnd__UpdateMasterLooter, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Detour, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Trampoline,"CAdvancedLootWnd__UpdateMasterLooter");
 		EzDetourwName(CComboWnd__GetChoiceText, &CLabelHook::CComboWnd__GetChoiceText_Detour, &CLabelHook::CComboWnd__GetChoiceText_Trampoline,"CComboWnd__GetChoiceText");
 		EzDetourwName(CComboWnd__InsertChoiceAtIndex, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Detour, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Trampoline,"CComboWnd__InsertChoiceAtIndex");
 		EzDetourwName(CAdvancedLootWnd__AddPlayerToList, &CLabelHook::CAdvancedLootWnd__AddPlayerToList_Detour, &CLabelHook::CAdvancedLootWnd__AddPlayerToList_Trampoline,"CAdvancedLootWnd__AddPlayerToList");
-		
 		if (pAdvancedLootWnd && GetGameState() == GAMESTATE_INGAME)
 		{
 			CleanupLootCombo(true);
 		}
+		#endif
 		EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline,"CEverQuest__trimName");
 		EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline,"__GetGaugeValueFromEQ");
 		EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline,"__GetLabelFromEQ");
@@ -408,14 +414,18 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     // Remove commands, macro parameters, hooks, etc.
 	if (bTrimnames) {
 		bTrimnames = 0;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		RemoveDetour(CComboWnd__GetChoiceText);
 		RemoveDetour(CComboWnd__InsertChoiceAtIndex);
 		RemoveDetour(CAdvancedLootWnd__AddPlayerToList);
+#endif
 		RemoveDetour(CEverQuest__trimName);
 		RemoveDetour(__GetGaugeValueFromEQ);
 		RemoveDetour(__GetLabelFromEQ);
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		CleanupLootCombo(false);
 		RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
+#endif
 	}
 	//FindMQ2Window(pAdvancedLootWnd->GetChildItem(""))
     RemoveDetour(CSidlManager__CreateLabel);

@@ -18,28 +18,27 @@
 
 #pragma pack(push)
 #pragma pack(4)
+
 struct CStrPtr
 {
-    int RefCount;
+	int RefCount;
 	long MaxLength;
-    long Length;
-    int Encoding;
+	long Length;
+	int Encoding;
 	void *Buff;
-    union
-    {
+	union
+	{
 		char Ansi[1000];
 		wchar_t Unicode[500];
 		CStrPtr* pNext;
-    };
+	};
 };
 
 class CCXStr
 {
 public:
-	//CCXStr& CCXStr::operator= (class CCXStr &str);
-	//EQLIB_OBJECT
-	__declspec(dllexport) CCXStr& CCXStr::operator= (char const *str);
-	
+	EQLIB_OBJECT CCXStr& operator= (char const *str);
+
 	CStrPtr* Ptr;
 };
 //----------------------------------------------------------------------------
@@ -194,11 +193,10 @@ public:
 				m_length = 0;
 			if (rhs.m_length) {
 				Assure(rhs.m_length);
-				#if !defined(TEST) && !defined(LIVE)
-				if (m_valid) {
-				#else
+#if !defined(TEST) && !defined(LIVE)
+				if (m_valid)
+#endif
 				{
-				#endif		
 					for (int i = 0; i < rhs.m_length; ++i)
 						Get(i) = rhs.Get(i);
 				}
@@ -282,12 +280,12 @@ private:
 	// reallocated, they can just be copied to the new list of bins.
 	void Assure(int requestedSize)
 	{
-		#if !defined(TEST) && !defined(LIVE)
+#if !defined(TEST) && !defined(LIVE)
 		if (m_valid && requestedSize > 0) {
-		#else
+#else
 		//if (m_binCount && requestedSize > 0) {
 		if (requestedSize > 0) {
-		#endif
+#endif
 			int newBinCount = ((requestedSize - 1) >> static_cast<int8_t>(m_binShift)) + 1;
 			if (newBinCount > m_binCount) {
 				T** newArray = new T*[newBinCount];
@@ -298,41 +296,40 @@ private:
 						T* newBin = new T[m_maxPerBin];
 						newArray[curBin] = newBin;
 						if (!newBin) {
-							#if !defined(TEST) && !defined(LIVE)
+#if !defined(TEST) && !defined(LIVE)
 							m_valid = false;
-							#else
+#else
 							//m_binCount = 0;
-							#endif
+#endif
 							break;
 						}
 					}
-					#if !defined(TEST) && !defined(LIVE)
-					if (m_valid) {
-					#else
+#if !defined(TEST) && !defined(LIVE)
+					if (m_valid)
+#endif
 					{
-					#endif
 						delete[] m_array;
 						m_array = newArray;
 						m_binCount = newBinCount;
 					}
 				} else {
-					#if !defined(TEST) && !defined(LIVE)
+#if !defined(TEST) && !defined(LIVE)
 					m_valid = false;
-					#else
+#else
 					//m_binCount = 0;
-					#endif
+#endif
 				}
 			}
 			// special note about this exception: the eq function was written this way,
 			// but its worth noting that new will throw if it can't allocate, which means
 			// this will never be hit anyways. The behavior would not change if we removed
 			// all of the checks for null returns values from new in this function.
-			#if !defined(TEST) && !defined(LIVE)
+#if !defined(TEST) && !defined(LIVE)
 			if (!m_valid) {
 				Reset();
 				ThrowArrayClassException();
 			}
-			#endif
+#endif
 		}
 	}
 };
@@ -361,7 +358,7 @@ public:
 		return m_array[index];
 	}
 	//0090C580
-EQLIB_OBJECT void ArrayClass_RO<T>::DeleteElement(int index);
+	EQLIB_OBJECT void DeleteElement(int index);
 
 	T& operator[](int index) { return Get(index); }
 	const T& operator[](int index) const { return Get(index); }
@@ -516,7 +513,7 @@ private:
 			m_alloc = allocatedSize;
 		}
 	}
-	
+
 	// this behaves the same as Assure, except for its allocation of memory
 	// is exactly how much is requested.
 	void AssureExact(int requestedSize)
@@ -540,6 +537,7 @@ private:
 		}
 	}
 };
+
 struct HashTableStatistics
 {
 	int TableSize;
@@ -547,25 +545,24 @@ struct HashTableStatistics
 	int TotalEntries;
 };
 
-class ResizePolicyNoShrink
+struct ResizePolicyNoShrink
 {
-public:
-	template<typename Hash>
-	static void ResizeOnAdd( Hash& hash )
+	template <typename Hash>
+	static void ResizeOnAdd(Hash& hash)
 	{
 		HashTableStatistics hashStats;
-		hash.GetStatistics( &hashStats );
-		if( hashStats.TotalEntries * 100 / hashStats.TableSize > 70 )
+		hash.GetStatistics(&hashStats);
+		if (hashStats.TotalEntries * 100 / hashStats.TableSize > 70)
 		{
-			hash.Resize( hashStats.TableSize * 2 );
+			hash.Resize(hashStats.TableSize * 2);
 		}
 	}
 };
-class ResizePolicyNoResize
-{
-public:
-};
-template<typename T, typename Key = int, typename ResizePolicy = ResizePolicyNoResize> class HashTable
+
+struct ResizePolicyNoResize {};
+
+template <typename T, typename Key = int, typename ResizePolicy = ResizePolicyNoResize>
+class HashTable
 {
 public:
 	struct HashEntry
@@ -574,34 +571,43 @@ public:
 		Key Key;
 		HashEntry *NextEntry;
 	};
-	template<typename K>
-	static unsigned HashValue( const K& key )
+
+	template <typename K>
+	static unsigned HashValue(const K& key)
 	{
 		return key;
 	}
-	/*0x00*/	HashEntry **Table;
-	/*0x04*/	int TableSize;
-	/*0x08*/	int EntryCount;
-	/*0x0c*/	int StatUsedSlots;
-	/*0x10*/
-	T *FindFirst(const Key& key) const;
+
+	T* FindFirst(const Key& key) const;
 	int GetTotalEntries() const;
-	T *WalkFirst() const;
-	T *WalkNext(const T *prevRes) const;
-	void GetStatistics(HashTableStatistics *stats) const;
+	T* WalkFirst() const;
+	T* WalkNext(const T* prevRes) const;
+	void GetStatistics(HashTableStatistics* stats) const;
 	void Resize(int hashSize);
 	void Insert(const T& obj, const Key& key);
+
+/*0x00*/ HashEntry **Table;
+/*0x04*/ int TableSize;
+/*0x08*/ int EntryCount;
+/*0x0c*/ int StatUsedSlots;
+/*0x10*/
 };
-template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key, ResizePolicy>::GetStatistics(HashTableStatistics *stats) const
+
+template <typename T, typename Key, typename ResizePolicy>
+void HashTable<T, Key, ResizePolicy>::GetStatistics(HashTableStatistics *stats) const
 {
 	stats->TotalEntries = EntryCount;
 	stats->UsedSlots = StatUsedSlots;
 	stats->TableSize = TableSize;
 }
+
 inline bool IsPrime(int value)
 {
-	//todo add code for this
-	return(true);
+	for (int i = 2; i <= value / 2; ++i) {
+		if (value % i == 0)
+		return false;
+	}
+	return true;
 }
 
 inline int NextPrime(int value)
@@ -612,15 +618,17 @@ inline int NextPrime(int value)
 		value += 2;
 	return(value);
 }
-template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key, ResizePolicy>::Resize(int hashSize)
+
+template <typename T, typename Key, typename ResizePolicy>
+void HashTable<T, Key, ResizePolicy>::Resize(int hashSize)
 {
-	HashEntry **oldTable = Table;
+	HashEntry** oldTable = Table;
 	int oldSize = TableSize;
 	TableSize = NextPrime(hashSize);
-	if ( TableSize != oldSize )
+	if (TableSize != oldSize)
 	{
 		Table = new HashEntry*[TableSize];
-		memset(Table, 0, sizeof(HashEntry *) * TableSize);
+		memset(Table, 0, sizeof(HashEntry*) * TableSize);
 		StatUsedSlots = 0;
 		if (EntryCount > 0)
 		{
@@ -631,7 +639,7 @@ template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key,
 				{
 					HashEntry* hold = next;
 					next = next->NextEntry;
-					int spot = (HashValue<Key>( hold->Key )) % TableSize;
+					int spot = HashValue<Key>(hold->Key) % TableSize;
 					if (Table[spot] == NULL)
 					{
 						hold->NextEntry = NULL;
@@ -649,7 +657,9 @@ template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key,
 		delete[] oldTable;
 	}
 }
-template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, ResizePolicy>::WalkFirst() const
+
+template <typename T, typename Key, typename ResizePolicy>
+T* HashTable<T, Key, ResizePolicy>::WalkFirst() const
 {
 	for (int i = 0; i < TableSize; i++)
 	{
@@ -659,7 +669,9 @@ template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, R
 	}
 	return NULL;
 }
-template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, ResizePolicy>::WalkNext(const T *prevRes) const
+
+template <typename T, typename Key, typename ResizePolicy>
+T* HashTable<T, Key, ResizePolicy>::WalkNext(const T* prevRes) const
 {
 	HashEntry *entry = (HashEntry *)(((char *)prevRes) - offsetof(HashEntry, Obj));
 	int i = (HashValue<Key>(entry->Key)) % TableSize;
@@ -676,15 +688,20 @@ template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, R
 	}
 	return NULL;
 }
-template<typename T, typename Key, typename ResizePolicy> int HashTable<T, Key, ResizePolicy>::GetTotalEntries() const
+
+template <typename T, typename Key, typename ResizePolicy>
+int HashTable<T, Key, ResizePolicy>::GetTotalEntries() const
 {
 	return EntryCount;
 }
-template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, ResizePolicy>::FindFirst( const Key& key ) const
+
+template <typename T, typename Key, typename ResizePolicy>
+T* HashTable<T, Key, ResizePolicy>::FindFirst(const Key& key) const
 {
-	if (Table==NULL)
+	if (Table == NULL)
 		return NULL;
-	HashEntry *entry = Table[( HashValue<Key>(key) ) % TableSize];
+
+	HashEntry* entry = Table[(HashValue<Key>(key)) % TableSize];
 	while (entry != NULL)
 	{
 		if (entry->Key == key)
@@ -693,13 +710,15 @@ template<typename T, typename Key, typename ResizePolicy> T *HashTable<T, Key, R
 	}
 	return NULL;
 }
-template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key, ResizePolicy>::Insert(const T& obj, const Key& key)
+
+template <typename T, typename Key, typename ResizePolicy>
+void HashTable<T, Key, ResizePolicy>::Insert(const T& obj, const Key& key)
 {
 	HashEntry *entry = new HashEntry;
 	entry->Obj = obj;
 	entry->Key = key;
 
-	int spot = (HashValue<Key>( key )) % TableSize;
+	int spot = HashValue<Key>(key) % TableSize;
 	if (Table[spot] == NULL)
 	{
 		entry->NextEntry = NULL;
@@ -712,242 +731,277 @@ template<typename T, typename Key, typename ResizePolicy> void HashTable<T, Key,
 		Table[spot] = entry;
 	}
 	EntryCount++;
-	ResizePolicy::ResizeOnAdd( *this );
+
+	ResizePolicy::ResizeOnAdd(*this);
 }
-//lists
-template<typename T, int _cnt> class EQList;
-template<typename T> class EQList<T, -1>
+
+// lists
+template <typename T, int _cnt>
+class EQList;
+
+template <typename T>
+class EQList<T, -1>
 {
 public:
-	/*0x00*/    PVOID vfTable;
-    class Node 
-    {
-        public:
-            T Value;
-            Node *pNext;
-            Node *pPrev;
-    };
-	/*0x04*/    Node *pFirst;
-	/*0x08*/    Node *pLast;
-	/*0x0c*/    int Count;
-	/*0x10*/
+	struct Node
+	{
+		T Value;
+		Node* pNext;
+		Node* pPrev;
+	};
+
+/*0x00*/ void* vfTable;
+/*0x04*/ Node* pFirst;
+/*0x08*/ Node* pLast;
+/*0x0c*/ int Count;
+/*0x10*/
 };
-template<typename T, int _cnt = -1> class EQList : public EQList<T, -1>
-{
-    public:
-};
-//strings
-template <typename TheType, unsigned int _Size> class TSafeArrayStatic
+
+template <typename T, int _cnt = -1>
+class EQList : public EQList<T, -1>
+{};
+
+// strings
+template <typename TheType, unsigned int _Size>
+class TSafeArrayStatic
 {
 public:
-	TheType Data[_Size];
-	inline TheType& operator[](UINT index)
-	{ 
-		return Data[index]; 
+	inline TheType& operator[](uint32_t index)
+	{
+		return Data[index];
 	}
+
+	TheType Data[_Size];
 };
-template <UINT _Len> class TString : public TSafeArrayStatic<CHAR, _Len>
-{
-public:
-};
-template <UINT _Len> class TSafeString : public TString<_Len>
-{
-public:
-};
+
+template <uint32_t _Len>
+class TString : public TSafeArrayStatic<char, _Len>
+{};
+
+template <uint32_t _Len>
+class TSafeString : public TString<_Len>
+{};
 
 class VePointerBase
 {
 public:
-    UINT Address;
+	intptr_t Address;
 };
-template< class T > class VePointer// : public VePointerBase
+
+template <class T>
+class VePointer// : public VePointerBase
 {
 public:
 	VePointer();
 	~VePointer();
-    T* pObject;
+
+	T* pObject;
 };
-template< class T >
-inline
+
+template <class T>
 VePointer<T>::VePointer()
 {
 	//absolutely not do this here
-    //pObject = new T;
+	//pObject = new T;
 	pObject = 0;
-	//Sleep(0);
 }
-template< class T >
-inline
+
+template <class T>
 VePointer<T>::~VePointer()
 {
-    //absolutely not do this here
+	//absolutely not do this here
 	//delete pObject;
-	//Sleep(0);
-}
-template< typename T > class VeArray
-{
-public:
-    /*0x00*/    T* Begin;
-	/*0x04*/    UINT Size;
-	/*0x08*/    UINT Capacity;
-	/*0x0c*/
-	T& operator[](unsigned);
-	const T& operator[](unsigned) const;
-};
-template< typename T >
-inline const T& VeArray<T>::operator[](unsigned i) const
-{
-	return Begin[i];
 }
 
-template< typename T >
-inline T& VeArray<T>::operator[](unsigned i)
-{
-	return Begin[i];
-}
-
-//LinkedLists
-template<class T> class LinkedListNode
+template <typename T>
+class VeArray
 {
 public:
-/*0x00*/	T	Object;
-/*0x04*/	LinkedListNode* pNext;
-/*0x08*/	LinkedListNode* pPrev;
+	T& operator[](uint32_t);
+	const T& operator[](uint32_t) const;
+
+/*0x00*/ T* Begin;
+/*0x04*/ uint32_t Size;
+/*0x08*/ uint32_t Capacity;
 /*0x0c*/
 };
-template <class T> class DoublyLinkedList
+
+template <typename T>
+const T& VeArray<T>::operator[](uint32_t i) const
+{
+	return Begin[i];
+}
+
+template <typename T>
+T& VeArray<T>::operator[](uint32_t i)
+{
+	return Begin[i];
+}
+
+// LinkedLists
+template <class T>
+class LinkedListNode
 {
 public:
-/*0x00*/    PVOID vfTable;
-/*0x04*/    LinkedListNode<T>* pHead;
-/*0x08*/    LinkedListNode<T>* pTail;
-/*0x0c*/    LinkedListNode<T>* pCurObject;
-/*0x10*/    LinkedListNode<T>* pCurObjectNext;
-/*0x14*/    LinkedListNode<T>* pCurObjectPrev;
-/*0x18*/    int NumObjects;
-/*0x1c*/    int RefCount;
+/*0x00*/ T Object;
+/*0x04*/ LinkedListNode* pNext;
+/*0x08*/ LinkedListNode* pPrev;
+/*0x0c*/
+};
+
+template <class T>
+class DoublyLinkedList
+{
+public:
+/*0x00*/ void* vfTable;
+/*0x04*/ LinkedListNode<T>* pHead;
+/*0x08*/ LinkedListNode<T>* pTail;
+/*0x0c*/ LinkedListNode<T>* pCurObject;
+/*0x10*/ LinkedListNode<T>* pCurObjectNext;
+/*0x14*/ LinkedListNode<T>* pCurObjectPrev;
+/*0x18*/ int NumObjects;
+/*0x1c*/ int RefCount;
 /*0x20*/
 };
-template<typename T_KEY, typename T, int _Size, int _Cnt> class HashListMap;
 
-template<typename T_KEY, typename T, int _Size> class HashListMap<T_KEY, T, _Size, -1>
+template <typename KeyType, typename T, int _Size, int _Cnt>
+class HashListMap;
+
+template <typename KeyType, typename T, int _Size>
+class HashListMap<KeyType, T, _Size, -1>
 {
 public:
-	PVOID vfTable;
-    class Node {
-        public:
-            T Value;
-            Node *pNext;
-            Node *pPrev;
-            T_KEY Key;
-            Node *pHashNext;
-    };
-    Node *NodeGet(const T *cur) const
-    {
-        return((Node *)(void *)((byte *)(void *)cur - (size_t)((byte *)(&((Node *)1)->Value) - (byte *)1)));
-    }
-	enum {
-		TheSize = ((_Size == 0) ? 1 : _Size)
+	struct Node
+	{
+		T Value;
+		Node* pNext;
+		Node* pPrev;
+		KeyType Key;
+		Node *pHashNext;
 	};
+
+	Node* NodeGet(const T* cur) const
+	{
+		return (Node *)((byte *)cur - (size_t)((byte *)(&((Node*)1)->Value) - (byte *)1));
+	}
+
+	enum { TheSize = ((_Size == 0) ? 1 : _Size) };
+
+	void* vfTable;
 	int DynSize;
-    int MaxDynSize;
-    Node *pHead;
-    Node *pTail;
-    int Count;
-    union
-    {
-        Node *Table[TheSize];
-        Node **DynTable;
-    };
-};
-template<typename T_KEY, typename T, int _Size, int _Cnt = -1> class HashListMap : public HashListMap<T_KEY, T, _Size, -1>
-{
-    public:
-
-};
-template<typename T, int _Size, int _Cnt = -1> class HashList : public HashListMap<int, T, _Size, _Cnt>
-{
-    public:
+	int MaxDynSize;
+	Node* pHead;
+	Node* pTail;
+	int Count;
+	union
+	{
+		Node *Table[TheSize];
+		Node **DynTable;
+	};
 };
 
-template<typename T, int _Size, int _Cnt> class HashListSet;
-template<typename T, int _Size> class HashListSet<T, _Size, -1>
+template <typename T_KEY, typename T, int _Size, int _Cnt = -1>
+class HashListMap : public HashListMap<T_KEY, T, _Size, -1>
+{
+};
+
+template <typename T, int _Size, int _Cnt = -1>
+class HashList : public HashListMap<int, T, _Size, _Cnt>
+{
+};
+
+template <typename T, int _Size, int _Cnt>
+class HashListSet;
+
+template <typename T, int _Size>
+class HashListSet<T, _Size, -1>
 {
 public:
-	/*0x00*/ PVOID vfTable;
-    typedef T ValueType;
-    class Node {
-        public:
-            T Value;
-            Node *pNext;
-            Node *pPrev;
-            Node *pNextHash;
-    };
- 	enum {
-		TheSize = ((_Size == 0) ? 1 : _Size)
+	using ValueType = T;
+
+	struct Node
+	{
+		T Value;
+		Node* pNext;
+		Node* pPrev;
+		Node* pNextHash;
 	};
+
+ 	enum { TheSize = ((_Size == 0) ? 1 : _Size) };
+
+	/*0x00*/ PVOID vfTable;
 	/*0x04*/ int DynSize;
 	/*0x08*/ int MaxDynSize;
 	/*0x0c*/ int Count;
 	/*0x10*/
-    union
-    {
-        Node *Table[TheSize];
-        Node **DynTable;
-    };
+	union
+	{
+		Node *Table[TheSize];
+		Node **DynTable;
+	};
 };
 
-template<typename T, int _Size, int _Cnt = -1> class HashListSet : public HashListSet<T, _Size, -1>
+template <typename T, int _Size, int _Cnt = -1>
+class HashListSet : public HashListSet<T, _Size, -1>
+{};
+
+template <typename T, int _Size>
+class HashListSet<T, _Size, -2> : public HashListSet<T, _Size, -1>
 {
-
+	// todo: change to whatever stl replacement this it, for now we just void* it...
+	void* MemPool;
 };
 
-template<typename T, int _Size> class HashListSet<T, _Size, -2> : public HashListSet<T, _Size, -1>
-{
-    void *MemPool;//todo: change to whatever stl replacement this it, for now we just void* it...
-};
-template<typename T, int _Size, bool _bGrow> class EQArray;
-template<typename T, int _Size, bool _bGrow> class EQArray2;
+template <typename T, int _Size, bool _bGrow>
+class EQArray;
 
-template<typename T> class EQArray<T, 0, true>
+template <typename T, int _Size, bool _bGrow>
+class EQArray2;
+
+template <typename T>
+class EQArray<T, 0, true>
 {
 public:
 /*0x00*/ void* pvfTable;
-/*0x04*/ T *m_array;
+/*0x04*/ T* m_array;
 /*0x08*/ int m_length;
 /*0x0c*/ int m_space;
-/*0x10*/ 
+/*0x10*/
 };
-template<typename T> class EQArray2<T, 0, true>
+
+template <typename T>
+class EQArray2<T, 0, true>
 {
 public:
 /*0x00*/ void* pvfTable;
 /*0x04*/ void* pvfTable2;
-/*0x08*/ T *m_array;
+/*0x08*/ T* m_array;
 /*0x0c*/ int m_length;
 /*0x10*/ int m_space;
 /*0x14*/
 };
-template<typename T> class IString
-{
-	//yes it has a vftable...
-public:
-/*0x00*/	PVOID vfTable;
-/*0x04*/	T *String;
-/*0x08*/	int Len;
-/*0x0c*/	int Space;
-/*0x10*/ //0x14? not sure.
 
+template <typename T>
+class IString
+{
+public:
+/*0x00*/ void* vfTable;
+/*0x04*/ T* String;
+/*0x08*/ int Len;
+/*0x0c*/ int Space;
+/*0x10*/ //0x14? not sure.
 };
+
 class IString2
 {
 public:
-/*0x00*/	PVOID vfTable;
-/*0x04*/	char*String;
-/*0x08*/	int Len;
-/*0x0c*/	int Space;
+	EQLIB_OBJECT void Append(char* c);
+
+/*0x00*/ void* vfTable;
+/*0x04*/ char* String;
+/*0x08*/ int Len;
+/*0x0c*/ int Space;
 /*0x10*/
-EQLIB_OBJECT void Append(char *c);
 };
 
 class AtomicInt
@@ -955,30 +1009,38 @@ class AtomicInt
 public:
 	volatile int Value;
 };
-template<typename T, int T_SIZE> class IStringFixed : public IString<T>
+
+template <typename T, int T_SIZE>
+class IStringFixed : public IString<T>
 {
 public:
 	BYTE FixedData[(T_SIZE * sizeof(T)) + sizeof(AtomicInt)];
 };
-template<int T_SIZE> class StringFixed : public IStringFixed<char, T_SIZE>
+
+template <int T_SIZE>
+class StringFixed : public IStringFixed<char, T_SIZE>
 {
 public:
-
-};
-template<typename T, int _Size = 0, bool _bGrow = true> class EQArray : public EQArray<T, 0, true>
-{
-    public:
-        enum { cTCount = _Size };
-        static const bool cTGrow = _bGrow;
-};
-template<typename T, int _Size = 0, bool _bGrow = true> class EQArray2 : public EQArray2<T, 0, true>
-{
-    public:
-        enum { cTCount = _Size };
-        static const bool cTGrow = _bGrow;
 };
 
-template <typename ET> class CircularArrayClass2 : public CDynamicArrayBase
+template <typename T, int _Size = 0, bool _bGrow = true>
+class EQArray : public EQArray<T, 0, true>
+{
+public:
+	enum { cTCount = _Size };
+	static const bool cTGrow = _bGrow;
+};
+
+template <typename T, int _Size = 0, bool _bGrow = true>
+class EQArray2 : public EQArray2<T, 0, true>
+{
+public:
+	enum { cTCount = _Size };
+	static const bool cTGrow = _bGrow;
+};
+
+template <typename ET>
+class CircularArrayClass2 : public CDynamicArrayBase
 {
 public:
 	int HeadIndex;
@@ -989,14 +1051,17 @@ public:
 	int ChunkShift;
 	ET** Chunks;
 	int ChunkAlloc;
-	#if !defined(TEST) && !defined(LIVE)
+#if !defined(TEST) && !defined(LIVE)
 	bool bValid;
-	#endif
+#endif
 };
-template <typename TNumBitsType, typename TElementType> class DynamicBitField
+
+template <typename TNumBitsType, typename TElementType>
+class DynamicBitField
 {
-	typedef TNumBitsType NumBitsType;
-	typedef TElementType ElementType;
+	using NumBitsType = TNumBitsType;
+	using ElementType = TElementType;
+
 	NumBitsType NumBits;
 	ElementType Element;
 	ElementType* Elements;

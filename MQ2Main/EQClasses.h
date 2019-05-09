@@ -470,76 +470,78 @@ enum ePetCommandType
 class CXStr
 {
 public:
-EQLIB_OBJECT operator const char*(void);
-EQLIB_OBJECT CXStr::~CXStr();
-EQLIB_OBJECT CXStr::CXStr(char const *);
-EQLIB_OBJECT CXStr::CXStr(char const *,int);
-EQLIB_OBJECT CXStr::CXStr(char);
-EQLIB_OBJECT CXStr::CXStr(class CXStr const &);
-EQLIB_OBJECT CXStr::CXStr(int,int,char);
-EQLIB_OBJECT CXStr::CXStr(unsigned short const *);
-EQLIB_OBJECT CXStr::CXStr(void);
-EQLIB_OBJECT char *CXStr::operator char *(void)const;
-EQLIB_OBJECT unsigned short *CXStr::operator unsigned short *(void)const;
-EQLIB_OBJECT bool CXStr::Find(char,int &);
-EQLIB_OBJECT bool CXStr::Find(class CXStr const &,int &);
-EQLIB_OBJECT bool CXStr::Find(unsigned short,int &);
-EQLIB_OBJECT bool CXStr::FindLast(char,int &);
-EQLIB_OBJECT char CXStr::GetChar(long)const;
-EQLIB_OBJECT char CXStr::operator[](int)const;
-EQLIB_OBJECT char CXStr::SetChar(long,char);
-EQLIB_OBJECT char CXStr::operator const char* ();
-EQLIB_OBJECT class CXStr & CXStr::operator=(char const *);
-EQLIB_OBJECT class CXStr & CXStr::operator=(class CXStr const &);
-EQLIB_OBJECT class CXStr CXStr::Copy(long,long)const;
-EQLIB_OBJECT class CXStr CXStr::Left(int)const;
-EQLIB_OBJECT class CXStr CXStr::Mid(int,int)const;
-EQLIB_OBJECT class CXStr CXStr::Right(int)const;
-//EQLIB_OBJECT enum EStringEncoding CXStr::GetEncoding(void)const;
-EQLIB_OBJECT int __cdecl CXStr::PrintString(char const *,...);
-//EQLIB_OBJECT int CXStr::Compare(class CXStr const &,enum CompareCode)const;
-//EQLIB_OBJECT int CXStr::CompareN(class CXStr const &,int,enum CompareCode)const;
-EQLIB_OBJECT int CXStr::ConvertToInt(void);
-EQLIB_OBJECT int CXStr::operator==(char const *)const;
-EQLIB_OBJECT int CXStr::operator==(class CXStr const &)const;
-EQLIB_OBJECT int CXStr::operator>(class CXStr const &)const;
-EQLIB_OBJECT long CXStr::GetLength(void)const;
-EQLIB_OBJECT unsigned short CXStr::GetUnicode(long)const;
-EQLIB_OBJECT unsigned short CXStr::SetUnicode(long,unsigned short);
-//EQLIB_OBJECT void * CXStr::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CXStr::AddCr(void);
-EQLIB_OBJECT void CXStr::Blank(void);
-EQLIB_OBJECT void CXStr::BlankPreAllocate(int);
-EQLIB_OBJECT void CXStr::CopySelf(long,long);
-EQLIB_OBJECT void CXStr::Delete(long,long);
-EQLIB_OBJECT void CXStr::Insert(long,char);
-EQLIB_OBJECT void CXStr::Insert(long,class CXStr const &);
-EQLIB_OBJECT void CXStr::operator+=(char const *);
-EQLIB_OBJECT void CXStr::operator+=(char);
-EQLIB_OBJECT void CXStr::operator+=(class CXStr const &);
-EQLIB_OBJECT void CXStr::operator+=(unsigned short);
-//EQLIB_OBJECT void CXStr::SetEncoding(enum EStringEncoding);
-EQLIB_OBJECT void CXStr::SetLowerCase(void);
-EQLIB_OBJECT void CXStr::SetUpperCase(void);
-EQLIB_OBJECT void CXStr::Strip(char);
-EQLIB_OBJECT void CXStr::StripAll(char);
-EQLIB_OBJECT void CXStr::StripLeading(char);
-EQLIB_OBJECT void CXStr::StripTrailing(char);
-// protected
-EQLIB_OBJECT static int __cdecl CXStr::LenUnicodeToUtf8(unsigned short const *);
-EQLIB_OBJECT static int __cdecl CXStr::UnicodeToUtf8(unsigned short const *,char *,int);
-EQLIB_OBJECT static int __cdecl CXStr::Utf8ToUnicode(char const *,unsigned short *,int);
-//EQLIB_OBJECT struct CStrRep * CXStr::AllocRepNoLock(long,enum EStringEncoding);
-//EQLIB_OBJECT void CXStr::Assure(long,enum EStringEncoding);
-EQLIB_OBJECT void CXStr::AssureCopy(void);
-EQLIB_OBJECT void CXStr::FreeRep(struct CStrRep *);
-EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
-// private
-EQLIB_OBJECT void CXStr::CheckNoLock(void);
-EQLIB_OBJECT void CXStr::SetString(const char* Str, long len);
-    PCXSTR Ptr;
+	EQLIB_OBJECT CXStr();
+	EQLIB_OBJECT CXStr(char const*);
+	EQLIB_OBJECT CXStr(char const*, int);
+	EQLIB_OBJECT CXStr(char);
+	EQLIB_OBJECT CXStr(const CXStr&);
+	EQLIB_OBJECT CXStr(int, int, char);
+	EQLIB_OBJECT CXStr(unsigned short const*);
+	EQLIB_OBJECT ~CXStr();
 
+	EQLIB_OBJECT CXStr& operator=(char const*);
+	EQLIB_OBJECT CXStr& operator=(const CXStr&);
+	EQLIB_OBJECT char operator[](int) const;
+	EQLIB_OBJECT operator const char* ();
+
+	EQLIB_OBJECT bool Find(char, int&);
+	EQLIB_OBJECT bool Find(const CXStr&, int&);
+	EQLIB_OBJECT bool Find(unsigned short, int&);
+	EQLIB_OBJECT bool FindLast(char, int&);
+
+	EQLIB_OBJECT char GetChar(long) const;
+	EQLIB_OBJECT char SetChar(long, char);
+
+	EQLIB_OBJECT CXStr Copy(long, long)const;
+	EQLIB_OBJECT CXStr Left(int)const;
+	EQLIB_OBJECT CXStr Mid(int, int)const;
+	EQLIB_OBJECT CXStr Right(int)const;
+	//EQLIB_OBJECT enum EStringEncoding CXStr::GetEncoding(void)const;
+	EQLIB_OBJECT int PrintString(char const*, ...);
+	//EQLIB_OBJECT int CXStr::Compare(class CXStr const &,enum CompareCode)const;
+	//EQLIB_OBJECT int CXStr::CompareN(class CXStr const &,int,enum CompareCode)const;
+	EQLIB_OBJECT int ConvertToInt(void);
+	EQLIB_OBJECT int operator==(char const*) const;
+	EQLIB_OBJECT int operator==(const CXStr&) const;
+	EQLIB_OBJECT int operator>(const CXStr&) const;
+	EQLIB_OBJECT long GetLength() const;
+	EQLIB_OBJECT unsigned short GetUnicode(long) const;
+	EQLIB_OBJECT unsigned short SetUnicode(long, unsigned short);
+	EQLIB_OBJECT void AddCr();
+	EQLIB_OBJECT void Blank();
+	EQLIB_OBJECT void BlankPreAllocate(int);
+	EQLIB_OBJECT void CopySelf(long, long);
+	EQLIB_OBJECT void Delete(long, long);
+	EQLIB_OBJECT void Insert(long, char);
+	EQLIB_OBJECT void Insert(long, const CXStr&);
+	EQLIB_OBJECT void operator+=(char const*);
+	EQLIB_OBJECT void operator+=(char);
+	EQLIB_OBJECT void operator+=(const CXStr&);
+	EQLIB_OBJECT void operator+=(unsigned short);
+	//EQLIB_OBJECT void CXStr::SetEncoding(enum EStringEncoding);
+	EQLIB_OBJECT void SetLowerCase();
+	EQLIB_OBJECT void SetUpperCase();
+	EQLIB_OBJECT void Strip(char);
+	EQLIB_OBJECT void StripAll(char);
+	EQLIB_OBJECT void StripLeading(char);
+	EQLIB_OBJECT void StripTrailing(char);
+
+	// protected
+	EQLIB_OBJECT static int __cdecl LenUnicodeToUtf8(unsigned short const*);
+	EQLIB_OBJECT static int __cdecl UnicodeToUtf8(unsigned short const*, char*, int);
+	EQLIB_OBJECT static int __cdecl Utf8ToUnicode(char const*, unsigned short*, int);
+	//EQLIB_OBJECT struct CStrRep * CXStr::AllocRepNoLock(long,enum EStringEncoding);
+	//EQLIB_OBJECT void CXStr::Assure(long,enum EStringEncoding);
+	EQLIB_OBJECT void AssureCopy();
+	EQLIB_OBJECT void FreeRep(struct CStrRep*);
+	EQLIB_OBJECT void FreeRepNoLock(struct CStrRep*);
+	// private
+	EQLIB_OBJECT void CheckNoLock();
+	EQLIB_OBJECT void SetString(const char* Str, long len);
+
+	PCXSTR Ptr;
 };
+
 enum EWndRuntimeType
 {
     WRT_WND = 0,
@@ -1778,17 +1780,19 @@ public:
 	EQLIB_OBJECT bool ItemBase::IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool ItemBase::IsLoreEquipped(bool bIncludeSockets = false) const;
 };
+
 class ItemGlobalIndex
 {
 public:
-	ItemGlobalIndex::ItemContainerInstance Location;
-	ItemGlobalIndex::ItemIndex Index;
-	//CHAR morestuff[2048];
-EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
-EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
-EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
-EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
+	ItemContainerInstance Location;
+	ItemIndex Index;
+
+	EQLIB_OBJECT ItemGlobalIndex();
+	EQLIB_OBJECT bool IsKeyRingLocation();
+	EQLIB_OBJECT bool IsEquippedLocation();
+	EQLIB_OBJECT bool IsValidIndex();
 };
+
 class CContainerMgr
 {
 public:
@@ -4198,8 +4202,8 @@ EQLIB_OBJECT class CXRect CListWnd::GetItemRect(int,int)const;
 EQLIB_OBJECT class CXRect CListWnd::GetSeparatorRect(int)const;
 EQLIB_OBJECT class CXStr CListWnd::GetColumnLabel(int)const;
 EQLIB_OBJECT class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const;
-EQLIB_OBJECT int CListWnd::AddColumn(const CXStr *Label, CTextureAnimation*pTA, int Width, unsigned __int32 Flags, CXStr Tooltip = "", unsigned __int32 Type = 3, CTextureAnimation *pTASelected = 0, CTextureAnimation *pTAMouseOver = 0, bool bResizeable = false, tagSIZE TextureSize = { 0,0 }, tagPOINT TextureOffset = { 0,0 });
-EQLIB_OBJECT int CListWnd::AddColumn(const CXStr *Label,int Width,unsigned __int32 Flags,unsigned __int32 Type = 3/*text/icon type*/);
+EQLIB_OBJECT int CListWnd::AddColumn(const CXStr& Label, CTextureAnimation* pTA, int Width, uint32_t Flags, CXStr Tooltip = "", uint32_t Type = 3, CTextureAnimation* pTASelected = 0, CTextureAnimation* pTAMouseOver = 0, bool bResizeable = false, tagSIZE TextureSize = { 0,0 }, tagPOINT TextureOffset = { 0,0 });
+EQLIB_OBJECT int CListWnd::AddColumn(const CXStr& Label, int Width, uint32_t Flags, uint32_t Type = 3/*text/icon type*/);
 EQLIB_OBJECT int CListWnd::AddLine(SListWndLine *);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CListWnd::AddString(CXStr *str, COLORREF cref, unsigned __int32 data = 0, CTextureAnimation *pta = NULL, char* tooltipstr = NULL, bool bDebug = false);

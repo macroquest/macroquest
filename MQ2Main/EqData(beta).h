@@ -1012,8 +1012,8 @@ typedef struct _CONTENTS {
 /*0x0150*/ struct _CXSTR *ClientString;
 /*0x0154*/ BYTE Filler0x0154[0x4];
 /*0x0158*/
-__declspec(dllexport) struct _CONTENTS *GetContent(UINT index);
-__declspec(dllexport) ItemGlobalIndex2 &GetGlobalIndex();
+EQLIB_OBJECT _CONTENTS* GetContent(uint32_t index);
+EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
 } CONTENTS, *PCONTENTS;
 
 #pragma pack(push)

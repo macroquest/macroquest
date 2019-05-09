@@ -367,6 +367,7 @@ GNU General Public License for more details.
 #define __CastRay2_x                                               0x5996C0
 #define __ConvertItemTags_x                                        0x5B42F0
 #define __CrashHandler_x                                           0x84BDA0
+#define __DoesFileExist_x                                          0x898FB0
 #define __EQGetTime_x                                              0x8EAD50
 #define __ExecuteCmd_x                                             0x591FB0
 #define __FixHeading_x                                             0x97BC90
@@ -388,6 +389,7 @@ GNU General Public License for more details.
 #define __SaveColors_x                                             0x542900
 #define __STMLToText_x                                             0x91EA70
 #define __ToggleKeyRingItem_x                                      0x505BF0
+#define CMemoryMappedFile__SetFile_x                               0xA10E10
 #define CrashDetected_x                                            0x6A2D10
 #define DrawNetStatus_x                                            0x6233F0
 #define Expansion_HoT_x                                            0xE8A50C

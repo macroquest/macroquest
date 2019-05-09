@@ -11106,7 +11106,8 @@ void UpdatedMasterLooterLabel()
 	}
 #endif
 }
-struct _CONTENTS *CONTENTS::GetContent(UINT index)
+
+CONTENTS* CONTENTS::GetContent(UINT index)
 {
 	if (Contents.ContainedItems.pItems && Contents.ContainedItems.Capacity) {
 		if (index < Contents.ContainedItems.Capacity) {
@@ -11115,7 +11116,8 @@ struct _CONTENTS *CONTENTS::GetContent(UINT index)
 	}
 	return NULL;
 }
-inline void* SPAWNINFO::GetCharacter() const
+
+void* SPAWNINFO::GetCharacter() const
 {
 #if defined(LIVE)
 	if (IC_GetHashData)
@@ -11128,124 +11130,136 @@ inline void* SPAWNINFO::GetCharacter() const
 	return (void*)this->spawneqc_info;
 #endif
 }
-inline int SPAWNINFO::GetZoneID() const
+
+int SPAWNINFO::GetZoneID() const
 {
-	#if defined(LIVE)
+#if defined(LIVE)
 	if (IC_GetHashData)
 	{
 		int ret = (int)IC_GetHashData((void*)this, 0x14183610);
 		return ret;
 	}
 	return 0;
-	#else
-		return (int)this->Zone;
-	#endif
+#else
+	return (int)this->Zone;
+#endif
 }
-inline int SPAWNINFO::GetCurrentMana() const
+
+int SPAWNINFO::GetCurrentMana() const
 {
-	#if defined(LIVE)
+#if defined(LIVE)
 	if (IC_GetHashData)
 	{
 		int ret = (int)IC_GetHashData((void*)this, 0xE020212);
 		return ret;
 	}
 	return 0;
-	#else
+#else
 	return (int)this->ManaCurrent;
-	#endif
+#endif
 }
-inline int SPAWNINFO::GetMaxMana() const
+
+int SPAWNINFO::GetMaxMana() const
 {
-	#if defined(LIVE)
+#if defined(LIVE)
 	if (IC_GetHashData)
 	{
 		int ret = (int)IC_GetHashData((void*)this, 0x13070802);
 		return ret;
 	}
 	return 0;
-	#else
+#else
 	return (int)this->ManaMax;
-	#endif
+#endif
 }
-inline int SPAWNINFO::GetCurrentEndurance() const
+
+int SPAWNINFO::GetCurrentEndurance() const
 {
-	#if defined(LIVE)
+#if defined(LIVE)
 	if (IC_GetHashData)
 	{
 		int ret = (int)IC_GetHashData((void*)this, 0xF070F11);
 		return ret;
 	}
 	return 0;
-	#else
+#else
 	return (int)this->EnduranceCurrent;
-	#endif
+#endif
 }
-inline int SPAWNINFO::GetMaxEndurance() const
+
+int SPAWNINFO::GetMaxEndurance() const
 {
-	#if defined(LIVE)
+#if defined(LIVE)
 	if (IC_GetHashData)
 	{
 		int ret = (int)IC_GetHashData((void*)this, 0x130F1210);
 		return ret;
 	}
 	return 0;
-	#else
+#else
 	return (int)this->EnduranceMax;
-	#endif
+#endif
 }
-inline int SPAWNINFO::GetSpellCooldownETA() const
+
+int SPAWNINFO::GetSpellCooldownETA() const
 {
-	#if defined(LIVE)
+#if defined(LIVE)
 	if (IC_GetHashData)
 	{
 		int ret = (int)IC_GetHashData((void*)this, 0xEE086410);
 		return ret;
 	}
 	return 0;
-	#else
+#else
 	return (int)this->SpellCooldownETA;
-	#endif
+#endif
 }
+
 #if !defined(ROF2EMU) && !defined(UFEMU)
 KeypressHandler *GetKeyPresshandler()
 {
 	KeypressHandler *kh = &KeypressHandler::Get();
 	return kh;
 }
-#endif
-AggroMeterManagerClient *GetAggroInfo()
+#endif // !defined(ROF2EMU) && !defined(UFEMU)
+
+AggroMeterManagerClient* GetAggroInfo()
 {
 	AggroMeterManagerClient *pAI = &AggroMeterManagerClient::Instance();
 	return pAI;
 }
-ClientSOIManager *GetAuraMgr()
+
+ClientSOIManager* GetAuraMgr()
 {
 	ClientSOIManager* pSOI = ClientSOIManager::GetSingleton();
 	return pSOI;
 }
+#if !defined(ROF2EMU) && !defined(UFEMU)
 MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities()
 {
-	//well this is work in progress noone uses this stuff right now except me -eqmule
-	MercenaryAlternateAdvancementManagerClient * pMAAMC = &MercenaryAlternateAdvancementManagerClient::Instance();
+	// well this is work in progress noone uses this stuff right now except me -eqmule
+	MercenaryAlternateAdvancementManagerClient* pMAAMC = &MercenaryAlternateAdvancementManagerClient::Instance();
 	return pMAAMC;
 }
+#endif
 CBroadcast *GetTextOverlay()
 {
-	CBroadcast *pBC = CBroadcast::Get();
+	CBroadcast* pBC = CBroadcast::Get();
 	return pBC;
 }
-EQGroundItemListManager *GetItemList()
+
+EQGroundItemListManager* GetItemList()
 {
-	EQGroundItemListManager *ptr = &EQGroundItemListManager::Instance();
+	EQGroundItemListManager* ptr = &EQGroundItemListManager::Instance();
 	return ptr;
 }
+
 ItemGlobalIndex2 ig;
-__declspec(dllexport) ItemGlobalIndex2 &CONTENTS::GetGlobalIndex()
+ItemGlobalIndex2& CONTENTS::GetGlobalIndex()
 {
 #if !defined(UFEMU)
 	return this->GlobalIndex;
 #else
-	
 	ig.Location = eItemContainerInvalid;
 	ig.Index.Slot1 = this->AugFlag;//work in progress should be old ItemSlot
 	ig.Index.Slot2 = -1;
@@ -11253,27 +11267,31 @@ __declspec(dllexport) ItemGlobalIndex2 &CONTENTS::GetGlobalIndex()
 	return ig;
 #endif
 }
+
 #if defined(LIVE)
-__declspec(dllexport) __int64 EQUIStructs::GetClassMember(void*This, int ID)
+int64_t EQUIStructs::GetClassMember(void* This, int ID)
 {
 	if (IC_GetHashData)
 	{
-		__int64 ret = IC_GetHashData((void*)This, ID);
+		int64_t ret = IC_GetHashData((void*)This, ID);
 		return ret;
 	}
-	return false;
+	return 0;
 }
-__declspec(dllexport) void EQUIStructs::SetClassMember(void*This, int ID, __int64 Value)
+
+void EQUIStructs::SetClassMember(void* This, int ID, int64_t Value)
 {
 	if (IC_SetHashData)
 	{
 		IC_SetHashData((void*)This, ID, Value);
 	}
 }
-#endif
+#endif // defined(LIVE)
 
-//this function performs a better rand since it removes the random bias towards the low end if the range of rand() isn't divisible by max - min + 1
-int RangeRandom(int min, int max) {
+// this function performs a better rand since it removes the random bias
+// towards the low end if the range of rand() isn't divisible by max - min + 1
+int RangeRandom(int min, int max)
+{
 	int n = max - min + 1;
 	int remainder = RAND_MAX % n;
 	int x;
@@ -11284,19 +11302,19 @@ int RangeRandom(int min, int max) {
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#endif
+
+#endif 
 
 namespace EQData
 {
-
-	EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c)
+	ITEMINFO* GetItemFromContents(CONTENTS* c)
 	{
 		if (!c)
 			return NULL;
-		#if !defined(UFEMU)
+#if !defined(UFEMU)
 		return c->Item1 ? c->Item1 : c->Item2;
-		#else
+#else
 		return c->Item1;
-		#endif		
+#endif
 	}
 };

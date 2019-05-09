@@ -1007,8 +1007,8 @@ typedef struct _CONTENTS {
 /*0x0150*/ struct _CXSTR *ClientString;
 /*0x0154*/ BYTE Filler0x0154[0x4];
 /*0x0158*/
-__declspec(dllexport) struct _CONTENTS *GetContent(UINT index);
-__declspec(dllexport) ItemGlobalIndex2 &GetGlobalIndex();
+EQLIB_OBJECT _CONTENTS* GetContent(uint32_t index);
+EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
 } CONTENTS, *PCONTENTS;
 
 #pragma pack(push)
@@ -3806,13 +3806,13 @@ typedef struct _SPAWNINFO {
 	{
 		return SpawnID;
 	}
-	__declspec(dllexport) void* GetCharacter() const;
-	__declspec(dllexport) int	GetZoneID() const;
-	__declspec(dllexport) int	GetCurrentMana() const;
-	__declspec(dllexport) int	GetMaxMana() const;
-	__declspec(dllexport) int	GetCurrentEndurance() const;
-	__declspec(dllexport) int	GetMaxEndurance() const;
-	__declspec(dllexport) int	GetSpellCooldownETA() const;
+	EQLIB_OBJECT void* GetCharacter() const;
+	EQLIB_OBJECT int   GetZoneID() const;
+	EQLIB_OBJECT int   GetCurrentMana() const;
+	EQLIB_OBJECT int   GetMaxMana() const;
+	EQLIB_OBJECT int   GetCurrentEndurance() const;
+	EQLIB_OBJECT int   GetMaxEndurance() const;
+	EQLIB_OBJECT int   GetSpellCooldownETA() const;
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64
