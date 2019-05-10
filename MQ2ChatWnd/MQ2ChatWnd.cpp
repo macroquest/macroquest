@@ -524,7 +524,6 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
         pFilter = pFilter->pNext; 
     }
 	if (gAnonymize) {
-		Color;
 		int len = strlen(Line);
 		char Name[MAX_STRING] = { "*" };
 		int namelen = 0;

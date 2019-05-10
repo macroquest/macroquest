@@ -109,10 +109,13 @@ void  CComboWnd::InsertChoice(char *str)
 {
     InsertChoice(&CXStr(str),0);
 }
-
-int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, CTextureAnimation *p4, const char* p5)
+#if !defined(ROF2EMU) && !defined(UFEMU)
+int  CListWnd::AddString(const char *Str, COLORREF Color, uint64_t Data, const CTextureAnimation *pTa, const char* TooltipStr)
+#else
+int  CListWnd::AddString(const char *Str, COLORREF Color, uint32_t Data, const CTextureAnimation *pTa, const char* TooltipStr)
+#endif
 {
-    return AddString(&CXStr(p1), p2, p3, p4);
+    return AddString(CXStr(Str), Color, Data, pTa,TooltipStr);
 }
 
 void CEditBaseWnd::SetMaxChars(int maxChars)
@@ -8135,9 +8138,9 @@ FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(SListWndLine *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(int CListWnd::AddString(CXStr *, COLORREF, unsigned __int32, CTextureAnimation *, char*, bool),CListWnd__AddString);
+FUNCTION_AT_ADDRESS(int CListWnd::AddString(const CXStr &Str, COLORREF Color, uint64_t Data, const CTextureAnimation *pTa, const char*TooltipStr),CListWnd__AddString);
 #else
-FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *p5, const char * pstr),CListWnd__AddString);
+FUNCTION_AT_ADDRESS(int CListWnd::AddString(const CXStr &Str, COLORREF Color, uint32_t Data, const CTextureAnimation *pTa, const char*TooltipStr),CListWnd__AddString);
 #endif
 #endif
 #ifdef CListWnd__RemoveString_x

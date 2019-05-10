@@ -4206,11 +4206,12 @@ EQLIB_OBJECT int CListWnd::AddColumn(const CXStr& Label, CTextureAnimation* pTA,
 EQLIB_OBJECT int CListWnd::AddColumn(const CXStr& Label, int Width, uint32_t Flags, uint32_t Type = 3/*text/icon type*/);
 EQLIB_OBJECT int CListWnd::AddLine(SListWndLine *);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT int CListWnd::AddString(CXStr *str, COLORREF cref, unsigned __int32 data = 0, CTextureAnimation *pta = NULL, char* tooltipstr = NULL, bool bDebug = false);
+EQLIB_OBJECT int CListWnd::AddString(const CXStr &Str, COLORREF Color, uint64_t Data = 0, const CTextureAnimation *pTa = NULL, const char*TooltipStr = NULL);
+EQLIB_OBJECT int CListWnd::AddString(const char *Str, COLORREF Color, uint64_t Data, const CTextureAnimation *pTa, const char* TooltipStr = NULL);
 #else
-EQLIB_OBJECT int CListWnd::AddString(CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
+EQLIB_OBJECT int CListWnd::AddString(const CXStr &Str, COLORREF Color, uint32_t Data = 0, const CTextureAnimation *pTa = NULL, const char*TooltipStr = NULL);
+EQLIB_OBJECT int CListWnd::AddString(const char *Str, COLORREF Color, uint32_t Data, const CTextureAnimation *pTa, const char* TooltipStr = NULL);
 #endif
-EQLIB_OBJECT int CListWnd::AddString(char *,unsigned long,unsigned __int32,CTextureAnimation *, const char* p5 = 0);
 EQLIB_OBJECT int CListWnd::GetColumnJustification(int)const;
 EQLIB_OBJECT int CListWnd::GetColumnMinWidth(int) const;
 EQLIB_OBJECT CXStr CListWnd::GetColumnTooltip(int) const;

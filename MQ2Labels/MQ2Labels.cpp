@@ -140,8 +140,29 @@ std::map<std::string, std::string>lootcombo;
 bool gweareaddingpeople = false;
 // CLabelHook::Draw_Detour
 void CleanupLootCombo(bool bupdatemasterlooter);
+//const CXStr& str, COLORREF crColor, uint32 uData, const CTextureAnimation *pta, const char* ttString
 class CLabelHook {
 public:
+	#if !defined(ROF2EMU) && !defined(UFEMU)
+		int CListWnd__AddString_Trampoline(const CXStr &Str, COLORREF Color, uint64_t Data, const CTextureAnimation *pTa, const char*TooltipStr);
+		int CListWnd__AddString_Detour(const CXStr &Str, COLORREF Color, uint64_t Data, const CTextureAnimation *pTa, const char*TooltipStr)
+	#else
+		int CListWnd__AddString_Trampoline(const CXStr &Str, COLORREF Color, uint32_t Data, const CTextureAnimation *pTa, const char*TooltipStr);
+		int CListWnd__AddString_Detour(const CXStr &Str, COLORREF Color, uint32_t Data, const CTextureAnimation *pTa, const char*TooltipStr)
+	#endif
+		{
+			if (gAnonymize)
+			{
+				CHAR *szStr = new CHAR[MAX_STRING];
+				GetCXStr(Str.Ptr, szStr);
+				//WriteChatf("CListWnd__AddString_Detour %s", szStr);
+				Anonymize(szStr,MAX_STRING,true);
+				int ret = CListWnd__AddString_Trampoline(szStr,Color,Data,pTa,TooltipStr);
+				delete szStr;
+				return ret;
+			}
+			return CListWnd__AddString_Trampoline(Str,Color,Data,pTa,TooltipStr);
+		}
 	void CAdvancedLootWnd__UpdateMasterLooter_Trampoline(const CXStr&Name, bool bChanged);
 	void CAdvancedLootWnd__UpdateMasterLooter_Detour(const CXStr&Name, bool bChanged)
 	{
@@ -261,6 +282,7 @@ public:
 					CleanupLootCombo(true);
 				}
 				#endif
+				EzDetourwName(CListWnd__AddString, &CLabelHook::CListWnd__AddString_Detour, &CLabelHook::CListWnd__AddString_Trampoline,"CListWnd__AddString");
 				EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline,"CEverQuest__trimName");
 				EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline,"__GetGaugeValueFromEQ");
 				EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline,"__GetLabelFromEQ");
@@ -278,6 +300,7 @@ public:
 				RemoveDetour(CComboWnd__InsertChoiceAtIndex);
 				RemoveDetour(CAdvancedLootWnd__AddPlayerToList);
 			#endif
+				RemoveDetour(CListWnd__AddString);
 				RemoveDetour(CEverQuest__trimName);
 				RemoveDetour(__GetGaugeValueFromEQ);
 				RemoveDetour(__GetLabelFromEQ);
@@ -319,6 +342,11 @@ public:
     }
 }; 
 
+#if !defined(ROF2EMU) && !defined(UFEMU)
+DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CListWnd__AddString_Trampoline(const CXStr &Str, COLORREF Color, uint64_t Data, const CTextureAnimation *pTa, const char*TooltipStr));
+#else
+DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CListWnd__AddString_Trampoline(const CXStr &Str, COLORREF Color, uint32_t Data, const CTextureAnimation *pTa, const char*TooltipStr));
+#endif
 DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Trampoline(const CXStr&Name, bool bChanged));
 DETOUR_TRAMPOLINE_EMPTY(CXStr CLabelHook::CComboWnd__GetChoiceText_Trampoline(int index) const);
 DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CListWnd__SetItemText_Trampoline(int ID, int SubItem, const CXStr& Str));
@@ -336,6 +364,8 @@ DWORD NextGauge=0;
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
+
+
     DebugSpewAlways("Initializing MQ2Labels");
 
     // Add commands, macro parameters, hooks, etc.
@@ -356,6 +386,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 			CleanupLootCombo(true);
 		}
 		#endif
+		EzDetourwName(CListWnd__AddString, &CLabelHook::CListWnd__AddString_Detour, &CLabelHook::CListWnd__AddString_Trampoline,"CListWnd__AddString");
 		EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline,"CEverQuest__trimName");
 		EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline,"__GetGaugeValueFromEQ");
 		EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline,"__GetLabelFromEQ");
@@ -419,6 +450,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 		RemoveDetour(CComboWnd__InsertChoiceAtIndex);
 		RemoveDetour(CAdvancedLootWnd__AddPlayerToList);
 #endif
+		RemoveDetour(CListWnd__AddString);
 		RemoveDetour(CEverQuest__trimName);
 		RemoveDetour(__GetGaugeValueFromEQ);
 		RemoveDetour(__GetLabelFromEQ);
