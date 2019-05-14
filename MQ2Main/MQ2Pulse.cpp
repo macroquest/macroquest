@@ -519,7 +519,7 @@ static void make_minidump (char* filename, EXCEPTION_POINTERS* e, CHAR(&dumppath
         GetCurrentProcess(),
         GetCurrentProcessId(),
         hFile,
-        MINIDUMP_TYPE(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
+        MINIDUMP_TYPE(MiniDumpWithUnloadedModules | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
         e ? &exceptionInfo : nullptr,
         nullptr,
         nullptr);

@@ -52,7 +52,7 @@ class CXMLData * CSidlScreenWnd::GetXMLData()
 // fuck -- if you try to use the native GetChildItem, then
 // it fails to find things without a ScreenID
 
-class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
+CXWnd *RecurseAndFindName(CXWnd *pWnd, PCHAR Name)
 {
 	//wow... this is stupid, we can't put this much stuff on the stack since this function calls itself, for huge windows
 	//with lots of elements this WILL definately crash us...
@@ -63,31 +63,35 @@ class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
 	if (!pWnd)
 	{
 		delete Buffer;
-		return pWnd;
+		return NULL;
 	}
 
     if (CXMLData *pXMLData=pWnd->GetXMLData()) {
-        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
+		GetCXStr(pXMLData->Name.Ptr, Buffer, MAX_STRING);
+        if (Buffer[0] && !_stricmp(Buffer,Name)) {
             delete Buffer;
 			return pWnd;
         }
         //DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
-        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
+		GetCXStr(pXMLData->ScreenID.Ptr, Buffer, MAX_STRING);
+        if (Buffer[0] && !_stricmp(Buffer,Name)) {
             delete Buffer;
 			return pWnd;
         }
     }
 
-    if (pWnd->GetFirstChildWnd()) {
-        CXWnd *tmp = RecurseAndFindName((class CXWnd *)pWnd->GetFirstChildWnd(), Name);
-		if (tmp)
+    if (CXWnd *pChildWnd = (CXWnd *)pWnd->GetFirstChildWnd()) {
+        if(CXWnd *tmp = RecurseAndFindName(pChildWnd, Name))
 		{
 			delete Buffer;
 			return tmp;
 		}
     }
 	delete Buffer;
-    return RecurseAndFindName((class CXWnd *)pWnd->GetNextSiblingWnd(), Name);
+	if (CXWnd *pSiblingWnd = (CXWnd *)pWnd->GetNextSiblingWnd()) {
+		return RecurseAndFindName(pSiblingWnd, Name);
+	}
+	return NULL;
 }
 
 class CXWnd * CXWnd::GetChildItem(PCHAR Name)
@@ -128,7 +132,10 @@ void CEditBaseWnd::SetMaxChars(int maxChars)
         len = this->InputText->Length;
 		if(len > maxChars)
 		{
-			this->CSetWindowText(this->InputText->Text);
+			CHAR*szTemp = new CHAR[len+2];
+			GetCXStr(this->InputText, szTemp,len+2);
+			((CXWnd*)this)->SetWindowTextA(szTemp);
+			delete szTemp;
 			//((CXWnd*)this)->SetWindowTextA(CXStr(this->InputText->Text));
 		}
 	}
@@ -3954,7 +3961,7 @@ FUNCTION_AT_ADDRESS(void  CDisplay::PlaySoundAtLocation(float,float,float,int),C
 FUNCTION_AT_ADDRESS(long  CDisplay::SetUserRender(int),CDisplay__SetUserRender);
 #endif
 #ifdef CDisplay__GetClickedActor_x
-FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE *  CDisplay::GetClickedActor(unsigned long,unsigned long,unsigned long,void *,void *),CDisplay__GetClickedActor);
+FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE *  CDisplay::GetClickedActor(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2),CDisplay__GetClickedActor);
 #endif
 #ifdef CDisplay__CreateActor_x
 FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE *  CDisplay::CreateActor(char *,float,float,float,float,float,float,bool,bool),CDisplay__CreateActor);

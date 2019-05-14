@@ -2173,7 +2173,7 @@ EQLIB_OBJECT static unsigned long __cdecl CDisplay::GetUserDefinedColor(int);
 EQLIB_OBJECT static void __cdecl CDisplay::SetUserDefinedColor(int,int,int,int);
 EQLIB_OBJECT struct T3D_POINTLIGHT * CDisplay::CreateLight(unsigned char,float,float,float,float);
 EQLIB_OBJECT struct T3D_tagACTORINSTANCE * CDisplay::CreateActor(char *,float,float,float,float,float,float,bool,bool);
-EQLIB_OBJECT struct T3D_tagACTORINSTANCE * CDisplay::GetClickedActor(unsigned long,unsigned long,unsigned long,void *,void *);
+EQLIB_OBJECT struct T3D_tagACTORINSTANCE * CDisplay::GetClickedActor(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2);
 EQLIB_OBJECT unsigned char CDisplay::GetEnvironment(float,float,float,int *);
 EQLIB_OBJECT unsigned char CDisplay::GetIntensity(unsigned char);
 EQLIB_OBJECT unsigned char CDisplay::LoadBMPFile(void);

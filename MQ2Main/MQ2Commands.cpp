@@ -3240,17 +3240,29 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 	if (PCSIDLWND pWnd = (PCSIDLWND)FindMQ2Window(Arg1))
 	{
 		DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
-		CHAR szBuffer[MAX_STRING] = { 0 };
+		CHAR *szBuffer = new CHAR[MAX_STRING];
 		bool State = pWnd->IsVisible();
 		if (!_stricmp(Arg2, "open")) State = 1;
 		if (!_stricmp(Arg2, "close")) State = 0;
 		//if (pWnd->dShow == State) State = 99;
 		switch (State) {
 		case 0:
+		{
 			((CXWnd*)pWnd)->Show(0, 1);
-			sprintf_s(szBuffer, "Window '%s' is now closed.", pWnd->CGetWindowText() ? pWnd->CGetWindowText()->Text : Arg1);
+			if (PCXSTR Str = pWnd->CGetWindowText())
+			{
+				CHAR *szBuf = new CHAR[MAX_STRING];
+				GetCXStr(Str, szBuf);
+				sprintf_s(szBuffer,MAX_STRING, "Window '%s' is now closed.", szBuf);
+				delete szBuf;
+			}
+			else
+			{
+				sprintf_s(szBuffer,MAX_STRING, "Window '%s' is now closed.", Arg1);
+			}
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
 			break;
+		}
 		case 1:
 			__asm {
 				push ecx;
@@ -3258,11 +3270,22 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 				call dword ptr[ShowWindow];
 				pop ecx;
 			}
-			sprintf_s(szBuffer, "Window '%s' is now open.", pWnd->CGetWindowText() ? pWnd->CGetWindowText()->Text : Arg1);
+			if (PCXSTR Str = pWnd->CGetWindowText())
+			{
+				CHAR *szBuf = new CHAR[MAX_STRING];
+				GetCXStr(Str, szBuf);
+				sprintf_s(szBuffer, MAX_STRING, "Window '%s' is now open.", szBuf);
+				delete szBuf;
+			}
+			else 
+			{
+				sprintf_s(szBuffer, MAX_STRING, "Window '%s' is now open.", Arg1);
+			}
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
 			break;
 		}
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		delete szBuffer;
 		return;
 	}
 	SyntaxError("Usage: /windowstate <window> [open|close]");

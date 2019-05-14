@@ -503,7 +503,7 @@ DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD bufflen)
 {
 	if (!szBuffer)
 		return 0;
-	szBuffer[0] = 0;
+	szBuffer[0] = '\0';
 	if (!pCXStr || !bufflen) {
 		return 0;
 	}
@@ -10993,7 +10993,7 @@ int GetRaidMemberClassByIndex(int N)
 	}
 	return 0;
 }
-bool Anonymize(char *name, int maxlen, bool bLootName)
+bool Anonymize(char *name, int maxlen, int NameFlag)
 {
 	if(GetGameState()!=GAMESTATE_INGAME || !pLocalPlayer)
 		return 0;
@@ -11017,7 +11017,7 @@ bool Anonymize(char *name, int maxlen, bool bLootName)
 		}
 	}
 	if (ItsMe==0 || isGmember || isRmember!=-1 || (bisTarget && pTarget)) {
-		if (bLootName) {
+		if (NameFlag==1) {
 			char buffer[L_tmpnam] = { 0 };
 			tmpnam_s(buffer);
 			char*pDest = strrchr(buffer, '\\');
@@ -11035,6 +11035,10 @@ bool Anonymize(char *name, int maxlen, bool bLootName)
 			if (ItsMe == 0)
 			{
 				strncpy_s(name, 16, GetClassDesc(((PSPAWNINFO)pLocalPlayer)->mActorClient.Class), 15);
+				if (NameFlag == 2)
+				{
+					strcat_s(name,16, "_0");
+				}
 				bChange = true;
 			}
 			else if (bisTarget)
@@ -11046,12 +11050,24 @@ bool Anonymize(char *name, int maxlen, bool bLootName)
 			{
 				int theclass = GetGroupMemberClassByIndex(isGmember);
 				strncpy_s(name, 16, GetClassDesc(theclass), 15);
+				if (NameFlag == 2)
+				{
+					char sztmp[16];
+					sprintf_s(sztmp,"_%d",isGmember);
+					strcat_s(name,16, sztmp);
+				}
 				bChange = true;
 			}
 			else if (isRmember!=-1)
 			{
 				int theclass = GetRaidMemberClassByIndex(isRmember);
 				strncpy_s(name, 16, GetClassDesc(theclass), 15);
+				if (NameFlag == 2)
+				{
+					char sztmp[16];
+					sprintf_s(sztmp,"_%d",isRmember);
+					strcat_s(name,16, sztmp);
+				}
 				bChange = true;
 			}
 		}
@@ -11098,7 +11114,7 @@ void UpdatedMasterLooterLabel()
 			}
 			if (bFound)
 			{
-				MasterLooterLabel->CSetWindowText(szText);
+				((CXWnd*)MasterLooterLabel)->SetWindowTextA(szText);
 				//SetCXStr(&(MasterLooterLabel->WindowText), szText);
 			}
 		}
@@ -11269,8 +11285,128 @@ ItemGlobalIndex2& CONTENTS::GetGlobalIndex()
 }
 
 #if defined(LIVE)
+#include <DbgHelp.h>
+//PFINDFILEINPATHCALLBACK Pfindfileinpathcallback;
+
+BOOL __stdcall Pfindfileinpathcallback(PCSTR filename, PVOID context)
+{
+	return true;
+}
+extern bool DirectoryExists(LPCTSTR lpszPath);
+void CallMessage(DWORD pwnd)
+{
+	if (!DirectoryExists(gszLogPath))
+	{
+		CreateDirectory(gszLogPath, NULL);
+	}
+	CHAR name[MAX_STRING] = { 0 };
+    SYSTEMTIME t;
+    GetSystemTime(&t);
+    sprintf_s(name,"%s\\WindowBug_%4d%02d%02d_%02d%02d%02d.dmp",gszLogPath, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+
+	auto hFile = CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		CHAR szTemp[MAX_STRING] = { 0 };
+		sprintf_s(szTemp, "ERROR COULD NOT CREATE %s in CallMessage", name);
+		MessageBox(NULL, szTemp, "Tell Eqmule", MB_SYSTEMMODAL | MB_OK);
+		return;
+	}
+
+    BOOL dumped = MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        hFile,
+        MINIDUMP_TYPE(MiniDumpWithUnloadedModules |MiniDumpWithFullMemory | MiniDumpWithIndirectlyReferencedMemory),
+        nullptr,
+        nullptr,
+        nullptr);
+    CloseHandle(hFile);
+	std::string Log = "You have stumbled upon a serious MQ2 Bug, please send this dump to eqmule@hotmail.com :\n\n";
+	Log.append(name);
+	MessageBox(NULL, Log.c_str(), "Send this dmp file to eqmule on discord/skype or mail.", MB_SYSTEMMODAL | MB_OK);
+	//exit(0);
+    return;
+
+	DWORD64  dwAddress;
+	DWORD  dwDisplacement;
+	IMAGEHLP_LINE64 line;
+	HANDLE hProcess = GetCurrentProcess();
+	SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_EXACT_SYMBOLS | SYMOPT_DEBUG | SYMOPT_IGNORE_CVREC | SYMOPT_OVERWRITE | SYMOPT_CASE_INSENSITIVE);
+
+	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+	DWORD64  dwDisplacement2 = 0;
+	DWORD64  dwAddress2 = 0;
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+	CHAR szpath[2048] = { 0 };
+
+	GetCurrentDirectory(2048, szpath);
+	MessageBox(NULL, szpath,"break in", MB_SYSTEMMODAL | MB_OK);
+	DebugBreak();
+	sprintf_s(szpath, "cache*C:\\Cache;srv*\\\\share\\MQ2Symbols");
+	SymInitialize(hProcess, szpath, TRUE);
+
+	BOOL bRet = SymGetSearchPath(hProcess, szpath, 2048);
+	CHAR* szOut = new CHAR[MAX_STRING];
+	CHAR* szOutOrg = szOut;
+	DWORD* Addresses = new DWORD[51];
+	CHAR* szTmp = new CHAR[MAX_STRING];
+	CHAR* szTmpOrg = szTmp;
+	std::string Str = "Look, you have stumbled across a serious bug in eq or mq2\nI will return 0 to not crash you here, but you could attach a debugger and:\nSet a breakpoint on \"return ret;\" in the \"int64_t EQUIStructs::GetClassMember(void* This, int ID)\" function in MQ2Utilities.cpp file then click ok and see what triggered this.\nSend eqmule@hotmail.com a screenshot of the callstack.\n\nIf you Would like to break into the debugger at this point click YES otherwise click NO to continue.\n\n";// [50];
+	int numframes = CaptureStackBackTrace(0, 50, (PVOID*)Addresses, NULL);
+	HMODULE hMod = 0;
+	for (int i = 0; i < numframes; i++)
+	{
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)Addresses[i], &hMod);
+		dwAddress = Addresses[i]; // Address you want to check on.
+		dwAddress2 = dwAddress;
+		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
+		{
+			Sleep(0);//it worked...
+		}
+		GetModuleFileName(hMod, szOut, 2048);
+		SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol);
+		SYMSRV_INDEX_INFO sii;
+		sii.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
+		SymSrvGetFileIndexInfo(szOut, &sii, NULL);
+		CHAR szFound[2048] = { 0 };
+		CHAR pFound[2048] = { 0 };
+		char*pDest = 0;
+		if (pDest = strrchr(szOut, '\\'))
+		{
+			pDest[0] = '\0';
+			pDest++;
+		}
+		sprintf_s(szTmp, MAX_STRING, "%s!%s Line %d",pDest,pSymbol->Name,line.LineNumber);
+		Str.append(szTmp);
+		Str.append("\n");
+	}
+	delete szTmpOrg;
+	delete Addresses;
+	delete szOutOrg;
+	SymCleanup(hProcess);
+	CHAR szTitle[MAX_STRING] = { 0 };
+	//CHAR *szTemp2 = new CHAR[Str.size() + 2048];
+	sprintf_s(szTitle, "Bad Function call detected in GetClassMember, pWnd was: %x that is NOT a valid CXWnd* pointer for sure...", pwnd);
+	
+	int ret = MessageBox(NULL, Str.c_str(), szTitle, MB_YESNO | MB_SYSTEMMODAL);
+	if (ret == IDYES)
+	{
+		DebugBreak();
+	}
+}
 int64_t EQUIStructs::GetClassMember(void* This, int ID)
 {
+	lockit lk(ghGetClassMemberLock);
+	if ((DWORD)This < 5000)
+	{
+		CallMessage((DWORD)This);
+		return 0;
+	}
 	if (IC_GetHashData)
 	{
 		int64_t ret = IC_GetHashData((void*)This, ID);
@@ -11281,6 +11417,7 @@ int64_t EQUIStructs::GetClassMember(void* This, int ID)
 
 void EQUIStructs::SetClassMember(void* This, int ID, int64_t Value)
 {
+	lockit lk(ghGetClassMemberLock);
 	if (IC_SetHashData)
 	{
 		IC_SetHashData((void*)This, ID, Value);

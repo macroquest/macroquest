@@ -267,7 +267,7 @@ public:
     VOID Draw_Detour(VOID)
     {
 		CLabel* pThisLabel = (CLabel*)this;
-        CHAR Buffer[MAX_STRING] = {0};
+        CHAR *szBuffer = new CHAR[MAX_STRING];
         BOOL Found=FALSE;
         DWORD index;
 		if (gAnonymize) {
@@ -289,8 +289,8 @@ public:
 				bTrimnames = 1;
 			}
 			if (pThisLabel && pThisLabel->CGetWindowText()) {
-				GetCXStr(pThisLabel->CGetWindowText(), Buffer);
-				Anonymize(Buffer,MAX_STRING);
+				GetCXStr(pThisLabel->CGetWindowText(), szBuffer);
+				Anonymize(szBuffer,MAX_STRING);
 			}
 		} else {
 			if (bTrimnames) {
@@ -312,33 +312,39 @@ public:
 		}
 		Draw_Trampoline();
        if ((DWORD)pThisLabel->EQType==9999) {
-            if (!pThisLabel->GetXMLToolTip()) {
-                strcpy_s(Buffer,"BadCustom");
-                Found=TRUE;
-            } else {
-                //strcpy_s(Buffer,&pThisLabel->XMLToolTip->Text[0]);
-                STMLToPlainText(&pThisLabel->GetXMLToolTip()->Text[0],Buffer);
-                ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
-                if (!strcmp(Buffer,"NULL"))
-                    Buffer[0]=0;
-                Found=TRUE;
-            }
+		   if (PCXSTR Str = pThisLabel->GetXMLToolTip())
+		   {
+				CHAR *szBuf = new CHAR[MAX_STRING];
+
+			   GetCXStr(Str, szBuf);
+			   STMLToPlainText(szBuf, szBuffer);
+			   delete szBuf;
+			   ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn, szBuffer,MAX_STRING);
+			   if (!strcmp(szBuffer, "NULL"))
+				   szBuffer[0] = 0;
+			   Found = TRUE;
+		   }
+		   else {
+			   strcpy_s(szBuffer,MAX_STRING, "BadCustom");
+			   Found = TRUE;
+		   }
         } else if (pThisLabel->EQType==1000) {
             for (index=0;Id_PMP[index].ID>0 && !Found;index++) {
                 if (Id_PMP[index].ID==(DWORD)pThisLabel->EQType) {
-                    strcpy_s(Buffer,Id_PMP[index].PMP);
-                    ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
-                    if (!strcmp(Buffer,"NULL"))
-                        Buffer[0]=0;
+                    strcpy_s(szBuffer,MAX_STRING,Id_PMP[index].PMP);
+                    ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,szBuffer,MAX_STRING);
+                    if (!strcmp(szBuffer,"NULL"))
+                        szBuffer[0]=0;
                     Found=TRUE;
                 }
             }
         }
 		if (Found)
 		{
-			pThisLabel->CSetWindowText(Buffer);
+			pThisLabel->CSetWindowText(szBuffer);
 			//SetCXStr(&(pThisLabel->WindowText), Buffer);
 		}
+		delete szBuffer;
     }
 }; 
 
@@ -414,26 +420,6 @@ void CleanupLootCombo(bool bupdatemasterlooter)
 			}
 		}
 	}
-	/*if (!lootcombo.empty())
-	{
-		CXStr Str;
-		CHAR *szOut = new CHAR[MAX_STRING];
-		for (int i = 0; i < Advlootcombo->pListWnd->ItemsArray.Count; i++)
-		{
-			Advlootcombo->pListWnd->GetItemText(&Str, i, 0);
-			Sleep(0);
-			GetCXStr(Str.Ptr, szOut);
-			if (szOut[0])
-			{
-				if (lootcombo.find(szOut) != lootcombo.end())
-				{
-					strcpy_s(szOut, MAX_STRING, lootcombo[szOut].c_str());
-					Advlootcombo->pListWnd->SetItemText(i, 0, &CXStr(szOut));
-				}
-			}
-		}
-		delete szOut;
-	}*/
 #endif
 }
 // Called once, when the plugin is to shutdown

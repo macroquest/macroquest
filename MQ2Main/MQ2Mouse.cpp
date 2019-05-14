@@ -33,18 +33,20 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
 class FakeCDisplay
 {
 public:
-	struct T3D_tagACTORINSTANCE *GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *);
-	struct T3D_tagACTORINSTANCE *GetClickedActor_Detour(unsigned long X,unsigned long Y,unsigned long Flag,void *Vector1,void *Vector2)
+	struct T3D_tagACTORINSTANCE *GetClickedActor_Tramp(int,int, bool ,CVector3& ,CVector3&);
+	struct T3D_tagACTORINSTANCE *GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2)
 	{
 		if (GroundObject.Type == GO_ObjectType)
 		{
 			if (EQPlacedItem*pPlaced = (EQPlacedItem*)GroundObject.ObjPtr)
 			{
-				return (T3D_tagACTORINSTANCE*)pPlaced->pActor;
+				T3D_tagACTORINSTANCE* ret = (T3D_tagACTORINSTANCE*)pPlaced->pActor;
+				return ret;
 			}
 			else
 			{
-				return (T3D_tagACTORINSTANCE*)GetClickedActor_Tramp(X,Y,Flag,Vector1,Vector2);
+				T3D_tagACTORINSTANCE* ret = (T3D_tagACTORINSTANCE*)GetClickedActor_Tramp(X,Y,bFlag,Vector1,Vector2);
+				return ret;
 			}
 		} else if(pGroundTarget && EnviroTarget.Name[0] && (EnviroTarget.StandState==STANDSTATE_STAND || EnviroTarget.StandState==STANDSTATE_SIT)) {
 			//we do this to take both mousedown and mouseup into account
@@ -53,9 +55,11 @@ public:
 			} else if(EnviroTarget.StandState==STANDSTATE_SIT) {
 				EnviroTarget.StandState=STANDSTATE_DEAD;
 			}
-			return (T3D_tagACTORINSTANCE*)pGroundTarget->pSwitch;
+			//T3D_tagACTORINSTANCE* org = GetClickedActor_Tramp(558,580,bFlag,Vector1,Vector2);
+			T3D_tagACTORINSTANCE* ret = (T3D_tagACTORINSTANCE*)pGroundTarget->pSwitch;
+			return ret;
 		} else {
-			T3D_tagACTORINSTANCE* ret = GetClickedActor_Tramp(X,Y,Flag,Vector1,Vector2);
+			T3D_tagACTORINSTANCE* ret = GetClickedActor_Tramp(X,Y,bFlag,Vector1,Vector2);
 			if (PEQSWITCH sw = (PEQSWITCH)ret)
 			{
 				EQPlacedItem *pi = (EQPlacedItem*)sw->pActorApplicationData;
@@ -71,7 +75,7 @@ public:
 	/*0x000*/ BYTE Unknown0x0[0xec8];
     /*0xec8*/ LPVOID pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
-DETOUR_TRAMPOLINE_EMPTY(struct T3D_tagACTORINSTANCE *FakeCDisplay::GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *)); 
+DETOUR_TRAMPOLINE_EMPTY(struct T3D_tagACTORINSTANCE *FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2)); 
 
 void MQ2MouseHooks(BOOL bFlag)
 {
@@ -239,7 +243,8 @@ VOID ClickMouse(DWORD button)
 
 VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 {
-    float c[3];
+	CVector3 cv1 = { 0,0,0 };
+	CVector3 cv2 = { 0,0,0 };
     gLClickedObject=false;
     
     if(!_strnicmp(szButton,"left",4))
@@ -248,7 +253,7 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
         *((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
         pEverQuest->LMouseUp(x,y);
 
-        if(((CDisplay*)pDisplay)->GetClickedActor(x,y,0,&c,&c))
+        if(((CDisplay*)pDisplay)->GetClickedActor(x,y,0,cv1,cv2))
         {
             gLClickedObject=true;
             EnviroTarget.Name[0]=0;

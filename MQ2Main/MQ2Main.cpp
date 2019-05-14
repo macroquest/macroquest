@@ -603,6 +603,12 @@ void __cdecl MQ2Shutdown()
 		CloseHandle(ghMemberMapLock);
 		ghMemberMapLock = 0;
 	}
+	if (ghGetClassMemberLock) {
+		ReleaseMutex(ghGetClassMemberLock);
+		CloseHandle(ghGetClassMemberLock);
+		ghGetClassMemberLock = 0;
+	}
+	
 }
 
 DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
@@ -714,6 +720,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	SetUnhandledExceptionFilter(OurCrashHandler);
 
 	//_CrtSetDebugFillThreshold(0);
+	ghGetClassMemberLock = CreateMutex(NULL, FALSE, NULL);
 	hUnloadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hLoadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	PCHAR lpINIPath = (PCHAR)lpParameter;

@@ -290,6 +290,7 @@ namespace MQ2Globals
 	HANDLE ghCCommandLock = 0;
 	HANDLE ghVariableLock = 0;
 	HANDLE ghMacroBlockLock = 0;
+	HANDLE ghGetClassMemberLock = 0;
 
 	/* BENCHMARKS */
 	DWORD bmWriteChatColor = 0;

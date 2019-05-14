@@ -913,7 +913,7 @@ EQLIB_API AggroMeterManagerClient *GetAggroInfo();
 EQLIB_API ClientSOIManager *GetAuraMgr();
 EQLIB_API CBroadcast *GetTextOverlay();
 EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
-EQLIB_API bool Anonymize(char *name, int maxlen, bool bLootName = false);
+EQLIB_API bool Anonymize(char *name, int maxlen, int LootFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 
