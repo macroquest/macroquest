@@ -31,7 +31,8 @@ public:
     { 
         DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd);
-		SetWindowStyle(CWS_AUTOVSCROLL | CWS_AUTOHSCROLL | CWS_TITLE | CWS_MINIMIZE | CWS_RELATIVERECT | CWS_BORDER | CWS_RESIZEALL);
+		SetWindowStyle(CWS_CLIENTMOVABLE |CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE); 
+		//SetWindowStyle(CWS_AUTOVSCROLL | CWS_AUTOHSCROLL | CWS_TITLE | CWS_MINIMIZE | CWS_RELATIVERECT | CWS_BORDER | CWS_RESIZEALL);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
 		SetBGColor(0xFF000000);//black background
         InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
@@ -600,7 +601,7 @@ PLUGIN_API VOID OnPulse()
 	//}
     if (MQChatWnd) 
     { 
-		/*switch (gGameState)
+		switch (gGameState)
 		{
 			case GAMESTATE_CHARSELECT: 
 			{
@@ -614,7 +615,7 @@ PLUGIN_API VOID OnPulse()
 					MQChatWnd->SetZLayer(0);
 				break;
 			} 
-		}*/
+		}
         if(!sPendingChat.empty()) 
         { 
             // set 'old' to current 
