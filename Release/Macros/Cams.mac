@@ -1,0 +1,106 @@
+|
+| - Cams.mac -
+|
+| you need a Tinkering combiner, Gears, Grease, and Gnomish Bolts in your 
+| inventory.  this macro combines until it runs out of gears.
+|
+#turbo
+#event CombineFail "#*#You lacked the skills to fashion the items together.#*#"
+#event CombineSuceed "#*#You have fashioned the items together to create something new!#*#"
+
+Sub Main
+
+/declare v80 int outer 99
+/declare islot int outer
+/declare v61 int outer
+/declare x int outer
+
+    /call FindCombiner Tinkering
+    /varset v80 ${Macro.Return}
+    /if (${v80}==99) {
+        /echo could not find a Tinkering combiner!
+        /return
+    }
+
+    /cleanup
+    /delay 1s
+
+    | open inv and the pack
+    | /click right inv $return
+
+    /keypress i
+    /delay 1s
+
+    /for x 0 to 7 
+        /itemnotify ${Math.Calc[22+${x}]} rightmouseup
+        /delay 1
+    /next x
+
+    | assume that the combiner is open and empty now
+
+:MakeStuff
+
+    |/finditem similar "Gears"
+    |/click left pack $v80 0
+
+    /varset islot ${FindItem[Gears].InvSlot}
+    /if (${islot}) {
+        /ctrl /itemnotify ${islot} leftmouseup
+        /itemn in pack${v80} 1 leftmouseup
+    } else {
+        /echo could not find Gears
+        /endm
+    }
+
+    /varset islot ${FindItem[Grease].InvSlot}
+    /ctrl /itemnotify ${islot} leftmouseup
+    /itemn in pack${v80} 2 leftmouseup
+
+    /varset islot ${FindItem[Gnomish Bolts].InvSlot}
+    /ctrl /itemnotify ${islot} leftmouseup
+    /itemn in pack${v80} 3 leftmouseup
+
+    /doevents flush
+
+    /varset v61 0
+    |/click left pack $v80 combine 
+
+:redo
+
+    /notify pack${v80} Container_Combine leftmouseup
+
+    /delay 5
+    /doevents
+
+    | limiter on the combines per second so keep retrying
+    /if (${Me.Inventory[pack${v80}].Item[1].ID}) /goto :redo
+
+    /if (${v61}==2) {
+:WaitCursor
+        /delay 1
+        /if (${Cursor.ID}) {
+            /notify InventoryWindow IW_CharacterView leftmouseup
+            /delay 3
+            /goto :WaitCursor
+        }
+    }
+    /goto :MakeStuff 
+/return
+
+Sub Event_CombineFail 
+   /varset v61 1
+/return 
+
+Sub Event_CombineSuceed 
+   /varset v61 2 
+/return 
+
+Sub FindCombiner 
+/declare v99 int local
+
+   /for v99 1 to 8 
+      | /echo  ${Me.Inventory[pack${v99}].Type}
+      /if (${Me.Inventory[pack${v99}].Type.Equal[${Param0}]}) /return ${v99}
+   /next v99 
+
+/return 99 

@@ -1,0 +1,47 @@
+|****************************
+*     - EventTest.mac -     *
+*****************************
+*  Demo for /doevents       *
+*                           *
+*  Chat and YouSay are      *
+*  handled every loop       *
+*  JudgesYou and Rude are   *
+*  only handled when YouSay *
+*  calls /doevents for all  *
+****************************|
+
+#turbo
+#chat say
+#event YouSay "You say, '#1#'"
+#event JudgesYou "(#1#) judges you amiabl"
+#event Rude "(#1#) makes a rude gesture#*#"
+
+Sub Main
+   /declare ConCheck int outer 0
+   :Loop
+      /doevents
+      /delay 2
+   /goto :Loop
+/return
+
+Sub Event_Chat
+   /echo You got a ${Param0} from ${Param1}: ${Param2}
+/return
+
+Sub Event_YouSay(string line, string firstword)
+/echo in YouxxxSay ${firstword} ${firstword.NotEqual[Hail]}
+    /if (${firstword.NotEqual[Hail]}) {
+        /varset ConCheck 0
+        /return
+    }
+    /echo You con'd amiable ${ConCheck} times since you last hailed.
+/return
+
+Sub Event_JudgesYou(string line, string who)
+   /echo You con'd amiable to ${who}
+   /varcalc ConCheck ${ConCheck}+1
+/return
+
+Sub Event_Rude(string line, string who)
+  /echo ${who} flipped someone off!
+/return

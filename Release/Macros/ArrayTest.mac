@@ -1,0 +1,19 @@
+| - ArrayTest.mac -
+
+Sub Main
+   /declare index int outer
+   /declare quotes[10] string
+   /declare authors[10] string
+
+   | indices start at 1
+   /for index 1 to 10
+      | use " when there is a space involve
+      /varset quotes[${index}] "Sample Quote #${index}"
+
+      | don't need " here
+      /varset authors[${index}] Author${index}
+
+   /next index
+   /varcalc index ${Math.Rand[10]}+1
+   /echo ${quotes[${index}]} --${authors[${index}]}
+/return

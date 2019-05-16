@@ -1,0 +1,9 @@
+#turbo
+Sub Main
+   :Loop
+      /if (${Target.Distance}>20) /keypress up hold
+      /if (${Target.Distance}<20) /keypress up 
+      /face fast
+      /delay 1
+   /if (${Target.ID}) /goto :Loop
+/return

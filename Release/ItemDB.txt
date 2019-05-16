@@ -1,0 +1,764 @@
+1348	1	Muzzle of Mardu
+1726	100	Shattering Hammer
+2441	20	Brell's Blessed Stout
+2671	20	Withered Manisi Leaf
+3405	1	Phantom Leather Skullcap
+3406	1	Phantom Leather Tunic
+3407	1	Phantom Leather Sleeves
+3408	1	Phantom Leather Bracer
+3409	1	Phantom Leather Gloves
+3410	1	Phantom Leather Leggings
+3411	1	Phantom Leather Boots
+3412	1	Phantom Chain Coif
+3413	1	Phantom Chain Coat
+3414	1	Phantom Chain Sleeves
+3415	1	Phantom Chain Bracer
+3416	1	Phantom Chain Gloves
+3417	1	Phantom Chain Greaves
+3418	1	Phantom Chain Boots
+3419	1	Phantom Plate Helm
+3420	1	Phantom Breastplate
+3421	1	Phantom Plate Vambraces
+3422	1	Phantom Plate Bracers
+3423	1	Phantom Plate Gauntlets
+3424	1	Phantom Plate Greaves
+3425	1	Phantom Plate Boots
+3426	1	Rod of Mystical Transvergence
+3427	1	Elemental Defender
+5319	1	Sword of Runes
+5639	1	Heartsbane
+5640	1	Soul's Eye
+5798	1	Hammer of Souls
+5800	1	Hammer of Judgment
+6307	1	Hammer of Wrath
+6309	1	Hammer of Striking
+6313	1	Hammer of Requital
+6330	1	Staff of Tracing
+6331	1	Staff of Warding
+6332	1	Staff of Runes
+6333	1	Staff of Symbols
+6346	1	Modulating Rod
+6800	20	Tasty Candy
+6882	1	Super Sweet Fishing Grubs
+7305	1	Dagger
+7309	1	Spear of Warding
+7310	1	Dagger of Symbols
+7313	1	Snake Fang
+7488	20	Chunk of Flesh
+8001	100	Throwing Knife
+8316	100	Arrow
+8317	100	Throwing Dagger
+8318	100	Arrow of Marr
+8319	100	Knife of Luclin
+8333	100	Shuriken of Quellious
+8990	1	A Firework
+8991	20	Ale
+8992	20	Cake
+8993	1	Spinning Bottle
+9963	100	Essence Emerald
+10028	100	Peridot
+10198	1	Lava Diamond
+10250	20	Vial of Viscous Mana
+10251	20	Vial of Cloudy Mana
+10252	20	Vial of Clear Mana
+10253	20	Vial of Distilled Mana
+10254	20	Vial of Purified Mana
+10290	1	Halo of Light
+10291	1	Coldlight
+10292	1	Light Globe
+10293	1	Globe of Stars
+10294	1	Wisp Stone
+10295	1	Firefly Globe
+10310	1	Heatstone
+10323	1	Coldstone
+10342	1	Waterstone
+10405	1	Ring of Flight
+10434	20	Enchanted Lrg. Brick of Brellium
+10440	10	Large Brick of Enchanted Ore
+10449	20	Enchanted Lrg. Brick of Adamantite
+10455	20	Enchanted Lrg. Brick of Mithril
+11051	1	Swirling Blue Potion
+11069	351	Fancy Red Apple
+11070	351	Fancy Green Apple
+11071	351	Fancy Pumpkin
+11083	351	Fancy Mushroom
+11301	20	Issued Water
+11373	351	Fancy Pie
+11921	351	Fancy Fruitcake
+12499	351	Fancy Ham
+13006	20	Water Flask
+13007	20	Ration
+13035	20	Elven Wine
+13073	100	Bone Chips
+13078	20	Black Bread
+13079	20	Globe of Water
+13081	20	Bandages
+14733	100	Shuriken of Eternity
+15996	1	Hammer of Divinity
+16504	20	Enchanted Silver Bar
+16505	20	Enchanted Electrum Bar
+16506	20	Enchanted Gold Bar
+16507	20	Enchanted Platinum Bar
+16896	20	Large Block of Magic Clay
+16976	100	Crystallized Sulfur
+17149	1	Coffin Poison Bottle
+17162	1	Collapsible Mixing Bowl
+17163	1	Collapsible Tackle Box
+17164	1	Collapsible Spit
+17165	1	Collapsible Sewing Kit
+17187	1	Collapsible Jeweler's Kit
+17189	1	Collapsible Fletching Kit
+17190	1	Collapsible Mortar and Pestle
+17276	1	Collapsible Toolbox
+17280	1	Sanguine Mind Crystal
+17281	1	Azure Mind Crystal
+17303	1	Spirit Pouch
+17304	1	Dimensional Pocket
+17305	1	Dimensional Hole
+17306	1	Glowing Backpack
+17307	1	Quiver of Marr
+17308	1	Bandoleer of Luclin
+17309	1	Pouch of Quellious
+17310	1	Phantom Satchel
+17521	1	Collapsible Distillery
+17571	1	Bat on a String
+17573	20	Prank-O-Lantern
+17574	1	Azure Mind Crystal
+17575	1	Sanguine Mind Crystal
+17770	1	Foldable Medicine Bag
+17771	1	Foldable Reinforced Medicine Bag
+17900	1	Grandmaster's Satchel
+18763	1	Sanguine Mind Crystal
+18764	1	Azure Mind Crystal
+20075	1	Elemental Blanket
+20151	232	Greater Insignia of Veeshan
+21602	1	Deeppocket Rapier
+21603	1	Deeppocket Hollow Staff
+21607	1	Imbued Deeppocket Traveling Staff
+21683	1	Scoriae Bite
+22099	20	Enchanted Velium Bar
+22195	20	Celestial Rift
+22500	100	Imbued Jade
+22501	100	Imbued Ivory
+22502	100	Imbued Amber
+22506	100	Imbued Ruby
+22507	100	Imbued Emerald
+22508	100	Imbued Sapphire
+22548	100	Imbued Black Pearl
+22549	100	Imbued Diamond
+22550	100	Imbued Rose Quartz
+22551	100	Imbued Black Sapphire
+22552	100	Imbued Fire Opal
+22553	100	Imbued Plains Pebble
+22554	100	Imbued Peridot
+22555	100	Imbued Topaz
+22560	100	Imbued Opal
+23500	1	Jedah's Brass Choker
+23501	1	Jedah's Silver Choker
+23502	1	Jedah's Golden Choker
+23503	1	Tavee's Linen Mantle
+23504	1	Tavee's Leather Mantle
+23505	1	Tavee's Silken Mantle
+23506	1	Gallenite's Jade Bracelet
+23507	1	Gallenite's Opal Bracelet
+23508	1	Gallenite's Ruby Bracelet
+23509	1	Naki's Tiny Ring
+23510	1	Naki's Twisted Ring
+23511	1	Naki's Studded Ring
+23512	1	Jolum's Tarnished Bauble
+23513	1	Jolum's Shiny Bauble
+23514	1	Jolum's Brilliant Bauble
+24768	1	Bone Fragment
+25188	20	Vox Tail Ale
+28034	1	Orb of Mastery
+28594	1	Belt of Magi`Kot
+28595	1	Blade of Walnan
+28596	1	Hand of Ixiblat
+28597	1	Blade of the Kedge
+28598	1	Girdle of Magi`Kot
+28599	1	Talisman of Return
+29066	20	Boysenberry pie
+29193	1	Brell's Fishin' Pole
+29365	1	Hammer of Damnation
+29494	100	White Diamond of Justice
+29651	20	Holy Water
+29652	1	Wily Warlock Doll
+29653	1	Sly Summoner Doll
+29654	1	Maleficent Necromancer Doll
+29655	1	Twisted Druid Doll
+29656	1	Mischievous Dazzler Doll
+29657	1	Crazy Cleric Doll
+29658	1	Shamanistic Shenannigan Doll
+29659	1	Robe of Immaculate Air
+29660	1	Robe of Haunted Dreams
+29661	1	Mad Monkey Doll
+29662	1	Firestrand Sleeves
+29663	1	Firestrand Pantaloons
+29664	1	Firestrand Gloves
+29665	100	Banner Dye Kit: Shiny Elaborate Dye
+29796	1	Jedah's Platinum Choker
+29797	1	Tavee's Runed Mantle
+29798	1	Gallenite's Sapphire Bracelet
+29799	1	Naki's Spiked Ring
+29800	1	Jolum's Glowing Bauble
+29875	100	Purple Diamond of Torment
+29986	100	Red Diamond of Fire
+29987	100	Aqua Diamond of Water
+29988	100	Brown Diamond of Earth
+29989	100	Cloudy Diamond of Air
+29990	100	Black Diamond of Nightmares
+29991	100	Gray Diamond of Storms
+30118	100	Green Diamond of Disease
+30275	1	Shard of the Core
+30489	100	Yellow Diamond of Valor
+31598	100	Orange Diamond of War
+32531	100	Shissar Fangs
+32549	20	Gauze
+33480	20	Smoked Darkhollow Basilisk Pie
+34031	1	Collapsible Gnomish Recharging Kit
+36251	20	Primitive Spellcaster's Empowering Essence
+36252	20	Rudimentary Spellcaster's Empowering Essence
+36253	20	Crude Spellcaster's Empowering Essence
+36254	20	Makeshift Spellcaster's Empowering Essence
+36255	20	Elementary Spellcaster's Empowering Essence
+36256	20	Modest Spellcaster's Empowering Essence
+36257	20	Simple Spellcaster's Empowering Essence
+36258	20	Spellcaster's Empowering Essence
+36259	20	Refined Spellcaster's Empowering Essence
+36260	20	Intricate Spellcaster's Empowering Essence
+36261	20	Elaborate Spellcaster's Empowering Essence
+36262	20	Ornate Spellcaster's Empowering Essence
+36263	20	Runed Spellcaster's Empowering Essence
+36452	10	Undead Essence
+36481	20	Micro-Cog
+36576	10	Structural Support Bolt
+37602	20	Enchanted Palladium Bar
+37821	20	Enchanted Dwerium Bar
+39723	20	Enchanted Temporite Bar
+39879	1	Dark Wedding Certificate
+41962	20	Bottle of Adventure II
+42299	1	Character Transfer Token
+42934	20	Bottle of Ultravision
+42935	20	Bottle of See Invisible
+42999	1	Black Wolf Figurine
+43000	1	Everburning Ember
+43494	20	Bottle of Adventure III
+43495	20	Bottle of Speed
+43497	1	Bottle of Health Pack
+43498	1	Bottle of Clarity Pack
+43511	1	Bottle of Alacrity Pack
+43523	20	Bottle of Buoyancy
+43524	20	Bottle of Endless Air
+43590	1	Army of Light Blade Ornamentation
+43592	1	Army of Light Dagger Ornamentation
+43595	1	Army of Light Shield Ornamentation
+43834	1	Wedding Band
+43835	1	Wedding Band
+43848	1	Wedding Cake
+43896	1	Bottle of Spirits Pack
+43911	1	Bottle of Replenishment Pack
+43926	1	Innoruuk Shower Firework Caster
+43927	1	Erollisi Starburst Firework Caster
+43928	1	Fennin Fire-burst Firework Caster
+43929	1	Prexus Shower Firework Caster
+43930	1	Rodcet Fire-burst Firework Caster
+43931	1	Bristlebane Party Popper
+43932	1	Tunare Party Popper
+43933	1	Title of the Timeless
+43935	1	Dried Frog Leg
+43998	1	Light Wedding Chapel Pack
+43999	1	Dark Wedding Chapel Pack
+44472	1	Bottle of the Ursine Pack
+44488	1	Fun Ball
+44490	1	Daring Knife
+44493	1	Ball of Fluffy Cotton
+44494	1	Title of the Light Army
+44495	1	Title of the Obliteration Army
+44560	20	Consigned Bite of the Shissar XV
+45195	1	Potion of Amnesia
+45196	1	Potion of Disgenderment
+45374	1	Child's Play Anklebiter Doll
+45953	20	Enchanted Cosgrite Bar
+46135	20	Party Mug
+46971	100	Guardian Blade
+46972	100	Frozen Tears
+46980	1	Eidolon Plate Helm
+46981	1	Eidolon Plate Vambraces
+46982	1	Eidolon Plate Gauntlets
+46983	1	Eidolon Plate Boots
+46984	1	Eidolon Plate Bracers
+46985	1	Eidolon Plate Breastplate
+46986	1	Eidolon Plate Greaves
+46987	1	Muzzle of Mowcha
+46988	1	Lucid Belt
+47083	1	Rowdy Rock
+47196	1	New Year's Party Box
+47641	1	Aura of Lava
+47765	1	Bottle of the Avian Pack
+47780	1	Bottle of the Cetacean Pack
+47797	1	Hand of Stone
+47913	1	Golem Clay Sample
+47932	20	Glacial Slush Water
+48088	1	Tread of the Mountain Walker
+48096	1	Chronal Transmutation Device
+48981	20	Potted Daisy
+48994	20	Brell Day Ale
+49166	1	Utility Pack
+50495	20	Flower Bouquet
+50497	250	Bait Worm
+50887	1	Haiti Relief Plush Bear
+51758	100	Fungal Antidote Potion
+51781	1	Bottle of Adventure II
+51783	1	Bottle of Adventure III
+51971	1	Special Potion of Amnesia
+51972	1	Special Potion of Disgenderment
+51980	232	Stone of Beta Adventuring
+52199	20	Warm Milk
+52622	1	Sketch of the Reliquary
+52623	1	Sketch of the Scale of Veeshan
+52657	1	Elemental Ice Sliver
+52658	1	Elemental Ice Fragment
+52659	1	Elemental Ice Shard
+52660	5	Lifeshard
+52661	1	Sphere of Mist
+52662	1	Windwoven Dreamcatcher
+52663	1	Searing Torch
+52664	1	Icefall Icicle
+52666	1	Aenda's Satin Choker
+52667	1	Aenda's Woven Shawl
+52668	1	Aenda's Linked Bracelet
+52669	1	Aenda's Gold Ring
+52670	1	Aenda's Ridged Earhoop
+52671	1	Aenda's Jade Bracelet
+52672	1	Jagged Ragesword
+52673	100	Axe of the Annihilator
+52674	1	Wand of Elemental Transvergence
+52701	20	Umbra Orb
+52702	1	Wishka's Favor Trinket
+52703	1	Wishka's Favor Trinket
+52704	1	Wishka's Favor Trinket
+52705	1	Fulkitcher Weave
+52706	1	Fulkitcher Weave
+52707	1	Fulkitcher Weave
+52708	100	Axe of the Decimator
+52709	1	Rod of Prime Transvergence
+52710	20	Shade Orb
+52711	1	Elemental Ice Sliver
+52712	1	Elemental Ice Fragment
+52713	1	Elemental Ice Shard
+52714	1	Prime Plate Helm
+52715	1	Prime Plate Vambraces
+52716	1	Prime Plate Gauntlets
+52717	1	Prime Plate Boots
+52718	1	Prime Plate Bracers
+52719	1	Prime Plate Breastplate
+52720	1	Prime Plate Greaves
+52721	1	Binding of Brazaz
+52722	1	Prime Belt
+52723	1	Tonfa of the North Wind
+52724	1	Blazing Brand
+52725	1	Winterbane
+52727	1	Nastel's Satin Choker
+52728	1	Nastel's Woven Shawl
+52729	1	Nastel's Linked Bracelet
+52730	1	Nastel's Gold Ring
+52731	1	Nastel's Ridged Earhoop
+52732	1	Nastel's Jade Bracelet
+52733	1	Jagged Ragesword
+52795	1	Cauldron of Many Things
+52796	1	Mardu's Maniacal Mask
+52797	1	Tideslasher
+52798	20	Flamekin-Baked Rolls
+52799	20	Diffused Green Tonic
+52800	1	Elemental Shard
+52801	1	Worlu's Windcloak
+52802	1	Worlu's Prying Eyes
+52803	1	Rod of Mechamagical Mastery
+52804	1	Bulwark of Many Portals
+52805	1	Shard of the First Minion
+52806	1	Regal Tonic of Greater Healing
+52807	1	Pail of Slop
+52816	100	Axe of the Eradicator
+52817	1	Rod of Ethereal Transvergence
+52818	20	Shade Orb
+52819	1	Elemental Ice Sliver
+52820	1	Elemental Ice Fragment
+52821	1	Elemental Ice Shard
+52822	1	Ethereal Plate Helm
+52823	1	Ethereal Plate Vambraces
+52824	1	Ethereal Plate Gauntlets
+52825	1	Ethereal Plate Boots
+52826	1	Ethereal Plate Bracers
+52827	1	Ethereal Plate Breastplate
+52828	1	Ethereal Plate Greaves
+52829	1	Binding of Brazaz
+52830	1	Prime Belt
+52831	1	Tonfa of the North Wind
+52832	1	Blazing Brand
+52833	1	Winterbane
+52835	1	Zabella's Satin Choker
+52836	1	Zabella's Woven Shawl
+52837	1	Zabella's Linked Bracelet
+52838	1	Zabella's Gold Ring
+52839	1	Zabella's Ridged Earhoop
+52840	1	Zabella's Jade Bracelet
+52841	1	Jagged Ragesword
+52845	1	Blessed Aquifer
+52846	1	Blessed Aquifer
+52847	1	Blessed Aquifer
+52848	1	Wooden Whistle
+52849	1	Wooden Whistle
+52850	1	Wooden Whistle
+52851	1	Mugger's Sap
+52852	1	Mugger's Sap
+52853	1	Mugger's Sap
+52854	1	Elemental Ore
+52855	1	Windblown Sliver
+52856	1	Windblown Shard
+52857	1	Windblown Fragment
+52858	1	Windblown Stone
+52859	1	Windblown Gemstone
+52860	1	Flamesealed Shieldstone
+52861	1	Earthground Shieldstone
+52862	1	Modulating Crystal
+52863	1	Seascoured Sliver
+52864	1	Seascoured Shard
+52865	1	Seascoured Fragment
+52866	1	Seascoured Stone
+52867	1	Seascoured Gemstone
+52868	1	Earthground Sliver
+52869	1	Earthground Shard
+52870	1	Earthground Fragment
+52871	1	Earthground Stone
+52872	1	Earthground Gemstone
+52873	1	Flamesealed Sliver
+52874	1	Flamesealed Shard
+52875	1	Flamesealed Fragment
+52876	1	Flamesealed Stone
+52877	1	Flamesealed Gemstone
+52880	1	Cauldron of Endless Goods
+52881	1	Mardu's Mercurial Visor
+52882	1	Wavethrasher
+52883	20	Airkin-Baked Croissant
+52884	20	Murky Energy Tonic
+52885	1	Void Shard
+52886	1	Worlu's Windcloak
+52887	1	Worlu's Prying Eyes
+52888	1	Wand of Temporal Mastery
+52889	1	Bulwark of Many Portals
+52890	1	Skull of the Spire Servant
+52891	1	Majestic Tonic of Healing
+52892	1	Pail of Slop
+53357	100	Steadfast Cherry Tree
+53358	1	Cherry Blossom Nimbus
+53757	1	Throwing Pillow
+55447	1	String of Bones
+55448	1	String of Bones
+56064	20	Cooked Turkey
+56907	20	Consigned Bite of the Shissar XVI
+57260	1	Glowing Backpack
+57261	1	Pouch of Quellious
+57262	1	Phantom Satchel
+57263	100	Axe of the Savage
+57264	1	Rod of Spectral Transvergence
+57265	20	Night Orb
+57266	1	Spectral Ice Sliver
+57267	1	Spectral Ice Fragment
+57268	1	Spectral Ice Shard
+57269	1	Spectral Plate Helm
+57270	1	Spectral Plate Vambraces
+57271	1	Spectral Plate Gauntlets
+57272	1	Spectral Plate Boots
+57273	1	Spectral Plate Bracers
+57274	1	Spectral Plate Breastplate
+57275	1	Spectral Plate Greaves
+57276	1	Visor of Vabtik
+57277	1	Spectral Belt
+57278	1	Spectral Shortsword
+57279	1	Spectral Fireblade
+57280	1	Spectral Iceblade
+57282	1	Enibik's Satin Choker
+57283	1	Enibik's Woven Shawl
+57284	1	Enibik's Linked Bracelet
+57285	1	Enibik's Gold Ring
+57286	1	Enibik's Ridged Earhoop
+57287	1	Enibik's Jade Bracelet
+57288	1	Spectral Ragesword
+57293	1	Folded Pack of Spectral Plate
+57294	1	Folded Pack of Enibik's Heirlooms
+57295	1	Folded Pack of Spectral Armaments
+57296	1	Jolting Mindblade
+57297	1	Ring of Levitation
+57390	20	Fruitcake
+57697	1	Adventure Pack
+59005	20	Spell: Comatose
+59476	1	Cardboard Tube Ornamentation
+59561	1	Rallican's Wooden Bracelet
+59562	1	Rallican's Stone Bracelet
+59563	1	Rallican's Iron Bracelet
+59564	1	Rallican's Steel Bracelet
+59569	1	Orb of Exploration
+59741	100	Hunter's Dirk
+59742	100	Hunter's Barbs
+59743	20	Wayfarer's Bread
+59745	20	Wayfarer's Bandage
+59998	100	Axe of the Destroyer
+60496	20	Prank-O-Lantern
+60751	1	Compendiums on Advanced Weapon Creation Pt. I
+60752	1	Compendiums on Advanced Weapon Creation Pt. II
+60753	1	Compendiums on Advanced Weapon Creation Pt. III
+60754	1	Compendiums on Advanced Weapon Creation Pt. IV
+60938	1	Compendiums on Advanced Weapon Creation Pt. V
+64341	1	Stomples Basket
+64342	20	Toothed Kinder Egg
+64343	20	Striped Kinder Egg
+64344	20	Wavy Kinder Egg
+64345	20	Dotted Kinder Egg
+64346	20	Crosshatch Kinder Egg
+64347	20	Tiled Kinder Egg
+64348	20	Sunburst Kinder Egg
+64349	20	Patterned Kinder Egg
+64351	200	Sugar Jelly Seeds
+64352	200	Rock Candy
+64353	100	Chocolate Bunny
+64356	20	Bunny-Thumper Mead
+64357	20	Egg Fortified Juice
+64360	1	Decorative Egg Package
+64361	100	Toothed Decorative Egg
+64362	100	Striped Decorative Egg
+64363	100	Wavy Decorative Egg
+64364	100	Dotted Decorative Egg
+64365	100	Crosshatch Decorative Egg
+64366	100	Tiled Decorative Egg
+64367	100	Sunburst Decorative Egg
+64368	100	Patterned Decorative Egg
+64545	20	Enchanted Alaran Metal Bar
+64686	100	Alaran Throwing Blade
+64950	100	Axe of the Sunderer
+64951	1	Rod of Arcane Transvergence
+64952	20	Shadowy Orb
+64953	1	Frostrift Sliver
+64954	1	Frostrift Fragment
+64955	1	Frostrift Shard
+64956	1	Manaforged Plate Helm
+64957	1	Manaforged Plate Vambraces
+64958	1	Manaforged Plate Gauntlets
+64959	1	Manaforged Plate Boots
+64960	1	Manaforged Plate Bracers
+64961	1	Manaforged Plate Breastplate
+64962	1	Manaforged Plate Greaves
+64963	1	Manaforged Belt
+64964	1	Manaforged Shortsword
+64965	1	Manaforged Fireblade
+64966	1	Manaforged Iceblade
+64967	1	Manaforged Ragesword
+64968	1	Manaforged Mindblade
+64969	1	Atleris' Satin Choker
+64970	1	Atleris' Woven Shawl
+64971	1	Atleris' Linked Bracelet
+64972	1	Atleris' Gold Ring
+64973	1	Atleris' Ridged Earhoop
+64974	1	Atleris' Jade Bracelet
+64975	1	Folded Pack of Manaforged Plate
+64976	1	Folded Pack of Atleris' Heirlooms
+64977	1	Folded Pack of Manaforged Armaments
+64978	1	Blazing Orb
+64979	1	Exigent Servant
+64980	1	Exigent Servant II
+64981	1	Exigent Servant III
+64982	1	Exigent Minion
+64983	1	Exigent Minion II
+64984	1	Exigent Minion III
+64985	1	Folded Quiver of Kalkek
+64986	1	Quiver of Kalkek
+64987	100	Wind Tamer Arrow
+66666	1	Tome of the Hero's Journey
+66963	20	Dwarf Milk
+66964	20	Dance Token
+66965	20	Token of Leaping
+66966	20	Token of Fanfare
+67015	1	Tarnished Pommel
+68809	100	Tainted Axe of Hatred
+69010	100	Corroded Axe
+69011	100	Blunt Axe
+69012	100	Steel Axe
+69013	100	Bearded Axe
+69014	100	Mithril Axe
+69015	100	Balanced War Axe
+69016	100	Bonesplicer Axe
+69017	100	Fleshtear Axe
+69018	100	Cold Steel Cleaving Axe
+69019	100	Mithril Bloodaxe
+69020	100	Rage Axe
+69021	100	Bloodseeker's Axe
+69022	100	Battlerage Axe
+69023	100	Deathfury Axe
+69173	1	Burning Shank
+71980	20	Fresh Cookie
+75018	20	Chocolate Walnut Ice Cream
+76300	20	Enchanted Planar Alloy
+76500	100	Axe of the Brute
+76501	20	Dusky Orb
+76502	1	Wand of Phantasmal Modulation
+76503	1	Wand of Phantasmal Transvergence
+76504	1	Icebound Sliver
+76505	1	Icebound Fragment
+76506	1	Icebound Shard
+76507	1	Visor of Gobeker
+76508	1	Frightforged Plate Helm
+76509	1	Frightforged Plate Vambraces
+76510	1	Frightforged Plate Gauntlets
+76511	1	Frightforged Plate Boots
+76512	1	Frightforged Plate Bracers
+76513	1	Frightforged Plate Breastplate
+76514	1	Frightforged Plate Greaves
+76515	1	Frightforged Belt
+76516	1	Frightforged Shortsword
+76517	1	Frightforged Fireblade
+76518	1	Frightforged Iceblade
+76519	1	Frightforged Ragesword
+76520	1	Frightforged Mindblade
+76521	1	Nint's Satin Choker
+76522	1	Nint's Woven Shawl
+76523	1	Nint's Linked Bracelet
+76524	1	Nint's Gold Ring
+76525	1	Nint's Ridged Earhoop
+76526	1	Nint's Jade Bracelet
+76527	1	Folded Pack of Frightforged Plate
+76528	1	Folded Pack of Nint's Heirlooms
+76529	1	Folded Pack of Frightforged Armaments
+76530	1	Imperious Servant
+76531	1	Imperious Servant II
+76532	1	Imperious Servant III
+76533	1	Imperious Minion
+76534	1	Imperious Minion II
+76535	1	Imperious Minion III
+76890	20	Consigned Bite of the Shissar XVIII
+77442	1	Holy Steed
+77443	1	Unholy Steed
+77444	1	Valiant Steed
+77445	1	Abyssal Steed
+77446	1	Divine Steed
+77447	1	Steed of Souls
+77448	1	Hallowed Steed
+77449	1	Wicked Steed
+77507	1	Staff of the North Wind
+77508	1	Fireblade
+77509	1	Dagger of the Deep
+77510	1	Crystal Belt
+77511	1	Calliav's Platinum Choker
+77512	1	Calliav's Runed Mantle
+77513	1	Calliav's Jeweled Bracelet
+77514	1	Calliav's Spiked Ring
+77515	1	Calliav's Glowing Bauble
+77516	1	Calliav's Steel Bracelet
+77517	1	Hammer of Reproach
+77593	1	Holy Warhorse
+77653	1	Sphere of Air
+77678	1	Molten Orb
+77679	20	Shadow Orb
+77681	1	Lava Orb
+77682	20	Soul Orb
+79320	1	Small Modulation Shard
+79321	1	Medium Modulation Shard
+79322	1	Large Modulation Shard
+79596	1	Discus of Ord
+79668	20	Zatozia's Chocolate Ice Cream Cone
+79691	20	Bowl of Zatozia's Rainbow Sherbet
+79912	232	Phosphene
+80042	20	Firework: Nagafen Fire
+81139	20	Enchanted Feymetal Bar
+81821	20	Blessed Water of Rallos Zek
+81822	20	Blessed Water of The Tribunal
+81823	20	Blessed Water of Cazic-Thule
+81824	20	Blessed Water of Brell Serilis
+81825	20	Blessed Water of Tunare
+81826	20	Blessed Water of Innoruuk
+81827	20	Blessed Water of Prexus
+81828	20	Blessed Water of Mithaniel Marr
+81829	20	Blessed Water of Erollisi Marr
+81830	20	Blessed Water of Bertoxxulous
+81831	20	Blessed Water of Solusek Ro
+81832	20	Blessed Water of Karana
+81833	20	Blessed Water of Bristlebane
+81834	20	Blessed Water of Quellious
+81835	20	Blessed Water of Rodcet Nife
+81836	20	Blessed Water of Veeshan
+81837	20	Water of the Skeptic
+83439	100	Starfish Stones
+83440	100	Dreadstone
+83666	100	Frozen Heart Shard
+85480	1	Cauldron of Countless Goods
+85481	1	Cauldron of Countless Goods
+85482	1	Cauldron of Countless Goods
+85483	1	Tavon's Polished Gemstone
+85484	1	Brightedge
+85485	20	Aircrisp Apple
+85486	20	Ether-Fused Tea
+85487	1	Ether-Fused Shard
+85490	1	Tavon's Burnished Gemstone
+85491	1	Bulwark of Many Portals
+85492	1	Imprint of the Enhanced Minion
+85493	1	Exalted Tonic of Healing
+85799	1	Sanguine Mind Crystal
+85800	1	Azure Mind Crystal
+85829	20	Murky Globe of Water
+85830	20	Burned Black Bread
+87555	20	Eggnog
+87577	20	Hargar's Special Bait
+87972	50	Vest Throwing Knife
+88111	1	Silkfang Pack
+90491	1	Hammer of Reverence
+90492	1	Hammer of Reverence II
+90493	1	Hammer of Reverence III
+95199	1	Beginner Artisan Satchel
+95200	1	Apprentice Artisan Satchel
+95201	1	Freshman Artisan Satchel
+95202	1	Journeyman Artisan Satchel
+95203	1	Expert Artisan Satchel
+95204	1	Master Artisan Satchel
+96960	1	Artisan Satchel
+99780	100	Axe of the Demolisher
+99782	1	Wand of Pelagic Modulation
+99783	1	Wand of Pelagic Transvergence
+99788	1	Thalassic Plate Helm
+99789	1	Thalassic Plate Vambraces
+99790	1	Thalassic Plate Gauntlets
+99791	1	Thalassic Plate Boots
+99792	1	Thalassic Plate Bracers
+99793	1	Thalassic Plate Breastplate
+99794	1	Thalassic Plate Greaves
+99795	1	Thalassic Belt
+99796	1	Thalassic Shortsword
+99797	1	Thalassic Fireblade
+99798	1	Thalassic Iceblade
+99799	1	Thalassic Ragesword
+99800	1	Thalassic Mindblade
+99801	1	Antius' Satin Choker
+99802	1	Antius' Woven Shawl
+99803	1	Antius' Linked Bracelet
+99804	1	Antius' Gold Ring
+99805	1	Antius' Ridged Earhoop
+99806	1	Antius' Jade Bracelet
+99807	1	Folded Pack of Thalassic Plate
+99808	1	Folded Pack of Antius' Heirlooms
+99809	1	Folded Pack of Thalassic Armaments
+99810	1	Exigent Servant XXI
+99811	1	Exigent Servant XXI II
+99813	1	Exigent Minion XXI
+107807	20	Spiced Iced Tea
+109811	100	Clay-Bladed Dagger
+121336	100	Ethereal Arrow
+124669	20	Consigned Bite of the Shissar XVII
+128538	100	Well Balanced Throwing Knife
+129596	1	Compendiums on Glorious Weapon Creation Pt. I
+129597	1	Compendiums on Glorious Weapon Creation Pt. II
+129598	1	Compendiums on Glorious Weapon Creation Pt. III
+129599	1	Compendiums on Glorious Weapon Creation Pt. IV
+129781	1	Compendiums on Glorious Weapon Creation Pt. V
+135399	1	Compendiums on Regal Weapon Creation Pt. I
+135400	1	Compendiums on Regal Weapon Creation Pt. II
+135401	1	Compendiums on Regal Weapon Creation Pt. III
+135402	1	Compendiums on Regal Weapon Creation Pt. IV
+135403	1	Compendiums on Regal Weapon Creation Pt. V
+151923	1	Transiting Worker Sledgemallet

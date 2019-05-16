@@ -1,0 +1,225 @@
+18 May 2015 by SwiftyMUSE
+- Updates to fix compile issues including using macroquest.ini for configuration (thanks iluvseq)
+
+17 July 2014 by SwiftyMUSE
+- Merged ISXEQ folder into source to allow proper build (thanks CyberTech)
+
+27 March 2014 by CyberTech
+- Refactor datatype definitions for MQ2 and ISEQ code
+    All datatypes are declared in one file (DataTypeList.h), one time, for both ISXEQ and MQ2.
+    Inheritance and Persistence are defined at the same time and location.
+    This will avoid the ISXEQ build breaking or falling behind when new datatypes are added to MQ2.
+    Additionally, it simplifies the code required for a new MQ2 datatype -- 1 line of code instead of 4
+- Add missing MQ2DynamicZoneType to ISXEQ datatype definitions
+- Add missing MQ2DZMemberType to ISXEQ datatype definitions
+- Add missing MQ2EvolvingItemType to ISXEQ datatype definitions
+- Add missing MQ2FellowshipMemberType to ISXEQ datatype definitions
+- Add missing MQ2FellowshipType to ISXEQ datatype definitions
+- Add missing MQ2TaskMemberType to ISXEQ datatype definitions
+- Add missing MQ2TaskType to ISXEQ datatype definitions
+
+26 March 2014 by CyberTech
+- Update for IS SDK34
+- Fix Level->ClassLevel rename that wans't ported to ISXEQ-only code on initial change
+- Add missing MQ2PetType to ISXEQ datatype definitions
+- Add missing MQ2MercenaryType to ISXEQ datatype definitions
+- Add missing MQ2TargetBuffType (added in MQ2-20140326) to ISXEQ datatype definitions
+
+20 March 2014 by SwiftyMUSE
+- Brought source into compliance with current ISXDX (thanks CyberTech)
+
+5 November 2012 by ieatacid
+- Brought the source up to a compiles-without-error state (thanks iluvseq)
+- Added ISBOXER_COMPAT macro at the top of ISXEQ.cpp -- uncomment this line to enable ISBoxer compatibility. Changes ${Target} to ${EQTarget} and ${Window} to ${EQWindow}
+
+28 April 2011 by dkaa
+- brought the source up to a compiles-without-error state
+
+25 August 2006 by DKAA
+- doortarget, ${NearestDoor}, and ${Switch:Toggle} for ISXEQ
+    from onetimehero
+
+8 July 2006 by Amadeus
+- Updated ISXEQ to compile a bit better with Visual Studio 2005
+- Added ISXEQ project/solution file(s) for Visual Studio 2005.
+  1. Double-click on "MQ2Auth.exe" (duh)
+  2. Open Visual Studio 2005
+  3. Click on File->Open->Project/Solution ..and select "ISXEQ-VS2005"
+  4. Build All.
+  5. The DLL files will be built in a directory in your primary MQ folder 
+     called "ISXEQ Release Files".  Simply move all of the DLL files from
+     that directory to your /InnerSpace/Extensions directory.
+  ** You will get a few warnings; however, if your library/headers are set  
+     up correctly and the ISXDK is installed properly, you should be able
+     to compile out-of-the-box.
+- Please note that these VS2005 project files are only for ISXEQ.  If you
+  still use MQ2, you can ignore this.
+
+1 April 2006 by Lax
+- Fixed EQItemNotify
+
+16 March 2006 by Lax
+- Merged ISXEQPulse.cpp back into MQ2Pulse.cpp
+- MQ2's DoorTarget and ItemTarget TLOs are now available.  The only TLO that isnt converted
+  at this time is LineOfSight
+- NearestSpawn conversion (echoism)
+
+13 March 2006 by Lax
+- Fixed groupmember inheritance of spawn
+
+9 March 2006 by Lax
+- Scripts now work when EQ is minimized.  Some other random fixes have been done recently, too.
+
+28 November 2005 by Lax
+- Added Red-One's changes... sort of.
+- Cleaned up a bunch of random useless and redundant stack usage in ISXEQCommands,
+  most of which involved usage of GetArgs
+- DoCommand and HideDoCommand (which nobody should have been calling in MQ2 plugins,
+  which is what the "Hide" is for) are implemented
+
+16 November 2005 by Lax
+- Fixed compile errors
+- ISXEQLegacy is now available to natively run legacy MQ2 "macros"
+
+15 September 2005 by Lax
+- SOMEONE SUBMIT SOME PATCHES PLEASE!! ;)
+- Updated DataParse calls for ISXDK v18+
+- Added Software Cursor service (ISXDK v20a)
+
+20 July 2005 by Lax
+- Added timer type methods by onetimehero
+
+4 May 2005 by Lax
+- Various fixes from onetimehero
+
+25 April 2005 by Lax
+- Fixed data type inheritance
+- Removed EQAlias command, and modified command parser to allow using / for IS commands
+
+8 April 2005 by Lax
+- Added EQAlias command, which can be used to allow Inner Space commands to be executed via
+  slashes.  It works like so:
+    IS command: EQAlias /who #who
+    EQ chat box: /who npc
+  Aliases must be typed in full (just like regular old MQ aliases), so if you want it to work
+  for /w also, you must EQAlias /w #who as well.
+
+28 March 2005 by Lax
+- Added IS "Triggers" service usage.  Macros can now use AddTrigger (IS 0.78) to handle 
+  chat window stuff
+
+19 March 2005 by Lax
+- ISXEQChatWnd bug fixes
+- Commands converted by onetimehero
+  * CastSpell
+  * MemSpell
+  * DoAbility
+
+18 March 2005 by Lax
+- Access to LavishScript stringptr, intptr, boolptr, floatptr, byteptr types built in
+- Added SPAWNSERVICE_ADDGM and SPAWNSERVICE_REMOVEGM - cronic
+
+8 March 2005 by Lax
+- Fixed problem with spawn service crashing in a zone with ground items if a client connected
+- mkplugin now creates ISXEQ client files also (you can run it on existing MQ2 plugins to 
+  create the ISXEQ files without changing the old, existing files)
+- ISXEQChat, ISXEQChatWnd, ISXEQItemDisplay, ISXEQLabels
+
+27 February 2005 by Lax
+- This release requires ISXDK version 8c. IS version 0.75 is also recommended, but is
+  not required unless you want to use ISXEQMap
+- Fixed ISXEQ services
+- Commands converted by SlimJim:
+  * Target
+  * WhoFilter
+- Converted MQ2Map to ISXEQMap.  To use, compile ISXEQMap (wow really?), load ISXEQ first,
+  and then load ISXEQMap.  You must unload ISXEQMap before unloading ISXEQ.  The commands
+  are almost exactly the same, just dont prefix with a slash.  Also, settings are stored in
+  ISXEQMap.xml rather than an ini file.
+- Added ISXEQClient.h file which is automatically included by MQ2Plugin.h for you.  Just make
+  sure that your plugin has "ISXEQ" in its "Preprocessor Definitions" project setting.  mkplugin
+  will be able to generate standard ISXEQ clients (MQ2 plugin's cousin) soon.
+
+26 February 2005 by Lax
+- Added command converted by SlimJim
+  * Where
+- Set up handling for ISXEQ data type methods.  Methods are declared in MQ2DataTypes.h, but
+  the GetMethod function is implemented in ISXEQDataTypes.cpp
+- Added data type methods:
+  spawn.Target: Targets the spawn.  ex: Me:Target
+  buff.Remove: Removes the buff. ex: Me.Buff[1]:Remove
+  window.LeftMouseDown: Presses the left mouse button on the center of the window (you MUST 
+                        follow with a left mouse up. Generally you do NOT want to use this!)
+  window.LeftMouseUp: Presses and then releases the left mouse button on the center of the window
+                      (generally you want to use this instead of LeftMouseDown at all)
+  window.LeftMouseHeldDown: Presses the left mouse button on the center of the window, and tells 
+                            the window that the button was *held* (you MUST follow with a left 
+                            mouse held up. Generally you do NOT want to use this!)
+  window.LeftMouseHeldUp: Presses and then releases the left mouse button on the center of the 
+                          window, and tells the window that the button was *held* (generally you
+                          want to use this instead of LeftMouseHeldDown at all)
+  window.RightMouseDown: Presses the right mouse button on the center of the window (you MUST 
+                        follow with a right mouse up. Generally you do NOT want to use this!)
+  window.RightMouseUp: Presses and then releases the right mouse button on the center of the window
+                      (generally you want to use this instead of RightMouseDown at all)
+  window.RightMouseHeldDown: Presses the right mouse button on the center of the window, and tells 
+                            the window that the button was *held* (you MUST follow with a right 
+                            mouse held up. Generally you do NOT want to use this!)
+  window.RightMouseHeldUp: Presses and then releases the right mouse button on the center of the 
+                          window, and tells the window that the button was *held* (generally you
+                          want to use this instead of RightMouseHeldDown at all)
+  window.ListSelect[#]: Selects item # in a combo or list
+
+25 February 2005 by Lax
+- This release requires ISXDK version 8b
+- Converted ALL data types, and all TLOs besides the following:
+  NearestSpawn
+  Ini
+  LineOfSight - Will be different from original.  Original used special handling for a :,
+                but must no longer do so
+- Most commands still need to be converted
+
+24 February 2005 by Lax
+- Added commands converted by JGC84 and SlimJim (fixed where appropriate)
+  * MacroBeep
+  * Ranged
+  * SetAutoRun
+  * DisplayLoginName
+  * PopupText
+  * SellItem
+  * BuyItem
+
+23 February 2005 by Lax
+- /who conversion (untested).  Props to JGC84 for giving it a shot, though it was a
+  little too complicated for him so I fixed it up :)
+
+15 February 2005 by Lax
+- Updated for ISXDK v8a (naming changes).  ISXDK v8a will be made available soon.
+
+4 February 2005 by Lax
+- ISXEQ now does stuff, and I've found some issues in IS that will be corrected soon.
+  ISXEQ does require ISXDK v7 which is not yet available, but will be if anyone reads
+  this and asks...
+- Memory protection works correctly
+- IS commands (including ISXEQ commands) can be entered from EQ by prefixing with #, 
+  e.g. #echo hi.  This may be changed in the future, but is acceptable for now
+- EQ commands can be entered from IS by using the "EQExecute" command, e.g. EQExecute /who
+- /keypress converted
+- /bind converted (to MQ2Bind, since bind is already used in IS)
+- Still plenty to do:
+  * Commands must be converted
+  * Command API can be udpated to add a method of executing ISXEQ commands with /command
+  * Data types
+  * Top-Level Objects
+
+1 February 2005 by Lax
+- ISXEQ now compiles, but does not do everything yet (actually, with no changes does
+  nothing more than enable memory protection)
+  * Initialization and shutdown sequences must be completed
+  * Commands must be converted
+  * Command API must be converted -- use MQ2's command injection system, and also use
+    slash-less versions of each command for the IS console
+  * Data types must be converted
+  * Top level objects must be converted
+- Services are completed, which use MQ2's existing Plugin functionality but transfer
+  the function calls to service broadcasts

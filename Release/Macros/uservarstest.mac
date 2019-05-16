@@ -1,0 +1,188 @@
+#event Test "custom test"
+#event Test2 "custom test"
+
+Sub Main(TestParam)
+   /echo UserVarsTest - Start
+   /echo
+
+
+   /echo TEST: Parameters - Start
+   /if $defined(TestParam)==FALSE {
+      /echo Please pass in 2 parameters
+      /return
+   }
+   /if $defined(Param1)==FALSE {
+      /echo Please pass in 2 parameters
+      /return
+   }
+   /echo Two parameters passed in: '@TestParam' and '@Param1'
+   /echo TEST: Parameters - End
+
+   /echo
+
+   /echo TEST: Case Sensitivity - Start
+   /declare MyGlobal global
+   /varset MyGlobal gtest
+   /echo $defined(MyGlobal) should be TRUE
+   /echo $defined(Myglobal) should be FALSE
+   /echo '@MyGlobal' should be 'gtest'
+   /echo '@Myglobal' should be '²Myglobal'
+   /echo TEST: Case Sensitivity - End
+
+   /echo
+
+   /echo TEST: Dereference - Start
+   /declare Loc1 local
+   /declare Loc2 local
+   /declare Loc3 local
+   /declare Loc4 local
+   /varset Loc1 Loc2
+   /varset Loc2 Loc3
+   /varset Loc3 Loc4
+   /varset Loc4 MyGlobal
+   /echo '@Loc1' should be 'Loc2'
+   /echo '@@Loc1' should be 'Loc3'
+   /echo '@@@Loc1' should be 'Loc4'
+   /echo '@@@@Loc1' should be 'MyGlobal'
+   /echo '@@@@@Loc1' should be '@MyGlobal'
+   /echo TEST: Dereference - End
+
+   /echo
+
+   /echo TEST: For 1 to 5 - Start
+   /declare MyLoc local
+   /varset Loc1 ""
+   /for MyLoc 1 to 5
+      /varcat Loc1 @MyLoc
+   /next MyLoc
+   /echo '@Loc1' should be '12345'
+   /echo TEST: For 1 to 5 - End
+
+   /echo
+
+   /echo TEST: /var... functions - Start
+   /echo MyLoc: '@MyLoc'
+
+   /varsub MyLoc 2
+   /echo MyLoc-2: '@MyLoc'
+
+   /varadd MyLoc 3
+   /echo MyLoc+3: '@MyLoc'
+
+   /varcalc MyLoc @MyLoc*10
+   /echo MyLoc*10: '@MyLoc'
+
+   /declare mobface local 
+   /varcalc mobface $char(heading)+180 
+   /varcalc mobface @mobface%360 
+
+   /echo TEST: /var... functions - End
+
+   /echo
+
+   /echo TEST: 1D Array - Start
+   /declare MyArray array
+   /varset MyArray(2) test1d
+   /echo '@MyArray(2)' should be 'test1d'
+   /echo '@MyArray(6)' should be 'UNDEFINED-ARRAY-ELEMENT'
+   /echo TEST: 1D Array - End
+
+   /echo
+
+   /echo TEST: 2D Array - Start
+   /declare TwoArray array2
+   /varset TwoArray(5,2) test2d
+   /echo '@TwoArray(5,2)' should be 'test2d'
+   /echo '@TwoArray(6,4)' should be 'UNDEFINED-ARRAY-ELEMENT'
+   /echo TEST: 2D Array - END
+
+   /echo
+
+   /echo TEST: Locals in Subroutines - Start
+   /call LocalsSub
+   /echo You should not get any "already defined" messages
+   /call LocalsSub
+   /call LocalsSub2
+   /if $defined(Local1)==TRUE /echo "Local1" leaked out of it's scope
+   /if $defined(Local2)==TRUE /echo "Local2" leaked out of it's scope
+   /declare test1 local 
+   /for test1 1 to 10 
+       /call subtest 
+   /next test1 
+   /echo This should echo UNDEFINED-LOCAL
+   /call failtest 
+   /echo TEST: Locals in Subroutines - End
+
+   /echo
+
+   /echo TEST: Sub Named Parameters - Start
+   /if $defined(blahblah)==TRUE /echo blahblah should not be defined!
+   /call paramtest @blahblah lala @MyGlobal
+   /echo TEST: Sub Named Parameters - End
+
+   /echo
+
+   /echo TEST: Timer - Start
+   /declare MyTimer timer
+   /varset MyTimer 1s
+   /varset MyGlobal 0
+   :Loop
+      /doevents
+   /if n @MyGlobal==0 /goto :Loop
+   /echo TEST: Timer - End
+
+   /echo
+
+   /echo TEST: Custom events - Start
+   /echo Trigger: custom test
+   /doevents
+   /echo 2 events should have fired
+   /echo TEST: Custom events - End
+
+   /echo
+   /echo UserVarsTest - End
+
+/return
+
+Sub LocalsSub
+   /declare Local1 local
+   /declare Local2 local
+/return
+
+Sub LocalsSub2
+   /declare Local1 local
+   /declare Local2 local
+   /if $defined(Param0)==TRUE /return
+   /call LocalsSub2 norecurse
+/return
+
+Sub subtest 
+   /declare test2 local 
+   /varset test2 5 
+   /echo @test2 
+/return 
+
+Sub failtest 
+  /declare test1 local 
+  /echo @test1 
+/return 
+
+Sub paramtest(blahblah,MyTimer,LastVar)
+   /echo Sanity: '@LastVar' should be '@MyGlobal'
+   /echo Resursive: '@blahblah' should be '²blahblah'
+   /echo Scope masking: '@MyTimer' should be 'lala'
+/return
+
+Sub Event_Timer(Timer,Original)
+   /echo @Timer fired
+   /varset MyGlobal 1
+/return
+
+Sub Event_Test
+   /echo this event test has no params defined
+/return
+
+Sub Event_Test2(Message)
+   /echo this event test did have params defined.
+/return
+

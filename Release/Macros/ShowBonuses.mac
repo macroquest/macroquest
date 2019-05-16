@@ -1,0 +1,51 @@
+Sub Main
+    /echo 
+    /echo Stats Bonuses:
+    /echo --------------
+    /echo HP: +${Me.HPBonus}
+    /echo Mana: +${Me.ManaBonus}
+    /echo Endurance: +${Me.EnduranceBonus}
+    /echo HP Regen: +${Me.HPRegenBonus} / 45
+    /if (${Me.AltAbility[Expansive Mind]} == 25) {
+        /echo Mana Regen: +${Me.ManaRegenBonus} / 20
+    } else /if (${Me.AltAbility[Expansive Mind]} == 20) {
+        /echo Mana Regen: +${Me.ManaRegenBonus} / 19
+    } else /if (${Me.AltAbility[Expansive Mind]} == 15) {
+        /echo Mana Regen: +${Me.ManaRegenBonus} / 18
+    } else /if (${Me.AltAbility[Expansive Mind]} == 10) {
+        /echo Mana Regen: +${Me.ManaRegenBonus} / 17
+    } else /if (${Me.AltAbility[Expansive Mind]} == 5) {
+        /echo Mana Regen: +${Me.ManaRegenBonus} / 16
+    } else {
+        /echo Mana Regen: +${Me.ManaRegenBonus} / 15
+    }
+    /echo 
+    /echo Offensive Bonuses:
+    /echo ------------------
+    /echo Haste: ${Math.Calc[${Me.AttackSpeed}-100].Int}%
+    /if (${Me.AltAbility[Enhanced Aggression]} == 25) {
+        /echo Attack: +${Me.AttackBonus} / 300
+    } else /if (${Me.AltAbility[Enhanced Aggression]} == 20) {
+        /echo Attack: +${Me.AttackBonus} / 290
+    } else /if (${Me.AltAbility[Enhanced Aggression]} == 15) {
+        /echo Attack: +${Me.AttackBonus} / 280
+    } else /if (${Me.AltAbility[Enhanced Aggression]} == 10) {
+        /echo Attack: +${Me.AttackBonus} / 270
+    } else /if (${Me.AltAbility[Enhanced Aggression]} == 5) {
+        /echo Attack: +${Me.AttackBonus} / 260
+    } else {
+        /echo Attack: +${Me.AttackBonus} / 250
+    }
+    /echo Accuracy: +${Me.AccuracyBonus} / 150
+    /echo Damage Shield: +${Me.DamageShieldBonus} / 30
+    /echo Strikethrough: +${Me.StrikeThroughBonus}% / 35%
+    /echo Combat Effects: +${Me.CombatEffectsBonus} / 100?
+    /echo 
+    /echo Defensive Bonuses:
+    /echo ------------------
+    /echo Avoidance: +${Me.AvoidanceBonus} / 100
+    /echo Shielding: +${Me.ShieldingBonus}% / 35%
+    /echo Spellshield: +${Me.SpellShieldBonus}% / 35%
+    /echo Stun Resist: +${Me.StunResistBonus}% / 35%
+    /echo DoT Shielding: +${Me.DoTShieldBonus}% / 35%
+/return

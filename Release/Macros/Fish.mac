@@ -1,0 +1,60 @@
+|*******************************************************************|
+| - YodaFish.mac -                                                 *|
+| - By: Yoda                                                       *|
+| - v2.0 by DKAA                                                   *|
+|                                                                  *|
+| Usage:                                                           *|
+| To Fish and Gate if anything attacks you.                        *|
+| Will Sit and camp out when you run out of bait.                  *|
+| To be used with a Fisherman's Companion.                         *|
+|                                                                  *|
+|*******************************************************************|
+
+#turbo
+
+#event BrokenPole "#*#You can't fish without a fishing pole, go buy one.#*#"
+#event NoBait "#*#You can't fish without fishing bait, go buy some.#*#"
+
+Sub Main
+    /cleanup
+    :Fish
+        /call CheckPole 
+        /doability Fishing
+        /delay 65 
+        /doevents
+
+        /if (!${Cursor.ID}) /goto :Fish
+
+        /if (${Cursor.Name.Equal[Tattered Cloth Sandal]}) {
+            /destroy
+            /delay 1s
+        } else {
+            /if (${Cursor.Name.Equal[Rusty Dagger]}) {
+                /destroy
+                /delay 1s
+            } else {
+                /call KeepItem
+            }
+      }
+   /goto :Fish
+/return
+
+Sub KeepItem
+   /if (${Cursor.Name.NotEqual[Fish Scales]}) /echo Caught ${Cursor.Name}
+   /autoinventory
+/return
+
+Sub CheckPole
+   /if (${Me.Inventory[mainhand].Name.Find[Fishing Pole]}) /return
+   /echo  You need to put your fishing pole in your primary hand.
+   /endm
+/return
+
+Sub Event_BrokenPole
+   /endmacro
+/return
+
+Sub Event_NoBait
+   /endmacro
+/return
+

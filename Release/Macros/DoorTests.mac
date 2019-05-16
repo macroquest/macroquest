@@ -1,0 +1,15 @@
+Sub Main
+    /echo Testing on Door ID=${Param0}
+	/doortarget id ${Param0}
+        /echo note: /doortarget will not change your target anymore!!!!
+	/face nolook door
+	/delay 6
+	/echo Target Door Information: id=${Switch.ID} name=${Switch.Name} state=${Switch.Open} loc=${Switch.Y}, ${Switch.X}, ${Switch.Z} heading=${Switch.Heading}
+	/echo             (continued): defaultloc=${Switch.DefaultY}, ${Switch.DefaultX}, ${Switch.DefaultZ} defaultheading=${Switch.DefaultHeading}
+	/echo             (continued): headingto=${Switch.HeadingTo} distance=${Switch.Distance}
+	/keypress u hold
+	/delay 2
+	/keypress u 
+	/delay 5
+	/echo             (after use): state=${Switch.Open} loc=${Switch.Y}, ${Switch.X}, ${Switch.Z} heading=${Switch.Heading}
+/return
