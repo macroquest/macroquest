@@ -7637,10 +7637,10 @@ FUNCTION_AT_ADDRESS( int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned 
 FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr),CSidlScreenWnd__CSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1_x
-FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr*,int,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
+FUNCTION_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd *pParent,const CXStr& Screen,int,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2_x
-FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(CXWnd *x,CXStr),CSidlScreenWnd__CSidlScreenWnd2);
+FUNCTION_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd *pParent,const CXStr& Screen),CSidlScreenWnd__CSidlScreenWnd2);
 #endif
 #ifdef CSidlScreenWnd__Init_x
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *),CSidlScreenWnd__Init);
@@ -7777,7 +7777,7 @@ FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
 #endif
 #endif
 #ifdef CXWnd__Move1_x
-FUNCTION_AT_ADDRESS(int CXWnd::Move(class CXRect *, bool, bool, bool, bool), CXWnd__Move1);
+FUNCTION_AT_ADDRESS(int CXWnd::Move(const CXRect &, bool, bool, bool, bool), CXWnd__Move1);
 #endif
 #ifdef CXPoint__operator_equal_x
 FUNCTION_AT_ADDRESS(class CXPoint  CXPoint::operator=(class CXPoint),CXPoint__operator_equal);

@@ -354,11 +354,20 @@ VOID ShutdownMQ2Plugins()
     bPluginCS=0;
     {
         CAutoLock Lock(&gPluginCS);
+		PMQPLUGIN pPlugin = 0;
         while(pPlugins)
         {
+			if (!_stricmp(pPlugins->szFilename, "mq2ic"))//has to be the last one we unload...
+			{
+				pPlugin = pPlugins;
+				pPlugins = pPlugins->pNext;
+				continue;
+			}
             DebugSpew("%s->Unload()",pPlugins->szFilename);
             UnloadMQ2Plugin(pPlugins->szFilename);
         }
+		pPlugins = pPlugin;
+		UnloadMQ2Plugin("mq2ic");
     }
     Sleep(50); // fixes crash on Windows 7 (Vista too?) in RtlpWaitOnCriticalSection
     DeleteCriticalSection(&gPluginCS);

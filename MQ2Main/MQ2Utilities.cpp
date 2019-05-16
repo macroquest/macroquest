@@ -11250,15 +11250,17 @@ ClientSOIManager* GetAuraMgr()
 	ClientSOIManager* pSOI = ClientSOIManager::GetSingleton();
 	return pSOI;
 }
+
 #if !defined(ROF2EMU) && !defined(UFEMU)
-MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities()
+MercenaryAlternateAdvancementManagerClient* GetMercAltAbilities()
 {
 	// well this is work in progress noone uses this stuff right now except me -eqmule
 	MercenaryAlternateAdvancementManagerClient* pMAAMC = &MercenaryAlternateAdvancementManagerClient::Instance();
 	return pMAAMC;
 }
 #endif
-CBroadcast *GetTextOverlay()
+
+CBroadcast* GetTextOverlay()
 {
 	CBroadcast* pBC = CBroadcast::Get();
 	return pBC;
@@ -11439,8 +11441,7 @@ int RangeRandom(int min, int max)
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-#endif 
+#endif
 
 namespace EQData
 {

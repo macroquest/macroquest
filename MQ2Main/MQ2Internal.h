@@ -492,24 +492,21 @@ namespace MQ2Internal {
     class CCustomWnd : public CSidlScreenWnd
     {
     public:
-        CCustomWnd(CXStr *screenpiece):CSidlScreenWnd(0,screenpiece,-1,1,0)
+        CCustomWnd(CXStr &screenpiece):CSidlScreenWnd(0,screenpiece,0xFFFFFFFF/*ini store all*/)
         {
-			CXWnd *mepre = (CXWnd *)this;
+			this;
             CreateChildrenFromSidl();
-			CXWnd *mepost = (CXWnd *)this;
-			CXWnd* stuff = (CXWnd *)pXWnd();
-            mepre->Show(true,true,true);
-
+            pXWnd()->Show(true,true,true);
             ReplacevfTable();
 			SetEscapable(false);
 //            CloseOnESC=0;
         }
 
-        CCustomWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
+        CCustomWnd(char *screenpiece):CSidlScreenWnd(0,CXStr(screenpiece),0xFFFFFFFF/*ini store all*/)
         {
 			this;
             CreateChildrenFromSidl();
-            pXWnd()->Show(1,1);
+            pXWnd()->Show(true,true);
             ReplacevfTable();
 			SetEscapable(false);
             //CloseOnESC=0;

@@ -1113,7 +1113,7 @@ namespace MQ2Globals
 	BOOL gbFlashOnTells = 0;
 	BOOL gbIgnoreAlertRecursion = 0;
 	BOOL gbShowCurrentCamera = 1;
-	int  oldcameratype = 0;
+	int  oldcameratype = -1;
 	CHAR CameraText[2048] = { "Window Selector (Camera 0)" };
 	PVOID EQADDR_GWORLD = 0;
 	PDWORD EQADDR_DOABILITYLIST = 0;

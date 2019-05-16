@@ -1,24 +1,54 @@
 
+May 16 2019 by EqMule
+- Fixed Get Current Mana and Get Current Endurance
+- Fixed MQ2Rez spam (yes really this time)
+- MQ2Rez will now wait 1/10 of a second before clicking rez.
+- Added /rez delay #### parameter where #### is milliseconds.
+  default is 100 milliseconds.
+- Added a /mqchat reset command. It resets mq2 window location in case it got moved off screen.
+- All instances of the CSidlScreenWnd constructor has been fixed to use CXStr& instad of CXStr* (because it should be)
+  Change plugins accordingly.
+  Examples:
+	change:
+	CEQBCWnd(CXStr* Template) : CCustomWnd(Template)
+	to 
+	CEQBCWnd(CXStr& Template) : CCustomWnd(Template)
+
+	change:
+	class CXStr ChatWnd("ChatWindow");
+	BCWnd = new CEQBCWnd(&ChatWnd);
+	to
+	BCWnd = new CEQBCWnd(CXStr("ChatWindow"));
+
+May 15 2019 by Brainiac
+- MQUI XML files may now be loaded from the MQ2 directory. Place them in
+  the MQ2 directory under uifiles/default, or the name of your ui like you
+  would in the EQ directory. When loading ui files, MQ2 will check for ui files
+  in the MQ2 dir before checking in the EQ dir as it did before.
+
+  To be clear, this is the search order for ui files:
+  * <MQDir>\uifiles\<skin>
+  * <MQDir>\uifiles\default
+  * <EQDir>\uifiles\<skin>
+  * <EQDir>\uifiles\default
+
+  This lets you store your MQ2 ui files in your MQ2 directory, as well as giving
+  you the option of storing your MQ2-specific custom uis outside the EQ folder.
+
+- added c++ function: bool IsXMLFilePresent(const char*) for plugin authors to easily
+  check if an XML file is available to be loaded. This will check all four locations where
+  a ui file might be stored.
+- added command: /reloadui
+  It works just like "/loadskin <skinname> 1" but with less typing
+
 May 15 2019 by EqMule
 - Updated for LIVE
--
+
 May 09 2019 by Brainiac & EqMule
 - Multiple stuff
 - Fixed a bug in CListWnd::AddString
   ALL instances of: AddString(&CXStr
   should be changed to: AddString(CXStr
--
-- MQ2MoveUtils.cpp needs the following changes: (it's already updated in builder)
-	#include "../MQ2Plugin.h"
-	to
-	#include "../MQ2Plugin.h"
-	#include <fenv.h>
-AND
-	float diststuck = strtof(szTemp,NULL);
-	to
-	fesetround(FE_TONEAREST);
-	float diststuck = (float)atof(szTemp);
--
 
 May 07 2019 by EqMule
 - Updated for TEST

@@ -615,7 +615,7 @@ EQLIB_OBJECT int CXWnd::Move(class CXPoint const &);
 EQLIB_OBJECT int CXWnd::Move(class CXPoint);
 #endif
 //CXWnd::Move (this is CXWnd__Move1_x) was checked on apr 29 2016 - eqmule
-EQLIB_OBJECT int CXWnd::Move(class CXRect *, bool, bool, bool, bool);
+EQLIB_OBJECT int CXWnd::Move(const CXRect& rc, bool bUpdateLayout = true, bool bForceUpdateLayout = false, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
 EQLIB_OBJECT int CXWnd::Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
 EQLIB_OBJECT int CXWnd::Show(bool bShow = true, bool bBringToTop = true, bool bUpdateLayout = true);
@@ -737,12 +737,12 @@ EQLIB_OBJECT enum UIType CSidlScreenWnd::GetType();
 EQLIB_OBJECT class CXMLData * CSidlScreenWnd::GetXMLData();
 EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd() {};
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr *Template,int Flags,int unknown4, char *unknown5);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
-EQLIB_OBJECT CScreenPieceTemplate *CSidlScreenWnd::GetSidlPiece(class CXStr*, bool bTopLevel=true)const;
-EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
-EQLIB_OBJECT class CXWnd *CSidlScreenWnd::GetChildItem(CXStr const &, bool bDebug);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(CXWnd *pParent,const CXStr& Screen);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(CXWnd *pWnd,const CXStr& Screen,int Flags,int IniVersion = 1, char *BlockName = NULL);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(CXWnd *,unsigned __int32,const CXRect&,const CXStr&);
+EQLIB_OBJECT CScreenPieceTemplate *CSidlScreenWnd::GetSidlPiece(CXStr*, bool bTopLevel=true)const;
+EQLIB_OBJECT CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
+EQLIB_OBJECT CXWnd *CSidlScreenWnd::GetChildItem(const CXStr&, bool bDebug);
 EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
 EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);

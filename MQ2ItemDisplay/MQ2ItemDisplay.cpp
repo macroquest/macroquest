@@ -354,7 +354,7 @@ CCompareTipWnd *pCompareTipWnd=0;
 class CCompareTipWnd : public CSidlScreenWnd
 {
 public:
-    CCompareTipWnd(CXStr *screenpiece):CSidlScreenWnd(0,screenpiece,-1,1,0)
+    CCompareTipWnd(CXStr& screenpiece):CSidlScreenWnd(0,screenpiece,-1,1,0)
     {
         CreateChildrenFromSidl();
         pXWnd()->Show(1,1);
@@ -362,7 +362,7 @@ public:
         SetEscapable(false);
     }
 
-    CCompareTipWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
+    CCompareTipWnd(char *screenpiece):CSidlScreenWnd(0,CXStr(screenpiece),-1,1,0)
     {
         CreateChildrenFromSidl();
 		//pXWnd()->Show(1,1);
@@ -3077,38 +3077,28 @@ void CreateCompareTipWnd()
 		return;
 	}
 
-	HMODULE hMe = 0;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)CreateCompareTipWnd, &hMe);
-	void* pMyBinaryData = 0;
-	CHAR szEQPath[MAX_PATH] = { "C:\\Users\\Public\\Daybreak Game Company\\Installed Games\\EverQuest\\eqgame.exe" };
-	CHAR szMQUI_CompareTipWndPath[MAX_PATH] = { 0 };
-	GetModuleFileName(NULL, szEQPath, MAX_PATH);
-	if (char *pDest = strstr(szEQPath,"eqgame.exe"))
+	if (IsXMLFilePresent("MQUI_CompareTipWnd.xml"))
 	{
-		pDest[0] = '\0';
-		strcpy_s(szMQUI_CompareTipWndPath, szEQPath);
-		strcat_s(szMQUI_CompareTipWndPath, "UIFiles\\Default\\MQUI_CompareTipWnd.xml");
-	}
-	WIN32_FIND_DATA FindFile = { 0 };
-	HANDLE hSearch = FindFirstFile(szMQUI_CompareTipWndPath, &FindFile);
-	if (hSearch != INVALID_HANDLE_VALUE) {
-		FindClose(hSearch);
-		if (pSidlMgr && pSidlMgr->FindScreenPieceTemplate("CompareTipWnd")) {
-			if (pCompareTipWnd = new CCompareTipWnd("CompareTipWnd")) {
-				Sleep(0);
+		if (pSidlMgr && pSidlMgr->FindScreenPieceTemplate("CompareTipWnd"))
+		{
+			if (pCompareTipWnd = new CCompareTipWnd("CompareTipWnd"))
+			{
 				//LoadWindowSettings((PCSIDLWND)pCompareTipWnd);
 			}
 		}
 		else
 		{
 			bDisabledComparetip = true;
-			WriteChatf("Could not find CompareTipWnd\nPlease do /loadskin default");
+			WriteChatf("Unable to create CompareTipWnd. Please do /reloadui");
 		}
 	}
 	else
 	{
 		bDisabledComparetip = true;
-		MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\\default\nI will disable this feature for now.\nYou can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
+
+		MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\\default\n"
+			"This feature will be disabled for now.\n"
+			"You can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
 	}
 }
 // Called once, when the plugin is to initialize
@@ -3145,10 +3135,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore", dataGearScore);
 
-	CHAR szMQUI_CompareTipWndPath[2048] = { 0 };
-	sprintf_s(szMQUI_CompareTipWndPath, "%s\\UIFiles\\Default\\MQUI_CompareTipWnd.xml", gszINIPath);
-
-	if (!_FileExists(szMQUI_CompareTipWndPath))
+	if (!IsXMLFilePresent("MQUI_CompareTipWnd.xml"))
 	{
 		HMODULE hMe = nullptr;
 		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -3162,11 +3149,15 @@ PLUGIN_API VOID InitializePlugin(VOID)
 				BOOL bResult = 0;
 				if (void* pMyBinaryData = LockResource(bin))
 				{
-					//save it...
+					// save it to the default mq uifiles dir
 					DWORD ressize = SizeofResource(hMe, hRes);
 					FILE* File = nullptr;
-					errno_t err = fopen_s(&File, szMQUI_CompareTipWndPath, "wb");
-					if (!err)
+
+					CHAR szFilename[MAX_PATH] = { 0 };
+					sprintf_s(szFilename, "%s\\uifiles\\default\\MQUI_CompareTipWnd.xml", gszINIPath);
+
+					errno_t err = fopen_s(&File, szFilename, "wb");
+					if (!err && File)
 					{
 						fwrite(pMyBinaryData, ressize, 1, File);
 						fclose(File);

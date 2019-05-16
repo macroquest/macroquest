@@ -26,19 +26,13 @@ class CMQChatWnd;
 CMQChatWnd *MQChatWnd=0; 
 class CMQChatWnd : public CCustomWnd 
 {
-public:
-	CTextEntryWnd* InputBox;
-    CStmlWnd* OutputBox;
-    CXWnd* OutWnd;
-    struct _CSIDLWND* OutStruct;
-private:
-    std::vector<std::string> sCmdHistory;
-    int iCurrentCmd;
 public: 
-    CMQChatWnd(CXStr *Template):CCustomWnd(Template) 
+    CMQChatWnd(char *Template):CCustomWnd(Template) 
     { 
         DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd);
+		SetWindowStyle(CWS_AUTOVSCROLL | CWS_AUTOHSCROLL | CWS_TITLE | CWS_MINIMIZE | CWS_RELATIVERECT | CWS_BORDER | CWS_RESIZEALL);
+		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
 		SetBGColor(0xFF000000);//black background
         InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
 		InputBox->AddStyle(CWS_AUTOVSCROLL | CWS_RELATIVERECT | CWS_BORDER);// 0x800C0;
@@ -47,22 +41,14 @@ public:
 		this->SetClickable(true);
 		this->SetAlpha(0xFF);
 		this->SetBGType(1);
-		this->SetWindowStyle(CWS_CLIENTMOVABLE |CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE); 
-
-
-        InputBox->SetCRNormal(0xFFFFFFFF);//we want a white cursor 
+		this->ContextMenuID = 3;
+		InputBox->SetCRNormal(0xFFFFFFFF);//we want a white cursor 
         InputBox->SetMaxChars(512); 
         OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput"); 
-        OutStruct=(_CSIDLWND*)GetChildItem("CW_ChatOutput");
-		//fix for the 0 parent crash at charselect when clicking the children...
-		//wow it only took us 13 years to fix that one... -eqmule
-		OutStruct->SetParentWindow((_CSIDLWND *)this);
 		OutputBox->SetParentWindow((_CSIDLWND *)this);
 		InputBox->SetParentWindow((_CSIDLWND *)this);
-        OutWnd=(CXWnd*)OutputBox;
         OutBoxLines=0;
 		OutputBox->MaxLines = 0x190;
-       //(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=0x190; 
         OutputBox->SetClickable(true);
 		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
         iCurrentCmd=-1;
@@ -78,7 +64,15 @@ public:
 		//	pWnd->Minimize(true);
 		//	return 1;
 		//}
-        if (pWnd==(CXWnd*)InputBox) 
+        if (pWnd==0) 
+        { 
+            if (Message==XWM_CLOSE) 
+            { 
+                SetVisible(1); 
+                return 1; 
+            } 
+        }
+		else if (pWnd==(CXWnd*)InputBox) 
         { 
             if (Message==XWM_HITENTER) 
             {  
@@ -160,14 +154,6 @@ public:
                 DebugSpew("InputBox message %Xh, value: %Xh",Message,data); 
             } 
         } 
-        else if (pWnd==0) 
-        { 
-            if (Message==XWM_CLOSE) 
-            { 
-                SetVisible(1); 
-                return 1; 
-            } 
-        } 
         else if (Message==XWM_LINK) 
         { 
             class CChatWindow *p = (class CChatWindow *)this; 
@@ -228,9 +214,16 @@ public:
         DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->GetVScrollMax())); 
 
         MQChatWnd->FontSize=size; 
-    }; 
+    };
+	CTextEntryWnd* InputBox;
+    CStmlWnd* OutputBox;
+    //CXWnd* OutWnd;
+    //struct _CSIDLWND* OutStruct;
     DWORD OutBoxLines; 
     DWORD FontSize; 
+private:
+    std::vector<std::string> sCmdHistory;
+    int iCurrentCmd;
 }; 
 
 VOID LoadChatSettings() 
@@ -333,14 +326,13 @@ VOID CreateChatWindow()
     { 
         return; 
     } 
-    class CXStr ChatWnd("ChatWindow"); 
-    MQChatWnd = new CMQChatWnd(&ChatWnd); 
+    MQChatWnd = new CMQChatWnd("ChatWindow"); 
     if (!MQChatWnd) 
     { 
         return; 
     } 
-    LoadChatFromINI((PCSIDLWND)MQChatWnd); 
-    SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there.. 
+	LoadChatFromINI((PCSIDLWND)MQChatWnd); 
+	SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there.. 
 } 
 
 VOID DestroyChatWnd() 
@@ -411,6 +403,18 @@ VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)
     { 
         ((CXWnd*)MQChatWnd)->Minimize(true); 
     } 
+} 
+VOID MQChat(PSPAWNINFO pChar, PCHAR Line) 
+{ 
+	if (MQChatWnd)
+	{
+		if (!_stricmp(Line, "reset"))
+		{
+			MQChatWnd->SetLocked(false);
+			CXRect rc = { 300, 10, 600, 210 };
+			((CXWnd*)MQChatWnd)->Move(rc, false);
+		}
+	}
 } 
 
 VOID SetChatTitle(PSPAWNINFO pChar, PCHAR Line)
@@ -596,7 +600,7 @@ PLUGIN_API VOID OnPulse()
 	//}
     if (MQChatWnd) 
     { 
-		switch (gGameState)
+		/*switch (gGameState)
 		{
 			case GAMESTATE_CHARSELECT: 
 			{
@@ -610,7 +614,7 @@ PLUGIN_API VOID OnPulse()
 					MQChatWnd->SetZLayer(0);
 				break;
 			} 
-		}
+		}*/
         if(!sPendingChat.empty()) 
         { 
             // set 'old' to current 
@@ -859,6 +863,7 @@ PLUGIN_API VOID InitializePlugin()
 
     AddCommand("/style",Style,0,1,0); 
     AddCommand("/mqfont",MQChatFont); 
+    AddCommand("/mqchat",MQChat); 
     AddCommand("/mqmin",MQChatMin); 
     AddCommand("/mqclear",MQChatClear);
     AddCommand("/setchattitle",SetChatTitle);
@@ -877,6 +882,7 @@ PLUGIN_API VOID ShutdownPlugin()
     RemoveCommand("/muleui"); 
     RemoveCommand("/setchattitle"); 
     RemoveCommand("/style"); 
+    RemoveCommand("/mqchat"); 
     RemoveCommand("/mqfont"); 
     RemoveCommand("/mqmin"); 
     RemoveCommand("/mqclear"); 

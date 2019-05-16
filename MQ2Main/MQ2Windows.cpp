@@ -240,8 +240,8 @@ public:
 					newwidth = TotalWidth - (rect.right - rect.left);
 					rect.right += newwidth;
 					rectmain.right += newwidth + 10;
-					((CXWnd*)list)->Move(&rect, false, false, false, false);
-					((CXWnd*)pFIWnd)->Move(&rectmain, false, false, false, false);
+					((CXWnd*)list)->Move(rect, false, false, false, false);
+					((CXWnd*)pFIWnd)->Move(rectmain, false, false, false, false);
 				}
 
 				// lets borrow a checkbox...
@@ -1412,6 +1412,8 @@ void RemoveAutoBankMenu()
 
 		if (OurCheckBoxMenuIndex != 0)
 		{
+			pMgr->RemoveMenu(OurCheckBoxMenuIndex, true);
+			OurCheckBoxMenuIndex = 0;
 			if (pNLMarkedButton)
 			{
 				pNLMarkedButton->Destroy();
@@ -1424,8 +1426,6 @@ void RemoveAutoBankMenu()
 				pCountLabel = nullptr;
 			}
 
-			pMgr->RemoveMenu(OurCheckBoxMenuIndex, true);
-			OurCheckBoxMenuIndex = 0;
 
 #if !defined(ROF2EMU) && !defined(UFEMU)
 			if (pFindItemWnd)
@@ -1685,6 +1685,34 @@ bool GenerateMQUI()
 	return true;
 }
 
+bool IsXMLFilePresent(const char* filename)
+{
+	// check default location.
+	char szFilename[MAX_PATH] = { 0 };
+
+	sprintf_s(szFilename, "uifiles\\default\\%s", filename);
+
+	// this will check both MQ and EQ dirs
+	if (DoesFileExist(szFilename))
+		return true;
+
+	// check current ui
+	if (PCHARINFO pCharInfo = GetCharInfo())
+	{
+		char UISkin[256] = { 0 };
+
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
+
+		sprintf_s(szFilename, "uifiles\\%s\\%s", UISkin, filename);
+
+		// this will check both MQ and EQ dirs
+		return DoesFileExist(szFilename);
+	}
+
+	return false;
+}
+
 void DestroyMQUI()
 {
 	// delete MQUI.xml files.
@@ -1692,7 +1720,7 @@ void DestroyMQUI()
 	char szFilename[MAX_PATH] = { 0 };
 	char UISkin[256] = { 0 };
 
-	sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, "default");
+	sprintf_s(szFilename, "%s\\uifiles\\default\\MQUI.xml", gszEQPath);
 	DebugSpew("DestroyMQUI: removing file %s", szFilename);
 	remove(szFilename);
 
@@ -3257,11 +3285,11 @@ void AutoBankPulse()
 									}
 								}
 								if (!bwesold) {
-									#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 									pmercho->SelectBuySellSlot(gi, gi->Index.Slot1);
-									#else
+#else
 									pmercho->SelectBuySellSlot(gi);
-									#endif
+#endif
 									break;
 								}
 							}

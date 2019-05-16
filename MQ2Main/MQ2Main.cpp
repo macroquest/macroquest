@@ -576,7 +576,7 @@ void __cdecl MQ2Shutdown()
     //needs to be done here
 	DebugTry(ShutdownMQ2Plugins());
 	DebugTry(DeInitializeMQ2IcExports());
-    DebugTry(ShutdownMQ2Detours());
+ 	DebugTry(ShutdownMQ2Detours());
     DebugTry(ShutdownMQ2Benchmarks());
 	if (ghLockSpellMap) {
 		ReleaseMutex(ghLockSpellMap);

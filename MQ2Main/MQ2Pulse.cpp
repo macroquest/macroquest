@@ -310,9 +310,8 @@ void Pulse()
 			if (oldcameratype != *(DWORD*)CDisplay__cameraType) {
 				oldcameratype = *(DWORD*)CDisplay__cameraType;
 				sprintf_s(CameraText, "Selector Window (Camera %d)", oldcameratype);
+				pSelectorWnd->CSetWindowText(CameraText);
 			}
-			pSelectorWnd->CSetWindowText(CameraText);
-			//SetCXStr(&pSelectorWnd->WindowText, CameraText);
 		}
 	}
 	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
