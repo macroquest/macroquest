@@ -1,4 +1,7 @@
 
+May 17 2019 by EqMule
+- Updated for TEST
+-
 May 16 2019 by EqMule
 - Fixed Get Current Mana and Get Current Endurance
 - Fixed MQ2Rez spam (yes really this time)
