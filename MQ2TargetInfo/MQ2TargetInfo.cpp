@@ -450,8 +450,8 @@ void AddOurMenu(CGroupWnd*pGwnd,bool bMemberClicked, int index)
 		{
 			separatorid2 = pGwnd->GroupContextMenu->AddSeparator();
 			mmlmenuid = pGwnd->GroupContextMenu->AddMenuItem("Make Me Leader", TIMC_MakeMeLeader);
-			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Nav to Me", TIMC_NavToMe);
-			gotomenuid = pGwnd->GroupContextMenu->AddMenuItem("Run To", TIMC_Runto);	
+			navmenuid = pGwnd->GroupContextMenu->AddMenuItem("Run To Me", TIMC_NavToMe);
+			gotomenuid = pGwnd->GroupContextMenu->AddMenuItem("Run To...", TIMC_Runto);	
 			groundmenuid = pGwnd->GroupContextMenu->AddMenuItem("Pick Up Nearest Ground Item", TIMC_PickupGroundItem);
 			doormenuid = pGwnd->GroupContextMenu->AddMenuItem("Click Nearest Door", TIMC_ClickNearestDoor);
 			switchtomenuid = pGwnd->GroupContextMenu->AddMenuItem("Switch to...", TIMC_SwitchTo);

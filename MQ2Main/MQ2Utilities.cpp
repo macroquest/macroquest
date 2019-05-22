@@ -11222,7 +11222,7 @@ int SPAWNINFO::GetSpellCooldownETA() const
 #if defined(LIVE)
 	if (IC_GetHashData)
 	{
-		int ret = (int)IC_GetHashData((void*)this, 0xEE086410);
+		int ret = (int)IC_GetHashData((void*)this, 0x1E086410);
 		return ret;
 	}
 	return 0;

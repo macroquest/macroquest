@@ -1,4 +1,8 @@
 
+May 22 2019 by SwiftyMuse & EqMule
+- Fixed ${Me.SpellInCooldown}
+- Fixed some parsing bugs.
+-
 May 17 2019 by EqMule
 - Updated for TEST
 -
