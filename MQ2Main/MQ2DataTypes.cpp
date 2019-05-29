@@ -2242,6 +2242,297 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	}
+	case CachedBuff:
+	{
+		Dest.Type = pCachedBuffType;
+		if (CachedBuffsMap.empty())
+			return false;
+		DWORD SpellID = 0;
+		bool bBySlot = false;
+		bool bByIndex = false;
+		bool bByKeyword = false;
+		
+		PCHAR pIndex = GETFIRST();
+		if (pIndex[0])
+		{
+			if (ISNUMBER())
+			{
+				//by spell ID
+				SpellID = GETNUMBER();
+			}
+			else
+			{
+				BOOL bExact = false;
+				if (*pIndex == '#') {
+					//by buff slot
+					bBySlot = true;
+					pIndex++;
+				}
+				else if (*pIndex == '*') {
+					//by buff index
+					bByIndex = true;
+					pIndex++;
+				}
+				else if (*pIndex == '^') {
+					//by keyword
+					bByKeyword = true;
+					pIndex++;
+				}
+				else
+				{
+					//by spell name
+					if (PSPELL pSpell = GetSpellByName(pIndex))
+					{
+						SpellID = pSpell->ID;
+					}
+				}
+			}
+			if (SpellID)
+			{
+				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+				if (ps != CachedBuffsMap.end())
+				{
+					for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
+					{
+						if (i->first == SpellID)
+						{
+							strcpy_s(TargetBuffTemp.casterName, i->second.casterName);
+							TargetBuffTemp.count = i->second.count;
+							TargetBuffTemp.duration = i->second.duration;
+							TargetBuffTemp.slot = i->second.slot;
+							TargetBuffTemp.spellId = i->second.spellId;
+							TargetBuffTemp.timeStamp = i->second.timeStamp;
+							Dest.Ptr = &TargetBuffTemp;
+							return true;
+						}
+					}
+				}
+			}
+			else if (bBySlot)
+			{
+				int idx = atoi(pIndex);
+				idx--;
+				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+				if (ps != CachedBuffsMap.end())
+				{
+					std::map<int, cTargetBuff>::iterator i = ps->second.begin();
+					if (i != ps->second.end())
+					{
+						if (idx < 0)
+							idx = 0;
+						if (idx > NUM_BUFF_SLOTS)//the xml only have 84 slots...
+						{
+							idx = NUM_BUFF_SLOTS;
+						}
+						for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
+						{
+							if (i->second.slot == idx)
+							{
+								strcpy_s(TargetBuffTemp.casterName, i->second.casterName);
+								TargetBuffTemp.count = i->second.count;
+								TargetBuffTemp.duration = i->second.duration;
+								TargetBuffTemp.slot = i->second.slot;
+								TargetBuffTemp.spellId = i->second.spellId;
+								TargetBuffTemp.timeStamp = i->second.timeStamp;
+								Dest.Ptr = &TargetBuffTemp;
+								return true;
+							}
+						}
+					}
+				}
+			}
+			else if (bByIndex)
+			{
+				int idx = atoi(pIndex);
+				idx--;
+				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+				if (ps != CachedBuffsMap.end())
+				{
+					std::map<int, cTargetBuff>::iterator i = ps->second.begin();
+					if (i != ps->second.end())
+					{
+						if (idx < 0)
+							idx = 0;
+						if (idx >= (int)ps->second.size())
+						{
+							return false;
+							//idx = ps->second.size() - 1;
+						}
+						std::advance(i, idx);
+						if (i != ps->second.end())
+						{
+							strcpy_s(TargetBuffTemp.casterName, i->second.casterName);
+							TargetBuffTemp.count = i->second.count;
+							TargetBuffTemp.duration = i->second.duration;
+							TargetBuffTemp.slot = i->second.slot;
+							TargetBuffTemp.spellId = i->second.spellId;
+							TargetBuffTemp.timeStamp = i->second.timeStamp;
+							Dest.Ptr = &TargetBuffTemp;
+							return true;
+						}
+					}
+				}
+			}
+			else if (bByKeyword)
+			{
+				/*Slowed = 8,
+				Rooted = 9,
+				Mezzed = 10,
+				Crippled = 11,
+				Maloed = 12,
+				Tashed = 13,
+				Snared = 14,
+				Hasted = 15,
+				Aego = 16,
+				Skin = 17,
+				Focus = 18,
+				Regen = 19,
+				Symbol = 20,
+				Clarity = 21,
+				Pred = 22,
+				Strength = 23,
+				Brells = 24,
+				SV = 25,
+				SE = 26,
+				HybridHP = 27,
+				Growth = 28,
+				Shining = 29,
+				Beneficial = 30,
+				DSed = 31,
+				RevDSed = 32,
+				Charmed = 33,
+				Diseased = 34,
+				Poisoned = 35,
+				Cursed = 36,
+				Corrupted
+				*/
+				int type = -1;
+				if (!_stricmp(pIndex, "Slowed"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					if (HasCachedTargetBuffSPA(11, 0, pSpawn,&TargetBuffTemp))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Rooted"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					if (HasCachedTargetBuffSPA(99, 0, pSpawn,&TargetBuffTemp))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Mezzed"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					if (HasCachedTargetBuffSPA(31, 0, pSpawn,&TargetBuffTemp))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Crippled"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					if (HasCachedTargetBuffSubCat("Disempowering",pSpawn,&TargetBuffTemp))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Maloed"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					//GetTargetBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage));
+					if (HasCachedTargetBuffSubCat("Resist Debuffs",pSpawn,&TargetBuffTemp,(1 << Shaman) + (1 << Mage)))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Tashed"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					if (HasCachedTargetBuffSubCat("Resist Debuffs",pSpawn,&TargetBuffTemp,1 << Enchanter))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Snared"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					if (HasCachedTargetBuffSPA(3, 0, pSpawn, &TargetBuffTemp))
+					{
+						Dest.Ptr = &TargetBuffTemp;
+						return true;
+					}
+					return false;
+				}
+				else if (!_stricmp(pIndex, "Beneficial"))
+				{
+					Dest.Ptr = 0;
+					Dest.Type = pCachedBuffType;
+					std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+					if (ps != CachedBuffsMap.end())
+					{
+						for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
+						{
+							if (PSPELL pSpell = GetSpellByID(i->first)) {
+								if (pSpell->SpellType != 0)
+								{
+									//targetwindow has a leak in it player buffs shows up in it
+									//so we need to make sure its not a "leaked buff"
+									if (PSPAWNINFO pPlayer = (PSPAWNINFO)GetSpawnByName(i->second.casterName)) {
+										if (pPlayer->Type == SPAWN_PLAYER) {
+											continue;
+										}
+									}
+									strcpy_s(TargetBuffTemp.casterName, i->second.casterName);
+									TargetBuffTemp.count = i->second.count;
+									TargetBuffTemp.duration = i->second.duration;
+									TargetBuffTemp.slot = i->second.slot;
+									TargetBuffTemp.spellId = i->second.spellId;
+									TargetBuffTemp.timeStamp = i->second.timeStamp;
+									Dest.Ptr = &TargetBuffTemp;
+									return true;
+								}
+							}
+						}
+					}
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+	case CachedBuffCount:
+	{
+		Dest.Type = pIntType;
+		Dest.DWord = -1;
+		std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+		if (ps != CachedBuffsMap.end())
+		{
+			Dest.DWord = ps->second.size();
+		}
+		return true;
+	}
 	default:
 		return false;
 		}
@@ -2495,7 +2786,58 @@ bool MQ2TargetBuffType::GETMEMBER()
 	}
 	return false;
 }
+bool MQ2CachedBuffType::GETMEMBER()
+{
+	PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
+	if (!pcTB)
+		return false;
+	int buffid = pcTB->spellId;
+	if (buffid <= 0)
+		return false;
+	PMQ2TYPEMEMBER pMember = MQ2CachedBuffType::FindMember(Member);
+	if (!pMember)
+	{
+		if (PSPELL pSpell = GetSpellByID(buffid))
+		{
+#ifndef ISXEQ 
+			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
+#else
+			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
+#endif
+		}
+		return false;
+	}
+	switch ((CachedBuffMembers)pMember->ID)
+	{
+	case CasterName:
+		strcpy_s(DataTypeTemp, pcTB->casterName);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	case Count:
+		Dest.Int = pcTB->count;
+		Dest.Type = pIntType;
+		return true;
+	case Slot:
+		Dest.Int = pcTB->slot;
+		Dest.Type = pIntType;
+		return true;
+	case SpellID:
+		Dest.Int = pcTB->spellId;
+		Dest.Type = pIntType;
+		return true;
+	case Duration:
+		//int at = pcTB->timeStamp + (pcTB->duration * 6000);
+		int calcedduration = (pcTB->timeStamp + (pcTB->duration * 6000)) - EQGetTime();
 
+		if (calcedduration < 0)
+			calcedduration = 0;
+		Dest.Int = calcedduration;
+		Dest.Type = pTimeStampType;
+		return true;
+	}
+	return false;
+}
 bool MQ2CharacterType::GETMEMBER()
 {
 #define pChar ((PCHARINFO)VarPtr.Ptr)
@@ -9862,6 +10204,28 @@ bool MQ2CharSelectListType::GETMEMBER()
 				}
 			}
 			return false;
+		case Class:
+			Dest.DWord = 0;
+			Dest.Type = pStringType;
+			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+				if (VarPtr.Int < ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+					strcpy_s(DataTypeTemp, GetClassDesc(((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray[VarPtr.Int].Class));
+					Dest.Ptr = &DataTypeTemp[0];
+					return true;
+				}
+			}
+			return false;
+		case Race:
+			Dest.DWord = 0;
+			Dest.Type = pStringType;
+			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+				if (VarPtr.Int < ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray.Count) {
+					strcpy_s(DataTypeTemp, pEverQuest->GetRaceDesc(((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray[VarPtr.Int].Race));
+					Dest.Ptr = &DataTypeTemp[0];
+					return true;
+				}
+			}
+			return false;
 		case ZoneID:
 			Dest.DWord = 0;
 			Dest.Type = pIntType;
@@ -13165,9 +13529,9 @@ bool MQ2TargetType::GETMEMBER()
 	{
 	case BuffsPopulated:
 		Dest.DWord = 0;
-		Dest.Type = pBoolType;
+		Dest.Type = pIntType;
 		if (gTargetbuffs && pTarget)
-			Dest.DWord = 1;
+			Dest.DWord = gTargetbuffs;
 		return true;
 	case Buff:
 		Dest.Type = pSpellType;

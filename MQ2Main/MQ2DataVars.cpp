@@ -819,7 +819,8 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			} 
 		#else // blech
 			}
-			strcpy_s(EventMsg,szClean);
+			strncpy_s(EventMsg,_countof(EventMsg),szClean,MAX_STRING-1);
+			EventMsg[MAX_STRING-1] = 0;
 			pEventBlech->Feed(EventMsg);
 			EventMsg[0] = '\0';
 		#endif

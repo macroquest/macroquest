@@ -614,7 +614,7 @@ EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 #endif
 extern std::map<int, std::string>targetBuffSlotToCasterMap; 
-
+extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
 EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
@@ -781,6 +781,8 @@ EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
 EQLIB_API int		  GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
+EQLIB_API bool		  HasCachedTargetBuffSubCat(const char*subcat, PSPAWNINFO pSpawn, PcTargetBuff pcTargetBuff, DWORD classmask = 0);
+EQLIB_API bool		  HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetBuff pcTargetBuff);
 EQLIB_API int		  GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);

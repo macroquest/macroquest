@@ -2875,6 +2875,28 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("Target cleared.", USERCOLOR_WHO);
 			return;
 		}
+		else if (!strcmp(szArg, "ccb")) {
+			if (pTarget)
+			{
+				int id = pTarget->Data.SpawnID;
+				if (CachedBuffsMap.find(id) != CachedBuffsMap.end())
+				{
+					pTarget = NULL;
+					CachedBuffsMap.erase(id);
+				}
+			}
+			WriteChatColor("Cached Buffs for Target cleared.", USERCOLOR_WHO);
+			return;
+		}else if (!strcmp(szArg, "cacb"))
+		{
+			if (pTarget)
+			{
+				pTarget = NULL;
+			}
+			WriteChatColor("Cached Buffs for ALL Targets cleared.", USERCOLOR_WHO);
+			CachedBuffsMap.clear();
+			return;
+		}
 		else {
 			szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
 		}
@@ -4724,6 +4746,26 @@ VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 		DWORD nThreadID = 0;
 		CreateThread(NULL, 0, openpickzonewnd, (PVOID)index, 0, &nThreadID);
 	}
+}
+// ***************************************************************************
+// Function:    QuitCmd
+// Description: '/quit' command
+// Purpose:     Adds the ability to /quit at charselect not just from ingame
+// Author:      EqMule
+// ***************************************************************************
+VOID QuitCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (GetGameState() != GAMESTATE_INGAME)
+	{
+		if (HANDLE hHandle = OpenProcess(PROCESS_ALL_ACCESS, 0, GetCurrentProcessId())) {
+			DWORD dwExitCode = 0;
+			GetExitCodeProcess(hHandle, &dwExitCode);
+			TerminateProcess(hHandle, dwExitCode);
+			WaitForSingleObject(hHandle,5000);
+			CloseHandle(hHandle);
+		}
+	}
+	cmdQuit(pChar, szLine);
 }
 // ***************************************************************************
 // Function:    AssistCmd

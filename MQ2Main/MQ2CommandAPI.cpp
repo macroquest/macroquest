@@ -625,6 +625,8 @@ void InitializeMQ2Commands()
             cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress;
 		} else if (!strcmp(pCmdListOrig[i].szName,"/assist")) {
 			cmdAssist = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/quit")) {
+			cmdQuit = (fEQCommand)pCmdListOrig[i].fAddress;
         }
         AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
     }
@@ -721,6 +723,7 @@ void InitializeMQ2Commands()
 		{"/usercamera", UserCameraCmd,1,0},
 		{"/mapzoom",    MapZoomCmd,1,0},
 		{"/foreground", ForeGroundCmd,1,0},
+		{"/quit",		QuitCmd,1,0},
 		
         {NULL,          NULL,0,1},
     };

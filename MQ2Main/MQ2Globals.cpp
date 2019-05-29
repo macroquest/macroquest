@@ -493,11 +493,13 @@ namespace MQ2Globals
 	fEQCommand        cmdAdvLoot = NULL;
 	fEQCommand        cmdPickZone = NULL;
 	fEQCommand        cmdAssist = NULL;
+	fEQCommand        cmdQuit = NULL;
 
 	PCHAR szEQMappableCommands[nEQMappableCommands];
 	decltype(ItemSlotMap) ItemSlotMap;
 
 	CHAR DataTypeTemp[MAX_STRING] = { 0 };
+	cTargetBuff TargetBuffTemp = { 0 };
 
 	decltype(SpawnByName) SpawnByName;
 	MQRANK EQP_DistArray[3000];

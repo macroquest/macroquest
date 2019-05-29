@@ -383,6 +383,24 @@ class PcZoneClient;
 class CharacterZoneClient;
 class CZoneGuideWnd;
 // End forward class declarations
+struct cTargetHeader
+{
+    int m_id;
+    int m_timeNext;
+    bool m_bComplete;
+    short m_count;
+};
+
+typedef struct _cTargetBuff
+{
+    int slot;
+    int spellId;
+    int duration;//in ticks...
+    int count;
+    CHAR casterName[64];
+	//not actually part of this packet but we need it for cachedbuffs map
+	DWORD timeStamp;//when the buffpacket arrived.
+}cTargetBuff,*PcTargetBuff;
 
 typedef struct _AggroMeterListEntry
 {

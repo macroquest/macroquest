@@ -71,6 +71,7 @@ DATATYPE(MQ2RaidType, pRaidType, nullptr, 0);
 DATATYPE(MQ2SkillType, pSkillType, nullptr, 0);
 DATATYPE(MQ2SwitchType, pSwitchType, nullptr, 0);
 DATATYPE(MQ2TargetBuffType, pTargetBuffType, pSpellType, 0);
+DATATYPE(MQ2CachedBuffType, pCachedBuffType, pSpellType, 0);
 DATATYPE(MQ2TargetType, pTargetType, pSpawnType, 0);
 DATATYPE(MQ2TaskMemberType, pTaskMemberType, nullptr, 0);
 DATATYPE(MQ2TaskObjectiveType, pTaskObjectiveType, nullptr, 0);

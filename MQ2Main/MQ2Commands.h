@@ -112,5 +112,6 @@ LEGACY_API VOID ScreenModeCmd                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID UserCameraCmd                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MapZoomCmd                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID ForeGroundCmd                       (PSPAWNINFO,PCHAR);
+LEGACY_API VOID QuitCmd                             (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PluginCmdSort                       (VOID);
 #endif

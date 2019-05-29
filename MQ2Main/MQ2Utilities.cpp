@@ -9749,6 +9749,101 @@ int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 	}
 	return -1;
 }
+bool HasCachedTargetBuffSubCat(const char*subcat, PSPAWNINFO pSpawn, PcTargetBuff pcTargetBuff, DWORD classmask)
+{
+	if (CachedBuffsMap.empty())
+		return false;
+	std::map<int, std::map<int, cTargetBuff>>::iterator i = CachedBuffsMap.find(pSpawn->SpawnID);
+	if (i != CachedBuffsMap.end())
+	{
+		for (std::map<int, cTargetBuff>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
+			int buffID = j->first;
+			if (PSPELL pSpell = GetSpellByID(buffID)) {
+				if (DWORD cat = GetSpellSubcategory(pSpell)) {
+					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
+						if (!_stricmp(ptr, subcat))
+						{
+							if (classmask != Unknown) {
+								for (int N = 0; N < 16; N++)
+								{
+									if (classmask & (1 << N)) {
+										return true;
+									}
+								}
+							}
+							else {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetBuff pcTargetBuff)
+{
+	if (CachedBuffsMap.empty())
+		return false;
+	std::map<int, std::map<int, cTargetBuff>>::iterator i = CachedBuffsMap.find(pSpawn->SpawnID);
+	if (i != CachedBuffsMap.end())
+	{
+		for (std::map<int, cTargetBuff>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
+			int buffID = j->first;
+			if (PSPELL pSpell = GetSpellByID(buffID)) {
+				if (LONG base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa)) {
+					strcpy_s(pcTargetBuff->casterName, j->second.casterName);
+					pcTargetBuff->count = j->second.count;
+					pcTargetBuff->duration = j->second.duration;
+					pcTargetBuff->slot = j->second.slot;
+					pcTargetBuff->spellId = j->second.spellId;
+					pcTargetBuff->timeStamp = j->second.timeStamp;
+					switch (spa)
+					{
+					case 3: //Movement Rate
+						if (!bIncrease && base < 0) { //below 0 means its a snare above its runspeed increase...
+							return true;
+						}
+						else if (bIncrease && base > 0) {
+							return true;
+						}
+						return false;
+					case 11: //Melee Speed
+						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
+							return true;
+						}
+						else if (bIncrease && base > 100) {
+							return true;
+						}
+						return false;
+					case 59: //Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return true;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return true;
+						}
+						return false;
+					case 121: //Reverse Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return true;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return true;
+						}
+						return false;
+					default:
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
 //       the bIncrease tells the function if we want spells that increase or decrease the SPA
 int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)

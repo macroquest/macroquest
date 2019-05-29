@@ -1227,8 +1227,19 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 			strcpy_s(szCurrent, "NULL");
 		}
 		NewLength = strlen(szCurrent);
-		memmove(&pBrace[NewLength], &pEnd[1], strlen(&pEnd[1]) + 1);
+		int endlen = strlen(&pEnd[1]) + 1;
+		memmove(&pBrace[NewLength], &pEnd[1], endlen);
 		int addrlen = (int)(pBrace - szOriginal);
+		if (NewLength > BufferSize - addrlen)
+		{
+			if (PMACROBLOCK currblock = GetCurrentMacroBlock())
+			{
+				currblock->Line[currblock->CurrIndex].Command.c_str();
+				SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?", currblock->Line[currblock->CurrIndex].Command.c_str(),currblock->Line[currblock->CurrIndex].LineNumber,currblock->Line[currblock->CurrIndex].SourceFile.c_str(), NewLength, BufferSize - addrlen);
+			}
+			NewLength = BufferSize - addrlen;
+			//return false;
+		}
 		memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
 		if (bAllowCommandParse == false) {
 			bAllowCommandParse = true;

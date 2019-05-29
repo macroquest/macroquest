@@ -57,7 +57,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL bAllErrorsDumpStack;
 	EQLIB_VAR BOOL bAllErrorsLog;
 	EQLIB_API CHAR DataTypeTemp[MAX_STRING];
-
+	EQLIB_API cTargetBuff TargetBuffTemp;
 	EQLIB_API CHAR gszVersion[32];
 	EQLIB_VAR DWORD gdwLocalPlayer;
 	EQLIB_API CHAR gszTime[32];
@@ -372,6 +372,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand			cmdAdvLoot;
 	EQLIB_VAR fEQCommand			cmdPickZone;
 	EQLIB_VAR fEQCommand			cmdAssist;
+	EQLIB_VAR fEQCommand			cmdQuit;
 
 	EQLIB_VAR fEQNewUIINI			NewUIINI;
 	EQLIB_VAR fEQProcGameEvts		ProcessGameEvents;

@@ -715,6 +715,8 @@ public:
 		IsSummoned = 148,
 		TargetOfTarget = 149,
 		ActorDef = 150,
+		CachedBuff = 151,
+		CachedBuffCount = 152,
 	};
 	enum SpawnMethods
 	{
@@ -878,7 +880,9 @@ public:
 		TypeMember(IsSummoned);//if its a summoned pet
 		TypeMember(TargetOfTarget);
 		TypeMember(ActorDef);
-		
+		TypeMember(CachedBuff);
+		TypeMember(CachedBuffCount);
+
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);
@@ -1881,6 +1885,57 @@ public:
 	{
 		VarPtr.Int = atoi(Source);
 		return true;
+	}
+};
+class MQ2CachedBuffType : public MQ2Type
+{
+public:
+	enum CachedBuffMembers
+	{
+		CasterName	= 1,
+		Count		= 2,
+		Slot		= 3,
+		SpellID		= 4,
+		Duration	= 5,
+	};
+	MQ2CachedBuffType() :MQ2Type("cachedbuff")
+	{
+		TypeMember(CasterName);
+		TypeMember(Count);
+		TypeMember(Slot);
+		TypeMember(SpellID);
+		TypeMember(Duration);
+	}
+
+	~MQ2CachedBuffType()
+	{
+	}
+	//buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+	bool GETMEMBER();
+	//DECLAREGETMETHOD();
+	INHERITINDIRECT(pSpellType, Temp.Ptr = GetSpellByID(((PcTargetBuff)ObjectData.Ptr)->spellid), 0);
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
+		if (!pcTB)
+			return false;
+		if (PSPELL pSpell = GetSpellByID(pcTB->spellId))
+		{
+			strcpy_s(Destination, MAX_STRING, pSpell->Name);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
+
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		//VarPtr.Int = atoi(Source);
+		return false;
 	}
 };
 class MQ2ItemSpellType : public MQ2Type
@@ -3463,6 +3518,8 @@ public:
 		Level = 2,
 		ZoneID = 3,
 		Count = 4,
+		Class = 5,
+		Race = 6,
 	};
 	enum CharSelectListMethods
 	{
@@ -3473,6 +3530,8 @@ public:
 		TypeMember(Level);
 		TypeMember(ZoneID);
 		TypeMember(Count);
+		TypeMember(Class);
+		TypeMember(Race);
 	}
 	~MQ2CharSelectListType()
 	{

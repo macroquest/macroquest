@@ -297,7 +297,7 @@ char szCharClass[64] = { 0 };
 char szCharLevel[64] = { 0 };
 char szSelectCharacterName[64] = { 0 };
 char szNewChar[0x40] = { 0 };
-char szUserName[64] = { 0 };
+char szUserName[MAX_PATH] = { 0 };
 char szBlobKey[64] = { 0 };
 ULONGLONG dwTime = 0;
 ULONGLONG switchTime = 0;
@@ -1788,6 +1788,46 @@ void HandleWindows()
 						SetCXStr(&((CEditWnd*)pWnd)->InputText, szStationName);
 						ScreenMode = oldscreenmode;
 					}
+					else if (PCHAR pDest = strchr(szUserName, '^'))//special login no profile just straight plaintext login...
+					{	//server^stationname^charname^pass
+						//if charname is empty we just stop at charselect.
+						//MessageBox(NULL, "attach", NULL, MB_SYSTEMMODAL | MB_OK);
+						if (LPSTR cmdline = GetCommandLine())
+						{
+							int cmdlinelen = strlen(cmdline);
+							if (PCHAR ploginDest = strstr(cmdline, "/login:"))
+							{
+								ploginDest += 7;
+								strcpy_s(szUserName, ploginDest);
+								pDest = strchr(szUserName, '^');
+							}
+						}
+						pDest[0] = '\0';
+						pDest++;
+						strcpy_s(szServerName, szUserName);
+						strcpy_s(szStationName, pDest);
+						if (PCHAR pDest = strchr(szStationName, '^'))
+						{
+							pDest[0] = '\0';
+							pDest++;
+							strcpy_s(szCharacterName, pDest);
+						}
+						if (PCHAR pDest = strchr(szCharacterName, '^'))
+						{
+							pDest[0] = '\0';
+							pDest++;
+							strcpy_s(szPassword, pDest);
+						}
+						else {
+							strcpy_s(szPassword, szCharacterName);
+							szCharacterName[0] = '\0';
+						}
+						DWORD oldscreenmode = ScreenMode;
+						ScreenMode = 3;
+						SetCXStr(&((CEditWnd*)pWnd)->InputText, "");
+						SetCXStr(&((CEditWnd*)pWnd)->InputText, szStationName);
+						ScreenMode = oldscreenmode;
+					}
 					else if (PCHAR pDest = strchr(szUserName, ';')) {//special login
 						//basically this allows for a piped login
 						//where password,server, and name are sent directly.
@@ -1795,7 +1835,16 @@ void HandleWindows()
 						//but its hady when u want a quick way to login a char(s)
 						//that is not a regular from your profile(s)
 						//format is: Server;Character;Password
-						
+						if (LPSTR cmdline = GetCommandLine())
+						{
+							int cmdlinelen = strlen(cmdline);
+							if (PCHAR ploginDest = strstr(cmdline, "/login:"))
+							{
+								ploginDest += 7;
+								strcpy_s(szUserName, ploginDest);
+								pDest = strchr(szUserName, '^');
+							}
+						}
 						pDest[0] = '\0';
 						pDest++;
 						sprintf_s(szCharacterName, "%s", pDest);

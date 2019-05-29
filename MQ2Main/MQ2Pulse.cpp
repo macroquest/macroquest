@@ -733,24 +733,12 @@ BOOL Detour_ProcessGameEvents(VOID)
 	return ret2;
 }
 
+
 std::map<int, std::string>targetBuffSlotToCasterMap; 
 
-struct cTargetHeader
-{
-    int m_id;
-    int m_timeNext;
-    bool m_bComplete;
-    short m_count;
-};
 
-struct cTargetBuff
-{
-    int slot;
-    int spellId;
-    int duration;
-    int count;
-    CHAR casterName[64];
-};
+std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
+
 void RemoveLoginPulse();
 DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID));
 DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
@@ -787,9 +775,15 @@ public:
 	VOID CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
 	VOID CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
 	{
-		gTargetbuffs = FALSE;
-		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
+		//ok so we can cache songs as well here, they are not displayed in the client for some reason...
 
+		gTargetbuffs = FALSE;
+		int count = 0;
+		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
+		PCTARGETWND pTW = (PCTARGETWND)this;
+		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+			if (pTW->BuffSpellID[i] > 0)
+				count++;
         targetBuffSlotToCasterMap.clear();
 
         CUnSerializeBuffer* packet = (CUnSerializeBuffer*)buffer;
@@ -802,7 +796,11 @@ public:
         packet->Read( header.m_bComplete );
         packet->Read( header.m_count );
         cTargetBuff curBuff;
-
+		//should we clear it here?
+		//if (pTarget && header.m_bComplete) {
+			int id = pTarget->Data.SpawnID;
+			CachedBuffsMap[id].clear();
+		//}
         for( int i = 0; i < header.m_count; i++ ) {
 			ZeroMemory(&curBuff, sizeof(cTargetBuff));
             packet->Read( curBuff.slot );
@@ -811,6 +809,8 @@ public:
             packet->Read( curBuff.count );
             packet->ReadpChar( curBuff.casterName );
 			if (pTarget) {
+				curBuff.timeStamp = EQGetTime();
+				CachedBuffsMap[pTarget->Data.SpawnID][curBuff.spellId] = curBuff;
 				if ((curBuff.slot >= 42 && (pTarget->Data.Type == SPAWN_PLAYER || pTarget->Data.Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
 					continue;
 				}
@@ -820,7 +820,7 @@ public:
 		if (gbAssistComplete == 1) {
 			gbAssistComplete = 2;
 		}
-		gTargetbuffs = TRUE;
+		gTargetbuffs = count + 1;
 	}
 	//This is called continually during the login mainloop so we can use it as our pulse when the MAIN gameloop pulse is not active but login is. -eqmule
 	//that will allow plugins to work and execute commands all the way back pre login and server select etc.

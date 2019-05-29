@@ -1,8 +1,23 @@
-
+May 24 2019 by EqMule
+- BuffsPopulated returns 1 for a empty buff list and a number above 1 if there was some buffs received.
+  So if you do /echo ${Target.BuffsPopulated} and it returns 1 it means the target does not have any actual buffs, but the list was received (and it was empty).
+  any number above 1 means the list was not empty...
+  NOTE: Use ${Target.BuffCount} to get the ACTUAL VISIBLE buffs (BuffsPopulated is BuffCount + 1)
+- Some other stuff I'll documment later.
+-
+May 23 2019 by EqMule
+- Added the possibility to login new characters using plaintext credentials, no mq2 login profile needed:
+	Usage:
+	/loginchar servername^login^charname^password
+	AND if you want to stop at charselect don't specify charname:
+	/loginchar servername^login^password
+- Made /quit command work at charselect
+- Added a Syntax Error to the parser when you try to parse strings greater than 2048 instead of crashing you.
+-
 May 22 2019 by SwiftyMuse & EqMule
 - Fixed ${Me.SpellInCooldown}
 - Fixed some parsing bugs.
--
+- 
 May 17 2019 by EqMule
 - Updated for TEST
 -
