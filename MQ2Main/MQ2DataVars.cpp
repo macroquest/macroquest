@@ -721,14 +721,11 @@ void TellCheck(char *szClean)
 VOID CheckChatForEvent(PCHAR szMsg)
 {
 	int len = strlen(szMsg);
-	//
-	//need to fix these: 0x07fc8860 "Your \x1263^225^'Endure Cold\x12 spell has worn off of Kratala."
 	if(char *szClean = (char *)LocalAlloc(LPTR,len+64)) {
 		char *pszCleanOrg = szClean;
 		strcpy_s(szClean,len+64,szMsg);
 		if (strchr(szClean, '\x12'))
 		{
-			//CXStr szin = szClean;
 			CXStr out;
 			if (CXStr *str = CleanItemTags(&out, szClean,false)) {
 				GetCXStr(str->Ptr, szClean, len + 64);
