@@ -2997,7 +2997,7 @@ FUNCTION_AT_ADDRESS(void  CSpellBookWnd::RequestSpellDeletion(int),CSpellBookWnd
 FUNCTION_AT_ADDRESS(void  CSpellBookWnd::DeleteSpellFromBook(int,int),CSpellBookWnd__DeleteSpellFromBook);
 #endif
 #ifdef CXStr__Mid_x
-FUNCTION_AT_ADDRESS(class CXStr  CXStr::Mid(int,int)const ,CXStr__Mid);
+FUNCTION_AT_ADDRESS(CXStr CXStr::Mid(int pos,int len) const ,CXStr__Mid);
 #endif
 #ifdef CTargetRing__Cast_x
 FUNCTION_AT_ADDRESS(int CTargetRing::Cast(CVector3 *), CTargetRing__Cast);
@@ -7957,13 +7957,13 @@ FUNCTION_AT_ADDRESS(class CXStr &  CXStr::operator=(class CXStr const &),CXStr__
 FUNCTION_AT_ADDRESS(class CXStr &  CXStr::operator=(char const *),CXStr__operator_equal1);
 #endif
 #ifdef CXStr__GetChar_x
-FUNCTION_AT_ADDRESS(char  CXStr::GetChar(long)const ,CXStr__GetChar);
+FUNCTION_AT_ADDRESS(char CXStr::GetChar(long pos) const ,CXStr__GetChar);
 #endif
 #ifdef CXStr__SetChar_x
 FUNCTION_AT_ADDRESS(char  CXStr::SetChar(long,char),CXStr__SetChar);
 #endif
 #ifdef CXStr__GetUnicode_x
-FUNCTION_AT_ADDRESS(unsigned short  CXStr::GetUnicode(long)const ,CXStr__GetUnicode);
+FUNCTION_AT_ADDRESS(wchar_t CXStr::GetUnicode(long pos)const ,CXStr__GetUnicode);
 #endif
 #ifdef CXStr__SetUnicode_x
 FUNCTION_AT_ADDRESS(unsigned short  CXStr::SetUnicode(long,unsigned short),CXStr__SetUnicode);
@@ -7999,13 +7999,16 @@ FUNCTION_AT_ADDRESS(void  CXStr::operator+=(char),CXStr__operator_plus_equal2);
 FUNCTION_AT_ADDRESS(void  CXStr::operator+=(unsigned short),CXStr__operator_plus_equal3);
 #endif
 #ifdef CXStr__Delete_x
-FUNCTION_AT_ADDRESS(void  CXStr::Delete(long,long),CXStr__Delete);
-#endif
-#ifdef CXStr__Insert_x
-FUNCTION_AT_ADDRESS(void  CXStr::Insert(long,char),CXStr__Insert);
+FUNCTION_AT_ADDRESS(void CXStr::Delete(long pos, long count),CXStr__Delete);
 #endif
 #ifdef CXStr__Insert1_x
-FUNCTION_AT_ADDRESS(void  CXStr::Insert(long,class CXStr const &),CXStr__Insert1);
+FUNCTION_AT_ADDRESS(void CXStr::Insert(long pos,char ch),CXStr__Insert1);
+#endif
+#ifdef CXStr__FindNext_x
+FUNCTION_AT_ADDRESS(bool CXStr::FindNext(char ch, int& pos) const,CXStr__FindNext);
+#endif
+#ifdef CXStr__Insert_x
+FUNCTION_AT_ADDRESS(void CXStr::Insert(long pos, const CXStr& str),CXStr__Insert);
 #endif
 #ifdef CXStr__Copy_x
 FUNCTION_AT_ADDRESS(class CXStr  CXStr::Copy(long,long)const ,CXStr__Copy);
@@ -8548,7 +8551,7 @@ FUNCTION_AT_ADDRESS(bool  CStmlWnd::CanGoBackward(void),CStmlWnd__CanGoBackward)
 //FUNCTION_AT_ADDRESS(bool  CStmlWnd::IsLinkActive(class SLinkInfo)const,CStmlWnd__IsLinkActive);
 #endif
 #ifdef CXStr__GetLength_x
-FUNCTION_AT_ADDRESS(long  CXStr::GetLength(void)const ,CXStr__GetLength);
+FUNCTION_AT_ADDRESS(long CXStr::GetLength() const ,CXStr__GetLength);
 #endif
 #ifdef STextLine__STextLine_x
 FUNCTION_AT_ADDRESS( STextLine::STextLine(void),STextLine__STextLine);

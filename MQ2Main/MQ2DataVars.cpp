@@ -717,28 +717,25 @@ void TellCheck(char *szClean)
 		}
 	}
 }
+
 VOID CheckChatForEvent(PCHAR szMsg)
 {
 	int len = strlen(szMsg);
+	//
+	//need to fix these: 0x07fc8860 "Your \x1263^225^'Endure Cold\x12 spell has worn off of Kratala."
 	if(char *szClean = (char *)LocalAlloc(LPTR,len+64)) {
 		char *pszCleanOrg = szClean;
 		strcpy_s(szClean,len+64,szMsg);
-		if(szClean[0]==0x12) {//its spamchecked
-			if(len>2) {
-				if(char *szTemp = (char *)LocalAlloc(LPTR,len+64)) {
-					strcpy_s(szTemp,len+64,&szClean[2]);
-					if(char *pDest = strchr(szTemp,'\x12')) {
-						pDest[0] = '\0';
-						sprintf_s(EventMsg,"%s%s",szTemp,&pDest[1]);
-						strcpy_s(szClean,len+64,EventMsg);
-					}
-					LocalFree(szTemp);
-				}
+		if (strchr(szClean, '\x12'))
+		{
+			//CXStr szin = szClean;
+			CXStr out;
+			if (CXStr *str = CleanItemTags(&out, szClean,false)) {
+				GetCXStr(str->Ptr, szClean, len + 64);
 			}
-		} else {
-			strncpy_s(EventMsg,_countof(EventMsg),szClean,MAX_STRING-1);
-			EventMsg[MAX_STRING-1] = 0;
 		}
+		strncpy_s(EventMsg,_countof(EventMsg),szClean,MAX_STRING-1);
+		EventMsg[MAX_STRING-1] = 0;
 		if (pMQ2Blech)
 			pMQ2Blech->Feed(EventMsg);
 		EventMsg[0]=0;

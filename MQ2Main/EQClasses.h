@@ -523,15 +523,16 @@ public:
 	EQLIB_OBJECT int operator==(const CXStr&) const;
 	EQLIB_OBJECT int operator>(const CXStr&) const;
 	EQLIB_OBJECT long GetLength() const;
-	EQLIB_OBJECT unsigned short GetUnicode(long) const;
+	EQLIB_OBJECT wchar_t GetUnicode(long pos) const;
 	EQLIB_OBJECT unsigned short SetUnicode(long, unsigned short);
+	EQLIB_OBJECT bool FindNext(char ch, int& pos) const;
 	EQLIB_OBJECT void AddCr();
 	EQLIB_OBJECT void Blank();
 	EQLIB_OBJECT void BlankPreAllocate(int);
 	EQLIB_OBJECT void CopySelf(long, long);
 	EQLIB_OBJECT void Delete(long, long);
 	EQLIB_OBJECT void Insert(long, char);
-	EQLIB_OBJECT void Insert(long, const CXStr&);
+	EQLIB_OBJECT void CXStr::Insert(long pos, const CXStr& str);
 	EQLIB_OBJECT void operator+=(char const*);
 	EQLIB_OBJECT void operator+=(char);
 	EQLIB_OBJECT void operator+=(const CXStr&);

@@ -1222,6 +1222,8 @@ public:
 		Silenced = 273,
 		Invulnerable = 274,
 		Dotted = 275,
+		BlockedBuff = 276,
+		BlockedPetBuff = 277,
 	};
 	enum CharacterMethods
 	{
@@ -1499,6 +1501,8 @@ public:
 		TypeMember(Silenced);
 		TypeMember(Invulnerable);
 		TypeMember(Dotted);
+		TypeMember(BlockedBuff);
+		TypeMember(BlockedPetBuff);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1628,6 +1632,7 @@ public:
 		Trigger = 75,
 		BaseName = 76,
 		NoExpendReagentID = 77,
+		StacksSpawn = 78,
 	};
 	enum SpellMethods
 	{
@@ -1711,6 +1716,7 @@ public:
 		TypeMember(Trigger);
 		TypeMember(BaseName);
 		TypeMember(NoExpendReagentID);
+		TypeMember(StacksSpawn);
 	}
 
 	~MQ2SpellType()

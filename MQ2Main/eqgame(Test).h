@@ -359,7 +359,8 @@ GNU General Public License for more details.
 #define __CastRay2_x                                               0x59BFF0
 #define __ConvertItemTags_x                                        0x5B7800
 #define __CrashHandler_x                                           0x850F30
-#define __DoesFileExist_x                                          0x8F37C0
+#define __CleanItemTags_x                                          0x477930
+#define __DoesFileExist_x                                          0x4779F0
 #define __EQGetTime_x                                              0x8F0220
 #define __ExecuteCmd_x                                             0x5948A0
 #define __FixHeading_x                                             0x9800B0
@@ -803,6 +804,13 @@ GNU General Public License for more details.
 #define CXStr__operator_plus_equal1_x                              0x8ED010
 #define CXStr__SetString_x                                         0x8EEF00
 #define CXStr__operator_char_p_x                                   0x8ECA50
+#define CXStr__GetChar_x                                           0x8EE850
+#define CXStr__Delete_x                                            0x8EE100
+#define CXStr__GetUnicode_x                                        0x8EE8C0
+#define CXStr__GetLength_x                                         0x4A6190
+#define CXStr__Mid_x                                               0x477D10
+#define CXStr__Insert_x                                            0x8EE920
+#define CXStr__FindNext_x                                          0x8EE570
 
 // CXWnd
 //CTileLayoutWnd__SetOriginalAutoStretchInfo_x is here because its where I lookup the actual CXWnd Size.

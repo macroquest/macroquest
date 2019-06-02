@@ -1079,6 +1079,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __CastRay;
 	EQLIB_VAR DWORD __CastRay2;
 	EQLIB_VAR DWORD __ConvertItemTags;
+	EQLIB_VAR DWORD __CleanItemTags;
 	EQLIB_VAR DWORD __CrashHandler;
 	EQLIB_VAR DWORD __DoesFileExist;
 	EQLIB_VAR DWORD __EQGetTime;
@@ -1498,7 +1499,14 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXStr__operator_plus_equal1;
 	EQLIB_VAR DWORD CXStr__SetString;
 	EQLIB_VAR DWORD CXStr__operator_char_p;
-	
+	EQLIB_VAR DWORD CXStr__GetChar;
+	EQLIB_VAR DWORD CXStr__Delete;
+	EQLIB_VAR DWORD CXStr__GetUnicode;
+	EQLIB_VAR DWORD CXStr__GetLength;
+	EQLIB_VAR DWORD CXStr__Mid;
+	EQLIB_VAR DWORD CXStr__Insert;
+	EQLIB_VAR DWORD CXStr__FindNext;
+
 	EQLIB_VAR DWORD CXWnd__BringToTop;
 	EQLIB_VAR DWORD CXWnd__Center;
 	EQLIB_VAR DWORD CXWnd__ClrFocus;

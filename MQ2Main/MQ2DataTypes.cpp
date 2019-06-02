@@ -2993,6 +2993,52 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return true;
+	case BlockedPetBuff:
+		Dest.Type = pSpellType;
+		if (!ISINDEX())
+			return false;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			if (ISNUMBER())
+			{
+				int nBuff = GETNUMBER() - 1;
+				if (nBuff < 0)
+					nBuff = 0;
+				if(nBuff > 0x28)
+					return false;
+				if (int spellid = pCharnew->BlockedPetSpell[nBuff])
+				{
+					if (PSPELL pSpell = GetSpellByID(spellid))
+					{
+						Dest.Ptr = pSpell;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	case BlockedBuff:
+		Dest.Type = pSpellType;
+		if (!ISINDEX())
+			return false;
+		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+			if (ISNUMBER())
+			{
+				int nBuff = GETNUMBER() - 1;
+				if (nBuff < 0)
+					nBuff = 0;
+				if(nBuff > 0x28)
+					return false;
+				if (int spellid = pCharnew->BlockedSpell[nBuff])
+				{
+					if (PSPELL pSpell = GetSpellByID(spellid))
+					{
+						Dest.Ptr = pSpell;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	case Buff:
 		Dest.Type = pBuffType;
 		if (!ISINDEX())
@@ -6370,7 +6416,8 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return true;
 	}
-	case NewStacks:
+	case Stacks:
+	case NewStacks://stacks on self
 	{
 		PSPELL thespell = pSpell;
 		Dest.DWord = 0;
@@ -6382,16 +6429,17 @@ bool MQ2SpellType::GETMEMBER()
 			{
 				int SlotIndex = -1;
 				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, NULL, 0, true);
-				if (ret) {
-					Dest.DWord = 1;
-				}
+				if (!ret || SlotIndex==-1)
+					Dest.DWord = false;
+				else
+					Dest.DWord = true;
 			}
 		}
 		return true;
 	}
-	case NewStacksWith:
+	case WillStack:
+	case NewStacksWith://if a spell stack with another spell
 	{
-		//work in progress dont expect this to work yet. -eqmule
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
@@ -6410,13 +6458,25 @@ bool MQ2SpellType::GETMEMBER()
 			if (CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
 			{
 				EQ_Affect eff = { 0 };
-				eff.ID = thespell->ID;
-				Dest.DWord = !pCZC->IsStackBlocked((EQ_Spell*)tmpSpell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
+				eff.ID = tmpSpell->ID;
+				eff.CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
+				eff.Type = 2;
+				eff.BaseDmgMod = 1.0;
+				int SlotIndex = -1;
+
+				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, &eff, 1, false);
+				//call below is correct but it always seem to return false so i don't
+				//think its useful to clientside... also call above calls it...
+				//Dest.DWord = pCZC->IsStackBlocked((EQ_Spell*)thespell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
+				if (!ret || SlotIndex==-1)
+					Dest.DWord = false;
+				else
+					Dest.DWord = true;
 			}
 		}
 		return true;
 	}
-	case Stacks:
+	/*case Stacks:
 	{
 		unsigned long buffduration;
 		unsigned long duration = 99999;
@@ -6461,6 +6521,55 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		return true;
+	}*/
+	case StacksSpawn:
+	{
+		Dest.DWord = false;
+		Dest.Type = pBoolType;
+
+		if (!ISINDEX())
+			return true;
+		if (CachedBuffsMap.empty())
+			return true;
+		PSPAWNINFO pSpawn = 0;
+		if (ISNUMBER())
+		{
+			pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(GETFIRST()));
+		}
+		else {
+			pSpawn = (PSPAWNINFO)GetSpawnByName(GETFIRST());
+		}
+		if (pSpawn)
+		{
+			if(CharacterZoneClient* pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
+			{
+				EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+				int j = 0;
+
+				std::map<int, std::map<int, cTargetBuff>>::iterator i = CachedBuffsMap.find(pSpawn->SpawnID);
+				if (i != CachedBuffsMap.end())
+				{
+					for (std::map<int, cTargetBuff>::iterator k = i->second.begin(); k != i->second.end(); k++)
+					{
+						if (PSPELL pBuff = GetSpellByID(k->first)) {
+							pAffects[j].Type = 2;
+							pAffects[j].ID = pBuff->ID;
+							pAffects[j].Activatable = 0;// pBuff->Activated;
+							pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
+							pAffects[j].BaseDmgMod = 1.0;
+							j++;
+						}
+					}
+				}
+				int SlotIndex = -1;
+				EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
+				if (!ret || SlotIndex == -1)
+					Dest.DWord = false;
+				else
+					Dest.DWord = true;
+			}
+		}
+		return true;
 	}
 	case StacksTarget:
 	{
@@ -6470,21 +6579,21 @@ bool MQ2SpellType::GETMEMBER()
 		{
 			if(CharacterZoneClient* pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
 			{
-				if (pTarget) {
+				if (pTarget)
+				{
 					if (PCHARINFO pMe = GetCharInfo())
 					{
 						EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
-						int buffID = 0;
 						int j = 0;
-						for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
-							if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
-								if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
-									if (pBuff->SpellType) {
-										pAffects[j].Type = pBuff->SpellType;
-									}
-									else {
-										pAffects[j].Type = 1;
-									}
+
+						std::map<int, std::map<int, cTargetBuff>>::iterator i = CachedBuffsMap.find(pTarget->Data.SpawnID);
+						if (i != CachedBuffsMap.end())
+						{
+							//lets grab it from the cache so we get songs as well...
+							for (std::map<int, cTargetBuff>::iterator k = i->second.begin(); k != i->second.end(); k++)
+							{
+								if (PSPELL pBuff = GetSpellByID(k->first)) {
+									pAffects[j].Type = 2;
 									pAffects[j].ID = pBuff->ID;
 									pAffects[j].Activatable = 0;// pBuff->Activated;
 #if !defined(ROF2EMU) && !defined(UFEMU)
@@ -6498,7 +6607,34 @@ bool MQ2SpellType::GETMEMBER()
 								}
 							}
 						}
-						Dest.DWord = !pCZC->IsStackBlocked((EQ_Spell*)pSpell, (PSPAWNINFO)pLocalPlayer, pAffects, j);
+						else
+						{
+
+							int buffID = 0;
+							for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
+								if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
+									if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+										pAffects[j].Type = 2;
+										pAffects[j].ID = pBuff->ID;
+										pAffects[j].Activatable = 0;// pBuff->Activated;
+#if !defined(ROF2EMU) && !defined(UFEMU)
+										pAffects[j].CasterGuid = pMe->Guid;
+#else
+										pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
+#endif
+										pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
+										pAffects[j].BaseDmgMod = 1.0;
+										j++;
+									}
+								}
+							}
+						}
+						int SlotIndex = -1;
+						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
+						if (!ret || SlotIndex == -1)
+							Dest.DWord = false;
+						else
+							Dest.DWord = true;
 					}
 				}
 			}
@@ -6546,24 +6682,6 @@ bool MQ2SpellType::GETMEMBER()
 		if (!tmpSpell)
 			return true;
 		Dest.DWord = BuffStackTest(pSpell, tmpSpell, TRUE);
-		return true;
-	}
-	case WillStack:
-	{
-		Dest.DWord = false;
-		Dest.Type = pBoolType;
-
-		if (!ISINDEX())
-			return true;
-		PSPELL tmpSpell = NULL;
-		if (ISNUMBER())
-			tmpSpell = GetSpellByID(GETNUMBER());
-		else
-			tmpSpell = GetSpellByName(GETFIRST());
-		if (!tmpSpell)
-			return true;
-
-		Dest.DWord = BuffStackTest(pSpell, tmpSpell);
 		return true;
 	}
 	case MyRange:
@@ -7010,10 +7128,14 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pSpellType;
 		PSPELL pmyspell = pSpell;
 		#if !defined(UFEMU)
-		bool spafound = false;
+		int spafound = 0;
 		if(IsSPAEffect(pSpell,SPA_TRIGGER_BEST_SPELL_GROUP))
 		{
-			spafound = true;
+			spafound = SPA_TRIGGER_BEST_SPELL_GROUP;
+		}
+		else if(IsSPAEffect(pSpell,374))
+		{
+			spafound = 374;
 		}
 		if (pSpellMgr && spafound)
 		{
@@ -7031,8 +7153,12 @@ bool MQ2SpellType::GETMEMBER()
 			}
 			int numeffects = GetSpellNumEffects(pSpell);
 			if (numeffects > index) {
+				PSPELL pTrigger = 0;
 				if (int groupid = GetSpellBase2(pmyspell, index)) {
-					PSPELL pTrigger = (PSPELL)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
+					if (spafound == SPA_TRIGGER_BEST_SPELL_GROUP)
+						pTrigger = (PSPELL)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
+					else if (spafound == 374)
+						pTrigger = (PSPELL)pSpellMgr->GetSpellByID(groupid);
 					Dest.Ptr = pTrigger;
 					return true;
 				}

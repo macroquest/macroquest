@@ -4430,9 +4430,12 @@ typedef struct _CMDLIST {
 } CMDLIST, *PCMDLIST;
 
 typedef struct _EQSOCIAL {
-/*0x0000*/   CHAR   Name[0x10];
-/*0x0010*/   CHAR   Line[0x5][0x100];
-/*0x0510*/   BYTE   Color; 
+/*0x0000*/	CHAR	Name[0x10];
+/*0x0010*/	CHAR	Line[0x5][0x100];
+/*0x0510*/	BYTE	Color;
+/*0x0514*/	UINT	TimerBegin;
+/*0x0518*/	UINT	TimerDuration;
+/*0x051C*/
 } EQSOCIAL, *PEQSOCIAL;
 
 typedef struct _EQFRIENDSLIST {

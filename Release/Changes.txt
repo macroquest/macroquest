@@ -1,3 +1,12 @@
+Jun 01 2019 by EqMule
+- Fixed Events for text that contain 'x12' tags
+- Added Me.BlockedBuff and Me.BlockedPetBuff both return a pSpellType idea cred: chatwiththisname
+- Usage: /echo ${Me.BlockedBuff[x].ID} where x is 1-40
+-
+May 30 2019 by EqMule
+- Fixed /dosocial
+- Some other stuff I'll documment later.
+
 May 24 2019 by EqMule
 - BuffsPopulated returns 1 for a empty buff list and a number above 1 if there was some buffs received.
   So if you do /echo ${Target.BuffsPopulated} and it returns 1 it means the target does not have any actual buffs, but the list was received (and it was empty).
