@@ -18,9 +18,6 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{f444558d-0978-4637-9574-41e30a49f137}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Beta">
-      <UniqueIdentifier>{39520b44-137e-44c2-b71e-506042358ab9}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EQClasses.cpp">
@@ -151,35 +148,53 @@
     <ClInclude Include="MQ2Globals-private_default.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EQData.h">
-      <Filter>Header Files\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="eqgame.h">
-      <Filter>Header Files\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="EQUIStructs.h">
-      <Filter>Header Files\Live</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EQData(Test).h">
+    <ClInclude Include="live\eq.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="live\EQData.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="live\eqgame.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="live\EQUIStructs.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="test\eqgame(Test).h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
-    <ClInclude Include="eqgame(Test).h">
+    <ClInclude Include="test\EQUIStructs(Test).h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
-    <ClInclude Include="EQUIStructs(Test).h">
+    <ClInclude Include="test\eq.h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
-    <ClInclude Include="EqData(beta).h">
-      <Filter>Header Files\Beta</Filter>
+    <ClInclude Include="test\EQData(Test).h">
+      <Filter>Header Files\Test</Filter>
     </ClInclude>
-    <ClInclude Include="eqgame(beta).h">
-      <Filter>Header Files\Beta</Filter>
+    <ClInclude Include="test\itembase_members.h">
+      <Filter>Header Files\Test</Filter>
     </ClInclude>
-    <ClInclude Include="EQUIStructs(beta).h">
-      <Filter>Header Files\Beta</Filter>
+    <ClInclude Include="test\playerzoneclient_members.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="test\cxwnd_members.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="live\cxwnd_members.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="live\itembase_members.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="live\playerzoneclient_members.h">
+      <Filter>Header Files\Live</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
