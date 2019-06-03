@@ -92,33 +92,26 @@ GNU General Public License for more details.
 #endif
 
 extern CRITICAL_SECTION gPluginCS;
+
+//
+// EQ Version selection
+//
+
 #if defined(LIVE) || defined(TEST) || defined(EQBETA) || defined(ROF2EMU) || defined(UFEMU)
-//do nothing because the user has set one of these as a preprocessor argument instead...
-//we default to LIVE though...
+// If one of these macros was manually specified, respect it
 #else
-//define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
+
+// the currently active configuration. Can be one of LIVE or TEST. To build LIVE, eqgame.h
+// and other headers must be provided or it will build TEST instead
 #define LIVE
+
+// Validate that LIVE is available to build
+#if defined(LIVE) && !__has_include("live/eq.h")
+#undef LIVE
+#define TEST
 #endif
-#if defined(LIVE)
-#include "eqgame.h"
-//#define NEWCHARINFO
-//#define KNIGHTLYPARSE
-#elif defined(TEST)
-#include "eqgame(Test).h"
-//#define NEWCHARINFO
-//#define KNIGHTLYPARSE
-#elif defined(EQBETA)
-#include "eqgame(beta).h"
-//#define NEWCHARINFO
-//#define KNIGHTLYPARSE
-#elif defined(ROF2EMU)
-#include "eqgame(emu).h"
-//#define NEWCHARINFO
-//#define KNIGHTLYPARSE
-#elif defined(UFEMU)
-#include "eqgame(uf).h"
-//#define KNIGHTLYPARSE
 #endif
+
 #ifndef ISXEQ
 #define RETURN(x) return;
 #else
@@ -255,6 +248,7 @@ typedef double DOUBLE;
 //#ifndef DEBUG_TRY
 //#define DEBUG_TRY
 //#endif
+
 #ifdef DEBUG_TRY
 #define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
 #else
@@ -270,21 +264,11 @@ typedef double DOUBLE;
 
 #define IsNaN(x) (x != x)
 
+// Apply the configuration
 #if defined(LIVE)
-#include "EQData.h"
-#include "EQUIStructs.h"
+#include "live/eq.h"
 #elif defined(TEST)
-#include "EQData(Test).h"
-#include "EQUIStructs(Test).h"
-#elif defined(EQBETA)
-#include "EQData(beta).h"
-#include "EQUIStructs(beta).h"
-#elif defined(ROF2EMU)
-#include "EQData(emu).h"
-#include "EQUIStructs(emu).h"
-#elif defined(UFEMU)
-#include "EQData(uf).h"
-#include "EQUIStructs(uf).h"
+#include "test/eq.h"
 #endif
 
 //class CXMLData *GetXMLData(class CXWnd *pWnd)
@@ -294,8 +278,6 @@ typedef double DOUBLE;
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
-
-
 
 /* BENCHMARKING */
 #ifdef DISABLE_BENCHMARKS

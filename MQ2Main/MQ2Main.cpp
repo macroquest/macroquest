@@ -26,11 +26,13 @@ GNU General Public License for more details.
 #ifdef ISXEQ
 CRITICAL_SECTION gPluginCS = { 0 };
 #endif
-#ifdef EQLIB_EXPORTS
-#pragma message("EQLIB_EXPORTS")
-#else
-#pragma message("EQLIB_IMPORTS")
+
+#if defined(LIVE)
+#pragma message("Building MQ2 for LIVE")
+#elif defined(TEST)
+#pragma message("Building MQ2 for TEST")
 #endif
+
 HANDLE ghMemberMapLock = 0;
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
