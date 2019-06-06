@@ -1682,6 +1682,7 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__ForgetMemorizedSpell);
 	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__IsBardSongPlaying);
+	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__RefreshSpellGemButtons);
 	
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CharacterZoneClient);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__HasSkill);

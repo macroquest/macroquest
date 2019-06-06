@@ -1,3 +1,6 @@
+Jun 05 2019 by EqMule
+- Fixed a crash in the TEST build.
+
 Jun 01 2019 by EqMule
 - Fixed Events for text that contain 'x12' tags
 - Added Me.BlockedBuff and Me.BlockedPetBuff both return a pSpellType idea cred: chatwiththisname

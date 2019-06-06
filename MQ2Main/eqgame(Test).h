@@ -359,8 +359,8 @@ GNU General Public License for more details.
 #define __CastRay2_x                                               0x59BFF0
 #define __ConvertItemTags_x                                        0x5B7800
 #define __CrashHandler_x                                           0x850F30
-#define __CleanItemTags_x                                          0x477930
-#define __DoesFileExist_x                                          0x4779F0
+#define __CleanItemTags_x                                          0x4779F0
+#define __DoesFileExist_x                                          0x8F37C0
 #define __EQGetTime_x                                              0x8F0220
 #define __ExecuteCmd_x                                             0x5948A0
 #define __FixHeading_x                                             0x9800B0
@@ -1088,6 +1088,7 @@ GNU General Public License for more details.
 //CCastSpellWnd
 #define CCastSpellWnd__ForgetMemorizedSpell_x                      0x6EC900
 #define CCastSpellWnd__IsBardSongPlaying_x                         0x6ED130
+#define CCastSpellWnd__RefreshSpellGemButtons_x                    0x6ED1E0 
 
 //messages
 #define msg_spell_worn_off_x                                       0x58B120

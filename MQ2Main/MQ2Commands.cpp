@@ -2856,6 +2856,15 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 				DidTarget = TRUE;
 			}
 		}
+		else if (!strcmp(szArg, "buffs")) {
+			if(PCHARINFO2 pinfo2 =  (PCHARINFO2)GetCharInfo2())
+			{
+				for (int i = 0; i < NUM_LONG_BUFFS; i++)
+				{
+					pinfo2->Buff[i].SpellID = 0;
+				}
+			}
+		}
 		else if (!strcmp(szArg, "mycorpse")) {
 			if (((PCHARINFO)pCharData)->pSpawn) {
 				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((PCHARINFO)pCharData)->pSpawn->Name);

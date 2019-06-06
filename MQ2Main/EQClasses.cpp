@@ -704,7 +704,7 @@ FUNCTION_AT_ADDRESS(void  CCastSpellWnd::ForgetMemorizedSpell(int),CCastSpellWnd
 FUNCTION_AT_ADDRESS(bool  CCastSpellWnd::IsBardSongPlaying(void),CCastSpellWnd__IsBardSongPlaying);
 #endif
 #ifdef CCastSpellWnd__RefreshSpellGemButtons_x
-FUNCTION_AT_ADDRESS(void  CCastSpellWnd::RefreshSpellGemButtons(void),CCastSpellWnd__RefreshSpellGemButtons);
+FUNCTION_AT_ADDRESS(void CCastSpellWnd::RefreshSpellGemButtons(),CCastSpellWnd__RefreshSpellGemButtons);
 #endif
 #ifdef CCastSpellWnd__UpdateSpellGems_x
 FUNCTION_AT_ADDRESS(void  CCastSpellWnd::UpdateSpellGems(int),CCastSpellWnd__UpdateSpellGems);

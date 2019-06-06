@@ -1158,6 +1158,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD CCastSpellWnd__ForgetMemorizedSpell;
 	EQLIB_VAR DWORD CCastSpellWnd__IsBardSongPlaying;
+	EQLIB_VAR DWORD CCastSpellWnd__RefreshSpellGemButtons;
 	
 	EQLIB_VAR DWORD CChatManager__GetRGBAFromIndex;
 	EQLIB_VAR DWORD CChatManager__InitContextMenu;
