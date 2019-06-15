@@ -1682,6 +1682,7 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__ForgetMemorizedSpell);
 	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__IsBardSongPlaying);
+	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__RefreshSpellGemButtons);
 	
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CharacterZoneClient);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__HasSkill);
@@ -1840,8 +1841,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex1);
+	#ifdef CharacterBase__GetEffectId_x
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetEffectId);
-	
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 	INITIALIZE_EQGAME_OFFSET(CHotButton__SetButtonSize);
 	
