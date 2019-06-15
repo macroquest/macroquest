@@ -1841,8 +1841,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex1);
+	#ifdef CharacterBase__GetEffectId_x
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetEffectId);
-	
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 	INITIALIZE_EQGAME_OFFSET(CHotButton__SetButtonSize);
 	
