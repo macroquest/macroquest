@@ -1,3 +1,0 @@
-[submodule "MQ2Main/live"]
-	path = MQ2Main/live
-	url = git@gitlab.com:macroquest/next/offsets-live.git
