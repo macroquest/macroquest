@@ -1586,23 +1586,23 @@ enum eAdvLootState
 //size is 0x88 see 0x48AB44 in Dec 10 2018 live -eqmule
 typedef struct _LOOTITEM
 {
-/*0x00*/ UINT	ItemID;
-/*0x04*/ CHAR	Name[0x40];
-/*0x44*/ int	IconID;
-/*0x48*/ bool   bStackable;
-/*0x4c*/ DWORD  MaxStack;
-/*0x50*/ BYTE   NoDrop;
-/*0x51*/ BYTE   Unknown0x51[0x3];
-/*0x54*/ DWORD  ComboID;
-/*0x58*/ DWORD  LootID;
-/*0x5c*/ eAdvLootState State;
-/*0x60*/ BYTE	bAutoRoll;
-/*0x61*/ BYTE	ActivelyManaged; // User has the manage Window up
-/*0x62*/ BYTE	ContextMenu;     // item has a context menu
-/*0x63*/ BYTE	AskRandomMode; //item is in AskRandom mode
-/*0x64*/ BYTE   CLootInProgress;
-/*0x65*/ BYTE   PLootInProgress;
-/*0x68*/ EQArray2<LOOTDETAILS>LootDetails;
+/*0x00*/ __int64	ItemID;
+/*0x08*/ CHAR	Name[0x40];
+/*0x48*/ int	IconID;
+/*0x4C*/ bool   bStackable;
+/*0x50*/ DWORD  MaxStack;
+/*0x54*/ BYTE   NoDrop;
+/*0x55*/ BYTE   Unknown0x55[0x3];
+/*0x58*/ DWORD  ComboID;
+/*0x5c*/ DWORD  LootID;
+/*0x60*/ eAdvLootState State;
+/*0x64*/ BYTE	bAutoRoll;
+/*0x65*/ BYTE	ActivelyManaged; // User has the manage Window up
+/*0x66*/ BYTE	ContextMenu;     // item has a context menu
+/*0x67*/ BYTE	AskRandomMode; //item is in AskRandom mode
+/*0x68*/ BYTE   CLootInProgress;
+/*0x69*/ BYTE   PLootInProgress;
+/*0x6c*/ EQArray<LOOTDETAILS>LootDetails;
 /*0x7c*/ DWORD	AskTimer;
 /*0x80*/ BYTE	AutoRoll;
 /*0x81*/ BYTE	FG;
