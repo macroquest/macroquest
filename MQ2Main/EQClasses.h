@@ -8528,7 +8528,9 @@ public:
 /*0x013c*/ FLOAT	Height;
 /*0x0140*/ FLOAT	Width;
 /*0x0144*/ FLOAT	Length;
-/*0x0148*/ DWORD	SpawnID;
+/*0x0148*/ int		Unknown0x0148;
+/*0x014C*/ int		Unknown0x014C;
+/*0x0150*/ DWORD	SpawnID;
 /*0x014c*/ DWORD	PlayerState;         /* 0=Idle 1=Open 2=WeaponSheathed 4=Aggressive 8=ForcedAggressive 0x10=InstrumentEquipped 0x20=Stunned 0x40=PrimaryWeaponEquipped 0x80=SecondaryWeaponEquipped */
 /*0x0150*/ struct _SPAWNINFO*	Vehicle;    /* NULL until you collide with a vehicle (boat,airship etc) */
 /*0x0154*/ struct _SPAWNINFO*	Mount;      /* NULL if no mount present */

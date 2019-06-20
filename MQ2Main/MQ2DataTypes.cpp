@@ -978,6 +978,14 @@ bool MQ2MacroType::GETMEMBER()
 			return true;
 		}
 		break;
+	case CurSub:
+        if (gMacroBlock) {
+            GetSubFromLine(gMacroBlock->Line[gMacroBlock->CurrIndex].LineNumber, DataTypeTemp, MAX_STRING);
+            Dest.Ptr = DataTypeTemp;
+            Dest.Type = pStringType;
+            return true;
+        }
+        return false;
 	case CurCommand:
 		Dest.Type = pStringType;
 		if (gMacroBlock) {
@@ -6419,7 +6427,38 @@ bool MQ2SpellType::GETMEMBER()
 	case Stacks:
 	case NewStacks://stacks on self
 	{
+		unsigned long buffduration;
+		unsigned long duration = 99999;
+		if (ISNUMBER())
+			duration = GETNUMBER();
 		PSPELL thespell = pSpell;
+		Dest.DWord = false;
+		Dest.Type = pBoolType;
+		if (pLocalPlayer)
+		{
+			CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter();
+			if (pCZC)
+			{
+				int SlotIndex = -1;
+				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, NULL, 0, true);
+				if (!ret || SlotIndex==-1)
+					Dest.DWord = false;
+				else
+				{
+					Dest.DWord = true;
+					buffduration = ret->DurationTick;
+					if (GetSpellDuration(thespell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
+						buffduration = 99999 + 1;
+					}
+					//WriteChatf("Spell.NewStacks(%d:%d,%d)",thespell->ID,duration,buffduration);
+					if (buffduration > duration)
+						Dest.DWord = false;
+				}
+			}
+		}
+		return true;
+
+		/*PSPELL thespell = pSpell;
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (pLocalPlayer)
@@ -6435,7 +6474,7 @@ bool MQ2SpellType::GETMEMBER()
 					Dest.DWord = true;
 			}
 		}
-		return true;
+		return true;*/
 	}
 	case WillStack:
 	case NewStacksWith://if a spell stack with another spell

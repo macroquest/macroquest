@@ -3335,7 +3335,8 @@ public:
 		CurCommand = 9,
 		StackSize = 10,
 		IsTLO = 11,
-		IsOuterVariable =12,
+		IsOuterVariable = 12,
+		CurSub = 13,
 	};
 	enum MacroMethods
 	{
@@ -3356,6 +3357,7 @@ public:
 		TypeMember(StackSize);
 		TypeMember(IsTLO);
 		TypeMember(IsOuterVariable);
+		TypeMember(CurSub);
 		
 		TypeMethod(Undeclared);
 	}

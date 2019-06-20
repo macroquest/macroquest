@@ -372,6 +372,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Ini", dataIni);
 	AddMQ2Data("Heading", dataHeading);
 	AddMQ2Data("Defined", dataDefined);
+	AddMQ2Data("SubDefined", dataSubDefined);
 	AddMQ2Data("LastSpawn", dataLastSpawn);
 	AddMQ2Data("FindItem", dataFindItem);
 	AddMQ2Data("FindItemBank", dataFindItemBank);

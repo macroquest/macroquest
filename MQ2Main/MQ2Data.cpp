@@ -1105,6 +1105,14 @@ TLO(dataDefined)
 	Ret.Type = pBoolType;
 	return true;
 }
+TLO(dataSubDefined)
+{
+    if (!ISINDEX())
+        return false;
+    Ret.DWord = gMacroBlock && (gMacroSubLookupMap.find(szIndex) != gMacroSubLookupMap.end());
+    Ret.Type = pBoolType;
+    return true;
+}
 #endif
 
 TLO(dataSelectedItem)

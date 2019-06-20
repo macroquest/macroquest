@@ -2483,8 +2483,8 @@ typedef struct _CHARINFONEW {
 /*0x15bc*/ bool	        bGoHomeOverride;
 /*0x15bd*/ bool	        bSomethingHome;
 /*0x15c0*/ DWORD	    LoginTime;//next must start on 8 align
-/*0x15c8*/ __int64      GuildID;//GuildID_0
-/*0x15d0*/ __int64		FellowshipID;
+/*0x15c8*/ EqGuid       GuildID;//GuildID_0
+/*0x15d0*/ EqGuid		FellowshipID;
 /*0x15d8*/ PFELLOWSHIPINFO  pFellowship;
 /*0x15dc*/ bool			GuildShowSprite;
 /*0x15e0*/ UINT			CharCreationTime;
@@ -2558,8 +2558,8 @@ typedef struct _CHARINFONEW {
 /*0x1C60*/ GroupMemberStats		GroupStats;//size 0x150 i think
 /*0x1Db0*/ BYTE         Unknown0x1Db0[0x9c];
 /*0x1e4c*/ bool			bIsLfg;
-/*0x1e50*/ __int64		RaidId;//could be int
-/*0x1e58*/ __int64		GroupID;
+/*0x1e50*/ EqGuid		RaidId;//could be int
+/*0x1e58*/ EqGuid		GroupID;
 /*0x1e60*/ __int64      Exp;//confirmed jan 08 2017 test
 /*0x1e68*/ int	        DaysEntitled;
 /*0x1e6c*/ int	        SpentVeteranRewards;
