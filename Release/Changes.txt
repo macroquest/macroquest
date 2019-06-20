@@ -1,3 +1,8 @@
+Jun 20 2019 by EqMule
+- Fixed Me.PctExp and Me.PctAAExp
+- Fixed /advloot
+- Fixed a mq2ic crash. cred: psxoxo
+-
 Jun 19 2019 by EqMule
 - Updated for LIVE
 - Added ${Macro.CurSub} returns the name of the current Sub being executed. -cred alynel

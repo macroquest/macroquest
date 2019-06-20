@@ -2848,8 +2848,8 @@ bool MQ2CachedBuffType::GETMEMBER()
 }
 bool MQ2CharacterType::GETMEMBER()
 {
-#define pChar ((PCHARINFO)VarPtr.Ptr)
-	if (!VarPtr.Ptr)
+	PCHARINFO pChar = ((PCHARINFO)VarPtr.Ptr);
+	if (!pChar)
 		return false;
 	//do the methods first cause there are so few of them
 	PMQ2TYPEMEMBER pMethod = MQ2CharacterType::FindMethod(Member);
@@ -2894,7 +2894,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pInt64Type;
 		return true;
 	case PctExp:
-		Dest.Float = (float)pChar->Exp / 3.30f;
+		Dest.Float = (float)pChar->Exp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 	case PctExpToAA:
@@ -2902,7 +2902,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case PctAAExp:
-		Dest.Float = (float)pChar->AAExp / 3.30f;
+		Dest.Float = (float)pChar->AAExp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 	case Vitality:
@@ -6166,7 +6166,7 @@ bool MQ2CharacterType::GETMEMBER()
 	//end of MQ2CharacterType
 	}
 	return false;
-#undef pChar
+//#undef pChar
 }
 
 bool MQ2SpellType::GETMEMBER()
@@ -15067,14 +15067,13 @@ bool MQ2AdvLootItemType::GETMEMBER()
 		}
 		return false;
 	case ID:
-		Dest.DWord = pItem->ItemID;
-		Dest.Type = pIntType;
+		Dest.Int64 = pItem->ItemID;
+		Dest.Type = pInt64Type;
 		return true;
 	case StackSize:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
-		EQArray2<LOOTDETAILS>ploot;
-		ploot = pItem->LootDetails;
+		EQArray<LOOTDETAILS>ploot = pItem->LootDetails;
 		if (pItem && pItem->LootDetails.m_length && pItem->LootDetails.m_array[0].StackCount>=1) {
 			Dest.DWord = pItem->LootDetails.m_array[0].StackCount;
 		}
