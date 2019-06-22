@@ -727,7 +727,12 @@ VOID CheckChatForEvent(PCHAR szMsg)
 		if (strchr(szClean, '\x12'))
 		{
 			CXStr out;
-			if (CXStr *str = CleanItemTags(&out, szClean,false)) {
+#if defined(ROF2EMU) || defined(UFEMU)
+			if (CXStr *str = CleanItemTags(&out, szClean))
+#else
+			if (CXStr *str = CleanItemTags(&out, szClean,false))
+#endif
+			{
 				GetCXStr(str->Ptr, szClean, len + 64);
 			}
 		}

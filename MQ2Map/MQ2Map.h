@@ -43,18 +43,42 @@ using namespace std;
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 
+typedef struct _MAPSPAWN
+{
+	PSPAWNINFO pSpawn = 0;
+	eSpawnType SpawnType;
+
+	PMAPLABEL pMapLabel;
+	PMAPLINE pVector;
+	BOOL Highlight;
+	BOOL Explicit;
+	DWORD Marker;
+	DWORD MarkerSize;
+	PMAPLINE MarkerLines[10];
+
+	struct _MAPSPAWN *pLast;
+	struct _MAPSPAWN *pNext;
+} MAPSPAWN, *PMAPSPAWN;
 
 typedef struct _MAPLOC {
 	bool isCreatedFromDefaultLoc;
+	int index;
+	PMAPSPAWN mapSpawn;
 	int yloc;
 	int xloc;
-	string tag; // "yloc,xloc"
+	int zloc;
+	string label;
+	string tag; // "yloc,xloc,zloc"
 	int lineSize;
 	int width;
 	int r_color;
 	int g_color;
 	int b_color;
-	PMAPLINE markerLines[100]; // lineMax = 4*maxWidth
+	int radius;
+	int rr_color; // radius colors..
+	int rg_color;
+	int rb_color;
+	PMAPLINE markerLines[150]; // lineMax = 4*maxWidth + 360/CASTRADIUS_ANGLESIZE
 } MAPLOC, *PMAPLOC;
 
 typedef struct _MAPFILTER {
@@ -108,10 +132,12 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapActiveLayerCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine);
 PCHAR FormatMarker(PCHAR szLine, PCHAR szDest, SIZE_T BufferSize);
 DWORD TypeToMapfilter(PSPAWNINFO pChar);
+VOID MapRemoveLocation(PSPAWNINFO pChar, PCHAR szLine);
+bool is_float(const string &in);
+std::tuple<float, float, float> getTargetLoc();
 
 
 /* API */
@@ -125,8 +151,13 @@ VOID MapUpdate();
 VOID MapAttach();
 VOID MapDetach();
 VOID UpdateDefaultMapLoc();
-VOID ClearMapLocLines(PMAPLOC mapLoc);
-VOID UpdateMapLocLines(PMAPLOC mapLoc);
+VOID MapLocSyntaxOutput();
+VOID MapRemoveLocation(PSPAWNINFO pChar, PCHAR szLine);
+VOID DeleteMapLoc(PMAPLOC mapLoc);
+VOID UpdateMapLoc(PMAPLOC mapLoc);
+VOID AddMapLocToList(PMAPLOC loc);
+VOID UpdateMapLocIndexes();
+VOID AddMapSpawnForMapLoc(PMAPLOC mapLoc);
 
 bool MapSelectTarget();
 void MapClickLocation(float world_point[2], std::vector<float> z_hits);

@@ -56,6 +56,11 @@ OurDetours *FindDetour(DWORD address)
 
 BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count, PCHAR Name)
 {
+	if (address == 0)
+	{
+		MessageBox(NULL, "You are trying to detour a NULL address, please chack your code.", Name, MB_SYSTEMMODAL | MB_OK);
+		return false;
+	}
 	CAutoLock Lock(&gDetourCS);
 	CHAR szName[MAX_STRING] = { 0 };
 	if (Name && Name[0] != '\0') {

@@ -1,6 +1,9 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 #include <sstream>
+#include <algorithm>
+#include <iomanip>
+#include <tuple>
 
 #ifndef ISXEQ
 // ***************************************************************************
@@ -210,88 +213,37 @@ VOID MapActiveLayerCmd(PSPAWNINFO pChar, PCHAR szLine)
 	MapGenerate();
 }
 
-VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
-{
-	if (szLine == 0 || szLine[0] == 0)
-	{
-		for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
-		{
-			PMAPLOC loc = it->second;
-			ClearMapLocLines(loc);
-			delete loc;
-			LocationMap.erase(it);
-		}
-
-		LocationMap.clear();
-		WriteChatColor("MapLocs cleared", USERCOLOR_DEFAULT);
-		return;
-	}
-
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	PCHAR usage = "Usage: /clearloc [yloc xloc]";
-	stringstream ss(szLine);
-	CHAR arg[MAX_STRING];
-	CHAR yloc[MAX_STRING] = { "not set" };
-	CHAR xloc[MAX_STRING] = { "not set" };
-	CHAR tag[MAX_STRING] = { 0 };
-
-	ss >> arg;
-
-	if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
-		SyntaxError(usage);
-		return;
-	}
-	strcpy_s(yloc, arg);
-	if (ss && !ss.eof())
-	{
-		ss >> arg;
-		if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
-			SyntaxError(usage);
-			return;
-		}
-		strcpy_s(xloc, arg);
-	}
-	else
-	{
-		SyntaxError(usage);
-		return;
-	}
-
-	sprintf_s(tag, "%s,%s", yloc, xloc);
-
-	PMAPLOC loc = LocationMap[tag];
-	if (!loc) {
-		SyntaxError("Could not find MapLoc: %s", tag);
-		return;
-	}
-	ClearMapLocLines(loc);
-	delete loc;
-	LocationMap.erase(tag);
-}
-
 VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
+	string input = string(szLine);
+	input.erase(std::remove(input.begin(), input.end(), ','), input.end());
+
 	CHAR szBuffer[MAX_STRING] = { 0 };
-	PCHAR usage = "Usage: /maploc [[size 10-200] | [width 1-10] | [color r g b] | [yloc xloc]]";
-	bRunNextCommand = TRUE;
-	
+
 	CHAR tag[MAX_STRING] = { 0 };
 	CHAR size[MAX_STRING] = { 0 };
 	CHAR width[MAX_STRING] = { 0 };
 	CHAR red[MAX_STRING] = { 0 };
 	CHAR green[MAX_STRING] = { 0 };
 	CHAR blue[MAX_STRING] = { 0 };
+	CHAR radius[MAX_STRING] = { 0 };
+	CHAR label[MAX_STRING] = { 0 };
+	CHAR radius_red[MAX_STRING] = { 0 };
+	CHAR radius_green[MAX_STRING] = { 0 };
+	CHAR radius_blue[MAX_STRING] = { 0 };
 	CHAR yloc[MAX_STRING] = { "not set" };
 	CHAR xloc[MAX_STRING] = { "not set" };
+	CHAR zloc[MAX_STRING] = { "0" };
 	bool isDefaultLocSettings = true;
+	bool isFirstLoop = true;
 
 	if (szLine == 0 || szLine[0] == 0)
 	{
-		SyntaxError(usage);
+		MapLocSyntaxOutput();
 		return;
 	}
 
-	stringstream ss(szLine);
+	stringstream ss(input);
 	CHAR arg[MAX_STRING];
 
 	// Read arguments into vars
@@ -299,104 +251,231 @@ VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		ss >> arg;
 
+		if (isFirstLoop && !_stricmp(arg, "remove"))
+		{
+			MapRemoveLocation(pChar, szLine);
+			return;
+		}
+
+		isFirstLoop = false;
+
 		if (!_stricmp(arg, "size"))
 		{
 			if (ss && !ss.eof())
-			{ 
+			{
 				ss >> size;
 				isDefaultLocSettings = false;
 			}
 			else
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 
 			if (atoi(size) < 10 || atoi(width) > 200)
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 		}
 		else if (!_stricmp(arg, "width"))
 		{
 			if (ss && !ss.eof())
-			{ 
+			{
 				ss >> width;
 				isDefaultLocSettings = false;
 			}
 			else
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 
 			if (atoi(width) < 1 || atoi(width) > 10)
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 		}
 		else if (!_stricmp(arg, "color"))
 		{
 			if (ss && !ss.eof())
-			{ 
+			{
 				ss >> red;
 				isDefaultLocSettings = false;
 			}
 			else
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 			if (ss && !ss.eof())
-			{ 
+			{
 				ss >> green;
 			}
 			else
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 			if (ss && !ss.eof())
-			{ 
+			{
 				ss >> blue;
 			}
 			else
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 
 			if (atoi(red) < 0 || atoi(red) > 255 || atoi(green) < 0 || atoi(green) > 255 || atoi(blue) < 0 || atoi(blue) > 255)
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
 		}
-		else //assuming yloc xloc
+		else if (!_stricmp(arg, "radius"))
 		{
-			if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
-				SyntaxError(usage);
+			if (ss && !ss.eof())
+			{
+				ss >> radius;
+				isDefaultLocSettings = false;
+			}
+			else
+			{
+				MapLocSyntaxOutput();
+				return;
+			}
+		}
+		else if (!_stricmp(arg, "rcolor"))
+		{
+			if (ss && !ss.eof())
+			{
+				ss >> radius_red;
+				isDefaultLocSettings = false;
+			}
+			else
+			{
+				MapLocSyntaxOutput();
+				return;
+			}
+			if (ss && !ss.eof())
+			{
+				ss >> radius_green;
+			}
+			else
+			{
+				MapLocSyntaxOutput();
+				return;
+			}
+			if (ss && !ss.eof())
+			{
+				ss >> radius_blue;
+			}
+			else
+			{
+				MapLocSyntaxOutput();
+				return;
+			}
+
+			if (atoi(radius_red) < 0 || atoi(radius_red) > 255 || atoi(radius_green) < 0 || atoi(radius_green) > 255 || atoi(radius_blue) < 0 || atoi(radius_blue) > 255)
+			{
+				MapLocSyntaxOutput();
+				return;
+			}
+		}
+		else if (!_stricmp(arg, "target"))
+		{
+			if (!pTarget)
+			{
+				WriteChatColor("You have no target", CONCOLOR_RED);
+				return;
+			}
+
+			auto targetLoc = getTargetLoc();
+
+			stringstream sslocx;
+			sslocx << fixed << setprecision(0) << std::get<0>(targetLoc);
+			sslocx >> xloc;
+
+			stringstream sslocy;
+			sslocy << fixed << setprecision(0) << std::get<1>(targetLoc);
+			sslocy >> yloc;
+
+			stringstream sslocz;
+			sslocz << fixed << setprecision(0) << std::get<2>(targetLoc);
+			sslocz >> zloc;
+
+			// deal only in full int locs, makes it easier to do things like clear locs later
+			std::string delim = ".";
+			std::string temp(yloc);
+			temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+			strcpy_s(yloc, temp.substr(0, temp.find(delim)).c_str());
+			temp = xloc;
+			temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+			strcpy_s(xloc, temp.substr(0, temp.find(delim)).c_str());
+			temp = zloc;
+			temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+			strcpy_s(zloc, temp.substr(0, temp.find(delim)).c_str());
+
+			sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
+		}
+		else if (!_stricmp(arg, "label"))
+		{
+			string labelTemp;
+			getline(ss, labelTemp);
+			sprintf_s(label, "%s", labelTemp.c_str());
+		}
+		else //assuming yloc xloc <zloc>
+		{
+			if (!is_float(std::string(arg))) {
+				MapLocSyntaxOutput();
 				return;
 			}
 			strcpy_s(yloc, arg);
 			if (ss && !ss.eof())
 			{
 				ss >> arg;
-				if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
-					SyntaxError(usage);
+				if (!is_float(std::string(arg))) {
+					MapLocSyntaxOutput();
 					return;
 				}
 				strcpy_s(xloc, arg);
 			}
 			else
 			{
-				SyntaxError(usage);
+				MapLocSyntaxOutput();
 				return;
 			}
+			if (ss && !ss.eof())
+			{
+				ss >> arg;
+				if (is_float(std::string(arg))) {
+					strcpy_s(zloc, arg);
+				}
+				else
+				{
+					// zloc was optional, maybe this is another command. Put back in ss
+					std::stringstream temp;
+					temp << arg;
+					temp << ss.rdbuf();
+					ss = std::move(temp);
+				}
+			}
 
-			sprintf_s(tag, "%s,%s", yloc, xloc);
+			// deal only in full int locs, makes it easier to do things like clear locs later
+			std::string delim = ".";
+			std::string temp(yloc);
+			temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+			strcpy_s(yloc, temp.substr(0, temp.find(delim)).c_str());
+			temp = xloc;
+			temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+			strcpy_s(xloc, temp.substr(0, temp.find(delim)).c_str());
+			temp = zloc;
+			temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+			strcpy_s(zloc, temp.substr(0, temp.find(delim)).c_str());
+
+			sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
 		}
 	}
 
@@ -415,6 +494,10 @@ VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 		loc->r_color = DefaultMapLoc->r_color;
 		loc->g_color = DefaultMapLoc->g_color;
 		loc->b_color = DefaultMapLoc->b_color;
+		loc->radius = DefaultMapLoc->radius;
+		loc->rr_color = DefaultMapLoc->rr_color;
+		loc->rg_color = DefaultMapLoc->rg_color;
+		loc->rb_color = DefaultMapLoc->rb_color;
 	}
 
 	stringstream MapLocVars;
@@ -434,26 +517,51 @@ VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 		loc->g_color = atoi(green);
 		loc->b_color = atoi(blue);
 	}
-	
+	if (radius != 0 && radius[0] != 0)
+	{
+		loc->radius = atoi(radius);
+	}
+	if (radius_red != 0 && radius_red[0] != 0)
+	{
+		loc->rr_color = atoi(radius_red);
+		loc->rg_color = atoi(radius_green);
+		loc->rb_color = atoi(radius_blue);
+	}
+
 	// Are we placing a new MapLoc?
 	if (strcmp(yloc, "not set") != 0)
 	{
-		loc->yloc = atoi(yloc);
-		loc->xloc = atoi(xloc);
+		loc->yloc = static_cast<int>(stof(yloc));
+		loc->xloc = static_cast<int>(stof(xloc));
+		loc->zloc = static_cast<int>(stof(zloc));
 		loc->isCreatedFromDefaultLoc = isDefaultLocSettings;
-		MapLocVars << "y:" << loc->yloc << " x:" << loc->xloc;
+		MapLocVars << "y:" << loc->yloc << " x:" << loc->xloc << " z:" << loc->zloc;
+
+		if (label != 0 && label[0] != 0)
+		{
+			loc->label = label;
+			MapLocVars << ", Label: " << label;
+		}
 
 		LocationMap[tag] = loc;
-		UpdateMapLocLines(loc);
+		AddMapLocToList(loc);
+		UpdateMapLocIndexes();
+		UpdateMapLoc(loc);
 	}
 	else
 	{
+		MapLocVars << "DefaultLoc";
+
 		// If we aren't placing a loc, then the values are updates to the default. Persist them.
 		WritePrivateProfileString("MapLoc", "Size", std::to_string(loc->lineSize).c_str(), INIFileName);
 		WritePrivateProfileString("MapLoc", "Width", std::to_string(loc->width).c_str(), INIFileName);
 		WritePrivateProfileString("MapLoc", "Red", std::to_string(loc->r_color).c_str(), INIFileName);
 		WritePrivateProfileString("MapLoc", "Green", std::to_string(loc->g_color).c_str(), INIFileName);
 		WritePrivateProfileString("MapLoc", "Blue", std::to_string(loc->b_color).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "Radius", std::to_string(loc->radius).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "RadiusGreen", std::to_string(loc->rg_color).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "RadiusRed", std::to_string(loc->rr_color).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "RadiusBlue", std::to_string(loc->rb_color).c_str(), INIFileName);
 		UpdateDefaultMapLoc();
 	}
 	
@@ -461,7 +569,9 @@ VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		MapLocVars << ", Width:" << loc->width
 			<< ", Size:" << loc->lineSize
-			<< ", Color:" << loc->r_color << "," << loc->g_color << "," << loc->b_color;
+			<< ", Color:" << loc->r_color << "," << loc->g_color << "," << loc->b_color
+			<< ", Radius:" << loc->radius
+			<< ", Radius Color:" << loc->rr_color << "," << loc->rg_color << "," << loc->rb_color;
 	}
 	sprintf_s(szBuffer, MapLocVars.str().c_str());
 	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
@@ -475,7 +585,6 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR green[MAX_STRING] = { 0 };
 	CHAR blue[MAX_STRING] = { 0 };
 	stringstream ss(szLine);
-	bRunNextCommand = TRUE;
 
 	if (szLine == 0 || szLine[0] == 0)
 	{

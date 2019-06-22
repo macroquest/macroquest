@@ -1,24 +1,9 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
+#include <sstream>
+#include <tuple>
 
 #define pMap     ((PEQMAPWINDOW)pMapViewWnd)
-typedef struct _MAPSPAWN
-{
-	PSPAWNINFO pSpawn = 0;
-	eSpawnType SpawnType;
-
-	PMAPLABEL pMapLabel;
-	PMAPLINE pVector;
-	BOOL Highlight;
-	BOOL Explicit;
-	DWORD Marker;
-	DWORD MarkerSize;
-	PMAPLINE MarkerLines[10];
-
-	struct _MAPSPAWN *pLast;
-	struct _MAPSPAWN *pNext;
-} MAPSPAWN, *PMAPSPAWN;
-
 #define FAKESPAWNTYPE 0xFF
 
 
@@ -35,6 +20,7 @@ map<unsigned long, PMAPSPAWN> SpawnMap;
 map<unsigned long, PMAPSPAWN> GroundItemMap;
 map<PMAPLABEL, PMAPSPAWN> LabelMap;
 map<string, PMAPLOC> LocationMap;
+list<PMAPLOC> maplocOrder = {};
 PMAPLOC DefaultMapLoc = new MAPLOC;
 
 BOOL Update = false;
@@ -307,13 +293,20 @@ void MapGenerate()
 		AddSpawn(pSpawn);
 		pSpawn = pSpawn->pNext;
 	}
-	if (!IsOptionEnabled(MAPFILTER_Ground))
-		return;
-	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
-	while (pItem)
+
+	if (IsOptionEnabled(MAPFILTER_Ground))
 	{
-		AddGroundItem(pItem);
-		pItem = pItem->pNext;
+		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+		while (pItem)
+		{
+			AddGroundItem(pItem);
+			pItem = pItem->pNext;
+		}
+	}
+
+	for (PMAPLOC mapLoc : maplocOrder)
+	{
+		AddMapSpawnForMapLoc(mapLoc);
 	}
 }
 
@@ -321,7 +314,6 @@ void MapClear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
-
 
 	while (pActiveSpawns)
 	{
@@ -498,7 +490,7 @@ void MapUpdate()
 			Type = GetSpawnType(pMapSpawn->pSpawn);
 			if (Type != pMapSpawn->SpawnType || ((pMapSpawn == pOldLastTarget) && bTargetChanged))
 			{
-				if (!CanDisplaySpawn(Type, pMapSpawn->pSpawn))
+				if (!pMapSpawn->Explicit && !CanDisplaySpawn(Type, pMapSpawn->pSpawn))
 				{
 					PMAPSPAWN pNext = pMapSpawn->pNext;
 					RemoveSpawn(pMapSpawn);
@@ -1527,12 +1519,20 @@ VOID UpdateDefaultMapLoc()
 	DefaultMapLoc->r_color = 255;
 	DefaultMapLoc->g_color = 0;
 	DefaultMapLoc->b_color = 0;
+	DefaultMapLoc->radius = 0;
+	DefaultMapLoc->rr_color = 0;
+	DefaultMapLoc->rg_color = 0;
+	DefaultMapLoc->rb_color = 255;
 #else
 	DefaultMapLoc->lineSize = GetPrivateProfileInt("MapLoc", "Size", 50, INIFileName);
 	DefaultMapLoc->width = GetPrivateProfileInt("MapLoc", "Width", 10, INIFileName);
 	DefaultMapLoc->r_color = GetPrivateProfileInt("MapLoc", "Red", 255, INIFileName);
 	DefaultMapLoc->g_color = GetPrivateProfileInt("MapLoc", "Green", 0, INIFileName);
 	DefaultMapLoc->b_color = GetPrivateProfileInt("MapLoc", "Blue", 0, INIFileName);
+	DefaultMapLoc->radius = GetPrivateProfileInt("MapLoc", "Radius", 0, INIFileName);
+	DefaultMapLoc->rr_color = GetPrivateProfileInt("MapLoc", "RadiusRed", 0, INIFileName);
+	DefaultMapLoc->rg_color = GetPrivateProfileInt("MapLoc", "RadiusGreen", 0, INIFileName);
+	DefaultMapLoc->rb_color = GetPrivateProfileInt("MapLoc", "RadiusBlue", 255, INIFileName);
 #endif
 	// Update existing default maplocs
 	for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
@@ -1545,16 +1545,192 @@ VOID UpdateDefaultMapLoc()
 			loc->r_color = DefaultMapLoc->r_color;
 			loc->g_color = DefaultMapLoc->g_color;
 			loc->b_color = DefaultMapLoc->b_color;
-			UpdateMapLocLines(loc);
+			loc->radius = DefaultMapLoc->radius;
+			loc->rr_color = DefaultMapLoc->rr_color;
+			loc->rg_color = DefaultMapLoc->rg_color;
+			loc->rb_color = DefaultMapLoc->rb_color;
+			UpdateMapLoc(loc);
 		}
 	}
 }
 
-VOID ClearMapLocLines(PMAPLOC mapLoc)
+VOID PrintDefaultMapLocSettings()
+{
+#ifdef ISXEQ
+	DefaultMapLoc->lineSize = 50;
+	DefaultMapLoc->width = 10;
+	DefaultMapLoc->r_color = 255;
+	DefaultMapLoc->g_color = 0;
+	DefaultMapLoc->b_color = 0;
+	DefaultMapLoc->radius = 0;
+	DefaultMapLoc->rr_color = 0;
+	DefaultMapLoc->rg_color = 0;
+	DefaultMapLoc->rb_color = 255;
+#else
+	DefaultMapLoc->lineSize = GetPrivateProfileInt("MapLoc", "Size", 50, INIFileName);
+	DefaultMapLoc->width = GetPrivateProfileInt("MapLoc", "Width", 10, INIFileName);
+	DefaultMapLoc->r_color = GetPrivateProfileInt("MapLoc", "Red", 255, INIFileName);
+	DefaultMapLoc->g_color = GetPrivateProfileInt("MapLoc", "Green", 0, INIFileName);
+	DefaultMapLoc->b_color = GetPrivateProfileInt("MapLoc", "Blue", 0, INIFileName);
+	DefaultMapLoc->radius = GetPrivateProfileInt("MapLoc", "Radius", 0, INIFileName);
+	DefaultMapLoc->rr_color = GetPrivateProfileInt("MapLoc", "RadiusRed", 0, INIFileName);
+	DefaultMapLoc->rg_color = GetPrivateProfileInt("MapLoc", "RadiusGreen", 0, INIFileName);
+	DefaultMapLoc->rb_color = GetPrivateProfileInt("MapLoc", "RadiusBlue", 255, INIFileName);
+#endif
+
+	stringstream MapLocVars;
+	MapLocVars << "MapLoc Defaults: ";
+
+	MapLocVars << "Width:" << DefaultMapLoc->width
+		<< ", Size:" << DefaultMapLoc->lineSize
+		<< ", Color:" << DefaultMapLoc->r_color << "," << DefaultMapLoc->g_color << "," << DefaultMapLoc->b_color
+		<< ", Radius:" << DefaultMapLoc->radius
+		<< ", Radius Color:" << DefaultMapLoc->rr_color << "," << DefaultMapLoc->rg_color << "," << DefaultMapLoc->rb_color;
+
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	sprintf_s(szBuffer, MapLocVars.str().c_str());
+	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+}
+
+VOID MapLocSyntaxOutput()
+{
+	SyntaxError("Usage: /maploc [[size 10-200] | [width 1-10] | [color r g b] | [radius <distance>] | [rcolor r g b] | [yloc xloc (zloc) | target]] | [label text]");
+	SyntaxError(" -- Omit locs to set defaults");
+	SyntaxError(" -- Add label to loc by putting 'label <my text here>' only at end of command");
+	SyntaxError("Remove maplocs: /maploc remove [index | [yloc xloc (zloc)]]");
+	PrintDefaultMapLocSettings();
+}
+
+VOID MapRemoveLocation(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR arg[MAX_STRING];
+	stringstream ss(szLine);
+	ss >> arg; // remove reparsed initial clear
+
+	if (!ss || ss.eof())
+	{
+		map<string, PMAPLOC>::iterator it = LocationMap.begin();
+		while (it != LocationMap.end())
+		{
+			PMAPLOC loc = it->second;
+			maplocOrder.remove(loc);
+			DeleteMapLoc(loc);
+			delete loc;
+			it = LocationMap.erase(it);
+		}
+
+		LocationMap.clear();
+		WriteChatColor("MapLocs removed", USERCOLOR_DEFAULT);
+		return;
+	}
+
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR yloc[MAX_STRING] = { "not set" };
+	CHAR xloc[MAX_STRING] = { "not set" };
+	CHAR zloc[MAX_STRING] = { "0" };
+	CHAR tag[MAX_STRING] = { 0 };
+
+	ss >> arg;
+
+	if (!is_float(std::string(arg))) {
+		MapLocSyntaxOutput();
+		return;
+	}
+	strcpy_s(yloc, arg);
+	if (ss && !ss.eof())
+	{
+		ss >> arg;
+		if (!is_float(std::string(arg))) {
+			MapLocSyntaxOutput();
+			return;
+		}
+		strcpy_s(xloc, arg);
+
+		if (ss && !ss.eof())
+		{
+			ss >> arg;
+			if (!is_float(std::string(arg))) {
+				MapLocSyntaxOutput();
+				return;
+			}
+			strcpy_s(zloc, arg);
+		}
+
+		// deal only in full int locs, makes it easier to do things like clear locs later
+		std::string delim = ".";
+		std::string temp(yloc);
+		temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+		strcpy_s(yloc, temp.substr(0, temp.find(delim)).c_str());
+		temp = xloc;
+		temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+		strcpy_s(xloc, temp.substr(0, temp.find(delim)).c_str());
+		temp = zloc;
+		temp.erase(std::remove(temp.begin(), temp.end(), '+'), temp.end());
+		strcpy_s(zloc, temp.substr(0, temp.find(delim)).c_str());
+	}
+	else // remove by index
+	{
+		int index = static_cast<int>(stof(yloc));
+		if (index < (int)maplocOrder.size() + 1)
+		{
+			PMAPLOC mapLocToRemove;
+			std::list<PMAPLOC>::iterator it = maplocOrder.begin();
+			std::advance(it, index - 1);
+			mapLocToRemove = *it;
+			strcpy_s(yloc, std::to_string(mapLocToRemove->yloc).c_str());
+			strcpy_s(xloc, std::to_string(mapLocToRemove->xloc).c_str());
+			strcpy_s(zloc, std::to_string(mapLocToRemove->zloc).c_str());
+		}
+		else
+		{
+			CHAR output[MAX_STRING] = { 0 };
+			sprintf_s(output, "Remove loc by index out of bounds: %s", yloc);
+			WriteChatColor(output, CONCOLOR_RED);
+			return;
+		}
+	}
+
+	sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
+
+	PMAPLOC loc = LocationMap[tag];
+	if (!loc) {
+		SyntaxError("Could not find MapLoc: %s", tag);
+		return;
+	}
+
+	string index = std::to_string(loc->index);
+	
+	// Delete the loc
+	maplocOrder.remove(loc);
+	DeleteMapLoc(loc);
+	delete loc;
+	LocationMap.erase(tag);
+	
+	// Update index labels for remaining locs
+	UpdateMapLocIndexes();
+	//list<PMAPLOC>::iterator it = maplocOrder.begin();
+	for (list<PMAPLOC>::iterator it = maplocOrder.begin();it!=maplocOrder.end();it++)
+	{
+	//for (int i = 1; i <= (int)maplocOrder.size(); i++)
+		PMAPLOC locToUpdate = *it;
+		if (locToUpdate->mapSpawn)
+		{
+			RemoveSpawn(locToUpdate->mapSpawn);
+		}
+		AddMapSpawnForMapLoc(locToUpdate);
+		//std::advance(it, 1);
+	}
+
+	CHAR output[MAX_STRING] = { 0 };
+	sprintf_s(output, "MapLoc removed: Index:%s, loc:%s", index.c_str(), tag);
+	WriteChatColor(output, USERCOLOR_DEFAULT);
+}
+
+VOID DeleteMapLoc(PMAPLOC mapLoc)
 {
 	if (mapLoc)
 	{
-		for (int i = 0; i < 50; i++)
+		for (int i = 0; i < 150; i++)
 		{
 			if (mapLoc->markerLines[i])
 			{
@@ -1562,101 +1738,207 @@ VOID ClearMapLocLines(PMAPLOC mapLoc)
 				mapLoc->markerLines[i] = NULL;
 			}
 		}
+
+		if (mapLoc->mapSpawn)
+		{
+			RemoveSpawn(mapLoc->mapSpawn);
+		}
 	}
 }
 
-VOID UpdateMapLocLines(PMAPLOC mapLoc)
+VOID UpdateMapLoc(PMAPLOC mapLoc)
 {
 	if (!mapLoc)
 	{
 		return;
 	}
-	ClearMapLocLines(mapLoc);
 
-	int j = 0;
-	
-	for (int i = 1; i <= mapLoc->width; i++) {
-		if (i == 1)
+	DeleteMapLoc(mapLoc);
+
+	int lineIndex = 0;
+
+	// Create the X
+	for (int xWidth = 1; xWidth <= mapLoc->width; xWidth++) {
+		if (xWidth == 1)
 		{
 			//Backslash
-			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT) -mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Z = 0;
-			mapLoc->markerLines[j]->Layer = activeLayer;
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
 			ARGBCOLOR bsColor;
 			bsColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
-			mapLoc->markerLines[j++]->Color = bsColor;
+			mapLoc->markerLines[lineIndex++]->Color = bsColor;
 
 			//Forwardslash
-			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Z = 0;
-			mapLoc->markerLines[j]->Layer = activeLayer;
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
 			ARGBCOLOR fsColor;
 			fsColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
-			mapLoc->markerLines[j++]->Color = fsColor;
+			mapLoc->markerLines[lineIndex++]->Color = fsColor;
 		}
 		else
 		{
 			//Backslash lower
-			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + i - 1;
-			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - i + 1;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Z = 0;
-			mapLoc->markerLines[j]->Layer = activeLayer;
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + xWidth - 1;
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - xWidth + 1;
+			mapLoc->markerLines[lineIndex]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
 			ARGBCOLOR bslColor;
 			bslColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
-			mapLoc->markerLines[j++]->Color = bslColor;
+			mapLoc->markerLines[lineIndex++]->Color = bslColor;
 
 			//Forwardslash lower
-			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + i - 1;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + i - 1;
-			mapLoc->markerLines[j]->End.Z = 0;
-			mapLoc->markerLines[j]->Layer = activeLayer;
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + xWidth - 1;
+			mapLoc->markerLines[lineIndex]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + xWidth - 1;
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
 			ARGBCOLOR fslColor;
 			fslColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
-			mapLoc->markerLines[j++]->Color = fslColor;
+			mapLoc->markerLines[lineIndex++]->Color = fslColor;
 
 			//Backslash upper
-			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + i - 1;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - i + 1;
-			mapLoc->markerLines[j]->End.Z = 0;
-			mapLoc->markerLines[j]->Layer = activeLayer;
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + xWidth - 1;
+			mapLoc->markerLines[lineIndex]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - xWidth + 1;
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
 			ARGBCOLOR bsuColor;
 			bsuColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
-			mapLoc->markerLines[j++]->Color = bsuColor;
+			mapLoc->markerLines[lineIndex++]->Color = bsuColor;
 
 			//Forwardslash upper
-			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - i + 1;
-			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - i + 1;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Z = 0;
-			mapLoc->markerLines[j]->Layer = activeLayer;
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - xWidth + 1;
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - xWidth + 1;
+			mapLoc->markerLines[lineIndex]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
 			ARGBCOLOR fsuColor;
 			fsuColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
-			mapLoc->markerLines[j++]->Color = fsuColor;
+			mapLoc->markerLines[lineIndex++]->Color = fsuColor;
 		}
+	}
+
+	// Create the Radius
+	if (mapLoc->radius > 0)
+	{
+		unsigned long Angle = 0;
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		{
+			mapLoc->markerLines[lineIndex] = InitLine();
+			mapLoc->markerLines[lineIndex]->Start.X = -mapLoc->xloc + (FLOAT)mapLoc->radius*cosf((FLOAT)Angle / 180.0f*(FLOAT)PI);
+			mapLoc->markerLines[lineIndex]->Start.Y = -mapLoc->yloc + (FLOAT)mapLoc->radius*sinf((FLOAT)Angle / 180.0f*(FLOAT)PI);
+			mapLoc->markerLines[lineIndex]->Start.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->End.X = -mapLoc->xloc + (FLOAT)mapLoc->radius*cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
+			mapLoc->markerLines[lineIndex]->End.Y = -mapLoc->yloc + (FLOAT)mapLoc->radius*sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
+			mapLoc->markerLines[lineIndex]->End.Z = (FLOAT)mapLoc->zloc;
+			mapLoc->markerLines[lineIndex]->Layer = activeLayer;
+			ARGBCOLOR rColor;
+			rColor.ARGB = 0xFF000000 | (mapLoc->rr_color << 16) | (mapLoc->rg_color << 8) | (mapLoc->rb_color);
+			mapLoc->markerLines[lineIndex++]->Color = rColor;
+		}
+	}
+
+	AddMapSpawnForMapLoc(mapLoc);
+}
+
+VOID AddMapSpawnForMapLoc(PMAPLOC mapLoc)
+{
+	// Set the index label
+	string labelStr = std::to_string(mapLoc->index);
+	if (mapLoc->label.length() > 0)
+	{
+		labelStr.append(mapLoc->label);
+	}
+
+	// Create unique "spawnid"
+	unsigned long mapId = 3000;
+	std::map<unsigned long, PMAPSPAWN>::iterator it;
+	do
+	{
+		mapId++;
+		it = SpawnMap.find(mapId);
+	} while (it != SpawnMap.end() && mapId < 4000);
+
+	// Build the SpawnInfo
+	PSPAWNINFO pFakeSpawn = new SPAWNINFO;
+	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
+	strcpy_s(pFakeSpawn->DisplayedName, labelStr.c_str());
+	pFakeSpawn->X = (FLOAT)mapLoc->xloc;
+	pFakeSpawn->Y = (FLOAT)mapLoc->yloc;
+	pFakeSpawn->Z = (FLOAT)mapLoc->zloc;
+	pFakeSpawn->HPCurrent = 1;
+	pFakeSpawn->HPMax = 1;
+	pFakeSpawn->Heading = 0;
+	pFakeSpawn->mActorClient.Race = 0;
+	pFakeSpawn->SpawnID = mapId;
+
+	// Build pMapSpawn and add to SpawnMaps
+	PMAPSPAWN pMapSpawn = InitSpawn();
+	pMapSpawn->SpawnType = UNTARGETABLE;
+	pMapSpawn->pSpawn = pFakeSpawn;
+	pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn, CONCOLOR_BLACK);
+	pMapSpawn->Explicit = true; // These are a unique "spawn type" but we don't have a way to make a new entry in the enum, so force show just like a /mapshow on a filtered object
+	pMapSpawn->pVector = 0;
+	pMapSpawn->Highlight = false;
+	if (pMapSpawn->Marker != 0)
+		pMapSpawn->Marker = 0;
+	SpawnMap[pFakeSpawn->SpawnID] = pMapSpawn;
+	mapLoc->mapSpawn = pMapSpawn;
+}
+
+VOID UpdateMapLocIndexes()
+{
+	list<PMAPLOC>::iterator it = maplocOrder.begin();
+	for (int i = 1; i <= (int)maplocOrder.size(); i++)
+	{
+		PMAPLOC loc = *it;
+		loc->index = i;
+		std::advance(it, 1);
+	}
+}
+
+bool is_float(const string &in)
+{
+	std::stringstream sstr(in);
+	float f;
+	return !((sstr >> noskipws >> f).rdstate() ^ ios_base::eofbit);
+}
+
+std::tuple<float, float, float> getTargetLoc()
+{
+	return std::make_tuple(pLastTarget->pSpawn->X, pLastTarget->pSpawn->Y, pLastTarget->pSpawn->Z);
+}
+
+VOID AddMapLocToList(PMAPLOC loc)
+{
+	bool found = (std::find(maplocOrder.begin(), maplocOrder.end(), loc) != maplocOrder.end());
+	if (!found)
+	{
+		maplocOrder.push_back(loc);
 	}
 }

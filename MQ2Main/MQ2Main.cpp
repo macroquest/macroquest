@@ -964,7 +964,11 @@ FUNCTION_AT_ADDRESS(int CastRayLoc(const CVector3& SourcePos, int Race, float De
 #endif
 #ifdef __CleanItemTags_x
 //this really should be CXStr CleanItemTags(const CXStr& str) but i cant get that to compile so we fake it...
+#if defined(ROF2EMU) || defined(UFEMU)
+FUNCTION_AT_ADDRESS(CXStr *__cdecl CleanItemTags(CXStr *Out, const CXStr &In),__CleanItemTags);
+#else
 FUNCTION_AT_ADDRESS(CXStr *__cdecl CleanItemTags(CXStr *Out, const CXStr &In, bool bFlag),__CleanItemTags);
+#endif
 #endif
 #ifdef __HeadingDiff_x
 FUNCTION_AT_ADDRESS(float HeadingDiff(float h1, float h2, float *DiffOut),__HeadingDiff);

@@ -390,7 +390,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/mapclick", MapClickCommand, 0, 1, 0);
 	AddCommand("/mapactivelayer", MapActiveLayerCmd, 0, 1, 1);
 	AddCommand("/maploc", MapSetLocationCmd, 0, 1, 1);
-	AddCommand("/clearloc", MapClearLocationCmd, 0, 1, 1);
 
 	EzDetourwName(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline,"CMapViewWnd__CMapViewWnd");
 	CMyMapViewWnd::StealVFTable();
@@ -424,7 +423,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/mapclick");
 	RemoveCommand("/mapactivelayer");
 	RemoveCommand("/maploc");
-	RemoveCommand("/clearloc");
 }
 
 // This is called every time MQ pulses
@@ -441,17 +439,15 @@ PLUGIN_API VOID OnPulse(VOID)
 	if (PCHARINFO charInfo = GetCharInfo()) {
 		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
 		{
-			for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+			if (LocationMap.size() > 0)
 			{
-				PMAPLOC loc = it->second;
-				ClearMapLocLines(loc);
-				delete loc;
-				LocationMap.erase(it);
+				MapRemoveLocation(0, "");
 			}
-			LocationMap.clear();
+
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
 		}
 	}
+
 	CHAR szBuffer[MAX_STRING] = { 0 };
 
 	if (curClockTime > highPulseRepeatLast + highPulseRepeatIntervalMillis && HighlightPulse)
