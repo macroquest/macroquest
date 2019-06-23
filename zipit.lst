@@ -211,7 +211,7 @@ MQ2Labels\MQ2Labels.cpp
 MQ2Labels\MQ2Labels.vcxproj
 MQ2Labels\MQ2Labels.vcxproj.filters
 MQ2Main\actordef.h
-MQ2Main\Arrayclass.h
+MQ2Main\Containers.h
 MQ2Main\DebugHandler.h
 MQ2Main\SharedClasses.h
 MQ2Main\combines.h

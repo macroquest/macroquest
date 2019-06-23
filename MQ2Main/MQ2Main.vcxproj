@@ -95,7 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h" />
-    <ClInclude Include="ArrayClass.h" />
+    <ClInclude Include="Containers.h" />
     <ClInclude Include="combines.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="EQClasses.h" />
@@ -121,13 +121,13 @@
     <ClInclude Include="skills.h" />
     <ClInclude Include="SpellEffects.h" />
     <ClInclude Include="actordef.h" />
-    <ClInclude Include="test\cxwnd_members.h" />
+    <ClInclude Include="test\CXWnd-Members.h" />
     <ClInclude Include="test\eq.h" />
     <ClInclude Include="test\EQData(Test).h" />
     <ClInclude Include="test\eqgame(Test).h" />
     <ClInclude Include="test\EQUIStructs(Test).h" />
-    <ClInclude Include="test\itembase_members.h" />
-    <ClInclude Include="test\playerzoneclient_members.h" />
+    <ClInclude Include="test\ItemBase-Members.h" />
+    <ClInclude Include="test\PlayerZoneClient-Members.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc" />

@@ -1,31 +1,32 @@
-/*****************************************************************************
-MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License, version 2, as published by
-the Free Software Foundation.
+#pragma once
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-******************************************************************************/
-#pragma pack(push)
-#pragma pack(8)
-#define VersionString __ExpectedVersionDate
-#define TimeString __ExpectedVersionTime
-#define DebugHeader "[MQ2]"
-#define LoadedString "MQ2 Loaded."
-#define ToUnloadString "MQ2 Unloading..."
-#define UnloadedString "MQ2 Unloaded."
+#define VersionString          __ExpectedVersionDate
+#define TimeString             __ExpectedVersionTime
+#define DebugHeader            "[MQ2]"
+#define LoadedString           "MQ2 Loaded."
+#define ToUnloadString         "MQ2 Unloading..."
+#define UnloadedString         "MQ2 Unloaded."
 
 #define WIN32_LEAN_AND_MEAN
 #if defined(_WIN32_WINNT)
 #undef _WIN32_WINNT
-#define  _WIN32_WINNT   0x510
+#define  _WIN32_WINNT          0x510
 #endif
-#define DIRECTINPUT_VERSION 0x800
+#define DIRECTINPUT_VERSION    0x800
 
 //#define MQ2_PROFILING
 
@@ -103,7 +104,7 @@ extern CRITICAL_SECTION gPluginCS;
 
 // the currently active configuration. Can be one of LIVE or TEST. To build LIVE, eqgame.h
 // and other headers must be provided or it will build TEST instead
-#define LIVE
+#define TEST
 
 // Validate that LIVE is available to build
 #if defined(LIVE) && !__has_include("live/eq.h")
@@ -272,8 +273,6 @@ typedef double DOUBLE;
 #endif
 
 //class CXMLData *GetXMLData(class CXWnd *pWnd)
-
-#include "EQClasses.h"
 
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"

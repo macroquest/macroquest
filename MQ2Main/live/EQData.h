@@ -15,7 +15,7 @@
 #pragma pack(push)
 #pragma pack(8)
 
-#include "ArrayClass.h"
+#include "Containers.h"
 #include "SharedClasses.h"
 
 namespace EQData

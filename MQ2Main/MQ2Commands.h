@@ -1,34 +1,49 @@
-#pragma once
-#if defined(ISXEQ_LEGACY) || !defined(ISXDK_VERSION)
-/* COMMANDS */
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
-LEGACY_API VOID SetError                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SuperWho                            (PSPAWNINFO,PCHAR);
+#pragma once
+
+#if defined(ISXEQ_LEGACY) || !defined(ISXDK_VERSION)
+
+/* COMMANDS */
+LEGACY_API VOID SetError                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SuperWho                            (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewIf                               (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID WhileCmd                            (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID PluginCommand                       (PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API VOID Call                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DeclareVar                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DumpStack                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID EditMacro                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID For                                 (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Goto                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID KeepKeys                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Macro                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MacroPause                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Next                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Return                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Break                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Continue                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID ListMacros                          (PSPAWNINFO,PCHAR);
+LEGACY_API VOID Call                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DeclareVar                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DumpStack                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID EditMacro                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID EndMacro                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID For                                 (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Goto                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID KeepKeys                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Macro                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MacroPause                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Next                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Return                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Break                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Continue                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID ListMacros                          (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID SquelchCommand                      (PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API VOID MacroLog                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MacroBeep                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Echo                                (PSPAWNINFO,PCHAR);
+LEGACY_API VOID MacroLog                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MacroBeep                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Echo                                (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NoParseCmd                          (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NoModKeyCmd                         (PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API VOID Where                               (PSPAWNINFO,PCHAR);
+LEGACY_API VOID Where                               (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID CaptionColorCmd                     (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID CaptionCmd                          (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID HudCmd                              (PSPAWNINFO pChar, PCHAR szLine);
@@ -46,72 +61,72 @@ LEGACY_API VOID do_ranged                           (PSPAWNINFO pChar, PCHAR szL
 LEGACY_API VOID DoMappable                          (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID MQ2KeyBindCommand                   (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID MultilineCommand                    (PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API VOID Alert                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Alias                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID AltAbility                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID BankList                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Breakin                             (PSPAWNINFO,PCHAR);
-LEGACY_API VOID BuyItem								(PSPAWNINFO,PCHAR);
-LEGACY_API VOID SelectItem							(PSPAWNINFO,PCHAR);
-LEGACY_API VOID CharInfo                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Cast                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Cleanup                             (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Click                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DebugSpewFile                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Delay                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID EQDestroyHeldItemOrMoney            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DisplayLoginName                    (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DoAbility                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DoEvents                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DoSocial                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Doors                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID DoorTarget                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Exec                                (PSPAWNINFO,PCHAR); 
-LEGACY_API VOID Face                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Filter                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Help                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Hotkey                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Identify                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID IniOutput                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Items                               (PSPAWNINFO,PCHAR);
-LEGACY_API VOID ItemTarget                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID WindowState                         (PSPAWNINFO,PCHAR);
-LEGACY_API VOID LoadSpells                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Location                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Look                                (PSPAWNINFO,PCHAR);
-LEGACY_API VOID LootAll                             (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MemSpell                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MouseTo                             (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MQMsgBox                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SellItem                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Skills                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Substitute                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SuperWhoTarget                      (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SWhoFilter                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Target                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Unload                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
-LEGACY_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
-LEGACY_API VOID PopupText                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID PopupTextCustom                     (PSPAWNINFO,PCHAR);
-LEGACY_API VOID PopupTextEcho                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID UseItemCmd                          (PSPAWNINFO,PCHAR);
+LEGACY_API VOID Alert                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Alias                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID AltAbility                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID BankList                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Breakin                             (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID BuyItem                             (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SelectItem                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID CharInfo                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Cast                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Cleanup                             (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Click                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DebugSpewFile                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Delay                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID EQDestroyHeldItemOrMoney            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DisplayLoginName                    (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DoAbility                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DoEvents                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DoSocial                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Doors                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID DoorTarget                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Exec                                (PSPAWNINFO pChar, PCHAR szLine); 
+LEGACY_API VOID Face                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Filter                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Help                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Hotkey                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Identify                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID IniOutput                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Items                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID ItemTarget                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID WindowState                         (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID LoadSpells                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Location                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Look                                (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID LootAll                             (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MemSpell                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MouseTo                             (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MQMsgBox                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SellItem                            (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SetAutoRun                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Skills                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Substitute                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SuperWhoTarget                      (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SWhoFilter                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Target                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID Unload                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID UpdateItemInfo                      (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID ZapVars                             (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID PopupText                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID PopupTextCustom                     (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID PopupTextEcho                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID UseItemCmd                          (PSPAWNINFO pChar, PCHAR szLine);
 
-LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SetWinTitle							(PSPAWNINFO,PCHAR);
-LEGACY_API VOID GetWinTitle							(PSPAWNINFO,PCHAR);
-LEGACY_API VOID PetCmd                              (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MercSwitchCmd                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID AdvLootCmd                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID PickZoneCmd                         (PSPAWNINFO,PCHAR);
-LEGACY_API VOID AssistCmd                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID InvokeCmd                           (PSPAWNINFO,PCHAR);
-LEGACY_API VOID SetProcessPriority                  (PSPAWNINFO,PCHAR);
-LEGACY_API VOID ScreenModeCmd                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID UserCameraCmd                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID MapZoomCmd                          (PSPAWNINFO,PCHAR);
-LEGACY_API VOID ForeGroundCmd                       (PSPAWNINFO,PCHAR);
-LEGACY_API VOID QuitCmd                             (PSPAWNINFO,PCHAR);
+LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SetWinTitle                         (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID GetWinTitle                         (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID PetCmd                              (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MercSwitchCmd                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID AdvLootCmd                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID PickZoneCmd                         (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID AssistCmd                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID InvokeCmd                           (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID SetProcessPriority                  (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID ScreenModeCmd                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID UserCameraCmd                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID MapZoomCmd                          (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID ForeGroundCmd                       (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID QuitCmd                             (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID PluginCmdSort                       (VOID);
 #endif

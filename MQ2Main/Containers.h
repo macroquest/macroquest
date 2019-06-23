@@ -1,23 +1,20 @@
-/*****************************************************************************
-    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as published by
-    the Free Software Foundation.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-******************************************************************************/
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
 #pragma once
 
 #include <cstdint>
-
-#pragma pack(push)
-#pragma pack(4)
 
 struct CStrPtr
 {
@@ -1066,4 +1063,120 @@ class DynamicBitField
 	ElementType Element;
 	ElementType* Elements;
 };
-#pragma pack(pop)
+
+// Linked List classes
+
+template <typename T> class TList;
+
+template <typename T>
+class TListNode
+{
+	// pointers to previous and next node
+	T* m_pPrev;
+	T* m_pNext;
+	TList<T>* m_pList;        // pointer to the list this node belongs to
+
+public:
+	TListNode()
+		: m_pPrev(nullptr)
+		, m_pNext(nullptr)
+		, m_list(nullptr)
+	{}
+
+	TListNode(const TListNode&) = delete;
+	TListNode& operator=(const TListNode&) = delete;
+
+	bool IsLinked() const { return m_pList != nullptr; }
+	TList<T>* GetList() { return m_pList; }
+
+	T* GetPrevious() { return m_pPrev; }
+	const T* GetPrevious() const { return m_pPrev; }
+	T* GetNext() { return m_pNext; }
+	const T* GetNext() const { return m_pNext; }
+};
+
+template <typename T>
+class TList
+{
+	T* m_pFirstNode;
+	T* m_pLastNode;
+
+	TListNode<T>* GetNodePtr(T* ptr) const
+	{
+		return static_cast<TListNode<T>*>(ptr);
+	}
+	const TListNode<T>* GetNodePtr(const T* ptr) const
+	{
+		return static_cast<const TListNode<T>*>(ptr);
+	}
+
+public:
+	TList()
+		: m_pFirstNode(nullptr)
+		, m_pLastNode(nullptr)
+	{}
+
+	bool IsEmpty() const { return m_pFirstNode == nullptr; }
+
+	T* GetFirstNode() { return m_pFirstNode; }
+	const T* GetFirstNode() const { return m_pFirstNode; }
+	T* GetLastNode() { return m_pLastNode; }
+	const T* GetLastNode() const { return m_pLastNode; }
+
+	// count the number of nodes in the list
+	uint32_t GetCount() const
+	{
+		uint32_t count = 0;
+		T* pNode = m_pFirstNode;
+		while (pNode)
+		{
+			pNode = GetNodePtr(pNode)->GetNext();
+			count++;
+		}
+
+		return count;
+	}
+
+	// get the specified Nth node
+	T* GetNode(uint32_t index)
+	{
+		uint32_t pos = 0;
+		T* pNode = m_pFirstNode;
+
+		while (pos < index)
+		{
+			if (!pNode) return nullptr;
+
+			pNode = GetNodePtr(pNode)->GetNext();
+			count++;
+		}
+
+		return pNode;
+	}
+
+	const T* GetNode(uint32_t index) const
+	{
+		uint32_t pos = 0;
+		T* pNode = m_pFirstNode;
+
+		while (pos < index)
+		{
+			if (!pNode) return nullptr;
+
+			pNode = GetNodePtr(pNode)->GetNext();
+			count++;
+		}
+
+		return pNode;
+	}
+};
+
+// we dont need a fully implemented version. this does the job just fine
+template <typename T, uint32_t _Len>
+class TCircularBuffer
+{
+public:
+	T       Type[_Len];
+	UINT    Len;
+	UINT    Index;
+};

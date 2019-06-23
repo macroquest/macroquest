@@ -20,6 +20,8 @@
 //#define KNIGHTLYPARSE
 
 #include "eqgame.h"
+
+#include "../EQClasses.h"
 #include "EQData.h"
 #include "EQUIStructs.h"
 

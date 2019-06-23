@@ -11,7 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#include "../ArrayClass.h"
+
+#include "../Containers.h"
 
 #pragma pack(push)
 #pragma pack(8)
