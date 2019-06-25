@@ -14,12 +14,30 @@
 
 #pragma once
 
+// EQLib Configuration
+
 //#define NEWCHARINFO
+
+// Probably needs a Config.h
 //#define KNIGHTLYPARSE
 
-#include "eqgame(Test).h"
+// Apply the configuration
+#if defined(LIVE)
 
-#include "../EQClasses.h"
-#include "EQData(Test).h"
-#include "EQUIStructs(Test).h"
+#include "live/eqgame.h"
 
+#include "live/EQUIStructs.h"
+#include "live/EQData.h"
+
+#include "EQClasses.h"
+
+#elif defined(TEST)
+
+#include "test/eqgame(test).h"
+
+#include "test/EQUIStructs(Test).h"
+#include "test/EQData(Test).h"
+
+#include "EQClasses.h"
+
+#endif

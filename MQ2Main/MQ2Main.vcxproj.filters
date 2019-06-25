@@ -18,6 +18,9 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{f444558d-0978-4637-9574-41e30a49f137}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Data">
+      <UniqueIdentifier>{b4cb7fc5-a4d8-4a29-8d5d-f39cd303615f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EQClasses.cpp">
@@ -124,25 +127,10 @@
     <ClInclude Include="MQ2TopLevelObjects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dikeys.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="itemtypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="skills.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="actordef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SpellEffects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataTypeList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="combines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Globals-private_default.h">
@@ -150,9 +138,6 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="live\eq.h">
-      <Filter>Header Files\Live</Filter>
     </ClInclude>
     <ClInclude Include="live\EQData.h">
       <Filter>Header Files\Live</Filter>
@@ -170,9 +155,6 @@
       <Filter>Header Files\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\EQUIStructs(Test).h">
-      <Filter>Header Files\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="test\eq.h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\EQData(Test).h">
@@ -195,6 +177,30 @@
     </ClInclude>
     <ClInclude Include="test\PlayerZoneClient-Members.h">
       <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="data\combines.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\dikeys.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\factionnames.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\itemtypes.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\skills.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\spelleffects.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\actordef.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

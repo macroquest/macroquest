@@ -1,22 +1,22 @@
 /*
-* MacroQuest2: The extension platform for EverQuest
-* Copyright (C) 2002-2019 MacroQuest Authors
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License, version 2, as published by
-* the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*/
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
 
 #define DBG_SPEW
 
 #include "MQ2Main.h"
 
-enum UIType CXWnd::GetType()
+UIType CXWnd::GetType()
 {
 	if (CXMLData* pXMLData = GetXMLData())
 		return pXMLData->Type;
@@ -24,7 +24,7 @@ enum UIType CXWnd::GetType()
 	return UI_Unknown;
 }
 
-enum UIType CSidlScreenWnd::GetType()
+UIType CSidlScreenWnd::GetType()
 {
 	if (CXMLData* pXMLData = GetXMLData())
 		return pXMLData->Type;
@@ -39,6 +39,7 @@ CXMLData* CXWnd::GetXMLData()
 
 	return 0;
 }
+
 CXMLData* CSidlScreenWnd::GetXMLData()
 {
 	if (int xmlindex = GetXMLIndex())
@@ -49,7 +50,6 @@ CXMLData* CSidlScreenWnd::GetXMLData()
 
 CXWnd* RecurseAndFindName(CXWnd* pWnd, PCHAR Name)
 {
-
 	// wow... this is stupid, we can't put this much stuff on the stack since this function calls itself, for huge windows
 	// with lots of elements this WILL definately crash us...
 	// CHAR Buffer[MAX_STRING]={0};
@@ -108,9 +108,9 @@ CXWnd* CSidlScreenWnd::GetChildItem(PCHAR Name)
 	return RecurseAndFindName((CXWnd*)this, Name);
 }
 
-CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(char* str)
+CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(const char* str)
 {
-	return FindScreenPieceTemplate(&CXStr(str));
+	return FindScreenPieceTemplate(CXStr(str));
 }
 
 void CComboWnd::InsertChoice(char* str)
@@ -161,10 +161,6 @@ CXPoint CXRect::CenterPoint() const
 #pragma warning(disable:4740) // warning C4740: flow in or out of inline asm code suppresses global optimization
 
 // MANUAL IMPORTS
-#ifdef CMyInventory__GetSlot_x
-FUNCTION_AT_ADDRESS(_CONTENTS* CMyInventory::GetSlot(int), CMyInventory__GetSlot);
-#endif
-
 #ifdef EQ_Item__CreateItemTagString_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(char* EQ_Item::CreateItemTagString(char*, int, bool), EQ_Item__CreateItemTagString);
@@ -232,7 +228,6 @@ FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const, 0
 #endif
 
 // ClientSpellManager
-FUNCTION_AT_VIRTUAL_ADDRESS(int ClientSpellManager::dSpellManager(void*, bool), 0x00);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpells(const char*, const char*, const char*), 0x04);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpellStackingData(const char*), 0x08);
 #if defined(ROF2EMU) || defined(UFEMU)
@@ -956,9 +951,6 @@ FUNCTION_AT_ADDRESS(EQAnimation::~EQAnimation(), EQAnimation__dEQAnimation);
 #endif
 #ifdef KeypressHandler__dKeypressHandler_x
 FUNCTION_AT_ADDRESS(KeypressHandler::~KeypressHandler(), KeypressHandler__dKeypressHandler);
-#endif
-#ifdef EQNewPlayerAnimation__InitAnimationData_x
-FUNCTION_AT_ADDRESS(void __cdecl EQNewPlayerAnimation::InitAnimationData(), EQNewPlayerAnimation__InitAnimationData);
 #endif
 #ifdef CAAWnd__CancelAASpend_x
 FUNCTION_AT_ADDRESS(void CAAWnd::CancelAASpend(), CAAWnd__CancelAASpend);
@@ -4100,18 +4092,6 @@ FUNCTION_AT_ADDRESS(char* ZoneNPCLoadTextManager::GetNPCCode(int), ZoneNPCLoadTe
 #ifdef ZoneNPCLoadTextManager__GetS3DName_x
 FUNCTION_AT_ADDRESS(char* ZoneNPCLoadTextManager::GetS3DName(int), ZoneNPCLoadTextManager__GetS3DName);
 #endif
-#ifdef public_key__encrypt_x
-FUNCTION_AT_ADDRESS(vlong public_key::encrypt(vlong&), public_key__encrypt);
-#endif
-#ifdef engineInterface__engineInterface_x
-FUNCTION_AT_ADDRESS(engineInterface::engineInterface(), engineInterface__engineInterface);
-#endif
-#ifdef engineInterface__get_x
-FUNCTION_AT_ADDRESS(engineInterface* __cdecl engineInterface::get(), engineInterface__get);
-#endif
-#ifdef engineInterface__ChangeDag_x
-FUNCTION_AT_ADDRESS(unsigned long* engineInterface::ChangeDag(struct T3D_tagWORLD*, struct T3D_DAG*, char*), engineInterface__ChangeDag);
-#endif
 #ifdef CAdvancedLootWnd__DoAdvLootAction_x
 FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD, CXStr*, DWORD, DWORD), CAdvancedLootWnd__DoAdvLootAction);
 #endif
@@ -4864,7 +4844,7 @@ FUNCTION_AT_ADDRESS(EQ_LoadingS::EQ_LoadingS(), EQ_LoadingS__EQ_LoadingS);
 FUNCTION_AT_ADDRESS(EQ_LoadingS::~EQ_LoadingS(), EQ_LoadingS__dEQ_LoadingS);
 #endif
 #ifdef EQ_LoadingS__DrawBackground_x
-FUNCTION_AT_ADDRESS(void EQ_LoadingS::DrawBackground(struct T3D_XYZ*), EQ_LoadingS__DrawBackground);
+FUNCTION_AT_ADDRESS(void EQ_LoadingS::DrawBackground(), EQ_LoadingS__DrawBackground);
 #endif
 #ifdef EQ_LoadingS__draw_x
 FUNCTION_AT_ADDRESS(void EQ_LoadingS::draw(), EQ_LoadingS__draw);
@@ -5230,33 +5210,6 @@ FUNCTION_AT_ADDRESS(unsigned char EQ_Spell::GetSpellLevelNeeded(int) const, EQ_S
 #endif
 #ifdef EQ_Spell__SpellAffectBase_x
 FUNCTION_AT_ADDRESS(int EQ_Spell::SpellAffectBase(int) const, EQ_Spell__SpellAffectBase);
-#endif
-#ifdef EQOldPlayerAnimation__InitAnimationData_x
-FUNCTION_AT_ADDRESS(void __cdecl EQOldPlayerAnimation::InitAnimationData(), EQOldPlayerAnimation__InitAnimationData);
-#endif
-#ifdef EQOldPlayerAnimation__PlayAttachmentAnimationTracks_x
-FUNCTION_AT_ADDRESS(void EQOldPlayerAnimation::PlayAttachmentAnimationTracks(int, int, bool, bool, float, bool, unsigned char), EQOldPlayerAnimation__PlayAttachmentAnimationTracks);
-#endif
-#ifdef EQOldPlayerAnimation__EQOldPlayerAnimation_x
-FUNCTION_AT_ADDRESS(EQOldPlayerAnimation::EQOldPlayerAnimation(EQPlayer*), EQOldPlayerAnimation__EQOldPlayerAnimation);
-#endif
-#ifdef EQOldPlayerAnimation__InterruptCurrentAnimation_x
-FUNCTION_AT_ADDRESS(bool EQOldPlayerAnimation::InterruptCurrentAnimation(int, unsigned char), EQOldPlayerAnimation__InterruptCurrentAnimation);
-#endif
-#ifdef EQOldPlayerAnimation__ChangeAttachmentAnimationTrackSpeeds_x
-FUNCTION_AT_ADDRESS(void EQOldPlayerAnimation::ChangeAttachmentAnimationTrackSpeeds(bool, float), EQOldPlayerAnimation__ChangeAttachmentAnimationTrackSpeeds);
-#endif
-#ifdef EQOldPlayerAnimation__IsSocialAnimation_x
-FUNCTION_AT_ADDRESS(bool EQOldPlayerAnimation::IsSocialAnimation(int), EQOldPlayerAnimation__IsSocialAnimation);
-#endif
-#ifdef EQOldPlayerAnimation__IsStandAnimation_x
-FUNCTION_AT_ADDRESS(bool EQOldPlayerAnimation::IsStandAnimation(int), EQOldPlayerAnimation__IsStandAnimation);
-#endif
-#ifdef EQOldPlayerAnimation__IsIdleAnimation_x
-FUNCTION_AT_ADDRESS(bool EQOldPlayerAnimation::IsIdleAnimation(int), EQOldPlayerAnimation__IsIdleAnimation);
-#endif
-#ifdef EQOldPlayerAnimation__AnimationIsAggressive_x
-FUNCTION_AT_ADDRESS(bool EQOldPlayerAnimation::AnimationIsAggressive(int), EQOldPlayerAnimation__AnimationIsAggressive);
 #endif
 #ifdef EQAnimation__EQAnimation_x
 FUNCTION_AT_ADDRESS(EQAnimation::EQAnimation(), EQAnimation__EQAnimation);
@@ -6528,36 +6481,6 @@ FUNCTION_AT_ADDRESS(void CEverQuest::initCustom(), CEverQuest__initCustom);
 #ifdef _EverQuestinfo__SetAutoAttack_x
 FUNCTION_AT_ADDRESS(void _EverQuestinfo::SetAutoAttack(bool), _EverQuestinfo__SetAutoAttack);
 #endif
-#ifdef GrammarRulesClass__GrammarRulesClass_x
-FUNCTION_AT_ADDRESS(GrammarRulesClass::GrammarRulesClass(), GrammarRulesClass__GrammarRulesClass);
-#endif
-#ifdef GrammarRulesClass__Parse_x
-FUNCTION_AT_ADDRESS(char* GrammarRulesClass::Parse(char*), GrammarRulesClass__Parse);
-#endif
-#ifdef GrammarRulesClass__Resolve_x
-FUNCTION_AT_ADDRESS(char* GrammarRulesClass::Resolve(int, int, char*, char*), GrammarRulesClass__Resolve);
-#endif
-#ifdef GrammarRulesClass__RuleEn1_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleEn1(char*, char*), GrammarRulesClass__RuleEn1);
-#endif
-#ifdef GrammarRulesClass__RuleEn2_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleEn2(char*, char*), GrammarRulesClass__RuleEn2);
-#endif
-#ifdef GrammarRulesClass__RuleEn3_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleEn3(char*, char*, char*, char*), GrammarRulesClass__RuleEn3);
-#endif
-#ifdef GrammarRulesClass__RuleEn4_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleEn4(char*, char*, char*, char*), GrammarRulesClass__RuleEn4);
-#endif
-#ifdef GrammarRulesClass__RuleKo1_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleKo1(char*, char*, char*, char*), GrammarRulesClass__RuleKo1);
-#endif
-#ifdef GrammarRulesClass__RuleFr1_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleFr1(char*, char*, char*, char*), GrammarRulesClass__RuleFr1);
-#endif
-#ifdef GrammarRulesClass__RuleDe1_x
-FUNCTION_AT_ADDRESS(void GrammarRulesClass::RuleDe1(char*, char*), GrammarRulesClass__RuleDe1);
-#endif
 #ifdef KeypressHandler__KeypressHandler_x
 FUNCTION_AT_ADDRESS(KeypressHandler::KeypressHandler(), KeypressHandler__KeypressHandler);
 #endif
@@ -6806,9 +6729,6 @@ FUNCTION_AT_ADDRESS(int SoundManager::StreamingGetSongLength(), SoundManager__St
 #endif
 #ifdef SoundInstance__YourManagerDeleted_x
 //FUNCTION_AT_ADDRESS(void SoundInstance::YourManagerDeleted(), SoundInstance__YourManagerDeleted);
-#endif
-#ifdef flex_unit__clear_x
-FUNCTION_AT_ADDRESS(void flex_unit::clear(), flex_unit__clear);
 #endif
 #ifdef WaveInstance__WaveInstance_x
 FUNCTION_AT_ADDRESS(WaveInstance::WaveInstance(SoundManager*), WaveInstance__WaveInstance);
@@ -7487,90 +7407,6 @@ FUNCTION_AT_ADDRESS(void flex_unit::set(unsigned int, unsigned int), flex_unit__
 #endif
 #ifdef flex_unit__fast_mul_x
 FUNCTION_AT_ADDRESS(void flex_unit::fast_mul(flex_unit&, flex_unit&, unsigned int), flex_unit__fast_mul);
-#endif
-#ifdef vlong_value__is_zero_x
-FUNCTION_AT_ADDRESS(int vlong_value::is_zero() const, vlong_value__is_zero);
-#endif
-#ifdef vlong_value__test_x
-FUNCTION_AT_ADDRESS(int vlong_value::test(unsigned int) const, vlong_value__test);
-#endif
-#ifdef vlong_value__bits_x
-FUNCTION_AT_ADDRESS(unsigned int vlong_value::bits() const, vlong_value__bits);
-#endif
-#ifdef vlong_value__cf_x
-FUNCTION_AT_ADDRESS(int vlong_value::cf(vlong_value&) const, vlong_value__cf);
-#endif
-#ifdef vlong_value__shl_x
-FUNCTION_AT_ADDRESS(void vlong_value::shl(), vlong_value__shl);
-#endif
-#ifdef vlong_value__shr_x
-FUNCTION_AT_ADDRESS(void vlong_value::shr(), vlong_value__shr);
-#endif
-#ifdef vlong_value__shr1_x
-FUNCTION_AT_ADDRESS(void vlong_value::shr(unsigned int), vlong_value__shr1);
-#endif
-#ifdef vlong_value__add_x
-FUNCTION_AT_ADDRESS(void vlong_value::add(vlong_value&), vlong_value__add);
-#endif
-#ifdef vlong_value__subtract_x
-FUNCTION_AT_ADDRESS(void vlong_value::subtract(vlong_value&), vlong_value__subtract);
-#endif
-#ifdef vlong_value__init_x
-FUNCTION_AT_ADDRESS(void vlong_value::init(unsigned int), vlong_value__init);
-#endif
-#ifdef vlong_value__init2_x
-FUNCTION_AT_ADDRESS(void vlong_value::init2(unsigned int, unsigned int), vlong_value__init2);
-#endif
-#ifdef vlong_value__copy_x
-FUNCTION_AT_ADDRESS(void vlong_value::copy(vlong_value&), vlong_value__copy);
-#endif
-#ifdef vlong_value__vlong_value_x
-FUNCTION_AT_ADDRESS(vlong_value::vlong_value(), vlong_value__vlong_value);
-#endif
-#ifdef vlong_value__mul_x
-FUNCTION_AT_ADDRESS(void vlong_value::mul(vlong_value&, vlong_value&), vlong_value__mul);
-#endif
-#ifdef vlong_value__divide_x
-FUNCTION_AT_ADDRESS(void vlong_value::divide(vlong_value&, vlong_value&, vlong_value&), vlong_value__divide);
-#endif
-#ifdef vlong_value__dvlong_value_x
-FUNCTION_AT_ADDRESS(vlong_value::~vlong_value(), vlong_value__dvlong_value);
-#endif
-#ifdef vlong__docopy_x
-FUNCTION_AT_ADDRESS(void vlong::docopy(), vlong__docopy);
-#endif
-#ifdef vlong__cf_x
-//FUNCTION_AT_ADDRESS(int vlong::cf(vlong) const, vlong__cf);
-#endif
-#ifdef vlong__vlong_x
-FUNCTION_AT_ADDRESS(vlong::vlong(uint64_t), vlong__vlong);
-#endif
-#ifdef vlong__vlong1_x
-FUNCTION_AT_ADDRESS(vlong::vlong(const vlong&), vlong__vlong1);
-#endif
-#ifdef vlong__operator_equal_x
-FUNCTION_AT_ADDRESS(vlong& vlong::operator=(vlong), vlong__operator_equal);
-#endif
-#ifdef vlong__dvlong_x
-FUNCTION_AT_ADDRESS(vlong::~vlong(), vlong__dvlong);
-#endif
-#ifdef vlong__operator_plus_equal_x
-FUNCTION_AT_ADDRESS(vlong& vlong::operator+=(const vlong&), vlong__operator_plus_equal);
-#endif
-#ifdef vlong__operator_minus_equal_x
-FUNCTION_AT_ADDRESS(vlong& vlong::operator-=(const vlong&), vlong__operator_minus_equal);
-#endif
-#ifdef monty__monty_x
-FUNCTION_AT_ADDRESS(monty::monty(const vlong&), monty__monty);
-#endif
-#ifdef monty__mul_x
-FUNCTION_AT_ADDRESS(void monty::mul(vlong&, vlong const&), monty__mul);
-#endif
-#ifdef monty__exp_x
-FUNCTION_AT_ADDRESS(vlong monty::exp(const vlong&, vlong const&), monty__exp);
-#endif
-#ifdef monty__dmonty_x
-FUNCTION_AT_ADDRESS(monty::~monty(), monty__dmonty);
 #endif
 #ifdef ZlibUtil__zcalloc_x
 FUNCTION_AT_ADDRESS(void* __cdecl ZlibUtil::zcalloc(void*, unsigned int, unsigned int), ZlibUtil__zcalloc);
@@ -10208,9 +10044,6 @@ FUNCTION_AT_ADDRESS(bool CXMLSOMDocument::SetValueObjectId(CXStr, CXStr, uint32_
 #endif
 #ifdef CXMLSOMDocument__FieldParseItemOfClass_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocument::FieldParseItemOfClass(CXStr, CXStr, uint32_t&), CXMLSOMDocument__FieldParseItemOfClass);
-#endif
-#ifdef EQOldPlayerAnimation__mAnimationPrefix_x
-FUNCTION_AT_ADDRESS(char (* EQOldPlayerAnimation::mAnimationPrefix)[20], EQOldPlayerAnimation__mAnimationPrefix);
 #endif
 #ifdef CTextOverlay__DisplayText_x
 //this is really:

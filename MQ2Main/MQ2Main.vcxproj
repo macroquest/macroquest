@@ -96,11 +96,17 @@
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h" />
     <ClInclude Include="Containers.h" />
-    <ClInclude Include="combines.h" />
     <ClInclude Include="DataTypeList.h" />
+    <ClInclude Include="data\actordef.h" />
+    <ClInclude Include="data\combines.h" />
+    <ClInclude Include="data\dikeys.h" />
+    <ClInclude Include="data\factionnames.h" />
+    <ClInclude Include="data\itemtypes.h" />
+    <ClInclude Include="data\skills.h" />
+    <ClInclude Include="data\spelleffects.h" />
     <ClInclude Include="EQClasses.h" />
+    <ClInclude Include="EQLib.h" />
     <ClInclude Include="live\cxwnd_members.h" />
-    <ClInclude Include="live\eq.h" />
     <ClInclude Include="live\EQData.h" />
     <ClInclude Include="live\eqgame.h" />
     <ClInclude Include="live\EQUIStructs.h" />
@@ -115,14 +121,9 @@
     <ClInclude Include="MQ2Main.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
-    <ClInclude Include="dikeys.h" />
-    <ClInclude Include="itemtypes.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="skills.h" />
     <ClInclude Include="SpellEffects.h" />
-    <ClInclude Include="actordef.h" />
     <ClInclude Include="test\CXWnd-Members.h" />
-    <ClInclude Include="test\eq.h" />
     <ClInclude Include="test\EQData(Test).h" />
     <ClInclude Include="test\eqgame(Test).h" />
     <ClInclude Include="test\EQUIStructs(Test).h" />

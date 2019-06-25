@@ -265,14 +265,7 @@ typedef double DOUBLE;
 
 #define IsNaN(x) (x != x)
 
-// Apply the configuration
-#if defined(LIVE)
-#include "live/eq.h"
-#elif defined(TEST)
-#include "test/eq.h"
-#endif
-
-//class CXMLData *GetXMLData(class CXWnd *pWnd)
+#include "EQLib.h"
 
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#if __hasinclude("eqgame-private(test).h")
+#if __has_include("eqgame-private(test).h")
 #include "eqgame-private(test).h"
 #endif
 
