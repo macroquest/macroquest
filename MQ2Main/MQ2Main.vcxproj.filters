@@ -9,23 +9,32 @@
       <UniqueIdentifier>{eaecfe3f-5f26-496e-8c93-70481ca8f8cc}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
     </Filter>
-    <Filter Include="Header Files\Live">
-      <UniqueIdentifier>{f42f3260-2a57-4902-b92f-c61ab7bace23}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Test">
-      <UniqueIdentifier>{ea315069-e311-43ea-a26c-d8dd921da24f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{f444558d-0978-4637-9574-41e30a49f137}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Data">
+    <Filter Include="Header Files\EQLib">
+      <UniqueIdentifier>{17e7d0ab-83f1-410b-82da-0190a178bbf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\EQLib\Test">
+      <UniqueIdentifier>{ea315069-e311-43ea-a26c-d8dd921da24f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\EQLib\Common">
+      <UniqueIdentifier>{23261408-9247-4add-b25d-4824dda4adef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\EQLib\Live">
+      <UniqueIdentifier>{f42f3260-2a57-4902-b92f-c61ab7bace23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\EQLib\Data">
       <UniqueIdentifier>{b4cb7fc5-a4d8-4a29-8d5d-f39cd303615f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EQLib">
+      <UniqueIdentifier>{e26f03ab-c185-4d6b-826d-5a02608b633d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EQLib\Common">
+      <UniqueIdentifier>{486490de-bdb7-459b-b21a-72db064a8369}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="EQClasses.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2Auth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -95,12 +104,15 @@
     <ClCompile Include="MQ2Windows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\common\EQClasses.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="EQLib\common\CXStr.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EQClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Commands.h">
@@ -127,9 +139,6 @@
     <ClInclude Include="MQ2TopLevelObjects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpellEffects.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DataTypeList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -140,67 +149,88 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="live\EQData.h">
-      <Filter>Header Files\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="live\eqgame.h">
-      <Filter>Header Files\Live</Filter>
+      <Filter>Header Files\EQLib\Live</Filter>
     </ClInclude>
     <ClInclude Include="live\EQUIStructs.h">
-      <Filter>Header Files\Live</Filter>
+      <Filter>Header Files\EQLib\Live</Filter>
     </ClInclude>
     <ClInclude Include="Containers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="test\eqgame(Test).h">
-      <Filter>Header Files\Test</Filter>
-    </ClInclude>
     <ClInclude Include="test\EQUIStructs(Test).h">
-      <Filter>Header Files\Test</Filter>
+      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\EQData(Test).h">
-      <Filter>Header Files\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="live\cxwnd_members.h">
-      <Filter>Header Files\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="live\itembase_members.h">
-      <Filter>Header Files\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="live\playerzoneclient_members.h">
-      <Filter>Header Files\Live</Filter>
+      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\CXWnd-Members.h">
-      <Filter>Header Files\Test</Filter>
+      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\ItemBase-Members.h">
-      <Filter>Header Files\Test</Filter>
+      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\PlayerZoneClient-Members.h">
-      <Filter>Header Files\Test</Filter>
+      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="data\combines.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
     <ClInclude Include="data\dikeys.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
     <ClInclude Include="data\factionnames.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
     <ClInclude Include="data\itemtypes.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
     <ClInclude Include="data\skills.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
     <ClInclude Include="data\spelleffects.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
     <ClInclude Include="data\actordef.h">
-      <Filter>Header Files\Data</Filter>
+      <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
-    <ClInclude Include="EQLib.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="EQLib\common\CXStr.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\DynamicArray.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\EQClasses.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Mutex.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\SharedClasses.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Allocator.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Containers.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\live\CXWnd-Members.h">
+      <Filter>Header Files\EQLib\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\live\ItemBase-Members.h">
+      <Filter>Header Files\EQLib\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\live\PlayerZoneClient-Members.h">
+      <Filter>Header Files\EQLib\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\live\EQGame.h">
+      <Filter>Header Files\EQLib\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\test\EQGame(Test).h">
+      <Filter>Header Files\EQLib\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Common.h">
+      <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

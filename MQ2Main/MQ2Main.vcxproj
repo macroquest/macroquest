@@ -65,10 +65,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EQClasses.cpp">
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExceptionHandling>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
-    </ClCompile>
+    <ClCompile Include="EQLib\common\CXStr.cpp" />
+    <ClCompile Include="EQLib\common\EQClasses.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
@@ -104,14 +102,21 @@
     <ClInclude Include="data\itemtypes.h" />
     <ClInclude Include="data\skills.h" />
     <ClInclude Include="data\spelleffects.h" />
-    <ClInclude Include="EQClasses.h" />
-    <ClInclude Include="EQLib.h" />
-    <ClInclude Include="live\cxwnd_members.h" />
+    <ClInclude Include="EQLib\common\Allocator.h" />
+    <ClInclude Include="EQLib\common\Common.h" />
+    <ClInclude Include="EQLib\common\Containers.h" />
+    <ClInclude Include="EQLib\common\CXStr.h" />
+    <ClInclude Include="EQLib\common\DynamicArray.h" />
+    <ClInclude Include="EQLib\common\EQClasses.h" />
+    <ClInclude Include="EQLib\common\Mutex.h" />
+    <ClInclude Include="EQLib\common\SharedClasses.h" />
+    <ClInclude Include="EQLib\live\CXWnd-Members.h" />
+    <ClInclude Include="EQLib\live\EQGame.h" />
+    <ClInclude Include="EQLib\live\ItemBase-Members.h" />
+    <ClInclude Include="EQLib\live\PlayerZoneClient-Members.h" />
+    <ClInclude Include="EQLib\test\EQGame(Test).h" />
     <ClInclude Include="live\EQData.h" />
-    <ClInclude Include="live\eqgame.h" />
     <ClInclude Include="live\EQUIStructs.h" />
-    <ClInclude Include="live\itembase_members.h" />
-    <ClInclude Include="live\playerzoneclient_members.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
     <ClInclude Include="MQ2Globals-private_default.h" />
@@ -122,10 +127,8 @@
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SpellEffects.h" />
     <ClInclude Include="test\CXWnd-Members.h" />
     <ClInclude Include="test\EQData(Test).h" />
-    <ClInclude Include="test\eqgame(Test).h" />
     <ClInclude Include="test\EQUIStructs(Test).h" />
     <ClInclude Include="test\ItemBase-Members.h" />
     <ClInclude Include="test\PlayerZoneClient-Members.h" />
