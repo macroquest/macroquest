@@ -16,6 +16,8 @@
 
 #include "Containers.h"
 
+namespace eqlib {
+
 enum eXTSlotStatus
 {
 	eXTSlotEmpty,
@@ -77,3 +79,8 @@ struct USINGSKILL
 /*0x08*/
 };
 using PUSINGSKILL = USINGSKILL*;
+
+
+} // namespace eqlib
+
+using namespace eqlib;

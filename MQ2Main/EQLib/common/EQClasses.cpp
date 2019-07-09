@@ -12,17 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-
-#include "MQ2Main.h"
-
-UIType CXWnd::GetType()
-{
-	if (CXMLData* pXMLData = GetXMLData())
-		return pXMLData->Type;
-
-	return UI_Unknown;
-}
+#include "EQClasses.h"
 
 UIType CSidlScreenWnd::GetType()
 {
@@ -30,14 +20,6 @@ UIType CSidlScreenWnd::GetType()
 		return pXMLData->Type;
 
 	return UI_Unknown;
-}
-
-CXMLData* CXWnd::GetXMLData()
-{
-	if (int xmlindex = GetXMLIndex())
-		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(xmlindex >> 16, xmlindex & 0xFFFF);
-
-	return 0;
 }
 
 CXMLData* CSidlScreenWnd::GetXMLData()
@@ -48,60 +30,6 @@ CXMLData* CSidlScreenWnd::GetXMLData()
 	return 0;
 }
 
-CXWnd* RecurseAndFindName(CXWnd* pWnd, PCHAR Name)
-{
-	// wow... this is stupid, we can't put this much stuff on the stack since this function calls itself, for huge windows
-	// with lots of elements this WILL definately crash us...
-	// CHAR Buffer[MAX_STRING]={0};
-	// so lets do this instead:
-	CHAR* Buffer = new CHAR[MAX_STRING];
-
-	if (!pWnd)
-	{
-		delete Buffer;
-		return NULL;
-	}
-
-	if (CXMLData* pXMLData = pWnd->GetXMLData())
-	{
-		GetCXStr(pXMLData->Name.Ptr, Buffer, MAX_STRING);
-		if (Buffer[0] && !_stricmp(Buffer, Name))
-		{
-			delete Buffer;
-			return pWnd;
-		}
-
-		GetCXStr(pXMLData->ScreenID.Ptr, Buffer, MAX_STRING);
-		if (Buffer[0] && !_stricmp(Buffer, Name))
-		{
-			delete Buffer;
-			return pWnd;
-		}
-	}
-
-	if (CXWnd* pChildWnd = (CXWnd*)pWnd->GetFirstChildWnd())
-	{
-		if (CXWnd* tmp = RecurseAndFindName(pChildWnd, Name))
-		{
-			delete Buffer;
-			return tmp;
-		}
-	}
-
-	delete Buffer;
-
-	if (CXWnd* pSiblingWnd = (CXWnd*)pWnd->GetNextSiblingWnd())
-	{
-		return RecurseAndFindName(pSiblingWnd, Name);
-	}
-
-	return NULL;
-}
-
-CXWnd* CXWnd::GetChildItem(PCHAR Name)
-{
-	return RecurseAndFindName(this, Name);
-}
 
 CXWnd* CSidlScreenWnd::GetChildItem(PCHAR Name)
 {
@@ -147,16 +75,6 @@ void CEditBaseWnd::SetMaxChars(int maxChars)
 	}
 }
 
-CXPoint CXRect::CenterPoint() const
-{
-	CXPoint p;
-
-	p.X = this->left + ((this->right - this->left) / 2);
-	p.Y = this->top + ((this->bottom - this->top) / 2);
-
-	return p;
-}
-
 #pragma warning(push)
 #pragma warning(disable:4740) // warning C4740: flow in or out of inline asm code suppresses global optimization
 
@@ -195,32 +113,14 @@ FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(float ActorBase::GetBoundingRadius(), 0x60);
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid() const, 0);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*), 0x4);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonDown(CXPoint*, uint32_t), 0x38);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUp(CXPoint*, uint32_t), 0x3c);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonHeld(CXPoint*, uint32_t), 0x40);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUpAfterHeld(CXPoint*, uint32_t), 0x44);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonDown(CXPoint*, uint32_t), 0x48);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(CXPoint*, uint32_t), 0x4c);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(CXPoint*, uint32_t), 0x50);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(CXPoint*, uint32_t), 0x54);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(CXWnd*, uint32_t, void*), 0x88);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int, int), 0x0a0);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(), 0xac);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool, bool, bool), 0x0d8);
+
 #if defined(ROF2EMU) || defined(UFEMU)
-FUNCTION_AT_VIRTUAL_ADDRESS(CXRect CXWnd::GetClientRect() const, 0xf8);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(const CXStr&), 0x124);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int), 0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x17c);        // see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x184);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const, 0x18c);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const, 0x190);
 #else
-FUNCTION_AT_VIRTUAL_ADDRESS(CXRect CXWnd::GetClientRect() const, 0xfc);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(const CXStr&), 0x128);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int), 0x138);       // don't ever doubt this one, double check CXWnd__CXWnd vftable and count
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x180);       // see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x188);
 FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const, 0x190);
@@ -520,9 +420,6 @@ FUNCTION_AT_ADDRESS(int CBazaarWnd::UpdateBazaarListtoServer(), CBazaarWnd__Upda
 #ifdef CBazaarWnd__ToggleBzrItemActive_x
 FUNCTION_AT_ADDRESS(void CBazaarWnd::ToggleBzrItemActive(int, bool), CBazaarWnd__ToggleBzrItemActive);
 #endif
-#ifdef CXWnd__GetWindowTextA_x
-FUNCTION_AT_ADDRESS(CXStr CXWnd::GetWindowTextA() const, CXWnd__GetWindowTextA);
-#endif
 #ifdef CBodyTintWnd__CBodyTintWnd_x
 FUNCTION_AT_ADDRESS(CBodyTintWnd::CBodyTintWnd(CXWnd*), CBodyTintWnd__CBodyTintWnd);
 #endif
@@ -561,9 +458,6 @@ FUNCTION_AT_ADDRESS(void CBodyTintWnd::StoreModifiedBodyTints(), CBodyTintWnd__S
 #endif
 #ifdef CBodyTintWnd__ResetToOrigBodyTints_x
 FUNCTION_AT_ADDRESS(void CBodyTintWnd::ResetToOrigBodyTints(), CBodyTintWnd__ResetToOrigBodyTints);
-#endif
-#ifdef CXWnd__SetTooltip_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetTooltip(CXStr), CXWnd__SetTooltip);
 #endif
 #ifdef CBookWnd__CBookWnd_x
 FUNCTION_AT_ADDRESS(CBookWnd::CBookWnd(CXWnd*), CBookWnd__CBookWnd);
@@ -7562,192 +7456,14 @@ FUNCTION_AT_ADDRESS(CXWndDrawTemplate::~CXWndDrawTemplate(), CXWndDrawTemplate__
 #ifdef CButtonDrawTemplate__GetSize_x
 FUNCTION_AT_ADDRESS(CXSize CButtonDrawTemplate::GetSize() const, CButtonDrawTemplate__GetSize);
 #endif
-#ifdef CXWnd__CXWnd_x
-FUNCTION_AT_ADDRESS(CXWnd::CXWnd(CXWnd*, uint32_t, CXRect), CXWnd__CXWnd);
-#endif
-#ifdef CXWnd__IsType_x
-FUNCTION_AT_ADDRESS(bool CXWnd::IsType(enum EWndRuntimeType) const, CXWnd__IsType);
-#endif
-#ifdef CXWnd__SetFocus_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::SetFocus(), CXWnd__SetFocus);
-#endif
-#ifdef CXWnd__ClrFocus_x
-FUNCTION_AT_ADDRESS(void CXWnd::ClrFocus(), CXWnd__ClrFocus);
-#endif
-#ifdef CXWnd__Destroy_x
-FUNCTION_AT_ADDRESS(int CXWnd::Destroy(), CXWnd__Destroy);
-#endif
-#ifdef CXWnd__HasFocus_x
-FUNCTION_AT_ADDRESS(bool CXWnd::HasFocus() const, CXWnd__HasFocus);
-#endif
-#ifdef CXWnd__Show_x
-FUNCTION_AT_ADDRESS(int CXWnd::Show(bool, bool), CXWnd__Show);
-#endif
-#ifdef CXWnd__DrawCloseBox_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawCloseBox() const, CXWnd__DrawCloseBox);
-#endif
-#ifdef CXWnd__DrawMinimizeBox_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawMinimizeBox() const, CXWnd__DrawMinimizeBox);
-#endif
-#ifdef CXWnd__DrawTileBox_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawTileBox() const, CXWnd__DrawTileBox);
-#endif
-#ifdef CXWnd__DrawVScrollbar_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawVScrollbar(int, int, int) const, CXWnd__DrawVScrollbar);
-#endif
 #ifdef CXRect__CXRect_x
 FUNCTION_AT_ADDRESS(CXRect::CXRect(int, int, int, int), CXRect__CXRect);
 #endif
 #ifdef CXRect__operator_equal_x
 FUNCTION_AT_ADDRESS(CXRect& CXRect::operator=(const CXRect&), CXRect__operator_equal);
 #endif
-#ifdef CXWnd__DrawHScrollbar_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawHScrollbar(int, int, int) const, CXWnd__DrawHScrollbar);
-#endif
-#ifdef CXWnd__Refade_x
-FUNCTION_AT_ADDRESS(void CXWnd::Refade(), CXWnd__Refade);
-#endif
-#ifdef CXWnd__Move_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(int CXWnd::Move(const CXPoint&), CXWnd__Move);
-#else
-FUNCTION_AT_ADDRESS(int CXWnd::Move(CXPoint), CXWnd__Move);
-#endif
-#endif
-#ifdef CXWnd__Move1_x
-FUNCTION_AT_ADDRESS(int CXWnd::Move(const CXRect&, bool, bool, bool, bool), CXWnd__Move1);
-#endif
 #ifdef CXPoint__operator_equal_x
 FUNCTION_AT_ADDRESS(CXPoint CXPoint::operator=(CXPoint), CXPoint__operator_equal);
-#endif
-#ifdef CXWnd__ProcessTransition_x
-FUNCTION_AT_ADDRESS(int CXWnd::ProcessTransition(), CXWnd__ProcessTransition);
-#endif
-#ifdef CXWnd__BringToTop_x
-FUNCTION_AT_ADDRESS(void CXWnd::BringToTop(bool), CXWnd__BringToTop);
-#endif
-#ifdef CXWnd__StartFade_x
-FUNCTION_AT_ADDRESS(void CXWnd::StartFade(unsigned char, uint32_t), CXWnd__StartFade);
-#endif
-#ifdef CXWnd__Minimize_x
-FUNCTION_AT_ADDRESS(int CXWnd::Minimize(bool), CXWnd__Minimize);
-#endif
-#ifdef CXWnd__IsReallyVisible_x
-FUNCTION_AT_ADDRESS(bool CXWnd::IsReallyVisible() const, CXWnd__IsReallyVisible);
-#endif
-#ifdef CXWnd__GetNextChildWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::GetNextChildWnd(CXWnd*) const, CXWnd__GetNextChildWnd);
-#endif
-#ifdef CXWnd__GetChildWndAt_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::GetChildWndAt(CXPoint*, int, int) const, CXWnd__GetChildWndAt);
-#endif
-#ifdef CXWnd__GetFirstChildWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::GetFirstChildWnd() const, CXWnd__GetFirstChildWnd);
-#endif
-#ifdef CXWnd__GetNextSib_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::GetNextSib() const, CXWnd__GetNextSib);
-#endif
-#ifdef CXWnd__DoAllDrawing_x
-FUNCTION_AT_ADDRESS(int CXWnd::DoAllDrawing() const, CXWnd__DoAllDrawing);
-#endif
-#ifdef CXWnd__DrawLasso_x
-FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawLasso(CXRect, unsigned long, CXRect), CXWnd__DrawLasso);
-#endif
-#ifdef CXWnd__DrawChildren_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawChildren() const, CXWnd__DrawChildren);
-#endif
-#ifdef CXWnd__BringChildWndToTop_x
-FUNCTION_AT_ADDRESS(void CXWnd::BringChildWndToTop(CXWnd*), CXWnd__BringChildWndToTop);
-#endif
-#ifdef CXWnd__DrawColoredRect_x
-FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawColoredRect(CXRect, unsigned long, CXRect), CXWnd__DrawColoredRect);
-#endif
-#ifdef CXWnd__GetTooltipRect_x
-FUNCTION_AT_ADDRESS(CXRect* __cdecl CXWnd::GetTooltipRect(CXRect*), CXWnd__GetTooltipRect);
-#endif
-#ifdef CXWnd__GetTooltipRect1_x
-FUNCTION_AT_ADDRESS(CXRect __cdecl CXWnd::GetTooltipRect(CXPoint, CXSize), CXWnd__GetTooltipRect1);
-#endif
-#ifdef CXWnd__DrawTooltipAtPoint_x
-FUNCTION_AT_ADDRESS(void CXWnd::DrawTooltipAtPoint(CXPoint) const, CXWnd__DrawTooltipAtPoint);
-#endif
-#ifdef CXWnd__Bottom_x
-FUNCTION_AT_ADDRESS(void CXWnd::Bottom(), CXWnd__Bottom);
-#endif
-#ifdef CXWnd__Center_x
-FUNCTION_AT_ADDRESS(void CXWnd::Center(), CXWnd__Center);
-#endif
-#ifdef CXWnd__Right_x
-FUNCTION_AT_ADDRESS(void CXWnd::Right(), CXWnd__Right);
-#endif
-#ifdef CXWnd__Left_x
-FUNCTION_AT_ADDRESS(void CXWnd::Left(), CXWnd__Left);
-#endif
-#ifdef CXWnd__SetLookLikeParent_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetLookLikeParent(), CXWnd__SetLookLikeParent);
-#endif
-#ifdef CXWnd__GetClientClipRect_x
-FUNCTION_AT_ADDRESS(CXRect CXWnd::GetClientClipRect() const, CXWnd__GetClientClipRect);
-#endif
-#ifdef CXWnd__GetScreenClipRect_x
-FUNCTION_AT_ADDRESS(CXRect CXWnd::GetScreenClipRect() const, CXWnd__GetScreenClipRect);
-#endif
-#ifdef CXWnd__IsActive_x
-FUNCTION_AT_ADDRESS(bool CXWnd::IsActive() const, CXWnd__IsActive);
-#endif
-#ifdef CXWnd__IsDescendantOf_x
-FUNCTION_AT_ADDRESS(bool CXWnd::IsDescendantOf(CXWnd const*) const, CXWnd__IsDescendantOf);
-#endif
-#ifdef CXWnd__GetBorderFrame_x
-FUNCTION_AT_ADDRESS(CTAFrameDraw const* CXWnd::GetBorderFrame() const, CXWnd__GetBorderFrame);
-#endif
-#ifdef CXWnd__GetTitlebarHeader_x
-FUNCTION_AT_ADDRESS(CTAFrameDraw const* CXWnd::GetTitlebarHeader() const, CXWnd__GetTitlebarHeader);
-#endif
-#ifdef CXWnd__GetCloseBoxTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate const* CXWnd::GetCloseBoxTemplate() const, CXWnd__GetCloseBoxTemplate);
-#endif
-#ifdef CXWnd__GetMinimizeBoxTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate const* CXWnd::GetMinimizeBoxTemplate() const, CXWnd__GetMinimizeBoxTemplate);
-#endif
-#ifdef CXWnd__GetTileBoxTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate const* CXWnd::GetTileBoxTemplate() const, CXWnd__GetTileBoxTemplate);
-#endif
-#ifdef CXWnd__GetRelativeRect_x
-FUNCTION_AT_ADDRESS(CXRect CXWnd::GetRelativeRect() const, CXWnd__GetRelativeRect);
-#endif
-#ifdef CXWnd__GetScreenRect_x
-FUNCTION_AT_ADDRESS(CXRect CXWnd::GetScreenRect() const, CXWnd__GetScreenRect);
-#endif
-#ifdef CXWnd__Resize_x
-FUNCTION_AT_ADDRESS(int CXWnd::Resize(int, int, bool, bool, bool), CXWnd__Resize);
-#endif
-#ifdef CXWnd__GetChildItem_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::GetChildItem(const CXStr&), CXWnd__GetChildItem);
-#endif
-#ifdef CXWnd__SetParent_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::SetParent(CXWnd*), CXWnd__SetParent);
-#endif
-#ifdef CXWnd__SetZLayer_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetZLayer(int), CXWnd__SetZLayer);
-#endif
-#ifdef CXWnd__SetFirstChildPointer_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetFirstChildPointer(CXWnd*), CXWnd__SetFirstChildPointer);
-#endif
-#ifdef CXWnd__SetNextSibPointer_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetNextSibPointer(CXWnd*), CXWnd__SetNextSibPointer);
-#endif
-#ifdef CXWnd__SetMouseOver_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetMouseOver(bool), CXWnd__SetMouseOver);
-#endif
-#ifdef CXWnd__SetKeyTooltip_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetKeyTooltip(int, int), CXWnd__SetKeyTooltip);
-#endif
-#ifdef CXWnd__GetXMLTooltip_x
-FUNCTION_AT_ADDRESS(CXStr CXWnd::GetXMLTooltip() const, CXWnd__GetXMLTooltip);
-#endif
-#ifdef CXWnd__DrawTooltip_x
-FUNCTION_AT_ADDRESS(int CXWnd::DrawTooltip(CXWnd const*) const, CXWnd__DrawTooltip);
 #endif
 #ifdef CMutexSyncCounted__CMutexSyncCounted_x
 FUNCTION_AT_ADDRESS(CMutexSyncCounted::CMutexSyncCounted(), CMutexSyncCounted__CMutexSyncCounted);
@@ -8461,9 +8177,6 @@ FUNCTION_AT_ADDRESS(void CTabWnd::InsertPage(CPageWnd*, int), CTabWnd__InsertPag
 #ifdef CTabWnd__SetPageRect_x
 FUNCTION_AT_ADDRESS(void CTabWnd::SetPageRect(CXRect), CTabWnd__SetPageRect);
 #endif
-#ifdef CXWnd__Tile_x
-FUNCTION_AT_ADDRESS(int CXWnd::Tile(bool), CXWnd__Tile);
-#endif
 #ifdef CTabWnd__UpdatePage_x
 FUNCTION_AT_ADDRESS(void CTabWnd::UpdatePage(), CTabWnd__UpdatePage);
 #endif
@@ -8797,18 +8510,13 @@ FUNCTION_AT_ADDRESS(bool KeyCombo::GetPrintableLetterFromVirtualKey(unsigned int
 //#ifdef CButtonWnd__CButtonWnd_x
 //FUNCTION_AT_ADDRESS(CButtonWnd::CButtonWnd(CXWnd*, uint32_t, CXRect, class CXPoint, CXSize, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*), CButtonWnd__CButtonWnd);
 //#endif
-#ifdef CXWnd__IsEnabled_x
-FUNCTION_AT_ADDRESS(bool CXWnd::IsEnabled() const, CXWnd__IsEnabled);
-#endif
 #ifdef CButtonWnd__SetCheck_x
 FUNCTION_AT_ADDRESS(void CButtonWnd::SetCheck(bool), CButtonWnd__SetCheck);
 #endif
 #ifdef CComboWnd__CComboWnd_x
 //FUNCTION_AT_ADDRESS(CComboWnd::CComboWnd(CXWnd*, uint32_t, CXRect, int, class CButtonDrawTemplate, CListWnd*), CComboWnd__CComboWnd);
 #endif
-#ifdef CXWnd__GetWidth_x
-FUNCTION_AT_ADDRESS(int CXWnd::GetWidth() const, CXWnd__GetWidth);
-#endif
+
 #ifdef CComboWnd__GetListRect_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetListRect(bool) const, CComboWnd__GetListRect);
@@ -9310,9 +9018,6 @@ FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, C
 #ifdef CTAFrameDraw__GetAnimation_x
 FUNCTION_AT_ADDRESS(CTextureAnimation* CTAFrameDraw::GetAnimation(int) const, CTAFrameDraw__GetAnimation);
 #endif
-#ifdef CXWnd__SetXMLTooltip_x
-FUNCTION_AT_ADDRESS(void CXWnd::SetXMLTooltip(CXStr), CXWnd__SetXMLTooltip);
-#endif
 #ifdef CSidlManager__TranslateString_x
 FUNCTION_AT_ADDRESS(CXStr __cdecl CSidlManager::TranslateString(CXStr), CSidlManager__TranslateString);
 #endif
@@ -9417,12 +9122,6 @@ FUNCTION_AT_ADDRESS(int CSliderWnd::DrawEndCapRight() const, CSliderWnd__DrawEnd
 #endif
 #ifdef CSliderWnd__DrawThumb_x
 FUNCTION_AT_ADDRESS(int CSliderWnd::DrawThumb() const, CSliderWnd__DrawThumb);
-#endif
-#ifdef CXWnd__DrawRaisedRect_x
-FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawRaisedRect(CXRect, CXRect), CXWnd__DrawRaisedRect);
-#endif
-#ifdef CXWnd__DrawSunkenRect_x
-FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawSunkenRect(CXRect, CXRect), CXWnd__DrawSunkenRect);
 #endif
 #ifdef CEditBaseWnd__SetSel_x
 FUNCTION_AT_ADDRESS(void CEditBaseWnd::SetSel(int, int), CEditBaseWnd__SetSel);
@@ -10154,9 +9853,6 @@ FUNCTION_AT_ADDRESS(void PcZoneClient::BandolierSwap(int index), PcZoneClient__B
 #endif
 #ifdef PcZoneClient__GetLinkedSpellReuseTimer_x
 FUNCTION_AT_ADDRESS(UINT PcZoneClient::GetLinkedSpellReuseTimer(int index), PcZoneClient__GetLinkedSpellReuseTimer);
-#endif
-#ifdef CXWnd__SetFont_x
-FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
 #endif
 #ifdef CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x
 FUNCTION_AT_ADDRESS(CCollisionInfoTargetVisibility::CCollisionInfoTargetVisibility(CLineSegment*, EQPlayer*, EQPlayer*), CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);

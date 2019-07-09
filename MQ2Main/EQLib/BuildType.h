@@ -14,36 +14,14 @@
 
 #pragma once
 
-#include "BuildType.h"
-#include "common/Common.h"
+#if !defined(LIVE) && !defined(TEST) && !defined(EQBETA)
 
+// the currently active configuration. Can be one of LIVE, or TEST
 #define TEST
 
-// EQLib Configuration
-
-//#define NEWCHARINFO
-
-// Probably needs a Config.h
-//#define KNIGHTLYPARSE
-
-// Apply the configuration
-#if defined(LIVE)
-
-#include "live/eqgame.h"
-
-#include "live/EQUIStructs.h"
-#include "live/EQData.h"
-
-#include "EQClasses.h"
-
-#elif defined(TEST)
-
-#include "test/eqgame(test).h"
-
-#include "test/EQUIStructs(Test).h"
-#include "test/EQData(Test).h"
-
+#if defined(LIVE) && !__has_include("live/eqgame.h")
+#undef LIVE
+#define TEST
 #endif
 
-#include "EQClasses.h"
-#include "SharedClasses.h"
+#endif

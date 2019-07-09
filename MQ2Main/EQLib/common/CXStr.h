@@ -324,8 +324,7 @@ public:
 		>>;
 
 	template <typename Iter>
-	using is_elem_cptr = std::bool_constant < std::_Is_any_of_v<Iter,
-		const char* const, char* const, const char*, char*>;
+	using is_elem_cptr = std::bool_constant<std::_Is_any_of_v<Iter, const char* const, char* const, const char*, char*>>;
 
 	static const size_type npos = -1;
 

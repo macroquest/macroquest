@@ -14,30 +14,12 @@
 
 #pragma once
 
+#include "Common.h"
+
 #include <cstdint>
 
-struct CStrPtr
-{
-	int RefCount;
-	long MaxLength;
-	long Length;
-	int Encoding;
-	void *Buff;
-	union
-	{
-		char Ansi[1000];
-		wchar_t Unicode[500];
-		CStrPtr* pNext;
-	};
-};
+namespace eqlib {
 
-class CCXStr
-{
-public:
-	EQLIB_OBJECT CCXStr& operator= (char const *str);
-
-	CStrPtr* Ptr;
-};
 //----------------------------------------------------------------------------
 
 class CDynamicArrayBase;
@@ -1180,3 +1162,7 @@ public:
 	UINT    Len;
 	UINT    Index;
 };
+
+} // namespace eqlib
+
+using namespace eqlib;

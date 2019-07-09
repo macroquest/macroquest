@@ -12,12 +12,12 @@
  * GNU General Public License for more details.
  */
 
-	DWORD       BGType;                              // found in CSidlScreenWnd__StoreIniInfo_x
-	RECT        Location;
+	uint32_t    BGType;                              // found in CSidlScreenWnd__StoreIniInfo_x
+	CXRect      Location;
 	CXStr       WindowText;                          // CXWnd__GetWindowTextA_x has this one
-	UINT        BlinkFadeDuration;
+	uint32_t    BlinkFadeDuration;
 	bool        Clickable;                           // found in CChatWindow__CChatWindow_x and the button handlers
-	BYTE        FadeToAlpha;                         // found in CSidlScreenWnd__StoreIniInfo_x
+	uint8_t     FadeToAlpha;                         // found in CSidlScreenWnd__StoreIniInfo_x
 	bool        bHCenterTooltip;
 	bool        Locked;                              // found in CSidlScreenWnd__LoadIniInfo_x
 	bool        bBringToTopWhenClicked;
@@ -25,20 +25,20 @@
 	void*       IconTextureAnim;
 	void*       TitlePiece2;
 	bool        bNeedsSaving;                        // will be true if you move or resize the window
-	UINT        FadeDuration;
+	uint32_t    FadeDuration;
 	int         DeleteCount;
 	bool        bClientRectChanged;
 	bool        bMaximized;
-	BYTE        TargetAlpha;
+	uint8_t     TargetAlpha;
 	int         LeftOffset;
-	BYTE        Alpha;
+	uint8_t     Alpha;
 	CXStr       Tooltip;                             // found in CSidlManager__CreateLabel_x
 	bool        bScreenClipRectChanged;
 	int         BottomOffset;
-	BYTE        FadeAlpha;
+	uint8_t     FadeAlpha;
 	void*       pTipTextObject;
 	int         VScrollMax;
-	DWORD       LastTimeMouseOver;
+	uint32_t    LastTimeMouseOver;
 	bool        Faded;
 	int         VScrollPos;
 	bool        bBorder2;
@@ -47,73 +47,73 @@
 	bool        bIsTransitioning;
 	int         ParentAndContextMenuArrayIndex;
 	bool        Enabled;
-	RECT        TransitionRect;
+	CXRect      TransitionRect;
 	bool        bMarkedForDelete;
-	UINT        BlinkFadeStartTime;
+	uint32_t    BlinkFadeStartTime;
 	bool        bAction;
 	bool        bClickThroughMenuItemStatus;         // on/off
 	void*       pFont;
 	bool        bIsParentOrContextMenuWindow;
-	tagSIZE     MaxClientSize;
+	CXSize      MaxClientSize;
 	int         ZLayer;                              // found in CXWndManager__DrawWindows_x
 	COLORREF    CRNormal;                            // found in OnProcessFrame
 	bool        bUseInLayoutHorizontal;
 	bool        bRightAnchoredToLeft;
-	DWORD       FadeDelay;
+	uint32_t    FadeDelay;
 	bool        bEscapableLocked;
-	RECT        OldLocation;
-	BYTE        bResizableMask;
+	CXRect      OldLocation;
+	uint8_t     bResizableMask;
 	bool        bMaximizable;
 	int         BlinkState;
 	bool        dShow;
 	int         HScrollMax;
 	bool        Unlockable;                          // found in CSidlScreenWnd__LoadIniInfo_x related to Locked
 	bool        Minimized;
-	CSIDLWND*   pWndFocusOther;
+	CXWnd*      FocusProxy;
 	bool        bShowClickThroughMenuItem;           // shows/hides the click through option on the window menu
 	bool        bTopAnchoredToTop;
-	DWORD       XMLIndex;
+	uint32_t    XMLIndex;
 	void*       pController;
 	void*       TitlePiece;
 	bool        MouseOver;                           // found in CXWnd__SetMouseOver_x
 	bool        Fades;
 	COLORREF    DisabledBackground;
 	bool        bBottomAnchoredToTop;
-	UINT        LastBlinkFadeRefreshTime;
-	RECT        ClipRectClient;
+	uint32_t    LastBlinkFadeRefreshTime;
+	CXRect      ClipRectClient;
 	bool        bClipToParent;
 	void*       pTextObject;
 	bool        bUseInLayoutVertical;
 	int         managerArrayIndex;
-	UINT        TransitionDuration;
-	BYTE        StartAlpha;
+	uint32_t    TransitionDuration;
+	uint8_t     StartAlpha;
 	bool        ValidCXWnd;                          // IsValid has this one
 	bool        bBorder;
 	CXStr       DataStr;
 	int64_t     Data;
-	tagSIZE     MinClientSize;
+	CXSize      MinClientSize;
 	bool        bLeftAnchoredToLeft;
-	RECT        IconRect;
-	RECT        ClipRectScreen;
-	LONG        BlinkStartTimer;
+	CXRect      IconRect;
+	CXRect      ClipRectScreen;
+	int         BlinkStartTimer;
 	bool        bFullyScreenClipped;
 	int         Transition;
-	RECT        ClientRect;
+	CXRect      ClientRect;
 	int         TopOffset;
 	bool        bTiled;
 	bool        bClientClipRectChanged;
 	bool        bClickThrough;                       // if true you can click through the window, well it doesnt work for our chatwindow (yet) so more work is needed to figure out why
-	UINT        BlinkFadeFreq;
+	uint32_t    BlinkFadeFreq;
 	int         HScrollPos;
-	DWORD       WindowStyle;                         // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-	UINT        TransitionStartTick;
+	uint32_t    WindowStyle;                         // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+	uint32_t    TransitionStartTick;
 	bool        CloseOnESC;                          // found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed
 	COLORREF    BGColor;                             // DO NOT CHNAGE THIS TO AN ARGBCOLOR, it will break the padding since its a union that has bytes in it.
 	CXStr       XMLToolTip;                          // found in CSidlManager__CreateLabel_x
 	void*       pLayoutStrategy;
-	void*       DrawTemplate;
-	CSIDLWND*   pParentWindow;                       // CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute...
+	CXWndDrawTemplate* DrawTemplate;
+	CXWnd*      ParentWindow;                        // CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute...
 	bool        bKeepOnScreen;
-	ArrayClass2_RO<UINT> RuntimeTypes;                     // Size 0x1c
+	ArrayClass2_RO<UINT> RuntimeTypes;               // Size 0x1c
 	int         RightOffset;
-	DWORD       BackgroundDrawType;
+	uint32_t    BackgroundDrawType;
