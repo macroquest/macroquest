@@ -748,11 +748,13 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 	KeyCombo Escape;
 	ParseKeyCombo("Esc", Escape);
 	if (ppContainerMgr && pContainerMgr) {
-		PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
+		CContainerMgr *ContainerMgr = (CContainerMgr*)pContainerMgr;
 		DWORD concount = 2; //Close inv + clear target
-		if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open == 1) concount++;
-		for (i = 0; i<25; i++) {
-			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.IsVisible() == 1) concount++;
+		if (ContainerMgr->pWorldContainer.pObject && ContainerMgr->pWorldContainer.pObject->Open == 1)
+			concount++;
+		for (i = 0; i < MAX_CONTAINERS; i++) {
+			if (ContainerMgr->pContainerWnds[i] && ContainerMgr->pContainerWnds[i]->IsVisible() == 1)
+				concount++;
 		}
 		for (i = 0; i<concount; i++)
 		{

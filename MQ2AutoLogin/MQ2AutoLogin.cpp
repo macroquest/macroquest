@@ -196,7 +196,22 @@ _ServerData ServerData[] = {
 };*/
 #pragma pack(push)
 #pragma pack(8)
-
+#if defined(ROF2EMU) || defined(UFEMU)
+typedef struct _DateStruct
+{
+/*0x10*/ CHAR	Hours;
+/*0x11*/ CHAR	Minutes;
+/*0x12*/ CHAR	Seconds;
+/*0x13*/ CHAR	Month;
+/*0x14*/ CHAR	Day;
+/*0x16*/ WORD	Year;//for sure at 0x16 see 10022F80 in rof2 eqmain.dll -eqmule
+/*0x18*/ PCXSTR	Unknown0x18;
+/*0x1c*/ PCXSTR	Unknown0x1c;
+/*0x20*/ PCXSTR	Unknown0x20;
+/*0x28*/ __int64	TimeStamp;
+/*0x30*/
+}DateStruct,*PDateStruct;
+#else
 typedef struct _DateStruct
 {
 /*0x18*/ CHAR	Hours;
@@ -204,14 +219,33 @@ typedef struct _DateStruct
 /*0x1a*/ CHAR	Seconds;
 /*0x1b*/ CHAR	Month;
 /*0x1c*/ CHAR	Day;
-/*0x1e*/ WORD	Year;
-/*0x20*/ PCXSTR	Unknown0x08;
-/*0x24*/ PCXSTR	Unknown0x0c;
-/*0x28*/ PCXSTR	Unknown0x10;
+/*0x1e*/ WORD	Year;//for sure at 0x1e see 100226D0 in eqmain.dll Jun 21 2019 -eqmule
+/*0x20*/ PCXSTR	Unknown0x20;
+/*0x24*/ PCXSTR	Unknown0x24;
+/*0x28*/ PCXSTR	Unknown0x28;
 /*0x30*/ __int64	TimeStamp;
-/*0x38*/
 }DateStruct,*PDateStruct;
-#pragma pack(pop)
+#endif
+#if defined(ROF2EMU) || defined(UFEMU)
+//size is 0x48 see 10022F48 in rof2 -eqmule
+typedef struct _SERVERINFO//EQClientServerData
+{
+/*0x00*/	DWORD ID;
+/*0x04*/	PCXSTR ServerName;
+/*0x08*/	PCXSTR HostName;
+/*0x0C*/	PCXSTR ServerIP;
+//*0x0c*/	DWORD ExternalPort;//doesn't exist in rof2 client
+//*0x10*/	DWORD InternalPort;//doesn't exist in rof2 client
+/*0x10*/	DateStruct DateCreated;
+/*0x30*/	DWORD Flags;
+/*0x34*/	DWORD ServerType;
+/*0x38*/	PCXSTR LanguageCode;//at 0x38 for sure in ROF2
+/*0x3C*/	PCXSTR CountryCode;
+/*0x40*/	DWORD StatusFlags;
+/*0x44*/	DWORD PopulationRanking;
+/*0x48*/
+}SERVERINFO,*PSERVERINFO;
+#else
 typedef struct _SERVERINFO//EQClientServerData
 {
 /*0x00*/	DWORD ID;
@@ -220,15 +254,16 @@ typedef struct _SERVERINFO//EQClientServerData
 /*0x0C*/	PCXSTR ServerIP;
 /*0x10*/	DWORD ExternalPort;
 /*0x14*/	DWORD InternalPort;
-/*0x018*/	DateStruct DateCreated;
-/*0x038*/	DWORD Flags;
-/*0x03C*/	DWORD ServerType;
-/*0x040*/	PCXSTR LanguageCode;//at 0x40 for sure
-/*0x044*/	PCXSTR CountryCode;
-/*0x048*/	DWORD StatusFlags;
-/*0x04C*/	DWORD PopulationRanking;
-/*0x050*/
+/*0x18*/	DateStruct DateCreated;
+/*0x38*/	DWORD Flags;
+/*0x3C*/	DWORD ServerType;
+/*0x40*/	PCXSTR LanguageCode;//at 0x40 for sure
+/*0x44*/	PCXSTR CountryCode;
+/*0x48*/	DWORD StatusFlags;
+/*0x4C*/	DWORD PopulationRanking;
+/*0x50*/
 }SERVERINFO,*PSERVERINFO;
+#endif
 typedef struct _SERVERLIST
 {
 /*0x00*/	PSERVERINFO Info;
@@ -239,6 +274,7 @@ typedef struct _SERVERLIST
 /*0x14*/	DWORD Unknown0x14;
 /*0x18*/
 }SERVERLIST,*PSERVERLIST;
+#pragma pack(pop)
 
 typedef struct _PSERVERSTUFF
 {
@@ -419,6 +455,11 @@ char lcMask[] = "xx????xxx";
 #if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1";
 char lcEGMask[] = "xxxxxx????xx????xxxxxxx";
+#elif defined(TEST) 
+//0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
+//55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
+PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
+char lcEGMask[] = "xxxxxx????xx????xxxxx";
 #else
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x56";
 char lcEGMask[] = "xxxxxx????xx????xxxxx";

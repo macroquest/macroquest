@@ -1811,20 +1811,39 @@ public:
 	EQLIB_OBJECT bool IsEquippedLocation();
 	EQLIB_OBJECT bool IsValidIndex();
 };
-
+#if defined(ROF2EMU) || defined(UFEMU)
+#define MAX_CONTAINERS 0x24
+//size 0xBC in ROF2 49750B
 class CContainerMgr
 {
 public:
-	DWORD vfTable;
-	CContainerWnd *pContainerWnds[38];
-	ArrayClass<CContainerWnd*> ContainerWndsToDelete;
-	VePointer<CONTENTS> pWorldContainer;
-	DWORD WorldContainerSerialNumber;
-	int WorldContainerRealEstateID;
-	int WorldContainerRealEstateItemID;
-	DWORD Timer;
-	bool bShowDone;
-
+/*0x00*/ DWORD vfTable;
+/*0x04*/ CContainerWnd *pContainerWnds[MAX_CONTAINERS];
+/*0x94*/ ArrayClass<CContainerWnd*> ContainerWndsToDelete;
+/*0xA4*/ VePointer<CONTENTS> pWorldContainer;
+/*0xA8*/ DWORD WorldContainerSerialNumber;
+/*0xAC*/ int WorldContainerRealEstateID;
+/*0xB0*/ int WorldContainerRealEstateItemID;
+/*0xB4*/ DWORD Timer;
+/*0xB8*/ bool bShowDone;
+/*0xBC*/
+#else
+#define MAX_CONTAINERS 0x28//40
+//size 0xCC see 541C60 Jul 10 2019 test -eqmule
+class CContainerMgr
+{
+public:
+/*0x00*/ DWORD vfTable;
+/*0x04*/ CContainerWnd *pContainerWnds[MAX_CONTAINERS];
+/*0xA4*/ ArrayClass<CContainerWnd*> ContainerWndsToDelete;
+/*0xB4*/ VePointer<CONTENTS> pWorldContainer;
+/*0xB8*/ DWORD WorldContainerSerialNumber;
+/*0xBC*/ int WorldContainerRealEstateID;
+/*0xC0*/ int WorldContainerRealEstateItemID;
+/*0xC4*/ DWORD Timer;
+/*0xC8*/ bool bShowDone;
+/*0xCC*/
+#endif
 EQLIB_OBJECT CContainerMgr::CContainerMgr(void);
 EQLIB_OBJECT bool CContainerMgr::CloseAllContainers(void);
 EQLIB_OBJECT class EQ_Item * CContainerMgr::GetWorldContainerItem(int);

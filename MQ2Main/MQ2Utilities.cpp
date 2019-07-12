@@ -1500,21 +1500,24 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 
 PCONTENTS GetEnviroContainer()
 {
-	if (!ppContainerMgr || !pContainerMgr) return NULL;
-	PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
-	if (!ContainerMgr->pWorldContents) return NULL;
-	return ContainerMgr->pWorldContents;
+	if (!ppContainerMgr || !pContainerMgr)
+		return NULL;
+	CContainerMgr *ContainerMgr = (CContainerMgr *)pContainerMgr;
+	if (!ContainerMgr->pWorldContainer.pObject)
+		return NULL;
+	return ContainerMgr->pWorldContainer.pObject;
 }
 
-PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents)
+CContainerWnd *FindContainerForContents(PCONTENTS pContents)
 {
-	if (!ppContainerMgr || !pContainerMgr) return NULL;
-	PEQ_CONTAINERWND_MANAGER pMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
+	if (!ppContainerMgr || !pContainerMgr)
+		return NULL;
+	CContainerMgr *pMgr = (CContainerMgr *)pContainerMgr;
 
-	for (int j = 0; j < 35; j++)
+	for (int j = 0; j < MAX_CONTAINERS; j++)
 	{
-		if (pMgr->pPCContainers[j] && (pMgr->pPCContainers[j]->pContents == pContents))
-			return (pMgr->pPCContainers[j]);
+		if (pMgr->pContainerWnds[j] && (pMgr->pContainerWnds[j]->pCont == pContents))
+			return (pMgr->pContainerWnds[j]);
 	}
 	return NULL;
 }
@@ -7490,6 +7493,46 @@ DWORD GetSpellBuffTimer(DWORD SpellID)
 	}
 	return 0;
 }
+#if defined(KNIGHTLYPARSE) || defined(KNIGHTLYINLINECOMMENTS)
+/**
+ * @fn ReplaceSubstring
+ *
+ * @brief Replaces all occurrences of one string with another string
+ *
+ * Starting from the beginning of the string, find each occurance of a substring
+ * and replace that with another substring.
+ *
+ * @param strOriginal The string that you would like to search
+ * @param strFind The substring to look for in the Original string
+ * @param strReplace The substring to use to replace strFind
+ *
+ * @return std::string The result of replacing the values in the original string
+ */
+std::string ReplaceSubstring(std::string strOriginal, std::string strFind, std::string strReplace) {
+	// Set a tracker for our position
+	size_t iCurrentPosition = 0;
+
+	// Track if we hit the end of the string
+	bool bEndOfString = false;
+
+	while (!bEndOfString) {
+		// Find the next occurence of the substring
+		iCurrentPosition = strOriginal.find(strFind, iCurrentPosition);
+		// If it wasn't found, we're at the end of the string
+		if (iCurrentPosition == std::string::npos) {
+			bEndOfString = true;
+		}
+		// Otherwise, we found the next occurrence
+		else {
+			// Replace the string we found
+			strOriginal.replace(iCurrentPosition, strFind.length(), strReplace);
+			// Move our tracker past the string we just replaced with so we don't pick it up again
+			iCurrentPosition += strReplace.length();
+		}
+	}
+	return strOriginal;
+}
+#endif //KNIGHTLYPARSE || KNIGHTLYINLINECOMMENTS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 void AttackRanged(EQPlayer *pRangedTarget)

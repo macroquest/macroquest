@@ -1781,6 +1781,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
 
+#if defined(KNIGHTLYPARSE) || defined(KNIGHTLYINLINECOMMENTS)
+	const char ESCAPE_CHARACTER = '\\';
+#endif // KNIGHTLYPARSE || KNIGHTLYINLINECOMMENTS
 #ifdef KNIGHTLYPARSE
 	const std::string PARSE_PARAM_BEG = "${Parse[";
 	const std::string PARSE_PARAM_END = "]}";

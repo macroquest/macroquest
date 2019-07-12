@@ -608,10 +608,12 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
  *
  * @brief Finds the brace that matches from the start position. Returns the match position
  *
- * Starting from the given start position, walks through each character and increments a set of
- * trackers for opens (decrementing for close) specifically for {, ", [, and allowing for an
- * escape character to circumvent the tracking.
+ * This is a replication of the original logic for finding the matching brace in MQ2.  It does
+ * not allow for escape characters and there is some weird logic to it (for example, quoted
+ * strings only last until a close bracket) but I've duplicated it here for backwards
+ * compatibility.
  *
+ * This will start at the position specified and try to find the matching closing brace.
  * If the match has been found, the function will return the location of that match.  If it
  * cannot be found, returns std::string::npos to match what find() would return.
  *
@@ -620,21 +622,18 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
  *
  * @param strOrigString The string that you would like to check
  * @param iStartPos The position to start at in the string (allows for starting in the middle to get an interior match)
- * @param bTrackQuotes Whether or not double quotes should be tracked, defaults to false
- * @param strEscapeChar What escape character we're using, defaults to \
  *
  * @return size_t position of the matching brace (or npos if no match found)
  */
-size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos, std::string strEscapeChar = "\\", bool bTrackQuotes = false, bool bTrackBrackets = false)
+size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos, std::string strEscapeChar = "\\")
 {
 	// Set our current position to the start Position
 	size_t iCurrentPosition = iStartPos;
 
 	// Setup our needed trackers
 	int iBraceTracker = 0; // Track {
-	//int iBracketTracker = 0; // Track [
 	bool bQuoteTracker = false; // Track "
-	bool bEscapeCharTracker = false; // Track whatever escape Char
+	bool bParamTracker = false; // Track parameters ([ & ,)
 
 	// We already know what the first two characters are going to be so let's jump to the new position + 2.
 	iCurrentPosition += 2;
@@ -644,37 +643,42 @@ size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos, std::s
 
 	// Walk through the braces until we find the matching end brace or we reach the end of the string
 	while ((iBraceTracker > 0) && (iCurrentPosition < strOrigString.size())) {
-		// If the character is our Escape Character...
-		if (std::to_string(strOrigString[iCurrentPosition]) == strEscapeChar) {
-			// If we escaped the escape character, then stop tracking it, otherwise we need to track it
-			bEscapeCharTracker = !bEscapeCharTracker;
+		// If our last character was a start parameter
+		if (bParamTracker) {
+			// This character isn't a start parameter
+			bParamTracker = false;
+			// If this is a double quote after the parameter, we're going to assume we're in a quoted string
+			if (strOrigString[iCurrentPosition] == '"') {
+				bQuoteTracker = true;
+			}
 		}
-		// Otherwise it's not our Escape Character...
-		else {
-			// If we're not escaping (otherwise we are escaping so just skip everything and clear the escape).
-			if (!bEscapeCharTracker) {
-				// If we're tracking quotes and we're either in a quoted string or this character is a quote
-				if (bTrackQuotes && (bQuoteTracker || strOrigString[iCurrentPosition] == '"')) {
-					// Toggle the quote tracker if this is a ", otherwise nothing to do because we're in a quoted string
-					if (strOrigString[iCurrentPosition] == '"') {
-						bQuoteTracker = !bQuoteTracker;
-					}
-				}
-				// Otherwise we're not in a quoted string or dealing with a "
-				else {
-					// If the character is an open brace
-					if (strOrigString[iCurrentPosition] == '{') {
-						iBraceTracker++;
-					}
-					// Otherwise if the character is a close brace
-					else if (strOrigString[iCurrentPosition] == '}') {
-						iBraceTracker--;
-					}
+		// If our last character wasn't a start parameter, are we in a quoted string?
+		else if (bQuoteTracker) {
+			// If this character is a quote
+			if (strOrigString[iCurrentPosition] == '"') {
+				// If there is room for another character at the end fo this string and that character is ] or ,
+				if (((iCurrentPosition + 1) < strOrigString.size()) && (strOrigString[iCurrentPosition + 1] == ']' || strOrigString[iCurrentPosition + 1] == ',')) {
+					// Assume we're no longer in a quoted string.
+					bQuoteTracker = false;
 				}
 			}
-			// Regardless, stop looking at the escape character since it's not escaping anything anymore
-			bEscapeCharTracker = false;
 		}
+		// Otherwise our last character wasn't a parameter, and we're not in a quoted string
+		else {
+			// Decrement for a close brace
+			if (strOrigString[iCurrentPosition] == '}') {
+				iBraceTracker--;
+			}
+			// Increment for an open brace
+			else if (strOrigString[iCurrentPosition] == '{') {
+				iBraceTracker++;
+			}
+			// Check for open parameters
+			else if (strOrigString[iCurrentPosition] == '[' || strOrigString[iCurrentPosition] == ',') {
+				bParamTracker = true;
+			}
+		}
+
 		// Move to the next character
 		iCurrentPosition++;
 	}
@@ -687,45 +691,6 @@ size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos, std::s
 	else {
 		return std::string::npos;
 	}
-}
-
-/**
- * @fn ReplaceSubstring
- *
- * @brief Replaces all occurrences of one string with another string
- *
- * Starting from the beginning of the string, find each occurance of a substring
- * and replace that with another substring.
- *
- * @param strOriginal The string that you would like to search
- * @param strFind The substring to look for in the Original string
- * @param strReplace The substring to use to replace strFind
- *
- * @return std::string The result of replacing the values in the original string
- */
-std::string ReplaceSubstring(std::string strOriginal, std::string strFind, std::string strReplace) {
-	// Set a tracker for our position
-	size_t iCurrentPosition = 0;
-
-	// Track if we hit the end of the string
-	bool bEndOfString = false;
-
-	while (!bEndOfString) {
-		// Find the next occurence of the substring
-		iCurrentPosition = strOriginal.find(strFind, iCurrentPosition);
-		// If it wasn't found, we're at the end of the string
-		if (iCurrentPosition == std::string::npos) {
-			bEndOfString = true;
-		}
-		// Otherwise, we found the next occurrence
-		else {
-			// Replace the string we found
-			strOriginal.replace(iCurrentPosition, strFind.length(), strReplace);
-			// Move our tracker past the string we just replaced with so we don't pick it up again
-			iCurrentPosition += strReplace.length();
-		}
-	}
-	return strOriginal;
 }
 
 // Forward Declaration since this is used in GetMacroVarData and there is no header for MQ2DataAPI.
@@ -850,7 +815,7 @@ std::string ParseMacroString(std::string strOriginal, std::string escapeString =
  *
  * @return std::string The parsed string (or the original string if there was no ${Parse parameter)
  */
-std::string HandleParseParam(std::string strOriginal, std::string escapeString, bool bParseOnce) {
+std::string HandleParseParam(std::string strOriginal, std::string strEscapeString, bool bParseOnce) {
 	// Setup a return string to handle our return and initialize it to the original string.
 	std::string strReturn = strOriginal;
 	// If the string passed to us doesn't start with ${Parse[
@@ -860,13 +825,13 @@ std::string HandleParseParam(std::string strOriginal, std::string escapeString, 
 			// If we're not at the start of a variable...
 			if (strReturn.substr(0, 2) != "${") {
 				// Tokenize the entire thing and parse it that way
-				strReturn = ParseMacroString(strReturn, escapeString, bParseOnce);
+				strReturn = ParseMacroString(strReturn, strEscapeString, bParseOnce);
 			}
 			// We are at the start of a variable
 			else {
 				// We're going to need to start further in so that we can tokenize the internals
 				// This takes care of situations like ${SomeCustomTLO[${Parse[0,${Me.Name}]}, ${Me.Name}]}
-				strReturn = "${" + ParseMacroString(strReturn.substr(2, strReturn.length()), escapeString, bParseOnce);
+				strReturn = "${" + ParseMacroString(strReturn.substr(2, strReturn.length()), strEscapeString, bParseOnce);
 				// If we are supposed to parse until we're done we need to do a final evaluation of the variable we found.
 				if (!bParseOnce) {
 					// Evaluate the (parsed) return string.
@@ -903,16 +868,18 @@ std::string HandleParseParam(std::string strOriginal, std::string escapeString, 
 
 					// The Sub Parse (thing to be parsed) is the area after the first Delimiter.
 					std::string strSubParse = strReturn.substr(iFirstDelimiter + 1, strReturn.length() - iFirstDelimiter - 3);
-					// If this is a ${Parse[0, just remove the parse because we're done.
-					if (iParseIterations == 0) {
+					// If this is a ${Parse[0, just remove the parse because we're done.  Also, if this is a negative number, treat it like a Parse 0.
+					if (iParseIterations <= 0) {
 						// Remove the parse
 						strReturn = strSubParse;
+						/* The below only matters if the Parsing Engine allows Escape characters and right now FindMacroClosingBrace does not.
 						// Fix any escaped characters so we're not showing the escape string too.
-						strReturn = ReplaceSubstring(strReturn, escapeString + escapeString, escapeString);
-						strReturn = ReplaceSubstring(strReturn, escapeString + "[", "[");
-						strReturn = ReplaceSubstring(strReturn, escapeString + "]", "]");
-						strReturn = ReplaceSubstring(strReturn, escapeString + "{", "{");
-						strReturn = ReplaceSubstring(strReturn, escapeString + "}", "}");
+						strReturn = ReplaceSubstring(strReturn, strEscapeString + strEscapeString, strEscapeString);
+						strReturn = ReplaceSubstring(strReturn, strEscapeString + "[", "[");
+						strReturn = ReplaceSubstring(strReturn, strEscapeString + "]", "]");
+						strReturn = ReplaceSubstring(strReturn, strEscapeString + "{", "{");
+						strReturn = ReplaceSubstring(strReturn, strEscapeString + "}", "}");
+						*/
 					}
 					// This is more than a Parse 0.
 					else {
@@ -928,7 +895,7 @@ std::string HandleParseParam(std::string strOriginal, std::string escapeString, 
 						// We have variables to parse
 						else {
 							// Decrement the iterations and Parse the variables only once (we'll go further if we need to in additional loops)
-							strReturn = PARSE_PARAM_BEG + std::to_string(iParseIterations - 1) + strDelimiter + ParseMacroString(strSubParse, escapeString, true) + PARSE_PARAM_END;
+							strReturn = PARSE_PARAM_BEG + std::to_string(iParseIterations - 1) + strDelimiter + ParseMacroString(strSubParse, strEscapeString, true) + PARSE_PARAM_END;
 						}
 					}
 					// Decrement our iteration counter
@@ -1136,8 +1103,15 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 	std::string strOriginal = szOriginal;
 	// Pass it off to our String Parser
 	std::string strReturn = ParseMacroString(strOriginal);
-	// If the result is larger than MAX_STRING then we need to trim.
+	// If the result is larger than MAX_STRING
 	if (strReturn.length() >= MAX_STRING) {
+		// If we are currently in a macro block
+		if (PMACROBLOCK currblock = GetCurrentMacroBlock())
+		{
+			currblock->Line[currblock->CurrIndex].Command.c_str();
+			MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d", currblock->Line[currblock->CurrIndex].SourceFile.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
+		}
+		// Trim the result.
 		strReturn = strReturn.substr(0, MAX_STRING - 1);
 	}
 	// Copy the parsed string into the original string

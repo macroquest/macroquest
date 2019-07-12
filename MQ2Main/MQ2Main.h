@@ -102,11 +102,11 @@ extern CRITICAL_SECTION gPluginCS;
 #if defined(LIVE)
 #include "eqgame.h"
 //#define NEWCHARINFO
-//#define KNIGHTLYPARSE
+#define KNIGHTLYPARSE
 #elif defined(TEST)
 #include "eqgame(Test).h"
 //#define NEWCHARINFO
-//#define KNIGHTLYPARSE
+#define KNIGHTLYPARSE
 #elif defined(EQBETA)
 #include "eqgame(beta).h"
 //#define NEWCHARINFO
@@ -621,7 +621,7 @@ EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 extern std::map<int, std::string>targetBuffSlotToCasterMap; 
 extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
 EQLIB_API PCONTENTS GetEnviroContainer();
-EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
+EQLIB_API CContainerWnd *FindContainerForContents(PCONTENTS pContents);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize);
@@ -816,6 +816,10 @@ EQLIB_API int GetMacroBlockCount();
 EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined(KNIGHTLYPARSE) || defined(KNIGHTLYINLINECOMMENTS)
+std::string ReplaceSubstring(std::string strOriginal, std::string strFind, std::string strReplace);
+#endif //KNIGHTLYPARSE || KNIGHTLYINLINECOMMENTS
 
 
 LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);

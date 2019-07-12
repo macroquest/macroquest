@@ -839,16 +839,6 @@ typedef struct _EQCONTAINERWINDOW {
 /*0x17c*/
 } EQCONTAINERWINDOW, *PEQCONTAINERWINDOW;
 
-// Actual Size 0x98  03/15/06
-typedef struct _EQ_CONTAINERWND_MANAGER {
-/*0x000*/   DWORD pvfTable;                           // NOT based on CXWnd.  Contains only destructor
-/*0x004*/   PEQCONTAINERWINDOW pPCContainers[0x22];   // All open containers, including World, in order of opening...
-/*0x08c*/   PCONTENTS   pWorldContents;               // Pointer to the contents of the world   If NULL, world container isn't open;
-/*0x090*/   DWORD dwWorldContainerID;                 // ID of container in zone, starts at one (zero?) and goes up.
-/*0x094*/   DWORD dwTimeSpentWithWorldContainerOpen;  // Cumulative counter?
-/*0x078*/
-} EQ_CONTAINERWND_MANAGER, *PEQ_CONTAINERWND_MANAGER;
-
 typedef struct _POINT3 {
     FLOAT X;
     FLOAT Y;
