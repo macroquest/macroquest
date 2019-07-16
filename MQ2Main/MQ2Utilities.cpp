@@ -7533,6 +7533,39 @@ std::string ReplaceSubstring(std::string strOriginal, std::string strFind, std::
 	return strOriginal;
 }
 #endif //KNIGHTLYPARSE || KNIGHTLYINLINECOMMENTS
+
+#if defined(KNIGHTLYPARSE)
+/**
+ * @fn WrapParseZero
+ *
+ * @brief Wraps a command so that it does not get parsed
+ *
+ * To support the backwards functionality of noparse after adding in the ability
+ * to specifically parse items, we need to be able to wrap commands that were
+ * sent via /noparse.  This function would be used in several places and so
+ * it exists here.
+ *
+ * It takes the input of a command, determines if it has arguments and if it
+ * does have arguments, wraps them in a Parse Zero (don't parse).
+ *
+ * @param strOriginal The string that you would like to wrap
+ *
+ * @return std::string The result of replacing the values in the original string
+ */
+std::string WrapParseZero(std::string strOriginal) {
+	// There are functions that pass commands with leading spaces not stripped, strip them
+	ltrim(strOriginal);
+	// Commands can't have spaces in them so the parameters are after the first space
+	size_t iSpacePos = strOriginal.find(" ");
+	// If we found a space... (if we didn't, for example /noparse /echo, then nothing to wrap)
+	if (iSpacePos != std::string::npos) {
+		//        Command (including space)                         From after the space to the end
+		strOriginal = strOriginal.substr(0, iSpacePos + 1) + PARSE_PARAM_BEG + "0," + strOriginal.substr(iSpacePos + 1) + PARSE_PARAM_END;
+	}
+	return strOriginal;
+}
+#endif //KNIGHTLYPARSE
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 void AttackRanged(EQPlayer *pRangedTarget)

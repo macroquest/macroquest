@@ -3461,6 +3461,23 @@ void PopupTextEcho(PSPAWNINFO pChar, char* szLine)
 // /multiline
 VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
+#ifdef KNIGHTLYPARSE
+	// In order to keep /noparse backwards compatible, we wrap any commands sent via /noparse
+	// in a ${Parse[0,.  Since multiline isn't a single command, we need to account for that
+	// and handle it.
+	
+	// Track whether this is a DoNotParse or not.
+	bool bDoNotParse = false;
+	// If the first part of this matches, then we need to change the line.
+	if (!strncmp((PARSE_PARAM_BEG + "0,").c_str(), szLine, PARSE_PARAM_BEG.length() + 2))
+	{
+		// Set DoNotParse to true
+		bDoNotParse = true;
+		// Strip the parse back off and put the result back into szLine
+		strncpy(szLine, ((std::string(szLine).substr(PARSE_PARAM_BEG.length() + 2, std::string(szLine).length() - (PARSE_PARAM_BEG.length() + 2) - PARSE_PARAM_END.length()) + '\0').c_str()), strlen(szLine));
+	}
+#endif
+
 	if (szLine[0] == 0)
 	{
 		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
@@ -3481,7 +3498,17 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (token1 != NULL)
 		{
-			strcpy_s(szCmd, token1);
+#ifdef KNIGHTLYPARSE
+			// If we're not to parse these commands, then wrap in a ParseZero so we don't parse.
+			if (bDoNotParse) {
+				// 
+				strcpy_s(szCmd, WrapParseZero(token1).c_str());
+			}
+			else
+#endif //KNIGHTLYPARSE
+			{
+				strcpy_s(szCmd, token1);
+			}
 			DoCommand(pChar, szCmd);
 			token1 = strtok_s(NULL, szArg, &next_token1);
 		}
@@ -4025,19 +4052,8 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 #ifdef KNIGHTLYPARSE
 	// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a ${Parse[0, but not the command itself.
 	// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
-	
-	// Convert to a string for easier handling
-	std::string strLine = szLine;
-	// Commands can't have spaces in them so the parameters are after the first space
-	size_t iSpacePos = strLine.find(" ");
-	// If we found a space... (if we didn't, for example /noparse /echo, then nothing to wrap)
-	if (iSpacePos != std::string::npos) {
-		//        Command (including space)                         From after the space to the end
-		strLine = strLine.substr(0, iSpacePos + 1) + PARSE_PARAM_BEG + "0," + strLine.substr(iSpacePos + 1) + PARSE_PARAM_END;
-	}
-
-	// Cast it as a PCHAR and run the command
-	DoCommand(pChar, PCHAR(strLine.c_str()));
+	// Cast it as a PCHAR, wrap the command, and run the command
+	DoCommand(pChar, PCHAR(WrapParseZero(szLine).c_str()));
 #else // KNIGHTLYPARSE
 	bAllowCommandParse = false;
 	DoCommand(pChar, szLine);

@@ -1166,7 +1166,17 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	if (Result != 0) {
+#ifdef KNIGHTLYPARSE
+		// Due to the way that MQ2 currently processes the whole line before reaching this point:
+		// At this point the command has already passed through the parser once.  We don't want
+		// it to be parsed again since the parser already knew how to handle it and has given us
+		// the correct output.  So let's wrap this in a ${Parse[0 until we can fix /if to short
+		// circuit prior to processing.
+		// Cast it as a PCHAR and run the command
+		DoCommand(pChar, PCHAR(WrapParseZero(pEnd).c_str()));
+#else // KNIGHTLYPARSE
 		DoCommand(pChar, pEnd);
+#endif // KNIGHTLYPARSE
 	}
 	else {
 		int index = 0;
