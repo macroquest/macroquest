@@ -12,10 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#ifdef _DEBUG
-#define DBG_SPEW
-#endif
-
 #include "MQ2Main.h"
 #define TS template <unsigned int _Size>
 #ifndef ISXEQ_LEGACY
@@ -11365,8 +11361,8 @@ EQGroundItemListManager* GetItemList()
 	return ptr;
 }
 
-ItemGlobalIndex2 ig;
-ItemGlobalIndex2& CONTENTS::GetGlobalIndex()
+ItemGlobalIndex ig;
+ItemGlobalIndex& CONTENTS::GetGlobalIndex()
 {
 #if !defined(UFEMU)
 	return this->GlobalIndex;

@@ -1103,15 +1103,6 @@
 #define Spellmanager__LoadTextSpells_x                             0x677D50
 #define SpellManager__GetSpellByGroupAndRank_x                     0x677650
 
-//CCollisionInfoTargetVisibility
-#define CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x   0x9839B0
-
-//ItemGlobalIndex
-#define ItemGlobalIndex__IsKeyRingLocation_x                       0x505380
-#define ItemGlobalIndex__ItemGlobalIndex_x                         0x592240
-#define ItemGlobalIndex__IsEquippedLocation_x                      0x6288B0
-#define ItemGlobalIndex__IsValidIndex_x                            0x5053E0
-
 //ItemBaseContainer
 #define ItemBaseContainer__ItemBaseContainer_x                     0x8C7CB0
 #define ItemBaseContainer__CreateItemGlobalIndex_x                 0x8C7F30

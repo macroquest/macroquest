@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include <map>
 #include <memory>
 
 EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
@@ -69,7 +70,7 @@ namespace MQ2Internal {
         eSpawnType SpawnType;
         DWORD SpawnID;
         DWORD FromSpawnID;
-        FLOAT Radius;
+        float Radius;
         CHAR szName[MAX_STRING];
         CHAR szBodyType[MAX_STRING];
         CHAR szRace[MAX_STRING];
@@ -113,11 +114,11 @@ namespace MQ2Internal {
         DWORD NearAlertList;
         DWORD NoAlertList;
         DWORD AlertList;
-        DOUBLE ZRadius;
-        DOUBLE FRadius;
-        FLOAT xLoc;
-		FLOAT yLoc;
-		FLOAT zLoc;
+        double ZRadius;
+		double FRadius;
+        float xLoc;
+		float yLoc;
+		float zLoc;
         BOOL bKnownLocation;
         BOOL bNoPet;
         DWORD SortBy;
@@ -193,7 +194,7 @@ namespace MQ2Internal {
         CHAR szLine[MAX_STRING];
         BYTE Level;
         DWORD SpawnID;
-        FLOAT Distance;
+        float Distance;
         DWORD Class;
         DWORD Race;
         __int64 GuildID;
@@ -490,104 +491,102 @@ namespace MQ2Internal {
 		}
 		VOID FreeAlerts(DWORD List);
 	};
-	#pragma pack(push)
-	#pragma pack(4)
-    class CCustomWnd : public CSidlScreenWnd
-    {
-    public:
-        CCustomWnd(CXStr &screenpiece):CSidlScreenWnd(0,screenpiece,0xFFFFFFFF/*ini store all*/)
-        {
-			this;
-            CreateChildrenFromSidl();
-            pXWnd()->Show(true,true,true);
-            ReplacevfTable();
+
+#pragma pack(push)
+#pragma pack(4)
+
+	class CCustomWnd : public CSidlScreenWnd
+	{
+	public:
+		CCustomWnd(const CXStr& screenpiece) : CSidlScreenWnd(0, screenpiece, 0xFFFFFFFF /*ini store all*/)
+		{
+			CreateChildrenFromSidl();
+			this->Show(true, true, true);
+			ReplacevfTable();
 			SetEscapable(false);
-//            CloseOnESC=0;
-        }
+			//CloseOnESC=0;
+		}
 
-        CCustomWnd(char *screenpiece):CSidlScreenWnd(0,CXStr(screenpiece),0xFFFFFFFF/*ini store all*/)
-        {
-			this;
-            CreateChildrenFromSidl();
-            pXWnd()->Show(true,true);
-            ReplacevfTable();
+		CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, 0xFFFFFFFF /*ini store all*/)
+		{
+			CreateChildrenFromSidl();
+			this->Show(true, true);
+			ReplacevfTable();
 			SetEscapable(false);
-            //CloseOnESC=0;
-        }
+			//CloseOnESC=0;
+		}
 
-        ~CCustomWnd()
-        {
-            RemovevfTable();
-        }
+		~CCustomWnd()
+		{
+			RemovevfTable();
+		}
 
-        //    int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
-        //    {    
-        //        return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
-        //    }
+		//int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
+		//{
+		//	return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
+		//}
 
-        void ReplacevfTable()
-        {
-            OldvfTable=((_CSIDLWND*)this)->pvfTable;
-            PCSIDLWNDVFTABLE NewvfTable=new CSIDLWNDVFTABLE;
-            memcpy(NewvfTable,OldvfTable,sizeof(CSIDLWNDVFTABLE));
-            ((_CSIDLWND*)this)->pvfTable=NewvfTable;
-        }
+		void ReplacevfTable()
+		{
+			OldvfTable = ((CSIDLWND*)this)->pvfTable;
+			CSidlScreenWnd_VirtualFunctions* NewvfTable = new CSidlScreenWnd_VirtualFunctions;
+			memcpy(NewvfTable, OldvfTable, sizeof(CSidlScreenWnd_VirtualFunctions));
+			((CSIDLWND*)this)->pvfTable = NewvfTable;
+		}
 
-        void RemovevfTable()
-        {
-            PCSIDLWNDVFTABLE NewvfTable=((_CSIDLWND*)this)->pvfTable;
-            ((_CSIDLWND*)this)->pvfTable=OldvfTable;
-            delete NewvfTable;
-        }
+		void RemovevfTable()
+		{
+			CSidlScreenWnd_VirtualFunctions* NewvfTable = ((CSIDLWND*)this)->pvfTable;
+			((CSIDLWND*)this)->pvfTable = OldvfTable;
+			delete NewvfTable;
+		}
 
-        void SetvfTable(DWORD index, DWORD value)
-        {
-            DWORD* vtable=(DWORD*)((_CSIDLWND*)this)->pvfTable;
-            vtable[index]=value;
-        }
+		void SetvfTable(DWORD index, DWORD value)
+		{
+			DWORD* vtable = (DWORD*)((CSIDLWND*)this)->pvfTable;
+			vtable[index] = value;
+		}
 
-        PCSIDLWNDVFTABLE OldvfTable;
+		CSidlScreenWnd_VirtualFunctions* OldvfTable;
+	};
+#pragma pack(pop)
 
-        //    inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
-    };
-	#pragma pack(pop)
-	
 	class CCustomMenu : public CContextMenu
 	{
-	public://class CXWnd *,unsigned __int32,class CXRect const &
-		CCustomMenu(CXWnd *pParent, unsigned __int32 MenuID, const CXRect& rect):CContextMenu(pParent,MenuID,rect)
+	public:
+		//class CXWnd *,unsigned __int32,class CXRect const &
+		CCustomMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect) : CContextMenu(pParent, MenuID, rect)
 		{
-			Sleep(0);
 			//ReplacevfTable();
 		};
 
 		~CCustomMenu()
 		{
-			Sleep(0);
 			//RemovevfTable();
 		};
 		void ReplacevfTable()
-        {
-            PCCONTEXTMENUVFTABLE NewvfTable=new CCONTEXTMENUVFTABLE;
-            OldvfTable=((CContextMenu*)this)->pvfTable;
-            memcpy(NewvfTable,OldvfTable,sizeof(CCONTEXTMENUVFTABLE));
-            ((CContextMenu*)this)->pvfTable=NewvfTable;
-        }
+		{
+			PCCONTEXTMENUVFTABLE NewvfTable = new CCONTEXTMENUVFTABLE;
+			OldvfTable = ((CContextMenu*)this)->pvfTable;
+			memcpy(NewvfTable, OldvfTable, sizeof(CCONTEXTMENUVFTABLE));
+			((CContextMenu*)this)->pvfTable = NewvfTable;
+		}
 
-        void RemovevfTable()
-        {
-            PCCONTEXTMENUVFTABLE NewvfTable=((CContextMenu*)this)->pvfTable;
-            ((CContextMenu*)this)->pvfTable=OldvfTable;
-            delete NewvfTable;
-        }
+		void RemovevfTable()
+		{
+			PCCONTEXTMENUVFTABLE NewvfTable = ((CContextMenu*)this)->pvfTable;
+			((CContextMenu*)this)->pvfTable = OldvfTable;
+			delete NewvfTable;
+		}
 
-        void SetvfTable(DWORD index, DWORD value)
-        {
-            DWORD* vtable=(DWORD*)((CContextMenu*)this)->pvfTable;
-            vtable[index]=value;
-        }
+		void SetvfTable(DWORD index, DWORD value)
+		{
+			DWORD* vtable = (DWORD*)((CContextMenu*)this)->pvfTable;
+			vtable[index] = value;
+		}
 		PCCONTEXTMENUVFTABLE OldvfTable;
 	};
+
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
     /* CIndex class stolen from teqim - Lax */
     template <class Any>
@@ -710,7 +709,7 @@ namespace MQ2Internal {
 				LONG HighPart;
 			};
 			struct {
-				FLOAT Float;
+				float Float;
 				LONG HighPart;
 			};
 			struct {
@@ -732,7 +731,7 @@ namespace MQ2Internal {
 			struct {
 				UCHAR FullArray[8];
 			};
-			DOUBLE Double;
+			double Double;
 			__int64   Int64;
 			unsigned __int64   UInt64;
         };
@@ -750,7 +749,7 @@ namespace MQ2Internal {
 				LONG HighPart;
 			};
 			struct {
-				FLOAT Float;
+				float Float;
 				LONG HighPart;
 			};
 			struct {
@@ -772,7 +771,7 @@ namespace MQ2Internal {
 			struct {
 				UCHAR FullArray[8];
 			};
-			DOUBLE Double;
+			double Double;
 			__int64   Int64;
 			unsigned __int64   UInt64;
         };

@@ -13,7 +13,11 @@
  */
 
 #include "../common/CXStr.h"
+#include "../common/CXWnd.h"
 #include "../common/Containers.h"
+#include "../common/SharedClasses.h"
+#include "../common/UI.h"
+#include "EQData(Test).h"
 
 namespace eqlib {
 
@@ -56,13 +60,13 @@ const int EQ_CHAT_FONT_OFFSET = 0x11c;
 // Size 0x240 in Oct 13 2017 Test exe see 605AAD
 #define SIDL \
 /*0x1F8*/ bool bControlsCreated; /*yes this REALLY is here, see 8D255E in aug 10 2017 live - eqmule */ \
-/*0x1fc*/ PCXSTR SidlText; /*found in CChatWindow__WndNotification_x*/\
+/*0x1fc*/ CXStr SidlText; /*found in CChatWindow__WndNotification_x*/\
 /*0x200*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
 /*0x204*/ ArrayClass_RO<void*>RadioGroup; /*CRadioGroup*/ \
 /*0x214*/ bool bInitVisibility; \
 /*0x215*/ bool bVisibleBeforeResize; \
 /*0x218*/ int IniFlags; \
-/*0x21C*/ PCXSTR INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
+/*0x21C*/ CXStr INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
 /*0x220*/ int	IniVersion; \
 /*0x224*/ int	LastResX; \
 /*0x228*/ int	LastResY; \
@@ -77,13 +81,13 @@ const int EQ_CHAT_FONT_OFFSET = 0x11c;
 struct CSIDLWND : public CXWND
 {
 /*0x1F8*/ bool         bControlsCreated;
-/*0x1fc*/ CXSTR*       SidlText;                 // found in CChatWindow__WndNotification_x*
+/*0x1fc*/ CXStr        SidlText;                 // found in CChatWindow__WndNotification_x*
 /*0x200*/ void*        SidlPiece;                // CScreenPieceTemplate (important)
 /*0x204*/ ArrayClass_RO<void*> RadioGroup;       // CRadioGroup
 /*0x214*/ bool         bInitVisibility;
 /*0x215*/ bool         bVisibleBeforeResize;
 /*0x218*/ int          IniFlags;
-/*0x21C*/ CXSTR*       INIStorageName;           // found in CSidlScreenWnd__LoadSidlScreen_x
+/*0x21C*/ CXStr        INIStorageName;           // found in CSidlScreenWnd__LoadSidlScreen_x
 /*0x220*/ int          IniVersion;
 /*0x224*/ int          LastResX;
 /*0x228*/ int          LastResY;
@@ -215,7 +219,7 @@ struct CXWNDMGR {
 /*0x104*/ bool                         bModal;                       // for sure
 /*0x108*/ UINT                         TTCheckTimer;                 // for sure
 /*0x10c*/ UINT                         Flags;                        // for sure
-/*0x110*/ PCXSTR                       ClipText;
+/*0x110*/ CXStr                        ClipText;
 /*0x114*/ DWORD                        ScreenExtentX;
 /*0x118*/ DWORD                        ScreenExtentY;
 /*0x11c*/ ArrayClass_RO<void*>         FontsArray;
@@ -225,13 +229,13 @@ struct CXWNDMGR {
 /*0x138*/ POINT                        StoredMousePos;               // last position Mouse was at before we moved it
 /*0x140*/ bool                         bManagerDeletionPending;
 /*0x144*/ CursorClass                  CC;                           // size 0x3c
-/******************* End of CXWNDMGR ***************/
-/******************* Begin of EQCXWNDMGR ***************/
+/******************* End of CXWNDMGR *****************/
+/******************* Begin of EQCXWNDMGR *************/
 /*0x180*/ ControllerStuff              Stuff;                        // size 0x14
 /*0x194*/ ControllerManager            ControllerMgr;                // size 0x18
 /*0x1AC*/ bool                         Unknown0x1AC;
 /******************* End of EQCXWNDMGR ***************/
-/*0x1b0*/ 
+/*0x1b0*/
 };
 using PCXWNDMGR = CXWNDMGR*;
 
@@ -433,6 +437,8 @@ enum eContextMenuFilterIDs
 	// todo check the ids.
 };
 
+struct EQCHATWINDOW;
+
 // Size 0x384 in eqgame dated 05 Mar 2019 Test (see 0x5418AB)
 struct EQCHATMGR
 {
@@ -526,7 +532,7 @@ struct EQCHATWINDOW
 /*0x29c*/ int          TimestampFormat;
 /*0x2a0*/ COLORREF     TimestampColor;
 /*0x2a4*/ bool         bTimestampMatchChatColor;
-/*0x2a8*/ CXSTR*       CommandHistory[0x28];     // see 690DAA in apr 11 2017 test
+/*0x2a8*/ CXStr        CommandHistory[0x28];     // see 690DAA in apr 11 2017 test
 /*0x348*/ int          HistoryIndex;
 /*0x34c*/ int          HistoryLastShown;
 /*0x350*/ int          FontSize;                 // style
@@ -537,6 +543,8 @@ struct EQCHATWINDOW
 /*0x388*/
 };
 using PEQCHATWINDOW = EQCHATWINDOW*;
+
+struct EQINVSLOTWND;
 
 // actual size 0x14 10-12-2010
 // I think this is correct:
@@ -554,7 +562,7 @@ struct EQINVSLOT
 using PEQINVSLOT = EQINVSLOT*;
 
 // Size 0x2418 see 534532 in Nov 06 2018 Test
-typedef struct _EQINVSLOTMGR
+struct EQINVSLOTMGR
 {
 /*0x0000*/ void*       vfTable;
 /*0x0004*/ EQINVSLOT*  SlotArray[MAX_INV_SLOTS]; // size 0x2400 //see 72E00F in Nov 06 2018 Test
@@ -810,7 +818,7 @@ using PEQCOMPASSWINDOW = EQCOMPASSWINDOW*;
 // used by options window
 struct EQKBASSIGN
 {
-/*0x00*/ CXSTR* pDescription;
+/*0x00*/ CXStr pDescription;
 /*0x04*/ DWORD nAssignmentNumber;
 /*0x08*/
 };
@@ -848,7 +856,7 @@ struct CLABEL
 /*0x1fc*/ int          xOffset;
 /*0x200*/ bool         bResizeHeightToText;
 /*0x204*/ int          Unknown0x204;
-/*0x208*/ CXSTR*       Text;
+/*0x208*/ CXStr        Text;
 /*0x20c*/ int          Unknown0x20c;
 /*0x210*/ bool         Unknown0x210;
 /*0x214*/ int          Unknown0x214;
@@ -879,7 +887,7 @@ struct CBUTTONWND
 /*0x238*/ COLORREF     Disabled;
 /*0x23c*/ UINT         CoolDownBeginTime;
 /*0x240*/ UINT         CoolDownDuration;
-/*0x244*/ PCXSTR       Indicator;
+/*0x244*/ CXStr        Indicator;
 /*0x248*/ UINT         IndicatorVal;
 /*0x24c*/ void*        pIndicatorTextObject;
 /*0x250*/ CButtonDrawTemplate DrawTemplate;
@@ -892,7 +900,7 @@ struct CBUTTONWND
 /*0x290*/
 };
 using PCBUTTONWND = CBUTTONWND*;
- 
+
 struct CTEXTENTRYWND
 {
 /*0x000*/ CXWND        Wnd;                      // inherits from CXWnd
@@ -1209,11 +1217,12 @@ struct EQINVSLOTWND
 /*0x0000*/ CXWND       Wnd;                      // inherits from CXWnd(actually CButtonWnd)
 /*0x01f8*/ BYTE        Unknown0x01f8[0x8c];
 /*0x0284*/ BYTE        Unknown0x0284[0x10];
-	// this is ItemGlobalIndex2 - brainiac
+	// this is ItemGlobalIndex - brainiac
 /*0x0294*/ ItemContainerInstance WindowType;
 /*0x0298*/ short       InvSlot;
 /*0x029a*/ short       BagSlot;
 /*0x029c*/ short       GlobalSlot;
+	// end of ItemGlobalIndex
 /*0x029e*/ short       RandomNum;                // no idea what this is, it changes upon login but we need it for moveitem... -eqmule
 /*0x02a0*/ BYTE        Unknown0x02a0[0x20];
 /*0x02c0*/ EQINVSLOT*  pInvSlot;
@@ -1243,13 +1252,13 @@ struct EQITEMWINDOW
 /*0x026c*/ CSIDLWND*   pItemSocketScreen[6];
 /*0x0284*/ CBUTTONWND* pItemSocketItemButton[6];
 /*0x029c*/ CSIDLWND*   pItemSocketDescription[6];
-/*0x02b4*/ PCXSTR      ItemInfo;                 // this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
-/*0x02b8*/ PCXSTR      WindowTitle;
-/*0x02bc*/ PCXSTR      ItemAdvancedLoreText;
-/*0x02c0*/ PCXSTR      ItemMadeByText;
-/*0x02c4*/ PCXSTR      UnknownCXStr;             // if this is NULL don't populate item data in MQ2ItemDisplay
+/*0x02b4*/ CXStr       ItemInfo;                 // this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
+/*0x02b8*/ CXStr       WindowTitle;
+/*0x02bc*/ CXStr       ItemAdvancedLoreText;
+/*0x02c0*/ CXStr       ItemMadeByText;
+/*0x02c4*/ CXStr       UnknownCXStr;             // if this is NULL don't populate item data in MQ2ItemDisplay
 /*0x02c8*/ BYTE        Unknown0x02c8[0x4];
-/*0x02cc*/ PCXSTR      ItemInformationText;      // Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
+/*0x02cc*/ CXStr       ItemInformationText;      // Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
 /*0x02d0*/ PCONTENTS   pItem;
 /*0x02d4*/ bool        bActiveItem;
 /*0x02d5*/ bool        bItemTextSet;
@@ -1307,7 +1316,7 @@ struct EQLOOTWINDOW
 /*0x02fa*/ BYTE        Unknown0x02fa;
 /*0x02fb*/ BYTE        Unknown0x02fb;
 /*0x02fc*/ CSIDLWND*   LootInvWnd;
-/*0x0300*/ CSILDWND*   LootSlotWnd[0x22];
+/*0x0300*/ CSIDLWND*   LootSlotWnd[0x22];
 /*0x0388*/ CSIDLWND*   LW_CorpseName;
 /*0x038c*/ CSIDLWND*   DoneButton;
 /*0x0390*/ CSIDLWND*   BroadcastButton;
@@ -1330,7 +1339,7 @@ struct EQMAPWINDOW
 /*0x0340*/ BYTE        Unknown0x0340[0x38];
 
 	// inline MapViewMap
-/*0x0378*/ CSIDLWNDVFTABLE* pMapViewMapVfTable;  // found at aMapviewmap
+/*0x0378*/ CSidlScreenWnd_VirtualFunctions* pMapViewMapVfTable;  // found at aMapviewmap
 /*0x037c*/ BYTE        Unknown0x037c[0x26c];
 /*0x05e8*/ PMAPLINE    pLines;                   // 0x258
 /*0x05ec*/ PMAPLABEL   pLabels;                  // 0x25c

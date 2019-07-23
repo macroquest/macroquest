@@ -28,7 +28,7 @@
 	int         EvolvingMaxLevel;
 	UINT        RespawnTime;
 	int         ConvertItemID;
-	DOUBLE      EvolvingExpPct;
+	double      EvolvingExpPct;
 	bool        bRankDisabled;
 	int64_t     Price;
 	CXStr       SaveString;
@@ -46,7 +46,7 @@
 	UINT        ItemHash;
 	bool        IsEvolvingItem;
 	LONG        LastEquipped;
-	ItemGlobalIndex2 GlobalIndex;                    // Size is 0xa (0xc)
+	ItemGlobalIndex GlobalIndex;                    // Size is 0xa (0xc)
 	bool        bItemNeedsUpdate;
 	bool        bRealEstateItemPlaceable;
 	int         AugFlag;

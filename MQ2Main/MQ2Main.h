@@ -40,6 +40,14 @@
 #pragma warning(disable:4577)
 
 
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+
+#if !defined(WIN32_LEAN_AND_MEAN)
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 // Windows Header Files:
 #include <windows.h>
 #include <stdio.h>
@@ -182,28 +190,6 @@ extern DWORD CountMallocs;
 extern DWORD CountFrees;
 #endif
 
-#ifndef ISXEQ
-#define FUNCTION_AT_ADDRESS(function,offset)  __declspec(naked) function\
-{\
-    __asm{mov eax, offset};\
-    __asm{jmp eax};\
-}
-
-#define FUNCTION_AT_VARIABLE_ADDRESS(function,variable) __declspec(naked) function\
-{\
-    __asm{mov eax, [variable]};\
-    __asm{jmp eax};\
-}
-
-#define FUNCTION_AT_VIRTUAL_ADDRESS(function,virtualoffset) __declspec(naked) function\
-{\
-    __asm{mov eax, [ecx]};\
-    __asm{lea eax, [eax+virtualoffset]};\
-    __asm{mov eax, [eax]};\
-    __asm{jmp eax};\
-}
-#endif
-
 #define PreserveRegisters(code) \
 {\
     __asm {push eax};\
@@ -265,7 +251,7 @@ typedef double DOUBLE;
 
 #define IsNaN(x) (x != x)
 
-#include "EQLib.h"
+#include "EQLib/EQLib.h"
 
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"

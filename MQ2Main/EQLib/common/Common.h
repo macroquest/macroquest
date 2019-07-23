@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "../BuildType.h"
+
 #if !defined(NOMINMAX)
 #define NOMINMAX
 #endif
@@ -27,6 +29,9 @@
 #undef GetWindowText
 #undef FindWindow
 
+#include <cstdlib>
+#include <cstdint>
+
 #ifdef EQLIB_EXPORTS
 #define EQLIB_API extern "C" __declspec(dllexport)
 #define EQLIB_VAR extern "C" __declspec(dllexport)
@@ -37,14 +42,39 @@
 #define EQLIB_OBJECT __declspec(dllimport)
 #endif
 
-#include <cstdlib>
-#include <cstdint>
+#define CONSTRUCTOR_AT_ADDRESS(function, offset)                                         \
+//__declspec(naked) function                                                             \
+//{                                                                                      \
+//	__asm{ mov eax, offset };                                                            \
+//	__asm{ jmp eax };                                                                    \
+//}
+
+#define FUNCTION_AT_ADDRESS(function, offset)                                            \
+__declspec(naked) function                                                               \
+{                                                                                        \
+	__asm{ mov eax, offset };                                                            \
+	__asm{ jmp eax };                                                                    \
+}
+
+#define FUNCTION_AT_VARIABLE_ADDRESS(function, variable) __declspec(naked) function      \
+{                                                                                        \
+	__asm{ mov eax, [variable] };                                                        \
+	__asm{ jmp eax };                                                                    \
+}
+
+#define FUNCTION_AT_VIRTUAL_ADDRESS(function, virtualoffset) __declspec(naked) function  \
+{                                                                                        \
+	__asm{ mov eax, [ecx] };                                                             \
+	__asm{ lea eax, [eax+virtualoffset] };                                               \
+	__asm{ mov eax, [eax] };                                                             \
+	__asm{ jmp eax };                                                                    \
+}
 
 namespace eqlib {
 
 class CXSize;
 
-class CXPoint
+class EQLIB_OBJECT CXPoint
 {
 public:
 	CXPoint() = default;
@@ -74,12 +104,12 @@ public:
 };
 
 // Literally the same as CXPoint, but the variable names are cx and cy...
-class CXSize
+class EQLIB_OBJECT CXSize
 {
 public:
 	CXSize() = default;
 	CXSize(int x_, int y_) : cx(x_), cy(y_) {}
-	CXSize(const CXSize& other) : cx(other.x), cy(other.y) {}
+	CXSize(const CXSize& other) : cx(other.cx), cy(other.cy) {}
 	explicit CXSize(const CXPoint& other);
 
 	CXSize& operator=(const CXSize& other)
@@ -103,7 +133,7 @@ public:
 	int cx = 0, cy = 0;
 };
 
-class CXRect
+class EQLIB_OBJECT CXRect
 {
 public:
 	CXRect() = default;
@@ -169,7 +199,6 @@ inline CXSize::CXSize(const CXPoint& other)
 	cx = other.x;
 	cy= other.y;
 }
-
 
 union RGB
 {
@@ -266,17 +295,14 @@ enum EQExpansionOwned
 using EQZoneIndex = uint32_t;
 using EQLocalizeLanguage = uint32_t;
 using EScrollCode = uint32_t;
-using EWndRuntimeType = uint32_t;
+enum EWndRuntimeType;
 
 // Forward class declarations
 class _EverQuestinfo;
-class _PackFileData;
-class _PackFileDataRawFile;
 class _partyGroup;
 class CAltAbilityData;
 class AltAdvManager;
 class CAuraWnd;
-class bad_word_class;
 class CAAWnd;
 class CActionsWnd;
 class CActorInterface;
@@ -303,7 +329,6 @@ class CChatManager;
 class CChatWindow;
 class CCheckBoxWnd;
 class CClickStickInfo;
-class CCollisionInfoTargetVisibility;
 class CColorPickerWnd;
 class CCombatSkillsSelectWnd;
 class CComboboxTemplate;
@@ -316,7 +341,6 @@ class CContextMenu;
 class CContextMenuManager;
 class CControlTemplate;
 class CCursorAttachment;
-class CDIMap;
 class CDisplay;
 class CEditBaseWnd;
 class CEditboxTemplate;
@@ -342,8 +366,6 @@ class CGroupSearchWnd;
 class CGroupWnd;
 class CGuild;
 class CGuildMgmtWnd;
-class ChannelServerApi;
-class ChannelServerHandler;
 class CharacterBase;
 class CHashCXStrInt32;
 class CHelpWnd;
@@ -422,8 +444,6 @@ class CParamTabBox;
 class CParamTextureInfo;
 class CParamUi2DAnimation;
 class CParamWindowDrawTemplate;
-class CParseTokensXML;
-class CParseTokXML;
 class CPetInfoWnd;
 class CPetitionQWnd;
 class CPlayerNotesWnd;
@@ -435,7 +455,6 @@ class CRadioGroup;
 class CRaid;
 class CRaidOptionsWnd;
 class CRaidWnd;
-class CRC32Generator;
 class CResolutionHandler;
 class CScreenPieceTemplate;
 class CScreenTemplate;
@@ -449,7 +468,6 @@ class CSliderDrawTemplate;
 class CSliderTemplate;
 class CSliderWnd;
 class CSocialEditWnd;
-class CSoulmarkWnd;
 class CSpellBookWnd;
 class CSpellGemDrawTemplate;
 class CSpellGemTemplate;
@@ -462,7 +480,7 @@ class CStaticTextTemplate;
 class CSTMLboxTemplate;
 class CStmlReport;
 class CStmlWnd;
-class CStrRep;
+struct CStrRep;
 class CStoryWnd;
 class CTabBoxTemplate;
 class CTabWnd;
@@ -478,7 +496,6 @@ class CTextureAnimation;
 class CTextureFont;
 class CTimeLeftWnd;
 class CTipWnd;
-class CTokenXML;
 class CTrackingWnd;
 class CTradeWnd;
 class CTrainWnd;
@@ -496,10 +513,6 @@ class CXMLEnumInfo;
 class CXMLParamManager;
 class CXMLSOMAttribute;
 class CXMLSOMAttributeType;
-class CXMLSOMCursor;
-class CXMLSOMCursorSave;
-class CXMLSOMCursorSaveFast;
-class CXMLSOMCursorTraverseChildren;
 class CXMLSOMDocument;
 class CXMLSOMDocumentBase;
 class CXMLSOMElement;
@@ -512,7 +525,6 @@ class CXMLSOMSimpleType;
 class CXPoint;
 class CXRect;
 class CXStr;
-class CXStrSingleton;
 class CXWnd;
 class CXWndDrawTemplate;
 class CXWndManager;
@@ -535,14 +547,12 @@ class EQ_Spell;
 class EQAnimation;
 class EQEffect;
 class EqEmitterData;
-class EQHSprite;
 class EQItemList;
 class EQMissile;
 struct EQMissileHitinfo;
 class EqMobileEmitter;
 class EQMoneyList;
 class EQObject;
-class EQPlayer;
 class EQPlayerDeath;
 class EQPMInfo;
 class EqSoundManager;
@@ -551,69 +561,41 @@ class EqSwitchManager;
 class EQUtil;
 class EQWorldData;
 class EQZoneInfo;
-class FilePath;
-class flex_unit;
-class GrammarRulesClass;
 class GuildMember;
 class IconCache;
 class ItemBase;
-//class ItemBaseContainer;
+class ItemBaseContainer;
 class JournalNPC;
 class KeyCombo;
 class KeypressHandler;
-class LogicalPacket;
 class LootFiltersManager;
 class EQSpellStrings;
 class MapViewMap;
-class MemoryPoolManager;
 class MidiInstance;
 class monty;
 class Mp3Manager;
 class MusicManager;
-class PacketPacker;
-class PacketPackerManager;
-class PackFile;
-class PackFS;
-class PooledLogicalPacket;
-class public_key;
 class PcClient;
 class SAmpersandEntry;
 struct SDragDropInfo;
-class SFormattedText;
-class ShareBase;
-class SharedString;
-class SHistoryElement;
-class SimpleLogicalPacket;
-class SListWndCellEditUpdate;
 class SListWndSortInfo;
 class SoundAsset;
-class SoundControl;
+struct SoundControl;
 class SoundEmitter;
 class SoundInstance;
 class SoundManager;
 class SoundObject;
-class SParseVariables;
+struct SParseVariables;
 class SpellManager;
-class STable;
-class STableCell;
-class STempTable;
-class STempTableCell;
-class STempTableRow;
-class StringItem;
+struct STable;
+struct STableCell;
+struct STempTable;
+struct STempTableCell;
+struct STempTableRow;
 class StringTable;
-class TextFileReader;
-class type_info;
 class UdpConnection;
-class UdpConnectionHandler;
-class UdpIpAddress;
-class UdpManager;
-class UdpMisc;
-class UdpReliableChannel;
 class Wave3dInstance;
 class WaveInstance;
-class WrappedLogicalPacket;
-class ZlibUtil;
-class ZoneNPCLoadTextManager;
 class CTextOverlay;
 class PcZoneClient;
 class CharacterZoneClient;

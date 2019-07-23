@@ -923,14 +923,6 @@ public:
 /*0x06*/
 };
 
-class ItemGlobalIndex2
-{
-public:
-/*0x00*/ ItemContainerInstance Location;
-/*0x04*/ ItemIndex Index;
-/*0x0a*/
-};
-
 class ItemArray
 {
 public:
@@ -984,7 +976,7 @@ typedef struct _CONTENTS {
 /*0x00A0*/ int	Charges;
 /*0x00A4*/ UINT	Tint;
 /*0x00A8*/ int	Luck;
-/*0x00AC*/ ItemGlobalIndex2 GlobalIndex; /* Size is 0xa (0xc)*/
+/*0x00AC*/ ItemGlobalIndex GlobalIndex; /* Size is 0xa (0xc)*/
 /*0x00B8*/ int	NoDropFlag;
 /*0x00BC*/ UINT	LastCastTime;
 /*0x00C0*/ int	ItemColor;
@@ -1011,7 +1003,7 @@ typedef struct _CONTENTS {
 /*0x014C*/ BYTE Filler0x014C[0x4];
 /*0x0150*/
 EQLIB_OBJECT _CONTENTS* GetContent(UINT index);
-EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
+EQLIB_OBJECT ItemGlobalIndex& GetGlobalIndex();
 } CONTENTS, *PCONTENTS;
 
 #pragma pack(push)
@@ -3198,19 +3190,19 @@ enum EActorType
 class CPhysicsInfo
 {
 public:
-	/*0x00*/ FLOAT	Y;
-	/*0x04*/ FLOAT	X;
-	/*0x08*/ FLOAT	Z;
-	/*0x0c*/ FLOAT	SpeedY;
-	/*0x10*/ FLOAT	SpeedX;
-	/*0x14*/ FLOAT	SpeedZ;
-	/*0x18*/ FLOAT	SpeedRun;
-	/*0x1c*/ FLOAT	Heading;
-	/*0x20*/ FLOAT	Angle;
-	/*0x24*/ FLOAT	AccelAngle;
-	/*0x28*/ FLOAT	SpeedHeading;
-	/*0x2c*/ FLOAT	CameraAngle;
-	/*0x30*/
+/*0x00*/ float	Y;
+/*0x04*/ FLOAT	X;
+/*0x08*/ FLOAT	Z;
+/*0x0c*/ FLOAT	SpeedY;
+/*0x10*/ FLOAT	SpeedX;
+/*0x14*/ FLOAT	SpeedZ;
+/*0x18*/ FLOAT	SpeedRun;
+/*0x1c*/ FLOAT	Heading;
+/*0x20*/ FLOAT	Angle;
+/*0x24*/ FLOAT	AccelAngle;
+/*0x28*/ FLOAT	SpeedHeading;
+/*0x2c*/ FLOAT	CameraAngle;
+/*0x30*/
 };
 #define SPAWNINFOHEADER \
 /*0x0000*/ void*	vtable; \
@@ -3229,6 +3221,7 @@ public:
 	UINT	Len;
 	UINT	Index;
 };
+
 struct SDoCollisionMovementStats
 {
 /*0x00*/	CPhysicsInfo Source; /*size 0x30 */

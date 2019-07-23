@@ -24,24 +24,24 @@ namespace eqlib {
 
 class CDynamicArrayBase;
 
-struct CEQException {};
-struct CExceptionApplication : CEQException {};
+struct EQLIB_OBJECT CEQException {};
+struct EQLIB_OBJECT CExceptionApplication : CEQException {};
 
-struct CExceptionMemoryAllocation : public CEQException {
+struct EQLIB_OBJECT CExceptionMemoryAllocation : public CEQException {
 	int size;
 
 	CExceptionMemoryAllocation(int size_) : size(size_) {}
 };
 
 // inherits from CExceptionApplication and CEQException
-struct CDynamicArrayException : public CExceptionApplication {
+struct EQLIB_OBJECT CDynamicArrayException : public CExceptionApplication {
 	const CDynamicArrayBase* obj;
 
 	CDynamicArrayException(const CDynamicArrayBase* obj_) : obj(obj_) {}
 };
 
 // base class for the dynamic array types
-class CDynamicArrayBase
+class EQLIB_OBJECT CDynamicArrayBase
 {
 protected:
 	/*0x00*/    int m_length;
@@ -66,7 +66,7 @@ protected:
 // as you can't memcpy, memset, etc on them.
 
 template <typename T>
-class ArrayClass2_RO : public CDynamicArrayBase
+class EQLIB_OBJECT ArrayClass2_RO : public CDynamicArrayBase
 {
 #define GET_BIN_INDEX(x) (x >> static_cast<uint8_t>(m_binShift))
 #define GET_SLOT_INDEX(x) (m_slotMask & index)
@@ -131,7 +131,7 @@ protected:
 // list of bins. See Assure() for more information.
 
 template <typename T>
-class ArrayClass2 : public ArrayClass2_RO<T>
+class EQLIB_OBJECT ArrayClass2 : public ArrayClass2_RO<T>
 {
 public:
 	// constructs the array

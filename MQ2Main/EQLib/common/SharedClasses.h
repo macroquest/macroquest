@@ -45,7 +45,7 @@ public:
 	bool                       bAutoAddHaters;
 };
 
-class CursorClass
+class EQLIB_OBJECT CursorClass
 {
 public:
 	enum { eNumCursors = 7 };

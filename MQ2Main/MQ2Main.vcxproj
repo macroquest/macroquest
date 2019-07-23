@@ -59,6 +59,7 @@
       </PrecompiledHeader>
       <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -66,7 +67,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EQLib\common\CXStr.cpp" />
-    <ClCompile Include="EQLib\common\EQClasses.cpp" />
+    <ClCompile Include="EQLib\common\CXWnd.cpp" />
+    <ClCompile Include="EQLib\common\EQClasses.cpp">
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Async</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+    </ClCompile>
+    <ClCompile Include="EQLib\common\Globals.cpp" />
+    <ClCompile Include="EQLib\common\UI.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
@@ -93,7 +100,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h" />
-    <ClInclude Include="Containers.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="data\actordef.h" />
     <ClInclude Include="data\combines.h" />
@@ -102,20 +108,27 @@
     <ClInclude Include="data\itemtypes.h" />
     <ClInclude Include="data\skills.h" />
     <ClInclude Include="data\spelleffects.h" />
+    <ClInclude Include="EQLib\BuildType.h" />
     <ClInclude Include="EQLib\common\Allocator.h" />
     <ClInclude Include="EQLib\common\Common.h" />
     <ClInclude Include="EQLib\common\Containers.h" />
     <ClInclude Include="EQLib\common\CXStr.h" />
+    <ClInclude Include="EQLib\common\CXWnd.h" />
     <ClInclude Include="EQLib\common\DynamicArray.h" />
     <ClInclude Include="EQLib\common\EQClasses.h" />
+    <ClInclude Include="EQLib\common\Globals.h" />
     <ClInclude Include="EQLib\common\Mutex.h" />
     <ClInclude Include="EQLib\common\SharedClasses.h" />
+    <ClInclude Include="EQLib\common\UI.h" />
+    <ClInclude Include="EQLib\EQLib.h" />
     <ClInclude Include="EQLib\live\CXWnd-Members.h" />
+    <ClInclude Include="EQLib\live\EQData.h" />
     <ClInclude Include="EQLib\live\EQGame.h" />
     <ClInclude Include="EQLib\live\ItemBase-Members.h" />
     <ClInclude Include="EQLib\live\PlayerZoneClient-Members.h" />
     <ClInclude Include="EQLib\test\EQGame(Test).h" />
-    <ClInclude Include="live\EQData.h" />
+    <ClInclude Include="EQLib\test\EQUIStructs(Test).h" />
+    <ClInclude Include="EQLib\test\ItemBase-Members.h" />
     <ClInclude Include="live\EQUIStructs.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
@@ -129,8 +142,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="test\CXWnd-Members.h" />
     <ClInclude Include="test\EQData(Test).h" />
-    <ClInclude Include="test\EQUIStructs(Test).h" />
-    <ClInclude Include="test\ItemBase-Members.h" />
     <ClInclude Include="test\PlayerZoneClient-Members.h" />
   </ItemGroup>
   <ItemGroup>

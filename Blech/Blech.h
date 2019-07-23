@@ -80,6 +80,9 @@ Using Blech:
 #endif
 
 #ifdef BLECH_DEBUG
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 //#pragma message(BLECHVERSION)
 //#pragma message("Blech: Debug Mode")
 #include <windows.h>

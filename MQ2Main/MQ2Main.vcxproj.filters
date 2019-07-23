@@ -110,6 +110,15 @@
     <ClCompile Include="EQLib\common\CXStr.cpp">
       <Filter>Source Files\EQLib\Common</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\common\CXWnd.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="EQLib\common\UI.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="EQLib\common\Globals.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
@@ -148,25 +157,13 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="live\EQData.h">
-      <Filter>Header Files\EQLib\Live</Filter>
-    </ClInclude>
     <ClInclude Include="live\EQUIStructs.h">
       <Filter>Header Files\EQLib\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="Containers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="test\EQUIStructs(Test).h">
-      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\EQData(Test).h">
       <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\CXWnd-Members.h">
-      <Filter>Header Files\EQLib\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="test\ItemBase-Members.h">
       <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="test\PlayerZoneClient-Members.h">
@@ -230,6 +227,30 @@
       <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
     <ClInclude Include="EQLib\common\Common.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\CXWnd.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\test\ItemBase-Members.h">
+      <Filter>Header Files\EQLib\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\live\EQData.h">
+      <Filter>Header Files\EQLib\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\UI.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\test\EQUIStructs(Test).h">
+      <Filter>Header Files\EQLib\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\EQLib.h">
+      <Filter>Header Files\EQLib</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\BuildType.h">
+      <Filter>Header Files\EQLib</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Globals.h">
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
   </ItemGroup>

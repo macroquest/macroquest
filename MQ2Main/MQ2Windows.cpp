@@ -19,10 +19,10 @@
 #include <string>
 #include <algorithm>
 
-std::list<ItemGlobalIndex2> selllist;
-std::list<ItemGlobalIndex2> deletelist;
-std::list<ItemGlobalIndex2> autobanklist;
-std::list<ItemGlobalIndex2> autoinventorylist;
+std::list<ItemGlobalIndex> selllist;
+std::list<ItemGlobalIndex> deletelist;
+std::list<ItemGlobalIndex> autobanklist;
+std::list<ItemGlobalIndex> autoinventorylist;
 
 CButtonWnd* gAutoBankButton = nullptr;
 bool gStartAutoBanking = false;
@@ -797,7 +797,7 @@ public:
 
 												if (CFindItemWnd* pFIWnd2 = (CFindItemWnd*)this)
 												{
-													if (ItemGlobalIndex2* igg = (ItemGlobalIndex2*)pFIWnd2->gi[dta])
+													if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pFIWnd2->gi[dta])
 													{
 														deletelist.push_back(*igg);
 													}
@@ -854,8 +854,7 @@ public:
 																	if (pMerchantWnd && pMerchantWnd->IsVisible())
 																	{
 																		WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
-																		ItemGlobalIndex2* igg = (ItemGlobalIndex2*)gi;
-																		selllist.push_back(*igg);
+																		selllist.push_back(*ig);
 																	}
 																	else
 																	{

@@ -24,7 +24,7 @@
 	int         Charges;
 	UINT        Tint;
 	int         Luck;
-	ItemGlobalIndex2 GlobalIndex;                    // Size is 0xa (0xc)
+	ItemGlobalIndex GlobalIndex;                    // Size is 0xa (0xc)
 	int         NoDropFlag;
 	UINT        LastCastTime;
 	int         ItemColor;

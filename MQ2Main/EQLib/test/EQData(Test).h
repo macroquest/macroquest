@@ -14,10 +14,11 @@
 
 #pragma once
 
-#include "Containers.h"
-#include "SharedClasses.h"
+#include "../common/Containers.h"
+#include "../common/Items.h"
+#include "../common/SharedClasses.h"
 
-namespace EQData {
+namespace eqlib {
 
 // Forward declarations
 
@@ -598,6 +599,17 @@ enum MOUSE_DATA_TYPES
 
 #define EQHeading(heading)                       ((int)(((heading + 16) % 256) / 32) * 2)
 
+class ItemClient;
+using CONTENTS = ItemClient;
+using PCONTENTS = ItemClient *;
+
+class PcProfile;
+using CHARINFO2 = PcProfile;
+using PCHARINFO2 = PcProfile *;
+
+class PlayerClient;
+using SPAWNINFO = PlayerClient;
+using PSPAWNINFO = PlayerClient *;
 
 // ***************************************************************************
 // Structures
@@ -633,17 +645,6 @@ struct UILOCATION
 	CHAR error[MAX_STRING];
 };
 using PUILOCATION = UILOCATION*;
-
-struct CXSTR
-{
-/*0x00*/ DWORD Font;            // maybe, dont know.  04 = Window 01 = button
-/*0x04*/ DWORD MaxLength;
-/*0x08*/ DWORD Length;
-/*0x0c*/ BOOL Encoding;        // 0: ASCII, 1:Unicode
-/*0x10*/ PCRITICAL_SECTION pLock;
-/*0x14*/ CHAR Text[1];         // Stub, can be anywhere from Length to MaxLength (which is how much is malloc'd to this CXStr)
-};
-using PCXSTR = CXSTR*;
 
 #define ITEM_NAME_LEN                            0x40
 #define LORE_NAME_LEN                            0x50
@@ -798,7 +799,7 @@ struct ITEMINFO
 //*0x0228*/ DWORD               FactionModType[0x4];
 //*0x0238*/ DWORD               FactionModValue[0x4];
 /*0x0234*/ CHAR                CharmFile[0x20];
-/*0x0254*/ FLOAT               Unknown0x0254;
+/*0x0254*/ float               Unknown0x0254;
 /*0x0258*/ ITEMSPELLS          Clicky;                     // size 0x64
 /*0x02BC*/ ITEMSPELLS          Proc;
 /*0x0320*/ ITEMSPELLS          Worn;
@@ -850,8 +851,8 @@ struct ITEMINFO
 /*0x0688*/ bool                bPlaceableIgnoreCollisions;
 /*0x068c*/ int                 PlacementType;              // todo: this is an enum need to figure out.
 /*0x0690*/ int                 RealEstateDefID;
-/*0x0694*/ FLOAT               PlaceableScaleRangeMin;
-/*0x0698*/ FLOAT               PlaceableScaleRangeMax;
+/*0x0694*/ float               PlaceableScaleRangeMin;
+/*0x0698*/ float               PlaceableScaleRangeMax;
 /*0x069c*/ int                 RealEstateUpkeepID;
 /*0x06a0*/ int                 MaxPerRealEstate;
 /*0x06a4*/ CHAR                HousepetFileName[0x20];
@@ -859,10 +860,10 @@ struct ITEMINFO
 /*0x06c8*/ bool                bDisablePlacementRotation;
 /*0x06c9*/ bool                bDisableFreePlacement;
 /*0x06cc*/ int                 NpcRespawnInterval;
-/*0x06d0*/ FLOAT               PlaceableDefScale;
-/*0x06d4*/ FLOAT               PlaceableDefHeading;
-/*0x06d8*/ FLOAT               PlaceableDefPitch;
-/*0x06dc*/ FLOAT               PlaceableDefRoll;
+/*0x06d0*/ float               PlaceableDefScale;
+/*0x06d4*/ float               PlaceableDefHeading;
+/*0x06d8*/ float               PlaceableDefPitch;
+/*0x06dc*/ float               PlaceableDefRoll;
 /*0x06e0*/ bool                bInteractiveObject;
 /*0x06e1*/ BYTE                SocketSubClassCount;
 /*0x06e4*/ int                 SocketSubClass[0xa];
@@ -881,62 +882,6 @@ public:
 	}
 
 	char guid[GUID];
-};
-
-enum ItemContainerInstance
-{
-	eItemContainerInvalid                        = -1,
-	eItemContainerPossessions                    = 0,
-	eItemContainerBank                           = 1,
-	eItemContainerSharedBank                     = 2,
-	eItemContainerTrade                          = 3,
-	eItemContainerWorld                          = 4,
-	eItemContainerLimbo                          = 5,
-	eItemContainerTribute                        = 6,
-	eItemContainerTrophyTribute                  = 7,
-	eItemContainerGuildTribute                   = 8,
-	eItemContainerMerchant                       = 9,
-	eItemContainerDeleted                        = 10,
-	eItemContainerCorpse                         = 11,
-	eItemContainerBazaar                         = 12,
-	eItemContainerInspect                        = 13,
-	eItemContainerRealEstate                     = 14,
-	eItemContainerViewModPC                      = 15,
-	eItemContainerViewModBank                    = 16,
-	eItemContainerViewModSharedBank              = 17,
-	eItemContainerViewModLimbo                   = 18,
-	eItemContainerAltStorage                     = 19,
-	eItemContainerArchived                       = 20,
-	eItemContainerMail                           = 21,
-	eItemContainerGuildTrophyTribute             = 22,
-	eItemContainerKrono                          = 23,
-	eItemContainerOther                          = 24,
-	eItemContainerMercenaryItems                 = 25,
-    eItemContainerViewModMercenaryItems          = 26,
-    eItemContainerMountKeyRingItems              = 27,
-	eItemContainerViewModMountKeyRingItems       = 28,
-	eItemContainerIllusionKeyRingItems           = 29,
-	eItemContainerViewModIllusionKeyRingItems    = 30,
-	eItemContainerFamiliarKeyRingItems           = 31,
-	eItemContainerViewModFamiliarKeyRingItems    = 32,
-	eItemContainerCursor                         = 33,
-};
-
-class ItemIndex
-{
-public:
-/*0x00*/ short Slot1;
-/*0x02*/ short Slot2;
-/*0x04*/ short Slot3;
-/*0x06*/
-};
-
-class ItemGlobalIndex2
-{
-public:
-/*0x00*/ ItemContainerInstance Location;
-/*0x04*/ ItemIndex Index;
-/*0x0a*/
 };
 
 struct ITEMBASEARRAY;
@@ -973,6 +918,9 @@ class ItemBase
 /*0x0008*/ void*        punknown;
 
 	#include "ItemBase-Members.h"
+
+	bool IsLore(bool bIncludeSockets = false) const;
+	bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
 
 class ItemClient : public ItemBase
@@ -980,17 +928,15 @@ class ItemClient : public ItemBase
 ///*0x0141*/ BYTE Filler0x0141[0xB];
 
 	// Reference counted pointer to ItemDefinition
-/*0x0148*/ DWORD Item2RefCnt;
-/*0x014C*/ ITEMINFO* Item2;
+/*0x0148*/ DWORD        Item2RefCnt;
+/*0x014C*/ ITEMINFO*    Item2;
 
-/*0x0150*/ CXSTR* ClientString;
+/*0x0150*/ CXStr        ClientString;
 /*0x0158*/
 
 	EQLIB_OBJECT CONTENTS* GetContent(uint32_t index);
-	EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
+	EQLIB_OBJECT ItemGlobalIndex& GetGlobalIndex();
 };
-using CONTENTS = ItemClient;
-using PCONTENTS = ItemClient*;
 
 struct ITEMBASEARRAY
 {
@@ -1025,16 +971,16 @@ struct SPELLBUFF
 /*0x01*/ BYTE      Level;                        // casterlevel
 /*0x02*/ BYTE      ChargesRemaining;
 /*0x03*/ CHAR      DamageShield;                 // Activatable
-/*0x04*/ FLOAT     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
+/*0x04*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
 /*0x08*/ LONG      SpellID;                      // -1 or 0 for no spell..
 /*0x0c*/ DWORD     Duration;
 /*0x10*/ DWORD     MaxDuration;
 /*0x14*/ DWORD     Duration3;
 /*0x18*/ EqGuid    CasterGuid;
 /*0x20*/ DWORD     HitCount;
-/*0x24*/ FLOAT     Y;                            // Referenced by SPA 441 (distance removal)
-/*0x28*/ FLOAT     X;
-/*0x2c*/ FLOAT     Z;
+/*0x24*/ float     Y;                            // Referenced by SPA 441 (distance removal)
+/*0x28*/ float     X;
+/*0x2c*/ float     Z;
 /*0x30*/ UINT      Flags;
 /*0x34*/ SlotData  SlotData[NUM_SLOTDATA];       // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
 /*0x64*/ DWORD     Unknown0x64;
@@ -1085,8 +1031,8 @@ using PINVENTORY = INVENTORY;
 // size is at 7EE7F8 in eqgame dated jun 13 2014
 #define AA_CHAR_MAX_REAL                         0x12C
 
-struct AALIST 
-
+struct AALIST
+{
 /*0x00*/ DWORD AAIndex;
 /*0x04*/ DWORD PointsSpent;
 /*0x08*/ DWORD ChargeSpent;            // charges spent in the last 10 min?
@@ -1156,7 +1102,8 @@ enum eProfileListType
 
 #if !defined(NEWCHARINFO)
 
-struct CI2_INFO {
+struct CI2_INFO
+{
 /*0x00*/ eProfileListType ListType;
 /*0x04*/ CHARINFO2* pCharInfo2;
 /*0x08*/ CHARINFO2* pLast;
@@ -1172,10 +1119,10 @@ using PCI2_INFO = CI2_INFO*;
 struct GROUPMEMBER
 {
 /*0x00*/ void*  vftable;
-/*0x04*/ CXSTR* pName;
+/*0x04*/ CXStr  pName;
 /*0x08*/ BYTE   Mercenary;
 /*0x09*/ BYTE   Unknown0x9[0x3];
-/*0x0c*/ CXSTR* pOwner;                // name of mercenary's owner
+/*0x0c*/ CXStr  pOwner;                // name of mercenary's owner
 /*0x10*/ DWORD  Level;
 /*0x14*/ BYTE   Offline;               // 1 if groupmember is offline
 /*0x15*/ BYTE   Unknown0x15[8];
@@ -1440,8 +1387,8 @@ struct PCTaskStatus
 struct MailItemData
 {
 /*0x00*/ UINT   SendTime;
-/*0x04*/ CXSTR* SenderName;
-/*0x08*/ CXSTR* Note;
+/*0x04*/ CXStr  SenderName;
+/*0x08*/ CXStr  Note;
 /*0x0c*/
 };
 
@@ -1508,7 +1455,7 @@ struct PvPKill24HourData : public PvPKill
 	//nothing here?
 };
 
-enum eAreaCorner
+enum EAreaCorner
 {
 	eAC_None = -1,
 	eAC_TopLeftCorner,
@@ -1535,9 +1482,9 @@ struct PCAdventureData
 /*0x02c*/ int AdventureActiveAdventureTheme;
 /*0x030*/ int AdventureActiveAdventureRisk;
 /*0x034*/ int AdventureSafeReturnZoneId;
-/*0x038*/ FLOAT AdventureSafeReturnX;
-/*0x03c*/ FLOAT AdventureSafeReturnY;
-/*0x040*/ FLOAT AdventureSafeReturnZ;
+/*0x038*/ float AdventureSafeReturnX;
+/*0x03c*/ float AdventureSafeReturnY;
+/*0x040*/ float AdventureSafeReturnZ;
 /*0x044*/ int AdventureStatAccepted;
 /*0x048*/ int AdventureStatRejected;
 /*0x04c*/ int AdventureStatEntered;
@@ -1681,16 +1628,16 @@ public:
 		S_LastStat,
 	};
 
-/*0x000*/ CHAR PlayerName[0x40];
-/*0x040*/ int PlayerLevel;
-/*0x044*/ int PlayerRace;
-/*0x048*/ int PlayerClass;
-/*0x04c*/ UINT UniquePlayerId;
-/*0x050*/ UINT LastMemberUpdateTime;
-/*0x054*/ PCXSTR StationID;
-/*0x058*/ int PlayerGuild;
-/*0x05c*/ TSafeArrayStatic<int, NUM_LONG_BUFFS> BuffIDs;             // size 0xa8
-/*0x104*/ TSafeArrayStatic<StatCounter, S_LastStat> Statistics;      // size 0x4c
+/*0x000*/ CHAR         PlayerName[0x40];
+/*0x040*/ int          PlayerLevel;
+/*0x044*/ int          PlayerRace;
+/*0x048*/ int          PlayerClass;
+/*0x04c*/ UINT         UniquePlayerId;
+/*0x050*/ UINT         LastMemberUpdateTime;
+/*0x054*/ CXStr        StationID;
+/*0x058*/ int          PlayerGuild;
+/*0x05c*/ TSafeArrayStatic<int, NUM_LONG_BUFFS>     BuffIDs;
+/*0x104*/ TSafeArrayStatic<StatCounter, S_LastStat> Statistics;
 /*0x150*/
 };
 
@@ -1725,10 +1672,10 @@ struct CompletedAchievementData
 };
 
 enum eAchievementSubReqType
-{ 
-	eASCRT_Invalid, 
-	eASCRT_Requirement, 
-	eASCRT_KillNpcRaceMat, 
+{
+	eASCRT_Invalid,
+	eASCRT_Requirement,
+	eASCRT_KillNpcRaceMat,
 	eASCRT_RightClickItem,
 	eASCRT_KillNpc,
 	eASCRT_Count,
@@ -1807,8 +1754,8 @@ enum ItemSpellTypes
 
 struct VECTOR2
 {
-	FLOAT X;
-	FLOAT Y;
+	float X;
+	float Y;
 };
 using PVECTOR2 = VECTOR2*;
 
@@ -1817,10 +1764,10 @@ using PVECTOR2 = VECTOR2*;
 // actual size: 0x229 May 07 2018 test see 6628CA  - eqmule
 struct SPELL
 {
-/*0x000*/ FLOAT   Range;
-/*0x004*/ FLOAT   AERange;
-/*0x008*/ FLOAT   PushBack;
-/*0x00c*/ FLOAT   PushUp;
+/*0x000*/ float   Range;
+/*0x004*/ float   AERange;
+/*0x008*/ float   PushBack;
+/*0x00c*/ float   PushUp;
 /*0x010*/ DWORD   CastTime;
 /*0x014*/ DWORD   RecoveryTime;
 /*0x018*/ DWORD   RecastTime;
@@ -1889,10 +1836,10 @@ struct SPELL
 /*0x120*/ DWORD   MaxTargets;                    // how many targets a spell will affect
 /*0x124*/ DWORD   AIValidTargets;
 /*0x128*/ DWORD   BaseEffectsFocusOffset;
-/*0x12c*/ FLOAT   BaseEffectsFocusSlope;
+/*0x12c*/ float   BaseEffectsFocusSlope;
 /*0x130*/ VECTOR2 DistanceModStart;
 /*0x138*/ VECTOR2 DistanceModEnd;
-/*0x140*/ FLOAT   MinRange;
+/*0x140*/ float   MinRange;
 /*0x144*/ BYTE    NoNPCLOS;                      // NPC skips LOS checks
 /*0x145*/ BYTE    Feedbackable;                  // nothing uses this
 /*0x146*/ BYTE    Reflectable;
@@ -1949,7 +1896,7 @@ struct SPELL
 /*0x219*/ int     NoOverwrite;                   // an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
 /*0x21d*/ DWORD   SpellRecourseType;
 /*0x221*/ BYTE    CRC32Marker[4];
-/*0x225*/ FLOAT   DistanceMod;                   // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
+/*0x225*/ float   DistanceMod;                   // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
 /*0x229*/
 };
 using PSPELL = SPELL*;
@@ -1962,7 +1909,7 @@ struct FocusEffectData
 	int Slot;
 };
 
-class MercAbilityEffectsDef
+class MercenaryAbilityEffectsDefinition
 {
 public:
 	void* vfTable;
@@ -2016,7 +1963,7 @@ public:
 
 	struct CachedFocusMercAbility
 	{
-		MercAbilityEffectsDef* pAbilityEffectDef;
+		MercenaryAbilityEffectsDefinition* pAbilityEffectDef;
 		int Percent;
 	};
 
@@ -2043,6 +1990,7 @@ struct ALCHEMYBONUSSKILLDATA
 #define CHARINFO_Size                            0x2B78 //in Nov 01 2018 beta (see 5D7008)
 
 /*0x1c4c*/ //ItemIndex	StatKeyRingItemIndex[3]; //0xe46 confirmed
+
 // this thing here is an abomination, todo: fix it once and for all.
 // its like a frankenstruct mixing in PcBase etc.
 struct CHARINFO
@@ -2201,7 +2149,7 @@ struct CHARINFO
 /*0x1e73*/ bool                                          bAutoConsentGuild;
 /*0x1e74*/ bool                                          bPrivateForEqPlayers;
 /*0x1e78*/ long                                          AchievementFilesModificationTime;
-/*0x1e7c*/ CHAR                                          StationID[0x20];
+/*0x1e7c*/ char                                          StationID[0x20];
 /*0x1ea0*/ EqGuid                                        Guid;                           // size 8 so it MUST start at a int64 sized address.. i.e. 0 or 8
 /*0x1ea8*/ bool                                          bBetaBuffed;
 /*0x1eac*/ int                                           Unknown0x1eac;
@@ -2221,26 +2169,26 @@ struct CHARINFO
 /*0x1f6c*/ bool                                          bCanRequestPetNameChange;
 /*0x1f6d*/ CHAR                                          OverrideFamiliarName[0x40];
 /*0x1fad*/ bool                                          bCanRequestFamiliarNameChange;
-/*0x1fb0*/ CXSTR*                                        OverrideMercName[0xb];
+/*0x1fb0*/ CXStr                                         OverrideMercName[0xb];
 /*0x1Fdc*/ bool                                          bCanRequestMercNameChange;
 /*0x1Fe0*/ PendingRewardList                             PendingRewards;                 // size 0x2c
 /*0x200c*/ UINT                                          DowntimeReductionTime;
 /*0x2010*/ UINT                                          DowntimeTimerStart;
-/*0x2014*/ FLOAT                                         ActivityValue;
+/*0x2014*/ float                                         ActivityValue;
 /*0x2018*/ UINT                                          NextItemId;
-/*0x201c*/ CXSTR*                                        SharedBank;
-/*0x2020*/ CXSTR*                                        BankBuffer;
-/*0x2024*/ CXSTR*                                        LimboBuffer;
-/*0x2028*/ CXSTR*                                        MercenaryBuffer;
-/*0x202c*/ CXSTR*                                        KeyRingBuffer[3];
-/*0x2038*/ CXSTR*                                        AltStorageBuffer;
-/*0x203c*/ CXSTR*                                        ItemOverflow;
+/*0x201c*/ CXStr                                         SharedBank;
+/*0x2020*/ CXStr                                         BankBuffer;
+/*0x2024*/ CXStr                                         LimboBuffer;
+/*0x2028*/ CXStr                                         MercenaryBuffer;
+/*0x202c*/ CXStr                                         KeyRingBuffer[3];
+/*0x2038*/ CXStr                                         AltStorageBuffer;
+/*0x203c*/ CXStr                                         ItemOverflow;
 /*0x2040*/ UINT                                          AltStorageTimestamp;
 /*0x2044*/ ELockoutCharacterReason                       LCR;
 /*0x2048*/ HashTable<ProgressionExperience>              ProgressionExp;                 // size 0x10
-/*0x2058*/ PCXSTR                                        ArchivedStorageBuffer;
-/*0x205c*/ PCXSTR                                        MailItemsBuffer;
-/*0x2060*/ PCXSTR                                        MailItemsDataBuffer;
+/*0x2058*/ CXStr                                         ArchivedStorageBuffer;
+/*0x205c*/ CXStr                                         MailItemsBuffer;
+/*0x2060*/ CXStr                                         MailItemsDataBuffer;
 /*0x2064*/ int                                           MailItemsOverCapWarningCount;
 /*0x2068*/ ItemIndex                                     StatKeyRingItemIndex[3];        // size 0x12
 /*0x207a*/ BYTE                                          UseAdvancedLooting;             // 0x1ff2 confirmed jun 12 2017 test               //0=off 1=on
@@ -2258,15 +2206,15 @@ struct CHARINFO
 /*0x22f4*/ bool                                          bGrantItemsRegistered;
 /*0x22f8*/ uint64_t                                      CreatedGuildID;
 /*0x2300*/ UINT                                          GuildCreateTime;
-/*0x2304*/ PCXSTR                                        GuildCreateCharacter;
+/*0x2304*/ CXStr                                         GuildCreateCharacter;
 /*0x2308*/ bool                                          bInventoryUnserialized;
 /*0x2309*/ bool                                          bAltStorageUnserialized;
 /*0x230a*/ bool                                          bArchivedStorageUnserialized;
 /*0x230b*/ bool                                          bMailUnserialized;
 /*0x230c*/ bool                                          bPendingInventorySerialization;
-/*0x2310*/ PCXSTR                                        BuyLines;
-/*0x2314*/ ArrayClass_RO<PCXSTR>                         OfflineTraderSoldItems;         // size 0x10
-/*0x2324*/ ArrayClass_RO<PCXSTR>                         OfflineBuyerBoughtItems;        // size 0x10
+/*0x2310*/ CXStr                                         BuyLines;
+/*0x2314*/ ArrayClass_RO<CXStr>                          OfflineTraderSoldItems;         // size 0x10
+/*0x2324*/ ArrayClass_RO<CXStr>                          OfflineBuyerBoughtItems;        // size 0x10
 #else
 /*0x207c*/ BYTE                                          Unknown0x207c[0x2b8];
 #endif // NEWCHARINFO
@@ -2399,10 +2347,10 @@ struct CHARINFO
 #else
 /*0x2858*/ BYTE                                          languages[0x20];                // CharBaseBegin+14
 #endif
-/*0x2878*/ FLOAT                                         X;
-/*0x287c*/ FLOAT                                         Y;
-/*0x2880*/ FLOAT                                         Z;
-/*0x2884*/ FLOAT                                         Heading;
+/*0x2878*/ float                                         X;
+/*0x287c*/ float                                         Y;
+/*0x2880*/ float                                         Z;
+/*0x2884*/ float                                         Heading;
 /*0x2888*/ CHAR                                          Name[0x40];                     // CharBaseBegin+44
 /*0x28c8*/ CHAR                                          Lastname[0x20];                 // CharBaseBegin+84
 /*0x28e8*/ TSafeString<0x80>                             Title;
@@ -2523,7 +2471,7 @@ public:
 /*0x3b84*/ DWORD             Level;
 /*0x3b88*/ DWORD             Mana;
 /*0x3b8c*/ DWORD             Endurance;
-/*0x3b90*/ int64_T           BaseHP;
+/*0x3b90*/ int64_t           BaseHP;
 /*0x3b98*/ DWORD             BaseSTR;
 /*0x3b9c*/ DWORD             BaseSTA;
 /*0x3ba0*/ DWORD             BaseCHA;
@@ -2589,7 +2537,7 @@ class PcProfile : public BaseProfile
 /*0x8edc*/ TSafeArrayStatic<BenefitSelection, 0xa>      ActiveTrophyTributeBenefits;               // size 0x50 = 8 * 0xa
 /*0x8f2c*/ ItemBaseContainer                            GuildTributeBenefitItems;                  // size 0x1c for sure see 8C9D9C in 21 Sep 2018
 /*0x8f48*/ ItemBaseContainer                            GuildTrophyTributeBenefitItems;            // size 0x1c
-/*0x8f64*/ ArrayClass_RO<PCXSTR>                        MercenarySaveStrings;                      // size 0x10
+/*0x8f64*/ ArrayClass_RO<CXStr>                         MercenarySaveStrings;                      // size 0x10
 /*0x8f74*/ AssociatedNPCSaveStringNode *PetSaveString;
 /*0x8f78*/ DWORD                                        Deity;                                     // fs see 8DE504 Jan 04 2019 test
 /*0x8f7c*/ bool                                         bPVPFlag;
@@ -2605,13 +2553,13 @@ class PcProfile : public BaseProfile
 /*0x8f90*/ BYTE                                         OldFace;
 /*0x8f94*/ DWORD                                        AAPoints;
 /*0x8f98*/ CHAR                                         PocketPetSaveString[0x2000];//0x1000 in older clients
-/*0xaf98*/ PCXSTR                                       ItemBuffer;
+/*0xaf98*/ CXStr                                        ItemBuffer;
 /*0xaf9c*/ UINT                                         LastShield;
 /*0xafa0*/ bool                                         bSneak;
 /*0xafa1*/ bool                                         bHide;
 /*0xafa4*/ DWORD                                        AAPointsSpent;
 /*0xafa8*/ DWORD                                        AAPointsAssigned[6];//none, general, arch, class, special, focus, merc
-/*0xafc0*/ void	*                                       pPetData;//PetObjectData todo fill in
+/*0xafc0*/ void*                                        pPetData;//PetObjectData todo fill in
 /*0xafc4*/ DWORD                                        PrimActor;
 /*0xafc8*/ DWORD                                        SecdActor;
 /*0xafcc*/ bool                                         bUseTemplateFaction;
@@ -2622,7 +2570,7 @@ class PcProfile : public BaseProfile
 /*0xafe0*/ DWORD                                        NewBodyTint;
 /*0xafe4*/ DWORD                                        CurrentMercenaryIndex;
 /*0xafe8*/
-}
+};
 using CHARINFO2 = PcProfile;
 using PCHARINFO2 = PcProfile*;
 
@@ -2649,9 +2597,9 @@ using PMODELINFO_GENERIC = MODELINFO_GENERIC*;
 struct MODELINFO_48
 {
 /*0x00*/ MODELINFO_GENERIC Header;
-/*0x14*/ FLOAT Float1;
-/*0x18*/ FLOAT Float2;
-/*0x1c*/ FLOAT Float3;
+/*0x14*/ float Float1;
+/*0x18*/ float Float2;
+/*0x1c*/ float Float3;
 /*0x20*/ MODELINFONAME* pModelName;
 /*0x24*/
 };
@@ -2683,10 +2631,10 @@ struct CAMERAINFO
 /*0x00*/ DWORD Unknown0x00;
 /*0x04*/ DWORD Unknown0x04;
 /*0x08*/ BYTE  Unknown0x08[0x8];
-/*0x10*/ FLOAT Y;
-/*0x14*/ FLOAT X;
-/*0x18*/ FLOAT Z;
-/*0x1c*/ FLOAT LightRadius;
+/*0x10*/ float Y;
+/*0x14*/ float X;
+/*0x18*/ float Z;
+/*0x1c*/ float LightRadius;
 /*0x20*/
 };
 using PCAMERAINFO = CAMERAINFO*;
@@ -2797,7 +2745,7 @@ using PEQUIPMENT = EQUIPMENT*;
 
 // found these at B0DD28 in eqgame.exe dated Aug 15 2016
 
-// offsets are relative to their position in _LAUNCHSPELLDATA
+// offsets are relative to their position in LAUNCHSPELLDATA
 struct ITEMLOCATION
 {
 /*0x0c*/ ItemContainerInstance Location;
@@ -2818,24 +2766,24 @@ struct LAUNCHSPELLDATA
 /*0x0c*/ ITEMLOCATION ItemLocation;
 /*0x18*/ ItemSpellTypes ItemCastType;
 /*0x1c*/ int     ItemID;
-/*0x20*/ FLOAT   CastingY;
-/*0x24*/ FLOAT   CastingX;
+/*0x20*/ float   CastingY;
+/*0x24*/ float   CastingX;
 /*0x28*/ int     DamageID;
 /*0x2c*/ UINT    TargetID;
 /*0x30*/ bool    bDetrimental;
 /*0x31*/ bool    bResetMeleeTimers;
 /*0x32*/ bool    bResetAAOnNotTakeHold;
 /*0x33*/ bool    bFreeTarget;
-/*0x34*/ FLOAT   TargetPosY;
-/*0x38*/ FLOAT   TargetPosX;
-/*0x3c*/ FLOAT   TargetPosZ;
+/*0x34*/ float   TargetPosY;
+/*0x38*/ float   TargetPosX;
+/*0x3c*/ float   TargetPosZ;
 /*0x40*/ bool    bTwinCast;
 /*0x41*/ bool    bLanded;
 /*0x42*/ bool    bNPCTarget;
 /*0x43*/ bool    bHasHitRecourse;
-/*0x44*/ FLOAT   AnchorPosY;
-/*0x48*/ FLOAT   AnchorPosX;
-/*0x4c*/ FLOAT   AnchorPosZ;
+/*0x44*/ float   AnchorPosY;
+/*0x48*/ float   AnchorPosX;
+/*0x4c*/ float   AnchorPosZ;
 /*0x50*/ bool    bIgnoreRange;
 /*0x51*/ bool    bResetAAOnNotTakeHoldSuccess;
 /*0x54*/ int     Unknown0x54;
@@ -2843,54 +2791,54 @@ struct LAUNCHSPELLDATA
 
 	bool IsCasting() const
 	{
-		return (SpellID != -1);
+		return SpellID != -1;
 	}
 };
 using PLAUNCHSPELLDATA = LAUNCHSPELLDATA*;
 
 enum EActorType
 {
-	Undefined,
-	Player,
-	Corpse,
-	Switch,
-	Missile,
-	Object,
-	Ladder,
-	Tree,
-	Wall,
-	PlacedObject
+	Undefined                = 0,
+	Player                   = 1,
+	Corpse                   = 2,
+	Switch                   = 3,
+	Missile                  = 4,
+	Object                   = 5,
+	Ladder                   = 6,
+	Tree                     = 7,
+	Wall                     = 8,
+	PlacedObject             = 9,
 };
 
 class CPhysicsInfo
 {
 public:
-	/*0x00*/ FLOAT Y;
-	/*0x04*/ FLOAT X;
-	/*0x08*/ FLOAT Z;
-	/*0x0c*/ FLOAT SpeedY;
-	/*0x10*/ FLOAT SpeedX;
-	/*0x14*/ FLOAT SpeedZ;
-	/*0x18*/ FLOAT SpeedRun;
-	/*0x1c*/ FLOAT Heading;
-	/*0x20*/ FLOAT Angle;
-	/*0x24*/ FLOAT AccelAngle;
-	/*0x28*/ FLOAT SpeedHeading;
-	/*0x2c*/ FLOAT CameraAngle;
-	/*0x30*/
+/*0x00*/ float               Y;
+/*0x04*/ float               X;
+/*0x08*/ float               Z;
+/*0x0c*/ float               SpeedY;
+/*0x10*/ float               SpeedX;
+/*0x14*/ float               SpeedZ;
+/*0x18*/ float               SpeedRun;
+/*0x1c*/ float               Heading;
+/*0x20*/ float               Angle;
+/*0x24*/ float               AccelAngle;
+/*0x28*/ float               SpeedHeading;
+/*0x2c*/ float               CameraAngle;
+/*0x30*/
 };
 
 #define InnateETA                                0xC
 
 struct SDoCollisionMovementStats
 {
-/*0x00*/ CPhysicsInfo Source;                    // size 0x30
-/*0x30*/ FLOAT DestY;
-/*0x34*/ FLOAT DestX;
-/*0x38*/ FLOAT DestZ;
-/*0x3c*/ FLOAT SourceFloor;
-/*0x40*/ FLOAT DestFloor;
-/*0x44*/ CPhysicsInfo Dest;
+/*0x00*/ CPhysicsInfo        Source;
+/*0x30*/ float               DestY;
+/*0x34*/ float               DestX;
+/*0x38*/ float               DestZ;
+/*0x3c*/ float               SourceFloor;
+/*0x40*/ float               DestFloor;
+/*0x44*/ CPhysicsInfo        Dest;
 /*0x74*/
 };
 
@@ -3011,10 +2959,10 @@ public:
 /*0x10f0*/ TList<CObjectGroupStageInstance> StageInstances;          // size 0x8
 /*0x10f8*/ bool        bActiveTransition;
 /*0x10Fc*/ UINT        CurrentStage;
-/*0x1100*/ FLOAT       ZOffset;
-/*0x1104*/ FLOAT       TempY;//related to ZOffset adjustments I *think*
-/*0x1108*/ FLOAT       TempX;
-/*0x110c*/ FLOAT       TempZ;
+/*0x1100*/ float       ZOffset;
+/*0x1104*/ float       TempY;//related to ZOffset adjustments I *think*
+/*0x1108*/ float       TempX;
+/*0x110c*/ float       TempZ;
 /*0x1110*/ bool        bReplacedStaticObject;
 /*0x1114*/ int         PartialFaceNumber;
 /*0x1118*/ bool        bNewArmorDisabled;
@@ -3030,12 +2978,12 @@ class PlayerAnimationBase
 class CLineBase
 {
 public:
-/*0x00*/ FLOAT OriginY;
-/*0x04*/ FLOAT OriginX;
-/*0x08*/ FLOAT OriginZ;
-/*0x0c*/ FLOAT DirectionY;
-/*0x10*/ FLOAT DirectionX;
-/*0x14*/ FLOAT DirectionZ;
+/*0x00*/ float OriginY;
+/*0x04*/ float OriginX;
+/*0x08*/ float OriginZ;
+/*0x0c*/ float DirectionY;
+/*0x10*/ float DirectionX;
+/*0x14*/ float DirectionZ;
 /*0x18*/
 };
 
@@ -3046,7 +2994,7 @@ class CLineSegment : public CLineBase
 class CCapsule : public CLineSegment
 {
 public:
-/*0x18*/	FLOAT	Radius;
+/*0x18*/	float	Radius;
 /*0x1c*/
 };
 
@@ -3093,8 +3041,8 @@ public:
 /*0x1Fb8*/ int              LeftRightIndex;
 /*0x1Fbc*/ int              UpDownSpeed;
 /*0x1Fc0*/ int              LeftRightSpeed;
-/*0x1Fc4*/ FLOAT            LeftRightDist;
-/*0x1Fc8*/ FLOAT            UpDownDist;
+/*0x1Fc4*/ float            LeftRightDist;
+/*0x1Fc8*/ float            UpDownDist;
 /*0x1Fcc*/
 };
 
@@ -3175,6 +3123,18 @@ public:
 /*0x0188*/ int         SplineID;
 /*0x018c*/ int         SplineRiderID;
 
+	unsigned int GetId() const { return SpawnID; }
+
+	// These are methods that originated from EQPlayer. They might not
+	// all still exist.
+	bool IsAMount();
+	bool MyFeetAreOnGround();
+	bool HasProperty(unsigned int, int, int);
+	bool IsTargetable();
+	bool CanSee(const PlayerBase&);
+	bool CanSee(const CVector3& pos);
+	CLineSegment GetVisibilityLineSegment(const PlayerBase& other, unsigned int index = 0);
+
 private:
 	virtual void Dummy() {} // force a vtable
 };
@@ -3184,37 +3144,105 @@ class PlayerZoneClient : public PlayerBase
 public:
 /*0x0190*/ UINT        LastIntimidateUse;
 
-	#include "PlayerZoneClient-Members.h"
+#include "PlayerZoneClient-Members.h"
 
 	enum { MAX_MOVEMENT_STATS = 20 };
 /*0x0614*/ TCircularBuffer<SDoCollisionMovementStats, MAX_MOVEMENT_STATS> MovementStats; // size (0x74 * 0x14) +8 = 0x918
-/*0x0f2C*/ PlayerClient* WhoFollowing;           // NULL if autofollow off
-/*0x0f30*/ DWORD       GroupAssistNPC[0x1];
-/*0x0f34*/ DWORD       RaidAssistNPC[0x3];
-/*0x0f40*/ DWORD       GroupMarkNPC[0x3];
-/*0x0f4c*/ DWORD       RaidMarkNPC[0x3];
-/*0x0f58*/ DWORD       TargetOfTarget;
-/*0x0f5c*/ BYTE        PhysStuff[0x20];
-/*0x0f7c*/ UINT        ParticleCastStartTime;
-/*0x0f80*/ UINT        ParticleCastDuration;
-/*0x0f84*/ int         ParticleVisualSpellNum;
-/*0x0f88*/ BYTE        Filler0x0f88[0x4];
-/*0x0f8C*/ ActorClient mActorClient;             // start of ActorClient struct  size 0x1BC?
-/*0x1148*/ PlayerAnimationBase* pAnimation;
-/*0x114c*/ float       MeleeRadius;              // used by GetMeleeRange
-/*0x1150*/ UINT        CollisionCounter;
-/*0x1154*/ float       CachedFloorLocationY;
-/*0x1158*/ float       CachedFloorLocationX;
-/*0x115c*/ float       CachedFloorLocationZ;
-/*0x1160*/ float       CachedFloorHeight;
-/*0x1164*/ float       CachedCeilingLocationY;
-/*0x1168*/ float       CachedCeilingLocationX;
-/*0x116c*/ float       CachedCeilingLocationZ;
-/*0x1170*/ float       CachedCeilingHeight;
-/*0x1174*/ CCapsule    StaticCollision;                  // size 0x1c
-/*0x1190*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects; // size is 0x10
-/*0x11a0*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;    // size is 0x10
+/*0x0f2C*/ PlayerClient*                WhoFollowing;           // NULL if autofollow off
+/*0x0f30*/ DWORD                        GroupAssistNPC[0x1];
+/*0x0f34*/ DWORD                        RaidAssistNPC[0x3];
+/*0x0f40*/ DWORD                        GroupMarkNPC[0x3];
+/*0x0f4c*/ DWORD                        RaidMarkNPC[0x3];
+/*0x0f58*/ DWORD                        TargetOfTarget;
+/*0x0f5c*/ BYTE                         PhysStuff[0x20];
+/*0x0f7c*/ UINT                         ParticleCastStartTime;
+/*0x0f80*/ UINT                         ParticleCastDuration;
+/*0x0f84*/ int                          ParticleVisualSpellNum;
+/*0x0f88*/ BYTE                         Filler0x0f88[0x4];
+/*0x0f8C*/ ActorClient                  mActorClient;             // start of ActorClient struct  size 0x1BC?
+/*0x1148*/ PlayerAnimationBase*         pAnimation;
+/*0x114c*/ float                        MeleeRadius;              // used by GetMeleeRange
+/*0x1150*/ UINT                         CollisionCounter;
+/*0x1154*/ float                        CachedFloorLocationY;
+/*0x1158*/ float                        CachedFloorLocationX;
+/*0x115c*/ float                        CachedFloorLocationZ;
+/*0x1160*/ float                        CachedFloorHeight;
+/*0x1164*/ float                        CachedCeilingLocationY;
+/*0x1168*/ float                        CachedCeilingLocationX;
+/*0x116c*/ float                        CachedCeilingLocationZ;
+/*0x1170*/ float                        CachedCeilingHeight;
+/*0x1174*/ CCapsule                     StaticCollision;
+/*0x1190*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;
+/*0x11a0*/ ArrayClass_RO<bool>          PhysicsEffectsUpdated;
+
+	int LegalPlayerRace(int race);
+
+	// Some methods that were from EQPlayer in the past
+	bool AllowedToAttack(PlayerZoneClient*, int);
+	bool CanChangeForm(int Race, unsigned char Sex, float Height);
+	bool CanIFitHere(const CVector3& pos, bool ignoreHeight = false);
+	bool CanIHit(const PlayerZoneClient*, int);
+	bool IsFlyer();
+	bool IsInvisible(PlayerZoneClient*, bool = false);
+	bool IWasHit(EQMissileHitinfo*, LAUNCHSPELLDATA*, int = 0);
+	bool UpdatePlayerActor();
+	float GetDefaultHeight(int race, unsigned char);
+	float GetPlayerFloorHeight(float, float, float, unsigned char);
+	int AimAtTarget(PlayerZoneClient*, EQMissile*);
+	int CheckForJump();
+	int GetArmorType(int, char*);
+	int GetGuild() const;
+	bool IsValidTeleport(float X, float Y, float Z, float Heading, float Distance);
+	int Levitating();
+	int MountableRace();
+	int MovePlayer();
+	int NotOnSameDeity(const PlayerZoneClient*, const EQ_Spell*);
+	static void ComputeSpecialHeights(int, float*, float*, float*, float*, bool);
+	unsigned char DoTeleport(char*, int);
+	unsigned char DoTeleportB(int, float, float, float, float, char*, int);
+	unsigned char GetNearestActorTag(char*, EActorType);
+	unsigned char HandleAmmo();
+	static unsigned char SkillUsed(unsigned char);
+	unsigned int ModifyAttackSpeed(unsigned int, int);
+	unsigned long GetArmorTint(int);
+	void BodyEnvironmentChange(unsigned char);
+	void ChangeHeight(float);
+	void ChangePosition(unsigned char);
+	void CheckForUnderFloor();
+	void CleanUpVehicle();
+	void DeleteMyMissiles();
+	void DoFloorCheck();
+	void FacePlayer(PlayerZoneClient*);
+	void FeetEnvironmentChange(unsigned char);
+	void GetActorTag(char*);
+	void GetConscious();
+	void HeadEnvironmentChange(unsigned char);
+	void IDied(EQPlayerDeath*);
+	void IHaveFallen(float);
+	void InitSneakMod();
+	void KnockedOut();
+	void MakeRiderMountUp();
+	void PositionOnFloor();
+	void PushAlongHeading(float);
+	void PutPlayerOnFloor();
+	void ResetVariables();
+	void SetAnimVariation();
+	void SetArmorTint(int, unsigned long);
+	void SetHeights();
+	void SetRace(int);
+	unsigned char GetLevel() const;
+
+#if defined(ROF2EMU) || defined(UFEMU)
+	bool DoAttack(BYTE slot, BYTE skill, PlayerZoneClient* Target);
+#else
+	bool DoAttack(BYTE slot, BYTE skill, PlayerZoneClient* Target, bool bSomething = false, bool bAuto = false, bool bDontknow = false);
+#endif
+
+	static PlayerZoneClient* GetClosestPlayerFromPartialName(const char* name, PlayerZoneClient* player, int maxPlayerType = 1);
+
 };
+
+struct chngForm;
 
 class PlayerClient : public PlayerZoneClient
 {
@@ -3347,6 +3375,9 @@ public:
 
 /*0x2028*/ //see SpawnInfoSize
 
+	void Initialize(PlayerClient*, unsigned char, unsigned int, unsigned char, char*);
+	~PlayerClient();
+
 	int GetClass() const { return mActorClient.Class; }
 	BYTE GetCharacterType() const { return Type; }
 	unsigned int GetId() const { return SpawnID; }
@@ -3357,9 +3388,79 @@ public:
 	int GetCurrentEndurance() const { return EnduranceCurrent; }
 	int GetMaxEndurance() const { return EnduranceMax; }
 	int GetSpellCooldownETA() const { return SpellCooldownETA; }
+	bool IsGm() const { return GM; }
+
+	PcClient* GetPcClient() const;
+
+	// These come from the old EQPlayer class. Not all of these methods still exist.
+	bool IsInvited();
+	bool IsRoleplaying();
+	bool IsUntexturedHorse();
+	bool const HasInvalidRiderTexture() const;
+	int CanBeBald();
+	int SetPlayerPitchType();
+	int SwapBody(int, int);
+	int SwapFace(int, int);
+	int SwapHead(int, int, unsigned long, int);
+	int SwapMaterial(int, int, int, int, unsigned char);
+	int SwapNPCMaterials();
+	static void UpdateAllPlayersVisibility();
+	CLightInterface* CreateUserLight(CLightDefinitionInterface*, int);
+	unsigned char GetBaseFaceNbr(int, unsigned char*);
+	unsigned char HasAttachedBeard();
+	unsigned char HasAttachedHair();
+	unsigned char UpdateItemSlot(unsigned char, char*, int);
+	unsigned int CalcAnimLength(int);
+	void ChangeLight();
+	void CleanUpMyEffects();
+	void CleanUpTarget();
+	void Dismount();
+	void DisplayWeaponsAndArmor();
+	void do_change_form(chngForm*);
+	void DoCamAi();
+	void DoClassRandomAnimation();
+	void DoItemSlot(int);
+	void DoSwimJump(unsigned char);
+	void FollowPlayerAI();
+	void ForceInvisible(bool);
+	void HandleMaterialEx(int, unsigned int, unsigned int, unsigned long, int);
+	void HandoverControlToZoneserver();
+	void MountEQPlayer(PlayerZoneClient*);
+	void PlaySound(int);
+	void SetAccel(float, int);
+	void SetAfk(int);
+	void SetCurrentLoopSound(int);
+	void SetDefaultFacialFeaturesByFace(int, unsigned char, unsigned char);
+	void SetInvited(bool);
+	void SetSounds();
+	void SetToRandomRace();
+	void TouchingSwitch();
+	void TriggerSpellEffect(EQMissileHitinfo*);
+	void TurnOffAutoFollow();
+	void UpdateAppearance();
+	void UpdateBonePointers();
+	void UpdateNameSprite();
+	void UpdatePlayerVisibility();
+	void ChangeBoneStringSprite(int bone, char* spriteText);
+	int SetNameSpriteState(bool);
+	bool SetNameSpriteTint();
+
+	static PlayerClient* IsPlayerActor(CActorInterface*);
+
 };
 using SPAWNINFO = PlayerClient;
 using PSPAWNINFO = PlayerClient*;
+
+class PlayerManagerBase
+{
+};
+
+class PlayerManagerClient : public PlayerManagerBase
+{
+public:
+	PlayerClient* GetPlayerFromPartialName(const char* szName, PlayerBase* = nullptr);
+	PlayerClient* GetPlayerFromName(const char* szName);
+};
 
 #define STANDSTATE_STAND                         0x64
 #define STANDSTATE_CASTING                       0x66
@@ -3378,22 +3479,22 @@ using PSPAWNINFO = PlayerClient*;
 
 struct SPAWNMONITORINFO
 {
-    WORD SpawnID;
-    FLOAT Y;
-    FLOAT X;
-    FLOAT Z;
-    FLOAT Heading;
-    FLOAT SpeedRun;
-    DWORD HPCurrent;
-    DWORD MonitorMask;
+	WORD SpawnID;
+	float Y;
+	float X;
+	float Z;
+	float Heading;
+	float SpeedRun;
+	DWORD HPCurrent;
+	DWORD MonitorMask;
 };
 using PSPAWNMONITORINFO = SPAWNMONITORINFO*;
 
 struct HASHENTRY
 {
-    SPAWNINFO*  spawn;
-    DWORD       key;                             // same as SpawnID for spawns
-    HASHENTRY*  next;
+	SPAWNINFO*  spawn;
+	DWORD       key;                             // same as SpawnID for spawns
+	HASHENTRY*  next;
 };
 using PHASHENTRY = HASHENTRY*;
 
@@ -3431,12 +3532,12 @@ struct Matrix4x4
 
 struct SWITCHCLICK
 {
-	FLOAT Y;
-	FLOAT X;
-	FLOAT Z;
-	FLOAT Y1;
-	FLOAT X1;
-	FLOAT Z1;
+	float Y;
+	float X;
+	float Z;
+	float Y1;
+	float X1;
+	float Z1;
 };
 using PSWITCHCLICK = SWITCHCLICK*;
 
@@ -3466,19 +3567,19 @@ struct EQSWITCH
 /*0x20*/ UINT          InterpolateAmbientTick;
 /*0x24*/ void*         pParentActor;             // its a  CActor*
 /*0x28*/ void*         pDPVSObject;
-/*0x2C*/ FLOAT         Y;
-/*0x30*/ FLOAT         X;
-/*0x34*/ FLOAT         Z;
-/*0x38*/ FLOAT         SurfaceNormalY;
-/*0x3c*/ FLOAT         SurfaceNormalX;
-/*0x40*/ FLOAT         SurfaceNormalZ;
+/*0x2C*/ float         Y;
+/*0x30*/ float         X;
+/*0x34*/ float         Z;
+/*0x38*/ float         SurfaceNormalY;
+/*0x3c*/ float         SurfaceNormalX;
+/*0x40*/ float         SurfaceNormalZ;
 /*0x44*/ UINT          VisibleIndex;
-/*0x48*/ FLOAT         Alpha;
+/*0x48*/ float         Alpha;
 /*0x4c*/ bool          bCastShadow;
 /*0x4d*/ bool          bNeverClip;
 /*0x4e*/ bool          bClientCreated;
-/*0x50*/ FLOAT         ZOffset;
-/*0x54*/ FLOAT         EmitterScalingRadius;
+/*0x50*/ float         ZOffset;
+/*0x54*/ float         EmitterScalingRadius;
 /*0x58*/ void*         pDuplicateActor;          // its a  CActor*
 /*0x5c*/ bool          bShowParticlesWhenInvisible;
 /*0x60*/ void*         pAreaPortalVolumeList;    // CAreaPortalVolumeList*
@@ -3506,7 +3607,7 @@ struct EQSWITCH
 /*0xd1*/ bool          bDisableDesignOverride;
 /*0xd4*/ int           Unknown0xd4[4];
 /*0xe4*/ Matrix4x4     transformMatrix;          // used for new armor
-/*0x128*/FLOAT         Heading;
+/*0x128*/float         Heading;
 /*0x12c*/BYTE          Unknown0x12c[0x14];
 /*0x140*/float         HeightAdjustment;         // this is most likely wrong dec 16 2013 eqmule
 /*0x144*/BYTE          Unknown0x144[0x4c];
@@ -3524,18 +3625,18 @@ struct DOOR
 /*0x06*/ CHAR          Name[0x20];
 /*0x26*/ BYTE          Type;
 /*0x27*/ BYTE          State;                    // 0 = closed, 1 = open, 2 = opening, 3 = closing
-/*0x28*/ FLOAT         DefaultY;
-/*0x2c*/ FLOAT         DefaultX;
-/*0x30*/ FLOAT         DefaultZ;
-/*0x34*/ FLOAT         DefaultHeading;
-/*0x38*/ FLOAT         DefaultDoorAngle;
-/*0x3c*/ FLOAT         TopSpeed1;
-/*0x40*/ FLOAT         TopSpeed2;
-/*0x44*/ FLOAT         Y;
-/*0x48*/ FLOAT         X;
-/*0x4c*/ FLOAT         Z;
-/*0x50*/ FLOAT         Heading;
-/*0x54*/ FLOAT         DoorAngle;
+/*0x28*/ float         DefaultY;
+/*0x2c*/ float         DefaultX;
+/*0x30*/ float         DefaultZ;
+/*0x34*/ float         DefaultHeading;
+/*0x38*/ float         DefaultDoorAngle;
+/*0x3c*/ float         TopSpeed1;
+/*0x40*/ float         TopSpeed2;
+/*0x44*/ float         Y;
+/*0x48*/ float         X;
+/*0x4c*/ float         Z;
+/*0x50*/ float         Heading;
+/*0x54*/ float         DoorAngle;
 /*0x58*/ BYTE          DefaultState;
 /*0x59*/ BYTE          SelfActivated;
 /*0x5a*/ BYTE          Dependent;
@@ -3553,12 +3654,12 @@ struct DOOR
 /*0xa4*/ PEQSWITCH     pSwitch;                  // (CActorInterface*)
 /*0xa8*/ void*         particle;                 // (CParticleCloudInterface*)
 /*0xac*/ DWORD         TimeStamp;                // last time UseSwitch
-/*0xb0*/ FLOAT         Accel;
+/*0xb0*/ float         Accel;
 /*0xb4*/ BYTE          AlwaysActive;
 /*0xb8*/ int           AdventureDoorID;
-/*0xbc*/ FLOAT         ReturnY;
-/*0xc0*/ FLOAT         ReturnX;
-/*0xc4*/ FLOAT         ReturnZ;
+/*0xbc*/ float         ReturnY;
+/*0xc0*/ float         ReturnX;
+/*0xc4*/ float         ReturnZ;
 /*0xc8*/ int           DynDoorID;
 /*0xcc*/ bool          bHasScript;
 /*0xd0*/ int           SomeID;
@@ -3592,13 +3693,13 @@ struct GROUNDITEM
 /*0x18*/ PEQSWITCH           pSwitch;            // (class EQSwitch *)
 /*0x1c*/ CHAR                Name[0x40];
 /*0x5c*/ long                Expires;
-/*0x60*/ FLOAT               Heading;
-/*0x64*/ FLOAT               Pitch;
-/*0x68*/ FLOAT               Roll;
-/*0x6c*/ FLOAT               Scale;
-/*0x70*/ FLOAT               Y;
-/*0x74*/ FLOAT               X;
-/*0x78*/ FLOAT               Z;
+/*0x60*/ float               Heading;
+/*0x64*/ float               Pitch;
+/*0x68*/ float               Roll;
+/*0x6c*/ float               Scale;
+/*0x70*/ float               Y;
+/*0x74*/ float               X;
+/*0x78*/ float               Z;
 /*0x7c*/ int                 Weight;             // -1 means it can't be picked up
 /*0x80*/
 };
@@ -3837,7 +3938,7 @@ struct SKILL
 /*0x010*/ DWORD             BaseDamage;
 /*0x014*/ eSkillCombatType  SkillCombatType;
 /*0x018*/ int               EnduranceCost;
-/*0x01c*/ FLOAT             Force;
+/*0x01c*/ float             Force;
 /*0x020*/ bool              Activated;
 /*0x021*/ bool              LevelCappedSkill;
 /*0x024*/ DWORD             MinLevel[0x24];      // the level each class gains this skill
@@ -3888,6 +3989,8 @@ public:
 /*0x2E9B28*/ bool      bCombatSkillCanUse[CONCURRENT_SKILLS];
 /*0x2E9B2C*/
 };
+
+struct GUILDMEMBER;
 
 // actual size 0x3a8 11-15-11  ieatacid
 // actual size ? last checked by rlane187 may 19 2015
@@ -4350,7 +4453,7 @@ struct CHATSERVICE
 /*0x0c4*/ int          LastDisconnectCheckTime;
 /*0x0c8*/ FriendEntry** BuddyList;
 /*0x0cc*/ int          BuddyListCount;
-/*0x0d0*/ ArrayClass_RO<PCXSTR> IgnoreList;
+/*0x0d0*/ ArrayClass_RO<CXStr> IgnoreList;
 /*0x0e0*/
 };
 using PCHATSERVICE = CHATSERVICE*;
@@ -4360,7 +4463,7 @@ class PickZoneTimerHandler
 public:
 	struct PickZoneRecord
 	{
-		PCXSTR ZoneName;
+		CXStr  ZoneName;
 		int    Time;
 	};
 
@@ -4454,7 +4557,7 @@ struct EVERQUEST
 /*0x005d8*/ int64_t          ServerTimeBase;
 /*0x005e0*/ int64_t          ServerTimeLastReported;
 /*0x005e8*/ bool             bServerTimeHasWrapped;
-/*0x005ec*/ FLOAT            TargetCameraDistance;
+/*0x005ec*/ float            TargetCameraDistance;
 /*0x005f0*/ bool             bUnknown0x5f0;
 /*0x005f4*/ int              TotalCharacterSlots;
 /*0x005f8*/ int              MarketplaceCharacterSlots;
@@ -4697,6 +4800,6 @@ using PGROUPAGGRO = GROUPAGGRO*;
 #define EQ_ASSIST                                0x0063    // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
 #define EQ_LoadingS__ArraySize                   0x5a      // EQ_LoadingS__SetProgressBar_x+76  (4C7396 yes it says 5b there, but we dont want to overwrite the NULL term... 2016 Apr 21
 
-} // namespace EQData
+} // namespace eqlib
 
-using namespace EQData;
+using namespace eqlib;

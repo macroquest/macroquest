@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "BuildType.h"
 #include "common/Common.h"
 
 #define TEST
@@ -45,5 +44,5 @@
 
 #endif
 
-#include "EQClasses.h"
-#include "SharedClasses.h"
+#include "common/EQClasses.h"
+#include "common/SharedClasses.h"

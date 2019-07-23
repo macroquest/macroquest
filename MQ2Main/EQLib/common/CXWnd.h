@@ -156,7 +156,7 @@ struct CXWnd_VirtualFunctions
 /*0x11c*/ void* SetDrawTemplate;
 /*0x120*/ void* Move_Rect;                       // CXWnd__Move1_x
 /*0x124*/ void* Move_Point;                      // CXWnd__Move_x
-/*0x128*/ void* SetWindowTextA;
+/*0x128*/ void* SetWindowText;
 /*0x12c*/ void* GetChildWndAt;                   // CXWnd__GetChildWndAt_x
 /*0x130*/ void* GetSidlPiece;                    // CSidlScreenWnd__GetSidlPiece_x
 /*0x134*/ void* CSidlScreenWnd__OnPreZone1a;
@@ -190,299 +190,297 @@ using PCXWNDVFTABLE = CXWnd_VirtualFunctions*;
 // actual size 0x1E8 in Apr 18 2019 Test (see 0x933F5D)
 // actual size 0x1E0 in May  7 2019 Test (see 0x932FAD)
 // actual size 0x1F8 in Jun 10 2019 Test (see 0x9351BD)
-EQLIB_OBJECT class CXWnd
+class CXWnd
 	: public TListNode<CXWnd>   // node in list of siblings
 	, public TList<CXWnd>       // list of children
 {
 public:
-	#include "CXWnd-Members.h"
+#if defined(LIVE)
+#include "../live/CXWnd-Members.h"
+#elif defined(TEST)
+#include "../test/CXWnd-Members.h"
+#else
+#error "Need CXWnd-Members""
+#endif
 
 	// -----------------------------------------------------------------------
 
-	//CXWnd() {};
-	void dCXWnd();
-	CXWnd* SetParent(CXWnd*);
-	CXMLData* GetXMLData();
-	CXWnd* GetChildItem(CXStr Name);
-	CXWnd(CXWnd*, uint32_t, const CXRect&);
-	bool HasFocus() const;
-	bool IsActive() const;
-	bool IsDescendantOf(CXWnd const*) const;
-	bool IsEnabled() const;
-	bool IsReallyVisible() const;
-	bool IsType(EWndRuntimeType eType) const;
-	const CButtonDrawTemplate* GetCloseBoxTemplate() const;
-	const CButtonDrawTemplate* GetMinimizeBoxTemplate() const;
-	const CButtonDrawTemplate* GetTileBoxTemplate() const;
-	const CTAFrameDraw* GetBorderFrame() const;
-	const CTAFrameDraw* GetTitlebarHeader() const;
-	CXRect GetClientClipRect() const;
-	CXRect GetRelativeRect() const;
-	CXRect GetScreenClipRect() const;
-	CXRect GetScreenRect() const;
-	CXStr GetWindowTextA() const;
-	CXStr GetXMLTooltip() const;
-	CXWnd* GetChildItem(CXStr const &);
-	CXWnd* GetChildWndAt(CXPoint*, int, int) const;
-	CXWnd* GetFirstChildWnd() const;
-	CXWnd* GetNextChildWnd(CXWnd*) const;
-	CXWnd* GetNextSib() const;
-	CXWnd* SetFocus();
-	int DoAllDrawing() const;
-	int DrawChildren() const;
-	int DrawCloseBox() const;
-	int DrawHScrollbar(int, int, int) const;
-	int DrawMinimizeBox() const;
-	int DrawTileBox() const;
-	int DrawVScrollbar(int, int, int) const;
-	int GetWidth() const;
-	int Minimize(bool);
+	EQLIB_OBJECT CXWnd* SetParent(CXWnd*);
+	EQLIB_OBJECT CXWnd* GetChildItem(CXStr Name);
+	EQLIB_OBJECT CXWnd(CXWnd*, uint32_t, const CXRect&);
+	EQLIB_OBJECT virtual ~CXWnd();
+
+	EQLIB_OBJECT bool HasFocus() const;
+	EQLIB_OBJECT bool IsActive() const;
+	EQLIB_OBJECT bool IsDescendantOf(CXWnd const*) const;
+	EQLIB_OBJECT bool IsReallyVisible() const;
+	EQLIB_OBJECT bool IsType(EWndRuntimeType eType) const;
+	EQLIB_OBJECT const CButtonDrawTemplate* GetCloseBoxTemplate() const;
+	EQLIB_OBJECT const CButtonDrawTemplate* GetMinimizeBoxTemplate() const;
+	EQLIB_OBJECT const CButtonDrawTemplate* GetTileBoxTemplate() const;
+	EQLIB_OBJECT const CTAFrameDraw* GetBorderFrame() const;
+	EQLIB_OBJECT const CTAFrameDraw* GetTitlebarHeader() const;
+	EQLIB_OBJECT CXRect GetClientClipRect() const;
+	EQLIB_OBJECT CXRect GetRelativeRect() const;
+	EQLIB_OBJECT CXRect GetScreenClipRect() const;
+	EQLIB_OBJECT CXRect GetScreenRect() const;
+	EQLIB_OBJECT CXStr GetWindowTextA() const;
+	EQLIB_OBJECT CXWnd* GetChildItem(CXStr const &);
+	EQLIB_OBJECT CXWnd* GetChildWndAt(CXPoint*, int, int) const;
+	EQLIB_OBJECT CXWnd* GetNextChildWnd(CXWnd*) const;
+	EQLIB_OBJECT CXWnd* GetNextSib() const;
+	EQLIB_OBJECT CXWnd* SetFocus();
+	EQLIB_OBJECT int DoAllDrawing() const;
+	EQLIB_OBJECT int DrawChildren() const;
+	EQLIB_OBJECT int DrawCloseBox() const;
+	EQLIB_OBJECT int DrawHScrollbar(int, int, int) const;
+	EQLIB_OBJECT int DrawMinimizeBox() const;
+	EQLIB_OBJECT int DrawTileBox() const;
+	EQLIB_OBJECT int DrawVScrollbar(int, int, int) const;
+	EQLIB_OBJECT int GetWidth() const;
+	EQLIB_OBJECT int Minimize(bool);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-	int Move(CXPoint const &);
+	EQLIB_OBJECT int Move(CXPoint const &);
 #else
-	int Move(CXPoint);
+	EQLIB_OBJECT int Move(CXPoint);
 #endif
-	//Move (this is CXWnd__Move1_x) was checked on apr 29 2016 - eqmule
-	int Move(const CXRect& rc, bool bUpdateLayout = true, bool bForceUpdateLayout = false, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
-	int ProcessTransition();
-	int Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
-	int Show(bool bShow = true, bool bBringToTop = true, bool bUpdateLayout = true);
-	int Tile(bool);
-	static CXRect GetTooltipRect(const CXPoint&, const CXSize&);
-	static CXRect GetTooltipRect(const CXRect&);
-	static CXWndDrawTemplate sm_wdtDefaults;
-	static int DrawColoredRect(const CXRect&, unsigned long, const CXRect&);
-	static int DrawLasso(const CXRect&, unsigned long, const CXRect&);
-	static int DrawRaisedRect(const CXRect&, const CXRect&);
-	static int DrawSunkenRect(const CXRect&, const CXRect&);
-	void Bottom();
-	void BringChildWndToTop(CXWnd*);
-	void BringToTop(bool bRecurse = true);
-	void Center();
-	void ClrFocus();
-	int Destroy();
-	void DrawTooltipAtPoint(CXPoint) const;
-	void Left();
-	void Refade();
-	void Right();
-	void SetFirstChildPointer(CXWnd*);
-	void SetKeyTooltip(int, int);
-	void SetLookLikeParent();
-	void SetMouseOver(bool);
-	void SetNextSibPointer(CXWnd*);
-	void SetTooltip(CXStr);
-	void SetXMLTooltip(CXStr);
-	//void SetZLayer(int);
-	void StartFade(unsigned char, uint32_t);
+	// Move (this is CXWnd__Move1_x) was checked on apr 29 2016 - eqmule
+	EQLIB_OBJECT int Move(const CXRect& rc, bool bUpdateLayout = true, bool bForceUpdateLayout = false, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
+	EQLIB_OBJECT int ProcessTransition();
+	EQLIB_OBJECT int Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
+	EQLIB_OBJECT int Show(bool bShow = true, bool bBringToTop = true, bool bUpdateLayout = true);
+	EQLIB_OBJECT int Tile(bool);
+	EQLIB_OBJECT static CXRect GetTooltipRect(const CXPoint&, const CXSize&);
+	EQLIB_OBJECT static CXRect GetTooltipRect(const CXRect&);
+	EQLIB_OBJECT static CXWndDrawTemplate sm_wdtDefaults;
+	EQLIB_OBJECT static int DrawColoredRect(const CXRect&, unsigned long, const CXRect&);
+	EQLIB_OBJECT static int DrawLasso(const CXRect&, unsigned long, const CXRect&);
+	EQLIB_OBJECT static int DrawRaisedRect(const CXRect&, const CXRect&);
+	EQLIB_OBJECT static int DrawSunkenRect(const CXRect&, const CXRect&);
+	EQLIB_OBJECT void Bottom();
+	EQLIB_OBJECT void BringChildWndToTop(CXWnd*);
+	EQLIB_OBJECT void BringToTop(bool bRecurse = true);
+	EQLIB_OBJECT void Center();
+	EQLIB_OBJECT void ClrFocus();
+	EQLIB_OBJECT int Destroy();
+	EQLIB_OBJECT void DrawTooltipAtPoint(CXPoint) const;
+	EQLIB_OBJECT void Left();
+	EQLIB_OBJECT void Refade();
+	EQLIB_OBJECT void Right();
+	EQLIB_OBJECT void SetFirstChildPointer(CXWnd*);
+	EQLIB_OBJECT void SetKeyTooltip(int, int);
+	EQLIB_OBJECT void SetLookLikeParent();
+	EQLIB_OBJECT void SetMouseOver(bool);
+	EQLIB_OBJECT void SetNextSibPointer(CXWnd*);
+	EQLIB_OBJECT void SetTooltip(CXStr);
+	EQLIB_OBJECT void SetXMLTooltip(CXStr);
+	//EQLIB_OBJECT void SetZLayer(int);
+	EQLIB_OBJECT void StartFade(unsigned char, uint32_t);
 
 	// virtual
-	bool IsPointTransparent(const CXPoint&) const;
-	bool IsValid() const;
-	bool QueryClickStickDropOK(CClickStickInfo*) const;
-	bool QueryDropOK(SDragDropInfo*) const;
-	CTextureAnimation* GetClickStickCursor(CClickStickInfo*) const;
-	CTextureAnimation* GetCursorToDisplay() const;
-	CTextureAnimation* GetDragDropCursor(SDragDropInfo*) const;
-	CXRect GetClientRect() const;
-	CXRect GetHitTestRect(int) const;
-	CXRect GetInnerRect() const;
-	CXRect GetMinimizedRect() const;
-	CXSize GetMinSize() const;
-	CXSize GetUntileSize() const;
-	CXStr GetTooltip() const;
-	int AboutToDeleteWnd(CXWnd*);
-	int Draw() const;
-	int DrawBackground() const;
-	int DrawCaret() const;
-	int DrawChildItem(CXWnd const*, void*) const;
-	int DrawCursor(const CXPoint&, const CXRect&, bool &);
-	int DrawNC() const;
-	int DrawTitleBar(const CXRect&) const;
-	int DrawTooltip(const CXWnd*) const;
-	int HandleKeyboardMsg(uint32_t, uint32_t, bool);
-	int HandleLButtonDown(const CXPoint&, uint32_t);
-	int HandleLButtonHeld(const CXPoint&, uint32_t);
-	int HandleLButtonUp(const CXPoint&, uint32_t);
-	int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t);
-	int HandleMouseMove(const CXPoint&, uint32_t);
-	int HandleRButtonDown(const CXPoint&, uint32_t);
-	int HandleRButtonHeld(const CXPoint&, uint32_t);
-	int HandleRButtonUp(const CXPoint&, uint32_t);
-	int HandleRButtonUpAfterHeld(const CXPoint&, uint32_t);
-	int HandleWheelButtonDown(const CXPoint&, uint32_t);
-	int HandleWheelButtonUp(const CXPoint&, uint32_t);
-	int HandleWheelMove(const CXPoint&, int, uint32_t);
-	int HitTest(const CXPoint&, int*) const;
-	int OnActivate(CXWnd*);
-	int OnBroughtToTop();
-	int OnClickStick(CClickStickInfo*, uint32_t, bool);
-	int OnDragDrop(SDragDropInfo*);
-	int OnHScroll(EScrollCode, int);
-	int OnKillFocus(CXWnd*);
-	int OnMinimizeBox();
-	int OnMove(const CXRect&);
-	int OnProcessFrame();
-	int OnResize(int, int);
-	int OnSetFocus(CXWnd*);
-	int OnShow();
-	int OnTile();
-	int OnTileBox();
-	int OnVScroll(EScrollCode, int);
-	int PostDraw() const;
-	//int RequestDockInfo(enum EDockAction, CXWnd*, class CXRect*);
-	int SetVScrollPos(int);
-	int WndNotification(CXWnd*, uint32_t, void*);
-	void Deactivate();
-	void OnReloadSidl();
-	void SetAttributesFromSidl(CParamScreenPiece*);
-	void SetDrawTemplate(CXWndDrawTemplate*);
-	//void SetWindowText(const CXStr& Str);
+	EQLIB_OBJECT bool IsPointTransparent(const CXPoint&) const;
+	EQLIB_OBJECT bool IsValid() const;
+	EQLIB_OBJECT bool QueryClickStickDropOK(CClickStickInfo*) const;
+	EQLIB_OBJECT bool QueryDropOK(SDragDropInfo*) const;
+	EQLIB_OBJECT CTextureAnimation* GetClickStickCursor(CClickStickInfo*) const;
+	EQLIB_OBJECT CTextureAnimation* GetCursorToDisplay() const;
+	EQLIB_OBJECT CTextureAnimation* GetDragDropCursor(SDragDropInfo*) const;
+	EQLIB_OBJECT CXRect GetClientRect() const;
+	EQLIB_OBJECT CXRect GetHitTestRect(int) const;
+	EQLIB_OBJECT CXRect GetInnerRect() const;
+	EQLIB_OBJECT CXRect GetMinimizedRect() const;
+	EQLIB_OBJECT CXSize GetMinSize() const;
+	EQLIB_OBJECT CXSize GetUntileSize() const;
+	EQLIB_OBJECT int AboutToDeleteWnd(CXWnd*);
+	EQLIB_OBJECT int Draw() const;
+	EQLIB_OBJECT int DrawBackground() const;
+	EQLIB_OBJECT int DrawCaret() const;
+	EQLIB_OBJECT int DrawChildItem(CXWnd const*, void*) const;
+	EQLIB_OBJECT int DrawCursor(const CXPoint&, const CXRect&, bool &);
+	EQLIB_OBJECT int DrawNC() const;
+	EQLIB_OBJECT int DrawTitleBar(const CXRect&) const;
+	EQLIB_OBJECT int DrawTooltip(const CXWnd*) const;
+	EQLIB_OBJECT int HandleKeyboardMsg(uint32_t, uint32_t, bool);
+	EQLIB_OBJECT int HandleLButtonDown(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleLButtonHeld(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleLButtonUp(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleMouseMove(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleRButtonDown(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleRButtonHeld(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleRButtonUp(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleRButtonUpAfterHeld(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleWheelButtonDown(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleWheelButtonUp(const CXPoint&, uint32_t);
+	EQLIB_OBJECT int HandleWheelMove(const CXPoint&, int, uint32_t);
+	EQLIB_OBJECT int HitTest(const CXPoint&, int*) const;
+	EQLIB_OBJECT int OnActivate(CXWnd*);
+	EQLIB_OBJECT int OnBroughtToTop();
+	EQLIB_OBJECT int OnClickStick(CClickStickInfo*, uint32_t, bool);
+	EQLIB_OBJECT int OnDragDrop(SDragDropInfo*);
+	EQLIB_OBJECT int OnHScroll(EScrollCode, int);
+	EQLIB_OBJECT int OnKillFocus(CXWnd*);
+	EQLIB_OBJECT int OnMinimizeBox();
+	EQLIB_OBJECT int OnMove(const CXRect&);
+	EQLIB_OBJECT int OnProcessFrame();
+	EQLIB_OBJECT int OnResize(int, int);
+	EQLIB_OBJECT int OnSetFocus(CXWnd*);
+	EQLIB_OBJECT int OnShow();
+	EQLIB_OBJECT int OnTile();
+	EQLIB_OBJECT int OnTileBox();
+	EQLIB_OBJECT int OnVScroll(EScrollCode, int);
+	EQLIB_OBJECT int PostDraw() const;
+	//int EQLIB_OBJECT RequestDockInfo(enum EDockAction, CXWnd*, class CXRect*);
+	EQLIB_OBJECT int SetVScrollPos(int);
+	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT void Deactivate();
+	EQLIB_OBJECT void OnReloadSidl();
+	EQLIB_OBJECT void SetAttributesFromSidl(CParamScreenPiece*);
+	EQLIB_OBJECT void SetDrawTemplate(CXWndDrawTemplate*);
+	EQLIB_OBJECT void SetWindowText(const CXStr& Str);
 
 	// protected
 	static CXWndManager*& sm_pMgr;
 	// private
 	static unsigned char sm_byCurrentAlpha;
-	int SetFont(void*);
+	EQLIB_OBJECT int SetFont(void*);
 
 	// -----------------------------------------------------------------------
 
-	UIType GetType() const;
-	CXMLData* GetXMLData();
+	EQLIB_OBJECT UIType GetType() const;
+	EQLIB_OBJECT CXMLData* GetXMLData() const;
 
-	bool IsVisible() const { return dShow; }
-	void SetVisible(bool bValue) { dShow = bValue; }
+	EQLIB_OBJECT bool IsVisible() const { return dShow; }
+	EQLIB_OBJECT void SetVisible(bool bValue) { dShow = bValue; }
 
-	void SetClickThrough(bool bValue) { bClickThrough = bValue; }
+	EQLIB_OBJECT void SetClickThrough(bool bValue) { bClickThrough = bValue; }
 
-	void SetMinClientSize(const CXSize& pt) { MinClientSize = pt; }
-	CXSize GetMinClientSize() const { return MinClientSize; }
+	EQLIB_OBJECT void SetMinClientSize(const CXSize& pt) { MinClientSize = pt; }
+	EQLIB_OBJECT CXSize GetMinClientSize() const { return MinClientSize; }
 
-	void SetMaximizable(bool bValue) { bMaximizable = bValue; }
+	EQLIB_OBJECT void SetMaximizable(bool bValue) { bMaximizable = bValue; }
 
-	void* GetFont() const { return pFont; }
+	EQLIB_OBJECT void* GetFont() const { return pFont; }
 
-	void SetEscapable(bool bValue) { CloseOnESC = bValue; }
-	void SetEscapableLocked(bool bValue) { bEscapableLocked = bValue; }
+	EQLIB_OBJECT void SetEscapable(bool bValue) { CloseOnESC = bValue; }
+	EQLIB_OBJECT void SetEscapableLocked(bool bValue) { bEscapableLocked = bValue; }
 
-	CXWnd* GetParentWindow() const { return ParentWindow; }
-	void SetParentWindow(CXWnd* pWnd) { ParentWindow = pWnd; };
+	EQLIB_OBJECT CXWnd* GetParentWindow() const { return ParentWindow; }
+	EQLIB_OBJECT void SetParentWindow(CXWnd* pWnd) { ParentWindow = pWnd; };
 
-	const CXWnd* GetFirstChildWnd() const { return GetFirstNode(); }
-	CXWnd* GetFirstChildWnd() { return GetFirstNode(); }
-	const CXWnd* GetNextSilingWnd() const { return GetNext(); }
-	CXWnd* GetNextSilingWnd() { return GetNext(); }
+	EQLIB_OBJECT const CXWnd* GetFirstChildWnd() const { return GetFirstNode(); }
+	EQLIB_OBJECT CXWnd* GetFirstChildWnd() { return GetFirstNode(); }
+	EQLIB_OBJECT const CXWnd* GetNextSilingWnd() const { return GetNext(); }
+	EQLIB_OBJECT CXWnd* GetNextSilingWnd() { return GetNext(); }
 
-	int GetVScrollMax() const { return VScrollMax; }
-	int GetVScrollPos() const { return VScrollPos; }
-	int GetHScrollMax() const { return HScrollMax; }
-	int GetHScrollPos() const { return HScrollPos; }
+	EQLIB_OBJECT int GetVScrollMax() const { return VScrollMax; }
+	EQLIB_OBJECT int GetVScrollPos() const { return VScrollPos; }
+	EQLIB_OBJECT int GetHScrollMax() const { return HScrollMax; }
+	EQLIB_OBJECT int GetHScrollPos() const { return HScrollPos; }
 
-	bool IsMinimized() const { return Minimized; }
-	void SetMinimized(bool bValue) Minimized = bValue; }
+	EQLIB_OBJECT bool IsMinimized() const { return Minimized; }
+	EQLIB_OBJECT void SetMinimized(bool bValue) { Minimized = bValue; }
 
-	bool IsMouseOver() const { return MouseOver; }
+	EQLIB_OBJECT bool IsMouseOver() const { return MouseOver; }
 
-	CXRect GetLocation() const { return Location; }
-	void SetLocation(const CXRect& r) { Location = r; }
+	EQLIB_OBJECT CXRect GetLocation() const { return Location; }
+	EQLIB_OBJECT void SetLocation(const CXRect& r) { Location = r; }
 
-	CXRect GetOldLocation() { return OldLocation; }
+	EQLIB_OBJECT CXRect GetOldLocation() { return OldLocation; }
 
-	void SetNeedsSaving(bool bValue) { bNeedsSaving = bValue; }
+	EQLIB_OBJECT void SetNeedsSaving(bool bValue) { bNeedsSaving = bValue; }
 
-	void SetClientRectChanged(bool bValue) { bClientRectChanged = bValue; }
+	EQLIB_OBJECT void SetClientRectChanged(bool bValue) { bClientRectChanged = bValue; }
 
-	//void SetWindowText(const CXStr& Value) { WindowText = Value; }
-	CXStr GetWindowText() const { return WindowText; }
+	//EQLIB_OBJECT void SetWindowText(const CXStr& Value) { WindowText = Value; }
+	EQLIB_OBJECT CXStr GetWindowText() const { return WindowText; }
 
-	void SetTooltip(const CXStr& Value) { Tooltip = Value; }
-	CXStr GetTooltip() const { return Tooltip; }
+	EQLIB_OBJECT void SetTooltip(const CXStr& Value) { Tooltip = Value; }
+	EQLIB_OBJECT CXStr GetTooltip() const { return Tooltip; }
 
-	COLORREF GetBGColor() const { return BGColor; }
-	void SetBGColor(COLORREF Value) { BGColor = Value; }
+	EQLIB_OBJECT COLORREF GetBGColor() const { return BGColor; }
+	EQLIB_OBJECT void SetBGColor(COLORREF Value) { BGColor = Value; }
 
-	void SetDisabledBackground(COLORREF Value) { DisabledBackground = Value; }
-	COLORREF GetDisabledBackground() const { return DisabledBackground; }
+	EQLIB_OBJECT void SetDisabledBackground(COLORREF Value) { DisabledBackground = Value; }
+	EQLIB_OBJECT COLORREF GetDisabledBackground() const { return DisabledBackground; }
 
-	bool IsEnabled() const { return Enabled; }
-	void SetEnabled(bool bValue) { Enabled = bValue; }
+	EQLIB_OBJECT bool IsEnabled() const { return Enabled; }
+	EQLIB_OBJECT void SetEnabled(bool bValue) { Enabled = bValue; }
 
-	uint32_t GetWindowStyle() const { return WindowStyle; }
-	void SetWindowStyle(uint32_t Value) { WindowStyle = Value; }
-	void AddStyle(uint32_t Value) { WindowStyle |= Value; }
-	void RemoveStyle(uint32_t Value) { WindowStyle &= ~Value; }
+	EQLIB_OBJECT uint32_t GetWindowStyle() const { return WindowStyle; }
+	EQLIB_OBJECT void SetWindowStyle(uint32_t Value) { WindowStyle = Value; }
+	EQLIB_OBJECT void AddStyle(uint32_t Value) { WindowStyle |= Value; }
+	EQLIB_OBJECT void RemoveStyle(uint32_t Value) { WindowStyle &= ~Value; }
 
-	void SetClipToParent(bool bValue) { bClipToParent = bValue; }
-	void SetUseInLayoutHorizontal(bool bValue) { bUseInLayoutHorizontal = bValue; }
-	void SetUseInLayoutVertical(bool bValue) { bUseInLayoutVertical = bValue; }
+	EQLIB_OBJECT void SetClipToParent(bool bValue) { bClipToParent = bValue; }
+	EQLIB_OBJECT void SetUseInLayoutHorizontal(bool bValue) { bUseInLayoutHorizontal = bValue; }
+	EQLIB_OBJECT void SetUseInLayoutVertical(bool bValue) { bUseInLayoutVertical = bValue; }
 
-	void SetZLayer(int Value) { ZLayer = Value; }
-	int GetZLayer() const { return ZLayer; }
+	EQLIB_OBJECT void SetZLayer(int Value) { ZLayer = Value; }
+	EQLIB_OBJECT int GetZLayer() const { return ZLayer; }
 
-	CXWndDrawTemplate* GetDrawTemplate() const { return DrawTemplate; }
+	EQLIB_OBJECT CXWndDrawTemplate* GetDrawTemplate() const { return DrawTemplate; }
 
-	void SetActive(bool bValue) { bActive = bValue; }
+	EQLIB_OBJECT void SetActive(bool bValue) { bActive = bValue; }
 
-	void SetLocked(bool bValue) { Locked = bValue; }
-	bool IsLocked() const { return Locked; }
+	EQLIB_OBJECT void SetLocked(bool bValue) { Locked = bValue; }
+	EQLIB_OBJECT bool IsLocked() const { return Locked; }
 
-	void SetFades(bool bValue) { Fades = bValue; }
-	bool GetFades() const { return Fades; }
+	EQLIB_OBJECT void SetFades(bool bValue) { Fades = bValue; }
+	EQLIB_OBJECT bool GetFades() const { return Fades; }
 
-	void SetFaded(bool bValue) { Faded = bValue; }
-	bool GetFaded() const { return Faded; }
+	EQLIB_OBJECT void SetFaded(bool bValue) { Faded = bValue; }
+	EQLIB_OBJECT bool GetFaded() const { return Faded; }
 
-	void SetFadeDelay(int Value) { FadeDelay = Value; }
-	int GetFadeDelay() const { return FadeDelay; }
+	EQLIB_OBJECT void SetFadeDelay(int Value) { FadeDelay = Value; }
+	EQLIB_OBJECT int GetFadeDelay() const { return FadeDelay; }
 
-	void SetBGType(uint32_t Value) { BGType = Value; }
-	uint32_t GetBGType() const { return BGType; }
+	EQLIB_OBJECT void SetBGType(uint32_t Value) { BGType = Value; }
+	EQLIB_OBJECT uint32_t GetBGType() const { return BGType; }
 
-	void SetFadeDuration(uint32_t Value) { FadeDuration = Value; }
-	uint32_t GetFadeDuration() const { return FadeDuration; }
+	EQLIB_OBJECT void SetFadeDuration(uint32_t Value) { FadeDuration = Value; }
+	EQLIB_OBJECT uint32_t GetFadeDuration() const { return FadeDuration; }
 
-	void SetAlpha(uint8_t Value) { Alpha = Value; }
-	uint8_t GetAlpha() const { return Alpha; }
+	EQLIB_OBJECT void SetAlpha(uint8_t Value) { Alpha = Value; }
+	EQLIB_OBJECT uint8_t GetAlpha() const { return Alpha; }
 
-	void SetFadeToAlpha(uint8_t Value) { FadeToAlpha = Value; }
-	uint8_t GetFadeToAlpha() const { return FadeToAlpha; }
+	EQLIB_OBJECT void SetFadeToAlpha(uint8_t Value) { FadeToAlpha = Value; }
+	EQLIB_OBJECT uint8_t GetFadeToAlpha() const { return FadeToAlpha; }
 
-	bool GetClickable() const { return Clickable; }
-	void SetClickable(bool bValue) { Clickable = bValue; }
+	EQLIB_OBJECT bool GetClickable() const { return Clickable; }
+	EQLIB_OBJECT void SetClickable(bool bValue) { Clickable = bValue; }
 
-	void SetData(int64_t Value) { Data = Value; }
-	int64_t GetData() const { return Data; }
+	EQLIB_OBJECT void SetData(int64_t Value) { Data = Value; }
+	EQLIB_OBJECT int64_t GetData() const { return Data; }
 
-	void SetClickThroughMenuItemStatus(bool bValue) { bClickThroughMenuItemStatus = bValue; }
-	void SetController(void* value) { pController = value; }
-	void SetShowClickThroughMenuItem(bool bValue) { bShowClickThroughMenuItem = bValue; }
+	EQLIB_OBJECT void SetClickThroughMenuItemStatus(bool bValue) { bClickThroughMenuItemStatus = bValue; }
+	EQLIB_OBJECT void SetController(void* value) { pController = value; }
+	EQLIB_OBJECT void SetShowClickThroughMenuItem(bool bValue) { bShowClickThroughMenuItem = bValue; }
 
-	void SetBottomAnchoredToTop(bool bValue) { bBottomAnchoredToTop = bValue; }
-	void SetLeftAnchoredToLeft(bool bValue) { bLeftAnchoredToLeft = bValue; }
-	void SetRightAnchoredToLeft(bool bValue) { bRightAnchoredToLeft = bValue; }
-	void SetTopAnchoredToTop(bool bValue) { bTopAnchoredToTop = bValue; }
+	EQLIB_OBJECT void SetBottomAnchoredToTop(bool bValue) { bBottomAnchoredToTop = bValue; }
+	EQLIB_OBJECT void SetLeftAnchoredToLeft(bool bValue) { bLeftAnchoredToLeft = bValue; }
+	EQLIB_OBJECT void SetRightAnchoredToLeft(bool bValue) { bRightAnchoredToLeft = bValue; }
+	EQLIB_OBJECT void SetTopAnchoredToTop(bool bValue) { bTopAnchoredToTop = bValue; }
 
-	void SetTopOffset(int Value) { TopOffset = Value; }
-	int GetTopOffset() const { return TopOffset; }
+	EQLIB_OBJECT void SetTopOffset(int Value) { TopOffset = Value; }
+	EQLIB_OBJECT int GetTopOffset() const { return TopOffset; }
 
-	void SetBottomOffset(int Value) { BottomOffset = Value; }
-	int GetBottomOffset() const { return BottomOffset; }
+	EQLIB_OBJECT void SetBottomOffset(int Value) { BottomOffset = Value; }
+	EQLIB_OBJECT int GetBottomOffset() const { return BottomOffset; }
 
-	void SetLeftOffset(int Value) { LeftOffset = Value; }
-	int GetLeftOffset() const { return LeftOffset; }
+	EQLIB_OBJECT void SetLeftOffset(int Value) { LeftOffset = Value; }
+	EQLIB_OBJECT int GetLeftOffset() const { return LeftOffset; }
 
-	void SetRightOffset(int Value) { RightOffset = Value; }
-	int GetRightOffset() const { return RightOffset; }
+	EQLIB_OBJECT void SetRightOffset(int Value) { RightOffset = Value; }
+	EQLIB_OBJECT int GetRightOffset() const { return RightOffset; }
 
-	int GetXMLIndex() const { return XMLIndex; }
+	EQLIB_OBJECT int GetXMLIndex() const { return XMLIndex; }
 
 	template <typename T>
 	void SetXMLTooltip(T&& Value) { XMLToolTip = std::forward<T>(Value); }
-	CXStr GetXMLTooltip() const { return XMLToolTip; }
+	EQLIB_OBJECT CXStr GetXMLTooltip() const { return XMLToolTip; }
 
-	void SetCRNormal(COLORREF Value) { CRNormal = Value; }
-
-private:
-	virtual void Dummy() {} // force a virtual function table
+	EQLIB_OBJECT void SetCRNormal(COLORREF Value) { CRNormal = Value; }
 };
 
 using CXWND = CXWnd;

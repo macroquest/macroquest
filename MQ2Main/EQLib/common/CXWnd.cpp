@@ -13,6 +13,10 @@
  */
 
 #include "CXWnd.h"
+#include "EQClasses.h"
+
+// shouldn't be have code dependencies outside eqlib...
+#include "../../MQ2Main.h"
 
 namespace eqlib {
 
@@ -24,7 +28,7 @@ UIType CXWnd::GetType() const
 	return UI_Unknown;
 }
 
-CXMLData* CXWnd::GetXMLData()
+CXMLData* CXWnd::GetXMLData() const
 {
 	if (int xmlIndex = GetXMLIndex())
 	{
@@ -48,7 +52,7 @@ static CXWnd* RecurseAndFindName(CXWnd* pWnd, CXStr Name)
 		{
 			return pWnd;
 		}
-		
+
 		if (pXMLData->ScreenID == Name)
 		{
 			return pWnd;

@@ -937,7 +937,7 @@ GNU General Public License for more details.
 #define EQ_PC__GetItemContainedRealEstateIds_x                     0x8A6EF0
 #define EQ_PC__GetNonArchivedOwnedRealEstates_x                    0x8A7460
 
-// EQItemList 
+// EQItemList
 #define EQItemList__EQItemList_x                                   0x5992E0
 #define EQItemList__add_object_x                                   0x5C5DC0
 #define EQItemList__add_item_x                                     0x599830
@@ -947,7 +947,7 @@ GNU General Public License for more details.
 // EQMisc
 #define EQMisc__GetActiveFavorCost_x                               0x52D290
 
-// EQPlayer 
+// EQPlayer
 #define EQPlayer__ChangeBoneStringSprite_x                         0x64D0A0
 #define EQPlayer__dEQPlayer_x                                      0x6403D0
 #define EQPlayer__DoAttack_x                                       0x654BC0
@@ -1101,9 +1101,6 @@ GNU General Public License for more details.
 #define SpellManager__SpellManager_x                               0x675D30
 #define Spellmanager__LoadTextSpells_x                             0x676600
 #define SpellManager__GetSpellByGroupAndRank_x                     0x675F00
-
-//CCollisionInfoTargetVisibility
-#define CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x   0x981260
 
 //ItemGlobalIndex
 #define ItemGlobalIndex__IsKeyRingLocation_x                       0x505130

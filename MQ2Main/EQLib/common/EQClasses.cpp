@@ -13,72 +13,25 @@
  */
 
 #include "EQClasses.h"
+#include "Globals.h"
 
-UIType CSidlScreenWnd::GetType()
-{
-	if (CXMLData* pXMLData = GetXMLData())
-		return pXMLData->Type;
-
-	return UI_Unknown;
-}
-
-CXMLData* CSidlScreenWnd::GetXMLData()
-{
-	if (int xmlindex = GetXMLIndex())
-		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(xmlindex >> 16, xmlindex & 0xFFFF);
-
-	return 0;
-}
-
-
-CXWnd* CSidlScreenWnd::GetChildItem(PCHAR Name)
-{
-	return RecurseAndFindName((CXWnd*)this, Name);
-}
-
-CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(const char* str)
-{
-	return FindScreenPieceTemplate(CXStr(str));
-}
-
-void CComboWnd::InsertChoice(char* str)
-{
-	InsertChoice(&CXStr(str), 0);
-}
-
-#if !defined(ROF2EMU) && !defined(UFEMU)
-int CListWnd::AddString(const char* Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
-#else
-int CListWnd::AddString(const char* Str, COLORREF Color, uint32_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
-#endif
-{
-	return AddString(CXStr(Str), Color, Data, pTa, TooltipStr);
-}
-
-void CEditBaseWnd::SetMaxChars(int maxChars)
-{
-	this->MaxChars = maxChars;
-	int len = 0;
-
-	if(this->InputText)
-	{
-		len = this->InputText->Length;
-		if(len > maxChars)
-		{
-			CHAR* szTemp = new CHAR[len + 2];
-
-			GetCXStr(this->InputText, szTemp, len + 2);
-			((CXWnd*)this)->SetWindowTextA(szTemp);
-
-			delete szTemp;
-		}
-	}
-}
+// Nothing apart from FUNCTION_AT_ADDRESS call should go into this file!
 
 #pragma warning(push)
 #pragma warning(disable:4740) // warning C4740: flow in or out of inline asm code suppresses global optimization
+#pragma warning(disable:4530) // warning C4530: c++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
 
 // MANUAL IMPORTS
+#ifdef __IsResEffectSpell_x
+FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int), __IsResEffectSpell);
+#endif
+#ifdef __ExecuteCmd_x
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);
+#else
+FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3), __ExecuteCmd);
+#endif
+#endif
 #ifdef EQ_Item__CreateItemTagString_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(char* EQ_Item::CreateItemTagString(char*, int, bool), EQ_Item__CreateItemTagString);
@@ -90,7 +43,7 @@ FUNCTION_AT_ADDRESS(char* EQ_Item::CreateItemTagString(char*, int), EQ_Item__Cre
 FUNCTION_AT_ADDRESS(int EQ_Item::GetImageNum() const, EQ_Item__GetImageNum);
 #endif
 #ifdef EQ_Item__CreateItemClient_x
-FUNCTION_AT_ADDRESS(_CONTENTS** EQ_Item::CreateItemClient(PBYTE*, DWORD), EQ_Item__CreateItemClient);
+FUNCTION_AT_ADDRESS(VePointer<CONTENTS> EQ_Item::CreateItemClient(PBYTE*, DWORD), EQ_Item__CreateItemClient);
 #endif
 #ifdef CStmlWnd__AppendSTML_x
 FUNCTION_AT_ADDRESS(CXSize CStmlWnd::AppendSTML(CXStr), CStmlWnd__AppendSTML);
@@ -176,18 +129,6 @@ FUNCTION_AT_ADDRESS(void CAAWnd::SendNewPercent(), CAAWnd__SendNewPercent);
 #endif
 #ifdef CAAWnd__ConfirmAASpend_x
 FUNCTION_AT_ADDRESS(void CAAWnd::ConfirmAASpend(), CAAWnd__ConfirmAASpend);
-#endif
-#ifdef CXStr__CXStr_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(const CXStr&), CXStr__CXStr);
-#endif
-#ifdef CXMLSOMCursor__dCXMLSOMCursor_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursor::~CXMLSOMCursor(), CXMLSOMCursor__dCXMLSOMCursor);
-#endif
-#ifdef CKeyCXStrValueInt32__dCKeyCXStrValueInt32_x
-FUNCTION_AT_ADDRESS(CKeyCXStrValueInt32::~CKeyCXStrValueInt32(), CKeyCXStrValueInt32__dCKeyCXStrValueInt32);
-#endif
-#ifdef CXStr__dCXStr_x
-FUNCTION_AT_ADDRESS(CXStr::~CXStr(), CXStr__dCXStr);
 #endif
 #ifdef CUITextureInfo__CUITextureInfo_x
 FUNCTION_AT_ADDRESS(CUITextureInfo::CUITextureInfo(CXStr, int), CUITextureInfo__CUITextureInfo);
@@ -483,12 +424,6 @@ FUNCTION_AT_ADDRESS(void CBookWnd::ProcessText(), CBookWnd__ProcessText);
 #ifdef CBookWnd__ShowButtons_x
 FUNCTION_AT_ADDRESS(void CBookWnd::ShowButtons(), CBookWnd__ShowButtons);
 #endif
-#ifdef COptionsWnd__KeyboardAssignmentData__KeyboardAssignmentData_x
-//FUNCTION_AT_ADDRESS(COptionsWnd::KeyboardAssignmentData::KeyboardAssignmentData(), COptionsWnd__KeyboardAssignmentData__KeyboardAssignmentData);
-#endif
-#ifdef CXStr__CXStr1_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(), CXStr__CXStr1);
-#endif
 #ifdef CBreathWnd__CBreathWnd_x
 FUNCTION_AT_ADDRESS(CBreathWnd::CBreathWnd(CXWnd*), CBreathWnd__CBreathWnd);
 #endif
@@ -497,9 +432,6 @@ FUNCTION_AT_ADDRESS(void CBreathWnd::Init(), CBreathWnd__Init);
 #endif
 #ifdef CBreathWnd__Activate_x
 FUNCTION_AT_ADDRESS(void CBreathWnd::Activate(), CBreathWnd__Activate);
-#endif
-#ifdef CBuffWindow__CBuffWindow_x
-//FUNCTION_AT_ADDRESS(CBuffWindow::CBuffWindow(CXWnd*, enum BuffWindowType), CBuffWindow__CBuffWindow);
 #endif
 #ifdef CTextureAnimation__operator_equal_x
 FUNCTION_AT_ADDRESS(CTextureAnimation& CTextureAnimation::operator=(const CTextureAnimation&), CTextureAnimation__operator_equal);
@@ -614,12 +546,6 @@ FUNCTION_AT_ADDRESS(void CCastSpellWnd::KeyMapUpdated(), CCastSpellWnd__KeyMapUp
 #endif
 #ifdef CCastSpellWnd__ClearSpellCategories_x
 FUNCTION_AT_ADDRESS(void CCastSpellWnd::ClearSpellCategories(), CCastSpellWnd__ClearSpellCategories);
-#endif
-#ifdef CCastSpellWnd__SpellCategoryMajor__dSpellCategoryMajor_x
-//FUNCTION_AT_ADDRESS(CCastSpellWnd::SpellCategoryMajor::~SpellCategoryMajor(), CCastSpellWnd__SpellCategoryMajor__dSpellCategoryMajor);
-#endif
-#ifdef CCastSpellWnd__SpellCategoryMinor__dSpellCategoryMinor_x
-//FUNCTION_AT_ADDRESS(CCastSpellWnd::SpellCategoryMinor::~SpellCategoryMinor(), CCastSpellWnd__SpellCategoryMinor__dSpellCategoryMinor);
 #endif
 #ifdef CCastSpellWnd__RecacheCategorizedSpells_x
 FUNCTION_AT_ADDRESS(void CCastSpellWnd::RecacheCategorizedSpells(), CCastSpellWnd__RecacheCategorizedSpells);
@@ -828,9 +754,6 @@ FUNCTION_AT_ADDRESS(void CTargetWnd::RefreshTargetBuffs(PBYTE), CTargetWnd__Refr
 #ifdef CTargetWnd__HandleBuffRemoveRequest_x
 FUNCTION_AT_ADDRESS(void CTargetWnd::HandleBuffRemoveRequest(CXWnd*), CTargetWnd__HandleBuffRemoveRequest);
 #endif
-#ifdef UdpManager__ProcessIcmpErrors_x
-FUNCTION_AT_ADDRESS(void UdpManager::ProcessIcmpErrors(), UdpManager__ProcessIcmpErrors);
-#endif
 #ifdef CRaid__dCRaid_x
 FUNCTION_AT_ADDRESS(CRaid::~CRaid(), CRaid__dCRaid);
 #endif
@@ -944,7 +867,7 @@ FUNCTION_AT_ADDRESS(int CContextMenuManager::GetDefaultMenuIndex(), CContextMenu
 FUNCTION_AT_ADDRESS(CContextMenu* CContextMenuManager::GetMenu(int), CContextMenuManager__GetMenu);
 #endif
 #ifdef CChatWindow__CChatWindow_x
-FUNCTION_AT_ADDRESS(CChatWindow::CChatWindow(CXWnd*), CChatWindow__CChatWindow);
+CONSTRUCTOR_AT_ADDRESS(CChatWindow::CChatWindow(CXWnd*), CChatWindow__CChatWindow);
 #endif
 #ifdef CChatWindow__AddOutputText_x
 FUNCTION_AT_ADDRESS(void CChatWindow::AddOutputText(PCXSTR, int), CChatWindow__AddOutputText);
@@ -1127,7 +1050,7 @@ FUNCTION_AT_ADDRESS(bool CContainerWnd::ContainsNoDrop(), CContainerWnd__Contain
 FUNCTION_AT_ADDRESS(CXRect CXRect::operator|(CXRect) const, CXRect__operator_or);
 #endif
 #ifdef CContextMenu__CContextMenu_x
-FUNCTION_AT_ADDRESS(CContextMenu::CContextMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect), CContextMenu__CContextMenu);
+CONSTRUCTOR_AT_ADDRESS(CContextMenu::CContextMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect), CContextMenu__CContextMenu);
 #endif
 #ifdef CContextMenu__dCContextMenu_x
 FUNCTION_AT_ADDRESS(CContextMenu::~CContextMenu(), CContextMenu__dCContextMenu);
@@ -1279,7 +1202,7 @@ FUNCTION_AT_ADDRESS(void CFacePick::CycleThroughFHEB(int, int), CFacePick__Cycle
 FUNCTION_AT_ADDRESS(CFactionWnd::CFactionWnd(CXWnd*), CFactionWnd__CFactionWnd);
 #endif
 #ifdef CFindItemWnd__CFindItemWnd_x
-FUNCTION_AT_ADDRESS(CFindItemWnd::CFindItemWnd(CXWnd*), CFindItemWnd__CFindItemWnd);
+CONSTRUCTOR_AT_ADDRESS(CFindItemWnd::CFindItemWnd(CXWnd*), CFindItemWnd__CFindItemWnd);
 #endif
 #ifdef CFindItemWnd__Update_x
 FUNCTION_AT_ADDRESS(void CFindItemWnd::Update(), CFindItemWnd__Update);
@@ -1294,7 +1217,7 @@ FUNCTION_AT_ADDRESS(void IString2::Append(char* c), IString__Append);
 FUNCTION_AT_ADDRESS(bool LootFiltersManager::AddItemLootFilter(int, int, const char*, int, bool), LootFiltersManager__AddItemLootFilter);
 #endif
 #ifdef LootFiltersManager__GetItemFilterData_x
-FUNCTION_AT_ADDRESS(const PItemFilterData LootFiltersManager::GetItemFilterData(int), LootFiltersManager__GetItemFilterData);
+FUNCTION_AT_ADDRESS(const ItemFilterData* LootFiltersManager::GetItemFilterData(int), LootFiltersManager__GetItemFilterData);
 #endif
 #ifdef LootFiltersManager__RemoveItemLootFilter_x
 FUNCTION_AT_ADDRESS(bool LootFiltersManager::RemoveItemLootFilter(int, int), LootFiltersManager__RemoveItemLootFilter);
@@ -1343,12 +1266,6 @@ FUNCTION_AT_ADDRESS(int CFileSelectionWnd::GetSelectedFileCount(), CFileSelectio
 #endif
 #ifdef CFileSelectionWnd__GetSelectedFile_x
 FUNCTION_AT_ADDRESS(CXStr CFileSelectionWnd::GetSelectedFile(int), CFileSelectionWnd__GetSelectedFile);
-#endif
-#ifdef CXStr__Left_x
-FUNCTION_AT_ADDRESS(CXStr CXStr::Left(int) const, CXStr__Left);
-#endif
-#ifdef CXStr__Right_x
-FUNCTION_AT_ADDRESS(CXStr CXStr::Right(int) const, CXStr__Right);
 #endif
 #ifdef CFriendsWnd__CFriendsWnd_x
 FUNCTION_AT_ADDRESS(CFriendsWnd::CFriendsWnd(CXWnd*), CFriendsWnd__CFriendsWnd);
@@ -1910,7 +1827,7 @@ FUNCTION_AT_ADDRESS(void CInventoryWnd::UpdateMoneyDisplay(), CInventoryWnd__Upd
 FUNCTION_AT_ADDRESS(CInvSlot::CInvSlot(), CInvSlot__CInvSlot);
 #endif
 #ifdef CInvSlot__GetItemBase_x
-FUNCTION_AT_ADDRESS(void CInvSlot::GetItemBase(struct _CONTENTS**), CInvSlot__GetItemBase);
+FUNCTION_AT_ADDRESS(void CInvSlot::GetItemBase(CONTENTS**), CInvSlot__GetItemBase);
 #endif
 #ifdef CInvSlot__UpdateItem_x
 FUNCTION_AT_ADDRESS(void CInvSlot::UpdateItem(), CInvSlot__UpdateItem);
@@ -1934,7 +1851,7 @@ FUNCTION_AT_ADDRESS(void CInvSlot::HandleLButtonHeld(CXPoint), CInvSlot__HandleL
 FUNCTION_AT_ADDRESS(void CInvSlot::DoDrinkEatPoison(EQ_Item*, int), CInvSlot__DoDrinkEatPoison);
 #endif
 #ifdef CInvSlot__HandleRButtonUp_x
-FUNCTION_AT_ADDRESS(void CInvSlot::HandleRButtonUp(CXPoint*), CInvSlot__HandleRButtonUp);
+FUNCTION_AT_ADDRESS(void CInvSlot::HandleRButtonUp(const CXPoint&), CInvSlot__HandleRButtonUp);
 #endif
 #ifdef CInvSlot__HandleRButtonHeld_x
 FUNCTION_AT_ADDRESS(void CInvSlot::HandleRButtonHeld(CXPoint), CInvSlot__HandleRButtonHeld);
@@ -1980,7 +1897,7 @@ FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot), CIt
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RequestConvertItem(), CItemDisplayWnd__RequestConvertItem);
 #endif
 #ifdef CItemDisplayWnd__CItemDisplayWnd_x
-FUNCTION_AT_ADDRESS(CItemDisplayWnd::CItemDisplayWnd(CXWnd*), CItemDisplayWnd__CItemDisplayWnd);
+CONSTRUCTOR_AT_ADDRESS(CItemDisplayWnd::CItemDisplayWnd(CXWnd*), CItemDisplayWnd__CItemDisplayWnd);
 #endif
 #ifdef CItemDisplayWnd__dCItemDisplayWnd_x
 FUNCTION_AT_ADDRESS(CItemDisplayWnd::~CItemDisplayWnd(), CItemDisplayWnd__dCItemDisplayWnd);
@@ -2196,7 +2113,7 @@ FUNCTION_AT_ADDRESS(CXStr CEditLabelWnd::GetLabelText(), CEditLabelWnd__GetLabel
 FUNCTION_AT_ADDRESS(bool CMapViewWnd::IsMappingEnabled(), CMapViewWnd__IsMappingEnabled);
 #endif
 #ifdef CMapViewWnd__CMapViewWnd_x
-FUNCTION_AT_ADDRESS(CMapViewWnd::CMapViewWnd(CXWnd*), CMapViewWnd__CMapViewWnd);
+CONSTRUCTOR_AT_ADDRESS(CMapViewWnd::CMapViewWnd(CXWnd*), CMapViewWnd__CMapViewWnd);
 #endif
 #ifdef CMapViewWnd__Init_x
 FUNCTION_AT_ADDRESS(void CMapViewWnd::Init(), CMapViewWnd__Init);
@@ -2211,13 +2128,10 @@ FUNCTION_AT_ADDRESS(void CMapViewWnd::ActivateAutoMapping(), CMapViewWnd__Activa
 FUNCTION_AT_ADDRESS(void CMapViewWnd::DeactivateAutoMapping(), CMapViewWnd__DeactivateAutoMapping);
 #endif
 #ifdef CMapViewWnd__HandleLButtonDown_x
-FUNCTION_AT_ADDRESS(int CMapViewWnd::HandleLButtonDown(CXPoint&, uint32_t), CMapViewWnd__HandleLButtonDown);
+FUNCTION_AT_ADDRESS(int CMapViewWnd::HandleLButtonDown(const CXPoint&, uint32_t), CMapViewWnd__HandleLButtonDown);
 #endif
 #ifdef CMapViewWnd__GetWorldCoordinates_x
 FUNCTION_AT_ADDRESS(void CMapViewWnd::GetWorldCoordinates(float*), CMapViewWnd__GetWorldCoordinates);
-#endif
-#ifdef CMapViewWnd__SetCurrentZone_x
-//FUNCTION_AT_ADDRESS(void CMapViewWnd::SetCurrentZone(enum EQZoneIndex, struct T3D_XYZ*, struct T3D_XYZ*), CMapViewWnd__SetCurrentZone);
 #endif
 #ifdef MapViewMap__MapViewMap_x
 FUNCTION_AT_ADDRESS(MapViewMap::MapViewMap(), MapViewMap__MapViewMap);
@@ -2349,7 +2263,6 @@ FUNCTION_AT_ADDRESS(void CMerchantWnd::HandleSell(int), CMerchantWnd__HandleSell
 FUNCTION_AT_ADDRESS(void CMerchantWnd::UpdateBuySellButtons(), CMerchantWnd__UpdateBuySellButtons);
 #endif
 #ifdef CMerchantWnd__SelectBuySellSlot_x
-//FUNCTION_AT_ADDRESS(void CMerchantWnd::SelectBuySellSlot(int, CTextureAnimation*), CMerchantWnd__SelectBuySellSlot);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex*, int Unknown), CMerchantWnd__SelectBuySellSlot);
 #else
@@ -2409,9 +2322,6 @@ FUNCTION_AT_ADDRESS(bool CNoteWnd::CheckNote(EQ_Note*), CNoteWnd__CheckNote);
 #endif
 #ifdef CNoteWnd__SetNote_x
 FUNCTION_AT_ADDRESS(void CNoteWnd::SetNote(char*), CNoteWnd__SetNote);
-#endif
-#ifdef CXStr__operator_lb_rb_x
-FUNCTION_AT_ADDRESS(char CXStr::operator[](int) const, CXStr__operator_lb_rb);
 #endif
 #ifdef COptionsWnd__FillChatFilterList_x
 FUNCTION_AT_ADDRESS(void COptionsWnd::FillChatFilterList(), COptionsWnd__FillChatFilterList);
@@ -2761,45 +2671,6 @@ FUNCTION_AT_ADDRESS(unsigned long CSocialEditWnd::GetSocialTextColor(int), CSoci
 #ifdef CSocialEditWnd__UpdateControlsFromSocial_x
 FUNCTION_AT_ADDRESS(void CSocialEditWnd::UpdateControlsFromSocial(), CSocialEditWnd__UpdateControlsFromSocial);
 #endif
-#ifdef CSoulmarkWnd__CSoulmarkWnd_x
-FUNCTION_AT_ADDRESS(CSoulmarkWnd::CSoulmarkWnd(CXWnd*), CSoulmarkWnd__CSoulmarkWnd);
-#endif
-#ifdef CSoulmarkWnd__UpdateSoulmarks_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::UpdateSoulmarks(struct soulMarkMsg*), CSoulmarkWnd__UpdateSoulmarks);
-#endif
-#ifdef CSoulmarkWnd__UpdateList_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::UpdateList(), CSoulmarkWnd__UpdateList);
-#endif
-#ifdef CSoulmarkWnd__Activate_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Activate(), CSoulmarkWnd__Activate);
-#endif
-#ifdef CSoulmarkWnd__Activate1_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Activate(char*, char*), CSoulmarkWnd__Activate1);
-#endif
-#ifdef CSoulmarkWnd__SaveMarks_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::SaveMarks(), CSoulmarkWnd__SaveMarks);
-#endif
-#ifdef CSoulmarkWnd__FillFields_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::FillFields(), CSoulmarkWnd__FillFields);
-#endif
-#ifdef CSoulmarkWnd__Clear_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Clear(), CSoulmarkWnd__Clear);
-#endif
-#ifdef CSoulmarkWnd__Inquire_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Inquire(char*, char*), CSoulmarkWnd__Inquire);
-#endif
-#ifdef CSoulmarkWnd__AddMark_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::AddMark(int, char*, char*, char*), CSoulmarkWnd__AddMark);
-#endif
-#ifdef CSoulmarkWnd__Inquire1_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Inquire(char*), CSoulmarkWnd__Inquire1);
-#endif
-#ifdef CSoulmarkWnd__Praise_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Praise(char*), CSoulmarkWnd__Praise);
-#endif
-#ifdef CSoulmarkWnd__Warn_x
-FUNCTION_AT_ADDRESS(void CSoulmarkWnd::Warn(char*), CSoulmarkWnd__Warn);
-#endif
 #ifdef CSpellBookWnd__CSpellBookWnd_x
 FUNCTION_AT_ADDRESS(CSpellBookWnd::CSpellBookWnd(CXWnd*), CSpellBookWnd__CSpellBookWnd);
 #endif
@@ -2883,9 +2754,6 @@ FUNCTION_AT_ADDRESS(void CSpellBookWnd::RequestSpellDeletion(int), CSpellBookWnd
 #endif
 #ifdef CSpellBookWnd__DeleteSpellFromBook_x
 FUNCTION_AT_ADDRESS(void CSpellBookWnd::DeleteSpellFromBook(int, int), CSpellBookWnd__DeleteSpellFromBook);
-#endif
-#ifdef CXStr__Mid_x
-FUNCTION_AT_ADDRESS(CXStr CXStr::Mid(int pos, int len) const, CXStr__Mid);
 #endif
 #ifdef CTargetRing__Cast_x
 FUNCTION_AT_ADDRESS(int CTargetRing::Cast(CVector3*), CTargetRing__Cast);
@@ -3052,9 +2920,6 @@ FUNCTION_AT_ADDRESS(void CTradeWnd::DeleteItemFromHisTradeArray(int), CTradeWnd_
 #ifdef CTradeWnd__DropItemIntoTrade_x
 FUNCTION_AT_ADDRESS(void CTradeWnd::DropItemIntoTrade(), CTradeWnd__DropItemIntoTrade);
 #endif
-#ifdef CTradeWnd__DropMoneyIntoTrade_x
-//FUNCTION_AT_ADDRESS(CTradeWnd::DropMoneyIntoTrade(), CTradeWnd__DropMoneyIntoTrade);
-#endif
 #ifdef CTradeWnd__SetMyReadyTrade_x
 FUNCTION_AT_ADDRESS(void CTradeWnd::SetMyReadyTrade(bool), CTradeWnd__SetMyReadyTrade);
 #endif
@@ -3191,51 +3056,6 @@ FUNCTION_AT_ADDRESS(GuildMember* CGuild::FindMemberByName(char*), CGuild__FindMe
 #endif
 #ifdef GuildMember__GuildMember_x
 FUNCTION_AT_ADDRESS(GuildMember::GuildMember(), GuildMember__GuildMember);
-#endif
-#ifdef ChannelServerApi__ChannelServerApi_x
-FUNCTION_AT_ADDRESS(ChannelServerApi::ChannelServerApi(char*, int, char*, char*, ChannelServerHandler*, bool, bool, char*), ChannelServerApi__ChannelServerApi);
-#endif
-#ifdef ChannelServerApi__dChannelServerApi_x
-FUNCTION_AT_ADDRESS(ChannelServerApi::~ChannelServerApi(), ChannelServerApi__dChannelServerApi);
-#endif
-#ifdef ChannelServerApi__FreeChannelList_x
-FUNCTION_AT_ADDRESS(void ChannelServerApi::FreeChannelList(), ChannelServerApi__FreeChannelList);
-#endif
-#ifdef ChannelServerApi__GetStatus_x
-//FUNCTION_AT_ADDRESS(enum ChannelServerApi::Status ChannelServerApi::GetStatus(), ChannelServerApi__GetStatus);
-#endif
-#ifdef ChannelServerApi__SendMessageA_x
-FUNCTION_AT_ADDRESS(void ChannelServerApi::SendMessageA(char*), ChannelServerApi__SendMessageA);
-#endif
-#ifdef ChannelServerApi__SortBuddyList_x
-FUNCTION_AT_ADDRESS(void ChannelServerApi::SortBuddyList(), ChannelServerApi__SortBuddyList);
-#endif
-#ifdef UdpManager__Release_x
-FUNCTION_AT_ADDRESS(void UdpManager::Release(), UdpManager__Release);
-#endif
-#ifdef ChannelServerApi__SetBuddyStatus_x
-//FUNCTION_AT_ADDRESS(void ChannelServerApi::SetBuddyStatus(char*, enum ChannelServerApi::BuddyStatus), ChannelServerApi__SetBuddyStatus);
-#endif
-#ifdef UdpConnection__Release_x
-FUNCTION_AT_ADDRESS(void UdpConnection::Release(), UdpConnection__Release);
-#endif
-#ifdef ChannelServerApi__GiveTime_x
-FUNCTION_AT_ADDRESS(void ChannelServerApi::GiveTime(), ChannelServerApi__GiveTime);
-#endif
-#ifdef ChannelServerApi__GetChannelNumber_x
-FUNCTION_AT_ADDRESS(int ChannelServerApi::GetChannelNumber(char*), ChannelServerApi__GetChannelNumber);
-#endif
-#ifdef ChannelServerApi__GetChannelName_x
-FUNCTION_AT_ADDRESS(char* ChannelServerApi::GetChannelName(int), ChannelServerApi__GetChannelName);
-#endif
-#ifdef ChannelServerApi__Strncpy_x
-FUNCTION_AT_ADDRESS(char* __cdecl ChannelServerApi::Strncpy(char*, char*, int), ChannelServerApi__Strncpy);
-#endif
-#ifdef ChannelServerApi__SmartResize_x
-FUNCTION_AT_ADDRESS(void* __cdecl ChannelServerApi::SmartResize(void*, int, int), ChannelServerApi__SmartResize);
-#endif
-#ifdef ChannelServerApi__GetNextField_x
-FUNCTION_AT_ADDRESS(int __cdecl ChannelServerApi::GetNextField(char*, int, char**, char), ChannelServerApi__GetNextField);
 #endif
 #ifdef CharacterBase__GetMemorizedSpell_x
 FUNCTION_AT_ADDRESS(LONG CharacterBase::GetMemorizedSpell(int), CharacterBase__GetMemorizedSpell);
@@ -3479,12 +3299,6 @@ FUNCTION_AT_ADDRESS(void CRaid::HandleSetLootType(int), CRaid__HandleSetLootType
 #ifdef CRaid__HandleAddLooter_x
 FUNCTION_AT_ADDRESS(void CRaid::HandleAddLooter(char*), CRaid__HandleAddLooter);
 #endif
-#ifdef UdpMisc__GetValue32_x
-FUNCTION_AT_ADDRESS(unsigned int UdpMisc::GetValue32(const void*), UdpMisc__GetValue32);
-#endif
-#ifdef Util__GetValue32_x
-//FUNCTION_AT_ADDRESS(unsigned int __cdecl Util::GetValue32(const void*), Util__GetValue32);
-#endif
 #ifdef CRaid__HandleRemoveLooter_x
 FUNCTION_AT_ADDRESS(void CRaid::HandleRemoveLooter(char*), CRaid__HandleRemoveLooter);
 #endif
@@ -3583,9 +3397,6 @@ FUNCTION_AT_ADDRESS(int CDisplay::ReplaceMaterial(char*, char*, T3D_HIERARCHICAL
 #endif
 #ifdef CDisplay__ReplaceCloakMaterials_x
 FUNCTION_AT_ADDRESS(int CDisplay::ReplaceCloakMaterials(int, T3D_HIERARCHICALSPRITEINSTANCE*, T3D_RGB*), CDisplay__ReplaceCloakMaterials);
-#endif
-#ifdef CDisplay__InitEverQuestLocale_x
-//FUNCTION_AT_ADDRESS(void CDisplay::InitEverQuestLocale(enum EQLocalize::languages), CDisplay__InitEverQuestLocale);
 #endif
 #ifdef CDisplay__ReloadUI_x
 FUNCTION_AT_ADDRESS(void CDisplay::ReloadUI(bool), CDisplay__ReloadUI);
@@ -3695,9 +3506,6 @@ FUNCTION_AT_ADDRESS(unsigned char CDisplay::LoadNPCFromS3D(char*, char*, char*),
 #ifdef CDisplay__LoadBMPFile_x
 FUNCTION_AT_ADDRESS(unsigned char CDisplay::LoadBMPFile(), CDisplay__LoadBMPFile);
 #endif
-#ifdef CDisplay__StartWorldDisplay_x
-//FUNCTION_AT_ADDRESS(void CDisplay::StartWorldDisplay(enum EQZoneIndex), CDisplay__StartWorldDisplay);
-#endif
 #ifdef CDisplay__StartWorldDisplay_Bailout_x
 FUNCTION_AT_ADDRESS(void CDisplay::StartWorldDisplay_Bailout(const char*), CDisplay__StartWorldDisplay_Bailout);
 #endif
@@ -3749,9 +3557,6 @@ FUNCTION_AT_ADDRESS(void CDisplay::CheckForScreenModeToggle(), CDisplay__CheckFo
 #ifdef CDisplay__Render_World_x
 FUNCTION_AT_ADDRESS(void CDisplay::Render_World(), CDisplay__Render_World);
 #endif
-#ifdef CDisplay__SetSpecialEnvironment_x
-//FUNCTION_AT_ADDRESS(void CDisplay::SetSpecialEnvironment(enum EnvironmentType), CDisplay__SetSpecialEnvironment);
-#endif
 #ifdef CDisplay__SetGenericEnvironment_x
 FUNCTION_AT_ADDRESS(void CDisplay::SetGenericEnvironment(), CDisplay__SetGenericEnvironment);
 #endif
@@ -3792,7 +3597,7 @@ FUNCTION_AT_ADDRESS(void CDisplay::ProcessCloud(), CDisplay__ProcessCloud);
 FUNCTION_AT_ADDRESS(void CDisplay::DDrawUpdateDisplay(), CDisplay__DDrawUpdateDisplay);
 #endif
 #ifdef CDisplay__SetViewActor_x
-FUNCTION_AT_ADDRESS(void CDisplay::SetViewActor(struct T3D_tagACTORINSTANCE*), CDisplay__SetViewActor);
+FUNCTION_AT_ADDRESS(void CDisplay::SetViewActor(CActorInterface*), CDisplay__SetViewActor);
 #endif
 #ifdef CDisplay__SetRenderWindow_x
 FUNCTION_AT_ADDRESS(void CDisplay::SetRenderWindow(int mode), CDisplay__SetRenderWindow);
@@ -3849,10 +3654,10 @@ FUNCTION_AT_ADDRESS(void CDisplay::PlaySoundAtLocation(float, float, float, int)
 FUNCTION_AT_ADDRESS(long CDisplay::SetUserRender(int), CDisplay__SetUserRender);
 #endif
 #ifdef CDisplay__GetClickedActor_x
-FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE* CDisplay::GetClickedActor(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2), CDisplay__GetClickedActor);
+FUNCTION_AT_ADDRESS(CActorInterface* CDisplay::GetClickedActor(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2), CDisplay__GetClickedActor);
 #endif
 #ifdef CDisplay__CreateActor_x
-FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE* CDisplay::CreateActor(char*, float, float, float, float, float, float, bool, bool), CDisplay__CreateActor);
+FUNCTION_AT_ADDRESS(CActorInterface* CDisplay::CreateActor(char*, float, float, float, float, float, float, bool, bool), CDisplay__CreateActor);
 #endif
 #ifdef CDisplay__SetActorBoundingRadius_x
 FUNCTION_AT_ADDRESS(float CDisplay::SetActorBoundingRadius(struct T3D_tagACTORINSTANCE*, float, float), CDisplay__SetActorBoundingRadius);
@@ -3971,26 +3776,11 @@ FUNCTION_AT_ADDRESS(int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat), 
 #ifdef CDistillerInfo__Instance_x
 FUNCTION_AT_ADDRESS(CDistillerInfo& CDistillerInfo::Instance(), CDistillerInfo__Instance);
 #endif
-#ifdef ZoneNPCLoadTextManager__ZoneNPCLoadTextManager_x
-FUNCTION_AT_ADDRESS(ZoneNPCLoadTextManager::ZoneNPCLoadTextManager(char*), ZoneNPCLoadTextManager__ZoneNPCLoadTextManager);
-#endif
-#ifdef ZoneNPCLoadTextManager__dZoneNPCLoadTextManager_x
-FUNCTION_AT_ADDRESS(ZoneNPCLoadTextManager::~ZoneNPCLoadTextManager(), ZoneNPCLoadTextManager__dZoneNPCLoadTextManager);
-#endif
-#ifdef ZoneNPCLoadTextManager__LoadText_x
-FUNCTION_AT_ADDRESS(void ZoneNPCLoadTextManager::LoadText(char*), ZoneNPCLoadTextManager__LoadText);
-#endif
-#ifdef ZoneNPCLoadTextManager__GetNPCCode_x
-FUNCTION_AT_ADDRESS(char* ZoneNPCLoadTextManager::GetNPCCode(int), ZoneNPCLoadTextManager__GetNPCCode);
-#endif
-#ifdef ZoneNPCLoadTextManager__GetS3DName_x
-FUNCTION_AT_ADDRESS(char* ZoneNPCLoadTextManager::GetS3DName(int), ZoneNPCLoadTextManager__GetS3DName);
-#endif
 #ifdef CAdvancedLootWnd__DoAdvLootAction_x
-FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD, CXStr*, DWORD, DWORD), CAdvancedLootWnd__DoAdvLootAction);
+FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoAdvLootAction(int, const CXStr&, DWORD, int), CAdvancedLootWnd__DoAdvLootAction);
 #endif
 #ifdef CAdvancedLootWnd__DoSharedAdvLootAction_x
-FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem, CXStr* Assignee, DWORD Action, DWORD Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
+FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem, const CXStr& Assignee, DWORD Action, int Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
 #endif
 #ifdef CAltAbilityData__GetMercCurrentRank_x
 FUNCTION_AT_ADDRESS(int CAltAbilityData::GetMercCurrentRank(int), CAltAbilityData__GetMercCurrentRank);
@@ -4009,19 +3799,19 @@ FUNCTION_AT_ADDRESS(AltAdvManager::AltAdvManager(), AltAdvManager__AltAdvManager
 #endif
 #ifdef AltAdvManager__GetAAById_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(struct _ALTABILITY* AltAdvManager::GetAAById(int, int), AltAdvManager__GetAAById);
+FUNCTION_AT_ADDRESS(ALTABILITY* AltAdvManager::GetAAById(int, int), AltAdvManager__GetAAById);
 #else
-FUNCTION_AT_ADDRESS(struct _ALTABILITY* AltAdvManager::GetAAById(int), AltAdvManager__GetAAById);
+FUNCTION_AT_ADDRESS(ALTABILITY* AltAdvManager::GetAAById(int), AltAdvManager__GetAAById);
 #endif
 #endif
 #ifdef AltAdvManager__IsAbilityReady_x
-FUNCTION_AT_ADDRESS(bool AltAdvManager::IsAbilityReady(EQ_PC*, EQData::PALTABILITY, int*, int*), AltAdvManager__IsAbilityReady);
+FUNCTION_AT_ADDRESS(bool AltAdvManager::IsAbilityReady(PcZoneClient*, ALTABILITY*, int*, int*), AltAdvManager__IsAbilityReady);
 #endif
 #ifdef AltAdvManager__CalculateHideTimeReduce_x
 FUNCTION_AT_ADDRESS(int AltAdvManager::CalculateHideTimeReduce(EQ_PC*), AltAdvManager__CalculateHideTimeReduce);
 #endif
 #ifdef AltAdvManager__GetCalculatedTimer_x
-FUNCTION_AT_ADDRESS(unsigned long AltAdvManager::GetCalculatedTimer(EQ_PC*, EQData::PALTABILITY), AltAdvManager__GetCalculatedTimer);
+FUNCTION_AT_ADDRESS(unsigned long AltAdvManager::GetCalculatedTimer(PcZoneClient*, ALTABILITY*), AltAdvManager__GetCalculatedTimer);
 #endif
 #ifdef AltAdvManager__GetNextAbilityCost_x
 FUNCTION_AT_ADDRESS(int AltAdvManager::GetNextAbilityCost(int, int), AltAdvManager__GetNextAbilityCost);
@@ -4350,9 +4140,9 @@ FUNCTION_AT_ADDRESS(unsigned char EQ_Character::GetSkillBaseDamage(unsigned char
 #endif
 #ifdef EQ_Character__UseSkill_x
 #if defined(ROF2EMU) || defined(UFEMU)
-FUNCTION_AT_ADDRESS(void EQ_Character1::UseSkill(unsigned char skill, EQPlayer* target), EQ_Character__UseSkill);
+FUNCTION_AT_ADDRESS(void EQ_Character1::UseSkill(unsigned char skill, PlayerZoneClient* target), EQ_Character__UseSkill);
 #else
-FUNCTION_AT_ADDRESS(void EQ_Character1::UseSkill(unsigned char skill, EQPlayer* Target, bool bAuto), EQ_Character__UseSkill);
+FUNCTION_AT_ADDRESS(void EQ_Character1::UseSkill(unsigned char skill, PlayerZoneClient* Target, bool bAuto), EQ_Character__UseSkill);
 #endif
 #endif
 #ifdef EQ_Character__DoIntimidationEvent_x
@@ -4585,10 +4375,10 @@ FUNCTION_AT_ADDRESS(bool EQ_Spell::IsStackableDot() const, EQ_Spell__IsStackable
 FUNCTION_AT_ADDRESS(bool EQ_Spell::IsStackable() const, EQ_Spell__IsStackable);
 #endif
 #ifdef EQ_Spell__GetSpellAffectBySlot_x
-FUNCTION_AT_ADDRESS(const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int) const, EQ_Spell__GetSpellAffectBySlot);
+FUNCTION_AT_ADDRESS(const SPELLCALCINFO* EQ_Spell::GetSpellAffectBySlot(int) const, EQ_Spell__GetSpellAffectBySlot);
 #endif
 #ifdef EQ_Spell__GetSpellAffectByIndex_x
-FUNCTION_AT_ADDRESS(const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int) const, EQ_Spell__GetSpellAffectByIndex);
+FUNCTION_AT_ADDRESS(const SPELLCALCINFO* EQ_Spell::GetSpellAffectByIndex(int) const, EQ_Spell__GetSpellAffectByIndex);
 #endif
 #ifdef EQ_Spell__IsSPAStacking_x
 FUNCTION_AT_ADDRESS(bool EQ_Spell::IsSPAStacking(int) , EQ_Spell__IsSPAStacking);
@@ -4648,7 +4438,7 @@ FUNCTION_AT_ADDRESS(void EQ_Character::ReCachItemEffects(), EQ_Character__ReCach
 FUNCTION_AT_ADDRESS(int EQ_Character::GetCachEQSPA(int), EQ_Character__GetCachEQSPA);
 #endif
 #ifdef EQ_Character__GetConLevel_x
-FUNCTION_AT_ADDRESS(unsigned long EQ_Character::GetConLevel(EQPlayer*), EQ_Character__GetConLevel);
+FUNCTION_AT_ADDRESS(unsigned long EQ_Character::GetConLevel(const PlayerClient*), EQ_Character__GetConLevel);
 #endif
 #ifdef EQ_Character__TotalEffect_x
 FUNCTION_AT_ADDRESS(int EQ_Character1::TotalEffect(int, bool, int, bool, bool), EQ_Character__TotalEffect);
@@ -4910,9 +4700,6 @@ FUNCTION_AT_ADDRESS(BaseProfile* ProfileManager::GetCurrentProfile(), ProfileMan
 #ifdef EQ_Skill__EQ_Skill_x
 FUNCTION_AT_ADDRESS(EQ_Skill::EQ_Skill(int), EQ_Skill__EQ_Skill);
 #endif
-#ifdef EqSoundManager__EqSoundManager_x
-//FUNCTION_AT_ADDRESS(EqSoundManager::EqSoundManager(bool, bool, enum SpeakerType), EqSoundManager__EqSoundManager);
-#endif
 #ifdef EqSoundManager__dEqSoundManager_x
 FUNCTION_AT_ADDRESS(EqSoundManager::~EqSoundManager(), EqSoundManager__dEqSoundManager);
 #endif
@@ -4955,32 +4742,8 @@ FUNCTION_AT_ADDRESS(void EqSoundManager::GiveTime(), EqSoundManager__GiveTime);
 #ifdef EqSoundManager__SetCurrentZone_x
 FUNCTION_AT_ADDRESS(void EqSoundManager::SetCurrentZone(char*), EqSoundManager__SetCurrentZone);
 #endif
-#ifdef FilePath__FilePath_x
-FUNCTION_AT_ADDRESS(FilePath::FilePath(const char*), FilePath__FilePath);
-#endif
-#ifdef ShareBase__removeRef_x
-FUNCTION_AT_ADDRESS(void ShareBase::removeRef(), ShareBase__removeRef);
-#endif
-#ifdef SharedString__SharedString_x
-FUNCTION_AT_ADDRESS(SharedString::SharedString(const char*), SharedString__SharedString);
-#endif
-#ifdef SharedString__operator_equal_x
-FUNCTION_AT_ADDRESS(SharedString& SharedString::operator=(const SharedString&), SharedString__operator_equal);
-#endif
-#ifdef FilePath__dFilePath_x
-FUNCTION_AT_ADDRESS(FilePath::~FilePath(), FilePath__dFilePath);
-#endif
-#ifdef SharedString__dSharedString_x
-FUNCTION_AT_ADDRESS(SharedString::~SharedString(), SharedString__dSharedString);
-#endif
-#ifdef FilePath__FilePath1_x
-FUNCTION_AT_ADDRESS(FilePath::FilePath(const SharedString&), FilePath__FilePath1);
-#endif
 #ifdef EqSoundManager__LoadOldEmitters_x
 FUNCTION_AT_ADDRESS(void EqSoundManager::LoadOldEmitters(), EqSoundManager__LoadOldEmitters);
-#endif
-#ifdef EqSoundManager__CreateOldEmitter_x
-//FUNCTION_AT_ADDRESS(SoundEmitter* EqSoundManager::CreateOldEmitter(int, float, float, float, int, int, int, float, int, int, int), EqSoundManager__CreateOldEmitter);
 #endif
 #ifdef EqSoundManager__GetAsset_x
 FUNCTION_AT_ADDRESS(SoundAsset* EqSoundManager::GetAsset(char*), EqSoundManager__GetAsset);
@@ -5005,12 +4768,6 @@ FUNCTION_AT_ADDRESS(void EqSoundManager::SetWaveVolume(float), EqSoundManager__S
 #endif
 #ifdef EqSoundManager__SetMusicVolume_x
 FUNCTION_AT_ADDRESS(void EqSoundManager::SetMusicVolume(float), EqSoundManager__SetMusicVolume);
-#endif
-#ifdef EqSoundManager__GetListenerEnvironment_x
-//FUNCTION_AT_ADDRESS(enum EnvironmentType EqSoundManager::GetListenerEnvironment(), EqSoundManager__GetListenerEnvironment);
-#endif
-#ifdef EqSoundManager__SetListenerEnvironment_x
-//FUNCTION_AT_ADDRESS(void EqSoundManager::SetListenerEnvironment(enum EnvironmentType), EqSoundManager__SetListenerEnvironment);
 #endif
 #ifdef EqSoundManager__SetListenerEnvironmentLow_x
 FUNCTION_AT_ADDRESS(void EqSoundManager::SetListenerEnvironmentLow(), EqSoundManager__SetListenerEnvironmentLow);
@@ -5121,7 +4878,7 @@ FUNCTION_AT_ADDRESS(float CVector3::GetLength() const, CVector3__GetLength);
 FUNCTION_AT_ADDRESS(float CVector3::NormalizeAndReturnLength(), CVector3__NormalizeAndReturnLength);
 #endif
 #ifdef EQEffect__EQEffect_x
-FUNCTION_AT_ADDRESS(EQEffect::EQEffect(EQEffect*, char*, int, struct _EQLOC*, EQPlayer*, EQMissile*, struct _EQRGB*, float, int, int, float, float), EQEffect__EQEffect);
+FUNCTION_AT_ADDRESS(EQEffect::EQEffect(EQEffect*, char*, int, EQLOC*, PlayerZoneClient*, EQMissile*, EQRGB*, float, int, int, float, float), EQEffect__EQEffect);
 #endif
 #ifdef EQEffect__dEQEffect_x
 FUNCTION_AT_ADDRESS(EQEffect::~EQEffect(), EQEffect__dEQEffect);
@@ -5141,18 +4898,6 @@ FUNCTION_AT_ADDRESS(int CEverQuest::HandleItems(void*, int), CEverQuest__HandleI
 #ifdef CEverQuest__HandleWorldMessage_x
 FUNCTION_AT_ADDRESS(unsigned char CEverQuest::HandleWorldMessage(struct connection_t*, uint32_t, char*, uint32_t), CEverQuest__HandleWorldMessage);
 #endif
-#ifdef EQHSprite__EQHSprite_x
-FUNCTION_AT_ADDRESS(EQHSprite::EQHSprite(char*, struct T3D_tagACTORINSTANCE*, EQPlayer*), EQHSprite__EQHSprite);
-#endif
-#ifdef EQHSprite__dEQHSprite_x
-FUNCTION_AT_ADDRESS(EQHSprite::~EQHSprite(), EQHSprite__dEQHSprite);
-#endif
-#ifdef EQHSprite__get_object_x
-FUNCTION_AT_ADDRESS(EQHSprite* EQHSprite::get_object(char*), EQHSprite__get_object);
-#endif
-#ifdef EQHSprite__GetAnimationTrackPtr_x
-FUNCTION_AT_ADDRESS(bool EQHSprite::GetAnimationTrackPtr(char*, char*, int, int, unsigned char, int), EQHSprite__GetAnimationTrackPtr);
-#endif
 #ifdef EQItemList__EQItemList_x
 FUNCTION_AT_ADDRESS(EQItemList::EQItemList(), EQItemList__EQItemList);
 #endif
@@ -5165,17 +4910,8 @@ FUNCTION_AT_ADDRESS(EQItemList* EQItemList::get_item(long), EQItemList__get_item
 #ifdef EQItemList__is_item_actor_x
 FUNCTION_AT_ADDRESS(EQItemList* EQItemList::is_item_actor(struct T3D_tagACTORINSTANCE*), EQItemList__is_item_actor);
 #endif
-#ifdef public_key__dpublic_key_x
-FUNCTION_AT_ADDRESS(public_key::~public_key(), public_key__dpublic_key);
-#endif
-#ifdef public_key__public_key_x
-FUNCTION_AT_ADDRESS(public_key::public_key(), public_key__public_key);
-#endif
-#ifdef PacketPackerManager__Initialize_x
-FUNCTION_AT_ADDRESS(void __cdecl PacketPackerManager::Initialize(), PacketPackerManager__Initialize);
-#endif
 #ifdef EQMissile__EQMissile_x
-FUNCTION_AT_ADDRESS(EQMissile::EQMissile(EQ_Equipment*, EQPlayer*, EQMissile*, char*, unsigned char, unsigned int), EQMissile__EQMissile);
+FUNCTION_AT_ADDRESS(EQMissile::EQMissile(EQ_Equipment*, PlayerZoneClient*, EQMissile*, char*, unsigned char, unsigned int), EQMissile__EQMissile);
 #endif
 #ifdef EQMissile__dEQMissile_x
 FUNCTION_AT_ADDRESS(EQMissile::~EQMissile(), EQMissile__dEQMissile);
@@ -5208,19 +4944,16 @@ FUNCTION_AT_ADDRESS(EQMoneyList* EQMoneyList::get_money(long), EQMoneyList__get_
 FUNCTION_AT_ADDRESS(int CDisplay::MoveMissile(EQMissile*), CDisplay__MoveMissile);
 #endif
 #ifdef CDisplay__GetOnActor_x
-FUNCTION_AT_ADDRESS(void CDisplay::GetOnActor(struct T3D_tagACTORINSTANCE*, EQPlayer*), CDisplay__GetOnActor);
+FUNCTION_AT_ADDRESS(void CDisplay::GetOnActor(CActorInterface*, PlayerZoneClient*), CDisplay__GetOnActor);
 #endif
 #ifdef EQPlayer__CanIFitHere_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::CanIFitHere(float, float, float), EQPlayer__CanIFitHere);
+FUNCTION_AT_ADDRESS(bool PlayerZoneClient::CanIFitHere(const CVector3&, bool), EQPlayer__CanIFitHere);
 #endif
 #ifdef EQPlayer__MovePlayer_x
-FUNCTION_AT_ADDRESS(int EQPlayer::MovePlayer(), EQPlayer__MovePlayer);
-#endif
-#ifdef bad_word_class__bad_word_class_x
-FUNCTION_AT_ADDRESS(bad_word_class::bad_word_class(char*), bad_word_class__bad_word_class);
+FUNCTION_AT_ADDRESS(int PlayerZoneClient::MovePlayer(), EQPlayer__MovePlayer);
 #endif
 #ifdef EQObject__EQObject_x
-FUNCTION_AT_ADDRESS(EQObject::EQObject(EQObject*, EQPlayer*, char*, char*), EQObject__EQObject);
+FUNCTION_AT_ADDRESS(EQObject::EQObject(EQObject*, PlayerZoneClient*, char*, char*), EQObject__EQObject);
 #endif
 #ifdef EQObject__dEQObject_x
 FUNCTION_AT_ADDRESS(EQObject::~EQObject(), EQObject__dEQObject);
@@ -5250,10 +4983,10 @@ FUNCTION_AT_ADDRESS(FactionManagerClient& FactionManagerClient::Instance(), Fact
 FUNCTION_AT_ADDRESS(void FactionManagerClient::HandleFactionMessage(UINT MessageID, PCHAR pData, unsigned int DataLength), FactionManagerClient__HandleFactionMessage)
 #endif
 #ifdef EQPlayer__EQPlayer_x
-FUNCTION_AT_ADDRESS(EQPlayer::EQPlayer(EQPlayer*, unsigned char, unsigned int, unsigned char, char*), EQPlayer__EQPlayer);
+FUNCTION_AT_ADDRESS(void PlayerClient::Initialize(PlayerClient*, unsigned char, unsigned int, unsigned char, char*), EQPlayer__EQPlayer);
 #endif
 #ifdef EQPlayer__dEQPlayer_x
-FUNCTION_AT_ADDRESS(EQPlayer::~EQPlayer(), EQPlayer__dEQPlayer);
+FUNCTION_AT_ADDRESS(PlayerClient::~PlayerClient(), EQPlayer__dEQPlayer);
 #endif
 #ifdef EQPlayer__ResetVariables_x
 FUNCTION_AT_ADDRESS(void EQPlayer::ResetVariables(), EQPlayer__ResetVariables);
@@ -5322,20 +5055,20 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::AllowedToAttack(EQPlayer*, int), EQPlayer__Al
 FUNCTION_AT_ADDRESS(bool EQPlayer::CanIHit(EQPlayer*, float), EQPlayer__CanIHit);
 #endif
 #ifdef EQPlayer__CanSee_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::CanSee(EQPlayer*), EQPlayer__CanSee);
+FUNCTION_AT_ADDRESS(bool PlayerBase::CanSee(const PlayerBase&), EQPlayer__CanSee);
 #endif
 #ifdef EQPlayer__CanSee1_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::CanSee(CVector3* pos), EQPlayer__CanSee1);
+FUNCTION_AT_ADDRESS(bool PlayerBase::CanSee(const CVector3& pos), EQPlayer__CanSee1);
 #endif
 #ifdef EQPlayer__ModifyAttackSpeed_x
 FUNCTION_AT_ADDRESS(unsigned int EQPlayer::ModifyAttackSpeed(unsigned int, int), EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
-	#if defined(ROF2EMU) || defined(UFEMU)
-		FUNCTION_AT_ADDRESS(bool EQPlayer::DoAttack(BYTE, BYTE, EQPlayer*), EQPlayer__DoAttack);
-	#else
-		FUNCTION_AT_ADDRESS(bool EQPlayer::DoAttack(BYTE, BYTE, EQPlayer*, bool, bool, bool), EQPlayer__DoAttack);
-	#endif
+#if defined(ROF2EMU) || defined(UFEMU)
+FUNCTION_AT_ADDRESS(bool PlayerZoneClient::DoAttack(BYTE, BYTE, PlayerZoneClient*), EQPlayer__DoAttack);
+#else
+FUNCTION_AT_ADDRESS(bool PlayerZoneClient::DoAttack(BYTE, BYTE, PlayerZoneClient*, bool, bool, bool), EQPlayer__DoAttack);
+#endif
 #endif
 #ifdef EQPlayer__HandleAmmo_x
 FUNCTION_AT_ADDRESS(unsigned char EQPlayer::HandleAmmo(), EQPlayer__HandleAmmo);
@@ -5503,25 +5236,25 @@ FUNCTION_AT_ADDRESS(void EQPlayer::SetAndReserveID(unsigned int), EQPlayer__SetA
 FUNCTION_AT_ADDRESS(void EQPlayer::InitializeIDArray(), EQPlayer__InitializeIDArray);
 #endif
 #ifdef PlayerZoneClient__GetLevel_x
-FUNCTION_AT_ADDRESS(BYTE EQPlayer::GetLevel() const, PlayerZoneClient__GetLevel);
+FUNCTION_AT_ADDRESS(unsigned char PlayerZoneClient::GetLevel() const, PlayerZoneClient__GetLevel);
 #endif
 #ifdef EQPlayer__Levitating_x
-FUNCTION_AT_ADDRESS(int EQPlayer::Levitating(), EQPlayer__Levitating);
+FUNCTION_AT_ADDRESS(int PlayerZoneClient::Levitating(), EQPlayer__Levitating);
 #endif
 #ifdef EQPlayer__SetRace_x
-FUNCTION_AT_ADDRESS(void EQPlayer::SetRace(int), EQPlayer__SetRace);
+FUNCTION_AT_ADDRESS(void PlayerZoneClient::SetRace(int), EQPlayer__SetRace);
 #endif
 #ifdef EQPlayer__CanChangeForm_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::CanChangeForm(int Race, BYTE Sex, float Height), EQPlayer__CanChangeForm);
+FUNCTION_AT_ADDRESS(bool PlayerZoneClient::CanChangeForm(int Race, BYTE Sex, float Height), EQPlayer__CanChangeForm);
 #endif
 #ifdef EQPlayer__SetNameSpriteState_x
-FUNCTION_AT_ADDRESS(int EQPlayer::SetNameSpriteState(bool), EQPlayer__SetNameSpriteState);
+FUNCTION_AT_ADDRESS(int PlayerClient::SetNameSpriteState(bool), EQPlayer__SetNameSpriteState);
 #endif
 #ifdef EQPlayer__ChangeBoneStringSprite_x
-FUNCTION_AT_ADDRESS(struct S3D_STRINGSPRITE* EQPlayer::ChangeBoneStringSprite(struct T3D_DAG*, char*), EQPlayer__ChangeBoneStringSprite);
+FUNCTION_AT_ADDRESS(void PlayerClient::ChangeBoneStringSprite(int, char*), EQPlayer__ChangeBoneStringSprite);
 #endif
 #ifdef EQPlayer__SetNameSpriteTint_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::SetNameSpriteTint(), EQPlayer__SetNameSpriteTint);
+FUNCTION_AT_ADDRESS(bool PlayerClient::SetNameSpriteTint(), EQPlayer__SetNameSpriteTint);
 #endif
 #ifdef PlayerClient__GetPcClient_x
 FUNCTION_AT_ADDRESS(PcClient* PlayerClient::GetPcClient() const, PlayerClient__GetPcClient);
@@ -5557,10 +5290,10 @@ FUNCTION_AT_ADDRESS(void EQPlayer::UpdatePlayerVisibility(), EQPlayer__UpdatePla
 FUNCTION_AT_ADDRESS(void __cdecl EQPlayer::UpdateAllPlayersVisibility(), EQPlayer__UpdateAllPlayersVisibility);
 #endif
 #ifdef PlayerBase__HasProperty_j_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::HasProperty(unsigned int, int, int), PlayerBase__HasProperty_j);
+FUNCTION_AT_ADDRESS(bool PlayerBase::HasProperty(unsigned int, int, int), PlayerBase__HasProperty_j);
 #endif
 #ifdef PlayerBase__GetVisibilityLineSegment_x
-FUNCTION_AT_ADDRESS(CLineSegment& EQPlayer::GetVisibilityLineSegment(CLineSegment&, EQPlayer&, unsigned int), PlayerBase__GetVisibilityLineSegment);
+FUNCTION_AT_ADDRESS(CLineSegment PlayerBase::GetVisibilityLineSegment(const PlayerBase&, unsigned int), PlayerBase__GetVisibilityLineSegment);
 #endif
 #ifdef EQPlayer__SetEyeMaterial_x
 FUNCTION_AT_ADDRESS(int EQPlayer::SetEyeMaterial(unsigned char, int), EQPlayer__SetEyeMaterial);
@@ -5605,7 +5338,7 @@ FUNCTION_AT_ADDRESS(int EQPlayer::SwapHead(int, int, unsigned long, int), EQPlay
 FUNCTION_AT_ADDRESS(int EQPlayer::SetPlayerPitchType(), EQPlayer__SetPlayerPitchType);
 #endif
 #ifdef PlayerZoneClient__IsValidTeleport_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::IsValidTeleport(float X, float Y, float Z, float Heading, float Distance), PlayerZoneClient__IsValidTeleport);
+FUNCTION_AT_ADDRESS(bool PlayerZoneClient::IsValidTeleport(float X, float Y, float Z, float Heading, float Distance), PlayerZoneClient__IsValidTeleport);
 #endif
 #ifdef EQPlayer__ReplaceSpecialCloakMaterials_x
 FUNCTION_AT_ADDRESS(int EQPlayer::ReplaceSpecialCloakMaterials(), EQPlayer__ReplaceSpecialCloakMaterials);
@@ -5639,9 +5372,6 @@ FUNCTION_AT_ADDRESS(void EQPlayer::PushAlongHeading(float), EQPlayer__PushAlongH
 #endif
 #ifdef EQPlayer__DoTeleport_x
 FUNCTION_AT_ADDRESS(unsigned char EQPlayer::DoTeleport(char*, int), EQPlayer__DoTeleport);
-#endif
-#ifdef EQPlayer__DoTeleportB_x
-//FUNCTION_AT_ADDRESS(unsigned char EQPlayer::DoTeleportB(int, float, float, float, float, char*, enum ZONE_REQ_REASON), EQPlayer__DoTeleportB);
 #endif
 #ifdef EQPlayer__ChangeLight_x
 FUNCTION_AT_ADDRESS(void EQPlayer::ChangeLight(), EQPlayer__ChangeLight);
@@ -5680,16 +5410,13 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::IsInvisible(EQPlayer*), EQPlayer__IsInvisible
 FUNCTION_AT_ADDRESS(bool EQPlayer::IsAMount(), EQPlayer__IsAMount);
 #endif
 #ifdef EQPlayerManager__GetSpawnByID_x
-FUNCTION_AT_ADDRESS(EQPlayer* EQPlayerManager::GetSpawnByID(int), EQPlayerManager__GetSpawnByID);
+FUNCTION_AT_ADDRESS(PlayerClient* EQPlayerManager::GetSpawnByID(int), EQPlayerManager__GetSpawnByID);
 #endif
 #ifdef EQPlayerManager__GetSpawnByName_x
-FUNCTION_AT_ADDRESS(EQPlayer* EQPlayerManager::GetSpawnByName(char*), EQPlayerManager__GetSpawnByName);
+FUNCTION_AT_ADDRESS(PlayerClient* EQPlayerManager::GetSpawnByName(char*), EQPlayerManager__GetSpawnByName);
 #endif
 #ifdef EQPlayerManager__GetPlayerFromPartialName_x
-FUNCTION_AT_ADDRESS(EQPlayer* EQPlayerManager::GetPlayerFromPartialName(const char*, PlayerBase*), EQPlayerManager__GetPlayerFromPartialName);
-#endif
-#ifdef EQPlayerManager__GetSpawnByName2_x
-FUNCTION_AT_ADDRESS(EQPlayer* EQPlayerManager::GetSpawnByName2(CXStr*, int), EQPlayerManager__GetSpawnByName2);
+FUNCTION_AT_ADDRESS(PlayerClient* EQPlayerManager::GetPlayerFromPartialName(const char*, PlayerBase*), EQPlayerManager__GetPlayerFromPartialName);
 #endif
 #ifdef EQPMInfo__EQPMInfo_x
 FUNCTION_AT_ADDRESS(EQPMInfo::EQPMInfo(char*), EQPMInfo__EQPMInfo);
@@ -5799,44 +5526,11 @@ FUNCTION_AT_ADDRESS(char* __cdecl EQUtil::FormatCharName(char*, char*, int), EQU
 #ifdef EQWorldData__EQWorldData_x
 FUNCTION_AT_ADDRESS(EQWorldData::EQWorldData(), EQWorldData__EQWorldData);
 #endif
-#ifdef EQWorldData__AddZone_x
-//FUNCTION_AT_ADDRESS(bool const EQWorldData::AddZone(enum EQExpansion, enum EQZoneIndex, const char*, const char*, int, unsigned long, int, int), EQWorldData__AddZone);
-#endif
 #ifdef EQWorldData__AdvanceTime_x
 FUNCTION_AT_ADDRESS(void EQWorldData::AdvanceTime(unsigned int), EQWorldData__AdvanceTime);
 #endif
 #ifdef EQWorldData__CurrentGameTime_x
 FUNCTION_AT_ADDRESS(void EQWorldData::CurrentGameTime(char*), EQWorldData__CurrentGameTime);
-#endif
-#ifdef EQWorldData__GetFullZoneName_x
-//FUNCTION_AT_ADDRESS(void EQWorldData::GetFullZoneName(enum EQZoneIndex, char*), EQWorldData__GetFullZoneName);
-#endif
-#ifdef EQWorldData__ExpansionZone_x
-//FUNCTION_AT_ADDRESS(enum EQExpansion const EQWorldData::ExpansionZone(enum EQZoneIndex) const, EQWorldData__ExpansionZone);
-#endif
-#ifdef EQWorldData__IsFlagSet_x
-//FUNCTION_AT_ADDRESS(bool EQWorldData::IsFlagSet(enum EQZoneIndex, unsigned long) const, EQWorldData__IsFlagSet);
-#endif
-#ifdef EQWorldData__IsNewbieZone_x
-//FUNCTION_AT_ADDRESS(bool EQWorldData::IsNewbieZone(enum EQZoneIndex) const, EQWorldData__IsNewbieZone);
-#endif
-#ifdef EQWorldData__IsNoBindZone_x
-//FUNCTION_AT_ADDRESS(bool EQWorldData::IsNoBindZone(enum EQZoneIndex) const, EQWorldData__IsNoBindZone);
-#endif
-#ifdef EQWorldData__IsNoAirZone_x
-//FUNCTION_AT_ADDRESS(bool EQWorldData::IsNoAirZone(enum EQZoneIndex) const, EQWorldData__IsNoAirZone);
-#endif
-#ifdef EQWorldData__GetMinLevel_x
-//FUNCTION_AT_ADDRESS(int EQWorldData::GetMinLevel(enum EQZoneIndex) const, EQWorldData__GetMinLevel);
-#endif
-#ifdef EQWorldData__GetGeometryNameFromIndex_x
-//FUNCTION_AT_ADDRESS(bool EQWorldData::GetGeometryNameFromIndex(enum EQZoneIndex, char*) const, EQWorldData__GetGeometryNameFromIndex);
-#endif
-#ifdef EQWorldData__GetIndexFromZoneName_x
-//FUNCTION_AT_ADDRESS(enum EQZoneIndex EQWorldData::GetIndexFromZoneName(const char*) const, EQWorldData__GetIndexFromZoneName);
-#endif
-#ifdef EQZoneInfo__EQZoneInfo_x
-//FUNCTION_AT_ADDRESS(EQZoneInfo::EQZoneInfo(enum EQExpansion, enum EQZoneIndex, const char*, const char*, int, unsigned long, int, int), EQZoneInfo__EQZoneInfo);
 #endif
 #ifdef CEverQuest__ChatServerGiveTime_x
 FUNCTION_AT_ADDRESS(void CEverQuest::ChatServerGiveTime(), CEverQuest__ChatServerGiveTime);
@@ -6002,13 +5696,13 @@ FUNCTION_AT_ADDRESS(void CEverQuest::DropHeldMoneyOnGround(int), CEverQuest__Dro
 FUNCTION_AT_ADDRESS(void CEverQuest::LMouseUp(int, int), CEverQuest__LMouseUp);
 #endif
 #ifdef CEverQuest__LeftClickedOnPlayer_x
-FUNCTION_AT_ADDRESS(void CEverQuest::LeftClickedOnPlayer(EQPlayer*), CEverQuest__LeftClickedOnPlayer);
+FUNCTION_AT_ADDRESS(void CEverQuest::LeftClickedOnPlayer(PlayerClient*), CEverQuest__LeftClickedOnPlayer);
 #endif
 #ifdef CEverQuest__DropItemOrMoneyOnPlayer_x
-FUNCTION_AT_ADDRESS(void CEverQuest::DropItemOrMoneyOnPlayer(EQPlayer*), CEverQuest__DropItemOrMoneyOnPlayer);
+FUNCTION_AT_ADDRESS(void CEverQuest::DropItemOrMoneyOnPlayer(PlayerClient*), CEverQuest__DropItemOrMoneyOnPlayer);
 #endif
 #ifdef CEverQuest__RightClickedOnPlayer_x
-FUNCTION_AT_ADDRESS(void CEverQuest::RightClickedOnPlayer(EQPlayer*, int), CEverQuest__RightClickedOnPlayer);
+FUNCTION_AT_ADDRESS(void CEverQuest::RightClickedOnPlayer(PlayerClient*, int), CEverQuest__RightClickedOnPlayer);
 #endif
 #ifdef CEverQuest__send_social_x
 FUNCTION_AT_ADDRESS(void CEverQuest::send_social(int, char*, char*), CEverQuest__send_social);
@@ -6270,7 +5964,7 @@ FUNCTION_AT_ADDRESS(int CEverQuest::DeleteTargetIndicator(), CEverQuest__DeleteT
 FUNCTION_AT_ADDRESS(void CEverQuest::GetSndDriver(), CEverQuest__GetSndDriver);
 #endif
 #ifdef CEverQuest__InterpretCmd_x
-FUNCTION_AT_ADDRESS(void CEverQuest::InterpretCmd(EQPlayer*, char*), CEverQuest__InterpretCmd);
+FUNCTION_AT_ADDRESS(void CEverQuest::InterpretCmd(PlayerClient*, char*), CEverQuest__InterpretCmd);
 #endif
 #ifdef CEverQuest__GrabFirstWord_x
 FUNCTION_AT_ADDRESS(char* CEverQuest::GrabFirstWord(char*, char*), CEverQuest__GrabFirstWord);
@@ -6287,14 +5981,8 @@ FUNCTION_AT_ADDRESS(void CEverQuest::ApplyPoison(unsigned long), CEverQuest__App
 #ifdef CEverQuest__DeacSpellScreen_x
 FUNCTION_AT_ADDRESS(void CEverQuest::DeacSpellScreen(), CEverQuest__DeacSpellScreen);
 #endif
-#ifdef CEverQuest__IsZoneAvailable_x
-//FUNCTION_AT_ADDRESS(enum ZONE_REQ_STATUS CEverQuest::IsZoneAvailable(char*, enum EQZoneIndex, enum ZONE_REQ_REASON), CEverQuest__IsZoneAvailable);
-#endif
 #ifdef CEverQuest__MoveToZone_x
 FUNCTION_AT_ADDRESS(void CEverQuest::MoveToZone(int EQZoneIndex, char*, int, int ZONE_REQ_REASON, float, float, float, int), CEverQuest__MoveToZone);
-#endif
-#ifdef CEverQuest__MoveToZone1_x
-//FUNCTION_AT_ADDRESS(void CEverQuest::MoveToZone(char*, char*, int, enum ZONE_REQ_REASON), CEverQuest__MoveToZone1);
 #endif
 #ifdef CEverQuest__LMouseDown_x
 FUNCTION_AT_ADDRESS(void CEverQuest::LMouseDown(int, int), CEverQuest__LMouseDown);
@@ -6312,16 +6000,13 @@ FUNCTION_AT_ADDRESS(void CEverQuest::MouseWheelScrolled(int), CEverQuest__MouseW
 FUNCTION_AT_ADDRESS(EQSwitch* CEverQuest::ClickedSwitch(int, int), CEverQuest__ClickedSwitch);
 #endif
 #ifdef CEverQuest__ClickedPlayer_x
-FUNCTION_AT_ADDRESS(EQPlayer* CEverQuest::ClickedPlayer(int, int), CEverQuest__ClickedPlayer);
+FUNCTION_AT_ADDRESS(PlayerClient* CEverQuest::ClickedPlayer(int, int), CEverQuest__ClickedPlayer);
 #endif
 #ifdef CEverQuest__WhatTimeIsIt_x
 FUNCTION_AT_ADDRESS(void CEverQuest::WhatTimeIsIt(), CEverQuest__WhatTimeIsIt);
 #endif
 #ifdef CEverQuest__FreeSwitches_x
 FUNCTION_AT_ADDRESS(void CEverQuest::FreeSwitches(), CEverQuest__FreeSwitches);
-#endif
-#ifdef CEverQuest__LoadSwitchesNonAvatar_x
-//FUNCTION_AT_ADDRESS(void CEverQuest::LoadSwitchesNonAvatar(enum EQZoneIndex), CEverQuest__LoadSwitchesNonAvatar);
 #endif
 #ifdef CEverQuest__SetLfgPlayerStatus_x
 FUNCTION_AT_ADDRESS(void CEverQuest::SetLfgPlayerStatus(struct LfgPlayerStatus*), CEverQuest__SetLfgPlayerStatus);
@@ -6426,54 +6111,6 @@ FUNCTION_AT_ADDRESS(bool KeypressHandler::LoadAndConvertOldKeymappingFormat(unsi
 #ifdef KeypressHandler__ClearCommandStateArray_x
 FUNCTION_AT_ADDRESS(void KeypressHandler::ClearCommandStateArray(), KeypressHandler__ClearCommandStateArray);
 #endif
-#ifdef MemoryPoolManager__MemoryPoolManager_x
-FUNCTION_AT_ADDRESS(MemoryPoolManager::MemoryPoolManager(), MemoryPoolManager__MemoryPoolManager);
-#endif
-#ifdef MemoryPoolManager__dMemoryPoolManager_x
-FUNCTION_AT_ADDRESS(MemoryPoolManager::~MemoryPoolManager(), MemoryPoolManager__dMemoryPoolManager);
-#endif
-#ifdef MemoryPoolManager__Alloc_x
-FUNCTION_AT_ADDRESS(void* MemoryPoolManager::Alloc(int), MemoryPoolManager__Alloc);
-#endif
-#ifdef MemoryPoolManager__Free_x
-FUNCTION_AT_ADDRESS(void MemoryPoolManager::Free(void*), MemoryPoolManager__Free);
-#endif
-#ifdef PacketPackerManager__SetPriority_x
-FUNCTION_AT_ADDRESS(void PacketPackerManager::SetPriority(PacketPacker*, int64_t), PacketPackerManager__SetPriority);
-#endif
-#ifdef PacketPackerManager__RemovePacker_x
-FUNCTION_AT_ADDRESS(void PacketPackerManager::RemovePacker(PacketPacker*), PacketPackerManager__RemovePacker);
-#endif
-#ifdef PacketPackerManager__UnpackGetFirst_x
-FUNCTION_AT_ADDRESS(bool __cdecl PacketPackerManager::UnpackGetFirst(struct PacketPackerState*, uint32_t, unsigned char*, int), PacketPackerManager__UnpackGetFirst);
-#endif
-#ifdef PacketPackerManager__UnpackGetNext_x
-FUNCTION_AT_ADDRESS(bool __cdecl PacketPackerManager::UnpackGetNext(struct PacketPackerState*), PacketPackerManager__UnpackGetNext);
-#endif
-#ifdef PacketPacker__SendStatUpdate_x
-FUNCTION_AT_ADDRESS(void PacketPacker::SendStatUpdate(struct _statUpdate*, bool), PacketPacker__SendStatUpdate);
-#endif
-#ifdef PacketPacker__FlushPositions_x
-FUNCTION_AT_ADDRESS(void PacketPacker::FlushPositions(), PacketPacker__FlushPositions);
-#endif
-#ifdef PacketPacker__SendPacket_x
-FUNCTION_AT_ADDRESS(void PacketPacker::SendPacket(uint32_t, void*, int, bool), PacketPacker__SendPacket);
-#endif
-#ifdef PacketPacker__AddPacketToBuffer_x
-//FUNCTION_AT_ADDRESS(void PacketPacker::AddPacketToBuffer(struct PacketPacker::PacketBuffer*, uint32_t, void*, int), PacketPacker__AddPacketToBuffer);
-#endif
-#ifdef PacketPacker__ScheduleUs_x
-FUNCTION_AT_ADDRESS(void PacketPacker::ScheduleUs(), PacketPacker__ScheduleUs);
-#endif
-#ifdef PacketPacker__Flush_x
-FUNCTION_AT_ADDRESS(void PacketPacker::Flush(), PacketPacker__Flush);
-#endif
-#ifdef PacketPacker__FlushBuffer_x
-//FUNCTION_AT_ADDRESS(void PacketPacker::FlushBuffer(struct PacketPacker::PacketBuffer*), PacketPacker__FlushBuffer);
-#endif
-#ifdef PacketPacker__Disassociate_x
-FUNCTION_AT_ADDRESS(void PacketPacker::Disassociate(), PacketPacker__Disassociate);
-#endif
 #ifdef CResolutionHandler__Init_x
 FUNCTION_AT_ADDRESS(int __cdecl CResolutionHandler::Init(), CResolutionHandler__Init);
 #endif
@@ -6522,17 +6159,8 @@ FUNCTION_AT_ADDRESS(bool __cdecl CResolutionHandler::IsFullscreenAvailable(), CR
 #ifdef Util__AllocateString_x
 FUNCTION_AT_ADDRESS(char* __cdecl Util::AllocateString(char*), Util__AllocateString);
 #endif
-#ifdef ChannelServerApi__AllocateString_x
-FUNCTION_AT_ADDRESS(char* __cdecl ChannelServerApi::AllocateString(char*), ChannelServerApi__AllocateString);
-#endif
-#ifdef SoundManager__SoundManager_x
-//FUNCTION_AT_ADDRESS(SoundManager::SoundManager(int, int, bool, int, int, bool, enum SpeakerType), SoundManager__SoundManager);
-#endif
 #ifdef SoundManager__dSoundManager_x
 FUNCTION_AT_ADDRESS(SoundManager::~SoundManager(), SoundManager__dSoundManager);
-#endif
-#ifdef SoundManager__AddPool_x
-//FUNCTION_AT_ADDRESS(void SoundManager::AddPool(enum InstanceType, int, int), SoundManager__AddPool);
 #endif
 #ifdef SoundManager__GiveTime_x
 FUNCTION_AT_ADDRESS(void SoundManager::GiveTime(), SoundManager__GiveTime);
@@ -6540,20 +6168,11 @@ FUNCTION_AT_ADDRESS(void SoundManager::GiveTime(), SoundManager__GiveTime);
 #ifdef SoundManager__SetMixAhead_x
 FUNCTION_AT_ADDRESS(void SoundManager::SetMixAhead(int), SoundManager__SetMixAhead);
 #endif
-#ifdef SoundManager__GetListenerEnvironment_x
-//FUNCTION_AT_ADDRESS(enum EnvironmentType SoundManager::GetListenerEnvironment(), SoundManager__GetListenerEnvironment);
-#endif
-#ifdef SoundManager__SetListenerEnvironment_x
-//FUNCTION_AT_ADDRESS(void SoundManager::SetListenerEnvironment(enum EnvironmentType), SoundManager__SetListenerEnvironment);
-#endif
 #ifdef SoundManager__SetListenerLocation_x
 FUNCTION_AT_ADDRESS(void SoundManager::SetListenerLocation(float, float, float, float), SoundManager__SetListenerLocation);
 #endif
 #ifdef SoundManager__GetListenerLocation_x
 FUNCTION_AT_ADDRESS(void SoundManager::GetListenerLocation(float*, float*, float*, float*), SoundManager__GetListenerLocation);
-#endif
-#ifdef SoundManager__BorrowInstance_x
-//FUNCTION_AT_ADDRESS(SoundInstance* SoundManager::BorrowInstance(enum InstanceType, int), SoundManager__BorrowInstance);
 #endif
 #ifdef SoundManager__ReturnInstance_x
 FUNCTION_AT_ADDRESS(void SoundManager::ReturnInstance(SoundInstance*), SoundManager__ReturnInstance);
@@ -6594,113 +6213,17 @@ FUNCTION_AT_ADDRESS(int SoundManager::StreamingGetSongPosition(), SoundManager__
 #ifdef SoundManager__StreamingGetSongLength_x
 FUNCTION_AT_ADDRESS(int SoundManager::StreamingGetSongLength(), SoundManager__StreamingGetSongLength);
 #endif
-#ifdef SoundManager__StreamingStatus_x
-//FUNCTION_AT_ADDRESS(enum StreamingStatus SoundManager::StreamingStatus(), SoundManager__StreamingStatus);
-#endif
-#ifdef MusicManager__MusicEntry__MusicEntry_x
-//FUNCTION_AT_ADDRESS(MusicManager::MusicEntry::MusicEntry(int, SoundAsset*, int, float, int, int, int, int, int, int), MusicManager__MusicEntry__MusicEntry);
-#endif
-#ifdef MusicManager__MusicEntry__dMusicEntry_x
-//FUNCTION_AT_ADDRESS(MusicManager::MusicEntry::~MusicEntry(), MusicManager__MusicEntry__dMusicEntry);
-#endif
-#ifdef MusicManager__MusicEntry__AdjustVolume_x
-//FUNCTION_AT_ADDRESS(void MusicManager::MusicEntry::AdjustVolume(float), MusicManager__MusicEntry__AdjustVolume);
-#endif
-#ifdef MusicManager__MusicEntry__FadeIn_x
-//FUNCTION_AT_ADDRESS(void MusicManager::MusicEntry::FadeIn(float), MusicManager__MusicEntry__FadeIn);
-#endif
-#ifdef MusicManager__MusicEntry__FadeOut_x
-//FUNCTION_AT_ADDRESS(void MusicManager::MusicEntry::FadeOut(bool), MusicManager__MusicEntry__FadeOut);
-#endif
-#ifdef SoundObject__SoundObject_x
-//FUNCTION_AT_ADDRESS(SoundObject::SoundObject(), SoundObject__SoundObject);
-#endif
-#ifdef SoundObject__Release_x
-//FUNCTION_AT_ADDRESS(void SoundObject::Release(), SoundObject__Release);
-#endif
-#ifdef SoundInstance__SoundInstance_x
-//FUNCTION_AT_ADDRESS(SoundInstance::SoundInstance(SoundManager*), SoundInstance__SoundInstance);
-#endif
-#ifdef SoundInstance__YourManagerDeleted_x
-//FUNCTION_AT_ADDRESS(void SoundInstance::YourManagerDeleted(), SoundInstance__YourManagerDeleted);
-#endif
 #ifdef WaveInstance__WaveInstance_x
 FUNCTION_AT_ADDRESS(WaveInstance::WaveInstance(SoundManager*), WaveInstance__WaveInstance);
 #endif
 #ifdef Wave3dInstance__Wave3dInstance_x
 FUNCTION_AT_ADDRESS(Wave3dInstance::Wave3dInstance(SoundManager*), Wave3dInstance__Wave3dInstance);
 #endif
-#ifdef MidiInstance__MidiInstance_x
-//FUNCTION_AT_ADDRESS(MidiInstance::MidiInstance(SoundManager*), MidiInstance__MidiInstance);
-#endif
-#ifdef SoundAsset__SoundAsset_x
-//FUNCTION_AT_ADDRESS(SoundAsset::SoundAsset(SoundManager*, char*, char*, int), SoundAsset__SoundAsset);
-#endif
-#ifdef SoundAsset__GetType_x
-//FUNCTION_AT_ADDRESS(enum AssetType SoundAsset::GetType(), SoundAsset__GetType);
-#endif
-#ifdef SoundAsset__YourManagerDeleted_x
-//FUNCTION_AT_ADDRESS(void SoundAsset::YourManagerDeleted(), SoundAsset__YourManagerDeleted);
-#endif
-#ifdef SoundAsset__GiveTime_x
-//FUNCTION_AT_ADDRESS(void SoundAsset::GiveTime(), SoundAsset__GiveTime);
-#endif
-#ifdef SoundAsset__IsPlaying_x
-//FUNCTION_AT_ADDRESS(bool SoundAsset::IsPlaying(), SoundAsset__IsPlaying);
-#endif
-#ifdef SoundAsset__AdjustVolume_x
-//FUNCTION_AT_ADDRESS(void SoundAsset::AdjustVolume(float, int), SoundAsset__AdjustVolume);
-#endif
-#ifdef SoundAsset__GetName_x
-//FUNCTION_AT_ADDRESS(char* SoundAsset::GetName(), SoundAsset__GetName);
-#endif
-#ifdef SoundAsset__Play_x
-//FUNCTION_AT_ADDRESS(SoundInstance* SoundAsset::Play(SoundControl*), SoundAsset__Play);
-#endif
-#ifdef SoundAsset__Stop_x
-//FUNCTION_AT_ADDRESS(void SoundAsset::Stop(), SoundAsset__Stop);
-#endif
-#ifdef SoundControl__SoundControl_x
-FUNCTION_AT_ADDRESS(SoundControl::SoundControl(), SoundControl__SoundControl);
-#endif
-#ifdef SoundEmitter__SoundEmitter_x
-//FUNCTION_AT_ADDRESS(SoundEmitter::SoundEmitter(EmitterManager*, SoundAsset*, int), SoundEmitter__SoundEmitter);
-#endif
-#ifdef SoundEmitter__SoundEmitter1_x
-//FUNCTION_AT_ADDRESS(SoundEmitter::SoundEmitter(EmitterManager*, MusicManager*, int), SoundEmitter__SoundEmitter1);
-#endif
-#ifdef SoundEmitter__Init_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::Init(), SoundEmitter__Init);
-#endif
-#ifdef SoundEmitter__GiveTime_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::GiveTime(), SoundEmitter__GiveTime);
-#endif
-#ifdef SoundEmitter__ReleaseLoopingSound_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::ReleaseLoopingSound(), SoundEmitter__ReleaseLoopingSound);
-#endif
-#ifdef SoundEmitter__ResetTimer_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::ResetTimer(), SoundEmitter__ResetTimer);
-#endif
-#ifdef SoundEmitter__Move_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::Move(float, float, float), SoundEmitter__Move);
-#endif
-#ifdef SoundEmitter__SetAsset_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::SetAsset(SoundAsset*), SoundEmitter__SetAsset);
-#endif
-#ifdef SoundEmitter__Enable_x
-//FUNCTION_AT_ADDRESS(void SoundEmitter::Enable(bool), SoundEmitter__Enable);
-#endif
 #ifdef Mp3Manager__Mp3Manager_x
 FUNCTION_AT_ADDRESS(Mp3Manager::Mp3Manager(SoundManager*, MusicManager*), Mp3Manager__Mp3Manager);
 #endif
 #ifdef Mp3Manager__dMp3Manager_x
 FUNCTION_AT_ADDRESS(Mp3Manager::~Mp3Manager(), Mp3Manager__dMp3Manager);
-#endif
-#ifdef Mp3Manager__GetSort_x
-//FUNCTION_AT_ADDRESS(enum Mp3Manager::SortOrder Mp3Manager::GetSort(), Mp3Manager__GetSort);
-#endif
-#ifdef Mp3Manager__Sort_x
-//FUNCTION_AT_ADDRESS(void Mp3Manager::Sort(enum Mp3Manager::SortOrder), Mp3Manager__Sort);
 #endif
 #ifdef Mp3Manager__Stop_x
 FUNCTION_AT_ADDRESS(void Mp3Manager::Stop(), Mp3Manager__Stop);
@@ -6710,9 +6233,6 @@ FUNCTION_AT_ADDRESS(void Mp3Manager::Play(), Mp3Manager__Play);
 #endif
 #ifdef Mp3Manager__Pause_x
 FUNCTION_AT_ADDRESS(void Mp3Manager::Pause(), Mp3Manager__Pause);
-#endif
-#ifdef Mp3Manager__Status_x
-//FUNCTION_AT_ADDRESS(enum StreamingStatus Mp3Manager::Status(), Mp3Manager__Status);
 #endif
 #ifdef Mp3Manager__GiveTime_x
 FUNCTION_AT_ADDRESS(void Mp3Manager::GiveTime(), Mp3Manager__GiveTime);
@@ -6762,12 +6282,6 @@ FUNCTION_AT_ADDRESS(int Mp3Manager::Add(char*), Mp3Manager__Add);
 #ifdef Mp3Manager__InternalAdd_x
 FUNCTION_AT_ADDRESS(int Mp3Manager::InternalAdd(char*, char*, int), Mp3Manager__InternalAdd);
 #endif
-#ifdef Mp3Manager__Entry__Entry_x
-//FUNCTION_AT_ADDRESS(Mp3Manager::Entry::Entry(char*, char*, int, int), Mp3Manager__Entry__Entry);
-#endif
-#ifdef Mp3Manager__Entry__dEntry_x
-//FUNCTION_AT_ADDRESS(Mp3Manager::Entry::~Entry(), Mp3Manager__Entry__dEntry);
-#endif
 #ifdef ActorClient__GetPosition_x
 FUNCTION_AT_ADDRESS(const CVector3& ActorClient::GetPosition() const, ActorClient__GetPosition);
 #endif
@@ -6779,12 +6293,6 @@ FUNCTION_AT_ADDRESS(EmitterManager::EmitterManager(SoundManager*), EmitterManage
 #endif
 #ifdef EmitterManager__dEmitterManager_x
 FUNCTION_AT_ADDRESS(EmitterManager::~EmitterManager(), EmitterManager__dEmitterManager);
-#endif
-#ifdef EmitterManager__Add_x
-//FUNCTION_AT_ADDRESS(void EmitterManager::Add(SoundEmitter*), EmitterManager__Add);
-#endif
-#ifdef EmitterManager__Remove_x
-//FUNCTION_AT_ADDRESS(void EmitterManager::Remove(SoundEmitter*), EmitterManager__Remove);
 #endif
 #ifdef EmitterManager__GiveTime_x
 FUNCTION_AT_ADDRESS(void EmitterManager::GiveTime(), EmitterManager__GiveTime);
@@ -6864,500 +6372,14 @@ FUNCTION_AT_ADDRESS(void CStoryWnd::SelectOldestNew(), CStoryWnd__SelectOldestNe
 #ifdef CStoryWnd__SelectIndex_x
 FUNCTION_AT_ADDRESS(void CStoryWnd::SelectIndex(int), CStoryWnd__SelectIndex);
 #endif
-#ifdef StringItem__StringItem_x
-FUNCTION_AT_ADDRESS(StringItem::StringItem(), StringItem__StringItem);
-#endif
-#ifdef UdpReliableChannel__IncomingQueueEntry__IncomingQueueEntry_x
-//FUNCTION_AT_ADDRESS(UdpReliableChannel::IncomingQueueEntry::IncomingQueueEntry(), UdpReliableChannel__IncomingQueueEntry__IncomingQueueEntry);
-#endif
-#ifdef StringItem__dStringItem_x
-FUNCTION_AT_ADDRESS(StringItem::~StringItem(), StringItem__dStringItem);
-#endif
-#ifdef StringItem__load_x
-FUNCTION_AT_ADDRESS(int StringItem::load(struct _iobuf*, int), StringItem__load);
-#endif
-#ifdef StringTable__StringTable_x
-FUNCTION_AT_ADDRESS(StringTable::StringTable(), StringTable__StringTable);
-#endif
-#ifdef StringTable__dStringTable_x
-FUNCTION_AT_ADDRESS(StringTable::~StringTable(), StringTable__dStringTable);
-#endif
-#ifdef StringTable__checkAlloc_x
-FUNCTION_AT_ADDRESS(void StringTable::checkAlloc(), StringTable__checkAlloc);
-#endif
 #ifdef StringTable__getString_x
 FUNCTION_AT_ADDRESS(char* StringTable::getString(unsigned long, bool*), StringTable__getString);
-#endif
-#ifdef StringTable__findItem_x
-FUNCTION_AT_ADDRESS(StringItem* StringTable::findItem(unsigned long, int, int), StringTable__findItem);
-#endif
-#ifdef StringTable__load_x
-FUNCTION_AT_ADDRESS(int StringTable::load(const char*, int), StringTable__load);
-#endif
-#ifdef StringTable__addItem_x
-FUNCTION_AT_ADDRESS(void StringTable::addItem(StringItem*), StringTable__addItem);
-#endif
-#ifdef UdpIpAddress__UdpIpAddress_x
-FUNCTION_AT_ADDRESS(UdpIpAddress::UdpIpAddress(unsigned int), UdpIpAddress__UdpIpAddress);
-#endif
-#ifdef UdpManager__Params__Params_x
-//FUNCTION_AT_ADDRESS(UdpManager::Params::Params(), UdpManager__Params__Params);
-#endif
-#ifdef UdpManager__UdpManager_x
-//FUNCTION_AT_ADDRESS(UdpManager::UdpManager(struct UdpManager::Params const*), UdpManager__UdpManager);
-#endif
-#ifdef UdpManager__PoolReturn_x
-//FUNCTION_AT_ADDRESS(void UdpManager::PoolReturn(PooledLogicalPacket*), UdpManager__PoolReturn);
-#endif
-#ifdef UdpManager__dUdpManager_x
-FUNCTION_AT_ADDRESS(UdpManager::~UdpManager(), UdpManager__dUdpManager);
-#endif
-#ifdef UdpManager__CreateAndBindSocket_x
-FUNCTION_AT_ADDRESS(void UdpManager::CreateAndBindSocket(int), UdpManager__CreateAndBindSocket);
-#endif
-#ifdef UdpManager__CloseSocket_x
-FUNCTION_AT_ADDRESS(void UdpManager::CloseSocket(), UdpManager__CloseSocket);
-#endif
-#ifdef UdpManager__ProcessDisconnectPending_x
-FUNCTION_AT_ADDRESS(void UdpManager::ProcessDisconnectPending(), UdpManager__ProcessDisconnectPending);
-#endif
-#ifdef UdpManager__RemoveConnection_x
-FUNCTION_AT_ADDRESS(void UdpManager::RemoveConnection(UdpConnection*), UdpManager__RemoveConnection);
-#endif
-#ifdef UdpManager__AddConnection_x
-FUNCTION_AT_ADDRESS(void UdpManager::AddConnection(UdpConnection*), UdpManager__AddConnection);
-#endif
-#ifdef UdpManager__GiveTime_x
-FUNCTION_AT_ADDRESS(bool UdpManager::GiveTime(int, bool), UdpManager__GiveTime);
-#endif
-#ifdef UdpManager__EstablishConnection_x
-FUNCTION_AT_ADDRESS(UdpConnection* UdpManager::EstablishConnection(const char*, int, int), UdpManager__EstablishConnection);
-#endif
-#ifdef UdpManager__KeepUntilDisconnected_x
-FUNCTION_AT_ADDRESS(void UdpManager::KeepUntilDisconnected(UdpConnection*), UdpManager__KeepUntilDisconnected);
-#endif
-#ifdef UdpManager__ResetStats_x
-FUNCTION_AT_ADDRESS(void UdpManager::ResetStats(), UdpManager__ResetStats);
-#endif
-#ifdef UdpManager__ActualReceive_x
-//FUNCTION_AT_ADDRESS(UdpManager::PacketHistoryEntry* UdpManager::ActualReceive(), UdpManager__ActualReceive);
-#endif
-#ifdef UdpManager__ActualSend_x
-FUNCTION_AT_ADDRESS(void UdpManager::ActualSend(unsigned const char*, int, UdpIpAddress, int), UdpManager__ActualSend);
-#endif
-#ifdef UdpManager__ActualSendHelper_x
-FUNCTION_AT_ADDRESS(void UdpManager::ActualSendHelper(unsigned const char*, int, UdpIpAddress, int), UdpManager__ActualSendHelper);
-#endif
-#ifdef UdpManager__SendPortAlive_x
-FUNCTION_AT_ADDRESS(void UdpManager::SendPortAlive(UdpIpAddress, int), UdpManager__SendPortAlive);
-#endif
-#ifdef UdpManager__ProcessRawPacket_x
-//FUNCTION_AT_ADDRESS(void UdpManager::ProcessRawPacket(UdpManager::PacketHistoryEntry const*), UdpManager__ProcessRawPacket);
-#endif
-#ifdef UdpManager__AddressGetConnection_x
-FUNCTION_AT_ADDRESS(UdpConnection* UdpManager::AddressGetConnection(UdpIpAddress, int) const, UdpManager__AddressGetConnection);
-#endif
-#ifdef UdpManager__ConnectCodeGetConnection_x
-FUNCTION_AT_ADDRESS(UdpConnection* UdpManager::ConnectCodeGetConnection(int) const, UdpManager__ConnectCodeGetConnection);
-#endif
-#ifdef UdpManager__WrappedBorrow_x
-//FUNCTION_AT_ADDRESS(WrappedLogicalPacket* UdpManager::WrappedBorrow(LogicalPacket const*), UdpManager__WrappedBorrow);
-#endif
-#ifdef UdpManager__WrappedCreated_x
-//FUNCTION_AT_ADDRESS(void UdpManager::WrappedCreated(WrappedLogicalPacket*), UdpManager__WrappedCreated);
-#endif
-#ifdef UdpManager__WrappedDestroyed_x
-//FUNCTION_AT_ADDRESS(void UdpManager::WrappedDestroyed(WrappedLogicalPacket*), UdpManager__WrappedDestroyed);
-#endif
-#ifdef UdpManager__CreatePacket_x
-FUNCTION_AT_ADDRESS(LogicalPacket* UdpManager::CreatePacket(void const*, int, void const*, int), UdpManager__CreatePacket);
-#endif
-#ifdef UdpManager__PoolCreated_x
-//FUNCTION_AT_ADDRESS(void UdpManager::PoolCreated(PooledLogicalPacket*), UdpManager__PoolCreated);
-#endif
-#ifdef UdpManager__PoolDestroyed_x
-//FUNCTION_AT_ADDRESS(void UdpManager::PoolDestroyed(PooledLogicalPacket*), UdpManager__PoolDestroyed);
-#endif
-#ifdef UdpManager__PacketHistoryEntry__PacketHistoryEntry_x
-//FUNCTION_AT_ADDRESS(UdpManager::PacketHistoryEntry::PacketHistoryEntry(int), UdpManager__PacketHistoryEntry__PacketHistoryEntry);
-#endif
-#ifdef UdpManager__PacketHistoryEntry__dPacketHistoryEntry_x
-//FUNCTION_AT_ADDRESS(UdpManager::PacketHistoryEntry::~PacketHistoryEntry(), UdpManager__PacketHistoryEntry__dPacketHistoryEntry);
-#endif
-#ifdef UdpManager__SimulateQueueEntry__dSimulateQueueEntry_x
-//FUNCTION_AT_ADDRESS(UdpManager::SimulateQueueEntry::~SimulateQueueEntry(), UdpManager__SimulateQueueEntry__dSimulateQueueEntry);
-#endif
-#ifdef UdpConnection__UdpConnection_x
-FUNCTION_AT_ADDRESS(UdpConnection::UdpConnection(UdpManager*, UdpIpAddress, int, int), UdpConnection__UdpConnection);
-#endif
-#ifdef UdpConnection__UdpConnection1_x
-//FUNCTION_AT_ADDRESS(UdpConnection::UdpConnection(UdpManager*, UdpManager::PacketHistoryEntry const*), UdpConnection__UdpConnection1);
-#endif
-#ifdef UdpConnection__Init_x
-FUNCTION_AT_ADDRESS(void UdpConnection::Init(UdpManager*, UdpIpAddress, int), UdpConnection__Init);
-#endif
-#ifdef UdpConnection__dUdpConnection_x
-FUNCTION_AT_ADDRESS(UdpConnection::~UdpConnection(), UdpConnection__dUdpConnection);
-#endif
-#ifdef UdpConnection__PortUnreachable_x
-FUNCTION_AT_ADDRESS(void UdpConnection::PortUnreachable(), UdpConnection__PortUnreachable);
-#endif
-#ifdef UdpConnection__InternalDisconnect_x
-//FUNCTION_AT_ADDRESS(void UdpConnection::InternalDisconnect(int, enum UdpConnection::DisconnectReason), UdpConnection__InternalDisconnect);
-#endif
-#ifdef UdpConnection__ScheduleTimeNow_x
-FUNCTION_AT_ADDRESS(void UdpConnection::ScheduleTimeNow(), UdpConnection__ScheduleTimeNow);
-#endif
-#ifdef UdpConnection__SendTerminatePacket_x
-//FUNCTION_AT_ADDRESS(void UdpConnection::SendTerminatePacket(int, enum UdpConnection::DisconnectReason), UdpConnection__SendTerminatePacket);
-#endif
-#ifdef UdpMisc__PutValue32_x
-FUNCTION_AT_ADDRESS(int __cdecl UdpMisc::PutValue32(void*, unsigned int), UdpMisc__PutValue32);
-#endif
-#ifdef UdpConnection__SetSilentDisconnect_x
-FUNCTION_AT_ADDRESS(void UdpConnection::SetSilentDisconnect(bool), UdpConnection__SetSilentDisconnect);
-#endif
-#ifdef UdpConnection__Send_x
-//FUNCTION_AT_ADDRESS(bool UdpConnection::Send(enum UdpChannel, void const*, int), UdpConnection__Send);
-#endif
-#ifdef UdpConnection__InternalSend_x
-//FUNCTION_AT_ADDRESS(bool UdpConnection::InternalSend(enum UdpChannel, unsigned const char*, int, unsigned const char*, int), UdpConnection__InternalSend);
-#endif
-#ifdef UdpConnection__PingStatReset_x
-FUNCTION_AT_ADDRESS(void UdpConnection::PingStatReset(), UdpConnection__PingStatReset);
-#endif
-#ifdef UdpConnection__ProcessRawPacket_x
-//FUNCTION_AT_ADDRESS(void UdpConnection::ProcessRawPacket(UdpManager::PacketHistoryEntry const*), UdpConnection__ProcessRawPacket);
-#endif
-#ifdef UdpMisc__GetValue24_x
-FUNCTION_AT_ADDRESS(unsigned int __cdecl UdpMisc::GetValue24(void const*), UdpMisc__GetValue24);
-#endif
-#ifdef UdpConnection__IsNonEncryptPacket_x
-FUNCTION_AT_ADDRESS(bool UdpConnection::IsNonEncryptPacket(unsigned const char*) const, UdpConnection__IsNonEncryptPacket);
-#endif
-#ifdef UdpConnection__CallbackRoutePacket_x
-FUNCTION_AT_ADDRESS(void UdpConnection::CallbackRoutePacket(unsigned const char*, int), UdpConnection__CallbackRoutePacket);
-#endif
-#ifdef UdpConnection__CallbackCorruptPacket_x
-//FUNCTION_AT_ADDRESS(void UdpConnection::CallbackCorruptPacket(unsigned const char*, int, enum UdpCorruptionReason), UdpConnection__CallbackCorruptPacket);
-#endif
-#ifdef UdpConnection__ProcessCookedPacket_x
-FUNCTION_AT_ADDRESS(void UdpConnection::ProcessCookedPacket(unsigned const char*, int), UdpConnection__ProcessCookedPacket);
-#endif
-#ifdef UdpMisc__PutValue64_x
-FUNCTION_AT_ADDRESS(int __cdecl UdpMisc::PutValue64(void*, int64_t), UdpMisc__PutValue64);
-#endif
-#ifdef UdpMisc__GetValue64_x
-FUNCTION_AT_ADDRESS(int64_t __cdecl UdpMisc::GetValue64(void const*), UdpMisc__GetValue64);
-#endif
-#ifdef UdpReliableChannel__AckPacket_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::AckPacket(unsigned const char*, int), UdpReliableChannel__AckPacket);
-#endif
-#ifdef UdpConnection__GiveTime_x
-FUNCTION_AT_ADDRESS(void UdpConnection::GiveTime(), UdpConnection__GiveTime);
-#endif
-#ifdef UdpConnection__InternalGiveTime_x
-FUNCTION_AT_ADDRESS(void UdpConnection::InternalGiveTime(), UdpConnection__InternalGiveTime);
-#endif
-#ifdef UdpConnection__LastReceive_x
-FUNCTION_AT_ADDRESS(int UdpConnection::LastReceive() const, UdpConnection__LastReceive);
-#endif
-#ifdef UdpConnection__ConnectionAge_x
-FUNCTION_AT_ADDRESS(int UdpConnection::ConnectionAge() const, UdpConnection__ConnectionAge);
-#endif
-#ifdef UdpConnection__TotalPendingBytes_x
-FUNCTION_AT_ADDRESS(int UdpConnection::TotalPendingBytes() const, UdpConnection__TotalPendingBytes);
-#endif
-#ifdef UdpConnection__RawSend_x
-FUNCTION_AT_ADDRESS(void UdpConnection::RawSend(unsigned const char*, int), UdpConnection__RawSend);
-#endif
-#ifdef UdpConnection__ExpireSendBin_x
-FUNCTION_AT_ADDRESS(int UdpConnection::ExpireSendBin(), UdpConnection__ExpireSendBin);
-#endif
-#ifdef UdpConnection__ExpireReceiveBin_x
-FUNCTION_AT_ADDRESS(int UdpConnection::ExpireReceiveBin(), UdpConnection__ExpireReceiveBin);
-#endif
-#ifdef UdpConnection__PhysicalSend_x
-FUNCTION_AT_ADDRESS(void UdpConnection::PhysicalSend(unsigned const char*, int, bool), UdpConnection__PhysicalSend);
-#endif
-#ifdef UdpMisc__PutValue24_x
-FUNCTION_AT_ADDRESS(int __cdecl UdpMisc::PutValue24(void*, unsigned int), UdpMisc__PutValue24);
-#endif
-#ifdef UdpConnection__BufferedSend_x
-FUNCTION_AT_ADDRESS(unsigned char* UdpConnection::BufferedSend(unsigned const char*, int, unsigned const char*, int, bool), UdpConnection__BufferedSend);
-#endif
-#ifdef UdpConnection__FlushMultiBuffer_x
-FUNCTION_AT_ADDRESS(void UdpConnection::FlushMultiBuffer(), UdpConnection__FlushMultiBuffer);
-#endif
-#ifdef UdpConnection__DecryptNone_x
-FUNCTION_AT_ADDRESS(int UdpConnection::DecryptNone(unsigned char*, unsigned const char*, int), UdpConnection__DecryptNone);
-#endif
-#ifdef UdpConnection__EncryptNone_x
-FUNCTION_AT_ADDRESS(int UdpConnection::EncryptNone(unsigned char*, unsigned const char*, int), UdpConnection__EncryptNone);
-#endif
-#ifdef UdpConnection__EncryptUserSupplied_x
-FUNCTION_AT_ADDRESS(int UdpConnection::EncryptUserSupplied(unsigned char*, unsigned const char*, int), UdpConnection__EncryptUserSupplied);
-#endif
-#ifdef UdpConnection__DecryptUserSupplied_x
-FUNCTION_AT_ADDRESS(int UdpConnection::DecryptUserSupplied(unsigned char*, unsigned const char*, int), UdpConnection__DecryptUserSupplied);
-#endif
-#ifdef UdpConnection__EncryptUserSupplied2_x
-FUNCTION_AT_ADDRESS(int UdpConnection::EncryptUserSupplied2(unsigned char*, unsigned const char*, int), UdpConnection__EncryptUserSupplied2);
-#endif
-#ifdef UdpConnection__DecryptUserSupplied2_x
-FUNCTION_AT_ADDRESS(int UdpConnection::DecryptUserSupplied2(unsigned char*, unsigned const char*, int), UdpConnection__DecryptUserSupplied2);
-#endif
-#ifdef UdpConnection__EncryptXorBuffer_x
-FUNCTION_AT_ADDRESS(int UdpConnection::EncryptXorBuffer(unsigned char*, unsigned const char*, int), UdpConnection__EncryptXorBuffer);
-#endif
-#ifdef UdpConnection__DecryptXorBuffer_x
-FUNCTION_AT_ADDRESS(int UdpConnection::DecryptXorBuffer(unsigned char*, unsigned const char*, int), UdpConnection__DecryptXorBuffer);
-#endif
-#ifdef UdpConnection__EncryptXor_x
-FUNCTION_AT_ADDRESS(int UdpConnection::EncryptXor(unsigned char*, unsigned const char*, int), UdpConnection__EncryptXor);
-#endif
-#ifdef UdpConnection__DecryptXor_x
-FUNCTION_AT_ADDRESS(int UdpConnection::DecryptXor(unsigned char*, unsigned const char*, int), UdpConnection__DecryptXor);
-#endif
-#ifdef UdpConnection__SetupEncryptModel_x
-FUNCTION_AT_ADDRESS(void UdpConnection::SetupEncryptModel(), UdpConnection__SetupEncryptModel);
-#endif
-#ifdef UdpConnection__GetChannelStatus_x
-//FUNCTION_AT_ADDRESS(void UdpConnection::GetChannelStatus(enum UdpChannel, struct UdpConnection::ChannelStatus*) const, UdpConnection__GetChannelStatus);
-#endif
-#ifdef UdpReliableChannel__UdpReliableChannel_x
-//FUNCTION_AT_ADDRESS(UdpReliableChannel::UdpReliableChannel(int, UdpConnection*, struct UdpManager::ReliableConfig*), UdpReliableChannel__UdpReliableChannel);
-#endif
-#ifdef UdpReliableChannel__dUdpReliableChannel_x
-FUNCTION_AT_ADDRESS(UdpReliableChannel::~UdpReliableChannel(), UdpReliableChannel__dUdpReliableChannel);
-#endif
-#ifdef UdpReliableChannel__Send_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::Send(unsigned const char*, int, unsigned const char*, int), UdpReliableChannel__Send);
-#endif
-#ifdef UdpReliableChannel__FlushCoalesce_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::FlushCoalesce(), UdpReliableChannel__FlushCoalesce);
-#endif
-#ifdef UdpReliableChannel__SendCoalesce_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::SendCoalesce(unsigned const char*, int, unsigned const char*, int), UdpReliableChannel__SendCoalesce);
-#endif
-#ifdef UdpReliableChannel__QueueLogicalPacket_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::QueueLogicalPacket(LogicalPacket const*), UdpReliableChannel__QueueLogicalPacket);
-#endif
-#ifdef UdpReliableChannel__PullDown_x
-FUNCTION_AT_ADDRESS(bool UdpReliableChannel::PullDown(int), UdpReliableChannel__PullDown);
-#endif
-#ifdef UdpReliableChannel__GiveTime_x
-FUNCTION_AT_ADDRESS(int UdpReliableChannel::GiveTime(), UdpReliableChannel__GiveTime);
-#endif
-#ifdef UdpReliableChannel__GetChannelStatus_x
-//FUNCTION_AT_ADDRESS(void UdpReliableChannel::GetChannelStatus(struct UdpConnection::ChannelStatus*) const, UdpReliableChannel__GetChannelStatus);
-#endif
-#ifdef UdpReliableChannel__ReliablePacket_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::ReliablePacket(unsigned const char*, int), UdpReliableChannel__ReliablePacket);
-#endif
-#ifdef UdpReliableChannel__GetReliableIncomingId_x
-FUNCTION_AT_ADDRESS(int64_t UdpReliableChannel::GetReliableIncomingId(int) const, UdpReliableChannel__GetReliableIncomingId);
-#endif
-#ifdef UdpReliableChannel__ProcessPacket_x
-//FUNCTION_AT_ADDRESS(void UdpReliableChannel::ProcessPacket(enum UdpReliableChannel::ReliablePacketMode, unsigned const char*, int), UdpReliableChannel__ProcessPacket);
-#endif
-#ifdef UdpReliableChannel__AckAllPacket_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::AckAllPacket(unsigned const char*, int), UdpReliableChannel__AckAllPacket);
-#endif
-#ifdef UdpReliableChannel__Ack_x
-FUNCTION_AT_ADDRESS(void UdpReliableChannel::Ack(int64_t), UdpReliableChannel__Ack);
-#endif
-#ifdef UdpReliableChannel__IncomingQueueEntry__dIncomingQueueEntry_x
-//FUNCTION_AT_ADDRESS(UdpReliableChannel::IncomingQueueEntry::~IncomingQueueEntry(), UdpReliableChannel__IncomingQueueEntry__dIncomingQueueEntry);
-#endif
-#ifdef UdpReliableChannel__PhysicalPacket__PhysicalPacket_x
-//FUNCTION_AT_ADDRESS(UdpReliableChannel::PhysicalPacket::PhysicalPacket(), UdpReliableChannel__PhysicalPacket__PhysicalPacket);
-#endif
-#ifdef UdpReliableChannel__PhysicalPacket__dPhysicalPacket_x
-//FUNCTION_AT_ADDRESS(UdpReliableChannel::PhysicalPacket::~PhysicalPacket(), UdpReliableChannel__PhysicalPacket__dPhysicalPacket);
-#endif
-#ifdef LogicalPacket__LogicalPacket_x
-FUNCTION_AT_ADDRESS(LogicalPacket::LogicalPacket(), LogicalPacket__LogicalPacket);
-#endif
-#ifdef SoundObject__AddRef_x
-//FUNCTION_AT_ADDRESS(void SoundObject::AddRef(), SoundObject__AddRef);
 #endif
 #ifdef Mp3Manager__GetPosition_x
 FUNCTION_AT_ADDRESS(int Mp3Manager::GetPosition(), Mp3Manager__GetPosition);
 #endif
-#ifdef SimpleLogicalPacket__SimpleLogicalPacket_x
-FUNCTION_AT_ADDRESS(SimpleLogicalPacket::SimpleLogicalPacket(void const*, int), SimpleLogicalPacket__SimpleLogicalPacket);
-#endif
 #ifdef EmitterManager__SetVolumeLevel_x
 FUNCTION_AT_ADDRESS(void EmitterManager::SetVolumeLevel(float), EmitterManager__SetVolumeLevel);
-#endif
-#ifdef PooledLogicalPacket__PooledLogicalPacket_x
-//FUNCTION_AT_ADDRESS(PooledLogicalPacket::PooledLogicalPacket(UdpManager*, int), PooledLogicalPacket__PooledLogicalPacket);
-#endif
-#ifdef ChannelServerApi__GetChannelCount_x
-FUNCTION_AT_ADDRESS(int ChannelServerApi::GetChannelCount(), ChannelServerApi__GetChannelCount);
-#endif
-#ifdef PooledLogicalPacket__SetData_x
-//FUNCTION_AT_ADDRESS(void PooledLogicalPacket::SetData(void const*, int, void const*, int), PooledLogicalPacket__SetData);
-#endif
-#ifdef WrappedLogicalPacket__WrappedLogicalPacket_x
-//FUNCTION_AT_ADDRESS(WrappedLogicalPacket::WrappedLogicalPacket(UdpManager*), WrappedLogicalPacket__WrappedLogicalPacket);
-#endif
-#ifdef UdpManager__WrappedReturn_x
-//FUNCTION_AT_ADDRESS(void UdpManager::WrappedReturn(WrappedLogicalPacket*), UdpManager__WrappedReturn);
-#endif
-#ifdef WrappedLogicalPacket__SetLogicalPacket_x
-//FUNCTION_AT_ADDRESS(void WrappedLogicalPacket::SetLogicalPacket(LogicalPacket const*), WrappedLogicalPacket__SetLogicalPacket);
-#endif
-#ifdef UdpManager__SimulateQueueEntry__SimulateQueueEntry_x
-//FUNCTION_AT_ADDRESS(UdpManager::SimulateQueueEntry::SimulateQueueEntry(unsigned const char*, int, UdpIpAddress, int), UdpManager__SimulateQueueEntry__SimulateQueueEntry);
-#endif
-#ifdef UdpMisc__Clock_x
-FUNCTION_AT_ADDRESS(int64_t __cdecl UdpMisc::Clock(), UdpMisc__Clock);
-#endif
-#ifdef UdpMisc__SyncStampShortDeltaTime_x
-FUNCTION_AT_ADDRESS(int __cdecl UdpMisc::SyncStampShortDeltaTime(unsigned short, unsigned short), UdpMisc__SyncStampShortDeltaTime);
-#endif
-#ifdef UdpMisc__Random_x
-FUNCTION_AT_ADDRESS(int __cdecl UdpMisc::Random(int*), UdpMisc__Random);
-#endif
-#ifdef UdpMisc__Crc32_x
-FUNCTION_AT_ADDRESS(int __cdecl UdpMisc::Crc32(void const*, int, int), UdpMisc__Crc32);
-#endif
-#ifdef UdpMisc__PutVariableValue_x
-FUNCTION_AT_ADDRESS(unsigned int __cdecl UdpMisc::PutVariableValue(void*, unsigned int), UdpMisc__PutVariableValue);
-#endif
-#ifdef UdpMisc__GetVariableValue_x
-FUNCTION_AT_ADDRESS(unsigned int __cdecl UdpMisc::GetVariableValue(void const*, unsigned int*), UdpMisc__GetVariableValue);
-#endif
-#ifdef UdpMisc__CreateQuickLogicalPacket_x
-FUNCTION_AT_ADDRESS(LogicalPacket* __cdecl UdpMisc::CreateQuickLogicalPacket(void const*, int, void const*, int), UdpMisc__CreateQuickLogicalPacket);
-#endif
-#ifdef Util__Stristr_x
-//FUNCTION_AT_ADDRESS(char* __cdecl Util::Stristr(char*, char*), Util__Stristr);
-#endif
-#ifdef Util__StripCharacter_x
-//FUNCTION_AT_ADDRESS(void __cdecl Util::StripCharacter(char*, char), Util__StripCharacter);
-#endif
-#ifdef Util__ClampLower_x
-//FUNCTION_AT_ADDRESS(bool __cdecl Util::ClampLower(int*, int), Util__ClampLower);
-#endif
-#ifdef Util__ClampUpper_x
-//FUNCTION_AT_ADDRESS(bool __cdecl Util::ClampUpper(int*, int), Util__ClampUpper);
-#endif
-#ifdef Util__GetNextStringToken_x
-//FUNCTION_AT_ADDRESS(int __cdecl Util::GetNextStringToken(char*, char*, int, char*, bool), Util__GetNextStringToken);
-#endif
-#ifdef Util__IsDelimiter_x
-//FUNCTION_AT_ADDRESS(bool __cdecl Util::IsDelimiter(char, char*), Util__IsDelimiter);
-#endif
-#ifdef Util__Crc32_x
-//FUNCTION_AT_ADDRESS(int __cdecl Util::Crc32(void const*, int, int), Util__Crc32);
-#endif
-#ifdef Util__GetSavePrivateProfileInt_x
-//FUNCTION_AT_ADDRESS(int __cdecl Util::GetSavePrivateProfileInt(char*, char*, int, char*), Util__GetSavePrivateProfileInt);
-#endif
-#ifdef Util__PutValueVariable_x
-//FUNCTION_AT_ADDRESS(int __cdecl Util::PutValueVariable(void*, unsigned int), Util__PutValueVariable);
-#endif
-#ifdef Util__PutValue32_x
-//FUNCTION_AT_ADDRESS(unsigned int __cdecl Util::PutValue32(void*, unsigned int), Util__PutValue32);
-#endif
-#ifdef Util__GetValueVariable_x
-//FUNCTION_AT_ADDRESS(int __cdecl Util::GetValueVariable(void const*, unsigned int*), Util__GetValueVariable);
-#endif
-#ifdef TextFileReader__TextFileReader_x
-FUNCTION_AT_ADDRESS(TextFileReader::TextFileReader(char*, char), TextFileReader__TextFileReader);
-#endif
-#ifdef TextFileReader__dTextFileReader_x
-FUNCTION_AT_ADDRESS(TextFileReader::~TextFileReader(), TextFileReader__dTextFileReader);
-#endif
-#ifdef TextFileReader__ReadLine_x
-FUNCTION_AT_ADDRESS(int TextFileReader::ReadLine(), TextFileReader__ReadLine);
-#endif
-#ifdef TextFileReader__GetNextField_x
-FUNCTION_AT_ADDRESS(int TextFileReader::GetNextField(char*, int), TextFileReader__GetNextField);
-#endif
-#ifdef TextFileReader__GetLine_x
-FUNCTION_AT_ADDRESS(void TextFileReader::GetLine(char*, int), TextFileReader__GetLine);
-#endif
-#ifdef TextFileReader__IsOpen_x
-FUNCTION_AT_ADDRESS(bool TextFileReader::IsOpen(), TextFileReader__IsOpen);
-#endif
-#ifdef flex_unit__get_x
-FUNCTION_AT_ADDRESS(unsigned int flex_unit::get(unsigned int) const, flex_unit__get);
-#endif
-#ifdef flex_unit__flex_unit_x
-FUNCTION_AT_ADDRESS(flex_unit::flex_unit(), flex_unit__flex_unit);
-#endif
-#ifdef flex_unit__dflex_unit_x
-FUNCTION_AT_ADDRESS(flex_unit::~flex_unit(), flex_unit__dflex_unit);
-#endif
-#ifdef flex_unit__reserve_x
-FUNCTION_AT_ADDRESS(void flex_unit::reserve(unsigned int), flex_unit__reserve);
-#endif
-#ifdef flex_unit__set_x
-FUNCTION_AT_ADDRESS(void flex_unit::set(unsigned int, unsigned int), flex_unit__set);
-#endif
-#ifdef flex_unit__fast_mul_x
-FUNCTION_AT_ADDRESS(void flex_unit::fast_mul(flex_unit&, flex_unit&, unsigned int), flex_unit__fast_mul);
-#endif
-#ifdef ZlibUtil__zcalloc_x
-FUNCTION_AT_ADDRESS(void* __cdecl ZlibUtil::zcalloc(void*, unsigned int, unsigned int), ZlibUtil__zcalloc);
-#endif
-#ifdef ZlibUtil__zfree_x
-FUNCTION_AT_ADDRESS(void __cdecl ZlibUtil::zfree(void*, void*), ZlibUtil__zfree);
-#endif
-#ifdef ZlibUtil__zcompress_x
-FUNCTION_AT_ADDRESS(int __cdecl ZlibUtil::zcompress(unsigned char*, unsigned long*, unsigned const char*, unsigned long, int), ZlibUtil__zcompress);
-#endif
-#ifdef ZlibUtil__zuncompress_x
-FUNCTION_AT_ADDRESS(int __cdecl ZlibUtil::zuncompress(unsigned char*, unsigned long*, unsigned const char*, unsigned long), ZlibUtil__zuncompress);
-#endif
-#ifdef ZlibUtil__Compress_x
-FUNCTION_AT_ADDRESS(int __cdecl ZlibUtil::Compress(const char*, int, char*, int, int), ZlibUtil__Compress);
-#endif
-#ifdef ZlibUtil__Decompress_x
-FUNCTION_AT_ADDRESS(int __cdecl ZlibUtil::Decompress(const char*, int, char*, int), ZlibUtil__Decompress);
-#endif
-#ifdef PackFS__PackFS_x
-FUNCTION_AT_ADDRESS(PackFS::PackFS(), PackFS__PackFS);
-#endif
-#ifdef PackFS__addFileSystem_x
-//FUNCTION_AT_ADDRESS(bool PackFS::addFileSystem(FilePath), PackFS__addFileSystem);
-#endif
-#ifdef PackFS__removeFileSystem_x
-FUNCTION_AT_ADDRESS(void PackFS::removeFileSystem(FilePath), PackFS__removeFileSystem);
-#endif
-#ifdef SharedString___updateTag_x
-FUNCTION_AT_ADDRESS(void SharedString::_updateTag() const, SharedString___updateTag);
-#endif
-#ifdef FilePath__FilePath2_x
-FUNCTION_AT_ADDRESS(FilePath::FilePath(), FilePath__FilePath2);
-#endif
-#ifdef PackFile__dPackFile_x
-FUNCTION_AT_ADDRESS(PackFile::~PackFile(), PackFile__dPackFile);
-#endif
-#ifdef PackFile__close_x
-FUNCTION_AT_ADDRESS(void PackFile::close(), PackFile__close);
-#endif
-#ifdef _PackFileData__d_PackFileData_x
-FUNCTION_AT_ADDRESS(_PackFileData::~_PackFileData(), _PackFileData__d_PackFileData);
-#endif
-#ifdef PackFile__length_x
-FUNCTION_AT_ADDRESS(int PackFile::length() const, PackFile__length);
-#endif
-#ifdef PackFile__read_x
-FUNCTION_AT_ADDRESS(int PackFile::read(void* const, int), PackFile__read);
-#endif
-#ifdef PackFS__openFile_x
-//FUNCTION_AT_ADDRESS(bool PackFS::openFile(FilePath, PackFile*) const, PackFS__openFile);
-#endif
-#ifdef CRC32Generator__generateCRC32_x
-FUNCTION_AT_ADDRESS(unsigned int CRC32Generator::generateCRC32(unsigned const char*, unsigned int) const, CRC32Generator__generateCRC32);
-#endif
-#ifdef CRC32Generator__updateCRC32_x
-FUNCTION_AT_ADDRESS(unsigned int CRC32Generator::updateCRC32(unsigned int, unsigned const char*, unsigned int) const, CRC32Generator__updateCRC32);
 #endif
 #ifdef CSidlScreenWnd__dCSidlScreenWnd_x
 FUNCTION_AT_ADDRESS(CSidlScreenWnd::~CSidlScreenWnd(), CSidlScreenWnd__dCSidlScreenWnd);
@@ -7366,19 +6388,19 @@ FUNCTION_AT_ADDRESS(CSidlScreenWnd::~CSidlScreenWnd(), CSidlScreenWnd__dCSidlScr
 FUNCTION_AT_ADDRESS(int CSidlScreenWnd::WndNotification(CXWnd*, uint32_t, void*), CSidlScreenWnd__WndNotification);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd_x
-FUNCTION_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd*, uint32_t, CXRect, class CXStr), CSidlScreenWnd__CSidlScreenWnd);
+CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&), CSidlScreenWnd__CSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1_x
-FUNCTION_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen, int, int, char*), CSidlScreenWnd__CSidlScreenWnd1);
+CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen, int, int, char*), CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2_x
-FUNCTION_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen), CSidlScreenWnd__CSidlScreenWnd2);
+CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen), CSidlScreenWnd__CSidlScreenWnd2);
 #endif
 #ifdef CSidlScreenWnd__Init_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(CXWnd*, uint32_t, CXRect, CXStr, int, char*), CSidlScreenWnd__Init);
+FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*), CSidlScreenWnd__Init);
 #endif
 #ifdef CSidlScreenWnd__Init1_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(int, CXStr*, int, int, int), CSidlScreenWnd__Init1);
+FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(int, const CXStr&, int, int, int), CSidlScreenWnd__Init1);
 #endif
 #ifdef CSidlScreenWnd__SetScreen_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::SetScreen(CXStr*), CSidlScreenWnd__SetScreen);
@@ -7393,13 +6415,13 @@ FUNCTION_AT_ADDRESS(void CSidlScreenWnd::CalculateVSBRange(), CSidlScreenWnd__Ca
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::CalculateHSBRange(), CSidlScreenWnd__CalculateHSBRange);
 #endif
 #ifdef CSidlScreenWnd__DrawSidlPiece_x
-FUNCTION_AT_ADDRESS(int CSidlScreenWnd::DrawSidlPiece(CScreenPieceTemplate*, CXRect, class CXRect) const, CSidlScreenWnd__DrawSidlPiece);
+FUNCTION_AT_ADDRESS(int CSidlScreenWnd::DrawSidlPiece(CScreenPieceTemplate*, const CXRect&, const CXRect&) const, CSidlScreenWnd__DrawSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPiece_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlScreenWnd::GetSidlPiece(CXStr*, bool bTopLevel) const, CSidlScreenWnd__GetSidlPiece);
+FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlScreenWnd::GetSidlPiece(const CXStr&, bool bTopLevel) const, CSidlScreenWnd__GetSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPieceRect_x
-FUNCTION_AT_ADDRESS(CXRect CSidlScreenWnd::GetSidlPieceRect(CScreenPieceTemplate*, CXRect) const, CSidlScreenWnd__GetSidlPieceRect);
+FUNCTION_AT_ADDRESS(CXRect CSidlScreenWnd::GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const, CSidlScreenWnd__GetSidlPieceRect);
 #endif
 #ifdef CSidlScreenWnd__AddButtonToRadioGroup_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::AddButtonToRadioGroup(CXStr, CButtonWnd*), CSidlScreenWnd__AddButtonToRadioGroup);
@@ -7427,10 +6449,10 @@ FUNCTION_AT_ADDRESS(void CSidlScreenWnd::EnableIniStorage(int, char*), CSidlScre
 FUNCTION_AT_ADDRESS(int CSidlScreenWnd::ConvertToRes(int, int, int, int), CSidlScreenWnd__ConvertToRes);
 #endif
 #ifdef CSidlScreenWnd__GetChildItem_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlScreenWnd::GetChildItem(CXStr const &, bool bDebug), CSidlScreenWnd__GetChildItem);
+FUNCTION_AT_ADDRESS(CXWnd* CSidlScreenWnd::GetChildItem(const CXStr&, bool bDebug), CSidlScreenWnd__GetChildItem);
 #endif
 #ifdef CSidlScreenWnd__HandleLButtonUp_x
-FUNCTION_AT_ADDRESS(int CSidlScreenWnd::HandleLButtonUp(CXPoint, uint32_t), CSidlScreenWnd__HandleLButtonUp);
+FUNCTION_AT_ADDRESS(int CSidlScreenWnd::HandleLButtonUp(const CXPoint&, uint32_t), CSidlScreenWnd__HandleLButtonUp);
 #endif
 #ifdef CSidlScreenWnd__LoadIniListWnd_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniListWnd(CListWnd*, char*), CSidlScreenWnd__LoadIniListWnd);
@@ -7474,167 +6496,8 @@ FUNCTION_AT_ADDRESS(CMutexSyncCounted::~CMutexSyncCounted(), CMutexSyncCounted__
 #ifdef CMutexLockCounted__dCMutexLockCounted_x
 FUNCTION_AT_ADDRESS(CMutexLockCounted::~CMutexLockCounted(), CMutexLockCounted__dCMutexLockCounted);
 #endif
-#ifdef CXStr__AssureCopy_x
-FUNCTION_AT_ADDRESS(void CXStr::AssureCopy(), CXStr__AssureCopy);
-#endif
-#ifdef CXStr__Assure_x
-//FUNCTION_AT_ADDRESS(void CXStr::Assure(long, enum EStringEncoding), CXStr__Assure);
-#endif
-#ifdef CXStr__AllocRepNoLock_x
-//FUNCTION_AT_ADDRESS(struct CStrRep* CXStr::AllocRepNoLock(long, enum EStringEncoding), CXStr__AllocRepNoLock);
-#endif
-#ifdef CXStr__FreeRep_x
-FUNCTION_AT_ADDRESS(void CXStr::FreeRep(struct CStrRep*), CXStr__FreeRep);
-#endif
-#ifdef CXStr__FreeRepNoLock_x
-FUNCTION_AT_ADDRESS(void CXStr::FreeRepNoLock(struct CStrRep*), CXStr__FreeRepNoLock);
-#endif
-#ifdef CXStr__CXStr2_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(char), CXStr__CXStr2);
-#endif
-#ifdef CXStr__CXStr3_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(const char*), CXStr__CXStr3);
-#endif
-#ifdef CXStr__CXStr4_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(const char*, int), CXStr__CXStr4);
-#endif
-#ifdef CXStr__CXStr5_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(unsigned short const*), CXStr__CXStr5);
-#endif
-#ifdef CXStr__CXStr6_x
-FUNCTION_AT_ADDRESS(CXStr::CXStr(int, int, char), CXStr__CXStr6);
-#endif
-#ifdef CXStr__operator_equal_x
-FUNCTION_AT_ADDRESS(CXStr& CXStr::operator=(const CXStr&), CXStr__operator_equal);
-#endif
-#ifdef CXStr__operator_equal1_x
-FUNCTION_AT_ADDRESS(CXStr& CXStr::operator=(const char*), CXStr__operator_equal1);
-#endif
-#ifdef CXStr__GetChar_x
-FUNCTION_AT_ADDRESS(char CXStr::GetChar(long pos) const, CXStr__GetChar);
-#endif
-#ifdef CXStr__SetChar_x
-FUNCTION_AT_ADDRESS(char CXStr::SetChar(long, char), CXStr__SetChar);
-#endif
-#ifdef CXStr__GetUnicode_x
-FUNCTION_AT_ADDRESS(wchar_t CXStr::GetUnicode(long pos) const, CXStr__GetUnicode);
-#endif
-#ifdef CXStr__SetUnicode_x
-FUNCTION_AT_ADDRESS(unsigned short CXStr::SetUnicode(long, unsigned short), CXStr__SetUnicode);
-#endif
-#ifdef CXStr__Compare_x
-//FUNCTION_AT_ADDRESS(int CXStr::Compare(const CXStr&, enum CompareCode) const, CXStr__Compare);
-#endif
-#ifdef CXStr__CompareN_x
-//FUNCTION_AT_ADDRESS(int CXStr::CompareN(const CXStr&, int, enum CompareCode) const, CXStr__CompareN);
-#endif
-#ifdef CXStr__operator_equal_equal_x
-FUNCTION_AT_ADDRESS(int CXStr::operator==(const CXStr&) const, CXStr__operator_equal_equal);
-#endif
-#ifdef CXStr__operator_equal_equal1_x
-FUNCTION_AT_ADDRESS(int CXStr::operator==(const char*) const, CXStr__operator_equal_equal1);
-#endif
-#ifdef CXStr__operatort__x
-FUNCTION_AT_ADDRESS(int CXStr::operator>(const CXStr&) const, CXStr__operatort_);
-#endif
-#ifdef CXStr__BlankPreAllocate_x
-FUNCTION_AT_ADDRESS(void CXStr::BlankPreAllocate(int), CXStr__BlankPreAllocate);
-#endif
-#ifdef CXStr__operator_plus_equal_x
-FUNCTION_AT_ADDRESS(void CXStr::operator+=(const CXStr&), CXStr__operator_plus_equal);
-#endif
-#ifdef CXStr__operator_plus_equal1_x
-FUNCTION_AT_ADDRESS(void CXStr::operator+=(const char*), CXStr__operator_plus_equal1);
-#endif
-#ifdef CXStr__operator_plus_equal2_x
-FUNCTION_AT_ADDRESS(void CXStr::operator+=(char), CXStr__operator_plus_equal2);
-#endif
-#ifdef CXStr__operator_plus_equal3_x
-FUNCTION_AT_ADDRESS(void CXStr::operator+=(unsigned short), CXStr__operator_plus_equal3);
-#endif
-#ifdef CXStr__Delete_x
-FUNCTION_AT_ADDRESS(void CXStr::Delete(long pos, long count), CXStr__Delete);
-#endif
-#ifdef CXStr__Insert1_x
-FUNCTION_AT_ADDRESS(void CXStr::Insert(long pos, char ch), CXStr__Insert1);
-#endif
-#ifdef CXStr__FindNext_x
-FUNCTION_AT_ADDRESS(bool CXStr::FindNext(char ch, int& pos) const, CXStr__FindNext);
-#endif
-#ifdef CXStr__Insert_x
-FUNCTION_AT_ADDRESS(void CXStr::Insert(long pos, const CXStr& str), CXStr__Insert);
-#endif
-#ifdef CXStr__Copy_x
-FUNCTION_AT_ADDRESS(CXStr CXStr::Copy(long, long) const, CXStr__Copy);
-#endif
-#ifdef CXStr__CopySelf_x
-FUNCTION_AT_ADDRESS(void CXStr::CopySelf(long, long), CXStr__CopySelf);
-#endif
-#ifdef CXStr__SetString_x
-FUNCTION_AT_ADDRESS(void CXStr::SetString(const char* Str, long len), CXStr__SetString);
-#endif
-#ifdef CXStr__StripTrailing_x
-FUNCTION_AT_ADDRESS(void CXStr::StripTrailing(char), CXStr__StripTrailing);
-#endif
-#ifdef CXStr__StripLeading_x
-FUNCTION_AT_ADDRESS(void CXStr::StripLeading(char), CXStr__StripLeading);
-#endif
-#ifdef CXStr__StripAll_x
-FUNCTION_AT_ADDRESS(void CXStr::StripAll(char), CXStr__StripAll);
-#endif
-#ifdef CXStr__Strip_x
-FUNCTION_AT_ADDRESS(void CXStr::Strip(char), CXStr__Strip);
-#endif
-#ifdef CXStr__GetEncoding_x
-//FUNCTION_AT_ADDRESS(enum EStringEncoding CXStr::GetEncoding() const, CXStr__GetEncoding);
-#endif
-#ifdef CXStr__SetEncoding_x
-//FUNCTION_AT_ADDRESS(void CXStr::SetEncoding(enum EStringEncoding), CXStr__SetEncoding);
-#endif
-#ifdef CXStr__operator_char_p_x
-FUNCTION_AT_ADDRESS(CXStr::operator const char* (), CXStr__operator_char_p);
-#endif
-#ifdef CXStr__operator_unsigned_short_p_x
-//FUNCTION_AT_ADDRESS(CXStr::operator unsigned short*() const, CXStr__operator_unsigned_short_p);
-#endif
-#ifdef CXStr__SetUpperCase_x
-FUNCTION_AT_ADDRESS(void CXStr::SetUpperCase(), CXStr__SetUpperCase);
-#endif
-#ifdef CXStr__SetLowerCase_x
-FUNCTION_AT_ADDRESS(void CXStr::SetLowerCase(), CXStr__SetLowerCase);
-#endif
-#ifdef CXStr__ConvertToInt_x
-FUNCTION_AT_ADDRESS(int CXStr::ConvertToInt(), CXStr__ConvertToInt);
-#endif
-#ifdef CXStr__PrintString_x
-FUNCTION_AT_ADDRESS(int __cdecl CXStr::PrintString(const char*, ...), CXStr__PrintString);
-#endif
-#ifdef CXStr__FindLast_x
-FUNCTION_AT_ADDRESS(bool CXStr::FindLast(char, int&), CXStr__FindLast);
-#endif
-#ifdef CXStr__Find_x
-FUNCTION_AT_ADDRESS(bool CXStr::Find(char, int&), CXStr__Find);
-#endif
-#ifdef CXStr__Find1_x
-FUNCTION_AT_ADDRESS(bool CXStr::Find(unsigned short, int&), CXStr__Find1);
-#endif
-#ifdef CXStr__Find2_x
-FUNCTION_AT_ADDRESS(bool CXStr::Find(const CXStr&, int&), CXStr__Find2);
-#endif
-#ifdef CXStr__AddCr_x
-FUNCTION_AT_ADDRESS(void CXStr::AddCr(), CXStr__AddCr);
-#endif
-#ifdef CXStr__Utf8ToUnicode_x
-FUNCTION_AT_ADDRESS(int __cdecl CXStr::Utf8ToUnicode(const char*, unsigned short*, int), CXStr__Utf8ToUnicode);
-#endif
-#ifdef CXStr__LenUnicodeToUtf8_x
-FUNCTION_AT_ADDRESS(int __cdecl CXStr::LenUnicodeToUtf8(unsigned short const*), CXStr__LenUnicodeToUtf8);
-#endif
-#ifdef CXStr__UnicodeToUtf8_x
-FUNCTION_AT_ADDRESS(int __cdecl CXStr::UnicodeToUtf8(unsigned short const*, char*, int), CXStr__UnicodeToUtf8);
-#endif
 #ifdef CListWnd__CListWnd_x
-FUNCTION_AT_ADDRESS(CListWnd::CListWnd(CXWnd*, uint32_t, CXRect const&), CListWnd__CListWnd);
+CONSTRUCTOR_AT_ADDRESS(CListWnd::CListWnd(CXWnd*, uint32_t, CXRect const&), CListWnd__CListWnd);
 #endif
 #ifdef CListWnd__dCListWnd_x
 FUNCTION_AT_ADDRESS(CListWnd::~CListWnd(), CListWnd__dCListWnd);
@@ -7653,7 +6516,7 @@ FUNCTION_AT_ADDRESS(uint32_t CListWnd::GetItemData(int) const, CListWnd__GetItem
 #endif
 #endif
 #ifdef CListWnd__GetItemText_x
-FUNCTION_AT_ADDRESS(CXStr* CListWnd::GetItemText(CXStr*, int, int) const, CListWnd__GetItemText);
+FUNCTION_AT_ADDRESS(CXStr CListWnd::GetItemText(const CXStr&, int, int) const, CListWnd__GetItemText);
 #endif
 #ifdef CListWnd__GetItemIcon_x
 FUNCTION_AT_ADDRESS(CTextureAnimation const* CListWnd::GetItemIcon(int, int) const, CListWnd__GetItemIcon);
@@ -7760,7 +6623,7 @@ FUNCTION_AT_ADDRESS(void CListWnd::SetItemData(int, uint32_t), CListWnd__SetItem
 #endif
 #endif
 #ifdef CListWnd__SetItemText_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemText(int, int, CXStr*), CListWnd__SetItemText);
+FUNCTION_AT_ADDRESS(void CListWnd::SetItemText(int, int, const CXStr&), CListWnd__SetItemText);
 #endif
 #ifdef CListWnd__SetItemColor_x
 FUNCTION_AT_ADDRESS(void CListWnd::SetItemColor(int, int, unsigned long), CListWnd__SetItemColor);
@@ -7776,12 +6639,6 @@ FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr&, int, uint32_t, uint32_
 #endif
 #ifdef CListWnd__AddColumn1_x
 FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimation* pTA, int Width, uint32_t Flags, CXStr Tooltip, uint32_t Type, CTextureAnimation* pTASelected, CTextureAnimation* pTAMouseOver, bool bResizeable, tagSIZE TextureSize, tagPOINT TextureOffset), CListWnd__AddColumn1);
-#endif
-#ifdef SLinkInfo__dSLinkInfo_x
-//FUNCTION_AT_ADDRESS(SLinkInfo::~SLinkInfo(), SLinkInfo__dSLinkInfo);
-#endif
-#ifdef SListWndCellEditUpdate__dSListWndCellEditUpdate_x
-FUNCTION_AT_ADDRESS(SListWndCellEditUpdate::~SListWndCellEditUpdate(), SListWndCellEditUpdate__dSListWndCellEditUpdate);
 #endif
 #ifdef CListWnd__SetColumnLabel_x
 FUNCTION_AT_ADDRESS(void CListWnd::SetColumnLabel(int, CXStr), CListWnd__SetColumnLabel);
@@ -7808,10 +6665,10 @@ FUNCTION_AT_ADDRESS(void CListWnd::EnsureVisible(int), CListWnd__EnsureVisible);
 FUNCTION_AT_ADDRESS(CXRect CListWnd::GetItemRect(int, int) const, CListWnd__GetItemRect);
 #endif
 #ifdef CListWnd__GetItemAtPoint_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetItemAtPoint(POINT*) const, CListWnd__GetItemAtPoint);
+FUNCTION_AT_ADDRESS(int CListWnd::GetItemAtPoint(const CXPoint&) const, CListWnd__GetItemAtPoint);
 #endif
 #ifdef CListWnd__GetItemAtPoint1_x
-FUNCTION_AT_ADDRESS(void CListWnd::GetItemAtPoint(CXPoint*, int*, int*) const, CListWnd__GetItemAtPoint1);
+FUNCTION_AT_ADDRESS(void CListWnd::GetItemAtPoint(const CXPoint&, int*, int*) const, CListWnd__GetItemAtPoint1);
 #endif
 #ifdef CListWnd__CloseAndUpdateEditWindow_x
 FUNCTION_AT_ADDRESS(void CListWnd::CloseAndUpdateEditWindow(), CListWnd__CloseAndUpdateEditWindow);
@@ -7889,7 +6746,7 @@ FUNCTION_AT_ADDRESS(CLabelTemplate::CLabelTemplate(CParamLabel*), CLabelTemplate
 FUNCTION_AT_ADDRESS(void CLargeDialogWnd::Open(bool bYesNoEnabled, CXStr DialogText, unsigned long closeTimer/*0 means never*/, CXStr DialogTitle, bool bShowVolumeControls, CXStr YesText, CXStr NoText), CLargeDialogWnd__Open);
 #endif
 #ifdef CWndDisplayManager__FindWindowA_x
-FUNCTION_AT_ADDRESS(int CWndDisplayManager::FindWindowA(bool bNewWnd), CWndDisplayManager__FindWindowA);
+FUNCTION_AT_ADDRESS(int CWndDisplayManager::FindWindow(bool bNewWnd), CWndDisplayManager__FindWindowA);
 #endif
 #ifdef CItemDisplayManager__CreateWindowInstance_x
 FUNCTION_AT_ADDRESS(int CItemDisplayManager::CreateWindowInstance(), CItemDisplayManager__CreateWindowInstance);
@@ -7925,16 +6782,13 @@ FUNCTION_AT_ADDRESS(CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long), CSt
 FUNCTION_AT_ADDRESS(CXStr CTextureAnimation::GetName() const, CTextureAnimation__GetName);
 #endif
 #ifdef CStmlWnd__MakeWndNotificationTag_x
-FUNCTION_AT_ADDRESS(CXStr __cdecl CStmlWnd::MakeWndNotificationTag(uint32_t, CXStr&, class CXStr&), CStmlWnd__MakeWndNotificationTag);
+FUNCTION_AT_ADDRESS(CXStr CStmlWnd::MakeWndNotificationTag(uint32_t, const CXStr&, const CXStr&), CStmlWnd__MakeWndNotificationTag);
 #endif
 #ifdef CStmlWnd__ParseTagColor_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::ParseTagColor(CXStr, unsigned long*) const, CStmlWnd__ParseTagColor);
 #endif
 #ifdef CStmlWnd__ParseTagFace_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::ParseTagFace(CXStr, CTextureFont const**) const, CStmlWnd__ParseTagFace);
-#endif
-#ifdef CStmlWnd__ParseTagAlign_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ParseTagAlign(CXStr, enum ESTMLAlign*) const, CStmlWnd__ParseTagAlign);
 #endif
 #ifdef SAmpersandEntry__SAmpersandEntry_x
 FUNCTION_AT_ADDRESS(SAmpersandEntry::SAmpersandEntry(CXStr, char), SAmpersandEntry__SAmpersandEntry);
@@ -7954,17 +6808,8 @@ FUNCTION_AT_ADDRESS(CTAFrameDraw::~CTAFrameDraw(), CTAFrameDraw__dCTAFrameDraw);
 #ifdef SAmpersandEntry__dSAmpersandEntry_x
 FUNCTION_AT_ADDRESS(SAmpersandEntry::~SAmpersandEntry(), SAmpersandEntry__dSAmpersandEntry);
 #endif
-#ifdef STempTableCell__dSTempTableCell_x
-FUNCTION_AT_ADDRESS(STempTableCell::~STempTableCell(), STempTableCell__dSTempTableCell);
-#endif
-#ifdef CXStr__Blank_x
-FUNCTION_AT_ADDRESS(void CXStr::Blank(), CXStr__Blank);
-#endif
 #ifdef CStmlWnd__ParseAmpersand_x
 FUNCTION_AT_ADDRESS(bool CStmlWnd::ParseAmpersand(CXStr&, char*) const, CStmlWnd__ParseAmpersand);
-#endif
-#ifdef CStmlWnd__ParseLinkTarget_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ParseLinkTarget(CXStr, enum ESTMLTargetValue*) const, CStmlWnd__ParseLinkTarget);
 #endif
 #ifdef CStmlWnd__FastForwardPastSpaces_x
 FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastSpaces(CXStr&, int*), CStmlWnd__FastForwardPastSpaces);
@@ -7973,7 +6818,7 @@ FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastSpaces(CXStr&, int*)
 FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastSpacesAndQuotes(CXStr&, int*), CStmlWnd__FastForwardPastSpacesAndQuotes);
 #endif
 #ifdef CStmlWnd__GetNextTagPiece_x
-FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::GetNextTagPiece(CXStr&, CXStr*, int*, bool (__cdecl*)(unsigned short), bool), CStmlWnd__GetNextTagPiece);
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::GetNextTagPiece(const CXStr&, CXStr*, int*, bool (*)(unsigned short), bool), CStmlWnd__GetNextTagPiece);
 #endif
 #ifdef CStmlWnd__IsCharacterNotQuotes_x
 FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotQuotes(unsigned short), CStmlWnd__IsCharacterNotQuotes);
@@ -7982,7 +6827,7 @@ FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotQuotes(unsigned short),
 FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece(CXStr&, CXStr*, int*, bool), CStmlWnd__FastForwardPastQuotesAndGetNextTagPiece);
 #endif
 #ifdef CStmlWnd__FastForwardToEndOfTag_x
-FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardToEndOfTag(CXStr&, CXStr*, int*, char), CStmlWnd__FastForwardToEndOfTag);
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardToEndOfTag(const CXStr&, CXStr*, int*, char), CStmlWnd__FastForwardToEndOfTag);
 #endif
 #ifdef CStmlWnd__InitializeTempVariables_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::InitializeTempVariables(SParseVariables*, CXRect), CStmlWnd__InitializeTempVariables);
@@ -8005,35 +6850,17 @@ FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotEquals(unsigned short),
 #ifdef CStmlWnd__IsCharacterNotASpaceAndNotNULL_x
 FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotASpaceAndNotNULL(unsigned short), CStmlWnd__IsCharacterNotASpaceAndNotNULL);
 #endif
-#ifdef SParseVariables__dSParseVariables_x
-FUNCTION_AT_ADDRESS(SParseVariables::~SParseVariables(), SParseVariables__dSParseVariables);
-#endif
-#ifdef SFormattedText__dSFormattedText_x
-FUNCTION_AT_ADDRESS(SFormattedText::~SFormattedText(), SFormattedText__dSFormattedText);
-#endif
 #ifdef CStmlWnd__ParseSTMLHead_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::ParseSTMLHead(CXStr&), CStmlWnd__ParseSTMLHead);
 #endif
 #ifdef CStmlWnd__ParseSTMLTable_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::ParseSTMLTable(CXStr&, int*, CXStr&, SParseVariables*), CStmlWnd__ParseSTMLTable);
 #endif
-#ifdef STempTable__dSTempTable_x
-FUNCTION_AT_ADDRESS(STempTable::~STempTable(), STempTable__dSTempTable);
-#endif
-#ifdef STable__STable_x
-FUNCTION_AT_ADDRESS(STable::STable(), STable__STable);
-#endif
-#ifdef STable__dSTable_x
-FUNCTION_AT_ADDRESS(STable::~STable(), STable__dSTable);
-#endif
-#ifdef STableCell__dSTableCell_x
-FUNCTION_AT_ADDRESS(STableCell::~STableCell(), STableCell__dSTableCell);
-#endif
 #ifdef CStmlWnd__ParseSTMLTableAttributes_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::ParseSTMLTableAttributes(CXStr, STable*), CStmlWnd__ParseSTMLTableAttributes);
 #endif
 #ifdef CStmlWnd__GetVisibleText_x
-FUNCTION_AT_ADDRESS(CXStr CStmlWnd::GetVisibleText(CXStr&, CXRect) const, CStmlWnd__GetVisibleText);
+FUNCTION_AT_ADDRESS(CXStr CStmlWnd::GetVisibleText(CXStr, const CXRect&) const, CStmlWnd__GetVisibleText);
 #endif
 #ifdef CStmlWnd__ForceParseNow_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::ForceParseNow(), CStmlWnd__ForceParseNow);
@@ -8053,44 +6880,14 @@ FUNCTION_AT_ADDRESS(void CStmlWnd::CompleteParse(), CStmlWnd__CompleteParse);
 #ifdef CStmlWnd__StripFirstSTMLLines_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::StripFirstSTMLLines(int), CStmlWnd__StripFirstSTMLLines);
 #endif
-#ifdef CStmlWnd__ActivateLink_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ActivateLink(SLinkInfo), CStmlWnd__ActivateLink);
-#endif
-#ifdef SLinkInfo__SLinkInfo_x
-//FUNCTION_AT_ADDRESS(SLinkInfo::SLinkInfo(const SLinkInfo&), SLinkInfo__SLinkInfo);
-#endif
 #ifdef CStmlWnd__CanBreakAtCharacter_x
 FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short), CStmlWnd__CanBreakAtCharacter);
 #endif
-#ifdef CStmlWnd__ActivateLinkFile_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ActivateLinkFile(SLinkInfo), CStmlWnd__ActivateLinkFile);
-#endif
-#ifdef CStmlWnd__ActivateLinkMessageId_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ActivateLinkMessageId(SLinkInfo), CStmlWnd__ActivateLinkMessageId);
-#endif
-#ifdef CStmlWnd__ActivateLinkReport_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ActivateLinkReport(SLinkInfo, bool), CStmlWnd__ActivateLinkReport);
-#endif
-#ifdef CStmlWnd__ActivateLinkWndNotify_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::ActivateLinkWndNotify(SLinkInfo), CStmlWnd__ActivateLinkWndNotify);
-#endif
-#ifdef CStmlWnd__LoadPage_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::LoadPage(CXStr, enum ESTMLTargetValue, bool), CStmlWnd__LoadPage);
-#endif
-#ifdef CStmlWnd__AddLinkToHistory_x
-//FUNCTION_AT_ADDRESS(void CStmlWnd::AddLinkToHistory(SLinkInfo, CXStr), CStmlWnd__AddLinkToHistory);
-#endif
-#ifdef SLinkInfo__operator_equal_x
-//FUNCTION_AT_ADDRESS(SLinkInfo& SLinkInfo::operator=(const SLinkInfo&), SLinkInfo__operator_equal);
-#endif
 #ifdef CStmlWnd__UpdateHistoryString_x
-FUNCTION_AT_ADDRESS(void CStmlWnd::UpdateHistoryString(int32_t, CXStr&), CStmlWnd__UpdateHistoryString);
+FUNCTION_AT_ADDRESS(void CStmlWnd::UpdateHistoryString(int32_t, const CXStr&), CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::SetSTMLText(CXStr, bool, SLinkInfo*), CStmlWnd__SetSTMLText);
-#endif
-#ifdef SLinkInfo__SLinkInfo1_x
-//FUNCTION_AT_ADDRESS(SLinkInfo::SLinkInfo(), SLinkInfo__SLinkInfo1);
 #endif
 #ifdef CStmlWnd__SetSTMLTextWithoutHistory_x
 FUNCTION_AT_ADDRESS(void CStmlWnd::SetSTMLTextWithoutHistory(CXStr), CStmlWnd__SetSTMLTextWithoutHistory);
@@ -8101,44 +6898,14 @@ FUNCTION_AT_ADDRESS(void CStmlWnd::GoToBackHistoryLink(), CStmlWnd__GoToBackHist
 #ifdef CStmlWnd__CanGoBackward_x
 FUNCTION_AT_ADDRESS(bool CStmlWnd::CanGoBackward(), CStmlWnd__CanGoBackward);
 #endif
-#ifdef CStmlWnd__IsLinkActive_x
-//FUNCTION_AT_ADDRESS(bool CStmlWnd::IsLinkActive(SLinkInfo) const, CStmlWnd__IsLinkActive);
-#endif
-#ifdef CXStr__GetLength_x
-FUNCTION_AT_ADDRESS(long CXStr::GetLength() const, CXStr__GetLength);
-#endif
 #ifdef STextLine__STextLine_x
 FUNCTION_AT_ADDRESS(STextLine::STextLine(), STextLine__STextLine);
 #endif
 #ifdef STextLine__dSTextLine_x
 FUNCTION_AT_ADDRESS(STextLine::~STextLine(), STextLine__dSTextLine);
 #endif
-#ifdef STempTableCell__STempTableCell_x
-FUNCTION_AT_ADDRESS(STempTableCell::STempTableCell(), STempTableCell__STempTableCell);
-#endif
-#ifdef STempTableRow__STempTableRow_x
-FUNCTION_AT_ADDRESS(STempTableRow::STempTableRow(), STempTableRow__STempTableRow);
-#endif
-#ifdef STempTableRow__dSTempTableRow_x
-FUNCTION_AT_ADDRESS(STempTableRow::~STempTableRow(), STempTableRow__dSTempTableRow);
-#endif
 #ifdef STextLine__operator_equal_x
 FUNCTION_AT_ADDRESS(STextLine& STextLine::operator=(const STextLine&), STextLine__operator_equal);
-#endif
-#ifdef SHistoryElement__SHistoryElement_x
-FUNCTION_AT_ADDRESS(SHistoryElement::SHistoryElement(), SHistoryElement__SHistoryElement);
-#endif
-#ifdef SHistoryElement__dSHistoryElement_x
-FUNCTION_AT_ADDRESS(SHistoryElement::~SHistoryElement(), SHistoryElement__dSHistoryElement);
-#endif
-#ifdef SFormattedText__SFormattedText_x
-FUNCTION_AT_ADDRESS(SFormattedText::SFormattedText(), SFormattedText__SFormattedText);
-#endif
-#ifdef STable__operator_equal_x
-FUNCTION_AT_ADDRESS(STable& STable::operator=(const STable&), STable__operator_equal);
-#endif
-#ifdef STableCell__STableCell_x
-FUNCTION_AT_ADDRESS(STableCell::STableCell(), STableCell__STableCell);
 #endif
 #ifdef CTabWnd__CTabWnd_x
 FUNCTION_AT_ADDRESS(CTabWnd::CTabWnd(CXWnd* pParent, UINT uId, RECT* rect, CTabBoxTemplate* pTabContents), CTabWnd__CTabWnd);
@@ -8175,7 +6942,7 @@ FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(CPageWnd*, bool), CTabWnd__SetPage1);
 FUNCTION_AT_ADDRESS(void CTabWnd::InsertPage(CPageWnd*, int), CTabWnd__InsertPage);
 #endif
 #ifdef CTabWnd__SetPageRect_x
-FUNCTION_AT_ADDRESS(void CTabWnd::SetPageRect(CXRect), CTabWnd__SetPageRect);
+FUNCTION_AT_ADDRESS(void CTabWnd::SetPageRect(const CXRect&), CTabWnd__SetPageRect);
 #endif
 #ifdef CTabWnd__UpdatePage_x
 FUNCTION_AT_ADDRESS(void CTabWnd::UpdatePage(), CTabWnd__UpdatePage);
@@ -8217,31 +6984,19 @@ FUNCTION_AT_ADDRESS(void CHtmlWnd::AddObserver(IObserver*), CHtmlWnd__AddObserve
 FUNCTION_AT_ADDRESS(void CHtmlWnd::RemoveObserver(IObserver*), CHtmlWnd__RemoveObserver);
 #endif
 #ifdef Window__getProgress_x
-FUNCTION_AT_ADDRESS(float Window::getProgress(bool& bIsLoading), Window__getProgress);
+FUNCTION_AT_ADDRESS(float libMozilla::Window::getProgress(bool& bIsLoading), Window__getProgress);
 #endif
 #ifdef Window__getStatus_x
-FUNCTION_AT_ADDRESS(const wchar_t* Window::getStatus() const, Window__getStatus);
+FUNCTION_AT_ADDRESS(const wchar_t* libMozilla::Window::getStatus() const, Window__getStatus);
 #endif
 #ifdef Window__getURI_x
-FUNCTION_AT_ADDRESS(const char* Window::getURI() const, Window__getURI);
+FUNCTION_AT_ADDRESS(const char* libMozilla::Window::getURI() const, Window__getURI);
 #endif
 #ifdef CXMLSOMDocumentBase__Init_x
 FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::Init(), CXMLSOMDocumentBase__Init);
 #endif
-#ifdef CXMLSOMNodePtr__Assure_x
-FUNCTION_AT_ADDRESS(void CXMLSOMNodePtr::Assure() const, CXMLSOMNodePtr__Assure);
-#endif
 #ifdef CXMLSOMDocumentBase__CursorInit_x
 FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::CursorInit(), CXMLSOMDocumentBase__CursorInit);
-#endif
-#ifdef CXMLSOMNode__CXMLSOMNode_x
-FUNCTION_AT_ADDRESS(CXMLSOMNode::CXMLSOMNode(), CXMLSOMNode__CXMLSOMNode);
-#endif
-#ifdef CXMLSOMDocumentBase__Cursor_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursor& CXMLSOMDocumentBase::Cursor(), CXMLSOMDocumentBase__Cursor);
-#endif
-#ifdef CXMLSOMDocumentBase__CursorParent_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursor& CXMLSOMDocumentBase::CursorParent(), CXMLSOMDocumentBase__CursorParent);
 #endif
 #ifdef CXMLSOMDocumentBase__CursorNewChild_x
 FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::CursorNewChild(), CXMLSOMDocumentBase__CursorNewChild);
@@ -8249,14 +7004,8 @@ FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::CursorNewChild(), CXMLSOMDocumentB
 #ifdef CXMLSOMDocumentBase__CursorNewSibling_x
 FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::CursorNewSibling(), CXMLSOMDocumentBase__CursorNewSibling);
 #endif
-#ifdef CXMLSOMNodePtr__operator_equal_x
-FUNCTION_AT_ADDRESS(CXMLSOMNodePtr& CXMLSOMNodePtr::operator=(const CXMLSOMNodePtr&), CXMLSOMNodePtr__operator_equal);
-#endif
 #ifdef CXMLSOMDocumentBase__CursorSetPtr_x
 //FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::CursorSetPtr(CXMLSOMNodePtr), CXMLSOMDocumentBase__CursorSetPtr);
-#endif
-#ifdef CXMLSOMNodePtr__operator_minust__x
-FUNCTION_AT_ADDRESS(CXMLSOMNode* CXMLSOMNodePtr::operator->() const, CXMLSOMNodePtr__operator_minust_);
 #endif
 #ifdef CXMLSOMDocumentBase__CursorPush_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::CursorPush(), CXMLSOMDocumentBase__CursorPush);
@@ -8281,9 +7030,6 @@ FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::GetAttrValueStr(CXStr, CXStr&), CX
 #endif
 #ifdef CXMLSOMDocumentBase__GetAttrValueInt_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::GetAttrValueInt(CXStr, int32_t&), CXMLSOMDocumentBase__GetAttrValueInt);
-#endif
-#ifdef CXMLSOMCursorSave__dCXMLSOMCursorSave_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursorSave::~CXMLSOMCursorSave(), CXMLSOMCursorSave__dCXMLSOMCursorSave);
 #endif
 #ifdef CXMLSOMDocumentBase__CursorFieldFind_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::CursorFieldFind(CXStr), CXMLSOMDocumentBase__CursorFieldFind);
@@ -8313,10 +7059,10 @@ FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::SetValue(CXStr, int32_t), CXMLSOMD
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::SetValue(CXStr, bool), CXMLSOMDocumentBase__SetValue2);
 #endif
 #ifdef CXMLSOMDocumentBase__XMLReadNoValidate_x
-FUNCTION_AT_ADDRESS(int CXMLSOMDocumentBase::XMLReadNoValidate(CXStr, CXStr, class CXStr), CXMLSOMDocumentBase__XMLReadNoValidate);
+FUNCTION_AT_ADDRESS(int CXMLSOMDocumentBase::XMLReadNoValidate(CXStr, CXStr, CXStr), CXMLSOMDocumentBase__XMLReadNoValidate);
 #endif
 #ifdef CXMLSOMDocumentBase__XMLRead_x
-FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::XMLRead(CXStr*, CXStr*, class CXStr*), CXMLSOMDocumentBase__XMLRead);
+FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::XMLRead(const CXStr&, const CXStr&, const CXStr&), CXMLSOMDocumentBase__XMLRead);
 #endif
 #ifdef CXMLSOMDocumentBase__XMLProcessComposite_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::XMLProcessComposite(CXStr, CXStr), CXMLSOMDocumentBase__XMLProcessComposite);
@@ -8327,20 +7073,8 @@ FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::SetErrorMsg(CXStr), CXMLSOMDocumen
 #ifdef CXMLSOMDocumentBase__GetErrorMsg_x
 FUNCTION_AT_ADDRESS(CXStr CXMLSOMDocumentBase::GetErrorMsg() const, CXMLSOMDocumentBase__GetErrorMsg);
 #endif
-#ifdef CXMLSOMSchema__CXMLSOMSchema_x
-FUNCTION_AT_ADDRESS(CXMLSOMSchema::CXMLSOMSchema(), CXMLSOMSchema__CXMLSOMSchema);
-#endif
-#ifdef CXMLSOMSchema__dCXMLSOMSchema_x
-FUNCTION_AT_ADDRESS(CXMLSOMSchema::~CXMLSOMSchema(), CXMLSOMSchema__dCXMLSOMSchema);
-#endif
-#ifdef CXMLSOMCursorTraverseChildren__dCXMLSOMCursorTraverseChildren_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursorTraverseChildren::~CXMLSOMCursorTraverseChildren(), CXMLSOMCursorTraverseChildren__dCXMLSOMCursorTraverseChildren);
-#endif
 #ifdef CXMLSOMDocumentBase__XMLMerge_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::XMLMerge(CXMLSOMDocumentBase&), CXMLSOMDocumentBase__XMLMerge);
-#endif
-#ifdef CXMLSOMCursorTraverseChildren__Cursor_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursor& CXMLSOMCursorTraverseChildren::Cursor(), CXMLSOMCursorTraverseChildren__Cursor);
 #endif
 #ifdef CXMLSOMDocumentBase__SetErrorMsgAtLine_x
 FUNCTION_AT_ADDRESS(void CXMLSOMDocumentBase::SetErrorMsgAtLine(CXStr, int, CXStr), CXMLSOMDocumentBase__SetErrorMsgAtLine);
@@ -8353,15 +7087,6 @@ FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::ValidateSchemaSimpleTypeNode(CXMLS
 #endif
 #ifdef CXMLSOMDocumentBase__ValidateSchemaElementType_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::ValidateSchemaElementType(), CXMLSOMDocumentBase__ValidateSchemaElementType);
-#endif
-#ifdef CXMLSOMElementType__dCXMLSOMElementType_x
-FUNCTION_AT_ADDRESS(CXMLSOMElementType::~CXMLSOMElementType(), CXMLSOMElementType__dCXMLSOMElementType);
-#endif
-#ifdef CXMLSOMElement__dCXMLSOMElement_x
-FUNCTION_AT_ADDRESS(CXMLSOMElement::~CXMLSOMElement(), CXMLSOMElement__dCXMLSOMElement);
-#endif
-#ifdef CXMLSOMAttributeType__dCXMLSOMAttributeType_x
-FUNCTION_AT_ADDRESS(CXMLSOMAttributeType::~CXMLSOMAttributeType(), CXMLSOMAttributeType__dCXMLSOMAttributeType);
 #endif
 #ifdef CXMLSOMDocumentBase__ValidateSchemaSimpleType_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::ValidateSchemaSimpleType(), CXMLSOMDocumentBase__ValidateSchemaSimpleType);
@@ -8387,74 +7112,11 @@ FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::ValidateDataElements(CXMLSOMElemen
 #ifdef CXMLSOMDocumentBase__ValidateData_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::ValidateData(), CXMLSOMDocumentBase__ValidateData);
 #endif
-#ifdef CXMLSOMElementType__GetItemIdx_x
-FUNCTION_AT_ADDRESS(int CXMLSOMElementType::GetItemIdx(CXStr), CXMLSOMElementType__GetItemIdx);
-#endif
-#ifdef CXMLSOMSchema__GetElementTypeIdx_x
-FUNCTION_AT_ADDRESS(int CXMLSOMSchema::GetElementTypeIdx(CXStr), CXMLSOMSchema__GetElementTypeIdx);
-#endif
-#ifdef CXMLSOMSchema__IsDerivedFrom_x
-FUNCTION_AT_ADDRESS(bool CXMLSOMSchema::IsDerivedFrom(CXStr, CXStr), CXMLSOMSchema__IsDerivedFrom);
-#endif
-#ifdef CXMLSOMSchema__FindElementType_x
-FUNCTION_AT_ADDRESS(bool CXMLSOMSchema::FindElementType(CXStr), CXMLSOMSchema__FindElementType);
-#endif
-#ifdef CXMLSOMSchema__FindSimpleType_x
-FUNCTION_AT_ADDRESS(bool CXMLSOMSchema::FindSimpleType(CXStr), CXMLSOMSchema__FindSimpleType);
-#endif
-#ifdef CXMLSOMSchema__FindItem_x
-FUNCTION_AT_ADDRESS(bool CXMLSOMSchema::FindItem(CXStr, CXStr), CXMLSOMSchema__FindItem);
-#endif
-#ifdef CXMLSOMSchema__AddItem_x
-FUNCTION_AT_ADDRESS(bool CXMLSOMSchema::AddItem(CXStr, CXStr), CXMLSOMSchema__AddItem);
-#endif
-#ifdef CXMLSOMNode__FreeAllAllocs_x
-FUNCTION_AT_ADDRESS(void __cdecl CXMLSOMNode::FreeAllAllocs(), CXMLSOMNode__FreeAllAllocs);
-#endif
-#ifdef CXMLSOMNode__operator_new_x
-FUNCTION_AT_ADDRESS(void* __cdecl CXMLSOMNode::operator new(unsigned int), CXMLSOMNode__operator_new);
-#endif
 #ifdef CMutexLock__dCMutexLock_x
 FUNCTION_AT_ADDRESS(CMutexLock::~CMutexLock(), CMutexLock__dCMutexLock);
 #endif
-#ifdef CXMLSOMNode__operator_delete_x
-FUNCTION_AT_ADDRESS(void __cdecl CXMLSOMNode::operator delete(void*), CXMLSOMNode__operator_delete);
-#endif
 #ifdef CKeyCXStrValueInt32__CKeyCXStrValueInt32_x
 FUNCTION_AT_ADDRESS(CKeyCXStrValueInt32::CKeyCXStrValueInt32(), CKeyCXStrValueInt32__CKeyCXStrValueInt32);
-#endif
-#ifdef CXMLSOMCursor__CXMLSOMCursor_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursor::CXMLSOMCursor(), CXMLSOMCursor__CXMLSOMCursor);
-#endif
-#ifdef CXMLSOMNodePtr__CXMLSOMNodePtr_x
-FUNCTION_AT_ADDRESS(CXMLSOMNodePtr::CXMLSOMNodePtr(), CXMLSOMNodePtr__CXMLSOMNodePtr);
-#endif
-#ifdef CXMLSOMAttribute__operator_equal_x
-FUNCTION_AT_ADDRESS(CXMLSOMAttribute& CXMLSOMAttribute::operator=(const CXMLSOMAttribute&), CXMLSOMAttribute__operator_equal);
-#endif
-#ifdef CXMLSOMCursor__operator_equal_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursor& CXMLSOMCursor::operator=(const CXMLSOMCursor&), CXMLSOMCursor__operator_equal);
-#endif
-#ifdef CXMLSOMAttribute__CXMLSOMAttribute_x
-FUNCTION_AT_ADDRESS(CXMLSOMAttribute::CXMLSOMAttribute(), CXMLSOMAttribute__CXMLSOMAttribute);
-#endif
-#ifdef CXMLSOMSimpleType__CXMLSOMSimpleType_x
-FUNCTION_AT_ADDRESS(CXMLSOMSimpleType::CXMLSOMSimpleType(), CXMLSOMSimpleType__CXMLSOMSimpleType);
-#endif
-#ifdef CXMLSOMElementType__CXMLSOMElementType_x
-FUNCTION_AT_ADDRESS(CXMLSOMElementType::CXMLSOMElementType(), CXMLSOMElementType__CXMLSOMElementType);
-#endif
-#ifdef CXMLSOMAttributeType__operator_equal_x
-FUNCTION_AT_ADDRESS(CXMLSOMAttributeType& CXMLSOMAttributeType::operator=(const CXMLSOMAttributeType&), CXMLSOMAttributeType__operator_equal);
-#endif
-#ifdef CXMLSOMElement__operator_equal_x
-FUNCTION_AT_ADDRESS(CXMLSOMElement& CXMLSOMElement::operator=(const CXMLSOMElement&), CXMLSOMElement__operator_equal);
-#endif
-#ifdef CXMLSOMAttributeType__CXMLSOMAttributeType_x
-FUNCTION_AT_ADDRESS(CXMLSOMAttributeType::CXMLSOMAttributeType(), CXMLSOMAttributeType__CXMLSOMAttributeType);
-#endif
-#ifdef CXMLSOMElement__CXMLSOMElement_x
-FUNCTION_AT_ADDRESS(CXMLSOMElement::CXMLSOMElement(), CXMLSOMElement__CXMLSOMElement);
 #endif
 #ifdef KeyCombo__KeyCombo_x
 FUNCTION_AT_ADDRESS(KeyCombo::KeyCombo(), KeyCombo__KeyCombo);
@@ -8528,7 +7190,7 @@ FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetListRect() const, CComboWnd__GetListRec
 FUNCTION_AT_ADDRESS(void CComboWnd::SetColors(unsigned long, unsigned long, unsigned long), CComboWnd__SetColors);
 #endif
 #ifdef CComboWnd__InsertChoice_x
-FUNCTION_AT_ADDRESS(void CComboWnd::InsertChoice(CXStr*, unsigned long), CComboWnd__InsertChoice);
+FUNCTION_AT_ADDRESS(void CComboWnd::InsertChoice(const CXStr&, unsigned long), CComboWnd__InsertChoice);
 #endif
 #ifdef CComboWnd__SetChoice_x
 FUNCTION_AT_ADDRESS(void CComboWnd::SetChoice(int), CComboWnd__SetChoice);
@@ -8775,7 +7437,7 @@ FUNCTION_AT_ADDRESS(int CTextureFont::GetKerning(unsigned short, unsigned short)
 #endif
 #ifdef CTextureFont__GetTextExtent_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(CXStr*), CTextureFont__GetTextExtent);
+FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(const CXStr&), CTextureFont__GetTextExtent);
 #else
 FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(), CTextureFont__GetTextExtent);
 #endif
@@ -8787,10 +7449,10 @@ FUNCTION_AT_ADDRESS(int CTextureFont::GetHeight() const, CTextureFont__GetHeight
 FUNCTION_AT_ADDRESS(CXStr CTextureFont::GetName() const, CTextureFont__GetName);
 #endif
 #ifdef CTextureFont__DrawWrappedText_x
-FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(CXStr*, int, int, int, CXRect*, COLORREF, WORD, int) const, CTextureFont__DrawWrappedText);
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, int, const CXRect&, COLORREF, WORD, int) const, CTextureFont__DrawWrappedText);
 #endif
 #ifdef CTextureFont__DrawWrappedText1_x
-FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(CXStr, CXRect, class CXRect, unsigned long, unsigned short, int) const, CTextureFont__DrawWrappedText1);
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const, CTextureFont__DrawWrappedText1);
 #endif
 #ifdef CTextureAnimation__CTextureAnimation_x
 FUNCTION_AT_ADDRESS(CTextureAnimation::CTextureAnimation(), CTextureAnimation__CTextureAnimation);
@@ -8967,7 +7629,7 @@ FUNCTION_AT_ADDRESS(CXWndDrawTemplate* CSidlManager::FindDrawTemplate(CXStr) con
 FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(uint32_t) const, CSidlManager__FindScreenPieceTemplate);
 #endif
 #ifdef CSidlManager__FindScreenPieceTemplate1_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(CXStr*) const, CSidlManager__FindScreenPieceTemplate1);
+FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(const CXStr&) const, CSidlManager__FindScreenPieceTemplate1);
 #endif
 #ifdef CSidlManager__AddAnimationInOrder_x
 FUNCTION_AT_ADDRESS(void CSidlManager::AddAnimationInOrder(CTextureAnimation*), CSidlManager__AddAnimationInOrder);
@@ -9007,7 +7669,7 @@ FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWndFromTemplate(CXWnd*, CControl
 #endif
 #endif
 #ifdef CSidlManager__CreateXWndFromTemplate1_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWndFromTemplate(CXWnd*, CXStr&), CSidlManager__CreateXWndFromTemplate1);
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWndFromTemplate(CXWnd*, const CXStr&), CSidlManager__CreateXWndFromTemplate1);
 #endif
 #ifdef CSidlManager__CreateXWnd_x
 FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManager__CreateXWnd);
@@ -9127,13 +7789,14 @@ FUNCTION_AT_ADDRESS(int CSliderWnd::DrawThumb() const, CSliderWnd__DrawThumb);
 FUNCTION_AT_ADDRESS(void CEditBaseWnd::SetSel(int, int), CEditBaseWnd__SetSel);
 #endif
 #ifdef CInvSlotWnd__CInvSlotWnd_x
-FUNCTION_AT_ADDRESS(CInvSlotWnd::CInvSlotWnd(CXWnd* pParent, uint32_t ID, CXRect rect,	CTextureAnimation* ptaBackground, ItemGlobalIndex* itemLocation, int ItemOffsetX, int ItemOffsetY), CInvSlotWnd__CInvSlotWnd);
+CONSTRUCTOR_AT_ADDRESS(CInvSlotWnd::CInvSlotWnd(CXWnd* pParent, uint32_t ID, CXRect rect,
+	CTextureAnimation* ptaBackground, const ItemGlobalIndex& itemLocation, int ItemOffsetX, int ItemOffsetY), CInvSlotWnd__CInvSlotWnd);
 #endif
 #ifdef CInvSlotWnd__SetInvSlot_x
 FUNCTION_AT_ADDRESS(void CInvSlotWnd::SetInvSlot(CInvSlot*), CInvSlotWnd__SetInvSlot);
 #endif
 #ifdef CInvSlotWnd__DrawTooltip_x
-FUNCTION_AT_ADDRESS(int CInvSlotWnd::DrawTooltip(CXWnd const*) const, CInvSlotWnd__DrawTooltip);
+FUNCTION_AT_ADDRESS(int CInvSlotWnd::DrawTooltip(const CXWnd*) const, CInvSlotWnd__DrawTooltip);
 #endif
 #ifdef CLabel__CLabel_x
 FUNCTION_AT_ADDRESS(CLabel::CLabel(CXWnd*, uint32_t, CXRect*, int), CLabel__CLabel);
@@ -9324,21 +7987,6 @@ FUNCTION_AT_ADDRESS(CStmlReport* __cdecl CStmlReport::CreateReport(CXStr), CStml
 #ifdef CXFileXML__Load_x
 FUNCTION_AT_ADDRESS(bool CXFileXML::Load(char*), CXFileXML__Load);
 #endif
-#ifdef CParseTokXML__GetEntityRef_x
-FUNCTION_AT_ADDRESS(bool CParseTokXML::GetEntityRef(char&), CParseTokXML__GetEntityRef);
-#endif
-#ifdef CParseTokXML__NextToken_x
-//FUNCTION_AT_ADDRESS(enum ETokTypeXML CParseTokXML::NextToken(), CParseTokXML__NextToken);
-#endif
-#ifdef CParseTokensXML__SetError_x
-FUNCTION_AT_ADDRESS(void __cdecl CParseTokensXML::SetError(const char*, ...), CParseTokensXML__SetError);
-#endif
-#ifdef CParseTokensXML__GetCurFile_x
-FUNCTION_AT_ADDRESS(CXStr CParseTokensXML::GetCurFile(), CParseTokensXML__GetCurFile);
-#endif
-#ifdef CParseTokensXML__Accept_x
-//FUNCTION_AT_ADDRESS(bool CParseTokensXML::Accept(enum ETokTypeXML), CParseTokensXML__Accept);
-#endif
 #ifdef CXMLSOMParser__ParseProcess_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMParser::ParseProcess(), CXMLSOMParser__ParseProcess);
 #endif
@@ -9360,44 +8008,17 @@ FUNCTION_AT_ADDRESS(bool CXMLSOMParser::ParseNode(), CXMLSOMParser__ParseNode);
 #ifdef CXMLSOMParser__ParseDocument_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMParser::ParseDocument(), CXMLSOMParser__ParseDocument);
 #endif
-#ifdef CParseTokensXML__StartFileBased_x
-FUNCTION_AT_ADDRESS(bool CParseTokensXML::StartFileBased(CXStr), CParseTokensXML__StartFileBased);
-#endif
 #ifdef CXFileXML__dCXFileXML_x
 FUNCTION_AT_ADDRESS(CXFileXML::~CXFileXML(), CXFileXML__dCXFileXML);
-#endif
-#ifdef CTokenXML__dCTokenXML_x
-FUNCTION_AT_ADDRESS(CTokenXML::~CTokenXML(), CTokenXML__dCTokenXML);
 #endif
 #ifdef CXMLSOMParser__ParseFile_x
 FUNCTION_AT_ADDRESS(bool CXMLSOMParser::ParseFile(CXStr), CXMLSOMParser__ParseFile);
 #endif
-#ifdef CParseTokensXML__dCParseTokensXML_x
-FUNCTION_AT_ADDRESS(CParseTokensXML::~CParseTokensXML(), CParseTokensXML__dCParseTokensXML);
-#endif
 #ifdef CXMLSOMParser__dCXMLSOMParser_x
 FUNCTION_AT_ADDRESS(CXMLSOMParser::~CXMLSOMParser(), CXMLSOMParser__dCXMLSOMParser);
 #endif
-#ifdef CParseTokXML__dCParseTokXML_x
-FUNCTION_AT_ADDRESS(CParseTokXML::~CParseTokXML(), CParseTokXML__dCParseTokXML);
-#endif
 #ifdef CClickStickInfo__CClickStickInfo_x
 FUNCTION_AT_ADDRESS(CClickStickInfo::CClickStickInfo(), CClickStickInfo__CClickStickInfo);
-#endif
-#ifdef CDIMap__CDIMap_x
-FUNCTION_AT_ADDRESS(CDIMap::CDIMap(), CDIMap__CDIMap);
-#endif
-#ifdef CXStr__CheckNoLock_x
-FUNCTION_AT_ADDRESS(void CXStr::CheckNoLock(), CXStr__CheckNoLock);
-#endif
-#ifdef CDIMap__dCDIMap_x
-FUNCTION_AT_ADDRESS(CDIMap::~CDIMap(), CDIMap__dCDIMap);
-#endif
-#ifdef CIMECandidateList__dCIMECandidateList_x
-FUNCTION_AT_ADDRESS(CIMECandidateList::~CIMECandidateList(), CIMECandidateList__dCIMECandidateList);
-#endif
-#ifdef CDIMap__LoadMappingFromFile_x
-FUNCTION_AT_ADDRESS(void CDIMap::LoadMappingFromFile(char*), CDIMap__LoadMappingFromFile);
 #endif
 #ifdef CHashCXStrInt32__CHashCXStrInt32_x
 FUNCTION_AT_ADDRESS(CHashCXStrInt32::CHashCXStrInt32(), CHashCXStrInt32__CHashCXStrInt32);
@@ -9506,9 +8127,6 @@ FUNCTION_AT_ADDRESS(CParamSize::CParamSize(), CParamSize__CParamSize);
 #endif
 #ifdef CParamTextureInfo__CParamTextureInfo_x
 FUNCTION_AT_ADDRESS(CParamTextureInfo::CParamTextureInfo(), CParamTextureInfo__CParamTextureInfo);
-#endif
-#ifdef CXMLSOMCursorSaveFast__dCXMLSOMCursorSaveFast_x
-FUNCTION_AT_ADDRESS(CXMLSOMCursorSaveFast::~CXMLSOMCursorSaveFast(), CXMLSOMCursorSaveFast__dCXMLSOMCursorSaveFast);
 #endif
 #ifdef CParamFrame__CParamFrame_x
 FUNCTION_AT_ADDRESS(CParamFrame::CParamFrame(), CParamFrame__CParamFrame);
@@ -9627,105 +8245,6 @@ FUNCTION_AT_ADDRESS(CCheckBoxWnd::CCheckBoxWnd(CXWnd*, uint32_t, CXRect, class C
 #ifdef CCheckBoxWnd__SetRadioLook_x
 FUNCTION_AT_ADDRESS(void CCheckBoxWnd::SetRadioLook(), CCheckBoxWnd__SetRadioLook);
 #endif
-#ifdef CIMEStatusBar__CIMEStatusBar_x
-FUNCTION_AT_ADDRESS(CIMEStatusBar::CIMEStatusBar(CIMEManager*), CIMEStatusBar__CIMEStatusBar);
-#endif
-#ifdef CIMEStatusBar__show_x
-FUNCTION_AT_ADDRESS(int CIMEStatusBar::show(CIMEComposition const*), CIMEStatusBar__show);
-#endif
-#ifdef CIMEStatusBar__update_x
-FUNCTION_AT_ADDRESS(int CIMEStatusBar::update(), CIMEStatusBar__update);
-#endif
-#ifdef CIMEStatusBar__hide_x
-FUNCTION_AT_ADDRESS(int CIMEStatusBar::hide(), CIMEStatusBar__hide);
-#endif
-#ifdef CIMEStatusBar__handleChineseSimplifiedStatusChange_x
-FUNCTION_AT_ADDRESS(void CIMEStatusBar::handleChineseSimplifiedStatusChange(unsigned long), CIMEStatusBar__handleChineseSimplifiedStatusChange);
-#endif
-#ifdef CIMEStatusBar__handleChineseTraditionalStatusChange_x
-FUNCTION_AT_ADDRESS(void CIMEStatusBar::handleChineseTraditionalStatusChange(unsigned long), CIMEStatusBar__handleChineseTraditionalStatusChange);
-#endif
-#ifdef CIMEStatusBar__handleJapaneseStatusChange_x
-FUNCTION_AT_ADDRESS(void CIMEStatusBar::handleJapaneseStatusChange(unsigned long), CIMEStatusBar__handleJapaneseStatusChange);
-#endif
-#ifdef CIMEStatusBar__handleKoreanStatusChange_x
-FUNCTION_AT_ADDRESS(void CIMEStatusBar::handleKoreanStatusChange(unsigned long), CIMEStatusBar__handleKoreanStatusChange);
-#endif
-#ifdef CIMEStatusBar__repositionStatusWindow_x
-FUNCTION_AT_ADDRESS(int CIMEStatusBar::repositionStatusWindow(), CIMEStatusBar__repositionStatusWindow);
-#endif
-#ifdef CIMECandidateList__CIMECandidateList_x
-FUNCTION_AT_ADDRESS(CIMECandidateList::CIMECandidateList(CIMEManager*), CIMECandidateList__CIMECandidateList);
-#endif
-#ifdef CIMECandidateList__show_x
-FUNCTION_AT_ADDRESS(int CIMECandidateList::show(CIMEComposition const*) const, CIMECandidateList__show);
-#endif
-#ifdef CIMECandidateList__repositionImeCandidateList_x
-FUNCTION_AT_ADDRESS(int CIMECandidateList::repositionImeCandidateList(int, int) const, CIMECandidateList__repositionImeCandidateList);
-#endif
-#ifdef CIMEComposition__CIMEComposition_x
-FUNCTION_AT_ADDRESS(CIMEComposition::CIMEComposition(CIMEManager*), CIMEComposition__CIMEComposition);
-#endif
-#ifdef CIMEComposition__dCIMEComposition_x
-FUNCTION_AT_ADDRESS(CIMEComposition::~CIMEComposition(), CIMEComposition__dCIMEComposition);
-#endif
-#ifdef CIMEComposition__addInputChar_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::addInputChar(unsigned short), CIMEComposition__addInputChar);
-#endif
-#ifdef CIMEComposition__addInputString_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::addInputString(unsigned short*, int), CIMEComposition__addInputString);
-#endif
-#ifdef CIMEComposition__addInputString1_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::addInputString(const CXStr&, int), CIMEComposition__addInputString1);
-#endif
-#ifdef CIMEComposition__addStringFromIme_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::addStringFromIme(long), CIMEComposition__addStringFromIme);
-#endif
-#ifdef CIMEComposition__directToEditWnd_x
-FUNCTION_AT_ADDRESS(void CIMEComposition::directToEditWnd(CEditWnd*), CIMEComposition__directToEditWnd);
-#endif
-#ifdef CIMEComposition__getCursorPoint_x
-FUNCTION_AT_ADDRESS(CXPoint CIMEComposition::getCursorPoint() const, CIMEComposition__getCursorPoint);
-#endif
-#ifdef CIMEComposition__getCompositionArea_x
-FUNCTION_AT_ADDRESS(CXRect CIMEComposition::getCompositionArea() const, CIMEComposition__getCompositionArea);
-#endif
-#ifdef CIMEComposition__repositionImeCompositionWindow_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::repositionImeCompositionWindow(int, int) const, CIMEComposition__repositionImeCompositionWindow);
-#endif
-#ifdef CIMEComposition__allocateImeCompositionString_x
-FUNCTION_AT_ADDRESS(unsigned short* CIMEComposition::allocateImeCompositionString(long) const, CIMEComposition__allocateImeCompositionString);
-#endif
-#ifdef CIMEComposition__allocateImeCompositionAttributes_x
-FUNCTION_AT_ADDRESS(struct CompAttr* CIMEComposition::allocateImeCompositionAttributes() const, CIMEComposition__allocateImeCompositionAttributes);
-#endif
-#ifdef CIMEComposition__getCompositionInsertIndex_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::getCompositionInsertIndex() const, CIMEComposition__getCompositionInsertIndex);
-#endif
-#ifdef CIMEComposition__handleImeComposing_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::handleImeComposing(), CIMEComposition__handleImeComposing);
-#endif
-#ifdef CIMEComposition__applyJapaneseComposingRules_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::applyJapaneseComposingRules(CXStr*), CIMEComposition__applyJapaneseComposingRules);
-#endif
-#ifdef CIMEComposition__applyChineseComposingRules_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::applyChineseComposingRules(CXStr*), CIMEComposition__applyChineseComposingRules);
-#endif
-#ifdef CIMEComposition__applyKoreanComposingRules_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::applyKoreanComposingRules(CXStr*), CIMEComposition__applyKoreanComposingRules);
-#endif
-#ifdef CIMEComposition__addCompositionHighlights_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::addCompositionHighlights(), CIMEComposition__addCompositionHighlights);
-#endif
-#ifdef CIMEComposition__handleImeResult_x
-FUNCTION_AT_ADDRESS(int CIMEComposition::handleImeResult(), CIMEComposition__handleImeResult);
-#endif
-#ifdef CIMEComposition__backupCurrentText_x
-FUNCTION_AT_ADDRESS(void CIMEComposition::backupCurrentText(), CIMEComposition__backupCurrentText);
-#endif
-#ifdef CIMEComposition__revertToBackupText_x
-FUNCTION_AT_ADDRESS(void CIMEComposition::revertToBackupText(), CIMEComposition__revertToBackupText);
-#endif
 #ifdef CMemoryStream__GetStringSize_x
 FUNCTION_AT_ADDRESS(int __cdecl CMemoryStream::GetStringSize(CXStr&), CMemoryStream__GetStringSize);
 #endif
@@ -9751,7 +8270,7 @@ FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(const char* Str, int TextColo
 #endif
 #ifdef CDBStr__GetString_x
 // GetString(index, subindex, &success)
-FUNCTION_AT_ADDRESS(char* CDBStr::GetString(int, int, int*), CDBStr__GetString);
+FUNCTION_AT_ADDRESS(const char* CDBStr::GetString(int, int, bool*), CDBStr__GetString);
 #endif
 #ifdef EQMisc__GetActiveFavorCost_x
 FUNCTION_AT_ADDRESS(int EQMisc::GetActiveFavorCost(), EQMisc__GetActiveFavorCost);
@@ -9853,9 +8372,6 @@ FUNCTION_AT_ADDRESS(void PcZoneClient::BandolierSwap(int index), PcZoneClient__B
 #endif
 #ifdef PcZoneClient__GetLinkedSpellReuseTimer_x
 FUNCTION_AT_ADDRESS(UINT PcZoneClient::GetLinkedSpellReuseTimer(int index), PcZoneClient__GetLinkedSpellReuseTimer);
-#endif
-#ifdef CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x
-FUNCTION_AT_ADDRESS(CCollisionInfoTargetVisibility::CCollisionInfoTargetVisibility(CLineSegment*, EQPlayer*, EQPlayer*), CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
 #endif
 #ifdef EQSpellStrings__GetString_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
