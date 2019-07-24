@@ -182,6 +182,8 @@ public:
 		return CXPoint{ left + (GetWidth() / 2), top + (GetHeight() / 2) };
 	}
 
+	CXPoint TopLeft() const { return CXPoint{ left, top }; }
+
 	int left = 0;
 	int top = 0;
 	int right = 0;
@@ -294,7 +296,6 @@ enum EQExpansionOwned
 // Enumerations...
 using EQZoneIndex = uint32_t;
 using EQLocalizeLanguage = uint32_t;
-using EScrollCode = uint32_t;
 enum EWndRuntimeType;
 
 // Forward class declarations

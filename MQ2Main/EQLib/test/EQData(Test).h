@@ -1119,7 +1119,7 @@ using PCI2_INFO = CI2_INFO*;
 struct GROUPMEMBER
 {
 /*0x00*/ void*  vftable;
-/*0x04*/ CXStr  pName;
+/*0x04*/ CXStr  Name;
 /*0x08*/ BYTE   Mercenary;
 /*0x09*/ BYTE   Unknown0x9[0x3];
 /*0x0c*/ CXStr  pOwner;                // name of mercenary's owner

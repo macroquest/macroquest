@@ -3276,7 +3276,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 		case 0:
 		{
 			((CXWnd*)pWnd)->Show(0, 1);
-			if (PCXSTR Str = pWnd->CGetWindowText())
+			if (CXStr Str = pWnd->GetWindowText())
 			{
 				CHAR *szBuf = new CHAR[MAX_STRING];
 				GetCXStr(Str, szBuf);

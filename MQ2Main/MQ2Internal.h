@@ -504,7 +504,6 @@ namespace MQ2Internal {
 		{
 			CreateChildrenFromSidl();
 			this->Show(true, true, true);
-			ReplacevfTable();
 			SetEscapable(false);
 			//CloseOnESC=0;
 		}
@@ -513,43 +512,13 @@ namespace MQ2Internal {
 		{
 			CreateChildrenFromSidl();
 			this->Show(true, true);
-			ReplacevfTable();
 			SetEscapable(false);
 			//CloseOnESC=0;
 		}
 
 		~CCustomWnd()
 		{
-			RemovevfTable();
 		}
-
-		//int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
-		//{
-		//	return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
-		//}
-
-		void ReplacevfTable()
-		{
-			OldvfTable = ((CSIDLWND*)this)->pvfTable;
-			CSidlScreenWnd_VirtualFunctions* NewvfTable = new CSidlScreenWnd_VirtualFunctions;
-			memcpy(NewvfTable, OldvfTable, sizeof(CSidlScreenWnd_VirtualFunctions));
-			((CSIDLWND*)this)->pvfTable = NewvfTable;
-		}
-
-		void RemovevfTable()
-		{
-			CSidlScreenWnd_VirtualFunctions* NewvfTable = ((CSIDLWND*)this)->pvfTable;
-			((CSIDLWND*)this)->pvfTable = OldvfTable;
-			delete NewvfTable;
-		}
-
-		void SetvfTable(DWORD index, DWORD value)
-		{
-			DWORD* vtable = (DWORD*)((CSIDLWND*)this)->pvfTable;
-			vtable[index] = value;
-		}
-
-		CSidlScreenWnd_VirtualFunctions* OldvfTable;
 	};
 #pragma pack(pop)
 
@@ -559,34 +528,11 @@ namespace MQ2Internal {
 		//class CXWnd *,unsigned __int32,class CXRect const &
 		CCustomMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect) : CContextMenu(pParent, MenuID, rect)
 		{
-			//ReplacevfTable();
-		};
+		}
 
 		~CCustomMenu()
 		{
-			//RemovevfTable();
-		};
-		void ReplacevfTable()
-		{
-			PCCONTEXTMENUVFTABLE NewvfTable = new CCONTEXTMENUVFTABLE;
-			OldvfTable = ((CContextMenu*)this)->pvfTable;
-			memcpy(NewvfTable, OldvfTable, sizeof(CCONTEXTMENUVFTABLE));
-			((CContextMenu*)this)->pvfTable = NewvfTable;
 		}
-
-		void RemovevfTable()
-		{
-			PCCONTEXTMENUVFTABLE NewvfTable = ((CContextMenu*)this)->pvfTable;
-			((CContextMenu*)this)->pvfTable = OldvfTable;
-			delete NewvfTable;
-		}
-
-		void SetvfTable(DWORD index, DWORD value)
-		{
-			DWORD* vtable = (DWORD*)((CContextMenu*)this)->pvfTable;
-			vtable[index] = value;
-		}
-		PCCONTEXTMENUVFTABLE OldvfTable;
 	};
 
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)

@@ -3504,29 +3504,16 @@ public:
 	EQLIB_OBJECT void ToggleSel(int);
 
 	// virtual
-	EQLIB_OBJECT ~CListWnd();
-	EQLIB_OBJECT CTextureAnimation* GetCursorToDisplay() const;
 	EQLIB_OBJECT int Compare(const SListWndLine&, const SListWndLine&) const;
-	EQLIB_OBJECT int Draw() const;
-	EQLIB_OBJECT int DrawBackground() const;
 	EQLIB_OBJECT int DrawColumnSeparators() const;
 	EQLIB_OBJECT int DrawHeader() const;
 	EQLIB_OBJECT int DrawItem(int, int, int) const;
 	EQLIB_OBJECT int DrawLine(int) const;
 	EQLIB_OBJECT int DrawSeparator(int) const;
-	EQLIB_OBJECT int HandleLButtonDown(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonUp(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleMouseMove(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleRButtonDown(const CXPoint&, uint32_t);
 	EQLIB_OBJECT int OnHeaderClick(CXPoint);
-	EQLIB_OBJECT int OnMove(CXRect);
-	EQLIB_OBJECT int OnResize(int, int);
-	EQLIB_OBJECT int OnVScroll(EScrollCode, int);
-	EQLIB_OBJECT int SetVScrollPos(int Pos);
-	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
 	EQLIB_OBJECT void DeleteAll();
 	EQLIB_OBJECT void Sort();
+
 	EQLIB_OBJECT void SetColumnsSizable(bool bColumnsSizable);
 	EQLIB_OBJECT void GetWndPosition(CXWnd* pWnd, int& ItemID, int& SubItemID) const;
 	EQLIB_OBJECT void SetItemWnd(int Index, int SubItem, CXWnd* pWnd);
@@ -5575,7 +5562,7 @@ public:
 	// virtual
 	EQLIB_OBJECT ~CStmlWnd();
 	EQLIB_OBJECT bool IsPointTransparent(CXPoint) const;
-	EQLIB_OBJECT CTextureAnimation* GetCursorToDisplay() const;
+	EQLIB_OBJECT HCURSOR GetCursorToDisplay() const;
 	EQLIB_OBJECT int Draw() const;
 	EQLIB_OBJECT int HandleKeyboardMsg(uint32_t, uint32_t, bool);
 	EQLIB_OBJECT int HandleLButtonDown(const CXPoint&, uint32_t);

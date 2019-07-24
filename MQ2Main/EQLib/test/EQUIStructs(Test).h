@@ -38,7 +38,7 @@ struct EQCURRENTSELECTION
 };
 using PEQCURRENTSELECTION = EQCURRENTSELECTION*;
 
-struct CSidlScreenWnd_VirtualFunctions : public CXWnd_VirtualFunctions
+struct CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 {
 /*0x16c*/ void* CSidlScreenWnd__OnPreZone1c;
 /*0x170*/ void* CSidlScreenWnd__OnPreZone1d;
@@ -100,7 +100,7 @@ struct CSIDLWND : public CXWND
 };
 using PCSIDLWND = CSIDLWND*;
 
-struct CListWnd_VirtualFunctions : public CXWnd_VirtualFunctions
+struct CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 {
 /*0x168*/ void* CListWnd__OnHeaderClick;
 /*0x16c*/ void* CListWnd__DrawColumnSeparators;

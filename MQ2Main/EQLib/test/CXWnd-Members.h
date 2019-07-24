@@ -27,13 +27,13 @@
 	bool        bNeedsSaving;                        // will be true if you move or resize the window
 	uint32_t    FadeDuration;
 	int         DeleteCount;
-	bool        bClientRectChanged;
+	mutable bool bClientRectChanged;
 	bool        bMaximized;
 	uint8_t     TargetAlpha;
 	int         LeftOffset;
 	uint8_t     Alpha;
 	CXStr       Tooltip;                             // found in CSidlManager__CreateLabel_x
-	bool        bScreenClipRectChanged;
+	mutable bool bScreenClipRectChanged;
 	int         BottomOffset;
 	uint8_t     FadeAlpha;
 	void*       pTipTextObject;
@@ -73,14 +73,14 @@
 	bool        bShowClickThroughMenuItem;           // shows/hides the click through option on the window menu
 	bool        bTopAnchoredToTop;
 	uint32_t    XMLIndex;
-	void*       pController;
+	ControllerBase* pController;
 	void*       TitlePiece;
 	bool        MouseOver;                           // found in CXWnd__SetMouseOver_x
 	bool        Fades;
 	COLORREF    DisabledBackground;
 	bool        bBottomAnchoredToTop;
 	uint32_t    LastBlinkFadeRefreshTime;
-	CXRect      ClipRectClient;
+	mutable CXRect ClipRectClient;
 	bool        bClipToParent;
 	void*       pTextObject;
 	bool        bUseInLayoutVertical;
@@ -94,14 +94,14 @@
 	CXSize      MinClientSize;
 	bool        bLeftAnchoredToLeft;
 	CXRect      IconRect;
-	CXRect      ClipRectScreen;
+	mutable CXRect ClipRectScreen;
 	int         BlinkStartTimer;
 	bool        bFullyScreenClipped;
 	int         Transition;
-	CXRect      ClientRect;
+	mutable CXRect ClientRect;
 	int         TopOffset;
 	bool        bTiled;
-	bool        bClientClipRectChanged;
+	mutable bool bClientClipRectChanged;
 	bool        bClickThrough;                       // if true you can click through the window, well it doesnt work for our chatwindow (yet) so more work is needed to figure out why
 	uint32_t    BlinkFadeFreq;
 	int         HScrollPos;
@@ -110,7 +110,7 @@
 	bool        CloseOnESC;                          // found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed
 	COLORREF    BGColor;                             // DO NOT CHNAGE THIS TO AN ARGBCOLOR, it will break the padding since its a union that has bytes in it.
 	CXStr       XMLToolTip;                          // found in CSidlManager__CreateLabel_x
-	void*       pLayoutStrategy;
+	CLayoutStrategy* pLayoutStrategy;
 	CXWndDrawTemplate* DrawTemplate;
 	CXWnd*      ParentWindow;                        // CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute...
 	bool        bKeepOnScreen;

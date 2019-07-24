@@ -46,7 +46,7 @@ namespace MQ2Globals
 		EQADDR_ZONETYPE = (PBYTE)__ZoneType;
 		gbUseTellWindows = *(BOOL*)__UseTellWindows;
 		gpbRangedAttackReady = (PCHAR)__RangeAttackReady;
-		ppCResolutionHandler = (CResolutionHandler * *)pinstCResolutionHandler;
+		ppCResolutionHandler = (CResolutionHandler**)pinstCResolutionHandler;
 		gpbShowNetStatus = (PCHAR)__NetStatusToggle;
 		g_ppDrawHandler = (DWORD*)__DrawHandler;
 		gpShowNames = (DWORD*)__ShowNames;
@@ -87,8 +87,8 @@ namespace MQ2Globals
 
 #ifndef ISXEQ
 		EQADDR_DIMAIN = DI8__Main;
-		EQADDR_DIKEYBOARD = (IDirectInputDevice8A * *)DI8__Keyboard;
-		EQADDR_DIMOUSE = (IDirectInputDevice8A * *)DI8__Mouse;
+		EQADDR_DIKEYBOARD = (IDirectInputDevice8A**)DI8__Keyboard;
+		EQADDR_DIMOUSE = (IDirectInputDevice8A**)DI8__Mouse;
 #endif
 		EQADDR_DIMOUSECOPY = (PPOINT)DI8__Mouse_Copy;
 		EQADDR_DIMOUSECHECK = (PPOINT)DI8__Mouse_Check;

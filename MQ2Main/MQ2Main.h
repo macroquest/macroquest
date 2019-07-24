@@ -800,48 +800,6 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define GAMESTATE_LOGGINGIN     253
 #define GAMESTATE_UNLOADING     255
 
-#define XWM_LCLICK              1
-#define XWM_LMOUSEUP            2
-#define XWM_RCLICK              3
-#define XWM_LDBLCLICK           4
-#define XWM_HITENTER            6
-#define XWM_CLOSE               10
-#define XWN_TOOLTIP             12
-#define XWM_NEWVALUE            14
-#define XWM_COLUMNCLICK         15
-#define XWM_SORTREQUEST         16
-#define XWM_IS_LINK_ACTIVE      19
-#define XWM_MENUSELECT          20
-#define XWM_MOUSEOVER           21
-#define XWM_HISTORY             22
-#define XWM_LCLICKHOLD          23
-#define XWM_LINK                27
-#define XWM_MAXIMIZEBOX         29
-#define XWM_ACHIEVEMENTLINK     31
-//not sure what 32 is now, they inserted a new message smack in the middle instead of adding it to the end
-//i think its achievement related. -eqmule
-#if !defined(ROF2EMU) && !defined(UFEMU)
-#define XWN_DIALOGRESPONSELINK  33
-#define XWM_FOCUS               34
-#define XWM_LOSTFOCUS           35
-#define XWM_TEXTENTRY_COMPLETE  41
-#define XWM_RSELITEM_DOWN       47
-#define XWN_OUTPUT_TEXT         49
-#define XWN_COMMANDLINK         50
-//ok so here we have 2 new messages 51 and 52 see https://forums.daybreakgames.com/eq/index.php?threads/game-update-notes-july-19-2017.242705/
-//I think they where added in that patch
-//they are dynamiczone/raid related or something
-//need to investigate further to know for sure -eqmule
-#else
-#define XWN_DIALOGRESPONSELINK  32
-#define XWM_FOCUS               33
-#define XWM_LOSTFOCUS           34
-#define XWM_TEXTENTRY_COMPLETE  40
-#define XWM_RSELITEM_DOWN       46
-#define XWN_OUTPUT_TEXT         48
-#define XWN_COMMANDLINK         49
-#endif
-
 #define XKF_SHIFT               1
 #define XKF_CTRL                2
 #define XKF_LALT                4
@@ -874,7 +832,8 @@ EQLIB_API AggroMeterManagerClient *GetAggroInfo();
 EQLIB_API ClientSOIManager *GetAuraMgr();
 EQLIB_API CBroadcast *GetTextOverlay();
 EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
-EQLIB_API bool Anonymize(char *name, int maxlen, int LootFlag = 0);
+EQLIB_API bool Anonymize(char* name, int maxlen, int LootFlag = 0);
+EQLIB_API bool Anonymize(CXStr name, int LootFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 
