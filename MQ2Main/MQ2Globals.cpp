@@ -107,163 +107,163 @@ namespace MQ2Globals
 #if !defined(ROF2EMU) && !defined(UFEMU)
 		cmdToggleKeyRingItem = (fEQToggleKeyRingItem)__ToggleKeyRingItem;
 #endif
-		ppStringTable = (StringTable * *)pinstStringTable;
-		ppCDBStr = (CDBStr * *)pinstCDBStr;
+		ppStringTable = (StringTable**)pinstStringTable;
+		ppCDBStr = (CDBStr**)pinstCDBStr;
 		pEQMisc = (EQMisc*)instEQMisc;
-		ppCSkillMgr = (CSkillMgr * *)pinstSkillMgr;
+		ppCSkillMgr = (CSkillMgr**)pinstSkillMgr;
 		pGuild = (CGuild*)__Guilds;
-		ppSkillMgr = (_SKILLMGR * *)pinstSkillMgr;
+		ppSkillMgr = (_SKILLMGR**)pinstSkillMgr;
 
 		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
-		ppEverQuest = (CEverQuest * *)pinstCEverQuest;
-		ppDisplay = (CDisplay * *)pinstCDisplay;
-		ppPCData = (EQ_PC * *)pinstPCData;
-		ppCharData = (EQ_Character * *)pinstCharData;
-		ppCharSpawn = (EQPlayer * *)pinstCharSpawn;
-		ppActiveMerchant = (EQPlayer * *)pinstActiveMerchant;
-		ppSpawnManager = (EQPlayerManager * *)pinstSpawnManager;
-		ppLocalPlayer = (EQPlayer * *)pinstLocalPlayer;
-		ppControlledPlayer = (EQPlayer * *)pinstControlledPlayer;
-		ppWorldData = (EQWorldData * *)pinstWorldData;
-		ppSpellMgr = (ClientSpellManager * *)pinstSpellManager;
-		ppTarget = (EQPlayer * *)pinstTarget;
-		ppSwitchMgr = (EqSwitchManager * *)pinstSwitchManager;
+		ppEverQuest = (CEverQuest**)pinstCEverQuest;
+		ppDisplay = (CDisplay**)pinstCDisplay;
+		ppPCData = (EQ_PC**)pinstPCData;
+		ppCharData = (EQ_Character**)pinstCharData;
+		ppCharSpawn = (EQPlayer**)pinstCharSpawn;
+		ppActiveMerchant = (EQPlayer**)pinstActiveMerchant;
+		ppSpawnManager = (EQPlayerManager**)pinstSpawnManager;
+		ppLocalPlayer = (EQPlayer**)pinstLocalPlayer;
+		ppControlledPlayer = (EQPlayer**)pinstControlledPlayer;
+		ppWorldData = (EQWorldData**)pinstWorldData;
+		ppSpellMgr = (ClientSpellManager**)pinstSpellManager;
+		ppTarget = (EQPlayer**)pinstTarget;
+		ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
 		pSpellSets = (SPELLFAVORITE*)pinstSpellSets;
 		pZoneInfo = (EQZoneInfo*)instEQZoneInfo;
-		ppAltAdvManager = (AltAdvManager * *)pinstAltAdvManager;
+		ppAltAdvManager = (AltAdvManager**)pinstAltAdvManager;
 		ppConnection = (PCONNECTION_T*)__gWorld;
 #if defined(ROF2EMU) || defined(UFEMU)
-		ppAuraMgr = (AURAMGR * *)pinstAuraMgr;
+		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
 #endif
-		ppAuraWnd = (CAuraWnd * *)pinstCAuraWnd;
+		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		ppLootFiltersManager = (LootFiltersManager * *)pinstLootFiltersManager;
+		ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
 #endif
-		ppEQChatMgr = (EQCHATMGR * *)pinstCChatWindowManager;
+		ppEQChatMgr = (EQCHATMGR**)pinstCChatWindowManager;
 
-		ppTradeTarget = (EQPlayer * *)pinstTradeTarget;
-		ppActiveBanker = (EQPlayer * *)pinstActiveBanker;
-		ppActiveGMaster = (EQPlayer * *)pinstActiveGMaster;
-		ppActiveCorpse = (EQPlayer * *)pinstActiveCorpse;
+		ppTradeTarget = (EQPlayer**)pinstTradeTarget;
+		ppActiveBanker = (EQPlayer**)pinstActiveBanker;
+		ppActiveGMaster = (EQPlayer**)pinstActiveGMaster;
+		ppActiveCorpse = (EQPlayer**)pinstActiveCorpse;
 
-		ppContextMenuManager = (CContextMenuManager * *)pinstCContextMenuManager;
-		ppCursorAttachment = (CCursorAttachment * *)pinstCCursorAttachment;
-		ppSocialEditWnd = (CSocialEditWnd * *)pinstCSocialEditWnd;
-		ppContainerMgr = (CContainerMgr * *)pinstCContainerMgr;
-		ppChatManager = (CChatManager * *)pinstCChatWindowManager;
-		ppFacePick = (CFacePick * *)pinstCFacePick;
+		ppContextMenuManager = (CContextMenuManager**)pinstCContextMenuManager;
+		ppCursorAttachment = (CCursorAttachment**)pinstCCursorAttachment;
+		ppSocialEditWnd = (CSocialEditWnd**)pinstCSocialEditWnd;
+		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
+		ppChatManager = (CChatManager**)pinstCChatWindowManager;
+		ppFacePick = (CFacePick**)pinstCFacePick;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		ppFactionWnd = (CFactionWnd * *)pinstCFactionWnd;
-		ppFindItemWnd = (CFindItemWnd * *)pinstCFindItemWnd;
+		ppFactionWnd = (CFactionWnd**)pinstCFactionWnd;
+		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
 #endif
-		ppExtendedTargetWnd = (CExtendedTargetWnd * *)pinstCExtendedTargetWnd;
-		ppFindLocationWnd = (CFindLocationWnd * *)pinstCFindLocationWnd;
-		ppInvSlotMgr = (CInvSlotMgr * *)pinstCInvSlotMgr;
-		ppNoteWnd = (CNoteWnd * *)pinstCNoteWnd;
-		ppBookWnd = (CBookWnd * *)pinstCBookWnd;
-		ppFriendsWnd = (CFriendsWnd * *)pinstCFriendsWnd;
-		ppMusicPlayerWnd = (CMusicPlayerWnd * *)pinstCMusicPlayerWnd;
+		ppExtendedTargetWnd = (CExtendedTargetWnd**)pinstCExtendedTargetWnd;
+		ppFindLocationWnd = (CFindLocationWnd**)pinstCFindLocationWnd;
+		ppInvSlotMgr = (CInvSlotMgr**)pinstCInvSlotMgr;
+		ppNoteWnd = (CNoteWnd**)pinstCNoteWnd;
+		ppBookWnd = (CBookWnd**)pinstCBookWnd;
+		ppFriendsWnd = (CFriendsWnd**)pinstCFriendsWnd;
+		ppMusicPlayerWnd = (CMusicPlayerWnd**)pinstCMusicPlayerWnd;
 
-		ppRealEstateItemsWnd = (CRealEstateItemsWnd * *)pinstCRealEstateItemsWnd;
-		ppAchievementsWnd = (CAchievementsWnd * *)pinstCAchievementsWnd;
-		ppAlarmWnd = (CAlarmWnd * *)pinstCAlarmWnd;
-		ppLoadskinWnd = (CLoadskinWnd * *)pinstCLoadskinWnd;
-		ppPetInfoWnd = (CPetInfoWnd * *)pinstCPetInfoWnd;
-		ppRespawnWnd = (CRespawnWnd * *)pinstCRespawnWnd;
+		ppRealEstateItemsWnd = (CRealEstateItemsWnd**)pinstCRealEstateItemsWnd;
+		ppAchievementsWnd = (CAchievementsWnd**)pinstCAchievementsWnd;
+		ppAlarmWnd = (CAlarmWnd**)pinstCAlarmWnd;
+		ppLoadskinWnd = (CLoadskinWnd**)pinstCLoadskinWnd;
+		ppPetInfoWnd = (CPetInfoWnd**)pinstCPetInfoWnd;
+		ppRespawnWnd = (CRespawnWnd**)pinstCRespawnWnd;
 
-		ppTrainWnd = (CTrainWnd * *)pinstCTrainWnd;
-		ppSkillsWnd = (CSkillsWnd * *)pinstCSkillsWnd;
-		ppSkillsSelectWnd = (CSkillsSelectWnd * *)pinstCSkillsSelectWnd;
-		ppAAWnd = (CAAWnd * *)pinstCAAWnd;
-		ppGroupWnd = (CGroupWnd * *)pinstCGroupWnd;
-		ppGroupSearchWnd = (CGroupSearchWnd * *)pinstCGroupSearchWnd;
-		ppGroupSearchFiltersWnd = (CGroupSearchFiltersWnd * *)pinstCGroupSearchFiltersWnd;
-		ppRaidWnd = (CRaidWnd * *)pinstCRaidWnd;
-		ppRaidOptionsWnd = (CRaidOptionsWnd * *)pinstCRaidOptionsWnd;
-		ppBreathWnd = (CBreathWnd * *)pinstCBreathWnd;
-		ppMapToolbarWnd = (CMapToolbarWnd * *)pinstCMapToolbarWnd;
-		ppMapViewWnd = (CMapViewWnd * *)pinstCMapViewWnd;
-		ppEditLabelWnd = (CEditLabelWnd * *)pinstCEditLabelWnd;
-		ppOptionsWnd = (COptionsWnd * *)pinstCOptionsWnd;
-		ppBuffWindowSHORT = (CBuffWindow * *)pinstCBuffWindowSHORT;
-		ppBuffWindowNORMAL = (CBuffWindow * *)pinstCBuffWindowNORMAL;
-		ppTargetWnd = (CTargetWnd * *)pinstCTargetWnd;
-		ppColorPickerWnd = (CColorPickerWnd * *)pinstCColorPickerWnd;
-		ppCombatSkillsSelectWnd = (CCombatSkillsSelectWnd * *)pinstCCombatSkillsSelectWnd;
-		ppHotButtonWnd = (CHotButtonWnd * *)pinstCHotButtonWnd;
-		ppPlayerWnd = (CPlayerWnd * *)pinstCPlayerWnd;
-		ppCastingWnd = (CCastingWnd * *)pinstCCastingWnd;
-		ppCastSpellWnd = (CCastSpellWnd * *)pinstCCastSpellWnd;
-		ppSpellBookWnd = (CSpellBookWnd * *)pinstCSpellBookWnd;
-		ppInventoryWnd = (CInventoryWnd * *)pinstCInventoryWnd;
-		ppBankWnd = (CBankWnd * *)pinstCBankWnd;
-		ppQuantityWnd = (CQuantityWnd * *)pinstCQuantityWnd;
-		ppTextEntryWnd = (CTextEntryWnd * *)pinstCTextEntryWnd;
-		ppFileSelectionWnd = (CFileSelectionWnd * *)pinstCFileSelectionWnd;
-		ppLootWnd = (CLootWnd * *)pinstCLootWnd;
-		ppActionsWnd = (CActionsWnd * *)pinstCActionsWnd;
-		ppCombatAbilityWnd = (CCombatAbilityWnd * *)pinstCCombatAbilityWnd;
-		ppMerchantWnd = (CMerchantWnd * *)pinstCMerchantWnd;
-		ppTradeWnd = (CTradeWnd * *)pinstCTradeWnd;
-		ppBazaarWnd = (CBazaarWnd * *)pinstCBazaarWnd;
-		ppBazaarSearchWnd = (CBazaarSearchWnd * *)pinstCBazaarSearchWnd;
-		ppGiveWnd = (CGiveWnd * *)pinstCGiveWnd;
-		ppSelectorWnd = (CSelectorWnd * *)pinstCSelectorWnd;
-		ppTrackingWnd = (CTrackingWnd * *)pinstCTrackingWnd;
-		ppInspectWnd = (CInspectWnd * *)pinstCInspectWnd;
-		ppBugReportWnd = (CBugReportWnd * *)pinstCBugReportWnd;
-		ppVideoModesWnd = (CVideoModesWnd * *)pinstCVideoModesWnd;
-		ppCompassWnd = (CCompassWnd * *)pinstCCompassWnd;
-		ppPlayerNotesWnd = (CPlayerNotesWnd * *)pinstCPlayerNotesWnd;
-		ppGemsGameWnd = (CGemsGameWnd * *)pinstCGemsGameWnd;
-		ppStoryWnd = (CStoryWnd * *)pinstCStoryWnd;
-		ppBodyTintWnd = (CBodyTintWnd * *)pinstCBodyTintWnd;
-		ppGuildMgmtWnd = (CGuildMgmtWnd * *)pinstCGuildMgmtWnd;
-		ppJournalTextWnd = (CJournalTextWnd * *)pinstCJournalTextWnd;
-		ppJournalCatWnd = (CJournalCatWnd * *)pinstCJournalCatWnd;
-		ppPetitionQWnd = (CPetitionQWnd * *)pinstCPetitionQWnd;
+		ppTrainWnd = (CTrainWnd**)pinstCTrainWnd;
+		ppSkillsWnd = (CSkillsWnd**)pinstCSkillsWnd;
+		ppSkillsSelectWnd = (CSkillsSelectWnd**)pinstCSkillsSelectWnd;
+		ppAAWnd = (CAAWnd**)pinstCAAWnd;
+		ppGroupWnd = (CGroupWnd**)pinstCGroupWnd;
+		ppGroupSearchWnd = (CGroupSearchWnd**)pinstCGroupSearchWnd;
+		ppGroupSearchFiltersWnd = (CGroupSearchFiltersWnd**)pinstCGroupSearchFiltersWnd;
+		ppRaidWnd = (CRaidWnd**)pinstCRaidWnd;
+		ppRaidOptionsWnd = (CRaidOptionsWnd**)pinstCRaidOptionsWnd;
+		ppBreathWnd = (CBreathWnd**)pinstCBreathWnd;
+		ppMapToolbarWnd = (CMapToolbarWnd**)pinstCMapToolbarWnd;
+		ppMapViewWnd = (CMapViewWnd**)pinstCMapViewWnd;
+		ppEditLabelWnd = (CEditLabelWnd**)pinstCEditLabelWnd;
+		ppOptionsWnd = (COptionsWnd**)pinstCOptionsWnd;
+		ppBuffWindowSHORT = (CBuffWindow**)pinstCBuffWindowSHORT;
+		ppBuffWindowNORMAL = (CBuffWindow**)pinstCBuffWindowNORMAL;
+		ppTargetWnd = (CTargetWnd**)pinstCTargetWnd;
+		ppColorPickerWnd = (CColorPickerWnd**)pinstCColorPickerWnd;
+		ppCombatSkillsSelectWnd = (CCombatSkillsSelectWnd**)pinstCCombatSkillsSelectWnd;
+		ppHotButtonWnd = (CHotButtonWnd**)pinstCHotButtonWnd;
+		ppPlayerWnd = (CPlayerWnd**)pinstCPlayerWnd;
+		ppCastingWnd = (CCastingWnd**)pinstCCastingWnd;
+		ppCastSpellWnd = (CCastSpellWnd**)pinstCCastSpellWnd;
+		ppSpellBookWnd = (CSpellBookWnd**)pinstCSpellBookWnd;
+		ppInventoryWnd = (CInventoryWnd**)pinstCInventoryWnd;
+		ppBankWnd = (CBankWnd**)pinstCBankWnd;
+		ppQuantityWnd = (CQuantityWnd**)pinstCQuantityWnd;
+		ppTextEntryWnd = (CTextEntryWnd**)pinstCTextEntryWnd;
+		ppFileSelectionWnd = (CFileSelectionWnd**)pinstCFileSelectionWnd;
+		ppLootWnd = (CLootWnd**)pinstCLootWnd;
+		ppActionsWnd = (CActionsWnd**)pinstCActionsWnd;
+		ppCombatAbilityWnd = (CCombatAbilityWnd**)pinstCCombatAbilityWnd;
+		ppMerchantWnd = (CMerchantWnd**)pinstCMerchantWnd;
+		ppTradeWnd = (CTradeWnd**)pinstCTradeWnd;
+		ppBazaarWnd = (CBazaarWnd**)pinstCBazaarWnd;
+		ppBazaarSearchWnd = (CBazaarSearchWnd**)pinstCBazaarSearchWnd;
+		ppGiveWnd = (CGiveWnd**)pinstCGiveWnd;
+		ppSelectorWnd = (CSelectorWnd**)pinstCSelectorWnd;
+		ppTrackingWnd = (CTrackingWnd**)pinstCTrackingWnd;
+		ppInspectWnd = (CInspectWnd**)pinstCInspectWnd;
+		ppBugReportWnd = (CBugReportWnd**)pinstCBugReportWnd;
+		ppVideoModesWnd = (CVideoModesWnd**)pinstCVideoModesWnd;
+		ppCompassWnd = (CCompassWnd**)pinstCCompassWnd;
+		ppPlayerNotesWnd = (CPlayerNotesWnd**)pinstCPlayerNotesWnd;
+		ppGemsGameWnd = (CGemsGameWnd**)pinstCGemsGameWnd;
+		ppStoryWnd = (CStoryWnd**)pinstCStoryWnd;
+		ppBodyTintWnd = (CBodyTintWnd**)pinstCBodyTintWnd;
+		ppGuildMgmtWnd = (CGuildMgmtWnd**)pinstCGuildMgmtWnd;
+		ppJournalTextWnd = (CJournalTextWnd**)pinstCJournalTextWnd;
+		ppJournalCatWnd = (CJournalCatWnd**)pinstCJournalCatWnd;
+		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
 #if defined(ROF2EMU) || defined(UFEMU)
-		ppFeedbackWnd = (CFeedbackWnd * *)pinstCFeedbackWnd;
+		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
 #endif
-		ppCWebManager = (CWebManager * *)pinstCWebManager;
-		ppTaskWnd = (CTaskWnd * *)pinstCTaskWnd;
+		ppCWebManager = (CWebManager**)pinstCWebManager;
+		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
 		ppTaskManager = (CTaskManager*)pinstCTaskManager;
-		ppTimeLeftWnd = (CTimeLeftWnd * *)pinstCTimeLeftWnd;
+		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
 #if defined(ROF2EMU) || defined(UFEMU)
-		ppTextOverlay = (CTextOverlay * *)pinstCTextOverlay;
+		ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
 #endif
 #if defined(ROF2EMU) || defined(UFEMU)
-		ppPotionBeltWnd = (CPotionBeltWnd * *)pinstCPotionBeltWnd;
+		ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
 #endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		ppAdvancedLootWnd = (CAdvancedLootWnd * *)pinstCAdvancedLootWnd;
+		ppAdvancedLootWnd = (CAdvancedLootWnd**)pinstCAdvancedLootWnd;
 #endif
-		ppBandolierWnd = (CBandolierWnd * *)pinstCBandolierWnd;
-		ppRewardSelectionWnd = (CRewardSelectionWnd * *)pinstRewardSelectionWnd;
-		ppConfirmationDialog = (CConfirmationDialog * *)pinstCConfirmationDialog;
+		ppBandolierWnd = (CBandolierWnd**)pinstCBandolierWnd;
+		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
+		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
 #if defined(ROF2EMU) || defined(UFEMU)
-		ppPointMerchantWnd = (PointMerchantWnd * *)pinstCPointMerchantWnd;
-		ppKeypressHandler = (KeypressHandler * *)instKeypressHandler;
+		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
+		ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
 #endif
-		ppCZoneGuideWnd = (CZoneGuideWnd * *)pinstCZoneGuideWnd;
-		ppSidlMgr = (CSidlManager * *)pinstCSidlManager;
-		ppWndMgr = (CXWndManager * *)pinstCXWndManager;
+		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
+		ppSidlMgr = (CSidlManager**)pinstCSidlManager;
+		ppWndMgr = (CXWndManager**)pinstCXWndManager;
 		pRaid = (PEQRAID)instCRaid;
-		ppDZMember = (DZMEMBER * *)pinstDZMember;
-		ppDZTimerInfo = (DZTIMERINFO * *)pinstDZTimerInfo;
-		ppTaskMember = (TASKMEMBER * *)pinstTaskMember;
+		ppDZMember = (DZMEMBER**)pinstDZMember;
+		ppDZTimerInfo = (DZTIMERINFO**)pinstDZTimerInfo;
+		ppTaskMember = (TASKMEMBER**)pinstTaskMember;
 		pDynamicZone = (DYNAMICZONE*)instDynamicZone;
-		ppMercInfo = (MERCENARYINFO * *)pinstMercenaryData;
+		ppMercInfo = (MERCENARYINFO**)pinstMercenaryData;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		ppEQSpellStrings = (EQSpellStrings * *)pinstEQSpellStrings;
+		ppEQSpellStrings = (EQSpellStrings**)pinstEQSpellStrings;
 #endif
 #if defined(ROF2EMU) || defined(UFEMU)
-		ppAggroInfo = (AGGROINFO * *)pinstAggroInfo;
+		ppAggroInfo = (AGGROINFO**)pinstAggroInfo;
 #endif
-		ppLargeDialog = (CLargeDialogWnd * *)pinstCLargeDialogWnd;
-		ppItemDisplayManager = (CItemDisplayManager * *)pinstCItemDisplayManager;
-		ppEqSoundManager = (EqSoundManager * *)pinstEQSoundManager;
+		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
+		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
+		ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
 
 		return true;
 	}

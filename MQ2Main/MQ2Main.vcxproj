@@ -124,12 +124,15 @@
     <ClInclude Include="EQLib\live\CXWnd-Members.h" />
     <ClInclude Include="EQLib\live\EQData.h" />
     <ClInclude Include="EQLib\live\EQGame.h" />
+    <ClInclude Include="EQLib\live\EQUIStructs.h" />
     <ClInclude Include="EQLib\live\ItemBase-Members.h" />
     <ClInclude Include="EQLib\live\PlayerZoneClient-Members.h" />
+    <ClInclude Include="EQLib\test\CXWnd-Members.h" />
+    <ClInclude Include="EQLib\test\EQData(Test).h" />
     <ClInclude Include="EQLib\test\EQGame(Test).h" />
     <ClInclude Include="EQLib\test\EQUIStructs(Test).h" />
     <ClInclude Include="EQLib\test\ItemBase-Members.h" />
-    <ClInclude Include="live\EQUIStructs.h" />
+    <ClInclude Include="EQLib\test\PlayerZoneClient-Members.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
     <ClInclude Include="MQ2Globals-private_default.h" />
@@ -140,9 +143,6 @@
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="test\CXWnd-Members.h" />
-    <ClInclude Include="test\EQData(Test).h" />
-    <ClInclude Include="test\PlayerZoneClient-Members.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc" />

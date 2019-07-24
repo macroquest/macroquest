@@ -12,6 +12,8 @@
  * GNU General Public License for more details.
  */
 
+#pragma once
+
 #include <map>
 #include <memory>
 

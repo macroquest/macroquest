@@ -4918,15 +4918,13 @@ VOID UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 		if (pSelectorWnd) {
 			CHAR szOut[2048] = { 0 };
 			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
-			pSelectorWnd->CSetWindowText(szOut);
-			//SetCXStr(&pSelectorWnd->WindowText, szOut);
+			pSelectorWnd->SetWindowText(szOut);
 		}
 	} else if (!_stricmp(szArg1, "off")) {
 		gbShowCurrentCamera = 0;
 		if (pSelectorWnd)
 		{
-			pSelectorWnd->CSetWindowText("Selector Window");
-			//SetCXStr(&pSelectorWnd->WindowText, "Selector Window");
+			pSelectorWnd->SetWindowText("Selector Window");
 		}
 		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", gszINIFilename);
 	} else if (!_stricmp(szArg1, "save")) {

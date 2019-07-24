@@ -474,9 +474,6 @@ EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
 LEGACY_API VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed);
 #define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer,commandtoexecute)
 
-EQLIB_API VOID AppendCXStr(PCXSTR *cxstr, PCHAR text);
-EQLIB_API VOID SetCXStr(PCXSTR *cxstr, PCHAR text);
-EQLIB_API DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen = MAX_STRING);
 EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
 EQLIB_API VOID StripMQChat(PCHAR in, PCHAR out);
 EQLIB_API VOID STMLToPlainText(PCHAR in, PCHAR out);
@@ -895,4 +892,3 @@ inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 }
 #define LODWORD(_qw)    ((DWORD)(_qw))
 #define HIDWORD(_qw)    ((DWORD)(((_qw) >> 32) & 0xffffffff))
-#pragma pack(pop)

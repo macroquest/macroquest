@@ -157,18 +157,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="live\EQUIStructs.h">
-      <Filter>Header Files\EQLib\Live</Filter>
-    </ClInclude>
-    <ClInclude Include="test\EQData(Test).h">
-      <Filter>Header Files\EQLib\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="test\CXWnd-Members.h">
-      <Filter>Header Files\EQLib\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="test\PlayerZoneClient-Members.h">
-      <Filter>Header Files\EQLib\Test</Filter>
-    </ClInclude>
     <ClInclude Include="data\combines.h">
       <Filter>Header Files\EQLib\Data</Filter>
     </ClInclude>
@@ -252,6 +240,18 @@
     </ClInclude>
     <ClInclude Include="EQLib\common\Globals.h">
       <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\test\CXWnd-Members.h">
+      <Filter>Header Files\EQLib\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\test\EQData(Test).h">
+      <Filter>Header Files\EQLib\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\live\EQUIStructs.h">
+      <Filter>Header Files\EQLib\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\test\PlayerZoneClient-Members.h">
+      <Filter>Header Files\EQLib\Test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

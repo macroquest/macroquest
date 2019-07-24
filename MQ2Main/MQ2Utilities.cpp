@@ -475,72 +475,6 @@ VOID ConvertItemTags(CXStr &cxstr, BOOL Tag)
 	};
 }
 
-// YES THIS NEEDS TO BE PCXSTR * 
-VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
-{
-	CXStr *Str = (CXStr*)cxstr;
-	(*Str) += text;
-	cxstr = (PCXSTR*)Str;
-	//cxstr+=text;
-}
-
-// YES THIS NEEDS TO BE PCXSTR * 
-VOID SetCXStr(PCXSTR *cxstr, PCHAR text)
-{
-	//cxstr=text;
-	CXStr *Str = (CXStr*)cxstr;
-	(*Str) = text;
-	cxstr = (PCXSTR*)Str;
-}
-
-DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD bufflen)
-{
-	if (!szBuffer)
-		return 0;
-	szBuffer[0] = '\0';
-	if (!pCXStr || !bufflen) {
-		return 0;
-	}
-	if(IsBadReadPtr(pCXStr,4))
-		return 0;
-	try
-	{
-		if (pCXStr->Encoding == 0)
-		{
-			if (pCXStr->Length<bufflen)
-			{
-				strcpy_s(szBuffer, bufflen, pCXStr->Text);
-				return pCXStr->Length;
-			}
-			else
-			{
-				strncpy_s(szBuffer,bufflen, pCXStr->Text, _TRUNCATE);
-				szBuffer[bufflen - 1] = '\0';
-				return bufflen;
-			}
-		}
-		else
-		{ // unicode
-		  // this is kind of ghetto but it works for english
-			DWORD i = 0;
-			DWORD o = 0;
-			bufflen--;
-			while (pCXStr->Text[i] && o<bufflen)
-			{
-				szBuffer[o++] = pCXStr->Text[i];
-				i += 2;
-			}
-			szBuffer[o] = 0;
-			return o;
-		}
-	}
-	catch (...) {
-		MessageBox(NULL, "An Unknown Exception Occured", "In GetCXStr", MB_SYSTEMMODAL | MB_OK);
-	}
-	return 0;
-}
-/**/
-
 #define InsertColor(text,color) sprintf(text,"<c \"#%06X\">",color);TotalColors++; 
 #define InsertColorSafe(text,len,color) sprintf_s(text, len,"<c \"#%06X\">",color);TotalColors++; 
 #define InsertStopColor(text)   sprintf(text,"</c>");TotalColors--; 
@@ -11074,6 +11008,7 @@ int GetGroupMemberClassByIndex(int N)
 	}
 	return 0;
 }
+
 int GetRaidMemberClassByIndex(int N)
 {
 	if (pRaid && pRaid->Invited == 4) {
@@ -11082,10 +11017,11 @@ int GetRaidMemberClassByIndex(int N)
 	}
 	return 0;
 }
-bool Anonymize(char *name, int maxlen, int NameFlag)
+
+bool Anonymize(char* name, int maxlen, int NameFlag)
 {
-	if(GetGameState()!=GAMESTATE_INGAME || !pLocalPlayer)
-		return 0;
+	if (GetGameState() != GAMESTATE_INGAME || !pLocalPlayer)
+		return false;
 	BOOL bisTarget = false;
 	int isRmember = -1;
 	BOOL isGmember = false;
@@ -11110,7 +11046,7 @@ bool Anonymize(char *name, int maxlen, int NameFlag)
 			char buffer[L_tmpnam] = { 0 };
 			tmpnam_s(buffer);
 			char*pDest = strrchr(buffer, '\\');
-			
+
 			int len = strlen(name);
 			for (int i = 1; i < len - 1; i++) {
 				name[i] = '*';
@@ -11175,39 +11111,36 @@ void UpdatedMasterLooterLabel()
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pAdvancedLootWnd)
 	{
-		if (CLabelWnd*MasterLooterLabel = (CLabelWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter"))
+		if (CLabelWnd* MasterLooterLabel = (CLabelWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter"))
 		{
-			CHAR szText[MAX_STRING];
+			CXStr text;
 			bool bFound = false;
+
 			if (PCHARINFO pChar = GetCharInfo())
 			{
 				if (pChar->pGroupInfo)
 				{
-					for (int i = 0; i < 6; i++)
+					for (auto member : pChar->pGroupInfo->pMember)
 					{
-						if (pChar->pGroupInfo->pMember[i])
+						if (member && member->MasterLooter)
 						{
-							if (pChar->pGroupInfo->pMember[i]->MasterLooter)
+							text = pChar->pGroupInfo->pMember[i]->Name
+
+							if (gAnonymize)
 							{
-								GetCXStr(pChar->pGroupInfo->pMember[i]->pName, szText);
-								if (gAnonymize)
-								{
-									Anonymize(szText, MAX_STRING);
-								}
-								bFound = true;
-								break;
+								Anonymize(text, MAX_STRING);
 							}
+							bFound = true;
+							break;
 						}
 					}
 				}
 			}
 			if (bFound)
 			{
-				((CXWnd*)MasterLooterLabel)->SetWindowTextA(szText);
-				//SetCXStr(&(MasterLooterLabel->WindowText), szText);
+				MasterLooterLabel->SetWindowText(szText);
 			}
 		}
-		//delete szText;
 	}
 #endif
 }
