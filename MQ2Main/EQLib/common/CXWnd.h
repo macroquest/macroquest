@@ -20,6 +20,8 @@
 
 namespace eqlib {
 
+class CRadioGroup;
+
 // Message types for WndNotifications
 #define XWM_LCLICK              1
 #define XWM_LMOUSEUP            2
@@ -39,30 +41,14 @@ namespace eqlib {
 #define XWM_LINK                27
 #define XWM_MAXIMIZEBOX         29
 #define XWM_ACHIEVEMENTLINK     31
-	//not sure what 32 is now, they inserted a new message smack in the middle instead of adding it to the end
-	//i think its achievement related. -eqmule
-#if !defined(ROF2EMU) && !defined(UFEMU)
-#define XWN_DIALOGRESPONSELINK  33
+// unknown message exists here at 32, might be achievement related.
+#define XWN_DIALOGRESPONSELINK  33 // needs verification
 #define XWM_FOCUS               35
 #define XWM_LOSTFOCUS           36
 #define XWM_TEXTENTRY_COMPLETE  41
 #define XWM_RSELITEM_DOWN       47
 #define XWN_OUTPUT_TEXT         49
 #define XWN_COMMANDLINK         50
-//ok so here we have 2 new messages 51 and 52 see https://forums.daybreakgames.com/eq/index.php?threads/game-update-notes-july-19-2017.242705/
-//I think they where added in that patch
-//they are dynamiczone/raid related or something
-//need to investigate further to know for sure -eqmule
-#else
-#define XWN_DIALOGRESPONSELINK  32
-#define XWM_FOCUS               33
-#define XWM_LOSTFOCUS           34
-#define XWM_TEXTENTRY_COMPLETE  40
-#define XWM_RSELITEM_DOWN       46
-#define XWN_OUTPUT_TEXT         48
-#define XWN_COMMANDLINK         49
-#endif
-
 
 enum UIType
 {
@@ -178,14 +164,14 @@ public:
 	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t, CXRect);
 
 	//----------------------------------------------------------------------------
-	EQLIB_OBJECT virtual bool IsValid() const;
+	EQLIB_OBJECT virtual bool IsValid() const { return ValidCXWnd; }
 	EQLIB_OBJECT virtual ~CXWnd();
 	EQLIB_OBJECT virtual int DrawNC() const;
-	EQLIB_OBJECT virtual int Draw();
-	EQLIB_OBJECT virtual int PostDraw();
+	EQLIB_OBJECT virtual int Draw() { return 0; }
+	EQLIB_OBJECT virtual int PostDraw() { return 0; }
 	EQLIB_OBJECT virtual int DrawCursor(const CXPoint& mousePos, const CXRect& clip, bool& drawn);
-	EQLIB_OBJECT virtual int DrawChildItem(const CXWnd* child, void* item) const;
-	EQLIB_OBJECT virtual int DrawCaret() const;
+	EQLIB_OBJECT virtual int DrawChildItem(const CXWnd* child, void* item) const { return 0; }
+	EQLIB_OBJECT virtual int DrawCaret() const { return 0; }
 	EQLIB_OBJECT virtual int DrawBackground() const;
 	EQLIB_OBJECT virtual int DrawTooltip(const CXWnd* wnd) const;
 	EQLIB_OBJECT virtual int DrawTooltipAtPoint(const CXPoint& pos, const CXStr& tooltip = {}) const;
@@ -214,8 +200,8 @@ public:
 	EQLIB_OBJECT virtual bool QueryClickStickDropOK(CClickStickInfo* info) const;
 	EQLIB_OBJECT virtual int WndNotification(CXWnd* sender, uint32_t message, void* data);
 	EQLIB_OBJECT virtual void OnWndNotification();
-	EQLIB_OBJECT virtual void Activate();
-	EQLIB_OBJECT virtual void Deactivate();
+	EQLIB_OBJECT virtual void Activate() { Show(true); }
+	EQLIB_OBJECT virtual void Deactivate() { Show(false); }
 	EQLIB_OBJECT bool IsActive() const { return bActive; }
 	EQLIB_OBJECT virtual int OnShow();
 	EQLIB_OBJECT virtual int OnMove(const CXRect& rect);
@@ -227,20 +213,20 @@ public:
 	EQLIB_OBJECT void SetMinimized(bool bValue) { Minimized = bValue; }
 	EQLIB_OBJECT virtual int OnMaximizeBox();
 	EQLIB_OBJECT bool IsMaximized() const { return bMaximized; }
-	EQLIB_OBJECT virtual int OnTileBox(); // needs impl
+	EQLIB_OBJECT virtual int OnTileBox();
 	EQLIB_OBJECT bool IsTiled() const { return bTiled; }
-	EQLIB_OBJECT virtual int OnTile();
+	EQLIB_OBJECT virtual int OnTile() { return 0; }
 	EQLIB_OBJECT virtual int OnSetFocus(CXWnd* old);
 	EQLIB_OBJECT virtual int OnKillFocus(CXWnd* old);
 	EQLIB_OBJECT virtual int OnProcessFrame();
 	EQLIB_OBJECT virtual int OnVScroll(EScrollCode code, int pos);
 	EQLIB_OBJECT virtual int OnHScroll(EScrollCode code, int pos);
-	EQLIB_OBJECT virtual int OnBroughtToTop();
+	EQLIB_OBJECT virtual int OnBroughtToTop() { return 0; }
 	EQLIB_OBJECT virtual int OnActivate(CXWnd* old) { return 0; }
 	EQLIB_OBJECT virtual int Show(bool show = true, bool bringToTop = true, bool updateLayout = true);
 	EQLIB_OBJECT virtual bool AboutToShow();
 	EQLIB_OBJECT virtual bool AboutToHide();
-	EQLIB_OBJECT virtual int RequestDockInfo(EDockAction action, CXWnd* wnd, CXRect* rect);
+	EQLIB_OBJECT virtual int RequestDockInfo(EDockAction action, CXWnd* wnd, CXRect* rect) { return 0; }
 	EQLIB_OBJECT virtual CXStr GetTooltip() const { return Tooltip; }
 	EQLIB_OBJECT void SetTooltip(const CXStr& Value) { Tooltip = Value; }
 	EQLIB_OBJECT virtual void Unknown0x0EC();
@@ -270,8 +256,8 @@ public:
 	EQLIB_OBJECT virtual int AutoSetHScrollPos(CXRect rect);
 	EQLIB_OBJECT virtual void SetAttributesFromSidl(CParamScreenPiece* screenPiece);
 	EQLIB_OBJECT virtual void OnReloadSidl() {}
-	EQLIB_OBJECT virtual bool Unknown0x150() { return false;  }
-	EQLIB_OBJECT virtual void Unknown0x154(bool) {}
+	EQLIB_OBJECT virtual bool HasActivatedFirstTimeAlert() const { return false;  }
+	EQLIB_OBJECT virtual void SetHasActivatedFirstTimeAlert(bool) {}
 	EQLIB_OBJECT virtual const CXSize& GetMinClientSize() const { return MinClientSize; }
 	EQLIB_OBJECT void SetMinClientSize(const CXSize& pt) { MinClientSize = pt; }
 	EQLIB_OBJECT virtual const CXSize& GetMaxClientSize() const { return MaxClientSize; }
@@ -458,6 +444,104 @@ public:
 
 	EQLIB_OBJECT void SetCRNormal(COLORREF Value) { CRNormal = Value; }
 
+	struct VirtualFunctionTable
+	{
+	/*0x000*/ void* IsValid;
+	/*0x004*/ void* Destructor;
+	/*0x008*/ void* DrawNC;
+	/*0x00c*/ void* Draw;
+	/*0x010*/ void* PostDraw;
+	/*0x014*/ void* DrawCursor;
+	/*0x018*/ void* DrawChildItems;
+	/*0x01c*/ void* DrawCaret;
+	/*0x020*/ void* DrawBackground;
+	/*0x024*/ void* DrawTooltip;
+	/*0x028*/ void* DrawTooltipAtPoint;
+	/*0x02c*/ void* GetMinimizedRect;
+	/*0x030*/ void* DrawTitleBar;
+	/*0x034*/ void* GetCursorToDisplay;
+	/*0x038*/ void* HandleLButtonDown;
+	/*0x03c*/ void* HandleLButtonUp;
+	/*0x040*/ void* HandleLButtonHeld;
+	/*0x044*/ void* HandleLButtonUpAfterHeld;
+	/*0x048*/ void* HandleRButtonDown;
+	/*0x04c*/ void* HandleRButtonUp;
+	/*0x050*/ void* HandleRButtonHeld;
+	/*0x054*/ void* HandleRButtonUpAfterHeld;
+	/*0x058*/ void* HandleWheelButtonDown;
+	/*0x05c*/ void* HandleWheelButtonUp;
+	/*0x060*/ void* HandleMouseMove;
+	/*0x064*/ void* HandleWheelMove;
+	/*0x068*/ void* HandleKeyboardMsg;
+	/*0x06c*/ void* HandleMouseLeave;
+	/*0x070*/ void* OnDragDrop;
+	/*0x074*/ void* GetDragDropCursor;
+	/*0x078*/ void* QueryDropOK;
+	/*0x07c*/ void* OnClickStick;
+	/*0x080*/ void* GetClickStickCursor;
+	/*0x084*/ void* QueryClickStickDropOK;
+	/*0x088*/ void* WndNotification;
+	/*0x08c*/ void* OnWndNotification;
+	/*0x090*/ void* Activate;
+	/*0x094*/ void* Deactivate;
+	/*0x098*/ void* OnShow;
+	/*0x09c*/ void* OnMove;
+	/*0x0a0*/ void* OnResize;
+	/*0x0a4*/ void* OnBeginMoveOrResize;
+	/*0x0a8*/ void* OnCompleteMoveOrResize;
+	/*0x0ac*/ void* OnMinimizeBox;
+	/*0x0b0*/ void* OnMaximizeBox;
+	/*0x0b4*/ void* OnTileBox;
+	/*0x0b8*/ void* OnTile;
+	/*0x0bc*/ void* OnSetFocus;
+	/*0x0c0*/ void* OnKillFocus;
+	/*0x0c4*/ void* OnProcessFrame;
+	/*0x0c8*/ void* OnVScroll;
+	/*0x0cc*/ void* OnHScroll;
+	/*0x0d0*/ void* OnBroughtToTop;
+	/*0x0d4*/ void* OnActivate;
+	/*0x0d8*/ void* Show;
+	/*0x0dc*/ void* AboutToShow;
+	/*0x0e0*/ void* AboutToHide;
+	/*0x0e4*/ void* RequestDockInfo;
+	/*0x0e8*/ void* GetTooltip;
+	/*0x0ec*/ void* Unknown0x0ec;
+	/*0x0f0*/ void* HitTest;
+	/*0x0f4*/ void* GetHitTestRect;
+	/*0x0f8*/ void* GetInnerRect;
+	/*0x0fc*/ void* GetClientRect;
+	/*0x100*/ void* GetClientClipRect;
+	/*0x104*/ void* GetMinSize;
+	/*0x108*/ void* GetMaxSize;
+	/*0x10c*/ void* GetUntileSize;
+	/*0x110*/ void* IsPointTransparent;
+	/*0x114*/ void* Unknown0x114;
+	/*0x118*/ void* ControllerShouldProcessFrame;
+	/*0x11c*/ void* SetDrawTemplate;
+	/*0x120*/ void* Move_Rect;                       // CXWnd__Move1_x
+	/*0x124*/ void* Move_Point;                      // CXWnd__Move_x
+	/*0x128*/ void* SetWindowText;
+	/*0x12c*/ void* GetChildWndAt;
+	/*0x130*/ void* GetSidlPiece;
+	/*0x134*/ void* GetWindowName;
+	/*0x138*/ void* SetVScrollPos;
+	/*0x13c*/ void* SetHScrollPos;
+	/*0x140*/ void* AutoSetVScrollPos;
+	/*0x144*/ void* AutoSetHScrollPos;
+	/*0x148*/ void* SetAttributesFromSidl;
+	/*0x14c*/ void* OnReloadSidl;
+	/*0x150*/ void* HasActivatedFirstTimeAlert;
+	/*0x154*/ void* SetHasActivatedFirstTimeAlert;
+	/*0x158*/ void* GetMinClientSize;
+	/*0x15c*/ void* GetMaxClientSize;
+	/*0x160*/ void* Unknown0x160;
+	/*0x164*/ void* UpdateLayout;
+	/*0x168*/
+	};
+
+	// points to the eq instance of the virtual function table for this class
+	static VirtualFunctionTable* sm_vftable;
+
 private:
 	int Maximize(bool) { return 0; }
 	void Tile(bool) {}
@@ -466,6 +550,98 @@ private:
 
 using CXWND = CXWnd;
 using PCXWND = CXWnd*;
+
+//----------------------------------------------------------------------------
+
+// CSidlScreenWnd__CSidlScreenWnd1_x
+// to check do : CSidlScreenWnd* csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");
+// Size 0x240 in Oct 13 2017 Test exe see 605AAD
+class CSidlScreenWnd : public CXWnd
+{
+public:
+	EQLIB_OBJECT CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen);
+	EQLIB_OBJECT CSidlScreenWnd(CXWnd* pWnd, const CXStr& Screen, int Flags, int IniVersion = 1, char* BlockName = nullptr);
+	EQLIB_OBJECT CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&);
+
+	EQLIB_OBJECT virtual ~CSidlScreenWnd();
+
+	// virtuals that are overwritten
+	EQLIB_OBJECT virtual int OnResize(int width, int height) override;
+	EQLIB_OBJECT virtual int DrawBackground() const override;
+	EQLIB_OBJECT virtual int WndNotification(CXWnd* wnd, uint32_t message, void* data) override;
+	EQLIB_OBJECT virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int OnShow() override;
+	EQLIB_OBJECT virtual CScreenPieceTemplate* GetSidlPiece(const CXStr& screenId, bool topLevel = true) const override;
+	EQLIB_OBJECT virtual const CXStr* GetWindowName() const override;
+	EQLIB_OBJECT virtual bool HasActivatedFirstTimeAlert() const override;
+	EQLIB_OBJECT virtual void SetHasActivatedFirstTimeAlert(bool) override;
+
+	//----------------------------------------------------------------------------
+	// new virtuals
+	EQLIB_OBJECT virtual int OnZone() { return 0; }
+	EQLIB_OBJECT virtual int OnPreZone() { return 0; }
+	EQLIB_OBJECT virtual void LoadIniInfo();
+	EQLIB_OBJECT virtual void StoreIniInfo();
+	EQLIB_OBJECT virtual CSidlScreenWnd* AsSidlScreenWnd() { return this; }
+	EQLIB_OBJECT virtual bool GetScreenWndType() { return true; }
+
+	//----------------------------------------------------------------------------
+	// data members
+	bool                         bControlsCreated;
+	CXStr                        SidlText;
+	CScreenTemplate*             SidlPiece;
+	ArrayClass<CRadioGroup*>     RadioGroup;
+	bool                         bInitVisibility;
+	bool                         bVisibleBeforeResize;
+	int                          IniFlags;
+	CXStr                        IniStorageName;                       // found in CSidlScreenWnd__LoadSidlScreen
+	int                          IniVersion;
+	int                          LastResX;
+	int                          LastResY;
+	bool                         bLastResFullscreen;
+	int                          ContextMenuID;
+	CXWnd*                       pFirstVScrollChild;
+	int                          ContextMenuTipID;
+	bool                         bHasActivatedFirstTimeAlert;
+
+	//----------------------------------------------------------------------------
+	// functions that we provide offsets for
+	EQLIB_OBJECT CXRect GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const;
+	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&, bool bDebug);
+	EQLIB_OBJECT int DrawSidlPiece(CScreenPieceTemplate*, const CXRect&, const CXRect&) const;
+	EQLIB_OBJECT void AddButtonToRadioGroup(const CXStr&, CButtonWnd*);
+	EQLIB_OBJECT void CalculateHSBRange();
+	EQLIB_OBJECT void CalculateVSBRange();
+	EQLIB_OBJECT void CreateChildrenFromSidl(DWORD = 0);
+	EQLIB_OBJECT void EnableIniStorage(int, char*);
+	EQLIB_OBJECT void Init(int, const CXStr&, int, int, int);
+	EQLIB_OBJECT void Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*);
+	EQLIB_OBJECT void LoadIniListWnd(CListWnd*, char*);
+	EQLIB_OBJECT void SetScreen(const CXStr&);
+	EQLIB_OBJECT void StoreIniListWnd(CListWnd const*, char*);
+	EQLIB_OBJECT void StoreIniVis();
+
+	// protected
+	EQLIB_OBJECT int ConvertToRes(int, int, int, int);
+	EQLIB_OBJECT void LoadSidlScreen();
+
+	// private
+
+	struct VirtualFunctionTable : public CXWnd::VirtualFunctionTable
+	{
+	/*0x168*/ void* OnZone;
+	/*0x16c*/ void* OnPreZone;
+	/*0x170*/ void* LoadIniInfo;
+	/*0x174*/ void* StoreIniInfo;
+	/*0x178*/ void* AsSidlScreenWnd;
+	/*0x17c*/ void* GetScreenWndType;
+	};
+
+	// points to the eq instance of the virtual function table for this class
+	static VirtualFunctionTable* sm_vftable;
+
+private:
+};
 
 } // namespace eqlib
 

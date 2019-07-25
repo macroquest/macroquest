@@ -6381,84 +6381,11 @@ FUNCTION_AT_ADDRESS(int Mp3Manager::GetPosition(), Mp3Manager__GetPosition);
 #ifdef EmitterManager__SetVolumeLevel_x
 FUNCTION_AT_ADDRESS(void EmitterManager::SetVolumeLevel(float), EmitterManager__SetVolumeLevel);
 #endif
-#ifdef CSidlScreenWnd__dCSidlScreenWnd_x
-FUNCTION_AT_ADDRESS(CSidlScreenWnd::~CSidlScreenWnd(), CSidlScreenWnd__dCSidlScreenWnd);
-#endif
-#ifdef CSidlScreenWnd__WndNotification_x
-FUNCTION_AT_ADDRESS(int CSidlScreenWnd::WndNotification(CXWnd*, uint32_t, void*), CSidlScreenWnd__WndNotification);
-#endif
-#ifdef CSidlScreenWnd__CSidlScreenWnd_x
-CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&), CSidlScreenWnd__CSidlScreenWnd);
-#endif
-#ifdef CSidlScreenWnd__CSidlScreenWnd1_x
-CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen, int, int, char*), CSidlScreenWnd__CSidlScreenWnd1);
-#endif
-#ifdef CSidlScreenWnd__CSidlScreenWnd2_x
-CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen), CSidlScreenWnd__CSidlScreenWnd2);
-#endif
-#ifdef CSidlScreenWnd__Init_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*), CSidlScreenWnd__Init);
-#endif
-#ifdef CSidlScreenWnd__Init1_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(int, const CXStr&, int, int, int), CSidlScreenWnd__Init1);
-#endif
-#ifdef CSidlScreenWnd__SetScreen_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::SetScreen(CXStr*), CSidlScreenWnd__SetScreen);
-#endif
-#ifdef CSidlScreenWnd__LoadSidlScreen_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadSidlScreen(), CSidlScreenWnd__LoadSidlScreen);
-#endif
-#ifdef CSidlScreenWnd__CalculateVSBRange_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::CalculateVSBRange(), CSidlScreenWnd__CalculateVSBRange);
-#endif
-#ifdef CSidlScreenWnd__CalculateHSBRange_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::CalculateHSBRange(), CSidlScreenWnd__CalculateHSBRange);
-#endif
-#ifdef CSidlScreenWnd__DrawSidlPiece_x
-FUNCTION_AT_ADDRESS(int CSidlScreenWnd::DrawSidlPiece(CScreenPieceTemplate*, const CXRect&, const CXRect&) const, CSidlScreenWnd__DrawSidlPiece);
-#endif
-#ifdef CSidlScreenWnd__GetSidlPiece_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlScreenWnd::GetSidlPiece(const CXStr&, bool bTopLevel) const, CSidlScreenWnd__GetSidlPiece);
-#endif
-#ifdef CSidlScreenWnd__GetSidlPieceRect_x
-FUNCTION_AT_ADDRESS(CXRect CSidlScreenWnd::GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const, CSidlScreenWnd__GetSidlPieceRect);
-#endif
-#ifdef CSidlScreenWnd__AddButtonToRadioGroup_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::AddButtonToRadioGroup(CXStr, CButtonWnd*), CSidlScreenWnd__AddButtonToRadioGroup);
-#endif
 #ifdef CRadioGroup__CRadioGroup_x
 FUNCTION_AT_ADDRESS(CRadioGroup::CRadioGroup(CXStr), CRadioGroup__CRadioGroup);
 #endif
 #ifdef CRadioGroup__GetName_x
 FUNCTION_AT_ADDRESS(CXStr CRadioGroup::GetName() const, CRadioGroup__GetName);
-#endif
-#ifdef CSidlScreenWnd__CreateChildrenFromSidl_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::CreateChildrenFromSidl(DWORD), CSidlScreenWnd__CreateChildrenFromSidl);
-#else
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::CreateChildrenFromSidl(), CSidlScreenWnd__CreateChildrenFromSidl);
-#endif
-#endif
-#ifdef CSidlScreenWnd__StoreIniVis_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniVis(), CSidlScreenWnd__StoreIniVis);
-#endif
-#ifdef CSidlScreenWnd__EnableIniStorage_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::EnableIniStorage(int, char*), CSidlScreenWnd__EnableIniStorage);
-#endif
-#ifdef CSidlScreenWnd__ConvertToRes_x
-FUNCTION_AT_ADDRESS(int CSidlScreenWnd::ConvertToRes(int, int, int, int), CSidlScreenWnd__ConvertToRes);
-#endif
-#ifdef CSidlScreenWnd__GetChildItem_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlScreenWnd::GetChildItem(const CXStr&, bool bDebug), CSidlScreenWnd__GetChildItem);
-#endif
-#ifdef CSidlScreenWnd__HandleLButtonUp_x
-FUNCTION_AT_ADDRESS(int CSidlScreenWnd::HandleLButtonUp(const CXPoint&, uint32_t), CSidlScreenWnd__HandleLButtonUp);
-#endif
-#ifdef CSidlScreenWnd__LoadIniListWnd_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniListWnd(CListWnd*, char*), CSidlScreenWnd__LoadIniListWnd);
-#endif
-#ifdef CSidlScreenWnd__StoreIniListWnd_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniListWnd(CListWnd const*, char*), CSidlScreenWnd__StoreIniListWnd);
 #endif
 #ifdef CXWndDrawTemplate__CXWndDrawTemplate_x
 FUNCTION_AT_ADDRESS(CXWndDrawTemplate::CXWndDrawTemplate(), CXWndDrawTemplate__CXWndDrawTemplate);

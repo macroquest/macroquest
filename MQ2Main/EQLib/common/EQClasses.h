@@ -178,62 +178,6 @@ enum EWndRuntimeType
 enum ZONE_REQ_STATUS {};
 enum ZONE_REQ_REASON {};
 
-class CSidlScreenWnd : public CXWnd
-{
-public:
-
-	// TODO
-	// int GetContextMenuIndex() { return ContextMenuID; }
-
-	EQLIB_OBJECT UIType GetType();
-	EQLIB_OBJECT CXMLData* GetXMLData();
-	EQLIB_OBJECT CXWnd* GetChildItem(char* Name);
-	//EQLIB_OBJECT CSidlScreenWnd() {};
-	EQLIB_OBJECT CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen);
-	EQLIB_OBJECT CSidlScreenWnd(CXWnd* pWnd, const CXStr& Screen, int Flags, int IniVersion = 1, char* BlockName = nullptr);
-	EQLIB_OBJECT CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&);
-	EQLIB_OBJECT CScreenPieceTemplate* GetSidlPiece(const CXStr&, bool bTopLevel=true) const;
-	EQLIB_OBJECT CXRect GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const;
-	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&, bool bDebug);
-	EQLIB_OBJECT int DrawSidlPiece(CScreenPieceTemplate*, const CXRect&, const CXRect&) const;
-	EQLIB_OBJECT void AddButtonToRadioGroup(const CXStr&, CButtonWnd*);
-	EQLIB_OBJECT void CalculateHSBRange();
-	EQLIB_OBJECT void CalculateVSBRange();
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_OBJECT void CreateChildrenFromSidl(DWORD = 0);
-#else
-	EQLIB_OBJECT void CreateChildrenFromSidl();
-#endif
-	EQLIB_OBJECT void EnableIniStorage(int, char*);
-	EQLIB_OBJECT void Init(int, const CXStr&, int, int, int);
-	EQLIB_OBJECT void Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*);
-	EQLIB_OBJECT void LoadIniListWnd(CListWnd*, char*);
-	EQLIB_OBJECT void SetScreen(const CXStr&);
-	EQLIB_OBJECT void StoreIniListWnd(CListWnd const*, char*);
-	EQLIB_OBJECT void StoreIniVis();
-
-	// virtual
-	EQLIB_OBJECT ~CSidlScreenWnd();
-	EQLIB_OBJECT int DrawBackground() const;
-	EQLIB_OBJECT int HandleLButtonUp(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleRButtonDown(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int OnResize(int, int);
-	EQLIB_OBJECT int OnShow();
-	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
-	EQLIB_OBJECT void LoadIniInfo();
-	EQLIB_OBJECT void StoreIniInfo();
-
-	// protected
-	EQLIB_OBJECT int ConvertToRes(int, int, int, int);
-	EQLIB_OBJECT void LoadSidlScreen();
-
-	// private
-	static EQLIB_OBJECT bool m_useIniFile;
-
-	// TODO
-	// CSW
-};
-
 class _EverQuestinfo
 {
 public:
