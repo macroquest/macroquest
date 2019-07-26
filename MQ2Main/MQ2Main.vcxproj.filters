@@ -259,4 +259,9 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="EQLib\common\Constructors.asm">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </None>
+  </ItemGroup>
 </Project>

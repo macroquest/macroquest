@@ -110,7 +110,17 @@ enum UIType
 	UI_HotButton                                 = 54,
 };
 
-using EScrollCode = uint32_t;
+enum EScrollCode
+{
+	ScrollCodeUp,
+	ScrollCodeUpContinue,
+	ScrollCodeDown,
+	ScrollCodeDownContinue,
+	ScrollCodeAbsolute,
+	ScrollCodePageUp,
+	ScrollCodePageDown
+};
+
 using EDockAction = uint32_t;
 
 struct SDragDropInfo
@@ -161,7 +171,7 @@ public:
 #error "Need CXWnd-Members""
 #endif
 
-	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t, CXRect);
+	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t id, CXRect rect);
 
 	//----------------------------------------------------------------------------
 	EQLIB_OBJECT virtual bool IsValid() const { return ValidCXWnd; }
@@ -264,66 +274,63 @@ public:
 	EQLIB_OBJECT virtual void* Unknown0x160() const { return nullptr; }
 	EQLIB_OBJECT virtual void UpdateLayout(bool finish = false);
 
-
 	void SetClientRectDirty(bool dirty);
 	bool IsClientRectDirty() const { return bClientRectChanged; }
 	bool IsClientClipRectDirty() const { return bClientClipRectChanged; }
 	bool IsScreenClipRectDirty() const { return bScreenClipRectChanged; }
 
 public:
-	EQLIB_OBJECT CXWnd* SetParent(CXWnd*);
-	EQLIB_OBJECT CXWnd* GetChildItem(CXStr Name);
-
-	EQLIB_OBJECT bool HasFocus() const;
-	EQLIB_OBJECT bool IsDescendantOf(CXWnd const*) const;
-	EQLIB_OBJECT bool IsReallyVisible() const;
+	// functions we have offsets for
 	EQLIB_OBJECT bool IsType(EWndRuntimeType eType) const;
-	EQLIB_OBJECT const CButtonDrawTemplate* GetCloseBoxTemplate() const;
-	EQLIB_OBJECT const CButtonDrawTemplate* GetMinimizeBoxTemplate() const;
-	EQLIB_OBJECT const CButtonDrawTemplate* GetTileBoxTemplate() const;
-	EQLIB_OBJECT const CTAFrameDraw* GetBorderFrame() const;
-	EQLIB_OBJECT const CTAFrameDraw* GetTitlebarHeader() const;
-	EQLIB_OBJECT CXRect GetRelativeRect() const;
-	EQLIB_OBJECT CXRect GetScreenClipRect() const;
-	EQLIB_OBJECT CXRect GetScreenRect() const;
-	EQLIB_OBJECT CXWnd* GetChildItem(CXStr const &);
-	EQLIB_OBJECT CXWnd* GetChildWndAt(CXPoint*, int, int) const;
 	EQLIB_OBJECT CXWnd* SetFocus();
-	EQLIB_OBJECT int DoAllDrawing() const;
-	EQLIB_OBJECT int DrawChildren() const;
-	EQLIB_OBJECT int DrawCloseBox() const;
-	EQLIB_OBJECT int DrawHScrollbar(int, int, int) const;
-	EQLIB_OBJECT int DrawMinimizeBox() const;
-	EQLIB_OBJECT int DrawTileBox() const;
-	EQLIB_OBJECT int DrawVScrollbar(int, int, int) const;
-	EQLIB_OBJECT int GetWidth() const;
-	EQLIB_OBJECT int Minimize(bool);
-
-	EQLIB_OBJECT int ProcessTransition();
-	EQLIB_OBJECT int Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
-	EQLIB_OBJECT void Bottom();
-	EQLIB_OBJECT void BringChildWndToTop(CXWnd*);
-	EQLIB_OBJECT void BringToTop(bool bRecurse = true);
-	EQLIB_OBJECT void Center();
 	EQLIB_OBJECT void ClrFocus();
 	EQLIB_OBJECT int Destroy();
-	EQLIB_OBJECT void Left();
 	EQLIB_OBJECT void Refade();
-	EQLIB_OBJECT void Right();
-	EQLIB_OBJECT void SetFirstChildPointer(CXWnd*);
-	EQLIB_OBJECT void SetKeyTooltip(int, int);
-	EQLIB_OBJECT void SetLookLikeParent();
-	EQLIB_OBJECT void SetMouseOver(bool);
-	EQLIB_OBJECT void SetNextSibPointer(CXWnd*);
+	EQLIB_OBJECT int ProcessTransition();
+	EQLIB_OBJECT void BringToTop(bool bRecurse = true);
 	EQLIB_OBJECT void StartFade(unsigned char, uint32_t);
-
-	// private
+	EQLIB_OBJECT int Minimize(bool);
+	EQLIB_OBJECT bool IsReallyVisible() const;
+	EQLIB_OBJECT int DoAllDrawing() const;
+	EQLIB_OBJECT int DrawChildren() const;
+	EQLIB_OBJECT void Center();
+	EQLIB_OBJECT void Right();
+	EQLIB_OBJECT CXRect GetScreenClipRect() const;
+	EQLIB_OBJECT bool IsDescendantOf(CXWnd const*) const;
+	EQLIB_OBJECT const CTAFrameDraw* GetBorderFrame() const;
+	EQLIB_OBJECT CXRect GetScreenRect() const;
+	EQLIB_OBJECT int Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
+	EQLIB_OBJECT CXWnd* GetChildItem2(const CXStr&); // we implemented our own version ...
+	EQLIB_OBJECT CXWnd* SetParent(CXWnd*);
+	EQLIB_OBJECT void SetMouseOver(bool);
+	EQLIB_OBJECT void SetKeyTooltip(int, int);
 	EQLIB_OBJECT int SetFont(void*);
+
+	//EQLIB_OBJECT bool HasFocus() const;
+	//EQLIB_OBJECT const CButtonDrawTemplate* GetCloseBoxTemplate() const;
+	//EQLIB_OBJECT const CButtonDrawTemplate* GetMinimizeBoxTemplate() const;
+	//EQLIB_OBJECT const CButtonDrawTemplate* GetTileBoxTemplate() const;
+	//EQLIB_OBJECT const CTAFrameDraw* GetTitlebarHeader() const;
+	//EQLIB_OBJECT CXRect GetRelativeRect() const;
+	//EQLIB_OBJECT CXWnd* GetChildWndAt(CXPoint*, int, int) const;
+	//EQLIB_OBJECT int DrawCloseBox() const;
+	//EQLIB_OBJECT int DrawHScrollbar(int, int, int) const;
+	//EQLIB_OBJECT int DrawMinimizeBox() const;
+	//EQLIB_OBJECT int DrawTileBox() const;
+	//EQLIB_OBJECT int DrawVScrollbar(int, int, int) const;
+	//EQLIB_OBJECT int GetWidth() const;
+	//EQLIB_OBJECT void Bottom();
+	//EQLIB_OBJECT void BringChildWndToTop(CXWnd*);
+	//EQLIB_OBJECT void Left();
+	//EQLIB_OBJECT void SetFirstChildPointer(CXWnd*);
+	//EQLIB_OBJECT void SetLookLikeParent();
+	//EQLIB_OBJECT void SetNextSibPointer(CXWnd*);
 
 	// -----------------------------------------------------------------------
 
 	EQLIB_OBJECT UIType GetType() const;
 	EQLIB_OBJECT CXMLData* GetXMLData() const;
+	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&); // we implemented our own version ...
 
 	EQLIB_OBJECT bool IsVisible() const { return dShow; }
 	EQLIB_OBJECT void SetVisible(bool bValue) { dShow = bValue; }
@@ -541,11 +548,6 @@ public:
 
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
-
-private:
-	int Maximize(bool) { return 0; }
-	void Tile(bool) {}
-	int SendNotificationToParent(CXWnd* sender, uint32_t message, void* data);
 };
 
 using CXWND = CXWnd;
@@ -559,12 +561,12 @@ using PCXWND = CXWnd*;
 class CSidlScreenWnd : public CXWnd
 {
 public:
-	EQLIB_OBJECT CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen);
-	EQLIB_OBJECT CSidlScreenWnd(CXWnd* pWnd, const CXStr& Screen, int Flags, int IniVersion = 1, char* BlockName = nullptr);
-	EQLIB_OBJECT CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&);
-
+	//EQLIB_OBJECT CSidlScreenWnd(CXWnd* parent, uint32_t id, const CXRect& rect, const CXStr& Screen);                           // CSidlScreenWnd__CSidlScreenWnd
+	EQLIB_OBJECT CSidlScreenWnd(CXWnd* parent, const CXStr& Screen, int IniFlags, int IniVersion = 1, char* BlockName = nullptr); // CSidlScreenWnd__CSidlScreenWnd1
+	EQLIB_OBJECT CSidlScreenWnd(CXWnd* parent, const CXStr& Screen);                                                              // CSidlScreenWnd__CSidlScreenWnd2
 	EQLIB_OBJECT virtual ~CSidlScreenWnd();
 
+	//----------------------------------------------------------------------------
 	// virtuals that are overwritten
 	EQLIB_OBJECT virtual int OnResize(int width, int height) override;
 	EQLIB_OBJECT virtual int DrawBackground() const override;
@@ -578,12 +580,12 @@ public:
 
 	//----------------------------------------------------------------------------
 	// new virtuals
-	EQLIB_OBJECT virtual int OnZone() { return 0; }
-	EQLIB_OBJECT virtual int OnPreZone() { return 0; }
+	EQLIB_OBJECT virtual int OnZone();
+	EQLIB_OBJECT virtual int OnPreZone();
 	EQLIB_OBJECT virtual void LoadIniInfo();
 	EQLIB_OBJECT virtual void StoreIniInfo();
-	EQLIB_OBJECT virtual CSidlScreenWnd* AsSidlScreenWnd() { return this; }
-	EQLIB_OBJECT virtual bool GetScreenWndType() { return true; }
+	EQLIB_OBJECT virtual CSidlScreenWnd* AsSidlScreenWnd();
+	EQLIB_OBJECT virtual bool GetScreenWndType();
 
 	//----------------------------------------------------------------------------
 	// data members
@@ -606,26 +608,24 @@ public:
 
 	//----------------------------------------------------------------------------
 	// functions that we provide offsets for
-	EQLIB_OBJECT CXRect GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const;
 	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&, bool bDebug);
 	EQLIB_OBJECT int DrawSidlPiece(CScreenPieceTemplate*, const CXRect&, const CXRect&) const;
-	EQLIB_OBJECT void AddButtonToRadioGroup(const CXStr&, CButtonWnd*);
 	EQLIB_OBJECT void CalculateHSBRange();
 	EQLIB_OBJECT void CalculateVSBRange();
 	EQLIB_OBJECT void CreateChildrenFromSidl(DWORD = 0);
 	EQLIB_OBJECT void EnableIniStorage(int, char*);
 	EQLIB_OBJECT void Init(int, const CXStr&, int, int, int);
-	EQLIB_OBJECT void Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*);
 	EQLIB_OBJECT void LoadIniListWnd(CListWnd*, char*);
-	EQLIB_OBJECT void SetScreen(const CXStr&);
-	EQLIB_OBJECT void StoreIniListWnd(CListWnd const*, char*);
 	EQLIB_OBJECT void StoreIniVis();
-
-	// protected
 	EQLIB_OBJECT int ConvertToRes(int, int, int, int);
 	EQLIB_OBJECT void LoadSidlScreen();
 
-	// private
+	//----------------------------------------------------------------------------
+	//EQLIB_OBJECT void Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*);
+	//EQLIB_OBJECT void SetScreen(const CXStr&);
+	//EQLIB_OBJECT void AddButtonToRadioGroup(const CXStr&, CButtonWnd*);
+	//EQLIB_OBJECT CXRect GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const;
+	//EQLIB_OBJECT void StoreIniListWnd(CListWnd const*, char*);
 
 	struct VirtualFunctionTable : public CXWnd::VirtualFunctionTable
 	{
@@ -639,9 +639,9 @@ public:
 
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
-
-private:
 };
+
+void InitializeCXWnd();
 
 } // namespace eqlib
 

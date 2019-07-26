@@ -147,6 +147,9 @@
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="EQLib\common\Constructors.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

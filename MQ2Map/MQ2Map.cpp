@@ -176,7 +176,7 @@ bool RButtonDown()
 	return true;
 }
 //int MapViewMap::HandleRButtonDown(const CXPoint& point, UINT Flags) - should probably just change to this
-int __declspec(naked) MapViewMap__HandleRButtonDown(CXPoint& point, unsigned __int32 flags)
+int __declspec(naked) MapViewMap__HandleRButtonDown(const CXPoint& point, uint32_t flags)
 {
 	__asm {
 		push ecx;
@@ -226,8 +226,9 @@ VOID __declspec(naked) CMyMapViewWnd__PostDraw()
 class CMyMapViewWnd
 {
 public:
-    int HandleLButtonDown_Trampoline(class CXPoint&, unsigned __int32);
-    int HandleLButtonDown_Detour(class CXPoint& point, unsigned __int32 flags) {
+    int HandleLButtonDown_Trampoline(const CXPoint&, uint32_t);
+    int HandleLButtonDown_Detour(const CXPoint& point, uint32_t flags)
+	{
         CMapViewWnd *pWnd = reinterpret_cast<CMapViewWnd*>(this);
 		float points[3] = { 0 ,0,0};
         points[0] = (float)point.X;

@@ -42,33 +42,48 @@
 #define EQLIB_OBJECT __declspec(dllimport)
 #endif
 
-#define CONSTRUCTOR_AT_ADDRESS(function, offset)                                         \
-//__declspec(naked) function                                                             \
-//{                                                                                      \
-//	__asm{ mov eax, offset };                                                            \
-//	__asm{ jmp eax };                                                                    \
-//}
+#define CONSTRUCTOR_AT_ADDRESS(function, offset)
 
-#define FUNCTION_AT_ADDRESS(function, offset)                                            \
-__declspec(naked) function                                                               \
-{                                                                                        \
-	__asm{ mov eax, offset };                                                            \
-	__asm{ jmp eax };                                                                    \
-}
+#define FUNCTION_AT_ADDRESS(Function, Offset)                                            \
+	__declspec(naked) Function                                                           \
+	{                                                                                    \
+		__asm mov eax, Offset                                                            \
+		__asm jmp eax                                                                    \
+	}
 
-#define FUNCTION_AT_VARIABLE_ADDRESS(function, variable) __declspec(naked) function      \
-{                                                                                        \
-	__asm{ mov eax, [variable] };                                                        \
-	__asm{ jmp eax };                                                                    \
-}
+#define FUNCTION_AT_VARIABLE_ADDRESS(Function, Variable)                                 \
+	__declspec(naked) Function                                                           \
+	{                                                                                    \
+		__asm mov eax, [Variable]                                                        \
+		__asm jmp eax                                                                    \
+	}
 
-#define FUNCTION_AT_VIRTUAL_ADDRESS(function, virtualoffset) __declspec(naked) function  \
-{                                                                                        \
-	__asm{ mov eax, [ecx] };                                                             \
-	__asm{ lea eax, [eax+virtualoffset] };                                               \
-	__asm{ mov eax, [eax] };                                                             \
-	__asm{ jmp eax };                                                                    \
-}
+#define FUNCTION_AT_VIRTUAL_ADDRESS(Function, VirtualOffset)                             \
+	__declspec(naked) Function                                                           \
+	{                                                                                    \
+		__asm mov eax, [ecx]                                                             \
+		__asm lea eax, [eax+VirtualOffset]                                               \
+		__asm jmp dword ptr [eax]                                                        \
+		__asm jmp eax                                                                    \
+	}
+
+#define FORWARD_FUNCTION_TO_VTABLE(Function, Class, Member)                              \
+	__declspec(naked) Function                                                           \
+	{                                                                                    \
+		using VFT = Class::VirtualFunctionTable;                                         \
+		__asm mov eax, [Class::sm_vftable]                                               \
+		__asm mov eax, [eax]                                                             \
+		__asm jmp dword ptr [eax]VFT.Member                                              \
+	}
+
+#define FORWARD_FUNCTION_TO_VTABLE2(Function, Class, Base, Member)                       \
+	__declspec(naked) Function                                                           \
+	{                                                                                    \
+		using VFT = Base::VirtualFunctionTable;                                          \
+		__asm mov eax, [Class::sm_vftable]                                               \
+		__asm mov eax, [eax]                                                             \
+		__asm jmp dword ptr [eax]VFT.Member                                              \
+	}
 
 namespace eqlib {
 
