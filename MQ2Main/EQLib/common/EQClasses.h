@@ -436,13 +436,6 @@ public:
 	EQLIB_OBJECT void DoNeverButton();
 };
 
-class WndEventHandler
-{
-	unsigned int lastUpdate;
-
-public:
-};
-
 class CBankWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -1354,104 +1347,6 @@ public:
 };
 
 struct D3DXVECTOR3;
-
-class CVector3
-{
-public:
-	EQLIB_OBJECT CVector3(float x, float y, float z) : X(x), Y(y), Z(z) {}
-	EQLIB_OBJECT CVector3() {}
-
-	// float GetLength() const;
-	EQLIB_OBJECT float NormalizeAndReturnLength();
-	EQLIB_OBJECT void Normalize();
-
-	void Set(float x, float y, float z)
-	{
-		X = x;
-		Y = y;
-		Z = z;
-	}
-
-	inline CVector3& operator-=(const CVector3& vec)
-	{
-		X -= vec.X;
-		Y -= vec.Y;
-		Z -= vec.Z;
-		return *this;
-	}
-
-	inline CVector3& operator+=(const CVector3& vec)
-	{
-		X += vec.X;
-		Y += vec.Y;
-		Z += vec.Z;
-		return *this;
-	}
-
-	inline void Scale(float val)
-	{
-		X *= val;
-		Y *= val;
-		Z *= val;
-	}
-
-	inline CVector3 operator*(float val) const
-	{
-		CVector3 ret = *this;
-		ret.Scale(val);
-
-		return ret;
-	}
-
-	void SetMax()
-	{
-		X = Y = Z = std::numeric_limits<float>::max();
-	}
-
-	float GetLengthSquared() const
-	{
-		return (X * X) + (Y * Y) + (Z * Z);
-	}
-
-	float GetLength() const
-	{
-		return sqrtf(GetLengthSquared());
-	}
-
-	CVector3 operator-() const
-	{
-		CVector3 res;
-		res.Set(-X, -Y, -Z);
-
-		return res;
-	}
-
-	CVector3 operator-(const CVector3& vec) const
-	{
-		CVector3 res;
-		res.Set(X - vec.X, Y - vec.Y, Z - vec.Z);
-
-		return res;
-	}
-
-	CVector3 operator+(const CVector3& vec) const
-	{
-		CVector3 res;
-		res.Set(vec.X + X, vec.Y + Y, vec.Z + Z);
-
-		return res;
-	}
-
-	float GetDistanceSquared(const CVector3& vec) const
-	{
-		CVector3 Delta = *this - vec;
-		return Delta.GetLengthSquared();
-	}
-
-	float X;
-	float Y;
-	float Z;
-};
 
 class CPhysicsInfo;
 
@@ -3062,55 +2957,6 @@ public:
 	EQLIB_OBJECT void UpdateListWnd(bool);
 };
 
-// CLabelWnd__CLabelWnd_x
-// size 0x200 see 8D5699 in Aug 10 2017 Live
-// size 0x210 see 8DCE59 in Sep 11 2017 Test
-// size 0x200 see 668D5B in Oct 17 2017 Live
-// size 0x1e4 see 86BFC9 in rof2
-class CLabelWnd : public CXWnd
-{
-public:
-/*0x1e0*/ bool               bNoWrap;
-/*0x1e1*/ bool               bAlignRight;
-/*0x1e2*/ bool               bAlignCenter;
-/*0x1e4*/ int                xOffset;
-/*0x1e8*/ bool               bResizeHeightToText;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-/*0x1ec*/ int                Unknown0x1ec;
-/*0x1f0*/ CXStr              Text;
-/*0x1f4*/ int                Unknown0x1f4;
-/*0x1f8*/ bool               Unknown0x1f8;
-/*0x1fc*/ int                Unknown0x1fc;
-/*0x200*/
-#endif
-
-	EQLIB_OBJECT CLabelWnd(CXWnd* pParent, uint32_t ID, const CXRect& rect);
-};
-
-// CLabel__CLabel_x
-// size is 0x208 see 79C989 in Aug 10 2017 Live
-// size is 0x218 see 7A3819 in Sep 11 2017 Test
-// size 0x208 see 7A5739 in Oct 17 2017 Live
-// size 0x1e8 see 755709 in Rof2
-class CLabel : public CLabelWnd
-{
-public:
-/*0x200*/ int          EQType;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-/*0x204*/ int          Unknown0x204;
-#endif
-/*0x208*/
-
-	EQLIB_OBJECT CLabel(CXWnd* pParent, uint32_t id, const CXRect& rect, int eqtype = 0);
-	EQLIB_OBJECT void SetAlignCenter(bool);
-	EQLIB_OBJECT void SetAlignRight(bool);
-	EQLIB_OBJECT void SetNoWrap(bool);
-
-	// virtual
-	EQLIB_OBJECT ~CLabel();
-	EQLIB_OBJECT int Draw() const;
-};
-
 class CLabelTemplate : public CControlTemplate
 {
 public:
@@ -3548,35 +3394,6 @@ public:
 	EQLIB_OBJECT int OnProcessFrame();
 	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
 	EQLIB_OBJECT void Deactivate();
-};
-
-class CMapViewWnd : public CSidlScreenWnd, public WndEventHandler
-{
-public:
-	EQLIB_OBJECT CMapViewWnd(CXWnd*);
-	EQLIB_OBJECT bool IsMappingEnabled();
-	EQLIB_OBJECT void Activate();
-	EQLIB_OBJECT void ActivateAutoMapping();
-	EQLIB_OBJECT void DeactivateAutoMapping();
-	//EQLIB_OBJECT  void SetCurrentZone(EQZoneIndex, struct T3D_XYZ*, struct T3D_XYZ*);
-
-	// virtual
-	EQLIB_OBJECT ~CMapViewWnd();
-	EQLIB_OBJECT int HandleLButtonDown(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonUp(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleWheelMove(CXPoint, int, uint32_t);
-	EQLIB_OBJECT int OnProcessFrame();
-	EQLIB_OBJECT int PostDraw() const;
-	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
-	EQLIB_OBJECT void Deactivate();
-	EQLIB_OBJECT void LoadIniInfo();
-	EQLIB_OBJECT void StoreIniInfo();
-	EQLIB_OBJECT void GetWorldCoordinates(float*);
-
-	// private
-	EQLIB_OBJECT void Init();
 };
 
 struct POINTMERCHANTITEM
@@ -8116,48 +7933,6 @@ class EQSpellStrings
 {
 public:
 	EQLIB_OBJECT char* GetString(int SpellID, int StrIndex);
-};
-
-struct MapViewLabel;
-
-class MapViewMap
-{
-public:
-	EQLIB_OBJECT ~MapViewMap();
-	EQLIB_OBJECT MapViewMap();
-	EQLIB_OBJECT bool DrawClippedLine(CVector3*, RGB, CXRect);
-	EQLIB_OBJECT bool IsLayerVisible(int);
-	EQLIB_OBJECT bool LoadEx(char*, int);
-	EQLIB_OBJECT bool PointInMapViewArea(CXPoint, CXRect);
-	EQLIB_OBJECT int GetMaxZ();
-	EQLIB_OBJECT int GetMinZ();
-	EQLIB_OBJECT unsigned long GetCurrentColor();
-	EQLIB_OBJECT unsigned long GetMarkedLineColor();
-	EQLIB_OBJECT void AddLabel(float, float, float, unsigned long, int, char*);
-	EQLIB_OBJECT void AddPoint(float, float, float);
-	EQLIB_OBJECT void CalcLabelRenderOffsets(CXRect);
-	EQLIB_OBJECT void Clear();
-	EQLIB_OBJECT void ClearActiveLayer();
-	EQLIB_OBJECT void Draw(CXRect);
-	EQLIB_OBJECT void EndLine(float, float, float);
-	EQLIB_OBJECT void JoinLinesAtIntersect(bool);
-	EQLIB_OBJECT void Load(char*);
-	EQLIB_OBJECT void MoveLabel(MapViewLabel*, float, float, float);
-	EQLIB_OBJECT void PreCalcRenderValues();
-	EQLIB_OBJECT void RecalcLabelExtents(MapViewLabel*);
-	EQLIB_OBJECT void RemoveLabel(MapViewLabel*);
-	EQLIB_OBJECT void RemoveLabel();
-	EQLIB_OBJECT void RemoveLine(MapViewLabel*);
-	EQLIB_OBJECT void RemoveLine();
-	EQLIB_OBJECT void Save(char*);
-	EQLIB_OBJECT void SaveEx(char*, int);
-	EQLIB_OBJECT void SetCurrentColor(unsigned long);
-	EQLIB_OBJECT void SetMarkedLine(MapViewLabel*);
-	EQLIB_OBJECT void SetMarkedLineColor(unsigned long);
-	EQLIB_OBJECT void SetZoneExtents(int, int, int, int);
-	EQLIB_OBJECT void SetZoom(float);
-	EQLIB_OBJECT void StartLine(float, float, float);
-	EQLIB_OBJECT void TransformPoint(CVector3*);
 };
 
 enum InstanceType

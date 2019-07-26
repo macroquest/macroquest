@@ -27,11 +27,7 @@ void CComboWnd::InsertChoice(char* str)
 	InsertChoice(str, 0);
 }
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 int CListWnd::AddString(const char* Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
-#else
-int CListWnd::AddString(const char* Str, COLORREF Color, uint32_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
-#endif
 {
 	return AddString(CXStr(Str), Color, Data, pTa, TooltipStr);
 }

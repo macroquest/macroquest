@@ -50,6 +50,40 @@ class CRadioGroup;
 #define XWN_OUTPUT_TEXT         49
 #define XWN_COMMANDLINK         50
 
+// Defines for CXWnd WindowStyle
+#define CWS_VSCROLL                              0x00000001
+#define CWS_HSCROLL                              0x00000002
+#define CWS_TITLE                                0x00000004
+#define CWS_CLOSE                                0x00000008
+#define CWS_TILEBOX                              0x00000010
+#define CWS_MINIMIZE                             0x00000020
+#define CWS_BORDER                               0x00000040
+#define CWS_RELATIVERECT                         0x00000080
+#define CWS_AUTOSTRETCHV                         0x00000100
+#define CWS_RESIZEALL                            0x00000200
+#define CWS_TRANSPARENT                          0x00000400
+#define CWS_USEMYALPHA                           0x00000800
+#define CWS_DOCKING                              0x00001000
+#define CWS_TOOLTIP_NODELAY                      0x00002000
+#define CWS_FRAMEWND                             0x00004000
+#define CWS_NOHITTEST                            0x00008000
+#define CWS_QMARK                                0x00010000
+#define CWS_NOMOVABLE                            0x00020000
+#define CWS_MAXIMIZE                             0x00040000
+#define CWS_AUTOVSCROLL                          0x00080000
+#define CWS_AUTOHSCROLL                          0x00100000
+#define CWS_CLIENTMOVABLE                        0x00200000
+#define CWS_AUTOSTRETCH                          0x00400000
+#define CWS_TRANSPARENTCONTROL                   0x00800000
+#define CWS_RESIZEBORDER                         CWS_BORDER | CWS_RESIZEALL
+
+#define ToggleBit(field, bit)                    ((field) ^= (bit));
+#define BitOn(field, bit)                        ((field) |= (bit));
+#define BitOff(field, bit)                       ((field) &= (~bit));
+#define BitSet(field, bit)                       ((field) |= (1 << bit));
+#define BitClear(field, bit)                     ((field) &= (~(1 << bit)));
+// End CXWnd WindowStyle Defines
+
 enum UIType
 {
 	UI_Unknown                                   = -1,

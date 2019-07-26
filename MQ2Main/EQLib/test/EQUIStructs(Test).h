@@ -614,37 +614,6 @@ struct POINT3
 };
 using PPOINT3 = POINT3*;
 
-// Map Window sizeof() = 0x38
-struct MAPLABEL
-{
-/*0x00*/ unsigned int  LabelId;
-/*0x04*/ MAPLABEL*     pNext;
-/*0x08*/ MAPLABEL*     pPrev;
-/*0x0c*/ POINT3        Location;
-/*0x18*/ ARGBCOLOR     Color;
-/*0x1c*/ int           Size;                     // 1-3;
-/*0x20*/ char*         Label;
-/*0x24*/ int           Layer;                    // 0-3;
-/*0x28*/ int           Width;
-/*0x2c*/ int           Height;
-/*0x30*/ int           OffsetX;
-/*0x34*/ int           OffsetY;
-/*0x38*/
-};
-using PMAPLABEL = MAPLABEL*;
-
-// sizeof() = 0x28
-struct MAPLINE
-{
-/*0x00*/ MAPLINE*      pNext;
-/*0x04*/ MAPLINE*      pPrev;
-/*0x08*/ POINT3        Start;
-/*0x14*/ POINT3        End;
-/*0x20*/ ARGBCOLOR     Color;
-/*0x24*/ int           Layer;                    // 0-3;
-/*0x28*/
-};
-using PMAPLINE = MAPLINE*;
 
 struct EQTRADESKILLRECIPE
 {
@@ -843,29 +812,7 @@ struct EQGRAPHICSENGINE
 };
 using PEQGRAPHICSENGINE = EQGRAPHICSENGINE*;
 
-// CLabel__CLabel_x
-// CSidlManager__CreateLabel_x has this
-// size is 0x220 see 7A5849 in Oct 13 2017 Test -eqmule
-struct CLABEL
-{
-/*0x000*/ CXWND        Wnd;                      // inherits from CXWnd
-//Begin CLABELWND
-/*0x1f8*/ bool         bNoWrap;
-/*0x1f9*/ bool         bAlignRight;
-/*0x1fa*/ bool         bAlignCenter;
-/*0x1fc*/ int          xOffset;
-/*0x200*/ bool         bResizeHeightToText;
-/*0x204*/ int          Unknown0x204;
-/*0x208*/ CXStr        Text;
-/*0x20c*/ int          Unknown0x20c;
-/*0x210*/ bool         Unknown0x210;
-/*0x214*/ int          Unknown0x214;
-/*0x218*/ // begin CLABEL
-/*0x218*/ int          EQType;                   // renamed from SidlPiece
-/*0x21c*/ int          Unknown0x21c;
-/*0x220*/
-};
-using PCLABEL = CLABEL*;
+
 
 // CButtonWnd__CButtonWnd_x
 // size is 0x290 see 8E0709 in eqgame.exe dated Oct 13 2017 Test
@@ -1326,27 +1273,6 @@ struct EQLOOTWINDOW
 };
 using PEQLOOTWINDOW = EQLOOTWINDOW*;
 
-// pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
-// CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x668 (see 542694) in May 17 2019 Test
-struct EQMAPWINDOW
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ BYTE        Unknown0x0240[0x40];
-/*0x0280*/ CHAR        shortzonename[0x80];
-/*0x0300*/ BYTE        Unknown0x0300[0x3c];
-/*0x033c*/ CXWND*      wnd;                      // its the MVW_MapRenderArea window... found at aMvw_maprendera
-/*0x0340*/ BYTE        Unknown0x0340[0x38];
-
-	// inline MapViewMap
-/*0x0378*/ CSidlScreenWnd_VirtualFunctions* pMapViewMapVfTable;  // found at aMapviewmap
-/*0x037c*/ BYTE        Unknown0x037c[0x26c];
-/*0x05e8*/ PMAPLINE    pLines;                   // 0x258
-/*0x05ec*/ PMAPLABEL   pLabels;                  // 0x25c
-/*0x05f0*/ BYTE        Unknown0x05f0[0x78];
-/*0x0668*/
-};
-using PEQMAPWINDOW = EQMAPWINDOW*;
 
 struct merchdata
 {

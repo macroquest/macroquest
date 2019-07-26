@@ -16,6 +16,8 @@
 
 #include "../BuildType.h"
 
+#include <limits>
+
 #if !defined(NOMINMAX)
 #define NOMINMAX
 #endif
@@ -217,6 +219,104 @@ inline CXSize::CXSize(const CXPoint& other)
 	cy= other.y;
 }
 
+class CVector3
+{
+public:
+	EQLIB_OBJECT CVector3(float x, float y, float z) : X(x), Y(y), Z(z) {}
+	EQLIB_OBJECT CVector3() {}
+
+	// float GetLength() const;
+	EQLIB_OBJECT float NormalizeAndReturnLength();
+	EQLIB_OBJECT void Normalize();
+
+	void Set(float x, float y, float z)
+	{
+		X = x;
+		Y = y;
+		Z = z;
+	}
+
+	inline CVector3& operator-=(const CVector3& vec)
+	{
+		X -= vec.X;
+		Y -= vec.Y;
+		Z -= vec.Z;
+		return *this;
+	}
+
+	inline CVector3& operator+=(const CVector3& vec)
+	{
+		X += vec.X;
+		Y += vec.Y;
+		Z += vec.Z;
+		return *this;
+	}
+
+	inline void Scale(float val)
+	{
+		X *= val;
+		Y *= val;
+		Z *= val;
+	}
+
+	inline CVector3 operator*(float val) const
+	{
+		CVector3 ret = *this;
+		ret.Scale(val);
+
+		return ret;
+	}
+
+	void SetMax()
+	{
+		X = Y = Z = std::numeric_limits<float>::max();
+	}
+
+	float GetLengthSquared() const
+	{
+		return (X * X) + (Y * Y) + (Z * Z);
+	}
+
+	float GetLength() const
+	{
+		return sqrtf(GetLengthSquared());
+	}
+
+	CVector3 operator-() const
+	{
+		CVector3 res;
+		res.Set(-X, -Y, -Z);
+
+		return res;
+	}
+
+	CVector3 operator-(const CVector3 & vec) const
+	{
+		CVector3 res;
+		res.Set(X - vec.X, Y - vec.Y, Z - vec.Z);
+
+		return res;
+	}
+
+	CVector3 operator+(const CVector3 & vec) const
+	{
+		CVector3 res;
+		res.Set(vec.X + X, vec.Y + Y, vec.Z + Z);
+
+		return res;
+	}
+
+	float GetDistanceSquared(const CVector3 & vec) const
+	{
+		CVector3 Delta = *this - vec;
+		return Delta.GetLengthSquared();
+	}
+
+	float X;
+	float Y;
+	float Z;
+};
+
 union RGB
 {
 	struct
@@ -235,6 +335,23 @@ struct EQRGB
 	unsigned char green;
 	unsigned char blue;
 };
+
+struct ARGBCOLOR
+{
+	union
+	{
+		struct
+		{
+			BYTE B;
+			BYTE G;
+			BYTE R;
+			BYTE A;
+		};
+
+		DWORD ARGB;
+	};
+};
+using PARGBCOLOR = ARGBCOLOR *;
 
 struct EQLOC
 {

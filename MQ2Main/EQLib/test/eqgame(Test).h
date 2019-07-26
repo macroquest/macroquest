@@ -612,7 +612,7 @@
 #define CItemDisplayManager__CreateWindowInstance_x                0x757560
 
 // CLabel
-#define CLabel__Draw_x                                             0x75CFE0
+#define CLabel__Draw_x                                             0x75CFE0 // CLabel::UpdateText
 
 // CListWnd
 #define CListWnd__CListWnd_x                                       0x90B320
@@ -671,7 +671,7 @@
 // CMapViewWnd
 #define CMapViewWnd__CMapViewWnd_x                                 0x772750
 #define CMapViewWnd__GetWorldCoordinates_x                         0x770E60
-#define CMapViewWnd__HandleLButtonDown_x                           0x76DEC0
+#define CMapViewWnd__HandleLButtonDown_x                           0x76DEC0 //MapViewMap
 
 // CMerchantWnd
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x795760
