@@ -25,7 +25,12 @@ namespace eqlib {
 // Forward Declarations
 
 class CButtonWnd;
+class CChatContainerWindow;
+class CChatWindow;
+class CContextMenu;
+class CEditWnd;
 class CLabel;
+class CStmlWnd;
 
 //----------------------------------------------------------------------------
 
@@ -456,47 +461,47 @@ using PCLABEL = CLabel*;
 #if 0 // old impl
 struct EQMAPWINDOW
 {
-	/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
+/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
 
 	// inline MapViewMap
-	/*0x0378*/ CSidlScreenWnd_VirtualFunctions* pMapViewMapVfTable;  // found at aMapviewmap
-	/*0x037c*/ BYTE        Unknown0x037c[0x26c];
-	/*0x05e8*/ PMAPLINE    pLines;                   // 0x258
-	/*0x05ec*/ PMAPLABEL   pLabels;                  // 0x25c
-	/*0x05f0*/ BYTE        Unknown0x05f0[0x78];
-	/*0x0668*/
+/*0x0378*/ CSidlScreenWnd_VirtualFunctions* pMapViewMapVfTable;  // found at aMapviewmap
+/*0x037c*/ BYTE        Unknown0x037c[0x26c];
+/*0x05e8*/ PMAPLINE    pLines;                   // 0x258
+/*0x05ec*/ PMAPLABEL   pLabels;                  // 0x25c
+/*0x05f0*/ BYTE        Unknown0x05f0[0x78];
+/*0x0668*/
 };
 #endif
 
 // Map Window sizeof() = 0x38
 struct MAPLABEL
 {
-	/*0x00*/ uint32_t      LabelId;
-	/*0x04*/ MAPLABEL*     pNext;
-	/*0x08*/ MAPLABEL*     pPrev;
-	/*0x0c*/ CVector3      Location;
-	/*0x18*/ ARGBCOLOR     Color;
-	/*0x1c*/ int           Size;                     // 1-3;
-	/*0x20*/ char*         Label;
-	/*0x24*/ int           Layer;                    // 0-3;
-	/*0x28*/ int           Width;
-	/*0x2c*/ int           Height;
-	/*0x30*/ int           OffsetX;
-	/*0x34*/ int           OffsetY;
-	/*0x38*/
+/*0x00*/ uint32_t      LabelId;
+/*0x04*/ MAPLABEL*     pNext;
+/*0x08*/ MAPLABEL*     pPrev;
+/*0x0c*/ CVector3      Location;
+/*0x18*/ ARGBCOLOR     Color;
+/*0x1c*/ int           Size;                     // 1-3;
+/*0x20*/ char*         Label;
+/*0x24*/ int           Layer;                    // 0-3;
+/*0x28*/ int           Width;
+/*0x2c*/ int           Height;
+/*0x30*/ int           OffsetX;
+/*0x34*/ int           OffsetY;
+/*0x38*/
 };
 using PMAPLABEL = MAPLABEL *;
 
 // sizeof() = 0x28
 struct MAPLINE
 {
-	/*0x00*/ MAPLINE*      pNext;
-	/*0x04*/ MAPLINE*      pPrev;
-	/*0x08*/ CVector3      Start;
-	/*0x14*/ CVector3      End;
-	/*0x20*/ ARGBCOLOR     Color;
-	/*0x24*/ int           Layer;                    // 0-3;
-	/*0x28*/
+/*0x00*/ MAPLINE*      pNext;
+/*0x04*/ MAPLINE*      pPrev;
+/*0x08*/ CVector3      Start;
+/*0x14*/ CVector3      End;
+/*0x20*/ ARGBCOLOR     Color;
+/*0x24*/ int           Layer;                    // 0-3;
+/*0x28*/
 };
 using PMAPLINE = MAPLINE *;
 
@@ -597,13 +602,13 @@ public:
 	EQLIB_OBJECT void GetWorldCoordinates(float*); // actually MapViewMap
 
 	// these are almost all the controls belonging to the CMapViewWnd
-	/*0x0240*/ BYTE        Unknown0x0240[0x40];
-	/*0x0280*/ CHAR        shortzonename[0x80];
-	/*0x0300*/ BYTE        Unknown0x0300[0x3c];
-	/*0x033c*/ CXWnd* MapRenderArea;                      // its the MVW_MapRenderArea window... found at aMvw_maprendera
-	/*0x0340*/ BYTE        Unknown0x0340[0x38];
+/*0x0240*/ BYTE        Unknown0x0240[0x40];
+/*0x0280*/ CHAR        shortzonename[0x80];
+/*0x0300*/ BYTE        Unknown0x0300[0x3c];
+/*0x033c*/ CXWnd*      MapRenderArea;                      // its the MVW_MapRenderArea window... found at aMvw_maprendera
+/*0x0340*/ BYTE        Unknown0x0340[0x38];
 
-	/*0x0378*/ MapViewMap  MapView;                            // a window component owned by CMapViewWnd.
+/*0x0378*/ MapViewMap  MapView;                            // a window component owned by CMapViewWnd.
 
 	// alias the stupid
 	__declspec(property(get = getLines)) PMAPLINE pLines;
@@ -616,6 +621,278 @@ private:
 
 using EQMAPWINDOW = CMapViewWnd;
 using PEQMAPWINDOW = CMapViewWnd *;
+
+//============================================================================
+// CChatWindowManager
+//============================================================================
+
+#define MAX_CHAT_WINDOWS     32
+#define MAX_HITMODES         8
+
+// Size is 82 see 4E4072 in Mar 05 2019 Test -eqmule
+enum ChatFilterEnum
+{
+	CHAT_FILTER_SAY,
+	CHAT_FILTER_TELL,
+	CHAT_FILTER_GROUP,
+	CHAT_FILTER_RAID,
+	CHAT_FILTER_GUILD,
+	CHAT_FILTER_OOC,
+	CHAT_FILTER_AUCTION,
+	CHAT_FILTER_SHOUT,
+	CHAT_FILTER_EMOTE,
+	CHAT_FILTER_MELEE_YOUR_HITS,
+	CHAT_FILTER_SPELLS_MINE,
+	CHAT_FILTER_SKILLS,
+	CHAT_FILTER_CHAT1,
+	CHAT_FILTER_CHAT2,
+	CHAT_FILTER_CHAT3,
+	CHAT_FILTER_CHAT4,
+	CHAT_FILTER_CHAT5,
+	CHAT_FILTER_CHAT6,
+	CHAT_FILTER_CHAT7,
+	CHAT_FILTER_CHAT8,
+	CHAT_FILTER_CHAT9,
+	CHAT_FILTER_CHAT10,
+	CHAT_FILTER_OTHER,
+	CHAT_FILTER_MELEE_YOUR_MISSES,
+	CHAT_FILTER_MELEE_YOU_BEING_HIT,
+	CHAT_FILTER_MELEE_YOU_BEING_MISSED,
+	CHAT_FILTER_MELEE_OTHERS_HITS,
+	CHAT_FILTER_MELEE_OTHERS_MISSES,
+	CHAT_FILTER_MELEE_MY_DEATH,
+	CHAT_FILTER_MELEE_OTHER_PC_DEATH,
+	CHAT_FILTER_MELEE_CRITICAL_HITS,
+	CHAT_FILTER_MELEE_DISCIPLINES,
+	CHAT_FILTER_MELEE_WARNINGS,
+	CHAT_FILTER_MELEE_NPC_RAMPAGE,
+	CHAT_FILTER_MELEE_NPC_FLURRY,
+	CHAT_FILTER_MELEE_NPC_ENRAGE,
+	CHAT_FILTER_SPELLS_OTHERS,
+	CHAT_FILTER_SPELLS_FAILURES,
+	CHAT_FILTER_SPELLS_CRITICALS,
+	CHAT_FILTER_SPELLS_WORN_OFF,
+	CHAT_FILTER_SPELLS_DD_YOURS,
+	CHAT_FILTER_FOCUS_EFFECTS,
+	CHAT_FILTER_RANDOM_YOUR_ROLLS,
+	CHAT_FILTER_PET_MESSAGES,
+	CHAT_FILTER_PET_RAMPAGE_FLURRY,
+	CHAT_FILTER_PET_CRITICALS,
+	CHAT_FILTER_DAMAGE_SHIELDS_YOU_ATTACKING,
+	CHAT_FILTER_EXPERIENCE_MESSAGES,
+	CHAT_FILTER_NPC_EMOTES,
+	CHAT_FILTER_SYSTEM_MESSAGES,
+	CHAT_FILTER_WHO,
+	CHAT_FILTER_PET_SPELLS,
+	CHAT_FILTER_PET_RESPONSES,
+	CHAT_FILTER_ITEM_SPEECH,
+	CHAT_FILTER_FELLOWSHIP_MESSAGES,
+	CHAT_FILTER_MERCENARY_MESSAGES,
+	CHAT_FILTER_PVP_MESSAGES,
+	CHAT_FILTER_MELEE_YOUR_FLURRY,
+	CHAT_FILTER_DEBUG,                           // todo: check this not 100% sure its it...
+	CHAT_FILTER_MELEE_NPC_DEATH,
+	CHAT_FILTER_RANDOM_OTHERS_ROLLS,
+	CHAT_FILTER_RANDOM_GROUP_RAID_ROLLS,
+	CHAT_FILTER_ENVIRONMENTAL_DAMAGE_YOURS,
+	CHAT_FILTER_ENVIRONMENTAL_DAMAGE_OTHERS,
+	CHAT_FILTER_DAMAGE_SHIELDS_YOU_DEFENDING,
+	CHAT_FILTER_DAMAGE_SHIELDS_OTHERS,
+	CHAT_FILTER_EVENT_MESSAGES,
+	CHAT_FILTER_OVERWRITTEN_DETRIMENTAL_SPELL_MESSAGES,
+	CHAT_FILTER_OVERWRITTEN_BENEFICIAL_SPELL_MESSAGES,
+	CHAT_FILTER_YOU_CANT_USE_THAT_COMMAND,       // Added chat color and filtering options for 'You can't use that command' messages.
+	CHAT_FILTER_COMBAT_ABILITY_REUSE,            // Added chat color and filtering options for combat ability and AA ability reuse time messages.
+	CHAT_FILTER_SPELLS_AA_ABILITY_REUSE,
+	CHAT_FILTER_ITEM_DESTROYED,
+	CHAT_FILTER_SPELLS_AURAS_YOU,
+	CHAT_FILTER_SPELLS_AURAS_OTHERS,
+	CHAT_FILTER_SPELLS_HEALS_YOURS,
+	CHAT_FILTER_SPELLS_HEALS_OTHERS,
+	CHAT_FILTER_SPELLS_DOTS_YOURS,
+	CHAT_FILTER_SPELLS_DOTS_OTHERS,
+	CHAT_FILTER_SPELLS_SONGS,
+	CHAT_FILTER_SPELLS_DD_OTHERS,
+	CHAT_FILTER_ZERO_HEALS,
+	CHAT_FILTER_SOMETHING,
+
+	MAX_CHAT_FILTERS = CHAT_FILTER_SOMETHING
+};
+
+
+// Size 0x384 in eqgame dated 05 Mar 2019 Test (see 0x5418AB)
+class CChatWindowManager
+{
+	//EQLIB_OBJECT CChatWindowManager();
+	//EQLIB_OBJECT ~CChatWindowManager();
+
+	EQLIB_OBJECT COLORREF GetRGBAFromIndex(int);
+	EQLIB_OBJECT int InitContextMenu(CChatWindow*);
+	EQLIB_OBJECT void FreeChatWindow(CChatWindow*);
+	EQLIB_OBJECT CChatWindow* GetLockedActiveChatWindow();   // might be returning CChatContainerWindow now
+	EQLIB_OBJECT void SetLockedActiveChatWindow(CChatWindow*);
+	EQLIB_OBJECT void CreateChatWindow(CXWnd* pParentWnd, int ID, char* Name, int Language, int DefaultChannel,
+		int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar, bool bHighLight, COLORREF HighlightColor);
+
+	//EQLIB_OBJECT CChatWindow* GetActiveChatWindow();
+	//EQLIB_OBJECT CChatWindow* GetChannelMap(int);
+	//EQLIB_OBJECT CXStr GetAllVisibleText(CXStr);
+	//EQLIB_OBJECT int GetChannelFromColor(int);
+	//EQLIB_OBJECT void Activate();
+	//EQLIB_OBJECT void AddText(CXStr, int);
+	//EQLIB_OBJECT void ClearChannelMap(int);
+	//EQLIB_OBJECT void ClearChannelMaps(CChatWindow*);
+	//EQLIB_OBJECT void CreateChatWindow();
+	//EQLIB_OBJECT void Deactivate();
+	//EQLIB_OBJECT void LoadChatInis();
+	//EQLIB_OBJECT void Process();
+	//EQLIB_OBJECT void SetActiveChatWindow(CChatWindow*);
+	//EQLIB_OBJECT void SetChannelMap(int, CChatWindow*);
+	//EQLIB_OBJECT void UpdateContextMenus(CChatWindow*);
+	//EQLIB_OBJECT void UpdateTellMenus(CChatWindow*);
+
+/*0x000*/ CChatWindow*       ChatWnd[MAX_CHAT_WINDOWS];
+
+	// this is likely a class as a member variable
+/*0x080*/ void*              ChatContainerWindow_vfTable;
+/*0x084*/ DWORD              Unknown0x084;
+/*0x088*/ DWORD              Unknown0x088;
+/*0x08c*/ DWORD              Unknown0x08c;
+/*0x090*/ CChatContainerWindow* ChatContainerWindow[MAX_CHAT_WINDOWS];
+/*0x110*/ DWORD              Unknown0x110;
+
+/*0x114*/ DWORD              NumWindows;
+/*0x118*/ DWORD              LockedWindow;
+/*0x11c*/ DWORD              ActiveWindow;
+/*0x120*/ DWORD              Unknown0x120;                       // CurrentActive... CChat::GetActiveChatWindow
+/*0x124*/ DWORD              Unknown0x124;                       // LockedActive... CChatManager__GetLockedActiveChatWindow_x
+/*0x128*/ CChatWindow*       ChannelMap[MAX_CHAT_FILTERS];       // channel map
+/*0x1a0*/ CContextMenu*      pCM_MainMenu;
+/*0x1a4*/ int                ScrollbarIndex;
+/*0x1a8*/ CContextMenu*      pCM_LanguageMenu;
+/*0x1ac*/ int                LanguageMenuIndex;
+/*0x1b0*/ CContextMenu*      pCM_FilterMenu;
+/*0x1b4*/ int                FilterMenuIndex;
+/*0x1b8*/ int                ChatChannelFilterMenuIndex;
+/*0x1bc*/ int                MeleeFilterSubMenuIndex;
+/*0x1c0*/ int                SpellsFilterSubMenuIndex;
+/*0x1c4*/ CContextMenu*      pCM_MeleeMenu;
+/*0x1c8*/ int                MeleeFilterMenuIndex;
+/*0x1cc*/ CContextMenu*      pCM_SpellMenu;
+/*0x1d0*/ int                SpellsMenuIndex;
+/*0x1d4*/ CContextMenu*      pCM_ChannelMenu;
+/*0x1d8*/ int                ChannelMenuIndex;
+/*0x1dc*/ CContextMenu*      pCM_DefaultChannelMenu;
+/*0x1e0*/ int                DefaultChannelMenu;
+/*0x1e4*/ int                DefaultChannelMenu2;
+/*0x1e8*/ CContextMenu*      pCM_ChatChannelDefChan;
+/*0x1ec*/ int                ChatChannelDefChanIndex;
+/*0x1f0*/ CContextMenu*      pCM_YourHitsMenu;
+/*0x1f4*/ int                YourHitsMenuIndex;
+/*0x1f8*/ CContextMenu*      pCM_YourMissesMenu;
+/*0x1fc*/ int                YourMissesMenuindex;
+/*0x200*/ CContextMenu*      pCM_YouBeingHitMenu;
+/*0x204*/ int                YouBeingHitMenuindex;
+/*0x208*/ CContextMenu*      pCM_OthersHitsMenu;
+/*0x20c*/ int                OthersHitsMenuindex;
+/*0x210*/ CContextMenu*      pCM_OthersMissesMenu;
+/*0x214*/ int                OthersMissesMenuindex;
+/*0x218*/ CContextMenu*      pCM_AllContextMenu;
+/*0x21c*/ int                AllContextMenuindex;
+/*0x220*/ CContextMenu*      pCM_HitModesMenu;
+/*0x224*/ int                HitModesMenuindex;
+/*0x228*/ CContextMenu*      pCM_ReplyToMenu;
+/*0x22c*/ int                ReplyToMenuindex;
+/*0x230*/ CContextMenu*      pCM_TellFriendMenu;
+/*0x234*/ int                TellFriendMenuindex;
+/*0x238*/ CContextMenu*      pCM_TellRaidmemberMenu;
+/*0x23c*/ int                TellRaidmemberMenuindex;
+/*0x240*/ int                ReplyToSubIndex;
+/*0x244*/ int                TellFriendSubIndex;
+/*0x248*/ int                TellRaidmemberSubIndex;
+/*0x24c*/ int                HitModes[MAX_HITMODES];
+/*0x26c*/ int                DefaultChannel;
+/*0x270*/ CContextMenu*      pCM_RandomFilterMenu;
+/*0x274*/ int                RandomFilterIndex;
+/*0x278*/ int                RandomFilterSubIndex;
+/*0x27c*/ CContextMenu*      pCM_EnvironmentalDamageMenu;
+/*0x280*/ int                EnvironmentalDamageIndex;
+/*0x284*/ int                EnvironmentalDamageSubIndex;
+/*0x288*/ CContextMenu*      pCM_DamageShieldsFilterMenu;
+/*0x28c*/ int                DamageShieldsFilterIndex;
+/*0x290*/ int                DamageShieldsFilterSubIndex;
+/*0x294*/ CContextMenu*      pCM_BeneficialSpellsFilterMenu;
+/*0x298*/ int                BeneficialSpellsFilteIndex;
+/*0x29c*/
+};
+
+using EQCHATMGR = CChatWindowManager;
+using PEQCHATMGR = CChatWindowManager*;
+
+//============================================================================
+// CChatWindow
+//============================================================================
+
+// in CChatWindow__SetChatFont see 692847 in eqgame.exe Test dated Jun 28 2016
+const int EQ_CHAT_FONT_OFFSET = 0x11c;
+
+// CChatWindow__CChatWindow_x
+// Size 0x388 see 69AE4D in Oct 26 2017 Beta exe -eqmule
+class CChatWindow : public CSidlScreenWnd
+{
+public:
+	EQLIB_OBJECT CChatWindow(CXWnd* parent);
+	EQLIB_OBJECT virtual ~CChatWindow();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	virtual int Draw() override;
+	virtual int HandleRButtonDown(const CXPoint&, uint32_t) override;
+	virtual int OnProcessFrame() override;
+	virtual int WndNotification(CXWnd* sender, uint32_t message, void* data) override;
+	virtual int OnSetFocus(CXWnd* wnd) override;
+	virtual int OnKillFocus(CXWnd* wnd) override;
+	virtual void Deactivate() override;
+
+	EQLIB_OBJECT void Clear();
+	EQLIB_OBJECT void AddHistory(CXStr Text);
+	EQLIB_OBJECT CEditWnd* GetInputWnd() { return InputWnd; }
+	EQLIB_OBJECT CStmlWnd* GetOutputWnd() { return OutputWnd; }
+
+	//EQLIB_OBJECT CXStr GetInputText();
+	//EQLIB_OBJECT void AddOutputText(CXStr, int);
+	//EQLIB_OBJECT void HistoryBack();
+	//EQLIB_OBJECT void HistoryForward();
+	//EQLIB_OBJECT void PageDown();
+	//EQLIB_OBJECT void PageUp();
+	//EQLIB_OBJECT void SetChatFont(int);
+
+/*0x240*/ CChatWindowManager* ChatManager;
+/*0x244*/ CEditWnd*    InputWnd;
+/*0x248*/ CStmlWnd*    OutputWnd;
+/*0x24c*/ int          ChatChannel;
+/*0x250*/ int          ChatChannelIndex;
+/*0x254*/ char         TellTarget[0x40];
+/*0x294*/ int          Language;
+/*0x298*/ bool         bIsMainChat;
+/*0x299*/ bool         bIsTellWnd;
+/*0x29c*/ int          TimestampFormat;
+/*0x2a0*/ COLORREF     TimestampColor;
+/*0x2a4*/ bool         bTimestampMatchChatColor;
+/*0x2a8*/ CXStr        CommandHistory[0x28];     // see 690DAA in apr 11 2017 test
+/*0x348*/ int          HistoryIndex;
+/*0x34c*/ int          HistoryLastShown;
+/*0x350*/ int          FontSize;                 // style
+/*0x354*/ int          AlwaysChathereIndex;      // menu
+/*0x358*/ int          NamesContextMenu;         // guess
+/*0x35c*/ int          ContextMenuID;            // also a guess
+/*0x360*/ int          ContextMenuSubID[0xa];    // this is not correct but ill fix it later.
+/*0x388*/
+};
+
+using EQCHATWINDOW = CChatWindow;
+using PEQCHATWINDOW = CChatWindow*;
 
 //----------------------------------------------------------------------------
 

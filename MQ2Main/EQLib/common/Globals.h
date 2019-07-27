@@ -361,12 +361,12 @@ EQLIB_VAR DWORD CCastSpellWnd__ForgetMemorizedSpell;
 EQLIB_VAR DWORD CCastSpellWnd__IsBardSongPlaying;
 EQLIB_VAR DWORD CCastSpellWnd__RefreshSpellGemButtons;
 
-EQLIB_VAR DWORD CChatManager__GetRGBAFromIndex;
-EQLIB_VAR DWORD CChatManager__InitContextMenu;
-EQLIB_VAR DWORD CChatManager__FreeChatWindow;
-EQLIB_VAR DWORD CChatManager__GetLockedActiveChatWindow;
-EQLIB_VAR DWORD CChatManager__SetLockedActiveChatWindow;
-EQLIB_VAR DWORD CChatManager__CreateChatWindow;
+EQLIB_VAR DWORD CChatWindowManager__GetRGBAFromIndex;
+EQLIB_VAR DWORD CChatWindowManager__InitContextMenu;
+EQLIB_VAR DWORD CChatWindowManager__FreeChatWindow;
+EQLIB_VAR DWORD CChatWindowManager__GetLockedActiveChatWindow;
+EQLIB_VAR DWORD CChatWindowManager__SetLockedActiveChatWindow;
+EQLIB_VAR DWORD CChatWindowManager__CreateChatWindow;
 
 EQLIB_VAR DWORD CContextMenu__CContextMenu;
 EQLIB_VAR DWORD CContextMenu__dCContextMenu;

@@ -66,8 +66,6 @@ FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(float ActorBase::GetBoundingRadius(), 0x60);
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*), 0x4);
-
 #if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x17c);        // see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x184);
@@ -426,9 +424,6 @@ FUNCTION_AT_ADDRESS(void CBreathWnd::Init(), CBreathWnd__Init);
 #ifdef CBreathWnd__Activate_x
 FUNCTION_AT_ADDRESS(void CBreathWnd::Activate(), CBreathWnd__Activate);
 #endif
-#ifdef CTextureAnimation__operator_equal_x
-FUNCTION_AT_ADDRESS(CTextureAnimation& CTextureAnimation::operator=(const CTextureAnimation&), CTextureAnimation__operator_equal);
-#endif
 #ifdef CBuffWindow__Init_x
 FUNCTION_AT_ADDRESS(void CBuffWindow::Init(), CBuffWindow__Init);
 #endif
@@ -696,12 +691,6 @@ FUNCTION_AT_ADDRESS(void CCharacterListWnd::SetRoomLocationByIndex(int, EQPlayer
 #ifdef CCharacterListWnd__SwitchModel_x
 FUNCTION_AT_ADDRESS(void CCharacterListWnd::SwitchModel(EQPlayer*, unsigned char, int, unsigned char, unsigned char), CCharacterListWnd__SwitchModel);
 #endif
-#ifdef CChatManager__CChatManager_x
-FUNCTION_AT_ADDRESS(CChatManager::CChatManager(), CChatManager__CChatManager);
-#endif
-#ifdef CChatManager__dCChatManager_x
-FUNCTION_AT_ADDRESS(CChatManager::~CChatManager(), CChatManager__dCChatManager);
-#endif
 #ifdef CBookWnd__Init_x
 FUNCTION_AT_ADDRESS(void CBookWnd::Init(), CBookWnd__Init);
 #endif
@@ -759,9 +748,6 @@ FUNCTION_AT_ADDRESS(KeypressHandler::~KeypressHandler(), KeypressHandler__dKeypr
 #ifdef CAAWnd__CancelAASpend_x
 FUNCTION_AT_ADDRESS(void CAAWnd::CancelAASpend(), CAAWnd__CancelAASpend);
 #endif
-#ifdef CChatManager__Process_x
-FUNCTION_AT_ADDRESS(void CChatManager::Process(), CChatManager__Process);
-#endif
 #ifdef CDisplay__DefineSoloMode_x
 FUNCTION_AT_ADDRESS(void CDisplay::DefineSoloMode(), CDisplay__DefineSoloMode);
 #endif
@@ -774,123 +760,12 @@ FUNCTION_AT_ADDRESS(void CInvSlotMgr::Process(), CInvSlotMgr__Process);
 #ifdef EQMissile__LeaveTrail_x
 FUNCTION_AT_ADDRESS(void EQMissile::LeaveTrail(), EQMissile__LeaveTrail);
 #endif
-#ifdef CChatManager__Activate_x
-FUNCTION_AT_ADDRESS(void CChatManager::Activate(), CChatManager__Activate);
-#endif
-#ifdef CChatManager__Deactivate_x
-FUNCTION_AT_ADDRESS(void CChatManager::Deactivate(), CChatManager__Deactivate);
-#endif
-#ifdef CChatManager__LoadChatInis_x
-FUNCTION_AT_ADDRESS(void CChatManager::LoadChatInis(), CChatManager__LoadChatInis);
-#endif
-#ifdef CChatManager__CreateChatWindow_x
-FUNCTION_AT_ADDRESS(void CChatManager::CreateChatWindow(), CChatManager__CreateChatWindow);
-#endif
-#ifdef CChatManager__CreateChatWindow1_x
-FUNCTION_AT_ADDRESS(void CChatManager::CreateChatWindow(char*, char*, int, int, int, char*, int), CChatManager__CreateChatWindow1);
-#endif
-#ifdef CChatManager__FreeChatWindow_x
-FUNCTION_AT_ADDRESS(void CChatManager::FreeChatWindow(CChatWindow*), CChatManager__FreeChatWindow);
-#endif
-#ifdef CChatManager__GetActiveChatWindow_x
-FUNCTION_AT_ADDRESS(CChatWindow* CChatManager::GetActiveChatWindow(), CChatManager__GetActiveChatWindow);
-#endif
-#ifdef CChatManager__AddText_x
-FUNCTION_AT_ADDRESS(void CChatManager::AddText(CXStr, int), CChatManager__AddText);
-#endif
-#ifdef CChatManager__SetChannelMap_x
-FUNCTION_AT_ADDRESS(void CChatManager::SetChannelMap(int, CChatWindow*), CChatManager__SetChannelMap);
-#endif
-#ifdef CChatManager__ClearChannelMap_x
-FUNCTION_AT_ADDRESS(void CChatManager::ClearChannelMap(int), CChatManager__ClearChannelMap);
-#endif
-#ifdef CChatManager__GetChannelFromColor_x
-FUNCTION_AT_ADDRESS(int CChatManager::GetChannelFromColor(int), CChatManager__GetChannelFromColor);
-#endif
-#ifdef CChatManager__GetChannelMap_x
-FUNCTION_AT_ADDRESS(CChatWindow* CChatManager::GetChannelMap(int), CChatManager__GetChannelMap);
-#endif
-#ifdef CChatManager__ClearChannelMaps_x
-FUNCTION_AT_ADDRESS(void CChatManager::ClearChannelMaps(CChatWindow*), CChatManager__ClearChannelMaps);
-#endif
-#ifdef CChatManager__SetActiveChatWindow_x
-FUNCTION_AT_ADDRESS(void CChatManager::SetActiveChatWindow(CChatWindow*), CChatManager__SetActiveChatWindow);
-#endif
-#ifdef CChatManager__GetRGBAFromIndex_x
-FUNCTION_AT_ADDRESS(unsigned long CChatManager::GetRGBAFromIndex(int), CChatManager__GetRGBAFromIndex);
-#endif
-#ifdef CChatManager__InitContextMenu_x
-FUNCTION_AT_ADDRESS(int CChatManager::InitContextMenu(CChatWindow*), CChatManager__InitContextMenu);
-#endif
-#ifdef CChatManager__UpdateContextMenus_x
-FUNCTION_AT_ADDRESS(void CChatManager::UpdateContextMenus(CChatWindow*), CChatManager__UpdateContextMenus);
-#endif
-#ifdef CChatManager__UpdateTellMenus_x
-FUNCTION_AT_ADDRESS(void CChatManager::UpdateTellMenus(CChatWindow*), CChatManager__UpdateTellMenus);
-#endif
-#ifdef CChatManager__GetAllVisibleText_x
-FUNCTION_AT_ADDRESS(CXStr CChatManager::GetAllVisibleText(CXStr), CChatManager__GetAllVisibleText);
-#endif
-#ifdef CChatManager__GetLockedActiveChatWindow_x
-FUNCTION_AT_ADDRESS(CChatWindow* CChatManager::GetLockedActiveChatWindow(), CChatManager__GetLockedActiveChatWindow);
-#endif
-#ifdef CChatManager__SetLockedActiveChatWindow_x
-FUNCTION_AT_ADDRESS(void CChatManager::SetLockedActiveChatWindow(CChatWindow*), CChatManager__SetLockedActiveChatWindow);
-#endif
-#ifdef CChatManager__CreateChatWindow_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(void CChatManager::CreateChatWindow(CXWnd* pParentWnd, int ID, char* Name, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar, bool bHighLight, COLORREF HighlightColor), CChatManager__CreateChatWindow);
-#else
-FUNCTION_AT_ADDRESS(void CChatManager::CreateChatWindow(char* Name, char* IniName, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar), CChatManager__CreateChatWindow);
-#endif
-#endif
-#ifdef CChatWindow__GetOutputWnd_x
-FUNCTION_AT_ADDRESS(CStmlWnd* CChatWindow::GetOutputWnd(), CChatWindow__GetOutputWnd);
-#endif
-#ifdef CContextMenuManager__GetDefaultMenuIndex_x
-FUNCTION_AT_ADDRESS(int CContextMenuManager::GetDefaultMenuIndex(), CContextMenuManager__GetDefaultMenuIndex);
 #endif
 #ifdef CContextMenuManager__GetMenu_x
 FUNCTION_AT_ADDRESS(CContextMenu* CContextMenuManager::GetMenu(int), CContextMenuManager__GetMenu);
 #endif
-#ifdef CChatWindow__CChatWindow_x
-CONSTRUCTOR_AT_ADDRESS(CChatWindow::CChatWindow(CXWnd*), CChatWindow__CChatWindow);
-#endif
-#ifdef CChatWindow__AddOutputText_x
-FUNCTION_AT_ADDRESS(void CChatWindow::AddOutputText(PCXSTR, int), CChatWindow__AddOutputText);
-#endif
-#ifdef CChatWindow__HistoryBack_x
-FUNCTION_AT_ADDRESS(void CChatWindow::HistoryBack(), CChatWindow__HistoryBack);
-#endif
-#ifdef CChatWindow__HistoryForward_x
-FUNCTION_AT_ADDRESS(void CChatWindow::HistoryForward(), CChatWindow__HistoryForward);
-#endif
-#ifdef CChatWindow__AddHistory_x
-FUNCTION_AT_ADDRESS(void CChatWindow::AddHistory(CXStr Text), CChatWindow__AddHistory);
-#endif
-#ifdef CChatWindow__GetInputText_x
-FUNCTION_AT_ADDRESS(CXStr CChatWindow::GetInputText(), CChatWindow__GetInputText);
-#endif
-#ifdef CChatWindow__PageUp_x
-FUNCTION_AT_ADDRESS(void CChatWindow::PageUp(), CChatWindow__PageUp);
-#endif
-#ifdef CChatWindow__PageDown_x
-FUNCTION_AT_ADDRESS(void CChatWindow::PageDown(), CChatWindow__PageDown);
-#endif
-#ifdef CChatWindow__SetChatFont_x
-FUNCTION_AT_ADDRESS(void CChatWindow::SetChatFont(int), CChatWindow__SetChatFont);
-#endif
-#ifdef CChatWindow__Clear_x
-FUNCTION_AT_ADDRESS(void CChatWindow::Clear(), CChatWindow__Clear);
-#endif
 #ifdef CStmlWnd__GetSTMLText_x
 FUNCTION_AT_ADDRESS(CXStr CStmlWnd::GetSTMLText() const, CStmlWnd__GetSTMLText);
-#endif
-#ifdef CChatWindow__GetInputWnd_x
-FUNCTION_AT_ADDRESS(CEditWnd* CChatWindow::GetInputWnd(), CChatWindow__GetInputWnd);
-#endif
-#ifdef CChatWindow__WndNotification_x
-FUNCTION_AT_ADDRESS(int CChatWindow::WndNotification(CXWnd*, uint32_t, void*), CChatWindow__WndNotification);
 #endif
 #ifdef CColorPickerWnd__CColorPickerWnd_x
 FUNCTION_AT_ADDRESS(CColorPickerWnd::CColorPickerWnd(CXWnd*), CColorPickerWnd__CColorPickerWnd);
@@ -1130,9 +1005,6 @@ FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(CTextureAnimation* Ov
 #endif
 #ifdef CCursorAttachment__Deactivate_x
 FUNCTION_AT_ADDRESS(void CCursorAttachment::Deactivate(), CCursorAttachment__Deactivate);
-#endif
-#ifdef CTextureAnimation__Reset_x
-FUNCTION_AT_ADDRESS(void CTextureAnimation::Reset(), CTextureAnimation__Reset);
 #endif
 #ifdef CEditLabelWnd__CEditLabelWnd_x
 FUNCTION_AT_ADDRESS(CEditLabelWnd::CEditLabelWnd(CXWnd*), CEditLabelWnd__CEditLabelWnd);
@@ -6671,9 +6543,6 @@ FUNCTION_AT_ADDRESS(void CStmlWnd::AddTextPieceToLine(SParseVariables*), CStmlWn
 #ifdef CStmlWnd__MakeStmlColorTag_x
 FUNCTION_AT_ADDRESS(CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long), CStmlWnd__MakeStmlColorTag);
 #endif
-#ifdef CTextureAnimation__GetName_x
-FUNCTION_AT_ADDRESS(CXStr CTextureAnimation::GetName() const, CTextureAnimation__GetName);
-#endif
 #ifdef CStmlWnd__MakeWndNotificationTag_x
 FUNCTION_AT_ADDRESS(CXStr CStmlWnd::MakeWndNotificationTag(uint32_t, const CXStr&, const CXStr&), CStmlWnd__MakeWndNotificationTag);
 #endif
@@ -7337,45 +7206,6 @@ FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, in
 #endif
 #ifdef CTextureFont__DrawWrappedText1_x
 FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const, CTextureFont__DrawWrappedText1);
-#endif
-#ifdef CTextureAnimation__CTextureAnimation_x
-FUNCTION_AT_ADDRESS(CTextureAnimation::CTextureAnimation(), CTextureAnimation__CTextureAnimation);
-#endif
-#ifdef CTextureAnimation__CTextureAnimation1_x
-FUNCTION_AT_ADDRESS(CTextureAnimation::CTextureAnimation(CXStr), CTextureAnimation__CTextureAnimation1);
-#endif
-#ifdef CTextureAnimation__AddFrame_x
-FUNCTION_AT_ADDRESS(int CTextureAnimation::AddFrame(CUITextureInfo const*, CXRect, uint32_t, class CXPoint), CTextureAnimation__AddFrame);
-#endif
-#ifdef CTextureAnimation__AddFrame1_x
-//FUNCTION_AT_ADDRESS(int CTextureAnimation::AddFrame(CUITexturePiece, uint32_t, CXPoint), CTextureAnimation__AddFrame1);
-#endif
-#ifdef STextureAnimationFrame__STextureAnimationFrame1_x
-FUNCTION_AT_ADDRESS(STextureAnimationFrame::STextureAnimationFrame(CUITexturePiece, uint32_t, CXPoint), STextureAnimationFrame__STextureAnimationFrame1);
-#endif
-#ifdef CTextureAnimation__AddBlankFrame_x
-FUNCTION_AT_ADDRESS(int CTextureAnimation::AddBlankFrame(uint32_t, CXPoint), CTextureAnimation__AddBlankFrame);
-#endif
-#ifdef CTextureAnimation__SetCurFrame_x
-FUNCTION_AT_ADDRESS(void CTextureAnimation::SetCurFrame(int), CTextureAnimation__SetCurFrame);
-#endif
-#ifdef CTextureAnimation__GetCurFrame_x
-FUNCTION_AT_ADDRESS(int CTextureAnimation::GetCurFrame() const, CTextureAnimation__GetCurFrame);
-#endif
-#ifdef CTextureAnimation__Draw_x
-FUNCTION_AT_ADDRESS(int CTextureAnimation::Draw(CXRect, CXRect, unsigned long, unsigned long) const, CTextureAnimation__Draw);
-#endif
-#ifdef CTextureAnimation__Draw1_x
-FUNCTION_AT_ADDRESS(int CTextureAnimation::Draw(CXPoint, CXRect, unsigned long, unsigned long) const, CTextureAnimation__Draw1);
-#endif
-#ifdef CTextureAnimation__GetHotspot_x
-FUNCTION_AT_ADDRESS(CXPoint CTextureAnimation::GetHotspot() const, CTextureAnimation__GetHotspot);
-#endif
-#ifdef CTextureAnimation__SetCurCell_x
-FUNCTION_AT_ADDRESS(void CTextureAnimation::SetCurCell(int), CTextureAnimation__SetCurCell);
-#endif
-#ifdef CTextureAnimation__Preload_x
-FUNCTION_AT_ADDRESS(int CTextureAnimation::Preload(), CTextureAnimation__Preload);
 #endif
 #ifdef CSidlManager__CSidlManager_x
 FUNCTION_AT_ADDRESS(CSidlManager::CSidlManager(), CSidlManager__CSidlManager);

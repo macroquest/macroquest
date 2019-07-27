@@ -777,89 +777,10 @@ public:
 	EQLIB_OBJECT void SetLocationByClass(PlayerClient*, bool, int);
 };
 
-class CChatManager
-{
-public:
-	EQLIB_OBJECT ~CChatManager();
-	EQLIB_OBJECT CChatManager();
-	EQLIB_OBJECT CChatWindow* GetActiveChatWindow();
-	EQLIB_OBJECT CChatWindow* GetChannelMap(int);
-	EQLIB_OBJECT CXStr GetAllVisibleText(CXStr);
-	EQLIB_OBJECT int GetChannelFromColor(int);
-	EQLIB_OBJECT int InitContextMenu(CChatWindow*);
-	EQLIB_OBJECT unsigned long GetRGBAFromIndex(int);
-	EQLIB_OBJECT void Activate();
-	EQLIB_OBJECT void AddText(CXStr, int);
-	EQLIB_OBJECT void ClearChannelMap(int);
-	EQLIB_OBJECT void ClearChannelMaps(CChatWindow*);
-	EQLIB_OBJECT void CreateChatWindow(char*, char*, int, int, int, char*, int);
-	EQLIB_OBJECT void CreateChatWindow();
-	EQLIB_OBJECT void Deactivate();
-	EQLIB_OBJECT void FreeChatWindow(CChatWindow*);
-	EQLIB_OBJECT void LoadChatInis();
-	EQLIB_OBJECT void Process();
-	EQLIB_OBJECT void SetActiveChatWindow(CChatWindow*);
-	EQLIB_OBJECT void SetChannelMap(int, CChatWindow*);
-	EQLIB_OBJECT void SetLockedActiveChatWindow(CChatWindow*);
-	EQLIB_OBJECT void UpdateContextMenus(CChatWindow*);
-	EQLIB_OBJECT void UpdateTellMenus(CChatWindow*);
-	EQLIB_OBJECT CChatWindow* GetLockedActiveChatWindow();
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_OBJECT void CreateChatWindow(CXWnd* pParentWnd, int ID, char* Name, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar, bool bHighLight, COLORREF HighlightColor);
-#else
-	EQLIB_OBJECT void CreateChatWindow(char* Name, char*IniName, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar);
-#endif
-};
-
-class ChatManagerClient : public CChatManager
+class ChatManagerClient
 {
 public:
 	static EQLIB_OBJECT ChatManagerClient& Instance();
-};
-
-class CChatWindow : public CSidlScreenWnd
-{
-public:
-	EQLIB_OBJECT CChatWindow(CXWnd*);
-	EQLIB_OBJECT CEditWnd* GetInputWnd();
-	EQLIB_OBJECT CStmlWnd* GetOutputWnd();
-	EQLIB_OBJECT CXStr GetInputText();
-	EQLIB_OBJECT void AddHistory(CXStr Text);
-	EQLIB_OBJECT void AddOutputText(CXStr, int);
-	EQLIB_OBJECT void Clear();
-	EQLIB_OBJECT void HistoryBack();
-	EQLIB_OBJECT void HistoryForward();
-	EQLIB_OBJECT void PageDown();
-	EQLIB_OBJECT void PageUp();
-	EQLIB_OBJECT void SetChatFont(int);
-
-	// virtual
-	EQLIB_OBJECT ~CChatWindow();
-	EQLIB_OBJECT void operator delete[](void*);
-	EQLIB_OBJECT int Draw() const;
-	EQLIB_OBJECT int HandleRButtonDown(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int OnKillFocus(CXWnd*);
-	EQLIB_OBJECT int OnProcessFrame();
-	EQLIB_OBJECT int OnSetFocus(CXWnd*);
-	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
-	EQLIB_OBJECT void Deactivate();
-
-/*0x220*/ EQCHATMGR*   ChatManager;
-/*0x224*/ CSIDLWND*    InputWnd;
-/*0x228*/ CSIDLWND*    OutputWnd;
-/*0x22c*/ int          ChatChannel;
-/*0x230*/ int          ChatChannelIndex;
-/*0x234*/ char         TellTarget[0x40];
-/*0x274*/ int          Language;
-/*0x278*/ bool         bIsMainChat;
-/*0x279*/ bool         bIsTellWnd;
-/*0x27c*/ CXStr        CommandHistory[0x28];     // ->0x198
-/*0x31c*/ int          HistoryIndex;
-/*0x320*/ int          HistoryLastShown;
-/*0x324*/ int          FontSize;                 // style
-/*0x328*/ int          AlwaysChathereIndex;      // menu
-/*0x32c*/ int          DontKnow;
-/*0x330*/
 };
 
 class CCheckBoxWnd : public CButtonWnd

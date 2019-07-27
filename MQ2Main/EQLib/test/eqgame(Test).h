@@ -445,16 +445,26 @@
 #define CButtonWnd__dCButtonWnd_x                                  0x921140
 #define CButtonWnd__vftable_x                                      0xB13344
 
-// CChatManager
-#define CChatManager__GetRGBAFromIndex_x                           0x6FE190
-#define CChatManager__InitContextMenu_x                            0x6F74D0
-#define CChatManager__FreeChatWindow_x                             0x6FCD10
-#define CChatManager__GetLockedActiveChatWindow_x                  0x4E5CD0
-#define CChatManager__SetLockedActiveChatWindow_x                  0x6FDE10
-#define CChatManager__CreateChatWindow_x                           0x6FD340
+// CChatWindowManager
+#define CChatWindowManager__GetRGBAFromIndex_x                     0x6FE190
+#define CChatWindowManager__InitContextMenu_x                      0x6F74D0
+#define CChatWindowManager__FreeChatWindow_x                       0x6FCD10
+#define CChatWindowManager__GetLockedActiveChatWindow_x            0x4E5CD0
+#define CChatWindowManager__SetLockedActiveChatWindow_x            0x6FDE10
+#define CChatWindowManager__CreateChatWindow_x                     0x6FD340
 
 // ChatManagerClient
 #define ChatManagerClient__Instance_x                              0x4E5D20
+
+// CChatContainerWindow
+#define CChatContainerWnd__CChatContainerWindow                    0x4E34D0
+
+// CChatWindow
+#define CChatWindow__CChatWindow_x                                 0x6FE9E0
+#define CChatWindow__Clear_x                                       0x6FFC80
+#define CChatWindow__WndNotification_x                             0x700410 // don't need
+#define CChatWindow__AddHistory_x                                  0x6FF550
+
 
 // CContextMenu
 #define CContextMenu__CContextMenu_x                               0x935580
@@ -477,12 +487,6 @@
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x8D1F30
 #define CChatService__GetFriendName_x                              0x8D1F40
-
-// CChatWindow
-#define CChatWindow__CChatWindow_x                                 0x6FE9E0
-#define CChatWindow__Clear_x                                       0x6FFC80
-#define CChatWindow__WndNotification_x                             0x700410
-#define CChatWindow__AddHistory_x                                  0x6FF550
 
 // CComboWnd
 #define CComboWnd__DeleteAll_x                                     0x932A00

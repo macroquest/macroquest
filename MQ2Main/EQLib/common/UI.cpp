@@ -407,6 +407,72 @@ FORWARD_FUNCTION_TO_VTABLE2(bool CButtonWnd::IsPointTransparent(const CXPoint& p
 FORWARD_FUNCTION_TO_VTABLE2(void CButtonWnd::SetAttributesFromSidl(CParamScreenPiece*), CButtonWnd, CXWnd, SetAttributesFromSidl);
 
 //============================================================================
+// CChatWindowManager
+//============================================================================
+
+#ifdef CChatWindowManager__FreeChatWindow_x
+FUNCTION_AT_ADDRESS(void CChatWindowManager::FreeChatWindow(CChatWindow*), CChatWindowManager__FreeChatWindow);
+#endif
+#ifdef CChatWindowManager__GetRGBAFromIndex_x
+FUNCTION_AT_ADDRESS(COLORREF CChatWindowManager::GetRGBAFromIndex(int), CChatWindowManager__GetRGBAFromIndex);
+#endif
+#ifdef CChatWindowManager__InitContextMenu_x
+FUNCTION_AT_ADDRESS(int CChatWindowManager::InitContextMenu(CChatWindow*), CChatWindowManager__InitContextMenu);
+#endif
+#ifdef CChatWindowManager__GetLockedActiveChatWindow_x
+FUNCTION_AT_ADDRESS(CChatWindow* CChatWindowManager::GetLockedActiveChatWindow(), CChatWindowManager__GetLockedActiveChatWindow);
+#endif
+#ifdef CChatWindowManager__SetLockedActiveChatWindow_x
+FUNCTION_AT_ADDRESS(void CChatWindowManager::SetLockedActiveChatWindow(CChatWindow*), CChatWindowManager__SetLockedActiveChatWindow);
+#endif
+#ifdef CChatWindowManager__CreateChatWindow_x
+FUNCTION_AT_ADDRESS(void CChatWindowManager::CreateChatWindow(CXWnd* pParentWnd, int ID, char* Name, int Language, int DefaultChannel,
+	int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar, bool bHighLight, COLORREF HighlightColor), CChatWindowManager__CreateChatWindow);
+#endif
+
+//============================================================================
+// CChatWindow
+//============================================================================
+
+#ifdef CChatWindow__CChatWindow_x
+CONSTRUCTOR_AT_ADDRESS(CChatWindow::CChatWindow(CXWnd*), CChatWindow__CChatWindow);
+#endif
+#ifdef CChatWindow__AddOutputText_x
+FUNCTION_AT_ADDRESS(void CChatWindow::AddOutputText(PCXSTR, int), CChatWindow__AddOutputText);
+#endif
+#ifdef CChatWindow__HistoryBack_x
+FUNCTION_AT_ADDRESS(void CChatWindow::HistoryBack(), CChatWindow__HistoryBack);
+#endif
+#ifdef CChatWindow__HistoryForward_x
+FUNCTION_AT_ADDRESS(void CChatWindow::HistoryForward(), CChatWindow__HistoryForward);
+#endif
+#ifdef CChatWindow__AddHistory_x
+FUNCTION_AT_ADDRESS(void CChatWindow::AddHistory(CXStr Text), CChatWindow__AddHistory);
+#endif
+#ifdef CChatWindow__GetInputText_x
+FUNCTION_AT_ADDRESS(CXStr CChatWindow::GetInputText(), CChatWindow__GetInputText);
+#endif
+#ifdef CChatWindow__PageUp_x
+FUNCTION_AT_ADDRESS(void CChatWindow::PageUp(), CChatWindow__PageUp);
+#endif
+#ifdef CChatWindow__PageDown_x
+FUNCTION_AT_ADDRESS(void CChatWindow::PageDown(), CChatWindow__PageDown);
+#endif
+#ifdef CChatWindow__SetChatFont_x
+FUNCTION_AT_ADDRESS(void CChatWindow::SetChatFont(int), CChatWindow__SetChatFont);
+#endif
+#ifdef CChatWindow__Clear_x
+FUNCTION_AT_ADDRESS(void CChatWindow::Clear(), CChatWindow__Clear);
+#endif
+#ifdef CChatWindow__GetInputWnd_x
+FUNCTION_AT_ADDRESS(CEditWnd* CChatWindow::GetInputWnd(), CChatWindow__GetInputWnd);
+#endif
+#ifdef CChatWindow__WndNotification_x
+FUNCTION_AT_ADDRESS(int CChatWindow::WndNotification(CXWnd*, uint32_t, void*), CChatWindow__WndNotification);
+#endif
+
+
+//============================================================================
 //============================================================================
 
 CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(const char* str)

@@ -49,9 +49,6 @@ struct CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 /*0x180*/
 };
 
-// in CChatWindow__SetChatFont see 692847 in eqgame.exe Test dated Jun 28 2016
-const int EQ_CHAT_FONT_OFFSET = 0x11c;
-
 
 struct CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 {
@@ -204,95 +201,6 @@ struct CONTENTSARRAY
 };
 using PCONTENTSARRAY = CONTENTSARRAY*;
 
-// Size is 82 see 4E4072 in Mar 05 2019 Test -eqmule
-enum ChatFilterEnum
-{
-	CHAT_FILTER_SAY,
-	CHAT_FILTER_TELL,
-	CHAT_FILTER_GROUP,
-	CHAT_FILTER_RAID,
-	CHAT_FILTER_GUILD,
-	CHAT_FILTER_OOC,
-	CHAT_FILTER_AUCTION,
-	CHAT_FILTER_SHOUT,
-	CHAT_FILTER_EMOTE,
-	CHAT_FILTER_MELEE_YOUR_HITS,
-	CHAT_FILTER_SPELLS_MINE,
-	CHAT_FILTER_SKILLS,
-	CHAT_FILTER_CHAT1,
-	CHAT_FILTER_CHAT2,
-	CHAT_FILTER_CHAT3,
-	CHAT_FILTER_CHAT4,
-	CHAT_FILTER_CHAT5,
-	CHAT_FILTER_CHAT6,
-	CHAT_FILTER_CHAT7,
-	CHAT_FILTER_CHAT8,
-	CHAT_FILTER_CHAT9,
-	CHAT_FILTER_CHAT10,
-	CHAT_FILTER_OTHER,
-	CHAT_FILTER_MELEE_YOUR_MISSES,
-	CHAT_FILTER_MELEE_YOU_BEING_HIT,
-	CHAT_FILTER_MELEE_YOU_BEING_MISSED,
-	CHAT_FILTER_MELEE_OTHERS_HITS,
-	CHAT_FILTER_MELEE_OTHERS_MISSES,
-	CHAT_FILTER_MELEE_MY_DEATH,
-	CHAT_FILTER_MELEE_OTHER_PC_DEATH,
-	CHAT_FILTER_MELEE_CRITICAL_HITS,
-	CHAT_FILTER_MELEE_DISCIPLINES,
-	CHAT_FILTER_MELEE_WARNINGS,
-	CHAT_FILTER_MELEE_NPC_RAMPAGE,
-	CHAT_FILTER_MELEE_NPC_FLURRY,
-	CHAT_FILTER_MELEE_NPC_ENRAGE,
-	CHAT_FILTER_SPELLS_OTHERS,
-	CHAT_FILTER_SPELLS_FAILURES	,
-	CHAT_FILTER_SPELLS_CRITICALS,
-	CHAT_FILTER_SPELLS_WORN_OFF	,
-	CHAT_FILTER_SPELLS_DD_YOURS,
-	CHAT_FILTER_FOCUS_EFFECTS,
-	CHAT_FILTER_RANDOM_YOUR_ROLLS,
-	CHAT_FILTER_PET_MESSAGES,
-	CHAT_FILTER_PET_RAMPAGE_FLURRY,
-	CHAT_FILTER_PET_CRITICALS,
-	CHAT_FILTER_DAMAGE_SHIELDS_YOU_ATTACKING,
-	CHAT_FILTER_EXPERIENCE_MESSAGES,
-	CHAT_FILTER_NPC_EMOTES,
-	CHAT_FILTER_SYSTEM_MESSAGES,
-	CHAT_FILTER_WHO,
-	CHAT_FILTER_PET_SPELLS,
-	CHAT_FILTER_PET_RESPONSES,
-	CHAT_FILTER_ITEM_SPEECH,
-	CHAT_FILTER_FELLOWSHIP_MESSAGES,
-	CHAT_FILTER_MERCENARY_MESSAGES,
-    CHAT_FILTER_PVP_MESSAGES,
-    CHAT_FILTER_MELEE_YOUR_FLURRY,
-	CHAT_FILTER_DEBUG,                           // todo: check this not 100% sure its it...
-	CHAT_FILTER_MELEE_NPC_DEATH	,
-    CHAT_FILTER_RANDOM_OTHERS_ROLLS,
-    CHAT_FILTER_RANDOM_GROUP_RAID_ROLLS,
-	CHAT_FILTER_ENVIRONMENTAL_DAMAGE_YOURS,
-	CHAT_FILTER_ENVIRONMENTAL_DAMAGE_OTHERS,
-	CHAT_FILTER_DAMAGE_SHIELDS_YOU_DEFENDING,
-	CHAT_FILTER_DAMAGE_SHIELDS_OTHERS,
-	CHAT_FILTER_EVENT_MESSAGES,
-	CHAT_FILTER_OVERWRITTEN_DETRIMENTAL_SPELL_MESSAGES,
-	CHAT_FILTER_OVERWRITTEN_BENEFICIAL_SPELL_MESSAGES,
-	CHAT_FILTER_YOU_CANT_USE_THAT_COMMAND,       // Added chat color and filtering options for 'You can't use that command' messages.
-	CHAT_FILTER_COMBAT_ABILITY_REUSE,            // Added chat color and filtering options for combat ability and AA ability reuse time messages.
-	CHAT_FILTER_SPELLS_AA_ABILITY_REUSE,
-	CHAT_FILTER_ITEM_DESTROYED,
-	CHAT_FILTER_SPELLS_AURAS_YOU,
-	CHAT_FILTER_SPELLS_AURAS_OTHERS,
-	CHAT_FILTER_SPELLS_HEALS_YOURS,
-	CHAT_FILTER_SPELLS_HEALS_OTHERS,
-	CHAT_FILTER_SPELLS_DOTS_YOURS,
-	CHAT_FILTER_SPELLS_DOTS_OTHERS,
-	CHAT_FILTER_SPELLS_SONGS,
-	CHAT_FILTER_SPELLS_DD_OTHERS,
-	CHAT_FILTER_ZERO_HEALS,
-	CHAT_FILTER_SOMETHING,
-
-	MAX_CHAT_FILTERS = CHAT_FILTER_SOMETHING
-};
 
 enum eContextMenuFilterIDs
 {
@@ -390,112 +298,7 @@ enum eContextMenuFilterIDs
 	// todo check the ids.
 };
 
-struct EQCHATWINDOW;
 
-// Size 0x384 in eqgame dated 05 Mar 2019 Test (see 0x5418AB)
-struct EQCHATMGR
-{
-/*0x000*/ PCXWND       ChatWnd[0x20];
-/*0x080*/ void*        ChatContainerWindow_vfTable;
-/*0x084*/ DWORD        Unknown0x084;
-/*0x088*/ DWORD        Unknown0x088;
-/*0x08c*/ DWORD        Unknown0x08c;
-/*0x090*/ PCXWND       ChatContainerWindow[0x20];
-/*0x110*/ DWORD        Unknown0x110;
-/*0x114*/ DWORD        NumWindows;
-/*0x118*/ DWORD        LockedWindow;
-/*0x11c*/ DWORD        ActiveWindow;
-/*0x120*/ DWORD        Unknown0x120;                       // CurrentActive... CChat::GetActiveChatWindow
-/*0x124*/ DWORD        Unknown0x124;                       // LockedActive... CChatManager__GetLockedActiveChatWindow_x
-/*0x08c*/ EQCHATWINDOW* ChannelMap[MAX_CHAT_FILTERS];      // channel map
-/*0x1a0*/ void*        pCM_MainMenu;                       // these are all CContextMenu* but we LPVOID them here since its easy...
-/*0x1a4*/ int          ScrollbarIndex;
-/*0x1a8*/ void*        pCM_LanguageMenu;
-/*0x1ac*/ int          LanguageMenuIndex;
-/*0x1b0*/ void*        pCM_FilterMenu;
-/*0x1b4*/ int          FilterMenuIndex;
-/*0x1b8*/ int          ChatChannelFilterMenuIndex;
-/*0x1bc*/ int          MeleeFilterSubMenuIndex;
-/*0x1c0*/ int          SpellsFilterSubMenuIndex;
-/*0x1c4*/ void*        pCM_MeleeMenu;
-/*0x1c8*/ int          MeleeFilterMenuIndex;
-/*0x1cc*/ void*        pCM_SpellMenu;
-/*0x1d0*/ int          SpellsMenuIndex;
-/*0x1d4*/ void*        pCM_ChannelMenu;
-/*0x1d8*/ int          ChannelMenuIndex;
-/*0x1dc*/ void*        pCM_DefaultChannelMenu;
-/*0x1e0*/ int          DefaultChannelMenu;
-/*0x1e4*/ int          DefaultChannelMenu2;
-/*0x1e8*/ void*        pCM_ChatChannelDefChan;
-/*0x1ec*/ int          ChatChannelDefChanIndex;
-/*0x1f0*/ void*        pCM_YourHitsMenu;
-/*0x1f4*/ int          YourHitsMenuIndex;
-/*0x1f8*/ void*        pCM_YourMissesMenu;
-/*0x1fc*/ int          YourMissesMenuindex;
-/*0x200*/ void*        pCM_YouBeingHitMenu;
-/*0x204*/ int          YouBeingHitMenuindex;
-/*0x208*/ void*        pCM_OthersHitsMenu;
-/*0x20c*/ int          OthersHitsMenuindex;
-/*0x210*/ void*        pCM_OthersMissesMenu;
-/*0x214*/ int          OthersMissesMenuindex;
-/*0x218*/ void*        pCM_AllContextMenu;
-/*0x21c*/ int          AllContextMenuindex;
-/*0x220*/ void*        pCM_HitModesMenu;
-/*0x224*/ int          HitModesMenuindex;
-/*0x228*/ void*        pCM_ReplyToMenu;
-/*0x22c*/ int          ReplyToMenuindex;
-/*0x230*/ void*        pCM_TellFriendMenu;
-/*0x234*/ int          TellFriendMenuindex;
-/*0x238*/ void*        pCM_TellRaidmemberMenu;
-/*0x23c*/ int          TellRaidmemberMenuindex;
-/*0x240*/ int          ReplyToSubIndex;
-/*0x244*/ int          TellFriendSubIndex;
-/*0x248*/ int          TellRaidmemberSubIndex;
-/*0x24c*/ int          HitModes[0x8];
-/*0x26c*/ int          DefaultChannel;
-/*0x270*/ void*        pCM_RandomFilterMenu;
-/*0x274*/ int          RandomFilterIndex;
-/*0x278*/ int          RandomFilterSubIndex;
-/*0x27c*/ void*        pCM_EnvironmentalDamageMenu;
-/*0x280*/ int          EnvironmentalDamageIndex;
-/*0x284*/ int          EnvironmentalDamageSubIndex;
-/*0x288*/ void*        pCM_DamageShieldsFilterMenu;
-/*0x28c*/ int          DamageShieldsFilterIndex;
-/*0x290*/ int          DamageShieldsFilterSubIndex;
-/*0x294*/ void*        pCM_BeneficialSpellsFilterMenu;
-/*0x298*/ int          BeneficialSpellsFilteIndex;
-/*0x29c*/
-};
-using PEQCHATMGR = EQCHATMGR*;
-
-// CChatWindow__CChatWindow_x
-// Size 0x388 see 69AE4D in Oct 26 2017 Beta exe -eqmule
-struct EQCHATWINDOW
-{
-/*0x000*/ CSIDLWND     Wnd;
-/*0x240*/ EQCHATMGR*   ChatManager; 
-/*0x244*/ CSIDLWND*    InputWnd;
-/*0x248*/ CSIDLWND*    OutputWnd;
-/*0x24c*/ int          ChatChannel;
-/*0x250*/ int          ChatChannelIndex;
-/*0x254*/ char         TellTarget[0x40];
-/*0x294*/ int          Language;
-/*0x298*/ bool         bIsMainChat;
-/*0x299*/ bool         bIsTellWnd;
-/*0x29c*/ int          TimestampFormat;
-/*0x2a0*/ COLORREF     TimestampColor;
-/*0x2a4*/ bool         bTimestampMatchChatColor;
-/*0x2a8*/ CXStr        CommandHistory[0x28];     // see 690DAA in apr 11 2017 test
-/*0x348*/ int          HistoryIndex;
-/*0x34c*/ int          HistoryLastShown;
-/*0x350*/ int          FontSize;                 // style
-/*0x354*/ int          AlwaysChathereIndex;      // menu
-/*0x358*/ int          NamesContextMenu;         // guess
-/*0x35c*/ int          ContextMenuID;            // also a guess
-/*0x360*/ int          ContextMenuSubID[0xa];    // this is not correct but ill fix it later.
-/*0x388*/
-};
-using PEQCHATWINDOW = EQCHATWINDOW*;
 
 struct EQINVSLOTWND;
 
