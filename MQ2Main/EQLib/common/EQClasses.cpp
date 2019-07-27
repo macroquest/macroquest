@@ -71,13 +71,9 @@ FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*), 0x4);
 #if defined(ROF2EMU) || defined(UFEMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x17c);        // see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x184);
-FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const, 0x18c);
-FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const, 0x190);
 #else
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x180);       // see CComboWnd__DeleteAll_x
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x188);
-FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTotalDuration() const, 0x190);
-FUNCTION_AT_VIRTUAL_ADDRESS(UINT CButtonWnd::GetCoolDownTimeRemaining() const, 0x194);
 #endif
 
 // ClientSpellManager
@@ -129,9 +125,6 @@ FUNCTION_AT_ADDRESS(void CAAWnd::SendNewPercent(), CAAWnd__SendNewPercent);
 #endif
 #ifdef CAAWnd__ConfirmAASpend_x
 FUNCTION_AT_ADDRESS(void CAAWnd::ConfirmAASpend(), CAAWnd__ConfirmAASpend);
-#endif
-#ifdef CUITextureInfo__CUITextureInfo_x
-FUNCTION_AT_ADDRESS(CUITextureInfo::CUITextureInfo(CXStr, int), CUITextureInfo__CUITextureInfo);
 #endif
 #ifdef CXMLSOMNodePtr__dCXMLSOMNodePtr_x
 FUNCTION_AT_ADDRESS(CXMLSOMNodePtr::~CXMLSOMNodePtr(), CXMLSOMNodePtr__dCXMLSOMNodePtr);
@@ -469,14 +462,8 @@ FUNCTION_AT_ADDRESS(CXSize CTAFrameDraw::GetFrameSize() const, CTAFrameDraw__Get
 #ifdef STextureAnimationFrame__STextureAnimationFrame_x
 FUNCTION_AT_ADDRESS(STextureAnimationFrame::STextureAnimationFrame(), STextureAnimationFrame__STextureAnimationFrame);
 #endif
-#ifdef CUITexturePiece__CUITexturePiece_x
-FUNCTION_AT_ADDRESS(CUITexturePiece::CUITexturePiece(), CUITexturePiece__CUITexturePiece);
-#endif
 #ifdef STextureAnimationFrame__operator_equal_x
 FUNCTION_AT_ADDRESS(STextureAnimationFrame& STextureAnimationFrame::operator=(const STextureAnimationFrame&), STextureAnimationFrame__operator_equal);
-#endif
-#ifdef CUITexturePiece__operator_equal_x
-FUNCTION_AT_ADDRESS(CUITexturePiece& CUITexturePiece::operator=(const CUITexturePiece&), CUITexturePiece__operator_equal);
 #endif
 #ifdef CBugReportWnd__CBugReportWnd_x
 FUNCTION_AT_ADDRESS(CBugReportWnd::CBugReportWnd(CXWnd*), CBugReportWnd__CBugReportWnd);
@@ -1163,13 +1150,10 @@ FUNCTION_AT_ADDRESS(unsigned int CEQSuiteTextureLoader::CreateTexture(const CUIT
 FUNCTION_AT_ADDRESS(void CEQSuiteTextureLoader::UnloadAllTextures(), CEQSuiteTextureLoader__UnloadAllTextures);
 #endif
 #ifdef CEQSuiteTextureLoader__GetTexture_x
-FUNCTION_AT_ADDRESS(BMI* CEQSuiteTextureLoader::GetTexture(const CUITextureInfo2& ti), CEQSuiteTextureLoader__GetTexture);
+FUNCTION_AT_ADDRESS(BMI* CEQSuiteTextureLoader::GetTexture(const CUITextureInfo& ti), CEQSuiteTextureLoader__GetTexture);
 #endif
 #ifdef CEQSuiteTextureLoader__GetDefaultUIPath_x
 FUNCTION_AT_ADDRESS(const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const, CEQSuiteTextureLoader__GetDefaultUIPath);
-#endif
-#ifdef CUITextureInfo__GetName_x
-FUNCTION_AT_ADDRESS(CXStr CUITextureInfo::GetName() const, CUITextureInfo__GetName);
 #endif
 #ifdef CEQSuiteTextureLoader__CEQSuiteTextureLoader_x
 FUNCTION_AT_ADDRESS(CEQSuiteTextureLoader::CEQSuiteTextureLoader(), CEQSuiteTextureLoader__CEQSuiteTextureLoader);
@@ -1479,12 +1463,6 @@ FUNCTION_AT_ADDRESS(void CGroupSearchWnd::ResetGroupList(), CGroupSearchWnd__Res
 #endif
 #ifdef CGroupSearchWnd__AddGroupResult_x
 FUNCTION_AT_ADDRESS(void CGroupSearchWnd::AddGroupResult(struct LfgGroupResult const*), CGroupSearchWnd__AddGroupResult);
-#endif
-#ifdef CUITextureInfo__dCUITextureInfo_x
-FUNCTION_AT_ADDRESS(CUITextureInfo::~CUITextureInfo(), CUITextureInfo__dCUITextureInfo);
-#endif
-#ifdef CUITexturePiece__dCUITexturePiece_x
-FUNCTION_AT_ADDRESS(CUITexturePiece::~CUITexturePiece(), CUITexturePiece__dCUITexturePiece);
 #endif
 #ifdef STextureAnimationFrame__dSTextureAnimationFrame_x
 FUNCTION_AT_ADDRESS(STextureAnimationFrame::~STextureAnimationFrame(), STextureAnimationFrame__dSTextureAnimationFrame);
@@ -3457,9 +3435,6 @@ FUNCTION_AT_ADDRESS(void CDisplay::InitNewUI(), CDisplay__InitNewUI);
 #endif
 #ifdef CXWndDrawTemplate__operator_equal_x
 FUNCTION_AT_ADDRESS(CXWndDrawTemplate& CXWndDrawTemplate::operator=(const CXWndDrawTemplate&), CXWndDrawTemplate__operator_equal);
-#endif
-#ifdef CButtonDrawTemplate__operator_equal_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate& CButtonDrawTemplate::operator=(const CButtonDrawTemplate&), CButtonDrawTemplate__operator_equal);
 #endif
 #ifdef CScrollbarTemplate__operator_equal_x
 FUNCTION_AT_ADDRESS(CScrollbarTemplate& CScrollbarTemplate::operator=(const CScrollbarTemplate&), CScrollbarTemplate__operator_equal);
@@ -6390,20 +6365,11 @@ FUNCTION_AT_ADDRESS(CXStr CRadioGroup::GetName() const, CRadioGroup__GetName);
 #ifdef CXWndDrawTemplate__CXWndDrawTemplate_x
 FUNCTION_AT_ADDRESS(CXWndDrawTemplate::CXWndDrawTemplate(), CXWndDrawTemplate__CXWndDrawTemplate);
 #endif
-#ifdef CUITextureInfo__CUITextureInfo1_x
-FUNCTION_AT_ADDRESS(CUITextureInfo::CUITextureInfo(), CUITextureInfo__CUITextureInfo1);
-#endif
-#ifdef CButtonDrawTemplate__CButtonDrawTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate::CButtonDrawTemplate(), CButtonDrawTemplate__CButtonDrawTemplate);
-#endif
 #ifdef CScrollbarTemplate__dCScrollbarTemplate_x
 FUNCTION_AT_ADDRESS(CScrollbarTemplate::~CScrollbarTemplate(), CScrollbarTemplate__dCScrollbarTemplate);
 #endif
 #ifdef CXWndDrawTemplate__dCXWndDrawTemplate_x
 FUNCTION_AT_ADDRESS(CXWndDrawTemplate::~CXWndDrawTemplate(), CXWndDrawTemplate__dCXWndDrawTemplate);
-#endif
-#ifdef CButtonDrawTemplate__GetSize_x
-FUNCTION_AT_ADDRESS(CXSize CButtonDrawTemplate::GetSize() const, CButtonDrawTemplate__GetSize);
 #endif
 #ifdef CXRect__CXRect_x
 FUNCTION_AT_ADDRESS(CXRect::CXRect(int, int, int, int), CXRect__CXRect);
@@ -6719,9 +6685,6 @@ FUNCTION_AT_ADDRESS(void CStmlWnd::ParseTagFace(CXStr, CTextureFont const**) con
 #endif
 #ifdef SAmpersandEntry__SAmpersandEntry_x
 FUNCTION_AT_ADDRESS(SAmpersandEntry::SAmpersandEntry(CXStr, char), SAmpersandEntry__SAmpersandEntry);
-#endif
-#ifdef CButtonDrawTemplate__dCButtonDrawTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate::~CButtonDrawTemplate(), CButtonDrawTemplate__dCButtonDrawTemplate);
 #endif
 #ifdef CGaugeDrawTemplate__dCGaugeDrawTemplate_x
 FUNCTION_AT_ADDRESS(CGaugeDrawTemplate::~CGaugeDrawTemplate(), CGaugeDrawTemplate__dCGaugeDrawTemplate);
@@ -7096,12 +7059,6 @@ FUNCTION_AT_ADDRESS(bool KeyCombo::GetScanCodeFromVirtualKey(unsigned int, unsig
 #ifdef KeyCombo__GetPrintableLetterFromVirtualKey_x
 FUNCTION_AT_ADDRESS(bool KeyCombo::GetPrintableLetterFromVirtualKey(unsigned int, unsigned int, bool, bool, unsigned short*) const, KeyCombo__GetPrintableLetterFromVirtualKey);
 #endif
-//#ifdef CButtonWnd__CButtonWnd_x
-//FUNCTION_AT_ADDRESS(CButtonWnd::CButtonWnd(CXWnd*, uint32_t, CXRect, class CXPoint, CXSize, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*), CButtonWnd__CButtonWnd);
-//#endif
-#ifdef CButtonWnd__SetCheck_x
-FUNCTION_AT_ADDRESS(void CButtonWnd::SetCheck(bool), CButtonWnd__SetCheck);
-#endif
 #ifdef CComboWnd__CComboWnd_x
 //FUNCTION_AT_ADDRESS(CComboWnd::CComboWnd(CXWnd*, uint32_t, CXRect, int, class CButtonDrawTemplate, CListWnd*), CComboWnd__CComboWnd);
 #endif
@@ -7387,26 +7344,14 @@ FUNCTION_AT_ADDRESS(CTextureAnimation::CTextureAnimation(), CTextureAnimation__C
 #ifdef CTextureAnimation__CTextureAnimation1_x
 FUNCTION_AT_ADDRESS(CTextureAnimation::CTextureAnimation(CXStr), CTextureAnimation__CTextureAnimation1);
 #endif
-#ifdef CUITexturePiece__CUITexturePiece1_x
-FUNCTION_AT_ADDRESS(CUITexturePiece::CUITexturePiece(const CUITexturePiece&), CUITexturePiece__CUITexturePiece1);
-#endif
 #ifdef CTextureAnimation__AddFrame_x
 FUNCTION_AT_ADDRESS(int CTextureAnimation::AddFrame(CUITextureInfo const*, CXRect, uint32_t, class CXPoint), CTextureAnimation__AddFrame);
-#endif
-#ifdef CUITexturePiece__CUITexturePiece2_x
-//FUNCTION_AT_ADDRESS(CUITexturePiece::CUITexturePiece(CUITextureInfo, CXRect), CUITexturePiece__CUITexturePiece2);
-#endif
-#ifdef CUITextureInfo__CUITextureInfo2_x
-FUNCTION_AT_ADDRESS(CUITextureInfo::CUITextureInfo(const CUITextureInfo&), CUITextureInfo__CUITextureInfo2);
 #endif
 #ifdef CTextureAnimation__AddFrame1_x
 //FUNCTION_AT_ADDRESS(int CTextureAnimation::AddFrame(CUITexturePiece, uint32_t, CXPoint), CTextureAnimation__AddFrame1);
 #endif
 #ifdef STextureAnimationFrame__STextureAnimationFrame1_x
 FUNCTION_AT_ADDRESS(STextureAnimationFrame::STextureAnimationFrame(CUITexturePiece, uint32_t, CXPoint), STextureAnimationFrame__STextureAnimationFrame1);
-#endif
-#ifdef CUITextureInfo__CUITextureInfo3_x
-FUNCTION_AT_ADDRESS(CUITextureInfo::CUITextureInfo(uint32_t, int), CUITextureInfo__CUITextureInfo3);
 #endif
 #ifdef CTextureAnimation__AddBlankFrame_x
 FUNCTION_AT_ADDRESS(int CTextureAnimation::AddBlankFrame(uint32_t, CXPoint), CTextureAnimation__AddBlankFrame);
@@ -7431,9 +7376,6 @@ FUNCTION_AT_ADDRESS(void CTextureAnimation::SetCurCell(int), CTextureAnimation__
 #endif
 #ifdef CTextureAnimation__Preload_x
 FUNCTION_AT_ADDRESS(int CTextureAnimation::Preload(), CTextureAnimation__Preload);
-#endif
-#ifdef CUITextureInfo__operator_equal_x
-FUNCTION_AT_ADDRESS(CUITextureInfo& CUITextureInfo::operator=(const CUITextureInfo&), CUITextureInfo__operator_equal);
 #endif
 #ifdef CSidlManager__CSidlManager_x
 FUNCTION_AT_ADDRESS(CSidlManager::CSidlManager(), CSidlManager__CSidlManager);
@@ -7492,9 +7434,6 @@ FUNCTION_AT_ADDRESS(CXStr CScreenPieceTemplate::GetName() const, CScreenPieceTem
 #ifdef CSidlManager__LoadSidl_x
 FUNCTION_AT_ADDRESS(void CSidlManager::LoadSidl(const CXStr&, CXStr const&, CXStr const&, CXStr const&), CSidlManager__LoadSidl);
 #endif
-#ifdef CUITextureInfo__CUITextureInfo4_x
-FUNCTION_AT_ADDRESS(CUITextureInfo::CUITextureInfo(CXStr, CXSize), CUITextureInfo__CUITextureInfo4);
-#endif
 #ifdef CSidlManager__CreateTextureAnimationFromSidlAnimation_x
 FUNCTION_AT_ADDRESS(CTextureAnimation CSidlManager::CreateTextureAnimationFromSidlAnimation(CParamUi2DAnimation const*) const, CSidlManager__CreateTextureAnimationFromSidlAnimation);
 #endif
@@ -7509,9 +7448,6 @@ FUNCTION_AT_ADDRESS(CScrollbarTemplate::CScrollbarTemplate(const CScrollbarTempl
 #endif
 #ifdef CSidlManager__GetSliderDrawTemplateFromParamSliderDrawTemplate_x
 FUNCTION_AT_ADDRESS(CSliderDrawTemplate CSidlManager::GetSliderDrawTemplateFromParamSliderDrawTemplate(const CParamSliderDrawTemplate&) const, CSidlManager__GetSliderDrawTemplateFromParamSliderDrawTemplate);
-#endif
-#ifdef CButtonDrawTemplate__CButtonDrawTemplate1_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate::CButtonDrawTemplate(const CButtonDrawTemplate&), CButtonDrawTemplate__CButtonDrawTemplate1);
 #endif
 #ifdef CSliderDrawTemplate__dCSliderDrawTemplate_x
 FUNCTION_AT_ADDRESS(CSliderDrawTemplate::~CSliderDrawTemplate(), CSliderDrawTemplate__dCSliderDrawTemplate);
@@ -7811,27 +7747,6 @@ FUNCTION_AT_ADDRESS(int CIMEManager::getImeProperties() const, CIMEManager__getI
 #endif
 #ifdef CIMEManager__getWindowHandle_x
 FUNCTION_AT_ADDRESS(struct HWND__* CIMEManager::getWindowHandle() const, CIMEManager__getWindowHandle);
-#endif
-#ifdef CUITextureInfo__Draw_x
-FUNCTION_AT_ADDRESS(int CUITextureInfo::Draw(CXRect, CXRect, class CXRect, unsigned long, unsigned long) const, CUITextureInfo__Draw);
-#endif
-#ifdef CUITextureInfo__Draw1_x
-FUNCTION_AT_ADDRESS(int CUITextureInfo::Draw(CXRect, CXRect, class CXRect, unsigned long*, unsigned long*) const, CUITextureInfo__Draw1);
-#endif
-#ifdef CUITexturePiece__Draw_x
-FUNCTION_AT_ADDRESS(int CUITexturePiece::Draw(CXRect, CXRect, unsigned long, unsigned long) const, CUITexturePiece__Draw);
-#endif
-#ifdef CUITexturePiece__Draw1_x
-FUNCTION_AT_ADDRESS(int CUITexturePiece::Draw(CXRect, CXRect, class CXRect, unsigned long, unsigned long) const, CUITexturePiece__Draw1);
-#endif
-#ifdef CUITextureInfo__Tile_x
-FUNCTION_AT_ADDRESS(int CUITextureInfo::Tile(CXRect, unsigned long, unsigned long) const, CUITextureInfo__Tile);
-#endif
-#ifdef CUITextureInfo__Tile1_x
-FUNCTION_AT_ADDRESS(int CUITextureInfo::Tile(CXRect, unsigned long*, unsigned long*) const, CUITextureInfo__Tile1);
-#endif
-#ifdef CUITextureInfo__Preload_x
-FUNCTION_AT_ADDRESS(int CUITextureInfo::Preload(), CUITextureInfo__Preload);
 #endif
 #ifdef CXMLDataPtr__SetNewPtr_x
 FUNCTION_AT_ADDRESS(void CXMLDataPtr::SetNewPtr(CXMLData*), CXMLDataPtr__SetNewPtr);

@@ -623,22 +623,23 @@ public:
 
 	//----------------------------------------------------------------------------
 	// data members
-	bool                         bControlsCreated;
-	CXStr                        SidlText;
-	CScreenTemplate*             SidlPiece;
-	ArrayClass<CRadioGroup*>     RadioGroup;
-	bool                         bInitVisibility;
-	bool                         bVisibleBeforeResize;
-	int                          IniFlags;
-	CXStr                        IniStorageName;                       // found in CSidlScreenWnd__LoadSidlScreen
-	int                          IniVersion;
-	int                          LastResX;
-	int                          LastResY;
-	bool                         bLastResFullscreen;
-	int                          ContextMenuID;
-	CXWnd*                       pFirstVScrollChild;
-	int                          ContextMenuTipID;
-	bool                         bHasActivatedFirstTimeAlert;
+/*0x1f8*/ bool                         bControlsCreated;
+/*0x1fc*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
+/*0x200*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
+/*0x204*/ ArrayClass<CRadioGroup*>     RadioGroup;
+/*0x214*/ bool                         bInitVisibility;
+/*0x215*/ bool                         bVisibleBeforeResize;
+/*0x218*/ int                          IniFlags;
+/*0x21c*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
+/*0x220*/ int                          IniVersion;
+/*0x224*/ int                          LastResX;
+/*0x228*/ int                          LastResY;
+/*0x22c*/ bool                         bLastResFullscreen;
+/*0x230*/ int                          ContextMenuID;
+/*0x234*/ CXWnd*                       pFirstVScrollChild;
+/*0x238*/ int                          ContextMenuTipID;
+/*0x23c*/ bool                         bHasActivatedFirstTimeAlert;
+/*0x240*/
 
 	//----------------------------------------------------------------------------
 	// functions that we provide offsets for
@@ -674,6 +675,9 @@ public:
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
 };
+
+using CSIDLWND = CSidlScreenWnd;
+using PCSIDLWND = CSidlScreenWnd*;
 
 void InitializeCXWnd();
 

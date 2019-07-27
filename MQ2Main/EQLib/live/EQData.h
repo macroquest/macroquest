@@ -530,10 +530,6 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_TBL                   EQ_EXPANSION(25)
 #define NUM_EXPANSIONS                  25
 
-#if _MSC_VER < 1600
-#define nullptr                         NULL
-#endif
-
 #define CALC_1TICK						107
 #define CALC_2TICK						108
 #define CALC_5TICK						120

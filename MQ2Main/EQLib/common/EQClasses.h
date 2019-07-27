@@ -653,70 +653,6 @@ public:
 	EQLIB_OBJECT ~CButtonTemplate();
 };
 
-class CButtonWnd : public CXWnd
-{
-public:
-/*0x1e0*/ int          MouseButtonState;
-/*0x1e4*/ bool         bImage;
-/*0x1e8*/ CRadioGroup* RadioGroup;
-/*0x1ec*/ bool         Checked;
-/*0x1ed*/ bool         Highlighted;
-/*0x1f0*/ tagPOINT     DecalOffset;
-/*0x1f8*/ tagSIZE      DecalSize;
-/*0x200*/ COLORREF     DecalTint;
-/*0x204*/ RECT         TextOffsets;
-/*0x214*/ int          TextMode;
-/*0x218*/ COLORREF     MouseoverColor;
-/*0x21c*/ COLORREF     PressedColor;
-/*0x220*/ COLORREF     DisabledColor;
-/*0x224*/ UINT         CoolDownStartTime;
-/*0x228*/ UINT         CoolDownDuration;
-/*0x22c*/ CXStr        Indicator;
-/*0x230*/ UINT         IndicatorValue;
-/*0x234*/ void*        pIndicatorTextObject;
-/*0x238*/ CXStr        Name;
-/*0x23c*/ CTextureAnimation* TANormal;
-/*0x240*/ CTextureAnimation* TAPressed;
-/*0x244*/ CTextureAnimation* TAFlyby;
-/*0x248*/ CTextureAnimation* TADisabled;
-/*0x24c*/ CTextureAnimation* TAPressedFlyby;
-/*0x250*/ CTextureAnimation* TAPressedDisabled;
-/*0x254*/ CTextureAnimation* TANormalDecal;
-/*0x258*/ CTextureAnimation* TAPressedDecal;
-/*0x25c*/ CTextureAnimation* TAFlybyDecal;
-/*0x260*/ CTextureAnimation* TADisabledDecal;
-/*0x264*/ CTextureAnimation* TAPressedFlybyDecal;
-/*0x268*/ CTextureAnimation* TAPressedDisabledDecal;
-/*0x26c*/ bool         bAllowButtonPassThrough;
-/*0x270*/ bool         bCooldownrelated;
-/*0x274*/ bool         bIsCheckbox;
-/*0x278*/ bool         bDrawLasso;               // draws the yellow border...
-/*0x27c*/ uint32_t     ButtonStyle;
-
-	EQLIB_OBJECT CButtonWnd(CXWnd*, uint32_t, const CXRect&, const CXPoint&, const CXSize&, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*);
-	EQLIB_OBJECT void SetCheck(bool);
-
-	// virtual
-	// CButtonWnd() {};
-	EQLIB_OBJECT ~CButtonWnd();
-	EQLIB_OBJECT bool IsPointTransparent(CXPoint) const;
-	EQLIB_OBJECT int Draw() const;
-	EQLIB_OBJECT int HandleLButtonDown(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonUp(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleMouseMove(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleRButtonDown(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleRButtonHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleRButtonUp(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int HandleRButtonUpAfterHeld(const CXPoint&, uint32_t);
-	EQLIB_OBJECT int OnProcessFrame();
-	EQLIB_OBJECT void SetAttributesFromSidl(CParamScreenPiece*);
-	EQLIB_OBJECT void SetRadioGroup(CRadioGroup*);
-	EQLIB_OBJECT UINT GetCoolDownTotalDuration() const;
-	EQLIB_OBJECT UINT GetCoolDownTimeRemaining() const;
-};
-
 class CCastingWnd : public CSidlScreenWnd
 {
 public:
@@ -1659,22 +1595,6 @@ public:
 	EQLIB_OBJECT char* GetChannelName(int channelNumber);
 };
 
-
-class CEQSuiteTextureLoader
-{
-public:
-	void*              pWadFile; // SWadFile
-	ArrayClass_RO<SuiteTexture> Textures;
-	CXStr              UIPath[4];
-	CXStr              DefaultUIPath[4];
-
-	EQLIB_OBJECT ~CEQSuiteTextureLoader();
-	EQLIB_OBJECT CEQSuiteTextureLoader();
-	EQLIB_OBJECT BMI* GetTexture(const CUITextureInfo2 &ti);
-	EQLIB_OBJECT unsigned int CreateTexture(const CUITextureInfo&);
-	EQLIB_OBJECT void UnloadAllTextures();
-	EQLIB_OBJECT const CXStr& GetDefaultUIPath(int DirType) const;
-};
 
 struct TARGETRING
 {
@@ -3011,25 +2931,6 @@ public:
 	EQLIB_OBJECT ~CListboxTemplate();
 };
 
-// See Also CUITextureInfo2...
-class CUITextureInfo
-{
-public:
-	EQLIB_OBJECT ~CUITextureInfo();
-	EQLIB_OBJECT CUITextureInfo(CXStr, CXSize);
-	EQLIB_OBJECT CUITextureInfo(CXStr, int);
-	EQLIB_OBJECT CUITextureInfo(const CUITextureInfo&);
-	EQLIB_OBJECT CUITextureInfo(uint32_t, int);
-	EQLIB_OBJECT CUITextureInfo();
-	EQLIB_OBJECT CXStr GetName() const;
-	EQLIB_OBJECT int Draw(CXRect, CXRect, CXRect, unsigned long*, unsigned long*) const;
-	EQLIB_OBJECT int Draw(CXRect, CXRect, CXRect, unsigned long, unsigned long) const;
-	EQLIB_OBJECT int Preload();
-	EQLIB_OBJECT int Tile(CXRect, unsigned long*, unsigned long*) const;
-	EQLIB_OBJECT int Tile(CXRect, unsigned long, unsigned long) const;
-	EQLIB_OBJECT CUITextureInfo& operator=(const CUITextureInfo&);
-};
-
 struct SListWndCell_RO
 {
 	const CTextureAnimation* pTA;
@@ -3214,7 +3115,7 @@ public:
 /*0x244*/ COLORREF     HeaderText;
 /*0x248*/ COLORREF     Highlight;
 /*0x24c*/ COLORREF     Selected;
-/*0x250*/ CUITextureInfo2 BGHeader;
+/*0x250*/ CUITextureInfo BGHeader;
 /*0x268*/ COLORREF     BGHeaderTint;
 /*0x26c*/ CTextureAnimation* pRowSep;
 /*0x270*/ CTextureAnimation* pColumnSep;
@@ -4521,16 +4422,6 @@ public:
 	EQLIB_OBJECT void CheckMaxEditWnd();
 	EQLIB_OBJECT void UpdateEditWndFromSlider();
 	EQLIB_OBJECT void UpdateSliderFromEditWnd();
-};
-
-class CRadioGroup
-{
-public:
-	EQLIB_OBJECT CRadioGroup(const CXStr&);
-	EQLIB_OBJECT CXStr GetName() const;
-
-	// virtual
-	EQLIB_OBJECT ~CRadioGroup();
 };
 
 struct RaidAddMember;

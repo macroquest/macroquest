@@ -53,53 +53,6 @@ struct CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 const int EQ_CHAT_FONT_OFFSET = 0x11c;
 
 
-
-#if 0
-// CSidlScreenWnd__CSidlScreenWnd1_x
-// to check do : CSidlScreenWnd*csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");
-// Size 0x240 in Oct 13 2017 Test exe see 605AAD
-#define SIDL \
-/*0x1F8*/ bool bControlsCreated; /*yes this REALLY is here, see 8D255E in aug 10 2017 live - eqmule */ \
-/*0x1fc*/ CXStr SidlText; /*found in CChatWindow__WndNotification_x*/\
-/*0x200*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
-/*0x204*/ ArrayClass_RO<void*>RadioGroup; /*CRadioGroup*/ \
-/*0x214*/ bool bInitVisibility; \
-/*0x215*/ bool bVisibleBeforeResize; \
-/*0x218*/ int IniFlags; \
-/*0x21C*/ CXStr INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-/*0x220*/ int	IniVersion; \
-/*0x224*/ int	LastResX; \
-/*0x228*/ int	LastResY; \
-/*0x22C*/ bool bLastResFullscreen; \
-/*0x230*/ int  ContextMenuID; \
-/*0x234*/ PCXWND pFirstVScrollChild; \
-/*0x238*/ int ContextMenuTipID; \
-/*0x23C*/ bool bHasActivatedFirstTimeAlert; \
-/*0x240*/
-#endif
-
-struct CSIDLWND : public CXWND
-{
-/*0x1F8*/ bool         bControlsCreated;
-/*0x1fc*/ CXStr        SidlText;                 // found in CChatWindow__WndNotification_x*
-/*0x200*/ void*        SidlPiece;                // CScreenPieceTemplate (important)
-/*0x204*/ ArrayClass_RO<void*> RadioGroup;       // CRadioGroup
-/*0x214*/ bool         bInitVisibility;
-/*0x215*/ bool         bVisibleBeforeResize;
-/*0x218*/ int          IniFlags;
-/*0x21C*/ CXStr        INIStorageName;           // found in CSidlScreenWnd__LoadSidlScreen_x
-/*0x220*/ int          IniVersion;
-/*0x224*/ int          LastResX;
-/*0x228*/ int          LastResY;
-/*0x22C*/ bool         bLastResFullscreen;
-/*0x230*/ int          ContextMenuID;
-/*0x234*/ CXWND*       pFirstVScrollChild;
-/*0x238*/ int          ContextMenuTipID;
-/*0x23C*/ bool         bHasActivatedFirstTimeAlert;
-/*0x240*/
-};
-using PCSIDLWND = CSIDLWND*;
-
 struct CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 {
 /*0x168*/ void* CListWnd__OnHeaderClick;
@@ -812,41 +765,6 @@ struct EQGRAPHICSENGINE
 };
 using PEQGRAPHICSENGINE = EQGRAPHICSENGINE*;
 
-
-
-// CButtonWnd__CButtonWnd_x
-// size is 0x290 see 8E0709 in eqgame.exe dated Oct 13 2017 Test
-struct CBUTTONWND
-{
-/*0x000*/ CXWND        Wnd;                      // inherits from CXWnd
-/*0x1f8*/ int          MouseButtonState;
-/*0x1fc*/ bool         bPicture;
-/*0x200*/ void*        pGroup;                   // CRadioGroup*
-/*0x204*/ bool         bChecked;
-/*0x205*/ bool         bMouseOverLastFrame;
-/*0x208*/ tagPOINT     DecalOffset;
-/*0x210*/ tagSIZE      DecalSize;
-/*0x218*/ COLORREF     DecalTint;                // Color
-/*0x21c*/ RECT         TextOffsets;
-/*0x22c*/ int          TextModeBits;
-/*0x230*/ COLORREF     Mouseover;
-/*0x234*/ COLORREF     Pressed;
-/*0x238*/ COLORREF     Disabled;
-/*0x23c*/ UINT         CoolDownBeginTime;
-/*0x240*/ UINT         CoolDownDuration;
-/*0x244*/ CXStr        Indicator;
-/*0x248*/ UINT         IndicatorVal;
-/*0x24c*/ void*        pIndicatorTextObject;
-/*0x250*/ CButtonDrawTemplate DrawTemplate;
-/*0x284*/ bool         bAllowButtonClickThrough;
-/*0x285*/ bool         bCoolDownDoDelayedStart;
-/*0x286*/ bool         bIsCheckbox;
-/*0x287*/ bool         bIsDrawLasso;
-/*0x288*/ UINT         ButtonStyle;
-/*0x28c*/ CLABEL*      pButtonLabel;
-/*0x290*/
-};
-using PCBUTTONWND = CBUTTONWND*;
 
 struct CTEXTENTRYWND
 {

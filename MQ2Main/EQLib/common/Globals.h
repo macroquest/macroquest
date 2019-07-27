@@ -353,7 +353,9 @@ EQLIB_VAR DWORD CFindItemWnd__PickupSelectedItem;
 
 EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
 
-EQLIB_VAR DWORD CButtonWnd__SetCheck;
+EQLIB_VAR DWORD CButtonWnd__CButtonWnd;
+EQLIB_VAR DWORD CButtonWnd__dCButtonWnd;
+EQLIB_VAR DWORD CButtonWnd__vftable;
 
 EQLIB_VAR DWORD CCastSpellWnd__ForgetMemorizedSpell;
 EQLIB_VAR DWORD CCastSpellWnd__IsBardSongPlaying;

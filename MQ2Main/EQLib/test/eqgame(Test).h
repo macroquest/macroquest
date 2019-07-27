@@ -440,8 +440,10 @@
 #define CBazaarSearchWnd__HandleBazaarMsg_x                        0x6DE110
 
 // CButtonWnd
-#define CButtonWnd__SetCheck_x                                     0x60B4A0
+#define CButtonWnd__SetCheck_x                                     0x60B4A0 // unused
 #define CButtonWnd__CButtonWnd_x                                   0x920E60
+#define CButtonWnd__dCButtonWnd_x                                  0x921140
+#define CButtonWnd__vftable_x                                      0xB13344
 
 // CChatManager
 #define CChatManager__GetRGBAFromIndex_x                           0x6FE190
@@ -1069,7 +1071,7 @@
 //CCombatSkillsSelectWnd
 #define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x51EEF0
 
-//CTextureAnimation
+// CTextureAnimation
 #define CTextureAnimation__SetCurCell_x                            0x93B7D0
 
 //CAltAbilityData

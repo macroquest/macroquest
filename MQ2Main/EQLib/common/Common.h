@@ -633,7 +633,7 @@ class CTrackingWnd;
 class CTradeWnd;
 class CTrainWnd;
 class CTreeView;
-class CUITextureInfo;
+struct CUITextureInfo;
 class CUITexturePiece;
 class CVector3;
 class CVideoModesWnd;
