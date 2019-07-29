@@ -160,7 +160,7 @@ CXMLData* CXWnd::GetXMLData() const
 {
 	if (int xmlIndex = GetXMLIndex())
 	{
-		CXMLDataManager* mgr = (CXMLDataManager*) & ((PCSIDLMGR)pSidlMgr)->pXMLDataMgr;
+		CXMLDataManager* mgr = pSidlMgr->GetParamManager();
 		return mgr->GetXMLData(xmlIndex >> 16, xmlIndex & 0xffff);
 	}
 
@@ -297,7 +297,7 @@ FORWARD_FUNCTION_TO_VTABLE2(bool CSidlScreenWnd::HasActivatedFirstTimeAlert() co
 FORWARD_FUNCTION_TO_VTABLE2(void CSidlScreenWnd::SetHasActivatedFirstTimeAlert(bool), CSidlScreenWnd, CXWnd, SetHasActivatedFirstTimeAlert);
 
 FORWARD_FUNCTION_TO_VTABLE(int CSidlScreenWnd::OnZone(), CSidlScreenWnd, OnZone);
-FORWARD_FUNCTION_TO_VTABLE(int CSidlScreenWnd::OnZone(), CSidlScreenWnd, OnPreZone);
+FORWARD_FUNCTION_TO_VTABLE(int CSidlScreenWnd::OnPreZone(), CSidlScreenWnd, OnPreZone);
 FORWARD_FUNCTION_TO_VTABLE(void CSidlScreenWnd::LoadIniInfo(), CSidlScreenWnd, LoadIniInfo);
 FORWARD_FUNCTION_TO_VTABLE(void CSidlScreenWnd::StoreIniInfo(), CSidlScreenWnd, StoreIniInfo);
 FORWARD_FUNCTION_TO_VTABLE(CSidlScreenWnd* CSidlScreenWnd::AsSidlScreenWnd(), CSidlScreenWnd, AsSidlScreenWnd);
@@ -362,6 +362,26 @@ FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniListWnd(CListWnd*, char*), CSidl
 #endif
 #ifdef CSidlScreenWnd__StoreIniListWnd_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniListWnd(CListWnd const*, char*), CSidlScreenWnd__StoreIniListWnd);
+#endif
+
+//============================================================================
+// CXWndManager
+//============================================================================
+
+#ifdef CXWndManager__DrawWindows_x
+FUNCTION_AT_ADDRESS(int CXWndManager::DrawWindows() const, CXWndManager__DrawWindows);
+#endif
+#ifdef CXWndManager__DrawCursor_x
+FUNCTION_AT_ADDRESS(int CXWndManager::DrawCursor() const, CXWndManager__DrawCursor);
+#endif
+#ifdef CXWndManager__RemoveWnd_x
+FUNCTION_AT_ADDRESS(int CXWndManager::RemoveWnd(CXWnd*), CXWndManager__RemoveWnd);
+#endif
+#ifdef CXWndManager__GetKeyboardFlags_x
+FUNCTION_AT_ADDRESS(uint32_t CXWndManager::GetKeyboardFlags() const, CXWndManager__GetKeyboardFlags);
+#endif
+#ifdef CXWndManager__HandleKeyboardMsg_x
+FUNCTION_AT_ADDRESS(int CXWndManager::HandleKeyboardMsg(uint32_t, bool), CXWndManager__HandleKeyboardMsg);
 #endif
 
 //----------------------------------------------------------------------------

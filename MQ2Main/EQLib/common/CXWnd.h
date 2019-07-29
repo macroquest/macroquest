@@ -21,6 +21,8 @@
 namespace eqlib {
 
 class CRadioGroup;
+class CSidlManagerBase;
+class CTextureFont;
 
 // Message types for WndNotifications
 #define XWM_LCLICK              1
@@ -84,6 +86,7 @@ class CRadioGroup;
 #define BitClear(field, bit)                     ((field) &= (~(1 << bit)));
 // End CXWnd WindowStyle Defines
 
+// Used to identify the type of XML CParam class objects
 enum UIType
 {
 	UI_Unknown                                   = -1,
@@ -157,6 +160,8 @@ enum EScrollCode
 
 using EDockAction = uint32_t;
 
+//----------------------------------------------------------------------------
+
 struct SDragDropInfo
 {
 	bool       m_rightMouse;
@@ -168,7 +173,18 @@ struct SDragDropInfo
 	uintptr_t  data;
 };
 
-class CClickStickInfo;
+class CClickStickInfo
+{
+	CClickStickInfo() = default;
+	virtual ~CClickStickInfo() {}
+
+	CXWnd*     sourceWnd;
+	CXWnd*     targetWnd;
+	CXPoint    sourcePos;
+	CXPoint    targetPos;
+	int        message;
+	uintptr_t  data;
+};
 
 // "Controller" helper class
 class ControllerBase
@@ -190,6 +206,37 @@ public:
 	~CLayoutStrategy() {}
 	virtual bool LayoutChildren(CXWnd* wnd) {}
 };
+
+class CursorClass
+{
+public:
+	enum { eNumCursors = 7 };
+
+	enum eCursorTypes
+	{
+		eArrow,
+		eMove,
+		eBeam,
+		eNorthEastSouthWest,
+		eNorthWestSouthEast,
+		eNorthSouth,
+		eEastWest
+	};
+
+	enum eDisplayMode
+	{
+		eNormal,
+		eScreenShot
+	};
+
+	const char*    CursorName[eNumCursors];
+	HCURSOR        CursorList[eNumCursors];
+	bool           bScreenShotMode;
+};
+
+//============================================================================
+// CXWnd
+//============================================================================
 
 // actual size 0x1F8 in Jun 10 2019 Test (see 0x9351BD)
 class CXWnd
@@ -587,7 +634,9 @@ public:
 using CXWND = CXWnd;
 using PCXWND = CXWnd*;
 
-//----------------------------------------------------------------------------
+//============================================================================
+// CSidlScreenWnd
+//============================================================================
 
 // CSidlScreenWnd__CSidlScreenWnd1_x
 // to check do : CSidlScreenWnd* csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");
@@ -678,6 +727,239 @@ public:
 
 using CSIDLWND = CSidlScreenWnd;
 using PCSIDLWND = CSidlScreenWnd*;
+
+//============================================================================
+// CXWndManager
+//============================================================================
+
+enum EWndManagerMode
+{
+	WndManagerModeNormal,
+	WndManagerModeMoving,
+	WndManagerModeSizingLeft,
+	WndManagerModeSizingTop,
+	WndManagerModeSizingRight,
+	WndManagerModeSizingBottom,
+	WndManagerModeSizingTopLeft,
+	WndManagerModeSizingTopRight,
+	WndManagerModeSizingBottomLeft,
+	WndManagerModeSizingBototmRight,
+	WndManagerModeVScrollUp,
+	WndManagerModeVScrollPageUp,
+	WndManagerModeVScrollPageDown,
+	WndManagerModeVScrollDown,
+	WndManagerModeVScrollAbsolute,
+	WndManagerModeHScrollLeft,
+	WndManagerModeHScrollRight,
+	WndManagerModeHScrollAbsolute,
+	WndManagerModeHScrollPageLeft,
+	WndManagerModeHScrollPageRight,
+	WndManagerModeTyping,
+	WndManagerModeFrameButton,
+	WndManagerModeDragDrop,
+	WndManagerModeUnknown23,
+	WndManagerModeUnknown24,
+};
+
+class CXWndManager
+{
+public:
+	CXWndManager(CSidlManagerBase* sidlManager, HWND* wnd, CXPoint point);
+	virtual ~CXWndManager();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	virtual bool CanSendMouseMessage(CXWnd* wnd) const;
+	virtual bool CanSendKeyboardMessage(CXWnd* wnd) const;
+	virtual bool CanDraw(CXWnd* wnd) const;
+	virtual ControllerBase* CreateController(CXStr controller, int type);
+
+	//----------------------------------------------------------------------------
+	// defined methods
+
+	EQLIB_OBJECT int DrawCursor() const;
+	EQLIB_OBJECT int DrawWindows() const;
+	EQLIB_OBJECT uint32_t GetKeyboardFlags() const;
+	EQLIB_OBJECT int HandleKeyboardMsg(uint32_t, bool);
+	EQLIB_OBJECT int RemoveWnd(CXWnd*);
+
+	EQLIB_OBJECT CTextureFont* GetFont(int FontIndex) const
+	{
+		if (FontIndex < FontsArray.GetCount())
+		{
+			return FontsArray[FontIndex];
+		}
+
+		return nullptr;
+	}
+
+	//----------------------------------------------------------------------------
+	// methods
+
+	//EQLIB_OBJECT bool IsAllValid();
+	//EQLIB_OBJECT bool IsWindowActive(const CXWnd*) const;
+	//EQLIB_OBJECT bool IsWindowMovingOrSizing(CXWnd*) const;
+	//EQLIB_OBJECT bool IsWindowPieceDown(const CXWnd*, int) const;
+	//EQLIB_OBJECT bool OkayToSendMouseMessage(CXWnd*) const;
+	//EQLIB_OBJECT const CTextureAnimation* GetCursorToDisplay() const;
+	//EQLIB_OBJECT CTextureFont* GetFont(CXStr);
+	//EQLIB_OBJECT CXWnd* FindWnd(CXPoint, int*) const;
+	//EQLIB_OBJECT CXWnd* GetFirstChildWnd(CXWnd const*) const;
+	//EQLIB_OBJECT CXWnd* GetFocusWnd() const;
+	//EQLIB_OBJECT CXWnd* GetNextSib(CXWnd const*) const;
+	//EQLIB_OBJECT CXWnd* SetFocusWnd(CXWnd*);
+	//EQLIB_OBJECT int ActivateWnd(CXWnd*);
+	//EQLIB_OBJECT int AddFont(CTextureFont*);
+	//EQLIB_OBJECT int AddWnd(CXWnd*);
+	//EQLIB_OBJECT int HandleLButtonDown(const CXPoint&);
+	//EQLIB_OBJECT int HandleLButtonHeld(const CXPoint&);
+	//EQLIB_OBJECT int HandleLButtonUp(const CXPoint&);
+	//EQLIB_OBJECT int HandleLButtonUpAfterHeld(const CXPoint&);
+	//EQLIB_OBJECT int HandleMouseMove(const CXPoint&);
+	//EQLIB_OBJECT int HandleRButtonDown(const CXPoint&);
+	//EQLIB_OBJECT int HandleRButtonHeld(const CXPoint&);
+	//EQLIB_OBJECT int HandleRButtonUp(const CXPoint&);
+	//EQLIB_OBJECT int HandleRButtonUpAfterHeld(const CXPoint&);
+	//EQLIB_OBJECT int HandleWheelMove(int);
+	//EQLIB_OBJECT int NotifyAllWindows(CXWnd*, uint32_t, void*);
+	//EQLIB_OBJECT int OnWindowCloseBox(CXWnd*);
+	//EQLIB_OBJECT int OnWindowMinimizeBox(CXWnd*);
+	//EQLIB_OBJECT int OnWindowTileBox(CXWnd*);
+	//EQLIB_OBJECT int ProcessFrame();
+	//EQLIB_OBJECT uint32_t GetDisplayWidth() const;
+	//EQLIB_OBJECT uint32_t GetGlobalFadeDuration() const;
+	//EQLIB_OBJECT unsigned char GetGlobalAlpha() const;
+	//EQLIB_OBJECT unsigned char GetGlobalFadeToAlpha() const;
+	//EQLIB_OBJECT unsigned long GetGlobalFadeDelay() const;
+	//EQLIB_OBJECT void BringWndToTop(CXWnd*, bool);
+	//EQLIB_OBJECT void CheckInvalidateLastFoundWnd();
+	//EQLIB_OBJECT void CleanupWindows();
+	//EQLIB_OBJECT void DestroyAllWindows();
+	//EQLIB_OBJECT void FlushKeyboardFlags();
+	//EQLIB_OBJECT void OnWindowShown(CXWnd*, bool);
+	//EQLIB_OBJECT void SetGlobalAlpha(unsigned char);
+	//EQLIB_OBJECT void SetGlobalFadeDelay(unsigned long);
+	//EQLIB_OBJECT void SetGlobalFadeDuration(uint32_t);
+	//EQLIB_OBJECT void SetGlobalFadeToAlpha(unsigned char);
+	//EQLIB_OBJECT void SetSystemFont(CTextureFont*);
+	//EQLIB_OBJECT void UpdateChildAndSiblingInfo();
+	//EQLIB_OBJECT int DestroyWnd(CXWnd* wnd);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x004*/ uint32_t                     Unknown0x004;
+/*0x008*/ ArrayClass<CXWnd*>           pWindows;
+/*0x018*/ ArrayClass<CXWnd*>           ParentAndContextMenuWindows;
+/*0x028*/ ArrayClass<CXWnd*>           TransitionWindows;
+/*0x038*/ ArrayClass<CXWnd*>           PendingDeletionWindows;
+/*0x048*/ uint32_t                     TypematicKey;
+/*0x04c*/ uint32_t                     LastKeyDownTime;
+/*0x050*/ uint32_t                     LastMouseClickTime;           // when mouse was last clicked
+/*0x054*/ uint32_t                     MouseMoveTimeStamp;           // when mouse was last moved
+/*0x058*/ int                          StrokesSent;
+/*0x05c*/ int                          ToolTipHitTest;               // this is really an enum //0 outside 1 transparent 2 client 3 minimizebox 4 tilebox 5 qmark 6 maxbox 7 closebox 8 titlebar 9 vscrollup 10 vscrolldown 11 vscroll thumb 12 vscroll pgup 13 vscroll pgdn 14 hscroll left 15 hscroll right 16 hscroll thumb 17 hscroll pgup 18 hscroll pgdn 19 border left 20 border top 21 border right 22 border bottom 23 border topleft 24 border topright 25 border bott left 26 bott right 27 left top 28 left bott 29 right top 30 right bott 31 no hit
+/*0x060*/ CXWnd*                       LastClickedWindow;
+/*0x064*/ CXWnd*                       MainWindow;
+/*0x068*/ CXWnd*                       FocusWindow;                  // when you select a window its pointer shows up here
+/*0x06c*/ CXWnd*                       CurrDraggedWindow;            // when you drag a window its pointer shows up here
+/*0x070*/ CXWnd*                       ActiveWindow;
+/*0x074*/ CXWnd*                       LastMouseOver;                // Current window pointer is over if this is 0 we are above MAIN Window
+/*0x078*/ CXWnd*                       Tooltip;                      // Last Tooltip to show?
+/*0x07c*/ ArrayClass<CXWnd*>           GlobalFocusWindows;
+/*0x08c*/ bool                         bReadingLog;
+/*0x08d*/ bool                         bSidlManagerOwner;
+/*0x090*/ int                          CaptureCount;
+/*0x094*/ bool                         bMouseMoveRelative;
+/*0x098*/ CXPoint                      MousePoint;
+/*0x0a0*/ bool                         bCapsLock;
+/*0x0a1*/ bool                         KeyboardFlags[4];             // 7d-80
+/*0x0a5*/ bool                         bChatMessage;
+/*0x0a6*/ bool                         bDrawWindows;
+/*0x0a7*/ uint8_t                      MouseMoveFlags;
+/*0x0a8*/ EWndManagerMode              ManagerMode;
+/*0x0ac*/ int                          DecorButtonHitTest;
+/*0x0b0*/ CXPoint                      MoveResize;
+/*0x0b8*/ SDragDropInfo                DragDropInfo;
+/*0x0dc*/ CClickStickInfo              ClickStickInfo;
+/*0x100*/ int                          Unknown0x100;
+/*0x104*/ bool                         bModal;
+/*0x108*/ uint32_t                     TTCheckTimer;
+/*0x10c*/ int                          Flags;
+/*0x110*/ CXStr                        ClipText;
+/*0x114*/ uint32_t                     ScreenExtentX;
+/*0x118*/ uint32_t                     ScreenExtentY;
+/*0x11c*/ ArrayClass<CTextureFont*>    FontsArray;
+/*0x12c*/ CTextureFont*                pSystemFont;
+/*0x130*/ bool                         bToggleWindowMode;
+/*0x134*/ HWND*                        pGlobalHwnd;
+/*0x138*/ CXPoint                      StoredMousePos;               // last position Mouse was at before we moved it
+/*0x140*/ bool                         bManagerDeletionPending;
+/*0x144*/ CursorClass                  CC;
+};
+
+//============================================================================
+// CEQXWndManager
+//============================================================================
+
+//----------------------------------------------------------------------------
+// helpers
+
+class ControllerFactory
+{
+public:
+	virtual ~ControllerFactory();
+
+	// creates controllers
+	virtual ControllerBase* CreateController(const CXStr& controller, int type);
+
+	// this is probably wrong but might be the right size.
+/*0x04*/ HashTable<void*, int, ResizePolicyNoShrink> Factories;
+/*0x14*/
+};
+
+class ControllerManager
+{
+public:
+	virtual ~ControllerManager();
+
+/*0x04*/ ControllerFactory* DefaultControllerFactory;
+/*0x08*/ HashTable<ControllerFactory*> ControllerFactories;
+};
+
+//----------------------------------------------------------------------------
+
+// Actual size 0x1b0 in Oct 19 2017 Beta (see 4C2E25)
+class CEQXWndManager : public CXWndManager
+{
+public:
+	CEQXWndManager(CSidlManagerBase* sidlManager);
+	virtual ~CEQXWndManager();
+
+	//----------------------------------------------------------------------------
+	// virtual overrides
+	virtual bool CanSendMouseMessage(CXWnd* wnd) const override;
+	virtual bool CanSendKeyboardMessage(CXWnd* wnd) const override;
+	virtual bool CanDraw(CXWnd* wnd) const override;
+	virtual ControllerBase* CreateController(CXStr controller, int type) override;
+
+	EQLIB_OBJECT ControllerManager* GetControllerManager()
+	{
+		return &ControllerMgr;
+	}
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	ControllerFactory DefaultControllerFactory;
+	ControllerManager ControllerMgr;
+};
+
+using CXWNDMGR = CEQXWndManager;
+using PCXWNDMGR = CEQXWndManager*;
+
+//----------------------------------------------------------------------------
 
 void InitializeCXWnd();
 

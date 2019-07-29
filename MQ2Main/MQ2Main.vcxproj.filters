@@ -260,7 +260,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="EQLib\common\Constructors.asm">
+    <None Include="EQLib\common\AssemblyFunctions.asm">
       <Filter>Source Files\EQLib\Common</Filter>
     </None>
   </ItemGroup>

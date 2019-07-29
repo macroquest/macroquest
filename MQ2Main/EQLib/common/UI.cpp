@@ -447,7 +447,7 @@ FUNCTION_AT_ADDRESS(void CChatWindow::HistoryBack(), CChatWindow__HistoryBack);
 FUNCTION_AT_ADDRESS(void CChatWindow::HistoryForward(), CChatWindow__HistoryForward);
 #endif
 #ifdef CChatWindow__AddHistory_x
-FUNCTION_AT_ADDRESS(void CChatWindow::AddHistory(CXStr Text), CChatWindow__AddHistory);
+// defined in AssemblyFunctions.asm
 #endif
 #ifdef CChatWindow__GetInputText_x
 FUNCTION_AT_ADDRESS(CXStr CChatWindow::GetInputText(), CChatWindow__GetInputText);
@@ -473,12 +473,26 @@ FUNCTION_AT_ADDRESS(int CChatWindow::WndNotification(CXWnd*, uint32_t, void*), C
 
 
 //============================================================================
+// CSidlManagerBase
 //============================================================================
 
-CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(const char* str)
+#ifdef CSidlManagerBase__FindButtonDrawTemplate_x
+FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManagerBase::FindButtonDrawTemplate(uint32_t) const, CSidlManagerBase__FindButtonDrawTemplate);
+#endif
+#ifdef CSidlManagerBase__FindButtonDrawTemplate1_x
+FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManagerBase::FindButtonDrawTemplate(const CXStr& Name) const, CSidlManagerBase__FindButtonDrawTemplate1);
+#endif
+
+CXMLParamManager* CSidlManagerBase::GetParamManager()
 {
-	return FindScreenPieceTemplate(CXStr(str));
+	return &XMLDataMgr;
 }
+
+//============================================================================
+// CSidlManager
+//============================================================================
+
+//============================================================================
 
 void CComboWnd::InsertChoice(char* str)
 {

@@ -692,6 +692,12 @@
 #define CPacketScrambler__ntoh_x                                   0x89FB70
 #define CPacketScrambler__hton_x                                   0x89FB60
 
+// CSidlManagerBase
+#define CSidlManagerBase__CreateTabWnd_x                           0x92E400
+#define CSidlManagerBase__CreatePageWnd_x                          0x92DC10
+#define CSidlManagerBase__FindButtonDrawTemplate_x                 0x929E50   // int
+#define CSidlManagerBase__FindButtonDrawTemplate1_x                0x929DE0   // CXStr
+
 // CSidlManager
 #define CSidlManager__FindAnimation1_x                             0x92A030
 #define CSidlManager__FindScreenPieceTemplate_x                    0x92A440
@@ -1123,14 +1129,6 @@
 #define CCursorAttachment__AttachToCursor_x                        0x70AB40
 #define CCursorAttachment__AttachToCursor1_x                       0x70AB80
 #define CCursorAttachment__Deactivate_x                            0x70BB50
-
-//CSidlManagerBase
-#define CSidlManagerBase__CreateTabWnd_x                           0x92E400
-#define CSidlManagerBase__CreatePageWnd_x                          0x92DC10
-//int
-#define CSidlManagerBase__FindButtonDrawTemplate_x                 0x929E50
-//CXStr
-#define CSidlManagerBase__FindButtonDrawTemplate1_x                0x929DE0
 
 //CEQSuiteTextureLoader
 #define CEQSuiteTextureLoader__GetDefaultUIPath_x                  0x94B560

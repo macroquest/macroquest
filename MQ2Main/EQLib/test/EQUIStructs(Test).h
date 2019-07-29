@@ -70,125 +70,6 @@ struct CContextMenu_VirtualFunctions : public CListWnd_VirtualFunctions
 using CCONTEXTMENUVFTABLE = CContextMenu_VirtualFunctions;
 using PCCONTEXTMENUVFTABLE = CContextMenu_VirtualFunctions*;
 
-// class CSidlManager : public CSidlManagerBase
-// size 0x1D4 2019-02-12 test see 53E3D3
-struct CSIDLMGR
-{
-/*0x000*/ BYTE     Unknown0x000[0x130];
-/*0x130*/ void*    pXMLDataMgr;
-/*0x134*/ BYTE     Unknown0x134[0xA0];
-/*0x1D4*/
-};
-using PCSIDLMGR = CSIDLMGR*;
-
-struct DragDropInfo
-{
-/*0xb8*/ bool      bRightButton;
-/*0xbc*/ PCXWND    FromWnd;
-/*0xc0*/ PCXWND    ToWnd;
-/*0xc4*/ POINT     FromPoint;
-/*0xcc*/ POINT     ToPoint; 
-/*0xd4*/ int       Code;
-/*0xd8*/ void*     Data;
-/*0xdc*/
-};
-
-struct ClickStickInfo
-{
-/*0x00*/ void*     vfTable;
-/*0x04*/ PCXWND    FromWnd;
-/*0x08*/ PCXWND    ToWnd;
-/*0x0c*/ POINT     FromPoint;
-/*0x14*/ POINT     ToPoint; 
-/*0x1c*/ int       Code;
-/*0x20*/ void*     Data;
-/*0x24*/
-};
-
-class ControllerStuff
-{
-/*0x00*/ void*                 vfTable;
-
-	// this really isnt a HashTable I think its a variation that just stores pointers to stuff
-	// but for our purposes it won't matter, i don't want to spend any more time on these kind of array classes.
-/*0x04*/ HashTable<void*, int, ResizePolicyNoShrink> Stuff; 
-/*0x14*/ 
-};
-
-class ControllerManager
-{
-public:
-/*0x00*/ void*               pvfTable;
-/*0x04*/ ControllerStuff*   pControllerStuff;
-/*0x08*/ HashTable<ControllerStuff*> CStuff;
-/*0x18*/
-};
-
-// Actual size 0x1b0 in Oct 19 2017 Beta (see 4C2E25)
-// this should really be renamed to EQCXWNDMGR
-// because its a class that looks like this:
-// class EQCXWndManager : CXWndManager
-struct CXWNDMGR {
-/******************* Begin of CXWNDMGR ***************/
-/*0x000*/ LPVOID                       CXWNDMGR__vtable;
-/*0x004*/ LPVOID                       CXWNDMGR__vtable2;
-/*0x008*/ ArrayClass_RO<PCXWND>        pWindows;
-/*0x018*/ ArrayClass_RO<PCXWND>        ParentAndContextMenuWindows;
-/*0x028*/ ArrayClass_RO<PCXWND>        TransitionWindows;
-/*0x038*/ ArrayClass_RO<PCXWND>        PendingDeletionWindows;
-/*0x048*/ UINT                         TypematicKey;
-/*0x04c*/ UINT                         LastKeyDownTime;
-/*0x050*/ UINT                         LastMouseClickTime;           // when mouse was last clicked
-/*0x054*/ DWORD                        MouseMoveTimeStamp;           // when mouse was last moved
-/*0x058*/ int                          StrokesSent;
-/*0x05c*/ int                          ToolTipHitTest;               // this is really an enum //0 outside 1 transparent 2 client 3 minimizebox 4 tilebox 5 qmark 6 maxbox 7 closebox 8 titlebar 9 vscrollup 10 vscrolldown 11 vscroll thumb 12 vscroll pgup 13 vscroll pgdn 14 hscroll left 15 hscroll right 16 hscroll thumb 17 hscroll pgup 18 hscroll pgdn 19 border left 20 border top 21 border right 22 border bottom 23 border topleft 24 border topright 25 border bott left 26 bott right 27 left top 28 left bott 29 right top 30 right bott 31 no hit
-/*0x060*/ PCSIDLWND                    LastClickedWindow;
-/*0x064*/ PCSIDLWND                    MainWindow;
-/*0x068*/ PCSIDLWND                    FocusWindow;                  // when you select a window its pointer shows up here
-/*0x06c*/ PCSIDLWND                    CurrDraggedWindow;            // when you drag a window its pointer shows up here
-/*0x070*/ PCSIDLWND                    ActiveWindow;
-/*0x074*/ PCSIDLWND                    LastMouseOver;                // Current window pointer is over if this is 0 we are above MAIN Window
-/*0x078*/ PCSIDLWND                    Tooltip;                      // Last Tooltip to show?
-/*0x07c*/ ArrayClass_RO<PCXWND>        GlobalFocusWindows;
-/*0x08c*/ bool                         bReadingLog;
-/*0x08d*/ bool                         bSidlManagerOwner;
-/*0x090*/ int                          CaptureCount;
-/*0x094*/ bool                         bMouseMoveRelative;
-/*0x098*/ POINT                        MousePoint;                   // for sure 8BE7CA
-/*0x0a0*/ bool                         bCapsLock;
-/*0x0a1*/ bool                         KeyboardFlags[4];             // 7d-80
-/*0x0a5*/ bool                         bChatMessage;
-/*0x0a6*/ bool                         bDrawWindows;
-/*0x0a7*/ BYTE                         MouseMoveFlags;
-/*0x0a8*/ UINT                         ManagerMode;                  // enum but i dont have time to do it now. its like moving, sizing etc.
-/*0x0ac*/ int                          DecorButtonHitTest;
-/*0x0b0*/ POINT                        MoveResize;                   // for sure 8BE7D6 
-/*0x0b8*/ DragDropInfo                 DDI;                          // size 0x24
-/*0x0dc*/ ClickStickInfo               CSI;                          // size 0x24
-/*0x100*/ int                          Really;
-/*0x104*/ bool                         bModal;                       // for sure
-/*0x108*/ UINT                         TTCheckTimer;                 // for sure
-/*0x10c*/ UINT                         Flags;                        // for sure
-/*0x110*/ CXStr                        ClipText;
-/*0x114*/ DWORD                        ScreenExtentX;
-/*0x118*/ DWORD                        ScreenExtentY;
-/*0x11c*/ ArrayClass_RO<void*>         FontsArray;
-/*0x12c*/ void*                        pfontSystem;
-/*0x130*/ bool                         bSomething;
-/*0x134*/ HWND*                        pGlobalHwnd;
-/*0x138*/ POINT                        StoredMousePos;               // last position Mouse was at before we moved it
-/*0x140*/ bool                         bManagerDeletionPending;
-/*0x144*/ CursorClass                  CC;                           // size 0x3c
-/******************* End of CXWNDMGR *****************/
-/******************* Begin of EQCXWNDMGR *************/
-/*0x180*/ ControllerStuff              Stuff;                        // size 0x14
-/*0x194*/ ControllerManager            ControllerMgr;                // size 0x18
-/*0x1AC*/ bool                         Unknown0x1AC;
-/******************* End of EQCXWNDMGR ***************/
-/*0x1b0*/
-};
-using PCXWNDMGR = CXWNDMGR*;
-
 struct CONTENTDATA
 {
 	CONTENTS*      pCont;
@@ -443,7 +324,7 @@ struct EQGUILDWINDOW
 
 	// This is a pointer to the beginning of a list of pointers, each representing one player in
 	// the guild. The number of  pointers depends upon TotalMemberCount.
-/*0x198*/ GUILDMEMBERINFO** pMember;             
+/*0x198*/ GUILDMEMBERINFO** pMember;
 /*0x19c*/ DWORD        TotalMemberCount;
 /*0x1a0*/ DWORD        Unknown0x1a0;             // 150?
 /*0x1a4*/ DWORD        Unknown0x1a4;             // 1?
@@ -467,14 +348,14 @@ using PEQNOTESWINDOW = EQNOTESWINDOW*;
 
 // aSpelldisplaywi
 // Actual size 0x290 Oct 26 2017 Beta see 7B605F -eqmule
-struct EQSPELLINFOWINDOW 
-{ 
+struct EQSPELLINFOWINDOW
+{
 /*0x000*/ CSIDLWND     Wnd;                      // inherits from CSidlScreenWnd
 /*0x240*/ void*        WindowID;
 /*0x244*/ void*        pDuration;
 /*0x248*/ CSIDLWND*    DisplayWnd;               // pDescription
-/*0x24c*/ void*        pName; 
-/*0x250*/ void*        pIcon; 
+/*0x24c*/ void*        pName;
+/*0x250*/ void*        pIcon;
 /*0x254*/ IString2     ItemInfo;
 /*0x264*/ IString2     MoreText;
 /*0x274*/ DWORD        Unknown0x274;
@@ -484,7 +365,7 @@ struct EQSPELLINFOWINDOW
 /*0x284*/ void*        TextureAnim;
 /*0x288*/ DWORD        SpellID;
 /*0x28c*/ DWORD        TimeStamp;
-/*0x290*/ 
+/*0x290*/
 };
 using PEQSPELLINFOWINDOW = EQSPELLINFOWINDOW*;
 

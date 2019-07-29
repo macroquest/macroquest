@@ -3386,12 +3386,6 @@ FUNCTION_AT_ADDRESS(void CDisplay::InitUserDefinedColors(), CDisplay__InitUserDe
 #ifdef CDisplay__WriteTextHD2_x
 FUNCTION_AT_ADDRESS(int CDisplay::WriteTextHD2(const char*, int, int, int), CDisplay__WriteTextHD2);
 #endif
-#ifdef CXWndManager__GetDisplayWidth_x
-FUNCTION_AT_ADDRESS(uint32_t CXWndManager::GetDisplayWidth() const, CXWndManager__GetDisplayWidth);
-#endif
-#ifdef CXWndManager__GetFont_x
-FUNCTION_AT_ADDRESS(CTextureFont* CXWndManager::GetFont(int) const, CXWndManager__GetFont);
-#endif
 #ifdef CDisplay__SetActorScaleFactor_x
 FUNCTION_AT_ADDRESS(void CDisplay::SetActorScaleFactor(struct T3D_tagACTORINSTANCE*, float, unsigned char), CDisplay__SetActorScaleFactor);
 #endif
@@ -6966,162 +6960,6 @@ FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetButtonRect() const, CComboWnd__GetButto
 #ifdef CComboWnd__GetTextRect_x
 FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetTextRect() const, CComboWnd__GetTextRect);
 #endif
-#ifdef CXWndManager__CXWndManager_x
-FUNCTION_AT_ADDRESS(CXWndManager::CXWndManager(CSidlManager*), CXWndManager__CXWndManager);
-#endif
-#ifdef CXWndManager__DestroyAllWindows_x
-FUNCTION_AT_ADDRESS(void CXWndManager::DestroyAllWindows(), CXWndManager__DestroyAllWindows);
-#endif
-#ifdef CXWndManager__DrawWindows_x
-FUNCTION_AT_ADDRESS(int CXWndManager::DrawWindows() const, CXWndManager__DrawWindows);
-#endif
-#ifdef CXWndManager__DrawCursor_x
-FUNCTION_AT_ADDRESS(int CXWndManager::DrawCursor() const, CXWndManager__DrawCursor);
-#endif
-#ifdef CXWndManager__AddWnd_x
-FUNCTION_AT_ADDRESS(int CXWndManager::AddWnd(CXWnd*), CXWndManager__AddWnd);
-#endif
-#ifdef CXWndManager__RemoveWnd_x
-FUNCTION_AT_ADDRESS(int CXWndManager::RemoveWnd(CXWnd*), CXWndManager__RemoveWnd);
-#endif
-#ifdef CXWndManager__CheckInvalidateLastFoundWnd_x
-FUNCTION_AT_ADDRESS(void CXWndManager::CheckInvalidateLastFoundWnd(), CXWndManager__CheckInvalidateLastFoundWnd);
-#endif
-#ifdef CXWndManager__GetKeyboardFlags_x
-FUNCTION_AT_ADDRESS(uint32_t CXWndManager::GetKeyboardFlags() const, CXWndManager__GetKeyboardFlags);
-#endif
-#ifdef CXWndManager__FlushKeyboardFlags_x
-FUNCTION_AT_ADDRESS(void CXWndManager::FlushKeyboardFlags(), CXWndManager__FlushKeyboardFlags);
-#endif
-#ifdef CXWndManager__UpdateChildAndSiblingInfo_x
-FUNCTION_AT_ADDRESS(void CXWndManager::UpdateChildAndSiblingInfo(), CXWndManager__UpdateChildAndSiblingInfo);
-#endif
-#ifdef CXWndManager__HandleKeyboardMsg_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleKeyboardMsg(uint32_t, bool), CXWndManager__HandleKeyboardMsg);
-#endif
-#ifdef CXWndManager__OkayToSendMouseMessage_x
-FUNCTION_AT_ADDRESS(bool CXWndManager::OkayToSendMouseMessage(CXWnd*) const, CXWndManager__OkayToSendMouseMessage);
-#endif
-#ifdef CXWndManager__HandleMouseMove_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleMouseMove(CXPoint), CXWndManager__HandleMouseMove);
-#endif
-#ifdef CXWndManager__HandleWheelMove_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleWheelMove(int), CXWndManager__HandleWheelMove);
-#endif
-#ifdef CXWndManager__HandleLButtonDown_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleLButtonDown(CXPoint), CXWndManager__HandleLButtonDown);
-#endif
-#ifdef CXWndManager__IsWindowPieceDown_x
-FUNCTION_AT_ADDRESS(bool CXWndManager::IsWindowPieceDown(CXWnd const*, int) const, CXWndManager__IsWindowPieceDown);
-#endif
-#ifdef CXWndManager__OnWindowCloseBox_x
-FUNCTION_AT_ADDRESS(int CXWndManager::OnWindowCloseBox(CXWnd*), CXWndManager__OnWindowCloseBox);
-#endif
-#ifdef CXWndManager__OnWindowMinimizeBox_x
-FUNCTION_AT_ADDRESS(int CXWndManager::OnWindowMinimizeBox(CXWnd*), CXWndManager__OnWindowMinimizeBox);
-#endif
-#ifdef CXWndManager__OnWindowTileBox_x
-FUNCTION_AT_ADDRESS(int CXWndManager::OnWindowTileBox(CXWnd*), CXWndManager__OnWindowTileBox);
-#endif
-#ifdef CXWndManager__HandleLButtonHeld_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleLButtonHeld(CXPoint), CXWndManager__HandleLButtonHeld);
-#endif
-#ifdef CXWndManager__HandleLButtonUpAfterHeld_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleLButtonUpAfterHeld(CXPoint), CXWndManager__HandleLButtonUpAfterHeld);
-#endif
-#ifdef CXWndManager__HandleRButtonHeld_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleRButtonHeld(CXPoint), CXWndManager__HandleRButtonHeld);
-#endif
-#ifdef CXWndManager__HandleRButtonUpAfterHeld_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleRButtonUpAfterHeld(CXPoint), CXWndManager__HandleRButtonUpAfterHeld);
-#endif
-#ifdef CXWndManager__HandleLButtonUp_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleLButtonUp(CXPoint), CXWndManager__HandleLButtonUp);
-#endif
-#ifdef CXWndManager__HandleRButtonDown_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleRButtonDown(CXPoint), CXWndManager__HandleRButtonDown);
-#endif
-#ifdef CXWndManager__HandleRButtonUp_x
-FUNCTION_AT_ADDRESS(int CXWndManager::HandleRButtonUp(CXPoint), CXWndManager__HandleRButtonUp);
-#endif
-#ifdef CXWndManager__FindWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWndManager::FindWnd(CXPoint, int*) const, CXWndManager__FindWnd);
-#endif
-#ifdef CXWndManager__GetCursorToDisplay_x
-FUNCTION_AT_ADDRESS(CTextureAnimation const* CXWndManager::GetCursorToDisplay() const, CXWndManager__GetCursorToDisplay);
-#endif
-#ifdef CXWndManager__SetFocusWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWndManager::SetFocusWnd(CXWnd*), CXWndManager__SetFocusWnd);
-#endif
-#ifdef CXWndManager__GetFocusWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWndManager::GetFocusWnd() const, CXWndManager__GetFocusWnd);
-#endif
-#ifdef CXWndManager__ProcessFrame_x
-FUNCTION_AT_ADDRESS(int CXWndManager::ProcessFrame(), CXWndManager__ProcessFrame);
-#endif
-#ifdef CXWndManager__OnWindowShown_x
-FUNCTION_AT_ADDRESS(void CXWndManager::OnWindowShown(CXWnd*, bool), CXWndManager__OnWindowShown);
-#endif
-#ifdef CXWndManager__BringWndToTop_x
-FUNCTION_AT_ADDRESS(void CXWndManager::BringWndToTop(CXWnd*, bool), CXWndManager__BringWndToTop);
-#endif
-#ifdef CXWndManager__NotifyAllWindows_x
-FUNCTION_AT_ADDRESS(int CXWndManager::NotifyAllWindows(CXWnd*, uint32_t, void*), CXWndManager__NotifyAllWindows);
-#endif
-#ifdef CXWndManager__CleanupWindows_x
-FUNCTION_AT_ADDRESS(void CXWndManager::CleanupWindows(), CXWndManager__CleanupWindows);
-#endif
-#ifdef CXWndManager__GetFirstChildWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWndManager::GetFirstChildWnd(CXWnd const*) const, CXWndManager__GetFirstChildWnd);
-#endif
-#ifdef CXWndManager__GetNextSib_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWndManager::GetNextSib(CXWnd const*) const, CXWndManager__GetNextSib);
-#endif
-#ifdef CXWndManager__ActivateWnd_x
-FUNCTION_AT_ADDRESS(int CXWndManager::ActivateWnd(CXWnd*), CXWndManager__ActivateWnd);
-#endif
-#ifdef CXWndManager__IsWindowActive_x
-FUNCTION_AT_ADDRESS(bool CXWndManager::IsWindowActive(CXWnd const*) const, CXWndManager__IsWindowActive);
-#endif
-#ifdef CXWndManager__IsWindowMovingOrSizing_x
-FUNCTION_AT_ADDRESS(bool CXWndManager::IsWindowMovingOrSizing(CXWnd*) const, CXWndManager__IsWindowMovingOrSizing);
-#endif
-#ifdef CXWndManager__AddFont_x
-FUNCTION_AT_ADDRESS(int CXWndManager::AddFont(CTextureFont*), CXWndManager__AddFont);
-#endif
-#ifdef CXWndManager__GetFont1_x
-FUNCTION_AT_ADDRESS(CTextureFont* CXWndManager::GetFont(CXStr), CXWndManager__GetFont1);
-#endif
-#ifdef CXWndManager__SetSystemFont_x
-FUNCTION_AT_ADDRESS(void CXWndManager::SetSystemFont(CTextureFont*), CXWndManager__SetSystemFont);
-#endif
-#ifdef CXWndManager__SetGlobalFadeDuration_x
-FUNCTION_AT_ADDRESS(void CXWndManager::SetGlobalFadeDuration(uint32_t), CXWndManager__SetGlobalFadeDuration);
-#endif
-#ifdef CXWndManager__GetGlobalFadeDuration_x
-FUNCTION_AT_ADDRESS(uint32_t CXWndManager::GetGlobalFadeDuration() const, CXWndManager__GetGlobalFadeDuration);
-#endif
-#ifdef CXWndManager__SetGlobalFadeDelay_x
-FUNCTION_AT_ADDRESS(void CXWndManager::SetGlobalFadeDelay(unsigned long), CXWndManager__SetGlobalFadeDelay);
-#endif
-#ifdef CXWndManager__GetGlobalFadeDelay_x
-FUNCTION_AT_ADDRESS(unsigned long CXWndManager::GetGlobalFadeDelay() const, CXWndManager__GetGlobalFadeDelay);
-#endif
-#ifdef CXWndManager__SetGlobalAlpha_x
-FUNCTION_AT_ADDRESS(void CXWndManager::SetGlobalAlpha(unsigned char), CXWndManager__SetGlobalAlpha);
-#endif
-#ifdef CXWndManager__GetGlobalAlpha_x
-FUNCTION_AT_ADDRESS(unsigned char CXWndManager::GetGlobalAlpha() const, CXWndManager__GetGlobalAlpha);
-#endif
-#ifdef CXWndManager__SetGlobalFadeToAlpha_x
-FUNCTION_AT_ADDRESS(void CXWndManager::SetGlobalFadeToAlpha(unsigned char), CXWndManager__SetGlobalFadeToAlpha);
-#endif
-#ifdef CXWndManager__GetGlobalFadeToAlpha_x
-FUNCTION_AT_ADDRESS(unsigned char CXWndManager::GetGlobalFadeToAlpha() const, CXWndManager__GetGlobalFadeToAlpha);
-#endif
-#ifdef CXWndManager__IsAllValid_x
-FUNCTION_AT_ADDRESS(bool CXWndManager::IsAllValid(), CXWndManager__IsAllValid);
-#endif
 #ifdef CEditWnd__CEditWnd_x
 //FUNCTION_AT_ADDRESS(CEditWnd::CEditWnd(CXWnd*, uint32_t, CXRect, uint32_t), CEditWnd__CEditWnd);
 #endif
@@ -7341,12 +7179,6 @@ FUNCTION_AT_ADDRESS(CUITextureInfo* CSidlManager::FindTexture(CXStr) const, CSid
 #endif
 #ifdef CSidlManager__FindTexture1_x
 FUNCTION_AT_ADDRESS(CUITextureInfo* CSidlManager::FindTexture(uint32_t) const, CSidlManager__FindTexture1);
-#endif
-#ifdef CSidlManagerBase__FindButtonDrawTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManager::FindButtonDrawTemplate(uint32_t) const, CSidlManagerBase__FindButtonDrawTemplate);
-#endif
-#ifdef CSidlManagerBase__FindButtonDrawTemplate1_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManager::FindButtonDrawTemplate(const CXStr& Name) const, CSidlManagerBase__FindButtonDrawTemplate1);
 #endif
 #ifdef CSidlManager__FindSliderDrawTemplate_x
 FUNCTION_AT_ADDRESS(CSliderDrawTemplate* CSidlManager::FindSliderDrawTemplate(CXStr) const, CSidlManager__FindSliderDrawTemplate);

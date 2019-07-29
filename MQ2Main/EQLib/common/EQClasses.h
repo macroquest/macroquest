@@ -28,7 +28,6 @@
 #undef InsertMenuItem
 
 struct IShellFolder;
-using D3DCOLOR = DWORD;
 
 // from shtypes.h
 struct _ITEMIDLIST;
@@ -802,24 +801,6 @@ public:
 	static bool sm_bAnimsInitialized;
 	static CButtonDrawTemplate sm_bdtCheck;
 	static CButtonDrawTemplate sm_bdtRadio;
-};
-
-class CClickStickInfo
-{
-public:
-	EQLIB_OBJECT CClickStickInfo();
-
-	// virtual
-	EQLIB_OBJECT ~CClickStickInfo();
-
-/*0x00*/ DWORD         vfTable;
-/*0x04*/ CXWnd*        FromWnd;
-/*0x08*/ CXWnd*        ToWnd;
-/*0x10*/ POINT         FromPoint;
-/*0x18*/ POINT         ToPoint;
-/*0x20*/ int           Code;
-/*0x24*/ void*         Data;
-/*0x28*/
 };
 
 class CColorPickerWnd : public CSidlScreenWnd, public WndEventHandler
@@ -2367,27 +2348,6 @@ public:
 
 	// private
 	EQLIB_OBJECT void Init();
-};
-
-struct CKeyUInt32ValueInt32
-{
-	uint32_t key;
-	int      value;
-};
-
-class CHashCXStrInt32
-{
-public:
-	ArrayClass2_RO<ArrayClass2_RO<CKeyUInt32ValueInt32>> HashData;
-
-	EQLIB_OBJECT ~CHashCXStrInt32();
-	EQLIB_OBJECT CHashCXStrInt32();
-	EQLIB_OBJECT bool Insert(CXStr const &, int);
-	EQLIB_OBJECT bool LookUp(CXStr const &, int &) const;
-	EQLIB_OBJECT void Reset();
-
-	// private
-	EQLIB_OBJECT int KeyToBin(CXStr const &) const;
 };
 
 class CHelpWnd : public CSidlScreenWnd
@@ -3972,6 +3932,8 @@ public:
 	EQLIB_OBJECT void WriteToStream(CMemoryStream&);
 };
 
+class CParamLayoutStrategy;
+
 class CParamScrollbarDrawTemplate
 {
 public:
@@ -4574,183 +4536,6 @@ public:
 	EQLIB_OBJECT int OnProcessFrame();
 	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
 	EQLIB_OBJECT void Deactivate();
-};
-
-template <class ElementType, int Cnt>
-class HashCXStrElement
-{
-public:
-	struct CKeyCXStrElementType
-	{
-		CXStr          key;
-		ElementType    value;
-	};
-
-	ArrayClass2_RO<ArrayClass2_RO<CKeyCXStrElementType>> HashData;
-};
-
-class CXMLSymbolItem
-{
-public:
-	CXStr                              ItemString;
-	bool                               bDeclared;
-	bool                               bValid;
-};
-
-class CXMLSymbolClass
-{
-public:
-	CXStr                              Class;
-	ArrayClass2_RO<CXMLSymbolItem>     ItemsArray;
-	CHashCXStrInt32                    ItemsHashes;
-	bool                               bValid;
-};
-
-class CXMLSymbolTable
-{
-public:
-/*0x00*/ void*                         vfTable;
-/*0x04*/ ArrayClass2_RO<CXMLSymbolClass> ClassesArray;
-/*0x20*/ CHashCXStrInt32               ClassesHashes;
-/*0x3C*/
-};
-
-class CXMLDataManager
-{
-public:
-/*0x00*/ void*                         vfTable;
-/*0x00*/ CHashCXStrInt32               EnumTypeHashes;
-/*0x00*/ ArrayClass2_RO<CXMLEnumInfo>  XMLEnumArray;
-/*0x1c*/ HashCXStrElement<CXMLDataPtr, 16* 1024> ClassItemHashes;
-/*0x38*/ ArrayClass2_RO<CXMLDataClass> XMLDataArray;
-/*0x54*/ CXMLSymbolTable               SymbolTable;
-/*0x90*/ CXStr                         ErrorString;
-/*0x94*/
-
-	EQLIB_OBJECT CXMLDataManager();
-	EQLIB_OBJECT bool IsDerivedFrom(int, int);
-	EQLIB_OBJECT bool ReadFromXMLSOM(CXMLSOMDocument&);
-	EQLIB_OBJECT CXMLData* GetXMLData(CXStr, CXStr);
-	EQLIB_OBJECT CXMLData* GetXMLData(int, int);
-	EQLIB_OBJECT int GetClassIdx(CXStr);
-	EQLIB_OBJECT int GetItemIdx(int, CXStr);
-	EQLIB_OBJECT int GetNumClass();
-	EQLIB_OBJECT int GetNumItem(int);
-
-	// virtual
-	EQLIB_OBJECT ~CXMLDataManager();
-	EQLIB_OBJECT bool DataValidate();
-	EQLIB_OBJECT bool ReadValidate(CMemoryStream&);
-	EQLIB_OBJECT bool WriteValidate(CMemoryStream&);
-	EQLIB_OBJECT int GetStreamSize();
-	EQLIB_OBJECT void IndexAll();
-	EQLIB_OBJECT void ReadFromStream(CMemoryStream&);
-	EQLIB_OBJECT void Set(CXMLDataManager&);
-	EQLIB_OBJECT void WriteToStream(CMemoryStream&);
-
-	// protected
-	EQLIB_OBJECT void AddToSuperType(CXStr, CXMLDataPtr);
-	EQLIB_OBJECT void SetEnumHash();
-};
-
-class CXMLParamManager : public CXMLDataManager
-{
-public:
-	// virtual
-	EQLIB_OBJECT ~CXMLParamManager();
-	EQLIB_OBJECT bool XMLDataCopy(CXMLData*, CXMLData*);
-	EQLIB_OBJECT CXMLData* AllocPtr(CXMLDataPtr&, int, const CXMLData*);
-};
-
-class CSidlManagerBase
-{
-public:
-/*0x000*/ void*                                  vftable;
-/*0x004*/ int                                    ScreenPieceClassIndex[5];
-/*0x018*/ ArrayClass_RO<CUITextureInfo*>         Textures;
-/*0x028*/ ArrayClass_RO<CButtonDrawTemplate*>    ButtonDrawTemplateArray;
-/*0x038*/ ArrayClass_RO<CScrollbarTemplate*>     ScrollbarTemplateArray;
-/*0x048*/ ArrayClass_RO<CSliderDrawTemplate*>    SliderDrawTemplateArray;
-/*0x058*/ ArrayClass_RO<CXStr>                   ScreenNameArray;
-/*0x068*/ ArrayClass_RO<CXWndDrawTemplate*>      DrawTemplateArray;
-/*0x078*/ CHashCXStrInt32                        DrawTemplateHash;
-/*0x094*/ ArrayClass_RO<CTextureAnimation*>      AnimationArray;
-/*0x0A4*/ CHashCXStrInt32                        AnimationsHash;
-/*0x0C0*/ ArrayClass_RO<CTAFrameDraw*>           TAFrameArray;
-/*0x0D0*/ CHashCXStrInt32                        TAFrameHash;
-/*0x0EC*/ ArrayClass_RO<CScreenPieceTemplate*>   ScreenPieceArray;
-/*0x0FC*/ CHashCXStrInt32                        ScreenPiecesHash;
-/*0x118*/ ArrayClass_RO<void*>                   LayoutStrategyTemplateArray;            // CLayoutStrategyTemplate* todo: map this later...
-/*0x128*/ CHashCXStrInt32                        LayoutStrategyTemplatesHash;
-/*0x144*/ CXMLParamManager                       XMLDataMgr;
-/*0x1F8*/ bool                                   bLoadError;
-/*0x1FC*/ CXStr                                  ErrorString;
-/*0x200*/
-
-	EQLIB_OBJECT virtual ~CSidlManagerBase();
-};
-
-enum EStaticScreenPieceClasses
-{
-	StaticScreenPiece_Unknown                = -1,
-	StaticScreenPiece_Header                 = 0,
-	StaticScreenPiece_Frame                  = 1,
-	StaticScreenPiece_Text                   = 2,
-	StaticScreenPiece_Animation              = 3,
-	StaticScreenPiece_TintedBlendAnimation   = 4,
-};
-
-// size 0x200 see 53ED93 in 2019 01 11 eqgame.exe
-class CSidlManager : public CSidlManagerBase
-{
-public:
-	EQLIB_OBJECT CSidlManager();
-	EQLIB_OBJECT CButtonDrawTemplate* FindButtonDrawTemplate(const CXStr& Name) const;
-	EQLIB_OBJECT CButtonDrawTemplate* FindButtonDrawTemplate(uint32_t ID) const;
-	EQLIB_OBJECT CButtonDrawTemplate GetButtonDrawTemplateFromParamButtonDrawTemplate(const CParamButtonDrawTemplate&) const;
-	EQLIB_OBJECT CGaugeDrawTemplate GetGaugeDrawTemplateFromParamGaugeDrawTemplate(const CParamGaugeDrawTemplate&) const;
-	EQLIB_OBJECT CScreenPieceTemplate* CreateScreenPieceTemplateFromParamScreenPiece(const CParamScreenPiece*) const;
-	EQLIB_OBJECT CScreenPieceTemplate* FindScreenPieceTemplate(const CXStr& Name) const;
-	EQLIB_OBJECT CScreenPieceTemplate* FindScreenPieceTemplate(const char* Name);
-	EQLIB_OBJECT CScreenPieceTemplate* FindScreenPieceTemplate(uint32_t) const;
-	EQLIB_OBJECT CScrollbarTemplate GetScrollbarTemplateFromParamScrollbarTemplate(const CParamScrollbarDrawTemplate&) const;
-	EQLIB_OBJECT CSliderDrawTemplate* FindSliderDrawTemplate(const CXStr& Name) const;
-	EQLIB_OBJECT CSliderDrawTemplate* FindSliderDrawTemplate(uint32_t) const;
-	EQLIB_OBJECT CSliderDrawTemplate GetSliderDrawTemplateFromParamSliderDrawTemplate(const CParamSliderDrawTemplate&) const;
-	EQLIB_OBJECT CSpellGemDrawTemplate GetSpellGemDrawTemplateFromParamSpellGemDrawTemplate(const CParamSpellGemDrawTemplate&) const;
-	EQLIB_OBJECT CTAFrameDraw* FindFrameDraw(uint32_t) const;
-	EQLIB_OBJECT CTAFrameDraw CreateTAFrameDrawFromSidlFrame(const CParamFrameTemplate*) const;
-	EQLIB_OBJECT CTextureAnimation* FindAnimation(const CXStr&) const;
-	EQLIB_OBJECT CTextureAnimation* FindAnimation(uint32_t) const;
-	EQLIB_OBJECT CTextureAnimation CreateTextureAnimationFromSidlAnimation(const CParamUi2DAnimation*) const;
-	EQLIB_OBJECT CXStr GetParsingErrorMsg() const;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_OBJECT CXWnd* CreateXWndFromTemplate(CXWnd*, CControlTemplate*, bool bSomething = 0);
-#else
-	EQLIB_OBJECT CXWnd* CreateXWndFromTemplate(CXWnd*, CControlTemplate*);
-#endif
-	EQLIB_OBJECT CXWnd* CreateXWnd(CXWnd* pwndParent, CControlTemplate* pControl);
-	EQLIB_OBJECT CXWnd* CreateHotButtonWnd(CXWnd* pwndParent, CControlTemplate* pControl);
-	EQLIB_OBJECT CXWnd* CreateXWndFromTemplate(CXWnd*, const CXStr&);
-	EQLIB_OBJECT CXWndDrawTemplate* FindDrawTemplate(const CXStr&) const;
-	EQLIB_OBJECT CXWndDrawTemplate* FindDrawTemplate(uint32_t) const;
-	EQLIB_OBJECT CXWndDrawTemplate CreateDrawTemplateFromParamWindowDrawTemplate(const CParamWindowDrawTemplate*) const;
-	EQLIB_OBJECT EStaticScreenPieceClasses GetScreenPieceEnum(CScreenPieceTemplate*) const;
-	EQLIB_OBJECT static CXPoint GetPointFromParamPoint(const CParamPoint&);
-	EQLIB_OBJECT static CXRect GetRectFromParamPointSize(const CParamPoint&, const CParamSize&);
-	EQLIB_OBJECT static CXSize GetSizeFromParamSize(const CParamSize&);
-	EQLIB_OBJECT static CXStr TranslateString(const CXStr&);
-	EQLIB_OBJECT static D3DCOLOR GetD3DCOLOR(const CParamRGB&);
-	EQLIB_OBJECT CUITextureInfo* FindTexture(const CXStr&) const;
-	EQLIB_OBJECT CUITextureInfo* FindTexture(uint32_t) const;
-	EQLIB_OBJECT void AddAnimationInOrder(CTextureAnimation*);
-	EQLIB_OBJECT void AddDrawTemplateInOrder(CXWndDrawTemplate*);
-	EQLIB_OBJECT void AddScreenPieceTemplateInOrder(CScreenPieceTemplate*);
-	EQLIB_OBJECT void AddTAFrameDrawInOrder(CTAFrameDraw*);
-	EQLIB_OBJECT void DeleteContents();
-	EQLIB_OBJECT void LoadSidl(const CXStr& Path, const CXStr& DefaultPath, const CXStr& Filename, const CXStr& DefaultClientPath = "UIFiles\\default\\");
-
-	EQLIB_OBJECT virtual ~CSidlManager();
 };
 
 class CSkillsSelectWnd : public CSidlScreenWnd
@@ -6000,88 +5785,6 @@ public:
 	EQLIB_OBJECT CXWndDrawTemplate(const CXWndDrawTemplate&);
 	EQLIB_OBJECT CXWndDrawTemplate();
 	EQLIB_OBJECT CXWndDrawTemplate& operator=(const CXWndDrawTemplate&);
-};
-
-// Data is currently inside of CXWNDMGR
-class CXWndManager
-{
-public:
-	EQLIB_OBJECT CXWndManager(CSidlManager*);
-	EQLIB_OBJECT bool IsAllValid();
-	EQLIB_OBJECT bool IsWindowActive(const CXWnd*) const;
-	EQLIB_OBJECT bool IsWindowMovingOrSizing(CXWnd*) const;
-	EQLIB_OBJECT bool IsWindowPieceDown(const CXWnd*, int) const;
-	EQLIB_OBJECT bool OkayToSendMouseMessage(CXWnd*) const;
-	EQLIB_OBJECT const CTextureAnimation* GetCursorToDisplay() const;
-	EQLIB_OBJECT CTextureFont* GetFont(CXStr);
-	EQLIB_OBJECT CXWnd* FindWnd(CXPoint, int*) const;
-	EQLIB_OBJECT CXWnd* GetFirstChildWnd(CXWnd const*) const;
-	EQLIB_OBJECT CXWnd* GetFocusWnd() const;
-	EQLIB_OBJECT CXWnd* GetNextSib(CXWnd const*) const;
-	EQLIB_OBJECT CXWnd* SetFocusWnd(CXWnd*);
-	EQLIB_OBJECT int ActivateWnd(CXWnd*);
-	EQLIB_OBJECT int AddFont(CTextureFont*);
-	EQLIB_OBJECT int AddWnd(CXWnd*);
-	EQLIB_OBJECT int DrawCursor() const;
-	EQLIB_OBJECT int DrawWindows() const;
-	EQLIB_OBJECT int HandleKeyboardMsg(uint32_t, bool);
-	EQLIB_OBJECT int HandleLButtonDown(const CXPoint&);
-	EQLIB_OBJECT int HandleLButtonHeld(const CXPoint&);
-	EQLIB_OBJECT int HandleLButtonUp(const CXPoint&);
-	EQLIB_OBJECT int HandleLButtonUpAfterHeld(const CXPoint&);
-	EQLIB_OBJECT int HandleMouseMove(const CXPoint&);
-	EQLIB_OBJECT int HandleRButtonDown(const CXPoint&);
-	EQLIB_OBJECT int HandleRButtonHeld(const CXPoint&);
-	EQLIB_OBJECT int HandleRButtonUp(const CXPoint&);
-	EQLIB_OBJECT int HandleRButtonUpAfterHeld(const CXPoint&);
-	EQLIB_OBJECT int HandleWheelMove(int);
-	EQLIB_OBJECT int NotifyAllWindows(CXWnd*, uint32_t, void*);
-	EQLIB_OBJECT int OnWindowCloseBox(CXWnd*);
-	EQLIB_OBJECT int OnWindowMinimizeBox(CXWnd*);
-	EQLIB_OBJECT int OnWindowTileBox(CXWnd*);
-	EQLIB_OBJECT int ProcessFrame();
-	EQLIB_OBJECT int RemoveWnd(CXWnd*);
-	static CTextureAnimation sm_curDefault;
-	static CTextureAnimation sm_curDrag;
-	static CTextureAnimation sm_curResizeEW;
-	static CTextureAnimation sm_curResizeNESW;
-	static CTextureAnimation sm_curResizeNS;
-	static CTextureAnimation sm_curResizeNWSE;
-	EQLIB_OBJECT uint32_t GetDisplayWidth() const;
-	EQLIB_OBJECT uint32_t GetGlobalFadeDuration() const;
-	EQLIB_OBJECT uint32_t GetKeyboardFlags() const;
-	EQLIB_OBJECT unsigned char GetGlobalAlpha() const;
-	EQLIB_OBJECT unsigned char GetGlobalFadeToAlpha() const;
-	EQLIB_OBJECT unsigned long GetGlobalFadeDelay() const;
-	EQLIB_OBJECT void BringWndToTop(CXWnd*, bool);
-	EQLIB_OBJECT void CheckInvalidateLastFoundWnd();
-	EQLIB_OBJECT void CleanupWindows();
-	EQLIB_OBJECT void DestroyAllWindows();
-	EQLIB_OBJECT void FlushKeyboardFlags();
-	EQLIB_OBJECT void OnWindowShown(CXWnd*, bool);
-	EQLIB_OBJECT void SetGlobalAlpha(unsigned char);
-	EQLIB_OBJECT void SetGlobalFadeDelay(unsigned long);
-	EQLIB_OBJECT void SetGlobalFadeDuration(uint32_t);
-	EQLIB_OBJECT void SetGlobalFadeToAlpha(unsigned char);
-	EQLIB_OBJECT void SetSystemFont(CTextureFont*);
-	EQLIB_OBJECT void UpdateChildAndSiblingInfo();
-
-	// virtual
-	EQLIB_OBJECT ~CXWndManager();
-
-	EQLIB_OBJECT CTextureFont* GetFont(int FontIndex) const
-	{
-		if (PCXWNDMGR wndmgr = (PCXWNDMGR)this)
-		{
-			if (wndmgr->FontsArray.Count >= FontIndex)
-			{
-				return (CTextureFont*)wndmgr->FontsArray[FontIndex];
-			}
-		}
-		return nullptr;
-	}
-
-	EQLIB_OBJECT int DestroyWnd(CXWnd*wnd);
 };
 
 class EmitterManager

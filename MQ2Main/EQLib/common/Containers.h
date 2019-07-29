@@ -464,6 +464,12 @@ public:
 		if (this->m_array)
 			this->m_length = size;
 	}
+
+	int GetCount() const
+	{
+		return m_length;
+	}
+
 private:
 	// this function will ensure that there is enough space allocated for the
 	// requested size. the underlying array is one contiguous block of memory.
@@ -1162,6 +1168,29 @@ public:
 	UINT    Len;
 	UINT    Index;
 };
+
+
+struct CKeyUInt32ValueInt32
+{
+	uint32_t key;
+	int      value;
+};
+
+class CHashCXStrInt32
+{
+public:
+	ArrayClass2_RO<ArrayClass2_RO<CKeyUInt32ValueInt32>> HashData;
+
+	EQLIB_OBJECT ~CHashCXStrInt32();
+	EQLIB_OBJECT CHashCXStrInt32();
+	EQLIB_OBJECT bool Insert(CXStr const&, int);
+	EQLIB_OBJECT bool LookUp(CXStr const&, int&) const;
+	EQLIB_OBJECT void Reset();
+
+	// private
+	EQLIB_OBJECT int KeyToBin(CXStr const&) const;
+};
+
 
 } // namespace eqlib
 

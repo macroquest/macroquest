@@ -45,33 +45,6 @@ public:
 	bool                       bAutoAddHaters;
 };
 
-class EQLIB_OBJECT CursorClass
-{
-public:
-	enum { eNumCursors = 7 };
-
-	enum eCursorTypes
-	{
-		eArrow,
-		eMove,
-		eBeam,
-		eNorthEastSouthWest,
-		eNorthWestSouthEast,
-		eNorthSouth,
-		eEastWest
-	};
-
-	enum eDisplayMode
-	{
-		eNormal,
-		eScreenShot
-	};
-
-	const char*    Name[eNumCursors];
-	HCURSOR        CursorList[eNumCursors];
-	bool           bScreenShotMode;
-};
-
 struct USINGSKILL
 {
 /*0x00*/ int       Skill;

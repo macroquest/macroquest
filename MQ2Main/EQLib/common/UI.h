@@ -29,8 +29,12 @@ class CChatContainerWindow;
 class CChatWindow;
 class CContextMenu;
 class CEditWnd;
+class CParamLayoutStrategy;
 class CLabel;
+class CLayoutStrategyTemplate;
 class CStmlWnd;
+
+using D3DCOLOR = DWORD;
 
 //----------------------------------------------------------------------------
 
@@ -893,6 +897,266 @@ public:
 
 using EQCHATWINDOW = CChatWindow;
 using PEQCHATWINDOW = CChatWindow*;
+
+//============================================================================
+// CXMLParamManager
+//============================================================================
+
+
+template <class ElementType, int Cnt>
+class HashCXStrElement
+{
+public:
+	struct CKeyCXStrElementType
+	{
+		CXStr          key;
+		ElementType    value;
+	};
+
+	ArrayClass2_RO<ArrayClass2_RO<CKeyCXStrElementType>> HashData;
+};
+
+class CXMLSymbolItem
+{
+public:
+	CXStr                              ItemString;
+	bool                               bDeclared;
+	bool                               bValid;
+};
+
+class CXMLSymbolClass
+{
+public:
+	CXStr                              Class;
+	ArrayClass2_RO<CXMLSymbolItem>     ItemsArray;
+	CHashCXStrInt32                    ItemsHashes;
+	bool                               bValid;
+};
+
+class CXMLSymbolTable
+{
+public:
+	/*0x00*/ void* vfTable;
+	/*0x04*/ ArrayClass2_RO<CXMLSymbolClass> ClassesArray;
+	/*0x20*/ CHashCXStrInt32               ClassesHashes;
+	/*0x3C*/
+};
+
+class CXMLDataManager
+{
+public:
+	/*0x00*/ void* vfTable;
+	/*0x00*/ CHashCXStrInt32               EnumTypeHashes;
+	/*0x00*/ ArrayClass2_RO<CXMLEnumInfo>  XMLEnumArray;
+	/*0x1c*/ HashCXStrElement<CXMLDataPtr, 16 * 1024> ClassItemHashes;
+	/*0x38*/ ArrayClass2_RO<CXMLDataClass> XMLDataArray;
+	/*0x54*/ CXMLSymbolTable               SymbolTable;
+	/*0x90*/ CXStr                         ErrorString;
+	/*0x94*/
+
+	EQLIB_OBJECT CXMLDataManager();
+	EQLIB_OBJECT bool IsDerivedFrom(int, int);
+	EQLIB_OBJECT bool ReadFromXMLSOM(CXMLSOMDocument&);
+	EQLIB_OBJECT CXMLData* GetXMLData(CXStr, CXStr);
+	EQLIB_OBJECT CXMLData* GetXMLData(int, int);
+	EQLIB_OBJECT int GetClassIdx(CXStr);
+	EQLIB_OBJECT int GetItemIdx(int, CXStr);
+	EQLIB_OBJECT int GetNumClass();
+	EQLIB_OBJECT int GetNumItem(int);
+
+	// virtual
+	EQLIB_OBJECT ~CXMLDataManager();
+	EQLIB_OBJECT bool DataValidate();
+	EQLIB_OBJECT bool ReadValidate(CMemoryStream&);
+	EQLIB_OBJECT bool WriteValidate(CMemoryStream&);
+	EQLIB_OBJECT int GetStreamSize();
+	EQLIB_OBJECT void IndexAll();
+	EQLIB_OBJECT void ReadFromStream(CMemoryStream&);
+	EQLIB_OBJECT void Set(CXMLDataManager&);
+	EQLIB_OBJECT void WriteToStream(CMemoryStream&);
+
+	// protected
+	EQLIB_OBJECT void AddToSuperType(CXStr, CXMLDataPtr);
+	EQLIB_OBJECT void SetEnumHash();
+};
+
+class CXMLParamManager : public CXMLDataManager
+{
+public:
+	// virtual
+	EQLIB_OBJECT ~CXMLParamManager();
+	EQLIB_OBJECT bool XMLDataCopy(CXMLData*, CXMLData*);
+	EQLIB_OBJECT CXMLData* AllocPtr(CXMLDataPtr&, int, const CXMLData*);
+};
+
+//============================================================================
+// CSidlManagerBase
+//============================================================================
+
+enum EStaticScreenPieceClasses
+{
+	StaticScreenPieceUnknown = -1,
+
+	StaticScreenPieceHeader,
+	StaticScreenPieceFrame,
+	StaticScreenPieceText,
+	StaticScreenPieceAnimation,
+	StaticScreenPieceTintedBlendAnimation,
+
+	StaticScreenPieceMax,
+};
+
+// this class helps translate xml into ui elements
+
+// size 0x1D4 2019-02-12 test see 53E3D3
+// size 0x200 see 53ED93 in 2019 01 11 eqgame.exe
+class CSidlManagerBase
+{
+public:
+	CSidlManagerBase();
+	virtual ~CSidlManagerBase();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	virtual CXWnd* CreateXWnd(CXWnd* parent, CControlTemplate* pTemplate);
+
+	//----------------------------------------------------------------------------
+	// defined methods
+
+	EQLIB_OBJECT CButtonDrawTemplate* FindButtonDrawTemplate(uint32_t id) const;
+	EQLIB_OBJECT CButtonDrawTemplate* FindButtonDrawTemplate(const CXStr& name) const;
+
+	EQLIB_OBJECT CXMLParamManager* GetParamManager();
+
+	// this "bSomething" is a parameter passed through to CreateButtonWnd and CreateScreenWnd, which is then passed back through
+	// CreateXWndFromTemplate recursively... not sure where it is used yet. A couple non-xml source set it to 1.
+	EQLIB_OBJECT CXWnd* CreateXWndFromTemplate(CXWnd* pParent, CControlTemplate* pTemplate, bool bUnknown = false);
+
+	// same as above but looks up a template by name.
+	EQLIB_OBJECT CXWnd* CreateXWndFromTemplate(CXWnd* pParent, const CXStr& name);
+
+	//----------------------------------------------------------------------------
+	// methods
+
+	EQLIB_OBJECT void DeleteContents();
+	EQLIB_OBJECT void LoadSidl(const CXStr& Path, const CXStr& DefaultPath, const CXStr& Filename, const CXStr& DefaultClientPath = "UIFiles\\default\\");
+	EQLIB_OBJECT CXStr& GetParsingErrorMsg();
+
+	EQLIB_OBJECT EStaticScreenPieceClasses GetScreenPieceEnum(CScreenPieceTemplate*) const;
+	EQLIB_OBJECT EStaticScreenPieceClasses GetScreenPieceEnum(CParamScreenPiece*) const;
+
+	EQLIB_OBJECT CScrollbarTemplate* FindScrollbarTemplate(const CXStr& name) const;
+	EQLIB_OBJECT CScrollbarTemplate* FindScrollbarTemplate(uint32_t) const;
+	EQLIB_OBJECT CSliderDrawTemplate* FindSliderDrawTemplate(const CXStr& Name) const;
+	EQLIB_OBJECT CSliderDrawTemplate* FindSliderDrawTemplate(uint32_t) const;
+	EQLIB_OBJECT CUITextureInfo* FindTexture(const CXStr&) const;
+	EQLIB_OBJECT CUITextureInfo* FindTexture(uint32_t) const;
+	EQLIB_OBJECT CTextureAnimation* FindAnimation(const CXStr&) const;
+	EQLIB_OBJECT CTextureAnimation* FindAnimation(uint32_t) const;
+	EQLIB_OBJECT CTAFrameDraw* FindFrameDraw(const CXStr&) const;
+	EQLIB_OBJECT CTAFrameDraw* FindFrameDraw(uint32_t) const;
+	EQLIB_OBJECT CXWndDrawTemplate* FindDrawTemplate(const CXStr&) const;
+	EQLIB_OBJECT CXWndDrawTemplate* FindDrawTemplate(uint32_t) const;
+	EQLIB_OBJECT CScreenPieceTemplate* FindScreenPieceTemplate(const CXStr& Name) const;
+	EQLIB_OBJECT CScreenPieceTemplate* FindScreenPieceTemplate(uint32_t) const;
+	EQLIB_OBJECT CLayoutStrategyTemplate* FindLayoutStrategyTEmplate(uint32_t id);
+
+	EQLIB_OBJECT CParamScreenPiece* GetScreenPiece(CParamScreen* screen, const CXStr& screenId) const;
+	EQLIB_OBJECT CTextureAnimation CreateTextureAnimationFromSidlAnimation(const CParamUi2DAnimation*) const;
+	EQLIB_OBJECT CTAFrameDraw CreateTAFrameDrawFromSidlFrame(const CParamFrameTemplate*) const;
+	EQLIB_OBJECT CXWndDrawTemplate CreateDrawTemplateFromParamWindowDrawTemplate(const CParamWindowDrawTemplate*) const;
+
+	EQLIB_OBJECT void AddScreenPieceTemplateInOrder(CScreenPieceTemplate*);
+	EQLIB_OBJECT void AddAnimationInOrder(CTextureAnimation*);
+	EQLIB_OBJECT void AddTAFrameDrawInOrder(CTAFrameDraw*);
+	EQLIB_OBJECT void AddDrawTemplateInOrder(CXWndDrawTemplate*);
+	EQLIB_OBJECT void AddLayoutStrategyInOrder(CLayoutStrategyTemplate*);
+
+	EQLIB_OBJECT CButtonDrawTemplate GetButtonDrawTemplateFromParamButtonDrawTemplate(const CParamButtonDrawTemplate&) const;
+	EQLIB_OBJECT CGaugeDrawTemplate GetGaugeDrawTemplateFromParamGaugeDrawTemplate(const CParamGaugeDrawTemplate&) const;
+	EQLIB_OBJECT CSpellGemDrawTemplate GetSpellGemDrawTemplateFromParamSpellGemDrawTemplate(const CParamSpellGemDrawTemplate&) const;
+	EQLIB_OBJECT CScrollbarTemplate GetScrollbarTemplateFromParamScrollbarTemplate(const CParamScrollbarDrawTemplate&) const;
+	EQLIB_OBJECT CSliderDrawTemplate GetSliderDrawTemplateFromParamSliderDrawTemplate(const CParamSliderDrawTemplate&) const;
+
+	EQLIB_OBJECT static CXPoint GetPointFromParamPoint(const CParamPoint&);
+	EQLIB_OBJECT static CXRect GetRectFromParamPointSize(const CParamPoint&, const CParamSize&);
+	EQLIB_OBJECT static CXSize GetSizeFromParamSize(const CParamSize&);
+	EQLIB_OBJECT static CXStr TranslateString(const CXStr&);
+	EQLIB_OBJECT static D3DCOLOR GetD3DCOLOR(const CParamRGB&);
+
+	EQLIB_OBJECT CLayoutStrategyTemplate* CreateLayoutStrategyTemplate(CParamLayoutStrategy*);
+	EQLIB_OBJECT CScreenPieceTemplate* CreateScreenPieceTemplateFromParamScreenPiece(const CParamScreenPiece*) const;
+	EQLIB_OBJECT CLayoutStrategy* CreateLayoutStrategy(CLayoutStrategyTemplate*);
+	EQLIB_OBJECT CXWnd* CreateButtonWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateScreenWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreatePageWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateListWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateSliderWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateLabelWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateSTMLWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateTreeViewWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateComboWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateTabWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateLayoutWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateHorizontalLayoutWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateVerticalLayoutWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateFinderWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateTileLayoutWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateTemplateContainerWnd(CXWnd* parent, CControlTemplate* pTemplate);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	/*0x004*/ EStaticScreenPieceClasses              ScreenPieceClassIndex[StaticScreenPieceMax];
+	/*0x018*/ ArrayClass<CUITextureInfo*>            Textures;
+	/*0x028*/ ArrayClass<CButtonDrawTemplate*>       ButtonDrawTemplateArray;
+	/*0x038*/ ArrayClass<CScrollbarTemplate*>        ScrollbarTemplateArray;
+	/*0x048*/ ArrayClass<CSliderDrawTemplate*>       SliderDrawTemplateArray;
+	/*0x058*/ ArrayClass<CXStr>                      ScreenNameArray;
+	/*0x068*/ ArrayClass<CXWndDrawTemplate*>         DrawTemplateArray;
+	/*0x078*/ CHashCXStrInt32                        DrawTemplateHash;
+	/*0x094*/ ArrayClass<CTextureAnimation*>         AnimationArray;
+	/*0x0A4*/ CHashCXStrInt32                        AnimationsHash;
+	/*0x0C0*/ ArrayClass<CTAFrameDraw*>              TAFrameArray;
+	/*0x0D0*/ CHashCXStrInt32                        TAFrameHash;
+	/*0x0EC*/ ArrayClass<CScreenPieceTemplate*>      ScreenPieceArray;
+	/*0x0FC*/ CHashCXStrInt32                        ScreenPiecesHash;
+	/*0x118*/ ArrayClass<CLayoutStrategyTemplate*>   LayoutStrategyTemplateArray;
+	/*0x128*/ CHashCXStrInt32                        LayoutStrategyTemplatesHash;
+	/*0x144*/ CXMLParamManager                       XMLDataMgr;
+	/*0x1F8*/ bool                                   bLoadError;
+	/*0x1FC*/ CXStr                                  ErrorString;
+	/*0x200*/
+};
+
+class CSidlManager : public CSidlManagerBase
+{
+public:
+	virtual ~CSidlManager();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+	virtual CXWnd* CreateXWnd(CXWnd* parent, CControlTemplate* pTemplate) override;
+
+	//----------------------------------------------------------------------------
+	// defined methods
+
+	// don't need to use this -- can just use CreateXWnd.
+	EQLIB_OBJECT CXWnd* CreateHotButtonWnd(CXWnd* pwndParent, CControlTemplate* pControl);
+
+	//----------------------------------------------------------------------------
+	// methods
+
+	EQLIB_OBJECT CXWnd* CreateLabel(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateGuageWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateSpellGemWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateInvSlotWnd(CXWnd* parent, CControlTemplate* pTemplate);
+	EQLIB_OBJECT CXWnd* CreateHtmlComponentWnd(CXWnd* parent, CControlTemplate* pTemplate);
+};
+
+using CSIDLMGR = CSidlManager;
+using PCSIDLMGR = CSidlManager*;
 
 //----------------------------------------------------------------------------
 
