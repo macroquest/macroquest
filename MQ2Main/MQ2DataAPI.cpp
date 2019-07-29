@@ -625,7 +625,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
  *
  * @return size_t position of the matching brace (or npos if no match found)
  */
-size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos, std::string strEscapeChar = "\\")
+size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos)
 {
 	// Set our current position to the start Position
 	size_t iCurrentPosition = iStartPos;
@@ -693,9 +693,6 @@ size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos, std::s
 	}
 }
 
-// Forward Declaration since this is used in GetMacroVarData and there is no header for MQ2DataAPI.
-std::string HandleParseParam(std::string strOriginal, std::string escapeString = "\\", bool bParseOnce = false);
-
 /**
  * @fn GetMacroVarData
  *
@@ -756,14 +753,14 @@ std::string GetMacroVarData(std::string strVarToParse) {
  *
  * @return size_t The location found or std::string::npos
  */
-size_t GetParseDelimiterPos(std::string strOriginal, size_t iStartPos = 0) {
+size_t GetParseDelimiterPos(const std::string &strOriginal, size_t iStartPos = 0) {
 	// Setup the location of the first delimiter (and default it to comma)
-	size_t iFirstDelimiter = strOriginal.find(",", iStartPos);
+	size_t iFirstDelimiter = strOriginal.find(',', iStartPos);
 	// Find the position of the first space
-	size_t iFirstSpace = strOriginal.find(" ", iStartPos);
+	size_t iFirstSpace = strOriginal.find(' ', iStartPos);
 	// If we found both a comma and a space
 	if (iFirstDelimiter != std::string::npos && iFirstSpace != std::string::npos) {
-		// If the comma is futher than the space...
+		// If the comma is further than the space...
 		if (iFirstDelimiter > iFirstSpace) {
 			// Set the first delimiter to the position of the space
 			iFirstDelimiter = iFirstSpace;
@@ -777,9 +774,6 @@ size_t GetParseDelimiterPos(std::string strOriginal, size_t iStartPos = 0) {
 	// Return whatever we found (note if we found nothing this will be std::string::npos)
 	return iFirstDelimiter;
 }
-
-// Forward Declaration since this is used in HandleParseParam and there is no header for MQ2DataAPI.
-std::string ParseMacroString(std::string strOriginal, std::string escapeString = "\\", bool bParseOnce = false);
 
 /**
  * @fn HandleParseParam
@@ -802,20 +796,19 @@ std::string ParseMacroString(std::string strOriginal, std::string escapeString =
  * it doesn't need to parse any more than that.
  *
  * It is built to handle nested parse parameters by passing those back to
- * ParseMacroString.
+ * ModifyMacroString.
  *
  * The function accepts an optional escape string (default \) to allow you to force
  * accept a character.
  *
- * Note that the defaults are defined in the forward declaration above.
+ * Note that the defaults are defined in the header
  *
  * @param strOriginal The string to parse
- * @param escapeString Single character escape string (default \)
  * @param bParseOnce Whether to parse just once or parse all iterations (default false - all iterations)
  *
  * @return std::string The parsed string (or the original string if there was no ${Parse parameter)
  */
-std::string HandleParseParam(std::string strOriginal, std::string strEscapeString, bool bParseOnce) {
+std::string HandleParseParam(const std::string &strOriginal, bool bParseOnce) {
 	// Setup a return string to handle our return and initialize it to the original string.
 	std::string strReturn = strOriginal;
 	// If the string passed to us doesn't start with ${Parse[
@@ -825,13 +818,13 @@ std::string HandleParseParam(std::string strOriginal, std::string strEscapeStrin
 			// If we're not at the start of a variable...
 			if (strReturn.substr(0, 2) != "${") {
 				// Tokenize the entire thing and parse it that way
-				strReturn = ParseMacroString(strReturn, strEscapeString, bParseOnce);
+				strReturn = ModifyMacroString(strReturn, bParseOnce);
 			}
 			// We are at the start of a variable
 			else {
 				// We're going to need to start further in so that we can tokenize the internals
 				// This takes care of situations like ${SomeCustomTLO[${Parse[0,${Me.Name}]}, ${Me.Name}]}
-				strReturn = "${" + ParseMacroString(strReturn.substr(2, strReturn.length()), strEscapeString, bParseOnce);
+				strReturn = "${" + ModifyMacroString(strReturn.substr(2, strReturn.length()), bParseOnce);
 				// If we are supposed to parse until we're done we need to do a final evaluation of the variable we found.
 				if (!bParseOnce) {
 					// Evaluate the (parsed) return string.
@@ -843,7 +836,7 @@ std::string HandleParseParam(std::string strOriginal, std::string strEscapeStrin
 	// The string starts with ${Parse[
 	else {
 		// Get the position of the first bracket (note: we could assume this, but we're going to change it later anyway so I think it's okay)
-		size_t iFirstBracket = strReturn.find("[");
+		size_t iFirstBracket = strReturn.find('[');
 		// If we didn't find the first bracket, we can't move on with the parsing, so check that we did find it
 		if (iFirstBracket != std::string::npos) {
 			// Now we need to know where the first delimiter is
@@ -852,14 +845,19 @@ std::string HandleParseParam(std::string strOriginal, std::string strEscapeStrin
 			if (iFirstDelimiter != std::string::npos) {
 				// Save what the delimiter actually is because we're going to need it later
 				std::string strDelimiter = strReturn.substr(iFirstDelimiter, 1);
+				char *endPtr;
+				errno = 0;
 				// Get between the bracket and the first delimiter and save that int as our number of iterations
-				int iParseIterations = atoi((strReturn.substr(iFirstBracket + 1, iFirstDelimiter - 1 - iFirstBracket)).c_str());
-				// We could validate here, but most things will return 0 with the atoi and I think a bad parameter not parsing at all is fine
+				int iParseIterations = strtol(strReturn.substr(iFirstBracket + 1, iFirstDelimiter - 1 - iFirstBracket).c_str(), &endPtr, 10);
+				// If there was an error in the conversion to int or we have garbage, set the parses to 0
+				if(errno != 0 || *endPtr != '\0') {
+					iParseIterations = 0;
+				}
 
 				// Loop
 				do {
 					// Find the first bracket in the return string
-					iFirstBracket = strReturn.find("[");
+					iFirstBracket = strReturn.find('[');
 					// Find the first delimiter in the return string
 					iFirstDelimiter = GetParseDelimiterPos(strReturn);
 					// Set the delimiter
@@ -872,14 +870,6 @@ std::string HandleParseParam(std::string strOriginal, std::string strEscapeStrin
 					if (iParseIterations <= 0) {
 						// Remove the parse
 						strReturn = strSubParse;
-						/* The below only matters if the Parsing Engine allows Escape characters and right now FindMacroClosingBrace does not.
-						// Fix any escaped characters so we're not showing the escape string too.
-						strReturn = ReplaceSubstring(strReturn, strEscapeString + strEscapeString, strEscapeString);
-						strReturn = ReplaceSubstring(strReturn, strEscapeString + "[", "[");
-						strReturn = ReplaceSubstring(strReturn, strEscapeString + "]", "]");
-						strReturn = ReplaceSubstring(strReturn, strEscapeString + "{", "{");
-						strReturn = ReplaceSubstring(strReturn, strEscapeString + "}", "}");
-						*/
 					}
 					// This is more than a Parse 0.
 					else {
@@ -895,7 +885,7 @@ std::string HandleParseParam(std::string strOriginal, std::string strEscapeStrin
 						// We have variables to parse
 						else {
 							// Decrement the iterations and Parse the variables only once (we'll go further if we need to in additional loops)
-							strReturn = PARSE_PARAM_BEG + std::to_string(iParseIterations - 1) + strDelimiter + ParseMacroString(strSubParse, strEscapeString, true) + PARSE_PARAM_END;
+							strReturn = PARSE_PARAM_BEG + std::to_string(iParseIterations - 1) + strDelimiter + ModifyMacroString(strSubParse, true) + PARSE_PARAM_END;
 						}
 					}
 					// Decrement our iteration counter
@@ -924,20 +914,19 @@ std::string HandleParseParam(std::string strOriginal, std::string strEscapeStrin
  * In the case of a ${Parse[ parameter, the function will pass handling off to
  * HandleParseParam if it is found immediately, or during recursion if it is found buried.
  *
- * Where ParseMacroString will tokenize the string and find the longest variables
+ * Where ModifyMacroString will tokenize the string and find the longest variables
  * before passing them in whole to ParseMacroVar, ParseMacroVar expects that it
  * is being passed an already tokenized variable.  While ParseMacroVar could be
- * part of ParseMacroString, it's easier for troubleshooting to keep it as a
+ * part of ModifyMacroString, it's easier for troubleshooting to keep it as a
  * separate operation (and also allows us to skip the first iteration of
  * tokenization if we know we have a full variable already).
  *
  * @param strOriginal The string to parse
- * @param strEscapeString Single character escape string (default \)
  * @param bParseOnce Whether to parse just once or parse all iterations (default false - all iterations)
  *
  * @return std::string The parsed string
  */
-std::string ParseMacroVar(std::string strOriginal, std::string strEscapeString = "\\", bool bParseOnce = false) {
+std::string ParseMacroVar(const std::string &strOriginal, bool bParseOnce = false) {
 	// Setup a return string and initialize it to the original string
 	std::string strReturn = strOriginal;
 
@@ -956,7 +945,7 @@ std::string ParseMacroVar(std::string strOriginal, std::string strEscapeString =
 			// If we found a variable marker
 			if (iPosition != std::string::npos) {
 				// Find the closing brace
-				size_t iCloseBrace = FindMacroClosingBrace(strReturn, iPosition, strEscapeString);
+				size_t iCloseBrace = FindMacroClosingBrace(strReturn, iPosition);
 				// If we found the Closing Brace then we can get the variable's data
 				if (iCloseBrace != std::string::npos) {
 					// If the Closing Brace is AFTER our last parsed variable and we're only parsing once then we need to skip parsing this.
@@ -971,7 +960,7 @@ std::string ParseMacroVar(std::string strOriginal, std::string strEscapeString =
 						if (strVarToParse != strParsedVar) {
 							// If the variable contains a ${ and we are not in a parse once then we need to send it through the parser again
 							if (!bParseOnce && (strParsedVar.find("${") != std::string::npos)) {
-								strParsedVar = ParseMacroString(strParsedVar);
+								strParsedVar = ModifyMacroString(strParsedVar);
 							}
 
 							// Replace the variable in our return string with the parsed variable
@@ -991,24 +980,25 @@ std::string ParseMacroVar(std::string strOriginal, std::string strEscapeString =
 	}
 	// There is a parse parameter in this string
 	else {
-		strReturn = HandleParseParam(strOriginal, strEscapeString, bParseOnce);
+		strReturn = HandleParseParam(strOriginal, bParseOnce);
 	}
 	return strReturn;
 }
 
 
 /**
- * @fn ParseMacroString
+ * @fn ModifyMacroString
  *
- * @brief Tokenizes a mixed string and passes whole variables for parsing
+ * @brief Tokenizes a mixed string and passes whole variables for operations
  *
- * The defaults for this function are set in the forward declaration.
+ * The defaults for this function are set in the header.
  *
  * This function takes a string and tokenizes it to the longest whole variable
- * it can find, then passes each of those whole variables to ParseMacroVar.
+ * it can find, then passes each of those whole variables to an operation as
+ * specified.  The default operation is to Parse.
  *
- * The results are concatenated until the entire string has been parse and the
- * return value is the entire string with the variables parsed.
+ * The results are concatenated until the entire string has been parsed and the
+ * return value is the entire string after the modification.
  *
  * If there are mismatched braces and it cannot find a whole variable, it will
  * return the remainder of the string.  This behavior will cause this function
@@ -1017,12 +1007,15 @@ std::string ParseMacroVar(std::string strOriginal, std::string strEscapeString =
  * (unparsed) string.
  *
  * @param strOriginal The string to parse
- * @param escapeString Single character escape string (default \)
  * @param bParseOnce Whether to parse just once or parse all iterations (default false - all iterations)
+ * @param iOperation What operation to perform, available operations are:
+ *         -2 - Wrap Parse Zero, No Doubles - Wrap variables in a Parse Zero (unless they already have a Parse zero)
+ *		   -1 - Default - Parse variables using ParseMacroVar
+ *			0 - Wrap Parse Zero - Wrap variables in a Parse Zero (don't parse)
  *
  * @return std::string The parsed string
  */
-std::string ParseMacroString(std::string strOriginal, std::string strEscapeString, bool bParseOnce)
+std::string ModifyMacroString(const std::string &strOriginal, bool bParseOnce, int iOperation)
 {
 	// Setup a return variable to track our string being built
 	std::string strReturn;
@@ -1052,7 +1045,7 @@ std::string ParseMacroString(std::string strOriginal, std::string strEscapeStrin
 			iCurrentPosition = iNewPosition;
 
 			// Get the matching brace position.
-			size_t iBracePosition = FindMacroClosingBrace(strOriginal, iCurrentPosition, strEscapeString);
+			size_t iBracePosition = FindMacroClosingBrace(strOriginal, iCurrentPosition);
 
 			// If we didn't find the matching brace, return the rest of the string
 			if (iBracePosition == std::string::npos) {
@@ -1062,8 +1055,28 @@ std::string ParseMacroString(std::string strOriginal, std::string strEscapeStrin
 			}
 			// Otherwise we found the matching brace
 			else {
-				// Parse it and add the result to our current string
-				strReturn += ParseMacroVar(strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition)), strEscapeString, bParseOnce);
+				switch (iOperation) {
+					// -2 - Wrap Parse Zero, No Doubles - Wrap variables in a Parse Zero (unless they already have a Parse zero)
+					case -2:
+						// If we already have a Parse Zero
+						if(strOriginal.substr(iCurrentPosition, PARSE_PARAM_BEG.length() + 1) == PARSE_PARAM_BEG + "0") {
+							// Just add the section as is
+							strReturn += strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition));
+						}
+						else {
+							// Add a Parse Zero
+							strReturn += PARSE_PARAM_BEG + "0," + strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition)) + PARSE_PARAM_END;
+						}
+						break;
+					// 0 - Wrap Parse Zero - Wrap variables in a Parse Zero (don't parse)
+					case 0:
+						strReturn += PARSE_PARAM_BEG + "0," + strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition)) + PARSE_PARAM_END;
+						break;
+					// Default case is Parse
+					default:
+						// Parse it and add the result to our current string
+						strReturn += ParseMacroVar(strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition)), bParseOnce);
+				}
 				// Advance our position to where the brace is
 				iCurrentPosition = iBracePosition;
 			}
@@ -1076,15 +1089,15 @@ std::string ParseMacroString(std::string strOriginal, std::string strEscapeStrin
 /**
  * @fn ParseMacroData
  *
- * @brief Backwards compatible wrapper for ParseMacroString
+ * @brief Backwards compatible wrapper for ModifyMacroString
  *
- * This function is a backwards compatible wrapper for ParseMacroString
+ * This function is a backwards compatible wrapper for ModifyMacroString
  * that takes the place of the original ParseMacroData function so that
  * code being passed to the parser doesn't have to be rewritten.
  *
  * It will perform the same function as the original (parsing the PCHAR
  * and storing it in the original location) but it does so by converting
- * to a string and passing it to ParseMacroString instead of doing the
+ * to a string and passing it to ModifyMacroString instead of doing the
  * parsing itself.
  *
  * The original ParseMacroData function would return false if there are
@@ -1102,12 +1115,11 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 	// Let's use a string instead of a character array so C++ handles all that stuff for us.
 	std::string strOriginal = szOriginal;
 	// Pass it off to our String Parser
-	std::string strReturn = ParseMacroString(strOriginal);
+	std::string strReturn = ModifyMacroString(strOriginal);
 	// If the result is larger than MAX_STRING
 	if (strReturn.length() >= MAX_STRING) {
 		// If we are currently in a macro block
-		if (PMACROBLOCK currblock = GetCurrentMacroBlock())
-		{
+		if (PMACROBLOCK currblock = GetCurrentMacroBlock()) {
 			currblock->Line[currblock->CurrIndex].Command.c_str();
 			MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d", currblock->Line[currblock->CurrIndex].SourceFile.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
 		}

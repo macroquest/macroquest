@@ -1,3 +1,15 @@
+Jul 27 2019 by EqMule
+- Turned on Knightlyparse.
+- Added support for mq2dannet to mq2targetinfo.
+- You can now confgure the mimic me feature in mq2targetinfo.ini to use dannet (or any other plugin u use for it's commands.)
+- Added ${Me.LastZoned} to the character TLO. It returns a timestamp of last time you zoned.
+- Removed EQ_END_ZONE and EQ_BEGIN_ZONE.
+- Added new detours for zonechange detection.
+- ${Me.Zoning} is depreciated, use ${Me.LastZoned} or just wait for ${Zone.ID} to change.
+-
+-Next release:
+- TODO: Fix EQGroundItemListManager so we can get /itemtarget working for guild objects again.
+
 Jul 17 2019 by EqMule
 - Updated for LIVE
 -
@@ -1984,6 +1996,8 @@ Sub Main
 - Added new #bind command for macros.
   Short Explaination, this allows you to execute macro sub routines.
   Long Explaination:
+  Binds are triggered when a macro runs either:
+  /varset or /echo or /call or if a Sub is executed.
 #bind allows you to bind an ingame slash command to a macro function.
 Before you had to do this with #events and capture text that you sent to yourself for example: 
 #event SayMana "#*#SayManaPercent#*#"

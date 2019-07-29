@@ -42,6 +42,9 @@ CHAR szNav[128] = { 0 };
 CHAR szFollowMeToolTip[MAX_STRING] = { 0 };
 CHAR szFollowMe[128] = { 0 };
 CHAR szFollowMeCommand[MAX_STRING] = { 0 };
+CHAR szMimicMeHailCommand[MAX_STRING] = { 0 };
+CHAR szMimicMeSayCommand[MAX_STRING] = { 0 };
+
 CHAR szMimicMeToolTip[128] = { "Everyone do what I do, I target something, they do as well, I hail, they hail, etc." };
 CHAR szMimicMe[128] = { "Mimic Me" };
 CHAR szMMainTip[128] = { "MQ2TargetInfo is Active: Type /groupinfo help or rightclick this window to see a menu" };
@@ -325,7 +328,39 @@ int followmeoptionmenuid = 0;
 int hotoptionmenuid = 0;
 int distanceoptionmenuid = 0;
 
-
+bool CheckNavCommand()
+{
+	if (strstr(szNavCommand, "/bc"))
+	{
+		bool bConnectedtoEqBCs = false;
+		if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
+		{
+			unsigned short(*fisConnected)();
+			if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
+			{
+				if (fisConnected())
+				{
+					bConnectedtoEqBCs = true;
+				}
+			}
+		}
+		if (!bConnectedtoEqBCs)
+		{
+			WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szNavCommand);
+			return 1;
+		}
+	}
+	else if (strstr(szNavCommand, "/dg"))
+	{
+		bool bConnectedtoEqBCs = false;
+		if (!GetModuleHandle("mq2dannet"))
+		{
+			WriteChatf("%s only works if mq2dannet is loaded, Please run /plugin mq2dannet", szNavCommand);
+			return 1;
+		}
+	}
+	return 0;
+}
 
 void CreateAButton(CGroupWnd*pGwnd,CControlTemplate *Template,CButtonWnd **button,char*label,char*labelscreen, int fontsize, int top, int bottom, int left, int right, COLORREF color, COLORREF bgcolor, char*tooltip, char*text,bool bShow)
 {
@@ -1037,6 +1072,9 @@ void Initialize()
 					
 					//Mimic Me button
 					ReadUILocSetting("MimicMeLoc", 61,27,90,130,&rc);
+					ReadStringSetting("MimicMeSayCommand","/bcg //say",szMimicMeSayCommand);
+					ReadStringSetting("MimicMeHailCommand","/bcg //keypress HAIL",szMimicMeHailCommand);
+
 					CreateAButton(pGwnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, rc.top, rc.bottom, rc.left, rc.right, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe,gBShowMimicMeButton);
 					
 					//Hotbutton0
@@ -1381,15 +1419,24 @@ void StopMovement(bool bChange = true)
 {
 	if (GetModuleHandle("mq2advpath"))
 	{
-		DoCommandf("/squelch /bcg //squelch /afollow off");
+		if (GetModuleHandle("mq2dannet"))
+			DoCommandf("/squelch /dgge /squelch /afollow off");
+		else if (GetModuleHandle("mq2eqbc"))
+			DoCommandf("/squelch /bcg //squelch /afollow off");
 	}
 	if (GetModuleHandle("mq2moveutils"))
 	{
-		DoCommandf("/squelch /bcg //squelch /stick off");
+		if (GetModuleHandle("mq2dannet"))
+			DoCommandf("/squelch /dgge /squelch /stick off");
+		else if (GetModuleHandle("mq2eqbc"))
+			DoCommandf("/squelch /bcg //squelch /stick off");
 	}
 	if (GetModuleHandle("mq2nav"))
 	{
-		DoCommandf("/squelch /bcg //squelch /nav stop");
+		if (GetModuleHandle("mq2dannet"))
+			DoCommandf("/squelch /dgge /squelch /nav stop");
+		else if (GetModuleHandle("mq2eqbc"))
+			DoCommandf("/squelch /bcg //squelch /nav stop");
 	}
 	if (bChange)
 	{
@@ -1556,25 +1603,9 @@ public:
 			}
 			else if (pWnd == NavButton)
 			{
-				if (strstr(szNavCommand, "/bc"))
+				if (CheckNavCommand())
 				{
-					bool bConnectedtoEqBCs = false;
-					if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
-					{
-						unsigned short(*fisConnected)();
-						if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
-						{
-							if (fisConnected())
-							{
-								bConnectedtoEqBCs = true;
-							}
-						}
-					}
-					if (!bConnectedtoEqBCs)
-					{
-						WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szNav);
-						return 1;
-					}
+					return 1;
 				}
 				StopMovement();
 				CHAR szMe[MAX_STRING] = { 0 };
@@ -1584,25 +1615,9 @@ public:
 				return 1;
 			} else if (pWnd == FollowMeButton)
 			{
-				if (strstr(szNavCommand, "/bc"))
+				if (CheckNavCommand())
 				{
-					bool bConnectedtoEqBCs = false;
-					if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
-					{
-						unsigned short(*fisConnected)();
-						if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
-						{
-							if (fisConnected())
-							{
-								bConnectedtoEqBCs = true;
-							}
-						}
-					}
-					if(!bConnectedtoEqBCs)
-					{
-						WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szFollowMe);
-						return 1;
-					}
+					return 1;
 				}
 				if(!FollowMeButton->Checked)
 					StopMovement(false);
@@ -1653,7 +1668,10 @@ public:
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
 					{
-						DoCommandf("/bct %s //makeleader %s", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->Name);
+						if (GetModuleHandle("mq2dannet"))
+							DoCommandf("/dt %s /makeleader %s", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->Name);
+						else if (GetModuleHandle("mq2eqbc"))
+							DoCommandf("/bct %s //makeleader %s", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->Name);
 					}
 					return 1;
 				}
@@ -1663,7 +1681,10 @@ public:
 					if (pSpawn)
 					{
 						StopMovement(gbFollowme);
-						DoCommandf("/bct %s //nav id %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+						if (GetModuleHandle("mq2dannet"))
+							DoCommandf("/dt %s /nav id %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+						else if (GetModuleHandle("mq2eqbc"))
+							DoCommandf("/bct %s //nav id %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
 					}
 					return 1;//we dont need to call the tramp, its our message...
 				}
@@ -1682,8 +1703,16 @@ public:
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
 					{
-						DoCommandf("/bct %s //itemtarget", pSpawn->Name);
-						DoCommandf("/bct %s //click left item", pSpawn->Name);
+						if (GetModuleHandle("mq2dannet"))
+						{
+							DoCommandf("/dt %s /itemtarget", pSpawn->Name);
+							DoCommandf("/dt %s /click left item", pSpawn->Name);
+						}
+						else if (GetModuleHandle("mq2eqbc"))
+						{
+							DoCommandf("/bct %s //itemtarget", pSpawn->Name);
+							DoCommandf("/bct %s //click left item", pSpawn->Name);
+						}
 					}
 					return 1;
 				}
@@ -1692,8 +1721,16 @@ public:
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
 					{
-						DoCommandf("/bct %s //doortarget", pSpawn->Name);
-						DoCommandf("/bct %s //click left door", pSpawn->Name);
+						if (GetModuleHandle("mq2dannet"))
+						{
+							DoCommandf("/dt %s /doortarget", pSpawn->Name);
+							DoCommandf("/dt %s /click left door", pSpawn->Name);
+						}
+						else if (GetModuleHandle("mq2eqbc"))
+						{
+							DoCommandf("/bct %s //doortarget", pSpawn->Name);
+							DoCommandf("/bct %s //click left door", pSpawn->Name);
+						}
 					}
 					return 1;
 				}
@@ -1702,7 +1739,14 @@ public:
 					PSPAWNINFO pSpawn = GetSpawnFromRightClickIndex();
 					if (pSpawn)
 					{
-						DoCommandf("/bct %s //foreground", pSpawn->Name);
+						if (GetModuleHandle("mq2dannet"))
+						{
+							DoCommandf("/dt %s /foreground", pSpawn->Name);
+						}
+						else if (GetModuleHandle("mq2eqbc"))
+						{
+							DoCommandf("/bct %s //foreground", pSpawn->Name);
+						}
 					}
 					return 1;
 				}
@@ -1715,18 +1759,27 @@ public:
 						{
 							if (FollowMeMap[rightclickindex] == true)
 							{
-								DoCommandf("/bct %s //afollow off",pSpawn->Name);
+								if (GetModuleHandle("mq2dannet"))
+									DoCommandf("/dt %s /afollow off", pSpawn->Name);
+								else if (GetModuleHandle("mq2eqbc"))
+									DoCommandf("/bct %s //afollow off", pSpawn->Name);
 								FollowMeMap[rightclickindex] = false;
 							}
 							else
 							{
-								DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+								if (GetModuleHandle("mq2dannet"))
+									DoCommandf("/dt %s /afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+								else if (GetModuleHandle("mq2eqbc"))
+									DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
 								FollowMeMap[rightclickindex] = true;
 							}
 						}
 						else
 						{
-							DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+							if (GetModuleHandle("mq2dannet"))
+								DoCommandf("/dt %s /afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+							else if (GetModuleHandle("mq2eqbc"))
+								DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
 							FollowMeMap[rightclickindex] = true;
 						}
 					}
@@ -1978,25 +2031,9 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 	}
 	else if (!_stricmp(szArg1, "followme"))
 	{
-		if (strstr(szNavCommand, "/bc"))
+		if (CheckNavCommand())
 		{
-			bool bConnectedtoEqBCs = false;
-			if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
-			{
-				unsigned short(*fisConnected)();
-				if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
-				{
-					if (fisConnected())
-					{
-						bConnectedtoEqBCs = true;
-					}
-				}
-			}
-			if (!bConnectedtoEqBCs)
-			{
-				WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szFollowMe);
-				return;
-			}
+			return;
 		}
 		CHAR szArg2[MAX_STRING] = { 0 };
 		GetArg(szArg2, szLine, 2);
@@ -2047,25 +2084,9 @@ void CMD_GroupInfo(PSPAWNINFO pPlayer, char* szLine)
 	}
 	else if (!_stricmp(szArg1, "cometome"))
 	{
-		if (strstr(szNavCommand, "/bc"))
+		if (CheckNavCommand())
 		{
-			bool bConnectedtoEqBCs = false;
-			if (HMODULE hMod = GetModuleHandle("mq2eqbc"))
-			{
-				unsigned short(*fisConnected)();
-				if (fisConnected = (unsigned short(*)())GetProcAddress(hMod, "isConnected"))
-				{
-					if (fisConnected())
-					{
-						bConnectedtoEqBCs = true;
-					}
-				}
-			}
-			if (!bConnectedtoEqBCs)
-			{
-				WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szNav);
-				return;
-			}
+			return;
 		}
 		StopMovement();
 		CHAR szMe[MAX_STRING] = { 0 };
@@ -2463,7 +2484,10 @@ void DidTargetChange()
 		//yes it changed
 		LastTargetID = ((PSPAWNINFO)pTarget)->SpawnID;
 		//DoCommandf((PSPAWNINFO)pLocalPlayer, "/squelch /bcg //target id %d",LastTargetID);
-		DoCommandf("/bcg //target id %d",LastTargetID);
+		if (GetModuleHandle("mq2dannet"))
+			DoCommandf("/dgge //target id %d", LastTargetID);
+		else if (GetModuleHandle("mq2eqbc"))
+			DoCommandf("/bcg //target id %d", LastTargetID);
 		WriteChatf("Letting group know target changed");
 	}
 }
@@ -2496,10 +2520,10 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 			}
 			if (!_strnicmp(szLine, "Hail, ", 6))
 			{
-				DoCommandf("/bcg //keypress HAIL");
+				DoCommandf("%s",szMimicMeHailCommand);
 			}
 			else {
-				DoCommandf("/bcg //say %s", szLine);
+				DoCommandf("%s %s", szMimicMeSayCommand,szLine);
 			}
 		}
 		LocalFree(szLineOrg);
@@ -2533,7 +2557,13 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 				
 			}
 			StopMovement();
-			DoCommandf("/bcg //easyfind \"%s\"", szLine);
+			///dgge
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/dgge /easyfind \"%s\"", szLine);
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/bcg //easyfind \"%s\"", szLine);
+			else
+				WriteChatf("Either mq2eqbc or mq2dannet needs to be loaded to go to %s", szLine);
 		}
 		LocalFree(szLineOrg);
 		OutputDebugString("OnWriteChatColor: ");

@@ -1060,8 +1060,8 @@ TLO(dataIni)
 		// If we are not supposed to parse and there is a ${
 		if (bNoParse && strstr(DataTypeTemp, "${"))
 		{
-			// Wrap DataTypeTemp in a ${Parse[0
-			strcpy_s(DataTypeTemp, (PARSE_PARAM_BEG + "0," + std::string(DataTypeTemp) + PARSE_PARAM_END).c_str());
+			// Modify Macro String with parameter 0 to wrap Parse Zero
+			strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, 0).c_str());
 		}
 #else // KNIGHTLYPARSE
 		if (bNoParse && strchr(DataTypeTemp, '$'))
@@ -1077,8 +1077,8 @@ TLO(dataIni)
 		// If we're set not to parse and there's a ${
 		if (bNoParse && Default.find("${") != std::string::npos)
 		{
-			// Wrap this in a $Parse[0 so it doesn't get parsed
-			Default = PARSE_PARAM_BEG + "0," + Default + PARSE_PARAM_END;
+			// Modify Macro String with parameter 0 to wrap Parse Zero
+			Default = ModifyMacroString(Default, true, 0);
 		}
 #else // KNIGHTLYPARSE
 		// I think the below is actually wrong, since it's checking whatever was stored in

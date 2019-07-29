@@ -817,12 +817,11 @@ EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(KNIGHTLYPARSE) || defined(KNIGHTLYINLINECOMMENTS)
-std::string ReplaceSubstring(std::string strOriginal, std::string strFind, std::string strReplace);
-#endif //KNIGHTLYPARSE || KNIGHTLYINLINECOMMENTS
-#if defined(KNIGHTLYPARSE)
-std::string WrapParseZero(std::string strOriginal);
-#endif //KNIGHTLYPARSE
+#ifdef KNIGHTLYPARSE
+// Parse Operations
+std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
+std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
+#endif
 
 
 LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);

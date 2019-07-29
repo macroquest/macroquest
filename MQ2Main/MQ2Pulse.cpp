@@ -57,10 +57,16 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 	PSPAWNINFO pCharOrMount = NULL;
 	PCHARINFO pCharInfo = GetCharInfo();
 	PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
-	if (pCharInfo && pCharInfo->pSpawn) pChar = pCharInfo->pSpawn;
-	if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return FALSE;
-	if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && (TurnNotDone)) return FALSE;
-	if (IsMouseWaiting()) return FALSE;
+	if (pCharInfo && pCharInfo->pSpawn)
+		pChar = pCharInfo->pSpawn;
+	if (!pChar)
+	{
+		return FALSE;
+	}
+	if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && (TurnNotDone))
+		return FALSE;
+	if (IsMouseWaiting())
+		return FALSE;
 	if (gDelay && gDelayCondition[0])
 	{
 		CHAR szCond[MAX_STRING];
@@ -91,55 +97,59 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 		QueryPerformanceCounter(&BeforeCommand);
 		int ThisMacroBlock = pBlock->CurrIndex;
 #endif
-		DoCommand(pChar, (PCHAR)ml.Command.c_str());
-		PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
-
-		if (pCurrentBlock)
+		bool moveon = true;
+		if (gbInZone && !gZoning)
 		{
-			if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex==-1) {
-				if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
+			DoCommand(pChar, (PCHAR)ml.Command.c_str());
+			PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
+
+			if (pCurrentBlock)
+			{
+				if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1) {
+					if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
+						std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+						if (i != pCurrentBlock->Line.end()) {
+							i++;
+							if (i != pCurrentBlock->Line.end()) {
+								//WriteChatf("Starting %s @ %d %s", pBlock->BindCmd.c_str(), i->first, i->second.Command.c_str());
+								pCurrentBlock->BindStackIndex = i->first;
+							}
+							else {
+								FatalError("Reached end of macro.");
+							}
+						}
+						Call(pChar, (PCHAR)pCurrentBlock->BindCmd.c_str());
+						pCurrentBlock->BindCmd.clear();
+					}
+				}
+#ifdef MQ2_PROFILING
+				LARGE_INTEGER AfterCommand;
+				QueryPerformanceCounter(&AfterCommand);
+				pCurrentBlock->Line[ThisMacroBlock].ExecutionCount++;
+				pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
+#endif
+				int lastindex = pCurrentBlock->Line.rbegin()->first;
+				if (pCurrentBlock->CurrIndex > lastindex) {
+					FatalError("Reached end of macro.");
+				}
+				else {
 					std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
 					if (i != pCurrentBlock->Line.end()) {
 						i++;
 						if (i != pCurrentBlock->Line.end()) {
-							//WriteChatf("Starting %s @ %d %s", pBlock->BindCmd.c_str(), i->first, i->second.Command.c_str());
-							pCurrentBlock->BindStackIndex = i->first;
-						}
-						else {
-							FatalError("Reached end of macro.");
+							pCurrentBlock->CurrIndex = i->first;
 						}
 					}
-					Call(pChar, (PCHAR)pCurrentBlock->BindCmd.c_str());
-					pCurrentBlock->BindCmd.clear();
+					else {
+						FatalError("Reached end of macro.");
+					}
 				}
-			}
-#ifdef MQ2_PROFILING
-			LARGE_INTEGER AfterCommand;
-			QueryPerformanceCounter(&AfterCommand);
-			pCurrentBlock->Line[ThisMacroBlock].ExecutionCount++;
-			pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
-#endif
-			int lastindex = pCurrentBlock->Line.rbegin()->first;
-			if (pCurrentBlock->CurrIndex>lastindex) {
-				FatalError("Reached end of macro.");
 			}
 			else {
-				std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
-				if (i != pCurrentBlock->Line.end()) {
-					i++;
-					if (i != pCurrentBlock->Line.end()) {
-						pCurrentBlock->CurrIndex = i->first;
-					}
-				}
-				else {
-					FatalError("Reached end of macro.");
-				}
+				return FALSE;
 			}
+			return TRUE;
 		}
-		else {
-			return FALSE;
-		}
-		return TRUE;
 	}
 	return FALSE;
 }
@@ -749,8 +759,7 @@ public:
 	VOID EnterZone_Detour(PVOID pVoid)
 	{
 		EnterZone_Trampoline(pVoid);
-		gZoning = TRUE;
-		WereWeZoning = TRUE;
+		
 	}
 
 	VOID SetGameState_Trampoline(DWORD GameState);
@@ -903,7 +912,7 @@ void InitializeMQ2Pulse()
 	
 	//EzDetourwName(__GameLoop, GameLoop_Detour, GameLoop_Tramp,"GameLoop");
 	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
-	EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
+	//EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
 	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
 	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline, "CTargetWnd__RefreshTargetBuffs");
 	EzDetourwName(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline,"CMerchantWnd__PurchasePageHandler__UpdateList");
@@ -920,7 +929,7 @@ void ShutdownMQ2Pulse()
 	EnterCriticalSection(&gPulseCS);
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveLoginPulse();
-	RemoveDetour(CEverQuest__EnterZone);
+	//RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);

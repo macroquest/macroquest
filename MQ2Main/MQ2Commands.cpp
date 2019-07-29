@@ -3461,23 +3461,6 @@ void PopupTextEcho(PSPAWNINFO pChar, char* szLine)
 // /multiline
 VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
-#ifdef KNIGHTLYPARSE
-	// In order to keep /noparse backwards compatible, we wrap any commands sent via /noparse
-	// in a ${Parse[0,.  Since multiline isn't a single command, we need to account for that
-	// and handle it.
-	
-	// Track whether this is a DoNotParse or not.
-	bool bDoNotParse = false;
-	// If the first part of this matches, then we need to change the line.
-	if (!strncmp((PARSE_PARAM_BEG + "0,").c_str(), szLine, PARSE_PARAM_BEG.length() + 2))
-	{
-		// Set DoNotParse to true
-		bDoNotParse = true;
-		// Strip the parse back off and put the result back into szLine
-		strncpy(szLine, ((std::string(szLine).substr(PARSE_PARAM_BEG.length() + 2, std::string(szLine).length() - (PARSE_PARAM_BEG.length() + 2) - PARSE_PARAM_END.length()) + '\0').c_str()), strlen(szLine));
-	}
-#endif
-
 	if (szLine[0] == 0)
 	{
 		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
@@ -3498,14 +3481,6 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (token1 != NULL)
 		{
-#ifdef KNIGHTLYPARSE
-			// If we're not to parse these commands, then wrap in a ParseZero so we don't parse.
-			if (bDoNotParse) {
-				// 
-				strcpy_s(szCmd, WrapParseZero(token1).c_str());
-			}
-			else
-#endif //KNIGHTLYPARSE
 			{
 				strcpy_s(szCmd, token1);
 			}
@@ -4050,10 +4025,10 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 #ifdef KNIGHTLYPARSE
-	// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a ${Parse[0, but not the command itself.
+	// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
 	// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
-	// Cast it as a PCHAR, wrap the command, and run the command
-	DoCommand(pChar, PCHAR(WrapParseZero(szLine).c_str()));
+	// Cast it as a PCHAR, Modify the line, and run the command
+	DoCommand(pChar, PCHAR(ModifyMacroString(szLine, true, -2).c_str()));
 #else // KNIGHTLYPARSE
 	bAllowCommandParse = false;
 	DoCommand(pChar, szLine);

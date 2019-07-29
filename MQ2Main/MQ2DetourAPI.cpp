@@ -286,8 +286,18 @@ class CPacketScrambler
 public:
 	int CPacketScrambler::ntoh_tramp(int);
 	int CPacketScrambler::ntoh_detour(int nopcode);
-	int CPacketScrambler::hton_tramp(int, int);
-	int CPacketScrambler::hton_detour(int hopcode, int flag);
+	void CDisplay__ZoneMainUI_Tramp();
+	void CDisplay__ZoneMainUI_Detour()
+	{
+		CDisplay__ZoneMainUI_Tramp();
+		PluginsEndZone();
+	};
+	void CDisplay__PreZoneMainUI_Tramp();
+	void CDisplay__PreZoneMainUI_Detour()
+	{
+		PluginsBeginZone();
+		CDisplay__PreZoneMainUI_Tramp();
+	}
 };
 typedef DWORD(__cdecl *fGetAssistCalc)(DWORD);
 static fGetAssistCalc GetAssistCalc = 0;
@@ -332,16 +342,11 @@ int CPacketScrambler::ntoh_detour(int nopcode)
 	}
 	return hopcode;
 }
-int CPacketScrambler::hton_detour(int hopcode, int flag)
-{
-	if (hopcode == EQ_BEGIN_ZONE)
-		PluginsBeginZone();
-	if (hopcode == EQ_END_ZONE)
-		PluginsEndZone();
-	return hton_tramp(hopcode, flag);
-}
+
 DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler::ntoh_tramp(int));
-DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler::hton_tramp(int, int));
+DETOUR_TRAMPOLINE_EMPTY(void CPacketScrambler::CDisplay__PreZoneMainUI_Tramp());
+DETOUR_TRAMPOLINE_EMPTY(void CPacketScrambler::CDisplay__ZoneMainUI_Tramp());
+
 #pragma optimize( "", on )
 
 #define EB_SIZE (1024*4)
@@ -548,11 +553,12 @@ VOID HookMemChecker(BOOL Patch)
 		//AddDetour((DWORD)EQADDR_MEMCHECK4);
 		//(*(PBYTE*)&memcheck4_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK4,(PBYTE)memcheck4);
 
-		EzDetourwName(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp,"CPacketScrambler__hton");
 		EzDetourwName(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp,"CPacketScrambler__ntoh");
 		EzDetourwName(CEverQuest__Emote, &CEmoteHook::Detour, &CEmoteHook::Trampoline,"CEverQuest__Emote");
 		EzDetourwName(Spellmanager__LoadTextSpells, &Spellmanager::LoadTextSpells_Detour, &Spellmanager::LoadTextSpells_Tramp,"Spellmanager__LoadTextSpells");
-		
+		EzDetourwName(CDisplay__ZoneMainUI, &CPacketScrambler::CDisplay__ZoneMainUI_Detour, &CPacketScrambler::CDisplay__ZoneMainUI_Tramp,"CDisplay__ZoneMainUI");
+		EzDetourwName(CDisplay__PreZoneMainUI, &CPacketScrambler::CDisplay__PreZoneMainUI_Detour, &CPacketScrambler::CDisplay__PreZoneMainUI_Tramp,"CDisplay__PreZoneMainUI");
+
 
 		HookInlineChecks(Patch);
 	}
@@ -578,9 +584,10 @@ VOID HookMemChecker(BOOL Patch)
 		//DetourRemove((PBYTE)memcheck4_tramp,(PBYTE)memcheck4);
 		//memcheck4_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK4);
-
+		
+		RemoveDetour(CDisplay__PreZoneMainUI);
+		RemoveDetour(CDisplay__ZoneMainUI);
 		RemoveDetour(CPacketScrambler__ntoh);
-		RemoveDetour(CPacketScrambler__hton);
 
 		RemoveDetour(CEverQuest__Emote);
 		RemoveDetour(Spellmanager__LoadTextSpells);

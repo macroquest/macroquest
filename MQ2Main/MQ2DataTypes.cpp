@@ -5446,10 +5446,27 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
+	case LastZoned:
+		Dest.UInt64 = LastEnteredZone;
+		Dest.Type = pTimeStampType;
+		return true;
 	case Zoning:
-		Dest.DWord = !gbInZone;
+	{
+		if (LastEnteredZone == 0)//when people reload mq
+		{
+			LastEnteredZone = MQGetTickCount64();
+			OldLastEnteredZone = LastEnteredZone;
+		}
+		bool bZoning = false;
+		if (OldLastEnteredZone != LastEnteredZone)
+		{
+			OldLastEnteredZone = LastEnteredZone;
+			bZoning = true;
+		}
+		Dest.DWord = bZoning;
 		Dest.Type = pBoolType;
 		return true;
+	}
 	case DSed:
 		Dest.Type = pBuffType;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {

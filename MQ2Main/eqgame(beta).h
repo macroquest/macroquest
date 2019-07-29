@@ -498,7 +498,9 @@ GNU General Public License for more details.
 #define CContainerWnd__vftable_x                                   0xADB430
 #define CContainerWnd__SetContainer_x                              0x7025D0
 
-// CDisplay 
+// CDisplay
+#define CDisplay__ZoneMainUI_x                                     0x0
+#define CDisplay__PreZoneMainUI_x                                  0x0
 #define CDisplay__CleanGameUI_x                                    0x5426C0
 #define CDisplay__GetClickedActor_x                                0x535670
 #define CDisplay__GetUserDefinedColor_x                            0x52DD50

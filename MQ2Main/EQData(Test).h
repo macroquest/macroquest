@@ -5044,8 +5044,6 @@ typedef struct _GROUPAGGRO {
 
 #define EQ_ASSIST_CALC                  0x020c0f19
 #define EQ_ASSIST_COMPLETE              0x5F62   // aMsgTimeStampRe
-#define EQ_BEGIN_ZONE                   0x67BC   // CEverQuest__SavePCForce
-#define EQ_END_ZONE                     0x68F2   // CEverQuest__DoMainLoop+B2F
 #define EQ_ASSIST                       0x55E5   // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
 #define EQ_LoadingS__ArraySize          0x5a     // EQ_LoadingS__SetProgressBar_x+76 	(4C7396 yes it says 5b there, but we dont want to overwrite the NULL term...	2016 Apr 21
 };

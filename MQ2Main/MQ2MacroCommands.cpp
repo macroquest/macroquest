@@ -1172,8 +1172,8 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 		// it to be parsed again since the parser already knew how to handle it and has given us
 		// the correct output.  So let's wrap this in a ${Parse[0 until we can fix /if to short
 		// circuit prior to processing.
-		// Cast it as a PCHAR and run the command
-		DoCommand(pChar, PCHAR(WrapParseZero(pEnd).c_str()));
+		// Cast it as a PCHAR, Modify the command, and run it
+		DoCommand(pChar, PCHAR(ModifyMacroString(pEnd, true, 0).c_str()));
 #else // KNIGHTLYPARSE
 		DoCommand(pChar, pEnd);
 #endif // KNIGHTLYPARSE

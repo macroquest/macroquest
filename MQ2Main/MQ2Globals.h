@@ -148,6 +148,8 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gItemsReceived;
 	EQLIB_VAR BOOL gbInZone;
 	EQLIB_VAR BOOL gZoning;
+	EQLIB_VAR ULONGLONG OldLastEnteredZone;
+	EQLIB_VAR ULONGLONG LastEnteredZone;
 	EQLIB_VAR BOOL WereWeZoning;
 	EQLIB_VAR BOOL gbInDInput;
 	EQLIB_VAR BOOL gbInDState;
@@ -1208,6 +1210,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContainerWnd__vftable;
 	EQLIB_VAR DWORD CContainerWnd__SetContainer;
 
+	EQLIB_VAR DWORD CDisplay__ZoneMainUI;
+	EQLIB_VAR DWORD CDisplay__PreZoneMainUI;
 	EQLIB_VAR DWORD CDisplay__CleanGameUI;
 	EQLIB_VAR DWORD CDisplay__GetClickedActor;
 	EQLIB_VAR DWORD CDisplay__GetUserDefinedColor;
@@ -1781,9 +1785,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
 
-#if defined(KNIGHTLYPARSE) || defined(KNIGHTLYINLINECOMMENTS)
-	const char ESCAPE_CHARACTER = '\\';
-#endif // KNIGHTLYPARSE || KNIGHTLYINLINECOMMENTS
 #ifdef KNIGHTLYPARSE
 	const std::string PARSE_PARAM_BEG = "${Parse[";
 	const std::string PARSE_PARAM_END = "]}";

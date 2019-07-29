@@ -414,6 +414,8 @@ namespace MQ2Globals
 	BOOL gItemsReceived = FALSE;
 	BOOL gbInZone = FALSE;
 	BOOL gZoning = FALSE;
+	ULONGLONG OldLastEnteredZone = 0;
+	ULONGLONG LastEnteredZone = 0;
 	BOOL WereWeZoning = TRUE;
 	BOOL gbInDInput = FALSE;
 	BOOL gbInChat = FALSE;
@@ -1758,6 +1760,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__vftable);
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__SetContainer);
 	
+	INITIALIZE_EQGAME_OFFSET(CDisplay__ZoneMainUI);
+	INITIALIZE_EQGAME_OFFSET(CDisplay__PreZoneMainUI);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__CleanGameUI);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__GetClickedActor);
 	INITIALIZE_EQGAME_OFFSET(CDisplay__GetUserDefinedColor);
