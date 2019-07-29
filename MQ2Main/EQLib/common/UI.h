@@ -24,6 +24,7 @@ namespace eqlib {
 //----------------------------------------------------------------------------
 // Forward Declarations
 
+class CAtlas;
 class CButtonWnd;
 class CChatContainerWindow;
 class CChatWindow;
@@ -40,9 +41,9 @@ using D3DCOLOR = DWORD;
 
 class WndEventHandler
 {
+public:
 	unsigned int lastUpdate;
 
-public:
 };
 
 //============================================================================
@@ -396,6 +397,202 @@ using CBUTTONWND = CButtonWnd;
 using PCBUTTONWND = CButtonWnd*;
 
 //============================================================================
+// CComboWnd
+//============================================================================
+
+class CComboWnd : public CXWnd
+{
+public:
+	CComboWnd(CXWnd*, uint32_t, const CXRect&, int height, const CButtonDrawTemplate&);
+	virtual ~CComboWnd();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	virtual CXSize GetMinSize() const;
+
+	// overrides
+
+	virtual int Draw() override;
+	virtual int HandleLButtonDown(const CXPoint&, uint32_t) override;
+	virtual int WndNotification(CXWnd*, uint32_t, void*) override;
+	virtual int OnMove(const CXRect&) override;
+	virtual int OnResize(int, int) override;
+	virtual int HitTest(const CXPoint&, int*) const override;
+	virtual void SetDrawTemplate(CXWndDrawTemplate*) override;
+
+	//----------------------------------------------------------------------------
+	// methods
+
+	EQLIB_OBJECT CXRect GetListRect(bool) const;
+	EQLIB_OBJECT void SetColors(COLORREF norm, COLORREF highlight, COLORREF selected);
+	EQLIB_OBJECT void InsertChoice(const CXStr& text, uint32_t data = 0);
+	EQLIB_OBJECT void SetChoice(int index);
+	EQLIB_OBJECT int GetItemCount();
+	EQLIB_OBJECT int GetCurChoice() const;
+	EQLIB_OBJECT CXStr GetCurChoiceText() const;
+	EQLIB_OBJECT void DeleteAll();
+	EQLIB_OBJECT CXRect GetTextRect() const;
+
+	//EQLIB_OBJECT CXRect GetButtonRect() const;
+
+	//----------------------------------------------------------------------------
+	// data members
+/*0x1e0*/ CListWnd*                    pListWnd;
+/*0x1e4*/ int                          ListHeightMax;
+/*0x1e8*/ int                          ListHeight;
+/*0x1ec*/ CButtonDrawTemplate          ButtonDrawTemplate;
+};
+
+//============================================================================
+// CEditLabelWnd
+//============================================================================
+
+enum eTextAlign
+{
+	eta_Left,
+	eta_Center,
+	eta_Right,
+};
+
+#define EDITWND_MAX_TAGS 10
+
+enum EditWndStyle
+{
+	ewsMultiline    = 0x00010000,
+	ewsPassword     = 0x00020000,
+	ewsWantReturn   = 0x00040000,
+	ewsWantArrows   = 0x00080000,
+	ewsWantTabs     = 0x00100000,
+	ewsReadOnly     = 0x00200000,
+};
+
+class CEditBaseWnd : public CXWnd
+{
+public:
+	CEditBaseWnd(CXWnd* parent, uint32_t id, const CXRect& rect);
+	virtual ~CEditBaseWnd();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	virtual int GetHorzOffset() = 0;
+	virtual CXStr GetDisplayString() const = 0;
+	virtual CXPoint GetCaretPt() const = 0;
+	virtual CXPoint PointFromPrintableChar(int charIndex) const = 0;
+	virtual int ResetWnd() = 0;
+
+	// overrides
+	virtual int Draw() override = 0;
+	virtual int DrawCaret() const override = 0;
+	virtual int HandleKeyboardMsg(uint32_t message, uint32_t flags, bool down) override = 0;
+	virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override = 0;
+	virtual int OnKillFocus(CXWnd*) override;
+
+	EQLIB_OBJECT void SetMaxChars(int);
+	EQLIB_OBJECT void SetSel(int, int);
+
+	//----------------------------------------------------------------------------
+	// data members
+/*0x1F0*/ eTextAlign   eAlign = eta_Left;
+/*0x1F4*/ int          StartPos = 0;
+/*0x1F8*/ int          EndPos = 0;
+/*0x1Fc*/ int          MaxChars = -1;
+/*0x200*/ int          MaxBytesUTF8 = -1;
+/*0x204*/ CXStr        InputText;
+/*0x208*/ int          TagPrintableStarts[EDITWND_MAX_TAGS];
+/*0x230*/ int          TagPrintableEnds[EDITWND_MAX_TAGS];
+/*0x258*/ int          TagOriginalStarts[EDITWND_MAX_TAGS];
+/*0x280*/ int          TagOriginalEnds[EDITWND_MAX_TAGS];
+/*0x2a8*/ int          TagDynamicSize[EDITWND_MAX_TAGS];
+/*0x2d0*/ int          TagCodes[EDITWND_MAX_TAGS];
+/*0x2f8*/ CXStr        TagStrings[EDITWND_MAX_TAGS];
+/*0x320*/ int          TagCount;
+/*0x324*/ uint32_t     EditStyle;
+/*0x328*/
+};
+
+enum EditWndMode
+{
+	ewmNormal,
+	ewmName,
+	ewmAlphaOnly,
+	ewmNumericOnly,
+	ewmAlphaNumOnly,
+	ewmCount
+};
+
+class CEditWnd : public CEditBaseWnd
+{
+public:
+	CEditWnd(CXWnd* parent, uint32_t id, const CXRect& rect, uint32_t style = 0);
+	virtual ~CEditWnd();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	virtual int DrawMultiline();
+	virtual CXStr GetWindowText() const;
+	virtual CXStr GetWindowPrefixText();
+	virtual CXStr GetWindowSuffixText();
+
+	// CEditBaseWnd
+	virtual int GetHorzOffset() override;
+	virtual CXStr GetDisplayString() const override;
+	virtual CXPoint GetCaretPt() const override;
+	virtual CXPoint PointFromPrintableChar(int charIndex) const override;
+	virtual int ResetWnd() override;
+
+	// CXWnd
+	virtual int Draw() override;
+	virtual int DrawCaret() const override;
+	virtual int HandleLButtonDown(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonUp(const CXPoint&, uint32_t) override;
+	virtual int HandleMouseMove(const CXPoint&, uint32_t) override;
+	virtual void SetWindowText(const CXStr& text) override;
+	virtual int OnMove(const CXRect& rect) override;
+	virtual int OnResize(int, int) override;
+	virtual int OnSetFocus(CXWnd*) override;
+	virtual int OnKillFocus(CXWnd*) override;
+
+	//----------------------------------------------------------------------------
+	// methods
+
+	EQLIB_OBJECT CXPoint GetCharIndexPt(int) const;
+	EQLIB_OBJECT CXPoint GetSelEndPt() const;
+	EQLIB_OBJECT CXPoint GetSelStartPt() const;
+	EQLIB_OBJECT CXStr GetSTMLSafeText();
+	EQLIB_OBJECT int ConvertIndexPrintableToTagged(int);
+	EQLIB_OBJECT int ConvertIndexTaggedToPrintable(int);
+	EQLIB_OBJECT int GetLineForPrintableChar(int) const;
+	EQLIB_OBJECT int GetLineLength(int) const;
+	EQLIB_OBJECT int SelectableCharFromPoint(CXPoint) const;
+	EQLIB_OBJECT void AddItemTag(int, char*, int);
+	EQLIB_OBJECT void CalculateScrollRange();
+	EQLIB_OBJECT void EnsureCaretVisible();
+	EQLIB_OBJECT void ReplaceSelection(char, bool);
+	EQLIB_OBJECT void ReplaceSelection(CXStr, bool);
+	EQLIB_OBJECT void SetEditable(bool);
+
+	EQLIB_OBJECT void FillIndexArray(CXStr) const;
+	EQLIB_OBJECT void FilterInputStr(CXStr&);
+	EQLIB_OBJECT void ProcessText();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x328*/ bool         bAnchorAtStart;
+/*0x329*/ bool         bCaretAtEnd;
+/*0x32a*/ bool         bAutoVScrollCalc;
+/*0x32b*/ bool         bEditable;
+/*0x32c*/ CXStr        FilterChars;
+/*0x330*/ int          EditMode;
+/*0x334*/ wchar_t      PasswordChar;
+/*0x338*/ ArrayClass2<uint32_t> LineIndices;
+/*0x354*/
+};
+
+//============================================================================
 // CLabelWnd
 //============================================================================
 
@@ -456,26 +653,257 @@ using CLABEL = CLabel;
 using PCLABEL = CLabel*;
 
 //============================================================================
-// Map Window
+// CListWnd
 //============================================================================
 
-// pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
-// CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x668 (see 542694) in May 17 2019 Test
-#if 0 // old impl
-struct EQMAPWINDOW
+struct STreeData
 {
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-
-	// inline MapViewMap
-/*0x0378*/ CSidlScreenWnd_VirtualFunctions* pMapViewMapVfTable;  // found at aMapviewmap
-/*0x037c*/ BYTE        Unknown0x037c[0x26c];
-/*0x05e8*/ PMAPLINE    pLines;                   // 0x258
-/*0x05ec*/ PMAPLABEL   pLabels;                  // 0x25c
-/*0x05f0*/ BYTE        Unknown0x05f0[0x78];
-/*0x0668*/
+/*0x00*/ int                      Depth = 0;
+/*0x04*/ bool                     bIsExpandable = false;
+/*0x08*/
 };
-#endif
+
+struct SListWndCell
+{
+/*0x00*/ const CTextureAnimation* pTA = nullptr;
+/*0x04*/ CXStr                    Text;
+/*0x08*/ COLORREF                 Color = RGB(255, 255, 255);
+/*0x09*/ bool                     bOnlyDrawTexture = false;
+	CXWnd*                        pWnd = nullptr;
+};
+
+struct SListWndLine
+{
+/*0x000*/ ArrayClass<SListWndCell> Cells;
+/*0x010*/ uint64_t                Data = 0;
+/*0x018*/ int                     Height = -1;
+/*0x01c*/ bool                    bSelected = false;
+/*0x01d*/ bool                    bEnabled = true;
+/*0x020*/ STreeData               Treedata;
+/*0x028*/ char                    TooltipText[256];
+/*0x128*/ bool                    bVisible = true;
+};
+
+enum ECellType
+{
+	CellTypeBasicText            = 1,
+	CellTypeBasicIcon            = 2,
+	CellTypeTextIcon             = 3
+};
+
+struct SListWndColumn
+{
+/*0x00*/ int                      Width = 0;
+/*0x04*/ int                      MinWidth = 10;
+/*0x08*/ CXSize                   TextureSize;
+/*0x10*/ CXPoint                  TextureOffset;
+/*0x18*/ CXStr                    StrLabel;
+/*0x20*/ uint64_t                 Data = 0;
+/*0x28*/ uint32_t                 Flags = 0;
+/*0x2c*/ uint32_t                 Type = CellTypeTextIcon; // ECellType
+/*0x30*/ CTextureAnimation*       pTextureAnim = nullptr;
+/*0x34*/ CTextureAnimation*       pSelected = nullptr;
+/*0x38*/ CTextureAnimation*       pMouseOver = nullptr;
+/*0x3c*/ CXStr                    Tooltip;
+/*0x40*/ bool                     bResizable = false;
+///*0x44*/ int           Filler0x44;
+/*0x48*/
+
+	SListWndColumn(CXStr strLabel = "",
+		int width = 0,
+		CTextureAnimation* pta = nullptr,
+		uint32_t flags = 0,
+		uint32_t type = CellTypeTextIcon,
+		CTextureAnimation* pSelected = nullptr,
+		CTextureAnimation* pMouseOver = nullptr,
+		CXStr tooltip = "",
+		bool bResizable = false,
+		CXSize textureSize = {},
+		CXPoint textureOffset = {})
+		: StrLabel(strLabel)
+		, Width(width)
+		, pTextureAnim(pta)
+		, Flags(flags)
+		, Type(type)
+		, pSelected(pSelected)
+		, pMouseOver(pMouseOver)
+		, Tooltip(tooltip)
+		, bResizable(bResizable)
+		, TextureSize(textureSize)
+		, TextureOffset(textureOffset)
+	{}
+};
+
+class IListItemDataHandler
+{
+public:
+	virtual bool GetText(int index, int subItem, CXStr& text) const = 0;
+};
+
+// Size is 0x298 in eqgame Sep 11 2017 Test (see 8D1D4C)
+class CListWnd : public CXWnd
+{
+public:
+	EQLIB_OBJECT CListWnd(CXWnd*, uint32_t, const CXRect&);
+	virtual ~CListWnd();
+
+	//----------------------------------------------------------------------------
+	// virtuals
+
+	EQLIB_OBJECT virtual int OnHeaderClick(CXPoint);
+	EQLIB_OBJECT virtual int DrawColumnSeparators() const;
+	EQLIB_OBJECT virtual int DrawSeparator(int index) const;
+	EQLIB_OBJECT virtual int DrawLine(int index) const;
+	EQLIB_OBJECT virtual int DrawHeader() const;
+	EQLIB_OBJECT virtual int DrawItem(int index, int, int) const;
+	EQLIB_OBJECT virtual void DeleteAll();
+	EQLIB_OBJECT virtual int Compare(const SListWndLine&, const SListWndLine&) const;
+	EQLIB_OBJECT virtual void Sort();
+
+	// overrides
+	EQLIB_OBJECT virtual int Draw() override;
+	EQLIB_OBJECT virtual int DrawBackground() const override;
+	EQLIB_OBJECT virtual int DrawTooltip(const CXWnd* wnd) const override;
+	EQLIB_OBJECT virtual HCURSOR GetCursorToDisplay() const override;
+	EQLIB_OBJECT virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleLButtonUp(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleLButtonHeld(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleLButtonUpAfterHeld(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleRButtonUp(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleRButtonHeld(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleRButtonUpAfterHeld(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleMouseMove(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int WndNotification(CXWnd* sender, uint32_t message, void* data) override;
+	EQLIB_OBJECT virtual void OnWndNotification() override;
+	EQLIB_OBJECT virtual int OnMove(const CXRect& rect) override;
+	EQLIB_OBJECT virtual int OnResize(int w, int h) override;
+	EQLIB_OBJECT virtual int OnVScroll(EScrollCode code, int pos) override;
+	EQLIB_OBJECT virtual int OnHScroll(EScrollCode code, int pos) override;
+	EQLIB_OBJECT virtual CXRect GetHitTestRect(int code) const override;
+	EQLIB_OBJECT virtual CXRect GetClientClipRect() const override;
+	EQLIB_OBJECT virtual CXWnd* GetChildWndAt(const CXPoint& pos, bool, bool) const override;
+	EQLIB_OBJECT virtual int SetVScrollPos(int pos) override;
+
+	//----------------------------------------------------------------------------
+	// methods
+
+	EQLIB_OBJECT bool IsLineEnabled(int) const;
+	EQLIB_OBJECT const CTextureAnimation* GetColumnAnimation(int) const;
+	EQLIB_OBJECT const CTextureAnimation* GetColumnAnimationMouseOver(int) const;
+	EQLIB_OBJECT const CTextureAnimation* GetColumnAnimationSelected(int) const;
+	EQLIB_OBJECT const CTextureAnimation* GetItemIcon(int, int) const;
+	EQLIB_OBJECT CXRect GetHeaderRect(int) const;
+	EQLIB_OBJECT CXRect GetItemRect(int, int) const;
+	EQLIB_OBJECT CXRect GetSeparatorRect(int) const;
+	EQLIB_OBJECT CXStr GetColumnLabel(int) const;
+	EQLIB_OBJECT CXStr GetItemText(const CXStr&, int, int) const;
+	EQLIB_OBJECT int AddColumn(const CXStr& Label, CTextureAnimation* pTA, int Width, uint32_t Flags, CXStr Tooltip = "",
+		uint32_t Type = CellTypeTextIcon, CTextureAnimation* pTASelected = nullptr, CTextureAnimation* pTAMouseOver = nullptr,
+		bool bResizeable = false, CXSize TextureSize = {}, CXPoint TextureOffset = {});
+	EQLIB_OBJECT int AddColumn(const CXStr& Label, int Width, uint32_t Flags, uint32_t Type = CellTypeTextIcon);
+	EQLIB_OBJECT int AddLine(SListWndLine*);
+	EQLIB_OBJECT int AddString(const CXStr& Str, COLORREF Color, uint64_t Data = 0, const CTextureAnimation* pTa = nullptr, const char* TooltipStr = nullptr);
+	EQLIB_OBJECT int AddString(const char* Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr = nullptr);
+	EQLIB_OBJECT int GetColumnJustification(int) const;
+	EQLIB_OBJECT int GetColumnMinWidth(int) const;
+	EQLIB_OBJECT CXStr GetColumnTooltip(int) const;
+	EQLIB_OBJECT int GetColumnWidth(int) const;
+	EQLIB_OBJECT int GetCurCol() const;
+	EQLIB_OBJECT int GetCurSel() const;
+	EQLIB_OBJECT int GetItemAtPoint(const CXPoint& pt) const;
+	EQLIB_OBJECT int GetItemHeight(int) const;
+	EQLIB_OBJECT uint32_t GetColumnFlags(int) const;
+	EQLIB_OBJECT uint64_t GetItemData(int) const;
+	EQLIB_OBJECT COLORREF GetItemColor(int, int) const;
+	EQLIB_OBJECT void CalculateFirstVisibleLine();
+	EQLIB_OBJECT void CalculateLineHeights();
+	EQLIB_OBJECT void CalculateVSBRange();
+	EQLIB_OBJECT void ClearAllSel();
+	EQLIB_OBJECT void ClearSel(int);
+	EQLIB_OBJECT void CloseAndUpdateEditWindow();
+	EQLIB_OBJECT void EnableLine(int Index, bool bVal);
+	EQLIB_OBJECT void EnsureVisible(int);
+	EQLIB_OBJECT void ExtendSel(int);
+	EQLIB_OBJECT void GetItemAtPoint(const CXPoint& pt, int* ID, int* SubItem) const;
+	EQLIB_OBJECT void InsertLine(int ID, SListWndLine* rEntry);
+	EQLIB_OBJECT void RemoveLine(int);
+	EQLIB_OBJECT void RemoveString(int);
+	EQLIB_OBJECT void SetColors(unsigned long, unsigned long, unsigned long);
+	EQLIB_OBJECT void SetColumnJustification(int, int);
+	EQLIB_OBJECT void SetColumnLabel(int, const CXStr&);
+	EQLIB_OBJECT void SetColumnWidth(int, int);
+	EQLIB_OBJECT void SetCurSel(int);
+	EQLIB_OBJECT void SetItemColor(int, int, unsigned long);
+	EQLIB_OBJECT void SetItemData(int ID, uint64_t Data);
+	EQLIB_OBJECT void SetItemText(int ID, int SubID, const CXStr& Text);
+	EQLIB_OBJECT void ShiftColumnSeparator(int, int);
+	EQLIB_OBJECT void ToggleSel(int);
+	EQLIB_OBJECT void SetColumnsSizable(bool bColumnsSizable);
+	EQLIB_OBJECT void GetWndPosition(CXWnd* pWnd, int& ItemID, int& SubItemID) const;
+	EQLIB_OBJECT void SetItemWnd(int Index, int SubItem, CXWnd* pWnd);
+	EQLIB_OBJECT CXWnd* GetItemWnd(int Index, int SubItem) const;
+	EQLIB_OBJECT void SetItemIcon(int Index, int SubItem, const CTextureAnimation* pTA);
+	EQLIB_OBJECT void CalculateCustomWindowPositions();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x1f0*/ int                 Unknown0x1f0;
+/*0x1f4*/ ArrayClass<SListWndLine> ItemsArray;       // see CListWnd__GetItemData_x 0x8BD768                 add     ecx, 1F4h
+/*0x204*/ ArrayClass<SListWndColumn> Columns;
+/*0x214*/ int                 CurSel;
+/*0x218*/ int                 CurCol;
+/*0x21c*/ int                 DownItem;
+/*0x220*/ int                 ScrollOffsetY;
+/*0x224*/ int                 HeaderHeight;
+/*0x228*/ int                 FirstVisibleLine;
+/*0x22c*/ int                 SortCol;
+/*0x230*/ bool                bSortAsc;
+/*0x231*/ bool                bFixedHeight;
+/*0x232*/ bool                bOwnerDraw;
+/*0x233*/ bool                bCalcHeights;
+/*0x234*/ bool                bColumnSizable;
+/*0x238*/ int                 LineHeight;
+/*0x23c*/ int                 ColumnSepDragged;
+/*0x240*/ int                 ColumnSepMouseOver;
+/*0x244*/ COLORREF            HeaderText;
+/*0x248*/ COLORREF            Highlight;
+/*0x24c*/ COLORREF            Selected;
+/*0x250*/ CUITextureInfo      BGHeader;
+/*0x268*/ COLORREF            BGHeaderTint;
+/*0x26c*/ CTextureAnimation*  pRowSep;
+/*0x270*/ CTextureAnimation*  pColumnSep;
+/*0x274*/ CEditBaseWnd*       pEditCell;
+
+/*0x278*/ IListItemDataHandler* pItemDataHandler;
+/*0x27c*/ bool                bHasItemTooltips;
+/*0x280*/ CXRect              PrevInsideRect;
+/*0x290*/ uint32_t            ListWndStyle;
+/*0x294*/ time_t              LastVisibleTime;
+/*0x298*/
+
+	struct VirtualFunctionTable : public CXWnd::VirtualFunctionTable
+	{
+	/*0x168*/ void* OnHeaderClick;
+	/*0x16c*/ void* DrawColumnSeparators;
+	/*0x170*/ void* DrawSeparator;
+	/*0x174*/ void* DrawLine;
+	/*0x178*/ void* DrawHeader;
+	/*0x17c*/ void* DrawItem;
+	/*0x180*/ void* DeleteAll;
+	/*0x184*/ void* Compare;
+	/*0x188*/ void* Sort;
+	};
+
+	// points to the eq instance of the virtual function table for this class
+	static VirtualFunctionTable* sm_vftable;
+};
+
+
+//============================================================================
+// Map Window
+//============================================================================
 
 // Map Window sizeof() = 0x38
 struct MAPLABEL
@@ -509,6 +937,9 @@ struct MAPLINE
 };
 using PMAPLINE = MAPLINE *;
 
+// pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
+// CMapViewWnd__CMapViewWnd_x
+// CMapViewWnd_size: 0x668 (see 542694) in May 17 2019 Test
 class MapViewMap : public CSidlScreenWnd
 {
 public:
@@ -524,7 +955,11 @@ public:
 	virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override;
 	virtual int HandleWheelMove(const CXPoint& pos, int scroll, uint32_t flags) override;
 
-	// functions
+	// methods
+	EQLIB_OBJECT void Clear();
+	EQLIB_OBJECT void SaveEx(char*, int);
+	EQLIB_OBJECT void SetZoom(float);
+
 	//EQLIB_OBJECT bool DrawClippedLine(CVector3*, RGB, CXRect);
 	//EQLIB_OBJECT bool IsLayerVisible(int);
 	//EQLIB_OBJECT bool LoadEx(char*, int);
@@ -536,7 +971,6 @@ public:
 	//EQLIB_OBJECT void AddLabel(float, float, float, unsigned long, int, char*);
 	//EQLIB_OBJECT void AddPoint(float, float, float);
 	//EQLIB_OBJECT void CalcLabelRenderOffsets(CXRect);
-	//EQLIB_OBJECT void Clear();
 	//EQLIB_OBJECT void ClearActiveLayer();
 	//EQLIB_OBJECT void Draw(CXRect);
 	//EQLIB_OBJECT void EndLine(float, float, float);
@@ -550,12 +984,10 @@ public:
 	//EQLIB_OBJECT void RemoveLine(MapViewLabel*);
 	//EQLIB_OBJECT void RemoveLine();
 	//EQLIB_OBJECT void Save(char*);
-	//EQLIB_OBJECT void SaveEx(char*, int);
 	//EQLIB_OBJECT void SetCurrentColor(unsigned long);
 	//EQLIB_OBJECT void SetMarkedLine(MapViewLabel*);
 	//EQLIB_OBJECT void SetMarkedLineColor(unsigned long);
 	//EQLIB_OBJECT void SetZoneExtents(int, int, int, int);
-	//EQLIB_OBJECT void SetZoom(float);
 	//EQLIB_OBJECT void StartLine(float, float, float);
 	//EQLIB_OBJECT void TransformPoint(CVector3*);
 
@@ -576,7 +1008,8 @@ public:
 	uint32_t           nextLabelId;
 	bool               lineActive;
 
-	// more members, need to map it out.
+	// more members, need to map it out. Fortunately, this is the last member of
+	// CMapViewWnd so its not necessary at this time to do so ...
 };
 
 class CMapViewWnd : public CSidlScreenWnd, public WndEventHandler
@@ -606,12 +1039,52 @@ public:
 	EQLIB_OBJECT void GetWorldCoordinates(float*); // actually MapViewMap
 
 	// these are almost all the controls belonging to the CMapViewWnd
-/*0x0240*/ BYTE        Unknown0x0240[0x40];
-/*0x0280*/ CHAR        shortzonename[0x80];
-/*0x0300*/ BYTE        Unknown0x0300[0x3c];
-/*0x033c*/ CXWnd*      MapRenderArea;                      // its the MVW_MapRenderArea window... found at aMvw_maprendera
-/*0x0340*/ BYTE        Unknown0x0340[0x38];
-
+/*0x0244*/ int         ZoneId;
+/*0x0248*/ bool        bAutoMapping;
+/*0x024c*/ CButtonWnd* btnPanLeft;
+/*0x0250*/ CButtonWnd* btnPanRight;
+/*0x0254*/ CButtonWnd* btnPanUp;
+/*0x0258*/ CButtonWnd* btnPanDown;
+/*0x025c*/ CButtonWnd* btnPanReset;
+/*0x0260*/ CButtonWnd* btnZoomIn;
+/*0x0264*/ CButtonWnd* btnZoomOut;
+/*0x0268*/ CButtonWnd* btnShowGroup;
+/*0x026c*/ CButtonWnd* btnFind;
+/*0x0270*/ CButtonWnd* btnEndFind;
+/*0x0274*/ CButtonWnd* btnFindAutoZoom;
+/*0x0278*/ CButtonWnd* btnMapZoneGuide;
+/*0x027c*/ CButtonWnd* btnToolbar;
+/*0x0280*/ char        szZoneName[0x80];
+/*0x0300*/ CButtonWnd* btntoggleLabels;
+/*0x0304*/ CEditWnd*   editMinZ;
+/*0x0308*/ CEditWnd*   editMaxZ;
+/*0x030c*/ CButtonWnd* btnZFilter;
+/*0x0310*/ CButtonWnd* btnLayer0;
+/*0x0314*/ CButtonWnd* btnLayer1;
+/*0x0318*/ CButtonWnd* btnLayer2;
+/*0x031c*/ CButtonWnd* btnLayer3;
+/*0x0320*/ CButtonWnd* btnLayer1Active;
+/*0x0324*/ CButtonWnd* btnLayer2Active;
+/*0x0328*/ CButtonWnd* btnLayer3Active;
+/*0x032c*/ CButtonWnd* btnLoadCurrent;
+/*0x0330*/ CPageWnd*   pageAtlas;
+/*0x0334*/ CPageWnd*   pageMap;
+/*0x0338*/ CTabWnd*    tabWnd;
+/*0x033c*/ CXWnd*      MapRenderArea;
+/*0x0340*/ CComboWnd*  MapsDirSelect;
+/*0x0344*/ CXWnd*      AtlasRenderArea;
+/*0x0348*/ CAtlas*     AtlasWnd;
+/*0x034c*/ CComboWnd*  AtlasDirSelect;
+/*0x0350*/ CButtonWnd* btnAtlasZoneGuide;
+/*0x0354*/ CButtonWnd* btnMapIcon;
+/*0x0358*/ CEditWnd*   editSearchBox;
+/*0x035c*/ CButtonWnd* btnSearch;
+/*0x0360*/ CButtonWnd* btnSearchClear;
+/*0x0364*/ CListWnd*   listSearch;
+/*0x0368*/ CXWnd*      wndSearchLayout;
+/*0x036c*/ CButtonWnd* btnSearchHide;
+/*0x0370*/ CXWnd*      wndSpacer;
+/*0x0374*/ bool        bEditing;
 /*0x0378*/ MapViewMap  MapView;                            // a window component owned by CMapViewWnd.
 
 	// alias the stupid

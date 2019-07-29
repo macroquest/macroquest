@@ -119,6 +119,9 @@
     <ClCompile Include="EQLib\common\Globals.cpp">
       <Filter>Source Files\EQLib\Common</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\common\ExceptionsDisabled.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">

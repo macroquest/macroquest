@@ -18,6 +18,10 @@
 
 #include <limits>
 
+#if !defined(_USE_32BIT_TIME_T)
+#define _USE_32BIT_TIME_T
+#endif
+
 #if !defined(NOMINMAX)
 #define NOMINMAX
 #endif

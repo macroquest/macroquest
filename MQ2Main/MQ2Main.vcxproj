@@ -69,8 +69,11 @@
     <ClCompile Include="EQLib\common\CXStr.cpp" />
     <ClCompile Include="EQLib\common\CXWnd.cpp" />
     <ClCompile Include="EQLib\common\EQClasses.cpp">
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Async</ExceptionHandling>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+    </ClCompile>
+    <ClCompile Include="EQLib\common\ExceptionsDisabled.cpp">
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExceptionHandling>
     </ClCompile>
     <ClCompile Include="EQLib\common\Globals.cpp" />
     <ClCompile Include="EQLib\common\UI.cpp" />

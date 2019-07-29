@@ -623,6 +623,7 @@
 // CListWnd
 #define CListWnd__CListWnd_x                                       0x90B320
 #define CListWnd__dCListWnd_x                                      0x90B640
+#define CListWnd__vftable_x                                        0xB12CA8
 #define CListWnd__AddColumn_x                                      0x90F980
 #define CListWnd__AddColumn1_x                                     0x90F9D0
 #define CListWnd__AddLine_x                                        0x90FD60
@@ -678,6 +679,12 @@
 #define CMapViewWnd__CMapViewWnd_x                                 0x772750
 #define CMapViewWnd__GetWorldCoordinates_x                         0x770E60
 #define CMapViewWnd__HandleLButtonDown_x                           0x76DEC0 //MapViewMap
+
+// MapViewMap
+#define MapViewMap__Clear_x                                        0x76E5E0
+#define MapViewMap__SaveEx_x                                       0x771980
+#define MapViewMap__SetZoom_x                                      0x776050
+
 
 // CMerchantWnd
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x795760
@@ -994,11 +1001,6 @@
 #define KeypressHandler__HandleKeyDown_x                           0x616810
 #define KeypressHandler__HandleKeyUp_x                             0x6168B0
 #define KeypressHandler__SaveKeymapping_x                          0x616CE0
-
-// MapViewMap
-#define MapViewMap__Clear_x                                        0x76E5E0
-#define MapViewMap__SaveEx_x                                       0x771980
-#define MapViewMap__SetZoom_x                                      0x776050
 
 // PlayerPointManager
 #define PlayerPointManager__GetAltCurrency_x                       0x8BCC70

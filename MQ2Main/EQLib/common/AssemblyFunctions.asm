@@ -23,10 +23,3 @@
 
 ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z ENDP ; eqlib::CSidlScreenWnd::CSidlScreenWnd
 
-
-??AddHistory@CChatWindow@eqlib@@QAEXVCXStr@2@@Z proc near ; public: void __thiscall eqlib::CChatWindow::AddHistory(class eqlib::CXStr)
-
-	mov eax, DWORD PTR _CChatWindow__Addhistory
-	jmp DWORD PTR [eax]
-
-??AddHistory@CChatWindow@eqlib@@QAEXVCXStr@2@@Z endp ; public: void __thiscall eqlib::CChatWindow::AddHistory(class eqlib::CXStr)

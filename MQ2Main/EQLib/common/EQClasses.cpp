@@ -66,14 +66,6 @@ FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(float ActorBase::GetBoundingRadius(), 0x60);
 
-#if defined(ROF2EMU) || defined(UFEMU)
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x17c);        // see CComboWnd__DeleteAll_x
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x184);
-#else
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(), 0x180);       // see CComboWnd__DeleteAll_x
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::Sort(), 0x188);
-#endif
-
 // ClientSpellManager
 FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpells(const char*, const char*, const char*), 0x04);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool ClientSpellManager::LoadSpellStackingData(const char*), 0x08);
@@ -222,9 +214,6 @@ FUNCTION_AT_ADDRESS(void CAlarmWnd::Activate(), CAlarmWnd__Activate);
 #endif
 #ifdef CAlarmWnd__DoNeverButton_x
 FUNCTION_AT_ADDRESS(void CAlarmWnd::DoNeverButton(), CAlarmWnd__DoNeverButton);
-#endif
-#ifdef CEditBaseWnd__SetMaxChars_x
-FUNCTION_AT_ADDRESS(void CEditBaseWnd::SetMaxChars(int), CEditBaseWnd__SetMaxChars);
 #endif
 #ifdef CBankWnd__CBankWnd_x
 FUNCTION_AT_ADDRESS(CBankWnd::CBankWnd(CXWnd*, CXStr), CBankWnd__CBankWnd);
@@ -759,7 +748,6 @@ FUNCTION_AT_ADDRESS(void CInvSlotMgr::Process(), CInvSlotMgr__Process);
 #endif
 #ifdef EQMissile__LeaveTrail_x
 FUNCTION_AT_ADDRESS(void EQMissile::LeaveTrail(), EQMissile__LeaveTrail);
-#endif
 #endif
 #ifdef CContextMenuManager__GetMenu_x
 FUNCTION_AT_ADDRESS(CContextMenu* CContextMenuManager::GetMenu(int), CContextMenuManager__GetMenu);
@@ -1959,141 +1947,6 @@ FUNCTION_AT_ADDRESS(void CMapToolbarWnd::SetAutoMapButton(bool), CMapToolbarWnd_
 #ifdef CEditLabelWnd__GetLabelText_x
 FUNCTION_AT_ADDRESS(CXStr CEditLabelWnd::GetLabelText(), CEditLabelWnd__GetLabelText);
 #endif
-#ifdef CMapViewWnd__IsMappingEnabled_x
-FUNCTION_AT_ADDRESS(bool CMapViewWnd::IsMappingEnabled(), CMapViewWnd__IsMappingEnabled);
-#endif
-#ifdef CMapViewWnd__CMapViewWnd_x
-CONSTRUCTOR_AT_ADDRESS(CMapViewWnd::CMapViewWnd(CXWnd*), CMapViewWnd__CMapViewWnd);
-#endif
-#ifdef CMapViewWnd__Init_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::Init(), CMapViewWnd__Init);
-#endif
-#ifdef CMapViewWnd__Activate_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::Activate(), CMapViewWnd__Activate);
-#endif
-#ifdef CMapViewWnd__ActivateAutoMapping_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::ActivateAutoMapping(), CMapViewWnd__ActivateAutoMapping);
-#endif
-#ifdef CMapViewWnd__DeactivateAutoMapping_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::DeactivateAutoMapping(), CMapViewWnd__DeactivateAutoMapping);
-#endif
-#ifdef CMapViewWnd__HandleLButtonDown_x
-FUNCTION_AT_ADDRESS(int CMapViewWnd::HandleLButtonDown(const CXPoint&, uint32_t), CMapViewWnd__HandleLButtonDown);
-#endif
-#ifdef CMapViewWnd__GetWorldCoordinates_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::GetWorldCoordinates(float*), CMapViewWnd__GetWorldCoordinates);
-#endif
-#ifdef MapViewMap__MapViewMap_x
-FUNCTION_AT_ADDRESS(MapViewMap::MapViewMap(), MapViewMap__MapViewMap);
-#endif
-#ifdef MapViewMap__dMapViewMap_x
-FUNCTION_AT_ADDRESS(MapViewMap::~MapViewMap(), MapViewMap__dMapViewMap);
-#endif
-#ifdef MapViewMap__Clear_x
-FUNCTION_AT_ADDRESS(void MapViewMap::Clear(), MapViewMap__Clear);
-#endif
-#ifdef MapViewMap__StartLine_x
-FUNCTION_AT_ADDRESS(void MapViewMap::StartLine(float, float, float), MapViewMap__StartLine);
-#endif
-#ifdef MapViewMap__EndLine_x
-FUNCTION_AT_ADDRESS(void MapViewMap::EndLine(float, float, float), MapViewMap__EndLine);
-#endif
-#ifdef MapViewMap__RemoveLine_x
-FUNCTION_AT_ADDRESS(void MapViewMap::RemoveLine(), MapViewMap__RemoveLine);
-#endif
-#ifdef MapViewMap__AddPoint_x
-FUNCTION_AT_ADDRESS(void MapViewMap::AddPoint(float, float, float), MapViewMap__AddPoint);
-#endif
-#ifdef MapViewMap__AddLabel_x
-FUNCTION_AT_ADDRESS(void MapViewMap::AddLabel(float, float, float, unsigned long, int, char*), MapViewMap__AddLabel);
-#endif
-#ifdef MapViewMap__RecalcLabelExtents_x
-FUNCTION_AT_ADDRESS(void MapViewMap::RecalcLabelExtents(struct _mapviewlabel*), MapViewMap__RecalcLabelExtents);
-#endif
-#ifdef MapViewMap__RemoveLabel_x
-FUNCTION_AT_ADDRESS(void MapViewMap::RemoveLabel(), MapViewMap__RemoveLabel);
-#endif
-#ifdef MapViewMap__MoveLabel_x
-FUNCTION_AT_ADDRESS(void MapViewMap::MoveLabel(struct _mapviewlabel*, float, float, float), MapViewMap__MoveLabel);
-#endif
-#ifdef MapViewMap__CalcLabelRenderOffsets_x
-FUNCTION_AT_ADDRESS(void MapViewMap::CalcLabelRenderOffsets(CXRect), MapViewMap__CalcLabelRenderOffsets);
-#endif
-#ifdef MapViewMap__IsLayerVisible_x
-FUNCTION_AT_ADDRESS(bool MapViewMap::IsLayerVisible(int), MapViewMap__IsLayerVisible);
-#endif
-#ifdef MapViewMap__PointInMapViewArea_x
-FUNCTION_AT_ADDRESS(bool MapViewMap::PointInMapViewArea(CXPoint, CXRect), MapViewMap__PointInMapViewArea);
-#endif
-#ifdef MapViewMap__PreCalcRenderValues_x
-FUNCTION_AT_ADDRESS(void MapViewMap::PreCalcRenderValues(), MapViewMap__PreCalcRenderValues);
-#endif
-#ifdef MapViewMap__TransformPoint_x
-FUNCTION_AT_ADDRESS(void MapViewMap::TransformPoint(struct T3D_XYZ*), MapViewMap__TransformPoint);
-#endif
-#ifdef MapViewMap__Draw_x
-FUNCTION_AT_ADDRESS(void MapViewMap::Draw(CXRect), MapViewMap__Draw);
-#endif
-#ifdef MapViewMap__DrawClippedLine_x
-FUNCTION_AT_ADDRESS(bool MapViewMap::DrawClippedLine(struct T3D_XYZ*, struct T3D_RGB, CXRect), MapViewMap__DrawClippedLine);
-#endif
-#ifdef MapViewMap__Save_x
-FUNCTION_AT_ADDRESS(void MapViewMap::Save(char*), MapViewMap__Save);
-#endif
-#ifdef MapViewMap__SaveEx_x
-FUNCTION_AT_ADDRESS(void MapViewMap::SaveEx(char*, int), MapViewMap__SaveEx);
-#endif
-#ifdef MapViewMap__Load_x
-FUNCTION_AT_ADDRESS(void MapViewMap::Load(char*), MapViewMap__Load);
-#endif
-#ifdef MapViewMap__LoadEx_x
-FUNCTION_AT_ADDRESS(bool MapViewMap::LoadEx(char*, int), MapViewMap__LoadEx);
-#endif
-#ifdef MapViewMap__GetCurrentColor_x
-FUNCTION_AT_ADDRESS(unsigned long MapViewMap::GetCurrentColor(), MapViewMap__GetCurrentColor);
-#endif
-#ifdef MapViewMap__SetCurrentColor_x
-FUNCTION_AT_ADDRESS(void MapViewMap::SetCurrentColor(unsigned long), MapViewMap__SetCurrentColor);
-#endif
-#ifdef MapViewMap__SetMarkedLine_x
-FUNCTION_AT_ADDRESS(void MapViewMap::SetMarkedLine(struct _mapviewline*), MapViewMap__SetMarkedLine);
-#endif
-#ifdef MapViewMap__SetMarkedLineColor_x
-FUNCTION_AT_ADDRESS(void MapViewMap::SetMarkedLineColor(unsigned long), MapViewMap__SetMarkedLineColor);
-#endif
-#ifdef MapViewMap__GetMarkedLineColor_x
-FUNCTION_AT_ADDRESS(unsigned long MapViewMap::GetMarkedLineColor(), MapViewMap__GetMarkedLineColor);
-#endif
-#ifdef MapViewMap__ClearActiveLayer_x
-FUNCTION_AT_ADDRESS(void MapViewMap::ClearActiveLayer(), MapViewMap__ClearActiveLayer);
-#endif
-#ifdef MapViewMap__RemoveLine1_x
-FUNCTION_AT_ADDRESS(void MapViewMap::RemoveLine(struct _mapviewline*), MapViewMap__RemoveLine1);
-#endif
-#ifdef MapViewMap__RemoveLabel1_x
-FUNCTION_AT_ADDRESS(void MapViewMap::RemoveLabel(struct _mapviewlabel*), MapViewMap__RemoveLabel1);
-#endif
-#ifdef CXRect__Normalize_x
-FUNCTION_AT_ADDRESS(void CXRect::Normalize(), CXRect__Normalize);
-#endif
-#ifdef CXRect__operator_and_x
-FUNCTION_AT_ADDRESS(CXRect CXRect::operator&(CXRect) const, CXRect__operator_and);
-#endif
-#ifdef MapViewMap__JoinLinesAtIntersect_x
-FUNCTION_AT_ADDRESS(void MapViewMap::JoinLinesAtIntersect(bool), MapViewMap__JoinLinesAtIntersect);
-#endif
-#ifdef MapViewMap__SetZoneExtents_x
-FUNCTION_AT_ADDRESS(void MapViewMap::SetZoneExtents(int, int, int, int), MapViewMap__SetZoneExtents);
-#endif
-#ifdef MapViewMap__SetZoom_x
-FUNCTION_AT_ADDRESS(void MapViewMap::SetZoom(float), MapViewMap__SetZoom);
-#endif
-#ifdef MapViewMap__GetMinZ_x
-FUNCTION_AT_ADDRESS(int MapViewMap::GetMinZ(), MapViewMap__GetMinZ);
-#endif
-#ifdef MapViewMap__GetMaxZ_x
-FUNCTION_AT_ADDRESS(int MapViewMap::GetMaxZ(), MapViewMap__GetMaxZ);
-#endif
 #ifdef CMerchantWnd__CMerchantWnd_x
 FUNCTION_AT_ADDRESS(CMerchantWnd::CMerchantWnd(CXWnd*), CMerchantWnd__CMerchantWnd);
 #endif
@@ -2947,7 +2800,7 @@ FUNCTION_AT_ADDRESS(CBroadcast* CBroadcast::Get(), CBroadcast__Get);
 FUNCTION_AT_ADDRESS(EQGroundItemListManager& EQGroundItemListManager::Instance(), EQGroundItemListManager__Instance);
 #endif
 #ifdef ArrayClass__DeleteElement_x
-FUNCTION_AT_ADDRESS(void ArrayClass_RO<SListWndColumn_RO>::DeleteElement(int index), ArrayClass__DeleteElement);
+FUNCTION_AT_ADDRESS(void ArrayClass_RO<SListWndColumn>::DeleteElement(int index), ArrayClass__DeleteElement); // delete me
 #endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
 #ifdef ItemBase__IsLoreEquipped_x
@@ -6255,195 +6108,6 @@ FUNCTION_AT_ADDRESS(CMutexSyncCounted::~CMutexSyncCounted(), CMutexSyncCounted__
 #ifdef CMutexLockCounted__dCMutexLockCounted_x
 FUNCTION_AT_ADDRESS(CMutexLockCounted::~CMutexLockCounted(), CMutexLockCounted__dCMutexLockCounted);
 #endif
-#ifdef CListWnd__CListWnd_x
-CONSTRUCTOR_AT_ADDRESS(CListWnd::CListWnd(CXWnd*, uint32_t, CXRect const&), CListWnd__CListWnd);
-#endif
-#ifdef CListWnd__dCListWnd_x
-FUNCTION_AT_ADDRESS(CListWnd::~CListWnd(), CListWnd__dCListWnd);
-#endif
-#ifdef CListWnd__GetCurSel_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetCurSel() const, CListWnd__GetCurSel);
-#endif
-#ifdef CListWnd__GetCurCol_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetCurCol() const, CListWnd__GetCurCol);
-#endif
-#ifdef CListWnd__GetItemData_x
-#if !defined(ROF2EMU) && !defined(UFEMU) 
-FUNCTION_AT_ADDRESS(uint64_t CListWnd::GetItemData(int) const, CListWnd__GetItemData);
-#else
-FUNCTION_AT_ADDRESS(uint32_t CListWnd::GetItemData(int) const, CListWnd__GetItemData);
-#endif
-#endif
-#ifdef CListWnd__GetItemText_x
-FUNCTION_AT_ADDRESS(CXStr CListWnd::GetItemText(const CXStr&, int, int) const, CListWnd__GetItemText);
-#endif
-#ifdef CListWnd__GetItemIcon_x
-FUNCTION_AT_ADDRESS(CTextureAnimation const* CListWnd::GetItemIcon(int, int) const, CListWnd__GetItemIcon);
-#endif
-#ifdef CListWnd__GetItemColor_x
-FUNCTION_AT_ADDRESS(unsigned long CListWnd::GetItemColor(int, int) const, CListWnd__GetItemColor);
-#endif
-#ifdef CListWnd__GetColumnFlags_x
-FUNCTION_AT_ADDRESS(uint32_t CListWnd::GetColumnFlags(int) const, CListWnd__GetColumnFlags);
-#endif
-#ifdef CListWnd__GetColumnWidth_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetColumnWidth(int) const, CListWnd__GetColumnWidth);
-#endif
-#ifdef CListWnd__SetColumnWidth_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetColumnWidth(int, int), CListWnd__SetColumnWidth);
-#endif
-#ifdef CListWnd__ShiftColumnSeparator_x
-FUNCTION_AT_ADDRESS(void CListWnd::ShiftColumnSeparator(int, int), CListWnd__ShiftColumnSeparator);
-#endif
-#ifdef CListWnd__GetColumnMinWidth_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetColumnMinWidth(int) const, CListWnd__GetColumnMinWidth);
-#endif
-#ifdef CListWnd__GetColumnTooltip_x
-FUNCTION_AT_ADDRESS(CXStr CListWnd::GetColumnTooltip(int) const, CListWnd__GetColumnTooltip);
-#endif
-#ifdef CListWnd__GetColumnJustification_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetColumnJustification(int) const, CListWnd__GetColumnJustification);
-#endif
-#ifdef CListWnd__SetColumnJustification_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetColumnJustification(int, int), CListWnd__SetColumnJustification);
-#endif
-#ifdef CListWnd__GetColumnLabel_x
-FUNCTION_AT_ADDRESS(CXStr CListWnd::GetColumnLabel(int) const, CListWnd__GetColumnLabel);
-#endif
-#ifdef CListWnd__GetColumnAnimation_x
-FUNCTION_AT_ADDRESS(CTextureAnimation const* CListWnd::GetColumnAnimation(int) const, CListWnd__GetColumnAnimation);
-#endif
-#ifdef CListWnd__GetColumnAnimationSelected_x
-FUNCTION_AT_ADDRESS(CTextureAnimation const* CListWnd::GetColumnAnimationSelected(int) const, CListWnd__GetColumnAnimationSelected);
-#endif
-#ifdef CListWnd__GetColumnAnimationMouseOver_x
-FUNCTION_AT_ADDRESS(CTextureAnimation const* CListWnd::GetColumnAnimationMouseOver(int) const, CListWnd__GetColumnAnimationMouseOver);
-#endif
-#ifdef CListWnd__AddLine_x
-FUNCTION_AT_ADDRESS(int CListWnd::AddLine(SListWndLine*), CListWnd__AddLine);
-#endif
-#ifdef CListWnd__AddString_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(int CListWnd::AddString(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr), CListWnd__AddString);
-#else
-FUNCTION_AT_ADDRESS(int CListWnd::AddString(const CXStr& Str, COLORREF Color, uint32_t Data, const CTextureAnimation* pTa, const char* TooltipStr), CListWnd__AddString);
-#endif
-#endif
-#ifdef CListWnd__RemoveString_x
-FUNCTION_AT_ADDRESS(void CListWnd::RemoveString(int), CListWnd__RemoveString);
-#endif
-#ifdef CListWnd__InsertLine_x
-FUNCTION_AT_ADDRESS(void CListWnd::InsertLine(int ID, SListWndLine* rEntry), CListWnd__InsertLine);
-#endif
-#ifdef CListWnd__RemoveLine_x
-FUNCTION_AT_ADDRESS(void CListWnd::RemoveLine(int), CListWnd__RemoveLine);
-#endif
-#ifdef CListWnd__SetCurSel_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetCurSel(int), CListWnd__SetCurSel);
-#endif
-#ifdef CListWnd__ToggleSel_x
-FUNCTION_AT_ADDRESS(void CListWnd::ToggleSel(int), CListWnd__ToggleSel);
-#endif
-#ifdef CListWnd__ExtendSel_x
-FUNCTION_AT_ADDRESS(void CListWnd::ExtendSel(int), CListWnd__ExtendSel);
-#endif
-#ifdef CListWnd__ClearAllSel_x
-FUNCTION_AT_ADDRESS(void CListWnd::ClearAllSel(), CListWnd__ClearAllSel);
-#endif
-#ifdef CListWnd__ClearSel_x
-FUNCTION_AT_ADDRESS(void CListWnd::ClearSel(int), CListWnd__ClearSel);
-#endif
-#ifdef CListWnd__DrawColumnSeparators_x
-FUNCTION_AT_ADDRESS(int CListWnd::DrawColumnSeparators() const, CListWnd__DrawColumnSeparators);
-#endif
-#ifdef CListWnd__SetColumnsSizable_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetColumnsSizable(bool), CListWnd__SetColumnsSizable);
-#endif
-#ifdef CListWnd__GetItemWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CListWnd::GetItemWnd(int Index, int SubItem) const, CListWnd__GetItemWnd);
-#endif
-#ifdef CListWnd__SetItemIcon_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemIcon(int Index, int SubItem, const CTextureAnimation* pTA), CListWnd__SetItemIcon);
-#endif
-#ifdef CListWnd__CalculateCustomWindowPositions_x
-FUNCTION_AT_ADDRESS(void CListWnd::CalculateCustomWindowPositions(), CListWnd__CalculateCustomWindowPositions);
-#endif
-#ifdef CListWnd__SetVScrollPos_x
-FUNCTION_AT_ADDRESS(int CListWnd::SetVScrollPos(int), CListWnd__SetVScrollPos);
-#endif
-#ifdef CListWnd__SetItemWnd_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemWnd(int Index, int SubItem, CXWnd* pWnd), CListWnd__SetItemWnd);
-#endif
-#ifdef CListWnd__SetItemData_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemData(int, uint64_t), CListWnd__SetItemData);
-#else
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemData(int, uint32_t), CListWnd__SetItemData);
-#endif
-#endif
-#ifdef CListWnd__SetItemText_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemText(int, int, const CXStr&), CListWnd__SetItemText);
-#endif
-#ifdef CListWnd__SetItemColor_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetItemColor(int, int, unsigned long), CListWnd__SetItemColor);
-#endif
-#ifdef CListWnd__IsLineEnabled_x
-FUNCTION_AT_ADDRESS(bool CListWnd::IsLineEnabled(int) const, CListWnd__IsLineEnabled);
-#endif
-#ifdef CListWnd__EnableLine_x
-FUNCTION_AT_ADDRESS(void CListWnd::EnableLine(int, bool), CListWnd__EnableLine);
-#endif
-#ifdef CListWnd__AddColumn_x
-FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr&, int, uint32_t, uint32_t), CListWnd__AddColumn);
-#endif
-#ifdef CListWnd__AddColumn1_x
-FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimation* pTA, int Width, uint32_t Flags, CXStr Tooltip, uint32_t Type, CTextureAnimation* pTASelected, CTextureAnimation* pTAMouseOver, bool bResizeable, tagSIZE TextureSize, tagPOINT TextureOffset), CListWnd__AddColumn1);
-#endif
-#ifdef CListWnd__SetColumnLabel_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetColumnLabel(int, CXStr), CListWnd__SetColumnLabel);
-#endif
-#ifdef CXRect__CXRect1_x
-FUNCTION_AT_ADDRESS(CXRect::CXRect(), CXRect__CXRect1);
-#endif
-#ifdef CListWnd__GetItemHeight_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetItemHeight(int) const, CListWnd__GetItemHeight);
-#endif
-#ifdef CListWnd__CalculateLineHeights_x
-FUNCTION_AT_ADDRESS(void CListWnd::CalculateLineHeights(), CListWnd__CalculateLineHeights);
-#endif
-#ifdef CListWnd__CalculateVSBRange_x
-FUNCTION_AT_ADDRESS(void CListWnd::CalculateVSBRange(), CListWnd__CalculateVSBRange);
-#endif
-#ifdef CListWnd__CalculateFirstVisibleLine_x
-FUNCTION_AT_ADDRESS(void CListWnd::CalculateFirstVisibleLine(), CListWnd__CalculateFirstVisibleLine);
-#endif
-#ifdef CListWnd__EnsureVisible_x
-FUNCTION_AT_ADDRESS(void CListWnd::EnsureVisible(int), CListWnd__EnsureVisible);
-#endif
-#ifdef CListWnd__GetItemRect_x
-FUNCTION_AT_ADDRESS(CXRect CListWnd::GetItemRect(int, int) const, CListWnd__GetItemRect);
-#endif
-#ifdef CListWnd__GetItemAtPoint_x
-FUNCTION_AT_ADDRESS(int CListWnd::GetItemAtPoint(const CXPoint&) const, CListWnd__GetItemAtPoint);
-#endif
-#ifdef CListWnd__GetItemAtPoint1_x
-FUNCTION_AT_ADDRESS(void CListWnd::GetItemAtPoint(const CXPoint&, int*, int*) const, CListWnd__GetItemAtPoint1);
-#endif
-#ifdef CListWnd__CloseAndUpdateEditWindow_x
-FUNCTION_AT_ADDRESS(void CListWnd::CloseAndUpdateEditWindow(), CListWnd__CloseAndUpdateEditWindow);
-#endif
-#ifdef CListWnd__SetColors_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetColors(unsigned long, unsigned long, unsigned long), CListWnd__SetColors);
-#endif
-#ifdef CListWnd__GetSeparatorRect_x
-FUNCTION_AT_ADDRESS(CXRect CListWnd::GetSeparatorRect(int) const, CListWnd__GetSeparatorRect);
-#endif
-#ifdef SListWndSortInfo__dSListWndSortInfo_x
-FUNCTION_AT_ADDRESS(SListWndSortInfo::~SListWndSortInfo(), SListWndSortInfo__dSListWndSortInfo);
-#endif
-#ifdef CListWnd__GetHeaderRect_x
-FUNCTION_AT_ADDRESS(CXRect CListWnd::GetHeaderRect(int) const, CListWnd__GetHeaderRect);
-#endif
 #ifdef CScreenPieceTemplate__CScreenPieceTemplate_x
 FUNCTION_AT_ADDRESS(CScreenPieceTemplate::CScreenPieceTemplate(CParamScreenPiece*), CScreenPieceTemplate__CScreenPieceTemplate);
 #endif
@@ -6922,104 +6586,7 @@ FUNCTION_AT_ADDRESS(bool KeyCombo::GetScanCodeFromVirtualKey(unsigned int, unsig
 #ifdef KeyCombo__GetPrintableLetterFromVirtualKey_x
 FUNCTION_AT_ADDRESS(bool KeyCombo::GetPrintableLetterFromVirtualKey(unsigned int, unsigned int, bool, bool, unsigned short*) const, KeyCombo__GetPrintableLetterFromVirtualKey);
 #endif
-#ifdef CComboWnd__CComboWnd_x
-//FUNCTION_AT_ADDRESS(CComboWnd::CComboWnd(CXWnd*, uint32_t, CXRect, int, class CButtonDrawTemplate, CListWnd*), CComboWnd__CComboWnd);
-#endif
 
-#ifdef CComboWnd__GetListRect_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetListRect(bool) const, CComboWnd__GetListRect);
-#else
-FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetListRect() const, CComboWnd__GetListRect);
-#endif
-#endif
-#ifdef CComboWnd__SetColors_x
-FUNCTION_AT_ADDRESS(void CComboWnd::SetColors(unsigned long, unsigned long, unsigned long), CComboWnd__SetColors);
-#endif
-#ifdef CComboWnd__InsertChoice_x
-FUNCTION_AT_ADDRESS(void CComboWnd::InsertChoice(const CXStr&, unsigned long), CComboWnd__InsertChoice);
-#endif
-#ifdef CComboWnd__SetChoice_x
-FUNCTION_AT_ADDRESS(void CComboWnd::SetChoice(int), CComboWnd__SetChoice);
-#endif
-#ifdef CComboWnd__GetItemCount_x
-FUNCTION_AT_ADDRESS(int CComboWnd::GetItemCount(), CComboWnd__GetItemCount);
-#endif
-#ifdef CComboWnd__GetCurChoice_x
-FUNCTION_AT_ADDRESS(int CComboWnd::GetCurChoice() const, CComboWnd__GetCurChoice);
-#endif
-#ifdef CComboWnd__GetCurChoiceText_x
-FUNCTION_AT_ADDRESS(CXStr CComboWnd::GetCurChoiceText() const, CComboWnd__GetCurChoiceText);
-#endif
-#ifdef CComboWnd__DeleteAll_x
-FUNCTION_AT_ADDRESS(void CComboWnd::DeleteAll(), CComboWnd__DeleteAll);
-#endif
-#ifdef CComboWnd__GetButtonRect_x
-FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetButtonRect() const, CComboWnd__GetButtonRect);
-#endif
-#ifdef CComboWnd__GetTextRect_x
-FUNCTION_AT_ADDRESS(CXRect CComboWnd::GetTextRect() const, CComboWnd__GetTextRect);
-#endif
-#ifdef CEditWnd__CEditWnd_x
-//FUNCTION_AT_ADDRESS(CEditWnd::CEditWnd(CXWnd*, uint32_t, CXRect, uint32_t), CEditWnd__CEditWnd);
-#endif
-#ifdef CEditWnd__GetLineForPrintableChar_x
-FUNCTION_AT_ADDRESS(int CEditWnd::GetLineForPrintableChar(int) const, CEditWnd__GetLineForPrintableChar);
-#endif
-#ifdef CEditWnd__GetLineLength_x
-FUNCTION_AT_ADDRESS(int CEditWnd::GetLineLength(int) const, CEditWnd__GetLineLength);
-#endif
-#ifdef CEditWnd__FillIndexArray_x
-FUNCTION_AT_ADDRESS(void CEditWnd::FillIndexArray(CXStr) const, CEditWnd__FillIndexArray);
-#endif
-#ifdef CEditWnd__SelectableCharFromPoint_x
-FUNCTION_AT_ADDRESS(int CEditWnd::SelectableCharFromPoint(CXPoint) const, CEditWnd__SelectableCharFromPoint);
-#endif
-#ifdef CEditWnd__AddItemTag_x
-FUNCTION_AT_ADDRESS(void CEditWnd::AddItemTag(int, char*, int), CEditWnd__AddItemTag);
-#endif
-#ifdef CEditWnd__ProcessText_x
-FUNCTION_AT_ADDRESS(void CEditWnd::ProcessText(), CEditWnd__ProcessText);
-#endif
-#ifdef CEditWnd__GetCharIndexPt_x
-FUNCTION_AT_ADDRESS(CXPoint CEditWnd::GetCharIndexPt(int) const, CEditWnd__GetCharIndexPt);
-#endif
-#ifdef CEditWnd__GetSelStartPt_x
-FUNCTION_AT_ADDRESS(CXPoint CEditWnd::GetSelStartPt() const, CEditWnd__GetSelStartPt);
-#endif
-#ifdef CEditWnd__GetSelEndPt_x
-FUNCTION_AT_ADDRESS(CXPoint CEditWnd::GetSelEndPt() const, CEditWnd__GetSelEndPt);
-#endif
-#ifdef CEditWnd__FilterInputStr_x
-FUNCTION_AT_ADDRESS(void CEditWnd::FilterInputStr(CXStr&), CEditWnd__FilterInputStr);
-#endif
-#ifdef CEditWnd__ReplaceSelection_x
-FUNCTION_AT_ADDRESS(void CEditWnd::ReplaceSelection(CXStr, bool), CEditWnd__ReplaceSelection);
-#endif
-#ifdef CEditWnd__ReplaceSelection1_x
-FUNCTION_AT_ADDRESS(void CEditWnd::ReplaceSelection(char, bool), CEditWnd__ReplaceSelection1);
-#endif
-#ifdef CEditWnd__CalculateScrollRange_x
-FUNCTION_AT_ADDRESS(void CEditWnd::CalculateScrollRange(), CEditWnd__CalculateScrollRange);
-#endif
-#ifdef CEditWnd__EnsureCaretVisible_x
-FUNCTION_AT_ADDRESS(void CEditWnd::EnsureCaretVisible(), CEditWnd__EnsureCaretVisible);
-#endif
-#ifdef CEditWnd__SetEditable_x
-FUNCTION_AT_ADDRESS(void CEditWnd::SetEditable(bool), CEditWnd__SetEditable);
-#endif
-#ifdef CEditWnd__GetSTMLSafeText_x
-FUNCTION_AT_ADDRESS(CXStr CEditWnd::GetSTMLSafeText(), CEditWnd__GetSTMLSafeText);
-#endif
-#ifdef CEditWnd__SetWindowTextA_x
-FUNCTION_AT_ADDRESS(void CEditWnd::SetWindowTextA(const CXStr& Str), CEditWnd__SetWindowTextA);
-#endif
-#ifdef CEditWnd__ConvertIndexPrintableToTagged_x
-FUNCTION_AT_ADDRESS(int CEditWnd::ConvertIndexPrintableToTagged(int), CEditWnd__ConvertIndexPrintableToTagged);
-#endif
-#ifdef CEditWnd__ConvertIndexTaggedToPrintable_x
-FUNCTION_AT_ADDRESS(int CEditWnd::ConvertIndexTaggedToPrintable(int), CEditWnd__ConvertIndexTaggedToPrintable);
-#endif
 #ifdef CTextureFont__GetWidth_x
 FUNCTION_AT_ADDRESS(int CTextureFont::GetWidth(unsigned short) const, CTextureFont__GetWidth);
 #endif
@@ -7188,9 +6755,6 @@ FUNCTION_AT_ADDRESS(int CSliderWnd::DrawEndCapRight() const, CSliderWnd__DrawEnd
 #endif
 #ifdef CSliderWnd__DrawThumb_x
 FUNCTION_AT_ADDRESS(int CSliderWnd::DrawThumb() const, CSliderWnd__DrawThumb);
-#endif
-#ifdef CEditBaseWnd__SetSel_x
-FUNCTION_AT_ADDRESS(void CEditBaseWnd::SetSel(int, int), CEditBaseWnd__SetSel);
 #endif
 #ifdef CInvSlotWnd__CInvSlotWnd_x
 CONSTRUCTOR_AT_ADDRESS(CInvSlotWnd::CInvSlotWnd(CXWnd* pParent, uint32_t ID, CXRect rect,

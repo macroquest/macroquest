@@ -529,6 +529,7 @@ EQLIB_VAR DWORD CLabel__Draw;
 
 EQLIB_VAR DWORD CListWnd__CListWnd;
 EQLIB_VAR DWORD CListWnd__dCListWnd;
+EQLIB_VAR DWORD CListWnd__vftable;
 EQLIB_VAR DWORD CListWnd__AddColumn;
 EQLIB_VAR DWORD CListWnd__AddColumn1;
 EQLIB_VAR DWORD CListWnd__AddLine;

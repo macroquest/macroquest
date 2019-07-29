@@ -158,6 +158,33 @@ enum EScrollCode
 	ScrollCodePageDown
 };
 
+enum EWndRuntimeType
+{
+	WRT_WND = 0,
+	WRT_LISTWND,
+	WRT_EDITWND,
+	WRT_TREEWND,
+	WRT_PAGEWND,
+	WRT_TABWND,
+	WRT_HTMLWND,
+	WRT_HOTKEYWND,
+	WRT_EDITHOTKEYWND,
+	WRT_RANGESLIDERWND,
+	WRT_STMLWND,
+	WRT_BROWSERWND,
+	WRT_MODALMESSAGEWND,
+	WRT_CHECKBOXWND,
+	WRT_SIDLSCREENWND,
+	WRT_SLIDERWND,
+	WRT_LABEL,
+	WRT_BUTTON,
+	WRT_GAUGE,
+	WRT_COMBOBOX,
+	WRT_CHATWND,
+	WRT_HELPWND,
+};
+
+
 using EDockAction = uint32_t;
 
 //----------------------------------------------------------------------------
