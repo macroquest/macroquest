@@ -7045,33 +7045,6 @@ FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, in
 #ifdef CTextureFont__DrawWrappedText1_x
 FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const, CTextureFont__DrawWrappedText1);
 #endif
-#ifdef CSidlManager__CSidlManager_x
-FUNCTION_AT_ADDRESS(CSidlManager::CSidlManager(), CSidlManager__CSidlManager);
-#endif
-#ifdef CSidlManager__GetPointFromParamPoint_x
-FUNCTION_AT_ADDRESS(CXPoint __cdecl CSidlManager::GetPointFromParamPoint(const CParamPoint&), CSidlManager__GetPointFromParamPoint);
-#endif
-#ifdef CSidlManager__GetSizeFromParamSize_x
-FUNCTION_AT_ADDRESS(CXSize __cdecl CSidlManager::GetSizeFromParamSize(const CParamSize&), CSidlManager__GetSizeFromParamSize);
-#endif
-#ifdef CSidlManager__GetRectFromParamPointSize_x
-FUNCTION_AT_ADDRESS(CXRect __cdecl CSidlManager::GetRectFromParamPointSize(const CParamPoint&, CParamSize const&), CSidlManager__GetRectFromParamPointSize);
-#endif
-#ifdef CSidlManager__GetD3DCOLOR_x
-FUNCTION_AT_ADDRESS(unsigned long __cdecl CSidlManager::GetD3DCOLOR(const CParamRGB&), CSidlManager__GetD3DCOLOR);
-#endif
-#ifdef CSidlManager__GetButtonDrawTemplateFromParamButtonDrawTemplate_x
-FUNCTION_AT_ADDRESS(CButtonDrawTemplate CSidlManager::GetButtonDrawTemplateFromParamButtonDrawTemplate(const CParamButtonDrawTemplate&) const, CSidlManager__GetButtonDrawTemplateFromParamButtonDrawTemplate);
-#endif
-#ifdef CSidlManager__GetGaugeDrawTemplateFromParamGaugeDrawTemplate_x
-FUNCTION_AT_ADDRESS(CGaugeDrawTemplate CSidlManager::GetGaugeDrawTemplateFromParamGaugeDrawTemplate(const CParamGaugeDrawTemplate&) const, CSidlManager__GetGaugeDrawTemplateFromParamGaugeDrawTemplate);
-#endif
-#ifdef CSidlManager__GetSpellGemDrawTemplateFromParamSpellGemDrawTemplate_x
-FUNCTION_AT_ADDRESS(CSpellGemDrawTemplate CSidlManager::GetSpellGemDrawTemplateFromParamSpellGemDrawTemplate(const CParamSpellGemDrawTemplate&) const, CSidlManager__GetSpellGemDrawTemplateFromParamSpellGemDrawTemplate);
-#endif
-#ifdef CSidlManager__DeleteContents_x
-FUNCTION_AT_ADDRESS(void CSidlManager::DeleteContents(), CSidlManager__DeleteContents);
-#endif
 #ifdef CParamScrollbarDrawTemplate__operator_equal_x
 FUNCTION_AT_ADDRESS(CParamScrollbarDrawTemplate& CParamScrollbarDrawTemplate::operator=(const CParamScrollbarDrawTemplate&), CParamScrollbarDrawTemplate__operator_equal);
 #endif
@@ -7099,29 +7072,8 @@ FUNCTION_AT_ADDRESS(CXStr CTAFrameDraw::GetName() const, CTAFrameDraw__GetName);
 #ifdef CScreenPieceTemplate__GetName_x
 FUNCTION_AT_ADDRESS(CXStr CScreenPieceTemplate::GetName() const, CScreenPieceTemplate__GetName);
 #endif
-#ifdef CSidlManager__LoadSidl_x
-FUNCTION_AT_ADDRESS(void CSidlManager::LoadSidl(const CXStr&, CXStr const&, CXStr const&, CXStr const&), CSidlManager__LoadSidl);
-#endif
-#ifdef CSidlManager__CreateTextureAnimationFromSidlAnimation_x
-FUNCTION_AT_ADDRESS(CTextureAnimation CSidlManager::CreateTextureAnimationFromSidlAnimation(CParamUi2DAnimation const*) const, CSidlManager__CreateTextureAnimationFromSidlAnimation);
-#endif
-#ifdef CSidlManager__CreateTAFrameDrawFromSidlFrame_x
-FUNCTION_AT_ADDRESS(CTAFrameDraw CSidlManager::CreateTAFrameDrawFromSidlFrame(CParamFrameTemplate const*) const, CSidlManager__CreateTAFrameDrawFromSidlFrame);
-#endif
-#ifdef CSidlManager__GetScrollbarTemplateFromParamScrollbarTemplate_x
-FUNCTION_AT_ADDRESS(CScrollbarTemplate CSidlManager::GetScrollbarTemplateFromParamScrollbarTemplate(const CParamScrollbarDrawTemplate&) const, CSidlManager__GetScrollbarTemplateFromParamScrollbarTemplate);
-#endif
-#ifdef CScrollbarTemplate__CScrollbarTemplate_x
-FUNCTION_AT_ADDRESS(CScrollbarTemplate::CScrollbarTemplate(const CScrollbarTemplate&), CScrollbarTemplate__CScrollbarTemplate);
-#endif
-#ifdef CSidlManager__GetSliderDrawTemplateFromParamSliderDrawTemplate_x
-FUNCTION_AT_ADDRESS(CSliderDrawTemplate CSidlManager::GetSliderDrawTemplateFromParamSliderDrawTemplate(const CParamSliderDrawTemplate&) const, CSidlManager__GetSliderDrawTemplateFromParamSliderDrawTemplate);
-#endif
 #ifdef CSliderDrawTemplate__dCSliderDrawTemplate_x
 FUNCTION_AT_ADDRESS(CSliderDrawTemplate::~CSliderDrawTemplate(), CSliderDrawTemplate__dCSliderDrawTemplate);
-#endif
-#ifdef CSidlManager__CreateDrawTemplateFromParamWindowDrawTemplate_x
-FUNCTION_AT_ADDRESS(CXWndDrawTemplate CSidlManager::CreateDrawTemplateFromParamWindowDrawTemplate(CParamWindowDrawTemplate const*) const, CSidlManager__CreateDrawTemplateFromParamWindowDrawTemplate);
 #endif
 #ifdef CScrollbarTemplate__CScrollbarTemplate1_x
 FUNCTION_AT_ADDRESS(CScrollbarTemplate::CScrollbarTemplate(), CScrollbarTemplate__CScrollbarTemplate1);
@@ -7132,81 +7084,8 @@ FUNCTION_AT_ADDRESS(CXWndDrawTemplate::CXWndDrawTemplate(const CXWndDrawTemplate
 #ifdef CTAFrameDraw__CTAFrameDraw_x
 FUNCTION_AT_ADDRESS(CTAFrameDraw::CTAFrameDraw(const CTAFrameDraw&), CTAFrameDraw__CTAFrameDraw);
 #endif
-#ifdef CSidlManager__CreateScreenPieceTemplateFromParamScreenPiece_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManager::CreateScreenPieceTemplateFromParamScreenPiece(CParamScreenPiece const*) const, CSidlManager__CreateScreenPieceTemplateFromParamScreenPiece);
-#endif
-#ifdef CSidlManager__GetParsingErrorMsg_x
-FUNCTION_AT_ADDRESS(CXStr CSidlManager::GetParsingErrorMsg() const, CSidlManager__GetParsingErrorMsg);
-#endif
-#ifdef CSidlManager__GetScreenPieceEnum_x
-//FUNCTION_AT_ADDRESS(enum EStaticScreenPieceClasses CSidlManager::GetScreenPieceEnum(CScreenPieceTemplate*) const, CSidlManager__GetScreenPieceEnum);
-#endif
-#ifdef CSidlManager__FindAnimation_x
-FUNCTION_AT_ADDRESS(CTextureAnimation* CSidlManager::FindAnimation(uint32_t) const, CSidlManager__FindAnimation);
-#endif
-#ifdef CSidlManager__FindAnimation1_x
-FUNCTION_AT_ADDRESS(CTextureAnimation* CSidlManager::FindAnimation(const CXStr&) const, CSidlManager__FindAnimation1);
-#endif
-#ifdef CSidlManager__FindFrameDraw_x
-FUNCTION_AT_ADDRESS(CTAFrameDraw* CSidlManager::FindFrameDraw(uint32_t) const, CSidlManager__FindFrameDraw);
-#endif
-#ifdef CSidlManager__FindDrawTemplate_x
-FUNCTION_AT_ADDRESS(CXWndDrawTemplate* CSidlManager::FindDrawTemplate(uint32_t) const, CSidlManager__FindDrawTemplate);
-#endif
-#ifdef CSidlManager__FindDrawTemplate1_x
-FUNCTION_AT_ADDRESS(CXWndDrawTemplate* CSidlManager::FindDrawTemplate(CXStr) const, CSidlManager__FindDrawTemplate1);
-#endif
-#ifdef CSidlManager__FindScreenPieceTemplate_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(uint32_t) const, CSidlManager__FindScreenPieceTemplate);
-#endif
-#ifdef CSidlManager__FindScreenPieceTemplate1_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManager::FindScreenPieceTemplate(const CXStr&) const, CSidlManager__FindScreenPieceTemplate1);
-#endif
-#ifdef CSidlManager__AddAnimationInOrder_x
-FUNCTION_AT_ADDRESS(void CSidlManager::AddAnimationInOrder(CTextureAnimation*), CSidlManager__AddAnimationInOrder);
-#endif
-#ifdef CSidlManager__AddDrawTemplateInOrder_x
-FUNCTION_AT_ADDRESS(void CSidlManager::AddDrawTemplateInOrder(CXWndDrawTemplate*), CSidlManager__AddDrawTemplateInOrder);
-#endif
-#ifdef CSidlManager__AddTAFrameDrawInOrder_x
-FUNCTION_AT_ADDRESS(void CSidlManager::AddTAFrameDrawInOrder(CTAFrameDraw*), CSidlManager__AddTAFrameDrawInOrder);
-#endif
-#ifdef CSidlManager__AddScreenPieceTemplateInOrder_x
-FUNCTION_AT_ADDRESS(void CSidlManager::AddScreenPieceTemplateInOrder(CScreenPieceTemplate*), CSidlManager__AddScreenPieceTemplateInOrder);
-#endif
-#ifdef CSidlManager__FindTexture_x
-FUNCTION_AT_ADDRESS(CUITextureInfo* CSidlManager::FindTexture(CXStr) const, CSidlManager__FindTexture);
-#endif
-#ifdef CSidlManager__FindTexture1_x
-FUNCTION_AT_ADDRESS(CUITextureInfo* CSidlManager::FindTexture(uint32_t) const, CSidlManager__FindTexture1);
-#endif
-#ifdef CSidlManager__FindSliderDrawTemplate_x
-FUNCTION_AT_ADDRESS(CSliderDrawTemplate* CSidlManager::FindSliderDrawTemplate(CXStr) const, CSidlManager__FindSliderDrawTemplate);
-#endif
-#ifdef CSidlManager__FindSliderDrawTemplate1_x
-FUNCTION_AT_ADDRESS(CSliderDrawTemplate* CSidlManager::FindSliderDrawTemplate(uint32_t) const, CSidlManager__FindSliderDrawTemplate1);
-#endif
-#ifdef CSidlManager__CreateXWndFromTemplate_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWndFromTemplate(CXWnd*, CControlTemplate*, bool), CSidlManager__CreateXWndFromTemplate);
-#else
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWndFromTemplate(CXWnd*, CControlTemplate*), CSidlManager__CreateXWndFromTemplate);
-#endif
-#endif
-#ifdef CSidlManager__CreateXWndFromTemplate1_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWndFromTemplate(CXWnd*, const CXStr&), CSidlManager__CreateXWndFromTemplate1);
-#endif
-#ifdef CSidlManager__CreateXWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateXWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManager__CreateXWnd);
-#endif
-#ifdef CSidlManager__CreateHotButtonWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManager__CreateHotButtonWnd);
-#endif
 #ifdef CTAFrameDraw__GetAnimation_x
 FUNCTION_AT_ADDRESS(CTextureAnimation* CTAFrameDraw::GetAnimation(int) const, CTAFrameDraw__GetAnimation);
-#endif
-#ifdef CSidlManager__TranslateString_x
-FUNCTION_AT_ADDRESS(CXStr __cdecl CSidlManager::TranslateString(CXStr), CSidlManager__TranslateString);
 #endif
 #ifdef CXMLEnumInfo__dCXMLEnumInfo_x
 FUNCTION_AT_ADDRESS(CXMLEnumInfo::~CXMLEnumInfo(), CXMLEnumInfo__dCXMLEnumInfo);

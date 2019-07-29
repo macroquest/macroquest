@@ -482,6 +482,24 @@ FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManagerBase::FindButtonDrawTemplat
 #ifdef CSidlManagerBase__FindButtonDrawTemplate1_x
 FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManagerBase::FindButtonDrawTemplate(const CXStr& Name) const, CSidlManagerBase__FindButtonDrawTemplate1);
 #endif
+#ifdef CSidlManagerBase__FindAnimation1_x
+FUNCTION_AT_ADDRESS(CTextureAnimation* CSidlManagerBase::FindAnimation(const CXStr&) const, CSidlManager__FindAnimation1);
+#endif
+#ifdef CSidlManagerBase__FindScreenPieceTemplate_x
+FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManagerBase::FindScreenPieceTemplate(uint32_t) const, CSidlManager__FindScreenPieceTemplate);
+#endif
+#ifdef CSidlManagerBase__FindScreenPieceTemplate1_x
+FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManagerBase::FindScreenPieceTemplate(const CXStr&) const, CSidlManager__FindScreenPieceTemplate1);
+#endif
+#ifdef CSidlManagerBase__CreateXWndFromTemplate_x
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWndFromTemplate(CXWnd*, CControlTemplate*, bool), CSidlManager__CreateXWndFromTemplate);
+#endif
+#ifdef CSidlManagerBase__CreateXWndFromTemplate1_x
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWndFromTemplate(CXWnd*, const CXStr&), CSidlManager__CreateXWndFromTemplate1);
+#endif
+#ifdef CSidlManagerBase__CreateXWnd_x
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManager__CreateXWnd);
+#endif
 
 CXMLParamManager* CSidlManagerBase::GetParamManager()
 {
@@ -491,6 +509,11 @@ CXMLParamManager* CSidlManagerBase::GetParamManager()
 //============================================================================
 // CSidlManager
 //============================================================================
+
+#ifdef CSidlManager__CreateHotButtonWnd_x
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManager__CreateHotButtonWnd);
+#endif
+
 
 //============================================================================
 

@@ -695,17 +695,17 @@
 // CSidlManagerBase
 #define CSidlManagerBase__CreateTabWnd_x                           0x92E400
 #define CSidlManagerBase__CreatePageWnd_x                          0x92DC10
-#define CSidlManagerBase__FindButtonDrawTemplate_x                 0x929E50   // int
-#define CSidlManagerBase__FindButtonDrawTemplate1_x                0x929DE0   // CXStr
+#define CSidlManagerBase__FindButtonDrawTemplate_x                 0x929E50
+#define CSidlManagerBase__FindButtonDrawTemplate1_x                0x929DE0
+#define CSidlManagerBase__FindAnimation1_x                         0x92A030
+#define CSidlManagerBase__FindScreenPieceTemplate_x                0x92A440
+#define CSidlManagerBase__FindScreenPieceTemplate1_x               0x92A230
+#define CSidlManagerBase__CreateLabel_x                            0x7F7370
+#define CSidlManagerBase__CreateXWndFromTemplate_x                 0x92D3E0
+#define CSidlManagerBase__CreateXWndFromTemplate1_x                0x92D5C0
+#define CSidlManagerBase__CreateXWnd_x                             0x7F72A0
 
 // CSidlManager
-#define CSidlManager__FindAnimation1_x                             0x92A030
-#define CSidlManager__FindScreenPieceTemplate_x                    0x92A440
-#define CSidlManager__FindScreenPieceTemplate1_x                   0x92A230
-#define CSidlManager__CreateLabel_x                                0x7F7370
-#define CSidlManager__CreateXWndFromTemplate_x                     0x92D3E0
-#define CSidlManager__CreateXWndFromTemplate1_x                    0x92D5C0
-#define CSidlManager__CreateXWnd_x                                 0x7F72A0
 #define CSidlManager__CreateHotButtonWnd_x                         0x7F7860
 
 // CSidlScreenWnd
