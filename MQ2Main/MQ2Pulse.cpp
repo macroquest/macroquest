@@ -97,7 +97,6 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 		QueryPerformanceCounter(&BeforeCommand);
 		int ThisMacroBlock = pBlock->CurrIndex;
 #endif
-		bool moveon = true;
 		if (gbInZone && !gZoning)
 		{
 			DoCommand(pChar, (PCHAR)ml.Command.c_str());

@@ -1,3 +1,8 @@
+Jul 31 2019 by EqMule
+- Fixed a clear target bug in mq2targetinfo -dannuic -knighty
+- Next release:
+- TODO: Fix EQGroundItemListManager so we can get /itemtarget working for guild objects again.
+-
 Jul 27 2019 by EqMule
 - Turned on Knightlyparse.
 - Added support for mq2dannet to mq2targetinfo.
@@ -7,9 +12,7 @@ Jul 27 2019 by EqMule
 - Added new detours for zonechange detection.
 - ${Me.Zoning} is depreciated, use ${Me.LastZoned} or just wait for ${Zone.ID} to change.
 -
--Next release:
-- TODO: Fix EQGroundItemListManager so we can get /itemtarget working for guild objects again.
-
+-
 Jul 17 2019 by EqMule
 - Updated for LIVE
 -

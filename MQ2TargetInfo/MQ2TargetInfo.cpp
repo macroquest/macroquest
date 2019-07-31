@@ -5,6 +5,7 @@
 // are shown below. Remove the ones your plugin does not use.  Always use Initialize
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 // 2.1 Added enums for menu and go to menu item
+// 2.2 Added fix from dannuic/knightly to stop clearing target when using hotbuttons.
 
 #include "../MQ2Plugin.h"
 #include "resource.h"
@@ -1656,8 +1657,16 @@ public:
 				WriteChatf("\ayMQ2TargetInfo\ax : Group now follow you around.");
 				DoCommand((PSPAWNINFO)pLocalPlayer, szMe);
 				return 1;
-			}
-		}
+            } else if (pWnd && (
+                pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[0]
+                || pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[1]
+                || pWnd->GetParentWindow() == (PCSIDLWND)GroupHotButton[2]
+                || pWnd == (CXWnd*)GroupHotButton[0]
+                || pWnd == (CXWnd*)GroupHotButton[1]
+                || pWnd == (CXWnd*)GroupHotButton[2])) {
+                return 1; // catches the hotbuttons
+            }
+        }
 		else if (Message == XWM_MENUSELECT)
 		{
 			
