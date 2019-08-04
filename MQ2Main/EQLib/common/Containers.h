@@ -937,35 +937,6 @@ class HashListSet<T, _Size, -2> : public HashListSet<T, _Size, -1>
 	void* MemPool;
 };
 
-template <typename T, int _Size, bool _bGrow>
-class EQArray;
-
-template <typename T, int _Size, bool _bGrow>
-class EQArray2;
-
-template <typename T>
-class EQArray<T, 0, true>
-{
-public:
-/*0x00*/ void* pvfTable;
-/*0x04*/ T* m_array;
-/*0x08*/ int m_length;
-/*0x0c*/ int m_space;
-/*0x10*/
-};
-
-template <typename T>
-class EQArray2<T, 0, true>
-{
-public:
-/*0x00*/ void* pvfTable;
-/*0x04*/ void* pvfTable2;
-/*0x08*/ T* m_array;
-/*0x0c*/ int m_length;
-/*0x10*/ int m_space;
-/*0x14*/
-};
-
 template <typename T>
 class IString
 {
@@ -1006,22 +977,6 @@ template <int T_SIZE>
 class StringFixed : public IStringFixed<char, T_SIZE>
 {
 public:
-};
-
-template <typename T, int _Size = 0, bool _bGrow = true>
-class EQArray : public EQArray<T, 0, true>
-{
-public:
-	enum { cTCount = _Size };
-	static const bool cTGrow = _bGrow;
-};
-
-template <typename T, int _Size = 0, bool _bGrow = true>
-class EQArray2 : public EQArray2<T, 0, true>
-{
-public:
-	enum { cTCount = _Size };
-	static const bool cTGrow = _bGrow;
 };
 
 template <typename ET>
@@ -1192,6 +1147,280 @@ public:
 };
 
 
+class VeBaseReferenceCount
+{
+public:
+	/*0x00*/ EQLIB_OBJECT virtual UINT GetMemUsage() const;
+	/*0x04*/ EQLIB_OBJECT virtual ~VeBaseReferenceCount();
+
+	/*0x04*/ int References;
+};
+
+
+//----------------------------------------------------------------------------
+
+namespace SoeUtil {
+
+void* Alloc(int bytes, int align);
+void Free(void* p, int align);
+
+// class SoeUtil::Array<unsigned char, 0, 1> `RTTI Type Descriptor'
+template <typename T>
+class Array
+{
+public:
+	using ValueType = T;
+
+	Array() = default;
+	Array(const T* data, int size);
+	virtual ~Array();
+
+	Array(const Array<T>& other);
+	Array(Array<T>&& other);
+
+	Array& operator=(const Array& other);
+	Array& operator=(Array&& other);
+
+	T& at(int index);
+	const T& at(int index) const;
+
+	T& operator[](int index);
+	const T& operator[](int index) const;
+
+	int Count() const { return m_size; }
+	bool IsEmpty() const { return m_size == 0; }
+
+	void Swap(Array* other) { SwapInternal(other, true); }
+
+	void Clear();
+	void Resize(int count);
+	void Reserve(int count);
+
+	T* begin() { return &m_array[0]; }
+	const T* begin() const { return &m_array[0]; }
+	T* end() { return &m_array[0] + m_count; }
+	const T* end() const { return &m_array[0] + m_count; }
+
+protected:
+	virtual T* Allocate(int amount, int* allocated, bool exact);
+	virtual void Free(T* data, int);
+	virtual void SwapInternal(Array* other, bool);
+
+private:
+	void CopyAppend(const T* data, int amount);
+	void Copy(const T* data, int amount);
+
+private:
+	T* m_array = nullptr;
+	int m_size = 0;
+	int m_alloc = 0;
+};
+
+//============================================================================
+
+template <typename T>
+Array<T>::Array(const T* data, int size)
+{
+	CopyAppend(data, amount);
+}
+
+template <typename T>
+Array<T>::Array(const Array<T>& other)
+{
+	CopyAppend(other.m_array, other.m_size);
+}
+
+template <typename T>
+Array<T>::Array(Array<T>&& other)
+{
+	m_array = std::exchange(other.m_array, nullptr);
+	m_size = std::exchange(other.m_size, 0);
+	m_alloc = std::exchange(other.m_alloc, 0);
+}
+
+template <typename T>
+Array<T>::~Array()
+{
+	Clear();
+	Free(m_array, m_alloc);
+	m_array = nullptr;
+}
+
+template <typename T>
+Array<T>& Array<T>::operator=(const Array<T>& other)
+{
+	Clear();
+	CopyAppend(other.m_array, other.m_size);
+
+	return *this;
+}
+
+template <typename T>
+Array<T>& Array<T>::operator=(Array<T>&& other)
+{
+	Clear();
+	Free(m_array, m_alloc);
+
+	m_array = std::exchange(other.m_array, nullptr);
+	m_size = std::exchange(other.m_size, 0);
+	m_alloc = std::exchange(other.m_alloc, 0);
+
+	return *this;
+}
+
+template <typename T>
+T& Array<T>::at(int index)
+{
+	assert(index >= 0 && i < m_size);
+	return m_array[i];
+}
+
+template <typename T>
+const T& Array<T>::at(int index) const
+{
+	assert(index >= 0 && i < m_size);
+	return m_array[i];
+}
+
+template <typename T>
+T& Array<T>::operator[](int index)
+{
+}
+
+template <typename T>
+const T& Array<T>::operator[](int index) const
+{
+	return at(index);
+}
+
+template <typename T>
+void Array<T>::Clear()
+{
+	for (int i = 0; i < m_size; ++i)
+	{
+		m_array[i].~T();
+	}
+
+	m_size = 0;
+}
+
+template <typename T>
+void Array<T>::Reserve(int count)
+{
+	if (count <= m_alloc)
+		return;
+
+	// allocate new buffer
+	int newSize;
+	T* buffer = Allocate(count, &newSize, false);
+
+	if (buffer != m_array)
+	{
+		// move array
+		for (int i = 0; i < m_size; ++i)
+		{
+			// copy
+			new (&buffer[i]) T(m_array[i]);
+			m_array[i].~T();
+		}
+
+		Free(m_array, m_alloc);
+
+		m_array = buffer;
+		m_alloc = newSize;
+	}
+}
+
+template <typename T>
+void Array<T>::Resize(int count)
+{
+	if (count > m_count)
+	{
+		// grow bigger
+		Reserve(count);
+
+		int pos = m_count;
+		m_count = std::min(m_alloc, count);
+		while (pos < count)
+		{
+			new (&m_array[pos]) T;
+		}
+	}
+	else
+	{
+		// shrink
+		for (int i = count; i < m_size; ++i)
+		{
+			m_array[i].~T();
+		}
+
+		m_size = count;
+	}
+}
+
+template <typename T>
+T* Array<T>::Allocate(int amount, int* allocated, bool)
+{
+	int currentAlloc = m_alloc;
+
+	if (amount > currentAlloc)
+	{
+		*allocated = amount * 5 / 4;
+		return (T*)SoeUtil::Alloc(*allocated * sizeof(T), __alignof(T));
+	}
+
+	*allocated = m_alloc;
+	return m_array;
+}
+
+template <typename T>
+void Array<T>::Free(T* data, int)
+{
+	SoeUtil::Free(data, __alignof(T));
+}
+
+template <typename T>
+void Array<T>::SwapInternal(Array* other, bool)
+{
+	std::swap(m_array, other->m_array);
+	std::swap(m_size, other->m_size);
+	std::swap(m_alloc, other->m_alloc);
+}
+
+template <typename T>
+void Array<T>::CopyAppend(const T* data, int amount)
+{
+	Reserve(m_size + amount);
+
+	// copy forward
+	const T* src = data;
+	T* dst = m_array + m_count;
+	m_count += amount;
+	while (amount--)
+	{
+		new ((void*)dst) T(*src);
+		dst++;
+		src++;
+	}
+}
+
+template <typename T>
+void Array<T>::Copy(const T* data, int amount)
+{
+	Resize(0);
+	Reserve(amount);
+	CopyAppend(data, amount);
+}
+
+template <typename T>
+bool swap(Array<T>& a, Array<T>& b)
+{
+	a.Swap(b);
+}
+
+//============================================================================
+
+} // namespace SoeUtil
 } // namespace eqlib
 
 using namespace eqlib;

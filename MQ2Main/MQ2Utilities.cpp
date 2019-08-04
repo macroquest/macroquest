@@ -10608,41 +10608,66 @@ BOOL IsActiveAA(PCHAR pSpellName)
 	}
 	return FALSE;
 }
-CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type)
+
+struct Personal_Loot
 {
-	if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-		PCSIDLWND pFirstWnd = clist->GetFirstChildWnd();
-		PCSIDLWND pNextWnd = pFirstWnd;
-		Personal_Loot pPAdvLoot = { 0 };
+	CButtonWnd* NPC_Name = nullptr;
+	CButtonWnd* Item = nullptr;
+	CButtonWnd* Loot = nullptr;
+	CButtonWnd* Leave = nullptr;
+	CButtonWnd* AN = nullptr;
+	CButtonWnd* AG = nullptr;
+	CButtonWnd* Never = nullptr;
+};
+
+CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type)
+{
+	if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList"))
+	{
+		Personal_Loot pPAdvLoot;
 		bool bFound = false;
-		LONG listindex = -1;
-		for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-			if (pNextWnd) {
-				pPAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+		int listindex = -1;
+
+		CXWnd* pFirstWnd = clist->GetFirstChildWnd();
+		CXWnd* pNextWnd = pFirstWnd;
+
+		for (int i = 0; i < clist->ItemsArray.Count; i++)
+		{
+			if (pNextWnd)
+			{
+				pPAdvLoot.NPC_Name = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pPAdvLoot.Item = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pPAdvLoot.Item = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pPAdvLoot.Loot = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pPAdvLoot.Loot = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pPAdvLoot.Leave = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pPAdvLoot.Leave = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pPAdvLoot.Never = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pPAdvLoot.Never = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pPAdvLoot.AN = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pPAdvLoot.AN = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pPAdvLoot.AG = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
-				if (pNextWnd && pNextWnd->GetNextSiblingWnd()) {
+				pPAdvLoot.AG = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
+
+				if (pNextWnd && pNextWnd->GetNextSiblingWnd())
+				{
 					pNextWnd = pNextWnd->GetNextSiblingWnd();
 				}
 			}
-			if (ListIndex == i) {
+
+			if (ListIndex == i)
+			{
 				bFound = true;
 				break;
 			}
 		}
-		if (bFound) {
-			CXWnd *ptr = 0;
-			switch (type) {
+
+		if (bFound)
+		{
+			CXWnd* ptr = nullptr;
+
+			switch (type)
+			{
 			case 0:
 				ptr = (CXWnd*)pPAdvLoot.NPC_Name;
 				break;
@@ -10665,55 +10690,84 @@ CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/,
 				ptr = (CXWnd*)pPAdvLoot.AG;
 				break;
 			}
+
 			return ptr;
 		}
 	}
-	return NULL;
+
+	return nullptr;
 }
-CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type)
+
+struct Shared_Loot
 {
-	if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-		PCSIDLWND pFirstWnd = clist->GetFirstChildWnd();
-		PCSIDLWND pNextWnd = pFirstWnd;
-		Shared_Loot pSAdvLoot = { 0 };
+	CButtonWnd* NPC_Name = nullptr;
+	CButtonWnd* Item = nullptr;
+	CButtonWnd* Status = nullptr;
+	CButtonWnd* Action = nullptr;
+	CButtonWnd* Manage = nullptr;
+	CButtonWnd* AutoRoll = nullptr;
+	CButtonWnd* ND = nullptr;
+	CButtonWnd* GD = nullptr;
+	CButtonWnd* NO = nullptr;
+	CButtonWnd* AN = nullptr;
+	CButtonWnd* AG = nullptr;
+	CButtonWnd* NV = nullptr;
+};
+
+CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type)
+{
+	if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLList"))
+	{
+		Shared_Loot pSAdvLoot;
 		bool bFound = false;
-		for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-			if (pNextWnd) {
-				pSAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+
+		CXWnd* pFirstWnd = clist->GetFirstChildWnd();
+		CXWnd* pNextWnd = pFirstWnd;
+
+		for (int i = 0; i < clist->ItemsArray.Count; i++)
+		{
+			if (pNextWnd)
+			{
+				pSAdvLoot.NPC_Name = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.Item = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.Item = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.Status = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.Status = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.Action = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.Action = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.Manage = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.Manage = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.AN = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.AN = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.AG = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.AG = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.AutoRoll = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.AutoRoll = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.NV = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.NV = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.ND = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.ND = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.GD = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
+				pSAdvLoot.GD = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
 				pNextWnd = pNextWnd->GetNextSiblingWnd();
-				pSAdvLoot.NO = (CButtonWnd *)pNextWnd->GetFirstChildWnd();
-				if (pNextWnd && pNextWnd->GetNextSiblingWnd()) {
+				pSAdvLoot.NO = (CButtonWnd*)pNextWnd->GetFirstChildWnd();
+
+				if (pNextWnd && pNextWnd->GetNextSiblingWnd())
+				{
 					pNextWnd = pNextWnd->GetNextSiblingWnd();
 				}
 			}
-			if (ListIndex == i) {
+			if (ListIndex == i)
+			{
 				bFound = true;
 				break;
 			}
 		}
-			//NPC_Name,Item,Status,Action,Manage,AN,AG,AutoRoll,NV,ND,GD,NO
-		if (bFound) {
-			CXWnd *ptr = 0;
+
+		// NPC_Name,Item,Status,Action,Manage,AN,AG,AutoRoll,NV,ND,GD,NO
+		if (bFound)
+		{
+			CXWnd* ptr = nullptr;
 			switch (type)
 			{
 			case 0:
@@ -10756,11 +10810,14 @@ CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*
 				ptr = (CXWnd*)pSAdvLoot.Item;
 				break;
 			}
+
 			return ptr;
 		}
 	}
-	return NULL;
+
+	return nullptr;
 }
+
 #if !defined(ROF2EMU) && !defined(UFEMU)
 BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList)
 {

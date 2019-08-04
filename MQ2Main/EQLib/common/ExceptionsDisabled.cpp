@@ -35,4 +35,15 @@ FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimatio
 FUNCTION_AT_ADDRESS(void CChatWindow::AddHistory(CXStr), CChatWindow__AddHistory);
 #endif
 
+// CHelpWnd
+#ifdef CHelpWnd__SetFile_x
+FUNCTION_AT_ADDRESS(void CHelpWnd::SetFile(CXStr), CHelpWnd__SetFile);
+#endif
+
+// CLargeDialogWnd
+#ifdef CLargeDialogWnd__Open_x
+FUNCTION_AT_ADDRESS(void CLargeDialogWnd::Open(bool bYesNoEnabled, CXStr DialogText, unsigned long closeTimer/*0 means never*/, CXStr DialogTitle, bool bShowVolumeControls, CXStr YesText, CXStr NoText), CLargeDialogWnd__Open);
+#endif
+
+
 } // namespace eqlib

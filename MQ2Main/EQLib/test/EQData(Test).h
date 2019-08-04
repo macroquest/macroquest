@@ -1007,8 +1007,8 @@ struct AALIST
 using PAALIST = AALIST;
 
 #define NUM_INV_SLOTS                            0x21
-#define NUM_BANK_SLOTS                           0x18
-#define NUM_SHAREDBANK_SLOTS                     0x06
+#define NUM_BANK_SLOTS                           24
+#define NUM_SHAREDBANK_SLOTS                     6
 #define MAX_KEYRINGITEMS                         0x1B // not really sure need to confirm this
 
 // found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta) 
@@ -4416,7 +4416,7 @@ public:
 		int    Time;
 	};
 
-	EQArray<PickZoneRecord> Records;
+	SoeUtil::Array<PickZoneRecord> Records;
 };
 
 struct PETITIONSTATUS

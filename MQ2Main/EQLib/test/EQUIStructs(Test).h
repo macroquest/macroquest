@@ -21,8 +21,6 @@
 
 namespace eqlib {
 
-const int MAX_INV_SLOTS = 0x900;
-
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -178,40 +176,6 @@ enum eContextMenuFilterIDs
 	// new timestamp menu ids goes here
 	// todo check the ids.
 };
-
-
-
-struct EQINVSLOTWND;
-
-// actual size 0x14 10-12-2010
-// I think this is correct:
-// see (69FF1E) in eqgame.exe dated 2013 11 13
-struct EQINVSLOT
-{
-/*0x00*/ void*         pvfTable;                 // not based on cxwnd
-/*0x04*/ EQINVSLOTWND* pInvSlotWnd;
-/*0x08*/ DWORD         Unknown0x08;
-/*0x0C*/ int           InvSlot;
-/*0x10*/ BYTE          Valid;
-/*0x11*/ BYTE          Unknown0x11[3];
-/*0x14*/
-};
-using PEQINVSLOT = EQINVSLOT*;
-
-// Size 0x2418 see 534532 in Nov 06 2018 Test
-struct EQINVSLOTMGR
-{
-/*0x0000*/ void*       vfTable;
-/*0x0004*/ EQINVSLOT*  SlotArray[MAX_INV_SLOTS]; // size 0x2400 //see 72E00F in Nov 06 2018 Test
-/*0x2404*/ DWORD       TotalSlots;
-/*0x2408*/ UINT        LastUpdate;
-/*0x240c*/ EQINVSLOT*  pSelectedItem;            // LastSelectedSlot
-/*0x2410*/ int         Unknown0x2410;
-/*0x2414*/ bool        bToggleBagsOpen;
-/*0x2415*/ bool        bToggleBankBagsOpen;
-/*0x2418*/
-};
-using PEQINVSLOTMGR = EQINVSLOTMGR*;
 
 // ContainerWindow
 // Actual Size 0x17C old
@@ -377,17 +341,6 @@ struct EQMAILWINDOW
 };
 using PEQMAILWINDOW = EQMAILWINDOW*;
 
-// Actual size 0x1c4 10-9-2003
-struct EQHOTBUTTONWINDOW
-{
-/*0x000*/ CSIDLWND     Wnd;                      // inherits from CSidlScreenWnd
-/*0x148*/ BYTE         Unknown0x138[0xc];
-/*0x000*/ DWORD        HotButtonWndView;         // 0 to 9 for the different views
-/*0x14c*/ CSIDLWND*    HotButtons[0x0a];         // these will change when you switch page...
-/*0x174*/
-};
-using PEQHOTBUTTONWINDOW = EQHOTBUTTONWINDOW*;
-
 struct LOOTCORPSE
 {
 /*0x000*/ BYTE         Unknown0x000;             // 03 seems very common (for NPC anyway)
@@ -404,22 +357,6 @@ struct LOOTCORPSE
 /*0x090*/
 };
 using PLOOTCORPSE = LOOTCORPSE*;
-
-// size 0x180 3-10-2004
-struct EQCOMPASSWINDOW
-{
-/*0x000*/ CSIDLWND     Wnd;                      // inherits from CSidlScreenWnd
-/*0x148*/ CSIDLWND*    pStrip1;
-/*0x14C*/ CSIDLWND*    pStrip2;
-	// WIP
-/*0x16C*/ BOOL         DrawLine;
-/*0x170*/ DWORD        Unknown0x170;
-/*0x174*/ DWORD        LineRed;
-/*0x178*/ DWORD        LineGreen;
-/*0x17C*/ DWORD        LineBlue;
-/*0x180*/
-};
-using PEQCOMPASSWINDOW = EQCOMPASSWINDOW*;
 
 // used by options window
 struct EQKBASSIGN
@@ -458,100 +395,6 @@ struct CTEXTENTRYWND
 /*0x140*/
 };
 using PCTEXTENTRYWND = CTEXTENTRYWND*;
-
-struct LOOTDETAILS
-{
-/*0x00*/ DWORD         CorpseID;                 // spawnId of the corpse that has this lootitem
-/*0x04*/ WORD          StackCount;
-/*0x06*/ WORD          UnknownWord;
-/*0x08*/ DWORD         Expiration;
-/*0x0c*/ BYTE          Locked;
-/*0x0d*/ CHAR          Name[0x40];
-/*0x4d*/ //more data here?
-};
-using PLOOTDETAILS = LOOTDETAILS*;
-
-//.text:0041ECBD                 imul    eax, 84h in Apr 15 2015 test
-enum eAdvLootState
-{
-	eAdvLootWaiting,
-	eAdvLootAsk,
-	eAdvLootAskAutoRoll,
-	eAdvLootStop,
-	eAdvLootAskCompleted,
-	eAdvLootFreeGrab,
-	eAdvLootFixedAskAutoRoll,
-	eAdvLootFixedAskCompleted,
-	eAdvLootRemoved
-};
-
-// size is 0x88 see 0x48AB44 in Dec 10 2018 live
-struct LOOTITEM
-{
-/*0x00*/ UINT          ItemID;
-/*0x04*/ CHAR          Name[0x40];
-/*0x44*/ int           IconID;
-/*0x48*/ bool          bStackable;
-/*0x4c*/ DWORD         MaxStack;
-/*0x50*/ BYTE          NoDrop;
-/*0x51*/ BYTE          Unknown0x51[0x3];
-/*0x54*/ DWORD         ComboID;
-/*0x58*/ DWORD         LootID;
-/*0x5c*/ eAdvLootState State;
-/*0x60*/ BYTE          bAutoRoll;
-/*0x61*/ BYTE          ActivelyManaged;          // User has the manage Window up
-/*0x62*/ BYTE          ContextMenu;              // item has a context menu
-/*0x63*/ BYTE          AskRandomMode;            // item is in AskRandom mode
-/*0x64*/ BYTE          CLootInProgress;
-/*0x65*/ BYTE          PLootInProgress;
-/*0x68*/ EQArray2<LOOTDETAILS> LootDetails;
-/*0x7c*/ DWORD         AskTimer;
-/*0x80*/ BYTE          AutoRoll;
-/*0x81*/ BYTE          FG;
-/*0x82*/ BYTE          Need;
-/*0x83*/ BYTE          Greed;
-/*0x84*/ BYTE          No;
-/*0x85*/ BYTE          AlwaysNeed;
-/*0x86*/ BYTE          AlwaysGreed;
-/*0x87*/ BYTE          Never;
-/*0x88*/
-};
-using PLOOTITEM = LOOTITEM*;
-
-struct LOOTLIST
-{
-/*0x000*/ BYTE         Unknown0x004[0x4];
-/*0x004*/ LOOTITEM*    pLootItem;
-/*0x008*/ LONG         ListSize;
-/*0x00c*/ LONG         Unknown0x00c;
-/*0x010*/ LONG         Unknown0x010;
-/*0x014*/ CXWND*       SharedLootList;
-/*0x018*/ CXWND*       PersonalLootList;
-/*0x01c*/ LONG         Unknown0x01c;
-/*0x020*/ LONG         Unknown0x020;
-/*0x024*/
-};
-using PLOOTLIST = LOOTLIST*;
-
-// CAdvancedLootWnd__CAdvancedLootWnd_x
-// size 0x310 see 4CEA0D in Nov 29 2017 Beta
-struct EQADVLOOTWND
-{
-/*0x000*/ CSIDLWND     Wnd;                      // inherits from CSidlScreenWnd
-/*0x240*/ BYTE         Unknown0x0240[0x94];
-/*0x2d4*/ LOOTLIST*    pCLootList;               // below ref to aAdlw_applyfilt
-/*0x2d8*/ LOOTLIST*    pPLootList;               // below ref to aAdlw_cllwnd
-/*0x2dc*/ DWORD        Unknown0x2dc;
-/*0x2e0*/ DWORD        Unknown0x2e0;
-/*0x2e4*/ DWORD        Unknown0x2e4;
-/*0x2e8*/ DWORD        TotalLootCount;
-/*0x2ec*/ DWORD        Unknown0x2ec;
-/*0x2f0*/ DWORD        ContextMenuId;
-/*0x2f4*/ DWORD        CLastStackSize;
-/*0x2f8*/ BYTE         Unknown0x2f8[0x18];
-/*0x310*/
-};
-using PEQADVLOOTWND = EQADVLOOTWND*;
 
 enum ETargetType
 {
@@ -641,33 +484,10 @@ struct ScreenVector3
 };
 using PScreenVector3 = ScreenVector3*;
 
-// see ref to pinstCInventoryWnd_x in __GetGaugeValueFromEQ_x
-// oct 26 2017 Beta see 7BBCE2
-struct INVENTORYWND
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ BYTE        Unknown0x0240[0x90];
-/*0x02d0*/ int64_t     VitalityCap;
-/*0x02d8*/ int         AAVitalityCap;
-};
-using PINVENTORYWND = INVENTORYWND*;
-
 /******************************************** CHECKED ********************************************/
 // everything above this line is work in progress/stuff that can be improved/checked/fixed.
 // everything below it is 100% checked -eqmule
 
-// CBazaarSearchWnd__CBazaarSearchWnd_x aBazaarsearchwn
-// CBazaarSearchWnd_size: 0x92e0 (see 5431FE) in May 17 2019 Test
-struct BAZAARSEARCHWND
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ BYTE        Unknown0x0240[0x8ff8];
-/*0x9238*/ void**      ppTraderData;
-/*0x923c*/ DWORD       hashVal;                  // find in CBazaarSearchWnd__HandleBazaarMsg_x
-/*0x9240*/ BYTE        Unknown0x9240[0xa0];
-/*0x92e0*/
-};
-using PBAZAARSEARCHWND = BAZAARSEARCHWND*;
 
 // CPlayerWindow__CPlayerWindow aPlayerwindow
 // Note to self: cant actually find CombatState in it, so no point in looking through IDA for it, but it IS the last dword... so... until that changes, im just gonna accept it...
@@ -696,25 +516,6 @@ struct CTARGETWND
 /*0x08d8*/
 };
 using PCTARGETWND = CTARGETWND*;
-
-// CBuffWindow__CBuffWindow aBuffwindow
-// this is used for both long and shortbuffs...
-// CBuffWindow_size: 0x728 (see 542833) in May 17 2019 Test
-struct EQBUFFWINDOW
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ BYTE        Unknown0x0240[0xbc];
-/*0x02fc*/ CBUTTONWND* pBuff[0x24];              // CButton*
-/*0x038c*/ BYTE        Unknown0x038c[0x210];
-/*0x059c*/ DWORD       BuffId[NUM_LONG_BUFFS];
-/*0x0644*/ DWORD       BuffTimer[NUM_LONG_BUFFS];
-/*0x06ec*/ BYTE        Unknown0x06ec[0x28];
-/*0x0714*/ DWORD       MaxLongBuffs;             // 0x2a (NUM_LONG_BUFFS)
-/*0x0718*/ DWORD       MaxShortBuffs;            // 0x37 (NUM_SHORT_BUFFS)
-/*0x071c*/ BYTE        Unknown0x071c[0xc];
-/*0x0728*/
-};
-using PEQBUFFWINDOW = EQBUFFWINDOW*;
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
@@ -746,170 +547,13 @@ struct EQCASTSPELLGEM
 };
 using PEQCASTSPELLGEM = EQCASTSPELLGEM*;
 
-// pinstCCastSpellWnd_x
-// CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// CCastSpellWnd_size: 0x2e0 (see 542BED) in May 17 2019 Test
-struct EQCASTSPELLWINDOW
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ BYTE        Unknown0x0240[0x14];
-/*0x0254*/ EQCASTSPELLGEM* SpellSlots[NUM_SPELL_GEMS]; // CSPW_Spell%d
-/*0x028c*/ BYTE        Unknown0x028c[0x54];
-/*0x02e0*/
-};
-using PEQCASTSPELLWINDOW = EQCASTSPELLWINDOW*;
-
-// note that Invslot needs to be a short or pickupitem wont work
-// CInvSlotWnd_size: 0x2e0 (see 7F64AC) in May 17 2019 Test
-struct EQINVSLOTWND
-{
-/*0x0000*/ CXWND       Wnd;                      // inherits from CXWnd(actually CButtonWnd)
-/*0x01f8*/ BYTE        Unknown0x01f8[0x8c];
-/*0x0284*/ BYTE        Unknown0x0284[0x10];
-	// this is ItemGlobalIndex - brainiac
-/*0x0294*/ ItemContainerInstance WindowType;
-/*0x0298*/ short       InvSlot;
-/*0x029a*/ short       BagSlot;
-/*0x029c*/ short       GlobalSlot;
-	// end of ItemGlobalIndex
-/*0x029e*/ short       RandomNum;                // no idea what this is, it changes upon login but we need it for moveitem... -eqmule
-/*0x02a0*/ BYTE        Unknown0x02a0[0x20];
-/*0x02c0*/ EQINVSLOT*  pInvSlot;
-/*0x02c4*/ BYTE        Unknown0x02c4[0x8];
-/*0x02cc*/ BOOL        ProcessClick;
-/*0x02d0*/ BYTE        Unknown0x02d0[0x10];
-/*0x02e0*/
-};
-using PEQINVSLOTWND = EQINVSLOTWND*;
-
-// CItemDisplayWindow__CItemDisplayWindow_x aItemdisplaywin
-// CItemDisplayWindow_size: 0x638 (see 756212) in May 17 2019 Test
-struct EQITEMWINDOW
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ CSIDLWND*   Description;
-/*0x0244*/ CSIDLWND*   Name;
-/*0x0248*/ CSIDLWND*   IconButton;
-/*0x024c*/ CSIDLWND*   ItemLore;
-/*0x0250*/ CSIDLWND*   ItemDescriptionTabBox;
-/*0x0254*/ CSIDLWND*   ItemDescriptionTab;
-/*0x0258*/ CSIDLWND*   ItemLoreTab;
-/*0x025c*/ CSIDLWND*   pAppearanceSocketScreen;
-/*0x0260*/ CBUTTONWND* pAppearanceSocketItem;
-/*0x0264*/ CBUTTONWND* pAppearanceSocketBuyButton;
-/*0x0268*/ CSIDLWND*   pAppearanceSocketDescription;
-/*0x026c*/ CSIDLWND*   pItemSocketScreen[6];
-/*0x0284*/ CBUTTONWND* pItemSocketItemButton[6];
-/*0x029c*/ CSIDLWND*   pItemSocketDescription[6];
-/*0x02b4*/ CXStr       ItemInfo;                 // this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
-/*0x02b8*/ CXStr       WindowTitle;
-/*0x02bc*/ CXStr       ItemAdvancedLoreText;
-/*0x02c0*/ CXStr       ItemMadeByText;
-/*0x02c4*/ CXStr       UnknownCXStr;             // if this is NULL don't populate item data in MQ2ItemDisplay
-/*0x02c8*/ BYTE        Unknown0x02c8[0x4];
-/*0x02cc*/ CXStr       ItemInformationText;      // Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
-/*0x02d0*/ PCONTENTS   pItem;
-/*0x02d4*/ bool        bActiveItem;
-/*0x02d5*/ bool        bItemTextSet;
-/*0x02d8*/ void*       BuffIcons;                // CTextureAnimation
-/*0x02dC*/ void*       DragIcons;                // CTextureAnimation
-/*0x02E0*/ bool        bTaggable;
-/*0x02E1*/ bool        bFailed;
-/*0x02E4*/ UINT        TabCount;
-/*0x02E8*/ CLABEL*     ModButtonLabel;
-/*0x02EC*/ CLABEL*     RewardButtonLabel;
-/*0x02f0*/ CSIDLWND*   ConvertStml;
-/*0x02F4*/ CLABEL*     MadeByLabel;
-/*0x02F8*/ CLABEL*     CollectedLabel;
-/*0x02FC*/ CLABEL*     ScribedLabel;
-/*0x0300*/ int         Row;
-/*0x0304*/ bool        bAntiTwink;
-/*0x0308*/ CBUTTONWND* ModButton;
-/*0x030c*/ CBUTTONWND* RewardButton;
-/*0x0310*/ CBUTTONWND* PrintRealEstateItems;
-/*0x0314*/ CBUTTONWND* ConvertButton;
-/*0x0318*/ bool        bCollected;
-/*0x0319*/ bool        bCollectedReceived;
-/*0x031c*/ int         Unknown0x031c;
-/*0x0320*/ int         Unknown0x0320;
-/*0x0324*/ bool        bScribed;
-/*0x0325*/ bool        bScribedReceived;
-/*0x0326*/ BYTE        Unknown0x0326[0x2f2];
-/*0x0618*/ DWORD       Unknown0x0618;
-/*0x061c*/ DWORD       Unknown0x061C;
-/*0x0620*/ DWORD       Unknown0x0620;
-/*0x0624*/ DWORD       Unknown0x0624;
-/*0x0628*/ DWORD       Unknown0x0628;
-/*0x062c*/ DWORD       Unknown0x062c;
-/*0x0630*/ DWORD       Unknown0x0630;
-/*0x0634*/ DWORD       ItemWndIndex;             // 0-5? you can have max 6 windows up I think before it starts overwriting the sixth.
-/*0x0638*/
-};
-using PEQITEMWINDOW = EQITEMWINDOW*;
-
-// CLootWnd__CLootWnd aLootwnd
-// CLootWnd_size: 0x3a8 (see 542F56) in May 17 2019 Test
 struct EQLOOTWINDOW
 {
 /*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
 /*0x0240*/ void*       vftable;                  // for CLootWnd::DialogResponse handler
-/*0x0244*/ BYTE        Unknown0x0244[0x98];
-/*0x02dc*/ DWORD       NumOfSlots;
-/*0x02e0*/ BYTE        Unknown0x02e0[0x4];
-/*0x02e4*/ INVENTORYARRAY* pInventoryArray;
-/*0x02e8*/ DWORD       Size;
-/*0x02ec*/ DWORD       NumOfSlots3;
-/*0x02f0*/ BYTE        Unknown0x02f0[0x8];
-/*0x02f8*/ BYTE        Unknown0x02f8;
-/*0x02f9*/ BYTE        Unknown0x02f9;
-/*0x02fa*/ BYTE        Unknown0x02fa;
-/*0x02fb*/ BYTE        Unknown0x02fb;
-/*0x02fc*/ CSIDLWND*   LootInvWnd;
-/*0x0300*/ CSIDLWND*   LootSlotWnd[0x22];
-/*0x0388*/ CSIDLWND*   LW_CorpseName;
-/*0x038c*/ CSIDLWND*   DoneButton;
-/*0x0390*/ CSIDLWND*   BroadcastButton;
-/*0x0394*/ CSIDLWND*   LootAllButton;
-/*0x0398*/ BYTE        Unknown0x0398[0x10];
-/*0x03a8*/
+
 };
 using PEQLOOTWINDOW = EQLOOTWINDOW*;
-
-
-struct merchdata
-{
-/*0x00*/ void*         vftable;                  // VeBaseReferenceCount
-/*0x04*/ BYTE          Unknown0x4[0x8];
-/*0x0c*/ DWORD         MerchSlots;
-/*0x10*/ DWORD         SelectedListItem;
-/*0x14*/ DWORD         Unknown0x14[4];
-/*0x24*/ CONTENTSARRAY* pMerchArray;
-/*0x28*/ DWORD         MerchMaxSlots;
-/*0x2c*/
-};
-
-struct merch_other
-{
-	merchdata*         pMerchData;               // purchase page
-	void*              other;                    // buyback page
-	void*              other2;                   // mail page
-};
-
-// CMerchantWnd__CMerchantWnd_x (aMerchantwnd)
-// CMerchantWnd_size: 0x458 (see 5430B2) in May 17 2019 Test
-struct EQMERCHWINDOW
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ BYTE        Unknown0x0240[0x10];
-/*0x0250*/ merch_other* pMerchOther;             // found in CMerchantWnd__CMerchantWnd
-/*0x0254*/ BYTE        Unknown0x0254[0x8];
-/*0x025c*/ FLOAT       Markup;                   // found in CMerchantWnd__DisplayBuyOrSellPrice_x
-/*0x0260*/ BYTE        Unknown0x0260[0xc];
-/*0x026c*/ DWORD       SelectedSlotID;
-/*0x0270*/ BYTE        Unknown0x0270[0x1e8];
-/*0x0458*/
-};
-using PEQMERCHWINDOW = EQMERCHWINDOW*;
 
 // CPetInfoWindow__CPetInfoWindow aPetinfowindow
 // CPetInfoWindow_size: 0x8d8 (see 5420D1) in May 17 2019 Test
@@ -973,26 +617,6 @@ struct EQTRADEWINDOW
 };
 using PEQTRADEWINDOW = EQTRADEWINDOW*;
 
-// CFactionWnd__CFactionWnd_x aFactionwnd
-// CFactionWnd__size: 0x288 (see 5432A4) in May 17 2019 Test
-struct EQFACTIONWINDOW
-{
-/*0x0000*/ CSIDLWND    Wnd;                      // inherits from CSidlScreenWnd
-/*0x0240*/ int         Unknown0x0240;
-/*0x0244*/ bool        bUnknown0x0244;
-/*0x0248*/ int         Unknown0x0248;
-/*0x024c*/ int         Unknown0x024c;
-/*0x0250*/ int         Unknown0x0250;
-/*0x0254*/ IString<char> Unknown0x0254;
-/*0x0264*/ IString<char> Unknown0x0264;
-/*0x0274*/ void*       StandingGaugeTemplate;    // CGaugeWnd*
-/*0x0278*/ void*       Categories;               // CTreeView*
-/*0x027c*/ void*       SearchNameInput;          // CEditWnd*
-/*0x0280*/ CBUTTONWND* SearchButton;             // CButtonWnd*
-/*0x0284*/ void*       FactionList;              // CListWnd*
-/*0x0288*/
-};
-using PEQFACTIONWINDOW = EQFACTIONWINDOW*;
 
 } // namespace eqlib
 
