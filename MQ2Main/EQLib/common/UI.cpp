@@ -62,6 +62,403 @@ CUITextureInfo::CUITextureInfo(uint32_t id, const CXSize& size)
 }
 
 //============================================================================
+// CTAFrameDraw
+//============================================================================
+
+CTAFrameDraw::CTAFrameDraw(CXStr name)
+	: m_name(name)
+{
+	for (int i = 0; i < FrameDraw_Max; ++i)
+		m_pta[i] = nullptr;
+}
+
+CTextureAnimation* CTAFrameDraw::GetAnimation(EFrameDrawPiece piece) const
+{
+	return m_pta[piece];
+}
+
+void CTAFrameDraw::SetAnimation(EFrameDrawPiece which, CTextureAnimation* tex)
+{
+	m_pta[which] = tex;
+}
+
+void CTAFrameDraw::Set(CTextureAnimation* pta[FrameDraw_Max])
+{
+	for (int i = 0; i < FrameDraw_Max; ++i)
+		m_pta[i] = pta[i];
+}
+
+int CTAFrameDraw::Draw(const CXRect& rect, const CXRect& clip) const
+{
+	for (int i = 0; i < FrameDraw_Max; ++i)
+	{
+		int result = Draw(rect, clip, (EFrameDrawPiece)i);
+
+		if (result < 0)
+			return result;
+	}
+
+	return 0;
+}
+
+int CTAFrameDraw::Draw(const CXRect& rect, const CXRect& clip, EFrameDrawPiece which) const
+{
+	if (which >= 0 && which < FrameDraw_Max)
+	{
+		CXRect pieceRect = GetPieceRect(rect, which);
+
+		auto pta = m_pta[which];
+		if (pta != nullptr)
+		{
+			return pta->Draw(rect, clip);
+		}
+	}
+
+	return 0;
+}
+
+bool CTAFrameDraw::IsHorizontal() const
+{
+	return m_pta[FrameDraw_TopLeft] == nullptr
+		&& m_pta[FrameDraw_Top] == nullptr
+		&& m_pta[FrameDraw_TopRight] == nullptr
+		&& m_pta[FrameDraw_BottomLeft] == nullptr
+		&& m_pta[FrameDraw_Bottom] == nullptr
+		&& m_pta[FrameDraw_BottomRight] == nullptr;
+}
+
+bool CTAFrameDraw::IsVertical() const
+{
+	return m_pta[FrameDraw_LeftTop] == nullptr
+		&& m_pta[FrameDraw_Left] == nullptr
+		&& m_pta[FrameDraw_LeftBottom] == nullptr
+		&& m_pta[FrameDraw_RightTop] == nullptr
+		&& m_pta[FrameDraw_Right] == nullptr
+		&& m_pta[FrameDraw_RightBottom] == nullptr;
+}
+
+CXRect CTAFrameDraw::GetHitTestRect(const CXRect& rect, int which) const
+{
+	CXRect pieceRect = GetPieceRect(rect, which);
+
+	switch (which)
+	{
+	case FrameDraw_TopLeft:
+	case FrameDraw_Top:
+	case FrameDraw_TopRight:
+		pieceRect.bottom -= m_nOverlapTop;
+		break;
+
+	case FrameDraw_RightTop:
+	case FrameDraw_Right:
+	case FrameDraw_RightBottom:
+		pieceRect.left += m_nOverlapRight;
+		break;
+
+	case FrameDraw_BottomRight:
+	case FrameDraw_Bottom:
+	case FrameDraw_BottomLeft:
+		pieceRect.top += m_nOverlapBottom;
+		break;
+
+	case FrameDraw_LeftTop:
+	case FrameDraw_Left:
+	case FrameDraw_LeftBottom:
+		pieceRect.right -= m_nOverlapLeft;
+		break;
+
+	case FrameDraw_Middle:
+		pieceRect.right -= m_nOverlapLeft;
+		pieceRect.bottom -= m_nOverlapTop;
+		pieceRect.left += m_nOverlapRight;
+		pieceRect.top += m_nOverlapBottom;
+		break;
+	}
+
+	return pieceRect;
+}
+
+CXRect CTAFrameDraw::GetInnerRect(const CXRect& rectIn) const
+{
+	int top = 0;
+	CXRect rect = rectIn;
+
+	if (m_pta[FrameDraw_TopLeft] != nullptr)
+	{
+		top = std::max(top, m_pta[FrameDraw_TopLeft]->GetHeight());
+	}
+
+	if (m_pta[FrameDraw_TopLeft] != nullptr)
+	{
+		top = std::max(top, m_pta[FrameDraw_TopRight]->GetHeight());
+	}
+
+	if (m_pta[FrameDraw_TopLeft] != nullptr)
+	{
+		top = std::max(top, m_pta[FrameDraw_Top]->GetHeight());
+	}
+
+	int left = 0;
+
+	if (m_pta[FrameDraw_LeftTop] != nullptr)
+	{
+		left = std::max(left, m_pta[FrameDraw_LeftTop]->GetWidth());
+	}
+
+	if (m_pta[FrameDraw_Left] != nullptr)
+	{
+		left = std::max(left, m_pta[FrameDraw_Left]->GetWidth());
+	}
+
+	if (m_pta[FrameDraw_LeftBottom] != nullptr)
+	{
+		left = std::max(left, m_pta[FrameDraw_LeftBottom]->GetWidth());
+	}
+
+	int right = 0;
+
+	if (m_pta[FrameDraw_RightTop] != nullptr)
+	{
+		right = std::max(right, m_pta[FrameDraw_RightTop]->GetWidth());
+	}
+
+	if (m_pta[FrameDraw_Right] != nullptr)
+	{
+		right = std::max(right, m_pta[FrameDraw_Right]->GetWidth());
+	}
+
+	if (m_pta[FrameDraw_RightBottom] != nullptr)
+	{
+		right = std::max(right, m_pta[FrameDraw_RightBottom]->GetWidth());
+	}
+
+	int bottom = 0;
+
+	if (m_pta[FrameDraw_BottomRight] != nullptr)
+	{
+		bottom = std::max(bottom, m_pta[FrameDraw_BottomRight]->GetHeight());
+	}
+
+	if (m_pta[FrameDraw_Bottom] != nullptr)
+	{
+		bottom = std::max(bottom, m_pta[FrameDraw_Bottom]->GetHeight());
+	}
+
+	if (m_pta[FrameDraw_BottomLeft] != nullptr)
+	{
+		bottom = std::max(bottom, m_pta[FrameDraw_BottomLeft]->GetHeight());
+	}
+
+	rect.left = rect.left + (left - m_nOverlapLeft);
+	rect.top = rect.top + (top - m_nOverlapTop);
+	rect.right = rect.right - (right - m_nOverlapRight);
+	rect.bottom = rect.bottom - (bottom - m_nOverlapBottom);
+
+	return rect;
+}
+
+CXRect CTAFrameDraw::GetPieceRect(const CXRect& rect, int which) const
+{
+	if (which == FrameDraw_Middle)
+	{
+		return GetInnerRect(rect);
+	}
+
+	CTextureAnimation* pta = m_pta[which];
+	CXRect pieceRect = rect;
+
+	switch (which)
+	{
+	case FrameDraw_TopLeft:
+		if (pta != nullptr)
+		{
+			pieceRect = CXRect{ rect.TopLeft(), pta->GetSize() };
+		}
+		else
+		{
+			pieceRect.right = pieceRect.left;
+			pieceRect.bottom = pieceRect.top;
+		}
+		return pieceRect;
+
+	case FrameDraw_TopRight:
+		if (pta != nullptr)
+		{
+			pieceRect.left = pieceRect.right - pta->GetWidth();
+			pieceRect.bottom = pieceRect.top + pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.left = pieceRect.right;
+			pieceRect.bottom = pieceRect.top;
+		}
+		return pieceRect;
+
+	case FrameDraw_RightTop:
+		if (pta != nullptr)
+		{
+			pieceRect.left = rect.right - pta->GetWidth();
+			auto topRight = m_pta[FrameDraw_TopRight];
+			if (topRight != nullptr)
+				pieceRect.top = rect.top + topRight->GetHeight();
+			pieceRect.bottom = pieceRect.top + pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.right = pieceRect.left;
+			pieceRect.bottom = pieceRect.top;
+		}
+		return pieceRect;
+
+	case FrameDraw_RightBottom:
+		if (pta != nullptr)
+		{
+			pieceRect.left = rect.right - pta->GetWidth();
+			auto bottomRight = m_pta[FrameDraw_BottomRight];
+			if (bottomRight != nullptr)
+				pieceRect.top = pieceRect.bottom - bottomRight->GetHeight() - pta->GetHeight();
+			else
+				pieceRect.top = pieceRect.bottom - pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.left = pieceRect.right;
+			pieceRect.top = pieceRect.bottom;
+		}
+		return pieceRect;
+
+	case FrameDraw_BottomRight:
+		if (pta != nullptr)
+		{
+			pieceRect.left = rect.right - pta->GetWidth();
+			pieceRect.top = pieceRect.bottom - pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.left = pieceRect.right;
+			pieceRect.top = pieceRect.bottom;
+		}
+		return pieceRect;
+
+	case FrameDraw_BottomLeft:
+		if (pta != nullptr)
+		{
+			pieceRect.right = pieceRect.left + pta->GetWidth();
+			pieceRect.top = pieceRect.bottom - pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.right = pieceRect.left;
+			pieceRect.top = pieceRect.bottom;
+		}
+		return pieceRect;
+
+	case FrameDraw_LeftTop:
+		if (pta != nullptr)
+		{
+			pieceRect.right = pieceRect.left + pta->GetWidth();
+			auto topLeft = m_pta[FrameDraw_TopLeft];
+			if (topLeft != nullptr)
+				pieceRect.top = rect.top + topLeft->GetHeight();
+			pieceRect.bottom = pieceRect.top + pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.right = pieceRect.left;
+			pieceRect.bottom = pieceRect.top;
+		}
+		return pieceRect;
+
+	case FrameDraw_LeftBottom:
+		if (pta != nullptr)
+		{
+			pieceRect.right = pieceRect.left + pta->GetWidth();
+			auto bottomLeft = m_pta[FrameDraw_BottomLeft];
+			if (bottomLeft)
+				pieceRect.top = pieceRect.bottom - bottomLeft->GetHeight() - pta->GetHeight();
+			else
+				pieceRect.top = pieceRect.bottom - pta->GetHeight();
+			pieceRect.bottom = pieceRect.top + pta->GetHeight();
+		}
+		else
+		{
+			pieceRect.right = pieceRect.left;
+			pieceRect.top = pieceRect.bottom;
+		}
+		return pieceRect;
+
+	case FrameDraw_Top:
+		pieceRect = CXRect{
+			GetPieceRect(rect, FrameDraw_TopLeft).TopRight(),
+			GetPieceRect(rect, FrameDraw_TopRight).TopLeft() };
+		if (pta != nullptr)
+			pieceRect.bottom = rect.top + pta->GetHeight();
+		return pieceRect;
+
+	case FrameDraw_Right:
+		pieceRect = CXRect{
+			GetPieceRect(rect, FrameDraw_RightTop).BottomLeft(),
+			GetPieceRect(rect, FrameDraw_RightBottom).TopRight() };
+		if (pieceRect.top > pieceRect.bottom)
+			return {};
+		if (pta != nullptr)
+			pieceRect.left = rect.right - pta->GetWidth();
+		return pieceRect;
+
+	case FrameDraw_Bottom:
+		pieceRect = CXRect{
+			GetPieceRect(rect, FrameDraw_BottomLeft).BottomRight(),
+			GetPieceRect(rect, FrameDraw_BottomRight).BottomLeft() };
+		if (pta)
+			pieceRect.top = rect.bottom - pta->GetHeight();
+		return pieceRect;
+
+	case FrameDraw_Left:
+		pieceRect = CXRect{
+			GetPieceRect(rect, FrameDraw_LeftTop).BottomLeft(),
+			GetPieceRect(rect, FrameDraw_LeftBottom).TopRight() };
+		if (pieceRect.top > pieceRect.bottom)
+			return {};
+		if (pta != nullptr)
+			pieceRect.right = rect.left + pta->GetWidth();
+		return pieceRect;
+	}
+
+	return {};
+}
+
+CXSize CTAFrameDraw::GetFrameSize() const
+{
+	CXRect inner = GetInnerRect({ 0, 0, 100, 100 });
+
+	return { 100 - inner.GetWidth(), 100 - inner.GetHeight() };
+}
+
+int CTAFrameDraw::GetExtent() const
+{
+	int extent = 0;
+
+	if (IsVertical())
+	{
+		for (int i = 0; i < FrameDraw_Max; ++i)
+		{
+			if (m_pta[i] != nullptr)
+				extent = std::max(extent, m_pta[i]->GetWidth());
+		}
+	}
+	else if (IsHorizontal())
+	{
+		for (int i = 0; i < FrameDraw_Max; ++i)
+		{
+			if (m_pta[i] != nullptr)
+				extent = std::max(extent, m_pta[i]->GetHeight());
+		}
+	}
+
+	return extent;
+}
+
+//============================================================================
 // CUITexturePiece
 //============================================================================
 
@@ -771,6 +1168,225 @@ FUNCTION_AT_ADDRESS(CXRect CListWnd::GetSeparatorRect(int) const, CListWnd__GetS
 #endif
 #ifdef CListWnd__GetHeaderRect_x
 FUNCTION_AT_ADDRESS(CXRect CListWnd::GetHeaderRect(int) const, CListWnd__GetHeaderRect);
+#endif
+
+//============================================================================
+// CSliderWnd
+//============================================================================
+
+#ifdef CSliderWnd__CSliderWnd_x
+FUNCTION_AT_ADDRESS(CSliderWnd::CSliderWnd(CXWnd*, uint32_t, CXRect, CSliderTemplate*), CSliderWnd__CSliderWnd);
+#endif
+#ifdef CSliderWnd__SetValue_x
+FUNCTION_AT_ADDRESS(void CSliderWnd::SetValue(int), CSliderWnd__SetValue);
+#endif
+#ifdef CSliderWnd__SetNumTicks_x
+FUNCTION_AT_ADDRESS(void CSliderWnd::SetNumTicks(int), CSliderWnd__SetNumTicks);
+#endif
+#ifdef CSliderWnd__UpdateThumb_x
+FUNCTION_AT_ADDRESS(void CSliderWnd::UpdateThumb(), CSliderWnd__UpdateThumb);
+#endif
+#ifdef CSliderWnd__UpdateMiddleRange_x
+FUNCTION_AT_ADDRESS(void CSliderWnd::UpdateMiddleRange(), CSliderWnd__UpdateMiddleRange);
+#endif
+#ifdef CSliderWnd__GetValue_x
+FUNCTION_AT_ADDRESS(int CSliderWnd::GetValue() const, CSliderWnd__GetValue);
+#endif
+#ifdef CSliderWnd__GetMiddleRangeRect_x
+FUNCTION_AT_ADDRESS(CXRect CSliderWnd::GetMiddleRangeRect() const, CSliderWnd__GetMiddleRangeRect);
+#endif
+#ifdef CSliderWnd__GetEndCapLeftRect_x
+FUNCTION_AT_ADDRESS(CXRect CSliderWnd::GetEndCapLeftRect() const, CSliderWnd__GetEndCapLeftRect);
+#endif
+#ifdef CSliderWnd__GetEndCapRightRect_x
+FUNCTION_AT_ADDRESS(CXRect CSliderWnd::GetEndCapRightRect() const, CSliderWnd__GetEndCapRightRect);
+#endif
+#ifdef CSliderWnd__GetThumbRect_x
+FUNCTION_AT_ADDRESS(CXRect CSliderWnd::GetThumbRect() const, CSliderWnd__GetThumbRect);
+#endif
+#ifdef CSliderWnd__SetThumbToOffset_x
+FUNCTION_AT_ADDRESS(void CSliderWnd::SetThumbToOffset(int), CSliderWnd__SetThumbToOffset);
+#endif
+#ifdef CSliderWnd__DrawMiddleRange_x
+FUNCTION_AT_ADDRESS(int CSliderWnd::DrawMiddleRange() const, CSliderWnd__DrawMiddleRange);
+#endif
+#ifdef CSliderWnd__DrawEndCapLeft_x
+FUNCTION_AT_ADDRESS(int CSliderWnd::DrawEndCapLeft() const, CSliderWnd__DrawEndCapLeft);
+#endif
+#ifdef CSliderWnd__DrawEndCapRight_x
+FUNCTION_AT_ADDRESS(int CSliderWnd::DrawEndCapRight() const, CSliderWnd__DrawEndCapRight);
+#endif
+#ifdef CSliderWnd__DrawThumb_x
+FUNCTION_AT_ADDRESS(int CSliderWnd::DrawThumb() const, CSliderWnd__DrawThumb);
+#endif
+
+//============================================================================
+// CStmlWnd
+//============================================================================
+
+#ifdef CStmlWnd__GetSTMLText_x
+FUNCTION_AT_ADDRESS(CXStr CStmlWnd::GetSTMLText() const, CStmlWnd__GetSTMLText);
+#endif
+#ifdef CStmlWnd__CStmlWnd_x
+FUNCTION_AT_ADDRESS(CStmlWnd::CStmlWnd(CXWnd*, uint32_t, CXRect), CStmlWnd__CStmlWnd);
+#endif
+#ifdef CStmlWnd__InitializeTextLine_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::InitializeTextLine(SParseVariables*, int), CStmlWnd__InitializeTextLine);
+#endif
+#ifdef CStmlWnd__AddTextPieceToLine_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::AddTextPieceToLine(SParseVariables*), CStmlWnd__AddTextPieceToLine);
+#endif
+#ifdef CStmlWnd__MakeStmlColorTag_x
+FUNCTION_AT_ADDRESS(CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long), CStmlWnd__MakeStmlColorTag);
+#endif
+#ifdef CStmlWnd__MakeWndNotificationTag_x
+FUNCTION_AT_ADDRESS(CXStr CStmlWnd::MakeWndNotificationTag(uint32_t, const CXStr&, const CXStr&), CStmlWnd__MakeWndNotificationTag);
+#endif
+#ifdef CStmlWnd__ParseTagColor_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ParseTagColor(CXStr, unsigned long*) const, CStmlWnd__ParseTagColor);
+#endif
+#ifdef CStmlWnd__ParseTagFace_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ParseTagFace(CXStr, CTextureFont const**) const, CStmlWnd__ParseTagFace);
+#endif
+#ifdef CStmlWnd__ParseAmpersand_x
+FUNCTION_AT_ADDRESS(bool CStmlWnd::ParseAmpersand(CXStr&, char*) const, CStmlWnd__ParseAmpersand);
+#endif
+#ifdef CStmlWnd__FastForwardPastSpaces_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastSpaces(CXStr&, int*), CStmlWnd__FastForwardPastSpaces);
+#endif
+#ifdef CStmlWnd__FastForwardPastSpacesAndQuotes_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastSpacesAndQuotes(CXStr&, int*), CStmlWnd__FastForwardPastSpacesAndQuotes);
+#endif
+#ifdef CStmlWnd__GetNextTagPiece_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::GetNextTagPiece(const CXStr&, CXStr*, int*, bool (*)(unsigned short), bool), CStmlWnd__GetNextTagPiece);
+#endif
+#ifdef CStmlWnd__IsCharacterNotQuotes_x
+FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotQuotes(unsigned short), CStmlWnd__IsCharacterNotQuotes);
+#endif
+#ifdef CStmlWnd__FastForwardPastQuotesAndGetNextTagPiece_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece(CXStr&, CXStr*, int*, bool), CStmlWnd__FastForwardPastQuotesAndGetNextTagPiece);
+#endif
+#ifdef CStmlWnd__FastForwardToEndOfTag_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::FastForwardToEndOfTag(const CXStr&, CXStr*, int*, char), CStmlWnd__FastForwardToEndOfTag);
+#endif
+#ifdef CStmlWnd__InitializeTempVariables_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::InitializeTempVariables(SParseVariables*, CXRect), CStmlWnd__InitializeTempVariables);
+#endif
+#ifdef CStmlWnd__InitializeWindowVariables_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::InitializeWindowVariables(), CStmlWnd__InitializeWindowVariables);
+#endif
+#ifdef CStmlWnd__ResetTempVariablesForNewLine_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ResetTempVariablesForNewLine(SParseVariables*), CStmlWnd__ResetTempVariablesForNewLine);
+#endif
+#ifdef CStmlWnd__GetNextChar_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::GetNextChar(int*, CXStr&), CStmlWnd__GetNextChar);
+#endif
+#ifdef CStmlWnd__GetThisChar_x
+FUNCTION_AT_ADDRESS(unsigned short CStmlWnd::GetThisChar(int, CXStr&), CStmlWnd__GetThisChar);
+#endif
+#ifdef CStmlWnd__IsCharacterNotEquals_x
+FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotEquals(unsigned short), CStmlWnd__IsCharacterNotEquals);
+#endif
+#ifdef CStmlWnd__IsCharacterNotASpaceAndNotNULL_x
+FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::IsCharacterNotASpaceAndNotNULL(unsigned short), CStmlWnd__IsCharacterNotASpaceAndNotNULL);
+#endif
+#ifdef CStmlWnd__ParseSTMLHead_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ParseSTMLHead(CXStr&), CStmlWnd__ParseSTMLHead);
+#endif
+#ifdef CStmlWnd__ParseSTMLTable_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ParseSTMLTable(CXStr&, int*, CXStr&, SParseVariables*), CStmlWnd__ParseSTMLTable);
+#endif
+#ifdef CStmlWnd__ParseSTMLTableAttributes_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ParseSTMLTableAttributes(CXStr, STable*), CStmlWnd__ParseSTMLTableAttributes);
+#endif
+#ifdef CStmlWnd__ForceParseNow_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::ForceParseNow(), CStmlWnd__ForceParseNow);
+#endif
+#ifdef CStmlWnd__CalculateVSBRange_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::CalculateVSBRange(int), CStmlWnd__CalculateVSBRange);
+#endif
+#ifdef CStmlWnd__CalculateHSBRange_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::CalculateHSBRange(int), CStmlWnd__CalculateHSBRange);
+#endif
+#ifdef CStmlWnd__CompleteParse_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::CompleteParse(), CStmlWnd__CompleteParse);
+#endif
+#ifdef CStmlWnd__StripFirstSTMLLines_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::StripFirstSTMLLines(int), CStmlWnd__StripFirstSTMLLines);
+#endif
+#ifdef CStmlWnd__CanBreakAtCharacter_x
+FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short), CStmlWnd__CanBreakAtCharacter);
+#endif
+#ifdef CStmlWnd__UpdateHistoryString_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::UpdateHistoryString(int32_t, const CXStr&), CStmlWnd__UpdateHistoryString);
+#endif
+#ifdef CStmlWnd__SetSTMLTextWithoutHistory_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::SetSTMLTextWithoutHistory(CXStr), CStmlWnd__SetSTMLTextWithoutHistory);
+#endif
+#ifdef CStmlWnd__GoToBackHistoryLink_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::GoToBackHistoryLink(), CStmlWnd__GoToBackHistoryLink);
+#endif
+#ifdef CStmlWnd__CanGoBackward_x
+FUNCTION_AT_ADDRESS(bool CStmlWnd::CanGoBackward(), CStmlWnd__CanGoBackward);
+#endif
+
+//============================================================================
+// CTabWnd
+//============================================================================
+
+#ifdef CTabWnd__CTabWnd_x
+FUNCTION_AT_ADDRESS(CTabWnd::CTabWnd(CXWnd* pParent, UINT uId, RECT* rect, CTabBoxTemplate* pTabContents), CTabWnd__CTabWnd);
+#endif
+#ifdef CTabWnd__GetNumTabs_x
+FUNCTION_AT_ADDRESS(int CTabWnd::GetNumTabs() const, CTabWnd__GetNumTabs);
+#endif
+#ifdef CTabWnd__GetCurrentPage_x
+FUNCTION_AT_ADDRESS(CPageWnd* CTabWnd::GetCurrentPage() const, CTabWnd__GetCurrentPage);
+#endif
+#ifdef CTabWnd__GetTabRect_x
+FUNCTION_AT_ADDRESS(CXRect CTabWnd::GetTabRect(int) const, CTabWnd__GetTabRect);
+#endif
+#ifdef CTabWnd__GetTabInnerRect_x
+FUNCTION_AT_ADDRESS(CXRect CTabWnd::GetTabInnerRect(int) const, CTabWnd__GetTabInnerRect);
+#endif
+#ifdef CTabWnd__GetPageClientRect_x
+FUNCTION_AT_ADDRESS(CXRect CTabWnd::GetPageClientRect() const, CTabWnd__GetPageClientRect);
+#endif
+#ifdef CTabWnd__GetPageInnerRect_x
+FUNCTION_AT_ADDRESS(CXRect CTabWnd::GetPageInnerRect() const, CTabWnd__GetPageInnerRect);
+#endif
+#ifdef CTabWnd__SetPage_x
+FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(int, bool, bool, bool), CTabWnd__SetPage);
+#endif
+#ifdef CTabWnd__SetPage1_x
+FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(CPageWnd*, bool), CTabWnd__SetPage1);
+#endif
+#ifdef CTabWnd__InsertPage_x
+FUNCTION_AT_ADDRESS(void CTabWnd::InsertPage(CPageWnd*, int), CTabWnd__InsertPage);
+#endif
+#ifdef CTabWnd__SetPageRect_x
+FUNCTION_AT_ADDRESS(void CTabWnd::SetPageRect(const CXRect&), CTabWnd__SetPageRect);
+#endif
+#ifdef CTabWnd__UpdatePage_x
+FUNCTION_AT_ADDRESS(void CTabWnd::UpdatePage(), CTabWnd__UpdatePage);
+#endif
+#ifdef CTabWnd__GetPageFromTabIndex_x
+FUNCTION_AT_ADDRESS(CPageWnd* CTabWnd::GetPageFromTabIndex(int) const, CTabWnd__GetPageFromTabIndex);
+#endif
+#ifdef CTabWnd__GetCurrentTabIndex_x
+FUNCTION_AT_ADDRESS(int CTabWnd::GetCurrentTabIndex() const, CTabWnd__GetCurrentTabIndex);
+#endif
+#ifdef CTabWnd__IndexInBounds_x
+FUNCTION_AT_ADDRESS(bool CTabWnd::IndexInBounds(int) const, CTabWnd__IndexInBounds);
+#endif
+#ifdef CTabWnd__GetPageFromTabPoint_x
+FUNCTION_AT_ADDRESS(CPageWnd* CTabWnd::GetPageFromTabPoint(CXPoint) const, CTabWnd__GetPageFromTabPoint);
+#endif
+#ifdef CTabWnd__DrawTab_x
+FUNCTION_AT_ADDRESS(int CTabWnd::DrawTab(int) const, CTabWnd__DrawTab);
+#endif
+#ifdef CTabWnd__DrawCurrentPage_x
+FUNCTION_AT_ADDRESS(int CTabWnd::DrawCurrentPage() const, CTabWnd__DrawCurrentPage);
 #endif
 
 //============================================================================
@@ -2031,6 +2647,646 @@ FUNCTION_AT_ADDRESS(void CMerchantWnd::AddContainerToMercArray(EQ_Container*), C
 #endif
 #ifdef CMerchantWnd__ClearMerchantSlot_x
 FUNCTION_AT_ADDRESS(void CMerchantWnd::ClearMerchantSlot(int), CMerchantWnd__ClearMerchantSlot);
+#endif
+
+//============================================================================
+// CMusicPlayerWnd
+//============================================================================
+
+#ifdef CMusicPlayerWnd__AutoStart_x
+FUNCTION_AT_ADDRESS(void CMusicPlayerWnd::AutoStart(), CMusicPlayerWnd__AutoStart);
+#endif
+#ifdef CMusicPlayerWnd__Update_x
+FUNCTION_AT_ADDRESS(void CMusicPlayerWnd::Update(), CMusicPlayerWnd__Update);
+#endif
+#ifdef CMusicPlayerWnd__UpdateButtons_x
+FUNCTION_AT_ADDRESS(void CMusicPlayerWnd::UpdateButtons(), CMusicPlayerWnd__UpdateButtons);
+#endif
+
+//============================================================================
+// CNoteWnd
+//============================================================================
+
+#ifdef CNoteWnd__CheckNote_x
+FUNCTION_AT_ADDRESS(bool CNoteWnd::CheckNote(EQ_Note*), CNoteWnd__CheckNote);
+#endif
+#ifdef CNoteWnd__SetNote_x
+FUNCTION_AT_ADDRESS(void CNoteWnd::SetNote(char*), CNoteWnd__SetNote);
+#endif
+
+//============================================================================
+// COptionsWnd
+//============================================================================
+
+#ifdef COptionsWnd__FillChatFilterList_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::FillChatFilterList(), COptionsWnd__FillChatFilterList);
+#endif
+#ifdef COptionsWnd__SyncGeneralPage_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::SyncGeneralPage(), COptionsWnd__SyncGeneralPage);
+#endif
+#ifdef COptionsWnd__SyncDisplayPage_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::SyncDisplayPage(), COptionsWnd__SyncDisplayPage);
+#endif
+#ifdef COptionsWnd__SyncMousePage_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::SyncMousePage(), COptionsWnd__SyncMousePage);
+#endif
+#ifdef COptionsWnd__SyncChatPage_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::SyncChatPage(), COptionsWnd__SyncChatPage);
+#endif
+#ifdef COptionsWnd__SyncColorPage_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::SyncColorPage(), COptionsWnd__SyncColorPage);
+#endif
+#ifdef COptionsWnd__InitKeyboardPage_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::InitKeyboardPage(), COptionsWnd__InitKeyboardPage);
+#endif
+#ifdef COptionsWnd__InitKeyboardAssignments_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::InitKeyboardAssignments(), COptionsWnd__InitKeyboardAssignments);
+#endif
+#ifdef COptionsWnd__RefreshCurrentKeyboardAssignmentList_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::RefreshCurrentKeyboardAssignmentList(), COptionsWnd__RefreshCurrentKeyboardAssignmentList);
+#endif
+#ifdef COptionsWnd__AddKeyboardAssignment_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::AddKeyboardAssignment(int, int, int), COptionsWnd__AddKeyboardAssignment);
+#endif
+#ifdef COptionsWnd__ResetKeysToDefault_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::ResetKeysToDefault(), COptionsWnd__ResetKeysToDefault);
+#endif
+#ifdef COptionsWnd__RedirectOnProcessFrameTo_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::RedirectOnProcessFrameTo(CPageWnd*), COptionsWnd__RedirectOnProcessFrameTo);
+#endif
+#ifdef COptionsWnd__RedirectWndNotificationTo_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::RedirectWndNotificationTo(CPageWnd*, CXWnd*, uint32_t, void*), COptionsWnd__RedirectWndNotificationTo);
+#endif
+#ifdef COptionsWnd__RedirectHandleKeyboardMsgTo_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::RedirectHandleKeyboardMsgTo(CPageWnd*, uint32_t, uint32_t, bool), COptionsWnd__RedirectHandleKeyboardMsgTo);
+#endif
+#ifdef COptionsWnd__RedirectDeactivateTo_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::RedirectDeactivateTo(CPageWnd*), COptionsWnd__RedirectDeactivateTo);
+#endif
+#ifdef COptionsWnd__GeneralPageOnProcessFrame_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::GeneralPageOnProcessFrame(), COptionsWnd__GeneralPageOnProcessFrame);
+#endif
+#ifdef COptionsWnd__GeneralPageWndNotification_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::GeneralPageWndNotification(CXWnd*, uint32_t, void*), COptionsWnd__GeneralPageWndNotification);
+#endif
+#ifdef COptionsWnd__DisplayPageOnProcessFrame_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::DisplayPageOnProcessFrame(), COptionsWnd__DisplayPageOnProcessFrame);
+#endif
+#ifdef COptionsWnd__DisplayPageWndNotification_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::DisplayPageWndNotification(CXWnd*, uint32_t, void*), COptionsWnd__DisplayPageWndNotification);
+#endif
+#ifdef COptionsWnd__MousePageOnProcessFrame_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::MousePageOnProcessFrame(), COptionsWnd__MousePageOnProcessFrame);
+#endif
+#ifdef COptionsWnd__MousePageWndNotification_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::MousePageWndNotification(CXWnd*, uint32_t, void*), COptionsWnd__MousePageWndNotification);
+#endif
+#ifdef COptionsWnd__KeyboardPageWndNotification_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::KeyboardPageWndNotification(CXWnd*, uint32_t, void*), COptionsWnd__KeyboardPageWndNotification);
+#endif
+#ifdef COptionsWnd__KeyboardPageHandleKeyboardMsg_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::KeyboardPageHandleKeyboardMsg(uint32_t, uint32_t, bool), COptionsWnd__KeyboardPageHandleKeyboardMsg);
+#endif
+#ifdef COptionsWnd__KeyboardPageDeactivate_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::KeyboardPageDeactivate(), COptionsWnd__KeyboardPageDeactivate);
+#endif
+#ifdef COptionsWnd__KeyboardPageCancelKeypressAssignment_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::KeyboardPageCancelKeypressAssignment(), COptionsWnd__KeyboardPageCancelKeypressAssignment);
+#endif
+#ifdef COptionsWnd__ChatPageOnProcessFrame_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::ChatPageOnProcessFrame(), COptionsWnd__ChatPageOnProcessFrame);
+#endif
+#ifdef COptionsWnd__ColorPageOnProcessFrame_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::ColorPageOnProcessFrame(), COptionsWnd__ColorPageOnProcessFrame);
+#endif
+#ifdef COptionsWnd__ChatPageWndNotification_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::ChatPageWndNotification(CXWnd*, uint32_t, void*), COptionsWnd__ChatPageWndNotification);
+#endif
+#ifdef COptionsWnd__ColorPageWndNotification_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::ColorPageWndNotification(CXWnd*, uint32_t, void*), COptionsWnd__ColorPageWndNotification);
+#endif
+#ifdef COptionsWnd__RestoreDefaultColors_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::RestoreDefaultColors(), COptionsWnd__RestoreDefaultColors);
+#endif
+#ifdef COptionsWnd__SetBagOptions_x
+FUNCTION_AT_ADDRESS(void COptionsWnd::SetBagOptions(int, int), COptionsWnd__SetBagOptions);
+#endif
+
+//============================================================================
+// CPetInfoWnd
+//============================================================================
+
+//============================================================================
+// CPlayerNotesWnd
+//============================================================================
+
+#ifdef CPlayerNotesWnd__SaveNotes_x
+FUNCTION_AT_ADDRESS(void CPlayerNotesWnd::SaveNotes(), CPlayerNotesWnd__SaveNotes);
+#endif
+#ifdef CPlayerNotesWnd__AppendText_x
+FUNCTION_AT_ADDRESS(void CPlayerNotesWnd::AppendText(char*), CPlayerNotesWnd__AppendText);
+#endif
+
+//============================================================================
+// CPlayerWnd
+//============================================================================
+
+#ifdef CPlayerWnd__CreateLocalMenu_x
+FUNCTION_AT_ADDRESS(void CPlayerWnd::CreateLocalMenu(), CPlayerWnd__CreateLocalMenu);
+#endif
+#ifdef CPlayerWnd__UpdateContextMenu_x
+FUNCTION_AT_ADDRESS(void CPlayerWnd::UpdateContextMenu(), CPlayerWnd__UpdateContextMenu);
+#endif
+
+//============================================================================
+// CQuantityWnd
+//============================================================================
+
+#ifdef CQuantityWnd__CheckMaxEditWnd_x
+FUNCTION_AT_ADDRESS(void CQuantityWnd::CheckMaxEditWnd(), CQuantityWnd__CheckMaxEditWnd);
+#endif
+#ifdef CQuantityWnd__Open_x
+FUNCTION_AT_ADDRESS(void CQuantityWnd::Open(CXWnd*, int, int, int, int, int, int, bool), CQuantityWnd__Open);
+#endif
+#ifdef CQuantityWnd__UpdateEditWndFromSlider_x
+FUNCTION_AT_ADDRESS(void CQuantityWnd::UpdateEditWndFromSlider(), CQuantityWnd__UpdateEditWndFromSlider);
+#endif
+#ifdef CQuantityWnd__UpdateSliderFromEditWnd_x
+FUNCTION_AT_ADDRESS(void CQuantityWnd::UpdateSliderFromEditWnd(), CQuantityWnd__UpdateSliderFromEditWnd);
+#endif
+
+//============================================================================
+// CRaidOptionsWnd
+//============================================================================
+
+#ifdef CRaidOptionsWnd__AddLooterToList_x
+FUNCTION_AT_ADDRESS(void CRaidOptionsWnd::AddLooterToList(char*), CRaidOptionsWnd__AddLooterToList);
+#endif
+#ifdef CRaidOptionsWnd__ClearLooterList_x
+FUNCTION_AT_ADDRESS(void CRaidOptionsWnd::ClearLooterList(), CRaidOptionsWnd__ClearLooterList);
+#endif
+#ifdef CRaidOptionsWnd__UpdateComponents_x
+FUNCTION_AT_ADDRESS(void CRaidOptionsWnd::UpdateComponents(), CRaidOptionsWnd__UpdateComponents);
+#endif
+#ifdef CRaidOptionsWnd__InitializeClassColors_x
+FUNCTION_AT_ADDRESS(void CRaidOptionsWnd::InitializeClassColors(), CRaidOptionsWnd__InitializeClassColors);
+#endif
+
+//============================================================================
+// CRaidWnd
+//============================================================================
+
+#ifdef CRaidWnd__AddPlayertoList_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::AddPlayertoList(char*, char*, char*, char*, int, int, bool), CRaidWnd__AddPlayertoList);
+#endif
+#ifdef CRaidWnd__RemovePlayerFromList_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::RemovePlayerFromList(char*, int), CRaidWnd__RemovePlayerFromList);
+#endif
+#ifdef CRaidWnd__SetRaidCount_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::SetRaidCount(int), CRaidWnd__SetRaidCount);
+#endif
+#ifdef CRaidWnd__ClearPlayerList_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::ClearPlayerList(), CRaidWnd__ClearPlayerList);
+#endif
+#ifdef CRaidWnd__AddSeparator_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::AddSeparator(), CRaidWnd__AddSeparator);
+#endif
+#ifdef CRaidWnd__SetRaidMemberRank_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::SetRaidMemberRank(char*, char*, int), CRaidWnd__SetRaidMemberRank);
+#endif
+#ifdef CRaidWnd__ChangePosition_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::ChangePosition(char*, int, int, int, bool), CRaidWnd__ChangePosition);
+#endif
+#ifdef CRaidWnd__ChangeRaidGroupLeader_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::ChangeRaidGroupLeader(char*, int, char*), CRaidWnd__ChangeRaidGroupLeader);
+#endif
+#ifdef CRaidWnd__UpdateMemberName_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::UpdateMemberName(char*, char*, int), CRaidWnd__UpdateMemberName);
+#endif
+#ifdef CRaidWnd__SetRaidTarget_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::SetRaidTarget(char*, int, char*, int), CRaidWnd__SetRaidTarget);
+#endif
+#ifdef CRaidWnd__UpdateLevelAverage_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::UpdateLevelAverage(int), CRaidWnd__UpdateLevelAverage);
+#endif
+#ifdef CRaidWnd__UpdateButtons_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::UpdateButtons(), CRaidWnd__UpdateButtons);
+#endif
+#ifdef CRaidWnd__InitializeClassColors_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::InitializeClassColors(), CRaidWnd__InitializeClassColors);
+#endif
+#ifdef CRaidWnd__SetPlayerClassColor_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::SetPlayerClassColor(int, int, int), CRaidWnd__SetPlayerClassColor);
+#endif
+#ifdef CRaidWnd__SetPlayerClassColor1_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::SetPlayerClassColor(char*, int, int), CRaidWnd__SetPlayerClassColor1);
+#endif
+#ifdef CRaidWnd__SetClassColor_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::SetClassColor(int, unsigned long), CRaidWnd__SetClassColor);
+#endif
+#ifdef CRaidWnd__ResortRaidGroupList_x
+FUNCTION_AT_ADDRESS(void CRaidWnd::ResortRaidGroupList(int, int), CRaidWnd__ResortRaidGroupList);
+#endif
+#ifdef CRaidWnd__FindOpenIndexInGroup_x
+FUNCTION_AT_ADDRESS(int CRaidWnd::FindOpenIndexInGroup(int), CRaidWnd__FindOpenIndexInGroup);
+#endif
+#ifdef CRaidWnd__FindIndexNotInGroupList_x
+FUNCTION_AT_ADDRESS(int CRaidWnd::FindIndexNotInGroupList(char*), CRaidWnd__FindIndexNotInGroupList);
+#endif
+#ifdef CRaidWnd__FindPlayerIndexInGroup_x
+FUNCTION_AT_ADDRESS(int CRaidWnd::FindPlayerIndexInGroup(char*, int), CRaidWnd__FindPlayerIndexInGroup);
+#endif
+
+//============================================================================
+// CSelectorWnd
+//============================================================================
+
+#ifdef CSelectorWnd__KeyMapUpdated_x
+FUNCTION_AT_ADDRESS(void CSelectorWnd::KeyMapUpdated(), CSelectorWnd__KeyMapUpdated);
+#endif
+
+//============================================================================
+// CSkillsSelectWnd
+//============================================================================
+
+#ifdef CSkillsSelectWnd__Refresh_x
+FUNCTION_AT_ADDRESS(void CSkillsSelectWnd::Refresh(), CSkillsSelectWnd__Refresh);
+#endif
+#ifdef CSkillsSelectWnd__UpdateAll_x
+FUNCTION_AT_ADDRESS(void CSkillsSelectWnd::UpdateAll(), CSkillsSelectWnd__UpdateAll);
+#endif
+#ifdef CSkillsSelectWnd__UpdateSkill_x
+FUNCTION_AT_ADDRESS(void CSkillsSelectWnd::UpdateSkill(int), CSkillsSelectWnd__UpdateSkill);
+#endif
+#ifdef CSkillsSelectWnd__SetTypesToDisplay_x
+FUNCTION_AT_ADDRESS(void CSkillsSelectWnd::SetTypesToDisplay(int), CSkillsSelectWnd__SetTypesToDisplay);
+#endif
+
+//============================================================================
+// CSkillsWnd
+//============================================================================
+
+#ifdef CSkillsWnd__SkillImproveOccurred_x
+FUNCTION_AT_ADDRESS(void CSkillsWnd::SkillImproveOccurred(int), CSkillsWnd__SkillImproveOccurred);
+#endif
+#ifdef CSkillsWnd__UpdateAll_x
+FUNCTION_AT_ADDRESS(void CSkillsWnd::UpdateAll(), CSkillsWnd__UpdateAll);
+#endif
+#ifdef CSkillsWnd__UpdateSkill_x
+FUNCTION_AT_ADDRESS(void CSkillsWnd::UpdateSkill(int), CSkillsWnd__UpdateSkill);
+#endif
+
+//============================================================================
+// CSocialEditWnd
+//============================================================================
+
+#ifdef CSocialEditWnd__ClickedAccept_x
+FUNCTION_AT_ADDRESS(void CSocialEditWnd::ClickedAccept(), CSocialEditWnd__ClickedAccept);
+#endif
+#ifdef CSocialEditWnd__ClickedClear_x
+FUNCTION_AT_ADDRESS(void CSocialEditWnd::ClickedClear(), CSocialEditWnd__ClickedClear);
+#endif
+#ifdef CSocialEditWnd__ClickedTextColorButton_x
+FUNCTION_AT_ADDRESS(void CSocialEditWnd::ClickedTextColorButton(int), CSocialEditWnd__ClickedTextColorButton);
+#endif
+#ifdef CSocialEditWnd__GetSocialTextColor_x
+FUNCTION_AT_ADDRESS(unsigned long CSocialEditWnd::GetSocialTextColor(int), CSocialEditWnd__GetSocialTextColor);
+#endif
+#ifdef CSocialEditWnd__UpdateControlsFromSocial_x
+FUNCTION_AT_ADDRESS(void CSocialEditWnd::UpdateControlsFromSocial(), CSocialEditWnd__UpdateControlsFromSocial);
+#endif
+
+//============================================================================
+// CSpellBookWnd
+//============================================================================
+
+#ifdef CSpellBookWnd__GetBookSlot_x
+FUNCTION_AT_ADDRESS(int __cdecl CSpellBookWnd::GetBookSlot(int), CSpellBookWnd__GetBookSlot);
+#endif
+#ifdef CSpellBookWnd__MemorizeSet_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::MemorizeSet(int*, int), CSpellBookWnd__MemorizeSet);
+#endif
+#ifdef CSpellBookWnd__ContinueSetMem_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::ContinueSetMem(), CSpellBookWnd__ContinueSetMem);
+#endif
+#ifdef CSpellBookWnd__DelayedSpellMem_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::DelayedSpellMem(int, int, int), CSpellBookWnd__DelayedSpellMem);
+#endif
+#ifdef CSpellBookWnd__EndSetMem_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::EndSetMem(), CSpellBookWnd__EndSetMem);
+#endif
+#ifdef CSpellBookWnd__AutoMemSpell_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::AutoMemSpell(int, int), CSpellBookWnd__AutoMemSpell);
+#endif
+#ifdef CSpellBookWnd__HandleLeftClickOnSpell_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::HandleLeftClickOnSpell(int), CSpellBookWnd__HandleLeftClickOnSpell);
+#endif
+#ifdef CSpellBookWnd__HandleRightClickOnSpell_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::HandleRightClickOnSpell(int), CSpellBookWnd__HandleRightClickOnSpell);
+#endif
+#ifdef CSpellBookWnd__CanStartMemming_x
+FUNCTION_AT_ADDRESS(bool CSpellBookWnd::CanStartMemming(int), CSpellBookWnd__CanStartMemming);
+#endif
+#ifdef CSpellBookWnd__StartSpellMemorizationDrag_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::StartSpellMemorizationDrag(int, CButtonWnd*), CSpellBookWnd__StartSpellMemorizationDrag);
+#endif
+#ifdef CSpellBookWnd__StartSpellMemorization_x
+FUNCTION_AT_ADDRESS(bool CSpellBookWnd::StartSpellMemorization(int, int, bool), CSpellBookWnd__StartSpellMemorization);
+#endif
+#ifdef CSpellBookWnd__FinishMemorizing_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::FinishMemorizing(int, int), CSpellBookWnd__FinishMemorizing);
+#endif
+#ifdef CSpellBookWnd__GetSpellMemTicksLeft_x
+FUNCTION_AT_ADDRESS(int CSpellBookWnd::GetSpellMemTicksLeft(), CSpellBookWnd__GetSpellMemTicksLeft);
+#endif
+#ifdef CSpellBookWnd__StartSpellScribe_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::StartSpellScribe(int), CSpellBookWnd__StartSpellScribe);
+#endif
+#ifdef CSpellBookWnd__FinishScribing_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::FinishScribing(int, int), CSpellBookWnd__FinishScribing);
+#endif
+#ifdef CSpellBookWnd__GetSpellScribeTicksLeft_x
+FUNCTION_AT_ADDRESS(int CSpellBookWnd::GetSpellScribeTicksLeft(), CSpellBookWnd__GetSpellScribeTicksLeft);
+#endif
+#ifdef CSpellBookWnd__SwapSpellBookSlots_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::SwapSpellBookSlots(int, int), CSpellBookWnd__SwapSpellBookSlots);
+#endif
+#ifdef CSpellBookWnd__HandleSpellInfoDisplay_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::HandleSpellInfoDisplay(CXWnd*), CSpellBookWnd__HandleSpellInfoDisplay);
+#endif
+#ifdef CSpellBookWnd__DisplaySpellInfo_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::DisplaySpellInfo(int), CSpellBookWnd__DisplaySpellInfo);
+#endif
+#ifdef CSpellBookWnd__TurnToPage_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::TurnToPage(int), CSpellBookWnd__TurnToPage);
+#endif
+#ifdef CSpellBookWnd__UpdateSpellBookDisplay_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::UpdateSpellBookDisplay(), CSpellBookWnd__UpdateSpellBookDisplay);
+#endif
+#ifdef CSpellBookWnd__StopSpellBookAction_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::StopSpellBookAction(), CSpellBookWnd__StopSpellBookAction);
+#endif
+#ifdef CSpellBookWnd__GetSpellDeletionConfirmation_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::GetSpellDeletionConfirmation(int), CSpellBookWnd__GetSpellDeletionConfirmation);
+#endif
+#ifdef CSpellBookWnd__RequestSpellDeletion_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::RequestSpellDeletion(int), CSpellBookWnd__RequestSpellDeletion);
+#endif
+#ifdef CSpellBookWnd__DeleteSpellFromBook_x
+FUNCTION_AT_ADDRESS(void CSpellBookWnd::DeleteSpellFromBook(int, int), CSpellBookWnd__DeleteSpellFromBook);
+#endif
+
+//============================================================================
+// CSpellGemWnd
+//============================================================================
+
+#ifdef CSpellGemWnd__CSpellGemWnd_x
+FUNCTION_AT_ADDRESS(CSpellGemWnd::CSpellGemWnd(CXWnd*, uint32_t, CXRect, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, int, int, unsigned long), CSpellGemWnd__CSpellGemWnd);
+#endif
+#ifdef CSpellGemWnd__SetSpellIconIndex_x
+FUNCTION_AT_ADDRESS(void CSpellGemWnd::SetSpellIconIndex(int), CSpellGemWnd__SetSpellIconIndex);
+#endif
+#ifdef CSpellGemWnd__SetSpellGemTint_x
+FUNCTION_AT_ADDRESS(void CSpellGemWnd::SetSpellGemTint(unsigned long), CSpellGemWnd__SetSpellGemTint);
+#endif
+#ifdef CSpellGemWnd__SetGemTintStage_x
+FUNCTION_AT_ADDRESS(void CSpellGemWnd::SetGemTintStage(int), CSpellGemWnd__SetGemTintStage);
+#endif
+#ifdef CSpellGemWnd__SetCheck_x
+FUNCTION_AT_ADDRESS(void CSpellGemWnd::SetCheck(bool), CSpellGemWnd__SetCheck);
+#endif
+
+//============================================================================
+// CTargetWnd
+//============================================================================
+
+#ifdef CTargetWnd__RefreshTargetBuffs_x
+FUNCTION_AT_ADDRESS(void CTargetWnd::RefreshTargetBuffs(PBYTE), CTargetWnd__RefreshTargetBuffs);
+#endif
+#ifdef CTargetWnd__HandleBuffRemoveRequest_x
+FUNCTION_AT_ADDRESS(void CTargetWnd::HandleBuffRemoveRequest(CXWnd*), CTargetWnd__HandleBuffRemoveRequest);
+#endif
+
+//============================================================================
+// CTaskWnd
+//============================================================================
+
+#ifdef CTaskWnd__UpdateTaskTimers_x
+FUNCTION_AT_ADDRESS(int CTaskWnd::UpdateTaskTimers(unsigned long), CTaskWnd__UpdateTaskTimers);
+#endif
+
+//============================================================================
+// CTextEntryWnd
+//============================================================================
+
+#ifdef CTextEntryWnd__CTextEntryWnd_x
+FUNCTION_AT_ADDRESS(CTextEntryWnd::CTextEntryWnd(CXWnd*), CTextEntryWnd__CTextEntryWnd);
+#endif
+#ifdef CTextEntryWnd__Activate_x
+FUNCTION_AT_ADDRESS(void CTextEntryWnd::Activate(CXWnd*, int, char*, int, int, char*), CTextEntryWnd__Activate);
+#endif
+#ifdef CTextEntryWnd__Callback_x
+FUNCTION_AT_ADDRESS(void CTextEntryWnd::Callback(bool), CTextEntryWnd__Callback);
+#endif
+#ifdef CTextEntryWnd__UpdateButtons_x
+FUNCTION_AT_ADDRESS(void CTextEntryWnd::UpdateButtons(), CTextEntryWnd__UpdateButtons);
+#endif
+#ifdef CTextEntryWnd__GetEntryText_x
+FUNCTION_AT_ADDRESS(CXStr CTextEntryWnd::GetEntryText(), CTextEntryWnd__GetEntryText);
+#endif
+
+//============================================================================
+// CTipWnd
+//============================================================================
+
+#ifdef CTipWnd__CTipWnd_x
+FUNCTION_AT_ADDRESS(CTipWnd::CTipWnd(CXWnd*, int), CTipWnd__CTipWnd);
+#endif
+#ifdef CTipWnd__Activate_x
+FUNCTION_AT_ADDRESS(bool CTipWnd::Activate(int, bool), CTipWnd__Activate);
+#endif
+#ifdef CTipWnd__UpdateButtons_x
+FUNCTION_AT_ADDRESS(void CTipWnd::UpdateButtons(), CTipWnd__UpdateButtons);
+#endif
+#ifdef CTipWnd__InitializeTipSettings_x
+FUNCTION_AT_ADDRESS(void CTipWnd::InitializeTipSettings(), CTipWnd__InitializeTipSettings);
+#endif
+#ifdef CTipWnd__CleanDayTips_x
+FUNCTION_AT_ADDRESS(void CTipWnd::CleanDayTips(), CTipWnd__CleanDayTips);
+#endif
+#ifdef CTipWnd__SelectRandomTip_x
+FUNCTION_AT_ADDRESS(int CTipWnd::SelectRandomTip(), CTipWnd__SelectRandomTip);
+#endif
+#ifdef CTipWnd__SetTOTD_x
+FUNCTION_AT_ADDRESS(void CTipWnd::SetTOTD(int), CTipWnd__SetTOTD);
+#endif
+#ifdef CTipWnd__IsRecentTOTD_x
+FUNCTION_AT_ADDRESS(bool CTipWnd::IsRecentTOTD(int), CTipWnd__IsRecentTOTD);
+#endif
+#ifdef CTipWnd__AddContextTip_x
+FUNCTION_AT_ADDRESS(void CTipWnd::AddContextTip(int), CTipWnd__AddContextTip);
+#endif
+#ifdef CTipWnd__ShowHistoryTip_x
+FUNCTION_AT_ADDRESS(void CTipWnd::ShowHistoryTip(int), CTipWnd__ShowHistoryTip);
+#endif
+#ifdef CTipWnd__LoadINISettings_x
+FUNCTION_AT_ADDRESS(void CTipWnd::LoadINISettings(), CTipWnd__LoadINISettings);
+#endif
+#ifdef CTipWnd__LoadDayTips_x
+FUNCTION_AT_ADDRESS(void CTipWnd::LoadDayTips(), CTipWnd__LoadDayTips);
+#endif
+
+//============================================================================
+// CTrackingWnd
+//============================================================================
+
+#ifdef CTrackingWnd__CTrackingWnd_x
+FUNCTION_AT_ADDRESS(CTrackingWnd::CTrackingWnd(CXWnd*), CTrackingWnd__CTrackingWnd);
+#endif
+#ifdef CTrackingWnd__Init_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::Init(), CTrackingWnd__Init);
+#endif
+#ifdef CTrackingWnd__Activate_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::Activate(), CTrackingWnd__Activate);
+#endif
+#ifdef CTrackingWnd__NotifyServerOfTrackingTarget_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::NotifyServerOfTrackingTarget(int), CTrackingWnd__NotifyServerOfTrackingTarget);
+#endif
+#ifdef CTrackingWnd__UpdateTrackingControls_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::UpdateTrackingControls(), CTrackingWnd__UpdateTrackingControls);
+#endif
+#ifdef CTrackingWnd__GetTrackColor_x
+FUNCTION_AT_ADDRESS(unsigned long CTrackingWnd::GetTrackColor(int), CTrackingWnd__GetTrackColor);
+#endif
+#ifdef CTrackingWnd__UpdateTrackingList_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::UpdateTrackingList(bool), CTrackingWnd__UpdateTrackingList);
+#endif
+#ifdef CTrackingWnd__GenerateTrackingList_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::GenerateTrackingList(), CTrackingWnd__GenerateTrackingList);
+#endif
+#ifdef CTrackingWnd__SetTrackingList_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::SetTrackingList(struct TrackingHit*, int), CTrackingWnd__SetTrackingList);
+#endif
+#ifdef CTrackingWnd__DoTrackSort_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::DoTrackSort(bool), CTrackingWnd__DoTrackSort);
+#endif
+#ifdef CTrackingWnd__DoTrackFilter_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::DoTrackFilter(bool), CTrackingWnd__DoTrackFilter);
+#endif
+#ifdef CTrackingWnd__RemovePlayerFromTracking_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::RemovePlayerFromTracking(EQPlayer*), CTrackingWnd__RemovePlayerFromTracking);
+#endif
+#ifdef CTrackingWnd__RemovePlayerFromTracking1_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::RemovePlayerFromTracking(int), CTrackingWnd__RemovePlayerFromTracking1);
+#endif
+#ifdef CTrackingWnd__RemoveFromListWndByData_x
+FUNCTION_AT_ADDRESS(void CTrackingWnd::RemoveFromListWndByData(unsigned int), CTrackingWnd__RemoveFromListWndByData);
+#endif
+#ifdef CTrackingWnd__GetListIdByData_x
+FUNCTION_AT_ADDRESS(int CTrackingWnd::GetListIdByData(unsigned int), CTrackingWnd__GetListIdByData);
+#endif
+
+//============================================================================
+// CTradeWnd
+//============================================================================
+
+#ifdef CTradeWnd__CTradeWnd_x
+FUNCTION_AT_ADDRESS(CTradeWnd::CTradeWnd(CXWnd*), CTradeWnd__CTradeWnd);
+#endif
+#ifdef CTradeWnd__Init_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::Init(), CTradeWnd__Init);
+#endif
+#ifdef CTradeWnd__Activate_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::Activate(EQPlayer*, bool), CTradeWnd__Activate);
+#endif
+#ifdef CTradeWnd__ClickedCancelButton_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::ClickedCancelButton(), CTradeWnd__ClickedCancelButton);
+#endif
+#ifdef CTradeWnd__ClickedTradeButton_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::ClickedTradeButton(), CTradeWnd__ClickedTradeButton);
+#endif
+#ifdef CTradeWnd__ClickedMoneyButton_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::ClickedMoneyButton(int), CTradeWnd__ClickedMoneyButton);
+#endif
+#ifdef CTradeWnd__UpdateTradeDisplay_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::UpdateTradeDisplay(), CTradeWnd__UpdateTradeDisplay);
+#endif
+#ifdef CTradeWnd__IsMyTradeSlot_x
+FUNCTION_AT_ADDRESS(bool CTradeWnd::IsMyTradeSlot(int, bool*), CTradeWnd__IsMyTradeSlot);
+#endif
+#ifdef CTradeWnd__TradeItemChanged_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::TradeItemChanged(int, int), CTradeWnd__TradeItemChanged);
+#endif
+#ifdef CTradeWnd__CompleteTrade_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::CompleteTrade(), CTradeWnd__CompleteTrade);
+#endif
+#ifdef CTradeWnd__AddEquipmentToHisTradeArray_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::AddEquipmentToHisTradeArray(EQ_Equipment*), CTradeWnd__AddEquipmentToHisTradeArray);
+#endif
+#ifdef CTradeWnd__AddNoteToHisTradeArray_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::AddNoteToHisTradeArray(EQ_Note*), CTradeWnd__AddNoteToHisTradeArray);
+#endif
+#ifdef CTradeWnd__AddContainerToHisTradeArray_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::AddContainerToHisTradeArray(EQ_Container*), CTradeWnd__AddContainerToHisTradeArray);
+#endif
+#ifdef CTradeWnd__DeleteItemFromHisTradeArray_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::DeleteItemFromHisTradeArray(int), CTradeWnd__DeleteItemFromHisTradeArray);
+#endif
+#ifdef CTradeWnd__DropItemIntoTrade_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::DropItemIntoTrade(), CTradeWnd__DropItemIntoTrade);
+#endif
+#ifdef CTradeWnd__SetMyReadyTrade_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::SetMyReadyTrade(bool), CTradeWnd__SetMyReadyTrade);
+#endif
+#ifdef CTradeWnd__SetHisReadyTrade_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::SetHisReadyTrade(bool), CTradeWnd__SetHisReadyTrade);
+#endif
+#ifdef CTradeWnd__SetHisMoney_x
+FUNCTION_AT_ADDRESS(void CTradeWnd::SetHisMoney(int, long), CTradeWnd__SetHisMoney);
+#endif
+
+//============================================================================
+// CTradeWnd
+//============================================================================
+
+#ifdef CTrainWnd__CTrainWnd_x
+FUNCTION_AT_ADDRESS(CTrainWnd::CTrainWnd(CXWnd*), CTrainWnd__CTrainWnd);
+#endif
+#ifdef CTrainWnd__Activate_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::Activate(), CTrainWnd__Activate);
+#endif
+#ifdef CTrainWnd__UpdateRight_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::UpdateRight(), CTrainWnd__UpdateRight);
+#endif
+#ifdef CTrainWnd__UpdateAll_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::UpdateAll(bool), CTrainWnd__UpdateAll);
+#endif
+#ifdef CTrainWnd__SkillName_x
+FUNCTION_AT_ADDRESS(char* CTrainWnd::SkillName(int), CTrainWnd__SkillName);
+#endif
+#ifdef CTrainWnd__SkillValue_x
+FUNCTION_AT_ADDRESS(int CTrainWnd::SkillValue(int), CTrainWnd__SkillValue);
+#endif
+#ifdef CTrainWnd__SwapSkill_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::SwapSkill(int, int), CTrainWnd__SwapSkill);
+#endif
+#ifdef CTrainWnd__SortNames_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::SortNames(int), CTrainWnd__SortNames);
+#endif
+#ifdef CTrainWnd__SortSkill_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::SortSkill(int), CTrainWnd__SortSkill);
+#endif
+#ifdef CTrainWnd__UpdateSkill_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::UpdateSkill(int), CTrainWnd__UpdateSkill);
+#endif
+#ifdef CTrainWnd__SkillChanged_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::SkillChanged(int), CTrainWnd__SkillChanged);
+#endif
+#ifdef CTrainWnd__SetGMData_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::SetGMData(int*, unsigned char*, float), CTrainWnd__SetGMData);
+#endif
+#ifdef CTrainWnd__Train_x
+FUNCTION_AT_ADDRESS(void CTrainWnd::Train(), CTrainWnd__Train);
 #endif
 
 //============================================================================

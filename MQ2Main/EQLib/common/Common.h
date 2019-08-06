@@ -204,6 +204,9 @@ public:
 	}
 
 	CXPoint TopLeft() const { return CXPoint{ left, top }; }
+	CXPoint TopRight() const { return CXPoint{ right, top }; }
+	CXPoint BottomLeft() const { return CXPoint{ left, bottom }; }
+	CXPoint BottomRight() const { return CXPoint{ right, bottom }; }
 
 	int left = 0;
 	int top = 0;

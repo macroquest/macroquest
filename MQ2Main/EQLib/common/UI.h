@@ -190,7 +190,11 @@ public:
 	EQLIB_OBJECT const CXStr& GetName() const { return Name; }
 	EQLIB_OBJECT void SetCurCell(int);
 	EQLIB_OBJECT CXSize GetSize() const { return Size; }
+	inline int GetWidth() const { return Size.cx; }
+	inline int GetHeight() const { return Size.cy; }
 
+	// todo
+	EQLIB_OBJECT int Draw(const CXRect& rect, const CXRect& clip, uint32_t color = 0xffffffff, uint32_t color2 = 0xff000000) { return 0; }
 	//EQLIB_OBJECT int Draw(const CXPoint&, const CXRect&, unsigned long, unsigned long) const;
 	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, unsigned long, unsigned long) const;
 	//EQLIB_OBJECT int Preload();
@@ -213,6 +217,88 @@ public:
 /*0x38*/ int                CurCell = -1;
 /*0x3c*/ CXRect             CellRect;
 /*0x4c*/
+};
+
+//============================================================================
+// CTAFrameDraw
+//============================================================================
+
+class CTAFrameDraw
+{
+public:
+	EQLIB_OBJECT CTAFrameDraw(CXStr = {});
+
+	enum EFrameDrawPiece
+	{
+		FrameDraw_TopLeft = 0,
+		FrameDraw_Top,
+		FrameDraw_TopRight,
+		FrameDraw_RightTop,
+		FrameDraw_Right,
+		FrameDraw_RightBottom,
+		FrameDraw_BottomRight,
+		FrameDraw_Bottom,
+		FrameDraw_BottomLeft,
+		FrameDraw_LeftTop,
+		FrameDraw_Left,
+		FrameDraw_LeftBottom,
+		FrameDraw_Middle,
+
+		FrameDraw_Max,
+	};
+
+	EQLIB_OBJECT CTextureAnimation* GetAnimation(EFrameDrawPiece) const;
+	EQLIB_OBJECT void SetAnimation(EFrameDrawPiece which, CTextureAnimation* tex);
+
+	EQLIB_OBJECT CXRect GetHitTestRect(const CXRect&, int) const;
+	EQLIB_OBJECT CXRect GetInnerRect(const CXRect&) const;
+	EQLIB_OBJECT CXRect GetPieceRect(const CXRect&, int) const;
+	EQLIB_OBJECT CXSize GetFrameSize() const;
+
+	EQLIB_OBJECT CXStr GetName() const { return m_name; }
+	EQLIB_OBJECT void SetName(const CXStr& name) { m_name = name; }
+
+	EQLIB_OBJECT bool IsHorizontal() const;
+	EQLIB_OBJECT bool IsVertical() const;
+
+	EQLIB_OBJECT int Draw(const CXRect&, const CXRect&) const;
+	EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, EFrameDrawPiece) const;
+
+	EQLIB_OBJECT int GetExtent() const;
+	EQLIB_OBJECT int GetMinLength() const;
+
+	EQLIB_OBJECT void Set(CTextureAnimation* pta[FrameDraw_Max]);
+
+	//----------------------------------------------------------------------------
+	// data members
+private:
+/*0x00*/ CXStr              m_name;
+/*0x04*/ CTextureAnimation* m_pta[FrameDraw_Max];
+/*0x38*/ int                Unknown0x38 = -1;
+/*0x3c*/ int                m_nOverlapTop = 0;
+/*0x40*/ int                m_nOverlapLeft = 0;
+/*0x44*/ int                m_nOverlapBottom = 0;
+/*0x48*/ int                m_nOverlapRight = 0;
+};
+
+//============================================================================
+// CTextureFont
+//============================================================================
+
+class CTextureFont
+{
+public:
+	virtual ~CTextureFont();
+
+	EQLIB_OBJECT CXStr GetName() const;
+	EQLIB_OBJECT int DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const;
+	EQLIB_OBJECT int DrawWrappedText(const CXStr& Str, int x, int y, int Width, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const;
+	EQLIB_OBJECT int GetHeight() const;
+	EQLIB_OBJECT int GetKerning(unsigned short, unsigned short) const;
+	EQLIB_OBJECT int GetTextExtent(const CXStr&);
+	EQLIB_OBJECT int GetWidth(unsigned short) const;
+
+/*0x00*/ int FontStyle;
 };
 
 //============================================================================
@@ -1100,6 +1186,296 @@ public:
 };
 
 //============================================================================
+// CSliderWnd
+//============================================================================
+
+// size: 0x258 6/10/2019 (test)
+class CSliderWnd : public CXWnd
+{
+public:
+	CSliderWnd(CXWnd*, uint32_t, const CXRect&, CSliderTemplate*);
+	virtual ~CSliderWnd();
+
+	virtual int Draw() override;
+	virtual int HandleKeyboardMsg(uint32_t, uint32_t, bool) override;
+	virtual int HandleLButtonDown(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonUp(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t) override;
+	virtual int HandleMouseMove(const CXPoint&, uint32_t) override;
+	virtual int OnProcessFrame() override;
+
+	EQLIB_OBJECT CXRect GetEndCapLeftRect() const;
+	EQLIB_OBJECT CXRect GetEndCapRightRect() const;
+	EQLIB_OBJECT CXRect GetMiddleRangeRect() const;
+	EQLIB_OBJECT CXRect GetThumbRect() const;
+	EQLIB_OBJECT int GetValue() const;
+	EQLIB_OBJECT void SetNumTicks(int);
+	EQLIB_OBJECT void SetValue(int);
+
+	EQLIB_OBJECT int DrawEndCapLeft() const;
+	EQLIB_OBJECT int DrawEndCapRight() const;
+	EQLIB_OBJECT int DrawMiddleRange() const;
+	EQLIB_OBJECT int DrawThumb() const;
+	EQLIB_OBJECT void SetThumbToOffset(int);
+	EQLIB_OBJECT void UpdateMiddleRange();
+	EQLIB_OBJECT void UpdateThumb();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x1f8*/ CButtonDrawTemplate      bdtThumb;
+/*0x230*/ CTextureAnimation*       ptaBackground;
+/*0x234*/ CTextureAnimation*       ptaEndCapLeft;
+/*0x238*/ CTextureAnimation*       ptaEndCapRight;
+
+	// more ...
+};
+
+//============================================================================
+// CStmlWnd
+//============================================================================
+
+enum ELinkType
+{
+	STML_LINK_FILE,
+	STML_LINK_UNIT,
+	STML_LINK_BUILDING,
+	STML_LINK_MESSAGE,
+	STML_LINK_CAMERA,
+	STML_LINK_REPORT,
+	STML_LINK_WNDNOTIFY,
+	STML_LINK_EMPTY,
+	STML_LINK_URL,
+	STML_LINK_PLAYER,
+	STML_LINK_SPAM,
+	STML_LINK_ACHIEVEMENT,
+	STML_LINK_HELP,
+	STML_LINK_DIALOG_RESPONSE,
+	STML_LINK_COMMAND,
+	STML_NUM_LINK_TYPES,
+};
+
+enum EStmlTargetValue
+{
+	STML_TARGET_SELF,
+	STML_TARGET_BLANK,
+};
+
+struct SFontTag
+{
+	CTextureFont*      face;
+	COLORREF           color;
+};
+
+using SStyleTag = uint32_t;
+
+const uint32_t STML_TAG_BOLD = 0;
+const uint32_t STML_TAG_UNDERLINE = 2;
+
+struct SFormattedText
+{
+	SFontTag           Font;
+	SStyleTag          Style;
+	int                Left;
+	int                Right;
+	CXStr              Text;
+	int32_t            LinkID;
+	CTextureAnimation* Texture;
+	int32_t            TableID;
+	int32_t            IndexStart;
+};
+
+struct STextLine
+{
+	ArrayClass<SFormattedText> TextPieces;
+	int                yBottom;
+	int                yTop;
+	int32_t            IndexStart;
+};
+
+struct SLinkInfo
+{
+	ELinkType          Type = STML_LINK_EMPTY;
+	uint32_t           MsgID = -1;
+	CXStr              Name;
+	EStmlTargetValue   TargetType = STML_TARGET_SELF;
+};
+
+struct SParseVariables
+{
+	// todo ...
+};
+
+struct SHistoryElement
+{
+	SLinkInfo          sLink;
+	CXStr              STMLText;
+};
+
+enum ESTMLParseState
+{
+	STML_PARSE_STATE_BODY,
+	STML_PARSE_STATE_HEAD,
+};
+
+
+// size is 0x2b8 in sep 11 2017 test see 8DCF69
+class CStmlWnd : public CXWnd
+{
+public:
+	CStmlWnd(CXWnd*, uint32_t, const CXRect&);
+	virtual ~CStmlWnd();
+
+	virtual bool IsPointTransparent(const CXPoint&) const override;
+	virtual HCURSOR GetCursorToDisplay() const override;
+	virtual int Draw() override;
+	virtual int HandleKeyboardMsg(uint32_t, uint32_t, bool) override;
+	virtual int HandleLButtonDown(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonUp(const CXPoint&, uint32_t) override;
+	virtual int HandleMouseMove(const CXPoint&, uint32_t) override;
+	virtual int OnMove(const CXRect&) override;
+	virtual int OnProcessFrame() override;
+	virtual int OnResize(int, int) override;
+	virtual int OnHScroll(EScrollCode, int) override;
+	virtual int OnVScroll(EScrollCode, int) override;
+	virtual void SetWindowText(const CXStr&) override;
+
+	EQLIB_OBJECT bool CanGoBackward();
+	EQLIB_OBJECT CXSize AppendSTML(CXStr);
+	EQLIB_OBJECT CXStr GetSTMLText() const;
+	EQLIB_OBJECT CXStr GetVisibleText(CXStr, const CXRect&) const;
+	EQLIB_OBJECT static CXStr MakeStmlColorTag(unsigned long);
+	EQLIB_OBJECT static CXStr MakeWndNotificationTag(uint32_t, const CXStr&, const CXStr&);
+	EQLIB_OBJECT void ActivateLink(SLinkInfo);
+	EQLIB_OBJECT void ForceParseNow();
+	EQLIB_OBJECT void GoToBackHistoryLink();
+	// EQLIB_OBJECT void LoadPage(CXStr, enum ESTMLTargetValue, bool);
+	EQLIB_OBJECT void SetSTMLText(CXStr, bool, SLinkInfo*);
+	EQLIB_OBJECT void SetSTMLTextWithoutHistory(CXStr);
+
+	// protected
+	EQLIB_OBJECT bool IsLinkActive(SLinkInfo) const;
+	EQLIB_OBJECT bool ParseAmpersand(CXStr, char*) const;
+	EQLIB_OBJECT static bool CanBreakAtCharacter(unsigned short);
+	EQLIB_OBJECT static bool IsCharacterNotASpaceAndNotNULL(unsigned short);
+	EQLIB_OBJECT static bool IsCharacterNotEquals(unsigned short);
+	EQLIB_OBJECT static bool IsCharacterNotQuotes(unsigned short);
+	EQLIB_OBJECT unsigned short FastForwardPastQuotesAndGetNextTagPiece(const CXStr&, CXStr*, int*, bool);
+	EQLIB_OBJECT unsigned short FastForwardPastSpaces(const CXStr&, int*);
+	EQLIB_OBJECT unsigned short FastForwardPastSpacesAndQuotes(const CXStr&, int*);
+	EQLIB_OBJECT unsigned short FastForwardToEndOfTag(const CXStr&, CXStr*, int*, char);
+	EQLIB_OBJECT unsigned short GetNextChar(int*, const CXStr&);
+	EQLIB_OBJECT unsigned short GetNextTagPiece(const CXStr&, CXStr*, int*, bool (*)(unsigned short), bool);
+	EQLIB_OBJECT unsigned short GetThisChar(int, const CXStr&);
+	EQLIB_OBJECT void ActivateLinkFile(SLinkInfo);
+	EQLIB_OBJECT void ActivateLinkMessageId(SLinkInfo);
+	EQLIB_OBJECT void ActivateLinkReport(SLinkInfo, bool);
+	EQLIB_OBJECT void ActivateLinkWndNotify(SLinkInfo);
+	EQLIB_OBJECT void AddLinkToHistory(SLinkInfo, const CXStr&);
+	EQLIB_OBJECT void AddTextPieceToLine(SParseVariables*);
+	EQLIB_OBJECT void CalculateHSBRange(int);
+	EQLIB_OBJECT void CalculateVSBRange(int);
+	EQLIB_OBJECT void CompleteParse();
+	EQLIB_OBJECT void InitializeTempVariables(SParseVariables*, const CXRect&);
+	EQLIB_OBJECT void InitializeTextLine(SParseVariables*, int);
+	EQLIB_OBJECT void InitializeWindowVariables();
+	// EQLIB_OBJECT void ParseLinkTarget(const CXStr&, enum ESTMLTargetValue*) const;
+	EQLIB_OBJECT void ParseSTMLHead(const CXStr&);
+	EQLIB_OBJECT void ParseSTMLTable(const CXStr&, int*, const CXStr&, SParseVariables*);
+	EQLIB_OBJECT void ParseSTMLTableAttributes(const CXStr&, STable*);
+	// EQLIB_OBJECT void ParseTagAlign(const CXStr&, enum ESTMLAlign*) const;
+	EQLIB_OBJECT void ParseTagColor(const CXStr&, unsigned long*) const;
+	EQLIB_OBJECT void ParseTagFace(const CXStr&, const CTextureFont**) const;
+	EQLIB_OBJECT void ResetTempVariablesForNewLine(SParseVariables*);
+	EQLIB_OBJECT void StripFirstSTMLLines(int);
+	EQLIB_OBJECT void UpdateHistoryString(int32_t, const CXStr&);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	// todo: verify
+/*0x1F0*/ CXStr                        STMLText;
+/*0x1F4*/ CircularArrayClass2<STextLine> TextLines;
+/*0x21c*/ int32_t                      TextTotalHeight;
+/*0x220*/ int32_t                      TextTotalWidth;
+/*0x224*/ int32_t                      Unknown0x224;
+/*0x228*/ ArrayClass2<SLinkInfo>       Links;                        // size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test - eqmule
+/*0x244*/ ArrayClass<STable>           Tables;
+/*0x254*/ bool                         bReparseNow;
+/*0x255*/ bool                         bResized;
+/*0x256*/ bool                         bAlignCenter;
+/*0x258*/ int                          LineSpacingAdjust;
+/*0x25c*/ int32_t                      CapturedLinkID;
+/*0x260*/ int32_t                      MousedOverLinkID;
+/*0x264*/ COLORREF                     BackGroundColor;
+/*0x268*/ COLORREF                     TextColor;
+/*0x26c*/ COLORREF                     LinkColor;
+/*0x270*/ COLORREF                     VLinkColor;
+/*0x274*/ COLORREF                     ALinkColor;
+/*0x278*/ COLORREF                     MLinkColor;
+/*0x27c*/ ESTMLParseState              CurrentParseState;
+/*0x280*/ ArrayClass2<SHistoryElement> HistoryArray;
+/*0x29c*/ int32_t                      HistoryIndex;
+/*0x2a0*/ CStmlReport* pStmlReport;
+/*0x2a4*/ int                          MaxLines;
+/*0x2a8*/ int                          PlayerContextMenuIndex;
+/*0x2ac*/ int                          Unknown0x2ac;
+/*0x2b0*/ int                          Unknown0x2b0;
+/*0x2b4*/ int                          Unknown0x2b4;
+/*0x2b8*/
+};
+
+//============================================================================
+// CTabWnd
+//============================================================================
+
+class CTabWnd : public CXWnd
+{
+public:
+	CTabWnd(CXWnd* pParent, uint32_t uId, const CXRect& rect, CTabBoxTemplate* pTabContents);
+	virtual ~CTabWnd();
+
+	EQLIB_OBJECT CPageWnd* GetCurrentPage() const;
+	EQLIB_OBJECT CXRect GetPageClientRect() const;
+	EQLIB_OBJECT CXRect GetPageInnerRect() const;
+	EQLIB_OBJECT CXRect GetTabInnerRect(int) const;
+	EQLIB_OBJECT CXRect GetTabRect(int) const;
+	EQLIB_OBJECT int GetCurrentTabIndex() const;
+	EQLIB_OBJECT int GetNumTabs() const;
+	EQLIB_OBJECT void InsertPage(CPageWnd*, int);
+	EQLIB_OBJECT void SetPage(CPageWnd*, bool);
+	EQLIB_OBJECT void SetPage(int index, bool bNotifyParent, bool bBringToTop = true, bool bSomething = true);
+	EQLIB_OBJECT void SetPageRect(const CXRect&);
+	EQLIB_OBJECT void UpdatePage();
+	EQLIB_OBJECT bool IndexInBounds(int) const;
+	EQLIB_OBJECT CPageWnd* GetPageFromTabIndex(int) const;
+	EQLIB_OBJECT CPageWnd* GetPageFromTabPoint(CXPoint) const;
+	EQLIB_OBJECT int DrawCurrentPage() const;
+	EQLIB_OBJECT int DrawTab(int) const;
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	// todo: map this out
+};
+
+//============================================================================
+// CTreeView
+//============================================================================
+
+class CTreeView : public CListWnd
+{
+public:
+	CTreeView(CXWnd*, uint32_t, CXRect, int);
+	virtual ~CTreeView();
+};
+
+//============================================================================
+//============================================================================
+//============================================================================
+//============================================================================
+
+//============================================================================
 // CAAWnd
 //============================================================================
 
@@ -1323,6 +1699,27 @@ class CAuraWnd : public CSidlScreenWnd
 public:
 	CAuraWnd(CXWnd*);
 	virtual ~CAuraWnd();
+};
+
+//============================================================================
+// CBandolierWnd
+//============================================================================
+
+#define MAX_BANDOLIER_SLOTS 4
+
+class CBandolierWnd : public CSidlScreenWnd, public WndEventHandler
+{
+public:
+	CBandolierWnd();
+	virtual ~CBandolierWnd();
+
+	CButtonWnd*        pAddButton;
+	CButtonWnd*        pDeleteButton;
+	CButtonWnd*        pUseButton;
+	CButtonWnd*        pMkHotButton;
+	CButtonWnd*        pAutoSwapButton;
+	CButtonWnd*        pDisplayButtons[MAX_BANDOLIER_SLOTS];
+	CListWnd*          pWeaponSetList;
 };
 
 //============================================================================
@@ -3367,68 +3764,6 @@ using EQMAPWINDOW = CMapViewWnd;
 using PEQMAPWINDOW = CMapViewWnd *;
 
 //============================================================================
-// PointMerchantWnd
-//============================================================================
-
-struct PointMerchantItem
-{
-/*0x00*/ char          ItemName[0x40];
-/*0x40*/ int           ItemID;
-/*0x44*/ unsigned int  Price;
-/*0x48*/ int           ThemeID;
-/*0x4c*/ int           IsStackable;
-/*0x50*/ int           IsLore;
-/*0x54*/ int           RaceMask;
-/*0x58*/ int           ClassMask;
-/*0x5c*/ bool          bCanUse;
-/*0x60*/
-};
-
-class PointMerchantInterface;
-
-class PointMerchantWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
-{
-public:
-	PointMerchantWnd(CXWnd*);
-	virtual ~PointMerchantWnd();
-
-	//----------------------------------------------------------------------------
-	// data members
-
-	// todo: verify
-	int                Unknown0x008;
-	int                NumItems;
-	bool               HdrItemName;
-	bool               HdrTheme;
-	bool               HdrPrice;
-	char               OriginalPointsLabel[0x40];
-	CLabel*            MerchantNameLabel;
-	CListWnd*          ItemList;
-	CListWnd*          PointList;
-	CButtonWnd*        EquipButton;
-	CButtonWnd*        PurchaseButton;
-	CButtonWnd*        SellButton;
-	CButtonWnd*        DoneButton;
-	CLabel*            PointsAvailableValue;
-	CLabel*            PointsEverEarnedLabel;
-	CLabel*            PointsAvailableLabel;
-	unsigned int       NextRefreshTime;
-	PSPAWNINFO         ActiveMerchant; // PlayerClient*
-	PointMerchantItem** Items;
-	int                MerchantThemeId;
-	int                CurrentSelection;
-	int                CurrentSort;
-	bool               bCurrentAscending;
-	ItemGlobalIndex    ItemLocation;
-	CONTENTS*          pSelectedItem; // ItemBasePtr
-	bool               bInventoryWasActive;
-	int                CurrentItem;
-	int                CurrentQuantity;
-	int                SliderType;
-	PointMerchantInterface* pHandler;
-};
-
-//============================================================================
 // CMerchantWnd
 //============================================================================
 
@@ -3474,8 +3809,8 @@ public:
 
 	// offset comments indicate vtable offset
 	/*0x0c*/ EQLIB_OBJECT virtual void Unknownv0x08();
-	/*0x0c*/ EQLIB_OBJECT virtual void Unknownv0x0c();
-	/*0x10*/ EQLIB_OBJECT virtual void Unknownv0x10();
+	/*0x0c*/ EQLIB_OBJECT virtual void Unknownv0x0c();-
+	/*0x10*/ EQLIB_OBJECT virtual void Unknownv0x10()-;
 	/*0x14*/ EQLIB_OBJECT virtual void Unknownv0x14();
 	/*0x18*/ EQLIB_OBJECT virtual void DestroyItemByUniqueId(int64_t UniqueID);
 	/*0x1c*/ EQLIB_OBJECT virtual void DestroyItemByItemGuid(const EqItemGuid& ItemGuid);
@@ -3599,16 +3934,12 @@ public:
 /*0x338*/ int          Unknown0x338;
 /*0x33C*/ int          Unknown0x33C;
 /*0x340*/ int          Guk_Currency;
-/*0x344*/ BYTE Unknown0x340[0x100];
+/*0x344*/ uint8_t      Unknown0x340[0x100];
 /*0x444*/
 #endif
 
 	CMerchantWnd(CXWnd*);
 	virtual ~CMerchantWnd();
-
-	virtual int OnProcessFrame() override;
-	virtual int PostDraw() override;
-	virtual int WndNotification(CXWnd*, uint32_t, void*) override;
 
 	EQLIB_OBJECT void AddContainerToMercArray(EQ_Container*);
 	EQLIB_OBJECT void AddEquipmentToMercArray(EQ_Equipment*);
@@ -3626,6 +3957,272 @@ using EQMERCHWINDOW = CMerchantWnd;
 using PEQMERCHWINDOW = CMerchantWnd *;
 
 //============================================================================
+// CMusicPlayerWnd
+//============================================================================
+
+class CMusicPlayerWnd : public CSidlScreenWnd
+{
+public:
+	CMusicPlayerWnd(CXWnd*);
+	virtual ~CMusicPlayerWnd();
+
+	EQLIB_OBJECT void Update();
+	EQLIB_OBJECT void AutoStart();
+	EQLIB_OBJECT void UpdateButtons();
+};
+
+//============================================================================
+// CNoteWnd
+//============================================================================
+
+class CNoteWnd : public CSidlScreenWnd
+{
+public:
+	EQLIB_OBJECT CNoteWnd(CXWnd*);
+	EQLIB_OBJECT ~CNoteWnd();
+
+	EQLIB_OBJECT bool CheckNote(EQ_Note*);
+	EQLIB_OBJECT void SetNote(char*);
+};
+
+//============================================================================
+// COptionsWnd
+//============================================================================
+
+class COptionsWnd : public CSidlScreenWnd
+{
+public:
+	COptionsWnd(CXWnd*);
+	virtual ~COptionsWnd();
+
+	EQLIB_OBJECT void RefreshCurrentKeyboardAssignmentList();
+	EQLIB_OBJECT void ResetKeysToDefault();
+	EQLIB_OBJECT void RestoreDefaultColors();
+	EQLIB_OBJECT int ChatPageOnProcessFrame();
+	EQLIB_OBJECT int ChatPageWndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT int ColorPageOnProcessFrame();
+	EQLIB_OBJECT int ColorPageWndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT int DisplayPageOnProcessFrame();
+	EQLIB_OBJECT int DisplayPageWndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT int GeneralPageOnProcessFrame();
+	EQLIB_OBJECT int GeneralPageWndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT int KeyboardPageDeactivate();
+	EQLIB_OBJECT int KeyboardPageHandleKeyboardMsg(uint32_t, uint32_t, bool);
+	EQLIB_OBJECT int KeyboardPageOnProcessFrame();
+	EQLIB_OBJECT int KeyboardPageWndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT int MousePageOnProcessFrame();
+	EQLIB_OBJECT int MousePageWndNotification(CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT int RedirectDeactivateTo(CPageWnd*);
+	EQLIB_OBJECT int RedirectHandleKeyboardMsgTo(CPageWnd*, uint32_t, uint32_t, bool);
+	EQLIB_OBJECT int RedirectOnProcessFrameTo(CPageWnd*);
+	EQLIB_OBJECT int RedirectWndNotificationTo(CPageWnd*, CXWnd*, uint32_t, void*);
+	EQLIB_OBJECT void AddKeyboardAssignment(int, int, int);
+	EQLIB_OBJECT void InitKeyboardAssignments();
+	EQLIB_OBJECT void InitKeyboardPage();
+	EQLIB_OBJECT void KeyboardPageCancelKeypressAssignment();
+	EQLIB_OBJECT void SetBagOptions(int, int);
+	EQLIB_OBJECT void SyncChatPage();
+	EQLIB_OBJECT void SyncColorPage();
+	EQLIB_OBJECT void SyncDisplayPage();
+	EQLIB_OBJECT void SyncGeneralPage();
+	EQLIB_OBJECT void SyncMousePage();
+	EQLIB_OBJECT void FillChatFilterList();
+};
+
+//============================================================================
+// CPetInfoWnd
+//============================================================================
+
+class CPetInfoWnd : public CSidlScreenWnd
+{
+public:
+	CPetInfoWnd(CXWnd*);
+	virtual ~CPetInfoWnd();
+
+	EQLIB_OBJECT CButtonWnd* GetButton(int);
+	EQLIB_OBJECT void SetShowOnSummon(bool);
+	EQLIB_OBJECT void Update();
+};
+
+//============================================================================
+// CPlayerNotesWnd
+//============================================================================
+
+class CPlayerNotesWnd : public CSidlScreenWnd
+{
+public:
+	CPlayerNotesWnd(CXWnd*);
+	virtual ~CPlayerNotesWnd();
+
+	EQLIB_OBJECT void AppendText(char*);
+	EQLIB_OBJECT void SaveNotes();
+};
+
+//============================================================================
+// CPlayerWnd
+//============================================================================
+
+class CPlayerWnd : public CSidlScreenWnd
+{
+public:
+	CPlayerWnd(CXWnd*);
+	virtual ~CPlayerWnd();
+
+	EQLIB_OBJECT void CreateLocalMenu();
+	EQLIB_OBJECT void UpdateContextMenu();
+};
+
+
+//============================================================================
+// CPotionBeltWnd
+//============================================================================
+
+class CPotionBeltWnd : public CSidlScreenWnd
+{
+public:
+	CPotionBeltWnd(CXWnd*);
+	virtual ~CPotionBeltWnd();
+};
+
+
+//============================================================================
+// CPointMerchantWnd
+//============================================================================
+
+struct PointMerchantItem
+{
+	/*0x00*/ char          ItemName[0x40];
+	/*0x40*/ int           ItemID;
+	/*0x44*/ unsigned int  Price;
+	/*0x48*/ int           ThemeID;
+	/*0x4c*/ int           IsStackable;
+	/*0x50*/ int           IsLore;
+	/*0x54*/ int           RaceMask;
+	/*0x58*/ int           ClassMask;
+	/*0x5c*/ bool          bCanUse;
+	/*0x60*/
+};
+
+class PointMerchantInterface;
+
+class PointMerchantWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
+{
+public:
+	PointMerchantWnd(CXWnd*);
+	virtual ~PointMerchantWnd();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	// todo: verify
+	int                Unknown0x008;
+	int                NumItems;
+	bool               HdrItemName;
+	bool               HdrTheme;
+	bool               HdrPrice;
+	char               OriginalPointsLabel[0x40];
+	CLabel* MerchantNameLabel;
+	CListWnd* ItemList;
+	CListWnd* PointList;
+	CButtonWnd* EquipButton;
+	CButtonWnd* PurchaseButton;
+	CButtonWnd* SellButton;
+	CButtonWnd* DoneButton;
+	CLabel* PointsAvailableValue;
+	CLabel* PointsEverEarnedLabel;
+	CLabel* PointsAvailableLabel;
+	unsigned int       NextRefreshTime;
+	PSPAWNINFO         ActiveMerchant; // PlayerClient*
+	PointMerchantItem** Items;
+	int                MerchantThemeId;
+	int                CurrentSelection;
+	int                CurrentSort;
+	bool               bCurrentAscending;
+	ItemGlobalIndex    ItemLocation;
+	CONTENTS* pSelectedItem; // ItemBasePtr
+	bool               bInventoryWasActive;
+	int                CurrentItem;
+	int                CurrentQuantity;
+	int                SliderType;
+	PointMerchantInterface* pHandler;
+};
+
+//============================================================================
+// CQuantityWnd
+//============================================================================
+
+class CQuantityWnd : public CSidlScreenWnd
+{
+public:
+	CQuantityWnd(CXWnd*);
+	virtual ~CQuantityWnd();
+
+	EQLIB_OBJECT void Open(CXWnd*, int, int, int, int, int, int, bool);
+	EQLIB_OBJECT void CheckMaxEditWnd();
+	EQLIB_OBJECT void UpdateEditWndFromSlider();
+	EQLIB_OBJECT void UpdateSliderFromEditWnd();
+};
+
+//============================================================================
+// CRaidOptionsWnd
+//============================================================================
+
+class CRaidOptionsWnd : public CSidlScreenWnd
+{
+public:
+	CRaidOptionsWnd(CXWnd*);
+	virtual ~CRaidOptionsWnd();
+
+	EQLIB_OBJECT void AddLooterToList(char*);
+	EQLIB_OBJECT void ClearLooterList();
+	EQLIB_OBJECT void UpdateComponents();
+	EQLIB_OBJECT void InitializeClassColors();
+};
+
+//============================================================================
+// CRaidWnd
+//============================================================================
+
+class CRaidWnd : public CSidlScreenWnd
+{
+public:
+	CRaidWnd(CXWnd*);
+	virtual ~CRaidWnd();
+
+	EQLIB_OBJECT void AddPlayertoList(char*, char*, char*, char*, int, int, bool);
+	EQLIB_OBJECT void ChangePosition(char*, int, int, int, bool);
+	EQLIB_OBJECT void ChangeRaidGroupLeader(char*, int, char*);
+	EQLIB_OBJECT void ClearPlayerList();
+	EQLIB_OBJECT void RemovePlayerFromList(char*, int);
+	EQLIB_OBJECT void SetClassColor(int, unsigned long);
+	EQLIB_OBJECT void SetPlayerClassColor(char*, int, int);
+	EQLIB_OBJECT void SetPlayerClassColor(int, int, int);
+	EQLIB_OBJECT void SetRaidCount(int);
+	EQLIB_OBJECT void SetRaidMemberRank(char*, char*, int);
+	EQLIB_OBJECT void SetRaidTarget(char*, int, char*, int);
+	EQLIB_OBJECT void UpdateButtons();
+	EQLIB_OBJECT void UpdateLevelAverage(int);
+	EQLIB_OBJECT void UpdateMemberName(char*, char*, int);
+	EQLIB_OBJECT int FindIndexNotInGroupList(char*);
+	EQLIB_OBJECT int FindOpenIndexInGroup(int);
+	EQLIB_OBJECT int FindPlayerIndexInGroup(char*, int);
+	EQLIB_OBJECT void AddSeparator();
+	EQLIB_OBJECT void InitializeClassColors();
+	EQLIB_OBJECT void ResortRaidGroupList(int, int);
+};
+
+//============================================================================
+// CRespawnWnd
+//============================================================================
+
+class CRespawnWnd : public CSidlScreenWnd, public WndEventHandler
+{
+public:
+	CRespawnWnd(CXWnd* pParent);
+	virtual ~CRespawnWnd();
+};
+
+//============================================================================
 // CRewardSelectionWnd
 //============================================================================
 
@@ -3636,6 +4233,327 @@ public:
 
 	// virtual
 	EQLIB_OBJECT ~CRewardSelectionWnd();
+};
+
+//============================================================================
+// CSelectorWnd
+//============================================================================
+
+class CSelectorWnd : public CSidlScreenWnd
+{
+public:
+	CSelectorWnd(CXWnd*);
+	virtual ~CSelectorWnd();
+
+	EQLIB_OBJECT void KeyMapUpdated();
+};
+
+//============================================================================
+// CSkillsSelectWnd
+//============================================================================
+
+class CSkillsSelectWnd : public CSidlScreenWnd
+{
+public:
+	CSkillsSelectWnd(CXWnd*);
+	virtual ~CSkillsSelectWnd();
+
+	EQLIB_OBJECT void Refresh();
+	EQLIB_OBJECT void SetTypesToDisplay(int);
+	EQLIB_OBJECT void UpdateAll();
+	EQLIB_OBJECT void UpdateSkill(int);
+};
+
+//============================================================================
+// CSkillsWnd
+//============================================================================
+
+class CSkillsWnd : public CSidlScreenWnd
+{
+public:
+	CSkillsWnd(CXWnd*);
+	virtual ~CSkillsWnd();
+
+	EQLIB_OBJECT void SkillImproveOccurred(int);
+	EQLIB_OBJECT void UpdateAll();
+	EQLIB_OBJECT void UpdateSkill(int);
+};
+
+//============================================================================
+// CSocialEditWnd
+//============================================================================
+
+class CSocialEditWnd : public CSidlScreenWnd
+{
+public:
+	CSocialEditWnd(CXWnd*);
+	virtual ~CSocialEditWnd();
+
+	EQLIB_OBJECT unsigned long GetSocialTextColor(int);
+	EQLIB_OBJECT void ClickedAccept();
+	EQLIB_OBJECT void ClickedClear();
+	EQLIB_OBJECT void ClickedTextColorButton(int);
+	EQLIB_OBJECT void UpdateControlsFromSocial();
+};
+
+//============================================================================
+// CSpellBookWnd
+//============================================================================
+
+class CSpellBookWnd : public CSidlScreenWnd
+{
+public:
+	CSpellBookWnd(CXWnd*);
+	virtual ~CSpellBookWnd();
+
+	EQLIB_OBJECT bool StartSpellMemorization(int, int, bool);
+	EQLIB_OBJECT int GetSpellMemTicksLeft();
+	EQLIB_OBJECT int GetSpellScribeTicksLeft();
+	EQLIB_OBJECT void AutoMemSpell(int, int);
+	EQLIB_OBJECT void DeleteSpellFromBook(int, int);
+	EQLIB_OBJECT void FinishMemorizing(int, int);
+	EQLIB_OBJECT void FinishScribing(int, int);
+	EQLIB_OBJECT void MemorizeSet(int*, int);
+	EQLIB_OBJECT void RequestSpellDeletion(int);
+	EQLIB_OBJECT void SwapSpellBookSlots(int, int);
+	EQLIB_OBJECT void TurnToPage(int);
+	EQLIB_OBJECT bool CanStartMemming(int);
+	EQLIB_OBJECT void ContinueSetMem();
+	EQLIB_OBJECT void DelayedSpellMem(int, int, int);
+	EQLIB_OBJECT void DisplaySpellInfo(int);
+	EQLIB_OBJECT void EndSetMem();
+	EQLIB_OBJECT void GetSpellDeletionConfirmation(int);
+	EQLIB_OBJECT void HandleLeftClickOnSpell(int);
+	EQLIB_OBJECT void HandleRightClickOnSpell(int);
+	EQLIB_OBJECT void HandleSpellInfoDisplay(CXWnd*);
+	EQLIB_OBJECT void StartSpellMemorizationDrag(int, CButtonWnd*);
+	EQLIB_OBJECT void StartSpellScribe(int);
+	EQLIB_OBJECT void StopSpellBookAction();
+	EQLIB_OBJECT void UpdateSpellBookDisplay();
+
+	EQLIB_OBJECT static int GetBookSlot(int);
+};
+
+//============================================================================
+// CSpellGemWnd
+//============================================================================
+
+class CSpellGemWnd : public CButtonWnd
+{
+public:
+	CSpellGemWnd(CXWnd*, uint32_t, const CXRect&, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, int, int, unsigned long);
+	virtual ~CSpellGemWnd();
+
+	virtual int Draw() override;
+	virtual int HandleLButtonDown(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonHeld(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonUp(const CXPoint&, uint32_t) override;
+	virtual int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t) override;
+	virtual int HandleRButtonDown(const CXPoint&, uint32_t) override;
+	virtual int HandleRButtonHeld(const CXPoint&, uint32_t) override;
+	virtual int HandleRButtonUp(const CXPoint&, uint32_t) override;
+	virtual int HandleRButtonUpAfterHeld(const CXPoint&, uint32_t) override;
+	virtual int OnProcessFrame() override;
+	virtual void SetAttributesFromSidl(CParamScreenPiece*) override;
+	virtual void SetCheck(bool) override;
+
+	EQLIB_OBJECT void SetGemTintStage(int);
+	EQLIB_OBJECT void SetSpellGemTint(unsigned long);
+	EQLIB_OBJECT void SetSpellIconIndex(int);
+};
+
+//============================================================================
+// CTargetWnd
+//============================================================================
+
+class CTargetWnd : public CSidlScreenWnd
+{
+public:
+	CTargetWnd(CXWnd*);
+	virtual ~CTargetWnd();
+
+	EQLIB_OBJECT CXStr* GetBuffCaster(int SpellID);
+	EQLIB_OBJECT void RefreshTargetBuffs(PBYTE buffer);
+	EQLIB_OBJECT void HandleBuffRemoveRequest(CXWnd* pWnd);
+};
+
+//============================================================================
+// CTaskWnd
+//============================================================================
+
+class CTaskWnd : public CSidlScreenWnd
+{
+public:
+	CTaskWnd(CXWnd*);
+	virtual ~CTaskWnd();
+
+	EQLIB_OBJECT int UpdateTaskTimers(unsigned long fasttime);
+};
+
+//============================================================================
+// CTextEntryWnd
+//============================================================================
+
+class CTextEntryWnd : public CSidlScreenWnd, public WndEventHandler
+{
+public:
+	CTextEntryWnd(CXWnd*);
+	virtual ~CTextEntryWnd();
+
+	EQLIB_OBJECT void Open(CXWnd* pwnd, int EditMode, char* Prompt, int MinLength, int MaxLength, const char* InitialText);
+	EQLIB_OBJECT CXStr GetEntryText();
+	EQLIB_OBJECT void Activate(CXWnd*, int, char*, int, int, char*);
+	EQLIB_OBJECT void Callback(bool);
+	EQLIB_OBJECT void UpdateButtons();
+
+/*0x148*/ int m_minLength;
+/*0x14C*/ int m_maxLength;
+/*0x150*/ CXStr m_text;
+/*0x154*/ CXWnd* m_parent;
+/*0x158*/ CEditWnd* m_entry;
+/*0x15c*/ CLabel* m_prompt;
+/*0x160*/ CButtonWnd* m_ok;
+/*0x164*/ CButtonWnd* m_cancel;
+};
+
+//============================================================================
+// CTimeLeftWnd
+//============================================================================
+
+class CTimeLeftWnd : public CLabel, public WndEventHandler
+{
+public:
+	CTimeLeftWnd(int timeLeft);
+	virtual ~CTimeLeftWnd();
+};
+
+//============================================================================
+// CTipWnd
+//============================================================================
+
+class CTipWnd : public CSidlScreenWnd
+{
+public:
+	CTipWnd(CXWnd*, int);
+	virtual ~CTipWnd();
+
+	EQLIB_OBJECT void InitializeTipSettings();
+	EQLIB_OBJECT void UpdateButtons();
+	EQLIB_OBJECT bool IsRecentTOTD(int);
+	EQLIB_OBJECT int SelectRandomTip();
+	EQLIB_OBJECT void AddContextTip(int);
+	EQLIB_OBJECT void LoadINISettings();
+	EQLIB_OBJECT void SetTOTD(int);
+	EQLIB_OBJECT void ShowHistoryTip(int);
+	EQLIB_OBJECT void CleanDayTips();
+	EQLIB_OBJECT void LoadDayTips();
+};
+
+
+//============================================================================
+// CTrackingWnd
+//============================================================================
+
+class CTrackingWnd : public CSidlScreenWnd
+{
+public:
+	CTrackingWnd(CXWnd*);
+	virtual ~CTrackingWnd();
+
+	EQLIB_OBJECT void DoTrackFilter(bool);
+	EQLIB_OBJECT void DoTrackSort(bool);
+	EQLIB_OBJECT void RemovePlayerFromTracking(PlayerClient*);
+	EQLIB_OBJECT void SetTrackingList(const char*, int);
+	EQLIB_OBJECT int GetListIdByData(unsigned int);
+	EQLIB_OBJECT unsigned long GetTrackColor(int);
+	EQLIB_OBJECT void GenerateTrackingList();
+	EQLIB_OBJECT void NotifyServerOfTrackingTarget(int);
+	EQLIB_OBJECT void RemoveFromListWndByData(unsigned int);
+	EQLIB_OBJECT void RemovePlayerFromTracking(int);
+	EQLIB_OBJECT void UpdateTrackingControls();
+	EQLIB_OBJECT void UpdateTrackingList(bool);
+};
+
+//============================================================================
+// CTradeWnd
+//============================================================================
+
+class CTradeWnd : public CSidlScreenWnd, public WndEventHandler
+{
+public:
+	CTradeWnd(CXWnd*);
+	virtual ~CTradeWnd();
+
+	EQLIB_OBJECT bool IsMyTradeSlot(int, bool*);
+	EQLIB_OBJECT void Activate(PlayerClient*, bool);
+	EQLIB_OBJECT void AddContainerToHisTradeArray(EQ_Container*);
+	EQLIB_OBJECT void AddEquipmentToHisTradeArray(EQ_Equipment*);
+	EQLIB_OBJECT void AddNoteToHisTradeArray(EQ_Note*);
+	EQLIB_OBJECT void ClickedCancelButton();
+	EQLIB_OBJECT void ClickedMoneyButton(int);
+	EQLIB_OBJECT void ClickedTradeButton();
+	EQLIB_OBJECT void CompleteTrade();
+	EQLIB_OBJECT void DeleteItemFromHisTradeArray(int);
+	EQLIB_OBJECT void DropItemIntoTrade();
+	EQLIB_OBJECT void SetHisMoney(int, long);
+	EQLIB_OBJECT void SetHisReadyTrade(bool);
+	EQLIB_OBJECT void SetMyReadyTrade(bool);
+	EQLIB_OBJECT void TradeItemChanged(int, int);
+	EQLIB_OBJECT void UpdateTradeDisplay();
+
+	unsigned int       NextRefreshTime;
+	bool               bInventoryWasOpen;
+	CButtonWnd*        HisMoneyButton[4];
+	CButtonWnd*        MyMoneyButton[4];
+	CButtonWnd*        TradeButton;
+	CButtonWnd*        CancelButton;
+	CLabel*            HisNameLabel;
+	CLabel*            MyNameLabel;
+	CInvSlotWnd*       pInvSlotWnd[16];
+	long               HisMoney[4];
+	long               MyMoney[4];
+	ItemBaseContainer  TradeItems;     // 16 items
+	bool               bHisReadyTrade;
+	bool               bMyReadyTrade;
+	bool               bIsTrading;
+};
+
+//============================================================================
+// CTrainWnd
+//============================================================================
+
+class CTrainWnd : public CSidlScreenWnd
+{
+public:
+	CTrainWnd(CXWnd*);
+	virtual ~CTrainWnd();
+
+	EQLIB_OBJECT void SetGMData(int*, unsigned char*, float);
+	EQLIB_OBJECT void SkillChanged(int);
+	EQLIB_OBJECT char* SkillName(int);
+	EQLIB_OBJECT int SkillValue(int);
+	EQLIB_OBJECT void SortNames(int);
+	EQLIB_OBJECT void SortSkill(int);
+	EQLIB_OBJECT void SwapSkill(int, int);
+	EQLIB_OBJECT void Train();
+	EQLIB_OBJECT void UpdateAll(bool);
+	EQLIB_OBJECT void UpdateRight();
+	EQLIB_OBJECT void UpdateSkill(int);
+};
+
+//============================================================================
+// CVideoModesWnd
+//============================================================================
+
+class CVideoModesWnd : public CSidlScreenWnd
+{
+public:
+	CVideoModesWnd(CXWnd*);
+	virtual ~CVideoModesWnd();
+
+	EQLIB_OBJECT void RestoreOldMode();
+	EQLIB_OBJECT void Update();
+	EQLIB_OBJECT void UpdateSelection(unsigned int);
 };
 
 //============================================================================

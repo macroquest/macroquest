@@ -27,7 +27,20 @@ namespace eqlib {
 
 // CListWnd
 #ifdef CListWnd__AddColumn1_x
-FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimation* pTA, int Width, uint32_t Flags, CXStr Tooltip, uint32_t Type, CTextureAnimation* pTASelected, CTextureAnimation* pTAMouseOver, bool bResizeable, tagSIZE TextureSize, tagPOINT TextureOffset), CListWnd__AddColumn1);
+FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimation* pTA, int Width, uint32_t Flags,
+	CXStr Tooltip, uint32_t Type, CTextureAnimation* pTASelected, CTextureAnimation* pTAMouseOver, bool bResizeable,
+	CXSize TextureSize, CXPoint TextureOffset), CListWnd__AddColumn1);
+#endif
+
+// CStmlWnd
+#ifdef CStmlWnd__AppendSTML_x
+FUNCTION_AT_ADDRESS(CXSize CStmlWnd::AppendSTML(CXStr), CStmlWnd__AppendSTML);
+#endif
+#ifdef CStmlWnd__GetVisibleText_x
+FUNCTION_AT_ADDRESS(CXStr CStmlWnd::GetVisibleText(CXStr, const CXRect&) const, CStmlWnd__GetVisibleText);
+#endif
+#ifdef CStmlWnd__SetSTMLText_x
+FUNCTION_AT_ADDRESS(void CStmlWnd::SetSTMLText(CXStr, bool, SLinkInfo*), CStmlWnd__SetSTMLText);
 #endif
 
 // CChatWindow
