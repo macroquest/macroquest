@@ -122,6 +122,9 @@
     <ClCompile Include="EQLib\common\ExceptionsDisabled.cpp">
       <Filter>Source Files\EQLib\Common</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\Common\SidlTemplates.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
@@ -255,6 +258,12 @@
     </ClInclude>
     <ClInclude Include="EQLib\test\PlayerZoneClient-Members.h">
       <Filter>Header Files\EQLib\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\Common\SidlParams.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\Common\SidlTemplates.h">
+      <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

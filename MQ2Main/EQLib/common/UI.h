@@ -18,6 +18,7 @@
 #include "CXStr.h"
 #include "CXWnd.h"
 #include "Containers.h"
+#include "SidlTemplates.h"
 
 #if defined(TEST)
 #include "../test/EQData(Test).h"
@@ -53,6 +54,7 @@ class CLabel;
 class CLayoutStrategyTemplate;
 class CStmlWnd;
 class CUnSerializeBuffer;
+class CVerticalLayoutWnd;
 class CVivoxObserver;
 
 using D3DCOLOR = DWORD;
@@ -110,187 +112,6 @@ private:
 	// this will never work because of differences in stl between
 	// mq2 and eq. Don't use it.
 	std::list<IObserver*> ObserverList;
-};
-
-
-//============================================================================
-// CUITexturePiece
-//============================================================================
-
-enum enDir
-{
-	cUIDirectory,
-	cUIDirectoryAtlas,
-	cUIDirectoryTexture,
-	cUIDirectoryMaps,
-
-	cUIDirectoryCount,
-};
-
-struct CUITextureInfo
-{
-public:
-	EQLIB_OBJECT CUITextureInfo();
-	EQLIB_OBJECT CUITextureInfo(const CXStr& name, int size);
-	EQLIB_OBJECT CUITextureInfo(const CXStr& name, const CXSize& size);
-	EQLIB_OBJECT CUITextureInfo(uint32_t id, int size);
-	EQLIB_OBJECT CUITextureInfo(uint32_t id, const CXSize& size);
-
-	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, const CXRect&, D3DCOLOR*, D3DCOLOR*) const;
-	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, const CXRect&, D3DCOLOR, D3DCOLOR) const;
-	//EQLIB_OBJECT int Preload();
-	//EQLIB_OBJECT int Tile(const CXRect&, D3DCOLOR*, D3DCOLOR*) const;
-	//EQLIB_OBJECT int Tile(const CXRect&, D3DCOLOR, D3DCOLOR) const;
-
-	//----------------------------------------------------------------------------
-	// data members
-/*0x00*/ bool          bValid = false;
-/*0x04*/ enDir         Directory = cUIDirectory;
-/*0x08*/ CXStr         Name;
-/*0x0c*/ CXSize        TextureSize;
-/*0x14*/ uint32_t      TextureId = -1;
-/*0x18*/
-};
-
-class CUITexturePiece
-{
-public:
-	EQLIB_OBJECT CUITexturePiece();
-	EQLIB_OBJECT CUITexturePiece(const CUITextureInfo&, const CXRect&);
-	EQLIB_OBJECT CUITexturePiece(const CUITextureInfo&);
-
-	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, const CXRect&, D3DCOLOR, D3DCOLOR) const;
-	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, D3DCOLOR, D3DCOLOR) const;
-
-	const CUITextureInfo& GetTextureInfo() const { return m_info; }
-	CXSize GetSize() const { return m_rect.GetSize(); }
-	const CXRect& GetRect() const { return m_rect; }
-
-private:
-/*0x00*/ CUITextureInfo      m_info;
-/*0x18*/ CXRect              m_rect;
-/*0x28*/
-};
-
-//============================================================================
-// CTextureAnimation
-//============================================================================
-
-struct STextureAnimationFrame
-{
-/*0x00*/ CUITexturePiece    Piece;
-/*0x28*/ uint32_t           Ticks = 0;
-/*0x2c*/ CXPoint            Hotspot;
-/*0x34*/
-};
-
-class CTextureAnimation
-{
-public:
-	EQLIB_OBJECT CTextureAnimation();
-	EQLIB_OBJECT CTextureAnimation(const CXStr& name);
-	EQLIB_OBJECT CTextureAnimation(CUITexturePiece tp);
-	EQLIB_OBJECT virtual ~CTextureAnimation();
-
-	EQLIB_OBJECT int AddFrame(const CUITextureInfo* ti, const CXRect& rect, uint32_t ticks, CXPoint hotspot = {});
-	EQLIB_OBJECT int AddFrame(CUITexturePiece tp, uint32_t ticks, CXPoint hotspot = {});
-	EQLIB_OBJECT int AddBlankFrame(uint32_t ticks, CXPoint hotspot = {});
-	EQLIB_OBJECT void SetCurFrame(int);
-	EQLIB_OBJECT int GetCurFrame() const;
-	EQLIB_OBJECT void Pause(bool pause);
-	EQLIB_OBJECT CXPoint GetHotspot() const;
-	EQLIB_OBJECT const CXStr& GetName() const { return Name; }
-	EQLIB_OBJECT void SetCurCell(int);
-	EQLIB_OBJECT CXSize GetSize() const { return Size; }
-	inline int GetWidth() const { return Size.cx; }
-	inline int GetHeight() const { return Size.cy; }
-
-	// todo
-	EQLIB_OBJECT int Draw(const CXRect& rect, const CXRect& clip, uint32_t color = 0xffffffff, uint32_t color2 = 0xff000000) { return 0; }
-	//EQLIB_OBJECT int Draw(const CXPoint&, const CXRect&, unsigned long, unsigned long) const;
-	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, unsigned long, unsigned long) const;
-	//EQLIB_OBJECT int Preload();
-	//EQLIB_OBJECT void Reset();
-
-	//----------------------------------------------------------------------------
-	// data members
-/*0x04*/ CXStr         Name;
-/*0x08*/ ArrayClass<STextureAnimationFrame> Frames;
-/*0x18*/ uint32_t           TotalTicks = 0;
-/*0x1c*/ int                ZeroFrame = 0;
-/*0x20*/ uint32_t           StartTicks = GetTickCount();
-/*0x24*/ CXSize             Size;
-/*0x2c*/ bool               bPaused = false;
-/*0x2d*/ bool               bCycle = true;
-/*0x2e*/ bool               bGrid = false;
-/*0x2f*/ bool               bVertical = false;
-/*0x30*/ int                CellWidth = 0;
-/*0x34*/ int                CellHeight = 0;
-/*0x38*/ int                CurCell = -1;
-/*0x3c*/ CXRect             CellRect;
-/*0x4c*/
-};
-
-//============================================================================
-// CTAFrameDraw
-//============================================================================
-
-class CTAFrameDraw
-{
-public:
-	EQLIB_OBJECT CTAFrameDraw(CXStr = {});
-
-	enum EFrameDrawPiece
-	{
-		FrameDraw_TopLeft = 0,
-		FrameDraw_Top,
-		FrameDraw_TopRight,
-		FrameDraw_RightTop,
-		FrameDraw_Right,
-		FrameDraw_RightBottom,
-		FrameDraw_BottomRight,
-		FrameDraw_Bottom,
-		FrameDraw_BottomLeft,
-		FrameDraw_LeftTop,
-		FrameDraw_Left,
-		FrameDraw_LeftBottom,
-		FrameDraw_Middle,
-
-		FrameDraw_Max,
-	};
-
-	EQLIB_OBJECT CTextureAnimation* GetAnimation(EFrameDrawPiece) const;
-	EQLIB_OBJECT void SetAnimation(EFrameDrawPiece which, CTextureAnimation* tex);
-
-	EQLIB_OBJECT CXRect GetHitTestRect(const CXRect&, int) const;
-	EQLIB_OBJECT CXRect GetInnerRect(const CXRect&) const;
-	EQLIB_OBJECT CXRect GetPieceRect(const CXRect&, int) const;
-	EQLIB_OBJECT CXSize GetFrameSize() const;
-
-	EQLIB_OBJECT CXStr GetName() const { return m_name; }
-	EQLIB_OBJECT void SetName(const CXStr& name) { m_name = name; }
-
-	EQLIB_OBJECT bool IsHorizontal() const;
-	EQLIB_OBJECT bool IsVertical() const;
-
-	EQLIB_OBJECT int Draw(const CXRect&, const CXRect&) const;
-	EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, EFrameDrawPiece) const;
-
-	EQLIB_OBJECT int GetExtent() const;
-	EQLIB_OBJECT int GetMinLength() const;
-
-	EQLIB_OBJECT void Set(CTextureAnimation* pta[FrameDraw_Max]);
-
-	//----------------------------------------------------------------------------
-	// data members
-private:
-/*0x00*/ CXStr              m_name;
-/*0x04*/ CTextureAnimation* m_pta[FrameDraw_Max];
-/*0x38*/ int                Unknown0x38 = -1;
-/*0x3c*/ int                m_nOverlapTop = 0;
-/*0x40*/ int                m_nOverlapLeft = 0;
-/*0x44*/ int                m_nOverlapBottom = 0;
-/*0x48*/ int                m_nOverlapRight = 0;
 };
 
 //============================================================================
@@ -389,38 +210,6 @@ public:
 	EQLIB_OBJECT unsigned int CreateTexture(const CUITextureInfo&);
 	EQLIB_OBJECT void UnloadAllTextures();
 	EQLIB_OBJECT const CXStr& GetDefaultUIPath(int DirType) const;
-};
-
-
-//============================================================================
-// CButtonDrawTemplate
-//============================================================================
-
-class CButtonDrawTemplate
-{
-public:
-	EQLIB_OBJECT CButtonDrawTemplate();
-	EQLIB_OBJECT ~CButtonDrawTemplate();
-
-	// Returns the appropriate texture to use for the button given the specified properties
-	EQLIB_OBJECT CTextureAnimation* GetAnimation(bool pressed, bool hover, bool disabled, bool decal = false) const;
-	EQLIB_OBJECT CXSize GetSize() const;
-
-	//----------------------------------------------------------------------------
-	// data members
-	CXStr              Name;
-	CTextureAnimation* Normal = nullptr;
-	CTextureAnimation* Pressed = nullptr;
-	CTextureAnimation* Flyby = nullptr;
-	CTextureAnimation* Disabled = nullptr;
-	CTextureAnimation* PressedFlyby = nullptr;
-	CTextureAnimation* PressedDisabled = nullptr;
-	CTextureAnimation* NormalDecal = nullptr;
-	CTextureAnimation* PressedDecal = nullptr;
-	CTextureAnimation* FlybyDecal = nullptr;
-	CTextureAnimation* DisabledDecal = nullptr;
-	CTextureAnimation* PressedFlybyDecal = nullptr;
-	CTextureAnimation* PressedDisabledDecal = nullptr;
 };
 
 //============================================================================
@@ -790,19 +579,6 @@ public:
 // CGaugeWnd
 //============================================================================
 
-class CGaugeDrawTemplate
-{
-public:
-/*0x00*/ CXStr              Name;
-/*0x04*/ CTextureAnimation* Background;
-/*0x08*/ CTextureAnimation* Fill;
-/*0x0c*/ CTextureAnimation* Lines;
-/*0x10*/ CTextureAnimation* LinesFill;
-/*0x14*/ CTextureAnimation* EndCapLeft;
-/*0x18*/ CTextureAnimation* EndCapRight;
-/*0x1c*/
-};
-
 // size 0x248 see 7E24DB in Sep 21 2018
 class CGaugeWnd : public CXWnd
 {
@@ -979,6 +755,20 @@ struct SListWndLine
 /*0x020*/ STreeData               Treedata;
 /*0x028*/ char                    TooltipText[256];
 /*0x128*/ bool                    bVisible = true;
+};
+
+class SListWndSortInfo
+{
+public:
+/*0x00*/ int           SortCol;
+/*0x04*/ const SListWndLine& ListWndLine1;
+/*0x08*/ CXStr         StrLabel1;
+/*0x10*/ uint64_t      Data1;
+/*0x18*/ const SListWndLine& ListWndLine2;
+/*0x1c*/ CXStr         StrLabel2;
+/*0x20*/ uint64_t      Data2;
+/*0x28*/ int           SortResult;
+/*0x2c*/
 };
 
 enum ECellType
@@ -4700,16 +4490,6 @@ using PEQSPELLINFOWINDOW = CSpellDisplayWnd*;
 // CSpellGemWnd
 //============================================================================
 
-// todo: move to SidlTemplates.h
-class CSpellGemDrawTemplate
-{
-public:
-	CXStr                    Name;
-	CTextureAnimation*       ptaBackground;
-	CTextureAnimation*       ptaHolder;
-	CTextureAnimation*       ptaHighlight;
-};
-
 // CSpellGemWnd__CSpellGemWnd
 // CSpellGemWnd_size: 0x330 (see 7F639B) in May 17 2019 Test
 class CSpellGemWnd : public CButtonWnd
@@ -5036,6 +4816,170 @@ public:
 	EQLIB_OBJECT void RestoreOldMode();
 	EQLIB_OBJECT void Update();
 	EQLIB_OBJECT void UpdateSelection(unsigned int);
+};
+
+//============================================================================
+// CZoneGuideWnd
+//============================================================================
+
+enum eZoneGuideConnectionsView
+{
+	eZGCV_None,
+	eZGCV_Selected,
+	eZGCV_PreviewPath,
+	eZGCV_ActivePath,
+	eZGCV_Disabled,
+};
+
+class ZoneGuideConnection
+{
+public:
+	EQZoneIndex        DestZone;
+	int                TransferTypeIndex;
+	int                RequiredExpansions;       // EQExpansionOwned
+	bool               bDisabled;
+};
+
+class ZoneGuideContinent
+{
+public:
+	int                ID;
+	int                DisplaySequence;
+	CXStr              Name;
+};
+
+class ZoneGuideZoneType
+{
+public:
+	int                ID;
+	int                DisplaySequence;
+	CXStr              Name;
+};
+
+class ZoneGuideTransferType
+{
+public:
+	int                ID;
+	CXStr              Description;
+};
+
+// see 8E87D6 in Apr 15 2019 exe
+class ZoneGuideZone
+{
+public:
+/*0x00*/ EQZoneIndex   ID;
+/*0x04*/ CXStr         Name;
+/*0x08*/ int           ContinentIndex;
+/*0x0C*/ int           MinLevel;
+/*0x10*/ int           MaxLevel;
+/*0x14*/ DynamicBitField<unsigned short, short> Types;
+/*0x1C*/ ArrayClass_RO<ZoneGuideConnection> ZoneConnections;
+/*0x2C*/
+};
+
+struct ZonePathData
+{
+	EQZoneIndex        ZoneID;
+	int                TransferTypeIndex;
+};
+
+// see 8D35C1 in may 10 2018 exe
+#define ZONE_COUNT 836
+
+class ZoneGuideManagerBase
+{
+public:
+	ZoneGuideManagerBase();
+	virtual ~ZoneGuideManagerBase();
+
+	virtual void ResetAllData();
+	//virtual void Serialize(CSerializeBuffer&);
+	//virtual void Unserialize(CUnserializeBuffer&);
+
+/*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];
+/*0x8FB4*/ ArrayClass<ZoneGuideContinent> Continents;
+/*0x8FC4*/ ArrayClass<ZoneGuideZoneType> ZoneTypes;
+/*0x8FD4*/ ArrayClass<ZoneGuideTransferType> TransferTypes;
+/*0x8FE4*/
+};
+
+// size: 0x9010 see 6AB098 in Apr 15 2019 exe
+class ZoneGuideManagerClient : public ZoneGuideManagerBase
+{
+public:
+/*0x8FE4*/ ArrayClass<ZonePathData> ActivePath;
+/*0x8FF4*/ ArrayClass<ZonePathData> PreviewPath;
+/*0x9004*/ EQZoneIndex CurrZone;
+/*0x9008*/ int         HerosJourneyIndex;
+/*0x900C*/ bool        bZoneGuideDataSet;
+/*0x900D*/ bool        bIncludeBindZoneInPath;
+/*0x900E*/ bool        bAutoFindActivePath;
+/*0x900F*/ bool        bFindActivePath;
+/*0x9010*/
+
+	static ZoneGuideManagerClient& Instance();
+};
+
+class CZoneGuideWnd : public CSidlScreenWnd, public WndEventHandler
+{
+public:
+	CVerticalLayoutWnd* VerticalLayout;
+	CButtonWnd*        FilterMyLevelButton;
+	CButtonWnd*        FilterAllLevelsButton;
+	CButtonWnd*        FilterZonesActiveButton;
+	CButtonWnd*        FilterZonesInactiveButton;
+	CButtonWnd*        ZoneRunSearchButton;
+	CButtonWnd*        ZoneClearSearchButton;
+	CButtonWnd*        SelectCurrentZoneButton;
+	CEditWnd*          LevelFilterEdit;
+	CEditWnd*          ZoneSearchEdit;
+	CComboWnd*         TypeFilterCombo;
+	CComboWnd*         ContinentFilterCombo;
+	CListWnd*          ZonesList;
+	CLabelWnd*         ViewZoneConnectionsSelectedZoneLabel;
+	CLabelWnd*         ViewZoneConnectionsPreviewPathLabel;
+	CLabelWnd*         ViewZoneConnectionsActivePathLabel;
+	CLabelWnd*         ViewZoneConnectionsDisabledLabel;
+	CButtonWnd*        ViewZoneConnectionsSelectedZoneButton;
+	CButtonWnd*        ViewZoneConnectionsPreviewPathButton;
+	CButtonWnd*        ViewZoneConnectionsActivePathButton;
+	CButtonWnd*        ViewZoneConnectionsDisabledButton;
+	CButtonWnd*        DisableConnectionTemplateButton;
+	CListWnd*          ZoneConnectionsList;
+	CButtonWnd*        ResetPathStartZoneButton;
+	CButtonWnd*        SetPathStartZoneButton;
+	CButtonWnd*        SetPathEndZoneButton;
+	CButtonWnd*        ShowPathWndButton;
+	CButtonWnd*        HidePathWndButton;
+	CButtonWnd*        FindPathButton;
+	CButtonWnd*        EndFindButton;
+	CButtonWnd*        ClearPathWndButton;
+	CButtonWnd*        ActivatePathButton;
+	CButtonWnd*        IncludeBindZoneInPathGenerationButton;
+	CButtonWnd*        ShowPathWndOnPathActivationButton;
+	CButtonWnd*        AutoFindActivePathButton;
+	CEditWnd*          PathStartZoneEdit;
+	CEditWnd*          PathEndZoneEdit;
+	UINT               NextButtonRefreshTime;
+	EQZoneIndex        eCurrentZone;
+	bool               bFilterActive;
+	int                FilterLevel;
+	int                FilterContinentIndex;
+	int                FilterZoneTypeIndex;
+	bool               bSelectCurrentZone;
+	CXStr              ZoneSearchString;
+	eZoneGuideConnectionsView eCurrConnectionsView;
+	EQZoneIndex        CurrConnectionsViewSelectedZone;
+	bool               bCurrentConnectionsViewPreviewPathChanged;
+	bool               bCurrentConnectionsViewActivePathChanged;
+	bool               bSetPathStartZoneToCurrentZone;
+	EQZoneIndex        StartZone;
+	EQZoneIndex        EndZone;
+	bool               bZoneGuideDataChanged;
+	bool               bZoneListChanged;
+	bool               bZoneConnectionsListChanged;
+	bool               bPathStartZoneChanged;
+	int                RightClickMenuID;
 };
 
 //============================================================================
