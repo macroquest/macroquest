@@ -637,6 +637,108 @@ FUNCTION_AT_ADDRESS(void CTextureAnimation::SetCurCell(int), CTextureAnimation__
 #endif
 
 //============================================================================
+// CEQSuiteTextureLoader
+//============================================================================
+
+#ifdef CEQSuiteTextureLoader__dCEQSuiteTextureLoader_x
+FUNCTION_AT_ADDRESS(CEQSuiteTextureLoader::~CEQSuiteTextureLoader(), CEQSuiteTextureLoader__dCEQSuiteTextureLoader);
+#endif
+#ifdef CEQSuiteTextureLoader__CreateTexture_x
+FUNCTION_AT_ADDRESS(unsigned int CEQSuiteTextureLoader::CreateTexture(const CUITextureInfo&), CEQSuiteTextureLoader__CreateTexture);
+#endif
+#ifdef CEQSuiteTextureLoader__UnloadAllTextures_x
+FUNCTION_AT_ADDRESS(void CEQSuiteTextureLoader::UnloadAllTextures(), CEQSuiteTextureLoader__UnloadAllTextures);
+#endif
+#ifdef CEQSuiteTextureLoader__GetTexture_x
+FUNCTION_AT_ADDRESS(BMI* CEQSuiteTextureLoader::GetTexture(const CUITextureInfo& ti), CEQSuiteTextureLoader__GetTexture);
+#endif
+#ifdef CEQSuiteTextureLoader__GetDefaultUIPath_x
+FUNCTION_AT_ADDRESS(const CXStr& CEQSuiteTextureLoader::GetDefaultUIPath(int DirType) const, CEQSuiteTextureLoader__GetDefaultUIPath);
+#endif
+#ifdef CEQSuiteTextureLoader__CEQSuiteTextureLoader_x
+FUNCTION_AT_ADDRESS(CEQSuiteTextureLoader::CEQSuiteTextureLoader(), CEQSuiteTextureLoader__CEQSuiteTextureLoader);
+#endif
+
+//============================================================================
+// CTextureFont
+//============================================================================
+
+#ifdef CTextureFont__GetWidth_x
+FUNCTION_AT_ADDRESS(int CTextureFont::GetWidth(unsigned short) const, CTextureFont__GetWidth);
+#endif
+#ifdef CTextureFont__GetKerning_x
+FUNCTION_AT_ADDRESS(int CTextureFont::GetKerning(unsigned short, unsigned short) const, CTextureFont__GetKerning);
+#endif
+#ifdef CTextureFont__GetTextExtent_x
+FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(const CXStr&), CTextureFont__GetTextExtent);
+#endif
+#ifdef CTextureFont__GetHeight_x
+FUNCTION_AT_ADDRESS(int CTextureFont::GetHeight() const, CTextureFont__GetHeight);
+#endif
+#ifdef CTextureFont__GetName_x
+FUNCTION_AT_ADDRESS(CXStr CTextureFont::GetName() const, CTextureFont__GetName);
+#endif
+#ifdef CTextureFont__DrawWrappedText_x
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, int, const CXRect&, COLORREF, WORD, int) const, CTextureFont__DrawWrappedText);
+#endif
+#ifdef CTextureFont__DrawWrappedText1_x
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const, CTextureFont__DrawWrappedText1);
+#endif
+
+//============================================================================
+// CXMLDataManager
+//============================================================================
+
+#ifdef CXMLDataManager__GetXMLData_x
+FUNCTION_AT_ADDRESS(CXMLData* CXMLDataManager::GetXMLData(int, int), CXMLDataManager__GetXMLData);
+#endif
+#ifdef CXMLDataManager__GetXMLData1_x
+FUNCTION_AT_ADDRESS(CXMLData* CXMLDataManager::GetXMLData(CXStr, CXStr), CXMLDataManager__GetXMLData1);
+#endif
+#ifdef CXMLDataManager__GetNumClass_x
+FUNCTION_AT_ADDRESS(int CXMLDataManager::GetNumClass(), CXMLDataManager__GetNumClass);
+#endif
+#ifdef CXMLDataManager__GetNumItem_x
+FUNCTION_AT_ADDRESS(int CXMLDataManager::GetNumItem(int), CXMLDataManager__GetNumItem);
+#endif
+#ifdef CXMLDataManager__GetClassIdx_x
+FUNCTION_AT_ADDRESS(int CXMLDataManager::GetClassIdx(CXStr), CXMLDataManager__GetClassIdx);
+#endif
+#ifdef CXMLDataManager__GetItemIdx_x
+FUNCTION_AT_ADDRESS(int CXMLDataManager::GetItemIdx(int, CXStr), CXMLDataManager__GetItemIdx);
+#endif
+#ifdef CXMLDataManager__AddToSuperType_x
+//FUNCTION_AT_ADDRESS(void CXMLDataManager::AddToSuperType(CXStr, CXMLDataPtr), CXMLDataManager__AddToSuperType);
+#endif
+#ifdef CXMLDataManager__IsDerivedFrom_x
+FUNCTION_AT_ADDRESS(bool CXMLDataManager::IsDerivedFrom(int, int), CXMLDataManager__IsDerivedFrom);
+#endif
+#ifdef CXMLDataManager__SetEnumHash_x
+FUNCTION_AT_ADDRESS(void CXMLDataManager::SetEnumHash(), CXMLDataManager__SetEnumHash);
+#endif
+#ifdef CXMLDataManager__ReadFromXMLSOM_x
+FUNCTION_AT_ADDRESS(bool CXMLDataManager::ReadFromXMLSOM(CXMLSOMDocument&), CXMLDataManager__ReadFromXMLSOM);
+#endif
+
+#ifdef CXMLSOMDocumentBase__XMLRead_x
+FUNCTION_AT_ADDRESS(bool CXMLSOMDocumentBase::XMLRead(const CXStr&, const CXStr&, const CXStr&), CXMLSOMDocumentBase__XMLRead);
+#endif
+
+// MISC
+
+#ifdef CScreenPieceTemplate__IsType_x
+FUNCTION_AT_ADDRESS(bool CScreenPieceTemplate::IsType(uint32_t) const, CScreenPieceTemplate__IsType);
+#endif
+
+#ifdef CWndDisplayManager__FindWindowA_x
+FUNCTION_AT_ADDRESS(int CWndDisplayManager::FindWindow(bool bNewWnd), CWndDisplayManager__FindWindowA);
+#endif
+
+#ifdef CItemDisplayManager__CreateWindowInstance_x
+FUNCTION_AT_ADDRESS(int CItemDisplayManager::CreateWindowInstance(), CItemDisplayManager__CreateWindowInstance);
+#endif
+
+//============================================================================
 // CButtonDrawTemplate
 //============================================================================
 
@@ -922,6 +1024,16 @@ FUNCTION_AT_ADDRESS(int CEditWnd::ConvertIndexPrintableToTagged(int), CEditWnd__
 FUNCTION_AT_ADDRESS(int CEditWnd::ConvertIndexTaggedToPrintable(int), CEditWnd__ConvertIndexTaggedToPrintable);
 #endif
 
+void CEditBaseWnd::SetMaxChars(int maxChars)
+{
+	MaxChars = maxChars;
+
+	if (maxChars < (int)InputText.length())
+	{
+		SetWindowText(InputText);
+	}
+}
+
 //============================================================================
 // CGuageWnd
 //============================================================================
@@ -1170,6 +1282,25 @@ FUNCTION_AT_ADDRESS(CXRect CListWnd::GetSeparatorRect(int) const, CListWnd__GetS
 FUNCTION_AT_ADDRESS(CXRect CListWnd::GetHeaderRect(int) const, CListWnd__GetHeaderRect);
 #endif
 
+int CListWnd::AddString(const char* Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
+{
+	return AddString(CXStr(Str), Color, Data, pTa, TooltipStr);
+}
+
+//============================================================================
+// CPageWnd
+//============================================================================
+
+#ifdef CPageWnd__CPageWnd_x
+FUNCTION_AT_ADDRESS(CPageWnd::CPageWnd(CXWnd*, uint32_t, CXRect, class CXStr, CPageTemplate*), CPageWnd__CPageWnd);
+#endif
+#ifdef CPageWnd__GetTabText_x
+FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText(bool) const, CPageWnd__GetTabText);
+#endif
+#ifdef CPageWnd__SetTabText_x
+FUNCTION_AT_ADDRESS(void CPageWnd::SetTabText(CXStr&) const, CPageWnd__SetTabText);
+#endif
+
 //============================================================================
 // CSliderWnd
 //============================================================================
@@ -1387,6 +1518,20 @@ FUNCTION_AT_ADDRESS(int CTabWnd::DrawTab(int) const, CTabWnd__DrawTab);
 #endif
 #ifdef CTabWnd__DrawCurrentPage_x
 FUNCTION_AT_ADDRESS(int CTabWnd::DrawCurrentPage() const, CTabWnd__DrawCurrentPage);
+#endif
+
+//============================================================================
+// CActionsWnd
+//============================================================================
+
+#ifdef CActionsWnd__MainPageActivate_x
+FUNCTION_AT_ADDRESS(int CActionsWnd::MainPageActivate(), CActionsWnd__MainPageActivate);
+#endif
+#ifdef CActionsWnd__MainPageDeactivate_x
+FUNCTION_AT_ADDRESS(int CActionsWnd::MainPageDeactivate(), CActionsWnd__MainPageDeactivate);
+#endif
+#ifdef CActionsWnd__SocialsPageDeactivate_x
+FUNCTION_AT_ADDRESS(int CActionsWnd::SocialsPageDeactivate(), CActionsWnd__SocialsPageDeactivate);
 #endif
 
 //============================================================================
@@ -1876,6 +2021,7 @@ FUNCTION_AT_ADDRESS(int CConfirmationDialog::WndNotification(CXWnd*, uint32_t, v
 // CContainerWnd
 //============================================================================
 
+// CContainerWnd
 #ifdef CContainerWnd__CContainerWnd_x
 FUNCTION_AT_ADDRESS(CContainerWnd::CContainerWnd(CXWnd*), CContainerWnd__CContainerWnd);
 #endif
@@ -1893,6 +2039,44 @@ FUNCTION_AT_ADDRESS(void CContainerWnd::CheckCloseable(), CContainerWnd__CheckCl
 #endif
 #ifdef CContainerWnd__ContainsNoDrop_x
 FUNCTION_AT_ADDRESS(bool CContainerWnd::ContainsNoDrop(), CContainerWnd__ContainsNoDrop);
+#endif
+
+// CContainerMgr
+#ifdef CContainerMgr__GetFreeContainerWnd_x
+FUNCTION_AT_ADDRESS(CContainerWnd* CContainerMgr::GetFreeContainerWnd(), CContainerMgr__GetFreeContainerWnd);
+#endif
+#ifdef CContainerMgr__OpenExperimentContainer_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::OpenExperimentContainer(const VePointer<CONTENTS>& pCont, const ItemGlobalIndex& Location), CContainerMgr__OpenExperimentContainer);
+#endif
+#ifdef CContainerMgr__CContainerMgr_x
+FUNCTION_AT_ADDRESS(CContainerMgr::CContainerMgr(), CContainerMgr__CContainerMgr);
+#endif
+#ifdef CContainerMgr__Process_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::Process(), CContainerMgr__Process);
+#endif
+#ifdef CContainerMgr__OpenWorldContainer_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::OpenWorldContainer(EQ_Container*, unsigned long), CContainerMgr__OpenWorldContainer);
+#endif
+#ifdef CContainerMgr__SetWorldContainerItem_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::SetWorldContainerItem(EQ_Item*, int), CContainerMgr__SetWorldContainerItem);
+#endif
+#ifdef CContainerMgr__GetWorldContainerItem_x
+FUNCTION_AT_ADDRESS(EQ_Item* CContainerMgr::GetWorldContainerItem(int), CContainerMgr__GetWorldContainerItem);
+#endif
+#ifdef CContainerMgr__ClearWorldContainerItems_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::ClearWorldContainerItems(), CContainerMgr__ClearWorldContainerItems);
+#endif
+#ifdef CContainerMgr__OpenContainer_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::OpenContainer(EQ_Container*, int, bool), CContainerMgr__OpenContainer);
+#endif
+#ifdef CContainerMgr__CloseEQContainer_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::CloseEQContainer(EQ_Container*), CContainerMgr__CloseEQContainer);
+#endif
+#ifdef CContainerMgr__CloseContainer_x
+FUNCTION_AT_ADDRESS(void CContainerMgr::CloseContainer(EQ_Container*, bool), CContainerMgr__CloseContainer);
+#endif
+#ifdef CContainerMgr__CloseAllContainers_x
+FUNCTION_AT_ADDRESS(bool CContainerMgr::CloseAllContainers(), CContainerMgr__CloseAllContainers);
 #endif
 
 //============================================================================
@@ -2215,6 +2399,37 @@ FUNCTION_AT_ADDRESS(CHelpWnd::CHelpWnd(CXWnd*), CHelpWnd__CHelpWnd);
 #endif
 
 //============================================================================
+// CHtmlWnd & components
+//============================================================================
+
+// CHtmlWnd
+#ifdef CHtmlWnd__SetClientCallbacks_x
+FUNCTION_AT_ADDRESS(void CHtmlWnd::SetClientCallbacks(libMozilla::ICallback*), CHtmlWnd__SetClientCallbacks);
+#endif
+#ifdef CHtmlWnd__AddObserver_x
+FUNCTION_AT_ADDRESS(void CHtmlWnd::AddObserver(IObserver*), CHtmlWnd__AddObserver);
+#endif
+#ifdef CHtmlWnd__RemoveObserver_x
+FUNCTION_AT_ADDRESS(void CHtmlWnd::RemoveObserver(IObserver*), CHtmlWnd__RemoveObserver);
+#endif
+
+// libMozilla::Window
+#ifdef Window__getProgress_x
+FUNCTION_AT_ADDRESS(float libMozilla::Window::getProgress(bool& bIsLoading), Window__getProgress);
+#endif
+#ifdef Window__getStatus_x
+FUNCTION_AT_ADDRESS(const wchar_t* libMozilla::Window::getStatus() const, Window__getStatus);
+#endif
+#ifdef Window__getURI_x
+FUNCTION_AT_ADDRESS(const char* libMozilla::Window::getURI() const, Window__getURI);
+#endif
+
+// CWebManager
+#ifdef CWebManager__CreateHtmlWnd_x
+FUNCTION_AT_ADDRESS(CHtmlWnd* CWebManager::CreateHtmlWnd(const char*, const char*, const char*, bool, const char*), CWebManager__CreateHtmlWnd);
+#endif
+
+//============================================================================
 // CHotButtonWnd
 //============================================================================
 
@@ -2334,6 +2549,9 @@ FUNCTION_AT_ADDRESS(void CInvSlot::HandleRButtonDown(CXPoint), CInvSlot__HandleR
 // CInvSlotMgr
 //============================================================================
 
+#ifdef CInvSlotMgr__Process_x
+FUNCTION_AT_ADDRESS(void CInvSlotMgr::Process(), CInvSlotMgr__Process);
+#endif
 #ifdef CInvSlotMgr__CInvSlotMgr_x
 FUNCTION_AT_ADDRESS(CInvSlotMgr::CInvSlotMgr(), CInvSlotMgr__CInvSlotMgr);
 #endif
@@ -2771,6 +2989,9 @@ FUNCTION_AT_ADDRESS(void COptionsWnd::RestoreDefaultColors(), COptionsWnd__Resto
 #ifdef COptionsWnd__SetBagOptions_x
 FUNCTION_AT_ADDRESS(void COptionsWnd::SetBagOptions(int, int), COptionsWnd__SetBagOptions);
 #endif
+#ifdef COptionsWnd__KeyboardPageOnProcessFrame_x
+FUNCTION_AT_ADDRESS(int COptionsWnd::KeyboardPageOnProcessFrame(), COptionsWnd__KeyboardPageOnProcessFrame);
+#endif
 
 //============================================================================
 // CPetInfoWnd
@@ -2937,6 +3158,29 @@ FUNCTION_AT_ADDRESS(void CSkillsWnd::UpdateSkill(int), CSkillsWnd__UpdateSkill);
 #endif
 
 //============================================================================
+// CStoryWnd
+//============================================================================
+
+#ifdef CStoryWnd__SaveIni_x
+FUNCTION_AT_ADDRESS(void CStoryWnd::SaveIni(), CStoryWnd__SaveIni);
+#endif
+#ifdef CStoryWnd__ShowAuto_x
+FUNCTION_AT_ADDRESS(bool CStoryWnd::ShowAuto(), CStoryWnd__ShowAuto);
+#endif
+#ifdef CStoryWnd__HasNew_x
+FUNCTION_AT_ADDRESS(bool CStoryWnd::HasNew(), CStoryWnd__HasNew);
+#endif
+#ifdef CStoryWnd__Activate_x
+FUNCTION_AT_ADDRESS(void CStoryWnd::Activate(), CStoryWnd__Activate);
+#endif
+#ifdef CStoryWnd__SelectOldestNew_x
+FUNCTION_AT_ADDRESS(void CStoryWnd::SelectOldestNew(), CStoryWnd__SelectOldestNew);
+#endif
+#ifdef CStoryWnd__SelectIndex_x
+FUNCTION_AT_ADDRESS(void CStoryWnd::SelectIndex(int), CStoryWnd__SelectIndex);
+#endif
+
+//============================================================================
 // CSocialEditWnd
 //============================================================================
 
@@ -3066,6 +3310,10 @@ FUNCTION_AT_ADDRESS(void CTargetWnd::RefreshTargetBuffs(PBYTE), CTargetWnd__Refr
 #ifdef CTargetWnd__HandleBuffRemoveRequest_x
 FUNCTION_AT_ADDRESS(void CTargetWnd::HandleBuffRemoveRequest(CXWnd*), CTargetWnd__HandleBuffRemoveRequest);
 #endif
+#ifdef CTargetWnd__GetBuffCaster_x
+FUNCTION_AT_ADDRESS(CXStr* CTargetWnd::GetBuffCaster(int), CTargetWnd__GetBuffCaster);
+#endif
+
 
 //============================================================================
 // CTaskWnd
@@ -3290,6 +3538,20 @@ FUNCTION_AT_ADDRESS(void CTrainWnd::Train(), CTrainWnd__Train);
 #endif
 
 //============================================================================
+// CVideoModesWnd
+//============================================================================
+
+#ifdef CVideoModesWnd__Update_x
+FUNCTION_AT_ADDRESS(void CVideoModesWnd::Update(), CVideoModesWnd__Update);
+#endif
+#ifdef CVideoModesWnd__UpdateSelection_x
+FUNCTION_AT_ADDRESS(void CVideoModesWnd::UpdateSelection(unsigned int), CVideoModesWnd__UpdateSelection);
+#endif
+#ifdef CVideoModesWnd__RestoreOldMode_x
+FUNCTION_AT_ADDRESS(void CVideoModesWnd::RestoreOldMode(), CVideoModesWnd__RestoreOldMode);
+#endif
+
+//============================================================================
 // CChatWindowManager
 //============================================================================
 
@@ -3398,21 +3660,6 @@ FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, C
 #endif
 
 //============================================================================
-
-int CListWnd::AddString(const char* Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
-{
-	return AddString(CXStr(Str), Color, Data, pTa, TooltipStr);
-}
-
-void CEditBaseWnd::SetMaxChars(int maxChars)
-{
-	MaxChars = maxChars;
-
-	if (maxChars < (int)InputText.length())
-	{
-		SetWindowText(InputText);
-	}
-}
 
 //----------------------------------------------------------------------------
 

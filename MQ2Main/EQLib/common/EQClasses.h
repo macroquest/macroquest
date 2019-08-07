@@ -26,11 +26,6 @@
 #undef FindWindow
 #undef InsertMenuItem
 
-
-// from shtypes.h
-struct _ITEMIDLIST;
-using LPITEMIDLIST = _ITEMIDLIST*;
-
 namespace eqlib {
 
 class CMemoryStream;
@@ -76,47 +71,6 @@ public:
 /*0xfc*/
 };
 
-enum ePetCommandType
-{
-	PCT_ReportHealth,
-	PCT_WhoLeader,
-	PCT_Attack,
-	PCT_QueueAttack,
-	PCT_ToggleFollow,
-	PCT_ToggleGuard,
-	PCT_ToggleSit,
-	PCT_SitOn,
-	PCT_SitOff,
-	PCT_ToggleStop,
-	PCT_StopOn,
-	PCT_StopOff,
-	PCT_ToggleTaunt,
-	PCT_TauntOn,
-	PCT_TauntOff,
-	PCT_ToggleHold,
-	PCT_HoldOn,
-	PCT_HoldOff,
-	PCT_ToggleGHold,
-	PCT_GHoldOn,
-	PCT_GHoldOff,
-	PCT_ToggleSpellHold,
-	PCT_SpellHoldOn,
-	PCT_SpellHoldOff,
-	PCT_ToggleFocus,
-	PCT_FocusOn,
-	PCT_FocusOff,
-	PCT_FeignDeath,
-	PCT_BackOff,
-	PCT_GetLost,
-	PCT_TargetPet,
-	PCT_ToggleRegroup,
-	PCT_RegroupOn,
-	PCT_RegroupOff,
-	PCT_Something,
-	PCT_Something2,
-	PCT_DoNothing
-};
-
 enum ZONE_REQ_STATUS {};
 enum ZONE_REQ_REASON {};
 
@@ -124,12 +78,6 @@ class _EverQuestinfo
 {
 public:
 	void EQLIB_OBJECT SetAutoAttack(bool);
-};
-
-class _partyGroup
-{
-public:
-	int getNumMembers() const;
 };
 
 class CAltAbilityData
@@ -170,11 +118,7 @@ public:
 	EQLIB_OBJECT int TotalPointsInSkill(int, int);
 	EQLIB_OBJECT unsigned long GetCalculatedTimer(PcZoneClient*, ALTABILITY*);
 	EQLIB_OBJECT void GetAbilityReqs(char*, int);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT ALTABILITY* GetAAById(int index, int level = -1);
-#else
-	EQLIB_OBJECT ALTABILITY* GetAAById(int index);
-#endif
 };
 
 // we call this _AURAINFO
@@ -195,22 +139,6 @@ public:
 	ArrayClass2_RO<AssociatedSOIData> Auras;
 
 	static EQLIB_OBJECT ClientSOIManager* GetSingleton();
-};
-
-
-
-
-
-class CAchievementsWnd : public CSidlScreenWnd
-{
-public:
-	EQLIB_OBJECT CAchievementsWnd(CXWnd*);
-};
-
-class CRealEstateItemsWnd : public CSidlScreenWnd
-{
-public:
-	EQLIB_OBJECT CRealEstateItemsWnd(CXWnd*);
 };
 
 class EQGroundItem
@@ -290,38 +218,6 @@ public:
 	EQLIB_OBJECT CComboboxTemplate(CParamCombobox*);
 	// virtual
 	EQLIB_OBJECT ~CComboboxTemplate();
-};
-
-class CContainerMgr
-{
-public:
-	void*              vfTable;
-	CContainerWnd*     pContainerWnds[38];
-	ArrayClass<CContainerWnd*> ContainerWndsToDelete;
-	VePointer<CONTENTS> pWorldContainer;
-	DWORD              WorldContainerSerialNumber;
-	int                WorldContainerRealEstateID;
-	int                WorldContainerRealEstateItemID;
-	DWORD              Timer;
-	bool               bShowDone;
-
-	EQLIB_OBJECT CContainerMgr();
-	EQLIB_OBJECT bool CloseAllContainers();
-	EQLIB_OBJECT EQ_Item* GetWorldContainerItem(int);
-	EQLIB_OBJECT void ClearWorldContainerItems();
-	EQLIB_OBJECT void CloseContainer(EQ_Container*, bool);
-	EQLIB_OBJECT void CloseEQContainer(EQ_Container*);
-	EQLIB_OBJECT void OpenContainer(EQ_Container*, int, bool);
-	EQLIB_OBJECT void OpenWorldContainer(EQ_Container*, unsigned long);
-	EQLIB_OBJECT void Process();
-	EQLIB_OBJECT void SetWorldContainerItem(EQ_Item*, int);
-
-	// virtual
-	EQLIB_OBJECT ~CContainerMgr();
-
-	// private
-	EQLIB_OBJECT CContainerWnd* GetFreeContainerWnd();
-	EQLIB_OBJECT void OpenExperimentContainer(const VePointer<CONTENTS>& pCont, const ItemGlobalIndex& Location);
 };
 
 class CScreenPieceTemplate
@@ -905,7 +801,7 @@ public:
 
 struct guildmotdSet;
 struct connection_t;
-class GuildMember;
+struct GuildMember;
 
 class CGuild
 {
@@ -1055,16 +951,7 @@ public:
 	EQLIB_OBJECT ~CPageTemplate();
 };
 
-class CPageWnd : public CSidlScreenWnd
-{
-public:
-	EQLIB_OBJECT CPageWnd(CXWnd*, uint32_t, CXRect, CXStr, CPageTemplate*);
-	EQLIB_OBJECT CXStr GetTabText(bool bSomething = false) const;
-	EQLIB_OBJECT void SetTabText(CXStr &) const;
 
-	// virtual
-	EQLIB_OBJECT ~CPageWnd();
-};
 
 class CParam
 {
@@ -1785,11 +1672,6 @@ public:
 	EQLIB_OBJECT ~CSliderTemplate();
 };
 
-class CSpellGemDrawTemplate
-{
-public:
-	EQLIB_OBJECT ~CSpellGemDrawTemplate();
-};
 
 class CSpellGemTemplate
 {
@@ -1854,28 +1736,6 @@ public:
 	EQLIB_OBJECT ~CSTMLboxTemplate();
 };
 
-class CStoryWnd : public CSidlScreenWnd
-{
-public:
-	EQLIB_OBJECT CStoryWnd(CXWnd*);
-	EQLIB_OBJECT bool HasNew();
-	EQLIB_OBJECT bool ShowAuto();
-	EQLIB_OBJECT void Activate();
-	EQLIB_OBJECT void SaveIni();
-
-	// virtual
-	EQLIB_OBJECT ~CStoryWnd();
-	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
-	EQLIB_OBJECT void Deactivate();
-	EQLIB_OBJECT void LoadIniInfo();
-
-	// protected
-	EQLIB_OBJECT void SelectIndex(int);
-	EQLIB_OBJECT void SelectOldestNew();
-
-	// private
-	EQLIB_OBJECT void Init();
-};
 
 class CTabBoxTemplate
 {
@@ -2018,69 +1878,6 @@ public:
 	// virtual
 	EQLIB_OBJECT ~CTaskManager();
 	EQLIB_OBJECT CTaskEntry* GetEntry(int Index, int System, bool bCheckEmpty = true);
-};
-
-
-
-
-
-
-
-
-
-
-namespace libMozilla {
-
-class Window
-{
-public:
-	float getProgress(bool& bIsLoading);
-	const wchar_t* getStatus() const;
-	const char* getURI() const;
-};
-
-class ICallback
-{
-public:
-	virtual void onURIChanged(Window*) = 0;
-	virtual void onProgressChanged(Window*) = 0;
-	virtual void onStatusChanged(Window*) = 0;
-	virtual bool doValidateURI(Window*, const char*) = 0;
-};
-
-} // namespace libMozilla
-
-class CHtmlComponentWnd
-	: public CXWnd
-	, public libMozilla::ICallback
-	, public CObservable
-{
-public:
-	EQLIB_OBJECT virtual ~CHtmlComponentWnd();
-
-	libMozilla::Window* m_mozillaWnd;
-};
-
-class CHtmlWnd : public CSidlScreenWnd, public TListNode<CHtmlWnd>
-{
-public:
-	EQLIB_OBJECT void SetClientCallbacks(void* cb);
-	EQLIB_OBJECT void AddObserver(IObserver* Observer);
-	EQLIB_OBJECT void RemoveObserver(IObserver* Observer);
-
-	CHtmlComponentWnd* pHtmlComponentMain;
-	CButtonWnd*        pBackBtn;
-	CButtonWnd*        pForwardBtn;
-	CGaugeWnd*         pProgressGauge;
-	CLabelWnd*         pStatusLabel;
-	CXStr              WindowID;
-};
-
-class CWebManager
-{
-public:
-	EQLIB_OBJECT CHtmlWnd* CreateHtmlWnd(const char* Url, const char* IDString, const char* PostString = nullptr,
-		bool bBypasFilter = false, const char* OverrideTitle = nullptr);
 };
 
 class CXMLData
@@ -2420,11 +2217,7 @@ public:
 	EQLIB_OBJECT void StopSpellCast(unsigned char, int);
 	EQLIB_OBJECT void StunMe(unsigned int, bool, bool, bool);
 	EQLIB_OBJECT void UnStunMe();
-#if defined(ROF2EMU) || defined(UFEMU)
-	EQLIB_OBJECT void UseSkill(unsigned char skill, PlayerZoneClient* Target);
-#else
 	EQLIB_OBJECT void UseSkill(unsigned char skill, PlayerZoneClient* Target, bool bAuto = false);
-#endif
 	EQLIB_OBJECT const int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut);
 	EQLIB_OBJECT int IsExpansionFlag(int);
 	EQLIB_OBJECT int TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
@@ -3789,12 +3582,6 @@ public:
 	EQLIB_OBJECT ~EQZoneInfo();
 };
 
-class GuildMember
-{
-public:
-	EQLIB_OBJECT GuildMember();
-};
-
 enum eIconCacheType
 {
 	eit_Items,
@@ -4518,17 +4305,7 @@ public:
 };
 using CDBStr = DatabaseStringTable;
 
-class CCombatAbilityWnd : public CSidlScreenWnd
-{
-public:
-	EQLIB_OBJECT CCombatAbilityWnd(CXWnd*);
-	EQLIB_OBJECT ~CCombatAbilityWnd();
 
-	EQLIB_OBJECT void Activate(int);
-	EQLIB_OBJECT void Deactivate();
-	EQLIB_OBJECT int OnProcessFrame();
-	EQLIB_OBJECT int WndNotification(CXWnd*, uint32_t, void*);
-};
 
 class EQMisc
 {

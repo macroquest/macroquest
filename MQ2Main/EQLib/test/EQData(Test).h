@@ -563,6 +563,73 @@ enum MOUSE_DATA_TYPES
 #define TT_AE_PC_V2                              0x28
 #define TT_DIRECTIONAL                           0x2a
 
+enum ETargetRelationship
+{
+	eTargetNone        = 0,
+	eTargetSelf,
+	eTargetPet,
+	eTargetMyPet,
+	eTargetMyMercenary,
+	eTargetGroup,
+	eTargetOtherPC,
+	eTargetOtherMercenary,
+	eTargetOtherNPC
+};
+
+enum ETargetType
+{
+	eTrivialCon,
+	eVeryEasyCon,
+	eEasyCon,
+	eFairlyEasyCon,
+	eFairMatchCon,
+	eDifficultCon,
+	eDeadlyCon,
+	eFreeTarget,
+	eFreeTargetInvalid,
+};
+
+enum ePetCommandType
+{
+	PCT_ReportHealth,
+	PCT_WhoLeader,
+	PCT_Attack,
+	PCT_QueueAttack,
+	PCT_ToggleFollow,
+	PCT_ToggleGuard,
+	PCT_ToggleSit,
+	PCT_SitOn,
+	PCT_SitOff,
+	PCT_ToggleStop,
+	PCT_StopOn,
+	PCT_StopOff,
+	PCT_ToggleTaunt,
+	PCT_TauntOn,
+	PCT_TauntOff,
+	PCT_ToggleHold,
+	PCT_HoldOn,
+	PCT_HoldOff,
+	PCT_ToggleGHold,
+	PCT_GHoldOn,
+	PCT_GHoldOff,
+	PCT_ToggleSpellHold,
+	PCT_SpellHoldOn,
+	PCT_SpellHoldOff,
+	PCT_ToggleFocus,
+	PCT_FocusOn,
+	PCT_FocusOff,
+	PCT_FeignDeath,
+	PCT_BackOff,
+	PCT_GetLost,
+	PCT_TargetPet,
+	PCT_ToggleRegroup,
+	PCT_RegroupOn,
+	PCT_RegroupOff,
+	PCT_Something,
+	PCT_Something2,
+	PCT_DoNothing
+};
+
 #define EQHeading(heading)                       ((int)(((heading + 16) % 256) / 32) * 2)
 
 class ItemClient;
@@ -1209,6 +1276,7 @@ enum ELockoutCharacterReason
 	LCR_InvalidWornItem,
 	LCR_Something,
 };
+
 
 struct ProgressionExperience
 {
@@ -3181,11 +3249,7 @@ public:
 	void SetRace(int);
 	unsigned char GetLevel() const;
 
-#if defined(ROF2EMU) || defined(UFEMU)
-	bool DoAttack(BYTE slot, BYTE skill, PlayerZoneClient* Target);
-#else
 	bool DoAttack(BYTE slot, BYTE skill, PlayerZoneClient* Target, bool bSomething = false, bool bAuto = false, bool bDontknow = false);
-#endif
 
 	static PlayerZoneClient* GetClosestPlayerFromPartialName(const char* name, PlayerZoneClient* player, int maxPlayerType = 1);
 

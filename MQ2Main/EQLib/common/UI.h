@@ -53,6 +53,7 @@ class CLabel;
 class CLayoutStrategyTemplate;
 class CStmlWnd;
 class CUnSerializeBuffer;
+class CVivoxObserver;
 
 using D3DCOLOR = DWORD;
 using CPopDialogWnd = CConfirmationDialog;
@@ -71,6 +72,17 @@ class PopDialogHandler
 {
 public:
 	virtual void DialogResponse(int, int, void*);
+};
+
+//----------------------------------------------------------------------------
+
+class CVivoxManager;
+class CVivoxObserver
+{
+public:
+	virtual void Unknown00(bool) {}
+
+	CVivoxManager* VivoxManager;
 };
 
 //----------------------------------------------------------------------------
@@ -1186,6 +1198,20 @@ public:
 };
 
 //============================================================================
+// CPageWnd
+//============================================================================
+
+class CPageWnd : public CSidlScreenWnd
+{
+public:
+	CPageWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&, CPageTemplate*);
+	virtual ~CPageWnd();
+
+	EQLIB_OBJECT CXStr GetTabText(bool bSomething = false) const;
+	EQLIB_OBJECT void SetTabText(CXStr&) const;
+};
+
+//============================================================================
 // CSliderWnd
 //============================================================================
 
@@ -1498,6 +1524,17 @@ public:
 	// private
 	EQLIB_OBJECT void Init();
 	EQLIB_OBJECT void UpdateSelected();
+};
+
+//============================================================================
+// CAchievementsWnd
+//============================================================================
+
+class CAchievementsWnd : public CSidlScreenWnd
+{
+public:
+	CAchievementsWnd(CXWnd*);
+	virtual ~CAchievementsWnd();
 };
 
 //============================================================================
@@ -2385,6 +2422,17 @@ public:
 };
 
 //============================================================================
+// CCombatAbilityWnd
+//============================================================================
+
+class CCombatAbilityWnd : public CSidlScreenWnd
+{
+public:
+	CCombatAbilityWnd(CXWnd*);
+	virtual ~CCombatAbilityWnd();
+};
+
+//============================================================================
 // CCombatSkillsSelectWnd
 //============================================================================
 
@@ -2491,9 +2539,9 @@ public:
 	EQLIB_OBJECT void HandleCombine();
 
 	// TODO: Fix for inaccuracies
-/*0x04*/ PCONTENTS     pCont;
-/*0x08*/ ItemGlobalIndex Location;
-/*0x14*/ VeArray<CInvSlotWnd*> InvSlotWnds;
+/*0x240*/ CONTENTS*     pContents;
+/*0x244*/ ItemGlobalIndex Location;
+/*0x24x*/ VeArray<CInvSlotWnd*> InvSlotWnds;
 /*0x18*/ CButtonWnd*   pCombineButton;
 /*0x1c*/ CButtonWnd*   pDoneButton;
 /*0x20*/ CButtonWnd*   pStandardDoneButton;
@@ -2515,7 +2563,55 @@ public:
 /*0x5c*/ int           IndexDoneButton;
 /*0x60*/ CContextMenu* ContextMenu;
 /*0x64*/
+
+#if 0 // old stuff
+/*0x000*/ CSIDLWND     Wnd;
+/*0x148*/ CONTENTS* pContents;                // Pointer to the contents of the container;
+												 // Matches the pointer in CHARINFO.Inventory/Bank/World
+/*0x14c*/ CSIDLWND* pSlots[0x0a];
+/*0x000*/ CSIDLWND* pCombine;
+/*0x168*/ CSIDLWND* pDone;
+/*0x16c*/ CSIDLWND* pIcon;
+/*0x170*/ CSIDLWND* pUnknown;
+/*0x174*/ CSIDLWND* pLabel;
+/*0x178*/ BYTE         Unknown0x178[4];
+/*0x17c*/
+#endif
 };
+using EQCONTAINERWINDOW = CContainerWnd;
+using PEQCONTAINERWINDOW = CContainerWnd *;
+
+class CContainerMgr
+{
+public:
+	CContainerMgr();
+	virtual ~CContainerMgr();
+
+	EQLIB_OBJECT bool CloseAllContainers();
+	EQLIB_OBJECT EQ_Item* GetWorldContainerItem(int);
+	EQLIB_OBJECT void ClearWorldContainerItems();
+	EQLIB_OBJECT void CloseContainer(EQ_Container*, bool);
+	EQLIB_OBJECT void CloseEQContainer(EQ_Container*);
+	EQLIB_OBJECT void OpenContainer(EQ_Container*, int, bool);
+	EQLIB_OBJECT void OpenWorldContainer(EQ_Container*, unsigned long);
+	EQLIB_OBJECT void Process();
+	EQLIB_OBJECT void SetWorldContainerItem(EQ_Item*, int);
+	EQLIB_OBJECT CContainerWnd* GetFreeContainerWnd();
+	EQLIB_OBJECT void OpenExperimentContainer(const VePointer<CONTENTS>& pCont, const ItemGlobalIndex& Location);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	CContainerWnd* pContainerWnds[38];
+	ArrayClass<CContainerWnd*> ContainerWndsToDelete;
+	VePointer<CONTENTS> pWorldContainer;
+	DWORD              WorldContainerSerialNumber;
+	int                WorldContainerRealEstateID;
+	int                WorldContainerRealEstateItemID;
+	DWORD              Timer;
+	bool               bShowDone;
+};
+
 
 //============================================================================
 // CContextMenuManager
@@ -2667,8 +2763,8 @@ public:
 /*0x248*/ int          Unknown0x0248;
 /*0x24c*/ int          Unknown0x024c;
 /*0x250*/ int          Unknown0x0250;
-/*0x254*/ IString<char> Unknown0x0254;
-/*0x264*/ IString<char> Unknown0x0264;
+/*0x254*/ SoeUtil::IString Unknown0x0254;
+/*0x264*/ SoeUtil::IString Unknown0x0264;
 /*0x274*/ CGaugeWnd*   StandingGaugeTemplate;
 /*0x278*/ CTreeView*   Categories;
 /*0x27c*/ CEditWnd*    SearchNameInput;
@@ -3071,7 +3167,34 @@ public:
 // CGuildMgmtWnd
 //============================================================================
 
-class CGuildMgmtWnd : public CSidlScreenWnd
+// todo: update, some of this is obsolete
+struct GuildMember
+{
+/*0x000*/ GuildMember* next;
+/*0x004*/ bool         OnlineStatus;
+/*0x008*/ uint8_t      Unknown0x008[0x8];
+/*0x010*/ char         Name[0x40];
+/*0x050*/ int          Level;
+/*0x054*/ int          Class;
+/*0x058*/ int          Rank;                     // 0=member, 1=officer, 2=leader
+/*0x05c*/ float        UnknownData0x05c;
+/*0x060*/ char         PublicNote[0x80];
+/*0x0e0*/ BYTE         Unknown0x0e0[0x180];
+/*0x260*/ WORD         UnknownData0x260;
+/*0x262*/ WORD         UnknownData0x262;
+/*0x264*/ WORD         UnknownData0x264;
+/*0x266*/ WORD         UnknownData0x266;
+};
+using GUILDMEMBERINFO = GuildMember;
+using PGUILDMEMBERINFO = GuildMember *;
+
+
+// Size: 0x3d0 (02/18/2004)
+class CGuildMgmtWnd
+	: public CSidlScreenWnd
+	, public PopDialogHandler
+	, public WndEventHandler
+	, public CVivoxObserver
 {
 public:
 	CGuildMgmtWnd(CXWnd*);
@@ -3098,7 +3221,34 @@ public:
 	EQLIB_OBJECT void LoadPersonalNotes();
 	EQLIB_OBJECT void SavePersonalNotes();
 	EQLIB_OBJECT void SetPersonalNote(char*, char*);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	// this is all out of date and needs updating
+/*0x250*/ // start
+
+/*0x148*/ BYTE         Unknown0x148[0x3c];
+/*0x194*/ BYTE         Unknown0x194;
+/*0x195*/ BYTE         ShowOffline;              // 01 = show offline box is checked
+/*0x196*/ BYTE         Unknown0x196[0x2];
+
+	// This is a pointer to the beginning of a list of pointers, each representing one player in
+	// the guild. The number of  pointers depends upon TotalMemberCount.
+/*0x198*/ GUILDMEMBERINFO** pMember;
+/*0x19c*/ DWORD        TotalMemberCount;
+/*0x1a0*/ DWORD        Unknown0x1a0;             // 150?
+/*0x1a4*/ DWORD        Unknown0x1a4;             // 1?
+/*0x1a8*/ DWORD        TotalMemberCountAgain;
+/*0x1ac*/ BYTE         Unknown0x1ac[0x1c];
+/*0x1c8*/ CHAR         PersonalNotesFilePath[0x40]; // path to personal notes file
+/*0x208*/ BYTE         Unknown0x208[0x1c0];      // empty
+/*0x3c8*/ DWORD        Unknown0x3c8;             // 1?
+/*0x3cc*/ DWORD        Unknown0x3cc;             // some sort of bizaare pointer...
+/*0x3d0*/
 };
+using EQGUILDWINDOW = CGuildMgmtWnd;
+using PEQGUILDWINDOW = CGuildMgmtWnd*;
 
 //============================================================================
 // CHelpWnd
@@ -3115,6 +3265,77 @@ public:
 	virtual int WndNotification(CXWnd*, uint32_t, void*) override;
 
 	EQLIB_OBJECT void SetFile(CXStr);
+};
+
+//============================================================================
+// CHtmlWnd
+//============================================================================
+
+namespace libMozilla {
+
+class Window
+{
+public:
+	EQLIB_OBJECT float getProgress(bool& bIsLoading);
+	EQLIB_OBJECT const wchar_t* getStatus() const;
+	EQLIB_OBJECT const char* getURI() const;
+};
+
+class ICallback
+{
+public:
+	EQLIB_OBJECT virtual void onURIChanged(Window*) = 0;
+	EQLIB_OBJECT virtual void onProgressChanged(Window*) = 0;
+	EQLIB_OBJECT virtual void onStatusChanged(Window*) = 0;
+	EQLIB_OBJECT virtual void doValidateURI(Window*, const char*) = 0;
+};
+
+} // namepsace libMozilla
+
+class CHtmlComponentWnd
+	: public CXWnd
+	, public libMozilla::ICallback
+	, public CObservable
+{
+public:
+	CHtmlComponentWnd(CXWnd* parent, uint32_t id, CXRect rect, CXStr startURI = "");
+	virtual ~CHtmlComponentWnd();
+
+	libMozilla::Window* m_mozillaWnd;
+
+	// more ...
+};
+
+class CHtmlWnd : public CSidlScreenWnd, public TListNode<CHtmlWnd>
+{
+public:
+	CHtmlWnd(const char* uri, const char* postData, const char* windowId, bool byPassfilter = false, const char* title = nullptr);
+	virtual ~CHtmlWnd();
+
+	EQLIB_OBJECT void SetClientCallbacks(libMozilla::ICallback* cb);
+	EQLIB_OBJECT void AddObserver(IObserver* observer);
+	EQLIB_OBJECT void RemoveObserver(IObserver* observer);
+
+	const CHtmlWnd* GetNextHtmlWnd() const { return TListNode<CHtmlWnd>::GetNext(); }
+	CHtmlWnd* GetNextHtmlWnd() { return TListNode<CHtmlWnd>::GetNext(); }
+
+	CHtmlComponentWnd*       pHtmlComponentMain;
+	CButtonWnd*              pBackBtn;
+	CButtonWnd*              pForwardBtn;
+	CGaugeWnd*               pProgressGauge;
+	CLabelWnd*               pStatusLabel;
+	CXStr                    WindowID;
+};
+
+class CWebManager
+{
+public:
+	EQLIB_OBJECT CHtmlWnd* CreateHtmlWnd(const char* uri, const char* windowId, const char* postBuffer = nullptr,
+		bool bypassFilter = false, const char* titleOverride = nullptr);
+
+	EQLIB_OBJECT CHtmlWnd* GetHtmlWnd(const char* windowId);
+
+	TList<CHtmlWnd>             m_htmlWndList;
 };
 
 //============================================================================
@@ -3298,8 +3519,6 @@ public:
 
 	//----------------------------------------------------------------------------
 	// data members
-
-	EQLIB_OBJECT void* test() { return &pButtonLabel; }
 
 /*0x290*/ CTextureAnimation* pBackground;
 /*0x294*/ ItemGlobalIndex    ItemLocation;
@@ -3562,8 +3781,8 @@ public:
 /*0x0398*/ BYTE              Unknown0x0398[0x10];
 /*0x03a8*/
 };
-
-
+using EQLOOTWINDOW = CLootWnd;
+using PEQLOOTWINDOW = CLootWnd*;
 
 //============================================================================
 // CMapViewWnd
@@ -3989,7 +4208,16 @@ public:
 // COptionsWnd
 //============================================================================
 
-class COptionsWnd : public CSidlScreenWnd
+struct KeyboardAssignmentData
+{
+	CXStr Description;
+	int nAssignmentNumber;
+};
+using EQKBASSIGN = KeyboardAssignmentData;
+using PEQKBASSIGN = KeyboardAssignmentData*;
+
+// size 0x904 3-10-2004
+class COptionsWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
 {
 public:
 	COptionsWnd(CXWnd*);
@@ -4027,13 +4255,26 @@ public:
 	EQLIB_OBJECT void SyncGeneralPage();
 	EQLIB_OBJECT void SyncMousePage();
 	EQLIB_OBJECT void FillChatFilterList();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	// this is incorrect and needs to be updated
+	/*0x264*/ KeyboardAssignmentData   Binds[0xA1];
+	/*0x508*/
+	/*0x904*/
 };
+
+using EQOPTIONSWINDOW = COptionsWnd;
+using PEQOPTIONSWINDOW = COptionsWnd*;
 
 //============================================================================
 // CPetInfoWnd
 //============================================================================
 
-class CPetInfoWnd : public CSidlScreenWnd
+// CPetInfoWindow__CPetInfoWindow aPetinfowindow
+// CPetInfoWindow_size: 0x8d8 (see 5420D1) in May 17 2019 Test
+class CPetInfoWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
 	CPetInfoWnd(CXWnd*);
@@ -4042,7 +4283,39 @@ public:
 	EQLIB_OBJECT CButtonWnd* GetButton(int);
 	EQLIB_OBJECT void SetShowOnSummon(bool);
 	EQLIB_OBJECT void Update();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x244*/ uint8_t            Unknown0x0244[0x4];
+/*0x248*/ CButtonWnd*        pButton[0xe];             // there are 14 buttons on the petinfowin with text that can be set to attack,none,back and so on, these are those...
+/*0x280*/ uint8_t            Unknown0x0280[0x8];
+/*0x288*/ CButtonWnd*        pAttackButton;
+/*0x28c*/ CButtonWnd*        pQAttackButton;
+/*0x290*/ CButtonWnd*        pFollowButton;
+/*0x294*/ CButtonWnd*        pGuardButton;
+/*0x298*/ CButtonWnd*        pSitButton;
+/*0x29c*/ CButtonWnd*        pStopButton;
+/*0x2a0*/ uint8_t            Unknown0x02a0[0x174];
+/*0x414*/ CButtonWnd*        pWnd[NUM_BUFF_SLOTS];     // buff buttons
+/*0x598*/ int                Buff[NUM_BUFF_SLOTS];     // Spell ID# of each buff -- 97 total
+/*0x71c*/ uint8_t            Unknown0x0714[0x20];
+/*0x73c*/ unsigned int       PetBuffTimer[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+/*0x8c0*/ uint8_t            Unknown0x08c0[0xc];
+/*0x8cc*/ bool               bPetButtonsDirty;
+/*0x8cd*/ bool               Sit;
+/*0x8ce*/ bool               Stop;
+/*0x8cf*/ bool               ReGroup;
+/*0x8d0*/ bool               Follow;
+/*0x8d1*/ bool               Guard;
+/*0x8d2*/ bool               Taunt;
+/*0x8d3*/ bool               Hold;
+/*0x8d4*/ bool               GHold;
+/*0x8d5*/ bool               Focus;
+/*0x8d8*/
 };
+using EQPETINFOWINDOW = CPetInfoWnd;
+using PEQPETINFOWINDOW = CPetInfoWnd *;
 
 //============================================================================
 // CPlayerNotesWnd
@@ -4062,7 +4335,18 @@ public:
 // CPlayerWnd
 //============================================================================
 
-class CPlayerWnd : public CSidlScreenWnd
+enum ECombatState
+{
+	eCombatState_Combat,
+	eCombatState_Debuff,
+	eCombatState_Timer,
+	eCombatState_Standing,
+	eCombatState_Regen,
+};
+
+// CPlayerWindow__CPlayerWindow aPlayerwindow
+// CPlayerWindow_size: 0x2f8 (see 542AF4) in May 17 2019 Test
+class CPlayerWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
 	CPlayerWnd(CXWnd*);
@@ -4070,8 +4354,16 @@ public:
 
 	EQLIB_OBJECT void CreateLocalMenu();
 	EQLIB_OBJECT void UpdateContextMenu();
-};
 
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x244*/ uint8_t            Unknown0x0240[0xb0];
+/*0x2f4*/ ECombatState       CombatState;                       // right above "A_PWCSInCombat"
+/*0x2f8*/
+};
+using CPLAYERWND = CPlayerWnd;
+using PCPLAYERWND = CPlayerWnd*;
 
 //============================================================================
 // CPotionBeltWnd
@@ -4183,7 +4475,10 @@ public:
 // CRaidWnd
 //============================================================================
 
-class CRaidWnd : public CSidlScreenWnd
+// CRaidWindow__CRaidWindow
+// aClasscolorD
+// CRaidWindow_size: 0x3b8 (see 5423C2) in May 17 2019 Test
+class CRaidWnd : public CSidlScreenWnd, public WndEventHandler, public CVivoxObserver
 {
 public:
 	CRaidWnd(CXWnd*);
@@ -4209,6 +4504,27 @@ public:
 	EQLIB_OBJECT void AddSeparator();
 	EQLIB_OBJECT void InitializeClassColors();
 	EQLIB_OBJECT void ResortRaidGroupList(int, int);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x24c*/ uint8_t            Unknown0x0240[0xac];
+/*0x2f8*/ COLORREF           ClassColors[0x10];
+/*0x338*/ uint8_t            Unknown0x0338[0x80];
+/*0x3b8*/
+};
+using EQRAIDWINDOW = CRaidWnd;
+using PEQRAIDWINDOW = CRaidWnd *;
+
+//============================================================================
+// CRealEstateItemsWnd
+//============================================================================
+
+class CRealEstateItemsWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
+{
+public:
+	CRealEstateItemsWnd(CXWnd*);
+	virtual ~CRealEstateItemsWnd();
 };
 
 //============================================================================
@@ -4335,38 +4651,126 @@ public:
 };
 
 //============================================================================
+// CSpellDisplayWnd
+//============================================================================
+
+enum ESpellDisplayType
+{
+	SpellDisplayType_None,
+	SpellDisplayType_BuffWnd,
+	SpellDisplayType_PetBuffWnd,
+	SpellDisplayType_BlockedBuffWnd,
+	SpellDisplayType_BlockedPetBuffWnd,
+	SpellDisplayType_SpellBookWnd,
+	SpellDisplayType_HotButtonWnd,
+	SpellDisplayType_CastSpellWnd,
+	SpellDisplayType_Unknown8,
+	SpellDisplayType_Unknown9,
+	SpellDisplayType_TargetBuff,
+};
+
+// aSpelldisplaywi
+// size: 0x290 Jun 10, 2019 (test)
+class CSpellDisplayWnd : public CSidlScreenWnd
+{
+public:
+	CSpellDisplayWnd(CXWnd* parent, ESpellDisplayType displayType);
+	virtual ~CSpellDisplayWnd();
+
+/*0x240*/ int                WindowID;
+/*0x244*/ CLabelWnd*         pDuration;
+/*0x248*/ CStmlWnd*          pDescription;
+/*0x24c*/ CStmlWnd*          pName;
+/*0x250*/ CButtonWnd*        pIcon;
+/*0x254*/ SoeUtil::IString   DescriptionText;
+/*0x264*/ SoeUtil::IString   TitleText;
+/*0x274*/ bool               bActiveItem;
+/*0x278*/ CTextureAnimation* ptaBuffIcons;
+/*0x27c*/ CTextureAnimation* ptaDragIcons;
+/*0x280*/ bool               bFailed;
+/*0x284*/ ESpellDisplayType  SpellDisplayType;
+/*0x288*/ int                SpellID;
+/*0x28c*/ int                LastUpdateTime;
+/*0x290*/
+};
+using EQSPELLINFOWINDOW = CSpellDisplayWnd;
+using PEQSPELLINFOWINDOW = CSpellDisplayWnd*;
+
+//============================================================================
 // CSpellGemWnd
 //============================================================================
 
+// todo: move to SidlTemplates.h
+class CSpellGemDrawTemplate
+{
+public:
+	CXStr                    Name;
+	CTextureAnimation*       ptaBackground;
+	CTextureAnimation*       ptaHolder;
+	CTextureAnimation*       ptaHighlight;
+};
+
+// CSpellGemWnd__CSpellGemWnd
+// CSpellGemWnd_size: 0x330 (see 7F639B) in May 17 2019 Test
 class CSpellGemWnd : public CButtonWnd
 {
 public:
 	CSpellGemWnd(CXWnd*, uint32_t, const CXRect&, CTextureAnimation*, CTextureAnimation*, CTextureAnimation*, int, int, unsigned long);
 	virtual ~CSpellGemWnd();
 
-	virtual int Draw() override;
-	virtual int HandleLButtonDown(const CXPoint&, uint32_t) override;
-	virtual int HandleLButtonHeld(const CXPoint&, uint32_t) override;
-	virtual int HandleLButtonUp(const CXPoint&, uint32_t) override;
-	virtual int HandleLButtonUpAfterHeld(const CXPoint&, uint32_t) override;
-	virtual int HandleRButtonDown(const CXPoint&, uint32_t) override;
-	virtual int HandleRButtonHeld(const CXPoint&, uint32_t) override;
-	virtual int HandleRButtonUp(const CXPoint&, uint32_t) override;
-	virtual int HandleRButtonUpAfterHeld(const CXPoint&, uint32_t) override;
-	virtual int OnProcessFrame() override;
-	virtual void SetAttributesFromSidl(CParamScreenPiece*) override;
-	virtual void SetCheck(bool) override;
-
 	EQLIB_OBJECT void SetGemTintStage(int);
 	EQLIB_OBJECT void SetSpellGemTint(unsigned long);
 	EQLIB_OBJECT void SetSpellIconIndex(int);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x290*/ int                MouseButtonState;
+/*0x294*/ bool               bChecked;
+/*0x298*/ unsigned int       LastRefresh;
+/*0x29C*/ D3DCOLOR           SpellGemTintArray[0xb];   // I dont understand why there are only 11 of these when we have 13 gems noaways, probably a bug or unused?
+/*0x2C8*/ int                SpellGemAlphaArray[0xb];
+/*0x2f4*/ int                Unknown0x02f4;
+/*0x2f8*/ int                Unknown0x02f8;
+/*0x2fC*/ int                SpellIconOffsetX;
+/*0x300*/ int                SpellIconOffsetY;
+/*0x304*/ int                spellicon;                // if this is equal to FFFFFFFF there is no spell memmed in this slot...
+/*0x308*/ int                spellstate;               // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast, should really rename this to tintstage
+/*0x30c*/ int                TintIndex;
+/*0x310*/ CTextureAnimation* SpellIconTexture;         // CTextureAnimation
+/*0x314*/ CTextureAnimation* CustomIconTexture;        // CTextureAnimation
+/*0x318*/ int                SpellSlot;
+/*0x31c*/ int                Percent;
+/*0x320*/ CSpellGemDrawTemplate DrawTemplate;
+/*0x330*/
+};
+using EQCASTSPELLGEM = CSpellGemWnd;
+using PEQCASTSPELLGEM = CSpellGemWnd *;
+
+//============================================================================
+// CStoryWnd
+//============================================================================
+
+class CStoryWnd : public CSidlScreenWnd
+{
+public:
+	CStoryWnd(CXWnd*);
+	virtual ~CStoryWnd();
+
+	EQLIB_OBJECT bool HasNew();
+	EQLIB_OBJECT bool ShowAuto();
+	EQLIB_OBJECT void SaveIni();
+	EQLIB_OBJECT void SelectIndex(int);
+	EQLIB_OBJECT void SelectOldestNew();
 };
 
 //============================================================================
 // CTargetWnd
 //============================================================================
 
-class CTargetWnd : public CSidlScreenWnd
+// CTargetWindow__CTargetWindow aTargetwindow
+// CTargetWindow_size: 0x8d8 (see 54298F) in May 17 2019 Test
+class CTargetWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
 	CTargetWnd(CXWnd*);
@@ -4375,7 +4779,25 @@ public:
 	EQLIB_OBJECT CXStr* GetBuffCaster(int SpellID);
 	EQLIB_OBJECT void RefreshTargetBuffs(PBYTE buffer);
 	EQLIB_OBJECT void HandleBuffRemoveRequest(CXWnd* pWnd);
+
+	//----------------------------------------------------------------------------
+	// data members
+
+/*0x244*/ CXWnd*             pWndBuffs;
+/*0x248*/ CTextureAnimation* pBuffGoodBackground;
+/*0x24c*/ CTextureAnimation* pBuffBadBackground;
+/*0x250*/ CTextureAnimation* pBuffBypassBackground;
+/*0x254*/ CTextureAnimation* ptaBuffIcons[NUM_BUFF_SLOTS];
+/*0x3d8*/ CButtonWnd*        pTargetBuff[NUM_BUFF_SLOTS];
+/*0x55c*/ int                BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
+/*0x6e0*/ int                BuffTimer[NUM_BUFF_SLOTS];
+/*0x864*/ int                Unknown0x0864[0x24];
+/*0x888*/ int                Type;                     // 1 = self, 4 = group member, 5 = PC, 7 = NPC
+/*0x88c*/ uint8_t            Unknown0x088c[0x4c];
+/*0x8d8*/
 };
+using CTARGETWND = CTargetWnd;
+using PCTARGETWND = CTargetWnd*;
 
 //============================================================================
 // CTaskWnd
@@ -4406,15 +4828,17 @@ public:
 	EQLIB_OBJECT void Callback(bool);
 	EQLIB_OBJECT void UpdateButtons();
 
-/*0x148*/ int m_minLength;
-/*0x14C*/ int m_maxLength;
-/*0x150*/ CXStr m_text;
-/*0x154*/ CXWnd* m_parent;
-/*0x158*/ CEditWnd* m_entry;
-/*0x15c*/ CLabel* m_prompt;
-/*0x160*/ CButtonWnd* m_ok;
-/*0x164*/ CButtonWnd* m_cancel;
+/*0x148*/ int          m_minLength;
+/*0x14C*/ int          m_maxLength;
+/*0x150*/ CXStr        m_text;
+/*0x154*/ CXWnd*       m_parent;
+/*0x158*/ CEditWnd*    m_entry;
+/*0x15c*/ CLabel*      m_prompt;
+/*0x160*/ CButtonWnd*  m_ok;
+/*0x164*/ CButtonWnd*  m_cancel;
 };
+using CTEXTENTRYWND = CTextEntryWnd;
+using PCTEXTENTRYWND = CTextEntryWnd*;
 
 //============================================================================
 // CTimeLeftWnd
@@ -4475,9 +4899,65 @@ public:
 };
 
 //============================================================================
+// CTradeSkillWnd
+//============================================================================
+
+#define MAX_RECIPE_ITEMS 10
+
+struct TradeskillRecipe
+{
+/*0x00*/ int ID;
+/*0x04*/ int Trivial;
+/*0x08*/ int ContainerType;
+/*0x0c*/ int ContainerID;
+/*0x10*/ int RequiredSize;
+/*0x14*/ char Name[0x40];
+/*0x54*/ bool bUnknown;
+/*0x58*/ int Ingredient[MAX_RECIPE_ITEMS];                 // ID# of ingredient(s)
+/*0x80*/ int IngredientIcon[MAX_RECIPE_ITEMS];             // Icon# of ingredient(s) (Note: 499 is blank)
+};
+using EQTRADESKILLRECIPE = TradeskillRecipe;
+using PEQTRADESKILLRECIPE = TradeskillRecipe *;
+
+// size: 0xd28 Jun 10, 2019 (test)
+class CTradeSkillWnd : public CSidlScreenWnd
+{
+public:
+	CTradeSkillWnd(CXWnd* parent);
+	virtual ~CTradeSkillWnd();
+
+	//----------------------------------------------------------------------------
+	// data members
+
+	// todo: check and update
+/*0x148*/ DWORD        Unknown0x148[0x1b];
+/*0x1b4*/ EQTRADESKILLRECIPE* SearchResults[0x64];
+/*0x344*/ DWORD        Unknown0x344;
+/*0x348*/ DWORD        Unknown0x348;
+/*0x34c*/ DWORD        Unknown0x34c;
+/*0x350*/ CONTENTS*    Container;
+/*0x354*/ DWORD        Unknown0x354;
+/*0x358*/ EQTRADESKILLRECIPE* SelectedRecipe;
+/*0x35c*/ DWORD        Unknown0x35c;
+/*0x360*/ DWORD        SkillLevel;
+/*0x364*/ DWORD        Unknown0x364;
+/*0x368*/ DWORD        Unknown0x368;
+/*0x36c*/ BYTE         Unknown0x36c[0x58];
+/*0x3c4*/ DWORD        Unknown0x3c4;
+/*0x3c8*/ DWORD        Unknown0x3c8;
+/*0x3cc*/ BYTE         Unknonw0x3cc[0x8];
+/*0x3d4*/ DWORD        Unknown0x3d4;
+/*0x3d8*/ DWORD        Unknown0x3d8;
+};
+using EQTRADESKILLWINDOW = CTradeSkillWnd;
+using PEQTRADESKILLWINDOW = CTradeSkillWnd*;
+
+//============================================================================
 // CTradeWnd
 //============================================================================
 
+// CTradeWnd__CTradeWnd aTradewnd
+// CTradeWnd__size: 0x300 (see 543158) in May 17 2019 Test
 class CTradeWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -4501,22 +4981,24 @@ public:
 	EQLIB_OBJECT void TradeItemChanged(int, int);
 	EQLIB_OBJECT void UpdateTradeDisplay();
 
-	unsigned int       NextRefreshTime;
-	bool               bInventoryWasOpen;
-	CButtonWnd*        HisMoneyButton[4];
-	CButtonWnd*        MyMoneyButton[4];
-	CButtonWnd*        TradeButton;
-	CButtonWnd*        CancelButton;
-	CLabel*            HisNameLabel;
-	CLabel*            MyNameLabel;
-	CInvSlotWnd*       pInvSlotWnd[16];
-	long               HisMoney[4];
-	long               MyMoney[4];
-	ItemBaseContainer  TradeItems;     // 16 items
-	bool               bHisReadyTrade;
-	bool               bMyReadyTrade;
-	bool               bIsTrading;
+/*0x244*/ unsigned int       NextRefreshTime;
+/*0x248*/ bool               bInventoryWasOpen;
+/*0x24c*/ CButtonWnd*        HisMoneyButton[4];
+/*0x25c*/ CButtonWnd*        MyMoneyButton[4];
+/*0x26c*/ CButtonWnd*        TradeButton;
+/*0x270*/ CButtonWnd*        CancelButton;
+/*0x274*/ CLabel*            HisNameLabel;
+/*0x278*/ CLabel*            MyNameLabel;
+/*0x27c*/ CInvSlotWnd*       pInvSlotWnd[16];
+/*0x2bc*/ long               HisMoney[4];
+/*0x2cc*/ long               MyMoney[4];
+/*0x2dc*/ ItemBaseContainer  TradeItems;
+/*0x2f8*/ bool               bHisReadyTrade;           // was HisTradeReady
+/*0x2f9*/ bool               bMyReadyTrade;            // was MyTradeReady
+/*0x2fa*/ bool               bIsTrading;               // was TradeWndOpen
 };
+using EQTRADEWINDOW = CTradeWnd;
+using PEQTRADEWINDOW = CTradeWnd *;
 
 //============================================================================
 // CTrainWnd

@@ -937,46 +937,10 @@ class HashListSet<T, _Size, -2> : public HashListSet<T, _Size, -1>
 	void* MemPool;
 };
 
-template <typename T>
-class IString
-{
-public:
-/*0x00*/ void* vfTable;
-/*0x04*/ T* String;
-/*0x08*/ int Len;
-/*0x0c*/ int Space;
-/*0x10*/ //0x14? not sure.
-};
-
-class IString2
-{
-public:
-	EQLIB_OBJECT void Append(char* c);
-
-/*0x00*/ void* vfTable;
-/*0x04*/ char* String;
-/*0x08*/ int Len;
-/*0x0c*/ int Space;
-/*0x10*/
-};
-
 class AtomicInt
 {
 public:
 	volatile int Value;
-};
-
-template <typename T, int T_SIZE>
-class IStringFixed : public IString<T>
-{
-public:
-	BYTE FixedData[(T_SIZE * sizeof(T)) + sizeof(AtomicInt)];
-};
-
-template <int T_SIZE>
-class StringFixed : public IStringFixed<char, T_SIZE>
-{
-public:
 };
 
 template <typename ET>
@@ -1417,6 +1381,37 @@ bool swap(Array<T>& a, Array<T>& b)
 {
 	a.Swap(b);
 }
+
+//----------------------------------------------------------------------------
+
+template <typename T = char>
+class IStringTemplate
+{
+public:
+	EQLIB_OBJECT void Append(char* c);
+
+	/*0x00*/ void* vfTable;
+	/*0x04*/ T* String;
+	/*0x08*/ int Len;
+	/*0x0c*/ int Space;
+	/*0x10*/ //0x14? not sure.
+};
+
+using IString = IStringTemplate<char>;
+
+
+template <typename T, int T_SIZE>
+class IStringFixed : public IStringTemplate<T>
+{
+public:
+	BYTE FixedData[(T_SIZE * sizeof(T)) + sizeof(AtomicInt)];
+};
+
+template <int T_SIZE>
+class StringFixed : public IStringFixed<char, T_SIZE>
+{
+public:
+};
 
 //============================================================================
 
