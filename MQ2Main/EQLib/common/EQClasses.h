@@ -1357,7 +1357,7 @@ public:
 	EQLIB_OBJECT void UnStunMe();
 	EQLIB_OBJECT void UseSkill(unsigned char skill, PlayerZoneClient* Target, bool bAuto = false);
 	EQLIB_OBJECT const int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut);
-	EQLIB_OBJECT int IsExpansionFlag(int);
+	EQLIB_OBJECT int IsExpansionFlag(int); // CharacterBase
 	EQLIB_OBJECT int TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
 	EQLIB_OBJECT int GetAdjustedSkill(int);
 	EQLIB_OBJECT int GetBaseSkill(int);
@@ -2534,17 +2534,6 @@ public:
 	EQLIB_OBJECT PcClient();
 
 	BYTE Filler[0x2b10];
-};
-
-// A.k.a. PlayerManagerClient
-class EQPlayerManager
-{
-public:
-	EQLIB_OBJECT PlayerClient* GetSpawnByID(int);
-	EQLIB_OBJECT PlayerClient* GetSpawnByName(char*);
-	EQLIB_OBJECT PlayerClient* GetPlayerFromPartialName(const char*, PlayerBase*);
-
-	SPAWNMANAGER Data;
 };
 
 class EQPMInfo

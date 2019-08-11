@@ -1151,7 +1151,7 @@ public:
 	T& operator[](int index);
 	const T& operator[](int index) const;
 
-	int Count() const { return m_size; }
+	int GetSize() const { return m_size; }
 	bool IsEmpty() const { return m_size == 0; }
 
 	void Swap(Array* other) { SwapInternal(other, true); }

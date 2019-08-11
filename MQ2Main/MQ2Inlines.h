@@ -36,21 +36,21 @@ static inline PCHARINFO2 GetCharInfo2(VOID) {
 	return NULL;
 }
 
-static inline EQPlayer *GetSpawnByID(DWORD dwSpawnID)
+inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)
 {
 	//    if (dwSpawnID<3000)
 	//        return ppEQP_IDArray[dwSpawnID];
 	return pSpawnManager->GetSpawnByID(dwSpawnID);
 }
 
-static inline EQPlayer *GetSpawnByName(char *spawnName)
+inline PlayerClient* GetSpawnByName(char *spawnName)
 {
 	return pSpawnManager->GetSpawnByName(spawnName);
 }
 
-static inline EQPlayer *GetSpawnByPartialName(char const *spawnName, class PlayerBase *pbase = 0)
+inline PlayerClient* GetSpawnByPartialName(char const* spawnName, PlayerBase* exclusion = nullptr)
 {
-	return pSpawnManager->GetPlayerFromPartialName(spawnName, pbase);
+	return pSpawnManager->GetPlayerFromPartialName(spawnName, exclusion);
 }
 
 static inline PSPELL GetSpellByID(LONG dwSpellID)
@@ -324,7 +324,7 @@ static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<
 			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusRangeModifier(pSpell, pItemOut);
 			if (pItemOut.pObject)
 			{
-				InterlockedDecrement((long volatile*)&((PCONTENTS)pItemOut.pObject)->RefCount);
+				InterlockedDecrement((long volatile*)&((CONTENTS*)pItemOut.pObject)->RefCount);
 			}
 			return ret;
 		}
@@ -572,7 +572,7 @@ static inline int IsRaidMember(PSPAWNINFO pSpawn)
 	}
 	return -1;
 }
-static inline BOOL IsGroupMember(char * SpawnName)
+inline BOOL IsGroupMember(char* SpawnName)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (!pChar->pGroupInfo)
@@ -582,8 +582,8 @@ static inline BOOL IsGroupMember(char * SpawnName)
 			if (pChar->pGroupInfo->pMember[N])
 			{
 				CHAR Name[MAX_STRING] = { 0 };
-				GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
-				CleanupName(Name,sizeof(Name), FALSE, FALSE);
+				strcpy_s(Name, pChar->pGroupInfo->pMember[N]->Name.c_str());
+				CleanupName(Name, sizeof(Name), FALSE, FALSE);
 				if (!_stricmp(SpawnName, Name))
 					return N;
 			}
@@ -629,7 +629,7 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 			if (pChar->pGroupInfo->pMember[N])
 			{
 				CHAR Name[MAX_STRING] = { 0 };
-				GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
+				strcpy_s(Name, pChar->pGroupInfo->pMember[N]->Name.c_str());
 				if (!_stricmp(pSpawn->Name, Name))
 					return 1;
 			}
@@ -682,7 +682,7 @@ static inline PSPAWNINFO GetGroupMember(unsigned long N)
 			if (N == 0)
 			{
 				CHAR Name[MAX_STRING] = { 0 };
-				GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);
+				strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
 				return (PSPAWNINFO)GetSpawnByName(Name);
 			}
 		}
@@ -728,7 +728,7 @@ static inline BOOL IsNumberToComma(PCHAR String)
 
 static inline BOOL LineOfSight(PSPAWNINFO Origin, PSPAWNINFO CanISeeThis)
 {
-	return ((EQPlayer*)Origin)->CanSee((EQPlayer*)CanISeeThis);
+	return ((PlayerClient*)Origin)->CanSee(*(PlayerClient*)CanISeeThis);
 }
 
 static inline BOOL IsMobFleeing(PSPAWNINFO pChar, PSPAWNINFO pSpawn)

@@ -141,14 +141,10 @@ CCheckBoxWnd* pCheck = nullptr;
 class CSidlInitHook
 {
 public:
-	void Init_Trampoline(class CXStr* pName, int A);
-	void Init_Detour(class CXStr* pName, int A)
+	void Init_Trampoline(const CXStr& Name, int A);
+	void Init_Detour(const CXStr& Name, int A)
 	{
-		CHAR Name[MAX_STRING] = { 0 };
-		if (pName)
-			GetCXStr(pName->Ptr, Name, MAX_STRING);
-
-		std::string WindowName = Name;
+		std::string WindowName{ Name };
 		MakeLower((WindowName));
 
 		unsigned long N = 0;
@@ -177,7 +173,7 @@ public:
 				DebugSpew("Adding WndNotification target FAILED");
 		}
 
-		Init_Trampoline(pName, A);
+		Init_Trampoline(Name, A);
 	}
 
 	int CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
@@ -219,12 +215,12 @@ public:
 			{
 				char szTemp[20];
 				sprintf_s(szTemp, "0/%d", list->ItemsArray.Count);
-				pCountLabel->CSetWindowText(szTemp);
+				pCountLabel->SetWindowText(szTemp);
 
 				// we really need the list to fit to the window so people can actually see this new feature.
 				CXRect rectmain = ((CXWnd*)pFIWnd)->GetClientRect();
 				CXRect rect = ((CXWnd*)list)->GetClientRect();
-				DWORD TotalWidth = 0;
+				int TotalWidth = 0;
 
 				for (int i = 0; i < list->Columns.Count; i++)
 				{
@@ -232,7 +228,7 @@ public:
 				}
 				TotalWidth += 20;
 
-				DWORD mainwidth = rectmain.right - rectmain.left;
+				int mainwidth = rectmain.right - rectmain.left;
 				int newwidth = 0;
 
 				if (TotalWidth > rect.right - rect.left)
@@ -240,37 +236,33 @@ public:
 					newwidth = TotalWidth - (rect.right - rect.left);
 					rect.right += newwidth;
 					rectmain.right += newwidth + 10;
-					((CXWnd*)list)->Move(rect, false, false, false, false);
-					((CXWnd*)pFIWnd)->Move(rectmain, false, false, false, false);
+					list->Move(rect, false, false, false, false);
+					pFIWnd->Move(rectmain, false, false, false, false);
 				}
 
 				// lets borrow a checkbox...
 				CControlTemplate* pDisableConnectionTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("OMP_EnablePushToTalkCheckbox");
 				if (pDisableConnectionTemplate)
 				{
-					RECT OldRect = pDisableConnectionTemplate->Rect;
+					CXRect OldRect = pDisableConnectionTemplate->rect;
 					/*pDisableConnectionTemplate->Rect.left = 21;
 					pDisableConnectionTemplate->Rect.top = 2;
 					pDisableConnectionTemplate->Rect.right = 32;
 					pDisableConnectionTemplate->Rect.bottom = 13;*/
-					char* OldName1 = new char[MAX_STRING];
-					char* OldScreenName1 = new char[MAX_STRING];
-					char* OldController1 = new char[MAX_STRING];
-					GetCXStr(pDisableConnectionTemplate->Name, OldName1);
-					GetCXStr(pDisableConnectionTemplate->ScreenID, OldScreenName1);
-					GetCXStr(pDisableConnectionTemplate->Controller, OldController1);
+					CXStr OldName1 = pDisableConnectionTemplate->strName;
+					CXStr OldScreenName1 = pDisableConnectionTemplate->strScreenId;
+					CXStr OldController1 = pDisableConnectionTemplate->strController;
 
-					SetCXStr(&pDisableConnectionTemplate->Controller, "0");
+					pDisableConnectionTemplate->strController = "0";
 
-					char* szTemp2 = new char[MAX_STRING];
-					char* szTemp3 = new char[MAX_STRING];
-					CXStr Str;
+					char szTemp2[256];
+					char szTemp3[256];
 
 					for (int i = 0; i < list->ItemsArray.Count && i < 900; i++)
 					{
-						sprintf_s(szTemp2, MAX_STRING, "FIW_CheckBox_%d", i);
-						SetCXStr(&pDisableConnectionTemplate->Name, szTemp2);
-						SetCXStr(&pDisableConnectionTemplate->ScreenID, szTemp2);
+						sprintf_s(szTemp2, "FIW_CheckBox_%d", i);
+						pDisableConnectionTemplate->strName = szTemp2;
+						pDisableConnectionTemplate->strScreenId = szTemp2;
 
 						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate))
 						{
@@ -280,79 +272,74 @@ public:
 							pCheck->SetVisible(true);
 							pCheck->SetActive(true);
 							pCheck->SetClickThroughMenuItemStatus(true);
-							pCheck->SetController(0x00000000);
+							pCheck->pController = nullptr;
 							pCheck->SetShowClickThroughMenuItem(true);
 							pCheck->SetLocation({ 4, 0, 16, 12 });
-							pCheck->IndicatorValue = 0;
-							list->GetItemText(&Str, i, 1);
-							GetCXStr(Str.Ptr, szTemp2);
-							sprintf_s(szTemp3, MAX_STRING, "Check to mark %s for Action.(%d)", szTemp2, i);
+							pCheck->IndicatorVal = 0;
 
-							// todo check this
+							// todo: check this
+							CXStr Str = list->GetItemText(i, 1);
+							sprintf_s(szTemp3, "Check to mark %s for Action. (%d)", szTemp2, i);
 							pCheck->SetTooltip(szTemp3);
-							// this works before private fix((CXStr*)&pCheck->Tooltip)->SetString(szTemp3, strlen(szTemp3));
+
 							list->SetItemWnd(i, MarkCol, pCheck);
 
 							if (ItemGlobalIndex* gi = (ItemGlobalIndex*)pFIWnd->gi[(int)pCheck->GetData()])
 							{
 								if (PCHARINFO pCharInfo = GetCharInfo())
 								{
-									if (CharacterBase* cb = (CharacterBase*)& pCharInfo->CharacterBase_vftable)
+									CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
+									VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
+
+									if (ptr.pObject)
 									{
-										VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
-										if (ptr.pObject)
+										if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 										{
-											if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+											if (gColorsFeatureEnabled)
 											{
-												if (gColorsFeatureEnabled)
+												if (pItem->TradeSkills)
 												{
-													if (pItem->TradeSkills)
-													{
-														list->SetItemColor(i, 1, 0xFFFF00FF);
-													}
-													if (pItem->QuestItem)
-													{
-														list->SetItemColor(i, 1, 0xFFFFFF00);
-													}
+													list->SetItemColor(i, 1, 0xFFFF00FF);
 												}
-
-												if (pItem->Cost > 0)
+												if (pItem->QuestItem)
 												{
-													int sellprice = ((EQ_Item*)ptr.pObject)->ValueSellMerchant((float)1.05, 1);
-													DWORD cp = sellprice;
-													DWORD sp = cp / 10; cp = cp % 10;
-													DWORD gp = sp / 10; sp = sp % 10;
-													DWORD pp = gp / 10; gp = gp % 10;
-													szTemp3[0] = '\0';
-
-													if (pp > 0)
-													{
-														sprintf_s(szTemp2, MAX_STRING, " %dpp", pp);
-														strcat_s(szTemp3, MAX_STRING, szTemp2);
-													}
-													if (gp > 0)
-													{
-														sprintf_s(szTemp2, MAX_STRING, " %dgp", gp);
-														strcat_s(szTemp3, MAX_STRING, szTemp2);
-													}
-													if (sp > 0)
-													{
-														sprintf_s(szTemp2, MAX_STRING, " %dsp", sp);
-														strcat_s(szTemp3, MAX_STRING, szTemp2);
-													}
-													if (cp > 0)
-													{
-														sprintf_s(szTemp2, MAX_STRING, " %dcp", cp);
-														strcat_s(szTemp3, MAX_STRING, szTemp2);
-													}
+													list->SetItemColor(i, 1, 0xFFFFFF00);
 												}
-												else
-												{
-													strcpy_s(szTemp3, MAX_STRING, "");
-												}
-
-												list->SetItemText(i, ValueCol, &CXStr(szTemp3));
 											}
+
+											szTemp3[0] = 0;
+
+											if (pItem->Cost > 0)
+											{
+												int sellprice = ((EQ_Item*)ptr.pObject)->ValueSellMerchant(1.05f, 1);
+												int cp = sellprice;
+												int sp = cp / 10; cp = cp % 10;
+												int gp = sp / 10; sp = sp % 10;
+												int pp = gp / 10; gp = gp % 10;
+
+												if (pp > 0)
+												{
+													sprintf_s(szTemp2, " %dpp", pp);
+													strcat_s(szTemp3, szTemp2);
+												}
+												if (gp > 0)
+												{
+													sprintf_s(szTemp2, " %dgp", gp);
+													strcat_s(szTemp3, szTemp2);
+												}
+												if (sp > 0)
+												{
+													sprintf_s(szTemp2, " %dsp", sp);
+													strcat_s(szTemp3, szTemp2);
+												}
+												if (cp > 0)
+												{
+													sprintf_s(szTemp2, " %dcp", cp);
+													strcat_s(szTemp3, szTemp2);
+												}
+											}
+
+											list->SetItemText(i, ValueCol, szTemp3);
 										}
 									}
 								}
@@ -360,17 +347,10 @@ public:
 						}
 					}
 
-					delete szTemp2;
-					delete szTemp3;
-
-					pDisableConnectionTemplate->Rect = OldRect;
-					SetCXStr(&pDisableConnectionTemplate->Name, OldName1);
-					SetCXStr(&pDisableConnectionTemplate->ScreenID, OldScreenName1);
-					SetCXStr(&pDisableConnectionTemplate->Controller, OldController1);
-
-					delete OldName1;
-					delete OldScreenName1;
-					delete OldController1;
+					pDisableConnectionTemplate->rect = OldRect;
+					pDisableConnectionTemplate->strName = OldName1;
+					pDisableConnectionTemplate->strScreenId = OldScreenName1;
+					pDisableConnectionTemplate->strController = OldController1;
 
 					if (list->SortCol == 7)
 					{
@@ -381,10 +361,10 @@ public:
 		}
 	}
 
-	int GetMoneyFromString(char* str)
+	int GetMoneyFromString(const char* str)
 	{
-		char* szLabel1 = new char[MAX_STRING];
-		strcpy_s(szLabel1, MAX_STRING, str);
+		char szLabel1[50];
+		strcpy_s(szLabel1, str);
 
 		int pp = 0;
 		int gp = 0;
@@ -395,31 +375,30 @@ public:
 		{
 			pDest[0] = '\0';
 			pp = atoi(szLabel1);
-			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+			strcpy_s(szLabel1, &pDest[2]);
 		}
 
 		if (char* pDest = strstr(szLabel1, "gp"))
 		{
 			pDest[0] = '\0';
 			gp = atoi(szLabel1);
-			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+			strcpy_s(szLabel1, &pDest[2]);
 		}
 
 		if (char* pDest = strstr(szLabel1, "sp"))
 		{
 			pDest[0] = '\0';
 			sp = atoi(szLabel1);
-			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+			strcpy_s(szLabel1, &pDest[2]);
 		}
 
 		if (char* pDest = strstr(szLabel1, "cp"))
 		{
 			pDest[0] = '\0';
 			cp = atoi(szLabel1);
-			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
+			strcpy_s(szLabel1, &pDest[2]);
 		}
 
-		delete szLabel1;
 		int total = (pp * 1000) + (gp * 100) + (sp * 10) + cp;
 		return total;
 	}
@@ -427,24 +406,20 @@ public:
 	int CFindItemWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
 	int CFindItemWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
+		CFindItemWnd* pThis = (CFindItemWnd*)this;
+
 		if (uiMessage == XWM_SORTREQUEST)
 		{
-			CFindItemWnd* wnd = (CFindItemWnd*)this;
-			if (pWnd == (CXWnd*)wnd->FIW_ItemList)
+			if (pWnd == (CXWnd*)pThis->FIW_ItemList)
 			{
 				if (SListWndSortInfo* pSI = (SListWndSortInfo *)pData)
 				{
-					char* szLabel1 = new char[MAX_STRING];
-					char* szLabel2 = new char[MAX_STRING];
-
 					switch (pSI->SortCol)
 					{
 					case 7:
 					{
-						GetCXStr(pSI->StrLabel1, szLabel1);
-						int int1 = GetMoneyFromString(szLabel1);
-						GetCXStr(pSI->StrLabel2, szLabel2);
-						int int2 = GetMoneyFromString(szLabel2);
+						int int1 = GetMoneyFromString(pSI->StrLabel1.c_str());
+						int int2 = GetMoneyFromString(pSI->StrLabel2.c_str());
 
 						if (int1 > int2)
 							pSI->SortResult = -1;
@@ -455,9 +430,6 @@ public:
 					}
 					break;
 					}
-
-					delete szLabel1;
-					delete szLabel2;
 				}
 			}
 		}
@@ -468,10 +440,8 @@ public:
 
 			if (CContextMenu* pContextMenu = (CContextMenu*)pWnd)
 			{
-				POINT pt;
-				pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
-				pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
-				iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
+				CXPoint pt = pWndMgr->MousePoint;
+				iItemID = pContextMenu->GetItemAtPoint(pt);
 			}
 
 			switch (ItemID)
@@ -506,7 +476,7 @@ public:
 					{
 						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 						{
-							if (SListWndColumn_RO* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+							if (SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
 							{
 								col->pTextureAnim = pUnChecked;
 							}
@@ -543,12 +513,10 @@ public:
 				{
 					if (pContextMenuManager)
 					{
-						CXPoint Loc;
-						Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
-						Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+						CXPoint Loc = pWndMgr->MousePoint;
 
 						// work in progress -eqmule
-						pContextMenuManager->PopupMenu(OurCheckBoxMenuIndex, Loc, (CXWnd*)this);
+						pContextMenuManager->PopupMenu(OurCheckBoxMenuIndex, Loc, pThis);
 					}
 
 					return 0;
@@ -561,16 +529,16 @@ public:
 			{
 				// for our checkboxes, they should parent notify to this func...
 				int itemclicked = (int)pData;
-				if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 				{
 					CXMLData* data = pWnd->GetXMLData();
 					if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 					{
-						SListWndColumn_RO* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
+						SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
 
 						if (bool bCheckBox = pWnd->IsType(WRT_CHECKBOXWND))
 						{
-							bool bChecked = ((CCheckBoxWnd*)pWnd)->Checked;
+							bool bChecked = ((CCheckBoxWnd*)pWnd)->bChecked;
 							int Selected = 0;
 							int Checked = 0;
 
@@ -578,14 +546,14 @@ public:
 							{
 								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 								{
-									if (button->Checked)
+									if (button->bChecked)
 										Checked++;
 
 									if (button == pWnd)
 									{
 										list->ItemsArray[i].bSelected = bChecked;
 
-										if (bChecked == true)
+										if (bChecked)
 										{
 											col->pTextureAnim = pChecked;
 											list->CurSel = i;
@@ -599,7 +567,7 @@ public:
 
 									if (list->ItemsArray[i].bSelected == true)
 									{
-										if (button->Checked == false)
+										if (!button->bChecked)
 										{
 											list->ItemsArray[i].bSelected = false;
 										}
@@ -610,7 +578,7 @@ public:
 
 							char szTemp[26];
 							sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-							pCountLabel->CSetWindowText(szTemp);
+							pCountLabel->SetWindowText(szTemp);
 
 							if (Selected == 0)
 							{
@@ -640,7 +608,7 @@ public:
 							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
 							{
 								int dta = (int)list->GetItemData(list->CurSel);
-								if (ItemGlobalIndex* igg = (ItemGlobalIndex*)((CFindItemWnd*)this)->gi[dta])
+								if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
 								{
 									pMerchantWnd->SelectBuySellSlot(igg, igg->Index.Slot1);
 								}
@@ -651,7 +619,7 @@ public:
 							{
 								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 								{
-									if (button->Checked)
+									if (button->bChecked)
 									{
 										list->ItemsArray[i].bSelected = true;
 										Checked++;
@@ -661,7 +629,7 @@ public:
 
 							char szTemp[26];
 							sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-							pCountLabel->CSetWindowText(szTemp);
+							pCountLabel->SetWindowText(szTemp);
 
 							if (Checked == 0)
 							{
@@ -682,14 +650,14 @@ public:
 
 				if (colindex == FINDWINDOW_CHECKBOXCOLUMN)
 				{
-					CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList");
+					CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList");
 					if (list)
 					{
 						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 						{
 							list->CurSel = -1;
 							list->Selected = 0xFF004040;
-							SListWndColumn_RO* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
+							SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
 							bool checked = true;
 
 							if (col->pTextureAnim == pUnChecked)
@@ -721,15 +689,15 @@ public:
 									{
 										if (list->ItemsArray[i].bSelected)
 										{
-											button->Checked = checked;
+											button->bChecked = checked;
 										}
 									}
 									else
 									{
-										button->Checked = checked;
+										button->bChecked = checked;
 									}
 
-									if (button->Checked == true)
+									if (button->bChecked)
 									{
 										Checked++;
 										list->ItemsArray[i].bSelected = true;
@@ -743,7 +711,7 @@ public:
 
 								char szTemp[26];
 								sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-								pCountLabel->CSetWindowText(szTemp);
+								pCountLabel->SetWindowText(szTemp);
 
 								if (bFound)
 								{
@@ -762,10 +730,10 @@ public:
 			}
 			else if (uiMessage == XWM_LMOUSEUP)
 			{
-				CButtonWnd* FIW_DestroyItem = (CButtonWnd*)((CXWnd*)this)->GetChildItem("FIW_DestroyItem");
+				CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem");
 				int clickedrow = (int)pData;
 
-				if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 				{
 					if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 					{
@@ -777,38 +745,28 @@ public:
 							if (PCHARINFO2 pChar2 = GetCharInfo2())
 							{
 								// if we have something on cursor we let eq handle the destroy
-								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == NULL)
+								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == nullptr)
 								{
 									// if we have something on cursor we let eq handle the destroy
 									// IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
-									CXStr Str;
-									char* szTemp = new char[MAX_STRING];
-
 									for (int i = 0; i < list->ItemsArray.Count; i++)
 									{
 										if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 										{
-											if (button->Checked == true)
+											if (button->bChecked)
 											{
-												SListWndLine_RO item = list->ItemsArray[i];
-												list->GetItemText(&Str, i, 1);
+												CXStr str = list->GetItemText(i, 1);
 												int dta = (int)list->GetItemData(i);
-												GetCXStr(Str.Ptr, szTemp);
 
-												if (CFindItemWnd* pFIWnd2 = (CFindItemWnd*)this)
+												if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
 												{
-													if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pFIWnd2->gi[dta])
-													{
-														deletelist.push_back(*igg);
-													}
+													deletelist.push_back(*igg);
 												}
 											}
 										}
 									}
 
-									delete szTemp;
-
-									if (SListWndColumn_RO* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+									if (SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
 									{
 										col->pTextureAnim = pUnChecked;
 									}
@@ -834,36 +792,31 @@ public:
 								{
 									if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
 									{
-										if (button->Checked)
+										if (button->bChecked)
 										{
 											int dta = (int)list->GetItemData(i);
 
-											if (CFindItemWnd* pFIWnd2 = (CFindItemWnd*)this)
+											if (ItemGlobalIndex* gi = (ItemGlobalIndex*)pThis->gi[dta])
 											{
-												if (ItemGlobalIndex* gi = (ItemGlobalIndex*)pFIWnd2->gi[dta])
+												if (PCHARINFO pCharInfo = GetCharInfo())
 												{
-													if (PCHARINFO pCharInfo = GetCharInfo())
+													CharacterBase* cb = (CharacterBase*)& pCharInfo->CharacterBase_vftable;
+													VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
+													if (ptr.pObject)
 													{
-														if (CharacterBase* cb = (CharacterBase*)& pCharInfo->CharacterBase_vftable)
+														if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 														{
-															VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
-															if (ptr.pObject)
+															if (pMerchantWnd && pMerchantWnd->IsVisible())
 															{
-																if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+																WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
+																selllist.push_back(*gi);
+															}
+															else
+															{
+																WriteChatf("[%d] Marking %s as Never Loot", i, pItem->Name);
+																if (pLootFiltersManager)
 																{
-																	if (pMerchantWnd && pMerchantWnd->IsVisible())
-																	{
-																		WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
-																		selllist.push_back(*ig);
-																	}
-																	else
-																	{
-																		WriteChatf("[%d] Marking %s as Never Loot", i, pItem->Name);
-																		if (pLootFiltersManager)
-																		{
-																			pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
-																		}
-																	}
+																	pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
 																}
 															}
 														}
@@ -885,13 +838,13 @@ public:
 		}
 		else if (!gCheckBoxFeatureEnabled)
 		{
-			if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+			if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 			{
 				if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
 				{
-					if (SListWndColumn_RO* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+					if (SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
 					{
-						col->pTextureAnim = 0;
+						col->pTextureAnim = nullptr;
 					}
 				}
 			}
@@ -904,8 +857,9 @@ public:
 	int CBankWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*);
 	int CBankWnd__WndNotification_Detour(CXWnd* pWnd, unsigned int uiMessage, void* pData)
 	{
+		CBankWnd* pThis = (CBankWnd*)this;
 		// we use this to intercept the menu messages for our autobank button extension
-		if (((CBankWnd*)this)->AutoButton == pWnd)
+		if (pThis->AutoButton == pWnd)
 		{
 			if (gAutoBankButton != pWnd)
 				gAutoBankButton = (CButtonWnd*)pWnd;
@@ -921,11 +875,11 @@ public:
 						{
 							if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
 							{
-								gAutoBankButton->Checked = 0;
+								gAutoBankButton->bChecked = 0;
 							}
 							else
 							{
-								gAutoBankButton->Checked = 1;
+								gAutoBankButton->bChecked = 1;
 							}
 						}
 					}
@@ -939,7 +893,7 @@ public:
 							if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
 							{
 								WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
-								gAutoBankButton->Checked = 0;
+								gAutoBankButton->bChecked = 0;
 								break;
 							}
 
@@ -949,12 +903,14 @@ public:
 								// we will autobank from inventory instead and pick items he wants
 								// by using his menu settings.
 								gStartAutoBanking = true;
-								WriteChatf("\ay[Auto%s started. Please wait...]\ax", gAutoInventoryItems ? "inventory" : "Bank");
+
+								WriteChatf("\ay[Auto%s started. Please wait...]\ax",
+									gAutoInventoryItems ? "inventory" : "Bank");
 							}
 							else
 							{
-								Beep(1000, 100);
-								WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax", gAutoInventoryItems ? "inventory" : "Bank");
+								WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
+									gAutoInventoryItems ? "inventory" : "Bank");
 								return 0;
 							}
 						}
@@ -964,12 +920,10 @@ public:
 				case XWM_RCLICK:
 					if (pContextMenuManager)
 					{
-						CXPoint Loc;
-						Loc.X = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
-						Loc.Y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
+						CXPoint Loc = pWndMgr->MousePoint;
 
 						// work in progress -eqmule
-						pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, (CXWnd*)this);
+						pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, pThis);
 					}
 					break;
 				};
@@ -977,16 +931,9 @@ public:
 		}
 		else if (uiMessage == XWM_MENUSELECT)
 		{
+			CContextMenu* pContextMenu = (CContextMenu*)pWnd;
 			int ItemID = (int)pData;
-			int iItemID = 0;
-
-			if (CContextMenu* pContextMenu = (CContextMenu*)pWnd)
-			{
-				POINT pt;
-				pt.x = ((PCXWNDMGR)pWndMgr)->MousePoint.x;
-				pt.y = ((PCXWNDMGR)pWndMgr)->MousePoint.y;
-				iItemID = ((CListWnd*)pContextMenu)->GetItemAtPoint(&pt);
-			}
+			int iItemID = pContextMenu->GetItemAtPoint(pWndMgr->MousePoint);
 
 			switch (ItemID)
 			{
@@ -1054,25 +1001,12 @@ public:
 
 		return CBankWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
-
-	int CSidlScreenWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
-	int CSidlScreenWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
-	{
-		if (uiMessage == XWM_LINK)
-		{
-		}
-
-		return CSidlScreenWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
-	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(CXStr*, int));
+DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(const CXStr&, int));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
-#if !defined(ROF2EMU) && !defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CFindItemWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::CFindItemWnd__Update_Tramp());
-#endif
-DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
 
 class CXWndManagerHook
 {
@@ -1104,29 +1038,36 @@ DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd*)
 class CXMLSOMDocumentBaseHook
 {
 public:
-	int XMLRead(CXStr* A, CXStr* B, CXStr* C, CXStr* D)
+	bool XMLRead(
+		const CXStr& strPath,
+		const CXStr& strDefaultPath,
+		const CXStr& strFileName,
+		const CXStr& strDefaultPath2)
 	{
-		char Temp[MAX_STRING] = { 0 };
-		GetCXStr(C->Ptr, Temp, MAX_STRING);
-		DebugSpew("XMLRead(%s)", Temp);
+		DebugSpew("XMLRead(%s)", strFileName.c_str());
+
 
 		// When EQ tries to read EQUI.xml, generate MQUI.xml instead
 		// and redirect the read to that file.
-		if (!_stricmp("EQUI.xml", Temp))
+		if (!_stricmp("EQUI.xml", strFileName.c_str()))
 		{
 			if (GenerateMQUI())
 			{
-				SetCXStr(&C->Ptr, "MQUI.xml");
-				int Ret = XMLRead_Trampoline(A, B, C, D);
+				bool result = XMLRead_Trampoline(strPath,
+					strDefaultPath,
+					"MQUI.xml",
+					strDefaultPath2);
+
 				DestroyMQUI();
-				return Ret;
+				return result;
 			}
 		}
-		return XMLRead_Trampoline(A, B, C, D);
+
+		return XMLRead_Trampoline(strPath, strDefaultPath, strFileName, strDefaultPath2);
 	}
-	int XMLRead_Trampoline(CXStr* A, CXStr* B, CXStr* C, CXStr* D);
+	bool XMLRead_Trampoline(const CXStr& A, const CXStr& B, const CXStr& C, const CXStr& D);
 };
-DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr* A, CXStr* B, CXStr* C, CXStr* D));
+DETOUR_TRAMPOLINE_EMPTY(bool CXMLSOMDocumentBaseHook::XMLRead_Trampoline(const CXStr& A, const CXStr& B, const CXStr& C, const CXStr& D));
 
 bool DoesFileExist(const char* filename)
 {
@@ -1258,7 +1199,7 @@ void AddAutoBankMenu()
 				}
 				else
 				{
-					SListWndColumn_RO col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
+					SListWndColumn& col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
 					MarkCol = FINDWINDOW_CHECKBOXCOLUMN;
 				}
 
@@ -1271,7 +1212,7 @@ void AddAutoBankMenu()
 				}
 				else
 				{
-					SListWndColumn_RO col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN + 1];
+					SListWndColumn& col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN + 1];
 					ValueCol = FINDWINDOW_CHECKBOXCOLUMN+1;
 				}
 
@@ -1290,7 +1231,7 @@ void AddAutoBankMenu()
 						pCountLabel->SetLeftOffset(220);
 						pCountLabel->SetRightOffset(160);
 						pCountLabel->SetTooltip("Shows you how many items you have selected.");
-						pCountLabel->CSetWindowText("0/10000");
+						pCountLabel->SetWindowText("0/10000");
 						//BackgroundTextureTint
 						pCountLabel->SetBGColor(0xFF2032FF);
 					}
@@ -1303,7 +1244,7 @@ void AddAutoBankMenu()
 						pNLMarkedButton->SetLeftOffset(157);
 						pNLMarkedButton->SetRightOffset(87);
 						pNLMarkedButton->SetTooltip("Click to tag all marked items as NEVER LOOT in advloot filters.");
-						pNLMarkedButton->CSetWindowText("Never Loot");
+						pNLMarkedButton->SetWindowText("Never Loot");
 						//BackgroundTextureTint
 						pNLMarkedButton->SetBGColor(0xFF2032FF);
 					}
@@ -1476,18 +1417,34 @@ void InitializeMQ2Windows()
 	AddSlotArray(inspect, 31, 8000);
 #undef AddSlotArray
 
-	EzDetourwName(CBankWnd__WndNotification, &CSidlInitHook::CBankWnd__WndNotification_Detour, &CSidlInitHook::CBankWnd__WndNotification_Tramp, "CBankWnd__WndNotification");
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	EzDetourwName(CFindItemWnd__WndNotification, &CSidlInitHook::CFindItemWnd__WndNotification_Detour, &CSidlInitHook::CFindItemWnd__WndNotification_Tramp, "CFindItemWnd__WndNotification");
-	EzDetourwName(CFindItemWnd__Update, &CSidlInitHook::CFindItemWnd__Update_Detour, &CSidlInitHook::CFindItemWnd__Update_Tramp, "CFindItemWnd__Update");
-#endif
+	EzDetourwName(CBankWnd__WndNotification,
+		&CSidlInitHook::CBankWnd__WndNotification_Detour,
+		&CSidlInitHook::CBankWnd__WndNotification_Tramp, "CBankWnd__WndNotification");
+	EzDetourwName(CFindItemWnd__WndNotification,
+		&CSidlInitHook::CFindItemWnd__WndNotification_Detour,
+		&CSidlInitHook::CFindItemWnd__WndNotification_Tramp, "CFindItemWnd__WndNotification");
+	EzDetourwName(CFindItemWnd__Update,
+		&CSidlInitHook::CFindItemWnd__Update_Detour,
+		&CSidlInitHook::CFindItemWnd__Update_Tramp, "CFindItemWnd__Update");
+	EzDetourwName(CXMLSOMDocumentBase__XMLRead,
+		&CXMLSOMDocumentBaseHook::XMLRead,
+		&CXMLSOMDocumentBaseHook::XMLRead_Trampoline, "CXMLSOMDocumentBase__XMLRead");
+	EzDetourwName(CSidlScreenWnd__Init1,
+		&CSidlInitHook::Init_Detour,
+		&CSidlInitHook::Init_Trampoline, "CSidlScreenWnd__Init1");
+	EzDetourwName(CTargetWnd__WndNotification,
+		&CSidlInitHook::CTargetWnd__WndNotification_Detour,
+		&CSidlInitHook::CTargetWnd__WndNotification_Tramp, "CTargetWnd__WndNotification");
+	EzDetourwName(CXWndManager__RemoveWnd,
+		&CXWndManagerHook::RemoveWnd_Detour,
+		&CXWndManagerHook::RemoveWnd_Trampoline, "CXWndManager__RemoveWnd");
+	EzDetourwName(CMemoryMappedFile__SetFile,
+		&CMemoryMappedFile::SetFile_Detour,
+		&CMemoryMappedFile::SetFile_Trampoline, "CMemoryMappedFile__SetFile");
+	EzDetourwName(__DoesFileExist,
+		&DoesFileExist,
+		&DoesFileExist_Trampoline, "__DoesFileExist");
 
-	EzDetourwName(CXMLSOMDocumentBase__XMLRead, &CXMLSOMDocumentBaseHook::XMLRead, &CXMLSOMDocumentBaseHook::XMLRead_Trampoline, "CXMLSOMDocumentBase__XMLRead");
-	EzDetourwName(CSidlScreenWnd__Init1, &CSidlInitHook::Init_Detour, &CSidlInitHook::Init_Trampoline, "CSidlScreenWnd__Init1");
-	EzDetourwName(CTargetWnd__WndNotification, &CSidlInitHook::CTargetWnd__WndNotification_Detour, &CSidlInitHook::CTargetWnd__WndNotification_Tramp, "CTargetWnd__WndNotification");
-	EzDetourwName(CXWndManager__RemoveWnd, &CXWndManagerHook::RemoveWnd_Detour, &CXWndManagerHook::RemoveWnd_Trampoline, "CXWndManager__RemoveWnd");
-	EzDetourwName(CMemoryMappedFile__SetFile, &CMemoryMappedFile::SetFile_Detour, &CMemoryMappedFile::SetFile_Trampoline, "CMemoryMappedFile__SetFile");
-	EzDetourwName(__DoesFileExist, &DoesFileExist, &DoesFileExist_Trampoline, "__DoesFileExist");
 	// debugging
 	// just remember this might be detoured in other plugins as well
 	//EzDetourwName(CChatWindow__WndNotification,&CSidlInitHook::CSidlScreenWnd__WndNotification_Detour,&CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp,"linktest");
@@ -1506,18 +1463,16 @@ void InitializeMQ2Windows()
 
 	if (pWndMgr)
 	{
-		CHAR Name[MAX_STRING] = { 0 };
-		for (int i = 0; i < ((_CXWNDMGR*)pWndMgr)->pWindows.Count; i++)
+		for (int i = 0; i < pWndMgr->pWindows.Count; i++)
 		{
-			if (PCXWND pWnd = ((_CXWNDMGR*)pWndMgr)->pWindows[i])
+			if (CXWnd* pWnd = pWndMgr->pWindows[i])
 			{
-				if (CXMLData* pXMLData = ((CXWnd*)pWnd)->GetXMLData())
+				if (CXMLData* pXMLData = pWnd->GetXMLData())
 				{
 					if (pXMLData->Type == UI_Screen)
 					{
-						GetCXStr(pXMLData->Name.Ptr, Name, MAX_STRING);
-						std::string WindowName = Name;
-						MakeLower((WindowName));
+						std::string WindowName{ pXMLData->Name };
+						MakeLower(WindowName);
 
 						if (WindowMap.find(WindowName) != WindowMap.end())
 						{
@@ -1785,7 +1740,7 @@ void RemoveXMLFile(const char* filename)
 		std::end(XmlFiles));
 }
 
-CXWnd* FindMQ2Window(PCHAR WindowName)
+CXWnd* FindMQ2Window(const char* WindowName)
 {
 	WindowInfo Info;
 	std::string Name = WindowName;
@@ -1876,7 +1831,7 @@ CXWnd* FindMQ2Window(PCHAR WindowName)
 	return nullptr;
 }
 
-bool SendWndClick2(CXWnd* pWnd, PCHAR ClickNotification)
+bool SendWndClick2(CXWnd* pWnd, const char* ClickNotification)
 {
 	if (!pWnd)
 		return false;
@@ -1885,42 +1840,42 @@ bool SendWndClick2(CXWnd* pWnd, PCHAR ClickNotification)
 	{
 		if (!_stricmp(szClickNotification[i], ClickNotification))
 		{
-			DebugTry(CXRect rect = pWnd->GetScreenRect());
-			DebugTry(CXPoint pt = rect.CenterPoint());
+			CXRect rect = pWnd->GetScreenRect();
+			CXPoint pt = rect.CenterPoint();
 
 			switch (i)
 			{
 			case 0:
-				DebugTry(pWnd->HandleLButtonDown(&pt, 0));
+				DebugTry(pWnd->HandleLButtonDown(pt, 0));
 				break;
 			case 1:
-				DebugTry(pWnd->HandleLButtonDown(&pt, 0));
-				DebugTry(pWnd->HandleLButtonUp(&pt, 0));
+				DebugTry(pWnd->HandleLButtonDown(pt, 0));
+				DebugTry(pWnd->HandleLButtonUp(pt, 0));
 				break;
 			case 2:
-				DebugTry(pWnd->HandleLButtonDown(&pt, 0));
-				DebugTry(pWnd->HandleLButtonHeld(&pt, 0));
+				DebugTry(pWnd->HandleLButtonDown(pt, 0));
+				DebugTry(pWnd->HandleLButtonHeld(pt, 0));
 				break;
 			case 3:
-				DebugTry(pWnd->HandleLButtonDown(&pt, 0));
-				DebugTry(pWnd->HandleLButtonHeld(&pt, 0));
-				DebugTry(pWnd->HandleLButtonUpAfterHeld(&pt, 0));
+				DebugTry(pWnd->HandleLButtonDown(pt, 0));
+				DebugTry(pWnd->HandleLButtonHeld(pt, 0));
+				DebugTry(pWnd->HandleLButtonUpAfterHeld(pt, 0));
 				break;
 			case 4:
-				DebugTry(pWnd->HandleRButtonDown(&pt, 0));
+				DebugTry(pWnd->HandleRButtonDown(pt, 0));
 				break;
 			case 5:
-				DebugTry(pWnd->HandleRButtonDown(&pt, 0));
-				DebugTry(pWnd->HandleRButtonUp(&pt, 0));
+				DebugTry(pWnd->HandleRButtonDown(pt, 0));
+				DebugTry(pWnd->HandleRButtonUp(pt, 0));
 				break;
 			case 6:
-				DebugTry(pWnd->HandleRButtonDown(&pt, 0));
-				DebugTry(pWnd->HandleRButtonHeld(&pt, 0));
+				DebugTry(pWnd->HandleRButtonDown(pt, 0));
+				DebugTry(pWnd->HandleRButtonHeld(pt, 0));
 				break;
 			case 7:
-				DebugTry(pWnd->HandleRButtonDown(&pt, 0));
-				DebugTry(pWnd->HandleRButtonHeld(&pt, 0));
-				DebugTry(pWnd->HandleRButtonUpAfterHeld(&pt, 0));
+				DebugTry(pWnd->HandleRButtonDown(pt, 0));
+				DebugTry(pWnd->HandleRButtonHeld(pt, 0));
+				DebugTry(pWnd->HandleRButtonUpAfterHeld(pt, 0));
 				break;
 			default:
 				return false;
@@ -1933,19 +1888,17 @@ bool SendWndClick2(CXWnd* pWnd, PCHAR ClickNotification)
 	return false;
 }
 
-CXWnd* GetChildByIndex(CXWnd* pWnd, PCHAR Name, int index)
+CXWnd* GetChildByIndex(CXWnd* pWnd, const char* Name, int index)
 {
-	CHAR Buffer[MAX_STRING] = { 0 };
-	CXWnd* tmp = nullptr;
-
 	if (!pWnd) return pWnd;
+
 	if (CXMLData* pXMLData = pWnd->GetXMLData())
 	{
-		if (GetCXStr(pXMLData->Name.Ptr, Buffer, MAX_STRING) && !_stricmp(Buffer, Name))
+		if (!_stricmp(pXMLData->Name.c_str(), Name))
 		{
 			WinCount++;
 		}
-		else if (GetCXStr(pXMLData->ScreenID.Ptr, Buffer, MAX_STRING) && !_stricmp(Buffer, Name))
+		else if (!_stricmp(pXMLData->ScreenID.c_str(), Name))
 		{
 			WinCount++;
 		}
@@ -1956,28 +1909,28 @@ CXWnd* GetChildByIndex(CXWnd* pWnd, PCHAR Name, int index)
 
 	if (pWnd->GetFirstChildWnd())
 	{
-		if (tmp = GetChildByIndex((CXWnd*)pWnd->GetFirstChildWnd(), Name, index))
+		if (CXWnd* tmp = GetChildByIndex(pWnd->GetFirstChildWnd(), Name, index))
 			return tmp;
 	}
 
-	return GetChildByIndex((CXWnd*)pWnd->GetNextSiblingWnd(), Name, index);
+	return GetChildByIndex(pWnd->GetNextSiblingWnd(), Name, index);
 }
 
-bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
+bool SendWndClick(const char* WindowName, const char* ScreenID, const char* ClickNotification)
 {
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
 		//                           Parent       TabWindow           PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
+		pWnd = pWnd->GetFirstChildWnd()->GetFirstChildWnd();
 
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->IsVisible())
+			if (pWnd->IsVisible())
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
+			pWnd = pWnd->GetNextSiblingWnd();
 		}
 	}
 
@@ -1991,41 +1944,41 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 	{
 		CXWnd* pButton = nullptr;
 
-		if (!_stricmp(WindowName,"bartersearchwnd") && !_stricmp(ScreenID,"sellbutton"))
+		if (!_stricmp(WindowName, "bartersearchwnd") && !_stricmp(ScreenID, "sellbutton"))
 		{
-			if (CXWnd* pList = ((CSidlScreenWnd*)(pWnd))->GetChildItem("BuyLineList"))
+			if (CListWnd* pList = (CListWnd*)pWnd->GetChildItem("BuyLineList"))
 			{
-				int selection = ((CListWnd*)pList)->GetCurSel();
+				int selection = pList->GetCurSel();
 				if (selection == -1)
 				{
 					MacroError("Please select a Listitem in '%s' before issuing a '%s' Click", WindowName, ScreenID);
 					return false;
 				}
 
-				int buttonindex = (int)((CListWnd*)pList)->GetItemData(selection);
+				int buttonindex = (int)pList->GetItemData(selection);
 				WinCount = 0;
 				pButton = GetChildByIndex(pWnd, ScreenID, buttonindex + 1);
 			}
 		}
 		else if (!_stricmp(WindowName, "bazaarsearchwnd") && !_stricmp(ScreenID, "BZR_BuyButton"))
 		{
-			if (CXWnd* pList = ((CSidlScreenWnd*)(pWnd))->GetChildItem("BZR_ItemList"))
+			if (CListWnd* pList = (CListWnd*)pWnd->GetChildItem("BZR_ItemList"))
 			{
-				int selection = ((CListWnd*)pList)->GetCurSel();
+				int selection = pList->GetCurSel();
 				if (selection == -1)
 				{
 					MacroError("Please select a Listitem in '%s' before issuing a '%s' Click", WindowName, ScreenID);
 					return false;
 				}
 
-				int buttonindex = (int)((CListWnd*)pList)->GetItemData(selection);
+				int buttonindex = (int)pList->GetItemData(selection);
 				WinCount = 0;
 				pButton = GetChildByIndex(pWnd, ScreenID, buttonindex + 1);
 			}
 		}
 		else
 		{
-			pButton = ((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+			pButton = pWnd->GetChildItem(ScreenID);
 		}
 
 		if (!pButton)
@@ -2033,10 +1986,11 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 			MacroError("Window '%s' child '%s' not found.", WindowName, ScreenID);
 			return false;
 		}
+
 		pWnd = pButton;
 	}
 
-	for (unsigned long i = 0; i < 8; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		if (!_stricmp(szClickNotification[i], ClickNotification))
 		{
@@ -2046,35 +2000,35 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 			switch (i)
 			{
 			case 0:
-				pWnd->HandleLButtonDown(&pt, 0);
+				pWnd->HandleLButtonDown(pt, 0);
 				break;
 			case 1:
-				pWnd->HandleLButtonDown(&pt, 0);
-				pWnd->HandleLButtonUp(&pt, 0);
+				pWnd->HandleLButtonDown(pt, 0);
+				pWnd->HandleLButtonUp(pt, 0);
 				break;
 			case 2:
-				pWnd->HandleLButtonHeld(&pt, 0);
+				pWnd->HandleLButtonHeld(pt, 0);
 				break;
 			case 3:
-				pWnd->HandleLButtonDown(&pt, 0);
-				pWnd->HandleLButtonHeld(&pt, 0);
-				pWnd->HandleLButtonUpAfterHeld(&pt, 0);
+				pWnd->HandleLButtonDown(pt, 0);
+				pWnd->HandleLButtonHeld(pt, 0);
+				pWnd->HandleLButtonUpAfterHeld(pt, 0);
 				break;
 			case 4:
-				pWnd->HandleRButtonDown(&pt, 0);
+				pWnd->HandleRButtonDown(pt, 0);
 				break;
 			case 5:
-				pWnd->HandleRButtonDown(&pt, 0);
-				pWnd->HandleRButtonUp(&pt, 0);
+				pWnd->HandleRButtonDown(pt, 0);
+				pWnd->HandleRButtonUp(pt, 0);
 				break;
 			case 6:
-				pWnd->HandleRButtonDown(&pt, 0);
-				pWnd->HandleRButtonHeld(&pt, 0);
+				pWnd->HandleRButtonDown(pt, 0);
+				pWnd->HandleRButtonHeld(pt, 0);
 				break;
 			case 7:
-				pWnd->HandleRButtonDown(&pt, 0);
-				pWnd->HandleRButtonHeld(&pt, 0);
-				pWnd->HandleRButtonUpAfterHeld(&pt, 0);
+				pWnd->HandleRButtonDown(pt, 0);
+				pWnd->HandleRButtonHeld(pt, 0);
+				pWnd->HandleRButtonUpAfterHeld(pt, 0);
 				break;
 			default:
 				return false;
@@ -2088,20 +2042,21 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 	return false;
 }
 
-bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
+bool SendListSelect(const char* WindowName, const char* ScreenID, int Value)
 {
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
-		//                           Parent       TabWindow           PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
+		//           TabWindow           PageTemplate
+		pWnd = pWnd->GetFirstChildWnd()->GetFirstChildWnd();
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->IsVisible())
+			if (pWnd->IsVisible())
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
+
+			pWnd = pWnd->GetNextSiblingWnd();
 		}
 	}
 
@@ -2113,37 +2068,45 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 
 	if (ScreenID && ScreenID[0] && ScreenID[0] != '0')
 	{
-		CXWnd* pList = pWnd->GetChildItem(ScreenID);
-		if (!pList)
+		pWnd = pWnd->GetChildItem(ScreenID);
+		if (!pWnd)
 		{
 			MacroError("Window '%s' child '%s' not found.", WindowName, ScreenID);
 			return false;
 		}
 
-		if (pList->GetType() == UI_Listbox)
+		if (pWnd->GetType() == UI_Listbox)
 		{
-			((CListWnd*)pList)->SetCurSel(Value);
-			int index = ((CListWnd*)pList)->GetCurSel();
-			((CListWnd*)pList)->EnsureVisible(index);
-			CXRect rect = ((CListWnd*)pList)->GetItemRect(index, 0);
+			CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
+
+			listWnd->SetCurSel(Value);
+			int index = listWnd->GetCurSel();
+			listWnd->EnsureVisible(index);
+
+			CXRect rect = listWnd->GetItemRect(index, 0);
 			CXPoint pt = rect.CenterPoint();
-			pList->HandleLButtonDown(&pt, 0);
-			pList->HandleLButtonUp(&pt, 0);
+			listWnd->HandleLButtonDown(pt, 0);
+			listWnd->HandleLButtonUp(pt, 0);
 
 			WeDidStuff();
 		}
-		else if (pList->GetType() == UI_Combobox)
+		else if (pWnd->GetType() == UI_Combobox)
 		{
-			CXRect comborect = pList->GetScreenRect();
+			CComboWnd* comboWnd = static_cast<CComboWnd*>(pWnd);
+
+			CXRect comborect = comboWnd->GetScreenRect();
 			CXPoint combopt = comborect.CenterPoint();
-			((CComboWnd*)pList)->SetChoice(Value);
-			((CXWnd*)pList)->HandleLButtonDown(&combopt, 0);
-			CListWnd* pListWnd = ((CComboWnd*)pList)->pListWnd;
+
+			comboWnd->SetChoice(Value);
+			comboWnd->HandleLButtonDown(combopt, 0);
+
+			CListWnd* pListWnd = comboWnd->pListWnd;
+
 			int index = pListWnd->GetCurSel();
 			CXRect listrect = pListWnd->GetItemRect(index, 0);
 			CXPoint listpt = listrect.CenterPoint();
-			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
-			((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+			pListWnd->HandleLButtonDown(listpt, 0);
+			pListWnd->HandleLButtonUp(listpt, 0);
 
 			WeDidStuff();
 		}
@@ -2159,25 +2122,29 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	return false;
 }
 
-bool SendListSelect2(CXWnd *pList, LONG ListIndex)
+bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 {
-	if (!pList)
+	if (!pWnd)
 	{
-		MacroError("Window %x not available.", pList);
+		MacroError("Window %x not available.", pWnd);
 		return false;
 	}
 
-	if (pList->GetType() == UI_Listbox)
+	if (pWnd->GetType() == UI_Listbox)
 	{
-		if ((LONG)((CListWnd*)pList)->ItemsArray.Count >= ListIndex)
+		CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
+
+		if (listWnd->ItemsArray.Count >= ListIndex)
 		{
-			((CListWnd*)pList)->SetCurSel(ListIndex);
-			int index = ((CListWnd*)pList)->GetCurSel();
-			((CListWnd*)pList)->EnsureVisible(index);
-			CXRect rect = ((CListWnd*)pList)->GetItemRect(index, 0);
-			CXPoint pt = rect.CenterPoint();
-			pList->HandleLButtonDown(&pt, 0);
-			pList->HandleLButtonUp(&pt, 0);
+			listWnd->SetCurSel(ListIndex);
+			int index = listWnd->GetCurSel();
+
+			listWnd->EnsureVisible(index);
+
+			CXPoint pt = listWnd->GetItemRect(index, 0).CenterPoint();
+
+			listWnd->HandleLButtonDown(pt, 0);
+			listWnd->HandleLButtonUp(pt, 0);
 
 			WeDidStuff();
 			return true;
@@ -2187,21 +2154,25 @@ bool SendListSelect2(CXWnd *pList, LONG ListIndex)
 		return false;
 	}
 
-	if (pList->GetType() == UI_Combobox)
+	if (pWnd->GetType() == UI_Combobox)
 	{
-		if (CListWnd*pListWnd = ((CComboWnd*)pList)->pListWnd)
+		CComboWnd* comboWnd = static_cast<CComboWnd*>(pWnd);
+
+		if (CListWnd* listWnd = comboWnd->pListWnd)
 		{
-			if (pListWnd->ItemsArray.Count >= ListIndex)
+			if (listWnd->ItemsArray.Count >= ListIndex)
 			{
-				CXRect comborect = pList->GetScreenRect();
+				CXRect comborect = listWnd->GetScreenRect();
 				CXPoint combopt = comborect.CenterPoint();
-				((CComboWnd*)pList)->SetChoice(ListIndex);
-				((CXWnd*)pList)->HandleLButtonDown(&combopt, 0);
-				int index = pListWnd->GetCurSel();
-				CXRect listrect = pListWnd->GetItemRect(index, 0);
-				CXPoint listpt = listrect.CenterPoint();
-				((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
-				((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+
+				comboWnd->SetChoice(ListIndex);
+				comboWnd->HandleLButtonDown(combopt, 0);
+
+				int index = listWnd->GetCurSel();
+
+				CXPoint pt = listWnd->GetItemRect(index, 0).CenterPoint();
+				listWnd->HandleLButtonDown(pt, 0);
+				listWnd->HandleLButtonUp(pt, 0);
 
 				WeDidStuff();
 				return true;
@@ -2219,21 +2190,21 @@ bool SendListSelect2(CXWnd *pList, LONG ListIndex)
 	return false;
 }
 
-bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
+bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value)
 {
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
 		//                           Parent       TabWindow           PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
+		pWnd = pWnd->GetFirstChildWnd()->GetFirstChildWnd();
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->IsVisible())
+			if (pWnd->IsVisible())
 			{
 				break;
 			}
 
-			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
+			pWnd = pWnd->GetNextSiblingWnd();
 		}
 	}
 
@@ -2245,25 +2216,28 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 
 	if (ScreenID && ScreenID[0] && ScreenID[0] != '0')
 	{
-		CComboWnd* pCombo = (CComboWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
-		if (!pCombo)
+		pWnd = pWnd->GetChildItem(ScreenID);
+		if (!pWnd)
 		{
 			MacroError("Window '%s' child '%s' not found.", WindowName, ScreenID);
 			return false;
 		}
 
-		if (((CXWnd*)pCombo)->GetType() == UI_Combobox)
+		if (pWnd->GetType() == UI_Combobox)
 		{
-			CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
-			CXPoint combopt = comborect.CenterPoint();
-			pCombo->SetChoice(Value);
-			((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
-			CListWnd* pListWnd = pCombo->pListWnd;
+			CComboWnd* comboWnd = static_cast<CComboWnd*>(pWnd);
+
+			CXPoint comboPt = comboWnd->GetScreenRect().CenterPoint();
+			comboWnd->SetChoice(Value);
+			comboWnd->HandleLButtonDown(comboPt, 0);
+
+			CListWnd* pListWnd = comboWnd->pListWnd;
 			int index = pListWnd->GetCurSel();
-			CXRect listrect = pListWnd->GetItemRect(index, 0);
-			CXPoint listpt = listrect.CenterPoint();
-			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
-			((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+
+			CXPoint listPt = pListWnd->GetItemRect(index, 0).CenterPoint();
+
+			comboWnd->HandleLButtonDown(listPt, 0);
+			comboWnd->HandleLButtonUp(listPt, 0);
 
 			WeDidStuff();
 			return true;
@@ -2276,20 +2250,20 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	return false;
 }
 
-bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
+bool SendTabSelect(const char* WindowName, const char* ScreenID, int Value)
 {
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!_stricmp(WindowName, "RewardSelectionWnd"))
 	{
-		//                           Parent       TabWindow           PageTemplate
-		pWnd = (CXWnd*)FindMQ2Window(WindowName)->GetFirstChildWnd()->GetFirstChildWnd();
+		//          TabWindow           PageTemplate
+		pWnd = pWnd->GetFirstChildWnd()->GetFirstChildWnd();
 		while (pWnd)
 		{
-			if (((PCSIDLWND)pWnd)->IsVisible())
+			if (pWnd->IsVisible())
 			{
 				break;
 			}
-			pWnd = (CXWnd*)pWnd->GetNextSiblingWnd();
+			pWnd = pWnd->GetNextSiblingWnd();
 		}
 	}
 
@@ -2301,14 +2275,14 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 
 	if (ScreenID && ScreenID[0] && ScreenID[0] != '0')
 	{
-		CTabWnd* pTab = (CTabWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+		CTabWnd* pTab = (CTabWnd*)pWnd->GetChildItem(ScreenID);
 		if (!pTab)
 		{
 			MacroError("Window '%s' child '%s' not found.", WindowName, ScreenID);
 			return false;
 		}
 
-		int uitype = ((CXWnd*)pTab)->GetType();
+		int uitype = pTab->GetType();
 		if (uitype == UI_TabBox)
 		{
 			pTab->SetPage(Value, true);
@@ -2324,36 +2298,35 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	return false;
 }
 
-bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID* Data)
+bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data)
 {
 	CHAR szOut[MAX_STRING] = { 0 };
 
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!pWnd)
 	{
-		sprintf_s(szOut, "Window '%s' not available.", WindowName);
-		WriteChatColor(szOut, USERCOLOR_DEFAULT);
+		WriteChatf("Window '%s' not available.", WindowName);
 		return false;
 	}
 
-	CXWnd* pButton = nullptr;
+	CXWnd* pChild = nullptr;
 	if (ScreenID && ScreenID[0])
 	{
-		pButton = ((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
-		if (!pButton)
+		pChild = pWnd->GetChildItem(ScreenID);
+		if (!pChild)
 		{
-			sprintf_s(szOut, "Window '%s' child '%s' not found.", WindowName, ScreenID);
-			WriteChatColor(szOut, USERCOLOR_DEFAULT);
+			WriteChatf("Window '%s' child '%s' not found.", WindowName, ScreenID);
 			return false;
 		}
 	}
 
-	// its possible to null-deref this pButton if ScreenID is 0
-	if (Notification == XWM_NEWVALUE) {
-		((CSliderWnd*)(pButton))->SetValue((int)Data);
+	if (Notification == XWM_NEWVALUE && pChild)
+	{
+		CSliderWnd* sliderWnd = static_cast<CSliderWnd*>(pChild);
+		sliderWnd->SetValue(reinterpret_cast<int>(Data));
 	}
 
-	((CXWnd*)(pWnd))->WndNotification(pButton, Notification, Data);
+	pWnd->WndNotification(pChild, Notification, Data);
 	WeDidStuff();
 	return true;
 }
@@ -2411,30 +2384,44 @@ void RemoveWindow(char* WindowName)
 }
 #endif
 
-CHAR tmpName[MAX_STRING] = { 0 };
-CHAR tmpAltName[MAX_STRING] = { 0 };
-CHAR tmpType[MAX_STRING] = { 0 };
-
-int RecurseAndListWindows(PCSIDLWND pWnd)
+int RecurseAndListWindows(CXWnd* pWnd)
 {
 	int Count = 0;
 
-	if (CXMLData* pXMLData = ((CXWnd*)pWnd)->GetXMLData())
+	if (CXMLData* pXMLData = pWnd->GetXMLData())
 	{
 		Count++;
-		GetCXStr(pXMLData->TypeName.Ptr, tmpType, MAX_STRING);
-		GetCXStr(pXMLData->Name.Ptr, tmpName, MAX_STRING);
-		GetCXStr(pXMLData->ScreenID.Ptr, tmpAltName, MAX_STRING);
-		if (tmpAltName[0] && _stricmp(tmpName, tmpAltName))
+
+		if (!pXMLData->ScreenID.empty()
+			&& _stricmp(pXMLData->Name.c_str(), pXMLData->ScreenID.c_str()))
 		{
 			if (pWnd->GetParentWindow() && pWnd->GetParentWindow()->GetParentWindow())
-				WriteChatf("[0x%08X][P:0x%08X][PP:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]", pWnd, pWnd->GetParentWindow(), pWnd->GetParentWindow()->GetParentWindow(), tmpType, tmpName, tmpAltName);
+			{
+				WriteChatf("[0x%08X][P:0x%08X][PP:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",
+					pWnd,
+					pWnd->GetParentWindow(),
+					pWnd->GetParentWindow()->GetParentWindow(),
+					pXMLData->TypeName.c_str(),
+					pXMLData->Name.c_str(),
+					pXMLData->ScreenID.c_str());
+			}
 			else
-				WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]", pWnd, pWnd->GetParentWindow(), tmpType, tmpName, tmpAltName);
+			{
+				WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",
+					pWnd,
+					pWnd->GetParentWindow(),
+					pXMLData->TypeName.c_str(),
+					pXMLData->Name.c_str(),
+					pXMLData->ScreenID.c_str());
+			}
 		}
 		else
 		{
-			WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax]", pWnd, pWnd->GetParentWindow(), tmpType, tmpName);
+			WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax]",
+				pWnd,
+				pWnd->GetParentWindow(),
+				pXMLData->TypeName.c_str(),
+				pXMLData->Name.c_str());
 		}
 	}
 
@@ -2479,7 +2466,7 @@ int ListWindows(int argc, char *argv[])
 	{
 		bOpen = true;
 		szLine[0] = '\0';
-		szLine = 0;
+		szLine = nullptr;
 		if (!_stricmp(szArg2, "partial"))
 		{
 			bPartial = true;
@@ -2490,10 +2477,10 @@ int ListWindows(int argc, char *argv[])
 	{
 		bPartial = true;
 		szLine[0] = '\0';
-		szLine = 0;
+		szLine = nullptr;
 	}
 
-	unsigned long Count = 0;
+	int Count = 0;
 	if (!szLine || !szLine[0])
 	{
 		if (bOpen)
@@ -2514,7 +2501,7 @@ int ListWindows(int argc, char *argv[])
 						if (Info.Name.find(szArg2) != Info.Name.npos)
 						{
 							WriteChatf("[PARTIAL MATCH][OPEN] %s", Info.Name.c_str());
-							RecurseAndListWindows((PCSIDLWND)Info.pWnd);
+							RecurseAndListWindows(Info.pWnd);
 							Count++;
 						}
 					}
@@ -2532,7 +2519,7 @@ int ListWindows(int argc, char *argv[])
 					if (Info.Name.find(szArg2) != Info.Name.npos)
 					{
 						WriteChatf("[PARTIAL MATCH] %s", Info.Name.c_str());
-						RecurseAndListWindows((PCSIDLWND)Info.pWnd);
+						RecurseAndListWindows(Info.pWnd);
 						Count++;
 					}
 				}
@@ -2556,7 +2543,7 @@ int ListWindows(int argc, char *argv[])
 		{
 			if (CXWnd* pWnd = FindMQ2Window(szLine))
 			{
-				Count = RecurseAndListWindows((PCSIDLWND)pWnd);
+				Count = RecurseAndListWindows(pWnd);
 
 				WriteChatf("%d child windows", Count);
 				RETURN(0);
@@ -2569,13 +2556,13 @@ int ListWindows(int argc, char *argv[])
 		WriteChatf("Listing child windows of '%s'", WindowName.c_str());
 		WriteChatColor("-------------------------");
 
-		for (auto & N : WindowList)
+		for (auto& N : WindowList)
 		{
-			WindowInfo Info = N.second;
+			WindowInfo& Info = N.second;
 
 			if (Info.Name == WindowName && Info.pWnd)
 			{
-				if (PCSIDLWND pWnd = Info.pWnd->GetFirstChildWnd())
+				if (CXWnd* pWnd = Info.pWnd->GetFirstChildWnd())
 				{
 					Count = RecurseAndListWindows(pWnd);
 				}
@@ -2587,7 +2574,7 @@ int ListWindows(int argc, char *argv[])
 	RETURN(0);
 }
 
-PCHAR szWndNotification[] = {
+const char* szWndNotification[] = {
 	0,                        // 0
 	"leftmouse",              // 1
 	"leftmouseup",            // 2
@@ -2665,29 +2652,30 @@ int WndNotify(int argc, char* argv[])
 
 	if (!_stricmp(szArg2, "menuselect"))
 	{
-		CContextMenuManager* ccmgr = pContextMenuManager;
-		if (ccmgr->NumVisibleMenus == 1)
+		if (pContextMenuManager->NumVisibleMenus == 1)
 		{
-			if (ccmgr->CurrMenu < 8)
+			int currMenu = pContextMenuManager->CurrMenu;
+
+			if (pContextMenuManager->CurrMenu < 8)
 			{
-				int currmen = ccmgr->CurrMenu;
-				if (CContextMenu* menu = ccmgr->pCurrMenus[currmen])
+				if (CContextMenu* menu = pContextMenuManager->pCurrMenus[currMenu])
 				{
 					CXStr Str;
 					_strlwr_s(szArg1);
 
 					for (int i = 0; i < menu->NumItems; i++)
 					{
-						((CListWnd*)menu)->GetItemText(&Str, i, 1);
-						GetCXStr(Str.Ptr, szArg4);
+						CXStr Str = menu->GetItemText(i, 1);
 
-						if (szArg4[0] != '\0')
+						if (!Str.empty())
 						{
+							// TODO: need a case insensntive search function
+							strcpy_s(szArg4, Str.c_str());
 							_strlwr_s(szArg4);
 							if (strstr(szArg4, szArg1))
 							{
 								WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", szArg4, i);
-								((CXWnd*)(ccmgr))->WndNotification((CXWnd*)menu, XWM_LMOUSEUP, (void*)i);
+								pContextMenuManager->WndNotification(menu, XWM_LMOUSEUP, (void*)i);
 								RETURN(0);
 							}
 						}
@@ -2714,14 +2702,14 @@ int WndNotify(int argc, char* argv[])
 	if (IsNumber(szArg1))
 	{
 		// we have a number. it means the user want us to click a window he has found the address for...
-		DWORD addr = atoi(szArg1);
+		int addr = atoi(szArg1);
 		if (!_stricmp(szArg2, "listselect"))
 		{
-			SendListSelect2((CXWnd*)addr, atoi(szArg3));
+			SendListSelect2(reinterpret_cast<CXWnd*>(addr), atoi(szArg3));
 			RETURN(0);
 		}
 
-		SendWndClick2((CXWnd*)addr, szArg2);
+		SendWndClick2(reinterpret_cast<CXWnd*>(addr), szArg2);
 		RETURN(0);
 	}
 
@@ -2748,7 +2736,7 @@ int WndNotify(int argc, char* argv[])
 		RETURN(0);
 	}
 
-	for (unsigned long i = 0; i < sizeof(szWndNotification) / sizeof(szWndNotification[0]); i++)
+	for (int i = 0; i < sizeof(szWndNotification) / sizeof(szWndNotification[0]); i++)
 	{
 		if (szWndNotification[i] && !_stricmp(szWndNotification[i], szArg3))
 		{
@@ -2855,10 +2843,10 @@ int ItemNotify(int argc, char *argv[])
 	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
 #endif
 
-	PCHAR pNotification = &szArg2[0];
-	EQINVSLOT* pSlot = nullptr;
-	DWORD i = 0;
-	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
+	char* pNotification = &szArg2[0];
+	CInvSlot* pSlot = nullptr;
+	int i = 0;
+	CInvSlotMgr* pInvMgr = pInvSlotMgr;
 	short bagslot = -1;
 	short invslot = -1;
 	ItemContainerInstance type = eItemContainerInvalid;
@@ -2975,14 +2963,14 @@ int ItemNotify(int argc, char *argv[])
 	{
 		// user didnt specify "in" so it should be outside a container
 		// OR it's an item, either way we can "click" it -eqmule
-		unsigned long Slot = atoi(szArg1);
+		int Slot = atoi(szArg1);
 		if (Slot == 0)
 		{
 			_strlwr_s(szArg1);
 			Slot = ItemSlotMap[szArg1];
 			if (Slot < NUM_INV_SLOTS && pInvSlotMgr)
 			{
-				DebugTry(pSlot = (EQINVSLOT*)pInvSlotMgr->FindInvSlot(Slot));
+				DebugTry(pSlot = pInvSlotMgr->FindInvSlot(Slot));
 			}
 			else
 			{
@@ -3017,20 +3005,19 @@ int ItemNotify(int argc, char *argv[])
 					type = eItemContainerTrade;
 				}
 
-				CHAR szType[MAX_STRING] = { 0 };
-
 				for (i = 0; i < pInvMgr->TotalSlots; i++)
 				{
 					pSlot = pInvMgr->SlotArray[i];
-					if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd
-						&& pSlot->pInvSlotWnd->WindowType == type
-						&& (short)pSlot->pInvSlotWnd->InvSlot == invslot)
+					if (pSlot
+						&& pSlot->bEnabled
+						&& pSlot->pInvSlotWnd
+						&& pSlot->pInvSlotWnd->ItemLocation.GetLocation() == type
+						&& pSlot->pInvSlotWnd->ItemLocation.GetTopSlot() == invslot)
 					{
-						CXMLData* pXMLData = ((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
+						CXMLData* pXMLData = pSlot->pInvSlotWnd->GetXMLData();
 						if (pXMLData)
 						{
-							GetCXStr(pXMLData->ScreenID.Ptr, szType, MAX_STRING);
-							if (!_stricmp(szType, "HB_InvSlot"))
+							if (!_stricmp(pXMLData->ScreenID.c_str(), "HB_InvSlot"))
 							{
 								continue;
 							}
@@ -3090,10 +3077,11 @@ int ItemNotify(int argc, char *argv[])
 
 						if (pInvSlotMgr)
 						{
-							pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->GetGlobalIndex().Index.Slot1, ptheitem->GetGlobalIndex().Index.Slot2);
+							pSlot = pInvSlotMgr->FindInvSlot(ptheitem->GetGlobalIndex().Index.Slot1,
+								ptheitem->GetGlobalIndex().Index.Slot2);
 						}
 
-						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification))
+						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, pNotification))
 						{
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}
@@ -3144,7 +3132,7 @@ int ItemNotify(int argc, char *argv[])
 
 	DebugSpew("ItemNotify: Calling SendWndClick");
 
-	if (!pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification))
+	if (!pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, pNotification))
 	{
 		WriteChatf("Could not send notification to %s %s", szArg1, szArg2);
 	}
@@ -3158,7 +3146,7 @@ void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 int ListItemSlots(int argc, char* argv[])
 #endif
 {
-	PEQINVSLOTMGR pMgr = (PEQINVSLOTMGR)pInvSlotMgr;
+	CInvSlotMgr* pMgr = pInvSlotMgr;
 	if (!pMgr)
 		RETURN(0);
 	unsigned long Count = 0;
@@ -3166,18 +3154,18 @@ int ListItemSlots(int argc, char* argv[])
 	WriteChatColor("List of available item slots");
 	WriteChatColor("-------------------------");
 
-	for (unsigned long N = 0; N < MAX_INV_SLOTS; N++)
+	for (int N = 0; N < MAX_INV_SLOTS; N++)
 	{
-		if (PEQINVSLOT pSlot = pMgr->SlotArray[N])
+		if (CInvSlot* pSlot = pMgr->SlotArray[N])
 		{
 			if (pSlot->pInvSlotWnd)
 			{
-				WriteChatf("%d %d %d", N, pSlot->pInvSlotWnd->WindowType, pSlot->InvSlot);
+				WriteChatf("%d %d %d", N, pSlot->pInvSlotWnd->ItemLocation.GetLocation(), pSlot->Index);
 				Count++;
 			}
-			else if (pSlot->InvSlot)
+			else if (pSlot->Index)
 			{
-				WriteChatf("%d %d", N, pSlot->InvSlot);
+				WriteChatf("%d %d", N, pSlot->Index);
 			}
 		}
 	}
@@ -3216,7 +3204,7 @@ void AutoBankPulse()
 			{
 				if (pNLMarkedButton)
 				{
-					pNLMarkedButton->CSetWindowText("Sell Marked");
+					pNLMarkedButton->SetWindowText("Sell Marked");
 					bChangedNL = true;
 				}
 			}
@@ -3227,7 +3215,7 @@ void AutoBankPulse()
 			{
 				if (pNLMarkedButton)
 				{
-					pNLMarkedButton->CSetWindowText("Never Loot");
+					pNLMarkedButton->SetWindowText("Never Loot");
 					bChangedNL = false;
 				}
 			}
@@ -3244,7 +3232,7 @@ void AutoBankPulse()
 					return;
 			}
 
-			ULONGLONG now = GetTickCount64();
+			uint64_t now = GetTickCount64();
 			if (now < SellTimer + 1200)
 				return;
 
@@ -3261,7 +3249,7 @@ void AutoBankPulse()
 						{
 							if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 							{
-								CMerchantWnd* pmercho = (CMerchantWnd*)pMerchantWnd;
+								CMerchantWnd* pmercho = pMerchantWnd;
 								bool bwesold = false;
 								if (pmercho->pSelectedItem.pObject)
 								{
@@ -3362,8 +3350,8 @@ void AutoBankPulse()
 		bAutoBankInProgress = false;
 		bAutoInventoryInProgress = false;
 
-		if (gAutoBankButton && gAutoBankButton->Checked)
-			gAutoBankButton->Checked = false;
+		if (gAutoBankButton && gAutoBankButton->bChecked)
+			gAutoBankButton->bChecked = false;
 
 		autobanklist.clear();
 		autoinventorylist.clear();
@@ -3450,8 +3438,8 @@ void AutoBankPulse()
 			gStartAutoBanking = false;
 			bAutoInventoryInProgress = false;
 
-			if (gAutoBankButton && gAutoBankButton->Checked)
-				gAutoBankButton->Checked = false;
+			if (gAutoBankButton && gAutoBankButton->bChecked)
+				gAutoBankButton->bChecked = false;
 
 			WriteChatf("\ay[No Items Found for Auto Inventory.]\ax\n");
 			return;
@@ -3538,8 +3526,8 @@ void AutoBankPulse()
 			gStartAutoBanking = false;
 			bAutoBankInProgress = false;
 
-			if (gAutoBankButton && gAutoBankButton->Checked)
-				gAutoBankButton->Checked = false;
+			if (gAutoBankButton && gAutoBankButton->bChecked)
+				gAutoBankButton->bChecked = false;
 
 			WriteChatf("\ay[No Items Found for Auto Banking.]\ax\n");
 			return;
@@ -3560,27 +3548,30 @@ void AutoBankPulse()
 
 	if (!autoinventorylist.empty())
 	{
-		const ItemGlobalIndex2& ind = autoinventorylist.front();
+		const ItemGlobalIndex& ind = autoinventorylist.front();
 
-		if (PCONTENTS pCont = FindItemBySlot(ind.Index.Slot1, ind.Index.Slot2, ind.Location))
+		if (PCONTENTS pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
 		{
 			if (PITEMINFO pItem = GetItemFromContents(pCont))
 			{
-				ItemGlobalIndex2 indy = pCont->GetGlobalIndex();
+				ItemGlobalIndex indy = pCont->GetGlobalIndex();
 				if (WillFitInInventory(pCont))
 				{
-					WriteChatf("[%d] Moving %s from slot %d %d to inventory", autoinventorylist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+					WriteChatf("[%d] Moving %s from slot %d %d to inventory",
+						autoinventorylist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 					PickupItem(indy.Location, pCont);
 				}
 				else
 				{
-					WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax", autoinventorylist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+					WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax",
+						autoinventorylist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 				}
 			}
 		}
 		else
 		{
-			WriteChatf("[%d] \arAutoinventory for slot %d %d to inventory \ayFAILED\ar, no item was found.\ax", autoinventorylist.size(), ind.Index.Slot1, ind.Index.Slot2);
+			WriteChatf("[%d] \arAutoinventory for slot %d %d to inventory \ayFAILED\ar, no item was found.\ax",
+				autoinventorylist.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
 		}
 		autoinventorylist.pop_front();
 		return;
@@ -3588,26 +3579,29 @@ void AutoBankPulse()
 
 	if (!autobanklist.empty())
 	{
-		const ItemGlobalIndex2& ind = autobanklist.front();
+		const ItemGlobalIndex& ind = autobanklist.front();
 
-		if (PCONTENTS pCont = FindItemBySlot(ind.Index.Slot1, ind.Index.Slot2, ind.Location))
+		if (PCONTENTS pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
 		{
 			if (PITEMINFO pItem = GetItemFromContents(pCont))
 			{
-				ItemGlobalIndex2 indy = pCont->GetGlobalIndex();
+				ItemGlobalIndex indy = pCont->GetGlobalIndex();
 				if (WillFitInBank(pCont))
 				{
-					WriteChatf("[%d] Moving %s from slot %d %d to bank", autobanklist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+					WriteChatf("[%d] Moving %s from slot %d %d to bank",
+						autobanklist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 					PickupItem(indy.Location, pCont);
 				}
 				else {
-					WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax", autobanklist.size(), pItem->Name, indy.Index.Slot1, indy.Index.Slot2);
+					WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax",
+						autobanklist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 				}
 			}
 		}
 		else
 		{
-			WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax", autobanklist.size(), ind.Index.Slot1, ind.Index.Slot2);
+			WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax",
+				autobanklist.size(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 		}
 		autobanklist.pop_front();
 		return;
@@ -3615,8 +3609,8 @@ void AutoBankPulse()
 
 	if (bAutoInventoryInProgress)
 	{
-		if (gAutoBankButton && gAutoBankButton->Checked)
-			gAutoBankButton->Checked = false;
+		if (gAutoBankButton && gAutoBankButton->bChecked)
+			gAutoBankButton->bChecked = false;
 
 		bAutoInventoryInProgress = false;
 		gStartAutoBanking = false;
@@ -3624,8 +3618,8 @@ void AutoBankPulse()
 	}
 	else if (bAutoBankInProgress)
 	{
-		if (gAutoBankButton && gAutoBankButton->Checked)
-			gAutoBankButton->Checked = false;
+		if (gAutoBankButton && gAutoBankButton->bChecked)
+			gAutoBankButton->bChecked = false;
 
 		bAutoBankInProgress = false;
 		gStartAutoBanking = false;

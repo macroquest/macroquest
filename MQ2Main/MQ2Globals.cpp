@@ -21,6 +21,7 @@
 
 namespace MQ2Globals
 {
+	DWORD baseAddress = (DWORD)GetModuleHandle(NULL);
 	bool InitOffsets()
 	{
 		if (!EQGameBaseAddress)

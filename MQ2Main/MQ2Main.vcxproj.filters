@@ -125,6 +125,12 @@
     <ClCompile Include="EQLib\Common\SidlTemplates.cpp">
       <Filter>Source Files\EQLib\Common</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\common\Items.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="EQLib\common\PlayerClient.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
@@ -263,6 +269,12 @@
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
     <ClInclude Include="EQLib\Common\SidlTemplates.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Items.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\PlayerClient.h">
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
   </ItemGroup>

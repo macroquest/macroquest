@@ -30,6 +30,9 @@ struct CaseInsensitiveLess
 };
 
 namespace MQ2Globals {
+
+	EQLIB_API DWORD baseAddress [[deprecated]];
+
 bool InitOffsets();
 
 /* BENCHMARK HANDLES */
@@ -199,12 +202,12 @@ EQLIB_VAR PEVENTLIST pEventList;
 EQLIB_VAR PMQTIMER gTimer;
 EQLIB_VAR LONG gDelay;
 EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
-EQLIB_VAR SPAWNINFO EnviroTarget;
-EQLIB_VAR SPAWNINFO PetSpawn;
-EQLIB_VAR SPAWNINFO MercenarySpawn;
+//EQLIB_VAR SPAWNINFO EnviroTarget;
+//EQLIB_VAR SPAWNINFO PetSpawn;
+//EQLIB_VAR SPAWNINFO MercenarySpawn;
 EQLIB_VAR GROUNDOBJECT GroundObject;
 EQLIB_VAR PGROUNDITEM pGroundTarget;
-EQLIB_VAR SPAWNINFO DoorEnviroTarget;
+//EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 EQLIB_VAR PDOOR pDoorTarget;
 EQLIB_VAR PITEMDB gItemDB;
 EQLIB_VAR BOOL bRunNextCommand;
@@ -467,7 +470,7 @@ EQLIB_VAR EQWorldData** ppWorldData;
 #define pWorldData (*ppWorldData)
 EQLIB_VAR ClientSpellManager** ppSpellMgr;
 #define pSpellMgr (*ppSpellMgr)
-EQLIB_VAR EQPlayer** ppTarget;
+EQLIB_VAR PlayerClient** ppTarget;
 #define pTarget (*ppTarget)
 EQLIB_VAR EqSwitchManager** ppSwitchMgr;
 #define pSwitchMgr (*ppSwitchMgr)

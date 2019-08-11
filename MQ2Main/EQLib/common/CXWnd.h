@@ -408,7 +408,6 @@ public:
 	EQLIB_OBJECT const CTAFrameDraw* GetBorderFrame() const;
 	EQLIB_OBJECT CXRect GetScreenRect() const;
 	EQLIB_OBJECT int Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
-	EQLIB_OBJECT CXWnd* GetChildItem2(const CXStr&); // we implemented our own version ...
 	EQLIB_OBJECT CXWnd* SetParent(CXWnd*);
 	EQLIB_OBJECT void SetMouseOver(bool);
 	EQLIB_OBJECT void SetKeyTooltip(int, int);
@@ -658,8 +657,8 @@ public:
 	static VirtualFunctionTable* sm_vftable;
 };
 
-using CXWND = CXWnd;
-using PCXWND = CXWnd*;
+using CXWND [[deprecated]] = CXWnd;
+using PCXWND [[deprecated]] = CXWnd*;
 
 //============================================================================
 // CSidlScreenWnd
@@ -719,7 +718,7 @@ public:
 
 	//----------------------------------------------------------------------------
 	// functions that we provide offsets for
-	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&, bool bDebug);
+	//EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&, bool bDebug);
 	EQLIB_OBJECT int DrawSidlPiece(CScreenPieceTemplate*, const CXRect&, const CXRect&) const;
 	EQLIB_OBJECT void CalculateHSBRange();
 	EQLIB_OBJECT void CalculateVSBRange();
@@ -752,8 +751,8 @@ public:
 	static VirtualFunctionTable* sm_vftable;
 };
 
-using CSIDLWND = CSidlScreenWnd;
-using PCSIDLWND = CSidlScreenWnd*;
+using CSIDLWND [[deprecated]] = CSidlScreenWnd;
+using PCSIDLWND [[deprecated]] = CSidlScreenWnd*;
 
 //============================================================================
 // CXWndManager
@@ -983,8 +982,8 @@ public:
 	ControllerManager ControllerMgr;
 };
 
-using CXWNDMGR = CEQXWndManager;
-using PCXWNDMGR = CEQXWndManager*;
+using CXWNDMGR [[deprecated]] = CEQXWndManager;
+using PCXWNDMGR [[deprecated]] = CEQXWndManager*;
 
 //----------------------------------------------------------------------------
 

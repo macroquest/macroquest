@@ -12,11 +12,10 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW 
-
 #include "MQ2Main.h"
 
 VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
+
 // ***************************************************************************
 // EqMule Mar 08 2014
 // Adding a detour here
@@ -28,8 +27,8 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
 class FakeCDisplay
 {
 public:
-	struct T3D_tagACTORINSTANCE *GetClickedActor_Tramp(int,int, bool ,CVector3& ,CVector3&);
-	struct T3D_tagACTORINSTANCE *GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2)
+	struct T3D_tagACTORINSTANCE* GetClickedActor_Tramp(int,int, bool ,CVector3& ,CVector3&);
+	struct T3D_tagACTORINSTANCE* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2)
 	{
 		if (GroundObject.Type == GO_ObjectType)
 		{

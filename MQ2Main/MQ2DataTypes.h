@@ -2815,21 +2815,21 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-	#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		CMerchantWnd *pcm = (CMerchantWnd*)pMerchantWnd;
 		PEQMERCHWINDOW peqm = (PEQMERCHWINDOW)pMerchantWnd;
 		if (pcm)
 		{
-			int sz = pcm->PageHandlers.Begin->pObject->ItemContainer.m_length;
+			int sz = pcm->PageHandlers.Begin->pObject->ItemContainer.GetSize();
 			if (sz) {
 				if (VarPtr.Int >= 0 && VarPtr.Int < sz) {
-					strcpy_s(Destination, MAX_STRING, pcm->PageHandlers.Begin->pObject->ItemContainer.m_array[VarPtr.Int].pCont->Item2->Name);
+					strcpy_s(Destination, MAX_STRING, pcm->PageHandlers.Begin->pObject->ItemContainer[VarPtr.Int].pCont->Item2->Name);
 					return true;
 				}
 			}
 		}
 		return false;
-	#else
+#else
 		if (pPointMerchantWnd && pPointMerchantWnd->NumItems)
 		{
 			if (VarPtr.Int >= 0 && VarPtr.Int < pPointMerchantWnd->NumItems) {
@@ -2838,7 +2838,7 @@ public:
 			}
 		}
 		return false;
-	#endif
+#endif
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
@@ -3298,11 +3298,9 @@ public:
 			if (pMgr->CurrMenu < 8)
 			{
 				int currmen = pMgr->CurrMenu;
-				if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
+				if (CContextMenu* menu = pMgr->pCurrMenus[currmen])
 				{
-					CXStr Str;
-					((CListWnd*)menu)->GetItemText(&Str, 0, 1);
-					GetCXStr(Str.Ptr, Destination);
+					strcpy_s(Destination, MAX_STRING, menu->GetItemText(0, 1).c_str());
 				}
 			}
 		}
@@ -5243,14 +5241,13 @@ class MQ2TaskObjectiveType : public MQ2Type
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		CXStr Str;
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-			//we return Objective by default:
-			clist->GetItemText(&Str, VarPtr.Int, 0);
-			CHAR szOut[MAX_STRING] = { 0 };
-			GetCXStr(Str.Ptr, szOut, MAX_STRING);
-			if (szOut[0] != '\0') {
-				strcpy_s(Destination, MAX_STRING, szOut);
+		if (CListWnd* clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList"))
+		{
+			// we return Objective by default:
+			CXStr out = clist->GetItemText(VarPtr.Int, 0);
+			if (!out.empty())
+			{
+				strcpy_s(Destination, MAX_STRING, out.c_str());
 				return true;
 			}
 		}
@@ -5343,16 +5340,17 @@ public:
 	{
 		strcpy_s(Destination,254, "NULL");
 		int index = VarPtr.Int;
-		if (pTaskWnd) {
-			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+		if (pTaskWnd)
+		{
+			if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+			{
 				if (index == -1)
 					index = clist->GetCurSel();
-				CXStr Str;
-				clist->GetItemText(&Str, index, 2);
-				CHAR szOut[MAX_STRING] = { 0 };
-				GetCXStr(Str.Ptr, szOut, MAX_STRING);
-				if (szOut[0] != '\0') {
-					strcpy_s(Destination, MAX_STRING, szOut);
+
+				CXStr Str = clist->GetItemText(index, 2);
+				if (!Str.empty())
+				{
+					strcpy_s(Destination, MAX_STRING, Str.c_str());
 				}
 			}
 		}
@@ -5482,23 +5480,26 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-			CListWnd *clist = 0;
+		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent))
+		{
+			CListWnd* clist = nullptr;
+
 			WORD n = LOWORD(VarPtr.DWord);
 			WORD type = HIWORD(VarPtr.DWord);
+
 			if (type == 2)
-				clist = (CListWnd *)krwnd->GetChildItem(FamiliarWindowList);
+				clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
 			else if (type == 1)
-				clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
+				clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
 			else
-				clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);
-			if (clist) {
-				CXStr Str;
-				clist->GetItemText(&Str, n, 2);
-				CHAR szOut[MAX_STRING] = { 0 };
-				GetCXStr(Str.Ptr, szOut, MAX_STRING);
-				if (szOut[0] != '\0') {
-					strcpy_s(Destination,MAX_STRING, szOut);
+				clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
+
+			if (clist)
+			{
+				CXStr Str = clist->GetItemText(n, 2);
+				if (!Str.empty())
+				{
+					strcpy_s(Destination,MAX_STRING, Str.c_str());
 					return true;
 				}
 			}
@@ -5552,12 +5553,14 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (PItemFilterData pitem = (PItemFilterData)VarPtr.Ptr) {
+		if (ItemFilterData* pitem = (ItemFilterData*)VarPtr.Ptr)
+		{
 			strcpy_s(Destination, 64, pitem->Name);
 			return true;
 		}
 		return false;
 	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type != pItemFilterDataType)
@@ -5565,11 +5568,13 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
+
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		return false;
 	}
 };
+
 class MQ2AdvLootItemType : public MQ2Type
 {
 public:

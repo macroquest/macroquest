@@ -32,7 +32,7 @@ typedef VOID(__cdecl *fEQBuyItem)(int);
 typedef VOID(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem
 typedef VOID(__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
 typedef BOOL(__cdecl *fEQProcGameEvts)(VOID);
-typedef FLOAT(__cdecl *fEQGetMelee)(class EQPlayer *, class EQPlayer *);
+typedef FLOAT(__cdecl *fEQGetMelee)(EQPlayer *, EQPlayer *);
 typedef VOID(__cdecl *fMQExecuteCmd)(PCHAR Name, BOOL Down);
 typedef VOID(__cdecl fEQSaveToUIIniFile)(PCHAR Section, PCHAR Key, PCHAR Value);
 typedef DWORD(__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);

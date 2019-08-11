@@ -24,7 +24,7 @@
 namespace internal
 {
 	template <typename T>
-	using IsVoid = std::is_same<std::result_of_t<T()>, void>;
+	using IsVoid = std::is_same<std::invoke_result_t<T()>, void>;
 }
 
 // overload for expressions that return a type

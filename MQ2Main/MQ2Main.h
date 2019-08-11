@@ -286,17 +286,17 @@ EQLIB_API VOID ShutdownMQ2Windows();
 EQLIB_API void RemoveXMLFile(const char* filename);
 EQLIB_API void AddXMLFile(const char* filename);
 EQLIB_API bool IsXMLFilePresent(const char* filename);
-EQLIB_API bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification);
-EQLIB_API bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data = 0);
+EQLIB_API bool SendWndClick(const char* WindowName, const char* ScreenID, const char* ClickNotification);
+EQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data = 0);
 EQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
-EQLIB_API void RemoveWindow(char *WindowName);
-EQLIB_API CXWnd *FindMQ2Window(PCHAR Name);
-EQLIB_API CXWnd *GetParentWnd(class CXWnd const * pWnd);
+EQLIB_API void RemoveWindow(char* WindowName);
+EQLIB_API CXWnd* FindMQ2Window(const char* Name);
+EQLIB_API CXWnd* GetParentWnd(CXWnd const* pWnd);
 
-EQLIB_API bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
-EQLIB_API bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
-EQLIB_API bool SendListSelect2(CXWnd *pList, LONG ListIndex);
-EQLIB_API bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification);
+EQLIB_API bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value);
+EQLIB_API bool SendListSelect(const char* WindowName, const char* ScreenID, int Value);
+EQLIB_API bool SendListSelect2(CXWnd* pList, int ListIndex);
+EQLIB_API bool SendWndClick2(CXWnd* pWnd, const char* ClickNotification);
 
 EQLIB_API VOID CreateMQ2NewsWindow();
 EQLIB_API VOID DeleteMQ2NewsWindow();
@@ -536,9 +536,8 @@ typedef struct _krdata
 	bool bUseCmd;
 }krdata, *pkrdata;
 
-namespace EQData {
-	EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
-};
+EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
+
 #include "MQ2Inlines.h"
 
 
@@ -715,7 +714,7 @@ EQLIB_API DWORD       GetSkillIDFromName(PCHAR name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
 EQLIB_API DWORD       GetWorldState(VOID);
-EQLIB_API float       GetMeleeRange(class EQPlayer *, class EQPlayer *);
+EQLIB_API float       GetMeleeRange(EQPlayer *, EQPlayer *);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
@@ -833,7 +832,7 @@ EQLIB_API ClientSOIManager *GetAuraMgr();
 EQLIB_API CBroadcast *GetTextOverlay();
 EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
 EQLIB_API bool Anonymize(char* name, int maxlen, int LootFlag = 0);
-EQLIB_API bool Anonymize(CXStr name, int LootFlag = 0);
+EQLIB_API bool Anonymize2(CXStr name, int LootFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 

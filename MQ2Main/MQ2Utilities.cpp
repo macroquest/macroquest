@@ -7285,7 +7285,7 @@ BOOL BuffStackTestOld(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffect
 }
 #endif
 
-float GetMeleeRange(class EQPlayer *pSpawn1, class EQPlayer *pSpawn2)
+float GetMeleeRange(EQPlayer *pSpawn1, EQPlayer *pSpawn2)
 {
 	float f, g, h;
 	if (pSpawn1 && pSpawn2)
@@ -11202,16 +11202,6 @@ void UpdatedMasterLooterLabel()
 #endif
 }
 
-CONTENTS* CONTENTS::GetContent(UINT index)
-{
-	if (Contents.ContainedItems.pItems && Contents.ContainedItems.Capacity) {
-		if (index < Contents.ContainedItems.Capacity) {
-			return Contents.ContainedItems.pItems->Item[index];
-		}
-	}
-	return NULL;
-}
-
 void* SPAWNINFO::GetCharacter() const
 {
 #if defined(LIVE)
@@ -11349,20 +11339,6 @@ EQGroundItemListManager* GetItemList()
 {
 	EQGroundItemListManager* ptr = &EQGroundItemListManager::Instance();
 	return ptr;
-}
-
-ItemGlobalIndex ig;
-ItemGlobalIndex& CONTENTS::GetGlobalIndex()
-{
-#if !defined(UFEMU)
-	return this->GlobalIndex;
-#else
-	ig.Location = eItemContainerInvalid;
-	ig.Index.Slot1 = this->AugFlag;//work in progress should be old ItemSlot
-	ig.Index.Slot2 = -1;
-	ig.Index.Slot3 = -1;
-	return ig;
-#endif
 }
 
 #if defined(LIVE)
@@ -11522,16 +11498,13 @@ int RangeRandom(int min, int max)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif
 
-namespace EQData
+ITEMINFO* GetItemFromContents(CONTENTS* c)
 {
-	ITEMINFO* GetItemFromContents(CONTENTS* c)
-	{
-		if (!c)
-			return NULL;
+	if (!c)
+		return NULL;
 #if !defined(UFEMU)
-		return c->Item1 ? c->Item1 : c->Item2;
+	return c->Item1 ? c->Item1 : c->Item2;
 #else
-		return c->Item1;
+	return c->Item1;
 #endif
-	}
-};
+}

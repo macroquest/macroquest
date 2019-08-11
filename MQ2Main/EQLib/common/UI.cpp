@@ -407,7 +407,7 @@ FUNCTION_AT_ADDRESS(int CListWnd::GetCurCol() const, CListWnd__GetCurCol);
 FUNCTION_AT_ADDRESS(uint64_t CListWnd::GetItemData(int) const, CListWnd__GetItemData);
 #endif
 #ifdef CListWnd__GetItemText_x
-FUNCTION_AT_ADDRESS(CXStr CListWnd::GetItemText(const CXStr&, int, int) const, CListWnd__GetItemText);
+FUNCTION_AT_ADDRESS(CXStr CListWnd::GetItemText(int, int) const, CListWnd__GetItemText);
 #endif
 #ifdef CListWnd__GetItemIcon_x
 FUNCTION_AT_ADDRESS(CTextureAnimation const* CListWnd::GetItemIcon(int, int) const, CListWnd__GetItemIcon);

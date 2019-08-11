@@ -44,5 +44,8 @@
 
 #endif
 
+#include "common/Globals.h"
 #include "common/EQClasses.h"
 #include "common/SharedClasses.h"
+#include "common/Items.h"
+#include "common/PlayerClient.h"

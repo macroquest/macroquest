@@ -68,19 +68,6 @@ struct CContextMenu_VirtualFunctions : public CListWnd_VirtualFunctions
 using CCONTEXTMENUVFTABLE = CContextMenu_VirtualFunctions;
 using PCCONTEXTMENUVFTABLE = CContextMenu_VirtualFunctions*;
 
-struct CONTENTDATA
-{
-	CONTENTS*      pCont;
-	int            Unknown;
-};
-
-struct CONTENTSARRAY
-{
-    struct CONTENTDATA Array[1];
-};
-using PCONTENTSARRAY = CONTENTSARRAY*;
-
-
 enum eContextMenuFilterIDs
 {
 	CONTEXT_FILTER_SAY = 100,
