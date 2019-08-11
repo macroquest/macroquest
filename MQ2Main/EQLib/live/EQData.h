@@ -16,7 +16,6 @@
 #pragma pack(8)
 
 #include "Containers.h"
-#include "SharedClasses.h"
 
 namespace EQData
 {

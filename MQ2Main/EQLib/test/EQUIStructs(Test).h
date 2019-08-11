@@ -15,7 +15,6 @@
 #include "../common/CXStr.h"
 #include "../common/CXWnd.h"
 #include "../common/Containers.h"
-#include "../common/SharedClasses.h"
 #include "../common/UI.h"
 #include "EQData(Test).h"
 

@@ -438,6 +438,7 @@ public:
 	EQLIB_OBJECT UIType GetType() const;
 	EQLIB_OBJECT CXMLData* GetXMLData() const;
 	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&); // we implemented our own version ...
+	EQLIB_OBJECT CXWnd* GetChildItem2(const CXStr&); // we implemented our own version ...
 
 	EQLIB_OBJECT bool IsVisible() const { return dShow; }
 	EQLIB_OBJECT void SetVisible(bool bValue) { dShow = bValue; }

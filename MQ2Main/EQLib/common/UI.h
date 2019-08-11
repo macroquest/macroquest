@@ -18,6 +18,7 @@
 #include "CXStr.h"
 #include "CXWnd.h"
 #include "Containers.h"
+#include "Items.h"
 #include "SidlTemplates.h"
 
 #if defined(TEST)
@@ -3891,6 +3892,15 @@ struct merch_other
 	merchdata* pMerchData;          // purchase page
 	void* other;                    // buyback page
 	void* other2;                   // mail page
+};
+
+enum MerchantPages
+{
+	RegularMerchantPage,
+	BuybackMerchantPage,
+	MailMerchantPage,
+
+	MaxMerchantPages
 };
 
 // CMerchantWnd__CMerchantWnd_x (aMerchantwnd)

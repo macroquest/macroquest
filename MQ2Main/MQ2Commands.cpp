@@ -485,8 +485,7 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 								ii.Name.append(" ");
 								ii.Name.append(pObj->Name);//
 								ii.Name.append(" (");
-								GetCXStr(pRealEstateItem->OwnerInfo.OwnerName, szName);
-								ii.Name.append(szName);
+								ii.Name.append(pRealEstateItem->OwnerInfo.OwnerName.c_str());
 								ii.Name.append(")");
 								itemsmap[Distance] = ii;
 							}
@@ -1022,53 +1021,29 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 // uses private: void __thiscall CMerchantWnd::RequestBuyItem(int)
 // will buy the specified quantity of the currently selected item
 // ***************************************************************************
-#if !defined(UFEMU)
-VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
+void BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = FALSE;
 	if (!pMerchantWnd) return;
 
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szQty[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = NULL;
+	PCHARINFO pCharInfo = nullptr;
 	DWORD Qty;
-	if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->SelectedSlotID)
+
+	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
 		return;
-	if (((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther && ((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData) {
+
+	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
+	{
 		GetArg(szQty, szLine, 1);
 		Qty = (DWORD)atoi(szQty);
 		if (Qty < 1) return;
-		//CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
-		if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
-		{
-			pmercho->PageHandlers[0].pObject->RequestGetItem(Qty);
-		}
+
+		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestGetItem(Qty);
 	}
 }
-#else
-//todo: check manually
-VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
-{
-    bRunNextCommand = FALSE;
-    if (!pMerchantWnd) return;
 
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR szQty[MAX_STRING] = {0};
-    PCHARINFO pCharInfo = NULL;
-    DWORD Qty;
-    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem) return;
-    if (PCONTENTS pBase=(PCONTENTS)*((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem)
-    {
-        GetArg(szQty,szLine,1);
-        Qty = (DWORD)atoi(szQty);
-        if (Qty < 1) return;
-		if (PITEMINFO pIInfo = GetItemFromContents(pBase))
-		{
-			pMerchantWnd->RequestBuyItem(Qty > pIInfo->StackSize ? pIInfo->StackSize : Qty);
-		}
-    }
-}
-#endif
 // ***************************************************************************
 // Function:    sellitem
 // Description: Our '/sellitem' command

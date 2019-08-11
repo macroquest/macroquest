@@ -131,6 +131,9 @@
     <ClCompile Include="EQLib\common\PlayerClient.cpp">
       <Filter>Source Files\EQLib\Common</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\common\PcClient.cpp">
+      <Filter>Source Files\EQLib\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
@@ -200,9 +203,6 @@
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
     <ClInclude Include="EQLib\common\Mutex.h">
-      <Filter>Header Files\EQLib\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="EQLib\common\SharedClasses.h">
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
     <ClInclude Include="EQLib\common\Allocator.h">
@@ -275,6 +275,12 @@
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
     <ClInclude Include="EQLib\common\PlayerClient.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\PcClient.h">
+      <Filter>Header Files\EQLib\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EQLib\common\Spells.h">
       <Filter>Header Files\EQLib\Common</Filter>
     </ClInclude>
   </ItemGroup>

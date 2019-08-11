@@ -226,6 +226,12 @@ inline CXSize::CXSize(const CXPoint& other)
 	cy= other.y;
 }
 
+class CVector2
+{
+public:
+	float X, Y;
+};
+
 class CVector3
 {
 public:

@@ -18,7 +18,9 @@
 
 #include "Common.h"
 #include "Items.h"
-#include "SharedClasses.h"
+#include "PcClient.h"
+#include "PlayerClient.h"
+#include "Spells.h"
 #include "UI.h"
 
 #include <limits>
@@ -1027,7 +1029,7 @@ struct CTaskEntry
 /*0x0000*/ char              RawStartText[0xFa0];
 /*0x0000*/ bool              bElementsReceived;
 /*0x0000*/ __time32_t        TimeCompleted;
-/*0x3BDC*/ ArrayClass_RO<MonsterMissionTemplate> MonsterTemplates;
+/*0x3BDC*/ ArrayClass<MonsterMissionTemplate> MonsterTemplates;
 /*0x3BEC*/ bool              bTemplateSelectionLocked;
 /*0x3BED*/ bool              bHasRewardSet;
 /*0x3BF0*/
@@ -1981,15 +1983,6 @@ public:
 
 	EQLIB_OBJECT static FactionManagerClient& Instance();
 	EQLIB_OBJECT void HandleFactionMessage(UINT MessageID, char* pData, unsigned int DataLength);
-};
-
-struct chngForm;
-
-class ExtendedTargetListClient : public ExtendedTargetList
-{
-public:
-	int CurrentSlot;
-	int ContextSlot;
 };
 
 enum eParcelStatus
@@ -3671,6 +3664,9 @@ struct tp_coords
 /*0x1C*/ UINT          VehicleID;
 /*0x20*/
 };
+
+
+
 
 } // namespace eqlib
 

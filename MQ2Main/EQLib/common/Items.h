@@ -141,13 +141,16 @@ public:
 	}
 
 	// alias for existing bad code
-	__declspec(property(get = getSlot1)) int Slot1;
-	__declspec(property(get = getSlot2)) int Slot2;
-	__declspec(property(get = getSlot3)) int Slot3;
+	__declspec(property(get = getSlot1, put = setSlot1)) int Slot1;
+	__declspec(property(get = getSlot2, put = setSlot2)) int Slot2;
+	__declspec(property(get = getSlot3, put = setSlot3)) int Slot3;
 
 	[[deprecated]] EQLIB_OBJECT int getSlot1() { return m_slots[0]; }
+	[[deprecated]] EQLIB_OBJECT void setSlot1(int v) { m_slots[0] = v; }
 	[[deprecated]] EQLIB_OBJECT int getSlot2() { return m_slots[1]; }
+	[[deprecated]] EQLIB_OBJECT void setSlot2(int v) { m_slots[1] = v; }
 	[[deprecated]] EQLIB_OBJECT int getSlot3() { return m_slots[2]; }
+	[[deprecated]] EQLIB_OBJECT void setSlot3(int v) { m_slots[2] = v; }
 };
 
 class ItemGlobalIndex
@@ -557,39 +560,6 @@ union EqGuid
 	uint64_t GUID;
 };
 
-struct SlotData
-{
-	LONG Slot;
-	DWORD Value;
-};
-
-// Size 0x58 20110810 - dkaa
-// Size 0x58 20150326 - demonstar55
-// Size 0x68 Apr 10 2018 test see 8B2FD5 - eqmule
-// this is EQ_Affect todo: check the new stuff in it
-struct SPELLBUFF
-{
-/*0x00*/ BYTE      Type;
-/*0x01*/ BYTE      Level;                        // casterlevel
-/*0x02*/ BYTE      ChargesRemaining;
-/*0x03*/ CHAR      DamageShield;                 // Activatable
-/*0x04*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
-/*0x08*/ LONG      SpellID;                      // -1 or 0 for no spell..
-/*0x0c*/ DWORD     Duration;
-/*0x10*/ DWORD     MaxDuration;
-/*0x14*/ DWORD     Duration3;
-/*0x18*/ EqGuid    CasterGuid;
-/*0x20*/ DWORD     HitCount;
-/*0x24*/ float     Y;                            // Referenced by SPA 441 (distance removal)
-/*0x28*/ float     X;
-/*0x2c*/ float     Z;
-/*0x30*/ UINT      Flags;
-/*0x34*/ SlotData  SlotData[NUM_SLOTDATA];       // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
-/*0x64*/ DWORD     Unknown0x64;
-/*0x68*/
-};
-using PSPELLBUFF [[deprecated]] = SPELLBUFF*;
-
 // 20101012 - ieatacid
 struct INVENTORY
 {
@@ -620,6 +590,16 @@ struct INVENTORY
 /*0x84*/ CONTENTS* Cursor;
 };
 using PINVENTORY [[deprecated]] = INVENTORY;
+
+struct INVENTORYARRAY
+{
+	union
+	{
+	/*0x00*/ INVENTORY Inventory;
+	/*0x00*/ CONTENTS* InventoryArray[NUM_INV_SLOTS];
+	};
+};
+using PINVENTORYARRAY [[deprecated]] = INVENTORYARRAY*;
 
 struct BANKARRAY
 {

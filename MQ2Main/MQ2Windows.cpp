@@ -3601,7 +3601,7 @@ void AutoBankPulse()
 		else
 		{
 			WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax",
-				autobanklist.size(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+				autobanklist.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
 		}
 		autobanklist.pop_front();
 		return;

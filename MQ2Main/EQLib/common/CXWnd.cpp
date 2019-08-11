@@ -355,7 +355,7 @@ FUNCTION_AT_ADDRESS(void CSidlScreenWnd::EnableIniStorage(int, char*), CSidlScre
 FUNCTION_AT_ADDRESS(int CSidlScreenWnd::ConvertToRes(int, int, int, int), CSidlScreenWnd__ConvertToRes);
 #endif
 #ifdef CSidlScreenWnd__GetChildItem_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlScreenWnd::GetChildItem(const CXStr&, bool bDebug), CSidlScreenWnd__GetChildItem);
+//FUNCTION_AT_ADDRESS(CXWnd* CSidlScreenWnd::GetChildItem(const CXStr&, bool bDebug), CSidlScreenWnd__GetChildItem);
 #endif
 #ifdef CSidlScreenWnd__LoadIniListWnd_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniListWnd(CListWnd*, char*), CSidlScreenWnd__LoadIniListWnd);

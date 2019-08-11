@@ -75,6 +75,7 @@
     </ClCompile>
     <ClCompile Include="EQLib\common\Globals.cpp" />
     <ClCompile Include="EQLib\common\Items.cpp" />
+    <ClCompile Include="EQLib\common\PcClient.cpp" />
     <ClCompile Include="EQLib\common\PlayerClient.cpp" />
     <ClCompile Include="EQLib\Common\SidlTemplates.cpp" />
     <ClCompile Include="EQLib\common\UI.cpp" />
@@ -123,10 +124,11 @@
     <ClInclude Include="EQLib\common\Globals.h" />
     <ClInclude Include="EQLib\common\Items.h" />
     <ClInclude Include="EQLib\common\Mutex.h" />
+    <ClInclude Include="EQLib\common\PcClient.h" />
     <ClInclude Include="EQLib\common\PlayerClient.h" />
-    <ClInclude Include="EQLib\common\SharedClasses.h" />
     <ClInclude Include="EQLib\Common\SidlParams.h" />
     <ClInclude Include="EQLib\Common\SidlTemplates.h" />
+    <ClInclude Include="EQLib\common\Spells.h" />
     <ClInclude Include="EQLib\common\UI.h" />
     <ClInclude Include="EQLib\EQLib.h" />
     <ClInclude Include="EQLib\live\CXWnd-Members.h" />

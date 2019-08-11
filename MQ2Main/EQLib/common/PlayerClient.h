@@ -18,6 +18,15 @@
 #include "Containers.h"
 #include "CXStr.h"
 #include "Items.h"
+#include "Spells.h"
+
+// This is the home of all things related to what used to be called SPAWNINFO,
+// plus a few extra things until they find a home of their own.
+//
+// Class hierarchies:
+//
+// SPAWNINFO:
+//   PlayerClient -> PlayerZoneClinet -> PlayerBase
 
 namespace eqlib {
 
@@ -240,19 +249,6 @@ enum GravityBehavior
 	LevitateWhileRunning
 };
 
-enum ItemSpellTypes
-{
-	eActivatableSpell,
-	eProcSpell,
-	eWornSpell,
-	eFocusSpell,
-	eScrollSpell,
-	eFocus2Spell,
-	eMountSpell,
-	eIllusionSpell,
-	eFamiliarSpell
-};
-
 class CPhysicsInfo
 {
 public:
@@ -336,23 +332,23 @@ struct FSDATA
 // Dec 13 2016 - eqmule  0x9e8 see 5C3F9F
 struct FELLOWSHIPINFO
 {
-/*0x000*/ unsigned int     Version;
-/*0x004*/ unsigned int     Version2;                       // just place holders for now, ill fix these later
-/*0x008*/ unsigned int     Version3;
-/*0x00c*/ unsigned int     Version4;
-/*0x010*/ unsigned int     FellowshipID;
-/*0x014*/ unsigned int     FellowshipID2;                  // guild does this too, need to figure out why
-/*0x018*/ char             Leader[0x40];
-/*0x058*/ char             MotD[0x400];
-/*0x458*/ unsigned int     Members;
-/*0x45c*/ FELLOWSHIPMEMBER FellowshipMember[0xc];          // size 0xc * 0x54 = 0x3f0
-/*0x84c*/ unsigned int     Sync;
-/*0x850*/ FSDATA           Somedata[0xc];//size 0x180
-/*0x9d0*/ bool             bExpSharingEnabled[0xc];
-/*0x9dc*/ bool             bSharedExpCapped[0xc];
-/*0x9e8*/
+	/*0x000*/ unsigned int     Version;
+	/*0x004*/ unsigned int     Version2;                       // just place holders for now, ill fix these later
+	/*0x008*/ unsigned int     Version3;
+	/*0x00c*/ unsigned int     Version4;
+	/*0x010*/ unsigned int     FellowshipID;
+	/*0x014*/ unsigned int     FellowshipID2;                  // guild does this too, need to figure out why
+	/*0x018*/ char             Leader[0x40];
+	/*0x058*/ char             MotD[0x400];
+	/*0x458*/ unsigned int     Members;
+	/*0x45c*/ FELLOWSHIPMEMBER FellowshipMember[0xc];          // size 0xc * 0x54 = 0x3f0
+	/*0x84c*/ unsigned int     Sync;
+	/*0x850*/ FSDATA           Somedata[0xc];//size 0x180
+	/*0x9d0*/ bool             bExpSharingEnabled[0xc];
+	/*0x9dc*/ bool             bSharedExpCapped[0xc];
+	/*0x9e8*/
 };
-using PFELLOWSHIPINFO [[deprecated]] = FELLOWSHIPINFO*;
+using PFELLOWSHIPINFO [[deprecated]] = FELLOWSHIPINFO *;
 
 // size 0x58 see 442783 in eqgame.exe 2017 04 11 test
 struct LAUNCHSPELLDATA
@@ -680,7 +676,7 @@ struct SPAWNINFO
 	EQLIB_OBJECT int   GetMaxEndurance() const;
 	EQLIB_OBJECT int   GetSpellCooldownETA() const;
 };
-using PSPAWNINFO [[deprecated]] = SPAWNINFO*;
+using PSPAWNINFO /*[[deprecated]]*/ = SPAWNINFO*;
 
 struct HASHENTRY
 {
