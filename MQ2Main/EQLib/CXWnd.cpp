@@ -17,9 +17,6 @@
 #include "EQClasses.h"
 #include "Globals.h"
 
-// shouldn't be have code dependencies outside eqlib...
-//#include "../../MQ2Main.h"
-
 namespace eqlib {
 
 // NOTE that using FUNCTION_AT_VIRTUAL_ADDRESS has a high risk of creating infinite

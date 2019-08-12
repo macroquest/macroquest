@@ -506,7 +506,7 @@ struct SPAWNINFO
 /* ******************** PlayerZoneClient Starts Here ***************** */
 /*0x0190*/ unsigned int      LastIntimidateUse;
 
-#include "../test/PlayerZoneClient-Members.h"
+#include "PlayerZoneClient-Members.h"
 
 /*0x0614*/ // I wont finetune these comments every single patch cause they change since PLAYERZONECLIENT size change...
 /*0x0614*/ TCircularBuffer<SDoCollisionMovementStats, 0x14> MovementStats; // size (0x74 * 0x14) +8 = 0x918
@@ -820,7 +820,7 @@ class PlayerZoneClient : public PlayerBase
 public:
 /*0x0190*/ unsigned int                 LastIntimidateUse;
 
-#include "../test/PlayerZoneClient-Members.h"
+#include "PlayerZoneClient-Members.h"
 
 	enum { MAX_MOVEMENT_STATS = 20 };
 /*0x0614*/ TCircularBuffer<SDoCollisionMovementStats, MAX_MOVEMENT_STATS> MovementStats; // size (0x74 * 0x14) +8 = 0x918

@@ -20,7 +20,7 @@
 #include "Items.h"
 #include "PlayerClient.h"
 #include "Spells.h"
-#include "../test/EQData(Test).h"
+#include "EQData.h"
 
 // This is the home of all things related to what used to be called CHARINFO and
 // CHARINFO2 plus a few extra things until they find a home of their own.

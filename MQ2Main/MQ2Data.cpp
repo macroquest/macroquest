@@ -1105,22 +1105,25 @@ TLO(dataDefined)
 
 TLO(dataSelectedItem)
 {
-	if (((PEQINVSLOTMGR)pInvSlotMgr->pSelectedItem && ((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem->InvSlot)
+	if (pInvSlotMgr->pSelectedItem && pInvSlotMgr->pSelectedItem->Index)
 	{
-		class CInvSlot *pCIS = NULL;
-		struct _CONTENTS *pC = NULL;
+		CInvSlot* pCIS = pInvSlotMgr->pSelectedItem;
 
-		pCIS = (class CInvSlot *) ((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+		CONTENTS* pC = nullptr;
 		pCIS->GetItemBase(&pC);
 
-		if (pC) {
+		if (pC)
+		{
 			Ret.Ptr = pC;
 			Ret.Type = pItemType;
 			return true;
 		}
-		else {//im working on this -eqmule 2013 dec 14
+		else
+		{
 			CONTENTS* pItem = FindItemByName("Worn Totem");
-			if (pItem && pInvSlotMgr) {
+
+			if (pItem && pInvSlotMgr)
+			{
 				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1);
 				Sleep(0);
 			}

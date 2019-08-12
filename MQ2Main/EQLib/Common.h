@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include "../BuildType.h"
-
 #include <limits>
 
 #if !defined(_USE_32BIT_TIME_T)
@@ -90,6 +88,12 @@
 		__asm mov eax, [eax]                                                             \
 		__asm jmp dword ptr [eax]VFT.Member                                              \
 	}
+
+template <typename T, size_t N>
+constexpr size_t lengthof(const T(&)[N])
+{
+	return N;
+}
 
 namespace eqlib {
 

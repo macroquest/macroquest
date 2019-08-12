@@ -12,11 +12,12 @@
  * GNU General Public License for more details.
  */
 
-#include "../common/CXStr.h"
-#include "../common/CXWnd.h"
-#include "../common/Containers.h"
-#include "../common/UI.h"
-#include "EQData(Test).h"
+#include "Common.h"
+#include "CXStr.h"
+#include "CXWnd.h"
+#include "Containers.h"
+#include "UI.h"
+#include "EQData.h"
 
 namespace eqlib {
 

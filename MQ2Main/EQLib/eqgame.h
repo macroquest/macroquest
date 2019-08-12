@@ -14,10 +14,6 @@
 
 #pragma once
 
-#if __has_include("eqgame-private(test).h")
-#include "eqgame-private(test).h"
-#endif
-
 #define __ClientName                                              "eqgame"
 #define __ExpectedVersionDate                                     "Jun 10 2019"
 #define __ExpectedVersionTime                                     "18:34:29"
@@ -26,8 +22,8 @@
 #define __ActualVersionBuild_x                                     0xAD7ED4
 
 #define __ClientOverride                                           0
-#define __MacroQuestWinClassName                                  "__MacroQuest2Tray(Test)"
-#define __MacroQuestWinName                                       "MacroQuest2(Test)"
+#define __MacroQuestWinClassName                                  "__MacroQuest2Tray"
+#define __MacroQuestWinName                                       "MacroQuest2"
 
 // Memory Protection
 #define __MemChecker0_x                                            0x61B800

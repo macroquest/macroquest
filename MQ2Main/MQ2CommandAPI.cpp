@@ -22,13 +22,13 @@ CRITICAL_SECTION gCommandCS;
 
 typedef struct _TIMEDCOMMAND
 {
-    ULONGLONG Time;
-    CHAR Command[MAX_STRING];
-    _TIMEDCOMMAND *pLast;
-    _TIMEDCOMMAND *pNext;
-} TIMEDCOMMAND, *PTIMEDCOMMAND;
+	ULONGLONG Time;
+	CHAR Command[MAX_STRING];
+	_TIMEDCOMMAND* pLast;
+	_TIMEDCOMMAND* pNext;
+} TIMEDCOMMAND, * PTIMEDCOMMAND;
 
-PTIMEDCOMMAND pTimedCommands=0;
+TIMEDCOMMAND* pTimedCommands = nullptr;
 
 
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
@@ -122,7 +122,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     }
     if (szArg1[0]==';' || szArg1[0]=='[')
     {
-        pEverQuest->InterpretCmd((EQPlayer*)pChar,szOriginalLine);
+        pEverQuest->InterpretCmd((PlayerClient*)pChar, szOriginalLine);
         return;
     }
     PMQCOMMAND pCommand=pCommands;

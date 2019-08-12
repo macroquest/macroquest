@@ -19,13 +19,9 @@
 #include "CXWnd.h"
 #include "Containers.h"
 #include "Items.h"
+#include "SidlParams.h"
 #include "SidlTemplates.h"
-
-#if defined(TEST)
-#include "../test/EQData(Test).h"
-#elif defined(LIVE)
-#include "../live/EQData.h"
-#endif
+#include "EQData.h"
 
 #include <list>
 
@@ -1478,7 +1474,7 @@ public:
 	// GiveTo
 	EQLIB_OBJECT void DoAdvLootAction(int listindex, const CXStr& Name, bool Action, int Quantity);
 	// GiveTo
-	EQLIB_OBJECT void DoSharedAdvLootAction(LOOTITEM* pLootItem, const CXStr& Assignee, bool Action, int Quantity);
+	EQLIB_OBJECT void DoSharedAdvLootAction(AdvancedLootItem* pLootItem, const CXStr& Assignee, bool Action, int Quantity);
 
 	//----------------------------------------------------------------------------
 	// data members
@@ -3286,7 +3282,7 @@ public:
 /*0x0004*/ CInvSlot*    SlotArray[MAX_INV_SLOTS]; // size 0x2400 //see 72E00F in Nov 06 2018 Test
 /*0x2404*/ int          TotalSlots;
 /*0x2408*/ unsigned int LastUpdate;
-/*0x240c*/ CInvSlot*    pLastSelectedSlot;
+/*0x240c*/ CInvSlot*    pSelectedItem;
 /*0x2410*/ int          Unknown0x2410;
 /*0x2414*/ bool         bToggleBagsOpen;
 /*0x2415*/ bool         bToggleBankBagsOpen;

@@ -271,13 +271,8 @@ class CXWnd
 	, public TList<CXWnd>       // list of children
 {
 public:
-#if defined(LIVE)
-#include "../live/CXWnd-Members.h"
-#elif defined(TEST)
-#include "../test/CXWnd-Members.h"
-#else
-#error "Need CXWnd-Members""
-#endif
+
+#include "CXWnd-Members.h"
 
 	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t id, CXRect rect);
 

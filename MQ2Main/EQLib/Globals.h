@@ -14,10 +14,46 @@
 
 #pragma once
 
+#include "Common.h"
 
 namespace eqlib {
 
+// the base address of eqgame.exe
 EQLIB_VAR DWORD EQGameBaseAddress;
+
+//============================================================================
+// Data
+//============================================================================
+
+EQLIB_VAR const char* szCombineTypes[];
+EQLIB_VAR size_t MAX_COMBINES;
+EQLIB_VAR const char* szItemTypes[];
+EQLIB_VAR size_t MAX_ITEMTYPES;
+EQLIB_VAR const char* szSPATypes[];
+EQLIB_VAR size_t MAX_SPELLEFFECTS;
+EQLIB_VAR const char* szFactionNames[];
+EQLIB_VAR size_t MAX_FACTIONNAMES;
+
+struct ACTORDEFENTRY
+{
+	uint32_t Def;
+	int      ZoneID;
+	char     Name[256];
+};
+EQLIB_VAR ACTORDEFENTRY ActorDefList[];
+
+struct DIKEYID
+{
+	CHAR szName[32];
+	WORD Id;
+};
+EQLIB_VAR DIKEYID gDiKeyID[];
+
+
+
+//============================================================================
+// Offsets
+//============================================================================
 
 EQLIB_VAR DWORD __ActualVersionDate;
 EQLIB_VAR DWORD __ActualVersionTime;

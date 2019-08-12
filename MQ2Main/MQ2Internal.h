@@ -267,11 +267,6 @@ namespace MQ2Internal {
         struct _KEYPRESS *pNext;
     } KEYPRESS, *PKEYPRESS;
 
-    typedef struct _DIKEYID {
-        CHAR szName[32];
-        WORD Id;
-    } DIKEYID, *PDIKEYID;
-
     typedef struct _ITEMDB {
         struct _ITEMDB *pNext;
         DWORD ID;
@@ -378,12 +373,6 @@ namespace MQ2Internal {
         struct _MQPlugin* pLast;
         struct _MQPlugin* pNext;
     } MQPLUGIN, *PMQPLUGIN;
-
-    typedef struct _actordefentry {
-        unsigned int Def;
-		int ZoneID;
-        char Name[256]; 
-    } ACTORDEFENTRY, *PACTORDEFENTRY;
 
     class CAutoLock {
     public:

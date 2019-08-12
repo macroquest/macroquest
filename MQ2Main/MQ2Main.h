@@ -14,39 +14,30 @@
 
 #pragma once
 
-#define VersionString          __ExpectedVersionDate
-#define TimeString             __ExpectedVersionTime
-#define DebugHeader            "[MQ2]"
-#define LoadedString           "MQ2 Loaded."
-#define ToUnloadString         "MQ2 Unloading..."
-#define UnloadedString         "MQ2 Unloaded."
-
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+#if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
+#endif
+
+// targeting Windows 7+
 #if defined(_WIN32_WINNT)
 #undef _WIN32_WINNT
-#define  _WIN32_WINNT          0x510
 #endif
+#define  _WIN32_WINNT          0x0601
+#if defined(WINVER)
+#undef WINVER
+#endif
+#define WINVER                 0x0601
+
 #define DIRECTINPUT_VERSION    0x800
-
-//#define MQ2_PROFILING
-
-// uncomment this line to turn off the single-line benchmark macro
-// #define DISABLE_BENCHMARKS
 
 //warning C4530 : C++ exception handler used, but unwind semantics are not enabled.Specify / EHsc
 #pragma warning(disable:4530)
 
-//disable the noexcept warning there isnt really anything we can do about it as far as i know or is there? let me know if u know how to fix it - eqmule
+// disable the noexcept warning there isnt really anything we can do about it as far as i know or is there? let me know if u know how to fix it - eqmule
 #pragma warning(disable:4577)
-
-
-#if !defined(NOMINMAX)
-#define NOMINMAX
-#endif
-
-#if !defined(WIN32_LEAN_AND_MEAN)
-#define WIN32_LEAN_AND_MEAN
-#endif
 
 // Windows Header Files:
 #include <windows.h>
@@ -66,10 +57,22 @@
 #include <stack>
 #include <string>
 #include <algorithm>
-//dont enable this again, because we littler all the rest of the code with this namespace if we do.
-//namespaces don't belong in gloabl header files
-//let everyone that needs this one put it in their own projects.
-//using namespace std;
+
+//#define MQ2_PROFILING
+
+// uncomment this line to turn off the single-line benchmark macro
+// #define DISABLE_BENCHMARKS
+
+// Probably needs a Config.h
+//#define KNIGHTLYPARSE
+
+#define VersionString          __ExpectedVersionDate
+#define TimeString             __ExpectedVersionTime
+#define DebugHeader            "[MQ2]"
+#define LoadedString           "MQ2 Loaded."
+#define ToUnloadString         "MQ2 Unloading..."
+#define UnloadedString         "MQ2 Unloaded."
+
 
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 // MQ2
@@ -518,7 +521,7 @@ EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
 EQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
 EQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_API BOOL LootInProgress(EQADVLOOTWND* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
+EQLIB_API BOOL LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 #endif
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
@@ -621,8 +624,8 @@ EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
 EQLIB_API BOOL IsBardSong(PSPELL pSpell);
 EQLIB_API BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID);
-EQLIB_API bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID);
-EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
+EQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, DWORD &nID);
+EQLIB_API bool GetBuffID(SPELLBUFF* pBuff, DWORD &nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 EQLIB_API BOOL TriggeringEffectSpell(PSPELL aSpell, int i);
 EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects = FALSE, BOOL bTriggeredEffectCheck = FALSE);
@@ -714,7 +717,7 @@ EQLIB_API DWORD       GetSkillIDFromName(PCHAR name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
 EQLIB_API DWORD       GetWorldState(VOID);
-EQLIB_API float       GetMeleeRange(EQPlayer *, EQPlayer *);
+EQLIB_API float       GetMeleeRange(PlayerClient*, PlayerClient*);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
@@ -728,7 +731,7 @@ EQLIB_API CONTENTS*   FindBankItemByName(char *pName, BOOL bExact);
 EQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
 EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
 EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
-EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
+EQLIB_API CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
 EQLIB_API BOOL		  IsItemInsideContainer(CONTENTS* pItem);
 EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, CONTENTS* pItem);
 EQLIB_API BOOL		  DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
@@ -760,8 +763,8 @@ EQLIB_API HANDLE hLoadComplete;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 
-EQLIB_API void AttackRanged(EQPlayer *pRangedTarget = pTarget);
-EQLIB_API VOID UseAbility(char *sAbility);
+EQLIB_API void AttackRanged(PlayerClient* pRangedTarget = pTarget);
+EQLIB_API void UseAbility(char *sAbility);
 EQLIB_OBJECT PMACROBLOCK GetNextMacroBlock();
 EQLIB_OBJECT PMACROBLOCK GetCurrentMacroBlock();
 EQLIB_API int GetMacroBlockCount();

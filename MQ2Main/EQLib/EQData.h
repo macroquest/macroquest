@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "../common/Containers.h"
-#include "../common/Items.h"
-#include "../common/PlayerClient.h"
+#include "Containers.h"
+#include "Items.h"
+#include "PlayerClient.h"
 
 namespace eqlib {
 
@@ -1774,7 +1774,7 @@ struct FriendEntry
 	bool               bName;                    // not sure.
 };
 
-struct [[deprecated]] CHATSERVICE
+struct _CHATSERVICE
 {
 /*0x000*/ void*        vfTable;
 /*0x004*/ void*        pChatProxyHandler;
@@ -1795,10 +1795,11 @@ struct [[deprecated]] CHATSERVICE
 /*0x0c4*/ int          LastDisconnectCheckTime;
 /*0x0c8*/ FriendEntry** BuddyList;
 /*0x0cc*/ int          BuddyListCount;
-/*0x0d0*/ ArrayClass_RO<CXStr> IgnoreList;
+/*0x0d0*/ ArrayClass<CXStr> IgnoreList;
 /*0x0e0*/
 };
-using PCHATSERVICE [[deprecated]] = CHATSERVICE*;
+using PCHATSERVICE [[deprecated]] = _CHATSERVICE*;
+using CHATSERVICE/* [[deprecated]]*/ = _CHATSERVICE;
 
 class PickZoneTimerHandler
 {
@@ -1879,7 +1880,7 @@ struct CharSelectPlayerArray
 };
 using PCharSelectPlayerArray [[deprecated]] = CharSelectPlayerArray*;
 
-struct [[deprecated]] EVERQUEST
+struct _EVERQUEST
 {
 /*0x00000*/ BYTE             Unknown[0x2a4];
 /*0x002a4*/ CHATSERVICE*     ChatService;
@@ -1922,7 +1923,8 @@ struct [[deprecated]] EVERQUEST
 /*0x38E80*/ ArrayClass_RO<CSINFO> pCharSelectPlayerArray;
 /*0x38E88*/ // more data
 };
-using PEVERQUEST [[deprecated]] = EVERQUEST*;
+using EVERQUEST [[deprecated]] = _EVERQUEST;
+using PEVERQUEST [[deprecated]] = _EVERQUEST*;
 
 struct AURAINFO
 {

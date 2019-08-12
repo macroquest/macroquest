@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include "../EQLib.h"
-
 #include "Common.h"
 #include "Items.h"
 #include "PcClient.h"

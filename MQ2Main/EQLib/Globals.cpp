@@ -12,21 +12,55 @@
  * GNU General Public License for more details.
  */
 
-#include "Common.h"
-#include "Globals.h"
-
-#if defined(TEST)
-#include "../test/eqgame(Test).h"
-#elif defined(LIVE)
-#include "../test/eqgame.h"
-#endif
+#include "EQLib.h"
 
 namespace eqlib {
 
 DWORD EQGameBaseAddress = (DWORD)GetModuleHandle(nullptr);
 
-#define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + EQGameBaseAddress)
+//============================================================================
+// Data
+//============================================================================
 
+const char* szCombineTypes[] = {
+#include "data/combines.h"
+	nullptr
+};
+size_t MAX_COMBINES = lengthof(szCombineTypes);
+
+const char* szItemTypes[] = {
+#include "data/itemtypes.h"
+	nullptr
+};
+size_t MAX_ITEMTYPES = lengthof(szItemTypes);
+
+const char* szSPATypes[] = {
+#include "data/spelleffects.h"
+	nullptr
+};
+size_t MAX_SPELLEFFECTS = lengthof(szSPATypes) - 1;
+
+const char* szFactionNames[] = {
+#include "data/factionnames.h"
+	nullptr
+};
+size_t MAX_FACTIONNAMES = lengthof(szFactionNames) - 1;
+
+ACTORDEFENTRY ActordefList[] = {
+#include "data/actordef.h"
+	0, 0, "NULL"
+};
+
+DIKEYID gDiKeyID[] = {
+#include "data/dikeys.h"
+	{ 0, 0 }
+};
+
+//============================================================================
+// Offset Definitions
+//============================================================================
+
+#define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + EQGameBaseAddress)
 
 INITIALIZE_EQGAME_OFFSET(__ActualVersionDate);
 INITIALIZE_EQGAME_OFFSET(__ActualVersionTime);

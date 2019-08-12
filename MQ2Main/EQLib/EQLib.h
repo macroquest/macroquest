@@ -14,39 +14,47 @@
 
 #pragma once
 
-#include "common/Common.h"
-
-#define TEST
-
 // EQLib Configuration
 
 //#define NEWCHARINFO
 
-// Probably needs a Config.h
-//#define KNIGHTLYPARSE
+// pull in offsets first
+#include "eqgame.h"
 
-// Apply the configuration
-#if defined(LIVE)
-
-#include "live/eqgame.h"
-
-#include "live/EQUIStructs.h"
-#include "live/EQData.h"
-
-#include "EQClasses.h"
-
-#elif defined(TEST)
-
-#include "test/eqgame(test).h"
-
-#include "test/EQUIStructs(Test).h"
-#include "test/EQData(Test).h"
-
+// pull in private definitions if provided
+#if __has_include("eqgame-private.h")
+#include "eqgame-private.h"
 #endif
 
-#include "common/Globals.h"
-#include "common/EQClasses.h"
-#include "common/Items.h"
-#include "common/PlayerClient.h"
-#include "common/PcClient.h"
-#include "common/Spells.h"
+// Common defines all the commonly used macros, tools, functions, etc
+// that are used by pretty much everything else.
+#include "Common.h"
+
+// Globals that are used throughout the eqlib project
+#include "Globals.h"
+
+// data structures - old headers. Eventually these will be consolidated
+#include "EQUIStructs.h"
+#include "EQData.h"
+#include "EQClasses.h"
+
+// Data structures and class definitions, broken up by topic. If any of these
+// gets too large, or has too many unrelated components, they should probably
+// be broken up into smaller chunks.
+
+// general purpose utilities
+#include "Allocator.h"
+#include "Containers.h"
+#include "CXStr.h"
+
+// ui components
+#include "CXWnd.h"
+#include "UI.h"
+#include "SidlParams.h"
+#include "SidlTemplates.h"
+
+// game components
+#include "Items.h"
+#include "PlayerClient.h"
+#include "PcClient.h"
+#include "Spells.h"

@@ -487,11 +487,7 @@ public:
 // base class vftable
 /*0x0008*/ void* punknown;
 
-#if defined(TEST)
-#include "../test/ItemBase-Members.h"
-#elif defined(LIVE)
-#include "../live/ItemBase-Members.h"
-#endif
+#include "ItemBase-Members.h"
 
 	bool IsLore(bool bIncludeSockets = false) const;
 	bool IsLoreEquipped(bool bIncludeSockets = false) const;
@@ -525,11 +521,7 @@ public:
 /*0x0008*/ void*             unknown;
 
 	// start of ItemBase
-#if defined(TEST)
-#include "../test/ItemBase-Members.h"
-#elif defined(LIVE)
-#include "../live/ItemBase-Members.h"
-#endif
+#include "ItemBase-Members.h"
 
 	//start of ItemClient
 /*0x0141*/ uint8_t           Filler0x0141[0xB];

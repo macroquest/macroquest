@@ -21,14 +21,14 @@
 
 EQLIB_API PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
 
-inline PCHARINFO GetCharInfo()
+inline CHARINFO* GetCharInfo()
 {
 	//   if (!ppCharData) return NULL;
 	//pPCData and pCharData points to same address
-	return (PCHARINFO)pCharData;
+	return (CHARINFO*)pCharData;
 }
 
-inline PCHARINFO2 GetCharInfo2()
+inline CHARINFO2* GetCharInfo2()
 {
 	if (CHARINFO* pChar = (CHARINFO*)pCharData)
 	{
@@ -117,7 +117,7 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 	}
 }
 
-static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
+static inline BOOL IsMarkedNPC(SPAWNINFO* pSpawn)
 {
 	if (GetCharInfo() && GetCharInfo()->pSpawn && pSpawn)
 	{
@@ -141,7 +141,7 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 }
 
 static inline int GetEnduranceRegen() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -153,7 +153,7 @@ static inline int GetEnduranceRegen() {
 	return 0;
 }
 static inline int GetHPRegen() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -166,7 +166,7 @@ static inline int GetHPRegen() {
 	return 0;
 }
 static inline int GetManaRegen() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -178,7 +178,7 @@ static inline int GetManaRegen() {
 	return 0;
 }
 static inline int GetCurMana() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -190,7 +190,7 @@ static inline int GetCurMana() {
 	return 0;
 }
 static inline int GetCurHPS() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -202,7 +202,7 @@ static inline int GetCurHPS() {
 	return 0;
 }
 static inline LONG GetMaxHPS() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -214,7 +214,7 @@ static inline LONG GetMaxHPS() {
 	return 0;
 }
 static inline LONG GetMaxEndurance() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -226,13 +226,13 @@ static inline LONG GetMaxEndurance() {
 	return 0;
 }
 static inline LONG GetCurEndurance() {
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		return pChar2->Endurance;
 	}
 	return 0;
 }
 static inline LONG GetMaxMana() {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
@@ -244,7 +244,7 @@ static inline LONG GetMaxMana() {
 	return 0;
 }
 static inline int GetAdjustedSkill(int nSkill) {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else

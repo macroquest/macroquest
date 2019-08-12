@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "Common.h"
 #include "CXStr.h"
 
 namespace eqlib {

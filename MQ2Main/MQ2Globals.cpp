@@ -271,11 +271,6 @@ namespace MQ2Globals
 
 	DWORD LoginController__GiveTime = 0;
 
-	struct _actordefentry ActorDefList[] = {
-#include "eqlib/data/actordef.h"
-		0, 0, "nullptr"
-	};
-
 	/* SpellMap */
 	HANDLE ghLockSpellMap = nullptr;
 
@@ -506,12 +501,6 @@ namespace MQ2Globals
 	BOOL gMouseClickInProgress[8] = { FALSE };
 	// End of mouse variables
 
-	// Arrays  (Note:  See also EQLib_Utilities.cpp)
-	DIKEYID gDiKeyID[] = {
-#include "eqlib/data/dikeys.h"
-		{ 0, 0 }
-	};
-
 	PCHAR gDiKeyName[256];
 
 	PCHAR szHeading[] = {
@@ -671,7 +660,7 @@ namespace MQ2Globals
 	};
 
 	PCHAR szSkills[] = {
-#include "eqlib/data/skills.h"
+#include "EQLib/data/skills.h"
 		nullptr
 	};
 
@@ -693,30 +682,6 @@ namespace MQ2Globals
 		"Open",//c84
 		nullptr
 	};
-
-	PCHAR szCombineTypes[] = {
-#include "eqlib/data/combines.h"
-		nullptr
-	};
-	SIZE_T MAX_COMBINES = sizeof(szCombineTypes) / sizeof(PCHAR);
-
-	PCHAR szItemTypes[] = {
-#include "eqlib/data/itemtypes.h"
-		nullptr
-	};
-	SIZE_T MAX_ITEMTYPES = sizeof(szItemTypes) / sizeof(PCHAR);
-
-	PCHAR szSPATypes[] = {
-#include "eqlib/data/spelleffects.h"
-		nullptr
-	};
-	SIZE_T MAX_SPELLEFFECTS = (sizeof(szSPATypes) / sizeof(PCHAR))-1;
-
-	PCHAR szFactionNames[] = {
-#include "eqlib/data/factionnames.h"
-		nullptr
-	};
-	SIZE_T MAX_FACTIONNAMES = (sizeof(szFactionNames) / sizeof(PCHAR))-1;
 
 	PCHAR szZoneExpansionName[] = {
 		"Original EQ",              //0
