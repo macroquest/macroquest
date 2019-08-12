@@ -498,7 +498,7 @@ EQLIB_API int FindMappableCommand(const char *name);
 EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API int GetCurrencyIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
-EQLIB_API PSPELL GetSpellByName(PCHAR szName);
+EQLIB_API SPELL* GetSpellByName(const char* szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
@@ -562,7 +562,7 @@ LEGACY_API BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *
 #endif
 
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
-EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
+EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
@@ -671,7 +671,7 @@ LEGACY_API VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive, char *arg
 #endif
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
-EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
+EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
 EQLIB_API BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
 EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
@@ -722,9 +722,10 @@ EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API VOID		  ListMercAltAbilities();
-EQLIB_API CONTENTS*	  FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
-EQLIB_API CONTENTS*	  FindItemByName(PCHAR pName, BOOL bExact = false);
-EQLIB_API CONTENTS*	  FindItemByID(int ItemID);
+EQLIB_API CONTENTS*   FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
+EQLIB_API CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx);
+EQLIB_API CONTENTS*   FindItemByName(PCHAR pName, BOOL bExact = false);
+EQLIB_API CONTENTS*   FindItemByID(int ItemID);
 EQLIB_API DWORD	      FindItemCountByName(PCHAR pName, BOOL bExact = false);
 EQLIB_API DWORD	      FindItemCountByID(int ItemID);
 EQLIB_API CONTENTS*   FindBankItemByName(char *pName, BOOL bExact);
@@ -732,12 +733,13 @@ EQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
 EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
 EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
 EQLIB_API CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
+EQLIB_API CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx);
 EQLIB_API BOOL		  IsItemInsideContainer(CONTENTS* pItem);
 EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, CONTENTS* pItem);
 EQLIB_API BOOL		  DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
 EQLIB_API bool		  ItemOnCursor();
-EQLIB_API BOOL		  OpenContainer(CONTENTS* pItem, bool hidden, bool flag = 0);
-EQLIB_API BOOL		  CloseContainer(CONTENTS* pItem);
+EQLIB_API bool        OpenContainer(CONTENTS* pItem, bool hidden, bool flag = 0);
+EQLIB_API bool        CloseContainer(CONTENTS* pItem);
 EQLIB_API int		  GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);

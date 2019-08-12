@@ -1117,7 +1117,7 @@ BOOL IsSpellClassUsable(PSPELL pSpell)
 	}
 	return FALSE;
 }
-PSPELL GetSpellByName(PCHAR szName)
+SPELL* GetSpellByName(const char* szName)
 {
 	// PSPELL GetSpellByName(PCHAR NameOrID)
 	// This function now accepts SpellID as an argument as well as SpellName
@@ -1202,40 +1202,43 @@ PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
 
 PSPELL GetSpellByAAName(PCHAR szName)
 {
-	try {
-		int level = -1;
-		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
-			level = pMe->Level;
-		}
-		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++) {
-			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level)) {
-				if (pAbility->SpellID != -1) {
-					if (char *pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
-						if (!_stricmp(szName, pName)) {
-							if (PSPELL psp = GetSpellByID(pAbility->SpellID)) {
-								return psp;
-							}
+	int level = -1;
+	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
+	{
+		level = pMe->Level;
+	}
+
+	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+	{
+		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
+		{
+			if (pAbility->SpellID != -1)
+			{
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, nullptr))
+				{
+					if (!_stricmp(szName, pName))
+					{
+						if (SPELL* psp = GetSpellByID(pAbility->SpellID))
+						{
+							return psp;
 						}
 					}
 				}
 			}
 		}
 	}
-	catch (...) {
-		DebugSpewAlways("Caught exception in GetSpellByAAName");
-		//throw;
-	}
-	return NULL;
+
+	return nullptr;
 }
 
-DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
+unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
 {
 	switch (pSpell->DurationType) {
 	case 0:
 		return 0;
 	case 1:
 	case 6:
-		return unsigned long(min(ceil(double(pSpawn->Level) / 2), pSpell->DurationCap));
+		return std::min<unsigned int>(ceil(double(pSpawn->Level) / 2), pSpell->DurationCap);
 	case 3:
 	case 4:
 	case 11:
@@ -1248,17 +1251,17 @@ DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
 			return (pSpell->DurationType * 10);
 		}
 	case 2:
-		return unsigned long(min(ceil(double(pSpawn->Level) * 0.6), pSpell->DurationCap));
+		return std::min<unsigned int>(ceil(double(pSpawn->Level) * 0.6), pSpell->DurationCap);
 	case 5:
 		return 3;
 	case 7:
-		return min(pSpawn->Level, pSpell->DurationCap ? pSpell->DurationCap : pSpawn->Level);
+		return std::min<unsigned int>(pSpawn->Level, pSpell->DurationCap ? pSpell->DurationCap : pSpawn->Level);
 	case 8:
-		return min(unsigned int(pSpawn->Level) + 10, pSpell->DurationCap);
+		return std::min<unsigned int>(pSpawn->Level + 10, pSpell->DurationCap);
 	case 9:
-		return min(unsigned int(pSpawn->Level) * 2 + 10, pSpell->DurationCap);
+		return std::min<unsigned int>(pSpawn->Level * 2 + 10, pSpell->DurationCap);
 	case 10:
-		return min(unsigned int(pSpawn->Level) * 3 + 10, pSpell->DurationCap);
+		return std::min<unsigned int>(pSpawn->Level * 3 + 10, pSpell->DurationCap);
 	case 13:
 		return pSpell->DurationCap * 6 / 10;
 	case 50:
@@ -1428,23 +1431,30 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 
 CONTENTS* GetEnviroContainer()
 {
-	if (!ppContainerMgr || !pContainerMgr) return NULL;
+	if (!ppContainerMgr || !pContainerMgr)
+		return nullptr;
+
 	PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
-	if (!ContainerMgr->pWorldContents) return NULL;
+	if (!ContainerMgr->pWorldContents)
+		return nullptr;
+
 	return ContainerMgr->pWorldContents;
 }
 
-PEQCONTAINERWINDOW FindContainerForContents(CONTENTS* CONTENTS*)
+CContainerWnd* FindContainerForContents(CONTENTS* pContents)
 {
-	if (!ppContainerMgr || !pContainerMgr) return NULL;
+	if (!ppContainerMgr || !pContainerMgr)
+		return nullptr;
+
 	PEQ_CONTAINERWND_MANAGER pMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
 
 	for (int j = 0; j < 35; j++)
 	{
-		if (pMgr->pPCContainers[j] && (pMgr->pPCContainers[j]->CONTENTS* == CONTENTS*))
+		if (pMgr->pPCContainers[j] && (pMgr->pPCContainers[j]->pContents == pContents))
 			return (pMgr->pPCContainers[j]);
 	}
-	return NULL;
+
+	return nullptr;
 }
 
 // ***************************************************************************
@@ -1563,40 +1573,42 @@ VOID ClearSearchItem(SEARCHITEM &SearchItem)
 #define Flag(n) (SearchItem.Flag[(SearchItemFlag)n])
 #define RequireFlag(flag,value) {if (MaskSet(flag) && Flag(flag)!=(CHAR)((value)!=0)) return false;}
 
-BOOL ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* CONTENTS*)
+bool ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* pContents)
 {
-	if (SearchItem.ID && GetItemFromContents(CONTENTS*)->ItemNumber != SearchItem.ID)
+	if (SearchItem.ID && GetItemFromContents(pContents)->ItemNumber != SearchItem.ID)
 		return false;
-	RequireFlag(Lore, GetItemFromContents(CONTENTS*)->Lore);
-	RequireFlag(NoRent, GetItemFromContents(CONTENTS*)->NoRent);
-	RequireFlag(NoDrop, GetItemFromContents(CONTENTS*)->NoDrop);
-	RequireFlag(Magic, GetItemFromContents(CONTENTS*)->Magic);
-	RequireFlag(Pack, GetItemFromContents(CONTENTS*)->Type == ITEMTYPE_PACK);
-	RequireFlag(Book, GetItemFromContents(CONTENTS*)->Type == ITEMTYPE_BOOK);
-	RequireFlag(Combinable, GetItemFromContents(CONTENTS*)->ItemType == 17);
-	RequireFlag(Summoned, GetItemFromContents(CONTENTS*)->Summoned);
-	RequireFlag(Instrument, GetItemFromContents(CONTENTS*)->InstrumentType);
-	RequireFlag(Weapon, GetItemFromContents(CONTENTS*)->Damage && GetItemFromContents(CONTENTS*)->Delay);
-	RequireFlag(Normal, GetItemFromContents(CONTENTS*)->Type == ITEMTYPE_NORMAL);
+	RequireFlag(Lore, GetItemFromContents(pContents)->Lore);
+	RequireFlag(NoRent, GetItemFromContents(pContents)->NoRent);
+	RequireFlag(NoDrop, GetItemFromContents(pContents)->NoDrop);
+	RequireFlag(Magic, GetItemFromContents(pContents)->Magic);
+	RequireFlag(Pack, GetItemFromContents(pContents)->Type == ITEMTYPE_PACK);
+	RequireFlag(Book, GetItemFromContents(pContents)->Type == ITEMTYPE_BOOK);
+	RequireFlag(Combinable, GetItemFromContents(pContents)->ItemType == 17);
+	RequireFlag(Summoned, GetItemFromContents(pContents)->Summoned);
+	RequireFlag(Instrument, GetItemFromContents(pContents)->InstrumentType);
+	RequireFlag(Weapon, GetItemFromContents(pContents)->Damage && GetItemFromContents(pContents)->Delay);
+	RequireFlag(Normal, GetItemFromContents(pContents)->Type == ITEMTYPE_NORMAL);
 
-	CHAR szName[MAX_STRING] = { 0 };
-	strcpy_s(szName, GetItemFromContents(CONTENTS*)->Name);
+	CHAR szName[ITEM_NAME_LEN] = { 0 };
+	strcpy_s(szName, GetItemFromContents(pContents)->Name);
 	_strlwr_s(szName);
+
 	if (SearchItem.szName[0] && !strstr(szName, SearchItem.szName))
-		return FALSE;
+		return false;
 
 	return true;
 }
 
-BOOL SearchThroughItems(SEARCHITEM &SearchItem, CONTENTS** pResult, DWORD *nResult)
+BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResult)
 {
 	// TODO
-#define Result(CONTENTS*,nresult)     {\
-    if (pResult) \
-    *pResult=CONTENTS*;\
-    if (nResult)\
-    *nResult=nresult;\
-    return TRUE;}
+#define Result(pContents, nresult) {   \
+	if (pResult)                       \
+		*pResult = pContents;          \
+	if (nResult)                       \
+		*nResult = nresult;            \
+	return TRUE;                       \
+}
 
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray) {
@@ -1605,9 +1617,9 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, CONTENTS** pResult, DWORD *nResu
 				// iterate through worn items
 				for (unsigned long N = 0; N < 21; N++)
 				{
-					if (CONTENTS* CONTENTS* = pChar2->pInventoryArray->InventoryArray[N]) {
-						if (ItemMatchesSearch(SearchItem, CONTENTS*)) {
-							Result(CONTENTS*, N);
+					if (CONTENTS* pContents = pChar2->pInventoryArray->InventoryArray[N]) {
+						if (ItemMatchesSearch(SearchItem, pContents)) {
+							Result(pContents, N);
 						}
 					}
 				}
@@ -1618,20 +1630,21 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, CONTENTS** pResult, DWORD *nResu
 				// iterate through inventory slots before in-pack slots
 				for (nPack = 0; nPack < 10; nPack++)
 				{
-					if (CONTENTS* CONTENTS* = pChar2->pInventoryArray->Inventory.Pack[nPack])
+					if (CONTENTS* pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
 					{
-						if (ItemMatchesSearch(SearchItem, CONTENTS*))
-							Result(CONTENTS*, nPack + 21);
+						if (ItemMatchesSearch(SearchItem, pContents))
+							Result(pContents, nPack + 21);
 					}
 				}
 				for (nPack = 0; nPack < 10; nPack++)
 				{
-					if (CONTENTS* CONTENTS* = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
-						if (GetItemFromContents(CONTENTS*)->Type == ITEMTYPE_PACK && CONTENTS*->Contents.ContainedItems.Capacity)
+					if (CONTENTS* pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
+					{
+						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->Contents.ContainedItems.Capacity)
 						{
-							for (unsigned long nItem = 0; nItem < GetItemFromContents(CONTENTS*)->Slots; nItem++)
+							for (unsigned long nItem = 0; nItem < GetItemFromContents(pContents)->Slots; nItem++)
 							{
-								if (CONTENTS* pItem = CONTENTS*->GetContent(nItem))
+								if (CONTENTS* pItem = pContents->GetContent(nItem))
 									if (ItemMatchesSearch(SearchItem, pItem))
 										Result(pItem, nPack * 100 + nItem);
 							}
@@ -4335,59 +4348,67 @@ havecfgfile:
 #endif
 
 #ifndef ISXEQ_LEGACY
-int FindInvSlotForContents(CONTENTS* CONTENTS*)
+int FindInvSlotForContents(CONTENTS* pContents)
 {
 	int LastMatch = -1;
 
 	// screw the old style InvSlot numbers
 	// return the index into the INVSLOTMGR array
-	DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)", CONTENTS*, GetItemFromContents(CONTENTS*));
+	DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)", pContents, GetItemFromContents(pContents));
 
 #if 1
-	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
 	for (unsigned long N = 0; N < MAX_INV_SLOTS; N++)
 	{
-		class CInvSlot *pCIS = NULL;
-		struct _CONTENTS *pC = NULL;
+		CONTENTS* pC = nullptr;
 
-		if (pInvMgr->SlotArray[N]) {
-			pCIS = (class CInvSlot *)pInvMgr->SlotArray[N];
-
+		if (pInvSlotMgr->SlotArray[N]) {
+			CInvSlot* pCIS = pInvSlotMgr->SlotArray[N];
 			pCIS->GetItemBase(&pC);
 
-			if (pC) {
+			if (pC)
+			{
 				DebugSpew("pInvSlotMgr->SlotArray[%d] Contents==0x%08X", N, pC);
-				if (pC == CONTENTS*) {
+				if (pC == pContents)
+				{
+					CInvSlot* pInvSlot = pInvSlotMgr->SlotArray[N];
 
-					if (pInvMgr->SlotArray[N]->pInvSlotWnd) {
-						DebugSpew("%d slot %d wnd %d %d %d", N, pInvMgr->SlotArray[N]->InvSlot,
-							pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType,
-							pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot,
-							pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot
-							);
+					if (pInvSlot->pInvSlotWnd)
+					{
+						DebugSpew("%d slot %d wnd %d %d %d", N,
+							pInvSlot->Index,
+							pInvSlot->pInvSlotWnd->ItemLocation.GetLocation(),
+							pInvSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(0),
+							pInvSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1)
+						);
 					}
-					// if it is in the primary inventory,
-					// then pInvSlotWnd->WindowType is 0
-					if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType == 0) {
-						return pInvMgr->SlotArray[N]->InvSlot;
+
+					if (pInvSlot->pInvSlotWnd
+						&& pInvSlot->pInvSlotWnd->ItemLocation.GetLocation() == eItemContainerPossessions)
+					{
+						return pInvSlot->Index;
 					}
-					else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot != 65535) {
-						return pInvMgr->SlotArray[N]->InvSlot;
+					else if (pInvSlot->pInvSlotWnd && pInvSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1) != -1)
+					{
+						return pInvSlot->Index;
 					}
-					else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType == 11) {
+					else if (pInvSlot->pInvSlotWnd
+						&& pInvSlot->pInvSlotWnd->ItemLocation.GetLocation() == eItemContainerCorpse)
+					{
 						// loot window items should not be anywhere else
-						return pInvMgr->SlotArray[N]->InvSlot;
+						return pInvSlot->Index;
 					}
-					else {
+					else
+					{
 						LastMatch = N;
 					}
 				}
 			}
 		}
 	}
+
 	// return specific window type if needed
-	if (LastMatch != -1 && pInvMgr->SlotArray[LastMatch]->pInvSlotWnd->WindowType == 9999)
-		return  pInvMgr->SlotArray[LastMatch]->InvSlot;
+	if (LastMatch != -1 && pInvSlotMgr->SlotArray[LastMatch]->pInvSlotWnd->ItemLocation.GetLocation() == 9999)
+		return  pInvSlotMgr->SlotArray[LastMatch]->Index;
 #endif
 	return -1;
 }
@@ -4405,11 +4426,13 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 	{
 		if (pInvMgr->SlotArray[N])
 		{
-			class CInvSlot *x = (class CInvSlot *)pInvMgr->SlotArray[N];
-			struct _CONTENTS *y = NULL;
+			CInvSlot* x = pInvMgr->SlotArray[N];
+			CONTENTS* y = nullptr;
 
 			if (x)
+			{
 				x->GetItemBase(&y);
+			}
 
 			if (y)
 			{
@@ -4422,7 +4445,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 						if (pInvMgr->SlotArray[N]->pInvSlotWnd)
 						{
 							LastFoundInvSlot = N;
-							return pInvMgr->SlotArray[N]->InvSlot;
+							return pInvMgr->SlotArray[N]->Index;
 						}
 						// let it try to find it in an open slot if this fails
 					}
@@ -4432,7 +4455,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 					if (pInvMgr->SlotArray[N]->pInvSlotWnd)
 					{
 						LastFoundInvSlot = N;
-						return pInvMgr->SlotArray[N]->InvSlot;
+						return pInvMgr->SlotArray[N]->Index;
 					}
 					// let it try to find it in an open slot if this fails
 				}
@@ -5030,7 +5053,7 @@ DWORD GetAAIndexByName(PCHAR AAName)
 	//check bought aa's first
 	for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-			if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+			if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 				if (!_stricmp(AAName, pName)) {
 					return pAbility->Index;
 				}
@@ -5040,7 +5063,7 @@ DWORD GetAAIndexByName(PCHAR AAName)
 	//not found? fine lets check them all then...
 	for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++) {
 		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level)) {
-			if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+			if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 				if (!_stricmp(AAName, pName)) {
 					return pAbility->Index;
 				}
@@ -5090,36 +5113,42 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 	return false;
 }
 
-BOOL IsInGroup(PSPAWNINFO pSpawn, BOOL bCorpse)
+bool IsInGroup(PSPAWNINFO pSpawn, bool bCorpse)
 {
-	DWORD i;
-	PCHARINFO pChar = GetCharInfo();
+	CHARINFO* pChar = GetCharInfo();
 	if (!pChar->pGroupInfo)
-		return FALSE;
+		return false;
 	if (pSpawn == pChar->pSpawn)
-		return TRUE;
-	for (i = 1; i<6; i++) {
-		if (pChar->pGroupInfo->pMember[i])
+		return true;
+
+	for (int i = 1; i < 6; i++)
+	{
+		GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+
+		if (pMember)
 		{
-			CHAR Name[MAX_STRING] = { 0 };
-			GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);
-			if (!bCorpse) {
-				if (!_stricmp(Name, pSpawn->Name)) {
-					return TRUE;
+			if (!bCorpse)
+			{
+				if (!_stricmp(pMember->Name.c_str(), pSpawn->Name))
+				{
+					return true;
 				}
 			}
-			else {
+			else
+			{
 				CHAR szSearch[256] = { 0 };
-				strcpy_s(szSearch, Name);
+				strcpy_s(szSearch, pMember->Name.c_str());
 				strcat_s(szSearch, "'s corpse");
 				DWORD l = strlen(szSearch);
-				if (!_strnicmp(pSpawn->Name, szSearch, l)) {
-					return TRUE;
+				if (!_strnicmp(pSpawn->Name, szSearch, l))
+				{
+					return true;
 				}
 			}
 		}
 	}
-	return FALSE;
+
+	return false;
 }
 
 EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
@@ -5817,7 +5846,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if (pSearchSpawn->szRace[0] && _stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race)))
 		return FALSE;
 	//if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
-	if (pSearchSpawn->bLoS && (!pCharSpawn->CanSee((EQPlayer *)pSpawn)))
+	if (pSearchSpawn->bLoS && (!pCharSpawn->CanSee(*(PlayerClient*)pSpawn)))
 		return FALSE;
 	if (pSearchSpawn->bTargetable && (!IsTargetable(pSpawn)))
 		return FALSE;
@@ -6710,16 +6739,21 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName, SIZE_T Buffe
 	if (!pItem)
 		return &szName[0];
 	DWORD Item = atoi(pItem->Name + 2);
-	struct _actordefentry *ptr = MQ2Globals::ActorDefList;
-	while (ptr->Def) {
-		if (ptr->Def == Item && (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == (pItem->ZoneID & 0x7FFF)))) {
+	ACTORDEFENTRY* ptr = ActorDefList;
+	while (ptr->Def)
+	{
+		if (ptr->Def == Item
+			&& (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == (pItem->ZoneID & 0x7FFF))))
+		{
 			sprintf_s(szName, BufferSize, "%s", ptr->Name);
 			return &szName[0];
 		}
 		ptr++;
+
 	}
+
 	sprintf_s(szName, BufferSize, "Drop%05d/%d", Item, pItem->DropID);
-	return &szName[0];
+	return szName;
 }
 
 // deprecated
@@ -7065,7 +7099,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 
 	// We need to loop over the largest of the two, this may seem silly but one could have stacking command blocks
 	// which we will always need to check.
-	LONG effects = max(GetSpellNumEffects(aSpell), GetSpellNumEffects(bSpell));
+	LONG effects = std::max(GetSpellNumEffects(aSpell), GetSpellNumEffects(bSpell));
 	for (int i = 0; i < effects; i++) {
 		//Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
 		//can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
@@ -7365,10 +7399,10 @@ DWORD GetSpellGemTimer2(int nGem)
 			{
 				LinkedDuration = (RecastTime - fasttime) * 1000;
 			}
-			PEQCASTSPELLGEM gem = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
-			UINT Timer = max(RecastDuration, LinkedDuration);
-			UINT timeremaining = ((CButtonWnd*)&gem->Wnd)->GetCoolDownTimeRemaining();
-			UINT totaldur = ((CButtonWnd*)&gem->Wnd)->GetCoolDownTotalDuration();
+			CSpellGemWnd* gem = pCastSpellWnd->SpellSlots[nGem];
+			UINT Timer = std::max(RecastDuration, LinkedDuration);
+			UINT timeremaining = gem->GetCoolDownTimeRemaining();
+			UINT totaldur = gem->GetCoolDownTotalDuration();
 
 			bool TimerChanged = !(abs(long(Timer - timeremaining)) < 1000 );
 			if( Timer > 0 && (totaldur == 0 || TimerChanged))
@@ -7499,7 +7533,6 @@ bool HasExpansion(DWORD nExpansion)
 }
 //Just a Function that needs more work
 //I use this to test merc aa struct -eqmule
-#if !defined(ROF2EMU) && !defined(UFEMU)
 VOID ListMercAltAbilities()
 {
 	if (pMercAltAbilities) {
@@ -7520,7 +7553,12 @@ VOID ListMercAltAbilities()
 		}
 	}
 }
-#endif
+
+CONTENTS* FindItemBySlot2(const ItemGlobalIndex& idx)
+{
+	return FindItemBySlot(idx.Index.Slot1, idx.Index.Slot2, idx.Location);
+}
+
 CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance location)
 {
 	PCHARINFO2 pChar2 = GetCharInfo2();
@@ -9212,36 +9250,56 @@ DWORD FindBankItemCountByID(int ItemID)
 
 	return Count;
 }
-PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
+
+CInvSlot* GetInvSlot2(const ItemGlobalIndex& index)
 {
-	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	if (pInvMgr) {
-		PEQINVSLOT pSlot = 0;
-		CHAR szType[MAX_STRING] = { 0 };
-		for (DWORD i = 0; i<pInvMgr->TotalSlots; i++) {
-			pSlot = pInvMgr->SlotArray[i];
-			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && (short)pSlot->pInvSlotWnd->InvSlot == invslot && (short)pSlot->pInvSlotWnd->BagSlot == bagslot) {
-				CXMLData *pXMLData = ((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
-				if (pXMLData) {
-					GetCXStr(pXMLData->ScreenID.Ptr, szType, MAX_STRING);
-					if (!_stricmp(szType, "HB_InvSlot")) {//we dont want this, the user specified a container , not a hotbutton...
+	return GetInvSlot(index.Location, index.Index.Slot1, index.Index.Slot2);
+}
+
+CInvSlot* GetInvSlot(DWORD type, short invslot, short bagslot)
+{
+	if (pInvSlotMgr)
+	{
+		for (int i = 0; i < pInvSlotMgr->TotalSlots; i++)
+		{
+			CInvSlot* pSlot = pInvSlotMgr->SlotArray[i];
+
+			if (pSlot && pSlot->bEnabled && pSlot->pInvSlotWnd
+				&& pSlot->pInvSlotWnd->ItemLocation.GetLocation() == type
+				&& (short)pSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(0) == invslot
+				&& (short)pSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1) == bagslot)
+			{
+				if (CXMLData* pXMLData = pSlot->pInvSlotWnd->GetXMLData())
+				{
+					if (!_stricmp(pXMLData->ScreenID.c_str(), "HB_InvSlot"))
+					{
+						//we dont want this, the user specified a container , not a hotbutton...
 						continue;
 					}
 				}
+
 				return pSlot;
 			}
 		}
 	}
-	return NULL;
+
+	return nullptr;
 }
+
 //work in progress -eqmule
 BOOL IsItemInsideContainer(CONTENTS* pItem)
 {
-	if (pItem && pItem->GetGlobalIndex().Index.Slot1 >= 0 && pItem->GetGlobalIndex().Index.Slot1 <= NUM_INV_SLOTS) {
+	if (pItem && pItem->GetGlobalIndex().Index.Slot1 >= 0 && pItem->GetGlobalIndex().Index.Slot1 <= NUM_INV_SLOTS)
+	{
 		PCHARINFO2 pChar2 = GetCharInfo2();
-		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->GetGlobalIndex().Index.Slot1]) {
-			if (CONTENTS* pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->GetGlobalIndex().Index.Slot1]) {
-				if (pItemFound != pItem) {
+		if (pChar2
+			&& pChar2->pInventoryArray
+			&& pChar2->pInventoryArray->InventoryArray[pItem->GetGlobalIndex().Index.Slot1])
+		{
+			if (CONTENTS* pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->GetGlobalIndex().Index.Slot1])
+			{
+				if (pItemFound != pItem)
+				{
 					return TRUE;
 				}
 			}
@@ -9249,52 +9307,58 @@ BOOL IsItemInsideContainer(CONTENTS* pItem)
 	}
 	return FALSE;
 }
-BOOL OpenContainer(CONTENTS* pItem, bool hidden, bool flag)
+
+bool OpenContainer(CONTENTS* pItem, bool hidden, bool flag)
 {
 	if (!pItem)
-		return FALSE;
-	if (CONTENTS* pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2, pItem->GetGlobalIndex().Location)) {
+		return false;
+
+	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
+	{
 		if (pcont->Open)
-			return FALSE;
-		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
-			if (PEQINVSLOT pSlot = GetInvSlot(pcont->GetGlobalIndex().Location, pcont->GetGlobalIndex().Index.Slot1,pcont->GetGlobalIndex().Index.Slot2)) {
-				if (hidden) {
-					//put code to hide bag here
-					//until i can figure out how to call moveitemqty
+			return true;
+
+		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK)
+		{
+			if (CInvSlot* pSlot = GetInvSlot2(pcont->GetGlobalIndex()))
+			{
+				if (hidden)
+				{
+					// put code to hide bag here
+					// until i can figure out how to call moveitemqty
 				}
-				ItemGlobalIndex To;// = { 0 };
-				To.Location = pcont->GetGlobalIndex().Location;// eItemContainerPossessions;
-				To.Index.Slot1 = pSlot->pInvSlotWnd->InvSlot;
-				To.Index.Slot2 = pSlot->pInvSlotWnd->BagSlot;
-				To.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
-				//To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
-				//To.Selection = (long)pcont;
-				pContainerMgr->OpenContainer((EQ_Container*)&pcont, (int)&To, flag);
+
+				ItemGlobalIndex To = pSlot->pInvSlotWnd->ItemLocation;
+				To.Location = pcont->GetGlobalIndex().Location; // eItemContainerPossessions;
+
+				pContainerMgr->OpenContainer(&pcont, To, flag);
 				//pPCData->AlertInventoryChanged();
-				if (pcont->Open) {
-					return TRUE;
-				}
+				return pcont->Open;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
-BOOL CloseContainer(CONTENTS* pItem)
+bool CloseContainer(CONTENTS* pItem)
 {
 	if (!pItem)
-		return FALSE;
-	if (CONTENTS* pcont = FindItemBySlot(pItem->GetGlobalIndex().Index.Slot1,pItem->GetGlobalIndex().Index.Slot2,pItem->GetGlobalIndex().Location)) {
+		return false;
+
+	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
+	{
 		if (!pcont->Open)
-			return FALSE;
-		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
-			pContainerMgr->CloseContainer((EQ_Container*)&pcont, 1);
-			if (!pcont->Open) {
-				return TRUE;
-			}
+			return false;
+
+		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK)
+		{
+			pContainerMgr->CloseContainer(&pcont, true);
+			return !pcont->Open;
 		}
 	}
-	return FALSE;
+
+	return false;
 }
+
 //WaitForBagToOpen code by eqmule 2014
 DWORD __stdcall WaitForBagToOpen(PVOID pData)
 {

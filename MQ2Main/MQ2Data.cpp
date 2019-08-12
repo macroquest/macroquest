@@ -1374,7 +1374,7 @@ TLO(dataAltAbility)
 		{
 			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
 			{
-				if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL))
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, NULL))
 				{
 					if (!_stricmp(GETFIRST(), pName))
 					{
@@ -1528,16 +1528,20 @@ TLO(dataFriends)
 TLO(dataTask)
 {
 	Ret.Int = -1;
-	if (ppTaskManager) {
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
+	if (ppTaskManager)
+	{
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
 				int n = GETNUMBER();
 				n--;
 				if (n < 0)
 					n = 0;
 				Ret.Int = n;
 			}
-			else {
+			else
+			{
 				CHAR szOut[MAX_STRING] = { 0 };
 				CHAR szTemp[MAX_STRING] = { 0 };
 				strcpy_s(szTemp, GETFIRST());
@@ -1545,7 +1549,7 @@ TLO(dataTask)
 				//todo: finish this, we can get this stuff done without taskwindow being open.
 				for (int i = 0; i < 29; i++)
 				{
-					if (CTaskEntry * entry = &pTaskManager.QuestEntries[i])
+					if (CTaskEntry* entry = &pTaskManager.QuestEntries[i])
 					{
 						strcpy_s(szOut, entry->TaskTitle);
 						_strlwr_s(szOut);
@@ -1555,15 +1559,19 @@ TLO(dataTask)
 						}
 					}
 				}
-				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+				if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+				{
 					CXStr Str;
 					strcpy_s(szTemp, GETFIRST());
 					_strlwr_s(szTemp);
-					for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-						clist->GetItemText(&Str, i, 2);
-						GetCXStr(Str.Ptr, szOut, MAX_STRING);
+
+					for (int i = 0; i < clist->ItemsArray.GetCount(); i++)
+					{
+						CXStr Str = clist->GetItemText(i, 2);
+						strcpy_s(szOut, Str.c_str());
 						_strlwr_s(szOut);
-						if (strstr(szOut, szTemp)) {
+						if (strstr(szOut, szTemp))
+						{
 							Ret.Int = i;
 							break;
 						}
@@ -1580,20 +1588,23 @@ TLO(dataMount)
 {
 	if (!ISINDEX())
 		return false;
-	if (ISNUMBER()) {
+	if (ISNUMBER())
+	{
 		int n = GETNUMBER();
 		if (n <= 0)
 			return false;
 		n--;
-		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-				int numitems = clist->ItemsArray.Count;
-				if (numitems >= n) {
-					CXStr Str;
-					clist->GetItemText(&Str, n, 2);
-					CHAR szOut[MAX_STRING] = { 0 };
-					GetCXStr(Str.Ptr, szOut, MAX_STRING);
-					if (szOut[0] != '\0') {
+
+		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
+		{
+			if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem(MountWindowList))
+			{
+				int numitems = clist->ItemsArray.GetCount();
+				if (numitems >= n)
+				{
+					CXStr Str = clist->GetItemText(n, 2);
+					if (!Str.empty())
+					{
 						Ret.DWord = MAKELPARAM(n, 0);
 						Ret.Type = pKeyRingType;
 						return true;
@@ -1602,14 +1613,18 @@ TLO(dataMount)
 			}
 		}
 	}
-	else if (PCHAR pName = GETFIRST()) {
+	else if (char* pName = GETFIRST())
+	{
 		bool bExact = false;
+
 		if (*pName == '=')
 		{
 			bExact = true;
 			pName++;
 		}
-		if (DWORD n = GetKeyRingIndex(0,pName, bExact)) {
+
+		if (DWORD n = GetKeyRingIndex(0, pName, bExact))
+		{
 			n--;
 			Ret.DWord = MAKELPARAM(n, 0);
 			Ret.Type = pKeyRingType;
@@ -1618,24 +1633,29 @@ TLO(dataMount)
 	}
 	return false;
 }
+
 TLO(dataIllusion)
 {
 	if (!ISINDEX())
 		return false;
-	if (ISNUMBER()) {
+
+	if (ISNUMBER())
+	{
 		int n = GETNUMBER();
 		if (n <= 0)
 			return false;
 		n--;
-		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
-				int numitems = clist->ItemsArray.Count;
-				if (numitems >= n) {
-					CXStr Str;
-					clist->GetItemText(&Str, n, 2);
-					CHAR szOut[MAX_STRING] = { 0 };
-					GetCXStr(Str.Ptr, szOut, MAX_STRING);
-					if (szOut[0] != '\0') {
+
+		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
+		{
+			if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList))
+			{
+				int numitems = clist->ItemsArray.GetCount();
+				if (numitems >= n)
+				{
+					CXStr Str = clist->GetItemText(n, 2);
+					if (!Str.empty())
+					{
 						Ret.DWord = MAKELPARAM(n, 1);
 						Ret.Type = pKeyRingType;
 						return true;
@@ -1644,14 +1664,18 @@ TLO(dataIllusion)
 			}
 		}
 	}
-	else if (PCHAR pName = GETFIRST()) {
+	else if (PCHAR pName = GETFIRST())
+	{
 		bool bExact = false;
+
 		if (*pName == '=')
 		{
 			bExact = true;
 			pName++;
 		}
-		if (DWORD n = GetKeyRingIndex(1, pName, bExact)) {
+
+		if (DWORD n = GetKeyRingIndex(1, pName, bExact))
+		{
 			n--;
 			Ret.DWord = MAKELPARAM(n, 1);
 			Ret.Type = pKeyRingType;
@@ -1660,24 +1684,28 @@ TLO(dataIllusion)
 	}
 	return false;
 }
+
 TLO(dataFamiliar)
 {
 	if (!ISINDEX())
 		return false;
-	if (ISNUMBER()) {
+
+	if (ISNUMBER())
+	{
 		int n = GETNUMBER();
 		if (n <= 0)
 			return false;
 		n--;
-		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
-				int numitems = clist->ItemsArray.Count;
-				if (numitems >= n) {
-					CXStr Str;
-					clist->GetItemText(&Str, n, 2);
-					CHAR szOut[MAX_STRING] = { 0 };
-					GetCXStr(Str.Ptr, szOut, MAX_STRING);
-					if (szOut[0] != '\0') {
+
+		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
+		{
+			if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList))
+			{
+				int numitems = clist->ItemsArray.GetCount();
+				if (numitems >= n)
+				{
+					CXStr Str = clist->GetItemText(n, 2);
+					if (!Str.empty()) {
 						Ret.DWord = MAKELPARAM(n, 2);
 						Ret.Type = pKeyRingType;
 						return true;
@@ -1686,14 +1714,18 @@ TLO(dataFamiliar)
 			}
 		}
 	}
-	else if (PCHAR pName = GETFIRST()) {
+	else if (char* pName = GETFIRST())
+	{
 		bool bExact = false;
+
 		if (*pName == '=')
 		{
 			bExact = true;
 			pName++;
 		}
-		if (DWORD n = GetKeyRingIndex(2, pName, bExact)) {
+
+		if (DWORD n = GetKeyRingIndex(2, pName, bExact))
+		{
 			n--;
 			Ret.DWord = MAKELPARAM(n, 2);
 			Ret.Type = pKeyRingType;
@@ -1702,6 +1734,7 @@ TLO(dataFamiliar)
 	}
 	return false;
 }
+
 TLO(dataAlias)
 {
 	if (ISINDEX())

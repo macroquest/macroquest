@@ -145,11 +145,11 @@ public:
 	__declspec(property(get = getSlot2, put = setSlot2)) int Slot2;
 	__declspec(property(get = getSlot3, put = setSlot3)) int Slot3;
 
-	[[deprecated]] EQLIB_OBJECT int getSlot1() { return m_slots[0]; }
+	[[deprecated]] EQLIB_OBJECT int getSlot1() const { return m_slots[0]; }
 	[[deprecated]] EQLIB_OBJECT void setSlot1(int v) { m_slots[0] = v; }
-	[[deprecated]] EQLIB_OBJECT int getSlot2() { return m_slots[1]; }
+	[[deprecated]] EQLIB_OBJECT int getSlot2() const { return m_slots[1]; }
 	[[deprecated]] EQLIB_OBJECT void setSlot2(int v) { m_slots[1] = v; }
-	[[deprecated]] EQLIB_OBJECT int getSlot3() { return m_slots[2]; }
+	[[deprecated]] EQLIB_OBJECT int getSlot3() const { return m_slots[2]; }
 	[[deprecated]] EQLIB_OBJECT void setSlot3(int v) { m_slots[2] = v; }
 };
 

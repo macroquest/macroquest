@@ -1848,11 +1848,12 @@ bool MQ2SpawnType::GETMEMBER()
 	case xGroupLeader:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (PCHARINFO pCharInfo = GetCharInfo()) {
-			if (pCharInfo->pGroupInfo && pCharInfo->pGroupInfo->pLeader) {
-				CHAR Name[MAX_STRING] = { 0 };
-				GetCXStr(pCharInfo->pGroupInfo->pLeader->pName, Name, MAX_STRING);
-				Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
+		if (PCHARINFO pCharInfo = GetCharInfo())
+		{
+			if (pCharInfo->pGroupInfo && pCharInfo->pGroupInfo->pLeader)
+			{
+				Dest.DWord = pSpawn->Type == SPAWN_PLAYER
+					&& !_stricmp(pCharInfo->pGroupInfo->pLeader->Name.c_str(), pSpawn->Name);
 				return true;
 			}
 		}
@@ -1911,7 +1912,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case xLineOfSight:
-		Dest.DWord = pCharSpawn->CanSee((EQPlayer*)pSpawn);
+		Dest.DWord = pCharSpawn->CanSee(*(PlayerClient*)pSpawn);
 		//Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
 		Dest.Type = pBoolType;
 		return true;
@@ -2055,7 +2056,7 @@ bool MQ2SpawnType::GETMEMBER()
 		if (ISINDEX()) {
 			if (ISNUMBER()) {
 				unsigned long nSlot = GETNUMBER();
-				int size = sizeof(_EQUIPMENT) / 4;
+				int size = sizeof(EQUIPMENT) / 4;
 				//int size2 = sizeof(szEquipmentSlot);
 				//int size3 = sizeof(szEquipmentSlot[])/4;
 				if (nSlot < 9) {
@@ -2078,15 +2079,15 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case CanSplashLand:
-    {
-        CVector3 sv3;
-        sv3.X = pSpawn->Y;
-        sv3.Y = pSpawn->X;
-        sv3.Z = pSpawn->Z;
-        Dest.DWord = pCharSpawn->CanSee(&sv3);
-        Dest.Type = pBoolType;
-        return true;
-    }
+	{
+		CVector3 sv3;
+		sv3.X = pSpawn->Y;
+		sv3.Y = pSpawn->X;
+		sv3.Z = pSpawn->Z;
+		Dest.DWord = pCharSpawn->CanSee(sv3);
+		Dest.Type = pBoolType;
+		return true;
+	}
 	case IsBerserk:
 		Dest.DWord = pSpawn->berserker;
 		Dest.Type = pIntType;
@@ -3553,15 +3554,14 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pStringType;
 		if (!pChar->pGroupInfo) return false;
 		for (int i = 1; i < 6; i++)
+		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
-				char tmp[MAX_STRING] = { 0 };
-				DataTypeTemp[0] = '\0';
-				GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, MAX_STRING);
-				strcat_s(DataTypeTemp, tmp);
+				strcpy_s(DataTypeTemp, pChar->pGroupInfo->pMember[i]->Name.c_str());
 				if (i < 5 && pChar->pGroupInfo->pMember[i + 1])
 					strcat_s(DataTypeTemp, " ");
 			}
+		}
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}
@@ -3569,20 +3569,21 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pStringType;
 		if (!pChar->pGroupInfo) return false;
 		if (!pChar->pGroupInfo->pLeader) return false;
-		GetCXStr(pChar->pGroupInfo->pLeader->pName, DataTypeTemp, sizeof(DataTypeTemp));
-		if (!_stricmp(DataTypeTemp, pChar->Name))
+
+		if (!_stricmp(pChar->pGroupInfo->pLeader->Name.c_str(), pChar->Name))
 			strcpy_s(DataTypeTemp, "TRUE");
 		else
 			strcpy_s(DataTypeTemp, "FALSE");
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
+
 	case MaxBuffSlots:
 		Dest.DWord = GetCharMaxBuffSlots();
 		Dest.Type = pIntType;
 		return true;
 	case FreeBuffSlots:
 		Dest.DWord = 15;
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (CHARINFO2* pChar2 = GetCharInfo2()) {
 			Dest.DWord = GetCharMaxBuffSlots();
 			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
 			{
@@ -3814,17 +3815,22 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case ActiveDisc:
 		Dest.Type = pSpellType;
-		if (pCombatAbilityWnd) {
-			if (CXWnd *Child = ((CXWnd*)pCombatAbilityWnd)->GetChildItem("CAW_CombatEffectLabel")) {
-				CHAR szBuffer[2048] = { 0 };
-				if (GetCXStr(Child->CGetWindowText(), szBuffer, MAX_STRING) && szBuffer[0] != '\0') {
-					if (Dest.Ptr = GetSpellByName(szBuffer)) {
+		if (pCombatAbilityWnd)
+		{
+			if (CXWnd* Child = pCombatAbilityWnd->GetChildItem("CAW_CombatEffectLabel"))
+			{
+				CXStr name = Child->GetWindowText();
+				if (!name.empty())
+				{
+					if (Dest.Ptr = GetSpellByName(name.c_str()))
+					{
 						return true;
 					}
 				}
 			}
 		}
 		return false;
+
 	case Moving:
 		Dest.DWord = false;
 		if (pCharSpawn && pChar && pChar->pSpawn) {

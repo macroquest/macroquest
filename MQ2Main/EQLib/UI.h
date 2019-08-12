@@ -2377,9 +2377,9 @@ public:
 	EQLIB_OBJECT bool CloseAllContainers();
 	EQLIB_OBJECT EQ_Item* GetWorldContainerItem(int);
 	EQLIB_OBJECT void ClearWorldContainerItems();
-	EQLIB_OBJECT void CloseContainer(EQ_Container*, bool);
+	EQLIB_OBJECT void CloseContainer(CONTENTS**, bool deleteWindow);
 	EQLIB_OBJECT void CloseEQContainer(EQ_Container*);
-	EQLIB_OBJECT void OpenContainer(EQ_Container*, int, bool);
+	EQLIB_OBJECT void OpenContainer(CONTENTS**, const ItemGlobalIndex& location, bool allowTradeskill = true);
 	EQLIB_OBJECT void OpenWorldContainer(EQ_Container*, unsigned long);
 	EQLIB_OBJECT void Process();
 	EQLIB_OBJECT void SetWorldContainerItem(EQ_Item*, int);

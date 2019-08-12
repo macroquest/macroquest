@@ -1342,10 +1342,10 @@ FUNCTION_AT_ADDRESS(EQ_Item* CContainerMgr::GetWorldContainerItem(int), CContain
 FUNCTION_AT_ADDRESS(void CContainerMgr::ClearWorldContainerItems(), CContainerMgr__ClearWorldContainerItems);
 #endif
 #ifdef CContainerMgr__OpenContainer_x
-FUNCTION_AT_ADDRESS(void CContainerMgr::OpenContainer(EQ_Container*, int, bool), CContainerMgr__OpenContainer);
+FUNCTION_AT_ADDRESS(void CContainerMgr::OpenContainer(CONTENTS**, const ItemGlobalIndex&, bool), CContainerMgr__OpenContainer);
 #endif
 #ifdef CContainerMgr__CloseEQContainer_x
-FUNCTION_AT_ADDRESS(void CContainerMgr::CloseEQContainer(EQ_Container*), CContainerMgr__CloseEQContainer);
+FUNCTION_AT_ADDRESS(void CContainerMgr::CloseEQContainer(CONTENTS**), CContainerMgr__CloseEQContainer);
 #endif
 #ifdef CContainerMgr__CloseContainer_x
 FUNCTION_AT_ADDRESS(void CContainerMgr::CloseContainer(EQ_Container*, bool), CContainerMgr__CloseContainer);
