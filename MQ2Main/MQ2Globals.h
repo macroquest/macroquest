@@ -384,7 +384,7 @@ EQLIB_VAR fClassLvl				IC_ClassLvl;
 
 EQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
-EQLIB_VAR BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3);
+EQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown, void* data);
 EQLIB_VAR bool IsResEffectSpell(int);
 //EQLIB_VAR PCHAR szItemName[];
 //EQLIB_VAR PCHAR szItemName4xx[];
@@ -451,19 +451,19 @@ EQLIB_VAR EQ_Character * *ppCharData;
 #else
 #define pCharData1 ((EQ_Character1 *)&GetCharInfo()->vtable2)
 #endif
-EQLIB_VAR EQPlayer** ppCharSpawn;
+EQLIB_VAR PlayerClient** ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
-EQLIB_VAR EQPlayer** ppActiveMerchant;
+EQLIB_VAR PlayerClient** ppActiveMerchant;
 #define pActiveMerchant (*ppActiveMerchant)
-EQLIB_VAR EQPlayerManager** ppSpawnManager;
+EQLIB_VAR PlayerManagerClient** ppSpawnManager;
 #define pSpawnManager (*ppSpawnManager)
-#define pSpawnList (((struct _SPAWNMANAGER *)pSpawnManager)->FirstSpawn)
+#define pSpawnList ((pSpawnManager)->FirstSpawn)
 #define pChatService ((CChatService*)((PEVERQUEST)pEverQuest)->ChatService)
 #define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PointManager.vfTable)
 
-EQLIB_VAR EQPlayer** ppLocalPlayer;
+EQLIB_VAR PlayerClient** ppLocalPlayer;
 #define pLocalPlayer (*ppLocalPlayer)
-EQLIB_VAR EQPlayer** ppControlledPlayer;
+EQLIB_VAR PlayerClient** ppControlledPlayer;
 #define pControlledPlayer (*ppControlledPlayer)
 
 EQLIB_VAR EQWorldData** ppWorldData;
@@ -481,13 +481,13 @@ EQLIB_VAR PEQSOCIAL   pSocialList;
 EQLIB_VAR PBYTE pgHotkeyPage;
 #define gHotkeyPage (*pgHotkeyPage)
 
-EQLIB_VAR EQPlayer** ppTradeTarget;
+EQLIB_VAR PlayerClient** ppTradeTarget;
 #define pTradeTarget (*ppTradeTarget)
-EQLIB_VAR EQPlayer** ppActiveBanker;
+EQLIB_VAR PlayerClient** ppActiveBanker;
 #define pActiveBanker (*ppActiveBanker)
-EQLIB_VAR EQPlayer** ppActiveGMaster;
+EQLIB_VAR PlayerClient** ppActiveGMaster;
 #define pActiveGMaster (*ppActiveGMaster)
-EQLIB_VAR EQPlayer** ppActiveCorpse;
+EQLIB_VAR PlayerClient** ppActiveCorpse;
 #define pActiveCorpse (*ppActiveCorpse)
 
 EQLIB_VAR CSidlManager** ppSidlMgr;
@@ -530,7 +530,7 @@ EQLIB_VAR SPELLFAVORITE* pSpellSets;
 EQLIB_VAR AltAdvManager** ppAltAdvManager;
 #define pAltAdvManager (*ppAltAdvManager)
 
-EQLIB_VAR PCONNECTION_T* ppConnection;
+EQLIB_VAR connection_t** ppConnection;
 #define pConnection (*ppConnection)
 #if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_VAR AURAMGR** ppAuraMgr;
@@ -540,7 +540,7 @@ EQLIB_VAR AURAMGR** ppAuraMgr;
 #endif
 EQLIB_VAR CAuraWnd** ppAuraWnd;
 #define pAuraWnd (*ppAuraWnd)
-EQLIB_VAR EQCHATMGR** ppEQChatMgr;
+EQLIB_VAR CChatWindowManager** ppEQChatMgr;
 #define pChatMgr (*ppEQChatMgr)
 
 EQLIB_VAR MERCENARYINFO** ppMercInfo;

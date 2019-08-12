@@ -33,7 +33,7 @@ namespace eqlib {
 #if 0 // to be enabled when compatible
 class ItemClient;
 using CONTENTS = ItemClient;
-using PCONTENTS = ItemClient *;
+using CONTENTS* = ItemClient *;
 #endif
 
 enum ItemContainerInstance

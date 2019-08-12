@@ -999,7 +999,7 @@ typedef struct _CONTENTS {
 /*0x0150*/
 EQLIB_OBJECT _CONTENTS* GetContent(UINT index);
 EQLIB_OBJECT ItemGlobalIndex& GetGlobalIndex();
-} CONTENTS, *PCONTENTS;
+} CONTENTS, *CONTENTS*;
 
 #pragma pack(push)
 #pragma pack(8)
@@ -2079,7 +2079,7 @@ public:
 		int AltTotal;
 	};
     struct CachedFocusItem {
-        PCONTENTS         pContents;
+        CONTENTS*         CONTENTS*;
         int	Percent;
         ItemSpellTypes SpellType;
     };
@@ -2340,7 +2340,7 @@ typedef struct _CHARINFO {
 /*0x2820*/ bool         bOverrideAvatarProximity;
 /*0x2824*/ struct _GROUPINFO*   pGroupInfo;
 /*0x2828*/ bool         bIAmCreatingGroup;
-/*0x282c*/ VeArray<VePointer<PCONTENTS>> ItemsPendingID;//size 0xc
+/*0x282c*/ VeArray<VePointer<CONTENTS*>> ItemsPendingID;//size 0xc
 /*0x2838*/ int          ParcelStatus;//eParcelStatus
 /*0x283c*/ int          SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2018 live exe
 /*0x2840*/ short        BaseKeyRingSlots[3];
@@ -2729,7 +2729,7 @@ typedef struct _CHARINFONEW {
 /*0x2820*/ bool         bOverrideAvatarProximity;
 /*0x2824*/ struct _GROUPINFO*   pGroupInfo;
 /*0x2828*/ bool         bIAmCreatingGroup;
-/*0x282c*/ VeArray<VePointer<PCONTENTS>> ItemsPendingID;//size 0xc
+/*0x282c*/ VeArray<VePointer<CONTENTS*>> ItemsPendingID;//size 0xc
 /*0x2838*/ int          ParcelStatus;//eParcelStatus
 /*0x283c*/ int          SubscriptionDays;//24BC for sure see 7A6C40 in may 11 2018 live exe
 /*0x2840*/ short        BaseKeyRingSlots[3];

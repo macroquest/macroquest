@@ -28,9 +28,6 @@
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int), __IsResEffectSpell);
 #endif
-#ifdef __ExecuteCmd_x
-FUNCTION_AT_ADDRESS(BOOL EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);
-#endif
 
 //============================================================================
 // AggroMeterManagerClient
@@ -1622,7 +1619,7 @@ FUNCTION_AT_ADDRESS(int EQ_Item::GetItemValue(bool) const, EQ_Item__GetItemValue
 FUNCTION_AT_ADDRESS(bool EQ_Item::IsKeyRingItem(KeyRingType) const, EQ_Item__IsKeyRingItem);
 #endif
 #ifdef EQ_Item__CanGoInBag_x
-FUNCTION_AT_ADDRESS(bool EQ_Item::CanGoInBag(PCONTENTS* pCont, int unused, bool mustbefalse) const, EQ_Item__CanGoInBag);
+FUNCTION_AT_ADDRESS(bool EQ_Item::CanGoInBag(CONTENTS** pCont, int unused, bool mustbefalse) const, EQ_Item__CanGoInBag);
 #endif
 #ifdef EQ_Item__IsEmpty_x
 FUNCTION_AT_ADDRESS(bool EQ_Item::IsEmpty() const, EQ_Item__IsEmpty);
@@ -1631,7 +1628,7 @@ FUNCTION_AT_ADDRESS(bool EQ_Item::IsEmpty() const, EQ_Item__IsEmpty);
 FUNCTION_AT_ADDRESS(long EQ_Item::ValueSellMerchant(float, long) const, EQ_Item__ValueSellMerchant);
 #endif
 #ifdef EQ_Item__GetAugmentFitBySlot_x
-FUNCTION_AT_ADDRESS(int EQ_Item::GetAugmentFitBySlot(PCONTENTS*, int, bool, bool index) const, EQ_Item__GetAugmentFitBySlot);
+FUNCTION_AT_ADDRESS(int EQ_Item::GetAugmentFitBySlot(CONTENTS**, int, bool, bool index) const, EQ_Item__GetAugmentFitBySlot);
 #endif
 #ifdef EQ_Item__ValueSSell_x
 FUNCTION_AT_ADDRESS(char* EQ_Item::ValueSSell(float, long), EQ_Item__ValueSSell);

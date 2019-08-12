@@ -203,7 +203,7 @@ TLO(dataGroundItem)
 					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
 					if (pRealEstateItem)
 					{
-						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
 							if (PITEMINFO pItem = GetItemFromContents(pCont))
 							{
@@ -1105,7 +1105,7 @@ TLO(dataDefined)
 
 TLO(dataSelectedItem)
 {
-	if (((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem && ((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem->InvSlot)
+	if (((PEQINVSLOTMGR)pInvSlotMgr->pSelectedItem && ((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem->InvSlot)
 	{
 		class CInvSlot *pCIS = NULL;
 		struct _CONTENTS *pC = NULL;
@@ -1119,7 +1119,7 @@ TLO(dataSelectedItem)
 			return true;
 		}
 		else {//im working on this -eqmule 2013 dec 14
-			PCONTENTS pItem = FindItemByName("Worn Totem");
+			CONTENTS* pItem = FindItemByName("Worn Totem");
 			if (pItem && pInvSlotMgr) {
 				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1);
 				Sleep(0);
@@ -1133,7 +1133,7 @@ TLO(dataFindItemBank)
 {
 	if (!ISINDEX())
 		return false;
-	PCONTENTS pItem = 0;
+	CONTENTS* pItem = 0;
 	if (ISNUMBER()) {
 		if (pItem = FindBankItemByID(GETNUMBER())) {
 			Ret.Ptr = pItem;
@@ -1163,7 +1163,7 @@ TLO(dataFindItem)
 {
 	if (!ISINDEX())
 		return false;
-	PCONTENTS pItem = 0;
+	CONTENTS* pItem = 0;
 	if (ISNUMBER()) {
 		if (pItem = FindItemByID(GETNUMBER())) {
 			Ret.Ptr = pItem;

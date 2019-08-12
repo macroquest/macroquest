@@ -113,7 +113,7 @@ namespace MQ2Globals
 		pEQMisc = (EQMisc*)instEQMisc;
 		ppCSkillMgr = (CSkillMgr**)pinstSkillMgr;
 		pGuild = (CGuild*)__Guilds;
-		ppSkillMgr = (_SKILLMGR**)pinstSkillMgr;
+		ppSkillMgr = (SKILLMGR**)pinstSkillMgr;
 
 		pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
@@ -132,7 +132,7 @@ namespace MQ2Globals
 		pSpellSets = (SPELLFAVORITE*)pinstSpellSets;
 		pZoneInfo = (EQZoneInfo*)instEQZoneInfo;
 		ppAltAdvManager = (AltAdvManager**)pinstAltAdvManager;
-		ppConnection = (PCONNECTION_T*)__gWorld;
+		ppConnection = (connection_t**)__gWorld;
 #if defined(ROF2EMU) || defined(UFEMU)
 		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
 #endif
@@ -272,7 +272,7 @@ namespace MQ2Globals
 	DWORD LoginController__GiveTime = 0;
 
 	struct _actordefentry ActorDefList[] = {
-#include "actordef.h"
+#include "eqlib/data/actordef.h"
 		0, 0, "nullptr"
 	};
 
@@ -345,7 +345,7 @@ namespace MQ2Globals
 	BOOL gbUnload = FALSE;
 	bool gBindInProgress = false;
 	BOOL gbLoad = TRUE;
-	DWORD gpHook = nullptr;
+	DWORD gpHook = 0;
 	HMODULE ghmq2ic = nullptr;
 #ifndef ISXEQ
 	PMACROBLOCK gMacroBlock = nullptr;
@@ -354,7 +354,7 @@ namespace MQ2Globals
 	decltype(gMacroSubLookupMap) gMacroSubLookupMap;
 	decltype(gUndeclaredVars) gUndeclaredVars;
 	PEVENTQUEUE gEventQueue = nullptr;
-	int gEventFunc[NUM_EVENTS] = { nullptr };
+	int gEventFunc[NUM_EVENTS] = { 0 };
 #endif
 	UCHAR gLastFind = 0;
 	DOUBLE gZFilter = 10000.0f;
@@ -508,8 +508,8 @@ namespace MQ2Globals
 
 	// Arrays  (Note:  See also EQLib_Utilities.cpp)
 	DIKEYID gDiKeyID[] = {
-#include "dikeys.h"
-		{ nullptr, 0 }
+#include "eqlib/data/dikeys.h"
+		{ 0, 0 }
 	};
 
 	PCHAR gDiKeyName[256];
@@ -671,7 +671,7 @@ namespace MQ2Globals
 	};
 
 	PCHAR szSkills[] = {
-#include "skills.h"
+#include "eqlib/data/skills.h"
 		nullptr
 	};
 
@@ -695,25 +695,25 @@ namespace MQ2Globals
 	};
 
 	PCHAR szCombineTypes[] = {
-#include "combines.h"
+#include "eqlib/data/combines.h"
 		nullptr
 	};
 	SIZE_T MAX_COMBINES = sizeof(szCombineTypes) / sizeof(PCHAR);
 
 	PCHAR szItemTypes[] = {
-#include "itemtypes.h"
+#include "eqlib/data/itemtypes.h"
 		nullptr
 	};
 	SIZE_T MAX_ITEMTYPES = sizeof(szItemTypes) / sizeof(PCHAR);
 
 	PCHAR szSPATypes[] = {
-#include "SpellEffects.h"
+#include "eqlib/data/spelleffects.h"
 		nullptr
 	};
 	SIZE_T MAX_SPELLEFFECTS = (sizeof(szSPATypes) / sizeof(PCHAR))-1;
 
 	PCHAR szFactionNames[] = {
-#include "FactionNames.h"
+#include "eqlib/data/factionnames.h"
 		nullptr
 	};
 	SIZE_T MAX_FACTIONNAMES = (sizeof(szFactionNames) / sizeof(PCHAR))-1;
@@ -1093,7 +1093,7 @@ namespace MQ2Globals
 	PBYTE gpAutoFire = nullptr;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	PAUTOSKILL gpAutoSkill = nullptr;
-	#endif
+#endif
 	size_t g_eqgameimagesize = 0;
 	PBYTE gpShiftKeyDown = nullptr; // addr+1=ctrl, addr+2=alt
 	DWORD *gpMouseEventTime = nullptr;
@@ -1164,7 +1164,7 @@ namespace MQ2Globals
 	EQMisc* pEQMisc = nullptr;
 	CSkillMgr** ppCSkillMgr = nullptr;
 	CGuild* pGuild = nullptr;
-	_SKILLMGR** ppSkillMgr = nullptr;
+	SKILLMGR** ppSkillMgr = nullptr;
 	EVERQUESTINFO* ppEverQuestInfo = nullptr;
 
 	CEverQuest** ppEverQuest = nullptr;
@@ -1314,15 +1314,13 @@ namespace MQ2Globals
 	CItemDisplayManager** ppItemDisplayManager = nullptr;
 	EqSoundManager** ppEqSoundManager = nullptr;
 
+#ifdef __ExecuteCmd_x
+	FUNCTION_AT_ADDRESS(bool EQExecuteCmd(unsigned int command, bool keyDown, void* data, const KeyCombo* combo), __ExecuteCmd);
 #endif
 
-	BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3)
+	bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 	{
-#if !defined(ROF2EMU) && !defined(UFEMU)
-		return EQExecuteCmd(arg1, arg2, arg3, 0);
-#else
-		return EQExecuteCmd(arg1, arg2, arg3);
-#endif
+		return EQExecuteCmd(command, keyDown, data, nullptr);
 	}
 
 #if __has_include("MQ2Globals-private.cpp")

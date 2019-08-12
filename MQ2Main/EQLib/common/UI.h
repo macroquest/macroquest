@@ -1478,7 +1478,7 @@ public:
 	// GiveTo
 	EQLIB_OBJECT void DoAdvLootAction(int listindex, const CXStr& Name, bool Action, int Quantity);
 	// GiveTo
-	EQLIB_OBJECT void DoSharedAdvLootAction(PLOOTITEM pLootItem, const CXStr& Assignee, bool Action, int Quantity);
+	EQLIB_OBJECT void DoSharedAdvLootAction(LOOTITEM* pLootItem, const CXStr& Assignee, bool Action, int Quantity);
 
 	//----------------------------------------------------------------------------
 	// data members
@@ -2325,7 +2325,7 @@ public:
 	virtual int WndNotification(CXWnd*, uint32_t, void*) override;
 
 	EQLIB_OBJECT void CheckCloseable();
-	EQLIB_OBJECT void SetContainer(PCONTENTS &pContainer, const ItemGlobalIndex& location);
+	EQLIB_OBJECT void SetContainer(CONTENTS*& pContainer, const ItemGlobalIndex& location); // should be ItemBasePtr
 	EQLIB_OBJECT bool ContainsNoDrop();
 	EQLIB_OBJECT void HandleCombine();
 
@@ -2402,6 +2402,19 @@ public:
 	DWORD              Timer;
 	bool               bShowDone;
 };
+
+// TODO: Remove me
+// Actual Size 0x98  03/15/06
+struct EQ_CONTAINERWND_MANAGER
+{
+/*0x000*/ DWORD       pvfTable;                            // NOT based on CXWnd. Contains only destructor
+/*0x004*/ CContainerWnd* pPCContainers[0x22];              // All open containers, including World, in order of opening...
+/*0x08c*/ CONTENTS*   pWorldContents;                      // Pointer to the contents of the world If NULL, world container isn't open;
+/*0x090*/ DWORD       dwWorldContainerID;                  // ID of container in zone, starts at one (zero?) and goes up.
+/*0x094*/ DWORD       dwTimeSpentWithWorldContainerOpen;   // Cumulative counter?
+/*0x078*/
+};
+using PEQ_CONTAINERWND_MANAGER [[deprecated]] = EQ_CONTAINERWND_MANAGER*;
 
 
 //============================================================================
@@ -3026,7 +3039,7 @@ public:
 
 	// This is a pointer to the beginning of a list of pointers, each representing one player in
 	// the guild. The number of  pointers depends upon TotalMemberCount.
-/*0x198*/ GUILDMEMBERINFO** pMember;
+/*0x198*/ GuildMember** pMember;
 /*0x19c*/ DWORD        TotalMemberCount;
 /*0x1a0*/ DWORD        Unknown0x1a0;             // 150?
 /*0x1a4*/ DWORD        Unknown0x1a4;             // 1?
@@ -3362,7 +3375,7 @@ public:
 	EQLIB_OBJECT virtual bool AboutToShow() override;
 
 	EQLIB_OBJECT CXStr CreateEquipmentStatusString(EQ_Item*);
-	EQLIB_OBJECT void SetItem(PCONTENTS* pCont, int flags);
+	EQLIB_OBJECT void SetItem(CONTENTS** pCont, int flags);
 	EQLIB_OBJECT void SetItemText(char*);
 	EQLIB_OBJECT void SetSpell(int SpellID, bool HasSpellDescr, int);
 	EQLIB_OBJECT void UpdateStrings();
@@ -3401,7 +3414,7 @@ public:
 /*0x02c4*/ CXStr             BackupTabTitle;
 /*0x02c8*/ CXStr             SolventText;
 /*0x02cc*/ CXStr             ItemInformationText;      // Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
-/*0x02d0*/ PCONTENTS         pItem; // ItemBasePtr
+/*0x02d0*/ CONTENTS*         pItem; // ItemBasePtr
 /*0x02d4*/ bool              bActiveItem;
 /*0x02d5*/ bool              bItemTextSet;
 /*0x02d8*/ CTextureAnimation* BuffIcons;
@@ -4736,13 +4749,13 @@ public:
 
 	// todo: check and update
 /*0x148*/ DWORD        Unknown0x148[0x1b];
-/*0x1b4*/ EQTRADESKILLRECIPE* SearchResults[0x64];
+/*0x1b4*/ TradeskillRecipe* SearchResults[0x64];
 /*0x344*/ DWORD        Unknown0x344;
 /*0x348*/ DWORD        Unknown0x348;
 /*0x34c*/ DWORD        Unknown0x34c;
 /*0x350*/ CONTENTS*    Container;
 /*0x354*/ DWORD        Unknown0x354;
-/*0x358*/ EQTRADESKILLRECIPE* SelectedRecipe;
+/*0x358*/ TradeskillRecipe* SelectedRecipe;
 /*0x35c*/ DWORD        Unknown0x35c;
 /*0x360*/ DWORD        SkillLevel;
 /*0x364*/ DWORD        Unknown0x364;

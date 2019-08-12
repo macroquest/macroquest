@@ -1807,16 +1807,17 @@ public:
 
 	bool GETMEMBER();
 	DECLAREGETMETHOD();
-	INHERITINDIRECT(pSpellType, Temp.Ptr = GetSpellByID(((PSPELLBUFF)ObjectData.Ptr)->SpellID), 0);
+	INHERITINDIRECT(pSpellType, Temp.Ptr = GetSpellByID(((SPELLBUFF*)ObjectData.Ptr)->SpellID), 0);
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		if ((int)((PSPELLBUFF)VarPtr.Ptr)->SpellID>0)
+
+		if ((int)((SPELLBUFF*)VarPtr.Ptr)->SpellID > 0)
 		{
-			if (PSPELL pSpell = GetSpellByID(((PSPELLBUFF)VarPtr.Ptr)->SpellID))
+			if (SPELL* pSpell = GetSpellByID(((SPELLBUFF*)VarPtr.Ptr)->SpellID))
 			{
-				strcpy_s(Destination,MAX_STRING, pSpell->Name);
+				strcpy_s(Destination, MAX_STRING, pSpell->Name);
 				return true;
 			}
 		}
@@ -1872,7 +1873,7 @@ public:
 	{
 		if (VarPtr.Int == -1)
 			return false;
-		int buffid = ((PCTARGETWND)pTargetWnd)->BuffSpellID[VarPtr.Int];
+		int buffid = pTargetWnd->BuffSpellID[VarPtr.Int];
 		if (buffid > 0)
 		{
 			if (PSPELL pSpell = GetSpellByID(buffid))
@@ -2376,7 +2377,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, GetItemFromContents((PCONTENTS)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, GetItemFromContents((CONTENTS*)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -2593,9 +2594,9 @@ public:
 						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
 						if (pRealEstateItem)
 						{
-							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+							if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 							{
-								if (PITEMINFO pItem = GetItemFromContents(pCont))
+								if (ITEMINFO* pItem = GetItemFromContents(pCont))
 								{
 									strcpy_s(Destination, MAX_STRING, pItem->Name);
 									return true;
@@ -2815,35 +2816,27 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-#if !defined(ROF2EMU) && !defined(UFEMU)
-		CMerchantWnd *pcm = (CMerchantWnd*)pMerchantWnd;
-		PEQMERCHWINDOW peqm = (PEQMERCHWINDOW)pMerchantWnd;
-		if (pcm)
+		if (pMerchantWnd)
 		{
-			int sz = pcm->PageHandlers.Begin->pObject->ItemContainer.GetSize();
-			if (sz) {
-				if (VarPtr.Int >= 0 && VarPtr.Int < sz) {
-					strcpy_s(Destination, MAX_STRING, pcm->PageHandlers.Begin->pObject->ItemContainer[VarPtr.Int].pCont->Item2->Name);
+			int sz = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize();
+			if (sz)
+			{
+				if (VarPtr.Int >= 0 && VarPtr.Int < sz)
+				{
+					strcpy_s(Destination, MAX_STRING,
+						pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[VarPtr.Int].pCont->Item2->Name);
 					return true;
 				}
 			}
 		}
 		return false;
-#else
-		if (pPointMerchantWnd && pPointMerchantWnd->NumItems)
-		{
-			if (VarPtr.Int >= 0 && VarPtr.Int < pPointMerchantWnd->NumItems) {
-				strcpy_s(Destination, MAX_STRING, pPointMerchantWnd->Items[VarPtr.Int]->ItemName);
-				return true;
-			}
-		}
-		return false;
-#endif
 	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		return false;
 	}
+
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		return false;
@@ -3232,7 +3225,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->IsVisible())
+		if (VarPtr.Ptr && ((CXWnd*)VarPtr.Ptr)->IsVisible())
 			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination,MAX_STRING, "FALSE");
@@ -4831,7 +4824,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr && ((PCONTENTS)VarPtr.Ptr)->IsEvolvingItem)
+		if (VarPtr.Ptr && ((CONTENTS*)VarPtr.Ptr)->IsEvolvingItem)
 			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination,MAX_STRING, "FALSE");
@@ -4910,7 +4903,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, ((PDZMEMBER)VarPtr.Ptr)->Name);
+		strcpy_s(Destination, MAX_STRING, ((DZMEMBER*)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4960,7 +4953,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr && ((PFELLOWSHIPINFO)VarPtr.Ptr)->FellowshipID)
+		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipID)
 			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination,MAX_STRING, "FALSE");
@@ -5001,7 +4994,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, ((PFELLOWSHIPMEMBER)VarPtr.Ptr)->Name);
+		strcpy_s(Destination, MAX_STRING, ((FELLOWSHIPMEMBER*)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -5040,8 +5033,8 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		// return the number of friends here...
-		if (((PEVERQUEST)pEverQuest)->ChatService) {
-			class CChatService *pChat = (class CChatService *) ((PEVERQUEST)pEverQuest)->ChatService;
+		if (((EVERQUEST*)pEverQuest)->ChatService) {
+			class CChatService *pChat = (class CChatService *) ((EVERQUEST*)pEverQuest)->ChatService;
 			sprintf_s(Destination, MAX_STRING, "%d", pChat->GetNumberOfFriends());
 			return true;
 		}
@@ -5629,7 +5622,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (PLOOTITEM pitem = (PLOOTITEM)VarPtr.Ptr) {
+		if (LOOTITEM* pitem = (LOOTITEM*)VarPtr.Ptr) {
 			strcpy_s(Destination, 64, pitem->Name);
 			return true;
 		}
@@ -5897,7 +5890,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (CHARINFO2* pChar2 = GetCharInfo2()) {
 			int index = VarPtr.DWord;
 			if (index < 0)
 				index = 0;
@@ -5906,7 +5899,7 @@ public:
 			int zindex = pChar2->BoundLocations[index].ZoneBoundID & 0x7FFF;
 			if (zindex < MAX_ZONES)
 			{
-				if (PZONELIST pList = ((PWORLDDATA)pWorldData)->ZoneArray[zindex]) {
+				if (ZONELIST* pList = ((WORLDDATA*)pWorldData)->ZoneArray[zindex]) {
 					strcpy_s(Destination, MAX_STRING, pList->ShortName);
 					return true;
 				}
@@ -6042,9 +6035,9 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (PCONTENTS pCont = (PCONTENTS)VarPtr.HighPart) {
-			if (PCONTENTS pAug = pCont->GetContent(VarPtr.DWord)) {
-				if (PITEMINFO pAugItem = GetItemFromContents(pAug)) {
+		if (CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart) {
+			if (CONTENTS* pAug = pCont->GetContent(VarPtr.DWord)) {
+				if (ITEMINFO* pAugItem = GetItemFromContents(pAug)) {
 					strcpy_s(Destination, MAX_STRING, pAugItem->Name);
 					return true;
 				}
@@ -6127,7 +6120,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (PAURAINFO pAura = (PAURAINFO)VarPtr.Ptr) {
+		if (AURAINFO* pAura = (AURAINFO*)VarPtr.Ptr) {
 			strcpy_s(Destination, MAX_STRING, pAura->Name);
 			return true;
 		}
@@ -6211,7 +6204,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (PCHARINFO2 pChar2 = GetCharInfo2())
+		if (CHARINFO2* pChar2 = GetCharInfo2())
 		{
 			int index = VarPtr.DWord;
 			if (index < 0)

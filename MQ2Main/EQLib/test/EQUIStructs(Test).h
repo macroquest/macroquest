@@ -163,20 +163,6 @@ enum eContextMenuFilterIDs
 	// todo check the ids.
 };
 
-// Actual Size 0x98  03/15/06
-struct EQ_CONTAINERWND_MANAGER
-{
-/*0x000*/ DWORD       pvfTable;                            // NOT based on CXWnd. Contains only destructor
-/*0x004*/ EQCONTAINERWINDOW* pPCContainers[0x22];          // All open containers, including World, in order of opening...
-/*0x08c*/ CONTENTS*   pWorldContents;                      // Pointer to the contents of the world If NULL, world container isn't open;
-/*0x090*/ DWORD       dwWorldContainerID;                  // ID of container in zone, starts at one (zero?) and goes up.
-/*0x094*/ DWORD       dwTimeSpentWithWorldContainerOpen;   // Cumulative counter?
-/*0x078*/
-};
-using PEQ_CONTAINERWND_MANAGER = EQ_CONTAINERWND_MANAGER*;
-
-
-
 struct LOOTCORPSE
 {
 /*0x000*/ BYTE         Unknown0x000;             // 03 seems very common (for NPC anyway)

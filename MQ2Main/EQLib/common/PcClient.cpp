@@ -287,7 +287,7 @@ FUNCTION_AT_ADDRESS(int EQ_Character::ApplyFatigue(int), EQ_Character__ApplyFati
 FUNCTION_AT_ADDRESS(int EQ_Character::max_encumbrance(), EQ_Character__max_encumbrance);
 #endif
 #ifdef EQ_Character__CanUseItem_x
-FUNCTION_AT_ADDRESS(bool EQ_Character1::CanUseItem(PCONTENTS*, bool, bool), EQ_Character__CanUseItem);
+FUNCTION_AT_ADDRESS(bool EQ_Character1::CanUseItem(CONTENTS**, bool, bool), EQ_Character__CanUseItem);
 #endif
 #ifdef EQ_Character__encum_factor_x
 FUNCTION_AT_ADDRESS(float EQ_Character::encum_factor(), EQ_Character__encum_factor);

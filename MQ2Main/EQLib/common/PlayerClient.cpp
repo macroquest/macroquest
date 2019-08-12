@@ -456,13 +456,13 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::IsAMount(), EQPlayer__IsAMount);
 //============================================================================
 
 #ifdef EQPlayerManager__GetSpawnByID_x
-FUNCTION_AT_ADDRESS(PlayerClient* EQPlayerManager::GetSpawnByID(int), EQPlayerManager__GetSpawnByID);
+FUNCTION_AT_ADDRESS(PlayerClient* PlayerManagerClient::GetSpawnByID(int), EQPlayerManager__GetSpawnByID);
 #endif
 #ifdef EQPlayerManager__GetSpawnByName_x
-FUNCTION_AT_ADDRESS(PlayerClient* EQPlayerManager::GetSpawnByName(char*), EQPlayerManager__GetSpawnByName);
+FUNCTION_AT_ADDRESS(PlayerClient* PlayerManagerClient::GetSpawnByName(char*), EQPlayerManager__GetSpawnByName);
 #endif
 #ifdef EQPlayerManager__GetPlayerFromPartialName_x
-FUNCTION_AT_ADDRESS(PlayerClient* EQPlayerManager::GetPlayerFromPartialName(const char*, PlayerBase*), EQPlayerManager__GetPlayerFromPartialName);
+FUNCTION_AT_ADDRESS(PlayerClient* PlayerManagerClient::GetPlayerFromPartialName(const char*, PlayerBase*), EQPlayerManager__GetPlayerFromPartialName);
 #endif
 
 //============================================================================

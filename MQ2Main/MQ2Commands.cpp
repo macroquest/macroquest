@@ -462,7 +462,7 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
 				if (pRealEstateItem)
 				{
-					if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+					if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 					{
 						if (PITEMINFO pItem = GetItemFromContents(pCont))
 						{
@@ -596,7 +596,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
 					if (pRealEstateItem)
 					{
-						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
 							if (PITEMINFO pItem = GetItemFromContents(pCont))
 							{
@@ -987,9 +987,9 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 				if (pmercho->IsVisible())
 				{
 					PITEMINFO pItem = 0;
-					PCONTENTS pCont = 0;
+					CONTENTS* pCont = 0;
 					bool bFound = false;
-					if (PCONTENTS pCont = FindItemByName(szBuffer, bExact))
+					if (CONTENTS* pCont = FindItemByName(szBuffer, bExact))
 					{
 						ItemGlobalIndex To;
 						To.Location = pCont->GetGlobalIndex().Location;
@@ -1026,10 +1026,8 @@ void BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = FALSE;
 	if (!pMerchantWnd) return;
 
-	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szQty[MAX_STRING] = { 0 };
 	PCHARINFO pCharInfo = nullptr;
-	DWORD Qty;
 
 	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
 		return;
@@ -1037,7 +1035,7 @@ void BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
 	{
 		GetArg(szQty, szLine, 1);
-		Qty = (DWORD)atoi(szQty);
+		int Qty = atoi(szQty);
 		if (Qty < 1) return;
 
 		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestGetItem(Qty);
@@ -1051,55 +1049,27 @@ void BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 // uses private: void __thiscall CMerchantWnd::RequestSellItem(int)
 // will sell the specified quantity of the currently selected item
 // ***************************************************************************
-#if !defined(UFEMU)
-VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
+void SellItem(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = FALSE;
 	if (!pMerchantWnd) return;
 
-	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szQty[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = NULL;
-	DWORD Qty;
-	if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->SelectedSlotID)
-		return;
-	if (((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther && ((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData) {
-		GetArg(szQty, szLine, 1);
-		Qty = (DWORD)atoi(szQty);
-		if (Qty < 1)
-			return;
-		//CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
-		if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
-		{
-			pmercho->PageHandlers[0].pObject->RequestPutItem(Qty);
-		}
-	}
-}
-#else
-//todo: check manually
-VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
-{
-    bRunNextCommand = FALSE;
-    if (!pMerchantWnd) return;
+	PCHARINFO pCharInfo = nullptr;
 
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR szQty[MAX_STRING] = {0};
-    PCHARINFO pCharInfo = NULL;
-    DWORD Qty;
-    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem) return;
-	if (PCONTENTS pBase = (PCONTENTS)*((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem)
+	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
+		return;
+
+	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
 	{
 		GetArg(szQty, szLine, 1);
-		Qty = (DWORD)atoi(szQty);
-		if (Qty < 1)
-			return;
-		if (PITEMINFO pIInfo = GetItemFromContents(pBase))
-		{
-			pMerchantWnd->RequestSellItem(Qty > pIInfo->StackSize ? pIInfo->StackSize : Qty);
-		}
+		int Qty = atoi(szQty);
+		if (Qty < 1) return;
+
+		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestPutItem(Qty);
 	}
 }
-#endif
+
 // ***************************************************************************
 // Function:    Help
 // Description: Our '/help' command
@@ -2628,7 +2598,7 @@ void CastSplash(int Index, PSPELL pSpell,CVector3 *pos)
 			vec3.Z = ((PSPAWNINFO)pLocalPlayer)->Z;
 		}
 		//ok we better check if splash can be cast in the location
-		bool cansee = pLocalPlayer->CanSee(&vec3);
+		bool cansee = pLocalPlayer->CanSee(vec3);
 		if (cansee) {
 			float dist = Get3DDistance(vec3.Y, vec3.X, vec3.Z, ((PSPAWNINFO)pLocalPlayer)->X, ((PSPAWNINFO)pLocalPlayer)->Y, ((PSPAWNINFO)pLocalPlayer)->Z);
 			if (dist < pTR->thespell->Range) {
@@ -2714,7 +2684,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (HasExpansion(EXPANSION_VoA))
 		{
-			if (PCONTENTS pItem = FindItemByName(szArg2, true))
+			if (CONTENTS* pItem = FindItemByName(szArg2, true))
 			{
 				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 				{
@@ -2727,18 +2697,20 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 				WriteChatf("Item '%s' not found.", szArg2);
 			}
 		}
-		else {
-			if (PCONTENTS pItem = FindItemByName(szArg2, true))
+		else
+		{
+			if (CONTENTS* pItem = FindItemByName(szArg2, true))
 			{
 				if (pItem->GetGlobalIndex().Index.Slot1 < NUM_INV_SLOTS)
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{
-						if (pInvSlotMgr) {
+						if (pInvSlotMgr)
+						{
 							if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1))
 							{
-								CXPoint p; p.X = 0; p.Y = 0;
-								pSlot->HandleRButtonUp(&p);
+								CXPoint p{ 0, 0 };
+								pSlot->HandleRButtonUp(p);
 							}
 						}
 					}
@@ -2858,7 +2830,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 		else if (!strcmp(szArg, "ccb")) {
 			if (pTarget)
 			{
-				int id = pTarget->Data.SpawnID;
+				int id = pTarget->SpawnID;
 				if (CachedBuffsMap.find(id) != CachedBuffsMap.end())
 				{
 					pTarget = NULL;
@@ -3195,7 +3167,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHARINFO pCharInfo = NULL;
-	PCONTENTS pContainer = NULL;
+	CONTENTS* pContainer = NULL;
 	if (NULL == (pCharInfo = GetCharInfo())) {
 		MacroError("/banklist -- Bad offset: CharInfo");
 		return;
@@ -3239,57 +3211,45 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 	GetArg(Arg2, szLine, 2);
-	if (PCSIDLWND pWnd = (PCSIDLWND)FindMQ2Window(Arg1))
+
+	CSidlScreenWnd* pWnd = (CSidlScreenWnd*)FindMQ2Window(Arg1);
+	if (pWnd && pWnd->IsType(WRT_SIDLSCREENWND))
 	{
-		DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
-		CHAR *szBuffer = new CHAR[MAX_STRING];
-		bool State = pWnd->IsVisible();
-		if (!_stricmp(Arg2, "open")) State = 1;
-		if (!_stricmp(Arg2, "close")) State = 0;
-		//if (pWnd->dShow == State) State = 99;
-		switch (State) {
-		case 0:
+		bool show = pWnd->IsVisible();
+
+		if (!_stricmp(Arg2, "open")) show = true;
+		if (!_stricmp(Arg2, "close")) show = false;
+
+		if (show)
 		{
-			((CXWnd*)pWnd)->Show(0, 1);
-			if (CXStr Str = pWnd->GetWindowText())
-			{
-				CHAR *szBuf = new CHAR[MAX_STRING];
-				GetCXStr(Str, szBuf);
-				sprintf_s(szBuffer,MAX_STRING, "Window '%s' is now closed.", szBuf);
-				delete szBuf;
-			}
-			else
-			{
-				sprintf_s(szBuffer,MAX_STRING, "Window '%s' is now closed.", Arg1);
-			}
-			((CSidlScreenWnd*)pWnd)->StoreIniVis();
-			break;
+			pWnd->Show(false);
 		}
-		case 1:
-			__asm {
-				push ecx;
-				mov ecx, [pWnd];
-				call dword ptr[ShowWindow];
-				pop ecx;
-			}
-			if (PCXSTR Str = pWnd->CGetWindowText())
-			{
-				CHAR *szBuf = new CHAR[MAX_STRING];
-				GetCXStr(Str, szBuf);
-				sprintf_s(szBuffer, MAX_STRING, "Window '%s' is now open.", szBuf);
-				delete szBuf;
-			}
-			else 
-			{
-				sprintf_s(szBuffer, MAX_STRING, "Window '%s' is now open.", Arg1);
-			}
-			((CSidlScreenWnd*)pWnd)->StoreIniVis();
-			break;
+		else
+		{
+			pWnd->Show(true);
 		}
+
+		char szBuffer[256];
+
+		if (!pWnd->GetWindowText().empty())
+		{
+			sprintf_s(szBuffer, "Window '%s' is now %s.",
+				show ? "open" : "closed",
+				pWnd->GetWindowText().c_str());
+		}
+		else
+		{
+			sprintf_s(szBuffer, "Window '%s' is now %s.",
+				show ? "open" : "closed",
+				Arg1);
+		}
+
+		pWnd->StoreIniVis();
+
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		delete szBuffer;
 		return;
 	}
+
 	SyntaxError("Usage: /windowstate <window> [open|close]");
 }
 
@@ -3460,9 +3420,9 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // /ranged
-VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine)
+void do_ranged(PSPAWNINFO pChar, PCHAR szLine)
 {
-	EQPlayer *pRangedTarget = pTarget;
+	PlayerClient* pRangedTarget = pTarget;
 	if (szLine[0])
 	{
 		pRangedTarget = GetSpawnByID(atoi(szLine));
@@ -3623,7 +3583,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 			cmdUseItem(pChar, szCmd);
 		}
 		else {
-			if (PCONTENTS pItem = FindItemByName(szCmd, stripped)) {
+			if (CONTENTS* pItem = FindItemByName(szCmd, stripped)) {
 				bool bKeyring = false;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 				if (PCHARINFO pCharInfo = GetCharInfo()) {
@@ -3796,18 +3756,24 @@ VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /combine <pack>");
 		return;
 	}
-	CXWnd *pWnd = FindMQ2Window(szLine);
+
+	CXWnd* pWnd = FindMQ2Window(szLine);
 	if (!pWnd)
 	{
 		MacroError("Window '%s' not open", szLine);
 		return;
 	}
-	if ((DWORD)pWnd->pvfTable != CContainerWnd__vftable)
+
+	// TODO: Check this string logic
+	if (*pWnd->GetWindowName() == "ContainerWindow")
 	{
-		MacroError("Window '%s' not container window", szLine);
+		CContainerWnd* pContainerWnd = static_cast<CContainerWnd*>(pWnd);
+		pContainerWnd->HandleCombine();
+
 		return;
 	}
-	((CContainerWnd*)pWnd)->HandleCombine();
+
+	MacroError("Window '%s' not container window", szLine);
 }
 
 VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
@@ -4051,8 +4017,10 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			WriteChatColor("Alternative Abilities With Timers", CONCOLOR_YELLOW);
 			WriteChatColor("---------------------------------", USERCOLOR_WHO);
-			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
+			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++)
+			{
+				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+				{
 					if ((pAltAdvManager->GetCalculatedTimer(pPCData, pAbility)) > 0)
 					{
 						if (pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0))
@@ -4086,7 +4054,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility))
 			{
-				char *pName;
+				const char *pName;
 				if (!_stricmp(pName = pCDBStr->GetString(pAbility->nName, 1, NULL), szName))
 				{
 
@@ -4162,7 +4130,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		// only search through the ones we have...
 		for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 			if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-				if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 					if (!_stricmp(szName, pName)) {
 						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);
 						DoCommand(pChar, szBuffer);
@@ -4266,6 +4234,7 @@ VOID SetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
+
 VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 {
 	BOOL bHide = atoi(szLine);
@@ -4274,7 +4243,7 @@ VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 	DWORD pid = lReturn;
 	BOOL ret = EnumWindows(EnumWindowsProc, (LPARAM)&lReturn);
 	if (lReturn != pid) {
-		if (GetWindowText((HWND)lReturn, szLine, 255) && szLine[0] != '\0') {
+		if (GetWindowTextA((HWND)lReturn, szLine, 255) && szLine[0] != '\0') {
 			if (!bHide)
 				WriteChatf("Window Title: \ay%s\ax", szLine);
 		}
@@ -4393,7 +4362,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 			else if (!_stricmp(szCmd, "shared")) {
 				cmdtype = 3;
 			}
-			PLOOTITEM pitem = 0;
+			LOOTITEM* pitem = 0;
 			if (cmdtype == 2) {
 				GetArg(szID, szLine, 2);
 				LONG index = -1;
@@ -4409,7 +4378,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 								int listindex = (int)pPersonalList->GetItemData(k);
 								if (listindex != -1) {
 									DWORD multiplier = sizeof(LOOTITEM) * listindex;
-									if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pPLootList->pLootItem) + multiplier)) {
+									if (LOOTITEM* pItem = (LOOTITEM*)(((DWORD)pAdvLoot->pPLootList->pLootItem) + multiplier)) {
 										if (!_stricmp(pItem->Name, szID)) {
 											index = k;
 											break;
@@ -4423,7 +4392,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					int listindex = (int)pPersonalList->GetItemData(index);
 					if (pAdvLoot && pAdvLoot->pPLootList && listindex != -1) {
 						DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-						pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
+						pitem = (LOOTITEM*)(addr + (sizeof(LOOTITEM)*listindex));
 						if (!_stricmp(szAction, "loot")) {
 							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 2)) {//loot
 								SendWndClick2(pwnd, "leftmouseup");
@@ -4463,32 +4432,39 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				return;
 			}
-			else if (cmdtype == 3) {
+			else if (cmdtype == 3)
+			{
 				GetArg(szID, szLine, 2);
-				if (!_stricmp(szID, "set")) {
+				if (!_stricmp(szID, "set"))
+				{
 					CHAR szEntity[MAX_STRING] = { 0 };
 					GetArg(szEntity, szLine, 3);
-					CXStr Str;
-					CHAR szOut[MAX_STRING] = { 0 };
-					if (CComboWnd *pCombo = (CComboWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
-						if (CListWnd*pListWnd = pCombo->pListWnd) {
+
+					if (CComboWnd* pCombo = (CComboWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo"))
+					{
+						if (CListWnd* pListWnd = pCombo->pListWnd)
+						{
 							DWORD itemcnt = pCombo->GetItemCount();
-							for (DWORD i = 0; i < itemcnt; i++) {
-								pListWnd->GetItemText(&Str, i, 0);
-								GetCXStr(Str.Ptr, szOut, MAX_STRING);
-								if (szOut[0] != '\0') {
-									if (!_stricmp(szEntity, szOut)) {
-										CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
+							for (DWORD i = 0; i < itemcnt; i++)
+							{
+								CXStr str = pListWnd->GetItemText(i, 0);
+								if (!str.empty())
+								{
+									if (!_stricmp(szEntity, str.c_str()))
+									{
+										CXRect comborect = pCombo->GetScreenRect();
 										CXPoint combopt = comborect.CenterPoint();
 										pCombo->SetChoice(i);
-										((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
+										pCombo->HandleLButtonDown(combopt, 0);
 										int index = pListWnd->GetCurSel();
 										CXRect listrect = pListWnd->GetItemRect(index, 0);
 										CXPoint listpt = listrect.CenterPoint();
-										((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
-										((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+										pListWnd->HandleLButtonDown(listpt, 0);
+										pListWnd->HandleLButtonUp(listpt, 0);
 										gMouseEventTime = GetFastTime();
-										if (CXWnd *pButton = (CXWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn")) {
+
+										if (CXWnd* pButton = pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn"))
+										{
 											SendWndClick2(pButton, "leftmouseup");
 										}
 										break;
@@ -4511,7 +4487,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 							int listindex = (int)pSharedList->GetItemData(k);
 							if (listindex != -1) {
 								DWORD multiplier = sizeof(LOOTITEM) * listindex;
-								if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
+								if (LOOTITEM* pItem = (LOOTITEM*)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
 									if (!_stricmp(pItem->Name, szID)) {
 										index = k;
 										break;
@@ -4526,7 +4502,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 						int listindex = (int)pSharedList->GetItemData(index);
 						if (listindex != -1) {
 							DWORD multiplier = sizeof(LOOTITEM) * listindex;
-							if (pitem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
+							if (pitem = (LOOTITEM*)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
 								if (!_stricmp(szAction, "leave")) {
 									if (PCHARINFO pchar = GetCharInfo()) {
 										if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.m_length) {
@@ -4534,50 +4510,67 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 										}
 									}
 								}
-								else if (!_stricmp(szAction, "giveto")) {
+								else if (!_stricmp(szAction, "giveto"))
+								{
 									CHAR szEntity[MAX_STRING] = { 0 };
 									GetArg(szEntity, szLine, 4);
 									CHAR szQty[MAX_STRING] = { 0 };
 									GetArg(szQty, szLine, 5);
-									CHAR szOut[MAX_STRING] = { 0 };
-									//WriteChatf("DEBUG: Giveto Entity %s  Qty %s", szEntity, szQty);
-									if (szEntity[0] != '\0') {
-										if (PCHARINFO pCI = GetCharInfo()) {
-											if (pCI->pGroupInfo) {
-												for (int i = 0; i < 6; i++) {
-													if (pCI->pGroupInfo->pMember[i] && pCI->pGroupInfo->pMember[i]->Mercenary == 0 && pCI->pGroupInfo->pMember[i]->pName) {
-														GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, MAX_STRING);
-														if (!_stricmp(szOut, szEntity))
+									CXStr out;
+
+									if (szEntity[0] != '\0')
+									{
+										if (PCHARINFO pCI = GetCharInfo())
+										{
+											if (pCI->pGroupInfo)
+											{
+												for (int i = 0; i < 6; i++)
+												{
+													if (pCI->pGroupInfo->pMember[i]
+														&& pCI->pGroupInfo->pMember[i]->Mercenary == 0
+														&& !pCI->pGroupInfo->pMember[i]->Name.empty())
+													{
+														if (!_stricmp(pCI->pGroupInfo->pMember[i]->Name.c_str(), szEntity))
 														{
+															out = pCI->pGroupInfo->pMember[i]->Name;
 															break;
-														}
-														else {
-															szOut[0] = '\0';
 														}
 													}
 												}
 											}
+
 											//not found? check raid
-											if (!szOut[0]) {
-												if (pRaid && pRaid->RaidMemberCount) {
-													for (DWORD nMember = 0; nMember < 72; nMember++) {
-														if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity)) {
-															strcpy_s(szOut, pRaid->RaidMember[nMember].Name);
+											if (out.empty())
+											{
+												if (pRaid && pRaid->RaidMemberCount)
+												{
+													for (DWORD nMember = 0; nMember < 72; nMember++)
+													{
+														if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity))
+														{
+															out = pRaid->RaidMember[nMember].Name;
 															break;
 														}
 													}
 												}
 											}
-											if (!_stricmp(szOut, szEntity)) {
+
+											if (!_stricmp(out.c_str(), szEntity))
+											{
+												// TODO: Check array usage
 												int qty = atoi(szQty);
-												if (pitem && pitem->LootDetails.m_length) {
-													if (qty == 0 || qty > pitem->LootDetails.m_array[0].StackCount) {
-														qty = pitem->LootDetails.m_array[0].StackCount;
-														if (qty == 0) {
+												if (pitem && !pitem->LootDetails.IsEmpty())
+												{
+													if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
+													{
+														qty = pitem->LootDetails[0].StackCount;
+														if (qty == 0)
+														{
 															qty = 1;
 														}
 													}
-													pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(szOut), 0, qty);
+
+													pAdvancedLootWnd->DoSharedAdvLootAction(pitem, out, 0, qty);
 													return;
 												}
 											}
@@ -4661,44 +4654,60 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 	int nInst = (int)pData;
 	CHAR szInst[32] = { 0 };
 	_itoa_s(nInst, szInst, 10);
-	if (PCHARINFO pCharInfo = GetCharInfo()) {
+
+	if (PCHARINFO pCharInfo = GetCharInfo())
+	{
 		cmdPickZone(pCharInfo->pSpawn, NULL);
 		Sleep(2000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
-		if (CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd")) {
-			if (krwnd->IsVisible()) {
-				if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList")) {
-					if (DWORD numitems = clist->ItemsArray.Count) {
-						if (CButtonWnd *cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton")) {
-							CHAR szOut[MAX_STRING] = { 0 };
-							CXStr Str;
+
+		if (CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd"))
+		{
+			if (krwnd->IsVisible())
+			{
+				if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList"))
+				{
+					if (DWORD numitems = clist->ItemsArray.Count)
+					{
+						if (CButtonWnd* cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton"))
+						{
 							std::string s;
 							bool itsmain = false;
 							bool clickit = false;
-							for (DWORD i = 0; i<numitems; i++) {
-								clist->GetItemText(&Str, i, 0);
-								GetCXStr(Str.Ptr, szOut, MAX_STRING);
-								if (szOut[0] != '\0') {
-									s = szOut;
-									if (std::string::npos == s.find_first_of("123456789")) {
+
+							for (DWORD i = 0; i<numitems; i++)
+							{
+								CXStr Str =clist->GetItemText(i, 0);
+								if (!Str.empty())
+								{
+									std::string s{ Str };
+
+									if (std::string::npos == s.find_first_of("123456789"))
+									{
 										itsmain = true;
 									}
-									if (itsmain && nInst == 0) {
+									if (itsmain && nInst == 0)
+									{
 										clickit = true;
 									}
-									else if (nInst >= 1) {
-										if (std::string::npos != s.find(szInst)) {
+									else if (nInst >= 1)
+									{
+										if (std::string::npos != s.find(szInst))
+										{
 											clickit = true;
 										}
 									}
-									if (clickit) {
+
+									if (clickit)
+									{
 										SendListSelect("MIZoneSelectWnd", "MIZ_ZoneList", i);
 										Sleep(500);
 										SendWndClick2((CXWnd*)cbutt, "leftmouseup");
-										WriteChatf("%s selected.", szOut);
+										WriteChatf("%s selected.", Str.c_str());
 										return 0;
 									}
 								}
 							}
+
 							WriteChatf("%s instance %d NOT found in list", GetFullZone(pCharInfo->zoneId), nInst);
 						}
 					}
@@ -4997,12 +5006,12 @@ VOID MapZoomCmd(PSPAWNINFO pChar, char *szLine)
 		FLOAT MapViewMaxY;
 	}sMapViewMap,*PsMapViewMap;
 	if (PEQMAPWINDOW pMap = (PEQMAPWINDOW)pMapViewWnd) {
-		PsMapViewMap pMapView = (PsMapViewMap)&pMap->pMapViewMapVfTable;
-		float fTemp = fabsf(pMapView->MapViewMaxX - pMapView->MapViewMinX);
-		//todo: get the formulae right...
-		float theabs = fTemp / 360.0f / (fZoom + 1) * 10000;
-		int Range = (int)fTemp;
-		((MapViewMap*)pMapView)->SetZoom(theabs);
+		//PsMapViewMap pMapView = (PsMapViewMap)&pMap->pMapViewMapVfTable;
+		//float fTemp = fabsf(pMapView->MapViewMaxX - pMapView->MapViewMinX);
+		////todo: get the formulae right...
+		//float theabs = fTemp / 360.0f / (fZoom + 1) * 10000;
+		//int Range = (int)fTemp;
+		//((MapViewMap*)pMapView)->SetZoom(theabs);
 	}
 }
 void SetForegroundWindowInternal(HWND hWnd)
@@ -5050,7 +5059,7 @@ VOID ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 		EQhWnd = (HWND)lReturn;
 		SetForegroundWindowInternal(EQhWnd);
 		//ShowWindow(hWnd, SW_SHOWNORMAL);
-	}	
+	}
 	else
 	{
 		if (EQW_GetDisplayWindow)

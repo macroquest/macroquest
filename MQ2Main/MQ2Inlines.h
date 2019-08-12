@@ -19,21 +19,26 @@
 #include <cctype>
 #include <locale>
 
-EQLIB_API PCHAR       CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
+EQLIB_API PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
 
-static inline PCHARINFO GetCharInfo(VOID) {
+inline PCHARINFO GetCharInfo()
+{
 	//   if (!ppCharData) return NULL;
 	//pPCData and pCharData points to same address
 	return (PCHARINFO)pCharData;
 }
 
-static inline PCHARINFO2 GetCharInfo2(VOID) {
-	if (PCHARINFO pChar = (PCHARINFO)pCharData) {
-		if (pChar->ProfileManager.pFirst) {
-		return (PCHARINFO2)pChar->ProfileManager.GetCurrentProfile();
+inline PCHARINFO2 GetCharInfo2()
+{
+	if (CHARINFO* pChar = (CHARINFO*)pCharData)
+	{
+		if (pChar->ProfileManager.pFirst)
+		{
+			return (CHARINFO2*)pChar->ProfileManager.GetCurrentProfile();
 		}
 	}
-	return NULL;
+
+	return nullptr;
 }
 
 inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)
@@ -368,17 +373,19 @@ static inline DWORD GetCharMaxBuffSlots()
 
 static inline DWORD GetBodyType(PSPAWNINFO pSpawn)
 {
-	for (int i = 0; i<104; i++)
+	for (int i = 0; i < 104; i++)
 	{
-		if (((EQPlayer*)pSpawn)->HasProperty(i, 0, 0))
+		PlayerClient* pc = (PlayerClient*)pSpawn;
+
+		if (pc->HasProperty(i, 0, 0))
 		{
 			if (i == 100)
 			{
-				if (((EQPlayer*)pSpawn)->HasProperty(i, 101, 0))
+				if (pc->HasProperty(i, 101, 0))
 					return 101;
-				if (((EQPlayer*)pSpawn)->HasProperty(i, 102, 0))
+				if (pc->HasProperty(i, 102, 0))
 					return 102;
-				if (((EQPlayer*)pSpawn)->HasProperty(i, 103, 0))
+				if (pc->HasProperty(i, 103, 0))
 					return 103;
 			}
 			return i;
@@ -748,9 +755,9 @@ static inline BOOL IsMobFleeing(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 	else return ((Heading < LB) && (Heading > UB));
 }
 
-static inline DWORD FixOffset(DWORD nOffset)
+inline DWORD FixOffset(DWORD nOffset)
 {
-	return ((nOffset - 0x400000) + baseAddress);
+	return ((nOffset - 0x400000) + EQGameBaseAddress);
 }
 
 static inline bool endsWith(char* base, char* str) {
@@ -850,15 +857,22 @@ static inline LONG GetSpellNumEffects(PSPELL pSpell)
 #endif
 	return 0xc;
 }
+
 static inline DWORD GetGroupMainAssistTargetID()
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
+	if (CHARINFO* pChar = GetCharInfo())
+	{
 		bool bMainAssist = false;
-		if (PGROUPINFO pGroup = pChar->pGroupInfo) {
-			if (PGROUPMEMBER pMember = pGroup->pMember[0]) {
-				for (int i = 0; i < 6; i++) {
-					if (pGroup->pMember[i]) {
-						if (pGroup->pMember[i]->MainAssist) {
+		if (GROUPINFO* pGroup = pChar->pGroupInfo)
+		{
+			if (GROUPMEMBER* pMember = pGroup->pMember[0])
+			{
+				for (int i = 0; i < 6; i++)
+				{
+					if (pGroup->pMember[i])
+					{
+						if (pGroup->pMember[i]->MainAssist)
+						{
 							bMainAssist = true;
 							break;
 						}
@@ -866,12 +880,16 @@ static inline DWORD GetGroupMainAssistTargetID()
 				}
 			}
 		}
-		if (bMainAssist && pChar->pSpawn) {
+
+		if (bMainAssist && pChar->pSpawn)
+		{
 			return pChar->pSpawn->GroupAssistNPC[0];
 		}
 	}
+
 	return 0;
 }
+
 static inline DWORD GetRaidMainAssistTargetID(int index)
 {
 	if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer) {

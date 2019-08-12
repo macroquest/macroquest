@@ -422,7 +422,7 @@ EQLIB_API BOOL IsMouseWaiting(VOID);
 EQLIB_API BOOL IsMouseWaitingForButton();
 EQLIB_API void MQ2MouseHooks(BOOL bFlag);
 EQLIB_API BOOL MoveMouse(DWORD x, DWORD y, BOOL bClick = 0);
-EQLIB_API bool MouseToPlayer(EQPlayer*pPlayer, DWORD position, BOOL bClick = 0);
+EQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, BOOL bClick = 0);
 
 /* KEY BINDS */
 EQLIB_API VOID InitializeMQ2KeyBinds();
@@ -487,7 +487,7 @@ LEGACY_API VOID CheckChatForEvent(PCHAR szMsg);
 EQLIB_API VOID ConvertItemTags(CXStr &cxstr, BOOL Tag = TRUE);
 EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
 EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize);
-EQLIB_API int FindInvSlotForContents(PCONTENTS pContents);
+EQLIB_API int FindInvSlotForContents(CONTENTS* pContents);
 EQLIB_API int FindInvSlot(PCHAR Name, BOOL Exact);
 EQLIB_API int FindNextInvSlot(PCHAR Name, BOOL Exact);
 EQLIB_API int FindMappableCommand(const char *name);
@@ -515,10 +515,10 @@ EQLIB_API int GetFamiliarCount();
 EQLIB_API void RefreshKeyRings(PVOID kr);
 EQLIB_API void InitKeyRings();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
-EQLIB_API CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
-EQLIB_API CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
+EQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
+EQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_API BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList);
+EQLIB_API BOOL LootInProgress(EQADVLOOTWND* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 #endif
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
@@ -570,24 +570,24 @@ EQLIB_API __int64 GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 #endif
-extern std::map<int, std::string>targetBuffSlotToCasterMap; 
+extern std::map<int, std::string>targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
-EQLIB_API PCONTENTS GetEnviroContainer();
-EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
+EQLIB_API CONTENTS* GetEnviroContainer();
+EQLIB_API CContainerWnd* FindContainerForContents(CONTENTS* pContents);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
-EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize);
+EQLIB_API void GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize);
 
 template <unsigned int _Size>
-inline void GetItemLinkHash(PCONTENTS Item, CHAR(&Buffer)[_Size])
+inline void GetItemLinkHash(CONTENTS* Item, CHAR(&Buffer)[_Size])
 {
 	return GetItemLinkHash(Item, Buffer, _Size);
 }
 
-EQLIB_API BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
+EQLIB_API BOOL GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
 
 template <unsigned int _Size>
-inline BOOL GetItemLink(PCONTENTS Item, CHAR(&Buffer)[_Size], BOOL Clickable = TRUE)
+inline BOOL GetItemLink(CONTENTS* Item, CHAR(&Buffer)[_Size], BOOL Clickable = TRUE)
 {
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
@@ -626,10 +626,10 @@ EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 EQLIB_API BOOL TriggeringEffectSpell(PSPELL aSpell, int i);
 EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects = FALSE, BOOL bTriggeredEffectCheck = FALSE);
-EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
-EQLIB_API PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID);
-EQLIB_API PCONTENTS GetItemContentsByName(CHAR *ItemName);
-EQLIB_API DWORD GetAvailableSlots(PCONTENTS pContainer, PCONTENTS pItem, int *firstavailableslot);
+EQLIB_API DWORD GetItemTimer(CONTENTS* pItem);
+EQLIB_API CONTENTS* GetItemContentsBySlotID(DWORD dwSlotID);
+EQLIB_API CONTENTS* GetItemContentsByName(CHAR *ItemName);
+EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *firstavailableslot);
 EQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
@@ -719,22 +719,22 @@ EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API VOID		  ListMercAltAbilities();
-EQLIB_API PCONTENTS	  FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
-EQLIB_API PCONTENTS	  FindItemByName(PCHAR pName, BOOL bExact = false);
-EQLIB_API PCONTENTS	  FindItemByID(int ItemID);
+EQLIB_API CONTENTS*	  FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
+EQLIB_API CONTENTS*	  FindItemByName(PCHAR pName, BOOL bExact = false);
+EQLIB_API CONTENTS*	  FindItemByID(int ItemID);
 EQLIB_API DWORD	      FindItemCountByName(PCHAR pName, BOOL bExact = false);
 EQLIB_API DWORD	      FindItemCountByID(int ItemID);
-EQLIB_API PCONTENTS   FindBankItemByName(char *pName, BOOL bExact);
-EQLIB_API PCONTENTS   FindBankItemByID(int ItemID);
+EQLIB_API CONTENTS*   FindBankItemByName(char *pName, BOOL bExact);
+EQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
 EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
 EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
 EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
-EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
-EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, PCONTENTS pItem);
+EQLIB_API BOOL		  IsItemInsideContainer(CONTENTS* pItem);
+EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, CONTENTS* pItem);
 EQLIB_API BOOL		  DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
 EQLIB_API bool		  ItemOnCursor();
-EQLIB_API BOOL		  OpenContainer(PCONTENTS pItem, bool hidden, bool flag = 0);
-EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
+EQLIB_API BOOL		  OpenContainer(CONTENTS* pItem, bool hidden, bool flag = 0);
+EQLIB_API BOOL		  CloseContainer(CONTENTS* pItem);
 EQLIB_API int		  GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
@@ -821,8 +821,8 @@ EQLIB_API VOID memchecks_tramp(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API VOID memchecks(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API void InitializeLoginPulse();
 EQLIB_API void RemoveAutoBankMenu();
-EQLIB_API bool WillFitInBank(PCONTENTS pContent);
-EQLIB_API bool WillFitInInventory(PCONTENTS pContent);
+EQLIB_API bool WillFitInBank(CONTENTS* pContent);
+EQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 EQLIB_API void AddAutoBankMenu();
 EQLIB_API void AutoBankPulse();
 EQLIB_API void DoCommandf(PCHAR szFormat, ...);

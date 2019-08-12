@@ -848,7 +848,7 @@ typedef struct _CXWNDMGR {
 
 struct _CONTENTDATA
 {
-	PCONTENTS pCont;
+	CONTENTS* pCont;
 	int Unknown;
 };
 typedef struct _CONTENTSARRAY {
@@ -1173,7 +1173,7 @@ typedef struct _EQINVSLOTMGR {
 // Actual Size 0x17C old
 typedef struct _EQCONTAINERWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x148*/ struct _CONTENTS*   pContents;         // Pointer to the contents of the container;
+/*0x148*/ struct _CONTENTS*   CONTENTS*;         // Pointer to the contents of the container;
                                                  // Matches the pointer in CHARINFO.Inventory/Bank/World
 /*0x14c*/ struct _CSIDLWND*   pSlots[0x0a];
 /*0x000*/ struct _CSIDLWND*   pCombine;
@@ -1189,7 +1189,7 @@ typedef struct _EQCONTAINERWINDOW {
 typedef struct _EQ_CONTAINERWND_MANAGER {
 /*0x000*/   DWORD pvfTable;                           // NOT based on CXWnd.  Contains only destructor
 /*0x004*/   PEQCONTAINERWINDOW pPCContainers[0x22];   // All open containers, including World, in order of opening...
-/*0x08c*/   PCONTENTS   pWorldContents;               // Pointer to the contents of the world   If NULL, world container isn't open;
+/*0x08c*/   CONTENTS*   pWorldContents;               // Pointer to the contents of the world   If NULL, world container isn't open;
 /*0x090*/   DWORD dwWorldContainerID;                 // ID of container in zone, starts at one (zero?) and goes up.
 /*0x094*/   DWORD dwTimeSpentWithWorldContainerOpen;  // Cumulative counter?
 /*0x078*/
@@ -1247,7 +1247,7 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x344*/ DWORD    Unknown0x344;
 /*0x348*/ DWORD Unknown0x348;
 /*0x34c*/ DWORD Unknown0x34c;
-/*0x350*/ PCONTENTS Container;
+/*0x350*/ CONTENTS* Container;
 /*0x354*/ DWORD Unknown0x354;
 /*0x358*/ PEQTRADESKILLRECIPE SelectedRecipe;
 /*0x35c*/ DWORD Unknown0x35c;
@@ -1530,7 +1530,7 @@ typedef struct _LOOTITEM
 /*0x86*/ BYTE	AlwaysGreed;
 /*0x87*/ BYTE	Never;
 /*0x88*/
-} LOOTITEM,*PLOOTITEM;
+} LOOTITEM,*LOOTITEM*;
 
 typedef struct _LOOTLIST {
 /*0x000*/ BYTE	Unknown0x004[0x4];
@@ -1807,7 +1807,7 @@ typedef struct _EQITEMWINDOW {
 /*0x02b4*/ PCXSTR       UnknownCXStr; // if this is NULL don't populate item data in MQ2ItemDisplay
 /*0x02b8*/ BYTE         Unknown0x02b8[0x4];
 /*0x02bc*/ PCXSTR       ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
-/*0x02c0*/ PCONTENTS    pItem;
+/*0x02c0*/ CONTENTS*    pItem;
 /*0x02c4*/ bool			bActiveItem;
 /*0x02c5*/ bool			bItemTextSet;
 /*0x02c8*/ void			*BuffIcons;//CTextureAnimation

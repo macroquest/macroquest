@@ -1363,7 +1363,7 @@ public:
 	EQLIB_OBJECT int TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
 	EQLIB_OBJECT int GetAdjustedSkill(int);
 	EQLIB_OBJECT int GetBaseSkill(int);
-	EQLIB_OBJECT bool CanUseItem(PCONTENTS*pItem, bool bUseRequiredLvl, bool bOutput);
+	EQLIB_OBJECT bool CanUseItem(CONTENTS** pItem, bool bUseRequiredLvl, bool bOutput);
 };
 
 class HateListEntry;
@@ -1605,10 +1605,10 @@ public:
 	EQLIB_OBJECT static VePointer<CONTENTS> CreateItemClient(PBYTE*, DWORD);
 	EQLIB_OBJECT int GetItemValue(bool) const;
 	EQLIB_OBJECT bool IsKeyRingItem(KeyRingType type) const;
-	EQLIB_OBJECT bool CanGoInBag(PCONTENTS*pCont, int OutputText = 0, bool mustbefalse = false) const;
+	EQLIB_OBJECT bool CanGoInBag(CONTENTS** pCont, int OutputText = 0, bool mustbefalse = false) const;
 	EQLIB_OBJECT bool IsEmpty() const;
 	EQLIB_OBJECT int GetMaxItemCount() const;
-	EQLIB_OBJECT int GetAugmentFitBySlot(PCONTENTS* Aug, int Slot, bool bCheckSlot = true, bool bCheckDup = true) const;
+	EQLIB_OBJECT int GetAugmentFitBySlot(CONTENTS** Aug, int Slot, bool bCheckSlot = true, bool bCheckDup = true) const;
 
 	ITEMINFO Data;
 };
@@ -2311,7 +2311,7 @@ public:
 /*0x12a4*/ DWORD                                 LoginTime;
 /*0x12a8*/ int64_t                               GuildID;                      // GuildID_0
 /*0x12b0*/ int64_t                               FellowshipID;
-/*0x12b8*/ PFELLOWSHIPINFO                       pFellowship;
+/*0x12b8*/ FELLOWSHIPINFO*                       pFellowship;
 /*0x12bc*/ int                                   GuildStatus;
 /*0x12c0*/ int                                   GuildFlags;
 /*0x12c4*/ bool                                  GuildShowSprite;

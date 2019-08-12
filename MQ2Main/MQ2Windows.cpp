@@ -89,7 +89,7 @@ int ValueCol = 0;
 bool GenerateMQUI();
 void DestroyMQUI();
 
-bool PickupItemNew(PCONTENTS pCont)
+bool PickupItemNew(CONTENTS* pCont)
 {
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 #ifndef NEWCHARINFO
@@ -1754,7 +1754,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 	}
 
 	// didnt find one, is it a container?
-	PCONTENTS pPack = nullptr;
+	CONTENTS* pPack = nullptr;
 	if (!_strnicmp(WindowName, "bank", 4))
 	{
 		unsigned long nPack = atoi(&WindowName[4]);
@@ -2901,7 +2901,7 @@ int ItemNotify(int argc, char *argv[])
 				// and we dont care if the user has something
 				// on cursor either, cause we know they
 				// specified "in" so a container MUST exist... -eqmule
-				PCONTENTS pContainer = FindItemBySlot(invslot);
+				CONTENTS* pContainer = FindItemBySlot(invslot);
 				if (!pContainer)
 				{
 					WriteChatf("There was no container in slot %d", invslot);
@@ -2937,7 +2937,7 @@ int ItemNotify(int argc, char *argv[])
 				// we fake it with /useitem
 				if (HasExpansion(EXPANSION_VoA))
 				{
-					PCONTENTS pItem = FindItemBySlot(invslot, bagslot);
+					CONTENTS* pItem = FindItemBySlot(invslot, bagslot);
 					if (pItem)
 					{
 						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
@@ -3037,7 +3037,7 @@ int ItemNotify(int argc, char *argv[])
 		{
 			// could it be an itemname?
 			// lets check:
-			PCONTENTS ptheitem = nullptr;
+			CONTENTS* ptheitem = nullptr;
 
 			if (szArg1[0] == '#')
 			{
@@ -3372,7 +3372,7 @@ void AutoBankPulse()
 				// check toplevel slots
 				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 				{
-					if (PCONTENTS pCont = pChar->BankItems.Items[slot].pObject)
+					if (CONTENTS* pCont = pChar->BankItems.Items[slot].pObject)
 					{
 						if (PITEMINFO pItem = GetItemFromContents(pCont))
 						{
@@ -3398,13 +3398,13 @@ void AutoBankPulse()
 				// check the bags
 				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 				{
-					if (PCONTENTS pPack = pChar->BankItems.Items[slot].pObject)
+					if (CONTENTS* pPack = pChar->BankItems.Items[slot].pObject)
 					{
 						if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 						{
 							for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 							{
-								if (PCONTENTS pCont = pPack->GetContent(nItem))
+								if (CONTENTS* pCont = pPack->GetContent(nItem))
 								{
 									if (PITEMINFO pItem = GetItemFromContents(pCont))
 									{
@@ -3455,7 +3455,7 @@ void AutoBankPulse()
 			PCHARINFO2 pChar2 = GetCharInfo2();
 			if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray)
 			{
-				for (PCONTENTS pCont : pChar2->pInventoryArray->InventoryArray)
+				for (CONTENTS* pCont : pChar2->pInventoryArray->InventoryArray)
 				{
 					if (pCont)
 					{
@@ -3484,7 +3484,7 @@ void AutoBankPulse()
 			// check the bags
 			if (pChar2 && pChar2->pInventoryArray)
 			{
-				for (PCONTENTS pPack : pChar2->pInventoryArray->Inventory.Pack)
+				for (CONTENTS* pPack : pChar2->pInventoryArray->Inventory.Pack)
 				{
 					if (pPack)
 					{
@@ -3492,7 +3492,7 @@ void AutoBankPulse()
 						{
 							for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 							{
-								if (PCONTENTS pCont = pPack->GetContent(nItem))
+								if (CONTENTS* pCont = pPack->GetContent(nItem))
 								{
 									if (PITEMINFO pItem = GetItemFromContents(pCont))
 									{
@@ -3550,7 +3550,7 @@ void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = autoinventorylist.front();
 
-		if (PCONTENTS pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
+		if (CONTENTS* pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
 		{
 			if (PITEMINFO pItem = GetItemFromContents(pCont))
 			{
@@ -3581,7 +3581,7 @@ void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = autobanklist.front();
 
-		if (PCONTENTS pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
+		if (CONTENTS* pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
 		{
 			if (PITEMINFO pItem = GetItemFromContents(pCont))
 			{

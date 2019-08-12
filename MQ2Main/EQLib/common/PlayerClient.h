@@ -693,27 +693,32 @@ struct HASHTABLE
 };
 using PHASHTABLE = HASHTABLE*;
 
-struct SPAWNMANAGER
+class PlayerManagerBase
 {
-/*0x000*/ void*        vftable;
+public:
+	virtual ~PlayerManagerBase() {}
+
 /*0x004*/ DWORD        random;                   // rand() % 20000
 /*0x008*/ SPAWNINFO*   FirstSpawn;
 /*0x00c*/ SPAWNINFO*   LastSpawn;
 /*0x010*/ DWORD        unknown10;
 /*0x014*/ HASHTABLE*   SPHash;
 };
-using PSPAWNMANAGER = SPAWNMANAGER*;
 
-// A.k.a. PlayerManagerClient
-class EQPlayerManager
+class PlayerManagerClient : public PlayerManagerBase
 {
 public:
+	//PlayerClient* GetPlayerFromPartialName(const char* szName, PlayerBase* = nullptr);
+	//PlayerClient* GetPlayerFromName(const char* szName);
+
 	EQLIB_OBJECT PlayerClient* GetSpawnByID(int);
 	EQLIB_OBJECT PlayerClient* GetSpawnByName(char*);
 	EQLIB_OBJECT PlayerClient* GetPlayerFromPartialName(const char*, PlayerBase*);
-
-	SPAWNMANAGER Data;
 };
+
+using EQPlayerManager [[deprecated]] = PlayerManagerClient;
+using SPAWNMANAGER [[deprecated]] = PlayerManagerClient;
+using PSPAWNMANAGER [[deprecated]] = PlayerManagerClient *;
 
 //============================================================================
 // PlayerBase

@@ -782,28 +782,31 @@ bool MQ2MathType::GETMEMBER()
 			return true;
 		}
 		return false;
-    case Clamp:
+	case Clamp:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if( char*Arg = GETFIRST() ) {
-            CHAR szMin[MAX_STRING] = { 0 };
-            CHAR szN[MAX_STRING] = { 0 };
-            CHAR szMax[MAX_STRING] = { 0 };
+		if (char* Arg = GETFIRST())
+		{
+			CHAR szMin[MAX_STRING] = { 0 };
+			CHAR szN[MAX_STRING] = { 0 };
+			CHAR szMax[MAX_STRING] = { 0 };
 
-            GetArg( szN, Arg, 1, 0, 0, 1 );
-			GetArg( szMin, Arg, 2, 0, 0, 1);
-			GetArg( szMax, Arg, 3, 0, 0, 1 );
+			GetArg(szN, Arg, 1, 0, 0, 1);
+			GetArg(szMin, Arg, 2, 0, 0, 1);
+			GetArg(szMax, Arg, 3, 0, 0, 1);
 
-            int n = atol( szN );
+			int n = atol(szN);
 			int Min = atol(szMin);
-			int Max = atol( szMax );
+			int Max = atol(szMax);
 
-            //WriteChatf( "\Clamp:\ax %s n: %d min: %d max: %d", Arg, n, Min, Max );
+			//WriteChatf( "\Clamp:\ax %s n: %d min: %d max: %d", Arg, n, Min, Max );
 
-            Dest.Int = max( Min, min( n, Max ) );
-            return true;
-        }
-        return false;
+			Dest.Int = std::max(Min, std::min(n, Max));
+			return true;
+		}
+		return false;
+
+
 	case Distance:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
@@ -4230,7 +4233,7 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		PCONTENTS pCont = 0;
+		CONTENTS* pCont = 0;
 		if (pDisplay && pLocalPlayer && ISINDEX()) {
 			if (ISNUMBER()) {
 				pCont = FindItemByID(GETNUMBER());
@@ -4361,7 +4364,7 @@ bool MQ2CharacterType::GETMEMBER()
 			if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 				for (DWORD slot = BAG_SLOT_START; slot<NUM_INV_SLOTS; slot++)
 				{
-					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot])
+					if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[slot])
 					{
 						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity>Dest.DWord)
 						{
@@ -7234,7 +7237,7 @@ bool MQ2ItemSpellType::GETMEMBER()
 bool MQ2ItemType::GETMEMBER()
 {
 	DWORD N, cmp, tmp;
-#define pItem ((PCONTENTS)VarPtr.Ptr)
+#define pItem ((CONTENTS*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
 	PITEMINFO pItemInfo = GetItemFromContents(pItem);
@@ -7421,7 +7424,7 @@ bool MQ2ItemType::GETMEMBER()
 	case Item:
 	{
 		Dest.Type = pItemType;
-		PCONTENTS pCont = (PCONTENTS)pItem;
+		CONTENTS* pCont = (CONTENTS*)pItem;
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && ISNUMBER())
 		{
 			unsigned long N = GETNUMBER();
@@ -7716,7 +7719,7 @@ bool MQ2ItemType::GETMEMBER()
 			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
 			{
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
+					if (CONTENTS* pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
 					{
 						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
 						{
@@ -7724,7 +7727,7 @@ bool MQ2ItemType::GETMEMBER()
 							{
 								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 								{
-									if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+									if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 									{
 										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
 										{
@@ -7754,7 +7757,7 @@ bool MQ2ItemType::GETMEMBER()
 			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
 			{
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
+					if (CONTENTS* pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
 					{
 						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
 						{
@@ -7762,7 +7765,7 @@ bool MQ2ItemType::GETMEMBER()
 							{
 								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 								{
-									if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+									if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 									{
 										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
 										{
@@ -7792,7 +7795,7 @@ bool MQ2ItemType::GETMEMBER()
 			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
 			{
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
+					if (CONTENTS* pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
 					{
 						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
 						{
@@ -7800,7 +7803,7 @@ bool MQ2ItemType::GETMEMBER()
 							{
 								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 								{
-									if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+									if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 									{
 										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
 										{
@@ -8587,7 +8590,7 @@ bool MQ2ItemType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		PCONTENTS pTheCont = pItem;
+		CONTENTS* pTheCont = pItem;
 		if (PITEMINFO pTheItem = GetItemFromContents(pItem))
 		{
 			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))//a worldcontainer has its item in Item1
@@ -8610,7 +8613,7 @@ bool MQ2ItemType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		PCONTENTS pTheCont = pItem;
+		CONTENTS* pTheCont = pItem;
 		if (PITEMINFO pTheItem = GetItemFromContents(pItem))
 		{
 			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))
@@ -8697,7 +8700,7 @@ bool MQ2ItemType::GETMEMBER()
 	case CanUse:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (PCONTENTS pCont = pItem) {
+		if (CONTENTS* pCont = pItem) {
 			Dest.DWord = pCharData1->CanUseItem(&pCont, false, false);
 			return true;
 		}
@@ -10054,7 +10057,7 @@ bool MQ2GroundType::GETMEMBER()
 				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pGround->RealEstateID, pGround->RealEstateItemID);
 				if (pRealEstateItem)
 				{
-					if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+					if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 					{
 						if (PITEMINFO pItem = GetItemFromContents(pCont))
 						{
@@ -10838,23 +10841,23 @@ bool MQ2CorpseType::GETMEMBER()
 				if (pLoot->pInventoryArray)
 					for (unsigned long nIndex = 0; nIndex < 34; nIndex++)
 					{
-						if (PCONTENTS pContents = pLoot->pInventoryArray->InventoryArray[nIndex])
+						if (CONTENTS* CONTENTS* = pLoot->pInventoryArray->InventoryArray[nIndex])
 						{
 							if (bExact)
 							{
-								if (!_stricmp(szNameTemp, GetItemFromContents(pContents)->Name))
+								if (!_stricmp(szNameTemp, GetItemFromContents(CONTENTS*)->Name))
 								{
-									Dest.Ptr = pContents;
+									Dest.Ptr = CONTENTS*;
 									return true;
 								}
 							}
 							else
 							{
-								strcpy_s(Temp, GetItemFromContents(pContents)->Name);
+								strcpy_s(Temp, GetItemFromContents(CONTENTS*)->Name);
 								_strlwr_s(Temp);
 								if (strstr(Temp, szNameTemp))
 								{
-									Dest.Ptr = pContents;
+									Dest.Ptr = CONTENTS*;
 									return true;
 								}
 							}
@@ -10902,7 +10905,7 @@ bool MQ2MerchantType::GETMEMBER()
 					bExact = TRUE;
 					pName++;
 				}
-				PCONTENTS pCont = 0;
+				CONTENTS* pCont = 0;
 				PITEMINFO pItem = 0;
 				bool bFound = false;
 				int listindex = 0;
@@ -11096,26 +11099,26 @@ bool MQ2MerchantType::GETMEMBER()
 					for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchMaxSlots; nIndex++)
 					{
 #if !defined(ROF2EMU) && !defined(UFEMU)
-						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex].pCont)
+						if (CONTENTS* CONTENTS* = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex].pCont)
 #else
-						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+						if (CONTENTS* CONTENTS* = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
 #endif
 						{
 							if (bExact)
 							{
-								if (!_stricmp(szNameTemp, GetItemFromContents(pContents)->Name))
+								if (!_stricmp(szNameTemp, GetItemFromContents(CONTENTS*)->Name))
 								{
-									Dest.Ptr = pContents;
+									Dest.Ptr = CONTENTS*;
 									return true;
 								}
 							}
 							else
 							{
-								strcpy_s(Temp, GetItemFromContents(pContents)->Name);
+								strcpy_s(Temp, GetItemFromContents(CONTENTS*)->Name);
 								_strlwr_s(Temp);
 								if (strstr(Temp, szNameTemp))
 								{
-									Dest.Ptr = pContents;
+									Dest.Ptr = CONTENTS*;
 									return true;
 								}
 							}
@@ -11189,7 +11192,7 @@ bool MQ2PointMerchantItemType::GETMEMBER()
 	if (!pMember)
 		return false;
 	PITEMINFO pItem = 0;
-	PCONTENTS pCont = 0;
+	CONTENTS* pCont = 0;
 	if (pCont = pMerch->PageHandlers.Begin->pObject->ItemContainer.m_array[index].pCont) {
 		pItem = GetItemFromContents(pCont);
 	}
@@ -11245,7 +11248,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 	CMerchantWnd *pMercWnd = (CMerchantWnd *)pMerchantWnd;
 	PEQMERCHWINDOW peqMercWnd = (PEQMERCHWINDOW)pMerchantWnd;
 	int k = 0;
-	PCONTENTS pitem = peqMercWnd->pMerchOther->pMerchData->pMerchArray->Array[k].pCont;
+	CONTENTS* pitem = peqMercWnd->pMerchOther->pMerchData->pMerchArray->Array[k].pCont;
 	PMQ2TYPEMEMBER pMember = MQ2PointMerchantType::FindMember(Member);
 	if (!pMember)
 	{
@@ -11260,7 +11263,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 	{
 		//for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots; nIndex++)
 					//{
-						//if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+						//if (CONTENTS* CONTENTS* = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
 	case Item:
 		Dest.Int = 0;
 		Dest.Type = pPointMerchantItemType;
@@ -11883,7 +11886,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						{
 							unsigned long nPack = (nInvSlot - 262) / 10;
 							unsigned long nSlot = (nInvSlot - 262) % 10;
-							if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
+							if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 								if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && nSlot < GetItemFromContents(pPack)->Slots)
 								{
 									if (pPack->Contents.ContainedItems.pItems)
@@ -11897,7 +11900,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						{
 							unsigned long nPack = (nInvSlot - 2032) / 10;
 							unsigned long nSlot = (nInvSlot - 2) % 10;
-							PCONTENTS pPack = NULL;
+							CONTENTS* pPack = NULL;
 #ifdef NEWCHARINFO
 							if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
 								pPack = pCharInfo->BankItems.Items[nPack].pObject;
@@ -11918,7 +11921,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						{
 							unsigned long nPack = 23 + ((nInvSlot - 2532) / 10);
 							unsigned long nSlot = (nInvSlot - 2) % 10;
-							PCONTENTS pPack = NULL;
+							CONTENTS* pPack = NULL;
 #ifdef NEWCHARINFO
 							if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
 								pPack = pCharInfo->BankItems.Items[nPack].pObject;
@@ -13290,7 +13293,7 @@ bool MQ2EvolvingItemType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
-	PCONTENTS pItem = (PCONTENTS)VarPtr.Ptr;
+	CONTENTS* pItem = (CONTENTS*)VarPtr.Ptr;
 	PMQ2TYPEMEMBER pMember = MQ2EvolvingItemType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -14995,7 +14998,7 @@ bool MQ2ItemFilterDataType::GETMEMBER()
 }
 bool MQ2AdvLootItemType::GETMEMBER()
 {
-	PLOOTITEM pItem = (PLOOTITEM)VarPtr.Ptr;
+	LOOTITEM* pItem = (LOOTITEM*)VarPtr.Ptr;
 	if (!pItem)
 		return false;
 	PMQ2TYPEMEMBER pMember = MQ2AdvLootItemType::FindMember(Member);
@@ -15136,7 +15139,7 @@ bool MQ2AdvLootType::GETMEMBER()
 				int listindex = (int)clist->GetItemData(index);
 				if (pAdvLoot->pPLootList && listindex!=-1) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-					PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
+					LOOTITEM* pitem = (LOOTITEM*)(addr + (sizeof(LOOTITEM)*listindex));
 					Dest.Ptr = pitem;
 					#ifdef ISXEQ
 					Dest.HighDWord = listindex;
@@ -15162,7 +15165,7 @@ bool MQ2AdvLootType::GETMEMBER()
 				int listindex = (int)clist->GetItemData(index);
 				if (pAdvLoot->pCLootList && listindex!=-1) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-					PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
+					LOOTITEM* pitem = (LOOTITEM*)(addr + (sizeof(LOOTITEM)*listindex));
 					Dest.Ptr = pitem;
 					#ifdef ISXEQ
 					Dest.HighDWord = listindex;
@@ -15182,7 +15185,7 @@ bool MQ2AdvLootType::GETMEMBER()
 				int listindex = (int)clist->GetItemData(i);
 				if (pAdvLoot->pPLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex))) {
+					if (LOOTITEM* pitem = (LOOTITEM*)(addr + (sizeof(LOOTITEM)*listindex))) {
 						if (pitem->AlwaysNeed || pitem->AlwaysGreed || pitem->Need || pitem->Greed) {
 							Dest.DWord++;
 						}
@@ -15199,7 +15202,7 @@ bool MQ2AdvLootType::GETMEMBER()
 				int listindex = (int)clist->GetItemData(i);
 				if (pAdvLoot->pCLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex))) {
+					if (LOOTITEM* pitem = (LOOTITEM*)(addr + (sizeof(LOOTITEM)*listindex))) {
 						if (pitem->AlwaysNeed || pitem->AlwaysGreed || pitem->Need || pitem->Greed) {
 							Dest.DWord++;
 						}
@@ -15689,7 +15692,7 @@ bool MQ2SolventType::GETMEMBER()
 				return true;
 			case Item://do we have this solvent?
 				Dest.Type = pItemType;
-				if (PCONTENTS pItem = FindItemByID(itemid))
+				if (CONTENTS* pItem = FindItemByID(itemid))
 				{
 					Dest.Ptr = pItem;
 					return true;
@@ -15698,7 +15701,7 @@ bool MQ2SolventType::GETMEMBER()
 			case Count://do we have this solvent and if so how many?
 				Dest.DWord = 0;
 				Dest.Type = pIntType;
-				if (PCONTENTS pCont= FindItemByID(itemid))
+				if (CONTENTS* pCont= FindItemByID(itemid))
 				{
 					if (PITEMINFO pItem = GetItemFromContents(pCont))
 					{
@@ -15719,7 +15722,7 @@ bool MQ2AugType::GETMEMBER()
 {
 	try {
 		DWORD index = VarPtr.DWord;
-		PCONTENTS pCont = (PCONTENTS)VarPtr.HighPart;
+		CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart;
 		if (!pCont)
 			return false;
 		PITEMINFO pItem = GetItemFromContents(pCont);
@@ -15750,13 +15753,13 @@ bool MQ2AugType::GETMEMBER()
 			case Empty:
 				Dest.DWord = true;
 				Dest.Type = pBoolType;
-				if (PCONTENTS pCret = pCont->GetContent(index)) {
+				if (CONTENTS* pCret = pCont->GetContent(index)) {
 					Dest.DWord = false;
 				}
 				return true;
 			case Name:
 				Dest.Type = pStringType;
-				if (PCONTENTS pCret = pCont->GetContent(index)) {
+				if (CONTENTS* pCret = pCont->GetContent(index)) {
 					if (PITEMINFO pAug = GetItemFromContents(pCret)) {
 						strcpy_s(DataTypeTemp, pAug->Name);
 						Dest.Ptr = DataTypeTemp;
@@ -15766,7 +15769,7 @@ bool MQ2AugType::GETMEMBER()
 				return false;
 			case Item:
 				Dest.Type = pItemType;
-				if (PCONTENTS pCret = pCont->GetContent(index)) {
+				if (CONTENTS* pCret = pCont->GetContent(index)) {
 					Dest.Ptr = pCret;
 					return true;
 				}
@@ -15775,7 +15778,7 @@ bool MQ2AugType::GETMEMBER()
 			case Solvent:
 				Dest.DWord = 0;
 				Dest.Type = pSolventType;
-				if (PCONTENTS pCret = pCont->GetContent(index)) {
+				if (CONTENTS* pCret = pCont->GetContent(index)) {
 					if (PITEMINFO ptheAug = GetItemFromContents(pCret)) {
 						Dest.DWord = ptheAug->SolventItemID;
 						return true;

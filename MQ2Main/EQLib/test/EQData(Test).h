@@ -820,14 +820,6 @@ using PEQCAMERABASE = EQCAMERABASE*;
 #define MODEL_GLOVES2                            0x0c
 #endif
 
-
-
-// found these at B0DD28 in eqgame.exe dated Aug 15 2016
-
-
-
-
-
 #define InnateETA                                0xC
 
 
@@ -836,17 +828,6 @@ enum InvisibleTypes
 	eAll,
 	eUndead,
 	eAnimal
-};
-
-class PlayerManagerBase
-{
-};
-
-class PlayerManagerClient : public PlayerManagerBase
-{
-public:
-	PlayerClient* GetPlayerFromPartialName(const char* szName, PlayerBase* = nullptr);
-	PlayerClient* GetPlayerFromName(const char* szName);
 };
 
 #define STANDSTATE_STAND                         0x64
@@ -1793,7 +1774,7 @@ struct FriendEntry
 	bool               bName;                    // not sure.
 };
 
-struct CHATSERVICE
+struct [[deprecated]] CHATSERVICE
 {
 /*0x000*/ void*        vfTable;
 /*0x004*/ void*        pChatProxyHandler;
@@ -1898,7 +1879,7 @@ struct CharSelectPlayerArray
 };
 using PCharSelectPlayerArray [[deprecated]] = CharSelectPlayerArray*;
 
-struct EVERQUEST
+struct [[deprecated]] EVERQUEST
 {
 /*0x00000*/ BYTE             Unknown[0x2a4];
 /*0x002a4*/ CHATSERVICE*     ChatService;

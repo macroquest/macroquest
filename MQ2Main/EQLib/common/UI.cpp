@@ -817,7 +817,7 @@ FUNCTION_AT_ADDRESS(int CActionsWnd::SocialsPageDeactivate(), CActionsWnd__Socia
 FUNCTION_AT_ADDRESS(void CAdvancedLootWnd::DoAdvLootAction(int, const CXStr&, bool, int), CAdvancedLootWnd__DoAdvLootAction);
 #endif
 #ifdef CAdvancedLootWnd__DoSharedAdvLootAction_x
-FUNCTION_AT_ADDRESS(void CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem, const CXStr& Assignee, bool Action, int Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
+FUNCTION_AT_ADDRESS(void CAdvancedLootWnd::DoSharedAdvLootAction(LOOTITEM* pLootItem, const CXStr& Assignee, bool Action, int Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
 #endif
 
 //============================================================================
@@ -1307,7 +1307,7 @@ FUNCTION_AT_ADDRESS(void CContainerWnd::Activate(), CContainerWnd__Activate);
 FUNCTION_AT_ADDRESS(void CContainerWnd::HandleCombine(), CContainerWnd__HandleCombine);
 #endif
 #ifdef CContainerWnd__SetContainer_x
-FUNCTION_AT_ADDRESS(void CContainerWnd::SetContainer(PCONTENTS& pContainer, const ItemGlobalIndex& location), CContainerWnd__SetContainer);
+FUNCTION_AT_ADDRESS(void CContainerWnd::SetContainer(CONTENTS*& pContainer, const ItemGlobalIndex& location), CContainerWnd__SetContainer);
 #endif
 #ifdef CContainerWnd__CheckCloseable_x
 FUNCTION_AT_ADDRESS(void CContainerWnd::CheckCloseable(), CContainerWnd__CheckCloseable);
@@ -1884,7 +1884,7 @@ CONSTRUCTOR_AT_ADDRESS(CItemDisplayWnd::CItemDisplayWnd(CXWnd*), CItemDisplayWnd
 FUNCTION_AT_ADDRESS(CItemDisplayWnd::~CItemDisplayWnd(), CItemDisplayWnd__dCItemDisplayWnd);
 #endif
 #ifdef CItemDisplayWnd__SetItem_x
-FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetItem(PCONTENTS* pCont, int flags), CItemDisplayWnd__SetItem);
+FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetItem(CONTENTS** pCont, int flags), CItemDisplayWnd__SetItem);
 #endif
 #ifdef CItemDisplayWnd__AboutToShow_x
 FUNCTION_AT_ADDRESS(bool CItemDisplayWnd::AboutToShow(), CItemDisplayWnd__AboutToShow);
