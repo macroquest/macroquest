@@ -5619,27 +5619,32 @@ public:
 
 	//INHERITINDIRECT(pSpawnType,Temp.Ptr=GetGroupMember(ObjectData.DWord),0);
 
-
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (LOOTITEM* pitem = (LOOTITEM*)VarPtr.Ptr) {
+		if (AdvancedLootItem * pitem = (AdvancedLootItem*)VarPtr.Ptr)
+		{
 			strcpy_s(Destination, 64, pitem->Name);
 			return true;
 		}
+
 		return false;
 	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type != pAdvLootItemType)
 			return false;
+
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
+
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		return false;
 	}
 };
+
 class MQ2AdvLootType : public MQ2Type
 {
 public:

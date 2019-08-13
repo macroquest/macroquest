@@ -56,7 +56,7 @@ CONTENTS* CONTENTS::GetContent(unsigned int index)
 	return nullptr;
 }
 
-ItemGlobalIndex CONTENTS::GetGlobalIndex()
+ItemGlobalIndex CONTENTS::GetGlobalIndex() const
 {
 	return this->GlobalIndex;
 }

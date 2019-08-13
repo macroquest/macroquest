@@ -530,7 +530,7 @@ public:
 /*0x0154*/ uint8_t           Filler0x0154[0x4];
 
 EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
-EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex();
+EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
 };
 using PCONTENTS [[deprecated]] = CONTENTS*;
 

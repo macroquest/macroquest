@@ -15,6 +15,7 @@
 #pragma once
 
 #include "Common.h"
+#include "eqgame.h"
 
 namespace eqlib {
 

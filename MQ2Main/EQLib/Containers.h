@@ -1249,6 +1249,12 @@ const T& Array<T>::at(int index) const
 template <typename T>
 T& Array<T>::operator[](int index)
 {
+	if (index >= m_size)
+	{
+		Resize(index + 1);
+	}
+
+	return m_array[index];
 }
 
 template <typename T>
@@ -1298,13 +1304,13 @@ void Array<T>::Reserve(int count)
 template <typename T>
 void Array<T>::Resize(int count)
 {
-	if (count > m_count)
+	if (count > m_size)
 	{
 		// grow bigger
 		Reserve(count);
 
-		int pos = m_count;
-		m_count = std::min(m_alloc, count);
+		int pos = m_size;
+		m_size = std::min(m_alloc, count);
 		while (pos < count)
 		{
 			new (&m_array[pos]) T;
@@ -1358,8 +1364,8 @@ void Array<T>::CopyAppend(const T* data, int amount)
 
 	// copy forward
 	const T* src = data;
-	T* dst = m_array + m_count;
-	m_count += amount;
+	T* dst = m_array + m_size;
+	m_size += amount;
 	while (amount--)
 	{
 		new ((void*)dst) T(*src);

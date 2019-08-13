@@ -244,6 +244,9 @@
     <ClInclude Include="EQLib\data\actordef.h">
       <Filter>Header Files\EQLib\data</Filter>
     </ClInclude>
+    <ClInclude Include="EQLib\eqgame.h">
+      <Filter>Header Files\EQLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

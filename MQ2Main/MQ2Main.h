@@ -294,7 +294,7 @@ EQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID,
 EQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
 EQLIB_API void RemoveWindow(char* WindowName);
 EQLIB_API CXWnd* FindMQ2Window(const char* Name);
-EQLIB_API CXWnd* GetParentWnd(CXWnd const* pWnd);
+EQLIB_API CXWnd* GetParentWnd(CXWnd* pWnd);
 
 EQLIB_API bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value);
 EQLIB_API bool SendListSelect(const char* WindowName, const char* ScreenID, int Value);
@@ -502,27 +502,25 @@ EQLIB_API SPELL* GetSpellByName(const char* szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
-EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
-EQLIB_API VOID TruncateSpellRankName(PCHAR SpellName);
-EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API bool StripQuotes(char *str);
-EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API BOOL GetAllMercDesc(std::map<DWORD, MercDesc>&minfo);
+EQLIB_API int GetSpellRankByName(const char* SpellName);
+EQLIB_API void TruncateSpellRankName(char* SpellName);
+EQLIB_API void RemoveBuff(SPAWNINFO* pChar, const char* szLine);
+EQLIB_API void RemovePetBuff(SPAWNINFO* pChar, const char* szLine);
+EQLIB_API bool StripQuotes(char* str);
+EQLIB_API void MakeMeVisible(SPAWNINFO* pChar, const char* szLine);
+EQLIB_API void RemoveAura(SPAWNINFO* pChar, const char* szLine);
+EQLIB_API bool GetAllMercDesc(std::map<int, MercDesc>& minfo);
 
 DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API int GetIllusionCount();
 EQLIB_API int GetFamiliarCount();
-EQLIB_API void RefreshKeyRings(PVOID kr);
+EQLIB_API void RefreshKeyRings(void* kr);
 EQLIB_API void InitKeyRings();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
 EQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
 EQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
-#if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_API BOOL LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
-#endif
+EQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
 EQLIB_API int RangeRandom(int min, int max);
@@ -530,14 +528,14 @@ EQLIB_API DWORD __stdcall BeepOnTellThread(PVOID pData);
 EQLIB_API DWORD __stdcall FlashOnTellThread(PVOID pData);
 EQLIB_API CMQ2Alerts CAlerts;
 EQLIB_VAR BOOL bPluginCS;
-typedef struct _krdata
+
+struct RefreshKeyRingsThreadData
 {
 	CHAR ItemName[256];
-	CXWnd *phWnd;
-	MQ2TYPEVAR mq2typevar;
+	CSidlScreenWnd *phWnd;
 	bool bExact;
 	bool bUseCmd;
-}krdata, *pkrdata;
+};
 
 EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 
@@ -566,18 +564,14 @@ EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_API PCHAR GetGuildByID(__int64 GuildID);
-EQLIB_API __int64 GetGuildIDByName(PCHAR szGuild);
-#else
-EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
-EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
-#endif
+EQLIB_API PCHAR GetGuildByID(int64_t GuildID);
+EQLIB_API int64_t GetGuildIDByName(PCHAR szGuild);
+
 extern std::map<int, std::string>targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
 EQLIB_API CONTENTS* GetEnviroContainer();
 EQLIB_API CContainerWnd* FindContainerForContents(CONTENTS* pContents);
-EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
+EQLIB_API float FindSpeed(SPAWNINFO* pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API void GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize);
 
@@ -587,10 +581,10 @@ inline void GetItemLinkHash(CONTENTS* Item, CHAR(&Buffer)[_Size])
 	return GetItemLinkHash(Item, Buffer, _Size);
 }
 
-EQLIB_API BOOL GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
+EQLIB_API bool GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
 
 template <unsigned int _Size>
-inline BOOL GetItemLink(CONTENTS* Item, CHAR(&Buffer)[_Size], BOOL Clickable = TRUE)
+inline bool GetItemLink(CONTENTS* Item, CHAR(&Buffer)[_Size], BOOL Clickable = TRUE)
 {
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
@@ -624,14 +618,14 @@ EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
 EQLIB_API BOOL IsBardSong(PSPELL pSpell);
 EQLIB_API BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID);
-EQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, DWORD &nID);
-EQLIB_API bool GetBuffID(SPELLBUFF* pBuff, DWORD &nID);
+EQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, DWORD& nID);
+EQLIB_API bool GetBuffID(SPELLBUFF* pBuff, DWORD& nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 EQLIB_API BOOL TriggeringEffectSpell(PSPELL aSpell, int i);
 EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects = FALSE, BOOL bTriggeredEffectCheck = FALSE);
 EQLIB_API DWORD GetItemTimer(CONTENTS* pItem);
 EQLIB_API CONTENTS* GetItemContentsBySlotID(DWORD dwSlotID);
-EQLIB_API CONTENTS* GetItemContentsByName(CHAR *ItemName);
+EQLIB_API CONTENTS* GetItemContentsByName(const char* ItemName);
 EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *firstavailableslot);
 EQLIB_API bool LoH_HT_Ready();
 
@@ -678,7 +672,7 @@ EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL GetClosestAlert(PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List);
-EQLIB_API VOID WriteFilterNames(VOID);
+EQLIB_API void WriteFilterNames();
 EQLIB_API VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle);
 EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API VOID RewriteSubstitutions(VOID);
@@ -734,25 +728,26 @@ EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
 EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
 EQLIB_API CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
 EQLIB_API CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx);
-EQLIB_API BOOL		  IsItemInsideContainer(CONTENTS* pItem);
-EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, CONTENTS* pItem);
-EQLIB_API BOOL		  DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
-EQLIB_API bool		  ItemOnCursor();
-EQLIB_API bool        OpenContainer(CONTENTS* pItem, bool hidden, bool flag = 0);
+EQLIB_API bool        IsItemInsideContainer(CONTENTS* pItem);
+EQLIB_API bool        PickupItem(ItemContainerInstance type, CONTENTS* pItem);
+EQLIB_API bool        DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
+EQLIB_API bool        DropItem2(const ItemGlobalIndex& index);
+EQLIB_API bool        ItemOnCursor();
+EQLIB_API bool        OpenContainer(CONTENTS* pItem, bool hidden, bool flag = false);
 EQLIB_API bool        CloseContainer(CONTENTS* pItem);
-EQLIB_API int		  GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
-EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
-EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-EQLIB_API bool		  HasCachedTargetBuffSubCat(const char*subcat, PSPAWNINFO pSpawn, PcTargetBuff pcTargetBuff, DWORD classmask = 0);
-EQLIB_API bool		  HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetBuff pcTargetBuff);
-EQLIB_API int		  GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
-EQLIB_API int		  GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
-EQLIB_API int		  GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-EQLIB_API int		  GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-EQLIB_API bool        IsSpellUsableForClass(PSPELL pSpell, DWORD classmask = 0);
-EQLIB_API bool        IsAegoSpell(PSPELL pSpell);
-EQLIB_API int         GetSpellCategory(PSPELL pSpell);
-EQLIB_API int         GetSpellSubcategory(PSPELL pSpell);
+EQLIB_API int         GetTargetBuffByCategory(int category, unsigned int classmask = 0, int startslot = 0);
+EQLIB_API int         GetTargetBuffBySubCat(const char* subcat, unsigned int classmask = 0, int startslot = 0);
+EQLIB_API int         GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
+EQLIB_API bool        HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, cTargetBuff* pcTargetBuff, unsigned int classmask = 0);
+EQLIB_API bool        HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, cTargetBuff* pcTargetBuff);
+EQLIB_API int         GetSelfBuffByCategory(int category, unsigned int classmask = 0, int startslot = 0);
+EQLIB_API int         GetSelfBuffBySubCat(const char* subcat, unsigned int classmask = 0, int startslot = 0);
+EQLIB_API int         GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);
+EQLIB_API int         GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot = 0);
+EQLIB_API bool        IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask = 0);
+EQLIB_API bool        IsAegoSpell(SPELL* pSpell);
+EQLIB_API int         GetSpellCategory(SPELL* pSpell);
+EQLIB_API int         GetSpellSubcategory(SPELL* pSpell);
 EQLIB_API void		  PopulateSpellMap();
 EQLIB_API PSPELL      GetSpellParent(int id);
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(PVOID pData);
@@ -837,7 +832,7 @@ EQLIB_API ClientSOIManager *GetAuraMgr();
 EQLIB_API CBroadcast *GetTextOverlay();
 EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
 EQLIB_API bool Anonymize(char* name, int maxlen, int LootFlag = 0);
-EQLIB_API bool Anonymize2(CXStr name, int LootFlag = 0);
+EQLIB_API bool Anonymize2(CXStr& name, int LootFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 

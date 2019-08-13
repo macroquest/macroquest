@@ -119,6 +119,7 @@
     <ClInclude Include="EQLib\DynamicArray.h" />
     <ClInclude Include="EQLib\EQClasses.h" />
     <ClInclude Include="EQLib\EQData.h" />
+    <ClInclude Include="EQLib\eqgame.h" />
     <ClInclude Include="EQLib\EQLib.h" />
     <ClInclude Include="EQLib\EQUIStructs.h" />
     <ClInclude Include="EQLib\Globals.h" />

@@ -1271,13 +1271,14 @@ struct Loop
         PDATAVAR Parameters;
     } EVENTQUEUE, *PEVENTQUEUE;
 #endif
-	typedef struct _MercDesc
+
+	struct MercDesc
 	{
 		std::string Race;
 		std::string Type;
 		std::string Confidence;
 		std::string Proficiency;
-	} MercDesc,*PMercDesc;
+	};
 };
 using namespace MQ2Internal;
 

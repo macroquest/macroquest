@@ -1345,10 +1345,10 @@ FUNCTION_AT_ADDRESS(void CContainerMgr::ClearWorldContainerItems(), CContainerMg
 FUNCTION_AT_ADDRESS(void CContainerMgr::OpenContainer(CONTENTS**, const ItemGlobalIndex&, bool), CContainerMgr__OpenContainer);
 #endif
 #ifdef CContainerMgr__CloseEQContainer_x
-FUNCTION_AT_ADDRESS(void CContainerMgr::CloseEQContainer(CONTENTS**), CContainerMgr__CloseEQContainer);
+FUNCTION_AT_ADDRESS(void CContainerMgr::CloseEQContainer(EQ_Container*), CContainerMgr__CloseEQContainer);
 #endif
 #ifdef CContainerMgr__CloseContainer_x
-FUNCTION_AT_ADDRESS(void CContainerMgr::CloseContainer(EQ_Container*, bool), CContainerMgr__CloseContainer);
+FUNCTION_AT_ADDRESS(void CContainerMgr::CloseContainer(CONTENTS**, bool), CContainerMgr__CloseContainer);
 #endif
 #ifdef CContainerMgr__CloseAllContainers_x
 FUNCTION_AT_ADDRESS(bool CContainerMgr::CloseAllContainers(), CContainerMgr__CloseAllContainers);
@@ -1831,13 +1831,13 @@ FUNCTION_AT_ADDRESS(void CInvSlotMgr::Process(), CInvSlotMgr__Process);
 FUNCTION_AT_ADDRESS(CInvSlotMgr::CInvSlotMgr(), CInvSlotMgr__CInvSlotMgr);
 #endif
 #ifdef CInvSlotMgr__MoveItem_x
-FUNCTION_AT_ADDRESS(bool CInvSlotMgr::MoveItem(ItemGlobalIndex* from, ItemGlobalIndex* to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag, bool MoveToIntoFromBag), CInvSlotMgr__MoveItem);
+FUNCTION_AT_ADDRESS(bool CInvSlotMgr::MoveItem(const ItemGlobalIndex& from, const ItemGlobalIndex& to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag, bool MoveToIntoFromBag), CInvSlotMgr__MoveItem);
 #endif
 #ifdef CInvSlotMgr__CreateInvSlot_x
 FUNCTION_AT_ADDRESS(CInvSlot* CInvSlotMgr::CreateInvSlot(CInvSlotWnd*), CInvSlotMgr__CreateInvSlot);
 #endif
 #ifdef CInvSlotMgr__FindInvSlot_x
-FUNCTION_AT_ADDRESS(CInvSlot* CInvSlotMgr::FindInvSlot(int, int, int, bool), CInvSlotMgr__FindInvSlot);
+FUNCTION_AT_ADDRESS(CInvSlot* CInvSlotMgr::FindInvSlot(int, int, ItemContainerInstance, bool), CInvSlotMgr__FindInvSlot);
 #endif
 #ifdef CInvSlotMgr__SelectSlot_x
 FUNCTION_AT_ADDRESS(void CInvSlotMgr::SelectSlot(CInvSlot*), CInvSlotMgr__SelectSlot);
@@ -2112,7 +2112,7 @@ FUNCTION_AT_ADDRESS(void CMerchantWnd::HandleSell(int), CMerchantWnd__HandleSell
 FUNCTION_AT_ADDRESS(void CMerchantWnd::UpdateBuySellButtons(), CMerchantWnd__UpdateBuySellButtons);
 #endif
 #ifdef CMerchantWnd__SelectBuySellSlot_x
-FUNCTION_AT_ADDRESS(int CMerchantWnd::SelectBuySellSlot(ItemGlobalIndex*, int Unknown), CMerchantWnd__SelectBuySellSlot);
+FUNCTION_AT_ADDRESS(int CMerchantWnd::SelectBuySellSlot(const ItemGlobalIndex&, int Unknown), CMerchantWnd__SelectBuySellSlot);
 #endif
 #ifdef CMerchantWnd__DisplayBuyOrSellPrice_x
 FUNCTION_AT_ADDRESS(void CMerchantWnd::DisplayBuyOrSellPrice(bool, EQ_Item*), CMerchantWnd__DisplayBuyOrSellPrice);

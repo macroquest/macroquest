@@ -2502,6 +2502,31 @@ public:
 // CCursorAttachment
 //============================================================================
 
+enum ECursorAttachmentType
+{
+	eCursorAttachment_None              = -1,
+	eCursorAttachment_MemorizeSpel      = 1,
+	eCursorAttachment_Item,
+	eCursorAttachment_Money,
+	eCursorAttachment_Social,
+	eCursorAttachment_MenuButton,
+	eCursorAttachment_Ability,
+	eCursorAttachment_Combat,
+	eCursorAttachment_InvSlot,
+	eCursorAttachment_SpellGem,
+	eCursorAttachment_PetCommand,
+	eCursorAttachment_SkillID,
+	eCursorAttachment_MeleeAbility,
+	eCursorAttachment_LeadershipAbility,
+	eCursorAttachment_ItemLink,
+	eCursorAttachment_KronoSlot,
+	eCursorAttachment_Command,
+	eCursorAttachment_CombatAbility,
+	eCursorAttachment_MountKeyRingLink,
+	eCursorAttachment_IllusionKeyRingLink,
+	eCursorAttachment_FamiliarKeyRingLink,
+};
+
 class CCursorAttachment : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -3270,8 +3295,14 @@ public:
 	virtual ~CInvSlotMgr();
 
 	EQLIB_OBJECT CInvSlot* CreateInvSlot(CInvSlotWnd*);
-	EQLIB_OBJECT CInvSlot* FindInvSlot(int TopSlot, int SubSlot = -1, int FindWindowRelated = 0, bool bSomething = 1);
-	EQLIB_OBJECT bool MoveItem(ItemGlobalIndex* from, ItemGlobalIndex* to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag = false, bool MoveToIntoFromBag = false);
+	EQLIB_OBJECT CInvSlot* FindInvSlot(int TopSlot, int SubSlot = -1,
+		ItemContainerInstance location = eItemContainerPossessions, bool includeLinks = true);
+	EQLIB_OBJECT CInvSlot* FindInvSlot(const ItemGlobalIndex& index, bool includeLinks = true)
+	{
+		return FindInvSlot(index.GetTopSlot(), index.GetIndex().GetSlot(1), index.GetLocation(), includeLinks);
+	}
+
+	EQLIB_OBJECT bool MoveItem(const ItemGlobalIndex& from, const ItemGlobalIndex& to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag = false, bool MoveToIntoFromBag = false);
 	EQLIB_OBJECT void Process();
 	EQLIB_OBJECT void SelectSlot(CInvSlot*);
 	EQLIB_OBJECT void UpdateSlots();
@@ -3990,7 +4021,7 @@ public:
 	EQLIB_OBJECT void ClearMerchantSlot(int);
 	EQLIB_OBJECT void FinishBuyingItem(sell_msg*);
 	EQLIB_OBJECT void FinishSellingItem(sell_msg*);
-	EQLIB_OBJECT int SelectBuySellSlot(ItemGlobalIndex*, int ListIndex = -1);
+	EQLIB_OBJECT int SelectBuySellSlot(const ItemGlobalIndex&, int ListIndex = -1);
 	EQLIB_OBJECT void DisplayBuyOrSellPrice(bool, EQ_Item*);
 	EQLIB_OBJECT void HandleBuy(int);
 	EQLIB_OBJECT void HandleSell(int);

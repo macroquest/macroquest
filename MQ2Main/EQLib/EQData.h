@@ -632,7 +632,7 @@ enum ePetCommandType
 template <typename T>
 inline int EQHeading(T heading)
 {
-	return static_cast<int>((((heading + 16) % 256) / 32) * 2)
+	return static_cast<int>((((heading + 16) % 256) / 32) * 2);
 }
 
 // ***************************************************************************
@@ -1991,6 +1991,7 @@ using PMERCSLIST [[deprecated]] = MERCSLIST*;
 
 // Actual Size: 0x2fc (See 57117F in eqgame dated dec 10 2013) - eqmule
 // CMercenaryInfo__CMercenaryInfo
+// this is CMercenaryClientManager
 struct MERCENARYINFO
 {
 /*0x000*/ BYTE               Unknown0x0[0x110];
@@ -2001,8 +2002,8 @@ struct MERCENARYINFO
 /*0x14c*/ BYTE               Unknown0x14c[0x10];
 /*0x15c*/ CHAR               MercName[0x18];
 /*0x174*/ BYTE               Unknown0x174[0x7c];
-/*0x1F0*/ DWORD              MercenaryCount;     // how many mercenaries we have
-/*0x1F4*/ MERCSLIST*         pMercsList; 
+/*0x1F0*/ int                MercenaryCount;     // how many mercenaries we have
+/*0x1F4*/ MERCSLIST*         pMercsList;
 /*0x1F8*/ BYTE               Unknown0x1f8[0xc];
 /*0x204*/ DWORD              MaxMercsCount;      // max you can have
 /*0x208*/ BYTE               Unknown0x208[0x10];
