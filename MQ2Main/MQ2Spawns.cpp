@@ -111,14 +111,12 @@ DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline(
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(PGROUNDITEM));
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
 
-VOID SetNameSpriteTint(PSPAWNINFO pSpawn);
+void SetNameSpriteTint(SPAWNINFO* pSpawn);
 
 class EQPlayerHook
 {
 public:
-
-
-    void EQPlayer_ExtraDetour(PSPAWNINFO pSpawn)
+    void EQPlayer_ExtraDetour(SPAWNINFO* pSpawn)
     {// note: we need to keep the original registers.
         __asm {push eax};
         __asm {push ebx};
@@ -139,8 +137,8 @@ public:
     void EQPlayer_Trampoline(void *,int,int,int,char *,char *,char *);
     void EQPlayer_Detour(void* pNetPlayer,int Sex,int Race,int Class,char *PlayerName,char *GroupName, char *ReplaceName)
     {
-        PSPAWNINFO pSpawn2 = (PSPAWNINFO)this;
-        PSPAWNINFO pSpawn = (PSPAWNINFO)this;
+		SPAWNINFO* pSpawn2 = (SPAWNINFO*)this;
+		SPAWNINFO* pSpawn = (SPAWNINFO*)this;
         __asm {mov [pSpawn], ecx};
 
         EQPlayer_Trampoline(pNetPlayer,Sex,Race,Class,PlayerName,GroupName,ReplaceName);
@@ -217,8 +215,8 @@ typedef struct _CAPTIONCOLOR {
 #define CC_NPCClassColor    9
 #define CC_NPCMerchant      10
 #define CC_NPCBanker        11
-#define CC_NPCAssist        12 
-#define CC_NPCMark          13 
+#define CC_NPCAssist        12
+#define CC_NPCMark          13
 #define CC_PetNPC           14
 #define CC_PetPC            15
 #define CC_PetConColor      16
@@ -372,7 +370,7 @@ CAPTIONCOLOR CaptionColors[]=
 };
 
 #ifndef ISXEQ_LEGACY
-VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
+VOID SetNameSpriteTint(SPAWNINFO* pSpawn)
 {
     if (!gMQCaptions)
 		return;
@@ -395,7 +393,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
         else if (CaptionColors[CC_PCGroupColor].Enabled && IsGroupMember(pSpawn))
             NewColor=CaptionColors[CC_PCGroupColor].Color;
         else if (CaptionColors[CC_PCClassColor].Enabled)
-            NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+            NewColor=pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
         else if (CaptionColors[CC_PCRaidColor].Enabled && IsRaidMember(pSpawn)!=-1)
             NewColor=CaptionColors[CC_PCRaidColor].Color;
         else if (CaptionColors[CC_PCPVPTeamColor].Enabled)
@@ -419,8 +417,8 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
         #define CC_NPCClassColor      9
         #define CC_NPCMerchant        10
         #define CC_NPCBanker          11
-        #define CC_NPCAssist          12 
-        #define CC_NPCMark            13 
+        #define CC_NPCAssist          12
+        #define CC_NPCMark            13
         /**/
         if (CaptionColors[CC_NPCMark].Enabled && IsMarkedNPC(pSpawn))
             NewColor=CaptionColors[CC_NPCMark].Color;
@@ -431,7 +429,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
         else if (CaptionColors[CC_NPCMerchant].Enabled && (pSpawn->mActorClient.Class==41 || pSpawn->mActorClient.Class==61))
             NewColor=CaptionColors[CC_NPCMerchant].Color;
         else if (CaptionColors[CC_NPCClassColor].Enabled && pSpawn->mActorClient.Class<0x10)
-            NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+            NewColor=pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
         else if (CaptionColors[CC_NPCConColor].Enabled)
             NewColor=ConColorToARGB(ConColor(pSpawn));
         else if (CaptionColors[CC_NPC].Enabled)
@@ -444,7 +442,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
         break;
     case CORPSE:
         if (CaptionColors[CC_CorpseClassColor].Enabled)
-            NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+            NewColor=pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
         else if (CaptionColors[CC_Corpse].Enabled)
             NewColor=CaptionColors[CC_Corpse].Color;
         else
@@ -455,12 +453,12 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
         break;
     case PET:
         if (CaptionColors[CC_PetClassColor].Enabled)
-            NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+            NewColor=pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
         else if (CaptionColors[CC_PetConColor].Enabled)
             NewColor=ConColorToARGB(ConColor(pSpawn));
-        else if (CaptionColors[CC_PetNPC].Enabled && ((PSPAWNINFO)GetSpawnByID(pSpawn->MasterID))->Type==SPAWN_NPC)
+        else if (CaptionColors[CC_PetNPC].Enabled && ((SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))->Type==SPAWN_NPC)
             NewColor=CaptionColors[CC_PetNPC].Color;
-        else if (CaptionColors[CC_PetPC].Enabled && ((PSPAWNINFO)GetSpawnByID(pSpawn->MasterID))->Type==SPAWN_PLAYER)
+        else if (CaptionColors[CC_PetPC].Enabled && ((SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))->Type==SPAWN_PLAYER)
             NewColor=CaptionColors[CC_PetPC].Color;
         else
         {
@@ -482,13 +480,13 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 #endif
 	}
 }
-BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
+BOOL SetCaption(SPAWNINFO* pSpawn, char *CaptionString,eSpawnType type)
 {
     CHAR NewCaption[MAX_STRING]={0};
     if (CaptionString[0] || gAnonymize) {
-        if (PCHARINFO pChar = GetCharInfo()) {
+        if (CHARINFO* pChar = GetCharInfo()) {
             strcpy_s(NewCaption, CaptionString);
-            pNamingSpawn = pSpawn;                                      
+            pNamingSpawn = pSpawn;
             if (gAnonymize)
             {
                 CHAR szType[64] = { 0 };
@@ -531,12 +529,12 @@ BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
             }
             pNamingSpawn = 0;
         }
-        ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0, NewCaption);
+        ((PlayerClient*)pSpawn)->ChangeBoneStringSprite(0, NewCaption);
         return 1;
     }
     return 0;
 }
-BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
+BOOL SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 {
     //DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
     if (!Show)
@@ -567,7 +565,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 			return 1;
         break;
     case PC:
-        if (!gPCNames && pSpawn!=(PSPAWNINFO)pTarget) 
+        if (!gPCNames && pSpawn!=(SPAWNINFO*)pTarget)
             return 0;
 		if (SetCaption(pSpawn, gszSpawnPlayerName[gShowNames],PC))
 			return 1;
@@ -594,15 +592,15 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 //#undef SetCaption
 }
 
-VOID UpdateSpawnCaptions()
+void UpdateSpawnCaptions()
 {
     //DebugSpew("UpdateSpawnCaptions()");
     DWORD N;
     DWORD Count=0;
 	for (N = 0; N < 120; N++)
 	{
-		if (PSPAWNINFO pSpawn = (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr)
-			if (pSpawn != (PSPAWNINFO)pTarget)
+		if (SPAWNINFO * pSpawn = (SPAWNINFO*)EQP_DistArray[N].VarPtr.Ptr)
+			if (pSpawn != (SPAWNINFO*)pTarget)
                 if (gAnonymize || (EQP_DistArray[N].Value.Float<=80.0f && gMQCaptions)) {
                     if (SetNameSpriteState(pSpawn,true))
                     {
@@ -632,9 +630,7 @@ VOID InitializeMQ2Spawns()
     DebugSpew("Initializing Spawn-related Hooks");
     bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
     bmUpdateSpawnCaptions=AddMQ2Benchmark("UpdateSpawnCaptions");
-#ifndef GateBind
     ProcessGameEvents=0;
-#endif
     EzDetourwName(EQPlayer__EQPlayer,&EQPlayerHook::EQPlayer_Detour,&EQPlayerHook::EQPlayer_Trampoline,"EQPlayer__EQPlayer");
     EzDetourwName(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline,"EQPlayer__dEQPlayer");
     EzDetourwName(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline,"EQPlayer__SetNameSpriteState");

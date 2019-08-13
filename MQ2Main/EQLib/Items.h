@@ -518,7 +518,7 @@ public:
  struct CONTENTS {
 /*0x0000*/ void*             vtable;
 /*0x0004*/ int               RefCount;
-/*0x0008*/ void*             unknown;
+/*0x0008*/ void*             punknown;
 
 	// start of ItemBase
 #include "ItemBase-Members.h"

@@ -120,43 +120,36 @@ namespace MQ2Globals
 		ppDisplay = (CDisplay**)pinstCDisplay;
 		ppPCData = (EQ_PC**)pinstPCData;
 		ppCharData = (EQ_Character**)pinstCharData;
-		ppCharSpawn = (EQPlayer**)pinstCharSpawn;
-		ppActiveMerchant = (EQPlayer**)pinstActiveMerchant;
-		ppSpawnManager = (EQPlayerManager**)pinstSpawnManager;
-		ppLocalPlayer = (EQPlayer**)pinstLocalPlayer;
-		ppControlledPlayer = (EQPlayer**)pinstControlledPlayer;
+		ppCharSpawn = (PlayerClient**)pinstCharSpawn;
+		ppActiveMerchant = (PlayerClient**)pinstActiveMerchant;
+		ppSpawnManager = (PlayerManagerClient**)pinstSpawnManager;
+		ppLocalPlayer = (PlayerClient**)pinstLocalPlayer;
+		ppControlledPlayer = (PlayerClient**)pinstControlledPlayer;
 		ppWorldData = (EQWorldData**)pinstWorldData;
 		ppSpellMgr = (ClientSpellManager**)pinstSpellManager;
-		ppTarget = (EQPlayer**)pinstTarget;
+		ppTarget = (PlayerClient**)pinstTarget;
 		ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
 		pSpellSets = (SPELLFAVORITE*)pinstSpellSets;
 		pZoneInfo = (EQZoneInfo*)instEQZoneInfo;
 		ppAltAdvManager = (AltAdvManager**)pinstAltAdvManager;
 		ppConnection = (connection_t**)__gWorld;
-#if defined(ROF2EMU) || defined(UFEMU)
-		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
-#endif
 		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
-#endif
-		ppEQChatMgr = (EQCHATMGR**)pinstCChatWindowManager;
 
-		ppTradeTarget = (EQPlayer**)pinstTradeTarget;
-		ppActiveBanker = (EQPlayer**)pinstActiveBanker;
-		ppActiveGMaster = (EQPlayer**)pinstActiveGMaster;
-		ppActiveCorpse = (EQPlayer**)pinstActiveCorpse;
+		ppTradeTarget = (PlayerClient**)pinstTradeTarget;
+		ppActiveBanker = (PlayerClient **)pinstActiveBanker;
+		ppActiveGMaster = (PlayerClient **)pinstActiveGMaster;
+		ppActiveCorpse = (PlayerClient **)pinstActiveCorpse;
 
 		ppContextMenuManager = (CContextMenuManager**)pinstCContextMenuManager;
 		ppCursorAttachment = (CCursorAttachment**)pinstCCursorAttachment;
 		ppSocialEditWnd = (CSocialEditWnd**)pinstCSocialEditWnd;
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
-		ppChatManager = (CChatManager**)pinstCChatWindowManager;
-		ppFacePick = (CFacePick**)pinstCFacePick;
-#if !defined(ROF2EMU) && !defined(UFEMU)
+		ppChatManager = (CChatWindowManager**)pinstCChatWindowManager;
+		ppFacePick = (CFacePick * *)pinstCFacePick;
 		ppFactionWnd = (CFactionWnd**)pinstCFactionWnd;
 		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
-#endif
+
 		ppExtendedTargetWnd = (CExtendedTargetWnd**)pinstCExtendedTargetWnd;
 		ppFindLocationWnd = (CFindLocationWnd**)pinstCFindLocationWnd;
 		ppInvSlotMgr = (CInvSlotMgr**)pinstCInvSlotMgr;
@@ -223,30 +216,15 @@ namespace MQ2Globals
 		ppJournalTextWnd = (CJournalTextWnd**)pinstCJournalTextWnd;
 		ppJournalCatWnd = (CJournalCatWnd**)pinstCJournalCatWnd;
 		ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
-#if defined(ROF2EMU) || defined(UFEMU)
-		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
-#endif
 		ppCWebManager = (CWebManager**)pinstCWebManager;
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
 		ppTaskManager = (CTaskManager*)pinstCTaskManager;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
-#if defined(ROF2EMU) || defined(UFEMU)
-		ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
-#endif
-#if defined(ROF2EMU) || defined(UFEMU)
-		ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
-#endif
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppAdvancedLootWnd = (CAdvancedLootWnd**)pinstCAdvancedLootWnd;
-#endif
 		ppBandolierWnd = (CBandolierWnd**)pinstCBandolierWnd;
 		ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 		ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 		ppEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
-#if defined(ROF2EMU) || defined(UFEMU)
-		ppPointMerchantWnd = (PointMerchantWnd**)pinstCPointMerchantWnd;
-		ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
-#endif
 		ppCZoneGuideWnd = (CZoneGuideWnd**)pinstCZoneGuideWnd;
 		ppSidlMgr = (CSidlManager**)pinstCSidlManager;
 		ppWndMgr = (CXWndManager**)pinstCXWndManager;
@@ -256,12 +234,7 @@ namespace MQ2Globals
 		ppTaskMember = (TASKMEMBER**)pinstTaskMember;
 		pDynamicZone = (DYNAMICZONE*)instDynamicZone;
 		ppMercInfo = (MERCENARYINFO**)pinstMercenaryData;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		ppEQSpellStrings = (EQSpellStrings**)pinstEQSpellStrings;
-#endif
-#if defined(ROF2EMU) || defined(UFEMU)
-		ppAggroInfo = (AGGROINFO**)pinstAggroInfo;
-#endif
 		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
 		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
 		ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
@@ -1056,9 +1029,7 @@ namespace MQ2Globals
 	DWORD* gpPCNames = nullptr;
 	PBYTE pTributeActive = nullptr;
 	PBYTE gpAutoFire = nullptr;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	PAUTOSKILL gpAutoSkill = nullptr;
-#endif
 	size_t g_eqgameimagesize = 0;
 	PBYTE gpShiftKeyDown = nullptr; // addr+1=ctrl, addr+2=alt
 	DWORD *gpMouseEventTime = nullptr;
@@ -1112,9 +1083,7 @@ namespace MQ2Globals
 
 	fEQGetMelee     get_melee_range = GetMeleeRange;
 	fGetLabelFromEQ GetLabelFromEQ = nullptr;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	fEQToggleKeyRingItem  cmdToggleKeyRingItem = nullptr;
-#endif
 	fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
 	fICGetHashData IC_GetHashData = nullptr;
@@ -1136,29 +1105,27 @@ namespace MQ2Globals
 	CDisplay** ppDisplay = nullptr;
 	EQ_PC** ppPCData = nullptr;
 	EQ_Character** ppCharData = nullptr;
-	EQPlayer** ppCharSpawn = nullptr;
-	EQPlayer** ppActiveMerchant = nullptr;
-	EQPlayerManager** ppSpawnManager = nullptr;
-	EQPlayer** ppLocalPlayer = nullptr;
-	EQPlayer** ppControlledPlayer = nullptr;
+	PlayerClient** ppCharSpawn = nullptr;
+	PlayerClient** ppActiveMerchant = nullptr;
+	PlayerManagerClient** ppSpawnManager = nullptr;
+	PlayerClient** ppLocalPlayer = nullptr;
+	PlayerClient** ppControlledPlayer = nullptr;
 	EQWorldData** ppWorldData = nullptr;
 	ClientSpellManager** ppSpellMgr = nullptr;
-	EQPlayer** ppTarget = nullptr;
+	PlayerClient** ppTarget = nullptr;
 	EqSwitchManager** ppSwitchMgr = nullptr;
 	SPELLFAVORITE* pSpellSets = nullptr;
 	EQZoneInfo* pZoneInfo = nullptr;
 	AltAdvManager** ppAltAdvManager = nullptr;
-	CONNECTION_T** ppConnection = nullptr;
+	connection_t** ppConnection = nullptr;
 #if defined(ROF2EMU) || defined(UFEMU)
 	EQItemList** ppItemList = nullptr;
 	AURAMGR** ppAuraMgr = nullptr;
 #endif
-	EQCHATMGR** ppEQChatMgr = nullptr;
-
-	EQPlayer** ppTradeTarget = nullptr;
-	EQPlayer** ppActiveBanker = nullptr;
-	EQPlayer** ppActiveGMaster = nullptr;
-	EQPlayer** ppActiveCorpse = nullptr;
+	PlayerClient** ppTradeTarget = nullptr;
+	PlayerClient** ppActiveBanker = nullptr;
+	PlayerClient** ppActiveGMaster = nullptr;
+	PlayerClient** ppActiveCorpse = nullptr;
 
 	/* WINDOW INSTANCES */
 	LootFiltersManager** ppLootFiltersManager = nullptr;
@@ -1168,13 +1135,11 @@ namespace MQ2Globals
 	CCursorAttachment** ppCursorAttachment = nullptr;
 	CSocialEditWnd** ppSocialEditWnd = nullptr;
 	CContainerMgr** ppContainerMgr = nullptr;
-	CChatManager** ppChatManager = nullptr;
+	CChatWindowManager** ppChatManager = nullptr;
 	CFacePick** ppFacePick = nullptr;
 	CFactionWnd** ppFactionWnd = nullptr;
 	CExtendedTargetWnd** ppExtendedTargetWnd = nullptr;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	CFindItemWnd** ppFindItemWnd = nullptr;
-#endif
 	CFindLocationWnd** ppFindLocationWnd = nullptr;
 	CInvSlotMgr** ppInvSlotMgr = nullptr;
 	CNoteWnd** ppNoteWnd = nullptr;
@@ -1242,9 +1207,6 @@ namespace MQ2Globals
 	CJournalTextWnd** ppJournalTextWnd = nullptr;
 	CJournalCatWnd** ppJournalCatWnd = nullptr;
 	CPetitionQWnd** ppPetitionQWnd = nullptr;
-#if defined(ROF2EMU) || defined(UFEMU)
-	CPotionBeltWnd** ppPotionBeltWnd = nullptr;
-#endif
 	CBandolierWnd** ppBandolierWnd = nullptr;
 	CWebManager** ppCWebManager = nullptr;
 	CTaskWnd** ppTaskWnd = nullptr;
@@ -1259,22 +1221,13 @@ namespace MQ2Globals
 
 	CSidlManager** ppSidlMgr = nullptr;
 	CXWndManager** ppWndMgr = nullptr;
-#if defined(ROF2EMU) || defined(UFEMU)
-	CTextOverlay** ppTextOverlay = nullptr;
-	KeypressHandler** ppKeypressHandler = 0;
-#endif
 	PEQRAID pRaid = nullptr;
 	DZMEMBER** ppDZMember = nullptr;
 	DZTIMERINFO** ppDZTimerInfo = nullptr;
 	TASKMEMBER** ppTaskMember = nullptr;
 	DYNAMICZONE* pDynamicZone = nullptr;
 	MERCENARYINFO** ppMercInfo = nullptr;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQMERCALTABILITIES** ppMercAltAbilities = nullptr;
-#endif
-#if defined(ROF2EMU) || defined(UFEMU)
-	AGGROINFO** ppAggroInfo = nullptr;
-#endif
 	CLargeDialogWnd** ppLargeDialog = nullptr;
 	CItemDisplayManager** ppItemDisplayManager = nullptr;
 	EqSoundManager** ppEqSoundManager = nullptr;

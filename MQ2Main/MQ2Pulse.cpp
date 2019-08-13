@@ -206,16 +206,16 @@ void Pulse()
 	gbInForeground = (GetForegroundWindow() == EQhWnd);
 
 	if (!ppCharSpawn || !pCharSpawn) return;
-	PSPAWNINFO pCharOrMount = NULL;
+	SPAWNINFO* pCharOrMount = NULL;
 
-	PCHARINFO pCharInfo = GetCharInfo();
-	PCHARINFO2 pCharInfo2 = GetCharInfo2();
-	PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
+	CHARINFO* pCharInfo = GetCharInfo();
+	CHARINFO2* pCharInfo2 = GetCharInfo2();
+	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
 	if (pCharInfo && pCharInfo->pSpawn) pChar = pCharInfo->pSpawn;
 
 	static WORD LastZone = -1;
 
-	static PSPAWNINFO pCharOld = NULL;
+	static SPAWNINFO* pCharOld = NULL;
 	static FLOAT LastX = 0.0f;
 	static FLOAT LastY = 0.0f;
 	static ULONGLONG LastMoveTick = 0;
@@ -305,7 +305,7 @@ void Pulse()
 			if (oldcameratype != *(DWORD*)CDisplay__cameraType) {
 				oldcameratype = *(DWORD*)CDisplay__cameraType;
 				sprintf_s(CameraText, "Selector Window (Camera %d)", oldcameratype);
-				pSelectorWnd->CSetWindowText(CameraText);
+				pSelectorWnd->SetWindowText(CameraText);
 			}
 		}
 	}
@@ -678,20 +678,17 @@ void GameLoop_Detour()
 BOOL Trampoline_ProcessGameEvents(VOID);
 BOOL Detour_ProcessGameEvents(VOID)
 {
+	DebugTryBeginRet();
 	int ret2 = 0;
-	DebugTryBegin();
 	CAutoLock Lock(&gPulseCS);
-	int ret = 0;
-	//__try
-	{
-		ret = Heartbeat();
+	int ret = Heartbeat();
 #ifdef ISXEQ
 	if (!pISInterface->ScriptEngineActive())
 		pISInterface->LavishScriptPulse();
 #endif
 	ret2 = Trampoline_ProcessGameEvents();
 #ifndef ISXEQ
-	if(ret==2 && bPluginCS==0) {
+	if (ret == 2 && bPluginCS == 0) {
 		OutputDebugString("I am loading in ProcessGameEvents");
 		//we are loading stuff
 		DWORD oldscreenmode = ScreenMode;
@@ -701,17 +698,19 @@ BOOL Detour_ProcessGameEvents(VOID)
 		MQ2MouseHooks(1);
 		Sleep(100);
 		InitializeMQ2KeyBinds();
-		#ifndef ISXEQ
+#ifndef ISXEQ
 		InitializeMQ2Plugins();
-		#endif
+#endif
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
-	} else if(ret==1 && g_Loaded) {
+	}
+	else if (ret == 1 && g_Loaded)
+	{
 		OutputDebugString("I am unloading in ProcessGameEvents");
 		//we are unloading stuff
 		DWORD oldscreenmode = ScreenMode;
 		ScreenMode = 3;
-		WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
+		WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
 		DebugSpewAlways("%s", UnloadedString);
 		//cant unload these here there are detours still in use that call functions from plugins...
 		//UnloadMQ2Plugins();
@@ -723,9 +722,9 @@ BOOL Detour_ProcessGameEvents(VOID)
 
 	}
 #endif
-	}
-	DebugTryEnd();
+
 	return ret2;
+	DebugTryEndRet();
 }
 
 
@@ -775,7 +774,7 @@ public:
 		gTargetbuffs = FALSE;
 		int count = 0;
 		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
-		PCTARGETWND pTW = (PCTARGETWND)this;
+		CTargetWnd* pTW = (CTargetWnd*)this;
 		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
 			if (pTW->BuffSpellID[i] > 0)
 				count++;
@@ -785,7 +784,7 @@ public:
         packet->Reset();
 
         cTargetHeader header;
-            
+
         packet->Read( header.m_id );
         packet->Read( header.m_timeNext );
         packet->Read( header.m_bComplete );
@@ -793,7 +792,7 @@ public:
         cTargetBuff curBuff;
 		//should we clear it here?
 		//if (pTarget && header.m_bComplete) {
-			int id = pTarget->Data.SpawnID;
+			int id = pTarget->SpawnID;
 			CachedBuffsMap[id].clear();
 		//}
         for( int i = 0; i < header.m_count; i++ ) {
@@ -805,8 +804,8 @@ public:
             packet->ReadpChar( curBuff.casterName );
 			if (pTarget) {
 				curBuff.timeStamp = EQGetTime();
-				CachedBuffsMap[pTarget->Data.SpawnID][curBuff.spellId] = curBuff;
-				if ((curBuff.slot >= 42 && (pTarget->Data.Type == SPAWN_PLAYER || pTarget->Data.Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
+				CachedBuffsMap[pTarget->SpawnID][curBuff.spellId] = curBuff;
+				if ((curBuff.slot >= 42 && (pTarget->Type == SPAWN_PLAYER || pTarget->Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
 					continue;
 				}
 				targetBuffSlotToCasterMap[curBuff.slot] = curBuff.casterName;

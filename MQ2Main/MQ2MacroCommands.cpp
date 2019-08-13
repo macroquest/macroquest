@@ -23,7 +23,7 @@
 #endif
 #include <regex>
 
-VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, int StartLine, BOOL All)
+VOID FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
 {
 	DWORD Scope = 1;
 	if (szCommand[strlen(szCommand) - 1] == '{') {
@@ -31,7 +31,7 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, int StartLine, BOOL All)
 			DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
 			return;
 		}
-		std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(StartLine);
+		auto i = gMacroBlock->Line.find(StartLine);
 		i++;//move it forward once...
 		gMacroBlock->CurrIndex = i->first;
 		for (; i != gMacroBlock->Line.end() && Scope > 0; i++) {
@@ -727,7 +727,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 		if (CListWnd*list = (CListWnd*)pWnd->GetChildItem("RMW_RunningMacrosList"))
 		{
 			int id = list->AddString("", 0xFF00FF00, 0, 0);
-			list->SetItemText(id, 1, &CXStr(Macroname));
+			list->SetItemText(id, 1, Macroname);
 		}
 	}
 }
@@ -745,11 +745,11 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 	KeyCombo Escape;
 	ParseKeyCombo("Esc", Escape);
 	if (ppContainerMgr && pContainerMgr) {
-		PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
+		EQ_CONTAINERWND_MANAGER* ContainerMgr = (EQ_CONTAINERWND_MANAGER*)pContainerMgr;
 		DWORD concount = 2; //Close inv + clear target
 		if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open == 1) concount++;
-		for (i = 0; i<25; i++) {
-			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.IsVisible() == 1) concount++;
+		for (i = 0; i < 25; i++) {
+			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->IsVisible()) concount++;
 		}
 		for (i = 0; i<concount; i++)
 		{
@@ -757,8 +757,7 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 			MQ2HandleKeyUp(Escape);
 		}
 		if (!ppInventoryWnd) {
-			PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
-			if (pInvWindow && pInvWindow->IsVisible() == 0)
+			if (pInventoryWnd && !pInventoryWnd->IsVisible())
 				DoMappable(pChar, "inventory");
 		}
 	}

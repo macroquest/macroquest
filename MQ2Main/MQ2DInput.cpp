@@ -13,9 +13,9 @@
  */
 
 #ifndef ISXEQ
-#define DBG_SPEW 
+#define DBG_SPEW
 
-#include "MQ2Main.h" 
+#include "MQ2Main.h"
 
 // ***************************************************************************
 // Function:    DInputDataDetour

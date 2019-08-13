@@ -475,7 +475,7 @@ class CCastingWnd;
 class CCastSpellWnd;
 class CCharacterCreation;
 class CCharacterListWnd;
-class CChatManager;
+class CChatWindowManager;
 class CChatWindow;
 class CCheckBoxWnd;
 class CClickStickInfo;

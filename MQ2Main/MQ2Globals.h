@@ -127,7 +127,7 @@ EQLIB_VAR CHAR gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE M
 EQLIB_VAR CHAR gszLastSyntaxError[MAX_STRING];
 EQLIB_VAR CHAR gszLastMQ2DataError[MAX_STRING];
 
-EQLIB_VAR PSPAWNINFO pNamingSpawn;
+EQLIB_VAR SPAWNINFO* pNamingSpawn;
 EQLIB_VAR CHAR gszSpawnNPCName[MAX_STRING];
 EQLIB_VAR CHAR gszSpawnPlayerName[8][MAX_STRING];
 EQLIB_VAR CHAR gszSpawnPetName[MAX_STRING];
@@ -287,10 +287,8 @@ EQLIB_VAR DWORD * gpPCNames;
 #define gPCNames (*gpPCNames)
 EQLIB_VAR PBYTE gpAutoFire;
 #define gAutoFire (*gpAutoFire)
-#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_VAR PAUTOSKILL gpAutoSkill;
 #define gAutoSkill (*gpAutoSkill)
-#endif
 EQLIB_VAR PBYTE gpShiftKeyDown;
 #define gShiftKeyDown (*gpShiftKeyDown)
 EQLIB_VAR DWORD * gpMouseEventTime;
@@ -362,9 +360,7 @@ EQLIB_VAR fEQCommand			cmdQuit;
 EQLIB_VAR fEQNewUIINI			NewUIINI;
 EQLIB_VAR fEQProcGameEvts		ProcessGameEvents;
 EQLIB_VAR fEQGetMelee			get_melee_range;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_VAR fEQToggleKeyRingItem	cmdToggleKeyRingItem;
-#endif
 EQLIB_VAR fICGetHashData		IC_GetHashData;
 EQLIB_VAR fICSetHashData		IC_SetHashData;
 EQLIB_VAR fLoaderSetLoaded		IC_LoaderSetLoaded;
@@ -485,14 +481,7 @@ EQLIB_VAR CSidlManager** ppSidlMgr;
 EQLIB_VAR CXWndManager** ppWndMgr;
 #define pWndMgr (*ppWndMgr)
 #define pItemList GetItemList()
-#if !defined(ROF2EMU) && !defined(UFEMU)
 #define pKeypressHandler GetKeyPresshandler()
-#else
-EQLIB_VAR KeypressHandler** ppKeypressHandler;
-#define pKeypressHandler (*ppKeypressHandler)
-//	EQLIB_VAR EQItemList **ppItemList;
-//	#define pItemList (*ppItemList)
-#endif
 EQLIB_VAR PEQRAID pRaid;
 EQLIB_VAR DZMEMBER** ppDZMember;
 EQLIB_VAR TASKMEMBER** ppTaskMember;
@@ -521,33 +510,19 @@ EQLIB_VAR AltAdvManager** ppAltAdvManager;
 
 EQLIB_VAR connection_t** ppConnection;
 #define pConnection (*ppConnection)
-#if defined(ROF2EMU) || defined(UFEMU)
-EQLIB_VAR AURAMGR** ppAuraMgr;
-#define pAuraMgr (*ppAuraMgr)
-#else
 #define pAuraMgr GetAuraMgr()
-#endif
 EQLIB_VAR CAuraWnd** ppAuraWnd;
 #define pAuraWnd (*ppAuraWnd)
-EQLIB_VAR CChatWindowManager** ppEQChatMgr;
-#define pChatMgr (*ppEQChatMgr)
 
 EQLIB_VAR MERCENARYINFO** ppMercInfo;
 #define pMercInfo (*ppMercInfo)
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 #define pMercAltAbilities GetMercAltAbilities()
 EQLIB_VAR LootFiltersManager** ppLootFiltersManager;
 #define pLootFiltersManager (*ppLootFiltersManager)
 EQLIB_VAR EQSpellStrings** ppEQSpellStrings;
 #define pEQSpellStrings (*ppEQSpellStrings)
-#endif
-#if defined(ROF2EMU) || defined(UFEMU)
-EQLIB_VAR AGGROINFO** ppAggroInfo;
-#define pAggroInfo (*ppAggroInfo)
-#else
 #define pAggroInfo GetAggroInfo()
-#endif
 EQLIB_VAR CLargeDialogWnd** ppLargeDialog;
 #define pLargeDialog (*ppLargeDialog)
 EQLIB_VAR CItemDisplayManager** ppItemDisplayManager;
@@ -560,16 +535,13 @@ EQLIB_VAR CContextMenuManager** ppContextMenuManager;
 EQLIB_VAR CCursorAttachment** ppCursorAttachment;
 EQLIB_VAR CSocialEditWnd** ppSocialEditWnd;
 EQLIB_VAR CContainerMgr** ppContainerMgr;
-EQLIB_VAR CChatManager** ppChatManager;
+EQLIB_VAR CChatWindowManager** ppChatManager;
 EQLIB_VAR CConfirmationDialog** ppConfirmationDialog;
 
 EQLIB_VAR CFacePick** ppFacePick;
 EQLIB_VAR CFactionWnd** ppFactionWnd;
 EQLIB_VAR CExtendedTargetWnd** ppExtendedTargetWnd;
-
-#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_VAR CFindItemWnd** ppFindItemWnd;
-#endif
 EQLIB_VAR CFindLocationWnd** ppFindLocationWnd;
 EQLIB_VAR CInvSlotMgr** ppInvSlotMgr;
 //EQLIB_VAR CPopupWndManager **ppPopupWndManager;
@@ -647,9 +619,6 @@ EQLIB_VAR CJournalCatWnd** ppJournalCatWnd;
 //EQLIB_VAR CTributeBenefitWnd **ppTributeBenefitWnd;
 //EQLIB_VAR CTributeMasterWnd **ppTributeMasterWnd;
 EQLIB_VAR CPetitionQWnd** ppPetitionQWnd;
-#if defined(ROF2EMU) || defined(UFEMU)
-EQLIB_VAR CPotionBeltWnd** ppPotionBeltWnd;
-#endif
 EQLIB_VAR CBandolierWnd** ppBandolierWnd;
 EQLIB_VAR CWebManager** ppCWebManager;
 #define pCWebManager (*ppCWebManager)
@@ -657,9 +626,6 @@ EQLIB_VAR CTaskWnd** ppTaskWnd;
 EQLIB_VAR CTaskManager* ppTaskManager;
 #define pTaskManager (*ppTaskManager)
 EQLIB_VAR CTimeLeftWnd** ppTimeLeftWnd;
-#if defined(ROF2EMU) || defined(UFEMU)
-EQLIB_VAR CTextOverlay** ppTextOverlay;
-#endif
 EQLIB_VAR CAdvancedLootWnd** ppAdvancedLootWnd;
 EQLIB_VAR CRewardSelectionWnd** ppRewardSelectionWnd;
 EQLIB_VAR CEQSuiteTextureLoader* ppEQSuiteTextureLoader;
@@ -681,9 +647,7 @@ EQLIB_VAR CZoneGuideWnd** ppCZoneGuideWnd;
 #define pFacePick (*ppFacePick)
 #define pFactionWnd (*ppFactionWnd)
 #define pExtendedTargetWnd (*ppExtendedTargetWnd)
-#if !defined(ROF2EMU) && !defined(UFEMU)
 #define pFindItemWnd (*ppFindItemWnd)
-#endif
 #define pFindLocationWnd (*ppFindLocationWnd)
 #define pInvSlotMgr (*ppInvSlotMgr)
 #define pPopupWndManager (*ppPopupWndManager)
@@ -760,17 +724,10 @@ EQLIB_VAR CZoneGuideWnd** ppCZoneGuideWnd;
 #define pTributeBenefitWnd (*ppTributeBenefitWnd)
 #define pTributeMasterWnd (*ppTributeMasterWnd)
 #define pPetitionQWnd (*ppPetitionQWnd)
-#if defined(ROF2EMU) || defined(UFEMU)
-#define pSoulmarkWnd (*ppSoulmarkWnd)
-#endif
 #define pTaskWnd (*ppTaskWnd)
 #define pTaskSomething (ppTaskSomething)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
-#if defined(ROF2EMU) || defined(UFEMU)
-#define pTextOverlay (*ppTextOverlay)
-#else
 #define pTextOverlay GetTextOverlay()
-#endif
 #define pPotionBeltWnd (*ppPotionBeltWnd)
 #define pBandolierWnd (*ppBandolierWnd)
 #define pDZMember (*ppDZMember)

@@ -27,19 +27,19 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
 class FakeCDisplay
 {
 public:
-	struct T3D_tagACTORINSTANCE* GetClickedActor_Tramp(int,int, bool ,CVector3& ,CVector3&);
-	struct T3D_tagACTORINSTANCE* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2)
+	CActorInterface* GetClickedActor_Tramp(int, int, bool, CVector3&, CVector3&);
+	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
 		if (GroundObject.Type == GO_ObjectType)
 		{
 			if (EQPlacedItem*pPlaced = (EQPlacedItem*)GroundObject.ObjPtr)
 			{
-				T3D_tagACTORINSTANCE* ret = (T3D_tagACTORINSTANCE*)pPlaced->pActor;
+				CActorInterface* ret = (CActorInterface*)pPlaced->pActor;
 				return ret;
 			}
 			else
 			{
-				T3D_tagACTORINSTANCE* ret = (T3D_tagACTORINSTANCE*)GetClickedActor_Tramp(X,Y,bFlag,Vector1,Vector2);
+				CActorInterface* ret = (CActorInterface*)GetClickedActor_Tramp(X,Y,bFlag,Vector1,Vector2);
 				return ret;
 			}
 		} else if(pGroundTarget && EnviroTarget.Name[0] && (EnviroTarget.StandState==STANDSTATE_STAND || EnviroTarget.StandState==STANDSTATE_SIT)) {
@@ -50,10 +50,10 @@ public:
 				EnviroTarget.StandState=STANDSTATE_DEAD;
 			}
 			//T3D_tagACTORINSTANCE* org = GetClickedActor_Tramp(558,580,bFlag,Vector1,Vector2);
-			T3D_tagACTORINSTANCE* ret = (T3D_tagACTORINSTANCE*)pGroundTarget->pSwitch;
+			CActorInterface* ret = (CActorInterface*)pGroundTarget->pSwitch;
 			return ret;
 		} else {
-			T3D_tagACTORINSTANCE* ret = GetClickedActor_Tramp(X,Y,bFlag,Vector1,Vector2);
+			CActorInterface* ret = GetClickedActor_Tramp(X,Y,bFlag,Vector1,Vector2);
 			if (PEQSWITCH sw = (PEQSWITCH)ret)
 			{
 				EQPlacedItem *pi = (EQPlacedItem*)sw->pActorApplicationData;
@@ -62,27 +62,33 @@ public:
 			return ret;
 		}
 	}
-	HRESULT GetViewport(LPVOID This,LPVOID pViewport);
-	HRESULT GetTransform(LPVOID This,DWORD State,LPVOID pMatrix);
-	void SetCursorPosition(LPVOID This, int X,int Y,DWORD Flags);//0x2c
-	BOOL ShowCursor(LPVOID This,BOOL bShow); // 0x30
-	/*0x000*/ BYTE Unknown0x0[0xec8];
-    /*0xec8*/ LPVOID pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
+
+	HRESULT GetViewport(LPVOID This, LPVOID pViewport);
+	HRESULT GetTransform(LPVOID This, DWORD State, LPVOID pMatrix);
+	void SetCursorPosition(LPVOID This, int X, int Y, DWORD Flags);//0x2c
+	BOOL ShowCursor(LPVOID This, BOOL bShow); // 0x30
+
+/*0x000*/ BYTE Unknown0x0[0xec8];
+/*0xec8*/ LPVOID pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
-DETOUR_TRAMPOLINE_EMPTY(struct T3D_tagACTORINSTANCE *FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1,CVector3& Vector2)); 
+
+DETOUR_TRAMPOLINE_EMPTY(CActorInterface* FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2));
 
 void MQ2MouseHooks(BOOL bFlag)
 {
-	if(bFlag) {
-		EzDetourwName(CDisplay__GetClickedActor,&FakeCDisplay::GetClickedActor_Detour,&FakeCDisplay::GetClickedActor_Tramp,"CDisplay__GetClickedActor");
-	} else {
+	if (bFlag)
+	{
+		EzDetourwName(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp, "CDisplay__GetClickedActor");
+	}
+	else {
 		RemoveDetour(CDisplay__GetClickedActor);
 	}
 }
-// *************************************************************************** 
-// Function: ParseMouseLoc 
-// Description: Parses mouseloc for /click and /mouseto 
-// *************************************************************************** 
+
+// ***************************************************************************
+// Function: ParseMouseLoc
+// Description: Parses mouseloc for /click and /mouseto
+// ***************************************************************************
 //Function used by ParseLocationXML to extract parameter
 // ExtractValue - gets value between specified start and end markers
 // - Parameters:
@@ -110,8 +116,8 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
 
     fence = strstr(szFile,"ScreenID"); // needed to make sure we don't start into another element
 
-    sub = strstr(szFile, szStart); 
-    sub2 = strstr(szFile, szEnd); 
+    sub = strstr(szFile, szStart);
+    sub2 = strstr(szFile, szEnd);
     if (!sub || !sub2 || (fence && (sub > fence))) {
         szValue[0] = 0;
         return FALSE;
@@ -125,58 +131,50 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
 
 //#ifndef ISXEQ
 
-BOOL MoveMouse(DWORD x, DWORD y,BOOL bClick) 
-{ 
-	if (EQADDR_MOUSE) {
-		POINT pt = {0};
-		pt.x = x;
-		pt.y = y;
-		if(HWND EQhWnd = *(HWND*)EQADDR_HWND) {
-			ClientToScreen(EQhWnd,&pt);
-			//mouse_event(MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE,200,200,NULL,NULL);
-			//DWORD pid;
-			//GetWindowThreadProcessId(EQhWnd,&pid);
-			//AttachThreadInput(pid,)
-			//SendMessage(EQhWnd,WM_MOUSEMOVE,0,MAKELPARAM(pt.x,pt.y));
-			//if(!bClick) {
-				//if(((PCXWNDMGR)pWndMgr)->CurrWindowUnderMouse==0) {
-			//SetCursor(NULL);
-					SetCursorPos(pt.x,pt.y);
-					
-				//}
-			//}
-			EQADDR_DIMOUSECOPY->y = y;
-			EQADDR_DIMOUSECOPY->x = x;
-			EQADDR_MOUSE->Y = EQADDR_DIMOUSECOPY->y;
-			EQADDR_DIMOUSECHECK->y = EQADDR_DIMOUSECOPY->y;
-			EQADDR_MOUSE->X = EQADDR_DIMOUSECOPY->x;
-			EQADDR_DIMOUSECHECK->x = EQADDR_DIMOUSECOPY->x;
-			PCXWNDMGR px = (PCXWNDMGR)pWndMgr;
-			px->MousePoint.x=pt.x;
-			px->MousePoint.y=pt.y;
-			px->StoredMousePos.x=pt.x;
-			px->StoredMousePos.y=pt.y;
-			if(bClick) {
-				MouseButtonUp(x,y,"left");
-			}
-			WeDidStuff();
-			DebugSpew("Moved mouse to: %d,%d", x, y); 
-			return TRUE;
-		}
-	}
-	return FALSE;
-} 
+bool MoveMouse(int x, int y, bool bClick)
+{
+	if (!EQADDR_MOUSE)
+		return false;
 
-BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc) 
+	HWND EQhWnd = *(HWND*)EQADDR_HWND;
+	if (!EQhWnd)
+		return false;
+
+	CXPoint pt{ x, y };
+
+	ClientToScreen(EQhWnd, (LPPOINT)&pt);
+	SetCursorPos(pt.x, pt.y);
+
+	EQADDR_DIMOUSECOPY->y = y;
+	EQADDR_DIMOUSECOPY->x = x;
+	EQADDR_MOUSE->Y = EQADDR_DIMOUSECOPY->y;
+	EQADDR_DIMOUSECHECK->y = EQADDR_DIMOUSECOPY->y;
+	EQADDR_MOUSE->X = EQADDR_DIMOUSECOPY->x;
+	EQADDR_DIMOUSECHECK->x = EQADDR_DIMOUSECOPY->x;
+
+	pWndMgr->MousePoint = pt;
+	pWndMgr->StoredMousePos = pt;
+
+	if (bClick)
+	{
+		MouseButtonUp(x, y, "left");
+	}
+
+	WeDidStuff();
+	DebugSpew("Moved mouse to: %d,%d", x, y);
+	return true;
+}
+
+BOOL ParseMouseLoc(CHARINFO* pCharInfo, PCHAR szMouseLoc)
 {
 	CHAR szArg1[MAX_STRING] = {0};
 	CHAR szArg2[MAX_STRING] = {0};
-	int ClickX; //actual location to click, calculated from ButtonX 
-	int ClickY; //actual location to click, calculated from ButtonY 
+	int ClickX; //actual location to click, calculated from ButtonX
+	int ClickY; //actual location to click, calculated from ButtonY
 	if (!_strnicmp(szMouseLoc, "target", 6)) {
-        if (!pTarget) { 
-            WriteChatColor("You must have a target selected for /mouseto target.",CONCOLOR_RED); 
-            return FALSE; 
+        if (!pTarget) {
+            WriteChatColor("You must have a target selected for /mouseto target.",CONCOLOR_RED);
+            return FALSE;
         }
 		//insert code here to move mouse to target
 		//work in progress -eqmule july 18 2015
@@ -201,7 +199,6 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			DebugSpew("Moving mouse to absolute position");
 		}
 		return MoveMouse(ClickX,ClickY);
-		
 	}
 	MacroError("'%s' mouse click is either invalid or should be done using /notify",szMouseLoc);
 	return FALSE;
@@ -240,11 +237,11 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 	CVector3 cv1 = { 0,0,0 };
 	CVector3 cv2 = { 0,0,0 };
     gLClickedObject=false;
-    
+
     if(!_strnicmp(szButton,"left",4))
     {
         // click will fail if this isn't set to a time less than TimeStamp minus 750ms
-        *((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
+        *((DWORD*)__LMouseHeldTime)=((CDISPLAY*)pDisplay)->TimeStamp-0x45;
         pEverQuest->LMouseUp(x,y);
 
         if(((CDisplay*)pDisplay)->GetClickedActor(x,y,0,cv1,cv2))
@@ -263,12 +260,12 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
     }*/
 }
 
-VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton) 
+VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
 {
     CHAR szArg1[MAX_STRING] = {0};
     CHAR szArg2[MAX_STRING] = {0};
-    int ClickX; //actual location to click, calculated from ButtonX 
-    int ClickY; //actual location to click, calculated from ButtonY 
+    int ClickX; //actual location to click, calculated from ButtonX
+    int ClickY; //actual location to click, calculated from ButtonY
 
     // determine mouse location - x and y given
     if ((szMouseLoc[0]=='+') || (szMouseLoc[0]=='-') || ((szMouseLoc[0]>='0') && (szMouseLoc[0]<='9')))
@@ -296,12 +293,12 @@ VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
 
 #ifndef ISXEQ_LEGACY
 
-// *************************************************************************** 
-// Function: Click 
-// Description: Our '/click' command 
-// Clicks the mouse button (calls EQ's mouse up commands) 
-// Usage: /click left|right [<mouseloc>] 
-// *************************************************************************** 
+// ***************************************************************************
+// Function: Click
+// Description: Our '/click' command
+// Clicks the mouse button (calls EQ's mouse up commands)
+// Usage: /click left|right [<mouseloc>]
+// ***************************************************************************
 BOOL IsMouseWaitingForButton()
 {
     return ((EQADDR_MOUSECLICK->Click[1] == EQADDR_MOUSECLICK->Confirm[1])
@@ -336,7 +333,7 @@ BOOL IsMouseWaiting()
 #ifdef ISXEQ
 int Click(int argc, char *argv[])
 {
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	SPAWNINFO* pChar = (SPAWNINFO*)pLocalPlayer;
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
@@ -353,26 +350,26 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 	} 
 	if (gZoning) RETURN(0);
 	CHAR szMouseLoc[MAX_STRING] = { 0 };
-    MOUSE_DATA_TYPES mdType = MD_Unknown; 
+    MOUSE_DATA_TYPES mdType = MD_Unknown;
     DWORD RightOrLeft = 0; 
 	CHAR szArg1[MAX_STRING] = { 0 };
-    GetArg(szArg1, szLine, 1); //left or right 
-    strcpy_s(szMouseLoc,GetNextArg(szLine, 1)); //location to click 
+    GetArg(szArg1, szLine, 1); //left or right
+    strcpy_s(szMouseLoc,GetNextArg(szLine, 1)); //location to click
 
-    //parse location for click location (szMouseLoc) here 
-    if (szMouseLoc && szMouseLoc[0]!=0) { 
+    //parse location for click location (szMouseLoc) here
+    if (szMouseLoc && szMouseLoc[0]!=0) {
         if (!_strnicmp(szMouseLoc, "target", 6)) {
-            if (!pTarget) { 
-                WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED); 
+            if (!pTarget) {
+                WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED);
 				RETURN(0);
-            } 
+            }
             if (!_strnicmp(szArg1, "left", 4)) { 
-                pEverQuest->LeftClickedOnPlayer(pTarget); 
+                pEverQuest->LeftClickedOnPlayer(pTarget);
                 WeDidStuff();
-            } else if (!_strnicmp(szArg1, "right", 5)) { 
-                pEverQuest->RightClickedOnPlayer(pTarget, 0); 
+            } else if (!_strnicmp(szArg1, "right", 5)) {
+                pEverQuest->RightClickedOnPlayer(pTarget, 0);
                 WeDidStuff();
-            } 
+            }
 			RETURN(0);
         }
 		else if(!_strnicmp(szMouseLoc,"center",6)) {
@@ -383,10 +380,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 				if (!_strnicmp(szArg1, "right", 4)) {
 					if (EnviroTarget.Name[0] != 0) {
 						if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f) {
-							*((DWORD*)__RMouseHeldTime) = ((PCDISPLAY)pDisplay)->TimeStamp - 0x45;
-							if (PCXWNDMGR px = (PCXWNDMGR)pWndMgr)
+							*((DWORD*)__RMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
+							if (pWndMgr)
 							{
-								pEverQuest->RMouseUp(px->MousePoint.x, px->MousePoint.y);
+								pEverQuest->RMouseUp(pWndMgr->MousePoint.x, pWndMgr->MousePoint.y);
 							}
 							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
 							ZeroMemory(&GroundObject, sizeof(GroundObject));
@@ -404,7 +401,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 					if(EnviroTarget.Name[0]!=0) {
 						if(Distance3DToSpawn(pChar,&EnviroTarget)<=20.0f) {
 							//do stuff
-							*((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
+							*((DWORD*)__LMouseHeldTime)=((CDISPLAY*)pDisplay)->TimeStamp-0x45;
 							//we "click" at -1000,-1000 because we know the user doesnt have any windows there...
 							//if its possible, i would like to figure out a pixel
 							//on the users screen that isnt covered by a window...
@@ -439,12 +436,12 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 						} else {
 							BoundingRadius = pDoorTarget->ScaleFactor * 0.01f;
 						}
-						float Dist = pDisplay->TrueDistance(((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Z, pDoorTarget->Y, pDoorTarget->X, pDoorTarget->Z, 0.0f);
-						float reach = ((PSPAWNINFO)pCharSpawn)->Height + 20.0f + BoundingRadius;
+						float Dist = pDisplay->TrueDistance(((SPAWNINFO*)pCharSpawn)->Y, ((SPAWNINFO*)pCharSpawn)->X, ((SPAWNINFO*)pCharSpawn)->Z, pDoorTarget->Y, pDoorTarget->X, pDoorTarget->Z, 0.0f);
+						float reach = ((SPAWNINFO*)pCharSpawn)->Height + 20.0f + BoundingRadius;
 						if(Dist <= reach) {
 							int KeyID = 0;
 							int Skill = 0;
-							if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+							if (CHARINFO2* pChar2 = GetCharInfo2()) {
 								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
 								{
 									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
@@ -467,9 +464,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 									}
 								}
 							}
-							((EQSwitch *)pDoorTarget)->UseSwitch(pChar->SpawnID, KeyID, Skill);
-							if (pTarget==(EQPlayer*)&DoorEnviroTarget) {//this should NEVER happen
-								pTarget=NULL;
+
+							((EQSwitch*)pDoorTarget)->UseSwitch(pChar->SpawnID, KeyID, Skill);
+							if (pTarget == (PlayerClient*)& DoorEnviroTarget) {//this should NEVER happen
+								pTarget = nullptr;
 							}
 							RETURN(0);
 						} else {
@@ -485,31 +483,31 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 				WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
 			}
 			RETURN(0);
-		} 
+		}
         ClickMouseLoc(szMouseLoc, szArg1);
 		RETURN(0);
     }
 
-    if (szArg1[0]!=0) { 
-        if (!_strnicmp(szArg1, "left", 4)) { 
+    if (szArg1[0]!=0) {
+        if (!_strnicmp(szArg1, "left", 4)) {
             ClickMouse(0);
-        } else if (!_strnicmp(szArg1, "right", 5)) { 
+        } else if (!_strnicmp(szArg1, "right", 5)) {
             ClickMouse(1);
-        } else { 
-            WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 
-            DebugSpew("Bad command: %s",szLine); 
+        } else {
+            WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT);
+            DebugSpew("Bad command: %s",szLine);
 			RETURN(0);
-        } 
-    } 
+        }
+    }
 	RETURN(0);
 }
-// *************************************************************************** 
-// Function: MouseTo 
-// Description: Our '/mouseto' command 
-// Moves the mouse 
+// ***************************************************************************
+// Function: MouseTo
+// Description: Our '/mouseto' command
+// Moves the mouse
 // Usage: /mouseto <mouseloc>
-// *************************************************************************** 
-VOID MouseTo(PSPAWNINFO pChar, PCHAR szLine) 
+// ***************************************************************************
+void MouseTo(SPAWNINFO* pChar, PCHAR szLine)
 {
 	if (szLine && szLine[0]) {
 		if (ParseMouseLoc(GetCharInfo(), szLine)) {
@@ -611,19 +609,19 @@ ScreenVector3* WINAPI EQD3DXVec3Project(ScreenVector3 *pout, CONST ScreenVector3
 }
 
 //ok now the function that use all the stuff above
-bool  MouseToPlayer(EQPlayer*pPlayer,DWORD position,BOOL bClick)
+bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, BOOL bClick)
 {
 	if(pPlayer) {
 		if(pRender = (FakeCDisplay*)g_pDrawHandler)
 		{
-			g_vWorldLocation.x = ((PSPAWNINFO)pPlayer)->Y;
-			g_vWorldLocation.y = ((PSPAWNINFO)pPlayer)->X;
-			g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->Z;//smack in the middle...
+			g_vWorldLocation.x = ((SPAWNINFO*)pPlayer)->Y;
+			g_vWorldLocation.y = ((SPAWNINFO*)pPlayer)->X;
+			g_vWorldLocation.z = ((SPAWNINFO*)pPlayer)->Z;//smack in the middle...
 			if(position==1) {//head
-				g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->FloorHeight+((PSPAWNINFO)pPlayer)->AvatarHeight;
+				g_vWorldLocation.z = ((SPAWNINFO*)pPlayer)->FloorHeight+((SPAWNINFO*)pPlayer)->AvatarHeight;
 			}
 			if(position==2) {//feet
-				g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->FloorHeight;
+				g_vWorldLocation.z = ((SPAWNINFO*)pPlayer)->FloorHeight;
 			}
 
 			ScreenVector3 v3ScreenCoord = {0};
@@ -634,18 +632,18 @@ bool  MouseToPlayer(EQPlayer*pPlayer,DWORD position,BOOL bClick)
 			((FakeCDisplay*)pD3Ddevice)->GetViewport(pD3Ddevice,&g_viewPort);
 			EQD3DXVec3Project(&v3ScreenCoord, &g_vWorldLocation, &g_viewPort, &g_projection, &g_view, &g_world);
 			if(v3ScreenCoord.z >= 1) {
-				WriteChatf("%s is not within view %.2f",((PSPAWNINFO)pPlayer)->DisplayedName,v3ScreenCoord.z);
+				WriteChatf("%s is not within view %.2f",((SPAWNINFO*)pPlayer)->DisplayedName,v3ScreenCoord.z);
 				return false;
 			}
-			WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment",((PSPAWNINFO)pPlayer)->DisplayedName,v3ScreenCoord.x,v3ScreenCoord.y,v3ScreenCoord.z);
+			WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment",((SPAWNINFO*)pPlayer)->DisplayedName,v3ScreenCoord.x,v3ScreenCoord.y,v3ScreenCoord.z);
 			POINT pt = {0};
 			pt.x = (int)v3ScreenCoord.x;
 			pt.y = (int)v3ScreenCoord.y;
 			//((FakeCDisplay*)pD3Ddevice)->ShowCursor(pD3Ddevice,1);
 			//((FakeCDisplay*)pD3Ddevice)->SetCursorPosition(pD3Ddevice,pt.x,pt.y,1);//D3DCURSOR_IMMEDIATE_UPDATE
-			
+
 			MoveMouse(pt.x,pt.y,bClick);
-			WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",((PSPAWNINFO)pPlayer)->DisplayedName,pt.x,pt.y,v3ScreenCoord.z,EQADDR_MOUSE->X,EQADDR_MOUSE->Y);
+			WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",((SPAWNINFO*)pPlayer)->DisplayedName,pt.x,pt.y,v3ScreenCoord.z,EQADDR_MOUSE->X,EQADDR_MOUSE->Y);
 		}
 	}
 	return false;

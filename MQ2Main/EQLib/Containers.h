@@ -50,6 +50,7 @@ protected:
 public:
 	// two names for the same thing
 	int GetLength() const { return m_length; }
+	bool IsEmpty() const { return m_length == 0; }
 
 	// a microsoft extension - lets us get away with changing the implementation
 	__declspec(property(get = GetLength)) int Count;

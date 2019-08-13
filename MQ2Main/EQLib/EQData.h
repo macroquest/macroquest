@@ -1923,7 +1923,7 @@ struct _EVERQUEST
 /*0x38E80*/ ArrayClass_RO<CSINFO> pCharSelectPlayerArray;
 /*0x38E88*/ // more data
 };
-using EVERQUEST [[deprecated]] = _EVERQUEST;
+using EVERQUEST /*[[deprecated]]*/ = _EVERQUEST;
 using PEVERQUEST [[deprecated]] = _EVERQUEST*;
 
 struct AURAINFO

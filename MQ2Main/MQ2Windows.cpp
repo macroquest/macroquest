@@ -114,7 +114,7 @@ bool PickupItemNew(CONTENTS* pCont)
 								VePointer<CONTENTS> Cont = ((CharacterBase*)cbase)->GetItemPossession(IIndex);
 								if (Cont.pObject != nullptr)
 								{
-									if (pInvSlotMgr->MoveItem(&cbase->CreateItemGlobalIndex(slot1, slot2), &cbase->CreateItemGlobalIndex(33/*HELD*/), false, false))
+									if (pInvSlotMgr->MoveItem(cbase->CreateItemGlobalIndex(slot1, slot2), cbase->CreateItemGlobalIndex(33/*HELD*/), false, false))
 									{
 										pCursorAttachment->Deactivate();
 										pCursorAttachment->AttachToCursor(NULL, NULL, 2/*ITEM*/, -1, NULL, NULL);
@@ -183,10 +183,10 @@ public:
 		{
 			if (uiMessage == XWM_LCLICK)
 			{
-				if (PCHARINFO2 pChar2 = GetCharInfo2())
+				if (CHARINFO2* pChar2 = GetCharInfo2())
 				{
 					if (pTarget && pLocalPlayer
-						&& ((PSPAWNINFO)pTarget)->SpawnID != ((PSPAWNINFO)pLocalPlayer)->SpawnID
+						&& ((SPAWNINFO*)pTarget)->SpawnID != ((SPAWNINFO*)pLocalPlayer)->SpawnID
 						&& pEverQuest && pChar2->pInventoryArray
 						&& (pChar2->pInventoryArray->Inventory.Cursor
 							|| pChar2->CursorPlat || pChar2->CursorGold || pChar2->CursorSilver || pChar2->CursorCopper))
@@ -201,7 +201,6 @@ public:
 		return CTargetWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	void CFindItemWnd__Update_Tramp();
 	void CFindItemWnd__Update_Detour()
 	{
@@ -608,9 +607,9 @@ public:
 							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
 							{
 								int dta = (int)list->GetItemData(list->CurSel);
-								if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
+								if (ItemGlobalIndex* igg = pThis->gi[dta])
 								{
-									pMerchantWnd->SelectBuySellSlot(igg, igg->Index.Slot1);
+									pMerchantWnd->SelectBuySellSlot(*igg, igg->GetTopSlot());
 								}
 							}
 
@@ -742,7 +741,7 @@ public:
 							if (!deletelist.empty())
 								return 0;
 
-							if (PCHARINFO2 pChar2 = GetCharInfo2())
+							if (CHARINFO2* pChar2 = GetCharInfo2())
 							{
 								// if we have something on cursor we let eq handle the destroy
 								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == nullptr)
@@ -852,7 +851,6 @@ public:
 
 		return CFindItemWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
-#endif
 
 	int CBankWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*);
 	int CBankWnd__WndNotification_Detour(CXWnd* pWnd, unsigned int uiMessage, void* pData)
@@ -869,7 +867,7 @@ public:
 				switch (uiMessage)
 				{
 				case XWM_LCLICK:
-					if (PCHARINFO2 pChar2 = GetCharInfo2())
+					if (CHARINFO2* pChar2 = GetCharInfo2())
 					{
 						if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
 						{
@@ -886,7 +884,7 @@ public:
 					break;
 
 				case XWM_LMOUSEUP:
-					if (PCHARINFO2 pChar2 = GetCharInfo2())
+					if (CHARINFO2* pChar2 = GetCharInfo2())
 					{
 						if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
 						{
@@ -1778,7 +1776,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 		unsigned long nPack = atoi(&WindowName[4]);
 		if (nPack && nPack <= 10)
 		{
-			if (PCHARINFO2 pChar2 = GetCharInfo2())
+			if (CHARINFO2* pChar2 = GetCharInfo2())
 			{
 				if (pChar2->pInventoryArray)
 				{
@@ -1789,7 +1787,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 	}
 	else if (!_stricmp(WindowName, "enviro"))
 	{
-		pPack = ((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
+		pPack = ((EQ_CONTAINERWND_MANAGER*)pContainerMgr)->pWorldContents;
 	}
 
 	if (pPack)
@@ -3077,8 +3075,8 @@ int ItemNotify(int argc, char *argv[])
 
 						if (pInvSlotMgr)
 						{
-							pSlot = pInvSlotMgr->FindInvSlot(ptheitem->GetGlobalIndex().Index.Slot1,
-								ptheitem->GetGlobalIndex().Index.Slot2);
+							pSlot = pInvSlotMgr->FindInvSlot(ptheitem->GetGlobalIndex().GetTopSlot(),
+								ptheitem->GetGlobalIndex().GetIndex().GetSlot(1));
 						}
 
 						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, pNotification))
@@ -3239,46 +3237,41 @@ void AutoBankPulse()
 			// user wants us to sell stuff
 			for (auto g = selllist.begin(); g != selllist.end(); g++)
 			{
-				ItemGlobalIndex* gi = (ItemGlobalIndex*)&*g;
-				if (PCHARINFO pCharInfo = GetCharInfo())
+				ItemGlobalIndex& gi = *g;
+				if (CHARINFO* pCharInfo = GetCharInfo())
 				{
-					if (CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable)
+					CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
+					VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(gi);
+					if (ptr.pObject)
 					{
-						VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
-						if (ptr.pObject)
+						if (ITEMINFO* pItem = GetItemFromContents(ptr.pObject))
 						{
-							if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+							bool bwesold = false;
+							if (pMerchantWnd->pSelectedItem.pObject)
 							{
-								CMerchantWnd* pmercho = pMerchantWnd;
-								bool bwesold = false;
-								if (pmercho->pSelectedItem.pObject)
+								if (pMerchantWnd->pSelectedItem.pObject->ID == ptr.pObject->ID)
 								{
-									if (pmercho->pSelectedItem.pObject->ID == ptr.pObject->ID)
-									{
-										selllist.pop_front();
-										WriteChatf("Sold %d %s", pItem->StackSize, pItem->Name);
+									selllist.pop_front();
+									WriteChatf("Sold %d %s", pItem->StackSize, pItem->Name);
 
-										if (((EQ_Item*)ptr.pObject)->IsStackable())
-										{
-											DoCommandf("/sellitem %d", pItem->StackSize);
-										}
-										else
-										{
-											DoCommandf("/sellitem 1");
-										}
-										SellTimer = GetTickCount64();
-										bwesold = true;
-										break;
+									if (((EQ_Item*)ptr.pObject)->IsStackable())
+									{
+										DoCommandf("/sellitem %d", pItem->StackSize);
 									}
-								}
-								if (!bwesold) {
-#if !defined(ROF2EMU) && !defined(UFEMU)
-									pmercho->SelectBuySellSlot(gi, gi->Index.Slot1);
-#else
-									pmercho->SelectBuySellSlot(gi);
-#endif
+									else
+									{
+										DoCommandf("/sellitem 1");
+									}
+									SellTimer = GetTickCount64();
+									bwesold = true;
 									break;
 								}
+							}
+
+							if (!bwesold)
+							{
+								pMerchantWnd->SelectBuySellSlot(gi, gi.GetTopSlot());
+								break;
 							}
 						}
 					}
@@ -3367,14 +3360,14 @@ void AutoBankPulse()
 #ifdef NEWCHARINFO
 			if (PCHARINFO pChar = GetCharInfo()) {
 #else
-			if (PCHARINFONEW pChar = (PCHARINFONEW)GetCharInfo()) {
+			if (CHARINFONEW* pChar = (CHARINFONEW*)GetCharInfo()) {
 #endif
 				// check toplevel slots
 				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 				{
 					if (CONTENTS* pCont = pChar->BankItems.Items[slot].pObject)
 					{
-						if (PITEMINFO pItem = GetItemFromContents(pCont))
+						if (ITEMINFO* pItem = GetItemFromContents(pCont))
 						{
 							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
 								continue; // dont add bags that has items inside of them...
@@ -3452,7 +3445,7 @@ void AutoBankPulse()
 		if (autobanklist.empty() && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
 		{
 			// check toplevel slots
-			PCHARINFO2 pChar2 = GetCharInfo2();
+			CHARINFO2* pChar2 = GetCharInfo2();
 			if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray)
 			{
 				for (CONTENTS* pCont : pChar2->pInventoryArray->InventoryArray)
@@ -3534,7 +3527,7 @@ void AutoBankPulse()
 		}
 	}
 
-	if (PCHARINFO2 pChar2 = GetCharInfo2())
+	if (CHARINFO2* pChar2 = GetCharInfo2())
 	{
 		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor != 0)
 		{

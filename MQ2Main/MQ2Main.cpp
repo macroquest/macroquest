@@ -32,8 +32,8 @@ HANDLE ghMemberMapLock = 0;
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 HANDLE hMQ2StartThread = 0;
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                      DWORD  ul_reason_for_call, 
+BOOL APIENTRY DllMain( HANDLE hModule,
+                      DWORD  ul_reason_for_call,
                       LPVOID lpReserved
                       )
 {
@@ -41,8 +41,8 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     PCHAR szProcessName;
     ghModule = (HMODULE)hModule;
     ghInstance = (HINSTANCE)hModule;
-	ghInjectorWnd = FindWindow(__MacroQuestWinClassName, __MacroQuestWinName);
-	
+	ghInjectorWnd = FindWindowA(__MacroQuestWinClassName, __MacroQuestWinName);
+
     GetModuleFileName(ghModule,szFilename,MAX_STRING);
     szProcessName = strrchr(szFilename,'\\');
     szProcessName[0] = '\0';
@@ -811,46 +811,40 @@ void MQ2Free(void *memblock)
 class CMQNewsWnd : public CCustomWnd
 {
 public:
-    CMQNewsWnd(char *Template):CCustomWnd(Template)
-    {
-        SetWndNotification(CMQNewsWnd);
+	CMQNewsWnd(const char* Template) : CCustomWnd(Template)
+	{
 		AddStyle(CWS_TITLE | CWS_MINIMIZE);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
-        OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput");
-		OutputBox->SetParentWindow((_CSIDLWND *)this);
-    }
 
-    ~CMQNewsWnd()
-    {
-    }
+		OutputBox = (CStmlWnd*)GetChildItem("CW_ChatOutput");
+		OutputBox->SetParentWindow(this);
+	}
 
-    int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
-    {    
-        if (pWnd==0)
-        {
-            if (Message==XWM_CLOSE)
-            {
-                this->SetVisible(true);
-                return 1;
-            }
-        }
-        return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
-    };
+	~CMQNewsWnd()
+	{
+	}
 
-    //CTextEntryWnd *InputBox;
-    CStmlWnd *OutputBox;
+	int WndNotification(CXWnd* pWnd, unsigned int Message, void* unknown) override
+	{
+		if (pWnd == nullptr)
+		{
+			if (Message == XWM_CLOSE)
+			{
+				this->SetVisible(true);
+				return 1;
+			}
+		}
+
+		return CCustomWnd::WndNotification(pWnd, Message, unknown);
+	};
+
+	CStmlWnd* OutputBox;
 };
 
+CMQNewsWnd* pNewsWindow = nullptr;
+void InsertMQ2News();
 
-CMQNewsWnd *pNewsWindow=0;
-VOID InsertMQ2News();
-//#pragma once
-#define CCXStr__operator_equal1_x CXStr__operator_equal1_x
-#define CINITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + (DWORD)GetModuleHandle(NULL))
-CINITIALIZE_EQGAME_OFFSET(CCXStr__operator_equal1);
-FUNCTION_AT_ADDRESS(class CCXStr& CCXStr::operator=(char const *),CCXStr__operator_equal1);
-
-VOID CreateMQ2NewsWindow()
+void CreateMQ2NewsWindow()
 {
 	//MessageBox(NULL, "inject in news", "news debug", MB_SYSTEMMODAL | MB_OK);
 	//int sizeofCXWnd = sizeof(CXWnd);
@@ -862,26 +856,25 @@ VOID CreateMQ2NewsWindow()
         pNewsWindow = new CMQNewsWnd("ChatWindow");
 		pNewsWindow->SetBGColor(0xFF000000);
 		pNewsWindow->SetLocation({ 230,620,850,920 });
-		pNewsWindow->CSetWindowText("MacroQuest2 Recent Changes");
+		pNewsWindow->SetWindowText("MacroQuest2 Recent Changes");
 		pNewsWindow->SetZLayer(1);
     }
     InsertMQ2News();
 }
 
-VOID AddNewsLine(PCHAR Line, DWORD Color)
+void AddNewsLine(PCHAR Line, DWORD Color)
 {
 	CHAR szLine[MAX_STRING] = { 0 };
 	strcpy_s(szLine, Line);
-    Color=pChatManager->GetRGBAFromIndex(Color);
+	Color = pChatManager->GetRGBAFromIndex(Color);
 
 	CHAR szProcessed[MAX_STRING] = { 0 };
-    MQToSTML(szLine,szProcessed,MAX_STRING,Color);
-    strcat_s(szProcessed,"<br>");
-    CXStr NewText(szProcessed);
-    ConvertItemTags(NewText,0);
-    pNewsWindow->OutputBox->AppendSTML(NewText);
-    //    ((CXWnd*)pNewsWindow->OutputBox)->SetVScrollPos(0);
-
+	MQToSTML(szLine, szProcessed, MAX_STRING, Color);
+	strcat_s(szProcessed, "<br>");
+	CXStr NewText(szProcessed);
+	ConvertItemTags(NewText, 0);
+	pNewsWindow->OutputBox->AppendSTML(NewText);
+//	((CXWnd*)pNewsWindow->OutputBox)->SetVScrollPos(0);
 }
 
 VOID DeleteMQ2NewsWindow()
@@ -960,8 +953,7 @@ FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 FUNCTION_AT_ADDRESS(int CastRayLoc(const CVector3& SourcePos, int Race, float DestX, float DestY, float DestZ),__CastRay2);
 #endif
 #ifdef __CleanItemTags_x
-//this really should be CXStr CleanItemTags(const CXStr& str) but i cant get that to compile so we fake it...
-FUNCTION_AT_ADDRESS(CXStr *__cdecl CleanItemTags(CXStr *Out, const CXStr &In, bool bFlag),__CleanItemTags);
+FUNCTION_AT_ADDRESS(CXStr CleanItemTags(const CXStr& In, bool bFlag), __CleanItemTags);
 #endif
 #ifdef __HeadingDiff_x
 FUNCTION_AT_ADDRESS(float HeadingDiff(float h1, float h2, float *DiffOut),__HeadingDiff);

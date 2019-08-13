@@ -210,12 +210,6 @@ extern DWORD CountFrees;
     __asm {pop eax};\
 }
 
-#define SetWndNotification(thisclass) \
-{\
-    int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=&thisclass::WndNotification;\
-    SetvfTable(34,*(DWORD*)&pfWndNotification);\
-}
-
 #ifndef ISXEQ
 #ifdef ISXEQ_LEGACY
 #define EzDetour(offset,detour,trampoline)
@@ -279,7 +273,7 @@ EQLIB_API VOID InitializeMQ2Spawns();
 EQLIB_API VOID ShutdownMQ2Spawns();
 EQLIB_API VOID ProcessPendingGroundItems();
 EQLIB_API VOID UpdateMQ2SpawnSort();
-EQLIB_API BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show);
+EQLIB_API BOOL SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 EQLIB_API BOOL IsTargetable(PSPAWNINFO pSpawn);
 
 /* WINDOWS */
@@ -424,7 +418,7 @@ LEGACY_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension)
 EQLIB_API BOOL IsMouseWaiting(VOID);
 EQLIB_API BOOL IsMouseWaitingForButton();
 EQLIB_API void MQ2MouseHooks(BOOL bFlag);
-EQLIB_API BOOL MoveMouse(DWORD x, DWORD y, BOOL bClick = 0);
+EQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 EQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, BOOL bClick = 0);
 
 /* KEY BINDS */
@@ -446,7 +440,7 @@ EQLIB_API VOID ShutdownMQ2Pulse();
 /* OTHER IMPORTED FROM EQ */
 EQLIB_API int CastRay(PSPAWNINFO, float y, float x, float z);
 EQLIB_API int CastRayLoc(const CVector3& SourcePos, int Race, float DestX, float DestY, float DestZ);
-EQLIB_API CXStr *__cdecl CleanItemTags(CXStr *Out, const CXStr &In, bool bFlag);
+EQLIB_OBJECT CXStr CleanItemTags(const CXStr& In, bool bFlag);
 EQLIB_API float HeadingDiff(float h1, float h2, float *DiffOut);
 EQLIB_API float FixHeading(float Heading);
 EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
@@ -485,8 +479,8 @@ EQLIB_API PCHAR GetFilenameFromFullPath(PCHAR Filename);
 EQLIB_API BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime);
 EQLIB_API VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API VOID DefaultFilters(VOID);
-EQLIB_API PCHAR ConvertHotkeyNameToKeyName(PCHAR szName);
-LEGACY_API VOID CheckChatForEvent(PCHAR szMsg);
+EQLIB_API PCHAR ConvertHotkeyNameToKeyName(char* szName);
+LEGACY_API void CheckChatForEvent(PCHAR szMsg);
 EQLIB_API VOID ConvertItemTags(CXStr &cxstr, BOOL Tag = TRUE);
 EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
 EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize);
@@ -644,7 +638,7 @@ LEGACY_API VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API VOID DropTimers(VOID);
+LEGACY_API void DropTimers();
 #endif
 
 /*                 */

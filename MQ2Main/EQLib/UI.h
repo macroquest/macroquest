@@ -1765,7 +1765,12 @@ using PEQBUFFWINDOW [[deprecated]] = CBuffWindow*;
 // CCastingWnd
 //============================================================================
 
-class CCastingWnd;
+class CCastingWnd : public CSidlScreenWnd
+{
+public:
+	CCastingWnd(class CXWnd*);
+	virtual ~CCastingWnd();
+};
 
 //============================================================================
 // CCastSpellWnd
@@ -1997,6 +2002,7 @@ enum ChatFilterEnum
 // Size 0x384 in eqgame dated 05 Mar 2019 Test (see 0x5418AB)
 class CChatWindowManager
 {
+public:
 	//EQLIB_OBJECT CChatWindowManager();
 	//EQLIB_OBJECT ~CChatWindowManager();
 
@@ -3828,7 +3834,7 @@ enum eMerchantServices
 struct CONTENTDATA
 {
 	CONTENTS*     pCont;
-	int            Unknown;
+	int           Unknown;
 };
 
 struct CONTENTSARRAY
