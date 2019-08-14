@@ -1,3 +1,6 @@
+Aug 13 2019 by EqMule
+- Updated for TEST
+-
 Jul 31 2019 by EqMule
 - Fixed a clear target bug in mq2targetinfo -dannuic -knighty
 - Next release:

@@ -8149,6 +8149,7 @@ enum ePlacementType
 	PLACEMENT_TYPE_WALL,
 	PLACEMENT_TYPE_CEILING,
 };
+#if defined(ROF2EMU) || (UFEMU)
 class EQPlacedItem
 {
 public:
@@ -8173,8 +8174,8 @@ public:
 /*0x90*/ FLOAT  X;
 /*0x94*/ FLOAT  Z;
 /*0x98*/ bool	bIgnoreCollisions;
-/*0x98*/ bool	bDisablePlacementRotation;
-/*0x98*/ bool	bDisableFreePlacement;
+/*0x99*/ bool	bDisablePlacementRotation;
+/*0x9a*/ bool	bDisableFreePlacement;
 /*0x9c*/ ePlacementType  PlacementType;
 /*0xa0*/ FLOAT  ScaleRangeMin;
 /*0xa4*/ FLOAT  ScaleRangeMax;
@@ -8186,7 +8187,46 @@ public:
 /*0xbc*/ FLOAT  NPCHeight;
 /*0xC0*/
 };
-
+#else
+class EQPlacedItem
+{
+public:
+/*0x00*/ PVOID vftable;
+/*0x04*/ EQPlacedItem *pPrev;
+/*0x08*/ EQPlacedItem *pNext;
+/*0x0c*/ int	RecordNum;
+/*0x10*/ EqItemGuid ItemGuid;
+/*0x24*/ int	RealEstateID;
+/*0x28*/ int	RealEstateItemID;
+/*0x2C*/ bool	bIsNPC;
+/*0x30*/ UINT	PlacingItemNpcID;
+/*0x34*/ void*	pLight;//CLightInterface
+/*0x38*/ void*	pActor;//CActorInterface
+/*0x3c*/ CHAR   Name[0x40];
+/*0x7C*/ int	Unknown0x7C;
+/*0x80*/ int	Unknown0x80;
+/*0x84*/ FLOAT  Scale;
+/*0x88*/ FLOAT  Heading;
+/*0x8c*/ FLOAT  Angle;
+/*0x90*/ FLOAT  Roll;
+/*0x94*/ FLOAT  Y;
+/*0x98*/ FLOAT  X;
+/*0x9C*/ FLOAT  Z;
+/*0xA0*/ bool	bIgnoreCollisions;
+/*0xA1*/ bool	bDisablePlacementRotation;
+/*0xA2*/ bool	bDisableFreePlacement;
+/*0xA4*/ ePlacementType  PlacementType;
+/*0xa8*/ FLOAT  ScaleRangeMin;
+/*0xac*/ FLOAT  ScaleRangeMax;
+/*0xb0*/ FLOAT  DefaultScale;
+/*0xb4*/ FLOAT  DefaultHeading;
+/*0xb8*/ FLOAT  DefaultAngle;
+/*0xbc*/ FLOAT  DefaultRoll;
+/*0xc0*/ int	LightType;
+/*0xc4*/ FLOAT  NPCHeight;
+/*0xC8*/
+};
+#endif
 class EQPlacedItemManager
 { 
 public:

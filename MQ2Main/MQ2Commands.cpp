@@ -536,7 +536,8 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 	if (!szLine) RETURN(0);
 	EQGroundItemListManager *pGroundList = GetItemList();
-	if (!pGroundList || (pGroundList && pGroundList->Top==0))
+	//if (!pGroundList || (pGroundList && pGroundList->Top==0))
+	if (!pGroundList)
 		RETURN(0);
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR Arg1[MAX_STRING] = { 0 };
