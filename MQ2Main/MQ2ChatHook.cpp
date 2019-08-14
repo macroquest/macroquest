@@ -249,7 +249,7 @@ public:
 	VOID UPCNotificationFlush_Trampoline();
 	VOID UPCNotificationFlush_Detour()
 	{
-		if (PEVERQUEST eq = (PEVERQUEST)this) {
+		if (EVERQUEST* eq = (EVERQUEST*)this) {
 			CHAR szBuf[MAX_STRING] = { 0 };
 			if (eq->ChannelQty > 0) {
 				int len = 0;

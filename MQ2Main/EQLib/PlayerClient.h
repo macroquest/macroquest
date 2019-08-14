@@ -712,7 +712,7 @@ public:
 	//PlayerClient* GetPlayerFromName(const char* szName);
 
 	EQLIB_OBJECT PlayerClient* GetSpawnByID(int);
-	EQLIB_OBJECT PlayerClient* GetSpawnByName(char*);
+	EQLIB_OBJECT PlayerClient* GetSpawnByName(const char*);
 	EQLIB_OBJECT PlayerClient* GetPlayerFromPartialName(const char*, PlayerBase*);
 };
 

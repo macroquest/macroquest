@@ -48,7 +48,7 @@ inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)
 	return pSpawnManager->GetSpawnByID(dwSpawnID);
 }
 
-inline PlayerClient* GetSpawnByName(char *spawnName)
+inline PlayerClient* GetSpawnByName(const char* spawnName)
 {
 	return pSpawnManager->GetSpawnByName(spawnName);
 }

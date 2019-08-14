@@ -770,9 +770,10 @@ TLO(dataIf)
 	return false;
 }
 #endif
+
 TLO(dataCursor)
 {
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray) {
 			if (Ret.Ptr = pChar2->pInventoryArray->Inventory.Cursor)
 			{
@@ -1124,7 +1125,7 @@ TLO(dataSelectedItem)
 
 			if (pItem && pInvSlotMgr)
 			{
-				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1);
+				CInvSlot* pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot());
 				Sleep(0);
 			}
 		}

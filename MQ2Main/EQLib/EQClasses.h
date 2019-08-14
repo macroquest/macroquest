@@ -2949,6 +2949,8 @@ class CChatService
 public:
 	EQLIB_OBJECT int GetNumberOfFriends();
 	EQLIB_OBJECT char* GetFriendName(int);
+
+	// TODO: Merge with _CHATSERVICE
 };
 
 class PlayerPointManager

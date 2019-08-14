@@ -580,52 +580,67 @@ BOOL RemoveSubstitute(PCHAR Original)
 
 void InitializeMQ2Commands()
 {
-    int i = 0;
-    DebugSpew("Initializing Commands");
-    InitializeCriticalSection(&gCommandCS);
+	int i = 0;
+	DebugSpew("Initializing Commands");
+	InitializeCriticalSection(&gCommandCS);
 	if (!ghCCommandLock)
 		ghCCommandLock = CreateMutex(NULL, FALSE, NULL);
-    EzDetourwName(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline,"CEverQuest__InterpretCmd");
+	EzDetourwName(CEverQuest__InterpretCmd, &CCommandHook::Detour, &CCommandHook::Trampoline, "CEverQuest__InterpretCmd");
 
-    // Import EQ commands
-    PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
-    for (i=0;pCmdListOrig[i].fAddress != 0;i++) {
-        if (!strcmp(pCmdListOrig[i].szName,"/who")) {
-            cmdWho  = (fEQCommand)pCmdListOrig[i].fAddress;
-            AddCommand("/",pCmdListOrig[i].fAddress,TRUE,1,1); // make sure / does EQ who by default
-        } else if (!strcmp(pCmdListOrig[i].szName,"/whotarget")) {
-            cmdWhoTarget  = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/location")) {
-            cmdLocation  = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/help")) {
-            cmdHelp = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/target")) {
-            cmdTarget = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/charinfo")) {
-            cmdCharInfo = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/filter")) {
-            cmdFilter = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/doability")) {
-            cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/cast")) {
-            cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/useitem")) {
-            cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/pet")) {
-            cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/mercswitch")) {
-            cmdMercSwitch = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/advloot")) {
-            cmdAdvLoot = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/pickzone")) {
-            cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress;
-		} else if (!strcmp(pCmdListOrig[i].szName,"/assist")) {
+	// Import EQ commands
+	PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
+	for (i = 0; pCmdListOrig[i].fAddress != 0; i++) {
+		if (!strcmp(pCmdListOrig[i].szName, "/who")) {
+			cmdWho = (fEQCommand)pCmdListOrig[i].fAddress;
+			AddCommand("/", pCmdListOrig[i].fAddress, TRUE, 1, 1); // make sure / does EQ who by default
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/whotarget")) {
+			cmdWhoTarget = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/location")) {
+			cmdLocation = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/help")) {
+			cmdHelp = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/target")) {
+			cmdTarget = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/charinfo")) {
+			cmdCharInfo = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/filter")) {
+			cmdFilter = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/doability")) {
+			cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/cast")) {
+			cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/useitem")) {
+			cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/pet")) {
+			cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/mercswitch")) {
+			cmdMercSwitch = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/advloot")) {
+			cmdAdvLoot = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/pickzone")) {
+			cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/assist")) {
 			cmdAssist = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/quit")) {
+		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/quit")) {
 			cmdQuit = (fEQCommand)pCmdListOrig[i].fAddress;
-        }
-        AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
-    }
+		}
+		AddCommand(pCmdListOrig[i].szName, pCmdListOrig[i].fAddress, TRUE, 1, 1);
+	}
 
 
 
