@@ -509,7 +509,7 @@ FUNCTION_AT_ADDRESS(EQPlayer* EQ_Character::GetMyPetPlayer(), EQ_Character__GetM
 FUNCTION_AT_ADDRESS(void EQ_Character1::SetEffectId(unsigned char, unsigned int), EQ_Character__SetEffectId);
 #endif
 #ifdef EQ_Character__CastSpell_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, EQ_Item** ppItem, CEQItemLocation* ppitemloc, enum ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10), EQ_Character__CastSpell);
+FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, EQ_Item** ppItem, const ItemGlobalIndex&, enum ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10), EQ_Character__CastSpell);
 #endif
 #ifdef EQ_Character__GetBardInstrumentMod_x
 FUNCTION_AT_ADDRESS(int EQ_Character::GetBardInstrumentMod(int), EQ_Character__GetBardInstrumentMod);

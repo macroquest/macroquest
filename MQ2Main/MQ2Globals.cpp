@@ -242,8 +242,6 @@ namespace MQ2Globals
 		return true;
 	}
 
-	DWORD LoginController__GiveTime = 0;
-
 	/* SpellMap */
 	HANDLE ghLockSpellMap = nullptr;
 
@@ -1049,7 +1047,7 @@ namespace MQ2Globals
 	PCHAR *EQMappableCommandList = nullptr;
 	PBYTE EQbCommandStates = nullptr;
 
-	PBYTE EQADDR_ENCRYPTPADnullptr = nullptr;
+	PBYTE EQADDR_ENCRYPTPAD0 = nullptr;
 	PBYTE EQADDR_ENCRYPTPAD1 = nullptr;
 	PBYTE EQADDR_ENCRYPTPAD2 = nullptr;
 	PBYTE EQADDR_ENCRYPTPAD3 = nullptr;

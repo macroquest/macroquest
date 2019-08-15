@@ -46,7 +46,7 @@ const char* szFactionNames[] = {
 };
 size_t MAX_FACTIONNAMES = lengthof(szFactionNames) - 1;
 
-ACTORDEFENTRY ActordefList[] = {
+ACTORDEFENTRY ActorDefList[] = {
 #include "data/actordef.h"
 	0, 0, "NULL"
 };
@@ -90,6 +90,8 @@ INITIALIZE_EQGAME_OFFSET(DI8__Keyboard);
 INITIALIZE_EQGAME_OFFSET(DI8__Mouse);
 INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Copy);
 INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Check);
+DWORD LoginController__GiveTime = 0;
+
 INITIALIZE_EQGAME_OFFSET(__AutoSkillArray);
 INITIALIZE_EQGAME_OFFSET(__Attack);
 INITIALIZE_EQGAME_OFFSET(__Autofire);

@@ -631,13 +631,15 @@ EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__UpdateList;
 EQLIB_VAR DWORD CPacketScrambler__ntoh;
 EQLIB_VAR DWORD CPacketScrambler__hton;
 
-
-EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate;
-EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate1;
-EQLIB_VAR DWORD CSidlManager__CreateLabel;
-EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate;
-EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate1;
-EQLIB_VAR DWORD CSidlManager__CreateXWnd;
+EQLIB_VAR DWORD CSidlManagerBase__FindScreenPieceTemplate;
+EQLIB_VAR DWORD CSidlManagerBase__FindScreenPieceTemplate1;
+EQLIB_VAR DWORD CSidlManagerBase__CreateLabel;
+EQLIB_VAR DWORD CSidlManagerBase__CreateXWndFromTemplate;
+EQLIB_VAR DWORD CSidlManagerBase__CreateXWndFromTemplate1;
+EQLIB_VAR DWORD CSidlManagerBase__CreateXWnd;
+EQLIB_VAR DWORD CSidlManagerBase__FindAnimation1;
+EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
+EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
 EQLIB_VAR DWORD CSidlManager__CreateHotButtonWnd;
 
 EQLIB_VAR DWORD CSidlScreenWnd__CalculateHSBRange;
@@ -745,6 +747,7 @@ EQLIB_VAR DWORD CXStr__FindNext;
 
 EQLIB_VAR DWORD CScreenPieceTemplate__IsType;
 EQLIB_VAR DWORD CXWnd__BringToTop;
+EQLIB_VAR DWORD CXWnd__CXWnd;
 EQLIB_VAR DWORD CXWnd__dCXWnd;
 EQLIB_VAR DWORD CXWnd__Center;
 EQLIB_VAR DWORD CXWnd__ClrFocus;
@@ -978,7 +981,6 @@ EQLIB_VAR DWORD CCombatSkillsSelectWnd__ShouldDisplayThisSkill;
 EQLIB_VAR DWORD ActorClient__GetPosition;
 EQLIB_VAR DWORD ActorClient__GetPosition1;
 EQLIB_VAR DWORD CTextureAnimation__SetCurCell;
-EQLIB_VAR DWORD CSidlManager__FindAnimation1;
 EQLIB_VAR DWORD msg_spell_worn_off;
 EQLIB_VAR DWORD msg_new_text;
 EQLIB_VAR DWORD __msgTokenTextParam;
@@ -986,10 +988,6 @@ EQLIB_VAR DWORD msgTokenText;
 EQLIB_VAR DWORD SpellManager__SpellManager;
 EQLIB_VAR DWORD Spellmanager__LoadTextSpells;
 EQLIB_VAR DWORD SpellManager__GetSpellByGroupAndRank;
-EQLIB_VAR DWORD ItemGlobalIndex__IsKeyRingLocation;
-EQLIB_VAR DWORD ItemGlobalIndex__ItemGlobalIndex;
-EQLIB_VAR DWORD ItemGlobalIndex__IsEquippedLocation;
-EQLIB_VAR DWORD ItemGlobalIndex__IsValidIndex;
 EQLIB_VAR DWORD CLargeDialogWnd__Open;
 EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;
 EQLIB_VAR DWORD CItemDisplayManager__CreateWindowInstance;
@@ -998,8 +996,6 @@ EQLIB_VAR DWORD CCursorAttachment__AttachToCursor1;
 EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
-EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
-EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
 
 } // namespace eqlib
 

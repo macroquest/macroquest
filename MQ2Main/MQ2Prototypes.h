@@ -16,14 +16,13 @@
 
 namespace MQ2Prototypes {
 
-typedef PCHAR(__stdcall *fEQGetStringByID)(DWORD);
-#ifndef ISXEQ
-typedef HRESULT(__stdcall *fGetDeviceState)(THIS_ DWORD, LPVOID);
-#endif
-typedef DWORD(__stdcall *fEQScreenItem)(DWORD, DWORD, DWORD);
+using fEQGetStringByID = char* (__stdcall*)(DWORD);
+using fEQScreenItem = DWORD (__stdcall*)(DWORD, DWORD, DWORD);
+
 typedef DWORD(__stdcall *fEQScreenSpawn)(DWORD, DWORD);
 typedef PCHAR(__stdcall *fEQNewUIINI)(VOID);
-typedef VOID(__cdecl *fEQCommand)(SPAWNINFO*, const char* Buffer);
+typedef VOID(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
+typedef VOID(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
 typedef VOID(__cdecl *fMQCommand)(SPAWNINFO*, PCHAR Buffer,SIZE_T BuffLen);
 typedef VOID(__cdecl *fEQMemSpell)(DWORD, DWORD);
 typedef VOID(__cdecl *fEQLoadSpells)(PSPELLFAVORITE, DWORD);

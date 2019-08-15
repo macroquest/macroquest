@@ -12,15 +12,16 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW 
-
-#include <direct.h>
-
 #include "MQ2Main.h"
+
 #include <Shellapi.h>
 #include <mmsystem.h>
+#include <direct.h>
+
 #ifndef ISXEQ
+
 CMQ2Alerts CAlerts;
+
 // ***************************************************************************
 // Function:    Unload
 // Description: Our '/unload' command
@@ -28,7 +29,7 @@ CMQ2Alerts CAlerts;
 // Usage:       /unload
 // ***************************************************************************
 
-VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
+void Unload(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
@@ -50,7 +51,7 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 //              Lists macro files
 // Usage:       /listmacros <partial filename>
 // ***************************************************************************
-VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
+void ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	HANDLE hSearch;
@@ -112,7 +113,7 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /seterror <clear|errormsg>
 // ***************************************************************************
 
-VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
+void SetError(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	if ((szLine[0] == 0) || (_stricmp(szLine, "clear"))) {
@@ -129,7 +130,7 @@ VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
 //              Displays a list of spawns in the zone
 // Usage:       /who <search string>
 // ***************************************************************************
-VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
+void SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	CHAR szLLine[MAX_STRING] = { 0 };
@@ -204,7 +205,7 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /mqpause <off> 
 //            /mqpause chat [on|off] 
 // ***************************************************************************
-VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
+void MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 {
 	BOOL Pause = TRUE;
 	CHAR szBuffer[MAX_STRING] = { 0 };
@@ -274,7 +275,7 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 //               by default.
 // 2003-10-08      MacroFiend
 // ***************************************************************************
-VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
+void KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	DWORD Command;
@@ -309,7 +310,7 @@ VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 // Function:      PluginCommand
 // Description:   Our /plugin command.
 // ***************************************************************************
-VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
+void PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szName[MAX_STRING] = { 0 };
@@ -381,12 +382,12 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 //              will execute the DoAssist Method of the Spawn TLO
 // Author:      EqMule
 // ***************************************************************************
-VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
+void InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 }
 // /squelch
-VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
+void SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -404,7 +405,7 @@ VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
 //              Lists ground item info
 // Usage:       /items <filter>
 // ***************************************************************************
-VOID Items(PSPAWNINFO pChar, PCHAR szLine)
+void Items(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	typedef struct _iteminfo
@@ -525,7 +526,7 @@ int CMD_ItemTarget(int argc, char *argv[])
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 
 #else
-VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
+void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 #endif
@@ -671,14 +672,12 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	if (EnviroTarget.DisplayedName[0] != 0) {
 		sprintf_s(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		if (_stricmp(Arg2, "notarget") && ppTarget && 0)
-			pTarget = (EQPlayer*)&EnviroTarget;
 	}
-	else {
-		if (ppTarget && (pTarget == (EQPlayer*)&EnviroTarget))
-			pTarget = NULL;
+	else
+	{
 		MacroError("Couldn't find '%s' to target.", szLine);
 	}
+
 	RETURN(0);
 }
 
@@ -689,7 +688,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 //              Lists door info
 // Usage:       /doors <filter>
 // ***************************************************************************
-VOID Doors(PSPAWNINFO pChar, PCHAR szLine)
+void Doors(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 
@@ -753,7 +752,7 @@ VOID Doors(PSPAWNINFO pChar, PCHAR szLine)
 //              Targets the nearest specified door
 // Usage:       /doortarget <text>
 // ***************************************************************************
-VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
+void DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 
@@ -849,15 +848,15 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 
 
-VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
+void CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
 	if (gFilterMacro == FILTERMACRO_NONE)
 		cmdCharInfo(pChar, szLine);
-	if (PCHARINFO pCharInfo = GetCharInfo()) {
+	if (CHARINFO* pCharInfo = GetCharInfo()) {
 		DoCommand(pCharInfo->pSpawn, "/charinfo");
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (CHARINFO2* pChar2 = GetCharInfo2()) {
 			sprintf_s(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->BoundLocations[0].ZoneBoundX, pChar2->BoundLocations[0].ZoneBoundY, pChar2->BoundLocations[0].ZoneBoundZ);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
@@ -865,7 +864,7 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 
-VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
+void UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
 	strcpy_s(szEcho, DebugHeader);
@@ -878,13 +877,13 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/SpellSlotInfo' command
 // Usage:       /SpellSlotInfo [#|"spell name"]
 // ***************************************************************************
-VOID SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
+void SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szBuff[MAX_STRING] = { 0 };
 	CHAR szTemp[MAX_STRING] = { 0 };
 
-	PSPELL pSpell = NULL;
+	SPELL* pSpell = NULL;
 
 	GetArg(szArg1, szLine, 1);
 
@@ -910,7 +909,7 @@ VOID SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /MemSpell gem# "spell name"
 // ***************************************************************************
 SPELLFAVORITE MemSpellFavorite;
-VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
+void MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 {
 	if (!ppSpellBookWnd)
 		return;
@@ -922,16 +921,16 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 	WORD Gem = -1;
 	CHAR SpellName[MAX_STRING] = { 0 };
 
-	if (PCHARINFO pCharInfo = GetCharInfo()) {
+	if (CHARINFO* pCharInfo = GetCharInfo()) {
 		GetArg(szGem, szLine, 1);
 		GetArg(SpellName, szLine, 2);
 		Gem = atoi(szGem);
 		if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
 		Gem--;
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			PSPELL pSpell = 0;
+		if (CHARINFO2* pChar2 = GetCharInfo2()) {
+			SPELL* pSpell = 0;
 			for (DWORD N = 0; N < NUM_BOOK_SLOTS; N++) {
-				if (PSPELL pTempSpell = GetSpellByID(pChar2->SpellBook[N]))
+				if (SPELL* pTempSpell = GetSpellByID(pChar2->SpellBook[N]))
 				{
 					// exact name match only
 					if (!_stricmp(SpellName, pTempSpell->Name))
@@ -961,7 +960,7 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 // 
 // will select the specified item in your inventory if merchantwindow is open
 // ***************************************************************************
-VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
+void SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = FALSE;
 	if (!pMerchantWnd)
@@ -980,36 +979,36 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 			bExact = true;
 			pName++;
 		}
-		if (PCHARINFO pCharInfo = GetCharInfo())
+
+		if (CHARINFO* pCharInfo = GetCharInfo())
 		{
-			if (CMerchantWnd * pmercho = (CMerchantWnd *)pMerchantWnd)
+			if (CMerchantWnd* pmercho = (CMerchantWnd *)pMerchantWnd)
 			{
 				if (pmercho->IsVisible())
 				{
-					PITEMINFO pItem = 0;
-					CONTENTS* pCont = 0;
+					ITEMINFO* pItem = nullptr;
+					CONTENTS* pCont = nullptr;
 					bool bFound = false;
+
 					if (CONTENTS* pCont = FindItemByName(szBuffer, bExact))
 					{
 						ItemGlobalIndex To;
-						To.Location = pCont->GetGlobalIndex().Location;
-						To.Index.Slot1 = pCont->GetGlobalIndex().Index.Slot1;
-						To.Index.Slot2 = pCont->GetGlobalIndex().Index.Slot2;
-						To.Index.Slot3 = -1;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-						pmercho->SelectBuySellSlot(&To,To.Index.Slot1);
-#else
-						pmercho->SelectBuySellSlot(&To);
-#endif
+						To.Location = pCont->GetGlobalIndex().GetLocation();
+						To.Index.SetSlot(0, pCont->GetGlobalIndex().GetTopSlot());
+						To.Index.SetSlot(1, pCont->GetGlobalIndex().GetIndex().GetSlot(1));
+
+						pmercho->SelectBuySellSlot(To, To.GetTopSlot());
 					}
-					else {
+					else
+					{
 						WriteChatf("/selectitem Could NOT find %s in your inventory to select.\nUse /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer,szBuffer);
 					}
 				}
 			}
 		}
 	}
-	else {
+	else
+	{
 		WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\nUse /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
 		WriteChatf("Usage: /selectitem \"some item in YOUR inventory\", use \"=some item in YOUR inventory\" for EXACT name search.");
 	}
@@ -1027,7 +1026,7 @@ void BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pMerchantWnd) return;
 
 	CHAR szQty[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = nullptr;
+	CHARINFO* pCharInfo = nullptr;
 
 	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
 		return;
@@ -1055,7 +1054,7 @@ void SellItem(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pMerchantWnd) return;
 
 	CHAR szQty[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = nullptr;
+	CHARINFO* pCharInfo = nullptr;
 
 	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
 		return;
@@ -1076,7 +1075,7 @@ void SellItem(PSPAWNINFO pChar, PCHAR szLine)
 //              Adds our help type (7) to the built-in help command
 // Usage:       /help macro
 // ***************************************************************************
-VOID Help(PSPAWNINFO pChar, PCHAR szLine)
+void Help(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szCmd[MAX_STRING] = { 0 };
 	CHAR szArg[MAX_STRING] = { 0 };
@@ -1118,10 +1117,10 @@ int keyarray[] = {
 	0x0, 0x0, 0x0, 0x0,
 };
 
-VOID CmdCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CmdCmd(PSPAWNINFO pChar, PCHAR szLine)
 {}
 
-VOID PluginCmdSort(VOID)
+void PluginCmdSort(void)
 {
 	PMQCOMMAND pCmd = pCommands;
 	int i;
@@ -1145,7 +1144,7 @@ VOID PluginCmdSort(VOID)
 //              Beeps the system speaker
 // Usage:       /beep
 // ***************************************************************************
-VOID MacroBeep(PSPAWNINFO pChar, PCHAR szLine)
+void MacroBeep(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	//Beep(0x500,250);
@@ -1165,7 +1164,7 @@ VOID MacroBeep(PSPAWNINFO pChar, PCHAR szLine)
 //              Sets SuperWho filters
 // Usage:       /whofilter [options]
 // ***************************************************************************
-VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
+void SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg[MAX_STRING] = { 0 };
 	CHAR szToggle[MAX_STRING] = { 0 };
@@ -1243,7 +1242,7 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 //              Adds 'skills' to the built-in filter command
 // Usage:       /filter skills
 // ***************************************************************************
-VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
+void Filter(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	DWORD Command;
@@ -1593,7 +1592,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 //              Controls logging of DebugSpew to a file
 // Usage:       /spewfile [on,off]
 // ***************************************************************************
-VOID DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
+void DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
 {
 	BOOL Pause = TRUE;
 	CHAR szBuffer[MAX_STRING] = { 0 };
@@ -1626,12 +1625,12 @@ VOID DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
 //              Identifies the item on the cursor, displaying the LORE name.
 // Usage:       /identify
 // ***************************************************************************
-VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
+void Identify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	CHAR szMsg[MAX_STRING] = { 0 };
 	CHAR szTmp[MAX_STRING] = { 0 };
-	PCHARINFO2 pCharInfo = NULL;
+	CHARINFO2* pCharInfo = NULL;
 	PITEMINFO pItemInfo = NULL;
 	if (NULL == (pCharInfo = GetCharInfo2())) return;
 	if (!pCharInfo->pInventoryArray->Inventory.Cursor) {
@@ -1784,7 +1783,7 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
 //              on a 16 point compass (ie. NNE)
 // Usage:       /loc
 // ***************************************************************************
-VOID Location(PSPAWNINFO pChar, PCHAR szLine)
+void Location(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	if (gFilterMacro == FILTERMACRO_NONE) cmdLocation(pChar, szLine);
@@ -1827,7 +1826,7 @@ BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 	}
 	return FALSE;
 }
-VOID CMQ2Alerts::FreeAlerts(DWORD List)
+void CMQ2Alerts::FreeAlerts(DWORD List)
 {
 	lockit lk(_hLockMapWrite, "FreeAlerts");
 	CHAR szBuffer[64] = { 0 };
@@ -1846,7 +1845,7 @@ VOID CMQ2Alerts::FreeAlerts(DWORD List)
 //              Sets up $alert notifications
 // Usage:       /alert [clear #] [list #] [add/remove # [pc|npc|corpse|any] [radius ###] [zradius ###] [race race] [class class] [range min max] [name]]
 // ***************************************************************************
-VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
+void Alert(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bool bOutput = pChar ? true : false;
 	bRunNextCommand = TRUE;
@@ -2004,7 +2003,7 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 //              Displays spawn currently selected
 // Usage:       /whotarget
 // ***************************************************************************
-VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
+void SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
 	PSPAWNINFO psTarget = NULL;
 	bRunNextCommand = TRUE;
@@ -2039,7 +2038,7 @@ VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
 //              Our message box
 // Usage:       /msgbox text
 // ***************************************************************************
-VOID MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
+void MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
 {
 	FILE *fOut = NULL;
 	CHAR szBuffer[MAX_STRING] = { 0 };
@@ -2059,7 +2058,7 @@ VOID MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
 //              Our logging
 // Usage:       /mqlog text
 // ***************************************************************************
-VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
+void MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 {
 	FILE *fOut = NULL;
 	CHAR Filename[MAX_STRING] = { 0 };
@@ -2118,7 +2117,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /face <spawn>
 // Usage:       /face loc <y>,<x>
 // ***************************************************************************
-VOID Face(PSPAWNINFO pChar, PCHAR szLine)
+void Face(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
@@ -2299,7 +2298,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 // Description:      Our /look command. Changes camera angle
 // 2003-08-30      MacroFiend
 // ***************************************************************************
-VOID Look(PSPAWNINFO pChar, PCHAR szLine)
+void Look(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szLookAngle[MAX_STRING] = { 0 };
 	CHAR szTemp[MAX_STRING] = { 0 };
@@ -2326,7 +2325,7 @@ VOID Look(PSPAWNINFO pChar, PCHAR szLine)
 //              Displays the direction and distance to the closest spawn
 // Usage:       /where <spawn>
 // ***************************************************************************
-VOID Where(PSPAWNINFO pChar, PCHAR szLine)
+void Where(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
@@ -2382,7 +2381,7 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 //              Does (or lists) your abilities
 // Usage:       /doability [list|ability|#]
 // ***************************************************************************
-VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
+void DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0] || !cmdDoAbility)
 		return;
@@ -2408,7 +2407,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	//SkillManager*pSkillm = (SkillManager*)pSkillMgr;
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		// display available abilities list
 		if (!_stricmp(szBuffer, "list")) {
 			WriteChatColor("Abilities & Combat Skills:", USERCOLOR_DEFAULT);
@@ -2444,7 +2443,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("Combat Abilities:", USERCOLOR_DEFAULT);
 			for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++) {
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-					if (PSPELL pCA = GetSpellByID(pPCData->GetCombatAbility(Index))) {
+					if (SPELL* pCA = GetSpellByID(pPCData->GetCombatAbility(Index))) {
 						sprintf_s(szBuffer, "<\ag%s\ax>", pCA->Name);
 						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 					}
@@ -2464,13 +2463,13 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 						WriteChatf("you do not have this skill");
 						return;
 					}
-					if (PCHARINFO pChar = GetCharInfo()) {
+					if (CHARINFO* pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 						if (pChar->PcClient_CharacterZoneClient_vfTable) {
 #else
 						if (pChar->vtable2) {
 #endif
-							pCharData1->UseSkill((unsigned char)Index, (EQPlayer*)pCharData1);
+							pCharData1->UseSkill((unsigned char)Index, (PlayerClient*)pCharData1);
 						}
 					}
 					return;
@@ -2482,7 +2481,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++)
 		{
 			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-				if (PSPELL pCA = GetSpellByID(pChar2->CombatAbilities[Index]))
+				if (SPELL* pCA = GetSpellByID(pChar2->CombatAbilities[Index]))
 				{
 					if (!_stricmp(pCA->Name, szBuffer))
 					{
@@ -2503,7 +2502,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 //              Loads (or lists) a spell favorite list
 // Usage:       /loadspells [list|"name"]
 // ***************************************************************************
-VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
+void LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!pSpellSets || !ppSpellBookWnd || szLine[0] == 0) return;
 
@@ -2573,16 +2572,16 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void CastSplash(int Index, PSPELL pSpell,CVector3 *pos)
+void CastSplash(int Index, SPELL* pSpell,CVector3 *pos)
 {
 	CVector3 vec3;
 	ItemGlobalIndex IGE;
-	IGE.Location = eItemContainerInvalid;//setting up the defaults for the targetindicator (splashring)
-	IGE.Index.Slot1 = -1;
-	IGE.Index.Slot2 = -1;
-	IGE.Index.Slot3 = -1;
+	IGE.Location = eItemContainerInvalid; // setting up the defaults for the targetindicator (splashring)
+
 	pEverQuest->CreateTargetIndicator(Index, pSpell, IGE, eActivatableSpell);
-	if (CTargetRing *pTR = (CTargetRing *)((PEVERQUEST)pEverQuest)->pFreeTargetRing) {
+
+	if (CTargetRing* pTR = (CTargetRing *)((EVERQUEST*)pEverQuest)->pFreeTargetRing)
+	{
 		if (pos) {
 			vec3.X = pos->Y;
 			vec3.Y = pos->X;
@@ -2624,7 +2623,7 @@ void CastSplash(int Index, PSPELL pSpell,CVector3 *pos)
 // Description: Our '/cast' command
 // Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (spash location)
 // ***************************************************************************
-VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
+void Cast(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!cmdCast)
 		return;
@@ -2639,7 +2638,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		int Index = atoi(szLine);
 		Index--;
 		if (Index >= 0 && Index < NUM_SPELL_GEMS) {
-			if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(Index))) {
+			if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(Index))) {
 				if (pSpell->TargetType == 0x2d) {//is it a splashspell?
 					if (!_stricmp(szArg2, "loc")) {
 						//ok they want to cast it at a specific location
@@ -2701,15 +2700,15 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			if (CONTENTS* pItem = FindItemByName(szArg2, true))
 			{
-				if (pItem->GetGlobalIndex().Index.Slot1 < NUM_INV_SLOTS)
+				if (pItem->GetGlobalIndex().GetTopSlot() < NUM_INV_SLOTS)
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{
 						if (pInvSlotMgr)
 						{
-							if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1))
+							if (CInvSlot* pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot()))
 							{
-								CXPoint p{ 0, 0 };
+								CXPoint p;
 								pSlot->HandleRButtonUp(p);
 							}
 						}
@@ -2726,7 +2725,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 	for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
 		LONG Spellid = GetMemorizedSpell(Index);
 		if (Spellid != 0xFFFFFFFF) {
-			if (PSPELL pSpell = GetSpellByID(Spellid)) {
+			if (SPELL* pSpell = GetSpellByID(Spellid)) {
 				if (!_strnicmp(szBuffer, pSpell->Name, strlen(szBuffer))) {
 					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
 						if (!_stricmp(szArg2, "loc")) {
@@ -2769,7 +2768,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 //              Selects the closest spawn
 // Usage:       /target [spawn|myself|mycorpse]
 // ***************************************************************************
-VOID Target(PSPAWNINFO pChar, PCHAR szLine)
+void Target(PSPAWNINFO pChar, PCHAR szLine)
 {
 	gTargetbuffs = FALSE;
 	if (!ppSpawnManager) return;
@@ -2794,13 +2793,13 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			bArg = FALSE;
 		}
 		else if (!strcmp(szArg, "myself")) {
-			if (((PCHARINFO)pCharData)->pSpawn) {
-				pSpawnClosest = ((PCHARINFO)pCharData)->pSpawn;
+			if (((CHARINFO*)pCharData)->pSpawn) {
+				pSpawnClosest = ((CHARINFO*)pCharData)->pSpawn;
 				DidTarget = TRUE;
 			}
 		}
 		else if (!strcmp(szArg, "buffs")) {
-			if(PCHARINFO2 pinfo2 =  (PCHARINFO2)GetCharInfo2())
+			if(CHARINFO2* pinfo2 =  (CHARINFO2*)GetCharInfo2())
 			{
 				for (int i = 0; i < NUM_LONG_BUFFS; i++)
 				{
@@ -2809,8 +2808,8 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			}
 		}
 		else if (!strcmp(szArg, "mycorpse")) {
-			if (((PCHARINFO)pCharData)->pSpawn) {
-				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((PCHARINFO)pCharData)->pSpawn->Name);
+			if (((CHARINFO*)pCharData)->pSpawn) {
+				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((CHARINFO*)pCharData)->pSpawn->Name);
 				_strlwr_s(szFilter, MAX_STRING);
 			}
 		}
@@ -2886,12 +2885,12 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 //              Displays what your current skill levels are
 // Usage:       /skills [skill name]
 // ***************************************************************************
-VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
+void Skills(PSPAWNINFO pChar, PCHAR szLine)
 {
 	DWORD Skill, SkillCount = 0;
 	CHAR szMsg[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
-	PCHARINFO pCharInfo = NULL;
+	CHARINFO* pCharInfo = NULL;
 	CHAR szCopy[MAX_STRING] = { 0 };
 	strcpy_s(szCopy, szLine);
 	if (NULL == (pCharInfo = GetCharInfo())) return;
@@ -2899,7 +2898,7 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 		_strlwr_s(szCopy);
 	WriteChatColor("Skills", USERCOLOR_DEFAULT);
 	WriteChatColor("-----------------------", USERCOLOR_DEFAULT);
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		for (Skill = 0; szSkills[Skill]; Skill++) {
 			if (szCopy[0] != 0) {
 				CHAR szName[MAX_STRING] = { 0 };
@@ -2948,10 +2947,10 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 //              Set autorun value
 // Usage:       /setautorun [command]
 // ***************************************************************************
-VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
+void SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szServerAndName[MAX_STRING] = { 0 };
-	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
+	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, ((CHARINFO*)pCharData)->Name);
 	WritePrivateProfileStringA("AutoRun", szServerAndName, szLine, gszINIFilename);
 	sprintf_s(szServerAndName, "Set autorun to: '%s'", szLine);
 	WriteChatColor(szServerAndName, USERCOLOR_DEFAULT);
@@ -2964,7 +2963,7 @@ VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /alias name [delete|command]
 // ***************************************************************************
 
-VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
+void Alias(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szName[MAX_STRING] = { 0 };
@@ -3025,7 +3024,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 //                /substitition <original> delete
 // ***************************************************************************
 
-VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
+void Substitute(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szName[MAX_STRING] = { 0 };
@@ -3099,7 +3098,7 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 //	Basically leaving the third and/or fourth parameter blank will be interpreted as NULL
 //	enclosing NULL in quotes will interpret it as an actual string "NULL"
 // ***************************************************************************
-VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
+void IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = { 0 };   //Filename
 	CHAR szArg2[MAX_STRING] = { 0 };   //Section
@@ -3163,10 +3162,10 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 // Description:     Our /banklist command. Lists bank contents to chat buffer.
 // 2003-08-30       Valerian
 // ***************************************************************************
-VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
+void BankList(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = NULL;
+	CHARINFO* pCharInfo = NULL;
 	CONTENTS* pContainer = NULL;
 	if (NULL == (pCharInfo = GetCharInfo())) {
 		MacroError("/banklist -- Bad offset: CharInfo");
@@ -3205,7 +3204,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 // Function:      WindowState
 // Description:      Our /windowstate command. Toggles windows open/closed.
 // ***************************************************************************
-VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
+void WindowState(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR Arg1[MAX_STRING] = { 0 };
 	CHAR Arg2[MAX_STRING] = { 0 };
@@ -3258,7 +3257,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 // Function:      DisplayLoginName
 // Description:   Our /loginname command.
 // ***************************************************************************
-VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
+void DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 {
 	PCHAR szLogin = GetLoginName();
 	if (!szLogin) {
@@ -3269,12 +3268,12 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
+void EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 {
 	(pPCData)->DestroyHeldItemOrMoney();
 }
 
-VOID Exec(PSPAWNINFO pChar, PCHAR szLine) {
+void Exec(PSPAWNINFO pChar, PCHAR szLine) {
 	CHAR exepath[MAX_STRING] = { 0 };
 	CHAR szTemp1[MAX_STRING] = { 0 };
 	CHAR szTemp2[MAX_STRING] = { 0 };
@@ -3307,7 +3306,7 @@ VOID Exec(PSPAWNINFO pChar, PCHAR szLine) {
 }
 
 // /keypress
-VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
+void DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -3372,7 +3371,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // /popup
-VOID PopupText(PSPAWNINFO pChar, PCHAR szLine)
+void PopupText(PSPAWNINFO pChar, PCHAR szLine)
 {
 	DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500, 500, 3000);
 }
@@ -3390,7 +3389,7 @@ void PopupTextEcho(PSPAWNINFO pChar, char* szLine)
 }
 
 // /multiline
-VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
+void MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -3441,7 +3440,7 @@ void do_ranged(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // /loadcfg
-VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine)
+void LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3455,7 +3454,7 @@ VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // /dumpbinds
-VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
+void DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3473,7 +3472,7 @@ VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
 
 
 // /docommand
-VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
+void DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3484,63 +3483,76 @@ VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // /alt
-VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine)
+void DoAltCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /alt <command>");
 		return;
 	}
-	bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[2];
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[2] = 1;
+
+	bool Old = pWndMgr->KeyboardFlags[2];
+	pWndMgr->KeyboardFlags[2] = true;
+
 	DoCommand(pChar, szLine);
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[2] = Old;
+
+	pWndMgr->KeyboardFlags[2] = Old;
 }
 
 // /shift
-VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine)
+void DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /shift <command>");
 		return;
 	}
-	bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[0];
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0] = 1;
+
+	bool Old = pWndMgr->KeyboardFlags[0];
+	pWndMgr->KeyboardFlags[0] = true;
 	gShiftKeyDown = 1;
+
 	DoCommand(pChar, szLine);
+
 	gShiftKeyDown = 0;
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0] = Old;
+	pWndMgr->KeyboardFlags[0] = Old;
 }
 
 // /ctrl
-VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine)
+void DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /ctrl <command>");
 		return;
 	}
-	bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = 1;
+
+	bool Old = pWndMgr->KeyboardFlags[1];
+	pWndMgr->KeyboardFlags[1] = true;
+
 	DoCommand(pChar, szLine);
-	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = Old;
+
+	pWndMgr->KeyboardFlags[1] = Old;
 }
 
-VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
+void NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /nomodkey <command>");
 		return;
 	}
+
 	bool KeyboardFlags[4];
-	*(DWORD*)&KeyboardFlags = *(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags;
-	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags = 0;
+	*(DWORD*)&KeyboardFlags = *(DWORD*)&pWndMgr->KeyboardFlags;
+	*(DWORD*)&pWndMgr->KeyboardFlags = 0;
+
 	DoCommand(pChar, szLine);
-	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags = *(DWORD*)&KeyboardFlags;
+
+	*(DWORD*)&pWndMgr->KeyboardFlags = *(DWORD*)&KeyboardFlags;
 }
 #endif
+
 // ***************************************************************************
 // Function:    UseItemCmd
 // Description: '/useitem' command
@@ -3564,7 +3576,7 @@ int CMD_UseItem(int argc, char *argv[])
 	if (!cmdUseItem)
 		return -1;
 #else
-VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
+void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	CHAR szCmd[MAX_STRING] = { 0 };
@@ -3585,30 +3597,27 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 		else {
 			if (CONTENTS* pItem = FindItemByName(szCmd, stripped)) {
 				bool bKeyring = false;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-				if (PCHARINFO pCharInfo = GetCharInfo()) {
-					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->CharacterBase_vftable) {
-						ItemGlobalIndex location;
-						location.Location = (ItemContainerInstance)pItem->GlobalIndex.Location;
-						location.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
-						location.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
-						location.Index.Slot3 = -1;
-						bKeyring = location.IsKeyRingLocation();
-					}
+				if (CHARINFO* pCharInfo = GetCharInfo())
+				{
+					ItemGlobalIndex location;
+					location.Location = pItem->GlobalIndex.Location;
+
+					bKeyring = location.IsKeyRingLocation();
 				}
-#endif
-				if (!bKeyring) {
-					CHAR szTemp[32] = { 0 };
-					sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2);
+
+				if (!bKeyring)
+				{
+					char szTemp[32] = { 0 };
+					sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1));
 					cmdUseItem(pChar, szTemp);
 					RETURN(0);
 				}
-#if !defined(ROF2EMU) && !defined(UFEMU)		
+
 				bool bMount = ((EQ_Item*)pItem)->IsKeyRingItem(eMount);
 				bool bIllusion = ((EQ_Item*)pItem)->IsKeyRingItem(eIllusion);
 				bool bFamiliar = ((EQ_Item*)pItem)->IsKeyRingItem(eFamiliar);
 
-				//is it a mount?
+				// is it a mount?
 				if (bMount) {
 					if (DWORD index = GetKeyRingIndex(0, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
@@ -3636,7 +3645,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 								}
 							}
 						}
-					}	
+					}
 				}
 				else if (bFamiliar) {
 					//uhm ok, maybe a Familiar then?
@@ -3653,7 +3662,6 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 						}
 					}
 				}
-#endif
 			}
 		}
 	}
@@ -3666,7 +3674,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 //              Does (or lists) your programmed socials
 // Usage:       /dosocial [list|"social name"]
 // ***************************************************************************
-VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
+void DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!pSocialList) return;
 
@@ -3727,7 +3735,7 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // /timed
-VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
+void DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3742,14 +3750,14 @@ VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 	TimedCommand(szRest, atoi(szArg) * 100);
 }
 
-VOID ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine)
+void ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	gszLastNormalError[0] = 0;
 	gszLastSyntaxError[0] = 0;
 	gszLastMQ2DataError[0] = 0;
 }
 
-VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3776,9 +3784,9 @@ VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
 	MacroError("Window '%s' not container window", szLine);
 }
 
-VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
+void DropCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
 		{
 			if (((EQ_Item*)pChar2->pInventoryArray->Inventory.Cursor)->CanDrop(0, 1))
@@ -3794,7 +3802,7 @@ public:
 	void SelectMercenaryType();
 };
 FUNCTION_AT_ADDRESS(void mercenary::SelectMercenaryType(void), EQ_Character__Max_Mana);
-VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine)
+void HudCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3825,7 +3833,7 @@ VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 }
 
-VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
@@ -3952,7 +3960,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatf("\ay%s\ax caption set.", Arg1);
 }
 
-VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
+void NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -3982,7 +3990,7 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 #endif // KNIGHTLYPARSE
 }
 
-VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
+void AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szCommand[MAX_STRING] = { 0 };
@@ -4008,7 +4016,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 					sprintf_s(szBuffer, "[ %d: %s ]", pAbility->ID,
-						pCDBStr->GetString(pAbility->nName, 1, NULL));
+						pCDBStr->GetString(pAbility->nName, 1));
 					WriteChatColor(szBuffer, USERCOLOR_WHO);
 				}
 			}
@@ -4021,21 +4029,21 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
 				{
-					if ((pAltAdvManager->GetCalculatedTimer(pPCData, pAbility)) > 0)
+					if ((pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility)) > 0)
 					{
-						if (pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0))
+						if (pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, 0))
 						{
 							sprintf_s(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
-								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1, NULL),
-								pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
+								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1),
+								pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 						}
 						else
 						{
-							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i);
+							pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, &i);
 							sprintf_s(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
-								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1, NULL),
-								pAltAdvManager->GetCalculatedTimer(pPCData, pAbility), i);
+								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1),
+								pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility), i);
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 						}
 					}
@@ -4055,20 +4063,20 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility))
 			{
 				const char *pName;
-				if (!_stricmp(pName = pCDBStr->GetString(pAbility->nName, 1, NULL), szName))
+				if (!_stricmp(pName = pCDBStr->GetString(pAbility->nName, 1), szName))
 				{
 
 					WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
 					WriteChatColor("-------------------------------------------", USERCOLOR_WHO);
 
-					if ((pAltAdvManager->GetCalculatedTimer(pPCData, pAbility)) > 0)
+					if ((pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility)) > 0)
 					{//has a timer
-						if (!pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0))
+						if (!pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, 0))
 						{//it's not ready
-							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
+							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 							sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
-								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
+								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 							if (pAbility->SpellID > 0)
 							{
@@ -4088,10 +4096,10 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 						}
 						else
 						{
-							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
+							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 							sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
-								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
+								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 							if (pAbility->SpellID > 0)
 							{
@@ -4104,8 +4112,8 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 					}
 					else
 					{
-						pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i);
-						sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
+						pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, &i);
+						sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4));
 						WriteChatColor(szBuffer, USERCOLOR_WHO);
 						sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d",
 							pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type);
@@ -4130,7 +4138,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		// only search through the ones we have...
 		for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 			if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
 					if (!_stricmp(szName, pName)) {
 						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);
 						DoCommand(pChar, szBuffer);
@@ -4154,7 +4162,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 //              Echos text to the chatbox
 // Usage:       /echo <text>
 // ***************************************************************************
-VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
+void Echo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
@@ -4197,7 +4205,7 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 //              Loots everything on the targeted corpse
 // Usage:       /lootall
 // ***************************************************************************
-VOID LootAll(PSPAWNINFO pChar, PCHAR szLine)
+void LootAll(PSPAWNINFO pChar, PCHAR szLine)
 {
 	pLootWnd->LootAll(1);
 }
@@ -4223,7 +4231,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 //              Set the Window Title
 // Usage:       /setwintitle <something something>
 // ***************************************************************************
-VOID SetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
+void SetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 {
 	DWORD lReturn = GetCurrentProcessId();
 	DWORD pid = lReturn;
@@ -4235,7 +4243,7 @@ VOID SetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
+void GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 {
 	BOOL bHide = atoi(szLine);
 	szLine[0] = '\0';
@@ -4255,7 +4263,7 @@ VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 //              Adds the ability to do /pet attack #id
 // Usage:       /pet attack 1234 or whatever the spawnid is you want the pet to attack
 // ***************************************************************************
-VOID PetCmd(PSPAWNINFO pChar, PCHAR szLine)
+void PetCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0]) {
 		WriteChatColor("Usage: /pet attack/qattack # where # is the spawnid of the mob you want the pet to attack");
@@ -4284,27 +4292,33 @@ VOID PetCmd(PSPAWNINFO pChar, PCHAR szLine)
 		cmdPet(pChar, szLine);
 	}
 }
+
 // ***************************************************************************
 // Function:    MercSwitchCmd
 // Description: '/mercswitch' command
 //              Adds the ability to do /mercswitch Healer,Damage Caster,Melee Damage or Tank
 // Usage:       /mercswitch healer will switch to a Healer merc
 // ***************************************************************************
-VOID MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
+void MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (!szLine[0]) {
+	if (!szLine[0])
+	{
 		WriteChatColor("Usage: /mercswitch <Healer,Damage Caster,Melee Damage or Tank>");
 		cmdMercSwitch(pChar, szLine);
 		return;
 	}
-	else {
-		std::map<DWORD, MercDesc>descmap;
+	else
+	{
+		std::map<int, MercDesc> descmap;
 		GetAllMercDesc(descmap);
-		for (std::map<DWORD, MercDesc>::iterator n = descmap.begin(); n != descmap.end(); n++)
+
+		for (auto& n : descmap)
 		{
-			if (!_stricmp(n->second.Type.c_str(), szLine)) {
-				CHAR szTemp[256] = { 0 };
-				sprintf_s(szTemp, "%d", n->first + 1);
+			if (!_stricmp(n.second.Type.c_str(), szLine))
+			{
+				char szTemp[256] = { 0 };
+				sprintf_s(szTemp, "%d", n.first + 1);
+
 				cmdMercSwitch(pChar, szTemp);
 				return;
 			}
@@ -4312,6 +4326,7 @@ VOID MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
 		cmdMercSwitch(pChar, szLine);
 	}
 }
+
 // ***************************************************************************
 // Function:    AdvLootCmd
 // Description: '/advloot' command
@@ -4321,11 +4336,11 @@ VOID MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Or:    /advloot shared set "item from the shared set to all combo box, can be player name any of the other items that exist in that box..."
 // ***************************************************************************
 #if defined(ROF2EMU) || defined(UFEMU)
-VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
+void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 }
 #else
-VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
+void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 		return;
@@ -4340,91 +4355,123 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 		cmdAdvLoot(pChar, szLine);
 		return;
 	}
-	else {
-		if (PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvancedLootWnd) {
-			CListWnd *pPersonalList = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList");
-			CListWnd *pSharedList = 0;
-			if (pAdvLoot->pCLootList) {
-				pSharedList = (CListWnd *)pAdvLoot->pCLootList->SharedLootList;
+	else
+	{
+		if (pAdvancedLootWnd)
+		{
+			CListWnd* pPersonalList = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList");
+			CListWnd* pSharedList = 0;
+
+			if (pAdvancedLootWnd->pCLootList)
+			{
+				pSharedList = (CListWnd*)pAdvancedLootWnd->pCLootList->SharedLootList;
 			}
 			//ok at this point, we dont know if we have a user that checks if loot is in progress in his macro, so we do that for him here
-			if (LootInProgress(pAdvLoot, pPersonalList, pSharedList)) {
+			if (LootInProgress(pAdvancedLootWnd, pPersonalList, pSharedList))
+			{
 				MacroError("Woah! hold your horses there little filly... You better add a !${AdvLoot.LootInProgress} check in your macro to make sure loot is not in progress.");
 				return;
 			}
+
 			CHAR szID[MAX_STRING] = { 0 };
 			CHAR szCmd[MAX_STRING] = { 0 };
 			GetArg(szCmd, szLine, 1);
+
 			int cmdtype = 0;
-			if (!_stricmp(szCmd, "personal")) {
+			if (!_stricmp(szCmd, "personal"))
+			{
 				cmdtype = 2;
 			}
-			else if (!_stricmp(szCmd, "shared")) {
+			else if (!_stricmp(szCmd, "shared"))
+			{
 				cmdtype = 3;
 			}
-			LOOTITEM* pitem = 0;
-			if (cmdtype == 2) {
+
+			AdvancedLootItem* pitem = nullptr;
+
+			if (cmdtype == 2)
+			{
 				GetArg(szID, szLine, 2);
-				LONG index = -1;
-				if (pPersonalList) {
-					if (IsNumber(szID)) {
-						index = atoi(szID);
-						index--;
+				int index = -1;
+
+				if (pPersonalList)
+				{
+					if (IsNumber(szID))
+					{
+						index = atoi(szID) - 1;
 					}
-					else {//if its not a number its a itemname
-						  //need to roll through the list to get the index
-						if (pAdvLoot->pPLootList) {
-							for (LONG k = 0; k < pPersonalList->ItemsArray.Count; k++) {
+					else
+					{
+						// if its not a number its a itemname
+						// need to roll through the list to get the index
+						if (pAdvancedLootWnd->pPLootList)
+						{
+							for (int k = 0; k < pPersonalList->ItemsArray.Count; k++)
+							{
 								int listindex = (int)pPersonalList->GetItemData(k);
-								if (listindex != -1) {
-									DWORD multiplier = sizeof(LOOTITEM) * listindex;
-									if (LOOTITEM* pItem = (LOOTITEM*)(((DWORD)pAdvLoot->pPLootList->pLootItem) + multiplier)) {
-										if (!_stricmp(pItem->Name, szID)) {
-											index = k;
-											break;
-										}
+								if (listindex != -1)
+								{
+									AdvancedLootItem& item = pAdvancedLootWnd->pPLootList->Items[listindex];
+
+									if (!_stricmp(item.Name, szID))
+									{
+										index = k;
+										break;
 									}
 								}
 							}
-
 						}
 					}
+
 					int listindex = (int)pPersonalList->GetItemData(index);
-					if (pAdvLoot && pAdvLoot->pPLootList && listindex != -1) {
-						DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-						pitem = (LOOTITEM*)(addr + (sizeof(LOOTITEM)*listindex));
-						if (!_stricmp(szAction, "loot")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 2)) {//loot
+					if (pAdvancedLootWnd && pAdvancedLootWnd->pPLootList && listindex != -1)
+					{
+						if (!_stricmp(szAction, "loot"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 2)) // loot
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
-						else if (!_stricmp(szAction, "leave")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 3)) {//leave
+						else if (!_stricmp(szAction, "leave"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 3)) // leave
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
-						else if (!_stricmp(szAction, "name")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 0)) {//name
+						else if (!_stricmp(szAction, "name"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 0)) // name
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
-						else if (!_stricmp(szAction, "item")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 1)) {//item
+						else if (!_stricmp(szAction, "item"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 1)) // item
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
-						else if (!_stricmp(szAction, "never")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 4)) {//never
+						else if (!_stricmp(szAction, "never"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 4)) // never
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
-						else if (!_stricmp(szAction, "an")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 5)) {//an
+						else if (!_stricmp(szAction, "an"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 5)) // an
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
-						else if (!_stricmp(szAction, "ag")) {
-							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 6)) {//ag
+						else if (!_stricmp(szAction, "ag"))
+						{
+							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 6)) // ag
+							{
 								SendWndClick2(pwnd, "leftmouseup");
 							}
 						}
@@ -4432,7 +4479,8 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				return;
 			}
-			else if (cmdtype == 3)
+
+			if (cmdtype == 3)
 			{
 				GetArg(szID, szLine, 2);
 				if (!_stricmp(szID, "set"))
@@ -4444,16 +4492,14 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					{
 						if (CListWnd* pListWnd = pCombo->pListWnd)
 						{
-							DWORD itemcnt = pCombo->GetItemCount();
-							for (DWORD i = 0; i < itemcnt; i++)
+							for (int i = 0; i < pCombo->GetItemCount(); i++)
 							{
 								CXStr str = pListWnd->GetItemText(i, 0);
 								if (!str.empty())
 								{
 									if (!_stricmp(szEntity, str.c_str()))
 									{
-										CXRect comborect = pCombo->GetScreenRect();
-										CXPoint combopt = comborect.CenterPoint();
+										CXPoint combopt = pCombo->GetScreenRect().CenterPoint();
 										pCombo->SetChoice(i);
 										pCombo->HandleLButtonDown(combopt, 0);
 										int index = pListWnd->GetCurSel();
@@ -4475,167 +4521,178 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					}
 					return;
 				}
-				LONG index = -1;
-				if (IsNumber(szID)) {
-					index = atoi(szID);
-					index--;
+
+				int index = -1;
+				if (IsNumber(szID))
+				{
+					index = atoi(szID) - 1;
 				}
-				else {//if its not a number its a itemname
-					  //need to roll through the list to get the index
-					if (pSharedList) {
-						for (LONG k = 0; k < pSharedList->ItemsArray.Count; k++) {
+				else
+				{
+					// if its not a number its a itemname
+					// need to roll through the list to get the index
+					if (pSharedList)
+					{
+						for (int k = 0; k < pSharedList->ItemsArray.Count; k++)
+						{
 							int listindex = (int)pSharedList->GetItemData(k);
-							if (listindex != -1) {
-								DWORD multiplier = sizeof(LOOTITEM) * listindex;
-								if (LOOTITEM* pItem = (LOOTITEM*)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
-									if (!_stricmp(pItem->Name, szID)) {
-										index = k;
-										break;
-									}
+							if (listindex != -1)
+							{
+								AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+								if (!_stricmp(item.Name, szID))
+								{
+									index = k;
+									break;
 								}
 							}
 						}
 					}
 				}
-				if (index != -1) {
-					if (pSharedList) {
+
+				if (index != -1)
+				{
+					if (pSharedList)
+					{
 						int listindex = (int)pSharedList->GetItemData(index);
-						if (listindex != -1) {
-							DWORD multiplier = sizeof(LOOTITEM) * listindex;
-							if (pitem = (LOOTITEM*)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
-								if (!_stricmp(szAction, "leave")) {
-									if (PCHARINFO pchar = GetCharInfo()) {
-										if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.m_length) {
-											pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(pchar->Name), 1, pitem->LootDetails.m_array[0].StackCount);
-										}
-									}
-								}
-								else if (!_stricmp(szAction, "giveto"))
+						if (listindex != -1)
+						{
+							AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+							if (!_stricmp(szAction, "leave"))
+							{
+								if (CHARINFO* pchar = GetCharInfo())
 								{
-									CHAR szEntity[MAX_STRING] = { 0 };
-									GetArg(szEntity, szLine, 4);
-									CHAR szQty[MAX_STRING] = { 0 };
-									GetArg(szQty, szLine, 5);
-									CXStr out;
-
-									if (szEntity[0] != '\0')
+									if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.GetSize())
 									{
-										if (PCHARINFO pCI = GetCharInfo())
+										pAdvancedLootWnd->DoSharedAdvLootAction(pitem, pchar->Name, true, pitem->LootDetails[0].StackCount);
+									}
+								}
+							}
+							else if (!_stricmp(szAction, "giveto"))
+							{
+								CHAR szEntity[MAX_STRING] = { 0 };
+								GetArg(szEntity, szLine, 4);
+								CHAR szQty[MAX_STRING] = { 0 };
+								GetArg(szQty, szLine, 5);
+
+								if (szEntity[0] != '\0')
+								{
+									if (CHARINFO* pCI = GetCharInfo())
+									{
+										CXStr out;
+
+										if (pCI->pGroupInfo)
 										{
-											if (pCI->pGroupInfo)
+											for (int i = 0; i < 6; i++)
 											{
-												for (int i = 0; i < 6; i++)
+												if (pCI->pGroupInfo->pMember[i]
+													&& pCI->pGroupInfo->pMember[i]->Mercenary == 0
+													&& !pCI->pGroupInfo->pMember[i]->Name.empty())
 												{
-													if (pCI->pGroupInfo->pMember[i]
-														&& pCI->pGroupInfo->pMember[i]->Mercenary == 0
-														&& !pCI->pGroupInfo->pMember[i]->Name.empty())
+													if (!_stricmp(pCI->pGroupInfo->pMember[i]->Name.c_str(), szEntity))
 													{
-														if (!_stricmp(pCI->pGroupInfo->pMember[i]->Name.c_str(), szEntity))
-														{
-															out = pCI->pGroupInfo->pMember[i]->Name;
-															break;
-														}
+														out = pCI->pGroupInfo->pMember[i]->Name;
+														break;
 													}
 												}
 											}
+										}
 
-											//not found? check raid
-											if (out.empty())
+										// not found? check raid
+										if (out.empty())
+										{
+											if (pRaid && pRaid->RaidMemberCount)
 											{
-												if (pRaid && pRaid->RaidMemberCount)
+												for (DWORD nMember = 0; nMember < 72; nMember++)
 												{
-													for (DWORD nMember = 0; nMember < 72; nMember++)
+													if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity))
 													{
-														if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity))
-														{
-															out = pRaid->RaidMember[nMember].Name;
-															break;
-														}
+														out = pRaid->RaidMember[nMember].Name;
+														break;
 													}
 												}
 											}
+										}
 
-											if (!_stricmp(out.c_str(), szEntity))
+										if (!_stricmp(out.c_str(), szEntity))
+										{
+											// TODO: Check array usage
+											int qty = atoi(szQty);
+											if (pitem && !pitem->LootDetails.IsEmpty())
 											{
-												// TODO: Check array usage
-												int qty = atoi(szQty);
-												if (pitem && !pitem->LootDetails.IsEmpty())
+												if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
 												{
-													if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
+													qty = pitem->LootDetails[0].StackCount;
+													if (qty == 0)
 													{
-														qty = pitem->LootDetails[0].StackCount;
-														if (qty == 0)
-														{
-															qty = 1;
-														}
+														qty = 1;
 													}
-
-													pAdvancedLootWnd->DoSharedAdvLootAction(pitem, out, 0, qty);
-													return;
 												}
+
+												pAdvancedLootWnd->DoSharedAdvLootAction(pitem, out, 0, qty);
+												return;
 											}
 										}
 									}
 								}
-								else if (!_stricmp(szAction, "name")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 0)) {//name
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "name")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 0)) {//name
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "item")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 1)) {//item
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "item")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 1)) {//item
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "status")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 2)) {//status
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "status")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 2)) {//status
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "action")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 3)) {//action
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "action")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 3)) {//action
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "manage")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 4)) {//manage
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "manage")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 4)) {//manage
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "an")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 5)) {//an
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "an")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 5)) {//an
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "ag")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 6)) {//ag
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "ag")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 6)) {//ag
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "autoroll")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 7)) {//autoroll
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "autoroll")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 7)) {//autoroll
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "nv")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 8)) {//nv
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "nv")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 8)) {//nv
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "nd")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 9)) {//nd
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "nd")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 9)) {//nd
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "gd")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 10)) {//gd
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "gd")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 10)) {//gd
+									SendWndClick2(pwnd, "leftmouseup");
 								}
-								else if (!_stricmp(szAction, "no")) {
-									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 11)) {//no
-										SendWndClick2(pwnd, "leftmouseup");
-									}
+							}
+							else if (!_stricmp(szAction, "no")) {
+								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 11)) {//no
+									SendWndClick2(pwnd, "leftmouseup");
 								}
 							}
 						}
@@ -4655,7 +4712,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 	CHAR szInst[32] = { 0 };
 	_itoa_s(nInst, szInst, 10);
 
-	if (PCHARINFO pCharInfo = GetCharInfo())
+	if (CHARINFO* pCharInfo = GetCharInfo())
 	{
 		cmdPickZone(pCharInfo->pSpawn, NULL);
 		Sleep(2000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
@@ -4723,7 +4780,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 //              Adds the ability to do /pickzone #
 // Usage:       /pickzone 2 will switch zone to number 2 pickzone 0 will pick main instance
 // ***************************************************************************
-VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
+void PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0]) {
 		WriteChatColor("Usage: /pick # where # is the instance number you want to pick");
@@ -4742,7 +4799,7 @@ VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Purpose:     Adds the ability to /quit at charselect not just from ingame
 // Author:      EqMule
 // ***************************************************************************
-VOID QuitCmd(PSPAWNINFO pChar, PCHAR szLine)
+void QuitCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 	{
@@ -4762,7 +4819,7 @@ VOID QuitCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Purpose:     Adds the ability to forward /assist so we can set the gbAssist flag
 // Author:      EqMule
 // ***************************************************************************
-VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
+void AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	gbAssistComplete = 0;
 	cmdAssist(pChar, szLine);
@@ -4775,7 +4832,7 @@ VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Example:		/setprio <1-6> Where 1 is Low 2 is below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime
 // Author:      EqMule
 // ***************************************************************************
-VOID SetProcessPriority(PSPAWNINFO pChar, char *szLine)
+void SetProcessPriority(PSPAWNINFO pChar, char *szLine)
 {
 	if (szLine && szLine[0] == '\0') {
 		WriteChatf("Usage: /setprio <1-6> Where 1 is Low 2 is Below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime");
@@ -4830,7 +4887,7 @@ VOID SetProcessPriority(PSPAWNINFO pChar, char *szLine)
 // Example:		/screenmode <#> Where 2 is Normal and 3 is No Windows
 // Author:      EqMule
 // ***************************************************************************
-VOID ScreenModeCmd(PSPAWNINFO pChar, char *szLine)
+void ScreenModeCmd(PSPAWNINFO pChar, char *szLine)
 {
 	if (szLine && szLine[0] == '\0') {
 		WriteChatf("Usage: /screenmode <#>");
@@ -4863,7 +4920,7 @@ template <unsigned int _Size>char* ftoa_s(float fNum, char(&szText)[_Size])
 // Author:      EqMule
 // ***************************************************************************
 #define EQ_USER_CAM_1 3
-VOID UserCameraCmd(PSPAWNINFO pChar, char *szLine)
+void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 {
 	if(szLine && szLine[0]=='\0') {
 		WriteChatf("Usage: /usercamera 0-7 sets camera to the number specified.");
@@ -4984,7 +5041,7 @@ VOID UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 // Author:      EqMule
 // ***************************************************************************
 //todo: check manually
-VOID MapZoomCmd(PSPAWNINFO pChar, char *szLine)
+void MapZoomCmd(PSPAWNINFO pChar, char *szLine)
 {
 	// Added a new command: /mapzoom - feature request by Bogreaper
 	// It sets the maps zoom.
@@ -4998,14 +5055,9 @@ VOID MapZoomCmd(PSPAWNINFO pChar, char *szLine)
 	float fZoom = (float)atof(szLine);
 	if (fZoom <= 0)
 		fZoom = 1000;
-	typedef struct _sMapViewMap
+
+	if (pMapViewWnd)
 	{
-		FLOAT MapViewMinX;
-		FLOAT MapViewMinY;
-		FLOAT MapViewMaxX;
-		FLOAT MapViewMaxY;
-	}sMapViewMap,*PsMapViewMap;
-	if (PEQMAPWINDOW pMap = (PEQMAPWINDOW)pMapViewWnd) {
 		//PsMapViewMap pMapView = (PsMapViewMap)&pMap->pMapViewMapVfTable;
 		//float fTemp = fabsf(pMapView->MapViewMaxX - pMapView->MapViewMinX);
 		////todo: get the formulae right...
@@ -5048,7 +5100,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 // Author:      EqMule
 // ***************************************************************************
 //todo: check manually
-VOID ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
+void ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 {
 	HWND EQhWnd = 0;
 	DWORD lReturn = GetCurrentProcessId();

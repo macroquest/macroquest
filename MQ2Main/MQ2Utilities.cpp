@@ -10331,7 +10331,7 @@ void TruncateSpellRankName(char* SpellName)
 	}
 }
 
-void RemoveBuff(SPAWNINFO* pChar, const char* szLine)
+void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 {
 	bool bPet = false;
 	bool bAll = false;
@@ -10405,7 +10405,7 @@ void RemoveBuff(SPAWNINFO* pChar, const char* szLine)
 	}
 }
 
-void RemovePetBuff(SPAWNINFO* pChar, const char* szLine)
+void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 {
 	if (pPetInfoWnd && szLine && szLine[0] != '\0')
 	{
@@ -10754,7 +10754,7 @@ void InitKeyRings()
 //.text:00638051                 push    0
 //.text:00638053                 add     ecx, 1FE0h
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
-void MakeMeVisible(SPAWNINFO* pChar, const char* szLine)
+void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 {
 	if (CHARINFO* pChar = GetCharInfo())
 	{
@@ -10775,7 +10775,7 @@ void MakeMeVisible(SPAWNINFO* pChar, const char* szLine)
 // Usage:       /removeaura <name> or <partial name>
 // Author:      EqMule
 // ***************************************************************************
-void RemoveAura(SPAWNINFO* pChar, const char* szLine)
+void RemoveAura(SPAWNINFO* pChar, char* szLine)
 {
 	if (!pAuraWnd)
 		return;

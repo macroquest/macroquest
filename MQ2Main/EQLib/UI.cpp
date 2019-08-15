@@ -817,7 +817,7 @@ FUNCTION_AT_ADDRESS(int CActionsWnd::SocialsPageDeactivate(), CActionsWnd__Socia
 FUNCTION_AT_ADDRESS(void CAdvancedLootWnd::DoAdvLootAction(int, const CXStr&, bool, int), CAdvancedLootWnd__DoAdvLootAction);
 #endif
 #ifdef CAdvancedLootWnd__DoSharedAdvLootAction_x
-FUNCTION_AT_ADDRESS(void CAdvancedLootWnd::DoSharedAdvLootAction(LOOTITEM* pLootItem, const CXStr& Assignee, bool Action, int Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
+FUNCTION_AT_ADDRESS(void CAdvancedLootWnd::DoSharedAdvLootAction(AdvancedLootItem* pLootItem, const CXStr& Assignee, bool Action, int Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
 #endif
 
 //============================================================================
@@ -1389,10 +1389,10 @@ FUNCTION_AT_ADDRESS(CContextMenu* CContextMenuManager::GetMenu(int), CContextMen
 
 // todo: fixme
 #ifdef CContextMenu__CContextMenu_x
-CONSTRUCTOR_AT_ADDRESS(CContextMenu::CContextMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect), CContextMenu__CContextMenu);
+//CONSTRUCTOR_AT_ADDRESS(CContextMenu::CContextMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect), CContextMenu__CContextMenu);
 #endif
 #ifdef CContextMenu__dCContextMenu_x
-FUNCTION_AT_ADDRESS(CContextMenu::~CContextMenu(), CContextMenu__dCContextMenu);
+//FUNCTION_AT_ADDRESS(CContextMenu::~CContextMenu(), CContextMenu__dCContextMenu);
 #endif
 #ifdef CContextMenu__AddMenuItem_x
 FUNCTION_AT_ADDRESS(int CContextMenu::AddMenuItem(const CXStr&, unsigned int, bool, COLORREF, bool), CContextMenu__AddMenuItem);
@@ -1878,10 +1878,10 @@ FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RemoveAugmentRequest(int AugSlot), CIt
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::RequestConvertItem(), CItemDisplayWnd__RequestConvertItem);
 #endif
 #ifdef CItemDisplayWnd__CItemDisplayWnd_x
-CONSTRUCTOR_AT_ADDRESS(CItemDisplayWnd::CItemDisplayWnd(CXWnd*), CItemDisplayWnd__CItemDisplayWnd);
+//CONSTRUCTOR_AT_ADDRESS(CItemDisplayWnd::CItemDisplayWnd(CXWnd*), CItemDisplayWnd__CItemDisplayWnd);
 #endif
 #ifdef CItemDisplayWnd__dCItemDisplayWnd_x
-FUNCTION_AT_ADDRESS(CItemDisplayWnd::~CItemDisplayWnd(), CItemDisplayWnd__dCItemDisplayWnd);
+//FUNCTION_AT_ADDRESS(CItemDisplayWnd::~CItemDisplayWnd(), CItemDisplayWnd__dCItemDisplayWnd);
 #endif
 #ifdef CItemDisplayWnd__SetItem_x
 FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetItem(CONTENTS** pCont, int flags), CItemDisplayWnd__SetItem);
@@ -2903,22 +2903,22 @@ FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManagerBase::FindButtonDrawTemplat
 FUNCTION_AT_ADDRESS(CButtonDrawTemplate* CSidlManagerBase::FindButtonDrawTemplate(const CXStr& Name) const, CSidlManagerBase__FindButtonDrawTemplate1);
 #endif
 #ifdef CSidlManagerBase__FindAnimation1_x
-FUNCTION_AT_ADDRESS(CTextureAnimation* CSidlManagerBase::FindAnimation(const CXStr&) const, CSidlManager__FindAnimation1);
+FUNCTION_AT_ADDRESS(CTextureAnimation* CSidlManagerBase::FindAnimation(const CXStr&) const, CSidlManagerBase__FindAnimation1);
 #endif
 #ifdef CSidlManagerBase__FindScreenPieceTemplate_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManagerBase::FindScreenPieceTemplate(uint32_t) const, CSidlManager__FindScreenPieceTemplate);
+FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManagerBase::FindScreenPieceTemplate(uint32_t) const, CSidlManagerBase__FindScreenPieceTemplate);
 #endif
 #ifdef CSidlManagerBase__FindScreenPieceTemplate1_x
-FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManagerBase::FindScreenPieceTemplate(const CXStr&) const, CSidlManager__FindScreenPieceTemplate1);
+FUNCTION_AT_ADDRESS(CScreenPieceTemplate* CSidlManagerBase::FindScreenPieceTemplate(const CXStr&) const, CSidlManagerBase__FindScreenPieceTemplate1);
 #endif
 #ifdef CSidlManagerBase__CreateXWndFromTemplate_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWndFromTemplate(CXWnd*, CControlTemplate*, bool), CSidlManager__CreateXWndFromTemplate);
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWndFromTemplate(CXWnd*, CControlTemplate*, bool), CSidlManagerBase__CreateXWndFromTemplate);
 #endif
 #ifdef CSidlManagerBase__CreateXWndFromTemplate1_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWndFromTemplate(CXWnd*, const CXStr&), CSidlManager__CreateXWndFromTemplate1);
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWndFromTemplate(CXWnd*, const CXStr&), CSidlManagerBase__CreateXWndFromTemplate1);
 #endif
 #ifdef CSidlManagerBase__CreateXWnd_x
-FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManager__CreateXWnd);
+FUNCTION_AT_ADDRESS(CXWnd* CSidlManagerBase::CreateXWnd(CXWnd* pwndParent, CControlTemplate* pControl), CSidlManagerBase__CreateXWnd);
 #endif
 
 CXMLParamManager* CSidlManagerBase::GetParamManager()

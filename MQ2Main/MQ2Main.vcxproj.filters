@@ -122,6 +122,9 @@
     <ClCompile Include="EQLib\EQClasses.cpp">
       <Filter>Source Files\EQLib</Filter>
     </ClCompile>
+    <ClCompile Include="EQLib\EQLib.cpp">
+      <Filter>Source Files\EQLib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
@@ -254,8 +257,8 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="EQLib\AssemblyFunctions.asm">
-      <Filter>Source Files\EQLib</Filter>
-    </None>
+    <CustomBuild Include="EQLib\AssemblyFunctions.asm">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

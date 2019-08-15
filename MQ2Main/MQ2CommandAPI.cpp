@@ -735,7 +735,7 @@ void InitializeMQ2Commands()
 		{"/mapzoom",    MapZoomCmd,1,0},
 		{"/foreground", ForeGroundCmd,1,0},
 		{"/quit",		QuitCmd,1,0},
-		
+
         {NULL,          NULL,0,1},
     };
     // Remove replaced commands first

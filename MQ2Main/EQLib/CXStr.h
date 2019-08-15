@@ -1162,13 +1162,25 @@ public:
 	int compare(const char* s) const;
 	int compare(size_type pos1, size_type count1, const char* s) const;
 	int compare(size_type pos1, size_type count1, const char* s, size_type count2) const;
+
 	template <typename T>
-	int compare(const T& t) const noexcept;
+	int compare(const T& t) const noexcept
+	{
+		return 0;
+	}
+
 	template <typename T>
-	int compare(size_type pos1, size_type count1, const T& t) const;
+	int compare(size_type pos1, size_type count1, const T& t) const
+	{
+		return 0;
+	}
+
 	template <typename T>
 	int compare(size_type pos1, size_type count1, const T& t,
-		size_type pos2, size_type count2 = npos) const;
+		size_type pos2, size_type count2 = npos) const
+	{
+		return 0;
+	}
 
 	// Checks if the string begins with the given prefix.
 	bool starts_with(std::string_view x) const noexcept;

@@ -247,17 +247,34 @@ void CXStr::FreeRepNoLock(CStrRep* rep)
 }
 
 
+int CXStr::compare(CXStr& str) const noexcept
+{
+	return 0;
+}
 
+int CXStr::compare(size_type pos1, size_type count1, const CXStr& str) const
+{
+	return 0;
+}
 
+int CXStr::compare(size_type pos1, size_type count1, const CXStr& str, size_type pos2, size_type count2 /*= npos*/) const
+{
+	return 0;
+}
 
+int CXStr::compare(const char* s) const
+{
+	return 0;
+}
 
+int CXStr::compare(size_type pos1, size_type count1, const char* s) const
+{
+	return 0;
+}
 
-
-
-
-
-
-
-
+int CXStr::compare(size_type pos1, size_type count1, const char* s, size_type count2) const
+{
+	return 0;
+}
 
 } // namespace eqlib

@@ -867,6 +867,15 @@ void RemoveLoginPulse()
 		}
 	}
 }
+
+// patterns
+// LoginController__GiveTime_x
+// 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
+// Feb 16 2018 Test
+// IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
+static PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
+static char lpMask[] = "xxxx????xx";
+
 void InitializeLoginPulse()
 {
 	if (*(DWORD*)__heqmain && !LoginController__GiveTime) {

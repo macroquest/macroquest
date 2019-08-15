@@ -413,23 +413,23 @@ EQLIB_VAR MQRANK EQP_DistArray[3000];
 EQLIB_VAR DWORD gSpawnCount;
 //#define ppEQP_IDArray (*pppEQP_IDArray)
 
-EQLIB_VAR StringTable * *ppStringTable;
+EQLIB_VAR StringTable **ppStringTable;
 #define pStringTable (*ppStringTable)
 
-EQLIB_VAR CDBStr * *ppCDBStr;
+EQLIB_VAR CDBStr** ppCDBStr;
 #define pCDBStr (*ppCDBStr)
-EQLIB_VAR EQMisc * pEQMisc;
-EQLIB_VAR CSkillMgr * *ppCSkillMgr;
+EQLIB_VAR EQMisc* pEQMisc;
+EQLIB_VAR CSkillMgr** ppCSkillMgr;
 #define pCSkillMgr (*ppCSkillMgr)
-EQLIB_VAR CGuild * pGuild;
+EQLIB_VAR CGuild* pGuild;
 
-EQLIB_VAR CEverQuest * *ppEverQuest;
+EQLIB_VAR CEverQuest** ppEverQuest;
 #define pEverQuest (*ppEverQuest)
-EQLIB_VAR CDisplay * *ppDisplay;
+EQLIB_VAR CDisplay** ppDisplay;
 #define pDisplay (*ppDisplay)
-EQLIB_VAR EQ_PC * *ppPCData;
+EQLIB_VAR EQ_PC** ppPCData;
 #define pPCData (*ppPCData)
-EQLIB_VAR EQ_Character * *ppCharData;
+EQLIB_VAR EQ_Character** ppCharData;
 #define pCharData (*ppCharData)
 #ifdef NEWCHARINFO
 #define pCharData1 ((EQ_Character1 *)&GetCharInfo()->PcClient_CharacterZoneClient_vfTable)

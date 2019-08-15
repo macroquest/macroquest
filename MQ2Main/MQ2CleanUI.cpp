@@ -141,7 +141,7 @@ int CMD_NetStatusXPos(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-void NetStatusXPos(SPAWNINFO* pChar, const char *szLine)
+void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {
 #endif
 	CHAR szArg[MAX_STRING] = { 0 };

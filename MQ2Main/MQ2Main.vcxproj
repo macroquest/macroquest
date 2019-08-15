@@ -69,7 +69,11 @@
     <ClCompile Include="EQLib\CXStr.cpp" />
     <ClCompile Include="EQLib\CXWnd.cpp" />
     <ClCompile Include="EQLib\EQClasses.cpp" />
-    <ClCompile Include="EQLib\ExceptionsDisabled.cpp" />
+    <ClCompile Include="EQLib\EQLib.cpp" />
+    <ClCompile Include="EQLib\ExceptionsDisabled.cpp">
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExceptionHandling>
+    </ClCompile>
     <ClCompile Include="EQLib\Globals.cpp" />
     <ClCompile Include="EQLib\Items.cpp" />
     <ClCompile Include="EQLib\PcClient.cpp" />
@@ -147,9 +151,20 @@
     <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="EQLib\AssemblyFunctions.asm" />
+    <CustomBuild Include="EQLib\AssemblyFunctions.asm">
+      <FileType>Document</FileType>
+      <PreserveIdentifierCase Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">1</PreserveIdentifierCase>
+      <PreserveIdentifierCase Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</PreserveIdentifierCase>
+      <MakeAllSymbolsPublic Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MakeAllSymbolsPublic>
+      <MakeAllSymbolsPublic Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MakeAllSymbolsPublic>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)Tools\NASM\nasm.exe "%(FullPath)" -f win32 -o "$(IntDir)%(Filename).obj"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)Tools\NASM\nasm.exe "%(FullPath)" -f win32 -o "$(IntDir)%(Filename).obj"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>
