@@ -289,8 +289,8 @@ public:
 	void CDisplay__ZoneMainUI_Tramp();
 	void CDisplay__ZoneMainUI_Detour()
 	{
-		CDisplay__ZoneMainUI_Tramp();
 		PluginsEndZone();
+		CDisplay__ZoneMainUI_Tramp();
 	};
 	void CDisplay__PreZoneMainUI_Tramp();
 	void CDisplay__PreZoneMainUI_Detour()

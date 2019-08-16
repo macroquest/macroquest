@@ -125,34 +125,34 @@ typedef struct _EQCURRENTSELECTION {
 /*0x05c*/ LPVOID  HandleWheelButtonUp; \
 /*0x060*/ LPVOID  HandleMouseMove; \
 /*0x064*/ LPVOID  HandleWheelMove; \
-/*0x068*/ LPVOID  GetDragDropCursor; \
-/*0x06c*/ LPVOID  PostDraw4; \
+/*0x068*/ LPVOID  HandleKeyboardMsg; \
+/*0x06c*/ LPVOID  HandleMouseLeave; \
 /*0x070*/ LPVOID  OnDragDrop; \
-/*0x074*/ LPVOID  GetClickStickCursor; \
+/*0x074*/ LPVOID  GetDragDropCursor; \
 /*0x078*/ LPVOID  QueryDropOK; \
 /*0x07c*/ LPVOID  OnClickStick; \
-/*0x080*/ LPVOID  GetClickStickCursor2; \
+/*0x080*/ LPVOID  GetClickStickCursor; \
 /*0x084*/ LPVOID  QueryClickStickDropOK; \
 /*0x088*/ LPVOID  WndNotification; \
 /*0x08c*/ LPVOID  OnWndNotification; \
 /*0x090*/ LPVOID  ShowWindow; /* Activate */ \
 /*0x094*/ LPVOID  Deactivate; \
-/*0x098*/ LPVOID  PostDraw5; \
-/*0x09c*/ LPVOID  OnResize; \
-/*0x0a0*/ LPVOID  OnResize2; \
-/*0x0a4*/ LPVOID  Unknown0xa4; \
-/*0x0a8*/ LPVOID  Unknown0xa8; \
+/*0x098*/ LPVOID  OnShow; \
+/*0x09c*/ LPVOID  OnMove; /*OnResize;*/ \
+/*0x0a0*/ LPVOID  OnResize; \
+/*0x0a4*/ LPVOID  OnBeginMoveOrResize; \
+/*0x0a8*/ LPVOID  OnCompleteMoveOrResize; \
 /*0x0ac*/ LPVOID  OnMinimizeBox; \
-/*0x0b0*/ LPVOID  Unknown0xb0; \
+/*0x0b0*/ LPVOID  OnMaximizeBox; \
 /*0x0b4*/ LPVOID  OnTileBox; \
-/*0x0b8*/ LPVOID  PostDraw6; \
-/*0x0bc*/ LPVOID  OnMove2; \
-/*0x0c0*/ LPVOID  OnMove3; \
+/*0x0b8*/ LPVOID  OnTile; \
+/*0x0bc*/ LPVOID  OnSetFocus; \
+/*0x0c0*/ LPVOID  OnKillFocus; \
 /*0x0c4*/ LPVOID  OnProcessFrame; /*Dofade*/ \
 /*0x0c8*/ LPVOID  OnVScroll; \
 /*0x0cc*/ LPVOID  OnHScroll; \
-/*0x0d0*/ LPVOID  PostDraw7; \
-/*0x0d4*/ LPVOID  OnMove4; \
+/*0x0d0*/ LPVOID  OnBroughtToTop; \
+/*0x0d4*/ LPVOID  OnActivate; \
 /*0x0d8*/ LPVOID  Show; \
 /*0x0dc*/ LPVOID  AboutToShow; \
 /*0x0e0*/ LPVOID  AboutToHide; \
@@ -168,38 +168,38 @@ typedef struct _EQCURRENTSELECTION {
 /*0x108*/ LPVOID  GetMaxSize; \
 /*0x10c*/ LPVOID  GetUntileSize; \
 /*0x110*/ LPVOID  IsPointTransparent; \
-/*0x114*/ LPVOID  Unknown114; \
-/*0x118*/ LPVOID  Unknown118; \
+/*0x114*/ LPVOID  ShouldProcessChildrenFrames; \
+/*0x118*/ LPVOID  ShouldProcessControllerFrame; \
 /*0x11c*/ LPVOID  SetDrawTemplate; \
 /*0x120*/ LPVOID  Move_Rect; /*CXWnd__Move1_x*/ \
 /*0x124*/ LPVOID  Move_Point; /*CXWnd__Move_x*/ \
 /*0x128*/ LPVOID  SetWindowTextA; \
 /*0x12c*/ LPVOID  GetChildWndAt; /*CXWnd__GetChildWndAt_x*/ \
 /*0x130*/ LPVOID  GetSidlPiece; /*CSidlScreenWnd__GetSidlPiece_x*/ \
-/*0x134*/ LPVOID  CSidlScreenWnd__OnPreZone1a; \
+/*0x134*/ LPVOID  GetWindowName; \
 /*0x138*/ LPVOID  SetVScrollPos; \
 /*0x13c*/ LPVOID  SetHScrollPos; \
 /*0x140*/ LPVOID  AutoSetVScrollPos; \
 /*0x144*/ LPVOID  AutoSetHScrollPos; \
 /*0x148*/ LPVOID  SetAttributesFromSidl; \
-/*0x14c*/ LPVOID  nullsub_1a; \
-/*0x150*/ LPVOID  Unknown0x14c; \
-/*0x154*/ LPVOID  nullsub_1b; \
+/*0x14c*/ LPVOID  OnReloadSidl; \
+/*0x150*/ LPVOID  HasActivatedFirstTimeAlert; \
+/*0x154*/ LPVOID  SetHasActivatedFirstTimeAlert; \
 /*0x158*/ LPVOID  GetMinClientSize; \
 /*0x15c*/ LPVOID  GetMaxClientSize; \
-/*0x160*/ LPVOID  CSidlScreenWnd__OnPreZone1b; \
+/*0x160*/ LPVOID  GetActiveEditWnd; \
 /*0x164*/ LPVOID  UpdateLayout;
 /*0x168*/
 
 //CSidlScreenWnd see B1116C in Nov  7 2016 eqgame.exe (Test) -eqmule
 typedef struct _CSIDLWNDVFTABLE {
 	VFTABLE
-	/*0x16c*/ LPVOID  CSidlScreenWnd__OnPreZone1c;
-	/*0x170*/ LPVOID  CSidlScreenWnd__OnPreZone1d;
+	/*0x168*/ LPVOID  CSidlScreenWnd__OnZone;
+	/*0x16c*/ LPVOID  CSidlScreenWnd__OnPreZone;
 	/*0x170*/ LPVOID  LoadIniInfo;
 	/*0x174*/ LPVOID  StoreIniInfo;
-	/*0x178*/ LPVOID  EQObject__AsObject;
-	/*0x17c*/ LPVOID  CTreeViewPropertySet__IsPropertySet;
+	/*0x178*/ LPVOID  AsSidlScreenWnd;
+	/*0x17c*/ LPVOID  GetScreenWndType;
 	/*0x180*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 

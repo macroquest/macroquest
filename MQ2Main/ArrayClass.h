@@ -387,8 +387,8 @@ public:
 
 	ArrayClass(int reserve) : ArrayClass()
 	{
-		m_array = new T[size];
-		m_alloc = size;
+		m_array = new T[reserve];
+		m_alloc = reserve;
 	}
 
 	ArrayClass(const ArrayClass& rhs) : ArrayClass()
@@ -438,7 +438,10 @@ public:
 	{
 		SetElementIdx(m_length, element);
 	}
-
+	T *GetBuffPtr()
+	{
+		return m_array;
+	}
 	void SetElementIdx(int index, const T& element)
 	{
 		if (index >= 0) {

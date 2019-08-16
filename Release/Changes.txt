@@ -1,3 +1,7 @@
+Aug 15 2019 by EqMule
+- Fixed a zoning crash
+- Fixed a crash on TEST in mq2itemdisplay when inspecting spells.
+-
 Aug 13 2019 by EqMule
 - Updated for TEST
 -
