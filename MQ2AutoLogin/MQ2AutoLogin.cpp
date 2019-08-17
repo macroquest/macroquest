@@ -194,80 +194,81 @@ _ServerData ServerData[] = {
     {"test",         1},
     {0, 0},
 };*/
-#pragma pack(push)
-#pragma pack(8)
 
-typedef struct _DateStruct
+struct DateStruct
 {
-/*0x18*/ CHAR	Hours;
-/*0x19*/ CHAR	Minutes;
-/*0x1a*/ CHAR	Seconds;
-/*0x1b*/ CHAR	Month;
-/*0x1c*/ CHAR	Day;
-/*0x1e*/ WORD	Year;
-/*0x20*/ PCXSTR	Unknown0x08;
-/*0x24*/ PCXSTR	Unknown0x0c;
-/*0x28*/ PCXSTR	Unknown0x10;
-/*0x30*/ __int64	TimeStamp;
+/*0x18*/ char      Hours;
+/*0x19*/ char      Minutes;
+/*0x1a*/ char      Seconds;
+/*0x1b*/ char      Month;
+/*0x1c*/ char      Day;
+/*0x1e*/ WORD      Year;
+/*0x20*/ CXStr     Unknown0x08;
+/*0x24*/ CXStr     Unknown0x0c;
+/*0x28*/ CXStr     Unknown0x10;
+/*0x30*/ int64_t   TimeStamp;
 /*0x38*/
-}DateStruct,*PDateStruct;
-#pragma pack(pop)
-typedef struct _SERVERINFO//EQClientServerData
-{
-/*0x00*/	DWORD ID;
-/*0x04*/	PCXSTR ServerName;
-/*0x08*/	PCXSTR HostName;
-/*0x0C*/	PCXSTR ServerIP;
-/*0x10*/	DWORD ExternalPort;
-/*0x14*/	DWORD InternalPort;
-/*0x018*/	DateStruct DateCreated;
-/*0x038*/	DWORD Flags;
-/*0x03C*/	DWORD ServerType;
-/*0x040*/	PCXSTR LanguageCode;//at 0x40 for sure
-/*0x044*/	PCXSTR CountryCode;
-/*0x048*/	DWORD StatusFlags;
-/*0x04C*/	DWORD PopulationRanking;
-/*0x050*/
-}SERVERINFO,*PSERVERINFO;
-typedef struct _SERVERLIST
-{
-/*0x00*/	PSERVERINFO Info;
-/*0x04*/	_SERVERLIST *Prev;
-/*0x08*/	_SERVERLIST *Next;
-/*0x0C*/	DWORD Unknown0x0C;
-/*0x10*/	DWORD Unknown0x10;
-/*0x14*/	DWORD Unknown0x14;
-/*0x18*/
-}SERVERLIST,*PSERVERLIST;
+};
 
-typedef struct _PSERVERSTUFF
+// EQClientServerData
+struct SERVERINFO
 {
-/*0x000*/	BYTE Unknown0x000[0x8];
-/*0x008*/	PVOID GFXENGINE;
-/*0x00C*/	BYTE Unknown0x00C[0x9C];
-/*0x0A8*/	DWORD CurrentServerID;
-/*0x0AC*/	DWORD Unknown0x0AC;
-/*0x0B0*/	PCXSTR LoginName;
-/*0x0B4*/	PCXSTR Password;
-/*0x0B8*/	PCXSTR LoginNameCopy;
-/*0x0BC*/	PCXSTR PasswordCopy;
-/*0x0C0*/	PCXSTR AccountKey;
-/*0x0C4*/	BYTE Unknown0x0C4[0x14];
-/*0x0D8*/	PSERVERINFO *FirstServer;//D8
-/*0x0DC*/	PSERVERINFO *LastServer;//DC
-/*0x0E0*/	BYTE Unknown0x0E0[0x8];
-/*0x0E8*/	PSERVERLIST pServerList;
-/*0x0EC*/	DWORD ServerListSize;
-/*0x0F0*/	BYTE Unknown0x0F0[0x8];
-/*0x0F8*/	DWORD QuickConnectServerID;
-/*0x0FC*/	PCXSTR QuickConnectServerName;
-/*0x100*/	PCXSTR QuickConnectIPAddress;//0x100
+/*0x00*/ DWORD     ID;
+/*0x04*/ CXStr     ServerName;
+/*0x08*/ CXStr     HostName;
+/*0x0C*/ CXStr     ServerIP;
+/*0x10*/ DWORD     ExternalPort;
+/*0x14*/ DWORD     InternalPort;
+/*0x18*/ DateStruct DateCreated;
+/*0x38*/ DWORD     Flags;
+/*0x3C*/ DWORD     ServerType;
+/*0x40*/ CXStr     LanguageCode;
+/*0x44*/ CXStr     CountryCode;
+/*0x48*/ DWORD     StatusFlags;
+/*0x4C*/ DWORD     PopulationRanking;
+/*0x50*/
+};
+
+struct SERVERLIST
+{
+/*0x00*/ SERVERINFO* Info;
+/*0x04*/ SERVERLIST* Prev;
+/*0x08*/ SERVERLIST* Next;
+/*0x0C*/ DWORD     Unknown0x0C;
+/*0x10*/ DWORD     Unknown0x10;
+/*0x14*/ DWORD     Unknown0x14;
+/*0x18*/
+};
+
+struct SERVERSTUFF
+{
+/*0x000*/ BYTE     Unknown0x000[0x8];
+/*0x008*/ void*    GFXENGINE;
+/*0x00C*/ BYTE     Unknown0x00C[0x9C];
+/*0x0A8*/ DWORD    CurrentServerID;
+/*0x0AC*/ DWORD    Unknown0x0AC;
+/*0x0B0*/ CXStr    LoginName;
+/*0x0B4*/ CXStr    Password;
+/*0x0B8*/ CXStr    LoginNameCopy;
+/*0x0BC*/ CXStr    PasswordCopy;
+/*0x0C0*/ CXStr    AccountKey;
+/*0x0C4*/ BYTE     Unknown0x0C4[0x14];
+/*0x0D8*/ SERVERINFO** FirstServer;
+/*0x0DC*/ SERVERINFO** LastServer;
+/*0x0E0*/ BYTE     Unknown0x0E0[0x8];
+/*0x0E8*/ SERVERLIST* pServerList;
+/*0x0EC*/ DWORD    ServerListSize;
+/*0x0F0*/ BYTE     Unknown0x0F0[0x8];
+/*0x0F8*/ DWORD    QuickConnectServerID;
+/*0x0FC*/ CXStr    QuickConnectServerName;
+/*0x100*/ CXStr    QuickConnectIPAddress;
 /*0x104*/
-} SERVERSTUFF, *PSERVERSTUFF;
+};
+
 DWORD dwServerInfo = 0;
-CSidlManager *pSidlManager = 0;
-PCXWNDMGR pWindowManager = 0;
-class CLoginViewManager *pLoginViewManager = 0;
+CSidlManager* pSidlManager = nullptr;
+CXWndManager* pWindowManager = nullptr;
+class CLoginViewManager *pLoginViewManager = nullptr;
 DWORD dwEQMainBase = 0;
 DWORD dwGetXMLDataAddr = 0;
 DWORD dwSendLMouseClickAddr = 0;
@@ -490,7 +491,7 @@ char *gettok(char *_String, int _Delimiter)
 	}
 }
 template <unsigned int _BSize, unsigned int _SNSize, unsigned int _CNSize, unsigned int _PSize, unsigned int _HKSize, unsigned int _CCSize, unsigned int _CLSize>
-	bool ParseBlob(CHAR(&szBlob)[_BSize], CHAR(&szStationName)[_SNSize], CHAR(&szCharacterName)[_CNSize], CHAR(&szPassword)[_PSize], CHAR(&szHotkey)[_HKSize], CHAR(&szCharClass)[_CCSize], CHAR(&szCharLevel)[_CLSize])
+	bool ParseBlob(char(&szBlob)[_BSize], char(&szStationName)[_SNSize], char(&szCharacterName)[_CNSize], char(&szPassword)[_PSize], char(&szHotkey)[_HKSize], char(&szCharClass)[_CCSize], char(&szCharLevel)[_CLSize])
 {
 	DATA_BLOB db = { 0 };
 	DATA_BLOB dbout = { 0 };
@@ -498,13 +499,13 @@ template <unsigned int _BSize, unsigned int _SNSize, unsigned int _CNSize, unsig
 		if (StrToBlobA(szBlob, &db)) {
 			if (DecryptData(&db, &dbout)) {
 				if (PCHAR thestring = (PCHAR)dbout.pbData) {
-					CHAR szTemp[MAX_STRING] = { 0 };
+					char szTemp[MAX_STRING] = { 0 };
 					strcpy_s(szTemp, thestring);
 					LocalFree(db.pbData);//always remember to free this (MSDN)
 					LocalFree(dbout.pbData);//always remember to free this (MSDN)
 
 					INT token = 0;
-					CHAR *pToken = gettok(szTemp, ':');
+					char *pToken = gettok(szTemp, ':');
 					while (pToken)
 					{
 						token++;
@@ -538,32 +539,6 @@ template <unsigned int _BSize, unsigned int _SNSize, unsigned int _CNSize, unsig
 	}
 	return false;
 }
-class CXMLDataManager2
-{
-public:
-    CXMLData *GetXMLData(int, int);
-};
-
-class CXWnd2 : public CXWnd
-{
-public:
-    CXMLData *GetXMLData()
-    {
-        if(this->GetXMLIndex())
-        {
-            return ((CXMLDataManager2*)&((PCSIDLMGR)pSidlManager)->pXMLDataMgr)->GetXMLData(GetXMLIndex()>>16,GetXMLIndex()&0xFFFF);
-        }
-        return 0;
-    }
-
-    enum UIType GetType()
-    {
-        if (CXMLData *pXMLData = GetXMLData())
-            return pXMLData->Type;
-        return UI_Unknown;
-    }
-    CXWnd *_GetChildItem(PCHAR);
-};
 
 class CLoginViewManager
 {
@@ -581,38 +556,7 @@ FUNCTION_AT_VARIABLE_ADDRESS(CXMLData *CXMLDataManager2::GetXMLData(int,int), dw
 FUNCTION_AT_VARIABLE_ADDRESS(int CLoginViewManager::SendLMouseClick(CXPoint &), dwSendLMouseClickAddr);
 FUNCTION_AT_VARIABLE_ADDRESS(unsigned int LoginServerAPI::JoinServer(int, void *, int), dwEnterGameAddr);
 
-
-class CXWnd2 *_RecurseAndFindName(class CXWnd2 *pWnd, PCHAR Name)
-{
-    CHAR Buffer[MAX_STRING]={0};
-    class CXWnd2 *tmp;
-
-    if (!pWnd) return pWnd;
-
-    if (CXMLData *pXMLData=pWnd->GetXMLData()) {
-        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
-            return pWnd;
-        }
-        //AutoLoginDebug("RecurseAndFindName looking for %s but found %s", Name, Buffer);
-        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
-            return pWnd;
-        }
-    }
-
-    if (pWnd->GetFirstChildWnd()) {
-        tmp = _RecurseAndFindName((class CXWnd2 *)pWnd->GetFirstChildWnd(), Name);
-        if (tmp)
-            return tmp;
-    }
-    return _RecurseAndFindName((class CXWnd2 *)pWnd->GetNextSiblingWnd(), Name);
-}
-
-class CXWnd * CXWnd2::_GetChildItem(PCHAR Name)
-{
-    return _RecurseAndFindName(this, Name);
-}
-
-template <unsigned int _Size,unsigned int _OutSize>bool GetServerLongName(CHAR(&szName)[_Size], CHAR(&szOut)[_OutSize])
+template <unsigned int _Size,unsigned int _OutSize>bool GetServerLongName(char(&szName)[_Size], char(&szOut)[_OutSize])
 {
 	if (GetPrivateProfileString("Servers", szName, 0, szOut, _OutSize, INIFileName)) {
 		if (szOut[0] != '\0')
@@ -620,7 +564,7 @@ template <unsigned int _Size,unsigned int _OutSize>bool GetServerLongName(CHAR(&
 	}
 	return false;
 }
-template <unsigned int _Size>bool GetPassword(CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>bool GetPassword(char(&szBuffer)[_Size])
 {
 	if (dwServerInfo) {
 		if (PSERVERSTUFF serveridoff = *(PSERVERSTUFF*)dwServerInfo) {
@@ -635,7 +579,7 @@ template <unsigned int _Size>bool GetPassword(CHAR(&szBuffer)[_Size])
 	return false;
 }
 
-template <unsigned int _Size>bool GetServerName(CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>bool GetServerName(char(&szBuffer)[_Size])
 {
 	if (EQADDR_SERVERNAME) {
 		strcpy_s(szBuffer,_Size,EQADDR_SERVERNAME);
@@ -679,13 +623,13 @@ bool CheckServerUp(int ID)
 	return false;
 }
 //todo fix this to do an actual select on the listitem
-template <unsigned int _Size>DWORD SelectServer(CHAR(&szShortName)[_Size])
+template <unsigned int _Size>DWORD SelectServer(char(&szShortName)[_Size])
 {
 	if (GetGameState() != GAMESTATE_PRECHARSELECT) {
 		bGotOffsets = false;
 		return 0;
 	}
-	CHAR szLongName[MAX_STRING] = { 0 };
+	char szLongName[MAX_STRING] = { 0 };
 	if (GetServerLongName(szShortName, szLongName)) {
 		if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end()) {
 			if (CListWnd*serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"]) {
@@ -695,13 +639,13 @@ template <unsigned int _Size>DWORD SelectServer(CHAR(&szShortName)[_Size])
 							PSERVERLIST pList = serveridoff->pServerList;
 							while (pList) {
 								if (pList->Info) {
-									CHAR szServer[MAX_STRING] = { 0 };
+									char szServer[MAX_STRING] = { 0 };
 									GetCXStr(pList->Info->ServerName, szServer);
 									if (szServer[0] != '\0') {
 										if (!_stricmp(szServer, szLongName)) {
 											return pList->Info->ID;
 										}
-										//CHAR szID[MAX_STRING] = { 0 };
+										//char szID[MAX_STRING] = { 0 };
 										//sprintf_s(szID, "%d", pList->Info->ID);
 										//WritePrivateProfileString("Servers", szServer, szID, "C:\\eqservers.ini");
 									}
@@ -718,13 +662,13 @@ template <unsigned int _Size>DWORD SelectServer(CHAR(&szShortName)[_Size])
 	}
 	return 0;
 }
-template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size])
+template <unsigned int _Size>DWORD GetServerIDFromName(char(&szShortName)[_Size])
 {
 	if (GetGameState() != GAMESTATE_PRECHARSELECT) {
 		bGotOffsets = false;
 		return 0;
 	}
-	CHAR szLongName[MAX_STRING] = { 0 };
+	char szLongName[MAX_STRING] = { 0 };
 	if (GetServerLongName(szShortName, szLongName)) {
 		if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end()) {
 			if (CListWnd*serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"]) {
@@ -734,13 +678,13 @@ template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size]
 							PSERVERLIST pList = serveridoff->pServerList;
 							while (pList) {
 								if (pList->Info) {
-									CHAR szServer[MAX_STRING] = { 0 };
+									char szServer[MAX_STRING] = { 0 };
 									GetCXStr(pList->Info->ServerName, szServer);
 									if (szServer[0] != '\0') {
 										if (!_stricmp(szServer, szLongName)) {
 											return pList->Info->ID;
 										}
-										//CHAR szID[MAX_STRING] = { 0 };
+										//char szID[MAX_STRING] = { 0 };
 										//sprintf_s(szID, "%d", pList->Info->ID);
 										//WritePrivateProfileString("Servers", szServer, szID, "C:\\eqservers.ini");
 									}
@@ -757,7 +701,7 @@ template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size]
 	}
 	return 0;
 }
-template <unsigned int _Size>DWORD GetServerID(CHAR(&szName)[_Size])
+template <unsigned int _Size>DWORD GetServerID(char(&szName)[_Size])
 {
 	//MessageBox(NULL, "break in", "", MB_SYSTEMMODAL | MB_OK);
     for(DWORD n = 0; ServerData[n].ID; n++)
@@ -998,7 +942,7 @@ bool GetAllOffsets(DWORD dweqmain)
         pLoginViewManager = (CLoginViewManager*)*(DWORD*)dwLoginMgr;
     }
 	WindowMap.clear();
-	CHAR Name[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
 	for(int i=0;i<pWindowManager->pWindows.Count;i++)
 	{
 		if (PCXWND pWnd = pWindowManager->pWindows[i]) {
@@ -1061,7 +1005,7 @@ void AddOurPulse()
 			}
 			else if (!bUseStationNamesInsteadOfSessions) {
 				DWORD nProcs = GetProcessCount("eqgame.exe");
-				CHAR szSession[32] = { 0 };
+				char szSession[32] = { 0 };
 				sprintf_s(szSession, "Session%d", nProcs);
 				AutoLoginDebug(szSession);
 
@@ -1106,7 +1050,7 @@ DWORD WINAPI GetPrivateProfileStringA_Detour( LPCSTR lpAppName, LPCSTR lpKeyName
     if( lpFileName )
     {
         SetupCustomIni();
-        CHAR szPath[MAX_STRING] = { 0 };
+        char szPath[MAX_STRING] = { 0 };
         strcpy_s( szPath, lpFileName );
         _strlwr_s( szPath );
 
@@ -1128,7 +1072,7 @@ BOOL WINAPI WritePrivateProfileStringA_Detour( LPCSTR lpAppName, LPCSTR lpKeyNam
     if( lpFileName )
     {
         SetupCustomIni();
-        CHAR szPath[MAX_STRING] = { 0 };
+        char szPath[MAX_STRING] = { 0 };
         strcpy_s( szPath, lpFileName );
         _strlwr_s( szPath );
 
@@ -1150,7 +1094,7 @@ UINT WINAPI GetPrivateProfileIntA_Detour( LPCSTR lpAppName, LPCSTR lpKeyName, IN
     if( lpFileName )
     {
         SetupCustomIni();
-        CHAR szPath[MAX_STRING] = { 0 };
+        char szPath[MAX_STRING] = { 0 };
         strcpy_s( szPath, lpFileName );
         _strlwr_s( szPath );
         if( szCustomIni && szCustomIni[0] != '\0' && strstr( szPath, "eqclient.ini" ) )
@@ -1172,7 +1116,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	int sizeofCXWnd = sizeof(CXWnd);
 	int sizeofCONTENTS = sizeof(CONTENTS);
 
-	CHAR szPath[MAX_PATH] = { 0 };
+	char szPath[MAX_PATH] = { 0 };
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
         strcpy_s(INIFileName, szPath);
@@ -1226,7 +1170,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		if (bUseMQ2Login) {
 			//i dont think we need to load anything here
 		} else if (!bUseStationNamesInsteadOfSessions) {
-			CHAR szSession[32] = { 0 };
+			char szSession[32] = { 0 };
             sprintf_s(szSession, "Session%d", nProcs);
             AutoLoginDebug(szSession);
             GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
@@ -1245,7 +1189,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
             }
 		}
 		if(!dwServerID || dwServerID==-1 && EQADDR_SERVERNAME[0]) {
-			CHAR szServTemp[MAX_STRING] = { 0 };
+			char szServTemp[MAX_STRING] = { 0 };
 			strcpy_s(szServTemp, EQADDR_SERVERNAME);
 			DWORD lserver = 0;
 			dwServerID = GetServerID(szServTemp);
@@ -1320,14 +1264,14 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
         bInGame = true;
     }
 }
-template <unsigned int _Size>bool CurrentCharacter(CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>bool CurrentCharacter(char(&szBuffer)[_Size])
 {
 	if (CXWnd*pWnd = FindMQ2Window("CLW_CharactersScreen")) {
 		if (CListWnd *charlist = (CListWnd *)pWnd->GetChildItem("Character_List")) {
 			if (charlist->ItemsArray.Count) {
 				CXStr Str;
 				int column = 2;
-				CHAR szOut[MAX_STRING] = { 0 };
+				char szOut[MAX_STRING] = { 0 };
 				charlist->GetItemText(&Str, charlist->CurSel, column);
 				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {
@@ -1362,7 +1306,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox")) {
 				if (pWnd->IsVisible() == 1) {
 					if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
-						CHAR InputCXStr[MAX_STRING] = { 0 };
+						char InputCXStr[MAX_STRING] = { 0 };
 						GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
 						if (strstr(InputCXStr, "Loading Characters")) {
 							if (DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd) {
@@ -1463,7 +1407,7 @@ void SwitchCharacter(PCHAR szName)
 				if (charlist->ItemsArray.Count) {
 					CXStr Str;
 					int column = 2;
-					CHAR szOut[MAX_STRING] = { 0 };
+					char szOut[MAX_STRING] = { 0 };
 					for (int i = 0; i < charlist->ItemsArray.Count; i++) {
 						charlist->GetItemText(&Str, i, column);
 						GetCXStr(Str.Ptr, szOut, MAX_STRING);
@@ -1502,7 +1446,7 @@ void SelectCharacter(PCHAR szName )
                 if( charlist->ItemsArray.Count) {
                     CXStr Str;
                     int column = 2;
-					CHAR szOut[MAX_STRING] = { 0 };
+					char szOut[MAX_STRING] = { 0 };
                     for( int i = 0; i < charlist->ItemsArray.Count; i++ ) {
                         charlist->GetItemText( &Str, i, column );
                         GetCXStr( Str.Ptr, szOut, MAX_STRING );
@@ -1545,7 +1489,7 @@ typedef struct _HOST
 } HOST,*PHOST;
 typedef struct _EQDEVICE
 {
-	CHAR Name[0x40];
+	char Name[0x40];
 } EQDEVICE,*PEQDEVICE;
 
 
@@ -1555,17 +1499,17 @@ typedef struct _EQLOGIN
 	int NumDevices;
 	HWND hEQWnd;
 	int ReturnCode; //-1 = failed login
-    CHAR Login[0x80];
-	CHAR PW[0x80];
-	CHAR PW2[0x80];
-	CHAR ServerLong[0x80];
+    char Login[0x80];
+	char PW[0x80];
+	char PW2[0x80];
+	char ServerLong[0x80];
 	int ServerPort;
-	CHAR AccountKey[0x80];
+	char AccountKey[0x80];
 	int ActiveDeviceIndex;
-	CHAR LastZoneEntered[0x20];
-	CHAR StationName[0x20];
-	CHAR ExeName[0x20];
-	CHAR CommandLine[0x1c0];
+	char LastZoneEntered[0x20];
+	char StationName[0x20];
+	char ExeName[0x20];
+	char CommandLine[0x1c0];
 	char ServerShort[0x80];
 	char Session[0x40];
 	char Character[0x40];
@@ -1740,7 +1684,7 @@ void HandleWindows()
 		}
 		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_PasswordEdit"))
 		{
-			CHAR szTempPass[MAX_STRING] = { 0 };
+			char szTempPass[MAX_STRING] = { 0 };
 			CEditWnd *csidlwnd = (CEditWnd*)pWnd;
 			GetCXStr(csidlwnd->InputText, szTempPass, MAX_STRING);
 			if (szTempPass[0] == '\0')
@@ -1771,7 +1715,7 @@ void HandleWindows()
 						}
 						AutoLoginDebug("HandleWindows() szProfile(%s), szBlobKey(%s), szServerName(%s)", szProfile, szBlobKey, szServerName);
 						//now that we have the server and the charname, we can figure out the stationname and password from the blob
-						CHAR szBlob[MAX_STRING] = { 0 };
+						char szBlob[MAX_STRING] = { 0 };
 						if (GetPrivateProfileString(szProfile, szBlobKey, "", szBlob, sizeof(szBlob), INIFileName)) {
 							if (pDest = strrchr(szBlob, '=')) {
 								pDest[0] = '\0';
@@ -1848,7 +1792,7 @@ void HandleWindows()
 						pDest[0] = '\0';
 						pDest++;
 						sprintf_s(szCharacterName, "%s", pDest);
-						//CHAR szProfile[128] = { 0 };
+						//char szProfile[128] = { 0 };
 						strcpy_s(szProfile, szCharacterName);
 						if (PCHAR pDest2 = strchr(szProfile, ':')) {
 							pDest2[0] = '\0';
@@ -1857,7 +1801,7 @@ void HandleWindows()
 							strcpy_s(szServerName, szUserName);
 						}
 						//now that we have the server and the charname, we can figure out the stationname and password from the blob
-						CHAR szBlob[MAX_STRING] = { 0 };
+						char szBlob[MAX_STRING] = { 0 };
 						if (GetPrivateProfileString(szUserName, szCharacterName, "", szBlob, sizeof(szBlob), INIFileName)) {
 							if (pDest = strrchr(szBlob, '=')) {
 								pDest[0] = '\0';
