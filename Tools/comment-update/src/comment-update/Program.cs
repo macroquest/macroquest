@@ -97,23 +97,14 @@ namespace comment_update
             }
 
             Console.WriteLine($"Updating offsets for {name} ({Path.GetFileName(classFile.ToString())})");
-
-            // Format all offsets with enough digits for the largest in the struct
-            var digits = definition.Members.Count == 0
-                ? 0
-                : Math.Max(2, definition.Members.Max(m => m.Offset).ToString("X").Length);
 			
-			foreach (var field in record.CursorChildren.Where(c => c is FieldDecl).Cast<FieldDecl>())
-            {
-                field.Location.GetFileLocation(out var fieldFile, out var fieldLine, out _, out _);
+	        var locations = new List<(FieldDecl Field, string File, uint Line, int Offset)>();
+	        var members = new List<FieldDecl>();
 
-                var member = definition.Members.SingleOrDefault(m => m.Name == field.Name);
-                if (member == null)
-                    Console.WriteLine($"{name}::{field.Name} not found in pdb, skipping");
-                else
-                    yield return (fieldFile.ToString(), fieldLine, member.Offset.ToString($"X{digits}"));
-            }
+			// Add any fields
+	        members.AddRange(record.CursorChildren.Where(c => c is FieldDecl).Cast<FieldDecl>());
 
+			// And any fields within anonymous types
 	        var anonFields = new Stack<CXXRecordDecl>(
 		        record.CursorChildren.Where(c => c is CXXRecordDecl field && field.Name == "").Cast<CXXRecordDecl>());
 
@@ -124,12 +115,7 @@ namespace comment_update
 			        switch (cursor)
 			        {
 				        case FieldDecl field:
-					        field.Location.GetFileLocation(out var fieldFile, out var fieldLine, out _, out _);
-					        var member = definition.Members.SingleOrDefault(m => m.Name == field.Name);
-					        if (member == null)
-						        Console.WriteLine($"{name}::{field.Name} not found in pdb, skipping");
-					        else
-						        yield return (fieldFile.ToString(), fieldLine, member.Offset.ToString($"X{digits}"));
+					        members.Add(field);
 							break;
 
 						case CXXRecordDecl anonField when anonField.Name == "":
@@ -138,6 +124,73 @@ namespace comment_update
 			        }
 		        }
 	        }
+			
+	        foreach (var field in members)
+	        {
+		        field.Location.GetFileLocation(out var fieldFile, out var fieldLine, out _, out _);
+
+		        var member = definition.Members.SingleOrDefault(m => m.Name == field.Name);
+		        if (member == null)
+			        Console.WriteLine($"{name}::{field.Name} not found in pdb, skipping");
+		        else
+		        {
+			        locations.Add((field, fieldFile.ToString(), fieldLine, member.Offset));
+		        }
+			}
+
+			if (locations.Count == 0)
+				yield break;
+
+			// Get the struct size. Can't find it in the PDB, so using the largest offset + that field's size from clang, aligned to 4 bytes
+	        var lastMember = locations.OrderBy(loc => loc.Offset).ThenBy(loc => loc.Line).Last();
+	        var size = lastMember.Offset + lastMember.Field.Type.Handle.SizeOf;
+	        size = (long)(Math.Ceiling((double)size / 4) * 4);
+
+			// Format all offsets with enough digits for the size
+			var digits = Math.Max(2, size.ToString("X").Length);
+
+			// Return locations for all members
+			foreach (var location in locations)
+				yield return (location.File, location.Line, location.Offset.ToString($"x{digits}"));
+			
+			// And one for the size.
+			// If the last member is in the same source file as the struct itself, it just goes on the following line
+	        if (lastMember.File == classFile.ToString())
+	        {
+				// It could be in an anonymous union/struct, in which case we want it after that rather than after the member
+				Cursor actualLastMember = lastMember.Field;
+		        while (actualLastMember.CursorParent != record)
+			        actualLastMember = actualLastMember.CursorParent;
+
+		        actualLastMember.Extent.End.GetFileLocation(out var file, out var line, out _, out _);
+
+				yield return (file.ToString(), line + 1, size.ToString($"x{digits}"));
+		        yield break;
+	        }
+
+	        // Otherwise, it goes on the line before the first non-field declaration after all the field declarations
+	        var children = record.CursorChildren.Where(c =>
+	        {
+		        c.Location.GetFileLocation(out var file, out _, out _, out _);
+		        return file.ToString() == classFile.ToString();
+	        }).ToList();
+
+	        for (var i = children.Count - 1; i >= 0; i--)
+	        {
+		        if (children[i] is FieldDecl || (children[i] is CXXRecordDecl anonField && anonField.Name == ""))
+		        {
+			        if (i != (children.Count - 1))
+			        {
+				        children[i + 1].Location.GetFileLocation(out var file, out var line, out _, out _);
+						yield return (file.ToString(), line - 1, size.ToString($"x{digits}"));
+						yield break;
+			        }
+		        }
+	        }
+
+			// If we still couldn't place it, throw it on the last line of the class
+			record.Extent.End.GetFileLocation(out var lastLineFile, out var lastLine, out _, out _);
+	        yield return (lastLineFile.ToString(), lastLine, size.ToString($"x{digits}"));
         }
 
 		private static string GetFullName(RecordDecl record)
@@ -205,8 +258,8 @@ namespace comment_update
                 var structDef = new StructDefinition { Name = symbol.name };
                 foreach (IDiaSymbol member in members)
                 {
-                    if ((SymTagEnum)member.symTag == SymTagEnum.SymTagData)
-                        structDef._members.Add(new StructMember(member.name, member.offset, member.sizeInUdt));
+	                if ((SymTagEnum) member.symTag == SymTagEnum.SymTagData)
+		                structDef._members.Add(new StructMember(member.name, member.offset, member.sizeInUdt));
                 }
 
                 yield return structDef;
