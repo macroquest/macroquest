@@ -41,7 +41,7 @@ enum ItemSpellTypes
 // actual size: 0x22e Feb 16 2018 test see 5F68F6 - eqmule
 // actual size: 0x22d Apr 10 2018 test see 557362 - eqmule
 // actual size: 0x229 May 07 2018 test see 6628CA  - eqmule
-struct SPELL
+struct [[offsetcomments]] SPELL
 {
 /*0x000*/ float   Range;
 /*0x004*/ float   AERange;
@@ -61,11 +61,11 @@ struct SPELL
 /*0x060*/ LONG    NumEffects;
 /*0x064*/ DWORD   BookIcon;
 /*0x068*/ DWORD   GemIcon;
-/*0x06C*/ DWORD   DescriptionIndex;
+/*0x06c*/ DWORD   DescriptionIndex;
 /*0x070*/ DWORD   ResistAdj;
 /*0x074*/ DWORD   Diety;
 /*0x078*/ DWORD   spaindex;
-/*0x07C*/ DWORD   SpellAnim;
+/*0x07c*/ DWORD   SpellAnim;
 /*0x080*/ DWORD   SpellIcon;
 /*0x084*/ DWORD   DurationParticleEffect;
 /*0x088*/ DWORD   NPCUsefulness;
@@ -172,43 +172,46 @@ struct SPELL
 /*0x216*/ BYTE    Scribable;
 /*0x217*/ BYTE    NoStripOnDeath;
 /*0x218*/ BYTE    NoRemove;                      // spell can't be clicked off?
-/*0x219*/ int     NoOverwrite;                   // an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
-/*0x21d*/ DWORD   SpellRecourseType;
-/*0x221*/ BYTE    CRC32Marker[4];
-/*0x225*/ float   DistanceMod;                   // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
-/*0x229*/
+/*0x21c*/ int     NoOverwrite;                   // an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
+/*0x220*/ DWORD   SpellRecourseType;
+/*0x224*/ BYTE    CRC32Marker[4];
+/*0x228*/ float   DistanceMod;                   // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
+/*0x22c*/
 };
 using PSPELL = SPELL*;
 
-class MercenaryAbilityEffectsDefinition
+class [[offsetcomments]] MercenaryAbilityEffectsDefinition
 {
 public:
-	void* vfTable;
-	int	ID;
-	int	AbilityID;
-	int	FromID;
-	int	Base;
-	int	Base2;
-	int	LevelMod;
-	int	Cap;
-	int	Slot;
+/*0x00*/ void* vfTable;
+/*0x04*/ int   ID;
+/*0x08*/ int   AbilityID;
+/*0x0c*/ int   FromID;
+/*0x10*/ int   Base;
+/*0x14*/ int   Base2;
+/*0x18*/ int   LevelMod;
+/*0x1c*/ int   Cap;
+/*0x20*/ int   Slot;
+/*0x24*/
 };
 
-struct FocusEffectData
+struct [[offsetcomments]] FocusEffectData
 {
-	int Type;
-	int Base;
-	int Base2;
-	int Slot;
+/*0x00*/ int Type;
+/*0x04*/ int Base;
+/*0x08*/ int Base2;
+/*0x0c*/ int Slot;
+/*0x10*/
 };
 
-struct CachedFocusAbility
+struct [[offsetcomments]] CachedFocusAbility
 {
-	FocusEffectData* pEffectData;
-	int Percent;
+/*0x00*/ FocusEffectData* pEffectData;
+/*0x04*/ int Percent;
+/*0x08*/
 };
 
-class SpellCache
+class [[offsetcomments]] SpellCache
 {
 public:
 	struct EffectCache
@@ -246,50 +249,51 @@ public:
 		int Percent;
 	};
 
-	/*0x00*/ HashTable<EffectCache>* pCachedEffects;
-	/*0x04*/ bool                                       bCachedSpellEffects;
-	/*0x08*/ HashTable<AltEffectCache>* pCachedAltAbilityEffects;
-	/*0x0c*/ bool                                       bCachedAltEffects;
-	/*0x10*/ HashTable<EffectCache>* pCachedLimitedEffects;
-	/*0x14*/ bool                                       bCachedLimitedEffects;
-	/*0x18*/ HashTable<CachedFocusItem, int64_t>        CachedFocusItems;
-	/*0x28*/ HashTable<CachedFocusEffect, int64_t>      CachedFocusEffects;
-	/*0x38*/ HashTable<CachedFocusAbility, int64_t>     CachedFocusAbilities;
-	/*0x48*/ HashTable<CachedFocusMercAbility, int64_t> CachedFocusMercAbilities;
-	/*0x58*/
+/*0x00*/ HashTable<EffectCache>* pCachedEffects;
+/*0x04*/ bool                                       bCachedSpellEffects;
+/*0x08*/ HashTable<AltEffectCache>* pCachedAltAbilityEffects;
+/*0x0c*/ bool                                       bCachedAltEffects;
+/*0x10*/ HashTable<EffectCache>* pCachedLimitedEffects;
+/*0x14*/ bool                                       bCachedLimitedEffects;
+/*0x18*/ HashTable<CachedFocusItem, int64_t>        CachedFocusItems;
+/*0x28*/ HashTable<CachedFocusEffect, int64_t>      CachedFocusEffects;
+/*0x38*/ HashTable<CachedFocusAbility, int64_t>     CachedFocusAbilities;
+/*0x48*/ HashTable<CachedFocusMercAbility, int64_t> CachedFocusMercAbilities;
+/*0x4c*/
 };
 
 
-struct SlotData
+struct [[offsetcomments]] SlotData
 {
-	LONG Slot;
-	DWORD Value;
+/*0x00*/ LONG Slot;
+/*0x04*/ DWORD Value;
+/*0x08*/
 };
 
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
 // Size 0x68 Apr 10 2018 test see 8B2FD5 - eqmule
 // this is EQ_Affect todo: check the new stuff in it
-struct SPELLBUFF
+struct [[offsetcomments]] SPELLBUFF
 {
-	/*0x00*/ BYTE      Type;
-	/*0x01*/ BYTE      Level;                        // casterlevel
-	/*0x02*/ BYTE      ChargesRemaining;
-	/*0x03*/ CHAR      DamageShield;                 // Activatable
-	/*0x04*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
-	/*0x08*/ LONG      SpellID;                      // -1 or 0 for no spell..
-	/*0x0c*/ DWORD     Duration;
-	/*0x10*/ DWORD     MaxDuration;
-	/*0x14*/ DWORD     Duration3;
-	/*0x18*/ EqGuid    CasterGuid;
-	/*0x20*/ DWORD     HitCount;
-	/*0x24*/ float     Y;                            // Referenced by SPA 441 (distance removal)
-	/*0x28*/ float     X;
-	/*0x2c*/ float     Z;
-	/*0x30*/ UINT      Flags;
-	/*0x34*/ SlotData  SlotData[NUM_SLOTDATA];       // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
-	/*0x64*/ DWORD     Unknown0x64;
-	/*0x68*/
+/*0x00*/ BYTE      Type;
+/*0x01*/ BYTE      Level;                        // casterlevel
+/*0x02*/ BYTE      ChargesRemaining;
+/*0x03*/ CHAR      DamageShield;                 // Activatable
+/*0x04*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
+/*0x08*/ LONG      SpellID;                      // -1 or 0 for no spell..
+/*0x0c*/ DWORD     Duration;
+/*0x10*/ DWORD     MaxDuration;
+/*0x14*/ DWORD     Duration3;
+/*0x18*/ EqGuid    CasterGuid;
+/*0x20*/ DWORD     HitCount;
+/*0x24*/ float     Y;                            // Referenced by SPA 441 (distance removal)
+/*0x28*/ float     X;
+/*0x2c*/ float     Z;
+/*0x30*/ UINT      Flags;
+/*0x34*/ SlotData  SlotData[NUM_SLOTDATA];       // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
+/*0x64*/ DWORD     Unknown0x64;
+/*0x68*/
 };
 using PSPELLBUFF [[deprecated]] = SPELLBUFF *;
 

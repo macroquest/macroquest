@@ -315,17 +315,17 @@ static SClassInfo ClassInfo[] =
 #define USERCOLOR_ECHO_CHAT_8                    0xFF +  67 //  67 - chat 8 echo
 #define USERCOLOR_ECHO_CHAT_9                    0xFF +  68 //  68 - chat 9 echo
 #define USERCOLOR_ECHO_CHAT_10                   0xFF +  69 //  69 - chat 10 echo
-#define USERCOLOR_RESERVED                       0xFF +  70 //  70 - "unused at this time" 
-#define USERCOLOR_LINK                           0xFF +  71 //  71 - item links 
-#define USERCOLOR_RAID                           0xFF +  72 //  72 - raid 
-#define USERCOLOR_PET                            0xFF +  73 //  73 - my pet 
-#define USERCOLOR_DAMAGESHIELD                   0xFF +  74 //  74 - damage shields 
-#define USERCOLOR_LEADER                         0xFF +  75 //  75 - LAA-related messages 
-#define USERCOLOR_PETRAMPFLURRY                  0xFF +  76 //  76 - pet rampage/flurry 
-#define USERCOLOR_PETCRITS                       0xFF +  77 //  77 - pet's critical hits 
-#define USERCOLOR_FOCUS                          0xFF +  78 //  78 - focus item activation 
-#define USERCOLOR_XP                             0xFF +  79 //  79 - xp gain/loss 
-#define USERCOLOR_SYSTEM                         0xFF +  80 //  80 - system broadcasts etc 
+#define USERCOLOR_RESERVED                       0xFF +  70 //  70 - "unused at this time"
+#define USERCOLOR_LINK                           0xFF +  71 //  71 - item links
+#define USERCOLOR_RAID                           0xFF +  72 //  72 - raid
+#define USERCOLOR_PET                            0xFF +  73 //  73 - my pet
+#define USERCOLOR_DAMAGESHIELD                   0xFF +  74 //  74 - damage shields
+#define USERCOLOR_LEADER                         0xFF +  75 //  75 - LAA-related messages
+#define USERCOLOR_PETRAMPFLURRY                  0xFF +  76 //  76 - pet rampage/flurry
+#define USERCOLOR_PETCRITS                       0xFF +  77 //  77 - pet's critical hits
+#define USERCOLOR_FOCUS                          0xFF +  78 //  78 - focus item activation
+#define USERCOLOR_XP                             0xFF +  79 //  79 - xp gain/loss
+#define USERCOLOR_SYSTEM                         0xFF +  80 //  80 - system broadcasts etc
 #define USERCOLOR_PET_SPELLS                     0xFF +  81 //  81 - pet spells
 #define USERCOLOR_PET_RESPONSES                  0xFF +  82 //  82 - pet responses
 #define USERCOLOR_ITEM_SPEECH                    0xFF +  83 //  83 - item speech
@@ -664,8 +664,8 @@ using PMOUSECLICK = MOUSECLICK*;
 // size is at 7EE7F8 in eqgame dated jun 13 2014
 #define AA_CHAR_MAX_REAL                         0x12C
 
-// found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta) 
-// Find by searching for A1 ? ? ? ? 53 83 CB FF 85 C0 in IDA 
+// found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta)
+// Find by searching for A1 ? ? ? ? 53 83 CB FF 85 C0 in IDA
 #define NUM_BOOK_SLOTS                           0x3C0
 #define NUM_COMBAT_ABILITIES                     0x12c
 #define BAG_SLOT_START                           23
@@ -673,7 +673,7 @@ using PMOUSECLICK = MOUSECLICK*;
 #define NUM_SKILLS                               0x64
 #define CONCURRENT_SKILLS                        2
 
-struct LEADERABILITIES
+struct [[offsetcomments]] LEADERABILITIES
 {
 /*0x00*/ DWORD MarkNPC;
 /*0x04*/ DWORD NPCHealth;
@@ -694,7 +694,7 @@ struct LEADERABILITIES
 };
 using PLEADERABILITIES = LEADERABILITIES*;
 
-struct MODELINFONAME
+struct [[offsetcomments]] MODELINFONAME
 {
 /*0x00*/ DWORD Unknown0000;
 /*0x04*/ DWORD Unknown0004;
@@ -703,7 +703,7 @@ struct MODELINFONAME
 };
 using PMODELINFONAME = MODELINFONAME*;
 
-struct MODELINFO_GENERIC
+struct [[offsetcomments]] MODELINFO_GENERIC
 {
 /*0x00*/ DWORD Type;
 /*0x04*/ DWORD Unknown0x04;
@@ -714,7 +714,7 @@ struct MODELINFO_GENERIC
 };
 using PMODELINFO_GENERIC = MODELINFO_GENERIC*;
 
-struct MODELINFO_48
+struct [[offsetcomments]] MODELINFO_48
 {
 /*0x00*/ MODELINFO_GENERIC Header;
 /*0x14*/ float Float1;
@@ -725,7 +725,7 @@ struct MODELINFO_48
 };
 using PMODELINFO_48 = MODELINFO_48*;
 
-struct MODELINFO_51
+struct [[offsetcomments]] MODELINFO_51
 {
 /*0x00*/ MODELINFO_GENERIC Header;
 /*0x14*/ MODELINFONAME* pFontName;
@@ -734,7 +734,7 @@ struct MODELINFO_51
 };
 using PMODELINFO_51 = MODELINFO_51*;
 
-struct MODELINFO
+struct [[offsetcomments]] MODELINFO
 {
 /*0x00*/ DWORD              Unknown;
 /*0x04*/ PCHAR              NameDAG;
@@ -746,7 +746,7 @@ struct MODELINFO
 };
 using PMODELINFO = MODELINFO*;
 
-struct CAMERAINFO
+struct [[offsetcomments]] CAMERAINFO
 {
 /*0x00*/ DWORD Unknown0x00;
 /*0x04*/ DWORD Unknown0x04;
@@ -759,8 +759,7 @@ struct CAMERAINFO
 };
 using PCAMERAINFO = CAMERAINFO*;
 
-
-struct USINGSKILL
+struct [[offsetcomments]] USINGSKILL
 {
 /*0x00*/ int       Skill;
 /*0x04*/ void*     Target;
@@ -768,34 +767,33 @@ struct USINGSKILL
 };
 using PUSINGSKILL = USINGSKILL*;
 
-
-struct EQCAMERABASE
+struct [[offsetcomments]] EQCAMERABASE
 {
-/*0x000*/ void* vftable;
-/*0x004*/ float Y;
-/*0x008*/ float X;
-/*0x00c*/ float Z;
-/*0x010*/ float Orientation_Y;                   // old name Heading
-/*0x014*/ float Orientation_X;                   // old name LookAngle
-/*0x018*/ float Orientation_Z;
-/*0x01c*/ float OldPosition_Y;
-/*0x020*/ float OldPosition_X;
-/*0x024*/ float OldPosition_Z;
-/*0x028*/ float Heading;
-/*0x02C*/ float Height;
-/*0x030*/ float Pitch;
-/*0x034*/ float Distance;
-/*0x038*/ float DirectionalHeading;
-/*0x03c*/ float SideMovement;
-/*0x040*/ float Zoom;                            // old name: ViewAngle
-/*0x044*/ bool  bAutoPitch;
-/*0x045*/ bool  bAutoHeading;
-/*0x046*/ bool  bSkipFrame;
-/*0x048*/
+/*0x00*/ void* vftable;
+/*0x04*/ float Y;
+/*0x08*/ float X;
+/*0x0c*/ float Z;
+/*0x10*/ float Orientation_Y;                   // old name Heading
+/*0x14*/ float Orientation_X;                   // old name LookAngle
+/*0x18*/ float Orientation_Z;
+/*0x1c*/ float OldPosition_Y;
+/*0x20*/ float OldPosition_X;
+/*0x24*/ float OldPosition_Z;
+/*0x28*/ float Heading;
+/*0x2c*/ float Height;
+/*0x30*/ float Pitch;
+/*0x34*/ float Distance;
+/*0x38*/ float DirectionalHeading;
+/*0x3c*/ float SideMovement;
+/*0x40*/ float Zoom;                            // old name: ViewAngle
+/*0x44*/ bool  bAutoPitch;
+/*0x45*/ bool  bAutoHeading;
+/*0x46*/ bool  bSkipFrame;
+/*0x48*/
 };
 using PEQCAMERABASE = EQCAMERABASE*;
 
-#define MODEL_LABEL                              0 
+#define MODEL_LABEL                              0
 #define MODEL_LABELINFO                          1
 #define MODEL_NULL2                              2
 #define MODEL_HELD_R                             3
@@ -845,7 +843,7 @@ enum InvisibleTypes
 #define MONITOR_SPAWN_SPEEDRUN                   16
 #define MONITOR_SPAWN_HPCURRENT                  32
 
-struct SPAWNMONITORINFO
+struct [[offsetcomments]] SPAWNMONITORINFO
 {
 	WORD SpawnID;
 	float Y;
@@ -872,7 +870,7 @@ struct Matrix4x4
 	};
 };
 
-struct SWITCHCLICK
+struct [[offsetcomments]] SWITCHCLICK
 {
 	float Y;
 	float X;
@@ -894,72 +892,72 @@ enum eMemPoolType
 // actual size: 0x120 3-3-2009
 // Size is 0x190 dec 13 2016 live - eqmule
 // see Cactor::CActor in EQGraphicsDX9.dll
-struct EQSWITCH
+struct [[offsetcomments]] EQSWITCH
 {
-/*0x00*/ void*         vfTable;
-/*0x04*/ eMemPoolType  MemType;
-/*0x08*/ bool          bIsS3DCreated;
-/*0x09*/ bool          bHasParentBone;
-/*0x0a*/ bool          bUpdateScaledAmbient;
-/*0x0c*/ float         ScaledAmbient;
-/*0x10*/ float         ScaledAmbientTarget;
-/*0x14*/ float         ParticleScaleFactor;
-/*0x18*/ float         CollisionSphereScaleFactor;
-/*0x1c*/ UINT          UpdateAmbientTick;
-/*0x20*/ UINT          InterpolateAmbientTick;
-/*0x24*/ void*         pParentActor;             // its a  CActor*
-/*0x28*/ void*         pDPVSObject;
-/*0x2C*/ float         Y;
-/*0x30*/ float         X;
-/*0x34*/ float         Z;
-/*0x38*/ float         SurfaceNormalY;
-/*0x3c*/ float         SurfaceNormalX;
-/*0x40*/ float         SurfaceNormalZ;
-/*0x44*/ UINT          VisibleIndex;
-/*0x48*/ float         Alpha;
-/*0x4c*/ bool          bCastShadow;
-/*0x4d*/ bool          bNeverClip;
-/*0x4e*/ bool          bClientCreated;
-/*0x50*/ float         ZOffset;
-/*0x54*/ float         EmitterScalingRadius;
-/*0x58*/ void*         pDuplicateActor;          // its a  CActor*
-/*0x5c*/ bool          bShowParticlesWhenInvisible;
-/*0x60*/ void*         pAreaPortalVolumeList;    // CAreaPortalVolumeList*
-/*0x64*/ void*         CleanupList;              // a TListNode<CActor*>? not sure
-/*0x68*/ BYTE          CleanupListFiller[0xc];
-/*0x74*/ void*         pActorApplicationData;    // CActorApplicationData* 74 for sure see 1003AE70
-/*0x78*/ EActorType    ActorType;
-/*0x7c*/ void*         pTerrainObject;           // CTerrainObject*
-/*0x80*/ void*         HighlightData;            // HighlightData*
-/*0x84*/ float         yAdjustment1;             // from this point on im not sure - 2013 dec 16
-/*0x88*/ float         xAdjustment1;
-/*0x8c*/ float         zAdjustment1;
-/*0x90*/ float         headingAdjustment1;
-/*0x94*/ float         yAdjustment2;
-/*0x98*/ float         xAdjustment2;
-/*0x9c*/ float         zAdjustment2;
-/*0xa0*/ float         headingAdjustment2;
-/*0xa4*/ float         yAdjustment3;
-/*0xa8*/ float         xAdjustment3;
-/*0xac*/ float         zAdjustment3;
-/*0xb0*/ float         headingAdjustment3;
-/*0xb4*/ float         adjustments4[3];
-/*0xc0*/ float         adjustments5[4];
-/*0xd0*/ bool          bbHasAttachSRT;
-/*0xd1*/ bool          bDisableDesignOverride;
-/*0xd4*/ int           Unknown0xd4[4];
-/*0xe4*/ Matrix4x4     transformMatrix;          // used for new armor
-/*0x128*/float         Heading;
-/*0x12c*/BYTE          Unknown0x12c[0x14];
-/*0x140*/float         HeightAdjustment;         // this is most likely wrong dec 16 2013 eqmule
-/*0x144*/BYTE          Unknown0x144[0x4c];
-/*0x190*/
+/*0x000*/ void*         vfTable;
+/*0x004*/ eMemPoolType  MemType;
+/*0x008*/ bool          bIsS3DCreated;
+/*0x009*/ bool          bHasParentBone;
+/*0x00a*/ bool          bUpdateScaledAmbient;
+/*0x00c*/ float         ScaledAmbient;
+/*0x010*/ float         ScaledAmbientTarget;
+/*0x014*/ float         ParticleScaleFactor;
+/*0x018*/ float         CollisionSphereScaleFactor;
+/*0x01c*/ UINT          UpdateAmbientTick;
+/*0x020*/ UINT          InterpolateAmbientTick;
+/*0x024*/ void*         pParentActor;             // its a  CActor*
+/*0x028*/ void*         pDPVSObject;
+/*0x02c*/ float         Y;
+/*0x030*/ float         X;
+/*0x034*/ float         Z;
+/*0x038*/ float         SurfaceNormalY;
+/*0x03c*/ float         SurfaceNormalX;
+/*0x040*/ float         SurfaceNormalZ;
+/*0x044*/ UINT          VisibleIndex;
+/*0x048*/ float         Alpha;
+/*0x04c*/ bool          bCastShadow;
+/*0x04d*/ bool          bNeverClip;
+/*0x04e*/ bool          bClientCreated;
+/*0x050*/ float         ZOffset;
+/*0x054*/ float         EmitterScalingRadius;
+/*0x058*/ void*         pDuplicateActor;          // its a  CActor*
+/*0x05c*/ bool          bShowParticlesWhenInvisible;
+/*0x060*/ void*         pAreaPortalVolumeList;    // CAreaPortalVolumeList*
+/*0x064*/ void*         CleanupList;              // a TListNode<CActor*>? not sure
+/*0x068*/ BYTE          CleanupListFiller[0xc];
+/*0x074*/ void*         pActorApplicationData;    // CActorApplicationData* 74 for sure see 1003AE70
+/*0x078*/ EActorType    ActorType;
+/*0x07c*/ void*         pTerrainObject;           // CTerrainObject*
+/*0x080*/ void*         HighlightData;            // HighlightData*
+/*0x084*/ float         yAdjustment1;             // from this point on im not sure - 2013 dec 16
+/*0x088*/ float         xAdjustment1;
+/*0x08c*/ float         zAdjustment1;
+/*0x090*/ float         headingAdjustment1;
+/*0x094*/ float         yAdjustment2;
+/*0x098*/ float         xAdjustment2;
+/*0x09c*/ float         zAdjustment2;
+/*0x0a0*/ float         headingAdjustment2;
+/*0x0a4*/ float         yAdjustment3;
+/*0x0a8*/ float         xAdjustment3;
+/*0x0ac*/ float         zAdjustment3;
+/*0x0b0*/ float         headingAdjustment3;
+/*0x0b4*/ float         adjustments4[3];
+/*0x0c0*/ float         adjustments5[4];
+/*0x0d0*/ bool          bbHasAttachSRT;
+/*0x0d1*/ bool          bDisableDesignOverride;
+/*0x0d4*/ int           Unknown0xd4[4];
+/*0x0e4*/ Matrix4x4     transformMatrix;          // used for new armor
+/*0x124*/ float         Heading;
+/*0x128*/ BYTE          Unknown0x12c[0x14];
+/*0x13c*/ float         HeightAdjustment;         // this is most likely wrong dec 16 2013 eqmule
+/*0x140*/ BYTE          Unknown0x144[0x4c];
+/*0x18c*/
 };
 using PEQSWITCH = EQSWITCH*;
 
 // Size is 0xe0 see 54933E in dec 13 2016 live - eqmule
 // This is actually EQSwitch
-struct DOOR
+struct [[offsetcomments]] DOOR
 {
 /*0x00*/ void*         vtable;
 /*0x04*/ BYTE          ObjType;                  // always 5
@@ -1015,7 +1013,7 @@ struct DOOR
 };
 using PDOOR = DOOR*;
 
-struct DOORTABLE
+struct [[offsetcomments]] DOORTABLE
 {
 /*0x000*/ DWORD NumEntries;
 /*0x004*/ PDOOR pDoor[0x0FF];
@@ -1024,7 +1022,7 @@ struct DOORTABLE
 using PDOORTABLE = DOORTABLE*;
 
 // actual size 0x80 20101012 - ieatacid
-struct GROUNDITEM
+struct [[offsetcomments]] GROUNDITEM
 {
 /*0x00*/ GROUNDITEM*         pPrev;
 /*0x04*/ GROUNDITEM*         pNext;
@@ -1054,12 +1052,13 @@ enum eGroundObject
 	GO_ObjectType
 };
 
-struct GROUNDOBJECT
+struct [[offsetcomments]] GROUNDOBJECT
 {
-	eGroundObject            Type;
-	GROUNDITEM               GroundItem;         // for conversion between switch and gorunditems
-	void*                    ObjPtr;             // EQPlacedItem *
-	PGROUNDITEM              pGroundItem;
+/*0x00*/ eGroundObject            Type;
+/*0x04*/ GROUNDITEM               GroundItem;         // for conversion between switch and gorunditems
+/*0x84*/ void*                    ObjPtr;             // EQPlacedItem *
+/*0x88*/ PGROUNDITEM              pGroundItem;
+/*0x8c*/
 };
 using PGROUNDOBJECT = GROUNDOBJECT*;
 
@@ -1068,33 +1067,33 @@ using PGROUNDOBJECT = GROUNDOBJECT*;
 extern PCHAR szZoneExpansionName[];              // defined in LibEQ_Utilities.cpp
 
 // Size 0x1D8 see 867D39 in eqgame.exe live 21 apr 2016 - eqmule
-struct ZONELIST
+struct [[offsetcomments]] ZONELIST
 {
-/*0x000*/ DWORD              Header; 
-/*0x004*/ DWORD              Unknown0x4;         // pointer to something? 
-/*0x008*/ DWORD              EQExpansion;        // szZoneExpansionName[] 
+/*0x000*/ DWORD              Header;
+/*0x004*/ DWORD              Unknown0x4;         // pointer to something?
+/*0x008*/ DWORD              EQExpansion;        // szZoneExpansionName[]
 /*0x00c*/ DWORD              Id;                 // EQZoneIndex
 /*0x010*/ CHAR               ShortName[0x80];
 /*0x090*/ BYTE               Unknown0x090;
-/*0x091*/ CHAR               LongName[0x100]; 
-/*0x191*/ DWORD              Unknown0x191; 
-/*0x192*/ DWORD              Unknown0x192[0x6];  
-/*0x198*/ DWORD              ZoneFlags;          // 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
-/*0x19c*/ DWORD              Unknown0x19c; 
-/*0x1a0*/ DWORD              eqstrID;            // can call pStringTable->getString to get this string
-/*0x1a4*/ DWORD              PoPValue;           // This has something to do with PoP zones. 
-/*0x1a8*/ DWORD              MinLevel;           // Minimum level to access is this used?
-/*0x1ac*/ BYTE               Unknown0x1ac[0x8];
-/*0x1b4*/ BYTE               Unknown0x1b4;
-/*0x1b5*/ BYTE               Unknown0x1b5[0x3]; 
-/*0x1b8*/ BYTE               Unknown0x1b8[0x20];
-/*0x1D8*/ 
+/*0x091*/ CHAR               LongName[0x100];
+/*0x194*/ DWORD              Unknown0x191;
+/*0x198*/ DWORD              Unknown0x192[0x6];
+/*0x1b0*/ DWORD              ZoneFlags;          // 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
+/*0x1b4*/ DWORD              Unknown0x19c;
+/*0x1b8*/ DWORD              eqstrID;            // can call pStringTable->getString to get this string
+/*0x1bc*/ DWORD              PoPValue;           // This has something to do with PoP zones.
+/*0x1c0*/ DWORD              MinLevel;           // Minimum level to access is this used?
+/*0x1c4*/ BYTE               Unknown0x1ac[0x8];
+/*0x1cc*/ BYTE               Unknown0x1b4;
+/*0x1cd*/ BYTE               Unknown0x1b5[0x3];
+/*0x1d0*/ BYTE               Unknown0x1b8[0x20];
+/*0x1f0*/
 };
 using PZONELIST = ZONELIST*;
 
 // EQWorldData__EQWorldData_x
 // Size 0xFC0 see 5721F1 in eqgame.exe live 21 apr 2016 - eqmule
-struct WORLDDATA
+struct [[offsetcomments]] WORLDDATA
 {
 /*0x000*/ void*        lpvTable;
 /*0x004*/ BYTE         Hour;
@@ -1102,16 +1101,16 @@ struct WORLDDATA
 /*0x006*/ BYTE         Day;
 /*0x007*/ BYTE         Month;
 /*0x008*/ int          Year;
-/*0x00C*/ BYTE         LastHour;
-/*0x00D*/ BYTE         LastMinute;
-/*0x00E*/ BYTE         LastDay;
-/*0x00F*/ BYTE         LastMonth;
+/*0x00c*/ BYTE         LastHour;
+/*0x00d*/ BYTE         LastMinute;
+/*0x00e*/ BYTE         LastDay;
+/*0x00f*/ BYTE         LastMonth;
 /*0x010*/ int          LastYear;
 /*0x014*/ UINT         LastAdvance;
 /*0x018*/ UINT         LastTime;
-/*0x01C*/ UINT         Unknown0x01C;
+/*0x01c*/ UINT         Unknown0x01C;
 /*0x020*/ PZONELIST    ZoneArray[MAX_ZONES];     // see 867D1B in eqgame.exe live 21 apr 2016
-/*0xFC0*/
+/*0xfc0*/
 };
 using PWORLDDATA = WORLDDATA*;
 
@@ -1133,16 +1132,16 @@ enum EPlace
 };
 
 // Size 0x3a8 see F17224-F16E7C in eqgame.exe live 17 Jan 2017 - eqmule
-struct ZONEINFO
+struct [[offsetcomments]] ZONEINFO
 {
 /*0x000*/ char         CharacterName[0x40];
 /*0x040*/ char         ShortName[0x80];
 /*0x0c0*/ char         LongName[0x80];
 /*0x140*/ char         ZoneDesc[0x5][0x1e];  //zone description strings
 /*0x1d6*/ BYTE         FogOnOff; // (usually FF)
-/*0x1d7*/ ARGBCOLOR    FogRed;
-/*0x1db*/ ARGBCOLOR    FogGreen;
-/*0x1df*/ ARGBCOLOR    FogBlue;
+/*0x1d8*/ ARGBCOLOR    FogRed;
+/*0x1dc*/ ARGBCOLOR    FogGreen;
+/*0x1e0*/ ARGBCOLOR    FogBlue;
 /*0x1e4*/ float        FogStart[0x4]; //fog distance
 /*0x1f4*/ float        FogEnd[0x4];
 /*0x204*/ float        ZoneGravity;
@@ -1154,7 +1153,7 @@ struct ZONEINFO
 /*0x219*/ char         ZoneTimeZone;   //in hours from worldserver, can be negative
 /*0x21a*/ BYTE         SkyType;   //1 means active
 /*0x21c*/ int          WaterMidi;   //which midi to play while underwater
-/*0x220*/ int          DayMidi;   
+/*0x220*/ int          DayMidi;
 /*0x224*/ int          NightMidi;
 /*0x228*/ float        ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
 /*0x22c*/ float        SafeXLoc;
@@ -1189,50 +1188,50 @@ struct ZONEINFO
 /*0x2a0*/ char         SkyString[0x20]; //if empty no sky, ive only seen this as the zone name
 /*0x2c0*/ char         WeatherString[0x20]; //if empty no weather
 /*0x2e0*/ char         SkyString2[0x20]; //if SkyString is empty this is checked
-/*0x310*/ int          SkyRelated2; //0-24
-/*0x314*/ char         WeatherString2[0x20]; //if empty no weather
-/*0x334*/ float        WeatherChangeTime;
-/*0x338*/ int          Climate;
-/*0x33c*/ int          NPCAgroMaxDist; //the distance needed for an npc to lose agro after an attack
-/*0x340*/ int          FilterID; //found in the teleport table
-/*0x344*/ int          ZoneID;
-/*0x348*/ int          ScriptNPCReceivedanItem;
-/*0x34c*/ bool         bCheck;
-/*0x350*/ int          ScriptIDSomething;
-/*0x254*/ int          ScriptIDSomething2;
-/*0x358*/ int          ScriptIDSomething3;
-/*0x35c*/ bool         bNoBuffExpiration;//this is checked serverside so no, u cant and shouldn't set this if u value your account
-/*0x360*/ int          LavaDamage; //before resists
-/*0x364*/ int          MinLavaDamage; //after resists
-/*0x368*/ bool         bDisallowManaStone; //can a manastone be used here?
-/*0x369*/ bool         bNoBind;
-/*0x36a*/ bool         bNoAttack;
-/*0x36b*/ bool         bNoCallOfHero;
-/*0x36c*/ bool         bNoFlux;
-/*0x36d*/ bool         bNoFear;
-/*0x36e*/ bool         bNoEncumber;
-/*0x370*/ int          FastRegenHP;//not exactly sure how these work but ome zones have these set
-/*0x374*/ int          FastRegenMana;
-/*0x378*/ int          FastRegenEndurance;
-/*0x37c*/ EPlace       CanPlaceCampsite;
-/*0x380*/ EPlace       CanPlaceGuildBanner;
-/*0x384*/ float        FogDensity;
-/*0x388*/ bool         bAdjustGamma;
-/*0x38c*/ int          TimeStringID;
-/*0x390*/ bool         bNoMercenaries;
-/*0x394*/ int          FishingRelated;
-/*0x398*/ int          ForageRelated;
-/*0x39c*/ bool         bNoLevitate;
-/*0x3a0*/ float        Blooming;
-/*0x3a4*/ bool         bNoPlayerLight;
-/*0x3a8*/ int          GroupLvlExpRelated;
-/*0x3ac*/ BYTE         PrecipitationType;
-/*0x3ad*/ bool         bAllowPVP;
-/*0x3b0*/
+/*0x300*/ int          SkyRelated2; //0-24
+/*0x304*/ char         WeatherString2[0x20]; //if empty no weather
+/*0x324*/ float        WeatherChangeTime;
+/*0x328*/ int          Climate;
+/*0x32c*/ int          NPCAgroMaxDist; //the distance needed for an npc to lose agro after an attack
+/*0x330*/ int          FilterID; //found in the teleport table
+/*0x334*/ int          ZoneID;
+/*0x338*/ int          ScriptNPCReceivedanItem;
+/*0x33c*/ bool         bCheck;
+/*0x340*/ int          ScriptIDSomething;
+/*0x344*/ int          ScriptIDSomething2;
+/*0x348*/ int          ScriptIDSomething3;
+/*0x34c*/ bool         bNoBuffExpiration;//this is checked serverside so no, u cant and shouldn't set this if u value your account
+/*0x350*/ int          LavaDamage; //before resists
+/*0x354*/ int          MinLavaDamage; //after resists
+/*0x358*/ bool         bDisallowManaStone; //can a manastone be used here?
+/*0x359*/ bool         bNoBind;
+/*0x35a*/ bool         bNoAttack;
+/*0x35b*/ bool         bNoCallOfHero;
+/*0x35c*/ bool         bNoFlux;
+/*0x35d*/ bool         bNoFear;
+/*0x35e*/ bool         bNoEncumber;
+/*0x360*/ int          FastRegenHP;//not exactly sure how these work but ome zones have these set
+/*0x364*/ int          FastRegenMana;
+/*0x368*/ int          FastRegenEndurance;
+/*0x36c*/ EPlace       CanPlaceCampsite;
+/*0x370*/ EPlace       CanPlaceGuildBanner;
+/*0x374*/ float        FogDensity;
+/*0x378*/ bool         bAdjustGamma;
+/*0x37c*/ int          TimeStringID;
+/*0x380*/ bool         bNoMercenaries;
+/*0x384*/ int          FishingRelated;
+/*0x388*/ int          ForageRelated;
+/*0x38c*/ bool         bNoLevitate;
+/*0x390*/ float        Blooming;
+/*0x394*/ bool         bNoPlayerLight;
+/*0x398*/ int          GroupLvlExpRelated;
+/*0x39c*/ BYTE         PrecipitationType;
+/*0x39d*/ bool         bAllowPVP;
+/*0x3a0*/
 };
 using PZONEINFO = ZONEINFO*;
 
-struct SPELLCALCINFO
+struct [[offsetcomments]] SPELLCALCINFO
 {
 /*0x00*/ int Slot;
 /*0x04*/ int Base;
@@ -1240,6 +1239,7 @@ struct SPELLCALCINFO
 /*0x0c*/ int Max;
 /*0x10*/ int Calc;
 /*0x14*/ int Attrib;
+/*0x18*/
 };
 using PSPELLCALCINFO = SPELLCALCINFO*;
 
@@ -1250,16 +1250,16 @@ using PSPELLCALCINFO = SPELLCALCINFO*;
 // SpellManager__SpellManager_x
 // size: 0x1966A8 2017-04-11 test (see 55DC54) - eqmule
 // size: 0x1AED40 2018-04-10 test (see 5D32E2) - eqmule
-struct SPELLMGR
+struct [[offsetcomments]] SPELLMGR
 {
 /*0x000000*/ void*          vfTable;                       // need this for some calls later
 /*0x000004*/ BYTE           Unknown0x00004[0x3BBA0];
-/*0x03BBA4*/ SPELL*         Spells[TOTAL_SPELL_COUNT];    // 60000
+/*0x03bba4*/ SPELL*         Spells[TOTAL_SPELL_COUNT];    // 60000
 /*0x076524*/ SPELL*         PtrToUnknownSpell;            // default bailout pointer...
 /*0x076528*/ SPELLCALCINFO* CalcInfo[CalcInfoSize];       // 200000
-/*0x139A28*/ DWORD          What1[0x6];
-/*0x139A40*/ DWORD          What2[0x1D4C0];               // 120000
-/*0x1AED40*/ //(1764672) 1.7 mill! large struct in memory for sure...
+/*0x139a28*/ DWORD          What1[0x6];
+/*0x139a40*/ DWORD          What2[0x1D4C0];               // 120000
+/*0x1aed40*/ //(1764672) 1.7 mill! large struct in memory for sure...
 };
 using PSPELLMGR = SPELLMGR*;
 
@@ -1268,10 +1268,10 @@ enum eSkillCombatType
 {
 	SCT_NonCombat,
 	SCT_Combat,
-	SCT_Special 
+	SCT_Special
 };
 
-struct SKILL
+struct [[offsetcomments]] SKILL
 {
 /*0x000*/ int               ImageNumber;
 /*0x004*/ int               ImageDep;
@@ -1293,19 +1293,19 @@ using PSKILL = SKILL*;
 // see SkillManager__IsValidSkillIndex_x (5C87C0) in eqgame dated 20140611
 // SkillManager__SkillManager
 // Actual Size: 0x2E9B2C see 571E37 in eqgame dated 20170411 test
-struct SKILLMGR
+struct [[offsetcomments]] SKILLMGR
 {
 /*0x000000*/ SKILL*    pSkill[NUM_SKILLS];
 /*0x000190*/ int       SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x174C10*/ float     SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x2E9690*/ char      SkillCapsFilename[MAX_PATH];
-/*0x2E9794*/ UINT      SkillLastUsed[NUM_SKILLS];
-/*0x2E9924*/ UINT      SkillTimerDuration[NUM_SKILLS];
-/*0x2E9AB4*/ UINT      CombatSkillLastUsed[CONCURRENT_SKILLS];
-/*0x2E9ABC*/ UINT      CombatSkillDuration[CONCURRENT_SKILLS];
-/*0x2E9AC4*/ bool      bSkillCanUse[NUM_SKILLS];
-/*0x2E9B28*/ bool      bCombatSkillCanUse[CONCURRENT_SKILLS];
-/*0x2E9B2C*/
+/*0x186550*/ float     SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x30c910*/ char      SkillCapsFilename[MAX_PATH];
+/*0x30ca14*/ UINT      SkillLastUsed[NUM_SKILLS];
+/*0x30cba4*/ UINT      SkillTimerDuration[NUM_SKILLS];
+/*0x30cd34*/ UINT      CombatSkillLastUsed[CONCURRENT_SKILLS];
+/*0x30cd3c*/ UINT      CombatSkillDuration[CONCURRENT_SKILLS];
+/*0x30cd44*/ bool      bSkillCanUse[NUM_SKILLS];
+/*0x30cda8*/ bool      bCombatSkillCanUse[CONCURRENT_SKILLS];
+/*0x30cdac*/
 };
 using PSKILLMGR = SKILLMGR*;
 
@@ -1316,7 +1316,7 @@ struct AUTOSKILL
 using PAUTOSKILL = AUTOSKILL*;
 
 // Same as SKILLMGR
-class SkillManager
+class [[offsetcomments]] SkillManager
 {
 public:
 /*0x000000*/ TSafeArrayStatic<PSKILL, NUM_SKILLS> pSkill;
@@ -1336,7 +1336,7 @@ struct GUILDMEMBER;
 
 // actual size 0x3a8 11-15-11  ieatacid
 // actual size ? last checked by rlane187 may 19 2015
-struct GUILDMEMBERCLIENT
+struct [[offsetcomments]] GUILDMEMBERCLIENT
 {
 	// Start of GuildMember
 /*0x000*/ GUILDMEMBER*       pNext;
@@ -1344,7 +1344,7 @@ struct GUILDMEMBERCLIENT
 /*0x005*/ BYTE               Filler0x005[0x3];
 /*0x008*/ WORD               ZoneID;
 /*0x00a*/ WORD               Instance;
-/*0x00C*/ DWORD              PlayerSerial;
+/*0x00c*/ DWORD              PlayerSerial;
 /*0x010*/ bool               bMainProfile;
 /*0x011*/ bool               bOfflineMode;
 /*0x012*/ char               Name[0x40];
@@ -1364,15 +1364,15 @@ struct GUILDMEMBERCLIENT
 /*0x198*/ DWORD              LastDonation;//timestamp
 /*0x19c*/ // end of GuildMember
 	// start of GuildMemberClient
-/*0x1a0*/ char               PublicNote[0x100];
-/*0x2a0*/ char               PersonalNote[0x100];
-/*0x3a0*/ bool               bTributeOptIn;
-/*0x3a1*/ bool               bTrophyTributeOptIn;
-/*0x3a4*/
+/*0x19c*/ char               PublicNote[0x100];
+/*0x29c*/ char               PersonalNote[0x100];
+/*0x39c*/ bool               bTributeOptIn;
+/*0x39d*/ bool               bTrophyTributeOptIn;
+/*0x3a0*/
 };
 using PGUILDMEMBERCLIENT = GUILDMEMBERCLIENT*;
 
-struct GUILDDATA
+struct [[offsetcomments]] GUILDDATA
 {
 /*0x00*/ char   Name[0x40];
 /*0x04*/ DWORD  ID;
@@ -1380,21 +1380,21 @@ struct GUILDDATA
 };
 using PGUILDDATA = GUILDDATA*;
 
-struct GUILD
+struct [[offsetcomments]] GUILD
 {
 /*0x00*/ CHAR                Name[0x40];
-/*0x04*/ DWORD               ID;                 // maybe this is just a int64 now, not sure needs more investigation.
-/*0x08*/ DWORD               ID2;
-/*0x0c*/ GUILD*              pNext;
-/*0x10*/ GUILD*              pPrev;
-/*0x14*/
+/*0x40*/ DWORD               ID;                 // maybe this is just a int64 now, not sure needs more investigation.
+/*0x44*/ DWORD               ID2;
+/*0x48*/ GUILD*              pNext;
+/*0x4c*/ GUILD*              pPrev;
+/*0x50*/
 };
 using PGUILD = GUILD*;
 
 // 11-15-11 - ieatacid
 // aUnknownGuild the offset below is the guild vftable
 // 2016 Oct 11 beta - eqmule (see AB50E4) not sure on size needs more investigation
-struct GUILDS
+struct [[offsetcomments]] GUILDS
 {
 /*0x0000*/ PVOID             pOneEntryVTable;
 /*0x0004*/ BYTE              Unknown0x4[0x4];
@@ -1409,77 +1409,78 @@ struct GUILDS
 /*0x9069*/ CHAR              GuildUrl[0x200];
 /*0x9269*/ CHAR              GuildChannelName[0x80];
 /*0x92e9*/ BYTE              Unknown0x9e9[0x2f];
-/*0x9310*/ GUILD*            pFirst;
-/*0x9314*/ GUILD*            pLast;
-/*0x9318*/ UINT              GuildListCount;
-/*0x931C*/ DWORD             Empty;
-/*0x9320*/ GUILD*            GuildList;
-/*0x9320*/ DWORD             HashValue;
-/* more data */
+/*0x9318*/ GUILD*            pFirst;
+/*0x931c*/ GUILD*            pLast;
+/*0x9320*/ UINT              GuildListCount;
+/*0x9324*/ DWORD             Empty;
+/*0x9328*/ GUILD*            GuildList;
+/*0x932c*/ DWORD             HashValue;
+/*0x9330*/
 };
 using PGUILDS = GUILDS*;
 
-struct INTERACTGROUNDITEM
+struct [[offsetcomments]] INTERACTGROUNDITEM
 {
-	DWORD DropID;
-	DWORD SpawnID;
+/*0x00*/ DWORD DropID;
+/*0x04*/ DWORD SpawnID;
 };
 using PINTERACTGROUNDITEM = INTERACTGROUNDITEM;
 
-struct SPELLFAVORITE
+struct [[offsetcomments]] SPELLFAVORITE
 {
-/*0x000*/ DWORD SpellId[NUM_SPELL_GEMS];
-/*0x030*/ char  Name[0x19];
-/*0x049*/ BYTE  inuse;
-/*0x04a*/ BYTE  Byte_0x4a;
-/*0x04b*/ BYTE  Byte_0x4b;
-/*0x04c*/
+/*0x00*/ DWORD SpellId[NUM_SPELL_GEMS];
+/*0x38*/ char  Name[0x19];
+/*0x51*/ BYTE  inuse;
+/*0x52*/ BYTE  Byte_0x4a;
+/*0x53*/ BYTE  Byte_0x4b;
+/*0x54*/
 };
 using PSPELLFAVORITE = SPELLFAVORITE*;
 
-struct CMDLIST
+struct [[offsetcomments]] CMDLIST
 {
-	DWORD LocalizedStringID;
-	char* szName;
-	char* szLocalized;
-	void  (*fAddress)(PSPAWNINFO, PCHAR);
-	DWORD Restriction;
-	DWORD Category;
-	DWORD Flags;
+/*0x00*/ DWORD LocalizedStringID;
+/*0x04*/ char* szName;
+/*0x08*/ char* szLocalized;
+/*0x0c*/ void  (*fAddress)(PSPAWNINFO, PCHAR);
+/*0x10*/ DWORD Restriction;
+/*0x14*/ DWORD Category;
+/*0x18*/ DWORD Flags;
+/*0x1c*/
 };
 using PCMDLIST = CMDLIST*;
 
-struct EQSOCIAL
+struct [[offsetcomments]] EQSOCIAL
 {
-/*0x0000*/ char Name[0x10];
-/*0x0010*/ char Line[0x5][0x100];
-/*0x0510*/ BYTE Color;
-/*0x0514*/ UINT TimerBegin;
-/*0x0518*/ UINT TimerDuration;
-/*0x051C*/
+/*0x000*/ char Name[0x10];
+/*0x010*/ char Line[0x5][0x100];
+/*0x510*/ BYTE Color;
+/*0x514*/ UINT TimerBegin;
+/*0x518*/ UINT TimerDuration;
+/*0x51c*/
 };
 using PEQSOCIAL = EQSOCIAL*;
 
-struct EQFRIENDSLIST
+struct [[offsetcomments]] EQFRIENDSLIST
 {
 /*0x0000*/ char Name[0x64][0x40];
 /*0x1900*/
 };
 using PEQFRIENDSLIST = EQFRIENDSLIST*;
 
-struct AAEFFECTDATA
+struct [[offsetcomments]] AAEFFECTDATA
 {
 /*0x00*/ int EffectType;
-/*0x00*/ int BaseEffect1;
-/*0x00*/ int BaseEffect2;
-/*0x00*/ int Slot;
+/*0x04*/ int BaseEffect1;
+/*0x08*/ int BaseEffect2;
+/*0x0c*/ int Slot;
 };
 using PAAEFFECTDATA = AAEFFECTDATA*;
 
 // Size 0xa4    11/15/2011 ieatacid in msg_send_alt_data
 // Size 0xa8    06/11/2014 eqmule in msg_send_alt_data
 // Size 0xa8    See 4EF12F (msg_send_alt_data) in 2015-09-24
-struct ALTABILITY
+struct [[offsetcomments]] ALTABILITY
 {
 /*0x00*/ DWORD         Index;
 /*0x04*/ bool          bShowInAbilityWindow;               // [0] = enabled flag? everything 1
@@ -1509,12 +1510,12 @@ struct ALTABILITY
 /*0x60*/ DWORD*        TimerIds;                           // ArrayClass of timer ids starts here
 /*0x64*/ DWORD         ReuseTimer;                         // in seconds
 /*0x68*/ DWORD         Classes;                            // Classes/2 is the actual value we want.
-/*0x6c*/ DWORD         MaxRank;                            // so like x/25, this is the 25	
+/*0x6c*/ DWORD         MaxRank;                            // so like x/25, this is the 25
 /*0x70*/ DWORD         TotalPoints;
 /*0x74*/ DWORD         PreviousGroupAbilityId;             // -1 if none, although sometimes it can be -1 when there is ...
 /*0x78*/ DWORD         NextGroupAbilityId;                 // ID of the next rank
-/*0x7C*/ bool          QuestOnly;                          // vet AA, quest AA
-/*0x7D*/ BYTE          QuestOnlypadding[0x3];
+/*0x7c*/ bool          QuestOnly;                          // vet AA, quest AA
+/*0x7d*/ BYTE          QuestOnlypadding[0x3];
 /*0x80*/ DWORD         max_charges;                        // charges on expendable AAs (limited use aa's)
 /*0x84*/ BOOL          bIgnoreDeLevel;
 /*0x88*/ DWORD         Expansion;
@@ -1527,12 +1528,12 @@ struct ALTABILITY
 	// this is where a list of Ability Effect Data starts in the packet
 /*0x98*/ DWORD         effects_count;                      // Count of spell effects for AA
 /*0x9c*/ DWORD**       effects;                            // this is repeated a few times some times depending on list size
-/*0xA0*/ BYTE          Unknown0xA0[0x8];                   // part of their internal list class, I need to re that at some point
+/*0xa0*/ BYTE          Unknown0xA0[0x8];                   // part of their internal list class, I need to re that at some point
 /*0xa8*/
 };
 using PALTABILITY = ALTABILITY*;
 
-struct ALTABILITIESLISTMGR
+struct [[offsetcomments]] ALTABILITIESLISTMGR
 {
 /*0x00*/ ALTABILITY* Ability;
 /*0x04*/ DWORD Index;
@@ -1540,13 +1541,13 @@ struct ALTABILITIESLISTMGR
 using PALTABILITIESLISTMGR = ALTABILITIESLISTMGR*;
 
 // NUM_ALT_ABILITIES is now defined before CHARINFO definition in this same header file.
-struct ALTABILITIESLIST
+struct [[offsetcomments]] ALTABILITIESLIST
 {
 /*0x00*/ ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES_ARRAY];
 };
 using PALTABILITIESLIST = ALTABILITIESLIST*;
 
-struct NEWALTADVMGR
+struct [[offsetcomments]] NEWALTADVMGR
 {
 /*0x00*/ ALTABILITIESLIST*   AltAbilityList;
 /*0x04*/ DWORD               NumAltAbilities;    // NUM_ALT_ABILITIES
@@ -1556,32 +1557,34 @@ struct NEWALTADVMGR
 };
 using PNEWALTADVMGR = NEWALTADVMGR*;
 
-struct ALTADVMGR
+struct [[offsetcomments]] ALTADVMGR
 {
 /*0x00*/ NEWALTADVMGR* AltAbilities;
 };
 using PALTADVMGR = ALTADVMGR*;
 
-struct MERCAADATA
+struct [[offsetcomments]] MERCAADATA
 {
 /*0x00*/ DWORD nName;                            // I would guess we can find aapoints spent on the ability in this struct as well
+/*0x04*/
 };
 using PMERCAADATA = MERCAADATA*;
 
-struct MERCAA
+struct [[offsetcomments]] MERCAA
 {
 /*0x00*/ DWORD         Unknown0x00;
 /*0x04*/ DWORD         Unknown0x04;
 /*0x08*/ MERCAADATA*   Ptr;
 /*0x0c*/ DWORD         Unknown0x00c;
 /*0x10*/ DWORD         Max;                      // how many AA can be spent on this ability
+/*0x14*/
 };
 using PMERCAA = MERCAA*;
 
 // pinstMercAltAbilities_x
 // MercAltAbilities__MercAltAbilities
-// Actual Size: 0x478 in eqgame dated oct 04 2013 (see 4A96D4) - eqmule 
-struct EQMERCALTABILITIES
+// Actual Size: 0x478 in eqgame dated oct 04 2013 (see 4A96D4) - eqmule
+struct [[offsetcomments]] EQMERCALTABILITIES
 {
 /*0x000*/ BYTE    Unknown0x000[0x408];
 /*0x408*/ PMERCAA MercAAInfo[0xc];               // 12 pointers since there are currently only 12 mercenary aa's
@@ -1592,20 +1595,20 @@ using PEQMERCALTABILITIES = EQMERCALTABILITIES*;
 
 // size 0x98 (3-12-2014)
 // size 0x9c 3-18-2015 test see (49A077)
-struct EQRAIDMEMBER
+struct [[offsetcomments]] EQRAIDMEMBER
 {
-/*0x000*/ CHAR      Name[0x40]; 
-/*0x040*/ CHAR      RaidNote[0x40]; 
-/*0x080*/ DWORD     nLevel;
-/*0x084*/ DWORD     nClass; 
-/*0x088*/ BYTE      RaidLeader; 
-/*0x089*/ BYTE      GroupLeader; 
-/*0x08a*/ BYTE      RaidMainAssist;
-/*0x08b*/ BYTE      RaidMarker;
-/*0x08c*/ DWORD     MasterLooter;
-/*0x090*/ DWORD     GroupNumber;
-/*0x094*/ BYTE      Unknown0x94[0x8];            // i guess new master looter is in here...
-/*0x09c*/ 
+/*0x00*/ CHAR      Name[0x40];
+/*0x40*/ CHAR      RaidNote[0x40];
+/*0x80*/ DWORD     nLevel;
+/*0x84*/ DWORD     nClass;
+/*0x88*/ BYTE      RaidLeader;
+/*0x89*/ BYTE      GroupLeader;
+/*0x8a*/ BYTE      RaidMainAssist;
+/*0x8b*/ BYTE      RaidMarker;
+/*0x8c*/ DWORD     MasterLooter;
+/*0x90*/ DWORD     GroupNumber;
+/*0x94*/ BYTE      Unknown0x94[0x8];            // i guess new master looter is in here...
+/*0x9c*/
 };
 using PEQRAIDMEMBER = EQRAIDMEMBER*;
 
@@ -1618,7 +1621,7 @@ using PEQRAIDMEMBER = EQRAIDMEMBER*;
 // as for the size... I have no idea...
 // maybe 3544h? see 48055F                 mov     [esi+3544h], bl (jun 11 2014)
 // 392C in mar 18 205 test? not sure...
-struct EQRAID
+struct [[offsetcomments]] EQRAID
 {
 /*0x0000*/ BYTE              Unknown0x0000[0xe0];
 /*0x00e0*/ CHAR              RaidMemberUsed[0x48];
@@ -1644,7 +1647,7 @@ struct EQRAID
 using PEQRAID = EQRAID*;
 
 // size 0x19C 3-23-2005
-struct EQGROUP
+struct [[offsetcomments]] EQGROUP
 {
 /*0x000*/ BYTE         MemberExists[5];
 /*0x005*/ CHAR         MemberName[5][0x40];
@@ -1656,14 +1659,15 @@ struct EQGROUP
 using PEQGROUP = EQGROUP*;
 
 // size 0x08
-struct EQSTRING {
+struct [[offsetcomments]] EQSTRING {
 /*0x00*/ DWORD ID;
 /*0x04*/ PCHAR String;
+/*0x08*/
 };
 using PEQSTRING = EQSTRING*;
 
 // size 0x10 4-28-2004 lax
-struct EQSTRINGTABLE
+struct [[offsetcomments]] EQSTRINGTABLE
 {
 /*0x00*/ EQSTRING** StringItems;
 /*0x04*/ DWORD      Size;
@@ -1676,7 +1680,7 @@ using PEQSTRINGTABLE [[deprecated]] = EQSTRINGTABLE*;
 // updated by eqmule
 // see 7B000C in eqgame.exe dated jul 16 2014
 // not sure about size... oh and this is __gWorld_x
-struct connection_t
+struct [[offsetcomments]] connection_t
 {
 /*0x000*/ void* vtable;
 /*0x004*/ BYTE  Unknown0x4[0x110];
@@ -1690,8 +1694,8 @@ struct connection_t
 using CONNECTION_T [[deprecated]] = connection_t;
 using PCONNECTION_T [[deprecated]] = connection_t*;
 
-// actual size 0x2dfc 3-19-09 - ieatacid 
-struct CDISPLAY
+// actual size 0x2dfc 3-19-09 - ieatacid
+struct [[offsetcomments]] CDISPLAY
 {
 /*0x0000*/ BYTE    Unknown0x000[0x12c];
 /*0x012c*/ void*   pActorTagManager;
@@ -1699,11 +1703,12 @@ struct CDISPLAY
 /*0x0154*/ DWORD   TimeStamp;
 /*0x0158*/ BYTE    Unknown0x158[0x2c12];
 /*0x2d6a*/ BYTE    NpcNames;                     // show npc names
+/*0x2d6c*/
 };
 using PCDISPLAY [[deprecated]] = CDISPLAY*;
 
 // 5-16-06 - ieatacid
-struct DZTIMERINFO
+struct [[offsetcomments]] DZTIMERINFO
 {
 /*0x000*/ CHAR   ExpeditionName[0x80];
 /*0x080*/ CHAR   EventName[0x100];
@@ -1714,26 +1719,26 @@ struct DZTIMERINFO
 };
 using PDZTIMERINFO [[deprecated]] = DZTIMERINFO*;
 
-struct DZMEMBER
+struct [[offsetcomments]] DZMEMBER
 {
-/*0x000*/ CHAR         Name[0x40];
-/*0x040*/ DWORD        Status;                   // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
-/*0x044*/ DZMEMBER*    pNext;
-/*0x048*/
+/*0x00*/ CHAR         Name[0x40];
+/*0x40*/ DWORD        Status;                   // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
+/*0x44*/ DZMEMBER*    pNext;
+/*0x48*/
 };
 using PDZMEMBER [[deprecated]] = DZMEMBER*;
 
-struct TASKMEMBER
+struct [[offsetcomments]] TASKMEMBER
 {
-/*0x000*/ CHAR         Name[0x40];
-/*0x040*/ DWORD        Unknown0x40;
-/*0x044*/ DWORD        IsLeader;
-/*0x048*/ TASKMEMBER*  pNext;
-/*0x04c*/
+/*0x00*/ CHAR         Name[0x40];
+/*0x40*/ DWORD        Unknown0x40;
+/*0x44*/ DWORD        IsLeader;
+/*0x48*/ TASKMEMBER*  pNext;
+/*0x4c*/
 };
 using PTASKMEMBER = TASKMEMBER*;
 
-struct DYNAMICZONE
+struct [[offsetcomments]] DYNAMICZONE
 {
 /*0x000*/ void*        vftable;
 /*0x004*/ BYTE         Unknown0x04[0x46];
@@ -1748,10 +1753,10 @@ struct DYNAMICZONE
 };
 using PDYNAMICZONE [[deprecated]] = DYNAMICZONE*;
 
-struct CHATCHANNELS
+struct [[offsetcomments]] CHATCHANNELS
 {
-/*0x000*/ char* ChannelName[0xa];
-/*0x004*/
+/*0x00*/ char* ChannelName[0xa];
+/*0x28*/
 };
 using PCHATCHANNELS [[deprecated]] = CHATCHANNELS*;
 
@@ -1767,41 +1772,42 @@ enum eFriendStatus
 	eFriendInGameInvisible
 };
 
-struct FriendEntry
+struct [[offsetcomments]] FriendEntry
 {
-	char               Name[0x30];
-	eFriendStatus      Status;
-	bool               bName;                    // not sure.
+/*0x00*/ char               Name[0x30];
+/*0x30*/ eFriendStatus      Status;
+/*0x34*/ bool               bName;                    // not sure.
+/*0x38*/
 };
 
-struct _CHATSERVICE
+struct [[offsetcomments]] _CHATSERVICE
 {
-/*0x000*/ void*        vfTable;
-/*0x004*/ void*        pChatProxyHandler;
-/*0x008*/ void*        pUdpManager;
-/*0x00c*/ CHATCHANNELS* ChannelList;             // really just a char**
-/*0x010*/ DWORD        ActiveChannels;           // number of channels joined, aka channelcount
-/*0x014*/ bool         mAuthenticated;
-/*0x015*/ bool         bLoginSent;
-/*0x016*/ bool         bInvisible;
-/*0x017*/ bool         bFullNotifyMode;
-/*0x018*/ void*        UdpConnection;
-/*0x01c*/ char         ChatID[0x30];             // "ServerName.CharName"
-/*0x04c*/ char         ChatPass[0x30];
-/*0x07c*/ char         ServerName[0x30];         // "ServerName."
-/*0x0ac*/ int          ServerNameLen;
-/*0x0b0*/ char         Locale[0x10];
-/*0x0c0*/ const char*  ChatPrefix;
-/*0x0c4*/ int          LastDisconnectCheckTime;
-/*0x0c8*/ FriendEntry** BuddyList;
-/*0x0cc*/ int          BuddyListCount;
-/*0x0d0*/ ArrayClass<CXStr> IgnoreList;
-/*0x0e0*/
+/*0x00*/ void*        vfTable;
+/*0x04*/ void*        pChatProxyHandler;
+/*0x08*/ void*        pUdpManager;
+/*0x0c*/ CHATCHANNELS* ChannelList;             // really just a char**
+/*0x10*/ DWORD        ActiveChannels;           // number of channels joined, aka channelcount
+/*0x14*/ bool         mAuthenticated;
+/*0x15*/ bool         bLoginSent;
+/*0x16*/ bool         bInvisible;
+/*0x17*/ bool         bFullNotifyMode;
+/*0x18*/ void*        UdpConnection;
+/*0x1c*/ char         ChatID[0x30];             // "ServerName.CharName"
+/*0x4c*/ char         ChatPass[0x30];
+/*0x7c*/ char         ServerName[0x30];         // "ServerName."
+/*0xac*/ int          ServerNameLen;
+/*0xb0*/ char         Locale[0x10];
+/*0xc0*/ const char*  ChatPrefix;
+/*0xc4*/ int          LastDisconnectCheckTime;
+/*0xc8*/ FriendEntry** BuddyList;
+/*0xcc*/ int          BuddyListCount;
+/*0xd0*/ ArrayClass<CXStr> IgnoreList;
+/*0xd0*/
 };
 using PCHATSERVICE [[deprecated]] = _CHATSERVICE*;
 using CHATSERVICE/* [[deprecated]]*/ = _CHATSERVICE;
 
-class PickZoneTimerHandler
+class [[offsetcomments]] PickZoneTimerHandler
 {
 public:
 	struct PickZoneRecord
@@ -1810,10 +1816,11 @@ public:
 		int    Time;
 	};
 
-	SoeUtil::Array<PickZoneRecord> Records;
+/*0x00*/ SoeUtil::Array<PickZoneRecord> Records;
+/*0x00*/
 };
 
-struct PETITIONSTATUS
+struct [[offsetcomments]] PETITIONSTATUS
 {
 /*0x00*/ int           ID;
 /*0x04*/ int           Priority;                 // todo: check
@@ -1829,7 +1836,7 @@ struct PETITIONSTATUS
 using PPETITIONSTATUS [[deprecated]] = PETITIONSTATUS*;
 
 // size is 0x170 see 4467A5 in Sep 18 2017 Live
-struct CSINFO
+struct [[offsetcomments]] CSINFO
 {
 /*0x000*/ CHAR         Name[0x40];
 /*0x040*/ int          Class;
@@ -1873,14 +1880,14 @@ struct CSINFO
 };
 using PCSINFO [[deprecated]] = CSINFO*;
 
-struct CharSelectPlayerArray
+struct [[offsetcomments]] CharSelectPlayerArray
 {
 	// note that CharSelectPlayerCount determines how many are actully here
 	CSINFO CharacterInfo[13];                    // is 13 chars the max u can have?
 };
 using PCharSelectPlayerArray [[deprecated]] = CharSelectPlayerArray*;
 
-struct _EVERQUEST
+struct [[offsetcomments]] _EVERQUEST
 {
 /*0x00000*/ BYTE             Unknown[0x2a4];
 /*0x002a4*/ CHATSERVICE*     ChatService;
@@ -1915,34 +1922,35 @@ struct _EVERQUEST
 /*0x17e64*/ int              TrimIdx;                      // correct
 /*0x17e68*/ CHAR             ChatChanged;                  // 1 or 0?
 /*0x17e69*/ CHAR             Trim[0x40][0x840];            // correct. size 0x40*0x840= 0x21000
-/*0x38E6c*/ BOOL             bChat;
-/*0x38E70*/ int              Unknown0x38E70;
-/*0x38E74*/ int              Red;                          // for sure see 564105 in spe 18 2017 exe
-/*0x38E78*/ int              Green;
-/*0x38E7c*/ int              Blue;
-/*0x38E80*/ ArrayClass_RO<CSINFO> pCharSelectPlayerArray;
-/*0x38E88*/ // more data
+/*0x38e6c*/ BOOL             bChat;
+/*0x38e70*/ int              Unknown0x38E70;
+/*0x38e74*/ int              Red;                          // for sure see 564105 in spe 18 2017 exe
+/*0x38e78*/ int              Green;
+/*0x38e7c*/ int              Blue;
+/*0x38e80*/ ArrayClass_RO<CSINFO> pCharSelectPlayerArray;
+/*0x38e80*/ // more data
 };
 using EVERQUEST /*[[deprecated]]*/ = _EVERQUEST;
 using PEVERQUEST [[deprecated]] = _EVERQUEST*;
 
-struct AURAINFO
+struct [[offsetcomments]] AURAINFO
 {
-/*0x000*/ CHAR         Name[0x40];
-/*0x040*/ uint32_t     SpawnID;
-/*0x044*/ int          Cost;
-/*0x048*/ int          IconnID;
-/*0x04c*/
+/*0x00*/ CHAR         Name[0x40];
+/*0x40*/ uint32_t     SpawnID;
+/*0x44*/ int          Cost;
+/*0x48*/ int          IconnID;
+/*0x4c*/
 };
 using PAURAINFO [[deprecated]] = AURAINFO*;
 
-struct AURAS
+struct [[offsetcomments]] AURAS
 {
-/*0x000*/ AURAINFO     Aura[0x2];
+/*0x00*/ AURAINFO     Aura[0x2];
+/*0x98*/
 };
 using PAURAS = AURAS*;
 
-struct AURAMGR
+struct [[offsetcomments]] AURAMGR
 {
 /*0x000*/ DWORD        NumAuras;
 /*0x004*/ BYTE         Unknown0x4[0xc];
@@ -1952,7 +1960,7 @@ struct AURAMGR
 };
 using PAURAMGR [[deprecated]] = AURAMGR*;
 
-struct INTERACTSWITCH
+struct [[offsetcomments]] INTERACTSWITCH
 {
 /*0x000*/ DWORD        switchID;
 /*0x004*/ DWORD        dwzero;
@@ -1961,14 +1969,15 @@ struct INTERACTSWITCH
 };
 using PINTERACTSWITCH [[deprecated]] = INTERACTSWITCH*;
 
-struct MERCSTANCEDATA
+struct [[offsetcomments]] MERCSTANCEDATA
 {
-	DWORD nStance;
-	DWORD nDbStance;
+/*0x00*/ DWORD nStance;
+/*0x04*/ DWORD nDbStance;
+/*0x08*/
 };
 using PMERCSTANCEDATA [[deprecated]] = MERCSTANCEDATA*;
 
-struct MERCSINFO
+struct [[offsetcomments]] MERCSINFO
 {
 /*0x00*/ DWORD         Unknown0x00;
 /*0x04*/ DWORD         nMercCategory;
@@ -1978,21 +1987,22 @@ struct MERCSINFO
 /*0x14*/ BYTE          Unknown0x14[0x2c];
 /*0x40*/ CHAR          Name[0xC];
 /*0x4c*/ BYTE          Unknown0x4c[0x88];
-/*0xD4*/
+/*0xd4*/
 };
 using PMERCSINFO [[deprecated]] = MERCSINFO*;
 
 // Size 0xD4 in eqgame.exe dated 01 22 2015
-struct MERCSLIST
+struct [[offsetcomments]] MERCSLIST
 {
-/*0x00*/ MERCSINFO     mercinfo[7];              // is 7 max, even with slots u can buy for sc?
+/*0x000*/ MERCSINFO     mercinfo[7];              // is 7 max, even with slots u can buy for sc?
+/*0x5cc*/
 };
 using PMERCSLIST [[deprecated]] = MERCSLIST*;
 
 // Actual Size: 0x2fc (See 57117F in eqgame dated dec 10 2013) - eqmule
 // CMercenaryInfo__CMercenaryInfo
 // this is CMercenaryClientManager
-struct MERCENARYINFO
+struct [[offsetcomments]] MERCENARYINFO
 {
 /*0x000*/ BYTE               Unknown0x0[0x110];
 /*0x110*/ DWORD              HaveMerc;
@@ -2002,9 +2012,9 @@ struct MERCENARYINFO
 /*0x14c*/ BYTE               Unknown0x14c[0x10];
 /*0x15c*/ CHAR               MercName[0x18];
 /*0x174*/ BYTE               Unknown0x174[0x7c];
-/*0x1F0*/ int                MercenaryCount;     // how many mercenaries we have
-/*0x1F4*/ MERCSLIST*         pMercsList;
-/*0x1F8*/ BYTE               Unknown0x1f8[0xc];
+/*0x1f0*/ int                MercenaryCount;     // how many mercenaries we have
+/*0x1f4*/ MERCSLIST*         pMercsList;
+/*0x1f8*/ BYTE               Unknown0x1f8[0xc];
 /*0x204*/ DWORD              MaxMercsCount;      // max you can have
 /*0x208*/ BYTE               Unknown0x208[0x10];
 /*0x218*/ DWORD              CurrentMercIndex;
@@ -2014,11 +2024,11 @@ struct MERCENARYINFO
 /*0x258*/ DWORD              NumStances;
 /*0x25c*/ MERCSTANCEDATA**   pMercStanceData;
 /*0x260*/ BYTE               Unknown0x260[0x9c];
-/*0x2Fc*/
+/*0x2fc*/
 };
 using PMERCENARYINFO [[deprecated]] = MERCENARYINFO*;
 
-struct MERCENARYSTATS
+struct [[offsetcomments]] MERCENARYSTATS
 {
 /*0x000*/ DWORD        MaxHP;
 /*0x004*/ DWORD        CurrHP;
@@ -2078,7 +2088,7 @@ enum xTargetTypes
 	XTARGET_MY_MERCENTARY_TARGET
 };
 
-struct AGGRODATA
+struct [[offsetcomments]] AGGRODATA
 {
 /*0x00*/ DWORD         Unknown0x0;
 /*0x04*/ BYTE          AggroPct;
@@ -2089,7 +2099,7 @@ using PAGGRODATA [[deprecated]] = AGGRODATA*;
 
 // size 0xe4 11-28-12 - ieatacid (in GetAggroInfo)
 // size 0xfc see 422F94 in 20 Aug 2015
-struct AGGROINFO
+struct [[offsetcomments]] AGGROINFO
 {
 /*0x00*/ AGGRODATA     aggroData[0x1e];
 /*0xf0*/ DWORD         AggroLockID;              // this can be 0, I dont know what it is...
@@ -2130,11 +2140,12 @@ enum AggroDataTypes
 	AD_xTarget20,
 };
 
-struct GROUPAGGRO
+struct [[offsetcomments]] GROUPAGGRO
 {
 /*0x00*/ DWORD         Unknown0x00;
 /*0x04*/ DWORD         Unknown0x04;
 /*0x08*/ DWORD         GroupMemberAggro[6];      // player is ALWAYS the 6th member...
+/*0x20*/
 };
 using PGROUPAGGRO [[deprecated]] = GROUPAGGRO*;
 

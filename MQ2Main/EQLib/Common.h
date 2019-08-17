@@ -16,6 +16,8 @@
 
 #include <limits>
 
+#pragma warning(disable : 5030) // Single pragma seems to suffice for the entire codebase
+
 #if !defined(_USE_32BIT_TIME_T)
 #define _USE_32BIT_TIME_T
 #endif

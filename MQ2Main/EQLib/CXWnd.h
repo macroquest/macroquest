@@ -189,28 +189,30 @@ using EDockAction = uint32_t;
 
 //----------------------------------------------------------------------------
 
-struct SDragDropInfo
+struct [[offsetcomments]] SDragDropInfo
 {
-	bool       m_rightMouse;
-	CXWnd*     sourceWnd;
-	CXWnd*     targetWnd;
-	CXPoint    sourcePos;
-	CXPoint    targetPos;
-	int        message;
-	uintptr_t  data;
+/*0x00*/ bool       m_rightMouse;
+/*0x04*/ CXWnd*     sourceWnd;
+/*0x08*/ CXWnd*     targetWnd;
+/*0x0c*/ CXPoint    sourcePos;
+/*0x14*/ CXPoint    targetPos;
+/*0x1c*/ int        message;
+/*0x20*/ uintptr_t  data;
+/*0x24*/
 };
 
-class CClickStickInfo
+class [[offsetcomments]] CClickStickInfo
 {
 	CClickStickInfo() = default;
 	virtual ~CClickStickInfo() {}
 
-	CXWnd*     sourceWnd;
-	CXWnd*     targetWnd;
-	CXPoint    sourcePos;
-	CXPoint    targetPos;
-	int        message;
-	uintptr_t  data;
+/*0x04*/ CXWnd*     sourceWnd;
+/*0x08*/ CXWnd*     targetWnd;
+/*0x0c*/ CXPoint    sourcePos;
+/*0x14*/ CXPoint    targetPos;
+/*0x1c*/ int        message;
+/*0x20*/ uintptr_t  data;
+/*0x24*/
 };
 
 // "Controller" helper class
@@ -266,13 +268,14 @@ public:
 //============================================================================
 
 // actual size 0x1F8 in Jun 10 2019 Test (see 0x9351BD)
-class CXWnd
+class [[offsetcomments]] CXWnd
 	: public TListNode<CXWnd>   // node in list of siblings
 	, public TList<CXWnd>       // list of children
 {
 public:
 
 #include "CXWnd-Members.h"
+/*0x1f8*/
 
 	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t id, CXRect rect);
 
@@ -554,7 +557,7 @@ public:
 
 	EQLIB_OBJECT void SetCRNormal(COLORREF Value) { CRNormal = Value; }
 
-	struct VirtualFunctionTable
+	struct [[offsetcomments]] VirtualFunctionTable
 	{
 	/*0x000*/ void* IsValid;
 	/*0x004*/ void* Destructor;
@@ -663,7 +666,7 @@ using PCXWND [[deprecated]] = CXWnd*;
 // CSidlScreenWnd__CSidlScreenWnd1_x
 // to check do : CSidlScreenWnd* csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");
 // Size 0x240 in Oct 13 2017 Test exe see 605AAD
-class CSidlScreenWnd : public CXWnd
+class [[offsetcomments]] CSidlScreenWnd : public CXWnd
 {
 public:
 	//EQLIB_OBJECT CSidlScreenWnd(CXWnd* parent, uint32_t id, const CXRect& rect, const CXStr& Screen);                           // CSidlScreenWnd__CSidlScreenWnd
@@ -733,7 +736,7 @@ public:
 	//EQLIB_OBJECT CXRect GetSidlPieceRect(CScreenPieceTemplate*, const CXRect&) const;
 	//EQLIB_OBJECT void StoreIniListWnd(CListWnd const*, char*);
 
-	struct VirtualFunctionTable : public CXWnd::VirtualFunctionTable
+	struct [[offsetcomments]] VirtualFunctionTable : public CXWnd::VirtualFunctionTable
 	{
 	/*0x168*/ void* OnZone;
 	/*0x16c*/ void* OnPreZone;
@@ -741,6 +744,7 @@ public:
 	/*0x174*/ void* StoreIniInfo;
 	/*0x178*/ void* AsSidlScreenWnd;
 	/*0x17c*/ void* GetScreenWndType;
+	/*0x180*/
 	};
 
 	// points to the eq instance of the virtual function table for this class
@@ -783,7 +787,7 @@ enum EWndManagerMode
 	WndManagerModeUnknown24,
 };
 
-class CXWndManager
+class [[offsetcomments]] CXWndManager
 {
 public:
 	CXWndManager(CSidlManagerBase* sidlManager, HWND* wnd, CXPoint point);
@@ -919,6 +923,7 @@ public:
 /*0x138*/ CXPoint                      StoredMousePos;               // last position Mouse was at before we moved it
 /*0x140*/ bool                         bManagerDeletionPending;
 /*0x144*/ CursorClass                  CC;
+/*0x180*/
 };
 
 //============================================================================
@@ -928,7 +933,7 @@ public:
 //----------------------------------------------------------------------------
 // helpers
 
-class ControllerFactory
+class [[offsetcomments]] ControllerFactory
 {
 public:
 	virtual ~ControllerFactory();
@@ -938,22 +943,23 @@ public:
 
 	// this is probably wrong but might be the right size.
 /*0x04*/ HashTable<void*, int, ResizePolicyNoShrink> Factories;
-/*0x14*/
+/*0x04*/
 };
 
-class ControllerManager
+class [[offsetcomments]] ControllerManager
 {
 public:
 	virtual ~ControllerManager();
 
 /*0x04*/ ControllerFactory* DefaultControllerFactory;
 /*0x08*/ HashTable<ControllerFactory*> ControllerFactories;
+/*0x0c*/
 };
 
 //----------------------------------------------------------------------------
 
 // Actual size 0x1b0 in Oct 19 2017 Beta (see 4C2E25)
-class CEQXWndManager : public CXWndManager
+class [[offsetcomments]] CEQXWndManager : public CXWndManager
 {
 public:
 	CEQXWndManager(CSidlManagerBase* sidlManager);
@@ -974,8 +980,9 @@ public:
 	//----------------------------------------------------------------------------
 	// data members
 
-	ControllerFactory DefaultControllerFactory;
-	ControllerManager ControllerMgr;
+/*0x180*/ ControllerFactory DefaultControllerFactory;
+/*0x194*/ ControllerManager ControllerMgr;
+/*0x198*/
 };
 
 using CXWNDMGR [[deprecated]] = CEQXWndManager;

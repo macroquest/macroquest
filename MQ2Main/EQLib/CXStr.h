@@ -53,27 +53,25 @@ class CXFreeList;
 // allocated string itself. CXStr is a value-type wrapper that holds a
 // reference to this. In then handle-body idiom, this is the body.
 // See: http://www.cs.sjsu.edu/faculty/pearce/patterns/hanbod/hanbod.html
-struct CStrRep
+struct [[offsetcomments]] CStrRep
 {
 	// this isn't a std::atomic in eq, but it should have the
 	// same layout in memory and thus we should be able to
 	// get the same behavior from it without additional work.
-	std::atomic<int> refCount;
-
-	size_t alloc;
-	size_t length;
-	EStringEncoding encoding;
-
-	CXFreeList* freeList;
-
+/*0x00*/ std::atomic<int> refCount;
+/*0x04*/ size_t alloc;
+/*0x08*/ size_t length;
+/*0x0c*/ EStringEncoding encoding;
+/*0x10*/ CXFreeList* freeList;
 	// The actual string data. Size does not matter, the length
 	// is dynamic and manually allocated.
 	union
 	{
-		char utf8[4];
-		Unicode16 unicode[2];
-		CStrRep* next;
+	/*0x14*/ char utf8[4];
+	/*0x14*/ Unicode16 unicode[2];
+	/*0x14*/ CStrRep* next;
 	};
+/*0x18*/
 };
 
 // Simple iterator traits checks
@@ -95,7 +93,6 @@ struct is_iterator : std::bool_constant<is_iterator_v<T>> {};
 
 // We implement lots of bonus methods on this that are not part of the EQ
 // implementation, to give the string more of a std::string interface.
-
 class EQLIB_OBJECT CXStr
 {
 public:

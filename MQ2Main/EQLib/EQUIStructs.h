@@ -25,7 +25,7 @@ namespace eqlib {
 // Structures
 // ***************************************************************************
 
-struct EQCURRENTSELECTION
+struct [[offsetcomments]] EQCURRENTSELECTION
 {
 /*0x00*/ DWORD Unknown;
 /*0x04*/ DWORD SelectedWnd;                      // address to selection in tree
@@ -36,7 +36,7 @@ struct EQCURRENTSELECTION
 };
 using PEQCURRENTSELECTION = EQCURRENTSELECTION*;
 
-struct CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
+struct [[offsetcomments]] CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 {
 /*0x16c*/ void* CSidlScreenWnd__OnPreZone1c;
 /*0x170*/ void* CSidlScreenWnd__OnPreZone1d;
@@ -47,8 +47,7 @@ struct CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 /*0x180*/
 };
 
-
-struct CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
+struct [[offsetcomments]] CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 {
 /*0x168*/ void* CListWnd__OnHeaderClick;
 /*0x16c*/ void* CListWnd__DrawColumnSeparators;
@@ -61,7 +60,7 @@ struct CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
 /*0x188*/ void* CListWnd__Sort;
 };
 
-struct CContextMenu_VirtualFunctions : public CListWnd_VirtualFunctions
+struct [[offsetcomments]] CContextMenu_VirtualFunctions : public CListWnd_VirtualFunctions
 {
 /*0x18c*/ void* CContextMenu__ShowAt;
 };
@@ -164,7 +163,7 @@ enum eContextMenuFilterIDs
 	// todo check the ids.
 };
 
-struct LOOTCORPSE
+struct [[offsetcomments]] LOOTCORPSE
 {
 /*0x000*/ BYTE         Unknown0x000;             // 03 seems very common (for NPC anyway)
 /*0x001*/ CHAR         Name[0x4b];
@@ -183,7 +182,7 @@ using PLOOTCORPSE = LOOTCORPSE*;
 
 
 // size 0x28 4-24-2004 Lax
-struct EQGRAPHICSENGINE
+struct [[offsetcomments]] EQGRAPHICSENGINE
 {
 /*0x00*/ // Graphics file handler
 /*0x04*/
@@ -192,7 +191,7 @@ using PEQGRAPHICSENGINE = EQGRAPHICSENGINE*;
 
 //.text:005FC640 ; public: __thiscall CTargetIndicator::CTargetIndicator(void)
 // size 0x48 see 4BA434 in Oct 26 2015 -eqmule
-struct TARGETINDICATOR
+struct [[offsetcomments]] TARGETINDICATOR
 {
 /*0x00*/ bool          bVisible;
 /*0x01*/ bool          bSettingsLoaded;
@@ -213,7 +212,7 @@ struct TARGETINDICATOR
 };
 using PTARGETINDICATOR = TARGETINDICATOR*;
 
-struct TARGETDATA
+struct [[offsetcomments]] TARGETDATA
 {
 /*0x00*/ SPAWNINFO*    pPlayer;
 /*0x04*/ float         Dist;
@@ -224,7 +223,7 @@ using PTARGETDATA = TARGETDATA*;
 
 // CTargetManager
 // size 0x1a4 see 5FE489 in Oct 26 2015 -eqmule
-struct TARGETMANAGER
+struct [[offsetcomments]] TARGETMANAGER
 {
 /*0x000*/ TARGETDATA   CycleNPCList[0xa];        // size 0xc*0xa
 /*0x078*/ TARGETDATA   CyclePCList[0xa];
@@ -248,20 +247,21 @@ struct TARGETMANAGER
 };
 using PTARGETMANAGER = TARGETMANAGER*;
 
-struct ScreenVector3
+struct [[offsetcomments]] ScreenVector3
 {
 	union {
-		float x; // left to right screen coordinate
-		DWORD dx;
+	/*0x00*/ float x; // left to right screen coordinate
+	/*0x00*/ DWORD dx;
 	};
 	union {
-		float y; // top to bottom screen coordinate
-		DWORD dy;
+	/*0x04*/ float y; // top to bottom screen coordinate
+	/*0x04*/ DWORD dy;
 	};
 	union {
-		float z;
-		DWORD dz;
+	/*0x08*/ float z;
+	/*0x08*/ DWORD dz;
 	};
+/*0x0c*/
 };
 using PScreenVector3 = ScreenVector3*;
 

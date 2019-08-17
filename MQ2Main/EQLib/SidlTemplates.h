@@ -46,7 +46,7 @@ enum enDir
 	cUIDirectoryCount,
 };
 
-struct CUITextureInfo
+struct [[offsetcomments]] CUITextureInfo
 {
 public:
 	EQLIB_OBJECT CUITextureInfo();
@@ -71,7 +71,7 @@ public:
 /*0x18*/
 };
 
-class CUITexturePiece
+class [[offsetcomments]] CUITexturePiece
 {
 public:
 	EQLIB_OBJECT CUITexturePiece();
@@ -96,7 +96,7 @@ private:
 // CTextureAnimation
 //============================================================================
 
-struct STextureAnimationFrame
+struct [[offsetcomments]] STextureAnimationFrame
 {
 /*0x00*/ CUITexturePiece    Piece;
 /*0x28*/ uint32_t           Ticks = 0;
@@ -104,7 +104,7 @@ struct STextureAnimationFrame
 /*0x34*/
 };
 
-class CTextureAnimation
+class [[offsetcomments]] CTextureAnimation
 {
 public:
 	EQLIB_OBJECT CTextureAnimation();
@@ -155,7 +155,7 @@ public:
 // CTAFrameDraw
 //============================================================================
 
-class CTAFrameDraw
+class [[offsetcomments]] CTAFrameDraw
 {
 public:
 	EQLIB_OBJECT CTAFrameDraw(CXStr = {});
@@ -211,33 +211,34 @@ private:
 /*0x40*/ int                m_nOverlapLeft = 0;
 /*0x44*/ int                m_nOverlapBottom = 0;
 /*0x48*/ int                m_nOverlapRight = 0;
+/*0x4c*/
 };
 
 //============================================================================
 // CButtonDrawTemplate
 //============================================================================
 
-class CButtonDrawTemplate
+class [[offsetcomments]] CButtonDrawTemplate
 {
 public:
 	// Returns the appropriate texture to use for the button given the specified properties
 	EQLIB_OBJECT CTextureAnimation* GetAnimation(bool pressed, bool hover, bool disabled, bool decal = false) const;
 	EQLIB_OBJECT CXSize GetSize() const;
 
-	CXStr                    strName;
-
-	CTextureAnimation*       ptaNormal = nullptr;
-	CTextureAnimation*       ptaPressed = nullptr;
-	CTextureAnimation*       ptaFlyby = nullptr;
-	CTextureAnimation*       ptaDisabled = nullptr;
-	CTextureAnimation*       ptaPressedFlyby = nullptr;
-	CTextureAnimation*       ptaPressedDisabled = nullptr;
-	CTextureAnimation*       ptaNormalDecal = nullptr;
-	CTextureAnimation*       ptaPressedDecal = nullptr;
-	CTextureAnimation*       ptaFlybyDecal = nullptr;
-	CTextureAnimation*       ptaDisabledDecal = nullptr;
-	CTextureAnimation*       ptaPressedFlybyDecal = nullptr;
-	CTextureAnimation*       ptaPressedDisabledDecal = nullptr;
+/*0x00*/ CXStr                    strName;
+/*0x04*/ CTextureAnimation*       ptaNormal = nullptr;
+/*0x08*/ CTextureAnimation*       ptaPressed = nullptr;
+/*0x0c*/ CTextureAnimation*       ptaFlyby = nullptr;
+/*0x10*/ CTextureAnimation*       ptaDisabled = nullptr;
+/*0x14*/ CTextureAnimation*       ptaPressedFlyby = nullptr;
+/*0x18*/ CTextureAnimation*       ptaPressedDisabled = nullptr;
+/*0x1c*/ CTextureAnimation*       ptaNormalDecal = nullptr;
+/*0x20*/ CTextureAnimation*       ptaPressedDecal = nullptr;
+/*0x24*/ CTextureAnimation*       ptaFlybyDecal = nullptr;
+/*0x28*/ CTextureAnimation*       ptaDisabledDecal = nullptr;
+/*0x2c*/ CTextureAnimation*       ptaPressedFlybyDecal = nullptr;
+/*0x30*/ CTextureAnimation*       ptaPressedDisabledDecal = nullptr;
+/*0x34*/
 };
 
 //============================================================================
@@ -330,7 +331,7 @@ public:
 // CScreenPieceTemplate
 //============================================================================
 
-class CScreenPieceTemplate
+class [[offsetcomments]] CScreenPieceTemplate
 {
 public:
 	EQLIB_OBJECT CScreenPieceTemplate(CScreenPieceTemplate*);
@@ -376,7 +377,7 @@ public:
 // CStaticScreenPieceTemplate
 //============================================================================
 
-class CStaticScreenPieceTemplate : public CScreenPieceTemplate
+class [[offsetcomments]] CStaticScreenPieceTemplate : public CScreenPieceTemplate
 {
 public:
 	EQLIB_OBJECT CStaticScreenPieceTemplate(CStaticScreenPieceTemplate*);
@@ -391,42 +392,44 @@ public:
 
 class CParamLayoutStrategy;
 
-class CLayoutStrategyTemplate
+class [[offsetcomments]] CLayoutStrategyTemplate
 {
 public:
 	EQLIB_OBJECT CLayoutStrategyTemplate(CParamLayoutStrategy*, uint32_t type);
 	virtual ~CLayoutStrategyTemplate() {}
 
-	int                      nPadding = 0;
-	uint32_t                 nType = 0;
-	CXStr                    strName;
-	bool                     bResizeHorizontal = false;
-	bool                     bResizeVertical = false;
+/*0x04*/ int                      nPadding = 0;
+/*0x08*/ uint32_t                 nType = 0;
+/*0x0c*/ CXStr                    strName;
+/*0x10*/ bool                     bResizeHorizontal = false;
+/*0x11*/ bool                     bResizeVertical = false;
+/*0x14*/
 };
 
 //============================================================================
 // CControlTemplate
 //============================================================================
 
-class CControlTemplate : public CScreenPieceTemplate
+class [[offsetcomments]] CControlTemplate : public CScreenPieceTemplate
 {
 public:
 	EQLIB_OBJECT CControlTemplate(CParamControl*);
 
-	uint32_t                 uStyleBits = 0;
-	uint8_t                  bSizableMask = 0;
-	bool                     bEscapable = true;
-	CXStr                    strTooltip;
-	CXWndDrawTemplate*       pDrawTemplate = nullptr;
-	CXStr                    strController;
-	CLayoutStrategyTemplate* pLayoutStrategyTemplate = nullptr;
+/*0x84*/ uint32_t                 uStyleBits = 0;
+/*0x88*/ uint8_t                  bSizableMask = 0;
+/*0x89*/ bool                     bEscapable = true;
+/*0x8c*/ CXStr                    strTooltip;
+/*0x90*/ CXWndDrawTemplate*       pDrawTemplate = nullptr;
+/*0x94*/ CXStr                    strController;
+/*0x98*/ CLayoutStrategyTemplate* pLayoutStrategyTemplate = nullptr;
+/*0x9c*/
 };
 
 //============================================================================
 // CButtonTemplate
 //============================================================================
 
-class CButtonTemplate : public CControlTemplate
+class [[offsetcomments]] CButtonTemplate : public CControlTemplate
 {
 public:
 	EQLIB_OBJECT CButtonTemplate(CParamButton*);

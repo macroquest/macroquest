@@ -59,7 +59,7 @@ struct AggroMeterListEntry
 };
 using PAggroMeterListEntry = AggroMeterListEntry*;
 
-class AggroMeterManagerClient
+class [[offsetcomments]] AggroMeterManagerClient
 {
 public:
 	static EQLIB_OBJECT AggroMeterManagerClient& Instance();
@@ -122,14 +122,14 @@ public:
 };
 
 // we call this _AURAINFO
-class AssociatedSOIData
+class [[offsetcomments]] AssociatedSOIData
 {
 public:
-/*0x000*/ char         Name[0x40];
-/*0x040*/ uint32_t     SpawnID;
-/*0x044*/ int          Cost;
-/*0x048*/ int          IconnID;
-/*0x04c*/
+/*0x00*/ char         Name[0x40];
+/*0x40*/ uint32_t     SpawnID;
+/*0x44*/ int          Cost;
+/*0x48*/ int          IconnID;
+/*0x4c*/
 };
 
 // we call this _AURAMGR
@@ -141,7 +141,7 @@ public:
 	static EQLIB_OBJECT ClientSOIManager* GetSingleton();
 };
 
-class EQGroundItem
+class [[offsetcomments]] EQGroundItem
 {
 public:
 /*0x00*/ EQGroundItem* pPrev;
@@ -173,7 +173,7 @@ public:
 };
 
 // well we call this CTextOverlay but whatever should probably rename at some point...
-class CBroadcast
+class [[offsetcomments]] CBroadcast
 {
 public:
 	static EQLIB_OBJECT CBroadcast* Get();
@@ -182,18 +182,19 @@ public:
 	EQLIB_OBJECT void EndBroadcast(UINT FadeOutTime);
 	EQLIB_OBJECT void Draw();
 
-	CTextObjectInterface* TextObject;
-	bool               bBroadcastActive;
-	bool               bFadingOut;
-	bool               bFadingIn;
-	UINT               StartTime;
-	UINT               FadeInTime;
-	UINT               EndTime;
-	UINT               FadeOutTime;
-	UINT               DisplayTime;
-	int                BroadcastColor;
-	int                CurrentPriority;
-	int                MaxAlpha;
+/*0x00*/ CTextObjectInterface* TextObject;
+/*0x04*/ bool               bBroadcastActive;
+/*0x05*/ bool               bFadingOut;
+/*0x06*/ bool               bFadingIn;
+/*0x08*/ UINT               StartTime;
+/*0x0c*/ UINT               FadeInTime;
+/*0x10*/ UINT               EndTime;
+/*0x14*/ UINT               FadeOutTime;
+/*0x18*/ UINT               DisplayTime;
+/*0x1c*/ int                BroadcastColor;
+/*0x20*/ int                CurrentPriority;
+/*0x24*/ int                MaxAlpha;
+/*0x28*/
 };
 
 
@@ -239,31 +240,32 @@ enum EnvironmentType
 	ENVIRONMENT_COUNT                   // total number of environments
 };
 
-class CDisplay
+class [[offsetcomments]] CDisplay
 {
 public:
 /*0x0000*/ bool        ErrorFlag;
-/*0x0004*/ BYTE        BFog;
-/*0x0005*/ BYTE        BMoveAnims;
-/*0x0008*/ float       Yon;
-/*0x000c*/ float       AmbientLight;
-/*0x0010*/ BYTE        DragItem;
-/*0x0011*/ BYTE        DragMoney;
-/*0x0012*/ BYTE        DragHotButton;
-/*0x0013*/ bool        bInRenderLoop;
-/*0x0014*/ bool        bHideLootedCorpses;
-/*0x0015*/ char        LastTeleportAreaTag[0x100];
-/*0x0118*/ void*       pCamera;                  // CCameraInterface
-/*0x011c*/ CVector3*   CamPos;
-/*0x0120*/ CVector3*   CamOrientation;
-/*0x0124*/ void*       WadFileLoadScreen;        // SWadFile
-/*0x0128*/ BYTE        NewPCModelsLoaded;
-/*0x0129*/ bool        bHorsesLoaded;
-/*0x012c*/ void*       pActorTagManager;
-/*0x0130*/ BYTE        Unknown0x130[0x24];
-/*0x0154*/ DWORD       TimeStamp;
-/*0x0158*/ BYTE        Unknown0x158[0x2c12];
-/*0x2d6a*/ BYTE        NpcNames;                 // show npc names
+/*0x0001*/ BYTE        BFog;
+/*0x0002*/ BYTE        BMoveAnims;
+/*0x0004*/ float       Yon;
+/*0x0008*/ float       AmbientLight;
+/*0x000c*/ BYTE        DragItem;
+/*0x000d*/ BYTE        DragMoney;
+/*0x000e*/ BYTE        DragHotButton;
+/*0x000f*/ bool        bInRenderLoop;
+/*0x0010*/ bool        bHideLootedCorpses;
+/*0x0011*/ char        LastTeleportAreaTag[0x100];
+/*0x0114*/ void*       pCamera;                  // CCameraInterface
+/*0x0118*/ CVector3*   CamPos;
+/*0x011c*/ CVector3*   CamOrientation;
+/*0x0120*/ void*       WadFileLoadScreen;        // SWadFile
+/*0x0124*/ BYTE        NewPCModelsLoaded;
+/*0x0125*/ bool        bHorsesLoaded;
+/*0x0128*/ void*       pActorTagManager;
+/*0x012c*/ BYTE        Unknown0x130[0x24];
+/*0x0150*/ DWORD       TimeStamp;
+/*0x0154*/ BYTE        Unknown0x158[0x2c12];
+/*0x2d66*/ BYTE        NpcNames;                 // show npc names
+/*0x2d68*/
 
 	EQLIB_OBJECT ~CDisplay();
 	EQLIB_OBJECT CDisplay(HWND);
@@ -403,7 +405,7 @@ public:
 	EQLIB_OBJECT char* GetChannelName(int channelNumber);
 };
 
-struct TARGETRING
+struct [[offsetcomments]] TARGETRING
 {
 /*0x00*/ DWORD         Gem;                      // the gem the spell below is memmed in... 0-11
 /*0x04*/ PSPELL        thespell;
@@ -415,7 +417,7 @@ struct TARGETRING
 };
 using PTARGETRING = TARGETRING*;
 
-struct EQSuccessfulHit
+struct [[offsetcomments]] EQSuccessfulHit
 {
 /*0x00*/ uint16_t      DamagedID;                // Spawn that was hit
 /*0x02*/ uint16_t      AttackerID;               // spawn who did the hit
@@ -943,7 +945,7 @@ public:
 	EQLIB_OBJECT void Update();
 };
 
-class CTargetRing
+class [[offsetcomments]] CTargetRing
 {
 public:
 	EQLIB_OBJECT int Cast(CVector3* pos);
@@ -986,7 +988,7 @@ enum TaskGroupType
 	cTaskGroupTypeRaid,
 };
 
-struct CTaskElement
+struct [[offsetcomments]] CTaskElement
 {
 /*0x000*/ TaskType           Type;
 /*0x004*/ TaskGroupType      GroupType;
@@ -1005,32 +1007,32 @@ struct CTaskElement
 /*0x168*/
 };
 
-struct CTaskEntry
+struct [[offsetcomments]] CTaskEntry
 {
 /*0x0000*/ int               TaskID;
 /*0x0004*/ float             RewardAdjustment;
 /*0x0008*/ char              TaskTitle[0x40];
 /*0x0048*/ int               DurationSeconds;
-/*0x004C*/ int               DurCode;
+/*0x004c*/ int               DurCode;
 /*0x0050*/ char              StartText[0xFa0];
-/*0x0FF0*/ bool              bShowReward;
-/*0x0FF4*/ int               RewardCash;
-/*0x0FF8*/ int               RewardExp;
-/*0x0FFC*/ int               RewardPoints;
+/*0x0ff0*/ bool              bShowReward;
+/*0x0ff4*/ int               RewardCash;
+/*0x0ff8*/ int               RewardExp;
+/*0x0ffc*/ int               RewardPoints;
 /*0x1000*/ int               RewardFactionID;
 /*0x1004*/ int               RewardFactionAmount;
 /*0x1008*/ CXStr             RewardItemTag;
-/*0x100C*/ CTaskElement      Elements[0x14];
-/*0x2C2C*/ int               TaskSystem;
-/*0x2C30*/ int               PointType;
-/*0x2C34*/ bool              StartTextCompiled;
-/*0x0000*/ char              RawStartText[0xFa0];
-/*0x0000*/ bool              bElementsReceived;
-/*0x0000*/ __time32_t        TimeCompleted;
-/*0x3BDC*/ ArrayClass<MonsterMissionTemplate> MonsterTemplates;
-/*0x3BEC*/ bool              bTemplateSelectionLocked;
-/*0x3BED*/ bool              bHasRewardSet;
-/*0x3BF0*/
+/*0x100c*/ CTaskElement      Elements[0x14];
+/*0x2c2c*/ int               TaskSystem;
+/*0x2c30*/ int               PointType;
+/*0x2c34*/ bool              StartTextCompiled;
+/*0x2c35*/ char              RawStartText[0xFa0];
+/*0x3bd5*/ bool              bElementsReceived;
+/*0x3bd8*/ __time32_t        TimeCompleted;
+/*0x3bdc*/ ArrayClass<MonsterMissionTemplate> MonsterTemplates;
+/*0x3bec*/ bool              bTemplateSelectionLocked;
+/*0x3bed*/ bool              bHasRewardSet;
+/*0x3bf0*/ 
 };
 
 enum SharedTaskPlayerRole
@@ -1047,18 +1049,18 @@ struct SharedTaskClientPlayerInfo
 	SharedTaskClientPlayerInfo*        pNext;
 };
 
-class CTaskManager : public PopDialogHandler
+class [[offsetcomments]] CTaskManager : public PopDialogHandler
 {
 public:
 /*0x000004*/ CTaskEntry                TaskEntries[1];
-/*0x003BF4*/ CTaskEntry                QuestEntries[0x1d];
+/*0x003bf4*/ CTaskEntry                QuestEntries[0x1d];
 /*0x070624*/ CTaskEntry                SharedTaskEntries[1];
 /*0x074214*/ CTaskEntry                QuestHistoryEntries[0x32];
-/*0x12F6F4*/ int                       AddPlayerID;
-/*0x12F6F8*/ bool                      bAddPlayerIsSwap;
-/*0x12F6FC*/ char                      AddPlayerSwapeeName[0x40];
-/*0x12F73C*/ SharedTaskClientPlayerInfo* pFirstMember;
-/*0x12F740*/
+/*0x12f6f4*/ int                       AddPlayerID;
+/*0x12f6f8*/ bool                      bAddPlayerIsSwap;
+/*0x12f6f9*/ char                      AddPlayerSwapeeName[0x40];
+/*0x12f73c*/ SharedTaskClientPlayerInfo* pFirstMember;
+/*0x12f740*/
 
 	EQLIB_OBJECT CTaskManager(CXWnd*);
 
@@ -1067,7 +1069,7 @@ public:
 	EQLIB_OBJECT CTaskEntry* GetEntry(int Index, int System, bool bCheckEmpty = true);
 };
 
-class CXMLData
+class [[offsetcomments]] CXMLData
 {
 public:
 	EQLIB_OBJECT CXMLData();
@@ -1084,12 +1086,13 @@ public:
 /*0x00*/ void*         pvfTable;
 /*0x04*/ DWORD         Unknown0x04;             // always 8
 /*0x08*/ UIType        Type;
-/*0x0C*/ DWORD         Unknown0x0C;             // no idea yet, some number but not unique
+/*0x0c*/ DWORD         Unknown0x0C;             // no idea yet, some number but not unique
 /*0x10*/ DWORD         Unknown0x10;             // always -1
 /*0x14*/ CXStr         TypeName;                // "Screen" (control type)
 /*0x18*/ CXStr         Name;                    // "ChatWindow"  control name (used only for Screen)
-/*0x1C*/ DWORD         Unknown0x1C;             // always null
+/*0x1c*/ DWORD         Unknown0x1C;             // always null
 /*0x20*/ CXStr         ScreenID;                // ScreenID (used only within Screen)
+/*0x24*/
 };
 
 class CXMLDataClass
@@ -1207,26 +1210,27 @@ public:
 };
 
 
-class CXMLSOMElement
+class [[offsetcomments]] CXMLSOMElement
 {
 public:
-	CXStr elementName;
-	CXStr typeRef;
-	CXStr typeRefClassName;
-	CXStr typeRefItemName;
-	int minOccurs;
-	int maxOccurs;
-	CXStr defaultValue;
-	bool internal;
+/*0x00*/ CXStr elementName;
+/*0x04*/ CXStr typeRef;
+/*0x08*/ CXStr typeRefClassName;
+/*0x0c*/ CXStr typeRefItemName;
+/*0x10*/ int minOccurs;
+/*0x14*/ int maxOccurs;
+/*0x18*/ CXStr defaultValue;
+/*0x1c*/ bool internal;
 
-	bool isArrayC;
-	bool isEnumC;
-	CXStr typeNameC;
-	CXStr fieldNameC;
-	CXStr streamNameC;
+/*0x1d*/ bool isArrayC;
+/*0x1e*/ bool isEnumC;
+/*0x20*/ CXStr typeNameC;
+/*0x24*/ CXStr fieldNameC;
+/*0x28*/ CXStr streamNameC;
+/*0x2c*/
 };
 
-class CXMLSOMElementType
+class [[offsetcomments]] CXMLSOMElementType
 {
 public:
 	EQLIB_OBJECT int GetItemIdx(const CXStr& itemName)
@@ -1240,19 +1244,20 @@ public:
 		return -1;
 	}
 
-	CXStr typeName;
-	CXStr superType;
-	ArrayClass2<CXMLSOMAttributeType> attributeTypes;
-	ArrayClass2<CXMLSOMElement> elements;
-	ArrayClass2<CXStr> itemList;
+/*0x00*/ CXStr typeName;
+/*0x04*/ CXStr superType;
+/*0x08*/ ArrayClass2<CXMLSOMAttributeType> attributeTypes;
+/*0x24*/ ArrayClass2<CXMLSOMElement> elements;
+/*0x40*/ ArrayClass2<CXStr> itemList;
 
-	CXStr classNameC;
-	CXStr baseClassNameC;
+/*0x5c*/ CXStr classNameC;
+/*0x60*/ CXStr baseClassNameC;
 
-	CXStr jsName;
+/*0x64*/ CXStr jsName;
 
-	CXStr sourceFile;
-	int sourceLine;
+/*0x68*/ CXStr sourceFile;
+/*0x6c*/ int sourceLine;
+/*0x70*/
 };
 
 enum EXMLSOMNodeType
@@ -1262,17 +1267,18 @@ enum EXMLSOMNodeType
 	XMLSOMProcess,
 };
 
-class CXMLSOMNode
+class [[offsetcomments]] CXMLSOMNode
 {
 public:
-	EXMLSOMNodeType nodeType;
-	CXStr nodeName;
-	CXStr nodeValue;
-	ArrayClass2<CXMLSOMAttribute> attributeList;
-	ArrayClass2<CXMLSOMNodePtr> nodeList;
-	CXStr sourceFile;
-	int sourceLine;
-	int refCount;
+/*0x00*/ EXMLSOMNodeType nodeType;
+/*0x04*/ CXStr nodeName;
+/*0x08*/ CXStr nodeValue;
+/*0x0c*/ ArrayClass2<CXMLSOMAttribute> attributeList;
+/*0x28*/ ArrayClass2<CXMLSOMNodePtr> nodeList;
+/*0x44*/ CXStr sourceFile;
+/*0x48*/ int sourceLine;
+/*0x4c*/ int refCount;
+/*0x50*/
 };
 
 // this is an intrusive reference counted pointer of CXMLSOMNode
@@ -1297,7 +1303,7 @@ public:
 	EQLIB_OBJECT void SetVolumeLevel(float);
 };
 
-class EQ_Affect
+class [[offsetcomments]] EQ_Affect
 {
 public:
 	EQLIB_OBJECT void Reset();
@@ -1310,13 +1316,9 @@ public:
 /*0x04*/ float         BaseDmgMod;
 /*0x08*/ int           ID;
 /*0x0c*/ int           DurationTick;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x10*/ int           MaxDuration;
 /*0x14*/ int           Duration3;
 /*0x18*/ EqGuid        CasterGuid;
-#else
-/*0x10*/ int           CasterID;
-#endif
 /*0x20*/ int           HitCounter;
 /*0x24*/ float         HitLocationY;
 /*0x28*/ float         HitLocationX;
@@ -1324,7 +1326,7 @@ public:
 /*0x30*/ UINT          Flags;                    // twincast
 /*0x34*/ SlotData      Data[NUM_SLOTDATA];
 /*0x64*/ DWORD         Unknown0x64;
-/*0x68*/
+/*0x68*/ 
 };
 
 class EQ_AltAbility
@@ -1575,7 +1577,7 @@ enum ePlacementType
 	PLACEMENT_TYPE_CEILING,
 };
 
-class EQPlacedItem
+class [[offsetcomments]] EQPlacedItem
 {
 public:
 /*0x00*/ void*         vftable;
@@ -1586,7 +1588,7 @@ public:
 /*0x22*/
 /*0x24*/ int           RealEstateID;
 /*0x28*/ int           RealEstateItemID;
-/*0x2C*/ bool          bIsNPC;
+/*0x2c*/ bool          bIsNPC;
 /*0x30*/ UINT          PlacingItemNpcID;
 /*0x34*/ CLightInterface* pLight;
 /*0x38*/ CActorInterface* pActor;
@@ -1599,8 +1601,8 @@ public:
 /*0x90*/ float         X;
 /*0x94*/ float         Z;
 /*0x98*/ bool          bIgnoreCollisions;
-/*0x98*/ bool          bDisablePlacementRotation;
-/*0x98*/ bool          bDisableFreePlacement;
+/*0x99*/ bool          bDisablePlacementRotation;
+/*0x9a*/ bool          bDisableFreePlacement;
 /*0x9c*/ ePlacementType PlacementType;
 /*0xa0*/ float         ScaleRangeMin;
 /*0xa4*/ float         ScaleRangeMax;
@@ -1610,7 +1612,7 @@ public:
 /*0xb4*/ float         DefaultRoll;
 /*0xb8*/ int           LightType;
 /*0xbc*/ float         NPCHeight;
-/*0xC0*/
+/*0xc0*/
 };
 
 class EQPlacedItemManager
@@ -1623,59 +1625,66 @@ public:
 	EQPlacedItem*      Top;
 };
 
-class RealEstateItemIds
+class [[offsetcomments]] RealEstateItemIds
 {
 public:
-	int                RealEstateID;
-	int                RealEstateItemID;
+/*0x00*/ int                RealEstateID;
+/*0x04*/ int                RealEstateItemID;
+/*0x08*/
 };
 
-class RealEstateItemState
+class [[offsetcomments]] RealEstateItemState
 {
 public:
-	bool               bPlaced;
-	__time32_t         UpkeepExpiredTime;
+/*0x00*/ bool               bPlaced;
+/*0x04*/ __time32_t         UpkeepExpiredTime;
+/*0x08*/
 };
 
-class RealEstateItemPosition
+class [[offsetcomments]] RealEstateItemPosition
 {
 public:
-	float              Heading;
-	float              Pitch;
-	float              Roll;
-	float              Scale;
-	float              X;
-	float              Y;
-	float              Z;
+/*0x00*/ float              Heading;
+/*0x04*/ float              Pitch;
+/*0x08*/ float              Roll;
+/*0x0c*/ float              Scale;
+/*0x10*/ float              X;
+/*0x14*/ float              Y;
+/*0x18*/ float              Z;
+/*0x1c*/
 };
 
-class RealEstateItemOwnerInfo
+class [[offsetcomments]] RealEstateItemOwnerInfo
 {
 public:
-	CXStr              OwnerName;
-	CXStr              OwnerHandle;
-	int                OwnerNameHashKey;
+/*0x00*/ CXStr              OwnerName;
+/*0x04*/ CXStr              OwnerHandle;
+/*0x08*/ int                OwnerNameHashKey;
+/*0x0c*/
 };
 
-class RealEstateItemObject
+class [[offsetcomments]] RealEstateItemObject
 {
 public:
-	VePointer<CONTENTS> pItemBase;
+/*0x00*/ VePointer<CONTENTS> pItemBase;
+/*0x00*/
 };
 
-class RealEstateItem
+class [[offsetcomments]] RealEstateItem
 {
 public:
-	RealEstateItemState                State;
-	RealEstateItemPosition             Position;
-	RealEstateItemOwnerInfo            OwnerInfo;
-	RealEstateItemObject               Object;
+/*0x00*/ RealEstateItemState                State;
+/*0x08*/ RealEstateItemPosition             Position;
+/*0x24*/ RealEstateItemOwnerInfo            OwnerInfo;
+/*0x30*/ RealEstateItemObject               Object;
+/*0x34*/
 };
 
-class RealEstateItemClient : public RealEstateItem
+class [[offsetcomments]] RealEstateItemClient : public RealEstateItem
 {
 public:
-	RealEstateItemIds IDs;
+/*0x34*/ RealEstateItemIds IDs;
+/*0x3c*/
 };
 
 enum eRealEstateType
@@ -1694,7 +1703,7 @@ enum eRealEstateType
 	RET_Any
 };
 
-class RealEstateManagerClient
+class [[offsetcomments]] RealEstateManagerClient
 {
 public:
 /*0x00*/ void*         vftable;
@@ -1705,16 +1714,17 @@ public:
 /*0xc4*/ int           CurrentRealEstateID;
 /*0xc8*/ int           CurrentYardID;
 /*0xcc*/ int           CurrentHouseID;
-/*0xa0*/ int           CurrentMovingCrateID;
-/*0xa4*/ bool          bRequestPending;
-/*0xa8*/ UINT          RequestTime;
-/*0xac*/ bool          bPrintRequestTimes;
+/*0xd0*/ int           CurrentMovingCrateID;
+/*0xd4*/ bool          bRequestPending;
+/*0xd8*/ UINT          RequestTime;
+/*0xdc*/ bool          bPrintRequestTimes;
+/*0xe0*/
 
 	EQLIB_OBJECT static RealEstateManagerClient& Instance();
 	EQLIB_OBJECT const RealEstateItemClient* GetItemByRealEstateAndItemIds(int RealEstateID, int RealEstateItemID) const;
 };
 
-class FactionManagerClient
+class [[offsetcomments]] FactionManagerClient
 {
 public:
 /*0x00*/ void*         vftable;
@@ -1731,7 +1741,7 @@ enum eParcelStatus
 	ePS_OverParcelsLimit,
 };
 
-class CGroupMemberBase
+class [[offsetcomments]] CGroupMemberBase
 {
 public:
 /*0x00*/ void*         vftable;
@@ -1744,9 +1754,10 @@ public:
 /*0x1c*/ bool          bRoleStates[6];
 /*0x24*/ UINT          CurrentRoleBits;
 /*0x28*/ UINT          OnlineTimestamp;
+/*0x2c*/
 };
 
-class CGroupMemberClient : public CGroupMemberBase
+class [[offsetcomments]] CGroupMemberClient : public CGroupMemberBase
 {
 public:
 	CharacterZoneClient* pCharacter;
@@ -1754,7 +1765,7 @@ public:
 	int                  GroupIndex;
 };
 
-class CGroupBase
+class [[offsetcomments]] CGroupBase
 {
 public:
 /*0x00*/ void*         vftable;
@@ -1763,7 +1774,7 @@ public:
 /*0x20*/ uint32_t      ID;
 };
 
-class CGroupClient : public CGroupBase
+class [[offsetcomments]] CGroupClient : public CGroupBase
 {
 public:
 /*0x024*/ int          GroupSelectID;
@@ -1809,7 +1820,7 @@ enum SpeakerType
 	SpeakerTypeDolby71                 = 5, // AIL_3D_71_SPEAKER
 };
 
-class EqSoundManager
+class [[offsetcomments]] EqSoundManager
 {
 public:
 	EQLIB_OBJECT ~EqSoundManager();
@@ -1859,30 +1870,30 @@ public:
 	EQLIB_OBJECT void ReleaseZoneSpecificWaves();
 	EQLIB_OBJECT void UpdateEmitterStates();
 
-	Mp3Manager*        pMp3Manager;
-	SoundManager*      pSoundManager;
-	EmitterManager*    pEmitterManager;
-	MusicManager*      pMusicManager;
-	SoundAsset*        pGlobalMidiAsset;
-	SoundAsset*        pOpenerMidiAsset;
-	SoundAsset*        pOpenerMp3Asset;
-	SoundAsset*        pDeathMp3Asset;
-	SoundAsset*        pCombatMp3Asset;
-	SoundAsset*        pMerchantMp3Asset;
-	SoundAsset*        pZoneMidiAsset;
-	SoundAsset*        pScriptMp3Asset;
-	bool               bDisabled;
-	int                NextMusicID;
-	SoundEmitter*      pEmitters[1000];
-	int                EmittersCount;
-	SoundEmitter*      pRainEmitter;
-	SoundEmitter*      pWindEmitter;
-	int                EnvironmentHigh;
-	int                EnvironmentLow;
-	int                EnvironmentOutside;
-	float              fEffectsLevel;
-	float              fWaveVolumeLevel;
-	// more here but i only need volume for now so...
+/*0x000*/ Mp3Manager*        pMp3Manager;
+/*0x004*/ SoundManager*      pSoundManager;
+/*0x008*/ EmitterManager*    pEmitterManager;
+/*0x00c*/ MusicManager*      pMusicManager;
+/*0x010*/ SoundAsset*        pGlobalMidiAsset;
+/*0x014*/ SoundAsset*        pOpenerMidiAsset;
+/*0x018*/ SoundAsset*        pOpenerMp3Asset;
+/*0x01c*/ SoundAsset*        pDeathMp3Asset;
+/*0x020*/ SoundAsset*        pCombatMp3Asset;
+/*0x024*/ SoundAsset*        pMerchantMp3Asset;
+/*0x028*/ SoundAsset*        pZoneMidiAsset;
+/*0x02c*/ SoundAsset*        pScriptMp3Asset;
+/*0x030*/ bool               bDisabled;
+/*0x034*/ int                NextMusicID;
+/*0x038*/ SoundEmitter*      pEmitters[1000];
+/*0xfd8*/ int                EmittersCount;
+/*0xfdc*/ SoundEmitter*      pRainEmitter;
+/*0xfe0*/ SoundEmitter*      pWindEmitter;
+/*0xfe4*/ int                EnvironmentHigh;
+/*0xfe8*/ int                EnvironmentLow;
+/*0xfec*/ int                EnvironmentOutside;
+/*0xff0*/ float              fEffectsLevel;
+/*0xff4*/ float              fWaveVolumeLevel;
+/*0xff8*/ // more here but i only need volume for now so...
 };
 
 struct EQClientSwitch;
@@ -1972,17 +1983,16 @@ enum eIconCacheType
 	eit_Vivox,
 };
 
-class IconCache
+class [[offsetcomments]] IconCache
 {
 public:
-	HashTable<CTextureAnimation*> IconTextures;
-	CXStr              pAnimationName;
-	int                Offset;
-	int                MinValue;
-	int                MaxValue;
+/*0x00*/ HashTable<CTextureAnimation*> IconTextures;
+/*0x10*/ CXStr              pAnimationName;
+/*0x14*/ int                Offset;
+/*0x18*/ int                MinValue;
+/*0x1c*/ int                MaxValue;
+/*0x20*/
 
-	EQLIB_OBJECT ~IconCache();
-	EQLIB_OBJECT IconCache();
 	EQLIB_OBJECT CTextureAnimation* GetIcon(int);
 };
 
@@ -2089,7 +2099,7 @@ public:
 	// uint8_t KeyCode;
 };
 
-class KeypressHandler
+class [[offsetcomments]] KeypressHandler
 {
 public:
 	static KeypressHandler& Get();
@@ -2114,17 +2124,19 @@ public:
 	EQLIB_OBJECT void LoadAndSetKeymappings();
 	EQLIB_OBJECT void SaveKeymapping(unsigned int, const KeyCombo&, int);
 
-/*0x000*/ KeyCombo     NormalKey[nEQMappableCommands];
-/*0x2 4*/ KeyCombo     AltKey[nEQMappableCommands];
-/*0x5C8*/ char         CommandState[nEQMappableCommands];
+/*0x0000*/ KeyCombo     NormalKey[nEQMappableCommands];
+/*0x0884*/ KeyCombo     AltKey[nEQMappableCommands];
+/*0x1108*/ char         CommandState[nEQMappableCommands];
+/*0x132c*/
 };
 
-struct ItemFilterData
+struct [[offsetcomments]] ItemFilterData
 {
 /*0x00*/ int           Types;
 /*0x04*/ int           ID;
 /*0x08*/ int           Icon;
 /*0x0c*/ char          Name[0x40];
+/*0x4c*/
 };
 
 class LootFiltersManager
@@ -2136,41 +2148,44 @@ public:
 	EQLIB_OBJECT bool SetItemLootFilter(int ItemID, int IconID, const char* ItemName, int FilterTypes, bool bKeepRndSetting, bool bScrollToIt);
 };
 
-class MercenaryAbilityReq
+class [[offsetcomments]] MercenaryAbilityReq
 {
 public:
 /*0x00*/ int           ReqGroupID;
 /*0x04*/ int           ReqGroupRank;
+/*0x08*/
 };
 
-class MercenaryAbilitiesData
+class [[offsetcomments]] MercenaryAbilitiesData
 {
 public:
 /*0x00*/ int           AbilityID;
-/*0x00*/ int           nName;
-/*0x00*/ int           nDesc;
-/*0x00*/ int           Cost;
-/*0x00*/ int           GroupID;
-/*0x00*/ int           GroupRank;
-/*0x00*/ int           Type;
-/*0x00*/ int           MinPlayerLevel;           // min level to purchase...
-/*0x00*/ int           RequirementAssociationID;
-/*0x00*/ int           Refund;
-/*0x00*/ int           BetaOnly;
-/*0x00*/ int           QuestAbility;
-/*0x00*/ ArrayClass<MercenaryAbilityReq> AbilityReqs;
+/*0x04*/ int           nName;
+/*0x08*/ int           nDesc;
+/*0x0c*/ int           Cost;
+/*0x10*/ int           GroupID;
+/*0x14*/ int           GroupRank;
+/*0x18*/ int           Type;
+/*0x1c*/ int           MinPlayerLevel;           // min level to purchase...
+/*0x20*/ int           RequirementAssociationID;
+/*0x24*/ int           Refund;
+/*0x28*/ int           BetaOnly;
+/*0x2c*/ int           QuestAbility;
+/*0x30*/ ArrayClass<MercenaryAbilityReq> AbilityReqs;
+/*0x30*/
 };
 
-class MercenaryAlternateAdvancementManagerClient
+class [[offsetcomments]] MercenaryAlternateAdvancementManagerClient
 {
 public:
 	EQLIB_OBJECT static MercenaryAlternateAdvancementManagerClient& Instance();
 
-	HashList<int, 5>                             MercenaryTypes;
-	HashList<MercenaryAbilitiesData, 0x40>       MercenaryAbilities;
-	HashList<int, 0x40>                          MercenaryAbilitiesByGroupID;
-	HashList<int, 0x40>                          MercenaryAbilitiesOwnedByGroupID;
-	HashList<HashList<int, 0x10>, 0x40>          MercenaryAbilityGroups;
+/*0x000*/ HashList<int, 5>                             MercenaryTypes;
+/*0x02c*/ HashList<MercenaryAbilitiesData, 0x40>       MercenaryAbilities;
+/*0x144*/ HashList<int, 0x40>                          MercenaryAbilitiesByGroupID;
+/*0x25c*/ HashList<int, 0x40>                          MercenaryAbilitiesOwnedByGroupID;
+/*0x374*/ HashList<HashList<int, 0x10>, 0x40>          MercenaryAbilityGroups;
+/*0x378*/
 };
 
 class EQSpellStrings
@@ -2289,7 +2304,7 @@ enum AssetType
 	cAssetTypeMidi
 };
 
-class SoundObject
+class [[offsetcomments]] SoundObject
 {
 public:
 	SoundObject();
@@ -2298,10 +2313,11 @@ public:
 	void AddRef();
 	void Release();
 
-	int refCount = 1;
+/*0x04*/ int refCount = 1;
+/*0x08*/
 };
 
-class SoundAsset : public SoundObject
+class [[offsetcomments]] SoundAsset : public SoundObject
 {
 public:
 	EQLIB_OBJECT SoundAsset(SoundManager*, char*, char*, int);
@@ -2318,31 +2334,32 @@ public:
 	EQLIB_OBJECT virtual ~SoundAsset();
 	EQLIB_OBJECT void YourManagerDeleted();
 
-	char szName[512];
-	char* rawData;
-	int rawDataLen;
-	AssetType assetType;
-	SoundManager* soundManager;
-	SoundInstance* soundInstance;
-
-	SoundAsset* pNext;
+/*0x008*/ char szName[512];
+/*0x208*/ char* rawData;
+/*0x20c*/ int rawDataLen;
+/*0x210*/ AssetType assetType;
+/*0x214*/ SoundManager* soundManager;
+/*0x218*/ SoundInstance* soundInstance;
+/*0x21c*/ SoundAsset* pNext;
+/*0x220*/
 };
 
-struct SoundControl
+struct [[offsetcomments]] SoundControl
 {
-	float volumeLevel = 1.0f;
-	int fadeInTime = 0;
-	int loops = 1;
-	int sequence = 0;
-	float x = 0.f;
-	float y = 0.f;
-	float z = 0.f;
-	float minDistance = 0.f;
-	float maxDistance = 0.f;
-	float effectsLevel = 1.f;
-	int poolNumber = 0;
-	bool fireOnce = true;
-	bool startUp = false;
+/*0x00*/ float volumeLevel = 1.0f;
+/*0x04*/ int fadeInTime = 0;
+/*0x08*/ int loops = 1;
+/*0x0c*/ int sequence = 0;
+/*0x10*/ float x = 0.f;
+/*0x14*/ float y = 0.f;
+/*0x18*/ float z = 0.f;
+/*0x1c*/ float minDistance = 0.f;
+/*0x20*/ float maxDistance = 0.f;
+/*0x24*/ float effectsLevel = 1.f;
+/*0x28*/ int poolNumber = 0;
+/*0x2c*/ bool fireOnce = true;
+/*0x2d*/ bool startUp = false;
+/*0x30*/
 };
 
 class SoundEmitter
@@ -2407,7 +2424,7 @@ public:
 	EQLIB_OBJECT void AssetRemove(SoundAsset*);
 };
 
-class FileStatMgr
+class [[offsetcomments]] FileStatMgr
 {
 public:
 	struct FileStat
@@ -2417,7 +2434,8 @@ public:
 		CXStr          Key;
 	};
 
-	HashTable<FileStat*> FileStats;
+/*0x00*/ HashTable<FileStat*> FileStats;
+/*0x04*/
 };
 
 enum ReqType
@@ -2432,63 +2450,67 @@ enum ReqType
 	// there are like 72 more of these I dont have time to add them all now.
 };
 
-class RequirementAssociationManager : public FileStatMgr
+class [[offsetcomments]] RequirementAssociationManager : public FileStatMgr
 {
 public:
-	void*              vfTable;
-	HashTable<HashTable<DoublyLinkedList<int>*>*> Requirements;
-	char               AssocFilename[512];
-	ReqType            LastFailReason;
-	int                LastFailGroupID;
-	int                LastFailReqID;
+/*0x010*/ void*              vfTable;
+/*0x014*/ HashTable<HashTable<DoublyLinkedList<int>*>*> Requirements;
+/*0x024*/ char               AssocFilename[512];
+/*0x224*/ ReqType            LastFailReason;
+/*0x228*/ int                LastFailGroupID;
+/*0x22c*/ int                LastFailReqID;
+/*0x230*/
 };
 
-class SpellRequirementAssociationManager : public RequirementAssociationManager
+class [[offsetcomments]] SpellRequirementAssociationManager : public RequirementAssociationManager
 {
 public:
-	HashList<HashList<HashList<int, 10>, 10>, 1000> ReqAssData;
+/*0x230*/ HashList<HashList<HashList<int, 10>, 10>, 1000> ReqAssData;
+/*0x234*/
 };
 
-struct StageType
+struct [[offsetcomments]] StageType
 {
-	char               BlitSprite[3][0x20];
-	char               AttachTag[0x20];
-	int                DAGnum[3];
-	int                pcloud[3];
-	char               SpriteTAG[0xc][0x20];
-	int                SpritEffect;
-	int                SoundNum;
-	ARGBCOLOR          Tint[3];
-	float              Gravity[3];
-	float              NormalX1;
-	float              NormalY1;
-	float              NormalZ1;
-	float              NormalX2;
-	float              NormalY2;
-	float              NormalZ2;
-	float              NormalX3;
-	float              NormalY3;
-	float              NormalZ3;
-	float              Radius[3];
-	float              Angle[3];
-	ULONG              Lifespan[3];
-	float              Velocity[3];
-	ULONG              Rate[3];
-	float              Scale[3];
-	EQRGB              SpriteRGB[0xc];
-	float              RollRate[0xc];
-	short              HdgOffset[0xc];
-	short              PitchOffset[0xc];
-	float              Distance[0xc];
-	short              EffectType[12];
-	float              ScaleFactor[12];
+/*0x000*/ char               BlitSprite[3][0x20];
+/*0x060*/ char               AttachTag[0x20];
+/*0x080*/ int                DAGnum[3];
+/*0x08c*/ int                pcloud[3];
+/*0x098*/ char               SpriteTAG[0xc][0x20];
+/*0x218*/ int                SpritEffect;
+/*0x21c*/ int                SoundNum;
+/*0x220*/ ARGBCOLOR          Tint[3];
+/*0x22c*/ float              Gravity[3];
+/*0x238*/ float              NormalX1;
+/*0x23c*/ float              NormalY1;
+/*0x240*/ float              NormalZ1;
+/*0x244*/ float              NormalX2;
+/*0x248*/ float              NormalY2;
+/*0x24c*/ float              NormalZ2;
+/*0x250*/ float              NormalX3;
+/*0x254*/ float              NormalY3;
+/*0x258*/ float              NormalZ3;
+/*0x25c*/ float              Radius[3];
+/*0x268*/ float              Angle[3];
+/*0x274*/ ULONG              Lifespan[3];
+/*0x280*/ float              Velocity[3];
+/*0x28c*/ ULONG              Rate[3];
+/*0x298*/ float              Scale[3];
+/*0x2a4*/ EQRGB              SpriteRGB[0xc];
+/*0x2c8*/ float              RollRate[0xc];
+/*0x2f8*/ short              HdgOffset[0xc];
+/*0x310*/ short              PitchOffset[0xc];
+/*0x328*/ float              Distance[0xc];
+/*0x358*/ short              EffectType[12];
+/*0x370*/ float              ScaleFactor[12];
+/*0x3a0*/
 };
 
-struct OldSpellEffect
+struct [[offsetcomments]] OldSpellEffect
 {
-	int                Tgts;
-	int                Perm;
-	StageType          stages[3];
+/*0x000*/ int                Tgts;
+/*0x004*/ int                Perm;
+/*0x008*/ StageType          stages[3];
+/*0xae8*/
 };
 
 enum EEffectActor
@@ -2518,31 +2540,35 @@ enum EAttachPoint
 	EAP_Cnt,
 };
 
-struct SpellEffectEmitter
+struct [[offsetcomments]] SpellEffectEmitter
 {
-	int DefIndex;
-	int RequiredLevel;
-	EEffectActor EffectActor;
-	EAttachPoint AttachPoint;
+/*0x00*/ int DefIndex;
+/*0x04*/ int RequiredLevel;
+/*0x08*/ EEffectActor EffectActor;
+/*0x0c*/ EAttachPoint AttachPoint;
+/*0x10*/
 };
 
-struct SpellEffectStage
+struct [[offsetcomments]] SpellEffectStage
 {
-	int                SoundNum;
-	SpellEffectEmitter Emitters[4];
+/*0x00*/ int                SoundNum;
+/*0x04*/ SpellEffectEmitter Emitters[4];
+/*0x44*/
 };
 
-struct NewSpellEffect
+struct [[offsetcomments]] NewSpellEffect
 {
-	char               szSpellEffectName[0x40];
-	SpellEffectStage   Stages[3];
+/*0x000*/ char               szSpellEffectName[0x40];
+/*0x040*/ SpellEffectStage   Stages[3];
+/*0x10c*/
 };
 
-class EQSpellExtra
+class [[offsetcomments]] EQSpellExtra
 {
 public:
-	OldSpellEffect*    OldSpellEff;
-	NewSpellEffect*    NewSpellEff;
+/*0x00*/ OldSpellEffect*    OldSpellEff;
+/*0x04*/ NewSpellEffect*    NewSpellEff;
+/*0x08*/
 };
 
 //Matching stack group ID rules
@@ -2560,28 +2586,29 @@ enum ESpellStackingRules
 	ESSR_Invalid,
 };
 
-struct StackingGroupData
+struct [[offsetcomments]] StackingGroupData
 {
-	int StackingGroupID;
-	int StackingGroupRank;
-	ESpellStackingRules StackingGroupRuleType;
+/*0x00*/ int StackingGroupID;
+/*0x04*/ int StackingGroupRank;
+/*0x08*/ ESpellStackingRules StackingGroupRuleType;
+/*0x0c*/
 };
 
 // really would like to get this to work and align but its kinda complicated, maybe another day.
-class SpellManager : public FileStatMgr
+class [[offsetcomments]] SpellManager : public FileStatMgr
 {
 public:
-/*0x000004*/ int      SpellsCrc32[TOTAL_SPELL_COUNT+1];
-/*0x03A988*/ PSPELL   MissingSpell;
-/*0x03A98c*/ PSPELLCALCINFO* MissingSpellAffect;
-/*0x03A990*/ PSPELLCALCINFO* MissingSpellAffectAC;
-/*0x03A994*/ int      MissingSpellCrc32;
-/*0x03A998*/ int      SpellFileCRC;
-/*0x03A99c*/ int      SpellAssocFileCRC;
-/*0x03A9A0*/ int      SpellStackingFileCRC;
-/*0x03A9A4*/ SpellRequirementAssociationManager ReqAssocManager;
-/*0x03BB8C*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
-/*0x03BB9C*/
+/*0x00014*/ int      SpellsCrc32[TOTAL_SPELL_COUNT+1];
+/*0x3a998*/ PSPELL   MissingSpell;
+/*0x3a99c*/ PSPELLCALCINFO* MissingSpellAffect;
+/*0x3a9a0*/ PSPELLCALCINFO* MissingSpellAffectAC;
+/*0x3a9a4*/ int      MissingSpellCrc32;
+/*0x3a9a8*/ int      SpellFileCRC;
+/*0x3a9ac*/ int      SpellAssocFileCRC;
+/*0x3a9b0*/ int      SpellStackingFileCRC;
+/*0x3a9b4*/ SpellRequirementAssociationManager ReqAssocManager;
+/*0x3bb9c*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
+/*0x3bb9c*/ 
 
 SpellManager(char*);
 	virtual ~SpellManager() {}
@@ -2589,7 +2616,7 @@ SpellManager(char*);
 	EQLIB_OBJECT const EQ_Spell* GetSpellByGroupAndRank(int Group, int SubGroup, int Rank = -1, bool bLesserRanksOk = false);
 };
 
-class ClientSpellManager : public SpellManager
+class [[offsetcomments]] ClientSpellManager : public SpellManager
 {
 public:
 	EQLIB_OBJECT virtual ~ClientSpellManager();
@@ -2606,10 +2633,11 @@ public:
 	EQLIB_OBJECT SPELLCALCINFO* GetSpellAffect(int index);
 	EQLIB_OBJECT bool GetSpellAffectEmpty(bool);
 
-	SPELL*                       Spells[TOTAL_SPELL_COUNT+1];         // 60001 last one is the unknown spell...
-	SPELLCALCINFO*               CalcInfo[CalcInfoSize];              // 175000
-	EQSpellExtra                 SpellExtraData[TOTAL_SPELL_COUNT+1];
-	HashTable<StackingGroupData> StackingData;
+/*0x03bbac*/ SPELL*                       Spells[TOTAL_SPELL_COUNT+1];         // 60001 last one is the unknown spell...
+/*0x076530*/ SPELLCALCINFO*               CalcInfo[CalcInfoSize];              // 175000
+/*0x139a30*/ EQSpellExtra                 SpellExtraData[TOTAL_SPELL_COUNT+1];
+/*0x1aed38*/ HashTable<StackingGroupData> StackingData;
+/*0x1aed3c*/
 };
 
 class StringTable
@@ -2710,214 +2738,214 @@ enum eKeyboardMode
 #pragma pack(push)
 #pragma pack(4)
 
-struct EVERQUESTINFO
+struct [[offsetcomments]] EVERQUESTINFO
 {
-/*0x00000*/	HWND       Wnd;
-/*0x00004*/ HINSTANCE  hInst;
-/*0x00008*/	int        Render_MinX;
-/*0x0000c*/	int        Render_MinY;
-/*0x00010*/	int        Render_MaxX;
-/*0x00014*/	int        Render_MaxY;
-/*0x00018*/	int        Render_XScale;
-/*0x0001c*/	int        Render_YScale;
-/*0x00020*/	int        Render_WidthScale;
-/*0x00024*/	int        Render_HeightScale;
-/*0x00028*/	int        ReadyEnterWorld;
-/*0x0002c*/	bool       InsideDoMainWhileLoop;
-/*0x00030*/	int        Hidden;
-/*0x00034*/ DWORD      Displayflags;
-/*0x00038*/ DWORD      Command;
-/*0x0003c*/	BYTE       Unknown0x0003c;
-/*0x00040*/	int        ScreenXRes;
-/*0x00044*/	int        ScreenYRes;
-/*0x00048*/	int        WindowXOffset;
-/*0x0004c*/	int        WindowYOffset;
-/*0x00050*/	bool       FullscreenMode;
-/*0x00054*/	eKeyboardMode KeyboardMode;
-/*0x00058*/	BYTE       Runmode;                  // dont EVER set this to something > 1 unless you WANT to get banned.
-/*0x00059*/	BYTE       Unknown0x00059;
-/*0x0005a*/	BYTE       Unknown0x0005a;
-/*0x0005b*/	BYTE       MouseCntrl;
-/*0x0005c*/	BYTE       MouseActive;
-/*0x0005d*/	BYTE       ForceCrouch;
-/*0x00060*/	UINT       ForceCrouchTimer;
-/*0x00064*/	float      Unknown0x00064;
-/*0x00068*/	float      Unknown0x00068;
-/*0x0006c*/	int        MouseX;
-/*0x00070*/	int        MouseY;
-/*0x00074*/	int        MouseZ;
-/*0x00078*/	int        Lastmx;
-/*0x0007c*/	int        Lastmy;
-/*0x00080*/	bool       MouseInClientRect;
-/*0x00084*/ int        MXSensitivity;
-/*0x00088*/ int        MYSensitivity;
-/*0x0008c*/	int        MousePointerSpeedMod;
-/*0x00090*/	bool       ServerFilter;
-/*0x00094*/	int        IsTrader;
-/*0x00098*/	BYTE       CurrentChan;
-/*0x0009c*/	int        CurrentLang;
-/*0x000a0*/	char       TellTarget[0x40];
-/*0x000e0*/	UINT       LastMinute;
-/*0x000e4*/	UINT       LastLocal;
-/*0x000e8*/	UINT       LastControlled;
-/*0x000ec*/	BYTE       MInverse;
-/*0x000ed*/	BYTE       Unknown0x000ed;
-/*0x000ee*/	BYTE       MouseLook;
-/*0x000ef*/	bool       bDefaultMouseLook;
-/*0x000f0*/	BYTE       Strafe;
-/*0x000f1*/	bool       bNetstat;
-/*0x000f2*/	BYTE       ModInventory;
-/*0x000f4*/	UINT       LastHitter;
-/*0x000f8*/	BYTE       Harmless;
-/*0x000f9*/	BYTE       Silenced;
-/*0x000fc*/	UINT       JumpTimer;
-/*0x00100*/	UINT       EventJump;
-/*0x00104*/	UINT       LastJump;
-/*0x00108*/	UINT       FrameTime;
-/*0x0010c*/	int        AutoRun;
-/*0x00110*/	UINT       PoisonTimer;
-/*0x00114*/	ItemGlobalIndex PoisonGI;
-/*0x00120*/	int        OldX;
-/*0x00124*/	int        OldY;
-/*0x00128*/	BYTE       OldMouseButtons[8];
-/*0x00130*/	BYTE       MouseButtons[8];
-/*0x00138*/	bool       bIsMouseRightHanded;
-/*0x0013c*/	int        Unknown0x0013c;
-/*0x00140*/	int        CharStatePending;
-/*0x00144*/	char       PendingCharacterName[0x40];
-/*0x00184*/	int        TutorialMode;
-/*0x00188*/	int        RMouseSecond;
-/*0x0018c*/	int        LMouseSecond;
-/*0x00190*/	UINT       RMouseDown;
-/*0x00194*/	UINT       LMouseDown;
-/*0x00198*/	char       Unknown0x00198[0x40];
-/*0x001d8*/	UINT       DuelTarget;
-/*0x001dc*/	UINT       DuelMe;
-/*0x001e0*/	BYTE       DuelOn;
-/*0x001e4*/	UINT       AutoHelp;
-/*0x001e8*/	BYTE       OldMouseLook;
-/*0x001ec*/	UINT       LastLocalUpdate;
-/*0x001f0*/	UINT       LastControlledUpdate;
-/*0x001f4*/	UINT       DataRate;
-/*0x001f8*/	int        SavedPC;
-/*0x001fc*/	int        InfraRed;
-/*0x00200*/	int        InfraGreen;
-/*0x00204*/	int        InfraBlue;
-/*0x00208*/	int        UltraRed;
-/*0x0020c*/	int        UltraGreen;
-/*0x00210*/	int        UltraBlue;
-/*0x00214*/	int        Unknown0x00214;
-/*0x00218*/	int        IOLines;
-/*0x0021c*/	int        IOLineSpacing;
-/*0x00220*/	char       ObjTag[0x14];
-/*0x00234*/	long       NumObjects;
-/*0x00238*/	long       NumLights;
-/*0x0023c*/	long       DecrTime[0xa];
-/*0x00264*/	long       DecrMsg[0xa];
-/*0x0028c*/	long       DecrIndex;
-/*0x00290*/	BYTE       AffectsOn;
-/*0x00291*/	BYTE       InspectMode;
-/*0x00292*/	BYTE       UpMouseAnim;
-/*0x00294*/	UINT       ExitCounter;
-/*0x00298*/	UINT       ExitStart;
-/*0x0029c*/	UINT       ForcedExitCounter;
-/*0x002a0*/	UINT       OfflineModeRequestTime;
-/*0x002a4*/	int        SwimJump;
-/*0x002a8*/	BYTE       DisplayCamp;
-/*0x002ac*/	int        PolysOff;
-/*0x002b0*/	float      CampY;
-/*0x002b4*/	float      CampX;
-/*0x002b8*/	float         CampZ;
-/*0x002bc*/ int        Hits;
-/*0x002c0*/	int        Bandage;
-/*0x002c4*/	UINT       BackSpace;
-/*0x002c8*/	long       StartBandage;
-/*0x002cc*/	long       MyY;
-/*0x002d0*/	long       MyX;
-/*0x002d4*/	long       MyZ;
-/*0x002d8*/	long       TargetY;
-/*0x002dc*/	long       TargetX;
-/*0x002e0*/	long       TargetZ;
-/*0x002e4*/	ZONEINFO   ZoneInfo;
-/*0x0068c*/	BYTE       ZDefined;
-/*0x00690*/	int        TrackTimer;
-/*0x00694*/	long       StartTrack;
-/*0x00698*/	int        bTrackPlayers;
-/*0x0069c*/ bool       bTrackMercs;
-/*0x0069d*/ bool       bTrackPets;
-/*0x006a0*/	int        iTrackSortType;
-/*0x006a4*/	int        iTrackFilterType;
-/*0x006a8*/	UINT       MouseTimer;
-/*0x006ac*/	int        SoundUpdate;
-/*0x006b0*/	bool       MouseOn;
-/*0x006b4*/	USINGSKILL UsingSkill;
-/*0x006bc*/	int        Unknown0x006bc[4];
-/*0x006cc*/ BYTE       ClickThroughMask;
-/*0x006d0*/	int        ShowSpellDescriptions;
-/*0x006d4*/	bool       ReceivedWorldObjects;
-/*0x006d5*/	BYTE       Unknown0x006d5;
-/*0x006d6*/	bool       Unknown0x006d6;
-/*0x006d8*/	float      SavedViewPitch;
-/*0x006dc*/	int        SendPcReceived;
-/*0x006e0*/	int        WeatherReceived;
-/*0x006e4*/	int        PixelInit;
-/*0x006e8*/	bool       bIsPressedShift;
-/*0x006e9*/	bool       bIsPressedControl;
-/*0x006ea*/	bool       bIsPressedAlt;
-/*0x006eb*/	bool       bIsPressedLShift;
-/*0x006ec*/	bool       bIsPressedLControl;
-/*0x006ed*/	bool       bIsPressedLAlt;
-/*0x006ee*/	bool       bIsPressedRShift;
-/*0x006ef*/	bool       bIsPressedRControl;
-/*0x006f0*/	bool       bIsPressedRAlt;
-/*0x006f4*/	int        Currkeypress;
-/*0x006f8*/	int        Lastkeypress;
-/*0x006fc*/	int        Rateup;
-/*0x00700*/	int        Ratedown;
-/*0x00704*/	int        Rateforward;
-/*0x00708*/	int        Rateback;
-/*0x0070c*/	int        Rateleft;
-/*0x00710*/	int        Rateright;
-/*0x00714*/	int        RaceWar;
-/*0x00718*/	int        Ruleset;
-/*0x0071c*/	bool       bRpServer;
-/*0x0071d*/	bool       bAcceleratedServer;
-/*0x0071e*/	bool       bProgressionServer;
-/*0x00720*/	int        ProgressionOpenExpansions;
-/*0x00724*/ bool       bIsDevServer;
-/*0x00725*/ bool       bIsBetaServer;
-/*0x00726*/ bool       bIsTestServer;
-/*0x00727*/ bool       bIsStageServer;
-/*0x00728*/	bool       bUseMailSystem;
-/*0x00729*/	bool       bIsEscapeServer;
-/*0x0072a*/	bool       bIsTutorialEnabled;
-/*0x0072b*/	bool       bCanCreateHeadStartCharacter;
-/*0x0072c*/ bool       bCanCreateHeroicCharacter;
-/*0x00730*/ int        HeroicSlots;
-/*0x00734*/	bool       bAutoIdentify;
-/*0x00735*/	bool       bNameGen;
-/*0x00736*/	bool       bGibberish;
-/*0x00738*/	int        Locale;
-/*0x0073c*/	BYTE       UpdateControlled;
-/*0x0073d*/	BYTE       UpdateLocal;
-/*0x0073e*/	BYTE       EnterZone;
-/*0x0073f*/	BYTE       ExitGame;
-/*0x00740*/ int        EnterZoneReason;
-/*0x00744*/	bool       UseVoiceMacros;
-/*0x00748*/	int        Deltax;
-/*0x0074c*/	int        Deltay;
-/*0x00750*/	int        OldRate1;
-/*0x00754*/	int        OldRate2;
-/*0x00758*/	float      StrafeRate;
-/*0x0075c*/	int        SaveIndex;
-/*0x00760*/	float      Unknown0x00760;
-/*0x00764*/ // plus more ...
+/*0x000*/ HWND       Wnd;
+/*0x004*/ HINSTANCE  hInst;
+/*0x008*/ int        Render_MinX;
+/*0x00c*/ int        Render_MinY;
+/*0x010*/ int        Render_MaxX;
+/*0x014*/ int        Render_MaxY;
+/*0x018*/ int        Render_XScale;
+/*0x01c*/ int        Render_YScale;
+/*0x020*/ int        Render_WidthScale;
+/*0x024*/ int        Render_HeightScale;
+/*0x028*/ int        ReadyEnterWorld;
+/*0x02c*/ bool       InsideDoMainWhileLoop;
+/*0x030*/ int        Hidden;
+/*0x034*/ DWORD      Displayflags;
+/*0x038*/ DWORD      Command;
+/*0x03c*/ BYTE       Unknown0x0003c;
+/*0x040*/ int        ScreenXRes;
+/*0x044*/ int        ScreenYRes;
+/*0x048*/ int        WindowXOffset;
+/*0x04c*/ int        WindowYOffset;
+/*0x050*/ bool       FullscreenMode;
+/*0x054*/ eKeyboardMode KeyboardMode;
+/*0x058*/ BYTE       Runmode;                  // dont EVER set this to something > 1 unless you WANT to get banned.
+/*0x059*/ BYTE       Unknown0x00059;
+/*0x05a*/ BYTE       Unknown0x0005a;
+/*0x05b*/ BYTE       MouseCntrl;
+/*0x05c*/ BYTE       MouseActive;
+/*0x05d*/ BYTE       ForceCrouch;
+/*0x060*/ UINT       ForceCrouchTimer;
+/*0x064*/ float      Unknown0x00064;
+/*0x068*/ float      Unknown0x00068;
+/*0x06c*/ int        MouseX;
+/*0x070*/ int        MouseY;
+/*0x074*/ int        MouseZ;
+/*0x078*/ int        Lastmx;
+/*0x07c*/ int        Lastmy;
+/*0x080*/ bool       MouseInClientRect;
+/*0x084*/ int        MXSensitivity;
+/*0x088*/ int        MYSensitivity;
+/*0x08c*/ int        MousePointerSpeedMod;
+/*0x090*/ bool       ServerFilter;
+/*0x094*/ int        IsTrader;
+/*0x098*/ BYTE       CurrentChan;
+/*0x09c*/ int        CurrentLang;
+/*0x0a0*/ char       TellTarget[0x40];
+/*0x0e0*/ UINT       LastMinute;
+/*0x0e4*/ UINT       LastLocal;
+/*0x0e8*/ UINT       LastControlled;
+/*0x0ec*/ BYTE       MInverse;
+/*0x0ed*/ BYTE       Unknown0x000ed;
+/*0x0ee*/ BYTE       MouseLook;
+/*0x0ef*/ bool       bDefaultMouseLook;
+/*0x0f0*/ BYTE       Strafe;
+/*0x0f1*/ bool       bNetstat;
+/*0x0f2*/ BYTE       ModInventory;
+/*0x0f4*/ UINT       LastHitter;
+/*0x0f8*/ BYTE       Harmless;
+/*0x0f9*/ BYTE       Silenced;
+/*0x0fc*/ UINT       JumpTimer;
+/*0x100*/ UINT       EventJump;
+/*0x104*/ UINT       LastJump;
+/*0x108*/ UINT       FrameTime;
+/*0x10c*/ int        AutoRun;
+/*0x110*/ UINT       PoisonTimer;
+/*0x114*/ ItemGlobalIndex PoisonGI;
+/*0x120*/ int        OldX;
+/*0x124*/ int        OldY;
+/*0x128*/ BYTE       OldMouseButtons[8];
+/*0x130*/ BYTE       MouseButtons[8];
+/*0x138*/ bool       bIsMouseRightHanded;
+/*0x13c*/ int        Unknown0x0013c;
+/*0x140*/ int        CharStatePending;
+/*0x144*/ char       PendingCharacterName[0x40];
+/*0x184*/ int        TutorialMode;
+/*0x188*/ int        RMouseSecond;
+/*0x18c*/ int        LMouseSecond;
+/*0x190*/ UINT       RMouseDown;
+/*0x194*/ UINT       LMouseDown;
+/*0x198*/ char       Unknown0x00198[0x40];
+/*0x1d8*/ UINT       DuelTarget;
+/*0x1dc*/ UINT       DuelMe;
+/*0x1e0*/ BYTE       DuelOn;
+/*0x1e4*/ UINT       AutoHelp;
+/*0x1e8*/ BYTE       OldMouseLook;
+/*0x1ec*/ UINT       LastLocalUpdate;
+/*0x1f0*/ UINT       LastControlledUpdate;
+/*0x1f4*/ UINT       DataRate;
+/*0x1f8*/ int        SavedPC;
+/*0x1fc*/ int        InfraRed;
+/*0x200*/ int        InfraGreen;
+/*0x204*/ int        InfraBlue;
+/*0x208*/ int        UltraRed;
+/*0x20c*/ int        UltraGreen;
+/*0x210*/ int        UltraBlue;
+/*0x214*/ int        Unknown0x00214;
+/*0x218*/ int        IOLines;
+/*0x21c*/ int        IOLineSpacing;
+/*0x220*/ char       ObjTag[0x14];
+/*0x234*/ long       NumObjects;
+/*0x238*/ long       NumLights;
+/*0x23c*/ long       DecrTime[0xa];
+/*0x264*/ long       DecrMsg[0xa];
+/*0x28c*/ long       DecrIndex;
+/*0x290*/ BYTE       AffectsOn;
+/*0x291*/ BYTE       InspectMode;
+/*0x292*/ BYTE       UpMouseAnim;
+/*0x294*/ UINT       ExitCounter;
+/*0x298*/ UINT       ExitStart;
+/*0x29c*/ UINT       ForcedExitCounter;
+/*0x2a0*/ UINT       OfflineModeRequestTime;
+/*0x2a4*/ int        SwimJump;
+/*0x2a8*/ BYTE       DisplayCamp;
+/*0x2ac*/ int        PolysOff;
+/*0x2b0*/ float      CampY;
+/*0x2b4*/ float      CampX;
+/*0x2b8*/ float         CampZ;
+/*0x2bc*/ int        Hits;
+/*0x2c0*/ int        Bandage;
+/*0x2c4*/ UINT       BackSpace;
+/*0x2c8*/ long       StartBandage;
+/*0x2cc*/ long       MyY;
+/*0x2d0*/ long       MyX;
+/*0x2d4*/ long       MyZ;
+/*0x2d8*/ long       TargetY;
+/*0x2dc*/ long       TargetX;
+/*0x2e0*/ long       TargetZ;
+/*0x2e4*/ ZONEINFO   ZoneInfo;
+/*0x684*/ BYTE       ZDefined;
+/*0x688*/ int        TrackTimer;
+/*0x68c*/ long       StartTrack;
+/*0x690*/ int        bTrackPlayers;
+/*0x694*/ bool       bTrackMercs;
+/*0x695*/ bool       bTrackPets;
+/*0x698*/ int        iTrackSortType;
+/*0x69c*/ int        iTrackFilterType;
+/*0x6a0*/ UINT       MouseTimer;
+/*0x6a4*/ int        SoundUpdate;
+/*0x6a8*/ bool       MouseOn;
+/*0x6ac*/ USINGSKILL UsingSkill;
+/*0x6b4*/ int        Unknown0x006bc[4];
+/*0x6c4*/ BYTE       ClickThroughMask;
+/*0x6c8*/ int        ShowSpellDescriptions;
+/*0x6cc*/ bool       ReceivedWorldObjects;
+/*0x6cd*/ BYTE       Unknown0x006d5;
+/*0x6ce*/ bool       Unknown0x006d6;
+/*0x6d0*/ float      SavedViewPitch;
+/*0x6d4*/ int        SendPcReceived;
+/*0x6d8*/ int        WeatherReceived;
+/*0x6dc*/ int        PixelInit;
+/*0x6e0*/ bool       bIsPressedShift;
+/*0x6e1*/ bool       bIsPressedControl;
+/*0x6e2*/ bool       bIsPressedAlt;
+/*0x6e3*/ bool       bIsPressedLShift;
+/*0x6e4*/ bool       bIsPressedLControl;
+/*0x6e5*/ bool       bIsPressedLAlt;
+/*0x6e6*/ bool       bIsPressedRShift;
+/*0x6e7*/ bool       bIsPressedRControl;
+/*0x6e8*/ bool       bIsPressedRAlt;
+/*0x6ec*/ int        Currkeypress;
+/*0x6f0*/ int        Lastkeypress;
+/*0x6f4*/ int        Rateup;
+/*0x6f8*/ int        Ratedown;
+/*0x6fc*/ int        Rateforward;
+/*0x700*/ int        Rateback;
+/*0x704*/ int        Rateleft;
+/*0x708*/ int        Rateright;
+/*0x70c*/ int        RaceWar;
+/*0x710*/ int        Ruleset;
+/*0x714*/ bool       bRpServer;
+/*0x715*/ bool       bAcceleratedServer;
+/*0x716*/ bool       bProgressionServer;
+/*0x718*/ int        ProgressionOpenExpansions;
+/*0x71c*/ bool       bIsDevServer;
+/*0x71d*/ bool       bIsBetaServer;
+/*0x71e*/ bool       bIsTestServer;
+/*0x71f*/ bool       bIsStageServer;
+/*0x720*/ bool       bUseMailSystem;
+/*0x721*/ bool       bIsEscapeServer;
+/*0x722*/ bool       bIsTutorialEnabled;
+/*0x723*/ bool       bCanCreateHeadStartCharacter;
+/*0x724*/ bool       bCanCreateHeroicCharacter;
+/*0x728*/ int        HeroicSlots;
+/*0x72c*/ bool       bAutoIdentify;
+/*0x72d*/ bool       bNameGen;
+/*0x72e*/ bool       bGibberish;
+/*0x730*/ int        Locale;
+/*0x734*/ BYTE       UpdateControlled;
+/*0x735*/ BYTE       UpdateLocal;
+/*0x736*/ BYTE       EnterZone;
+/*0x737*/ BYTE       ExitGame;
+/*0x738*/ int        EnterZoneReason;
+/*0x73c*/ bool       UseVoiceMacros;
+/*0x740*/ int        Deltax;
+/*0x744*/ int        Deltay;
+/*0x748*/ int        OldRate1;
+/*0x74c*/ int        OldRate2;
+/*0x750*/ float      StrafeRate;
+/*0x754*/ int        SaveIndex;
+/*0x758*/ float      Unknown0x00760;
+/*0x75c*/ // plus more ...
 };
 #pragma pack(pop)
 using PEVERQUESTINFO = EVERQUESTINFO*;
 
 // size 0x20 -- brainiac 11/14/2016
-struct tp_coords
+struct [[offsetcomments]] tp_coords
 {
 /*0x00*/ int           Index;
 /*0x04*/ float         Y;
@@ -2929,9 +2957,6 @@ struct tp_coords
 /*0x1C*/ UINT          VehicleID;
 /*0x20*/
 };
-
-
-
 
 } // namespace eqlib
 
