@@ -31,7 +31,7 @@ typedef struct _TIMEDCOMMAND
 TIMEDCOMMAND* pTimedCommands = nullptr;
 
 
-VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
+VOID HideDoCommand(SPAWNINFO* pChar, char* szLine, BOOL delayed)
 {
     if (delayed)
     {

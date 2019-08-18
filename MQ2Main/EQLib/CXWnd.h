@@ -406,7 +406,7 @@ public:
 	EQLIB_OBJECT CXWnd* SetParent(CXWnd*);
 	EQLIB_OBJECT void SetMouseOver(bool);
 	EQLIB_OBJECT void SetKeyTooltip(int, int);
-	EQLIB_OBJECT int SetFont(void*);
+	EQLIB_OBJECT int SetFont(CTextureFont*);
 
 	//EQLIB_OBJECT bool HasFocus() const;
 	//EQLIB_OBJECT const CButtonDrawTemplate* GetCloseBoxTemplate() const;

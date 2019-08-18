@@ -462,8 +462,9 @@ PCHAR GetEQPath(PCHAR szBuffer, size_t len)
 	return szBuffer;
 }
 
-VOID ConvertItemTags(CXStr &cxstr, BOOL Tag)
+void ConvertItemTags(CXStr& cxstr, BOOL Tag)
 {
+	// FIXME why asm?
 	__asm {
 		push ecx;
 		push eax;

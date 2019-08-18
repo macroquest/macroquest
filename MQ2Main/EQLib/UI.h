@@ -1163,7 +1163,7 @@ public:
 	EQLIB_OBJECT void ForceParseNow();
 	EQLIB_OBJECT void GoToBackHistoryLink();
 	// EQLIB_OBJECT void LoadPage(CXStr, enum ESTMLTargetValue, bool);
-	EQLIB_OBJECT void SetSTMLText(CXStr, bool, SLinkInfo*);
+	EQLIB_OBJECT void SetSTMLText(CXStr, bool addToHistory = true, SLinkInfo* pLink = nullptr);
 	EQLIB_OBJECT void SetSTMLTextWithoutHistory(CXStr);
 
 	// protected

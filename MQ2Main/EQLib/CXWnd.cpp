@@ -275,7 +275,7 @@ FUNCTION_AT_ADDRESS(void CXWnd::SetMouseOver(bool), CXWnd__SetMouseOver);
 FUNCTION_AT_ADDRESS(void CXWnd::SetKeyTooltip(int, int), CXWnd__SetKeyTooltip);
 #endif
 #ifdef CXWnd__SetFont_x
-FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
+FUNCTION_AT_ADDRESS(int CXWnd::SetFont(CTextureFont*), CXWnd__SetFont);
 #endif
 
 //============================================================================

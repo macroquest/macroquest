@@ -378,7 +378,7 @@ LEGACY_API void TimedCommand(PCHAR Command, DWORD msDelay);
 /* MACRO COMMANDS */
 LEGACY_API void DumpStack(PSPAWNINFO, PCHAR);
 LEGACY_API void EndMacro(PSPAWNINFO, PCHAR);
-LEGACY_API void Echo(PSPAWNINFO, PCHAR);
+LEGACY_API void Echo(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
 #ifdef USEBLECHEVENTS
@@ -467,9 +467,9 @@ LEGACY_API void AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
 
-#define DoCommand(pspawninfo,commandtoexecute) HideDoCommand(pspawninfo,commandtoexecute,FromPlugin)
-LEGACY_API void HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed);
-#define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer,commandtoexecute)
+#define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute,FromPlugin)
+LEGACY_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, BOOL delayed);
+#define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer, commandtoexecute)
 
 EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
 EQLIB_API void StripMQChat(PCHAR in, PCHAR out);
