@@ -14,7 +14,11 @@
 
 //#define DEBUG_TRY
 
+// Conflicts with std::numeric_limits
+#define NOMINMAX
 #include <winsock2.h>
+#undef NOMINMAX
+
 #include <Ws2tcpip.h>
 #include "WinTelnet.h"
 #include "../MQ2Plugin.h"
