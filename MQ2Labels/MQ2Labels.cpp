@@ -90,7 +90,7 @@ CComboWnd*Advlootcombo = 0;
 bool gAnonMasterLooterName = true;
 struct _CControl {
     /*0x000*/    BYTE Fluff[0x94]; // if this changes update ISXEQLabels.cpp too
-    /*0x094*/    CXSTR * EQType;
+    /*0x094*/    CXStr EQType;
 };
 
 // optimize off because the tramp looks blank to the compiler
@@ -99,57 +99,40 @@ struct _CControl {
 
 class CSidlManagerHook {
 public:
-    class CXWnd * CreateLabel_Trampoline(CXWnd *, CControlTemplate *);
-    class CXWnd * CreateLabel_Detour(CXWnd *CWin, CControlTemplate *CControl)
+    class CLabel * CreateLabel_Trampoline(CXWnd *, CControlTemplate *);
+    class CLabel * CreateLabel_Detour(CXWnd *CWin, CControlTemplate *CControl)
     {
-		CLabel *clabel = (CLabel *)CreateLabel_Trampoline(CWin, CControl);
-        if (CControl->Controller) {
-			clabel->EQType = atoi(CControl->Controller->Text);
-        } else {
-			clabel->EQType = 0;
-        }
-        return (CXWnd*)clabel;
+		auto pLabel = CreateLabel_Trampoline(CWin, CControl);
+		pLabel->EQType = atoi(CControl->strController.c_str());
+        return pLabel;
     }
 };
 
-DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(CXWnd *, CControlTemplate *));
+DETOUR_TRAMPOLINE_EMPTY(class CLabel * CSidlManagerHook::CreateLabel_Trampoline(CXWnd *, CControlTemplate *));
 
 //#pragma optimize ("g", on)
 
-int __cdecl GetGaugeValueFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *);
-int __cdecl GetGaugeValueFromEQ_Detour(int EQType, class CXStr *out, bool *arg3, unsigned long *colorout)
+int __cdecl GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool *, unsigned long *);
+int __cdecl GetGaugeValueFromEQ_Detour(int EQType, CXStr& out, bool *arg3, unsigned long *colorout)
 {
 	int ret = GetGaugeValueFromEQ_Trampoline(EQType,out,arg3,colorout);
-	if (gAnonymize) {
-		if (out && out->Ptr) {
-			CHAR *szOut = new CHAR[MAX_STRING];
-			GetCXStr(out->Ptr, szOut);
-			if (Anonymize(szOut,MAX_STRING)) {
-				SetCXStr(&out->Ptr, szOut);
-			}
-			delete szOut;
-		}
-	}
+	if (gAnonymize)
+		Anonymize2(out);
 	return ret;
 }
-int __cdecl GetLabelFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *);
-int __cdecl GetLabelFromEQ_Detour(int EQType, class CXStr *out, bool *arg3, unsigned long *colorout)
+int __cdecl GetLabelFromEQ_Trampoline(int, CXStr&, bool *, unsigned long *);
+int __cdecl GetLabelFromEQ_Detour(int EQType, CXStr& out, bool *arg3, unsigned long *colorout)
 {
 	int ret = GetLabelFromEQ_Trampoline(EQType,out,arg3,colorout);
-	if (gAnonymize) {
-		if (out && out->Ptr) {
-			CHAR *szOut = new CHAR[MAX_STRING];
-			GetCXStr(out->Ptr, szOut);
-			if (Anonymize(szOut,MAX_STRING)) {
-				SetCXStr(&out->Ptr, szOut);
-			}
-			delete szOut;
-		}
-	}
+	if (gAnonymize)
+		Anonymize2(out);
 	return ret;
 }
 BOOL bTrimnames = 0;
-std::map<std::string, std::string>lootcombo;
+
+// Anonymized -> Normal
+std::map<CXStr, CXStr>lootcombo;
+
 bool gweareaddingpeople = false;
 // CLabelHook::Draw_Detour
 void CleanupLootCombo(bool bupdatemasterlooter);
@@ -166,13 +149,9 @@ public:
 		{
 			if (gAnonymize)
 			{
-				CHAR *szStr = new CHAR[MAX_STRING];
-				GetCXStr(Str.Ptr, szStr);
-				//WriteChatf("CListWnd__AddString_Detour %s", szStr);
-				Anonymize(szStr,MAX_STRING,true);
-				int ret = CListWnd__AddString_Trampoline(szStr,Color,Data,pTa,TooltipStr);
-				delete szStr;
-				return ret;
+				CXStr anonymized = Str;
+				Anonymize2(anonymized,true);
+				return CListWnd__AddString_Trampoline(anonymized,Color,Data,pTa,TooltipStr);
 			}
 			return CListWnd__AddString_Trampoline(Str,Color,Data,pTa,TooltipStr);
 		}
@@ -189,20 +168,8 @@ public:
 	CXStr CComboWnd__GetChoiceText_Detour(int index) const
 	{
 		CXStr ret = CComboWnd__GetChoiceText_Trampoline(index);
-		if (gAnonymize)
-		{
-			if (ret.Ptr) {
-				CHAR *szTemp = new CHAR[MAX_STRING];
-				GetCXStr(ret.Ptr, szTemp);
-				if (lootcombo.find(szTemp) != lootcombo.end())
-				{
-					std::string str = lootcombo[szTemp];
-					strcpy_s(szTemp, MAX_STRING, str.c_str());
-					SetCXStr(&ret.Ptr, szTemp);
-				}
-				delete szTemp;
-			}
-		}
+		if (gAnonymize && lootcombo.find(ret) != lootcombo.end())
+			ret = lootcombo[ret];
 		return ret;
 	}
 	void CListWnd__SetItemText_Trampoline(int ID, int SubItem, const CXStr& Str);
@@ -215,45 +182,20 @@ public:
 	{
 		if (gAnonymize && gweareaddingpeople) {
 			Advlootcombo = (CComboWnd*)this;
-			//CHAR *szTemp = new CHAR[MAX_STRING];
-			CHAR szTemp[MAX_STRING];
-			//CHAR *orgszTemp = szTemp;
-			GetCXStr(Str.Ptr, szTemp);
-			std::string str = szTemp;
-			std::string Found;
-			bool bFound = false;
-			for (std::map<std::string, std::string>::iterator i = lootcombo.begin(); i != lootcombo.end(); i++)
-			{
-				if (i->second == szTemp)
-				{
-					Found = i->first;
-					break;
-				}
-			}
-			if(Found.empty())
-			{
-				Anonymize(szTemp, MAX_STRING, true);
-				lootcombo[szTemp] = str;
-			}
-			else {
-				strcpy_s(szTemp,MAX_STRING, Found.c_str());
-			}
-			int ret = 0;
-			std::map<std::string, std::string>::iterator j = lootcombo.find(szTemp);
-			if (j != lootcombo.end()) {
-				ret = CComboWnd__InsertChoiceAtIndex_Trampoline(j->first.c_str(), index);
-			}
-			else {
-				ret = CComboWnd__InsertChoiceAtIndex_Trampoline(Str, index);
-			}
-			//delete orgszTemp;
-			return ret;
+
+			// If we've already anonymized this string, use the cached version
+			for (const auto& [key, val] : lootcombo)
+				if (val == Str)
+					return CComboWnd__InsertChoiceAtIndex_Trampoline(key, index);
+
+			// Otherwise, anonymize & cache it
+			CXStr anonymized = Str;
+			Anonymize2(anonymized, true);
+			lootcombo[anonymized] = Str;
+
+			return CComboWnd__InsertChoiceAtIndex_Trampoline(anonymized, index);
 		}
-		else
-		{
-			int ret = CComboWnd__InsertChoiceAtIndex_Trampoline(Str, index);
-			return ret;
-		}
+		return CComboWnd__InsertChoiceAtIndex_Trampoline(Str, index);
 	}
 	void CAdvancedLootWnd__AddPlayerToList_Trampoline(CGroupMemberBase *);
 	void CAdvancedLootWnd__AddPlayerToList_Detour(CGroupMemberBase *base)
@@ -280,9 +222,11 @@ public:
     VOID Draw_Detour(VOID)
     {
 		CLabel* pThisLabel = (CLabel*)this;
-        CHAR *szBuffer = new CHAR[MAX_STRING];
         BOOL Found=FALSE;
         DWORD index;
+
+		CXStr buffer;
+
 		if (gAnonymize) {
 			if (!bTrimnames) {
 				#if !defined(ROF2EMU) && !defined(UFEMU)
@@ -301,9 +245,9 @@ public:
 				EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline,"__GetLabelFromEQ");
 				bTrimnames = 1;
 			}
-			if (pThisLabel && pThisLabel->CGetWindowText()) {
-				GetCXStr(pThisLabel->CGetWindowText(), szBuffer);
-				Anonymize(szBuffer,MAX_STRING);
+			if (pThisLabel) {
+				buffer = pThisLabel->GetWindowText();
+				Anonymize2(buffer);
 			}
 		} else {
 			if (bTrimnames) {
@@ -325,39 +269,37 @@ public:
 		}
 		Draw_Trampoline();
        if ((DWORD)pThisLabel->EQType==9999) {
-		   if (PCXSTR Str = pThisLabel->GetXMLToolTip())
+		   auto tooltip = pThisLabel->GetXMLTooltip();
+		   if (!tooltip.empty())
 		   {
-				CHAR *szBuf = new CHAR[MAX_STRING];
+			   buffer.reserve(tooltip.length());
+			   STMLToPlainText(tooltip.mutable_data(), buffer.mutable_data());
 
-			   GetCXStr(Str, szBuf);
-			   STMLToPlainText(szBuf, szBuffer);
-			   delete szBuf;
-			   ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn, szBuffer,MAX_STRING);
-			   if (!strcmp(szBuffer, "NULL"))
-				   szBuffer[0] = 0;
+			   buffer.reserve(MAX_STRING);
+			   ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn, buffer.mutable_data(), MAX_STRING);
+			   if (buffer == "NULL")
+				   buffer = "";
 			   Found = TRUE;
 		   }
 		   else {
-			   strcpy_s(szBuffer,MAX_STRING, "BadCustom");
+			   buffer = "BadCustom";
 			   Found = TRUE;
 		   }
         } else if (pThisLabel->EQType==1000) {
             for (index=0;Id_PMP[index].ID>0 && !Found;index++) {
                 if (Id_PMP[index].ID==(DWORD)pThisLabel->EQType) {
-                    strcpy_s(szBuffer,MAX_STRING,Id_PMP[index].PMP);
-                    ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,szBuffer,MAX_STRING);
-                    if (!strcmp(szBuffer,"NULL"))
-                        szBuffer[0]=0;
+					buffer = Id_PMP[index].PMP;
+
+					buffer.reserve(MAX_STRING);
+					ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn, buffer.mutable_data(), MAX_STRING);
+					if (buffer == "NULL")
+						buffer = "";
                     Found=TRUE;
                 }
             }
         }
 		if (Found)
-		{
-			pThisLabel->CSetWindowText(szBuffer);
-			//SetCXStr(&(pThisLabel->WindowText), Buffer);
-		}
-		delete szBuffer;
+			pThisLabel->SetWindowText(buffer);
     }
 }; 
 
@@ -374,8 +316,8 @@ DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CAdvancedLootWnd__AddPlayerToList_Tramp
 DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CComboWnd__InsertChoice_Trampoline(const CXStr& Str, unsigned __int32 Data));
 DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::Draw_Trampoline(VOID));
 DETOUR_TRAMPOLINE_EMPTY(char *CLabelHook::CEverQuest__trimName_Trampoline(char *));
-DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetGaugeValueFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *));
-DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetLabelFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool *, unsigned long *));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetLabelFromEQ_Trampoline(int, CXStr&, bool *, unsigned long *));
 
 BOOL StealNextGauge=FALSE;
 DWORD NextGauge=0;
@@ -390,7 +332,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     // Add commands, macro parameters, hooks, etc.
     //EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
     EzDetourwName(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline,"CLabel__Draw");
-    EzDetourwName(CSidlManager__CreateLabel,&CSidlManagerHook::CreateLabel_Detour,&CSidlManagerHook::CreateLabel_Trampoline,"CSidlManager__CreateLabel");
+    EzDetourwName(CSidlManagerBase__CreateLabel,&CSidlManagerHook::CreateLabel_Detour,&CSidlManagerHook::CreateLabel_Trampoline,"CSidlManager__CreateLabel");
 	if (gAnonymize) {
 		//EzDetourwName(CListWnd__SetItemText, &CLabelHook::CListWnd__SetItemText_Detour, &CLabelHook::CListWnd__SetItemText_Trampoline,"CListWnd__SetItemText");
 		//EzDetourwName(CComboWnd__InsertChoice, &CLabelHook::CComboWnd__InsertChoice_Detour, &CLabelHook::CComboWnd__InsertChoice_Trampoline,"CComboWnd__InsertChoice");
@@ -423,10 +365,8 @@ void CleanupLootCombo(bool bupdatemasterlooter)
 			{
 				if (pChar->pGroupInfo->pMember && pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MasterLooter)
 				{
-					CHAR szMaster[MAX_STRING];
-					GetCXStr(pChar->pGroupInfo->pMember[i]->pName, szMaster);
 					gAnonMasterLooterName = bupdatemasterlooter;
-					((CLabelHook*)pAdvancedLootWnd)->CAdvancedLootWnd__UpdateMasterLooter_Detour(szMaster, true);
+					((CLabelHook*)pAdvancedLootWnd)->CAdvancedLootWnd__UpdateMasterLooter_Detour(pChar->pGroupInfo->pMember[i]->Name, true);
 					gAnonMasterLooterName = true;
 					break;
 				}
@@ -459,7 +399,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 #endif
 	}
 	//FindMQ2Window(pAdvancedLootWnd->GetChildItem(""))
-    RemoveDetour(CSidlManager__CreateLabel);
+    RemoveDetour(CSidlManagerBase__CreateLabel);
     RemoveDetour(CLabel__Draw);
     //RemoveDetour(CGaugeWnd__Draw);
     //RemoveDetour(__GetGaugeValueFromEQ);
