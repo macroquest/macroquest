@@ -452,9 +452,9 @@ public:
 
 void BZQuery(SPAWNINFO* pChar, char* szLine)
 {
-	if (CButtonWnd* pQueryButton = (CButtonWnd*)pBazaarSearchWnd->GetChildItem("BZR_QueryButton"))
+	if (pBazaarSearchWnd && pBazaarSearchWnd->pQueryButton)
 	{
-		SendWndClick2(pQueryButton, "leftmouseup");
+		SendWndClick2(pBazaarSearchWnd->pQueryButton, "leftmouseup");
 	}
 }
 
@@ -533,20 +533,31 @@ void MQ2BzSrch(SPAWNINFO* pChar, char* szLine)
 
 void SetComboSelection(CComboWnd* pCombo, DWORD index)
 {
-	CXPoint combopt = pCombo->GetScreenRect().CenterPoint();
-
 	pCombo->SetChoice(index);
-	pCombo->HandleLButtonDown(combopt, 0);
+	pCombo->HandleLButtonDown(pCombo->GetScreenRect().CenterPoint(), 0);
 
 	if (CListWnd* pListWnd = pCombo->pListWnd)
 	{
-		int index = pListWnd->GetCurSel();
-		CXPoint listpt = pListWnd->GetItemRect(index, 0).CenterPoint();
-
+		CXPoint listpt = pListWnd->GetItemRect(pListWnd->GetCurSel(), 0).CenterPoint();
 		pListWnd->HandleLButtonDown(listpt, 0);
 		pListWnd->HandleLButtonUp(listpt, 0);
-
 		WeDidStuff();
+	}
+}
+
+void SetComboSelection(CComboWnd* pCombo, const char* str)
+{
+	if (auto pListWnd = pCombo->pListWnd)
+	{
+		int itemCount = pCombo->GetItemCount();
+		for (int i = 0; i < itemCount; ++i)
+		{
+			if (!_stricmp(str, pListWnd->GetItemText(i, 0).c_str()))
+			{
+				SetComboSelection(pCombo, i);
+				break;
+			}
+		}
 	}
 }
 
@@ -602,22 +613,10 @@ void DoClass(char* szArg)
 	{
 		strcpy_s(szClass, "Any Class");
 	}
-
-	if (CComboWnd* pCombo = (CComboWnd*)pBazaarSearchWnd->GetChildItem("BZR_ClassSlotCombobox"))
+	
+	if (auto pCombo = pBazaarSearchWnd->pClassSlotCombobox)
 	{
-		if (CListWnd* pListWnd = pCombo->pListWnd)
-		{
-			for (int i = 0; i < pCombo->GetItemCount(); i++)
-			{
-				CXStr str = pListWnd->GetItemText(i, 0);
-
-				if (!_stricmp(szClass, str.c_str()))
-				{
-					SetComboSelection(pCombo, i);
-					break;
-				}
-			}
-		}
+		SetComboSelection(pCombo, szClass);
 	}
 }
 
@@ -673,25 +672,13 @@ void DoRace(char* szArg)
 		strcpy_s(szRace, "Any Race");
 	}
 
-	if (CComboWnd* pCombo = (CComboWnd*)pBazaarSearchWnd->GetChildItem("BZR_RaceSlotCombobox"))
+	if (auto pCombo = pBazaarSearchWnd->pRaceSlotCombobox)
 	{
-		if (CListWnd* pListWnd = pCombo->pListWnd)
-		{
-			for (int i = 0; i < pCombo->GetItemCount(); i++)
-			{
-				CXStr Str = pListWnd->GetItemText(i, 0);
-
-				if (!_stricmp(szRace, Str.c_str()))
-				{
-					SetComboSelection(pCombo, i);
-					break;
-				}
-			}
-		}
+		SetComboSelection(pCombo, szRace);
 	}
 }
 
-void DoCombo(char* szArg, char* key, char* szCombostring)
+void DoCombo(CComboWnd* pCombo, const char* szArg, const char* key)
 {
 	if (szArg[0] == 0)
 	{
@@ -715,29 +702,15 @@ void DoCombo(char* szArg, char* key, char* szCombostring)
 		strcpy_s(szValue, szArg);
 	}
 
-	if (CComboWnd* pCombo = (CComboWnd*)pBazaarSearchWnd->GetChildItem(szCombostring))
+	if (pCombo)
 	{
-		if (CListWnd* pListWnd = pCombo->pListWnd)
+		if (index != -1 && index <= pCombo->GetItemCount())
 		{
-			int itemcnt = pCombo->GetItemCount();
-
-			if (index != -1 && index <= itemcnt)
-			{
-				SetComboSelection(pCombo, index);
-			}
-			else
-			{
-				for (int i = 0; i < itemcnt; i++)
-				{
-					CXStr str = pListWnd->GetItemText(i, 0);
-
-					if (!_stricmp(szValue, str.c_str()))
-					{
-						SetComboSelection(pCombo, i);
-						break;
-					}
-				}
-			}
+			SetComboSelection(pCombo, index);
+		}
+		else
+		{
+			SetComboSelection(pCombo, szValue);
 		}
 	}
 }
@@ -746,7 +719,7 @@ DWORD __stdcall searchthread(void* pData)
 {
 	std::unique_lock<std::mutex> lock(s_bzrMutex);
 
-	if (CSidlScreenWnd* pQueryButton = (CSidlScreenWnd*)pBazaarSearchWnd->GetChildItem("BZR_QueryButton"))
+	if (auto pQueryButton = pBazaarSearchWnd->pQueryButton)
 	{
 		uint64_t startwait = MQGetTickCount64() + 7000;
 
@@ -806,9 +779,9 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 	bool bArg = true;
 	bool first = true;
 
-	if (CButtonWnd* pDefaultButton = (CButtonWnd*)pBazaarSearchWnd->GetChildItem("BZR_Default"))
+	if (CButtonWnd* pDefaultButton = pBazaarSearchWnd->pDefaultButton)
 	{
-		if (pDefaultButton && pDefaultButton->IsEnabled())
+		if (pDefaultButton->IsEnabled())
 		{
 			SendWndClick2((CXWnd*)pDefaultButton, "leftmouseup");
 		}
@@ -854,19 +827,19 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 		{
 			GetArg(szArg, szLine, 1);
 			szLine = GetNextArg(szLine, 1);
-			DoCombo(szArg, "Stat", "BZR_StatSlotCombobox");
+			DoCombo(pBazaarSearchWnd->pStatSlotCombobox, szArg, "Stat");
 		}
 		else if (!_stricmp(szArg, "slot"))
 		{
 			GetArg(szArg, szLine, 1);
 			szLine = GetNextArg(szLine, 1);
-			DoCombo(szArg, "Slot", "BZR_ItemSlotCombobox");
+			DoCombo(pBazaarSearchWnd->pItemSlotCombobox, szArg, "Slot");
 		}
 		else if (!_stricmp(szArg, "type"))
 		{
 			GetArg(szArg, szLine, 1);
 			szLine = GetNextArg(szLine, 1);
-			DoCombo(szArg, "Type", "BZR_ItemTypeCombobox");
+			DoCombo(pBazaarSearchWnd->pItemTypeCombobox, szArg, "Type");
 		}
 		else if (!strcmp(szArg, "price"))
 		{
@@ -878,7 +851,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (CEditWnd* pEdit = (CEditWnd*)pBazaarSearchWnd->GetChildItem("BZR_MinPriceInput"))
+			if (CEditWnd* pEdit = pBazaarSearchWnd->pMinPriceInput)
 			{
 				pEdit->SetWindowText(szArg);
 			}
@@ -892,7 +865,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (CEditWnd* pEdit = (CEditWnd*)pBazaarSearchWnd->GetChildItem("BZR_MaxPriceInput"))
+			if (CEditWnd* pEdit = pBazaarSearchWnd->pMaxPriceInput)
 			{
 				pEdit->SetWindowText(szArg);
 			}
@@ -901,19 +874,19 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 		{
 			GetArg(szArg, szLine, 1);
 			szLine = GetNextArg(szLine, 1);
-			DoCombo(szArg, "Trader", "BZR_PlayersCombobox");
+			DoCombo(pBazaarSearchWnd->pPlayersCombobox, szArg, "Trader");
 		}
 		else if (!_stricmp(szArg, "prestige"))
 		{
 			GetArg(szArg, szLine, 1);
 			szLine = GetNextArg(szLine, 1);
-			DoCombo(szArg, "Prestige", "BZR_ItemPrestigeCombobox");
+			DoCombo(pBazaarSearchWnd->pItemPrestigeCombobox, szArg, "Prestige");
 		}
 		else if (!_stricmp(szArg, "augment"))
 		{
 			GetArg(szArg, szLine, 1);
 			szLine = GetNextArg(szLine, 1);
-			DoCombo(szArg, "Augment", "BZR_ItemAugmentCombobox");
+			DoCombo(pBazaarSearchWnd->pItemAugmentCombobox, szArg, "Augment");
 		}
 		else
 		{
@@ -930,7 +903,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 		}
 	}
 
-	if (CEditWnd* pMaxEdit = (CEditWnd*)pBazaarSearchWnd->GetChildItem("BZR_MaxResultsPerTraderInput"))
+	if (CEditWnd* pMaxEdit = pBazaarSearchWnd->pMaxResultsPerTraderInput)
 	{
 		pMaxEdit->SetWindowText("200");
 	}
@@ -939,10 +912,9 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 		MacroError("Whats wrong? couldnt find the BZR_MaxResultsPerTraderInput window.");
 	}
 
-	if (CEditWnd* pEdit = (CEditWnd*)pBazaarSearchWnd->GetChildItem("BZR_ItemNameInput"))
+	if (CEditWnd* pEdit = pBazaarSearchWnd->pItemNameInput)
 	{
-		pEdit->SetWindowTextA(szItem);
-
+		pEdit->SetWindowText(szItem);
 		DWORD nThreadID = 0;
 		CreateThread(NULL, NULL, searchthread, 0, 0, &nThreadID);
 	}
