@@ -1,11 +1,24 @@
-// MQ2Labels.cpp : Defines the entry point for the DLL application.
-//
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 // 2.0 - May 14 2016 - Added code to allow anonymizing labels, for streaming/video recording. - eqmule
 // MQ2 Custom Labels
 
-
 #include "../MQ2Plugin.h"
+
 PLUGIN_VERSION(2.0);
+
 // PLEASE keep this array limited.  Recommend using 9999 and tooltips.
 struct _ID_PMP
 { DWORD ID;PCHAR PMP; }

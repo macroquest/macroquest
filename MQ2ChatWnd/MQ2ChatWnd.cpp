@@ -767,7 +767,6 @@ BOOL dataChatWnd(char* szName, MQ2TYPEVAR& Dest)
 
 PLUGIN_API void InitializePlugin()
 {
-	DebugSpewAlways("Initializing MQ2ChatWnd");
 	// Add commands, macro parameters, hooks, etc. 
 	AddMQ2Data("ChatWnd", dataChatWnd);
 	pChatWndType = new MQ2ChatWndType;
@@ -786,7 +785,6 @@ PLUGIN_API void InitializePlugin()
 
 PLUGIN_API void ShutdownPlugin()
 {
-	DebugSpewAlways("Shutting down MQ2ChatWnd");
 	sPendingChat.clear();
 
 	// Remove commands, macro parameters, hooks, etc. 

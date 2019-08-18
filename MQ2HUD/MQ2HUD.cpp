@@ -1,9 +1,22 @@
-// MQ2HUD.cpp : Defines the entry point for the DLL application.
-//
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 // Cr4zyb4rd patch: 1/7/2005
 // Updated Sep 09 2017 by eqmule to take undeclared macro variables into account
 
 #include "../MQ2Plugin.h"
+
 HANDLE hHudLock = 0;
 bool bEQHasFocus=true;
 
@@ -173,7 +186,7 @@ VOID LoadElements()
     }
     if (gGameState==GAMESTATE_INGAME) {
         if (bClassHUD && ((ppCharData) && (pCharData))) {
-			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			if (CHARINFO2* pChar2 = GetCharInfo2()) {
 				sprintf_s(ClassDesc, "%s", GetClassDesc(pChar2->Class));
 				GetPrivateProfileString(ClassDesc, NULL, "", ElementList, MAX_STRING * 10, INIFileName);
 				PCHAR pElementList = ElementList;

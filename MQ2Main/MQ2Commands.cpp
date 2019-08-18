@@ -4162,7 +4162,7 @@ void AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 //              Echos text to the chatbox
 // Usage:       /echo <text>
 // ***************************************************************************
-void Echo(SPAWNINFO* pChar, const char* szLine)
+void Echo(SPAWNINFO* pChar, char* szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;

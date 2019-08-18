@@ -1,12 +1,18 @@
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include <sstream>
-
-// MQ2Map.cpp : Defines the entry point for the DLL application.
-//
-
-// PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
-// are shown below. Remove the ones your plugin does not use.  Always use Initialize
-// and Shutdown for setup and cleanup, do NOT do it in DllMain.
-
 
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"

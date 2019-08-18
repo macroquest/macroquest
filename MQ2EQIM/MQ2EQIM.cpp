@@ -1,15 +1,21 @@
-// MQ2EQIM.cpp : Defines the entry point for the DLL application.
-//
-// v2.0 - Eqmule 07-22-2016 - Added string safety.
-// PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
-// are shown below. Remove the ones your plugin does not use.  Always use Initialize
-// and Shutdown for setup and cleanup, do NOT do it in DllMain.
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
 #include "../MQ2Plugin.h"
 
 PreSetup("MQ2EQIM");
 PLUGIN_VERSION(2.0);
-// TODO: Buddy list window.
 
 #define BUDDY_OFFLINE   1
 #define BUDDY_EQIM      2

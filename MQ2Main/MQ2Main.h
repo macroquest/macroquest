@@ -468,7 +468,7 @@ EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
 
 #define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute,FromPlugin)
-LEGACY_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, BOOL delayed);
+LEGACY_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
 #define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer, commandtoexecute)
 
 EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);

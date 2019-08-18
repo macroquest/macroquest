@@ -443,7 +443,7 @@ EQLIB_VAR PlayerClient** ppActiveMerchant;
 EQLIB_VAR PlayerManagerClient** ppSpawnManager;
 #define pSpawnManager (*ppSpawnManager)
 #define pSpawnList ((pSpawnManager)->FirstSpawn)
-#define pChatService ((CChatService*)((PEVERQUEST)pEverQuest)->ChatService)
+#define pChatService ((CChatService*)((EVERQUEST*)pEverQuest)->ChatService)
 #define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PointManager.vfTable)
 
 EQLIB_VAR PlayerClient** ppLocalPlayer;
