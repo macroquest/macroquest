@@ -977,7 +977,7 @@ FUNCTION_AT_ADDRESS(DWORD EQGetTime(), __EQGetTime);
 FUNCTION_AT_ADDRESS(void msg_successful_hit(struct _EQSuccessfulHit*),__msg_successful_hit);
 #endif
 #ifdef __STMLToText_x
-FUNCTION_AT_ADDRESS(CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool bFlag), __STMLToText);
+FUNCTION_AT_ADDRESS(CXStr STMLToText(const CXStr&, bool), __STMLToText);
 #endif
 #ifdef __GetAnimationCache_x
 FUNCTION_AT_ADDRESS(class IconCache *__cdecl GetAnimationCache(int index), __GetAnimationCache);

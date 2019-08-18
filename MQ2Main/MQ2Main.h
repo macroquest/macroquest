@@ -447,7 +447,7 @@ EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
 EQLIB_API unsigned long GetFastTime(void);
 EQLIB_API char * __stdcall GetXtargetType(DWORD type);
 EQLIB_API DWORD EQGetTime();
-EQLIB_API CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool bFlag);
+EQLIB_OBJECT CXStr STMLToText(const CXStr& In, bool bReplaceBrWithNewline = true);
 EQLIB_API class IconCache *__cdecl GetAnimationCache(int index);
 EQLIB_API void SaveColors(int, int, int, int);
 
