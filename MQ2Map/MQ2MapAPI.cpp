@@ -15,7 +15,7 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 
-#define pMap     ((PEQMAPWINDOW)pMapViewWnd)
+//#define pMap     ((PEQMAPWINDOW)pMapViewWnd)
 typedef struct _MAPSPAWN
 {
 	PSPAWNINFO pSpawn = 0;
@@ -620,9 +620,7 @@ void MapUpdate()
 		{
 			if (pChar->pGroupInfo && pChar->pGroupInfo->pMember[i])
 			{
-				CHAR Name[MAX_STRING] = { 0 };
-				GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);
-				PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByName(Name);
+				auto pSpawn = GetSpawnByName(pChar->pGroupInfo->pMember[i]->Name.c_str());
 				if (pSpawn)
 					if (pMapSpawn = SpawnMap[pSpawn->SpawnID])
 					{
@@ -761,16 +759,16 @@ void MapAttach()
 {
 	if (pLabelList)
 	{
-		pActualLineList = pMap->pLabels;
+		pActualLineList = pMapViewWnd->MapView.pLabels;
 		if (IsOptionEnabled(MAPFILTER_NormalLabels))
-			pLabelListTail->pNext = pMap->pLabels;
-		pMap->pLabels = pLabelList;
+			pLabelListTail->pNext = pMapViewWnd->MapView.pLabels;
+		pMapViewWnd->MapView.pLabels = pLabelList;
 	}
 
 	if (pLineList)
 	{
-		pLineListTail->pNext = pMap->pLines;
-		pMap->pLines = pLineList;
+		pLineListTail->pNext = pMapViewWnd->MapView.pLines;
+		pMapViewWnd->MapView.pLines = pLineList;
 	}
 }
 
@@ -778,12 +776,12 @@ void MapDetach()
 {
 	if (pLabelList)
 	{
-		pMap->pLabels = pActualLineList;
+		pMapViewWnd->MapView.pLabels = pActualLineList;
 		pLabelListTail->pNext = 0;
 	}
 	if (pLineList)
 	{
-		pMap->pLines = pLineListTail->pNext;
+		pMapViewWnd->MapView.pLines = pLineListTail->pNext;
 		pLineListTail->pNext = 0;
 	}
 }
@@ -818,7 +816,7 @@ bool MapSelectTarget()
 		}
 		else
 		{
-			pTarget = (EQPlayer*)pMapSpawn->pSpawn;
+			pTarget = reinterpret_cast<PlayerClient*>(pMapSpawn->pSpawn);
 		}
 	}
 	if (IsOptionEnabled(MAPFILTER_TargetPath))
@@ -1193,8 +1191,8 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
 	pLabel->Color.ARGB = Color;
 	pLabel->Width = 20;
 	pLabel->Height = 14;
-	pLabel->unk_0x2c = 0;
-	pLabel->unk_0x30 = 0;
+	pLabel->OffsetX = 0;
+	pLabel->OffsetY = 0;
 	return pLabel;
 }
 

@@ -808,7 +808,7 @@ public:
 	// all still exist.
 	bool IsAMount();
 	bool MyFeetAreOnGround();
-	bool HasProperty(unsigned int, int, int);
+	EQLIB_OBJECT bool HasProperty(unsigned int, int, int);
 	bool IsTargetable();
 	bool CanSee(const PlayerBase&);
 	bool CanSee(const CVector3& pos);

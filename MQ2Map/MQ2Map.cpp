@@ -123,12 +123,12 @@ MAPFILTER MapFilterOptions[] = {
 	{ NULL,           FALSE,(DWORD)-1,         FALSE,(DWORD)MAPFILTER_Invalid,FALSE,  NULL }
 };
 
-PCSIDLWNDVFTABLE CMyMapViewWnd__OldvfTable = 0;
-PCSIDLWNDVFTABLE MapViewMap_OldvfTable = 0;
-DWORD CMyMapViewWnd__OldDestructor = 0;
-DWORD CMyMapViewWnd__OldHandleRButtonDown = 0;
-DWORD CMyMapViewWnd__OldPostDraw = 0;
-DWORD MapViewMap__OldHandleRButtonDown = 0;
+CSidlScreenWnd::VirtualFunctionTable* CMyMapViewWnd__OldvfTable = nullptr;
+CSidlScreenWnd::VirtualFunctionTable* MapViewMap_OldvfTable = nullptr;
+void * CMyMapViewWnd__OldDestructor = nullptr;
+void * CMyMapViewWnd__OldHandleRButtonDown = nullptr;
+void * CMyMapViewWnd__OldPostDraw = nullptr;
+void * MapViewMap__OldHandleRButtonDown = nullptr;
 
 DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 {
@@ -150,12 +150,12 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 				push    eax
 				mov		ebp, esp
 		}
-		delete (PVOID)(*ppMapViewWnd)->pvfTable;
-		(*ppMapViewWnd)->pvfTable = CMyMapViewWnd__OldvfTable;
-		CMyMapViewWnd__OldvfTable = NULL;
-		delete ((PEQMAPWINDOW)(*ppMapViewWnd))->pMapViewMapVfTable;
-		((PEQMAPWINDOW)(*ppMapViewWnd))->pMapViewMapVfTable = MapViewMap_OldvfTable;
-		MapViewMap_OldvfTable = NULL;
+		delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pMapViewWnd);
+		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pMapViewWnd) = CMyMapViewWnd__OldvfTable;
+		delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pMapViewWnd->MapView);
+		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pMapViewWnd->MapView) = MapViewMap_OldvfTable;
+		CMyMapViewWnd__OldvfTable = nullptr;
+		MapViewMap_OldvfTable = nullptr;
 		__asm {
 			pop     eax
 				pop     eax
@@ -237,8 +237,8 @@ public:
 	{
         CMapViewWnd *pWnd = reinterpret_cast<CMapViewWnd*>(this);
 		float points[3] = { 0 ,0,0};
-        points[0] = (float)point.X;
-        points[1] = (float)point.Y;
+        points[0] = (float)point.x;
+        points[1] = (float)point.y;
         points[2] = 0;
         pWnd->GetWorldCoordinates(points); // this writes the world X & Y coords into points
 
@@ -274,64 +274,48 @@ public:
 	DWORD Constructor_Detour(class CXWnd *wnd)
 	{
 		DWORD Ret = Constructor_Trampoline(wnd);
-		CMapViewWnd *pWnd = (CMapViewWnd*)this;
-		PEQMAPWINDOW mwnd = (PEQMAPWINDOW)pWnd;
-		PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE;
-		PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
-		*pvfTable = *pWnd->pvfTable;
-		*pMapViewMapVfTable = *((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
-
-		CMyMapViewWnd__OldvfTable = pWnd->pvfTable;
-		pWnd->pvfTable = pvfTable;
-		MapViewMap_OldvfTable = mwnd->pMapViewMapVfTable;
-		mwnd->pMapViewMapVfTable = pMapViewMapVfTable;
-		CMyMapViewWnd__OldPostDraw = (DWORD)mwnd->pMapViewMapVfTable->PostDraw2;
-		CMyMapViewWnd__OldDestructor = (DWORD)pWnd->pvfTable->vector_deleting_destructor;
-		pWnd->pvfTable->vector_deleting_destructor = CMyMapViewWnd__Destructor;
-		mwnd->pMapViewMapVfTable->PostDraw2 = CMyMapViewWnd__PostDraw;
-		MapViewMap__OldHandleRButtonDown = (DWORD)mwnd->pMapViewMapVfTable->HandleRButtonDown;
-		mwnd->pMapViewMapVfTable->HandleRButtonDown = MapViewMap__HandleRButtonDown;
+		StealVFTable(reinterpret_cast<CMapViewWnd*>(this));
 		return Ret;
 	}
 
-	static void StealVFTable()
+	static void StealVFTable(CMapViewWnd * pWnd)
 	{
-		if (CMapViewWnd *pWnd = (CMapViewWnd*)pMapViewWnd)
-		{
-			PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE;
-			PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
-			*pvfTable = *pWnd->pvfTable;
-			*pMapViewMapVfTable = *((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+		// Copy existing vftables
+		auto pvfTable = new CSidlScreenWnd::VirtualFunctionTable(**reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd));
+		auto pMapViewMapVfTable = new CSidlScreenWnd::VirtualFunctionTable(**reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView));
 
-			CMyMapViewWnd__OldvfTable = pWnd->pvfTable;
-			pWnd->pvfTable = pvfTable;
-			MapViewMap_OldvfTable = ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
-			((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable = pMapViewMapVfTable;
-			CMyMapViewWnd__OldPostDraw = (DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2;
-			CMyMapViewWnd__OldDestructor = (DWORD)pWnd->pvfTable->vector_deleting_destructor;
-			pWnd->pvfTable->vector_deleting_destructor = CMyMapViewWnd__Destructor;
-			((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2 = CMyMapViewWnd__PostDraw;
-			MapViewMap__OldHandleRButtonDown = (DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown;
-			((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown = MapViewMap__HandleRButtonDown;
-		}
+		// Replace functions with our detoured ones
+		pvfTable->Destructor = CMyMapViewWnd__Destructor;
+		pMapViewMapVfTable->PostDraw = CMyMapViewWnd__PostDraw;
+		pMapViewMapVfTable->HandleRButtonDown = MapViewMap__HandleRButtonDown;
+
+		// Preserve pointers to existing vftables
+		CMyMapViewWnd__OldvfTable = *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd);
+		MapViewMap_OldvfTable = *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView);
+
+		// Preserve 
+		CMyMapViewWnd__OldPostDraw = MapViewMap_OldvfTable->PostDraw;
+		CMyMapViewWnd__OldDestructor = CMyMapViewWnd__OldvfTable->Destructor;
+		MapViewMap__OldHandleRButtonDown = pMapViewMapVfTable->HandleRButtonDown;
+
+		// Replace vftables with our ones
+		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd) = pvfTable;
+		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView) = pMapViewMapVfTable;
 	}
 
-	static void RestoreVFTable()
+	static void RestoreVFTable(CMapViewWnd *pWnd)
 	{
-		if (CMapViewWnd *pWnd = (CMapViewWnd*)pMapViewWnd)
-		{
 			if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable) {
-				delete pWnd->pvfTable;
-				pWnd->pvfTable = CMyMapViewWnd__OldvfTable;
-				delete ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
-				((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable = MapViewMap_OldvfTable;
+				delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd);
+				*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd) = CMyMapViewWnd__OldvfTable;
+				delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView);
+				*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView) = MapViewMap_OldvfTable;
 			}
-		}
 	}
 };
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD CMyMapViewWnd::Constructor_Trampoline(class CXWnd *));
-DETOUR_TRAMPOLINE_EMPTY(int CMyMapViewWnd::HandleLButtonDown_Trampoline(class CXPoint&, unsigned __int32));
+DETOUR_TRAMPOLINE_EMPTY(int CMyMapViewWnd::HandleLButtonDown_Trampoline(const CXPoint&, unsigned __int32));
 
 bool Update = true;
 
@@ -400,7 +384,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/clearloc", MapClearLocationCmd, 0, 1, 1);
 
 	EzDetourwName(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline,"CMapViewWnd__CMapViewWnd");
-	CMyMapViewWnd::StealVFTable();
+	if (pMapViewWnd)
+		CMyMapViewWnd::StealVFTable(pMapViewWnd);
 
     EzDetourwName(CMapViewWnd__HandleLButtonDown, &CMyMapViewWnd::HandleLButtonDown_Detour, &CMyMapViewWnd::HandleLButtonDown_Trampoline, "CMapViewWnd__HandleLButton");
 
@@ -420,7 +405,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveDetour(CMapViewWnd__HandleLButtonDown);
 
 	MapClear();
-	CMyMapViewWnd::RestoreVFTable();
+	if (pMapViewWnd)
+		CMyMapViewWnd::RestoreVFTable(pMapViewWnd);
 
 	RemoveMQ2Benchmark(bmMapRefresh);
 	RemoveCommand("/maphide");
