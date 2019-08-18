@@ -420,6 +420,8 @@ public:
 			return true;
 
 		case Pricecheck:
+			if (!pg_Item)
+				return false;
 			Dest.DWord = pg_Item->Cost;
 			Dest.Type = pIntType;
 			return true;
