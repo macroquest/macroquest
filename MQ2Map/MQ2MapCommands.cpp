@@ -228,12 +228,10 @@ VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine == 0 || szLine[0] == 0)
 	{
-		for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+		for (auto const& [tag, loc] : LocationMap)
 		{
-			PMAPLOC loc = it->second;
 			ClearMapLocLines(loc);
 			delete loc;
-			LocationMap.erase(it);
 		}
 
 		LocationMap.clear();
@@ -243,7 +241,7 @@ VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	PCHAR usage = "Usage: /clearloc [yloc xloc]";
-	stringstream ss(szLine);
+	std::stringstream ss(szLine);
 	CHAR arg[MAX_STRING];
 	CHAR yloc[MAX_STRING] = { "not set" };
 	CHAR xloc[MAX_STRING] = { "not set" };
@@ -305,7 +303,7 @@ VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	stringstream ss(szLine);
+	std::stringstream ss(szLine);
 	CHAR arg[MAX_STRING];
 
 	// Read arguments into vars
@@ -431,7 +429,7 @@ VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
 		loc->b_color = DefaultMapLoc->b_color;
 	}
 
-	stringstream MapLocVars;
+	std::stringstream MapLocVars;
 	MapLocVars << "MapLoc: ";
 
 	if (size != 0 && size[0] != 0)
@@ -488,7 +486,7 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR red[MAX_STRING] = { 0 };
 	CHAR green[MAX_STRING] = { 0 };
 	CHAR blue[MAX_STRING] = { 0 };
-	stringstream ss(szLine);
+	std::stringstream ss(szLine);
 	bRunNextCommand = TRUE;
 
 	if (szLine == 0 || szLine[0] == 0)

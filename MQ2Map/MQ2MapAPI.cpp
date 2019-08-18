@@ -45,10 +45,10 @@ PMAPLINE  pLineListTail = 0;
 
 
 
-map<unsigned long, PMAPSPAWN> SpawnMap;
-map<unsigned long, PMAPSPAWN> GroundItemMap;
-map<PMAPLABEL, PMAPSPAWN> LabelMap;
-map<string, PMAPLOC> LocationMap;
+std::map<unsigned long, PMAPSPAWN> SpawnMap;
+std::map<unsigned long, PMAPSPAWN> GroundItemMap;
+std::map<PMAPLABEL, PMAPSPAWN> LabelMap;
+std::map<std::string, PMAPLOC> LocationMap;
 PMAPLOC DefaultMapLoc = new MAPLOC;
 
 BOOL Update = false;
@@ -955,10 +955,10 @@ DWORD MapHighlight(SEARCHSPAWN *pSearch)
 
 PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 {
-    string sOutput;
+	std::string sOutput;
 #define AddString(str) {sOutput.append( str );}
-#define AddInt(yourint) {sOutput.append( to_string( yourint ) );}
-#define AddFloat10th(yourfloat) {sOutput.append( to_string( yourfloat ) );}
+#define AddInt(yourint) {sOutput.append( std::to_string( yourint ) );}
+#define AddFloat10th(yourfloat) {sOutput.append( std::to_string( yourfloat ) );}
 
 	for (unsigned long N = 0; NameString[N]; N++)
 	{
@@ -1547,9 +1547,8 @@ VOID UpdateDefaultMapLoc()
 	DefaultMapLoc->b_color = GetPrivateProfileInt("MapLoc", "Blue", 0, INIFileName);
 #endif
 	// Update existing default maplocs
-	for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+	for (auto const& [tag, loc] : LocationMap)
 	{
-		PMAPLOC loc = it->second;
 		if (loc && loc->isCreatedFromDefaultLoc)
 		{
 			loc->lineSize = DefaultMapLoc->lineSize;

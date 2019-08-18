@@ -13,7 +13,7 @@
  */
 
 #include <map>
-using namespace std;
+//using namespace std;
 #ifdef ISXEQ
 #include "ISXEQMap.h"
 #endif
@@ -62,7 +62,7 @@ typedef struct _MAPLOC {
 	bool isCreatedFromDefaultLoc;
 	int yloc;
 	int xloc;
-	string tag; // "yloc,xloc"
+	std::string tag; // "yloc,xloc"
 	int lineSize;
 	int width;
 	int r_color;
@@ -90,7 +90,7 @@ extern unsigned long bmMapRefresh;
 
 extern int activeLayer;
 
-extern map<string, PMAPLOC> LocationMap;
+extern std::map<std::string, PMAPLOC> LocationMap;
 extern PMAPLOC DefaultMapLoc;
 
 extern DWORD HighlightColor;

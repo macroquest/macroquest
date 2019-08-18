@@ -434,12 +434,10 @@ PLUGIN_API VOID OnPulse(VOID)
 	if (PCHARINFO charInfo = GetCharInfo()) {
 		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
 		{
-			for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+			for (auto const& [tag, loc] : LocationMap)
 			{
-				PMAPLOC loc = it->second;
 				ClearMapLocLines(loc);
 				delete loc;
-				LocationMap.erase(it);
 			}
 			LocationMap.clear();
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
