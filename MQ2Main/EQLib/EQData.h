@@ -1802,7 +1802,7 @@ struct [[offsetcomments]] _CHATSERVICE
 /*0xc8*/ FriendEntry** BuddyList;
 /*0xcc*/ int          BuddyListCount;
 /*0xd0*/ ArrayClass<CXStr> IgnoreList;
-/*0xd0*/
+/*0xe0*/
 };
 using PCHATSERVICE [[deprecated]] = _CHATSERVICE*;
 using CHATSERVICE/* [[deprecated]]*/ = _CHATSERVICE;
@@ -1817,7 +1817,7 @@ public:
 	};
 
 /*0x00*/ SoeUtil::Array<PickZoneRecord> Records;
-/*0x00*/
+/*0x10*/
 };
 
 struct [[offsetcomments]] PETITIONSTATUS
@@ -1928,7 +1928,7 @@ struct [[offsetcomments]] _EVERQUEST
 /*0x38e78*/ int              Green;
 /*0x38e7c*/ int              Blue;
 /*0x38e80*/ ArrayClass_RO<CSINFO> pCharSelectPlayerArray;
-/*0x38e80*/ // more data
+/*0x38e90*/ // more data
 };
 using EVERQUEST /*[[deprecated]]*/ = _EVERQUEST;
 using PEVERQUEST [[deprecated]] = _EVERQUEST*;

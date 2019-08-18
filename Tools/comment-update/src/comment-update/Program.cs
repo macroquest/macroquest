@@ -29,11 +29,11 @@ namespace comment_update
 			// Get offsets from PDB
 			var structs = StructDefinition.ParsePdb(args[0]).ToList();
 
-            // Get location in source files from clang
-            List<(string File, uint Line, string Offset)> offsetLocations = new List<(string, uint, string)>();
+			// Get location in source files from clang
+	        List<(string File, uint Line, string Offset)> offsetLocations = new List<(string, uint, string)>();
             foreach (var sourceFile in args.Skip(1))
             {
-                var tuHandle = CXTranslationUnit.Parse(CXIndex.Create(), sourceFile, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_None);
+	            var tuHandle = CXTranslationUnit.Parse(CXIndex.Create(), sourceFile, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies);
                 var tu = TranslationUnit.GetOrCreate(tuHandle).TranslationUnitDecl;
                 
                 foreach (var ns in tu.CursorChildren.Where(c => c is NamespaceDecl).Cast<NamespaceDecl>())
@@ -76,18 +76,29 @@ namespace comment_update
         }
 
         private static IEnumerable<(string File, uint Line, string Offset)> GetOffsetLocations(RecordDecl record, IReadOnlyList<StructDefinition> structs)
-        {
-            // Even if we're not updating comments for this type, still need to check nested types
-            foreach (var child in record.CursorChildren.Where(c => c is RecordDecl).Cast<RecordDecl>())
+		{
+			// Even if we're not updating comments for this type, still need to check nested types
+			foreach (var child in record.CursorChildren.Where(c => c is RecordDecl).Cast<RecordDecl>())
                 foreach (var offsetLocation in GetOffsetLocations(child, structs))
                     yield return offsetLocation;
 
             // Custom attributes aren't included in the AST, so search for it manually
             record.Location.GetFileLocation(out var classFile, out var classLine, out _, out _);
-            if (!File.ReadAllLines(classFile.ToString())[classLine - 1].Contains("[[offsetcomments]]"))
+			var match = Regex.Match(File.ReadAllLines(classFile.ToString())[classLine - 1],
+				@"\[\[offsetcomments(?:\((?<base>0x[0-9a-fA-F]+|\d+)\))?\]\]");
+
+			if (!match.Success)
                 yield break;
 
-            var name = GetFullName(record);
+			var baseOffset = 0;
+			if (match.Groups["base"].Success)
+			{
+				var baseStr = match.Groups["base"].Captures[0].Value;
+				if (!int.TryParse(baseStr, out baseOffset))
+					baseOffset = Convert.ToInt32(baseStr, 16);
+			}
+
+			var name = GetFullName(record);
 
             var definition = structs.SingleOrDefault(s => s.Name == name);
             if (definition == null)
@@ -134,7 +145,7 @@ namespace comment_update
 			        Console.WriteLine($"{name}::{field.Name} not found in pdb, skipping");
 		        else
 		        {
-			        locations.Add((field, fieldFile.ToString(), fieldLine, member.Offset));
+			        locations.Add((field, fieldFile.ToString(), fieldLine, member.Offset + baseOffset));
 		        }
 			}
 

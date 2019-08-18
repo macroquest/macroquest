@@ -561,7 +561,7 @@ public:
 /*0x338*/ int          EditMode;
 /*0x33c*/ wchar_t      PasswordChar;
 /*0x340*/ ArrayClass2<uint32_t> LineIndices;
-/*0x340*/
+/*0x358*/
 };
 
 //============================================================================
@@ -3227,7 +3227,7 @@ public:
 	EQLIB_OBJECT CHtmlWnd* GetHtmlWnd(const char* windowId);
 
 /*0x00*/ TList<CHtmlWnd>             m_htmlWndList;
-/*0x00*/
+/*0x08*/
 };
 
 //============================================================================
@@ -3869,7 +3869,7 @@ public:
 /*0x370*/ CXWnd*      wndSpacer;
 /*0x374*/ bool        bEditing;
 /*0x378*/ MapViewMap  MapView;                            // a window component owned by CMapViewWnd.
-/*0x37c*/
+/*0x5f8*/
 	// alias the stupid
 	__declspec(property(get = getLines)) PMAPLINE pLines;
 	__declspec(property(get = getLabels)) PMAPLABEL pLabels;
@@ -5171,7 +5171,7 @@ public:
 /*0x00*/ void* vfTable;
 /*0x04*/ ArrayClass2_RO<CXMLSymbolClass> ClassesArray;
 /*0x1c*/ CHashCXStrInt32               ClassesHashes;
-/*0x20*/
+/*0x34*/
 };
 
 class [[offsetcomments]] CXMLDataManager

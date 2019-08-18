@@ -1667,7 +1667,7 @@ class [[offsetcomments]] RealEstateItemObject
 {
 public:
 /*0x00*/ VePointer<CONTENTS> pItemBase;
-/*0x00*/
+/*0x04*/
 };
 
 class [[offsetcomments]] RealEstateItem
@@ -2172,7 +2172,7 @@ public:
 /*0x28*/ int           BetaOnly;
 /*0x2c*/ int           QuestAbility;
 /*0x30*/ ArrayClass<MercenaryAbilityReq> AbilityReqs;
-/*0x30*/
+/*0x40*/
 };
 
 class [[offsetcomments]] MercenaryAlternateAdvancementManagerClient
@@ -2185,7 +2185,7 @@ public:
 /*0x144*/ HashList<int, 0x40>                          MercenaryAbilitiesByGroupID;
 /*0x25c*/ HashList<int, 0x40>                          MercenaryAbilitiesOwnedByGroupID;
 /*0x374*/ HashList<HashList<int, 0x10>, 0x40>          MercenaryAbilityGroups;
-/*0x378*/
+/*0x48c*/
 };
 
 class EQSpellStrings
@@ -2435,7 +2435,7 @@ public:
 	};
 
 /*0x00*/ HashTable<FileStat*> FileStats;
-/*0x04*/
+/*0x10*/
 };
 
 enum ReqType
@@ -2465,8 +2465,8 @@ public:
 class [[offsetcomments]] SpellRequirementAssociationManager : public RequirementAssociationManager
 {
 public:
-/*0x230*/ HashList<HashList<HashList<int, 10>, 10>, 1000> ReqAssData;
-/*0x234*/
+/*0x0230*/ HashList<HashList<HashList<int, 10>, 10>, 1000> ReqAssData;
+/*0x11e8*/
 };
 
 struct [[offsetcomments]] StageType
@@ -2608,7 +2608,7 @@ public:
 /*0x3a9b0*/ int      SpellStackingFileCRC;
 /*0x3a9b4*/ SpellRequirementAssociationManager ReqAssocManager;
 /*0x3bb9c*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
-/*0x3bb9c*/ 
+/*0x3bbac*/ 
 
 SpellManager(char*);
 	virtual ~SpellManager() {}
@@ -2637,7 +2637,7 @@ public:
 /*0x076530*/ SPELLCALCINFO*               CalcInfo[CalcInfoSize];              // 175000
 /*0x139a30*/ EQSpellExtra                 SpellExtraData[TOTAL_SPELL_COUNT+1];
 /*0x1aed38*/ HashTable<StackingGroupData> StackingData;
-/*0x1aed3c*/
+/*0x1aed48*/
 };
 
 class StringTable

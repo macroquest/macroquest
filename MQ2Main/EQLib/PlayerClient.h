@@ -858,7 +858,7 @@ public:
 /*0x1174*/ CCapsule           StaticCollision;
 /*0x1190*/ ArrayClass<PhysicsEffect> mPhysicsEffects;
 /*0x11a0*/ ArrayClass<bool>   PhysicsEffectsUpdated;
-/*0x11a0*/
+/*0x11b0*/
 	int LegalPlayerRace(int race);
 
 	// Some methods that were from EQPlayer in the past

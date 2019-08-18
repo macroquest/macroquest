@@ -259,7 +259,7 @@ public:
 /*0x28*/ HashTable<CachedFocusEffect, int64_t>      CachedFocusEffects;
 /*0x38*/ HashTable<CachedFocusAbility, int64_t>     CachedFocusAbilities;
 /*0x48*/ HashTable<CachedFocusMercAbility, int64_t> CachedFocusMercAbilities;
-/*0x4c*/
+/*0x58*/
 };
 
 

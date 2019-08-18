@@ -951,7 +951,7 @@ public:
 
 	// this is probably wrong but might be the right size.
 /*0x04*/ HashTable<void*, int, ResizePolicyNoShrink> Factories;
-/*0x04*/
+/*0x14*/
 };
 
 class [[offsetcomments]] ControllerManager
@@ -961,7 +961,7 @@ public:
 
 /*0x04*/ ControllerFactory* DefaultControllerFactory;
 /*0x08*/ HashTable<ControllerFactory*> ControllerFactories;
-/*0x0c*/
+/*0x18*/
 };
 
 //----------------------------------------------------------------------------
@@ -990,7 +990,7 @@ public:
 
 /*0x180*/ ControllerFactory DefaultControllerFactory;
 /*0x194*/ ControllerManager ControllerMgr;
-/*0x198*/
+/*0x1ac*/
 };
 
 using CXWNDMGR [[deprecated]] = CEQXWndManager;

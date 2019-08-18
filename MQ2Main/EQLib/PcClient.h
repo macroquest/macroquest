@@ -415,7 +415,7 @@ class [[offsetcomments]] PointSystemBase
 public:
 /*0x00*/ void* vfTable;
 /*0x04*/ ArrayClass_RO<PointNamesEntry*> PointNameEntries;
-/*0x04*/
+/*0x14*/
 };
 
 class [[offsetcomments]] CPlayerPointManager
@@ -423,7 +423,7 @@ class [[offsetcomments]] CPlayerPointManager
 public:
 /*0x00*/ void* vfTable;
 /*0x04*/ ArrayClass<Point*> Points;
-/*0x04*/
+/*0x14*/
 };
 
 struct [[offsetcomments]] ProgressionExperience
@@ -599,7 +599,7 @@ public:
 /*0x058*/ int          PlayerGuild;
 /*0x05c*/ TSafeArrayStatic<int, NUM_LONG_BUFFS>     BuffIDs;
 /*0x104*/ TSafeArrayStatic<StatCounter, S_LastStat> Statistics;
-/*0x104*/
+/*0x150*/
 };
 
 struct [[offsetcomments]] ClaimData
@@ -613,7 +613,7 @@ class [[offsetcomments]] ClaimDataCollection
 {
 public:
 /*0x00*/ ArrayClass<ClaimData> ClaimData;
-/*0x00*/
+/*0x10*/
 };
 
 class [[offsetcomments]] MercenaryAbilityInfo
@@ -2082,85 +2082,85 @@ public:
 	EQLIB_OBJECT VePointer<CONTENTS> GetItemPossession(const ItemIndex& lIndex) const;
 };
 
-class [[offsetcomments]] CharacterZoneClient : virtual public CharacterBase
+class [[offsetcomments(0x2418)]] CharacterZoneClient : virtual public CharacterBase
 {
 public:
 	union {
-/*0x004*/ PlayerClient*               me;                 // just here for comparing the 2, todo: fix
-/*0x004*/ SPAWNINFO*                  me2;
+/*0x241c*/ PlayerClient*               me;                 // just here for comparing the 2, todo: fix
+/*0x241c*/ SPAWNINFO*                  me2;
 	};
-/*0x008*/ bool                        bUpdateStuff;
-/*0x009*/ bool                        bZoningStatProcessing;
-/*0x00c*/ DWORD                       ArmorClassBonus;              // vtable2+10
-/*0x010*/ DWORD                       CurrWeight;                   // vtable2+14
-/*0x014*/ int                         LastHitPointSendPercent;
-/*0x018*/ int                         LastManaPointSendPercent;
-/*0x01c*/ int                         LastEndurancePointSendPercent;
-/*0x020*/ DWORD                       HPBonus;                      // vtable2+24
-/*0x024*/ DWORD                       ManaBonus;                    // vtable2+28
-/*0x028*/ DWORD                       EnduranceBonus;               // vtable2+2c
-/*0x02c*/ BYTE                        Unknown0x2450[0x4];
-/*0x030*/ DWORD                       CombatEffectsBonus;           // vtable2+34 Combat Effects in UI
-/*0x034*/ DWORD                       ShieldingBonus;               // vtable2+38 Melee Shielding in UI
-/*0x038*/ DWORD                       SpellShieldBonus;             // vtable2+3c Spell Shielding in UI
-/*0x03c*/ DWORD                       AvoidanceBonus;               // vtable2+40 Avoidance in UI
-/*0x040*/ DWORD                       AccuracyBonus;                // vtable2+44 Accuracy in UI
-/*0x044*/ DWORD                       StunResistBonus;              // vtable2+48 Stun Resist in UI
-/*0x048*/ DWORD                       StrikeThroughBonus;           // vtable2+4c Strike Through in UI
-/*0x04c*/ DWORD                       DoTShieldBonus;               // vtable2+50 Dot Shielding in UI
-/*0x050*/ DWORD                       DamageShieldMitigationBonus;  // vtable2+54 Damage Shield Mitig in UI
-/*0x054*/ DWORD                       DamageShieldBonus;            // vtable2+58 Damage Shielding in UI
-/*0x058*/ TSafeArrayStatic<int, 9>    ItemSkillMinDamageMod;
-/*0x07c*/ TSafeArrayStatic<int, 9>    SkillMinDamageModBonus;
-/*0x0a0*/ DWORD                       HeroicSTRBonus;               // vtable2+a4
-/*0x0a4*/ DWORD                       HeroicINTBonus;               // vtable2+a8
-/*0x0a8*/ DWORD                       HeroicWISBonus;               // vtable2+ac
-/*0x0ac*/ DWORD                       HeroicAGIBonus;               // vtable2+b0
-/*0x0b0*/ DWORD                       HeroicDEXBonus;               // vtable2+b4
-/*0x0b4*/ DWORD                       HeroicSTABonus;               // vtable2+b8
-/*0x0b8*/ DWORD                       HeroicCHABonus;               // vtable2+bc
-/*0x0bc*/ DWORD                       HeroicSvMagicBonus;           // vtable2+c0
-/*0x0c0*/ DWORD                       HeroicSvFireBonus;            // vtable2+c4
-/*0x0c4*/ DWORD                       HeroicSvColdBonus;            // vtable2+c8
-/*0x0c8*/ DWORD                       HeroicSvDiseaseBonus;         // vtable2+cc
-/*0x0cc*/ DWORD                       HeroicSvPoisonBonus;          // vtable2+d0
-/*0x0d0*/ DWORD                       HeroicSvCorruptionBonus;      // vtable2+d4
-/*0x0d4*/ DWORD                       HealAmountBonus;              // vtable2+d8
-/*0x0d8*/ DWORD                       SpellDamageBonus;             // vtable2+dc
-/*0x0dc*/ int                         ItemHealAmountDotMod;
-/*0x0e0*/ int                         ItemSpellDamageDotMod;
-/*0x0e4*/ DWORD                       ClairvoyanceBonus;            // vtable2+e8
-/*0x0e8*/ DWORD                       AttackBonus;                  // vtable2+ec
-/*0x0ec*/ DWORD                       HPRegenBonus;                 // vtable2+f0
-/*0x0f0*/ DWORD                       ManaRegenBonus;               // vtable2+f4
-/*0x0f4*/ DWORD                       EnduranceRegenBonus;          // vtable2+f8
-/*0x0f8*/ DWORD                       AttackSpeed;                  // vtable2+fc
-/*0x0fc*/ int                         NoBuffItemHitpointAdjustment;
-/*0x100*/ int                         NoBuffItemManaAdjustment;
-/*0x104*/ int                         NoBuffItemEnduranceAdjustment;
-/*0x108*/ int                         NoBuffItemBaseChanceProc;
-/*0x10c*/ int                         NoBuffItemMinDamageMod;
-/*0x110*/ int                         NoBuffItemInnateSpellRune;
-/*0x114*/ int                         NoBuffItemAvoidance;
-/*0x118*/ int                         NoBuffItemToHit;
-/*0x11c*/ int                         NoBuffItemResistStunChance;
-/*0x120*/ int                         NoBuffItemDotShieldingEffect;
-/*0x124*/ int                         NoBuffItemStrikeThroughChance;
-/*0x128*/ int                         NoBuffItemAttack;
-/*0x12c*/ int                         NoBuffItemHitPointRegen;
-/*0x130*/ int                         NoBuffItemManaRegen;
-/*0x134*/ int                         NoBuffItemEnduranceRegen;
-/*0x138*/ int                         NoBuffItemDamageShield;
-/*0x13c*/ int                         NoBuffItemDamageShieldMitigation;
-/*0x140*/ int                         NoBuffItemHaste;
-/*0x144*/ TSafeArrayStatic<int, 9>    NoBuffItemSkillMinDamageMod;  // size 0x24
-/*0x168*/ bool                        bOutputHpRegen;
-/*0x169*/ bool                        bInvulnerable;
-/*0x16a*/ bool                        bOnAVehicle;
-/*0x16c*/ SpellCache                  spellCache;                   // size 0x58
-/*0x1c4*/ HashListSet<int, 0x80>      DoomEffectsBySlot;            // size 0x10 + (0x80* 4)
-/*0x3d4*/ UINT                        LastHitEval;
-/*0x3d8*/
+/*0x2420*/ bool                        bUpdateStuff;
+/*0x2421*/ bool                        bZoningStatProcessing;
+/*0x2424*/ DWORD                       ArmorClassBonus;              // vtable2+10
+/*0x2428*/ DWORD                       CurrWeight;                   // vtable2+14
+/*0x242c*/ int                         LastHitPointSendPercent;
+/*0x2430*/ int                         LastManaPointSendPercent;
+/*0x2434*/ int                         LastEndurancePointSendPercent;
+/*0x2438*/ DWORD                       HPBonus;                      // vtable2+24
+/*0x243c*/ DWORD                       ManaBonus;                    // vtable2+28
+/*0x2440*/ DWORD                       EnduranceBonus;               // vtable2+2c
+/*0x2444*/ BYTE                        Unknown0x2450[0x4];
+/*0x2448*/ DWORD                       CombatEffectsBonus;           // vtable2+34 Combat Effects in UI
+/*0x244c*/ DWORD                       ShieldingBonus;               // vtable2+38 Melee Shielding in UI
+/*0x2450*/ DWORD                       SpellShieldBonus;             // vtable2+3c Spell Shielding in UI
+/*0x2454*/ DWORD                       AvoidanceBonus;               // vtable2+40 Avoidance in UI
+/*0x2458*/ DWORD                       AccuracyBonus;                // vtable2+44 Accuracy in UI
+/*0x245c*/ DWORD                       StunResistBonus;              // vtable2+48 Stun Resist in UI
+/*0x2460*/ DWORD                       StrikeThroughBonus;           // vtable2+4c Strike Through in UI
+/*0x2464*/ DWORD                       DoTShieldBonus;               // vtable2+50 Dot Shielding in UI
+/*0x2468*/ DWORD                       DamageShieldMitigationBonus;  // vtable2+54 Damage Shield Mitig in UI
+/*0x246c*/ DWORD                       DamageShieldBonus;            // vtable2+58 Damage Shielding in UI
+/*0x2470*/ TSafeArrayStatic<int, 9>    ItemSkillMinDamageMod;
+/*0x2494*/ TSafeArrayStatic<int, 9>    SkillMinDamageModBonus;
+/*0x24b8*/ DWORD                       HeroicSTRBonus;               // vtable2+a4
+/*0x24bc*/ DWORD                       HeroicINTBonus;               // vtable2+a8
+/*0x24c0*/ DWORD                       HeroicWISBonus;               // vtable2+ac
+/*0x24c4*/ DWORD                       HeroicAGIBonus;               // vtable2+b0
+/*0x24c8*/ DWORD                       HeroicDEXBonus;               // vtable2+b4
+/*0x24cc*/ DWORD                       HeroicSTABonus;               // vtable2+b8
+/*0x24d0*/ DWORD                       HeroicCHABonus;               // vtable2+bc
+/*0x24d4*/ DWORD                       HeroicSvMagicBonus;           // vtable2+c0
+/*0x24d8*/ DWORD                       HeroicSvFireBonus;            // vtable2+c4
+/*0x24dc*/ DWORD                       HeroicSvColdBonus;            // vtable2+c8
+/*0x24e0*/ DWORD                       HeroicSvDiseaseBonus;         // vtable2+cc
+/*0x24e4*/ DWORD                       HeroicSvPoisonBonus;          // vtable2+d0
+/*0x24e8*/ DWORD                       HeroicSvCorruptionBonus;      // vtable2+d4
+/*0x24ec*/ DWORD                       HealAmountBonus;              // vtable2+d8
+/*0x24f0*/ DWORD                       SpellDamageBonus;             // vtable2+dc
+/*0x24f4*/ int                         ItemHealAmountDotMod;
+/*0x24f8*/ int                         ItemSpellDamageDotMod;
+/*0x24fc*/ DWORD                       ClairvoyanceBonus;            // vtable2+e8
+/*0x2500*/ DWORD                       AttackBonus;                  // vtable2+ec
+/*0x2504*/ DWORD                       HPRegenBonus;                 // vtable2+f0
+/*0x2508*/ DWORD                       ManaRegenBonus;               // vtable2+f4
+/*0x250c*/ DWORD                       EnduranceRegenBonus;          // vtable2+f8
+/*0x2510*/ DWORD                       AttackSpeed;                  // vtable2+fc
+/*0x2514*/ int                         NoBuffItemHitpointAdjustment;
+/*0x2518*/ int                         NoBuffItemManaAdjustment;
+/*0x251c*/ int                         NoBuffItemEnduranceAdjustment;
+/*0x2520*/ int                         NoBuffItemBaseChanceProc;
+/*0x2524*/ int                         NoBuffItemMinDamageMod;
+/*0x2528*/ int                         NoBuffItemInnateSpellRune;
+/*0x252c*/ int                         NoBuffItemAvoidance;
+/*0x2530*/ int                         NoBuffItemToHit;
+/*0x2534*/ int                         NoBuffItemResistStunChance;
+/*0x2538*/ int                         NoBuffItemDotShieldingEffect;
+/*0x253c*/ int                         NoBuffItemStrikeThroughChance;
+/*0x2540*/ int                         NoBuffItemAttack;
+/*0x2544*/ int                         NoBuffItemHitPointRegen;
+/*0x2548*/ int                         NoBuffItemManaRegen;
+/*0x254c*/ int                         NoBuffItemEnduranceRegen;
+/*0x2550*/ int                         NoBuffItemDamageShield;
+/*0x2554*/ int                         NoBuffItemDamageShieldMitigation;
+/*0x2558*/ int                         NoBuffItemHaste;
+/*0x255c*/ TSafeArrayStatic<int, 9>    NoBuffItemSkillMinDamageMod;  // size 0x24
+/*0x2580*/ bool                        bOutputHpRegen;
+/*0x2581*/ bool                        bInvulnerable;
+/*0x2582*/ bool                        bOnAVehicle;
+/*0x2584*/ SpellCache                  spellCache;                   // size 0x58
+/*0x25dc*/ HashListSet<int, 0x80>      DoomEffectsBySlot;            // size 0x10 + (0x80* 4)
+/*0x27ec*/ UINT                        LastHitEval;
+/*0x27f0*/ 
 
 	EQLIB_OBJECT CharacterZoneClient();
 	EQLIB_OBJECT int CalcAffectChange(const EQ_Spell* spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect* theAffect, int EffectIndex = 0, PlayerZoneClient* pCaster = NULL, bool overrideChangeVal = false, int ChangeVal = -1, bool bCap = true);
