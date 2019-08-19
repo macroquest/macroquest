@@ -538,6 +538,14 @@ public:
 	EQLIB_OBJECT void SetRightAnchoredToLeft(bool bValue) { bRightAnchoredToLeft = bValue; }
 	EQLIB_OBJECT void SetTopAnchoredToTop(bool bValue) { bTopAnchoredToTop = bValue; }
 
+	EQLIB_OBJECT void SetOffsets(const CXRect& rect)
+	{
+		TopOffset = rect.top;
+		BottomOffset = rect.bottom;
+		LeftOffset = rect.left;
+		RightOffset = rect.right;
+	}
+
 	EQLIB_OBJECT void SetTopOffset(int Value) { TopOffset = Value; }
 	EQLIB_OBJECT int GetTopOffset() const { return TopOffset; }
 

@@ -18,6 +18,10 @@
 #include "../MQ2Plugin.h"
 #include "resource.h"
 
+#include <map>
+#include <mutex>
+#include <string>
+
 PreSetup("MQ2TargetInfo");
 PLUGIN_VERSION(2.0);
 
@@ -38,6 +42,8 @@ enum TI_MenuCommands
 	TIMC_Distance = 65,
 };
 
+std::mutex s_mutex;
+
 bool bDisablePluginDueToBadUI = false;
 char szTargetInfo[128] = { "Target Info" };
 char szTargetDistance[128] = { "Target Distance" };
@@ -54,8 +60,6 @@ char szFollowMeCommand[MAX_STRING] = { 0 };
 char szMimicMeToolTip[128] = { "Everyone do what I do, I target something, they do as well, I hail, they hail, etc." };
 char szMimicMe[128] = { "Mimic Me" };
 char szMMainTip[128] = { "MQ2TargetInfo is Active: Type /groupinfo help or rightclick this window to see a menu" };
-
-HANDLE hLockphmap = 0;
 
 CLabelWnd* InfoLabel = nullptr;
 CLabelWnd* DistanceLabel = nullptr;
@@ -313,26 +317,21 @@ void LoadPHs(char* szMyName)
 }
 
 bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLabelWnd** labelwnd, char* label,
-	int font, int top, int bottom, int left, int right, bool bAlignRight, bool bShow)
-{
-	return CreateDistLabel(pGwnd, DistLabelTemplate, labelwnd, label, font, CXRect(left, top, right, bottom), bAlignRight, bShow);
-}
-
-bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLabelWnd** labelwnd, char* label,
 	int font, const CXRect& rect, bool bAlignRight, bool bShow)
 {
-	SetCXStr(&DistLabelTemplate->Name, label);
-	SetCXStr(&DistLabelTemplate->ScreenID, label);
-	int oldfont = DistLabelTemplate->Font;
-	DWORD oldstyle = DistLabelTemplate->StyleBits;
+	DistLabelTemplate->strName = label;
+	DistLabelTemplate->strScreenId = label;
+
+	int oldfont = DistLabelTemplate->nFont;
+	DWORD oldstyle = DistLabelTemplate->uStyleBits;
 
 	bool bRelativePositionOld = DistLabelTemplate->bRelativePosition;
 	bool bAutoStretchVerticalOld = DistLabelTemplate->bAutoStretchVertical;
 	bool bAutoStretchHorizontalOld = DistLabelTemplate->bAutoStretchHorizontal;
 	bool bRightAnchorToLeftOld = DistLabelTemplate->bRightAnchorToLeft;
 
-	DistLabelTemplate->Font = font;
-	DistLabelTemplate->StyleBits = WSF_AUTOSTRETCHH | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;
+	DistLabelTemplate->nFont = font;
+	DistLabelTemplate->uStyleBits = WSF_AUTOSTRETCHH | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;
 
 	if (*labelwnd = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, DistLabelTemplate))
 	{
@@ -345,7 +344,6 @@ bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLab
 		pLabel->SetCRNormal(0xFF00FF00); // green
 		pLabel->SetBGColor(0xFFFFFFFF);
 		pLabel->SetTooltip(szGroupDistance);
-		//SetCXStr(&pLabel->Tooltip, szGroupDistance);
 		pLabel->SetVisible(bShow);
 		pLabel->bNoWrap = true;
 		pLabel->SetLeftAnchoredToLeft(true);
@@ -356,34 +354,32 @@ bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLab
 		DistLabelTemplate->bAutoStretchHorizontal = bAutoStretchHorizontalOld;
 		pLabel->bAlignRight = bAlignRight;
 		pLabel->bAlignCenter = false;
-		DistLabelTemplate->Font = oldfont;
-		DistLabelTemplate->StyleBits = oldstyle;
+		DistLabelTemplate->nFont = oldfont;
+		DistLabelTemplate->uStyleBits = oldstyle;
 		return true;
 	}
 
 	DistLabelTemplate->bRelativePosition = bRelativePositionOld;
 	DistLabelTemplate->bAutoStretchVertical = bAutoStretchVerticalOld;
 	DistLabelTemplate->bAutoStretchHorizontal = bAutoStretchHorizontalOld;
-	DistLabelTemplate->StyleBits = oldstyle;
-	DistLabelTemplate->Font = oldfont;
+	DistLabelTemplate->uStyleBits = oldstyle;
+	DistLabelTemplate->nFont = oldfont;
 	return false;
 }
 
-void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** button,
-	char* label, char* labelscreen, int fontsize, int top, int bottom, int left, int right,
-	COLORREF color, COLORREF bgcolor, char* tooltip, char* text, bool bShow)
+bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLabelWnd** labelwnd, char* label,
+	int font, int top, int bottom, int left, int right, bool bAlignRight, bool bShow)
 {
-	return CreateAButton(pGwnd, Template, button, label, labelscreen, fontsize, CXRect(left, top, right, bottom),
-		color, bgcolor, tooltip, text, bShow);
+	return CreateDistLabel(pGwnd, DistLabelTemplate, labelwnd, label, font, CXRect(left, top, right, bottom), bAlignRight, bShow);
 }
 
 void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** button,
 	char* label, char* labelscreen, int fontsize, const CXRect& rect,
 	COLORREF color, COLORREF bgcolor, char* tooltip, char* text, bool bShow)
 {
-	Template->Font = 1;
-	SetCXStr(&Template->Name, label);
-	SetCXStr(&Template->ScreenID, labelscreen);
+	Template->nFont = 1;
+	Template->strName = label;
+	Template->strScreenId = labelscreen;
 
 	if (*button = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, Template))
 	{
@@ -396,18 +392,18 @@ void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** bu
 		pButton->SetRightOffset(rect.right);
 		pButton->SetCRNormal(color);
 		pButton->SetBGColor(bgcolor);
-		pButton->CSetWindowText(text);
-		//SetCXStr(&pButton->WindowText, text);
+		pButton->SetWindowText(text);
 		pButton->SetTooltip(tooltip);
-		//SetCXStr(&pButton->Tooltip, tooltip);
 		pButton->SetVisible(bShow);
 	}
 }
 
-void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButton** button,
-	int top, int bottom, int left, int right, int buttonindex)
+void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** button,
+	char* label, char* labelscreen, int fontsize, int top, int bottom, int left, int right,
+	COLORREF color, COLORREF bgcolor, char* tooltip, char* text, bool bShow)
 {
-	CreateGroupHotButton(pGwnd, Template, button, CXRect(left, top, bottom, right), buttonindex);
+	return CreateAButton(pGwnd, Template, button, label, labelscreen, fontsize, CXRect(left, top, right, bottom),
+		color, bgcolor, tooltip, text, bShow);
 }
 
 void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButton** button,
@@ -437,6 +433,12 @@ void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButt
 	pButton->SetCRNormal(0xFF00FFFF);
 	pButton->SetBGColor(0xFFFFFFFF);
 	pButton->SetVisible(gBShowHotButtons);
+}
+
+void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButton** button,
+	int top, int bottom, int left, int right, int buttonindex)
+{
+	CreateGroupHotButton(pGwnd, Template, button, CXRect(left, top, bottom, right), buttonindex);
 }
 
 void RemoveOurMenu(CGroupWnd* pGwnd)
@@ -953,11 +955,11 @@ void Initialize()
 
 			if (GW_Gauge1 && DistLabelTemplate)
 			{
-				GetCXStr(DistLabelTemplate->Name, OldName1);
-				GetCXStr(DistLabelTemplate->ScreenID, OldScreenName1);
-				GetCXStr(DistLabelTemplate->Controller, OldController1);
+				strcpy_s(OldName1, DistLabelTemplate->strName.c_str());
+				strcpy_s(OldScreenName1, DistLabelTemplate->strScreenId.c_str());
+				strcpy_s(OldController1, DistLabelTemplate->strController.c_str());
 
-				SetCXStr(&DistLabelTemplate->Controller, "0");
+				DistLabelTemplate->strController = "0";
 
 				// create the distance label 1
 				char szLoc[MAX_STRING] = { 0 };
@@ -1055,10 +1057,10 @@ void Initialize()
 					}
 				}
 
-				//create Nav All to Me Button
+				// create Nav All to Me Button
 				if (NavButtonTemplate)
 				{
-					int oldfont = NavButtonTemplate->Font;
+					int oldfont = NavButtonTemplate->nFont;
 					bool oldbRelativePosition = NavButtonTemplate->bRelativePosition;
 					bool oldbAutoStretchVertical = NavButtonTemplate->bAutoStretchVertical;
 					bool oldbAutoStretchHorizontal = NavButtonTemplate->bAutoStretchHorizontal;
@@ -1066,10 +1068,10 @@ void Initialize()
 					bool oldbBottomAnchorToTop = NavButtonTemplate->bBottomAnchorToTop;
 					bool oldbLeftAnchorToLeft = NavButtonTemplate->bLeftAnchorToLeft;
 					bool oldbRightAnchorToLeft = NavButtonTemplate->bRightAnchorToLeft;
-					DWORD oldStyleBits = NavButtonTemplate->StyleBits;
+					DWORD oldStyleBits = NavButtonTemplate->uStyleBits;
 
-					//setup our template the way we want it:
-					NavButtonTemplate->StyleBits = WSF_AUTOSTRETCHH | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;
+					// setup our template the way we want it:
+					NavButtonTemplate->uStyleBits = WSF_AUTOSTRETCHH | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;
 					NavButtonTemplate->bRightAnchorToLeft = true;
 					NavButtonTemplate->bLeftAnchorToLeft = true;
 					NavButtonTemplate->bBottomAnchorToTop = false;
@@ -1114,11 +1116,9 @@ void Initialize()
 					ReadUILocSetting("HotButton2Loc", 97, 64, 92, 132, rc);
 					CreateGroupHotButton(pGroupWnd, HBButtonTemplate3, &GroupHotButton[2], rc, 2);
 
-
-					//
-					//now set the template values back
-					SetCXStr(&NavButtonTemplate->Name, "GW_InviteButton");
-					SetCXStr(&NavButtonTemplate->ScreenID, "InviteButton");
+					// now set the template values back
+					NavButtonTemplate->strName = "GW_InviteButton";
+					NavButtonTemplate->strScreenId = "InviteButton";
 					NavButtonTemplate->bRelativePosition = oldbRelativePosition;
 					NavButtonTemplate->bAutoStretchVertical = oldbAutoStretchVertical;
 					NavButtonTemplate->bAutoStretchHorizontal = oldbAutoStretchHorizontal;
@@ -1126,14 +1126,14 @@ void Initialize()
 					NavButtonTemplate->bBottomAnchorToTop = oldbBottomAnchorToTop;
 					NavButtonTemplate->bLeftAnchorToLeft = oldbLeftAnchorToLeft;
 					NavButtonTemplate->bRightAnchorToLeft = oldbRightAnchorToLeft;
-					NavButtonTemplate->StyleBits = oldStyleBits;
-					NavButtonTemplate->Font = oldfont;
+					NavButtonTemplate->uStyleBits = oldStyleBits;
+					NavButtonTemplate->nFont = oldfont;
 				}
-				//
-				//now set the template values back
-				SetCXStr(&DistLabelTemplate->Name, OldName1);
-				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
-				SetCXStr(&DistLabelTemplate->Controller, OldController1);
+
+				// now set the template values back
+				DistLabelTemplate->strName = OldName1;
+				DistLabelTemplate->strScreenId = OldScreenName1;
+				DistLabelTemplate->strController = OldController1;
 			}
 			else
 {
@@ -1199,7 +1199,6 @@ void Initialize()
 				Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffset);
 			}
 
-
 			CControlTemplate* DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			CControlTemplate* CanSeeLabelTemplateOrg = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("Player_FatigueLabel");
 			CControlTemplate* CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName2);
@@ -1207,21 +1206,22 @@ void Initialize()
 
 			if (PHButtonTemplate && CanSeeLabelTemplate && DistLabelTemplate)
 			{
-				int oldphfont = PHButtonTemplate->Font;
-				GetCXStr(DistLabelTemplate->Name, OldName1);
-				GetCXStr(DistLabelTemplate->ScreenID, OldScreenName1);
-				GetCXStr(DistLabelTemplate->Controller, OldController1);
-				GetCXStr(CanSeeLabelTemplate->Name, OldName2);
-				GetCXStr(CanSeeLabelTemplate->ScreenID, OldScreenName2);
-				GetCXStr(CanSeeLabelTemplate->Controller, OldController2);
-				int oldfont = DistLabelTemplate->Font;
-				DistLabelTemplate->Font = 2;
-				SetCXStr(&DistLabelTemplate->Controller, "0");
-				SetCXStr(&CanSeeLabelTemplate->Controller, "0");
+				int oldphfont = PHButtonTemplate->nFont;
+
+				strcpy_s(OldName1, DistLabelTemplate->strName.c_str());
+				strcpy_s(OldScreenName1, DistLabelTemplate->strScreenId.c_str());
+				strcpy_s(OldController1, DistLabelTemplate->strController.c_str());
+				int oldfont = DistLabelTemplate->nFont;
+				strcpy_s(OldName2, CanSeeLabelTemplate->strName.c_str());
+				strcpy_s(OldScreenName2, CanSeeLabelTemplate->strScreenId.c_str());
+				strcpy_s(OldController2, CanSeeLabelTemplate->strController.c_str());
+				DistLabelTemplate->nFont = 2;
+				DistLabelTemplate->strController = "0";
+				CanSeeLabelTemplate->strController = "0";
 
 				// create the info label
-				SetCXStr(&DistLabelTemplate->Name, "Target_InfoLabel");
-				SetCXStr(&DistLabelTemplate->ScreenID, "Target_InfoLabel");
+				DistLabelTemplate->strName = "Target_InfoLabel";
+				DistLabelTemplate->strScreenId = "Target_InfoLabel";
 
 				if (InfoLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pTargetWnd, DistLabelTemplate))
 				{
@@ -1278,8 +1278,8 @@ void Initialize()
 				}
 
 				// create the distance label
-				SetCXStr(&DistLabelTemplate->Name, "Target_DistLabel");
-				SetCXStr(&DistLabelTemplate->ScreenID, "Target_DistLabel");
+				DistLabelTemplate->strName = "Target_DistLabel";
+				DistLabelTemplate->strScreenId = "Target_DistLabel";
 
 				char szLoc[MAX_STRING] = { 0 };
 				char szOutLoc[MAX_STRING] = { 0 };
@@ -1307,10 +1307,10 @@ void Initialize()
 				CreateDistLabel(pGroupWnd, DistLabelTemplate, &DistanceLabel, "Target_DistLabel", 2, ttop, tbottom, tleft, tright, true, gBShowExtDistance);
 
 				//create can see label
-				int oldfont2 = CanSeeLabelTemplate->Font;
-				CanSeeLabelTemplate->Font = 2;
-				SetCXStr(&CanSeeLabelTemplate->Name, "Target_CanSeeLabel");
-				SetCXStr(&CanSeeLabelTemplate->ScreenID, "Target_CanSeeLabel");
+				int oldfont2 = CanSeeLabelTemplate->nFont;
+				CanSeeLabelTemplate->nFont = 2;
+				CanSeeLabelTemplate->strName = "Target_CanSeeLabel";
+				CanSeeLabelTemplate->strScreenId = "Target_CanSeeLabel";
 
 				if (CanSeeLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pTargetWnd, CanSeeLabelTemplate))
 				{
@@ -1335,7 +1335,7 @@ void Initialize()
 				}
 
 				// create PHButton
-				PHButtonTemplate->Font = 0;
+				PHButtonTemplate->nFont = 0;
 				if (PHButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pTargetWnd, PHButtonTemplate))
 				{
 					PHButton->SetVisible(false);
@@ -1353,19 +1353,19 @@ void Initialize()
 					PHButton->SetCRNormal(0xFF00FFFF); // cyan
 					PHButton->SetBGColor(0xFFFFFFFF);
 					PHButton->SetTooltip(szPHToolTip);
-					PHButton->CSetWindowText(szPH);
+					PHButton->SetWindowText(szPH);
 				}
 
 				// now set the template values back
-				DistLabelTemplate->Font = oldfont;
-				CanSeeLabelTemplate->Font = oldfont2;
-				PHButtonTemplate->Font = oldphfont;
-				SetCXStr(&DistLabelTemplate->Name, OldName1);
-				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
-				SetCXStr(&DistLabelTemplate->Controller, OldController1);
-				SetCXStr(&CanSeeLabelTemplate->Name, OldName2);
-				SetCXStr(&CanSeeLabelTemplate->ScreenID, OldScreenName2);
-				SetCXStr(&CanSeeLabelTemplate->Controller, OldController2);
+				DistLabelTemplate->nFont = oldfont;
+				CanSeeLabelTemplate->nFont = oldfont2;
+				PHButtonTemplate->nFont = oldphfont;
+				DistLabelTemplate->strName = OldName1;
+				DistLabelTemplate->strScreenId = OldScreenName1;
+				DistLabelTemplate->strController = OldController1;
+				CanSeeLabelTemplate->strName = OldName2;
+				CanSeeLabelTemplate->strScreenId = OldScreenName2;
+				CanSeeLabelTemplate->strController = OldController2;
 			}
 			else
 			{
@@ -1392,10 +1392,11 @@ void Initialize()
 			CControlTemplate* DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
 			if (DistLabelTemplate)
 			{
-				int oldfont = DistLabelTemplate->Font;
-				GetCXStr(DistLabelTemplate->Name, OldName1);
-				GetCXStr(DistLabelTemplate->ScreenID, OldScreenName1);
-				GetCXStr(DistLabelTemplate->Controller, OldController1);
+				int oldfont = DistLabelTemplate->nFont;
+				strcpy_s(OldName1, DistLabelTemplate->strName.c_str());
+				strcpy_s(OldScreenName1, DistLabelTemplate->strScreenId.c_str());
+				strcpy_s(OldController1, DistLabelTemplate->strController.c_str());
+
 				char szTemp[MAX_STRING] = { 0 };
 				char szLoc[MAX_STRING] = { 0 };
 				char szOutLoc[MAX_STRING] = { 0 };
@@ -1403,7 +1404,7 @@ void Initialize()
 				ReadUIStringSetting("UseExtLayoutBox", "0", szOutLoc);
 				int UseExtLayoutBox = atoi(szOutLoc);
 
-				SetCXStr(&DistLabelTemplate->Controller, "0");
+				DistLabelTemplate->strController = "0";
 				sprintf_s(szLoc, "%d,%d,%d,%d", 0, -20, 70, 0);
 
 				ReadUIStringSetting("ExtDistanceLoc", szLoc, szOutLoc);
@@ -1428,6 +1429,7 @@ void Initialize()
 				for (int i = 0; i < 13; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
+
 					if (ETW_Gauge[i] = (CGaugeWnd*)pExtWnd->GetChildItem(szTemp))
 					{
 						sprintf_s(szTemp, "ETW_DistLabel%d", i);
@@ -1455,10 +1457,10 @@ void Initialize()
 					}
 				}
 
-				DistLabelTemplate->Font = oldfont;
-				SetCXStr(&DistLabelTemplate->Name, OldName1);
-				SetCXStr(&DistLabelTemplate->ScreenID, OldScreenName1);
-				SetCXStr(&DistLabelTemplate->Controller, OldController1);
+				DistLabelTemplate->nFont = oldfont;
+				DistLabelTemplate->strName = OldName1;
+				DistLabelTemplate->strScreenId = OldScreenName1;
+				DistLabelTemplate->strController = OldController1;
 			}
 			else
 			{
@@ -1489,7 +1491,7 @@ void StopMovement(bool bChange = true)
 
 	if (bChange)
 	{
-		FollowMeButton->Checked = false;
+		FollowMeButton->bChecked = false;
 		gbFollowme = false;
 	}
 }
@@ -2087,11 +2089,11 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 		if (!_stricmp(szArg2, "off"))
 		{
 			gbMimicme = false;
-			MimicMeButton->Checked = false;
+			MimicMeButton->bChecked = false;
 		}
 		else {
 			gbMimicme = true;
-			MimicMeButton->Checked = true;
+			MimicMeButton->bChecked = true;
 		}
 	}
 	else if (!_stricmp(szArg1, "followme"))
@@ -2119,18 +2121,18 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 
 		char szArg2[MAX_STRING] = { 0 };
 		GetArg(szArg2, szLine, 2);
-		if (!FollowMeButton->Checked)
+		if (!FollowMeButton->bChecked)
 			StopMovement(false);
 
 		if (!_stricmp(szArg2, "off"))
 		{
 			gbFollowme = false;
-			FollowMeButton->Checked = false;
+			FollowMeButton->bChecked = false;
 		}
 		else
 		{
 			gbFollowme = true;
-			FollowMeButton->Checked = true;
+			FollowMeButton->bChecked = true;
 		}
 
 		char szMe[MAX_STRING] = { 0 };
@@ -2202,9 +2204,6 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 
 PLUGIN_API void InitializePlugin()
 {
-	if (!hLockphmap)
-		hLockphmap = CreateMutex(nullptr, false, nullptr);
-
 	AddCommand("/groupinfo", CMD_GroupInfo);
 	EzDetourwName(CSidlManager__CreateHotButtonWnd, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Detour, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Tramp, "CHB");
 	EzDetourwName(CGroupWnd__UpdateDisplay, &CGroupWnd2::UpdateDisplay_Detour, &CGroupWnd2::UpdateDisplay_Tramp, "GUD");
@@ -2350,7 +2349,7 @@ void CleanUp(bool bUnload)
 		}
 	}
 
-	for (int i = 0; i < lengthof(ETW_DistLabel); i++)
+	for (size_t i = 0; i < lengthof(ETW_DistLabel); i++)
 	{
 		if (ETW_DistLabel[i])
 		{
@@ -2431,7 +2430,7 @@ void CleanUp(bool bUnload)
 		MimicMeButton = nullptr;
 	}
 
-	for (int i = 0; i < lengthof(GroupHotButton); ++i)
+	for (size_t i = 0; i < lengthof(GroupHotButton); ++i)
 	{
 		if (GroupHotButton[i])
 		{
@@ -2478,13 +2477,6 @@ PLUGIN_API void ShutdownPlugin()
 
 	CleanUp(true);
 
-	if (hLockphmap)
-	{
-		ReleaseMutex(hLockphmap);
-		CloseHandle(hLockphmap);
-		hLockphmap = 0;
-	}
-
 	RemoveCommand("/groupinfo");
 	RemoveDetour(CGroupWnd__WndNotification);
 	RemoveDetour(CGroupWnd__UpdateDisplay);
@@ -2497,11 +2489,11 @@ PLUGIN_API void OnZoned()
 	gbMimicme = false;
 
 	if (MimicMeButton)
-		MimicMeButton->Checked = false;
+		MimicMeButton->bChecked = false;
 	gbFollowme = false;
 
 	if (FollowMeButton)
-		FollowMeButton->Checked = false;
+		FollowMeButton->bChecked = false;
 }
 
 // Called once directly before shutdown of the new ui system, and also
@@ -2515,7 +2507,7 @@ PLUGIN_API void OnCleanUI()
 
 bool IsPlaceHolder(SPAWNINFO* pSpawn)
 {
-	lockit lk(hLockphmap, "IsPlaceHolder");
+	std::unique_lock<std::mutex> lock(s_mutex); // is this even needed?
 
 	if (pSpawn && phmap.find(pSpawn->DisplayedName) != phmap.end())
 	{
@@ -2527,7 +2519,7 @@ bool IsPlaceHolder(SPAWNINFO* pSpawn)
 
 bool GetPhMap(SPAWNINFO* pSpawn, phinfo* pinf)
 {
-	lockit lk(hLockphmap, "IsPlaceHolder");
+	std::unique_lock<std::mutex> lock(s_mutex); // is this even needed?
 
 	if (pSpawn && phmap.find(pSpawn->DisplayedName) != phmap.end())
 	{
@@ -2581,7 +2573,7 @@ void UpdateGroupDist(CHARINFO* pChar, int index)
 				pWnd->SetCRNormal(0xFFFF0000); // red
 			}
 
-			pWnd->CSetWindowText(szTargetDist);
+			pWnd->SetWindowText(szTargetDist);
 			pWnd->SetVisible(true);
 		}
 		else
@@ -2622,7 +2614,7 @@ void UpdatedExtDistance()
 								pWnd->SetCRNormal(0xFFFF0000); // red
 							}
 
-							pWnd->CSetWindowText(szTargetDist);
+							pWnd->SetWindowText(szTargetDist);
 							pWnd->SetVisible(true);
 						}
 						else
@@ -2848,7 +2840,7 @@ PLUGIN_API void OnPulse()
 							}
 						}
 
-						InfoLabel->CSetWindowText(szTargetDist);
+						InfoLabel->SetWindowText(szTargetDist);
 
 						// then distance
 						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
@@ -2863,10 +2855,10 @@ PLUGIN_API void OnPulse()
 							DistanceLabel->SetCRNormal(0xFFFF0000); // red
 						}
 
-						DistanceLabel->CSetWindowText(szTargetDist);
+						DistanceLabel->SetWindowText(szTargetDist);
 
 						// now do can see
-						bool cansee = pCharSpawn->CanSee((PlayerClient*)pTarget);
+						bool cansee = pCharSpawn->CanSee(*(PlayerClient*)pTarget);
 						sprintf_s(szTargetDist, "%s", cansee ? "O" : "X");
 
 						if (cansee)
@@ -2878,13 +2870,13 @@ PLUGIN_API void OnPulse()
 							CanSeeLabel->SetCRNormal(0xFFFF0000); // red
 						}
 
-						CanSeeLabel->CSetWindowText(szTargetDist);
+						CanSeeLabel->SetWindowText(szTargetDist);
 					}
 					else
 					{
-						InfoLabel->CSetWindowText("");
-						DistanceLabel->CSetWindowText("");
-						CanSeeLabel->CSetWindowText("");
+						InfoLabel->SetWindowText("");
+						DistanceLabel->SetWindowText("");
+						CanSeeLabel->SetWindowText("");
 						PHButton->SetVisible(false);
 					}
 				}

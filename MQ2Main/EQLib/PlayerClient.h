@@ -802,17 +802,18 @@ public:
 /*0x188*/ int               SplineID;
 /*0x18c*/ int               SplineRiderID;
 /*0x190*/
-	unsigned int GetId() const { return SpawnID; }
+
+	EQLIB_OBJECT unsigned int GetId() const { return SpawnID; }
 
 	// These are methods that originated from EQPlayer. They might not
 	// all still exist.
-	bool IsAMount();
-	bool MyFeetAreOnGround();
+	EQLIB_OBJECT bool IsAMount();
+	EQLIB_OBJECT bool MyFeetAreOnGround();
 	EQLIB_OBJECT bool HasProperty(unsigned int, int, int);
-	bool IsTargetable();
-	bool CanSee(const PlayerBase&);
-	bool CanSee(const CVector3& pos);
-	CLineSegment GetVisibilityLineSegment(const PlayerBase& other, unsigned int index = 0);
+	EQLIB_OBJECT bool IsTargetable();
+	EQLIB_OBJECT bool CanSee(const PlayerBase&);
+	EQLIB_OBJECT bool CanSee(const CVector3& pos);
+	EQLIB_OBJECT CLineSegment GetVisibilityLineSegment(const PlayerBase& other, unsigned int index = 0);
 
 private:
 	virtual void Dummy() {} // force a vtable
