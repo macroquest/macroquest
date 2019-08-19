@@ -67,16 +67,16 @@ protected:
 // as you can't memcpy, memset, etc on them.
 
 template <typename T>
-class EQLIB_OBJECT ArrayClass2_RO : public CDynamicArrayBase
+class ArrayClass2_RO : public CDynamicArrayBase
 {
 #define GET_BIN_INDEX(x) (x >> static_cast<uint8_t>(m_binShift))
 #define GET_SLOT_INDEX(x) (m_slotMask & index)
 public:
-	inline T& operator[](int index) { return Get(index); }
-	inline const T& operator[](int index) const { return Get(index); }
+	T& operator[](int index) { return Get(index); }
+	const T& operator[](int index) const { return Get(index); }
 
 	T& Get(int index) { return m_array[GET_BIN_INDEX(index)][GET_SLOT_INDEX(index)]; }
-	inline const T& Get(int index) const { return m_array[GET_BIN_INDEX(index)][GET_SLOT_INDEX(index)]; }
+	const T& Get(int index) const { return m_array[GET_BIN_INDEX(index)][GET_SLOT_INDEX(index)]; }
 
 	// try to get an element by index, returns pointer to the element.
 	// if the index is out of bounds, returns null.
@@ -132,7 +132,7 @@ protected:
 // list of bins. See Assure() for more information.
 
 template <typename T>
-class EQLIB_OBJECT ArrayClass2 : public ArrayClass2_RO<T>
+class ArrayClass2 : public ArrayClass2_RO<T>
 {
 public:
 	// constructs the array
@@ -337,8 +337,6 @@ public:
 			ThrowArrayClassException();
 		return m_array[index];
 	}
-	//0090C580
-	EQLIB_OBJECT void DeleteElement(int index);
 
 	T& operator[](int index) { return Get(index); }
 	const T& operator[](int index) const { return Get(index); }

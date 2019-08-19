@@ -540,8 +540,8 @@ struct [[offsetcomments]] SPAWNINFO
 /*0x116c*/ float             CachedCeilingLocationZ;
 /*0x1170*/ float             CachedCeilingHeight;
 /*0x1174*/ CCapsule          StaticCollision;              // size 0x1c
-/*0x1190*/ ArrayClass<PhysicsEffect> mPhysicsEffects;      // size is 0x10
-/*0x11a0*/ ArrayClass<bool>  PhysicsEffectsUpdated;        // size is 0x10
+/*0x1190*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;      // size is 0x10
+/*0x11a0*/ ArrayClass_RO<bool>  PhysicsEffectsUpdated;        // size is 0x10
 /* ********************* PlayerZoneClient Ends Here ******************* */
 /* ********************** PlayerClient Starts Here ******************** */
 /*0x11b0*/ int               Animation;                    // Current Animation Playing. see 5671F1 in feb 14 2019 test
@@ -654,7 +654,7 @@ struct [[offsetcomments]] SPAWNINFO
 /*0x1f7c*/ int               InteractiveObjectType;
 /*0x1f80*/ int               SoundIDs[0xa];                // 0x28 bytes for sure see 648AB2 in feb 14 2019 test
 /*0x1fa8*/ unsigned int      LastHistorySentTime;          // for sure see 648E7E in feb 14 2019 test
-/*0x1fac*/ ArrayClass2<unsigned int> BardTwistSpells;      // size 0x18
+/*0x1fac*/ ArrayClass2_RO<unsigned int> BardTwistSpells;      // size 0x18
 /*0x1fc8*/ int               CurrentBardTwistIndex;
 /*0x1fcc*/ int               CurrentBardTwistIndex2;
 /*0x1fd0*/ PlayerPhysicsClient mPlayerPhysicsClient;//size 0x28

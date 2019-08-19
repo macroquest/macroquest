@@ -114,6 +114,6 @@
 /*0x1c8*/ CXWndDrawTemplate* DrawTemplate;
 /*0x1cc*/ CXWnd*      ParentWindow;                        // CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute...
 /*0x1d0*/ bool        bKeepOnScreen;
-/*0x1d4*/ ArrayClass2_RO<UINT> RuntimeTypes;               // Size 0x1c
+/*0x1d4*/ ArrayClass2<unsigned int> RuntimeTypes;          // Size 0x1c
 /*0x1f0*/ int         RightOffset;
 /*0x1f4*/ uint32_t    BackgroundDrawType;

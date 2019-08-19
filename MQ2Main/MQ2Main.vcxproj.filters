@@ -258,7 +258,12 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="EQLib\AssemblyFunctions.asm">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\EQLib</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="EQLib\AssemblyFunctions.def">
+      <Filter>Source Files\EQLib</Filter>
+    </None>
   </ItemGroup>
 </Project>

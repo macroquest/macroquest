@@ -275,7 +275,7 @@ class [[offsetcomments]] ExtendedTargetList
 {
 public:
 /*0x00*/ void*                      vftable;
-/*0x04*/ ArrayClass_RO<XTARGETSLOT> XTargetSlots;     // max is 23
+/*0x04*/ ArrayClass<XTARGETSLOT>    XTargetSlots;     // max is 23
 /*0x14*/ bool                       bAutoAddHaters;
 /*0x18*/
 };
@@ -414,7 +414,7 @@ class [[offsetcomments]] PointSystemBase
 {
 public:
 /*0x00*/ void* vfTable;
-/*0x04*/ ArrayClass_RO<PointNamesEntry*> PointNameEntries;
+/*0x04*/ ArrayClass<PointNamesEntry*> PointNameEntries;
 /*0x14*/
 };
 
@@ -1147,9 +1147,9 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x1ef0*/ UINT                                          LoyaltyVelocity;
 /*0x1ef4*/ UINT                                          LoyaltyTokens;
 /*0x1ef8*/ bool                                          bHasLoyaltyInfo;
-/*0x1efc*/ ArrayClass_RO<int>                            OwnedRealEstates;
-/*0x1f0c*/ ArrayClass_RO<int>                            OwnedItemRealEstates;
-/*0x1f1c*/ ArrayClass_RO<int>                            ArchivedRealEstates;
+/*0x1efc*/ ArrayClass<int>                               OwnedRealEstates;
+/*0x1f0c*/ ArrayClass<int>                               OwnedItemRealEstates;
+/*0x1f1c*/ ArrayClass<int>                               ArchivedRealEstates;
 /*0x1f2c*/ CHAR                                          OverridePetName[0x40];
 /*0x1f6c*/ bool                                          bCanRequestPetNameChange;
 /*0x1f6d*/ CHAR                                          OverrideFamiliarName[0x40];
@@ -1185,7 +1185,7 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x2194*/ int                                           BlockedSpell[0x28];
 /*0x2234*/ HashTable<int>                                BlockedPetSpellsHash;
 /*0x2244*/ int                                           BlockedPetSpell[0x28];
-/*0x22e4*/ ClaimDataCollection                           ConsumableFeatures;             // size 0x10
+/*0x22e4*/ ClaimDataCollection                           ConsumableFeatures;
 /*0x22f4*/ bool                                          bGrantItemsRegistered;
 /*0x22f8*/ uint64_t                                      CreatedGuildID;
 /*0x2300*/ UINT                                          GuildCreateTime;
@@ -1196,19 +1196,19 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x230b*/ bool                                          bMailUnserialized;
 /*0x230c*/ bool                                          bPendingInventorySerialization;
 /*0x2310*/ CXStr                                         BuyLines;
-/*0x2314*/ ArrayClass<CXStr>                             OfflineTraderSoldItems;         // size 0x10
-/*0x2324*/ ArrayClass<CXStr>                             OfflineBuyerBoughtItems;        // size 0x10
+/*0x2314*/ ArrayClass<CXStr>                             OfflineTraderSoldItems;
+/*0x2324*/ ArrayClass<CXStr>                             OfflineBuyerBoughtItems;
 /*0x2334*/ DWORD                                         Krono;                          // confirmed jun 12 2017 test
 /*0x2338*/ DWORD                                         CursorKrono;
 /*0x233c*/ BYTE                                          Unknown0x233c[0x4];
 /*0x2340*/ int64_t                                       MercAAExp;                      // divide this with 3.30f and you get the percent - eqmule
 /*0x2348*/ DWORD                                         MercAAPoints;                   // number of unspent merc AA points
 /*0x234c*/ DWORD                                         MercAAPointsSpent;              // number of spent merc AA points
-/*0x2350*/ ArrayClass_RO<MercenaryAbilityInfo*>          MercenaryAbilities;//size 0x10
-/*0x2360*/ HashTable<CompletedAchievementData, int, ResizePolicyNoShrink>         CompletedAchievements;               // size 0x10
-/*0x2370*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;    // size 0x10
-/*0x2380*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;         // size 0x10
-/*0x2390*/ int                                           LastFellowshipJoin;             // next is 8 bit aligned
+/*0x2350*/ ArrayClass<MercenaryAbilityInfo*>             MercenaryAbilities;
+/*0x2360*/ HashTable<CompletedAchievementData, int, ResizePolicyNoShrink>         CompletedAchievements;
+/*0x2370*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;
+/*0x2380*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;
+/*0x2390*/ int                                           LastFellowshipJoin;
 /*0x2398*/ int64_t                                       Vitality;
 /*0x23a0*/ int                                           AAVitality;
 /*0x23a4*/ int                                           Unknown0x23a4;
@@ -2331,9 +2331,9 @@ public:
 /*0x1e68*/ UINT                                  LoyaltyVelocity;
 /*0x1e6c*/ UINT                                  LoyaltyTokens;
 /*0x1e70*/ bool                                  bHasLoyaltyInfo;
-/*0x1e74*/ ArrayClass_RO<int>                    OwnedRealEstates;
-/*0x1e84*/ ArrayClass_RO<int>                    OwnedItemRealEstates;
-/*0x1e94*/ ArrayClass_RO<int>                    ArchivedRealEstates;
+/*0x1e74*/ ArrayClass<int>                       OwnedRealEstates;
+/*0x1e84*/ ArrayClass<int>                       OwnedItemRealEstates;
+/*0x1e94*/ ArrayClass<int>                       ArchivedRealEstates;
 /*0x1ea4*/ char                                  OverridePetName[0x40];
 /*0x1ee4*/ bool                                  bCanRequestPetNameChange;
 /*0x1ee5*/ char                                  OverrideFamiliarName[0x40];
@@ -2380,14 +2380,14 @@ public:
 /*0x2283*/ bool                                  bMailUnserialized;
 /*0x2284*/ bool                                  bPendingInventorySerialization;
 /*0x2288*/ CXStr                                 BuyLines;
-/*0x228c*/ ArrayClass_RO<CXStr>                  OfflineTraderSoldItems;
-/*0x229c*/ ArrayClass_RO<CXStr>                  OfflineBuyerBoughtItems;
+/*0x228c*/ ArrayClass<CXStr>                     OfflineTraderSoldItems;
+/*0x229c*/ ArrayClass<CXStr>                     OfflineBuyerBoughtItems;
 /*0x22ac*/ UINT                                  Krono;
 /*0x22b0*/ UINT                                  CursorKrono;
 /*0x22b8*/ int64_t                               MercAAExp;                    // divide this with 3.30f and you get the percent
 /*0x22c0*/ DWORD                                 MercAAPoints;                 // number of unspent merc AA points
 /*0x22c4*/ DWORD                                 MercAAPointsSpent;            // number of spent merc AA points
-/*0x22c8*/ ArrayClass_RO<MercenaryAbilityInfo*>  MercenaryAbilities;
+/*0x22c8*/ ArrayClass<MercenaryAbilityInfo*>     MercenaryAbilities;
 /*0x22d8*/ HashTable<CompletedAchievementData, int, ResizePolicyNoShrink>         CompletedAchievements;
 /*0x22e8*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> CompletedEventBasedSubComponents;
 /*0x22f8*/ HashTable<AchievementSubComponentCountData, int, ResizePolicyNoShrink> OpenEventBasedSubComponents;

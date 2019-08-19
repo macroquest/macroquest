@@ -32,7 +32,7 @@ PreSetup("MQ2ItemDisplay");
 // thanks, finally, SOE. we'll leave this here for a while and eventually remove it
 #define DISABLE_TOOLTIP_TIMERS
 
-#define EQLIB_EXPORT extern "C" __declspec(dllexport)
+#define EQLIB_EXPORT __declspec(dllexport)
 
 char ConvertFrom[2048] = { 0 };
 char ConvertTo[2048] = { 0 };
@@ -73,12 +73,14 @@ struct DISPLAYITEMSTRINGS
 
 class MQ2DisplayItemType;
 
+extern "C" {
 EQLIB_EXPORT MQ2DisplayItemType* pDisplayItemType = 0;
 EQLIB_EXPORT ITEMINFO g_Item;
 EQLIB_EXPORT CONTENTS g_Contents[6] = { 0 };
 EQLIB_EXPORT DWORD g_LastIndex = 5;
 EQLIB_EXPORT HANDLE hDisplayItemLock = 0;
 EQLIB_EXPORT std::map<DWORD, DISPLAYITEMSTRINGS> contentsitemstrings;
+}
 
 class MQ2DisplayItemType : public MQ2Type
 {

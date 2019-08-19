@@ -1927,7 +1927,7 @@ struct [[offsetcomments]] _EVERQUEST
 /*0x38e74*/ int              Red;                          // for sure see 564105 in spe 18 2017 exe
 /*0x38e78*/ int              Green;
 /*0x38e7c*/ int              Blue;
-/*0x38e80*/ ArrayClass_RO<CSINFO> pCharSelectPlayerArray;
+/*0x38e80*/ ArrayClass<CSINFO> pCharSelectPlayerArray;
 /*0x38e90*/ // more data
 };
 using EVERQUEST /*[[deprecated]]*/ = _EVERQUEST;

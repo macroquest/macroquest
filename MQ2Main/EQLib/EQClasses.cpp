@@ -2609,9 +2609,6 @@ FUNCTION_AT_ADDRESS(Wave3dInstance::Wave3dInstance(SoundManager*), Wave3dInstanc
 // MISC
 //============================================================================
 
-#ifdef ArrayClass__DeleteElement_x
-FUNCTION_AT_ADDRESS(void ArrayClass_RO<SListWndColumn>::DeleteElement(int index), ArrayClass__DeleteElement); // delete me
-#endif
 #ifdef _EverQuestinfo__SetAutoAttack_x
 FUNCTION_AT_ADDRESS(void _EverQuestinfo::SetAutoAttack(bool), _EverQuestinfo__SetAutoAttack);
 #endif

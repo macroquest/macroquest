@@ -1,0 +1,6 @@
+LIBRARY MQ2Main
+
+EXPORTS
+    ??0CXWnd@eqlib@@QAE@PAV01@IUCXRect@1@@Z
+    ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@@Z
+    ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z

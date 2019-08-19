@@ -307,10 +307,12 @@ FUNCTION_AT_ADDRESS(CSidlScreenWnd::~CSidlScreenWnd(), CSidlScreenWnd__dCSidlScr
 CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&), CSidlScreenWnd__CSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1_x
-CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen, int, int, char*), CSidlScreenWnd__CSidlScreenWnd1);
+// defined in AssemblyFunctions.asm
+//CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen, int, int, char*), CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2_x
-CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen), CSidlScreenWnd__CSidlScreenWnd2);
+// defined in AssemblyFunctions.asm
+//CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd* pParent, const CXStr& Screen), CSidlScreenWnd__CSidlScreenWnd2);
 #endif
 #ifdef CSidlScreenWnd__Init_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::Init(CXWnd*, uint32_t, const CXRect&, const CXStr&, int, char*), CSidlScreenWnd__Init);

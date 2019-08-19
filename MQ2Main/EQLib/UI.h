@@ -97,7 +97,7 @@ public:
 class IObserver
 {
 public:
-	virtual void Notify(CObservable* Src, const CNotification* const Notification);
+	EQLIB_OBJECT virtual void Notify(CObservable* Src, const CNotification* const Notification) {}
 };
 
 class CObservable
@@ -5013,7 +5013,7 @@ public:
 /*0x0C*/ int           MinLevel;
 /*0x10*/ int           MaxLevel;
 /*0x14*/ DynamicBitField<unsigned short, short> Types;
-/*0x1C*/ ArrayClass_RO<ZoneGuideConnection> ZoneConnections;
+/*0x1C*/ ArrayClass<ZoneGuideConnection> ZoneConnections;
 /*0x2C*/
 };
 
@@ -5143,7 +5143,7 @@ public:
 		ElementType    value;
 	};
 
-	ArrayClass2_RO<ArrayClass2_RO<CKeyCXStrElementType>> HashData;
+	ArrayClass2<ArrayClass2<CKeyCXStrElementType>> HashData;
 };
 
 class [[offsetcomments]] CXMLSymbolItem
@@ -5159,7 +5159,7 @@ class [[offsetcomments]] CXMLSymbolClass
 {
 public:
 /*0x00*/ CXStr                              Class;
-/*0x04*/ ArrayClass2_RO<CXMLSymbolItem>     ItemsArray;
+/*0x04*/ ArrayClass2<CXMLSymbolItem>     ItemsArray;
 /*0x20*/ CHashCXStrInt32                    ItemsHashes;
 /*0x3c*/ bool                               bValid;
 /*0x40*/
@@ -5169,7 +5169,7 @@ class [[offsetcomments]] CXMLSymbolTable
 {
 public:
 /*0x00*/ void* vfTable;
-/*0x04*/ ArrayClass2_RO<CXMLSymbolClass> ClassesArray;
+/*0x04*/ ArrayClass2<CXMLSymbolClass> ClassesArray;
 /*0x1c*/ CHashCXStrInt32               ClassesHashes;
 /*0x34*/
 };
@@ -5179,9 +5179,9 @@ class [[offsetcomments]] CXMLDataManager
 public:
 /*0x00*/ void* vfTable;
 /*0x04*/ CHashCXStrInt32               EnumTypeHashes;
-/*0x20*/ ArrayClass2_RO<CXMLEnumInfo>  XMLEnumArray;
+/*0x20*/ ArrayClass2<CXMLEnumInfo>  XMLEnumArray;
 /*0x3c*/ HashCXStrElement<CXMLDataPtr, 16 * 1024> ClassItemHashes;
-/*0x58*/ ArrayClass2_RO<CXMLDataClass> XMLDataArray;
+/*0x58*/ ArrayClass2<CXMLDataClass> XMLDataArray;
 /*0x74*/ CXMLSymbolTable               SymbolTable;
 /*0xb0*/ CXStr                         ErrorString;
 /*0xb4*/
