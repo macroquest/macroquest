@@ -13,6 +13,7 @@
  */
 
 #pragma once
+
 #include "WinTelnet.h"
 
 #define TS_SENDLOGIN    0
@@ -21,38 +22,36 @@
 #define TS_GETPASSWORD  3
 #define TS_MAININPUT    4
 
-extern BOOL LocalOnly;
-extern BOOL ANSI;
-extern CHAR TelnetLoginPrompt[MAX_STRING];
-extern CHAR TelnetPasswordPrompt[MAX_STRING];
-extern CHAR TelnetWelcome[MAX_STRING];
+extern bool LocalOnly;
+extern bool ANSI;
+extern char TelnetLoginPrompt[MAX_STRING];
+extern char TelnetPasswordPrompt[MAX_STRING];
+extern char TelnetWelcome[MAX_STRING];
 
-struct _TELNET {
-    CWinTelnet *connection;
-    int State;
-    char Username[32];
-    char Password[32];
-    int PasswordTries;
-    char Buffer[MAX_STRING];
-    PCHATBUF Received;
-    _TELNET *pLast;
-    _TELNET *pNext;
+struct TELNET
+{
+	CWinTelnet* connection;
+	int State;
+	char Username[32];
+	char Password[32];
+	int PasswordTries;
+	char Buffer[MAX_STRING];
+	CHATBUF* Received;
+	TELNET* pLast;
+	TELNET* pNext;
 };
-
-//typedef VOID   (__stdcall *TelnetDataCallback)(_TELNET *, PCHAR);
 
 class CTelnetServer
 {
 public:
-    CTelnetServer(void);
-    ~CTelnetServer(void);
+	CTelnetServer();
+	~CTelnetServer();
 
-    void ShutdownListener();
-    bool Listen(int Port);
-    void Broadcast(char *String);
-    void Shutdown();
-    bool IsValidUser(char *user, char *pwdest);
+	void ShutdownListener();
+	bool Listen(int Port);
+	void Broadcast(char* String);
+	void Shutdown();
+	bool IsValidUser(char* user, char* pwdest);
 
-    void ProcessIncoming();
-
+	void ProcessIncoming();
 };

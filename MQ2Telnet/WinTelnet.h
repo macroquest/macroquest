@@ -16,35 +16,32 @@
 
 #include "Telnet.h"
 
-
-#pragma comment(lib, "ws2_32")
-
 class CWinTelnet : public CTelnet
 {
 public:
-    CWinTelnet(void);
-    ~CWinTelnet(void);
+	CWinTelnet();
+	~CWinTelnet();
 
-     bool Connect   (char*, int);
-     bool Disconnect(void);
+	virtual bool Connect(char*, int) override;
+	virtual bool Disconnect() override;
 
-     bool Open (int);
-     bool Close(void);
+	virtual bool Open(int) override;
+	virtual bool Close() override;
 
-     bool Write(char);
-     int  Write(const void*, int);
-     int  CWinTelnet::WriteStr(const char* csend);
+	bool Write(char) override;
 
-     bool Read(char*);
-     int  Read(void*, int);
+	int Write(const void*, int) override;
+	int CWinTelnet::WriteStr(const char* csend);
 
-     bool isOpen     (void);
-     bool isConnected(void);
-     long isData     (void);
+	bool Read(char*) override;
+	int Read(void*, int) override;
 
-     SOCKET m_Socket;
+	bool isOpen() override;
+	bool isConnected() override;
+	long isData() override;
+
+	SOCKET m_Socket;
 
 private:
-//    WSADATA wsa;
-    bool Valid;
+	bool m_valid;
 };
