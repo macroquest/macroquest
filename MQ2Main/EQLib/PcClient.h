@@ -1410,7 +1410,7 @@ struct [[offsetcomments]] CHARINFONEW
 
 #if !USE_NEW_PCPROFILE
 //aSdeityD CharInfo2__CharInfo2
-#define CHARINFO2_Size 0xAFE8 // Jun 10 2019 test (see 8A2309) - eqmule
+#define CHARINFO2_Size 0xAE68 // Jul 08 2019 test (see 8A2EB9) - eqmule
 
 struct [[offsetcomments]] CHARINFO2
 {
@@ -1422,118 +1422,115 @@ struct [[offsetcomments]] CHARINFO2
 /*0x0020*/ BYTE                                            Unknown0x0020[0x48];
 /*0x0068*/ SPELLBUFF                                       Buff[NUM_LONG_BUFFS];                   // EQ_Affect size is 0x68 * 0x2a = 0x1110
 /*0x1178*/ SPELLBUFF                                       ShortBuff[NUM_SHORT_BUFFS];             // EQ_Affect size is 0x68 * 0x37 = 0x1658
-	// these IDs are gone (or moved?) from june 10 2019 test we never really used them so whatever... -eqmule
-	//*0x27d0*/ DWORD    CasterSpellIDs[NUM_BUFF_SLOTS]; // caster IDs for the Effects Window of whoever cast the buff on you in the same zone...
-/*0x27d0*/ DWORD                                           DiseaseSpreadTimers[NUM_BUFF_SLOTS];
-/*0x2954*/ DWORD                                           SpellBook[NUM_BOOK_SLOTS];
-/*0x3854*/ DWORD                                           MemorizedSpells[0x12];
-/*0x389c*/ DWORD                                           Skill[NUM_SKILLS];
-/*0x3a2c*/ DWORD                                           InnateSkill[0x19];
-/*0x3a90*/ TSafeArrayStatic<ArmorProperties, 9>            ArmorProps;                             // size 0xb4
-/*0x3b44*/ TSafeArrayStatic<DWORD, 9>                      CharacterTint;                          // size 0x24
-/*0x3b68*/ BYTE                                            Gender;
-/*0x3b6c*/ DWORD                                           Race;
-/*0x3b70*/ DWORD                                           Class;
-/*0x3b74*/ HashTable<int>                                  properties;
-/*0x3b84*/ DWORD                                           Level;
-/*0x3b88*/ DWORD                                           Mana;
-/*0x3b8c*/ DWORD                                           Endurance;
-/*0x3b90*/ int64_t                                         BaseHP;
-/*0x3b98*/ DWORD                                           BaseSTR;
-/*0x3b9c*/ DWORD                                           BaseSTA;
-/*0x3ba0*/ DWORD                                           BaseCHA;
-/*0x3ba4*/ DWORD                                           BaseDEX;
-/*0x3ba8*/ DWORD                                           BaseINT;
-/*0x3bac*/ DWORD                                           BaseAGI;
-/*0x3bb0*/ DWORD                                           BaseWIS;
-/*0x3bb4*/ BYTE                                            Face;
-/*0x3bb8*/ DWORD                                           Plat;
-/*0x3bbc*/ DWORD                                           Gold;
-/*0x3bc0*/ DWORD                                           Silver;
-/*0x3bc4*/ DWORD                                           Copper;
-/*0x3bc8*/ DWORD                                           CursorPlat;
-/*0x3bcc*/ DWORD                                           CursorGold;
-/*0x3bd0*/ DWORD                                           CursorSilver;
-/*0x3bd4*/ DWORD                                           CursorCopper;
-/*0x3bd8*/ int                                             _max_allowed_spell_slots;
-/*0x3bdc*/ int                                             practices;
-/*0x3be0*/ int                                             height;
-/*0x3be4*/ int                                             width;
-/*0x3be8*/ int                                             length;
-/*0x3bec*/ int                                             view_height;
-/*0x3bf0*/ char                                            texture_type;
-/*0x3bf1*/ char                                            m_armorMat;
-/*0x3bf2*/ char                                            m_armorVariation;
-/*0x3bf3*/ char                                            headType;
-/*0x3bf4*/ char                                            caneditface;
-/*0x3bf8*/ int                                             DisciplineTimer;
-/*0x3bfc*/ UINT                                            MendTimer;
-/*0x3c00*/ int                                             ForageTimer;
-/*0x3c04*/ int                                             thirstlevel;
-/*0x3c08*/ int                                             hungerlevel;
-/*0x3c0c*/ int                                             PotionCount;
-/*0x3c10*/ int                                             profileType;                            // enum PT_Main = 0, PT_Alt, PT_MonsterMission, PT_TypeUnknown
-/*0x3c14*/ int                                             Shrouded;                               // templateId
-/*0x3c18*/ int                                             systemId;
-/*0x3c1c*/ int                                             designId;
-/*0x3c20*/ int                                             InventorySlotBitmask;
-/*0x3c24*/ UINT                                            CurrentProgressionID;
-/*0x3c28*/ BYTE                                            Unknown0x3c28[0x54];
-/*0x3c7c*/ int                                             ParentId;
-/*0x3c80*/ int                                             TattooIndex;
-/*0x3c84*/ int                                             FacialAttachmentIndex;
+/*0x27d0*/ DWORD                                           SpellBook[NUM_BOOK_SLOTS];
+/*0x36d0*/ DWORD                                           MemorizedSpells[0x12];
+/*0x3718*/ DWORD                                           Skill[NUM_SKILLS];
+/*0x38a8*/ DWORD                                           InnateSkill[0x19];
+/*0x390c*/ TSafeArrayStatic<ArmorProperties, 9>            ArmorProps;                             // size 0xb4
+/*0x39c0*/ TSafeArrayStatic<DWORD, 9>                      CharacterTint;                          // size 0x24
+/*0x39e4*/ BYTE                                            Gender;
+/*0x39e8*/ DWORD                                           Race;
+/*0x39ec*/ DWORD                                           Class;
+/*0x39f0*/ HashTable<int>                                  properties;
+/*0x3a00*/ DWORD                                           Level;
+/*0x3a04*/ DWORD                                           Mana;
+/*0x3a08*/ DWORD                                           Endurance;
+/*0x3a10*/ int64_t                                         BaseHP;
+/*0x3a18*/ DWORD                                           BaseSTR;
+/*0x3a1c*/ DWORD                                           BaseSTA;
+/*0x3a20*/ DWORD                                           BaseCHA;
+/*0x3a24*/ DWORD                                           BaseDEX;
+/*0x3a28*/ DWORD                                           BaseINT;
+/*0x3a2c*/ DWORD                                           BaseAGI;
+/*0x3a30*/ DWORD                                           BaseWIS;
+/*0x3a34*/ BYTE                                            Face;
+/*0x3a38*/ DWORD                                           Plat;
+/*0x3a3c*/ DWORD                                           Gold;
+/*0x3a40*/ DWORD                                           Silver;
+/*0x3a44*/ DWORD                                           Copper;
+/*0x3a48*/ DWORD                                           CursorPlat;
+/*0x3a4c*/ DWORD                                           CursorGold;
+/*0x3a50*/ DWORD                                           CursorSilver;
+/*0x3a54*/ DWORD                                           CursorCopper;
+/*0x3a58*/ int                                             _max_allowed_spell_slots;
+/*0x3a5c*/ int                                             practices;
+/*0x3a60*/ int                                             height;
+/*0x3a64*/ int                                             width;
+/*0x3a68*/ int                                             length;
+/*0x3a6c*/ int                                             view_height;
+/*0x3a70*/ char                                            texture_type;
+/*0x3a71*/ char                                            m_armorMat;
+/*0x3a72*/ char                                            m_armorVariation;
+/*0x3a73*/ char                                            headType;
+/*0x3a74*/ char                                            caneditface;
+/*0x3a78*/ int                                             DisciplineTimer;
+/*0x3a7c*/ UINT                                            MendTimer;
+/*0x3a80*/ int                                             ForageTimer;
+/*0x3a84*/ int                                             thirstlevel;
+/*0x3a88*/ int                                             hungerlevel;
+/*0x3a8c*/ int                                             PotionCount;
+/*0x3a90*/ int                                             profileType;                            // enum PT_Main = 0, PT_Alt, PT_MonsterMission, PT_TypeUnknown
+/*0x3a94*/ int                                             Shrouded;                               // templateId
+/*0x3a98*/ int                                             systemId;
+/*0x3a9c*/ int                                             designId;
+/*0x3aa0*/ int                                             InventorySlotBitmask;
+/*0x3aa4*/ UINT                                            CurrentProgressionID;
+/*0x3aa8*/ BYTE                                            Unknown0x3c28[0x54];
+/*0x3afc*/ int                                             ParentId;
+/*0x3b00*/ int                                             TattooIndex;
+/*0x3b04*/ int                                             FacialAttachmentIndex;
 /******************************** BaseProfile End ********************************/
 /******************************** PcProfile Start ********************************/
-/*0x3c88*/ TSafeArrayStatic<WorldLocation, 5>              BoundLocations;                         // size 0x64 home_zone
-/*0x3cec*/ TSafeArrayStatic<ArmorProperties, 0x16>         ArmorType;
-/*0x3ea4*/ TSafeArrayStatic<AALIST, AA_CHAR_MAX_REAL>      AAList;                                 // AlternateAbilities
-/*0x4cb4*/ TSafeArrayStatic<DWORD, 0x9>                    BodyColor;
-/*0x4cd8*/ TSafeArrayStatic<int, 0x800>                    FactionTable;                           // factiontable
-/*0x6cd8*/ TSafeArrayStatic<int, NUM_COMBAT_ABILITIES>     CombatAbilities;                        // KnownCombatAbilities
-/*0x7188*/ TSafeArrayStatic<UINT, 0xF>                     SpellRecastTimer;                       // spell_used
-/*0x71c4*/ TSafeArrayStatic<UINT, 0x19>                    CombatAbilityTimers;                    // fs
-/*0x7228*/ TList<CombatAbilityTimer>                       CombatAbilityTimersList;                // size 8 for sure CombatAbilityTimersAddl
-/*0x7230*/ TSafeArrayStatic<UINT, 0x19>                    LinkedSpellTimers;                      // for sure, we used to call thius CombatAbilityTimes...
-/*0x7294*/ TSafeArrayStatic<UINT, 0x64>                    ItemRecastTimers;                       // for sure
-/*0x7424*/ TSafeArrayStatic<UINT, 0x64>                    AATimers;                               // for sure
-/*0x75b4*/ TSafeArrayStatic<BandolierSet, 0x14>            Bandolier;                              // size 0x1900 = 0x140 * 0x14 for sure see 8DE476 Jan 04 2019 test
-/*0x8eb4*/ TSafeArrayStatic<BenefitSelection, 5>           ActiveTributeBenefits;                  // size 0x28 = 8 * 5 for sure see 8DE437 Jan 04 2019 test
-/*0x8edc*/ TSafeArrayStatic<BenefitSelection, 0xa>         ActiveTrophyTributeBenefits;            // size 0x50 = 8 * 0xa
-/*0x8f2c*/ ItemBaseContainer                               GuildTributeBenefitItems;               // size 0x1c for sure see 8C9D9C in 21 Sep 2018
-/*0x8f48*/ ItemBaseContainer                               GuildTrophyTributeBenefitItems;         // size 0x1c
-/*0x8f64*/ ArrayClass<CXStr>                               MercenarySaveStrings;                   // size 0x10
-/*0x8f74*/ AssociatedNPCSaveStringNode*                    PetSaveString;                          // for sure
-/*0x8f78*/ DWORD                                           Deity;                                  // fs see 8DE504 Jan 04 2019 test
-/*0x8f7c*/ bool                                            bPVPFlag;
-/*0x8f7d*/ BYTE                                            HighestLevel;
-/*0x8f80*/ DWORD                                           Drunkenness;                            // inebriation
-/*0x8f84*/ BYTE                                            HairColor;
-/*0x8f85*/ BYTE                                            BeardColor;
-/*0x8f88*/ int                                             NpcTintIndex;
-/*0x8f8c*/ BYTE                                            LeftEye;
-/*0x8f8d*/ BYTE                                            RightEye;
-/*0x8f8e*/ BYTE                                            Hair;
-/*0x8f8f*/ BYTE                                            Beard;
-/*0x8f90*/ BYTE                                            OldFace;
-/*0x8f94*/ DWORD                                           AAPoints;
-/*0x8f98*/ CHAR                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
-/*0xaf98*/ CXStr                                           ItemBuffer;
-/*0xaf9c*/ UINT                                            LastShield;
-/*0xafa0*/ bool                                            bSneak;
-/*0xafa1*/ bool                                            bHide;
-/*0xafa4*/ DWORD                                           AAPointsSpent;
-/*0xafa8*/ DWORD                                           AAPointsAssigned[6];                    // none, general, arch, class, special, focus, merc
-/*0xafc0*/ void*                                           pPetData;                               // PetObjectData todo fill in
-/*0xafc4*/ DWORD                                           PrimActor;
-/*0xafc8*/ DWORD                                           SecdActor;
-/*0xafcc*/ bool                                            bUseTemplateFaction;
-/*0xafd0*/ DWORD                                           TitlePrefixID;
-/*0xafd4*/ DWORD                                           TitleSuffixID;
-/*0xafd8*/ bool                                            bAreHandsMagic;
-/*0xafdc*/ DWORD                                           SoleEnabledZoneID;
-/*0xafe0*/ DWORD                                           NewBodyTint;
-/*0xafe4*/ DWORD                                           CurrentMercenaryIndex;
-/*0xafe8*/
+/*0x3b08*/ TSafeArrayStatic<WorldLocation, 5>              BoundLocations;                         // size 0x64 home_zone
+/*0x3b6c*/ TSafeArrayStatic<ArmorProperties, 0x16>         ArmorType;
+/*0x3d24*/ TSafeArrayStatic<AALIST, AA_CHAR_MAX_REAL>      AAList;                                 // AlternateAbilities
+/*0x4b34*/ TSafeArrayStatic<DWORD, 0x9>                    BodyColor;
+/*0x4b58*/ TSafeArrayStatic<int, 0x800>                    FactionTable;                           // factiontable
+/*0x6b58*/ TSafeArrayStatic<int, NUM_COMBAT_ABILITIES>     CombatAbilities;                        // KnownCombatAbilities
+/*0x7008*/ TSafeArrayStatic<UINT, 0xF>                     SpellRecastTimer;                       // spell_used
+/*0x7044*/ TSafeArrayStatic<UINT, 0x19>                    CombatAbilityTimers;                    // fs
+/*0x70a8*/ TList<CombatAbilityTimer>                       CombatAbilityTimersList;                // size 8 for sure CombatAbilityTimersAddl
+/*0x70b0*/ TSafeArrayStatic<UINT, 0x19>                    LinkedSpellTimers;                      // for sure, we used to call thius CombatAbilityTimes...
+/*0x7114*/ TSafeArrayStatic<UINT, 0x64>                    ItemRecastTimers;                       // for sure
+/*0x72a4*/ TSafeArrayStatic<UINT, 0x64>                    AATimers;                               // for sure
+/*0x7434*/ TSafeArrayStatic<BandolierSet, 0x14>            Bandolier;                              // size 0x1900 = 0x140 * 0x14 for sure see 8DE476 Jan 04 2019 test
+/*0x8d34*/ TSafeArrayStatic<BenefitSelection, 5>           ActiveTributeBenefits;                  // size 0x28 = 8 * 5 for sure see 8DE437 Jan 04 2019 test
+/*0x8d5c*/ TSafeArrayStatic<BenefitSelection, 0xa>         ActiveTrophyTributeBenefits;            // size 0x50 = 8 * 0xa
+/*0x8dac*/ ItemBaseContainer                               GuildTributeBenefitItems;               // size 0x1c for sure see 8C9D9C in 21 Sep 2018
+/*0x8dc8*/ ItemBaseContainer                               GuildTrophyTributeBenefitItems;         // size 0x1c
+/*0x8de4*/ ArrayClass<CXStr>                               MercenarySaveStrings;                   // size 0x10
+/*0x8df4*/ AssociatedNPCSaveStringNode*                    PetSaveString;                          // for sure
+/*0x8df8*/ DWORD                                           Deity;                                  // fs see 8DE504 Jan 04 2019 test
+/*0x8dfc*/ bool                                            bPVPFlag;
+/*0x8dfd*/ BYTE                                            HighestLevel;
+/*0x8e00*/ DWORD                                           Drunkenness;                            // inebriation
+/*0x8e04*/ BYTE                                            HairColor;
+/*0x8e05*/ BYTE                                            BeardColor;
+/*0x8e08*/ int                                             NpcTintIndex;
+/*0x8e0c*/ BYTE                                            LeftEye;
+/*0x8e0d*/ BYTE                                            RightEye;
+/*0x8e0e*/ BYTE                                            Hair;
+/*0x8e0f*/ BYTE                                            Beard;
+/*0x8e10*/ BYTE                                            OldFace;
+/*0x8e14*/ DWORD                                           AAPoints;
+/*0x8e18*/ CHAR                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
+/*0xae18*/ CXStr                                           ItemBuffer;
+/*0xae1c*/ UINT                                            LastShield;
+/*0xae20*/ bool                                            bSneak;
+/*0xae21*/ bool                                            bHide;
+/*0xae24*/ DWORD                                           AAPointsSpent;
+/*0xae28*/ DWORD                                           AAPointsAssigned[6];                    // none, general, arch, class, special, focus, merc
+/*0xae40*/ void*                                           pPetData;                               // PetObjectData todo fill in
+/*0xae44*/ DWORD                                           PrimActor;
+/*0xae48*/ DWORD                                           SecdActor;
+/*0xae4c*/ bool                                            bUseTemplateFaction;
+/*0xae50*/ DWORD                                           TitlePrefixID;
+/*0xae54*/ DWORD                                           TitleSuffixID;
+/*0xae58*/ bool                                            bAreHandsMagic;
+/*0xae5c*/ DWORD                                           SoleEnabledZoneID;
+/*0xae60*/ DWORD                                           NewBodyTint;
+/*0xae64*/ DWORD                                           CurrentMercenaryIndex;
+/*0xae68*/
 /******************************** PcProfile End ********************************/
 };
 using PCHARINFO2 [[deprecated]] = CHARINFO2*;
@@ -1841,126 +1838,126 @@ public:
 /*0x0020*/ BYTE                                            Unknown0x0020[0x48];
 /*0x0068*/ SPELLBUFF                                       Buff[NUM_LONG_BUFFS];                   // EQ_Affect size is 0x68 * 0x2a = 0x1110
 /*0x1178*/ SPELLBUFF                                       ShortBuff[NUM_SHORT_BUFFS];             // EQ_Affect size is 0x68 * 0x37 = 0x1658
-	// these IDs are gone (or moved?) from june 10 2019 test we never really used them so whatever... -eqmule
-	//*0x27d0*/ DWORD    CasterSpellIDs[NUM_BUFF_SLOTS]; // caster IDs for the Effects Window of whoever cast the buff on you in the same zone...
-/*0x27d0*/ DWORD                                           DiseaseSpreadTimers[NUM_BUFF_SLOTS];
-/*0x2954*/ DWORD                                           SpellBook[NUM_BOOK_SLOTS];
-/*0x3854*/ DWORD                                           MemorizedSpells[0x12];
-/*0x389c*/ DWORD                                           Skill[NUM_SKILLS];
-/*0x3a2c*/ DWORD                                           InnateSkill[0x19];
-/*0x3a90*/ TSafeArrayStatic<ArmorProperties, 9>            ArmorProps;                             // size 0xb4
-/*0x3b44*/ TSafeArrayStatic<DWORD, 9>                      CharacterTint;                          // size 0x24
-/*0x3b68*/ BYTE                                            Gender;
-/*0x3b6c*/ DWORD                                           Race;
-/*0x3b70*/ DWORD                                           Class;
-/*0x3b74*/ HashTable<int>                                  properties;
-/*0x3b84*/ DWORD                                           Level;
-/*0x3b88*/ DWORD                                           Mana;
-/*0x3b8c*/ DWORD                                           Endurance;
-/*0x3b90*/ int64_t                                         BaseHP;
-/*0x3b98*/ DWORD                                           BaseSTR;
-/*0x3b9c*/ DWORD                                           BaseSTA;
-/*0x3ba0*/ DWORD                                           BaseCHA;
-/*0x3ba4*/ DWORD                                           BaseDEX;
-/*0x3ba8*/ DWORD                                           BaseINT;
-/*0x3bac*/ DWORD                                           BaseAGI;
-/*0x3bb0*/ DWORD                                           BaseWIS;
-/*0x3bb4*/ BYTE                                            Face;
-/*0x3bb8*/ DWORD                                           Plat;
-/*0x3bbc*/ DWORD                                           Gold;
-/*0x3bc0*/ DWORD                                           Silver;
-/*0x3bc4*/ DWORD                                           Copper;
-/*0x3bc8*/ DWORD                                           CursorPlat;
-/*0x3bcc*/ DWORD                                           CursorGold;
-/*0x3bd0*/ DWORD                                           CursorSilver;
-/*0x3bd4*/ DWORD                                           CursorCopper;
-/*0x3bd8*/ int                                             _max_allowed_spell_slots;
-/*0x3bdc*/ int                                             practices;
-/*0x3be0*/ int                                             height;
-/*0x3be4*/ int                                             width;
-/*0x3be8*/ int                                             length;
-/*0x3bec*/ int                                             view_height;
-/*0x3bf0*/ char                                            texture_type;
-/*0x3bf1*/ char                                            m_armorMat;
-/*0x3bf2*/ char                                            m_armorVariation;
-/*0x3bf3*/ char                                            headType;
-/*0x3bf4*/ char                                            caneditface;
-/*0x3bf8*/ int                                             DisciplineTimer;
-/*0x3bfc*/ UINT                                            MendTimer;
-/*0x3c00*/ int                                             ForageTimer;
-/*0x3c04*/ int                                             thirstlevel;
-/*0x3c08*/ int                                             hungerlevel;
-/*0x3c0c*/ int                                             PotionCount;
-/*0x3c10*/ int                                             profileType;                            // enum PT_Main = 0, PT_Alt, PT_MonsterMission, PT_TypeUnknown
-/*0x3c14*/ int                                             Shrouded;                               // templateId
-/*0x3c18*/ int                                             systemId;
-/*0x3c1c*/ int                                             designId;
-/*0x3c20*/ int                                             InventorySlotBitmask;
-/*0x3c24*/ UINT                                            CurrentProgressionID;
-/*0x3c28*/ BYTE                                            Unknown0x3c28[0x54];
-/*0x3c7c*/ int                                             ParentId;
-/*0x3c80*/ int                                             TattooIndex;
-/*0x3c84*/ int                                             FacialAttachmentIndex;
-/*0x3c88*/
+/*0x27d0*/ DWORD                                           SpellBook[NUM_BOOK_SLOTS];
+/*0x36d0*/ DWORD                                           MemorizedSpells[0x12];
+/*0x3718*/ DWORD                                           Skill[NUM_SKILLS];
+/*0x38a8*/ DWORD                                           InnateSkill[0x19];
+/*0x390c*/ TSafeArrayStatic<ArmorProperties, 9>            ArmorProps;                             // size 0xb4
+/*0x39c0*/ TSafeArrayStatic<DWORD, 9>                      CharacterTint;                          // size 0x24
+/*0x39e4*/ BYTE                                            Gender;
+/*0x39e8*/ DWORD                                           Race;
+/*0x39ec*/ DWORD                                           Class;
+/*0x39f0*/ HashTable<int>                                  properties;
+/*0x3a00*/ DWORD                                           Level;
+/*0x3a04*/ DWORD                                           Mana;
+/*0x3a08*/ DWORD                                           Endurance;
+/*0x3a10*/ int64_t                                         BaseHP;
+/*0x3a18*/ DWORD                                           BaseSTR;
+/*0x3a1c*/ DWORD                                           BaseSTA;
+/*0x3a20*/ DWORD                                           BaseCHA;
+/*0x3a24*/ DWORD                                           BaseDEX;
+/*0x3a28*/ DWORD                                           BaseINT;
+/*0x3a2c*/ DWORD                                           BaseAGI;
+/*0x3a30*/ DWORD                                           BaseWIS;
+/*0x3a34*/ BYTE                                            Face;
+/*0x3a38*/ DWORD                                           Plat;
+/*0x3a3c*/ DWORD                                           Gold;
+/*0x3a40*/ DWORD                                           Silver;
+/*0x3a44*/ DWORD                                           Copper;
+/*0x3a48*/ DWORD                                           CursorPlat;
+/*0x3a4c*/ DWORD                                           CursorGold;
+/*0x3a50*/ DWORD                                           CursorSilver;
+/*0x3a54*/ DWORD                                           CursorCopper;
+/*0x3a58*/ int                                             _max_allowed_spell_slots;
+/*0x3a5c*/ int                                             practices;
+/*0x3a60*/ int                                             height;
+/*0x3a64*/ int                                             width;
+/*0x3a68*/ int                                             length;
+/*0x3a6c*/ int                                             view_height;
+/*0x3a70*/ char                                            texture_type;
+/*0x3a71*/ char                                            m_armorMat;
+/*0x3a72*/ char                                            m_armorVariation;
+/*0x3a73*/ char                                            headType;
+/*0x3a74*/ char                                            caneditface;
+/*0x3a78*/ int                                             DisciplineTimer;
+/*0x3a7c*/ UINT                                            MendTimer;
+/*0x3a80*/ int                                             ForageTimer;
+/*0x3a84*/ int                                             thirstlevel;
+/*0x3a88*/ int                                             hungerlevel;
+/*0x3a8c*/ int                                             PotionCount;
+/*0x3a90*/ int                                             profileType;                            // enum PT_Main = 0, PT_Alt, PT_MonsterMission, PT_TypeUnknown
+/*0x3a94*/ int                                             Shrouded;                               // templateId
+/*0x3a98*/ int                                             systemId;
+/*0x3a9c*/ int                                             designId;
+/*0x3aa0*/ int                                             InventorySlotBitmask;
+/*0x3aa4*/ UINT                                            CurrentProgressionID;
+/*0x3aa8*/ BYTE                                            Unknown0x3c28[0x54];
+/*0x3afc*/ int                                             ParentId;
+/*0x3b00*/ int                                             TattooIndex;
+/*0x3b04*/ int                                             FacialAttachmentIndex;
+/*0x3b08*/
 };
 
 //============================================================================
 // PcProfile
 //============================================================================
 
-class [[offsetcomments]] PcProfile  : public BaseProfile
+class [[offsetcomments]] PcProfile : public BaseProfile
 {
 public:
-/*0x3c88*/ TSafeArrayStatic<WorldLocation, 5>              BoundLocations;                         // size 0x64 home_zone
-/*0x3cec*/ TSafeArrayStatic<ArmorProperties, 0x16>         ArmorType;
-/*0x3ea4*/ TSafeArrayStatic<AALIST, AA_CHAR_MAX_REAL>      AAList;                                 // AlternateAbilities
-/*0x4cb4*/ TSafeArrayStatic<DWORD, 0x9>                    BodyColor;
-/*0x4cd8*/ TSafeArrayStatic<int, 0x800>                    FactionTable;                           // factiontable
-/*0x6cd8*/ TSafeArrayStatic<int, NUM_COMBAT_ABILITIES>     CombatAbilities;                        // KnownCombatAbilities
-/*0x7188*/ TSafeArrayStatic<UINT, 0xF>                     SpellRecastTimer;                       // spell_used
-/*0x71c4*/ TSafeArrayStatic<UINT, 0x19>                    CombatAbilityTimers;                    // fs
-/*0x7228*/ TList<CombatAbilityTimer>                       CombatAbilityTimersList;                // size 8 for sure CombatAbilityTimersAddl
-/*0x7230*/ TSafeArrayStatic<UINT, 0x19>                    LinkedSpellTimers;                      // for sure, we used to call thius CombatAbilityTimes...
-/*0x7294*/ TSafeArrayStatic<UINT, 0x64>                    ItemRecastTimers;                       // for sure
-/*0x7424*/ TSafeArrayStatic<UINT, 0x64>                    AATimers;                               // for sure
-/*0x75b4*/ TSafeArrayStatic<BandolierSet, 0x14>            Bandolier;                              // size 0x1900 = 0x140 * 0x14 for sure see 8DE476 Jan 04 2019 test
-/*0x8eb4*/ TSafeArrayStatic<BenefitSelection, 5>           ActiveTributeBenefits;                  // size 0x28 = 8 * 5 for sure see 8DE437 Jan 04 2019 test
-/*0x8edc*/ TSafeArrayStatic<BenefitSelection, 0xa>         ActiveTrophyTributeBenefits;            // size 0x50 = 8 * 0xa
-/*0x8f2c*/ ItemBaseContainer                               GuildTributeBenefitItems;               // size 0x1c for sure see 8C9D9C in 21 Sep 2018
-/*0x8f48*/ ItemBaseContainer                               GuildTrophyTributeBenefitItems;         // size 0x1c
-/*0x8f64*/ ArrayClass<CXStr>                               MercenarySaveStrings;                   // size 0x10
-/*0x8f74*/ AssociatedNPCSaveStringNode*                    PetSaveString;                          // for sure
-/*0x8f78*/ DWORD                                           Deity;                                  // fs see 8DE504 Jan 04 2019 test
-/*0x8f7c*/ bool                                            bPVPFlag;
-/*0x8f7d*/ BYTE                                            HighestLevel;
-/*0x8f80*/ DWORD                                           Drunkenness;                            // inebriation
-/*0x8f84*/ BYTE                                            HairColor;
-/*0x8f85*/ BYTE                                            BeardColor;
-/*0x8f88*/ int                                             NpcTintIndex;
-/*0x8f8c*/ BYTE                                            LeftEye;
-/*0x8f8d*/ BYTE                                            RightEye;
-/*0x8f8e*/ BYTE                                            Hair;
-/*0x8f8f*/ BYTE                                            Beard;
-/*0x8f90*/ BYTE                                            OldFace;
-/*0x8f94*/ DWORD                                           AAPoints;
-/*0x8f98*/ CHAR                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
-/*0xaf98*/ CXStr                                           ItemBuffer;
-/*0xaf9c*/ UINT                                            LastShield;
-/*0xafa0*/ bool                                            bSneak;
-/*0xafa1*/ bool                                            bHide;
-/*0xafa4*/ DWORD                                           AAPointsSpent;
-/*0xafa8*/ DWORD                                           AAPointsAssigned[6];                    // none, general, arch, class, special, focus, merc
-/*0xafc0*/ void*                                           pPetData;                               // PetObjectData todo fill in
-/*0xafc4*/ DWORD                                           PrimActor;
-/*0xafc8*/ DWORD                                           SecdActor;
-/*0xafcc*/ bool                                            bUseTemplateFaction;
-/*0xafd0*/ DWORD                                           TitlePrefixID;
-/*0xafd4*/ DWORD                                           TitleSuffixID;
-/*0xafd8*/ bool                                            bAreHandsMagic;
-/*0xafdc*/ DWORD                                           SoleEnabledZoneID;
-/*0xafe0*/ DWORD                                           NewBodyTint;
-/*0xafe4*/ DWORD                                           CurrentMercenaryIndex;
-/*0xafe8*/
+/*0x3b08*/ TSafeArrayStatic<WorldLocation, 5>              BoundLocations;                         // size 0x64 home_zone
+/*0x3b6c*/ TSafeArrayStatic<ArmorProperties, 0x16>         ArmorType;
+/*0x3d24*/ TSafeArrayStatic<AALIST, AA_CHAR_MAX_REAL>      AAList;                                 // AlternateAbilities
+/*0x4b34*/ TSafeArrayStatic<DWORD, 0x9>                    BodyColor;
+/*0x4b58*/ TSafeArrayStatic<int, 0x800>                    FactionTable;                           // factiontable
+/*0x6b58*/ TSafeArrayStatic<int, NUM_COMBAT_ABILITIES>     CombatAbilities;                        // KnownCombatAbilities
+/*0x7008*/ TSafeArrayStatic<UINT, 0xF>                     SpellRecastTimer;                       // spell_used
+/*0x7044*/ TSafeArrayStatic<UINT, 0x19>                    CombatAbilityTimers;                    // fs
+/*0x70a8*/ TList<CombatAbilityTimer>                       CombatAbilityTimersList;                // size 8 for sure CombatAbilityTimersAddl
+/*0x70b0*/ TSafeArrayStatic<UINT, 0x19>                    LinkedSpellTimers;                      // for sure, we used to call thius CombatAbilityTimes...
+/*0x7114*/ TSafeArrayStatic<UINT, 0x64>                    ItemRecastTimers;                       // for sure
+/*0x72a4*/ TSafeArrayStatic<UINT, 0x64>                    AATimers;                               // for sure
+/*0x7434*/ TSafeArrayStatic<BandolierSet, 0x14>            Bandolier;                              // size 0x1900 = 0x140 * 0x14 for sure see 8DE476 Jan 04 2019 test
+/*0x8d34*/ TSafeArrayStatic<BenefitSelection, 5>           ActiveTributeBenefits;                  // size 0x28 = 8 * 5 for sure see 8DE437 Jan 04 2019 test
+/*0x8d5c*/ TSafeArrayStatic<BenefitSelection, 0xa>         ActiveTrophyTributeBenefits;            // size 0x50 = 8 * 0xa
+/*0x8dac*/ ItemBaseContainer                               GuildTributeBenefitItems;               // size 0x1c for sure see 8C9D9C in 21 Sep 2018
+/*0x8dc8*/ ItemBaseContainer                               GuildTrophyTributeBenefitItems;         // size 0x1c
+/*0x8de4*/ ArrayClass<CXStr>                               MercenarySaveStrings;                   // size 0x10
+/*0x8df4*/ AssociatedNPCSaveStringNode*                    PetSaveString;                          // for sure
+/*0x8df8*/ DWORD                                           Deity;                                  // fs see 8DE504 Jan 04 2019 test
+/*0x8dfc*/ bool                                            bPVPFlag;
+/*0x8dfd*/ BYTE                                            HighestLevel;
+/*0x8e00*/ DWORD                                           Drunkenness;                            // inebriation
+/*0x8e04*/ BYTE                                            HairColor;
+/*0x8e05*/ BYTE                                            BeardColor;
+/*0x8e08*/ int                                             NpcTintIndex;
+/*0x8e0c*/ BYTE                                            LeftEye;
+/*0x8e0d*/ BYTE                                            RightEye;
+/*0x8e0e*/ BYTE                                            Hair;
+/*0x8e0f*/ BYTE                                            Beard;
+/*0x8e10*/ BYTE                                            OldFace;
+/*0x8e14*/ DWORD                                           AAPoints;
+/*0x8e18*/ CHAR                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
+/*0xae18*/ CXStr                                           ItemBuffer;
+/*0xae1c*/ UINT                                            LastShield;
+/*0xae20*/ bool                                            bSneak;
+/*0xae21*/ bool                                            bHide;
+/*0xae24*/ DWORD                                           AAPointsSpent;
+/*0xae28*/ DWORD                                           AAPointsAssigned[6];                    // none, general, arch, class, special, focus, merc
+/*0xae40*/ void*                                           pPetData;                               // PetObjectData todo fill in
+/*0xae44*/ DWORD                                           PrimActor;
+/*0xae48*/ DWORD                                           SecdActor;
+/*0xae4c*/ bool                                            bUseTemplateFaction;
+/*0xae50*/ DWORD                                           TitlePrefixID;
+/*0xae54*/ DWORD                                           TitleSuffixID;
+/*0xae58*/ bool                                            bAreHandsMagic;
+/*0xae5c*/ DWORD                                           SoleEnabledZoneID;
+/*0xae60*/ DWORD                                           NewBodyTint;
+/*0xae64*/ DWORD                                           CurrentMercenaryIndex;
+/*0xae68*/
+
+	// force symbols for this struct
+	EQLIB_OBJECT void dummy() {}
 };
 
 #if USE_NEW_PCPROFILE
@@ -2160,7 +2157,7 @@ public:
 /*0x2584*/ SpellCache                  spellCache;                   // size 0x58
 /*0x25dc*/ HashListSet<int, 0x80>      DoomEffectsBySlot;            // size 0x10 + (0x80* 4)
 /*0x27ec*/ UINT                        LastHitEval;
-/*0x27f0*/ 
+/*0x27f0*/
 
 	EQLIB_OBJECT CharacterZoneClient();
 	EQLIB_OBJECT int CalcAffectChange(const EQ_Spell* spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect* theAffect, int EffectIndex = 0, PlayerZoneClient* pCaster = NULL, bool overrideChangeVal = false, int ChangeVal = -1, bool bCap = true);
@@ -2229,8 +2226,8 @@ public:
 /*0x15bc*/ bool                                  bWhat;
 /*0x15bd*/ bool                                  bSomethingHome;
 /*0x15c0*/ DWORD                                 LoginTime;
-/*0x15c8*/ int64_t                               GuildID;                      // GuildID_0
-/*0x15d0*/ int64_t                               FellowshipID;
+/*0x15c8*/ EqGuid                                GuildID;                      // GuildID_0
+/*0x15d0*/ EqGuid                                FellowshipID;
 /*0x15d8*/ FELLOWSHIPINFO*                       pFellowship;
 /*0x15dc*/ int                                   GuildStatus;
 /*0x15e0*/ int                                   GuildFlags;
@@ -2307,8 +2304,8 @@ public:
 /*0x1b6c*/ PCStatistics                          PcStatistics;
 /*0x1c70*/ GroupMemberStats                      GroupStats;
 /*0x1dc0*/ bool                                  bIsLfg;
-/*0x1dc8*/ int64_t                               RaidId;
-/*0x1dd0*/ int64_t                               GroupID;
+/*0x1dc8*/ EqGuid                                RaidId;
+/*0x1dd0*/ EqGuid                                GroupID;
 /*0x1dd8*/ int64_t                               Exp;
 /*0x1de0*/ int                                   DaysEntitled;
 /*0x1de4*/ int                                   SpentVeteranRewards;

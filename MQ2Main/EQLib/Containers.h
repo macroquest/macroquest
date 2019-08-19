@@ -365,8 +365,8 @@ public:
 
 	ArrayClass(int reserve) : ArrayClass()
 	{
-		m_array = new T[size];
-		m_alloc = size;
+		m_array = new T[reserve];
+		m_alloc = reserve;
 	}
 
 	ArrayClass(const ArrayClass& rhs) : ArrayClass()

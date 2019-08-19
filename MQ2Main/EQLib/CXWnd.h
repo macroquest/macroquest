@@ -662,7 +662,7 @@ public:
 
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
-};
+/*0x1ec*/ };
 
 using CXWND [[deprecated]] = CXWnd;
 using PCXWND [[deprecated]] = CXWnd*;
@@ -705,23 +705,23 @@ public:
 
 	//----------------------------------------------------------------------------
 	// data members
-/*0x1f8*/ bool                         bControlsCreated;
-/*0x1fc*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
-/*0x200*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
-/*0x204*/ ArrayClass<CRadioGroup*>     RadioGroup;
-/*0x214*/ bool                         bInitVisibility;
-/*0x215*/ bool                         bVisibleBeforeResize;
-/*0x218*/ int                          IniFlags;
-/*0x21c*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
-/*0x220*/ int                          IniVersion;
-/*0x224*/ int                          LastResX;
-/*0x228*/ int                          LastResY;
-/*0x22c*/ bool                         bLastResFullscreen;
-/*0x230*/ int                          ContextMenuID;
-/*0x234*/ CXWnd*                       pFirstVScrollChild;
-/*0x238*/ int                          ContextMenuTipID;
-/*0x23c*/ bool                         bHasActivatedFirstTimeAlert;
-/*0x240*/
+/*0x1f0*/ bool                         bControlsCreated;
+/*0x1f4*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
+/*0x1f8*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
+/*0x1fc*/ ArrayClass<CRadioGroup*>     RadioGroup;
+/*0x20c*/ bool                         bInitVisibility;
+/*0x20d*/ bool                         bVisibleBeforeResize;
+/*0x210*/ int                          IniFlags;
+/*0x214*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
+/*0x218*/ int                          IniVersion;
+/*0x21c*/ int                          LastResX;
+/*0x220*/ int                          LastResY;
+/*0x224*/ bool                         bLastResFullscreen;
+/*0x228*/ int                          ContextMenuID;
+/*0x22c*/ CXWnd*                       pFirstVScrollChild;
+/*0x230*/ int                          ContextMenuTipID;
+/*0x234*/ bool                         bHasActivatedFirstTimeAlert;
+/*0x238*/
 
 	//----------------------------------------------------------------------------
 	// functions that we provide offsets for

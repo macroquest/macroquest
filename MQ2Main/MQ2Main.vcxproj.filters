@@ -250,6 +250,9 @@
     <ClInclude Include="EQLib\eqgame.h">
       <Filter>Header Files\EQLib</Filter>
     </ClInclude>
+    <ClInclude Include="EQLib\PlayerZoneClient-Members.h">
+      <Filter>Header Files\EQLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

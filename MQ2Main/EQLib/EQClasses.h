@@ -1032,7 +1032,7 @@ struct [[offsetcomments]] CTaskEntry
 /*0x3bdc*/ ArrayClass<MonsterMissionTemplate> MonsterTemplates;
 /*0x3bec*/ bool              bTemplateSelectionLocked;
 /*0x3bed*/ bool              bHasRewardSet;
-/*0x3bf0*/ 
+/*0x3bf0*/
 };
 
 enum SharedTaskPlayerRole
@@ -1326,7 +1326,7 @@ public:
 /*0x30*/ UINT          Flags;                    // twincast
 /*0x34*/ SlotData      Data[NUM_SLOTDATA];
 /*0x64*/ DWORD         Unknown0x64;
-/*0x68*/ 
+/*0x68*/
 };
 
 class EQ_AltAbility
@@ -1585,34 +1585,35 @@ public:
 /*0x08*/ EQPlacedItem* pNext;
 /*0x0c*/ int           RecordNum;
 /*0x10*/ EqItemGuid    ItemGuid;
-/*0x22*/
 /*0x24*/ int           RealEstateID;
 /*0x28*/ int           RealEstateItemID;
 /*0x2c*/ bool          bIsNPC;
-/*0x30*/ UINT          PlacingItemNpcID;
+/*0x30*/ unsigned int  PlacingItemNpcID;
 /*0x34*/ CLightInterface* pLight;
 /*0x38*/ CActorInterface* pActor;
 /*0x3c*/ char          Name[0x40];
-/*0x7c*/ float         Scale;
-/*0x80*/ float         Heading;
-/*0x84*/ float         Angle;
-/*0x88*/ float         Roll;
-/*0x8c*/ float         Y;
-/*0x90*/ float         X;
-/*0x94*/ float         Z;
-/*0x98*/ bool          bIgnoreCollisions;
-/*0x99*/ bool          bDisablePlacementRotation;
-/*0x9a*/ bool          bDisableFreePlacement;
-/*0x9c*/ ePlacementType PlacementType;
-/*0xa0*/ float         ScaleRangeMin;
-/*0xa4*/ float         ScaleRangeMax;
-/*0xa8*/ float         DefaultScale;
-/*0xac*/ float         DefaultHeading;
-/*0xb0*/ float         DefaultAngle;
-/*0xb4*/ float         DefaultRoll;
-/*0xb8*/ int           LightType;
-/*0xbc*/ float         NPCHeight;
-/*0xc0*/
+/*0x7c*/ int           Unknown0x7c;
+/*0x80*/ int           Unknown0x80;
+/*0x84*/ float         Scale;
+/*0x88*/ float         Heading;
+/*0x8c*/ float         Angle;
+/*0x90*/ float         Roll;
+/*0x94*/ float         Y;
+/*0x98*/ float         X;
+/*0x9c*/ float         Z;
+/*0xa0*/ bool          bIgnoreCollisions;
+/*0xa1*/ bool          bDisablePlacementRotation;
+/*0xa2*/ bool          bDisableFreePlacement;
+/*0xa4*/ ePlacementType PlacementType;
+/*0xa8*/ float         ScaleRangeMin;
+/*0xac*/ float         ScaleRangeMax;
+/*0xb0*/ float         DefaultScale;
+/*0xb4*/ float         DefaultHeading;
+/*0xb8*/ float         DefaultAngle;
+/*0xbc*/ float         DefaultRoll;
+/*0xc0*/ int           LightType;
+/*0xc4*/ float         NPCHeight;
+/*0xc8*/
 };
 
 class EQPlacedItemManager
@@ -2599,16 +2600,16 @@ class [[offsetcomments]] SpellManager : public FileStatMgr
 {
 public:
 /*0x00014*/ int      SpellsCrc32[TOTAL_SPELL_COUNT+1];
-/*0x3a998*/ PSPELL   MissingSpell;
-/*0x3a99c*/ PSPELLCALCINFO* MissingSpellAffect;
-/*0x3a9a0*/ PSPELLCALCINFO* MissingSpellAffectAC;
-/*0x3a9a4*/ int      MissingSpellCrc32;
-/*0x3a9a8*/ int      SpellFileCRC;
-/*0x3a9ac*/ int      SpellAssocFileCRC;
-/*0x3a9b0*/ int      SpellStackingFileCRC;
-/*0x3a9b4*/ SpellRequirementAssociationManager ReqAssocManager;
-/*0x3bb9c*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
-/*0x3bbac*/ 
+/*0x3c8d8*/ PSPELL   MissingSpell;
+/*0x3c8dc*/ PSPELLCALCINFO* MissingSpellAffect;
+/*0x3c8e0*/ PSPELLCALCINFO* MissingSpellAffectAC;
+/*0x3c8e4*/ int      MissingSpellCrc32;
+/*0x3c8e8*/ int      SpellFileCRC;
+/*0x3c8ec*/ int      SpellAssocFileCRC;
+/*0x3c8f0*/ int      SpellStackingFileCRC;
+/*0x3c8f4*/ SpellRequirementAssociationManager ReqAssocManager;
+/*0x3dadc*/ HashTable<int, int, ResizePolicyNoShrink> SpellGroups;
+/*0x3daec*/
 
 SpellManager(char*);
 	virtual ~SpellManager() {}
@@ -2633,11 +2634,11 @@ public:
 	EQLIB_OBJECT SPELLCALCINFO* GetSpellAffect(int index);
 	EQLIB_OBJECT bool GetSpellAffectEmpty(bool);
 
-/*0x03bbac*/ SPELL*                       Spells[TOTAL_SPELL_COUNT+1];         // 60001 last one is the unknown spell...
-/*0x076530*/ SPELLCALCINFO*               CalcInfo[CalcInfoSize];              // 175000
-/*0x139a30*/ EQSpellExtra                 SpellExtraData[TOTAL_SPELL_COUNT+1];
-/*0x1aed38*/ HashTable<StackingGroupData> StackingData;
-/*0x1aed48*/
+/*0x03daec*/ SPELL*                       Spells[TOTAL_SPELL_COUNT+1];         // 60001 last one is the unknown spell...
+/*0x07a3b0*/ SPELLCALCINFO*               CalcInfo[CalcInfoSize];              // 175000
+/*0x143670*/ EQSpellExtra                 SpellExtraData[TOTAL_SPELL_COUNT+1];
+/*0x1bc7f8*/ HashTable<StackingGroupData> StackingData;
+/*0x1bc808*/
 };
 
 class StringTable

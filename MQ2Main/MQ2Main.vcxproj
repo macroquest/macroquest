@@ -134,6 +134,7 @@
     <ClInclude Include="EQLib\Mutex.h" />
     <ClInclude Include="EQLib\PcClient.h" />
     <ClInclude Include="EQLib\PlayerClient.h" />
+    <ClInclude Include="EQLib\PlayerZoneClient-Members.h" />
     <ClInclude Include="EQLib\SidlParams.h" />
     <ClInclude Include="EQLib\SidlTemplates.h" />
     <ClInclude Include="EQLib\Spells.h" />
