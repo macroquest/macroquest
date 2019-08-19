@@ -1979,7 +1979,7 @@ FUNCTION_AT_ADDRESS(void CMapViewWnd::ActivateAutoMapping(), CMapViewWnd__Activa
 FUNCTION_AT_ADDRESS(void CMapViewWnd::DeactivateAutoMapping(), CMapViewWnd__DeactivateAutoMapping);
 #endif
 #ifdef CMapViewWnd__GetWorldCoordinates_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::GetWorldCoordinates(float*), CMapViewWnd__GetWorldCoordinates);
+FUNCTION_AT_ADDRESS(void CMapViewWnd::GetWorldCoordinates(CVector3&), CMapViewWnd__GetWorldCoordinates);
 #endif
 
 // MapViewMap

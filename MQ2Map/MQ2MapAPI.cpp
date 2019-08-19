@@ -15,140 +15,135 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 
-//#define pMap     ((PEQMAPWINDOW)pMapViewWnd)
-typedef struct _MAPSPAWN
+#define FAKESPAWNTYPE 0xFF
+
+struct MAPSPAWN
 {
-	PSPAWNINFO pSpawn = 0;
+	SPAWNINFO* pSpawn = nullptr;
 	eSpawnType SpawnType;
 
-	PMAPLABEL pMapLabel;
-	PMAPLINE pVector;
+	MAPLABEL* pMapLabel;
+	MAPLINE* pVector;
 	BOOL Highlight;
 	BOOL Explicit;
 	DWORD Marker;
 	DWORD MarkerSize;
-	PMAPLINE MarkerLines[10];
+	MAPLINE* MarkerLines[10];
 
-	struct _MAPSPAWN *pLast;
-	struct _MAPSPAWN *pNext;
-} MAPSPAWN, *PMAPSPAWN;
+	MAPSPAWN* pLast;
+	MAPSPAWN* pNext;
+};
 
-#define FAKESPAWNTYPE 0xFF
+MAPSPAWN* pActiveSpawns = nullptr;
+MAPLABEL* pLabelList = nullptr;
+MAPLABEL* pLabelListTail = nullptr;
+MAPLINE*  pLineList = nullptr;
+MAPLINE*  pLineListTail = nullptr;
 
+MAPLABEL* pActualLineList = nullptr;
 
-PMAPSPAWN pActiveSpawns = 0;
-
-PMAPLABEL pLabelList = 0;
-PMAPLABEL pLabelListTail = 0;
-PMAPLINE  pLineList = 0;
-PMAPLINE  pLineListTail = 0;
-
-
-
-std::map<unsigned long, PMAPSPAWN> SpawnMap;
-std::map<unsigned long, PMAPSPAWN> GroundItemMap;
-std::map<PMAPLABEL, PMAPSPAWN> LabelMap;
-std::map<std::string, PMAPLOC> LocationMap;
-PMAPLOC DefaultMapLoc = new MAPLOC;
+std::map<unsigned long, MAPSPAWN*> SpawnMap;
+std::map<unsigned long, MAPSPAWN*> GroundItemMap;
+std::map<MAPLABEL*, MAPSPAWN*> LabelMap;
+std::map<std::string, MAPLOC*> LocationMap;
+MAPLOC* DefaultMapLoc = new MAPLOC;
 
 BOOL Update = false;
 
-#define CASTRADIUS_ANGLESIZE 10
-PMAPLINE pCastRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+const int CASTRADIUS_ANGLESIZE = 10;
 
-PMAPLINE pSpellRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+MAPLINE* pCastRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+MAPLINE* pSpellRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+MAPSPAWN* pLastTarget = nullptr;
+MAPLINE* pTargetRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+MAPLINE* pTargetMelee[(360 / CASTRADIUS_ANGLESIZE) + 1];
+MAPLINE* pTargetLine = nullptr;
 
-PMAPSPAWN pLastTarget = 0;
-
-PMAPLINE pTargetRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
-
-PMAPLINE pTargetMelee[(360 / CASTRADIUS_ANGLESIZE) + 1];
-
-PMAPLINE pTargetLine = 0;
-
-
-inline PMAPLINE InitLine()
+MAPLINE* InitLine()
 {
-	PMAPLINE pLine = new MAPLINE;
-	pLine->pPrev = 0;
+	MAPLINE* pLine = new MAPLINE;
+	pLine->pPrev = nullptr;
 	pLine->pNext = pLineList;
+
 	if (pLineList)
 		pLineList->pPrev = pLine;
 	else
 		pLineListTail = pLine;
+
 	pLineList = pLine;
 	return pLine;
 }
 
-inline void DeleteLine(PMAPLINE pLine)
+void DeleteLine(MAPLINE* pLine)
 {
 	if (pLine->pNext)
 		pLine->pNext->pPrev = pLine->pPrev;
 	else
 		pLineListTail = pLine->pPrev;
+
 	if (pLine->pPrev)
 		pLine->pPrev->pNext = pLine->pNext;
 	else
 		pLineList = pLine->pNext;
+
 	delete pLine;
 }
 
-inline PMAPLABEL InitLabel(PMAPSPAWN pMapSpawn)
+MAPLABEL* InitLabel(MAPSPAWN* pMapSpawn)
 {
-	PMAPLABEL pLabel = new MAPLABEL;
-	pLabel->pPrev = 0;
+	MAPLABEL* pLabel = new MAPLABEL;
+	pLabel->pPrev = nullptr;
 	pLabel->pNext = pLabelList;
+
 	if (pLabelList)
 		pLabelList->pPrev = pLabel;
 	else
 		pLabelListTail = pLabel;
+
 	pLabelList = pLabel;
 	LabelMap[pLabel] = pMapSpawn;
 	return pLabel;
 }
 
-inline void DeleteLabel(PMAPLABEL pLabel)
+void DeleteLabel(MAPLABEL* pLabel)
 {
-	LabelMap[pLabel] = 0;
+	LabelMap[pLabel] = nullptr;
+
 	if (pLabel->pNext)
 		pLabel->pNext->pPrev = pLabel->pPrev;
 	else
 		pLabelListTail = pLabel->pPrev;
+
 	if (pLabel->pPrev)
 		pLabel->pPrev->pNext = pLabel->pNext;
 	else
 		pLabelList = pLabel->pNext;
+
 	delete pLabel;
 }
 
-inline PMAPSPAWN InitSpawn()
+MAPSPAWN* InitSpawn()
 {
-	try {
-		PMAPSPAWN pMapSpawn = new MAPSPAWN;
-		pMapSpawn->SpawnType = NONE;
-		pMapSpawn->pVector = 0;
-		pMapSpawn->Highlight = 0;
-		pMapSpawn->Explicit = 0;
-		pMapSpawn->Marker = 0;
-		pMapSpawn->MarkerSize = 0;
-		pMapSpawn->pSpawn = 0;
-		pMapSpawn->pMapLabel = 0;
-		pMapSpawn->pLast = 0;
-		pMapSpawn->pNext = pActiveSpawns;
-		if (pActiveSpawns)
-			pActiveSpawns->pLast = pMapSpawn;
-		pActiveSpawns = pMapSpawn;
-		return pMapSpawn;
-	}
-	catch (std::bad_alloc& exc)
-	{
-		UNREFERENCED_PARAMETER(exc);
-		MessageBox(NULL, "mq2map failed to allocate memory in InitSpawn", "Did we just discover a memory leak?", MB_SYSTEMMODAL | MB_OK);
-	};
-	return NULL;
+	MAPSPAWN* pMapSpawn = new MAPSPAWN;
+	pMapSpawn->SpawnType = NONE;
+	pMapSpawn->pVector = nullptr;
+	pMapSpawn->Highlight = 0;
+	pMapSpawn->Explicit = 0;
+	pMapSpawn->Marker = 0;
+	pMapSpawn->MarkerSize = 0;
+	pMapSpawn->pSpawn = nullptr;
+	pMapSpawn->pMapLabel = nullptr;
+	pMapSpawn->pLast = nullptr;
+	pMapSpawn->pNext = pActiveSpawns;
+
+	if (pActiveSpawns)
+		pActiveSpawns->pLast = pMapSpawn;
+
+	pActiveSpawns = pMapSpawn;
+	return pMapSpawn;
 }
 
-inline void DeleteSpawn(PMAPSPAWN pMapSpawn)
+inline void DeleteSpawn(MAPSPAWN* pMapSpawn)
 {
 	if (pMapSpawn && pMapSpawn->pNext)
 		pMapSpawn->pNext->pLast = pMapSpawn->pLast;
@@ -164,37 +159,40 @@ inline void DeleteSpawn(PMAPSPAWN pMapSpawn)
 	}
 }
 
-void GenerateMarker(PMAPSPAWN pMapSpawn);
-PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString);//just a forward decl.
-DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn);//just a forward decl.
-PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color);//just a forward decl.
-PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn);//just a forward decl.
-BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn);//just a forward decl.
-void RemoveMarker(PMAPSPAWN pMapSpawn);
-void MoveMarker(PMAPSPAWN pMapSpawn);
+void GenerateMarker(MAPSPAWN* pMapSpawn);
+char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString);
+DWORD GetSpawnColor(eSpawnType Type, SPAWNINFO* pSpawn);
+MAPLABEL* GenerateLabel(MAPSPAWN* pMapSpawn, DWORD Color);
+PMAPLINE GenerateVector(MAPSPAWN* pMapSpawn);
+BOOL CanDisplaySpawn(eSpawnType Type, SPAWNINFO* pSpawn);
+void RemoveMarker(MAPSPAWN* pMapSpawn);
+void MoveMarker(MAPSPAWN* pMapSpawn);
 
-VOID MapInit()
+void MapInit()
 {
-	for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+	for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 	{
-		pCastRadius[i] = 0;
-		pSpellRadius[i] = 0;
-		pTargetRadius[i] = 0;
-		pTargetMelee[i] = 0;
+		pCastRadius[i] = nullptr;
+		pSpellRadius[i] = nullptr;
+		pTargetRadius[i] = nullptr;
+		pTargetMelee[i] = nullptr;
 	}
 }
 
-PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
+MAPSPAWN* AddSpawn(SPAWNINFO* pNewSpawn, BOOL ExplicitAllow)
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	char buf[MAX_STRING] = { 0 };
 	eSpawnType Type = GetSpawnType(pNewSpawn);
+
 	// apply map filter
 	if (!ExplicitAllow && !CanDisplaySpawn(Type, pNewSpawn))
-		return 0;
+		return nullptr;
+
 	// add spawn to list
 
-	if (PMAPSPAWN pMapSpawn = InitSpawn()) {
+	if (MAPSPAWN* pMapSpawn = InitSpawn())
+	{
 		if (pNewSpawn->Type != FAKESPAWNTYPE)
 			SpawnMap[pNewSpawn->SpawnID] = pMapSpawn;
 		pMapSpawn->SpawnType = Type;
@@ -208,68 +206,75 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 
 		pMapSpawn->Highlight = false;
 
-#if 0
-		//Debugging
-		if (Type == SPAWN_CORPSE || Type == ITEM)
-		{
-			sprintf_s(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
-				pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, GetBodyType(pMapSpawn->pSpawn));
-			DebugSpew("%s", buf);
-		}
-#endif
-
 		// new stuff for Marker changes
-		if (IsOptionEnabled(MAPFILTER_Marker)) {
+		if (IsOptionEnabled(MAPFILTER_Marker))
+		{
 			pMapSpawn->Marker = MapFilterOptions[TypeToMapfilter(pNewSpawn)].Marker;
 			pMapSpawn->MarkerSize = MapFilterOptions[TypeToMapfilter(pNewSpawn)].MarkerSize;
 
 			GenerateMarker(pMapSpawn);
 			MoveMarker(pMapSpawn);
 		}
-		else if (!IsOptionEnabled(MAPFILTER_Marker)) {
+		else if (!IsOptionEnabled(MAPFILTER_Marker))
+		{
 			if (pMapSpawn->Marker != 0)
 				pMapSpawn->Marker = 0;
 		}
 		return pMapSpawn;
 	}
-	return 0;
+
+	return nullptr;
 }
 
-void RemoveSpawn(PMAPSPAWN pMapSpawn)
+void RemoveSpawn(MAPSPAWN* pMapSpawn)
 {
-	if (pMapSpawn && pMapSpawn->pMapLabel) {
+	if (pMapSpawn && pMapSpawn->pMapLabel)
+	{
 		if (pMapSpawn->pMapLabel->Label)
 			free(pMapSpawn->pMapLabel->Label);
 		DeleteLabel(pMapSpawn->pMapLabel);
 	}
+
 	if (pMapSpawn && pMapSpawn->pVector)
 	{
 		DeleteLine(pMapSpawn->pVector);
-		pMapSpawn->pVector = 0;
+		pMapSpawn->pVector = nullptr;
 	}
-	if (pMapSpawn && pMapSpawn->Marker) {
+	if (pMapSpawn && pMapSpawn->Marker)
+	{
 		RemoveMarker(pMapSpawn);
 	}
+
 	if (pMapSpawn && pMapSpawn->pSpawn && pMapSpawn->pSpawn->Type == FAKESPAWNTYPE)
+	{
 		delete pMapSpawn->pSpawn;
-	else {
-		if (pMapSpawn && pMapSpawn->pSpawn) {
-			SpawnMap[pMapSpawn->pSpawn->SpawnID] = 0;
+	}
+	else
+	{
+		if (pMapSpawn && pMapSpawn->pSpawn)
+		{
+			SpawnMap[pMapSpawn->pSpawn->SpawnID] = nullptr;
 		}
 	}
-	if (pMapSpawn && pMapSpawn == pLastTarget) {
-		pLastTarget = 0;
+
+	if (pMapSpawn && pMapSpawn == pLastTarget)
+	{
+		pLastTarget = nullptr;
 	}
-	if (pMapSpawn) {
+
+	if (pMapSpawn)
+	{
 		DeleteSpawn(pMapSpawn);
 	}
 }
 
-bool RemoveSpawn(PSPAWNINFO pSpawn)
+bool RemoveSpawn(SPAWNINFO* pSpawn)
 {
-	if (pSpawn) {
-		if (SpawnMap.find(pSpawn->SpawnID) != SpawnMap.end()) {
-			PMAPSPAWN pMapSpawn = SpawnMap[pSpawn->SpawnID];
+	if (pSpawn)
+	{
+		if (SpawnMap.find(pSpawn->SpawnID) != SpawnMap.end())
+		{
+			MAPSPAWN* pMapSpawn = SpawnMap[pSpawn->SpawnID];
 			RemoveSpawn(pMapSpawn);
 			return true;
 		}
@@ -279,7 +284,7 @@ bool RemoveSpawn(PSPAWNINFO pSpawn)
 
 void AddGroundItem(PGROUNDITEM pGroundItem)
 {
-	PSPAWNINFO pFakeSpawn = new SPAWNINFO;
+	SPAWNINFO* pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
 	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name, sizeof(pFakeSpawn->Name));
 	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name);
@@ -293,7 +298,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 	pFakeSpawn->mActorClient.Race = pGroundItem->DropID;
 
 	pFakeSpawn->Type = FAKESPAWNTYPE;
-	PMAPSPAWN pMapSpawn = AddSpawn(pFakeSpawn);
+	MAPSPAWN* pMapSpawn = AddSpawn(pFakeSpawn);
 	if (pMapSpawn)
 		GroundItemMap[pGroundItem->DropID] = pMapSpawn;
 	else
@@ -302,7 +307,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 
 void RemoveGroundItem(PGROUNDITEM pGroundItem)
 {
-	PMAPSPAWN pMapSpawn = GroundItemMap[pGroundItem->DropID];
+	MAPSPAWN* pMapSpawn = GroundItemMap[pGroundItem->DropID];
 	if (pMapSpawn)
 	{
 		GroundItemMap[pGroundItem->DropID] = 0;
@@ -315,12 +320,14 @@ void MapGenerate()
 {
 	if (!IsOptionEnabled(MAPFILTER_All))
 		return;
-	PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
+
+	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
 	while (pSpawn)
 	{
 		AddSpawn(pSpawn);
 		pSpawn = pSpawn->pNext;
 	}
+
 	if (!IsOptionEnabled(MAPFILTER_Ground))
 		return;
 	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
@@ -336,38 +343,40 @@ void MapClear()
 	GroundItemMap.clear();
 	SpawnMap.clear();
 
-
 	while (pActiveSpawns)
 	{
-		PMAPSPAWN pNextActive = 0;
-		if(pActiveSpawns->pNext)
+		MAPSPAWN* pNextActive = nullptr;
+		if (pActiveSpawns->pNext)
 			pNextActive = pActiveSpawns->pNext;
 
-		PMAPLABEL pLabel = 0;
-		if(pActiveSpawns->pMapLabel)
+		MAPLABEL* pLabel = nullptr;
+		if (pActiveSpawns->pMapLabel)
 			pLabel = pActiveSpawns->pMapLabel;
-		if(pLabel && pLabel->Label)
+
+		if (pLabel && pLabel->Label)
 			DebugTry(free(pLabel->Label));
-		if(pLabel)
+
+		if (pLabel)
 			DeleteLabel(pLabel);
 
 		if (pActiveSpawns && pActiveSpawns->pVector)
 		{
 			DeleteLine(pActiveSpawns->pVector);
-			pActiveSpawns->pVector = 0;
+			pActiveSpawns->pVector = nullptr;
 		}
 
 		if (pActiveSpawns && pActiveSpawns->Marker)
 			RemoveMarker(pActiveSpawns);
-		if (pActiveSpawns && pActiveSpawns->pSpawn) {
-			if (!IsBadReadPtr(pActiveSpawns->pSpawn, 4)) {
-				if (pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE) { // fake!
 
+		if (pActiveSpawns && pActiveSpawns->pSpawn)
+		{
+			if (!IsBadReadPtr(pActiveSpawns->pSpawn, 4))
+			{
+				if (pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE)
+				{
+					// fake!
 					delete pActiveSpawns->pSpawn;
 				}
-			}
-			else {
-				Sleep(0);//need to figure out why this can happen... -eqmule
 			}
 		}
 		if (pActiveSpawns)
@@ -375,44 +384,47 @@ void MapClear()
 		pActiveSpawns = pNextActive;
 	}
 
-	pLastTarget = 0;
+	pLastTarget = nullptr;
 
 	if (pTargetLine)
 	{
 		DeleteLine(pTargetLine);
-		pTargetLine = 0;
+		pTargetLine = nullptr;
 	}
 
 	if (pCastRadius[0])
 	{
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 		{
 			DeleteLine(pCastRadius[i]);
-			pCastRadius[i] = 0;
+			pCastRadius[i] = nullptr;
 		}
 	}
+
 	if (pSpellRadius[0])
 	{
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 		{
 			DeleteLine(pSpellRadius[i]);
-			pSpellRadius[i] = 0;
+			pSpellRadius[i] = nullptr;
 		}
 	}
+
 	if (pTargetRadius[0])
 	{
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 		{
 			DeleteLine(pTargetRadius[i]);
-			pTargetRadius[i] = 0;
+			pTargetRadius[i] = nullptr;
 		}
 	}
+
 	if (pTargetMelee[0])
 	{
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 		{
 			DeleteLine(pTargetMelee[i]);
-			pTargetMelee[i] = 0;
+			pTargetMelee[i] = nullptr;
 		}
 	}
 }
@@ -420,32 +432,33 @@ void MapClear()
 void MapUpdate()
 {
 	char buf[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = GetCharInfo();
+	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo)
 		return;
+
 	EnterMQ2Benchmark(bmMapRefresh);
 	eSpawnType Type;
-	PMAPSPAWN pMapSpawn;
-	PMAPSPAWN pOldLastTarget = NULL;
+	MAPSPAWN* pMapSpawn;
+	MAPSPAWN* pOldLastTarget = nullptr;
 	bool bTargetChanged = false;
-	
+
 	pOldLastTarget = pLastTarget;
-	if (pLastTarget && pLastTarget->pSpawn != (PSPAWNINFO)pTarget)
+	if (pLastTarget && pLastTarget->pSpawn != (SPAWNINFO*)pTarget)
 	{
 		if (pLastTarget->pSpawn == &EnviroTarget || !CanDisplaySpawn(pLastTarget->SpawnType, pLastTarget->pSpawn))
 		{
 			RemoveSpawn(pLastTarget);
 		}
-		pLastTarget = 0;
+		pLastTarget = nullptr;
 		bTargetChanged = true;
 	}
 
 	if (pTarget && IsOptionEnabled(MAPFILTER_Target))
 	{
-		pLastTarget = SpawnMap[((PSPAWNINFO)pTarget)->SpawnID];
+		pLastTarget = SpawnMap[((SPAWNINFO*)pTarget)->SpawnID];
 		if (!pLastTarget)
 		{
-			pLastTarget = AddSpawn((PSPAWNINFO)pTarget);
+			pLastTarget = AddSpawn((SPAWNINFO*)pTarget);
 		}
 	}
 
@@ -453,51 +466,13 @@ void MapUpdate()
 
 	while (pMapSpawn)
 	{
-#if 0
-		// Debugging
-		DWORD BodyType = GetBodyType(pMapSpawn->pSpawn);
-		if (pMapSpawn->pSpawn->Type == SPAWN_PLAYER)
-		{
-			if (BodyType != 1)
-			{
-				sprintf_s(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
-					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
-				DebugSpew("%s", buf);
-			}
-		}
-		else if (pMapSpawn->pSpawn->Type == SPAWN_NPC)
-		{
-			if (BodyType != 1 && BodyType != 11 &&
-				BodyType != 33 && BodyType != 65 &&
-				BodyType != 66 && BodyType != 67 &&
-				BodyType != 21 && BodyType != 23 &&
-				BodyType != 34 && BodyType != 3 &&
-				BodyType != 24)
-			{
-				sprintf_s(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
-					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
-				DebugSpew("%s", buf);
-			}
-		}
-		else
-		{
-			sprintf_s(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
-				pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
-			DebugSpew("%s", buf);
-		}
-
-		//End Debugging
-#endif
-
-		//Starting New Checks
 		if (!pMapSpawn->Explicit && !CanDisplaySpawn(GetSpawnType(pMapSpawn->pSpawn), pMapSpawn->pSpawn))
 		{
-			PMAPSPAWN pNext = pMapSpawn->pNext;
+			MAPSPAWN* pNext = pMapSpawn->pNext;
 			RemoveSpawn(pMapSpawn);
 			pMapSpawn = pNext;
 			continue;
 		}
-		//End New Checks
 
 		pMapSpawn->pMapLabel->Location.X = -pMapSpawn->pSpawn->X;
 		pMapSpawn->pMapLabel->Location.Y = -pMapSpawn->pSpawn->Y;
@@ -514,7 +489,7 @@ void MapUpdate()
 			{
 				if (!CanDisplaySpawn(Type, pMapSpawn->pSpawn))
 				{
-					PMAPSPAWN pNext = pMapSpawn->pNext;
+					MAPSPAWN* pNext = pMapSpawn->pNext;
 					RemoveSpawn(pMapSpawn);
 					pMapSpawn = pNext;
 					continue;
@@ -530,7 +505,7 @@ void MapUpdate()
 
 		if (pMapSpawn->pVector)
 		{
-			if (pMapSpawn->pSpawn->SpeedRun>0) {
+			if (pMapSpawn->pSpawn->SpeedRun > 0) {
 				pMapSpawn->pVector->Start.X = -pMapSpawn->pSpawn->X;
 				pMapSpawn->pVector->Start.Y = -pMapSpawn->pSpawn->Y;
 				pMapSpawn->pVector->Start.Z = pMapSpawn->pSpawn->Z;
@@ -542,8 +517,8 @@ void MapUpdate()
 				pMapSpawn->pVector->Start.X = -pMapSpawn->pSpawn->X;
 				pMapSpawn->pVector->Start.Y = -pMapSpawn->pSpawn->Y;
 				pMapSpawn->pVector->Start.Z = pMapSpawn->pSpawn->Z;
-				pMapSpawn->pVector->End.X = -pMapSpawn->pSpawn->X - sinf(pMapSpawn->pSpawn->Heading / 256.0f*(FLOAT)PI) * 4;
-				pMapSpawn->pVector->End.Y = -pMapSpawn->pSpawn->Y - cosf(pMapSpawn->pSpawn->Heading / 256.0f*(FLOAT)PI) * 4;
+				pMapSpawn->pVector->End.X = -pMapSpawn->pSpawn->X - sinf(pMapSpawn->pSpawn->Heading / 256.0f * (float)PI) * 4;
+				pMapSpawn->pVector->End.Y = -pMapSpawn->pSpawn->Y - cosf(pMapSpawn->pSpawn->Heading / 256.0f * (float)PI) * 4;
 				pMapSpawn->pVector->End.Z = pMapSpawn->pSpawn->Z;
 			}
 		}
@@ -558,7 +533,7 @@ void MapUpdate()
 	if (IsOptionEnabled(MAPFILTER_CastRadius))
 	{
 		unsigned long Angle = 0;
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
 		{
 			if (!pCastRadius[i])
 			{
@@ -569,25 +544,25 @@ void MapUpdate()
 			pCastRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_CastRadius].Color;
 			pCastRadius[i]->Start.Z = pCharInfo->pSpawn->Z;
 			pCastRadius[i]->End.Z = pCharInfo->pSpawn->Z;
-			pCastRadius[i]->Start.X = -pCharInfo->pSpawn->X + (FLOAT)MapFilterOptions[MAPFILTER_CastRadius].Enabled*cosf((FLOAT)Angle / 180.0f*(FLOAT)PI);
-			pCastRadius[i]->Start.Y = -pCharInfo->pSpawn->Y + (FLOAT)MapFilterOptions[MAPFILTER_CastRadius].Enabled*sinf((FLOAT)Angle / 180.0f*(FLOAT)PI);;
-			pCastRadius[i]->End.X = -pCharInfo->pSpawn->X + (FLOAT)MapFilterOptions[MAPFILTER_CastRadius].Enabled*cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
-			pCastRadius[i]->End.Y = -pCharInfo->pSpawn->Y + (FLOAT)MapFilterOptions[MAPFILTER_CastRadius].Enabled*sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
+			pCastRadius[i]->Start.X = -pCharInfo->pSpawn->X + (float)MapFilterOptions[MAPFILTER_CastRadius].Enabled * cosf((float)Angle / 180.0f * (float)PI);
+			pCastRadius[i]->Start.Y = -pCharInfo->pSpawn->Y + (float)MapFilterOptions[MAPFILTER_CastRadius].Enabled * sinf((float)Angle / 180.0f * (float)PI);;
+			pCastRadius[i]->End.X = -pCharInfo->pSpawn->X + (float)MapFilterOptions[MAPFILTER_CastRadius].Enabled * cosf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+			pCastRadius[i]->End.Y = -pCharInfo->pSpawn->Y + (float)MapFilterOptions[MAPFILTER_CastRadius].Enabled * sinf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
 		}
 	}
 	else if (pCastRadius[0])
 	{
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 		{
 			DeleteLine(pCastRadius[i]);
-			pCastRadius[i] = 0;
+			pCastRadius[i] = nullptr;
 		}
 	}
 
 	if (IsOptionEnabled(MAPFILTER_SpellRadius))
 	{
 		unsigned long Angle = 0;
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
 		{
 			if (!pSpellRadius[i])
 			{
@@ -598,34 +573,36 @@ void MapUpdate()
 			pSpellRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_SpellRadius].Color;
 			pSpellRadius[i]->Start.Z = pCharInfo->pSpawn->Z;
 			pSpellRadius[i]->End.Z = pCharInfo->pSpawn->Z;
-			pSpellRadius[i]->Start.X = -pCharInfo->pSpawn->X + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*cosf((FLOAT)Angle / 180.0f*(FLOAT)PI);
-			pSpellRadius[i]->Start.Y = -pCharInfo->pSpawn->Y + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*sinf((FLOAT)Angle / 180.0f*(FLOAT)PI);;
-			pSpellRadius[i]->End.X = -pCharInfo->pSpawn->X + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
-			pSpellRadius[i]->End.Y = -pCharInfo->pSpawn->Y + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
+			pSpellRadius[i]->Start.X = -pCharInfo->pSpawn->X + (float)MapFilterOptions[MAPFILTER_SpellRadius].Enabled * cosf((float)Angle / 180.0f * (float)PI);
+			pSpellRadius[i]->Start.Y = -pCharInfo->pSpawn->Y + (float)MapFilterOptions[MAPFILTER_SpellRadius].Enabled * sinf((float)Angle / 180.0f * (float)PI);;
+			pSpellRadius[i]->End.X = -pCharInfo->pSpawn->X + (float)MapFilterOptions[MAPFILTER_SpellRadius].Enabled * cosf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+			pSpellRadius[i]->End.Y = -pCharInfo->pSpawn->Y + (float)MapFilterOptions[MAPFILTER_SpellRadius].Enabled * sinf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
 		}
 	}
 	else if (pSpellRadius[0])
 	{
-		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 		{
 			DeleteLine(pSpellRadius[i]);
-			pSpellRadius[i] = 0;
+			pSpellRadius[i] = nullptr;
 		}
 	}
 
 	if (IsOptionEnabled(MAPFILTER_Group))
 	{
-		PCHARINFO pChar = GetCharInfo();
-		for (unsigned long i = 1; i<6; i++)
+		CHARINFO* pChar = GetCharInfo();
+		for (int i = 1; i < 6; i++)
 		{
 			if (pChar->pGroupInfo && pChar->pGroupInfo->pMember[i])
 			{
 				auto pSpawn = GetSpawnByName(pChar->pGroupInfo->pMember[i]->Name.c_str());
 				if (pSpawn)
+				{
 					if (pMapSpawn = SpawnMap[pSpawn->SpawnID])
 					{
 						pMapSpawn->pMapLabel->Color.ARGB = MapFilterOptions[MAPFILTER_Group].Color;
 					}
+				}
 			}
 		}
 	}
@@ -648,20 +625,20 @@ void MapUpdate()
 			pTargetLine->Start.Y = -pCharInfo->pSpawn->Y;
 			pTargetLine->Start.Z = pCharInfo->pSpawn->Z;
 
-			pTargetLine->End.X = -((PSPAWNINFO)pTarget)->X;
-			pTargetLine->End.Y = -((PSPAWNINFO)pTarget)->Y;
-			pTargetLine->End.Z = ((PSPAWNINFO)pTarget)->Z;
+			pTargetLine->End.X = -((SPAWNINFO*)pTarget)->X;
+			pTargetLine->End.Y = -((SPAWNINFO*)pTarget)->Y;
+			pTargetLine->End.Z = ((SPAWNINFO*)pTarget)->Z;
 		}
 		else if (pTargetLine)
 		{
 			DeleteLine(pTargetLine);
-			pTargetLine = 0;
+			pTargetLine = nullptr;
 		}
 
 		if (IsOptionEnabled(MAPFILTER_TargetRadius))
 		{
 			unsigned long Angle = 0;
-			for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+			for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
 			{
 				if (!pTargetRadius[i])
 				{
@@ -670,20 +647,20 @@ void MapUpdate()
 				}
 
 				pTargetRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetRadius].Color;
-				pTargetRadius[i]->Start.Z = ((PSPAWNINFO)pTarget)->Z;
-				pTargetRadius[i]->End.Z = ((PSPAWNINFO)pTarget)->Z;
-				pTargetRadius[i]->Start.X = -((PSPAWNINFO)pTarget)->X + (FLOAT)MapFilterOptions[MAPFILTER_TargetRadius].Enabled*cosf((FLOAT)Angle / 180.0f*(FLOAT)PI);
-				pTargetRadius[i]->Start.Y = -((PSPAWNINFO)pTarget)->Y + (FLOAT)MapFilterOptions[MAPFILTER_TargetRadius].Enabled*sinf((FLOAT)Angle / 180.0f*(FLOAT)PI);;
-				pTargetRadius[i]->End.X = -((PSPAWNINFO)pTarget)->X + (FLOAT)MapFilterOptions[MAPFILTER_TargetRadius].Enabled*cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
-				pTargetRadius[i]->End.Y = -((PSPAWNINFO)pTarget)->Y + (FLOAT)MapFilterOptions[MAPFILTER_TargetRadius].Enabled*sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
+				pTargetRadius[i]->Start.Z = ((SPAWNINFO*)pTarget)->Z;
+				pTargetRadius[i]->End.Z = ((SPAWNINFO*)pTarget)->Z;
+				pTargetRadius[i]->Start.X = -((SPAWNINFO*)pTarget)->X + (float)MapFilterOptions[MAPFILTER_TargetRadius].Enabled * cosf((float)Angle / 180.0f * (float)PI);
+				pTargetRadius[i]->Start.Y = -((SPAWNINFO*)pTarget)->Y + (float)MapFilterOptions[MAPFILTER_TargetRadius].Enabled * sinf((float)Angle / 180.0f * (float)PI);;
+				pTargetRadius[i]->End.X = -((SPAWNINFO*)pTarget)->X + (float)MapFilterOptions[MAPFILTER_TargetRadius].Enabled * cosf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+				pTargetRadius[i]->End.Y = -((SPAWNINFO*)pTarget)->Y + (float)MapFilterOptions[MAPFILTER_TargetRadius].Enabled * sinf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
 			}
 		}
 		else if (pTargetRadius[0])
 		{
-			for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+			for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 			{
 				DeleteLine(pTargetRadius[i]);
-				pTargetRadius[i] = 0;
+				pTargetRadius[i] = nullptr;
 			}
 		}
 
@@ -699,25 +676,27 @@ void MapUpdate()
 				}
 
 				pTargetMelee[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetMelee].Color;
-				pTargetMelee[i]->Start.Z = ((PSPAWNINFO)pTarget)->Z;
-				pTargetMelee[i]->End.Z = ((PSPAWNINFO)pTarget)->Z;
-				FLOAT MaxMelee;
+				pTargetMelee[i]->Start.Z = ((SPAWNINFO*)pTarget)->Z;
+				pTargetMelee[i]->End.Z = ((SPAWNINFO*)pTarget)->Z;
+				float MaxMelee;
+
 				if (MapFilterOptions[MAPFILTER_TargetMelee].Enabled == 1)
 					MaxMelee = get_melee_range(pCharSpawn, pTarget);
 				else
 					MaxMelee = get_melee_range(pTarget, pTarget);
-				pTargetMelee[i]->Start.X = -((PSPAWNINFO)pTarget)->X + MaxMelee*cosf((FLOAT)Angle / 180.0f*(FLOAT)PI);
-				pTargetMelee[i]->Start.Y = -((PSPAWNINFO)pTarget)->Y + MaxMelee*sinf((FLOAT)Angle / 180.0f*(FLOAT)PI);;
-				pTargetMelee[i]->End.X = -((PSPAWNINFO)pTarget)->X + MaxMelee*cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
-				pTargetMelee[i]->End.Y = -((PSPAWNINFO)pTarget)->Y + MaxMelee*sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f*(FLOAT)PI);
+
+				pTargetMelee[i]->Start.X = -((SPAWNINFO*)pTarget)->X + MaxMelee * cosf((float)Angle / 180.0f * (float)PI);
+				pTargetMelee[i]->Start.Y = -((SPAWNINFO*)pTarget)->Y + MaxMelee * sinf((float)Angle / 180.0f * (float)PI);;
+				pTargetMelee[i]->End.X = -((SPAWNINFO*)pTarget)->X + MaxMelee * cosf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+				pTargetMelee[i]->End.Y = -((SPAWNINFO*)pTarget)->Y + MaxMelee * sinf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
 			}
 		}
 		else if (pTargetMelee[0])
 		{
-			for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+			for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 			{
 				DeleteLine(pTargetMelee[i]);
-				pTargetMelee[i] = 0;
+				pTargetMelee[i] = nullptr;
 			}
 		}
 	}
@@ -725,36 +704,31 @@ void MapUpdate()
 	{
 		if (pTargetRadius[0])
 		{
-			for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+			for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 			{
 				DeleteLine(pTargetRadius[i]);
-				pTargetRadius[i] = 0;
+				pTargetRadius[i] = nullptr;
 			}
 		}
 
 		if (pTargetMelee[0])
 		{
-			for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+			for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
 			{
 				DeleteLine(pTargetMelee[i]);
-				pTargetMelee[i] = 0;
+				pTargetMelee[i] = nullptr;
 			}
 		}
 
 		if (pTargetLine)
 		{
 			DeleteLine(pTargetLine);
-			pTargetLine = 0;
+			pTargetLine = nullptr;
 		}
 	}
 	ExitMQ2Benchmark(bmMapRefresh);
-
-
-
 }
 
-
-PMAPLABEL pActualLineList = 0;
 void MapAttach()
 {
 	if (pLabelList)
@@ -777,12 +751,12 @@ void MapDetach()
 	if (pLabelList)
 	{
 		pMapViewWnd->MapView.pLabels = pActualLineList;
-		pLabelListTail->pNext = 0;
+		pLabelListTail->pNext = nullptr;
 	}
 	if (pLineList)
 	{
 		pMapViewWnd->MapView.pLines = pLineListTail->pNext;
-		pLineListTail->pNext = 0;
+		pLineListTail->pNext = nullptr;
 	}
 }
 
@@ -790,29 +764,25 @@ bool MapSelectTarget()
 {
 	if (!pCurrentMapLabel)
 		return false;
-	PMAPSPAWN pMapSpawn = LabelMap[pCurrentMapLabel];
+
+	MAPSPAWN* pMapSpawn = LabelMap[pCurrentMapLabel];
 	if (!pMapSpawn)
 		return true;
+
 	if (pMapSpawn->SpawnType == ITEM)
 	{
 		EnviroTarget = *pMapSpawn->pSpawn;
 		EnviroTarget.Type = SPAWN_NPC;
-		//EnviroTarget.SpawnID=2999;
-		//pTarget = (EQPlayer*)&EnviroTarget;                 
 	}
 	else
 	{
 		DWORD Flags = pWndMgr->GetKeyboardFlags();
-		PCHARINFO pCharInfo = GetCharInfo();
+		CHARINFO* pCharInfo = GetCharInfo();
 		if (pCharInfo && Flags && MapSpecialClickString[Flags][0])
 		{
-			PCHAR Cmd = GenerateSpawnName(pMapSpawn->pSpawn, MapSpecialClickString[Flags]);
-#ifndef ISXEQ
-			DoCommand(pCharInfo->pSpawn, Cmd);
-#else
-			pISInterface->ExecuteCommand(Cmd);
-#endif
-			free(Cmd);
+			char* Cmd = GenerateSpawnName(pMapSpawn->pSpawn, MapSpecialClickString[Flags]);
+
+			DoCommand(pCharInfo->pSpawn, Cmd);			free(Cmd);
 		}
 		else
 		{
@@ -824,106 +794,110 @@ bool MapSelectTarget()
 	return false;
 }
 
-void MapClickLocation(float world_point[2], std::vector<float> z_hits) {
-    PCHARINFO pCharInfo = GetCharInfo();
-    std::vector<float> sorted_z(z_hits);
-    std::sort(sorted_z.begin(), sorted_z.end());
+void MapClickLocation(float world_point_x, float world_point_y, const std::vector<float>& z_hits)
+{
+	CHARINFO* pCharInfo = GetCharInfo();
 
-    float point_z = (pCharInfo && pCharInfo->pSpawn) ? pCharInfo->pSpawn->Z : 0.f;
-    auto closest_z_it = std::lower_bound(sorted_z.begin(), sorted_z.end(), point_z);
-    if (closest_z_it == sorted_z.end() && closest_z_it != sorted_z.begin()) {
-        --closest_z_it;
-    } else if (closest_z_it != sorted_z.end() && closest_z_it != sorted_z.begin() &&
-        (std::abs(*closest_z_it - point_z) > std::abs(*(closest_z_it - 1) - point_z))) {
-        --closest_z_it;
-    }
+	std::vector<float> sorted_z(z_hits);
+	std::sort(sorted_z.begin(), sorted_z.end());
 
-    DWORD Flags = pWndMgr->GetKeyboardFlags();
-    if (pCharInfo && Flags && MapLeftClickString[Flags][0]) {
-        CHAR CommandString[MAX_STRING];
-        strcpy_s(CommandString, MapLeftClickString[Flags]);
-        std::string sOutput;
+	float point_z = (pCharInfo && pCharInfo->pSpawn) ? pCharInfo->pSpawn->Z : 0.f;
+	auto closest_z_it = std::lower_bound(sorted_z.begin(), sorted_z.end(), point_z);
 
-        for (unsigned short N = 0; CommandString[N]; ++N) {
-            if (CommandString[N] == '%') {
-                ++N;
-                switch (CommandString[N]) {
-                case 'x':
-                    sOutput.append(std::to_string(world_point[1]));
-                    break;
-                case 'y':
-                    sOutput.append(std::to_string(world_point[0]));
-                    break;
-                case 'z': // closest z
-                    if (closest_z_it != sorted_z.end())
-                        sOutput.append(std::to_string(*closest_z_it));
-                    else
-                        sOutput.append(std::to_string(point_z));
-                    break;
-                case 'u': // up one z
-                    if (closest_z_it != sorted_z.end()) {
-                        if (closest_z_it + 1 != sorted_z.end())
-                            sOutput.append(std::to_string(*(closest_z_it + 1)));
-                        else
-                            sOutput.append(std::to_string(*closest_z_it));
-                    } else
-                        sOutput.append(std::to_string(point_z));
-                    break;
-                case 'd': // down one z
-                    if (closest_z_it != sorted_z.begin())
-                        sOutput.append(std::to_string(*(closest_z_it - 1)));
-                    else if (closest_z_it != sorted_z.end())
-                        sOutput.append(std::to_string(*closest_z_it));
-                    else
-                        sOutput.append(std::to_string(point_z));
-                    break;
-                case 't': // top z
-                    if (!sorted_z.empty())
-                        sOutput.append(std::to_string(sorted_z.back()));
-                    else
-                        sOutput.append(std::to_string(point_z));
-                    break;
-                case 'b': // bottom z
-                    if (!sorted_z.empty())
-                        sOutput.append(std::to_string(sorted_z.front()));
-                    else
-                        sOutput.append(std::to_string(point_z));
-                    break;
-                case '%':
-                    sOutput.append(1, CommandString[N]);
-                    break;
-                }
-            } else
-                sOutput.append(1, CommandString[N]);
-        }
+	if (closest_z_it == sorted_z.end() && closest_z_it != sorted_z.begin())
+	{
+		--closest_z_it;
+	}
+	else if (closest_z_it != sorted_z.end() && closest_z_it != sorted_z.begin()
+		&& (std::abs(*closest_z_it - point_z) > std::abs(*(closest_z_it - 1) - point_z)))
+	{
+		--closest_z_it;
+	}
 
-        strcpy_s(CommandString, sOutput.c_str());
+	DWORD Flags = pWndMgr->GetKeyboardFlags();
+	if (pCharInfo && Flags && MapLeftClickString[Flags][0])
+	{
+		char CommandString[MAX_STRING];
+		strcpy_s(CommandString, MapLeftClickString[Flags]);
+		std::string sOutput;
 
-#ifndef ISXEQ
-        DoCommand(pCharInfo->pSpawn, CommandString);
-#else
-        pISInterface->ExecuteCommand(CommandString);
-#endif
-#if 0
-        // debugging
-        WriteChatf("COMMAND: %s", sOutput.c_str());
-#endif
-    }
+		for (unsigned short N = 0; CommandString[N]; ++N)
+		{
+			if (CommandString[N] == '%')
+			{
+				++N;
+				switch (CommandString[N])
+				{
+				case 'x':
+					sOutput.append(std::to_string(world_point_x));
+					break;
 
-#if 0
-    // debugging
-    for (auto z : z_hits) {
-        WriteChatf("Z HIT: %f", z);
-    }
-    WriteChatf("I CLICKED: X: %f Y: %f", world_point[1], world_point[0]);
-#endif
+				case 'y':
+					sOutput.append(std::to_string(world_point_y));
+					break;
+
+				case 'z': // closest z
+					if (closest_z_it != sorted_z.end())
+						sOutput.append(std::to_string(*closest_z_it));
+					else
+						sOutput.append(std::to_string(point_z));
+					break;
+
+				case 'u': // up one z
+					if (closest_z_it != sorted_z.end()) {
+						if (closest_z_it + 1 != sorted_z.end())
+							sOutput.append(std::to_string(*(closest_z_it + 1)));
+						else
+							sOutput.append(std::to_string(*closest_z_it));
+					}
+					else
+						sOutput.append(std::to_string(point_z));
+					break;
+
+				case 'd': // down one z
+					if (closest_z_it != sorted_z.begin())
+						sOutput.append(std::to_string(*(closest_z_it - 1)));
+					else if (closest_z_it != sorted_z.end())
+						sOutput.append(std::to_string(*closest_z_it));
+					else
+						sOutput.append(std::to_string(point_z));
+					break;
+
+				case 't': // top z
+					if (!sorted_z.empty())
+						sOutput.append(std::to_string(sorted_z.back()));
+					else
+						sOutput.append(std::to_string(point_z));
+					break;
+
+				case 'b': // bottom z
+					if (!sorted_z.empty())
+						sOutput.append(std::to_string(sorted_z.front()));
+					else
+						sOutput.append(std::to_string(point_z));
+					break;
+
+				case '%':
+					sOutput.append(1, CommandString[N]);
+					break;
+				}
+			}
+			else
+			{
+				sOutput.append(1, CommandString[N]);
+			}
+		}
+
+		strcpy_s(CommandString, sOutput.c_str());
+		DoCommand(pCharInfo->pSpawn, CommandString);
+	}
 }
 
-DWORD MapHighlight(SEARCHSPAWN *pSearch)
+DWORD MapHighlight(SEARCHSPAWN* pSearch)
 {
 	if (!pSearch)
 	{
-		PMAPSPAWN pMapSpawn = pActiveSpawns;
+		MAPSPAWN* pMapSpawn = pActiveSpawns;
 		while (pMapSpawn)
 		{
 			pMapSpawn->Highlight = false;
@@ -933,10 +907,10 @@ DWORD MapHighlight(SEARCHSPAWN *pSearch)
 	}
 	else
 	{
-		PCHARINFO pCharInfo = GetCharInfo();
+		CHARINFO* pCharInfo = GetCharInfo();
 		if (!pCharInfo || !pCharInfo->pSpawn)
 			return 0;
-		PMAPSPAWN pMapSpawn = pActiveSpawns;
+		MAPSPAWN* pMapSpawn = pActiveSpawns;
 		unsigned long Count = 0;
 		while (pMapSpawn)
 		{
@@ -953,7 +927,7 @@ DWORD MapHighlight(SEARCHSPAWN *pSearch)
 	}
 }
 
-PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
+char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 {
 	std::string sOutput;
 #define AddString(str) {sOutput.append( str );}
@@ -968,11 +942,11 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			switch (NameString[N])
 			{
 			case 'N':// cleaned up name
-                sOutput.append( pSpawn->DisplayedName );
-                if( pSpawn->Type == SPAWN_CORPSE )
-                {
-                    sOutput.append( "'s Corpse" );
-                }
+				sOutput.append(pSpawn->DisplayedName);
+				if (pSpawn->Type == SPAWN_CORPSE)
+				{
+					sOutput.append("'s Corpse");
+				}
 				break;
 			case 'n':// original name
 				AddString(pSpawn->Name);
@@ -1005,23 +979,26 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 				AddInt(pSpawn->Level);
 				break;
 			case '%':
-				sOutput.append( 1, NameString[N] );
+				sOutput.append(1, NameString[N]);
 				break;
 			}
 		}
 		else
-            sOutput.append( 1, NameString[N] );
+			sOutput.append(1, NameString[N]);
 	}
-	
-    int len = sOutput.length() + 1;
-	if (PCHAR ret = (PCHAR)malloc(len)) {
+
+	int len = sOutput.length() + 1;
+
+	if (char* ret = (char*)malloc(len))
+	{
 		strcpy_s(ret, len, sOutput.c_str());
 		return ret;
 	}
-	return 0;
+
+	return nullptr;
 }
 
-DWORD TypeToMapfilter(PSPAWNINFO pNewSpawn)
+DWORD TypeToMapfilter(SPAWNINFO* pNewSpawn)
 {
 	eSpawnType Type = GetSpawnType(pNewSpawn);
 
@@ -1031,7 +1008,7 @@ DWORD TypeToMapfilter(PSPAWNINFO pNewSpawn)
 		return MAPFILTER_PC;
 	case NPC:
 		if (IsOptionEnabled(MAPFILTER_Named)) {
-			if (PCHARINFO pCharInfo = GetCharInfo()) {
+			if (CHARINFO * pCharInfo = GetCharInfo()) {
 				if (SpawnMatchesSearch(&MapFilterNamed, pCharInfo->pSpawn, pNewSpawn)) {
 					return MAPFILTER_Named;
 				}
@@ -1067,21 +1044,25 @@ DWORD TypeToMapfilter(PSPAWNINFO pNewSpawn)
 
 	return MAPFILTER_Invalid;
 }
-BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
+
+BOOL CanDisplaySpawn(eSpawnType Type, SPAWNINFO* pSpawn)
 {
 	if (!pSpawn)
 		return FALSE;
 
-	if ((pSpawn == (PSPAWNINFO)pTarget) && IsOptionEnabled(MAPFILTER_Target))
+	if ((pSpawn == (SPAWNINFO*)pTarget) && IsOptionEnabled(MAPFILTER_Target))
 	{
 		return TRUE;
 	}
 	if (IsOptionEnabled(MAPFILTER_Custom))
 	{
-		if (PCHARINFO pCharInfo = GetCharInfo())
+		if (CHARINFO* pCharInfo = GetCharInfo())
+		{
 			if (pCharInfo->pSpawn)
 				return SpawnMatchesSearch(&MapFilterCustom, pCharInfo->pSpawn, pSpawn);
+		}
 	}
+
 	switch (Type)
 	{
 	case PC:
@@ -1128,9 +1109,9 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 	return TRUE;
 }
 
-inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
+DWORD GetSpawnColor(eSpawnType Type, SPAWNINFO* pSpawn)
 {
-	PCHARINFO pChar = GetCharInfo();
+	CHARINFO* pChar = GetCharInfo();
 	if (!pChar)
 		return 0;
 
@@ -1179,9 +1160,9 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 	return 0;
 }
 
-PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
+MAPLABEL* GenerateLabel(MAPSPAWN* pMapSpawn, DWORD Color)
 {
-	PMAPLABEL pLabel = InitLabel(pMapSpawn);
+	MAPLABEL* pLabel = InitLabel(pMapSpawn);
 	pLabel->Location.X = -pMapSpawn->pSpawn->X;
 	pLabel->Location.Y = -pMapSpawn->pSpawn->Y;
 	pLabel->Location.Z = pMapSpawn->pSpawn->Z;
@@ -1196,12 +1177,12 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
 	return pLabel;
 }
 
-PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
+PMAPLINE GenerateVector(MAPSPAWN* pMapSpawn)
 {
-
 	PMAPLINE pNewLine = InitLine();
 
-	if (pMapSpawn->pSpawn->SpeedRun>0) {
+	if (pMapSpawn->pSpawn->SpeedRun > 0)
+	{
 		pNewLine->Start.X = -pMapSpawn->pSpawn->X;
 		pNewLine->Start.Y = -pMapSpawn->pSpawn->Y;
 		pNewLine->Start.Z = pMapSpawn->pSpawn->Z;
@@ -1209,16 +1190,15 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 		pNewLine->End.Y = -pMapSpawn->pSpawn->Y - pMapSpawn->pSpawn->SpeedY * 4;
 		pNewLine->End.Z = pMapSpawn->pSpawn->Z + pMapSpawn->pSpawn->SpeedZ * 4;
 	}
-	else {
+	else
+	{
 		pNewLine->Start.X = -pMapSpawn->pSpawn->X;
 		pNewLine->Start.Y = -pMapSpawn->pSpawn->Y;
 		pNewLine->Start.Z = pMapSpawn->pSpawn->Z;
-		pNewLine->End.X = -pMapSpawn->pSpawn->X - sinf(pMapSpawn->pSpawn->Heading / 256.0f*(FLOAT)PI) * 4;
-		pNewLine->End.Y = -pMapSpawn->pSpawn->Y - cosf(pMapSpawn->pSpawn->Heading / 256.0f*(FLOAT)PI) * 4;
+		pNewLine->End.X = -pMapSpawn->pSpawn->X - sinf(pMapSpawn->pSpawn->Heading / 256.0f * (float)PI) * 4;
+		pNewLine->End.Y = -pMapSpawn->pSpawn->Y - cosf(pMapSpawn->pSpawn->Heading / 256.0f * (float)PI) * 4;
 		pNewLine->End.Z = pMapSpawn->pSpawn->Z;
 	}
-
-
 
 	pNewLine->Layer = activeLayer;
 	pNewLine->Color = pMapSpawn->pMapLabel->Color;
@@ -1226,18 +1206,20 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 	return pNewLine;
 }
 
-DWORD MapHide(SEARCHSPAWN &Search)
+DWORD MapHide(SEARCHSPAWN& Search)
 {
-	PCHARINFO pCharInfo = GetCharInfo();
+	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo || !pCharInfo->pSpawn)
 		return 0;
-	PMAPSPAWN pMapSpawn = pActiveSpawns;
+
+	MAPSPAWN* pMapSpawn = pActiveSpawns;
 	unsigned long Count = 0;
+
 	while (pMapSpawn)
 	{
 		if (pMapSpawn->pSpawn->Type != FAKESPAWNTYPE && SpawnMatchesSearch(&Search, pCharInfo->pSpawn, pMapSpawn->pSpawn))
 		{
-			PMAPSPAWN pNext = pMapSpawn->pNext;
+			MAPSPAWN* pNext = pMapSpawn->pNext;
 			RemoveSpawn(pMapSpawn);
 			pMapSpawn = pNext;
 			Count++;
@@ -1248,13 +1230,13 @@ DWORD MapHide(SEARCHSPAWN &Search)
 	return Count;
 }
 
-DWORD MapShow(SEARCHSPAWN &Search)
+DWORD MapShow(SEARCHSPAWN& Search)
 {
-	PCHARINFO pCharInfo = GetCharInfo();
+	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo)
 		return 0;
 
-	PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
+	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
 	unsigned long Count = 0;
 	while (pSpawn)
 	{
@@ -1268,15 +1250,12 @@ DWORD MapShow(SEARCHSPAWN &Search)
 	return Count;
 }
 
-#ifndef ISXEQ
-BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
-#else
-bool dataMapSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret)
-#endif
+BOOL dataMapSpawn(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!pCurrentMapLabel)
 		return false;
-	if (PMAPSPAWN pMapSpawn = LabelMap[pCurrentMapLabel])
+
+	if (MAPSPAWN * pMapSpawn = LabelMap[pCurrentMapLabel])
 	{
 		Ret.Ptr = pMapSpawn->pSpawn;
 		Ret.Type = pSpawnType;
@@ -1284,7 +1263,8 @@ bool dataMapSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret)
 	}
 	return false;
 }
-void GenerateMarker(PMAPSPAWN pMapSpawn)
+
+void GenerateMarker(MAPSPAWN* pMapSpawn)
 {
 	if (pMapSpawn->Marker == 0) return;
 	long lNumSides = 4;
@@ -1296,12 +1276,12 @@ void GenerateMarker(PMAPSPAWN pMapSpawn)
 		lNumSides = 8;
 	}
 
-
 	long i;
 	for (i = 0; i < 9; i++)
-		pMapSpawn->MarkerLines[i] = NULL;
+		pMapSpawn->MarkerLines[i] = nullptr;
 
-	for (i = 0; i < lNumSides; i++) {
+	for (i = 0; i < lNumSides; i++)
+	{
 		PMAPLINE pNewLine = InitLine();
 		pNewLine->Start.X = 0;
 		pNewLine->Start.Y = 0;
@@ -1315,22 +1295,25 @@ void GenerateMarker(PMAPSPAWN pMapSpawn)
 	}
 }
 
-void RemoveMarker(PMAPSPAWN pMapSpawn)
+void RemoveMarker(MAPSPAWN* pMapSpawn)
 {
 	if (pMapSpawn->Marker == 0 || !pMapSpawn->Marker) return;
 	pMapSpawn->Marker = 0;
-	for (int i = 0; pMapSpawn->MarkerLines[i]; i++) {
+
+	for (int i = 0; pMapSpawn->MarkerLines[i]; i++)
+	{
 		if (pMapSpawn->MarkerLines[i]) {
 			DeleteLine(pMapSpawn->MarkerLines[i]);
-			pMapSpawn->MarkerLines[i] = NULL;
+			pMapSpawn->MarkerLines[i] = nullptr;
 		}
 	}
 }
 
-void MSM(PMAPSPAWN pMapSpawn)
+void MSM(MAPSPAWN* pMapSpawn)
 {
 	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
-	float x[1], y[1], X[1], Y[1];
+	float x[2], y[2], X[2], Y[2];
+
 	if (pMapSpawn->Highlight)
 	{
 		if (HighlightPulse)
@@ -1348,8 +1331,10 @@ void MSM(PMAPSPAWN pMapSpawn)
 	y[0] = -pMapSpawn->pSpawn->Y - MARKERSIDELEN / 2;
 	y[1] = -pMapSpawn->pSpawn->Y + MARKERSIDELEN / 2;
 
-	for (int i = 0; i<4; i++) {
-		switch (i) {
+	for (int i = 0; i < 4; i++)
+	{
+		switch (i)
+		{
 		case 0:   X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[0]; break;
 		case 1:   X[0] = x[1]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
 		case 2:   X[0] = x[1]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[1]; break;
@@ -1368,10 +1353,10 @@ void MSM(PMAPSPAWN pMapSpawn)
 	}
 }
 
-void MTM(PMAPSPAWN pMapSpawn)
+void MTM(MAPSPAWN* pMapSpawn)
 {
 	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
-	float x[2], y[2], X[1], Y[1], Angle;
+	float x[2], y[2], X[2], Y[2], Angle;
 	if (pMapSpawn->Highlight)
 	{
 		if (HighlightPulse)
@@ -1384,19 +1369,21 @@ void MTM(PMAPSPAWN pMapSpawn)
 		}
 	}
 
-	Angle = pMapSpawn->pSpawn->Heading*0.703125f;
-	x[0] = -pMapSpawn->pSpawn->X + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * sinf((Angle + 180) / 180.0f*(FLOAT)PI);
-	x[1] = -pMapSpawn->pSpawn->X - (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * sinf((Angle + 210) / 180.0f*(FLOAT)PI);
-	x[2] = -pMapSpawn->pSpawn->X + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * sinf((Angle + 330) / 180.0f*(FLOAT)PI);
-	y[0] = -pMapSpawn->pSpawn->Y + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * cosf((Angle + 180) / 180.0f*(FLOAT)PI);
-	y[1] = -pMapSpawn->pSpawn->Y - (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * cosf((Angle + 210) / 180.0f*(FLOAT)PI);
-	y[2] = -pMapSpawn->pSpawn->Y + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * cosf((Angle + 330) / 180.0f*(FLOAT)PI);
+	Angle = pMapSpawn->pSpawn->Heading * 0.703125f;
+	x[0] = -pMapSpawn->pSpawn->X + (MARKERSIDELEN * 1.5f) * sqrtf(3) / 3 * sinf((Angle + 180) / 180.0f * (float)PI);
+	x[1] = -pMapSpawn->pSpawn->X - (MARKERSIDELEN * 1.5f) * sqrtf(3) / 3 * sinf((Angle + 210) / 180.0f * (float)PI);
+	x[2] = -pMapSpawn->pSpawn->X + (MARKERSIDELEN * 1.5f) * sqrtf(3) / 3 * sinf((Angle + 330) / 180.0f * (float)PI);
+	y[0] = -pMapSpawn->pSpawn->Y + (MARKERSIDELEN * 1.5f) * sqrtf(3) / 3 * cosf((Angle + 180) / 180.0f * (float)PI);
+	y[1] = -pMapSpawn->pSpawn->Y - (MARKERSIDELEN * 1.5f) * sqrtf(3) / 3 * cosf((Angle + 210) / 180.0f * (float)PI);
+	y[2] = -pMapSpawn->pSpawn->Y + (MARKERSIDELEN * 1.5f) * sqrtf(3) / 3 * cosf((Angle + 330) / 180.0f * (float)PI);
 
-	for (int i = 0; i<3; i++) {
-		switch (i) {
-		case 0:   X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
-		case 1:   X[0] = x[1]; X[1] = x[2]; Y[0] = y[1]; Y[1] = y[2]; break;
-		case 2:   X[0] = x[2]; X[1] = x[0]; Y[0] = y[2]; Y[1] = y[0]; break;
+	for (int i = 0; i < 3; i++)
+	{
+		switch (i)
+		{
+		case 0: X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
+		case 1: X[0] = x[1]; X[1] = x[2]; Y[0] = y[1]; Y[1] = y[2]; break;
+		case 2: X[0] = x[2]; X[1] = x[0]; Y[0] = y[2]; Y[1] = y[0]; break;
 		}
 
 		pMapSpawn->MarkerLines[i]->Start.X = X[0];
@@ -1411,10 +1398,10 @@ void MTM(PMAPSPAWN pMapSpawn)
 	}
 }
 
-void MDM(PMAPSPAWN pMapSpawn)
+void MDM(MAPSPAWN* pMapSpawn)
 {
 	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
-	float x[2], y[2], X[1], Y[1];
+	float x[2], y[2], X[2], Y[2];
 	if (pMapSpawn->Highlight)
 	{
 		if (HighlightPulse)
@@ -1428,18 +1415,20 @@ void MDM(PMAPSPAWN pMapSpawn)
 	}
 
 	x[0] = -pMapSpawn->pSpawn->X;
-	x[1] = -pMapSpawn->pSpawn->X + MARKERSIDELEN*.71f;   // sqrt(2)/2
-	x[2] = -pMapSpawn->pSpawn->X - MARKERSIDELEN*.71f;
-	y[0] = -pMapSpawn->pSpawn->Y - MARKERSIDELEN*.71f;
+	x[1] = -pMapSpawn->pSpawn->X + MARKERSIDELEN * .71f;   // sqrt(2)/2
+	x[2] = -pMapSpawn->pSpawn->X - MARKERSIDELEN * .71f;
+	y[0] = -pMapSpawn->pSpawn->Y - MARKERSIDELEN * .71f;
 	y[1] = -pMapSpawn->pSpawn->Y;
-	y[2] = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*.71f;
+	y[2] = -pMapSpawn->pSpawn->Y + MARKERSIDELEN * .71f;
 
-	for (int i = 0; i<4; i++) {
-		switch (i) {
-		case 0:   X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
-		case 1:   X[0] = x[1]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[2]; break;
-		case 2:   X[0] = x[0]; X[1] = x[2]; Y[0] = y[2]; Y[1] = y[1]; break;
-		case 3:   X[0] = x[2]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[0]; break;
+	for (int i = 0; i < 4; i++)
+	{
+		switch (i)
+		{
+		case 0: X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
+		case 1: X[0] = x[1]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[2]; break;
+		case 2: X[0] = x[0]; X[1] = x[2]; Y[0] = y[2]; Y[1] = y[1]; break;
+		case 3: X[0] = x[2]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[0]; break;
 		}
 
 		pMapSpawn->MarkerLines[i]->Start.X = X[0];
@@ -1455,7 +1444,7 @@ void MDM(PMAPSPAWN pMapSpawn)
 }
 
 
-void MRM(PMAPSPAWN pMapSpawn)
+void MRM(MAPSPAWN* pMapSpawn)
 {
 	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
 	if (pMapSpawn->Highlight)
@@ -1472,10 +1461,10 @@ void MRM(PMAPSPAWN pMapSpawn)
 
 	for (int i = 0; i<8; i++) {
 
-		pMapSpawn->MarkerLines[i]->Start.X = -pMapSpawn->pSpawn->X + MARKERSIDELEN*sinf((i * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
-		pMapSpawn->MarkerLines[i]->Start.Y = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*cosf((i * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
-		pMapSpawn->MarkerLines[i]->End.X = -pMapSpawn->pSpawn->X + MARKERSIDELEN*sinf(((i + 1) * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
-		pMapSpawn->MarkerLines[i]->End.Y = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*cosf(((i + 1) * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
+		pMapSpawn->MarkerLines[i]->Start.X = -pMapSpawn->pSpawn->X + MARKERSIDELEN*sinf((i * 45 + (float)22.5) / 180.0f*(float)PI);
+		pMapSpawn->MarkerLines[i]->Start.Y = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*cosf((i * 45 + (float)22.5) / 180.0f*(float)PI);
+		pMapSpawn->MarkerLines[i]->End.X = -pMapSpawn->pSpawn->X + MARKERSIDELEN*sinf(((i + 1) * 45 + (float)22.5) / 180.0f*(float)PI);
+		pMapSpawn->MarkerLines[i]->End.Y = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*cosf(((i + 1) * 45 + (float)22.5) / 180.0f*(float)PI);
 		pMapSpawn->MarkerLines[i]->Start.Z = pMapSpawn->pSpawn->Z;
 		pMapSpawn->MarkerLines[i]->End.Z = pMapSpawn->pSpawn->Z;
 
@@ -1484,7 +1473,7 @@ void MRM(PMAPSPAWN pMapSpawn)
 	}
 }
 
-void MoveMarker(PMAPSPAWN pMapSpawn)
+void MoveMarker(MAPSPAWN* pMapSpawn)
 {
 	switch (pMapSpawn->Marker) {
 	case 1: //triangle
@@ -1502,7 +1491,7 @@ void MoveMarker(PMAPSPAWN pMapSpawn)
 	}
 }
 
-DWORD FindMarker(PCHAR szMark)
+DWORD FindMarker(char* szMark)
 {
 	if (!_stricmp(szMark, "none"))
 		return 0;
@@ -1531,21 +1520,14 @@ long MakeTime()
 	return (lCurrent);
 }
 
-VOID UpdateDefaultMapLoc()
+void UpdateDefaultMapLoc()
 {
-#ifdef ISXEQ
-	DefaultMapLoc->lineSize = 50;
-	DefaultMapLoc->width = 10;
-	DefaultMapLoc->r_color = 255;
-	DefaultMapLoc->g_color = 0;
-	DefaultMapLoc->b_color = 0;
-#else
 	DefaultMapLoc->lineSize = GetPrivateProfileInt("MapLoc", "Size", 50, INIFileName);
 	DefaultMapLoc->width = GetPrivateProfileInt("MapLoc", "Width", 10, INIFileName);
 	DefaultMapLoc->r_color = GetPrivateProfileInt("MapLoc", "Red", 255, INIFileName);
 	DefaultMapLoc->g_color = GetPrivateProfileInt("MapLoc", "Green", 0, INIFileName);
 	DefaultMapLoc->b_color = GetPrivateProfileInt("MapLoc", "Blue", 0, INIFileName);
-#endif
+
 	// Update existing default maplocs
 	for (auto const& [tag, loc] : LocationMap)
 	{
@@ -1561,7 +1543,7 @@ VOID UpdateDefaultMapLoc()
 	}
 }
 
-VOID ClearMapLocLines(PMAPLOC mapLoc)
+void ClearMapLocLines(MAPLOC* mapLoc)
 {
 	if (mapLoc)
 	{
@@ -1576,7 +1558,7 @@ VOID ClearMapLocLines(PMAPLOC mapLoc)
 	}
 }
 
-VOID UpdateMapLocLines(PMAPLOC mapLoc)
+void UpdateMapLocLines(MAPLOC* mapLoc)
 {
 	if (!mapLoc)
 	{
@@ -1585,30 +1567,31 @@ VOID UpdateMapLocLines(PMAPLOC mapLoc)
 	ClearMapLocLines(mapLoc);
 
 	int j = 0;
-	
-	for (int i = 1; i <= mapLoc->width; i++) {
+
+	for (int i = 1; i <= mapLoc->width; i++)
+	{
 		if (i == 1)
 		{
-			//Backslash
+			// Backslash
 			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT) -mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.X = (float) -mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (float)-mapLoc->yloc - mapLoc->lineSize;
 			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.X = (float)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (float)-mapLoc->yloc + mapLoc->lineSize;
 			mapLoc->markerLines[j]->End.Z = 0;
 			mapLoc->markerLines[j]->Layer = activeLayer;
 			ARGBCOLOR bsColor;
 			bsColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
 			mapLoc->markerLines[j++]->Color = bsColor;
 
-			//Forwardslash
+			// Forwardslash
 			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.X = (float)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (float)-mapLoc->yloc + mapLoc->lineSize;
 			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.X = (float)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (float)-mapLoc->yloc - mapLoc->lineSize;
 			mapLoc->markerLines[j]->End.Z = 0;
 			mapLoc->markerLines[j]->Layer = activeLayer;
 			ARGBCOLOR fsColor;
@@ -1617,52 +1600,52 @@ VOID UpdateMapLocLines(PMAPLOC mapLoc)
 		}
 		else
 		{
-			//Backslash lower
+			// Backslash lower
 			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->Start.X = (float)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (float)-mapLoc->yloc - mapLoc->lineSize + i - 1;
 			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - i + 1;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.X = (float)-mapLoc->xloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->End.Y = (float)-mapLoc->yloc + mapLoc->lineSize;
 			mapLoc->markerLines[j]->End.Z = 0;
 			mapLoc->markerLines[j]->Layer = activeLayer;
 			ARGBCOLOR bslColor;
 			bslColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
 			mapLoc->markerLines[j++]->Color = bslColor;
 
-			//Forwardslash lower
+			// Forwardslash lower
 			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + i - 1;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.X = (float)-mapLoc->xloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->Start.Y = (float)-mapLoc->yloc + mapLoc->lineSize;
 			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->End.X = (float)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (float)-mapLoc->yloc - mapLoc->lineSize + i - 1;
 			mapLoc->markerLines[j]->End.Z = 0;
 			mapLoc->markerLines[j]->Layer = activeLayer;
 			ARGBCOLOR fslColor;
 			fslColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
 			mapLoc->markerLines[j++]->Color = fslColor;
 
-			//Backslash upper
+			// Backslash upper
 			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + i - 1;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.X = (float)-mapLoc->xloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->Start.Y = (float)-mapLoc->yloc - mapLoc->lineSize;
 			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->End.X = (float)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (float)-mapLoc->yloc + mapLoc->lineSize - i + 1;
 			mapLoc->markerLines[j]->End.Z = 0;
 			mapLoc->markerLines[j]->Layer = activeLayer;
 			ARGBCOLOR bsuColor;
 			bsuColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
 			mapLoc->markerLines[j++]->Color = bsuColor;
 
-			//Forwardslash upper
+			// Forwardslash upper
 			mapLoc->markerLines[j] = InitLine();
-			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
-			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->Start.X = (float)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (float)-mapLoc->yloc + mapLoc->lineSize - i + 1;
 			mapLoc->markerLines[j]->Start.Z = 0;
-			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - i + 1;
-			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.X = (float)-mapLoc->xloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->End.Y = (float)-mapLoc->yloc - mapLoc->lineSize;
 			mapLoc->markerLines[j]->End.Z = 0;
 			mapLoc->markerLines[j]->Layer = activeLayer;
 			ARGBCOLOR fsuColor;

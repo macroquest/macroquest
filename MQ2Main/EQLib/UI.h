@@ -3819,7 +3819,7 @@ public:
 	EQLIB_OBJECT bool IsMappingEnabled();
 
 	EQLIB_OBJECT void SetCurrentZone(EQZoneIndex, CVector3* v3Min, CVector3* v3Max, bool);
-	EQLIB_OBJECT void GetWorldCoordinates(float*); // actually MapViewMap
+	EQLIB_OBJECT void GetWorldCoordinates(CVector3&); // actually MapViewMap
 
 	// these are almost all the controls belonging to the CMapViewWnd
 /*0x244*/ int         ZoneId;

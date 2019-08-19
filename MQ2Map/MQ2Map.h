@@ -13,10 +13,6 @@
  */
 
 #include <map>
-//using namespace std;
-#ifdef ISXEQ
-#include "ISXEQMap.h"
-#endif
 
 #define MAPFILTER_All            0
 #define MAPFILTER_PC             1
@@ -57,41 +53,42 @@
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 
-
-typedef struct _MAPLOC {
-	bool isCreatedFromDefaultLoc;
-	int yloc;
-	int xloc;
+struct MAPLOC
+{
+	bool        isCreatedFromDefaultLoc;
+	int         yloc;
+	int         xloc;
 	std::string tag; // "yloc,xloc"
-	int lineSize;
-	int width;
-	int r_color;
-	int g_color;
-	int b_color;
-	PMAPLINE markerLines[100]; // lineMax = 4*maxWidth
-} MAPLOC, *PMAPLOC;
+	int         lineSize;
+	int         width;
+	int         r_color;
+	int         g_color;
+	int         b_color;
+	MAPLINE*    markerLines[100]; // lineMax = 4*maxWidth
+};
 
-typedef struct _MAPFILTER {
-	PCHAR szName;
-	//DWORD Index;
-	DWORD Default;
-	DWORD DefaultColor;
-	BOOL bIsToggle;
-	DWORD RequiresOption;
-	BOOL RegenerateOnChange;
-	PCHAR szHelpString;
-	DWORD Marker;
-	DWORD MarkerSize;
-	DWORD Enabled;
-	DWORD Color;
-} MAPFILTER, *PMAPFILTER;
+struct MAPFILTER
+{
+	char*       szName;
+	DWORD       Default;
+	DWORD       DefaultColor;
+	BOOL        bIsToggle;
+	DWORD       RequiresOption;
+	BOOL        RegenerateOnChange;
+	char*       szHelpString;
+	DWORD       Marker;
+	DWORD       MarkerSize;
+	DWORD       Enabled;
+	DWORD       Color;
+};
+
+struct MAPSPAWN;
 
 extern unsigned long bmMapRefresh;
-
 extern int activeLayer;
 
-extern std::map<std::string, PMAPLOC> LocationMap;
-extern PMAPLOC DefaultMapLoc;
+extern std::map<std::string, MAPLOC*> LocationMap;
+extern MAPLOC* DefaultMapLoc;
 
 extern DWORD HighlightColor;
 extern DWORD HighlightSIDELEN;
@@ -100,76 +97,73 @@ extern BOOL HighlightPulseIncreasing;
 extern int HighlightPulseIndex;
 extern DWORD HighlightPulseDiff;
 
-extern CHAR MapNameString[MAX_STRING];
-extern CHAR MapTargetNameString[MAX_STRING];
-extern CHAR mapshowStr[MAX_STRING];
-extern CHAR maphideStr[MAX_STRING];
+extern char MapNameString[MAX_STRING];
+extern char MapTargetNameString[MAX_STRING];
+extern char mapshowStr[MAX_STRING];
+extern char maphideStr[MAX_STRING];
 extern SEARCHSPAWN MapFilterCustom;
 extern SEARCHSPAWN MapFilterNamed;
 extern MAPFILTER MapFilterOptions[];
-extern CHAR MapSpecialClickString[16][MAX_STRING];
-extern CHAR MapLeftClickString[16][MAX_STRING];
+extern char MapSpecialClickString[16][MAX_STRING];
+extern char MapLeftClickString[16][MAX_STRING];
 extern BOOL repeatMapshow;
 extern BOOL repeatMaphide;
 
 /* COMMANDS */
-VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue = NULL);
-VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID PulseReset();
-VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapActiveLayerCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine);
-PCHAR FormatMarker(PCHAR szLine, PCHAR szDest, SIZE_T BufferSize);
-DWORD TypeToMapfilter(PSPAWNINFO pChar);
+void MapFilters(SPAWNINFO* pChar, char* szLine);
+void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue = NULL);
+void MapHighlightCmd(SPAWNINFO* pChar, char* szLine);
+void PulseReset();
+void MapHideCmd(SPAWNINFO* pChar, char* szLine);
+void MapShowCmd(SPAWNINFO* pChar, char* szLine);
+void MapNames(SPAWNINFO* pChar, char* szLine);
+void MapClickCommand(SPAWNINFO* pChar, char* szLine);
+void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
+void MapClearLocationCmd(SPAWNINFO* pChar, char* szLine);
+void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
+char* FormatMarker(char* szLine, char* szDest, SIZE_T BufferSize);
+DWORD TypeToMapfilter(SPAWNINFO* pChar);
 
 
 /* API */
-VOID MapInit();
-VOID MapClear();
-VOID MapGenerate();
+void MapInit();
+void MapClear();
+void MapGenerate();
 DWORD MapHighlight(SEARCHSPAWN *pSearch);
 DWORD MapHide(SEARCHSPAWN &Search);
 DWORD MapShow(SEARCHSPAWN &Search);
-VOID MapUpdate();
-VOID MapAttach();
-VOID MapDetach();
-VOID UpdateDefaultMapLoc();
-VOID ClearMapLocLines(PMAPLOC mapLoc);
-VOID UpdateMapLocLines(PMAPLOC mapLoc);
+void MapUpdate();
+void MapAttach();
+void MapDetach();
+void UpdateDefaultMapLoc();
+void ClearMapLocLines(MAPLOC* mapLoc);
+void UpdateMapLocLines(MAPLOC* mapLoc);
 
 bool MapSelectTarget();
-void MapClickLocation(float world_point[2], std::vector<float> z_hits);
-DWORD FindMarker(PCHAR szMark);
+void MapClickLocation(float x, float y, const std::vector<float>& z_hits);
+DWORD FindMarker(char* szMark);
 long  MakeTime();
 
-#ifndef ISXEQ
-BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
-#else
-bool dataMapSpawn(int argc, char *argv[], LSTYPEVAR &Ret);
-#endif
+BOOL dataMapSpawn(char* szIndex, MQ2TYPEVAR &Ret);
 
-struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow = false);
-bool RemoveSpawn(PSPAWNINFO pSpawn);
+MAPSPAWN* AddSpawn(SPAWNINFO* pNewSpawn, BOOL ExplicitAllow = false);
+bool RemoveSpawn(SPAWNINFO* pSpawn);
 void AddGroundItem(PGROUNDITEM pGroundItem);
 void RemoveGroundItem(PGROUNDITEM pGroundItem);
 
-static inline BOOL IsOptionEnabled(DWORD Option)
+inline BOOL IsOptionEnabled(DWORD Option)
 {
 	if (Option == MAPFILTER_Invalid)
 		return true;
 	return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
 
-static inline BOOL RequirementsMet(DWORD Option)
+inline BOOL RequirementsMet(DWORD Option)
 {
 	if (Option == MAPFILTER_Invalid)
 		return true;
 	return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
+
 PLUGIN_API PMAPLINE InitLine();
-PLUGIN_API VOID DeleteLine(PMAPLINE pLine);
+PLUGIN_API void DeleteLine(PMAPLINE pLine);
