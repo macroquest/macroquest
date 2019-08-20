@@ -58,3 +58,9 @@
 #include "PlayerClient.h"
 #include "PcClient.h"
 #include "Spells.h"
+
+namespace eqlib
+{
+	void InitializeEQLib();
+	void ShutdownEQLib();
+}

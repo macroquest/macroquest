@@ -15,6 +15,7 @@
 #include "Common.h"
 #include "CXStr.h"
 #include "Mutex.h"
+#include "Globals.h"
 
 namespace eqlib {
 
@@ -36,6 +37,16 @@ public:
 // to it, so the easiest way to find it is to interact with
 // an existing CXStr.
 CXFreeList* gFreeLists = nullptr;
+
+void InitializeCXStr()
+{
+	gFreeLists = (CXFreeList*)CXStr__gFreeLists;
+	gCXStrMutex = (CMutexSync*)CXStr__gCXStrAccess;
+}
+
+void ShutdownCXStr()
+{
+}
 
 // Unicode / Utf8 conversion functions
 size_t CalcUnicodeToUtf8Length(wchar_t* input)
@@ -64,7 +75,7 @@ void CXStr::AssureAccessible() const noexcept
 {
 	if (m_data)
 		return;
-	
+
 	const_cast<CXStr*>(this)->AssureCopy();
 }
 

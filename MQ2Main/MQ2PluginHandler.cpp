@@ -24,6 +24,8 @@
 #define PluginDebug //
 #endif
 
+#define NO_TIMESTAMP_CHECK
+
 #include "MQ2Main.h"
 
 

@@ -400,16 +400,15 @@ bool __cdecl MQ2Initialize()
 		//do an extra second for good measure...
 		Sleep(1000);
 	}
-	
-	
 
-	
-    if(!InitOffsets())
-    {
-        DebugSpewAlways("InitOffsets returned false - thread aborted.");
-        g_Loaded = FALSE;
-        return false;
-    }
+	if (!InitOffsets())
+	{
+		DebugSpewAlways("InitOffsets returned false - thread aborted.");
+		g_Loaded = FALSE;
+		return false;
+	}
+
+	eqlib::InitializeEQLib();
 
     if (!ParseINIFile(gszINIPath)) {
         DebugSpewAlways("ParseINIFile returned false - thread aborted.");

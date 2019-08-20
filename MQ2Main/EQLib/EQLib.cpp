@@ -16,6 +16,7 @@
 #include "Allocator.h"
 #include "UI.h"
 #include "CXWnd.h"
+#include "Globals.h"
 
 namespace eqlib {
 
@@ -29,16 +30,29 @@ void Free(void* p, int align) {}
 
 }
 
+FUNCTION_AT_VARIABLE_ADDRESS(void* eqAllocImpl(size_t), __eq_new);
+FUNCTION_AT_VARIABLE_ADDRESS(void eqFreeImpl(void*), __eq_delete);
+
+
 void InitializeEQLib()
 {
+	eqAlloc = eqAllocImpl;
+	eqFree = eqFreeImpl;
+
 	InitializeUI();
 	InitializeCXWnd();
+	InitializeCXStr();
 }
 
 void InitializeEQLibForTesting()
 {
 	eqAlloc = malloc;
 	eqFree = free;
+}
+
+void ShutdownEQLib()
+{
+	ShutdownCXStr();
 }
 
 } // namespace eqlib

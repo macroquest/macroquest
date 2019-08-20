@@ -13,20 +13,20 @@ section .text
 global ??0CXWnd@eqlib@@QAE@PAV01@IUCXRect@1@@Z
 ??0CXWnd@eqlib@@QAE@PAV01@IUCXRect@1@@Z:
 	mov eax, [_CXWnd__CXWnd]
-	jmp [eax]
+	jmp eax
 
 ;---------------------------------------------------------------------------------------
 
 ; public: __thiscall eqlib::CSidlScreenWnd::CSidlScreenWnd(class eqlib::CXWnd *,class eqlib::CXStr const &)"
 global ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@@Z
 ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@@Z:
-	mov eax, [_CSidlScreenWnd__CSidlScreenWnd1]
-	jmp [eax]
+	mov eax, [_CSidlScreenWnd__CSidlScreenWnd2]
+	jmp eax
 
 ;---------------------------------------------------------------------------------------
 
 ; public: __thiscall eqlib::CSidlScreenWnd::CSidlScreenWnd(class eqlib::CXWnd *,class eqlib::CXStr const &,int,int,char *)
 global ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z
 ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z:
-	mov eax, [_CSidlScreenWnd__CSidlScreenWnd2]
-	jmp [eax]
+	mov eax, [_CSidlScreenWnd__CSidlScreenWnd1]
+	jmp eax

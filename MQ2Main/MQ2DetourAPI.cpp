@@ -265,6 +265,17 @@ void SetAssist(PBYTE address)
 		gbAssistComplete = 2;
 	}
 }
+
+// this shit is here to satisfy mq2ic. Just because its here doesn't mean you should ever use it
+class CCXStr
+{
+public:
+	EQLIB_OBJECT CCXStr& operator= (char const* str);
+
+	void* Ptr [[deprecated]];
+};
+FUNCTION_AT_ADDRESS(CCXStr& CCXStr::operator=(char const*), CXStr__operator_equal1);
+
 //whatever the frak you do, do not remove this #pragma
 //I spent a lot of time figuring out how to get the assist code to work
 //on all compilers/settings etc.
@@ -302,6 +313,8 @@ static fGetHashSum GetHashSum = nullptr;
 int CPacketScrambler::ntoh_detour(int nopcode)
 {
 	int hopcode = ntoh_tramp(nopcode);
+
+#if 0
 	if (hopcode == EQ_ASSIST_COMPLETE) {
 		DWORD calc = 0;
 		__asm {
@@ -320,6 +333,7 @@ int CPacketScrambler::ntoh_detour(int nopcode)
 		}
 		SetAssist((PBYTE)assistflag);
 	}
+#endif
 	if (hopcode == EQ_ASSIST) {
 		__asm {
 			push eax;

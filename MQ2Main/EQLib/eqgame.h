@@ -389,6 +389,8 @@
 #define Util__FastTime_x                                           0x8F0E40
 #define wwsCrashReportCheckForUploader_x                           0x852950
 #define wwsCrashReportPlatformLaunchUploader_x                     0x855030
+#define __eq_delete_x                                              0x993BAE
+#define __eq_new_x                                                 0x994164
 
 ////
 // Section 4: Function Offsets
@@ -826,6 +828,8 @@
 #define CXStr__Mid_x                                               0x477F80
 #define CXStr__Insert_x                                            0x8EF9A0
 #define CXStr__FindNext_x                                          0x8EF610
+#define CXStr__gFreeLists_x                                        0xC768F0
+#define CXStr__gCXStrAccess_x                                      0x16D573C
 
 // CTileLayoutWnd
 #define CTileLayoutWnd__SetOriginalAutoStretchInfo_x               0x93EF20

@@ -131,6 +131,8 @@ EQLIB_VAR DWORD DI8__Mouse_Copy;
 EQLIB_VAR DWORD DI8__Mouse;
 EQLIB_VAR DWORD g_eqCommandStates;
 EQLIB_VAR DWORD LoginController__GiveTime;
+EQLIB_VAR DWORD __eq_delete;
+EQLIB_VAR DWORD __eq_new;
 
 EQLIB_VAR DWORD EQObject_Top;
 EQLIB_VAR DWORD instCRaid;
@@ -746,6 +748,8 @@ EQLIB_VAR DWORD CXStr__GetLength;
 EQLIB_VAR DWORD CXStr__Mid;
 EQLIB_VAR DWORD CXStr__Insert;
 EQLIB_VAR DWORD CXStr__FindNext;
+EQLIB_VAR DWORD CXStr__gFreeLists;
+EQLIB_VAR DWORD CXStr__gCXStrAccess;
 
 EQLIB_VAR DWORD CScreenPieceTemplate__IsType;
 EQLIB_VAR DWORD CXWnd__BringToTop;

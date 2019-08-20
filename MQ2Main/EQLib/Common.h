@@ -69,7 +69,7 @@
 	{                                                                                    \
 		__asm mov eax, [ecx]                                                             \
 		__asm lea eax, [eax+VirtualOffset]                                               \
-		__asm jmp dword ptr [eax]                                                        \
+		__asm mov eax, [eax]                                                        \
 		__asm jmp eax                                                                    \
 	}
 
@@ -78,7 +78,6 @@
 	{                                                                                    \
 		using VFT = Class::VirtualFunctionTable;                                         \
 		__asm mov eax, [Class::sm_vftable]                                               \
-		__asm mov eax, [eax]                                                             \
 		__asm jmp dword ptr [eax]VFT.Member                                              \
 	}
 
@@ -87,7 +86,6 @@
 	{                                                                                    \
 		using VFT = Base::VirtualFunctionTable;                                          \
 		__asm mov eax, [Class::sm_vftable]                                               \
-		__asm mov eax, [eax]                                                             \
 		__asm jmp dword ptr [eax]VFT.Member                                              \
 	}
 

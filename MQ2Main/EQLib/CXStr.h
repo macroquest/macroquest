@@ -27,6 +27,10 @@
 
 namespace eqlib {
 
+// initialize/shutdown the eqlib::CXStr components
+void InitializeCXStr();
+void ShutdownCXStr();
+
 // This enum represents the encodings supported by CXStr. Strings can internally
 // be represented as either an array of wchar_t or char, corresponding with
 // "unicode" (utf16) or utf8. We primarily use utf8 here, but we need to have
