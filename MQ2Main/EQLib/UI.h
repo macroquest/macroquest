@@ -1421,31 +1421,31 @@ enum eAdvLootState
 struct [[offsetcomments]] AdvancedLootItem
 {
 /*0x00*/ int64_t       ItemID;                   // EqGuid?
-/*0x04*/ char          Name[0x40];
-/*0x44*/ int           IconID;
-/*0x48*/ bool          bStackable;
-/*0x4c*/ int           MaxStack;
-/*0x50*/ bool          NoDrop;
-/*0x54*/ int           ComboID;
-/*0x58*/ unsigned int  LootID;
-/*0x5c*/ eAdvLootState State;
-/*0x60*/ bool          bAutoRoll;
-/*0x61*/ bool          ActivelyManaged;          // User has the manage Window up
-/*0x62*/ bool          ContextMenu;              // item has a context menu
-/*0x63*/ bool          AskRandomMode;            // item is in AskRandom mode
-/*0x64*/ bool          CLootInProgress;
-/*0x65*/ bool          PLootInProgress;
-/*0x68*/ SoeUtil::Array<AdvancedLootItemNPC> LootDetails;
-/*0x78*/ unsigned int  AskTimer;
-/*0x7c*/ bool          AutoRoll;
-/*0x7d*/ bool          FG;
-/*0x7e*/ bool          Need;
-/*0x7f*/ bool          Greed;
-/*0x80*/ bool          No;
-/*0x81*/ bool          AlwaysNeed;
-/*0x82*/ bool          AlwaysGreed;
-/*0x83*/ bool          Never;
-/*0x84*/
+/*0x08*/ char          Name[0x40];
+/*0x48*/ int           IconID;
+/*0x4c*/ bool          bStackable;
+/*0x50*/ int           MaxStack;
+/*0x54*/ bool          NoDrop;
+/*0x58*/ int           ComboID;
+/*0x5c*/ unsigned int  LootID;
+/*0x60*/ eAdvLootState State;
+/*0x64*/ bool          bAutoRoll;
+/*0x65*/ bool          ActivelyManaged;          // User has the manage Window up
+/*0x66*/ bool          ContextMenu;              // item has a context menu
+/*0x67*/ bool          AskRandomMode;            // item is in AskRandom mode
+/*0x68*/ bool          CLootInProgress;
+/*0x69*/ bool          PLootInProgress;
+/*0x6c*/ SoeUtil::Array<AdvancedLootItemNPC> LootDetails;
+/*0x7c*/ unsigned int  AskTimer;
+/*0x80*/ bool          AutoRoll;
+/*0x81*/ bool          FG;
+/*0x82*/ bool          Need;
+/*0x83*/ bool          Greed;
+/*0x84*/ bool          No;
+/*0x85*/ bool          AlwaysNeed;
+/*0x86*/ bool          AlwaysGreed;
+/*0x87*/ bool          Never;
+/*0x88*/
 };
 using LOOTITEM [[deprecated]] = AdvancedLootItem;
 using PLOOTITEM [[deprecated]] = AdvancedLootItem*;
@@ -2452,14 +2452,14 @@ public:
 	// data members
 
 /*0x04*/ CContainerWnd*     pContainerWnds[40];
-/*0x9c*/ ArrayClass<CContainerWnd*> ContainerWndsToDelete;
-/*0xac*/ VePointer<CONTENTS> pWorldContainer;
-/*0xb0*/ DWORD              WorldContainerSerialNumber;
-/*0xb4*/ int                WorldContainerRealEstateID;
-/*0xb8*/ int                WorldContainerRealEstateItemID;
-/*0xbc*/ DWORD              Timer;
-/*0xc0*/ bool               bShowDone;
-/*0xc4*/
+/*0xa4*/ ArrayClass<CContainerWnd*> ContainerWndsToDelete;
+/*0xb4*/ VePointer<CONTENTS> pWorldContainer;
+/*0xb8*/ DWORD              WorldContainerSerialNumber;
+/*0xbc*/ int                WorldContainerRealEstateID;
+/*0xc0*/ int                WorldContainerRealEstateItemID;
+/*0xc4*/ DWORD              Timer;
+/*0xc8*/ bool               bShowDone;
+/*0xcc*/
 };
 
 //============================================================================
@@ -4595,21 +4595,21 @@ public:
 	CSpellDisplayWnd(CXWnd* parent, ESpellDisplayType displayType);
 	virtual ~CSpellDisplayWnd();
 
-/*0x240*/ int                WindowID;
-/*0x244*/ CLabelWnd*         pDuration;
-/*0x248*/ CStmlWnd*          pDescription;
-/*0x24c*/ CStmlWnd*          pName;
-/*0x250*/ CButtonWnd*        pIcon;
-/*0x254*/ SoeUtil::IString   DescriptionText;
-/*0x264*/ SoeUtil::IString   TitleText;
-/*0x274*/ bool               bActiveItem;
-/*0x278*/ CTextureAnimation* ptaBuffIcons;
-/*0x27c*/ CTextureAnimation* ptaDragIcons;
-/*0x280*/ bool               bFailed;
-/*0x284*/ ESpellDisplayType  SpellDisplayType;
-/*0x288*/ int                SpellID;
-/*0x28c*/ int                LastUpdateTime;
-/*0x290*/
+/*0x238*/ int                WindowID;
+/*0x23c*/ CLabelWnd*         pDuration;
+/*0x240*/ CStmlWnd*          pDescription;
+/*0x244*/ CStmlWnd*          pName;
+/*0x248*/ CButtonWnd*        pIcon;
+/*0x24c*/ SoeUtil::IString   DescriptionText;
+/*0x25c*/ SoeUtil::IString   TitleText;
+/*0x26c*/ bool               bActiveItem;
+/*0x270*/ CTextureAnimation* ptaBuffIcons;
+/*0x274*/ CTextureAnimation* ptaDragIcons;
+/*0x278*/ bool               bFailed;
+/*0x27c*/ ESpellDisplayType  SpellDisplayType;
+/*0x280*/ int                SpellID;
+/*0x284*/ int                LastUpdateTime;
+/*0x288*/
 };
 using EQSPELLINFOWINDOW [[deprecated]] = CSpellDisplayWnd;
 using PEQSPELLINFOWINDOW [[deprecated]] = CSpellDisplayWnd*;
