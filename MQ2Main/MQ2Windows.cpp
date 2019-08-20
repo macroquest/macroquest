@@ -1787,7 +1787,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 	}
 	else if (!_stricmp(WindowName, "enviro"))
 	{
-		pPack = ((EQ_CONTAINERWND_MANAGER*)pContainerMgr)->pWorldContents;
+		pPack = pContainerMgr->pWorldContainer.pObject;
 	}
 
 	if (pPack)

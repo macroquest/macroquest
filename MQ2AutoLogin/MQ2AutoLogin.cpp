@@ -363,8 +363,15 @@ char lcMask[] = "xx????xxx";
 //55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
 //Feb 16 2018 Test
 //IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
+#if defined(TEST)
+//0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
+//55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
+PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
+char lcEGMask[] = "xxxxxx????xx????xxxxx";
+#else
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x56";
 char lcEGMask[] = "xxxxxx????xx????xxxxx";
+#endif
 
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut)
 {

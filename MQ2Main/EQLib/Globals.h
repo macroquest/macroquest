@@ -446,6 +446,8 @@ EQLIB_VAR DWORD CContainerWnd__HandleCombine;
 EQLIB_VAR DWORD CContainerWnd__vftable;
 EQLIB_VAR DWORD CContainerWnd__SetContainer;
 
+EQLIB_VAR DWORD CDisplay__ZoneMainUI;
+EQLIB_VAR DWORD CDisplay__PreZoneMainUI;
 EQLIB_VAR DWORD CDisplay__CleanGameUI;
 EQLIB_VAR DWORD CDisplay__GetClickedActor;
 EQLIB_VAR DWORD CDisplay__GetUserDefinedColor;

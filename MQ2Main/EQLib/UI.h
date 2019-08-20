@@ -1420,7 +1420,7 @@ enum eAdvLootState
 // size is 0x88 see 0x48AB44 in Dec 10 2018 live
 struct [[offsetcomments]] AdvancedLootItem
 {
-/*0x00*/ unsigned int  ItemID;
+/*0x00*/ int64_t       ItemID;                   // EqGuid?
 /*0x04*/ char          Name[0x40];
 /*0x44*/ int           IconID;
 /*0x48*/ bool          bStackable;
@@ -2170,7 +2170,7 @@ using PEQCHATMGR [[deprecated]] = CChatWindowManager *;
 const int EQ_CHAT_FONT_OFFSET = 0x11c;
 
 // CChatWindow__CChatWindow_x
-// Size 0x388 see 69AE4D in Oct 26 2017 Beta exe -eqmule
+// Size 0x378 see 69265D in 20 Jun 2017 Test exe -eqmule
 class [[offsetcomments]] CChatWindow : public CSidlScreenWnd
 {
 public:
@@ -2428,6 +2428,8 @@ public:
 using EQCONTAINERWINDOW [[deprecated]] = CContainerWnd;
 using PEQCONTAINERWINDOW [[deprecated]] = CContainerWnd *;
 
+#define MAX_CONTAINERS           40
+
 class [[offsetcomments]] CContainerMgr
 {
 public:
@@ -2449,7 +2451,7 @@ public:
 	//----------------------------------------------------------------------------
 	// data members
 
-/*0x04*/ CContainerWnd* pContainerWnds[38];
+/*0x04*/ CContainerWnd*     pContainerWnds[40];
 /*0x9c*/ ArrayClass<CContainerWnd*> ContainerWndsToDelete;
 /*0xac*/ VePointer<CONTENTS> pWorldContainer;
 /*0xb0*/ DWORD              WorldContainerSerialNumber;
@@ -2459,20 +2461,6 @@ public:
 /*0xc0*/ bool               bShowDone;
 /*0xc4*/
 };
-
-// TODO: Remove me
-// Actual Size 0x98  03/15/06
-struct [[offsetcomments]] EQ_CONTAINERWND_MANAGER
-{
-/*0x00*/ DWORD       pvfTable;                            // NOT based on CXWnd. Contains only destructor
-/*0x04*/ CContainerWnd* pPCContainers[0x22];              // All open containers, including World, in order of opening...
-/*0x8c*/ CONTENTS*   pWorldContents;                      // Pointer to the contents of the world If NULL, world container isn't open;
-/*0x90*/ DWORD       dwWorldContainerID;                  // ID of container in zone, starts at one (zero?) and goes up.
-/*0x94*/ DWORD       dwTimeSpentWithWorldContainerOpen;   // Cumulative counter?
-/*0x98*/
-};
-using PEQ_CONTAINERWND_MANAGER [[deprecated]] = EQ_CONTAINERWND_MANAGER*;
-
 
 //============================================================================
 // CContextMenuManager
@@ -4598,9 +4586,11 @@ enum ESpellDisplayType
 };
 
 // aSpelldisplaywi
-// size: 0x290 Jun 10, 2019 (test)
+// Actual size 0x280 23 oct 2017 Beta see 7B413F -eqmule
 class [[offsetcomments]] CSpellDisplayWnd : public CSidlScreenWnd
 {
+	FORCE_SYMBOLS
+
 public:
 	CSpellDisplayWnd(CXWnd* parent, ESpellDisplayType displayType);
 	virtual ~CSpellDisplayWnd();

@@ -680,6 +680,7 @@ VOID PluginsBeginZone()
     if (!bPluginCS) 
         return; 
     gbInZone=false;
+	gZoning = TRUE;
     CAutoLock Lock(&gPluginCS); 
     PMQPLUGIN pPlugin=pPlugins; 
     while(pPlugin) 
@@ -699,6 +700,8 @@ VOID PluginsEndZone()
 	if (!bPluginCS)
 		return;
 	gbInZone = true;
+	WereWeZoning = TRUE;
+	LastEnteredZone = MQGetTickCount64();
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin = pPlugins;
 	while (pPlugin)

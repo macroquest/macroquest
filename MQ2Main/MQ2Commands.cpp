@@ -532,7 +532,7 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 	if (!szLine) RETURN(0);
 	EQGroundItemListManager *pGroundList = GetItemList();
-	if (!pGroundList || (pGroundList && pGroundList->Top==0))
+	if (!pGroundList)
 		RETURN(0);
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR Arg1[MAX_STRING] = { 0 };
@@ -3967,27 +3967,19 @@ void NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /noparse <command>");
 		return;
 	}
-#ifdef KNIGHTLYPARSE
-	// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a ${Parse[0, but not the command itself.
-	// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
-	
-	// Convert to a string for easier handling
-	std::string strLine = szLine;
-	// Commands can't have spaces in them so the parameters are after the first space
-	size_t iSpacePos = strLine.find(" ");
-	// If we found a space... (if we didn't, for example /noparse /echo, then nothing to wrap)
-	if (iSpacePos != std::string::npos) {
-		//        Command (including space)                         From after the space to the end
-		strLine = strLine.substr(0, iSpacePos + 1) + PARSE_PARAM_BEG + "0," + strLine.substr(iSpacePos + 1) + PARSE_PARAM_END;
+	if (gknightlyparse)
+	{
+		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
+		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
+		// Cast it as a PCHAR, Modify the line, and run the command
+		DoCommand(pChar, PCHAR(ModifyMacroString(szLine, true, -2).c_str()));
 	}
-
-	// Cast it as a PCHAR and run the command
-	DoCommand(pChar, PCHAR(strLine.c_str()));
-#else // KNIGHTLYPARSE
-	bAllowCommandParse = false;
-	DoCommand(pChar, szLine);
-	bAllowCommandParse = true;
-#endif // KNIGHTLYPARSE
+	else
+	{
+		bAllowCommandParse = false;
+		DoCommand(pChar, szLine);
+		bAllowCommandParse = true;
+	}
 }
 
 void AltAbility(PSPAWNINFO pChar, PCHAR szLine)

@@ -403,7 +403,6 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mapclick", MapClickCommand, 0, 1, 0);
 	AddCommand("/mapactivelayer", MapActiveLayerCmd, 0, 1, 1);
 	AddCommand("/maploc", MapSetLocationCmd, 0, 1, 1);
-	AddCommand("/clearloc", MapClearLocationCmd, 0, 1, 1);
 
 	EzDetourwName(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline, "CMapViewWnd__CMapViewWnd");
 	if (pMapViewWnd)
@@ -442,7 +441,6 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/mapclick");
 	RemoveCommand("/mapactivelayer");
 	RemoveCommand("/maploc");
-	RemoveCommand("/clearloc");
 }
 
 // This is called every time MQ pulses
@@ -457,12 +455,11 @@ PLUGIN_API void OnPulse()
 	{
 		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
 		{
-			for (const auto& [tag, loc] : LocationMap)
+			if (!LocationMap.empty())
 			{
-				ClearMapLocLines(loc);
-				delete loc;
+				MapRemoveLocation(0, "");
 			}
-			LocationMap.clear();
+
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
 		}
 	}

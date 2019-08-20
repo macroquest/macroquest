@@ -151,6 +151,8 @@ EQLIB_VAR BOOL gTargetbuffs;
 EQLIB_VAR BOOL gItemsReceived;
 EQLIB_VAR BOOL gbInZone;
 EQLIB_VAR BOOL gZoning;
+EQLIB_VAR ULONGLONG OldLastEnteredZone;
+EQLIB_VAR ULONGLONG LastEnteredZone;
 EQLIB_VAR BOOL WereWeZoning;
 EQLIB_VAR BOOL gbInDInput;
 EQLIB_VAR BOOL gbInDState;
@@ -214,6 +216,7 @@ EQLIB_VAR BOOL bRunNextCommand;
 EQLIB_VAR BOOL bAllowCommandParse;
 EQLIB_VAR BOOL gTurbo;
 EQLIB_VAR BOOL gWarning;
+EQLIB_VAR BOOL gknightlyparse;
 EQLIB_VAR PDEFINE pDefines;
 EQLIB_VAR PBINDLIST pBindList;
 EQLIB_VAR PFILTER gpFilters;
@@ -745,14 +748,13 @@ EQLIB_VAR int  oldcameratype;
 EQLIB_VAR CHAR CameraText[2048];
 EQLIB_VAR BOOL gbIgnoreAlertRecursion;
 
-#ifdef KNIGHTLYPARSE
+// used for KNIGHTLYPARSE
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
-#endif // KNIGHTLYPARSE
 
 #if __has_include("MQ2Globals-private.h")
 #include "MQ2Globals-private.h"
 #endif
 
-}
+} // namespace MQ2Globals
 using namespace MQ2Globals;

@@ -753,4 +753,6 @@ class CharacterZoneClient;
 class CZoneGuideWnd;
 // End forward class declarations
 
+#define FORCE_SYMBOLS __declspec(dllexport) void __force_symbol_generation__() const {}
+
 } // namespace eqlib

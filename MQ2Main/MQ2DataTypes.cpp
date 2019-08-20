@@ -977,6 +977,14 @@ bool MQ2MacroType::GETMEMBER()
 			return true;
 		}
 		break;
+	case CurSub:
+		if (gMacroBlock) {
+			GetSubFromLine(gMacroBlock->Line[gMacroBlock->CurrIndex].LineNumber, DataTypeTemp, MAX_STRING);
+			Dest.Ptr = DataTypeTemp;
+			Dest.Type = pStringType;
+			return true;
+		}
+		return false;
 	case CurCommand:
 		Dest.Type = pStringType;
 		if (gMacroBlock) {
@@ -2840,8 +2848,8 @@ bool MQ2CachedBuffType::GETMEMBER()
 }
 bool MQ2CharacterType::GETMEMBER()
 {
-#define pChar ((CHARINFO*)VarPtr.Ptr)
-	if (!VarPtr.Ptr)
+	PCHARINFO pChar = ((PCHARINFO)VarPtr.Ptr);
+	if (!pChar)
 		return false;
 	//do the methods first cause there are so few of them
 	PMQ2TYPEMEMBER pMethod = MQ2CharacterType::FindMethod(Member);
@@ -2886,7 +2894,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pInt64Type;
 		return true;
 	case PctExp:
-		Dest.Float = (float)pChar->Exp / 3.30f;
+		Dest.Float = (float)pChar->Exp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 	case PctExpToAA:
@@ -2894,7 +2902,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case PctAAExp:
-		Dest.Float = (float)pChar->AAExp / 3.30f;
+		Dest.Float = (float)pChar->AAExp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 	case Vitality:
@@ -5441,10 +5449,27 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
+	case LastZoned:
+		Dest.UInt64 = LastEnteredZone;
+		Dest.Type = pTimeStampType;
+		return true;
 	case Zoning:
-		Dest.DWord = !gbInZone;
+	{
+		if (LastEnteredZone == 0)//when people reload mq
+		{
+			LastEnteredZone = MQGetTickCount64();
+			OldLastEnteredZone = LastEnteredZone;
+		}
+		bool bZoning = false;
+		if (OldLastEnteredZone != LastEnteredZone)
+		{
+			OldLastEnteredZone = LastEnteredZone;
+			bZoning = true;
+		}
+		Dest.DWord = bZoning;
 		Dest.Type = pBoolType;
 		return true;
+	}
 	case DSed:
 		Dest.Type = pBuffType;
 		if (CHARINFO2* pChar2 = GetCharInfo2()) {
@@ -6162,7 +6187,6 @@ bool MQ2CharacterType::GETMEMBER()
 	//end of MQ2CharacterType
 	}
 	return false;
-#undef pChar
 }
 
 bool MQ2SpellType::GETMEMBER()
@@ -6423,6 +6447,10 @@ bool MQ2SpellType::GETMEMBER()
 	case Stacks:
 	case NewStacks://stacks on self
 	{
+		unsigned long buffduration;
+		unsigned long duration = 99999;
+		if (ISNUMBER())
+			duration = GETNUMBER();
 		SPELL* thespell = pSpell;
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
@@ -6436,7 +6464,16 @@ bool MQ2SpellType::GETMEMBER()
 				if (!ret || SlotIndex==-1)
 					Dest.DWord = false;
 				else
+				{
 					Dest.DWord = true;
+					buffduration = ret->DurationTick;
+					if (GetSpellDuration(thespell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
+						buffduration = 99999 + 1;
+					}
+					//WriteChatf("Spell.NewStacks(%d:%d,%d)",thespell->ID,duration,buffduration);
+					if (buffduration > duration)
+						Dest.DWord = false;
+				}
 			}
 		}
 		return true;
@@ -15364,8 +15401,8 @@ bool MQ2AdvLootItemType::GETMEMBER()
 		return false;
 
 	case ID:
-		Dest.DWord = pItem->ItemID;
-		Dest.Type = pIntType;
+		Dest.Int64 = pItem->ItemID;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case StackSize:

@@ -1385,27 +1385,24 @@ DWORD ConColor(SPAWNINFO* pSpawn)
 
 CONTENTS* GetEnviroContainer()
 {
-	if (!ppContainerMgr || !pContainerMgr)
+	if (!pContainerMgr)
 		return nullptr;
 
-	EQ_CONTAINERWND_MANAGER* ContainerMgr = (EQ_CONTAINERWND_MANAGER*)pContainerMgr;
-	if (!ContainerMgr->pWorldContents)
+	if (!pContainerMgr->pWorldContainer.pObject)
 		return nullptr;
 
-	return ContainerMgr->pWorldContents;
+	return pContainerMgr->pWorldContainer.pObject;
 }
 
 CContainerWnd* FindContainerForContents(CONTENTS* pContents)
 {
-	if (!ppContainerMgr || !pContainerMgr)
+	if (!pContainerMgr)
 		return nullptr;
 
-	EQ_CONTAINERWND_MANAGER* pMgr = (EQ_CONTAINERWND_MANAGER*)pContainerMgr;
-
-	for (int j = 0; j < 35; j++)
+	for (int j = 0; j < MAX_CONTAINERS; j++)
 	{
-		if (pMgr->pPCContainers[j] && (pMgr->pPCContainers[j]->pContents == pContents))
-			return (pMgr->pPCContainers[j]);
+		if (pContainerMgr->pContainerWnds[j] && pContainerMgr->pContainerWnds[j]->pContents == pContents)
+			return pContainerMgr->pContainerWnds[j];
 	}
 
 	return nullptr;

@@ -288,6 +288,9 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			//DebugSpewNoFile("AddMacroLine - Including file: %s",Filename);
 			return (BOOL)Include(Filename, LineNumber);
 		}
+		else if (!_strnicmp(szLine, "#knightlyparse", 14)) {
+			gknightlyparse = TRUE;
+		}
 		else if (!_strnicmp(szLine, "#warning", 8)) {
 			gWarning = TRUE;
 		}
@@ -373,27 +376,31 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 				MacroError("Bad #bind: %s", szLine);
 			}
 		}
-#ifdef KNIGHTLYPARSE
 		else if (!_strnicmp(szLine, "#bind_noparse ", 14))
 		{
-			CHAR szArg1[MAX_STRING] = { 0 };
-			CHAR szArg2[MAX_STRING] = { 0 };
-			PBINDLIST pBind = (PBINDLIST)malloc(sizeof(BINDLIST));
-			GetArg(szArg1, szLine, 2);
-			GetArg(szArg2, szLine, 3);
-			if ((szArg1[0] != 0) && (szArg2[0] != 0)) {
-				sprintf_s(pBind->szFuncName, "Bind_NoParse_%s", szArg1);
-				strcpy_s(pBind->szName, szArg2);
-				pBind->Parse = false;
-				pBind->pNext = pBindList;
-				pBindList = pBind;
-			}
-			else
+			if (gknightlyparse)
 			{
-				MacroError("Bad #bind_noparse: %s", szLine);
+				CHAR szArg1[MAX_STRING] = { 0 };
+				CHAR szArg2[MAX_STRING] = { 0 };
+				PBINDLIST pBind = (PBINDLIST)malloc(sizeof(BINDLIST));
+				GetArg(szArg1, szLine, 2);
+				GetArg(szArg2, szLine, 3);
+				if ((szArg1[0] != 0) && (szArg2[0] != 0)) {
+					sprintf_s(pBind->szFuncName, "Bind_NoParse_%s", szArg1);
+					strcpy_s(pBind->szName, szArg2);
+					pBind->Parse = false;
+					pBind->pNext = pBindList;
+					pBindList = pBind;
+				}
+				else
+				{
+					MacroError("Bad #bind_noparse: %s", szLine);
+				}
+			}
+			else {
+				MacroError("You are using #bind_noparse in your macro but you have no #knightlyparse defined. %s", szLine);
 			}
 		}
-#endif // KNIGHTLYPARSE
 		else if (!_strnicmp(szLine, "#chat ", 6)) {
 			szLine += 5;
 			while (szLine[0] == ' ') szLine++;
@@ -744,12 +751,15 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 	DWORD i;
 	KeyCombo Escape;
 	ParseKeyCombo("Esc", Escape);
-	if (ppContainerMgr && pContainerMgr) {
-		EQ_CONTAINERWND_MANAGER* ContainerMgr = (EQ_CONTAINERWND_MANAGER*)pContainerMgr;
-		DWORD concount = 2; //Close inv + clear target
-		if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open == 1) concount++;
-		for (i = 0; i < 25; i++) {
-			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->IsVisible()) concount++;
+	if (pContainerMgr)
+	{
+		DWORD concount = 2; // Close inv + clear target
+		if (pContainerMgr->pWorldContainer.pObject && pContainerMgr->pWorldContainer.pObject->Open == 1)
+			concount++;
+		for (i = 0; i < MAX_CONTAINERS; i++)
+		{
+			if (pContainerMgr->pContainerWnds[i] && pContainerMgr->pContainerWnds[i]->IsVisible())
+				concount++;
 		}
 		for (i = 0; i<concount; i++)
 		{
@@ -1160,7 +1170,20 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	if (Result != 0) {
-		DoCommand(pChar, pEnd);
+		if (gknightlyparse)
+		{
+			// Due to the way that MQ2 currently processes the whole line before reaching this point:
+			// At this point the command has already passed through the parser once.  We don't want
+			// it to be parsed again since the parser already knew how to handle it and has given us
+			// the correct output.  So let's wrap this in a ${Parse[0 until we can fix /if to short
+			// circuit prior to processing.
+			// Cast it as a PCHAR, Modify the command, and run it
+			DoCommand(pChar, PCHAR(ModifyMacroString(pEnd, true, 0).c_str()));
+		}
+		else
+		{
+			DoCommand(pChar, pEnd);
+		}
 	}
 	else {
 		int index = 0;

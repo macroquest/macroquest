@@ -378,6 +378,8 @@ namespace MQ2Globals
 	BOOL gItemsReceived = FALSE;
 	BOOL gbInZone = FALSE;
 	BOOL gZoning = FALSE;
+	ULONGLONG OldLastEnteredZone = 0;
+	ULONGLONG LastEnteredZone = 0;
 	BOOL WereWeZoning = TRUE;
 	BOOL gbInDInput = FALSE;
 	BOOL gbInChat = FALSE;
@@ -430,6 +432,7 @@ namespace MQ2Globals
 	BOOL bRunNextCommand = FALSE;
 	BOOL gTurbo = FALSE;
 	BOOL gWarning = FALSE;
+	BOOL gknightlyparse = FALSE;
 	PDEFINE pDefines = nullptr;
 	PBINDLIST pBindList = nullptr;
 	CHAR gLastFindSlot[MAX_STRING] = { 0 };

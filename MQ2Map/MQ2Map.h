@@ -53,18 +53,43 @@
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 
+struct MAPSPAWN
+{
+	SPAWNINFO* pSpawn = nullptr;
+	eSpawnType SpawnType;
+
+	MAPLABEL*   pMapLabel = nullptr;
+	MAPLINE*    pVector = nullptr;
+	bool        Highlight = false;
+	bool        Explicit = false;
+	int         Marker = 0;
+	int         MarkerSize = 0;
+	MAPLINE*    MarkerLines[10];
+
+	MAPSPAWN*   pLast = nullptr;
+	MAPSPAWN*   pNext = nullptr;
+};
+
 struct MAPLOC
 {
 	bool        isCreatedFromDefaultLoc;
+	int         index;
+	MAPSPAWN* mapSpawn;
 	int         yloc;
 	int         xloc;
-	std::string tag; // "yloc,xloc"
+	int         zloc;
+	std::string label;
+	std::string tag; // "yloc,xloc,zloc"
 	int         lineSize;
 	int         width;
 	int         r_color;
 	int         g_color;
 	int         b_color;
-	MAPLINE*    markerLines[100]; // lineMax = 4*maxWidth
+	int         radius;
+	int         rr_color; // radius colors..
+	int         rg_color;
+	int         rb_color;
+	MAPLINE*    markerLines[150]; // lineMax = 4*maxWidth + 360 / CASTRADIUS_ANGLESIZE
 };
 
 struct MAPFILTER
@@ -119,10 +144,12 @@ void MapShowCmd(SPAWNINFO* pChar, char* szLine);
 void MapNames(SPAWNINFO* pChar, char* szLine);
 void MapClickCommand(SPAWNINFO* pChar, char* szLine);
 void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
-void MapClearLocationCmd(SPAWNINFO* pChar, char* szLine);
 void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
 char* FormatMarker(char* szLine, char* szDest, SIZE_T BufferSize);
 DWORD TypeToMapfilter(SPAWNINFO* pChar);
+void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
+bool IsFloat(const std::string& in);
+CVector3 GetTargetLoc();
 
 
 /* API */
@@ -136,8 +163,13 @@ void MapUpdate();
 void MapAttach();
 void MapDetach();
 void UpdateDefaultMapLoc();
-void ClearMapLocLines(MAPLOC* mapLoc);
-void UpdateMapLocLines(MAPLOC* mapLoc);
+void MapLocSyntaxOutput();
+void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
+void DeleteMapLoc(MAPLOC* maploc);
+void UpdateMapLoc(MAPLOC* mapLoc);
+void AddMapLocToList(MAPLOC* loc);
+void UpdateMapLocIndexes();
+void AddMapSpawnForMapLoc(MAPLOC* mapLoc);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);

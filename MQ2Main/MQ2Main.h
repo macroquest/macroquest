@@ -109,20 +109,8 @@ extern CRITICAL_SECTION gPluginCS;
 // EQ Version selection
 //
 
-#if defined(LIVE) || defined(TEST) || defined(EQBETA) || defined(ROF2EMU) || defined(UFEMU)
-// If one of these macros was manually specified, respect it
-#else
-
-// the currently active configuration. Can be one of LIVE or TEST. To build LIVE, eqgame.h
-// and other headers must be provided or it will build TEST instead
+// If this is a test branch, define TEST so that certain differences are enabled
 #define TEST
-
-// Validate that LIVE is available to build
-#if defined(LIVE) && !__has_include("live/eq.h")
-#undef LIVE
-#define TEST
-#endif
-#endif
 
 #ifndef ISXEQ
 #define RETURN(x) return;
@@ -177,17 +165,7 @@ extern CRITICAL_SECTION gPluginCS;
 // reroute malloc/free
 EQLIB_API void *MQ2Malloc(size_t size);
 EQLIB_API void MQ2Free(void *memblock);
-/*
-#ifdef MQ2PLUGIN
-#define malloc(x) MQ2Malloc(x)
-#define free(x) MQ2Free(x)
-#else
-#ifdef DEBUG_ALLOC
-#define malloc(x) MQ2Malloc(x)
-#define free(x) MQ2Free(x)
-#endif
-#endif
-*/
+
 #ifdef DEBUG_ALLOC
 extern DWORD CountMallocs;
 extern DWORD CountFrees;
@@ -762,6 +740,12 @@ EQLIB_API int GetMacroBlockCount();
 EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// used for KNIGHTLYPARSE
+// Parse Operations
+std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
+std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
+
 
 
 LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);

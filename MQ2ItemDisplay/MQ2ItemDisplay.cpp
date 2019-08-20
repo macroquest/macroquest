@@ -508,8 +508,13 @@ public:
 		return dmgbonus;
 	}
 
+#if defined (TEST)
+	void SetSpell_Trampoline(int SpellID, int unknown);
+	void SetSpell_Detour(int SpellID, int unknown)
+#else
 	void SetSpell_Trampoline(int SpellID);
 	void SetSpell_Detour(int SpellID)
+#endif
 	{
 		CSpellDisplayWnd* pThis = (CSpellDisplayWnd*)this;
 		CHARINFO* pCharInfo = GetCharInfo();
@@ -527,7 +532,11 @@ public:
 
 		if (!bNoSpellTramp)
 		{
+#if defined(TEST)
+			SetSpell_Trampoline(SpellID, unknown);
+#else
 			SetSpell_Trampoline(SpellID);
+#endif
 			strcat_s(out, "<BR><c \"#00FFFF\">");
 		}
 		else
@@ -745,7 +754,11 @@ public:
 
 		if (!bNoSpellTramp)
 		{
+#if defined(TEST)
+			SetSpell_Trampoline(Effect.SpellID, 0);
+#else
 			SetSpell_Trampoline(Effect.SpellID);
+#endif
 			strcat_s(out, "<BR><c \"#00FFFF\">");
 		}
 		else
@@ -1900,7 +1913,11 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp(const CXWnd* pwnd) const);
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline());
+#if defined(TEST)
+DETOUR_TRAMPOLINE_EMPTY(void ItemDisplayHook::SetSpell_Trampoline(int SpellID, int unknown));
+#else
 DETOUR_TRAMPOLINE_EMPTY(void ItemDisplayHook::SetSpell_Trampoline(int SpellID));
+#endif
 DETOUR_TRAMPOLINE_EMPTY(void ItemDisplayHook::UpdateStrings_Trampoline());
 
 enum eAugTypes

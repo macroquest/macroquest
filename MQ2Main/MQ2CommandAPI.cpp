@@ -140,19 +140,30 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
         }
         if (Pos==0)
         {
-#ifdef KNIGHTLYPARSE
-			if (pCommand->Parse)
-#else
-            if (pCommand->Parse && bAllowCommandParse)
-#endif // KNIGHTLYPARSE
-            {
-                pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
-            }
-			else {
-                pCommand->Function(pChar,szParam);
+			if (gknightlyparse)
+			{
+				if (pCommand->Parse)
+				{
+					pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
+				}
+				else
+				{
+					pCommand->Function(pChar, szParam);
+				}
 			}
-            strcpy_s(szLastCommand,szOriginalLine);
-            return;
+			else
+			{
+				if (pCommand->Parse && bAllowCommandParse)
+				{
+					pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
+				}
+				else
+				{
+					pCommand->Function(pChar, szParam);
+				}
+			}
+			strcpy_s(szLastCommand, szOriginalLine);
+			return;
         }
         pCommand=pCommand->pNext;
     }
@@ -180,9 +191,14 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
                     sCallFunc += szParam;
 					CHAR szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
-#ifdef KNIGHTLYPARSE
-					if (pBind->Parse)
-#endif //KNIGHTLYPARSE
+					if (gknightlyparse)
+					{
+						if (pBind->Parse)
+						{
+							ParseMacroData(szCallFunc, MAX_STRING);
+						}
+					}
+					else
 					{
 						ParseMacroData(szCallFunc, MAX_STRING);
 					}
@@ -328,25 +344,31 @@ public:
                 }
                 if (Pos==0)
                 {
-#ifdef KNIGHTLYPARSE
-					if (pCommand->Parse) {
-#else
-					if (pCommand->Parse && bAllowCommandParse) {
-#endif // KNIGHTLYPARSE
-						ParseMacroParameter(pChar, szArgs);
+					if (gknightlyparse)
+					{
+						if (pCommand->Parse) {
+							ParseMacroParameter(pChar, szArgs);
+						}
 					}
-                    if (pCommand->EQ)
-                    {
-                        strcat_s(szCommand," "); 
-						strcat_s(szCommand,szArgs);
-                        Trampoline(pChar,szCommand); 
-                    }
-                    else
-                    {
-                        pCommand->Function(pChar,szArgs);
-                    }
-                    strcpy_s(szLastCommand,szFullCommand);
-                    return;
+					else
+					{
+						if (pCommand->Parse && bAllowCommandParse)
+						{
+							ParseMacroParameter(pChar, szArgs);
+						}
+					}
+					if (pCommand->EQ)
+					{
+						strcat_s(szCommand, " ");
+						strcat_s(szCommand, szArgs);
+						Trampoline(pChar, szCommand);
+					}
+					else
+					{
+						pCommand->Function(pChar, szArgs);
+					}
+					strcpy_s(szLastCommand, szFullCommand);
+					return;
                 }
                 pCommand=pCommand->pNext;
             }
@@ -376,13 +398,17 @@ public:
                             sCallFunc += szArgs;
 							CHAR szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
-#ifdef KNIGHTLYPARSE
-							if (pBind->Parse) {
-#endif //KNIGHTLYPARSE
-								ParseMacroData(szCallFunc, MAX_STRING);
-#ifdef KNIGHTLYPARSE
+							if (gknightlyparse)
+							{
+								if (pBind->Parse)
+								{
+									ParseMacroData(szCallFunc, MAX_STRING);
+								}
 							}
-#endif //KNIGHTLYPARSE
+							else
+							{
+								ParseMacroData(szCallFunc, MAX_STRING);
+							}
 							if (pBlock && !pBlock->BindCmd.size()) {
 								if (!gBindInProgress) {
 									gBindInProgress = true;

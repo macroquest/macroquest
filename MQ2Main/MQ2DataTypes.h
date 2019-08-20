@@ -1226,6 +1226,7 @@ public:
 		Dotted = 275,
 		BlockedBuff = 276,
 		BlockedPetBuff = 277,
+		LastZoned = 278,
 	};
 	enum CharacterMethods
 	{
@@ -1505,7 +1506,7 @@ public:
 		TypeMember(Dotted);
 		TypeMember(BlockedBuff);
 		TypeMember(BlockedPetBuff);
-		
+		TypeMember(LastZoned);
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -3328,14 +3329,15 @@ public:
 		CurCommand = 9,
 		StackSize = 10,
 		IsTLO = 11,
-		IsOuterVariable =12,
+		IsOuterVariable = 12,
+		CurSub = 13,
 	};
 	enum MacroMethods
 	{
 		Undeclared = 1,
 	};
 
-	MQ2MacroType() :MQ2Type("macro")
+	MQ2MacroType() : MQ2Type("macro")
 	{
 		TypeMember(Name);
 		TypeMember(RunTime);
@@ -3349,7 +3351,8 @@ public:
 		TypeMember(StackSize);
 		TypeMember(IsTLO);
 		TypeMember(IsOuterVariable);
-		
+		TypeMember(CurSub);
+
 		TypeMethod(Undeclared);
 	}
 
