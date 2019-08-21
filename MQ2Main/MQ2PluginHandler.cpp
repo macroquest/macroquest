@@ -549,7 +549,10 @@ VOID PluginsSetGameState(DWORD GameState)
 				DebugSpew("PluginsSetGameState( %d class)",pCharInfo2->Class);
                 sprintf_s(szBuffer,"%s",GetClassDesc(pCharInfo2->Class));
                 LoadCfgFile(szBuffer,false);
-				IC_ClassLvl(pCharInfo2->Class, pCharInfo2->Level, GetCurrentProcessId());
+				if (IC_ClassLvl)
+				{
+					IC_ClassLvl(pCharInfo2->Class, pCharInfo2->Level, GetCurrentProcessId());
+				}
             }
         }
     }

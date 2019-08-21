@@ -7,11 +7,11 @@
 		<StringView Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 0">(char*)(*m_data).utf8,s8</StringView>
 		<StringView Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 1">(wchar_t*)(*m_data).unicode,su</StringView>
 		<Expand>
-			<Item Name="[size]" ExcludeView="simple">(*m_data).length</Item>
-			<Item Name="[capacity]" ExcludeView="simple">(*m_data).alloc</Item>
-			<Item Name="[encoding]" ExcludeView="simple">(*m_data).encoding</Item>
-			<Item Name="[refCount]" ExcludeView="simple">*(int*)&amp;(*m_data).refCount</Item>
-			<ArrayItems>
+			<Item Condition="m_data != 0" Name="[size]" ExcludeView="simple">(*m_data).length</Item>
+			<Item Condition="m_data != 0" Name="[capacity]" ExcludeView="simple">(*m_data).alloc</Item>
+			<Item Condition="m_data != 0" Name="[encoding]" ExcludeView="simple">(*m_data).encoding</Item>
+			<Item Condition="m_data != 0" Name="[refCount]" ExcludeView="simple">*(int*)&amp;(*m_data).refCount</Item>
+			<ArrayItems Condition="m_data != 0" >
 				<Size>(*m_data).length</Size>
 				<ValuePointer Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 0">(char*)(*m_data).utf8</ValuePointer>
 				<ValuePointer Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 1">(wchar_t*)(*m_data).unicode</ValuePointer>
@@ -26,15 +26,16 @@
 		<StringView Condition="encoding == 0">(char*)utf8,s8</StringView>
 		<StringView Condition="encoding == 1">(wchar_t*)unicode,su</StringView>
 		<Expand>
-			<Item Name="[size]" ExcludeView="simple">length</Item>
+			<Item Name="[size]" Condition="(*(int*)&amp;refCount) != 0" ExcludeView="simple">length</Item>
 			<Item Name="[capacity]" ExcludeView="simple">alloc</Item>
-			<Item Name="[encoding]" ExcludeView="simple">encoding</Item>
+			<Item Name="[encoding]" Condition="(*(int*)&amp;refCount) != 0" ExcludeView="simple">encoding</Item>
 			<Item Name="[refCount]" ExcludeView="simple">*(int*)&amp;refCount</Item>
-			<ArrayItems>
+			<ArrayItems Condition="(*(int*)&amp;refCount) != 0">
 				<Size>length</Size>
 				<ValuePointer Condition="encoding == 0">(char*)utf8</ValuePointer>
 				<ValuePointer Condition="encoding == 1">(wchar_t*)unicode</ValuePointer>
 			</ArrayItems>
+			<Item Name="[next]" Condition="(*(int*)&amp;refCount) == 0">next </Item>
 		</Expand>
 	</Type>
 

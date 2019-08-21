@@ -245,6 +245,7 @@ CStrRep* CXStr::AllocRepNoLock(size_t size, EStringEncoding encoding)
 			rep->encoding = encoding;
 			rep->refCount = 1;
 			rep->freeList = gFreeLists;
+			rep->alloc = freeList.blockSize;
 
 			return rep;
 		}
@@ -299,6 +300,7 @@ void CXStr::FreeRepNoLock(CStrRep* rep)
 		if (rep->alloc == freeLists[i].blockSize)
 		{
 			rep->next = freeLists[i].repList;
+
 			freeLists[i].repList = rep;
 			return;
 		}
