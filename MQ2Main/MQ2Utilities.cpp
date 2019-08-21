@@ -11684,30 +11684,7 @@ void CallMessage(DWORD pwnd)
 		DebugBreak();
 	}
 }
-int64_t EQUIStructs::GetClassMember(void* This, int ID)
-{
-	lockit lk(ghGetClassMemberLock);
-	if ((DWORD)This < 5000)
-	{
-		CallMessage((DWORD)This);
-		return 0;
-	}
-	if (IC_GetHashData)
-	{
-		int64_t ret = IC_GetHashData((void*)This, ID);
-		return ret;
-	}
-	return 0;
-}
 
-void EQUIStructs::SetClassMember(void* This, int ID, int64_t Value)
-{
-	lockit lk(ghGetClassMemberLock);
-	if (IC_SetHashData)
-	{
-		IC_SetHashData((void*)This, ID, Value);
-	}
-}
 #endif // defined(LIVE)
 
 // this function performs a better rand since it removes the random bias

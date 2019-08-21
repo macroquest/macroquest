@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="eqlib::CXStr">
+		<DisplayString Condition="m_data == 0 || (*m_data).length == 0">empty</DisplayString>
+		<DisplayString Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 0">{(char*)(*m_data).utf8,s8}</DisplayString>
+		<DisplayString Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 1">{(wchar_t*)(*m_data).unicode,su}</DisplayString>
+		<StringView Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 0">(char*)(*m_data).utf8,s8</StringView>
+		<StringView Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 1">(wchar_t*)(*m_data).unicode,su</StringView>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">(*m_data).length</Item>
+			<Item Name="[capacity]" ExcludeView="simple">(*m_data).alloc</Item>
+			<Item Name="[encoding]" ExcludeView="simple">(*m_data).encoding</Item>
+			<Item Name="[refCount]" ExcludeView="simple">*(int*)&amp;(*m_data).refCount</Item>
+			<ArrayItems>
+				<Size>(*m_data).length</Size>
+				<ValuePointer Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 0">(char*)(*m_data).utf8</ValuePointer>
+				<ValuePointer Condition="m_data != 0 &amp;&amp; (*m_data).encoding == 1">(wchar_t*)(*m_data).unicode</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="eqlib::CStrRep">
+		<DisplayString Condition="length == 0">empty</DisplayString>
+		<DisplayString Condition="encoding == 0">{(char*)utf8,s8}</DisplayString>
+		<DisplayString Condition="encoding == 1">{(wchar_t*)unicode,su}</DisplayString>
+		<StringView Condition="encoding == 0">(char*)utf8,s8</StringView>
+		<StringView Condition="encoding == 1">(wchar_t*)unicode,su</StringView>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">length</Item>
+			<Item Name="[capacity]" ExcludeView="simple">alloc</Item>
+			<Item Name="[encoding]" ExcludeView="simple">encoding</Item>
+			<Item Name="[refCount]" ExcludeView="simple">*(int*)&amp;refCount</Item>
+			<ArrayItems>
+				<Size>length</Size>
+				<ValuePointer Condition="encoding == 0">(char*)utf8</ValuePointer>
+				<ValuePointer Condition="encoding == 1">(wchar_t*)unicode</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="eqlib::CXWnd">
+		
+	</Type>
+</AutoVisualizer>

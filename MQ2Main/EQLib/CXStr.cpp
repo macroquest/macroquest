@@ -51,20 +51,71 @@ void ShutdownCXStr()
 // Unicode / Utf8 conversion functions
 size_t CalcUnicodeToUtf8Length(wchar_t* input)
 {
-	return 0;
+	int len = 0;
+	for (const wchar_t* p = input; *p != 0; ++p)
+	{
+		if (*p < 0x80)
+			len++;
+		else if (*p < 0x800)
+			len += 2;
+		else
+			len += 3;
+	}
+
+	return len;
 }
 
 size_t UnicodeToUtf8(wchar_t* unicode, char* buffer, size_t size)
 {
-	return 0;
+	if (!unicode) return -2;
+	if (!buffer) return -2;
+	if (size == 0) return -2;
+
+	const wchar_t* src = unicode;
+	char* dest = buffer;
+	char* last = buffer + size - 1;
+
+	while (true)
+	{
+		if (dest > last)
+		{
+			break;
+		}
+
+		if (*src == 0)
+		{
+			*dest++ = 0;
+			if (dest > last)
+				break;
+
+			return dest - buffer - 1;
+		}
+
+		if (*src < 0x80) // 1 byte value
+		{
+			*dest++ = (char)*src;
+			++src;
+		}
+		else if (*src < 0x800) // 2 bytes
+		{
+			*dest++ = 0xc0 | (0x1f & static_cast<char>(*src >> 6));
+			*dest++ = 0x80 | (0x3f & static_cast<char>(*src));
+			src++;
+		}
+		else // 3 bytes
+		{
+			*dest++ = 0xe0 | (0x0f & static_cast<char>(*src >> 12));
+			*dest++ = 0x80 | (0x3f & static_cast<char>(*src >> 6));
+			*dest++ = 0x80 | (0x3f & static_cast<char>(*src));
+			src++;
+		}
+	}
+
+	return -1;
 }
 
 size_t Utf8ToUnicode(char* utf8, wchar_t* buffer, size_t size)
 {
-	if (!utf8) return 0;
-	if (!buffer) return 0;
-	if (size == 0) return 0;
-
 	return 0;
 }
 
@@ -89,7 +140,7 @@ void CXStr::AssureCopy()
 
 void CXStr::Assure(size_t size, EStringEncoding encoding)
 {
-	if (encoding == StringEncodingUnicode)
+	if (encoding == StringEncodingUtf16)
 	{
 		size *= 2;
 	}
@@ -117,7 +168,7 @@ void CXStr::Assure(size_t size, EStringEncoding encoding)
 
 		// If conerting from unicode to utf8 we must calculate
 		// the actual byte length.
-		if (m_data->encoding == StringEncodingUnicode
+		if (m_data->encoding == StringEncodingUtf16
 			&& encoding == StringEncodingUtf8)
 		{
 			size_t utf8Length = CalcUnicodeToUtf8Length(m_data->unicode) + 1;
@@ -137,13 +188,13 @@ void CXStr::Assure(size_t size, EStringEncoding encoding)
 				memcpy(rep->utf8, m_data->utf8, m_data->length + 1);
 				rep->length = m_data->length;
 			}
-			else if (m_data->encoding == StringEncodingUnicode)
+			else if (m_data->encoding == StringEncodingUtf16)
 			{
 				// utf16 -> utf8
 				rep->length = UnicodeToUtf8(m_data->unicode, rep->utf8, rep->alloc);
 			}
 		}
-		else if (rep->encoding == StringEncodingUnicode)
+		else if (rep->encoding == StringEncodingUtf16)
 		{
 			if (m_data->encoding == StringEncodingUtf8)
 			{
@@ -258,35 +309,31 @@ void CXStr::FreeRepNoLock(CStrRep* rep)
 	eqlib::eqFree(rep);
 }
 
-
-int CXStr::compare(CXStr& str) const noexcept
+int CXStr::Compare(const CXStr& other, ECompareMode mode /*= CaseSensitive*/) const
 {
-	return 0;
+	// Ensure both strings have utf8 encoding
+	SetEncoding(StringEncodingUtf8);
+	other.SetEncoding(StringEncodingUtf8);
+
+	switch (mode)
+	{
+	case CaseInsensitive:
+		return _stricmp(m_data->utf8, other.m_data->utf8);
+
+	case CaseSensitive:
+		return strcmp(m_data->utf8, other.m_data->utf8);
+	}
+
+	return -1;
 }
 
-int CXStr::compare(size_type pos1, size_type count1, const CXStr& str) const
+int CXStr::CompareN(const CXStr& other, int len, ECompareMode mode /*= CaseSensitive*/) const
 {
-	return 0;
-}
+	// not optimized at all.
+	CXStr s1 = substr(0, len);
+	CXStr s2 = other.substr(0, len);
 
-int CXStr::compare(size_type pos1, size_type count1, const CXStr& str, size_type pos2, size_type count2 /*= npos*/) const
-{
-	return 0;
-}
-
-int CXStr::compare(const char* s) const
-{
-	return 0;
-}
-
-int CXStr::compare(size_type pos1, size_type count1, const char* s) const
-{
-	return 0;
-}
-
-int CXStr::compare(size_type pos1, size_type count1, const char* s, size_type count2) const
-{
-	return 0;
+	return s1.Compare(s2, mode);
 }
 
 } // namespace eqlib

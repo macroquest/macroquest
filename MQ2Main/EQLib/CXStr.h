@@ -39,7 +39,7 @@ void ShutdownCXStr();
 enum EStringEncoding
 {
 	StringEncodingUtf8,
-	StringEncodingUnicode,
+	StringEncodingUtf16,
 };
 
 // Method of performing a string comparison
@@ -900,7 +900,7 @@ public:
 	{
 		if (str.empty())
 			return *this;
-		
+
 		return insert(index, str.data(), str.size());
 	}
 
@@ -1155,43 +1155,92 @@ public:
 		return append(t);
 	}
 
-	// Compares two character sequences. todo: document
-	int compare(CXStr& str) const noexcept;
-	int compare(size_type pos1, size_type count1, const CXStr& str) const;
-	int compare(size_type pos1, size_type count1, const CXStr& str,
-		size_type pos2, size_type count2 = npos) const;
-	int compare(const char* s) const;
-	int compare(size_type pos1, size_type count1, const char* s) const;
-	int compare(size_type pos1, size_type count1, const char* s, size_type count2) const;
+	// Compares this string to str.
+	int compare(const CXStr& str) const noexcept
+	{
+		return std::string_view{ *this }.compare(std::string_view{ str });
+	}
 
-	template <typename T>
+	// Compares a [pos1, pos1+count1) substring of this string to str
+	int compare(size_type pos1, size_type count1, const CXStr& str) const
+	{
+		return std::string_view{ *this }.compare(pos1, count1, std::string_view{ str });
+	}
+
+	// Compares a [pos1, pos1+count1) substring of this string to a substring [pos2, pos2+count2)
+	// of str. If either string is count > size() - pos, the substring is [pos, size()).
+	int compare(size_type pos1, size_type count1, const CXStr& str,
+		size_type pos2, size_type count2 = npos) const
+	{
+		return std::string_view{ *this }.compare(pos1, count1, std::string_view{ str }, pos2, count2);
+	}
+
+	int compare(const char* s) const
+	{
+		return std::string_view{ *this }.compare(s);
+	}
+
+	int compare(size_type pos1, size_type count1, const char* s) const
+	{
+		return std::string_view{ *this }.compare(pos1, count1, s);
+	}
+
+	int compare(size_type pos1, size_type count1, const char* s, size_type count2) const
+	{
+		return std::string_view{ *this }.compare(pos1, count1, s, count2);
+	}
+
+	template <typename T, typename = is_string_view_ish<T>>
 	int compare(const T& t) const noexcept
 	{
-		return 0;
+		return std::string_view{ *this }.compare(t);
 	}
 
 	template <typename T>
 	int compare(size_type pos1, size_type count1, const T& t) const
 	{
-		return 0;
+		return std::string_view{ *this }.compare(pos1, count1, t);
 	}
 
 	template <typename T>
 	int compare(size_type pos1, size_type count1, const T& t,
 		size_type pos2, size_type count2 = npos) const
 	{
-		return 0;
+		return std::string_view{ *this }.compare(pos1, count1, 2, pos2, count2);
 	}
 
 	// Checks if the string begins with the given prefix.
-	bool starts_with(std::string_view x) const noexcept;
-	bool starts_with(char x) const noexcept;
-	bool starts_with(const char* x) const;
+	bool starts_with(std::string_view x) const noexcept
+	{
+		return size() >= x.size() && std::string_view{ *this }.compare(0, x.size(), x) == 0;
+	}
+
+	bool starts_with(char x) const noexcept
+	{
+		return size() >= 1 && at(0) == x;
+	}
+
+	bool starts_with(const char* x) const
+	{
+		return starts_with(std::string_view{ x });
+	}
 
 	// Checks if the string ends with the given suffix.
-	bool ends_with(std::string_view x) const noexcept;
-	bool ends_with(char x) const noexcept;
-	bool ends_with(const char* x) const;
+	bool ends_with(std::string_view x) const noexcept
+	{
+		return size() >= x.size() && std::string_view{ *this }.compare(
+			size() - x.size(), x.size(), x) == 0;
+	}
+
+	bool ends_with(char x) const noexcept
+	{
+		return size() >= 1 && at(size() - 1) == x;
+	}
+
+	bool ends_with(const char* x) const
+	{
+		return ends_with(std::string_view{ x });
+	}
 
 	// Replaces the part of the string indicated by either [pos, pos + count) or
 	// [first, last) with a new string.
@@ -1243,7 +1292,7 @@ public:
 	{
 		return replace(static_cast<size_type>(first - begin()), static_cast<size_type>(last - first), cstr, count2);
 	}
-	
+
 	CXStr& replace(size_type pos, size_type count, const char* cstr)
 	{
 		return replace(pos, count, cstr, static_cast<size_type>(traits_type::length(cstr)));
@@ -1257,7 +1306,7 @@ public:
 	{
 		CheckOffset(pos);
 		count = ClampSuffixSize(pos, count);
-	
+
 		const size_type oldSize = size();
 		size_type newSize = oldSize + count2 - count;
 
@@ -1313,21 +1362,53 @@ public:
 	// Returns a substring [pos, pos + count). If the requested substring extends
 	// past the end of the string, or if count == npos, the returned substring is
 	// [pos, size()). Throws std::out_of_range if pos > size()
-	CXStr substr(size_type pos = 0, size_type count = npos);
+	CXStr substr(size_type pos = 0, size_type count = npos) const
+	{
+		return CXStr(std::string_view{ *this }, pos, count);
+	}
 
 	// Copies a substring [pos, pos + count) to character string pointed to by dest.
 	// If the requested substring lasts past the end of the string, or if
 	// count == npos, the copied substring is [pos, size()). The resulting string
 	// is not null-terminated. if pos > size(), std::out_of_range is thrown.
-	size_type copy(char* dest, size_type count, size_type pos = 0) const;
+	size_type copy(char* dest, size_type count, size_type pos = 0) const
+	{
+		CheckOffset(pos);
+		count = ClampSuffixSize(pos, count);
+
+		if (size() > 0)
+		{
+			traits_type::copy(dest, m_data->utf8 + pos, count);
+		}
+	}
 
 	// Resizes the string to contain count characters. If the current size is less
 	// than count, additional characters are appended. If the current size is
 	// greater than count, the string is reduced to its first count elements. The
 	// first version initializes new characters to char(), the second version
 	// initializes new characters to ch.
-	void resize(size_type count);
-	void resize(size_type count, char ch);
+	void resize(size_type count)
+	{
+		resize(count, char());
+	}
+
+	void resize(size_type count, char ch)
+	{
+		if (count == size())
+			return;
+
+		if (count > size())
+		{
+			append(size() - count, ch);
+		}
+		else
+		{
+			// shrink
+			Assure(count + 1, StringEncodingUtf8);
+
+			m_data->utf8[m_data->length = count] = char();
+		}
+	}
 
 	// Exchanges the contents of the string with those of the other. All iterators
 	// and references may be invalidated.
@@ -1347,7 +1428,7 @@ public:
 	{
 		if (encoding == GetEncoding())
 			return;
-		
+
 		if (m_data)
 			Assure(m_data->length + 1, encoding);
 		else
@@ -1361,8 +1442,6 @@ public:
 
 	int Compare(const CXStr& other, ECompareMode mode = CaseSensitive) const;
 	int CompareN(const CXStr& other, int len, ECompareMode mode = CaseSensitive) const;
-	
-	bool Contains(const CXStr& other, ECompareMode mode = CaseSensitive) const;
 
 private:
 	mutable CStrRep* m_data = nullptr;

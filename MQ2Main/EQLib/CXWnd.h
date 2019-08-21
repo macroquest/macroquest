@@ -268,6 +268,7 @@ public:
 //============================================================================
 
 // actual size 0x1F8 in Jun 10 2019 Test (see 0x9351BD)
+// actual size 0x1E8 in Jul 12 2019 Live (see 0x91A799)
 class [[offsetcomments]] CXWnd
 	: public TListNode<CXWnd>   // node in list of siblings
 	, public TList<CXWnd>       // list of children
@@ -275,7 +276,6 @@ class [[offsetcomments]] CXWnd
 public:
 
 #include "CXWnd-Members.h"
-/*0x1f8*/
 
 	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t id, CXRect rect);
 
@@ -358,9 +358,9 @@ public:
 	EQLIB_OBJECT virtual bool Unknown0x114() const { return IsVisible() && !IsMinimized(); }
 	EQLIB_OBJECT virtual bool ControllerShouldProcessFrame() const { return IsVisible() && !IsMinimized(); }
 	EQLIB_OBJECT virtual void SetDrawTemplate(CXWndDrawTemplate* drawTemplate) { DrawTemplate = drawTemplate; }
+	EQLIB_OBJECT virtual int Move(const CXPoint& point);
 	EQLIB_OBJECT virtual int Move(const CXRect& rect, bool updateLayout = true, bool forceUpdateLayout = false,
 		bool completeMoveOrResize = false, bool moveAutoStretch = false);
-	EQLIB_OBJECT virtual int Move(const CXPoint& point);
 	EQLIB_OBJECT virtual void SetWindowText(const CXStr& text) { WindowText = text; }
 	EQLIB_OBJECT CXStr GetWindowText() const { return WindowText; }
 	EQLIB_OBJECT virtual CXWnd* GetChildWndAt(const CXPoint& pos, bool, bool) const;
@@ -670,6 +670,20 @@ using PCXWND [[deprecated]] = CXWnd*;
 //============================================================================
 // CSidlScreenWnd
 //============================================================================
+
+enum eIniFlags
+{
+	eIniFlag_None                    = 0,
+	eIniFlag_Position                = 0x0001,
+	eIniFlag_Size                    = 0x0002,
+	eIniFlag_Font                    = 0x0004,
+	eIniFlag_Alpha                   = 0x0008,
+	eIniFlag_Color                   = 0x0010,
+	eIniFlag_Visibility              = 0x0100,
+	eIniFlag_FirstTimeVisibility     = 0x0200,
+	eIniFlag_MinMaxState             = 0x0400,
+	eIniFlag_All                     = 0xffffffff
+};
 
 // CSidlScreenWnd__CSidlScreenWnd1_x
 // to check do : CSidlScreenWnd* csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");

@@ -1801,16 +1801,16 @@ public:
 	// data members
 
 	// todo: check me
-/*0x234*/ uint8_t     Unknown0x0240[0xb8];
-/*0x2ec*/ CButtonWnd* pBuff[0x24];
-/*0x37c*/ uint8_t     Unknown0x038c[0x210];
-/*0x58c*/ int         BuffId[NUM_LONG_BUFFS];
-/*0x634*/ int         BuffTimer[NUM_LONG_BUFFS];
-/*0x6dc*/ uint8_t     Unknown0x06ec[0x28];
-/*0x704*/ int         MaxLongBuffs;             // 0x2a (NUM_LONG_BUFFS)
-/*0x708*/ int         MaxShortBuffs;            // 0x37 (NUM_SHORT_BUFFS)
-/*0x70c*/ uint8_t     Unknown0x071c[0xc];
-/*0x718*/
+/*0x23c*/ uint8_t     Unknown0x0240[0xb8];
+/*0x2f4*/ CButtonWnd* pBuff[0x24];
+/*0x384*/ uint8_t     Unknown0x038c[0x210];
+/*0x594*/ int         BuffId[NUM_LONG_BUFFS];
+/*0x63c*/ int         BuffTimer[NUM_LONG_BUFFS];
+/*0x6e4*/ uint8_t     Unknown0x06ec[0x28];
+/*0x70c*/ int         MaxLongBuffs;             // 0x2a (NUM_LONG_BUFFS)
+/*0x710*/ int         MaxShortBuffs;            // 0x37 (NUM_SHORT_BUFFS)
+/*0x714*/ uint8_t     Unknown0x071c[0xc];
+/*0x720*/
 };
 using EQBUFFWINDOW [[deprecated]] = CBuffWindow;
 using PEQBUFFWINDOW [[deprecated]] = CBuffWindow*;

@@ -52,7 +52,7 @@
 /*0x094*/ bool        Locked;                              // found in CSidlScreenWnd__LoadIniInfo_x
 /*0x095*/ bool        Faded;
 /*0x098*/ mutable CXRect ClipRectClient;
-/*0x0a8*/ ArrayClass2_RO<unsigned int> RuntimeTypes;       // Size 0x1c
+/*0x0a8*/ ArrayClass2_RO<unsigned int> RuntimeTypes;       // Size 0x18
 /*0x0c8*/ int64_t     Data;
 /*0x0d0*/ CXRect      OldLocation;
 /*0x0e0*/ uint32_t    BackgroundDrawType;

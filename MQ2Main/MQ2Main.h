@@ -111,6 +111,7 @@ extern CRITICAL_SECTION gPluginCS;
 
 // If this is a test branch, define TEST so that certain differences are enabled
 //#define TEST
+#define LIVE
 
 #ifndef ISXEQ
 #define RETURN(x) return;

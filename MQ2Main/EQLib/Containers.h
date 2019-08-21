@@ -71,6 +71,7 @@ class ArrayClass2_RO : public CDynamicArrayBase
 {
 #define GET_BIN_INDEX(x) (x >> static_cast<uint8_t>(m_binShift))
 #define GET_SLOT_INDEX(x) (m_slotMask & index)
+
 public:
 	T& operator[](int index) { return Get(index); }
 	const T& operator[](int index) const { return Get(index); }
@@ -102,7 +103,9 @@ public:
 	{
 		if (m_length <= 0)
 			return false;
-		for (int i = 0; i < m_length; ++i) {
+
+		for (int i = 0; i < m_length; ++i)
+		{
 			if (Get(i) == element)
 				return true;
 		}
@@ -115,10 +118,7 @@ protected:
 /*0x0c*/ int m_binShift;
 /*0x10*/ T** m_array;
 /*0x14*/ int m_binCount;
-#if !defined(TEST) && !defined(LIVE)
-/*0x18*/ bool m_valid;
-#endif
-/*0x1c*/
+/*0x18*/
 };
 
 #undef GET_BIN_INDEX
@@ -150,9 +150,6 @@ public:
 		m_array = nullptr;
 		m_length = 0;
 		m_binCount = 0;
-		#if !defined(TEST) && !defined(LIVE)
-		m_valid = true;
-		#endif
 	}
 
 	ArrayClass2(const ArrayClass2& rhs) : ArrayClass2()
@@ -171,15 +168,13 @@ public:
 		{
 			if (m_array)
 				m_length = 0;
-			if (rhs.m_length) {
+			if (rhs.m_length)
+			{
 				Assure(rhs.m_length);
-#if !defined(TEST) && !defined(LIVE)
-				if (m_valid)
-#endif
-				{
-					for (int i = 0; i < rhs.m_length; ++i)
-						Get(i) = rhs.Get(i);
-				}
+
+				for (int i = 0; i < rhs.m_length; ++i)
+					Get(i) = rhs.Get(i);
+
 				m_length = rhs.m_length;
 			}
 		}
@@ -204,15 +199,18 @@ public:
 
 	void InsertElement(int index, const T& value)
 	{
-		if (index >= 0) {
-			if (index < m_length) {
+		if (index >= 0)
+		{
+			if (index < m_length)
+			{
 				Assure(m_length + 1);
 				for (int idx = m_length; idx > index; --idx)
 					Get(idx) = Get(idx - 1);
 				Get(index) = value;
 				++m_length;
 			}
-			else {
+			else
+			{
 				SetElementIdx(index, value);
 			}
 		}
@@ -220,32 +218,25 @@ public:
 
 	void SetElementIdx(int index, const T& value)
 	{
-		if (index >= 0) {
-			if (index >= m_length) {
-				Assure(index + 1);
-				#if !defined(TEST) && !defined(LIVE)
-				if (m_valid) {
-				#else
-				{
-				#endif
-					m_length = index + 1;
-				}
-			}
-			#if !defined(TEST) && !defined(LIVE)
-			if (m_valid) {
-			#else
+		if (index >= 0)
+		{
+			if (index >= m_length)
 			{
-			#endif
-				Get(index) = value;
+				Assure(index + 1);
+				m_length = index + 1;
 			}
+
+			Get(index) = value;
 		}
 	}
 
 	void DeleteElement(int index)
 	{
-		if (index >= 0 && index < m_length && m_array) {
+		if (index >= 0 && index < m_length && m_array)
+		{
 			for (; index < m_length - 1; ++index)
 				Get(index) = Get(index + 1);
+
 			--m_length;
 		}
 	}
@@ -260,56 +251,28 @@ private:
 	// reallocated, they can just be copied to the new list of bins.
 	void Assure(int requestedSize)
 	{
-#if !defined(TEST) && !defined(LIVE)
-		if (m_valid && requestedSize > 0) {
-#else
-		//if (m_binCount && requestedSize > 0) {
-		if (requestedSize > 0) {
-#endif
+		if (requestedSize > 0)
+		{
 			int newBinCount = ((requestedSize - 1) >> static_cast<int8_t>(m_binShift)) + 1;
-			if (newBinCount > m_binCount) {
+
+			if (newBinCount > m_binCount)
+			{
 				T** newArray = new T*[newBinCount];
-				if (newArray) {
+				if (newArray)
+				{
 					for (int i = 0; i < m_binCount; ++i)
 						newArray[i] = m_array[i];
-					for (int curBin = m_binCount; curBin < newBinCount; ++curBin) {
+					for (int curBin = m_binCount; curBin < newBinCount; ++curBin)
+					{
 						T* newBin = new T[m_maxPerBin];
 						newArray[curBin] = newBin;
-						if (!newBin) {
-#if !defined(TEST) && !defined(LIVE)
-							m_valid = false;
-#else
-							//m_binCount = 0;
-#endif
-							break;
-						}
 					}
-#if !defined(TEST) && !defined(LIVE)
-					if (m_valid)
-#endif
-					{
-						delete[] m_array;
-						m_array = newArray;
-						m_binCount = newBinCount;
-					}
-				} else {
-#if !defined(TEST) && !defined(LIVE)
-					m_valid = false;
-#else
-					//m_binCount = 0;
-#endif
+
+					delete[] m_array;
+					m_array = newArray;
+					m_binCount = newBinCount;
 				}
 			}
-			// special note about this exception: the eq function was written this way,
-			// but its worth noting that new will throw if it can't allocate, which means
-			// this will never be hit anyways. The behavior would not change if we removed
-			// all of the checks for null returns values from new in this function.
-#if !defined(TEST) && !defined(LIVE)
-			if (!m_valid) {
-				Reset();
-				ThrowArrayClassException();
-			}
-#endif
 		}
 	}
 };

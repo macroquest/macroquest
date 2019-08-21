@@ -482,33 +482,29 @@ namespace MQ2Internal {
 		VOID FreeAlerts(DWORD List);
 	};
 
-#pragma pack(push)
-#pragma pack(4)
-
 	class CCustomWnd : public CSidlScreenWnd
 	{
 	public:
-		CCustomWnd(const CXStr& screenpiece) : CSidlScreenWnd(0, screenpiece, 0xFFFFFFFF /*ini store all*/)
+		CCustomWnd(const CXStr& screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
 		{
 			CreateChildrenFromSidl();
-			this->Show(true, true, true);
+			Show(true);
+
 			SetEscapable(false);
-			//CloseOnESC=0;
 		}
 
-		CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, 0xFFFFFFFF /*ini store all*/)
+		CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
 		{
 			CreateChildrenFromSidl();
-			this->Show(true, true);
+			Show(true);
+
 			SetEscapable(false);
-			//CloseOnESC=0;
 		}
 
 		~CCustomWnd()
 		{
 		}
 	};
-#pragma pack(pop)
 
 	class CCustomMenu : public CContextMenu
 	{

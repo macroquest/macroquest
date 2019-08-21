@@ -3,13 +3,12 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IntDir>.\Intermediate\</IntDir>
+    <IntDir>.\Intermediate\Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\Release\</OutDir>
+    <OutDir>..\Debug\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>

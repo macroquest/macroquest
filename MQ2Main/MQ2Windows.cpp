@@ -168,7 +168,7 @@ public:
 			WindowMap[WindowName] = (CXWnd*)this;
 
 			if (Name[0] != '\0')
-				DebugSpew("Adding WndNotification target '%s'", Name);
+				DebugSpew("Adding WndNotification target '%s'", Name.c_str());
 			else
 				DebugSpew("Adding WndNotification target FAILED");
 		}
