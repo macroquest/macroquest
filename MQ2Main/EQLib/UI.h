@@ -3857,7 +3857,7 @@ public:
 /*0x360*/ CXWnd*      wndSpacer;
 /*0x364*/ bool        bEditing;
 /*0x368*/ MapViewMap  MapView;                            // a window component owned by CMapViewWnd.
-/*0x5d8*/
+/*0x5c8*/
 	// alias the stupid
 	__declspec(property(get = getLines)) PMAPLINE pLines;
 	__declspec(property(get = getLabels)) PMAPLABEL pLabels;

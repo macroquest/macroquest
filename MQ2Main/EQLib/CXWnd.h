@@ -662,7 +662,8 @@ public:
 
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
-/*0x1ec*/ };
+/*0x1ec*/
+};
 
 using CXWND [[deprecated]] = CXWnd;
 using PCXWND [[deprecated]] = CXWnd*;
