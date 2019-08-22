@@ -627,6 +627,9 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 	// we get ourself a new block, this will be valid until the macro ends.
 	gMacroBlock = AddMacroBlock(szLine);
 
+	//note to self: gknightlyparse will need to be moved from global scope to local when I finish multimacro support - eqmule
+	gknightlyparse = FALSE;
+
 	gMaxTurbo = 80;
 	gTurbo = true;
 	GetArg(szTemp, szLine, 1);

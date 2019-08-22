@@ -1247,17 +1247,17 @@ public:
 /*0x00*/ CXStr typeName;
 /*0x04*/ CXStr superType;
 /*0x08*/ ArrayClass2<CXMLSOMAttributeType> attributeTypes;
-/*0x24*/ ArrayClass2<CXMLSOMElement> elements;
-/*0x40*/ ArrayClass2<CXStr> itemList;
+/*0x20*/ ArrayClass2<CXMLSOMElement> elements;
+/*0x38*/ ArrayClass2<CXStr> itemList;
 
-/*0x5c*/ CXStr classNameC;
-/*0x60*/ CXStr baseClassNameC;
+/*0x50*/ CXStr classNameC;
+/*0x54*/ CXStr baseClassNameC;
 
-/*0x64*/ CXStr jsName;
+/*0x58*/ CXStr jsName;
 
-/*0x68*/ CXStr sourceFile;
-/*0x6c*/ int sourceLine;
-/*0x70*/
+/*0x5c*/ CXStr sourceFile;
+/*0x60*/ int sourceLine;
+/*0x64*/
 };
 
 enum EXMLSOMNodeType
@@ -1274,11 +1274,11 @@ public:
 /*0x04*/ CXStr nodeName;
 /*0x08*/ CXStr nodeValue;
 /*0x0c*/ ArrayClass2<CXMLSOMAttribute> attributeList;
-/*0x28*/ ArrayClass2<CXMLSOMNodePtr> nodeList;
-/*0x44*/ CXStr sourceFile;
-/*0x48*/ int sourceLine;
-/*0x4c*/ int refCount;
-/*0x50*/
+/*0x24*/ ArrayClass2<CXMLSOMNodePtr> nodeList;
+/*0x3c*/ CXStr sourceFile;
+/*0x40*/ int sourceLine;
+/*0x44*/ int refCount;
+/*0x48*/
 };
 
 // this is an intrusive reference counted pointer of CXMLSOMNode

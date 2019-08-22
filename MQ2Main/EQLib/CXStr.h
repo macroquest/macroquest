@@ -455,7 +455,7 @@ public:
 			// If they both point to the same rep we don't want to release.
 			if (str.m_data != m_data)
 				FreeRep(m_data);
-			
+
 			m_data = str.m_data;
 			str.m_data = nullptr;
 		}

@@ -342,35 +342,35 @@ public:
 	EQLIB_OBJECT bool IsType(uint32_t type) const;
 
 /*0x04*/ ArrayClass2<uint32_t> arRuntimeTypes;
-/*0x20*/ CXStr               strName;
-/*0x24*/ uint32_t            uParamObjectId = 0;
-/*0x28*/ CXStr               strScreenId;
-/*0x2c*/ uint32_t            nFont = 0;
-/*0x30*/ bool                bRelativePosition = true;
-/*0x31*/ bool                bAutoStretchVertical = false;
-/*0x32*/ bool                bAutoStretchHorizontal = false;
-/*0x33*/ bool                bTopAnchorToTop = true;
-/*0x34*/ bool                bBottomAnchorToTop = true;
-/*0x35*/ bool                bLeftAnchorToLeft = true;
-/*0x36*/ bool                bRightAnchorToLeft = true;
-/*0x38*/ int                 nTopOffset = 0;
-/*0x3c*/ int                 nBottomOffset = 0;
-/*0x40*/ int                 nLeftOffset = 0;
-/*0x44*/ int                 nRightOffset = 0;
-/*0x48*/ int                 nMinVSize = 0;
-/*0x4c*/ int                 nMinHSize = 0;
-/*0x50*/ int                 nMaxVSize = 0;
-/*0x54*/ int                 nMaxHSize = 0;
-/*0x58*/ CXRect              rect;
-/*0x68*/ CXStr               strText;
-/*0x6c*/ D3DCOLOR            colorText = 0;
-/*0x70*/ D3DCOLOR            colorDisabled = 0;
-/*0x74*/ D3DCOLOR            colorEnabled = 0;
-/*0x78*/ bool                bUseInLayoutHorizontal = true;
-/*0x79*/ bool                bUseInLayoutVertical = true;
-/*0x7c*/ D3DCOLOR            colorBackgroundTextureTint = 0;
-/*0x80*/ D3DCOLOR            colorDisabledBackgroundTextureTint = 0;
-/*0x84*/
+/*0x1c*/ CXStr               strName;
+/*0x20*/ uint32_t            uParamObjectId = 0;
+/*0x24*/ CXStr               strScreenId;
+/*0x28*/ uint32_t            nFont = 0;
+/*0x2c*/ bool                bRelativePosition = true;
+/*0x2d*/ bool                bAutoStretchVertical = false;
+/*0x2e*/ bool                bAutoStretchHorizontal = false;
+/*0x2f*/ bool                bTopAnchorToTop = true;
+/*0x30*/ bool                bBottomAnchorToTop = true;
+/*0x31*/ bool                bLeftAnchorToLeft = true;
+/*0x32*/ bool                bRightAnchorToLeft = true;
+/*0x34*/ int                 nTopOffset = 0;
+/*0x38*/ int                 nBottomOffset = 0;
+/*0x3c*/ int                 nLeftOffset = 0;
+/*0x40*/ int                 nRightOffset = 0;
+/*0x44*/ int                 nMinVSize = 0;
+/*0x48*/ int                 nMinHSize = 0;
+/*0x4c*/ int                 nMaxVSize = 0;
+/*0x50*/ int                 nMaxHSize = 0;
+/*0x54*/ CXRect              rect;
+/*0x64*/ CXStr               strText;
+/*0x68*/ D3DCOLOR            colorText = 0;
+/*0x6c*/ D3DCOLOR            colorDisabled = 0;
+/*0x70*/ D3DCOLOR            colorEnabled = 0;
+/*0x74*/ bool                bUseInLayoutHorizontal = true;
+/*0x75*/ bool                bUseInLayoutVertical = true;
+/*0x78*/ D3DCOLOR            colorBackgroundTextureTint = 0;
+/*0x7c*/ D3DCOLOR            colorDisabledBackgroundTextureTint = 0;
+/*0x80*/
 };
 
 //============================================================================
@@ -415,14 +415,14 @@ class [[offsetcomments]] CControlTemplate : public CScreenPieceTemplate
 public:
 	EQLIB_OBJECT CControlTemplate(CParamControl*);
 
-/*0x84*/ uint32_t                 uStyleBits = 0;
-/*0x88*/ uint8_t                  bSizableMask = 0;
-/*0x89*/ bool                     bEscapable = true;
-/*0x8c*/ CXStr                    strTooltip;
-/*0x90*/ CXWndDrawTemplate*       pDrawTemplate = nullptr;
-/*0x94*/ CXStr                    strController;
-/*0x98*/ CLayoutStrategyTemplate* pLayoutStrategyTemplate = nullptr;
-/*0x9c*/
+/*0x80*/ uint32_t                 uStyleBits = 0;
+/*0x84*/ uint8_t                  bSizableMask = 0;
+/*0x85*/ bool                     bEscapable = true;
+/*0x88*/ CXStr                    strTooltip;
+/*0x8c*/ CXWndDrawTemplate*       pDrawTemplate = nullptr;
+/*0x90*/ CXStr                    strController;
+/*0x94*/ CLayoutStrategyTemplate* pLayoutStrategyTemplate = nullptr;
+/*0x98*/
 };
 
 //============================================================================

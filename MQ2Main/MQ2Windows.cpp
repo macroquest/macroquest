@@ -156,7 +156,7 @@ public:
 			wi.ppWnd = 0;
 			WindowList[(CXWnd*)this] = wi;
 
-			DebugSpew("Updating WndNotification target '%s'", Name);
+			DebugSpew("Updating WndNotification target '%s'", Name.c_str());
 		}
 		else
 		{
