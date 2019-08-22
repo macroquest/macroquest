@@ -260,7 +260,7 @@ public:
 	EQLIB_OBJECT virtual void SetRadioGroup(CRadioGroup* group);
 	EQLIB_OBJECT virtual int DrawWndText(const CXRect& rect, const CXRect& clip);
 	EQLIB_OBJECT virtual int DrawCooldown();
-	EQLIB_OBJECT virtual void SetCheck(bool check);
+	EQLIB_OBJECT virtual void SetCheck(bool check, int unknown);
 	EQLIB_OBJECT virtual void SetCoolDownCompletionTimeDelta(uint32_t delta, uint32_t total);
 	EQLIB_OBJECT virtual void SetCoolDownCompletionTime(uint32_t time, uint32_t total);
 	EQLIB_OBJECT virtual void SetCoolDownCompletionTime(time_t time, uint32_t total);

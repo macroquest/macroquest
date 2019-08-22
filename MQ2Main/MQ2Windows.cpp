@@ -266,7 +266,7 @@ public:
 						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate))
 						{
 							pCheck->SetEnabled(true);
-							pCheck->SetCheck(false);
+							pCheck->SetCheck(false, 0);
 							pCheck->SetData(list->GetItemData(i));
 							pCheck->SetVisible(true);
 							pCheck->SetActive(true);
