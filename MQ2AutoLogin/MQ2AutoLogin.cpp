@@ -34,7 +34,7 @@ Change log:
 - this setting is called LoginOnReLoadAtCharSelect=1 and should go under Settings if you want to use it.
 
 #  20150711 - eqmule
-- Updated for lockjaw server 
+- Updated for lockjaw server
 
 #  20150523 - eqmule
 - Updated for ragefire server and some other bugfixes and stuff...
@@ -239,8 +239,6 @@ struct SERVERSTUFF
 #define SERVER_DOWN 1
 #define SERVER_LOCKED 4
 
-#define SPLASH "dbgsplash"
-
 class CLoginViewManager;
 
 bool bWeAreDown = false;
@@ -363,22 +361,18 @@ char lcMask[] = "xx????xxx";
 //55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
 //Feb 16 2018 Test
 //IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
-#if defined(TEST)
-//0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
-//55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
+// 0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
+// 55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
 char lcEGMask[] = "xxxxxx????xx????xxxxx";
-#else
-PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x56";
-char lcEGMask[] = "xxxxxx????xx????xxxxx";
-#endif
+
 
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut)
 {
 	return CryptUnprotectData(DataIn, NULL, NULL, NULL, NULL, 0, DataOut) != 0;
 }
 
-int StrToBlobA(char* szIn, DATA_BLOB* BlobOut)
+int StrToBlobA(const char* szIn, DATA_BLOB* BlobOut)
 {
 	size_t len = strlen(szIn);
 	BlobOut->pbData = (BYTE*)LocalAlloc(LPTR, (len)+1);
@@ -445,7 +439,7 @@ char* gettok(char* _String, int _Delimiter)
 	
 	return nullptr;
 }
-template <unsigned int _BSize,
+template <
 	unsigned int _SNSize,
 	unsigned int _CNSize,
 	unsigned int _PSize,
@@ -453,7 +447,7 @@ template <unsigned int _BSize,
 	unsigned int _CCSize,
 	unsigned int _CLSize>
 bool ParseBlob(
-	char(&szBlob)[_BSize],
+	const std::string& blob,
 	char(&szStationName)[_SNSize],
 	char(&szCharacterName)[_CNSize],
 	char(&szPassword)[_PSize],
@@ -461,11 +455,11 @@ bool ParseBlob(
 	char(&szCharClass)[_CCSize],
 	char(&szCharLevel)[_CLSize])
 {
-	if (szBlob[0])
+	if (blob.empty())
 		return false;
 
 	DATA_BLOB db = { 0 };
-	if (!StrToBlobA(szBlob, &db))
+	if (!StrToBlobA(blob.c_str(), &db))
 		return false;
 
 	DATA_BLOB dbout = { 0 };
@@ -925,7 +919,9 @@ bool GetAllOffsets(DWORD dweqmain)
 		return false;
 	}
 
-	pSidlManager = 0; pWindowManager = 0; pLoginViewManager = 0;
+	pSidlManager = nullptr;
+	pWindowManager = nullptr;
+	pLoginViewManager = nullptr;
 
 	while (!pSidlManager || !pWindowManager || !pLoginViewManager)
 	{
@@ -937,10 +933,13 @@ bool GetAllOffsets(DWORD dweqmain)
 	WindowMap.clear();
 	char Name[MAX_STRING] = { 0 };
 
+	CXMLDataManager* xmlDataManager = pSidlManager->GetParamManager();
+
 	for (int i = 0; i < pWindowManager->pWindows.Count; i++)
 	{
-		if (CXWnd* pWnd = pWindowManager->pWindows[i]) {
-			if (CXMLData* pXMLData = pWnd->GetXMLData())
+		if (CXWnd* pWnd = pWindowManager->pWindows[i])
+		{
+			if (CXMLData* pXMLData = pWnd->GetXMLData(xmlDataManager))
 			{
 				if (!pXMLData->Name.empty())
 				{
@@ -1351,7 +1350,7 @@ PLUGIN_API void OnPulse()
 						if (strstr(Child->STMLText.c_str(), "Loading Characters"))
 						{
 							// TODO: FIXME
-							if (DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd)
+							if (CCharacterListWnd* pCharSelect = *(CCharacterListWnd**)pinstCCharacterListWnd)
 							{
 								retrylogincounter = 1;
 								bLogin = true;
@@ -1365,7 +1364,7 @@ PLUGIN_API void OnPulse()
 								}
 								switchTime = MQGetTickCount64() + 3000;
 
-								((CCharacterListWnd*)pCharSelect)->Quit();
+								pCharSelect->Quit();
 								AutoLoginDebug("Quit() called due to charselect list being empty");
 							}
 						}
@@ -1591,6 +1590,8 @@ bool bServerWait = false;
 
 void HandleWindows()
 {
+	CXMLDataManager* pXmlMgr = pSidlManager->GetParamManager();
+
 	if (!bLogin)
 	{
 		// we have to check this even when bLogin is false because we could be stuck at charselect in a timeout...
@@ -1598,16 +1599,17 @@ void HandleWindows()
 		{
 			if (WindowActive("okdialog"))
 			{
-				if (CXWnd* pWnd = WindowMap["okdialog"]->GetChildItem("OK_Display"))
+				if (CXWnd* pWnd = WindowMap["okdialog"]->GetChildItem(pXmlMgr, "OK_Display"))
 				{
 					CXStr str;
 
-					if (pWnd->GetType() == UI_STMLBox)
+					if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
 					{
 						CStmlWnd* cstm = (CStmlWnd*)pWnd;
 						str = cstm->STMLText;
 					}
-					else {
+					else
+					{
 						CSidlScreenWnd* cwnd = (CSidlScreenWnd*)pWnd;
 						str = cwnd->GetWindowText();
 					}
@@ -1623,53 +1625,61 @@ void HandleWindows()
 		return;
 	}
 
-	CXWnd* pWnd = 0;
-	if (WindowActive("OrderWindow"))
+	// pair of WindowNames / ButtonNames
+	std::vector<std::pair<const char*, const char*>> PromptWindows = {
+		{ "OrderWindow", "Order_DeclineButton" },
+		{ "EulaWindow", "EULA_AcceptButton" },
+		{ "seizurewarning", "HELP_OKButton"},
+		{ "OrderExpansionWindow", "OrderExp_DeclineButton" }
+	};
+
+	for (const auto [windowName, buttonName] : PromptWindows)
 	{
-		if (pWnd = WindowMap["OrderWindow"]->GetChildItem("Order_DeclineButton"))
-			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-	}
-	else if (WindowActive("EulaWindow"))
-	{
-		if (pWnd = WindowMap["EulaWindow"]->GetChildItem("EULA_AcceptButton"))
-			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-	}
-	else if (WindowActive("seizurewarning"))
-	{
-		if (pWnd = WindowMap["seizurewarning"]->GetChildItem("HELP_OKButton"))
-			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-	}
-	else if (WindowActive("OrderExpansionWindow"))
-	{
-		if (pWnd = WindowMap["OrderExpansionWindow"]->GetChildItem("OrderExp_DeclineButton"))
+		auto iter = WindowMap.find(windowName);
+		if (iter != WindowMap.end())
 		{
-			AutoLoginDebug("clicking OrderExp_DeclineButton");
-			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+			CXWnd* pWindow = iter->second;
+			if (pWindow->IsVisible() && pWindow->IsEnabled())
+			{
+				if (CXWnd* pButton = pWindow->GetChildItem(pXmlMgr, buttonName))
+				{
+					pButton->WndNotification(pButton, XWM_LCLICK);
+				}
+
+				return;
+			}
 		}
 	}
-	else if (WindowActive(SPLASH))
+
+	if (WindowActive("dbgsplash"))
 	{
 		CXPoint pt{ 1, 1 };
 		pLoginViewManager->SendLMouseClick(pt); // WndNotification doesn't work on this
+
+		return;
 	}
-	else if (WindowActive("main"))
+
+	if (WindowActive("main"))
 	{
-		if (pWnd = WindowMap["main"]->GetChildItem("MAIN_ConnectButton"))
+		if (CXWnd* pWnd = WindowMap["main"]->GetChildItem(pXmlMgr, "MAIN_ConnectButton"))
 		{
 			// this clicks the Login Button on the main page so we get the username and password page
-			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+			pWnd->WndNotification(pWnd, XWM_LCLICK);
 		}
+
+		return;
 	}
-	else if (WindowActive("connect"))
+
+	if (WindowActive("connect"))
 	{
 		if (WindowActive("okdialog"))
 		{
 			bServerWait = false;
-			if (pWnd = WindowMap["okdialog"]->GetChildItem("OK_Display"))
+			if (CXWnd* pWnd = WindowMap["okdialog"]->GetChildItem(pXmlMgr, "OK_Display"))
 			{
 				CXStr str;
 
-				if (pWnd->GetType() == UI_STMLBox)
+				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
 				{
 					CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
 					str = pStmlWnd->STMLText;
@@ -1687,106 +1697,41 @@ void HandleWindows()
 				bGotOffsets = false;
 				ullerrorwait = MQGetTickCount64() + 2000; // we give the server 5 seconds to catch its breath...
 
-				if (strstr(str.c_str(), "The server requires that you logout and log back in before proceeding.  Please do so."))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+				std::vector<const char*> ErrorMessages = {
+					"The server requires that you logout and log back in before proceeding.  Please do so.",
+					"failed login attempts on your account since the last time you logged in",
+					"The Login Server is currently unavailable.  Please try again later.",
+					"Cannot login to the EverQuest server",
+					"This login requires a valid",
+					"A timeout occurred",
+					"A connection to the server could not be reached.",
+					"An unknown login error occurred",
+					"Invalid Session"
+				};
 
-					return;
+				for (const char* msg : ErrorMessages)
+				{
+					if (strstr(str.c_str(), msg))
+					{
+						if (CXWnd* pButton = WindowMap["okdialog"]->GetChildItem(pXmlMgr, "OK_OKButton"))
+							pButton->WndNotification(pButton, XWM_LCLICK);
+
+						return;
+					}
 				}
 
-				if (strstr(str.c_str(), "failed login attempts on your account since the last time you logged in"))
+				if (strstr(str.c_str(), "password were not valid")
+					|| strstr(str.c_str(), "This login requires that the account be activated.  Please make sure your account is active in order to login."))
 				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "The Login Server is currently unavailable.  Please try again later."))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "Cannot login to the EverQuest server"))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "password were not valid"))
-				{
-					AutoLoginDebug(str.c_str());
-					bLogin = false;
-					return;
-				}
-
-				if (strstr(str.c_str(), "This login requires a valid"))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "A timeout occurred"))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "This login requires that the account be activated.  Please make sure your account is active in order to login."))
-				{
-					AutoLoginDebug(str.c_str());
-
+					AutoLoginDebug("%s",str.c_str());
 					bLogin = false;
 					return;
 				}
 
 				if (strstr(str.c_str(), "You have a character logged into a world server as an OFFLINE TRADER from this account"))
 				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("YESNO_YesButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-					return;
-				}
-
-				if (strstr(str.c_str(), "A connection to the server could not be reached."))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "An unknown login error occurred"))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-					return;
-				}
-
-				if (strstr(str.c_str(), "Invalid Session"))
-				{
-					pWnd = WindowMap["okdialog"]->GetChildItem("OK_OKButton");
-					if (pWnd)
-						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					if (CXWnd* pButton = WindowMap["okdialog"]->GetChildItem(pXmlMgr, "YESNO_YesButton"))
+						pButton->WndNotification(pWnd, XWM_LCLICK);
 
 					return;
 				}
@@ -1794,9 +1739,7 @@ void HandleWindows()
 			return;
 		}
 
-		CEditWnd* pEditWnd = (CEditWnd*)pWnd;
-
-		if (pWnd = WindowMap["connect"]->GetChildItem("LOGIN_PasswordEdit"))
+		if (CEditWnd* pEditWnd = (CEditWnd*)WindowMap["connect"]->GetChildItem(pXmlMgr, "LOGIN_PasswordEdit"))
 		{
 			if (pEditWnd->InputText.empty())
 				bWait = false;
@@ -1805,7 +1748,7 @@ void HandleWindows()
 		if (bWait)
 			return;
 
-		if (pWnd = WindowMap["connect"]->GetChildItem("LOGIN_UsernameEdit"))
+		if (CEditWnd* pEditWnd = (CEditWnd*)WindowMap["connect"]->GetChildItem(pXmlMgr, "LOGIN_UsernameEdit"))
 		{
 			if (bUseMQ2Login)
 			{
@@ -1966,7 +1909,7 @@ void HandleWindows()
 				}
 			}
 			else if (bUseStationNamesInsteadOfSessions)
-{
+			{
 				AutoLoginDebug("HandleWindows(): Using station name instead of session number");
 				bLoginCheckDone = true;
 
@@ -2005,18 +1948,17 @@ void HandleWindows()
 			}
 
 			CXWnd* pConnectWnd = WindowMap["connect"];
-			CEditWnd* pPasswordEdit = (CEditWnd*)pConnectWnd->GetChildItem("LOGIN_PasswordEdit");
 
-			if (pPasswordEdit)
+			if (CEditWnd* pPasswordEdit = (CEditWnd*)pConnectWnd->GetChildItem(pXmlMgr, "LOGIN_PasswordEdit"))
 			{
 				pPasswordEdit->InputText = szPassword;
 
-				CButtonWnd* pConnectButton = (CButtonWnd*)pConnectWnd->GetChildItem("LOGIN_ConnectButton");
+				CButtonWnd* pConnectButton = (CButtonWnd*)pConnectWnd->GetChildItem(pXmlMgr, "LOGIN_ConnectButton");
 				if (pConnectButton)
 				{
 					DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 
-					pConnectButton->WndNotification(pWnd, XWM_LCLICK, 0);
+					pConnectButton->WndNotification(pConnectButton, XWM_LCLICK);
 
 					ScreenMode = oldscreenmode;
 					bWait = true;
@@ -2024,8 +1966,11 @@ void HandleWindows()
 				}
 			}
 		}
+
+		return;
 	}
-	else if (WindowActive("serverselect"))
+
+	if (WindowActive("serverselect"))
 	{
 		if (bInGame)
 			return;
@@ -2039,11 +1984,11 @@ void HandleWindows()
 		if (WindowActive("okdialog"))
 		{
 			CXWnd* pOkDialog = WindowMap["okdialog"];
-			if (pWnd = pOkDialog->GetChildItem("OK_Display"))
+			if (CXWnd* pWnd = pOkDialog->GetChildItem(pXmlMgr, "OK_Display"))
 			{
 				CXStr str;
 
-				if (pWnd->GetType() == UI_STMLBox)
+				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
 				{
 					CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
 					str = pStmlWnd->STMLText;
@@ -2056,59 +2001,51 @@ void HandleWindows()
 				bGotOffsets = false;
 				ullerrorwait = MQGetTickCount64() + 2000; // we give the server 5 seconds to catch its breath...
 
-				CButtonWnd* pOkButton = (CButtonWnd*)pOkDialog->GetChildItem("OK_OKButton");
+				CButtonWnd* pOkButton = (CButtonWnd*)pOkDialog->GetChildItem(pXmlMgr, "OK_OKButton");
 
-				if (strstr(str.c_str(), "The world server is currently at maximum capacity. You have been added to the login queue for this server"))
+				if (strstr(str.c_str(), "The world server is currently at maximum capacity. You are still in the login queue for this server")
+					|| strstr(str.c_str(), "The world server is currently at maximum capacity. You have been added to the login queue for this server"))
 				{
 					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK, 0);
+						pOkButton->WndNotification(pOkButton, XWM_LCLICK);
 
+					// 3 mins 5 seconds... no need to click login again and again when this message has been shown...
 					ullerrorwait = MQGetTickCount64() + 185000;
+					bServerWait = false;
+					return;
 				}
-				else if (strstr(str.c_str(), "The world server is currently at maximum capacity. You are still in the login queue for this server"))
+
+				std::vector<const char*> ErrorMessages = {
+					"The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later.",
+					"That server is currently unavailable",
+					"An unknown error occurred while trying to join the server.",
+					"The connection has been terminated by the server.  Most likely you have been inactive",
+					"A timeout occurred"
+				};
+
+				for (const char* msg : ErrorMessages)
 				{
-					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK, 0);
-					ullerrorwait = MQGetTickCount64() + 185000;//3 mins 5 seconds... no need to click login again and again when this message has been shown...
-				}
-				else if (strstr(str.c_str(), "The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later."))
-				{
-					if (pOkButton)
-						pWnd->WndNotification(pOkButton, XWM_LCLICK, 0);
-				}
-				else if (strstr(str.c_str(), "That server is currently unavailable"))
-				{
-					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK, 0);
-				}
-				else if (strstr(str.c_str(), "An unknown error occurred while trying to join the server."))
-				{
-					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK, 0);
-				}
-				else if (strstr(str.c_str(), "The connection has been terminated by the server.  Most likely you have been inactive"))
-				{
-					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK, 0);
-				}
-				else if (strstr(str.c_str(), "A timeout occurred"))
-				{
-					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK, 0);
+					if (strstr(str.c_str(), msg))
+					{
+						if (pOkButton)
+							pOkButton->WndNotification(pOkButton, XWM_LCLICK);
+					}
 				}
 			}
+
 			bServerWait = false;
 			return;
 		}
-		else if (WindowActive("yesnodialog"))
+
+		if (WindowActive("yesnodialog"))
 		{
 			CXWnd* pDialog = WindowMap["yesnodialog"];
 
-			if (pWnd = pDialog->GetChildItem("YESNO_Display"))
+			if (CXWnd* pWnd = pDialog->GetChildItem(pXmlMgr, "YESNO_Display"))
 			{
 				CXStr str;
 
-				if (pWnd->GetType() == UI_STMLBox)
+				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
 				{
 					CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
 					str = pStmlWnd->STMLText;
@@ -2121,23 +2058,22 @@ void HandleWindows()
 				// kick active character?
 				if (strstr(str.c_str(), "You already have a character logged into a world server from this account."))
 				{
-					CButtonWnd* pButton = nullptr;
-
-					if (bKickActiveChar)
-						pButton = (CButtonWnd*)pDialog->GetChildItem("YESNO_YesButton");
-					else
-						pButton = (CButtonWnd*)pDialog->GetChildItem("YESNO_NoButton");
+					CButtonWnd* pButton = (CButtonWnd*)pDialog->GetChildItem(pXmlMgr,
+						bKickActiveChar ? "YESNO_YesButton" : "YESNO_NoButton");
 
 					if (pButton)
-						pButton->WndNotification(pButton, XWM_LCLICK, 0);
+					{
+						pButton->WndNotification(pButton, XWM_LCLICK);
+					}
 
 					bLogin = false;
 				}
 				else if (strstr(str.c_str(), "You have a character logged into a world server as an OFFLINE TRADER from this account."))
 				{
-					CButtonWnd* pButton = (CButtonWnd*)pDialog->GetChildItem("YESNO_YesButton");
-					if (pButton)
-						pButton->WndNotification(pButton, XWM_LCLICK, 0);
+					if (CButtonWnd* pButton = (CButtonWnd*)pDialog->GetChildItem(pXmlMgr, "YESNO_YesButton"))
+					{
+						pButton->WndNotification(pButton, XWM_LCLICK);
+					}
 
 					bLogin = false;
 				}
@@ -2147,7 +2083,8 @@ void HandleWindows()
 			bServerWait = false;
 			return;
 		}
-		else if (!szServerName[0])
+
+		if (!szServerName[0])
 		{
 			AutoLoginDebug("HandleWindows(): szServerName NULL at serverselect.  Ending Login");
 
@@ -2155,76 +2092,75 @@ void HandleWindows()
 			bEnd = true;
 			return;
 		}
-		else
-{
-			if (bServerWait)
-				return;
 
-			// just messing with finding short servername so we don't have to have it hardcoded... -eqmule
-			// not working at all right now, maybe another day.
-			// LoginClient*lc = (LoginClient*)pLoginClient;//wrong one... this address is at 1015E5B0 in eqmain.dll 03/12 2019 patch...
-			// for this to work we would need a patternfind for it.
-			// PEQLOGIN pldd = (PEQLOGIN)pinstEqLogin;//this is correct though...
+		if (bServerWait)
+			return;
 
-			if (dwServerID = GetServerID(szServerName))
+		// just messing with finding short servername so we don't have to have it hardcoded... -eqmule
+		// not working at all right now, maybe another day.
+		// LoginClient*lc = (LoginClient*)pLoginClient;//wrong one... this address is at 1015E5B0 in eqmain.dll 03/12 2019 patch...
+		// for this to work we would need a patternfind for it.
+		// PEQLOGIN pldd = (PEQLOGIN)pinstEqLogin;//this is correct though...
+
+		if (dwServerID = GetServerID(szServerName))
+		{
+			if (CheckServerUp(dwServerID))
 			{
-				if (CheckServerUp(dwServerID))
+				if (bWeAreDown)
 				{
-					if (bWeAreDown)
+					bWeAreDown = false;
+
+					if (bNotifyOnServerUP == 2)
 					{
-						bWeAreDown = false;
-
-						if (bNotifyOnServerUP == 2)
+						if (HMODULE hGmail = GetModuleHandle("MQ2Gmail.dll"))
 						{
-							if (HMODULE hGmail = GetModuleHandle("MQ2Gmail.dll"))
+							PMQCOMMAND pCommand = pCommands;
+							while (pCommand)
 							{
-								PMQCOMMAND pCommand = pCommands;
-								while (pCommand)
+								int Pos = _strnicmp("/gmail", pCommand->Command, 63);
+								if (Pos == 0)
 								{
-									int Pos = _strnicmp("/gmail", pCommand->Command, 63);
-									if (Pos == 0)
-									{
-										// found it...
-										pCommand->Function(NULL, "\"Server is UP\" \"Time to login!\"");
-										break;
-									}
-									pCommand = pCommand->pNext;
+									// found it...
+									pCommand->Function(NULL, "\"Server is UP\" \"Time to login!\"");
+									break;
 								}
+								pCommand = pCommand->pNext;
 							}
+						}
 
-							bNotifyOnServerUP = 0;
-						}
-						else if (bNotifyOnServerUP == 1)
-						{
-							bNotifyOnServerUP = 0;
-						}
+						bNotifyOnServerUP = 0;
 					}
+					else if (bNotifyOnServerUP == 1)
+					{
+						bNotifyOnServerUP = 0;
+					}
+				}
 
-					pLoginClient->JoinServer(dwServerID);
-					bSwitchServer = false;
-					bServerWait = true;
-				}
-				else
-				{
-					ullerrorwait = MQGetTickCount64() + 2000;
-				}
+				pLoginClient->JoinServer(dwServerID);
+				bSwitchServer = false;
+				bServerWait = true;
 			}
 			else
 			{
-				AutoLoginDebug("HandleWindows(): GetServerID(%s) returned 0 at serverselect", szServerName);
+				ullerrorwait = MQGetTickCount64() + 2000;
 			}
-			return;
 		}
+		else
+		{
+			AutoLoginDebug("HandleWindows(): GetServerID(%s) returned 0 at serverselect", szServerName);
+		}
+		return;
 	}
-	else if (WindowActive("news"))
+
+	if (WindowActive("news"))
 	{
 		CXWnd* pNewsWnd = WindowMap["news"];
 
-		if (pWnd = pNewsWnd->GetChildItem("NEWS_WndLabel"))
+		if (CXWnd* pWnd = pNewsWnd->GetChildItem(pXmlMgr, "NEWS_WndLabel"))
 		{
 			CXStr str;
 
-			if (pWnd->GetType() == UI_STMLBox)
+			if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
 			{
 				CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
 				str = pStmlWnd->STMLText;
@@ -2237,9 +2173,9 @@ void HandleWindows()
 			// click OK button if news window is open
 			if (!strcmp(str.c_str(), "NEWS"))
 			{
-				if (pWnd = pNewsWnd->GetChildItem("NEWS_OKButton"))
+				if (CXWnd* pButton = pNewsWnd->GetChildItem(pXmlMgr, "NEWS_OKButton"))
 				{
-					pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					pButton->WndNotification(pButton, XWM_LCLICK);
 				}
 			}
 		}

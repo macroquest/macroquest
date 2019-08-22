@@ -314,7 +314,7 @@ public:
 	EQLIB_OBJECT virtual int OnClickStick(CClickStickInfo* info, uint32_t flags, bool unk);
 	EQLIB_OBJECT virtual HCURSOR GetClickStickCursor(CClickStickInfo* info) const;
 	EQLIB_OBJECT virtual bool QueryClickStickDropOK(CClickStickInfo* info) const;
-	EQLIB_OBJECT virtual int WndNotification(CXWnd* sender, uint32_t message, void* data);
+	EQLIB_OBJECT virtual int WndNotification(CXWnd* sender, uint32_t message, void* data = nullptr);
 	EQLIB_OBJECT virtual void OnWndNotification();
 	EQLIB_OBJECT virtual void Activate() { Show(true); }
 	EQLIB_OBJECT virtual void Deactivate() { Show(false); }
@@ -435,8 +435,9 @@ public:
 
 	EQLIB_OBJECT UIType GetType() const;
 	EQLIB_OBJECT CXMLData* GetXMLData() const;
-	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&); // we implemented our own version ...
-	EQLIB_OBJECT CXWnd* GetChildItem2(const CXStr&); // we implemented our own version ...
+	EQLIB_OBJECT CXMLData* GetXMLData(CXMLDataManager* dataMgr) const;
+	EQLIB_OBJECT CXWnd* GetChildItem(const CXStr&);
+	EQLIB_OBJECT CXWnd* GetChildItem(CXMLDataManager* dataMgr, const CXStr&);
 
 	EQLIB_OBJECT bool IsVisible() const { return dShow; }
 	EQLIB_OBJECT void SetVisible(bool bValue) { dShow = bValue; }

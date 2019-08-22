@@ -79,7 +79,7 @@ FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect
 //============================================================================
 
 #ifdef CXMLDataManager__GetXMLData_x
-FUNCTION_AT_ADDRESS(CXMLData* CXMLDataManager::GetXMLData(int, int), CXMLDataManager__GetXMLData);
+FUNCTION_AT_ADDRESS(CXMLData* CXMLDataManager::GetXMLData(int, int) const, CXMLDataManager__GetXMLData);
 #endif
 #ifdef CXMLDataManager__GetXMLData1_x
 FUNCTION_AT_ADDRESS(CXMLData* CXMLDataManager::GetXMLData(CXStr, CXStr), CXMLDataManager__GetXMLData1);

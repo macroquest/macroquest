@@ -5179,8 +5179,15 @@ public:
 	EQLIB_OBJECT CXMLDataManager();
 	EQLIB_OBJECT bool IsDerivedFrom(int, int);
 	EQLIB_OBJECT bool ReadFromXMLSOM(CXMLSOMDocument&);
-	EQLIB_OBJECT CXMLData* GetXMLData(CXStr, CXStr);
-	EQLIB_OBJECT CXMLData* GetXMLData(int, int);
+	EQLIB_OBJECT CXMLData* GetXMLData(CXStr className, CXStr itemName);
+	EQLIB_OBJECT CXMLData* GetXMLData(int classIndex, int itemIndex) const;
+	EQLIB_OBJECT CXMLData* GetXMLData(int xmlIndex) const
+	{
+		return GetXMLData(xmlIndex >> 16, xmlIndex & 0xffff);
+	}
+
+	EQLIB_OBJECT UIType GetWindowType(const CXWnd* wnd) const;
+
 	EQLIB_OBJECT int GetClassIdx(CXStr);
 	EQLIB_OBJECT int GetItemIdx(int, CXStr);
 	EQLIB_OBJECT int GetNumClass();

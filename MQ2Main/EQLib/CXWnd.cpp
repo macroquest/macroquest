@@ -147,31 +147,45 @@ EQLIB_VAR CSidlManager** ppSidlMgr;
 
 UIType CXWnd::GetType() const
 {
-	if (CXMLData* pXmlData = GetXMLData())
-		return pXmlData->Type;
+	CXMLDataManager* mgr = pSidlMgr->GetParamManager();
+	return mgr->GetWindowType(this);
+}
+
+UIType CXMLDataManager::GetWindowType(const CXWnd* wnd) const
+{
+	if (int xmlIndex = wnd->GetXMLIndex())
+	{
+		if (CXMLData* pXmlData = GetXMLData(xmlIndex))
+			return pXmlData->Type;
+	}
 
 	return UI_Unknown;
 }
 
-CXMLData* CXWnd::GetXMLData() const
+CXMLData* CXWnd::GetXMLData(CXMLDataManager* dataMgr) const
 {
 	if (int xmlIndex = GetXMLIndex())
 	{
-		CXMLDataManager* mgr = pSidlMgr->GetParamManager();
-		return mgr->GetXMLData(xmlIndex >> 16, xmlIndex & 0xffff);
+		return dataMgr->GetXMLData(xmlIndex);
 	}
 
 	return nullptr;
 }
 
-static CXWnd* RecurseAndFindName(CXWnd* pWnd, const CXStr& Name)
+CXMLData* CXWnd::GetXMLData() const
+{
+	CXMLDataManager* mgr = pSidlMgr->GetParamManager();
+	return GetXMLData(mgr);
+}
+
+static CXWnd* RecurseAndFindName(CXMLDataManager* dataMgr, CXWnd* pWnd, const CXStr& Name)
 {
 	if (!pWnd)
 	{
 		return nullptr;
 	}
 
-	if (CXMLData* pXMLData = pWnd->GetXMLData())
+	if (CXMLData* pXMLData = pWnd->GetXMLData(dataMgr))
 	{
 		if (pXMLData->Name == Name)
 		{
@@ -186,7 +200,7 @@ static CXWnd* RecurseAndFindName(CXWnd* pWnd, const CXStr& Name)
 
 	if (CXWnd* pChildWnd = pWnd->GetFirstNode())
 	{
-		if (CXWnd* tmp = RecurseAndFindName(pChildWnd, Name))
+		if (CXWnd* tmp = RecurseAndFindName(dataMgr, pChildWnd, Name))
 		{
 			return tmp;
 		}
@@ -194,7 +208,7 @@ static CXWnd* RecurseAndFindName(CXWnd* pWnd, const CXStr& Name)
 
 	if (CXWnd* pSiblingWnd = pWnd->GetNext())
 	{
-		return RecurseAndFindName(pSiblingWnd, Name);
+		return RecurseAndFindName(dataMgr, pSiblingWnd, Name);
 	}
 
 	return nullptr;
@@ -202,8 +216,15 @@ static CXWnd* RecurseAndFindName(CXWnd* pWnd, const CXStr& Name)
 
 CXWnd* CXWnd::GetChildItem(const CXStr& Name)
 {
-	return RecurseAndFindName(this, Name);
+	CXMLDataManager* mgr = pSidlMgr->GetParamManager();
+	return GetChildItem(mgr, Name);
 }
+
+CXWnd* CXWnd::GetChildItem(CXMLDataManager* dataMgr, const CXStr& Name)
+{
+	return RecurseAndFindName(dataMgr, this, Name);
+}
+
 
 #ifdef CXWnd__IsType_x
 FUNCTION_AT_ADDRESS(bool CXWnd::IsType(enum EWndRuntimeType) const, CXWnd__IsType);
@@ -261,9 +282,6 @@ FUNCTION_AT_ADDRESS(CXRect CXWnd::GetScreenRect() const, CXWnd__GetScreenRect);
 #endif
 #ifdef CXWnd__Resize_x
 FUNCTION_AT_ADDRESS(int CXWnd::Resize(int, int, bool, bool, bool), CXWnd__Resize);
-#endif
-#ifdef CXWnd__GetChildItem_x
-FUNCTION_AT_ADDRESS(CXWnd* CXWnd::GetChildItem2(const CXStr&), CXWnd__GetChildItem);
 #endif
 #ifdef CXWnd__SetParent_x
 FUNCTION_AT_ADDRESS(CXWnd* CXWnd::SetParent(CXWnd*), CXWnd__SetParent);
