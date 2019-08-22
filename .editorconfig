@@ -5,6 +5,6 @@ root = true
 indent_style = tab
 indent_size = 4
 
-[*.py]
+[*.{py,cs}]
 indent_style = space
 indent_size = 4
