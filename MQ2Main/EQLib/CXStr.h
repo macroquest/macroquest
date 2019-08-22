@@ -496,6 +496,8 @@ public:
 	CXStr& assign(size_type count, char ch)
 	{
 		FreeRep(m_data);
+		m_data = nullptr;
+
 		Assure(count + 1, StringEncodingUtf8);
 
 		m_data->length = count;
@@ -536,6 +538,8 @@ public:
 	CXStr& assign(const char* s, size_type count)
 	{
 		FreeRep(m_data);
+		m_data = nullptr;
+
 		Assure(count + 1, StringEncodingUtf8);
 
 		m_data->length = count;
