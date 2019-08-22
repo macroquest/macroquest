@@ -48,6 +48,7 @@ namespace comment_update
                     var before = lines[location.Line - 1];
                     var after = Regex.Replace(before, @"^(?<whitespace>\s*)(?<comment>/\*.*?\*/)? ?(?<rest>.*)",
                         $"${{whitespace}}/*0x{location.Offset}*/ ${{rest}}");
+                    after = after.TrimEnd(null);
                     lines[location.Line - 1] = after;
                 }
 
