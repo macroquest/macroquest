@@ -244,10 +244,6 @@ public:
 				if (pDisableConnectionTemplate)
 				{
 					CXRect OldRect = pDisableConnectionTemplate->rect;
-					/*pDisableConnectionTemplate->Rect.left = 21;
-					pDisableConnectionTemplate->Rect.top = 2;
-					pDisableConnectionTemplate->Rect.right = 32;
-					pDisableConnectionTemplate->Rect.bottom = 13;*/
 					CXStr OldName1 = pDisableConnectionTemplate->strName;
 					CXStr OldScreenName1 = pDisableConnectionTemplate->strScreenId;
 					CXStr OldController1 = pDisableConnectionTemplate->strController;
@@ -266,7 +262,7 @@ public:
 						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate))
 						{
 							pCheck->SetEnabled(true);
-							pCheck->SetCheck(false, 0);
+							pCheck->SetCheck(false);
 							pCheck->SetData(list->GetItemData(i));
 							pCheck->SetVisible(true);
 							pCheck->SetActive(true);
@@ -278,6 +274,7 @@ public:
 
 							// todo: check this
 							CXStr Str = list->GetItemText(i, 1);
+							strcpy_s(szTemp2, Str.c_str());
 							sprintf_s(szTemp3, "Check to mark %s for Action. (%d)", szTemp2, i);
 							pCheck->SetTooltip(szTemp3);
 
