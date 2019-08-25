@@ -1217,9 +1217,7 @@ public:
 		CountersCurse = 268,
 		CountersCorruption = 269,
 		Bandolier = 270,
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		LCK = 271,
-#endif
 		Feared = 272,
 		Silenced = 273,
 		Invulnerable = 274,
@@ -1497,9 +1495,7 @@ public:
 		TypeMember(CountersCurse);
 		TypeMember(CountersCorruption);
 		TypeMember(Bandolier);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		TypeMember(LCK);
-#endif
 		TypeMember(Feared);
 		TypeMember(Silenced);
 		TypeMember(Invulnerable);
@@ -2869,11 +2865,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
-#else
-		if (pPointMerchantWnd && pPointMerchantWnd->IsVisible())
-#endif
 		{
 			strcpy_s(Destination,MAX_STRING, "TRUE");
 		}
@@ -5511,7 +5503,7 @@ public:
 		return false;
 	}
 };
-#if !defined(ROF2EMU) && !defined(UFEMU)
+
 class MQ2ItemFilterDataType : public MQ2Type
 {
 public:
@@ -5691,7 +5683,7 @@ public:
 		return false;
 	}
 };
-#endif
+
 class MQ2AlertType : public MQ2Type
 {
 public:
@@ -6143,7 +6135,7 @@ public:
 		return false;
 	}
 };
-#if !defined(UFEMU)
+
 class MQ2BandolierItemType : public MQ2Type
 {
 public:
@@ -6233,4 +6225,3 @@ public:
 		return false;
 	}
 };
-#endif

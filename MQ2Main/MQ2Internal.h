@@ -78,11 +78,7 @@ namespace MQ2Internal {
         CHAR szRace[MAX_STRING];
         CHAR szClass[MAX_STRING];
         CHAR szLight[MAX_STRING];
-		#if !defined(ROF2EMU) && !defined(UFEMU)
-		__int64 GuildID;
-		#else
-		DWORD GuildID;
-		#endif
+		int64_t GuildID;
         BOOL bSpawnID;
         BOOL bNotNearAlert;
         BOOL bNearAlert;

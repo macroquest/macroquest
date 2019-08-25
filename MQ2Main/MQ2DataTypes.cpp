@@ -1456,17 +1456,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 		}
 		return false;
-#if defined(UFEMU) || defined(ROF2EMU)
-	case GuildStatus:
-		Dest.Type = pStringType;
-		if (pSpawn->GuildID != -1 && pSpawn->GuildID != 0)
-		{
-			strcpy_s(DataTypeTemp, szGuildStatus[pSpawn->GuildStatus]);
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
-#endif
+
 	case Type:
 		DataTypeTemp[0] = '\0';
 		Dest.Type = pStringType;
@@ -2214,7 +2204,6 @@ bool MQ2SpawnType::GETMEMBER()
 	case SeeInvis:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (ISNUMBER()) {
 			int index = GETNUMBER();
 			if (index < 0)
@@ -2224,7 +2213,6 @@ bool MQ2SpawnType::GETMEMBER()
 			Dest.DWord = pSpawn->SeeInvis[index];
 			return true;
 		}
-#endif
 		return false;
 	case SpawnStatus:
 		Dest.DWord = 0;
@@ -3707,7 +3695,7 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			if (ISNUMBER())
 			{
-				// number 
+				// number
 				int nCombatAbility = GETNUMBER() - 1;
 				if (nCombatAbility < 0)
 					return false;
@@ -3716,17 +3704,9 @@ bool MQ2CharacterType::GETMEMBER()
 						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							DWORD timeNow = (DWORD)time(NULL);
-							#if !defined(ROF2EMU) && !defined(UFEMU)
 							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
-							#else
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
-							#endif
 							{
-								#if !defined(ROF2EMU) && !defined(UFEMU)
 								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
-								#else
-								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
-								#endif
 								Dest.Int /= 6;
 							}
 							return true;
@@ -3745,17 +3725,9 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
-								#if !defined(ROF2EMU) && !defined(UFEMU)
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
-								#else
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
-								#endif
 								{
-									#if !defined(ROF2EMU) && !defined(UFEMU)
 									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
-									#else
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
-									#endif
 									Dest.Int /= 6;
 								}
 								return true;
@@ -3781,11 +3753,7 @@ bool MQ2CharacterType::GETMEMBER()
 						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							DWORD timeNow = (DWORD)time(NULL);
-							#if !defined(ROF2EMU) && !defined(UFEMU)
 							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
-							#else
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
-							#endif
 							{
 								Dest.DWord = 1;
 								return true;
@@ -3805,11 +3773,7 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
-								#if !defined(ROF2EMU) && !defined(UFEMU)
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
-								#else
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
-								#endif
 								{
 									Dest.DWord = 1;
 									return true;
@@ -4511,12 +4475,10 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->CHA;
 		Dest.Type = pIntType;
 		return true;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	case LCK:
 		Dest.DWord = pChar->LCK;
 		Dest.Type = pIntType;
 		return true;
-#endif
 	case svMagic:
 		Dest.DWord = pChar->SaveMagic;
 		Dest.Type = pIntType;
@@ -5307,7 +5269,6 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.Float = pChar2->BoundLocations[0].ZoneBoundZ;
 		}
 		return true;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	case PctMercAAExp:
 		Dest.Float = (float)((pChar->MercAAExp + 5) / 10);//yes this is how it looks like the client is doing it in the disasm...
 		Dest.Type = pFloatType;
@@ -5316,7 +5277,6 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Int64 = pChar->MercAAExp;
 		Dest.Type = pInt64Type;
 		return true;
-#endif
 	case Krono:
 		Dest.DWord = pChar->Krono;
 		Dest.Type = pIntType;
@@ -5930,11 +5890,7 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	}
 	case UseAdvancedLooting:
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		Dest.DWord = pChar->UseAdvancedLooting;
-#else
-		Dest.DWord = 0;
-#endif
 		Dest.Type = pBoolType;
 		return true;
 	case SpellInCooldown:
@@ -5983,7 +5939,6 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		return false;
-	#if !defined(ROF2EMU) && !defined(UFEMU)
 	case AutoSkill:
 		Dest.Type = pSkillType;
 		if (ISNUMBER()) {
@@ -6001,7 +5956,6 @@ bool MQ2CharacterType::GETMEMBER()
 			return false;
 		}
 		return false;
-	#endif
 	case BaseSTR:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -6080,7 +6034,6 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->CursorKrono;
 		Dest.Type = pIntType;
 		return true;
-#if !defined(UFEMU) && !defined(ROF2EMU)
 	case MercAAPoints:
 		Dest.DWord = pChar->MercAAPoints;
 		Dest.Type = pIntType;
@@ -6089,15 +6042,12 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->MercAAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
-#endif
-#if !defined(UFEMU)
 	case Bandolier:
 		Dest.DWord = 0;
 		Dest.Type = pBandolierType;
 		if (CHARINFO2* pChar2 = GetCharInfo2())
 		{
 			if (ISNUMBER()) {
-			
 				int index = GETNUMBER();
 				index--;
 				if (index < 0)
@@ -6119,7 +6069,6 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
-#endif
 	case Feared:
 		Dest.Type = pBuffType;
 		if (CHARINFO2* pChar2 = GetCharInfo2()) {
@@ -6834,12 +6783,10 @@ bool MQ2SpellType::GETMEMBER()
 			Dest.DWord = GetSpellAttrib(pSpell, nIndex);
 		}
 		return true;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	case CalcIndex:
 		Dest.DWord = pSpell->CalcIndex;
 		Dest.Type = pIntType;
 		return true;
-#endif
 	case NumEffects:
 		Dest.DWord = GetSpellNumEffects(pSpell);
 		Dest.Type = pIntType;
@@ -7068,11 +7015,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case SubSpellGroup:
-		#if !defined(UFEMU)
 		Dest.DWord = pSpell->SpellSubGroup;
-		#else
-		Dest.DWord = 0;
-		#endif
 		Dest.Type = pIntType;
 		return true;
 	case Beneficial:
@@ -7105,7 +7048,6 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = pSpell->DurationCap;
 		Dest.Type = pIntType;
 		return true;
-	#if !defined(ROF2EMU) && !defined(UFEMU)
 	case StacksWithDiscs:
 		Dest.DWord = pSpell->bStacksWithDiscs;
 		Dest.Type = pBoolType;
@@ -7122,12 +7064,8 @@ bool MQ2SpellType::GETMEMBER()
 							if (pSpellAffect->Attrib == SPA_CHANGE_FORM)
 							{
 								int islegal = pzc->LegalPlayerRace(pSpellAffect->Base);
-								#if defined(ROF2EMU) || defined(UFEMU)
-								if (!islegal && pSpellAffect->Base != EQR_SKELETON && pSpellAffect->Base != EQR_SKELETON_NEW) {
-								#else
 								if (!islegal && pSpellAffect->Base != EQR_SKELETON && pSpellAffect->Base != EQR_SKELETON_NEW &&
 									pSpellAffect->Base != EQR_OEQ_SKELETON && pSpellAffect->Base != EQR_SOL_SKELETON) {
-								#endif
 									//can't change into this illusion cause you are on a mount...
 									Dest.DWord = false;
 									break;
@@ -7139,7 +7077,6 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		return true;
-#endif
 	case HasSPA:
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
@@ -7159,7 +7096,6 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		Dest.Type = pSpellType;
 		SPELL* pmyspell = pSpell;
-		#if !defined(UFEMU)
 		int spafound = 0;
 		if(IsSPAEffect(pSpell,SPA_TRIGGER_BEST_SPELL_GROUP))
 		{
@@ -7196,9 +7132,6 @@ bool MQ2SpellType::GETMEMBER()
 				}
 			}
 		}
-		#else
-		return false;
-		#endif
 		return false;
 	}
 	}
@@ -7296,12 +7229,10 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = ((ItemBase *)pItem)->IsLore(false);
 		Dest.Type = pBoolType;
 		return true;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	case LoreEquipped:
 		Dest.DWord = ((ItemBase *)pItem)->IsLoreEquipped(false);
 		Dest.Type = pBoolType;
 		return true;
-#endif
 	case NoDrop:
 	case NoTrade:
 		Dest.DWord = !((EQ_Item*)pItem)->CanDrop(0, 1);
@@ -7379,14 +7310,12 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
-#if !defined(UFEMU)//todo: check manually for uf
 	case DMGBonusType://we go to keep this for backward compatibility
 					  //but really it should be called case ElementalFlag:
 		strcpy_s(DataTypeTemp, szDmgBonusType[GetItemFromContents(pItem)->ElementalFlag]);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
-#endif
 	case Container:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -7441,7 +7370,6 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Focus2;
 		Dest.Type = pItemSpellType;
 		return true;
-	#if !defined(ROF2EMU) && !defined(UFEMU)
 	case Mount:
 		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Mount;
 		Dest.Type = pItemSpellType;
@@ -7454,7 +7382,6 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Familiar;
 		Dest.Type = pItemSpellType;
 		return true;
-	#endif
 	case Item:
 	{
 		Dest.Type = pItemType;
@@ -8212,12 +8139,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->DamShield;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8344,12 +8267,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->Avoidance;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8358,12 +8277,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->SpellShield;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8372,12 +8287,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->StrikeThrough;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8386,12 +8297,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->StunResist;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8400,12 +8307,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->Shielding;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8414,12 +8317,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->Accuracy;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8428,12 +8327,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->CombatEffects;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8442,12 +8337,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->DoTShielding;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8501,50 +8392,6 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = GetItemFromContents(pItem)->HeroicCHA;
 		Dest.Type = pIntType;
 		return true;
-#if defined(ROF2EMU) || defined(UFEMU)
-	case HeroicSvMagic:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSvMagic;
-		Dest.Type = pIntType;
-		return true;
-	case HeroicSvFire:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSvFire;
-		Dest.Type = pIntType;
-		return true;
-	case HeroicSvCold:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSvCold;
-		Dest.Type = pIntType;
-		return true;
-	case HeroicSvDisease:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSvDisease;
-		Dest.Type = pIntType;
-		return true;
-	case HeroicSvPoison:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSvPoison;
-		Dest.Type = pIntType;
-		return true;
-	case HeroicSvCorruption:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSvCorruption;
-		Dest.Type = pIntType;
-		return true;
-#endif
 	case EnduranceRegen:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -8570,12 +8417,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = 0;
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
-				//FIX THIS
-				#if !defined(ROF2EMU) && !defined(UFEMU)
+				// TODO: Fix this
 				Dest.DWord = 0;
-                #else
-				Dest.DWord = pII->DamageShieldMitigation;
-                #endif
 			}
 		}
 		Dest.Type = pIntType;
@@ -8616,12 +8459,10 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = (DWORD)pItem;
 		Dest.Type = pIntType;
 		return true;
-#if !defined(UFEMU)//todo: check manually for uf
 	case Prestige:
 		Dest.DWord = GetItemFromContents(pItem)->Prestige;
 		Dest.Type = pBoolType;
 		return true;
-#endif
 	case FirstFreeSlot:
 	{
 		Dest.DWord = 0;
@@ -8690,7 +8531,6 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return false;
 	}
-#if !defined(UFEMU)//todo: check manually for uf
 	case Heirloom:
 		Dest.DWord = GetItemFromContents(pItem)->Heirloom;
 		Dest.Type = pBoolType;
@@ -8703,7 +8543,6 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = GetItemFromContents(pItem)->NoDestroy;
 		Dest.Type = pBoolType;
 		return true;
-#endif
 	case Quest:
 		Dest.DWord = GetItemFromContents(pItem)->QuestItem;
 		Dest.Type = pBoolType;
@@ -8723,12 +8562,10 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = GetItemFromContents(pItem)->IconNumber;
 		Dest.Type = pIntType;
 		return true;
-	#if !defined(UFEMU)
 	case OrnamentationIcon:
 		Dest.DWord = pItem->OrnamentationIcon;
 		Dest.Type = pIntType;
 		return true;
-	#endif
 	case ContentSize:
 		Dest.DWord = pItem->Contents.ContentSize;
 		Dest.Type = pIntType;
@@ -8741,7 +8578,6 @@ bool MQ2ItemType::GETMEMBER()
 			return true;
 		}
 		return false;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	case Luck:
 		Dest.DWord = pItem->Luck;
 		Dest.Type = pIntType;
@@ -8754,7 +8590,6 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord = GetItemFromContents(pItem)->MaxLuck;
 		Dest.Type = pIntType;
 		return true;
-#endif
 	}
 	return false;
 #undef pItem
@@ -12291,7 +12126,6 @@ bool MQ2SkillType::GETMEMBER()
 			Dest.DWord = pSkill->Activated;
 			Dest.Type = pBoolType;
 			return true;
-		#if !defined(ROF2EMU) && !defined(UFEMU)
 		case Auto://return a bool representing if a skill has /autoskill on or off.
 			Dest.DWord = false;
 			Dest.Type = pBoolType;
@@ -12300,7 +12134,6 @@ bool MQ2SkillType::GETMEMBER()
 				Dest.DWord = true;
 			}
 			return true;
-		#endif
 		}
 	}
 	return false;
@@ -16202,7 +16035,6 @@ bool MQ2AugType::GETMEMBER()
 					return true;
 				}
 				return false;
-#if !defined(UFEMU)//todo: check manually for uf
 			case Solvent:
 				Dest.DWord = 0;
 				Dest.Type = pSolventType;
@@ -16213,7 +16045,6 @@ bool MQ2AugType::GETMEMBER()
 					}
 				}
 				return false;
-#endif
 			default:
 				return false;
 		};
@@ -16355,7 +16186,7 @@ bool MQ2AuraType::GETMEMBER()
 	}
 	return false;
 }
-#if !defined(UFEMU)
+
 bool MQ2BandolierItemType::GETMEMBER()
 {
 	if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
@@ -16540,4 +16371,3 @@ bool MQ2BandolierType::GETMEMBER()
 	}
 	return false;
 }
-#endif

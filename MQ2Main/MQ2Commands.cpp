@@ -4327,11 +4327,7 @@ void MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Or:    /advloot shared #(listid) item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name
 // Or:    /advloot shared set "item from the shared set to all combo box, can be player name any of the other items that exist in that box..."
 // ***************************************************************************
-#if defined(ROF2EMU) || defined(UFEMU)
-void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
-{
-}
-#else
+
 void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
@@ -4696,7 +4692,7 @@ void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
-#endif
+
 DWORD __stdcall openpickzonewnd(PVOID pData)
 {
 	lockit lk(ghLockPickZone, "openpickzonewnd");

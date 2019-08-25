@@ -528,19 +528,11 @@ public:
 	EQLIB_OBJECT void DropHeldMoneyOnGround(int);
 	EQLIB_OBJECT void DropItemOrMoneyOnPlayer(PlayerClient*);
 	EQLIB_OBJECT void dsp_chat(const char*);
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_OBJECT void dsp_chat(const char *line, int color = 273, bool bLogIsOk = true, bool bConvertPercent = true, char*SomeStr = NULL);
-#else
-	EQLIB_OBJECT void dsp_chat(const char *line, int color, bool bLogIsOk, bool bConvertPercent);
-#endif
+	EQLIB_OBJECT void dsp_chat(const char* line, int color = 273, bool bLogIsOk = true, bool bConvertPercent = true, char* SomeStr = NULL);
 	EQLIB_OBJECT void dsp_chat(const char*, int, bool);
 	EQLIB_OBJECT void Emote();
 	EQLIB_OBJECT void EnterZone(HWND);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT int Follow(int);
-#else
-	EQLIB_OBJECT int Follow();
-#endif
 	EQLIB_OBJECT void FreeSwitches();
 	EQLIB_OBJECT void GetSndDriver();
 	EQLIB_OBJECT void GetZoneInfoFromNetwork(char*);
@@ -559,11 +551,7 @@ public:
 	EQLIB_OBJECT void InviteOk(char*);
 	EQLIB_OBJECT void IssueLfgGroupQuery(LfgGroupQuery*);
 	EQLIB_OBJECT void IssueLfgPlayerQuery(LfgPlayerQuery*);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT void IssuePetCommand(ePetCommandType, int TargetID, bool bQuiet, bool bsomethingelse = 1);
-#else
-	EQLIB_OBJECT void IssuePetCommand(ePetCommandType, int TargetID, bool bQuiet);
-#endif
 	EQLIB_OBJECT void Kill(char*, char*);
 	EQLIB_OBJECT void LeaveBankMode(bool);
 	EQLIB_OBJECT void LeaveGuildMaster();
@@ -715,13 +703,8 @@ public:
 	EQLIB_OBJECT bool ValidGuildName(int);
 	EQLIB_OBJECT char* GetGuildMotd();
 	EQLIB_OBJECT char* GetGuildMotdAuthor();
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT char* GetGuildName(int64_t);
 	EQLIB_OBJECT int64_t GetGuildIndex(char*);
-#else
-	EQLIB_OBJECT char* GetGuildName(DWORD);
-	EQLIB_OBJECT int  GetGuildIndex(char*);
-#endif
 	EQLIB_OBJECT GuildMember* FindMemberByName(char*);
 	EQLIB_OBJECT void DeleteAllMembers();
 	EQLIB_OBJECT void DemoteMember(GuildMember*);
@@ -1406,11 +1389,7 @@ public:
 	EQLIB_OBJECT int Silver();
 	EQLIB_OBJECT long ValueSellMerchant(float, long) const;
 	EQLIB_OBJECT bool IsStackable();
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT char* CreateItemTagString(char*, int, bool bFlag = true); // SwiftyMUSE 11-09-2018
-#else
-	EQLIB_OBJECT char* CreateItemTagString(char*, int); // Lax 11-14-2003
-#endif
 	EQLIB_OBJECT bool CanDrop(bool bDisplayText = false, bool bIncludeContainedItems = true, bool bAllowOverrideNoDropCheck = false, bool bCantDropIfContainingRealEstate = true) const;
 	EQLIB_OBJECT int GetImageNum() const;
 	EQLIB_OBJECT static VePointer<CONTENTS> CreateItemClient(PBYTE*, DWORD);
@@ -1468,9 +1447,7 @@ public:
 	EQLIB_OBJECT unsigned char GetSpellLevelNeeded(int) const;       // takes a Class, druid for example is 6
 	EQLIB_OBJECT int SpellAffectBase(int) const;                     // takes a SPA, returns the first matching base it finds for it
 	EQLIB_OBJECT const SPELLCALCINFO* GetSpellAffectBySlot(int Slot) const;
-#if !defined(ROF2EMU)
 	EQLIB_OBJECT const SPELLCALCINFO* GetSpellAffectByIndex(int Index) const;
-#endif
 	EQLIB_OBJECT bool IsNoRemove() const;
 	EQLIB_OBJECT static bool IsDegeneratingLevelMod(int);
 
@@ -2623,9 +2600,7 @@ public:
 	EQLIB_OBJECT virtual ~ClientSpellManager();
 	EQLIB_OBJECT bool LoadSpells(const char* FileName, const char* AssocFilename, const char* StackingFileName);
 	EQLIB_OBJECT bool LoadSpellStackingData(const char* StackingFileName);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT bool DoesMeetRequirement(PlayerZoneClient* pPlayer, int SpellAssocID);
-#endif
 	EQLIB_OBJECT void PrintFailedRequirementString(int StrToken, int StringID);
 	EQLIB_OBJECT int GetSpellStackingGroupID(int SpellID);
 	EQLIB_OBJECT int GetSpellStackingGroupRank(int SpellID);

@@ -1691,11 +1691,7 @@ public:
 	EQLIB_OBJECT void InitMyLanguages();
 	EQLIB_OBJECT void InitSkills(unsigned char, unsigned int);
 	EQLIB_OBJECT void ItemSold(long);
-#if defined(ROF2EMU) || defined(UFEMU)
-	EQLIB_OBJECT void ModifyCurHP(int modification, PlayerZoneClient * resposibleplayer, int skilltype);
-#else
 	EQLIB_OBJECT void ModifyCurHP(int64_t modification, PlayerZoneClient* resposibleplayer, int skilltype);
-#endif
 	EQLIB_OBJECT void NotifyPCAffectChange(int, int);
 	EQLIB_OBJECT void ProcessAllStats();
 	EQLIB_OBJECT void ProcessEnvironment();
@@ -1799,14 +1795,8 @@ public:
 	EQLIB_OBJECT void SetFatigue(int);
 	EQLIB_OBJECT void UnpackMyNetPC(char*, int);
 	EQLIB_OBJECT void AlertInventoryChanged();
-	// EQLIB_OBJECT GetCombatAbilityTimer has 2 parameters confirmed apr 21 2016 eqgame.exe (live)
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT unsigned long GetCombatAbilityTimer(int, int);
 	EQLIB_OBJECT unsigned long GetItemRecastTimer(EQ_Item* item, ItemSpellTypes etype);
-#else
-	EQLIB_OBJECT unsigned long GetCombatAbilityTimer(int);
-	EQLIB_OBJECT unsigned long GetItemRecastTimer(class EQ_Item* item);
-#endif
 	EQLIB_OBJECT bool HasLoreItem(EQ_Item*, int, int, int, int);
 	EQLIB_OBJECT void GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate>& Out, bool bCurrentProfileOnly = false, bool bIncludeAltStorage = true, bool bIncludeArchived = true);
 	EQLIB_OBJECT void GetNonArchivedOwnedRealEstates(ArrayClass<int>& output);
@@ -2169,11 +2159,7 @@ public:
 	EQLIB_OBJECT bool HasSkill(int);
 	EQLIB_OBJECT EQ_Affect* FindAffectSlot(int SpellID, SPAWNINFO* Caster, int* slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
 	EQLIB_OBJECT EQ_Affect* FindAffectSlotMine(int SpellID, SPAWNINFO* Caster, int* slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT bool IsStackBlocked(const EQ_Spell* pSpell, SPAWNINFO* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
-#else
-	EQLIB_OBJECT bool IsStackBlocked(const EQ_Spell* pSpell, SPAWNINFO* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0);
-#endif
 	EQLIB_OBJECT int BardCastBard(const EQ_Spell* pSpell, signed int caster_class) const;
 	EQLIB_OBJECT unsigned char GetMaxEffects() const;
 	EQLIB_OBJECT EQ_Affect& GetEffect(int) const;
@@ -2419,17 +2405,9 @@ public:
 	EQLIB_OBJECT bool HasCombatAbility(int);
 	EQLIB_OBJECT void RemovePetEffect(int);
 	EQLIB_OBJECT bool CanEquipItem(CONTENTS** pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT bool HasAlternateAbility(int aaindex, int*, bool, bool);
-#else
-	EQLIB_OBJECT bool HasAlternateAbility(int aaindex, int*, bool);
-#endif
 	EQLIB_OBJECT int GetCurrentMod(int index);
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	int GetModCap(int index, bool bToggle = false);
-#else
-	EQLIB_OBJECT int GetModCap(int index);
-#endif
+	EQLIB_OBJECT int GetModCap(int index, bool bToggle = false);
 	EQLIB_OBJECT void RemoveBuffEffect(int Index, int SpawnID);
 	EQLIB_OBJECT CONTENTS** GetItemByID(CONTENTS** contOut, int itemid, ItemIndex* itemindex = nullptr);
 	EQLIB_OBJECT CONTENTS** GetItemByItemClass(CONTENTS** contOut, int itemclass, ItemIndex* itemindex = nullptr);

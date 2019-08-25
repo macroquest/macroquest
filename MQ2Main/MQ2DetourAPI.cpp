@@ -367,29 +367,18 @@ bool gbDoingSpellChecks = false;
 class Spellmanager
 {
 public:
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	bool LoadTextSpells_Tramp(char*, char*, EQ_Spell*, PSPELLCALCINFO);
-	bool LoadTextSpells_Detour(char*FileName, char*AssocFileName, EQ_Spell* SpellArray, PSPELLCALCINFO EffectArray)//SpellAffectData*
-#else
-	bool LoadTextSpells_Tramp(char*, char*, EQ_Spell*);
-	bool LoadTextSpells_Detour(char*FileName, char*AssocFileName, EQ_Spell* SpellArray)
-#endif
+	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, PSPELLCALCINFO EffectArray)//SpellAffectData*
 	{
 		gbDoingSpellChecks = true;
-		#if !defined(ROF2EMU) && !defined(UFEMU)
 		bool ret = LoadTextSpells_Tramp(FileName, AssocFileName, SpellArray, EffectArray);
-		#else
-		bool ret = LoadTextSpells_Tramp(FileName, AssocFileName, SpellArray);
-		#endif
 		gbDoingSpellChecks = false;
 		return ret;
 	}
 };
-#if !defined(ROF2EMU) && !defined(UFEMU)
+
 DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ_Spell*, PSPELLCALCINFO));
-#else
-DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ_Spell*));
-#endif
+
 // we need this detour to clean up the stack because
 // emote sends 1024 bytes no matter how many bytes in the string
 // MQ2 variables get left on the stack....
@@ -1243,19 +1232,7 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 #endif
 	return eax;
 }
-#if defined(ROF2EMU) || defined(UFEMU)
-PCHAR __cdecl CrashDetected_Trampoline();
-PCHAR __cdecl CrashDetected_Detour()
-{
-	//this function returns a pointer to whatever it writes to the log.
-	//yeah uhm we don't need to show this dialog or we could show our own to have crashdumps sent to us
-	//but for now im just gonna put a pin in that idea. -eqmule
-	MessageBox(0, "Uhm hi... yes you crashed, nothing u can do.", "EverQuest Crash Report Sending Detected", MB_YESNO);
-	//DebugBreak();
-	return 0;
-}
-DETOUR_TRAMPOLINE_EMPTY(PCHAR CrashDetected_Trampoline());
-#else
+
 typedef struct _Launchinfo
 {
 	/*0x000*/	PCHAR eqgamepath;
@@ -1337,7 +1314,6 @@ EQLIB_API VOID MQ2CrashCallBack(PCHAR DumpFile)
 
 }
 
-#endif
 DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
 #ifndef TESTMEM
 int LoadFrontEnd_Detour()
@@ -1370,11 +1346,11 @@ void InitializeMQ2Detours()
 
 	HookMemChecker(TRUE);
 #endif
-#if !defined(ROF2EMU) && !defined(UFEMU)
+
 	//this is handled by mq2ic from now on
 	//EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
 	//EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
-#endif
+
 #ifndef TESTMEM
 	EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline,"__LoadFrontEnd");
 #endif
@@ -1387,10 +1363,8 @@ void ShutdownMQ2Detours()
 #ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	//RemoveDetour(CrashDetected);
 	//RemoveDetour(wwsCrashReportCheckForUploader);
-#endif
 	DeleteCriticalSection(&gDetourCS);
 #endif
 }

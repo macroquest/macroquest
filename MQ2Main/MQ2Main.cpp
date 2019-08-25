@@ -439,30 +439,6 @@ bool __cdecl MQ2Initialize()
 	// but at least they are at the end again and nEQMappableCommands was 0x201 today,
 	//but yeah I see no use for them... - eqmule
 	// last update Mar 10 2015 nEQMappableCommands was 0x207
-#if defined(ROF2EMU) || defined(UFEMU)
-	szEQMappableCommands[nEQMappableCommands - 22] = "UNKNOWN0x1de";//"Magic"
-	szEQMappableCommands[nEQMappableCommands - 21] = "UNKNOWN0x1df";//"Fire"
-	szEQMappableCommands[nEQMappableCommands - 20] = "CHAT_SEMICOLON";//"Cold"
-	szEQMappableCommands[nEQMappableCommands - 19] = "CHAT_SLASH";//"Disease"
-	szEQMappableCommands[nEQMappableCommands - 18] = "INSTANT_CAMP";//"Poison"
-	szEQMappableCommands[nEQMappableCommands - 17] = "UNKNOWN0x1e3";//"Physical"
-	szEQMappableCommands[nEQMappableCommands - 16] = "UNKNOWN0x1e4";//"Corruption" confirmed 16 jul 2014 -eqmule
-	szEQMappableCommands[nEQMappableCommands - 15] = "UNKNOWN0x1e5";//"Unknown"
-	szEQMappableCommands[nEQMappableCommands - 14] = "UNKNOWN0x1e6";//"Avatar"
-	szEQMappableCommands[nEQMappableCommands - 13] = "UNKNOWN0x1e7";//"RemoveButton"
-	szEQMappableCommands[nEQMappableCommands - 12] = "CHAT_EMPTY";//"ClearAll"
-	szEQMappableCommands[nEQMappableCommands - 11] = "TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
-	szEQMappableCommands[nEQMappableCommands - 10] = "UNKNOWN0x1ea";//"NoPlayersLeft"
-	szEQMappableCommands[nEQMappableCommands - 9] = "UNKNOWN0x1eb";//"CreatedSharedTask"
-	szEQMappableCommands[nEQMappableCommands - 8] = "CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
-	szEQMappableCommands[nEQMappableCommands - 7] = "UNKNOWN0x1ed";//Expired
-	szEQMappableCommands[nEQMappableCommands - 6] = "UNKNOWN0x1ee";//Script
-	szEQMappableCommands[nEQMappableCommands - 5] = "UNKNOWN0x1ef";//LeaderRemoved
-	szEQMappableCommands[nEQMappableCommands - 4] = "UNKNOWN0x1f0";
-	szEQMappableCommands[nEQMappableCommands - 3] = "UNKNOWN0x1f1";
-	szEQMappableCommands[nEQMappableCommands - 2] = "UNKNOWN0x1f2";
-	szEQMappableCommands[nEQMappableCommands - 1] = "UNKNOWN0x1f3";
-#else
 	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x208";//"Magic"
     szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x209";//"Fire"
     szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x20a";//"Cold"
@@ -485,7 +461,6 @@ bool __cdecl MQ2Initialize()
     szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x21b";
     szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x21c";
     szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x21d";
-#endif
 
     for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
     for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}
@@ -494,7 +469,7 @@ bool __cdecl MQ2Initialize()
     for (nColorMacroError=0 ; szColorMacroError[nColorMacroError] ; nColorMacroError++) {}
     for (nColorMQ2DataError=0 ; szColorMQ2DataError[nColorMQ2DataError] ; nColorMQ2DataError++) {}
     for (nColorFatalError=0 ; szColorFatalError[nColorFatalError] ; nColorFatalError++) {}
-	
+
 	InitializeCriticalSection(&gPluginCS);
 	//from now on MQ2IC is not optional.
 #ifdef ISXEQ
@@ -641,11 +616,9 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 	ghInitializeMQ2SpellDb = 0;
 	return 0;
 }
+
 #ifndef ISXEQ
-#if defined(ROF2EMU) || defined(UFEMU)
-//need to include any headers for your emu? add them here
-#include "emu.h"
-#endif
+
 HMODULE GetCurrentModule()
 {
 	HMODULE hModule = NULL;
@@ -722,9 +695,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	PCHAR lpINIPath = (PCHAR)lpParameter;
 	strcpy_s(gszINIPath, lpINIPath);
 	free(lpINIPath);
-#if defined(ROF2EMU) || defined(UFEMU)
-	MQ2StartEmu();//or whatever...
-#endif
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK);
 

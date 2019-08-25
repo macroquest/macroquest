@@ -290,9 +290,7 @@ void Pulse()
 		gItemsReceived = FALSE;
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		InitKeyRings();
-#endif
 		CHAR szServerAndName[MAX_STRING] = { 0 };
 		CHAR szAutoRun[MAX_STRING] = { 0 };
 		PCHAR pAutoRun = szAutoRun;

@@ -127,15 +127,6 @@ extern CRITICAL_SECTION gPluginCS;
 #define FamiliarWindowList "KRW_Familiars_list"
 #define KeyRingTab "KRW_Subwindows"
 
-#if defined(ROF2EMU) || defined(UFEMU)
-#define csnOffset 0x1a4
-#define sncOffset 0x190
-#define cbssOffset 0x18c
-#else
-#define csnOffset 0x1a8
-#define sncOffset 0x194
-#define cbssOffset 0x190
-#endif
 #ifdef ISXEQ_LEGACY
 #define LEGACY_API extern
 #define LEGACY_VAR extern
@@ -280,11 +271,7 @@ EQLIB_API void DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 EQLIB_API void InitializeChatHook();
 EQLIB_API void ShutdownChatHook();
-#if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_API void dsp_chat_no_events(const char *Text, int Color, bool EqLog = true, bool dopercentsubst = true, char *SomeStr = NULL);
-#else
-EQLIB_API void dsp_chat_no_events(const char *Text, int Color, bool EqLog = true, bool dopercentsubst = true);
-#endif
+EQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true, char* SomeStr = NULL);
 
 /* DETOURING API */
 EQLIB_API void InitializeMQ2Detours();

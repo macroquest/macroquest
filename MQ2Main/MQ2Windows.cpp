@@ -1123,7 +1123,6 @@ int ListItemSlots(int argc, char *argv[]);
 
 void AddAutoBankMenu()
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (OurCheckBoxMenuIndex == 0)
 	{
 		if (CContextMenuManager *pMgr = pContextMenuManager)
@@ -1259,7 +1258,6 @@ void AddAutoBankMenu()
 			pFindItemWnd->Update();
 		}
 	}
-#endif
 
 	if (OurDefaultMenuIndex == 0)
 	{
@@ -1362,7 +1360,6 @@ void RemoveAutoBankMenu()
 			}
 
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 			if (pFindItemWnd)
 			{
 				if (CListWnd* list = (CListWnd*)pFindItemWnd->GetChildItem("FIW_ItemList"))
@@ -1380,7 +1377,6 @@ void RemoveAutoBankMenu()
 					}
 				}
 			}
-#endif
 		}
 	}
 }
@@ -1509,10 +1505,8 @@ void ShutdownMQ2Windows()
 	pISInterface->RemoveCommand("EQItemSlots");
 #endif
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	RemoveDetour(CFindItemWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__Update);
-#endif
 	RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);

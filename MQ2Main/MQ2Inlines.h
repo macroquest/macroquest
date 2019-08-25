@@ -267,23 +267,24 @@ static inline int GetBaseSkill(int nSkill) {
 	}
 	return 0;
 }
-static inline int GetModCap(int index, bool bToggle = false) {
-	if (PCHARINFO pChar = GetCharInfo()) {
+
+static inline int GetModCap(int index, bool bToggle = false)
+{
+	if (PCHARINFO pChar = GetCharInfo())
+	{
 #ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+		if (pChar->PcClient_CharacterZoneClient_vfTable)
 #else
-		if (pChar->vtable2) {
+		if (pChar->vtable2)
 #endif
-			#if !defined(ROF2EMU) && !defined(UFEMU)
+		{
 			return ((PcZoneClient*)pCharData1)->GetModCap(index, bToggle);
-			#else
 			return ((PcZoneClient*)pCharData1)->GetModCap(index);
-			#endif
 		}
 	}
 	return 0;
 }
-static inline const int GetCastingTimeModifier(const EQ_Spell  * cSpell) {
+static inline const int GetCastingTimeModifier(const EQ_Spell* cSpell) {
 	if (PCHARINFO pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
@@ -850,11 +851,11 @@ return pGetTickCount64();
 
 static inline LONG GetSpellNumEffects(PSPELL pSpell)
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
-	if (pSpell) {
+	if (pSpell)
+	{
 		return pSpell->NumEffects;
 	}
-#endif
+
 	return 0xc;
 }
 
@@ -981,44 +982,16 @@ static inline std::string trim_copy(std::string s) {
 }
 static inline char* GetSpellString(int ID, int SpellIndex)
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pEQSpellStrings) {
 		if(char*str = pEQSpellStrings->GetString(ID, SpellIndex)) {
 			if (str[0])
 				return str;
 		}
 	}
-#else
-	if (PSPELL pSpell = GetSpellByID(ID)) {
-		switch (SpellIndex)
-		{
-			case 0:
-				if (pSpell->CastByMe[0])
-					return pSpell->CastByMe;
-				break;
-			case 1:
-				if (pSpell->CastByOther[0])
-					return pSpell->CastByOther;
-				break;
-			case 2:
-				if (pSpell->CastOnYou[0])
-					return pSpell->CastOnYou;
-				break;
-			case 3:
-				if (pSpell->CastOnAnother[0])
-					return pSpell->CastOnAnother;
-				break;
-			case 4:
-				if (pSpell->WearOff[0])
-					return pSpell->WearOff;
-				break;
-			default:
-				break;
-		};
-	}
-#endif
-	return NULL;
+
+	return nullptr;
 }
+
 //inlines by ieatacid for pattern finding
 static inline bool DataCompare(const unsigned char *pData, const unsigned char *bMask, const char *szMask)
 {

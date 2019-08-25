@@ -38,39 +38,14 @@ DWORD __stdcall FlashOnTellThread(PVOID pData)
 	}
 	return 0;
 }
-#if defined(ROF2EMU) || defined(UFEMU)
-VOID OutputTextToLog_Trampoline(char*);
-VOID OutputTextToLog_Detour(char*szMsg)
-{
-	try {
-		if (gbTimeStampChat) {
-			if (szMsg && szMsg[0]) {
-				if (char*pDest = strchr(szMsg, ']')) {
-					if (strlen(szMsg) > (size_t)(pDest - szMsg) + 2) {
-						szMsg = pDest + 2;
-					}
-				}
-			}
-		}
-	}
-	catch (...) {
-		//nm...
-	}
-	OutputTextToLog_Trampoline(szMsg);
-}
-#endif
+
 class CChatHook
 {
 public:
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	VOID Trampoline(const char* szMsg, DWORD dwColor, bool, bool, char *SomeStr);
 	VOID Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr)
-#else
-	VOID Trampoline(const char * szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst);
-	VOID Detour(const char * szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)
-#endif
 	{
-		//DebugSpew("CChatHook::Detour(%s)",szMsg); 
+		//DebugSpew("CChatHook::Detour(%s)",szMsg);
 		gbInChat = TRUE;
 		if (dwColor != 269)
 		{
@@ -141,62 +116,12 @@ public:
 								}
 							}
 						}
-#if defined(ROF2EMU) || defined(UFEMU)
-						if (gbTimeStampChat) {
-							CHAR tmpbuf[32] = { 0 };
-							_strtime_s(tmpbuf, 32);
-							int len = strlen(szAnonMsg);
-							char *szTimeStamedMsg = (char *)LocalAlloc(LPTR, len + 64);
-							if (szTimeStamedMsg) {
-								sprintf_s(szTimeStamedMsg, len + 64, "[%s] %s", tmpbuf, szAnonMsg);
-								Trampoline(szTimeStamedMsg, dwColor, EqLog, dopercentsubst);
-								LocalFree(szTimeStamedMsg);
-								LocalFree(szAnonMsg);
-							}
-							else {
-								Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
-								LocalFree(szAnonMsg);
-							}
-						}
-						else {
-#endif
-#if !defined(ROF2EMU) && !defined(UFEMU)
-							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
-#else
-							Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst);
-#endif
-							LocalFree(szAnonMsg);
-#if defined(ROF2EMU) || defined(UFEMU)
-						}
-#endif
+						Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
+						LocalFree(szAnonMsg);
 					}
 				}
 				else {
-#if defined(ROF2EMU) || defined(UFEMU)
-					if (gbTimeStampChat) {
-						CHAR tmpbuf[32] = { 0 };
-						_strtime_s(tmpbuf, 32);
-						int len = strlen(szMsg);
-						char *szTimeStamedMsg = (char *)LocalAlloc(LPTR, len + 64);
-						if (szTimeStamedMsg) {
-							sprintf_s(szTimeStamedMsg, len + 64, "[%s] %s", tmpbuf, szMsg);
-							Trampoline(szTimeStamedMsg, dwColor, EqLog, dopercentsubst);
-							LocalFree(szTimeStamedMsg);
-						}
-						else {
-							Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
-						}
-					}
-					else {
-#endif
-#if !defined(ROF2EMU) && !defined(UFEMU)
-						Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
-#else
-						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
-#endif
-#if defined(ROF2EMU) || defined(UFEMU)
-					}
-#endif
+					Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 				}
 			}
 		}
@@ -217,17 +142,6 @@ public:
 		}
 
 		if (!SkipTrampoline) {
-#if defined(ROF2EMU) || defined(UFEMU)
-			if (gbTimeStampChat && szMsg) {
-				CHAR tmpbuf[32] = { 0 };
-				_strtime_s(tmpbuf, 32);
-				sprintf_s(szMsg, len + 63, "[%s] %s", tmpbuf, from);
-				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
-			}
-			else {
-				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
-			}
-#else
 			if (gAnonymize) {
 				CHAR *szName = new CHAR[64];
 				strcpy_s(szName, 64, from);
@@ -239,7 +153,6 @@ public:
 			{
 				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
 			}
-#endif
 		}
 		if (szMsg)
 			LocalFree(szMsg);
@@ -273,28 +186,14 @@ public:
 		UPCNotificationFlush_Trampoline();
 	}
 };
-#if !defined(ROF2EMU) && !defined(UFEMU)
+
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr));
-#else
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst));
-#endif
-#if defined(ROF2EMU) || defined(UFEMU)
-DETOUR_TRAMPOLINE_EMPTY(VOID OutputTextToLog_Trampoline(char *));
-#endif
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk));
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, char *SomeStr)
-#else
-VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst)
-#endif
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst, SomeStr);
-#else
-	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst);
-#endif
 }
 
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value, size_t ValueLen)
@@ -408,9 +307,6 @@ VOID InitializeChatHook()
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 	DebugSpew("%s", pMQ2Blech->Version);
 #endif
-#if defined(ROF2EMU) || defined(UFEMU)
-	EzDetourwName(CEverQuest__OutputTextToLog, OutputTextToLog_Detour, OutputTextToLog_Trampoline, "OutputTextToLog");
-#endif
 	EzDetourwName(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline, "CEverQuest__dsp_chat");
 	EzDetourwName(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline, "CEverQuest__DoTellWindow");
 	EzDetourwName(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline, "CEverQuest__UPCNotificationFlush");
@@ -429,9 +325,6 @@ VOID ShutdownChatHook()
 	RemoveCommand("/timestamp");
 #endif
 	RemoveDetour(CEverQuest__dsp_chat);
-#if defined(ROF2EMU) || defined(UFEMU)
-	RemoveDetour(CEverQuest__OutputTextToLog);
-#endif
 	RemoveDetour(CEverQuest__DoTellWindow);
 	RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ

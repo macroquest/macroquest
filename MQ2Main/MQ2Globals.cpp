@@ -57,9 +57,7 @@ namespace MQ2Globals
 		gpPCNames = (DWORD*)__PCNames;
 		pTributeActive = (PBYTE)instTributeActive;
 		gpAutoFire = (PBYTE)__Autofire;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		gpAutoSkill = (PAUTOSKILL)__AutoSkillArray;
-#endif
 		gpShiftKeyDown = (PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
 		gpMouseEventTime = (DWORD*)__MouseEventTime;
 		gpbCommandEvent = (DWORD*)__gpbCommandEvent;
@@ -97,17 +95,11 @@ namespace MQ2Globals
 
 		pGuildList = (PGUILDS)__Guilds;
 		pSocialList = (PEQSOCIAL)__Socials;
-#if defined(ROF2EMU) || defined(UFEMU)
-		pgHotkeyPage = (PBYTE)__HotkeyPage;
-#endif
 		pgCurrentSocial = (PINT)__CurrentSocial;
 
 		NewUIINI = (fEQNewUIINI)__NewUIINI;
 		ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
 		GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-		cmdToggleKeyRingItem = (fEQToggleKeyRingItem)__ToggleKeyRingItem;
-#endif
 		ppStringTable = (StringTable**)pinstStringTable;
 		ppCDBStr = (CDBStr**)pinstCDBStr;
 		pEQMisc = (EQMisc*)instEQMisc;
@@ -282,12 +274,6 @@ namespace MQ2Globals
 
 #if defined(TEST)
 	int gBuild = 2;               // TEST
-#elif defined(EQBETA)
-	int gBuild = 3;               // EQBETA
-#elif defined(ROF2EMU)
-	int gBuild = 4;               // ROF2EMU
-#elif defined(UFEMU)
-	int gBuild = 5;               // UFEMU
 #else
 	int gBuild = 1;               // LIVE
 #endif
@@ -1119,10 +1105,6 @@ namespace MQ2Globals
 	EQZoneInfo* pZoneInfo = nullptr;
 	AltAdvManager** ppAltAdvManager = nullptr;
 	connection_t** ppConnection = nullptr;
-#if defined(ROF2EMU) || defined(UFEMU)
-	EQItemList** ppItemList = nullptr;
-	AURAMGR** ppAuraMgr = nullptr;
-#endif
 	PlayerClient** ppTradeTarget = nullptr;
 	PlayerClient** ppActiveBanker = nullptr;
 	PlayerClient** ppActiveGMaster = nullptr;

@@ -1768,14 +1768,14 @@ TLO(dataAlias)
 	}
 	return false;
 }
-#if !defined(ROF2EMU) && !defined(UFEMU)
+
 TLO(dataAdvLoot)
 {
 	Ret.DWord = 0;
 	Ret.Type = pAdvLootType;
 	return true;
 }
-#endif
+
 TLO(dataAlert)
 {
 	if (!ISINDEX()) {
@@ -1798,15 +1798,9 @@ TLO(dataAlert)
 }
 TLO(dataPointMerchant)
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pMerchantWnd)
 	{
 		Ret.Ptr = pMerchantWnd;
-#else
-	if (pPointMerchantWnd)
-	{
-		Ret.Ptr = pPointMerchantWnd;
-#endif
 		Ret.Type = pPointMerchantType;
 		return true;
 	}

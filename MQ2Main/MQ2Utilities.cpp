@@ -1064,7 +1064,6 @@ std::map<int, int>g_TriggeredSpells;
 
 void PopulateTriggeredmap(PSPELL pSpell)
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell->CannotBeScribed == 1)
 		return;
 	LONG slots = GetSpellNumEffects(pSpell);
@@ -1076,7 +1075,6 @@ void PopulateTriggeredmap(PSPELL pSpell)
 			}
 		}
 	}
-#endif
 }
 PSPELL GetSpellParent(int id)
 {
@@ -1196,11 +1194,7 @@ SPELL* GetSpellByName(const char* szName)
 //This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
 PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
 {
-#if defined(ROF2EMU) || defined(UFEMU)
-	return pAltAdvManager->GetAAById(nAbilityId);
-#else
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
-#endif
 }
 
 PSPELL GetSpellByAAName(PCHAR szName)
@@ -2522,7 +2516,6 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2538,15 +2531,11 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 		}
 	}
 	return 0;
-#else
-	return pSpell->Attrib[index];
-#endif
 }
 LONG GetSpellBase(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2562,15 +2551,11 @@ LONG GetSpellBase(PSPELL pSpell, int index)
 		}
 	}
 	return 0;
-#else
-	return pSpell->Base[index];
-#endif
 }
 LONG GetSpellBase2(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2586,15 +2571,11 @@ LONG GetSpellBase2(PSPELL pSpell, int index)
 		}
 	}
 	return 0;
-#else
-	return pSpell->Base2[index];
-#endif
 }
 LONG GetSpellMax(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2610,15 +2591,11 @@ LONG GetSpellMax(PSPELL pSpell, int index)
 		}
 	}
 	return 0;
-#else
-	return pSpell->Max[index];
-#endif
 }
 LONG GetSpellCalc(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSpell) {
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2634,9 +2611,6 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 		}
 	}
 	return 0;
-#else
-	return pSpell->Calc[index];
-#endif
 }
 
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level)
@@ -6011,11 +5985,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->GuildID = GetCharInfo()->GuildID;
 		}
 		else if (!_stricmp(szArg, "guildname")) {
-			#if !defined(ROF2EMU) && !defined(UFEMU)
-			__int64 GuildID = -1;
-			#else
-			DWORD GuildID = -1;
-			#endif
+			int64_t GuildID = -1;
 			GetArg(szArg, szRest, 1);
 			if (szArg[0] != 0)
 				GuildID = GetGuildIDByName(szArg);
@@ -6786,11 +6756,7 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
 
 DWORD GetItemTimer(CONTENTS* pItem)
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem,eActivatableSpell);
-#else
-	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem);
-#endif
 	if (Timer < GetFastTime())
 		return 0;
 	return Timer - GetFastTime();
@@ -7292,18 +7258,6 @@ DWORD GetSpellGemTimer2(int nGem);
 DWORD GetSpellGemTimer(DWORD nGem)
 {
 	return GetSpellGemTimer2(nGem);
-/*	_EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
-#if !defined(UFEMU)//todo: check manually
-	if (g->Wnd.CoolDownBeginTime) {
-		UINT cSpellCompletion = g->Wnd.CoolDownBeginTime + g->Wnd.CoolDownDuration;
-		DWORD now = EQGetTime();
-		DWORD oldtime = ((now < cSpellCompletion) ? cSpellCompletion - now : 0);
-		DWORD newtime = GetSpellGemTimer2(nGem);
-		return newtime;
-	}
-#endif
-	return 0;
-	*/
 }
 bool IsValidSpellIndex(int index)
 {
@@ -7794,7 +7748,6 @@ CONTENTS* FindItemByName(PCHAR pName, BOOL bExact)
 		}
 	}
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	CHARINFO* pChar = GetCharInfo();
 #ifdef NEWCHARINFO
@@ -7873,7 +7826,7 @@ CONTENTS* FindItemByName(PCHAR pName, BOOL bExact)
 			}
 		}
 	}
-#endif
+
 	return 0;
 }
 CONTENTS* FindItemByID(int ItemID)
@@ -7968,7 +7921,6 @@ CONTENTS* FindItemByID(int ItemID)
 		}
 	}
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	CHARINFO* pChar = GetCharInfo();
 	//still not found? fine... check mount keyring
 #ifdef NEWCHARINFO
@@ -8020,7 +7972,7 @@ CONTENTS* FindItemByID(int ItemID)
 			}
 		}
 	}
-#endif
+
 	return 0;
 }
 DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
@@ -8241,7 +8193,6 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 		}
 	}
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
 #ifdef NEWCHARINFO
@@ -8350,7 +8301,7 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 			}
 		}
 	}
-#endif
+
 	return Count;
 }
 DWORD FindItemCountByID(int ItemID)
@@ -8478,7 +8429,6 @@ DWORD FindItemCountByID(int ItemID)
 		}
 	}
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
 #ifdef NEWCHARINFO
@@ -8545,7 +8495,7 @@ DWORD FindItemCountByID(int ItemID)
 			}
 		}
 	}
-#endif
+
 	return Count;
 }
 CONTENTS* FindBankItemByName(char *pName,BOOL bExact)
@@ -11707,9 +11657,5 @@ ITEMINFO* GetItemFromContents(CONTENTS* c)
 {
 	if (!c)
 		return NULL;
-#if !defined(UFEMU)
 	return c->Item1 ? c->Item1 : c->Item2;
-#else
-	return c->Item1;
-#endif
 }
