@@ -1783,7 +1783,7 @@ public:
 				if (pSpawn)
 				{
 					if (GetModuleHandle("mq2dannet"))
-						DoCommandf("/dt %s /makeleader %s", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->Name);
+						DoCommandf("/dex %s /makeleader %s", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->Name);
 					else if (GetModuleHandle("mq2eqbc"))
 						DoCommandf("/bct %s //makeleader %s", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->Name);
 				}
@@ -1797,7 +1797,7 @@ public:
 				{
 					StopMovement(gbFollowme);
 					if (GetModuleHandle("mq2dannet"))
-						DoCommandf("/dt %s /nav id %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
+						DoCommandf("/dex %s /nav id %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 					else if (GetModuleHandle("mq2eqbc"))
 						DoCommandf("/bct %s //nav id %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 				}
@@ -1822,8 +1822,8 @@ public:
 				{
 					if (GetModuleHandle("mq2dannet"))
 					{
-						DoCommandf("/dt %s /itemtarget", pSpawn->Name);
-						DoCommandf("/dt %s /click left item", pSpawn->Name);
+						DoCommandf("/dex %s /itemtarget", pSpawn->Name);
+						DoCommandf("/dex %s /click left item", pSpawn->Name);
 					}
 					else if (GetModuleHandle("mq2eqbc"))
 					{
@@ -1841,8 +1841,8 @@ public:
 				{
 					if (GetModuleHandle("mq2dannet"))
 					{
-						DoCommandf("/dt %s /doortarget", pSpawn->Name);
-						DoCommandf("/dt %s /click left door", pSpawn->Name);
+						DoCommandf("/dex %s /doortarget", pSpawn->Name);
+						DoCommandf("/dex %s /click left door", pSpawn->Name);
 					}
 					else if (GetModuleHandle("mq2eqbc"))
 					{
@@ -1860,7 +1860,7 @@ public:
 				{
 					if (GetModuleHandle("mq2dannet"))
 					{
-						DoCommandf("/dt %s /foreground", pSpawn->Name);
+						DoCommandf("/dex %s /foreground", pSpawn->Name);
 					}
 					else if (GetModuleHandle("mq2eqbc"))
 					{
@@ -1880,7 +1880,7 @@ public:
 						if (FollowMeMap[rightclickindex])
 						{
 							if (GetModuleHandle("mq2dannet"))
-								DoCommandf("/dt %s /afollow off", pSpawn->Name);
+								DoCommandf("/dex %s /afollow off", pSpawn->Name);
 							else if (GetModuleHandle("mq2eqbc"))
 								DoCommandf("/bct %s //afollow off", pSpawn->Name);
 							FollowMeMap[rightclickindex] = false;
@@ -1888,7 +1888,7 @@ public:
 						else
 						{
 							if (GetModuleHandle("mq2dannet"))
-								DoCommandf("/dt %s /afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
+								DoCommandf("/dex %s /afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 							else if (GetModuleHandle("mq2eqbc"))
 								DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 							FollowMeMap[rightclickindex] = true;
@@ -1897,7 +1897,7 @@ public:
 					else
 					{
 						if (GetModuleHandle("mq2dannet"))
-							DoCommandf("/dt %s /afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
+							DoCommandf("/dex %s /afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 						else if (GetModuleHandle("mq2eqbc"))
 							DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 						FollowMeMap[rightclickindex] = true;
@@ -2671,7 +2671,7 @@ void DidTargetChange()
 		// yes it changed
 		LastTargetID = ((SPAWNINFO*)pTarget)->SpawnID;
 		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/dgge //target id %d", LastTargetID);
+			DoCommandf("/dgge /target id %d", LastTargetID);
 		else if (GetModuleHandle("mq2eqbc"))
 			DoCommandf("/bcg //target id %d", LastTargetID);
 		WriteChatf("Letting group know target changed");

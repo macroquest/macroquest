@@ -714,7 +714,7 @@ public:
 // CLabel__CLabel_x
 // CSidlManager__CreateLabel_x has this
 // size 0x1e8 see 755709 in Rof2
-// size is 0x220 see 7A5849 in Oct 13 2017 Test -eqmule
+// size is 0x220 see 7A5849 in Oct 13 2017 Test
 class [[offsetcomments]] CLabel : public CLabelWnd
 {
 public:
@@ -1229,7 +1229,7 @@ public:
 /*0x204*/ int32_t                      TextTotalHeight;
 /*0x208*/ int32_t                      TextTotalWidth;
 /*0x20c*/ int32_t                      Unknown0x224;
-/*0x210*/ ArrayClass2<SLinkInfo>       Links;                        // size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test - eqmule
+/*0x210*/ ArrayClass2<SLinkInfo>       Links;                        // size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test
 /*0x228*/ ArrayClass<STable>           Tables;
 /*0x238*/ bool                         bReparseNow;
 /*0x239*/ bool                         bResized;
@@ -1609,7 +1609,7 @@ public:
 //============================================================================
 
 // CBazaarSearchWnd__CBazaarSearchWnd_x aBazaarsearchwn
-// CBazaarSearchWnd_size: 0x92D0 (see 5431CD) in Jul 12 2019 Live
+// CBazaarSearchWnd_size: 0x92c0 (see 54464D) in Aug 15 2019 Live
 class [[offsetcomments]] CBazaarSearchWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -1780,7 +1780,7 @@ enum BuffWindowType
 
 // CBuffWindow__CBuffWindow aBuffwindow
 // this is used for both long and shortbuffs...
-// CBuffWindow_size: 0x728 (see 542833) in May 17 2019 Test
+// CBuffWindow_size: 0x708 (see 543C79) in Aug 15 2019 Live
 class [[offsetcomments]] CBuffWindow : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -1834,7 +1834,7 @@ class CSpellGemWnd;
 
 // pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// CCastSpellWnd_size: 0x2e0 (see 542BED) in May 17 2019 Test
+// CCastSpellWnd_size: 0x2c0 (see 544037) in Aug 15 2019 Live 
 class [[offsetcomments]] CCastSpellWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
 {
 public:
@@ -1962,7 +1962,7 @@ public:
 #define MAX_CHAT_WINDOWS     32
 #define MAX_HITMODES         8
 
-// Size is 82 see 4E4072 in Mar 05 2019 Test -eqmule
+// Size is 82 see 4E4072 in Mar 05 2019 Test
 enum ChatFilterEnum
 {
 	CHAT_FILTER_SAY,
@@ -2170,7 +2170,7 @@ using PEQCHATMGR [[deprecated]] = CChatWindowManager *;
 const int EQ_CHAT_FONT_OFFSET = 0x11c;
 
 // CChatWindow__CChatWindow_x
-// Size 0x378 see 69265D in 20 Jun 2017 Test exe -eqmule
+// Size 0x378 see 69265D in 20 Jun 2017 Test exe
 class [[offsetcomments]] CChatWindow : public CSidlScreenWnd
 {
 public:
@@ -2624,7 +2624,7 @@ public:
 //============================================================================
 
 // CFactionWnd__CFactionWnd_x aFactionwnd
-// CFactionWnd__size: 0x288 (see 5432A4) in May 17 2019 Test
+// CFactionWnd__size: 0x268 (see 5446F3) in Aug 15 2019 Live
 class [[offsetcomments]] CFactionWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -3382,7 +3382,7 @@ using PEQINVSLOTMGR [[deprecated]] = CInvSlotMgr*;
 //----------------------------------------------------------------------------
 
 // note that Invslot needs to be a short or pickupitem wont work
-// CInvSlotWnd_size: 0x2e0 (see 7F64AC) in May 17 2019 Test
+// CInvSlotWnd_size: 0x2c0 (see 7F8ACC) in Aug 15 2019 Live
 class [[offsetcomments]] CInvSlotWnd : public CButtonWnd
 {
 public:
@@ -3446,7 +3446,7 @@ enum ItemDisplayFlags
 };
 
 // CItemDisplayWindow__CItemDisplayWindow_x aItemdisplaywin
-// CItemDisplayWindow_size: 0x638 (see 756212) in May 17 2019 Test
+// CItemDisplayWindow_size: 0x618 (see 758832) in Aug 15 2019 Live
 class [[offsetcomments]] CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
@@ -3625,7 +3625,7 @@ public:
 //============================================================================
 
 // CLootWnd__CLootWnd aLootwnd
-// CLootWnd_size: 0x3a8 (see 542F56) in May 17 2019 Test
+// CLootWnd_size: 0x388 (see 5443A5) in Aug 15 2019 Live
 class [[offsetcomments]] CLootWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
 {
 public:
@@ -3710,7 +3710,7 @@ using PMAPLINE = MAPLINE *;
 
 // pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
 // CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x668 (see 542694) in May 17 2019 Test
+// CMapViewWnd_size: 0x628 (see 543ADA) in Aug 15 2019 Live
 class [[offsetcomments]] MapViewMap : public CSidlScreenWnd
 {
 public:
@@ -4003,7 +4003,7 @@ enum MerchantPages
 };
 
 // CMerchantWnd__CMerchantWnd_x (aMerchantwnd)
-// CMerchantWnd_size: 0x458 (see 5430B2) in May 17 2019 Test
+// CMerchantWnd_size: 0x438 (see 544501) in Aug 15 2019 Live
 class [[offsetcomments]] CMerchantWnd : public CSidlScreenWnd, public WndEventHandler, PopDialogHandler
 {
 public:
@@ -4188,7 +4188,7 @@ using PEQOPTIONSWINDOW [[deprecated]] = COptionsWnd*;
 //============================================================================
 
 // CPetInfoWindow__CPetInfoWindow aPetinfowindow
-// CPetInfoWindow_size: 0x8d8 (see 5420D1) in May 17 2019 Test
+// CPetInfoWindow_size: 0x8b8 (see 543531) in Aug 15 2019 Live
 class [[offsetcomments]] CPetInfoWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -4260,7 +4260,7 @@ enum ECombatState
 };
 
 // CPlayerWindow__CPlayerWindow aPlayerwindow
-// CPlayerWindow_size: 0x2f8 (see 542AF4) in May 17 2019 Test
+// CPlayerWindow_size: 0x2d8 (see 543F3E) in Aug 15 2019 Live
 class [[offsetcomments]] CPlayerWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -4393,7 +4393,7 @@ public:
 
 // CRaidWindow__CRaidWindow
 // aClasscolorD
-// CRaidWindow_size: 0x3b8 (see 5423C2) in May 17 2019 Test
+// CRaidWindow_size: 0x398 (see 543822) in Aug 15 2019 Live
 class [[offsetcomments]] CRaidWnd : public CSidlScreenWnd, public WndEventHandler, public CVivoxObserver
 {
 public:
@@ -4586,7 +4586,7 @@ enum ESpellDisplayType
 };
 
 // aSpelldisplaywi
-// Actual size 0x280 23 oct 2017 Beta see 7B413F -eqmule
+// Actual size 0x280 23 oct 2017 Beta see 7B413F
 class [[offsetcomments]] CSpellDisplayWnd : public CSidlScreenWnd
 {
 	FORCE_SYMBOLS
@@ -4619,7 +4619,7 @@ using PEQSPELLINFOWINDOW [[deprecated]] = CSpellDisplayWnd*;
 //============================================================================
 
 // CSpellGemWnd__CSpellGemWnd
-// CSpellGemWnd_size: 0x330 (see 7F639B) in May 17 2019 Test
+// CSpellGemWnd_size: 0x310 (see 7F89CB) in Aug 15 2019 Live
 class [[offsetcomments]] CSpellGemWnd : public CButtonWnd
 {
 public:
@@ -4866,7 +4866,7 @@ using PEQTRADESKILLWINDOW [[deprecated]] = CTradeSkillWnd*;
 //============================================================================
 
 // CTradeWnd__CTradeWnd aTradewnd
-// CTradeWnd__size: 0x300 (see 543158) in May 17 2019 Test
+// CTradeWnd__size: 0x2e0 (see 5445A7) in Aug 15 2019 Live
 class [[offsetcomments]] CTradeWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
