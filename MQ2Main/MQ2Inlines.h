@@ -479,25 +479,25 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 	}
 }
 
-static inline FLOAT GetDistance(FLOAT X1, FLOAT Y1)
+static inline float GetDistance(float X1, float Y1)
 {
-	FLOAT dX = X1 - ((PSPAWNINFO)pCharSpawn)->X;
-	FLOAT dY = Y1 - ((PSPAWNINFO)pCharSpawn)->Y;
+	float dX = X1 - ((PSPAWNINFO)pCharSpawn)->X;
+	float dY = Y1 - ((PSPAWNINFO)pCharSpawn)->Y;
 	return sqrtf(dX*dX + dY*dY);
 }
 
-static inline FLOAT GetDistance(FLOAT X1, FLOAT Y1, FLOAT X2, FLOAT Y2)
+static inline float GetDistance(float X1, float Y1, float X2, float Y2)
 {
-	FLOAT dX = X1 - X2;
-	FLOAT dY = Y1 - Y2;
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
 	return sqrtf(dX*dX + dY*dY);
 }
 
-static inline FLOAT GetDistance3D(FLOAT X1, FLOAT Y1, FLOAT Z1, FLOAT X2, FLOAT Y2, FLOAT Z2)
+static inline float GetDistance3D(float X1, float Y1, float Z1, float X2, float Y2, float Z2)
 {
-	FLOAT dX = X1 - X2;
-	FLOAT dY = Y1 - Y2;
-	FLOAT dZ = Z1 - Z2;
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
+	float dZ = Z1 - Z2;
 	return sqrtf(dX*dX + dY*dY + dZ*dZ);
 }
 
@@ -505,18 +505,18 @@ static inline FLOAT GetDistance3D(FLOAT X1, FLOAT Y1, FLOAT Z1, FLOAT X2, FLOAT 
 // Function:    DistanceToSpawn
 // Description: Return the distance between two spawns
 // ***************************************************************************
-static inline FLOAT GetDistance(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+static inline float GetDistance(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
-	FLOAT X = pChar->X - pSpawn->X;
-	FLOAT Y = pChar->Y - pSpawn->Y;
-	//FLOAT Z = pChar->Z - pSpawn->Z;
+	float X = pChar->X - pSpawn->X;
+	float Y = pChar->Y - pSpawn->Y;
+	//float Z = pChar->Z - pSpawn->Z;
 	return sqrtf(X*X + Y*Y);// + Z*Z);
 }
-static inline FLOAT Get3DDistance(FLOAT X1, FLOAT Y1, FLOAT Z1, FLOAT X2, FLOAT Y2, FLOAT Z2)
+static inline float Get3DDistance(float X1, float Y1, float Z1, float X2, float Y2, float Z2)
 {
-	FLOAT dX = X1 - X2;
-	FLOAT dY = Y1 - Y2;
-	FLOAT dZ = Z1 - Z2;
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
+	float dZ = Z1 - Z2;
 	return sqrtf(dX*dX + dY*dY + dZ*dZ);
 }
 #define DistanceToSpawn(pChar,pSpawn) GetDistance(pChar,pSpawn)
@@ -586,7 +586,7 @@ inline BOOL IsGroupMember(char* SpawnName)
 		{
 			if (pChar->pGroupInfo->pMember[N])
 			{
-				CHAR Name[MAX_STRING] = { 0 };
+				char Name[MAX_STRING] = { 0 };
 				strcpy_s(Name, pChar->pGroupInfo->pMember[N]->Name.c_str());
 				CleanupName(Name, sizeof(Name), FALSE, FALSE);
 				if (!_stricmp(SpawnName, Name))
@@ -633,7 +633,7 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 		{
 			if (pChar->pGroupInfo->pMember[N])
 			{
-				CHAR Name[MAX_STRING] = { 0 };
+				char Name[MAX_STRING] = { 0 };
 				strcpy_s(Name, pChar->pGroupInfo->pMember[N]->Name.c_str());
 				if (!_stricmp(pSpawn->Name, Name))
 					return 1;
@@ -686,7 +686,7 @@ static inline PSPAWNINFO GetGroupMember(unsigned long N)
 			N--;
 			if (N == 0)
 			{
-				CHAR Name[MAX_STRING] = { 0 };
+				char Name[MAX_STRING] = { 0 };
 				strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
 				return (PSPAWNINFO)GetSpawnByName(Name);
 			}
@@ -735,16 +735,16 @@ static inline BOOL LineOfSight(PSPAWNINFO Origin, PSPAWNINFO CanISeeThis)
 
 static inline BOOL IsMobFleeing(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
-	FLOAT HeadingTo = (FLOAT)(atan2f(pChar->Y - pSpawn->Y, pSpawn->X - pChar->X) * 180.0f / PI + 90.0f);
-	FLOAT Heading = pSpawn->Heading*0.703125f;
+	float HeadingTo = (float)(atan2f(pChar->Y - pSpawn->Y, pSpawn->X - pChar->X) * 180.0f / PI + 90.0f);
+	float Heading = pSpawn->Heading*0.703125f;
 
 	if (HeadingTo<0.0f)
 		HeadingTo += 360.0f;
 	else if (HeadingTo >= 360.0f)
 		HeadingTo -= 360.0f;
 
-	FLOAT UB = HeadingTo + 120.0f;
-	FLOAT LB = HeadingTo - 120.0f;
+	float UB = HeadingTo + 120.0f;
+	float LB = HeadingTo - 120.0f;
 
 	if (LB < UB) return ((Heading < UB) && (Heading > LB));
 	else return ((Heading < LB) && (Heading > UB));
@@ -769,7 +769,7 @@ static inline bool endsWith(char* base, char* str) {
 // If the user is on Windows XP this function will call GetTickCount()
 // instead of GetTickCount64() (which doesn't exist on that platform.)
 // ***************************************************************************
-inline unsigned __int64 MQGetTickCount64()
+inline uint64_t MQGetTickCount64()
 {
 	typedef unsigned long long (WINAPI *fGetTickCount64)();
 	static fGetTickCount64 pGetTickCount64 = 0;
@@ -790,7 +790,7 @@ inline unsigned __int64 MQGetTickCount64()
 	return ::GetTickCount(); // Fall back to GetTickCount which always exists
 }
 // Deprecated: Forwards to MQGetTickCount64()
-inline unsigned __int64 GetTickCount642()
+inline uint64_t GetTickCount642()
 {
 	return MQGetTickCount64();
 }

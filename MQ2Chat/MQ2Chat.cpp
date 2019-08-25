@@ -35,7 +35,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	// IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
 	// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
 
-	CHAR Stripped[MAX_STRING];
+	char Stripped[MAX_STRING];
 	StripMQChat(Line, Stripped);
 
 	if (gFilterMacro == FILTERMACRO_NONE) return 0;

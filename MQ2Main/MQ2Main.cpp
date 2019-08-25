@@ -34,7 +34,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
                       LPVOID lpReserved
                       )
 {
-    CHAR szFilename[MAX_STRING]={0};
+    char szFilename[MAX_STRING]={0};
     PCHAR szProcessName;
     ghModule = (HMODULE)hModule;
     ghInstance = (HINSTANCE)hModule;
@@ -88,15 +88,15 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 // ***************************************************************************
 BOOL ParseINIFile(PCHAR lpINIPath)
 {
-    CHAR Filename[MAX_STRING] = {0};
-    CHAR MQChatSettings[MAX_STRING] = {0};
-    CHAR CustomSettings[MAX_STRING] = {0};
-    CHAR ClientINI[MAX_STRING] = {0};
-    CHAR szBuffer[MAX_STRING] = {0};
-	CHAR szBuffer2[MAX_STRING] = {0};
-    CHAR ClientName[MAX_STRING] = {0};
-    CHAR FilterList[MAX_STRING*10] = {0};
-	CHAR Delimiter[MAX_STRING] = {0};
+    char Filename[MAX_STRING] = {0};
+    char MQChatSettings[MAX_STRING] = {0};
+    char CustomSettings[MAX_STRING] = {0};
+    char ClientINI[MAX_STRING] = {0};
+    char szBuffer[MAX_STRING] = {0};
+	char szBuffer2[MAX_STRING] = {0};
+    char ClientName[MAX_STRING] = {0};
+    char FilterList[MAX_STRING*10] = {0};
+	char Delimiter[MAX_STRING] = {0};
     GetEQPath(gszEQPath,MAX_STRING);
 	DWORD StackingDebug = 0;
 
@@ -620,7 +620,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	PCHAR lpINIPath = (PCHAR)lpParameter;
 	strcpy_s(gszINIPath, lpINIPath);
 	free(lpINIPath);
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK);
 
 	if (!MQ2Initialize()) {
@@ -670,36 +670,6 @@ getout:
     return 0;
 }
 
-
-#ifdef DEBUG_ALLOC
-DWORD CountMallocs=0;
-DWORD CountFrees=0;
-#endif
-
-#ifdef malloc
-#undef malloc
-#endif
-
-void *MQ2Malloc(size_t size)
-{
-#ifdef DEBUG_ALLOC
-    CountMallocs++;
-#endif
-    return malloc(size);
-}
-
-#ifdef free
-#undef free
-#endif
-
-void MQ2Free(void *memblock)
-{
-#ifdef DEBUG_ALLOC
-    CountFrees++;
-#endif
-    free(memblock);
-}
-
 class CMQNewsWnd : public CCustomWnd
 {
 public:
@@ -741,7 +711,7 @@ void CreateMQ2NewsWindow()
 	//MessageBox(NULL, "inject in news", "news debug", MB_SYSTEMMODAL | MB_OK);
 	//int sizeofCXWnd = sizeof(CXWnd);
 	//int sizeofCSidlScreenWnd = sizeof(CSidlScreenWnd);
-    CHAR Filename[MAX_STRING]={0};
+    char Filename[MAX_STRING]={0};
     sprintf_s(Filename,"%s\\changes.txt",gszINIPath);
     if (!pNewsWindow && _FileExists(Filename))
     {
@@ -756,11 +726,11 @@ void CreateMQ2NewsWindow()
 
 void AddNewsLine(PCHAR Line, DWORD Color)
 {
-	CHAR szLine[MAX_STRING] = { 0 };
+	char szLine[MAX_STRING] = { 0 };
 	strcpy_s(szLine, Line);
 	Color = pChatManager->GetRGBAFromIndex(Color);
 
-	CHAR szProcessed[MAX_STRING] = { 0 };
+	char szProcessed[MAX_STRING] = { 0 };
 	MQToSTML(szLine, szProcessed, MAX_STRING, Color);
 	strcat_s(szProcessed, "<br>");
 	CXStr NewText(szProcessed);
@@ -782,7 +752,7 @@ void InsertMQ2News()
 {
     if (!pNewsWindow)
         return;
-    CHAR Filename[MAX_STRING]={0};
+    char Filename[MAX_STRING]={0};
     sprintf_s(Filename,"%s\\changes.txt",gszINIPath);
 	FILE *file = 0;
 	errno_t err = fopen_s(&file,Filename, "rb");
@@ -793,7 +763,7 @@ void InsertMQ2News()
     }
     AddNewsLine("If you need help, refer to www.macroquest2.com/wiki",CONCOLOR_RED);
     AddNewsLine("Recent changes...",CONCOLOR_RED);
-    CHAR szLine[MAX_STRING]={0};
+    char szLine[MAX_STRING]={0};
     DWORD nLines=0;
     while(fgets(szLine,MAX_STRING,file))
     {

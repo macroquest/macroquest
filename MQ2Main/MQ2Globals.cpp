@@ -80,7 +80,7 @@ namespace MQ2Globals
 		pScreenXMax = (DWORD*)__ScreenXMax;
 		pScreenYMax = (DWORD*)__ScreenYMax;
 		pScreenMode = (DWORD*)__ScreenMode;
-		pMouseLook = (CHAR*)__MouseLook;
+		pMouseLook = (char*)__MouseLook;
 		EQADDR_MOUSE = (PMOUSEINFO)__Mouse;
 		EQADDR_MOUSECLICK = (PMOUSECLICK)__Clicks;
 
@@ -265,8 +265,8 @@ namespace MQ2Globals
 
 	ePVPServer PVPServer = PVP_NONE;
 	DWORD gdwLocalPlayer = pinstLocalPlayer_x;
-	CHAR gszVersion[32] = VersionString;
-	CHAR gszTime[32] = TimeString;
+	char gszVersion[32] = VersionString;
+	char gszTime[32] = TimeString;
 
 #if defined(TEST)
 	int gBuild = 2;               // TEST
@@ -303,25 +303,25 @@ namespace MQ2Globals
 	PEVENTQUEUE gEventQueue = nullptr;
 	int gEventFunc[NUM_EVENTS] = { 0 };
 	UCHAR gLastFind = 0;
-	DOUBLE gZFilter = 10000.0f;
-	DOUBLE gFaceAngle = 10000.0f;
-	DOUBLE gLookAngle = 10000.0f;
+	double gZFilter = 10000.0f;
+	double gFaceAngle = 10000.0f;
+	double gLookAngle = 10000.0f;
 	BOOL gbSpelldbLoaded = 0;
-	CHAR gszEQPath[MAX_STRING] = { 0 };
-	CHAR gszMacroPath[MAX_STRING] = { 0 };
-	CHAR gszLogPath[MAX_STRING] = { 0 };
-	CHAR gszINIPath[MAX_STRING] = { 0 };
-	CHAR gszINIFilename[MAX_STRING] = { 0 };
-	CHAR gszItemDB[MAX_STRING] = { 0 };
-	CHAR gszMacroName[MAX_STRING] = { 0 };
-	CHAR szLastCommand[MAX_STRING] = { 0 };
+	char gszEQPath[MAX_STRING] = { 0 };
+	char gszMacroPath[MAX_STRING] = { 0 };
+	char gszLogPath[MAX_STRING] = { 0 };
+	char gszINIPath[MAX_STRING] = { 0 };
+	char gszINIFilename[MAX_STRING] = { 0 };
+	char gszItemDB[MAX_STRING] = { 0 };
+	char gszMacroName[MAX_STRING] = { 0 };
+	char szLastCommand[MAX_STRING] = { 0 };
 
-	CHAR gszLastNormalError[MAX_STRING] = { 0 };
-	CHAR gszLastSyntaxError[MAX_STRING] = { 0 };
-	CHAR gszLastMQ2DataError[MAX_STRING] = { 0 };
+	char gszLastNormalError[MAX_STRING] = { 0 };
+	char gszLastSyntaxError[MAX_STRING] = { 0 };
+	char gszLastMQ2DataError[MAX_STRING] = { 0 };
 
 	PSPAWNINFO pNamingSpawn = 0;
-	CHAR gszSpawnPlayerName[8][MAX_STRING] = {
+	char gszSpawnPlayerName[8][MAX_STRING] = {
 		"",//0
 		"${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",//1
 		"${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length},\" ${NamingSpawn.Surname}\",]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",//2
@@ -330,15 +330,15 @@ namespace MQ2Globals
 		"${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.AARank},\"${NamingSpawn.AATitle} \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Suffix.Length},\" ${NamingSpawn.Suffix}\",]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",//5
 		"${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.AARank},\"${NamingSpawn.AATitle} \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length},\" ${NamingSpawn.Surname}\",]}${If[${NamingSpawn.Suffix.Length},\" ${NamingSpawn.Suffix}\",]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",//6 
 	};
-	CHAR gszSpawnNPCName[MAX_STRING] = "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Assist},\">> \",]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist},\" - ${NamingSpawn.PctHPs}%<<\",]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
-	CHAR gszSpawnPetName[MAX_STRING] = "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Assist},\">> \",]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist},\" - ${NamingSpawn.PctHPs}%<<\",]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
-	CHAR gszSpawnCorpseName[MAX_STRING] = "${NamingSpawn.DisplayName}'s corpse";
-	CHAR gszAnonCaption[MAX_STRING] = "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}";
+	char gszSpawnNPCName[MAX_STRING] = "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Assist},\">> \",]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist},\" - ${NamingSpawn.PctHPs}%<<\",]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
+	char gszSpawnPetName[MAX_STRING] = "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Assist},\">> \",]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist},\" - ${NamingSpawn.PctHPs}%<<\",]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
+	char gszSpawnCorpseName[MAX_STRING] = "${NamingSpawn.DisplayName}'s corpse";
+	char gszAnonCaption[MAX_STRING] = "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}";
 
 	DWORD DrawHUDParams[4] = { 0,0,0,0 };
 
 	Blech *pMQ2Blech = nullptr;
-	CHAR EventMsg[MAX_STRING] = { 0 };
+	char EventMsg[MAX_STRING] = { 0 };
 	Blech *pEventBlech = nullptr;
 	PEVENTLIST pEventList = nullptr;
 
@@ -379,20 +379,20 @@ namespace MQ2Globals
 	SWHOFILTER gFilterSWho = { 0 };
 	EQLIB_VAR BOOL gFilterMQ2DataErrors = FALSE;
 	BOOL gCreateMQ2NewsWindow = TRUE;
-	CHAR gIfDelimiter = ',';
-	CHAR gIfAltDelimiter = '~';
+	char gIfDelimiter = ',';
+	char gIfAltDelimiter = '~';
 	DWORD gNetStatusXPos = 0;
 	DWORD gNetStatusYPos = 0;
 	LONG gStackingDebug = 0;
 	BOOL gUseNewNamedTest = 0;
 	BOOL gbInForeground = FALSE;
 
-	DOUBLE DegToRad = 57.295779513082320876846364344191;
-	DOUBLE PI = 3.1415926535;
+	double DegToRad = 57.295779513082320876846364344191;
+	double PI = 3.1415926535;
 
 	PMQTIMER gTimer = nullptr;
 	LONG gDelay = 0;
-	CHAR gDelayCondition[MAX_STRING] = { 0 };
+	char gDelayCondition[MAX_STRING] = { 0 };
 	BOOL bAllowCommandParse = TRUE;
 	LONG gDelayZoning = 0;
 	std::map<DWORD, std::list<SEARCHSPAWN>> gAlertMap;
@@ -411,7 +411,7 @@ namespace MQ2Globals
 	BOOL gknightlyparse = FALSE;
 	PDEFINE pDefines = nullptr;
 	PBINDLIST pBindList = nullptr;
-	CHAR gLastFindSlot[MAX_STRING] = { 0 };
+	char gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = nullptr;
 
 	BOOL g_bInDXMouse = FALSE;
@@ -440,7 +440,7 @@ namespace MQ2Globals
 	PCHAR szEQMappableCommands[nEQMappableCommands];
 	decltype(ItemSlotMap) ItemSlotMap;
 
-	CHAR DataTypeTemp[MAX_STRING] = { 0 };
+	char DataTypeTemp[MAX_STRING] = { 0 };
 	cTargetBuff TargetBuffTemp = { 0 };
 
 	decltype(SpawnByName) SpawnByName;
@@ -1018,7 +1018,7 @@ namespace MQ2Globals
 	BOOL gbIgnoreAlertRecursion = 0;
 	BOOL gbShowCurrentCamera = 1;
 	int  oldcameratype = -1;
-	CHAR CameraText[2048] = { "Window Selector (Camera 0)" };
+	char CameraText[2048] = { "Window Selector (Camera 0)" };
 	PVOID EQADDR_GWORLD = nullptr;
 	PDWORD EQADDR_DOABILITYLIST = nullptr;
 
@@ -1037,7 +1037,7 @@ namespace MQ2Globals
 	DWORD *pScreenXMax = nullptr;
 	DWORD *pScreenYMax = nullptr;
 	DWORD *pScreenMode = nullptr;
-	CHAR  *pMouseLook = nullptr;
+	char  *pMouseLook = nullptr;
 	PMOUSEINFO EQADDR_MOUSE = nullptr;
 	PMOUSECLICK EQADDR_MOUSECLICK = nullptr;
 

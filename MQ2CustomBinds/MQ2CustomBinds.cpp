@@ -17,9 +17,9 @@
 PreSetup("MQ2CustomBinds");
 
 typedef struct _CustomBind {
-    CHAR Name[32];
-    CHAR CommandDown[MAX_STRING];
-    CHAR CommandUp[MAX_STRING];
+    char Name[32];
+    char CommandDown[MAX_STRING];
+    char CommandUp[MAX_STRING];
 } CUSTOMBIND, *PCUSTOMBIND;
 
 CIndex<PCUSTOMBIND> CustomBinds(10);
@@ -118,7 +118,7 @@ PLUGIN_API void SetGameState(DWORD GameState)
 
 void LoadCustomBinds()
 {
-    CHAR filename[MAX_STRING];
+    char filename[MAX_STRING];
     strcpy_s(filename,gszINIPath);
     strcat_s(filename,"\\MQ2CustomBinds.txt");
 	FILE *file = 0;
@@ -127,7 +127,7 @@ void LoadCustomBinds()
         return;
     CUSTOMBIND NewBind;
     ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
-    CHAR szLine[MAX_STRING];
+    char szLine[MAX_STRING];
 
     while(fgets(szLine,2048,file))
     {
@@ -156,7 +156,7 @@ void LoadCustomBinds()
 
 void SaveCustomBinds()
 {
-    CHAR filename[MAX_STRING];
+    char filename[MAX_STRING];
     strcpy_s(filename,gszINIPath);
     strcat_s(filename,"\\MQ2CustomBinds.txt");
 	FILE *file = 0;
@@ -200,9 +200,9 @@ void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /custombind <list|add <name>|delete <name>|clear <name><-down|-up>|set <name><-down|-up> <command>>");
         return;
     }
-    CHAR szBuffer[MAX_STRING];
-    CHAR szArg[MAX_STRING] = {0};
-    CHAR szArg2[MAX_STRING] = {0};
+    char szBuffer[MAX_STRING];
+    char szArg[MAX_STRING] = {0};
+    char szArg2[MAX_STRING] = {0};
     GetArg(szArg,szLine,1);
     GetArg(szArg2,szLine,2);
     PCHAR szRest = GetNextArg(szLine,2);

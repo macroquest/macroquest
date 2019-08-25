@@ -232,8 +232,8 @@ BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
     pBind->State=false;
     strncpy_s(pBind->Name,name,32);
     pBind->Name[31]=0;
-    CHAR szBuffer[MAX_STRING]={0};
-    CHAR szName[MAX_STRING]={0};
+    char szBuffer[MAX_STRING]={0};
+    char szName[MAX_STRING]={0};
 
     sprintf_s(szName,"%s_%s",pBind->Name,"Nrm");
     GetPrivateProfileString("Key Binds",szName,"clear",szBuffer,MAX_STRING,gszINIFilename);    
@@ -299,8 +299,8 @@ BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
 {
     if (MQ2KeyBind *pBind=KeyBindByName(name))
     {
-        CHAR szName[MAX_STRING]={0};
-        CHAR szBuffer[MAX_STRING]={0};
+        char szName[MAX_STRING]={0};
+        char szBuffer[MAX_STRING]={0};
         if (!Alternate)
         {
             sprintf_s(szName,"%s_Nrm",pBind->Name);
@@ -324,7 +324,7 @@ void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("Usage: /bind <list|eqlist|[~]name <combo|clear>>");
         return;
     }
-	CHAR szArg1[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
     GetArg(szArg1,szLine,1);
     PCHAR szRest = GetNextArg(szLine);
     PCHAR szArg=&szArg1[0];
@@ -338,8 +338,8 @@ void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     if (!_stricmp(szArg,"list"))
     {
         // list binds
-        CHAR szNormal[MAX_STRING]={0};
-        CHAR szAlt[MAX_STRING]={0};
+        char szNormal[MAX_STRING]={0};
+        char szAlt[MAX_STRING]={0};
         WriteChatColor("MQ2 Binds");
         WriteChatColor("--------------");
         for (i = 0 ; i < BindList.Size ; i++)
@@ -356,8 +356,8 @@ void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     }
     if (!_stricmp(szArg,"eqlist"))
     {
-        CHAR szNormal[MAX_STRING]={0};
-        CHAR szAlt[MAX_STRING]={0};
+        char szNormal[MAX_STRING]={0};
+        char szAlt[MAX_STRING]={0};
         // list eq binds
         WriteChatColor("EQ Binds");
         WriteChatColor("--------------");
@@ -427,7 +427,7 @@ void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     } 
 
 
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
     if (SetMQ2KeyBind(szArg,AltKey,NewCombo))
     {
         MQ2KeyBind *pBind=KeyBindByName(szArg);
@@ -469,7 +469,7 @@ void DoRangedBind(PCHAR Name,BOOL Down)
 
 BOOL DumpBinds(PCHAR Filename)
 {
-    CHAR szFilename[MAX_STRING]={0};
+    char szFilename[MAX_STRING]={0};
     sprintf_s(szFilename,"%s\\Configs\\%s",gszINIPath,Filename);
     if (!strchr(Filename,'.'))
         strcat_s(szFilename,".cfg");
@@ -479,7 +479,7 @@ BOOL DumpBinds(PCHAR Filename)
     {
         return false;
     }
-    CHAR szBuffer[MAX_STRING]={0};
+    char szBuffer[MAX_STRING]={0};
     unsigned long N;
     for ( N = 0 ; N < nEQMappableCommands ; N++)
     {

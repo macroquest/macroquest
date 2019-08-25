@@ -43,7 +43,7 @@ static unsigned int mq2mainstamp = 0;
 
 DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
 {
-    CHAR Filename[MAX_PATH]={0};
+    char Filename[MAX_PATH]={0};
 
     strcpy_s(Filename,pszFilename);
     _strlwr_s(Filename);
@@ -54,7 +54,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     {
         return 0;
     }
-    CHAR TheFilename[MAX_STRING]={0};
+    char TheFilename[MAX_STRING]={0};
     sprintf_s(TheFilename,"%s.dll",Filename);
 	if(HMODULE hThemod = GetModuleHandle(TheFilename)) {
 		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded",TheFilename);
@@ -63,7 +63,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     CAutoLock Lock(&gPluginCS);
     DebugSpew("LoadMQ2Plugin(%s)",Filename);
 
-    CHAR FullFilename[MAX_STRING]={0};
+    char FullFilename[MAX_STRING]={0};
     sprintf_s(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
     HMODULE hmod=LoadLibrary(FullFilename);
     if (!hmod)
@@ -203,7 +203,7 @@ static fLdrGetProcedureAddress pLdrGetProcedureAddress = 0;
 BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 {
     DebugSpew("UnloadMQ2Plugin");
-    CHAR Filename[MAX_PATH]={0};
+    char Filename[MAX_PATH]={0};
     strcpy_s(Filename,pszFilename);
     _strlwr_s(Filename);
     PCHAR Temp=strstr(Filename,".dll");
@@ -218,7 +218,7 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 	//need to check if we can just bypass the GetprocAddress hook and call the nt version which isnt hooked by the shim engine...
 	/*if (pLdrGetProcedureAddress = (fLdrGetProcedureAddress)GetProcAddress(GetModuleHandle("ntdll.dll"), "LdrGetProcedureAddress")) {
 		if (HMODULE h = GetModuleHandle("Kernel32.dll")) {
-			CHAR szFreeLib[32] = { 0 };
+			char szFreeLib[32] = { 0 };
 			strcpy_s(szFreeLib, "FreeLibrary");
 			FAKEGPSTRING as = { 0 };
 			as.Buffer = szFreeLib;
@@ -265,7 +265,7 @@ void SaveMQ2PluginLoadStatus(char*Name, bool bLoad)
 {
     CAutoLock Lock(&gPluginCS);
 
-    CHAR MainINI[MAX_STRING] = {0};
+    char MainINI[MAX_STRING] = {0};
     sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
 	DWORD dwAttrs = 0,bChangedfileattribs = 0;
 	if ((dwAttrs = GetFileAttributes(MainINI))!=INVALID_FILE_ATTRIBUTES) {
@@ -298,9 +298,9 @@ void InitializeMQ2Plugins()
 
     bPluginCS=1;
 
-    CHAR PluginList[MAX_STRING*10] = {0};
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR MainINI[MAX_STRING] = {0};
+    char PluginList[MAX_STRING*10] = {0};
+    char szBuffer[MAX_STRING] = {0};
+    char MainINI[MAX_STRING] = {0};
     sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
     PCHAR pPluginList = PluginList;
@@ -530,7 +530,7 @@ void PluginsSetGameState(DWORD GameState)
         if (CharSelect)
         {
             CharSelect=false;
-            CHAR szBuffer[MAX_STRING]={0};
+            char szBuffer[MAX_STRING]={0};
 
 			DebugSpew("PluginsSetGameState( %s server)",EQADDR_SERVERNAME);
 			if (CHARINFO* pCharInfo = GetCharInfo())

@@ -223,7 +223,7 @@ static bool call_function(const PCHAR name, const PCHAR args)
 	}
 	const auto saved_block = gMacroBlock->CurrIndex;
 	const auto pChar = (PSPAWNINFO)pCharSpawn;
-	CHAR sub_line[MAX_STRING];
+	char sub_line[MAX_STRING];
 	strcpy_s(sub_line, name);
 	if (csvColumn.size()) {
 		strcat_s(sub_line, " ");
@@ -410,7 +410,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 	// Find [] before a . or null
 	PCHAR pPos = &szOriginal[0];
 	PCHAR pStart = pPos;
-	CHAR Index[MAX_STRING] = { 0 };
+	char Index[MAX_STRING] = { 0 };
 	PCHAR pIndex = &Index[0];
 	BOOL Quote = FALSE;
 	bool function_allowed = false;
@@ -708,7 +708,7 @@ std::string GetMacroVarData(std::string strVarToParse) {
 		// Strip the ${ and } off of the variable to pass it to ParseMQ2DataPortion
 		strVarToParse = strVarToParse.substr(2, strVarToParse.length() - 3);
 		// Create a place to hold our "current" character array and initialize it to empty
-		CHAR szCurrent[MAX_STRING] = { 0 };
+		char szCurrent[MAX_STRING] = { 0 };
 		// Copy in our parse variable
 		strcpy_s(szCurrent, strVarToParse.c_str());
 		// Set the MQ2Type stored in Result to a empty as well
@@ -1136,7 +1136,7 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 		//PCHAR pPos;
 		//PCHAR pStart;
 		//PCHAR pIndex;
-		CHAR szCurrent[MAX_STRING] = { 0 };
+		char szCurrent[MAX_STRING] = { 0 };
 		MQ2TYPEVAR Result = { 0 };
 		do
 		{

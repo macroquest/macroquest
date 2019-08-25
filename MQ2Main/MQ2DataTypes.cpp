@@ -207,11 +207,11 @@ bool MQ2IntType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEV
 	switch ((IntMembers)pMember->ID)
 	{
 	case Float:
-		Dest.Float = (FLOAT)1.0f*(VarPtr.Int);
+		Dest.Float = (float)1.0f*(VarPtr.Int);
 		Dest.Type = pFloatType;
 		return true;
 	case Double:
-		Dest.Double = (DOUBLE)1.0f*(VarPtr.Int);
+		Dest.Double = (double)1.0f*(VarPtr.Int);
 		Dest.Type = pDoubleType;
 		return true;
 	case Hex:
@@ -250,11 +250,11 @@ bool MQ2Int64Type::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	switch ((Int64Members)pMember->ID)
 	{
 	case Float:
-		Dest.Float = (FLOAT)1.0f*(VarPtr.Int64);
+		Dest.Float = (float)1.0f*(VarPtr.Int64);
 		Dest.Type = pFloatType;
 		return true;
 	case Double:
-		Dest.Double = (DOUBLE)1.0f*(VarPtr.Int64);
+		Dest.Double = (double)1.0f*(VarPtr.Int64);
 		Dest.Type = pDoubleType;
 		return true;
 	case Hex:
@@ -641,7 +641,7 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 
 	if (!Index[0])
 		return false;
-	DOUBLE CalcResult;
+	double CalcResult;
 	switch ((MathMembers)pMember->ID)
 	{
 	case Abs:
@@ -649,7 +649,7 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
 		{
-			Dest.Float = (FLOAT)CalcResult;
+			Dest.Float = (float)CalcResult;
 			if (Dest.Float<0)
 				Dest.Float *= -1;
 			return true;
@@ -683,7 +683,7 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
 		{
-			Dest.Float = (FLOAT)sqrt(CalcResult);
+			Dest.Float = (float)sqrt(CalcResult);
 			return true;
 		}
 		return false;
@@ -692,7 +692,7 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
 		{
-			Dest.Float = (FLOAT)CalcResult;
+			Dest.Float = (float)CalcResult;
 			return true;
 		}
 		return false;
@@ -796,8 +796,8 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type = pFloatType;
 		if (Index[0])
 		{
-			FLOAT P1[3];
-			FLOAT P2[3];
+			float P1[3];
+			float P2[3];
 			P1[0] = P2[0] = ((SPAWNINFO*)pCharSpawn)->Y;
 			P1[1] = P2[1] = ((SPAWNINFO*)pCharSpawn)->X;
 			P1[2] = P2[2] = ((SPAWNINFO*)pCharSpawn)->Z;
@@ -807,47 +807,47 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 				if (PCHAR pComma = strchr(&pColon[1], ','))
 				{
 					*pComma = 0;
-					P2[0] = (FLOAT)atof(&pColon[1]);
+					P2[0] = (float)atof(&pColon[1]);
 					*pComma = ',';
 					if (PCHAR pComma2 = strchr(&pComma[1], ','))
 					{
 						*pComma2 = 0;
-						P2[1] = (FLOAT)atof(&pComma[1]);
+						P2[1] = (float)atof(&pComma[1]);
 						*pComma2 = ',';
-						P2[2] = (FLOAT)atof(&pComma2[1]);
+						P2[2] = (float)atof(&pComma2[1]);
 					}
 					else
 					{
-						P2[1] = (FLOAT)atof(&pComma[1]);
+						P2[1] = (float)atof(&pComma[1]);
 					}
 				}
 				else
-					P2[0] = (FLOAT)atof(&pColon[1]);
+					P2[0] = (float)atof(&pColon[1]);
 			}
 
 
 			if (PCHAR pComma = strchr(Index, ','))
 			{
 				*pComma = 0;
-				P1[0] = (FLOAT)atof(Index);
+				P1[0] = (float)atof(Index);
 				*pComma = ',';
 				if (PCHAR pComma2 = strchr(&pComma[1], ','))
 				{
 					*pComma2 = 0;
-					P1[1] = (FLOAT)atof(&pComma[1]);
+					P1[1] = (float)atof(&pComma[1]);
 					*pComma2 = ',';
-					P1[2] = (FLOAT)atof(&pComma2[1]);
+					P1[2] = (float)atof(&pComma2[1]);
 				}
 				else
 				{
-					P1[1] = (FLOAT)atof(&pComma[1]);
+					P1[1] = (float)atof(&pComma[1]);
 				}
 			}
 			else
-				P1[0] = (FLOAT)atof(Index);
+				P1[0] = (float)atof(Index);
 
 			//DebugSpewNoFile("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)", P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
-			Dest.Float = (FLOAT)GetDistance3D(P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
+			Dest.Float = (float)GetDistance3D(P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
 			return true;
 		}
 		return false;
@@ -1141,7 +1141,7 @@ bool MQ2TimeStampType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type = pInt64Type;
 		return true;
 	case Float:
-		Dest.Float = (FLOAT)nTimeStamp / 1000;
+		Dest.Float = (float)nTimeStamp / 1000;
 		Dest.Type = pFloatType;
 		return true;
 	case Ticks:
@@ -1324,7 +1324,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Int64 = 0;
 		//fix for a crash that will occur if HPMax is 0
 		//we should not divide something by 0... -eqmule
-		__int64 maxhp = pSpawn->HPMax;
+		int64_t maxhp = pSpawn->HPMax;
 		if (maxhp != 0)
 			Dest.Int64 = pSpawn->HPCurrent * 100 / maxhp;
 		return true;
@@ -1623,21 +1623,21 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		return true;
 	case DistanceW:
 	case DistanceX:
-		Dest.Float = (FLOAT)fabs(((SPAWNINFO*)pCharSpawn)->X - pSpawn->X);
+		Dest.Float = (float)fabs(((SPAWNINFO*)pCharSpawn)->X - pSpawn->X);
 		Dest.Type = pFloatType;
 		return true;
 	case DistanceN:
 	case DistanceY:
-		Dest.Float = (FLOAT)fabs(((SPAWNINFO*)pCharSpawn)->Y - pSpawn->Y);
+		Dest.Float = (float)fabs(((SPAWNINFO*)pCharSpawn)->Y - pSpawn->Y);
 		Dest.Type = pFloatType;
 		return true;
 	case DistanceU:
 	case DistanceZ:
-		Dest.Float = (FLOAT)fabs(((SPAWNINFO*)pCharSpawn)->Z - pSpawn->Z);
+		Dest.Float = (float)fabs(((SPAWNINFO*)pCharSpawn)->Z - pSpawn->Z);
 		Dest.Type = pFloatType;
 		return true;
 	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pSpawn->Y, pSpawn->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pSpawn->Y, pSpawn->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float < 0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -1873,10 +1873,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		if (PCHAR pComma = strchr(Index, ','))
 		{
 			*pComma = 0;
-			FLOAT Y = (FLOAT)atof(Index);
+			float Y = (float)atof(Index);
 			*pComma = ',';
-			FLOAT X = (FLOAT)atof(&pComma[1]);
-			Dest.Float = (FLOAT)(atan2f(pSpawn->Y - Y, X - pSpawn->X) * 180.0f / PI + 90.0f);
+			float X = (float)atof(&pComma[1]);
+			Dest.Float = (float)(atan2f(pSpawn->Y - Y, X - pSpawn->X) * 180.0f / PI + 90.0f);
 			if (Dest.Float < 0.0f)
 				Dest.Float += 360.0f;
 			else if (Dest.Float >= 360.0f)
@@ -2827,8 +2827,8 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	{
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		__int64 vitality = pChar->Vitality;
-		__int64 cap = pInventoryWnd->VitalityCap;
+		int64_t vitality = pChar->Vitality;
+		int64_t cap = pInventoryWnd->VitalityCap;
 		if (vitality > cap)
 			vitality = cap;
 		if (cap > 0)
@@ -6218,11 +6218,11 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	case MyCastTime:
 	{
 		SPELL* pMySpell = (SPELL*)pSpell;
-		__int64 myaacastingtime = (__int64)GetCastingTimeModifier((EQ_Spell*)pMySpell);
+		int64_t myaacastingtime = (int64_t)GetCastingTimeModifier((EQ_Spell*)pMySpell);
 		VePointer<CONTENTS>pc;
 		int myfocuscastingtime = GetFocusCastingTimeModifier((EQ_Spell*)pMySpell, pc, false);
-		__int64 mycasttime = (__int64)pMySpell->CastTime;
-		__int64 mct = myaacastingtime + myfocuscastingtime + mycasttime;
+		int64_t mycasttime = (int64_t)pMySpell->CastTime;
+		int64_t mct = myaacastingtime + myfocuscastingtime + mycasttime;
 		if (pMySpell->CastTime > 0 && mct < (pMySpell->CastTime / 2))
 			Dest.UInt64 = pMySpell->CastTime / 2;
 		else
@@ -7530,7 +7530,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	case InstrumentMod:
-		Dest.Float = ((FLOAT)GetItemFromContents(pItem)->InstrumentMod) / 10.0f;
+		Dest.Float = ((float)GetItemFromContents(pItem)->InstrumentMod) / 10.0f;
 		Dest.Type = pFloatType;
 		return true;
 	case Tribute:
@@ -9484,7 +9484,7 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type = pBoolType;
 		return true;
 	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y, pTheSwitch->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y, pTheSwitch->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float<0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -9518,9 +9518,9 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	}
 	case Distance3D:
 	{
-		FLOAT X = ((SPAWNINFO*)pCharSpawn)->X - pTheSwitch->X;
-		FLOAT Y = ((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y;
-		FLOAT Z = ((SPAWNINFO*)pCharSpawn)->Z - pTheSwitch->Z;
+		float X = ((SPAWNINFO*)pCharSpawn)->X - pTheSwitch->X;
+		float Y = ((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y;
+		float Z = ((SPAWNINFO*)pCharSpawn)->Z - pTheSwitch->Z;
 		float BoundingRadius = 0;
 		float thedist = 0;
 		if (ActorBase*pBase = (ActorBase*)pTheSwitch->pSwitch) {
@@ -9673,14 +9673,14 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 
 				gFaceAngle = (atan2(pGroundObject->pGroundItem->X - ((SPAWNINFO*)pCharSpawn)->X, pGroundObject->pGroundItem->Y - ((SPAWNINFO*)pCharSpawn)->Y) * 256.0f / PI);
 				theDistance = Get3DDistance(((SPAWNINFO*)pCharSpawn)->X, ((SPAWNINFO*)pCharSpawn)->Y, ((SPAWNINFO*)pCharSpawn)->Z, pGroundObject->pGroundItem->X, pGroundObject->pGroundItem->Y, pGroundObject->pGroundItem->Z);
-				gLookAngle = (atan2(pGroundObject->pGroundItem->Z - ((SPAWNINFO*)pCharSpawn)->Z - ((SPAWNINFO*)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((SPAWNINFO*)pCharSpawn)->StandState), (FLOAT)theDistance) * 256.0f / PI);
+				gLookAngle = (atan2(pGroundObject->pGroundItem->Z - ((SPAWNINFO*)pCharSpawn)->Z - ((SPAWNINFO*)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((SPAWNINFO*)pCharSpawn)->StandState), (float)theDistance) * 256.0f / PI);
 			}
 			else {
 				if (EQPlacedItem*Placed = (EQPlacedItem*)pGroundObject->ObjPtr)
 				{
 					gFaceAngle = (atan2(Placed->X - ((SPAWNINFO*)pCharSpawn)->X, Placed->Y - ((SPAWNINFO*)pCharSpawn)->Y) * 256.0f / PI);
 					theDistance = Get3DDistance(((SPAWNINFO*)pCharSpawn)->X, ((SPAWNINFO*)pCharSpawn)->Y, ((SPAWNINFO*)pCharSpawn)->Z, Placed->X, Placed->Y, Placed->Z);
-					gLookAngle = (atan2(Placed->Z - ((SPAWNINFO*)pCharSpawn)->Z - ((SPAWNINFO*)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((SPAWNINFO*)pCharSpawn)->StandState), (FLOAT)theDistance) * 256.0f / PI);
+					gLookAngle = (atan2(Placed->Z - ((SPAWNINFO*)pCharSpawn)->Z - ((SPAWNINFO*)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((SPAWNINFO*)pCharSpawn)->StandState), (float)theDistance) * 256.0f / PI);
 				}
 			}
 			if (gFaceAngle >= 512.0f)
@@ -9756,9 +9756,9 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			return true;
 		case Distance3D:
 		{
-			FLOAT X = ((SPAWNINFO*)pCharSpawn)->X - pGround->X;
-			FLOAT Y = ((SPAWNINFO*)pCharSpawn)->Y - pGround->Y;
-			FLOAT Z = 0;
+			float X = ((SPAWNINFO*)pCharSpawn)->X - pGround->X;
+			float Y = ((SPAWNINFO*)pCharSpawn)->Y - pGround->Y;
+			float Z = 0;
 			if (pGround->pSwitch)
 				Z = ((SPAWNINFO*)pCharSpawn)->Z - pGround->pSwitch->Z;
 			else
@@ -9768,7 +9768,7 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			return true;
 		}
 		case HeadingTo:
-			Dest.Float = (FLOAT)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pGround->Y, pGround->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+			Dest.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pGround->Y, pGround->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 			if (Dest.Float < 0.0f)
 				Dest.Float += 360.0f;
 			else if (Dest.Float >= 360.0f)
@@ -9902,15 +9902,15 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			return true;
 		case Distance3D:
 		{
-			FLOAT X = ((SPAWNINFO*)pCharSpawn)->X - pGround->X;
-			FLOAT Y = ((SPAWNINFO*)pCharSpawn)->Y - pGround->Y;
-			FLOAT Z = ((SPAWNINFO*)pCharSpawn)->Z - pGround->Z;
+			float X = ((SPAWNINFO*)pCharSpawn)->X - pGround->X;
+			float Y = ((SPAWNINFO*)pCharSpawn)->Y - pGround->Y;
+			float Z = ((SPAWNINFO*)pCharSpawn)->Z - pGround->Z;
 			Dest.Float = sqrtf(X*X + Y * Y + Z * Z);
 			Dest.Type = pFloatType;
 			return true;
 		}
 		case HeadingTo:
-			Dest.Float = (FLOAT)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pGround->Y, pGround->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+			Dest.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pGround->Y, pGround->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 			if (Dest.Float < 0.0f)
 				Dest.Float += 360.0f;
 			else if (Dest.Float >= 360.0f)
@@ -10598,7 +10598,7 @@ bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	PMQ2TYPEMEMBER pMember = MQ2HeadingType::FindMember(Member);
 	if (!pMember)
 		return false;
-	FLOAT Heading = 360.0f - VarPtr.Float;
+	float Heading = 360.0f - VarPtr.Float;
 	switch ((HeadingMembers)pMember->ID)
 	{
 	case Clock:
@@ -12941,7 +12941,7 @@ bool MQ2RaidType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		return true;
 
 	case AverageLevel:
-		Dest.Float = (FLOAT)pRaid->TotalRaidMemberLevels / (FLOAT)pRaid->RaidMemberCount;
+		Dest.Float = (float)pRaid->TotalRaidMemberLevels / (float)pRaid->RaidMemberCount;
 		Dest.Type = pFloatType;
 		return true;
 
@@ -13120,7 +13120,7 @@ bool MQ2EvolvingItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index,
 	switch ((EvolvingItemMembers)pMember->ID)
 	{
 	case ExpPct:
-		Dest.Float = (FLOAT)pItem->EvolvingExpPct;
+		Dest.Float = (float)pItem->EvolvingExpPct;
 		Dest.Type = pFloatType;
 		return true;
 	case ExpOn:

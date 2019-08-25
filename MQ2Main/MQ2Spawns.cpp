@@ -474,14 +474,14 @@ void SetNameSpriteTint(SPAWNINFO* pSpawn)
 }
 BOOL SetCaption(SPAWNINFO* pSpawn, char *CaptionString,eSpawnType type)
 {
-    CHAR NewCaption[MAX_STRING]={0};
+    char NewCaption[MAX_STRING]={0};
     if (CaptionString[0] || gAnonymize) {
         if (CHARINFO* pChar = GetCharInfo()) {
             strcpy_s(NewCaption, CaptionString);
             pNamingSpawn = pSpawn;
             if (gAnonymize)
             {
-                CHAR szType[64] = { 0 };
+                char szType[64] = { 0 };
                 bool oktoanon = false;
                 switch (type) {
                     case MERCENARY:
@@ -635,8 +635,8 @@ void InitializeMQ2Spawns()
     ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));
     gSpawnCount=0;
 
-    CHAR Temp[MAX_STRING]={0};
-    CHAR Name[MAX_STRING]={0};
+    char Temp[MAX_STRING]={0};
+    char Name[MAX_STRING]={0};
     // load custom spawn caption colors
     DWORD N;
     for (N = 0 ; CaptionColors[N].szName[0] ; N++)
@@ -766,8 +766,8 @@ void CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /captioncolor <list|<name off|on|#>>");
         return;
     }
-    CHAR Arg1[MAX_STRING]={0};
-    CHAR Arg2[MAX_STRING]={0};
+    char Arg1[MAX_STRING]={0};
+    char Arg2[MAX_STRING]={0};
     GetArg(Arg1,szLine,1);
     GetArg(Arg2,szLine,2);
 

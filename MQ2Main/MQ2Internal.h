@@ -73,11 +73,11 @@ namespace MQ2Internal {
         DWORD SpawnID;
         DWORD FromSpawnID;
         float Radius;
-        CHAR szName[MAX_STRING];
-        CHAR szBodyType[MAX_STRING];
-        CHAR szRace[MAX_STRING];
-        CHAR szClass[MAX_STRING];
-        CHAR szLight[MAX_STRING];
+        char szName[MAX_STRING];
+        char szBodyType[MAX_STRING];
+        char szRace[MAX_STRING];
+        char szClass[MAX_STRING];
+        char szLight[MAX_STRING];
 		int64_t GuildID;
         BOOL bSpawnID;
         BOOL bNotNearAlert;
@@ -156,10 +156,10 @@ namespace MQ2Internal {
     };
 
     typedef struct _SEARCHITEM {
-        CHAR FlagMask[MAX_STRING];
-        CHAR Flag[MAX_STRING];
+        char FlagMask[MAX_STRING];
+        char Flag[MAX_STRING];
 
-        CHAR szName[MAX_STRING];
+        char szName[MAX_STRING];
         DWORD ID;
 
     } SEARCHITEM, *PSEARCHITEM;
@@ -188,14 +188,14 @@ namespace MQ2Internal {
     } SWHOFILTER, *PSWHOFILTER;
 
     typedef struct _SWHOSORT {
-        CHAR szName[MAX_STRING];
-        CHAR szLine[MAX_STRING];
+        char szName[MAX_STRING];
+        char szLine[MAX_STRING];
         BYTE Level;
         DWORD SpawnID;
         float Distance;
         DWORD Class;
         DWORD Race;
-        __int64 GuildID;
+        int64_t GuildID;
     } SWHOSORT, *PSWHOSORT;
 
     typedef struct _CONNECTION {
@@ -205,7 +205,7 @@ namespace MQ2Internal {
     } CONNECTION, *PCONNECTION;
 
     typedef struct _CHATBUF {
-        CHAR szText[MAX_STRING];
+        char szText[MAX_STRING];
         struct _CHATBUF *pNext;
     } CHATBUF, *PCHATBUF;
 
@@ -218,8 +218,8 @@ namespace MQ2Internal {
 	} MOUSEINFO, *PMOUSEINFO;
 
     typedef struct _SPELLINFO {
-        CHAR Name[32];
-        CHAR Target[32];
+        char Name[32];
+        char Target[32];
     } SPELLINFO, *PSPELLINFO;
 
     typedef struct _PACKLOC {
@@ -250,7 +250,7 @@ namespace MQ2Internal {
 	using PMACROBLOCK = std::shared_ptr<MACROBLOCK>;
 
     typedef struct _MQTIMER {
-        CHAR szName[MAX_VARNAME];
+        char szName[MAX_VARNAME];
         ULONG Original;
         ULONG Current;
         struct _MQTIMER *pNext;
@@ -267,27 +267,27 @@ namespace MQ2Internal {
         struct _ITEMDB *pNext;
         DWORD ID;
 		DWORD StackSize;
-        CHAR szName[256];
+        char szName[256];
     } ITEMDB, *PITEMDB;
 
     typedef struct _DEFINE {
         struct _DEFINE *pNext;
-        CHAR szName[MAX_STRING];
-        CHAR szReplace[MAX_STRING];
+        char szName[MAX_STRING];
+        char szReplace[MAX_STRING];
     } DEFINE, *PDEFINE;
 
     typedef struct _EVENTLIST {
         struct _EVENTLIST *pNext;
-        CHAR szName[MAX_STRING];
-        CHAR szMatch[MAX_STRING];
+        char szName[MAX_STRING];
+        char szMatch[MAX_STRING];
         int pEventFunc;
         DWORD BlechID;
     } EVENTLIST, *PEVENTLIST;
 
     typedef struct _BINDLIST {
         struct _BINDLIST *pNext;
-        CHAR szName[MAX_STRING];
-        CHAR szFuncName[MAX_STRING];
+        char szName[MAX_STRING];
+        char szFuncName[MAX_STRING];
 		//used for KNIGHTLYPARSE
 		bool Parse = true;
     } BINDLIST, *PBINDLIST;
@@ -295,11 +295,11 @@ namespace MQ2Internal {
     typedef struct _SUB {
         struct _SUB *pNext;
         struct _SUB *pLast;
-        CHAR szOrig[MAX_STRING];
-        CHAR szSub[MAX_STRING];
+        char szOrig[MAX_STRING];
+        char szSub[MAX_STRING];
     } SUB, *PSUB;
     typedef struct _MQCOMMAND {
-        CHAR Command[64];
+        char Command[64];
 		fEQCommand Function;
         BOOL EQ;
 		BOOL Parse;
@@ -311,19 +311,19 @@ namespace MQ2Internal {
 
     typedef struct _FILTER {
         struct _FILTER *pNext;
-        CHAR FilterText[MAX_STRING];
+        char FilterText[MAX_STRING];
         DWORD Length;
         PBOOL pEnabled;
     } FILTER, *PFILTER;
 
     typedef struct _PARMLIST {
-        CHAR szName[MAX_STRING];
+        char szName[MAX_STRING];
         DWORD (__cdecl *fAddress)(PCHAR, PCHAR, PSPAWNINFO);
     } PARMLIST, *PPARMLIST;
 
     typedef struct _MQBENCH
     {
-        CHAR szName[64];
+        char szName[64];
         ULONGLONG Entry;
         ULONGLONG LastTime;
         ULONGLONG TotalTime;
@@ -461,7 +461,7 @@ namespace MQ2Internal {
 			lockit lk(_hLockMapWrite);
 			if(_AlertMap.size()==0)
 				return FALSE;
-			CHAR szTemp[32] = {0};
+			char szTemp[32] = {0};
 
 			for(std::map<DWORD,std::list<SEARCHSPAWN>>::iterator i = _AlertMap.begin();i!=_AlertMap.end();i++) {
 				_itoa_s((*i).first,szTemp,10);
@@ -503,7 +503,7 @@ namespace MQ2Internal {
 	class CCustomMenu : public CContextMenu
 	{
 	public:
-		//class CXWnd *,unsigned __int32,class CXRect const &
+		//class CXWnd *,uint32_t,class CXRect const &
 		CCustomMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect) : CContextMenu(pParent, MenuID, rect)
 		{
 		}
@@ -655,8 +655,8 @@ namespace MQ2Internal {
 				UCHAR FullArray[8];
 			};
 			double Double;
-			__int64   Int64;
-			unsigned __int64   UInt64;
+			int64_t   Int64;
+			uint64_t   UInt64;
         };
 	} MQ2VARPTR, *PMQ2VARPTR;
 
@@ -693,8 +693,8 @@ namespace MQ2Internal {
 				UCHAR FullArray[8];
 			};
 			double Double;
-			__int64   Int64;
-			unsigned __int64   UInt64;
+			int64_t   Int64;
+			uint64_t   UInt64;
         };
     } MQ2TYPEVAR, *PMQ2TYPEVAR;
 
@@ -709,7 +709,7 @@ namespace MQ2Internal {
 
     typedef struct _MQ2DataItem
     {
-        CHAR Name[64];
+        char Name[64];
         fMQData Function;
     } MQ2DATAITEM, *PMQ2DATAITEM;
 
@@ -717,7 +717,7 @@ namespace MQ2Internal {
     EQLIB_API BOOL RemoveMQ2Type(class MQ2Type &Type);
 
     typedef struct _DATAVAR {
-        CHAR szName[MAX_STRING];
+        char szName[MAX_STRING];
         MQ2TYPEVAR Var;
         struct _DATAVAR *pNext;
         struct _DATAVAR *pPrev;
@@ -894,7 +894,7 @@ namespace MQ2Internal {
             delete pMethod;
             Methods[N]=0;
         }
-        CHAR TypeName[32];
+        char TypeName[32];
         BOOL Official;
         CIndex<PMQ2TYPEMEMBER> Members;
         CIndex<PMQ2TYPEMEMBER> Methods;
@@ -1173,10 +1173,10 @@ namespace MQ2Internal {
 			return true;
 	   return false;
 	}
-	static errno_t _httoi_s(const CHAR *thevalue,size_t _Size)
+	static errno_t _httoi_s(const char *thevalue,size_t _Size)
 	{
 		struct CHexMap {
-			CHAR chr;
+			char chr;
 			int avalue;
 		};
 		const int HexMapL = 16;
@@ -1191,10 +1191,10 @@ namespace MQ2Internal {
 			{'C', 12}, {'D', 13},
 			{'E', 14}, {'F', 15}
 		};
-		CHAR *mstr = _strdup(thevalue);
+		char *mstr = _strdup(thevalue);
 		mstr[_Size] = '\0';
 		_strupr_s(mstr,_Size+1);
-		CHAR *s = mstr;
+		char *s = mstr;
 		int result = 0;
 		std::string s1 = mstr;
 	
@@ -1239,7 +1239,7 @@ struct Loop
 		bool bIsBind;
          int LocationIndex;
         struct MACROSTACK *pNext;
-        CHAR Return[MAX_STRING];
+        char Return[MAX_STRING];
         PDATAVAR Parameters;
         PDATAVAR LocalVariables;
 		std::vector<Loop> loop_stack;

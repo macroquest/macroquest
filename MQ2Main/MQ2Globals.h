@@ -60,11 +60,11 @@ EQLIB_VAR PDATAVAR pMacroVariables;
 EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;
 EQLIB_VAR BOOL bAllErrorsLog;
-EQLIB_API CHAR DataTypeTemp[MAX_STRING];
+EQLIB_API char DataTypeTemp[MAX_STRING];
 EQLIB_API cTargetBuff TargetBuffTemp;
-EQLIB_API CHAR gszVersion[32];
+EQLIB_API char gszVersion[32];
 EQLIB_VAR DWORD gdwLocalPlayer;
-EQLIB_API CHAR gszTime[32];
+EQLIB_API char gszTime[32];
 EQLIB_API int gBuild;
 EQLIB_API bool gbDoingModuleChecks;
 
@@ -110,29 +110,29 @@ EQLIB_VAR PEVENTQUEUE gEventQueue;
 EQLIB_VAR int gEventFunc[NUM_EVENTS];
 EQLIB_VAR UCHAR gLastFind;
 EQLIB_VAR BOOL gInClick;
-EQLIB_VAR DOUBLE gZFilter;
-EQLIB_VAR DOUBLE gFaceAngle;
-EQLIB_VAR DOUBLE gLookAngle;
+EQLIB_VAR double gZFilter;
+EQLIB_VAR double gFaceAngle;
+EQLIB_VAR double gLookAngle;
 EQLIB_VAR BOOL gbSpelldbLoaded;
-EQLIB_VAR CHAR gszEQPath[MAX_STRING];
-EQLIB_VAR CHAR gszMacroPath[MAX_STRING];
-EQLIB_VAR CHAR gszLogPath[MAX_STRING];
-EQLIB_VAR CHAR gszINIPath[MAX_STRING];
-EQLIB_VAR CHAR gszINIFilename[MAX_STRING];
-EQLIB_VAR CHAR gszItemDB[MAX_STRING];
-EQLIB_VAR CHAR gszMacroName[MAX_STRING];
-EQLIB_VAR CHAR szLastCommand[MAX_STRING];
+EQLIB_VAR char gszEQPath[MAX_STRING];
+EQLIB_VAR char gszMacroPath[MAX_STRING];
+EQLIB_VAR char gszLogPath[MAX_STRING];
+EQLIB_VAR char gszINIPath[MAX_STRING];
+EQLIB_VAR char gszINIFilename[MAX_STRING];
+EQLIB_VAR char gszItemDB[MAX_STRING];
+EQLIB_VAR char gszMacroName[MAX_STRING];
+EQLIB_VAR char szLastCommand[MAX_STRING];
 
-EQLIB_VAR CHAR gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
-EQLIB_VAR CHAR gszLastSyntaxError[MAX_STRING];
-EQLIB_VAR CHAR gszLastMQ2DataError[MAX_STRING];
+EQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
+EQLIB_VAR char gszLastSyntaxError[MAX_STRING];
+EQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
 
 EQLIB_VAR SPAWNINFO* pNamingSpawn;
-EQLIB_VAR CHAR gszSpawnNPCName[MAX_STRING];
-EQLIB_VAR CHAR gszSpawnPlayerName[8][MAX_STRING];
-EQLIB_VAR CHAR gszSpawnPetName[MAX_STRING];
-EQLIB_VAR CHAR gszSpawnCorpseName[MAX_STRING];
-EQLIB_VAR CHAR gszAnonCaption[MAX_STRING];
+EQLIB_VAR char gszSpawnNPCName[MAX_STRING];
+EQLIB_VAR char gszSpawnPlayerName[8][MAX_STRING];
+EQLIB_VAR char gszSpawnPetName[MAX_STRING];
+EQLIB_VAR char gszSpawnCorpseName[MAX_STRING];
+EQLIB_VAR char gszAnonCaption[MAX_STRING];
 
 EQLIB_VAR DWORD DrawHUDParams[4];
 
@@ -183,25 +183,25 @@ EQLIB_VAR BOOL gbAlwaysDrawMQHUD;
 
 EQLIB_VAR BOOL gFilterMQ2DataErrors;
 
-EQLIB_VAR CHAR gIfDelimiter;
-EQLIB_VAR CHAR gIfAltDelimiter;
+EQLIB_VAR char gIfDelimiter;
+EQLIB_VAR char gIfAltDelimiter;
 
 EQLIB_VAR DWORD gNetStatusXPos;
 EQLIB_VAR DWORD gNetStatusYPos;
 
 EQLIB_VAR LONG gStackingDebug;
 
-EQLIB_VAR DOUBLE DegToRad;
-EQLIB_VAR DOUBLE PI;
+EQLIB_VAR double DegToRad;
+EQLIB_VAR double PI;
 
 extern Blech* pMQ2Blech;
-EQLIB_VAR CHAR EventMsg[MAX_STRING];
+EQLIB_VAR char EventMsg[MAX_STRING];
 EQLIB_VAR Blech* pEventBlech;
 EQLIB_VAR PEVENTLIST pEventList;
 
 EQLIB_VAR PMQTIMER gTimer;
 EQLIB_VAR LONG gDelay;
-EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
+EQLIB_VAR char gDelayCondition[MAX_STRING];
 EQLIB_VAR SPAWNINFO EnviroTarget;
 EQLIB_VAR SPAWNINFO PetSpawn;
 EQLIB_VAR SPAWNINFO MercenarySpawn;
@@ -499,7 +499,7 @@ EQLIB_VAR DWORD* pScreenYMax;
 #define ScreenYMax (*pScreenYMax)
 EQLIB_VAR DWORD* pScreenMode;
 #define ScreenMode (*pScreenMode)
-EQLIB_VAR CHAR* pMouseLook;
+EQLIB_VAR char* pMouseLook;
 #define bMouseLook (*pMouseLook)
 
 EQLIB_VAR SPELLFAVORITE* pSpellSets;
@@ -740,7 +740,7 @@ EQLIB_VAR BOOL gbBeepOnTells;
 EQLIB_VAR BOOL gbFlashOnTells;
 EQLIB_VAR BOOL gbShowCurrentCamera;
 EQLIB_VAR int  oldcameratype;
-EQLIB_VAR CHAR CameraText[2048];
+EQLIB_VAR char CameraText[2048];
 EQLIB_VAR BOOL gbIgnoreAlertRecursion;
 
 // used for KNIGHTLYPARSE

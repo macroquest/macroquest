@@ -1397,7 +1397,7 @@ struct [[offsetcomments]] AdvancedLootItemNPC
 /*0x04*/ short         StackCount;
 /*0x08*/ unsigned int  Expiration;
 /*0x0c*/ bool          Locked;
-/*0x0d*/ CHAR          Name[0x40];
+/*0x0d*/ char          Name[0x40];
 /*0x50*/ //more data here?
 };
 using LOOTDETAILS [[deprecated]] = AdvancedLootItemNPC;
@@ -3119,7 +3119,7 @@ public:
 /*0x27c*/ DWORD        Unknown0x1a4;             // 1?
 /*0x280*/ DWORD        TotalMemberCountAgain;
 /*0x284*/ BYTE         Unknown0x1ac[0x1c];
-/*0x2a0*/ CHAR         PersonalNotesFilePath[0x40]; // path to personal notes file
+/*0x2a0*/ char         PersonalNotesFilePath[0x40]; // path to personal notes file
 /*0x2e0*/ BYTE         Unknown0x208[0x1c0];      // empty
 /*0x4a0*/ DWORD        Unknown0x3c8;             // 1?
 /*0x4a4*/ DWORD        Unknown0x3cc;             // some sort of bizaare pointer...
@@ -4013,7 +4013,7 @@ public:
 /*0x0248*/ BYTE        Unknown0x0240[0x8];
 /*0x0250*/ merch_other* pMerchOther;             // found in CMerchantWnd__CMerchantWnd
 /*0x0254*/ BYTE        Unknown0x0254[0x8];
-/*0x025c*/ FLOAT       Markup;                   // found in CMerchantWnd__DisplayBuyOrSellPrice_x
+/*0x025c*/ float       Markup;                   // found in CMerchantWnd__DisplayBuyOrSellPrice_x
 /*0x0260*/ BYTE        Unknown0x0260[0xc];
 /*0x026c*/ DWORD       SelectedSlotID;
 /*0x0270*/ BYTE        Unknown0x0270[0x1e8];

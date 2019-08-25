@@ -1871,9 +1871,9 @@ void AddMapSpawnForMapLoc(MAPLOC* mapLoc)
 	SPAWNINFO* pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
 	strcpy_s(pFakeSpawn->DisplayedName, labelStr.c_str());
-	pFakeSpawn->X = (FLOAT)mapLoc->xloc;
-	pFakeSpawn->Y = (FLOAT)mapLoc->yloc;
-	pFakeSpawn->Z = (FLOAT)mapLoc->zloc;
+	pFakeSpawn->X = (float)mapLoc->xloc;
+	pFakeSpawn->Y = (float)mapLoc->yloc;
+	pFakeSpawn->Z = (float)mapLoc->zloc;
 	pFakeSpawn->HPCurrent = 1;
 	pFakeSpawn->HPMax = 1;
 	pFakeSpawn->Heading = 0;

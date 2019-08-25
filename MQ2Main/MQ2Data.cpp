@@ -50,8 +50,8 @@ BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		return false;
 
 	// I hate this GetArg shit - Lax
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szArg1[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
 	int N = 2;
 	GetArg(szArg1, szIndex, 1, FALSE, FALSE, TRUE);
 	while (1)
@@ -138,13 +138,13 @@ BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR& Ret)
 
 BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	std::map<FLOAT, GROUNDOBJECT>itemmap;
+	std::map<float, GROUNDOBJECT>itemmap;
 	//if they did ${Ground[name]}
 	if (szIndex[0]) {
-		CHAR szSearch[MAX_STRING] = { 0 };
+		char szSearch[MAX_STRING] = { 0 };
 		strcpy_s(szSearch, szIndex);
 		_strlwr_s(szSearch);
-		CHAR szName[MAX_STRING] = { 0 };
+		char szName[MAX_STRING] = { 0 };
 		if (pItemList && pItemList->Top)
 		{
 			PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
@@ -152,9 +152,9 @@ BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 				GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 				_strlwr_s(szName);
 				if (strstr(szName, szSearch)) {
-					FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
-					FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
-					FLOAT Z = 0;
+					float X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
+					float Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
+					float Z = 0;
 					if (pItem->pSwitch)
 						Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->pSwitch->Z;
 					else
@@ -184,9 +184,9 @@ BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 								strcpy_s(szName, pItem->Name);
 								_strlwr_s(szName);
 								if (strstr(szName, szSearch)) {
-									FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pObj->X;
-									FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pObj->Y;
-									FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pObj->Z;
+									float X = ((PSPAWNINFO)pCharSpawn)->X - pObj->X;
+									float Y = ((PSPAWNINFO)pCharSpawn)->Y - pObj->Y;
+									float Z = ((PSPAWNINFO)pCharSpawn)->Z - pObj->Z;
 									float dist = sqrtf(X*X + Y * Y + Z * Z);
 									itemmap[dist].Type = GO_ObjectType;
 									itemmap[dist].ObjPtr = pObj;
@@ -217,9 +217,9 @@ BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	float objectdist = 100000.0f;
 	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList)
 	{
-		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
-		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
-		FLOAT Z = 0;
+		float X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
+		float Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
+		float Z = 0;
 		if (pItem->pSwitch)
 			Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->pSwitch->Z;
 		else
@@ -235,9 +235,9 @@ BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		{
 			if (EQPlacedItem *top = pPIM->Top)
 			{
-				FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - top->X;
-				FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - top->Y;
-				FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - top->Z;
+				float X = ((PSPAWNINFO)pCharSpawn)->X - top->X;
+				float Y = ((PSPAWNINFO)pCharSpawn)->Y - top->Y;
+				float Z = ((PSPAWNINFO)pCharSpawn)->Z - top->Z;
 				objectdist = sqrtf(X*X + Y * Y + Z * Z);
 				GroundObject.ObjPtr = (void*)top;
 				GroundObject.Type = GO_ObjectType;
@@ -269,10 +269,10 @@ BOOL dataGroundItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	{
 		DWORD Count = 0;
 		if (szIndex[0]) {
-			CHAR szSearch[MAX_STRING] = { 0 };
+			char szSearch[MAX_STRING] = { 0 };
 			strcpy_s(szSearch, szIndex);
 			_strlwr_s(szSearch);
-			CHAR szName[MAX_STRING] = { 0 };
+			char szName[MAX_STRING] = { 0 };
 			while (pItem) {
 				GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 				_strlwr_s(szName);
@@ -508,7 +508,7 @@ BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	Ret.Float = (FLOAT)atof(szIndex);
+	Ret.Float = (float)atof(szIndex);
 	Ret.Type = pFloatType;
 	return true;
 }
@@ -520,11 +520,11 @@ BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	if (PCHAR pComma = strchr(szIndex, ','))
 	{
 		*pComma = 0;
-		FLOAT Y = (FLOAT)atof(szIndex);
+		float Y = (float)atof(szIndex);
 		*pComma = ',';
-		FLOAT X = (FLOAT)atof(&pComma[1]);
+		float X = (float)atof(&pComma[1]);
 		//changed
-		Ret.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - Y, X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Ret.Float = (float)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - Y, X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Ret.Float<0.0f)
 			Ret.Float += 360.0f;
 		else if (Ret.Float >= 360.0f)
@@ -533,7 +533,7 @@ BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		return true;
 	}
 
-	Ret.Float = (FLOAT)atof(szIndex);
+	Ret.Float = (float)atof(szIndex);
 	Ret.Type = pHeadingType;
 	return true;
 }
@@ -658,7 +658,7 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
 				{
 					*pFalse = 0;
 					pFalse++;
-					DOUBLE CalcResult;
+					double CalcResult;
 					if (!Calculate(szIndex, CalcResult))
 						return false;
 
@@ -689,7 +689,7 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
 			{
 				*pFalse = 0;
 				pFalse++;
-				DOUBLE CalcResult;
+				double CalcResult;
 				if (!Calculate(szIndex, CalcResult))
 					return false;
 
@@ -922,7 +922,7 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	if (IniFile.size() == 0)
 		return false;
-	CHAR FileName[MAX_STRING] = { 0 };
+	char FileName[MAX_STRING] = { 0 };
 	std::replace(IniFile.begin(), IniFile.end(), '/', '\\');
 
 	if (IniFile.size() && IniFile[0] != '\\' && IniFile.find(":") == IniFile.npos)
@@ -1191,7 +1191,7 @@ BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	else
 	{
-		CHAR Temp[MAX_STRING] = { 0 };
+		char Temp[MAX_STRING] = { 0 };
 		strcpy_s(Temp, szIndex);
 		_strlwr_s(Temp);
 		Ret.DWord = 0;
@@ -1355,8 +1355,8 @@ BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		return FALSE;
 	if (szIndex[0])
 	{
-		FLOAT P1[3];
-		FLOAT P2[3];
+		float P1[3];
+		float P2[3];
 		P1[0] = P2[0] = ((PSPAWNINFO)pCharSpawn)->Y;
 		P1[1] = P2[1] = ((PSPAWNINFO)pCharSpawn)->X;
 		P1[2] = P2[2] = ((PSPAWNINFO)pCharSpawn)->Z;
@@ -1367,43 +1367,43 @@ BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
 			if (PCHAR pComma = strchr(&pColon[1], ','))
 			{
 				*pComma = 0;
-				P2[0] = (FLOAT)atof(&pColon[1]);
+				P2[0] = (float)atof(&pColon[1]);
 				*pComma = ',';
 				if (PCHAR pComma2 = strchr(&pComma[1], ','))
 				{
 					*pComma2 = 0;
-					P2[1] = (FLOAT)atof(&pComma[1]);
+					P2[1] = (float)atof(&pComma[1]);
 					*pComma2 = ',';
-					P2[2] = (FLOAT)atof(&pComma2[1]);
+					P2[2] = (float)atof(&pComma2[1]);
 				}
 				else
 				{
-					P2[1] = (FLOAT)atof(&pComma[1]);
+					P2[1] = (float)atof(&pComma[1]);
 				}
 			}
 			else
-				P2[0] = (FLOAT)atof(&pColon[1]);
+				P2[0] = (float)atof(&pColon[1]);
 		}
 
 		if (PCHAR pComma = strchr(szIndex, ','))
 		{
 			*pComma = 0;
-			P1[0] = (FLOAT)atof(szIndex);
+			P1[0] = (float)atof(szIndex);
 			*pComma = ',';
 			if (PCHAR pComma2 = strchr(&pComma[1], ','))
 			{
 				*pComma2 = 0;
-				P1[1] = (FLOAT)atof(&pComma[1]);
+				P1[1] = (float)atof(&pComma[1]);
 				*pComma2 = ',';
-				P1[2] = (FLOAT)atof(&pComma2[1]);
+				P1[2] = (float)atof(&pComma2[1]);
 			}
 			else
 			{
-				P1[1] = (FLOAT)atof(&pComma[1]);
+				P1[1] = (float)atof(&pComma[1]);
 			}
 		}
 		else
-			P1[0] = (FLOAT)atof(szIndex);
+			P1[0] = (float)atof(szIndex);
 
 		//DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
 		SPAWNINFO Temp = *GetCharInfo()->pSpawn;
@@ -1473,8 +1473,8 @@ BOOL dataTask(PCHAR szIndex, MQ2TYPEVAR& Ret)
 			}
 			else
 			{
-				CHAR szOut[MAX_STRING] = { 0 };
-				CHAR szTemp[MAX_STRING] = { 0 };
+				char szOut[MAX_STRING] = { 0 };
+				char szTemp[MAX_STRING] = { 0 };
 				strcpy_s(szTemp, szIndex);
 				_strlwr_s(szTemp);
 				//todo: finish this, we can get this stuff done without taskwindow being open.
@@ -1691,7 +1691,7 @@ BOOL dataAdvLoot(PCHAR szIndex, MQ2TYPEVAR& Ret)
 BOOL dataAlert(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0]) {
-		CHAR szTemp[2048] = { 0 };
+		char szTemp[2048] = { 0 };
 		if (CAlerts.ListAlerts(szTemp, 2048)) {
 			strcpy_s(DataTypeTemp, szTemp);
 			Ret.Ptr = &DataTypeTemp[0];

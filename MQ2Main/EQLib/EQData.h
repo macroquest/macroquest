@@ -962,7 +962,7 @@ struct [[offsetcomments]] DOOR
 /*0x00*/ void*         vtable;
 /*0x04*/ BYTE          ObjType;                  // always 5
 /*0x05*/ BYTE          ID;
-/*0x06*/ CHAR          Name[0x20];
+/*0x06*/ char          Name[0x20];
 /*0x26*/ BYTE          Type;
 /*0x27*/ BYTE          State;                    // 0 = closed, 1 = open, 2 = opening, 3 = closing
 /*0x28*/ float         DefaultY;
@@ -990,7 +990,7 @@ struct [[offsetcomments]] DOOR
 /*0x74*/ SHORT         ScaleFactor;              // divide by 100 to get scale multiplier
 /*0x78*/ int           SpellID;
 /*0x7c*/ BYTE          TargetID[0x5];
-/*0x81*/ CHAR          Script[0x20];
+/*0x81*/ char          Script[0x20];
 /*0xa4*/ PEQSWITCH     pSwitch;                  // (CActorInterface*)
 /*0xa8*/ void*         particle;                 // (CParticleCloudInterface*)
 /*0xac*/ DWORD         TimeStamp;                // last time UseSwitch
@@ -1031,7 +1031,7 @@ struct [[offsetcomments]] GROUNDITEM
 /*0x10*/ DWORD               ZoneID;
 /*0x14*/ DWORD               DropSubID;          // well zonefile id, but yeah...
 /*0x18*/ PEQSWITCH           pSwitch;            // (class EQSwitch *)
-/*0x1c*/ CHAR                Name[0x40];
+/*0x1c*/ char                Name[0x40];
 /*0x5c*/ long                Expires;
 /*0x60*/ float               Heading;
 /*0x64*/ float               Pitch;
@@ -1073,9 +1073,9 @@ struct [[offsetcomments]] ZONELIST
 /*0x004*/ DWORD              Unknown0x4;         // pointer to something?
 /*0x008*/ DWORD              EQExpansion;        // szZoneExpansionName[]
 /*0x00c*/ DWORD              Id;                 // EQZoneIndex
-/*0x010*/ CHAR               ShortName[0x80];
+/*0x010*/ char               ShortName[0x80];
 /*0x090*/ BYTE               Unknown0x090;
-/*0x091*/ CHAR               LongName[0x100];
+/*0x091*/ char               LongName[0x100];
 /*0x194*/ DWORD              Unknown0x191;
 /*0x198*/ DWORD              Unknown0x192[0x6];
 /*0x1b0*/ DWORD              ZoneFlags;          // 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
@@ -1383,7 +1383,7 @@ using PGUILDDATA = GUILDDATA*;
 
 struct [[offsetcomments]] GUILD
 {
-/*0x00*/ CHAR                Name[0x40];
+/*0x00*/ char                Name[0x40];
 /*0x40*/ DWORD               ID;                 // maybe this is just a int64 now, not sure needs more investigation.
 /*0x44*/ DWORD               ID2;
 /*0x48*/ GUILD*              pNext;
@@ -1402,13 +1402,13 @@ struct [[offsetcomments]] GUILDS
 /*0x0008*/ DWORD             GuildMemberCount;
 /*0x000c*/ GUILDMEMBER*      pMember;
 /*0x0010*/ BYTE              Unknown0x10[0x51];
-/*0x0061*/ CHAR              GuildMotD[0x200];
-/*0x0261*/ CHAR              GuildLeader[0x40];
+/*0x0061*/ char              GuildMotD[0x200];
+/*0x0261*/ char              GuildLeader[0x40];
 /*0x02a1*/ BYTE              Unknown0x2a1[0x3];
 /*0x02a4*/ DWORD             GuildTribute;
 /*0x02a8*/ BYTE              Unknown0x2a8[0x8dc1];
-/*0x9069*/ CHAR              GuildUrl[0x200];
-/*0x9269*/ CHAR              GuildChannelName[0x80];
+/*0x9069*/ char              GuildUrl[0x200];
+/*0x9269*/ char              GuildChannelName[0x80];
 /*0x92e9*/ BYTE              Unknown0x9e9[0x2f];
 /*0x9318*/ GUILD*            pFirst;
 /*0x931c*/ GUILD*            pLast;
@@ -1598,8 +1598,8 @@ using PEQMERCALTABILITIES = EQMERCALTABILITIES*;
 // size 0x9c 3-18-2015 test see (49A077)
 struct [[offsetcomments]] EQRAIDMEMBER
 {
-/*0x00*/ CHAR      Name[0x40];
-/*0x40*/ CHAR      RaidNote[0x40];
+/*0x00*/ char      Name[0x40];
+/*0x40*/ char      RaidNote[0x40];
 /*0x80*/ DWORD     nLevel;
 /*0x84*/ DWORD     nClass;
 /*0x88*/ BYTE      RaidLeader;
@@ -1625,13 +1625,13 @@ using PEQRAIDMEMBER = EQRAIDMEMBER*;
 struct [[offsetcomments]] EQRAID
 {
 /*0x0000*/ BYTE              Unknown0x0000[0xe0];
-/*0x00e0*/ CHAR              RaidMemberUsed[0x48];
+/*0x00e0*/ char              RaidMemberUsed[0x48];
 /*0x0128*/ EQRAIDMEMBER      RaidMember[0x48];
 /*0x2d08*/ BYTE              Unknown0x2d08[0x4];
 /*0x2d0c*/ DWORD             RaidMemberCount;
-/*0x2d10*/ CHAR              RaidLeaderName[0x40];
-/*0x2d50*/ CHAR              RaidMOTD[0x400];
-/*0x3150*/ CHAR              Inviter[0x40];
+/*0x2d10*/ char              RaidLeaderName[0x40];
+/*0x2d50*/ char              RaidMOTD[0x400];
+/*0x3150*/ char              Inviter[0x40];
 /*0x3190*/ int               Invited;                      // this is an enum, 1 = not in raid, 2 = invited, 4 = in raid
 /*0x3194*/ UINT              RaidID;                       // not sure
 /*0x3198*/ bool              bCreateRaidInvite;
@@ -1639,7 +1639,7 @@ struct [[offsetcomments]] EQRAID
 /*0x319a*/ BYTE              Filler0x319a[0x2];
 /*0x319c*/ DWORD             RaidTarget;
 /*0x31a0*/ DWORD             LootType;
-/*0x31a4*/ CHAR              RaidLooters[0x13][0x40];
+/*0x31a4*/ char              RaidLooters[0x13][0x40];
 /*0x3664*/ DWORD             TotalRaidMemberLevels;        // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
 /*0x3668*/ BYTE              Locked;
 /*0x3669*/ BYTE              Unknown0x3669[0x7];
@@ -1651,10 +1651,10 @@ using PEQRAID = EQRAID*;
 struct [[offsetcomments]] EQGROUP
 {
 /*0x000*/ BYTE         MemberExists[5];
-/*0x005*/ CHAR         MemberName[5][0x40];
+/*0x005*/ char         MemberName[5][0x40];
 /*0x145*/ BYTE         Unused[3];
 /*0x148*/ SPAWNINFO*   pMember[5];
-/*0x15C*/ CHAR         LeaderName[0x40];
+/*0x15C*/ char         LeaderName[0x40];
 /*0x19C*/
 };
 using PEQGROUP = EQGROUP*;
@@ -1711,8 +1711,8 @@ using PCDISPLAY [[deprecated]] = CDISPLAY*;
 // 5-16-06 - ieatacid
 struct [[offsetcomments]] DZTIMERINFO
 {
-/*0x000*/ CHAR   ExpeditionName[0x80];
-/*0x080*/ CHAR   EventName[0x100];
+/*0x000*/ char   ExpeditionName[0x80];
+/*0x080*/ char   EventName[0x100];
 /*0x180*/ DWORD  TimeStamp;                      // TimeStamp - Util__FastTime = time left
 /*0x184*/ DWORD  TimerID;
 /*0x188*/ DZTIMERINFO* pNext;
@@ -1722,7 +1722,7 @@ using PDZTIMERINFO [[deprecated]] = DZTIMERINFO*;
 
 struct [[offsetcomments]] DZMEMBER
 {
-/*0x00*/ CHAR         Name[0x40];
+/*0x00*/ char         Name[0x40];
 /*0x40*/ DWORD        Status;                   // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
 /*0x44*/ DZMEMBER*    pNext;
 /*0x48*/
@@ -1731,7 +1731,7 @@ using PDZMEMBER [[deprecated]] = DZMEMBER*;
 
 struct [[offsetcomments]] TASKMEMBER
 {
-/*0x00*/ CHAR         Name[0x40];
+/*0x00*/ char         Name[0x40];
 /*0x40*/ DWORD        Unknown0x40;
 /*0x44*/ DWORD        IsLeader;
 /*0x48*/ TASKMEMBER*  pNext;
@@ -1743,8 +1743,8 @@ struct [[offsetcomments]] DYNAMICZONE
 {
 /*0x000*/ void*        vftable;
 /*0x004*/ BYTE         Unknown0x04[0x46];
-/*0x04a*/ CHAR         Name[0x40];               // Leaders name
-/*0x08a*/ CHAR         ExpeditionName[0x80];
+/*0x04a*/ char         Name[0x40];               // Leaders name
+/*0x08a*/ char         ExpeditionName[0x80];
 /*0x10a*/ BYTE         Unknown0x10a[0x2];
 /*0x10c*/ WORD         MaxPlayers;
 /*0x10e*/ BYTE         Unknown0x10e[0x2];
@@ -1827,10 +1827,10 @@ struct [[offsetcomments]] PETITIONSTATUS
 /*0x04*/ int           Priority;                 // todo: check
 /*0x08*/ int           State;                    // todo: figure out.
 /*0x0c*/ DWORD         ArrivalTime;
-/*0x10*/ CHAR          User[0x20];
-/*0x30*/ CHAR          Player[0x40];
+/*0x10*/ char          User[0x20];
+/*0x30*/ char          Player[0x40];
 /*0x70*/ int           NumActive;
-/*0x74*/ CHAR          Player2[0x40];
+/*0x74*/ char          Player2[0x40];
 /*0xb4*/ DWORD         TimeStamp;                // not sure what its for
 /*0xb8*/
 };
@@ -1839,7 +1839,7 @@ using PPETITIONSTATUS [[deprecated]] = PETITIONSTATUS*;
 // size is 0x170 see 4467A5 in Sep 18 2017 Live
 struct [[offsetcomments]] CSINFO
 {
-/*0x000*/ CHAR         Name[0x40];
+/*0x000*/ char         Name[0x40];
 /*0x040*/ int          Class;
 /*0x044*/ int          Race;
 /*0x048*/ BYTE         Level;
@@ -1850,10 +1850,10 @@ struct [[offsetcomments]] CSINFO
 /*0x059*/ BYTE         Face;
 /*0x05c*/ ArmorProperties ArmProp[9];            // size /*0x14*/ * 9 = 0xB4
 /*0x110*/ DWORD        Tint[9];                  // size 0x24
-/*0x134*/ CHAR         TextureType;
-/*0x135*/ CHAR         ArmorMaterial;
-/*0x136*/ CHAR         ArmorVariation;
-/*0x137*/ CHAR         HeadType;
+/*0x134*/ char         TextureType;
+/*0x135*/ char         ArmorMaterial;
+/*0x136*/ char         ArmorVariation;
+/*0x137*/ char         HeadType;
 /*0x138*/ int          TattooIndex;
 /*0x13c*/ int          FacialAttachmentIndex;
 /*0x140*/ int          Deity;
@@ -1894,8 +1894,8 @@ struct [[offsetcomments]] _EVERQUEST
 /*0x002a4*/ CHATSERVICE*     ChatService;
 /*0x002a8*/ BYTE             Unknown0x2a8[0x8];
 /*0x002b0*/ bool             bJoinedChannel;
-/*0x002b1*/ CHAR             ChannelPlayerName[0x100];
-/*0x003b1*/ CHAR             ChannelName[0xa][0x30];
+/*0x002b1*/ char             ChannelPlayerName[0x100];
+/*0x003b1*/ char             ChannelName[0xa][0x30];
 /*0x00591*/ BYTE             Unknown0x591[0x3];
 /*0x00594*/ DWORD            ChannelNumber[0xa];
 /*0x005bc*/ int              ChannelQty;
@@ -1919,10 +1919,10 @@ struct [[offsetcomments]] _EVERQUEST
 /*0x0061c*/ PETITIONSTATUS   PetitionStatus[0x200];        // size 0xb8 * 0x200 = 0x17000
 /*0x1761c*/ int              TotalQ;                       // see 760EE8 in Sep 18 2017
 /*0x17620*/ int              TotalClientPetitions;
-/*0x17624*/ CHAR             ChatText[0x840];
+/*0x17624*/ char             ChatText[0x840];
 /*0x17e64*/ int              TrimIdx;                      // correct
-/*0x17e68*/ CHAR             ChatChanged;                  // 1 or 0?
-/*0x17e69*/ CHAR             Trim[0x40][0x840];            // correct. size 0x40*0x840= 0x21000
+/*0x17e68*/ char             ChatChanged;                  // 1 or 0?
+/*0x17e69*/ char             Trim[0x40][0x840];            // correct. size 0x40*0x840= 0x21000
 /*0x38e6c*/ BOOL             bChat;
 /*0x38e70*/ int              Unknown0x38E70;
 /*0x38e74*/ int              Red;                          // for sure see 564105 in spe 18 2017 exe
@@ -1936,7 +1936,7 @@ using PEVERQUEST [[deprecated]] = _EVERQUEST*;
 
 struct [[offsetcomments]] AURAINFO
 {
-/*0x00*/ CHAR         Name[0x40];
+/*0x00*/ char         Name[0x40];
 /*0x40*/ uint32_t     SpawnID;
 /*0x44*/ int          Cost;
 /*0x48*/ int          IconnID;
@@ -1986,7 +1986,7 @@ struct [[offsetcomments]] MERCSINFO
 /*0x0c*/ DWORD         Purchase;                 // in copper
 /*0x10*/ DWORD         Upkeep;                   // in copper
 /*0x14*/ BYTE          Unknown0x14[0x2c];
-/*0x40*/ CHAR          Name[0xC];
+/*0x40*/ char          Name[0xC];
 /*0x4c*/ BYTE          Unknown0x4c[0x88];
 /*0xd4*/
 };
@@ -2011,7 +2011,7 @@ struct [[offsetcomments]] MERCENARYINFO
 /*0x118*/ BYTE               Unknown0x118[0x30];
 /*0x148*/ DWORD              ActiveStance;
 /*0x14c*/ BYTE               Unknown0x14c[0x10];
-/*0x15c*/ CHAR               MercName[0x18];
+/*0x15c*/ char               MercName[0x18];
 /*0x174*/ BYTE               Unknown0x174[0x7c];
 /*0x1f0*/ int                MercenaryCount;     // how many mercenaries we have
 /*0x1f4*/ MERCSLIST*         pMercsList;

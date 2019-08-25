@@ -158,9 +158,9 @@ struct [[offsetcomments]] SPELL
 /*0x18b*/ BYTE    TravelType;
 /*0x18c*/ BYTE    CancelOnSit;
 /*0x18d*/ bool    CountdownHeld;
-/*0x18e*/ CHAR    Name[0x40];                    // for sure see 557AAA
-/*0x1ce*/ CHAR    Target[0x20];
-/*0x1ee*/ CHAR    Extra[0x20];                   // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
+/*0x18e*/ char    Name[0x40];                    // for sure see 557AAA
+/*0x1ce*/ char    Target[0x20];
+/*0x1ee*/ char    Extra[0x20];                   // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
 /*0x20e*/ BYTE    ShowWearOffMessage;
 /*0x20f*/ BYTE    NPCChanceofKnowingSpell;       // if this is 0 there is no way an npc can cast this spell...
 /*0x210*/ BYTE    SneakAttack;
@@ -279,7 +279,7 @@ struct [[offsetcomments]] SPELLBUFF
 /*0x00*/ BYTE      Type;
 /*0x01*/ BYTE      Level;                        // casterlevel
 /*0x02*/ BYTE      ChargesRemaining;
-/*0x03*/ CHAR      DamageShield;                 // Activatable
+/*0x03*/ char      DamageShield;                 // Activatable
 /*0x04*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
 /*0x08*/ LONG      SpellID;                      // -1 or 0 for no spell..
 /*0x0c*/ DWORD     Duration;

@@ -166,12 +166,12 @@ enum eContextMenuFilterIDs
 struct [[offsetcomments]] LOOTCORPSE
 {
 /*0x000*/ BYTE         Unknown0x000;             // 03 seems very common (for NPC anyway)
-/*0x001*/ CHAR         Name[0x4b];
-/*0x04c*/ FLOAT        Timer;                    // Uncertain the equation used here, but fairly certain it's the timer
-/*0x050*/ FLOAT        X;
+/*0x001*/ char         Name[0x4b];
+/*0x04c*/ float        Timer;                    // Uncertain the equation used here, but fairly certain it's the timer
+/*0x050*/ float        X;
 /*0x054*/ BYTE         Unknown0x054[0x4];
-/*0x058*/ FLOAT        Y;
-/*0x05c*/ FLOAT        Z;
+/*0x058*/ float        Y;
+/*0x05c*/ float        Z;
 /*0x060*/ BYTE         Unknown0x060[0x24];
 /*0x084*/ DWORD        Flags;
 /*0x088*/ BYTE         Unknown0x088[0x4];

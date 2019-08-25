@@ -108,21 +108,9 @@ extern CRITICAL_SECTION gPluginCS;
 #define FromPlugin 0
 #endif
 
-// reroute malloc/free
-EQLIB_API void* MQ2Malloc(size_t size);
-EQLIB_API void MQ2Free(void *memblock);
-
-#ifdef DEBUG_ALLOC
-extern DWORD CountMallocs;
-extern DWORD CountFrees;
-#endif
-
 #define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
 #define EzDetourwName(offset,detour,trampoline,name) AddDetourf((DWORD)offset,detour,trampoline,name)
 
-#ifndef DOUBLE
-typedef double DOUBLE;
-#endif
 #ifndef THIS_
 #define THIS_                   INTERFACE FAR* This,
 #endif
@@ -261,7 +249,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
 EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize);
 
 template <unsigned int _Size>
-inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, CHAR(&szOriginal)[_Size])
+inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, char(&szOriginal)[_Size])
 {
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
@@ -330,10 +318,10 @@ EQLIB_API void DebugSpew(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewAlways(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewAlwaysFile(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...);
-EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
-EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
+EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, char Separator = 0);
+EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, char Separator = 0, BOOL AnyNonAlphaNum = FALSE);
 EQLIB_API void AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
-EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
+EQLIB_API float DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
 
 #define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute,FromPlugin)
@@ -394,7 +382,7 @@ EQLIB_VAR BOOL bPluginCS;
 
 struct RefreshKeyRingsThreadData
 {
-	CHAR ItemName[256];
+	char ItemName[256];
 	CSidlScreenWnd *phWnd;
 	bool bExact;
 	bool bUseCmd;
@@ -430,7 +418,7 @@ EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API void GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize);
 
 template <unsigned int _Size>
-inline void GetItemLinkHash(CONTENTS* Item, CHAR(&Buffer)[_Size])
+inline void GetItemLinkHash(CONTENTS* Item, char(&Buffer)[_Size])
 {
 	return GetItemLinkHash(Item, Buffer, _Size);
 }
@@ -438,14 +426,14 @@ inline void GetItemLinkHash(CONTENTS* Item, CHAR(&Buffer)[_Size])
 EQLIB_API bool GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
 
 template <unsigned int _Size>
-inline bool GetItemLink(CONTENTS* Item, CHAR(&Buffer)[_Size], BOOL Clickable = TRUE)
+inline bool GetItemLink(CONTENTS* Item, char(&Buffer)[_Size], BOOL Clickable = TRUE)
 {
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
 
 EQLIB_API PCHAR GetLoginName();
-EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
-EQLIB_API FLOAT Distance3DToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc, FLOAT zLoc);
+EQLIB_API float DistanceToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc);
+EQLIB_API float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, float zLoc);
 EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize);
 EQLIB_API PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level = 100);
 
@@ -510,7 +498,7 @@ EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCH
 EQLIB_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
+EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius);
 EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
 EQLIB_API BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
 EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
@@ -525,7 +513,7 @@ EQLIB_API void RewriteSubstitutions();
 EQLIB_API void RewriteAliases();
 EQLIB_API void WriteAliasToIni(char*Name, char*Command);
 EQLIB_API DWORD FindSpellListByName(PCHAR szName);
-EQLIB_API FLOAT StateHeightMultiplier(DWORD StandState);
+EQLIB_API float StateHeightMultiplier(DWORD StandState);
 EQLIB_API DWORD WINAPI thrMsgBox(LPVOID lpParameter);
 extern void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color);
 extern void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
@@ -540,8 +528,8 @@ EQLIB_API PCHAR       GetShortZone(DWORD ZoneID);
 //EQLIB_API void        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
 //EQLIB_API void        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
 //EQLIB_API void        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding = 0, DWORD Color = 0);
-EQLIB_API FLOAT       DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
-EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
+EQLIB_API float       DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
+EQLIB_API float       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API DWORD WINAPI InsertCommands(LPVOID lpParameter);
 EQLIB_API void        UpdateMonitoredSpawns();
 EQLIB_API PCHAR       GetModel(PSPAWNINFO pSpawn, DWORD Slot);
@@ -618,7 +606,7 @@ EQLIB_API void EndAllMacros();
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
 
-EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
+EQLIB_API BOOL Calculate(PCHAR szFormula, double& Dest);
 
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"

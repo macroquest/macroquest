@@ -507,7 +507,7 @@ public:
 		Cleanup();
 	}
 
-	template <unsigned int _Size>unsigned int Feed(CHAR(&Input)[_Size])
+	template <unsigned int _Size>unsigned int Feed(char(&Input)[_Size])
 	{
 		BlechDebug("Feed(%s)", Input);
 		if (!Input || !Input[0])

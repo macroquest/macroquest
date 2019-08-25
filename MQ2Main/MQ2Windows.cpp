@@ -849,7 +849,7 @@ public:
 		return CFindItemWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
 
-	int CBankWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*);
+	int CBankWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
 	int CBankWnd__WndNotification_Detour(CXWnd* pWnd, unsigned int uiMessage, void* pData)
 	{
 		CBankWnd* pThis = (CBankWnd*)this;
@@ -998,9 +998,9 @@ public:
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(const CXStr&, int));
-DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
-DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
-DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CFindItemWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CFindItemWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*));
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::CFindItemWnd__Update_Tramp());
 
 class CXWndManagerHook
@@ -1381,7 +1381,7 @@ void InitializeMQ2Windows()
 	for (int i = 0; i < NUM_INV_SLOTS; i++)
 		ItemSlotMap[szItemSlot[i]] = i;
 
-	CHAR szOut[MAX_STRING] = { 0 };
+	char szOut[MAX_STRING] = { 0 };
 
 #define AddSlotArray(name, count, start)     \
 	for (int i = 0; i < count; i++)          \
@@ -2269,7 +2269,7 @@ bool SendTabSelect(const char* WindowName, const char* ScreenID, int Value)
 
 bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data)
 {
-	CHAR szOut[MAX_STRING] = { 0 };
+	char szOut[MAX_STRING] = { 0 };
 
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!pWnd)
@@ -2561,10 +2561,10 @@ void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	unsigned long Data = 0;
 
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
-	CHAR szArg3[MAX_STRING] = { 0 };
-	CHAR szArg4[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	char szArg3[MAX_STRING] = { 0 };
+	char szArg4[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 	GetArg(szArg3, szLine, 3);
@@ -2732,10 +2732,10 @@ bool CheckLootArg(char* arg, char* search, int argcnt, int* slot)
 
 void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
-	CHAR szArg3[MAX_STRING] = { 0 };
-	CHAR szArg4[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	char szArg3[MAX_STRING] = { 0 };
+	char szArg4[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 	GetArg(szArg3, szLine, 3);
@@ -2848,7 +2848,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 					{
 						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 						{
-							CHAR cmd[MAX_STRING] = { 0 };
+							char cmd[MAX_STRING] = { 0 };
 							sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 							EzCommand(cmd);
 							return;
@@ -2997,7 +2997,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 
 					if (pClicky && pClicky->Clicky.SpellID != -1)
 					{
-						CHAR cmd[512] = { 0 };
+						char cmd[512] = { 0 };
 						sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
 						EzCommand(cmd);
 
@@ -3078,13 +3078,13 @@ void ReloadUI(PSPAWNINFO pChar, PCHAR szLine)
 	PCHARINFO pCharInfo = GetCharInfo();
 	if (!pCharInfo) return;
 
-	CHAR szFilename[MAX_PATH];
-	CHAR UISkin[256];
+	char szFilename[MAX_PATH];
+	char UISkin[256];
 
 	sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
 	GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
-	CHAR szBuffer[50];
+	char szBuffer[50];
 	sprintf_s(szBuffer, "/loadskin %s 1", UISkin);
 
 	DoCommand(pChar, szBuffer);

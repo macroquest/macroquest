@@ -78,7 +78,7 @@ void FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
 // ***************************************************************************
 void Delay(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szVal[MAX_STRING] = { 0 };
+	char szVal[MAX_STRING] = { 0 };
 	LONG VarValue;
 
 	if (szLine[0] == 0) {
@@ -100,10 +100,10 @@ void Delay(PSPAWNINFO pChar, PCHAR szLine)
 	gDelay = VarValue;
 	bRunNextCommand = false;
 	if (gDelayCondition[0]) {
-		CHAR szCond[MAX_STRING];
+		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
-		DOUBLE Result;
+		double Result;
 		if (!Calculate(szCond, Result)) {
 			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
 			return;
@@ -130,7 +130,7 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t 
 		szSubParamNamePointer++;
 	if (szSubParamNamePointer[0] != 0)
 	{
-		CHAR Temp[MAX_STRING] = { 0 };
+		char Temp[MAX_STRING] = { 0 };
 		GetArg(Temp, szSubParamNamePointer, ParamNum + 1, TRUE, TRUE, TRUE, ',');
 		//DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
 		if (*Temp && Temp[strlen(Temp) - 1] == ')')
@@ -202,7 +202,7 @@ void CleanMacroLine(PCHAR szLine)
 // ***************************************************************************
 DWORD Include(PCHAR szFile, int *LineNumber)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	FILE *fMacro = 0;
 	errno_t err = fopen_s(&fMacro, szFile, "rt");
 	BOOL InBlockComment = FALSE;
@@ -260,7 +260,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 	PDEFINE pDef = pDefines;
 	if (szLine[0] != '#') while (pDef) {
 		while (strstr(szLine, pDef->szName)) {
-			CHAR szNew[MAX_STRING] = { 0 };
+			char szNew[MAX_STRING] = { 0 };
 			strncpy_s(szNew, szLine, strstr(szLine, pDef->szName) - szLine);
 			strcat_s(szNew, pDef->szReplace);
 			strcat_s(szNew, strstr(szLine, pDef->szName) + strlen(pDef->szName));
@@ -270,7 +270,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 	}
 	if (szLine[0] == '#') {
 		if (!_strnicmp(szLine, "#include ", 9)) {
-			CHAR Filename[MAX_STRING] = { 0 };
+			char Filename[MAX_STRING] = { 0 };
 			szLine += 8;
 			while (szLine[0] == ' ') szLine++;
 
@@ -289,7 +289,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 		}
 		else if (!_strnicmp(szLine, "#turbo", 6)) {
 			gTurbo = TRUE;
-			CHAR szArg[MAX_STRING] = { 0 };
+			char szArg[MAX_STRING] = { 0 };
 			GetArg(szArg, szLine, 2);
 			gMaxTurbo = atoi(szArg);
 			if (gMaxTurbo == 0)
@@ -301,8 +301,8 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			}
 		}
 		else if (!_strnicmp(szLine, "#define ", 8)) {
-			CHAR szArg1[MAX_STRING] = { 0 };
-			CHAR szArg2[MAX_STRING] = { 0 };
+			char szArg1[MAX_STRING] = { 0 };
+			char szArg2[MAX_STRING] = { 0 };
 			PDEFINE pDef = (PDEFINE)malloc(sizeof(DEFINE));
 			GetArg(szArg1, szLine, 2);
 			GetArg(szArg2, szLine, 3);
@@ -317,8 +317,8 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			}
 		}
 		else if (!_strnicmp(szLine, "#event ", 7)) {
-			CHAR szArg1[MAX_STRING] = { 0 };
-			CHAR szArg2[MAX_STRING] = { 0 };
+			char szArg1[MAX_STRING] = { 0 };
+			char szArg2[MAX_STRING] = { 0 };
 			PEVENTLIST pEvent = (PEVENTLIST)malloc(sizeof(EVENTLIST));
 			GetArg(szArg1, szLine, 2);
 			GetArg(szArg2, szLine, 3);
@@ -326,7 +326,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 				sprintf_s(pEvent->szName, "Sub Event_%s", szArg1);
 				if (char*pDest = strstr(szArg2, "${")) {
 					//its a variable... so we must "/declare" it for them...
-					CHAR szVar[MAX_STRING] = { 0 };
+					char szVar[MAX_STRING] = { 0 };
 					strcpy_s(szVar, &pDest[2]);
 					if (pDest = strchr(szVar, '}')) {
 						pDest[0] = '\0';
@@ -351,8 +351,8 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 		}
 		else if (!_strnicmp(szLine, "#bind ", 6))
 		{
-			CHAR szArg1[MAX_STRING] = { 0 };
-			CHAR szArg2[MAX_STRING] = { 0 };
+			char szArg1[MAX_STRING] = { 0 };
+			char szArg2[MAX_STRING] = { 0 };
 			PBINDLIST pBind = (PBINDLIST)malloc(sizeof(BINDLIST));
 			GetArg(szArg1, szLine, 2);
 			GetArg(szArg2, szLine, 3);
@@ -371,8 +371,8 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 		{
 			if (gknightlyparse)
 			{
-				CHAR szArg1[MAX_STRING] = { 0 };
-				CHAR szArg2[MAX_STRING] = { 0 };
+				char szArg1[MAX_STRING] = { 0 };
+				char szArg2[MAX_STRING] = { 0 };
 				PBINDLIST pBind = (PBINDLIST)malloc(sizeof(BINDLIST));
 				GetArg(szArg1, szLine, 2);
 				GetArg(szArg2, szLine, 3);
@@ -427,7 +427,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 				pEvent->pEventFunc = *LineNumber;
 			}
 			else {
-				CHAR szNameP[MAX_STRING] = { 0 };
+				char szNameP[MAX_STRING] = { 0 };
 				sprintf_s(szNameP, "%s(", pEvent->szName);
 				if (!_strnicmp(szLine, szNameP, strlen(szNameP))) {
 					pEvent->pEventFunc = *LineNumber;
@@ -586,8 +586,8 @@ void Macro(PSPAWNINFO pChar, PCHAR szLine)
 {
 	gWarning = FALSE;
 	bRunNextCommand = TRUE;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR Filename[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char Filename[MAX_STRING] = { 0 };
 	PCHAR Params = NULL;
 	PCHAR szNext = NULL;
 	BOOL InBlockComment = FALSE;
@@ -820,8 +820,8 @@ void Goto(PSPAWNINFO pChar, PCHAR szLine)
 
 void DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR szSub[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char szSub[MAX_STRING] = { 0 };
 	PMACROSTACK pMS = gMacroStack;
 	PMACROBLOCK pMB = 0;
 	MACROLINE ml;
@@ -844,10 +844,10 @@ void DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
-	CHAR szArg3[MAX_STRING] = { 0 };
-	CHAR MacroName[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	char szArg3[MAX_STRING] = { 0 };
+	char MacroName[MAX_STRING] = { 0 };
 	BOOL bKeepKeys = gKeepKeys;
 	if (strstr(szLine, "keep keys")) {
 		bKeepKeys = TRUE;
@@ -896,7 +896,7 @@ void EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 	LARGE_INTEGER PerformanceFrequency;
 	QueryPerformanceCounter(&PerformanceFrequency);
 
-	CHAR Filename[MAX_STRING] = { 0 };
+	char Filename[MAX_STRING] = { 0 };
 	FILE *fMacro = NULL;
 	for (std::map<int, MACROLINE>::iterator i = pBlock->Line.begin(); i != pBlock->Line.end(); i++) {
 		// Is this a different macro file?
@@ -1027,7 +1027,7 @@ void Call(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	bRunNextCommand = TRUE;
-	CHAR SubName[MAX_STRING];
+	char SubName[MAX_STRING];
 	GetArg(SubName, szLine, 1);
 	PCHAR SubParam = GetNextArg(szLine);
 
@@ -1072,9 +1072,9 @@ void Call(PSPAWNINFO pChar, PCHAR szLine)
 	MACROLINE ml = gMacroBlock->Line[MacroLine];
 	int numsubargs = GetNumArgsFromSub(ml.Command);
 	if ((SubParam && SubParam[0]!='\0') || numsubargs) {
-		CHAR szParamName[MAX_STRING] = { 0 };
-		CHAR szParamType[MAX_STRING] = { 0 };
-		CHAR szNewValue[MAX_STRING] = { 0 };
+		char szParamName[MAX_STRING] = { 0 };
+		char szParamType[MAX_STRING] = { 0 };
+		char szNewValue[MAX_STRING] = { 0 };
 		auto name = (PCHAR)ml.Command.c_str();
 		for (int StackNum = 0; StackNum < numsubargs || SubParam[0] != '\0'; StackNum++) {
 			GetArg(szNewValue, SubParam, 1);
@@ -1129,12 +1129,12 @@ void NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	*pEnd = 0;
-	CHAR szCond[MAX_STRING] = { 0 };
+	char szCond[MAX_STRING] = { 0 };
 	strcpy_s(szCond, szLine);
 	*pEnd = ' ';
 	++pEnd;
 
-	DOUBLE Result = 0;
+	double Result = 0;
 	if (!Calculate(szCond, Result))
 	{
 		FatalError("Failed to parse /if condition '%s', non-numeric encountered", szCond);
@@ -1244,7 +1244,7 @@ static void MarkWhile(PCHAR szCommand, Loop& loop)
 // ***************************************************************************
 void WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szCond[MAX_STRING] = { 0 };
+	char szCond[MAX_STRING] = { 0 };
 
 	if (szLine[0] != '(')
 	{
@@ -1288,7 +1288,7 @@ void WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 	*pEnd = ' ';
 	++pEnd;
 
-	DOUBLE Result = 0;
+	double Result = 0;
 	if (!Calculate(szCond, Result))
 	{
 		FatalError("Failed to parse /while condition '%s', non-numeric encountered", szCond);
@@ -1316,8 +1316,8 @@ void DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!gEventQueue || !gMacroStack)
 		return;
-	CHAR Arg1[MAX_STRING] = { 0 };
-	CHAR Arg2[MAX_STRING] = { 0 };
+	char Arg1[MAX_STRING] = { 0 };
+	char Arg2[MAX_STRING] = { 0 };
 
 	GetArg(Arg1, szLine, 1);
 
@@ -1478,10 +1478,10 @@ void Return(PSPAWNINFO pChar, PCHAR szLine)
 void For(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	CHAR ArgLoop[MAX_STRING] = { 0 };
-	CHAR ArgStart[MAX_STRING] = { 0 };
-	CHAR ArgDirection[MAX_STRING] = { 0 };
-	CHAR ArgEnd[MAX_STRING] = { 0 };
+	char ArgLoop[MAX_STRING] = { 0 };
+	char ArgStart[MAX_STRING] = { 0 };
+	char ArgDirection[MAX_STRING] = { 0 };
+	char ArgEnd[MAX_STRING] = { 0 };
 
 	GetArg(ArgLoop, szLine, 1);
 	GetArg(ArgStart, szLine, 2);
@@ -1537,7 +1537,7 @@ void For(PSPAWNINFO pChar, PCHAR szLine)
 void Next(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	CHAR szNext[MAX_STRING];
+	char szNext[MAX_STRING];
 	GetArg(szNext, szLine, 1);
 	PDATAVAR pVar = FindMQ2DataVariable(szNext);
 	if (!pVar)
@@ -1563,11 +1563,11 @@ void Next(PSPAWNINFO pChar, PCHAR szLine)
 	gMacroStack->loop_stack[size-1].last_line = gMacroBlock->CurrIndex;
 	auto MacroLine = gMacroStack->loop_stack[size-1].first_line;
 	auto iter = gMacroBlock->Line.find(MacroLine);
-	CHAR ForLine[MAX_STRING];
+	char ForLine[MAX_STRING];
 	strcpy_s(ForLine, iter->second.Command.c_str());
 	ParseMacroParameter(pChar, ForLine);
 	DWORD VarNum = atoi(szLine + 1);
-	CHAR szTemp[MAX_STRING];
+	char szTemp[MAX_STRING];
 	strcpy_s(szTemp, ForLine);
 	_strlwr_s(szTemp);
 	LONG StepSize = 1;
@@ -1653,7 +1653,7 @@ void Continue(PSPAWNINFO pChar, PCHAR szLine)
 		const char* line = i->second.Command.c_str();
 		if (!_strnicmp(line, "/next", 5))
 		{
-			CHAR for_var[MAX_STRING];
+			char for_var[MAX_STRING];
 			GetArg(for_var, line, 2);
 			if (_stricmp(for_var, loop.for_variable.c_str()))
 				continue;
@@ -1701,7 +1701,7 @@ void Break(PSPAWNINFO pChar, PCHAR szLine)
 		const char *line = i->second.Command.c_str();
 		if (!_strnicmp(line, "/next", 5))
 		{
-			CHAR for_var[MAX_STRING];
+			char for_var[MAX_STRING];
 			GetArg(for_var, line, 2);
 			if (_stricmp(for_var, loop.for_variable.c_str())) continue;
 			gMacroBlock->CurrIndex = i->first;

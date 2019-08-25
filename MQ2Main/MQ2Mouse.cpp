@@ -165,8 +165,8 @@ bool MoveMouse(int x, int y, bool bClick)
 
 BOOL ParseMouseLoc(CHARINFO* pCharInfo, PCHAR szMouseLoc)
 {
-	CHAR szArg1[MAX_STRING] = {0};
-	CHAR szArg2[MAX_STRING] = {0};
+	char szArg1[MAX_STRING] = {0};
+	char szArg2[MAX_STRING] = {0};
 	int ClickX; //actual location to click, calculated from ButtonX
 	int ClickY; //actual location to click, calculated from ButtonY
 	if (!_strnicmp(szMouseLoc, "target", 6)) {
@@ -260,8 +260,8 @@ void MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 
 void ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
 {
-    CHAR szArg1[MAX_STRING] = {0};
-    CHAR szArg2[MAX_STRING] = {0};
+    char szArg1[MAX_STRING] = {0};
+    char szArg2[MAX_STRING] = {0};
     int ClickX; //actual location to click, calculated from ButtonX
     int ClickY; //actual location to click, calculated from ButtonY
 
@@ -331,10 +331,10 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	if (gZoning) return;
-	CHAR szMouseLoc[MAX_STRING] = { 0 };
+	char szMouseLoc[MAX_STRING] = { 0 };
     MOUSE_DATA_TYPES mdType = MD_Unknown;
     DWORD RightOrLeft = 0; 
-	CHAR szArg1[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
     GetArg(szArg1, szLine, 1); //left or right
     strcpy_s(szMouseLoc,GetNextArg(szLine, 1)); //location to click
 
@@ -560,7 +560,7 @@ EQD3DMATRIX9* WINAPI EQD3DXMatrixMultiply(EQD3DMATRIX9 *pout, CONST EQD3DMATRIX9
 
 ScreenVector3* WINAPI EQD3DXVec3TransformCoord(ScreenVector3 *pout, CONST ScreenVector3 *pv, CONST EQD3DMATRIX9 *pm)
 {
-	FLOAT norm;
+	float norm;
 	norm = pm->m[0][3] * pv->x + pm->m[1][3] * pv->y + pm->m[2][3] *pv->z + pm->m[3][3];
 	if ( norm )	{
 		pout->x = (pm->m[0][0] * pv->x + pm->m[1][0] * pv->y + pm->m[2][0] * pv->z + pm->m[3][0]) / norm;

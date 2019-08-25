@@ -22,7 +22,7 @@
 typedef struct _OurDetours {
 /* 0x00 */    unsigned int addr;
 /* 0x04 */    unsigned int count;
-/* 0x08 */    CHAR Name[0x64];
+/* 0x08 */    char Name[0x64];
 /* 0x6c */    unsigned char array[0x40];
 /* 0xac */    PBYTE pfDetour;
 /* 0xb0 */    PBYTE pfTrampoline;
@@ -50,7 +50,7 @@ OurDetours *FindDetour(DWORD address)
 BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count, PCHAR Name)
 {
 	CAutoLock Lock(&gDetourCS);
-	CHAR szName[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	if (Name && Name[0] != '\0') {
 		strcpy_s(szName, Name);
 	} else {
@@ -139,7 +139,7 @@ void RemoveDetour(DWORD address)
 	CAutoLock Lock(&gDetourCS);
 	OurDetours *detour = ourdetours;
 	HMODULE hModule = 0;
-	CHAR szFilename[MAX_STRING] = { 0 };
+	char szFilename[MAX_STRING] = { 0 };
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)address, &hModule);
 	DWORD myaddress = (DWORD)hModule;
 	GetModuleFileName(hModule, szFilename, MAX_STRING);

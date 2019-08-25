@@ -143,7 +143,7 @@ public:
 
 		if (!SkipTrampoline) {
 			if (gAnonymize) {
-				CHAR *szName = new CHAR[64];
+				char *szName = new char[64];
 				strcpy_s(szName, 64, from);
 				Anonymize(szName,64);
 				TellWnd_Trampoline(message, szName, szName, text, color, bLogOk);
@@ -163,11 +163,11 @@ public:
 	void UPCNotificationFlush_Detour()
 	{
 		if (EVERQUEST* eq = (EVERQUEST*)this) {
-			CHAR szBuf[MAX_STRING] = { 0 };
+			char szBuf[MAX_STRING] = { 0 };
 			if (eq->ChannelQty > 0) {
 				int len = 0;
 				sprintf_s(szBuf, "* %s has %s channel ", eq->ChannelPlayerName, eq->bJoinedChannel ? "entered" : "left");
-				CHAR szTemp[MAX_STRING] = { 0 };
+				char szTemp[MAX_STRING] = { 0 };
 				int max = eq->ChannelQty;
 				if (max > 9)
 					max = 9;

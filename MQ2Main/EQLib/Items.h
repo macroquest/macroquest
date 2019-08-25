@@ -228,7 +228,7 @@ struct [[offsetcomments]] ITEMSPELLS
 /*0x14*/ DWORD TimerID;                          // RecastTime
 /*0x18*/ DWORD RecastType;
 /*0x1c*/ DWORD ProcRate;                         // chance to proc
-/*0x20*/ CHAR  OtherName[0x40];                  // some kind of override
+/*0x20*/ char  OtherName[0x40];                  // some kind of override
 /*0x60*/ DWORD OtherID;                          // Description ID
 /*0x64*/
 };
@@ -265,11 +265,11 @@ public:
 // actual size: 0x70c Oct 31 2018 Beta (see 7291CC)
 struct [[offsetcomments]] ITEMINFO
 {
-/*0x000*/ CHAR                Name[ITEM_NAME_LEN];
-/*0x040*/ CHAR                LoreName[LORE_NAME_LEN];
-/*0x090*/ CHAR                AdvancedLoreName[0x20];
-/*0x0b0*/ CHAR                IDFile[0x1e];
-/*0x0ce*/ CHAR                IDFile2[0x1e];
+/*0x000*/ char                Name[ITEM_NAME_LEN];
+/*0x040*/ char                LoreName[LORE_NAME_LEN];
+/*0x090*/ char                AdvancedLoreName[0x20];
+/*0x0b0*/ char                IDFile[0x1e];
+/*0x0ce*/ char                IDFile2[0x1e];
 /*0x0ec*/ DWORD               ItemNumber;                        // recordnum
 /*0x0f0*/ DWORD               EquipSlots;                        // its position, where it can be equipped
 /*0x0f4*/ DWORD               Cost;
@@ -299,19 +299,19 @@ struct [[offsetcomments]] ITEMINFO
 /*0x124*/ int                 LoreEquipped;                      // just guessing todo: check
 /*0x128*/ bool                Artifact;
 /*0x129*/ bool                Summoned;
-/*0x12a*/ CHAR                SvCold;
-/*0x12b*/ CHAR                SvFire;                            // 8848B0 jun 11 2018 test
-/*0x12c*/ CHAR                SvMagic;
-/*0x12d*/ CHAR                SvDisease;
-/*0x12e*/ CHAR                SvPoison;
-/*0x12f*/ CHAR                SvCorruption;
-/*0x130*/ CHAR                STR;
-/*0x131*/ CHAR                STA;                               // 884B20 jun 11 2018 test
-/*0x132*/ CHAR                AGI;
-/*0x133*/ CHAR                DEX;
-/*0x134*/ CHAR                CHA;                               // 883E20 jun 11 2018 test
-/*0x135*/ CHAR                INT;
-/*0x136*/ CHAR                WIS;
+/*0x12a*/ char                SvCold;
+/*0x12b*/ char                SvFire;                            // 8848B0 jun 11 2018 test
+/*0x12c*/ char                SvMagic;
+/*0x12d*/ char                SvDisease;
+/*0x12e*/ char                SvPoison;
+/*0x12f*/ char                SvCorruption;
+/*0x130*/ char                STR;
+/*0x131*/ char                STA;                               // 884B20 jun 11 2018 test
+/*0x132*/ char                AGI;
+/*0x133*/ char                DEX;
+/*0x134*/ char                CHA;                               // 883E20 jun 11 2018 test
+/*0x135*/ char                INT;
+/*0x136*/ char                WIS;
 /*0x138*/ int                 HP;                                // 884010 jun 11 2018 test
 /*0x13c*/ int                 Mana;
 /*0x140*/ int                 AC;
@@ -366,7 +366,7 @@ struct [[offsetcomments]] ITEMINFO
 /*0x230*/ int                 Unknown0x0230;
 //*0x0228*/ DWORD               FactionModType[0x4];
 //*0x0238*/ DWORD               FactionModValue[0x4];
-/*0x234*/ CHAR                CharmFile[0x20];
+/*0x234*/ char                CharmFile[0x20];
 /*0x254*/ float               Unknown0x0254;
 /*0x258*/ ITEMSPELLS          Clicky;                     // size 0x64
 /*0x2bc*/ ITEMSPELLS          Proc;
@@ -388,7 +388,7 @@ struct [[offsetcomments]] ITEMINFO
 /*0x603*/ BYTE                WeightReduction;
 /*0x604*/ BYTE                BookType;                   // 0=note, !0=book 884CF5 jun 11 2018 test
 /*0x605*/ BYTE                BookLang;
-/*0x606*/ CHAR                BookFile[0x1e];
+/*0x606*/ char                BookFile[0x1e];
 /*0x624*/ DWORD               Favor;                      // Tribute Value
 /*0x628*/ DWORD               GuildFavor;
 /*0x62c*/ bool                bIsFVNoDrop;

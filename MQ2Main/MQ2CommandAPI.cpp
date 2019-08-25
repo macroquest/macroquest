@@ -19,7 +19,7 @@ CRITICAL_SECTION gCommandCS;
 typedef struct _TIMEDCOMMAND
 {
 	ULONGLONG Time;
-	CHAR Command[MAX_STRING];
+	char Command[MAX_STRING];
 	_TIMEDCOMMAND* pLast;
 	_TIMEDCOMMAND* pNext;
 } TIMEDCOMMAND, * PTIMEDCOMMAND;
@@ -32,7 +32,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
     if (delayed)
     {
 		lockit lk(ghLockDelayCommand,"HideDoCommand");
-		CHAR szTheCmd[MAX_STRING];
+		char szTheCmd[MAX_STRING];
 		strcpy_s(szTheCmd, szLine);
 		PCHATBUF pChat = 0;
 		try {
@@ -55,12 +55,12 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
         return;
     }
     CAutoLock DoCommandLock(&gCommandCS);
-	CHAR szTheCmd[MAX_STRING];
+	char szTheCmd[MAX_STRING];
 	strcpy_s(szTheCmd, szLine);
 	WeDidStuff();
-    CHAR szOriginalLine[MAX_STRING];
+    char szOriginalLine[MAX_STRING];
     strcpy_s(szOriginalLine,szTheCmd);
-	CHAR szArg1[MAX_STRING];
+	char szArg1[MAX_STRING];
 	GetArg(szArg1,szTheCmd,1);
 	std::string sName = szArg1;
 	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
@@ -71,7 +71,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
     GetArg(szArg1,szTheCmd,1);
     if (szArg1[0]==0)
 		return;
-	CHAR szParam[MAX_STRING];
+	char szParam[MAX_STRING];
 	strcpy_s(szParam, GetNextArg(szTheCmd));
 
     if ((szArg1[0]==':') || (szArg1[0]=='{')) {
@@ -185,7 +185,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
                     std::string sCallFunc( pBind->szFuncName );
                     sCallFunc += " ";
                     sCallFunc += szParam;
-					CHAR szCallFunc[MAX_STRING] = { 0 };
+					char szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
 					if (gknightlyparse)
 					{
@@ -239,11 +239,11 @@ public:
     {
 		lockit lk(ghCCommandLock,"CCommandHook::Detour");
         DebugSpew("CCommandHook::Detour(%s)",szFullLine);
-        CHAR szFullCommand[MAX_STRING] = {0}; 
-        CHAR szCommand[MAX_STRING] = {0}; 
-        CHAR szArgs[MAX_STRING] = {0}; 
-        CHAR szOrig[MAX_STRING] = {0};
-        CHAR szSub[MAX_STRING] = {0};
+        char szFullCommand[MAX_STRING] = {0}; 
+        char szCommand[MAX_STRING] = {0}; 
+        char szArgs[MAX_STRING] = {0}; 
+        char szOrig[MAX_STRING] = {0};
+        char szSub[MAX_STRING] = {0};
         std::string szSubFullCommand = "";
         unsigned int k=0;
         bool OneCharacterSub = false;
@@ -392,7 +392,7 @@ public:
                             std::string sCallFunc( pBind->szFuncName );
                             sCallFunc += " ";
                             sCallFunc += szArgs;
-							CHAR szCallFunc[MAX_STRING] = { 0 };
+							char szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
 							if (gknightlyparse)
 							{
@@ -415,7 +415,7 @@ public:
 									WriteChatf("Can't execute bind while another bind is in progress");
 								}
 							}
-							//CHAR szOrg[MAX_STRING] = {"${Time}"};
+							//char szOrg[MAX_STRING] = {"${Time}"};
 							//ParseMacroData(szOrg, MAX_STRING);
 							//WriteChatf("[%s] %s called",szOrg, szCallFunc.c_str());
 							//Beep(1000, 100);
@@ -802,9 +802,9 @@ void InitializeMQ2Commands()
     AddAlias("/newif","/if");
     /* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
 
-    CHAR AliasList[MAX_STRING*10] = {0};
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR MainINI[MAX_STRING] = {0};
+    char AliasList[MAX_STRING*10] = {0};
+    char szBuffer[MAX_STRING] = {0};
+    char MainINI[MAX_STRING] = {0};
     sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Aliases",NULL,"",AliasList,MAX_STRING*10,MainINI);
     PCHAR pAliasList = AliasList;
@@ -820,8 +820,8 @@ void InitializeMQ2Commands()
     AddSubstitute("omg","Oh My God");
 
     //Importing the User's Substitution List from .ini file
-    CHAR SubsList[MAX_STRING*10] = {0};
-    CHAR szBuffer2[MAX_STRING] = {0};
+    char SubsList[MAX_STRING*10] = {0};
+    char szBuffer2[MAX_STRING] = {0};
 	sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Substitutions",NULL,"",SubsList,MAX_STRING*10,MainINI);
     PCHAR pSubsList = SubsList;

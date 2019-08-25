@@ -57,8 +57,8 @@ void ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL fFinished = FALSE;
 
 	DWORD Count = 0, a, b;
-	CHAR szFilename[MAX_STRING] = { 0 };
-	CHAR szName[100][MAX_STRING] = { 0 };
+	char szFilename[MAX_STRING] = { 0 };
+	char szName[100][MAX_STRING] = { 0 };
 	if (szLine[0] != 0) {
 		sprintf_s(szFilename, "%s\\*%s*.*", gszMacroPath, szLine);
 	}
@@ -131,8 +131,8 @@ void SetError(PSPAWNINFO pChar, PCHAR szLine)
 void SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	CHAR szLLine[MAX_STRING] = { 0 };
-	CHAR szArg[MAX_STRING] = { 0 };
+	char szLLine[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
 	PCHAR szRest = szLLine;
 	BOOL Parsing = TRUE;
 	BOOL bConColor = 0;
@@ -206,11 +206,11 @@ void SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 void MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 {
 	BOOL Pause = TRUE;
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 
 	DWORD Command;
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szArg1[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
 
 	PCHAR szPause[] = {
 		"off",
@@ -277,9 +277,9 @@ void KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	DWORD Command;
-	CHAR szArg[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
-	CHAR szCmd[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
 
 	PCHAR szKeepKeys[] = {
 		"off",
@@ -310,8 +310,8 @@ void KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	PCHAR szCommand = NULL;
 	GetArg(szName, szLine, 1);
 	szCommand = GetNextArg(szLine);
@@ -410,13 +410,13 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 		std::string Name;
 		INT angle;
 	}iteminfo;
-	std::map<FLOAT, iteminfo>itemsmap;
+	std::map<float, iteminfo>itemsmap;
 	if (!pItemList)
 		return;
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
-		CHAR szLineLwr[MAX_STRING] = { 0 };
-		CHAR szName[MAX_STRING] = { 0 };
+		char szLineLwr[MAX_STRING] = { 0 };
+		char szName[MAX_STRING] = { 0 };
 		SPAWNINFO TempSpawn = { 0 };
 		iteminfo ii;
 		strcpy_s(szLineLwr, szLine);
@@ -433,7 +433,7 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 				TempSpawn.Y = pItem->Y;
 				TempSpawn.X = pItem->X;
 				TempSpawn.Z = pItem->Z;
-				FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+				float Distance = Distance3DToSpawn(pChar, &TempSpawn);
 				INT Angle = (INT)((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 				ii.angle = Angle;
 				ii.Name = szName;
@@ -446,8 +446,8 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 	RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 	if (&manager)
 	{
-		CHAR szLineLwr[MAX_STRING] = { 0 };
-		CHAR szName[MAX_STRING] = { 0 };
+		char szLineLwr[MAX_STRING] = { 0 };
+		char szName[MAX_STRING] = { 0 };
 		SPAWNINFO TempSpawn = { 0 };
 		iteminfo ii;
 		strcpy_s(szLineLwr, szLine);
@@ -472,7 +472,7 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 								TempSpawn.Y = pObj->Y;
 								TempSpawn.X = pObj->X;
 								TempSpawn.Z = pObj->Z;
-								FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+								float Distance = Distance3DToSpawn(pChar, &TempSpawn);
 								INT Angle = (INT)((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 								ii.angle = Angle;
 								_itoa_s(pObj->RealEstateItemID, szName, 10);
@@ -499,7 +499,7 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 	else {
 		WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
 		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-		for (std::map<FLOAT, iteminfo>::iterator i = itemsmap.begin(); i != itemsmap.end(); i++) {
+		for (std::map<float, iteminfo>::iterator i = itemsmap.begin(); i != itemsmap.end(); i++) {
 			sprintf_s(szBuffer, "%s: %1.2f away to the %s", i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
@@ -521,9 +521,9 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	EQGroundItemListManager *pGroundList = GetItemList();
 	if (!pGroundList)
 		return;
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR Arg1[MAX_STRING] = { 0 };
-	CHAR Arg2[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char Arg1[MAX_STRING] = { 0 };
+	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 	_strlwr_s(Arg1);
 	GetArg(Arg2, szLine, 2);
@@ -531,8 +531,8 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	ZeroMemory(&GroundObject,sizeof(GroundObject));
 	pGroundTarget = NULL;
 	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
-		CHAR szName[MAX_STRING] = { 0 };
-		FLOAT cDistance = 100000.0f;
+		char szName[MAX_STRING] = { 0 };
+		float cDistance = 100000.0f;
 		SPAWNINFO tSpawn = { 0 };
 		while (pItem) {
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
@@ -553,7 +553,7 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 					tSpawn.Heading = pItem->Heading;
 					tSpawn.mActorClient.Race = pItem->DropID;
 					tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-					FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+					float Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
 					if (Distance < cDistance) {
 						CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 						cDistance = Distance;
@@ -571,14 +571,14 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else
 	{
-		FLOAT cDistance = 100000.0f;
+		float cDistance = 100000.0f;
 		SPAWNINFO tSpawn = { 0 };
 		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 		if (&manager)
 		{
 			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
 			{
-				CHAR szName[MAX_STRING] = { 0 };
+				char szName[MAX_STRING] = { 0 };
 				for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
 				{
 					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
@@ -606,7 +606,7 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 										tSpawn.Heading = pObj->Heading;
 										tSpawn.mActorClient.Race = pObj->RealEstateItemID;
 										tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-										FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+										float Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
 										if (Distance < cDistance) {
 											CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 											cDistance = Distance;
@@ -685,11 +685,11 @@ void Doors(PSPAWNINFO pChar, PCHAR szLine)
 		INT angle;
 		DWORD ID;
 	}doorinfo;
-	std::map<FLOAT, doorinfo>doorsmap;
+	std::map<float, doorinfo>doorsmap;
 
 	PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
-	CHAR szLineLwr[MAX_STRING] = { 0 };
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szLineLwr[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	size_t slen = strlen(szLine);
 	SPAWNINFO TempSpawn = { 0 };
 	doorinfo di;
@@ -706,7 +706,7 @@ void Doors(PSPAWNINFO pChar, PCHAR szLine)
 			TempSpawn.X = pDoorTable->pDoor[Count]->X;
 			TempSpawn.Z = pDoorTable->pDoor[Count]->Z;
 			TempSpawn.Heading = pDoorTable->pDoor[Count]->Heading;
-			FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+			float Distance = Distance3DToSpawn(pChar, &TempSpawn);
 			di.angle = (INT)((atan2f(pChar->X - pDoorTable->pDoor[Count]->X, pChar->Y - pDoorTable->pDoor[Count]->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 			di.Name = TempSpawn.Name;
 			di.ID = pDoorTable->pDoor[Count]->ID;
@@ -720,7 +720,7 @@ void Doors(PSPAWNINFO pChar, PCHAR szLine)
 	else {
 		WriteChatColor("Doors:", USERCOLOR_DEFAULT);
 		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-		for (std::map<FLOAT, doorinfo>::iterator i = doorsmap.begin(); i != doorsmap.end(); i++) {
+		for (std::map<float, doorinfo>::iterator i = doorsmap.begin(); i != doorsmap.end(); i++) {
 			sprintf_s(szBuffer, "%d: %s: %1.2f away to the %s", i->second.ID, i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
@@ -744,11 +744,11 @@ void DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 	PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
 	DWORD Count;
 
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szSearch[MAX_STRING] = { 0 };
-	CHAR Arg1[MAX_STRING] = { 0 };
-	CHAR Arg2[MAX_STRING] = { 0 };
-	FLOAT cDistance = 100000.0f;
+	char szBuffer[MAX_STRING] = { 0 };
+	char szSearch[MAX_STRING] = { 0 };
+	char Arg1[MAX_STRING] = { 0 };
+	char Arg2[MAX_STRING] = { 0 };
+	float cDistance = 100000.0f;
 	BYTE ID = -1;
 	ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
 	pDoorTarget = NULL;
@@ -798,7 +798,7 @@ void DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 				tSpawn.HPCurrent = 1;
 				tSpawn.HPMax = 1;
 				tSpawn.Heading = pDoorTable->pDoor[Count]->Heading;
-				FLOAT Distance = Distance3DToSpawn(pChar, &tSpawn);
+				float Distance = Distance3DToSpawn(pChar, &tSpawn);
 				if (Distance<cDistance) {
 					CopyMemory(&DoorEnviroTarget, &tSpawn, sizeof(DoorEnviroTarget));
 					pDoorTarget = pDoorTable->pDoor[Count];
@@ -833,7 +833,7 @@ void DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 
 void CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
 	if (gFilterMacro == FILTERMACRO_NONE)
 		cmdCharInfo(pChar, szLine);
@@ -849,7 +849,7 @@ void CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 
 void UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szEcho[MAX_STRING] = { 0 };
+	char szEcho[MAX_STRING] = { 0 };
 	strcpy_s(szEcho, DebugHeader);
 	strcat_s(szEcho, " This command has been disabled since the itemdb is maintained by the devs.");
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
@@ -862,9 +862,9 @@ void UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szBuff[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szBuff[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 
 	SPELL* pSpell = NULL;
 
@@ -899,10 +899,10 @@ void MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 	if (!pSpellBookWnd)
 		return;
 	DWORD Favorite = (DWORD)&MemSpellFavorite;
-	CHAR szGem[MAX_STRING] = { 0 };
+	char szGem[MAX_STRING] = { 0 };
 	DWORD sp;
 	WORD Gem = -1;
-	CHAR SpellName[MAX_STRING] = { 0 };
+	char SpellName[MAX_STRING] = { 0 };
 
 	if (CHARINFO* pCharInfo = GetCharInfo()) {
 		GetArg(szGem, szLine, 1);
@@ -949,9 +949,9 @@ void SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pMerchantWnd)
 		return;
 	bool bExact = false;
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR szTemp2[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char szTemp2[MAX_STRING] = { 0 };
 	char *pName = 0 ;
 	GetArg(szBuffer, szLine, 1);
 	if (szBuffer[0])
@@ -1008,7 +1008,7 @@ void BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = FALSE;
 	if (!pMerchantWnd) return;
 
-	CHAR szQty[MAX_STRING] = { 0 };
+	char szQty[MAX_STRING] = { 0 };
 	CHARINFO* pCharInfo = nullptr;
 
 	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
@@ -1036,7 +1036,7 @@ void SellItem(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = FALSE;
 	if (!pMerchantWnd) return;
 
-	CHAR szQty[MAX_STRING] = { 0 };
+	char szQty[MAX_STRING] = { 0 };
 	CHARINFO* pCharInfo = nullptr;
 
 	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
@@ -1060,8 +1060,8 @@ void SellItem(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void Help(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szCmd[MAX_STRING] = { 0 };
-	CHAR szArg[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
 	PMQCOMMAND pCmd = pCommands;
 
 	GetArg(szArg, szLine, 1);
@@ -1131,7 +1131,7 @@ void MacroBeep(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	//Beep(0x500,250);
-	CHAR szArg[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
 
 	GetArg(szArg, szLine, 1);
 	if (szArg[0] == '\0')
@@ -1149,9 +1149,9 @@ void MacroBeep(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szToggle[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szToggle[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 	GetArg(szToggle, szLine, 2);
 	if (!_stricmp(szArg, "Lastname")) {
@@ -1229,8 +1229,8 @@ void Filter(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	DWORD Command;
-	CHAR szCmd[MAX_STRING] = { 0 };
-	CHAR szArg[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
 	PCHAR szRest = NULL;
 	PCHAR szFilterSkills[] = {
 		"all",
@@ -1563,7 +1563,7 @@ void Filter(PSPAWNINFO pChar, PCHAR szLine)
 			}
 		}
 		else {
-			gZFilter = (FLOAT)atof(szRest);
+			gZFilter = (float)atof(szRest);
 		}
 	}
 }
@@ -1578,7 +1578,7 @@ void Filter(PSPAWNINFO pChar, PCHAR szLine)
 void DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
 {
 	BOOL Pause = TRUE;
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
 	if (!_strnicmp(szLine, "off", 3)) {
 		gSpewToFile = FALSE;
@@ -1611,8 +1611,8 @@ void DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
 void Identify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	CHAR szMsg[MAX_STRING] = { 0 };
-	CHAR szTmp[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
+	char szTmp[MAX_STRING] = { 0 };
 	CHARINFO2* pCharInfo = NULL;
 	PITEMINFO pItemInfo = NULL;
 	if (NULL == (pCharInfo = GetCharInfo2())) return;
@@ -1658,7 +1658,7 @@ void Identify(PSPAWNINFO pChar, PCHAR szLine)
 	if (strlen(szMsg) > 7) WriteChatColor(szMsg, USERCOLOR_SPELLS);
 
 	if (pItemInfo->Type == ITEMTYPE_PACK) {
-		CHAR szCombine[MAX_STRING] = { 0 };
+		char szCombine[MAX_STRING] = { 0 };
 		if ((pItemInfo->Combine < MAX_COMBINES) && (szCombineTypes[pItemInfo->Combine] != NULL)) {
 			strcpy_s(szCombine, szCombineTypes[pItemInfo->Combine]);
 		}
@@ -1771,7 +1771,7 @@ void Location(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 	if (gFilterMacro == FILTERMACRO_NONE) cmdLocation(pChar, szLine);
 
-	CHAR szMsg[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
 	INT Angle = (INT)((pChar->Heading / 32.0f) + 8.5f) % 16;
 	sprintf_s(szMsg, "Your Location is %3.2f, %3.2f, %3.2f, and are heading %s.", pChar->Y, pChar->X, pChar->Z, szHeading[Angle]);
 	WriteChatColor(szMsg, USERCOLOR_DEFAULT);
@@ -1812,7 +1812,7 @@ BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 void CMQ2Alerts::FreeAlerts(DWORD List)
 {
 	lockit lk(_hLockMapWrite, "FreeAlerts");
-	CHAR szBuffer[64] = { 0 };
+	char szBuffer[64] = { 0 };
 	if (_AlertMap.find(List) != _AlertMap.end()) {
 		_AlertMap.erase(List);
 		sprintf_s(szBuffer, "Alert list %d cleared.", List);
@@ -1832,8 +1832,8 @@ void Alert(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bool bOutput = pChar ? true : false;
 	bRunNextCommand = TRUE;
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szLLine[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szLLine[MAX_STRING] = { 0 };
 	PCHAR szRest = szLLine;
 	BOOL Parsing = TRUE;
 	BOOL DidSomething = FALSE;
@@ -1861,11 +1861,11 @@ void Alert(PSPAWNINFO pChar, PCHAR szLine)
 				szRest = GetNextArg(szRest, 1);
 				std::list<SEARCHSPAWN>ss;
 				if (CAlerts.GetAlert(atoi(szArg), ss)) {
-					CHAR Buffer[MAX_STRING] = { 0 };
+					char Buffer[MAX_STRING] = { 0 };
 					DWORD Count = 0;
 					WriteChatColor(" ", USERCOLOR_DEFAULT);
 					WriteChatColor("Current alerts:", USERCOLOR_DEFAULT);
-					CHAR szTemp[2048] = { 0 };
+					char szTemp[2048] = { 0 };
 					for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
 						int dist = std::distance(ss.begin(), i);
 						FormatSearchSpawn(Buffer, sizeof(Buffer), &(*i));
@@ -1881,8 +1881,8 @@ void Alert(PSPAWNINFO pChar, PCHAR szLine)
 				DidSomething = TRUE;
 			}
 			else if (!strcmp(szArg, "remove")) {
-				CHAR Buffer[MAX_STRING] = { 0 };
-				CHAR szArg1[MAX_STRING] = { 0 };
+				char Buffer[MAX_STRING] = { 0 };
+				char szArg1[MAX_STRING] = { 0 };
 				BOOL ParsingAdd = TRUE;
 				DWORD List = 0;
 				GetArg(szArg, szRest, 1);
@@ -1906,7 +1906,7 @@ void Alert(PSPAWNINFO pChar, PCHAR szLine)
 						szRest = ParseSearchSpawnArgs(szArg1, szRest, pSearchSpawn);
 					}
 				}
-				CHAR szTemp[MAX_STRING] = { 0 };
+				char szTemp[MAX_STRING] = { 0 };
 				if (CAlerts.RemoveAlertFromList(List, pSearchSpawn)) {
 					sprintf_s(Buffer, "Removed alert for: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), pSearchSpawn));
 				}
@@ -1920,8 +1920,8 @@ void Alert(PSPAWNINFO pChar, PCHAR szLine)
 				DidSomething = TRUE;
 			}
 			else if (!strcmp(szArg, "add")) {
-				CHAR Buffer[MAX_STRING] = { 0 };
-				CHAR szArg1[MAX_STRING] = { 0 };
+				char Buffer[MAX_STRING] = { 0 };
+				char szArg1[MAX_STRING] = { 0 };
 				BOOL ParsingAdd = TRUE;
 				DWORD List = 0;
 				GetArg(szArg, szRest, 1);
@@ -1950,7 +1950,7 @@ void Alert(PSPAWNINFO pChar, PCHAR szLine)
 				pSearchSpawn->bTargNext = FALSE;
 				pSearchSpawn->bTargPrev = FALSE;
 
-				CHAR szTemp[MAX_STRING] = { 0 };
+				char szTemp[MAX_STRING] = { 0 };
 				if (CheckAlertForRecursion(pSearchSpawn, List)) {
 					sprintf_s(Buffer, "Alert would have caused recursion: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), pSearchSpawn));
 				}
@@ -2024,7 +2024,7 @@ void SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
 void MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
 {
 	FILE *fOut = NULL;
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	DWORD i;
 	bRunNextCommand = TRUE;
 
@@ -2044,8 +2044,8 @@ void MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
 void MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 {
 	FILE *fOut = NULL;
-	CHAR Filename[MAX_STRING] = { 0 };
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char Filename[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	DWORD i;
 	bRunNextCommand = TRUE;
 
@@ -2113,10 +2113,10 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 	SPAWNINFO LocSpawn = { 0 };
 	SEARCHSPAWN SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
-	CHAR szMsg[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szLLine[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szLLine[MAX_STRING] = { 0 };
 	PCHAR szFilter = szLLine;
 	BOOL bArg = TRUE;
 	BOOL bOtherArgs = FALSE;
@@ -2125,7 +2125,7 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL Fast = FALSE;
 	BOOL Look = TRUE;
 	BOOL Parsing = TRUE;
-	DOUBLE Distance;
+	double Distance;
 	bRunNextCommand = FALSE;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
@@ -2154,18 +2154,18 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 				MacroError("Face: loc specified but <y>,<x> not found.");
 				return;
 			}
-			pSpawnClosest->Y = (FLOAT)atof(szFilter);
+			pSpawnClosest->Y = (float)atof(szFilter);
 			while ((szFilter[0] != ',') && (szFilter[0] != 0)) szFilter++;
 			if (szFilter[0] == 0) {
 				MacroError("Face: loc specified but <y>,<x> not found.");
 				return;
 			}
 			szFilter++;
-			pSpawnClosest->X = (FLOAT)atof(szFilter);
+			pSpawnClosest->X = (float)atof(szFilter);
 			while ((szFilter[0] != ',') && (szFilter[0] != 0)) szFilter++;
 			if (szFilter[0] != 0) {
 				szFilter++;
-				pSpawnClosest->Z = (FLOAT)atof(szFilter);
+				pSpawnClosest->Z = (float)atof(szFilter);
 			}
 		}
 		else if (!_stricmp(szArg, "item")) {
@@ -2187,13 +2187,13 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 				MacroError("Face: heading specified but angle not found.");
 			}
 			else {
-				FLOAT Heading = (FLOAT)(atof(szFilter));
+				float Heading = (float)(atof(szFilter));
 				gFaceAngle = Heading / 0.703125f;
 				if (gFaceAngle >= 512.0f) gFaceAngle -= 512.0f;
 				if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
 				if (Fast) {
 					//changed
-					((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
+					((PSPAWNINFO)pCharSpawn)->Heading = (float)gFaceAngle;
 					gFaceAngle = 10000.0f;
 					bRunNextCommand = TRUE;
 				}
@@ -2245,11 +2245,11 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 			Distance = Distance3DToSpawn(pChar, pSpawnClosest);
 			gLookAngle = (
 				atan2(pSpawnClosest->Z + pSpawnClosest->AvatarHeight*StateHeightMultiplier(pSpawnClosest->StandState) - pChar->Z - pChar->AvatarHeight*StateHeightMultiplier(pChar->StandState),
-					(FLOAT)Distance)
+					(float)Distance)
 				* 256.0f / PI);
 			if (Away) gLookAngle = -gLookAngle;
 			if (Fast) {
-				pChar->CameraAngle = (FLOAT)gLookAngle;
+				pChar->CameraAngle = (float)gLookAngle;
 				gLookAngle = 10000.0f;
 			}
 		}
@@ -2260,7 +2260,7 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 		if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
 		if (Fast) {
 			//changed
-			((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
+			((PSPAWNINFO)pCharSpawn)->Heading = (float)gFaceAngle;
 			gFaceAngle = 10000.0f;
 			bRunNextCommand = TRUE;
 		}
@@ -2283,14 +2283,14 @@ void Face(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void Look(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szLookAngle[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
-	FLOAT fLookAngle = 0.0f;
+	char szLookAngle[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	float fLookAngle = 0.0f;
 
 	GetArg(szLookAngle, szLine, 1);
 
 
-	fLookAngle = (FLOAT)atof(szLookAngle);
+	fLookAngle = (float)atof(szLookAngle);
 
 	if (fLookAngle>128.0f || fLookAngle<-128.0f) {
 		MacroError("/look -- Angle %f out of range.", fLookAngle);
@@ -2315,10 +2315,10 @@ void Where(PSPAWNINFO pChar, PCHAR szLine)
 	PSPAWNINFO pSpawnClosest = NULL;
 	SEARCHSPAWN SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
-	CHAR szMsg[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szLLine[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szLLine[MAX_STRING] = { 0 };
 	PCHAR szFilter = szLLine;
 	BOOL bArg = TRUE;
 	bRunNextCommand = TRUE;
@@ -2370,7 +2370,7 @@ void DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	PSKILLMGR pSkmgr = pSkillMgr;
 	DWORD Index;
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
 	int abil = atoi(szBuffer);
 	if (abil && abil > 5 && abil < NUM_SKILLS)//user wants us to activate a ability by its REAL ID...
@@ -2490,9 +2490,9 @@ void LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pSpellSets || !ppSpellBookWnd || szLine[0] == 0) return;
 
 	DWORD Index, DoIndex = 0xFFFFFFFF;
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	BOOL szMissingSpell = FALSE;
 
 	if (!pSpellBookWnd) return;
@@ -2611,9 +2611,9 @@ void Cast(PSPAWNINFO pChar, PCHAR szLine)
 	if (!cmdCast)
 		return;
 	DWORD Index;
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 	//DebugSpew("Cast: szArg1 = %s szArg2 = %s", szArg1, szArg2);
@@ -2625,9 +2625,9 @@ void Cast(PSPAWNINFO pChar, PCHAR szLine)
 				if (pSpell->TargetType == 0x2d) {//is it a splashspell?
 					if (!_stricmp(szArg2, "loc")) {
 						//ok they want to cast it at a specific location
-						CHAR locx[MAX_STRING] = { 0 };
-						CHAR locy[MAX_STRING] = { 0 };
-						CHAR locz[MAX_STRING] = { 0 };
+						char locx[MAX_STRING] = { 0 };
+						char locy[MAX_STRING] = { 0 };
+						char locz[MAX_STRING] = { 0 };
 						GetArg(locx, szLine, 3);
 						GetArg(locy, szLine, 4);
 						GetArg(locz, szLine, 5);
@@ -2670,7 +2670,7 @@ void Cast(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 				{
-					CHAR cmd[MAX_STRING] = { 0 };
+					char cmd[MAX_STRING] = { 0 };
 					sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 					EzCommand(cmd);
 				}
@@ -2713,9 +2713,9 @@ void Cast(PSPAWNINFO pChar, PCHAR szLine)
 					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
 						if (!_stricmp(szArg2, "loc")) {
 							//ok they want to cast it at a specific location
-							CHAR locx[MAX_STRING] = { 0 };
-							CHAR locy[MAX_STRING] = { 0 };
-							CHAR locz[MAX_STRING] = { 0 };
+							char locx[MAX_STRING] = { 0 };
+							char locy[MAX_STRING] = { 0 };
+							char locz[MAX_STRING] = { 0 };
 							GetArg(locx, szLine, 3);
 							GetArg(locy, szLine, 4);
 							GetArg(locz, szLine, 5);
@@ -2759,9 +2759,9 @@ void Target(PSPAWNINFO pChar, PCHAR szLine)
 	PSPAWNINFO pSpawnClosest = NULL;
 	SEARCHSPAWN SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szMsg[MAX_STRING] = { 0 };
-	CHAR szLLine[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
+	char szLLine[MAX_STRING] = { 0 };
 	PCHAR szFilter = szLLine;
 	BOOL DidTarget = FALSE;
 	BOOL bArg = TRUE;
@@ -2841,7 +2841,7 @@ void Target(PSPAWNINFO pChar, PCHAR szLine)
 		pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 	}
 	if (!pSpawnClosest) {
-		CHAR szTemp[MAX_STRING] = { 0 };
+		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), &SearchSpawn));
 	}
 	else {
@@ -2871,10 +2871,10 @@ void Target(PSPAWNINFO pChar, PCHAR szLine)
 void Skills(PSPAWNINFO pChar, PCHAR szLine)
 {
 	DWORD Skill, SkillCount = 0;
-	CHAR szMsg[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
 	CHARINFO* pCharInfo = NULL;
-	CHAR szCopy[MAX_STRING] = { 0 };
+	char szCopy[MAX_STRING] = { 0 };
 	strcpy_s(szCopy, szLine);
 	if (NULL == (pCharInfo = GetCharInfo())) return;
 	if (szCopy[0] != 0)
@@ -2884,7 +2884,7 @@ void Skills(PSPAWNINFO pChar, PCHAR szLine)
 	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		for (Skill = 0; szSkills[Skill]; Skill++) {
 			if (szCopy[0] != 0) {
-				CHAR szName[MAX_STRING] = { 0 };
+				char szName[MAX_STRING] = { 0 };
 				strcpy_s(szName, szSkills[Skill]);
 				_strlwr_s(szName);
 				if (!strstr(szName, szCopy))
@@ -2932,7 +2932,7 @@ void Skills(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szServerAndName[MAX_STRING] = { 0 };
+	char szServerAndName[MAX_STRING] = { 0 };
 	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, ((CHARINFO*)pCharData)->Name);
 	WritePrivateProfileStringA("AutoRun", szServerAndName, szLine, gszINIFilename);
 	sprintf_s(szServerAndName, "Set autorun to: '%s'", szLine);
@@ -2948,8 +2948,8 @@ void SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 
 void Alias(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	PCHAR szCommand = NULL;
 	GetArg(szName, szLine, 1);
 	szCommand = GetNextArg(szLine);
@@ -3009,8 +3009,8 @@ void Alias(PSPAWNINFO pChar, PCHAR szLine)
 
 void Substitute(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	PCHAR szCommand = NULL;
 	GetArg(szName, szLine, 1);
 	szCommand = GetNextArg(szLine);
@@ -3083,12 +3083,12 @@ void Substitute(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szArg1[MAX_STRING] = { 0 };   //Filename
-	CHAR szArg2[MAX_STRING] = { 0 };   //Section
-	CHAR szArg3[MAX_STRING] = { 0 };   //Key
-	CHAR szArg4[MAX_STRING] = { 0 };   //Data to write
+	char szArg1[MAX_STRING] = { 0 };   //Filename
+	char szArg2[MAX_STRING] = { 0 };   //Section
+	char szArg3[MAX_STRING] = { 0 };   //Key
+	char szArg4[MAX_STRING] = { 0 };   //Data to write
 
-	CHAR szOutput[MAX_STRING] = { 0 };  //Success / Error Output
+	char szOutput[MAX_STRING] = { 0 };  //Success / Error Output
 
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
@@ -3147,7 +3147,7 @@ void IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void BankList(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	CHARINFO* pCharInfo = NULL;
 	CONTENTS* pContainer = NULL;
 	if (NULL == (pCharInfo = GetCharInfo())) {
@@ -3189,8 +3189,8 @@ void BankList(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void WindowState(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR Arg1[MAX_STRING] = { 0 };
-	CHAR Arg2[MAX_STRING] = { 0 };
+	char Arg1[MAX_STRING] = { 0 };
+	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 	GetArg(Arg2, szLine, 2);
 
@@ -3257,10 +3257,10 @@ void EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 void Exec(PSPAWNINFO pChar, PCHAR szLine) {
-	CHAR exepath[MAX_STRING] = { 0 };
-	CHAR szTemp1[MAX_STRING] = { 0 };
-	CHAR szTemp2[MAX_STRING] = { 0 };
-	CHAR szTemp3[MAX_STRING] = { 0 };
+	char exepath[MAX_STRING] = { 0 };
+	char szTemp1[MAX_STRING] = { 0 };
+	char szTemp2[MAX_STRING] = { 0 };
+	char szTemp3[MAX_STRING] = { 0 };
 	GetArg(szTemp1, szLine, 1);
 	GetArg(szTemp2, szLine, 2);
 	GetArg(szTemp3, szLine, 3);
@@ -3296,8 +3296,8 @@ void DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /keypress <eqcommand|keycombo> [hold|chat]");
 		return;
 	}
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
 
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
@@ -3379,12 +3379,12 @@ void MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
 		return;
 	}
-	CHAR szArg[MAX_STRING] = { 0 }; // delimiter(s)
+	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
 	GetArg(szArg, szLine, 1);
 	PCHAR szRest = GetNextArg(szLine);
 	if (!szRest[0])
 		return;
-	CHAR Copy[MAX_STRING], szCmd[MAX_STRING] = { 0 };
+	char Copy[MAX_STRING], szCmd[MAX_STRING] = { 0 };
 	strcpy_s(Copy, szRest);// dont destroy original...
 	char *token1 = NULL;
 	char *next_token1 = NULL;
@@ -3444,7 +3444,7 @@ void DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage /dumpbinds <filename>");
 		return;
 	}
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	if (!DumpBinds(szLine))
 	{
 		MacroError("Could not dump binds to %s", szLine);
@@ -3543,7 +3543,7 @@ void NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szCmd[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
 	strcpy_s(szCmd, szLine);
 	if (!szCmd[0])
 	{
@@ -3552,7 +3552,7 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	else {
-		CHAR szSlot1[MAX_STRING] = { 0 };
+		char szSlot1[MAX_STRING] = { 0 };
 		GetArg(szSlot1, szCmd, 1);
 		bool stripped = StripQuotes(szCmd);
 		if (IsNumber(szSlot1)) {
@@ -3640,7 +3640,7 @@ void DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 
 	DWORD SocialIndex = -1, LineIndex;
 	DWORD SocialPage = 0, SocialNum = 0;
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	BOOL displayUsage = FALSE;
 
 	GetArg(szBuffer, szLine, 1);
@@ -3702,7 +3702,7 @@ void DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /timed <deciseconds> <command>");
 		return;
 	}
-	CHAR szArg[MAX_STRING] = { 0 }; // delay
+	char szArg[MAX_STRING] = { 0 }; // delay
 	GetArg(szArg, szLine, 1);
 	PCHAR szRest = GetNextArg(szLine);
 	if (!szRest[0])
@@ -3795,7 +3795,7 @@ void HudCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 void CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR Arg1[MAX_STRING] = { 0 };
+	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 	if (!Arg1[0])
 	{
@@ -3883,7 +3883,7 @@ void CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	else if (!_stricmp(Arg1, "reload")) {
-		CHAR Filename[MAX_STRING] = { 0 };
+		char Filename[MAX_STRING] = { 0 };
 		sprintf_s(Filename, "%s", gszINIFilename);
 		GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, Filename);
 		GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, Filename);
@@ -3944,9 +3944,9 @@ void NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 void AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szCommand[MAX_STRING] = { 0 };
-	CHAR szSpellInfo[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char szCommand[MAX_STRING] = { 0 };
+	char szSpellInfo[MAX_STRING] = { 0 };
 	PCHAR szName = NULL;
 	GetArg(szCommand, szLine, 1);
 	szName = GetNextArg(szLine);
@@ -4116,7 +4116,7 @@ void AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 void Echo(SPAWNINFO* pChar, char* szLine)
 {
-	CHAR szEcho[MAX_STRING] = { 0 };
+	char szEcho[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
 	strcpy_s(szEcho, DebugHeader);
 	strcat_s(szEcho, " ");
@@ -4167,7 +4167,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	DWORD procid = 0;
 	GetWindowThreadProcessId(hwnd, &procid);
 	if (procid == *(LPARAM *)lParam) {
-		CHAR szClass[2048] = { 0 };
+		char szClass[2048] = { 0 };
 		GetClassName(hwnd, szClass, 2047);
 		if (!_stricmp(szClass, "_EverQuestwndclass")) {
 			*(LPARAM *)lParam = (LPARAM)hwnd;
@@ -4223,8 +4223,8 @@ void PetCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	else {
-		CHAR szID[MAX_STRING] = { 0 };
-		CHAR szCmd[MAX_STRING] = { 0 };
+		char szID[MAX_STRING] = { 0 };
+		char szCmd[MAX_STRING] = { 0 };
 		GetArg(szCmd, szLine, 1);
 		ePetCommandType cmdtype = PCT_DoNothing;
 		if (!_stricmp(szCmd, "attack")) {
@@ -4292,7 +4292,7 @@ void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 		return;
-	CHAR szAction[MAX_STRING] = { 0 };
+	char szAction[MAX_STRING] = { 0 };
 	GetArg(szAction, szLine, 3);
 	if (!szLine[0] || !szAction[0]) {
 		WriteChatColor("Usage: /advloot personal #(listid) item,loot,leave,an,ag,never,name");
@@ -4321,8 +4321,8 @@ void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				return;
 			}
 
-			CHAR szID[MAX_STRING] = { 0 };
-			CHAR szCmd[MAX_STRING] = { 0 };
+			char szID[MAX_STRING] = { 0 };
+			char szCmd[MAX_STRING] = { 0 };
 			GetArg(szCmd, szLine, 1);
 
 			int cmdtype = 0;
@@ -4433,7 +4433,7 @@ void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				GetArg(szID, szLine, 2);
 				if (!_stricmp(szID, "set"))
 				{
-					CHAR szEntity[MAX_STRING] = { 0 };
+					char szEntity[MAX_STRING] = { 0 };
 					GetArg(szEntity, szLine, 3);
 
 					if (CComboWnd* pCombo = (CComboWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo"))
@@ -4517,9 +4517,9 @@ void AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 							}
 							else if (!_stricmp(szAction, "giveto"))
 							{
-								CHAR szEntity[MAX_STRING] = { 0 };
+								char szEntity[MAX_STRING] = { 0 };
 								GetArg(szEntity, szLine, 4);
-								CHAR szQty[MAX_STRING] = { 0 };
+								char szQty[MAX_STRING] = { 0 };
 								GetArg(szQty, szLine, 5);
 
 								if (szEntity[0] != '\0')
@@ -4657,7 +4657,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 {
 	lockit lk(ghLockPickZone, "openpickzonewnd");
 	int nInst = (int)pData;
-	CHAR szInst[32] = { 0 };
+	char szInst[32] = { 0 };
 	_itoa_s(nInst, szInst, 10);
 
 	if (CHARINFO* pCharInfo = GetCharInfo())
@@ -4787,7 +4787,7 @@ void SetProcessPriority(PSPAWNINFO pChar, char *szLine)
 		return;
 	}
 	DWORD prio = NORMAL_PRIORITY_CLASS;
-	CHAR szPrio[2048] = { 0 };
+	char szPrio[2048] = { 0 };
 	if(int newprio = atoi(szLine)) {
 		switch (newprio)
 		{
@@ -4877,12 +4877,12 @@ void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 		WriteChatf("Usage: /usercamera on/off to toggle Window Selector Display of Current Camera");
 		return;
 	}
-	CHAR szArg1[2048] = { 0 };
-	CHAR szArg2[2048] = { 0 };
+	char szArg1[2048] = { 0 };
+	char szArg2[2048] = { 0 };
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 	PEQCAMERABASE pUserCam1 = (PEQCAMERABASE)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
-	CHAR szTemp[2048] = { 0 };
+	char szTemp[2048] = { 0 };
 	if (!_stricmp(szArg1, "0")) {
 		*(DWORD*)CDisplay__cameraType = 0;
 	} else if (!_stricmp(szArg1, "0")) {
@@ -4905,7 +4905,7 @@ void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 		gbShowCurrentCamera = 1;
 		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "1", gszINIFilename);
 		if (pSelectorWnd) {
-			CHAR szOut[2048] = { 0 };
+			char szOut[2048] = { 0 };
 			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
 			pSelectorWnd->SetWindowText(szOut);
 		}
@@ -4917,7 +4917,7 @@ void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 		}
 		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", gszINIFilename);
 	} else if (!_stricmp(szArg1, "save")) {
-		CHAR szIniFile[2048] = { 0 };
+		char szIniFile[2048] = { 0 };
 		strcpy_s(szIniFile, gszINIFilename);
 		if (szArg2 && szArg2[0] != '\0') {
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
@@ -4939,9 +4939,9 @@ void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
         WritePrivateProfileString("User Camera 1",   "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szIniFile);
         WritePrivateProfileString("User Camera 1",   "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szIniFile);
 	} else if (!_stricmp(szArg1, "load")) {
-		CHAR szIniFile[2048] = { 0 };
+		char szIniFile[2048] = { 0 };
 		strcpy_s(szIniFile, gszINIFilename);
-		CHAR szOut[2048] = { 0 };
+		char szOut[2048] = { 0 };
 		if (szArg2 && szArg2[0] != '\0') {
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
 		}

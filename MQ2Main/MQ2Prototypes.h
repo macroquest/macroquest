@@ -31,7 +31,7 @@ typedef void(__cdecl *fEQBuyItem)(int);
 typedef void(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem
 typedef void(__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
 typedef BOOL(__cdecl *fEQProcGameEvts)();
-typedef FLOAT(__cdecl *fEQGetMelee)(PlayerClient *, PlayerClient*);
+typedef float(__cdecl *fEQGetMelee)(PlayerClient *, PlayerClient*);
 typedef void(__cdecl *fMQExecuteCmd)(PCHAR Name, BOOL Down);
 typedef void(__cdecl fEQSaveToUIIniFile)(PCHAR Section, PCHAR Key, PCHAR Value);
 typedef DWORD(__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
@@ -55,8 +55,8 @@ typedef void(__cdecl *fMQBeginZone)();
 typedef void(__cdecl *fMQEndZone)();
 
 /* UTILITIES */
-typedef __int64(__cdecl *fICGetHashData)(void*,int);
-typedef void(__cdecl *fICSetHashData)(void*,int,__int64);
+typedef int64_t(__cdecl *fICGetHashData)(void*,int);
+typedef void(__cdecl *fICSetHashData)(void*,int,int64_t);
 typedef DWORD(__cdecl *fLoaderSetLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
 typedef DWORD(__cdecl *fLoaderClearLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
 typedef DWORD(__cdecl *fMQ2Unload)(DWORD pid);

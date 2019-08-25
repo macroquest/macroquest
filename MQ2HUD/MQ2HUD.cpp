@@ -26,8 +26,8 @@ typedef struct _HUDELEMENT {
     LONG X;
     LONG Y;
     DWORD Color;
-    CHAR Text[MAX_STRING];
-    CHAR PreParsed[MAX_STRING];
+    char Text[MAX_STRING];
+    char PreParsed[MAX_STRING];
     struct _HUDELEMENT *pNext;
 } HUDELEMENT, *PHUDELEMENT;
 
@@ -167,9 +167,9 @@ void LoadElements()
 {
     ClearElements();
 	lockit lk(hHudLock,"HudLock");
-    CHAR ElementList[MAX_STRING*10] = {0};
-    CHAR szBuffer[MAX_STRING], CurrentHUD[MAX_STRING] = {0};
-    CHAR ClassDesc[MAX_STRING], ZoneName[MAX_STRING] = {0};
+    char ElementList[MAX_STRING*10] = {0};
+    char szBuffer[MAX_STRING], CurrentHUD[MAX_STRING] = {0};
+    char ClassDesc[MAX_STRING], ZoneName[MAX_STRING] = {0};
     int argn=1;
     GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
     while (*CurrentHUD) {
@@ -227,7 +227,7 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 void HandleINI()
 {
 	lockit lk(hHudLock,"HudLock");
-    CHAR szBuffer[MAX_STRING] = {0};
+    char szBuffer[MAX_STRING] = {0};
     WritePrivateProfileString(HUDSection,"Last",HUDNames,INIFileName);
     SkipParse = GetPrivateProfileInt(HUDSection,"SkipParse",1,INIFileName);
     SkipParse = SkipParse < 1 ? 1 : SkipParse;
@@ -260,8 +260,8 @@ void DefaultHUD(PSPAWNINFO pChar, PCHAR szLine)
 
 void LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
-    CHAR HUDTemp[MAX_STRING] = {0};
-    CHAR CurrentHUD[MAX_STRING];
+    char HUDTemp[MAX_STRING] = {0};
+    char CurrentHUD[MAX_STRING];
     int argn=1;
     GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
     while (*CurrentHUD) {
@@ -281,8 +281,8 @@ void LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
 
 void UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
-    CHAR HUDTemp[MAX_STRING] = {0};
-    CHAR CurrentHUD[MAX_STRING];
+    char HUDTemp[MAX_STRING] = {0};
+    char CurrentHUD[MAX_STRING];
     bool found=false;
     int argn=1;
     GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
@@ -374,7 +374,7 @@ PLUGIN_API void InitializePlugin()
 {
 	hHudLock = CreateMutex(NULL, FALSE, NULL);
 	
-    CHAR szBuffer[MAX_STRING] = {0};
+    char szBuffer[MAX_STRING] = {0};
     DebugSpewAlways("Initializing MQ2HUD");
 
     GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
@@ -436,7 +436,7 @@ BOOL ParseMacroLine(PCHAR szOriginal, SIZE_T BufferSize,std::list<std::string>&o
 	//PCHAR pPos;
 	//PCHAR pStart;
 	//PCHAR pIndex;
-	CHAR szCurrent[MAX_STRING] = { 0 };
+	char szCurrent[MAX_STRING] = { 0 };
 	//MQ2TYPEVAR Result = { 0 };
 	do
 	{
@@ -533,7 +533,7 @@ PLUGIN_API void OnDrawHUD()
 	lockit lk(hHudLock,"HudLock");
 	static bool bOkToCheck = true;
     static int N=0;
-    CHAR szBuffer[MAX_STRING]={0};
+    char szBuffer[MAX_STRING]={0};
 
     if (++N>CheckINI)
     {
@@ -585,7 +585,7 @@ PLUGIN_API void OnDrawHUD()
                 strcpy_s(pElement->PreParsed,pElement->Text);
 				if (pElement->Type & HUDTYPE_MACRO) {
 					if (gRunning) {
-						CHAR szTemp[MAX_STRING] = { 0 };
+						char szTemp[MAX_STRING] = { 0 };
 						strcpy_s(szTemp, pElement->Text);
 						std::list<std::string>out;
 						ParseMacroLine(szTemp, MAX_STRING, out);

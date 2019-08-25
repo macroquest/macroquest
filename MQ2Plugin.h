@@ -25,9 +25,9 @@
 
 
 //#define SetINIFileName(ini) sprintf_s(INIFileName,"%s\\%s",gszINIPath,ini);
-extern CHAR INIFileName[MAX_STRING];
+extern char INIFileName[MAX_STRING];
 
-#define PreSetup(pluginname) CHAR INIFileName[MAX_STRING]={0};\
+#define PreSetup(pluginname) char INIFileName[MAX_STRING]={0};\
 BOOL APIENTRY DllMain( HANDLE hModule, \
                        DWORD  ul_reason_for_call, \
                        LPVOID lpReserved\

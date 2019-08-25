@@ -211,7 +211,7 @@ unsigned long CountItemByID(unsigned long ulID, unsigned short usMin = 0, unsign
 // only bags by calling CountItem() with usMin starting point BAG_SLOT_START
 
 // counts by item name
-template <unsigned int _Size> unsigned long CountItemByName(CHAR(&pcItemName)[_Size], size_t BufferSize, unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS)
+template <unsigned int _Size> unsigned long CountItemByName(char(&pcItemName)[_Size], size_t BufferSize, unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS)
 {
     unsigned long  ulCount = 0;
     unsigned short usSlot  = 0;
@@ -323,7 +323,7 @@ unsigned long CountItemByID(unsigned long ulID, unsigned short usMin, unsigned s
 }
 
 // wrapper for string id passing
-template <unsigned int _Size> unsigned long CountItem(CHAR(&pcItemName)[_Size], unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS)
+template <unsigned int _Size> unsigned long CountItem(char(&pcItemName)[_Size], unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS)
 //unsigned long CountItem(char* pcItemName, size_t BufferSize, unsigned short usMin, unsigned short usInvSlots)
 {
     int iIsNum  = IsNumber(pcItemName);

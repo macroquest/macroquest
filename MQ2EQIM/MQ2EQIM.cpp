@@ -49,14 +49,14 @@ PCHAR szBuddyStatusNC[]=
 
 struct EQIMBuddy
 {
-    CHAR Name[MAX_STRING];
+    char Name[MAX_STRING];
     DWORD Status;
     time_t LastSeen;
 };
 
 
 CIndex<EQIMBuddy*> BuddyList(10);
-CHAR Character[MAX_STRING]={0};
+char Character[MAX_STRING]={0};
 BOOL BuddiesLoaded=false;
 
 
@@ -73,7 +73,7 @@ int FindEQIMBuddy(PCHAR Name)
     return -1;
 }
 
-//extern CHAR DataTypeTemp[MAX_STRING];
+//extern char DataTypeTemp[MAX_STRING];
 
 class MQ2BuddyType : public MQ2Type
 {
@@ -334,9 +334,9 @@ void LoadBuddyList()
     sprintf_s(Character,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
 
     // load buddies per char
-    CHAR FullList[MAX_STRING*10] = {0};
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR szCommand[MAX_STRING] = {0};
+    char FullList[MAX_STRING*10] = {0};
+    char szBuffer[MAX_STRING] = {0};
+    char szCommand[MAX_STRING] = {0};
     GetPrivateProfileString(Character,NULL,"",FullList,MAX_STRING*10,INIFileName);
     PCHAR pFullList = FullList;
     while (pFullList[0]!=0) {
@@ -385,7 +385,7 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 }
 void SaveBuddyList()
 {
-    CHAR Buffer[MAX_STRING]={0};
+    char Buffer[MAX_STRING]={0};
 
     // save buddies per char and "last seen" global
     WritePrivateProfileSection(Character,"",INIFileName);
@@ -405,7 +405,7 @@ void BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
     BOOL bOnline=true;
     BOOL bOffline=false;
     BOOL bEQIM=true;
-    CHAR Buffer[MAX_STRING]={0};
+    char Buffer[MAX_STRING]={0};
     if (Line[0])
     {
         strcpy_s(Buffer,Line);

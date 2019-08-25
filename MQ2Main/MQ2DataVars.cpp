@@ -202,10 +202,10 @@ void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     }
     PDATAVAR *pScope=0;
     MQ2Type *pType=0;
-    CHAR szIndex[MAX_STRING]={0};
-    CHAR szName[MAX_STRING]={0};
+    char szIndex[MAX_STRING]={0};
+    char szName[MAX_STRING]={0};
     GetArg(szName,szLine,1);
-    CHAR Arg[MAX_STRING]={0};
+    char Arg[MAX_STRING]={0};
     GetArg(Arg,szLine,2);
     PCHAR pDefault = 0;
 	if (pScope=FindVariableScope(Arg))
@@ -306,10 +306,10 @@ void NewVarset(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /varset <varname> <new value>");
         return;
     }
-    CHAR szName[MAX_STRING]={0};
+    char szName[MAX_STRING]={0};
     GetArg(szName,szLine,1);
     PCHAR szRest=GetNextArg(szLine);
-    CHAR szIndex[MAX_STRING]={0};
+    char szIndex[MAX_STRING]={0};
     if (PCHAR pBracket=strchr(szName,'['))
     {
         *pBracket=0;
@@ -356,7 +356,7 @@ void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /varcalc <varname> <formula>");
         return;
     }
-    CHAR szName[MAX_STRING]={0};
+    char szName[MAX_STRING]={0};
     GetArg(szName,szLine,1);
     PCHAR pRest=GetNextArg(szLine);
     if (!pRest || !pRest[0])
@@ -364,9 +364,9 @@ void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /varcalc <varname> <formula>");
         return;
     }
-	CHAR szRest[MAX_STRING] = { 0 };
+	char szRest[MAX_STRING] = { 0 };
 	strcpy_s(szRest, pRest);
-    DOUBLE Result = 0.0;
+    double Result = 0.0;
     if (!Calculate(szRest,Result))
     {
         MacroError("/varcalc '%s' failed.  Could not calculate '%s'",szName,szRest);
@@ -375,7 +375,7 @@ void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
     sprintf_s(szRest,"%f",Result);
 
 
-    CHAR szIndex[MAX_STRING]={0};
+    char szIndex[MAX_STRING]={0};
     if (PCHAR pBracket=strchr(szName,'['))
     {
         *pBracket=0;
@@ -422,7 +422,7 @@ void NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
 		return;
 	}
-	CHAR szName[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
 	PCHAR szRest = GetNextArg(szLine);
 	if (!szRest || !szRest[0])
@@ -430,7 +430,7 @@ void NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
 		return;
 	}
-	CHAR szIndex[MAX_STRING] = { 0 };
+	char szIndex[MAX_STRING] = { 0 };
 	if (PCHAR pBracket = strchr(szName, '['))
 	{
 		*pBracket = 0;
@@ -504,8 +504,8 @@ void AddEvent(DWORD Event, PCHAR FirstArg, ...)
 
         while (CurrentArg)
         {
-            CHAR szParamName[MAX_STRING] = {0};
-            CHAR szParamType[MAX_STRING] = {0};
+            char szParamName[MAX_STRING] = {0};
+            char szParamType[MAX_STRING] = {0};
 			int index = gEventFunc[Event];
 			if (gMacroBlock->Line.find(index) != gMacroBlock->Line.end()) {
 				GetFuncParam((PCHAR)gMacroBlock->Line[index].Command.c_str(), i, szParamName, MAX_STRING, szParamType, MAX_STRING);
@@ -549,8 +549,8 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     ZeroMemory(pEvent,sizeof(EVENTQUEUE));
     pEvent->Type = EVENT_CUSTOM;
     pEvent->pEventList = pEList;
-    CHAR szParamName[MAX_STRING] = {0};
-    CHAR szParamType[MAX_STRING] = {0};
+    char szParamName[MAX_STRING] = {0};
+    char szParamType[MAX_STRING] = {0};
 	if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
 		GetFuncParam((PCHAR)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
 	}
@@ -592,7 +592,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
 void TellCheck(char *szClean)
 {
 	if(gbFlashOnTells || gbBeepOnTells) {
-		CHAR name[2048] = { 0 };
+		char name[2048] = { 0 };
 		bool itsatell = false;
 		if (char *pDest = strstr(szClean," tells you, '")) {
 			strncpy_s(name,szClean,(DWORD)(pDest -szClean));
@@ -621,7 +621,7 @@ void TellCheck(char *szClean)
 							return;//its a merchantplayer...
 						}
 					} else {
-						CHAR szSearch[MAX_STRING] = { 0 };
+						char szSearch[MAX_STRING] = { 0 };
 						sprintf_s(szSearch, "npc %s", name);
 						SEARCHSPAWN ssSpawn;
 						ClearSearchSpawn(&ssSpawn);
@@ -657,7 +657,7 @@ void TellCheck(char *szClean)
 							return;//its a merchantplayer...
 						}
 					} else {
-						CHAR szSearch[MAX_STRING] = { 0 };
+						char szSearch[MAX_STRING] = { 0 };
 						sprintf_s(szSearch, "npc %s", name);
 						SEARCHSPAWN ssSpawn;
 						ClearSearchSpawn(&ssSpawn);
@@ -701,9 +701,9 @@ void CheckChatForEvent(char* szMsg)
 	PMACROBLOCK pBlock = GetCurrentMacroBlock();
 	if ((pBlock && !pBlock->Line.empty()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning))
 	{
-		CHAR Arg1[MAX_STRING] = { 0 };
-		CHAR Arg2[MAX_STRING] = { 0 };
-		CHAR Arg3[MAX_STRING] = { 0 };
+		char Arg1[MAX_STRING] = { 0 };
+		char Arg2[MAX_STRING] = { 0 };
+		char Arg3[MAX_STRING] = { 0 };
 		char* pDest = nullptr;
 
 		if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean, " tells the guild, '")))
@@ -799,7 +799,7 @@ void CheckChatForEvent(char* szMsg)
 void DropTimers()
 {
     PMQTIMER pTimer=gTimer;
-    CHAR szOrig[MAX_STRING] = {0};
+    char szOrig[MAX_STRING] = {0};
     while(pTimer)
     {
         if (pTimer->Current)

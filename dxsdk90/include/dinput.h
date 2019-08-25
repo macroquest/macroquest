@@ -267,7 +267,7 @@ typedef struct DIFILEEFFECT{
     DWORD       dwSize;
     GUID        GuidEffect;
     LPCDIEFFECT lpDiEffect;
-    CHAR        szFriendlyName[MAX_PATH];
+    char        szFriendlyName[MAX_PATH];
 }DIFILEEFFECT, *LPDIFILEEFFECT;
 typedef const DIFILEEFFECT *LPCDIFILEEFFECT;
 typedef BOOL (FAR PASCAL * LPDIENUMEFFECTSINFILECALLBACK)(LPCDIFILEEFFECT , LPVOID);
@@ -717,7 +717,7 @@ typedef struct _DIACTIONFORMATA {
     OPTIONAL    HINSTANCE   hInstString;
                 FILETIME    ftTimeStamp;
                 DWORD       dwCRC;
-                CHAR        tszActionMap[MAX_PATH];
+                char        tszActionMap[MAX_PATH];
 } DIACTIONFORMATA, *LPDIACTIONFORMATA;
 typedef struct _DIACTIONFORMATW {
                 DWORD       dwSize;
@@ -842,7 +842,7 @@ typedef const DICONFIGUREDEVICESPARAMS *LPCDICONFIGUREDEVICESPARAMS;
 #define DIDAL_BOTTOMALIGNED 0x00000008
 
 typedef struct _DIDEVICEIMAGEINFOA {
-    CHAR        tszImagePath[MAX_PATH];
+    char        tszImagePath[MAX_PATH];
     DWORD       dwFlags; 
     // These are valid if DIDIFT_OVERLAY is present in dwFlags.
     DWORD       dwViewID;      
@@ -934,7 +934,7 @@ typedef struct DIDEVICEOBJECTINSTANCE_DX3A {
     DWORD   dwOfs;
     DWORD   dwType;
     DWORD   dwFlags;
-    CHAR    tszName[MAX_PATH];
+    char    tszName[MAX_PATH];
 } DIDEVICEOBJECTINSTANCE_DX3A, *LPDIDEVICEOBJECTINSTANCE_DX3A;
 typedef struct DIDEVICEOBJECTINSTANCE_DX3W {
     DWORD   dwSize;
@@ -962,7 +962,7 @@ typedef struct DIDEVICEOBJECTINSTANCEA {
     DWORD   dwOfs;
     DWORD   dwType;
     DWORD   dwFlags;
-    CHAR    tszName[MAX_PATH];
+    char    tszName[MAX_PATH];
 #if(DIRECTINPUT_VERSION >= 0x0500)
     DWORD   dwFFMaxForce;
     DWORD   dwFFForceResolution;
@@ -1232,8 +1232,8 @@ typedef struct DIDEVICEINSTANCE_DX3A {
     GUID    guidInstance;
     GUID    guidProduct;
     DWORD   dwDevType;
-    CHAR    tszInstanceName[MAX_PATH];
-    CHAR    tszProductName[MAX_PATH];
+    char    tszInstanceName[MAX_PATH];
+    char    tszProductName[MAX_PATH];
 } DIDEVICEINSTANCE_DX3A, *LPDIDEVICEINSTANCE_DX3A;
 typedef struct DIDEVICEINSTANCE_DX3W {
     DWORD   dwSize;
@@ -1260,8 +1260,8 @@ typedef struct DIDEVICEINSTANCEA {
     GUID    guidInstance;
     GUID    guidProduct;
     DWORD   dwDevType;
-    CHAR    tszInstanceName[MAX_PATH];
-    CHAR    tszProductName[MAX_PATH];
+    char    tszInstanceName[MAX_PATH];
+    char    tszProductName[MAX_PATH];
 #if(DIRECTINPUT_VERSION >= 0x0500)
     GUID    guidFFDriver;
     WORD    wUsagePage;
@@ -1444,7 +1444,7 @@ typedef struct DIEFFECTINFOA {
     DWORD   dwEffType;
     DWORD   dwStaticParams;
     DWORD   dwDynamicParams;
-    CHAR    tszName[MAX_PATH];
+    char    tszName[MAX_PATH];
 } DIEFFECTINFOA, *LPDIEFFECTINFOA;
 typedef struct DIEFFECTINFOW {
     DWORD   dwSize;

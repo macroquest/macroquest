@@ -383,14 +383,14 @@ public:
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type != pFloatType && Source.Type != (MQ2Type*)pHeadingType)
-			VarPtr.Float = (FLOAT)Source.DWord;
+			VarPtr.Float = (float)Source.DWord;
 		else
 			VarPtr.Float = Source.Float;
 		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		VarPtr.Float = (FLOAT)atof(Source);
+		VarPtr.Float = (float)atof(Source);
 		return true;
 	}
 };
@@ -532,7 +532,7 @@ public:
 	{
 		/* Note -- if you get an error compiling this for ISXSDK,
 		error C2039 : 'UInt64' : is not a member of '_LSVarPtr'
-		Then add "unsigned __int64 UInt64;" under the Int64 definition in _LSVarPtr and _LSTypeVar in ISXDK\include\LavishScript\LSType.h
+		Then add "uint64_t UInt64;" under the Int64 definition in _LSVarPtr and _LSTypeVar in ISXDK\include\LavishScript\LSType.h
 		This should be fixed in ISXDK35 or higher.
 		*/
 		_i64toa_s(VarPtr.UInt64, Destination, MAX_STRING, 10);
@@ -4015,7 +4015,7 @@ public:
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type != pHeadingType && Source.Type != pFloatType)
-			VarPtr.Float = (FLOAT)Source.DWord;
+			VarPtr.Float = (float)Source.DWord;
 		else
 			VarPtr.Float = Source.Float;
 		return true;
@@ -4025,7 +4025,7 @@ public:
 #endif
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		VarPtr.Float = (FLOAT)atof(Source);
+		VarPtr.Float = (float)atof(Source);
 		return true;
 	}
 };
@@ -4078,7 +4078,7 @@ public:
 		}
 		else
 		{
-			CHAR Temp[MAX_STRING] = { 0 };
+			char Temp[MAX_STRING] = { 0 };
 			strcpy_s(Temp, Source);
 			_strlwr_s(Temp);
 			VarPtr.DWord = ItemSlotMap[Temp];
@@ -4405,7 +4405,7 @@ public:
 		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
 
 
-		FLOAT VarValue = (FLOAT)atof(Source);
+		float VarValue = (float)atof(Source);
 		switch (Source[strlen(Source) - 1])
 		{
 		case 'm':

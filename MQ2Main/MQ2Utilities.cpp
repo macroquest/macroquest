@@ -80,13 +80,13 @@ void DebugSpewAlways(PCHAR szFormat, ...)
 		OutputDebugString(szOutput);
 		if (gSpewToFile) {
 			FILE *fOut = NULL;
-			CHAR Filename[MAX_STRING] = { 0 };
+			char Filename[MAX_STRING] = { 0 };
 			sprintf_s(Filename, "%s\\DebugSpew.log", gszLogPath);
 			errno_t err = fopen_s(&fOut, Filename, "at");
 			if (err)
 				return;
 #ifdef DBG_CHARNAME
-			CHAR Name[256] = "Unknown";
+			char Name[256] = "Unknown";
 			PCHARINFO pCharInfo = GetCharInfo();
 			if (pCharInfo)
 			{
@@ -115,13 +115,13 @@ void DebugSpewAlwaysFile(PCHAR szFormat, ...)
 		OutputDebugString(szOutput);
 		//if (gSpewToFile) {
 			FILE *fOut = NULL;
-			CHAR Filename[MAX_STRING] = { 0 };
+			char Filename[MAX_STRING] = { 0 };
 			sprintf_s(Filename, "%s\\DebugSpew.log", gszLogPath);
 			errno_t err = fopen_s(&fOut, Filename, "at");
 			if (err)
 				return;
 #ifdef DBG_CHARNAME
-			CHAR Name[256] = "Unknown";
+			char Name[256] = "Unknown";
 			PCHARINFO pCharInfo = GetCharInfo();
 			if (pCharInfo)
 			{
@@ -200,7 +200,7 @@ void SyntaxError(PCHAR szFormat, ...)
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (bLaxColor)
 		{
-			CHAR szColor[MAX_STRING] = { 0 };
+			char szColor[MAX_STRING] = { 0 };
 			strcpy_s(szColor, szColorSyntaxError[rand() % nColorSyntaxError]);
 			if (szColor[0])
 			{
@@ -223,7 +223,7 @@ void MacroError(PCHAR szFormat, ...)
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (bLaxColor)
 		{
-			CHAR szColor[MAX_STRING] = { 0 };
+			char szColor[MAX_STRING] = { 0 };
 			strcpy_s(szColor, szColorMacroError[rand() % nColorMacroError]);
 			if (szColor[0])
 			{
@@ -255,7 +255,7 @@ void FatalError(PCHAR szFormat, ...)
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (bLaxColor)
 		{
-			CHAR szColor[MAX_STRING] = { 0 };
+			char szColor[MAX_STRING] = { 0 };
 			strcpy_s(szColor, szColorFatalError[rand() % nColorFatalError]);
 			if (szColor[0])
 			{
@@ -289,7 +289,7 @@ void MQ2DataError(PCHAR szFormat, ...)
 		{
 			if (bLaxColor)
 			{
-				CHAR szColor[MAX_STRING] = { 0 };
+				char szColor[MAX_STRING] = { 0 };
 				strcpy_s(szColor, szColorMQ2DataError[rand() % nColorMQ2DataError]);
 				if (szColor[0])
 				{
@@ -339,7 +339,7 @@ void FixStringTable()
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument
 // ***************************************************************************
-PSTR GetNextArg(PCSTR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
+PSTR GetNextArg(PCSTR szLine, DWORD dwNumber, BOOL CSV, char Separator)
 {
 	PCSTR szNext = szLine;
 	BOOL CustomSep = FALSE;
@@ -385,7 +385,7 @@ PSTR GetNextArg(PCSTR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
 // Function:    GetArg
 // Description: Returns a pointer to the current argument in szDest
 // ***************************************************************************
-PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToParen, BOOL CSV, CHAR Separator, BOOL AnyNonAlphaNum)
+PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToParen, BOOL CSV, char Separator, BOOL AnyNonAlphaNum)
 {
 	if (!szSrc)
 		return NULL;
@@ -517,7 +517,7 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 	//DebugSpew("MQToSTML(%s)",in);
 	// 1234567890123
 	// <c "#123456">
-	//CHAR szCmd[MAX_STRING] = { 0 };
+	//char szCmd[MAX_STRING] = { 0 };
 	//strcpy_s(szCmd, out);
 	int outlen = maxlen;
 	if (maxlen>14)
@@ -1318,11 +1318,11 @@ PCHAR GetLightForSpawn(PSPAWNINFO pSpawn)
 // Function:    DistanceToSpawn3D
 // Description: Return the distance between two spawns, including Z
 // ***************************************************************************
-FLOAT DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+float DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
-	FLOAT X = pChar->X - pSpawn->X;
-	FLOAT Y = pChar->Y - pSpawn->Y;
-	FLOAT Z = pChar->Z - pSpawn->Z;
+	float X = pChar->X - pSpawn->X;
+	float Y = pChar->Y - pSpawn->Y;
+	float Z = pChar->Z - pSpawn->Z;
 	return sqrtf(X*X + Y*Y + Z*Z);
 }
 
@@ -1330,11 +1330,11 @@ FLOAT DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 // Function:    DistanceToSpawn
 // Description: Return the distance between two spawns
 // ***************************************************************************
-FLOAT EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+float EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
-	FLOAT RDistance = DistanceToSpawn(pChar, pSpawn);
-	FLOAT X = pChar->X - (pSpawn->X + pSpawn->SpeedX * RDistance);
-	FLOAT Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
+	float RDistance = DistanceToSpawn(pChar, pSpawn);
+	float X = pChar->X - (pSpawn->X + pSpawn->SpeedX * RDistance);
+	float Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
 	return sqrtf(X*X + Y*Y);
 }
 
@@ -1400,10 +1400,10 @@ CContainerWnd* FindContainerForContents(CONTENTS* pContents)
 //                               consideration.
 // ***************************************************************************
 
-FLOAT FindSpeed(SPAWNINFO* pSpawn)
+float FindSpeed(SPAWNINFO* pSpawn)
 {
 	SPAWNINFO* pMount = nullptr;
-	FLOAT fRunSpeed = 0;
+	float fRunSpeed = 0;
 	pMount = FindMount(pSpawn);
 
 	if (pMount)
@@ -1447,7 +1447,7 @@ void STMLToPlainText(PCHAR in, PCHAR out)
 	DWORD pchar_in_string_position = 0;
 	DWORD pchar_out_string_position = 0;
 	DWORD pchar_amper_string_position = 0;
-	CHAR Amper[2048] = { 0 };
+	char Amper[2048] = { 0 };
 	while (in[pchar_in_string_position] != 0) {
 		switch (in[pchar_in_string_position]) {
 		case '<':
@@ -1498,7 +1498,7 @@ void ClearSearchItem(SEARCHITEM &SearchItem)
 }
 #define MaskSet(n) (SearchItem.FlagMask[(SearchItemFlag)n])
 #define Flag(n) (SearchItem.Flag[(SearchItemFlag)n])
-#define RequireFlag(flag,value) {if (MaskSet(flag) && Flag(flag)!=(CHAR)((value)!=0)) return false;}
+#define RequireFlag(flag,value) {if (MaskSet(flag) && Flag(flag)!=(char)((value)!=0)) return false;}
 
 bool ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* pContents)
 {
@@ -1516,7 +1516,7 @@ bool ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* pContents)
 	RequireFlag(Weapon, GetItemFromContents(pContents)->Damage && GetItemFromContents(pContents)->Delay);
 	RequireFlag(Normal, GetItemFromContents(pContents)->Type == ITEMTYPE_NORMAL);
 
-	CHAR szName[ITEM_NAME_LEN] = { 0 };
+	char szName[ITEM_NAME_LEN] = { 0 };
 	strcpy_s(szName, GetItemFromContents(pContents)->Name);
 	_strlwr_s(szName);
 
@@ -1609,21 +1609,21 @@ void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 // Function:    DistanceToPoint 
 // Description: Return the distance between a spawn and the specified point 
 // *************************************************************************** 
-FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
+float DistanceToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc)
 {
-	FLOAT X = pSpawn->X - xLoc;
-	FLOAT Y = pSpawn->Y - yLoc;
+	float X = pSpawn->X - xLoc;
+	float Y = pSpawn->Y - yLoc;
 	return sqrtf(X*X + Y*Y);
 }
 // *************************************************************************** 
 // Function:    Distance3DToPoint 
 // Description: Return the distance between a spawn and the specified point 
 // *************************************************************************** 
-FLOAT Distance3DToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc, FLOAT zLoc)
+float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, float zLoc)
 {
-	FLOAT dX = pSpawn->X - xLoc;
-	FLOAT dY = pSpawn->Y - yLoc;
-	FLOAT dZ = pSpawn->Z - zLoc;
+	float dX = pSpawn->X - xLoc;
+	float dY = pSpawn->Y - yLoc;
+	float dZ = pSpawn->Z - zLoc;
 	return sqrtf(dX*dX + dY*dY + dZ*dZ);
 }
 // *************************************************************************** 
@@ -1656,7 +1656,7 @@ BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 //              comma delimited list of play short class names that are excluded
 // *************************************************************************** 
 template <unsigned int _Size>
-PCHAR GetClassesFromMask(LONG mask, CHAR(&szBuffer)[_Size])
+PCHAR GetClassesFromMask(LONG mask, char(&szBuffer)[_Size])
 {
 	//WriteChatf("GetClassesFromMask:: MASK:%d", mask);
 	int matching = 0;
@@ -1699,7 +1699,7 @@ PCHAR GetClassesFromMask(LONG mask, CHAR(&szBuffer)[_Size])
 // *************************************************************************** 
 PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, SIZE_T BufferSize)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	if (!szBuffer)
 		return NULL;
 	if (!pSpell) {
@@ -1836,7 +1836,7 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 		strcat_s(szBuffer, BufferSize, szSPATypes[absEffectID]);
 	}
 	else {
-		CHAR szTemp[MAX_STRING] = { 0 };
+		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, "Unknown SPA[%03d]", absEffectID);
 		strcat_s(szBuffer, BufferSize, szTemp);
 	}
@@ -1844,9 +1844,9 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 }
 
 template <unsigned int _Size>
-PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
+PCHAR GetResistTypeName(LONG ResistType, char(&szBuffer)[_Size])
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	switch (ResistType)
 	{
 	case 1: strcat_s(szBuffer, "Magic"); break;
@@ -1864,9 +1864,9 @@ PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetSpellTypeName(LONG SpellType, CHAR(&szBuffer)[_Size])
+PCHAR GetSpellTypeName(LONG SpellType, char(&szBuffer)[_Size])
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	switch (SpellType)
 	{
 	case 0: strcat_s(szBuffer, "Detrimental only"); break;
@@ -1880,9 +1880,9 @@ PCHAR GetSpellTypeName(LONG SpellType, CHAR(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
+PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, char(&szBuffer)[_Size])
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	switch (abs(TargetLimitsType))
 	{
 	case 50: strcat_s(szBuffer, "Target AE No Players Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
@@ -1929,9 +1929,9 @@ PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
+PCHAR GetStatShortName(LONG StatType, char(&szBuffer)[_Size])
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	switch (StatType)
 	{
 	case 0: strcat_s(szBuffer, "STR"); break;
@@ -1954,10 +1954,10 @@ PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetFactionName(LONG FactionID, CHAR(&szBuffer)[_Size])
+PCHAR GetFactionName(LONG FactionID, char(&szBuffer)[_Size])
 {
 	/*
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	switch (FactionType)
 	{
 	case 304: strcat_s(szBuffer, "(Ring of Scale)"); break;
@@ -1975,7 +1975,7 @@ PCHAR GetFactionName(LONG FactionID, CHAR(&szBuffer)[_Size])
 		strcat_s(szBuffer, _Size, szFactionNames[FactionID]);
 	}
 	else {
-		CHAR szTemp[MAX_STRING] = { 0 };
+		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
 		strcat_s(szBuffer, _Size, szTemp);
 	}
@@ -2228,7 +2228,7 @@ PCHAR CalcValueRange(LONG calc, LONG base, LONG max, LONG duration, LONG minleve
 {
 	LONG start = CalcValue(calc, base, max, 1, minlevel, minlevel);
 	LONG finish = CalcValue(calc, base, max, duration, minlevel, level);
-	CHAR type[MAX_STRING] = { 0 };
+	char type[MAX_STRING] = { 0 };
 
 	sprintf_s(type, "%s", abs(start) < abs(finish) ? "Growing" : "Decaying");
 
@@ -2274,67 +2274,67 @@ PCHAR CalcExtendedRange(LONG calc, LONG start, LONG finish, LONG minlevel, LONG 
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatAT(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
+template <unsigned int _Size> PCHAR FormatAT(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
 {
 	sprintf_s(szBuffer, "%s %s %d%s", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d)", szEffectName, base);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, LONG max, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, LONG max, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d,%d)", szEffectName, base, max);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, PCHAR szOptional, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, PCHAR szOptional, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s %s (%d)", szEffectName, szOptional, base);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBasePercent(PCHAR szEffectName, LONG base, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatBasePercent(PCHAR szEffectName, LONG base, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d%%)", szEffectName, base);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatMinMaxBase(PCHAR szEffectName, LONG base, LONG spa, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatMinMaxBase(PCHAR szEffectName, LONG base, LONG spa, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d %s)", szEffectName, abs(base), szSPATypes[spa]);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatCount(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
+template <unsigned int _Size> PCHAR FormatCount(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
 {
 	sprintf_s(szBuffer, "%s %s %s %d%s", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatExtra(PCHAR szEffectName, PCHAR extra, CHAR(&szBuffer)[_Size], PCHAR trigger = "", PCHAR colon = ":")
+template <unsigned int _Size> PCHAR FormatExtra(PCHAR szEffectName, PCHAR extra, char(&szBuffer)[_Size], PCHAR trigger = "", PCHAR colon = ":")
 {
 	sprintf_s(szBuffer, "%s%s %s%s", szEffectName, colon, extra, trigger);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatLimits(PCHAR szEffectName, LONG value, PCHAR extra, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatLimits(PCHAR szEffectName, LONG value, PCHAR extra, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%s %s)", szEffectName, extra, value<0 ? "excluded" : "allowed");
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatMax(PCHAR szEffectName, LONG value, LONG max, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatMax(PCHAR szEffectName, LONG value, LONG max, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s %s by %d (%d%% max)", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), value);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPenaltyChance(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], PCHAR szPercent, PCHAR penaltychance)
+template <unsigned int _Size> PCHAR FormatPenaltyChance(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], PCHAR szPercent, PCHAR penaltychance)
 {
 	if (value < 100)
 		sprintf_s(szBuffer, "%s (%d%s %s)", szEffectName, value, szPercent, penaltychance);
@@ -2343,9 +2343,9 @@ template <unsigned int _Size> PCHAR FormatPenaltyChance(PCHAR szEffectName, LONG
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, LONG max, CHAR(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
+template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, LONG max, char(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
 {
-	CHAR szPercent[MAX_STRING] = { 0 };
+	char szPercent[MAX_STRING] = { 0 };
 	if (usepercent) strcat_s(szPercent, "%");
 	if (hundreds)
 		if (value == max)
@@ -2372,18 +2372,18 @@ template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
+template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
 {
 	return FormatPercent(szEffectName, value, value, szBuffer, scaling, hundreds, usepercent);
 }
 
-template <unsigned int _Size> PCHAR FormatRange(PCHAR szEffectName, LONG value, PCHAR range, CHAR(&szBuffer)[_Size], PCHAR extra = "")
+template <unsigned int _Size> PCHAR FormatRange(PCHAR szEffectName, LONG value, PCHAR range, char(&szBuffer)[_Size], PCHAR extra = "")
 {
 	sprintf_s(szBuffer, "%s %s%s%s", value<0 ? "Decrease" : "Increase", szEffectName, range, extra);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatRateMod(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatRateMod(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (base > 0)
 		sprintf_s(szBuffer, "%s (rate mod %d)", GetSpellNameByID(value), base);
@@ -2392,7 +2392,7 @@ template <unsigned int _Size> PCHAR FormatRateMod(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG value, LONG max, LONG skill, CHAR(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
 {
 	if (value == max)
 		sprintf_s(szBuffer, "%s %s by %d sec %s %s", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
@@ -2401,15 +2401,15 @@ template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG 
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG value, LONG skill, CHAR(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG value, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
 {
 	return FormatRefreshTimer(szEffectName, value, value, skill, szBuffer, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatResists(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatResists(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (value < 100) {
-		CHAR szTemp[MAX_STRING] = { 0 };
+		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szBuffer, "%s (%d%% Chance)", GetSpellEffectNameByID(base, szTemp, MAX_STRING), value);
 	} else {
 		sprintf_s(szBuffer, "%s", szEffectName);
@@ -2417,7 +2417,7 @@ template <unsigned int _Size> PCHAR FormatResists(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], BOOL tens = FALSE)
+template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], BOOL tens = FALSE)
 {
 	if (tens)
 		sprintf_s(szBuffer, "%s (%d0.00 sec)", szEffectName, value);
@@ -2426,41 +2426,41 @@ template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, FLOAT value, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, float value, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%.2f sec)", szEffectName, value);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSecondsCount(PCHAR szEffectName, FLOAT value, CHAR(&szBuffer)[_Size], PCHAR preposition = "by")
+template <unsigned int _Size> PCHAR FormatSecondsCount(PCHAR szEffectName, float value, char(&szBuffer)[_Size], PCHAR preposition = "by")
 {
 	sprintf_s(szBuffer, "%s %s %s %.2f sec", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value));
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG value, LONG max, LONG base2, LONG skill, CHAR(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG value, LONG max, LONG base2, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
 {
 	sprintf_s(szBuffer, "%s %s %s for %d damage", FormatPercent(szEffectName, value, max, szBuffer), preposition, skill >= 0 ? szSkills[skill] : "All Skills", base2);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG value, LONG base2, LONG skill, CHAR(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG value, LONG base2, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
 {
 	return FormatSkillAttack(szEffectName, base2, base2, value, skill, szBuffer, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG max, LONG skill, CHAR(&szBuffer)[_Size], BOOL usepercent = TRUE, PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], BOOL usepercent = TRUE, PCHAR preposition = "with")
 {
 	sprintf_s(szBuffer, "%s %s %s", FormatPercent(szEffectName, value, max, szBuffer, TRUE, FALSE, usepercent), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG skill, CHAR(&szBuffer)[_Size], BOOL percent = TRUE, PCHAR preposition = "with")
+template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG skill, char(&szBuffer)[_Size], BOOL percent = TRUE, PCHAR preposition = "with")
 {
 	return FormatSkills(szEffectName, value, value, skill, szBuffer, usepercent, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (value < 100)
 		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameByID(base));
@@ -2469,7 +2469,7 @@ template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG v
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSpellGroupChance(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatSpellGroupChance(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (value < 100)
 		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameBySpellGroupID(base));
@@ -2478,7 +2478,7 @@ template <unsigned int _Size> PCHAR FormatSpellGroupChance(PCHAR szEffectName, L
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatStacking(PCHAR szEffectName, LONG slot, LONG value, LONG max, LONG spa, PCHAR extra, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatStacking(PCHAR szEffectName, LONG slot, LONG value, LONG max, LONG spa, PCHAR extra, char(&szBuffer)[_Size])
 {
 	if (max > 0)
 		sprintf_s(szBuffer, "%s %s spell if slot %d is effect '%s' and < %d", szEffectName, spa == 148 ? "new" : "existing", slot, extra, value);
@@ -2487,26 +2487,26 @@ template <unsigned int _Size> PCHAR FormatStacking(PCHAR szEffectName, LONG slot
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatStatsCapRange(PCHAR szEffectName, LONG value, PCHAR stat, PCHAR range, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatStatsCapRange(PCHAR szEffectName, LONG value, PCHAR stat, PCHAR range, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s %s %s%s", value<0 ? "Decrease" : "Increase", stat, szEffectName, range);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatString(PCHAR szEffectName, PCHAR extra, CHAR(&szBuffer)[_Size], PCHAR trigger = "")
-//PCHAR FormatString(PCHAR szEffectName, PCHAR extra, CHAR(&szBuffer)[_Size], PCHAR trigger = "")
+template <unsigned int _Size> PCHAR FormatString(PCHAR szEffectName, PCHAR extra, char(&szBuffer)[_Size], PCHAR trigger = "")
+//PCHAR FormatString(PCHAR szEffectName, PCHAR extra, char(&szBuffer)[_Size], PCHAR trigger = "")
 {
 	sprintf_s(szBuffer, "%s %s%s", szEffectName, extra, trigger);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatTimer(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatTimer(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s by %d.00 sec", szEffectName, value);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatTimer(PCHAR szEffectName, FLOAT value, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatTimer(PCHAR szEffectName, float value, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s by %.2f sec", szEffectName, value);
 	return szBuffer;
@@ -2614,9 +2614,9 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level)
 {
-	CHAR szBuff[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR szTemp2[MAX_STRING] = { 0 };
+	char szBuff[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char szTemp2[MAX_STRING] = { 0 };
 
 	LONG id = pSpell->ID;
 	LONG spa = GetSpellAttrib(pSpell,i);
@@ -2661,14 +2661,14 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 
 	PITEMDB ItemDB = gItemDB;
 
-	CHAR extendedrange[MAX_STRING] = { 0 };
-	CHAR range[MAX_STRING] = { 0 };
-	CHAR repeating[MAX_STRING] = { 0 };
-	CHAR maxlevel[MAX_STRING] = { 0 };
-	CHAR spelleffectname[MAX_STRING] = { 0 };
-	CHAR extra[MAX_STRING] = { 0 };
-	CHAR maxtargets[MAX_STRING] = { 0 };
-	CHAR szPercent[MAX_STRING] = "%";
+	char extendedrange[MAX_STRING] = { 0 };
+	char range[MAX_STRING] = { 0 };
+	char repeating[MAX_STRING] = { 0 };
+	char maxlevel[MAX_STRING] = { 0 };
+	char spelleffectname[MAX_STRING] = { 0 };
+	char extra[MAX_STRING] = { 0 };
+	char maxtargets[MAX_STRING] = { 0 };
+	char szPercent[MAX_STRING] = "%";
 
 	GetSpellEffectName(spa, spelleffectname, sizeof(spelleffectname));
 	strcpy_s(extra, pSpell->Extra);
@@ -3673,7 +3673,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		break;
 	case 382: //Negate: Effect
 	{
-		CHAR szString[MAX_STRING] = { 0 };
+		char szString[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2,szString,MAX_STRING));
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
@@ -4022,8 +4022,8 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 
 PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR szBuff[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char szBuff[MAX_STRING] = { 0 };
 	int count = 0;
 	for (int i = 0; i<GetSpellNumEffects(pSpell); i++)
 	{
@@ -4135,7 +4135,7 @@ BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
 		Dest = Ret;
 		return true;
 	}
-	CHAR Copy[MAX_STRING];
+	char Copy[MAX_STRING];
 	strcpy_s(Copy, text);
 	char *token1 = NULL;
 	char *next_token1 = NULL;
@@ -4222,11 +4222,11 @@ BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
 {
 	FILE *file = 0;
 	errno_t err = 0;
-	CHAR szFilename[MAX_STRING] = { 0 };
+	char szFilename[MAX_STRING] = { 0 };
 	strcpy_s(szFilename, Filename);
 	if (!strchr(szFilename, '.'))
 		strcat_s(szFilename, ".cfg");
-	CHAR szFull[MAX_STRING] = { 0 };
+	char szFull[MAX_STRING] = { 0 };
 #define TryFile(name)  \
     {\
 	if((err = fopen_s(&file,name,"rt"))==0)\
@@ -4241,7 +4241,7 @@ BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
 #undef TryFile
 	return false;
 havecfgfile:
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	while (fgets(szBuffer, MAX_STRING, file))
 	{
 		char *Next_Token1 = 0;
@@ -4324,10 +4324,10 @@ DWORD LastFoundInvSlot = -1;
 
 int FindInvSlot(PCHAR pName, BOOL Exact)
 {
-	CHAR Name[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 
 	for (unsigned long N = 0; N < MAX_INV_SLOTS; N++)
 	{
@@ -4376,8 +4376,8 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 
 int FindNextInvSlot(PCHAR pName, BOOL Exact)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR Name[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 
@@ -4484,15 +4484,15 @@ int CalcOpPrecedence[CO_TOTAL] =
 struct _CalcOp
 {
 	eCalcOp Op;
-	DOUBLE Value;
+	double Value;
 };
 
-BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
+BOOL EvaluateRPN(_CalcOp *pList, int Size, double &Result)
 {
 	if (!Size)
 		return 0;
-	int StackSize = (sizeof(DOUBLE)*(Size / 2 + 2));
-	if(DOUBLE *pStack = (DOUBLE*)malloc(StackSize)) {
+	int StackSize = (sizeof(double)*(Size / 2 + 2));
+	if(double *pStack = (double*)malloc(StackSize)) {
 		int nStack = 0;
 		#define StackEmpty() (nStack==0)
 		#define StackTop() (pStack[nStack])
@@ -4500,9 +4500,9 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 		#define StackPush(val) {nStack++;pStack[nStack]=val;}
 		#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pStack);return 0;};nStack--;}
 
-		#define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
-		#define BinaryOp(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
-		#define BinaryAssign(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
+		#define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(double)(((int)StackTop())##op##RightSide));}
+		#define BinaryOp(op) {double RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
+		#define BinaryAssign(op) {double RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
 
 		#define UnaryIntOp(op) {StackSetTop(=op##((int)StackTop()));}
 		#define UnaryOp(op)    {StackSetTop(=op##(StackTop()));}
@@ -4623,7 +4623,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 				break;
 			case CO_POWER:
 			{
-				DOUBLE RightSide = StackTop();
+				double RightSide = StackTop();
 				StackPop();
 				StackSetTop(= pow(StackTop(), RightSide));
 			}
@@ -4646,7 +4646,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 	return false;
 }
 
-BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
+BOOL FastCalculate(PCHAR szFormula, double &Result)
 {
 	//DebugSpew("FastCalculate(%s)",szFormula);
 	if (!szFormula || !szFormula[0])
@@ -4886,9 +4886,9 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 	return Ret;
 }
 
-BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
+BOOL Calculate(PCHAR szFormula, double &Result)
 {
-	CHAR Buffer[MAX_STRING] = { 0 };
+	char Buffer[MAX_STRING] = { 0 };
 	strcpy_s(Buffer, szFormula);
 	_strupr_s(Buffer);
 	while (PCHAR pNull = strstr(Buffer, "NULL"))
@@ -4999,7 +4999,7 @@ DWORD GetAAIndexByID(DWORD ID)
 	return 0;
 }
 
-BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
+BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius)
 {
 	PSPAWNINFO pClose = NULL;
 	if (ppSpawnManager && pSpawnList)
@@ -5041,7 +5041,7 @@ bool IsInGroup(PSPAWNINFO pSpawn, bool bCorpse)
 			}
 			else
 			{
-				CHAR szSearch[256] = { 0 };
+				char szSearch[256] = { 0 };
 				strcpy_s(szSearch, pMember->Name.c_str());
 				strcat_s(szSearch, "'s corpse");
 				DWORD l = strlen(szSearch);
@@ -5070,7 +5070,7 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
 			}
 		}
 		else {
-			CHAR szSearch[256] = { 0 };
+			char szSearch[256] = { 0 };
 			strcpy_s(szSearch, pRaid->RaidMember[i].Name);
 			strcat_s(szSearch, "'s corpse");
 			l = strlen(szSearch);
@@ -5097,7 +5097,7 @@ BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
 				}
 			}
 			else {
-				CHAR szSearch[256] = { 0 };
+				char szSearch[256] = { 0 };
 				strcpy_s(szSearch, Fellowship.FellowshipMember[i].Name);
 				strcat_s(szSearch, "'s corpse");
 				int l = strlen(szSearch);
@@ -5113,7 +5113,7 @@ BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
 BOOL IsNamed(PSPAWNINFO pSpawn)
 {
 	if (pSpawn) {
-		CHAR szTemp[MAX_STRING] = { 0 };
+		char szTemp[MAX_STRING] = { 0 };
 
 		if (GetSpawnType(pSpawn) != NPC)
 			return false;
@@ -5180,7 +5180,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpa
 {
 	if (!Buffer)
 		return NULL;
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 
 	if (!pSearchSpawn) {
 		strcpy_s(Buffer,BufferSize, "None");
@@ -5759,8 +5759,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->szName[0] && pSpawn->Name[0])
 	{
-		CHAR szName[MAX_STRING] = { 0 };
-		CHAR szSearchName[MAX_STRING] = { 0 };
+		char szName[MAX_STRING] = { 0 };
+		char szSearchName[MAX_STRING] = { 0 };
 		strcpy_s(szName, pSpawn->Name);
 		_strlwr_s(szName);
 		strcpy_s(szSearchName, pSearchSpawn->szName);
@@ -5918,11 +5918,11 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 		else if (!_stricmp(szArg, "loc")) {
 			pSearchSpawn->bKnownLocation = TRUE;
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->xLoc = (FLOAT)atof(szArg);
+			pSearchSpawn->xLoc = (float)atof(szArg);
 			GetArg(szArg, szRest, 2);
-			pSearchSpawn->yLoc = (FLOAT)atof(szArg);
+			pSearchSpawn->yLoc = (float)atof(szArg);
 			GetArg(szArg, szRest, 3);
-			pSearchSpawn->zLoc = (FLOAT)atof(szArg);
+			pSearchSpawn->zLoc = (float)atof(szArg);
 			if (pSearchSpawn->zLoc == 0.0) {
 				pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
 			szRest = GetNextArg(szRest, 2);
@@ -6019,7 +6019,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 		}
 		else if (!_stricmp(szArg, "nopcnear")) {
 			GetArg(szArg, szRest, 1);
-			if ((szArg[0] == 0) || (0.0f == (pSearchSpawn->Radius = (FLOAT)atof(szArg)))) {
+			if ((szArg[0] == 0) || (0.0f == (pSearchSpawn->Radius = (float)atof(szArg)))) {
 				pSearchSpawn->Radius = 200.0f;
 			}
 			else {
@@ -6064,9 +6064,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 
 void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 {
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szMsg[MAX_STRING] = { 0 };
-	CHAR szLLine[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
+	char szLLine[MAX_STRING] = { 0 };
 	PCHAR szFilter = szLLine;
 	BOOL DidTarget = FALSE;
 	BOOL bArg = TRUE;
@@ -6088,11 +6088,11 @@ void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 
 BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 {
-	CHAR szName[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	if (!ppSpawnManager) return FALSE;
 	if (!pSpawnList) return FALSE;
 	PSPAWNINFO pSpawn, pClosest = FALSE;
-	FLOAT ClosestDistance = 50000.0f;
+	float ClosestDistance = 50000.0f;
 	std::list<SEARCHSPAWN>ss;
 	if (CAlerts.GetAlert(List, ss)) {
 		for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
@@ -6108,7 +6108,7 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 
 BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
 {
-	CHAR szName[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
 	SEARCHSPAWN SearchSpawn = { 0 };
 	std::list<SEARCHSPAWN>ss;
 	if (CAlerts.GetAlert(List, ss)) {
@@ -6178,7 +6178,7 @@ BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List)
 PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article, BOOL ForWhoList)
 {
 	DWORD i, j = 0;
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	for (i = 0; i<strlen(szName); i++) {
 		switch (szName[i])
 		{
@@ -6226,10 +6226,10 @@ PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article, BOOL ForWhoList
 // ***************************************************************************
 void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 {
-	CHAR szName[MAX_STRING] = { 0 };
-	CHAR szMsg[MAX_STRING] = { 0 };
-	CHAR szMsgL[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szName[MAX_STRING] = { 0 };
+	char szMsg[MAX_STRING] = { 0 };
+	char szMsgL[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	//strcpy_s(szName,pSpawn->Name);
 	strcpy_s(szName, pSpawn->DisplayedName);
 	if (pSpawn->Type == SPAWN_PLAYER) {
@@ -6252,7 +6252,7 @@ void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat_s(szName, ")");
 		}
 	}
-	CHAR GM[MAX_STRING] = { 0 };
+	char GM[MAX_STRING] = { 0 };
 	if (gFilterSWho.GM && pSpawn->GM) {
 		if (pSpawn->Level >= 50) {
 			strcpy_s(GM, "\ay*GM*\ax");
@@ -6443,8 +6443,8 @@ bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 		return GetDistance(SWhoSortOrigin, SpawnA) < GetDistance(SWhoSortOrigin, SpawnB);
 	case 5://guild
 	{
-		CHAR szGuild1[256] = { "" };
-		CHAR szGuild2[256] = { "" };
+		char szGuild1[256] = { "" };
+		char szGuild2[256] = { "" };
 		char *pDest1 = GetGuildByID(SpawnA->GuildID);
 		char *pDest2 = GetGuildByID(SpawnB->GuildID);
 		if (pDest1) {
@@ -6560,7 +6560,7 @@ void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 	{
 		WriteChatColor("List of matching spawns", USERCOLOR_WHO);
 		WriteChatColor("--------------------------------", USERCOLOR_WHO);
-		CHAR szMsg[MAX_STRING] = { 0 };
+		char szMsg[MAX_STRING] = { 0 };
 		FormatSearchSpawn(szMsg, sizeof(szMsg), pSearchSpawn);
 		strcat_s(szMsg, " was not found.");
 		WriteChatColor(szMsg, USERCOLOR_WHO);
@@ -6574,7 +6574,7 @@ DWORD WINAPI thrMsgBox(LPVOID lpParameter)
 	return 0;
 }
 
-FLOAT StateHeightMultiplier(DWORD StandState)
+float StateHeightMultiplier(DWORD StandState)
 {
 	switch (StandState) {
 	case STANDSTATE_BIND:
@@ -6664,7 +6664,7 @@ PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 
 void SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
 	if (!_stricmp(szToggle, "on")) *bToggle = TRUE;
 	else if (!_stricmp(szToggle, "off")) *bToggle = FALSE;
 	sprintf_s(szTemp, "%s is: %s", szFilter, (*bToggle) ? "on" : "off");
@@ -6675,7 +6675,7 @@ void SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
 
 void WriteFilterNames()
 {
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	int filternumber = 1;
 	PFILTER pFilter = gpFilters;
 	WritePrivateProfileSection("Filter Names", szBuffer, gszINIFilename);
@@ -6966,7 +6966,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 		return true;
 
 	if (gStackingDebug) {
-		CHAR szStackingDebug[MAX_STRING] = { 0 };
+		char szStackingDebug[MAX_STRING] = { 0 };
 		snprintf(szStackingDebug, sizeof(szStackingDebug), "aSpell->Name=%s(%d) bSpell->Name=%s(%d)", aSpell->Name, aSpell->ID, bSpell->Name, bSpell->ID);
 		DebugSpewAlwaysFile("%s", szStackingDebug);
 		if (gStackingDebug == -1)
@@ -7006,7 +7006,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			bBase2 = GetSpellBase2(bSpell, i);
 		}
 		if (gStackingDebug) {
-			CHAR szStackingDebug[MAX_STRING] = { 0 };
+			char szStackingDebug[MAX_STRING] = { 0 };
 			snprintf(szStackingDebug, sizeof(szStackingDebug), "Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
 			DebugSpewAlwaysFile("%s", szStackingDebug);
 			if (gStackingDebug == -1)
@@ -7019,7 +7019,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			PSPELL pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == 374 ? bBase2 : bBase) : bSpell->ID);
 			if (!pRetSpellA || !pRetSpellB)
 				if (gStackingDebug) {
-					CHAR szStackingDebug[MAX_STRING] = { 0 };
+					char szStackingDebug[MAX_STRING] = { 0 };
 					snprintf(szStackingDebug, sizeof(szStackingDebug), "BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s", aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
 					DebugSpewAlwaysFile("%s", szStackingDebug);
 					if (gStackingDebug == -1)
@@ -7071,7 +7071,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			int tmpAttrib = bBase;
 			if (GetSpellNumEffects(aSpell) > tmpSlot) { // verify aSpell has that slot
 				if (gStackingDebug) {
-					CHAR szStackingDebug[MAX_STRING] = { 0 };
+					char szStackingDebug[MAX_STRING] = { 0 };
 					snprintf(szStackingDebug, sizeof(szStackingDebug), "aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
 					DebugSpewAlwaysFile("%s", szStackingDebug);
 					if (gStackingDebug == -1)
@@ -7109,7 +7109,7 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			int tmpAttrib = aBase;
 			if (GetSpellNumEffects(bSpell) > tmpSlot) { // verify bSpell has that slot
 				if (gStackingDebug) {
-					CHAR szStackingDebug[MAX_STRING] = { 0 };
+					char szStackingDebug[MAX_STRING] = { 0 };
 					snprintf(szStackingDebug, sizeof(szStackingDebug), "bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(bSpell, tmpSlot), tmpSlot, GetSpellBase(bSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(aSpell, i)));
 					DebugSpewAlwaysFile("%s", szStackingDebug);
 					if (gStackingDebug == -1)
@@ -7340,7 +7340,7 @@ void AttackRanged(PlayerClient* pRangedTarget)
 
 void UseAbility(char *sAbility) {
 
-	CHAR szBuffer[MAX_STRING] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	sprintf_s(szBuffer, "%s", sAbility);
 
 	if (!cmdDoAbility)
@@ -7419,7 +7419,7 @@ void ListMercAltAbilities()
 					int nName = pinfo->MercAAInfo[i]->Ptr->nName;
 					int maxpoints = pinfo->MercAAInfo[i]->Max;
 					if (nName) {
-						CHAR szBuffer[256] = { 0 };
+						char szBuffer[256] = { 0 };
 						sprintf_s(szBuffer, "%s", pCDBStr->GetString(nName, 37));
 						WriteChatf("You have %d mercaapoints to spend on %s (max is %d)", mercaapoints, szBuffer, maxpoints);
 					}
@@ -7551,8 +7551,8 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 }
 CONTENTS* FindItemByName(PCHAR pName, BOOL bExact)
 {
-	CHAR Name[MAX_STRING] = { 0 };
-	CHAR Temp[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
+	char Temp[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	CHARINFO2* pChar2 = GetCharInfo2();
@@ -7956,8 +7956,8 @@ CONTENTS* FindItemByID(int ItemID)
 DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 {
 	DWORD Count = 0;
-	CHAR Name[MAX_STRING] = { 0 };
-	CHAR Temp[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
+	char Temp[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	CHARINFO2* pChar2 = GetCharInfo2();
@@ -8285,8 +8285,8 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 DWORD FindItemCountByID(int ItemID)
 {
 	DWORD Count = 0;
-	//CHAR Name[MAX_STRING] = { 0 };
-	CHAR Temp[MAX_STRING] = { 0 };
+	//char Name[MAX_STRING] = { 0 };
+	char Temp[MAX_STRING] = { 0 };
 
 	CHARINFO2* pChar2 = GetCharInfo2();
 
@@ -8478,8 +8478,8 @@ DWORD FindItemCountByID(int ItemID)
 }
 CONTENTS* FindBankItemByName(char *pName,BOOL bExact)
 {
-	CHAR Name[MAX_STRING] = { 0 };
-	CHAR Temp[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
+	char Temp[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	PCHARINFO pCharInfo = GetCharInfo();
@@ -8769,8 +8769,8 @@ CONTENTS* FindBankItemByID(int ItemID)
 DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 {
 	DWORD Count = 0;
-	CHAR Name[MAX_STRING] = { 0 };
-	CHAR Temp[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
+	char Temp[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	PCHARINFO pCharInfo = GetCharInfo();
@@ -8994,7 +8994,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 DWORD FindBankItemCountByID(int ItemID)
 {
 	DWORD Count = 0;
-	CHAR Temp[MAX_STRING] = { 0 };
+	char Temp[MAX_STRING] = { 0 };
 	PCHARINFO pCharInfo = GetCharInfo();
 
 	// Check bank slots
@@ -10261,7 +10261,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 {
 	bool bPet = false;
 	bool bAll = false;
-	CHAR szCmd[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
 	GetArg(szCmd, szLine, 1);
 
 	if (!_stricmp(szCmd, "-pet"))
@@ -11512,7 +11512,7 @@ void CallMessage(DWORD pwnd)
 	{
 		CreateDirectory(gszLogPath, NULL);
 	}
-	CHAR name[MAX_STRING] = { 0 };
+	char name[MAX_STRING] = { 0 };
     SYSTEMTIME t;
     GetSystemTime(&t);
     sprintf_s(name,"%s\\WindowBug_%4d%02d%02d_%02d%02d%02d.dmp",gszLogPath, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
@@ -11520,7 +11520,7 @@ void CallMessage(DWORD pwnd)
 	auto hFile = CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		CHAR szTemp[MAX_STRING] = { 0 };
+		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, "ERROR COULD NOT CREATE %s in CallMessage", name);
 		MessageBox(NULL, szTemp, "Tell Eqmule", MB_SYSTEMMODAL | MB_OK);
 		return;
@@ -11555,7 +11555,7 @@ void CallMessage(DWORD pwnd)
 
 	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 	pSymbol->MaxNameLen = MAX_SYM_NAME;
-	CHAR szpath[2048] = { 0 };
+	char szpath[2048] = { 0 };
 
 	GetCurrentDirectory(2048, szpath);
 	MessageBox(NULL, szpath,"break in", MB_SYSTEMMODAL | MB_OK);
@@ -11564,11 +11564,11 @@ void CallMessage(DWORD pwnd)
 	SymInitialize(hProcess, szpath, TRUE);
 
 	BOOL bRet = SymGetSearchPath(hProcess, szpath, 2048);
-	CHAR* szOut = new CHAR[MAX_STRING];
-	CHAR* szOutOrg = szOut;
+	char* szOut = new char[MAX_STRING];
+	char* szOutOrg = szOut;
 	DWORD* Addresses = new DWORD[51];
-	CHAR* szTmp = new CHAR[MAX_STRING];
-	CHAR* szTmpOrg = szTmp;
+	char* szTmp = new char[MAX_STRING];
+	char* szTmpOrg = szTmp;
 	std::string Str = "Look, you have stumbled across a serious bug in eq or mq2\nI will return 0 to not crash you here, but you could attach a debugger and:\nSet a breakpoint on \"return ret;\" in the \"int64_t EQUIStructs::GetClassMember(void* This, int ID)\" function in MQ2Utilities.cpp file then click ok and see what triggered this.\nSend eqmule@hotmail.com a screenshot of the callstack.\n\nIf you Would like to break into the debugger at this point click YES otherwise click NO to continue.\n\n";// [50];
 	int numframes = CaptureStackBackTrace(0, 50, (PVOID*)Addresses, NULL);
 	HMODULE hMod = 0;
@@ -11586,8 +11586,8 @@ void CallMessage(DWORD pwnd)
 		SYMSRV_INDEX_INFO sii;
 		sii.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
 		SymSrvGetFileIndexInfo(szOut, &sii, NULL);
-		CHAR szFound[2048] = { 0 };
-		CHAR pFound[2048] = { 0 };
+		char szFound[2048] = { 0 };
+		char pFound[2048] = { 0 };
 		char*pDest = 0;
 		if (pDest = strrchr(szOut, '\\'))
 		{
@@ -11602,8 +11602,8 @@ void CallMessage(DWORD pwnd)
 	delete Addresses;
 	delete szOutOrg;
 	SymCleanup(hProcess);
-	CHAR szTitle[MAX_STRING] = { 0 };
-	//CHAR *szTemp2 = new CHAR[Str.size() + 2048];
+	char szTitle[MAX_STRING] = { 0 };
+	//char *szTemp2 = new char[Str.size() + 2048];
 	sprintf_s(szTitle, "Bad Function call detected in GetClassMember, pWnd was: %x that is NOT a valid CXWnd* pointer for sure...", pwnd);
 	
 	int ret = MessageBox(NULL, Str.c_str(), szTitle, MB_YESNO | MB_SYSTEMMODAL);

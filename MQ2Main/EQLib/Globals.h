@@ -45,7 +45,7 @@ EQLIB_VAR ACTORDEFENTRY ActorDefList[];
 
 struct DIKEYID
 {
-	CHAR szName[32];
+	char szName[32];
 	WORD Id;
 };
 EQLIB_VAR DIKEYID gDiKeyID[];

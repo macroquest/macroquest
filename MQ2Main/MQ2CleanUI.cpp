@@ -133,8 +133,8 @@ std::list<std::string>oldstrings;
 
 void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szCmd[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
 
 	if (szLine[0] != '\0') {
 		gNetStatusXPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
@@ -145,8 +145,8 @@ void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 
 void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 {
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szCmd[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+	char szCmd[MAX_STRING] = { 0 };
 
 	if (szLine[0] != '\0') {
 		gNetStatusYPos = strtol(GetArg(szArg, szLine, 1), 0, 0);

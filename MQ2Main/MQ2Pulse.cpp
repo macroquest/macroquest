@@ -65,10 +65,10 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 		return FALSE;
 	if (gDelay && gDelayCondition[0])
 	{
-		CHAR szCond[MAX_STRING];
+		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
-		DOUBLE Result;
+		double Result;
 		if (!Calculate(szCond, Result))
 		{
 			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
@@ -153,23 +153,23 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 void NaturalTurnOld(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 {
 	if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f) {
-		pCharOrMount->Heading = (FLOAT)gFaceAngle;
+		pCharOrMount->Heading = (float)gFaceAngle;
 		pCharOrMount->SpeedHeading = 0.0f;
 		gFaceAngle = 10000.0f;
 	}
 	else {
 		TurnNotDone = TRUE;
-		DOUBLE c1 = pCharOrMount->Heading + 256.0f;
-		DOUBLE c2 = gFaceAngle;
+		double c1 = pCharOrMount->Heading + 256.0f;
+		double c2 = gFaceAngle;
 		if (c2<pChar->Heading) c2 += 512.0f;
-		DOUBLE turn = (DOUBLE)(rand() % 200) / 10;
+		double turn = (double)(rand() % 200) / 10;
 		if (c2<c1) {
-			pCharOrMount->Heading += (FLOAT)turn;
+			pCharOrMount->Heading += (float)turn;
 			pCharOrMount->SpeedHeading = 12.0f;
 			if (pCharOrMount->Heading >= 512.0f) pCharOrMount->Heading -= 512.0f;
 		}
 		else {
-			pCharOrMount->Heading -= (FLOAT)turn;
+			pCharOrMount->Heading -= (float)turn;
 			pCharOrMount->SpeedHeading = -12.0f;
 			if (pCharOrMount->Heading<0.0f) pCharOrMount->Heading += 512.0f;
 		}
@@ -224,8 +224,8 @@ void Pulse()
 	static WORD LastZone = -1;
 
 	static SPAWNINFO* pCharOld = NULL;
-	static FLOAT LastX = 0.0f;
-	static FLOAT LastY = 0.0f;
+	static float LastX = 0.0f;
+	static float LastY = 0.0f;
 	static ULONGLONG LastMoveTick = 0;
 	static DWORD MapDelay = 0;
 
@@ -290,8 +290,8 @@ void Pulse()
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
 		InitKeyRings();
-		CHAR szServerAndName[MAX_STRING] = { 0 };
-		CHAR szAutoRun[MAX_STRING] = { 0 };
+		char szServerAndName[MAX_STRING] = { 0 };
+		char szAutoRun[MAX_STRING] = { 0 };
 		PCHAR pAutoRun = szAutoRun;
 		/* autorun for everyone */
 		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, gszINIFilename);
@@ -322,22 +322,22 @@ void Pulse()
 		}
 		if (gLookAngle != 10000.0f) {
 			if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f) {
-				pChar->CameraAngle = (FLOAT)gLookAngle;
+				pChar->CameraAngle = (float)gLookAngle;
 				gLookAngle = 10000.0f;
 				TurnNotDone = FALSE;
 			}
 			else {
 				TurnNotDone = TRUE;
-				FLOAT c1 = pChar->CameraAngle;
-				FLOAT c2 = (FLOAT)gLookAngle;
+				float c1 = pChar->CameraAngle;
+				float c2 = (float)gLookAngle;
 
-				DOUBLE turn = (DOUBLE)(rand() % 200) / 20;
+				double turn = (double)(rand() % 200) / 20;
 				if (c1<c2) {
-					pChar->CameraAngle += (FLOAT)turn;
+					pChar->CameraAngle += (float)turn;
 					if (pChar->CameraAngle >= 128.0f) pChar->CameraAngle -= 128.0f;
 				}
 				else {
-					pChar->CameraAngle -= (FLOAT)turn;
+					pChar->CameraAngle -= (float)turn;
 					if (pChar->CameraAngle <= -128.0f) pChar->CameraAngle += 128.0f;
 				}
 			}
@@ -481,7 +481,7 @@ int Heartbeat()
 }
 
 template <unsigned int _Size>
-static void make_minidump (char* filename, EXCEPTION_POINTERS* e, CHAR(&dumppath)[_Size])
+static void make_minidump (char* filename, EXCEPTION_POINTERS* e, char(&dumppath)[_Size])
 //void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
 {
 	char szTemp[MAX_PATH] = { 0 };
@@ -530,9 +530,9 @@ bool DirectoryExists(LPCTSTR lpszPath) {
 }
 int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...)
 {
-	CHAR szOut[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR szDumpPath[MAX_STRING] = { 0 };
+	char szOut[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char szDumpPath[MAX_STRING] = { 0 };
 
 	HANDLE hProcess;
 	if (!DirectoryExists(gszLogPath))
@@ -595,9 +595,9 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
 {
 //int filterException(PEXCEPTION_POINTERS ex) {
-	CHAR szOut[MAX_STRING] = { 0 };
-	CHAR szTemp[MAX_STRING] = { 0 };
-	CHAR szDumpPath[MAX_STRING] = { 0 };
+	char szOut[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+	char szDumpPath[MAX_STRING] = { 0 };
 
 //	DWORD  error;
 	HANDLE hProcess;

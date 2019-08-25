@@ -449,7 +449,7 @@ struct [[offsetcomments]] PCQuestHistoryData
 
 struct [[offsetcomments]] PvPKill
 {
-/*0x00*/ CHAR VictimName[0x40];
+/*0x00*/ char VictimName[0x40];
 /*0x40*/ int VictimLevel;
 /*0x44*/ DWORD VictimRace;
 /*0x48*/ DWORD VictimClass;
@@ -461,7 +461,7 @@ struct [[offsetcomments]] PvPKill
 
 struct [[offsetcomments]] PvPDeath
 {
-/*0x00*/ CHAR KillerName[0x40];
+/*0x00*/ char KillerName[0x40];
 /*0x40*/ int KillerLevel;
 /*0x44*/ DWORD KillerRace;
 /*0x48*/ DWORD KillerClass;
@@ -553,8 +553,8 @@ public:
 /*0x03c*/ StatElapsedTime StatTimeInBazaar;
 /*0x048*/ StatCounter Statistics[S_LastStat];              // size is 0x48
 /*0x090*/ UINT LastUpdateTime;
-/*0x094*/ CHAR PlayerName[0x40];
-/*0x0d4*/ CHAR PlayerStationID[0x20];
+/*0x094*/ char PlayerName[0x40];
+/*0x0d4*/ char PlayerStationID[0x20];
 /*0x0f4*/ int PlayerLevel;
 /*0x0f8*/ DWORD PlayerRace;
 /*0x0fc*/ DWORD PlayerClass;
@@ -589,7 +589,7 @@ public:
 		S_LastStat,
 	};
 
-/*0x000*/ CHAR         PlayerName[0x40];
+/*0x000*/ char         PlayerName[0x40];
 /*0x040*/ int          PlayerLevel;
 /*0x044*/ int          PlayerRace;
 /*0x048*/ int          PlayerClass;
@@ -786,9 +786,9 @@ struct [[offsetcomments]] CHARINFOOLD
 /*0x1efc*/ ArrayClass<int>                               OwnedRealEstates;
 /*0x1f0c*/ ArrayClass<int>                               OwnedItemRealEstates;
 /*0x1f1c*/ ArrayClass<int>                               ArchivedRealEstates;
-/*0x1f2c*/ CHAR                                          OverridePetName[0x40];
+/*0x1f2c*/ char                                          OverridePetName[0x40];
 /*0x1f6c*/ bool                                          bCanRequestPetNameChange;
-/*0x1f6d*/ CHAR                                          OverrideFamiliarName[0x40];
+/*0x1f6d*/ char                                          OverrideFamiliarName[0x40];
 /*0x1fad*/ bool                                          bCanRequestFamiliarNameChange;
 /*0x1fb0*/ CXStr                                         OverrideMercName[0xb];
 /*0x1fdc*/ bool                                          bCanRequestMercNameChange;
@@ -933,8 +933,8 @@ struct [[offsetcomments]] CHARINFOOLD
 /*0x287c*/ float                                         Y;
 /*0x2880*/ float                                         Z;
 /*0x2884*/ float                                         Heading;
-/*0x2888*/ CHAR                                          Name[0x40];                     // CharBaseBegin+44
-/*0x28c8*/ CHAR                                          Lastname[0x20];                 // CharBaseBegin+84
+/*0x2888*/ char                                          Name[0x40];                     // CharBaseBegin+44
+/*0x28c8*/ char                                          Lastname[0x20];                 // CharBaseBegin+84
 /*0x28e8*/ TSafeString<0x80>                             Title;
 /*0x2968*/ TSafeString<0x40>                             VehicleName;
 /*0x29a8*/ BYTE                                          Stunned;                        // CharBaseBegin+104
@@ -1114,7 +1114,7 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x1770*/ int                                           eNewAreaCorner;                 // EAreaCorner
 /*0x1774*/ DWORD                                         PreviousZoneID;                 // EQZoneIndex
 /*0x1778*/ int                                           RealEstateZoneID;
-/*0x177c*/ CHAR                                          ServerCreated[0x20];
+/*0x177c*/ char                                          ServerCreated[0x20];
 /*0x179c*/ PCAdventureData                               AdventureData;                  // size 0x0d8
 /*0x1874*/ PCSharedTaskData                              SharedTaskData;                 // size 0x8c
 /*0x1900*/ TaskTimerData*                                pTaskTimerData;
@@ -1150,9 +1150,9 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x1efc*/ ArrayClass<int>                               OwnedRealEstates;
 /*0x1f0c*/ ArrayClass<int>                               OwnedItemRealEstates;
 /*0x1f1c*/ ArrayClass<int>                               ArchivedRealEstates;
-/*0x1f2c*/ CHAR                                          OverridePetName[0x40];
+/*0x1f2c*/ char                                          OverridePetName[0x40];
 /*0x1f6c*/ bool                                          bCanRequestPetNameChange;
-/*0x1f6d*/ CHAR                                          OverrideFamiliarName[0x40];
+/*0x1f6d*/ char                                          OverrideFamiliarName[0x40];
 /*0x1fad*/ bool                                          bCanRequestFamiliarNameChange;
 /*0x1fb0*/ CXStr                                         OverrideMercName[0xb];
 /*0x1fdc*/ bool                                          bCanRequestMercNameChange;
@@ -1321,8 +1321,8 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x287c*/ float                                         Y;
 /*0x2880*/ float                                         Z;
 /*0x2884*/ float                                         Heading;
-/*0x2888*/ CHAR                                          Name[0x40];                     // CharBaseBegin+44
-/*0x28c8*/ CHAR                                          Lastname[0x20];                 // CharBaseBegin+84
+/*0x2888*/ char                                          Name[0x40];                     // CharBaseBegin+44
+/*0x28c8*/ char                                          Lastname[0x20];                 // CharBaseBegin+84
 /*0x28e8*/ TSafeString<0x80>                             Title;
 /*0x2968*/ TSafeString<0x40>                             VehicleName;
 /*0x29a8*/ BYTE                                          Stunned;                        // CharBaseBegin+104
@@ -1513,7 +1513,7 @@ struct [[offsetcomments]] CHARINFO2
 /*0x8e0f*/ BYTE                                            Beard;
 /*0x8e10*/ BYTE                                            OldFace;
 /*0x8e14*/ DWORD                                           AAPoints;
-/*0x8e18*/ CHAR                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
+/*0x8e18*/ char                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
 /*0xae18*/ CXStr                                           ItemBuffer;
 /*0xae1c*/ UINT                                            LastShield;
 /*0xae20*/ bool                                            bSneak;
@@ -1927,7 +1927,7 @@ public:
 /*0x8e0f*/ BYTE                                            Beard;
 /*0x8e10*/ BYTE                                            OldFace;
 /*0x8e14*/ DWORD                                           AAPoints;
-/*0x8e18*/ CHAR                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
+/*0x8e18*/ char                                            PocketPetSaveString[0x2000];            // 0x1000 in older clients
 /*0xae18*/ CXStr                                           ItemBuffer;
 /*0xae1c*/ UINT                                            LastShield;
 /*0xae20*/ bool                                            bSneak;
