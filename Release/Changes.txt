@@ -1,3 +1,74 @@
+Aug 21 2019 by EqMule
+- Updated for LIVE
+- Fixed the parser so it can run at charselect again. (Don't run macros there that need access to ingame variables...)
+-
+-
+Aug 16 2019 by EqMule
+- #knightlyparse is now a macro keyword, add it to the top of your macros if you want to use this version of the parser.
+- Previously Fixed: EQGroundItemListManager
+-
+Aug 15 2019 by EqMule
+- Fixed a zoning crash
+- Fixed a crash on TEST in mq2itemdisplay when inspecting spells.
+-
+Aug 13 2019 by EqMule
+- Updated for TEST
+-
+Jul 31 2019 by EqMule
+- Fixed a clear target bug in mq2targetinfo -dannuic -knighty
+- Next release:
+- TODO: Fix EQGroundItemListManager so we can get /itemtarget working for guild objects again.
+-
+Jul 27 2019 by EqMule
+- Turned on Knightlyparse.
+- Added support for mq2dannet to mq2targetinfo.
+- You can now confgure the mimic me feature in mq2targetinfo.ini to use dannet (or any other plugin u use for it's commands.)
+- Added ${Me.LastZoned} to the character TLO. It returns a timestamp of last time you zoned.
+- Removed EQ_END_ZONE and EQ_BEGIN_ZONE.
+- Added new detours for zonechange detection.
+- ${Me.Zoning} is depreciated, use ${Me.LastZoned} or just wait for ${Zone.ID} to change.
+-
+-
+Jul 17 2019 by EqMule
+- Updated for LIVE
+-
+Jul 15 2019 by EqMule
+- Updated for TEST
+-
+Jul 11 2019 by EqMule
+- Updated for TEST
+- Updated for LIVE
+- updated for EMU
+- Fixed a crash when /echo ${InvSlot[enviro1].Item.ID} - cred report kaen01
+-
+Jun 22 2019 by EqMule
+- Updated for TEST
+- Updated for LIVE
+-
+Jun 20 2019 by EqMule
+- Fixed Me.PctExp and Me.PctAAExp
+- Fixed /advloot
+- Fixed a mq2ic crash. cred: psxoxo
+-
+Jun 19 2019 by EqMule
+- Updated for LIVE
+- Added ${Macro.CurSub} returns the name of the current Sub being executed. -cred alynel
+- Added ${SubDefined[blah]} it returns a bool if a Macro Sub is defined. -cred alynel
+- Previously Added: .CachedBuff[x] to the spawn tlo where x is a spellid if its a number and a spell name if not. It returns a MQ2CachedBuffType.
+- Previously Added: .CachedBuff[#x] to the spawn tlo where #x is a buffslot between 1-97. It returns a MQ2CachedBuffType.
+- Previously Added: .CachedBuff[*x] to the spawn tlo where *x is a index (buffslots are not sorted). It returns a MQ2CachedBuffType.
+- Previously Added: .CachedBuff[^x] to the spawn tlo where ^x is a keyword. It returns a MQ2CachedBuffType.
+	^x keywords: Slowed Rooted Mezzed Crippled Maloed Tashed Snared and Beneficial
+-
+- MQ2CachedBuffType has the following members:
+	.CasterName .Count .Slot .SpellID .Duration
+-
+- Previously Added: .CachedBuffCount to the spawn tlo. it returns -1 if no buffs are cached for the spawn or number of buffs cached.
+- Using CachedBuff to get buff info on targets, group members etc, only requires you to target the entity once. after thats done, buffs are cached.
+- The upside is obviously that we don't have to target back and forth constantly.
+- Usage: well lets say you are a druid and you want to know if a group members sow buff has worn off, you can just check CachedBuff without having to retarget the group member.
+- /echo ${Group.Member[2].CachedBuff[Spirit of Wolf].Duration}
+-
 Jun 14 2019 by EqMule
 - Updated for TEST
 -
