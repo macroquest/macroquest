@@ -347,9 +347,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 					}
 				}
 				strcpy_s(pEvent->szMatch, szArg2);
-#ifdef USEBLECHEVENTS
 				pEvent->BlechID = pEventBlech->AddEvent(pEvent->szMatch, EventBlechCallback, pEvent);
-#endif
 				pEvent->pEventFunc = NULL;
 				pEvent->pNext = pEventList;
 				pEventList = pEvent;
@@ -995,9 +993,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 		free(pBindList);
 		pBindList = pBindL;
 	}
-#ifdef USEBLECHEVENTS
 	pEventBlech->Reset();
-#endif
 	for (i = 0; i<NUM_EVENTS; i++) {
 		gEventFunc[i] = NULL;
 	}

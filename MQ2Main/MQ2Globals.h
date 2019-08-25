@@ -196,9 +196,7 @@ EQLIB_VAR DOUBLE PI;
 
 extern Blech* pMQ2Blech;
 EQLIB_VAR CHAR EventMsg[MAX_STRING];
-#ifdef USEBLECHEVENTS
 EQLIB_VAR Blech* pEventBlech;
-#endif
 EQLIB_VAR PEVENTLIST pEventList;
 
 EQLIB_VAR PMQTIMER gTimer;

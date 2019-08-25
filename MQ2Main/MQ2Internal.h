@@ -281,9 +281,7 @@ namespace MQ2Internal {
         CHAR szName[MAX_STRING];
         CHAR szMatch[MAX_STRING];
         int pEventFunc;
-#ifdef USEBLECHEVENTS
         DWORD BlechID;
-#endif
     } EVENTLIST, *PEVENTLIST;
 
     typedef struct _BINDLIST {

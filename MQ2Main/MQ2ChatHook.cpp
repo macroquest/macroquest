@@ -301,9 +301,7 @@ VOID InitializeChatHook()
 
 	// initialize Blech
 #ifndef ISXEQ
-#ifdef USEBLECHEVENTS
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
-#endif
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 	DebugSpew("%s", pMQ2Blech->Version);
 #endif
@@ -328,9 +326,7 @@ VOID ShutdownChatHook()
 	RemoveDetour(CEverQuest__DoTellWindow);
 	RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ
-#ifdef USEBLECHEVENTS
 	delete pEventBlech;
-#endif
 	delete pMQ2Blech;
 	pMQ2Blech = 0;
 #endif

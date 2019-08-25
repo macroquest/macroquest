@@ -346,9 +346,7 @@ namespace MQ2Globals
 #ifndef ISXEQ
 	Blech *pMQ2Blech = nullptr;
 	CHAR EventMsg[MAX_STRING] = { 0 };
-#ifdef USEBLECHEVENTS
 	Blech *pEventBlech = nullptr;
-#endif
 	PEVENTLIST pEventList = nullptr;
 #endif
 

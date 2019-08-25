@@ -537,7 +537,6 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
     }
 }
 
-#ifdef USEBLECHEVENTS
 void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues)
 {
     DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'",ID,pData,pValues,EventMsg);
@@ -593,38 +592,6 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     }
 
 }
-#else
-VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
-{
-    PEVENTQUEUE pEvent = NULL;
-    if (!pEList->pEventFunc) return;
-    pEvent = (PEVENTQUEUE)malloc(sizeof(EVENTQUEUE));
-    if (!pEvent) return;
-    ZeroMemory(pEvent,sizeof(EVENTQUEUE));
-    pEvent->Type = EVENT_CUSTOM;
-    pEvent->pEventList = pEList;
-    CHAR szParamName[MAX_STRING] = {0};
-    CHAR szParamType[MAX_STRING] = {0};
-    GetFuncParam(pEList->pEventFunc->Line,0,szParamName,szParamType);
-    MQ2Type *pType = FindMQ2DataType(szParamType);
-    if (!pType)
-        pType=pStringType;
-
-    AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,szLine);
-
-    if (!gEventQueue)
-    {
-        gEventQueue = pEvent;
-    }
-    else
-    {
-        PEVENTQUEUE pTemp;
-        for (pTemp = gEventQueue;pTemp->pNext;pTemp=pTemp->pNext);
-        pTemp->pNext = pEvent;
-        pEvent->pPrev=pTemp;
-    }
-}
-#endif
 
 void TellCheck(char *szClean)
 {
@@ -824,25 +791,10 @@ void CheckChatForEvent(char* szMsg)
 			}
 			AddEvent(EVENT_CHAT, Arg3, Arg1, Arg2, NULL);
 		}
-#ifndef USEBLECHEVENTS
-		else
-		{
-			PEVENTLIST pEvent = pEventList;
-			while (pEvent)
-			{
-				if (strstr(szClean, pEvent->szMatch))
-				{
-					AddCustomEvent(pEvent, szClean);
-				}
-				pEvent = pEvent->pNext;
-			}
-		}
-#else // blech
 		strncpy_s(EventMsg, _countof(EventMsg), szClean, MAX_STRING - 1);
 		EventMsg[MAX_STRING - 1] = 0;
 		pEventBlech->Feed(EventMsg);
 		EventMsg[0] = '\0';
-#endif
 	}
 
 	delete[] pszCleanOrg;

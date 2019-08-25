@@ -77,7 +77,7 @@
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 // MQ2
 #include "..\Dxsdk90\include\dinput.h"
-#include "..\Detours\inc\detours.h" 
+#include "..\Detours\inc\detours.h"
 #include "..\Blech\Blech.h"
 #elif !defined(ISXEQ_LEGACY)
 // ISXEQ
@@ -150,9 +150,6 @@ extern CRITICAL_SECTION gPluginCS;
 #else
 #define FromPlugin 0
 #endif
-
-// Lax/Blech event support *READY*
-#define USEBLECHEVENTS
 
 // reroute malloc/free
 EQLIB_API void *MQ2Malloc(size_t size);
@@ -347,9 +344,8 @@ LEGACY_API void EndMacro(PSPAWNINFO, PCHAR);
 LEGACY_API void Echo(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
-#ifdef USEBLECHEVENTS
 void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues);
-#endif
+
 #define PMP_ERROR_BADPARM 10000
 LEGACY_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize);
 
