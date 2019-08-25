@@ -12,8 +12,8 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
 #include "MQ2Main.h"
+
 #include <map>
 #include <string>
 #include <algorithm>

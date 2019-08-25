@@ -12,19 +12,18 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
 
-#pragma warning( disable : 4091 )
-//#define DEBUG_TRY 1
 #include "MQ2Main.h"
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
 #include "DebugHandler.h"
+
+#include <dbghelp.h>
+#include <locale>//for tolower
+
+#pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
 BOOL TurnNotDone = FALSE;
 CRITICAL_SECTION gPulseCS;
 
-#include <locale>//for tolower
 // templated version of my_equal so it can work with both char and wchar_t
 template<typename charT>
 struct my_equal {

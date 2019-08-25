@@ -12,9 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-
-//#define DEBUG_TRY 1
 #include "MQ2Main.h"
 
 char *OurCaption = "MQ2: Think of it as evolution in action.";

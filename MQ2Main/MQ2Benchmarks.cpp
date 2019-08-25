@@ -12,9 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-//#define DBG_TRY
-
 #include "MQ2Main.h"
 
 typedef CIndex<PMQBENCH> BMIndex;

@@ -12,12 +12,13 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-#define DEBUG_TRY
-
 #include "MQ2Main.h"
+
 #include <Psapi.h>
-#pragma comment( lib, "Psapi.lib" )
+
+#pragma comment(lib, "dbghelp.lib")
+#pragma comment(lib, "Psapi.lib")
+#pragma comment(lib, "version.lib")
 
 #if defined(LIVE)
 #pragma message("Building MQ2 for LIVE")

@@ -12,11 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-
-
 #include "MQ2Main.h"
-#pragma comment(lib, "version.lib")
 
 // Datatype Definitions.
 #define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \

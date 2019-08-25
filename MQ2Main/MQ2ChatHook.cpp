@@ -12,10 +12,8 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-
-
 #include "MQ2Main.h"
+
 DWORD __stdcall BeepOnTellThread(PVOID pData)
 {
 	Beep(750, 200);
