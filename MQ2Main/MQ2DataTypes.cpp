@@ -5023,11 +5023,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (CHARINFO* pCharInfo = GetCharInfo()) {
-#ifdef NEWCHARINFO
-			if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
-#else
 			if (pCharInfo->vtable2) {
-#endif
 				Dest.DWord = pCharData1->TotalEffect(0xb, true, 0, true, true);
 				return true;
 			}
@@ -5043,11 +5039,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		if (IsNumber(Index))
 		{
 			if (CHARINFO* pCharInfo = GetCharInfo()) {
-#ifdef NEWCHARINFO
-				if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
-#else
 				if (pCharInfo->vtable2) {
-#endif
 					Dest.DWord = pCharData1->TotalEffect(atoi(Index), true, 0, true, true);
 					return true;
 				}

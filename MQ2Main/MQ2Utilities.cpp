@@ -9820,16 +9820,6 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 			{
 				if (int base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa))
 				{
-					//if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-						//  if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
-						//  if (pChar->vtable2) {
-#endif
-					//		int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChangeGeneric((EQ_Spell*)pSpell, 0, 0, NULL, 1, true);
-					//	}
-					//}
-
 					switch (spa)
 					{
 					case 3: // Movement Rate
@@ -10684,12 +10674,8 @@ void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 {
 	if (CHARINFO* pChar = GetCharInfo())
 	{
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2)
 		{
-#endif
 			((CharacterZoneClient*)pCharData1)->MakeMeVisible(0, false);
 		}
 	}

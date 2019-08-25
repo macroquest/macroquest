@@ -429,11 +429,7 @@ EQLIB_VAR EQ_PC** ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR EQ_Character** ppCharData;
 #define pCharData (*ppCharData)
-#ifdef NEWCHARINFO
-#define pCharData1 ((EQ_Character1 *)&GetCharInfo()->PcClient_CharacterZoneClient_vfTable)
-#else
 #define pCharData1 ((EQ_Character1 *)&GetCharInfo()->vtable2)
-#endif
 EQLIB_VAR PlayerClient** ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR PlayerClient** ppActiveMerchant;

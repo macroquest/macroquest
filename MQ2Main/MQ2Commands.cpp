@@ -2447,11 +2447,7 @@ void DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 						return;
 					}
 					if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-						if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 						if (pChar->vtable2) {
-#endif
 							pCharData1->UseSkill((unsigned char)Index, (PlayerClient*)pCharData1);
 						}
 					}

@@ -92,11 +92,7 @@ void DestroyMQUI();
 bool PickupItemNew(CONTENTS* pCont)
 {
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
-#ifndef NEWCHARINFO
 		if (pCharInfo->vtable2) {
-#else
-		if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
-#endif
 			if (CharacterZoneClient* czc = (CharacterZoneClient*)pCharData1)
 			{
 				if ((czc && pInvSlotMgr) && (pCursorAttachment && pCursorAttachment->Type == -1/*none*/))

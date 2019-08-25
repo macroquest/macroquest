@@ -15,7 +15,7 @@
 #pragma once
 
 // string trim includes:
-#include <algorithm> 
+#include <algorithm>
 #include <cctype>
 #include <locale>
 
@@ -140,128 +140,108 @@ static inline BOOL IsMarkedNPC(SPAWNINFO* pSpawn)
 	return false;
 }
 
-static inline int GetEnduranceRegen() {
+static inline int GetEnduranceRegen()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->GetEnduranceRegen(true, false);
 		}
 	}
 	return 0;
 }
-static inline int GetHPRegen() {
+
+static inline int GetHPRegen()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			bool bBleed = false;//yes this is correct it should be false initially, the client sets it to true on return if we are indeed bleeding.
 			return pCharData1->GetHPRegen(true, &bBleed, false);
 		}
 	}
 	return 0;
 }
-static inline int GetManaRegen() {
+
+static inline int GetManaRegen()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->GetManaRegen(true, false);
 		}
 	}
 	return 0;
 }
-static inline int GetCurMana() {
+
+static inline int GetCurMana()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return ((EQ_Character*)pCharData1)->Cur_Mana(true);
 		}
 	}
 	return 0;
 }
-static inline int GetCurHPS() {
+
+static inline int GetCurHPS()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->Cur_HP(0);
 		}
 	}
 	return 0;
 }
-static inline LONG GetMaxHPS() {
+
+static inline LONG GetMaxHPS()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->Max_HP(0);
 		}
 	}
 	return 0;
 }
-static inline LONG GetMaxEndurance() {
+
+static inline LONG GetMaxEndurance()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->Max_Endurance();
 		}
 	}
 	return 0;
 }
+
 static inline LONG GetCurEndurance() {
 	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		return pChar2->Endurance;
 	}
 	return 0;
 }
-static inline LONG GetMaxMana() {
+
+static inline LONG GetMaxMana()
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->Max_Mana();
 		}
 	}
 	return 0;
 }
-static inline int GetAdjustedSkill(int nSkill) {
+
+static inline int GetAdjustedSkill(int nSkill)
+{
 	if (CHARINFO* pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->GetAdjustedSkill(nSkill);
 		}
 	}
 	return 0;
 }
-static inline int GetBaseSkill(int nSkill) {
+
+static inline int GetBaseSkill(int nSkill)
+{
 	if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->GetBaseSkill(nSkill);
 		}
 	}
@@ -272,11 +252,7 @@ static inline int GetModCap(int index, bool bToggle = false)
 {
 	if (PCHARINFO pChar = GetCharInfo())
 	{
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable)
-#else
 		if (pChar->vtable2)
-#endif
 		{
 			return ((PcZoneClient*)pCharData1)->GetModCap(index, bToggle);
 			return ((PcZoneClient*)pCharData1)->GetModCap(index);
@@ -284,26 +260,21 @@ static inline int GetModCap(int index, bool bToggle = false)
 	}
 	return 0;
 }
-static inline const int GetCastingTimeModifier(const EQ_Spell* cSpell) {
+
+static inline const int GetCastingTimeModifier(const EQ_Spell* cSpell)
+{
 	if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return pCharData1->GetCastingTimeModifier(cSpell);
 		}
 	}
 	return 0;
 }
-//const int EQ_Character1::GetFocusCastingTimeModifier(const EQ_Spell*pSpell, VePointer<ItemBase>&pItemOut, bool bEvalOnly = false);
-static inline const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly) {
+
+static inline const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly)
+{
 	if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			//ok so as far as i can tell RefCount gets increased by us calling this function
 			//and its weird that it's no decremented properly afterwards
 			//it's possible we don't understand this, but there is also a chance this
@@ -320,13 +291,11 @@ static inline const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePo
 	}
 	return 0;
 }
-static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<CONTENTS>& pItemOut) {
+
+static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<CONTENTS>& pItemOut)
+{
 	if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusRangeModifier(pSpell, pItemOut);
 			if (pItemOut.pObject)
 			{
@@ -337,13 +306,11 @@ static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<
 	}
 	return 0;
 }
-static inline bool HasSkill(int nSkill) {
+
+static inline bool HasSkill(int nSkill)
+{
 	if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			return ((CharacterZoneClient*)pCharData1)->HasSkill(nSkill);
 		}
 	}
@@ -359,11 +326,7 @@ static inline DWORD GetCharMaxBuffSlots()
 	DWORD NumBuffs = 15;
 
 	if (PCHARINFO pChar = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pChar->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pChar->vtable2) {
-#endif
 			NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
 		}
 		if (pChar->pSpawn && pChar->pSpawn->Level > 70) NumBuffs++;
@@ -789,11 +752,13 @@ inline uint64_t MQGetTickCount64()
 	}
 	return ::GetTickCount(); // Fall back to GetTickCount which always exists
 }
+
 // Deprecated: Forwards to MQGetTickCount64()
 inline uint64_t GetTickCount642()
 {
 	return MQGetTickCount64();
 }
+
 inline LONG GetMemorizedSpell(LONG index)
 {
 	if (index < 0 || index>0xF)
@@ -807,14 +772,11 @@ inline LONG GetMemorizedSpell(LONG index)
 	}
 	return -1;
 }
+
 inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 {
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
-#ifdef NEWCHARINFO
-		if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
-#else
 		if (pCharInfo->vtable2) {
-#endif
 			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
 				return (LONG)cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
 			}
@@ -822,24 +784,24 @@ inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 	}
 	return 0;
 }
-/*
-need to figure out why this fails in xp and the above doesn't - eqmule
+
+/*need to figure out why this fails in xp and the above doesn't - eqmule
 static inline ULONGLONG GetTickCount64()
 {
-static int once = 1;
-static ULONGLONG (WINAPI *pGetTickCount64)();
-if (once) {
-//we dont want to call this one over and over thats just stupid, so once is enough - eqmule
-pGetTickCount64 = (ULONGLONG (WINAPI *)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
-if (!pGetTickCount64)
-pGetTickCount64 = (ULONGLONG (WINAPI *)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
-if (!pGetTickCount64) {
-//MessageBox(NULL,"CRAP","What kind of OS are you running anyway?",MB_OK);
-return (ULONGLONG)GetTickCount();
-}
-once = 0;
-}
-return pGetTickCount64();
+	static int once = 1;
+	static ULONGLONG(WINAPI * pGetTickCount64)();
+	if (once) {
+		//we dont want to call this one over and over thats just stupid, so once is enough - eqmule
+		pGetTickCount64 = (ULONGLONG(WINAPI*)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
+		if (!pGetTickCount64)
+			pGetTickCount64 = (ULONGLONG(WINAPI*)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
+		if (!pGetTickCount64) {
+			//MessageBox(NULL,"CRAP","What kind of OS are you running anyway?",MB_OK);
+			return (ULONGLONG)GetTickCount();
+		}
+		once = 0;
+	}
+	return pGetTickCount64();
 }
 */
 
