@@ -12,11 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef ISXEQ
-
-#define DBG_SPEW
-
-
 #include "MQ2Main.h"
 
 void InitializeParser()
@@ -116,5 +111,3 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize)
     ExitMQ2Benchmark(bmParseMacroParameter);
     return (szOriginal);
 }
-
-#endif

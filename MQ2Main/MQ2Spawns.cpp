@@ -12,13 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-
-//#define DEBUG_TRY 1
 #include "MQ2Main.h"
-
-#ifndef ISXEQ_LEGACY
-
 
 PMQGROUNDPENDING pPendingGrounds=0;
 CRITICAL_SECTION csPendingGrounds;
@@ -193,7 +187,6 @@ public:
 FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char*), 0x190);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD& Color), 0x194);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD), 0x1a8);
-#endif
 
 typedef struct _CAPTIONCOLOR {
     PCHAR szName;
@@ -369,7 +362,6 @@ CAPTIONCOLOR CaptionColors[]=
     },
 };
 
-#ifndef ISXEQ_LEGACY
 void SetNameSpriteTint(SPAWNINFO* pSpawn)
 {
     if (!gMQCaptions)
@@ -766,9 +758,7 @@ void UpdateMQ2SpawnSort()
 		}
 	}
 }
-#endif
 
-#ifndef ISXEQ
 void CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
@@ -841,7 +831,6 @@ void CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
 }
-#endif
 
 BOOL IsTargetable(PSPAWNINFO pSpawn)
 {

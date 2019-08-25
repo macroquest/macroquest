@@ -18,27 +18,16 @@
 #include "MQ2Main.h"
 #pragma comment(lib, "version.lib")
 
-#ifdef ISXEQ
-#define ISINDEX() (argc>0)
-#define ISNUMBER() (IsNumber(argv[0]))
-#define GETNUMBER() (atoi(argv[0]))
-#define GETFIRST()    argv[0]
-#else
 #define ISINDEX() (Index[0])
 #define ISNUMBER() (IsNumber(Index))
 #define GETNUMBER() (atoi(Index))
 #define GETFIRST() Index
-#endif
-
 
 // Datatype Definitions.
 #define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
 	class _class_ *_var_ = 0;
 #include "DataTypeList.h"
 #undef DATATYPE
-
-
-#ifndef ISXEQ
 
 void InitializeMQ2DataTypes()
 {
@@ -1026,8 +1015,6 @@ bool MQ2MacroType::GETMEMBER()
 	return false;
 }
 
-#endif
-
 bool MQ2TicksType::GETMEMBER()
 {
 	//if (!VarPtr.DWord)
@@ -1209,7 +1196,6 @@ bool MQ2SpawnType::GETMEMBER()
 		return false;
 	int sizeofActorClient = sizeof(ActorClient);
 	SPAWNINFO* pSpawn = (SPAWNINFO*)VarPtr.Ptr;
-#ifndef ISXEQ
 	PMQ2TYPEMEMBER pMethod = MQ2SpawnType::FindMethod(Member);
 	if (pMethod) {
 		switch ((SpawnMethods)pMethod->ID)
@@ -1243,7 +1229,7 @@ bool MQ2SpawnType::GETMEMBER()
 			return false;
 		}
 	}
-#endif
+
 	PMQ2TYPEMEMBER pMember = MQ2SpawnType::FindMember(Member);
 	if (!pMember)
 	{
@@ -1748,7 +1734,6 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
-#ifndef ISXEQ
 	case NearestSpawn:
 		Dest.Type = pSpawnType;
 		if (pSpawn == (SPAWNINFO*)pCharSpawn)
@@ -1787,35 +1772,6 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 		}
 		return false;
-#else
-	case NearestSpawn:
-		Dest.Type = pSpawnType;
-		if (pSpawn == (SPAWNINFO*)pCharSpawn)
-		{
-			return (dataNearestSpawn(argc, argv, Dest) != 0);// use top-level object if it's you
-		}
-		if (argc)
-		{
-			unsigned long nth;
-			SEARCHSPAWN ssSpawn;
-			ClearSearchSpawn(&ssSpawn);
-			ssSpawn.FRadius = 999999.0f;
-			if (argc >= 2 || !IsNumber(argv[0]))
-			{
-				ParseSearchSpawn(1, argc, argv, ssSpawn);
-				nth = atoi(argv[0]);
-			}
-			else
-			{
-				nth = atoi(argv[0]);
-			}
-			if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
-			{
-				return true;
-			}
-		}
-		return false;
-#endif
 	case Trader:
 		Dest.DWord = pSpawn->Trader;
 		Dest.Type = pBoolType;
@@ -1917,7 +1873,6 @@ bool MQ2SpawnType::GETMEMBER()
 	case HeadingToLoc:
 		Dest.Float = 0.0;
 		Dest.Type = pHeadingType;
-#ifndef ISXEQ
 		if (!ISINDEX())
 			return false;
 		if (PCHAR pComma = strchr(Index, ','))
@@ -1926,14 +1881,6 @@ bool MQ2SpawnType::GETMEMBER()
 			FLOAT Y = (FLOAT)atof(Index);
 			*pComma = ',';
 			FLOAT X = (FLOAT)atof(&pComma[1]);
-#else
-		if (!argc)
-			return false;
-		if (argc == 2)
-		{
-			FLOAT Y = (FLOAT)atof(argv[0]);
-			FLOAT X = (FLOAT)atof(argv[1]);
-#endif
 			Dest.Float = (FLOAT)(atan2f(pSpawn->Y - Y, X - pSpawn->X) * 180.0f / PI + 90.0f);
 			if (Dest.Float < 0.0f)
 				Dest.Float += 360.0f;
@@ -2561,11 +2508,7 @@ bool MQ2BuffType::GETMEMBER()
 	{
 		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
 		{
-#ifndef ISXEQ 
 			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
-#else
-			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
-#endif
 		}
 		return false;
 	}
@@ -2755,11 +2698,7 @@ bool MQ2TargetBuffType::GETMEMBER()
 	{
 		if (SPELL* pSpell = GetSpellByID(buffid))
 		{
-#ifndef ISXEQ
 			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
-#else
-			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
-#endif
 		}
 		return false;
 	}
@@ -2795,11 +2734,7 @@ bool MQ2CachedBuffType::GETMEMBER()
 	{
 		if (SPELL* pSpell = GetSpellByID(buffid))
 		{
-#ifndef ISXEQ 
 			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
-#else
-			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
-#endif
 		}
 		return false;
 	}
@@ -2862,11 +2797,7 @@ bool MQ2CharacterType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2CharacterType::FindMember(Member);
 	if (!pMember)
 	{
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pLocalPlayer, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&pLocalPlayer, Member, argc, argv, Dest);
-#endif
 	}
 	switch ((CharacterMembers)pMember->ID)
 	{
@@ -8854,7 +8785,6 @@ bool MQ2WindowType::GETMEMBER()
 		{
 			return false;
 		}
-#ifndef ISXEQ
 		if (PCHAR pComma = strchr(GETFIRST(), ','))
 		{
 			n = atoi(pComma + 1) - 1;
@@ -8862,12 +8792,6 @@ bool MQ2WindowType::GETMEMBER()
 			DebugSpew("List: index is %d\n", n);
 			*pComma = '\0';
 		}
-#else
-		if (argc == 2)
-			n = atoi(argv[1]);
-		if (n < 0)
-			n = 0;
-#endif
 		if (ISNUMBER())
 		{
 			unsigned long nIndex = GETNUMBER();
@@ -9190,11 +9114,7 @@ bool MQ2CurrentZoneType::GETMEMBER()
 		{
 			if (PZONELIST pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
 			{
-#ifndef ISXEQ
 				return pZoneType->GetMember(*(MQ2VARPTR*)&pZList, Member, Index, Dest);
-#else
-				return pZoneType->GetMember(*(LSVARPTR*)&pZList, Member, argc, argv, Dest);
-#endif
 			}
 		}
 	}
@@ -10062,11 +9982,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember = MQ2MacroQuestType::FindMember(Member);
 	if (!pMember)
-#ifndef ISXEQ
 		return pEverQuestType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr, Member, Index, Dest);
-#else
-		return pEverQuestType->GetMember(*(LSVARPTR*)&VarPtr.Ptr, Member, argc, argv, Dest);
-#endif
 	switch ((MacroQuestMembers)pMember->ID)
 	{
 	case Error:
@@ -10457,7 +10373,6 @@ bool MQ2EverQuestType::GETMEMBER()
 		return true;
 
 	case WinTitle:
-#ifndef ISXEQ
 		DataTypeTemp[0] = '1';
 		DataTypeTemp[1] = '\0';
 		Dest.Type = pStringType;
@@ -10466,9 +10381,6 @@ bool MQ2EverQuestType::GETMEMBER()
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
-#else
-		printf("MQ2EverQuestType:WinTitle: Please use ${Display.Window.Text} for this value under Inner Space");
-#endif
 		return false;
 	case PID:
 		Dest.DWord = GetCurrentProcessId();
@@ -10604,7 +10516,7 @@ bool MQ2EverQuestType::GETMEMBER()
 	}
 	return false;
 }
-#ifndef ISXEQ
+
 bool MQ2TimeType::GETMEMBER()
 {
 #define pTime ((struct tm *)VarPtr.Ptr)
@@ -10685,7 +10597,6 @@ bool MQ2TimeType::GETMEMBER()
 	return false;
 #undef pTime
 }
-#endif
 
 bool MQ2HeadingType::GETMEMBER()
 {
@@ -10732,11 +10643,7 @@ bool MQ2CorpseType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2CorpseType::FindMember(Member);
 	if (!pMember)
 	{
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pActiveCorpse, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&pActiveCorpse, Member, argc, argv, Dest);
-#endif
 	}
 
 	switch ((CorpseMembers)pMember->ID)
@@ -10978,11 +10885,7 @@ bool MQ2MerchantType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2MerchantType::FindMember(Member);
 	if (!pMember)
 	{
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pActiveMerchant, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&pActiveMerchant, Member, argc, argv, Dest);
-#endif
 	}
 
 	switch ((MerchantMembers)pMember->ID)
@@ -11182,11 +11085,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2PointMerchantType::FindMember(Member);
 	if (!pMember)
 	{
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pActiveMerchant, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&pActiveMerchant, Member, argc, argv, Dest);
-#endif
 	}
 
 	switch ((PointMerchantMembers)pMember->ID)
@@ -11233,11 +11132,7 @@ bool MQ2MercenaryType::GETMEMBER()
 	{
 		if (!pSpawn->SpawnID)
 			return false;
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&VarPtr.Ptr, Member, argc, argv, Dest);
-#endif
 	}
 
 	switch ((MercenaryMembers)pMember->ID)
@@ -11508,11 +11403,7 @@ bool MQ2PetType::GETMEMBER()
 	{
 		if (!pSpawn->SpawnID)
 			return false;
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&VarPtr.Ptr, Member, argc, argv, Dest);
-#endif
 	}
 
 	if (!pPetInfoWnd)
@@ -12818,11 +12709,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 	{
 		if (!pGroupMember)
 			return false;
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pGroupMember, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&pGroupMember, Member, argc, argv, Dest);
-#endif
 	}
 
 	switch ((GroupMemberMembers)pMember->ID)
@@ -13149,11 +13036,7 @@ bool MQ2RaidMemberType::GETMEMBER()
 		SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByName(pRaidMember->Name);
 		if (!pSpawn)
 			return false;
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pSpawn, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&pSpawn, Member, argc, argv, Dest);
-#endif
 	}
 
 	switch ((RaidMemberMembers)pMember->ID)
@@ -13618,11 +13501,7 @@ bool MQ2TargetType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2TargetType::FindMember(Member);
 	if (!pMember)
 	{
-#ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr, Member, Index, Dest);
-#else
-		return pSpawnType->GetMember(*(LSVARPTR*)&VarPtr.Ptr, Member, argc, argv, Dest);
-#endif
 	}
 	switch ((TargetMembers)pMember->ID)
 	{
@@ -15050,11 +14929,7 @@ bool MQ2XTargetType::GETMEMBER()
 		XTARGETSLOT xts = GetCharInfo()->pXTargetMgr->XTargetSlots[VarPtr.DWord];
 		SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(xts.SpawnID);
 		if (pSpawn) {
-#ifndef ISXEQ
 			return pSpawnType->GetMember(*(MQ2VARPTR*)&pSpawn, Member, Index, Dest);
-#else
-			return pSpawnType->GetMember(*(LSVARPTR*)&pSpawn, Member, argc, argv, Dest);
-#endif
 		}
 	}
 	return false;
@@ -15215,11 +15090,7 @@ bool MQ2AdvLootItemType::GETMEMBER()
 		return true;
 
 	case xIndex:
-#ifdef ISXEQ
-		Dest.DWord = VarPtr.HighDWord;
-#else
 		Dest.DWord = VarPtr.HighPart;
-#endif
 		Dest.Type = pIntType;
 		return true;
 
@@ -15382,11 +15253,7 @@ bool MQ2AdvLootType::GETMEMBER()
 				{
 					AdvancedLootItem* pItem = &pAdvancedLootWnd->pPLootList->Items[listindex];
 					Dest.Ptr = pItem;
-#ifdef ISXEQ
-					Dest.HighDWord = listindex;
-#else
 					Dest.HighPart = listindex;
-#endif
 					return true;
 				}
 			}
@@ -15413,11 +15280,7 @@ bool MQ2AdvLootType::GETMEMBER()
 				{
 					AdvancedLootItem* pItem = &pAdvancedLootWnd->pCLootList->Items[listindex];
 					Dest.Ptr = pItem;
-#ifdef ISXEQ
-					Dest.HighDWord = listindex;
-#else
 					Dest.HighPart = listindex;
-#endif
 					return true;
 				}
 			}
@@ -15787,7 +15650,6 @@ bool MQ2AlertListType::GETMEMBER()
 					Dest.DWord = (*si).AlertList;
 					Dest.Type = pIntType;
 					return true;
-#ifndef ISXEQ
 				case ZRadius:
 					Dest.Double = (*si).ZRadius;
 					Dest.Type = pDoubleType;
@@ -15796,16 +15658,6 @@ bool MQ2AlertListType::GETMEMBER()
 					Dest.Double = (*si).FRadius;
 					Dest.Type = pDoubleType;
 					return true;
-#else
-				case ZRadius:
-					Dest.Float = (float)(*si).ZRadius;
-					Dest.Type = pFloatType;
-					return true;
-				case FRadius:
-					Dest.Float = (float)(*si).FRadius;
-					Dest.Type = pFloatType;
-					return true;
-#endif
 				case xLoc:
 					Dest.Float = (*si).xLoc;
 					Dest.Type = pFloatType;

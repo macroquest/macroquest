@@ -23,7 +23,6 @@
 
 BOOL TurnNotDone = FALSE;
 CRITICAL_SECTION gPulseCS;
-#ifndef ISXEQ
 
 #include <locale>//for tolower
 // templated version of my_equal so it can work with both char and wchar_t
@@ -149,7 +148,7 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 	}
 	return FALSE;
 }
-#endif
+
 //added these so I can work on making face look natural - eqmule
 void NaturalTurnOld(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 {
@@ -176,7 +175,7 @@ void NaturalTurnOld(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 		}
 	}
 }
-	
+
 void NaturalTurn(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 {
 	//ok we need to turn now, but there are some things we need to take into account
@@ -380,13 +379,11 @@ int Heartbeat()
 	// This accounts for rollover
 	TickDiff += (Tick - LastGetTick);
 	LastGetTick = Tick;
-#ifndef ISXEQ
 	while (TickDiff >= 100) {
 		TickDiff -= 100;
 		if (gDelay>0) gDelay--;
 		DropTimers();
 	}
-#endif
 	if (!gStringTableFixed && pStringTable) // Please dont remove the second condition
 	{
 		FixStringTable();
@@ -412,8 +409,6 @@ int Heartbeat()
 	else
 		return 0;
 	DebugTry(UpdateMQ2SpawnSort());
-#ifndef ISXEQ_LEGACY
-#ifndef ISXEQ
 	DebugTry(DrawHUD());
 	if (gGameState == GAMESTATE_INGAME)
 	{
@@ -424,15 +419,11 @@ int Heartbeat()
 	//{
 	//    DebugTry(pWndMgr->DrawCursor());
 	//}
-#endif
-#endif
 
 	bRunNextCommand = TRUE;
 	DebugTry(Pulse());
-#ifndef ISXEQ_LEGACY
-#ifndef ISXEQ
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
-#endif
+
 	if (pEQPlayNicePulse) {
 		pEQPlayNicePulse();
 	}
@@ -443,9 +434,7 @@ int Heartbeat()
 				pEQPlayNicePulse();
 		}
 	}
-#endif
 	DebugTry(ProcessPendingGroundItems());
-
 
 	static bool ShownNews = false;
 	if (gGameState == GAMESTATE_CHARSELECT && !ShownNews)
@@ -455,7 +444,6 @@ int Heartbeat()
 			CreateMQ2NewsWindow();
 	}
 
-#ifndef ISXEQ
 	DWORD CurTurbo = 0;
 
 	if (gDelayedCommands) {// delayed commands
@@ -488,7 +476,7 @@ int Heartbeat()
 		pBlock = GetCurrentMacroBlock();
 	}
 	DoTimedCommands();
-#endif
+
 	return 0;
 }
 
@@ -667,7 +655,7 @@ int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
-#ifndef ISXEQ_LEGACY
+
 void GameLoop_Tramp();
 void GameLoop_Detour()
 {
@@ -695,12 +683,8 @@ BOOL Detour_ProcessGameEvents()
 	int ret2 = 0;
 	CAutoLock Lock(&gPulseCS);
 	int ret = Heartbeat();
-#ifdef ISXEQ
-	if (!pISInterface->ScriptEngineActive())
-		pISInterface->LavishScriptPulse();
-#endif
+
 	ret2 = Trampoline_ProcessGameEvents();
-#ifndef ISXEQ
 	if (ret == 2 && bPluginCS == 0) {
 		OutputDebugString("I am loading in ProcessGameEvents");
 		//we are loading stuff
@@ -711,9 +695,7 @@ BOOL Detour_ProcessGameEvents()
 		MQ2MouseHooks(1);
 		Sleep(100);
 		InitializeMQ2KeyBinds();
-#ifndef ISXEQ
 		InitializeMQ2Plugins();
-#endif
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
 	}
@@ -732,9 +714,7 @@ BOOL Detour_ProcessGameEvents()
 		g_Loaded = FALSE;
 		ScreenMode = oldscreenmode;
 		SetEvent(hUnloadComplete);
-
 	}
-#endif
 
 	return ret2;
 	DebugTryEndRet();
@@ -942,4 +922,3 @@ void ShutdownMQ2Pulse()
 	//RemoveDetour(__GameLoop);
 	DeleteCriticalSection(&gPulseCS);
 }
-#endif

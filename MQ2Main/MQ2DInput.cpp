@@ -12,9 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef ISXEQ
-#define DBG_SPEW
-
 #include "MQ2Main.h"
 
 // ***************************************************************************
@@ -270,5 +267,3 @@ void ShutdownMQ2DInput()
 		}
 	}
 }
-
-#endif

@@ -14,7 +14,6 @@
 
 #pragma once
 
-#ifndef ISXEQ
 /* DATA ITEMS */
 LEGACY_API BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
@@ -78,4 +77,3 @@ LEGACY_API BOOL dataAlias(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataAdvLoot(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataAlert(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataRange(PCHAR szIndex, MQ2TYPEVAR &Ret);
-#endif

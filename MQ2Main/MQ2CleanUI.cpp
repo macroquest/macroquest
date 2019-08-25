@@ -57,8 +57,6 @@ public:
     */
 }; 
 
-#ifndef ISXEQ
-
 void __cdecl DrawHUD_Trampoline(unsigned short, unsigned short, PVOID, unsigned int); 
 void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,PVOID c,unsigned int d) 
 { 
@@ -111,7 +109,6 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 		pFont->DrawWrappedText(Text, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
 	}
 }
-#endif
 
 class EQ_LoadingSHook
 {
@@ -134,16 +131,8 @@ DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 std::list<std::string>oldstrings;
 
-#ifdef ISXEQ
-int CMD_NetStatusXPos(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-#else
 void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {
-#endif
 	CHAR szArg[MAX_STRING] = { 0 };
 	CHAR szCmd[MAX_STRING] = { 0 };
 
@@ -154,16 +143,9 @@ void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 	}
 	RETURN(0);
 }
-#ifdef ISXEQ
-int CMD_NetStatusYPos(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-#else
+
 void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 {
-#endif
 	CHAR szArg[MAX_STRING] = { 0 };
 	CHAR szCmd[MAX_STRING] = { 0 };
 
@@ -178,7 +160,7 @@ void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 
 void InitializeDisplayHook()
 {
-	//this needs further investigation - eqmule
+	// this needs further investigation - eqmule
 #if 0
 #ifdef EQ_LoadingS__Array_x
     if (gbMQ2LoadingMsg)
@@ -199,14 +181,10 @@ void InitializeDisplayHook()
     EzDetourwName(CDisplay__CleanGameUI,&CDisplayHook::CleanUI_Detour,&CDisplayHook::CleanUI_Trampoline,"CDisplay__CleanGameUI");
     EzDetourwName(CDisplay__ReloadUI,&CDisplayHook::ReloadUI_Detour,&CDisplayHook::ReloadUI_Trampoline,"CDisplay__ReloadUI");
     //EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
-#ifndef ISXEQ
     EzDetourwName(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline,"DrawNetStatus");
-#endif
     //EzDetourwName(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline,"EQ_LoadingS__SetProgressBar");
-#ifndef ISXEQ
 	AddCommand("/netstatusxpos", NetStatusXPos);
 	AddCommand("/netstatusypos", NetStatusYPos);
-#endif
 }
 
 void ShutdownDisplayHook()
@@ -228,16 +206,12 @@ void ShutdownDisplayHook()
     PluginsCleanUI();
     DebugSpew("Shutting down Display Hooks");
 
-#ifndef ISXEQ
 	RemoveCommand("/netstatusxpos");
 	RemoveCommand("/netstatusypos");
-#endif
 
     RemoveDetour(CDisplay__CleanGameUI);
     RemoveDetour(CDisplay__ReloadUI);
-#ifndef ISXEQ
     RemoveDetour(DrawNetStatus);
-#endif
     //RemoveDetour(EQ_LoadingS__SetProgressBar);
     //RemoveDetour(CDisplay__GetWorldFilePath);
 }

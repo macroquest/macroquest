@@ -17,10 +17,7 @@
 #define _WIN32_WINNT 0x510
 #define DIRECTINPUT_VERSION 0x800
 
-#define DBG_SPEW
-
 #include "MQ2Main.h"
-#ifndef ISXEQ
 
 typedef struct _OurDetours {
 /* 0x00 */    unsigned int addr;
@@ -241,7 +238,6 @@ void RemoveOurDetours()
 	}
 	ourdetours = 0;
 }
-#endif
 
 void SetAssist(PBYTE address)
 {
@@ -411,13 +407,12 @@ unsigned int *extern_array1 = NULL;
 unsigned int *extern_array2 = NULL;
 unsigned int *extern_array3 = NULL;
 unsigned int *extern_array4 = NULL;
-#ifndef ISXEQ
+
 int __cdecl memcheck0(unsigned char *buffer, int count);
 int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
-#endif
 
 // ***************************************************************************
 // Function:    HookMemChecker
@@ -437,9 +432,7 @@ DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(unsigned char *buffer, int count, st
 void HookInlineChecks(BOOL Patch)
 {
 	int i;
-#ifndef ISXEQ
 	DWORD oldperm, tmp;
-#endif
 	DWORD NewData;
 
 	DWORD cmps[] = { __AC1 + 6 };
@@ -462,28 +455,20 @@ void HookInlineChecks(BOOL Patch)
 		NewData = 0x7fffffff;
 
 		for (i = 0; i<sizeof(cmps) / sizeof(cmps[0]); i++) {
-#ifdef ISXEQ
-			EzModify(cmps[i], &NewData, 4);
-#else
 			AddDetour(cmps[i], NULL, NULL, 4,"cmps");
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, PAGE_EXECUTE_READWRITE, &oldperm);
 			WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps[i], (LPVOID)&NewData, 4, NULL);
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, oldperm, &tmp);
-#endif
 		}
 
 		memset(NewData2, 0x90, 20);
 
 		for (i = 0; i<sizeof(cmps2) / sizeof(cmps2[0]); i++) {
-#ifdef ISXEQ
-			EzModify(cmps2[i], NewData2, len2[i]);
-#else
 			AddDetour(cmps2[i], NULL, NULL, len2[i],"cmps2");
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], PAGE_EXECUTE_READWRITE, &oldperm);
 			memcpy((void *)OldData2[i], (void *)cmps2[i], len2[i]);
 			WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps2[i], (LPVOID)NewData2, len2[i], NULL);
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], oldperm, &tmp);
-#endif
 		}
 	}
 	else
@@ -491,33 +476,23 @@ void HookInlineChecks(BOOL Patch)
 		NewData = __AC1_Data;
 
 		for (i = 0; i<sizeof(cmps) / sizeof(cmps[0]); i++) {
-#ifdef ISXEQ
-			EzUnModify(cmps[i]);
-#else
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, PAGE_EXECUTE_READWRITE, &oldperm);
 			WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps[i], (LPVOID)&NewData, 4, NULL);
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, oldperm, &tmp);
 			RemoveDetour(cmps[i]);
-#endif
 		}
 
 		for (i = 0; i<sizeof(cmps2) / sizeof(cmps2[0]); i++) {
-#ifdef ISXEQ
-			EzUnModify(cmps2[i]);
-#else
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], PAGE_EXECUTE_READWRITE, &oldperm);
 			WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps2[i], (LPVOID)OldData2[i], len2[i], NULL);
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], oldperm, &tmp);
 			RemoveDetour(cmps2[i]);
-#endif
 		}
 	}
 }
 
-#ifndef ISXEQ
 void HookMemChecker(BOOL Patch)
 {
-
 	// hit the debugger if we don't hook this
 	// take no chances
 	if ((!EQADDR_MEMCHECK0) ||
@@ -604,7 +579,6 @@ DWORD IsAddressDetoured(unsigned int address, int count)
 		return 2;
 	}
 
-	
 	OurDetours *detour = ourdetours;
 	while (detour) {
 		if (IsBadReadPtr(detour, 4))
@@ -616,20 +590,18 @@ DWORD IsAddressDetoured(unsigned int address, int count)
 	}
 	return 0;
 }
-#endif
 
 int __cdecl memcheck0(unsigned char *buffer, int count)
 {
 	//MessageBox(NULL, "ddd", "ddd", MB_SYSTEMMODAL | MB_OK);
 	//int realchecksum = checkmemcheck0((const char *)buffer, count);
-#ifndef	ISXEQ
 	int orgret = memcheck0_tramp(buffer, count);
 	unsigned int addr = (int)&buffer[0];
- 
+
 	DWORD dwGetOrg = IsAddressDetoured(addr, count);
 	if (dwGetOrg >= 2)//pointless to detour check this cause its just getting a hash for the spelldb or a executable we dont care about, and we dont mess with that.
 		return orgret;
-#endif
+
 	unsigned int x, i;
 	unsigned int eax = 0xffffffff;
 
@@ -642,16 +614,8 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 		}
 	}
 
-#ifdef ISXEQ
-	unsigned char *realbuffer = (unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer, realbuffer, count);
-#endif
-
 	for (i = 0; i<(unsigned int)count; i++) {
 		unsigned char tmp;
-#ifdef ISXEQ
-		tmp = realbuffer[i];
-#else
 		if (dwGetOrg==1) {
 			DWORD eqgamebase = (DWORD)GetModuleHandle(NULL);
 			unsigned int b = (int)&buffer[i];
@@ -680,17 +644,13 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 			//if (!detour)
 			tmp = buffer[i];
 		}
-#endif
+
 		x = (int)tmp ^ (eax & 0xff);
 		eax = ((int)eax >> 8) & 0xffffff;
 		x = extern_array0[x];
 		eax ^= x;
 	}
 
-#ifdef ISXEQ
-	free(realbuffer);
-#endif
-#ifndef ISXEQ
 	if (orgret != eax)
 	{
 		//wtf?
@@ -700,7 +660,6 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 		return orgret;
 #endif
 	}
-#endif
 	return eax;
 }
 
@@ -817,16 +776,8 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 	//                retn
 	//
 
-#ifdef ISXEQ
-	unsigned char *realbuffer = (unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer, realbuffer, count);
-#endif
-
 	for (i = 0; i<(unsigned int)count; i++) {
 		unsigned char tmp;
-#ifdef ISXEQ
-		tmp = realbuffer[i];
-#else
 		unsigned int b = (int)&buffer[i];
 		OurDetours *detour = ourdetours;
 		while (detour) {
@@ -839,14 +790,10 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 		}
 		if (!detour)
 			tmp = buffer[i];
-#endif
 		ebx = ((int)tmp ^ eax) & 0xff;
 		eax = ((int)eax >> 8) & 0xffffff;
 		eax ^= extern_array1[ebx];
 	}
-#ifdef ISXEQ
-	free(realbuffer);
-#endif
 	ebx = ~eax;
 	/*if (realchecksum != ebx)
 	{
@@ -955,18 +902,9 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 	//                leave
 	//                retn
 
-
-#ifdef ISXEQ
-	unsigned char *realbuffer = (unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer, realbuffer, count);
-#endif
-
 	for (i = 0; i<(unsigned int)count; i++) {
 		unsigned char tmp;
 
-#ifdef ISXEQ
-		tmp = realbuffer[i];
-#else
 		unsigned int b = (int)&buffer[i];
 		OurDetours *detour = ourdetours;
 		while (detour) {
@@ -978,16 +916,13 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 			detour = detour->pNext;
 		}
 		if (!detour) tmp = buffer[i];
-#endif
 
 		ebx = ((int)tmp ^ edx) & 0xff;
 		edx = ((int)edx >> 8) & 0xffffff;
 		edx ^= extern_array2[ebx];
 	}
 	eax = ~edx ^ 0;
-#ifdef ISXEQ
-	free(realbuffer);
-#endif
+
 	/*if (realchecksum != eax)
 	{
 		//crap...
@@ -1097,16 +1032,8 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 	//                inc     edi
 	//
 
-#ifdef ISXEQ
-	unsigned char *realbuffer = (unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer, realbuffer, count);
-#endif
-
 	for (i = 0; i<(unsigned int)count; i++) {
 		unsigned char tmp;
-#ifdef ISXEQ
-		tmp = realbuffer[i];
-#else
 		unsigned int b = (int)&buffer[i];
 		OurDetours *detour = ourdetours;
 		while (detour)
@@ -1120,7 +1047,6 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 		}
 		if (!detour)
 			tmp = buffer[i];
-#endif
 
 		ebx = (tmp ^ edx) & 0xff;
 		edx = ((int)edx >> 8) & 0xffffff;
@@ -1135,25 +1061,21 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 	//                xor     eax, [ebp+var_4]
 	eax = ~edx ^ 0;
 
-#ifdef ISXEQ
-	free(realbuffer);
-#endif
 	return eax;
 	//                pop     esi
 	//                pop     ebx
 	//                leave
 	//                retn
 }
+
 //?Crc32@UdpMisc@UdpLibrary@@SAHPBXHH@Z
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 {
-	#ifndef ISXEQ
 	int orgret = memcheck4_tramp(buffer, count, key);
 	unsigned int addr = (int)&buffer[0];
 	DWORD dwGetOrg = IsAddressDetoured(addr, count);
 	if (dwGetOrg == 0)
 		return orgret;
-	#endif
 	unsigned int eax, ebx, edx, i;
 
 	if (!extern_array4) {
@@ -1182,16 +1104,8 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 	edx ^= extern_array4[ebx];
 	edx ^= eax;
 
-#ifdef ISXEQ
-	unsigned char *realbuffer = (unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer, realbuffer, count);
-#endif
-
 	for (i = 0; i<(unsigned int)count; i++) {
 		unsigned char tmp;
-#ifdef ISXEQ
-		tmp = realbuffer[i];
-#else
 		if (dwGetOrg == 1) {
 			unsigned int b = (int)&buffer[i];
 			OurDetours *detour = ourdetours;
@@ -1210,7 +1124,6 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 		else {
 			tmp = buffer[i];
 		}
-#endif
 
 		ebx = (tmp ^ edx) & 0xff;
 		edx = ((int)edx >> 8) & 0xffffff;
@@ -1218,18 +1131,14 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 	}
 	eax = ~edx ^ 0;
 
-#ifdef ISXEQ
-	free(realbuffer);
-#else
 	if (orgret != eax)
 	{
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		MessageBox(NULL, "WARNING, this should not hapen, contact eqmule", "memchecker4 mismatch", MB_OK | MB_SYSTEMMODAL);
 		_asm int 3;
 		return orgret;
-	#endif
-	}
 #endif
+	}
 	return eax;
 }
 
@@ -1332,7 +1241,6 @@ int LoadFrontEnd_Detour()
 #endif
 void InitializeMQ2Detours()
 {
-#ifndef ISXEQ
 	__try
 	{
 		InitializeCriticalSection(&gDetourCS);
@@ -1345,7 +1253,6 @@ void InitializeMQ2Detours()
 	}
 
 	HookMemChecker(TRUE);
-#endif
 
 	//this is handled by mq2ic from now on
 	//EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
@@ -1358,15 +1265,12 @@ void InitializeMQ2Detours()
 
 void ShutdownMQ2Detours()
 {
-
 	RemoveDetour(__LoadFrontEnd);
-#ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();
 	//RemoveDetour(CrashDetected);
 	//RemoveDetour(wwsCrashReportCheckForUploader);
 	DeleteCriticalSection(&gDetourCS);
-#endif
 }
 
 

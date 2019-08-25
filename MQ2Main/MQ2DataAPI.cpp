@@ -12,10 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef ISXEQ
-
-#define DBG_SPEW
-
 #include "MQ2Main.h"
 
 #include <memory>
@@ -1247,5 +1243,3 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 		return Changed;
 	}
 }
-
-#endif

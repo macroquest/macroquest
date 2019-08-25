@@ -13,8 +13,9 @@
  */
 
 #include "MQ2Main.h"
+
 #define TS template <unsigned int _Size>
-#ifndef ISXEQ_LEGACY
+
 // ***************************************************************************
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
@@ -151,7 +152,6 @@ EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...)
 	}
 #endif
 }
-#endif
 
 void StrReplaceSection(PCHAR szInsert, size_t InsertLen, DWORD Length, PCHAR szNewString)
 {
@@ -160,7 +160,6 @@ void StrReplaceSection(PCHAR szInsert, size_t InsertLen, DWORD Length, PCHAR szN
 	memcpy_s(szInsert, InsertLen-NewLength,szNewString, NewLength);
 }
 
-#ifndef ISXEQ_LEGACY
 void ConvertCR(PCHAR Text, size_t LineLen)
 {// not super-efficient but this is only being called at initialization currently.
 	while (PCHAR Next = strstr(Text, "\\n"))
@@ -169,7 +168,6 @@ void ConvertCR(PCHAR Text, size_t LineLen)
 		StrReplaceSection(Next, LineLen-len, 2, "\n");
 	}
 }
-#endif
 
 void Flavorator(PCHAR szLine, size_t LineLen)
 {
@@ -191,7 +189,6 @@ void Flavorator(PCHAR szLine, size_t LineLen)
 	}
 }
 
-#ifndef ISXEQ
 void SyntaxError(PCHAR szFormat, ...)
 {
 	va_list vaList;
@@ -313,7 +310,6 @@ void MQ2DataError(PCHAR szFormat, ...)
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
 }
-#endif
 
 void FixStringTable()
 {
@@ -337,7 +333,6 @@ void FixStringTable()
 	}
 }
 
-//#ifndef ISXEQ
 // ***************************************************************************
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument
@@ -443,11 +438,7 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 
 	return szDest;
 }
-//#endif
 
-
-
-#ifndef ISXEQ_LEGACY
 PCHAR GetEQPath(PCHAR szBuffer, size_t len)
 {
 	GetModuleFileName(NULL, szBuffer, MAX_STRING);
@@ -4080,7 +4071,6 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
 		msHold);
 }
 
-#ifndef ISXEQ
 void CustomPopup(char* szPopText, bool bPopOutput)
 {
 	int  iArgNum = 1;
@@ -4128,7 +4118,6 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 	DisplayOverlayText(szPopupMsg, iMsgColor, 100, 500, 500, iMsgTime);
 	if (bPopOutput) WriteChatf("\ayPopup\aw:: %s", szPopupMsg);
 }
-#endif
 
 BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
 {
@@ -4220,9 +4209,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
 	}
 	return &szDest[0];
 }
-#endif
 
-#ifndef ISXEQ
 BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
 {
 	FILE *file = 0;
@@ -4259,9 +4246,7 @@ havecfgfile:
 	fclose(file);
 	return true;
 }
-#endif
 
-#ifndef ISXEQ_LEGACY
 int FindInvSlotForContents(CONTENTS* pContents)
 {
 	int LastMatch = -1;
@@ -4427,7 +4412,6 @@ int FindNextInvSlot(PCHAR pName, BOOL Exact)
 	return -1;
 }
 
-#ifndef ISXEQ
 enum eCalcOp
 {
 	CO_NUMBER = 0,
@@ -4926,7 +4910,6 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 	Benchmark(bmCalculate, Ret = FastCalculate(Buffer, Result));
 	return Ret;
 }
-#endif
 
 bool PlayerHasAAAbility(DWORD AAIndex)
 {
@@ -5781,9 +5764,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	}
 	return TRUE;
 }
-#endif
 
-#ifndef ISXEQ
 PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 {
 	if (szArg && pSearchSpawn) {
@@ -6096,15 +6077,6 @@ void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 		}
 	}
 }
-#else
-void ParseSearchSpawn(int BeginInclusive, int EndExclusive, char *argv[], SEARCHSPAWN &SearchSpawn)
-{
-	for (int arg = BeginInclusive; arg < EndExclusive; arg++)
-		arg += ParseSearchSpawnArg(arg, EndExclusive, argv, SearchSpawn);
-}
-#endif
-
-#ifndef ISXEQ_LEGACY
 
 BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 {
@@ -6239,7 +6211,6 @@ PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article, BOOL ForWhoList
 	}
 	return szName;
 }
-#endif
 
 // ***************************************************************************
 // Function:    SuperWhoDisplay
@@ -6588,7 +6559,6 @@ void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 	}
 }
 
-#ifndef ISXEQ_LEGACY
 DWORD WINAPI thrMsgBox(LPVOID lpParameter)
 {
 	MessageBox(NULL, (PCHAR)lpParameter, "MacroQuest", MB_OK);
@@ -11651,7 +11621,6 @@ int RangeRandom(int min, int max)
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#endif
 
 ITEMINFO* GetItemFromContents(CONTENTS* c)
 {

@@ -69,7 +69,7 @@
 	{                                                                                    \
 		__asm mov eax, [ecx]                                                             \
 		__asm lea eax, [eax+VirtualOffset]                                               \
-		__asm mov eax, [eax]                                                        \
+		__asm mov eax, [eax]                                                             \
 		__asm jmp eax                                                                    \
 	}
 
@@ -88,6 +88,25 @@
 		__asm mov eax, [Class::sm_vftable]                                               \
 		__asm jmp dword ptr [eax]VFT.Member                                              \
 	}
+
+
+#define PreserveRegisters(code)                                                          \
+{                                                                                        \
+	__asm push eax                                                                       \
+	__asm push ebx                                                                       \
+	__asm push ecx                                                                       \
+	__asm push edx                                                                       \
+	__asm push esi                                                                       \
+	__asm push edi                                                                       \
+	code;                                                                                \
+	__asm pop edi                                                                        \
+    __asm pop esi                                                                        \
+	__asm pop edx                                                                        \
+	__asm pop ecx                                                                        \
+	__asm pop ebx                                                                        \
+	__asm pop eax                                                                        \
+}
+
 
 template <typename T, size_t N>
 constexpr size_t lengthof(const T(&)[N])

@@ -74,34 +74,10 @@
 #define UnloadedString         "MQ2 Unloaded."
 
 
-#if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 // MQ2
 #include "..\Dxsdk90\include\dinput.h"
 #include "..\Detours\inc\detours.h"
 #include "..\Blech\Blech.h"
-#elif !defined(ISXEQ_LEGACY)
-// ISXEQ
-#ifndef MQ2PLUGIN
-#include "ISXEQ\ISXEQ.h"
-#else
-#pragma pack(push)
-#pragma pack(8)
-#include <isxdk.h>
-#pragma pack(pop)
-#include "ISXEQ\ISXEQServices.h"
-#endif
-#define PMQ2TYPEMEMBER PLSTYPEMEMBER
-#define PMQ2TYPEMETHOD PLSTYPEMETHOD
-#define MQ2Type LSType
-#define MQ2TYPEVAR LSTYPEVAR
-
-#else
-// ISXEQ_LEGACY
-#include <winthreading.h>
-#include <Index.h>
-#include "..\Dxsdk81\include\dinput.h"
-#include "..\Blech\Blech.h"
-#endif
 
 extern CRITICAL_SECTION gPluginCS;
 
@@ -113,27 +89,16 @@ extern CRITICAL_SECTION gPluginCS;
 //#define TEST
 #define LIVE
 
-#ifndef ISXEQ
 #define RETURN(x) return;
-#else
-#define RETURN(x) return x;
-#endif
-#ifdef ISXEQ
-#define MacroError WriteChatf
-#endif
+
 #define KeyRingWindowParent "KeyRingWnd"
 #define MountWindowList "KRW_Mounts_List"
 #define IllusionWindowList "KRW_Illusions_List"
 #define FamiliarWindowList "KRW_Familiars_list"
 #define KeyRingTab "KRW_Subwindows"
 
-#ifdef ISXEQ_LEGACY
-#define LEGACY_API extern
-#define LEGACY_VAR extern
-#else
 #define LEGACY_API EQLIB_API
 #define LEGACY_VAR EQLIB_VAR
-#endif
 
 #ifdef EQLIB_EXPORTS
 #define EQLIB_API extern "C" __declspec(dllexport)
@@ -160,33 +125,8 @@ extern DWORD CountMallocs;
 extern DWORD CountFrees;
 #endif
 
-#define PreserveRegisters(code) \
-{\
-    __asm {push eax};\
-    __asm {push ebx};\
-    __asm {push ecx};\
-    __asm {push edx};\
-    __asm {push esi};\
-    __asm {push edi};\
-    code;\
-    __asm {pop edi};\
-    __asm {pop esi};\
-    __asm {pop edx};\
-    __asm {pop ecx};\
-    __asm {pop ebx};\
-    __asm {pop eax};\
-}
-
-#ifndef ISXEQ
-#ifdef ISXEQ_LEGACY
-#define EzDetour(offset,detour,trampoline)
-#define EzDetourwName(offset,detour,trampoline,name)
-#define DETOUR_TRAMPOLINE_EMPTY(blah)
-#else
 #define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
 #define EzDetourwName(offset,detour,trampoline,name) AddDetourf((DWORD)offset,detour,trampoline,name)
-#endif
-#endif
 
 #ifndef DOUBLE
 typedef double DOUBLE;
@@ -195,22 +135,15 @@ typedef double DOUBLE;
 #define THIS_                   INTERFACE FAR* This,
 #endif
 
-// DEBUGGING
-//#ifndef DEBUG_TRY
-//#define DEBUG_TRY
-//#endif
-
 #ifdef DEBUG_TRY
 #define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
 #else
 #define DebugTry(x) x
 #endif
 
-#ifndef ISXEQ
 #define MakeLower(yourstring) std::transform (yourstring.begin(),yourstring.end(), yourstring.begin(), tolower);
-#endif
 
-#define MAX_VARNAME 64
+#define MAX_VARNAME           64
 #define MAX_STRING            2048
 
 #define IsNaN(x) (x != x)
@@ -274,33 +207,22 @@ EQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true
 EQLIB_API void InitializeMQ2Detours();
 EQLIB_API void ShutdownMQ2Detours();
 
-#ifndef ISXEQ
-#ifdef ISXEQ_LEGACY
-#define RemoveDetour(address)
-#define AddDetour __noop
-#define AddDetourf __noop
-#else
+
 EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20, PCHAR Name = 0);
 EQLIB_API void AddDetourf(DWORD address, ...);
 EQLIB_API void RemoveDetour(DWORD address);
 EQLIB_API void DeleteDetour(DWORD address);
-#endif
-#else
-#define RemoveDetour EzUnDetour
-#endif
 
 /* PLUGIN HANDLING */
 EQLIB_API void WriteChatf(PCHAR Format, ...);
 EQLIB_API void WriteChatfSafe(PCHAR szFormat, ...);
 EQLIB_API void WriteChatColor(PCHAR Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
-#ifndef ISXEQ
 EQLIB_API void InitializeMQ2Plugins();
 EQLIB_API DWORD LoadMQ2Plugin(const PCHAR pszFilename, BOOL bCustom = 0);
 EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API void UnloadMQ2Plugins();
 EQLIB_API void ShutdownMQ2Plugins();
 EQLIB_API void SaveMQ2PluginLoadStatus(char*Name, bool bLoad);
-#endif
 EQLIB_API void PulsePlugins();
 EQLIB_API void PluginsZoned();
 EQLIB_API BOOL PluginsIncomingChat(PCHAR Line, DWORD Color);
@@ -316,10 +238,8 @@ EQLIB_API void PluginsBeginZone();
 EQLIB_API void PluginsEndZone();
 
 /* DIRECT INPUT */
-#ifndef ISXEQ
 EQLIB_API void InitializeMQ2DInput();
 EQLIB_API void ShutdownMQ2DInput();
-#endif
 
 /* CLEAN UI */
 EQLIB_API void InitializeDisplayHook();
@@ -355,7 +275,6 @@ inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, CHAR(&szOriginal)[_Size])
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
 
-#ifndef ISXEQ
 LEGACY_API void FailIf(PSPAWNINFO pChar, PCHAR szCommand, int pStartLine, BOOL All = FALSE);
 LEGACY_API void InitializeParser();
 LEGACY_API void ShutdownParser();
@@ -373,7 +292,6 @@ LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
 LEGACY_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 LEGACY_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
-#endif
 
 
 /* MOUSE */
@@ -421,10 +339,8 @@ EQLIB_API void DebugSpew(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewAlways(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewAlwaysFile(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...);
-//#ifndef ISXEQ
 LEGACY_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
 LEGACY_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
-//#endif
 LEGACY_API void AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
@@ -497,23 +413,14 @@ EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 
 #include "MQ2Inlines.h"
 
-
-#ifdef ISXEQ
-#define GETMEMBER() GetMember(LSVARPTR VarPtr, PCHAR Member, int argc, char *argv[], LSTYPEVAR &Dest)
-#define GETMETHOD() GetMethod(LSVARPTR &VarPtr, PCHAR Method, int argc, char *argv[])
-#define DECLAREGETMETHOD() bool GETMETHOD()
-#else
 #define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 #define DECLAREGETMETHOD()
 #define INHERITDIRECT(X)
 #define INHERITINDIRECT(X,Y,Z)
-#endif
 
 #include "MQ2DataTypes.h"
 
-#ifndef ISXEQ
 LEGACY_API BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber, int localLine);
-#endif
 
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
@@ -566,9 +473,7 @@ LEGACY_API void SyntaxError(PCHAR szFormat, ...);
 LEGACY_API void MacroError(PCHAR szFormat, ...);
 LEGACY_API void FatalError(PCHAR szFormat, ...);
 EQLIB_API PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, SIZE_T BufferSize);
-#ifndef ISXEQ
 LEGACY_API void MQ2DataError(PCHAR szFormat, ...);
-#endif
 EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
 EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
@@ -586,7 +491,6 @@ EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *fi
 EQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
-#ifndef ISXEQ
 LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen);
 //LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
 LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
@@ -601,7 +505,6 @@ LEGACY_API void NewVarset(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API void NewVardata(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API void DropTimers();
-#endif
 
 /*                 */
 
@@ -614,11 +517,7 @@ EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO p
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2);
 LEGACY_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
-#ifndef ISXEQ
 LEGACY_API void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
-#else
-LEGACY_API void ParseSearchSpawn(int BeginInclusive, int EndExclusive, char *argv[], SEARCHSPAWN &SearchSpawn);
-#endif
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
@@ -642,9 +541,7 @@ extern void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
 LEGACY_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 
 EQLIB_API void        OverwriteTable(DWORD Address);
-#ifndef ISXEQ
 LEGACY_API DWORD      Include(PCHAR szFile, int *LineNumber);
-#endif
 EQLIB_API PCHAR       GetFullZone(DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID(PCHAR ZoneShortName);
 EQLIB_API PCHAR       GetShortZone(DWORD ZoneID);
@@ -730,22 +627,10 @@ EQLIB_API void EndAllMacros();
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
 
-
-
 LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
-
-#ifndef ISXEQ
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
-#else
-#include "ISXEQ\ISXEQUtilities.h"
-#include "ISXEQ\ISXEQCommands.h"
-#define TOPLEVELOBJECT(name,funcname) extern bool funcname(int argc, char *argv[], LSTYPEVAR &Ret);
-#include "ISXEQ\ISXEQTopLevelObjects.h"
-#undef TOPLEVELOBJECT
-#endif
-// OTHER SHIT
 
 #define LIGHT_COUNT			13
 //#define MAX_COMBINES		61

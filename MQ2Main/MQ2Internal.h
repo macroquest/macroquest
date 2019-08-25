@@ -513,8 +513,6 @@ namespace MQ2Internal {
 		}
 	};
 
-#if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
-    /* CIndex class stolen from teqim - Lax */
     template <class Any>
     class CIndex
     {
@@ -625,7 +623,6 @@ namespace MQ2Internal {
         inline Any& operator[](unsigned long Index){return List[Index];}
         CRITICAL_SECTION CS;
     };
-#endif
 
     typedef struct _MQ2VarPtr
     {
@@ -662,8 +659,6 @@ namespace MQ2Internal {
 			unsigned __int64   UInt64;
         };
 	} MQ2VARPTR, *PMQ2VARPTR;
-
-#ifndef ISXEQ
 
     typedef struct _MQ2TypeVar
     {
@@ -1126,7 +1121,6 @@ namespace MQ2Internal {
         MQ2VARPTR *pData;
         DWORD TotalElements;
     };
-#endif
 
     typedef struct _MQRANK
     {
@@ -1231,6 +1225,7 @@ namespace MQ2Internal {
 		free(mstr);
 		return result;
 	}
+
 struct Loop
 {
 	enum Type {None,For,While};
@@ -1240,7 +1235,6 @@ struct Loop
 	std::string for_variable;
 };
 
-#ifndef ISXEQ
     typedef struct MACROSTACK {
 		bool bIsBind;
          int LocationIndex;
@@ -1259,7 +1253,6 @@ struct Loop
         PEVENTLIST pEventList;
         PDATAVAR Parameters;
     } EVENTQUEUE, *PEVENTQUEUE;
-#endif
 
 	struct MercDesc
 	{

@@ -30,14 +30,6 @@
 // key state (ctrl/shift/alt)
 // spawn count
 
-#ifdef ISXEQ
-#pragma warning(disable:4996)
-#endif
-#ifdef ISXEQ_LEGACY
-#pragma warning(disable:4996)
-#endif
-
-#ifndef ISXEQ
 #define pIntPtrType pIntType
 #define pInt64PtrType pInt64Type
 #define pBytePtrType pByteType
@@ -56,22 +48,13 @@
 #define TypeMethod(name) AddMethod((DWORD)name,""#name)
 //#define TypeMethod(x)
 //#define AddMethod(x,y)
-#else
-#define INTPTR(x) Dest.Ptr=&x
-#define BYTEPTR(x) Dest.Ptr=&x
-#define BOOLPTR(x) Dest.Ptr=&x
-#define FLOATPTR(x) Dest.Ptr=&x
 
-#define Argb RGB
-#define MQ2VARPTR LSVARPTR
-#endif
 EQLIB_API EQGroundItemListManager *GetItemList();
 // Datatype Declarations
 #define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) LEGACY_VAR class _class_ *_var_;
 #include "DataTypeList.h"
 #undef DATATYPE
 
-#ifndef ISXEQ
 class MQ2BoolType : public MQ2Type
 {
 public:
@@ -113,6 +96,7 @@ public:
 		return true;
 	}
 };
+
 class MQ2IntType : public MQ2Type
 {
 public:
@@ -205,7 +189,6 @@ public:
 	}
 };
 
-#endif
 class MQ2ArgbType : public MQ2Type
 {
 public:
@@ -251,7 +234,7 @@ public:
 		return false;
 	}
 };
-#ifndef ISXEQ
+
 class MQ2ByteType : public MQ2Type
 {
 public:
@@ -285,6 +268,7 @@ public:
 		return true;
 	}
 };
+
 class MQ2StringType : public MQ2Type
 {
 public:
@@ -361,6 +345,7 @@ public:
 		return true;
 	}
 };
+
 class MQ2FloatType : public MQ2Type
 {
 public:
@@ -409,6 +394,7 @@ public:
 		return true;
 	}
 };
+
 class MQ2DoubleType : public MQ2Type
 {
 public:
@@ -455,7 +441,6 @@ public:
 		return true;
 	}
 };
-#endif
 
 class MQ2TicksType : public MQ2Type
 {
@@ -722,15 +707,9 @@ public:
 	};
 	enum SpawnMethods
 	{
-		#ifndef ISXEQ
 		DoTarget = 1,
 		DoFace = 2,
 		DoAssist = 4,
-		#else
-		Target = 1,
-		Face = 2,
-		xAssist = 4,
-		#endif
 		LeftClick = 5,
 		RightClick = 6,
 	};
@@ -885,18 +864,11 @@ public:
 		TypeMember(CachedBuff);
 		TypeMember(CachedBuffCount);
 
-		#ifndef ISXEQ
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);
 		TypeMethod(DoAssist);
-		#else
-		TypeMethod(Target);
-		TypeMethod(Face);
-		AddMethod(xAssist,"Assist");
-		#endif
 		TypeMethod(LeftClick);
 		TypeMethod(RightClick);
-
 	}
 
 	~MQ2SpawnType()
@@ -3304,7 +3276,7 @@ public:
 		return false;
 	}
 };
-#ifndef ISXEQ
+
 class MQ2MacroType : public MQ2Type
 {
 public:
@@ -3372,7 +3344,6 @@ public:
 		return false;
 	}
 };
-#endif
 
 class MQ2ZoneType : public MQ2Type
 {
@@ -3687,7 +3658,7 @@ public:
 		return false;
 	}
 };
-#ifndef ISXEQ
+
 class MQ2MathType : public MQ2Type
 {
 public:
@@ -3747,7 +3718,7 @@ public:
 		return false;
 	}
 };
-#endif
+
 class MQ2RaceType : public MQ2Type
 {
 public:
@@ -3919,7 +3890,7 @@ public:
 		return true;
 	}
 };
-#ifndef ISXEQ
+
 class MQ2TimeType : public MQ2Type
 {
 public:
@@ -3996,8 +3967,7 @@ public:
 		return false;
 	}
 };
-#endif
-#ifndef ISXEQ
+
 class MQ2TypeType : public MQ2Type
 {
 public:
@@ -4035,7 +4005,7 @@ public:
 		return false;
 	}
 };
-#endif
+
 class MQ2HeadingType : public MQ2Type
 {
 public:
@@ -4152,7 +4122,6 @@ public:
 	}
 };
 
-#ifndef ISXEQ
 class MQ2PluginType : public MQ2Type
 {
 public:
@@ -4194,7 +4163,7 @@ public:
 		return false;
 	}
 };
-#endif
+
 class MQ2BenchmarkType : public MQ2Type
 {
 public:
@@ -4485,7 +4454,7 @@ public:
 		return true;
 	}
 };
-#ifndef ISXEQ
+
 class MQ2ArrayType : public MQ2Type
 {
 public:
@@ -4529,7 +4498,6 @@ public:
 		return false;
 	}
 };
-#endif
 
 class MQ2GroupType : public MQ2Type
 {

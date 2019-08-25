@@ -91,7 +91,6 @@ BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest)
     return false;
 }
 
-#ifndef ISXEQ
 void SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
 {
     char out[256];
@@ -122,7 +121,6 @@ void SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("End Benchmarks");
     }
 }
-#endif
 
 void SpewMQ2Benchmarks()
 {
@@ -146,18 +144,15 @@ void InitializeMQ2Benchmarks()
 {
     DebugSpew("Initializing MQ2 Benchmarks");
     pBenchmarks=new BMIndex(10);
-#ifndef ISXEQ
     AddCommand("/benchmark",SpewMQ2BenchmarksToChat,0,0);
-#endif
 }
 
 void ShutdownMQ2Benchmarks()
 {
     DebugTry(SpewMQ2Benchmarks());
     DebugSpew("Shutting down MQ2 Benchmarks");
-#ifndef ISXEQ
     RemoveCommand("/benchmark");
-#endif
+
     if (pBenchmarks)
     {
         DebugTry(pBenchmarks->Cleanup());

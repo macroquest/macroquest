@@ -204,16 +204,9 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value, size_
 	}
 	return strlen(Value);
 }
-#ifdef ISXEQ
-int CMD_FlashOnTells(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-#else
+
 void FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
 {
-#endif
 	if (szLine[0] != '\0') {
 		if (!_stricmp(szLine, "on")) {
 			gbFlashOnTells = 0;
@@ -234,16 +227,9 @@ void FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	RETURN(0);
 }
-#ifdef ISXEQ
-int CMD_BeepOnTells(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-#else
+
 void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
 {
-#endif
 	if (szLine[0] != '\0') {
 		if (!_stricmp(szLine, "on")) {
 			gbBeepOnTells = 0;
@@ -264,16 +250,9 @@ void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	RETURN(0);
 }
-#ifdef ISXEQ
-int CMD_TimeStampChat(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-#else
+
 void TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
 {
-#endif
 	if (szLine[0] != '\0') {
 		if (!_stricmp(szLine, "on")) {
 			gbTimeStampChat = 0;
@@ -300,34 +279,26 @@ void InitializeChatHook()
 	DebugSpew("Initializing chat hook");
 
 	// initialize Blech
-#ifndef ISXEQ
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 	DebugSpew("%s", pMQ2Blech->Version);
-#endif
 	EzDetourwName(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline, "CEverQuest__dsp_chat");
 	EzDetourwName(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline, "CEverQuest__DoTellWindow");
 	EzDetourwName(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline, "CEverQuest__UPCNotificationFlush");
-#ifndef ISXEQ
 	AddCommand("/timestamp", TimeStampChat);
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
-#endif
 }
 
 void ShutdownChatHook()
 {
-#ifndef ISXEQ
 	RemoveCommand("/flashontells");
 	RemoveCommand("/beepontells");
 	RemoveCommand("/timestamp");
-#endif
 	RemoveDetour(CEverQuest__dsp_chat);
 	RemoveDetour(CEverQuest__DoTellWindow);
 	RemoveDetour(CEverQuest__UPCNotificationFlush);
-#ifndef ISXEQ
 	delete pEventBlech;
 	delete pMQ2Blech;
 	pMQ2Blech = 0;
-#endif
 }

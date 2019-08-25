@@ -129,8 +129,6 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
     return TRUE;
 }
 
-//#ifndef ISXEQ
-
 bool MoveMouse(int x, int y, bool bClick)
 {
 	if (!EQADDR_MOUSE)
@@ -289,9 +287,6 @@ void ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
         MacroError("'%s' mouse click is either invalid or should be done using /notify",szMouseLoc);
     }
 }
-//#endif
-
-#ifndef ISXEQ_LEGACY
 
 // ***************************************************************************
 // Function: Click
@@ -328,26 +323,13 @@ BOOL IsMouseWaiting()
     }
     return Result;
 }
-#endif
 
-#ifdef ISXEQ
-int Click(int argc, char *argv[])
-{
-	SPAWNINFO* pChar = (SPAWNINFO*)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-#else
-//class ActorClient
-//{
-//	EQLIB_OBJECT float ActorBase::GetBoundingRadius();
-//};
 void Click(PSPAWNINFO pChar, PCHAR szLine)
 {
-#endif
 	if(GetGameState()!=GAMESTATE_INGAME) {
 		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
 		RETURN(0);
-	} 
+	}
 	if (gZoning) RETURN(0);
 	CHAR szMouseLoc[MAX_STRING] = { 0 };
     MOUSE_DATA_TYPES mdType = MD_Unknown;
@@ -648,4 +630,3 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, BOOL bClick)
 	}
 	return false;
 }
-//#endif

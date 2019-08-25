@@ -12,10 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-#ifndef ISXEQ
-
-
 #include "MQ2Main.h"
 
 CRITICAL_SECTION gCommandCS;
@@ -729,9 +725,7 @@ void InitializeMQ2Commands()
 		{"/altkey",     DoAltCmd,0,0},
 		{"/shiftkey",   DoShiftCmd,0,0},
 		{"/timed",      DoTimedCmd,0,0},
-#ifndef ISXEQ_LEGACY
         {"/bind",       MQ2KeyBindCommand,1,0},
-#endif
 		{"/noparse",    NoParseCmd,0,0},
 		{"/nomodkey",   NoModKeyCmd,0,0},
         {"/dumpbinds",  DumpBindsCommand,1,0},
@@ -926,5 +920,3 @@ void TimedCommand(PCHAR Command, DWORD msDelay)
     pNew->pLast=pLast;
     pNew->pNext=pNode;
 }
-
-#endif

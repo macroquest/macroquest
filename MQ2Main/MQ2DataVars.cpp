@@ -12,10 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef ISXEQ
-
-#define DBG_SPEW
-
 #include "MQ2Main.h"
 
 inline void DeleteMQ2DataVariable(PDATAVAR pVar)
@@ -818,5 +814,3 @@ void DropTimers()
         pTimer=pTimer->pNext;
     }
 }
-
-#endif

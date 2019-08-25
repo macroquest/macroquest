@@ -84,11 +84,9 @@ namespace MQ2Globals
 		EQADDR_MOUSE = (PMOUSEINFO)__Mouse;
 		EQADDR_MOUSECLICK = (PMOUSECLICK)__Clicks;
 
-#ifndef ISXEQ
 		EQADDR_DIMAIN = DI8__Main;
 		EQADDR_DIKEYBOARD = (IDirectInputDevice8A**)DI8__Keyboard;
 		EQADDR_DIMOUSE = (IDirectInputDevice8A**)DI8__Mouse;
-#endif
 		EQADDR_DIMOUSECOPY = (PPOINT)DI8__Mouse_Copy;
 		EQADDR_DIMOUSECHECK = (PPOINT)DI8__Mouse_Check;
 
@@ -262,10 +260,8 @@ namespace MQ2Globals
 	DWORD bmBeginZone = 0;
 	DWORD bmEndZone = 0;
 
-#ifndef ISXEQ
 	PDATAVAR pGlobalVariables = nullptr;
 	PDATAVAR pMacroVariables = nullptr;
-#endif
 
 	ePVPServer PVPServer = PVP_NONE;
 	DWORD gdwLocalPlayer = pinstLocalPlayer_x;
@@ -299,7 +295,6 @@ namespace MQ2Globals
 	BOOL gbLoad = TRUE;
 	DWORD gpHook = 0;
 	HMODULE ghmq2ic = nullptr;
-#ifndef ISXEQ
 	PMACROBLOCK gMacroBlock = nullptr;
 	int BlockIndex = 0;
 	PMACROSTACK gMacroStack = nullptr;
@@ -307,7 +302,6 @@ namespace MQ2Globals
 	decltype(gUndeclaredVars) gUndeclaredVars;
 	PEVENTQUEUE gEventQueue = nullptr;
 	int gEventFunc[NUM_EVENTS] = { 0 };
-#endif
 	UCHAR gLastFind = 0;
 	DOUBLE gZFilter = 10000.0f;
 	DOUBLE gFaceAngle = 10000.0f;
@@ -343,12 +337,10 @@ namespace MQ2Globals
 
 	DWORD DrawHUDParams[4] = { 0,0,0,0 };
 
-#ifndef ISXEQ
 	Blech *pMQ2Blech = nullptr;
 	CHAR EventMsg[MAX_STRING] = { 0 };
 	Blech *pEventBlech = nullptr;
 	PEVENTLIST pEventList = nullptr;
-#endif
 
 	DWORD gEventChat = 0;
 	ULONGLONG gRunning = 0;
@@ -1049,11 +1041,9 @@ namespace MQ2Globals
 	PMOUSEINFO EQADDR_MOUSE = nullptr;
 	PMOUSECLICK EQADDR_MOUSECLICK = nullptr;
 
-#ifndef ISXEQ
 	DWORD EQADDR_DIMAIN = 0;
 	IDirectInputDevice8A **EQADDR_DIKEYBOARD = nullptr;
 	IDirectInputDevice8A **EQADDR_DIMOUSE = nullptr;
-#endif
 	PPOINT EQADDR_DIMOUSECOPY = nullptr;
 	PPOINT EQADDR_DIMOUSECHECK = nullptr;
 

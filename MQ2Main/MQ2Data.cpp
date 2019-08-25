@@ -14,25 +14,13 @@
 
 #define DBG_SPEW
 
-#ifdef ISXEQ
-#define ISINDEX() (argc>0)
-#define ISNUMBER() (IsNumber(argv[0]))
-#define GETNUMBER() (atoi(argv[0]))
-#define GETFIRST()    argv[0]
-#else
 #define ISINDEX() (szIndex[0])
 #define ISNUMBER() (IsNumber(szIndex))
 #define GETNUMBER() (atoi(szIndex))
 #define GETFIRST() szIndex
-#endif
 
 #include "MQ2Main.h"
-#ifndef ISXEQ
 #define TLO(funcname) BOOL funcname(PCHAR szIndex, MQ2TYPEVAR &Ret)
-#else
-#define TLO(funcname) bool funcname(int argc, char *argv[], LSTYPEVAR &Ret)
-#endif
-
 
 TLO(dataSpawn)
 {
@@ -51,11 +39,7 @@ TLO(dataSpawn)
 			// set up search spawn
 			SEARCHSPAWN ssSpawn;
 			ClearSearchSpawn(&ssSpawn);
-#ifndef ISXEQ
 			ParseSearchSpawn(szIndex, &ssSpawn);
-#else
-			ParseSearchSpawn(0, argc, argv, ssSpawn);
-#endif
 			if (Ret.Ptr = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pCharSpawn))
 			{
 				Ret.Type = pSpawnType;
@@ -68,7 +52,6 @@ TLO(dataSpawn)
 	return false;
 }
 
-#ifndef ISXEQ
 TLO(dataSelect)
 {
 	if (!szIndex[0])
@@ -97,7 +80,6 @@ TLO(dataSelect)
 		}
 	}
 }
-#endif
 
 TLO(dataTarget)
 {
@@ -424,7 +406,6 @@ TLO(dataWindow)
 	return false;
 }
 
-#ifndef ISXEQ
 TLO(dataMacro)
 {
 	if (gRunning)
@@ -435,7 +416,6 @@ TLO(dataMacro)
 	}
 	return false;
 }
-#endif
 
 TLO(dataMacroQuest)
 {
@@ -450,14 +430,13 @@ TLO(dataEverQuest)
 	Ret.Type = pEverQuestType;
 	return true;
 }
-#ifndef ISXEQ
+
 TLO(dataMath)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pMathType;
 	return true;
 }
-#endif
 
 TLO(dataZone)
 {
@@ -510,8 +489,6 @@ TLO(dataZone)
 	return false;
 }
 
-
-#ifndef ISXEQ
 TLO(dataInt)
 {
 	if (!ISINDEX())
@@ -543,11 +520,9 @@ TLO(dataFloat)
 	Ret.Type = pFloatType;
 	return true;
 }
-#endif
 
 TLO(dataHeading)
 {
-#ifndef ISXEQ
 	if (!ISINDEX())
 		return false;
 	if (PCHAR pComma = strchr(szIndex, ','))
@@ -569,30 +544,8 @@ TLO(dataHeading)
 	Ret.Float = (FLOAT)atof(szIndex);
 	Ret.Type = pHeadingType;
 	return true;
-#else
-	if (!argc)
-		return false;
-	if (argc == 2)
-	{
-		FLOAT Y = (FLOAT)atof(argv[0]);
-		FLOAT X = (FLOAT)atof(argv[1]);
-		Ret.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - Y, X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
-		if (Ret.Float<0.0f)
-			Ret.Float += 360.0f;
-		else if (Ret.Float >= 360.0f)
-			Ret.Float -= 360.0f;
-		Ret.Type = pHeadingType;
-		return true;
-	}
-
-	Ret.Float = (FLOAT)atof(argv[0]);
-	Ret.Type = pHeadingType;
-	return true;
-#endif
 }
 
-
-#ifndef ISXEQ
 TLO(dataBool)
 {
 	if (!ISINDEX())
@@ -601,46 +554,47 @@ TLO(dataBool)
 	Ret.Type = pBoolType;
 	return true;
 }
-#endif
+
 /*
 TLO(dataGroupLeader)
 {
-if (!GroupLeader[0] || !_stricmp(GroupLeader,GetCharInfo()->pSpawn->Name))
-{
-Ret.Ptr=GetCharInfo()->pSpawn;
-Ret.Type=pSpawnType;
-return true;
-}
-for (unsigned long N = 0 ; N < 5 ; N++)
-{
-if (EQADDR_GROUPCOUNT[N])
-{
-if (PSPAWNINFO pSpawn=(PSPAWNINFO)ppGroup[N])
-{
-if (!_stricmp(pSpawn->Name,GroupLeader))
-{
-Ret.Ptr=pSpawn;
-Ret.Type=pSpawnType;
-return true;
-}
-}
-}
-}
-return false;
+	if (!GroupLeader[0] || !_stricmp(GroupLeader, GetCharInfo()->pSpawn->Name))
+	{
+		Ret.Ptr = GetCharInfo()->pSpawn;
+		Ret.Type = pSpawnType;
+		return true;
+	}
+	for (unsigned long N = 0; N < 5; N++)
+	{
+		if (EQADDR_GROUPCOUNT[N])
+		{
+			if (PSPAWNINFO pSpawn = (PSPAWNINFO)ppGroup[N])
+			{
+				if (!_stricmp(pSpawn->Name, GroupLeader))
+				{
+					Ret.Ptr = pSpawn;
+					Ret.Type = pSpawnType;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 /**/
+
 /*
 TLO(dataGroupLeaderName)
 {
-if (!GroupLeader[0])
-{
-Ret.Ptr=GetCharInfo()->pSpawn->Name;
-Ret.Type=pStringType;
-return true;
-}
-Ret.Ptr=&GroupLeader[0];
-Ret.Type=pStringType;
-return true;
+	if (!GroupLeader[0])
+	{
+		Ret.Ptr = GetCharInfo()->pSpawn->Name;
+		Ret.Type = pStringType;
+		return true;
+	}
+	Ret.Ptr = &GroupLeader[0];
+	Ret.Type = pStringType;
+	return true;
 }
 /**/
 
@@ -649,48 +603,45 @@ TLO(dataGroup)
 	Ret.DWord = 1;
 	Ret.Type = pGroupType;
 	return true;
+
 	/*
 	if (ISINDEX())
 	{
-	DWORD N=GETNUMBER();
-	if (N==0)
-	{
-	#ifndef ISXEQ
-	return dataCharacter("",Ret);
-	#else
-	return dataCharacter(0,0,Ret);
-	#endif
-	}
-	if (N>5)
-	return false;
-	for (unsigned long i=0; i<5 ; i++)
-	{
-	if (EQADDR_GROUPCOUNT[i])
-	{
-	N--;
-	if (N==0)
-	{
-	Ret.Ptr=ppGroup[i];
-	Ret.Type=pSpawnType;
-	return true;
-	}
-	}
-	}
-	return false;
+		DWORD N = GETNUMBER();
+		if (N == 0)
+		{
+			return dataCharacter("", Ret);
+		}
+		if (N > 5)
+			return false;
+		for (unsigned long i = 0; i < 5; i++)
+		{
+			if (EQADDR_GROUPCOUNT[i])
+			{
+				N--;
+				if (N == 0)
+				{
+					Ret.Ptr = ppGroup[i];
+					Ret.Type = pSpawnType;
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	else
 	{
-	Ret.DWord=0;
-	for (int index=0;index<5;index++)
-	if (EQADDR_GROUPCOUNT[index])
-	Ret.DWord++;
-	Ret.Type=pIntType;
-	return true;
+		Ret.DWord = 0;
+		for (int index = 0; index < 5; index++)
+			if (EQADDR_GROUPCOUNT[index])
+				Ret.DWord++;
+		Ret.Type = pIntType;
+		return true;
 	}
 	return false;
 	/**/
 }
-#ifndef ISXEQ
+
 TLO(dataIf)
 {
 	if (ISINDEX())
@@ -769,7 +720,6 @@ TLO(dataIf)
 	}
 	return false;
 }
-#endif
 
 TLO(dataCursor)
 {
@@ -843,7 +793,6 @@ TLO(dataNearestSpawn)
 		SEARCHSPAWN ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
 		ssSpawn.FRadius = 999999.0f;
-#ifndef ISXEQ
 		PCHAR pSearch;
 		if (pSearch = strchr(szIndex, ','))
 		{
@@ -864,16 +813,7 @@ TLO(dataNearestSpawn)
 				ParseSearchSpawn(szIndex, &ssSpawn);
 			}
 		}
-#else
-		if (!ISNUMBER()) {
-			nth = 1;
-			ParseSearchSpawn(0, argc, argv, ssSpawn);
-		}
-		else {
-			nth = GETNUMBER();
-			ParseSearchSpawn(1, argc, argv, ssSpawn);
-		}
-#endif
+
 		for (unsigned long N = 0; N < gSpawnCount; N++)
 		{
 			if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius && !ssSpawn.bKnownLocation)
@@ -899,11 +839,7 @@ TLO(dataSpawnCount)
 	{
 		SEARCHSPAWN ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
-#ifndef ISXEQ
 		ParseSearchSpawn(szIndex, &ssSpawn);
-#else
-		ParseSearchSpawn(0, argc, argv, ssSpawn);
-#endif
 		Ret.DWord = CountMatchingSpawns(&ssSpawn, GetCharInfo()->pSpawn, TRUE);
 		Ret.Type = pIntType;
 		return true;
@@ -954,7 +890,6 @@ TLO(dataRange)
 
 TLO(dataIni)
 {
-#ifndef ISXEQ /* CONVERT */
 	if (!szIndex)
 		return false;
 	if (szIndex[0] == '\0')
@@ -1098,11 +1033,10 @@ TLO(dataIni)
 		Ret.Type = pStringType;
 		return true;
 	}
-#endif
+
 	return false;
 }
 
-#ifndef ISXEQ
 TLO(dataDefined)
 {
 	if (!ISINDEX())
@@ -1120,7 +1054,6 @@ TLO(dataSubDefined)
 	Ret.Type = pBoolType;
 	return true;
 }
-#endif
 
 TLO(dataSelectedItem)
 {
@@ -1283,7 +1216,6 @@ TLO(dataInvSlot)
 	return false;
 }
 
-#ifndef ISXEQ
 TLO(dataPlugin)
 {
 	if (!ISINDEX())
@@ -1322,7 +1254,6 @@ TLO(dataPlugin)
 	}
 	return false;
 }
-#endif
 
 TLO(dataSkill)
 {
@@ -1437,16 +1368,7 @@ TLO(dataLineOfSight)
 		P1[0] = P2[0] = ((PSPAWNINFO)pCharSpawn)->Y;
 		P1[1] = P2[1] = ((PSPAWNINFO)pCharSpawn)->X;
 		P1[2] = P2[2] = ((PSPAWNINFO)pCharSpawn)->Z;
-#ifdef ISXEQ
-		if (argc != 6)
-			return false;
-		P1[0] = (FLOAT)atof(argv[0]);
-		P1[1] = (FLOAT)atof(argv[1]);
-		P1[2] = (FLOAT)atof(argv[2]);
-		P2[0] = (FLOAT)atof(argv[3]);
-		P2[1] = (FLOAT)atof(argv[4]);
-		P2[2] = (FLOAT)atof(argv[5]);
-#else
+
 		if (PCHAR pColon = strchr(szIndex, ':'))
 		{
 			*pColon = 0;
@@ -1471,7 +1393,6 @@ TLO(dataLineOfSight)
 				P2[0] = (FLOAT)atof(&pColon[1]);
 		}
 
-
 		if (PCHAR pComma = strchr(szIndex, ','))
 		{
 			*pComma = 0;
@@ -1491,7 +1412,6 @@ TLO(dataLineOfSight)
 		}
 		else
 			P1[0] = (FLOAT)atof(szIndex);
-#endif
 
 		//DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
 		SPAWNINFO Temp = *GetCharInfo()->pSpawn;

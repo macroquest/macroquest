@@ -12,7 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef ISXEQ
 #include "MQ2Main.h"
 
 DWORD gh;
@@ -25,4 +24,3 @@ using FNCB = DWORD(*)(DWORD, HINSTANCE, DWORD&);
 #undef  MQ2AUTH
 #define MQ2AUTH(z) EQLIB_API void z(DWORD x){FNCB f=(FNCB)x;f((DWORD)proc,ghInstance,gh);}
 #include "MQ2Auth0.h"
-#endif

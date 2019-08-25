@@ -18,8 +18,6 @@
 #include <mmsystem.h>
 #include <direct.h>
 
-#ifndef ISXEQ
-
 CMQ2Alerts CAlerts;
 
 // ***************************************************************************
@@ -305,7 +303,7 @@ void KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	SyntaxError("Usage: /keepkeys [on|off]");
 }
-#ifndef ISXEQ_LEGACY
+
 // ***************************************************************************
 // Function:      PluginCommand
 // Description:   Our /plugin command.
@@ -372,7 +370,6 @@ void PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
-#endif
 
 // ***************************************************************************
 // Function:    Invoke
@@ -510,7 +507,6 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
-#endif
 
 // ***************************************************************************
 // Function:    ItemTarget
@@ -518,18 +514,9 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 //              Lists ground item info
 // Usage:       /itemtarget <text>
 // ***************************************************************************
-#ifdef ISXEQ
-int CMD_ItemTarget(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-
-#else
 void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-#endif
 	if (!szLine) RETURN(0);
 	EQGroundItemListManager *pGroundList = GetItemList();
 	if (!pGroundList)
@@ -743,8 +730,6 @@ void Doors(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
-
-#ifndef ISXEQ
 
 // ***************************************************************************
 // Function:    DoorTarget
@@ -3551,7 +3536,6 @@ void NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 	*(DWORD*)&pWndMgr->KeyboardFlags = *(DWORD*)&KeyboardFlags;
 }
-#endif
 
 // ***************************************************************************
 // Function:    UseItemCmd
@@ -3559,26 +3543,8 @@ void NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 //              Activates an item that has a clicky effect.
 // Usage:       /useitem 1 0 or /useitem "item name" or /useitem item name
 // ***************************************************************************
-#ifdef ISXEQ
-int CMD_UseItem(int argc, char *argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-	CHAR szTemp[MAX_STRING] = { 0 };
-	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
-	if (!cmdUseItem) {
-		PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
-		for (int i = 0; pCmdListOrig[i].fAddress != 0; i++) {
-			if (!strcmp(pCmdListOrig[i].szName, "/useitem")) {
-				cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
-			}
-		}
-	}
-	if (!cmdUseItem)
-		return -1;
-#else
 void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-#endif
 	CHAR szCmd[MAX_STRING] = { 0 };
 	strcpy_s(szCmd, szLine);
 	if (!szCmd[0])
@@ -3667,7 +3633,7 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	RETURN(0);
 }
-#ifndef ISXEQ
+
 // ***************************************************************************
 // Function:    DoSocial
 // Description: '/dosocial' command
@@ -5110,4 +5076,3 @@ void ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 		//ShowWindow(hWnd, SW_SHOWNORMAL);
 	}
 }
-#endif

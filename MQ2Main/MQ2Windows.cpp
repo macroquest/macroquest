@@ -1094,20 +1094,13 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(bool CMemoryMappedFile::SetFile_Trampoline(const char*, bool, unsigned int));
 
-#ifndef ISXEQ
+
 void ListWindows(PSPAWNINFO pChar, PCHAR szLine);
 void WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 void ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
 void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 void ReloadUI(PSPAWNINFO pChar, PCHAR szLine);
-#else
-int ListWindows(int argc, char *argv[]);
-int WndNotify(int argc, char *argv[]);
-int ItemNotify(int argc, char *argv[]);
-int ListItemSlots(int argc, char *argv[]);
-#endif
 
-#ifndef ISXEQ_LEGACY
 #define WSF_AUTOSTRETCHH    0x00400000
 #define WSF_CLIENTMOVABLE   0x00200000
 #define WSF_NOHITTEST       0x00008000
@@ -1439,18 +1432,11 @@ void InitializeMQ2Windows()
 	// debugging
 	// just remember this might be detoured in other plugins as well
 	//EzDetourwName(CChatWindow__WndNotification,&CSidlInitHook::CSidlScreenWnd__WndNotification_Detour,&CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp,"linktest");
-#ifndef ISXEQ
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
 	AddCommand("/itemnotify", ItemNotify);
 	AddCommand("/itemslots", ListItemSlots);
 	AddCommand("/reloadui", ReloadUI);
-#else
-	pISInterface->AddCommand("EQWindows", ListWindows);
-	pISInterface->AddCommand("EQNotify", WndNotify);
-	pISInterface->AddCommand("EQItemNotify", ItemNotify);
-	pISInterface->AddCommand("EQItemSlots", ListItemSlots);
-#endif
 
 	if (pWndMgr)
 	{
@@ -1492,18 +1478,12 @@ void InitializeMQ2Windows()
 void ShutdownMQ2Windows()
 {
 	DebugSpew("Shutting down MQ2 Windows");
-#ifndef ISXEQ
+
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
 	RemoveCommand("/itemnotify");
 	RemoveCommand("/itemslots");
 	RemoveCommand("/reloadui");
-#else
-	pISInterface->RemoveCommand("EQWindows");
-	pISInterface->RemoveCommand("EQNotify");
-	pISInterface->RemoveCommand("EQItemNotify");
-	pISInterface->RemoveCommand("EQItemSlots");
-#endif
 
 	RemoveDetour(CFindItemWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__Update);
@@ -2371,7 +2351,6 @@ void RemoveWindow(char* WindowName)
 		}
 	}
 }
-#endif
 
 int RecurseAndListWindows(CXWnd* pWnd)
 {
@@ -2423,7 +2402,6 @@ int RecurseAndListWindows(CXWnd* pWnd)
 	return Count;
 }
 
-#ifndef ISXEQ
 void ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
@@ -2432,22 +2410,7 @@ void ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 	GetArg(szArg3, szLine, 3);
-#else
-int ListWindows(int argc, char *argv[])
-{
-	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-	char szArg3[MAX_STRING] = { 0 };
-	PCHAR szLine = NULL;
-	if (argc > 0)
-		szLine = argv[1];
-	if (argc > 1)
-		strcpy_s(szArg1, argv[1]);
-	if (argc > 2)
-		strcpy_s(szArg2, argv[2]);
-	if (argc > 3)
-		strcpy_s(szArg3, argv[3]);
-#endif
+
 	bool bOpen = false;
 	bool bPartial = false;
 
@@ -2596,16 +2559,10 @@ const char* szWndNotification[] = {
 	"resetdefaultposition",   // 29
 };
 
-#ifndef ISXEQ
 void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
-#else
-int WndNotify(int argc, char* argv[])
-{
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-#endif
 	unsigned long Data = 0;
-#ifndef ISXEQ
+
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szArg2[MAX_STRING] = { 0 };
 	CHAR szArg3[MAX_STRING] = { 0 };
@@ -2625,19 +2582,6 @@ int WndNotify(int argc, char* argv[])
 	{
 		Data = atoi(szArg4);
 	}
-#else
-	if (argc < 3 && (argc > 1 && !IsNumber(argv[2])))
-	{
-		printf("%s syntax: %s <window|\"item\"> <control|0> <notification> [notification data]", argv[0], argv[0]);
-		RETURN(0);
-	}
-	if (argc > 4)
-		Data = atoi(argv[4]);
-	char* szArg1 = argv[1];
-	char* szArg2 = argv[2];
-	char* szArg3 = argv[3];
-	char* szArg4 = argv[4];
-#endif
 
 	if (!_stricmp(szArg2, "menuselect"))
 	{
@@ -2789,7 +2733,6 @@ bool CheckLootArg(char* arg, char* search, int argcnt, int* slot)
 	return false;
 }
 
-#ifndef ISXEQ
 void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = { 0 };
@@ -2808,29 +2751,6 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("     or /itemnotify <itemname> <notification>");
 		RETURN(0);
 	}
-#else
-int ItemNotify(int argc, char *argv[])
-{
-	if (argc != 3 && argc != 5)
-	{
-		//WriteChatf("ItemNotify got %d args", argc);
-		WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
-		WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
-		RETURN(0);
-	}
-	char* szArg1tmp = argv[1];
-	char* szArg2 = argv[2];
-	char* szArg3 = "";
-	char* szArg4 = "";
-	CHAR szArg1[2048] = { 0 };
-	strcpy_s(szArg1, szArg1tmp);
-	if (argc == 5)
-	{
-		szArg3 = argv[3];
-		szArg4 = argv[4];
-	}
-	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-#endif
 
 	char* pNotification = &szArg2[0];
 	CInvSlot* pSlot = nullptr;
@@ -3129,11 +3049,7 @@ int ItemNotify(int argc, char *argv[])
 	RETURN(0);
 }
 
-#ifndef ISXEQ
 void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
-#else
-int ListItemSlots(int argc, char* argv[])
-#endif
 {
 	CInvSlotMgr* pMgr = pInvSlotMgr;
 	if (!pMgr)

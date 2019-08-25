@@ -12,9 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
-
-#define DBG_SPEW
+#include "MQ2Main.h"
 
 //#define DEBUG_PLUGINS
 
@@ -25,9 +23,6 @@
 #endif
 
 #define NO_TIMESTAMP_CHECK
-
-#include "MQ2Main.h"
-
 
 CRITICAL_SECTION gPluginCS = { 0 };
 BOOL bPluginCS=0;
@@ -723,6 +718,4 @@ void PluginsEndZone()
 	if (PZONEINFO pthezone = (PZONEINFO)pZoneInfo) {
 		LoadCfgFile(pthezone->ShortName, false);
 	}
-} 
-
-#endif
+}

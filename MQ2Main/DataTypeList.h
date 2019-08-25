@@ -18,11 +18,10 @@
 #ifndef DATATYPE
 #error __FILE__ included without defining DATATYPE(_class_, _var_, _inherits_, _persistentclass_)
 #endif
-#pragma warning( push )
-#pragma warning( disable:4127 ) // warning C4127: conditional expression is constant  (inside the DATATYPE macro)
 
-#ifndef ISXEQ
-// These datatypes are specific to MQ2 only
+#pragma warning(push)
+#pragma warning(disable: 4127) // warning C4127: conditional expression is constant (inside the DATATYPE macro)
+
 DATATYPE(MQ2ArrayType, pArrayType, nullptr, 0);
 DATATYPE(MQ2BoolType, pBoolType, nullptr, 0);
 DATATYPE(MQ2ByteType, pByteType, nullptr, 0);
@@ -36,9 +35,6 @@ DATATYPE(MQ2PluginType, pPluginType, nullptr, 0);
 DATATYPE(MQ2StringType, pStringType, nullptr, 0);
 DATATYPE(MQ2TimeType, pTimeType, nullptr, 0);
 DATATYPE(MQ2TypeType, pTypeType, nullptr, 0);
-#endif
-
-// These are all datatypes common to both MQ2 and ISXEQ
 DATATYPE(MQ2EverQuestType, pEverQuestType, nullptr, 0);
 DATATYPE(MQ2SpawnType, pSpawnType, nullptr, PersistentPointerClass);
 DATATYPE(MQ2SpellType, pSpellType, nullptr, 0);
@@ -103,5 +99,6 @@ DATATYPE(MQ2RangeType, pRangeType, nullptr, 0);
 DATATYPE(MQ2AuraType, pAuraType, nullptr, 0);
 DATATYPE(MQ2BandolierItemType, pBandolierItemType, nullptr, 0);
 DATATYPE(MQ2BandolierType, pBandolierType, nullptr, 0);
-#pragma warning( pop )
+
+#pragma warning(pop)
 #undef DATATYPE // In case the includer forgets

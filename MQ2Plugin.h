@@ -12,13 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#ifdef ISXEQ
-#include "ISXEQClient.h"
-#define PreSetup(UNUSED)
-#else
-
-#ifndef _MQ2PLUGIN_H
-#define _MQ2PLUGIN_H
+#pragma once
 
 #define MQ2PLUGIN
 #include "MQ2Main/MQ2Main.h"
@@ -48,6 +42,3 @@ BOOL APIENTRY DllMain( HANDLE hModule, \
     DebugSpewAlways("%s Module Unloaded",pluginname);\
     return TRUE;\
 }
-#endif
-
-#endif

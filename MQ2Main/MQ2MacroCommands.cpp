@@ -12,15 +12,8 @@
  * GNU General Public License for more details.
  */
 
-#ifndef ISXEQ
-
-#define DBG_SPEW
-
-#ifdef ISXEQ_LEGACY
-#include "../ISXEQLegacy/ISXEQLegacy.h"
-#else
 #include "MQ2Main.h"
-#endif
+
 #include <regex>
 
 void FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
@@ -635,17 +628,11 @@ void Macro(PSPAWNINFO pChar, PCHAR szLine)
 
 	strcpy_s(gszMacroName, szTemp);
 
-#ifdef ISXEQ_LEGACY
-	strcpy_s(Filename, szTemp);
-	FILE *fMacro = 0;
-	errno_t err = fopen_s(&fMacro, szTemp, "rt");
-#else
 	if (!strstr(szTemp, ".")) strcat_s(szTemp, ".mac");
 	sprintf_s(Filename, "%s\\%s", gszMacroPath, szTemp);
 
 	FILE* fMacro = nullptr;
 	errno_t err = fopen_s(&fMacro, Filename, "rt");
-#endif
 
 	if (err)
 	{
@@ -718,15 +705,7 @@ void Macro(PSPAWNINFO pChar, PCHAR szLine)
 		gszMacroName[0] = 0;
 		gRunning = 0;
 	}
-#ifdef ISXEQ_LEGACY
-	else
-	{
-		char ShortName[128];
-		ShortName[0] = 0;
-		_splitpath(Filename, 0, 0, ShortName, 0);
-		IS_ScriptEngineScriptBegins(pExtension, pISInterface, hScriptEngineService, &g_LegacyEngine, ShortName);
-	}
-#endif
+
 	gRunning = MQGetTickCount64();
 	gBindInProgress = false;
 	if (CXWnd*pWnd = FindMQ2Window("RunningMacrosWindow"))
@@ -1003,12 +982,6 @@ void EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 	gDelay = 0;
 	gTurbo = FALSE;
 	pDoorTarget = NULL;
-#ifdef ISXEQ_LEGACY
-	char ShortName[128];
-	ShortName[0] = 0;
-	_splitpath(gszMacroName, 0, 0, ShortName, 0);
-	IS_ScriptEngineScriptEnds(pExtension, pISInterface, hScriptEngineService, &g_LegacyEngine, ShortName);
-#endif
 
 	gszMacroName[0] = 0;
 	gRunning = 0;
@@ -1743,4 +1716,3 @@ void Break(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	FatalError("/break without matching /for ... /next (or while) block");
 }
-#endif
