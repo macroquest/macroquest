@@ -191,12 +191,12 @@ BOOL dataBuddy(PCHAR szIndex, MQ2TYPEVAR &Ret)
     return false;
 }
 
-VOID OnBuddyStatusChange(char *Buddy, DWORD Status);
+void OnBuddyStatusChange(char *Buddy, DWORD Status);
 DWORD PreDetour[10]={0};
 BOOL Detoured=false;
-VOID SaveBuddyList();
-VOID LoadBuddyList();
-VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line);
+void SaveBuddyList();
+void LoadBuddyList();
+void BuddiesCmd(PSPAWNINFO pChar, PCHAR Line);
 
 void SetVTable(DWORD index, DWORD value)
 {
@@ -222,7 +222,7 @@ DWORD GetVTable(DWORD index)
 
 
 
-PLUGIN_API VOID InitializePlugin(VOID)
+PLUGIN_API void InitializePlugin()
 {
     DebugSpewAlways("Initializing MQ2EQIM");
 
@@ -236,7 +236,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 }
 
 // Called once, when the plugin is to shutdown
-PLUGIN_API VOID ShutdownPlugin(VOID)
+PLUGIN_API void ShutdownPlugin()
 {
     DebugSpewAlways("Shutting down MQ2EQIM");
 
@@ -256,7 +256,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 // Called once directly after initialization, and then every time the gamestate changes
 
-PLUGIN_API VOID SetGameState(DWORD GameState)
+PLUGIN_API void SetGameState(DWORD GameState)
 {
     //DebugSpewAlways("MQ2EQIM::SetGameState()");
     if (GameState==GAMESTATE_INGAME)
@@ -284,7 +284,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
     }
 }
 
-VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
+void OnBuddyStatusChange(char *Buddy, DWORD Status)
 {
     int N=FindEQIMBuddy(Buddy);
     if (N==-1)
@@ -327,7 +327,7 @@ VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
     }
 }
 
-VOID LoadBuddyList()
+void LoadBuddyList()
 {
     BuddyList.Cleanup();
 
@@ -383,7 +383,7 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
-VOID SaveBuddyList()
+void SaveBuddyList()
 {
     CHAR Buffer[MAX_STRING]={0};
 
@@ -400,7 +400,7 @@ VOID SaveBuddyList()
     }
 }
 
-VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
+void BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
 {
     BOOL bOnline=true;
     BOOL bOffline=false;

@@ -17,7 +17,7 @@
 #include <map>
 #include <memory>
 
-EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
+EQLIB_API void WriteChatfSafe(PCHAR szFormat, ...);
 EQLIB_VAR HANDLE ghMemberMapLock;
 
 namespace MQ2Internal {
@@ -473,7 +473,7 @@ namespace MQ2Internal {
 				szOut[len-1] = '\0';
 			return TRUE;
 		}
-		VOID FreeAlerts(DWORD List);
+		void FreeAlerts(DWORD List);
 	};
 
 	class CCustomWnd : public CSidlScreenWnd

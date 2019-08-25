@@ -20,39 +20,39 @@ using fEQGetStringByID = char* (__stdcall*)(DWORD);
 using fEQScreenItem = DWORD (__stdcall*)(DWORD, DWORD, DWORD);
 
 typedef DWORD(__stdcall *fEQScreenSpawn)(DWORD, DWORD);
-typedef PCHAR(__stdcall *fEQNewUIINI)(VOID);
-typedef VOID(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
-typedef VOID(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
-typedef VOID(__cdecl *fMQCommand)(SPAWNINFO*, PCHAR Buffer,SIZE_T BuffLen);
-typedef VOID(__cdecl *fEQMemSpell)(DWORD, DWORD);
-typedef VOID(__cdecl *fEQLoadSpells)(PSPELLFAVORITE, DWORD);
-typedef VOID(__cdecl *fEQSelectItem)(class ItemGlobalIndex *, int Unknown);
-typedef VOID(__cdecl *fEQBuyItem)(int);
-typedef VOID(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem
-typedef VOID(__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
-typedef BOOL(__cdecl *fEQProcGameEvts)(VOID);
+typedef PCHAR(__stdcall *fEQNewUIINI)();
+typedef void(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
+typedef void(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
+typedef void(__cdecl *fMQCommand)(SPAWNINFO*, PCHAR Buffer,SIZE_T BuffLen);
+typedef void(__cdecl *fEQMemSpell)(DWORD, DWORD);
+typedef void(__cdecl *fEQLoadSpells)(PSPELLFAVORITE, DWORD);
+typedef void(__cdecl *fEQSelectItem)(class ItemGlobalIndex *, int Unknown);
+typedef void(__cdecl *fEQBuyItem)(int);
+typedef void(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem
+typedef void(__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
+typedef BOOL(__cdecl *fEQProcGameEvts)();
 typedef FLOAT(__cdecl *fEQGetMelee)(PlayerClient *, PlayerClient*);
-typedef VOID(__cdecl *fMQExecuteCmd)(PCHAR Name, BOOL Down);
-typedef VOID(__cdecl fEQSaveToUIIniFile)(PCHAR Section, PCHAR Key, PCHAR Value);
+typedef void(__cdecl *fMQExecuteCmd)(PCHAR Name, BOOL Down);
+typedef void(__cdecl fEQSaveToUIIniFile)(PCHAR Section, PCHAR Key, PCHAR Value);
 typedef DWORD(__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
 typedef bool(__cdecl *fGetLabelFromEQ)(int, class CXStr *, bool *, unsigned long *);
 typedef BOOL(__cdecl *fEQToggleKeyRingItem)(DWORD RingType, CONTENTS** itemptr, DWORD listindex);//0 is mounts, 1 is illusions, 2 is familiars
 
 /* PLUGINS */
 typedef DWORD(__cdecl *fMQWriteChatColor)(PCHAR Line, DWORD Color, DWORD Filter);
-typedef VOID(__cdecl *fMQPulse)(VOID);
+typedef void(__cdecl *fMQPulse)();
 typedef DWORD(__cdecl *fMQIncomingChat)(PCHAR Line, DWORD Color);
-typedef VOID(__cdecl *fMQInitializePlugin)(VOID);
-typedef VOID(__cdecl *fMQShutdownPlugin)(VOID);
-typedef VOID(__cdecl *fMQZoned)(VOID);
-typedef VOID(__cdecl *fMQReloadUI)(VOID);
-typedef VOID(__cdecl *fMQCleanUI)(VOID);
-typedef VOID(__cdecl *fMQDrawHUD)(VOID);
-typedef VOID(__cdecl *fMQSetGameState)(DWORD GameState);
-typedef VOID(__cdecl *fMQSpawn)(PSPAWNINFO);
-typedef VOID(__cdecl *fMQGroundItem)(PGROUNDITEM);
-typedef VOID(__cdecl *fMQBeginZone)(VOID);
-typedef VOID(__cdecl *fMQEndZone)(VOID);
+typedef void(__cdecl *fMQInitializePlugin)();
+typedef void(__cdecl *fMQShutdownPlugin)();
+typedef void(__cdecl *fMQZoned)();
+typedef void(__cdecl *fMQReloadUI)();
+typedef void(__cdecl *fMQCleanUI)();
+typedef void(__cdecl *fMQDrawHUD)();
+typedef void(__cdecl *fMQSetGameState)(DWORD GameState);
+typedef void(__cdecl *fMQSpawn)(PSPAWNINFO);
+typedef void(__cdecl *fMQGroundItem)(PGROUNDITEM);
+typedef void(__cdecl *fMQBeginZone)();
+typedef void(__cdecl *fMQEndZone)();
 
 /* UTILITIES */
 typedef __int64(__cdecl *fICGetHashData)(void*,int);
@@ -61,7 +61,7 @@ typedef DWORD(__cdecl *fLoaderSetLoaded)(PCHAR profile, PCHAR stationname, PCHAR
 typedef DWORD(__cdecl *fLoaderClearLoaded)(PCHAR profile, PCHAR stationname, PCHAR servername, PCHAR charactername, DWORD pid);
 typedef DWORD(__cdecl *fMQ2Unload)(DWORD pid);
 typedef DWORD(__cdecl *fClassLvl)(DWORD playerClass, DWORD playerLevel, DWORD pid);
-typedef HWND(__stdcall *fEQW_GetDisplayWindow )(VOID);
+typedef HWND(__stdcall *fEQW_GetDisplayWindow )();
 
 } // namespace MQ2Prototypes
 

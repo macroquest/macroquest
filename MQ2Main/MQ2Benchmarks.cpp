@@ -31,7 +31,7 @@ DWORD AddMQ2Benchmark(PCHAR Name)
     return NewHandle;
 }
 
-VOID RemoveMQ2Benchmark(DWORD BMHandle)
+void RemoveMQ2Benchmark(DWORD BMHandle)
 {
     DebugSpewAlways("RemoveMQ2Benchmark()");
     if (BMHandle && Benchmarks[BMHandle])
@@ -46,7 +46,7 @@ VOID RemoveMQ2Benchmark(DWORD BMHandle)
 	}
 }
 
-VOID EnterMQ2Benchmark(DWORD BMHandle)
+void EnterMQ2Benchmark(DWORD BMHandle)
 {
     if (!pBenchmarks)
         return;
@@ -57,7 +57,7 @@ VOID EnterMQ2Benchmark(DWORD BMHandle)
     }
 }
 
-VOID ExitMQ2Benchmark(DWORD BMHandle)
+void ExitMQ2Benchmark(DWORD BMHandle)
 {
     if (!pBenchmarks)
         return;
@@ -92,7 +92,7 @@ BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest)
 }
 
 #ifndef ISXEQ
-VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
+void SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
 {
     char out[256];
     if (szLine && szLine[0]=='/')
@@ -124,7 +124,7 @@ VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
 }
 #endif
 
-VOID SpewMQ2Benchmarks()
+void SpewMQ2Benchmarks()
 {
     DebugSpewAlways("MQ2 Benchmarks");
     DebugSpewAlways("--------------");
@@ -142,7 +142,7 @@ VOID SpewMQ2Benchmarks()
     DebugSpewAlways("End Benchmarks");
 }
 
-VOID InitializeMQ2Benchmarks()
+void InitializeMQ2Benchmarks()
 {
     DebugSpew("Initializing MQ2 Benchmarks");
     pBenchmarks=new BMIndex(10);
@@ -151,7 +151,7 @@ VOID InitializeMQ2Benchmarks()
 #endif
 }
 
-VOID ShutdownMQ2Benchmarks()
+void ShutdownMQ2Benchmarks()
 {
     DebugTry(SpewMQ2Benchmarks());
     DebugSpew("Shutting down MQ2 Benchmarks");

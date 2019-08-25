@@ -76,7 +76,7 @@ HISXSERVICE hEQProtectionService=0;
 // The constructor of our class.  General initialization cannot be done yet, because we're not given
 // the pointer to the Inner Space interface until it is ready for us to initialize.  Just set the
 // pointer we have to the interface to 0.  Initialize data members, too.
-CISXEQ::CISXEQ(void)
+CISXEQ::CISXEQ()
 {
 }
 
@@ -86,7 +86,7 @@ HMODULE hMQ2ic = 0;
 // Free any remaining resources in the destructor.  This is called when the DLL is unloaded, but
 // Inner Space calls the "Shutdown" function first.  Most if not all of the shutdown process should
 // be done in Shutdown.
-CISXEQ::~CISXEQ(void)
+CISXEQ::~CISXEQ()
 {
 }
 bool MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t bufflen, HMODULE *module);
@@ -408,8 +408,8 @@ public:
 class CEmoteHook 
 { 
 public: 
-    VOID Trampoline(void);
-    VOID Detour(void);
+    void Trampoline();
+    void Detour();
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck0_tramp(unsigned char *buffer, int count));
@@ -418,9 +418,9 @@ DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck2_tramp(unsigned char *buffer, int c
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck3_tramp(unsigned char *buffer, int count, struct mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck4_tramp(unsigned char *buffer, int count, struct mckey key));
 
-extern VOID HookInlineChecks(BOOL Patch);
+extern void HookInlineChecks(BOOL Patch);
 
-VOID CISXEQ::HookMemChecker(BOOL Patch)
+void CISXEQ::HookMemChecker(BOOL Patch)
 {
     if (Patch) {
 
@@ -562,7 +562,7 @@ EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWOR
 #ifdef RemoveDetour
 #undef RemoveDetour
 
-EQLIB_API VOID RemoveDetour(DWORD address)
+EQLIB_API void RemoveDetour(DWORD address)
 {
 	EzUnDetour(address);
 }
@@ -594,7 +594,7 @@ EQLIB_API void AddDetourf(DWORD address, ...)
 	}
 }
 
-EQLIB_API VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
+EQLIB_API void Unload(PSPAWNINFO pChar, PCHAR szLine)
 {
 	pExtension->Shutdown();
 }

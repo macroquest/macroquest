@@ -42,8 +42,8 @@ DWORD __stdcall FlashOnTellThread(PVOID pData)
 class CChatHook
 {
 public:
-	VOID Trampoline(const char* szMsg, DWORD dwColor, bool, bool, char *SomeStr);
-	VOID Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr)
+	void Trampoline(const char* szMsg, DWORD dwColor, bool, bool, char *SomeStr);
+	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr)
 	{
 		//DebugSpew("CChatHook::Detour(%s)",szMsg);
 		gbInChat = TRUE;
@@ -128,8 +128,8 @@ public:
 		gbInChat = FALSE;
 	}
 
-	VOID TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk);
-	VOID TellWnd_Detour(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk)
+	void TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk);
+	void TellWnd_Detour(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk)
 	{
 		int len = strlen(message);
 		char *szMsg = (char *)LocalAlloc(LPTR, len + 64);
@@ -159,8 +159,8 @@ public:
 		gbInChat = false;
 	}
 
-	VOID UPCNotificationFlush_Trampoline();
-	VOID UPCNotificationFlush_Detour()
+	void UPCNotificationFlush_Trampoline();
+	void UPCNotificationFlush_Detour()
 	{
 		if (EVERQUEST* eq = (EVERQUEST*)this) {
 			CHAR szBuf[MAX_STRING] = { 0 };
@@ -187,11 +187,11 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr));
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk));
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr));
+DETOUR_TRAMPOLINE_EMPTY(void CChatHook::TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk));
+DETOUR_TRAMPOLINE_EMPTY(void CChatHook::UPCNotificationFlush_Trampoline());
 
-VOID dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, char *SomeStr)
+void dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, char *SomeStr)
 {
 	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst, SomeStr);
 }
@@ -211,7 +211,7 @@ int CMD_FlashOnTells(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
+void FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if (szLine[0] != '\0') {
@@ -241,7 +241,7 @@ int CMD_BeepOnTells(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
+void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if (szLine[0] != '\0') {
@@ -271,7 +271,7 @@ int CMD_TimeStampChat(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
+void TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if (szLine[0] != '\0') {
@@ -295,7 +295,7 @@ VOID TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	RETURN(0);
 }
-VOID InitializeChatHook()
+void InitializeChatHook()
 {
 	DebugSpew("Initializing chat hook");
 
@@ -315,7 +315,7 @@ VOID InitializeChatHook()
 #endif
 }
 
-VOID ShutdownChatHook()
+void ShutdownChatHook()
 {
 #ifndef ISXEQ
 	RemoveCommand("/flashontells");

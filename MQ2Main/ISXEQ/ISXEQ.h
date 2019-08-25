@@ -53,8 +53,8 @@ class CISXEQ :
 	public ISXInterface
 {
 public:
-	CISXEQ(void);
-	~CISXEQ(void);
+	CISXEQ();
+	~CISXEQ();
 
 	virtual bool Initialize(ISInterface *p_ISInterface);
 	virtual void Shutdown();
@@ -74,7 +74,7 @@ public:
 	void UnRegisterServices();
 
 	bool Memcpy_Clean(unsigned int BeginAddress, unsigned char *buf, unsigned int buflen);
-	 VOID HookMemChecker(BOOL Patch); 
+	 void HookMemChecker(BOOL Patch); 
 	bool Protect(unsigned int Address, unsigned int Size, const void *OriginalData); 
 	 bool UnProtect(unsigned int Address); 
 	map<unsigned int, EQProtected*> ProtectedMap; 

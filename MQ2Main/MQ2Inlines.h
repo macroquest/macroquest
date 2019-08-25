@@ -775,9 +775,9 @@ static inline bool endsWith(char* base, char* str) {
 // If the user is on Windows XP this function will call GetTickCount()
 // instead of GetTickCount64() (which doesn't exist on that platform.)
 // ***************************************************************************
-inline unsigned __int64 MQGetTickCount64(void)
+inline unsigned __int64 MQGetTickCount64()
 {
-	typedef unsigned long long (WINAPI *fGetTickCount64)(VOID);
+	typedef unsigned long long (WINAPI *fGetTickCount64)();
 	static fGetTickCount64 pGetTickCount64 = 0;
 
 	if (!pGetTickCount64)
@@ -796,7 +796,7 @@ inline unsigned __int64 MQGetTickCount64(void)
 	return ::GetTickCount(); // Fall back to GetTickCount which always exists
 }
 // Deprecated: Forwards to MQGetTickCount64()
-inline unsigned __int64 GetTickCount642(void)
+inline unsigned __int64 GetTickCount642()
 {
 	return MQGetTickCount64();
 }
@@ -830,15 +830,15 @@ inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 }
 /*
 need to figure out why this fails in xp and the above doesn't - eqmule
-static inline ULONGLONG GetTickCount64(void)
+static inline ULONGLONG GetTickCount64()
 {
 static int once = 1;
-static ULONGLONG (WINAPI *pGetTickCount64)(void);
+static ULONGLONG (WINAPI *pGetTickCount64)();
 if (once) {
 //we dont want to call this one over and over thats just stupid, so once is enough - eqmule
-pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
+pGetTickCount64 = (ULONGLONG (WINAPI *)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
 if (!pGetTickCount64)
-pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
+pGetTickCount64 = (ULONGLONG (WINAPI *)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
 if (!pGetTickCount64) {
 //MessageBox(NULL,"CRAP","What kind of OS are you running anyway?",MB_OK);
 return (ULONGLONG)GetTickCount();

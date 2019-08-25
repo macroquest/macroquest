@@ -360,7 +360,7 @@ DETOUR_TRAMPOLINE_EMPTY(void CPacketScrambler::CDisplay__ZoneMainUI_Tramp());
 #pragma optimize( "", on )
 
 #define EB_SIZE (1024*4)
-void emotify(void);
+void emotify();
 void emotify2(char *buffer);
 bool gbDoingSpellChecks = false;
 
@@ -385,15 +385,15 @@ DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Tramp(char*, char*, EQ
 class CEmoteHook
 {
 public:
-	VOID CEmoteHook::Trampoline(void);
-	VOID CEmoteHook::Detour(void);
+	void CEmoteHook::Trampoline();
+	void CEmoteHook::Detour();
 };
-VOID CEmoteHook::Detour(void)
+void CEmoteHook::Detour()
 {
 	emotify();
 	Trampoline();
 }
-DETOUR_TRAMPOLINE_EMPTY(VOID CEmoteHook::Trampoline(void));
+DETOUR_TRAMPOLINE_EMPTY(void CEmoteHook::Trampoline());
 
 
 // this is the memory checker key struct
@@ -434,7 +434,7 @@ DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char *buffer, int count, st
 DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char *buffer, int count, struct mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(unsigned char *buffer, int count, struct mckey key));
 
-VOID HookInlineChecks(BOOL Patch)
+void HookInlineChecks(BOOL Patch)
 {
 	int i;
 #ifndef ISXEQ
@@ -515,7 +515,7 @@ VOID HookInlineChecks(BOOL Patch)
 }
 
 #ifndef ISXEQ
-VOID HookMemChecker(BOOL Patch)
+void HookMemChecker(BOOL Patch)
 {
 
 	// hit the debugger if we don't hook this
@@ -1298,7 +1298,7 @@ typedef struct _CrashReport
 //you can customize the crash dialog message here if this doesn't suit you.
 //these args needs to be allocated properly if u call this func, but you shouldnt...
 //just know that you can customize it for now as long as u keep the string lenghts < MAX_STRING
-EQLIB_API VOID GetCrashDialogMessage(char *Title, char *Message1,char *Message2,char *Message3,char *Message4)
+EQLIB_API void GetCrashDialogMessage(char *Title, char *Message1,char *Message2,char *Message3,char *Message4)
 {
 	strcpy_s(Title ,MAX_STRING, "MQ2 Crash Notification");
 	strcpy_s(Message1 ,MAX_STRING, "MQ2 has detected that your client may have crashed.");
@@ -1307,7 +1307,7 @@ EQLIB_API VOID GetCrashDialogMessage(char *Title, char *Message1,char *Message2,
 	strcpy_s(Message4 ,MAX_STRING, "Also, if you have a moment, please enter details about what you were doing when you crashed:");
 }
 //this function is called after a crashdump has been generated and it points to that file
-EQLIB_API VOID MQ2CrashCallBack(PCHAR DumpFile)
+EQLIB_API void MQ2CrashCallBack(PCHAR DumpFile)
 {
 	//add your own handling here if you dont want like the default one or have other ideas on how to handle crashes yourself
 	//you can delete the file, copy/move it or just upload to your own dump server etc...
@@ -1372,7 +1372,7 @@ void ShutdownMQ2Detours()
 
 #pragma optimize( "", off )
 
-void emotify(void)
+void emotify()
 {
 	char buffer[EB_SIZE];
 	emotify2(buffer);

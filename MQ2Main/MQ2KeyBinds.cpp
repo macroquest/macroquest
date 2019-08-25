@@ -140,8 +140,8 @@ BOOL MQ2HandleKeyUp(class KeyCombo const &Combo)
 class KeypressHandlerHook
 {
 public:
-    void ClearCommandStateArray_Trampoline(void);
-    void ClearCommandStateArray_Hook(void)
+    void ClearCommandStateArray_Trampoline();
+    void ClearCommandStateArray_Hook()
     {
         unsigned long N;
         for (N = 0 ; N < BindList.Size ; N++)
@@ -171,7 +171,7 @@ public:
     }
 };
 
-DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline(void));
+DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyDown_Trampoline(class KeyCombo const &));
 DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyUp_Trampoline(class KeyCombo const &));
 
@@ -194,7 +194,7 @@ public:
     }
 };
 /**/
-VOID DoRangedBind(PCHAR Name,BOOL Down);
+void DoRangedBind(PCHAR Name,BOOL Down);
 
 void InitializeMQ2KeyBinds()
 {
@@ -318,7 +318,7 @@ BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
 }
 
 #ifndef ISXEQ
-VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
+void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (szLine[0]==0)
     {
@@ -585,7 +585,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
 
 #endif
 
-VOID DoRangedBind(PCHAR Name,BOOL Down)
+void DoRangedBind(PCHAR Name,BOOL Down)
 {
     if (Down && pTarget && gbRangedAttackReady)
     {

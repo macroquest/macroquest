@@ -49,7 +49,7 @@ CHAR szChatXMLSection[MAX_STRING] = { 0 };
 #define LINES_PER_FRAME 3
 
 int CMD_MQFont(int argc, char *argv[]);
-VOID DoMQ2ChatBind(PCHAR Name, BOOL Down);
+void DoMQ2ChatBind(PCHAR Name, BOOL Down);
 void SaveChatToXML(PCSIDLWND pWindow);
 void CreateChatWindow();
 
@@ -542,7 +542,7 @@ void CreateChatWindow()
 	//  SaveChatToXML((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there..
 }
 
-VOID DoMQ2ChatBind(PCHAR Name, BOOL Down)
+void DoMQ2ChatBind(PCHAR Name, BOOL Down)
 {
 	if (!Down) {
 		if (MQChatWnd != NULL) {

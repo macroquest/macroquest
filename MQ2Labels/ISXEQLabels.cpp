@@ -114,8 +114,8 @@ DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(c
 
 class CLabelHook {
 public:
-	VOID Draw_Trampoline(VOID);
-	VOID Draw_Detour(VOID)
+	void Draw_Trampoline();
+	void Draw_Detour()
 	{
 		PCSIDLWND pThisLabel;
 		__asm {mov[pThisLabel], ecx};
@@ -154,7 +154,7 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::Draw_Trampoline(VOID));
+DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::Draw_Trampoline());
 
 BOOL StealNextGauge = FALSE;
 DWORD NextGauge = 0;
@@ -170,8 +170,8 @@ int GetGaugeValueFromEQ_Hook(int A, class CXStr *B, bool *C)
 class CGaugeHook
 {
 public:
-	VOID Draw_Trampoline(VOID);
-	VOID Draw_Detour(VOID)
+	void Draw_Trampoline();
+	void Draw_Detour()
 	{
 		PCSIDLWND pThisGauge;
 		__asm {mov[pThisGauge], ecx};
@@ -187,7 +187,7 @@ public:
 		Draw_Trampoline();
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(VOID CGaugeHook::Draw_Trampoline(VOID));
+DETOUR_TRAMPOLINE_EMPTY(void CGaugeHook::Draw_Trampoline());
 
 // Basic LavishScript datatypes, these get retrieved on startup by our initialize function, so we can
 // use them in our Top-Level Objects or custom datatypes
@@ -243,7 +243,7 @@ bool ISXEQLabels::Initialize(ISInterface *p_ISInterface)
 	EzDetour(CLabel__Draw, &CLabelHook::Draw_Detour, &CLabelHook::Draw_Trampoline);
 	EzDetour(CSidlManager__CreateLabel, &CSidlManagerHook::CreateLabel_Detour, &CSidlManagerHook::CreateLabel_Trampoline);
 	// currently in testing:
-	//    EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
+	//    EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,void,(),Draw_Trampoline);
 	//    EasyDetour(__GetGaugeValueFromEQ,GetGaugeValueFromEQ_Hook,int,(int,class CXStr *,bool *),GetGaugeValueFromEQ_Trampoline);
 	WriteChatf("ISXEQLabels Loaded");
 	return true;

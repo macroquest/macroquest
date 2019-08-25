@@ -22,61 +22,61 @@
 
 /*
 // COMMANDS TO CONVERT
-EQLIB_API VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID Alert                               (PSPAWNINFO,PCHAR);
-EQLIB_API VOID AltAbility						   (PSPAWNINFO,PCHAR);
-EQLIB_API VOID BankList                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID BuyItem                             (PSPAWNINFO,PCHAR);
-EQLIB_API VOID CharInfo                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Cast                                (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Cleanup                             (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Click                               (PSPAWNINFO,PCHAR);
-EQLIB_API VOID DebugSpewFile                       (PSPAWNINFO,PCHAR);
-EQLIB_API VOID EQDestroyHeldItemOrMoney				(PSPAWNINFO,PCHAR);
-EQLIB_API VOID DisplayLoginName						(PSPAWNINFO,PCHAR);
-EQLIB_API VOID DoAbility                           (PSPAWNINFO,PCHAR);
-EQLIB_API VOID DoEvents                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID DoSocial                           (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Doors                               (PSPAWNINFO,PCHAR);
-EQLIB_API VOID DoorTarget                          (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Exec                                (PSPAWNINFO,PCHAR); 
-EQLIB_API VOID Face                                (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Filter                              (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Help                                (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Hotkey                              (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Identify                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID IniOutput                           (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Items                               (PSPAWNINFO,PCHAR);
-EQLIB_API VOID ItemTarget                          (PSPAWNINFO,PCHAR);
-EQLIB_API VOID WindowState							(PSPAWNINFO,PCHAR);
-EQLIB_API VOID LoadSpells                          (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Location                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Look                                (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MacroLog                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MemSpell                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MouseTo                             (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MQMsgBox                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SellItem                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SetError                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Skills                              (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Substitute						   (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SuperWhoTarget                      (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
-EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);
-EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
+EQLIB_API void NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void CaptionCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void DropCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void CombineCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void DoAltCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void Alert                               (PSPAWNINFO,PCHAR);
+EQLIB_API void AltAbility						   (PSPAWNINFO,PCHAR);
+EQLIB_API void BankList                            (PSPAWNINFO,PCHAR);
+EQLIB_API void BuyItem                             (PSPAWNINFO,PCHAR);
+EQLIB_API void CharInfo                            (PSPAWNINFO,PCHAR);
+EQLIB_API void Cast                                (PSPAWNINFO,PCHAR);
+EQLIB_API void Cleanup                             (PSPAWNINFO,PCHAR);
+EQLIB_API void Click                               (PSPAWNINFO,PCHAR);
+EQLIB_API void DebugSpewFile                       (PSPAWNINFO,PCHAR);
+EQLIB_API void EQDestroyHeldItemOrMoney				(PSPAWNINFO,PCHAR);
+EQLIB_API void DisplayLoginName						(PSPAWNINFO,PCHAR);
+EQLIB_API void DoAbility                           (PSPAWNINFO,PCHAR);
+EQLIB_API void DoEvents                            (PSPAWNINFO,PCHAR);
+EQLIB_API void DoSocial                           (PSPAWNINFO,PCHAR);
+EQLIB_API void Doors                               (PSPAWNINFO,PCHAR);
+EQLIB_API void DoorTarget                          (PSPAWNINFO,PCHAR);
+EQLIB_API void Exec                                (PSPAWNINFO,PCHAR); 
+EQLIB_API void Face                                (PSPAWNINFO,PCHAR);
+EQLIB_API void Filter                              (PSPAWNINFO,PCHAR);
+EQLIB_API void Help                                (PSPAWNINFO,PCHAR);
+EQLIB_API void Hotkey                              (PSPAWNINFO,PCHAR);
+EQLIB_API void Identify                            (PSPAWNINFO,PCHAR);
+EQLIB_API void IniOutput                           (PSPAWNINFO,PCHAR);
+EQLIB_API void Items                               (PSPAWNINFO,PCHAR);
+EQLIB_API void ItemTarget                          (PSPAWNINFO,PCHAR);
+EQLIB_API void WindowState							(PSPAWNINFO,PCHAR);
+EQLIB_API void LoadSpells                          (PSPAWNINFO,PCHAR);
+EQLIB_API void Location                            (PSPAWNINFO,PCHAR);
+EQLIB_API void Look                                (PSPAWNINFO,PCHAR);
+EQLIB_API void MacroLog                            (PSPAWNINFO,PCHAR);
+EQLIB_API void MemSpell                            (PSPAWNINFO,PCHAR);
+EQLIB_API void MouseTo                             (PSPAWNINFO,PCHAR);
+EQLIB_API void MQMsgBox                            (PSPAWNINFO,PCHAR);
+EQLIB_API void SellItem                            (PSPAWNINFO,PCHAR);
+EQLIB_API void SetError                            (PSPAWNINFO,PCHAR);
+EQLIB_API void Skills                              (PSPAWNINFO,PCHAR);
+EQLIB_API void Substitute						   (PSPAWNINFO,PCHAR);
+EQLIB_API void SuperWhoTarget                      (PSPAWNINFO,PCHAR);
+EQLIB_API void SWhoFilter							(PSPAWNINFO,PCHAR);
+EQLIB_API void Target                              (PSPAWNINFO,PCHAR);
+EQLIB_API void UpdateItemInfo                      (PSPAWNINFO,PCHAR);
 /**/
 CMQ2Alerts CAlerts;
-//EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
+//EQLIB_API void DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 int CMD_Keypress(int argc, char *argv[])
 {
 	if (argc<2)
@@ -832,7 +832,7 @@ int CMD_EQDestroy(int argc, char *argv[])
 
 int CMD_EQFace(int argc, char *argv[])
 {
-//VOID Face(PSPAWNINFO pChar, PCHAR szLine)
+//void Face(PSPAWNINFO pChar, PCHAR szLine)
 //{
     if (!ppSpawnManager) return 0;
     if (!pSpawnList) return 0;
@@ -1301,7 +1301,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 //              Adds the ability to do /pickzone #
 // Usage:       /pickzone 2 will switch zone to number 2 pickzone 0 will pick main instance
 // ***************************************************************************
-//VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
+//void PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 int CMD_PickZone(int argc, char *argv[])
 {
 	if (!cmdPickZone) { 

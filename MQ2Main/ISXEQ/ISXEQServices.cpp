@@ -44,7 +44,7 @@ EQLIB_API BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
 }
 
 
-EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
+EQLIB_API void WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	if (gFilterMQ)
 		return;
@@ -81,12 +81,12 @@ EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 
 
 // "UI" service
-EQLIB_API VOID PluginsCleanUI()
+EQLIB_API void PluginsCleanUI()
 {
 	PluginDebug("PluginsCleanUI()");
 	pISInterface->ServiceBroadcast(pExtension,hUIService,UISERVICE_CLEANUP,0);
 }
-EQLIB_API VOID PluginsReloadUI()
+EQLIB_API void PluginsReloadUI()
 {
 	PluginDebug("PluginsReloadUI()");
 	pISInterface->ServiceBroadcast(pExtension,hUIService,UISERVICE_RELOAD,0);
@@ -128,7 +128,7 @@ void __cdecl SpawnRequest(ISXInterface *pClient, unsigned int MSG, void *lpData)
 }
 
 // "Gamestate" Service
-EQLIB_API VOID PluginsSetGameState(DWORD GameState)
+EQLIB_API void PluginsSetGameState(DWORD GameState)
 {
 	PluginDebug("PluginsSetGameState()");
 	static bool AutoExec=false;
@@ -178,7 +178,7 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 }
 
 // "Spawn" service
-EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
+EQLIB_API void PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	DWORD BodyType=GetBodyType(pNewSpawn);
 	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->mActorClient.Race, pNewSpawn->BodyType);
@@ -193,7 +193,7 @@ EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 	if (pNewSpawn->GM) 
 		pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_ADDGM,pNewSpawn);
 }
-EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
+EQLIB_API void PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 {
 	PluginDebug("PluginsRemoveSpawn(%s)",pSpawn->Name);
 	SpawnByName.erase(pSpawn->Name);
@@ -203,29 +203,29 @@ EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 
 	pISInterface->InvalidatePersistentObject(PersistentPointerClass,(unsigned int)pSpawn);
 }
-EQLIB_API VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
+EQLIB_API void PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
 	DebugSpew("PluginsAddGroundItem(%s) %.1f,%.1f,%.1f",pNewGroundItem->Name,pNewGroundItem->X,pNewGroundItem->Y,pNewGroundItem->Z);
 	pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_ADDITEM,pNewGroundItem);
 }
-EQLIB_API VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
+EQLIB_API void PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
 	PluginDebug("PluginsRemoveGroundItem()");
 	pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_REMOVEITEM,pGroundItem);
 }
 
 // "Zone" service
-EQLIB_API VOID PluginsBeginZone(VOID)
+EQLIB_API void PluginsBeginZone()
 {
 	pISInterface->ServiceBroadcast(pExtension,hZoneService,ZONESERVICE_BEGINZONE,0);
 	gbInZone=false;
 }
-EQLIB_API VOID PluginsEndZone(VOID)
+EQLIB_API void PluginsEndZone()
 {
 	pISInterface->ServiceBroadcast(pExtension,hZoneService,ZONESERVICE_ENDZONE,0);
 	gbInZone=true;
 }
-EQLIB_API VOID PluginsZoned()
+EQLIB_API void PluginsZoned()
 {
 	PluginDebug("PluginsZoned()");
 

@@ -303,7 +303,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 			}
 			return TRUE;
 }
-VOID InitializeMQ2IcExports()
+void InitializeMQ2IcExports()
 {
 	IC_GetHashData = (fICGetHashData)GetProcAddress(ghmq2ic, "IC_GetHashData");
 	IC_SetHashData = (fICSetHashData)GetProcAddress(ghmq2ic, "IC_SetHashData");
@@ -312,7 +312,7 @@ VOID InitializeMQ2IcExports()
 	IC_MQ2Unload = (fMQ2Unload)GetProcAddress(ghmq2ic, "IC_MQ2Unload");
 	IC_ClassLvl = (fClassLvl)GetProcAddress(ghmq2ic, "IC_ClassLvl");
 }
-VOID DeInitializeMQ2IcExports()
+void DeInitializeMQ2IcExports()
 {
 	IC_GetHashData = 0;
 	IC_SetHashData = 0;
@@ -845,7 +845,7 @@ void AddNewsLine(PCHAR Line, DWORD Color)
 //	((CXWnd*)pNewsWindow->OutputBox)->SetVScrollPos(0);
 }
 
-VOID DeleteMQ2NewsWindow()
+void DeleteMQ2NewsWindow()
 {
     if (pNewsWindow)
     {
@@ -854,7 +854,7 @@ VOID DeleteMQ2NewsWindow()
     }
 }
 
-VOID InsertMQ2News()
+void InsertMQ2News()
 {
     if (!pNewsWindow)
         return;
@@ -900,13 +900,13 @@ LRESULT CALLBACK hookCBTProc( int nCode, WPARAM wParam, LPARAM lParam )
     return ::CallNextHookEx( g_hHook, nCode, wParam, lParam );
 }
 
-VOID InjectEnable()
+void InjectEnable()
 {
     // Install the global hook, injecting this DLL into every other process
     g_hHook = SetWindowsHookEx( WH_CBT, hookCBTProc, ghInstance, 0 );
 }
 
-VOID InjectDisable()
+void InjectDisable()
 {
     UnhookWindowsHookEx( g_hHook );
     g_hHook = NULL;
@@ -933,7 +933,7 @@ FUNCTION_AT_ADDRESS(float FixHeading(float Heading),__FixHeading);
 FUNCTION_AT_ADDRESS(float get_bearing(float x1, float y1, float x2, float y2),__get_bearing)
 #endif
 #ifdef Util__FastTime_x
-FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
+FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(),Util__FastTime);
 #endif
 #ifdef __GetXTargetType_x
 FUNCTION_AT_ADDRESS(char * __stdcall GetXtargetType(DWORD type), __GetXTargetType);

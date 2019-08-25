@@ -189,7 +189,7 @@ DWORD GetDeviceData=0;
 DWORD GetDeviceState=0;
 DWORD Acquire=0;
 
-VOID InitializeMQ2DInput() 
+void InitializeMQ2DInput() 
 {
     DebugSpew("Initializing DInput");
     IDirectInputDevice8A *IDIDevice = NULL; 
@@ -237,7 +237,7 @@ VOID InitializeMQ2DInput()
     }
 }
 
-VOID ShutdownMQ2DInput()
+void ShutdownMQ2DInput()
 {
 	if (DInputDataTrampoline && DetourRemove((PBYTE)DInputDataTrampoline, (PBYTE)DInputDataDetour))
 	{

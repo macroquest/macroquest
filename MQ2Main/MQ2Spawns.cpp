@@ -107,7 +107,7 @@ public:
         return DeleteItem_Trampoline(pItem);
     }
 };
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline()); 
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(PGROUNDITEM));
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(PGROUNDITEM));
 
@@ -147,10 +147,10 @@ public:
 		Sleep(0);
     }
 
-    void dEQPlayer_Trampoline(void);
-    void dEQPlayer_Detour(void)
+    void dEQPlayer_Trampoline();
+    void dEQPlayer_Detour()
     {
-        void (EQPlayerHook::*tmp)(void) = &EQPlayerHook::dEQPlayer_Trampoline; 
+        void (EQPlayerHook::*tmp)() = &EQPlayerHook::dEQPlayer_Trampoline; 
         __asm {
             push ecx;
             push ecx;
@@ -169,18 +169,18 @@ public:
         return 1;
     }
 
-    bool SetNameSpriteTint_Trampoline(void);
-    bool SetNameSpriteTint_Detour(void)
+    bool SetNameSpriteTint_Trampoline();
+    bool SetNameSpriteTint_Detour()
     {
         if (!gAnonymize && (gGameState!=GAMESTATE_INGAME || !gMQCaptions))
             return SetNameSpriteTint_Trampoline();
         return 1;
     }
 
-    bool EQPlayerHook::IsTargetable(void);
+    bool EQPlayerHook::IsTargetable();
 
 };
-FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(void), EQPlayer__IsTargetable);
+FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(), EQPlayer__IsTargetable);
 
 class CActorEx
 {
@@ -370,7 +370,7 @@ CAPTIONCOLOR CaptionColors[]=
 };
 
 #ifndef ISXEQ_LEGACY
-VOID SetNameSpriteTint(SPAWNINFO* pSpawn)
+void SetNameSpriteTint(SPAWNINFO* pSpawn)
 {
     if (!gMQCaptions)
 		return;
@@ -619,12 +619,12 @@ void UpdateSpawnCaptions()
     }
 }
 
-DETOUR_TRAMPOLINE_EMPTY(bool EQPlayerHook::SetNameSpriteTint_Trampoline(void));
+DETOUR_TRAMPOLINE_EMPTY(bool EQPlayerHook::SetNameSpriteTint_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::SetNameSpriteState_Trampoline(bool Show));
-DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::dEQPlayer_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(void *,int,int,int,char *,char *,char *)); 
+DETOUR_TRAMPOLINE_EMPTY(void EQPlayerHook::dEQPlayer_Trampoline()); 
+DETOUR_TRAMPOLINE_EMPTY(void EQPlayerHook::EQPlayer_Trampoline(void *,int,int,int,char *,char *,char *)); 
 
-VOID InitializeMQ2Spawns()
+void InitializeMQ2Spawns()
 {
     InitializeCriticalSection(&csPendingGrounds);
     DebugSpew("Initializing Spawn-related Hooks");
@@ -678,7 +678,7 @@ VOID InitializeMQ2Spawns()
     }
 }
 
-VOID ShutdownMQ2Spawns()
+void ShutdownMQ2Spawns()
 {
     DebugSpew("Shutting Down Spawn-related Hooks");
     RemoveDetour(EQPlayer__EQPlayer);
@@ -705,7 +705,7 @@ VOID ShutdownMQ2Spawns()
     RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
 }
 
-VOID ProcessPendingGroundItems()
+void ProcessPendingGroundItems()
 {
 	if (gGameState == GAMESTATE_INGAME) {//no point in checking this unless in game
 		if (ProcessPending && pPendingGrounds)
@@ -723,7 +723,7 @@ VOID ProcessPendingGroundItems()
 	}
 }
 
-VOID UpdateMQ2SpawnSort()
+void UpdateMQ2SpawnSort()
 {
 	if (gGameState == GAMESTATE_INGAME) {//no point in doing any of this stuff unless we are in game
 		EnterMQ2Benchmark(bmUpdateSpawnSort);
@@ -769,7 +769,7 @@ VOID UpdateMQ2SpawnSort()
 #endif
 
 #ifndef ISXEQ
-VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
     {

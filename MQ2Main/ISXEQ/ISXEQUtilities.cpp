@@ -24,7 +24,7 @@
 
 /**/
 
-VOID CheckChatForEvent(PCHAR szMsg)
+void CheckChatForEvent(PCHAR szMsg)
 {
 	IS_CheckTriggers(pExtension,pISInterface,hTriggerService,szMsg);
 	char *argv[]=

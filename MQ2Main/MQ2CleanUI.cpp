@@ -22,15 +22,15 @@ char *OurCaption = "MQ2: Think of it as evolution in action.";
 class CDisplayHook 
 { 
 public: 
-    VOID CleanUI_Trampoline(VOID); 
-    VOID CleanUI_Detour(VOID) 
+    void CleanUI_Trampoline(); 
+    void CleanUI_Detour() 
     { 
         Benchmark(bmPluginsCleanUI,DebugTry(PluginsCleanUI()));
         DebugTry(CleanUI_Trampoline());
     } 
 
-    VOID ReloadUI_Trampoline(BOOL);
-    VOID ReloadUI_Detour(BOOL UseINI)
+    void ReloadUI_Trampoline(BOOL);
+    void ReloadUI_Detour(BOOL UseINI)
     {
         DebugTry(ReloadUI_Trampoline(UseINI));
         Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
@@ -117,8 +117,8 @@ class EQ_LoadingSHook
 {
 public:
 
-    VOID SetProgressBar_Trampoline(int,char const *);
-    VOID SetProgressBar_Detour(int A,char const *B)
+    void SetProgressBar_Trampoline(int,char const *);
+    void SetProgressBar_Detour(int A,char const *B)
     {
         if (gbMQ2LoadingMsg)
             SetProgressBar_Trampoline(A, OurCaption);
@@ -128,10 +128,10 @@ public:
 };
 
 //DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
+DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
 DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PVOID,unsigned int)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline()); 
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 std::list<std::string>oldstrings;
 
 #ifdef ISXEQ
@@ -161,7 +161,7 @@ int CMD_NetStatusYPos(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID NetStatusYPos(PSPAWNINFO pChar, char *szLine)
+void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 {
 #endif
 	CHAR szArg[MAX_STRING] = { 0 };
@@ -176,7 +176,7 @@ VOID NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 	RETURN(0);
 }
 
-VOID InitializeDisplayHook()
+void InitializeDisplayHook()
 {
 	//this needs further investigation - eqmule
 #if 0
@@ -209,7 +209,7 @@ VOID InitializeDisplayHook()
 #endif
 }
 
-VOID ShutdownDisplayHook()
+void ShutdownDisplayHook()
 {
 #if 0
 #ifdef EQ_LoadingS__Array_x

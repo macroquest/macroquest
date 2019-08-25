@@ -14,7 +14,7 @@
 
 #include "MQ2Main.h"
 
-VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
+void MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
 
 // ***************************************************************************
 // EqMule Mar 08 2014
@@ -204,7 +204,7 @@ BOOL ParseMouseLoc(CHARINFO* pCharInfo, PCHAR szMouseLoc)
 	return FALSE;
 }
 // TODO: Expand this to support mouse buttons 3->8
-VOID ClickMouse(DWORD button)
+void ClickMouse(DWORD button)
 {
    if (button > 1)
       return;
@@ -232,7 +232,7 @@ VOID ClickMouse(DWORD button)
    }
 }
 
-VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
+void MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 {
 	CVector3 cv1 = { 0,0,0 };
 	CVector3 cv2 = { 0,0,0 };
@@ -260,7 +260,7 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
     }*/
 }
 
-VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
+void ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
 {
     CHAR szArg1[MAX_STRING] = {0};
     CHAR szArg2[MAX_STRING] = {0};
@@ -341,7 +341,7 @@ int Click(int argc, char *argv[])
 //{
 //	EQLIB_OBJECT float ActorBase::GetBoundingRadius();
 //};
-VOID Click(PSPAWNINFO pChar, PCHAR szLine)
+void Click(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if(GetGameState()!=GAMESTATE_INGAME) {

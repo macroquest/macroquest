@@ -19,7 +19,7 @@
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
 // ***************************************************************************
-VOID DebugSpew(PCHAR szFormat, ...)
+void DebugSpew(PCHAR szFormat, ...)
 {
 	if (gFilterDebug) return;
 	va_list vaList;
@@ -36,7 +36,7 @@ VOID DebugSpew(PCHAR szFormat, ...)
 	}
 }
 
-VOID WriteChatf(PCHAR szFormat, ...)
+void WriteChatf(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -48,7 +48,7 @@ VOID WriteChatf(PCHAR szFormat, ...)
 	}
 }
 //"threadsafe" chat output
-VOID WriteChatfSafe(PCHAR szFormat, ...)
+void WriteChatfSafe(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -63,7 +63,7 @@ VOID WriteChatfSafe(PCHAR szFormat, ...)
 		LocalFree(szOutput);
 	}
 }
-VOID DebugSpewAlways(PCHAR szFormat, ...)
+void DebugSpewAlways(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -98,7 +98,7 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 		LocalFree(szOutput);
 	}
 }
-VOID DebugSpewAlwaysFile(PCHAR szFormat, ...)
+void DebugSpewAlwaysFile(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -134,7 +134,7 @@ VOID DebugSpewAlwaysFile(PCHAR szFormat, ...)
 	}
 }
 
-EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
+EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...)
 {
 #ifdef DBG_SPEW
 	va_list vaList;
@@ -153,7 +153,7 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 }
 #endif
 
-VOID StrReplaceSection(PCHAR szInsert, size_t InsertLen, DWORD Length, PCHAR szNewString)
+void StrReplaceSection(PCHAR szInsert, size_t InsertLen, DWORD Length, PCHAR szNewString)
 {
 	DWORD NewLength = (DWORD)strlen(szNewString);
 	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
@@ -161,7 +161,7 @@ VOID StrReplaceSection(PCHAR szInsert, size_t InsertLen, DWORD Length, PCHAR szN
 }
 
 #ifndef ISXEQ_LEGACY
-VOID ConvertCR(PCHAR Text, size_t LineLen)
+void ConvertCR(PCHAR Text, size_t LineLen)
 {// not super-efficient but this is only being called at initialization currently.
 	while (PCHAR Next = strstr(Text, "\\n"))
 	{
@@ -171,7 +171,7 @@ VOID ConvertCR(PCHAR Text, size_t LineLen)
 }
 #endif
 
-VOID Flavorator(PCHAR szLine, size_t LineLen)
+void Flavorator(PCHAR szLine, size_t LineLen)
 {
 	PCHAR pSpot = 0;
 	while (pSpot = strstr(szLine, "%e"))
@@ -192,7 +192,7 @@ VOID Flavorator(PCHAR szLine, size_t LineLen)
 }
 
 #ifndef ISXEQ
-VOID SyntaxError(PCHAR szFormat, ...)
+void SyntaxError(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -215,7 +215,7 @@ VOID SyntaxError(PCHAR szFormat, ...)
 	}
 }
 
-VOID MacroError(PCHAR szFormat, ...)
+void MacroError(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -247,7 +247,7 @@ VOID MacroError(PCHAR szFormat, ...)
 		}
 	}
 }
-VOID FatalError(PCHAR szFormat, ...)
+void FatalError(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -277,7 +277,7 @@ VOID FatalError(PCHAR szFormat, ...)
 	}
 }
 
-VOID MQ2DataError(PCHAR szFormat, ...)
+void MQ2DataError(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -483,7 +483,7 @@ void ConvertItemTags(CXStr& cxstr, BOOL Tag)
 #define InsertStopColor(text)   sprintf(text,"</c>");TotalColors--; 
 #define InsertStopColorSafe(text,len)   sprintf_s(text, len, "</c>");TotalColors--; 
 
-VOID StripMQChat(PCHAR in, PCHAR out)
+void StripMQChat(PCHAR in, PCHAR out)
 {
 	//DebugSpew("StripMQChat(%s)",in);
 	int i = 0;
@@ -800,7 +800,7 @@ BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime)
 	return FALSE;
 }
 
-VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled)
+void AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled)
 {
 	PFILTER New = (PFILTER)malloc(sizeof(FILTER));
 	if (!New) return;
@@ -812,7 +812,7 @@ VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled)
 	gpFilters = New;
 }
 
-VOID DefaultFilters(VOID)
+void DefaultFilters()
 {
 	AddFilter("You have become better at ", 26, &gFilterSkillsIncrease);
 	AddFilter("You lacked the skills to fashion the items together.", -1, &gFilterSkillsAll);
@@ -916,7 +916,7 @@ DWORD GetZoneID(PCHAR ZoneShortName)
 // Function:    GetGameTime
 // Description: Returns Current Game Time
 // ***************************************************************************
-VOID GetGameTime(int* Hour, int* Minute, int* Night)
+void GetGameTime(int* Hour, int* Minute, int* Night)
 {
 	int eqHour = 0;
 	int eqMinute = 0;
@@ -933,7 +933,7 @@ VOID GetGameTime(int* Hour, int* Minute, int* Night)
 // Function:    GetGameDate
 // Description: Returns Current Game Time
 // ***************************************************************************
-VOID GetGameDate(int* Month, int* Day, int* Year)
+void GetGameDate(int* Month, int* Day, int* Year)
 {
 	if (!ppWorldData || (ppWorldData && !pWorldData))
 		return;
@@ -1420,7 +1420,7 @@ FLOAT FindSpeed(SPAWNINFO* pSpawn)
 	return fRunSpeed;
 }
 
-VOID GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize)
+void GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize)
 {
 	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize, true);
 }
@@ -1449,7 +1449,7 @@ PCHAR GetLoginName()
 	return NULL;
 }
 
-VOID STMLToPlainText(PCHAR in, PCHAR out)
+void STMLToPlainText(PCHAR in, PCHAR out)
 {
 	DWORD pchar_in_string_position = 0;
 	DWORD pchar_out_string_position = 0;
@@ -1499,7 +1499,7 @@ VOID STMLToPlainText(PCHAR in, PCHAR out)
 	out[pchar_out_string_position++] = 0;
 }
 
-VOID ClearSearchItem(SEARCHITEM &SearchItem)
+void ClearSearchItem(SEARCHITEM &SearchItem)
 {
 	ZeroMemory(&SearchItem, sizeof(SEARCHITEM));
 }
@@ -1595,7 +1595,7 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 #undef Flag
 #undef MaskSet
 
-VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
+void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 {
 	if (!pSearchSpawn) return;
 	ZeroMemory(pSearchSpawn, sizeof(SEARCHSPAWN));
@@ -4040,7 +4040,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
 	return szBuffer;
 }
 
-VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
+void SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 {
 	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell,i), GetSpellBase(pSpell,i), GetSpellMax(pSpell,i), pSpell->DurationCap));
 	return;
@@ -6073,7 +6073,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 	return szRest;
 }
 
-VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
+void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 {
 	CHAR szArg[MAX_STRING] = { 0 };
 	CHAR szMsg[MAX_STRING] = { 0 };
@@ -6097,7 +6097,7 @@ VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 	}
 }
 #else
-VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive, char *argv[], SEARCHSPAWN &SearchSpawn)
+void ParseSearchSpawn(int BeginInclusive, int EndExclusive, char *argv[], SEARCHSPAWN &SearchSpawn)
 {
 	for (int arg = BeginInclusive; arg < EndExclusive; arg++)
 		arg += ParseSearchSpawnArg(arg, EndExclusive, argv, SearchSpawn);
@@ -6245,7 +6245,7 @@ PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article, BOOL ForWhoList
 // Function:    SuperWhoDisplay
 // Description: Displays our SuperWho / SuperWhoTarget
 // ***************************************************************************
-VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
+void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 {
 	CHAR szName[MAX_STRING] = { 0 };
 	CHAR szMsg[MAX_STRING] = { 0 };
@@ -6482,7 +6482,7 @@ bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 	return _stricmp(SpawnA->DisplayedName, SpawnB->DisplayedName) < 0;
 }
 
-VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
+void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 {
 	if (!pSearchSpawn)
 		return;
@@ -6621,7 +6621,7 @@ DWORD FindSpellListByName(PCHAR szName)
 	return -1;
 }
 //this function is SUPER expensive, DO NOT use it unless you absolutely have to.
-VOID RewriteAliases(VOID)
+void RewriteAliases()
 {
 	WritePrivateProfileSection("Aliases", "", gszINIFilename);
 	for (std::map<std::string, std::string>::iterator i = mAliases.begin(); i != mAliases.end(); i++) {
@@ -6629,11 +6629,11 @@ VOID RewriteAliases(VOID)
 	}
 }
 //better single write them instead...
-VOID WriteAliasToIni(char*Name, char*Command)
+void WriteAliasToIni(char*Name, char*Command)
 {
 	WritePrivateProfileString("Aliases", Name,Command, gszINIFilename);
 }
-VOID RewriteSubstitutions(VOID)
+void RewriteSubstitutions()
 {
 	PSUB pSubLoop = pSubs;
 	WritePrivateProfileSection("Substitutions", "", gszINIFilename);
@@ -6684,7 +6684,7 @@ PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 }
 #endif
 
-VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
+void SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	if (!_stricmp(szToggle, "on")) *bToggle = TRUE;
@@ -6855,7 +6855,7 @@ bool InHoverState()
 	return false;
 }
 
-DWORD GetGameState(VOID)
+DWORD GetGameState()
 {
 	if (!ppEverQuest || !pEverQuest)
 	{
@@ -6865,7 +6865,7 @@ DWORD GetGameState(VOID)
 	return ((EVERQUEST*)pEverQuest)->GameState;
 }
 
-DWORD GetWorldState(VOID)
+DWORD GetWorldState()
 {
 	if (!ppEverQuest || !pEverQuest)
 	{
@@ -7430,7 +7430,7 @@ bool HasExpansion(DWORD nExpansion)
 }
 //Just a Function that needs more work
 //I use this to test merc aa struct -eqmule
-VOID ListMercAltAbilities()
+void ListMercAltAbilities()
 {
 	if (pMercAltAbilities) {
 		int mercaapoints = ((PCHARINFO)pCharData)->MercAAPoints;

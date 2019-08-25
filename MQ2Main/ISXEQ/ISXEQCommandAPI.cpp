@@ -75,7 +75,7 @@ bool RemoveISXEQAlias(const char *Token)
 }
 /**/
 
-extern VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString);
+extern void StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString);
 
 
 bool ExecuteISCommand(char *Command, char *Parameters=0)
@@ -100,7 +100,7 @@ bool ExecuteISCommand(char *Command, char *Parameters=0)
 class CCommandHook 
 { 
 public: 
-	VOID Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
+	void Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
 	{ 
 		//DebugSpew("CCommandHook::Detour(%s)",szFullLine);
 
@@ -155,11 +155,11 @@ public:
 		/**/
 	} 
 
-	VOID Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
+	void Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
 
 }; 
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CCommandHook::Trampoline(PSPAWNINFO pChar, PCHAR szFullLine)); 
+DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, PCHAR szFullLine)); 
 
 int CMD_EQExecute(int argc, char *argv[])
 {
@@ -179,7 +179,7 @@ int CMD_EQExecute(int argc, char *argv[])
 	return 0;
 }
 
-VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
+void HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
 	pEverQuest->InterpretCmd((EQPlayer*)pChar,szLine);
 }

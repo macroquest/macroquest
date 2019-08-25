@@ -501,7 +501,7 @@ public:
 		Initialize();
 	}
 
-	~Blech(void)
+	~Blech()
 	{
 		BlechDebug("~Blech()");
 		Cleanup();

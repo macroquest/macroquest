@@ -315,7 +315,7 @@ CTelnetServer::CTelnetServer()
 
 }
 
-CTelnetServer::~CTelnetServer(void)
+CTelnetServer::~CTelnetServer()
 {
 	DebugTry(Shutdown());
 	DebugTry(DeleteCriticalSection(&ProcessingCS));

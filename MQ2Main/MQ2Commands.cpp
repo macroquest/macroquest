@@ -1120,7 +1120,7 @@ int keyarray[] = {
 void CmdCmd(PSPAWNINFO pChar, PCHAR szLine)
 {}
 
-void PluginCmdSort(void)
+void PluginCmdSort()
 {
 	PMQCOMMAND pCmd = pCommands;
 	int i;
@@ -3801,7 +3801,7 @@ class mercenary
 public:
 	void SelectMercenaryType();
 };
-FUNCTION_AT_ADDRESS(void mercenary::SelectMercenaryType(void), EQ_Character__Max_Mana);
+FUNCTION_AT_ADDRESS(void mercenary::SelectMercenaryType(), EQ_Character__Max_Mana);
 void HudCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])

@@ -23,7 +23,7 @@
 #endif
 #include <regex>
 
-VOID FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
+void FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
 {
 	DWORD Scope = 1;
 	if (szCommand[strlen(szCommand) - 1] == '{') {
@@ -83,7 +83,7 @@ VOID FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
 // Description: Our '/delay' command
 // Usage:       /delay <time> [condition to end early]
 // ***************************************************************************
-VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
+void Delay(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szVal[MAX_STRING] = { 0 };
 	LONG VarValue;
@@ -166,7 +166,7 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t 
 }
 /* VAR SYSTEM INDEPENDENT */
 // in-place cleanup of tabs, leading/trailing space
-VOID CleanMacroLine(PCHAR szLine)
+void CleanMacroLine(PCHAR szLine)
 {
 	if (!szLine || szLine[0] == 0)
 		return;
@@ -589,7 +589,7 @@ int GetMacroBlockCount()
 // Description: Our '/macro' command
 // Usage:       /macro <filename>
 // ***************************************************************************
-VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
+void Macro(PSPAWNINFO pChar, PCHAR szLine)
 {
 	gWarning = FALSE;
 	bRunNextCommand = TRUE;
@@ -746,7 +746,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 //              Sends i, esc, esc, esc, esc, i
 // Usage:       /cleanup
 // ***************************************************************************
-VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
+void Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 {
 	DebugSpewNoFile("Cleanup - Cleaning up screen");
 	DWORD i;
@@ -788,7 +788,7 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/goto' command
 // Usage:       /goto :label
 // ***************************************************************************
-VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
+void Goto(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!gMacroBlock) {
 		MacroError("Cannot goto when a macro isn't running.");
@@ -839,7 +839,7 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
 	FatalError("Couldn't find label %s", szLine);
 }
 
-VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
+void DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szSub[MAX_STRING] = { 0 };
@@ -863,7 +863,7 @@ VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/endmacro' command
 // Usage:       /endmacro
 // ***************************************************************************
-VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
+void EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szArg2[MAX_STRING] = { 0 };
@@ -1043,7 +1043,7 @@ int GetNumArgsFromSub(std::string &Sub)
 // Description: Our '/call' command
 // Usage:       /call <Subroutine>
 // ***************************************************************************
-VOID Call(PSPAWNINFO pChar, PCHAR szLine)
+void Call(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0] == 0) {
 		SyntaxError("Usage: /call <subroutine> [param [param...]]");
@@ -1116,7 +1116,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
+void NewIf(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0] != '(')
 	{
@@ -1269,7 +1269,7 @@ static void MarkWhile(PCHAR szCommand, Loop& loop)
 //                   ....
 //              }
 // ***************************************************************************
-VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
+void WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szCond[MAX_STRING] = { 0 };
 
@@ -1339,7 +1339,7 @@ VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/doevents' command
 // Usage:       /doevents [flush] [custom event]
 // ***************************************************************************
-VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
+void DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!gEventQueue || !gMacroStack)
 		return;
@@ -1470,7 +1470,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/return' command
 // Usage:       /return [value]
 // ***************************************************************************
-VOID Return(PSPAWNINFO pChar, PCHAR szLine)
+void Return(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	PMACROSTACK pStack = gMacroStack;
@@ -1502,7 +1502,7 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/for' command
 // Usage:       /for v# <start> <to|downto> <end>
 // ***************************************************************************
-VOID For(PSPAWNINFO pChar, PCHAR szLine)
+void For(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	CHAR ArgLoop[MAX_STRING] = { 0 };
@@ -1561,7 +1561,7 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/next' command
 // Usage:       /next v#
 // ***************************************************************************
-VOID Next(PSPAWNINFO pChar, PCHAR szLine)
+void Next(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 	CHAR szNext[MAX_STRING];
@@ -1648,7 +1648,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/continue' command
 // Usage:       /continue
 // ***************************************************************************
-VOID Continue(PSPAWNINFO pChar, PCHAR szLine)
+void Continue(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!gMacroBlock)
 	{
@@ -1702,7 +1702,7 @@ VOID Continue(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/break' command
 // Usage:       /break
 // ***************************************************************************
-VOID Break(PSPAWNINFO pChar, PCHAR szLine)
+void Break(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!gMacroBlock)
 	{

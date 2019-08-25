@@ -312,8 +312,8 @@ EQLIB_API void PluginsAddSpawn(PSPAWNINFO pNewSpawn);
 EQLIB_API void PluginsRemoveSpawn(PSPAWNINFO pSpawn);
 EQLIB_API void PluginsAddGroundItem(PGROUNDITEM pNewGroundItem);
 EQLIB_API void PluginsRemoveGroundItem(PGROUNDITEM pGroundItem);
-EQLIB_API void PluginsBeginZone(void);
-EQLIB_API void PluginsEndZone(void);
+EQLIB_API void PluginsBeginZone();
+EQLIB_API void PluginsEndZone();
 
 /* DIRECT INPUT */
 #ifndef ISXEQ
@@ -377,7 +377,7 @@ LEGACY_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension)
 
 
 /* MOUSE */
-EQLIB_API BOOL IsMouseWaiting(void);
+EQLIB_API BOOL IsMouseWaiting();
 EQLIB_API BOOL IsMouseWaitingForButton();
 EQLIB_API void MQ2MouseHooks(BOOL bFlag);
 EQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
@@ -406,7 +406,7 @@ EQLIB_OBJECT CXStr CleanItemTags(const CXStr& In, bool bFlag);
 EQLIB_API float HeadingDiff(float h1, float h2, float *DiffOut);
 EQLIB_API float FixHeading(float Heading);
 EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
-EQLIB_API unsigned long GetFastTime(void);
+EQLIB_API unsigned long GetFastTime();
 EQLIB_API char * __stdcall GetXtargetType(DWORD type);
 EQLIB_API DWORD EQGetTime();
 EQLIB_OBJECT CXStr STMLToText(const CXStr& In, bool bReplaceBrWithNewline = true);
@@ -440,7 +440,7 @@ EQLIB_API PCHAR GetSubFromLine(int Line, PCHAR szSub, size_t Sublen);
 EQLIB_API PCHAR GetFilenameFromFullPath(PCHAR Filename);
 EQLIB_API BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime);
 EQLIB_API void AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
-EQLIB_API void DefaultFilters(void);
+EQLIB_API void DefaultFilters();
 EQLIB_API PCHAR ConvertHotkeyNameToKeyName(char* szName);
 LEGACY_API void CheckChatForEvent(PCHAR szMsg);
 EQLIB_API void ConvertItemTags(CXStr &cxstr, BOOL Tag = TRUE);
@@ -631,8 +631,8 @@ EQLIB_API BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List);
 EQLIB_API void WriteFilterNames();
 EQLIB_API void SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle);
 EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
-EQLIB_API void RewriteSubstitutions(void);
-EQLIB_API void RewriteAliases(void);
+EQLIB_API void RewriteSubstitutions();
+EQLIB_API void RewriteAliases();
 EQLIB_API void WriteAliasToIni(char*Name, char*Command);
 EQLIB_API DWORD FindSpellListByName(PCHAR szName);
 EQLIB_API FLOAT StateHeightMultiplier(DWORD StandState);
@@ -655,7 +655,7 @@ EQLIB_API PCHAR       GetShortZone(DWORD ZoneID);
 EQLIB_API FLOAT       DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API DWORD WINAPI InsertCommands(LPVOID lpParameter);
-EQLIB_API void        UpdateMonitoredSpawns(void);
+EQLIB_API void        UpdateMonitoredSpawns();
 EQLIB_API PCHAR       GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 //EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
 //EQLIB_API BOOL        IfCompare               (PCHAR szCond);
@@ -665,8 +665,8 @@ EQLIB_API DWORD       GetAAIndexByName(PCHAR AAName);
 EQLIB_API DWORD       GetAAIndexByID(DWORD ID);
 EQLIB_API DWORD       GetSkillIDFromName(PCHAR name);
 EQLIB_API bool        InHoverState();
-EQLIB_API DWORD       GetGameState(void);
-EQLIB_API DWORD       GetWorldState(void);
+EQLIB_API DWORD       GetGameState();
+EQLIB_API DWORD       GetWorldState();
 EQLIB_API float       GetMeleeRange(PlayerClient*, PlayerClient*);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);

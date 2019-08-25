@@ -63,7 +63,7 @@ BOOL Stat(PCHAR Filename, struct _stat &Dest)
     return TRUE;
 }
 
-VOID ClearElements()
+void ClearElements()
 {
 	lockit lk(hHudLock,"HudLock");
     while(pHud)
@@ -74,7 +74,7 @@ VOID ClearElements()
     }
 }
 
-VOID AddElement(PCHAR IniString)
+void AddElement(PCHAR IniString)
 {
 	lockit lk(hHudLock,"HudLock");
     LONG X;
@@ -163,7 +163,7 @@ VOID AddElement(PCHAR IniString)
     DebugSpew("New element '%s' in color %X",pElement->Text,pElement->Color);
 }
 
-VOID LoadElements()
+void LoadElements()
 {
     ClearElements();
 	lockit lk(hHudLock,"HudLock");
@@ -224,7 +224,7 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
-VOID HandleINI()
+void HandleINI()
 {
 	lockit lk(hHudLock,"HudLock");
     CHAR szBuffer[MAX_STRING] = {0};
@@ -252,13 +252,13 @@ VOID HandleINI()
     LoadElements();
 }
 
-VOID DefaultHUD(PSPAWNINFO pChar, PCHAR szLine)
+void DefaultHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
     strcpy_s(HUDNames, "Elements");
     HandleINI();
 }
 
-VOID LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
+void LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR HUDTemp[MAX_STRING] = {0};
     CHAR CurrentHUD[MAX_STRING];
@@ -279,7 +279,7 @@ VOID LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-VOID UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
+void UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR HUDTemp[MAX_STRING] = {0};
     CHAR CurrentHUD[MAX_STRING];
@@ -302,7 +302,7 @@ VOID UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-VOID BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
+void BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!_stricmp(szLine,"off"))
     {
@@ -322,7 +322,7 @@ VOID BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-VOID ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
+void ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!_stricmp(szLine,"off"))
     {
@@ -342,7 +342,7 @@ VOID ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-VOID ZoneHUD(PSPAWNINFO pChar, PCHAR szLine)
+void ZoneHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!_stricmp(szLine,"off"))
     {
@@ -370,7 +370,7 @@ BOOL dataHUD(PCHAR szIndex, MQ2TYPEVAR &Ret)
 }
 
 // Called once, when the plugin is to initialize
-PLUGIN_API VOID InitializePlugin(VOID)
+PLUGIN_API void InitializePlugin()
 {
 	hHudLock = CreateMutex(NULL, FALSE, NULL);
 	
@@ -390,7 +390,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 }
 
 // Called once, when the plugin is to shutdown
-PLUGIN_API VOID ShutdownPlugin(VOID)
+PLUGIN_API void ShutdownPlugin()
 {
     DebugSpewAlways("Shutting down MQ2HUD");
     ClearElements();
@@ -409,7 +409,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	}
 }
 
-PLUGIN_API VOID SetGameState(DWORD GameState)
+PLUGIN_API void SetGameState(DWORD GameState)
 {
     if (GameState==GAMESTATE_INGAME)
         sprintf_s(HUDSection,"%s_%s",GetCharInfo()->Name,EQADDR_SERVERNAME);
@@ -420,7 +420,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 }
 
 // Called after entering a new zone
-PLUGIN_API VOID OnZoned(VOID)
+PLUGIN_API void OnZoned()
 {
     if (bZoneHUD) HandleINI();
 }
@@ -526,7 +526,7 @@ BOOL ParseMacroLine(PCHAR szOriginal, SIZE_T BufferSize,std::list<std::string>&o
 	return Changed;
 }
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
-PLUGIN_API VOID OnDrawHUD(VOID)
+PLUGIN_API void OnDrawHUD()
 {
 	if (hHudLock == 0)
 		return;

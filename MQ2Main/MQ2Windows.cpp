@@ -2424,7 +2424,7 @@ int RecurseAndListWindows(CXWnd* pWnd)
 }
 
 #ifndef ISXEQ
-VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
+void ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -2790,7 +2790,7 @@ bool CheckLootArg(char* arg, char* search, int argcnt, int* slot)
 }
 
 #ifndef ISXEQ
-VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
+void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szArg2[MAX_STRING] = { 0 };

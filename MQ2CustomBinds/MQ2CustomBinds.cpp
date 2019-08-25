@@ -24,7 +24,7 @@ typedef struct _CustomBind {
 
 CIndex<PCUSTOMBIND> CustomBinds(10);
 
-VOID ExecuteCustomBind(PCHAR Name,BOOL Down);
+void ExecuteCustomBind(PCHAR Name,BOOL Down);
 
 int FindCustomBind(PCHAR Name)
 {
@@ -54,7 +54,7 @@ PCUSTOMBIND AddCustomBind(PCHAR Name, PCHAR CommandDown, PCHAR CommandUp)
     return 0;
 }
 
-VOID RemoveCustomBind(unsigned long N)
+void RemoveCustomBind(unsigned long N)
 {
     if (N>=CustomBinds.Size)
         return;
@@ -66,12 +66,12 @@ VOID RemoveCustomBind(unsigned long N)
     }
 }
 
-VOID LoadCustomBinds();
-VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID SaveCustomBinds();
+void LoadCustomBinds();
+void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine);
+void SaveCustomBinds();
 
 // Called once, when the plugin is to initialize
-PLUGIN_API VOID InitializePlugin(VOID)
+PLUGIN_API void InitializePlugin()
 {
     DebugSpewAlways("Initializing MQ2CustomBinds");
 
@@ -84,7 +84,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 }
 
 // Called once, when the plugin is to shutdown
-PLUGIN_API VOID ShutdownPlugin(VOID)
+PLUGIN_API void ShutdownPlugin()
 {
     DebugSpewAlways("Shutting down MQ2CustomBinds");
     RemoveCommand("/custombind");
@@ -103,7 +103,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
         // RemoveXMLFile("MQUI_MyXMLFile.xml");
 }
 
-PLUGIN_API VOID SetGameState(DWORD GameState)
+PLUGIN_API void SetGameState(DWORD GameState)
 {
     static bool BindsLoaded=false;
     if (GameState==GAMESTATE_INGAME || GameState==GAMESTATE_CHARSELECT) 
@@ -116,7 +116,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
     }
 }
 
-VOID LoadCustomBinds()
+void LoadCustomBinds()
 {
     CHAR filename[MAX_STRING];
     strcpy_s(filename,gszINIPath);
@@ -154,7 +154,7 @@ VOID LoadCustomBinds()
     fclose(file);
 }
 
-VOID SaveCustomBinds()
+void SaveCustomBinds()
 {
     CHAR filename[MAX_STRING];
     strcpy_s(filename,gszINIPath);
@@ -173,7 +173,7 @@ VOID SaveCustomBinds()
 	fclose(file);
 }
 
-VOID ExecuteCustomBind(PCHAR Name,BOOL Down)
+void ExecuteCustomBind(PCHAR Name,BOOL Down)
 {
     int N=FindCustomBind(Name);
     if (N<0)
@@ -193,7 +193,7 @@ VOID ExecuteCustomBind(PCHAR Name,BOOL Down)
     }
 }
 
-VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (szLine[0]==0)
     {

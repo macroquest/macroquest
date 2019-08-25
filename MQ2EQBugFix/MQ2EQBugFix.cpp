@@ -125,7 +125,7 @@ int __cdecl CachedTextBug_Detour(class CTextObject *obj)
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl CachedTextBug_Tramp(class CTextObject *));
 DWORD __UpdateDisplay = 0;
 DWORD __Reset = 0;
-PLUGIN_API VOID InitializePlugin(VOID)
+PLUGIN_API void InitializePlugin()
 {
 	//dont mess with this its work in progress, im sick of the crash that happens if you invoke the UAC dialog while eq is loading
 	//basically it makes the render device get lost and then we crash
@@ -166,7 +166,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	#endif
 }
 
-PLUGIN_API VOID ShutdownPlugin(VOID)
+PLUGIN_API void ShutdownPlugin()
 {
     DebugSpewAlways("Shutting down MQ2EQBugFix");
 	RemoveDetour(CDisplay__is3dON);

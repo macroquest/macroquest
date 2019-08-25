@@ -40,8 +40,8 @@ void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
 void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
 void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
 
-extern VOID CMyMapViewWnd__PostDraw();
-extern VOID MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown);
+extern void CMyMapViewWnd__PostDraw();
+extern void MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown);
 extern DWORD CMyMapViewWnd__Destructor(const BOOL Deallocate);
 extern PCSIDLWNDVFTABLE CMyMapViewWnd__OldvfTable;
 extern PCSIDLWNDVFTABLE MapViewMap_OldvfTable;

@@ -13,7 +13,7 @@
 PreSetup("MQ2Template");
 
 // Called once, when the plugin is to initialize
-PLUGIN_API VOID InitializePlugin(VOID)
+PLUGIN_API void InitializePlugin()
 {
     DebugSpewAlways("Initializing MQ2Template");
 
@@ -24,7 +24,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 }
 
 // Called once, when the plugin is to shutdown
-PLUGIN_API VOID ShutdownPlugin(VOID)
+PLUGIN_API void ShutdownPlugin()
 {
     DebugSpewAlways("Shutting down MQ2Template");
 
@@ -35,35 +35,35 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 }
 
 // Called after entering a new zone
-PLUGIN_API VOID OnZoned(VOID)
+PLUGIN_API void OnZoned()
 {
     DebugSpewAlways("MQ2Template::OnZoned()");
 }
 
 // Called once directly before shutdown of the new ui system, and also
 // every time the game calls CDisplay::CleanGameUI()
-PLUGIN_API VOID OnCleanUI(VOID)
+PLUGIN_API void OnCleanUI()
 {
     DebugSpewAlways("MQ2Template::OnCleanUI()");
     // destroy custom windows, etc
 }
 
 // Called once directly after the game ui is reloaded, after issuing /loadskin
-PLUGIN_API VOID OnReloadUI(VOID)
+PLUGIN_API void OnReloadUI()
 {
     DebugSpewAlways("MQ2Template::OnReloadUI()");
     // recreate custom windows, etc
 }
 
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
-PLUGIN_API VOID OnDrawHUD(VOID)
+PLUGIN_API void OnDrawHUD()
 {
     // DONT leave in this debugspew, even if you leave in all the others
     //DebugSpewAlways("MQ2Template::OnDrawHUD()");
 }
 
 // Called once directly after initialization, and then every time the gamestate changes
-PLUGIN_API VOID SetGameState(DWORD GameState)
+PLUGIN_API void SetGameState(DWORD GameState)
 {
     DebugSpewAlways("MQ2Template::SetGameState()");
     //if (GameState==GAMESTATE_INGAME)
@@ -72,7 +72,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 
 
 // This is called every time MQ pulses
-PLUGIN_API VOID OnPulse(VOID)
+PLUGIN_API void OnPulse()
 {
     // DONT leave in this debugspew, even if you leave in all the others
     //DebugSpewAlways("MQ2Template::OnPulse()");
@@ -98,14 +98,14 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 // This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
 // or for each existing spawn when a plugin first initializes
 // NOTE: When you zone, these will come BEFORE OnZoned
-PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
+PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
     DebugSpewAlways("MQ2Template::OnAddSpawn(%s)",pNewSpawn->Name);
 }
 
 // This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
 // It is NOT called for each existing spawn when a plugin shuts down.
-PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
+PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
     DebugSpewAlways("MQ2Template::OnRemoveSpawn(%s)",pSpawn->Name);
 }
@@ -113,32 +113,32 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 // This is called each time a ground item is added to a zone
 // or for each existing ground item when a plugin first initializes
 // NOTE: When you zone, these will come BEFORE OnZoned
-PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
     DebugSpewAlways("MQ2Template::OnAddGroundItem(%d)",pNewGroundItem->DropID);
 }
 
 // This is called each time a ground item is removed from a zone
 // It is NOT called for each existing ground item when a plugin shuts down.
-PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
     DebugSpewAlways("MQ2Template::OnRemoveGroundItem(%d)",pGroundItem->DropID);
 }
 
 // This is called when we receive the EQ_BEGIN_ZONE packet is received
-PLUGIN_API VOID OnBeginZone(VOID)
+PLUGIN_API void OnBeginZone()
 {
     DebugSpewAlways("MQ2Template::OnBeginZone");
 }
 
 // This is called when we receive the EQ_END_ZONE packet is received
-PLUGIN_API VOID OnEndZone(VOID)
+PLUGIN_API void OnEndZone()
 {
     DebugSpewAlways("MQ2Template::OnEndZone");
 }
 // This is called when pChar!=pCharOld && We are NOT zoning
 // honestly I have no idea if its better to use this one or EndZone (above)
-PLUGIN_API VOID Zoned(VOID)
+PLUGIN_API void Zoned()
 {
     DebugSpewAlways("MQ2Template::Zoned");
 }

@@ -266,7 +266,7 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
     return 0;
 }
 
-VOID SaveMQ2PluginLoadStatus(char*Name, bool bLoad)
+void SaveMQ2PluginLoadStatus(char*Name, bool bLoad)
 {
     CAutoLock Lock(&gPluginCS);
 
@@ -285,7 +285,7 @@ VOID SaveMQ2PluginLoadStatus(char*Name, bool bLoad)
 	}
     return;
 }
-VOID InitializeMQ2Plugins()
+void InitializeMQ2Plugins()
 {
     DebugSpew("Initializing plugins");
     bmWriteChatColor=AddMQ2Benchmark("WriteChatColor");
@@ -338,7 +338,7 @@ VOID InitializeMQ2Plugins()
     }
 }
 
-VOID UnloadMQ2Plugins()
+void UnloadMQ2Plugins()
 {
     CAutoLock Lock(&gPluginCS);
     while(pPlugins)
@@ -348,7 +348,7 @@ VOID UnloadMQ2Plugins()
     }
 }
 
-VOID ShutdownMQ2Plugins()
+void ShutdownMQ2Plugins()
 {
     bPluginCS=0;
     {
@@ -372,7 +372,7 @@ VOID ShutdownMQ2Plugins()
     DeleteCriticalSection(&gPluginCS);
 }
 
-VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
+void WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
     if (!bPluginCS)
         return;
@@ -423,7 +423,7 @@ BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
     return Ret;
 }
 
-VOID PulsePlugins()
+void PulsePlugins()
 {
     PluginDebug("PulsePlugins()");
     if (!bPluginCS)
@@ -445,7 +445,7 @@ VOID PulsePlugins()
     }    
 }
 
-VOID PluginsZoned()
+void PluginsZoned()
 {
     PluginDebug("PluginsZoned()");
     if (!bPluginCS)
@@ -468,7 +468,7 @@ VOID PluginsZoned()
 	}
 }
 
-VOID PluginsCleanUI()
+void PluginsCleanUI()
 {
     PluginDebug("PluginsCleanUI()");
     if (!bPluginCS)
@@ -488,7 +488,7 @@ VOID PluginsCleanUI()
     }
 }
 
-VOID PluginsReloadUI()
+void PluginsReloadUI()
 {
     PluginDebug("PluginsReloadUI()");
     if (!bPluginCS)
@@ -506,7 +506,7 @@ VOID PluginsReloadUI()
     }
 }
 
-VOID PluginsSetGameState(DWORD GameState)
+void PluginsSetGameState(DWORD GameState)
 {
     PluginDebug("PluginsSetGameState()");
     static bool AutoExec=false;
@@ -581,7 +581,7 @@ VOID PluginsSetGameState(DWORD GameState)
     }
 }
 
-VOID PluginsDrawHUD()
+void PluginsDrawHUD()
 {
     PluginDebug("PluginsDrawHUD()");
     if (!bPluginCS)
@@ -598,7 +598,7 @@ VOID PluginsDrawHUD()
     }
 }
 
-VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
+void PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
     DWORD BodyType=GetBodyType(pNewSpawn);
     PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->mActorClient.Race,BodyType);
@@ -622,7 +622,7 @@ VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
     }
 }
 
-VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
+void PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 {
     PluginDebug("PluginsRemoveSpawn(%s)",pSpawn->Name);
     SpawnByName.erase(pSpawn->Name);
@@ -640,7 +640,7 @@ VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
     }
 }
 
-VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
+void PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
 	if (!pNewGroundItem) {
 		DebugSpew("PluginsAddGroundItem was NULL");
@@ -662,7 +662,7 @@ VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
     }
 }
 
-VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
+void PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
     PluginDebug("PluginsRemoveGroundItem()");
     if (!bPluginCS)
@@ -679,7 +679,7 @@ VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
     }
 }
 
-VOID PluginsBeginZone() 
+void PluginsBeginZone() 
 { 
     PluginDebug("PluginsBeginZone()"); 
     if (!bPluginCS) 
@@ -699,7 +699,7 @@ VOID PluginsBeginZone()
     } 
 } 
 
-VOID PluginsEndZone()
+void PluginsEndZone()
 {
 	PluginDebug("PluginsEndZone()");
 	if (!bPluginCS)

@@ -375,7 +375,7 @@ int MyCommand(int argc, char *argv[])
 	return 0;
 }
 
-VOID ExecuteCustomBind(PCHAR Name, BOOL Down);
+void ExecuteCustomBind(PCHAR Name, BOOL Down);
 
 CCustomBind *FindCustomBind(const char *Name)
 {
@@ -407,10 +407,10 @@ bool RemoveCustomBind(const char *Name)
 }
 
 /*
-VOID LoadCustomBinds();
-VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine);
-VOID SaveCustomBinds();
-VOID LoadCustomBinds()
+void LoadCustomBinds();
+void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine);
+void SaveCustomBinds();
+void LoadCustomBinds()
 {
 CHAR filename[MAX_STRING];
 strcpy(filename,gszINIPath);
@@ -445,7 +445,7 @@ strcpy(NewBind.CommandDown,&szLine[5]);
 fclose(file);
 }
 
-VOID SaveCustomBinds()
+void SaveCustomBinds()
 {
 CHAR filename[MAX_STRING];
 strcpy(filename,gszINIPath);
@@ -463,7 +463,7 @@ fclose(file);
 }
 /**/
 
-VOID ExecuteCustomBind(PCHAR Name, BOOL Down)
+void ExecuteCustomBind(PCHAR Name, BOOL Down)
 {
 	CCustomBind *pBind = FindCustomBind(Name);
 	if (!pBind)

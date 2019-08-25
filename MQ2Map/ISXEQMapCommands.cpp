@@ -1,7 +1,7 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 
-VOID MapFilterSetting(DWORD nMapFilter, int arg, int argc, char *argv[])
+void MapFilterSetting(DWORD nMapFilter, int arg, int argc, char *argv[])
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR Buff[MAX_STRING] = { 0 };

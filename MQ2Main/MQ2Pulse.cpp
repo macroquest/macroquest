@@ -688,8 +688,8 @@ void GameLoop_Detour()
 // Function:    ProcessGameEvents 
 // Description: Our ProcessGameEvents Hook
 // *************************************************************************** 
-BOOL Trampoline_ProcessGameEvents(VOID);
-BOOL Detour_ProcessGameEvents(VOID)
+BOOL Trampoline_ProcessGameEvents();
+BOOL Detour_ProcessGameEvents()
 {
 	DebugTryBeginRet();
 	int ret2 = 0;
@@ -747,19 +747,19 @@ std::map<int, std::string>targetBuffSlotToCasterMap;
 std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
 
 void RemoveLoginPulse();
-DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID));
+DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents());
 DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
 
 class CEverQuestHook {
 public:
-	VOID EnterZone_Trampoline(PVOID pVoid);
-	VOID EnterZone_Detour(PVOID pVoid)
+	void EnterZone_Trampoline(PVOID pVoid);
+	void EnterZone_Detour(PVOID pVoid)
 	{
 		EnterZone_Trampoline(pVoid);
 	}
 
-	VOID SetGameState_Trampoline(DWORD GameState);
-	VOID SetGameState_Detour(DWORD GameState)
+	void SetGameState_Trampoline(DWORD GameState);
+	void SetGameState_Detour(DWORD GameState)
 	{
 		//DebugSpew("SetGameState_Detour(%d)",GameState);
 		SetGameState_Trampoline(GameState);
@@ -768,8 +768,8 @@ public:
 			RemoveLoginPulse();
 		}
 	}
-	VOID CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
-	VOID CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
+	void CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
+	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
 	{
 		CMerchantWnd*me = (CMerchantWnd*)this;
 		CMerchantWnd*me2 = (CMerchantWnd*)pMerchantWnd;
@@ -777,8 +777,8 @@ public:
 		CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
 		gItemsReceived = TRUE;
 	}
-	VOID CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
-	VOID CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
+	void CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
+	void CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
 	{
 		//ok so we can cache songs as well here, they are not displayed in the client for some reason...
 
@@ -903,10 +903,10 @@ void InitializeLoginPulse()
 	}
 }
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::LoginController__GiveTime_Tramp());
-DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
-DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
-DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
-DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::EnterZone_Trampoline(PVOID));
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
 
 void InitializeMQ2Pulse()
 {

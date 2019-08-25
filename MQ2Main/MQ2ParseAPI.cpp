@@ -19,7 +19,7 @@
 
 #include "MQ2Main.h"
 
-VOID InitializeParser()
+void InitializeParser()
 {
     DebugSpewNoFile("InitializeParser()");
 
@@ -28,7 +28,7 @@ VOID InitializeParser()
     bmParseMacroParameter=AddMQ2Benchmark("ParseMacroParameter");
 }
 
-VOID ShutdownParser()
+void ShutdownParser()
 {
     DebugSpewNoFile("ShutdownParser()");
     ShutdownMQ2Data();

@@ -239,7 +239,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 class CCommandHook 
 { 
 public: 
-    VOID Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
+    void Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
     {
 		lockit lk(ghCCommandLock,"CCommandHook::Detour");
         DebugSpew("CCommandHook::Detour(%s)",szFullLine);
@@ -436,11 +436,11 @@ public:
 		strcpy_s(szLastCommand,szFullCommand);
     } 
 
-    VOID Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
+    void Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
 
 }; 
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CCommandHook::Trampoline(PSPAWNINFO pChar, PCHAR szFullLine)); 
+DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, PCHAR szFullLine)); 
 
 
 void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL InGame)
@@ -881,7 +881,7 @@ void ShutdownMQ2Commands()
 	}
 }
 
-VOID DoTimedCommands()
+void DoTimedCommands()
 {
 	lockit lk(ghLockDelayCommand,"DoTimedCommands");
     ULONGLONG Now=MQGetTickCount64();
@@ -894,7 +894,7 @@ VOID DoTimedCommands()
     }
 }
 
-VOID TimedCommand(PCHAR Command, DWORD msDelay)
+void TimedCommand(PCHAR Command, DWORD msDelay)
 {
 	lockit lk(ghLockDelayCommand,"TimedCommand");
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;

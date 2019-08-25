@@ -189,7 +189,7 @@ struct [[offsetcomments]] EQGRAPHICSENGINE
 };
 using PEQGRAPHICSENGINE = EQGRAPHICSENGINE*;
 
-//.text:005FC640 ; public: __thiscall CTargetIndicator::CTargetIndicator(void)
+//.text:005FC640 ; public: __thiscall CTargetIndicator::CTargetIndicator()
 // size 0x48 see 4BA434 in Oct 26 2015 -eqmule
 struct [[offsetcomments]] TARGETINDICATOR
 {

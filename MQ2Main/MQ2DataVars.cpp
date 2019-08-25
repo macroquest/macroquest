@@ -18,7 +18,7 @@
 
 #include "MQ2Main.h"
 
-inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
+inline void DeleteMQ2DataVariable(PDATAVAR pVar)
 {
 	lockit lk(ghVariableLock);
 	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
@@ -186,7 +186,7 @@ BOOL DeleteMQ2DataVariable(PCHAR Name)
     return FALSE;
 }
 
-VOID ClearMQ2DataVariables(PDATAVAR *ppHead)
+void ClearMQ2DataVariables(PDATAVAR *ppHead)
 {
     PDATAVAR pVar=*ppHead;
     while(pVar)
@@ -197,7 +197,7 @@ VOID ClearMQ2DataVariables(PDATAVAR *ppHead)
     }
     *ppHead=0;
 }
-VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
+void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
     {
@@ -283,7 +283,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
+void NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (szLine[0]==0) {
         SyntaxError("Usage: /deletevar <varname|* global>");
@@ -303,7 +303,7 @@ VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
+void NewVarset(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
     {
@@ -353,7 +353,7 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
+void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
     {
@@ -419,7 +419,7 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
+void NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
@@ -481,7 +481,7 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
+void AddEvent(DWORD Event, PCHAR FirstArg, ...)
 {
     PEVENTQUEUE pEvent = NULL;
     if (!gEventFunc[Event])
