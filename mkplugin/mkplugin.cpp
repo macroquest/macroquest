@@ -68,27 +68,6 @@ void Filter(const char *from, char *to, const char *plugin)
     to[o++]=0;
 }
 
-void FilterISXEQ(const char *from, char *to, const char *plugin)
-{
-    // filter out ISXEQTemplate
-    // replace with (plugin)
-    int i=0,o=0,plen=(int)strlen(plugin);
-    for (i ; from[i] ; i++)
-    { //               12345678901
-        if (!_strnicmp("ISXEQTemplate",&from[i],13)) // fuck it we dont need to be incredibly efficient for this program!
-        {
-            i+=(int)strlen("ISXEQTemplate")-1;
-            for (int x = 0 ; x < plen ; x++)
-            {
-                to[o++]=plugin[x];
-            }
-        }
-        else
-            to[o++]=from[i];
-    }
-    to[o++]=0;
-}
-
 bool CreateFileFromTemplate(const char *infilename, const char *outfilename, const char *plugin)
 {
     printf("Creating file %s from %s...",outfilename,infilename);
@@ -110,40 +89,6 @@ bool CreateFileFromTemplate(const char *infilename, const char *outfilename, con
     printf("Success\n");
     return true;    
 cfftfail:
-    printf("Failed\n");
-    return false;
-}
-
-bool CreateISXEQFileFromTemplate(const char *infilename, const char *outfilename, const char *plugin)
-{
-    printf("Creating ISXEQ client file %s from %s...",outfilename,infilename);
-    FILE *infile=0;
-    FILE *outfile=0;
-    if (FileExists(outfilename))
-        goto cfftfail;
-    fopen_s(&infile,infilename,"rt");
-    if (!infile) goto cfftfail;
-    fopen_s(&outfile,outfilename,"wt");
-    if (!outfile) goto cfftfail;
-    char in[2048];
-    char out[2048];
-    while(fgets(in,2048,infile))
-    {
-        FilterISXEQ(in,out,plugin);
-        fputs(out,outfile);
-    }
-    if (infile)
-        fclose(infile);
-    if (outfile)
-        fclose(outfile);
-
-    printf("Success\n");
-    return true;    
-cfftfail:
-    if (infile)
-        fclose(infile);
-    if (outfile)
-        fclose(outfile);
     printf("Failed\n");
     return false;
 }
@@ -171,26 +116,6 @@ void MakePlugin(const char *xname)
     strcpy_s(infile,"MQ2Template\\MQ2Template.cpp");
     sprintf_s(outfile,"%s\\%s.cpp",name,name);
     FailMake(CreateFileFromTemplate(infile,outfile,name));
-
-    char ISXName[512];
-    sprintf_s(ISXName,"ISXEQ%s",&name[3]);
-
-    strcpy_s(infile,"MQ2Template\\ISXEQTemplate.vcxproj");
-    sprintf_s(outfile,"%s\\%s.vcxproj",name,ISXName);
-    FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
-
-    strcpy_s(infile, "MQ2Template\\ISXEQTemplate.vcxproj.filters");
-    sprintf_s(outfile, "%s\\%s.vcxproj.filters", name, ISXName);
-    FailMake(CreateISXEQFileFromTemplate(infile, outfile, ISXName));
-
-    strcpy_s(infile,"MQ2Template\\ISXEQTemplate.cpp");
-    sprintf_s(outfile,"%s\\%s.cpp",name,ISXName);
-    FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
-
-    strcpy_s(infile,"MQ2Template\\ISXEQTemplate.h");
-    sprintf_s(outfile,"%s\\%s.h",name,ISXName);
-    FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
-    // todo:  dsp, dep, mak, makefile
 
     printf("-- Plugin %s successfully created --\n",name);
 }
