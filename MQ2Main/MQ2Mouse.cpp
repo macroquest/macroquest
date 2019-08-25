@@ -328,9 +328,9 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if(GetGameState()!=GAMESTATE_INGAME) {
 		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
-		RETURN(0);
+		return;
 	}
-	if (gZoning) RETURN(0);
+	if (gZoning) return;
 	CHAR szMouseLoc[MAX_STRING] = { 0 };
     MOUSE_DATA_TYPES mdType = MD_Unknown;
     DWORD RightOrLeft = 0; 
@@ -343,7 +343,7 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
         if (!_strnicmp(szMouseLoc, "target", 6)) {
             if (!pTarget) {
                 WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED);
-				RETURN(0);
+				return;
             }
             if (!_strnicmp(szArg1, "left", 4)) { 
                 pEverQuest->LeftClickedOnPlayer(pTarget);
@@ -352,7 +352,7 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
                 pEverQuest->RightClickedOnPlayer(pTarget, 0);
                 WeDidStuff();
             }
-			RETURN(0);
+			return;
         }
 		else if(!_strnicmp(szMouseLoc,"center",6)) {
             sprintf_s(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
@@ -405,7 +405,7 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
 			} else {
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right item command.");
 			}
-			RETURN(0);
+			return;
         } else if (!_strnicmp(szMouseLoc, "door", 4)) {
 			// a right clicked door spawn does nothing
 			if(pDoorTarget) {
@@ -451,7 +451,7 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
 							if (pTarget == (PlayerClient*)& DoorEnviroTarget) {//this should NEVER happen
 								pTarget = nullptr;
 							}
-							RETURN(0);
+							return;
 						} else {
 							WriteChatf("You are to far away from the door, please move closer before issuing the /click left door command.");
 						}
@@ -464,10 +464,10 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
 			} else {
 				WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
 			}
-			RETURN(0);
+			return;
 		}
         ClickMouseLoc(szMouseLoc, szArg1);
-		RETURN(0);
+		return;
     }
 
     if (szArg1[0]!=0) {
@@ -478,10 +478,9 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
         } else {
             WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT);
             DebugSpew("Bad command: %s",szLine);
-			RETURN(0);
+			return;
         }
     }
-	RETURN(0);
 }
 // ***************************************************************************
 // Function: MouseTo

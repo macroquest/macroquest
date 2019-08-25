@@ -12,23 +12,15 @@
  * GNU General Public License for more details.
  */
 
-#define DBG_SPEW
-
-#define ISINDEX() (szIndex[0])
-#define ISNUMBER() (IsNumber(szIndex))
-#define GETNUMBER() (atoi(szIndex))
-#define GETFIRST() szIndex
-
 #include "MQ2Main.h"
-#define TLO(funcname) BOOL funcname(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
-TLO(dataSpawn)
+BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
-		if (ISNUMBER())
+		if (IsNumber(szIndex))
 		{
-			if (Ret.Ptr = GetSpawnByID(GETNUMBER()))
+			if (Ret.Ptr = GetSpawnByID(atoi(szIndex)))
 			{
 				Ret.Type = pSpawnType;
 				return true;
@@ -52,7 +44,7 @@ TLO(dataSpawn)
 	return false;
 }
 
-TLO(dataSelect)
+BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -81,7 +73,7 @@ TLO(dataSelect)
 	}
 }
 
-TLO(dataTarget)
+BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pTarget)
 	{
@@ -92,7 +84,7 @@ TLO(dataTarget)
 	return false;
 }
 
-TLO(dataCharacter)
+BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pCharData)
 	{
@@ -103,13 +95,13 @@ TLO(dataCharacter)
 	return false;
 }
 
-TLO(dataSpell)
+BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
-		if (ISNUMBER())
+		if (IsNumber(szIndex))
 		{
-			if (Ret.Ptr = GetSpellByID(GETNUMBER()))
+			if (Ret.Ptr = GetSpellByID(atoi(szIndex)))
 			{
 				Ret.Type = pSpellType;
 				return true;
@@ -117,13 +109,13 @@ TLO(dataSpell)
 		}
 		else
 		{
-			if (Ret.Ptr = GetSpellByName(GETFIRST()))
+			if (Ret.Ptr = GetSpellByName(szIndex))
 			{
 				Ret.Type = pSpellType;
 				return true;
 			}
 			//is it an AA?
-			if (Ret.Ptr = GetSpellByAAName(GETFIRST()))
+			if (Ret.Ptr = GetSpellByAAName(szIndex))
 			{
 				Ret.Type = pSpellType;
 				return true;
@@ -133,7 +125,7 @@ TLO(dataSpell)
 	return false;
 }
 
-TLO(dataSwitch)
+BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pDoorTarget)
 	{
@@ -144,13 +136,13 @@ TLO(dataSwitch)
 	return false;
 }
 
-TLO(dataGroundItem)
+BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	std::map<FLOAT, GROUNDOBJECT>itemmap;
 	//if they did ${Ground[name]}
-	if (ISINDEX()) {
+	if (szIndex[0]) {
 		CHAR szSearch[MAX_STRING] = { 0 };
-		strcpy_s(szSearch, GETFIRST());
+		strcpy_s(szSearch, szIndex);
 		_strlwr_s(szSearch);
 		CHAR szName[MAX_STRING] = { 0 };
 		if (pItemList && pItemList->Top)
@@ -267,7 +259,7 @@ TLO(dataGroundItem)
 	}
 	return false;
 }
-TLO(dataGroundItemCount)
+BOOL dataGroundItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pIntType;
@@ -276,9 +268,9 @@ TLO(dataGroundItemCount)
 	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList)
 	{
 		DWORD Count = 0;
-		if (ISINDEX()) {
+		if (szIndex[0]) {
 			CHAR szSearch[MAX_STRING] = { 0 };
-			strcpy_s(szSearch, GETFIRST());
+			strcpy_s(szSearch, szIndex);
 			_strlwr_s(szSearch);
 			CHAR szName[MAX_STRING] = { 0 };
 			while (pItem) {
@@ -301,13 +293,13 @@ TLO(dataGroundItemCount)
 	}
 	return true;
 }
-TLO(dataMerchant)
+BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = pActiveMerchant;
 	Ret.Type = pMerchantType;
 	return true;
 }
-TLO(dataMercenary)
+BOOL dataMercenary(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pMercInfo && pMercInfo->MercSpawnId)
 	{
@@ -351,7 +343,7 @@ TLO(dataMercenary)
 	}
 	return false;//we need to return true always to be able to get other members out
 }
-TLO(dataPet)
+BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	PSPAWNINFO pSpawn = GetCharInfo()->pSpawn;
 	if (pSpawn && pSpawn->PetID != 0xFFFFFFFF)
@@ -370,7 +362,7 @@ TLO(dataPet)
 	return false;//we need to return true always to be able to get other members out
 }
 
-TLO(dataCorpse)
+BOOL dataCorpse(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pLootWnd)
 	{
@@ -381,7 +373,7 @@ TLO(dataCorpse)
 	return false;
 }
 
-TLO(dataMenu)
+BOOL dataMenu(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (CContextMenuManager*pMrg = pContextMenuManager)
 	{
@@ -393,11 +385,11 @@ TLO(dataMenu)
 	}
 	return false;
 }
-TLO(dataWindow)
+BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
-		if (Ret.Ptr = FindMQ2Window(GETFIRST()))
+		if (Ret.Ptr = FindMQ2Window(szIndex))
 		{
 			Ret.Type = pWindowType;
 			return true;
@@ -406,7 +398,7 @@ TLO(dataWindow)
 	return false;
 }
 
-TLO(dataMacro)
+BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (gRunning)
 	{
@@ -417,41 +409,41 @@ TLO(dataMacro)
 	return false;
 }
 
-TLO(dataMacroQuest)
+BOOL dataMacroQuest(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pMacroQuestType;
 	return true;
 }
 
-TLO(dataEverQuest)
+BOOL dataEverQuest(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pEverQuestType;
 	return true;
 }
 
-TLO(dataMath)
+BOOL dataMath(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pMathType;
 	return true;
 }
 
-TLO(dataZone)
+BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	int nIndex = 0;
 	PZONELIST pZone = NULL;
 
-	if (!ISINDEX())
+	if (!szIndex[0])
 	{
 		Ret.DWord = instEQZoneInfo;
 		Ret.Type = pCurrentZoneType;
 		return true;
 	}
-	else if (ISNUMBER())
+	else if (IsNumber(szIndex))
 	{
-		if (nIndex = (GETNUMBER() & 0x7FFF))
+		if (nIndex = (atoi(szIndex) & 0x7FFF))
 		{
 			if (PCHARINFO pChar = GetCharInfo()) {
 				if ((pChar->zoneId & 0x7FFF) == nIndex)
@@ -470,7 +462,7 @@ TLO(dataZone)
 			}
 		}
 	}
-	else if ((nIndex = GetZoneID(GETFIRST())) != -1)
+	else if ((nIndex = GetZoneID(szIndex)) != -1)
 	{
 		if (PCHARINFO pChar = GetCharInfo()) {
 			if ((pChar->zoneId & 0x7FFF) == nIndex)
@@ -489,21 +481,21 @@ TLO(dataZone)
 	return false;
 }
 
-TLO(dataInt)
+BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	Ret.DWord = atol(szIndex);
 	Ret.Type = pIntType;
 	return true;
 }
 
-TLO(dataString)
+BOOL dataString(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	WriteChatf("Due to complete misuse of the String Top-Level Object, it has been removed.");
 	return false;
 	/*
-	if (!ISINDEX())
+	if (!szIndex[0])
 	return false;
 	strcpy_s(DataTypeTemp,szIndex);
 	Ret.Ptr=&DataTypeTemp[0];
@@ -512,18 +504,18 @@ TLO(dataString)
 	/**/
 }
 
-TLO(dataFloat)
+BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	Ret.Float = (FLOAT)atof(szIndex);
 	Ret.Type = pFloatType;
 	return true;
 }
 
-TLO(dataHeading)
+BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	if (PCHAR pComma = strchr(szIndex, ','))
 	{
@@ -546,9 +538,9 @@ TLO(dataHeading)
 	return true;
 }
 
-TLO(dataBool)
+BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	Ret.DWord = (_stricmp(szIndex, "NULL") && _stricmp(szIndex, "FALSE") &&	strcmp(szIndex, "0"));
 	Ret.Type = pBoolType;
@@ -556,7 +548,7 @@ TLO(dataBool)
 }
 
 /*
-TLO(dataGroupLeader)
+BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!GroupLeader[0] || !_stricmp(GroupLeader, GetCharInfo()->pSpawn->Name))
 	{
@@ -584,7 +576,7 @@ TLO(dataGroupLeader)
 /**/
 
 /*
-TLO(dataGroupLeaderName)
+BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!GroupLeader[0])
 	{
@@ -598,16 +590,16 @@ TLO(dataGroupLeaderName)
 }
 /**/
 
-TLO(dataGroup)
+BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 1;
 	Ret.Type = pGroupType;
 	return true;
 
 	/*
-	if (ISINDEX())
+	if (szIndex[0])
 	{
-		DWORD N = GETNUMBER();
+		DWORD N = atoi(szIndex);
 		if (N == 0)
 		{
 			return dataCharacter("", Ret);
@@ -642,9 +634,9 @@ TLO(dataGroup)
 	/**/
 }
 
-TLO(dataIf)
+BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
 		INT nDelimiter = 0;
 		PCHAR pDelimiter = strchr(szIndex, gIfAltDelimiter);
@@ -721,7 +713,7 @@ TLO(dataIf)
 	return false;
 }
 
-TLO(dataCursor)
+BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray) {
@@ -735,13 +727,13 @@ TLO(dataCursor)
 	return false;
 }
 
-TLO(dataLastSpawn)
+BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
-		if (GETFIRST()[0] == '-')
+		if (szIndex[0] == '-')
 		{
-			unsigned long N = atoi(&GETFIRST()[1]) - 1;
+			unsigned long N = atoi(&szIndex[1]) - 1;
 			if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer)
 			{
 				while (N)
@@ -756,9 +748,9 @@ TLO(dataLastSpawn)
 				return true;
 			}
 		}
-		else if (ISNUMBER())
+		else if (IsNumber(szIndex))
 		{
-			int N = GETNUMBER() - 1;
+			int N = atoi(szIndex) - 1;
 			if (N < 0)
 				N = 0;
 			if (PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList)
@@ -785,9 +777,9 @@ TLO(dataLastSpawn)
 	return false;
 }
 
-TLO(dataNearestSpawn)
+BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
 		unsigned long nth;
 		SEARCHSPAWN ssSpawn;
@@ -799,13 +791,13 @@ TLO(dataNearestSpawn)
 			*pSearch = 0;
 			++pSearch;
 			ParseSearchSpawn(pSearch, &ssSpawn);
-			nth = GETNUMBER();
+			nth = atoi(szIndex);
 		}
 		else
 		{
 			if (IsNumberToComma(szIndex))
 			{
-				nth = GETNUMBER();
+				nth = atoi(szIndex);
 			}
 			else
 			{
@@ -833,9 +825,9 @@ TLO(dataNearestSpawn)
 	return false;
 }
 
-TLO(dataSpawnCount)
+BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
 		SEARCHSPAWN ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
@@ -852,7 +844,7 @@ TLO(dataSpawnCount)
 	}
 }
 
-TLO(dataTime)
+BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	time_t CurTime = { 0 };
 	time(&CurTime);
@@ -863,7 +855,7 @@ TLO(dataTime)
 	Ret.Type = pTimeType;
 	return true;
 }
-TLO(dataGameTime)
+BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
 	ZeroMemory(pTime, sizeof(struct tm));
@@ -881,14 +873,14 @@ TLO(dataGameTime)
 	return true;
 }
 
-TLO(dataRange)
+BOOL dataRange(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 1;
 	Ret.Type = pRangeType;
 	return true;
 }
 
-TLO(dataIni)
+BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex)
 		return false;
@@ -1037,25 +1029,25 @@ TLO(dataIni)
 	return false;
 }
 
-TLO(dataDefined)
+BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	Ret.DWord = (FindMQ2DataVariable(szIndex) != 0);
 	Ret.Type = pBoolType;
 	return true;
 }
 
-TLO(dataSubDefined)
+BOOL dataSubDefined(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	Ret.DWord = gMacroBlock && (gMacroSubLookupMap.find(szIndex) != gMacroSubLookupMap.end());
 	Ret.Type = pBoolType;
 	return true;
 }
 
-TLO(dataSelectedItem)
+BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pInvSlotMgr->pSelectedItem && pInvSlotMgr->pSelectedItem->Index)
 	{
@@ -1084,20 +1076,20 @@ TLO(dataSelectedItem)
 	return false;
 }
 
-TLO(dataFindItemBank)
+BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	CONTENTS* pItem = 0;
-	if (ISNUMBER()) {
-		if (pItem = FindBankItemByID(GETNUMBER())) {
+	if (IsNumber(szIndex)) {
+		if (pItem = FindBankItemByID(atoi(szIndex))) {
 			Ret.Ptr = pItem;
 			Ret.Type = pItemType;
 			return true;
 		}
 		return false;
 	}
-	PCHAR pName = GETFIRST();
+	PCHAR pName = szIndex;
 	BOOL bExact = false;
 
 	if (*pName == '=')
@@ -1114,20 +1106,20 @@ TLO(dataFindItemBank)
 	return false;
 }
 
-TLO(dataFindItem)
+BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 	CONTENTS* pItem = 0;
-	if (ISNUMBER()) {
-		if (pItem = FindItemByID(GETNUMBER())) {
+	if (IsNumber(szIndex)) {
+		if (pItem = FindItemByID(atoi(szIndex))) {
 			Ret.Ptr = pItem;
 			Ret.Type = pItemType;
 			return true;
 		}
 		return false;
 	}
-	PCHAR pName = GETFIRST();
+	PCHAR pName = szIndex;
 	BOOL bExact = false;
 
 	if (*pName == '=')
@@ -1143,16 +1135,16 @@ TLO(dataFindItem)
 	return false;
 }
 
-TLO(dataFindItemCount)
+BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER()) {
-		Ret.DWord = FindItemCountByID(GETNUMBER());
+	if (IsNumber(szIndex)) {
+		Ret.DWord = FindItemCountByID(atoi(szIndex));
 		Ret.Type = pIntType;
 		return true;
 	}
-	PCHAR pName = GETFIRST();
+	PCHAR pName = szIndex;
 	BOOL bExact = false;
 	if (*pName == '=')
 	{
@@ -1164,16 +1156,16 @@ TLO(dataFindItemCount)
 	return true;
 }
 
-TLO(dataFindItemBankCount)
+BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER()) {
-		Ret.DWord = FindBankItemCountByID(GETNUMBER());
+	if (IsNumber(szIndex)) {
+		Ret.DWord = FindBankItemCountByID(atoi(szIndex));
 		Ret.Type = pIntType;
 		return true;
 	}
-	PCHAR pName = GETFIRST();
+	PCHAR pName = szIndex;
 	BOOL bExact = false;
 
 	if (*pName == '=')
@@ -1187,20 +1179,20 @@ TLO(dataFindItemBankCount)
 }
 
 
-TLO(dataInvSlot)
+BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
-		Ret.DWord = GETNUMBER();
+		Ret.DWord = atoi(szIndex);
 		Ret.Type = pInvSlotType;
 		return true;
 	}
 	else
 	{
 		CHAR Temp[MAX_STRING] = { 0 };
-		strcpy_s(Temp, GETFIRST());
+		strcpy_s(Temp, szIndex);
 		_strlwr_s(Temp);
 		Ret.DWord = 0;
 		if (ItemSlotMap.find(Temp) != ItemSlotMap.end())
@@ -1216,13 +1208,13 @@ TLO(dataInvSlot)
 	return false;
 }
 
-TLO(dataPlugin)
+BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
-		int N = GETNUMBER() - 1;
+		int N = atoi(szIndex) - 1;
 		if (N < 0)
 			N = 0;
 		PMQPLUGIN pPlugin = pPlugins;
@@ -1255,13 +1247,13 @@ TLO(dataPlugin)
 	return false;
 }
 
-TLO(dataSkill)
+BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
-		int nSkill = GETNUMBER() - 1;
+		int nSkill = atoi(szIndex) - 1;
 		if (nSkill < 0)
 			nSkill = 0;
 		if (nSkill > NUM_SKILLS)
@@ -1280,7 +1272,7 @@ TLO(dataSkill)
 			{
 				if (PCHAR pName = pStringTable->getString(pSkill->nName, 0))
 				{
-					if (!_stricmp(GETFIRST(), pName))
+					if (!_stricmp(szIndex, pName))
 					{
 						Ret.Ptr = &pSkillMgr->pSkill[nSkill];
 						Ret.Type = pSkillType;
@@ -1294,17 +1286,17 @@ TLO(dataSkill)
 	return false;
 }
 
-TLO(dataAltAbility)
+BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
 		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++)
 		{
 			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility))
 			{
-				if (pAbility->ID == GETNUMBER())
+				if (pAbility->ID == atoi(szIndex))
 				{
 					Ret.Ptr = pAbility;
 					Ret.Type = pAltAbilityType;
@@ -1326,7 +1318,7 @@ TLO(dataAltAbility)
 			{
 				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1, NULL))
 				{
-					if (!_stricmp(GETFIRST(), pName))
+					if (!_stricmp(szIndex, pName))
 					{
 						Ret.Ptr = pAbility;
 						Ret.Type = pAltAbilityType;
@@ -1340,14 +1332,14 @@ TLO(dataAltAbility)
 	return false;
 }
 
-TLO(dataRaid)
+BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pRaidType;
 	return true;
 }
 
-TLO(dataNamingSpawn)
+BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (Ret.Ptr = pNamingSpawn)
 	{
@@ -1357,11 +1349,11 @@ TLO(dataNamingSpawn)
 	return false;
 }
 //Updated by Red-One Jan 2014
-TLO(dataLineOfSight)
+BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!GetCharInfo() && !GetCharInfo()->pSpawn)
 		return FALSE;
-	if (ISINDEX())
+	if (szIndex[0])
 	{
 		FLOAT P1[3];
 		FLOAT P2[3];
@@ -1430,7 +1422,7 @@ TLO(dataLineOfSight)
 	return false;
 }
 
-TLO(dataDoorTarget)
+BOOL dataDoorTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (Ret.Ptr = &DoorEnviroTarget)
 	{
@@ -1440,7 +1432,7 @@ TLO(dataDoorTarget)
 	return false;
 }
 
-TLO(dataItemTarget)
+BOOL dataItemTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (Ret.Ptr = &EnviroTarget)
 	{
@@ -1450,30 +1442,30 @@ TLO(dataItemTarget)
 	return false;
 }
 
-TLO(dataDynamicZone)
+BOOL dataDynamicZone(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pDynamicZoneType;
 	return true;
 }
 
-TLO(dataFriends)
+BOOL dataFriends(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pFriendsType;
 	return true;
 }
 
-TLO(dataTask)
+BOOL dataTask(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Int = -1;
 	if (ppTaskManager)
 	{
-		if (ISINDEX())
+		if (szIndex[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(szIndex))
 			{
-				int n = GETNUMBER();
+				int n = atoi(szIndex);
 				n--;
 				if (n < 0)
 					n = 0;
@@ -1483,7 +1475,7 @@ TLO(dataTask)
 			{
 				CHAR szOut[MAX_STRING] = { 0 };
 				CHAR szTemp[MAX_STRING] = { 0 };
-				strcpy_s(szTemp, GETFIRST());
+				strcpy_s(szTemp, szIndex);
 				_strlwr_s(szTemp);
 				//todo: finish this, we can get this stuff done without taskwindow being open.
 				for (int i = 0; i < 29; i++)
@@ -1501,7 +1493,7 @@ TLO(dataTask)
 				if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
 				{
 					CXStr Str;
-					strcpy_s(szTemp, GETFIRST());
+					strcpy_s(szTemp, szIndex);
 					_strlwr_s(szTemp);
 
 					for (int i = 0; i < clist->ItemsArray.GetCount(); i++)
@@ -1523,13 +1515,13 @@ TLO(dataTask)
 	return true;
 }
 
-TLO(dataMount)
+BOOL dataMount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
-		int n = GETNUMBER();
+		int n = atoi(szIndex);
 		if (n <= 0)
 			return false;
 		n--;
@@ -1552,7 +1544,7 @@ TLO(dataMount)
 			}
 		}
 	}
-	else if (char* pName = GETFIRST())
+	else if (char* pName = szIndex)
 	{
 		bool bExact = false;
 
@@ -1573,14 +1565,14 @@ TLO(dataMount)
 	return false;
 }
 
-TLO(dataIllusion)
+BOOL dataIllusion(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
-		int n = GETNUMBER();
+		int n = atoi(szIndex);
 		if (n <= 0)
 			return false;
 		n--;
@@ -1603,7 +1595,7 @@ TLO(dataIllusion)
 			}
 		}
 	}
-	else if (PCHAR pName = GETFIRST())
+	else if (PCHAR pName = szIndex)
 	{
 		bool bExact = false;
 
@@ -1624,14 +1616,14 @@ TLO(dataIllusion)
 	return false;
 }
 
-TLO(dataFamiliar)
+BOOL dataFamiliar(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX())
+	if (!szIndex[0])
 		return false;
 
-	if (ISNUMBER())
+	if (IsNumber(szIndex))
 	{
-		int n = GETNUMBER();
+		int n = atoi(szIndex);
 		if (n <= 0)
 			return false;
 		n--;
@@ -1653,7 +1645,7 @@ TLO(dataFamiliar)
 			}
 		}
 	}
-	else if (char* pName = GETFIRST())
+	else if (char* pName = szIndex)
 	{
 		bool bExact = false;
 
@@ -1674,11 +1666,11 @@ TLO(dataFamiliar)
 	return false;
 }
 
-TLO(dataAlias)
+BOOL dataAlias(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (ISINDEX())
+	if (szIndex[0])
 	{
-		std::string sName = GETFIRST();
+		std::string sName = szIndex;
 		std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
 		if (mAliases.find(sName) != mAliases.end()) {
 			Ret.DWord = 1;
@@ -1689,16 +1681,16 @@ TLO(dataAlias)
 	return false;
 }
 
-TLO(dataAdvLoot)
+BOOL dataAdvLoot(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pAdvLootType;
 	return true;
 }
 
-TLO(dataAlert)
+BOOL dataAlert(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
-	if (!ISINDEX()) {
+	if (!szIndex[0]) {
 		CHAR szTemp[2048] = { 0 };
 		if (CAlerts.ListAlerts(szTemp, 2048)) {
 			strcpy_s(DataTypeTemp, szTemp);
@@ -1709,14 +1701,14 @@ TLO(dataAlert)
 		return false;
 	}
 
-	if (ISNUMBER()) {
-		Ret.DWord = GETNUMBER();
+	if (IsNumber(szIndex)) {
+		Ret.DWord = atoi(szIndex);
 		Ret.Type = pAlertType;
 		return true;
 	}
 	return false;
 }
-TLO(dataPointMerchant)
+BOOL dataPointMerchant(PCHAR szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pMerchantWnd)
 	{

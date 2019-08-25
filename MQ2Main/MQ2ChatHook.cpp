@@ -225,7 +225,6 @@ void FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Flash On Tells is ON", CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest", "FlashOnTells", "1", gszINIFilename);
 	}
-	RETURN(0);
 }
 
 void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
@@ -248,7 +247,6 @@ void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Beep On Tells is ON", CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest", "BeepOnTells", "1", gszINIFilename);
 	}
-	RETURN(0);
 }
 
 void TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
@@ -272,8 +270,8 @@ void TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Chat Time Stamping is ON", CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest", "TimeStampChat", "1", gszINIFilename);
 	}
-	RETURN(0);
 }
+
 void InitializeChatHook()
 {
 	DebugSpew("Initializing chat hook");

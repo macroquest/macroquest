@@ -141,7 +141,6 @@ void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 		WriteChatf("\ayNetStatus XPos is \ax\at%d\ax", gNetStatusXPos);
 		_itoa_s(gNetStatusXPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
 	}
-	RETURN(0);
 }
 
 void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
@@ -155,7 +154,6 @@ void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 		_itoa_s(gNetStatusYPos, szCmd, 10);
 		WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, gszINIFilename);
 	}
-	RETURN(0);
 }
 
 void InitializeDisplayHook()

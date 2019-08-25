@@ -63,9 +63,6 @@
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
-// Probably needs a Config.h
-//#define KNIGHTLYPARSE
-
 #define VersionString          __ExpectedVersionDate
 #define TimeString             __ExpectedVersionTime
 #define DebugHeader            "[MQ2]"
@@ -89,16 +86,11 @@ extern CRITICAL_SECTION gPluginCS;
 //#define TEST
 #define LIVE
 
-#define RETURN(x) return;
-
 #define KeyRingWindowParent "KeyRingWnd"
 #define MountWindowList "KRW_Mounts_List"
 #define IllusionWindowList "KRW_Illusions_List"
 #define FamiliarWindowList "KRW_Familiars_list"
 #define KeyRingTab "KRW_Subwindows"
-
-#define LEGACY_API EQLIB_API
-#define LEGACY_VAR EQLIB_VAR
 
 #ifdef EQLIB_EXPORTS
 #define EQLIB_API extern "C" __declspec(dllexport)
@@ -117,7 +109,7 @@ extern CRITICAL_SECTION gPluginCS;
 #endif
 
 // reroute malloc/free
-EQLIB_API void *MQ2Malloc(size_t size);
+EQLIB_API void* MQ2Malloc(size_t size);
 EQLIB_API void MQ2Free(void *memblock);
 
 #ifdef DEBUG_ALLOC
@@ -247,27 +239,26 @@ EQLIB_API void ShutdownDisplayHook();
 EQLIB_API void DrawHUD();
 
 /* COMMAND HANDLING */
-LEGACY_API void InitializeMQ2Commands();
-LEGACY_API void ShutdownMQ2Commands();
-LEGACY_API void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ = 0, BOOL Parse = 1, BOOL InGame = 0);
-LEGACY_API void AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
-LEGACY_API BOOL RemoveAlias(PCHAR ShortCommand);
-LEGACY_API void AddSubstitute(PCHAR Original, PCHAR Substitution);
-LEGACY_API BOOL RemoveSubstitute(PCHAR Original);
-LEGACY_API BOOL RemoveCommand(PCHAR Command);
-LEGACY_API void DoTimedCommands();
-LEGACY_API void TimedCommand(PCHAR Command, DWORD msDelay);
+EQLIB_API void InitializeMQ2Commands();
+EQLIB_API void ShutdownMQ2Commands();
+EQLIB_API void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ = 0, BOOL Parse = 1, BOOL InGame = 0);
+EQLIB_API void AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
+EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
+EQLIB_API void AddSubstitute(PCHAR Original, PCHAR Substitution);
+EQLIB_API BOOL RemoveSubstitute(PCHAR Original);
+EQLIB_API BOOL RemoveCommand(PCHAR Command);
+EQLIB_API void DoTimedCommands();
+EQLIB_API void TimedCommand(PCHAR Command, DWORD msDelay);
 
 /* MACRO COMMANDS */
-LEGACY_API void DumpStack(PSPAWNINFO, PCHAR);
-LEGACY_API void EndMacro(PSPAWNINFO, PCHAR);
-LEGACY_API void Echo(SPAWNINFO*, char*);
+EQLIB_API void DumpStack(PSPAWNINFO, PCHAR);
+EQLIB_API void EndMacro(PSPAWNINFO, PCHAR);
+EQLIB_API void Echo(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
 void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues);
 
-#define PMP_ERROR_BADPARM 10000
-LEGACY_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize);
+EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize);
 
 template <unsigned int _Size>
 inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, CHAR(&szOriginal)[_Size])
@@ -275,23 +266,23 @@ inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, CHAR(&szOriginal)[_Size])
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
 
-LEGACY_API void FailIf(PSPAWNINFO pChar, PCHAR szCommand, int pStartLine, BOOL All = FALSE);
-LEGACY_API void InitializeParser();
-LEGACY_API void ShutdownParser();
+EQLIB_API void FailIf(PSPAWNINFO pChar, PCHAR szCommand, int pStartLine, BOOL All = FALSE);
+EQLIB_API void InitializeParser();
+EQLIB_API void ShutdownParser();
 
-LEGACY_API void InitializeMQ2DataTypes();
-LEGACY_API void ShutdownMQ2DataTypes();
-LEGACY_API void InitializeMQ2Data();
-LEGACY_API void ShutdownMQ2Data();
-LEGACY_API BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize);
-LEGACY_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
-LEGACY_API BOOL RemoveMQ2Data(PCHAR szName);
-LEGACY_API MQ2Type *FindMQ2DataType(PCHAR szName);
-LEGACY_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
-LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
-LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
-LEGACY_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
-LEGACY_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
+EQLIB_API void InitializeMQ2DataTypes();
+EQLIB_API void ShutdownMQ2DataTypes();
+EQLIB_API void InitializeMQ2Data();
+EQLIB_API void ShutdownMQ2Data();
+EQLIB_API BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize);
+EQLIB_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
+EQLIB_API BOOL RemoveMQ2Data(PCHAR szName);
+EQLIB_API MQ2Type *FindMQ2DataType(PCHAR szName);
+EQLIB_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
+EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
+EQLIB_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
+EQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
+EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
 
 /* MOUSE */
@@ -339,14 +330,14 @@ EQLIB_API void DebugSpew(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewAlways(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewAlwaysFile(PCHAR szFormat, ...);
 EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...);
-LEGACY_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
-LEGACY_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
-LEGACY_API void AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
+EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
+EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
+EQLIB_API void AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
 
 #define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute,FromPlugin)
-LEGACY_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
+EQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
 #define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer, commandtoexecute)
 
 EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
@@ -358,7 +349,7 @@ EQLIB_API BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime);
 EQLIB_API void AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API void DefaultFilters();
 EQLIB_API PCHAR ConvertHotkeyNameToKeyName(char* szName);
-LEGACY_API void CheckChatForEvent(PCHAR szMsg);
+EQLIB_API void CheckChatForEvent(PCHAR szMsg);
 EQLIB_API void ConvertItemTags(CXStr &cxstr, BOOL Tag = TRUE);
 EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
 EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize);
@@ -413,14 +404,14 @@ EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 
 #include "MQ2Inlines.h"
 
-#define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-#define DECLAREGETMETHOD()
-#define INHERITDIRECT(X)
-#define INHERITINDIRECT(X,Y,Z)
+//#define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+//#define DECLAREGETMETHOD()
+//#define INHERITDIRECT(X)
+//#define INHERITINDIRECT(X,Y,Z)
 
 #include "MQ2DataTypes.h"
 
-LEGACY_API BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber, int localLine);
+EQLIB_API BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber, int localLine);
 
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
@@ -469,11 +460,11 @@ EQLIB_API LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG minleve
 EQLIB_API PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize);
 EQLIB_API void GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API void GetGameTime(int* Hour, int* Minute, int* Night);
-LEGACY_API void SyntaxError(PCHAR szFormat, ...);
-LEGACY_API void MacroError(PCHAR szFormat, ...);
-LEGACY_API void FatalError(PCHAR szFormat, ...);
+EQLIB_API void SyntaxError(PCHAR szFormat, ...);
+EQLIB_API void MacroError(PCHAR szFormat, ...);
+EQLIB_API void FatalError(PCHAR szFormat, ...);
 EQLIB_API PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, SIZE_T BufferSize);
-LEGACY_API void MQ2DataError(PCHAR szFormat, ...);
+EQLIB_API void MQ2DataError(PCHAR szFormat, ...);
 EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
 EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
@@ -491,24 +482,24 @@ EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *fi
 EQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
-LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen);
-//LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
-LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
-LEGACY_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
-LEGACY_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default);
-LEGACY_API PDATAVAR *FindVariableScope(PCHAR Name);
-LEGACY_API BOOL DeleteMQ2DataVariable(PCHAR Name);
-LEGACY_API void ClearMQ2DataVariables(PDATAVAR *ppHead);
-LEGACY_API void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API void NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API void NewVarset(PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API void NewVardata(PSPAWNINFO pChar, PCHAR szLine);
-LEGACY_API void DropTimers();
+EQLIB_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen);
+//EQLIB_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
+EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
+EQLIB_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
+EQLIB_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default);
+EQLIB_API PDATAVAR *FindVariableScope(PCHAR Name);
+EQLIB_API BOOL DeleteMQ2DataVariable(PCHAR Name);
+EQLIB_API void ClearMQ2DataVariables(PDATAVAR *ppHead);
+EQLIB_API void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void NewVarset(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void NewVardata(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void DropTimers();
 
 /*                 */
 
-LEGACY_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed = FromPlugin);
+EQLIB_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed = FromPlugin);
 //EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin, BOOL IncludeOrigin = FALSE);
@@ -516,8 +507,8 @@ EQLIB_API DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigi
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2);
-LEGACY_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
-LEGACY_API void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
@@ -538,10 +529,10 @@ EQLIB_API FLOAT StateHeightMultiplier(DWORD StandState);
 EQLIB_API DWORD WINAPI thrMsgBox(LPVOID lpParameter);
 extern void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color);
 extern void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
-LEGACY_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
+EQLIB_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 
 EQLIB_API void        OverwriteTable(DWORD Address);
-LEGACY_API DWORD      Include(PCHAR szFile, int *LineNumber);
+EQLIB_API DWORD      Include(PCHAR szFile, int *LineNumber);
 EQLIB_API PCHAR       GetFullZone(DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID(PCHAR ZoneShortName);
 EQLIB_API PCHAR       GetShortZone(DWORD ZoneID);
@@ -627,7 +618,7 @@ EQLIB_API void EndAllMacros();
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
 
-LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
+EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"

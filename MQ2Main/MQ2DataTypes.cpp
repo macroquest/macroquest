@@ -18,11 +18,6 @@
 #include "MQ2Main.h"
 #pragma comment(lib, "version.lib")
 
-#define ISINDEX() (Index[0])
-#define ISNUMBER() (IsNumber(Index))
-#define GETNUMBER() (atoi(Index))
-#define GETFIRST() Index
-
 // Datatype Definitions.
 #define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
 	class _class_ *_var_ = 0;
@@ -49,7 +44,7 @@ void ShutdownMQ2DataTypes()
 #undef DATATYPE
 }
 
-bool MQ2TypeType::GETMEMBER()
+bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pType ((MQ2Type*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -65,12 +60,12 @@ bool MQ2TypeType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case TypeMember:
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				// name by number
-				if (Dest.Ptr = pType->GetMemberName(GETNUMBER()))
+				if (Dest.Ptr = pType->GetMemberName(atoi(Index)))
 				{
 					Dest.Type = pStringType;
 					return true;
@@ -92,7 +87,7 @@ bool MQ2TypeType::GETMEMBER()
 #undef pType
 }
 
-bool MQ2PluginType::GETMEMBER()
+bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pPlugin ((PMQPLUGIN)VarPtr.Ptr)
 	if (!pPlugin)
@@ -114,7 +109,7 @@ bool MQ2PluginType::GETMEMBER()
 	return false;
 #undef pPlugin
 }
-bool MQ2FloatType::GETMEMBER()
+bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2FloatType::FindMember(Member);
 	if (!pMember)
@@ -145,9 +140,9 @@ bool MQ2FloatType::GETMEMBER()
 		return true;
 	case Precision:
 		Dest.Type = pStringType;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			sprintf_s(DataTypeTemp, "%.*f", GETNUMBER(), VarPtr.Float);
+			sprintf_s(DataTypeTemp, "%.*f", atoi(Index), VarPtr.Float);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -159,7 +154,7 @@ bool MQ2FloatType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2DoubleType::GETMEMBER()
+bool MQ2DoubleType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2DoubleType::FindMember(Member);
 	if (!pMember)
@@ -190,9 +185,9 @@ bool MQ2DoubleType::GETMEMBER()
 		return true;
 	case Precision:
 		Dest.Type = pStringType;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			sprintf_s(DataTypeTemp, "%.*f", GETNUMBER(), VarPtr.Double);
+			sprintf_s(DataTypeTemp, "%.*f", atoi(Index), VarPtr.Double);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -201,7 +196,7 @@ bool MQ2DoubleType::GETMEMBER()
 	return false;
 }
 
-bool MQ2IntType::GETMEMBER()
+bool MQ2IntType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2IntType::FindMember(Member);
 	if (!pMember)
@@ -244,7 +239,7 @@ bool MQ2IntType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2Int64Type::GETMEMBER()
+bool MQ2Int64Type::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2Int64Type::FindMember(Member);
 	if (!pMember)
@@ -290,7 +285,7 @@ bool MQ2Int64Type::GETMEMBER()
 	return false;
 }
  
-bool MQ2StringType::GETMEMBER()
+bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -308,10 +303,10 @@ bool MQ2StringType::GETMEMBER()
 		return true;
 	case Left:
 		Dest.Type = pStringType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		{
-			int Len = GETNUMBER();
+			int Len = atoi(Index);
 			if (Len == 0)
 				return false;
 			if (Len > MAX_STRING)
@@ -343,10 +338,10 @@ bool MQ2StringType::GETMEMBER()
 		return true;
 	case Right:
 		Dest.Type = pStringType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		{
-			int Len = GETNUMBER();
+			int Len = atoi(Index);
 			if (Len == 0)
 				return false;
 			if (Len<0)
@@ -379,7 +374,7 @@ bool MQ2StringType::GETMEMBER()
 	case Find:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		{
 			char A[MAX_STRING] = { 0 };
@@ -398,7 +393,7 @@ bool MQ2StringType::GETMEMBER()
 	case Replace:
 	{
 		Dest.Type = pStringType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		if (PCHAR pComma = strchr(Index, ','))
 		{
@@ -437,7 +432,7 @@ bool MQ2StringType::GETMEMBER()
 	case Compare:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.Int = _stricmp((char*)VarPtr.Ptr, Index);
 			return true;
@@ -446,7 +441,7 @@ bool MQ2StringType::GETMEMBER()
 	case CompareCS:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.Int = strcmp((char*)VarPtr.Ptr, Index);
 			return true;
@@ -459,7 +454,7 @@ bool MQ2StringType::GETMEMBER()
 			*pComma = 0;
 			pComma++;
 			PCHAR pStr = (char *)VarPtr.Ptr;
-			int nStart = GETNUMBER() - 1;
+			int nStart = atoi(Index) - 1;
 			DWORD Len = atoi(pComma);//dont change this to an int we want them to be able to specify max len as -1
 			if ((size_t)nStart >= strlen(pStr))
 			{
@@ -480,7 +475,7 @@ bool MQ2StringType::GETMEMBER()
 	case Equal:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.DWord = (_stricmp((char*)VarPtr.Ptr, Index) == 0);
 			return true;
@@ -489,7 +484,7 @@ bool MQ2StringType::GETMEMBER()
 	case NotEqual:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.DWord = (_stricmp((char*)VarPtr.Ptr, Index) != 0);
 			return true;
@@ -498,7 +493,7 @@ bool MQ2StringType::GETMEMBER()
 	case EqualCS:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.DWord = (strcmp((char*)VarPtr.Ptr, Index) == 0);
 			return true;
@@ -507,7 +502,7 @@ bool MQ2StringType::GETMEMBER()
 	case NotEqualCS:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.DWord = (strcmp((char*)VarPtr.Ptr, Index) != 0);
 			return true;
@@ -516,7 +511,7 @@ bool MQ2StringType::GETMEMBER()
 	case Count:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			Dest.DWord = 0;
 			PCHAR pLast = (PCHAR)VarPtr.Ptr - 1;
@@ -534,7 +529,7 @@ bool MQ2StringType::GETMEMBER()
 			if (PCHAR pComma = strchr(Index, ','))
 			{
 				*pComma = 0;
-				GetArg(DataTypeTemp, Temp, GETNUMBER(), FALSE, FALSE, FALSE, pComma[1]);
+				GetArg(DataTypeTemp, Temp, atoi(Index), FALSE, FALSE, FALSE, pComma[1]);
 				*pComma = ',';
 				if (DataTypeTemp[0])
 				{
@@ -544,7 +539,7 @@ bool MQ2StringType::GETMEMBER()
 			}
 			else
 			{
-				GetArg(DataTypeTemp, Temp, GETNUMBER());
+				GetArg(DataTypeTemp, Temp, atoi(Index));
 				if (DataTypeTemp[0])
 				{
 					Dest.Ptr = &DataTypeTemp[0];
@@ -557,7 +552,7 @@ bool MQ2StringType::GETMEMBER()
 		Dest.Type = pStringType;
 		if (IsNumberToComma(Index))
 		{
-			DWORD N = GETNUMBER();
+			DWORD N = atoi(Index);
 			if (!N)
 				return false;
 			//char Temp[MAX_STRING]={0};
@@ -600,7 +595,7 @@ bool MQ2StringType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2ArrayType::GETMEMBER()
+bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pArray ((CDataArray*)VarPtr.Ptr)
 	if (!pArray)
@@ -617,9 +612,9 @@ bool MQ2ArrayType::GETMEMBER()
 	case Size:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			int N = GETNUMBER() - 1;
+			int N = atoi(Index) - 1;
 			if (N<0)
 				return false;
 			if ((DWORD)N<pArray->nExtents)
@@ -638,13 +633,13 @@ bool MQ2ArrayType::GETMEMBER()
 	return false;
 #undef pArray
 }
-bool MQ2MathType::GETMEMBER()
+bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2MathType::FindMember(Member);
 	if (!pMember)
 		return false;
 
-	if (!ISINDEX())
+	if (!Index[0])
 		return false;
 	DOUBLE CalcResult;
 	switch ((MathMembers)pMember->ID)
@@ -663,7 +658,7 @@ bool MQ2MathType::GETMEMBER()
 	case Rand:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (char*Arg = GETFIRST()) {
+		if (char*Arg = Index) {
 			char szMin[MAX_STRING] = { 0 };
 			char szMax[MAX_STRING] = { 0 };
 			int Min = 0;
@@ -774,7 +769,7 @@ bool MQ2MathType::GETMEMBER()
 	case Clamp:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (char* Arg = GETFIRST())
+		if (char* Arg = Index)
 		{
 			char szMin[MAX_STRING] = { 0 };
 			char szN[MAX_STRING] = { 0 };
@@ -799,7 +794,7 @@ bool MQ2MathType::GETMEMBER()
 	case Distance:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			FLOAT P1[3];
 			FLOAT P2[3];
@@ -859,7 +854,7 @@ bool MQ2MathType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2MacroType::GETMEMBER()
+bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!gMacroStack)
 		return false;
@@ -920,7 +915,7 @@ bool MQ2MacroType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (FindMQ2Data(GETFIRST()))
+		if (FindMQ2Data(Index))
 			Dest.DWord = 1;
 		return true;
 	}
@@ -928,7 +923,7 @@ bool MQ2MacroType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (VariableMap.find(GETFIRST()) != VariableMap.end())
+		if (VariableMap.find(Index) != VariableMap.end())
 			Dest.DWord = 1;
 		return true;
 	}
@@ -1015,7 +1010,7 @@ bool MQ2MacroType::GETMEMBER()
 	return false;
 }
 
-bool MQ2TicksType::GETMEMBER()
+bool MQ2TicksType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	//if (!VarPtr.DWord)
 	//	return false;
@@ -1084,7 +1079,7 @@ bool MQ2TicksType::GETMEMBER()
 #undef nTicks
 }
 
-bool MQ2TimeStampType::GETMEMBER()
+bool MQ2TimeStampType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define nTimeStamp (VarPtr.UInt64)
 	PMQ2TYPEMEMBER pMember = FindMember(Member);
@@ -1159,7 +1154,7 @@ bool MQ2TimeStampType::GETMEMBER()
 }
 
 
-bool MQ2ArgbType::GETMEMBER()
+bool MQ2ArgbType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = FindMember(Member);
 	if (!pMember)
@@ -1190,7 +1185,7 @@ bool MQ2ArgbType::GETMEMBER()
 	return false;
 }
 
-bool MQ2SpawnType::GETMEMBER()
+bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -1740,7 +1735,7 @@ bool MQ2SpawnType::GETMEMBER()
 		{
 			return (dataNearestSpawn(Index, Dest) != 0);// use top-level object if it's you
 		}
-		if (ISINDEX())
+		if (Index[0])
 		{
 			PCHAR pSearch;
 			unsigned long nth;
@@ -1752,13 +1747,13 @@ bool MQ2SpawnType::GETMEMBER()
 				*pSearch = 0;
 				++pSearch;
 				ParseSearchSpawn(pSearch, &ssSpawn);
-				nth = GETNUMBER();
+				nth = atoi(Index);
 			}
 			else
 			{
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
-					nth = GETNUMBER();
+					nth = atoi(Index);
 				}
 				else
 				{
@@ -1873,7 +1868,7 @@ bool MQ2SpawnType::GETMEMBER()
 	case HeadingToLoc:
 		Dest.Float = 0.0;
 		Dest.Type = pHeadingType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		if (PCHAR pComma = strchr(Index, ','))
 		{
@@ -1998,9 +1993,9 @@ bool MQ2SpawnType::GETMEMBER()
 	case Equipment:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
-				unsigned long nSlot = GETNUMBER();
+		if (Index[0]) {
+			if (IsNumber(Index)) {
+				unsigned long nSlot = atoi(Index);
 				int size = sizeof(EQUIPMENT) / 4;
 				//int size2 = sizeof(szEquipmentSlot);
 				//int size3 = sizeof(szEquipmentSlot[])/4;
@@ -2011,7 +2006,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			else {
 				for (unsigned long nSlot = 0; szEquipmentSlot[nSlot]; nSlot++) {
-					if (!_stricmp(GETFIRST(), szEquipmentSlot[nSlot])) {
+					if (!_stricmp(Index, szEquipmentSlot[nSlot])) {
 						Dest.DWord = pSpawn->Equipment.Item[nSlot].ID;
 						return true;
 					}
@@ -2056,8 +2051,8 @@ bool MQ2SpawnType::GETMEMBER()
 	case CombatSkillTicks:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISNUMBER()) {
-			int index = GETNUMBER();
+		if (IsNumber(Index)) {
+			int index = atoi(Index);
 			if (index < 0)
 				index = 0;
 			if (index > 1)
@@ -2096,8 +2091,8 @@ bool MQ2SpawnType::GETMEMBER()
 		return true;
 	case DragNames:
 		Dest.Type = pStringType;
-		if (ISNUMBER()) {
-			int index = GETNUMBER();
+		if (IsNumber(Index)) {
+			int index = atoi(Index);
 			if (index < 0)
 				index = 0;
 			if (index > 1)
@@ -2151,8 +2146,8 @@ bool MQ2SpawnType::GETMEMBER()
 	case SeeInvis:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISNUMBER()) {
-			int index = GETNUMBER();
+		if (IsNumber(Index)) {
+			int index = atoi(Index);
 			if (index < 0)
 				index = 0;
 			if (index > 2)
@@ -2164,8 +2159,8 @@ bool MQ2SpawnType::GETMEMBER()
 	case SpawnStatus:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISNUMBER()) {
-			int index = GETNUMBER();
+		if (IsNumber(Index)) {
+			int index = atoi(Index);
 			if (index < 0)
 				index = 0;
 			if (index > 5)
@@ -2195,13 +2190,13 @@ bool MQ2SpawnType::GETMEMBER()
 		bool bByIndex = false;
 		bool bByKeyword = false;
 		
-		PCHAR pIndex = GETFIRST();
+		PCHAR pIndex = Index;
 		if (pIndex[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				//by spell ID
-				SpellID = GETNUMBER();
+				SpellID = atoi(Index);
 			}
 			else
 			{
@@ -2483,7 +2478,7 @@ bool MQ2SpawnType::GETMEMBER()
 	}
 
 
-bool MQ2BuffType::GETMEMBER()
+bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pBuff ((SPELLBUFF*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -2685,7 +2680,7 @@ bool MQ2BuffType::GETMEMBER()
 #undef pBuff
 }
 
-bool MQ2TargetBuffType::GETMEMBER()
+bool MQ2TargetBuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	//int theindex VarPtr.Int;
 	if (VarPtr.Int == -1)
@@ -2721,7 +2716,7 @@ bool MQ2TargetBuffType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2CachedBuffType::GETMEMBER()
+bool MQ2CachedBuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
 	if (!pcTB)
@@ -2769,7 +2764,7 @@ bool MQ2CachedBuffType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2CharacterType::GETMEMBER()
+bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PCHARINFO pChar = ((PCHARINFO)VarPtr.Ptr);
 	if (!pChar)
@@ -2922,12 +2917,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case BlockedPetBuff:
 		Dest.Type = pSpellType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo()) {
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int nBuff = GETNUMBER() - 1;
+				int nBuff = atoi(Index) - 1;
 				if (nBuff < 0)
 					nBuff = 0;
 				if(nBuff > 0x28)
@@ -2945,12 +2940,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case BlockedBuff:
 		Dest.Type = pSpellType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo()) {
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int nBuff = GETNUMBER() - 1;
+				int nBuff = atoi(Index) - 1;
 				if (nBuff < 0)
 					nBuff = 0;
 				if(nBuff > 0x28)
@@ -2968,12 +2963,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case Buff:
 		Dest.Type = pBuffType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		if (CHARINFO2* pChar2 = GetCharInfo2()) {
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int nBuff = GETNUMBER() - 1;
+				int nBuff = atoi(Index) - 1;
 				if (nBuff < 0)
 					return false;
 				if (nBuff >= NUM_LONG_BUFFS)
@@ -2990,7 +2985,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (SPELL* pSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 					{
-						if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
+						if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 						{
 							Dest.Ptr = &pChar2->Buff[nBuff];
 							Dest.HighPart = nBuff;
@@ -3003,12 +2998,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case Song:
 		Dest.Type = pBuffType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		if (CHARINFO2* pChar2 = GetCharInfo2()) {
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int nBuff = GETNUMBER() - 1;
+				int nBuff = atoi(Index) - 1;
 				if (nBuff < 0)
 					return false;
 				if (nBuff >= NUM_SHORT_BUFFS)
@@ -3026,7 +3021,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (SPELL* pSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID))
 					{
-						if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
+						if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 						{
 							Dest.Ptr = &pChar2->ShortBuff[nBuff];
 							Dest.HighPart = nBuff;
@@ -3276,12 +3271,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case Inventory:
 		Dest.Type = pItemType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			if (CHARINFO2* pChar2 = GetCharInfo2()) {
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
-					unsigned long nSlot = GETNUMBER();
+					unsigned long nSlot = atoi(Index);
 					if (nSlot < 33)
 					{
 						if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
@@ -3296,7 +3291,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					for (unsigned long nSlot = 0; szItemSlot[nSlot]; nSlot++)
 					{
-						if (!_stricmp(GETFIRST(), szItemSlot[nSlot]))
+						if (!_stricmp(Index, szItemSlot[nSlot]))
 						{
 							if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 								if (Dest.Ptr = pChar2->pInventoryArray->InventoryArray[nSlot])
@@ -3312,11 +3307,11 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case Bank:
 		Dest.Type = pItemType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int nSlot = GETNUMBER() - 1;
+				int nSlot = atoi(Index) - 1;
 				if (nSlot < 0)
 					return false;
 				if (nSlot<NUM_BANK_SLOTS)
@@ -3522,12 +3517,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case Gem:
 		Dest.Type = pSpellType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
 			// number
-			int nGem = GETNUMBER() - 1;
+			int nGem = atoi(Index) - 1;
 			if (nGem < 0)
 				return false;
 			if (nGem<NUM_SPELL_GEMS)
@@ -3546,7 +3541,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 				{
-					if (!_stricmp(GETFIRST(), pSpell->Name))
+					if (!_stricmp(Index, pSpell->Name))
 					{
 						Dest.DWord = nGem + 1;
 						Dest.Type = pIntType;
@@ -3561,16 +3556,16 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		int nLang = 0;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 
-		if (ISNUMBER()) {
-			nLang = GETNUMBER() - 1;
+		if (IsNumber(Index)) {
+			nLang = atoi(Index) - 1;
 			if (nLang < 0)
 				return false;
 		}
 		else {
-			nLang = GetLanguageIDByName(GETFIRST()) - 1;
+			nLang = GetLanguageIDByName(Index) - 1;
 		}
 		if (nLang < 0 || nLang >= 25)
 			return false;
@@ -3580,12 +3575,12 @@ bool MQ2CharacterType::GETMEMBER()
 	}
 	case CombatAbility:
 		Dest.Type = pSpellType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
 			// number
-			int abnum = GETNUMBER();
+			int abnum = atoi(Index);
 			if (abnum <= 0)
 				abnum = 1;
 			int nCombatAbility = abnum - 1;
@@ -3608,7 +3603,7 @@ bool MQ2CharacterType::GETMEMBER()
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
 					if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 					{
-						if (!_stricmp(GETFIRST(), pSpell->Name))
+						if (!_stricmp(Index, pSpell->Name))
 						{
 							Dest.DWord = nCombatAbility + 1;
 							Dest.Type = pIntType;
@@ -3622,12 +3617,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case CombatAbilityTimer:
 		Dest.Int = 0;
 		Dest.Type = pTicksType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				// number
-				int nCombatAbility = GETNUMBER() - 1;
+				int nCombatAbility = atoi(Index) - 1;
 				if (nCombatAbility < 0)
 					return false;
 				if (nCombatAbility < NUM_COMBAT_ABILITIES) {
@@ -3653,7 +3648,7 @@ bool MQ2CharacterType::GETMEMBER()
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
 						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
-							if (!_stricmp(GETFIRST(), pSpell->Name))
+							if (!_stricmp(Index, pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
@@ -3672,11 +3667,11 @@ bool MQ2CharacterType::GETMEMBER()
 	case CombatAbilityReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER()) {
+			if (IsNumber(Index)) {
 				// number
-				int nCombatAbility = GETNUMBER() - 1;
+				int nCombatAbility = atoi(Index) - 1;
 				if (nCombatAbility<0)
 					return false;
 				if (nCombatAbility < NUM_COMBAT_ABILITIES) {
@@ -3701,7 +3696,7 @@ bool MQ2CharacterType::GETMEMBER()
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
 						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
-							if (!_stricmp(GETFIRST(), pSpell->Name))
+							if (!_stricmp(Index, pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
@@ -3758,12 +3753,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case AltAbilityTimer:
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
+		if (Index[0]) {
+			if (IsNumber(Index)) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
-						if (pAbility->ID == GETNUMBER()) {
+						if (pAbility->ID == atoi(Index)) {
 							int reusetimer = 0;
 							pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, &reusetimer);
 							if (reusetimer < 0) {
@@ -3784,7 +3779,7 @@ bool MQ2CharacterType::GETMEMBER()
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 						if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
-							if (!_stricmp(GETFIRST(), pName)) {
+							if (!_stricmp(Index, pName)) {
 								int reusetimer = 0;
 								pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, &reusetimer);
 								if (reusetimer < 0) {
@@ -3802,12 +3797,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case AltAbilityReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
+		if (Index[0]) {
+			if (IsNumber(Index)) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
-						if (pAbility->ID == GETNUMBER()) {
+						if (pAbility->ID == atoi(Index)) {
 							if (pAbility->SpellID != 0xFFFFFFFF)
 								Dest.DWord = pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, 0);
 							return true;
@@ -3824,7 +3819,7 @@ bool MQ2CharacterType::GETMEMBER()
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility),level)) {
 						if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
-							if (!_stricmp(GETFIRST(), pName)) {
+							if (!_stricmp(Index, pName)) {
 								if (pAbility->SpellID != 0xFFFFFFFF)
 									Dest.DWord = pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, 0);
 								return true;
@@ -3837,12 +3832,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case AltAbility:
 		Dest.Type = pAltAbilityType;
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
+		if (Index[0]) {
+			if (IsNumber(Index)) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
-						if (pAbility->ID == GETNUMBER()) {
+						if (pAbility->ID == atoi(Index)) {
 							Dest.Ptr = pAbility;
 							return true;
 						}
@@ -3858,7 +3853,7 @@ bool MQ2CharacterType::GETMEMBER()
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 						if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
-							if (!_stricmp(GETFIRST(), pName)) {
+							if (!_stricmp(Index, pName)) {
 								Dest.Ptr = pAbility;
 								return true;
 							}
@@ -3871,16 +3866,16 @@ bool MQ2CharacterType::GETMEMBER()
 	case Skill:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			if (CHARINFO2* pChar2 = GetCharInfo2())
 			{
 				int nSkill = 0;
 
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
 					// numeric
-					nSkill = GETNUMBER() - 1;
+					nSkill = atoi(Index) - 1;
 					if (nSkill < 0)
 						return false;
 				}
@@ -3888,7 +3883,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					// name
 					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-						if (!_stricmp(GETFIRST(), szSkills[nSkill]))
+						if (!_stricmp(Index, szSkills[nSkill]))
 							break;
 				}
 				if (nSkill < NUM_SKILLS)
@@ -3905,16 +3900,16 @@ bool MQ2CharacterType::GETMEMBER()
 	case SkillBase:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			if (CHARINFO2* pChar2 = GetCharInfo2())
 			{
 				int nSkill = 0;
 
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
 					// numeric
-					nSkill = GETNUMBER() - 1;
+					nSkill = atoi(Index) - 1;
 					if (nSkill < 0)
 						return false;
 				}
@@ -3922,7 +3917,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					// name
 					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-						if (!_stricmp(GETFIRST(), szSkills[nSkill]))
+						if (!_stricmp(Index, szSkills[nSkill]))
 							break;
 				}
 				if (nSkill < NUM_SKILLS)
@@ -3939,16 +3934,16 @@ bool MQ2CharacterType::GETMEMBER()
 	case SkillCap:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			if (CHARINFO2* pChar2 = GetCharInfo2())
 			{
 				int nSkill = 0;
 
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
 					// numeric
-					nSkill = GETNUMBER() - 1;
+					nSkill = atoi(Index) - 1;
 					if (nSkill < 0)
 						return false;
 				}
@@ -3956,7 +3951,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					// name
 					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-						if (!_stricmp(GETFIRST(), szSkills[nSkill]))
+						if (!_stricmp(Index, szSkills[nSkill]))
 							break;
 				}
 				if (nSkill < NUM_SKILLS)
@@ -3971,12 +3966,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case Ability:
 		Dest.Type = pStringType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{	
 				// numeric
-				if (unsigned long nSkill = GETNUMBER())
+				if (unsigned long nSkill = atoi(Index))
 				{
 					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
 					{
@@ -4000,7 +3995,7 @@ bool MQ2CharacterType::GETMEMBER()
 				for(int i=0;i<NUM_SKILLS;i++) {
 					DWORD nToken = pCSkillMgr->GetNameToken(i);
 					if(char *thename = pStringTable->getString(nToken,0)) {
-						if (!_stricmp(GETFIRST(), thename))
+						if (!_stricmp(Index, thename))
 						{
 							//bool bAvail = pCSkillMgr->IsAvailable(i);
 							if (bool bActivated = pCSkillMgr->IsActivatedSkill(i))
@@ -4020,12 +4015,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case AbilityReady:
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				// numeric
-				if (unsigned long nSkill = GETNUMBER())
+				if (unsigned long nSkill = atoi(Index))
 				{
 					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
 					{
@@ -4041,7 +4036,7 @@ bool MQ2CharacterType::GETMEMBER()
 				for (int i = 0; i < NUM_SKILLS; i++) {
 					DWORD nToken = pCSkillMgr->GetNameToken(i);
 					if (char *thename = pStringTable->getString(nToken, 0)) {
-						if (!_stricmp(GETFIRST(), thename))
+						if (!_stricmp(Index, thename))
 						{
 							if (bool bActivated = pCSkillMgr->IsActivatedSkill(i))
 							{
@@ -4055,7 +4050,7 @@ bool MQ2CharacterType::GETMEMBER()
 				//i dont think we need all this crap... the above code should be enough... -eqmule
 				/*for (DWORD nSkill = 0; szSkills[nSkill]; nSkill++)
 				{
-					if (!_stricmp(GETFIRST(), szSkills[nSkill]))
+					if (!_stricmp(Index, szSkills[nSkill]))
 					{
 						// found name
 						//for (DWORD nAbility = 0; nAbility<10; nAbility++)
@@ -4104,13 +4099,13 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case Book:
 		Dest.Type = pSpellType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			if (CHARINFO2* pChar2 = GetCharInfo2()) {
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
 					// numeric
-					int nSpell = GETNUMBER() - 1;
+					int nSpell = atoi(Index) - 1;
 					if (nSpell < 0)
 						return false;
 					if (nSpell < NUM_BOOK_SLOTS)
@@ -4126,7 +4121,7 @@ bool MQ2CharacterType::GETMEMBER()
 					for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++) {
 						if (pChar2->SpellBook[nSpell] != 0xFFFFFFFF)
 						{
-							if (!_stricmp(GetSpellNameByID(pChar2->SpellBook[nSpell]), GETFIRST()))
+							if (!_stricmp(GetSpellNameByID(pChar2->SpellBook[nSpell]), Index))
 							{
 								Dest.DWord = nSpell + 1;
 								Dest.Type = pIntType;
@@ -4143,12 +4138,12 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		CONTENTS* pCont = 0;
-		if (pDisplay && pLocalPlayer && ISINDEX()) {
-			if (ISNUMBER()) {
-				pCont = FindItemByID(GETNUMBER());
+		if (pDisplay && pLocalPlayer && Index[0]) {
+			if (IsNumber(Index)) {
+				pCont = FindItemByID(atoi(Index));
 			}
 			else {
-				if (PCHAR pName = GETFIRST()) {
+				if (PCHAR pName = Index) {
 					BOOL bExact = false;
 					if (*pName == '=') {
 						bExact = true;
@@ -4190,13 +4185,13 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.DWord = 1;
 			return true;
 		}
-		if (pDisplay && pLocalPlayer && ISINDEX())
+		if (pDisplay && pLocalPlayer && Index[0])
 		{
 
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				// numeric 
-				int nGem = GETNUMBER() - 1;
+				int nGem = atoi(Index) - 1;
 				if (nGem < 0 || nGem > NUM_SPELL_GEMS)
 					return false;
 				if (GetSpellByID(GetMemorizedSpell(nGem))) {
@@ -4212,7 +4207,7 @@ bool MQ2CharacterType::GETMEMBER()
 				{
 					if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 					{
-						if (!_stricmp(GETFIRST(), pSpell->Name))
+						if (!_stricmp(Index, pSpell->Name))
 						{
 							if (((CDISPLAY*)pDisplay)->TimeStamp > ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[nGem] && (int)((CDISPLAY*)pDisplay)->TimeStamp > ((SPAWNINFO*)pLocalPlayer)->GetSpellCooldownETA()) {
 								Dest.DWord = 1;
@@ -4226,12 +4221,12 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case PetBuff:
 		Dest.Type = pSpellType;
-		if (!ISINDEX() || !pPetInfoWnd)
+		if (!Index[0] || !pPetInfoWnd)
 			return false;
 
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nBuff = GETNUMBER() - 1;
+			int nBuff = atoi(Index) - 1;
 			if (nBuff < 0)
 				return false;
 			if (nBuff>NUM_BUFF_SLOTS)
@@ -4250,7 +4245,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 				{
-					if (!_stricmp(GETFIRST(), pSpell->Name))
+					if (!_stricmp(Index, pSpell->Name))
 					{
 						Dest.DWord = nBuff + 1;
 						Dest.Type = pIntType;
@@ -4300,8 +4295,8 @@ bool MQ2CharacterType::GETMEMBER()
 	case FreeInventory:
 	{
 		DWORD nSize = 0;
-		if (ISINDEX()) {
-			DWORD nSize = GETNUMBER();
+		if (Index[0]) {
+			DWORD nSize = atoi(Index);
 			if (nSize > 4)
 				nSize = 4;
 		}
@@ -4326,8 +4321,8 @@ bool MQ2CharacterType::GETMEMBER()
 	case RaidAssistTarget:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
-			if (ISINDEX() && ISNUMBER()) {
-				int N = GETNUMBER() - 1;
+			if (Index[0] && IsNumber(Index)) {
+				int N = atoi(Index) - 1;
 				if (N < 0)
 					return false;
 				if (N >= 3)
@@ -4349,9 +4344,9 @@ bool MQ2CharacterType::GETMEMBER()
 	case RaidMarkNPC:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
-			if (ISINDEX() && ISNUMBER())
+			if (Index[0] && IsNumber(Index))
 			{
-				int N = GETNUMBER() - 1;
+				int N = atoi(Index) - 1;
 				if (N < 0)
 					return false;
 				if (N >= 3)
@@ -4365,9 +4360,9 @@ bool MQ2CharacterType::GETMEMBER()
 	case GroupMarkNPC:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
-			if (ISINDEX() && ISNUMBER())
+			if (Index[0] && IsNumber(Index))
 			{
-				int N = GETNUMBER() - 1;
+				int N = atoi(Index) - 1;
 				if (N < 0)
 					return false;
 				if (N >= 3)
@@ -4499,11 +4494,11 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		int nLang = 0;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			nLang = GETNUMBER() - 1;
+			nLang = atoi(Index) - 1;
 			if (nLang < 0)
 				return false;
 			strcpy_s(DataTypeTemp, pEverQuest->GetLangDesc(nLang));
@@ -4512,7 +4507,7 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		else
-			nLang = GetLanguageIDByName(GETFIRST()) - 1;
+			nLang = GetLanguageIDByName(Index) - 1;
 		if (nLang < 0 || nLang >= 25)
 			return false;
 		Dest.DWord = nLang;
@@ -4524,11 +4519,11 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			if (!pAuraMgr->Auras.IsEmpty())
 			{
-				if (ISINDEX())
+				if (Index[0])
 				{
-					if (ISNUMBER())
+					if (IsNumber(Index))
 					{
-						int n = GETNUMBER();
+						int n = atoi(Index);
 						if (n > pAuraMgr->Auras.GetLength())
 							return false;
 						n--;
@@ -4540,7 +4535,7 @@ bool MQ2CharacterType::GETMEMBER()
 					{
 						for (int n = 0; n < pAuraMgr->Auras.GetLength(); n++)
 						{
-							if (!_strnicmp(GETFIRST(), pAuraMgr->Auras[n].Name, strlen(GETFIRST())))
+							if (!_strnicmp(Index, pAuraMgr->Auras[n].Name, strlen(Index)))
 							{
 								Dest.Ptr = &pAuraMgr->Auras[n];
 								Dest.HighPart = n;
@@ -4921,8 +4916,8 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = 0;
 		if (ExtendedTargetList *xtm = pChar->pXTargetMgr) {
 			DWORD AggroPct = 100;
-			if (ISNUMBER()) {
-				AggroPct = GETNUMBER();
+			if (IsNumber(Index)) {
+				AggroPct = atoi(Index);
 				if (AggroPct < 1 || AggroPct > 100) {
 					AggroPct = 100;
 				}
@@ -4979,14 +4974,14 @@ bool MQ2CharacterType::GETMEMBER()
 			int n = 0;
 			if (xtm->XTargetSlots.Count)
 			{
-				if (ISINDEX())
+				if (Index[0])
 				{
-					if (ISNUMBER())
+					if (IsNumber(Index))
 					{
-						int N = GETNUMBER();
+						int N = atoi(Index);
 						if (N > 0 && N <= (int)xtm->XTargetSlots.Count)
 						{
-							Dest.DWord = GETNUMBER() - 1;
+							Dest.DWord = atoi(Index) - 1;
 							Dest.Type = pXTargetType;
 							return true;
 						}
@@ -4996,7 +4991,7 @@ bool MQ2CharacterType::GETMEMBER()
 						for (n = 0; n < xtm->XTargetSlots.Count; n++)
 						{
 							XTARGETSLOT xts = xtm->XTargetSlots[n];
-							if (xts.xTargetType && xts.XTargetSlotStatus && !_stricmp(GETFIRST(), xts.Name))
+							if (xts.xTargetType && xts.XTargetSlotStatus && !_stricmp(Index, xts.Name))
 							{
 								Dest.DWord = n;
 								Dest.Type = pXTargetType;
@@ -5043,9 +5038,9 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
 			if (CHARINFO* pCharInfo = GetCharInfo()) {
 #ifdef NEWCHARINFO
@@ -5053,7 +5048,7 @@ bool MQ2CharacterType::GETMEMBER()
 #else
 				if (pCharInfo->vtable2) {
 #endif
-					Dest.DWord = pCharData1->TotalEffect(GETNUMBER(), true, 0, true, true);
+					Dest.DWord = pCharData1->TotalEffect(atoi(Index), true, 0, true, true);
 					return true;
 				}
 			}
@@ -5079,12 +5074,12 @@ bool MQ2CharacterType::GETMEMBER()
 	case GemTimer:
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
 			// number
-			int nGem = GETNUMBER() - 1;
+			int nGem = atoi(Index) - 1;
 			if (nGem < 0)
 				return false;
 			if (nGem < NUM_SPELL_GEMS)
@@ -5103,7 +5098,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 				{
-					if (!_stricmp(GETFIRST(), pSpell->Name))
+					if (!_stricmp(Index, pSpell->Name))
 					{
 						Dest.UInt64 = GetSpellGemTimer(nGem);
 						return true;
@@ -5115,11 +5110,11 @@ bool MQ2CharacterType::GETMEMBER()
 	case HaveExpansion:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			DWORD nExpansion = GETNUMBER();
+			DWORD nExpansion = atoi(Index);
 			if (nExpansion > NUM_EXPANSIONS)
 				return true;
 			Dest.DWord = GetCharInfo()->ExpansionFlags & EQ_EXPANSION(nExpansion);
@@ -5128,7 +5123,7 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			for (DWORD n = 0; n < NUM_EXPANSIONS; n++)
 			{
-				if (!_stricmp(GETFIRST(), szExpansions[n]))
+				if (!_stricmp(Index, szExpansions[n]))
 				{
 					Dest.DWord = GetCharInfo()->ExpansionFlags & EQ_EXPANSION(n + 1);
 					return true;
@@ -5238,14 +5233,14 @@ bool MQ2CharacterType::GETMEMBER()
 	case AltCurrency:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER()) {
-			Dest.DWord = pPlayerPointManager->GetAltCurrency(GETNUMBER());
+		if (IsNumber(Index)) {
+			Dest.DWord = pPlayerPointManager->GetAltCurrency(atoi(Index));
 			return true;
 		}
 		else {
-			int nCurrency = GetCurrencyIDByName(GETFIRST());
+			int nCurrency = GetCurrencyIDByName(Index);
 			if (nCurrency < 0)
 				return false;
 			Dest.DWord = pPlayerPointManager->GetAltCurrency(nCurrency);
@@ -5788,11 +5783,11 @@ bool MQ2CharacterType::GETMEMBER()
 	case MercListInfo:
 	{
 		Dest.Type = pStringType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER();
+			int nIndex = atoi(Index);
 			if (nIndex > pMercInfo->MercenaryCount)
 				return false;
 			std::map<int, MercDesc> descmap;
@@ -5811,7 +5806,7 @@ bool MQ2CharacterType::GETMEMBER()
 			GetAllMercDesc(descmap);
 			for (auto n = descmap.begin(); n != descmap.end(); n++)
 			{
-				if (!_stricmp(GETFIRST(), n->second.Type.c_str())) {
+				if (!_stricmp(Index, n->second.Type.c_str())) {
 					Dest.DWord = n->first + 1;
 					Dest.Type = pIntType;
 					return true;
@@ -5860,8 +5855,8 @@ bool MQ2CharacterType::GETMEMBER()
 	case BoundLocation:
 		Dest.DWord = 0;
 		Dest.Type = pWorldLocationType;
-		if (ISNUMBER()) {
-			int index = GETNUMBER();
+		if (IsNumber(Index)) {
+			int index = atoi(Index);
 			if (index < 0)
 				index = 0;
 			if (index > 4)
@@ -5872,8 +5867,8 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case AutoSkill:
 		Dest.Type = pSkillType;
-		if (ISNUMBER()) {
-			int index = GETNUMBER();
+		if (IsNumber(Index)) {
+			int index = atoi(Index);
 			index--;
 			if (index < 0)
 				index = 0;
@@ -5978,8 +5973,8 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pBandolierType;
 		if (CHARINFO2* pChar2 = GetCharInfo2())
 		{
-			if (ISNUMBER()) {
-				int index = GETNUMBER();
+			if (IsNumber(Index)) {
+				int index = atoi(Index);
 				index--;
 				if (index < 0)
 					index = 0;
@@ -5992,7 +5987,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				for (int index = 0; index < 20; index++)
 				{
-					if (!_stricmp(GETFIRST(), pChar2->Bandolier[index].Name)) {
+					if (!_stricmp(Index, pChar2->Bandolier[index].Name)) {
 						Dest.DWord = index;
 						return true;
 					}
@@ -6069,7 +6064,7 @@ bool MQ2CharacterType::GETMEMBER()
 	return false;
 }
 
-bool MQ2SpellType::GETMEMBER()
+bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pSpell ((SPELL*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -6094,16 +6089,16 @@ bool MQ2SpellType::GETMEMBER()
 	case Level:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX() && GetCharInfo()->pSpawn)
+		if (!Index[0] && GetCharInfo()->pSpawn)
 		{
 			Dest.DWord = pSpell->ClassLevel[GetCharInfo()->pSpawn->mActorClient.Class];
 			return true;
 		}
 		else
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				unsigned long nIndex = GETNUMBER();
+				unsigned long nIndex = atoi(Index);
 				Dest.DWord = pSpell->ClassLevel[nIndex];
 				return true;
 			}
@@ -6329,8 +6324,8 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		unsigned long buffduration;
 		unsigned long duration = 99999;
-		if (ISNUMBER())
-			duration = GETNUMBER();
+		if (IsNumber(Index))
+			duration = atoi(Index);
 		SPELL* thespell = pSpell;
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
@@ -6364,13 +6359,13 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
-		if (!ISINDEX())
+		if (!Index[0])
 			return true;
 		SPELL* tmpSpell = NULL;
-		if (ISNUMBER())
-			tmpSpell = GetSpellByID(GETNUMBER());
+		if (IsNumber(Index))
+			tmpSpell = GetSpellByID(atoi(Index));
 		else
-			tmpSpell = GetSpellByName(GETFIRST());
+			tmpSpell = GetSpellByName(Index);
 		if (!tmpSpell)
 			return true;
 		SPELL* thespell = pSpell;
@@ -6401,8 +6396,8 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		unsigned long buffduration;
 		unsigned long duration = 99999;
-		if (ISNUMBER())
-			duration = GETNUMBER();
+		if (IsNumber(Index))
+			duration = atoi(Index);
 		unsigned long nBuff;
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
@@ -6448,17 +6443,17 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
-		if (!ISINDEX())
+		if (!Index[0])
 			return true;
 		if (CachedBuffsMap.empty())
 			return true;
 		SPAWNINFO* pSpawn = 0;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			pSpawn = (SPAWNINFO*)GetSpawnByID(atoi(GETFIRST()));
+			pSpawn = (SPAWNINFO*)GetSpawnByID(atoi(Index));
 		}
 		else {
-			pSpawn = (SPAWNINFO*)GetSpawnByName(GETFIRST());
+			pSpawn = (SPAWNINFO*)GetSpawnByName(Index);
 		}
 		if (pSpawn)
 		{
@@ -6558,8 +6553,8 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		unsigned long petbuffduration;
 		unsigned long duration = 99999;
-		if (ISNUMBER())
-			duration = GETNUMBER();
+		if (IsNumber(Index))
+			duration = atoi(Index);
 		unsigned long nBuff;
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
@@ -6584,13 +6579,13 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
-		if (!ISINDEX())
+		if (!Index[0])
 			return true;
 		SPELL* tmpSpell = NULL;
-		if (ISNUMBER())
-			tmpSpell = GetSpellByID(GETNUMBER());
+		if (IsNumber(Index))
+			tmpSpell = GetSpellByID(atoi(Index));
 		else
-			tmpSpell = GetSpellByName(GETFIRST());
+			tmpSpell = GetSpellByName(Index);
 		if (!tmpSpell)
 			return true;
 		Dest.DWord = BuffStackTest(pSpell, tmpSpell, TRUE);
@@ -6637,12 +6632,12 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	case Restrictions:
 		Dest.Type = pStringType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 		strcpy_s(DataTypeTemp, "Unknown");
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			char *ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, sizeof(DataTypeTemp));
@@ -6654,11 +6649,11 @@ bool MQ2SpellType::GETMEMBER()
 	case Base:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = GetSpellBase(pSpell, nIndex);
@@ -6667,11 +6662,11 @@ bool MQ2SpellType::GETMEMBER()
 	case Base2:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = GetSpellBase2(pSpell, nIndex);
@@ -6680,22 +6675,22 @@ bool MQ2SpellType::GETMEMBER()
 	case Max:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			unsigned long nIndex = GETNUMBER() - 1;
+			unsigned long nIndex = atoi(Index) - 1;
 			Dest.DWord = GetSpellMax(pSpell, nIndex);
 		}
 		return true;
 	case Calc:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = GetSpellCalc(pSpell, nIndex);
@@ -6704,11 +6699,11 @@ bool MQ2SpellType::GETMEMBER()
 	case Attrib:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = GetSpellAttrib(pSpell, nIndex);
@@ -6742,11 +6737,11 @@ bool MQ2SpellType::GETMEMBER()
 	case ReagentID:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = pSpell->ReagentID[nIndex];
@@ -6755,11 +6750,11 @@ bool MQ2SpellType::GETMEMBER()
 	case NoExpendReagentID:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = pSpell->NoExpendReagent[nIndex];
@@ -6768,11 +6763,11 @@ bool MQ2SpellType::GETMEMBER()
 	case ReagentCount:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nIndex = GETNUMBER() - 1;
+			int nIndex = atoi(Index) - 1;
 			if (nIndex < 0)
 				return false;
 			Dest.DWord = pSpell->ReagentCount[nIndex];
@@ -7011,11 +7006,11 @@ bool MQ2SpellType::GETMEMBER()
 	case HasSPA:
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int spa = GETNUMBER();
+				int spa = atoi(Index);
 				if (IsSPAEffect(pSpell, spa))
 				{
 					Dest.DWord = true;
@@ -7039,11 +7034,11 @@ bool MQ2SpellType::GETMEMBER()
 		if (pSpellMgr && spafound)
 		{
 			int index = 0;
-			if (ISINDEX())
+			if (Index[0])
 			{
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
-					index = GETNUMBER();
+					index = atoi(Index);
 					if (index > 0)
 						index--;
 					else
@@ -7069,7 +7064,7 @@ bool MQ2SpellType::GETMEMBER()
 #undef pSpell
 	return false;
 }
-bool MQ2ItemSpellType::GETMEMBER()
+bool MQ2ItemSpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -7132,7 +7127,7 @@ bool MQ2ItemSpellType::GETMEMBER()
 	return false;
 }
 
-bool MQ2ItemType::GETMEMBER()
+bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	DWORD N, cmp, tmp;
 #define pItem ((CONTENTS*)VarPtr.Ptr)
@@ -7317,9 +7312,9 @@ bool MQ2ItemType::GETMEMBER()
 	{
 		Dest.Type = pItemType;
 		CONTENTS* pCont = (CONTENTS*)pItem;
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && ISNUMBER())
+		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && IsNumber(Index))
 		{
-			unsigned long N = GETNUMBER();
+			unsigned long N = atoi(Index);
 			N--;
 			if (N < GetItemFromContents(pItem)->Slots)
 			{
@@ -7330,8 +7325,8 @@ bool MQ2ItemType::GETMEMBER()
 					}
 			}
 		}
-		else if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL && ISNUMBER()) {
-			unsigned long N = GETNUMBER();
+		else if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL && IsNumber(Index)) {
+			unsigned long N = atoi(Index);
 			N--;
 			Dest.Ptr = NULL;
 			if (pItem->Contents.ContainedItems.pItems)
@@ -7409,11 +7404,11 @@ bool MQ2ItemType::GETMEMBER()
 	case WornSlot:
 		Dest.DWord = 0;
 		Dest.Type = pInvSlotType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD Count = GETNUMBER();
+				DWORD Count = atoi(Index);
 				if (!Count)
 					return false;
 				cmp = GetItemFromContents(pItem)->EquipSlots;
@@ -7434,8 +7429,8 @@ bool MQ2ItemType::GETMEMBER()
 			else
 			{
 				// by name
-				DWORD nInvSlot = ItemSlotMap[GETFIRST()];
-				if ((nInvSlot || !_stricmp(GETFIRST(), "charm")) && nInvSlot<32)
+				DWORD nInvSlot = ItemSlotMap[Index];
+				if ((nInvSlot || !_stricmp(Index, "charm")) && nInvSlot<32)
 				{
 					Dest.DWord = (GetItemFromContents(pItem)->EquipSlots&(1 << nInvSlot));
 					Dest.Type = pBoolType;
@@ -7740,11 +7735,11 @@ bool MQ2ItemType::GETMEMBER()
 	case Class:
 		Dest.DWord = 0;
 		Dest.Type = pClassType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD Count = GETNUMBER();
+				DWORD Count = atoi(Index);
 				if (!Count)
 					return false;
 				cmp = GetItemFromContents(pItem)->Classes;
@@ -7767,8 +7762,8 @@ bool MQ2ItemType::GETMEMBER()
 				cmp = GetItemFromContents(pItem)->Classes;
 				for (N = 0; N < 16; N++) {
 					if (cmp&(1 << N)) {
-						if (!_stricmp(GETFIRST(), GetClassDesc(N + 1)) ||
-							!_stricmp(GETFIRST(), pEverQuest->GetClassThreeLetterCode(N + 1))) {
+						if (!_stricmp(Index, GetClassDesc(N + 1)) ||
+							!_stricmp(Index, pEverQuest->GetClassThreeLetterCode(N + 1))) {
 							Dest.DWord = N + 1;
 							return true;
 						}
@@ -7792,11 +7787,11 @@ bool MQ2ItemType::GETMEMBER()
 	case Race:
 		Dest.DWord = 0;
 		Dest.Type = pRaceType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD Count = GETNUMBER();
+				DWORD Count = atoi(Index);
 				if (!Count)
 					return false;
 				cmp = GetItemFromContents(pItem)->Races;
@@ -7842,7 +7837,7 @@ bool MQ2ItemType::GETMEMBER()
 							tmp = 330;   // FRG
 							break;
 						}
-						if (!_stricmp(GETFIRST(), pEverQuest->GetRaceDesc(tmp))) {
+						if (!_stricmp(Index, pEverQuest->GetRaceDesc(tmp))) {
 							Dest.DWord = tmp;
 							return true;
 						}
@@ -7866,11 +7861,11 @@ bool MQ2ItemType::GETMEMBER()
 	case Deity:
 		Dest.DWord = 0;
 		Dest.Type = pDeityType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD Count = GETNUMBER();
+				DWORD Count = atoi(Index);
 				if (!Count)
 					return false;
 				cmp = GetItemFromContents(pItem)->Diety;
@@ -7893,7 +7888,7 @@ bool MQ2ItemType::GETMEMBER()
 				cmp = GetItemFromContents(pItem)->Diety;
 				for (N = 0; N < NUM_DEITIES; N++) {
 					if (cmp&(1 << N)) {
-						if (!_stricmp(GETFIRST(), pEverQuest->GetDeityDesc(N + 200))) {
+						if (!_stricmp(Index, pEverQuest->GetDeityDesc(N + 200))) {
 							Dest.DWord = N + 200;
 							return true;
 						}
@@ -8093,11 +8088,11 @@ bool MQ2ItemType::GETMEMBER()
 	case AugSlot:
 		Dest.DWord = 0;
 		Dest.Type = pAugType;
-		if (ISNUMBER()) {
+		if (IsNumber(Index)) {
 			if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) {
 				Dest.DWord = 0;
 			} else {
-				int index = GETNUMBER();
+				int index = atoi(Index);
 				if (index < 0)
 					index = 0;
 				if (index > 5)
@@ -8428,7 +8423,7 @@ bool MQ2ItemType::GETMEMBER()
 			{
 				Dest.DWord = 0;
 				BOOL bExact = FALSE;
-				PCHAR pName1 = GETFIRST();
+				PCHAR pName1 = Index;
 				if (*pName1 == '=')
 				{
 					bExact = TRUE;
@@ -8526,7 +8521,7 @@ bool MQ2ItemType::GETMEMBER()
 #undef pItem
 }
 
-bool MQ2WindowType::GETMEMBER()
+bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -8572,7 +8567,7 @@ bool MQ2WindowType::GETMEMBER()
 
 		case Select:
 		{
-			int ListIndex = atoi(GETFIRST()) - 1;
+			int ListIndex = atoi(Index) - 1;
 			if (ListIndex < 0)
 				ListIndex = 0;
 
@@ -8635,7 +8630,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Child:
-		if (Dest.Ptr = ((CSidlScreenWnd*)VarPtr.Ptr)->GetChildItem(GETFIRST()))
+		if (Dest.Ptr = ((CSidlScreenWnd*)VarPtr.Ptr)->GetChildItem(Index))
 		{
 			Dest.Type = pWindowType;
 			return true;
@@ -8785,16 +8780,16 @@ bool MQ2WindowType::GETMEMBER()
 		{
 			return false;
 		}
-		if (PCHAR pComma = strchr(GETFIRST(), ','))
+		if (PCHAR pComma = strchr(Index, ','))
 		{
 			n = atoi(pComma + 1) - 1;
 			if (n < 0) n = 0;
 			DebugSpew("List: index is %d\n", n);
 			*pComma = '\0';
 		}
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			unsigned long nIndex = GETNUMBER();
+			unsigned long nIndex = atoi(Index);
 			if (!nIndex)
 				return false;
 
@@ -8809,13 +8804,13 @@ bool MQ2WindowType::GETMEMBER()
 			// name
 			BOOL bEqual = false;
 			char Name[MAX_STRING] = { 0 };
-			if (GETFIRST()[0] == '=')
+			if (Index[0] == '=')
 			{
 				bEqual = true;
-				strcpy_s(Name, &GETFIRST()[1]);
+				strcpy_s(Name, &Index[1]);
 			}
 			else
-				strcpy_s(Name, GETFIRST());
+				strcpy_s(Name, Index);
 			_strlwr_s(Name);
 			unsigned long nIndex = 0;
 			while (true)
@@ -8948,7 +8943,7 @@ bool MQ2WindowType::GETMEMBER()
 #undef pWnd
 }
 
-bool MQ2MenuType::GETMEMBER()
+bool MQ2MenuType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -8960,13 +8955,13 @@ bool MQ2MenuType::GETMEMBER()
 		{
 			case Select:
 			{
-				if (ISINDEX())
+				if (Index[0])
 				{
 					if (pMgr->NumVisibleMenus == 1)
 					{
 						char szArg[MAX_STRING] = { 0 };
 						char szArg2[MAX_STRING] = { 0 };
-						strcpy_s(szArg,GETFIRST());
+						strcpy_s(szArg,Index);
 						_strlwr_s(szArg);
 						if (pMgr->CurrMenu < 8)
 						{
@@ -9077,13 +9072,13 @@ bool MQ2MenuType::GETMEMBER()
 			return false;
 		case Items:
 			Dest.Type = pStringType;
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				if (pMgr->NumVisibleMenus == 1)
 				{
 					if (pMgr->CurrMenu < 8)
 					{
-						int index = GETNUMBER();
+						int index = atoi(Index);
 						int currmen = pMgr->CurrMenu;
 						if (CContextMenu*menu = pMgr->pCurrMenus[currmen])
 						{
@@ -9102,7 +9097,7 @@ bool MQ2MenuType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2CurrentZoneType::GETMEMBER()
+bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PZONEINFO pthezone = (PZONEINFO)pZoneInfo;
 #define pZone ((PZONEINFO)pZoneInfo)
@@ -9185,7 +9180,7 @@ bool MQ2CurrentZoneType::GETMEMBER()
 #undef pZone
 }
 
-bool MQ2ZoneType::GETMEMBER()
+bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9222,7 +9217,7 @@ bool MQ2ZoneType::GETMEMBER()
 #undef pZone
 }
 
-bool MQ2BodyType::GETMEMBER()
+bool MQ2BodyType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2BodyType::FindMember(Member);
 	if (!pMember)
@@ -9241,7 +9236,7 @@ bool MQ2BodyType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2DeityType::GETMEMBER()
+bool MQ2DeityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2DeityType::FindMember(Member);
 	if (!pMember)
@@ -9265,7 +9260,7 @@ bool MQ2DeityType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2ClassType::GETMEMBER()
+bool MQ2ClassType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2ClassType::FindMember(Member);
 	if (!pMember)
@@ -9365,7 +9360,7 @@ bool MQ2ClassType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2RaceType::GETMEMBER()
+bool MQ2RaceType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2RaceType::FindMember(Member);
 	if (!pMember)
@@ -9386,7 +9381,7 @@ bool MQ2RaceType::GETMEMBER()
 }
 
 
-bool MQ2SwitchType::GETMEMBER()
+bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9554,7 +9549,7 @@ bool MQ2SwitchType::GETMEMBER()
 	return false;
 }
 
-bool MQ2GroundType::GETMEMBER()
+bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9978,7 +9973,7 @@ bool MQ2GroundType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2MacroQuestType::GETMEMBER()
+bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2MacroQuestType::FindMember(Member);
 	if (!pMember)
@@ -10125,7 +10120,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2CharSelectListType::GETMEMBER()
+bool MQ2CharSelectListType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2CharSelectListType::FindMember(Member);
 	if (!pMember)
@@ -10204,7 +10199,7 @@ bool MQ2CharSelectListType::GETMEMBER()
 	return false;
 }
 
-bool MQ2EverQuestType::GETMEMBER()
+bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2EverQuestType::FindMember(Member);
 	if (!pMember)
@@ -10309,9 +10304,9 @@ bool MQ2EverQuestType::GETMEMBER()
 		if (((EVERQUEST*)pEverQuest)->ChatService)
 		{
 			CHATSERVICE* pChat = ((EVERQUEST*)pEverQuest)->ChatService;
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD index = GETNUMBER();
+				DWORD index = atoi(Index);
 				if (pChat->ActiveChannels && index && index <= pChat->ActiveChannels)
 				{
 					strcpy_s(DataTypeTemp, pChat->ChannelList->ChannelName[index - 1]);
@@ -10323,7 +10318,7 @@ bool MQ2EverQuestType::GETMEMBER()
 			else
 			{
 				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, GETFIRST());
+				strcpy_s(Name, Index);
 				for (unsigned int i = 0; i<pChat->ActiveChannels; i++)
 				{
 					if (!_stricmp(Name, pChat->ChannelList->ChannelName[i]))
@@ -10439,11 +10434,11 @@ bool MQ2EverQuestType::GETMEMBER()
 	case CharSelectList:
 		Dest.DWord = 0;
 		Dest.Type = pCharSelectListType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int num = atoi(GETFIRST());
+				int num = atoi(Index);
 				num--;
 				if (num < 0)
 					num = 0;
@@ -10455,7 +10450,7 @@ bool MQ2EverQuestType::GETMEMBER()
 				}
 			}
 			else {
-				if (PCHAR pName = GETFIRST()) {
+				if (PCHAR pName = Index) {
 					char szName[256] = { 0 };
 					if (EVERQUEST* pEQ = (EVERQUEST*)pEverQuest) {
 						if (pEQ->pCharSelectPlayerArray.Count) {
@@ -10517,7 +10512,7 @@ bool MQ2EverQuestType::GETMEMBER()
 	return false;
 }
 
-bool MQ2TimeType::GETMEMBER()
+bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pTime ((struct tm *)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -10598,7 +10593,7 @@ bool MQ2TimeType::GETMEMBER()
 #undef pTime
 }
 
-bool MQ2HeadingType::GETMEMBER()
+bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2HeadingType::FindMember(Member);
 	if (!pMember)
@@ -10635,7 +10630,7 @@ bool MQ2HeadingType::GETMEMBER()
 	return false;
 }
 
-bool MQ2CorpseType::GETMEMBER()
+bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pActiveCorpse || !pLootWnd)
 		return false;
@@ -10654,11 +10649,11 @@ bool MQ2CorpseType::GETMEMBER()
 		return true;
 	case Item:
 		Dest.Type = pItemType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int nIndex = GETNUMBER() - 1;
+				int nIndex = atoi(Index) - 1;
 				if (nIndex < 0)
 					return false;
 				if (nIndex < 33 && pLoot->pInventoryArray)
@@ -10673,7 +10668,7 @@ bool MQ2CorpseType::GETMEMBER()
 			{
 				// name
 				BOOL bExact = FALSE;
-				PCHAR pName1 = GETFIRST();
+				PCHAR pName1 = Index;
 				if (*pName1 == '=')
 				{
 					bExact = TRUE;
@@ -10727,7 +10722,7 @@ bool MQ2CorpseType::GETMEMBER()
 #undef pLoot
 }
 
-bool MQ2MerchantType::GETMEMBER()
+bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pMerchantWnd)
 		return false;
@@ -10743,7 +10738,7 @@ bool MQ2MerchantType::GETMEMBER()
 				char szTemp[MAX_STRING] = { 0 };
 				char szTemp2[MAX_STRING] = { 0 };
 				BOOL bExact = FALSE;
-				PCHAR pName = GETFIRST();
+				PCHAR pName = Index;
 				if (*pName == '=')
 				{
 					bExact = TRUE;
@@ -10819,7 +10814,7 @@ bool MQ2MerchantType::GETMEMBER()
 		{
 			if (pMerchantWnd->IsVisible())
 			{
-				int Qty = GETNUMBER();
+				int Qty = atoi(Index);
 				if (Qty < 1)
 					return false;
 
@@ -10836,7 +10831,7 @@ bool MQ2MerchantType::GETMEMBER()
 		{
 			if (pMerchantWnd->IsVisible())
 			{
-				int Qty = GETNUMBER();
+				int Qty = atoi(Index);
 				if (Qty < 1)
 					return false;
 				if (pMerchantWnd->pSelectedItem.pObject && pMerchantWnd->pSelectedItem.pObject->GetGlobalIndex().GetLocation() == eItemContainerPossessions)
@@ -10902,12 +10897,12 @@ bool MQ2MerchantType::GETMEMBER()
 
 	case Item:
 		Dest.Type = pItemType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			if (pMerchantWnd && pMerchantWnd->PageHandlers[RegularMerchantPage].pObject) {
-				if (ISNUMBER())
+				if (IsNumber(Index))
 				{
-					int nIndex = GETNUMBER() - 1;
+					int nIndex = atoi(Index) - 1;
 					if (nIndex < 0)
 						return false;
 					if (nIndex < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->MaxItems)
@@ -10922,7 +10917,7 @@ bool MQ2MerchantType::GETMEMBER()
 				{
 					// name
 					bool bExact = false;
-					char* pName1 = GETFIRST();
+					char* pName1 = Index;
 					if (*pName1 == '=')
 					{
 						bExact = true;
@@ -11013,7 +11008,7 @@ bool MQ2MerchantType::GETMEMBER()
 	return false;
 }
 
-bool MQ2PointMerchantItemType::GETMEMBER()
+bool MQ2PointMerchantItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pMerchantWnd)
 		return false;
@@ -11077,7 +11072,7 @@ bool MQ2PointMerchantItemType::GETMEMBER()
 	return false;
 }
 
-bool MQ2PointMerchantType::GETMEMBER()
+bool MQ2PointMerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pMerchantWnd)
 		return false;
@@ -11093,9 +11088,9 @@ bool MQ2PointMerchantType::GETMEMBER()
 	case Item:
 		Dest.Int = 0;
 		Dest.Type = pPointMerchantItemType;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int index = GETNUMBER() - 1;
+			int index = atoi(Index) - 1;
 			if (index >= 0 && index < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize())
 			{
 				Dest.Int = index;
@@ -11104,12 +11099,12 @@ bool MQ2PointMerchantType::GETMEMBER()
 		}
 		else
 		{
-			if (GETFIRST()[0] != '\0')
+			if (Index[0] != '\0')
 			{
 				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize(); i++)
 				{
 					auto name = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[i].pCont->Item2->Name;
-					if (!_stricmp(name, GETFIRST()))
+					if (!_stricmp(name, Index))
 					{
 						Dest.Int = i;
 						return true;
@@ -11121,7 +11116,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 	return false;
 }
 
-bool MQ2MercenaryType::GETMEMBER()
+bool MQ2MercenaryType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -11393,7 +11388,7 @@ bool MQ2MercenaryType::GETMEMBER()
 	return false;
 }
 
-bool MQ2PetType::GETMEMBER()
+bool MQ2PetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -11413,12 +11408,12 @@ bool MQ2PetType::GETMEMBER()
 	{
 	case Buff:
 		Dest.Type = pSpellType;
-		if (!ISINDEX() || !pPetInfoWnd)
+		if (!Index[0] || !pPetInfoWnd)
 			return false;
 
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nBuff = GETNUMBER() - 1;
+			int nBuff = atoi(Index) - 1;
 			if (nBuff < 0)
 				return false;
 
@@ -11440,7 +11435,7 @@ bool MQ2PetType::GETMEMBER()
 			{
 				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 				{
-					if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
+					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 					{
 						Dest.DWord = nBuff + 1;
 						Dest.Type = pIntType;
@@ -11454,12 +11449,12 @@ bool MQ2PetType::GETMEMBER()
 	case BuffDuration:
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
-		if (!ISINDEX() || !pPetInfoWnd)
+		if (!Index[0] || !pPetInfoWnd)
 			return false;
 
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
-			int nBuff = GETNUMBER() - 1;
+			int nBuff = atoi(Index) - 1;
 			if (nBuff < 0)
 				return false;
 
@@ -11477,7 +11472,7 @@ bool MQ2PetType::GETMEMBER()
 			{
 				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 				{
-					if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
+					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 					{
 						Dest.UInt64 = pPetInfoWnd->PetBuffTimer[nBuff];
 						return true;
@@ -11550,7 +11545,7 @@ bool MQ2PetType::GETMEMBER()
 // 6000-6080 merchant window
 // 7000-7080 bazaar window
 // 8000-8031 inspect window
-bool MQ2InvSlotType::GETMEMBER()
+bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	int nInvSlot = VarPtr.Int;
 	PMQ2TYPEMEMBER pMember = MQ2InvSlotType::FindMember(Member);
@@ -11900,7 +11895,7 @@ bool MQ2InvSlotType::GETMEMBER()
 	return false;
 }
 
-bool MQ2TimerType::GETMEMBER()
+bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 #define pTimer ((PMQTIMER)VarPtr.Ptr)
 	if (!pTimer)
@@ -11917,7 +11912,7 @@ bool MQ2TimerType::GETMEMBER()
 			return true;
 		case Set:
 		{
-			FromString(VarPtr, GETFIRST());
+			FromString(VarPtr, Index);
 			return true;
 		}
 		}
@@ -11941,7 +11936,7 @@ bool MQ2TimerType::GETMEMBER()
 #undef pTimer
 }
 
-bool MQ2SkillType::GETMEMBER()
+bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -11953,12 +11948,12 @@ bool MQ2SkillType::GETMEMBER()
 		return false;
 	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		DWORD nIndex = pChar2->Class;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
 				// class by number 
-				nIndex = GETNUMBER();
+				nIndex = atoi(Index);
 			}
 			else
 			{
@@ -11966,8 +11961,8 @@ bool MQ2SkillType::GETMEMBER()
 				for (int N = 1; N < 17; N++)
 				{
 					if (
-						!_stricmp(GETFIRST(), GetClassDesc(N)) ||
-						!_stricmp(GETFIRST(), pEverQuest->GetClassThreeLetterCode(N))
+						!_stricmp(Index, GetClassDesc(N)) ||
+						!_stricmp(Index, pEverQuest->GetClassThreeLetterCode(N))
 						)
 					{
 						nIndex = N;
@@ -12039,7 +12034,7 @@ bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	return true;
 }
 
-bool MQ2AltAbilityType::GETMEMBER()
+bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -12206,7 +12201,7 @@ bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	return true;
 }
 
-bool MQ2GroupType::GETMEMBER()
+bool MQ2GroupType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2GroupType::FindMember(Member);
 	CHARINFO* pChar = GetCharInfo();
@@ -12224,12 +12219,12 @@ bool MQ2GroupType::GETMEMBER()
 	case xMember:
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
 			// by number
-			Dest.DWord = GETNUMBER();
+			Dest.DWord = atoi(Index);
 			return true;
 		}
 		else
@@ -12237,7 +12232,7 @@ bool MQ2GroupType::GETMEMBER()
 			if (pChar->pSpawn)
 			{
 				Dest.DWord = 0;
-				if (!_stricmp(pChar->pSpawn->Name, GETFIRST()))
+				if (!_stricmp(pChar->pSpawn->Name, Index))
 				{
 					Dest.DWord = 0;
 					return true;
@@ -12253,7 +12248,7 @@ bool MQ2GroupType::GETMEMBER()
 
 						CleanupName(Name, sizeof(Name), FALSE, FALSE); // we do this to fix the mercenaryname bug
 
-						if (GETFIRST()[0] != 0 && !_stricmp(Name, GETFIRST()))
+						if (Index[0] != 0 && !_stricmp(Name, Index))
 						{
 							return true;
 						}
@@ -12528,7 +12523,7 @@ bool MQ2GroupType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (int threshold = GETNUMBER())
+		if (int threshold = atoi(Index))
 		{
 			int64_t hps = 0;
 			for (int i = 0; i < 6; i++)
@@ -12655,7 +12650,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	return false;
 }
 
-bool MQ2GroupMemberType::GETMEMBER()
+bool MQ2GroupMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	char MemberName[MAX_STRING] = { 0 };
 	char LeaderName[MAX_STRING] = { 0 };
@@ -12857,7 +12852,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 	return false;
 }
 
-bool MQ2RaidType::GETMEMBER()
+bool MQ2RaidType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pRaid)
 		return false;
@@ -12882,11 +12877,11 @@ bool MQ2RaidType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pRaidMemberType;
 
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD Count = GETNUMBER();
+				DWORD Count = atoi(Index);
 				if (!Count || Count>pRaid->RaidMemberCount)
 					return false;
 				for (DWORD nMember = 0; nMember < 72; nMember++)
@@ -12907,7 +12902,7 @@ bool MQ2RaidType::GETMEMBER()
 				// by name
 				for (DWORD nMember = 0; nMember < 72; nMember++)
 				{
-					if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, GETFIRST()))
+					if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, Index))
 					{
 						Dest.DWord = nMember + 1;
 						return true;
@@ -12967,11 +12962,11 @@ bool MQ2RaidType::GETMEMBER()
 
 	case Looter:
 		Dest.Type = pStringType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int Count = GETNUMBER();
+				int Count = atoi(Index);
 				if (!Count)
 					return false;
 
@@ -13022,7 +13017,7 @@ bool MQ2RaidType::GETMEMBER()
 	return false;
 }
 
-bool MQ2RaidMemberType::GETMEMBER()
+bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	DWORD nRaidMember = VarPtr.DWord - 1;
 	if (VarPtr.DWord >= 72)
@@ -13114,7 +13109,7 @@ bool MQ2RaidMemberType::GETMEMBER()
 	return false;
 }
 
-bool MQ2EvolvingItemType::GETMEMBER()
+bool MQ2EvolvingItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13144,7 +13139,7 @@ bool MQ2EvolvingItemType::GETMEMBER()
 	return false;
 }
 
-bool MQ2DynamicZoneType::GETMEMBER()
+bool MQ2DynamicZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pDZMember)
 		return false;
@@ -13181,12 +13176,12 @@ bool MQ2DynamicZoneType::GETMEMBER()
 
 	case xMember:
 		Dest.Type = pDZMemberType;
-		if (ISINDEX())
+		if (Index[0])
 		{
 			DZMEMBER* pDynamicZoneMember = pDynamicZone->pMemberList;
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD Count = GETNUMBER();
+				DWORD Count = atoi(Index);
 				if (!Count || Count>pDynamicZone->MaxPlayers)
 					return false;
 				Count--;
@@ -13205,7 +13200,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 			{
 				while (pDynamicZoneMember)
 				{
-					if (!_stricmp(pDynamicZoneMember->Name, GETFIRST()))
+					if (!_stricmp(pDynamicZoneMember->Name, Index))
 					{
 						Dest.Ptr = pDynamicZoneMember;
 						return true;
@@ -13245,7 +13240,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 	return false;
 }
 
-bool MQ2DZMemberType::GETMEMBER()
+bool MQ2DZMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13290,7 +13285,7 @@ bool MQ2DZMemberType::GETMEMBER()
 	return false;
 }
 
-bool MQ2FellowshipType::GETMEMBER()
+bool MQ2FellowshipType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13326,11 +13321,11 @@ bool MQ2FellowshipType::GETMEMBER()
 
 	case xMember:
 		Dest.Type = pFellowshipMemberType;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD i = GETNUMBER();
+				DWORD i = atoi(Index);
 				if (!i || i>pFellowship->Members)
 					return false;
 				Dest.Ptr = &pFellowship->FellowshipMember[--i];
@@ -13340,7 +13335,7 @@ bool MQ2FellowshipType::GETMEMBER()
 			{
 				for (DWORD i = 0; i<pFellowship->Members; i++)
 				{
-					if (!_stricmp(pFellowship->FellowshipMember[i].Name, GETFIRST()))
+					if (!_stricmp(pFellowship->FellowshipMember[i].Name, Index))
 					{
 						Dest.Ptr = &pFellowship->FellowshipMember[i];
 						return true;
@@ -13393,7 +13388,7 @@ bool MQ2FellowshipType::GETMEMBER()
 	return false;
 }
 
-bool MQ2FellowshipMemberType::GETMEMBER()
+bool MQ2FellowshipMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13446,7 +13441,7 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 	return false;
 }
 
-bool MQ2FriendsType::GETMEMBER()
+bool MQ2FriendsType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2FriendsType::FindMember(Member);
 	if (!pMember)
@@ -13455,12 +13450,12 @@ bool MQ2FriendsType::GETMEMBER()
 	{
 	case xFriend:
 		Dest.Type = pStringType;
-		if (ISINDEX() && ((EVERQUEST*)pEverQuest)->ChatService)
+		if (Index[0] && ((EVERQUEST*)pEverQuest)->ChatService)
 		{
 			CChatService* pChat = (CChatService*)((EVERQUEST*)pEverQuest)->ChatService;
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				int i = GETNUMBER();
+				int i = atoi(Index);
 				if (i > pChat->GetNumberOfFriends())
 					return false;
 
@@ -13476,7 +13471,7 @@ bool MQ2FriendsType::GETMEMBER()
 			{
 				for (int i = 0; i < pChat->GetNumberOfFriends(); i++)
 				{
-					if (!_stricmp(pChat->GetFriendName(i), GETFIRST()))
+					if (!_stricmp(pChat->GetFriendName(i), Index))
 					{
 						Dest.DWord = 1;
 						Dest.Type = pBoolType;
@@ -13492,7 +13487,7 @@ bool MQ2FriendsType::GETMEMBER()
 	};
 }
 
-bool MQ2TargetType::GETMEMBER()
+bool MQ2TargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	int buffID = 0;
 	DWORD i;
@@ -13517,11 +13512,11 @@ bool MQ2TargetType::GETMEMBER()
 		if (pTargetWnd->Type <= 0)
 			return false;
 
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD nBuff = GETNUMBER();
+				DWORD nBuff = atoi(Index);
 				if (nBuff > NUM_BUFF_SLOTS)
 					return false;
 				if (nBuff >= 1)
@@ -13543,7 +13538,7 @@ bool MQ2TargetType::GETMEMBER()
 				for (i = 0; i < NUM_BUFF_SLOTS; i++)
 				{
 					buffID = pTargetWnd->BuffSpellID[i];
-					if (buffID && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST())))
+					if (buffID && !_strnicmp(Index, GetSpellNameByID(buffID), strlen(Index)))
 					{
 						if (Dest.Ptr = GetSpellByID((DWORD)buffID))
 						{
@@ -13579,11 +13574,11 @@ bool MQ2TargetType::GETMEMBER()
 		Dest.Type = pSpellType;
 		if (pTargetWnd->Type <= 0)
 			return false;
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD nBuff = GETNUMBER();
+				DWORD nBuff = atoi(Index);
 				if (nBuff > NUM_BUFF_SLOTS)
 					return false;
 				if (nBuff >= 1)
@@ -13617,7 +13612,7 @@ bool MQ2TargetType::GETMEMBER()
 							&& !strcmp(GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str()))
 						{
 							buffID = pTargetWnd->BuffSpellID[i];
-							if (buffID && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST())))
+							if (buffID && !_strnicmp(Index, GetSpellNameByID(buffID), strlen(Index)))
 							{
 								if (Dest.Ptr = GetSpellByID((DWORD)buffID))
 								{
@@ -13700,11 +13695,11 @@ bool MQ2TargetType::GETMEMBER()
 		if (pTargetWnd->Type <= 0)
 			return false;
 
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD nBuff = GETNUMBER();
+				DWORD nBuff = atoi(Index);
 				if (nBuff > NUM_BUFF_SLOTS)
 					return false;
 				if (nBuff >= 1)
@@ -13735,7 +13730,7 @@ bool MQ2TargetType::GETMEMBER()
 							&& !strcmp(GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str()))
 						{
 							buffID = pTargetWnd->BuffSpellID[i];
-							if (buffID && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST())))
+							if (buffID && !_strnicmp(Index, GetSpellNameByID(buffID), strlen(Index)))
 							{
 								Dest.UInt64 = pTargetWnd->BuffTimer[i];
 								return true;
@@ -13753,11 +13748,11 @@ bool MQ2TargetType::GETMEMBER()
 		if (pTargetWnd->Type <= 0)
 			return false;
 
-		if (ISINDEX())
+		if (Index[0])
 		{
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				DWORD nBuff = GETNUMBER();
+				DWORD nBuff = atoi(Index);
 				if (nBuff > NUM_BUFF_SLOTS)
 					return false;
 				if (nBuff >= 1)
@@ -13779,7 +13774,7 @@ bool MQ2TargetType::GETMEMBER()
 					// I strncmp them to take ranked buffs into account
 					// so if the user specifies ${Target.BuffDuration[Pyromancy]} for exxample
 					// its still gonna work if it finds Pyromancy XV
-					if (buffID && buffID != -1 && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST())))
+					if (buffID && buffID != -1 && !_strnicmp(Index, GetSpellNameByID(buffID), strlen(Index)))
 					{
 						if (pTargetWnd->BuffTimer[i] > duration)
 {
@@ -14488,7 +14483,7 @@ bool MQ2TargetType::GETMEMBER()
 	return false;
 }
 
-bool MQ2TaskObjectiveType::GETMEMBER()
+bool MQ2TaskObjectiveType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (VarPtr.Int == -1)
 		return false;
@@ -14530,7 +14525,7 @@ bool MQ2TaskObjectiveType::GETMEMBER()
 	return false;
 }
 
-bool MQ2TaskMemberType::GETMEMBER()
+bool MQ2TaskMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PTASKMEMBER pTaskMemberData = (PTASKMEMBER)VarPtr.Ptr;
 	if (!pTaskMemberData)
@@ -14576,7 +14571,7 @@ bool MQ2TaskMemberType::GETMEMBER()
 	return false;
 }
 
-bool MQ2TaskType::GETMEMBER()
+bool MQ2TaskType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pTaskWnd)
 		return false;
@@ -14724,14 +14719,14 @@ bool MQ2TaskType::GETMEMBER()
 
 	case xMember:
 		Dest.Type = pTaskMemberType;
-		if (!ISINDEX())
+		if (!Index[0])
 			return false;
 
-		if (ISNUMBER())
+		if (IsNumber(Index))
 		{
 			for (int i = 1; pTaskmember && i < 7; pTaskmember = pTaskmember->pNext, i++)
 			{
-				if (i == GETNUMBER()) {
+				if (i == atoi(Index)) {
 					Dest.Ptr = pTaskmember;
 					return true;
 				}
@@ -14741,7 +14736,7 @@ bool MQ2TaskType::GETMEMBER()
 		{
 			for (; pTaskmember; pTaskmember = pTaskmember->pNext)
 			{
-				if (!_stricmp(pTaskmember->Name, GETFIRST()))
+				if (!_stricmp(pTaskmember->Name, Index))
 				{
 					Dest.Ptr = pTaskmember;
 					return true;
@@ -14790,9 +14785,9 @@ bool MQ2TaskType::GETMEMBER()
 		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskElementList"))
 		{
 			int stepindex = -1;
-			if (ISNUMBER())
+			if (IsNumber(Index))
 			{
-				stepindex = GETNUMBER();
+				stepindex = atoi(Index);
 				stepindex--;
 				if (stepindex < 0) {
 					stepindex = 0;
@@ -14801,7 +14796,7 @@ bool MQ2TaskType::GETMEMBER()
 			else
 			{
 				char szTemp[MAX_STRING] = { 0 };
-				strcpy_s(szTemp, GETFIRST());
+				strcpy_s(szTemp, Index);
 				_strlwr_s(szTemp);
 
 				for (int i = 0; i < clist->ItemsArray.Count; i++)
@@ -14876,7 +14871,7 @@ bool MQ2TaskType::GETMEMBER()
 	return false;
 }
 
-bool MQ2XTargetType::GETMEMBER()
+bool MQ2XTargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord>23)
 		return false;
@@ -14935,7 +14930,7 @@ bool MQ2XTargetType::GETMEMBER()
 	return false;
 };
 
-bool MQ2KeyRingType::GETMEMBER()
+bool MQ2KeyRingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2KeyRingType::FindMember(Member);
 	if (!pMember)
@@ -14982,7 +14977,7 @@ bool MQ2KeyRingType::GETMEMBER()
 	return false;
 }
 
-bool MQ2ItemFilterDataType::GETMEMBER()
+bool MQ2ItemFilterDataType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	ItemFilterData* pItem = (ItemFilterData*)VarPtr.Ptr;
 	if (!pItem)
@@ -15072,7 +15067,7 @@ bool MQ2ItemFilterDataType::GETMEMBER()
 	return false;
 }
 
-bool MQ2AdvLootItemType::GETMEMBER()
+bool MQ2AdvLootItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	AdvancedLootItem* pItem = (AdvancedLootItem*)VarPtr.Ptr;
 	if (!pItem)
@@ -15223,7 +15218,7 @@ bool MQ2AdvLootItemType::GETMEMBER()
 	return false;
 }
 
-bool MQ2AdvLootType::GETMEMBER()
+bool MQ2AdvLootType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (!pAdvancedLootWnd)
 		return false;
@@ -15241,7 +15236,7 @@ bool MQ2AdvLootType::GETMEMBER()
 
 	case PList:
 		Dest.Type = pAdvLootItemType;
-		if (int index = atoi(GETFIRST()))
+		if (int index = atoi(Index))
 		{
 			index--;
 			if (index < 0)
@@ -15267,7 +15262,7 @@ bool MQ2AdvLootType::GETMEMBER()
 
 	case SList:
 		Dest.Type = pAdvLootItemType;
-		if (LONG index = atoi(GETFIRST()))
+		if (LONG index = atoi(Index))
 		{
 			index--;
 			if (index < 0)
@@ -15347,7 +15342,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pItemFilterDataType;
 		if (pLootFiltersManager)
 		{
-			if (int id = GETNUMBER())
+			if (int id = atoi(Index))
 			{
 				if (const ItemFilterData* pifd = pLootFiltersManager->GetItemFilterData(id))
 				{
@@ -15364,7 +15359,7 @@ bool MQ2AdvLootType::GETMEMBER()
 // /echo ${Alert[a].List[b].bGM}
 // /echo ${Alert[a].Size}
 // /echo ${Alert}
-bool MQ2AlertType::GETMEMBER()
+bool MQ2AlertType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		if (!CAlerts.AlertExist(VarPtr.DWord))
@@ -15376,8 +15371,8 @@ bool MQ2AlertType::GETMEMBER()
 		{
 		case List:
 		{
-			if (ISNUMBER()) {
-				Dest.DWord = MAKELONG(VarPtr.DWord, GETNUMBER());
+			if (IsNumber(Index)) {
+				Dest.DWord = MAKELONG(VarPtr.DWord, atoi(Index));
 				Dest.Type = pAlertListType;
 				return true;
 			}
@@ -15406,7 +15401,7 @@ bool MQ2AlertType::GETMEMBER()
 /*
 case xIndex:
 {
-int theitem = atoi(GETFIRST());
+int theitem = atoi(Index);
 std::list<SEARCHSPAWN>ss;
 if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
 list<SEARCHSPAWN>::iterator i = ss.begin();
@@ -15437,7 +15432,7 @@ Dest.DWord = ss.size();
 return true;
 }
 */
-bool MQ2AlertListType::GETMEMBER()
+bool MQ2AlertListType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD theindex = LOWORD(VarPtr.DWord);
@@ -15725,7 +15720,7 @@ bool MQ2AlertListType::GETMEMBER()
 	return false;
 }
 
-bool MQ2WorldLocationType::GETMEMBER()
+bool MQ2WorldLocationType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD index = VarPtr.DWord;
@@ -15783,7 +15778,7 @@ bool MQ2WorldLocationType::GETMEMBER()
 	return false;
 }
 
-bool MQ2SolventType::GETMEMBER()
+bool MQ2SolventType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD itemid = VarPtr.DWord;
@@ -15831,7 +15826,7 @@ bool MQ2SolventType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2AugType::GETMEMBER()
+bool MQ2AugType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD index = VarPtr.DWord;
@@ -15906,13 +15901,13 @@ bool MQ2AugType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2RangeType::GETMEMBER()
+bool MQ2RangeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	int P1, P2, P3;
 	PMQ2TYPEMEMBER pMember = MQ2RangeType::FindMember(Member);
 	if (!pMember)
 		return false;
-	if (!ISINDEX())
+	if (!Index[0])
 		return false;
 	switch ((RangeMembers)pMember->ID) {
 	case Inside:
@@ -15921,14 +15916,14 @@ bool MQ2RangeType::GETMEMBER()
 		P1 = 0;
 		P2 = 0;
 		P3 = 0;
-		if (ISINDEX()) {
-			if (PCHAR pColon = strchr(GETFIRST(), ':')) {
+		if (Index[0]) {
+			if (PCHAR pColon = strchr(Index, ':')) {
 				*pColon = 0;
 				P3 = atoi(&pColon[1]);
-				if (PCHAR pComma = strchr(GETFIRST(), ',')) {
+				if (PCHAR pComma = strchr(Index, ',')) {
 					*pComma = 0;
 					P2 = atoi(&pComma[1]);
-					P1 = atoi(GETFIRST());
+					P1 = atoi(Index);
 					//WriteChatf("Range.Inside(%d,%d:%d)",P1,P2,P3);
 					if (P3>P1 && P3<P2) {
 						Dest.DWord = true;
@@ -15944,14 +15939,14 @@ bool MQ2RangeType::GETMEMBER()
 		P1 = 0;
 		P2 = 0;
 		P3 = 0;
-		if (ISINDEX()) {
-			if (PCHAR pColon = strchr(GETFIRST(), ':')) {
+		if (Index[0]) {
+			if (PCHAR pColon = strchr(Index, ':')) {
 				*pColon = 0;
 				P3 = atoi(&pColon[1]);
-				if (PCHAR pComma = strchr(GETFIRST(), ',')) {
+				if (PCHAR pComma = strchr(Index, ',')) {
 					*pComma = 0;
 					P2 = atoi(&pComma[1]);
-					P1 = atoi(GETFIRST());
+					P1 = atoi(Index);
 					//WriteChatf("Range.Between(%d,%d:%d)",P1,P2,P3);
 					if (P3 >= P1 && P3 <= P2) {
 						Dest.DWord = true;
@@ -15965,7 +15960,7 @@ bool MQ2RangeType::GETMEMBER()
 	return false;
 }
 
-bool MQ2AuraType::GETMEMBER()
+bool MQ2AuraType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		int index = VarPtr.HighPart;
@@ -15985,7 +15980,7 @@ bool MQ2AuraType::GETMEMBER()
 			{
 				Dest.DWord = 0;
 				Dest.Type = pIntType;
-				if (!ISINDEX())
+				if (!Index[0])
 					return false;
 				char A[MAX_STRING] = { 0 };
 				char B[MAX_STRING] = { 0 };
@@ -16039,7 +16034,7 @@ bool MQ2AuraType::GETMEMBER()
 	return false;
 }
 
-bool MQ2BandolierItemType::GETMEMBER()
+bool MQ2BandolierItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
 	{
@@ -16071,7 +16066,7 @@ bool MQ2BandolierItemType::GETMEMBER()
 	}
 	return false;
 }
-bool MQ2BandolierType::GETMEMBER()
+bool MQ2BandolierType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		if (CHARINFO2* pChar2 = GetCharInfo2())
@@ -16174,9 +16169,9 @@ bool MQ2BandolierType::GETMEMBER()
 					case Item:
 					{
 						Dest.Type = pBandolierItemType;
-						if (!ISINDEX())
+						if (!Index[0])
 							return false;
-						int index = GETNUMBER();
+						int index = atoi(Index);
 						index--;
 						if (index < 0)
 							index = 0;

@@ -713,8 +713,8 @@ namespace MQ2Internal {
         fMQData Function;
     } MQ2DATAITEM, *PMQ2DATAITEM;
 
-    LEGACY_API BOOL AddMQ2Type(class MQ2Type &Type);
-    LEGACY_API BOOL RemoveMQ2Type(class MQ2Type &Type);
+    EQLIB_API BOOL AddMQ2Type(class MQ2Type &Type);
+    EQLIB_API BOOL RemoveMQ2Type(class MQ2Type &Type);
 
     typedef struct _DATAVAR {
         CHAR szName[MAX_STRING];

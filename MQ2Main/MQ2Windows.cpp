@@ -2498,11 +2498,11 @@ void ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 				Count = RecurseAndListWindows(pWnd);
 
 				WriteChatf("%d child windows", Count);
-				RETURN(0);
+				return;
 			}
 
 			WriteChatf("Window '%s' not available", WindowName.c_str());
-			RETURN(0);
+			return;
 		}
 
 		WriteChatf("Listing child windows of '%s'", WindowName.c_str());
@@ -2522,8 +2522,6 @@ void ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 			}
 		}
 	}
-
-	RETURN(0);
 }
 
 const char* szWndNotification[] = {
@@ -2609,7 +2607,7 @@ void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 							{
 								WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", szArg4, i);
 								pContextMenuManager->WndNotification(menu, XWM_LMOUSEUP, (void*)i);
-								RETURN(0);
+								return;
 							}
 						}
 					}
@@ -2623,7 +2621,7 @@ void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatf("\ar[/notify] FAILED\ax: No Menu is currently open.");
 		}
 
-		RETURN(0);
+		return;
 	}
 
 	if (!_stricmp(szArg3, "link"))
@@ -2639,34 +2637,34 @@ void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 		if (!_stricmp(szArg2, "listselect"))
 		{
 			SendListSelect2(reinterpret_cast<CXWnd*>(addr), atoi(szArg3));
-			RETURN(0);
+			return;
 		}
 
 		SendWndClick2(reinterpret_cast<CXWnd*>(addr), szArg2);
-		RETURN(0);
+		return;
 	}
 
 	if (!_stricmp(szArg3, "listselect"))
 	{
 		SendListSelect(szArg1, szArg2, Data - 1);
-		RETURN(0);
+		return;
 	}
 
 	if (!_stricmp(szArg3, "comboselect"))
 	{
 		SendComboSelect(szArg1, szArg2, Data - 1);
-		RETURN(0);
+		return;
 	}
 
 	if (!_stricmp(szArg3, "tabselect"))
 	{
 		SendTabSelect(szArg1, szArg2, Data - 1);
-		RETURN(0);
+		return;
 	}
 
 	if (Data == 0 && SendWndClick(szArg1, szArg2, szArg3))
 	{
-		RETURN(0);
+		return;
 	}
 
 	for (int i = 0; i < sizeof(szWndNotification) / sizeof(szWndNotification[0]); i++)
@@ -2679,7 +2677,7 @@ void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 				{
 					MacroError("Could not send notification to %s %s", szArg1, szArg2);
 				}
-				RETURN(0);
+				return;
 			}
 
 			if (szArg2[0] == '0')
@@ -2693,12 +2691,11 @@ void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				MacroError("Could not send notification to %s %s", szArg1, szArg2);
 			}
-			RETURN(0);
+			return;
 		}
 	}
 
 	MacroError("Invalid notification '%s'", szArg3);
-	RETURN(0);
 }
 
 bool IsCtrlKey()
@@ -2749,7 +2746,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
 		WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
 		WriteChatColor("     or /itemnotify <itemname> <notification>");
-		RETURN(0);
+		return;
 	}
 
 	char* pNotification = &szArg2[0];
@@ -2765,7 +2762,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		if (!szArg4[0])
 		{
 			WriteChatColor("Syntax: /itemnotify in <bag slot> <slot # in bag> <notification>");
-			RETURN(0);
+			return;
 		}
 
 		if (!_strnicmp(szArg2, "bank", 4))
@@ -2801,7 +2798,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 			if (invslot < 0 || invslot > NUM_INV_SLOTS)
 			{
 				WriteChatf("%d is not a valid invslot. (itemnotify)", invslot);
-				RETURN(0);
+				return;
 			}
 
 			if (pNotification && !_strnicmp(pNotification, "leftmouseup", 11))
@@ -2814,19 +2811,19 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 				if (!pContainer)
 				{
 					WriteChatf("There was no container in slot %d", invslot);
-					RETURN(0);
+					return;
 				}
 
 				if (bagslot < 0 && bagslot >= (int)pContainer->Contents.ContentSize)
 				{
 					WriteChatf("%d is not a valid slot for this container.", bagslot);
-					RETURN(0);
+					return;
 				}
 
 				if (GetItemFromContents(pContainer)->Type != ITEMTYPE_PACK)
 				{
 					WriteChatf("There was no container in slot %d", invslot);
-					RETURN(0);
+					return;
 				}
 
 				if (ItemOnCursor())
@@ -2838,7 +2835,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 					PickupItem(type, FindItemBySlot(invslot, bagslot));
 				}
 
-				RETURN(0);
+				return;
 			}
 
 			if (pNotification && !_strnicmp(pNotification, "rightmouseup", 12))
@@ -2854,7 +2851,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 							CHAR cmd[MAX_STRING] = { 0 };
 							sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 							EzCommand(cmd);
-							RETURN(0);
+							return;
 						}
 					}
 					else
@@ -2862,7 +2859,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 						// it doesnt matter if its a bag, since the user specified "in"
 						// we cant open bags inside bags so lets just return...
 						WriteChatf("Item '%s' not found.", szArg2);
-						RETURN(0);
+						return;
 					}
 				}
 			}
@@ -2995,7 +2992,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}
 
-						RETURN(0);
+						return;
 					}
 
 					if (pClicky && pClicky->Clicky.SpellID != -1)
@@ -3004,7 +3001,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 						sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
 						EzCommand(cmd);
 
-						RETURN(0);
+						return;
 					}
 
 					if (pClicky->Type == ITEMTYPE_PACK)
@@ -3020,11 +3017,11 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 					}
 				}
 
-				RETURN(0);
+				return;
 			}
 
 			WriteChatf("[/itemnotify] Invalid item slot '%s'", szArg1);
-			RETURN(0);
+			return;
 		}
 
 		if (Slot > 0 && Slot < MAX_INV_SLOTS && !pSlot)
@@ -3036,7 +3033,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pSlot)
 	{
 		WriteChatf("SLOT IS NULL: Could not send notification to %s %s", szArg1, szArg2);
-		RETURN(0);
+		return;
 	}
 
 	DebugSpew("ItemNotify: Calling SendWndClick");
@@ -3045,15 +3042,13 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		WriteChatf("Could not send notification to %s %s", szArg1, szArg2);
 	}
-
-	RETURN(0);
 }
 
 void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CInvSlotMgr* pMgr = pInvSlotMgr;
 	if (!pMgr)
-		RETURN(0);
+		return;
 	unsigned long Count = 0;
 
 	WriteChatColor("List of available item slots");
@@ -3076,7 +3071,6 @@ void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	WriteChatf("%d available item slots", Count);
-	RETURN(0)
 }
 
 void ReloadUI(PSPAWNINFO pChar, PCHAR szLine)

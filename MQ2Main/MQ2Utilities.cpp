@@ -14,7 +14,9 @@
 
 #include "MQ2Main.h"
 
-#define TS template <unsigned int _Size>
+#ifdef _DEBUG
+#define DBG_SPEW // enable DebugSpew messages in debug builds
+#endif
 
 // ***************************************************************************
 // Function:    DebugSpew
@@ -1653,7 +1655,8 @@ BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 //              if 4 or less are missing it will return "ALL EXCEPT: " and the
 //              comma delimited list of play short class names that are excluded
 // *************************************************************************** 
-TS PCHAR GetClassesFromMask(LONG mask, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>
+PCHAR GetClassesFromMask(LONG mask, CHAR(&szBuffer)[_Size])
 {
 	//WriteChatf("GetClassesFromMask:: MASK:%d", mask);
 	int matching = 0;
@@ -1840,7 +1843,8 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 	return szBuffer;
 }
 
-TS PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>
+PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (ResistType)
@@ -1859,7 +1863,8 @@ TS PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
 	return szBuffer;
 }
 
-TS PCHAR GetSpellTypeName(LONG SpellType, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>
+PCHAR GetSpellTypeName(LONG SpellType, CHAR(&szBuffer)[_Size])
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (SpellType)
@@ -1874,7 +1879,8 @@ TS PCHAR GetSpellTypeName(LONG SpellType, CHAR(&szBuffer)[_Size])
 	return szBuffer;
 }
 
-TS PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>
+PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (abs(TargetLimitsType))
@@ -1922,7 +1928,8 @@ TS PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 	return szBuffer;
 }
 
-TS PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>
+PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (StatType)
@@ -1946,7 +1953,8 @@ TS PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
 	return szBuffer;
 }
 
-TS PCHAR GetFactionName(LONG FactionID, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size>
+PCHAR GetFactionName(LONG FactionID, CHAR(&szBuffer)[_Size])
 {
 	/*
 	CHAR szTemp[MAX_STRING] = { 0 };

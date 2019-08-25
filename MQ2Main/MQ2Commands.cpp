@@ -517,10 +517,10 @@ void Items(PSPAWNINFO pChar, PCHAR szLine)
 void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	if (!szLine) RETURN(0);
+	if (!szLine) return;
 	EQGroundItemListManager *pGroundList = GetItemList();
 	if (!pGroundList)
-		RETURN(0);
+		return;
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR Arg1[MAX_STRING] = { 0 };
 	CHAR Arg2[MAX_STRING] = { 0 };
@@ -664,8 +664,6 @@ void ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		MacroError("Couldn't find '%s' to target.", szLine);
 	}
-
-	RETURN(0);
 }
 
 
@@ -3551,7 +3549,7 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		WriteChatColor("Usage: /useitem \"item name\"");
 		cmdUseItem(pChar, szCmd);
-		RETURN(0);
+		return;
 	}
 	else {
 		CHAR szSlot1[MAX_STRING] = { 0 };
@@ -3576,7 +3574,7 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					char szTemp[32] = { 0 };
 					sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1));
 					cmdUseItem(pChar, szTemp);
-					RETURN(0);
+					return;
 				}
 
 				bool bMount = ((EQ_Item*)pItem)->IsKeyRingItem(eMount);
@@ -3592,7 +3590,6 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
 									int listdata = (int)clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(0, &pItem, listdata);
-									RETURN(0);
 								}
 							}
 						}
@@ -3607,7 +3604,6 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 									SendListSelect(KeyRingWindowParent, IllusionWindowList, index - 1);
 									int listdata = (int)clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(1, &pItem, listdata);
-									Sleep(0);
 								}
 							}
 						}
@@ -3622,7 +3618,6 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 									SendListSelect(KeyRingWindowParent, FamiliarWindowList, index - 1);
 									int listdata = (int)clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(2, &pItem, listdata);
-									Sleep(0);
 								}
 							}
 						}
@@ -3631,7 +3626,6 @@ void UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 			}
 		}
 	}
-	RETURN(0);
 }
 
 // ***************************************************************************
