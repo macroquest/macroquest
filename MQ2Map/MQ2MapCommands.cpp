@@ -1074,7 +1074,7 @@ char* szMarkType[] =
 	"Ring",
 };
 
-char* FormatMarker(char* szLine, char* szDest, SIZE_T BufferSize)
+char* FormatMarker(char* szLine, char* szDest, size_t BufferSize)
 {
 	ZeroMemory(szDest, BufferSize);
 

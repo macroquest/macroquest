@@ -67,12 +67,12 @@ public:
 	}
 
 	// pure type, no members
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.DWord)
 			strcpy_s(Destination,MAX_STRING, "TRUE");
@@ -86,7 +86,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = 0;
 		if (!_stricmp(Source, "TRUE"))
@@ -123,9 +123,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		_itoa_s(VarPtr.Int, Destination,MAX_STRING, 10);
 		return true;
@@ -136,7 +136,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.Int = atoi(Source);
 		return true;
@@ -169,9 +169,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		_i64toa_s(VarPtr.Int64, Destination,MAX_STRING, 10);
 		return true;
@@ -182,7 +182,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.Int64 = _atoi64(Source);
 		return true;
@@ -214,9 +214,9 @@ public:
 	}
 
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		sprintf_s(Destination,MAX_STRING, "%x", VarPtr.Int);
 		return true;
@@ -226,7 +226,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (sscanf_s(Source, "%x", &VarPtr.Int)) {
 			return true;
@@ -247,12 +247,12 @@ public:
 	}
 
 	// pure type, no members
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		_itoa_s(VarPtr.Int, Destination,MAX_STRING, 10);
 		return true;
@@ -262,7 +262,7 @@ public:
 		VarPtr.DWord = Source.DWord % 0xFF;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source) % 0xFF;
 		return true;
@@ -317,8 +317,8 @@ public:
 	~MQ2StringType()
 	{
 	}
-	bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,MAX_STRING, (const char *)VarPtr.Ptr);
 		return true;
@@ -339,7 +339,7 @@ public:
 		strcpy_s((char*)VarPtr.Ptr, MAX_STRING,(char*)Source.Ptr);
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		strcpy_s((char*)VarPtr.Ptr, MAX_STRING, Source);
 		return true;
@@ -373,9 +373,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Float);
 		return true;
@@ -388,7 +388,7 @@ public:
 			VarPtr.Float = Source.Float;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.Float = (float)atof(Source);
 		return true;
@@ -420,9 +420,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Double);
 		return true;
@@ -435,7 +435,7 @@ public:
 			VarPtr.Double = Source.Double;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.Double = atof(Source);
 		return true;
@@ -472,10 +472,10 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		_itoa_s(VarPtr.DWord, Destination, MAX_STRING, 10);
 		return true;
@@ -485,7 +485,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -525,10 +525,10 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		/* Note -- if you get an error compiling this for ISXSDK,
 		error C2039 : 'UInt64' : is not a member of '_LSVarPtr'
@@ -543,7 +543,7 @@ public:
 		VarPtr.UInt64 = Source.UInt64;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.UInt64 = _atoi64(Source);
 		return true;
@@ -875,9 +875,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -912,7 +912,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
 		{
@@ -1484,9 +1484,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!pLocalPlayer)
 			return false;
@@ -1511,7 +1511,7 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CHARINFO));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -1691,9 +1691,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -1718,7 +1718,7 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELL));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -1770,9 +1770,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -1805,7 +1805,7 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELLBUFF));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -1830,9 +1830,9 @@ public:
 	{
 	}
 	//buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Int == -1)
 			return false;
@@ -1853,7 +1853,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.Int = atoi(Source);
 		return true;
@@ -1883,9 +1883,9 @@ public:
 	{
 	}
 	//buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
 		if (!pcTB)
@@ -1903,7 +1903,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		//VarPtr.Int = atoi(Source);
 		return false;
@@ -1946,9 +1946,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -1978,7 +1978,7 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2331,9 +2331,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -2358,7 +2358,7 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CONTENTS));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2422,9 +2422,9 @@ public:
 		TypeMethod(Toggle);
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr)
 		{
@@ -2451,12 +2451,12 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(DOOR));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
 };
-EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName, SIZE_T BufferSize);
+EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 class MQ2GroundType : public MQ2Type
 {
 public:
@@ -2520,7 +2520,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
@@ -2532,7 +2532,7 @@ public:
 	{
 		free(VarPtr.Ptr);
 	}
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr)
 		{
@@ -2574,7 +2574,7 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(GROUNDOBJECT));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		int id = atoi(Source);
 		PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
@@ -2640,9 +2640,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (pActiveCorpse && pLootWnd)
 		{
@@ -2659,7 +2659,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2708,9 +2708,9 @@ public:
 
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (pActiveMerchant && pMerchantWnd)
 		{
@@ -2726,7 +2726,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2767,9 +2767,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (pMerchantWnd)
 		{
@@ -2792,7 +2792,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2818,9 +2818,9 @@ public:
 
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
@@ -2836,7 +2836,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2919,9 +2919,9 @@ public:
 	{
 
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -2956,7 +2956,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
 		{
@@ -3003,9 +3003,9 @@ public:
 	{
 
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -3040,7 +3040,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
 		{
@@ -3162,9 +3162,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr && ((CXWnd*)VarPtr.Ptr)->IsVisible())
 			strcpy_s(Destination,MAX_STRING, "TRUE");
@@ -3180,7 +3180,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (VarPtr.Ptr = FindMQ2Window(Source))
 			return true;
@@ -3220,9 +3220,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination, MAX_STRING, "No Menu Open");
 		if (VarPtr.Ptr && ((CContextMenuManager*)VarPtr.Ptr)->NumVisibleMenus == 1)
@@ -3246,7 +3246,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3299,9 +3299,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (gRunning)
 		{
@@ -3314,7 +3314,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3344,9 +3344,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,MAX_STRING, &((PZONELIST)VarPtr.Int)->LongName[0]);
 		return true;
@@ -3370,7 +3370,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3430,9 +3430,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,MAX_STRING, &((PZONEINFO)pZoneInfo)->LongName[0]);
 		return true;
@@ -3444,7 +3444,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3477,9 +3477,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -3487,7 +3487,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3569,9 +3569,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -3579,7 +3579,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3614,9 +3614,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -3624,7 +3624,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3674,9 +3674,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -3684,7 +3684,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3708,11 +3708,11 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		PCHAR pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
+		char* pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
 		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
@@ -3721,7 +3721,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -3766,11 +3766,11 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		PCHAR pDesc = GetClassDesc(VarPtr.DWord);
+		char* pDesc = GetClassDesc(VarPtr.DWord);
 		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
@@ -3779,7 +3779,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -3803,11 +3803,11 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		PCHAR pDesc = GetBodyTypeDesc(VarPtr.DWord);
+		char* pDesc = GetBodyTypeDesc(VarPtr.DWord);
 		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
@@ -3816,7 +3816,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -3842,11 +3842,11 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		PCHAR pDesc = pEverQuest->GetDeityDesc(VarPtr.DWord);
+		char* pDesc = pEverQuest->GetDeityDesc(VarPtr.DWord);
 		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
@@ -3855,7 +3855,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -3902,9 +3902,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		struct tm *Now = (struct tm*)VarPtr.Ptr;
 		sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
@@ -3933,7 +3933,7 @@ public:
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
 #endif
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3957,9 +3957,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
 		return true;
@@ -3969,7 +3969,7 @@ public:
 		VarPtr.Ptr = Source.Type;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (VarPtr.Ptr = FindMQ2DataType(Source))
 			return true;
@@ -4004,9 +4004,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,MAX_STRING, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
 		return true;
@@ -4023,7 +4023,7 @@ public:
 #else
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
 #endif
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		VarPtr.Float = (float)atof(Source);
 		return true;
@@ -4057,9 +4057,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
@@ -4069,7 +4069,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (IsNumber(Source))
 		{
@@ -4109,9 +4109,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr)
 		{
@@ -4127,7 +4127,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4157,9 +4157,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -4168,7 +4168,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (IsNumber(Source))
 		{
@@ -4212,14 +4212,14 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
 		if (PSKILL pSkill = *(PSKILL*)VarPtr.Ptr)
-			if (PCHAR pName = pStringTable->getString(pSkill->nName, 0))
+			if (char* pName = pStringTable->getString(pSkill->nName, 0))
 			{
 				strcpy_s(Destination,MAX_STRING, pName);
 				return true;
@@ -4233,7 +4233,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4300,9 +4300,9 @@ public:
 	~MQ2AltAbilityType()
 	{
 	}
-	bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination);
+	bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, char* Destination);
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
@@ -4311,7 +4311,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4345,9 +4345,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
 		_ultoa_s(pTimer->Current, Destination, MAX_STRING, 10);
@@ -4400,7 +4400,7 @@ public:
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
 #endif
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
 
@@ -4439,9 +4439,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -4459,7 +4459,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4524,14 +4524,14 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination);
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4586,9 +4586,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination);
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type != pGroupMemberType)
@@ -4596,7 +4596,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4645,9 +4645,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -4655,7 +4655,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4694,9 +4694,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		DWORD nRaidMember = VarPtr.DWord - 1;
 		if (VarPtr.DWord >= 72)
@@ -4714,7 +4714,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4742,9 +4742,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr && ((CONTENTS*)VarPtr.Ptr)->IsEvolvingItem)
 			strcpy_s(Destination,MAX_STRING, "TRUE");
@@ -4756,7 +4756,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4786,8 +4786,8 @@ public:
 	~MQ2DynamicZoneType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (pDZMember)
 		{
@@ -4800,7 +4800,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4822,8 +4822,8 @@ public:
 	~MQ2DZMemberType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination, MAX_STRING, ((DZMEMBER*)VarPtr.Ptr)->Name);
 		return true;
@@ -4832,7 +4832,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4872,8 +4872,8 @@ public:
 	~MQ2FellowshipType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipID)
 			strcpy_s(Destination,MAX_STRING, "TRUE");
@@ -4885,7 +4885,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4913,8 +4913,8 @@ public:
 	~MQ2FellowshipMemberType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination, MAX_STRING, ((FELLOWSHIPMEMBER*)VarPtr.Ptr)->Name);
 		return true;
@@ -4923,7 +4923,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4949,9 +4949,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		// return the number of friends here...
 		if (((EVERQUEST*)pEverQuest)->ChatService) {
@@ -4965,7 +4965,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5078,9 +5078,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -5115,7 +5115,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
 		{
@@ -5146,8 +5146,8 @@ class MQ2TaskObjectiveType : public MQ2Type
 	~MQ2TaskObjectiveType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (CListWnd* clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList"))
 		{
@@ -5165,7 +5165,7 @@ class MQ2TaskObjectiveType : public MQ2Type
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5188,8 +5188,8 @@ public:
 	~MQ2TaskMemberType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,MAX_STRING, ((PTASKMEMBER)VarPtr.Ptr)->Name);
 		return true;
@@ -5198,7 +5198,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5243,8 +5243,8 @@ public:
 	~MQ2TaskType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		strcpy_s(Destination,254, "NULL");
 		int index = VarPtr.Int;
@@ -5268,7 +5268,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5299,9 +5299,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		int index = VarPtr.DWord;
 		if (PCHARINFO pChar = GetCharInfo()) {
@@ -5349,7 +5349,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		int index = atoi(Source);
 		if (PCHARINFO pChar = GetCharInfo()) {
@@ -5383,8 +5383,8 @@ public:
 	~MQ2KeyRingType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent))
 		{
@@ -5416,7 +5416,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5455,9 +5455,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (ItemFilterData* pitem = (ItemFilterData*)VarPtr.Ptr)
 		{
@@ -5475,7 +5475,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5528,9 +5528,9 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (AdvancedLootItem * pitem = (AdvancedLootItem*)VarPtr.Ptr)
 		{
@@ -5550,7 +5550,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5585,8 +5585,8 @@ public:
 	~MQ2AdvLootType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -5594,7 +5594,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5616,8 +5616,8 @@ public:
 	~MQ2AlertType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		std::list<SEARCHSPAWN>ss;
 		if (CAlerts.GetAlert(VarPtr.DWord, ss)) {
@@ -5630,7 +5630,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5761,8 +5761,8 @@ public:
 	~MQ2AlertListType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		DWORD theindex = LOWORD(VarPtr.DWord);
 		DWORD theitem = HIWORD(VarPtr.DWord);
@@ -5773,7 +5773,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5803,8 +5803,8 @@ public:
 	~MQ2WorldLocationType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (CHARINFO2* pChar2 = GetCharInfo2()) {
 			int index = VarPtr.DWord;
@@ -5827,7 +5827,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5852,7 +5852,7 @@ public:
 	~MQ2SolventType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 	static const char*GetAugmentNameByID(int itemid)
 	{
 		switch (itemid)
@@ -5903,7 +5903,7 @@ public:
 				return "Perfected Augmentation Distiller";
 		};
 	}
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if(const char*pstr = GetAugmentNameByID(VarPtr.DWord)) {
 			strcpy_s(Destination, MAX_STRING, pstr);
@@ -5915,7 +5915,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5948,8 +5948,8 @@ public:
 	~MQ2AugType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart) {
 			if (CONTENTS* pAug = pCont->GetContent(VarPtr.DWord)) {
@@ -5965,7 +5965,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5989,8 +5989,8 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		return false;
 	}
@@ -6001,7 +6001,7 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6033,8 +6033,8 @@ public:
 	~MQ2AuraType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (AURAINFO* pAura = (AURAINFO*)VarPtr.Ptr) {
 			strcpy_s(Destination, MAX_STRING, pAura->Name);
@@ -6046,7 +6046,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6072,8 +6072,8 @@ public:
 	~MQ2BandolierItemType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
 		{
@@ -6086,7 +6086,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6117,8 +6117,8 @@ public:
 	~MQ2BandolierType()
 	{
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest);
-	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
+	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (CHARINFO2* pChar2 = GetCharInfo2())
 		{
@@ -6136,7 +6136,7 @@ public:
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	bool FromString(MQ2VARPTR &VarPtr, char* Source)
 	{
 		return false;
 	}

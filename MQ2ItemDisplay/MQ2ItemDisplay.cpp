@@ -123,7 +123,7 @@ public:
 		TypeMethod(AddLootFilter);
 	}
 
-	bool MQ2DisplayItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+	bool MQ2DisplayItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
 		int index = VarPtr.DWord;
 		CONTENTS* pCont = &g_Contents[index];
@@ -2824,7 +2824,7 @@ public:
 
 	~MQ2GearScoreType() {}
 
-	bool MQ2GearScoreType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+	bool MQ2GearScoreType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
 		PMQ2TYPEMEMBER pMember = MQ2GearScoreType::FindMember(Member);
 		if (!pMember)

@@ -27,16 +27,16 @@
 #endif
 
 HANDLE ghMemberMapLock = 0;
-DWORD WINAPI MQ2Start(LPVOID lpParameter);
+DWORD WINAPI MQ2Start(void* lpParameter);
 
 HANDLE hMQ2StartThread = 0;
 BOOL APIENTRY DllMain( HANDLE hModule,
                       DWORD  ul_reason_for_call,
-                      LPVOID lpReserved
+                      void* lpReserved
                       )
 {
     char szFilename[MAX_STRING]={0};
-    PCHAR szProcessName;
+    char* szProcessName;
     ghModule = (HMODULE)hModule;
     ghInstance = (HINSTANCE)hModule;
 	ghInjectorWnd = FindWindowA(__MacroQuestWinClassName, __MacroQuestWinName);
@@ -87,7 +87,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 // Function:    ParseINIFile
 // Description: Parse INI file for memory locations
 // ***************************************************************************
-BOOL ParseINIFile(PCHAR lpINIPath)
+BOOL ParseINIFile(char* lpINIPath)
 {
     char Filename[MAX_STRING] = {0};
     char MQChatSettings[MAX_STRING] = {0};
@@ -255,7 +255,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
             DefaultFilters();
             GetPrivateProfileString("Filter Names",NULL,"",FilterList,MAX_STRING*10,Filename);
-            PCHAR pFilterList = FilterList;
+            char* pFilterList = FilterList;
             while (pFilterList[0]!=0) {
                 GetPrivateProfileString("Filter Names",pFilterList,"",szBuffer,MAX_STRING,Filename);
                 if (szBuffer[0]!=0 && strcmp(szBuffer,"NOBODY")) {
@@ -510,7 +510,7 @@ void __cdecl MQ2Shutdown()
 	
 }
 
-DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
+DWORD __stdcall InitializeMQ2SpellDb(void* pData)
 {
 	switch ((DWORD)pData)
 	{
@@ -558,7 +558,7 @@ HANDLE hLoadComplete = 0;
 // Function:    MQ2End Thread
 // Description: Where we end execution during the ejection
 // ***************************************************************************
-DWORD WINAPI MQ2End(LPVOID lpParameter)
+DWORD WINAPI MQ2End(void* lpParameter)
 {
 	DWORD gs = GetGameState();
 	if(gs==GAMESTATE_PRECHARSELECT) {
@@ -610,7 +610,7 @@ LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS * ex)
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
 // ***************************************************************************
-DWORD WINAPI MQ2Start(LPVOID lpParameter)
+DWORD WINAPI MQ2Start(void* lpParameter)
 {
 	SetUnhandledExceptionFilter(OurCrashHandler);
 
@@ -618,7 +618,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	ghGetClassMemberLock = CreateMutex(NULL, FALSE, NULL);
 	hUnloadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hLoadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
-	PCHAR lpINIPath = (PCHAR)lpParameter;
+	char* lpINIPath = (char*)lpParameter;
 	strcpy_s(gszINIPath, lpINIPath);
 	free(lpINIPath);
 	char szBuffer[MAX_STRING] = { 0 };
@@ -725,7 +725,7 @@ void CreateMQ2NewsWindow()
     InsertMQ2News();
 }
 
-void AddNewsLine(PCHAR Line, DWORD Color)
+void AddNewsLine(char* Line, DWORD Color)
 {
 	char szLine[MAX_STRING] = { 0 };
 	strcpy_s(szLine, Line);
@@ -769,7 +769,7 @@ void InsertMQ2News()
     while(fgets(szLine,MAX_STRING,file))
     {
 		char *Next_Token1 = 0;
-		if (PCHAR Cmd = strtok_s(szLine, "\r\n", &Next_Token1)) {
+		if (char* Cmd = strtok_s(szLine, "\r\n", &Next_Token1)) {
 			if (atoi(Cmd))
 				AddNewsLine(Cmd, CONCOLOR_GREEN);
 			else

@@ -146,7 +146,7 @@ EQLIB_API BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest);
 EQLIB_API void ExitMQ2Benchmark(DWORD BMHandle);
 EQLIB_API void EnterMQ2Benchmark(DWORD BMHandle);
 EQLIB_API void RemoveMQ2Benchmark(DWORD BMHandle);
-EQLIB_API DWORD AddMQ2Benchmark(PCHAR Name);
+EQLIB_API DWORD AddMQ2Benchmark(char* Name);
 
 /* SPAWN HANDLING */
 EQLIB_API void InitializeMQ2Spawns();
@@ -188,24 +188,24 @@ EQLIB_API void InitializeMQ2Detours();
 EQLIB_API void ShutdownMQ2Detours();
 
 
-EQLIB_API bool AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20, char* Name = 0);
+EQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, char* Name = 0);
 EQLIB_API void AddDetourf(DWORD address, ...);
 EQLIB_API void RemoveDetour(DWORD address);
 EQLIB_API void DeleteDetour(DWORD address);
 
 /* PLUGIN HANDLING */
-EQLIB_API void WriteChatf(PCHAR Format, ...);
-EQLIB_API void WriteChatfSafe(PCHAR szFormat, ...);
-EQLIB_API void WriteChatColor(PCHAR Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
+EQLIB_API void WriteChatf(char* Format, ...);
+EQLIB_API void WriteChatfSafe(char* szFormat, ...);
+EQLIB_API void WriteChatColor(char* Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
 EQLIB_API void InitializeMQ2Plugins();
-EQLIB_API DWORD LoadMQ2Plugin(const PCHAR pszFilename, BOOL bCustom = 0);
-EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR pszFilename);
+EQLIB_API DWORD LoadMQ2Plugin(const char* pszFilename, BOOL bCustom = 0);
+EQLIB_API BOOL UnloadMQ2Plugin(const char* pszFilename);
 EQLIB_API void UnloadMQ2Plugins();
 EQLIB_API void ShutdownMQ2Plugins();
 EQLIB_API void SaveMQ2PluginLoadStatus(char*Name, bool bLoad);
 EQLIB_API void PulsePlugins();
 EQLIB_API void PluginsZoned();
-EQLIB_API BOOL PluginsIncomingChat(PCHAR Line, DWORD Color);
+EQLIB_API BOOL PluginsIncomingChat(char* Line, DWORD Color);
 EQLIB_API void PluginsCleanUI();
 EQLIB_API void PluginsReloadUI();
 EQLIB_API void PluginsSetGameState(DWORD GameState);
@@ -229,32 +229,32 @@ EQLIB_API void DrawHUD();
 /* COMMAND HANDLING */
 EQLIB_API void InitializeMQ2Commands();
 EQLIB_API void ShutdownMQ2Commands();
-EQLIB_API void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ = 0, BOOL Parse = 1, BOOL InGame = 0);
-EQLIB_API void AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
-EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
-EQLIB_API void AddSubstitute(PCHAR Original, PCHAR Substitution);
-EQLIB_API BOOL RemoveSubstitute(PCHAR Original);
-EQLIB_API BOOL RemoveCommand(PCHAR Command);
+EQLIB_API void AddCommand(char* Command, fEQCommand Function, BOOL EQ = 0, BOOL Parse = 1, BOOL InGame = 0);
+EQLIB_API void AddAlias(char* ShortCommand, char* LongCommand);
+EQLIB_API BOOL RemoveAlias(char* ShortCommand);
+EQLIB_API void AddSubstitute(char* Original, char* Substitution);
+EQLIB_API BOOL RemoveSubstitute(char* Original);
+EQLIB_API BOOL RemoveCommand(char* Command);
 EQLIB_API void DoTimedCommands();
-EQLIB_API void TimedCommand(PCHAR Command, DWORD msDelay);
+EQLIB_API void TimedCommand(char* Command, DWORD msDelay);
 
 /* MACRO COMMANDS */
-EQLIB_API void DumpStack(PSPAWNINFO, PCHAR);
-EQLIB_API void EndMacro(PSPAWNINFO, PCHAR);
+EQLIB_API void DumpStack(PSPAWNINFO, char*);
+EQLIB_API void EndMacro(PSPAWNINFO, char*);
 EQLIB_API void Echo(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
 void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues);
 
-EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize);
+EQLIB_API char* ParseMacroParameter(PSPAWNINFO pChar, char* szOriginal, size_t BufferSize);
 
 template <unsigned int _Size>
-inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, char(&szOriginal)[_Size])
+inline char* ParseMacroParameter(PSPAWNINFO pChar, char(&szOriginal)[_Size])
 {
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
 
-EQLIB_API void FailIf(PSPAWNINFO pChar, PCHAR szCommand, int pStartLine, BOOL All = FALSE);
+EQLIB_API void FailIf(PSPAWNINFO pChar, char* szCommand, int pStartLine, BOOL All = FALSE);
 EQLIB_API void InitializeParser();
 EQLIB_API void ShutdownParser();
 
@@ -262,13 +262,13 @@ EQLIB_API void InitializeMQ2DataTypes();
 EQLIB_API void ShutdownMQ2DataTypes();
 EQLIB_API void InitializeMQ2Data();
 EQLIB_API void ShutdownMQ2Data();
-EQLIB_API BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize);
-EQLIB_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
-EQLIB_API BOOL RemoveMQ2Data(PCHAR szName);
-EQLIB_API MQ2Type *FindMQ2DataType(PCHAR szName);
-EQLIB_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
-EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
-EQLIB_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
+EQLIB_API BOOL ParseMacroData(char* szOriginal, size_t BufferSize);
+EQLIB_API BOOL AddMQ2Data(char* szName, fMQData Function);
+EQLIB_API BOOL RemoveMQ2Data(char* szName);
+EQLIB_API MQ2Type *FindMQ2DataType(char* szName);
+EQLIB_API PMQ2DATAITEM FindMQ2Data(char* szName);
+EQLIB_API PDATAVAR FindMQ2DataVariable(char* szName);
+EQLIB_API BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result);
 EQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
@@ -283,12 +283,12 @@ EQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, BOOL bClick 
 /* KEY BINDS */
 EQLIB_API void InitializeMQ2KeyBinds();
 EQLIB_API void ShutdownMQ2KeyBinds();
-EQLIB_API BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold);
-EQLIB_API BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo);
-EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function);
-EQLIB_API BOOL RemoveMQ2KeyBind(PCHAR name);
-EQLIB_API BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo);
-EQLIB_API BOOL DumpBinds(PCHAR Filename);
+EQLIB_API BOOL PressMQ2KeyBind(char* name, BOOL Hold);
+EQLIB_API BOOL SetMQ2KeyBind(char* name, BOOL Alternate, KeyCombo &Combo);
+EQLIB_API BOOL AddMQ2KeyBind(char* name, fMQExecuteCmd Function);
+EQLIB_API BOOL RemoveMQ2KeyBind(char* name);
+EQLIB_API BOOL GetMQ2KeyBind(char* name, BOOL Alt, KeyCombo &Combo);
+EQLIB_API BOOL DumpBinds(char* Filename);
 EQLIB_API BOOL MQ2HandleKeyDown(class KeyCombo const &Combo);
 EQLIB_API BOOL MQ2HandleKeyUp(class KeyCombo const &Combo);
 
@@ -311,47 +311,47 @@ EQLIB_API class IconCache *__cdecl GetAnimationCache(int index);
 EQLIB_API void SaveColors(int, int, int, int);
 
 /* UTILITIES */
-EQLIB_API void ConvertCR(PCHAR Text, size_t LineLen);
+EQLIB_API void ConvertCR(char* Text, size_t LineLen);
 EQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 EQLIB_API void FixStringTable();
-EQLIB_API void DebugSpew(PCHAR szFormat, ...);
-EQLIB_API void DebugSpewAlways(PCHAR szFormat, ...);
-EQLIB_API void DebugSpewAlwaysFile(PCHAR szFormat, ...);
-EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...);
+EQLIB_API void DebugSpew(char* szFormat, ...);
+EQLIB_API void DebugSpewAlways(char* szFormat, ...);
+EQLIB_API void DebugSpewAlwaysFile(char* szFormat, ...);
+EQLIB_API void DebugSpewNoFile(char* szFormat, ...);
 EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, char Separator = 0);
 EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, char Separator = 0, BOOL AnyNonAlphaNum = FALSE);
-EQLIB_API void AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
+EQLIB_API void AddCustomEvent(PEVENTLIST pEList, char* szLine);
 EQLIB_API float DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
-EQLIB_API PCHAR GetEQPath(PCHAR szBuffer, size_t len);
+EQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 
 #define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute,FromPlugin)
 EQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
 #define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer, commandtoexecute)
 
-EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
-EQLIB_API void StripMQChat(PCHAR in, PCHAR out);
-EQLIB_API void STMLToPlainText(PCHAR in, PCHAR out);
-EQLIB_API PCHAR GetSubFromLine(int Line, PCHAR szSub, size_t Sublen);
-EQLIB_API PCHAR GetFilenameFromFullPath(PCHAR Filename);
-EQLIB_API BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime);
-EQLIB_API void AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
+EQLIB_API DWORD MQToSTML(char* in, char* out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
+EQLIB_API void StripMQChat(char* in, char* out);
+EQLIB_API void STMLToPlainText(char* in, char* out);
+EQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
+EQLIB_API char* GetFilenameFromFullPath(char* Filename);
+EQLIB_API BOOL CompareTimes(char* RealTime, char* ExpectedTime);
+EQLIB_API void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API void DefaultFilters();
-EQLIB_API PCHAR ConvertHotkeyNameToKeyName(char* szName);
-EQLIB_API void CheckChatForEvent(PCHAR szMsg);
+EQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
+EQLIB_API void CheckChatForEvent(char* szMsg);
 EQLIB_API void ConvertItemTags(CXStr &cxstr, BOOL Tag = TRUE);
-EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
-EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize);
+EQLIB_API BOOL ParseKeyCombo(char* text, KeyCombo &Dest);
+EQLIB_API char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize);
 EQLIB_API int FindInvSlotForContents(CONTENTS* pContents);
-EQLIB_API int FindInvSlot(PCHAR Name, BOOL Exact);
-EQLIB_API int FindNextInvSlot(PCHAR Name, BOOL Exact);
+EQLIB_API int FindInvSlot(char* Name, BOOL Exact);
+EQLIB_API int FindNextInvSlot(char* Name, BOOL Exact);
 EQLIB_API int FindMappableCommand(const char *name);
 
-EQLIB_API int GetLanguageIDByName(PCHAR szName);
-EQLIB_API int GetCurrencyIDByName(PCHAR szName);
-EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
+EQLIB_API int GetLanguageIDByName(char* szName);
+EQLIB_API int GetCurrencyIDByName(char* szName);
+EQLIB_API char* GetSpellNameByID(LONG dwSpellID);
 EQLIB_API SPELL* GetSpellByName(const char* szName);
-EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
-EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
+EQLIB_API PSPELL GetSpellByAAName(char* szName);
+EQLIB_API PSPELL GetSpellByAAName(char* szName);
 EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 EQLIB_API int GetSpellRankByName(const char* SpellName);
 EQLIB_API void TruncateSpellRankName(char* SpellName);
@@ -362,13 +362,13 @@ EQLIB_API void MakeMeVisible(SPAWNINFO* pChar, char* szLine);
 EQLIB_API void RemoveAura(SPAWNINFO* pChar, char* szLine);
 EQLIB_API bool GetAllMercDesc(std::map<int, MercDesc>& minfo);
 
-DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact = true, bool usecmd = false);
+DWORD GetKeyRingIndex(DWORD KeyRing, char* szItemName, size_t BuffLen, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API int GetIllusionCount();
 EQLIB_API int GetFamiliarCount();
 EQLIB_API void RefreshKeyRings(void* kr);
 EQLIB_API void InitKeyRings();
-EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
+EQLIB_API BOOL IsActiveAA(char* pSpellName);
 EQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
 EQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
 EQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
@@ -392,22 +392,22 @@ EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 
 #include "MQ2Inlines.h"
 
-//#define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+//#define GETMEMBER() GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 //#define DECLAREGETMETHOD()
 //#define INHERITDIRECT(X)
 //#define INHERITINDIRECT(X,Y,Z)
 
 #include "MQ2DataTypes.h"
 
-EQLIB_API BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber, int localLine);
+EQLIB_API BOOL AddMacroLine(char* FileName, char* szLine, size_t Linelen, int *LineNumber, int localLine);
 
-EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
+EQLIB_API char* GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
-EQLIB_API PCHAR GetGuildByID(int64_t GuildID);
-EQLIB_API int64_t GetGuildIDByName(PCHAR szGuild);
+EQLIB_API char* GetGuildByID(int64_t GuildID);
+EQLIB_API int64_t GetGuildIDByName(char* szGuild);
 
 extern std::map<int, std::string>targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
@@ -415,7 +415,7 @@ EQLIB_API CONTENTS* GetEnviroContainer();
 EQLIB_API CContainerWnd* FindContainerForContents(CONTENTS* pContents);
 EQLIB_API float FindSpeed(SPAWNINFO* pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
-EQLIB_API void GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize);
+EQLIB_API void GetItemLinkHash(CONTENTS* Item, char* Buffer, size_t BufferSize);
 
 template <unsigned int _Size>
 inline void GetItemLinkHash(CONTENTS* Item, char(&Buffer)[_Size])
@@ -423,7 +423,7 @@ inline void GetItemLinkHash(CONTENTS* Item, char(&Buffer)[_Size])
 	return GetItemLinkHash(Item, Buffer, _Size);
 }
 
-EQLIB_API bool GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable = TRUE);
+EQLIB_API bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, BOOL Clickable = TRUE);
 
 template <unsigned int _Size>
 inline bool GetItemLink(CONTENTS* Item, char(&Buffer)[_Size], BOOL Clickable = TRUE)
@@ -431,11 +431,11 @@ inline bool GetItemLink(CONTENTS* Item, char(&Buffer)[_Size], BOOL Clickable = T
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
 
-EQLIB_API PCHAR GetLoginName();
+EQLIB_API char* GetLoginName();
 EQLIB_API float DistanceToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc);
 EQLIB_API float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, float zLoc);
-EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize);
-EQLIB_API PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level = 100);
+EQLIB_API char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize);
+EQLIB_API char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, LONG level = 100);
 
 EQLIB_API LONG GetSpellAttrib(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellBase(PSPELL pSpell, int index);
@@ -443,24 +443,24 @@ EQLIB_API LONG GetSpellBase2(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellMax(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellCalc(PSPELL pSpell, int index);
 
-EQLIB_API void SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp = 1.0);
+EQLIB_API void SlotValueCalculate(char* szBuff, PSPELL pSpell, int i, double mp = 1.0);
 EQLIB_API LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel = MAX_PC_LEVEL, LONG level = MAX_PC_LEVEL);
-EQLIB_API PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize);
+EQLIB_API char* GetSpellEffectName(LONG EffectID, char* szBuffer, size_t BufferSize);
 EQLIB_API void GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API void GetGameTime(int* Hour, int* Minute, int* Night);
-EQLIB_API void SyntaxError(PCHAR szFormat, ...);
-EQLIB_API void MacroError(PCHAR szFormat, ...);
-EQLIB_API void FatalError(PCHAR szFormat, ...);
-EQLIB_API PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, SIZE_T BufferSize);
-EQLIB_API void MQ2DataError(PCHAR szFormat, ...);
-EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
+EQLIB_API void SyntaxError(char* szFormat, ...);
+EQLIB_API void MacroError(char* szFormat, ...);
+EQLIB_API void FatalError(char* szFormat, ...);
+EQLIB_API char* GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize);
+EQLIB_API void MQ2DataError(char* szFormat, ...);
+EQLIB_API void DisplayOverlayText(char* szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
 EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
 EQLIB_API BOOL IsBardSong(PSPELL pSpell);
 EQLIB_API BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID);
 EQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, DWORD& nID);
 EQLIB_API bool GetBuffID(SPELLBUFF* pBuff, DWORD& nID);
-EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
+EQLIB_API char* GetLDoNTheme(DWORD LDTheme);
 EQLIB_API BOOL TriggeringEffectSpell(PSPELL aSpell, int i);
 EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects = FALSE, BOOL bTriggeredEffectCheck = FALSE);
 EQLIB_API DWORD GetItemTimer(CONTENTS* pItem);
@@ -470,34 +470,34 @@ EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *fi
 EQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
-EQLIB_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen);
-//EQLIB_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
-EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
-EQLIB_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
-EQLIB_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default);
-EQLIB_API PDATAVAR *FindVariableScope(PCHAR Name);
-EQLIB_API BOOL DeleteMQ2DataVariable(PCHAR Name);
+EQLIB_API char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
+//EQLIB_API char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, char* szParamType);
+EQLIB_API PDATAVAR FindMQ2DataVariable(char* Name);
+EQLIB_API BOOL AddMQ2DataVariable(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default);
+EQLIB_API BOOL AddMQ2DataVariableFromData(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default);
+EQLIB_API PDATAVAR *FindVariableScope(char* Name);
+EQLIB_API BOOL DeleteMQ2DataVariable(char* Name);
 EQLIB_API void ClearMQ2DataVariables(PDATAVAR *ppHead);
-EQLIB_API void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API void NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API void NewVarset(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API void NewVardata(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API void NewDeclareVar(PSPAWNINFO pChar, char* szLine);
+EQLIB_API void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine);
+EQLIB_API void NewVarset(PSPAWNINFO pChar, char* szLine);
+EQLIB_API void NewVarcalc(PSPAWNINFO pChar, char* szLine);
+EQLIB_API void NewVardata(PSPAWNINFO pChar, char* szLine);
 EQLIB_API void DropTimers();
 
 /*                 */
 
-EQLIB_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed = FromPlugin);
-//EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
+EQLIB_API BOOL LoadCfgFile(char* Filename, BOOL Delayed = FromPlugin);
+//EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName);
 EQLIB_API void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin, BOOL IncludeOrigin = FALSE);
 EQLIB_API DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin = FALSE);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2);
-EQLIB_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API char* ParseSearchSpawnArgs(char* szArg, char* szRest, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API void ParseSearchSpawn(char* Buffer, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API char* FormatSearchSpawn(char* Buffer, size_t BufferSize, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius);
 EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
 EQLIB_API BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
@@ -507,39 +507,39 @@ EQLIB_API BOOL GetClosestAlert(PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List);
 EQLIB_API void WriteFilterNames();
-EQLIB_API void SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle);
-EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
+EQLIB_API void SetDisplaySWhoFilter(PBOOL bToggle, char* szFilter, char* szToggle);
+EQLIB_API char* GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API void RewriteSubstitutions();
 EQLIB_API void RewriteAliases();
 EQLIB_API void WriteAliasToIni(char*Name, char*Command);
-EQLIB_API DWORD FindSpellListByName(PCHAR szName);
+EQLIB_API DWORD FindSpellListByName(char* szName);
 EQLIB_API float StateHeightMultiplier(DWORD StandState);
-EQLIB_API DWORD WINAPI thrMsgBox(LPVOID lpParameter);
+EQLIB_API DWORD WINAPI thrMsgBox(void* lpParameter);
 extern void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color);
 extern void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
 EQLIB_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 
 EQLIB_API void        OverwriteTable(DWORD Address);
-EQLIB_API DWORD      Include(PCHAR szFile, int *LineNumber);
-EQLIB_API PCHAR       GetFullZone(DWORD ZoneID);
-EQLIB_API DWORD       GetZoneID(PCHAR ZoneShortName);
-EQLIB_API PCHAR       GetShortZone(DWORD ZoneID);
+EQLIB_API DWORD      Include(char* szFile, int *LineNumber);
+EQLIB_API char*       GetFullZone(DWORD ZoneID);
+EQLIB_API DWORD       GetZoneID(char* ZoneShortName);
+EQLIB_API char*       GetShortZone(DWORD ZoneID);
 //EQLIB_API void        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
 //EQLIB_API void        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
 //EQLIB_API void        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
 //EQLIB_API void        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding = 0, DWORD Color = 0);
 EQLIB_API float       DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API float       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
-EQLIB_API DWORD WINAPI InsertCommands(LPVOID lpParameter);
+EQLIB_API DWORD WINAPI InsertCommands(void* lpParameter);
 EQLIB_API void        UpdateMonitoredSpawns();
-EQLIB_API PCHAR       GetModel(PSPAWNINFO pSpawn, DWORD Slot);
+EQLIB_API char*       GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 //EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
-//EQLIB_API BOOL        IfCompare               (PCHAR szCond);
+//EQLIB_API BOOL        IfCompare               (char* szCond);
 EQLIB_API bool        PlayerHasAAAbility(DWORD AAIndex);
-EQLIB_API PCHAR       GetAANameByIndex(DWORD AAIndex);
-EQLIB_API DWORD       GetAAIndexByName(PCHAR AAName);
+EQLIB_API char*       GetAANameByIndex(DWORD AAIndex);
+EQLIB_API DWORD       GetAAIndexByName(char* AAName);
 EQLIB_API DWORD       GetAAIndexByID(DWORD ID);
-EQLIB_API DWORD       GetSkillIDFromName(PCHAR name);
+EQLIB_API DWORD       GetSkillIDFromName(char* name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState();
 EQLIB_API DWORD       GetWorldState();
@@ -550,9 +550,9 @@ EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API void		  ListMercAltAbilities();
 EQLIB_API CONTENTS*   FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 EQLIB_API CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx);
-EQLIB_API CONTENTS*   FindItemByName(PCHAR pName, BOOL bExact = false);
+EQLIB_API CONTENTS*   FindItemByName(char* pName, BOOL bExact = false);
 EQLIB_API CONTENTS*   FindItemByID(int ItemID);
-EQLIB_API DWORD	      FindItemCountByName(PCHAR pName, BOOL bExact = false);
+EQLIB_API DWORD	      FindItemCountByName(char* pName, BOOL bExact = false);
 EQLIB_API DWORD	      FindItemCountByID(int ItemID);
 EQLIB_API CONTENTS*   FindBankItemByName(char *pName, BOOL bExact);
 EQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
@@ -584,7 +584,7 @@ EQLIB_API void		  PopulateSpellMap();
 EQLIB_API PSPELL      GetSpellParent(int id);
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(void* pData);
 EQLIB_API HMODULE GetCurrentModule();
-EQLIB_API DWORD WINAPI MQ2End(LPVOID lpParameter);
+EQLIB_API DWORD WINAPI MQ2End(void* lpParameter);
 EQLIB_API DWORD WINAPI GetlocalPlayerOffset();
 EQLIB_API void __cdecl MQ2Shutdown();
 EQLIB_API HANDLE hUnloadComplete;
@@ -606,7 +606,7 @@ EQLIB_API void EndAllMacros();
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
 
-EQLIB_API BOOL Calculate(PCHAR szFormula, double& Dest);
+EQLIB_API BOOL Calculate(char* szFormula, double& Dest);
 
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
@@ -643,15 +643,15 @@ EQLIB_API BOOL Calculate(PCHAR szFormula, double& Dest);
 //#define WM_USER_RESETLOADED		(WM_USER + 1002)
 //#define WM_USER_SETLOADED		(WM_USER + 1003)
 
-EQLIB_API void memchecks_tramp(PCHAR, DWORD, void*, DWORD, BOOL);
-EQLIB_API void memchecks(PCHAR, DWORD, void*, DWORD, BOOL);
+EQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, BOOL);
+EQLIB_API void memchecks(char*, DWORD, void*, DWORD, BOOL);
 EQLIB_API void InitializeLoginPulse();
 EQLIB_API void RemoveAutoBankMenu();
 EQLIB_API bool WillFitInBank(CONTENTS* pContent);
 EQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 EQLIB_API void AddAutoBankMenu();
 EQLIB_API void AutoBankPulse();
-EQLIB_API void DoCommandf(PCHAR szFormat, ...);
+EQLIB_API void DoCommandf(char* szFormat, ...);
 EQLIB_API KeypressHandler *GetKeyPresshandler();
 EQLIB_API AggroMeterManagerClient *GetAggroInfo();
 EQLIB_API ClientSOIManager *GetAuraMgr();
@@ -663,7 +663,7 @@ EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 
 EQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
-inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
+inline char* ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 {
 	for (int qq = 1; qq < argc; qq++) {
 		strcat_s(szTemp, size, argv[qq]);

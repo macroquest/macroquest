@@ -86,7 +86,7 @@ access MQ2's game state value with the gGameState global variable.</p>
 <p>This function is called immediately after the MQ2Main Pulse function, many 
 many times per second.&nbsp; If you need continuous processing in your plugin, 
 this is what you're looking for.</p>
-<p>PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)</p>
+<p>PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)</p>
 <p>This function is called every time WriteChatColor is called by MQ2Main or any 
 plugin, ignoring the filters built into MQ2Main.&nbsp; If you need to filter 
 this data, you need to implement the filters yourself.&nbsp; Note the Filter 
@@ -94,7 +94,7 @@ parameter.&nbsp; This is for future use, it will currently always be 0.&nbsp;
 It's intended to allow chat plugins to redirect MQ output, etc, regardless of 
 EQ's filters.&nbsp; Eventually, MQ2 calls to WriteChatColor will use a dynamic 
 filter system.&nbsp; For now, ignore it.</p>
-<p>PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)</p>
+<p>PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)</p>
 <p>This function is called every time EQ shows a line of chat with 
 CEverQuest::dsp_chat, but after MQ filters and chat events are taken care of.&nbsp;
 </p>
@@ -107,14 +107,14 @@ MQ2MyPlugin.ini in the correct directory.</p>
 <p><b>Adding Commands</b></p>
 <p>Adding commands is incredibly simple with MQ2.&nbsp; Make your command 
 function with the standard prototype</p>
-<p>VOID MyCommand(PSPAWNINFO pChar, PCHAR szLine)</p>
+<p>VOID MyCommand(PSPAWNINFO pChar, char* szLine)</p>
 <p>Then, in InitializePlugin: <b>AddCommand(&quot;/mycommand&quot;,MyCommand);</b></p>
 <p>and in ShutdownPlugin: <b>RemoveCommand(&quot;/mycommand&quot;);</b></p>
 <p>Follow the pre-existing rules for coding your command function.</p>
 <p><b>Adding Macro Parameters</b></p>
 <p>Adding macro parameters is also incredibly simple.&nbsp; Make your param 
 function with the standard prototype</p>
-<p>DWORD parmMyParm(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)</p>
+<p>DWORD parmMyParm(char* szVar, char* szOutput, PSPAWNINFO pChar)</p>
 <p>Then, in InitializePlugin: <b>AddParm(&quot;$myparm&quot;,parmMyParm);</b></p>
 <p>and in ShutdownPlugin: <b>RemoveParm(&quot;$myparm&quot;);</b></p>
 <p>Follow the pre-existing rules for coding your parameter function.</p>

@@ -145,7 +145,7 @@ void MapNames(SPAWNINFO* pChar, char* szLine);
 void MapClickCommand(SPAWNINFO* pChar, char* szLine);
 void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
 void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
-char* FormatMarker(char* szLine, char* szDest, SIZE_T BufferSize);
+char* FormatMarker(char* szLine, char* szDest, size_t BufferSize);
 DWORD TypeToMapfilter(SPAWNINFO* pChar);
 void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
 bool IsFloat(const std::string& in);

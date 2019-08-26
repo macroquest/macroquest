@@ -1392,7 +1392,7 @@ public:
 	EQLIB_OBJECT char* CreateItemTagString(char*, int, bool bFlag = true); // SwiftyMUSE 11-09-2018
 	EQLIB_OBJECT bool CanDrop(bool bDisplayText = false, bool bIncludeContainedItems = true, bool bAllowOverrideNoDropCheck = false, bool bCantDropIfContainingRealEstate = true) const;
 	EQLIB_OBJECT int GetImageNum() const;
-	EQLIB_OBJECT static VePointer<CONTENTS> CreateItemClient(PBYTE*, DWORD);
+	EQLIB_OBJECT static VePointer<CONTENTS> CreateItemClient(BYTE**, DWORD);
 	EQLIB_OBJECT int GetItemValue(bool) const;
 	EQLIB_OBJECT bool IsKeyRingItem(KeyRingType type) const;
 	EQLIB_OBJECT bool CanGoInBag(CONTENTS** pCont, int OutputText = 0, bool mustbefalse = false) const;

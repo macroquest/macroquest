@@ -53,7 +53,7 @@ void ShutdownParser()
 *       function, the first time ParseMacroParameter is run.                *
 *                                                                           *
 * 2: Function definition MUST be:                                           *
-*    DWORD YourFuncName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)      *
+*    DWORD YourFuncName(char* szVar, char* szOutput, PSPAWNINFO pChar)      *
 *    A: Parameters are as follows:                                          *
 *                                                                           *
 *       DWORD return value: Old "i++" value. e.g. number of chars to skip   *
@@ -100,7 +100,7 @@ int FindLastParameter(PCSTR szOriginal, PCSTR& szRetCurPos, size_t& len)
 
     return -1; // no parameter found
 }
-PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize)
+char* ParseMacroParameter(PSPAWNINFO pChar, char* szOriginal, size_t BufferSize)
 {
     PCHARINFO pCharInfo = GetCharInfo();
     if (!pCharInfo) 

@@ -16,7 +16,7 @@
 
 #include <regex>
 
-void FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
+void FailIf(SPAWNINFO* pChar, char* szCommand, int StartLine, BOOL All)
 {
 	DWORD Scope = 1;
 	if (szCommand[strlen(szCommand) - 1] == '{') {
@@ -56,7 +56,7 @@ void FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
 		}
 		if (gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end()) {
 			if ((!All) && (!_strnicmp(gMacroBlock->Line[gMacroBlock->CurrIndex].Command.c_str(), "} else ", 7))) {
-				DoCommand(pChar, (PCHAR)gMacroBlock->Line[gMacroBlock->CurrIndex].Command.substr(7).c_str());
+				DoCommand(pChar, (char*)gMacroBlock->Line[gMacroBlock->CurrIndex].Command.substr(7).c_str());
 			}
 			else if ((!All) && (!_strnicmp(gMacroBlock->Line[gMacroBlock->CurrIndex].Command.c_str(), "} else", 6))) {
 				FatalError("} else lacks command or {");
@@ -76,7 +76,7 @@ void FailIf(SPAWNINFO* pChar, PCHAR szCommand, int StartLine, BOOL All)
 // Description: Our '/delay' command
 // Usage:       /delay <time> [condition to end early]
 // ***************************************************************************
-void Delay(PSPAWNINFO pChar, PCHAR szLine)
+void Delay(PSPAWNINFO pChar, char* szLine)
 {
 	char szVal[MAX_STRING] = { 0 };
 	LONG VarValue;
@@ -115,13 +115,13 @@ void Delay(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
-PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen)
+char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen)
 {
 	szParamName[0] = 0;
 	szParamType[0] = 0;
 	if (_strnicmp(szMacroLine, "sub ", 4))
 		return NULL;
-	PCHAR szSubParamNamePointer = szMacroLine + 4;
+	char* szSubParamNamePointer = szMacroLine + 4;
 	while ((szSubParamNamePointer[0] != '(') && (szSubParamNamePointer[0] != 0))
 	{
 		szSubParamNamePointer++;
@@ -135,12 +135,12 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t 
 		//DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
 		if (*Temp && Temp[strlen(Temp) - 1] == ')')
 			Temp[strlen(Temp) - 1] = 0;
-		PCHAR pStart = &Temp[0];
+		char* pStart = &Temp[0];
 		while (*pStart == ' ')
 			++pStart;
 		if (pStart != &Temp[0])
 			memmove(Temp, pStart, MAX_STRING - 1);
-		if (PCHAR pSpace = strchr(Temp, ' '))
+		if (char* pSpace = strchr(Temp, ' '))
 		{
 			*pSpace = 0;
 			strcpy_s(szParamType, ParamTypeLen, Temp);
@@ -159,11 +159,11 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t 
 }
 /* VAR SYSTEM INDEPENDENT */
 // in-place cleanup of tabs, leading/trailing space
-void CleanMacroLine(PCHAR szLine)
+void CleanMacroLine(char* szLine)
 {
 	if (!szLine || szLine[0] == 0)
 		return;
-	PCHAR pChar = szLine;
+	char* pChar = szLine;
 	while (pChar[0])
 	{
 		if (pChar[0] == '\t' || pChar[0] == 0x0a || pChar[0] == 0x0d)
@@ -171,9 +171,9 @@ void CleanMacroLine(PCHAR szLine)
 		++pChar;
 	}
 	// find beginning and end
-	PCHAR pStart = szLine;
+	char* pStart = szLine;
 	unsigned long Length = strlen(szLine);
-	PCHAR pEnd = &szLine[Length - 1];
+	char* pEnd = &szLine[Length - 1];
 
 	while (*pStart == ' ')
 		++pStart;
@@ -200,7 +200,7 @@ void CleanMacroLine(PCHAR szLine)
 // Description: Includes another macro file
 // Usage:       #include <filename>
 // ***************************************************************************
-DWORD Include(PCHAR szFile, int *LineNumber)
+DWORD Include(char* szFile, int *LineNumber)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	FILE *fMacro = 0;
@@ -212,7 +212,7 @@ DWORD Include(PCHAR szFile, int *LineNumber)
 		return 0;
 	}
 	int LocalLine = 0;
-	PCHAR Macroname = GetFilenameFromFullPath(szFile);
+	char* Macroname = GetFilenameFromFullPath(szFile);
 	DebugSpewNoFile("Include - Including: %s", szFile);
 	while (!feof(fMacro)) {
 
@@ -251,7 +251,7 @@ DWORD Include(PCHAR szFile, int *LineNumber)
 // Function:    AddMacroLine
 // Description: Add a line to the MacroBlock
 // ***************************************************************************
-BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber, int localLine)
+BOOL AddMacroLine(char* FileName, char* szLine, size_t Linelen, int *LineNumber, int localLine)
 {
 	// replace all tabs with spaces
 	if ((szLine[0] == 0) || (szLine[0] == '|'))
@@ -582,14 +582,14 @@ int GetMacroBlockCount()
 // Description: Our '/macro' command
 // Usage:       /macro <filename>
 // ***************************************************************************
-void Macro(PSPAWNINFO pChar, PCHAR szLine)
+void Macro(PSPAWNINFO pChar, char* szLine)
 {
 	gWarning = FALSE;
 	bRunNextCommand = TRUE;
 	char szTemp[MAX_STRING] = { 0 };
 	char Filename[MAX_STRING] = { 0 };
-	PCHAR Params = NULL;
-	PCHAR szNext = NULL;
+	char* Params = NULL;
+	char* szNext = NULL;
 	BOOL InBlockComment = FALSE;
 	if (szLine[0] == 0) {
 		SyntaxError("Usage: /macro <filename> [param [param...]]");
@@ -649,7 +649,7 @@ void Macro(PSPAWNINFO pChar, PCHAR szLine)
 	int LocalLine = 0;
 	gMacroSubLookupMap.clear();
 
-	PCHAR Macroname = GetFilenameFromFullPath(Filename);
+	char* Macroname = GetFilenameFromFullPath(Filename);
 	while (!feof(fMacro)) {
 		fgets(szTemp, MAX_STRING, fMacro);
 		CleanMacroLine(szTemp);
@@ -725,7 +725,7 @@ void Macro(PSPAWNINFO pChar, PCHAR szLine)
 //              Sends i, esc, esc, esc, esc, i
 // Usage:       /cleanup
 // ***************************************************************************
-void Cleanup(PSPAWNINFO pChar, PCHAR szLine)
+void Cleanup(PSPAWNINFO pChar, char* szLine)
 {
 	DebugSpewNoFile("Cleanup - Cleaning up screen");
 	DWORD i;
@@ -767,7 +767,7 @@ void Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/goto' command
 // Usage:       /goto :label
 // ***************************************************************************
-void Goto(PSPAWNINFO pChar, PCHAR szLine)
+void Goto(PSPAWNINFO pChar, char* szLine)
 {
 	if (!gMacroBlock) {
 		MacroError("Cannot goto when a macro isn't running.");
@@ -818,7 +818,7 @@ void Goto(PSPAWNINFO pChar, PCHAR szLine)
 	FatalError("Couldn't find label %s", szLine);
 }
 
-void DumpStack(PSPAWNINFO pChar, PCHAR szLine)
+void DumpStack(PSPAWNINFO pChar, char* szLine)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	char szSub[MAX_STRING] = { 0 };
@@ -842,7 +842,7 @@ void DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/endmacro' command
 // Usage:       /endmacro
 // ***************************************************************************
-void EndMacro(PSPAWNINFO pChar, PCHAR szLine)
+void EndMacro(PSPAWNINFO pChar, char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -1016,7 +1016,7 @@ int GetNumArgsFromSub(std::string &Sub)
 // Description: Our '/call' command
 // Usage:       /call <Subroutine>
 // ***************************************************************************
-void Call(PSPAWNINFO pChar, PCHAR szLine)
+void Call(PSPAWNINFO pChar, char* szLine)
 {
 	if (szLine[0] == 0) {
 		SyntaxError("Usage: /call <subroutine> [param [param...]]");
@@ -1029,7 +1029,7 @@ void Call(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 	char SubName[MAX_STRING];
 	GetArg(SubName, szLine, 1);
-	PCHAR SubParam = GetNextArg(szLine);
+	char* SubParam = GetNextArg(szLine);
 
 	// Sub in Map?
 	auto iter = gMacroSubLookupMap.find(SubName);
@@ -1075,7 +1075,7 @@ void Call(PSPAWNINFO pChar, PCHAR szLine)
 		char szParamName[MAX_STRING] = { 0 };
 		char szParamType[MAX_STRING] = { 0 };
 		char szNewValue[MAX_STRING] = { 0 };
-		auto name = (PCHAR)ml.Command.c_str();
+		auto name = (char*)ml.Command.c_str();
 		for (int StackNum = 0; StackNum < numsubargs || SubParam[0] != '\0'; StackNum++) {
 			GetArg(szNewValue, SubParam, 1);
 			GetFuncParam(name, StackNum, szParamName, MAX_STRING, szParamType, MAX_STRING);
@@ -1089,7 +1089,7 @@ void Call(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void NewIf(PSPAWNINFO pChar, PCHAR szLine)
+void NewIf(PSPAWNINFO pChar, char* szLine)
 {
 	if (szLine[0] != '(')
 	{
@@ -1098,7 +1098,7 @@ void NewIf(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	PCHAR pEnd = &szLine[1];
+	char* pEnd = &szLine[1];
 	DWORD nParens = 1;
 	while (1)
 	{
@@ -1149,8 +1149,8 @@ void NewIf(PSPAWNINFO pChar, PCHAR szLine)
 			// it to be parsed again since the parser already knew how to handle it and has given us
 			// the correct output.  So let's wrap this in a ${Parse[0 until we can fix /if to short
 			// circuit prior to processing.
-			// Cast it as a PCHAR, Modify the command, and run it
-			DoCommand(pChar, PCHAR(ModifyMacroString(pEnd, true, 0).c_str()));
+			// Cast it as a char*, Modify the command, and run it
+			DoCommand(pChar, char*(ModifyMacroString(pEnd, true, 0).c_str()));
 		}
 		else
 		{
@@ -1185,7 +1185,7 @@ static void EndWhile()
 	bRunNextCommand = TRUE;
 }
 
-static void MarkWhile(PCHAR szCommand, Loop& loop)
+static void MarkWhile(char* szCommand, Loop& loop)
 {
 	if (szCommand[strlen(szCommand) - 1] == '{') {
 		loop.type = Loop::Type::While;
@@ -1242,7 +1242,7 @@ static void MarkWhile(PCHAR szCommand, Loop& loop)
 //                   ....
 //              }
 // ***************************************************************************
-void WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
+void WhileCmd(PSPAWNINFO pChar, char* szLine)
 {
 	char szCond[MAX_STRING] = { 0 };
 
@@ -1253,7 +1253,7 @@ void WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	PCHAR pEnd = &szLine[1];
+	char* pEnd = &szLine[1];
 	DWORD nParens = 1;
 	while (1)
 	{
@@ -1312,7 +1312,7 @@ void WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/doevents' command
 // Usage:       /doevents [flush] [custom event]
 // ***************************************************************************
-void DoEvents(PSPAWNINFO pChar, PCHAR szLine)
+void DoEvents(PSPAWNINFO pChar, char* szLine)
 {
 	if (!gEventQueue || !gMacroStack)
 		return;
@@ -1443,7 +1443,7 @@ void DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/return' command
 // Usage:       /return [value]
 // ***************************************************************************
-void Return(PSPAWNINFO pChar, PCHAR szLine)
+void Return(PSPAWNINFO pChar, char* szLine)
 {
 	bRunNextCommand = TRUE;
 	PMACROSTACK pStack = gMacroStack;
@@ -1475,7 +1475,7 @@ void Return(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/for' command
 // Usage:       /for v# <start> <to|downto> <end>
 // ***************************************************************************
-void For(PSPAWNINFO pChar, PCHAR szLine)
+void For(PSPAWNINFO pChar, char* szLine)
 {
 	bRunNextCommand = TRUE;
 	char ArgLoop[MAX_STRING] = { 0 };
@@ -1534,7 +1534,7 @@ void For(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/next' command
 // Usage:       /next v#
 // ***************************************************************************
-void Next(PSPAWNINFO pChar, PCHAR szLine)
+void Next(PSPAWNINFO pChar, char* szLine)
 {
 	bRunNextCommand = TRUE;
 	char szNext[MAX_STRING];
@@ -1572,7 +1572,7 @@ void Next(PSPAWNINFO pChar, PCHAR szLine)
 	_strlwr_s(szTemp);
 	LONG StepSize = 1;
 	if (strstr(szTemp, "step")) {
-		if (PCHAR pTemp = strstr(szTemp, "step") + 4) {
+		if (char* pTemp = strstr(szTemp, "step") + 4) {
 			while ((pTemp[0] != 0) && (pTemp[0] != ' ') && (pTemp[0] != '\t'))
 				pTemp++;
 			if (pTemp[0] != 0)
@@ -1621,7 +1621,7 @@ void Next(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/continue' command
 // Usage:       /continue
 // ***************************************************************************
-void Continue(PSPAWNINFO pChar, PCHAR szLine)
+void Continue(PSPAWNINFO pChar, char* szLine)
 {
 	if (!gMacroBlock)
 	{
@@ -1675,7 +1675,7 @@ void Continue(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/break' command
 // Usage:       /break
 // ***************************************************************************
-void Break(PSPAWNINFO pChar, PCHAR szLine)
+void Break(PSPAWNINFO pChar, char* szLine)
 {
 	if (!gMacroBlock)
 	{

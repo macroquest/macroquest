@@ -35,45 +35,45 @@ namespace MQ2Globals
 		EQADDR_MEMCHECK2 = __MemChecker2;
 		EQADDR_MEMCHECK3 = __MemChecker3;
 		EQADDR_MEMCHECK4 = __MemChecker4;
-		EQADDR_SERVERHOST = (PCHAR)__ServerHost;
-		EQADDR_SERVERNAME = (PCHAR)__ServerName;
+		EQADDR_SERVERHOST = (char*)__ServerHost;
+		EQADDR_SERVERNAME = (char*)__ServerName;
 		EQADDR_CONVERTITEMTAGS = __ConvertItemTags;
 		EQADDR_CMDLIST = (PCMDLIST)__CommandList;
 
-		EQADDR_ATTACK = (PBYTE)__Attack;
-		EQADDR_NOTINCHATMODE = (PBYTE)__InChatMode;
-		EQADDR_RUNWALKSTATE = (PBYTE)__RunWalkState;
-		EQADDR_LASTTELL = (PCHAR)__LastTell;
-		EQADDR_ZONETYPE = (PBYTE)__ZoneType;
+		EQADDR_ATTACK = (BYTE*)__Attack;
+		EQADDR_NOTINCHATMODE = (BYTE*)__InChatMode;
+		EQADDR_RUNWALKSTATE = (BYTE*)__RunWalkState;
+		EQADDR_LASTTELL = (char*)__LastTell;
+		EQADDR_ZONETYPE = (BYTE*)__ZoneType;
 		gbUseTellWindows = *(BOOL*)__UseTellWindows;
-		gpbRangedAttackReady = (PCHAR)__RangeAttackReady;
+		gpbRangedAttackReady = (char*)__RangeAttackReady;
 		ppCResolutionHandler = (CResolutionHandler**)pinstCResolutionHandler;
-		gpbShowNetStatus = (PCHAR)__NetStatusToggle;
+		gpbShowNetStatus = (char*)__NetStatusToggle;
 		g_ppDrawHandler = (DWORD*)__DrawHandler;
 		gpShowNames = (DWORD*)__ShowNames;
 		EQADDR_SUBSCRIPTIONTYPE = (PDWORD)__SubscriptionType;
 		EQADDR_GROUPAGGRO = (DWORD)__GroupAggro;
-		EQADDR_TARGETAGGROHOLDER = (PCHAR)__TargetAggroHolder;
+		EQADDR_TARGETAGGROHOLDER = (char*)__TargetAggroHolder;
 		gpPCNames = (DWORD*)__PCNames;
-		pTributeActive = (PBYTE)instTributeActive;
-		gpAutoFire = (PBYTE)__Autofire;
+		pTributeActive = (BYTE*)instTributeActive;
+		gpAutoFire = (BYTE*)__Autofire;
 		gpAutoSkill = (PAUTOSKILL)__AutoSkillArray;
-		gpShiftKeyDown = (PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
+		gpShiftKeyDown = (BYTE*)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
 		gpMouseEventTime = (DWORD*)__MouseEventTime;
 		gpbCommandEvent = (DWORD*)__gpbCommandEvent;
 
-		EQADDR_GWORLD = (PVOID)__gWorld;
+		EQADDR_GWORLD = (void*)__gWorld;
 		EQADDR_DOABILITYLIST = (PDWORD)__DoAbilityList;
 
 		ppCurrentMapLabel = (PMAPLABEL*)__CurrentMapLabel;
-		EQMappableCommandList = (PCHAR*)__BindList;
-		EQbCommandStates = (PBYTE)g_eqCommandStates;
+		EQMappableCommandList = (char**)__BindList;
+		EQbCommandStates = (BYTE*)g_eqCommandStates;
 
-		EQADDR_ENCRYPTPAD0 = (PBYTE)__EncryptPad0;
-		EQADDR_ENCRYPTPAD1 = (PBYTE)__EncryptPad1;
-		EQADDR_ENCRYPTPAD2 = (PBYTE)__EncryptPad2;
-		EQADDR_ENCRYPTPAD3 = (PBYTE)__EncryptPad3;
-		EQADDR_ENCRYPTPAD4 = (PBYTE)__EncryptPad4;
+		EQADDR_ENCRYPTPAD0 = (BYTE*)__EncryptPad0;
+		EQADDR_ENCRYPTPAD1 = (BYTE*)__EncryptPad1;
+		EQADDR_ENCRYPTPAD2 = (BYTE*)__EncryptPad2;
+		EQADDR_ENCRYPTPAD3 = (BYTE*)__EncryptPad3;
+		EQADDR_ENCRYPTPAD4 = (BYTE*)__EncryptPad4;
 
 		pScreenX = (DWORD*)__ScreenX;
 		pScreenY = (DWORD*)__ScreenY;
@@ -437,7 +437,7 @@ namespace MQ2Globals
 	fEQCommand        cmdAssist = nullptr;
 	fEQCommand        cmdQuit = nullptr;
 
-	PCHAR szEQMappableCommands[nEQMappableCommands];
+	char* szEQMappableCommands[nEQMappableCommands];
 	decltype(ItemSlotMap) ItemSlotMap;
 
 	char DataTypeTemp[MAX_STRING] = { 0 };
@@ -451,9 +451,9 @@ namespace MQ2Globals
 	BOOL gMouseClickInProgress[8] = { FALSE };
 	// End of mouse variables
 
-	PCHAR gDiKeyName[256];
+	char* gDiKeyName[256];
 
-	PCHAR szHeading[] = {
+	char* szHeading[] = {
 		"south",                //0
 		"south by southeast",   //1
 		"southeast",            //2
@@ -472,7 +472,7 @@ namespace MQ2Globals
 		"south by southwest"    //15
 	};
 
-	PCHAR szHeadingShort[] = {
+	char* szHeadingShort[] = {
 		"S",    //0
 		"SSE",  //1
 		"SE",   //2
@@ -491,7 +491,7 @@ namespace MQ2Globals
 		"SSW"   //15
 	};
 
-	PCHAR szHeadingNormal[] = {
+	char* szHeadingNormal[] = {
 		"north",                //0
 		"north by northeast",   //1
 		"northeast",            //2
@@ -510,7 +510,7 @@ namespace MQ2Globals
 		"north by northwest"    //15
 	};
 
-	PCHAR szHeadingNormalShort[] = {
+	char* szHeadingNormalShort[] = {
 		"N",    //0
 		"NNE",  //1
 		"NE",   //2
@@ -529,7 +529,7 @@ namespace MQ2Globals
 		"NNW"   //15
 	};
 
-	PCHAR szSize[] = {
+	char* szSize[] = {
 		"Tiny",
 		"Small",
 		"Normal",
@@ -539,7 +539,7 @@ namespace MQ2Globals
 		"Unknown" //?
 	};
 
-	PCHAR szSpawnType[] = {
+	char* szSpawnType[] = {
 		"player",
 		"NPC",
 		"corpse",
@@ -548,7 +548,7 @@ namespace MQ2Globals
 		nullptr // SuperWhoTarget
 	};
 
-	PCHAR szGuildStatus[] = {
+	char* szGuildStatus[] = {
 		"",
 		"Leader",
 		"Senior Officer",
@@ -561,21 +561,21 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szGender[] = {
+	char* szGender[] = {
 		"male",
 		"female",
 		"neuter",
 		"unknown"
 	};
 
-	PCHAR szDeityTeam[] = {
+	char* szDeityTeam[] = {
 		"none",     //0
 		"good",     //1
 		"neutral",  //2
 		"evil"      //3
 	};
 
-	PCHAR szLights[] = {
+	char* szLights[] = {
 		"NONE",    // 0  - No light
 		"CDL", // 1  - Candle
 		"TR",  // 2  - Torch
@@ -609,12 +609,12 @@ namespace MQ2Globals
 		5       //13
 	};
 
-	PCHAR szSkills[] = {
+	char* szSkills[] = {
 #include "EQLib/data/skills.h"
 		nullptr
 	};
 
-	PCHAR szInnates[] = {
+	char* szInnates[] = {
 		"Awareness",//c4c
 		"Bash Door",//c50
 		"Breathe Fire",//c54
@@ -633,7 +633,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szZoneExpansionName[] = {
+	char* szZoneExpansionName[] = {
 		"Original EQ",              //0
 		"Kunark",                   //1
 		"Velious",                  //2
@@ -658,7 +658,7 @@ namespace MQ2Globals
 		"Broken Mirror",            //21
 	};
 
-	PCHAR szDmgBonusType[] = {
+	char* szDmgBonusType[] = {
 		"None",
 		"Magic",
 		"Fire",
@@ -667,7 +667,7 @@ namespace MQ2Globals
 		"Disease"
 	};
 
-	PCHAR szBodyType[] = {
+	char* szBodyType[] = {
 		"Object",//0       (catapults, tents, practice dummies, etc)
 		"Humanoid", //1
 		"Lycanthrope", //2
@@ -774,7 +774,7 @@ namespace MQ2Globals
 		"Property Suicide",//103
 	};
 
-	PCHAR szAugRestrictions[] = {
+	char* szAugRestrictions[] = {
 		"None",
 		"Armor Only",
 		"Weapons Only",
@@ -791,7 +791,7 @@ namespace MQ2Globals
 		"Shields Only"
 	};
 
-	PCHAR szEquipmentSlot[] = {
+	char* szEquipmentSlot[] = {
 		"head",
 		"chest",
 		"arms",
@@ -804,7 +804,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szItemSlot[] = {
+	char* szItemSlot[] = {
 		"charm",        // 0
 		"leftear",      // 1
 		"head",
@@ -842,7 +842,7 @@ namespace MQ2Globals
 		nullptr            // 31
 	};
 
-	PCHAR szExpansions[] = {
+	char* szExpansions[] = {
 		"The Ruins of Kunark",
 		"The Scars of Velious",
 		"The Shadows of Luclin",
@@ -888,7 +888,7 @@ namespace MQ2Globals
 	DWORD nColorMQ2DataError = 0;
 	DWORD nColorFatalError = 0;
 
-	PCHAR szColorAdjective[] =
+	char* szColorAdjective[] =
 	{
 		"",
 		"GOD DAMN ",
@@ -897,7 +897,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szColorAdjectiveYou[] =
+	char* szColorAdjectiveYou[] =
 	{
 		"",
 		" FUCKER",
@@ -917,7 +917,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szColorExpletive[] =
+	char* szColorExpletive[] =
 	{
 		"",
 		"CHRIST ",
@@ -929,14 +929,14 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szColorSyntaxError[] =
+	char* szColorSyntaxError[] =
 	{
 		"",
 		"%edont you know how to use a simple %acommand%y",
 		nullptr
 	};
 
-	PCHAR szColorMacroError[] =
+	char* szColorMacroError[] =
 	{
 		"",
 		"%ei'm pretty sure you're on %acrack%y"
@@ -948,7 +948,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szColorFatalError[] =
+	char* szColorFatalError[] =
 	{
 		"",
 		"%eyou fucking broke it%y",
@@ -956,7 +956,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PCHAR szColorMQ2DataError[] =
+	char* szColorMQ2DataError[] =
 	{
 		"",
 		"%ewhy dont you %aread the %areference%y",
@@ -984,31 +984,31 @@ namespace MQ2Globals
 	DWORD EQADDR_MEMCHECK2 = 0;
 	DWORD EQADDR_MEMCHECK3 = 0;
 	DWORD EQADDR_MEMCHECK4 = 0;
-	PCHAR EQADDR_SERVERHOST = nullptr;
-	PCHAR EQADDR_SERVERNAME = nullptr;
+	char* EQADDR_SERVERHOST = nullptr;
+	char* EQADDR_SERVERNAME = nullptr;
 	DWORD EQADDR_CONVERTITEMTAGS = 0;
 	PCMDLIST EQADDR_CMDLIST = nullptr;
 
-	PBYTE EQADDR_ATTACK = nullptr;
-	PBYTE EQADDR_NOTINCHATMODE = nullptr;
-	PBYTE EQADDR_RUNWALKSTATE = nullptr;
+	BYTE* EQADDR_ATTACK = nullptr;
+	BYTE* EQADDR_NOTINCHATMODE = nullptr;
+	BYTE* EQADDR_RUNWALKSTATE = nullptr;
 	PDWORD EQADDR_SUBSCRIPTIONTYPE = nullptr;
 	DWORD EQADDR_GROUPAGGRO = 0;
-	PCHAR EQADDR_TARGETAGGROHOLDER = nullptr;
-	PCHAR EQADDR_LASTTELL = nullptr;
-	PBYTE EQADDR_ZONETYPE = nullptr;
+	char* EQADDR_TARGETAGGROHOLDER = nullptr;
+	char* EQADDR_LASTTELL = nullptr;
+	BYTE* EQADDR_ZONETYPE = nullptr;
 	BOOL gbUseTellWindows = 0;
-	PCHAR gpbRangedAttackReady = nullptr;
-	PCHAR gpbShowNetStatus = nullptr;
+	char* gpbRangedAttackReady = nullptr;
+	char* gpbShowNetStatus = nullptr;
 	DWORD* g_ppDrawHandler = nullptr;
 	CResolutionHandler** ppCResolutionHandler = nullptr;
 	DWORD* gpShowNames = nullptr;
 	DWORD* gpPCNames = nullptr;
-	PBYTE pTributeActive = nullptr;
-	PBYTE gpAutoFire = nullptr;
+	BYTE* pTributeActive = nullptr;
+	BYTE* gpAutoFire = nullptr;
 	PAUTOSKILL gpAutoSkill = nullptr;
 	size_t g_eqgameimagesize = 0;
-	PBYTE gpShiftKeyDown = nullptr; // addr+1=ctrl, addr+2=alt
+	BYTE* gpShiftKeyDown = nullptr; // addr+1=ctrl, addr+2=alt
 	DWORD *gpMouseEventTime = nullptr;
 	DWORD *gpbCommandEvent = nullptr;
 	BOOL gbTimeStampChat = 0;
@@ -1019,18 +1019,18 @@ namespace MQ2Globals
 	BOOL gbShowCurrentCamera = 1;
 	int  oldcameratype = -1;
 	char CameraText[2048] = { "Window Selector (Camera 0)" };
-	PVOID EQADDR_GWORLD = nullptr;
+	void* EQADDR_GWORLD = nullptr;
 	PDWORD EQADDR_DOABILITYLIST = nullptr;
 
 	PMAPLABEL *ppCurrentMapLabel = nullptr;
-	PCHAR *EQMappableCommandList = nullptr;
-	PBYTE EQbCommandStates = nullptr;
+	char* *EQMappableCommandList = nullptr;
+	BYTE* EQbCommandStates = nullptr;
 
-	PBYTE EQADDR_ENCRYPTPAD0 = nullptr;
-	PBYTE EQADDR_ENCRYPTPAD1 = nullptr;
-	PBYTE EQADDR_ENCRYPTPAD2 = nullptr;
-	PBYTE EQADDR_ENCRYPTPAD3 = nullptr;
-	PBYTE EQADDR_ENCRYPTPAD4 = nullptr;
+	BYTE* EQADDR_ENCRYPTPAD0 = nullptr;
+	BYTE* EQADDR_ENCRYPTPAD1 = nullptr;
+	BYTE* EQADDR_ENCRYPTPAD2 = nullptr;
+	BYTE* EQADDR_ENCRYPTPAD3 = nullptr;
+	BYTE* EQADDR_ENCRYPTPAD4 = nullptr;
 
 	DWORD *pScreenX = nullptr;
 	DWORD *pScreenY = nullptr;
@@ -1050,7 +1050,7 @@ namespace MQ2Globals
 
 	PGUILDS pGuildList = nullptr;
 	PEQSOCIAL   pSocialList = nullptr;
-	PBYTE pgHotkeyPage = nullptr;
+	BYTE* pgHotkeyPage = nullptr;
 	PINT pgCurrentSocial = nullptr;
 
 	fEQNewUIINI     NewUIINI = nullptr;

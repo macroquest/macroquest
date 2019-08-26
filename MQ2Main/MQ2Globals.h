@@ -224,7 +224,7 @@ EQLIB_VAR std::map<std::string, unsigned long> ItemSlotMap;
 EQLIB_VAR BOOL g_bInDXMouse;
 EQLIB_VAR PMOUSESPOOF gMouseData;
 
-EQLIB_VAR PCHAR gDiKeyName[256];
+EQLIB_VAR char* gDiKeyName[256];
 
 EQLIB_VAR DWORD gGameState;
 EQLIB_VAR BOOL gbMQ2LoadingMsg;
@@ -237,8 +237,8 @@ EQLIB_VAR DWORD EQADDR_MEMCHECK1;
 EQLIB_VAR DWORD EQADDR_MEMCHECK2;
 EQLIB_VAR DWORD EQADDR_MEMCHECK3;
 EQLIB_VAR DWORD EQADDR_MEMCHECK4;
-EQLIB_VAR PCHAR EQADDR_SERVERHOST;
-EQLIB_VAR PCHAR EQADDR_SERVERNAME;
+EQLIB_VAR char* EQADDR_SERVERHOST;
+EQLIB_VAR char* EQADDR_SERVERNAME;
 EQLIB_VAR DWORD EQADDR_HWND;
 
 EQLIB_VAR SKILLMGR** ppSkillMgr;
@@ -248,29 +248,29 @@ EQLIB_VAR EVERQUESTINFO* ppEverQuestInfo;
 
 EQLIB_VAR PCMDLIST EQADDR_CMDLIST;
 
-EQLIB_VAR PBYTE EQADDR_ATTACK;
-EQLIB_VAR PBYTE EQADDR_NOTINCHATMODE;
-EQLIB_VAR PBYTE EQADDR_RUNWALKSTATE;
-EQLIB_VAR PCHAR EQADDR_LASTTELL;
-EQLIB_VAR PVOID EQADDR_GWORLD;
+EQLIB_VAR BYTE* EQADDR_ATTACK;
+EQLIB_VAR BYTE* EQADDR_NOTINCHATMODE;
+EQLIB_VAR BYTE* EQADDR_RUNWALKSTATE;
+EQLIB_VAR char* EQADDR_LASTTELL;
+EQLIB_VAR void* EQADDR_GWORLD;
 EQLIB_VAR PDWORD EQADDR_DOABILITYLIST;
 EQLIB_VAR PDWORD EQADDR_SUBSCRIPTIONTYPE;
 EQLIB_VAR DWORD EQADDR_GROUPAGGRO;
-EQLIB_VAR PCHAR EQADDR_TARGETAGGROHOLDER;
-EQLIB_VAR PBYTE EQADDR_ZONETYPE;
+EQLIB_VAR char* EQADDR_TARGETAGGROHOLDER;
+EQLIB_VAR BYTE* EQADDR_ZONETYPE;
 EQLIB_VAR BOOL gbUseTellWindows;
 
 #define indoor (((*EQADDR_ZONETYPE) == 0) || ((*EQADDR_ZONETYPE) == 3) || ((*EQADDR_ZONETYPE) == 4))
 #define outdoor (((*EQADDR_ZONETYPE) == 1) || ((*EQADDR_ZONETYPE) == 2) || ((*EQADDR_ZONETYPE) == 5))
 #define bindable (((*EQADDR_ZONETYPE) == 2) || ((*EQADDR_ZONETYPE) == 3) || ((*EQADDR_ZONETYPE) == 4))
-//EQLIB_VAR PBYTE EQADDR_DOABILITYAVAILABLE;
-EQLIB_VAR PBYTE pTributeActive;
+//EQLIB_VAR BYTE* EQADDR_DOABILITYAVAILABLE;
+EQLIB_VAR BYTE* pTributeActive;
 
-EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD0;
-EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD1;
-EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD2;
-EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD3;
-EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD4;
+EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD0;
+EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD1;
+EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD2;
+EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD3;
+EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD4;
 
 EQLIB_VAR PMOUSEINFO EQADDR_MOUSE;
 EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
@@ -278,19 +278,19 @@ EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
 EQLIB_VAR PMAPLABEL * ppCurrentMapLabel;
 #define pCurrentMapLabel (*ppCurrentMapLabel)
 
-EQLIB_VAR PCHAR gpbRangedAttackReady;
+EQLIB_VAR char* gpbRangedAttackReady;
 #define gbRangedAttackReady (*gpbRangedAttackReady)
-EQLIB_VAR PCHAR gpbShowNetStatus;
+EQLIB_VAR char* gpbShowNetStatus;
 #define gbShowNetStatus (*gpbShowNetStatus)
 EQLIB_VAR DWORD * gpShowNames;
 #define gShowNames (*gpShowNames)
 EQLIB_VAR DWORD * gpPCNames;
 #define gPCNames (*gpPCNames)
-EQLIB_VAR PBYTE gpAutoFire;
+EQLIB_VAR BYTE* gpAutoFire;
 #define gAutoFire (*gpAutoFire)
 EQLIB_VAR PAUTOSKILL gpAutoSkill;
 #define gAutoSkill (*gpAutoSkill)
-EQLIB_VAR PBYTE gpShiftKeyDown;
+EQLIB_VAR BYTE* gpShiftKeyDown;
 #define gShiftKeyDown (*gpShiftKeyDown)
 EQLIB_VAR DWORD * gpMouseEventTime;
 #define gMouseEventTime (*gpMouseEventTime)
@@ -302,8 +302,8 @@ EQLIB_VAR CResolutionHandler * *ppCResolutionHandler;
 EQLIB_VAR DWORD * g_ppDrawHandler;
 #define g_pDrawHandler (*g_ppDrawHandler)
 
-EQLIB_VAR PCHAR * EQMappableCommandList;
-EQLIB_VAR PBYTE EQbCommandStates;
+EQLIB_VAR char* * EQMappableCommandList;
+EQLIB_VAR BYTE* EQbCommandStates;
 
 EQLIB_VAR DWORD EQADDR_DIMAIN;
 EQLIB_VAR IDirectInputDevice8A * *EQADDR_DIKEYBOARD;
@@ -319,23 +319,23 @@ EQLIB_VAR BOOL bDetMouse;
 // ***************************************************************************
 // String arrays
 // ***************************************************************************
-EQLIB_VAR PCHAR szEQMappableCommands[nEQMappableCommands];
+EQLIB_VAR char* szEQMappableCommands[nEQMappableCommands];
 
-EQLIB_VAR PCHAR szHeading[];
-EQLIB_VAR PCHAR szHeadingShort[];
-EQLIB_VAR PCHAR szHeadingNormal[];
-EQLIB_VAR PCHAR szHeadingNormalShort[];
-EQLIB_VAR PCHAR szSize[];
-EQLIB_VAR PCHAR szSpawnType[];
-EQLIB_VAR PCHAR szGuildStatus[];
-EQLIB_VAR PCHAR szGender[];
-EQLIB_VAR PCHAR szDeityTeam[];
-EQLIB_VAR PCHAR szLights[];
+EQLIB_VAR char* szHeading[];
+EQLIB_VAR char* szHeadingShort[];
+EQLIB_VAR char* szHeadingNormal[];
+EQLIB_VAR char* szHeadingNormalShort[];
+EQLIB_VAR char* szSize[];
+EQLIB_VAR char* szSpawnType[];
+EQLIB_VAR char* szGuildStatus[];
+EQLIB_VAR char* szGender[];
+EQLIB_VAR char* szDeityTeam[];
+EQLIB_VAR char* szLights[];
 EQLIB_VAR BYTE LightBrightness[];
-EQLIB_VAR PCHAR szSkills[];
-EQLIB_VAR PCHAR szInnates[];
+EQLIB_VAR char* szSkills[];
+EQLIB_VAR char* szInnates[];
 
-EQLIB_VAR PCHAR szWornLoc[];
+EQLIB_VAR char* szWornLoc[];
 
 EQLIB_VAR fEQCommand			cmdHelp;
 EQLIB_VAR fEQCommand			cmdWho;
@@ -370,24 +370,24 @@ EQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
 EQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown, void* data);
 EQLIB_VAR bool IsResEffectSpell(int);
-//EQLIB_VAR PCHAR szItemName[];
-//EQLIB_VAR PCHAR szItemName4xx[];
-//EQLIB_VAR PCHAR szTheme[];
-EQLIB_VAR PCHAR szDmgBonusType[];
-EQLIB_VAR PCHAR szBodyType[];
-EQLIB_VAR PCHAR szAugRestrictions[];
-EQLIB_VAR PCHAR szItemSlot[];
-EQLIB_VAR PCHAR szEquipmentSlot[];
-EQLIB_VAR PCHAR szExpansions[];
+//EQLIB_VAR char* szItemName[];
+//EQLIB_VAR char* szItemName4xx[];
+//EQLIB_VAR char* szTheme[];
+EQLIB_VAR char* szDmgBonusType[];
+EQLIB_VAR char* szBodyType[];
+EQLIB_VAR char* szAugRestrictions[];
+EQLIB_VAR char* szItemSlot[];
+EQLIB_VAR char* szEquipmentSlot[];
+EQLIB_VAR char* szExpansions[];
 
 EQLIB_VAR BOOL bLaxColor;
-EQLIB_VAR PCHAR szColorAdjective[];
-EQLIB_VAR PCHAR szColorAdjectiveYou[];
-EQLIB_VAR PCHAR szColorExpletive[];
-EQLIB_VAR PCHAR szColorSyntaxError[];
-EQLIB_VAR PCHAR szColorMacroError[];
-EQLIB_VAR PCHAR szColorMQ2DataError[];
-EQLIB_VAR PCHAR szColorFatalError[];
+EQLIB_VAR char* szColorAdjective[];
+EQLIB_VAR char* szColorAdjectiveYou[];
+EQLIB_VAR char* szColorExpletive[];
+EQLIB_VAR char* szColorSyntaxError[];
+EQLIB_VAR char* szColorMacroError[];
+EQLIB_VAR char* szColorMQ2DataError[];
+EQLIB_VAR char* szColorFatalError[];
 EQLIB_VAR DWORD nColorAdjective;
 EQLIB_VAR DWORD nColorAdjectiveYou;
 EQLIB_VAR DWORD nColorExpletive;
@@ -457,7 +457,7 @@ EQLIB_VAR EQZoneInfo* pZoneInfo;
 EQLIB_VAR PGUILDS pGuildList;
 EQLIB_VAR PEQSOCIAL   pSocialList;
 
-EQLIB_VAR PBYTE pgHotkeyPage;
+EQLIB_VAR BYTE* pgHotkeyPage;
 #define gHotkeyPage (*pgHotkeyPage)
 
 EQLIB_VAR PlayerClient** ppTradeTarget;

@@ -51,7 +51,7 @@ bool bClassHUD = true;
 bool bZoneHUD = true;
 bool bUseFontSize = false;
 
-BOOL Stat(PCHAR Filename, struct _stat &Dest)
+BOOL Stat(char* Filename, struct _stat &Dest)
 {
 	int client = 0;
 	errno_t err = _sopen_s(&client, Filename, _O_RDONLY,_SH_DENYNO, _S_IREAD | _S_IWRITE);
@@ -74,7 +74,7 @@ void ClearElements()
     }
 }
 
-void AddElement(PCHAR IniString)
+void AddElement(char* IniString)
 {
 	lockit lk(hHudLock,"HudLock");
     LONG X;
@@ -83,7 +83,7 @@ void AddElement(PCHAR IniString)
     ARGBCOLOR Color;
     Color.A=0xFF;
     // x,y,color,string
-    PCHAR pComma;
+    char* pComma;
     DWORD Size;
 
     pComma=strchr(IniString,',');
@@ -174,7 +174,7 @@ void LoadElements()
     GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
     while (*CurrentHUD) {
         GetPrivateProfileString(CurrentHUD,NULL,"",ElementList,MAX_STRING*10,INIFileName);
-        PCHAR pElementList = ElementList;
+        char* pElementList = ElementList;
         while (pElementList[0]!=0) {
             GetPrivateProfileString(CurrentHUD,pElementList,"",szBuffer,MAX_STRING,INIFileName);
             if (szBuffer[0]!=0) {
@@ -189,7 +189,7 @@ void LoadElements()
 			if (CHARINFO2* pChar2 = GetCharInfo2()) {
 				sprintf_s(ClassDesc, "%s", GetClassDesc(pChar2->Class));
 				GetPrivateProfileString(ClassDesc, NULL, "", ElementList, MAX_STRING * 10, INIFileName);
-				PCHAR pElementList = ElementList;
+				char* pElementList = ElementList;
 				while (pElementList[0] != 0) {
 					GetPrivateProfileString(ClassDesc, pElementList, "", szBuffer, MAX_STRING, INIFileName);
 					if (szBuffer[0] != 0) {
@@ -202,7 +202,7 @@ void LoadElements()
         if (bZoneHUD && (pZoneInfo)) {
             sprintf_s(ZoneName,"%s",((PZONEINFO)pZoneInfo)->LongName);
             GetPrivateProfileString(ZoneName,NULL,"",ElementList,MAX_STRING*10,INIFileName);
-            PCHAR pElementList = ElementList;
+            char* pElementList = ElementList;
             while (pElementList[0]!=0) {
                 GetPrivateProfileString(ZoneName,pElementList,"",szBuffer,MAX_STRING,INIFileName);
                 if (szBuffer[0]!=0) {
@@ -252,13 +252,13 @@ void HandleINI()
     LoadElements();
 }
 
-void DefaultHUD(PSPAWNINFO pChar, PCHAR szLine)
+void DefaultHUD(PSPAWNINFO pChar, char* szLine)
 {
     strcpy_s(HUDNames, "Elements");
     HandleINI();
 }
 
-void LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
+void LoadHUD(PSPAWNINFO pChar, char* szLine)
 {
     char HUDTemp[MAX_STRING] = {0};
     char CurrentHUD[MAX_STRING];
@@ -279,7 +279,7 @@ void LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-void UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
+void UnLoadHUD(PSPAWNINFO pChar, char* szLine)
 {
     char HUDTemp[MAX_STRING] = {0};
     char CurrentHUD[MAX_STRING];
@@ -302,7 +302,7 @@ void UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-void BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
+void BackgroundHUD(PSPAWNINFO pChar, char* szLine)
 {
     if (!_stricmp(szLine,"off"))
     {
@@ -322,7 +322,7 @@ void BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-void ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
+void ClassHUD(PSPAWNINFO pChar, char* szLine)
 {
     if (!_stricmp(szLine,"off"))
     {
@@ -342,7 +342,7 @@ void ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-void ZoneHUD(PSPAWNINFO pChar, PCHAR szLine)
+void ZoneHUD(PSPAWNINFO pChar, char* szLine)
 {
     if (!_stricmp(szLine,"off"))
     {
@@ -362,7 +362,7 @@ void ZoneHUD(PSPAWNINFO pChar, PCHAR szLine)
     HandleINI();
 }
 
-BOOL dataHUD(PCHAR szIndex, MQ2TYPEVAR &Ret)
+BOOL dataHUD(char* szIndex, MQ2TYPEVAR &Ret)
 {
     Ret.Ptr=HUDNames;
     Ret.Type=pStringType;
@@ -425,23 +425,23 @@ PLUGIN_API void OnZoned()
     if (bZoneHUD) HandleINI();
 }
 
-BOOL ParseMacroLine(PCHAR szOriginal, SIZE_T BufferSize,std::list<std::string>&out)
+BOOL ParseMacroLine(char* szOriginal, size_t BufferSize,std::list<std::string>&out)
 {
 	// find each {}
-	PCHAR pBrace = strstr(szOriginal, "${");
+	char* pBrace = strstr(szOriginal, "${");
 	if (!pBrace)
 		return false;
 	unsigned long NewLength;
 	BOOL Changed = false;
-	//PCHAR pPos;
-	//PCHAR pStart;
-	//PCHAR pIndex;
+	//char* pPos;
+	//char* pStart;
+	//char* pIndex;
 	char szCurrent[MAX_STRING] = { 0 };
 	//MQ2TYPEVAR Result = { 0 };
 	do
 	{
 		// find this brace's end
-		PCHAR pEnd = &pBrace[1];
+		char* pEnd = &pBrace[1];
 		BOOL Quote = false;
 		BOOL BeginParam = false;
 		int nBrace = 1;
@@ -592,7 +592,7 @@ PLUGIN_API void OnDrawHUD()
 						if (out.size()) {
 							for (std::list<std::string>::iterator i = out.begin(); i != out.end(); i++) {
 								bOkToCheck = false;
-								PCHAR pChar = (PCHAR)(*i).c_str();
+								char* pChar = (char*)(*i).c_str();
 								if (FindMQ2Data(pChar)) {
 									bOkToCheck = true;
 									continue;

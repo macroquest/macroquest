@@ -14,7 +14,7 @@
 
 #include "MQ2Main.h"
 
-BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSpawn(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -44,7 +44,7 @@ BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSelect(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -73,7 +73,7 @@ BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 }
 
-BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataTarget(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pTarget)
 	{
@@ -84,7 +84,7 @@ BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataCharacter(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pCharData)
 	{
@@ -95,7 +95,7 @@ BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSpell(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -125,7 +125,7 @@ BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSwitch(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pDoorTarget)
 	{
@@ -136,7 +136,7 @@ BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataGroundItem(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	std::map<float, GROUNDOBJECT>itemmap;
 	//if they did ${Ground[name]}
@@ -259,7 +259,7 @@ BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	return false;
 }
-BOOL dataGroundItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataGroundItemCount(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pIntType;
@@ -293,13 +293,13 @@ BOOL dataGroundItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	return true;
 }
-BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMerchant(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = pActiveMerchant;
 	Ret.Type = pMerchantType;
 	return true;
 }
-BOOL dataMercenary(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMercenary(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pMercInfo && pMercInfo->MercSpawnId)
 	{
@@ -343,7 +343,7 @@ BOOL dataMercenary(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	return false;//we need to return true always to be able to get other members out
 }
-BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataPet(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	PSPAWNINFO pSpawn = GetCharInfo()->pSpawn;
 	if (pSpawn && pSpawn->PetID != 0xFFFFFFFF)
@@ -362,7 +362,7 @@ BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;//we need to return true always to be able to get other members out
 }
 
-BOOL dataCorpse(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataCorpse(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pLootWnd)
 	{
@@ -373,7 +373,7 @@ BOOL dataCorpse(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataMenu(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMenu(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (CContextMenuManager*pMrg = pContextMenuManager)
 	{
@@ -385,7 +385,7 @@ BOOL dataMenu(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	return false;
 }
-BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataWindow(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -398,7 +398,7 @@ BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMacro(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (gRunning)
 	{
@@ -409,28 +409,28 @@ BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataMacroQuest(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMacroQuest(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pMacroQuestType;
 	return true;
 }
 
-BOOL dataEverQuest(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataEverQuest(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pEverQuestType;
 	return true;
 }
 
-BOOL dataMath(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMath(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Ptr = 0;
 	Ret.Type = pMathType;
 	return true;
 }
 
-BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataZone(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	int nIndex = 0;
 	PZONELIST pZone = NULL;
@@ -481,7 +481,7 @@ BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataInt(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -490,7 +490,7 @@ BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataString(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataString(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	WriteChatf("Due to complete misuse of the String Top-Level Object, it has been removed.");
 	return false;
@@ -504,7 +504,7 @@ BOOL dataString(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	/**/
 }
 
-BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFloat(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -513,11 +513,11 @@ BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataHeading(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	if (PCHAR pComma = strchr(szIndex, ','))
+	if (char* pComma = strchr(szIndex, ','))
 	{
 		*pComma = 0;
 		float Y = (float)atof(szIndex);
@@ -538,7 +538,7 @@ BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataBool(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -548,7 +548,7 @@ BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR& Ret)
 }
 
 /*
-BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataGroupLeader(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!GroupLeader[0] || !_stricmp(GroupLeader, GetCharInfo()->pSpawn->Name))
 	{
@@ -576,7 +576,7 @@ BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR& Ret)
 /**/
 
 /*
-BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataGroupLeaderName(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!GroupLeader[0])
 	{
@@ -590,7 +590,7 @@ BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR& Ret)
 }
 /**/
 
-BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataGroup(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 1;
 	Ret.Type = pGroupType;
@@ -634,12 +634,12 @@ BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	/**/
 }
 
-BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataIf(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
 		INT nDelimiter = 0;
-		PCHAR pDelimiter = strchr(szIndex, gIfAltDelimiter);
+		char* pDelimiter = strchr(szIndex, gIfAltDelimiter);
 
 		while (pDelimiter != NULL)
 		{
@@ -650,11 +650,11 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		// condition| whentrue| whenfalse
 		if (nDelimiter == 2)
 		{
-			if (PCHAR pTrue = strchr(szIndex, gIfAltDelimiter))
+			if (char* pTrue = strchr(szIndex, gIfAltDelimiter))
 			{
 				*pTrue = 0;
 				pTrue++;
-				if (PCHAR pFalse = strchr(pTrue, gIfAltDelimiter))
+				if (char* pFalse = strchr(pTrue, gIfAltDelimiter))
 				{
 					*pFalse = 0;
 					pFalse++;
@@ -681,11 +681,11 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		}
 
 		// condition, whentrue, whenfalse
-		if (PCHAR pTrue = strchr(szIndex, gIfDelimiter))
+		if (char* pTrue = strchr(szIndex, gIfDelimiter))
 		{
 			*pTrue = 0;
 			pTrue++;
-			if (PCHAR pFalse = strchr(pTrue, gIfDelimiter))
+			if (char* pFalse = strchr(pTrue, gIfDelimiter))
 			{
 				*pFalse = 0;
 				pFalse++;
@@ -713,7 +713,7 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataCursor(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (CHARINFO2* pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray) {
@@ -727,7 +727,7 @@ BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataLastSpawn(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -777,7 +777,7 @@ BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataNearestSpawn(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -785,7 +785,7 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		SEARCHSPAWN ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
 		ssSpawn.FRadius = 999999.0f;
-		PCHAR pSearch;
+		char* pSearch;
 		if (pSearch = strchr(szIndex, ','))
 		{
 			*pSearch = 0;
@@ -825,7 +825,7 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSpawnCount(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -844,7 +844,7 @@ BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 }
 
-BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataTime(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	time_t CurTime = { 0 };
 	time(&CurTime);
@@ -855,7 +855,7 @@ BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	Ret.Type = pTimeType;
 	return true;
 }
-BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataGameTime(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
 	ZeroMemory(pTime, sizeof(struct tm));
@@ -873,14 +873,14 @@ BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataRange(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataRange(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 1;
 	Ret.Type = pRangeType;
 	return true;
 }
 
-BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataIni(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex)
 		return false;
@@ -1029,7 +1029,7 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataDefined(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1038,7 +1038,7 @@ BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataSubDefined(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSubDefined(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1047,7 +1047,7 @@ BOOL dataSubDefined(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSelectedItem(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pInvSlotMgr->pSelectedItem && pInvSlotMgr->pSelectedItem->Index)
 	{
@@ -1076,7 +1076,7 @@ BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFindItemBank(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1089,7 +1089,7 @@ BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		}
 		return false;
 	}
-	PCHAR pName = szIndex;
+	char* pName = szIndex;
 	BOOL bExact = false;
 
 	if (*pName == '=')
@@ -1106,7 +1106,7 @@ BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFindItem(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1119,7 +1119,7 @@ BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		}
 		return false;
 	}
-	PCHAR pName = szIndex;
+	char* pName = szIndex;
 	BOOL bExact = false;
 
 	if (*pName == '=')
@@ -1135,7 +1135,7 @@ BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFindItemCount(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1144,7 +1144,7 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		Ret.Type = pIntType;
 		return true;
 	}
-	PCHAR pName = szIndex;
+	char* pName = szIndex;
 	BOOL bExact = false;
 	if (*pName == '=')
 	{
@@ -1156,7 +1156,7 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFindItemBankCount(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1165,7 +1165,7 @@ BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		Ret.Type = pIntType;
 		return true;
 	}
-	PCHAR pName = szIndex;
+	char* pName = szIndex;
 	BOOL bExact = false;
 
 	if (*pName == '=')
@@ -1179,7 +1179,7 @@ BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 }
 
 
-BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataInvSlot(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1208,7 +1208,7 @@ BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataPlugin(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1247,7 +1247,7 @@ BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataSkill(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1270,7 +1270,7 @@ BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		{
 			if (PSKILL pSkill = pSkillMgr->pSkill[nSkill])
 			{
-				if (PCHAR pName = pStringTable->getString(pSkill->nName, 0))
+				if (char* pName = pStringTable->getString(pSkill->nName, 0))
 				{
 					if (!_stricmp(szIndex, pName))
 					{
@@ -1286,7 +1286,7 @@ BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataAltAbility(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1332,14 +1332,14 @@ BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataRaid(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pRaidType;
 	return true;
 }
 
-BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataNamingSpawn(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (Ret.Ptr = pNamingSpawn)
 	{
@@ -1349,7 +1349,7 @@ BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 //Updated by Red-One Jan 2014
-BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataLineOfSight(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!GetCharInfo() && !GetCharInfo()->pSpawn)
 		return FALSE;
@@ -1361,15 +1361,15 @@ BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
 		P1[1] = P2[1] = ((PSPAWNINFO)pCharSpawn)->X;
 		P1[2] = P2[2] = ((PSPAWNINFO)pCharSpawn)->Z;
 
-		if (PCHAR pColon = strchr(szIndex, ':'))
+		if (char* pColon = strchr(szIndex, ':'))
 		{
 			*pColon = 0;
-			if (PCHAR pComma = strchr(&pColon[1], ','))
+			if (char* pComma = strchr(&pColon[1], ','))
 			{
 				*pComma = 0;
 				P2[0] = (float)atof(&pColon[1]);
 				*pComma = ',';
-				if (PCHAR pComma2 = strchr(&pComma[1], ','))
+				if (char* pComma2 = strchr(&pComma[1], ','))
 				{
 					*pComma2 = 0;
 					P2[1] = (float)atof(&pComma[1]);
@@ -1385,12 +1385,12 @@ BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
 				P2[0] = (float)atof(&pColon[1]);
 		}
 
-		if (PCHAR pComma = strchr(szIndex, ','))
+		if (char* pComma = strchr(szIndex, ','))
 		{
 			*pComma = 0;
 			P1[0] = (float)atof(szIndex);
 			*pComma = ',';
-			if (PCHAR pComma2 = strchr(&pComma[1], ','))
+			if (char* pComma2 = strchr(&pComma[1], ','))
 			{
 				*pComma2 = 0;
 				P1[1] = (float)atof(&pComma[1]);
@@ -1422,7 +1422,7 @@ BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataDoorTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataDoorTarget(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (Ret.Ptr = &DoorEnviroTarget)
 	{
@@ -1432,7 +1432,7 @@ BOOL dataDoorTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataItemTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataItemTarget(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (Ret.Ptr = &EnviroTarget)
 	{
@@ -1442,21 +1442,21 @@ BOOL dataItemTarget(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataDynamicZone(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataDynamicZone(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pDynamicZoneType;
 	return true;
 }
 
-BOOL dataFriends(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFriends(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pFriendsType;
 	return true;
 }
 
-BOOL dataTask(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataTask(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.Int = -1;
 	if (ppTaskManager)
@@ -1515,7 +1515,7 @@ BOOL dataTask(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return true;
 }
 
-BOOL dataMount(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataMount(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1565,7 +1565,7 @@ BOOL dataMount(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataIllusion(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataIllusion(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1595,7 +1595,7 @@ BOOL dataIllusion(PCHAR szIndex, MQ2TYPEVAR& Ret)
 			}
 		}
 	}
-	else if (PCHAR pName = szIndex)
+	else if (char* pName = szIndex)
 	{
 		bool bExact = false;
 
@@ -1616,7 +1616,7 @@ BOOL dataIllusion(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataFamiliar(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataFamiliar(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0])
 		return false;
@@ -1666,7 +1666,7 @@ BOOL dataFamiliar(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataAlias(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataAlias(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
@@ -1681,14 +1681,14 @@ BOOL dataAlias(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	return false;
 }
 
-BOOL dataAdvLoot(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataAdvLoot(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pAdvLootType;
 	return true;
 }
 
-BOOL dataAlert(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataAlert(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (!szIndex[0]) {
 		char szTemp[2048] = { 0 };
@@ -1708,7 +1708,7 @@ BOOL dataAlert(PCHAR szIndex, MQ2TYPEVAR& Ret)
 	}
 	return false;
 }
-BOOL dataPointMerchant(PCHAR szIndex, MQ2TYPEVAR& Ret)
+BOOL dataPointMerchant(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (pMerchantWnd)
 	{

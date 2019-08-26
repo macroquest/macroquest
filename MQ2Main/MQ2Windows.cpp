@@ -63,7 +63,7 @@ std::vector<std::string> XmlFiles;
 int WinCount = 0;
 const int FINDWINDOW_CHECKBOXCOLUMN = 6;
 
-PCHAR szClickNotification[] = {
+char* szClickNotification[] = {
 	"leftmouse",        // 0
 	"leftmouseup",      // 1
 	"leftmouseheld",    // 2
@@ -1091,11 +1091,11 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(bool CMemoryMappedFile::SetFile_Trampoline(const char*, bool, unsigned int));
 
 
-void ListWindows(PSPAWNINFO pChar, PCHAR szLine);
-void WndNotify(PSPAWNINFO pChar, PCHAR szLine);
-void ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
-void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
-void ReloadUI(PSPAWNINFO pChar, PCHAR szLine);
+void ListWindows(PSPAWNINFO pChar, char* szLine);
+void WndNotify(PSPAWNINFO pChar, char* szLine);
+void ItemNotify(PSPAWNINFO pChar, char* szLine);
+void ListItemSlots(PSPAWNINFO pChar, char* szLine);
+void ReloadUI(PSPAWNINFO pChar, char* szLine);
 
 #define WSF_AUTOSTRETCHH    0x00400000
 #define WSF_CLIENTMOVABLE   0x00200000
@@ -2398,7 +2398,7 @@ int RecurseAndListWindows(CXWnd* pWnd)
 	return Count;
 }
 
-void ListWindows(PSPAWNINFO pChar, PCHAR szLine)
+void ListWindows(PSPAWNINFO pChar, char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -2553,7 +2553,7 @@ const char* szWndNotification[] = {
 	"resetdefaultposition",   // 29
 };
 
-void WndNotify(PSPAWNINFO pChar, PCHAR szLine)
+void WndNotify(PSPAWNINFO pChar, char* szLine)
 {
 	unsigned long Data = 0;
 
@@ -2726,7 +2726,7 @@ bool CheckLootArg(char* arg, char* search, int argcnt, int* slot)
 	return false;
 }
 
-void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
+void ItemNotify(PSPAWNINFO pChar, char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -3040,7 +3040,7 @@ void ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
+void ListItemSlots(PSPAWNINFO pChar, char* szLine)
 {
 	CInvSlotMgr* pMgr = pInvSlotMgr;
 	if (!pMgr)
@@ -3069,7 +3069,7 @@ void ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatf("%d available item slots", Count);
 }
 
-void ReloadUI(PSPAWNINFO pChar, PCHAR szLine)
+void ReloadUI(PSPAWNINFO pChar, char* szLine)
 {
 	PCHARINFO pCharInfo = GetCharInfo();
 	if (!pCharInfo) return;

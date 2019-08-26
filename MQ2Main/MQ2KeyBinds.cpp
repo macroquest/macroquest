@@ -74,7 +74,7 @@ BOOL SetEQKeyBindByNumber(DWORD N, BOOL Alternate, KeyCombo &Combo)
     return FALSE;
 }
 
-inline BOOL SetEQKeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo )
+inline BOOL SetEQKeyBind(char* name, BOOL Alternate, KeyCombo &Combo )
 {
     return SetEQKeyBindByNumber(FindMappableCommand(name),Alternate,Combo);
 } 
@@ -194,7 +194,7 @@ public:
     }
 };
 /**/
-void DoRangedBind(PCHAR Name,BOOL Down);
+void DoRangedBind(char* Name,BOOL Down);
 
 void InitializeMQ2KeyBinds()
 {
@@ -219,7 +219,7 @@ void ShutdownMQ2KeyBinds()
     RemoveDetour(KeypressHandler__HandleKeyUp);
 }
 
-BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
+BOOL AddMQ2KeyBind(char* name, fMQExecuteCmd Function)
 {
     DebugSpew("AddMQ2KeyBind(%s)",name);
     if (KeyBindByName(name))
@@ -251,7 +251,7 @@ BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
     return true;
 }
 
-BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo)
+BOOL GetMQ2KeyBind(char* name, BOOL Alt, KeyCombo &Combo)
 {
     if (MQ2KeyBind *pBind=KeyBindByName(name))
     {
@@ -264,7 +264,7 @@ BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo)
     return false;
 }
 
-BOOL RemoveMQ2KeyBind(PCHAR name)
+BOOL RemoveMQ2KeyBind(char* name)
 {
     DebugSpew("RemoveMQ2KeyBind(%s)",name);
     string Lwr=name;
@@ -283,7 +283,7 @@ BOOL RemoveMQ2KeyBind(PCHAR name)
     return false;
 }
 
-BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold)
+BOOL PressMQ2KeyBind(char* name, BOOL Hold)
 {
     if (MQ2KeyBind *pBind=KeyBindByName(name))
     {
@@ -295,7 +295,7 @@ BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold)
     return false;
 }
 
-BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
+BOOL SetMQ2KeyBind(char* name, BOOL Alternate, KeyCombo &Combo)
 {
     if (MQ2KeyBind *pBind=KeyBindByName(name))
     {
@@ -317,7 +317,7 @@ BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
     return false;
 }
 
-void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
+void MQ2KeyBindCommand(PSPAWNINFO pChar, char* szLine)
 {
     if (szLine[0]==0)
     {
@@ -326,8 +326,8 @@ void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     }
 	char szArg1[MAX_STRING] = { 0 };
     GetArg(szArg1,szLine,1);
-    PCHAR szRest = GetNextArg(szLine);
-    PCHAR szArg=&szArg1[0];
+    char* szRest = GetNextArg(szLine);
+    char* szArg=&szArg1[0];
     bool AltKey=false;
     if (szArg[0]=='~')
     {
@@ -458,7 +458,7 @@ void MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-void DoRangedBind(PCHAR Name,BOOL Down)
+void DoRangedBind(char* Name,BOOL Down)
 {
     if (Down && pTarget && gbRangedAttackReady)
     {
@@ -467,7 +467,7 @@ void DoRangedBind(PCHAR Name,BOOL Down)
     }
 }
 
-BOOL DumpBinds(PCHAR Filename)
+BOOL DumpBinds(char* Filename)
 {
     char szFilename[MAX_STRING]={0};
     sprintf_s(szFilename,"%s\\Configs\\%s",gszINIPath,Filename);

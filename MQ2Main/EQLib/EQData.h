@@ -698,7 +698,7 @@ struct [[offsetcomments]] MODELINFONAME
 {
 /*0x00*/ DWORD Unknown0000;
 /*0x04*/ DWORD Unknown0004;
-/*0x08*/ PCHAR Name;
+/*0x08*/ char* Name;
 /*0x0c*/
 };
 using PMODELINFONAME = MODELINFONAME*;
@@ -729,7 +729,7 @@ struct [[offsetcomments]] MODELINFO_51
 {
 /*0x00*/ MODELINFO_GENERIC Header;
 /*0x14*/ MODELINFONAME* pFontName;
-/*0x18*/ PCHAR LabelText;
+/*0x18*/ char* LabelText;
 /*0x1c*/
 };
 using PMODELINFO_51 = MODELINFO_51*;
@@ -737,7 +737,7 @@ using PMODELINFO_51 = MODELINFO_51*;
 struct [[offsetcomments]] MODELINFO
 {
 /*0x00*/ DWORD              Unknown;
-/*0x04*/ PCHAR              NameDAG;
+/*0x04*/ char*              NameDAG;
 /*0x08*/ MODELINFO_GENERIC* pModelInfo;
 /*0x0c*/ MODELINFO*         pNextInChain;
 /*0x10*/ void*              pUnknown;
@@ -1064,7 +1064,7 @@ using PGROUNDOBJECT = GROUNDOBJECT*;
 
 #define MAX_ZONES                                0x3e8
 
-extern PCHAR szZoneExpansionName[];              // defined in LibEQ_Utilities.cpp
+extern char* szZoneExpansionName[];              // defined in LibEQ_Utilities.cpp
 
 // Size 0x1D8 see 867D39 in eqgame.exe live 21 apr 2016 - eqmule
 struct [[offsetcomments]] ZONELIST
@@ -1397,7 +1397,7 @@ using PGUILD = GUILD*;
 // 2016 Oct 11 beta - eqmule (see AB50E4) not sure on size needs more investigation
 struct [[offsetcomments]] GUILDS
 {
-/*0x0000*/ PVOID             pOneEntryVTable;
+/*0x0000*/ void*             pOneEntryVTable;
 /*0x0004*/ BYTE              Unknown0x4[0x4];
 /*0x0008*/ DWORD             GuildMemberCount;
 /*0x000c*/ GUILDMEMBER*      pMember;
@@ -1443,7 +1443,7 @@ struct [[offsetcomments]] CMDLIST
 /*0x00*/ DWORD LocalizedStringID;
 /*0x04*/ char* szName;
 /*0x08*/ char* szLocalized;
-/*0x0c*/ void  (*fAddress)(PSPAWNINFO, PCHAR);
+/*0x0c*/ void  (*fAddress)(PSPAWNINFO, char*);
 /*0x10*/ DWORD Restriction;
 /*0x14*/ DWORD Category;
 /*0x18*/ DWORD Flags;
@@ -1662,7 +1662,7 @@ using PEQGROUP = EQGROUP*;
 // size 0x08
 struct [[offsetcomments]] EQSTRING {
 /*0x00*/ DWORD ID;
-/*0x04*/ PCHAR String;
+/*0x04*/ char* String;
 /*0x08*/
 };
 using PEQSTRING = EQSTRING*;
@@ -1749,7 +1749,7 @@ struct [[offsetcomments]] DYNAMICZONE
 /*0x10c*/ WORD         MaxPlayers;
 /*0x10e*/ BYTE         Unknown0x10e[0x2];
 /*0x110*/ DZMEMBER*    pMemberList;
-/*0x114*/ PCHAR        expeditionName;
+/*0x114*/ char*        expeditionName;
 /*0x118*/ // more?
 };
 using PDYNAMICZONE [[deprecated]] = DYNAMICZONE*;

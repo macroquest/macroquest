@@ -29,7 +29,7 @@ inline void DeleteMQ2DataVariable(PDATAVAR pVar)
     delete pVar;
 }
 
-inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
+inline PDATAVAR FindMQ2DataVariable(char* Name)
 {
 	lockit lk(ghVariableLock);
 	PDATAVAR pFind = 0;
@@ -60,7 +60,7 @@ inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
     return 0;
 }
 
-BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
+BOOL AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default)
 {
 	lockit lk(ghVariableLock);
     if (!ppHead || !Name[0])
@@ -103,7 +103,7 @@ BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *
 }
 
 
-BOOL AddMQ2DataVariableBy(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default, BOOL ByData)
+BOOL AddMQ2DataVariableBy(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default, BOOL ByData)
 {
 	lockit lk(ghVariableLock);
     if (!ppHead || !Name[0])
@@ -148,20 +148,20 @@ BOOL AddMQ2DataVariableBy(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppH
     return TRUE;
 }
 
-BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
+BOOL AddMQ2DataVariable(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default)
 {
     return AddMQ2DataVariableBy(Name, Index, pType, ppHead, Default, 0);
 }
 
 
-BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default)
+BOOL AddMQ2DataVariableFromData(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default)
 {
-    return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (PCHAR)&Default, 1);
+    return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (char*)&Default, 1);
 }
 
 
 
-PDATAVAR *FindVariableScope(PCHAR Name)
+PDATAVAR *FindVariableScope(char* Name)
 {
     if (!_stricmp(Name,"global"))
         return &pGlobalVariables;
@@ -172,7 +172,7 @@ PDATAVAR *FindVariableScope(PCHAR Name)
     return 0;
 }
 
-BOOL DeleteMQ2DataVariable(PCHAR Name)
+BOOL DeleteMQ2DataVariable(char* Name)
 {
     if (PDATAVAR pVar=FindMQ2DataVariable(Name))
     {
@@ -193,7 +193,7 @@ void ClearMQ2DataVariables(PDATAVAR *ppHead)
     }
     *ppHead=0;
 }
-void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
+void NewDeclareVar(PSPAWNINFO pChar, char* szLine)
 {
     if (!szLine[0])
     {
@@ -207,7 +207,7 @@ void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szName,szLine,1);
     char Arg[MAX_STRING]={0};
     GetArg(Arg,szLine,2);
-    PCHAR pDefault = 0;
+    char* pDefault = 0;
 	if (pScope=FindVariableScope(Arg))
     {
         // scope comes AFTER type, so next must be default
@@ -253,7 +253,7 @@ void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (PCHAR pBracket=strchr(szName,'['))
+    if (char* pBracket=strchr(szName,'['))
     {
         *pBracket=0;
         strcpy_s(szIndex,&pBracket[1]);
@@ -279,7 +279,7 @@ void NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-void NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
+void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine)
 {
     if (szLine[0]==0) {
         SyntaxError("Usage: /deletevar <varname|* global>");
@@ -299,7 +299,7 @@ void NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-void NewVarset(PSPAWNINFO pChar, PCHAR szLine)
+void NewVarset(PSPAWNINFO pChar, char* szLine)
 {
     if (!szLine[0])
     {
@@ -308,9 +308,9 @@ void NewVarset(PSPAWNINFO pChar, PCHAR szLine)
     }
     char szName[MAX_STRING]={0};
     GetArg(szName,szLine,1);
-    PCHAR szRest=GetNextArg(szLine);
+    char* szRest=GetNextArg(szLine);
     char szIndex[MAX_STRING]={0};
-    if (PCHAR pBracket=strchr(szName,'['))
+    if (char* pBracket=strchr(szName,'['))
     {
         *pBracket=0;
         strcpy_s(szIndex,&pBracket[1]);
@@ -349,7 +349,7 @@ void NewVarset(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
+void NewVarcalc(PSPAWNINFO pChar, char* szLine)
 {
     if (!szLine[0])
     {
@@ -358,7 +358,7 @@ void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
     }
     char szName[MAX_STRING]={0};
     GetArg(szName,szLine,1);
-    PCHAR pRest=GetNextArg(szLine);
+    char* pRest=GetNextArg(szLine);
     if (!pRest || !pRest[0])
     {
         SyntaxError("Usage: /varcalc <varname> <formula>");
@@ -376,7 +376,7 @@ void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 
 
     char szIndex[MAX_STRING]={0};
-    if (PCHAR pBracket=strchr(szName,'['))
+    if (char* pBracket=strchr(szName,'['))
     {
         *pBracket=0;
         strcpy_s(szIndex,&pBracket[1]);
@@ -415,7 +415,7 @@ void NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-void NewVardata(PSPAWNINFO pChar, PCHAR szLine)
+void NewVardata(PSPAWNINFO pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -424,14 +424,14 @@ void NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
-	PCHAR szRest = GetNextArg(szLine);
+	char* szRest = GetNextArg(szLine);
 	if (!szRest || !szRest[0])
 	{
 		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
 		return;
 	}
 	char szIndex[MAX_STRING] = { 0 };
-	if (PCHAR pBracket = strchr(szName, '['))
+	if (char* pBracket = strchr(szName, '['))
 	{
 		*pBracket = 0;
 		strcpy_s(szIndex, &pBracket[1]);
@@ -477,7 +477,7 @@ void NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void AddEvent(DWORD Event, PCHAR FirstArg, ...)
+void AddEvent(DWORD Event, char* FirstArg, ...)
 {
     PEVENTQUEUE pEvent = NULL;
     if (!gEventFunc[Event])
@@ -499,7 +499,7 @@ void AddEvent(DWORD Event, PCHAR FirstArg, ...)
     if (FirstArg) {
         va_list marker;
         DWORD i=0;
-        PCHAR CurrentArg = FirstArg;
+        char* CurrentArg = FirstArg;
         va_start(marker, FirstArg);
 
         while (CurrentArg)
@@ -508,13 +508,13 @@ void AddEvent(DWORD Event, PCHAR FirstArg, ...)
             char szParamType[MAX_STRING] = {0};
 			int index = gEventFunc[Event];
 			if (gMacroBlock->Line.find(index) != gMacroBlock->Line.end()) {
-				GetFuncParam((PCHAR)gMacroBlock->Line[index].Command.c_str(), i, szParamName, MAX_STRING, szParamType, MAX_STRING);
+				GetFuncParam((char*)gMacroBlock->Line[index].Command.c_str(), i, szParamName, MAX_STRING, szParamType, MAX_STRING);
 				MQ2Type *pType = FindMQ2DataType(szParamType);
 				if (!pType)
 					pType = pStringType;
 				AddMQ2DataEventVariable(szParamName, "", pType, &pEvent->Parameters, CurrentArg);
 				i++;
-				CurrentArg = va_arg(marker, PCHAR);
+				CurrentArg = va_arg(marker, char*);
 			}
         }
         va_end(marker);
@@ -552,7 +552,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     char szParamName[MAX_STRING] = {0};
     char szParamType[MAX_STRING] = {0};
 	if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
-		GetFuncParam((PCHAR)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
+		GetFuncParam((char*)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
 	}
     MQ2Type *pType = FindMQ2DataType(szParamType);
     if (!pType)
@@ -565,7 +565,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
         if (pValues->Name[0]!='*')
         {
 			if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
-				GetFuncParam((PCHAR)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), atoi(pValues->Name), szParamName, MAX_STRING, szParamType, MAX_STRING);
+				GetFuncParam((char*)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), atoi(pValues->Name), szParamName, MAX_STRING, szParamType, MAX_STRING);
 			}
 			MQ2Type *pType = FindMQ2DataType(szParamType);
             if (!pType)

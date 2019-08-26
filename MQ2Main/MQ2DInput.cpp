@@ -119,8 +119,8 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
     return hResult;
 }
 
-HRESULT (__stdcall *DInputStateTrampoline)(IDirectInputDevice8A* This, DWORD cbData, LPVOID lpvData);
-HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, LPVOID lpvData)
+HRESULT (__stdcall *DInputStateTrampoline)(IDirectInputDevice8A* This, DWORD cbData, void* lpvData);
+HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, void* lpvData)
 {
     HRESULT hResult = S_OK;
     DWORD dwBuffSize = 0;
@@ -177,8 +177,8 @@ HRESULT __stdcall DInputAcquireDetour(IDirectInputDevice8A* This)
 // externals from EQLib_Main.cpp 
 extern HRESULT (__stdcall *DInputDataTrampoline)(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags); 
 extern HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags); 
-extern HRESULT (__stdcall *DInputStateTrampoline)(IDirectInputDevice8A* This, DWORD cbData, LPVOID lpvData); 
-extern HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, LPVOID lpvData); 
+extern HRESULT (__stdcall *DInputStateTrampoline)(IDirectInputDevice8A* This, DWORD cbData, void* lpvData); 
+extern HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, void* lpvData); 
 extern HRESULT (__stdcall *DInputAcquireTrampoline)(IDirectInputDevice8A* This); 
 extern HRESULT __stdcall DInputAcquireDetour(IDirectInputDevice8A* This); 
 
@@ -223,20 +223,20 @@ void InitializeMQ2DInput()
         AddDetour(Acquire);
 
         //Grab GetDeviceData 
-        (*(PBYTE*)&DInputDataTrampoline) = DetourFunction((PBYTE)GetDeviceData, 
-            (PBYTE)DInputDataDetour); 
+        (*(BYTE**)&DInputDataTrampoline) = DetourFunction((BYTE*)GetDeviceData, 
+            (BYTE*)DInputDataDetour); 
         //Grab GetDeviceState 
-        (*(PBYTE*)&DInputStateTrampoline) = DetourFunction((PBYTE)GetDeviceState, 
-            (PBYTE)DInputStateDetour); 
+        (*(BYTE**)&DInputStateTrampoline) = DetourFunction((BYTE*)GetDeviceState, 
+            (BYTE*)DInputStateDetour); 
         //Grab Acquire 
-        (*(PBYTE*)&DInputAcquireTrampoline) = DetourFunction((PBYTE)Acquire, 
-            (PBYTE)DInputAcquireDetour); 
+        (*(BYTE**)&DInputAcquireTrampoline) = DetourFunction((BYTE*)Acquire, 
+            (BYTE*)DInputAcquireDetour); 
     }
 }
 
 void ShutdownMQ2DInput()
 {
-	if (DInputDataTrampoline && DetourRemove((PBYTE)DInputDataTrampoline, (PBYTE)DInputDataDetour))
+	if (DInputDataTrampoline && DetourRemove((BYTE*)DInputDataTrampoline, (BYTE*)DInputDataDetour))
 	{
 		RemoveDetour(GetDeviceData);
 		DInputDataTrampoline = NULL;
@@ -246,7 +246,7 @@ void ShutdownMQ2DInput()
 			DebugSpewAlways("Failed to unhook DInputData");
 		}
 	}
-    if (DInputStateTrampoline && DetourRemove((PBYTE)DInputStateTrampoline, (PBYTE)DInputStateDetour)) 
+    if (DInputStateTrampoline && DetourRemove((BYTE*)DInputStateTrampoline, (BYTE*)DInputStateDetour)) 
     {
         RemoveDetour(GetDeviceState);
         DInputStateTrampoline = NULL; 
@@ -256,7 +256,7 @@ void ShutdownMQ2DInput()
 			DebugSpewAlways("Failed to unhook DInputState");
 		}
 	}
-    if (DInputAcquireTrampoline && DetourRemove((PBYTE)DInputAcquireTrampoline, (PBYTE)DInputAcquireDetour)) 
+    if (DInputAcquireTrampoline && DetourRemove((BYTE*)DInputAcquireTrampoline, (BYTE*)DInputAcquireDetour)) 
     {
         RemoveDetour(Acquire);
         DInputAcquireTrampoline = NULL; 

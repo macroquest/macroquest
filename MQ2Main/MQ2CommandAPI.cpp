@@ -235,7 +235,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 class CCommandHook 
 { 
 public: 
-    void Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
+    void Detour(PSPAWNINFO pChar, char* szFullLine) 
     {
 		lockit lk(ghCCommandLock,"CCommandHook::Detour");
         DebugSpew("CCommandHook::Detour(%s)",szFullLine);
@@ -432,14 +432,14 @@ public:
 		strcpy_s(szLastCommand,szFullCommand);
     } 
 
-    void Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
+    void Trampoline(PSPAWNINFO pChar, char* szFullLine); 
 
 }; 
 
-DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, PCHAR szFullLine)); 
+DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, char* szFullLine)); 
 
 
-void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL InGame)
+void AddCommand(char* Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL InGame)
 {
     DebugSpew("AddCommand(%s,0x%X)",Command,Function);
     PMQCOMMAND pCommand=new MQCOMMAND;
@@ -480,7 +480,7 @@ void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL In
     pCommand->pLast=pLast;
 }
 
-BOOL RemoveCommand(PCHAR Command)
+BOOL RemoveCommand(char* Command)
 {
     PMQCOMMAND pCommand=pCommands;
     while(pCommand)
@@ -507,7 +507,7 @@ BOOL RemoveCommand(PCHAR Command)
     return 0;
 }
 
-void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
+void AddAlias(char* ShortCommand, char* LongCommand)
 {
 	std::string sName = ShortCommand;
 	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
@@ -515,7 +515,7 @@ void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
 	mAliases[sName] = LongCommand;
 }
 
-BOOL RemoveAlias(PCHAR ShortCommand)
+BOOL RemoveAlias(char* ShortCommand)
 {
 	std::string sName = ShortCommand;
 	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
@@ -527,7 +527,7 @@ BOOL RemoveAlias(PCHAR ShortCommand)
     return 0;
 }
 
-void AddSubstitute(PCHAR Original, PCHAR Substitution)
+void AddSubstitute(char* Original, char* Substitution)
 {
     DebugSpew("AddSubstitute(%s,%s)",Original,Substitution);
     // perform insertion sort
@@ -579,7 +579,7 @@ void AddSubstitute(PCHAR Original, PCHAR Substitution)
     pSub->pLast=pLast;
 }
 
-BOOL RemoveSubstitute(PCHAR Original)
+BOOL RemoveSubstitute(char* Original)
 {
     PSUB pSub=pSubs;
     while(pSub)
@@ -667,7 +667,7 @@ void InitializeMQ2Commands()
 
 
     // Add MQ commands...
-    struct _NEWCOMMANDLIST { PCHAR szCommand; fEQCommand pFunc; BOOL Parse; BOOL InGame;} NewCommands[] = {
+    struct _NEWCOMMANDLIST { char* szCommand; fEQCommand pFunc; BOOL Parse; BOOL InGame;} NewCommands[] = {
         {"/whotarget",  SuperWhoTarget,1,1},
         {"/location",   Location,1,1},
         {"/help",       Help,1,0},
@@ -807,7 +807,7 @@ void InitializeMQ2Commands()
     char MainINI[MAX_STRING] = {0};
     sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Aliases",NULL,"",AliasList,MAX_STRING*10,MainINI);
-    PCHAR pAliasList = AliasList;
+    char* pAliasList = AliasList;
     while (pAliasList[0]!=0) {
         GetPrivateProfileString("Aliases",pAliasList,"",szBuffer,MAX_STRING,MainINI);
         if (szBuffer[0]!=0) {
@@ -824,7 +824,7 @@ void InitializeMQ2Commands()
     char szBuffer2[MAX_STRING] = {0};
 	sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Substitutions",NULL,"",SubsList,MAX_STRING*10,MainINI);
-    PCHAR pSubsList = SubsList;
+    char* pSubsList = SubsList;
     while (pSubsList[0]!=0) {
         GetPrivateProfileString("Substitutions",pSubsList,"",szBuffer2,MAX_STRING,MainINI);
         if (szBuffer[0]!=0) {
@@ -888,7 +888,7 @@ void DoTimedCommands()
     }
 }
 
-void TimedCommand(PCHAR Command, DWORD msDelay)
+void TimedCommand(char* Command, DWORD msDelay)
 {
 	lockit lk(ghLockDelayCommand,"TimedCommand");
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;

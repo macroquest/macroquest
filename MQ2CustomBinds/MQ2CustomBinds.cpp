@@ -24,9 +24,9 @@ typedef struct _CustomBind {
 
 CIndex<PCUSTOMBIND> CustomBinds(10);
 
-void ExecuteCustomBind(PCHAR Name,BOOL Down);
+void ExecuteCustomBind(char* Name,BOOL Down);
 
-int FindCustomBind(PCHAR Name)
+int FindCustomBind(char* Name)
 {
     for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
         if (PCUSTOMBIND pBind=CustomBinds[N])
@@ -37,7 +37,7 @@ int FindCustomBind(PCHAR Name)
         return -1;
 }
 
-PCUSTOMBIND AddCustomBind(PCHAR Name, PCHAR CommandDown, PCHAR CommandUp)
+PCUSTOMBIND AddCustomBind(char* Name, char* CommandDown, char* CommandUp)
 {
     if (AddMQ2KeyBind(Name,ExecuteCustomBind))
     {
@@ -67,7 +67,7 @@ void RemoveCustomBind(unsigned long N)
 }
 
 void LoadCustomBinds();
-void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine);
+void CustomBindCmd(PSPAWNINFO pChar, char* szLine);
 void SaveCustomBinds();
 
 // Called once, when the plugin is to initialize
@@ -173,7 +173,7 @@ void SaveCustomBinds()
 	fclose(file);
 }
 
-void ExecuteCustomBind(PCHAR Name,BOOL Down)
+void ExecuteCustomBind(char* Name,BOOL Down)
 {
     int N=FindCustomBind(Name);
     if (N<0)
@@ -193,7 +193,7 @@ void ExecuteCustomBind(PCHAR Name,BOOL Down)
     }
 }
 
-void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CustomBindCmd(PSPAWNINFO pChar, char* szLine)
 {
     if (szLine[0]==0)
     {
@@ -205,7 +205,7 @@ void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
     char szArg2[MAX_STRING] = {0};
     GetArg(szArg,szLine,1);
     GetArg(szArg2,szLine,2);
-    PCHAR szRest = GetNextArg(szLine,2);
+    char* szRest = GetNextArg(szLine,2);
 
     if (!_stricmp(szArg,"list"))
     {
@@ -254,7 +254,7 @@ void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
     if (!_stricmp(szArg,"set"))
     {
         BOOL Down=true;
-        if (PCHAR minus=strchr(szArg2,'-'))
+        if (char* minus=strchr(szArg2,'-'))
         {
             minus[0]=0;
             if (!_stricmp(&minus[1],"up"))
@@ -280,7 +280,7 @@ void CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
     if (!_stricmp(szArg,"clear"))
     {
         BOOL Down=true;
-        if (PCHAR minus=strchr(szArg2,'-'))
+        if (char* minus=strchr(szArg2,'-'))
         {
             minus[0]=0;
             if (!_stricmp(&minus[1],"up"))

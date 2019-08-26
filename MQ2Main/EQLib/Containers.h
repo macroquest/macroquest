@@ -876,7 +876,7 @@ public:
 
  	enum { TheSize = ((_Size == 0) ? 1 : _Size) };
 
-	/*0x00*/ PVOID vfTable;
+	/*0x00*/ void* vfTable;
 	/*0x04*/ int DynSize;
 	/*0x08*/ int MaxDynSize;
 	/*0x0c*/ int Count;

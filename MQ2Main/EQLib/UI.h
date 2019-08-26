@@ -4685,7 +4685,7 @@ public:
 	virtual ~CTargetWnd();
 
 	EQLIB_OBJECT CXStr* GetBuffCaster(int SpellID);
-	EQLIB_OBJECT void RefreshTargetBuffs(PBYTE buffer);
+	EQLIB_OBJECT void RefreshTargetBuffs(BYTE* buffer);
 	EQLIB_OBJECT void HandleBuffRemoveRequest(CXWnd* pWnd);
 
 	//----------------------------------------------------------------------------

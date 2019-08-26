@@ -29,7 +29,7 @@ PLUGIN_API void ShutdownPlugin()
 	// Remove commands, macro parameters, hooks, etc.
 }
 
-PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
+PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 {
 	// This is called every time WriteChatColor is called by MQ2Main or any plugin,
 	// IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT

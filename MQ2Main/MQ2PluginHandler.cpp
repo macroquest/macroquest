@@ -41,13 +41,13 @@ DWORD checkme(char *module)
 static unsigned int mq2mainstamp = 0;
 
 
-DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
+DWORD LoadMQ2Plugin(const char* pszFilename,BOOL bCustom)
 {
     char Filename[MAX_PATH]={0};
 
     strcpy_s(Filename,pszFilename);
     _strlwr_s(Filename);
-    PCHAR Temp=strstr(Filename,".dll");
+    char* Temp=strstr(Filename,".dll");
 	if (Temp)
         Temp[0]=0;
     if (!_stricmp(Filename,"mq2warp")) // ^_^
@@ -193,20 +193,20 @@ void DeleteLayers(PMQPLUGIN pPlugin)
 typedef struct _FAKEGPSTRING {
 	USHORT Length;
 	USHORT MaximumLength;
-	PCHAR  Buffer;
+	char*  Buffer;
 } FAKEGPSTRING, *PFAKEGPSTRING;
-typedef BOOL(WINAPI *fLdrGetProcedureAddress)(HMODULE, PFAKEGPSTRING, WORD, PVOID);
+typedef BOOL(WINAPI *fLdrGetProcedureAddress)(HMODULE, PFAKEGPSTRING, WORD, void*);
 typedef BOOL(WINAPI *fFreeLibrary)(HMODULE);
 static fFreeLibrary pFreeLibrary = 0;
 static fLdrGetProcedureAddress pLdrGetProcedureAddress = 0;
 
-BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
+BOOL UnloadMQ2Plugin(const char* pszFilename)
 {
     DebugSpew("UnloadMQ2Plugin");
     char Filename[MAX_PATH]={0};
     strcpy_s(Filename,pszFilename);
     _strlwr_s(Filename);
-    PCHAR Temp=strstr(Filename,".dll");
+    char* Temp=strstr(Filename,".dll");
     if (Temp)
         Temp[0]=0;
 
@@ -225,7 +225,7 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 			as.Length = 11;
 			as.MaximumLength = 11;
 			DWORD addr = 0;
-			BOOL ret = pLdrGetProcedureAddress(h, &as, NULL, (PVOID)&pFreeLibrary);
+			BOOL ret = pLdrGetProcedureAddress(h, &as, NULL, (void*)&pFreeLibrary);
 			Sleep(0);
 			//pFreeLibrary = (fFreeLibrary)addr;
 		}
@@ -303,7 +303,7 @@ void InitializeMQ2Plugins()
     char MainINI[MAX_STRING] = {0};
     sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
-    PCHAR pPluginList = PluginList;
+    char* pPluginList = PluginList;
 	BOOL loadvalue = 0;
     while (pPluginList[0]!=0) {
         GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,MainINI);
@@ -367,7 +367,7 @@ void ShutdownMQ2Plugins()
     DeleteCriticalSection(&gPluginCS);
 }
 
-void WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
+void WriteChatColor(char* Line, DWORD Color, DWORD Filter)
 {
     if (!bPluginCS)
         return;
@@ -397,7 +397,7 @@ void WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
     ExitMQ2Benchmark(bmWriteChatColor);
 }
 
-BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
+BOOL PluginsIncomingChat(char* Line, DWORD Color)
 {
     PluginDebug("PluginsIncomingChat()");
     if (!bPluginCS)

@@ -25,7 +25,7 @@ PLUGIN_VERSION(2.0);
 
 BOOL AnnounceBuddies=true;
 
-PCHAR szBuddyStatus[]=
+char* szBuddyStatus[]=
 {
     "\a-wRemoved from list\ax",
     "\a-wOffline\ax",
@@ -36,7 +36,7 @@ PCHAR szBuddyStatus[]=
     "\a-gPlaying (AFK)\ax",
 };
 
-PCHAR szBuddyStatusNC[]=
+char* szBuddyStatusNC[]=
 {
     "Removed from list",
     "Offline",
@@ -60,7 +60,7 @@ char Character[MAX_STRING]={0};
 BOOL BuddiesLoaded=false;
 
 
-int FindEQIMBuddy(PCHAR Name)
+int FindEQIMBuddy(char* Name)
 {
     for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
     {
@@ -98,7 +98,7 @@ public:
     {
     }
 
-    bool MQ2BuddyType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+    bool MQ2BuddyType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
     {
         if (!VarPtr.Ptr)
             return false;
@@ -136,7 +136,7 @@ public:
         return false;
     }
 
-    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    bool ToString(MQ2VARPTR VarPtr, char* Destination)
     {
         if (!VarPtr.Ptr)
             return false;
@@ -148,7 +148,7 @@ public:
     {
         return false;
     }
-    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    bool FromString(MQ2VARPTR &VarPtr, char* Source)
     {
         return false;
     }
@@ -157,14 +157,14 @@ public:
 class MQ2BuddyType *pBuddyType=0;
 
 
-BOOL dataBuddies(PCHAR szIndex, MQ2TYPEVAR &Ret)
+BOOL dataBuddies(char* szIndex, MQ2TYPEVAR &Ret)
 {
     Ret.DWord=BuddyList.Size;
     Ret.Type=pIntType;
     return true;
 }
 
-BOOL dataBuddy(PCHAR szIndex, MQ2TYPEVAR &Ret)
+BOOL dataBuddy(char* szIndex, MQ2TYPEVAR &Ret)
 {
     if (szIndex[0]>='0' && szIndex[0]<='9')
     {
@@ -196,21 +196,21 @@ DWORD PreDetour[10]={0};
 BOOL Detoured=false;
 void SaveBuddyList();
 void LoadBuddyList();
-void BuddiesCmd(PSPAWNINFO pChar, PCHAR Line);
+void BuddiesCmd(PSPAWNINFO pChar, char* Line);
 
 void SetVTable(DWORD index, DWORD value)
 {
     DWORD oldperm=0;
     DWORD Address=(DWORD)&(*((DWORD**)pEverQuest))[index];
     DebugSpewAlways("SetVTable writing at address %X to %X",Address,value);
-    VirtualProtectEx(GetCurrentProcess(), (LPVOID)Address, 4,PAGE_EXECUTE_READWRITE, &oldperm);
+    VirtualProtectEx(GetCurrentProcess(), (void*)Address, 4,PAGE_EXECUTE_READWRITE, &oldperm);
     WriteProcessMemory(
         GetCurrentProcess(),
-        (LPVOID)Address,
-        (LPVOID)&value,
+        (void*)Address,
+        (void*)&value,
         4,
         NULL);
-    VirtualProtectEx(GetCurrentProcess(), (LPVOID)Address, 4, oldperm, &oldperm);
+    VirtualProtectEx(GetCurrentProcess(), (void*)Address, 4, oldperm, &oldperm);
 }
 
 DWORD GetVTable(DWORD index)
@@ -338,7 +338,7 @@ void LoadBuddyList()
     char szBuffer[MAX_STRING] = {0};
     char szCommand[MAX_STRING] = {0};
     GetPrivateProfileString(Character,NULL,"",FullList,MAX_STRING*10,INIFileName);
-    PCHAR pFullList = FullList;
+    char* pFullList = FullList;
     while (pFullList[0]!=0) {
         GetPrivateProfileString(Character,FullList,"",szBuffer,MAX_STRING,INIFileName);
         if (szBuffer[0]!=0) {
@@ -400,7 +400,7 @@ void SaveBuddyList()
     }
 }
 
-void BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
+void BuddiesCmd(PSPAWNINFO pChar, char* Line)
 {
     BOOL bOnline=true;
     BOOL bOffline=false;

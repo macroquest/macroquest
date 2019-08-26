@@ -189,8 +189,8 @@ FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD& Color), 0x194);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD), 0x1a8);
 
 typedef struct _CAPTIONCOLOR {
-    PCHAR szName;
-    PCHAR szDescription;
+    char* szName;
+    char* szDescription;
     BOOL Enabled;
     BOOL ToggleOnly;
     DWORD Color;
@@ -759,7 +759,7 @@ void UpdateMQ2SpawnSort()
 	}
 }
 
-void CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
+void CaptionColorCmd(PSPAWNINFO pChar, char* szLine)
 {
     if (!szLine[0])
     {

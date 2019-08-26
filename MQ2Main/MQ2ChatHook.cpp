@@ -14,12 +14,12 @@
 
 #include "MQ2Main.h"
 
-DWORD __stdcall BeepOnTellThread(PVOID pData)
+DWORD __stdcall BeepOnTellThread(void* pData)
 {
 	Beep(750, 200);
 	return 0;
 }
-DWORD __stdcall FlashOnTellThread(PVOID pData)
+DWORD __stdcall FlashOnTellThread(void* pData)
 {
 	DWORD lReturn = GetCurrentProcessId();
 	DWORD pid = lReturn;
@@ -191,7 +191,7 @@ DETOUR_TRAMPOLINE_EMPTY(void CChatHook::UPCNotificationFlush_Trampoline());
 
 void dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, char *SomeStr)
 {
-	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text, Color, EqLog, dopercentsubst, SomeStr);
+	((CChatHook*)pEverQuest)->Trampoline((char*)Text, Color, EqLog, dopercentsubst, SomeStr);
 }
 
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value, size_t ValueLen)
@@ -203,7 +203,7 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value, size_
 	return strlen(Value);
 }
 
-void FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
+void FlashOnTells(PSPAWNINFO pChar, char* szLine)
 {
 	if (szLine[0] != '\0') {
 		if (!_stricmp(szLine, "on")) {
@@ -225,7 +225,7 @@ void FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
+void BeepOnTells(PSPAWNINFO pChar, char* szLine)
 {
 	if (szLine[0] != '\0') {
 		if (!_stricmp(szLine, "on")) {
@@ -247,7 +247,7 @@ void BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
+void TimeStampChat(PSPAWNINFO pChar, char* szLine)
 {
 	if (szLine[0] != '\0') {
 		if (!_stricmp(szLine, "on")) {

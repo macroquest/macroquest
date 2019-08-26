@@ -43,7 +43,7 @@ char TelnetPasswordPrompt[MAX_STRING] = { 0 };
 char TelnetWelcome[MAX_STRING] = { 0 };
 extern int PortUsed;
 
-DWORD WINAPI ProcessingThread(LPVOID lpParam)
+DWORD WINAPI ProcessingThread(void* lpParam)
 {
 	EnterCriticalSection(&ProcessingCS);
 

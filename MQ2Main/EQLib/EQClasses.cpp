@@ -1595,7 +1595,7 @@ FUNCTION_AT_ADDRESS(char* EQ_Item::CreateItemTagString(char*, int, bool), EQ_Ite
 FUNCTION_AT_ADDRESS(int EQ_Item::GetImageNum() const, EQ_Item__GetImageNum);
 #endif
 #ifdef EQ_Item__CreateItemClient_x
-FUNCTION_AT_ADDRESS(VePointer<CONTENTS> EQ_Item::CreateItemClient(PBYTE*, DWORD), EQ_Item__CreateItemClient);
+FUNCTION_AT_ADDRESS(VePointer<CONTENTS> EQ_Item::CreateItemClient(BYTE**, DWORD), EQ_Item__CreateItemClient);
 #endif
 #ifdef EQ_Item__CanDrop_x
 FUNCTION_AT_ADDRESS(bool EQ_Item::CanDrop(bool, bool, bool, bool) const, EQ_Item__CanDrop);
@@ -2140,7 +2140,7 @@ FUNCTION_AT_ADDRESS(void EQWorldData::CurrentGameTime(char*), EQWorldData__Curre
 FUNCTION_AT_ADDRESS(FactionManagerClient& FactionManagerClient::Instance(), FactionManagerClient__Instance)
 #endif
 #ifdef FactionManagerClient__HandleFactionMessage_x
-FUNCTION_AT_ADDRESS(void FactionManagerClient::HandleFactionMessage(UINT MessageID, PCHAR pData, unsigned int DataLength), FactionManagerClient__HandleFactionMessage)
+FUNCTION_AT_ADDRESS(void FactionManagerClient::HandleFactionMessage(UINT MessageID, char* pData, unsigned int DataLength), FactionManagerClient__HandleFactionMessage)
 #endif
 
 //============================================================================

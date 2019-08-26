@@ -17,7 +17,7 @@
 #include <map>
 #include <memory>
 
-EQLIB_API void WriteChatfSafe(PCHAR szFormat, ...);
+EQLIB_API void WriteChatfSafe(char* szFormat, ...);
 EQLIB_VAR HANDLE ghMemberMapLock;
 
 namespace MQ2Internal {
@@ -318,7 +318,7 @@ namespace MQ2Internal {
 
     typedef struct _PARMLIST {
         char szName[MAX_STRING];
-        DWORD (__cdecl *fAddress)(PCHAR, PCHAR, PSPAWNINFO);
+        DWORD (__cdecl *fAddress)(char*, char*, PSPAWNINFO);
     } PARMLIST, *PPARMLIST;
 
     typedef struct _MQBENCH
@@ -456,7 +456,7 @@ namespace MQ2Internal {
 			}
 			return FALSE;
 		}
-		BOOL ListAlerts(PCHAR szOut,size_t max)
+		BOOL ListAlerts(char* szOut,size_t max)
 		{
 			lockit lk(_hLockMapWrite);
 			if(_AlertMap.size()==0)
@@ -628,7 +628,7 @@ namespace MQ2Internal {
     {
         union {
             struct {
-				PVOID Ptr;
+				void* Ptr;
 				LONG HighPart;
 			};
 			struct {
@@ -666,7 +666,7 @@ namespace MQ2Internal {
         union {
 			MQ2VARPTR VarPtr;
             struct {
-				PVOID Ptr;
+				void* Ptr;
 				LONG HighPart;
 			};
 			struct {
@@ -701,11 +701,11 @@ namespace MQ2Internal {
     typedef struct _MQ2TypeMember
     {
         DWORD ID;
-        PCHAR Name;
+        char* Name;
 		DWORD Type;
     } MQ2TYPEMEMBER, *PMQ2TYPEMEMBER;
 
-    typedef BOOL  (__cdecl *fMQData)(PCHAR szIndex, MQ2TYPEVAR &Ret);
+    typedef BOOL  (__cdecl *fMQData)(char* szIndex, MQ2TYPEVAR &Ret);
 
     typedef struct _MQ2DataItem
     {
@@ -727,7 +727,7 @@ namespace MQ2Internal {
     class MQ2Type
     {
     public:
-        inline MQ2Type(PCHAR NewName)
+        inline MQ2Type(char* NewName)
         {
             strcpy_s(TypeName,NewName);
             Official=AddMQ2Type(*this);
@@ -752,28 +752,28 @@ namespace MQ2Internal {
         }
 
         virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)=0;
-        virtual bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)=0;
+        virtual bool FromString(MQ2VARPTR &VarPtr, char* Source)=0;
         virtual void InitVariable(MQ2VARPTR &VarPtr) {
 			VarPtr.Ptr=0;
 			VarPtr.HighPart = 0;
 		}
         virtual void FreeVariable(MQ2VARPTR &VarPtr) {}
 
-		virtual bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) = 0;
-        //    virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
-        virtual bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+		virtual bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR &Dest) = 0;
+        //    virtual bool SetMember(void* Ptr, char* Member, DWORD Index, MQ2TYPEVAR &Data)=0;
+        virtual bool ToString(MQ2VARPTR VarPtr, char* Destination)
         {
             strcpy_s(Destination,MAX_STRING,TypeName);
             return true;
         }
 
-        inline PCHAR GetName() {
+        inline char* GetName() {
 			if(TypeName)
 				return &TypeName[0];
 			return NULL;
 		}
 
-        PCHAR GetMemberName(DWORD ID)
+        char* GetMemberName(DWORD ID)
         {
             for (unsigned long N=0 ; N < Members.Size ; N++)
             {
@@ -786,7 +786,7 @@ namespace MQ2Internal {
             return 0;
         }
 
-        BOOL GetMemberID(PCHAR Name, DWORD &Result)
+        BOOL GetMemberID(char* Name, DWORD &Result)
         {
 			lockit lk(ghMemberMapLock, "GetMemberID");
 			if (MemberMap.find(Name) == MemberMap.end())
@@ -799,7 +799,7 @@ namespace MQ2Internal {
 			Result = pMember->ID;
 			return true;
         }
-        PMQ2TYPEMEMBER FindMember(PCHAR Name)
+        PMQ2TYPEMEMBER FindMember(char* Name)
         {
 			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MemberMap.find(Name) == MemberMap.end())
@@ -810,7 +810,7 @@ namespace MQ2Internal {
 			N--;
 			return Members[N];
         }
-		PMQ2TYPEMEMBER FindMethod(PCHAR Name)
+		PMQ2TYPEMEMBER FindMethod(char* Name)
         {
 			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MethodMap.find(Name) == MethodMap.end())
@@ -821,7 +821,7 @@ namespace MQ2Internal {
 			N--;
 			return Methods[N];
         }
-        BOOL InheritedMember(PCHAR Name)
+        BOOL InheritedMember(char* Name)
         {
             if (!pInherits || !pInherits->FindMember(Name))
                 return FALSE;
@@ -834,7 +834,7 @@ namespace MQ2Internal {
 
     protected:
 
-        BOOL AddMember(DWORD ID, PCHAR Name)
+        BOOL AddMember(DWORD ID, char* Name)
         {
 			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MemberMap.find(Name) != MemberMap.end())
@@ -851,7 +851,7 @@ namespace MQ2Internal {
             Members[N]=pMember;
             return true;
         }
-		inline BOOL AddMethod(DWORD ID, PCHAR Name)
+		inline BOOL AddMethod(DWORD ID, char* Name)
         {
 			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MethodMap.find(Name) != MethodMap.end())
@@ -868,7 +868,7 @@ namespace MQ2Internal {
             Methods[N]=pMethod;
             return true;
         }
-        BOOL RemoveMember(PCHAR Name)
+        BOOL RemoveMember(char* Name)
         {
 			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MemberMap.find(Name) == MemberMap.end())
@@ -881,7 +881,7 @@ namespace MQ2Internal {
             delete pMember;
             Members[N]=0;
         }
-		BOOL RemoveMethod(PCHAR Name)
+		BOOL RemoveMethod(char* Name)
         {
 			lockit lk(ghMemberMapLock, __FUNCTION__);
 			if (MethodMap.find(Name) == MethodMap.end())
@@ -915,13 +915,13 @@ namespace MQ2Internal {
             TotalElements=0;
         }
 
-        CDataArray(MQ2Type *Type, PCHAR Index, PCHAR Default, BOOL ByData=FALSE)
+        CDataArray(MQ2Type *Type, char* Index, char* Default, BOOL ByData=FALSE)
         {
             nExtents=1;
 			TotalElements=1;
 
             // count number of , 's
-            if (PCHAR pComma=strchr(Index,','))
+            if (char* pComma=strchr(Index,','))
             {
                 nExtents++;
                 while(pComma=strchr(&pComma[1],','))
@@ -933,10 +933,10 @@ namespace MQ2Internal {
             // allocate extents
             if(pExtents=(DWORD*)malloc(sizeof(DWORD)*nExtents)) {
 				// read extents
-				PCHAR pStart=Index;
+				char* pStart=Index;
 				for (DWORD N = 0 ; N < nExtents ; N++)
 				{
-					PCHAR pComma=strchr(pStart,',');
+					char* pComma=strchr(pStart,',');
 					if (pComma)
 						*pComma=0;
 
@@ -981,7 +981,7 @@ namespace MQ2Internal {
                 TotalElements=0;
         }
 
-        int GetElement(PCHAR Index)
+        int GetElement(char* Index)
         {
             DWORD Element=0;
             if (nExtents==1)
@@ -997,7 +997,7 @@ namespace MQ2Internal {
             {
                 DWORD nGetExtents = 1;
 
-                if (PCHAR pComma=strchr(Index,','))
+                if (char* pComma=strchr(Index,','))
                 {
                     nGetExtents++;
                     while(pComma=strchr(&pComma[1],','))
@@ -1009,10 +1009,10 @@ namespace MQ2Internal {
                     return -1;
 
                 // read extents
-                PCHAR pStart=Index;
+                char* pStart=Index;
                 for (DWORD N = 0 ; N < nExtents ; N++)
                 {
-                    PCHAR pComma=strchr(pStart,',');
+                    char* pComma=strchr(pStart,',');
                     if (pComma)
                         *pComma=0;
 
@@ -1039,7 +1039,7 @@ namespace MQ2Internal {
             }
         }
 
-        BOOL GetElement(PCHAR Index, MQ2TYPEVAR &Dest)
+        BOOL GetElement(char* Index, MQ2TYPEVAR &Dest)
         {
             DWORD Element=0;
             if (nExtents==1)
@@ -1057,7 +1057,7 @@ namespace MQ2Internal {
             {
                 DWORD nGetExtents = 1;
 
-                if (PCHAR pComma=strchr(Index,','))
+                if (char* pComma=strchr(Index,','))
                 {
                     nGetExtents++;
                     while(pComma=strchr(&pComma[1],','))
@@ -1069,11 +1069,11 @@ namespace MQ2Internal {
                     return FALSE;
 
                 // read extents
-                PCHAR pStart=Index;
+                char* pStart=Index;
                 unsigned long N;
                 for (N = 0 ; N < nExtents ; N++)
                 {
-                    PCHAR pComma=strchr(pStart,',');
+                    char* pComma=strchr(pStart,',');
                     if (pComma)
                         *pComma=0;
 

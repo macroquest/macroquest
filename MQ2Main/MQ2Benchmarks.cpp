@@ -18,7 +18,7 @@ typedef CIndex<PMQBENCH> BMIndex;
 BMIndex *pBenchmarks=0;
 #define Benchmarks (*pBenchmarks)
 
-DWORD AddMQ2Benchmark(PCHAR Name)
+DWORD AddMQ2Benchmark(char* Name)
 {
     DebugSpew("AddMQ2Benchmark(%s)",Name);
     DWORD NewHandle= pBenchmarks->GetUnused();
@@ -88,7 +88,7 @@ BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest)
     return false;
 }
 
-void SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
+void SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, char* szLine)
 {
     char out[256];
     if (szLine && szLine[0]=='/')

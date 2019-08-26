@@ -40,7 +40,7 @@ void ShutdownMQ2DataTypes()
 #undef DATATYPE
 }
 
-bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pType ((MQ2Type*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -83,7 +83,7 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #undef pType
 }
 
-bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pPlugin ((PMQPLUGIN)VarPtr.Ptr)
 	if (!pPlugin)
@@ -105,7 +105,7 @@ bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	return false;
 #undef pPlugin
 }
-bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2FloatType::FindMember(Member);
 	if (!pMember)
@@ -150,7 +150,7 @@ bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	}
 	return false;
 }
-bool MQ2DoubleType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2DoubleType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2DoubleType::FindMember(Member);
 	if (!pMember)
@@ -192,7 +192,7 @@ bool MQ2DoubleType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	return false;
 }
 
-bool MQ2IntType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2IntType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2IntType::FindMember(Member);
 	if (!pMember)
@@ -235,7 +235,7 @@ bool MQ2IntType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEV
 	}
 	return false;
 }
-bool MQ2Int64Type::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2Int64Type::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2Int64Type::FindMember(Member);
 	if (!pMember)
@@ -281,7 +281,7 @@ bool MQ2Int64Type::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 }
  
-bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -391,7 +391,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type = pStringType;
 		if (!Index[0])
 			return false;
-		if (PCHAR pComma = strchr(Index, ','))
+		if (char* pComma = strchr(Index, ','))
 		{
 			std::string subject = (char*)VarPtr.Ptr;
 			*pComma = 0;
@@ -445,11 +445,11 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		return false;
 	case Mid:
 		Dest.Type = pStringType;
-		if (PCHAR pComma = strchr(Index, ','))
+		if (char* pComma = strchr(Index, ','))
 		{
 			*pComma = 0;
 			pComma++;
-			PCHAR pStr = (char *)VarPtr.Ptr;
+			char* pStr = (char *)VarPtr.Ptr;
 			int nStart = atoi(Index) - 1;
 			DWORD Len = atoi(pComma);//dont change this to an int we want them to be able to specify max len as -1
 			if ((size_t)nStart >= strlen(pStr))
@@ -510,7 +510,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		if (Index[0])
 		{
 			Dest.DWord = 0;
-			PCHAR pLast = (PCHAR)VarPtr.Ptr - 1;
+			char* pLast = (char*)VarPtr.Ptr - 1;
 			while (pLast = strchr(&pLast[1], Index[0]))
 				Dest.DWord++;
 			return true;
@@ -522,7 +522,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		{
 			char Temp[MAX_STRING] = { 0 };
 			strcpy_s(Temp, (char *)VarPtr.Ptr);
-			if (PCHAR pComma = strchr(Index, ','))
+			if (char* pComma = strchr(Index, ','))
 			{
 				*pComma = 0;
 				GetArg(DataTypeTemp, Temp, atoi(Index), FALSE, FALSE, FALSE, pComma[1]);
@@ -553,10 +553,10 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				return false;
 			//char Temp[MAX_STRING]={0};
 			//strcpy_s(Temp,(char *)VarPtr.Ptr);
-			if (PCHAR pComma = strchr(Index, ','))
+			if (char* pComma = strchr(Index, ','))
 			{
 				*pComma = 0;
-				PCHAR pPos = (PCHAR)VarPtr.Ptr;//strchr((char *)VarPtr.Ptr,pComma[1]);
+				char* pPos = (char*)VarPtr.Ptr;//strchr((char *)VarPtr.Ptr,pComma[1]);
 				N--;
 				while (N && pPos)
 				{
@@ -566,9 +566,9 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				*pComma = ',';
 				if (pPos)
 				{
-					if (pPos != (PCHAR)VarPtr.Ptr)
+					if (pPos != (char*)VarPtr.Ptr)
 						pPos++;
-					PCHAR pEnd = strchr(&pPos[0], pComma[1]);
+					char* pEnd = strchr(&pPos[0], pComma[1]);
 					if (pEnd)
 					{
 						if (pEnd != pPos)
@@ -591,7 +591,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	}
 	return false;
 }
-bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pArray ((CDataArray*)VarPtr.Ptr)
 	if (!pArray)
@@ -629,7 +629,7 @@ bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 #undef pArray
 }
-bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2MathType::FindMember(Member);
 	if (!pMember)
@@ -797,15 +797,15 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			P1[0] = P2[0] = ((SPAWNINFO*)pCharSpawn)->Y;
 			P1[1] = P2[1] = ((SPAWNINFO*)pCharSpawn)->X;
 			P1[2] = P2[2] = ((SPAWNINFO*)pCharSpawn)->Z;
-			if (PCHAR pColon = strchr(Index, ':'))
+			if (char* pColon = strchr(Index, ':'))
 			{
 				*pColon = 0;
-				if (PCHAR pComma = strchr(&pColon[1], ','))
+				if (char* pComma = strchr(&pColon[1], ','))
 				{
 					*pComma = 0;
 					P2[0] = (float)atof(&pColon[1]);
 					*pComma = ',';
-					if (PCHAR pComma2 = strchr(&pComma[1], ','))
+					if (char* pComma2 = strchr(&pComma[1], ','))
 					{
 						*pComma2 = 0;
 						P2[1] = (float)atof(&pComma[1]);
@@ -822,12 +822,12 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			}
 
 
-			if (PCHAR pComma = strchr(Index, ','))
+			if (char* pComma = strchr(Index, ','))
 			{
 				*pComma = 0;
 				P1[0] = (float)atof(Index);
 				*pComma = ',';
-				if (PCHAR pComma2 = strchr(&pComma[1], ','))
+				if (char* pComma2 = strchr(&pComma[1], ','))
 				{
 					*pComma2 = 0;
 					P1[1] = (float)atof(&pComma[1]);
@@ -850,7 +850,7 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	}
 	return false;
 }
-bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!gMacroStack)
 		return false;
@@ -1006,7 +1006,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 }
 
-bool MQ2TicksType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TicksType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	//if (!VarPtr.DWord)
 	//	return false;
@@ -1075,7 +1075,7 @@ bool MQ2TicksType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 #undef nTicks
 }
 
-bool MQ2TimeStampType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TimeStampType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define nTimeStamp (VarPtr.UInt64)
 	PMQ2TYPEMEMBER pMember = FindMember(Member);
@@ -1150,7 +1150,7 @@ bool MQ2TimeStampType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 }
 
 
-bool MQ2ArgbType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ArgbType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = FindMember(Member);
 	if (!pMember)
@@ -1181,7 +1181,7 @@ bool MQ2ArgbType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	return false;
 }
 
-bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -1721,7 +1721,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type = pBoolType;
 		return true;
 	case Inviter:
-		strcpy_s(DataTypeTemp, (PCHAR)__Inviter);
+		strcpy_s(DataTypeTemp, (char*)__Inviter);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -1733,7 +1733,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		}
 		if (Index[0])
 		{
-			PCHAR pSearch;
+			char* pSearch;
 			unsigned long nth;
 			SEARCHSPAWN ssSpawn;
 			ClearSearchSpawn(&ssSpawn);
@@ -1866,7 +1866,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type = pHeadingType;
 		if (!Index[0])
 			return false;
-		if (PCHAR pComma = strchr(Index, ','))
+		if (char* pComma = strchr(Index, ','))
 		{
 			*pComma = 0;
 			float Y = (float)atof(Index);
@@ -2186,7 +2186,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		bool bByIndex = false;
 		bool bByKeyword = false;
 		
-		PCHAR pIndex = Index;
+		char* pIndex = Index;
 		if (pIndex[0])
 		{
 			if (IsNumber(Index))
@@ -2474,7 +2474,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	}
 
 
-bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pBuff ((SPELLBUFF*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -2676,7 +2676,7 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #undef pBuff
 }
 
-bool MQ2TargetBuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TargetBuffType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	//int theindex VarPtr.Int;
 	if (VarPtr.Int == -1)
@@ -2712,7 +2712,7 @@ bool MQ2TargetBuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	}
 	return false;
 }
-bool MQ2CachedBuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2CachedBuffType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
 	if (!pcTB)
@@ -2760,7 +2760,7 @@ bool MQ2CachedBuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	}
 	return false;
 }
-bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PCHARINFO pChar = ((PCHARINFO)VarPtr.Ptr);
 	if (!pChar)
@@ -4139,7 +4139,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				pCont = FindItemByID(atoi(Index));
 			}
 			else {
-				if (PCHAR pName = Index) {
+				if (char* pName = Index) {
 					BOOL bExact = false;
 					if (*pName == '=') {
 						bExact = true;
@@ -6052,7 +6052,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	return false;
 }
 
-bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pSpell ((SPELL*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -7052,7 +7052,7 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 #undef pSpell
 	return false;
 }
-bool MQ2ItemSpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ItemSpellType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -7115,7 +7115,7 @@ bool MQ2ItemSpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	return false;
 }
 
-bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	DWORD N, cmp, tmp;
 #define pItem ((CONTENTS*)VarPtr.Ptr)
@@ -7261,39 +7261,39 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		}
 		return false;
 	case Clicky:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Clicky;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Clicky;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Proc:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Proc;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Proc;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Worn:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Worn;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Worn;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Focus:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Focus;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Focus;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Scroll:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Scroll;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Scroll;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Focus2:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Focus2;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Focus2;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Mount:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Mount;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Mount;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Illusion:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Illusion;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Illusion;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Familiar:
-		Dest.Ptr = (PVOID)&GetItemFromContents(pItem)->Familiar;
+		Dest.Ptr = (void*)&GetItemFromContents(pItem)->Familiar;
 		Dest.Type = pItemSpellType;
 		return true;
 	case Item:
@@ -8411,7 +8411,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			{
 				Dest.DWord = 0;
 				BOOL bExact = FALSE;
-				PCHAR pName1 = Index;
+				char* pName1 = Index;
 				if (*pName1 == '=')
 				{
 					bExact = TRUE;
@@ -8509,7 +8509,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #undef pItem
 }
 
-bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -8768,7 +8768,7 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		{
 			return false;
 		}
-		if (PCHAR pComma = strchr(Index, ','))
+		if (char* pComma = strchr(Index, ','))
 		{
 			n = atoi(pComma + 1) - 1;
 			if (n < 0) n = 0;
@@ -8931,7 +8931,7 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 #undef pWnd
 }
 
-bool MQ2MenuType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2MenuType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9085,7 +9085,7 @@ bool MQ2MenuType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	}
 	return false;
 }
-bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PZONEINFO pthezone = (PZONEINFO)pZoneInfo;
 #define pZone ((PZONEINFO)pZoneInfo)
@@ -9168,7 +9168,7 @@ bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 #undef pZone
 }
 
-bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9205,7 +9205,7 @@ bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #undef pZone
 }
 
-bool MQ2BodyType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2BodyType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2BodyType::FindMember(Member);
 	if (!pMember)
@@ -9224,7 +9224,7 @@ bool MQ2BodyType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	}
 	return false;
 }
-bool MQ2DeityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2DeityType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2DeityType::FindMember(Member);
 	if (!pMember)
@@ -9248,7 +9248,7 @@ bool MQ2DeityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	}
 	return false;
 }
-bool MQ2ClassType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ClassType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2ClassType::FindMember(Member);
 	if (!pMember)
@@ -9348,7 +9348,7 @@ bool MQ2ClassType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	}
 	return false;
 }
-bool MQ2RaceType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2RaceType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2RaceType::FindMember(Member);
 	if (!pMember)
@@ -9369,7 +9369,7 @@ bool MQ2RaceType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 }
 
 
-bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9537,7 +9537,7 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	return false;
 }
 
-bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -9961,7 +9961,7 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	}
 	return false;
 }
-bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2MacroQuestType::FindMember(Member);
 	if (!pMember)
@@ -10040,7 +10040,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 			sprintf_s(szGetName,"%s","\\VarFileInfo\\Translation");
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
 				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD *)lpVersion)),(WORD)(*((DWORD *)lpVersion) >> 16));
 			}
@@ -10050,7 +10050,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 			sprintf_s(szGetName, "\\StringFileInfo\\%s\\FileVersion", szResult);
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
 				sprintf_s(DataTypeTemp,"%s", lpVersion);
 			}
@@ -10086,7 +10086,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 			sprintf_s(szGetName,"%s","\\VarFileInfo\\Translation");
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
 				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD *)lpVersion)),(WORD)(*((DWORD *)lpVersion) >> 16));
 			}
@@ -10096,7 +10096,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 			sprintf_s(szGetName, "\\StringFileInfo\\%s\\InternalName", szResult);
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((LPVOID)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
 				sprintf_s(DataTypeTemp,"%s", lpVersion);
 			}
@@ -10108,7 +10108,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	}
 	return false;
 }
-bool MQ2CharSelectListType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2CharSelectListType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2CharSelectListType::FindMember(Member);
 	if (!pMember)
@@ -10187,7 +10187,7 @@ bool MQ2CharSelectListType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Inde
 	return false;
 }
 
-bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2EverQuestType::FindMember(Member);
 	if (!pMember)
@@ -10220,7 +10220,7 @@ bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 
 	case LoginName:
 		Dest.Type = pStringType;
-		if (PCHAR pTemp = GetLoginName())
+		if (char* pTemp = GetLoginName())
 		{
 			strcpy_s(DataTypeTemp, pTemp);
 			Dest.Ptr = &DataTypeTemp[0];
@@ -10438,7 +10438,7 @@ bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				}
 			}
 			else {
-				if (PCHAR pName = Index) {
+				if (char* pName = Index) {
 					char szName[256] = { 0 };
 					if (EVERQUEST* pEQ = (EVERQUEST*)pEverQuest) {
 						if (pEQ->pCharSelectPlayerArray.Count) {
@@ -10500,7 +10500,7 @@ bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	return false;
 }
 
-bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pTime ((struct tm *)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
@@ -10581,7 +10581,7 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #undef pTime
 }
 
-bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2HeadingType::FindMember(Member);
 	if (!pMember)
@@ -10618,7 +10618,7 @@ bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	return false;
 }
 
-bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pActiveCorpse || !pLootWnd)
 		return false;
@@ -10656,7 +10656,7 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			{
 				// name
 				BOOL bExact = FALSE;
-				PCHAR pName1 = Index;
+				char* pName1 = Index;
 				if (*pName1 == '=')
 				{
 					bExact = TRUE;
@@ -10710,7 +10710,7 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 #undef pLoot
 }
 
-bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pMerchantWnd)
 		return false;
@@ -10726,7 +10726,7 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 				char szTemp[MAX_STRING] = { 0 };
 				char szTemp2[MAX_STRING] = { 0 };
 				BOOL bExact = FALSE;
-				PCHAR pName = Index;
+				char* pName = Index;
 				if (*pName == '=')
 				{
 					bExact = TRUE;
@@ -10996,7 +10996,7 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 	return false;
 }
 
-bool MQ2PointMerchantItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2PointMerchantItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pMerchantWnd)
 		return false;
@@ -11060,7 +11060,7 @@ bool MQ2PointMerchantItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR I
 	return false;
 }
 
-bool MQ2PointMerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2PointMerchantType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pMerchantWnd)
 		return false;
@@ -11104,7 +11104,7 @@ bool MQ2PointMerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index
 	return false;
 }
 
-bool MQ2MercenaryType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2MercenaryType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -11376,7 +11376,7 @@ bool MQ2MercenaryType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	return false;
 }
 
-bool MQ2PetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2PetType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -11533,7 +11533,7 @@ bool MQ2PetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEV
 // 6000-6080 merchant window
 // 7000-7080 bazaar window
 // 8000-8031 inspect window
-bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	int nInvSlot = VarPtr.Int;
 	PMQ2TYPEMEMBER pMember = MQ2InvSlotType::FindMember(Member);
@@ -11883,7 +11883,7 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	return false;
 }
 
-bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 #define pTimer ((PMQTIMER)VarPtr.Ptr)
 	if (!pTimer)
@@ -11924,7 +11924,7 @@ bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 #undef pTimer
 }
 
-bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -12013,7 +12013,7 @@ bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 }
 
-bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, char* Destination)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -12022,7 +12022,7 @@ bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	return true;
 }
 
-bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -12175,7 +12175,7 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	return false;
 }
 
-bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, char* Destination)
 {
 	int nMembers = 0;
 	CHARINFO* pChar = GetCharInfo();
@@ -12189,7 +12189,7 @@ bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	return true;
 }
 
-bool MQ2GroupType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2GroupType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2GroupType::FindMember(Member);
 	CHARINFO* pChar = GetCharInfo();
@@ -12604,7 +12604,7 @@ bool MQ2GroupType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 }
 
-bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, char* Destination)
 {
 	if (unsigned long N = VarPtr.DWord)
 	{
@@ -12638,7 +12638,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	return false;
 }
 
-bool MQ2GroupMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2GroupMemberType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	char MemberName[MAX_STRING] = { 0 };
 	char LeaderName[MAX_STRING] = { 0 };
@@ -12840,7 +12840,7 @@ bool MQ2GroupMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 	return false;
 }
 
-bool MQ2RaidType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2RaidType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pRaid)
 		return false;
@@ -13005,7 +13005,7 @@ bool MQ2RaidType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	return false;
 }
 
-bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	DWORD nRaidMember = VarPtr.DWord - 1;
 	if (VarPtr.DWord >= 72)
@@ -13097,7 +13097,7 @@ bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	return false;
 }
 
-bool MQ2EvolvingItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2EvolvingItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13127,7 +13127,7 @@ bool MQ2EvolvingItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index,
 	return false;
 }
 
-bool MQ2DynamicZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2DynamicZoneType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pDZMember)
 		return false;
@@ -13228,7 +13228,7 @@ bool MQ2DynamicZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 	return false;
 }
 
-bool MQ2DZMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2DZMemberType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13273,7 +13273,7 @@ bool MQ2DZMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 	return false;
 }
 
-bool MQ2FellowshipType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2FellowshipType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13376,7 +13376,7 @@ bool MQ2FellowshipType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	return false;
 }
 
-bool MQ2FellowshipMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2FellowshipMemberType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -13429,7 +13429,7 @@ bool MQ2FellowshipMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR In
 	return false;
 }
 
-bool MQ2FriendsType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2FriendsType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2FriendsType::FindMember(Member);
 	if (!pMember)
@@ -13475,7 +13475,7 @@ bool MQ2FriendsType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	};
 }
 
-bool MQ2TargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TargetType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	int buffID = 0;
 	DWORD i;
@@ -13820,7 +13820,7 @@ bool MQ2TargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	{
 		Dest.Type = pSpawnType;
 		// who the Target has the MOST aggro on
-		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
+		char* pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
 		if (pTargetAggroHolder[0] != '\0')
 		{
 			SPAWNINFO* pAggroHolder = (SPAWNINFO*)GetSpawnByName(pTargetAggroHolder);
@@ -14471,7 +14471,7 @@ bool MQ2TargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	return false;
 }
 
-bool MQ2TaskObjectiveType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TaskObjectiveType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (VarPtr.Int == -1)
 		return false;
@@ -14513,7 +14513,7 @@ bool MQ2TaskObjectiveType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index
 	return false;
 }
 
-bool MQ2TaskMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TaskMemberType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PTASKMEMBER pTaskMemberData = (PTASKMEMBER)VarPtr.Ptr;
 	if (!pTaskMemberData)
@@ -14559,7 +14559,7 @@ bool MQ2TaskMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	return false;
 }
 
-bool MQ2TaskType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2TaskType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pTaskWnd)
 		return false;
@@ -14859,7 +14859,7 @@ bool MQ2TaskType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	return false;
 }
 
-bool MQ2XTargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2XTargetType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord>23)
 		return false;
@@ -14918,7 +14918,7 @@ bool MQ2XTargetType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	return false;
 };
 
-bool MQ2KeyRingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2KeyRingType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2KeyRingType::FindMember(Member);
 	if (!pMember)
@@ -14965,7 +14965,7 @@ bool MQ2KeyRingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	return false;
 }
 
-bool MQ2ItemFilterDataType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2ItemFilterDataType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	ItemFilterData* pItem = (ItemFilterData*)VarPtr.Ptr;
 	if (!pItem)
@@ -15055,7 +15055,7 @@ bool MQ2ItemFilterDataType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Inde
 	return false;
 }
 
-bool MQ2AdvLootItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AdvLootItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	AdvancedLootItem* pItem = (AdvancedLootItem*)VarPtr.Ptr;
 	if (!pItem)
@@ -15206,7 +15206,7 @@ bool MQ2AdvLootItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 	return false;
 }
 
-bool MQ2AdvLootType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AdvLootType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (!pAdvancedLootWnd)
 		return false;
@@ -15347,7 +15347,7 @@ bool MQ2AdvLootType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 // /echo ${Alert[a].List[b].bGM}
 // /echo ${Alert[a].Size}
 // /echo ${Alert}
-bool MQ2AlertType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AlertType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		if (!CAlerts.AlertExist(VarPtr.DWord))
@@ -15420,7 +15420,7 @@ Dest.DWord = ss.size();
 return true;
 }
 */
-bool MQ2AlertListType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AlertListType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD theindex = LOWORD(VarPtr.DWord);
@@ -15708,7 +15708,7 @@ bool MQ2AlertListType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	return false;
 }
 
-bool MQ2WorldLocationType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2WorldLocationType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD index = VarPtr.DWord;
@@ -15766,7 +15766,7 @@ bool MQ2WorldLocationType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index
 	return false;
 }
 
-bool MQ2SolventType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2SolventType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD itemid = VarPtr.DWord;
@@ -15814,7 +15814,7 @@ bool MQ2SolventType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 	}
 	return false;
 }
-bool MQ2AugType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AugType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		DWORD index = VarPtr.DWord;
@@ -15889,7 +15889,7 @@ bool MQ2AugType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEV
 	}
 	return false;
 }
-bool MQ2RangeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2RangeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	int P1, P2, P3;
 	PMQ2TYPEMEMBER pMember = MQ2RangeType::FindMember(Member);
@@ -15905,10 +15905,10 @@ bool MQ2RangeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		P2 = 0;
 		P3 = 0;
 		if (Index[0]) {
-			if (PCHAR pColon = strchr(Index, ':')) {
+			if (char* pColon = strchr(Index, ':')) {
 				*pColon = 0;
 				P3 = atoi(&pColon[1]);
-				if (PCHAR pComma = strchr(Index, ',')) {
+				if (char* pComma = strchr(Index, ',')) {
 					*pComma = 0;
 					P2 = atoi(&pComma[1]);
 					P1 = atoi(Index);
@@ -15928,10 +15928,10 @@ bool MQ2RangeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		P2 = 0;
 		P3 = 0;
 		if (Index[0]) {
-			if (PCHAR pColon = strchr(Index, ':')) {
+			if (char* pColon = strchr(Index, ':')) {
 				*pColon = 0;
 				P3 = atoi(&pColon[1]);
-				if (PCHAR pComma = strchr(Index, ',')) {
+				if (char* pComma = strchr(Index, ',')) {
 					*pComma = 0;
 					P2 = atoi(&pComma[1]);
 					P1 = atoi(Index);
@@ -15948,7 +15948,7 @@ bool MQ2RangeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 }
 
-bool MQ2AuraType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2AuraType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		int index = VarPtr.HighPart;
@@ -16008,7 +16008,7 @@ bool MQ2AuraType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 					if (index > clist->ItemsArray.Count)
 						break;
 					clist->SetCurSel(index);
-					((CXWnd*)pAuraWnd)->WndNotification((CXWnd*)clist, XWM_MENUSELECT, (PVOID)1);
+					((CXWnd*)pAuraWnd)->WndNotification((CXWnd*)clist, XWM_MENUSELECT, (void*)1);
 					return true;
 				}
 				break;
@@ -16022,7 +16022,7 @@ bool MQ2AuraType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	return false;
 }
 
-bool MQ2BandolierItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2BandolierItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
 	{
@@ -16054,7 +16054,7 @@ bool MQ2BandolierItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index
 	}
 	return false;
 }
-bool MQ2BandolierType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR& Dest)
+bool MQ2BandolierType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	try {
 		if (CHARINFO2* pChar2 = GetCharInfo2())
@@ -16166,7 +16166,7 @@ bool MQ2BandolierType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 						if (index > 3)
 							index = 3;
 						Dest.HighPart = index;
-						Dest.Ptr = (PVOID)&pBand->Items[index];
+						Dest.Ptr = (void*)&pBand->Items[index];
 						return true;
 					}
 					case Name:

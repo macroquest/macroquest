@@ -19,7 +19,7 @@
 
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 
-MQ2Type *FindMQ2DataType(PCHAR Name)
+MQ2Type *FindMQ2DataType(char* Name)
 {
 	lockit lk(ghVariableLock);
 	auto iter = MQ2DataTypeMap.find(Name);
@@ -44,7 +44,7 @@ BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
 	lockit lk(ghVariableLock);
 	// use iterator to erase. allows us to check for existence
 	// and erase it without any waste
-	PCHAR thetypename = Type.GetName();
+	char* thetypename = Type.GetName();
 	if (!thetypename)
 		return false;
 	auto iter = MQ2DataTypeMap.find(thetypename);
@@ -56,7 +56,7 @@ BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
 	return true;
 }
 
-inline PMQ2DATAITEM FindMQ2Data(PCHAR szName)
+inline PMQ2DATAITEM FindMQ2Data(char* szName)
 {
 	lockit lk(ghVariableLock);
 	auto iter = MQ2DataMap.find(szName);
@@ -66,7 +66,7 @@ inline PMQ2DATAITEM FindMQ2Data(PCHAR szName)
 	return iter->second.get();
 }
 
-BOOL AddMQ2Data(PCHAR szName, fMQData Function)
+BOOL AddMQ2Data(char* szName, fMQData Function)
 {
 	lockit lk(ghVariableLock);
 	// check if the item exists first, so we don't construct
@@ -84,7 +84,7 @@ BOOL AddMQ2Data(PCHAR szName, fMQData Function)
 	return true;
 }
 
-BOOL RemoveMQ2Data(PCHAR szName)
+BOOL RemoveMQ2Data(char* szName)
 {
 	lockit lk(ghVariableLock);
 	auto iter = MQ2DataMap.find(szName);
@@ -135,7 +135,7 @@ bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
 }
 
 // -1 = no exists, 0 = fail, 1 = success
-int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, PCHAR pStart, PCHAR pIndex,
+int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, char* pStart, char* pIndex,
 	bool checkFirst = false)
 {
 	// search for extensions on this type
@@ -176,7 +176,7 @@ int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, PCHAR pStart, PCHAR p
 
 	return 0;
 }
-void DumpWarning(PCHAR pStart, int index)
+void DumpWarning(char* pStart, int index)
 {
 	if (PMACROBLOCK pBlock = GetCurrentMacroBlock())
 	{
@@ -192,13 +192,13 @@ void DumpWarning(PCHAR pStart, int index)
 	}
 }
 
-static bool function_exists(const PCHAR name)
+static bool function_exists(const char* name)
 {
 	return (gMacroBlock &&
 		(gMacroSubLookupMap.find(name) != gMacroSubLookupMap.end()));
 }
 
-static bool call_function(const PCHAR name, const PCHAR args)
+static bool call_function(const char* name, const char* args)
 {
 	std::list<std::string>csvColumn;
 	const char *mystart=args;
@@ -244,7 +244,7 @@ static bool call_function(const PCHAR name, const PCHAR args)
 	while (gMacroBlock && sub_block != gMacroBlock->Line.end())
 	{
 		gMacroStack->LocationIndex = gMacroBlock->CurrIndex;
-		DoCommand(pChar, (PCHAR)sub_block->second.Command.c_str());//we are in a while loop here, if they do stuff like /mpq or /delay those get thrown out the window.
+		DoCommand(pChar, (char*)sub_block->second.Command.c_str());//we are in a while loop here, if they do stuff like /mpq or /delay those get thrown out the window.
 		if (!gMacroBlock)//it doesnt matter, this is for quick evaluations, if they are using it in any other way its wrong.
 			break;
 		if (gMacroBlock->CurrIndex == saved_block)
@@ -257,7 +257,7 @@ static bool call_function(const PCHAR name, const PCHAR args)
 	return false;
 }
 
-bool EvaluateDataExpression(MQ2TYPEVAR& Result, PCHAR pStart, PCHAR pIndex, bool function_allowed = false)
+bool EvaluateDataExpression(MQ2TYPEVAR& Result, char* pStart, char* pIndex, bool function_allowed = false)
 {
 	if (!Result.Type)
 	{
@@ -319,7 +319,7 @@ bool EvaluateDataExpression(MQ2TYPEVAR& Result, PCHAR pStart, PCHAR pIndex, bool
 	return true;
 }
 
-BOOL dataType(PCHAR szIndex, MQ2TYPEVAR &Ret)
+BOOL dataType(char* szIndex, MQ2TYPEVAR &Ret)
 {
 	if (MQ2Type* pType = FindMQ2DataType(szIndex))
 	{
@@ -403,15 +403,15 @@ void ShutdownMQ2Data()
 	MQ2DataMap.clear();
 }
 
-BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
+BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 {
 	Result.Type = 0;
 	Result.Int64 = 0;
 	// Find [] before a . or null
-	PCHAR pPos = &szOriginal[0];
-	PCHAR pStart = pPos;
+	char* pPos = &szOriginal[0];
+	char* pStart = pPos;
 	char Index[MAX_STRING] = { 0 };
-	PCHAR pIndex = &Index[0];
+	char* pIndex = &Index[0];
 	BOOL Quote = FALSE;
 	bool function_allowed = false;
 	while (1)
@@ -461,7 +461,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			}
 			*pPos = 0;
 			++pPos;
-			PCHAR pType = pPos;
+			char* pType = pPos;
 			while (*pPos != ')')
 			{
 				if (!*pPos)
@@ -1085,7 +1085,7 @@ std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce, i
  * that takes the place of the original ParseMacroData function so that
  * code being passed to the parser doesn't have to be rewritten.
  *
- * It will perform the same function as the original (parsing the PCHAR
+ * It will perform the same function as the original (parsing the char*
  * and storing it in the original location) but it does so by converting
  * to a string and passing it to ModifyMacroString instead of doing the
  * parsing itself.
@@ -1095,13 +1095,13 @@ std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce, i
  * indicator of success rather than an indicator of "continue to parse"
  * since that is all handled in the macro language itself now.
  *
- * @param szOriginal The PCHAR to parse and store the output
+ * @param szOriginal The char* to parse and store the output
  * @param BufferSize Not used, maintained for backwards compatibility
  *
  * @return BOOL (MQ2) Success
  */
 
-BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
+BOOL ParseMacroData(char* szOriginal, size_t BufferSize)
 {
 	if (gknightlyparse)
 	{
@@ -1128,20 +1128,20 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 	else
 	{
 		// find each {}
-		PCHAR pBrace = strstr(szOriginal, "${");
+		char* pBrace = strstr(szOriginal, "${");
 		if (!pBrace)
 			return false;
 		unsigned long NewLength;
 		BOOL Changed = false;
-		//PCHAR pPos;
-		//PCHAR pStart;
-		//PCHAR pIndex;
+		//char* pPos;
+		//char* pStart;
+		//char* pIndex;
 		char szCurrent[MAX_STRING] = { 0 };
 		MQ2TYPEVAR Result = { 0 };
 		do
 		{
 			// find this brace's end
-			PCHAR pEnd = &pBrace[1];
+			char* pEnd = &pBrace[1];
 			BOOL Quote = false;
 			BOOL BeginParam = false;
 			int nBrace = 1;

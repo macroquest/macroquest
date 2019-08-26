@@ -94,7 +94,7 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 #endif
 		if (gbInZone && !gZoning)
 		{
-			DoCommand(pChar, (PCHAR)ml.Command.c_str());
+			DoCommand(pChar, (char*)ml.Command.c_str());
 			PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
 
 			if (pCurrentBlock)
@@ -112,7 +112,7 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 								FatalError("Reached end of macro.");
 							}
 						}
-						Call(pChar, (PCHAR)pCurrentBlock->BindCmd.c_str());
+						Call(pChar, (char*)pCurrentBlock->BindCmd.c_str());
 						pCurrentBlock->BindCmd.clear();
 					}
 				}
@@ -291,7 +291,7 @@ void Pulse()
 		InitKeyRings();
 		char szServerAndName[MAX_STRING] = { 0 };
 		char szAutoRun[MAX_STRING] = { 0 };
-		PCHAR pAutoRun = szAutoRun;
+		char* pAutoRun = szAutoRun;
 		/* autorun for everyone */
 		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, gszINIFilename);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
@@ -731,8 +731,8 @@ DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
 
 class CEverQuestHook {
 public:
-	void EnterZone_Trampoline(PVOID pVoid);
-	void EnterZone_Detour(PVOID pVoid)
+	void EnterZone_Trampoline(void* pVoid);
+	void EnterZone_Detour(void* pVoid)
 	{
 		EnterZone_Trampoline(pVoid);
 	}
@@ -756,8 +756,8 @@ public:
 		CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
 		gItemsReceived = TRUE;
 	}
-	void CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
-	void CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
+	void CTargetWnd__RefreshTargetBuffs_Trampoline(BYTE*);
+	void CTargetWnd__RefreshTargetBuffs_Detour(BYTE* buffer)
 	{
 		//ok so we can cache songs as well here, they are not displayed in the client for some reason...
 
@@ -818,7 +818,7 @@ public:
 };
 int isNotOKToReadMemory(void *ptr, DWORD size)
 {
-	SIZE_T	dw;
+	size_t	dw;
 	MEMORY_BASIC_INFORMATION	mbi;
 	int	ok;
 
@@ -841,7 +841,7 @@ void RemoveLoginPulse()
 	if (LoginController__GiveTime) {
 		try
 		{
-			if (!isNotOKToReadMemory((PVOID)LoginController__GiveTime, 4)) {
+			if (!isNotOKToReadMemory((void*)LoginController__GiveTime, 4)) {
 				RemoveDetour(LoginController__GiveTime);
 				LoginController__GiveTime = 0;
 			}
@@ -863,7 +863,7 @@ void RemoveLoginPulse()
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
 // Feb 16 2018 Test
 // IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
-static PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
+static BYTE* lpPattern = (BYTE*)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
 static char lpMask[] = "xxxx????xx";
 
 void InitializeLoginPulse()
@@ -882,9 +882,9 @@ void InitializeLoginPulse()
 	}
 }
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::LoginController__GiveTime_Tramp());
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::EnterZone_Trampoline(PVOID));
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::EnterZone_Trampoline(void*));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
+DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(BYTE*));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
 
 void InitializeMQ2Pulse()

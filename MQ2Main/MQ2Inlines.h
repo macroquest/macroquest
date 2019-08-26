@@ -19,7 +19,7 @@
 #include <cctype>
 #include <locale>
 
-EQLIB_API PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
+EQLIB_API char* CleanupName(char* szName, size_t BufferSize, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
 
 inline CHARINFO* GetCharInfo()
 {
@@ -68,14 +68,14 @@ static inline PSPELL GetSpellByID(LONG dwSpellID)
 	return &(*((PSPELLMGR)pSpellMgr)->Spells[absedspellid]);
 }
 
-static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
+static inline char* GetBodyTypeDesc(DWORD BodyTypeID)
 {
 	if (BodyTypeID<104 && BodyTypeID >= 0)
 		return szBodyType[BodyTypeID];
 	return "*UNKNOWN BODYTYPE";
 }
 
-static inline PCHAR GetClassDesc(DWORD ClassID)
+static inline char* GetClassDesc(DWORD ClassID)
 {
 	switch (ClassID) {
 		case 60:
@@ -658,7 +658,7 @@ static inline PSPAWNINFO GetGroupMember(unsigned long N)
 	return 0;
 }
 
-static inline BOOL IsNumber(PCHAR String)
+static inline BOOL IsNumber(char* String)
 {
 	if (*String == 0)
 		return FALSE;
@@ -673,11 +673,11 @@ static inline BOOL IsNumber(PCHAR String)
 	return TRUE;
 }
 
-static inline BOOL IsNumberToComma(PCHAR String)
+static inline BOOL IsNumberToComma(char* String)
 {
 	if (*String == 0)
 		return FALSE;
-	PCHAR Temp = String;
+	char* Temp = String;
 	while (*String)
 	{
 		if (!((*String >= '0' && *String <= '9') || *String == '.'))

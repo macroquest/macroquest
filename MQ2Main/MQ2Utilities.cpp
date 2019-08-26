@@ -22,7 +22,7 @@
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
 // ***************************************************************************
-void DebugSpew(PCHAR szFormat, ...)
+void DebugSpew(char* szFormat, ...)
 {
 	if (gFilterDebug) return;
 	va_list vaList;
@@ -39,7 +39,7 @@ void DebugSpew(PCHAR szFormat, ...)
 	}
 }
 
-void WriteChatf(PCHAR szFormat, ...)
+void WriteChatf(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -51,7 +51,7 @@ void WriteChatf(PCHAR szFormat, ...)
 	}
 }
 //"threadsafe" chat output
-void WriteChatfSafe(PCHAR szFormat, ...)
+void WriteChatfSafe(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -66,7 +66,7 @@ void WriteChatfSafe(PCHAR szFormat, ...)
 		LocalFree(szOutput);
 	}
 }
-void DebugSpewAlways(PCHAR szFormat, ...)
+void DebugSpewAlways(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -101,7 +101,7 @@ void DebugSpewAlways(PCHAR szFormat, ...)
 		LocalFree(szOutput);
 	}
 }
-void DebugSpewAlwaysFile(PCHAR szFormat, ...)
+void DebugSpewAlwaysFile(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -137,7 +137,7 @@ void DebugSpewAlwaysFile(PCHAR szFormat, ...)
 	}
 }
 
-EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...)
+EQLIB_API void DebugSpewNoFile(char* szFormat, ...)
 {
 #ifdef DBG_SPEW
 	va_list vaList;
@@ -155,25 +155,25 @@ EQLIB_API void DebugSpewNoFile(PCHAR szFormat, ...)
 #endif
 }
 
-void StrReplaceSection(PCHAR szInsert, size_t InsertLen, DWORD Length, PCHAR szNewString)
+void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, char* szNewString)
 {
 	DWORD NewLength = (DWORD)strlen(szNewString);
 	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
 	memcpy_s(szInsert, InsertLen-NewLength,szNewString, NewLength);
 }
 
-void ConvertCR(PCHAR Text, size_t LineLen)
+void ConvertCR(char* Text, size_t LineLen)
 {// not super-efficient but this is only being called at initialization currently.
-	while (PCHAR Next = strstr(Text, "\\n"))
+	while (char* Next = strstr(Text, "\\n"))
 	{
 		int len = (int)(Next - Text);
 		StrReplaceSection(Next, LineLen-len, 2, "\n");
 	}
 }
 
-void Flavorator(PCHAR szLine, size_t LineLen)
+void Flavorator(char* szLine, size_t LineLen)
 {
-	PCHAR pSpot = 0;
+	char* pSpot = 0;
 	while (pSpot = strstr(szLine, "%e"))
 	{
 		int len = (int)(pSpot - szLine);
@@ -191,7 +191,7 @@ void Flavorator(PCHAR szLine, size_t LineLen)
 	}
 }
 
-void SyntaxError(PCHAR szFormat, ...)
+void SyntaxError(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -214,7 +214,7 @@ void SyntaxError(PCHAR szFormat, ...)
 	}
 }
 
-void MacroError(PCHAR szFormat, ...)
+void MacroError(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -246,7 +246,7 @@ void MacroError(PCHAR szFormat, ...)
 		}
 	}
 }
-void FatalError(PCHAR szFormat, ...)
+void FatalError(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -276,7 +276,7 @@ void FatalError(PCHAR szFormat, ...)
 	}
 }
 
-void MQ2DataError(PCHAR szFormat, ...)
+void MQ2DataError(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -320,7 +320,7 @@ void FixStringTable()
 	{
 		if (PEQSTRING pStr = pTable->StringItems[N])
 		{
-			if (PCHAR p = pStr->String)
+			if (char* p = pStr->String)
 			{
 				while (*p)
 					p++;
@@ -441,10 +441,10 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 	return szDest;
 }
 
-PCHAR GetEQPath(PCHAR szBuffer, size_t len)
+char* GetEQPath(char* szBuffer, size_t len)
 {
 	GetModuleFileName(NULL, szBuffer, MAX_STRING);
-	PCHAR pSearch = 0;
+	char* pSearch = 0;
 	_strlwr_s(szBuffer, len);
 	if (pSearch = strstr(szBuffer, "\\wineq\\"))
 		*pSearch = 0;
@@ -476,7 +476,7 @@ void ConvertItemTags(CXStr& cxstr, BOOL Tag)
 #define InsertStopColor(text)   sprintf(text,"</c>");TotalColors--; 
 #define InsertStopColorSafe(text,len)   sprintf_s(text, len, "</c>");TotalColors--; 
 
-void StripMQChat(PCHAR in, PCHAR out)
+void StripMQChat(char* in, char* out)
 {
 	//DebugSpew("StripMQChat(%s)",in);
 	int i = 0;
@@ -505,14 +505,14 @@ void StripMQChat(PCHAR in, PCHAR out)
 	out[o] = 0;
 	//DebugSpew("StripMQChat=>(%s)",out);
 }
-bool ReplaceSafely(PCHAR *out, DWORD *pchar_out_string_position, char chr,DWORD maxlen)
+bool ReplaceSafely(char* *out, DWORD *pchar_out_string_position, char chr,DWORD maxlen)
 {
 	if ((*pchar_out_string_position) + 1 > maxlen)
 		return false;
 	(*out)[(*pchar_out_string_position)++] = chr;
 	return true;
 }
-DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
+DWORD MQToSTML(char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 {
 	//DebugSpew("MQToSTML(%s)",in);
 	// 1234567890123
@@ -759,14 +759,14 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 	return pchar_out_string_position;
 }
 
-PCHAR GetFilenameFromFullPath(PCHAR Filename)
+char* GetFilenameFromFullPath(char* Filename)
 {
 	while (Filename && strstr(Filename, "\\"))
 		Filename = strstr(Filename, "\\") + 1;
 	return Filename;
 }
 
-PCHAR GetSubFromLine(int Line, PCHAR szSub, size_t Sublen)
+char* GetSubFromLine(int Line, char* szSub, size_t Sublen)
 {
 	std::map<int, MACROLINE>::reverse_iterator ri(gMacroBlock->Line.find(Line));
 	for (; ri != gMacroBlock->Line.rend();ri++) {
@@ -781,7 +781,7 @@ PCHAR GetSubFromLine(int Line, PCHAR szSub, size_t Sublen)
 	return szSub;
 }
 
-BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime)
+BOOL CompareTimes(char* RealTime, char* ExpectedTime)
 {
 	//Match everything except seconds
 	//Format is: WWW MMM DD hh:mm:ss YYYY
@@ -793,7 +793,7 @@ BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime)
 	return FALSE;
 }
 
-void AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled)
+void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled)
 {
 	PFILTER New = (PFILTER)malloc(sizeof(FILTER));
 	if (!New) return;
@@ -837,7 +837,7 @@ void DefaultFilters()
 	AddFilter("You could not possibly consume more alcohol or become more intoxicated!", -1, &gFilterFood);
 }
 
-PCHAR ConvertHotkeyNameToKeyName(PCHAR szName, size_t Namelen)
+char* ConvertHotkeyNameToKeyName(char* szName, size_t Namelen)
 {
 	if (!_stricmp(szName, "EQUALSIGN"))
 		strcpy_s(szName, Namelen, "=");
@@ -852,7 +852,7 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName, size_t Namelen)
 // Function:    GetFullZone
 // Description: Returns a full zone name from a short name
 // ***************************************************************************
-PCHAR GetFullZone(DWORD ZoneID)
+char* GetFullZone(DWORD ZoneID)
 {
 	ZoneID &= 0x7FFF;
 	if (!ppWorldData || (ppWorldData && !pWorldData))
@@ -869,7 +869,7 @@ PCHAR GetFullZone(DWORD ZoneID)
 // Function:    GetShortZone
 // Description: Returns a short zone name from a ZoneID
 // ***************************************************************************
-PCHAR GetShortZone(DWORD ZoneID)
+char* GetShortZone(DWORD ZoneID)
 {
 	ZoneID &= 0x7FFF;
 	if (!ppWorldData || (ppWorldData && !pWorldData))
@@ -887,7 +887,7 @@ PCHAR GetShortZone(DWORD ZoneID)
 // Description: Returns a ZoneID from a short or long zone name
 // ***************************************************************************
 
-DWORD GetZoneID(PCHAR ZoneShortName)
+DWORD GetZoneID(char* ZoneShortName)
 {
 	PZONELIST pZone = NULL;
 	if (!ppWorldData || (ppWorldData && !pWorldData))
@@ -935,7 +935,7 @@ void GetGameDate(int* Month, int* Day, int* Year)
 	if (Year) *Year = ((PWORLDDATA)pWorldData)->Year;
 }
 
-int GetLanguageIDByName(PCHAR SzName)
+int GetLanguageIDByName(char* SzName)
 {
 	if (!_stricmp(SzName, "Common")) return 1;
 	if (!_stricmp(SzName, "Common Tongue")) return 1;
@@ -966,7 +966,7 @@ int GetLanguageIDByName(PCHAR SzName)
 	return -1;
 }
 
-int GetCurrencyIDByName(PCHAR szName)
+int GetCurrencyIDByName(char* szName)
 {
 	if (!_stricmp(szName, "Doubloons")) return ALTCURRENCY_DOUBLOONS;  // 0XA
 	if (!_stricmp(szName, "Orux")) return ALTCURRENCY_ORUX; //0XB
@@ -1015,7 +1015,7 @@ PSPELL GetSpellBySpellGroupID(LONG dwSpellGroupID)
 	return NULL;
 }
 
-PCHAR GetSpellNameBySpellGroupID(LONG dwSpellID)
+char* GetSpellNameBySpellGroupID(LONG dwSpellID)
 {
 	PSPELL pSpell = GetSpellBySpellGroupID(abs(dwSpellID));
 	if (pSpell && pSpell->Name && pSpell->Name[0] != '\0') {
@@ -1024,7 +1024,7 @@ PCHAR GetSpellNameBySpellGroupID(LONG dwSpellID)
 	return "Unknown Spell";
 }
 
-PCHAR GetSpellNameByID(LONG dwSpellID)
+char* GetSpellNameByID(LONG dwSpellID)
 {
 	long absedspellid = abs(dwSpellID);
 	if (ppSpellMgr && absedspellid != 0 && absedspellid != -1 && absedspellid < TOTAL_SPELL_COUNT) {
@@ -1113,7 +1113,7 @@ BOOL IsSpellClassUsable(PSPELL pSpell)
 }
 SPELL* GetSpellByName(const char* szName)
 {
-	// PSPELL GetSpellByName(PCHAR NameOrID)
+	// PSPELL GetSpellByName(char* NameOrID)
 	// This function now accepts SpellID as an argument as well as SpellName
 	//echo ${Spell[Concussive Burst].Level}
 	//echo ${Spell[Nature's Serenity].Level}
@@ -1190,7 +1190,7 @@ PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
 }
 
-PSPELL GetSpellByAAName(PCHAR szName)
+PSPELL GetSpellByAAName(char* szName)
 {
 	int level = -1;
 	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
@@ -1289,12 +1289,12 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 	}
 }
 
-PCHAR GetGuildByID(int64_t GuildID)
+char* GetGuildByID(int64_t GuildID)
 {
 	if (GuildID == 0 || GuildID == -1)
 		return 0;
 
-	if (PCHAR thename = pGuild->GetGuildName(GuildID)) {
+	if (char* thename = pGuild->GetGuildName(GuildID)) {
 		if (!_stricmp(thename, "Unknown Guild"))
 			return 0;
 		return thename;
@@ -1302,12 +1302,12 @@ PCHAR GetGuildByID(int64_t GuildID)
 	return 0;
 }
 
-int64_t GetGuildIDByName(PCHAR szGuild)
+int64_t GetGuildIDByName(char* szGuild)
 {
 	return pGuild->GetGuildIndex(szGuild);
 }
 
-PCHAR GetLightForSpawn(PSPAWNINFO pSpawn)
+char* GetLightForSpawn(PSPAWNINFO pSpawn)
 {
 	BYTE Light = pSpawn->Light;
 	if (Light>LIGHT_COUNT) Light = 0;
@@ -1413,12 +1413,12 @@ float FindSpeed(SPAWNINFO* pSpawn)
 	return fRunSpeed;
 }
 
-void GetItemLinkHash(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize)
+void GetItemLinkHash(CONTENTS* Item, char* Buffer, size_t BufferSize)
 {
 	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize, true);
 }
 
-bool GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable)
+bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, BOOL Clickable)
 {
 	char hash[MAX_STRING] = { 0 };
 	bool retVal = false;
@@ -1434,15 +1434,15 @@ bool GetItemLink(CONTENTS* Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable
 	return retVal;
 }
 
-PCHAR GetLoginName()
+char* GetLoginName()
 {
 	if (__LoginName) {
-		return (PCHAR)__LoginName;
+		return (char*)__LoginName;
 	}
 	return NULL;
 }
 
-void STMLToPlainText(PCHAR in, PCHAR out)
+void STMLToPlainText(char* in, char* out)
 {
 	DWORD pchar_in_string_position = 0;
 	DWORD pchar_out_string_position = 0;
@@ -1656,7 +1656,7 @@ BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 //              comma delimited list of play short class names that are excluded
 // *************************************************************************** 
 template <unsigned int _Size>
-PCHAR GetClassesFromMask(LONG mask, char(&szBuffer)[_Size])
+char* GetClassesFromMask(LONG mask, char(&szBuffer)[_Size])
 {
 	//WriteChatf("GetClassesFromMask:: MASK:%d", mask);
 	int matching = 0;
@@ -1697,7 +1697,7 @@ PCHAR GetClassesFromMask(LONG mask, char(&szBuffer)[_Size])
 // Function:    GetSpellRestrictions 
 // Description: Return the restrictions for the spell slot
 // *************************************************************************** 
-PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, SIZE_T BufferSize)
+char* GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	if (!szBuffer)
@@ -1823,16 +1823,16 @@ PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, S
 // Function:    GetSpellEffectName, GetSpellEffectNameByID
 // Description: Return spell effect string 
 // ***************************************************************************
-PCHAR GetSpellEffectNameByID(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
+char* GetSpellEffectNameByID(LONG EffectID, char* szBuffer, size_t BufferSize)
 {
 	return GetSpellEffectName(abs(EffectID),szBuffer, BufferSize);
 }
 
-PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
+char* GetSpellEffectName(LONG EffectID, char* szBuffer, size_t BufferSize)
 {
 	//we CAN do an abs here cause IF it is negative, it just means we should display is as "Exclude: "
 	ULONG absEffectID = abs(EffectID);
-	if ((SIZE_T)absEffectID < MAX_SPELLEFFECTS) {
+	if ((size_t)absEffectID < MAX_SPELLEFFECTS) {
 		strcat_s(szBuffer, BufferSize, szSPATypes[absEffectID]);
 	}
 	else {
@@ -1844,7 +1844,7 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 }
 
 template <unsigned int _Size>
-PCHAR GetResistTypeName(LONG ResistType, char(&szBuffer)[_Size])
+char* GetResistTypeName(LONG ResistType, char(&szBuffer)[_Size])
 {
 	char szTemp[MAX_STRING] = { 0 };
 	switch (ResistType)
@@ -1864,7 +1864,7 @@ PCHAR GetResistTypeName(LONG ResistType, char(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetSpellTypeName(LONG SpellType, char(&szBuffer)[_Size])
+char* GetSpellTypeName(LONG SpellType, char(&szBuffer)[_Size])
 {
 	char szTemp[MAX_STRING] = { 0 };
 	switch (SpellType)
@@ -1880,7 +1880,7 @@ PCHAR GetSpellTypeName(LONG SpellType, char(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, char(&szBuffer)[_Size])
+char* GetTargetTypeLimitsName(LONG TargetLimitsType, char(&szBuffer)[_Size])
 {
 	char szTemp[MAX_STRING] = { 0 };
 	switch (abs(TargetLimitsType))
@@ -1929,7 +1929,7 @@ PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, char(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetStatShortName(LONG StatType, char(&szBuffer)[_Size])
+char* GetStatShortName(LONG StatType, char(&szBuffer)[_Size])
 {
 	char szTemp[MAX_STRING] = { 0 };
 	switch (StatType)
@@ -1954,7 +1954,7 @@ PCHAR GetStatShortName(LONG StatType, char(&szBuffer)[_Size])
 }
 
 template <unsigned int _Size>
-PCHAR GetFactionName(LONG FactionID, char(&szBuffer)[_Size])
+char* GetFactionName(LONG FactionID, char(&szBuffer)[_Size])
 {
 	/*
 	char szTemp[MAX_STRING] = { 0 };
@@ -1971,7 +1971,7 @@ PCHAR GetFactionName(LONG FactionID, char(&szBuffer)[_Size])
 		strcat_s(szBuffer, szTemp); break;
 	}
 	*/
-	if ((SIZE_T)FactionID < MAX_FACTIONNAMES) {
+	if ((size_t)FactionID < MAX_FACTIONNAMES) {
 		strcat_s(szBuffer, _Size, szFactionNames[FactionID]);
 	}
 	else {
@@ -2224,7 +2224,7 @@ LONG CalcMinSpellLevel(PSPELL pSpell)
 	return minspelllvl;
 }
 
-PCHAR CalcValueRange(LONG calc, LONG base, LONG max, LONG duration, LONG minlevel, LONG level, PCHAR szBuffer, SIZE_T BufferSize, PCHAR szPercent)
+char* CalcValueRange(LONG calc, LONG base, LONG max, LONG duration, LONG minlevel, LONG level, char* szBuffer, size_t BufferSize, char* szPercent)
 {
 	LONG start = CalcValue(calc, base, max, 1, minlevel, minlevel);
 	LONG finish = CalcValue(calc, base, max, duration, minlevel, level);
@@ -2258,7 +2258,7 @@ PCHAR CalcValueRange(LONG calc, LONG base, LONG max, LONG duration, LONG minleve
 	return szBuffer;
 }
 
-PCHAR CalcExtendedRange(LONG calc, LONG start, LONG finish, LONG minlevel, LONG maxlevel, PCHAR szBuffer, SIZE_T BufferSize, PCHAR szPercent, BOOL ACMod = FALSE)
+char* CalcExtendedRange(LONG calc, LONG start, LONG finish, LONG minlevel, LONG maxlevel, char* szBuffer, size_t BufferSize, char* szPercent, BOOL ACMod = FALSE)
 {
 	switch (calc)
 	{
@@ -2274,67 +2274,67 @@ PCHAR CalcExtendedRange(LONG calc, LONG start, LONG finish, LONG minlevel, LONG 
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatAT(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
+template <unsigned int _Size> char* FormatAT(char* szEffectName, LONG value, char(&szBuffer)[_Size], char* preposition = "by", char* szPercent = "")
 {
 	sprintf_s(szBuffer, "%s %s %d%s", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatBase(char* szEffectName, LONG base, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d)", szEffectName, base);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, LONG max, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatBase(char* szEffectName, LONG base, LONG max, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d,%d)", szEffectName, base, max);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBase(PCHAR szEffectName, LONG base, PCHAR szOptional, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatBase(char* szEffectName, LONG base, char* szOptional, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s %s (%d)", szEffectName, szOptional, base);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatBasePercent(PCHAR szEffectName, LONG base, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatBasePercent(char* szEffectName, LONG base, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d%%)", szEffectName, base);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatMinMaxBase(PCHAR szEffectName, LONG base, LONG spa, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatMinMaxBase(char* szEffectName, LONG base, LONG spa, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%d %s)", szEffectName, abs(base), szSPATypes[spa]);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatCount(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
+template <unsigned int _Size> char* FormatCount(char* szEffectName, LONG value, char(&szBuffer)[_Size], char* preposition = "by", char* szPercent = "")
 {
 	sprintf_s(szBuffer, "%s %s %s %d%s", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatExtra(PCHAR szEffectName, PCHAR extra, char(&szBuffer)[_Size], PCHAR trigger = "", PCHAR colon = ":")
+template <unsigned int _Size> char* FormatExtra(char* szEffectName, char* extra, char(&szBuffer)[_Size], char* trigger = "", char* colon = ":")
 {
 	sprintf_s(szBuffer, "%s%s %s%s", szEffectName, colon, extra, trigger);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatLimits(PCHAR szEffectName, LONG value, PCHAR extra, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatLimits(char* szEffectName, LONG value, char* extra, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%s %s)", szEffectName, extra, value<0 ? "excluded" : "allowed");
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatMax(PCHAR szEffectName, LONG value, LONG max, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatMax(char* szEffectName, LONG value, LONG max, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s %s by %d (%d%% max)", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), value);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPenaltyChance(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], PCHAR szPercent, PCHAR penaltychance)
+template <unsigned int _Size> char* FormatPenaltyChance(char* szEffectName, LONG value, char(&szBuffer)[_Size], char* szPercent, char* penaltychance)
 {
 	if (value < 100)
 		sprintf_s(szBuffer, "%s (%d%s %s)", szEffectName, value, szPercent, penaltychance);
@@ -2343,7 +2343,7 @@ template <unsigned int _Size> PCHAR FormatPenaltyChance(PCHAR szEffectName, LONG
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, LONG max, char(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
+template <unsigned int _Size> char* FormatPercent(char* szEffectName, LONG value, LONG max, char(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
 {
 	char szPercent[MAX_STRING] = { 0 };
 	if (usepercent) strcat_s(szPercent, "%");
@@ -2372,18 +2372,18 @@ template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
+template <unsigned int _Size> char* FormatPercent(char* szEffectName, LONG value, char(&szBuffer)[_Size], BOOL scaling = TRUE, BOOL hundreds = FALSE, BOOL usepercent = TRUE)
 {
 	return FormatPercent(szEffectName, value, value, szBuffer, scaling, hundreds, usepercent);
 }
 
-template <unsigned int _Size> PCHAR FormatRange(PCHAR szEffectName, LONG value, PCHAR range, char(&szBuffer)[_Size], PCHAR extra = "")
+template <unsigned int _Size> char* FormatRange(char* szEffectName, LONG value, char* range, char(&szBuffer)[_Size], char* extra = "")
 {
 	sprintf_s(szBuffer, "%s %s%s%s", value<0 ? "Decrease" : "Increase", szEffectName, range, extra);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatRateMod(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatRateMod(char* szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (base > 0)
 		sprintf_s(szBuffer, "%s (rate mod %d)", GetSpellNameByID(value), base);
@@ -2392,7 +2392,7 @@ template <unsigned int _Size> PCHAR FormatRateMod(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> char* FormatRefreshTimer(char* szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], char* preposition = "with")
 {
 	if (value == max)
 		sprintf_s(szBuffer, "%s %s by %d sec %s %s", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
@@ -2401,12 +2401,12 @@ template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG 
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG value, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> char* FormatRefreshTimer(char* szEffectName, LONG value, LONG skill, char(&szBuffer)[_Size], char* preposition = "with")
 {
 	return FormatRefreshTimer(szEffectName, value, value, skill, szBuffer, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatResists(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatResists(char* szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (value < 100) {
 		char szTemp[MAX_STRING] = { 0 };
@@ -2417,7 +2417,7 @@ template <unsigned int _Size> PCHAR FormatResists(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size], BOOL tens = FALSE)
+template <unsigned int _Size> char* FormatSeconds(char* szEffectName, LONG value, char(&szBuffer)[_Size], BOOL tens = FALSE)
 {
 	if (tens)
 		sprintf_s(szBuffer, "%s (%d0.00 sec)", szEffectName, value);
@@ -2426,41 +2426,41 @@ template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, LONG value
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSeconds(PCHAR szEffectName, float value, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatSeconds(char* szEffectName, float value, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%.2f sec)", szEffectName, value);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSecondsCount(PCHAR szEffectName, float value, char(&szBuffer)[_Size], PCHAR preposition = "by")
+template <unsigned int _Size> char* FormatSecondsCount(char* szEffectName, float value, char(&szBuffer)[_Size], char* preposition = "by")
 {
 	sprintf_s(szBuffer, "%s %s %s %.2f sec", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value));
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG value, LONG max, LONG base2, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> char* FormatSkillAttack(char* szEffectName, LONG value, LONG max, LONG base2, LONG skill, char(&szBuffer)[_Size], char* preposition = "with")
 {
 	sprintf_s(szBuffer, "%s %s %s for %d damage", FormatPercent(szEffectName, value, max, szBuffer), preposition, skill >= 0 ? szSkills[skill] : "All Skills", base2);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkillAttack(PCHAR szEffectName, LONG value, LONG base2, LONG skill, char(&szBuffer)[_Size], PCHAR preposition = "with")
+template <unsigned int _Size> char* FormatSkillAttack(char* szEffectName, LONG value, LONG base2, LONG skill, char(&szBuffer)[_Size], char* preposition = "with")
 {
 	return FormatSkillAttack(szEffectName, base2, base2, value, skill, szBuffer, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], BOOL usepercent = TRUE, PCHAR preposition = "with")
+template <unsigned int _Size> char* FormatSkills(char* szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], BOOL usepercent = TRUE, char* preposition = "with")
 {
 	sprintf_s(szBuffer, "%s %s %s", FormatPercent(szEffectName, value, max, szBuffer, TRUE, FALSE, usepercent), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSkills(PCHAR szEffectName, LONG value, LONG skill, char(&szBuffer)[_Size], BOOL percent = TRUE, PCHAR preposition = "with")
+template <unsigned int _Size> char* FormatSkills(char* szEffectName, LONG value, LONG skill, char(&szBuffer)[_Size], BOOL percent = TRUE, char* preposition = "with")
 {
 	return FormatSkills(szEffectName, value, value, skill, szBuffer, usepercent, preposition);
 }
 
-template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatSpellChance(char* szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (value < 100)
 		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameByID(base));
@@ -2469,7 +2469,7 @@ template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG v
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatSpellGroupChance(PCHAR szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatSpellGroupChance(char* szEffectName, LONG value, LONG base, char(&szBuffer)[_Size])
 {
 	if (value < 100)
 		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameBySpellGroupID(base));
@@ -2478,7 +2478,7 @@ template <unsigned int _Size> PCHAR FormatSpellGroupChance(PCHAR szEffectName, L
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatStacking(PCHAR szEffectName, LONG slot, LONG value, LONG max, LONG spa, PCHAR extra, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatStacking(char* szEffectName, LONG slot, LONG value, LONG max, LONG spa, char* extra, char(&szBuffer)[_Size])
 {
 	if (max > 0)
 		sprintf_s(szBuffer, "%s %s spell if slot %d is effect '%s' and < %d", szEffectName, spa == 148 ? "new" : "existing", slot, extra, value);
@@ -2487,26 +2487,26 @@ template <unsigned int _Size> PCHAR FormatStacking(PCHAR szEffectName, LONG slot
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatStatsCapRange(PCHAR szEffectName, LONG value, PCHAR stat, PCHAR range, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatStatsCapRange(char* szEffectName, LONG value, char* stat, char* range, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s %s %s%s", value<0 ? "Decrease" : "Increase", stat, szEffectName, range);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatString(PCHAR szEffectName, PCHAR extra, char(&szBuffer)[_Size], PCHAR trigger = "")
-//PCHAR FormatString(PCHAR szEffectName, PCHAR extra, char(&szBuffer)[_Size], PCHAR trigger = "")
+template <unsigned int _Size> char* FormatString(char* szEffectName, char* extra, char(&szBuffer)[_Size], char* trigger = "")
+//char* FormatString(char* szEffectName, char* extra, char(&szBuffer)[_Size], char* trigger = "")
 {
 	sprintf_s(szBuffer, "%s %s%s", szEffectName, extra, trigger);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatTimer(PCHAR szEffectName, LONG value, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatTimer(char* szEffectName, LONG value, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s by %d.00 sec", szEffectName, value);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatTimer(PCHAR szEffectName, float value, char(&szBuffer)[_Size])
+template <unsigned int _Size> char* FormatTimer(char* szEffectName, float value, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s by %.2f sec", szEffectName, value);
 	return szBuffer;
@@ -2612,7 +2612,7 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 	return 0;
 }
 
-PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level)
+char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, LONG level)
 {
 	char szBuff[MAX_STRING] = { 0 };
 	char szTemp[MAX_STRING] = { 0 };
@@ -4020,7 +4020,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	return szBuffer;
 }
 
-PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
+char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	char szBuff[MAX_STRING] = { 0 };
@@ -4039,7 +4039,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
 	return szBuffer;
 }
 
-void SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
+void SlotValueCalculate(char* szBuff, PSPELL pSpell, int i, double mp)
 {
 	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell,i), GetSpellBase(pSpell,i), GetSpellMax(pSpell,i), pSpell->DurationCap));
 	return;
@@ -4057,7 +4057,7 @@ int FindMappableCommand(const char *name)
 	return -1;
 }
 
-void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
+void DisplayOverlayText(char* szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
 {
 	CBroadcast *pBC = GetTextOverlay();
 	if (!pBC) {
@@ -4127,7 +4127,7 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 	if (bPopOutput) WriteChatf("\ayPopup\aw:: %s", szPopupMsg);
 }
 
-BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
+BOOL ParseKeyCombo(char* text, KeyCombo &Dest)
 {
 	KeyCombo Ret;
 	if (!_stricmp(text, "clear"))
@@ -4173,7 +4173,7 @@ BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
 	return false;
 }
 
-PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
+char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize)
 {
 	unsigned long pos = 0;
 	szDest[0] = 0;
@@ -4218,7 +4218,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
 	return &szDest[0];
 }
 
-BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
+BOOL LoadCfgFile(char* Filename, BOOL Delayed)
 {
 	FILE *file = 0;
 	errno_t err = 0;
@@ -4245,7 +4245,7 @@ havecfgfile:
 	while (fgets(szBuffer, MAX_STRING, file))
 	{
 		char *Next_Token1 = 0;
-		PCHAR Cmd = strtok_s(szBuffer, "\r\n",&Next_Token1);
+		char* Cmd = strtok_s(szBuffer, "\r\n",&Next_Token1);
 		if (Cmd && Cmd[0] && Cmd[0] != ';')
 		{
 			HideDoCommand(((PSPAWNINFO)pLocalPlayer), Cmd, Delayed);
@@ -4322,7 +4322,7 @@ int FindInvSlotForContents(CONTENTS* pContents)
 
 DWORD LastFoundInvSlot = -1;
 
-int FindInvSlot(PCHAR pName, BOOL Exact)
+int FindInvSlot(char* pName, BOOL Exact)
 {
 	char Name[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
@@ -4374,7 +4374,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 	return -1;
 }
 
-int FindNextInvSlot(PCHAR pName, BOOL Exact)
+int FindNextInvSlot(char* pName, BOOL Exact)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	char Name[MAX_STRING] = { 0 };
@@ -4646,7 +4646,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, double &Result)
 	return false;
 }
 
-BOOL FastCalculate(PCHAR szFormula, double &Result)
+BOOL FastCalculate(char* szFormula, double &Result)
 {
 	//DebugSpew("FastCalculate(%s)",szFormula);
 	if (!szFormula || !szFormula[0])
@@ -4886,26 +4886,26 @@ BOOL FastCalculate(PCHAR szFormula, double &Result)
 	return Ret;
 }
 
-BOOL Calculate(PCHAR szFormula, double &Result)
+BOOL Calculate(char* szFormula, double &Result)
 {
 	char Buffer[MAX_STRING] = { 0 };
 	strcpy_s(Buffer, szFormula);
 	_strupr_s(Buffer);
-	while (PCHAR pNull = strstr(Buffer, "NULL"))
+	while (char* pNull = strstr(Buffer, "NULL"))
 	{
 		pNull[0] = '0';
 		pNull[1] = '.';
 		pNull[2] = '0';
 		pNull[3] = '0';
 	}
-	while (PCHAR pTrue = strstr(Buffer, "TRUE"))
+	while (char* pTrue = strstr(Buffer, "TRUE"))
 	{
 		pTrue[0] = '1';
 		pTrue[1] = '.';
 		pTrue[2] = '0';
 		pTrue[3] = '0';
 	}
-	while (PCHAR pFalse = strstr(Buffer, "FALSE"))
+	while (char* pFalse = strstr(Buffer, "FALSE"))
 	{
 		pFalse[0] = '0';
 		pFalse[1] = '.';
@@ -4930,7 +4930,7 @@ bool PlayerHasAAAbility(DWORD AAIndex)
 }
 
 #if 0
-PCHAR GetAANameByIndex(DWORD AAIndex)
+char* GetAANameByIndex(DWORD AAIndex)
 {
 	for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES_ARRAY; nAbility++)
 	{
@@ -4949,7 +4949,7 @@ PCHAR GetAANameByIndex(DWORD AAIndex)
 }
 #endif
 
-DWORD GetAAIndexByName(PCHAR AAName)
+DWORD GetAAIndexByName(char* AAName)
 {
 	int level = -1;
 	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
@@ -5142,7 +5142,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 
 		strcpy_s(szTemp, pSpawn->Name);
 		char *Next_Token1 = 0;
-		if (PCHAR Cmd = strtok_s(szTemp, " ", &Next_Token1)) {
+		if (char* Cmd = strtok_s(szTemp, " ", &Next_Token1)) {
 
 			// Checking for mobs that have 'A' or 'An' as their first name
 			if (Cmd[0] == 'A')
@@ -5176,7 +5176,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 	return false;
 }
 
-PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn)
+char* FormatSearchSpawn(char* Buffer, size_t BufferSize, PSEARCHSPAWN pSearchSpawn)
 {
 	if (!Buffer)
 		return NULL;
@@ -5186,7 +5186,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpa
 		strcpy_s(Buffer,BufferSize, "None");
 		return Buffer;
 	}
-	PCHAR pszSpawnType;
+	char* pszSpawnType;
 	switch (pSearchSpawn->SpawnType)
 	{
 	case NONE:
@@ -5726,7 +5726,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bLight)
 	{
-		PCHAR pLight = GetLightForSpawn(pSpawn);
+		char* pLight = GetLightForSpawn(pSpawn);
 		if (!_stricmp(pLight, "NONE"))
 			return FALSE;
 		if (pSearchSpawn->szLight[0] && _stricmp(pLight, pSearchSpawn->szLight))
@@ -5773,7 +5773,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	return TRUE;
 }
 
-PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
+char* ParseSearchSpawnArgs(char* szArg, char* szRest, PSEARCHSPAWN pSearchSpawn)
 {
 	if (szArg && pSearchSpawn) {
 		if (!_stricmp(szArg, "pc")) {
@@ -6062,12 +6062,12 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 	return szRest;
 }
 
-void ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
+void ParseSearchSpawn(char* Buffer, PSEARCHSPAWN pSearchSpawn)
 {
 	char szArg[MAX_STRING] = { 0 };
 	char szMsg[MAX_STRING] = { 0 };
 	char szLLine[MAX_STRING] = { 0 };
-	PCHAR szFilter = szLLine;
+	char* szFilter = szLLine;
 	BOOL DidTarget = FALSE;
 	BOOL bArg = TRUE;
 
@@ -6175,7 +6175,7 @@ BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List)
 // Description: Cleans up NPC names
 //              an_iksar_marauder23 = iksar marauder, an
 // ***************************************************************************
-PCHAR CleanupName(PCHAR szName, SIZE_T BufferSize, BOOL Article, BOOL ForWhoList)
+char* CleanupName(char* szName, size_t BufferSize, BOOL Article, BOOL ForWhoList)
 {
 	DWORD i, j = 0;
 	char szTemp[MAX_STRING] = { 0 };
@@ -6352,7 +6352,7 @@ void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 		}
 	}
 	if (gFilterSWho.Light) {
-		PCHAR szLight = GetLightForSpawn(pSpawn);
+		char* szLight = GetLightForSpawn(pSpawn);
 		if (_stricmp(szLight, "NONE")) {
 			strcat_s(szMsg, " (");
 			strcat_s(szMsg, szLight);
@@ -6422,7 +6422,7 @@ bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 	switch (SWhoSortValue)
 	{
 		/*
-		PCHAR szSortBy[] = {
+		char* szSortBy[] = {
 		"level",   // Default sort by
 		"name",
 		"race",
@@ -6499,7 +6499,7 @@ void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 		{
 			SuperWhoDisplay(SpawnSet[N], Color);
 		}
-		PCHAR pszSpawnType;
+		char* pszSpawnType;
 		switch (pSearchSpawn->SpawnType)
 		{
 		case NONE:
@@ -6567,9 +6567,9 @@ void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 	}
 }
 
-DWORD WINAPI thrMsgBox(LPVOID lpParameter)
+DWORD WINAPI thrMsgBox(void* lpParameter)
 {
-	MessageBox(NULL, (PCHAR)lpParameter, "MacroQuest", MB_OK);
+	MessageBox(NULL, (char*)lpParameter, "MacroQuest", MB_OK);
 	free(lpParameter);
 	return 0;
 }
@@ -6590,7 +6590,7 @@ float StateHeightMultiplier(DWORD StandState)
 		return 0.9f;
 	}
 }
-DWORD FindSpellListByName(PCHAR szName)
+DWORD FindSpellListByName(char* szName)
 {
 	DWORD Index;
 	for (Index = 0; Index<NUM_SPELL_SETS; Index++) {
@@ -6621,7 +6621,7 @@ void RewriteSubstitutions()
 	}
 }
 
-PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName, SIZE_T BufferSize)
+char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)
 {
 	szName[0] = 0;
 	if (!pItem)
@@ -6646,7 +6646,7 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName, SIZE_T Buffe
 
 // deprecated
 #if 0
-PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
+char* GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 {
 	if (!pSpawn) return NULL;
 	if (Slot>20) return NULL;
@@ -6656,13 +6656,13 @@ PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 	if (pMod->pModelInfo->Type != 0x48) return NULL;
 	PMODELINFO_48 pModInfo = (PMODELINFO_48)pMod->pModelInfo;
 	if (!pModInfo->pModelName) return NULL;
-	PCHAR szModel = pModInfo->pModelName->Name;
+	char* szModel = pModInfo->pModelName->Name;
 	if (!szModel) return szItemName[0];
 	return szItemName[atoi(szModel + 2)];
 }
 #endif
 
-void SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
+void SetDisplaySWhoFilter(PBOOL bToggle, char* szFilter, char* szToggle)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	if (!_stricmp(szToggle, "on")) *bToggle = TRUE;
@@ -6721,7 +6721,7 @@ bool GetBuffID(SPELLBUFF* pBuff, DWORD& nID)
 #define LDON_RUJ    8
 #define LDON_TAK    16
 
-PCHAR GetLDoNTheme(DWORD LDTheme)
+char* GetLDoNTheme(DWORD LDTheme)
 {
 	if (LDTheme == 31) return "All";
 	if (IS_SET(LDTheme, LDON_DG)) return "Deepest Guk";
@@ -6817,7 +6817,7 @@ bool LoH_HT_Ready()
 	return false;
 }
 
-DWORD GetSkillIDFromName(PCHAR name)
+DWORD GetSkillIDFromName(char* name)
 {
 	for (DWORD i = 0; i<NUM_SKILLS; i++)
 		if (PSKILL pSkill = pSkillMgr->pSkill[i])
@@ -7549,7 +7549,7 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 	}
 	return 0;
 }
-CONTENTS* FindItemByName(PCHAR pName, BOOL bExact)
+CONTENTS* FindItemByName(char* pName, BOOL bExact)
 {
 	char Name[MAX_STRING] = { 0 };
 	char Temp[MAX_STRING] = { 0 };
@@ -7953,7 +7953,7 @@ CONTENTS* FindItemByID(int ItemID)
 
 	return 0;
 }
-DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
+DWORD FindItemCountByName(char* pName, BOOL bExact)
 {
 	DWORD Count = 0;
 	char Name[MAX_STRING] = { 0 };
@@ -10349,7 +10349,7 @@ bool StripQuotes(char* str)
 	return bRet;
 }
 
-DWORD __stdcall RefreshKeyRingThread(PVOID pData)
+DWORD __stdcall RefreshKeyRingThread(void* pData)
 {
 	RefreshKeyRingsThreadData* kr = (RefreshKeyRingsThreadData*)pData;
 	if (!kr) return 0;
@@ -10529,7 +10529,7 @@ int GetFamiliarCount()
 	return Count;
 }
 
-DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact, bool usecmd)
+DWORD GetKeyRingIndex(DWORD KeyRing, char* szItemName, size_t BuffLen, bool bExact, bool usecmd)
 {
 	int index = 0;
 	if (CSidlScreenWnd * krwnd = (CSidlScreenWnd*)FindMQ2Window(KeyRingWindowParent))
@@ -10780,7 +10780,7 @@ bool GetAllMercDesc(std::map<int, MercDesc>& minfo)
 	return true;
 }
 
-BOOL IsActiveAA(PCHAR pSpellName)
+BOOL IsActiveAA(char* pSpellName)
 {
 	int level = -1;
 	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
@@ -11131,7 +11131,7 @@ bool CanItemMergeInPack(CONTENTS* pPack,CONTENTS* pItem)
 	}
 	return false;
 }
-void DoCommandf(PCHAR szFormat,...)
+void DoCommandf(char* szFormat,...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -11487,7 +11487,7 @@ EQGroundItemListManager* GetItemList()
 #include <DbgHelp.h>
 //PFINDFILEINPATHCALLBACK Pfindfileinpathcallback;
 
-BOOL __stdcall Pfindfileinpathcallback(PCSTR filename, PVOID context)
+BOOL __stdcall Pfindfileinpathcallback(PCSTR filename, void* context)
 {
 	return true;
 }
@@ -11556,7 +11556,7 @@ void CallMessage(DWORD pwnd)
 	char* szTmp = new char[MAX_STRING];
 	char* szTmpOrg = szTmp;
 	std::string Str = "Look, you have stumbled across a serious bug in eq or mq2\nI will return 0 to not crash you here, but you could attach a debugger and:\nSet a breakpoint on \"return ret;\" in the \"int64_t EQUIStructs::GetClassMember(void* This, int ID)\" function in MQ2Utilities.cpp file then click ok and see what triggered this.\nSend eqmule@hotmail.com a screenshot of the callstack.\n\nIf you Would like to break into the debugger at this point click YES otherwise click NO to continue.\n\n";// [50];
-	int numframes = CaptureStackBackTrace(0, 50, (PVOID*)Addresses, NULL);
+	int numframes = CaptureStackBackTrace(0, 50, (void**)Addresses, NULL);
 	HMODULE hMod = 0;
 	for (int i = 0; i < numframes; i++)
 	{

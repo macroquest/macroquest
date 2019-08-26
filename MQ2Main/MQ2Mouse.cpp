@@ -14,7 +14,7 @@
 
 #include "MQ2Main.h"
 
-void MouseButtonUp(DWORD x, DWORD y, PCHAR szButton);
+void MouseButtonUp(DWORD x, DWORD y, char* szButton);
 
 // ***************************************************************************
 // EqMule Mar 08 2014
@@ -63,13 +63,13 @@ public:
 		}
 	}
 
-	HRESULT GetViewport(LPVOID This, LPVOID pViewport);
-	HRESULT GetTransform(LPVOID This, DWORD State, LPVOID pMatrix);
-	void SetCursorPosition(LPVOID This, int X, int Y, DWORD Flags);//0x2c
-	BOOL ShowCursor(LPVOID This, BOOL bShow); // 0x30
+	HRESULT GetViewport(void* This, void* pViewport);
+	HRESULT GetTransform(void* This, DWORD State, void* pMatrix);
+	void SetCursorPosition(void* This, int X, int Y, DWORD Flags);//0x2c
+	BOOL ShowCursor(void* This, BOOL bShow); // 0x30
 
 /*0x000*/ BYTE Unknown0x0[0xec8];
-/*0xec8*/ LPVOID pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
+/*0xec8*/ void* pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
 
 DETOUR_TRAMPOLINE_EMPTY(CActorInterface* FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2));
@@ -99,7 +99,7 @@ void MQ2MouseHooks(BOOL bFlag)
 // - Return Value:
 // if successful, return TRUE, szValue contains the value between the start and end markers
 // if unsuccessful, return FALSE
-BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
+BOOL ExtractValue(char* szFile, char* szStart, char* szEnd, char* szValue)
 {
     // verify we have legal pointers passed to us
     if (!szValue)
@@ -111,13 +111,11 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
         return FALSE;
     }
 
-    PCHAR sub,sub2,fence;
     DWORD lenStart = strlen(szStart);
+    char* fence = strstr(szFile,"ScreenID"); // needed to make sure we don't start into another element
 
-    fence = strstr(szFile,"ScreenID"); // needed to make sure we don't start into another element
-
-    sub = strstr(szFile, szStart);
-    sub2 = strstr(szFile, szEnd);
+    char* sub = strstr(szFile, szStart);
+    char* sub2 = strstr(szFile, szEnd);
     if (!sub || !sub2 || (fence && (sub > fence))) {
         szValue[0] = 0;
         return FALSE;
@@ -163,7 +161,7 @@ bool MoveMouse(int x, int y, bool bClick)
 	return true;
 }
 
-BOOL ParseMouseLoc(CHARINFO* pCharInfo, PCHAR szMouseLoc)
+BOOL ParseMouseLoc(CHARINFO* pCharInfo, char* szMouseLoc)
 {
 	char szArg1[MAX_STRING] = {0};
 	char szArg2[MAX_STRING] = {0};
@@ -230,7 +228,7 @@ void ClickMouse(DWORD button)
    }
 }
 
-void MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
+void MouseButtonUp(DWORD x, DWORD y, char* szButton)
 {
 	CVector3 cv1 = { 0,0,0 };
 	CVector3 cv2 = { 0,0,0 };
@@ -258,7 +256,7 @@ void MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
     }*/
 }
 
-void ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
+void ClickMouseLoc(char* szMouseLoc, char* szButton)
 {
     char szArg1[MAX_STRING] = {0};
     char szArg2[MAX_STRING] = {0};
@@ -324,7 +322,7 @@ BOOL IsMouseWaiting()
     return Result;
 }
 
-void Click(PSPAWNINFO pChar, PCHAR szLine)
+void Click(PSPAWNINFO pChar, char* szLine)
 {
 	if(GetGameState()!=GAMESTATE_INGAME) {
 		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
@@ -488,7 +486,7 @@ void Click(PSPAWNINFO pChar, PCHAR szLine)
 // Moves the mouse
 // Usage: /mouseto <mouseloc>
 // ***************************************************************************
-void MouseTo(SPAWNINFO* pChar, PCHAR szLine)
+void MouseTo(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine && szLine[0]) {
 		if (ParseMouseLoc(GetCharInfo(), szLine)) {
@@ -535,16 +533,16 @@ typedef struct _EQD3DMATRIX9
 } EQD3DMATRIX9, *LPEQD3DMATRIX9;
 //we are gonna need some pointers now for translating world coords to screen coords...
 FakeCDisplay *pRender = 0;
-LPVOID pD3Ddevice = 0;
+void* pD3Ddevice = 0;
 ScreenVector3 g_vWorldLocation,v3ScreenCoord;
 EqViewPort9 g_viewPort;
 EQD3DMATRIX9 g_projection, g_view, g_world;
 
 //we also need a couple virtual functions defined and we can just put them FakeCDisplay 
-FUNCTION_AT_VIRTUAL_ADDRESS(void FakeCDisplay::SetCursorPosition(LPVOID This, int X,int Y,DWORD Flags), 0x2c);
-FUNCTION_AT_VIRTUAL_ADDRESS(BOOL FakeCDisplay::ShowCursor(LPVOID This,BOOL bShow),0x30);
-FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetViewport(LPVOID,LPVOID pViewport),0xc0);
-FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetTransform(LPVOID,DWORD State,LPVOID pMatrix),0xB4);
+FUNCTION_AT_VIRTUAL_ADDRESS(void FakeCDisplay::SetCursorPosition(void* This, int X,int Y,DWORD Flags), 0x2c);
+FUNCTION_AT_VIRTUAL_ADDRESS(BOOL FakeCDisplay::ShowCursor(void* This,BOOL bShow),0x30);
+FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetViewport(void*,void* pViewport),0xc0);
+FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetTransform(void*,DWORD State,void* pMatrix),0xB4);
 
 //ok magictime!
 EQD3DMATRIX9* WINAPI EQD3DXMatrixMultiply(EQD3DMATRIX9 *pout, CONST EQD3DMATRIX9 *pm1, CONST EQD3DMATRIX9 *pm2)

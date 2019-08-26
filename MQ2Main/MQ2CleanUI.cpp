@@ -54,8 +54,8 @@ public:
     */
 }; 
 
-void __cdecl DrawHUD_Trampoline(unsigned short, unsigned short, PVOID, unsigned int); 
-void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,PVOID c,unsigned int d) 
+void __cdecl DrawHUD_Trampoline(unsigned short, unsigned short, void*, unsigned int); 
+void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,void* c,unsigned int d) 
 { 
     DrawHUDParams[0]=a+gNetStatusXPos;
     DrawHUDParams[1]=b+gNetStatusYPos;
@@ -80,7 +80,7 @@ void DrawHUD()
 		{
 			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
 			{
-				DrawHUD_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (PVOID)DrawHUDParams[2], DrawHUDParams[3]);
+				DrawHUD_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;
 			}
 			Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
@@ -123,7 +123,7 @@ public:
 
 //DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
 DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
-DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PVOID,unsigned int)); 
+DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,void*,unsigned int)); 
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline()); 
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 std::list<std::string>oldstrings;
