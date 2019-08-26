@@ -128,5 +128,4 @@ EQLIB_API void UserCameraCmd                       (PSPAWNINFO pChar, char* szLi
 EQLIB_API void MapZoomCmd                          (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void ForeGroundCmd                       (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void QuitCmd                             (PSPAWNINFO pChar, char* szLine);
-EQLIB_API void PluginCmdSort                       ();
 #endif

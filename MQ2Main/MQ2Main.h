@@ -77,9 +77,6 @@
 #define ToUnloadString         "MQ2 Unloading..."
 #define UnloadedString         "MQ2 Unloaded."
 
-
-extern CRITICAL_SECTION gPluginCS;
-
 //
 // EQ Version selection
 //
@@ -155,7 +152,7 @@ EQLIB_API void InitializeMQ2Spawns();
 EQLIB_API void ShutdownMQ2Spawns();
 EQLIB_API void ProcessPendingGroundItems();
 EQLIB_API void UpdateMQ2SpawnSort();
-EQLIB_API BOOL SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
+EQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 EQLIB_API BOOL IsTargetable(PSPAWNINFO pSpawn);
 
 /* WINDOWS */
@@ -195,29 +192,31 @@ EQLIB_API void AddDetourf(DWORD address, ...);
 EQLIB_API void RemoveDetour(DWORD address);
 EQLIB_API void DeleteDetour(DWORD address);
 
+EQLIB_API void WriteChatf(const char* Format, ...);
+EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
+EQLIB_API void WriteChatColor(const char* Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
+
 /* PLUGIN HANDLING */
-EQLIB_API void WriteChatf(char* Format, ...);
-EQLIB_API void WriteChatfSafe(char* szFormat, ...);
-EQLIB_API void WriteChatColor(char* Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
 EQLIB_API void InitializeMQ2Plugins();
-EQLIB_API DWORD LoadMQ2Plugin(const char* pszFilename, BOOL bCustom = 0);
-EQLIB_API BOOL UnloadMQ2Plugin(const char* pszFilename);
+EQLIB_API int LoadMQ2Plugin(const char* pszFilename, bool bCustom = false);
+EQLIB_API bool UnloadMQ2Plugin(const char* pszFilename);
 EQLIB_API void UnloadMQ2Plugins();
 EQLIB_API void ShutdownMQ2Plugins();
-EQLIB_API void SaveMQ2PluginLoadStatus(char*Name, bool bLoad);
+EQLIB_API void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
 EQLIB_API void PulsePlugins();
 EQLIB_API void PluginsZoned();
-EQLIB_API BOOL PluginsIncomingChat(char* Line, DWORD Color);
+EQLIB_API bool PluginsIncomingChat(const char* Line, DWORD Color);
 EQLIB_API void PluginsCleanUI();
 EQLIB_API void PluginsReloadUI();
 EQLIB_API void PluginsSetGameState(DWORD GameState);
 EQLIB_API void PluginsDrawHUD();
-EQLIB_API void PluginsAddSpawn(PSPAWNINFO pNewSpawn);
-EQLIB_API void PluginsRemoveSpawn(PSPAWNINFO pSpawn);
-EQLIB_API void PluginsAddGroundItem(PGROUNDITEM pNewGroundItem);
-EQLIB_API void PluginsRemoveGroundItem(PGROUNDITEM pGroundItem);
+EQLIB_API void PluginsAddSpawn(SPAWNINFO* pNewSpawn);
+EQLIB_API void PluginsRemoveSpawn(SPAWNINFO* pSpawn);
+EQLIB_API void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
+EQLIB_API void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
 EQLIB_API void PluginsBeginZone();
 EQLIB_API void PluginsEndZone();
+EQLIB_API bool IsPluginsInitialized();
 
 /* DIRECT INPUT */
 EQLIB_API void InitializeMQ2DInput();
@@ -330,8 +329,8 @@ EQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 EQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
 #define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer, commandtoexecute)
 
-EQLIB_API DWORD MQToSTML(char* in, char* out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
-EQLIB_API void StripMQChat(char* in, char* out);
+EQLIB_API DWORD MQToSTML(const char* in, char* out, DWORD maxlen = MAX_STRING, DWORD ColorOverride = 0xFFFFFF);
+EQLIB_API void StripMQChat(const char* in, char* out);
 EQLIB_API void STMLToPlainText(char* in, char* out);
 EQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
 EQLIB_API char* GetFilenameFromFullPath(char* Filename);
@@ -339,7 +338,7 @@ EQLIB_API BOOL CompareTimes(char* RealTime, char* ExpectedTime);
 EQLIB_API void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API void DefaultFilters();
 EQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
-EQLIB_API void CheckChatForEvent(char* szMsg);
+EQLIB_API void CheckChatForEvent(const char* szMsg);
 EQLIB_API void ConvertItemTags(CXStr &cxstr, BOOL Tag = TRUE);
 EQLIB_API BOOL ParseKeyCombo(char* text, KeyCombo &Dest);
 EQLIB_API char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize);
@@ -380,7 +379,6 @@ EQLIB_API int RangeRandom(int min, int max);
 EQLIB_API DWORD __stdcall BeepOnTellThread(void* pData);
 EQLIB_API DWORD __stdcall FlashOnTellThread(void* pData);
 EQLIB_API CMQ2Alerts CAlerts;
-EQLIB_VAR BOOL bPluginCS;
 
 struct RefreshKeyRingsThreadData
 {

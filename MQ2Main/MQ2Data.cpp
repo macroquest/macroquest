@@ -1217,7 +1217,7 @@ BOOL dataPlugin(char* szIndex, MQ2TYPEVAR& Ret)
 		int N = atoi(szIndex) - 1;
 		if (N < 0)
 			N = 0;
-		PMQPLUGIN pPlugin = pPlugins;
+		MQPlugin* pPlugin = pPlugins;
 		while (N)
 		{
 			pPlugin = pPlugin->pNext;
@@ -1232,7 +1232,7 @@ BOOL dataPlugin(char* szIndex, MQ2TYPEVAR& Ret)
 	else
 	{
 		// name
-		PMQPLUGIN pPlugin = pPlugins;
+		MQPlugin* pPlugin = pPlugins;
 		while (pPlugin)
 		{
 			if (!_stricmp(pPlugin->szFilename, szIndex))

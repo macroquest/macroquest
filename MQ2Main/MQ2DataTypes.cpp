@@ -85,9 +85,10 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 
 bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
-#define pPlugin ((PMQPLUGIN)VarPtr.Ptr)
+	MQPlugin* pPlugin = reinterpret_cast<MQPlugin*>(VarPtr.Ptr);
 	if (!pPlugin)
 		return false;
+
 	PMQ2TYPEMEMBER pMember = MQ2PluginType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -103,8 +104,8 @@ bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TY
 		return true;
 	}
 	return false;
-#undef pPlugin
 }
+
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2FloatType::FindMember(Member);

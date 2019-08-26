@@ -239,7 +239,7 @@ void Pulse()
 
 	if (pChar != pCharOld && WereWeZoning)
 	{
-		WereWeZoning = FALSE;
+		WereWeZoning = false;
 		pCharOld = pChar;
 		gFaceAngle = 10000.0f;
 		gLookAngle = 10000.0f;
@@ -287,7 +287,7 @@ void Pulse()
 	if (pMerchantWnd && pMerchantWnd->IsVisible()==false)
 		gItemsReceived = FALSE;
 	if (gbDoAutoRun && pChar && pCharInfo) {
-		gbDoAutoRun = FALSE;
+		gbDoAutoRun = false;
 		InitKeyRings();
 		char szServerAndName[MAX_STRING] = { 0 };
 		char szAutoRun[MAX_STRING] = { 0 };
@@ -401,7 +401,7 @@ int Heartbeat()
 		// they "zoned" to charselect...
 		if (gZoning && (GameState == GAMESTATE_CHARSELECT || GameState == GAMESTATE_CHARCREATE))
 		{
-			gZoning = 0;
+			gZoning = false;
 			PluginsEndZone();
 		}
 	}
@@ -671,45 +671,55 @@ void GameLoop_Detour()
 		exit(0);
 	}
 }
-// *************************************************************************** 
-// Function:    ProcessGameEvents 
+// ***************************************************************************
+// Function:    ProcessGameEvents
 // Description: Our ProcessGameEvents Hook
-// *************************************************************************** 
-BOOL Trampoline_ProcessGameEvents();
-BOOL Detour_ProcessGameEvents()
+// ***************************************************************************
+
+bool Trampoline_ProcessGameEvents();
+bool Detour_ProcessGameEvents()
 {
 	DebugTryBeginRet();
-	int ret2 = 0;
-	CAutoLock Lock(&gPulseCS);
-	int ret = Heartbeat();
 
-	ret2 = Trampoline_ProcessGameEvents();
-	if (ret == 2 && bPluginCS == 0) {
+	CAutoLock Lock(&gPulseCS);
+
+	int ret = Heartbeat();
+	int ret2 = Trampoline_ProcessGameEvents();
+
+	if (ret == 2 && !IsPluginsInitialized())
+	{
+		// we are loading stuff
 		OutputDebugString("I am loading in ProcessGameEvents");
-		//we are loading stuff
-		DWORD oldscreenmode = ScreenMode;
-		ScreenMode = 3;
+
+		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
+
 		InitializeMQ2Commands();
 		InitializeMQ2Windows();
-		MQ2MouseHooks(1);
-		Sleep(100);
+		MQ2MouseHooks(true);
+
+		Sleep(100); // ??
+
 		InitializeMQ2KeyBinds();
 		InitializeMQ2Plugins();
+
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
 	}
 	else if (ret == 1 && g_Loaded)
 	{
+		// we are unloading stuff
 		OutputDebugString("I am unloading in ProcessGameEvents");
-		//we are unloading stuff
-		DWORD oldscreenmode = ScreenMode;
-		ScreenMode = 3;
+
+		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 		WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
 		DebugSpewAlways("%s", UnloadedString);
-		//cant unload these here there are detours still in use that call functions from plugins...
+
+		// cant unload these here there are detours still in use that call functions from plugins...
 		//UnloadMQ2Plugins();
+
 		MQ2Shutdown();
 		DebugSpew("Shutdown completed");
+
 		g_Loaded = FALSE;
 		ScreenMode = oldscreenmode;
 		SetEvent(hUnloadComplete);
@@ -718,6 +728,7 @@ BOOL Detour_ProcessGameEvents()
 	return ret2;
 	DebugTryEndRet();
 }
+DETOUR_TRAMPOLINE_EMPTY(bool Trampoline_ProcessGameEvents());
 
 
 std::map<int, std::string>targetBuffSlotToCasterMap; 
@@ -726,7 +737,6 @@ std::map<int, std::string>targetBuffSlotToCasterMap;
 std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
 
 void RemoveLoginPulse();
-DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents());
 DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
 
 class CEverQuestHook {

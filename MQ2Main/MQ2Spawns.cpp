@@ -526,7 +526,8 @@ BOOL SetCaption(SPAWNINFO* pSpawn, char *CaptionString,eSpawnType type)
     }
     return 0;
 }
-BOOL SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
+
+bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 {
     //DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
     if (!Show)

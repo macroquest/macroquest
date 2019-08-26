@@ -416,7 +416,6 @@ bool MQ2Initialize()
     for (nColorMQ2DataError=0 ; szColorMQ2DataError[nColorMQ2DataError] ; nColorMQ2DataError++) {}
     for (nColorFatalError=0 ; szColorFatalError[nColorFatalError] ; nColorFatalError++) {}
 
-	InitializeCriticalSection(&gPluginCS);
 	//from now on MQ2IC is not optional.
 
 	LoadMQ2Plugin("mq2ic");
@@ -434,11 +433,12 @@ bool MQ2Initialize()
 
 	//ok so if we are precharselect we init here otherwise we init in HeartBeat
 	DWORD gs = GetGameState();
-	if(gs == GAMESTATE_PRECHARSELECT && bPluginCS==0 && gbLoad) {
-	//we are loading stuff
+	if (gs == GAMESTATE_PRECHARSELECT && !IsPluginsInitialized() && gbLoad)
+	{
+		//we are loading stuff
 		InitializeMQ2Commands();
 		InitializeMQ2Windows();
-		MQ2MouseHooks(1);
+		MQ2MouseHooks(true);
 		Sleep(100);
 		InitializeMQ2KeyBinds();
 		InitializeMQ2Plugins();
@@ -541,7 +541,8 @@ DWORD __stdcall InitializeMQ2SpellDb(void* pData)
 		case 2:  { WriteChatfSafe("SpellMap Initialized  from GetSpellByName."); break; }
 		default: { WriteChatfSafe("SpellMap Initialized. (%d)", (DWORD)pData); break; }
 	}
-	ghInitializeMQ2SpellDb = 0;
+
+	ghInitializeMQ2SpellDb = nullptr;
 	return 0;
 }
 
@@ -637,7 +638,7 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	}
     InitializeMQ2DInput();
 	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE) {
-		gbInZone = TRUE;
+		gbInZone = true;
 		PluginsSetGameState(gGameState);
 	}
 

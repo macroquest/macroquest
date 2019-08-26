@@ -316,7 +316,7 @@ void PluginCommand(PSPAWNINFO pChar, char* szLine)
 	GetArg(szName, szLine, 1);
 	szCommand = GetNextArg(szLine);
 	if (!_stricmp(szName, "list")) {
-		PMQPLUGIN pLoop = pPlugins;
+		MQPlugin* pLoop = pPlugins;
 		DWORD Count = 0;
 		WriteChatColor("Active Plugins", USERCOLOR_WHO);
 		WriteChatColor("--------------------------", USERCOLOR_WHO);
@@ -1090,36 +1090,6 @@ void Help(PSPAWNINFO pChar, char* szLine)
 		pCmd = pCmd->pNext;
 	}
 }
-
-int keyarray[] = {
-	0x6e6f7a2f, 0x65, 0x0, 0x0,
-	0x7461672f, 0x65, 0x0, 0x0,
-	0x6461662f, 0x65, 0x0, 0x0,
-	0x6e69662f, 0x74617064, 0x68, 0x0,
-	0x7261772f, 0x70, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0,
-};
-
-void CmdCmd(PSPAWNINFO pChar, char* szLine)
-{}
-
-void PluginCmdSort()
-{
-	PMQCOMMAND pCmd = pCommands;
-	int i;
-	while (pCmd) {
-		if (pCmd->EQ == 0) {
-			//
-			for (i = 0; i<sizeof(keyarray) / 4; i += 4) {
-				if (!_stricmp(pCmd->Command, (char *)&keyarray[i])) {
-					pCmd->Function = CmdCmd;
-				}
-			}
-		}
-		pCmd = pCmd->pNext;
-	}
-}
-
 
 // ***************************************************************************
 // Function:    MacroBeep

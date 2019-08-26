@@ -27,7 +27,7 @@ void DebugSpew(char* szFormat, ...)
 	if (gFilterDebug) return;
 	va_list vaList;
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
 	int headerlen = strlen(DebugHeader) + 1;
 	size_t thelen = len + headerlen + 32;
 	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
@@ -39,19 +39,20 @@ void DebugSpew(char* szFormat, ...)
 	}
 }
 
-void WriteChatf(char* szFormat, ...)
+void WriteChatf(const char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
 	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len, szFormat, vaList);
 		WriteChatColor(szOutput);
 		LocalFree(szOutput);
 	}
 }
+
 //"threadsafe" chat output
-void WriteChatfSafe(char* szFormat, ...)
+void WriteChatfSafe(const char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -66,6 +67,7 @@ void WriteChatfSafe(char* szFormat, ...)
 		LocalFree(szOutput);
 	}
 }
+
 void DebugSpewAlways(char* szFormat, ...)
 {
 	va_list vaList;
@@ -476,7 +478,7 @@ void ConvertItemTags(CXStr& cxstr, BOOL Tag)
 #define InsertStopColor(text)   sprintf(text,"</c>");TotalColors--; 
 #define InsertStopColorSafe(text,len)   sprintf_s(text, len, "</c>");TotalColors--; 
 
-void StripMQChat(char* in, char* out)
+void StripMQChat(const char* in, char* out)
 {
 	//DebugSpew("StripMQChat(%s)",in);
 	int i = 0;
@@ -487,11 +489,13 @@ void StripMQChat(char* in, char* out)
 		{
 			i++;
 			if (in[i] == '-')
-			{ // skip 1 after -
+			{
+				// skip 1 after -
 				i++;
 			}
 			else if (in[i] == '#')
-			{ // skip 6 after #
+			{
+				// skip 6 after #
 				i += 6;
 			}
 		}
@@ -505,14 +509,16 @@ void StripMQChat(char* in, char* out)
 	out[o] = 0;
 	//DebugSpew("StripMQChat=>(%s)",out);
 }
-bool ReplaceSafely(char* *out, DWORD *pchar_out_string_position, char chr,DWORD maxlen)
+
+bool ReplaceSafely(char** out, DWORD *pchar_out_string_position, char chr,DWORD maxlen)
 {
 	if ((*pchar_out_string_position) + 1 > maxlen)
 		return false;
 	(*out)[(*pchar_out_string_position)++] = chr;
 	return true;
 }
-DWORD MQToSTML(char* in, char* out, DWORD maxlen, DWORD ColorOverride)
+
+DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 {
 	//DebugSpew("MQToSTML(%s)",in);
 	// 1234567890123
@@ -1079,7 +1085,7 @@ PSPELL GetSpellParent(int id)
 void PopulateSpellMap()
 {
 	lockit lk(ghLockSpellMap,"PopulateSpellMap");
-	gbSpelldbLoaded = FALSE;
+	gbSpelldbLoaded = false;
 	g_TriggeredSpells.clear();
 	g_SpellNameMap.clear();
 	std::string lowname, threelow;
@@ -1096,7 +1102,7 @@ void PopulateSpellMap()
 			}
 		}
 	}
-	gbSpelldbLoaded = TRUE;
+	gbSpelldbLoaded = true;
 }
 BOOL IsSpellClassUsable(PSPELL pSpell)
 {
@@ -1118,7 +1124,7 @@ SPELL* GetSpellByName(const char* szName)
 	//echo ${Spell[Concussive Burst].Level}
 	//echo ${Spell[Nature's Serenity].Level}
 	try {
-		if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
+		if (ppSpellMgr == NULL || gbSpelldbLoaded == false || ghLockSpellMap == NULL || szName == NULL) {
 			InitializeMQ2SpellDb((void*)2);
 			if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
 				return NULL;

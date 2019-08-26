@@ -39,9 +39,9 @@ typedef bool(__cdecl *fGetLabelFromEQ)(int, class CXStr *, bool *, unsigned long
 typedef BOOL(__cdecl *fEQToggleKeyRingItem)(DWORD RingType, CONTENTS** itemptr, DWORD listindex);//0 is mounts, 1 is illusions, 2 is familiars
 
 /* PLUGINS */
-typedef DWORD(__cdecl *fMQWriteChatColor)(char* Line, DWORD Color, DWORD Filter);
+typedef DWORD(__cdecl *fMQWriteChatColor)(const char* Line, DWORD Color, DWORD Filter);
 typedef void(__cdecl *fMQPulse)();
-typedef DWORD(__cdecl *fMQIncomingChat)(char* Line, DWORD Color);
+typedef bool(__cdecl *fMQIncomingChat)(const char* Line, DWORD Color);
 typedef void(__cdecl *fMQInitializePlugin)();
 typedef void(__cdecl *fMQShutdownPlugin)();
 typedef void(__cdecl *fMQZoned)();

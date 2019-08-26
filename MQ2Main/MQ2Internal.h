@@ -17,7 +17,7 @@
 #include <map>
 #include <memory>
 
-EQLIB_API void WriteChatfSafe(char* szFormat, ...);
+EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
 EQLIB_VAR HANDLE ghMemberMapLock;
 
 namespace MQ2Internal {
@@ -339,42 +339,39 @@ namespace MQ2Internal {
         struct _MQGroundPending *pNext;
     } MQGROUNDPENDING, *PMQGROUNDPENDING;
 
-    typedef struct _MQPlugin
-    {
-        char szFilename[MAX_PATH];
-        HMODULE hModule;
-        float fpVersion;
-		BOOL bCustom;
-		struct _MQPlugin()
-		{
-			bCustom = 0;
-		}
-        fMQInitializePlugin Initialize;
-        fMQShutdownPlugin Shutdown;
-        fMQZoned Zoned;
-        fMQWriteChatColor WriteChatColor;
-        fMQPulse Pulse;
-        fMQIncomingChat IncomingChat;
-        fMQCleanUI CleanUI;
-        fMQReloadUI ReloadUI;
-        fMQDrawHUD DrawHUD;
-        fMQSetGameState SetGameState;
-        fMQSpawn AddSpawn;
-        fMQSpawn RemoveSpawn;
-        fMQGroundItem AddGroundItem;
-        fMQGroundItem RemoveGroundItem;
-        fMQBeginZone BeginZone; 
-        fMQEndZone EndZone; 
-        struct _MQPlugin* pLast;
-        struct _MQPlugin* pNext;
-    } MQPLUGIN, *PMQPLUGIN;
+	struct MQPlugin
+	{
+		char                 szFilename[MAX_PATH];
+		HMODULE              hModule;
+		float                fpVersion;
+		bool                 bCustom;
+		fMQInitializePlugin  Initialize;
+		fMQShutdownPlugin    Shutdown;
+		fMQZoned             Zoned;
+		fMQWriteChatColor    WriteChatColor;
+		fMQPulse             Pulse;
+		fMQIncomingChat      IncomingChat;
+		fMQCleanUI           CleanUI;
+		fMQReloadUI          ReloadUI;
+		fMQDrawHUD           DrawHUD;
+		fMQSetGameState      SetGameState;
+		fMQSpawn             AddSpawn;
+		fMQSpawn             RemoveSpawn;
+		fMQGroundItem        AddGroundItem;
+		fMQGroundItem        RemoveGroundItem;
+		fMQBeginZone         BeginZone;
+		fMQEndZone           EndZone;
+
+		MQPlugin*            pLast;
+		MQPlugin*            pNext;
+	};
 
     class CAutoLock {
     public:
         inline void Lock() {if (!bLocked) {if(TryEnterCriticalSection(pLock)) {bLocked = TRUE;}}}
-		
+
         inline void Unlock() {if (bLocked) {LeaveCriticalSection(pLock);bLocked = FALSE;}}
-		
+
         CAutoLock(LPCRITICAL_SECTION _pLock) {bLocked = FALSE;pLock = _pLock;Lock();}
         ~CAutoLock() { Unlock(); }
 
@@ -382,6 +379,7 @@ namespace MQ2Internal {
         LPCRITICAL_SECTION pLock;
         BOOL bLocked;
     };
+
 	//2015-01-14 Lock class for mutexes... -eqmule
 	class lockit {
 	private:

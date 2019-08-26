@@ -676,7 +676,7 @@ void TellCheck(char *szClean)
 	}
 }
 
-void CheckChatForEvent(char* szMsg)
+void CheckChatForEvent(const char* szMsg)
 {
 	int len = strlen(szMsg);
 

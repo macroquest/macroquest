@@ -1944,6 +1944,7 @@ public:
 	EQLIB_OBJECT ~EQWorldData();
 };
 
+// TODO: Map to ZONEINFO
 class EQZoneInfo
 {
 public:

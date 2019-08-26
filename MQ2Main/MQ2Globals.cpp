@@ -306,7 +306,7 @@ namespace MQ2Globals
 	double gZFilter = 10000.0f;
 	double gFaceAngle = 10000.0f;
 	double gLookAngle = 10000.0f;
-	BOOL gbSpelldbLoaded = 0;
+	bool gbSpelldbLoaded = false;
 	char gszEQPath[MAX_STRING] = { 0 };
 	char gszMacroPath[MAX_STRING] = { 0 };
 	char gszLogPath[MAX_STRING] = { 0 };
@@ -352,11 +352,11 @@ namespace MQ2Globals
 	DWORD gbAssistComplete = 0;
 	BOOL gTargetbuffs = FALSE;
 	BOOL gItemsReceived = FALSE;
-	BOOL gbInZone = FALSE;
-	BOOL gZoning = FALSE;
+	bool gbInZone = false;
+	bool gZoning = false;
 	ULONGLONG OldLastEnteredZone = 0;
 	ULONGLONG LastEnteredZone = 0;
-	BOOL WereWeZoning = TRUE;
+	bool WereWeZoning = true;
 	BOOL gbInChat = FALSE;
 	BOOL gFilterSkillsAll = FALSE;
 	BOOL gFilterSkillsIncrease = FALSE;
@@ -369,7 +369,7 @@ namespace MQ2Globals
 	BOOL gFilterEncumber = FALSE;
 	BOOL gFilterCustom = TRUE;
 	BOOL gSpewToFile = FALSE;
-	BOOL gbDoAutoRun = FALSE;
+	bool gbDoAutoRun = false;
 	BOOL gMQPauseOnChat = FALSE;
 	BOOL gKeepKeys = FALSE;
 	bool gLClickedObject = false;
@@ -964,7 +964,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	PMQPLUGIN pPlugins = nullptr;
+	MQPlugin* pPlugins = nullptr;
 	std::map<std::string, std::string> mAliases;
 	std::map<std::string, PDATAVAR> VariableMap;
 	std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;

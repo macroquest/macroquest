@@ -4115,7 +4115,7 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			strcpy_s(Destination,MAX_STRING, ((PMQPLUGIN)VarPtr.Ptr)->szFilename);
+			strcpy_s(Destination,MAX_STRING, ((MQPlugin*)VarPtr.Ptr)->szFilename);
 			return true;
 		}
 		return false;
