@@ -48,6 +48,7 @@
 #include <set>
 #include <stack>
 #include <string>
+#include <string_view>
 #include <algorithm>
 
 // warning C4530 : C++ exception handler used, but unwind semantics are not enabled.Specify / EHsc
@@ -119,8 +120,6 @@
 #else
 #define DebugTry(x) x
 #endif
-
-#define MakeLower(yourstring) std::transform (yourstring.begin(),yourstring.end(), yourstring.begin(), tolower);
 
 #define MAX_VARNAME           64
 #define MAX_STRING            2048
@@ -230,12 +229,12 @@ EQLIB_API void DrawHUD();
 /* COMMAND HANDLING */
 EQLIB_API void InitializeMQ2Commands();
 EQLIB_API void ShutdownMQ2Commands();
-EQLIB_API void AddCommand(char* Command, fEQCommand Function, BOOL EQ = 0, BOOL Parse = 1, BOOL InGame = 0);
+EQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
 EQLIB_API void AddAlias(char* ShortCommand, char* LongCommand);
 EQLIB_API BOOL RemoveAlias(char* ShortCommand);
 EQLIB_API void AddSubstitute(char* Original, char* Substitution);
 EQLIB_API BOOL RemoveSubstitute(char* Original);
-EQLIB_API BOOL RemoveCommand(char* Command);
+EQLIB_API bool RemoveCommand(const char* Command);
 EQLIB_API void DoTimedCommands();
 EQLIB_API void TimedCommand(char* Command, DWORD msDelay);
 
@@ -284,14 +283,15 @@ EQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick 
 /* KEY BINDS */
 EQLIB_API void InitializeMQ2KeyBinds();
 EQLIB_API void ShutdownMQ2KeyBinds();
-EQLIB_API BOOL PressMQ2KeyBind(char* name, BOOL Hold);
-EQLIB_API BOOL SetMQ2KeyBind(char* name, BOOL Alternate, KeyCombo &Combo);
-EQLIB_API BOOL AddMQ2KeyBind(char* name, fMQExecuteCmd Function);
-EQLIB_API BOOL RemoveMQ2KeyBind(char* name);
-EQLIB_API BOOL GetMQ2KeyBind(char* name, BOOL Alt, KeyCombo &Combo);
-EQLIB_API BOOL DumpBinds(char* Filename);
-EQLIB_API BOOL MQ2HandleKeyDown(class KeyCombo const &Combo);
-EQLIB_API BOOL MQ2HandleKeyUp(class KeyCombo const &Combo);
+EQLIB_API bool PressMQ2KeyBind(const char* name, bool Hold);
+EQLIB_API bool SetMQ2KeyBind(const char* name, bool Alternate, KeyCombo& Combo);
+EQLIB_API bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function);
+EQLIB_API bool RemoveMQ2KeyBind(const char* name);
+EQLIB_API bool GetMQ2KeyBind(const char* name, bool Alt, KeyCombo& Combo);
+EQLIB_API bool DumpBinds(const char* Filename);
+EQLIB_API bool MQ2HandleKeyDown(const KeyCombo& Combo);
+EQLIB_API bool MQ2HandleKeyUp(const KeyCombo& Combo);
+EQLIB_API int FindMappableCommand(const char* name);
 
 /* PULSING */
 EQLIB_API void InitializeMQ2Pulse();
@@ -345,7 +345,6 @@ EQLIB_API char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSiz
 EQLIB_API int FindInvSlotForContents(CONTENTS* pContents);
 EQLIB_API int FindInvSlot(char* Name, BOOL Exact);
 EQLIB_API int FindNextInvSlot(char* Name, BOOL Exact);
-EQLIB_API int FindMappableCommand(const char *name);
 
 EQLIB_API int GetLanguageIDByName(char* szName);
 EQLIB_API int GetCurrencyIDByName(char* szName);
@@ -676,3 +675,35 @@ inline char* ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 }
 #define LODWORD(_qw)    ((DWORD)(_qw))
 #define HIDWORD(_qw)    ((DWORD)(((_qw) >> 32) & 0xffffffff))
+
+inline void MakeLower(std::string& str)
+{
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+struct ci_less
+{
+	struct nocase_compare
+	{
+		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
+		{
+			return ::tolower(c1) < ::tolower(c2);
+		}
+	};
+
+	bool operator()(std::string_view s1, std::string_view s2) const noexcept
+	{
+		return std::lexicographical_compare(
+			s1.begin(), s1.end(),
+			s2.begin(), s2.end(),
+			nocase_compare());
+	}
+};
+
+inline int ci_find_substr(std::string_view haystack, std::string_view needle, const std::locale& loc = std::locale())
+{
+	auto iter = std::search(std::begin(haystack), std::end(haystack),
+		std::begin(needle), std::end(needle), ci_less::nocase_compare());
+	if (iter == std::end(haystack)) return -1;
+	return iter - std::begin(haystack);
+}

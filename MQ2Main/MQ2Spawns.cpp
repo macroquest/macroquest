@@ -542,7 +542,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
     if (!pSpawn->mActorClient.pcactorex || !((CActorEx*)pSpawn->mActorClient.pcactorex)->CanSetName(0))
     {
         //DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
-        return 1;
+        return true;
     };
 
 	switch (GetSpawnType(pSpawn))
@@ -550,38 +550,38 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 	case MERCENARY:
 		if (gAnonymize) {
 			if (SetCaption(pSpawn, "", MERCENARY))
-				return 1;
+				return true;
 		}
         break;
     case NPC:
 		if (SetCaption(pSpawn, gszSpawnNPCName,NPC))
-			return 1;
+			return true;
         break;
     case PC:
         if (!gPCNames && pSpawn!=(SPAWNINFO*)pTarget)
-            return 0;
+            return false;
 		if (SetCaption(pSpawn, gszSpawnPlayerName[gShowNames],PC))
-			return 1;
+			return true;
         break;
     case CORPSE:
 		if (SetCaption(pSpawn, gszSpawnCorpseName,CORPSE))
-			return 1;
+			return true;
         break;
     case CHEST:
     case UNTARGETABLE:
     case TRAP:
     case TIMER:
     case TRIGGER:// trigger names make it crash!
-        return 0;
+        return false;
     case MOUNT://mount names make it crash!
-        return 0;
+        return false;
     case PET:
 		if (SetCaption(pSpawn, gszSpawnPetName,PET))
-			return 1;
+			return true;
         break;
     }
     //DebugSpew("Returning default from SetNameSpriteState");
-    return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
+    return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 //#undef SetCaption
 }
 

@@ -436,75 +436,83 @@ public:
 
 }; 
 
-DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, char* szFullLine)); 
+DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, char* szFullLine));
 
-
-void AddCommand(char* Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL InGame)
+void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
-    DebugSpew("AddCommand(%s,0x%X)",Command,Function);
-    PMQCOMMAND pCommand=new MQCOMMAND;
-    memset(pCommand,0,sizeof(MQCOMMAND));
-    strcpy_s(pCommand->Command,Command);
-    pCommand->EQ=EQ;
-    pCommand->Parse=Parse;
-    pCommand->Function=Function;
-    pCommand->InGameOnly=InGame;
+	DebugSpew("AddCommand(%s,0x%X)", Command, Function);
+	PMQCOMMAND pCommand = new MQCOMMAND;
+	memset(pCommand, 0, sizeof(MQCOMMAND));
+	strcpy_s(pCommand->Command, Command);
+	pCommand->EQ = EQ;
+	pCommand->Parse = Parse;
+	pCommand->Function = Function;
+	pCommand->InGameOnly = InGame;
 
-    // perform insertion sort
-    if (!pCommands)
-    {
-        pCommands=pCommand;
-        return;
-    }
-    PMQCOMMAND pInsert=pCommands;
-    PMQCOMMAND pLast=0;
-    while(pInsert)
-    {
-        if (_stricmp(pCommand->Command,pInsert->Command)<=0)
-        {
-            // insert here.
-            if (pLast)
-                pLast->pNext=pCommand;
-            else
-                pCommands=pCommand;
-            pCommand->pLast=pLast;
-            pInsert->pLast=pCommand;
-            pCommand->pNext=pInsert;
-            return;
-        }
-        pLast=pInsert;
-        pInsert=pInsert->pNext;
-    }
-    // End of list
-    pLast->pNext=pCommand;
-    pCommand->pLast=pLast;
+	// perform insertion sort
+	if (!pCommands)
+	{
+		pCommands = pCommand;
+		return;
+	}
+
+	PMQCOMMAND pInsert = pCommands;
+	PMQCOMMAND pLast = nullptr;
+	while (pInsert)
+	{
+		if (_stricmp(pCommand->Command, pInsert->Command) <= 0)
+		{
+			// insert here.
+			if (pLast)
+				pLast->pNext = pCommand;
+			else
+				pCommands = pCommand;
+
+			pCommand->pLast = pLast;
+			pInsert->pLast = pCommand;
+			pCommand->pNext = pInsert;
+			return;
+		}
+
+		pLast = pInsert;
+		pInsert = pInsert->pNext;
+	}
+
+	// End of list
+	pLast->pNext = pCommand;
+	pCommand->pLast = pLast;
 }
 
-BOOL RemoveCommand(char* Command)
+bool RemoveCommand(const char* Command)
 {
-    PMQCOMMAND pCommand=pCommands;
-    while(pCommand)
-    {
-        int Pos=_strnicmp(Command,pCommand->Command,63);
-        if (Pos<0)
-        {
-            DebugSpew("RemoveCommand: Command not found '%s'",Command);
-            return 0;
-        }
-        if (Pos==0)
-        {
-            if (pCommand->pNext)
-                pCommand->pNext->pLast=pCommand->pLast;
-            if (pCommand->pLast)
-                pCommand->pLast->pNext=pCommand->pNext;
-            else
-                pCommands=pCommand->pNext;
-            delete pCommand;
-            return 1;
-        }
-        pCommand=pCommand->pNext;
-    }
-    return 0;
+	PMQCOMMAND pCommand = pCommands;
+
+	while (pCommand)
+	{
+		int Pos = _strnicmp(Command, pCommand->Command, 63);
+		if (Pos < 0)
+		{
+			DebugSpew("RemoveCommand: Command not found '%s'", Command);
+			return false;
+		}
+
+		if (Pos == 0)
+		{
+			if (pCommand->pNext)
+				pCommand->pNext->pLast = pCommand->pLast;
+			if (pCommand->pLast)
+				pCommand->pLast->pNext = pCommand->pNext;
+			else
+				pCommands = pCommand->pNext;
+			delete pCommand;
+
+			return true;
+		}
+
+		pCommand = pCommand->pNext;
+	}
+
+	return false;
 }
 
 void AddAlias(char* ShortCommand, char* LongCommand)

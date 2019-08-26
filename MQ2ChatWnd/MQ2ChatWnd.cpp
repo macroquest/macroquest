@@ -453,7 +453,7 @@ void MQChatClear(SPAWNINFO* pChar, char* Line)
 	}
 }
 
-void DoMQ2ChatBind(char* Name, BOOL Down)
+void DoMQ2ChatBind(const char* Name, bool Down)
 {
 	if (!Down)
 	{

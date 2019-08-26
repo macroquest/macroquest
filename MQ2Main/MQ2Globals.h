@@ -315,7 +315,7 @@ EQLIB_VAR bool bDetMouse;
 // ***************************************************************************
 // String arrays
 // ***************************************************************************
-EQLIB_VAR char* szEQMappableCommands[nEQMappableCommands];
+EQLIB_VAR const char* szEQMappableCommands[nEQMappableCommands];
 
 EQLIB_VAR char* szHeading[];
 EQLIB_VAR char* szHeadingShort[];
@@ -364,7 +364,7 @@ EQLIB_VAR fClassLvl				IC_ClassLvl;
 
 EQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
-EQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown, void* data);
+EQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data = nullptr);
 EQLIB_VAR bool IsResEffectSpell(int);
 //EQLIB_VAR char* szItemName[];
 //EQLIB_VAR char* szItemName4xx[];

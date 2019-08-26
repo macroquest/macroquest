@@ -433,7 +433,7 @@ namespace MQ2Globals
 	fEQCommand        cmdAssist = nullptr;
 	fEQCommand        cmdQuit = nullptr;
 
-	char* szEQMappableCommands[nEQMappableCommands];
+	const char* szEQMappableCommands[nEQMappableCommands];
 	decltype(ItemSlotMap) ItemSlotMap;
 
 	char DataTypeTemp[MAX_STRING] = { 0 };

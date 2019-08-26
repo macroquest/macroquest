@@ -4051,18 +4051,6 @@ void SlotValueCalculate(char* szBuff, PSPELL pSpell, int i, double mp)
 	return;
 }
 
-int FindMappableCommand(const char *name)
-{
-	for (unsigned long i = 0; i < nEQMappableCommands; i++)
-	{
-		if ((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > g_eqgameimagesize)
-			continue;
-		if (!_stricmp(name, szEQMappableCommands[i]))
-			return i;
-	}
-	return -1;
-}
-
 void DisplayOverlayText(char* szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
 {
 	CBroadcast *pBC = GetTextOverlay();

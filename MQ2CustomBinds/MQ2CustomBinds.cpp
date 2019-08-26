@@ -16,291 +16,320 @@
 
 PreSetup("MQ2CustomBinds");
 
-typedef struct _CustomBind {
-    char Name[32];
-    char CommandDown[MAX_STRING];
-    char CommandUp[MAX_STRING];
-} CUSTOMBIND, *PCUSTOMBIND;
-
-CIndex<PCUSTOMBIND> CustomBinds(10);
-
-void ExecuteCustomBind(char* Name,BOOL Down);
-
-int FindCustomBind(char* Name)
+struct CustomBind
 {
-    for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
-        if (PCUSTOMBIND pBind=CustomBinds[N])
-        {
-            if (!_stricmp(Name,pBind->Name))
-                return N;
-        }
-        return -1;
+	char Name[32];
+	char CommandDown[MAX_STRING];
+	char CommandUp[MAX_STRING];
+};
+
+static CIndex<CustomBind*> s_customBinds(10);
+
+static void ExecuteCustomBind(const char* Name, bool Down);
+
+static int FindCustomBind(const char* Name)
+{
+	for (unsigned long index = 0; index < s_customBinds.Size; index++)
+	{
+		if (CustomBind* pBind = s_customBinds[index])
+		{
+			if (!_stricmp(Name, pBind->Name))
+				return index;
+		}
+	}
+
+	return -1;
 }
 
-PCUSTOMBIND AddCustomBind(char* Name, char* CommandDown, char* CommandUp)
+static CustomBind* AddCustomBind(const char* Name, const char* CommandDown = nullptr, const char* CommandUp = nullptr)
 {
-    if (AddMQ2KeyBind(Name,ExecuteCustomBind))
-    {
-        PCUSTOMBIND pBind = new CUSTOMBIND;
-        ZeroMemory(pBind,sizeof(CUSTOMBIND));
-        strcpy_s(pBind->Name,Name);
-        if (CommandDown)
-            strcpy_s(pBind->CommandDown,CommandDown);
-        if (CommandUp)
-            strcpy_s(pBind->CommandUp,CommandUp);
-        CustomBinds+=pBind;
-        return pBind;
-    }
-    return 0;
+	if (AddMQ2KeyBind(Name, ExecuteCustomBind))
+	{
+		CustomBind* pBind = new CustomBind;
+		ZeroMemory(pBind, sizeof(CustomBind));
+
+		strcpy_s(pBind->Name, Name);
+		if (CommandDown)
+			strcpy_s(pBind->CommandDown, CommandDown);
+		if (CommandUp)
+			strcpy_s(pBind->CommandUp, CommandUp);
+		s_customBinds += pBind;
+
+		return pBind;
+	}
+
+	return nullptr;
 }
 
-void RemoveCustomBind(unsigned long N)
+static void RemoveCustomBind(unsigned long index)
 {
-    if (N>=CustomBinds.Size)
-        return;
-    if (PCUSTOMBIND pBind=CustomBinds[N])
-    {
-        RemoveMQ2KeyBind(pBind->Name);
-        delete pBind;
-        CustomBinds[N]=0;
-    }
+	if (index >= s_customBinds.Size)
+		return;
+
+	if (CustomBind* pBind = s_customBinds[index])
+	{
+		RemoveMQ2KeyBind(pBind->Name);
+		delete pBind;
+
+		s_customBinds[index] = nullptr;
+	}
 }
 
-void LoadCustomBinds();
-void CustomBindCmd(PSPAWNINFO pChar, char* szLine);
-void SaveCustomBinds();
+static void LoadCustomBinds();
+static void SaveCustomBinds();
+
+void CustomBindCmd(SPAWNINFO* pChar, char* szLine);
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-    DebugSpewAlways("Initializing MQ2CustomBinds");
+	DebugSpewAlways("Initializing MQ2CustomBinds");
 
-    AddCommand("/custombind",CustomBindCmd,0,0,0);
-    // Add commands, macro parameters, hooks, etc.
-    // AddCommand("/mycommand",MyCommand);
-    // AddParm("$myparm(x)",MyParm);
-    // AddXMLFile("MQUI_MyXMLFile.xml");
-    // bmMyBenchmark=AddMQ2Benchmark("My Benchmark Name");
+	AddCommand("/custombind", CustomBindCmd, false, true, false);
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-    DebugSpewAlways("Shutting down MQ2CustomBinds");
-    RemoveCommand("/custombind");
-    //SaveCustomBinds();
+	DebugSpewAlways("Shutting down MQ2CustomBinds");
+	RemoveCommand("/custombind");
+	//SaveCustomBinds();
 
-    for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
-        if (PCUSTOMBIND pBind=CustomBinds[N])
-        {
-            RemoveMQ2KeyBind(pBind->Name);
-        }
-        CustomBinds.Cleanup();
-        // Remove commands, macro parameters, hooks, etc.
-        // RemoveMQ2Benchmark(bmMyBenchmark);
-        // RemoveParm("$myparm(x)");
-        // RemoveCommand("/mycommand");
-        // RemoveXMLFile("MQUI_MyXMLFile.xml");
+	for (unsigned long index = 0; index < s_customBinds.Size; index++)
+	{
+		if (CustomBind* pBind = s_customBinds[index])
+		{
+			RemoveMQ2KeyBind(pBind->Name);
+		}
+	}
+
+	s_customBinds.Cleanup();
 }
 
 PLUGIN_API void SetGameState(DWORD GameState)
 {
-    static bool BindsLoaded=false;
-    if (GameState==GAMESTATE_INGAME || GameState==GAMESTATE_CHARSELECT) 
-    {
-        if (!BindsLoaded) 
-        {
-            LoadCustomBinds();
-            BindsLoaded=true;
-        }
-    }
+	static bool BindsLoaded = false;
+
+	if (GameState == GAMESTATE_INGAME || GameState == GAMESTATE_CHARSELECT)
+	{
+		if (!BindsLoaded)
+		{
+			LoadCustomBinds();
+			BindsLoaded = true;
+		}
+	}
 }
 
-void LoadCustomBinds()
+static void LoadCustomBinds()
 {
-    char filename[MAX_STRING];
-    strcpy_s(filename,gszINIPath);
-    strcat_s(filename,"\\MQ2CustomBinds.txt");
-	FILE *file = 0;
-	errno_t err = fopen_s(&file,filename, "rt");
-    if (err)
-        return;
-    CUSTOMBIND NewBind;
-    ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
-    char szLine[MAX_STRING];
+	char filename[MAX_STRING];
+	strcpy_s(filename, gszINIPath);
+	strcat_s(filename, "\\MQ2CustomBinds.txt");
+	FILE* file = nullptr;
+	errno_t err = fopen_s(&file, filename, "rt");
+	if (err)
+		return;
 
-    while(fgets(szLine,2048,file))
-    {
-		char *Next_Token1 = 0;
-		char *Next_Token2 = 0;
-        char *Cmd = strtok_s(szLine,"\r\n",&Next_Token1);
-        char *Cmd2 = strtok_s(Cmd,"=",&Next_Token2);
-        if (!_stricmp(Cmd2,"name"))
-        {
-            ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
-            strcpy_s(NewBind.Name,&szLine[5]);
-        }
-        else if (!_stricmp(Cmd2,"up"))
-        {
-            strcpy_s(NewBind.CommandUp,&szLine[3]);
-            AddCustomBind(NewBind.Name,NewBind.CommandDown,NewBind.CommandUp);
-        }
-        else if (!_stricmp(Cmd2,"down"))
-        {
-            strcpy_s(NewBind.CommandDown,&szLine[5]);
-        }
-    }
+	CustomBind NewBind;
+	ZeroMemory(&NewBind, sizeof(CustomBind));
 
-    fclose(file);
+	char szLine[MAX_STRING];
+
+	while (fgets(szLine, 2048, file))
+	{
+		char* Next_Token1 = nullptr;
+		char* Next_Token2 = nullptr;
+		char* Cmd = strtok_s(szLine, "\r\n", &Next_Token1);
+		char* Cmd2 = strtok_s(Cmd, "=", &Next_Token2);
+
+		if (!_stricmp(Cmd2, "name"))
+		{
+			ZeroMemory(&NewBind, sizeof(CustomBind));
+			strcpy_s(NewBind.Name, &szLine[5]);
+		}
+		else if (!_stricmp(Cmd2, "up"))
+		{
+			strcpy_s(NewBind.CommandUp, &szLine[3]);
+			AddCustomBind(NewBind.Name, NewBind.CommandDown, NewBind.CommandUp);
+		}
+		else if (!_stricmp(Cmd2, "down"))
+		{
+			strcpy_s(NewBind.CommandDown, &szLine[5]);
+		}
+	}
+
+	fclose(file);
 }
 
-void SaveCustomBinds()
+static void SaveCustomBinds()
 {
-    char filename[MAX_STRING];
-    strcpy_s(filename,gszINIPath);
-    strcat_s(filename,"\\MQ2CustomBinds.txt");
-	FILE *file = 0;
-	errno_t err = fopen_s(&file,filename, "wt");
-    if (err)
-        return;
+	char filename[MAX_STRING];
+	strcpy_s(filename, gszINIPath);
+	strcat_s(filename, "\\MQ2CustomBinds.txt");
+	FILE* file = nullptr;
+	errno_t err = fopen_s(&file, filename, "wt");
+	if (err)
+		return;
 
-	for (unsigned long N = 0; N < CustomBinds.Size; N++) {
-		if (PCUSTOMBIND pBind = CustomBinds[N])
+	for (unsigned long index = 0; index < s_customBinds.Size; index++)
+	{
+		if (CustomBind* pBind = s_customBinds[index])
 		{
 			fprintf(file, "name=%s\ndown=%s\nup=%s\n", pBind->Name, pBind->CommandDown, pBind->CommandUp);
 		}
 	}
+
 	fclose(file);
 }
 
-void ExecuteCustomBind(char* Name,BOOL Down)
+void ExecuteCustomBind(const char* Name, bool Down)
 {
-    int N=FindCustomBind(Name);
-    if (N<0)
-        return;
-    PCHARINFO pCharInfo=GetCharInfo();
-    if (!pCharInfo)
-        return;
-    if (PCUSTOMBIND pBind=CustomBinds[N])
-    {
-        if (Down)
-        {
-            if (pBind->CommandDown[0])
-                DoCommand(pCharInfo->pSpawn,pBind->CommandDown);
-        }
-        else if (pBind->CommandUp[0])
-            DoCommand(pCharInfo->pSpawn,pBind->CommandUp);
-    }
+	int N = FindCustomBind(Name);
+	if (N < 0)
+		return;
+
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return;
+
+	if (CustomBind* pBind = s_customBinds[N])
+	{
+		if (Down)
+		{
+			if (pBind->CommandDown[0])
+			{
+				DoCommand(pCharInfo->pSpawn, pBind->CommandDown);
+			}
+		}
+		else if (pBind->CommandUp[0])
+		{
+			DoCommand(pCharInfo->pSpawn, pBind->CommandUp);
+		}
+	}
 }
 
-void CustomBindCmd(PSPAWNINFO pChar, char* szLine)
+void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 {
-    if (szLine[0]==0)
-    {
-        SyntaxError("Usage: /custombind <list|add <name>|delete <name>|clear <name><-down|-up>|set <name><-down|-up> <command>>");
-        return;
-    }
-    char szBuffer[MAX_STRING];
-    char szArg[MAX_STRING] = {0};
-    char szArg2[MAX_STRING] = {0};
-    GetArg(szArg,szLine,1);
-    GetArg(szArg2,szLine,2);
-    char* szRest = GetNextArg(szLine,2);
+	if (szLine[0] == 0)
+	{
+		SyntaxError("Usage: /custombind <list|add <name>|delete <name>|clear <name><-down|-up>|set <name><-down|-up> <command>>");
+		return;
+	}
 
-    if (!_stricmp(szArg,"list"))
-    {
-        WriteChatColor("Custom binds");
-        WriteChatColor("--------------");
-        for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
-            if (PCUSTOMBIND pBind=CustomBinds[N])
-            {
-                sprintf_s(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
-                WriteChatColor(szBuffer);
-            }
-            WriteChatColor("--------------");
-            WriteChatColor("End custom binds");
-            return;
-    }
-    if (!_stricmp(szArg,"add"))
-    {
-        if (strchr(szArg2,'-'))
-        {
-            WriteChatColor("'-' is not allowed in a custom bind name");
-        }
-        if (PCUSTOMBIND pBind=AddCustomBind(szArg2,0,0))
-        {
-            WriteChatColor("Custom bind added.  Use /custombind set to set the custom commands.");
-        }
-        else
-        {
-            WriteChatColor("Failed to add custom bind (name in use)");
-        }
-        return;
-    }
-    if (!_stricmp(szArg,"delete"))
-    {
-        int N=FindCustomBind(szArg2);
-        if (N>=0)
-        {
-            RemoveCustomBind(N);
-            WriteChatColor("Custom bind deleted");
-        }
-        else
-        {
-            WriteChatColor("Could not find custom bind with that name to delete");
-        }
-        return;
-    }
-    if (!_stricmp(szArg,"set"))
-    {
-        BOOL Down=true;
-        if (char* minus=strchr(szArg2,'-'))
-        {
-            minus[0]=0;
-            if (!_stricmp(&minus[1],"up"))
-                Down=false;
-        }
-        int N=FindCustomBind(szArg2);
-        if (N<0)
-        {
-            sprintf_s(szBuffer,"Could not find custom bind '%s'",szArg2);
-            WriteChatColor(szBuffer);
-            return;
-        }
-        PCUSTOMBIND pBind=CustomBinds[N];
-        if (Down)
-            strcpy_s(pBind->CommandDown,szRest);
-        else
-            strcpy_s(pBind->CommandUp,szRest);
-        sprintf_s(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
-        WriteChatColor(szBuffer);
-        SaveCustomBinds();
-        return;
-    }
-    if (!_stricmp(szArg,"clear"))
-    {
-        BOOL Down=true;
-        if (char* minus=strchr(szArg2,'-'))
-        {
-            minus[0]=0;
-            if (!_stricmp(&minus[1],"up"))
-                Down=false;
-        }
-        int N=FindCustomBind(szArg2);
-        if (N<0)
-        {
-            sprintf_s(szBuffer,"Could not find custom bind '%s'",szArg2);
-            WriteChatColor(szBuffer);
-            return;
-        }
-        PCUSTOMBIND pBind=CustomBinds[N];
-        if (Down)
-            pBind->CommandDown[0]=0;
-        else
-            pBind->CommandUp[0]=0;
-        sprintf_s(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
-        WriteChatColor(szBuffer);
-        SaveCustomBinds();
-        return;
-    }
+	char szArg[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	GetArg(szArg, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+	char* szRest = GetNextArg(szLine, 2);
+
+	if (!_stricmp(szArg, "list"))
+	{
+		WriteChatColor("Custom binds");
+		WriteChatColor("--------------");
+
+		for (unsigned long index = 0; index < s_customBinds.Size; index++)
+		{
+			if (CustomBind* pBind = s_customBinds[index])
+			{
+				WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+			}
+		}
+
+		WriteChatColor("--------------");
+		WriteChatColor("End custom binds");
+		return;
+	}
+
+	if (!_stricmp(szArg, "add"))
+	{
+		if (strchr(szArg2, '-'))
+		{
+			WriteChatColor("'-' is not allowed in a custom bind name");
+		}
+
+		if (CustomBind* pBind = AddCustomBind(szArg2))
+		{
+			WriteChatColor("Custom bind added.  Use /custombind set to set the custom commands.");
+		}
+		else
+		{
+			WriteChatColor("Failed to add custom bind (name in use)");
+		}
+
+		return;
+	}
+
+	if (!_stricmp(szArg, "delete"))
+	{
+		int index = FindCustomBind(szArg2);
+		if (index >= 0)
+		{
+			RemoveCustomBind(index);
+			WriteChatColor("Custom bind deleted");
+		}
+		else
+		{
+			WriteChatColor("Could not find custom bind with that name to delete");
+		}
+
+		return;
+	}
+
+	if (!_stricmp(szArg, "set"))
+	{
+		bool Down = true;
+		if (char* minus = strchr(szArg2, '-'))
+		{
+			minus[0] = 0;
+			if (!_stricmp(&minus[1], "up"))
+				Down = false;
+		}
+
+		int index = FindCustomBind(szArg2);
+		if (index < 0)
+		{
+			WriteChatf("Could not find custom bind '%s'", szArg2);
+			return;
+		}
+
+		CustomBind* pBind = s_customBinds[index];
+		if (Down)
+			strcpy_s(pBind->CommandDown, szRest);
+		else
+			strcpy_s(pBind->CommandUp, szRest);
+
+		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+
+		SaveCustomBinds();
+		return;
+	}
+
+	if (!_stricmp(szArg, "clear"))
+	{
+		bool Down = true;
+		if (char* minus = strchr(szArg2, '-'))
+		{
+			minus[0] = 0;
+			if (!_stricmp(&minus[1], "up"))
+				Down = false;
+		}
+
+		int index = FindCustomBind(szArg2);
+		if (index < 0)
+		{
+			WriteChatf("Could not find custom bind '%s'", szArg2);
+			return;
+		}
+
+		CustomBind* pBind = s_customBinds[index];
+		if (Down)
+			pBind->CommandDown[0] = 0;
+		else
+			pBind->CommandUp[0] = 0;
+
+		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+		SaveCustomBinds();
+
+		return;
+	}
 }
