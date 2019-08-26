@@ -348,9 +348,9 @@ public:
 		return Delta.GetLengthSquared();
 	}
 
-	float X;
-	float Y;
-	float Z;
+	float X = 0.f;
+	float Y = 0.f;
+	float Z = 0.f;
 };
 
 union RGB

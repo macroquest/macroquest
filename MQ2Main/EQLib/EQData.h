@@ -639,12 +639,12 @@ inline int EQHeading(T heading)
 // Structures
 // ***************************************************************************
 
-struct MOUSESPOOF {
-	MOUSE_DATA_TYPES mdType;
-	DWORD dwData;
-	MOUSESPOOF* pNext;
+struct MOUSESPOOF
+{
+	MOUSE_DATA_TYPES   mdType;
+	DWORD              dwData;
+	MOUSESPOOF*        pNext;
 };
-using PMOUSESPOOF = MOUSESPOOF*;
 
 struct MOUSECLICK {
 	BYTE Confirm[8];         // DO NOT WRITE TO THIS BYTE

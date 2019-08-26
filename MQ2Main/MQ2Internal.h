@@ -257,11 +257,13 @@ namespace MQ2Internal {
         struct _MQTIMER *pPrev;
     } MQTIMER, *PMQTIMER;
 
-    typedef struct _KEYPRESS {
-        WORD KeyId;
-        BOOL Pressed;
-        struct _KEYPRESS *pNext;
-    } KEYPRESS, *PKEYPRESS;
+	struct KEYPRESS
+	{
+		uint16_t KeyId;
+		bool     Pressed;
+
+		KEYPRESS* pNext;
+	};
 
     typedef struct _ITEMDB {
         struct _ITEMDB *pNext;

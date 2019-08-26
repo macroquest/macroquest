@@ -357,10 +357,7 @@ namespace MQ2Globals
 	ULONGLONG OldLastEnteredZone = 0;
 	ULONGLONG LastEnteredZone = 0;
 	BOOL WereWeZoning = TRUE;
-	BOOL gbInDInput = FALSE;
 	BOOL gbInChat = FALSE;
-	BOOL gbInDState = FALSE;
-	BOOL gbInDAcquire = FALSE;
 	BOOL gFilterSkillsAll = FALSE;
 	BOOL gFilterSkillsIncrease = FALSE;
 	BOOL gFilterTarget = FALSE;
@@ -375,7 +372,7 @@ namespace MQ2Globals
 	BOOL gbDoAutoRun = FALSE;
 	BOOL gMQPauseOnChat = FALSE;
 	BOOL gKeepKeys = FALSE;
-	BOOL gLClickedObject = FALSE;
+	bool gLClickedObject = false;
 	SWHOFILTER gFilterSWho = { 0 };
 	EQLIB_VAR BOOL gFilterMQ2DataErrors = FALSE;
 	BOOL gCreateMQ2NewsWindow = TRUE;
@@ -414,9 +411,8 @@ namespace MQ2Globals
 	char gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = nullptr;
 
-	BOOL g_bInDXMouse = FALSE;
-	PMOUSESPOOF gMouseData = { 0 };
-	BOOL bDetMouse = TRUE;
+	MOUSESPOOF* gMouseData = nullptr;
+	bool bDetMouse = true;
 
 	// EQ Functions Initialization
 	fEQCommand        cmdHelp = nullptr;
@@ -448,7 +444,8 @@ namespace MQ2Globals
 	DWORD gSpawnCount = 0;
 
 	// Motd and Pulse's mouse variables
-	BOOL gMouseClickInProgress[8] = { FALSE };
+	bool gMouseClickInProgress[8] = { FALSE };
+
 	// End of mouse variables
 
 	char* gDiKeyName[256];

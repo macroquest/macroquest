@@ -154,9 +154,6 @@ EQLIB_VAR BOOL gZoning;
 EQLIB_VAR ULONGLONG OldLastEnteredZone;
 EQLIB_VAR ULONGLONG LastEnteredZone;
 EQLIB_VAR BOOL WereWeZoning;
-EQLIB_VAR BOOL gbInDInput;
-EQLIB_VAR BOOL gbInDState;
-EQLIB_VAR BOOL gbInDAcquire;
 EQLIB_VAR BOOL gbInChat;
 EQLIB_VAR BOOL gFilterSkillsAll;
 EQLIB_VAR BOOL gFilterSkillsIncrease;
@@ -172,7 +169,7 @@ EQLIB_VAR BOOL gSpewToFile;
 EQLIB_VAR BOOL gbDoAutoRun;
 EQLIB_VAR BOOL gMQPauseOnChat;
 EQLIB_VAR BOOL gKeepKeys;
-EQLIB_VAR BOOL gLClickedObject;
+EQLIB_VAR bool gLClickedObject;
 EQLIB_VAR SWHOFILTER gFilterSWho;
 EQLIB_VAR BOOL gCreateMQ2NewsWindow;
 EQLIB_VAR BOOL gUseNewNamedTest;
@@ -221,8 +218,7 @@ EQLIB_VAR PFILTER gpFilters;
 
 EQLIB_VAR std::map<std::string, unsigned long> ItemSlotMap;
 
-EQLIB_VAR BOOL g_bInDXMouse;
-EQLIB_VAR PMOUSESPOOF gMouseData;
+EQLIB_VAR MOUSESPOOF* gMouseData;
 
 EQLIB_VAR char* gDiKeyName[256];
 
@@ -313,8 +309,8 @@ EQLIB_VAR PPOINT EQADDR_DIMOUSECHECK;
 
 EQLIB_VAR DWORD EQADDR_EQLABELS;
 
-EQLIB_VAR BOOL gMouseClickInProgress[8];
-EQLIB_VAR BOOL bDetMouse;
+EQLIB_VAR bool gMouseClickInProgress[8];
+EQLIB_VAR bool bDetMouse;
 
 // ***************************************************************************
 // String arrays

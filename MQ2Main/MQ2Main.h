@@ -33,14 +33,6 @@
 
 #define DIRECTINPUT_VERSION    0x800
 
-//warning C4530 : C++ exception handler used, but unwind semantics are not enabled.Specify / EHsc
-#pragma warning(disable:4530)
-
-// disable the noexcept warning there isnt really anything we can do about it as far as i know or is there? let me know if u know how to fix it - eqmule
-#pragma warning(disable:4577)
-
-// Windows Header Files:
-#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -58,6 +50,21 @@
 #include <string>
 #include <algorithm>
 
+// warning C4530 : C++ exception handler used, but unwind semantics are not enabled.Specify / EHsc
+#pragma warning(disable:4530)
+
+// disable the noexcept warning there isnt really anything we can do about it as far as i know or is there? let me know if u know how to fix it - eqmule
+#pragma warning(disable:4577)
+
+// Windows Header Files:
+#include <windows.h>
+
+#include "..\Dxsdk90\include\dinput.h"
+#include "..\Detours\inc\detours.h"
+
+// MQ2
+#include "..\Blech\Blech.h"
+
 //#define MQ2_PROFILING
 
 // uncomment this line to turn off the single-line benchmark macro
@@ -70,11 +77,6 @@
 #define ToUnloadString         "MQ2 Unloading..."
 #define UnloadedString         "MQ2 Unloaded."
 
-
-// MQ2
-#include "..\Dxsdk90\include\dinput.h"
-#include "..\Detours\inc\detours.h"
-#include "..\Blech\Blech.h"
 
 extern CRITICAL_SECTION gPluginCS;
 
@@ -274,11 +276,11 @@ EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
 
 /* MOUSE */
-EQLIB_API BOOL IsMouseWaiting();
-EQLIB_API BOOL IsMouseWaitingForButton();
-EQLIB_API void MQ2MouseHooks(BOOL bFlag);
+EQLIB_API bool IsMouseWaiting();
+EQLIB_API bool IsMouseWaitingForButton();
+EQLIB_API void MQ2MouseHooks(bool bFlag);
 EQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
-EQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, BOOL bClick = 0);
+EQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 
 /* KEY BINDS */
 EQLIB_API void InitializeMQ2KeyBinds();
