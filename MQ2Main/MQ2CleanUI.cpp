@@ -14,68 +14,71 @@
 
 #include "MQ2Main.h"
 
-char *OurCaption = "MQ2: Think of it as evolution in action.";
+const char* g_customCaption = "MQ2: Think of it as evolution in action.";
 
-class CDisplayHook 
-{ 
-public: 
-    void CleanUI_Trampoline(); 
-    void CleanUI_Detour() 
-    { 
-        Benchmark(bmPluginsCleanUI,DebugTry(PluginsCleanUI()));
-        DebugTry(CleanUI_Trampoline());
-    } 
+class CDisplayHook
+{
+public:
+	void CleanUI_Trampoline();
+	void CleanUI_Detour()
+	{
+		Benchmark(bmPluginsCleanUI, DebugTry(PluginsCleanUI()));
+		DebugTry(CleanUI_Trampoline());
+	}
 
-    void ReloadUI_Trampoline(BOOL);
-    void ReloadUI_Detour(BOOL UseINI)
-    {
-        DebugTry(ReloadUI_Trampoline(UseINI));
-        Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
-    }
+	void ReloadUI_Trampoline(bool);
+	void ReloadUI_Detour(bool UseINI)
+	{
+		DebugTry(ReloadUI_Trampoline(UseINI));
+		Benchmark(bmPluginsReloadUI, DebugTry(PluginsReloadUI()));
+	}
 
-    /* This function is still in the client; however, it was phased out as of 
-    the Omens of War Expansion
+	/* This function is still in the client; however, it was phased out as of
+	the Omens of War Expansion
 
-    bool GetWorldFilePath_Trampoline(char *, char *);
-    bool GetWorldFilePath_Detour(char *Filename, char *FullPath)
-    {
-        if (!_stricmp(FullPath,"bmpwad8.s3d"))
-        {
-            sprintf_s(Filename,"%s\\bmpwad8.s3d",gszINIPath);
-            if (_access(Filename,0)!=-1)
-            {
-                return 1;
-            }
-        }
+	bool GetWorldFilePath_Trampoline(char *, char *);
+	bool GetWorldFilePath_Detour(char *Filename, char *FullPath)
+	{
+		if (!_stricmp(FullPath,"bmpwad8.s3d"))
+		{
+			sprintf_s(Filename,"%s\\bmpwad8.s3d",gszINIPath);
+			if (_access(Filename,0)!=-1)
+			{
+				return 1;
+			}
+		}
 
-        bool Ret=GetWorldFilePath_Trampoline(Filename,FullPath);
-        return Ret;
-    }
-    */
-}; 
+		bool Ret=GetWorldFilePath_Trampoline(Filename,FullPath);
+		return Ret;
+	}
+	*/
+};
 
-void __cdecl DrawHUD_Trampoline(unsigned short, unsigned short, void*, unsigned int); 
-void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,void* c,unsigned int d) 
-{ 
-    DrawHUDParams[0]=a+gNetStatusXPos;
-    DrawHUDParams[1]=b+gNetStatusYPos;
-    DrawHUDParams[2]=(DWORD)c;
-    DrawHUDParams[3]=d;
-    if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
-        return;
-    DrawHUD_Trampoline(a,b,c,d);
-    Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
-    if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
-    {
-        if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_DrawIndicator"))
-            pEQPlayNicePulse();
-    }
-    return;
-} 
+void DrawHUD_Trampoline(unsigned short, unsigned short, void*, unsigned int);
+void DrawHUD_Detour(unsigned short a, unsigned short b, void* c, unsigned int d)
+{
+	DrawHUDParams[0] = a + gNetStatusXPos;
+	DrawHUDParams[1] = b + gNetStatusYPos;
+	DrawHUDParams[2] = (DWORD)c;
+	DrawHUDParams[3] = d;
+
+	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
+		return;
+	DrawHUD_Trampoline(a, b, c, d);
+	Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
+
+	if (HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll"))
+	{
+		if (fMQPulse pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_DrawIndicator"))
+			pEQPlayNicePulse();
+	}
+}
 
 void DrawHUD()
 {
-	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT) {//no point in drawing hud anywhere else
+	// no point in drawing hud anywhere else
+	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT)
+	{
 		if (gbAlwaysDrawMQHUD || (gGameState == GAMESTATE_INGAME && gbHUDUnderUI && gbShowNetStatus))
 		{
 			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
@@ -83,16 +86,19 @@ void DrawHUD()
 				DrawHUD_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;
 			}
+
 			Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
+
 			if (HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll"))
 			{
 				if (fMQPulse pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_DrawIndicator"))
 					pEQPlayNicePulse();
 			}
-
 		}
 		else
+		{
 			DrawHUDParams[0] = 0;
+		}
 	}
 }
 
@@ -110,103 +116,109 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 class EQ_LoadingSHook
 {
 public:
-
-    void SetProgressBar_Trampoline(int,char const *);
-    void SetProgressBar_Detour(int A,char const *B)
-    {
-        if (gbMQ2LoadingMsg)
-            SetProgressBar_Trampoline(A, OurCaption);
-        else
-            SetProgressBar_Trampoline(A,B);
-    }
+	void SetProgressBar_Trampoline(int, char const*);
+	void SetProgressBar_Detour(int A, char const* B)
+	{
+		if (gbMQ2LoadingMsg)
+			SetProgressBar_Trampoline(A, g_customCaption);
+		else
+			SetProgressBar_Trampoline(A, B);
+	}
 };
 
-//DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
-DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
-DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,void*,unsigned int)); 
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline()); 
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(BOOL)); 
-std::list<std::string>oldstrings;
+//DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *));
+DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
+DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short, unsigned short, void*, unsigned int));
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool));
 
-void NetStatusXPos(SPAWNINFO* pChar, char* szLine)
+static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {
-	char szArg[MAX_STRING] = { 0 };
-	char szCmd[MAX_STRING] = { 0 };
 
-	if (szLine[0] != '\0') {
-		gNetStatusXPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
+	if (szLine[0])
+	{
+		char szArg[MAX_STRING] = { 0 };
+		gNetStatusXPos = strtol(GetArg(szArg, szLine, 1), nullptr, 0);
 		WriteChatf("\ayNetStatus XPos is \ax\at%d\ax", gNetStatusXPos);
-		_itoa_s(gNetStatusXPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
+
+		char szCmd[20] = { 0 };
+		_itoa_s(gNetStatusXPos, szCmd, 10);
+		WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
 	}
 }
 
-void NetStatusYPos(PSPAWNINFO pChar, char *szLine)
+static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
 {
-	char szArg[MAX_STRING] = { 0 };
-	char szCmd[MAX_STRING] = { 0 };
 
-	if (szLine[0] != '\0') {
-		gNetStatusYPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
+	if (szLine[0])
+	{
+		char szArg[MAX_STRING] = { 0 };
+		gNetStatusYPos = strtol(GetArg(szArg, szLine, 1), nullptr, 0);
 		WriteChatf("\ayNetStatus YPos is \ax\at%d\ax", gNetStatusYPos);
+
+		char szCmd[20] = { 0 };
 		_itoa_s(gNetStatusYPos, szCmd, 10);
 		WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, gszINIFilename);
 	}
 }
 
+static std::vector<std::string> s_oldStrings;
+
 void InitializeDisplayHook()
 {
-	// this needs further investigation - eqmule
-#if 0
-#ifdef EQ_LoadingS__Array_x
-    if (gbMQ2LoadingMsg)
-    {
-		oldstrings.clear();
-        char **ptr = (char **) EQ_LoadingS__Array;
-        int i;
+	DebugSpew("Initializing Display Hooks");
 
-		for (i = 0; i < EQ_LoadingS__ArraySize; i++) {
-			oldstrings.push_back(ptr[i]);
-			ptr[i] = OurCaption;
+	// TODO: Fix custom loading screen strings
+#if defined(EQ_LoadingS__Array_x) && 0
+	if (gbMQ2LoadingMsg)
+	{
+		s_oldStrings.clear();
+		const char** ptr = (const char**)EQ_LoadingS__Array;
+
+		for (int i = 0; i < EQ_LoadingS__ArraySize; i++)
+		{
+			s_oldStrings.emplace_back(ptr[i]);
+			ptr[i] = g_customCaption;
 		}
-    }
+	}
 #endif
-#endif
-    DebugSpew("Initializing Display Hooks");
 
-    EzDetourwName(CDisplay__CleanGameUI,&CDisplayHook::CleanUI_Detour,&CDisplayHook::CleanUI_Trampoline,"CDisplay__CleanGameUI");
-    EzDetourwName(CDisplay__ReloadUI,&CDisplayHook::ReloadUI_Detour,&CDisplayHook::ReloadUI_Trampoline,"CDisplay__ReloadUI");
-    //EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
-    EzDetourwName(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline,"DrawNetStatus");
-    //EzDetourwName(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline,"EQ_LoadingS__SetProgressBar");
-	AddCommand("/netstatusxpos", NetStatusXPos);
-	AddCommand("/netstatusypos", NetStatusYPos);
+	EzDetourwName(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline, "CDisplay__CleanGameUI");
+	EzDetourwName(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline, "CDisplay__ReloadUI");
+	//EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
+	EzDetourwName(DrawNetStatus, DrawHUD_Detour, DrawHUD_Trampoline, "DrawNetStatus");
+	//EzDetourwName(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline,"EQ_LoadingS__SetProgressBar");
+
+	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
+	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
 }
 
 void ShutdownDisplayHook()
 {
-#if 0
-#ifdef EQ_LoadingS__Array_x
-    if (gbMQ2LoadingMsg)
-    {
-        char **ptr = (char **) EQ_LoadingS__Array;
+	DebugSpew("Shutting down Display Hooks");
+
+	// TODO: Fix custom loading screen strings
+#if defined(EQ_LoadingS__Array_x) && 0
+	if (gbMQ2LoadingMsg)
+	{
+		const char** ptr = (const char**)EQ_LoadingS__Array;
 		int j = 0;
-		for(std::list<std::string>::iterator i = oldstrings.begin();i!=oldstrings.end();i++) {
-		//for (i = 0; i < EQ_LoadingS__ArraySize; i++) {
-			std::string stuff = *i;
-			ptr[j++] = (char*)stuff.c_str();
+
+		for (const std::string& str : s_oldStrings)
+		{
+			ptr[j++] = str.c_str();
 		}
-    }
+	}
 #endif
-#endif
-    PluginsCleanUI();
-    DebugSpew("Shutting down Display Hooks");
+
+	PluginsCleanUI();
 
 	RemoveCommand("/netstatusxpos");
 	RemoveCommand("/netstatusypos");
 
-    RemoveDetour(CDisplay__CleanGameUI);
-    RemoveDetour(CDisplay__ReloadUI);
-    RemoveDetour(DrawNetStatus);
-    //RemoveDetour(EQ_LoadingS__SetProgressBar);
-    //RemoveDetour(CDisplay__GetWorldFilePath);
+	RemoveDetour(CDisplay__CleanGameUI);
+	RemoveDetour(CDisplay__ReloadUI);
+	RemoveDetour(DrawNetStatus);
+	//RemoveDetour(EQ_LoadingS__SetProgressBar);
+	//RemoveDetour(CDisplay__GetWorldFilePath);
 }
