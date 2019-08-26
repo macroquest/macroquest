@@ -274,7 +274,7 @@ namespace MQ2Globals
 	int gBuild = 1;               // LIVE
 #endif
 
-	bool gbDoingModuleChecks = false;
+	bool g_bDoingModuleChecks = false;
 	DWORD gGameState = 0;
 	DWORD gMaxSpawnCaptions = 30;
 	BOOL gMQCaptions = TRUE;

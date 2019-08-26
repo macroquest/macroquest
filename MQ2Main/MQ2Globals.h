@@ -66,7 +66,7 @@ EQLIB_API char gszVersion[32];
 EQLIB_VAR DWORD gdwLocalPlayer;
 EQLIB_API char gszTime[32];
 EQLIB_API int gBuild;
-EQLIB_API bool gbDoingModuleChecks;
+EQLIB_API bool g_bDoingModuleChecks;
 
 EQLIB_API ePVPServer PVPServer;
 EQLIB_API HANDLE ghInitializeMQ2SpellDb;

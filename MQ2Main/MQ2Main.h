@@ -108,8 +108,8 @@ extern CRITICAL_SECTION gPluginCS;
 #define FromPlugin 0
 #endif
 
-#define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
-#define EzDetourwName(offset,detour,trampoline,name) AddDetourf((DWORD)offset,detour,trampoline,name)
+#define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline)
+#define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
 
 #ifndef THIS_
 #define THIS_                   INTERFACE FAR* This,
@@ -188,7 +188,7 @@ EQLIB_API void InitializeMQ2Detours();
 EQLIB_API void ShutdownMQ2Detours();
 
 
-EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20, PCHAR Name = 0);
+EQLIB_API bool AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20, char* Name = 0);
 EQLIB_API void AddDetourf(DWORD address, ...);
 EQLIB_API void RemoveDetour(DWORD address);
 EQLIB_API void DeleteDetour(DWORD address);

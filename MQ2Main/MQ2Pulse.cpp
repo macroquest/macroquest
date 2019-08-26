@@ -17,7 +17,7 @@
 #include "DebugHandler.h"
 
 #include <dbghelp.h>
-#include <locale>//for tolower
+#include <locale> //for tolower
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
