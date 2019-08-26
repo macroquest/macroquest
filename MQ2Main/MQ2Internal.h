@@ -323,14 +323,14 @@ namespace MQ2Internal {
         DWORD (__cdecl *fAddress)(char*, char*, PSPAWNINFO);
     } PARMLIST, *PPARMLIST;
 
-    typedef struct _MQBENCH
-    {
-        char szName[64];
-        ULONGLONG Entry;
-        ULONGLONG LastTime;
-        ULONGLONG TotalTime;
-        ULONGLONG Count;
-    } MQBENCH, *PMQBENCH;
+	struct MQBENCH
+	{
+		char     szName[64];
+		uint64_t Entry;
+		uint64_t LastTime;
+		uint64_t TotalTime;
+		uint64_t Count;
+	};
 
     typedef struct _MQGroundPending
     {

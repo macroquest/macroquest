@@ -138,17 +138,17 @@ extern CRITICAL_SECTION gPluginCS;
 
 /* BENCHMARKING */
 #ifdef DISABLE_BENCHMARKS
-#define Benchmark(BMHandle,code) code
+#define Benchmark(BMHandle, code) code
 #else
-#define Benchmark(BMHandle,code) {EnterMQ2Benchmark(BMHandle);code;ExitMQ2Benchmark(BMHandle);}
+#define Benchmark(BMHandle, code) { EnterMQ2Benchmark(BMHandle); code; ExitMQ2Benchmark(BMHandle); }
 #endif
 EQLIB_API void ShutdownMQ2Benchmarks();
 EQLIB_API void InitializeMQ2Benchmarks();
-EQLIB_API BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest);
-EQLIB_API void ExitMQ2Benchmark(DWORD BMHandle);
-EQLIB_API void EnterMQ2Benchmark(DWORD BMHandle);
-EQLIB_API void RemoveMQ2Benchmark(DWORD BMHandle);
-EQLIB_API DWORD AddMQ2Benchmark(char* Name);
+EQLIB_API bool GetMQ2Benchmark(uint32_t BMHandle, MQBENCH& Dest);
+EQLIB_API void ExitMQ2Benchmark(uint32_t BMHandle);
+EQLIB_API void EnterMQ2Benchmark(uint32_t BMHandle);
+EQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
+EQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
 
 /* SPAWN HANDLING */
 EQLIB_API void InitializeMQ2Spawns();
