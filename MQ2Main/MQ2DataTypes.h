@@ -3698,7 +3698,7 @@ public:
 		Name = 1,
 		ID = 2,
 	};
-	MQ2RaceType() :MQ2Type("race")
+	MQ2RaceType() : MQ2Type("race")
 	{
 		TypeMember(Name);
 		TypeMember(ID);
@@ -3712,16 +3712,18 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		char* pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
-		strcpy_s(Destination,MAX_STRING, pDesc);
+		const char* pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
+		strcpy_s(Destination, MAX_STRING, pDesc);
 		return true;
 	}
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -3746,7 +3748,7 @@ public:
 		HealerType = 11,
 		MercType = 12,
 	};
-	MQ2ClassType() :MQ2Type("class")
+	MQ2ClassType() : MQ2Type("class")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);
@@ -3770,21 +3772,25 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		char* pDesc = GetClassDesc(VarPtr.DWord);
-		strcpy_s(Destination,MAX_STRING, pDesc);
+		const char* pDesc = GetClassDesc(VarPtr.DWord);
+		strcpy_s(Destination, MAX_STRING, pDesc);
+
 		return true;
 	}
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
 	}
 };
+
 class MQ2BodyType : public MQ2Type
 {
 public:

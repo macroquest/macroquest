@@ -152,7 +152,7 @@ EQLIB_API void ShutdownMQ2Spawns();
 EQLIB_API void ProcessPendingGroundItems();
 EQLIB_API void UpdateMQ2SpawnSort();
 EQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
-EQLIB_API BOOL IsTargetable(PSPAWNINFO pSpawn);
+EQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 
 /* WINDOWS */
 EQLIB_API BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);

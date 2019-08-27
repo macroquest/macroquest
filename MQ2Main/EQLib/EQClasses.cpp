@@ -644,7 +644,7 @@ FUNCTION_AT_ADDRESS(void CEverQuest::StartCasting(void*), CEverQuest__StartCasti
 FUNCTION_AT_ADDRESS(void CEverQuest::Consider(EQPlayer*, void*), CEverQuest__Consider);
 #endif
 #ifdef CEverQuest__GetClassDesc_x
-FUNCTION_AT_ADDRESS(char* CEverQuest::GetClassDesc(int), CEverQuest__GetClassDesc);
+FUNCTION_AT_ADDRESS(const char* CEverQuest::GetClassDesc(int), CEverQuest__GetClassDesc);
 #endif
 #ifdef CEverQuest__GetClassThreeLetterCode_x
 FUNCTION_AT_ADDRESS(char* CEverQuest::GetClassThreeLetterCode(int), CEverQuest__GetClassThreeLetterCode);
@@ -659,7 +659,7 @@ FUNCTION_AT_ADDRESS(char* CEverQuest::GetBodyTypeDesc(int), CEverQuest__GetBodyT
 FUNCTION_AT_ADDRESS(char* CEverQuest::GetLangDesc(int), CEverQuest__GetLangDesc);
 #endif
 #ifdef CEverQuest__GetRaceDesc_x
-FUNCTION_AT_ADDRESS(char* CEverQuest::GetRaceDesc(int), CEverQuest__GetRaceDesc);
+FUNCTION_AT_ADDRESS(const char* CEverQuest::GetRaceDesc(int), CEverQuest__GetRaceDesc);
 #endif
 #ifdef CEverQuest__GetDeityDesc_x
 FUNCTION_AT_ADDRESS(char* CEverQuest::GetDeityDesc(int), CEverQuest__GetDeityDesc);

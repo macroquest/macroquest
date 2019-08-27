@@ -75,45 +75,46 @@ static inline char* GetBodyTypeDesc(DWORD BodyTypeID)
 	return "*UNKNOWN BODYTYPE";
 }
 
-static inline char* GetClassDesc(DWORD ClassID)
+inline const char* GetClassDesc(DWORD ClassID)
 {
-	switch (ClassID) {
-		case 60:
-			return "LDoN Recruiter";
-		case 61:
-			return "LDoN Merchant";
-		case 62:
-			return "Destructible Object";
-		case 63:
-			return "Tribute Master";
-		case 64:
-			return "Guild Tribute Master";
-		case 66:
-			return "Guild Banker";
-		case 67:
-			return "Good DoN Merchant";
-		case 68:
-			return "Evil DoN Merchant";
-		case 69:
-			return "Fellowship Registrar";
-		case 70:
-			return "Merchant";
-		case 71:
-			return "Mercenary Liaison";
-		case 72:
-			return "Real Estate Merchant";
-		case 73:
-			return "Loyalty Merchant";
-		case 74:
-			return "Tribute Master";
-		case 0xFF:
-			return "Aura";
-		case 0xFE:
-			return "Banner";
-		case 0xFD:
-			return "Campfire";
-		default:
-			return pEverQuest->GetClassDesc(ClassID);
+	switch (ClassID)
+	{
+	case 60:
+		return "LDoN Recruiter";
+	case 61:
+		return "LDoN Merchant";
+	case 62:
+		return "Destructible Object";
+	case 63:
+		return "Tribute Master";
+	case 64:
+		return "Guild Tribute Master";
+	case 66:
+		return "Guild Banker";
+	case 67:
+		return "Good DoN Merchant";
+	case 68:
+		return "Evil DoN Merchant";
+	case 69:
+		return "Fellowship Registrar";
+	case 70:
+		return "Merchant";
+	case 71:
+		return "Mercenary Liaison";
+	case 72:
+		return "Real Estate Merchant";
+	case 73:
+		return "Loyalty Merchant";
+	case 74:
+		return "Tribute Master";
+	case 0xFF:
+		return "Aura";
+	case 0xFE:
+		return "Banner";
+	case 0xFD:
+		return "Campfire";
+	default:
+		return pEverQuest->GetClassDesc(ClassID);
 	}
 }
 

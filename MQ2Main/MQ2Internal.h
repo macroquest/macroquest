@@ -332,12 +332,12 @@ namespace MQ2Internal {
 		uint64_t Count;
 	};
 
-    typedef struct _MQGroundPending
-    {
-        PGROUNDITEM pGroundItem;
-        struct _MQGroundPending *pLast;
-        struct _MQGroundPending *pNext;
-    } MQGROUNDPENDING, *PMQGROUNDPENDING;
+	struct MQGroundPending
+	{
+		GROUNDITEM*          pGroundItem;
+		MQGroundPending*     pLast;
+		MQGroundPending*     pNext;
+	};
 
 	struct MQPlugin
 	{

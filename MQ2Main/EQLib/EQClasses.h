@@ -453,13 +453,13 @@ public:
 	EQLIB_OBJECT bool ReadClientINIBool(char*, char*, bool);
 	EQLIB_OBJECT bool ReadUIINIBool(char*, char*, bool);
 	EQLIB_OBJECT char* GetBodyTypeDesc(int);
-	EQLIB_OBJECT char* GetClassDesc(int);
+	EQLIB_OBJECT const char* GetClassDesc(int);
 	EQLIB_OBJECT char* GetClassThreeLetterCode(int);
 	EQLIB_OBJECT char* GetDeityDesc(int);
 	EQLIB_OBJECT char* GetInnateDesc(int);
 	EQLIB_OBJECT char* GetItemClassDesc(int);
 	EQLIB_OBJECT char* GetLangDesc(int);
-	EQLIB_OBJECT char* GetRaceDesc(int);
+	EQLIB_OBJECT const char* GetRaceDesc(int);
 	EQLIB_OBJECT char* GetSingleMessage(uint32_t, int, int*, char*);
 	EQLIB_OBJECT char* GrabFirstWord(char*, char*);
 	EQLIB_OBJECT char* GrabFirstWord2(char*, char*, int);

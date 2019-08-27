@@ -1120,7 +1120,7 @@ public:
 	void UpdateBonePointers();
 	void UpdateNameSprite();
 	void UpdatePlayerVisibility();
-	void ChangeBoneStringSprite(int bone, char* spriteText);
+	void ChangeBoneStringSprite(int bone, const char* spriteText);
 	int SetNameSpriteState(bool);
 	bool SetNameSpriteTint();
 

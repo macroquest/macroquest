@@ -2322,13 +2322,15 @@ template <unsigned int _Size> char* FormatCount(char* szEffectName, LONG value, 
 	return szBuffer;
 }
 
-template <unsigned int _Size> char* FormatExtra(char* szEffectName, char* extra, char(&szBuffer)[_Size], char* trigger = "", char* colon = ":")
+template <unsigned int _Size>
+char* FormatExtra(const char* szEffectName, const char* extra, char(&szBuffer)[_Size], const char* trigger = "", const char* colon = ":")
 {
 	sprintf_s(szBuffer, "%s%s %s%s", szEffectName, colon, extra, trigger);
 	return szBuffer;
 }
 
-template <unsigned int _Size> char* FormatLimits(char* szEffectName, LONG value, char* extra, char(&szBuffer)[_Size])
+template <unsigned int _Size>
+char* FormatLimits(char* szEffectName, LONG value, char* extra, char(&szBuffer)[_Size])
 {
 	sprintf_s(szBuffer, "%s (%s %s)", szEffectName, extra, value<0 ? "excluded" : "allowed");
 	return szBuffer;

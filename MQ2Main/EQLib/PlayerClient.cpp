@@ -307,7 +307,7 @@ FUNCTION_AT_ADDRESS(bool PlayerZoneClient::CanChangeForm(int Race, BYTE Sex, flo
 FUNCTION_AT_ADDRESS(int PlayerClient::SetNameSpriteState(bool), EQPlayer__SetNameSpriteState);
 #endif
 #ifdef EQPlayer__ChangeBoneStringSprite_x
-FUNCTION_AT_ADDRESS(void PlayerClient::ChangeBoneStringSprite(int, char*), EQPlayer__ChangeBoneStringSprite);
+FUNCTION_AT_ADDRESS(void PlayerClient::ChangeBoneStringSprite(int, const char*), EQPlayer__ChangeBoneStringSprite);
 #endif
 #ifdef EQPlayer__SetNameSpriteTint_x
 FUNCTION_AT_ADDRESS(bool PlayerClient::SetNameSpriteTint(), EQPlayer__SetNameSpriteTint);
