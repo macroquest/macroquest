@@ -936,25 +936,30 @@ BOOL dataIni(char* szIndex, MQ2TYPEVAR& Ret)
 	}
 	if (!_FileExists(IniFile.c_str()))
 	{
-		if (Default.size())
+		if (!Default.empty())
 		{
-			if (gknightlyparse)
+			if (bNoParse)
 			{
-				// If we're set not to parse and there's a ${
-				if (bNoParse && Default.find("${") != std::string::npos)
+				if (gdwParserEngineVer == 2)
 				{
-					// Wrap this in a $Parse[0 so it doesn't get parsed
-					Default = PARSE_PARAM_BEG + "0," + Default + PARSE_PARAM_END;
+					// If we're set not to parse and there's a ${
+					if (Default.find("${") != std::string::npos)
+					{
+						// Modify Macro String with parameter 0 to wrap Parse Zero
+						Default = ModifyMacroString(Default, true, 0);
+					}
 				}
-			}
-			else
-			{
+
 				// I think the below is actually wrong, since it's checking whatever was stored in
 				// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
-				// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
-				if (bNoParse && strchr(DataTypeTemp, '$'))
+				// to see if DataTypeTemp was getting set to default somewhere else and this is how
+				// it was originally in parser v1. So I left it.  -- Knightly
+				else if (strchr(DataTypeTemp, '$'))
+				{
 					bAllowCommandParse = false;
+				}
 			}
+
 			strcpy_s(DataTypeTemp, Default.c_str());
 			Ret.Ptr = &DataTypeTemp[0];
 			Ret.Type = pStringType;
@@ -962,6 +967,7 @@ BOOL dataIni(char* szIndex, MQ2TYPEVAR& Ret)
 		}
 		return false;
 	}
+
 	DWORD nSize = 0;
 	if (Section.size() && Key.size()) {
 		nSize = GetPrivateProfileString(Section.c_str(), Key.c_str(), Default.c_str(), DataTypeTemp, MAX_STRING, IniFile.c_str());
@@ -983,43 +989,53 @@ BOOL dataIni(char* szIndex, MQ2TYPEVAR& Ret)
 					DataTypeTemp[N] = '|';
 		if ((Section.size() == 0 || Key.size() == 0) && (nSize<MAX_STRING - 3))
 			strcat_s(DataTypeTemp, "||");
-		if (gknightlyparse)
+
+		if (bNoParse)
 		{
-			// If we are not supposed to parse and there is a ${
-			if (bNoParse && strstr(DataTypeTemp, "${"))
+			if (gdwParserEngineVer == 2)
 			{
-				// Modify Macro String with parameter 0 to wrap Parse Zero
-				strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, 0).c_str());
+				// If we are not supposed to parse and there is a ${
+				if (strstr(DataTypeTemp, "${"))
+				{
+					// Modify Macro String with parameter 0 to wrap Parse Zero
+					strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, 0).c_str());
+				}
 			}
-		}
-		else
-		{
-			if (bNoParse && strchr(DataTypeTemp, '$'))
+			else if (strchr(DataTypeTemp, '$'))
+			{
 				bAllowCommandParse = false;
+			}
 		}
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;
 		return true;
 	}
-	if (Default.size())
+
+	if (!Default.empty())
 	{
-		if (gknightlyparse)
+		if (bNoParse)
 		{
-			// If we're set not to parse and there's a ${
-			if (bNoParse && Default.find("${") != std::string::npos)
+			if (gdwParserEngineVer == 2)
 			{
-				// Modify Macro String with parameter 0 to wrap Parse Zero
-				Default = ModifyMacroString(Default, true, 0);
+				// If we're set not to parse and there's a ${
+				if (Default.find("${") != std::string::npos)
+				{
+
+					// Modify Macro String with parameter 0 to wrap Parse Zero
+					Default = ModifyMacroString(Default, true, 0);
+				}
 			}
-		}
-		else
-		{
+
 			// I think the below is actually wrong, since it's checking whatever was stored in
 			// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
-			// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
-			if (bNoParse && strchr(DataTypeTemp, '$'))
+			// to see if DataTypeTemp was getting set to default somewhere else and this is how
+			// it was originally in parser v1. So I left it.  -- Knightly
+			else if (strchr(DataTypeTemp, '$'))
+			{
 				bAllowCommandParse = false;
+			}
 		}
+
 		strcpy_s(DataTypeTemp, Default.c_str());
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;

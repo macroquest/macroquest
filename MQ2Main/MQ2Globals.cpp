@@ -402,11 +402,14 @@ namespace MQ2Globals
 	bool bRunNextCommand = false;
 	BOOL gTurbo = FALSE;
 	BOOL gWarning = FALSE;
-	BOOL gknightlyparse = FALSE;
 	PDEFINE pDefines = nullptr;
 	PBINDLIST pBindList = nullptr;
 	char gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = nullptr;
+
+	// TODO: Remove this once the parsing engine is fully backwards compatible.
+	// Alternatively, move it into the macro block.
+	DWORD gdwParserEngineVer = 1;
 
 	MOUSESPOOF* gMouseData = nullptr;
 	bool bDetMouse = true;

@@ -81,7 +81,7 @@ EQLIB_API void DoEvents                            (PSPAWNINFO pChar, char* szLi
 EQLIB_API void DoSocial                            (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void Doors                               (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void DoorTarget                          (PSPAWNINFO pChar, char* szLine);
-EQLIB_API void Exec                                (PSPAWNINFO pChar, char* szLine); 
+EQLIB_API void Exec                                (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void Face                                (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void Filter                              (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void Help                                (PSPAWNINFO pChar, char* szLine);
@@ -128,4 +128,5 @@ EQLIB_API void UserCameraCmd                       (PSPAWNINFO pChar, char* szLi
 EQLIB_API void MapZoomCmd                          (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void ForeGroundCmd                       (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void QuitCmd                             (PSPAWNINFO pChar, char* szLine);
+EQLIB_API void EngineCommand                       (PSPAWNINFO pChar, char* szLine);
 #endif

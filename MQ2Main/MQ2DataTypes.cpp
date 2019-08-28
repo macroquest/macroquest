@@ -10028,7 +10028,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, M
 		UINT    uVersionLen;
 		BOOL    bRetCode;
 		HMODULE hMq2Main = 0;// GetModuleHandle("mq2main.dll");
-		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)&DataTypeTemp, &hMq2Main);
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)& DataTypeTemp, &hMq2Main);
 		GetModuleFileName(hMq2Main, szResult, 2048);
 		dwVerInfoSize = GetFileVersionInfoSize(szResult, &dwVerHnd);
 		if (dwVerInfoSize) {
@@ -10038,22 +10038,22 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, M
 			lpstrVffInfo = (LPSTR)GlobalLock(hMem);
 			GetFileVersionInfo(szResult, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
 
-			sprintf_s(szGetName,"%s","\\VarFileInfo\\Translation");
+			sprintf_s(szGetName, "%s", "\\VarFileInfo\\Translation");
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo, szGetName, (void**)& lpVersion, (UINT*)& uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
-				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD *)lpVersion)),(WORD)(*((DWORD *)lpVersion) >> 16));
+				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD*)lpVersion)), (WORD)(*((DWORD*)lpVersion) >> 16));
 			}
 			else {
-				sprintf_s(szResult, "%s","041904b0");
+				sprintf_s(szResult, "%s", "041904b0");
 			}
 			sprintf_s(szGetName, "\\StringFileInfo\\%s\\FileVersion", szResult);
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo, szGetName, (void**)& lpVersion, (UINT*)& uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
-				sprintf_s(DataTypeTemp,"%s", lpVersion);
+				sprintf_s(DataTypeTemp, "%s", lpVersion);
 			}
 			GlobalFree(hMem);
 		}
@@ -10074,7 +10074,7 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, M
 		UINT    uVersionLen;
 		BOOL    bRetCode;
 		HMODULE hMq2Main = 0;// GetModuleHandle("mq2main.dll");
-		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)&DataTypeTemp, &hMq2Main);
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)& DataTypeTemp, &hMq2Main);
 		GetModuleFileName(hMq2Main, szResult, 2048);
 		dwVerInfoSize = GetFileVersionInfoSize(szResult, &dwVerHnd);
 		if (dwVerInfoSize) {
@@ -10084,31 +10084,37 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, M
 			lpstrVffInfo = (LPSTR)GlobalLock(hMem);
 			GetFileVersionInfo(szResult, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
 
-			sprintf_s(szGetName,"%s","\\VarFileInfo\\Translation");
+			sprintf_s(szGetName, "%s", "\\VarFileInfo\\Translation");
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo, szGetName, (void**)& lpVersion, (UINT*)& uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
-				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD *)lpVersion)),(WORD)(*((DWORD *)lpVersion) >> 16));
+				sprintf_s(szResult, "%04x%04x", (WORD)(*((DWORD*)lpVersion)), (WORD)(*((DWORD*)lpVersion) >> 16));
 			}
 			else {
-				sprintf_s(szResult, "%s","041904b0");
+				sprintf_s(szResult, "%s", "041904b0");
 			}
 			sprintf_s(szGetName, "\\StringFileInfo\\%s\\InternalName", szResult);
 			uVersionLen = 0;
 			lpVersion = NULL;
-			bRetCode = VerQueryValue((void*)lpstrVffInfo,szGetName,(void **)&lpVersion,(UINT *)&uVersionLen);
+			bRetCode = VerQueryValue((void*)lpstrVffInfo, szGetName, (void**)& lpVersion, (UINT*)& uVersionLen);
 			if (bRetCode && uVersionLen && lpVersion) {
-				sprintf_s(DataTypeTemp,"%s", lpVersion);
+				sprintf_s(DataTypeTemp, "%s", lpVersion);
 			}
 			GlobalFree(hMem);
 		}
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}
+	case Parser:
+	{
+		Dest.DWord = gdwParserEngineVer;
+		Dest.Type = pIntType;
+	}
 	}
 	return false;
 }
+
 bool MQ2CharSelectListType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	PMQ2TYPEMEMBER pMember = MQ2CharSelectListType::FindMember(Member);

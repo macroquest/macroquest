@@ -602,7 +602,6 @@ EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// used for KNIGHTLYPARSE
 // Parse Operations
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);

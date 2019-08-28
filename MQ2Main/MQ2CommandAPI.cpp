@@ -171,27 +171,14 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 
 		if (Pos == 0)
 		{
-			if (gknightlyparse)
+			// the parser version is 2 or It's not version 2 and we're allowing command parses
+			if (pCommand->Parse && (gdwParserEngineVer == 2 || (gdwParserEngineVer != 2 && bAllowCommandParse)))
 			{
-				if (pCommand->Parse)
-				{
-					pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
-				}
-				else
-				{
-					pCommand->Function(pChar, szParam);
-				}
+				pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
 			}
 			else
 			{
-				if (pCommand->Parse && bAllowCommandParse)
-				{
-					pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
-				}
-				else
-				{
-					pCommand->Function(pChar, szParam);
-				}
+				pCommand->Function(pChar, szParam);
 			}
 
 			strcpy_s(szLastCommand, szOriginalLine);
@@ -225,14 +212,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 					char szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
 
-					if (gknightlyparse)
-					{
-						if (pBind->Parse)
-						{
-							ParseMacroData(szCallFunc, MAX_STRING);
-						}
-					}
-					else
+					if (pBind->Parse)
 					{
 						ParseMacroData(szCallFunc, MAX_STRING);
 					}
@@ -403,19 +383,10 @@ public:
 
 				if (Pos == 0)
 				{
-					if (gknightlyparse)
+					// the parser version is 2 or It's not version 2 and we're allowing command parses
+					if (pCommand->Parse && (gdwParserEngineVer == 2 || (gdwParserEngineVer != 2 && bAllowCommandParse)))
 					{
-						if (pCommand->Parse)
-						{
-							ParseMacroParameter(pChar, szArgs);
-						}
-					}
-					else
-					{
-						if (pCommand->Parse && bAllowCommandParse)
-						{
-							ParseMacroParameter(pChar, szArgs);
-						}
+						ParseMacroParameter(pChar, szArgs);
 					}
 
 					if (pCommand->EQ)
@@ -462,14 +433,7 @@ public:
 							char szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
 
-							if (gknightlyparse)
-							{
-								if (pBind->Parse)
-								{
-									ParseMacroData(szCallFunc, MAX_STRING);
-								}
-							}
-							else
+							if (pBind->Parse)
 							{
 								ParseMacroData(szCallFunc, MAX_STRING);
 							}
@@ -916,6 +880,7 @@ void InitializeMQ2Commands()
 		{ "/mapzoom",           MapZoomCmd,                 true,  false },
 		{ "/foreground",        ForeGroundCmd,              true,  false },
 		{ "/quit",              QuitCmd,                    true,  false },
+		{ "/engine",            EngineCommand,              true,  false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};

@@ -207,7 +207,6 @@ EQLIB_VAR bool bRunNextCommand;
 EQLIB_VAR BOOL bAllowCommandParse;
 EQLIB_VAR BOOL gTurbo;
 EQLIB_VAR BOOL gWarning;
-EQLIB_VAR BOOL gknightlyparse;
 EQLIB_VAR PDEFINE pDefines;
 EQLIB_VAR PBINDLIST pBindList;
 EQLIB_VAR PFILTER gpFilters;
@@ -728,9 +727,12 @@ EQLIB_VAR int  oldcameratype;
 EQLIB_VAR char CameraText[2048];
 EQLIB_VAR BOOL gbIgnoreAlertRecursion;
 
-// used for KNIGHTLYPARSE
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
+
+EQLIB_VAR DWORD gdwParserEngineVer;
+// The below needs to match the command in MQ2CommandAPI.cp (without the slash)
+const std::string ENGINE_SWITCH_CMD = "engine";
 
 #if __has_include("MQ2Globals-private.h")
 #include "MQ2Globals-private.h"

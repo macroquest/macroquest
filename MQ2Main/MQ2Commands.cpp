@@ -305,6 +305,79 @@ void KeepKeys(PSPAWNINFO pChar, char* szLine)
 }
 
 // ***************************************************************************
+// Function:      EngineCommand
+// Description:   Allows for switching engines.
+// Usage:         /engine <type> <version> [noauto]
+// ***************************************************************************
+void EngineCommand(SPAWNINFO* pChar, char* szLine)
+{
+	bool bNoAuto = false;
+
+	if (strstr(szLine, "noauto") != nullptr)
+	{
+		bNoAuto = true;
+	}
+
+	char szBuffer[MAX_STRING] = { 0 };
+
+	// TODO: Fix GetArg and shorten the length of these. Probably 10 & 3 are good.
+	// GetArg crashes if you pass it anything except MAX_STRING due to RtlZeroMemory
+	char szEngine[MAX_STRING] = { 0 };
+	char szVersion[MAX_STRING] = { 0 };
+	GetArg(szEngine, szLine, 1);
+	GetArg(szVersion, szLine, 2);
+
+	if (strlen(szEngine) == 0)
+	{
+		SyntaxError("Usage: /%s parser <version> [noauto]", ENGINE_SWITCH_CMD.c_str());
+		return;
+	}
+
+	if (!_stricmp(szEngine, "parser"))
+	{
+		if (strlen(szVersion) == 0)
+		{
+			SyntaxError("Usage: /%s parser <version> [noauto]", ENGINE_SWITCH_CMD.c_str());
+			return;
+		}
+
+		char* szEndPtr = nullptr;
+		errno = 0;
+		const int iVersion = strtol(szVersion, &szEndPtr, 0);
+
+		// If out of range || extra stuff left || no conversion
+		if (errno == ERANGE || *szEndPtr != '\0' || szVersion == szEndPtr)
+		{
+			SyntaxError("Invalid Parser Version (%s) valid versions are 1 or 2.", szVersion);
+			return;
+
+		}
+
+		switch (iVersion)
+		{
+		case 2:
+		case 1:
+			gdwParserEngineVer = iVersion;
+			if (!bNoAuto)
+			{
+				WritePrivateProfileString("MacroQuest", ("Parser" + ENGINE_SWITCH_CMD).c_str(), szVersion, gszINIFilename);
+			}
+
+			WriteChatf("Parser Version %d Enabled", iVersion);
+			break;
+
+		default:
+			MacroError("Invalid Parser Version (%d) valid versions are 1 or 2.", iVersion);
+			break;
+		}
+
+		return;
+	}
+
+	SyntaxError("Invalid Engine type (%s). Valid types are: parser", szEngine);
+}
+
+// ***************************************************************************
 // Function:      PluginCommand
 // Description:   Our /plugin command.
 // ***************************************************************************
@@ -3735,7 +3808,7 @@ void NoParseCmd(PSPAWNINFO pChar, char* szLine)
 		SyntaxError("Usage: /noparse <command>");
 		return;
 	}
-	if (gknightlyparse)
+	if (gdwParserEngineVer == 2)
 	{
 		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
 		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.

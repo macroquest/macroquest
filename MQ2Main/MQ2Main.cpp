@@ -158,6 +158,7 @@ BOOL ParseINIFile(char* lpINIPath)
 	gNetStatusYPos = GetPrivateProfileInt("MacroQuest","NetStatusYPos",0,Filename);
 	StackingDebug = GetPrivateProfileInt("MacroQuest","BuffStackTestDebug",0,Filename); gStackingDebug = (StackingDebug == 2 ? -1 : StackingDebug);
 	gUseNewNamedTest = 1 == GetPrivateProfileInt("MacroQuest", "UseNewNamedTest", 0, Filename);
+	gdwParserEngineVer = GetPrivateProfileInt("MacroQuest", ("Parser" + ENGINE_SWITCH_CMD).c_str(), 1, Filename);
 
 	GetPrivateProfileString("Macroquest","IfDelimiter",",",Delimiter,MAX_STRING,Filename); gIfDelimiter = Delimiter[0];
 	GetPrivateProfileString("Macroquest","IfAltDelimiter","~",Delimiter,MAX_STRING,Filename); gIfAltDelimiter = Delimiter[0];
