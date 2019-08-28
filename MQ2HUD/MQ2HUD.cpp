@@ -12,211 +12,244 @@
  * GNU General Public License for more details.
  */
 
-// Cr4zyb4rd patch: 1/7/2005
-// Updated Sep 09 2017 by eqmule to take undeclared macro variables into account
+ // Cr4zyb4rd patch: 1/7/2005
+ // Updated Sep 09 2017 by eqmule to take undeclared macro variables into account
 
 #include "../MQ2Plugin.h"
 
-HANDLE hHudLock = 0;
-bool bEQHasFocus=true;
-
-typedef struct _HUDELEMENT {
-    DWORD Type;
-    DWORD Size;
-    LONG X;
-    LONG Y;
-    DWORD Color;
-    char Text[MAX_STRING];
-    char PreParsed[MAX_STRING];
-    struct _HUDELEMENT *pNext;
-} HUDELEMENT, *PHUDELEMENT;
-
-#define HUDTYPE_NORMAL      1
-#define HUDTYPE_FULLSCREEN  2
-#define HUDTYPE_CURSOR      4
-#define HUDTYPE_CHARSELECT  8
-#define HUDTYPE_MACRO      16
+#include <mutex>
 
 PreSetup("MQ2HUD");
 
-PHUDELEMENT pHud=0;
-struct _stat LastRead;
+enum HudType
+{
+	HUDTYPE_NORMAL     = 0x0001,
+	HUDTYPE_FULLSCREEN = 0x0002,
+	HUDTYPE_CURSOR     = 0x0004,
+	HUDTYPE_CHARSELECT = 0x0008,
+	HUDTYPE_MACRO      = 0x0010,
+};
 
-char HUDNames[MAX_STRING]="Elements";
-char HUDSection[MAX_STRING]="MQ2HUD";
-int SkipParse=1;
-int CheckINI=10;
+struct HUDELEMENT
+{
+	HudType     Type;
+	DWORD       Size;
+	int         X;
+	int         Y;
+	DWORD       Color;
+	char        Text[MAX_STRING];
+	char        PreParsed[MAX_STRING];
+
+	HUDELEMENT* pNext;
+};
+HUDELEMENT* pHud = nullptr;
+
+struct _stat LastRead;
+char HUDNames[MAX_STRING] = "Elements";
+char HUDSection[MAX_STRING] = "MQ2HUD";
+int SkipParse = 1;
+int CheckINI = 10;
 bool bBGUpdate = true;
 bool bClassHUD = true;
 bool bZoneHUD = true;
 bool bUseFontSize = false;
+bool bEQHasFocus = true;
+std::recursive_mutex s_mutex;
 
-BOOL Stat(char* Filename, struct _stat &Dest)
+bool Stat(const char* Filename, struct _stat& Dest)
 {
 	int client = 0;
-	errno_t err = _sopen_s(&client, Filename, _O_RDONLY,_SH_DENYNO, _S_IREAD | _S_IWRITE);
-    if (err) {
-        return FALSE;
-    }
-    _fstat(client,&Dest);
-    _close(client);
-    return TRUE;
+	errno_t err = _sopen_s(&client, Filename, _O_RDONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+	if (err)
+		return false;
+	_fstat(client, &Dest);
+	_close(client);
+	return true;
 }
 
 void ClearElements()
 {
-	lockit lk(hHudLock,"HudLock");
-    while(pHud)
-    {
-        PHUDELEMENT pNext=pHud->pNext;
-        delete pHud;
-        pHud=pNext;
-    }
+	std::scoped_lock lock(s_mutex);
+
+	while (pHud)
+	{
+		HUDELEMENT* pNext = pHud->pNext;
+		delete pHud;
+		pHud = pNext;
+	}
 }
 
 void AddElement(char* IniString)
 {
-	lockit lk(hHudLock,"HudLock");
-    LONG X;
-    LONG Y;
-    DWORD Type;
-    ARGBCOLOR Color;
-    Color.A=0xFF;
-    // x,y,color,string
-    char* pComma;
-    DWORD Size;
+	std::scoped_lock lock(s_mutex);
 
-    pComma=strchr(IniString,',');
-    if (!pComma)
-        return;
-    *pComma=0;
-    Type=atoi(IniString);
-    IniString=&pComma[1];
+	int X = 0;
+	int Y = 0;
+	DWORD Type;
+	ARGBCOLOR Color;
+	Color.A = 0xFF;
 
-    if(bUseFontSize)
-    {
-        pComma=strchr(IniString,',');
-        if (!pComma)
-            return;
-        *pComma=0;
-        Size=atoi(IniString);
-        IniString=&pComma[1];
-    }
-    else
-    {
-        Size=2;
-    }
+	// x,y,color,string
+	size_t Size = 0;
 
-    pComma=strchr(IniString,',');
-    if (!pComma)
-        return;
-    *pComma=0;
-    X=atoi(IniString);
-    IniString=&pComma[1];
+	char* pComma = strchr(IniString, ',');
+	if (!pComma)
+		return;
+	*pComma = 0;
+	Type = atoi(IniString);
+	IniString = &pComma[1];
 
-    //y
-    pComma=strchr(IniString,',');
-    if (!pComma)
-        return;
-    *pComma=0;
-    Y=atoi(IniString);
-    IniString=&pComma[1];
+	if (bUseFontSize)
+	{
+		pComma = strchr(IniString, ',');
+		if (!pComma)
+			return;
+		*pComma = 0;
+		Size = atoi(IniString);
+		IniString = &pComma[1];
+	}
+	else
+	{
+		Size = 2;
+	}
 
-    //color R
-    pComma=strchr(IniString,',');
-    if (!pComma)
-        return;
-    *pComma=0;
-    Color.R=atoi(IniString);
-    IniString=&pComma[1];
+	pComma = strchr(IniString, ',');
+	if (!pComma)
+		return;
+	*pComma = 0;
+	X = atoi(IniString);
+	IniString = &pComma[1];
 
-    //color G
-    pComma=strchr(IniString,',');
-    if (!pComma)
-        return;
-    *pComma=0;
-    Color.G=atoi(IniString);
-    IniString=&pComma[1];
+	// y
+	pComma = strchr(IniString, ',');
+	if (!pComma)
+		return;
+	*pComma = 0;
+	Y = atoi(IniString);
+	IniString = &pComma[1];
 
-    //color B
-    pComma=strchr(IniString,',');
-    if (!pComma)
-        return;
-    *pComma=0;
-    Color.B=atoi(IniString);
-    IniString=&pComma[1];
+	// color R
+	pComma = strchr(IniString, ',');
+	if (!pComma)
+		return;
+	*pComma = 0;
+	Color.R = atoi(IniString);
+	IniString = &pComma[1];
 
-    //string
-    if (!IniString[0])
-        return;
-    PHUDELEMENT pElement=new HUDELEMENT;
-    pElement->pNext=pHud;
-    pHud=pElement;
-    pElement->Type=Type;
-    pElement->Color=Color.ARGB;
-    pElement->X=X;
-    pElement->Y=Y;
-    strcpy_s(pElement->Text,IniString);
-	ZeroMemory(pElement->PreParsed,sizeof(pElement->PreParsed));
-    pElement->Size=Size;
+	// color G
+	pComma = strchr(IniString, ',');
+	if (!pComma)
+		return;
+	*pComma = 0;
+	Color.G = atoi(IniString);
+	IniString = &pComma[1];
 
-    DebugSpew("New element '%s' in color %X",pElement->Text,pElement->Color);
+	// color B
+	pComma = strchr(IniString, ',');
+	if (!pComma)
+		return;
+	*pComma = 0;
+	Color.B = atoi(IniString);
+	IniString = &pComma[1];
+
+	// string
+	if (!IniString[0])
+		return;
+
+	HUDELEMENT* pElement = new HUDELEMENT;
+	pElement->pNext = pHud;
+	pHud = pElement;
+	pElement->Type = static_cast<HudType>(Type);
+	pElement->Color = Color.ARGB;
+	pElement->X = X;
+	pElement->Y = Y;
+	strcpy_s(pElement->Text, IniString);
+	ZeroMemory(pElement->PreParsed, sizeof(pElement->PreParsed));
+	pElement->Size = Size;
+
+	DebugSpew("New element '%s' in color %X", pElement->Text, pElement->Color);
 }
 
 void LoadElements()
 {
-    ClearElements();
-	lockit lk(hHudLock,"HudLock");
-    char ElementList[MAX_STRING*10] = {0};
-    char szBuffer[MAX_STRING], CurrentHUD[MAX_STRING] = {0};
-    char ClassDesc[MAX_STRING], ZoneName[MAX_STRING] = {0};
-    int argn=1;
-    GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
-    while (*CurrentHUD) {
-        GetPrivateProfileString(CurrentHUD,NULL,"",ElementList,MAX_STRING*10,INIFileName);
-        char* pElementList = ElementList;
-        while (pElementList[0]!=0) {
-            GetPrivateProfileString(CurrentHUD,pElementList,"",szBuffer,MAX_STRING,INIFileName);
-            if (szBuffer[0]!=0) {
-                AddElement(szBuffer);
-            }
-            pElementList+=strlen(pElementList)+1;
-        }
-        GetArg(CurrentHUD,HUDNames,++argn,0,0,0,',');
-    }
-    if (gGameState==GAMESTATE_INGAME) {
-        if (bClassHUD && ((ppCharData) && (pCharData))) {
-			if (CHARINFO2* pChar2 = GetCharInfo2()) {
-				sprintf_s(ClassDesc, "%s", GetClassDesc(pChar2->Class));
-				GetPrivateProfileString(ClassDesc, NULL, "", ElementList, MAX_STRING * 10, INIFileName);
+	ClearElements();
+
+	std::scoped_lock lock(s_mutex);
+
+	char ElementList[MAX_STRING * 10] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
+	char CurrentHUD[MAX_STRING] = { 0 };
+	char ClassDesc[MAX_STRING] = { 0 };
+	char ZoneName[MAX_STRING] = { 0 };
+	int argn = 1;
+
+	GetArg(CurrentHUD, HUDNames, argn, 0, 0, 0, ',');
+	while (*CurrentHUD)
+	{
+		GetPrivateProfileString(CurrentHUD, nullptr, "", ElementList, MAX_STRING * 10, INIFileName);
+		char* pElementList = ElementList;
+		while (pElementList[0] != 0) {
+			GetPrivateProfileString(CurrentHUD, pElementList, "", szBuffer, MAX_STRING, INIFileName);
+			if (szBuffer[0] != 0) {
+				AddElement(szBuffer);
+			}
+			pElementList += strlen(pElementList) + 1;
+		}
+		GetArg(CurrentHUD, HUDNames, ++argn, 0, 0, 0, ',');
+	}
+
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		if (bClassHUD && ((ppCharData) && (pCharData)))
+		{
+			if (CHARINFO2* pChar2 = GetCharInfo2())
+			{
+				strcpy_s(ClassDesc, GetClassDesc(pChar2->Class));
+				GetPrivateProfileString(ClassDesc, nullptr, "", ElementList, MAX_STRING * 10, INIFileName);
+
 				char* pElementList = ElementList;
-				while (pElementList[0] != 0) {
+				while (pElementList[0] != 0)
+				{
 					GetPrivateProfileString(ClassDesc, pElementList, "", szBuffer, MAX_STRING, INIFileName);
-					if (szBuffer[0] != 0) {
+
+					if (szBuffer[0] != 0)
+					{
 						AddElement(szBuffer);
 					}
+
 					pElementList += strlen(pElementList) + 1;
 				}
 			}
-        }
-        if (bZoneHUD && (pZoneInfo)) {
-            sprintf_s(ZoneName,"%s",((PZONEINFO)pZoneInfo)->LongName);
-            GetPrivateProfileString(ZoneName,NULL,"",ElementList,MAX_STRING*10,INIFileName);
-            char* pElementList = ElementList;
-            while (pElementList[0]!=0) {
-                GetPrivateProfileString(ZoneName,pElementList,"",szBuffer,MAX_STRING,INIFileName);
-                if (szBuffer[0]!=0) {
-                    AddElement(szBuffer);
-                }
-                pElementList+=strlen(pElementList)+1;
-            }
-        }
-    }
+		}
 
-    if (!Stat(INIFileName,LastRead))
-        ZeroMemory(&LastRead,sizeof(struct _stat));
+		if (bZoneHUD && (pZoneInfo))
+		{
+			strcpy_s(ZoneName, ((ZONEINFO*)pZoneInfo)->LongName);
+			GetPrivateProfileString(ZoneName, nullptr, "", ElementList, MAX_STRING * 10, INIFileName);
+
+			char* pElementList = ElementList;
+			while (pElementList[0] != 0)
+			{
+				GetPrivateProfileString(ZoneName, pElementList, "", szBuffer, MAX_STRING, INIFileName);
+
+				if (szBuffer[0] != 0)
+				{
+					AddElement(szBuffer);
+				}
+
+				pElementList += strlen(pElementList) + 1;
+			}
+		}
+	}
+
+	if (!Stat(INIFileName, LastRead))
+	{
+		ZeroMemory(&LastRead, sizeof(struct _stat));
+	}
 }
-template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+
+template <unsigned int _Size>
+LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
 {
 	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
 	if (!err) {
@@ -224,227 +257,238 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
+
 void HandleINI()
 {
-	lockit lk(hHudLock,"HudLock");
-    char szBuffer[MAX_STRING] = {0};
-    WritePrivateProfileString(HUDSection,"Last",HUDNames,INIFileName);
-    SkipParse = GetPrivateProfileInt(HUDSection,"SkipParse",1,INIFileName);
-    SkipParse = SkipParse < 1 ? 1 : SkipParse;
-    CheckINI = GetPrivateProfileInt(HUDSection,"CheckINI",10,INIFileName);
-    CheckINI = CheckINI < 10 ? 10 : CheckINI;
-    GetPrivateProfileString(HUDSection,"UpdateInBackground","on",szBuffer,MAX_STRING,INIFileName);
-    bBGUpdate = _strnicmp(szBuffer,"on",2)?false:true;
-    GetPrivateProfileString(HUDSection,"ClassHUD","on",szBuffer,MAX_STRING,INIFileName);
-    bClassHUD = _strnicmp(szBuffer,"on",2)?false:true;
-    GetPrivateProfileString(HUDSection,"ZoneHUD","on",szBuffer,MAX_STRING,INIFileName);
-    bZoneHUD = _strnicmp(szBuffer,"on",2)?false:true;
-    GetPrivateProfileString("MQ2HUD","UseFontSize","off",szBuffer,MAX_STRING,INIFileName);
-    bUseFontSize = _strnicmp(szBuffer,"on",2)?false:true;
-    // Write the SkipParse and CheckINI section, in case they didn't have one
-    WritePrivateProfileString(HUDSection,"SkipParse",SafeItoa(SkipParse,szBuffer,10),INIFileName);
-    WritePrivateProfileString(HUDSection,"CheckINI",SafeItoa(CheckINI,szBuffer,10),INIFileName);
-    WritePrivateProfileString(HUDSection,"UpdateInBackground",bBGUpdate?"on":"off",INIFileName);
-    WritePrivateProfileString(HUDSection,"ClassHUD",bClassHUD?"on":"off",INIFileName);
-    WritePrivateProfileString(HUDSection,"ZoneHUD",bZoneHUD?"on":"off",INIFileName);
-    WritePrivateProfileString("MQ2HUD","UseFontSize",bUseFontSize?"on":"off",INIFileName);
+	std::scoped_lock lock(s_mutex);
 
-    LoadElements();
+	char szBuffer[MAX_STRING] = { 0 };
+	WritePrivateProfileString(HUDSection, "Last", HUDNames, INIFileName);
+
+	SkipParse = GetPrivateProfileInt(HUDSection, "SkipParse", 1, INIFileName);
+	SkipParse = SkipParse < 1 ? 1 : SkipParse;
+
+	CheckINI = GetPrivateProfileInt(HUDSection, "CheckINI", 10, INIFileName);
+	CheckINI = CheckINI < 10 ? 10 : CheckINI;
+
+	GetPrivateProfileString(HUDSection, "UpdateInBackground", "on", szBuffer, MAX_STRING, INIFileName);
+	bBGUpdate = _strnicmp(szBuffer, "on", 2) ? false : true;
+
+	GetPrivateProfileString(HUDSection, "ClassHUD", "on", szBuffer, MAX_STRING, INIFileName);
+	bClassHUD = _strnicmp(szBuffer, "on", 2) ? false : true;
+
+	GetPrivateProfileString(HUDSection, "ZoneHUD", "on", szBuffer, MAX_STRING, INIFileName);
+	bZoneHUD = _strnicmp(szBuffer, "on", 2) ? false : true;
+
+	GetPrivateProfileString("MQ2HUD", "UseFontSize", "off", szBuffer, MAX_STRING, INIFileName);
+	bUseFontSize = _strnicmp(szBuffer, "on", 2) ? false : true;
+
+	// Write the SkipParse and CheckINI section, in case they didn't have one
+	WritePrivateProfileString(HUDSection, "SkipParse", SafeItoa(SkipParse, szBuffer, 10), INIFileName);
+	WritePrivateProfileString(HUDSection, "CheckINI", SafeItoa(CheckINI, szBuffer, 10), INIFileName);
+	WritePrivateProfileString(HUDSection, "UpdateInBackground", bBGUpdate ? "on" : "off", INIFileName);
+	WritePrivateProfileString(HUDSection, "ClassHUD", bClassHUD ? "on" : "off", INIFileName);
+	WritePrivateProfileString(HUDSection, "ZoneHUD", bZoneHUD ? "on" : "off", INIFileName);
+	WritePrivateProfileString("MQ2HUD", "UseFontSize", bUseFontSize ? "on" : "off", INIFileName);
+
+	LoadElements();
 }
 
-void DefaultHUD(PSPAWNINFO pChar, char* szLine)
+void DefaultHUD(SPAWNINFO* pChar, char* szLine)
 {
-    strcpy_s(HUDNames, "Elements");
-    HandleINI();
+	strcpy_s(HUDNames, "Elements");
+	HandleINI();
 }
 
-void LoadHUD(PSPAWNINFO pChar, char* szLine)
+void LoadHUD(SPAWNINFO* pChar, char* szLine)
 {
-    char HUDTemp[MAX_STRING] = {0};
-    char CurrentHUD[MAX_STRING];
-    int argn=1;
-    GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
-    while (*CurrentHUD) {
-        if (!strcmp(CurrentHUD,szLine)) {
-            WriteChatf("Hud \"%s\" already loaded",szLine);
-            return;
-        }
-        if (HUDTemp[0]) strcat_s(HUDTemp,",");
-        strcat_s(HUDTemp,CurrentHUD);
-        GetArg(CurrentHUD,HUDNames,++argn,0,0,0,',');
-    }
-    if (HUDTemp[0]) strcat_s(HUDTemp,",");
-    strcat_s(HUDTemp,szLine);
-    strcpy_s(HUDNames,HUDTemp);
-    HandleINI();
+	char HUDTemp[MAX_STRING] = { 0 };
+	char CurrentHUD[MAX_STRING];
+	int argn = 1;
+	GetArg(CurrentHUD, HUDNames, argn, 0, 0, 0, ',');
+
+	while (*CurrentHUD)
+	{
+		if (!strcmp(CurrentHUD, szLine))
+		{
+			WriteChatf("Hud \"%s\" already loaded", szLine);
+			return;
+		}
+
+		if (HUDTemp[0]) strcat_s(HUDTemp, ",");
+		strcat_s(HUDTemp, CurrentHUD);
+		GetArg(CurrentHUD, HUDNames, ++argn, 0, 0, 0, ',');
+	}
+
+	if (HUDTemp[0]) strcat_s(HUDTemp, ",");
+	strcat_s(HUDTemp, szLine);
+	strcpy_s(HUDNames, HUDTemp);
+
+	HandleINI();
 }
 
-void UnLoadHUD(PSPAWNINFO pChar, char* szLine)
+void UnLoadHUD(SPAWNINFO* pChar, char* szLine)
 {
-    char HUDTemp[MAX_STRING] = {0};
-    char CurrentHUD[MAX_STRING];
-    bool found=false;
-    int argn=1;
-    GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
-    while (*CurrentHUD) {
-        if (!strcmp(CurrentHUD,szLine)) {
-            found=true;
-        } else {
-            if (HUDTemp[0]) strcat_s(HUDTemp,",");
-            strcat_s(HUDTemp,CurrentHUD);
-        }
-        GetArg(CurrentHUD,HUDNames,++argn,0,0,0,',');
-    }
-    strcpy_s(HUDNames,HUDTemp);
+	char HUDTemp[MAX_STRING] = { 0 };
+	char CurrentHUD[MAX_STRING];
+	bool found = false;
+	int argn = 1;
 
-    if (!found) WriteChatf("Hud \"%s\" not loaded",szLine);
+	GetArg(CurrentHUD, HUDNames, argn, 0, 0, 0, ',');
+	while (*CurrentHUD)
+	{
+		if (!strcmp(CurrentHUD, szLine))
+		{
+			found = true;
+		}
+		else
+		{
+			if (HUDTemp[0]) strcat_s(HUDTemp, ",");
+			strcat_s(HUDTemp, CurrentHUD);
+		}
 
-    HandleINI();
+		GetArg(CurrentHUD, HUDNames, ++argn, 0, 0, 0, ',');
+	}
+
+	strcpy_s(HUDNames, HUDTemp);
+
+	if (!found) WriteChatf("Hud \"%s\" not loaded", szLine);
+
+	HandleINI();
 }
 
-void BackgroundHUD(PSPAWNINFO pChar, char* szLine)
+void BackgroundHUD(SPAWNINFO* pChar, char* szLine)
 {
-    if (!_stricmp(szLine,"off"))
-    {
-        WritePrivateProfileString(HUDSection,"UpdateInBackground","off",INIFileName);
-        WriteChatColor("MQ2HUD::Background updates are OFF");
-    }
-    else if (!_stricmp(szLine,"on"))
-    {
-        WritePrivateProfileString(HUDSection,"UpdateInBackground","on",INIFileName);
-        WriteChatColor("MQ2HUD::Background updates are ON");
-    }
-    else
-    {
-        WriteChatColor("Usage: /backgroundhud [on|off]");
-        return;
-    }
-    HandleINI();
+	if (!_stricmp(szLine, "off"))
+	{
+		WritePrivateProfileString(HUDSection, "UpdateInBackground", "off", INIFileName);
+		WriteChatColor("MQ2HUD::Background updates are OFF");
+	}
+	else if (!_stricmp(szLine, "on"))
+	{
+		WritePrivateProfileString(HUDSection, "UpdateInBackground", "on", INIFileName);
+		WriteChatColor("MQ2HUD::Background updates are ON");
+	}
+	else
+	{
+		WriteChatColor("Usage: /backgroundhud [on|off]");
+		return;
+	}
+
+	HandleINI();
 }
 
-void ClassHUD(PSPAWNINFO pChar, char* szLine)
+void ClassHUD(SPAWNINFO* pChar, char* szLine)
 {
-    if (!_stricmp(szLine,"off"))
-    {
-        WritePrivateProfileString(HUDSection,"ClassHUD","off",INIFileName);
-        WriteChatColor("MQ2HUD::Auto-include HUD per class description is OFF");
-    }
-    else if (!_stricmp(szLine,"on"))
-    {
-        WritePrivateProfileString(HUDSection,"ClassHUD","on",INIFileName);
-        WriteChatColor("MQ2HUD::Auto-include HUD per class description is ON");
-    }
-    else
-    {
-        WriteChatColor("Usage: /classhud [on|off]");
-        return;
-    }
-    HandleINI();
+	if (!_stricmp(szLine, "off"))
+	{
+		WritePrivateProfileString(HUDSection, "ClassHUD", "off", INIFileName);
+		WriteChatColor("MQ2HUD::Auto-include HUD per class description is OFF");
+	}
+	else if (!_stricmp(szLine, "on"))
+	{
+		WritePrivateProfileString(HUDSection, "ClassHUD", "on", INIFileName);
+		WriteChatColor("MQ2HUD::Auto-include HUD per class description is ON");
+	}
+	else
+	{
+		WriteChatColor("Usage: /classhud [on|off]");
+		return;
+	}
+
+	HandleINI();
 }
 
-void ZoneHUD(PSPAWNINFO pChar, char* szLine)
+void ZoneHUD(SPAWNINFO* pChar, char* szLine)
 {
-    if (!_stricmp(szLine,"off"))
-    {
-        WritePrivateProfileString(HUDSection,"ZoneHUD","off",INIFileName);
-        WriteChatColor("MQ2HUD::Auto-include HUD per zone name is OFF");
-    }
-    else if (!_stricmp(szLine,"on"))
-    {
-        WritePrivateProfileString(HUDSection,"ZoneHUD","on",INIFileName);
-        WriteChatColor("MQ2HUD::Auto-include HUD per zone name is ON");
-    }
-    else
-    {
-        WriteChatColor("Usage: /zonehud [on|off]");
-        return;
-    }
-    HandleINI();
+	if (!_stricmp(szLine, "off"))
+	{
+		WritePrivateProfileString(HUDSection, "ZoneHUD", "off", INIFileName);
+		WriteChatColor("MQ2HUD::Auto-include HUD per zone name is OFF");
+	}
+	else if (!_stricmp(szLine, "on"))
+	{
+		WritePrivateProfileString(HUDSection, "ZoneHUD", "on", INIFileName);
+		WriteChatColor("MQ2HUD::Auto-include HUD per zone name is ON");
+	}
+	else
+	{
+		WriteChatColor("Usage: /zonehud [on|off]");
+		return;
+	}
+
+	HandleINI();
 }
 
-BOOL dataHUD(char* szIndex, MQ2TYPEVAR &Ret)
+BOOL dataHUD(char* szIndex, MQ2TYPEVAR& Ret)
 {
-    Ret.Ptr=HUDNames;
-    Ret.Type=pStringType;
-    return true;
+	Ret.Ptr = HUDNames;
+	Ret.Type = pStringType;
+	return true;
 }
 
-// Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	hHudLock = CreateMutex(NULL, FALSE, NULL);
-	
-    char szBuffer[MAX_STRING] = {0};
-    DebugSpewAlways("Initializing MQ2HUD");
+	GetPrivateProfileString(HUDSection, "Last", "Elements", HUDNames, MAX_STRING, INIFileName);
+	HandleINI();
 
-    GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
-    HandleINI();
-
-    AddCommand("/defaulthud",DefaultHUD);
-    AddCommand("/loadhud",LoadHUD);
-    AddCommand("/unloadhud",UnLoadHUD);
-    AddCommand("/backgroundhud",BackgroundHUD);
-    AddCommand("/classhud",ClassHUD);
-    AddCommand("/zonehud",ZoneHUD);
-    AddMQ2Data("HUD",dataHUD);
+	AddCommand("/defaulthud", DefaultHUD);
+	AddCommand("/loadhud", LoadHUD);
+	AddCommand("/unloadhud", UnLoadHUD);
+	AddCommand("/backgroundhud", BackgroundHUD);
+	AddCommand("/classhud", ClassHUD);
+	AddCommand("/zonehud", ZoneHUD);
+	AddMQ2Data("HUD", dataHUD);
 }
 
-// Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-    DebugSpewAlways("Shutting down MQ2HUD");
-    ClearElements();
- 	lockit lk(hHudLock,"HudLock");
+	ClearElements();
+
 	RemoveCommand("/loadhud");
-    RemoveCommand("/unloadhud");
-    RemoveCommand("/defaulthud");
-    RemoveCommand("/backgroundhud");
-    RemoveCommand("/classhud");
-    RemoveCommand("/zonehud");
-    RemoveMQ2Data("HUD");
-	if (hHudLock) {
-		ReleaseMutex(hHudLock);
-		CloseHandle(hHudLock);
-		hHudLock = 0;
-	}
+	RemoveCommand("/unloadhud");
+	RemoveCommand("/defaulthud");
+	RemoveCommand("/backgroundhud");
+	RemoveCommand("/classhud");
+	RemoveCommand("/zonehud");
+	RemoveMQ2Data("HUD");
 }
 
 PLUGIN_API void SetGameState(DWORD GameState)
 {
-    if (GameState==GAMESTATE_INGAME)
-        sprintf_s(HUDSection,"%s_%s",GetCharInfo()->Name,EQADDR_SERVERNAME);
-    else 
-        strcpy_s(HUDSection,"MQ2HUD");
-    GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
-    HandleINI();
+	if (GameState == GAMESTATE_INGAME)
+		sprintf_s(HUDSection, "%s_%s", GetCharInfo()->Name, EQADDR_SERVERNAME);
+	else
+		strcpy_s(HUDSection, "MQ2HUD");
+	GetPrivateProfileString(HUDSection, "Last", "Elements", HUDNames, MAX_STRING, INIFileName);
+	HandleINI();
 }
 
 // Called after entering a new zone
 PLUGIN_API void OnZoned()
 {
-    if (bZoneHUD) HandleINI();
+	if (bZoneHUD) HandleINI();
 }
 
-BOOL ParseMacroLine(char* szOriginal, size_t BufferSize,std::list<std::string>&out)
+bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::list<std::string>& out)
 {
 	// find each {}
 	char* pBrace = strstr(szOriginal, "${");
 	if (!pBrace)
 		return false;
-	unsigned long NewLength;
-	BOOL Changed = false;
-	//char* pPos;
-	//char* pStart;
-	//char* pIndex;
+
+	size_t NewLength = 0;
+	bool Changed = false;
 	char szCurrent[MAX_STRING] = { 0 };
-	//MQ2TYPEVAR Result = { 0 };
+
 	do
 	{
 		// find this brace's end
 		char* pEnd = &pBrace[1];
-		BOOL Quote = false;
-		BOOL BeginParam = false;
+		bool Quote = false;
+		bool BeginParam = false;
 		int nBrace = 1;
+
 		while (nBrace)
 		{
 			++pEnd;
@@ -457,10 +501,13 @@ BOOL ParseMacroLine(char* szOriginal, size_t BufferSize,std::list<std::string>&o
 				}
 				continue;
 			}
+
 			if (*pEnd == 0)
-			{// unmatched brace or quote
-				goto pmdbottom;
+			{
+				// unmatched brace or quote
+				continue;
 			}
+
 			if (Quote)
 			{
 				if (*pEnd == '\"')
@@ -484,152 +531,179 @@ BOOL ParseMacroLine(char* szOriginal, size_t BufferSize,std::list<std::string>&o
 				else if (*pEnd == '[' || *pEnd == ',')
 					BeginParam = true;
 			}
-
 		}
+
 		*pEnd = 0;
 		strcpy_s(szCurrent, &pBrace[2]);
 		if (szCurrent[0] == 0)
 		{
-			goto pmdbottom;
+			continue;
 		}
-		if (ParseMacroLine(szCurrent, sizeof(szCurrent),out))
+
+		if (ParseMacroLine(szCurrent, sizeof(szCurrent), out))
 		{
-			unsigned long NewLength = strlen(szCurrent);
+			size_t NewLength = strlen(szCurrent);
 			memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
+
 			int addrlen = (int)(pBrace - szOriginal);
 			memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
+
 			pEnd = &pBrace[NewLength];
 			*pEnd = 0;
 		}
-		if(!strchr(szCurrent,'[') && !strchr(szCurrent,'.'))
-			out.push_back(szCurrent);
+
+		if (!strchr(szCurrent, '[') && !strchr(szCurrent, '.'))
+			out.emplace_back(szCurrent);
 
 		NewLength = strlen(szCurrent);
 		memmove(&pBrace[NewLength], &pEnd[1], strlen(&pEnd[1]) + 1);
+
 		int addrlen = (int)(pBrace - szOriginal);
 		memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
-		if (bAllowCommandParse == false) {
+
+		if (!bAllowCommandParse)
+		{
 			bAllowCommandParse = true;
 			Changed = false;
 			break;
 		}
-		else {
+		else
+		{
 			Changed = true;
 		}
-	pmdbottom:;
 	} while (pBrace = strstr(&pBrace[1], "${"));
+
 	if (Changed)
-		while (ParseMacroLine(szOriginal, BufferSize,out))
-		{
-			Sleep(0);
-		}
+	{
+		while (ParseMacroLine(szOriginal, BufferSize, out))
+			;
+	}
+
 	return Changed;
 }
+
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
 PLUGIN_API void OnDrawHUD()
 {
-	if (hHudLock == 0)
-		return;
-	lockit lk(hHudLock,"HudLock");
+	std::scoped_lock lock(s_mutex);
+
 	static bool bOkToCheck = true;
-    static int N=0;
-    char szBuffer[MAX_STRING]={0};
+	static int FrameCount = 0;
+	char szBuffer[MAX_STRING] = { 0 };
 
-    if (++N>CheckINI)
-    {
-        N=0;
-        struct _stat now;
-        if (Stat(INIFileName,now) && now.st_mtime!=LastRead.st_mtime)
-            HandleINI();
+	if (++FrameCount > CheckINI)
+	{
+		FrameCount = 0;
 
-        // check for EQ in foreground
+		struct _stat now;
+		if (Stat(INIFileName, now) && now.st_mtime != LastRead.st_mtime)
+			HandleINI();
+
+		// check for EQ in foreground
 		if (!bBGUpdate && !gbInForeground)
-            bEQHasFocus = false;
-        else
-            bEQHasFocus = true;
-    }
-    if (!bEQHasFocus) return;
+			bEQHasFocus = false;
+		else
+			bEQHasFocus = true;
+	}
+	if (!bEQHasFocus) return;
 
-    DWORD SX=0;
-    DWORD SY=0;
-    if (pScreenX && pScreenY)
-    {
-        SX=ScreenX;
-        SY=ScreenY;
-    }   
-    PHUDELEMENT pElement=pHud;
-	bool bCheckParse = !(N % SkipParse);
+	DWORD SX = 0;
+	DWORD SY = 0;
+	if (pScreenX && pScreenY)
+	{
+		SX = ScreenX;
+		SY = ScreenY;
+	}
 
-    DWORD X,Y;
-    while(pElement)
-    {
-        if ((gGameState==GAMESTATE_CHARSELECT && pElement->Type&HUDTYPE_CHARSELECT) ||
-            (gGameState==GAMESTATE_INGAME && (
-            (pElement->Type&HUDTYPE_NORMAL && ScreenMode!=3) ||
-            (pElement->Type&HUDTYPE_FULLSCREEN && ScreenMode==3))))
-        {
-            if (pElement->Type&HUDTYPE_CURSOR)
-            {
-                PMOUSEINFO pMouse = (PMOUSEINFO)EQADDR_MOUSE;
-                X=pMouse->X+pElement->X;
-                Y=pMouse->Y+pElement->Y;
-            }
-            else
-            {
-                X=SX+pElement->X;
-                Y=SX+pElement->Y;
-            }
-            //if (!(N%SkipParse)) {
-			if (bCheckParse) {
+	HUDELEMENT* pElement = pHud;
+	bool bCheckParse = !(FrameCount % SkipParse);
+
+	DWORD X, Y;
+	while (pElement)
+	{
+		if ((gGameState == GAMESTATE_CHARSELECT && pElement->Type & HUDTYPE_CHARSELECT)
+			|| (gGameState == GAMESTATE_INGAME && (
+			(pElement->Type & HUDTYPE_NORMAL && ScreenMode != 3)
+				|| (pElement->Type & HUDTYPE_FULLSCREEN && ScreenMode == 3))))
+		{
+			if (pElement->Type & HUDTYPE_CURSOR)
+			{
+				PMOUSEINFO pMouse = (PMOUSEINFO)EQADDR_MOUSE;
+				X = pMouse->X + pElement->X;
+				Y = pMouse->Y + pElement->Y;
+			}
+			else
+			{
+				X = SX + pElement->X;
+				Y = SX + pElement->Y;
+			}
+
+			if (bCheckParse)
+			{
 				bOkToCheck = true;
-                strcpy_s(pElement->PreParsed,pElement->Text);
-				if (pElement->Type & HUDTYPE_MACRO) {
-					if (gRunning) {
+				strcpy_s(pElement->PreParsed, pElement->Text);
+
+				if (pElement->Type & HUDTYPE_MACRO)
+				{
+					if (gRunning)
+					{
 						char szTemp[MAX_STRING] = { 0 };
 						strcpy_s(szTemp, pElement->Text);
-						std::list<std::string>out;
+
+						std::list<std::string> out;
 						ParseMacroLine(szTemp, MAX_STRING, out);
-						if (out.size()) {
-							for (std::list<std::string>::iterator i = out.begin(); i != out.end(); i++) {
-								bOkToCheck = false;
-								char* pChar = (char*)(*i).c_str();
-								if (FindMQ2Data(pChar)) {
+
+						for (auto& i : out)
+						{
+							bOkToCheck = false;
+							char* pChar = (char*)i.c_str();
+
+							if (FindMQ2Data(pChar))
+							{
+								bOkToCheck = true;
+								continue;
+							}
+
+							if (!bOkToCheck)
+							{
+								// ok fine we didnt find it in the tlo map...
+								// lets check variables
+								if (FindMQ2DataVariable(pChar))
+								{
 									bOkToCheck = true;
 									continue;
 								}
-								if (!bOkToCheck)
-								{
-									//ok fine we didnt find it in the tlo map...
-									//lets check variables
-									if (FindMQ2DataVariable(pChar)) {
-										bOkToCheck = true;
-										continue;
-									}
-								}
-								if (!bOkToCheck)
-								{
-									//still not found...
-									break;
-								}
+							}
+
+							if (!bOkToCheck)
+							{
+								// still not found...
+								break;
 							}
 						}
 					}
 				}
-				if(bOkToCheck) {
-					if (PCHARINFO pChar = GetCharInfo()) {
+
+				if (bOkToCheck)
+				{
+					if (CHARINFO* pChar = GetCharInfo())
+					{
 						ParseMacroParameter(pChar->pSpawn, pElement->PreParsed);
 					}
 				}
-				else {
+				else
+				{
 					pElement->PreParsed[0] = '\0';
 				}
-            }
-            strcpy_s(szBuffer,pElement->PreParsed);
-            if (szBuffer[0] && strcmp(szBuffer,"NULL"))
-            {
-                DrawHUDText(szBuffer,X,Y,pElement->Color,pElement->Size);
-            }
-        }
-        pElement=pElement->pNext;
-    }
+			}
+
+			strcpy_s(szBuffer, pElement->PreParsed);
+			if (szBuffer[0] && strcmp(szBuffer, "nullptr"))
+			{
+				DrawHUDText(szBuffer, X, Y, pElement->Color, pElement->Size);
+			}
+		}
+
+		pElement = pElement->pNext;
+	}
 }
