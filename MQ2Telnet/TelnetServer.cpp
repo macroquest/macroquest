@@ -34,8 +34,8 @@ SOCKET Listener;
 bool bListening;
 bool bKillThread;
 bool bThreading;
-CHATBUF* Sends = nullptr;
-CHATBUF* Commands = 0;
+TXTBUFFER* Sends = nullptr;
+TXTBUFFER* Commands = 0;
 bool LocalOnly = true;
 bool ANSI = true;
 char TelnetLoginPrompt[MAX_STRING] = { 0 };
@@ -103,10 +103,10 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 		EnterCriticalSection(&BufferCS);
 		TELNET* Conn = Connections;
 		char szText[MAX_STRING * 25] = { 0 };
-		CHATBUF* pBuff = Sends;
+		TXTBUFFER* pBuff = Sends;
 		while (pBuff)
 		{
-			CHATBUF* NextChat = pBuff->pNext;
+			TXTBUFFER* NextChat = pBuff->pNext;
 			strcat_s(szText, pBuff->szText);
 			strcat_s(szText, "\r\n");
 			free(pBuff);
@@ -124,7 +124,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 				TELNET* Next = Conn->pNext;
 				while (Conn->Received)
 				{
-					CHATBUF* rNext = Conn->Received->pNext;
+					TXTBUFFER* rNext = Conn->Received->pNext;
 					free(Conn->Received);
 					Conn->Received = rNext;
 				}
@@ -179,7 +179,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 						if (i - begin)
 						{
 							// we do. make a command out of it.
-							CHATBUF* newcmd = (CHATBUF*)calloc(1, sizeof(CHATBUF));
+							TXTBUFFER* newcmd = (TXTBUFFER*)calloc(1, sizeof(TXTBUFFER));
 							if (newcmd)
 							{
 								memcpy(newcmd->szText, &Buffer[begin], i - begin);
@@ -190,7 +190,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 								}
 								else
 								{
-									CHATBUF* pCurrent = nullptr;
+									TXTBUFFER* pCurrent = nullptr;
 									for (pCurrent = Conn->Received; pCurrent->pNext; pCurrent = pCurrent->pNext);
 									pCurrent->pNext = newcmd;
 								}
@@ -213,7 +213,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 					EnterCriticalSection(&CommandCS);
 					// Add command to list
 
-					CHATBUF* pChat = (CHATBUF*)calloc(1, sizeof(CHATBUF));
+					TXTBUFFER* pChat = (TXTBUFFER*)calloc(1, sizeof(TXTBUFFER));
 					if (pChat)
 					{
 						strcpy_s(pChat->szText, Conn->Received->szText);
@@ -224,7 +224,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 						}
 						else
 						{
-							CHATBUF* pCurrent;
+							TXTBUFFER* pCurrent;
 							for (pCurrent = Commands; pCurrent->pNext; pCurrent = pCurrent->pNext);
 							pCurrent->pNext = pChat;
 						}
@@ -273,7 +273,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 					break;
 				}
 
-				CHATBUF* Next = Conn->Received->pNext;
+				TXTBUFFER* Next = Conn->Received->pNext;
 				free(Conn->Received);
 				Conn->Received = Next;
 			}
@@ -372,7 +372,7 @@ bool CTelnetServer::Listen(int Port)
 void CTelnetServer::Broadcast(char* String)
 {
 	EnterCriticalSection(&BufferCS);
-	CHATBUF* pChat = (CHATBUF*)malloc(sizeof(CHATBUF));
+	TXTBUFFER* pChat = (TXTBUFFER*)malloc(sizeof(TXTBUFFER));
 
 	if (pChat)
 	{
@@ -384,7 +384,7 @@ void CTelnetServer::Broadcast(char* String)
 		}
 		else
 		{
-			CHATBUF* pCurrent;
+			TXTBUFFER* pCurrent;
 			for (pCurrent = Sends; pCurrent->pNext; pCurrent = pCurrent->pNext);
 			pCurrent->pNext = pChat;
 		}
@@ -411,7 +411,7 @@ void CTelnetServer::Shutdown()
 		TELNET* Next = Connections->pNext;
 		while (Connections->Received)
 		{
-			CHATBUF* rNext = Connections->Received->pNext;
+			TXTBUFFER* rNext = Connections->Received->pNext;
 			free(Connections->Received);
 			Connections->Received = rNext;
 		}
@@ -424,14 +424,14 @@ void CTelnetServer::Shutdown()
 	// delete all extra shit
 	while (Sends)
 	{
-		CHATBUF* pNext = Sends->pNext;
+		TXTBUFFER* pNext = Sends->pNext;
 		free(Sends);
 		Sends = pNext;
 	}
 
 	while (Commands)
 	{
-		CHATBUF* pNext = Commands->pNext;
+		TXTBUFFER* pNext = Commands->pNext;
 		free(Commands);
 		Commands = pNext;
 	}
@@ -456,7 +456,7 @@ void CTelnetServer::ProcessIncoming()
 		CHARINFO* pCharInfo = GetCharInfo();
 		SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer;
 		if (pCharInfo) pSpawn = pCharInfo->pSpawn;
-		CHATBUF* Next = Commands->pNext;
+		TXTBUFFER* Next = Commands->pNext;
 		DoCommand(pSpawn, Commands->szText);
 		free(Commands);
 		Commands = Next;

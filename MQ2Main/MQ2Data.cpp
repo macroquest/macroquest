@@ -1670,9 +1670,8 @@ BOOL dataAlias(char* szIndex, MQ2TYPEVAR& Ret)
 {
 	if (szIndex[0])
 	{
-		std::string sName = szIndex;
-		std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
-		if (mAliases.find(sName) != mAliases.end()) {
+		if (IsAlias(szIndex))
+		{
 			Ret.DWord = 1;
 			Ret.Type = pBoolType;
 			return true;

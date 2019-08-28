@@ -237,9 +237,7 @@ namespace MQ2Globals
 
 	/* PickZone */
 	HANDLE ghLockPickZone = nullptr;
-	HANDLE ghLockDelayCommand = nullptr;
 	HANDLE ghInitializeMQ2SpellDb = nullptr;
-	HANDLE ghCCommandLock = nullptr;
 	HANDLE ghVariableLock = nullptr;
 	HANDLE ghMacroBlockLock = nullptr;
 	HANDLE ghGetClassMemberLock = nullptr;
@@ -276,7 +274,7 @@ namespace MQ2Globals
 
 	bool g_bDoingModuleChecks = false;
 	DWORD gGameState = 0;
-	DWORD gMaxSpawnCaptions = 30;
+	int gMaxSpawnCaptions = 30;
 	BOOL gMQCaptions = TRUE;
 	BOOL gAnonymize = FALSE;
 	DWORD gAnonymizeFlag = 0;
@@ -284,7 +282,6 @@ namespace MQ2Globals
 	BOOL g_Loaded = FALSE;
 
 	BOOL gStringTableFixed = FALSE;
-	PCHATBUF gDelayedCommands = 0;
 
 	HMODULE ghModule = nullptr;
 	HINSTANCE ghInstance = nullptr;
@@ -402,7 +399,7 @@ namespace MQ2Globals
 	SPAWNINFO DoorEnviroTarget = { 0 };
 	PDOOR pDoorTarget = nullptr;
 	PITEMDB gItemDB = nullptr;
-	BOOL bRunNextCommand = FALSE;
+	bool bRunNextCommand = false;
 	BOOL gTurbo = FALSE;
 	BOOL gWarning = FALSE;
 	BOOL gknightlyparse = FALSE;
@@ -965,13 +962,8 @@ namespace MQ2Globals
 	};
 
 	MQPlugin* pPlugins = nullptr;
-	std::map<std::string, std::string> mAliases;
 	std::map<std::string, PDATAVAR> VariableMap;
 	std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
-	PSUB pSubs = nullptr;
-	PMQCOMMAND pCommands = nullptr;
-
-
 
 	// Offset Initialization
 

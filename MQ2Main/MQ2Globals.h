@@ -72,8 +72,6 @@ EQLIB_API ePVPServer PVPServer;
 EQLIB_API HANDLE ghInitializeMQ2SpellDb;
 EQLIB_VAR HANDLE ghLockSpellMap;
 EQLIB_VAR HANDLE ghLockPickZone;
-EQLIB_VAR HANDLE ghLockDelayCommand;
-EQLIB_VAR HANDLE ghCCommandLock;
 EQLIB_VAR HANDLE ghVariableLock;
 EQLIB_VAR HANDLE ghGetClassMemberLock;
 
@@ -81,7 +79,7 @@ EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
 EQLIB_VAR BOOL gStringTableFixed;
-EQLIB_VAR DWORD gMaxSpawnCaptions;
+EQLIB_VAR int gMaxSpawnCaptions;
 EQLIB_VAR BOOL gMQCaptions;
 EQLIB_VAR BOOL gAnonymize;
 
@@ -144,8 +142,6 @@ EQLIB_VAR DWORD gTurboLimit;
 
 EQLIB_VAR BOOL gReturn;
 
-EQLIB_VAR PCHATBUF gDelayedCommands;
-
 EQLIB_VAR DWORD gbAssistComplete;
 EQLIB_VAR BOOL gTargetbuffs;
 EQLIB_VAR BOOL gItemsReceived;
@@ -207,7 +203,7 @@ EQLIB_VAR PGROUNDITEM pGroundTarget;
 EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 EQLIB_VAR PDOOR pDoorTarget;
 EQLIB_VAR PITEMDB gItemDB;
-EQLIB_VAR BOOL bRunNextCommand;
+EQLIB_VAR bool bRunNextCommand;
 EQLIB_VAR BOOL bAllowCommandParse;
 EQLIB_VAR BOOL gTurbo;
 EQLIB_VAR BOOL gWarning;
@@ -392,11 +388,8 @@ EQLIB_VAR DWORD nColorMacroError;
 EQLIB_VAR DWORD nColorMQ2DataError;
 EQLIB_VAR DWORD nColorFatalError;
 
-EQLIB_VAR std::map<std::string, std::string> mAliases;
 EQLIB_VAR std::map<std::string, PDATAVAR> VariableMap;
 EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
-EQLIB_VAR PSUB pSubs;
-EQLIB_VAR PMQCOMMAND pCommands;
 EQLIB_VAR MQPlugin* pPlugins;
 
 EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;

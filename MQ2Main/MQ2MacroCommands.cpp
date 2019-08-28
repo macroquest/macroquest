@@ -63,12 +63,12 @@ void FailIf(SPAWNINFO* pChar, char* szCommand, int StartLine, BOOL All)
 				return;
 			}
 			else {
-				bRunNextCommand = TRUE;
+				bRunNextCommand = true;
 			}
 		}
 	}
 	else {
-		bRunNextCommand = TRUE;
+		bRunNextCommand = true;
 	}
 }
 // ***************************************************************************
@@ -585,7 +585,7 @@ int GetMacroBlockCount()
 void Macro(PSPAWNINFO pChar, char* szLine)
 {
 	gWarning = FALSE;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char szTemp[MAX_STRING] = { 0 };
 	char Filename[MAX_STRING] = { 0 };
 	char* Params = NULL;
@@ -773,7 +773,7 @@ void Goto(PSPAWNINFO pChar, char* szLine)
 		MacroError("Cannot goto when a macro isn't running.");
 		return;
 	}
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	int FromIndex = gMacroBlock->CurrIndex;
 	const auto goto_line = gMacroBlock->Line.find(FromIndex);
 	if (goto_line->second.LoopEnd)
@@ -1026,7 +1026,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 		MacroError("Cannot call when a macro isn't running.");
 		return;
 	}
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char SubName[MAX_STRING];
 	GetArg(SubName, szLine, 1);
 	char* SubParam = GetNextArg(szLine);
@@ -1182,7 +1182,7 @@ static void push_loop(const Loop& loop)
 static void EndWhile()
 {
 	gMacroBlock->CurrIndex = gMacroBlock->Line[gMacroBlock->CurrIndex].LoopEnd;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 }
 
 static void MarkWhile(char* szCommand, Loop& loop)
@@ -1433,7 +1433,7 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 		}
 		DebugSpewNoFile("DoEvents - Deleted event: %d %s", pEvent->Type, pEvent->Name.c_str());
 		delete pEvent;
-		bRunNextCommand = TRUE;
+		bRunNextCommand = true;
 	}
 }
 
@@ -1445,7 +1445,7 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Return(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	PMACROSTACK pStack = gMacroStack;
 	if (!gMacroBlock)
 	{
@@ -1477,7 +1477,7 @@ void Return(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void For(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char ArgLoop[MAX_STRING] = { 0 };
 	char ArgStart[MAX_STRING] = { 0 };
 	char ArgDirection[MAX_STRING] = { 0 };
@@ -1536,7 +1536,7 @@ void For(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Next(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char szNext[MAX_STRING];
 	GetArg(szNext, szLine, 1);
 	PDATAVAR pVar = FindMQ2DataVariable(szNext);

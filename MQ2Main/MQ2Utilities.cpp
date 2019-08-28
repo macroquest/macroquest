@@ -6067,7 +6067,7 @@ void ParseSearchSpawn(char* Buffer, PSEARCHSPAWN pSearchSpawn)
 	BOOL DidTarget = FALSE;
 	BOOL bArg = TRUE;
 
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	strcpy_s(szLLine, Buffer);
 	_strlwr_s(szLLine);
 	while (bArg) {
@@ -6593,28 +6593,6 @@ DWORD FindSpellListByName(char* szName)
 		if (!_stricmp(pSpellSets[Index].Name, szName)) return Index;
 	}
 	return -1;
-}
-//this function is SUPER expensive, DO NOT use it unless you absolutely have to.
-void RewriteAliases()
-{
-	WritePrivateProfileSection("Aliases", "", gszINIFilename);
-	for (std::map<std::string, std::string>::iterator i = mAliases.begin(); i != mAliases.end(); i++) {
-		WritePrivateProfileString("Aliases", i->first.c_str(),i->second.c_str(), gszINIFilename);
-	}
-}
-//better single write them instead...
-void WriteAliasToIni(char*Name, char*Command)
-{
-	WritePrivateProfileString("Aliases", Name,Command, gszINIFilename);
-}
-void RewriteSubstitutions()
-{
-	PSUB pSubLoop = pSubs;
-	WritePrivateProfileSection("Substitutions", "", gszINIFilename);
-	while (pSubLoop) {
-		WritePrivateProfileString("Substitutions", pSubLoop->szOrig, pSubLoop->szSub, gszINIFilename);
-		pSubLoop = pSubLoop->pNext;
-	}
 }
 
 char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)

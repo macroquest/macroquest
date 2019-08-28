@@ -204,11 +204,6 @@ namespace MQ2Internal {
         struct _CONNECTION *pNext;
     } CONNECTION, *PCONNECTION;
 
-    typedef struct _CHATBUF {
-        char szText[MAX_STRING];
-        struct _CHATBUF *pNext;
-    } CHATBUF, *PCHATBUF;
-
 	typedef struct _MOUSEINFO {
 		DWORD X;
 		DWORD Y;
@@ -293,23 +288,6 @@ namespace MQ2Internal {
 		//used for KNIGHTLYPARSE
 		bool Parse = true;
     } BINDLIST, *PBINDLIST;
-
-    typedef struct _SUB {
-        struct _SUB *pNext;
-        struct _SUB *pLast;
-        char szOrig[MAX_STRING];
-        char szSub[MAX_STRING];
-    } SUB, *PSUB;
-    typedef struct _MQCOMMAND {
-        char Command[64];
-		fEQCommand Function;
-        BOOL EQ;
-		BOOL Parse;
-        BOOL InGameOnly;
-        struct _MQCOMMAND* pLast;
-        struct _MQCOMMAND* pNext;
-    } MQCOMMAND, *PMQCOMMAND;
-
 
     typedef struct _FILTER {
         struct _FILTER *pNext;

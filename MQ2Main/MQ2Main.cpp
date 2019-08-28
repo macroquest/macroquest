@@ -487,11 +487,7 @@ void __cdecl MQ2Shutdown()
 		CloseHandle(ghLockPickZone);
 		ghLockPickZone = 0;
 	}
-	if (ghLockDelayCommand) {
-		ReleaseMutex(ghLockDelayCommand);
-		CloseHandle(ghLockDelayCommand);
-		ghLockDelayCommand = 0;
-	}
+
 	if (ghVariableLock) {
 		ReleaseMutex(ghVariableLock);
 		CloseHandle(ghVariableLock);
@@ -507,7 +503,6 @@ void __cdecl MQ2Shutdown()
 		CloseHandle(ghGetClassMemberLock);
 		ghGetClassMemberLock = 0;
 	}
-	
 }
 
 DWORD __stdcall InitializeMQ2SpellDb(void* pData)
@@ -568,9 +563,9 @@ DWORD WINAPI MQ2End(void* lpParameter)
 			hUnloadComplete = 0;
 		}
 	}
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
-		EndAllMacros();
+	EndAllMacros();
 
 	DebugSpew("%s", ToUnloadString);
 	if (gs == GAMESTATE_INGAME || gs == GAMESTATE_CHARSELECT) {

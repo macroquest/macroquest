@@ -31,7 +31,7 @@ void Unload(PSPAWNINFO pChar, char* szLine)
 {
 	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if (GetCurrentMacroBlock())
 	{
 		EndAllMacros();
@@ -51,7 +51,7 @@ void Unload(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void ListMacros(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	HANDLE hSearch;
 	WIN32_FIND_DATA FileData;
 	BOOL fFinished = FALSE;
@@ -113,7 +113,7 @@ void ListMacros(PSPAWNINFO pChar, char* szLine)
 
 void SetError(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if ((szLine[0] == 0) || (_stricmp(szLine, "clear"))) {
 		gszLastNormalError[0] = 0; // QUIT SETTING THIS MANUALLY, USE MacroError or FatalError!
 	}
@@ -130,7 +130,7 @@ void SetError(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void SuperWho(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char szLLine[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
 	char* szRest = szLLine;
@@ -218,7 +218,7 @@ void MacroPause(PSPAWNINFO pChar, char* szLine)
 		NULL
 	};
 
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
 	GetArg(szArg, szLine, 1);
 	if (!_stricmp(szArg, "chat")) {
@@ -275,7 +275,7 @@ void MacroPause(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void KeepKeys(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	DWORD Command;
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
@@ -381,7 +381,7 @@ void PluginCommand(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void InvokeCmd(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 }
 // /squelch
 void SquelchCommand(PSPAWNINFO pChar, char* szLine)
@@ -404,7 +404,7 @@ void SquelchCommand(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Items(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	typedef struct _iteminfo
 	{
 		std::string Name;
@@ -516,7 +516,7 @@ void Items(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void ItemTarget(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if (!szLine) return;
 	EQGroundItemListManager *pGroundList = GetItemList();
 	if (!pGroundList)
@@ -675,7 +675,7 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Doors(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
 	if (!ppSwitchMgr) return;
 	if (!pSwitchMgr) return;
@@ -737,7 +737,7 @@ void Doors(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void DoorTarget(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
 	if (!ppSwitchMgr) return;
 	if (!pSwitchMgr) return;
@@ -834,7 +834,7 @@ void DoorTarget(PSPAWNINFO pChar, char* szLine)
 void CharInfo(PSPAWNINFO pChar, char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if (gFilterMacro == FILTERMACRO_NONE)
 		cmdCharInfo(pChar, szLine);
 	if (CHARINFO* pCharInfo = GetCharInfo()) {
@@ -945,7 +945,8 @@ void MemSpell(PSPAWNINFO pSpawn, char* szLine)
 // ***************************************************************************
 void SelectItem(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = FALSE;
+	bRunNextCommand = false;
+
 	if (!pMerchantWnd)
 		return;
 	bool bExact = false;
@@ -1005,7 +1006,8 @@ void SelectItem(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void BuyItem(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = FALSE;
+	bRunNextCommand = false;
+
 	if (!pMerchantWnd) return;
 
 	char szQty[MAX_STRING] = { 0 };
@@ -1033,7 +1035,8 @@ void BuyItem(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void SellItem(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = FALSE;
+	bRunNextCommand = false;
+
 	if (!pMerchantWnd) return;
 
 	char szQty[MAX_STRING] = { 0 };
@@ -1053,45 +1056,6 @@ void SellItem(PSPAWNINFO pChar, char* szLine)
 }
 
 // ***************************************************************************
-// Function:    Help
-// Description: Our '/help' command
-//              Adds our help type (7) to the built-in help command
-// Usage:       /help macro
-// ***************************************************************************
-void Help(PSPAWNINFO pChar, char* szLine)
-{
-	char szCmd[MAX_STRING] = { 0 };
-	char szArg[MAX_STRING] = { 0 };
-	PMQCOMMAND pCmd = pCommands;
-
-	GetArg(szArg, szLine, 1);
-	if (szArg[0] == 0) {
-		cmdHelp(pChar, szArg);
-		if (gFilterMacro != FILTERMACRO_NONE) WriteChatColor("Macro will display a list of MacroQuest commands.", USERCOLOR_DEFAULT);
-		return;
-	}
-	if (_stricmp("macro", szArg)) {
-		cmdHelp(pChar, szArg);
-		return;
-	}
-	DebugSpew("Help - Displaying MacroQuest help");
-	sprintf_s(szCmd, "MacroQuest - %s", gszVersion);
-	WriteChatColor(" ", USERCOLOR_DEFAULT);
-	WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-	WriteChatColor("List of commands", USERCOLOR_DEFAULT);
-	WriteChatColor("------------------------------------------", USERCOLOR_DEFAULT);
-	while (pCmd)
-	{
-		if (pCmd->EQ == 0)
-		{
-			sprintf_s(szCmd, "  %s", pCmd->Command);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-		}
-		pCmd = pCmd->pNext;
-	}
-}
-
-// ***************************************************************************
 // Function:    MacroBeep
 // Description: Our '/beep' command
 //              Beeps the system speaker
@@ -1099,8 +1063,8 @@ void Help(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void MacroBeep(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
-	//Beep(0x500,250);
+	bRunNextCommand = true;
+
 	char szArg[MAX_STRING] = { 0 };
 
 	GetArg(szArg, szLine, 1);
@@ -1197,7 +1161,7 @@ void SWhoFilter(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Filter(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	DWORD Command;
 	char szCmd[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
@@ -1549,7 +1513,7 @@ void DebugSpewFile(PSPAWNINFO pChar, char* szLine)
 {
 	BOOL Pause = TRUE;
 	char szBuffer[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if (!_strnicmp(szLine, "off", 3)) {
 		gSpewToFile = FALSE;
 	}
@@ -1580,7 +1544,7 @@ void DebugSpewFile(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Identify(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char szMsg[MAX_STRING] = { 0 };
 	char szTmp[MAX_STRING] = { 0 };
 	CHARINFO2* pCharInfo = NULL;
@@ -1738,7 +1702,7 @@ void Identify(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void Location(PSPAWNINFO pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if (gFilterMacro == FILTERMACRO_NONE) cmdLocation(pChar, szLine);
 
 	char szMsg[MAX_STRING] = { 0 };
@@ -1801,7 +1765,7 @@ void CMQ2Alerts::FreeAlerts(DWORD List)
 void Alert(PSPAWNINFO pChar, char* szLine)
 {
 	bool bOutput = pChar ? true : false;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	char szArg[MAX_STRING] = { 0 };
 	char szLLine[MAX_STRING] = { 0 };
 	char* szRest = szLLine;
@@ -1959,7 +1923,7 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 void SuperWhoTarget(PSPAWNINFO pChar, char* szLine)
 {
 	PSPAWNINFO psTarget = NULL;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	if (gFilterMacro == FILTERMACRO_NONE) cmdWhoTarget(pChar, szLine);
 
 	if (ppTarget && pTarget) {
@@ -1996,7 +1960,7 @@ void MQMsgBox(PSPAWNINFO pChar, char* szLine)
 	FILE *fOut = NULL;
 	char szBuffer[MAX_STRING] = { 0 };
 	DWORD i;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
 	sprintf_s(szBuffer, "${Time.Date} ${Time}\r\n%s", szLine);
 	ParseMacroParameter(pChar, szBuffer);
@@ -2017,7 +1981,7 @@ void MacroLog(PSPAWNINFO pChar, char* szLine)
 	char Filename[MAX_STRING] = { 0 };
 	char szBuffer[MAX_STRING] = { 0 };
 	DWORD i;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
 	if (gszMacroName[0] == 0) {
 		sprintf_s(Filename, "%s\\MacroQuest.log", gszLogPath);
@@ -2096,7 +2060,7 @@ void Face(PSPAWNINFO pChar, char* szLine)
 	BOOL Look = TRUE;
 	BOOL Parsing = TRUE;
 	double Distance;
-	bRunNextCommand = FALSE;
+	bRunNextCommand = false;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
 	while (bArg) {
@@ -2165,14 +2129,14 @@ void Face(PSPAWNINFO pChar, char* szLine)
 					//changed
 					((PSPAWNINFO)pCharSpawn)->Heading = (float)gFaceAngle;
 					gFaceAngle = 10000.0f;
-					bRunNextCommand = TRUE;
+					bRunNextCommand = true;
 				}
 			}
 			return;
 		}
 		else if (!strcmp(szArg, "help")) {
 			SyntaxError("Usage: /face [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]");
-			bRunNextCommand = TRUE;
+			bRunNextCommand = true;
 			return;
 		}
 		else {
@@ -2232,7 +2196,7 @@ void Face(PSPAWNINFO pChar, char* szLine)
 			//changed
 			((PSPAWNINFO)pCharSpawn)->Heading = (float)gFaceAngle;
 			gFaceAngle = 10000.0f;
-			bRunNextCommand = TRUE;
+			bRunNextCommand = true;
 		}
 		//sprintf_s(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy_s(szName,pSpawnClosest->Name),FALSE));
 		sprintf_s(szMsg, "Facing %s'%s'...", (Away) ? "away from " : "", pSpawnClosest->DisplayedName);
@@ -2291,7 +2255,7 @@ void Where(PSPAWNINFO pChar, char* szLine)
 	char szLLine[MAX_STRING] = { 0 };
 	char* szFilter = szLLine;
 	BOOL bArg = TRUE;
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
 
@@ -2732,7 +2696,7 @@ void Target(PSPAWNINFO pChar, char* szLine)
 	BOOL DidTarget = FALSE;
 	BOOL bArg = TRUE;
 
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
 	while (bArg) {
@@ -2838,7 +2802,7 @@ void Skills(PSPAWNINFO pChar, char* szLine)
 {
 	DWORD Skill, SkillCount = 0;
 	char szMsg[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	CHARINFO* pCharInfo = NULL;
 	char szCopy[MAX_STRING] = { 0 };
 	strcpy_s(szCopy, szLine);
@@ -2903,130 +2867,6 @@ void SetAutoRun(PSPAWNINFO pChar, char* szLine)
 	WritePrivateProfileStringA("AutoRun", szServerAndName, szLine, gszINIFilename);
 	sprintf_s(szServerAndName, "Set autorun to: '%s'", szLine);
 	WriteChatColor(szServerAndName, USERCOLOR_DEFAULT);
-}
-
-// ***************************************************************************
-// Function:    Alias
-// Description: Our '/alias' command
-//              Add command aliases
-// Usage:       /alias name [delete|command]
-// ***************************************************************************
-
-void Alias(PSPAWNINFO pChar, char* szLine)
-{
-	char szBuffer[MAX_STRING] = { 0 };
-	char szName[MAX_STRING] = { 0 };
-	char* szCommand = NULL;
-	GetArg(szName, szLine, 1);
-	szCommand = GetNextArg(szLine);
-	if (!_stricmp(szName, "list")) {
-		DWORD Count = 0;
-		WriteChatColor("Aliases", USERCOLOR_WHO);
-		WriteChatColor("--------------------------", USERCOLOR_WHO);
-		for (std::map<std::string, std::string>::iterator i = mAliases.begin(); i != mAliases.end(); i++) {
-			sprintf_s(szName, "%s: %s", i->first.c_str(),i->second.c_str());
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-		if (mAliases.size() == 0) {
-			WriteChatColor("No aliases defined.", USERCOLOR_WHO);
-		}
-		else {
-			sprintf_s(szName, "%d alias%s displayed.", mAliases.size(), (mAliases.size() == 1) ? "" : "es");
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-		return;
-	}
-	if ((szName[0] == 0) || (szCommand[0] == 0)) {
-		SyntaxError("Usage: /alias name [delete|command], or /alias list");
-		return;
-	}
-
-	if (!_stricmp(szCommand, "delete")) {
-		if (RemoveAlias(szName))
-		{
-			sprintf_s(szBuffer, "Alias '%s' deleted.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		}
-		else
-		{
-			sprintf_s(szBuffer, "Alias '%s' not found.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		}
-	}
-	else {
-		BOOL New = 1;
-		if (RemoveAlias(szName))
-			New = 0;
-		AddAlias(szName, szCommand);
-		sprintf_s(szBuffer, "Alias '%s' %sed.", szName, (New) ? "add" : "updat");
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		WriteAliasToIni(szName,szCommand);
-	}
-}
-
-// ***************************************************************************
-// Function:    Substitute
-// Description: Our '/substitute' command
-//              Add substitutions
-// Usage:       /substitution <original> <new>
-//                /substitution list
-//                /substitition <original> delete
-// ***************************************************************************
-
-void Substitute(PSPAWNINFO pChar, char* szLine)
-{
-	char szBuffer[MAX_STRING] = { 0 };
-	char szName[MAX_STRING] = { 0 };
-	char* szCommand = NULL;
-	GetArg(szName, szLine, 1);
-	szCommand = GetNextArg(szLine);
-	if (!_stricmp(szName, "list")) {
-		PSUB pLoop = pSubs;
-		DWORD Count = 0;
-		WriteChatColor("Substitutions", USERCOLOR_WHO);
-		WriteChatColor("--------------------------", USERCOLOR_WHO);
-		while (pLoop) {
-			sprintf_s(szName, "%s\t----\t%s", pLoop->szOrig, pLoop->szSub);
-			WriteChatColor(szName, USERCOLOR_WHO);
-			Count++;
-			pLoop = pLoop->pNext;
-		}
-		if (Count == 0) {
-			WriteChatColor("No Substitutions defined.", USERCOLOR_WHO);
-		}
-		else {
-			sprintf_s(szName, "%d substitution%s displayed.", Count, (Count == 1) ? "" : "s");
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-		return;
-	}
-	if ((szName[0] == 0) || (szCommand[0] == 0)) {
-		SyntaxError("Usage: /substitute <orig> <new>, /substitute <orig> delete, or /substitute list");
-		return;
-	}
-
-	if (!_stricmp(szCommand, "delete")) {
-		if (RemoveSubstitute(szName))
-		{
-			sprintf_s(szBuffer, "Substitution for '%s' deleted.", szName);
-			RewriteSubstitutions();
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		}
-		else
-		{
-			sprintf_s(szBuffer, "Substitution for '%s' not found.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		}
-	}
-	else {
-		BOOL New = 1;
-		if (RemoveSubstitute(szName))
-			New = 0;
-		AddSubstitute(szName, szCommand);
-		sprintf_s(szBuffer, "Substitution for '%s' %sed.", szName, (New) ? "add" : "updat");
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		RewriteSubstitutions();
-	}
 }
 
 // ***************************************************************************
@@ -3668,11 +3508,13 @@ void DoTimedCmd(PSPAWNINFO pChar, char* szLine)
 		SyntaxError("Usage: /timed <deciseconds> <command>");
 		return;
 	}
+
 	char szArg[MAX_STRING] = { 0 }; // delay
 	GetArg(szArg, szLine, 1);
 	char* szRest = GetNextArg(szLine);
 	if (!szRest[0])
 		return;
+
 	TimedCommand(szRest, atoi(szArg) * 100);
 }
 
@@ -4083,7 +3925,7 @@ void AltAbility(PSPAWNINFO pChar, char* szLine)
 void Echo(SPAWNINFO* pChar, char* szLine)
 {
 	char szEcho[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	strcpy_s(szEcho, DebugHeader);
 	strcat_s(szEcho, " ");
 	int NewPos = strlen(DebugHeader)+1, OldPos = 0;

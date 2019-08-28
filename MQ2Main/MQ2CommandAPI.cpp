@@ -14,128 +14,163 @@
 
 #include "MQ2Main.h"
 
-CRITICAL_SECTION gCommandCS;
+#include <mutex>
 
-typedef struct _TIMEDCOMMAND
+static std::recursive_mutex s_commandMutex;
+
+struct MQTimedCommand
 {
-	ULONGLONG Time;
-	char Command[MAX_STRING];
-	_TIMEDCOMMAND* pLast;
-	_TIMEDCOMMAND* pNext;
-} TIMEDCOMMAND, * PTIMEDCOMMAND;
+	uint64_t      Time;
+	char          Command[MAX_STRING];
 
-TIMEDCOMMAND* pTimedCommands = nullptr;
+	MQTimedCommand* pLast;
+	MQTimedCommand* pNext;
+};
 
+struct MQCommand
+{
+	char       Command[64];
+	fEQCommand Function;
+	bool       EQ;
+	bool       Parse;
+	bool       InGameOnly;
+
+	MQCommand* pLast;
+	MQCommand* pNext;
+};
+
+struct MQSubstitution
+{
+	char szOrig[MAX_STRING];
+	char szSub[MAX_STRING];
+
+	MQSubstitution* pNext;
+	MQSubstitution* pLast;
+};
+
+static MQCommand* s_pCommands = nullptr;
+static MQTimedCommand* s_pTimedCommands = nullptr;
+static MQSubstitution* s_pSubstitutions = nullptr;
+static std::vector<std::string> s_delayedCommands;
+static std::map<std::string, std::string> mAliases;
+
+
+void pop_loop();
 
 void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 {
-    if (delayed)
-    {
-		lockit lk(ghLockDelayCommand,"HideDoCommand");
-		char szTheCmd[MAX_STRING];
-		strcpy_s(szTheCmd, szLine);
-		PCHATBUF pChat = 0;
-		try {
-			pChat = new CHATBUF;
-			strcpy_s(pChat->szText,szTheCmd);
-            pChat->pNext = 0;
-            if (!gDelayedCommands) {
-                gDelayedCommands = pChat;
-            } else {
-                PCHATBUF pCurrent = 0;
-                for (pCurrent = gDelayedCommands;pCurrent->pNext;pCurrent=pCurrent->pNext);
-                pCurrent->pNext = pChat;
-            }
-		}
-		catch(std::bad_alloc& exc)
-		{
-			UNREFERENCED_PARAMETER(exc);
-			MessageBox(NULL,"HideDoCommand failed to allocate memory for gDelayedCommands","Did we just discover a memory leak?",MB_SYSTEMMODAL|MB_OK);
-		};
-        return;
-    }
-    CAutoLock DoCommandLock(&gCommandCS);
+	std::scoped_lock lock(s_commandMutex);
+
+	if (delayed)
+	{
+		s_delayedCommands.emplace_back(szLine);
+		return;
+	}
+
 	char szTheCmd[MAX_STRING];
 	strcpy_s(szTheCmd, szLine);
+
 	WeDidStuff();
-    char szOriginalLine[MAX_STRING];
-    strcpy_s(szOriginalLine,szTheCmd);
+
+	char szOriginalLine[MAX_STRING];
+	strcpy_s(szOriginalLine, szTheCmd);
+
 	char szArg1[MAX_STRING];
-	GetArg(szArg1,szTheCmd,1);
+	GetArg(szArg1, szTheCmd, 1);
+
 	std::string sName = szArg1;
-	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
-	if (mAliases.find(sName) != mAliases.end()) {
+	MakeLower(sName);
+
+	if (mAliases.find(sName) != mAliases.end())
+	{
 		sprintf_s(szTheCmd, "%s%s", mAliases[sName].c_str(), szOriginalLine + sName.size());
 	}
 
-    GetArg(szArg1,szTheCmd,1);
-    if (szArg1[0]==0)
+	GetArg(szArg1, szTheCmd, 1);
+	if (szArg1[0] == 0)
 		return;
+
 	char szParam[MAX_STRING];
 	strcpy_s(szParam, GetNextArg(szTheCmd));
 
-    if ((szArg1[0]==':') || (szArg1[0]=='{')) {
-        bRunNextCommand = TRUE;
-        return;
-    }
+	if ((szArg1[0] == ':') || (szArg1[0] == '{'))
+	{
+		bRunNextCommand = true;
+		return;
+	}
 
 	PMACROBLOCK pBlock = GetCurrentMacroBlock();
-	if (szArg1[0]=='}') {
-		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0) {
+	if (szArg1[0] == '}')
+	{
+		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0)
+		{
 			pBlock->CurrIndex = pBlock->Line[pBlock->CurrIndex].LoopStart;
-			extern void pop_loop();
 			pop_loop();
 			return;
 		}
-		if (strstr(szTheCmd,"{")) {
-			GetArg(szArg1,szTheCmd,2);
-			if (_stricmp(szArg1,"else")) {
+
+		if (strstr(szTheCmd, "{"))
+		{
+			GetArg(szArg1, szTheCmd, 2);
+			if (_stricmp(szArg1, "else"))
+			{
 				FatalError("} and { seen on the same line without an else present");
 			}
-			//          DebugSpew("DoCommand - handing {} off to FailIf");
-			if(pBlock)
-				FailIf(pChar,"{",pBlock->CurrIndex,TRUE);
-		} else {
-			// handle this: 
+			//DebugSpew("DoCommand - handing {} off to FailIf");
+			if (pBlock)
+				FailIf(pChar, "{", pBlock->CurrIndex, TRUE);
+		}
+		else
+		{
+			// handle this:
 			//            /if () {
 			//            } else /echo stuff
-			GetArg(szArg1,szTheCmd,2);
-			if (!_stricmp(szArg1,"else")) {
+			GetArg(szArg1, szTheCmd, 2);
+			if (!_stricmp(szArg1, "else"))
+			{
 				// check here to fail this:
 				//            /if () {
-				//            } else 
+				//            } else
 				//                /echo stuff
-				GetArg(szArg1,szTheCmd,3);
-				if (!_stricmp(szArg1,"")) {
+				GetArg(szArg1, szTheCmd, 3);
+				if (!_stricmp(szArg1, ""))
+				{
 					FatalError("no command or { following else");
 				}
-				bRunNextCommand = TRUE;
-			} else {
-				bRunNextCommand = TRUE;
+				bRunNextCommand = true;
+			}
+			else
+			{
+				bRunNextCommand = true;
 			}
 		}
 		return;
-    }
-    if (szArg1[0]==';' || szArg1[0]=='[')
-    {
-        pEverQuest->InterpretCmd((PlayerClient*)pChar, szOriginalLine);
-        return;
-    }
-    PMQCOMMAND pCommand=pCommands;
-    while(pCommand)
-    {
-        if (pCommand->InGameOnly && gGameState!=GAMESTATE_INGAME)
-        {
-            pCommand=pCommand->pNext;
-            continue;
-        }
-        int Pos=_strnicmp(szArg1,pCommand->Command,strlen(szArg1));
-        if (Pos<0)
-        {// command not found
-            break;
-        }
-        if (Pos==0)
-        {
+	}
+
+	if (szArg1[0] == ';' || szArg1[0] == '[')
+	{
+		pEverQuest->InterpretCmd((PlayerClient*)pChar, szOriginalLine);
+		return;
+	}
+
+	MQCommand* pCommand = s_pCommands;
+	while (pCommand)
+	{
+		if (pCommand->InGameOnly && gGameState != GAMESTATE_INGAME)
+		{
+			pCommand = pCommand->pNext;
+			continue;
+		}
+
+		int Pos = _strnicmp(szArg1, pCommand->Command, strlen(szArg1));
+		if (Pos < 0)
+		{
+			// command not found
+			break;
+		}
+
+		if (Pos == 0)
+		{
 			if (gknightlyparse)
 			{
 				if (pCommand->Parse)
@@ -158,35 +193,38 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 					pCommand->Function(pChar, szParam);
 				}
 			}
+
 			strcpy_s(szLastCommand, szOriginalLine);
 			return;
-        }
-        pCommand=pCommand->pNext;
-    }
-    PBINDLIST pBind = pBindList;
-    while( pBind )
-    {
-        if( gGameState != GAMESTATE_INGAME )
-        {
-            // Macro Binds only supported in-game
-            pBind = pBind->pNext;
-            continue;
-        }
+		}
 
-        int Pos = _strnicmp( szArg1, pBind->szName, strlen( szArg1 ) );
+		pCommand = pCommand->pNext;
+	}
 
-        if( Pos == 0 )
-        {
-            // found it!
-            if( pBind->szFuncName )
-            {
-                if( PCHARINFO pCharInfo = GetCharInfo() )
-                {
-                    std::string sCallFunc( pBind->szFuncName );
-                    sCallFunc += " ";
-                    sCallFunc += szParam;
+	PBINDLIST pBind = pBindList;
+	while (pBind)
+	{
+		if (gGameState != GAMESTATE_INGAME)
+		{
+			// Macro Binds only supported in-game
+			pBind = pBind->pNext;
+			continue;
+		}
+
+		int Pos = _strnicmp(szArg1, pBind->szName, strlen(szArg1));
+		if (Pos == 0)
+		{
+			// found it!
+			if (pBind->szFuncName)
+			{
+				if (CHARINFO* pCharInfo = GetCharInfo())
+				{
+					std::string sCallFunc(pBind->szFuncName);
+					sCallFunc += " ";
+					sCallFunc += szParam;
 					char szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
+
 					if (gknightlyparse)
 					{
 						if (pBind->Parse)
@@ -201,148 +239,174 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 
 					// pBlock may have changed after executing commands
 					pBlock = GetCurrentMacroBlock();
-					if (pBlock && !pBlock->BindCmd.size()) {
-						if (!gBindInProgress) {
+					if (pBlock && pBlock->BindCmd.empty())
+					{
+						if (!gBindInProgress)
+						{
 							gBindInProgress = true;
 							pBlock->BindCmd = szCallFunc;
 						}
-						else {
-							Beep(1000, 100);
+						else
+						{
 							WriteChatf("Can't execute bind while another bind is in progress");
 						}
 					}
-                }
-            }
-            strcpy_s( szLastCommand, szOriginalLine );
-            return;
-        }
-
-        pBind = pBind->pNext;
-    }
-
-    // skip this logic for Bind Commands.
-    if( _strnicmp( szOriginalLine, "sub bind_", 9 ) != 0 ) {
-        if( !_strnicmp( szOriginalLine, "sub ", 4 ) ) {
-            FatalError( "Flow ran into another subroutine. (%s)", szOriginalLine );
-            return;
-        }
-
-        strcpy_s( szLastCommand, szOriginalLine );
-        MacroError( "DoCommand - Couldn't parse '%s'", szOriginalLine );
-    }
-}
-
-class CCommandHook 
-{ 
-public: 
-    void Detour(PSPAWNINFO pChar, char* szFullLine) 
-    {
-		lockit lk(ghCCommandLock,"CCommandHook::Detour");
-        DebugSpew("CCommandHook::Detour(%s)",szFullLine);
-        char szFullCommand[MAX_STRING] = {0}; 
-        char szCommand[MAX_STRING] = {0}; 
-        char szArgs[MAX_STRING] = {0}; 
-        char szOrig[MAX_STRING] = {0};
-        char szSub[MAX_STRING] = {0};
-        std::string szSubFullCommand = "";
-        unsigned int k=0;
-        bool OneCharacterSub = false;
-        PSUB pSubLoop = pSubs;
-        if (szFullLine[0]!=0) { 
-			strcpy_s(szFullCommand,szFullLine);
-            GetArg(szCommand,szFullCommand,1); 
-
-            if (!_stricmp(szCommand,"/camp"))
-            {
-                if (GetMacroBlockCount())
-                {
-                    WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW );
-                }
-            }
-
-            szSubFullCommand = szFullCommand;
-            size_t len = strnlen_s(szFullCommand, MAX_STRING);
-			for (unsigned int i=0; i < sizeof(szFullCommand); i++ ) 
-            {
-                if (szFullCommand[i] == '%' && ((i+2)<len))
-                {
-                    if (szFullCommand[i+2] == ' ' || szFullCommand[i+2] == '\0' ||
-                        !isalnum(szFullCommand[i+2]) ) {
-                            if (szFullCommand[i+1] == 'm' || szFullCommand[i+1] == 'M' ||
-                                szFullCommand[i+1] == 'o' || szFullCommand[i+1] == 'O' ||
-                                szFullCommand[i+1] == 'p' || szFullCommand[i+1] == 'P' ||
-                                szFullCommand[i+1] == 'r' || szFullCommand[i+1] == 'R' ||
-                                szFullCommand[i+1] == 's' || szFullCommand[i+1] == 'S' ||
-                                szFullCommand[i+1] == 't' || szFullCommand[i+1] == 'T' )
-                                continue;
-                            else { 
-                                szOrig[0] = szFullCommand[i+1];
-                                szOrig[1] = '\0';
-                                k = 1;
-                                OneCharacterSub = true;
-                            }
-                    }
-
-                    if (!OneCharacterSub) {
-                        for (unsigned int j=i+1; j < sizeof(szFullCommand); j++ )
-                        {
-                            if (szFullCommand[j] == ' ' || szFullCommand[j] == '\0' ) 
-                                break;
-                            else if (!isalnum(szFullCommand[j]))
-                                break;
-                            szOrig[k] = szFullCommand[j];
-                            k++;
-                        }
-                    }
-                    while (pSubLoop)
-                    {
-                        if (!_stricmp(szOrig, pSubLoop->szOrig)) 
-                        {
-                            sprintf_s( szSub, "%s", pSubLoop->szSub );
-                            break;
-                        }
-                        pSubLoop = pSubLoop->pNext;
-                    }
-                    if (szSub[0] != '\0' ) {
-                        szSubFullCommand.replace(i,k+1,szSub);
-						sprintf_s( szFullCommand, "%s",szSubFullCommand.c_str() );
-                    }
-                    szOrig[0] = '\0';
-                    szSub[0] = '\0';
-                    k=0;
-                    OneCharacterSub = false;
-                    pSubLoop = pSubs;
-                }
-            }
-			sprintf_s(szFullCommand, "%s", szSubFullCommand.c_str() );
-			std::string sName = szCommand;
-			std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
-			if (mAliases.find(sName) != mAliases.end()) {
-				sprintf_s(szCommand,"%s%s",mAliases[sName].c_str(),szFullCommand+sName.size());
-                strcpy_s(szFullCommand,szCommand); 
+				}
 			}
 
-            GetArg(szCommand,szFullCommand,1); 
-            strcpy_s(szArgs, GetNextArg(szFullCommand)); 
+			strcpy_s(szLastCommand, szOriginalLine);
+			return;
+		}
 
-            PMQCOMMAND pCommand=pCommands;
-            while(pCommand)
-            {
-                if (pCommand->InGameOnly && gGameState!=GAMESTATE_INGAME)
-                {
-                    pCommand=pCommand->pNext;
-                    continue;
-                }
-                int Pos=_strnicmp(szCommand,pCommand->Command,strlen(szCommand));
-                if (Pos<0)
-                {// command not found
-                    break;
-                }
-                if (Pos==0)
-                {
+		pBind = pBind->pNext;
+	}
+
+	// skip this logic for Bind Commands.
+	if (_strnicmp(szOriginalLine, "sub bind_", 9) != 0)
+	{
+		if (!_strnicmp(szOriginalLine, "sub ", 4))
+		{
+			FatalError("Flow ran into another subroutine. (%s)", szOriginalLine);
+			return;
+		}
+
+		strcpy_s(szLastCommand, szOriginalLine);
+		MacroError("DoCommand - Couldn't parse '%s'", szOriginalLine);
+	}
+}
+
+class CCommandHook
+{
+public:
+	void Detour(SPAWNINFO* pChar, const char* szFullLine)
+	{
+		std::scoped_lock lock(s_commandMutex);
+		DebugSpew("CCommandHook::Detour(%s)", szFullLine);
+
+		char szFullCommand[MAX_STRING] = { 0 };
+		char szCommand[MAX_STRING] = { 0 };
+		char szArgs[MAX_STRING] = { 0 };
+		char szOrig[MAX_STRING] = { 0 };
+		char szSub[MAX_STRING] = { 0 };
+
+		std::string szSubFullCommand = "";
+		unsigned int k = 0;
+		bool OneCharacterSub = false;
+		MQSubstitution* pSubLoop = s_pSubstitutions;
+
+		if (szFullLine[0] != 0)
+		{
+			strcpy_s(szFullCommand, szFullLine);
+			GetArg(szCommand, szFullCommand, 1);
+
+			if (!_stricmp(szCommand, "/camp"))
+			{
+				if (GetMacroBlockCount())
+				{
+					WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW);
+				}
+			}
+
+			szSubFullCommand = szFullCommand;
+			size_t len = strnlen_s(szFullCommand, MAX_STRING);
+			for (unsigned int i = 0; i < sizeof(szFullCommand); i++)
+			{
+				if (szFullCommand[i] == '%' && ((i + 2) < len))
+				{
+					if (szFullCommand[i + 2] == ' ' || szFullCommand[i + 2] == '\0' ||
+						!isalnum(szFullCommand[i + 2]))
+					{
+						if (szFullCommand[i + 1] == 'm' || szFullCommand[i + 1] == 'M' ||
+							szFullCommand[i + 1] == 'o' || szFullCommand[i + 1] == 'O' ||
+							szFullCommand[i + 1] == 'p' || szFullCommand[i + 1] == 'P' ||
+							szFullCommand[i + 1] == 'r' || szFullCommand[i + 1] == 'R' ||
+							szFullCommand[i + 1] == 's' || szFullCommand[i + 1] == 'S' ||
+							szFullCommand[i + 1] == 't' || szFullCommand[i + 1] == 'T')
+						{
+							continue;
+						}
+						else
+						{
+							szOrig[0] = szFullCommand[i + 1];
+							szOrig[1] = '\0';
+							k = 1;
+							OneCharacterSub = true;
+						}
+					}
+
+					if (!OneCharacterSub)
+					{
+						for (unsigned int j = i + 1; j < sizeof(szFullCommand); j++)
+						{
+							if (szFullCommand[j] == ' ' || szFullCommand[j] == '\0')
+								break;
+							if (!isalnum(szFullCommand[j]))
+								break;
+
+							szOrig[k] = szFullCommand[j];
+							k++;
+						}
+					}
+
+					while (pSubLoop)
+					{
+						if (!_stricmp(szOrig, pSubLoop->szOrig))
+						{
+							sprintf_s(szSub, "%s", pSubLoop->szSub);
+							break;
+						}
+						pSubLoop = pSubLoop->pNext;
+					}
+
+					if (szSub[0] != 0)
+					{
+						szSubFullCommand.replace(i, k + 1, szSub);
+						sprintf_s(szFullCommand, "%s", szSubFullCommand.c_str());
+					}
+
+					szOrig[0] = 0;
+					szSub[0] = 0;
+					k = 0;
+					OneCharacterSub = false;
+					pSubLoop = s_pSubstitutions;
+				}
+			}
+
+			sprintf_s(szFullCommand, "%s", szSubFullCommand.c_str());
+			std::string sName = szCommand;
+			MakeLower(sName);
+
+			if (mAliases.find(sName) != mAliases.end())
+			{
+				sprintf_s(szCommand, "%s%s", mAliases[sName].c_str(), szFullCommand + sName.size());
+				strcpy_s(szFullCommand, szCommand);
+			}
+
+			GetArg(szCommand, szFullCommand, 1);
+			strcpy_s(szArgs, GetNextArg(szFullCommand));
+
+			MQCommand* pCommand = s_pCommands;
+			while (pCommand)
+			{
+				if (pCommand->InGameOnly && gGameState != GAMESTATE_INGAME)
+				{
+					pCommand = pCommand->pNext;
+					continue;
+				}
+
+				int Pos = _strnicmp(szCommand, pCommand->Command, strlen(szCommand));
+				if (Pos < 0)
+				{
+					// command not found
+					break;
+				}
+
+				if (Pos == 0)
+				{
 					if (gknightlyparse)
 					{
-						if (pCommand->Parse) {
+						if (pCommand->Parse)
+						{
 							ParseMacroParameter(pChar, szArgs);
 						}
 					}
@@ -353,6 +417,7 @@ public:
 							ParseMacroParameter(pChar, szArgs);
 						}
 					}
+
 					if (pCommand->EQ)
 					{
 						strcat_s(szCommand, " ");
@@ -363,37 +428,40 @@ public:
 					{
 						pCommand->Function(pChar, szArgs);
 					}
+
 					strcpy_s(szLastCommand, szFullCommand);
 					return;
-                }
-                pCommand=pCommand->pNext;
-            }
+				}
+				pCommand = pCommand->pNext;
+			}
 
-            PBINDLIST pBind = pBindList;
+			PBINDLIST pBind = pBindList;
 			PMACROBLOCK pBlock = GetCurrentMacroBlock();
-            while( pBind )
-            {
-                if( gGameState != GAMESTATE_INGAME )
-                {
-                    // Macro Binds only supported in-game
-                    pBind = pBind->pNext;
-                    continue;
-                }
+			while (pBind)
+			{
+				if (gGameState != GAMESTATE_INGAME)
+				{
+					// Macro Binds only supported in-game
+					pBind = pBind->pNext;
+					continue;
+				}
 
-                int Pos = _strnicmp( szCommand, pBind->szName, strlen( szCommand ) );
+				int Pos = _strnicmp(szCommand, pBind->szName, strlen(szCommand));
 
-                if( Pos == 0 )
-                {
-                    // found it!
-                    if( pBind->szFuncName )
-                    {
-                        if( PCHARINFO pCharInfo = GetCharInfo() )
-                        {
-                            std::string sCallFunc( pBind->szFuncName );
-                            sCallFunc += " ";
-                            sCallFunc += szArgs;
+				if (Pos == 0)
+				{
+					// found it!
+					if (pBind->szFuncName)
+					{
+						if (CHARINFO* pCharInfo = GetCharInfo())
+						{
+							std::string sCallFunc = pBind->szFuncName;
+							sCallFunc += " ";
+							sCallFunc += szArgs;
+
 							char szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
+
 							if (gknightlyparse)
 							{
 								if (pBind->Parse)
@@ -405,44 +473,45 @@ public:
 							{
 								ParseMacroData(szCallFunc, MAX_STRING);
 							}
-							if (pBlock && !pBlock->BindCmd.size()) {
-								if (!gBindInProgress) {
+
+							if (pBlock && pBlock->BindCmd.empty())
+							{
+								if (!gBindInProgress)
+								{
 									gBindInProgress = true;
 									pBlock->BindCmd = szCallFunc;
 								}
-								else {
-									Beep(1000, 100);
+								else
+								{
 									WriteChatf("Can't execute bind while another bind is in progress");
 								}
 							}
-							//char szOrg[MAX_STRING] = {"${Time}"};
-							//ParseMacroData(szOrg, MAX_STRING);
-							//WriteChatf("[%s] %s called",szOrg, szCallFunc.c_str());
-							//Beep(1000, 100);
-                        }
-                    }
-                    strcpy_s( szLastCommand, szFullCommand );
-                    return;
-                }
 
-                pBind = pBind->pNext;
-            }
-        }
-        Trampoline(pChar,szFullLine); 
-		strcpy_s(szLastCommand,szFullCommand);
-    } 
+						}
+					}
 
-    void Trampoline(PSPAWNINFO pChar, char* szFullLine); 
+					strcpy_s(szLastCommand, szFullCommand);
+					return;
+				}
 
-}; 
+				pBind = pBind->pNext;
+			}
+		}
 
-DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(PSPAWNINFO pChar, char* szFullLine));
+		Trampoline(pChar, szFullLine);
+		strcpy_s(szLastCommand, szFullCommand);
+	}
+
+	void Trampoline(SPAWNINFO* pChar, const char* szFullLine);
+};
+DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(SPAWNINFO* pChar, const char* szFullLine));
 
 void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
-	DebugSpew("AddCommand(%s,0x%X)", Command, Function);
-	PMQCOMMAND pCommand = new MQCOMMAND;
-	memset(pCommand, 0, sizeof(MQCOMMAND));
+	DebugSpew("AddCommand(%s, 0x%X)", Command, Function);
+
+	MQCommand* pCommand = new MQCommand;
+	memset(pCommand, 0, sizeof(MQCommand));
 	strcpy_s(pCommand->Command, Command);
 	pCommand->EQ = EQ;
 	pCommand->Parse = Parse;
@@ -450,14 +519,14 @@ void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */,
 	pCommand->InGameOnly = InGame;
 
 	// perform insertion sort
-	if (!pCommands)
+	if (!s_pCommands)
 	{
-		pCommands = pCommand;
+		s_pCommands = pCommand;
 		return;
 	}
 
-	PMQCOMMAND pInsert = pCommands;
-	PMQCOMMAND pLast = nullptr;
+	MQCommand* pInsert = s_pCommands;
+	MQCommand* pLast = nullptr;
 	while (pInsert)
 	{
 		if (_stricmp(pCommand->Command, pInsert->Command) <= 0)
@@ -466,7 +535,7 @@ void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */,
 			if (pLast)
 				pLast->pNext = pCommand;
 			else
-				pCommands = pCommand;
+				s_pCommands = pCommand;
 
 			pCommand->pLast = pLast;
 			pInsert->pLast = pCommand;
@@ -485,7 +554,7 @@ void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */,
 
 bool RemoveCommand(const char* Command)
 {
-	PMQCOMMAND pCommand = pCommands;
+	MQCommand* pCommand = s_pCommands;
 
 	while (pCommand)
 	{
@@ -503,7 +572,7 @@ bool RemoveCommand(const char* Command)
 			if (pCommand->pLast)
 				pCommand->pLast->pNext = pCommand->pNext;
 			else
-				pCommands = pCommand->pNext;
+				s_pCommands = pCommand->pNext;
 			delete pCommand;
 
 			return true;
@@ -515,416 +584,718 @@ bool RemoveCommand(const char* Command)
 	return false;
 }
 
-void AddAlias(char* ShortCommand, char* LongCommand)
+bool IsCommand(const char* command)
+{
+	MQCommand* pCommand = s_pCommands;
+	while (pCommand)
+	{
+		if (_stricmp(command, pCommand->Command) == 0)
+			return true;
+
+		pCommand = pCommand->pNext;
+	}
+
+	return false;
+}
+
+//============================================================================
+
+void AddAlias(const char* ShortCommand, const char* LongCommand)
 {
 	std::string sName = ShortCommand;
-	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
-    DebugSpew("AddAlias(%s,%s)",sName.c_str(),LongCommand);
+	MakeLower(sName);
+
+	DebugSpew("AddAlias(%s,%s)", sName.c_str(), LongCommand);
 	mAliases[sName] = LongCommand;
 }
 
-BOOL RemoveAlias(char* ShortCommand)
+bool RemoveAlias(const char* ShortCommand)
 {
 	std::string sName = ShortCommand;
-	std::transform(sName.begin(), sName.end(), sName.begin(), tolower);
-	WritePrivateProfileString("Aliases", sName.c_str(),NULL, gszINIFilename);
-	if (mAliases.find(sName) != mAliases.end()) {
+	MakeLower(sName);
+
+	WritePrivateProfileString("Aliases", sName.c_str(), nullptr, gszINIFilename);
+
+	if (mAliases.find(sName) != mAliases.end())
+	{
 		mAliases.erase(sName);
-		return 1;
+		return true;
 	}
-    return 0;
+
+	return false;
 }
 
-void AddSubstitute(char* Original, char* Substitution)
+bool IsAlias(const char* alias)
 {
-    DebugSpew("AddSubstitute(%s,%s)",Original,Substitution);
-    // perform insertion sort
-    if (!pSubs)
-    {
-        PSUB pSub=new SUB;
-        memset(pSub,0,sizeof(SUB));
-		strcpy_s(pSub->szOrig,Original);
-		strcpy_s(pSub->szSub,Substitution);
-        pSubs=pSub;
-        return;
-    }
-    PSUB pInsert=pSubs;
-    PSUB pLast=0;
-    while(pInsert)
-    {
-        int Pos= _stricmp(Original,pInsert->szOrig);
-        if (Pos<0)
-        {
-            // insert here.
-            PSUB pSub=new SUB;
-            memset(pSub,0,sizeof(SUB));
-			strcpy_s(pSub->szOrig,Original);
-			strcpy_s(pSub->szSub,Substitution);
-            if (pLast)
-                pLast->pNext=pSub;
-            else
-                pSubs=pSub;
-            pSub->pLast=pLast;
-            pInsert->pLast=pSub;
-            pSub->pNext=pInsert;
-            return;
-        }
-        if (Pos==0)
-        {
-			strcpy_s(pInsert->szOrig,Original);
-			strcpy_s(pInsert->szSub,Substitution);
-            return;
-        }
-        pLast=pInsert;
-        pInsert=pInsert->pNext;
-    }
-    // End of list
-    PSUB pSub=new SUB;
-    memset(pSub,0,sizeof(SUB));
-	strcpy_s(pSub->szOrig,Original);
-	strcpy_s(pSub->szSub,Substitution);
-    pLast->pNext=pSub;
-    pSub->pLast=pLast;
+	std::string sName = alias;
+	MakeLower(sName);
+
+	return mAliases.find(sName) != mAliases.end();
 }
 
-BOOL RemoveSubstitute(char* Original)
+// this function is SUPER expensive, DO NOT use it unless you absolutely have to.
+void RewriteAliases()
 {
-    PSUB pSub=pSubs;
-    while(pSub)
-    {
-        if (!_stricmp(Original,pSub->szOrig))
-        {
-            if (pSub->pNext)
-                pSub->pNext->pLast=pSub->pLast;
-            if (pSub->pLast)
-                pSub->pLast->pNext=pSub->pNext;
-            else
-                pSubs=pSub->pNext;
-            delete pSub;
-            return 1;
-        }
-        pSub=pSub->pNext;
-    }
-    return 0;
+	WritePrivateProfileSection("Aliases", "", gszINIFilename);
+
+	for (const auto& [key, value] : mAliases)
+	{
+		WritePrivateProfileString("Aliases", key.c_str(), value.c_str(), gszINIFilename);
+	}
 }
+
+// better single write them instead...
+void WriteAliasToIni(const char* Name, const char* Command)
+{
+	WritePrivateProfileString("Aliases", Name, Command, gszINIFilename);
+}
+
+//============================================================================
+
+void AddSubstitute(const char* Original, const char* Substitution)
+{
+	DebugSpew("AddSubstitute(%s,%s)", Original, Substitution);
+
+	// perform insertion sort
+	if (!s_pSubstitutions)
+	{
+		MQSubstitution* pSub = new MQSubstitution;
+		memset(pSub, 0, sizeof(MQSubstitution));
+		strcpy_s(pSub->szOrig, Original);
+		strcpy_s(pSub->szSub, Substitution);
+		s_pSubstitutions = pSub;
+		return;
+	}
+
+	MQSubstitution* pInsert = s_pSubstitutions;
+	MQSubstitution* pLast = nullptr;
+
+	while (pInsert)
+	{
+		int Pos = _stricmp(Original, pInsert->szOrig);
+		if (Pos < 0)
+		{
+			// insert here.
+			MQSubstitution* pSub = new MQSubstitution;
+			memset(pSub, 0, sizeof(MQSubstitution));
+			strcpy_s(pSub->szOrig, Original);
+			strcpy_s(pSub->szSub, Substitution);
+			if (pLast)
+				pLast->pNext = pSub;
+			else
+				s_pSubstitutions = pSub;
+			pSub->pLast = pLast;
+			pInsert->pLast = pSub;
+			pSub->pNext = pInsert;
+			return;
+		}
+
+		if (Pos == 0)
+		{
+			strcpy_s(pInsert->szOrig, Original);
+			strcpy_s(pInsert->szSub, Substitution);
+			return;
+		}
+
+		pLast = pInsert;
+		pInsert = pInsert->pNext;
+	}
+
+	// End of list
+	MQSubstitution* pSub = new MQSubstitution;
+	memset(pSub, 0, sizeof(MQSubstitution));
+	strcpy_s(pSub->szOrig, Original);
+	strcpy_s(pSub->szSub, Substitution);
+	pLast->pNext = pSub;
+	pSub->pLast = pLast;
+}
+
+bool RemoveSubstitute(const char* Original)
+{
+	MQSubstitution* pSub = s_pSubstitutions;
+	while (pSub)
+	{
+		if (!_stricmp(Original, pSub->szOrig))
+		{
+			if (pSub->pNext)
+				pSub->pNext->pLast = pSub->pLast;
+			if (pSub->pLast)
+				pSub->pLast->pNext = pSub->pNext;
+			else
+				s_pSubstitutions = pSub->pNext;
+			delete pSub;
+			return true;
+		}
+		pSub = pSub->pNext;
+	}
+
+	return false;
+}
+
+void RewriteSubstitutions()
+{
+	MQSubstitution* pSubLoop = s_pSubstitutions;
+	WritePrivateProfileSection("Substitutions", "", gszINIFilename);
+
+	while (pSubLoop)
+	{
+		WritePrivateProfileString("Substitutions", pSubLoop->szOrig, pSubLoop->szSub, gszINIFilename);
+		pSubLoop = pSubLoop->pNext;
+	}
+}
+
+//============================================================================
+//============================================================================
 
 void InitializeMQ2Commands()
 {
-	int i = 0;
 	DebugSpew("Initializing Commands");
-	InitializeCriticalSection(&gCommandCS);
-	if (!ghCCommandLock)
-		ghCCommandLock = CreateMutex(NULL, FALSE, NULL);
+
 	EzDetourwName(CEverQuest__InterpretCmd, &CCommandHook::Detour, &CCommandHook::Trampoline, "CEverQuest__InterpretCmd");
 
 	// Import EQ commands
-	PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
-	for (i = 0; pCmdListOrig[i].fAddress != 0; i++) {
-		if (!strcmp(pCmdListOrig[i].szName, "/who")) {
+	CMDLIST* pCmdListOrig = (CMDLIST*)EQADDR_CMDLIST;
+
+	for (int i = 0; pCmdListOrig[i].fAddress != nullptr; i++)
+	{
+		if (!strcmp(pCmdListOrig[i].szName, "/who"))
+		{
 			cmdWho = (fEQCommand)pCmdListOrig[i].fAddress;
-			AddCommand("/", pCmdListOrig[i].fAddress, TRUE, 1, 1); // make sure / does EQ who by default
+			AddCommand("/", pCmdListOrig[i].fAddress, true, true, true); // make sure / does EQ who by default
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/whotarget")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/whotarget"))
+		{
 			cmdWhoTarget = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/location")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/location"))
+		{
 			cmdLocation = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/help")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/help"))
+		{
 			cmdHelp = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/target")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/target"))
+		{
 			cmdTarget = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/charinfo")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/charinfo"))
+		{
 			cmdCharInfo = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/filter")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/filter"))
+		{
 			cmdFilter = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/doability")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/doability"))
+		{
 			cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/cast")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/cast"))
+		{
 			cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/useitem")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/useitem"))
+		{
 			cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/pet")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/pet"))
+		{
 			cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/mercswitch")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/mercswitch"))
+		{
 			cmdMercSwitch = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/advloot")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/advloot"))
+		{
 			cmdAdvLoot = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/pickzone")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/pickzone"))
+		{
 			cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/assist")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/assist"))
+		{
 			cmdAssist = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		else if (!strcmp(pCmdListOrig[i].szName, "/quit")) {
+		else if (!strcmp(pCmdListOrig[i].szName, "/quit"))
+		{
 			cmdQuit = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
-		AddCommand(pCmdListOrig[i].szName, pCmdListOrig[i].fAddress, TRUE, 1, 1);
+
+		AddCommand(pCmdListOrig[i].szName, pCmdListOrig[i].fAddress, true, true, true);
 	}
 
+	// Add MQ commands...
+	struct { char* szCommand; fEQCommand pFunc; bool Parse; bool InGame; } NewCommands[] = {
+		{ "/whotarget",         SuperWhoTarget,             true,  true  },
+		{ "/location",          Location,                   true,  true  },
+		{ "/help",              Help,                       true,  false },
+		{ "/target",            Target,                     true,  true  },
+		{ "/alias",             Alias,                      false, false },
+		{ "/aa",                AltAbility,                 false, true  },
+		{ "/substitute",        Substitute,                 false, false },
+		{ "/filter",            Filter,                     true,  false },
+		{ "/whofilter",         SWhoFilter,                 true,  true  },
+		{ "/spewfile",          DebugSpewFile,              true,  false },
+		{ "/char",              CharInfo,                   true,  true  },
+		{ "/face",              Face,                       true,  true  },
+		{ "/identify",          Identify,                   true,  true  },
+		{ "/where",             Where,                      true,  true  },
+		{ "/skills",            Skills,                     true,  true  },
+		{ "/unload",            Unload,                     true,  false },
+		{ "/selectitem",        SelectItem,                 true,  true  },
+		{ "/buyitem",           BuyItem,                    true,  true  },
+		{ "/sellitem",          SellItem,                   true,  true  },
+		{ "/memspell",          MemSpell,                   true,  true  },
+		{ "/loadspells",        LoadSpells,                 true,  true  },
+		{ "/loginname",         DisplayLoginName,           true,  false },
+		{ "/echo",              Echo,                       true,  false },
+		{ "/msgbox",            MQMsgBox,                   true,  false },
+		{ "/lootall",           LootAll,                    true,  false },
+		{ "/alert",             Alert,                      true,  true  },
+		{ "/click",             Click,                      true,  false },
+		{ "/mouseto",           MouseTo,                    true,  false },
+		{ "/items",             Items,                      true,  true  },
+		{ "/itemtarget",        ItemTarget,                 true,  true  },
+		{ "/doability",         DoAbility,                  true,  true  },
+		{ "/doors",             Doors,                      true,  true  },
+		{ "/doortarget",        DoorTarget,                 true,  true  },
+		{ "/beep",              MacroBeep,                  true,  false },
+		{ "/cast",              Cast,                       true,  true  },
+		{ "/mqlog",             MacroLog,                   true,  false },
+		{ "/updateitems",       UpdateItemInfo,             true,  true  },
+		{ "/ini",               IniOutput,                  true,  false },
+		{ "/setautorun",        SetAutoRun,                 false, true  },
+		{ "/banklist",          BankList,                   true,  true  },
+		{ "/look",              Look,                       true,  true  },
+		{ "/windowstate",       WindowState,                true,  false },
+		{ "/destroy",           EQDestroyHeldItemOrMoney,   true,  true  },
+		{ "/popup",             PopupText,                  true,  true  },
+		{ "/popcustom",         PopupTextCustom,            true,  true  },
+		{ "/popupecho",         PopupTextEcho,              true,  true  },
+		{ "/exec",              Exec,                       true,  false },
+		{ "/keypress",          DoMappable,                 true,  false },
+		{ "/multiline",         MultilineCommand,           false, false },
+		{ "/ranged",            do_ranged,                  true,  true  },
+		{ "/loadcfg",           LoadCfgCommand,             true,  false },
+		{ "/squelch",           SquelchCommand,             true,  false },
+		{ "/docommand",         DoCommandCmd,               true,  false },
+		{ "/ctrlkey",           DoCtrlCmd,                  false, false },
+		{ "/altkey",            DoAltCmd,                   false, false },
+		{ "/shiftkey",          DoShiftCmd,                 false, false },
+		{ "/timed",             DoTimedCmd,                 false, false },
+		{ "/bind",              MQ2KeyBindCommand,          true,  false },
+		{ "/noparse",           NoParseCmd,                 false, false },
+		{ "/nomodkey",          NoModKeyCmd,                false, false },
+		{ "/dumpbinds",         DumpBindsCommand,           true,  false },
+		{ "/dosocial",          DoSocial,                   true,  true  },
+		{ "/combine",           CombineCmd,                 true,  true  },
+		{ "/drop",              DropCmd,                    true,  false },
+		{ "/delay",             Delay,                      false, false }, // do not parse
+		{ "/hud",               HudCmd,                     true,  false },
+		{ "/caption",           CaptionCmd,                 false, false },
+		{ "/captioncolor",      CaptionColorCmd,            true,  false },
+		{ "/useitem",           UseItemCmd,                 true,  true  },
+		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
+		{ "/getwintitle",       GetWinTitle,                true,  false },
+		{ "/setwintitle",       SetWinTitle,                true,  false },
+		{ "/removebuff",        RemoveBuff,                 true,  true  },
+		{ "/removepetbuff",     RemovePetBuff,              true,  true  },
+		{ "/makemevisible",     MakeMeVisible,              false, true  },
+		{ "/pet",               PetCmd,                     true,  true  },
+		{ "/mercswitch",        MercSwitchCmd,              true,  true  },
+		{ "/removeaura",        RemoveAura,                 false, true  },
+		{ "/advloot",           AdvLootCmd,                 true,  true  },
+		{ "/pickzone",          PickZoneCmd,                true,  true  },
+		{ "/assist",            AssistCmd,                  true,  true  },
+		{ "/setprio",           SetProcessPriority,         true,  false },
+		{ "/screenmode",        ScreenModeCmd,              true,  false },
+		{ "/usercamera",        UserCameraCmd,              true,  false },
+		{ "/mapzoom",           MapZoomCmd,                 true,  false },
+		{ "/foreground",        ForeGroundCmd,              true,  false },
+		{ "/quit",              QuitCmd,                    true,  false },
 
+		{ nullptr,              nullptr,                    false, true  },
+	};
 
-    // Add MQ commands...
-    struct _NEWCOMMANDLIST { char* szCommand; fEQCommand pFunc; BOOL Parse; BOOL InGame;} NewCommands[] = {
-        {"/whotarget",  SuperWhoTarget,1,1},
-        {"/location",   Location,1,1},
-        {"/help",       Help,1,0},
-        {"/target",     Target,1,1},
-        {"/alias",      Alias,0,0},
-        {"/aa",         AltAbility,0,1},
-        {"/substitute", Substitute,0,0},
-        {"/filter",     Filter,1,0},
-        {"/whofilter",  SWhoFilter,1,1},
-        {"/spewfile",   DebugSpewFile,1,0},
-        {"/char",       CharInfo,1,1},
-        {"/face",       Face,1,1},
-        {"/identify",   Identify,1,1},
-        {"/where",      Where,1,1},
-        {"/skills",     Skills,1,1},
-        {"/unload",     Unload,1,0},
-		{"/selectitem", SelectItem,1,1},
-        {"/buyitem",    BuyItem,1,1},
-        {"/sellitem",   SellItem,1,1},
-        {"/memspell",   MemSpell,1,1},
-        {"/loadspells", LoadSpells,1,1},
-        {"/loginname",  DisplayLoginName,1,0},
-        {"/echo",       Echo,1,0},
-        {"/msgbox",     MQMsgBox,1,0},
-        {"/lootall",    LootAll,1,0},
-        {"/alert",      Alert,1,1},
-        {"/click",      Click,1,0},
-		{"/mouseto",    MouseTo,1,0},
-        {"/items",      Items,1,1},
-        {"/itemtarget", ItemTarget,1,1},
-        {"/doability",  DoAbility,1,1},
-        {"/doors",      Doors,1,1},
-        {"/doortarget", DoorTarget,1,1},
-        {"/beep",       MacroBeep,1,0},
-        {"/cast",       Cast,1,1},
-        {"/mqlog",      MacroLog,1,0},
-		{"/updateitems",UpdateItemInfo,1,1},
-        {"/ini",        IniOutput,1,0},
-        {"/setautorun", SetAutoRun,0,1},
-        {"/banklist",   BankList,1,1},
-        {"/look",       Look,1,1},
-        {"/windowstate",WindowState,1,0},
-        {"/destroy",    EQDestroyHeldItemOrMoney,1,1},
-        {"/popup",      PopupText,1,1},
-		{"/popcustom",	PopupTextCustom,1,1},
-		{"/popupecho",	PopupTextEcho,1,1},
-		{"/exec",       Exec,1,0},
-		{"/keypress",   DoMappable,1,0},
-		{"/multiline",  MultilineCommand,0,0},
-		{"/ranged",     do_ranged,1,1},
-		{"/loadcfg",    LoadCfgCommand,1,0},
-		{"/squelch",    SquelchCommand,1,0},
-		{"/docommand",  DoCommandCmd,1,0},
-		{"/ctrlkey",    DoCtrlCmd,0,0},
-		{"/altkey",     DoAltCmd,0,0},
-		{"/shiftkey",   DoShiftCmd,0,0},
-		{"/timed",      DoTimedCmd,0,0},
-        {"/bind",       MQ2KeyBindCommand,1,0},
-		{"/noparse",    NoParseCmd,0,0},
-		{"/nomodkey",   NoModKeyCmd,0,0},
-        {"/dumpbinds",  DumpBindsCommand,1,0},
-        {"/dosocial",   DoSocial,1,1},
-		{"/combine",    CombineCmd,1,1},
-        {"/drop",       DropCmd,1,0},
-		{"/delay",      Delay,0,0}, // do not parse
-        {"/hud",        HudCmd,1,0},
-        {"/caption",    CaptionCmd,0,0},
-        {"/captioncolor",CaptionColorCmd,1,0},
-        {"/useitem",    UseItemCmd,1,1},
-		{"/spellslotinfo",SpellSlotInfo,1,1},
-		{"/getwintitle",GetWinTitle,1,0},
-		{"/setwintitle",SetWinTitle,1,0},
-		{"/removebuff", RemoveBuff,1,1},
-		{"/removepetbuff", RemovePetBuff,1,1},
-		{"/makemevisible",MakeMeVisible,0,1},
-		{"/pet",        PetCmd,1,1},
-		{"/mercswitch", MercSwitchCmd,1,1},
-		{"/removeaura", RemoveAura,0,1},
-		{"/advloot",    AdvLootCmd,1,1},
-		{"/pickzone",   PickZoneCmd,1,1},
-		{"/assist",     AssistCmd,1,1},
-		{"/setprio",    SetProcessPriority,1,0},
-		{"/screenmode", ScreenModeCmd,1,0},
-		{"/usercamera", UserCameraCmd,1,0},
-		{"/mapzoom",    MapZoomCmd,1,0},
-		{"/foreground", ForeGroundCmd,1,0},
-		{"/quit",		QuitCmd,1,0},
+	// Remove replaced commands first
+	for (int i = 0; NewCommands[i].szCommand && NewCommands[i].pFunc; i++)
+	{
+		RemoveCommand(NewCommands[i].szCommand);
+		AddCommand(NewCommands[i].szCommand, NewCommands[i].pFunc, false, NewCommands[i].Parse, NewCommands[i].InGame);
+	}
 
-        {NULL,          NULL,0,1},
-    };
-    // Remove replaced commands first
-    for (i = 0 ; NewCommands[i].szCommand && NewCommands[i].pFunc ; i++)
-    {
-        RemoveCommand(NewCommands[i].szCommand);
-        AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse,NewCommands[i].InGame);
-    }
-	//truebox builds are not supported anymore.
-	//This code is here to make sure we are NOT run on truebox.
-	//(bypassing these calls will severly cripple your mq2) -eqmule
-	typedef DWORD(__cdecl *fAuthenticateTrueBox)(DWORD);
-	fAuthenticateTrueBox AuthenticateTrueBox = 0;
-	typedef DWORD(__cdecl *fGetTrueBoxKey)(DWORD);
-	fGetTrueBoxKey GetTrueBoxKey = 0;
-	if (ghmq2ic) {
+	// truebox builds are not supported anymore.
+	// This code is here to make sure we are NOT run on truebox.
+	// (bypassing these calls will severly cripple your mq2) -eqmule
+	using fAuthenticateTrueBox = DWORD(*)(DWORD);
+	fAuthenticateTrueBox AuthenticateTrueBox = nullptr;
+	using fGetTrueBoxKey = DWORD(*)(DWORD);
+	fGetTrueBoxKey GetTrueBoxKey = nullptr;
+
+	if (ghmq2ic)
+	{
 		AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
 		GetTrueBoxKey = (fGetTrueBoxKey)GetProcAddress(ghmq2ic, "GetTrueBoxKey");
 		DWORD tbkey = GetTrueBoxKey(1);
-		if (AuthenticateTrueBox) {
+
+		if (AuthenticateTrueBox)
+		{
 			AuthenticateTrueBox(tbkey);
 		}
 	}
-	
-    /* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */
-    AddAlias("/d","/duel");
-    AddAlias("/t","/tell");
-    AddAlias("/w","/who");
-    AddAlias("/a","/anonymous");
-    AddAlias("/ta","/tap");
-    AddAlias("/c","/consider");
-    AddAlias("/cha","/channel");
-    AddAlias("/f","/feedback");
-    AddAlias("/fa","/fastdrop");
-    AddAlias("/m","/msg");
-    AddAlias("/load","/loadspells");
-    AddAlias("/b","/bazaar");
-    AddAlias("/ba","/bazaar");
-    AddAlias("/g","/gsay");
-    AddAlias("/gu","/guildsay");
-    AddAlias("/key","/keys");
-    AddAlias("/r","/reply");
 
-    AddAlias("/newif","/if");
-    /* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
+	/* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */
+	AddAlias("/d", "/duel");
+	AddAlias("/t", "/tell");
+	AddAlias("/w", "/who");
+	AddAlias("/a", "/anonymous");
+	AddAlias("/ta", "/tap");
+	AddAlias("/c", "/consider");
+	AddAlias("/cha", "/channel");
+	AddAlias("/f", "/feedback");
+	AddAlias("/fa", "/fastdrop");
+	AddAlias("/m", "/msg");
+	AddAlias("/load", "/loadspells");
+	AddAlias("/b", "/bazaar");
+	AddAlias("/ba", "/bazaar");
+	AddAlias("/g", "/gsay");
+	AddAlias("/gu", "/guildsay");
+	AddAlias("/key", "/keys");
+	AddAlias("/r", "/reply");
+	AddAlias("/newif", "/if");
 
-    char AliasList[MAX_STRING*10] = {0};
-    char szBuffer[MAX_STRING] = {0};
-    char MainINI[MAX_STRING] = {0};
-    sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
-    GetPrivateProfileString("Aliases",NULL,"",AliasList,MAX_STRING*10,MainINI);
-    char* pAliasList = AliasList;
-    while (pAliasList[0]!=0) {
-        GetPrivateProfileString("Aliases",pAliasList,"",szBuffer,MAX_STRING,MainINI);
-        if (szBuffer[0]!=0) {
-            AddAlias(pAliasList,szBuffer);
-        }
-        pAliasList+=strlen(pAliasList)+1;
-    }
+	char MainINI[MAX_PATH] = { 0 };
+	sprintf_s(MainINI, "%s\\macroquest.ini", gszINIPath);
 
-    // Here is where you can add in permanent Substitutions
-    AddSubstitute("omg","Oh My God");
+	auto largeBuffer = std::make_unique<char[]>(MAX_STRING * 10);
+	char szBuffer[MAX_STRING] = { 0 };
 
-    //Importing the User's Substitution List from .ini file
-    char SubsList[MAX_STRING*10] = {0};
-    char szBuffer2[MAX_STRING] = {0};
-	sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
-    GetPrivateProfileString("Substitutions",NULL,"",SubsList,MAX_STRING*10,MainINI);
-    char* pSubsList = SubsList;
-    while (pSubsList[0]!=0) {
-        GetPrivateProfileString("Substitutions",pSubsList,"",szBuffer2,MAX_STRING,MainINI);
-        if (szBuffer[0]!=0) {
-            AddSubstitute(pSubsList,szBuffer2);
-        }
-        pSubsList+=strlen(pSubsList)+1;
-    }
+	/* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
+
+	GetPrivateProfileString("Aliases", nullptr, "", largeBuffer.get(), MAX_STRING * 10, MainINI);
+	char* pAliasList = largeBuffer.get();
+
+	while (pAliasList[0] != 0)
+	{
+		GetPrivateProfileString("Aliases", pAliasList, "", szBuffer, MAX_STRING, MainINI);
+		if (szBuffer[0] != 0)
+		{
+			AddAlias(pAliasList, szBuffer);
+		}
+		pAliasList += strlen(pAliasList) + 1;
+	}
+
+	// Here is where you can add in permanent Substitutions
+	AddSubstitute("omg", "Oh My God");
+
+	// Importing the User's Substitution List from .ini file
+	sprintf_s(MainINI, "%s\\macroquest.ini", gszINIPath);
+	GetPrivateProfileString("Substitutions", nullptr, "", largeBuffer.get(), MAX_STRING * 10, MainINI);
+
+	char* pSubsList = largeBuffer.get();
+	while (pSubsList[0] != 0)
+	{
+		GetPrivateProfileString("Substitutions", pSubsList, "", szBuffer, MAX_STRING, MainINI);
+		if (szBuffer[0] != 0)
+		{
+			AddSubstitute(pSubsList, szBuffer);
+		}
+
+		pSubsList += strlen(pSubsList) + 1;
+	}
 }
 
 void ShutdownMQ2Commands()
 {
-    EnterCriticalSection(&gCommandCS);
-	lockit lk(ghLockDelayCommand,"ShutdownMQ2Commands");
-    RemoveDetour(CEverQuest__InterpretCmd);
-    while(pCommands)
-    {
-        PMQCOMMAND pNext=pCommands->pNext;
-        delete pCommands;
-        pCommands=pNext;
-    }
-    while(gDelayedCommands)
-    {
-        PCHATBUF pNext=gDelayedCommands->pNext;
-        //LocalFree(gDelayedCommands);
-        delete gDelayedCommands;
-        gDelayedCommands=pNext;
-    }
-    while(pTimedCommands)
-    {
-        PTIMEDCOMMAND pNext=pTimedCommands->pNext;
-        delete pTimedCommands;
-        pTimedCommands=pNext;
-    }
-	mAliases.clear();
-    while(pSubs)
-    {
-        PSUB pNext=pSubs->pNext;
-        delete pSubs;
-        pSubs=pNext;
-    }
+	std::scoped_lock lock(s_commandMutex);
 
-    LeaveCriticalSection(&gCommandCS);
-    DeleteCriticalSection(&gCommandCS);
-	if (ghCCommandLock) {
-		ReleaseMutex(ghCCommandLock);
-		CloseHandle(ghCCommandLock);
-		ghCCommandLock = 0;
+	RemoveDetour(CEverQuest__InterpretCmd);
+
+	while (s_pCommands)
+	{
+		MQCommand* pNext = s_pCommands->pNext;
+		delete s_pCommands;
+		s_pCommands = pNext;
+	}
+
+	s_delayedCommands.clear();
+
+	while (s_pTimedCommands)
+	{
+		MQTimedCommand* pNext = s_pTimedCommands->pNext;
+		delete s_pTimedCommands;
+		s_pTimedCommands = pNext;
+	}
+
+	mAliases.clear();
+	while (s_pSubstitutions)
+	{
+		MQSubstitution* pNext = s_pSubstitutions->pNext;
+		delete s_pSubstitutions;
+		s_pSubstitutions = pNext;
 	}
 }
 
-void DoTimedCommands()
+void PulseCommands()
 {
-	lockit lk(ghLockDelayCommand,"DoTimedCommands");
-    ULONGLONG Now=MQGetTickCount64();
-    while(pTimedCommands && pTimedCommands->Time<=Now)
-    {
-        PTIMEDCOMMAND pNext=pTimedCommands->pNext;
-        DoCommand(((PCHARINFO)pCharData)->pSpawn,pTimedCommands->Command);
-        delete pTimedCommands;
-        pTimedCommands=pNext;
-    }
+	if (s_delayedCommands.empty() && !s_pTimedCommands)
+	{
+		return;
+	}
+
+	std::scoped_lock lock(s_commandMutex);
+
+	// handle delayed commands
+	for (const std::string& delayedCommand : s_delayedCommands)
+	{
+		DoCommand((SPAWNINFO*)pLocalPlayer, delayedCommand.c_str());
+	}
+	s_delayedCommands.clear();
+
+	// handle timed commands
+	uint64_t Now = MQGetTickCount64();
+
+	while (s_pTimedCommands && s_pTimedCommands->Time <= Now)
+	{
+		MQTimedCommand* pNext = s_pTimedCommands->pNext;
+		DoCommand(((CHARINFO*)pCharData)->pSpawn, s_pTimedCommands->Command);
+
+		delete s_pTimedCommands;
+		s_pTimedCommands = pNext;
+	}
 }
 
-void TimedCommand(char* Command, DWORD msDelay)
+void TimedCommand(const char* Command, int msDelay)
 {
-	lockit lk(ghLockDelayCommand,"TimedCommand");
-    PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
-    pNew->Time=msDelay+MQGetTickCount64();
-	strcpy_s(pNew->Command,Command);
+	std::scoped_lock lock(s_commandMutex);
 
-    // insert into list
+	MQTimedCommand* pNew = new MQTimedCommand;
 
-    if (!pTimedCommands || pTimedCommands->Time>=pNew->Time)
-    {
-        pNew->pNext=pTimedCommands;
-        pNew->pLast=0;
-        pTimedCommands=pNew;
-        return;
-    }
+	pNew->Time = msDelay + MQGetTickCount64();
+	strcpy_s(pNew->Command, Command);
 
-    PTIMEDCOMMAND pLast=pTimedCommands;
-    PTIMEDCOMMAND pNode=pTimedCommands->pNext;
-    while(pNode)
-    {
-        if (pNew->Time<=pNode->Time)
-        {
-            break;
-        }
-        pLast=pNode;
-        pNode=pNode->pNext;
-    }
-    pLast->pNext=pNew;
-    pNew->pLast=pLast;
-    pNew->pNext=pNode;
+	// insert into list
+	if (!s_pTimedCommands || s_pTimedCommands->Time >= pNew->Time)
+	{
+		pNew->pNext = s_pTimedCommands;
+		pNew->pLast = nullptr;
+		s_pTimedCommands = pNew;
+		return;
+	}
+
+	MQTimedCommand* pLast = s_pTimedCommands;
+	MQTimedCommand* pNode = s_pTimedCommands->pNext;
+
+	while (pNode)
+	{
+		if (pNew->Time <= pNode->Time)
+		{
+			break;
+		}
+
+		pLast = pNode;
+		pNode = pNode->pNext;
+	}
+
+	pLast->pNext = pNew;
+	pNew->pLast = pLast;
+	pNew->pNext = pNode;
+}
+
+//============================================================================
+// Commands
+//============================================================================
+
+// ***************************************************************************
+// Function:    Help
+// Description: Our '/help' command
+//              Adds our help type (7) to the built-in help command
+// Usage:       /help macro
+// ***************************************************************************
+void Help(SPAWNINFO* pChar, char* szLine)
+{
+	char szCmd[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+
+	MQCommand* pCmd = s_pCommands;
+
+	GetArg(szArg, szLine, 1);
+	if (szArg[0] == 0)
+	{
+		cmdHelp(pChar, szArg);
+
+		if (gFilterMacro != FILTERMACRO_NONE)
+			WriteChatColor("Macro will display a list of MacroQuest commands.", USERCOLOR_DEFAULT);
+
+		return;
+	}
+
+	if (_stricmp("macro", szArg))
+	{
+		cmdHelp(pChar, szArg);
+		return;
+	}
+
+	DebugSpew("Help - Displaying MacroQuest help");
+	sprintf_s(szCmd, "MacroQuest - %s", gszVersion);
+	WriteChatColor(" ", USERCOLOR_DEFAULT);
+	WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+	WriteChatColor("List of commands", USERCOLOR_DEFAULT);
+	WriteChatColor("------------------------------------------", USERCOLOR_DEFAULT);
+
+	while (pCmd)
+	{
+		if (pCmd->EQ == 0)
+		{
+			WriteChatf("  %s", pCmd->Command);
+		}
+		pCmd = pCmd->pNext;
+	}
+}
+
+// ***************************************************************************
+// Function:    Substitute
+// Description: Our '/substitute' command
+//              Add substitutions
+// Usage:       /substitution <original> <new>
+//              /substitution list
+//              /substitition <original> delete
+// ***************************************************************************
+void Substitute(SPAWNINFO* pChar, char* szLine)
+{
+	char szBuffer[MAX_STRING] = { 0 };
+
+	char szName[MAX_STRING] = { 0 };
+	GetArg(szName, szLine, 1);
+	char* szCommand = GetNextArg(szLine);
+
+	if (!_stricmp(szName, "list"))
+	{
+		MQSubstitution* pLoop = s_pSubstitutions;
+
+		int Count = 0;
+		WriteChatColor("Substitutions", USERCOLOR_WHO);
+		WriteChatColor("--------------------------", USERCOLOR_WHO);
+
+		while (pLoop)
+		{
+			sprintf_s(szName, "%s\t----\t%s", pLoop->szOrig, pLoop->szSub);
+			WriteChatColor(szName, USERCOLOR_WHO);
+			Count++;
+
+			pLoop = pLoop->pNext;
+		}
+
+		if (Count == 0)
+		{
+			WriteChatColor("No Substitutions defined.", USERCOLOR_WHO);
+		}
+		else
+		{
+			sprintf_s(szName, "%d substitution%s displayed.", Count, (Count == 1) ? "" : "s");
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+
+		return;
+	}
+
+	if ((szName[0] == 0) || (szCommand[0] == 0))
+	{
+		SyntaxError("Usage: /substitute <orig> <new>, /substitute <orig> delete, or /substitute list");
+		return;
+	}
+
+	if (!_stricmp(szCommand, "delete"))
+	{
+		if (RemoveSubstitute(szName))
+		{
+			RewriteSubstitutions();
+
+			WriteChatf("Substitution for '%s' deleted.", szName);
+		}
+		else
+		{
+			WriteChatf("Substitution for '%s' not found.", szName);
+		}
+	}
+	else
+	{
+		bool New = !RemoveSubstitute(szName);
+
+		AddSubstitute(szName, szCommand);
+
+		WriteChatf("Substitution for '%s' %s.", szName, New ? "added" : "updated");
+		RewriteSubstitutions();
+	}
+}
+
+// ***************************************************************************
+// Function:    Alias
+// Description: Our '/alias' command
+//              Add command aliases
+// Usage:       /alias name [delete|command]
+// ***************************************************************************
+
+void Alias(SPAWNINFO* pChar, char* szLine)
+{
+	char szName[MAX_STRING] = { 0 };
+	GetArg(szName, szLine, 1);
+
+	char szBuffer[MAX_STRING] = { 0 };
+
+	char* szCommand = GetNextArg(szLine);
+	if (!_stricmp(szName, "list"))
+	{
+		int Count = 0;
+
+		WriteChatColor("Aliases", USERCOLOR_WHO);
+		WriteChatColor("--------------------------", USERCOLOR_WHO);
+
+		for (const auto& [key, value] : mAliases)
+		{
+			sprintf_s(szName, "%s: %s", key.c_str(), value.c_str());
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+
+		if (mAliases.empty())
+		{
+			WriteChatColor("No aliases defined.", USERCOLOR_WHO);
+		}
+		else
+		{
+			sprintf_s(szName, "%d alias%s displayed.", mAliases.size(), (mAliases.size() == 1) ? "" : "es");
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+
+		return;
+	}
+
+	if ((szName[0] == 0) || (szCommand[0] == 0))
+	{
+		SyntaxError("Usage: /alias name [delete|command], or /alias list");
+		return;
+	}
+
+	if (!_stricmp(szCommand, "delete"))
+	{
+		if (RemoveAlias(szName))
+		{
+			WriteChatf("Alias '%s' deleted.", szName);
+		}
+		else
+		{
+			WriteChatf("Alias '%s' not found.", szName);
+		}
+	}
+	else
+	{
+		bool New = !RemoveAlias(szName);
+		AddAlias(szName, szCommand);
+		WriteAliasToIni(szName, szCommand);
+
+		WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
+	}
 }

@@ -2112,20 +2112,9 @@ void HandleWindows()
 
 					if (bNotifyOnServerUP == 2)
 					{
-						if (HMODULE hGmail = GetModuleHandle("MQ2Gmail.dll"))
+						if (IsCommand("/gmail"))
 						{
-							PMQCOMMAND pCommand = pCommands;
-							while (pCommand)
-							{
-								int Pos = _strnicmp("/gmail", pCommand->Command, 63);
-								if (Pos == 0)
-								{
-									// found it...
-									pCommand->Function(NULL, "\"Server is UP\" \"Time to login!\"");
-									break;
-								}
-								pCommand = pCommand->pNext;
-							}
+							DoCommand(nullptr, "/gmail \"Server is UP\" \"Time to login!\"");
 						}
 
 						bNotifyOnServerUP = 0;

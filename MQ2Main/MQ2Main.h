@@ -230,13 +230,15 @@ EQLIB_API void DrawHUD();
 EQLIB_API void InitializeMQ2Commands();
 EQLIB_API void ShutdownMQ2Commands();
 EQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
-EQLIB_API void AddAlias(char* ShortCommand, char* LongCommand);
-EQLIB_API BOOL RemoveAlias(char* ShortCommand);
-EQLIB_API void AddSubstitute(char* Original, char* Substitution);
-EQLIB_API BOOL RemoveSubstitute(char* Original);
+EQLIB_API void AddAlias(const char* ShortCommand, const char* LongCommand);
+EQLIB_API bool RemoveAlias(const char* ShortCommand);
+EQLIB_API void AddSubstitute(const char* Original, const char* Substitution);
+EQLIB_API bool RemoveSubstitute(const char* Original);
 EQLIB_API bool RemoveCommand(const char* Command);
-EQLIB_API void DoTimedCommands();
-EQLIB_API void TimedCommand(char* Command, DWORD msDelay);
+EQLIB_API void PulseCommands();
+EQLIB_API void TimedCommand(const char* Command, int msDelay);
+EQLIB_API bool IsCommand(const char* command);
+EQLIB_API bool IsAlias(const char* alias);
 
 /* MACRO COMMANDS */
 EQLIB_API void DumpStack(PSPAWNINFO, char*);
@@ -325,7 +327,7 @@ EQLIB_API void AddCustomEvent(PEVENTLIST pEList, char* szLine);
 EQLIB_API float DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 
-#define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute,FromPlugin)
+#define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute, FromPlugin != 0)
 EQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
 #define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer, commandtoexecute)
 
@@ -510,7 +512,7 @@ EQLIB_API void SetDisplaySWhoFilter(PBOOL bToggle, char* szFilter, char* szToggl
 EQLIB_API char* GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API void RewriteSubstitutions();
 EQLIB_API void RewriteAliases();
-EQLIB_API void WriteAliasToIni(char*Name, char*Command);
+EQLIB_API void WriteAliasToIni(const char* Name, const char* Command);
 EQLIB_API DWORD FindSpellListByName(char* szName);
 EQLIB_API float StateHeightMultiplier(DWORD StandState);
 EQLIB_API DWORD WINAPI thrMsgBox(void* lpParameter);
@@ -687,6 +689,8 @@ struct ci_less
 	{
 		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
 		{
+			if (c1 == c2)
+				return true;
 			return ::tolower(c1) < ::tolower(c2);
 		}
 	};
@@ -706,4 +710,10 @@ inline int ci_find_substr(std::string_view haystack, std::string_view needle, co
 		std::begin(needle), std::end(needle), ci_less::nocase_compare());
 	if (iter == std::end(haystack)) return -1;
 	return iter - std::begin(haystack);
+}
+
+inline bool ci_equals(std::string_view sv1, std::string_view sv2)
+{
+	return sv1.size() == sv2.size()
+		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_compare());
 }

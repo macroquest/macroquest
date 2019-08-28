@@ -28,6 +28,13 @@ extern char TelnetLoginPrompt[MAX_STRING];
 extern char TelnetPasswordPrompt[MAX_STRING];
 extern char TelnetWelcome[MAX_STRING];
 
+struct TXTBUFFER
+{
+	char     szText[MAX_STRING];
+
+	TXTBUFFER* pNext;
+};
+
 struct TELNET
 {
 	CWinTelnet* connection;
@@ -36,7 +43,7 @@ struct TELNET
 	char Password[32];
 	int PasswordTries;
 	char Buffer[MAX_STRING];
-	CHATBUF* Received;
+	TXTBUFFER* Received;
 	TELNET* pLast;
 	TELNET* pNext;
 };

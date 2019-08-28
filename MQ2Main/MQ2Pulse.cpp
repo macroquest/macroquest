@@ -321,7 +321,7 @@ void Pulse()
 		}
 
 		if (TurnNotDone) {
-			bRunNextCommand = FALSE;
+			bRunNextCommand = false;
 			IsMouseWaiting();
 			return;
 		}
@@ -397,7 +397,7 @@ int Heartbeat()
 	//    DebugTry(pWndMgr->DrawCursor());
 	//}
 
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	DebugTry(Pulse());
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
 
@@ -423,18 +423,6 @@ int Heartbeat()
 
 	DWORD CurTurbo = 0;
 
-	if (gDelayedCommands) {// delayed commands
-		lockit lk(ghLockDelayCommand,"HeartBeat");
-		DoCommand((PSPAWNINFO)pLocalPlayer, gDelayedCommands->szText);
-		PCHATBUF pNext = gDelayedCommands->pNext;
-		//HLOCAL hlret = LocalFree(gDelayedCommands);
-		//if (hlret != 0) {
-		//	MessageBox(NULL,"LocalFree Failed we have a memory leak in HeartBeat","tell eqmule",MB_SYSTEMMODAL|MB_OK);
-		//}
-		delete gDelayedCommands;
-		gDelayedCommands = pNext;
-	}
-
 	PMACROBLOCK pBlock = GetNextMacroBlock();
 	while (bRunNextCommand)
 	{
@@ -452,7 +440,8 @@ int Heartbeat()
 		// re-fetch current macro block in case one of the previous instructions changed it
 		pBlock = GetCurrentMacroBlock();
 	}
-	DoTimedCommands();
+
+	PulseCommands();
 
 	return 0;
 }
@@ -878,17 +867,16 @@ DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
-	if (!ghLockDelayCommand)
-		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
+
 	InitializeCriticalSection(&gPulseCS);
-	
+
 	//EzDetourwName(__GameLoop, GameLoop_Detour, GameLoop_Tramp,"GameLoop");
 	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
 	//EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
 	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
 	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline, "CTargetWnd__RefreshTargetBuffs");
 	EzDetourwName(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline,"CMerchantWnd__PurchasePageHandler__UpdateList");
-	
+
 	InitializeLoginPulse();
 
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
@@ -896,6 +884,7 @@ void InitializeMQ2Pulse()
 		EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
 	}
 }
+
 void ShutdownMQ2Pulse()
 {
 	EnterCriticalSection(&gPulseCS);
