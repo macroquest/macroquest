@@ -2682,7 +2682,7 @@ class CSkillMgr
 {
 public:
 	EQLIB_OBJECT unsigned long GetNameToken(int);
-	EQLIB_OBJECT unsigned long GetSkillCap(EQ_Character*, int, int, int, bool, bool, bool);
+	EQLIB_OBJECT unsigned long GetSkillCap(PcZoneClient*, int, int, int, bool, bool, bool); // TODO: CharacterZoneClient or PcZoneClient ?
 	EQLIB_OBJECT unsigned long SkillAvailableAtLevel(int, int);
 	EQLIB_OBJECT bool IsActivatedSkill(int);
 	EQLIB_OBJECT unsigned long GetBaseDamage(int);

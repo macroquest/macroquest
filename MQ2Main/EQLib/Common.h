@@ -701,7 +701,6 @@ class EmitterManager;
 class engineInterface;
 class EQ_Affect;
 class EQ_AltAbility;
-class EQ_Character;
 class EQ_CharacterData;
 class EQ_Container;
 class EQ_Equipment;

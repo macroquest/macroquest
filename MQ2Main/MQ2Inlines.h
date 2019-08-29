@@ -144,71 +144,57 @@ static inline BOOL IsMarkedNPC(SPAWNINFO* pSpawn)
 
 static inline int GetEnduranceRegen()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->GetEnduranceRegen(true, false);
-		}
+	if (pCharData) {
+		return pCharData->GetEnduranceRegen(true, false);
 	}
 	return 0;
 }
 
 static inline int GetHPRegen()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			bool bBleed = false;//yes this is correct it should be false initially, the client sets it to true on return if we are indeed bleeding.
-			return pCharData1->GetHPRegen(true, &bBleed, false);
-		}
+	if (pCharData) {
+		bool bBleed = false;//yes this is correct it should be false initially, the client sets it to true on return if we are indeed bleeding.
+		return pCharData->GetHPRegen(true, &bBleed, false);
 	}
 	return 0;
 }
 
 static inline int GetManaRegen()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->GetManaRegen(true, false);
-		}
+	if (pCharData) {
+		return pCharData->GetManaRegen(true, false);
 	}
 	return 0;
 }
 
 static inline int GetCurMana()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return ((EQ_Character*)pCharData1)->Cur_Mana(true);
-		}
+	if (pCharData) {
+		return pCharData->Cur_Mana(true);
 	}
 	return 0;
 }
 
 static inline int GetCurHPS()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->Cur_HP(0);
-		}
+	if (pCharData) {
+		return pCharData->Cur_HP(0);
 	}
 	return 0;
 }
 
 static inline LONG GetMaxHPS()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->Max_HP(0);
-		}
+	if (pCharData) {
+		return pCharData->Max_HP(0);
 	}
 	return 0;
 }
 
 static inline LONG GetMaxEndurance()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->Max_Endurance();
-		}
+	if (pCharData) {
+		return pCharData->Max_Endurance();
 	}
 	return 0;
 }
@@ -222,99 +208,80 @@ static inline LONG GetCurEndurance() {
 
 static inline LONG GetMaxMana()
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->Max_Mana();
-		}
+	if (pCharData) {
+		return pCharData->Max_Mana();
 	}
 	return 0;
 }
 
 static inline int GetAdjustedSkill(int nSkill)
 {
-	if (CHARINFO* pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->GetAdjustedSkill(nSkill);
-		}
+	if (pCharData) {
+		return pCharData->GetAdjustedSkill(nSkill);
 	}
 	return 0;
 }
 
 static inline int GetBaseSkill(int nSkill)
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->GetBaseSkill(nSkill);
-		}
+	if (pCharData) {
+		return pCharData->GetBaseSkill(nSkill);
 	}
 	return 0;
 }
 
 static inline int GetModCap(int index, bool bToggle = false)
 {
-	if (PCHARINFO pChar = GetCharInfo())
-	{
-		if (pChar->vtable2)
-		{
-			return ((PcZoneClient*)pCharData1)->GetModCap(index, bToggle);
-			return ((PcZoneClient*)pCharData1)->GetModCap(index);
-		}
+	if (pCharData) {
+		return pCharData->GetModCap(index, bToggle);
 	}
 	return 0;
 }
 
 static inline const int GetCastingTimeModifier(const EQ_Spell* cSpell)
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return pCharData1->GetCastingTimeModifier(cSpell);
-		}
+	if (pCharData) {
+		return pCharData->GetCastingTimeModifier(cSpell);
 	}
 	return 0;
 }
 
 static inline const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly)
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			//ok so as far as i can tell RefCount gets increased by us calling this function
-			//and its weird that it's no decremented properly afterwards
-			//it's possible we don't understand this, but there is also a chance this
-			//is a real serious eq bug, either way, decrementing it after the return
-			//seems to work...
-			//if they ever fix this, we must remove our decrement here...
-			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
-			if (pItemOut.pObject)
-			{
-				InterlockedDecrement((long volatile*)&pItemOut.pObject->RefCount);
-			}
-			return ret;
+	if (pCharData) {
+		//ok so as far as i can tell RefCount gets increased by us calling this function
+		//and its weird that it's no decremented properly afterwards
+		//it's possible we don't understand this, but there is also a chance this
+		//is a real serious eq bug, either way, decrementing it after the return
+		//seems to work...
+		//if they ever fix this, we must remove our decrement here...
+		int ret = pCharData->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
+		if (pItemOut.pObject)
+		{
+			InterlockedDecrement((long volatile*)&pItemOut.pObject->RefCount);
 		}
+		return ret;
 	}
 	return 0;
 }
 
 static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<CONTENTS>& pItemOut)
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusRangeModifier(pSpell, pItemOut);
-			if (pItemOut.pObject)
-			{
-				InterlockedDecrement((long volatile*)&((CONTENTS*)pItemOut.pObject)->RefCount);
-			}
-			return ret;
+	if (pCharData) {
+		int ret = pCharData->GetFocusRangeModifier(pSpell, pItemOut);
+		if (pItemOut.pObject)
+		{
+			InterlockedDecrement((long volatile*)&((CONTENTS*)pItemOut.pObject)->RefCount);
 		}
+		return ret;
 	}
 	return 0;
 }
 
 static inline bool HasSkill(int nSkill)
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
-		if (pChar->vtable2) {
-			return ((CharacterZoneClient*)pCharData1)->HasSkill(nSkill);
-		}
+	if (pCharData) {
+		return pCharData->HasSkill(nSkill);
 	}
 	return false;
 }
@@ -329,7 +296,7 @@ static inline DWORD GetCharMaxBuffSlots()
 
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->vtable2) {
-			NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
+			NumBuffs += pCharData->TotalEffect(327, 1, 0, 1, 1);
 		}
 		if (pChar->pSpawn && pChar->pSpawn->Level > 70) NumBuffs++;
 		if (pChar->pSpawn && pChar->pSpawn->Level > 74) NumBuffs++;
@@ -775,14 +742,10 @@ inline LONG GetMemorizedSpell(LONG index)
 	return -1;
 }
 
-inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
+inline int EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 {
-	if (PCHARINFO pCharInfo = GetCharInfo()) {
-		if (pCharInfo->vtable2) {
-			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
-				return (LONG)cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
-			}
-		}
+	if (pCharData) {
+		return pCharData->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
 	}
 	return 0;
 }

@@ -1459,7 +1459,7 @@ FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetNameToken(int), CSkillMgr__GetNa
 FUNCTION_AT_ADDRESS(bool CSkillMgr::IsCombatSkill(int), CSkillMgr__IsCombatSkill);
 #endif
 #ifdef CSkillMgr__GetSkillCap_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(EQ_Character*, int, int, int, bool, bool, bool), CSkillMgr__GetSkillCap)
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(PcZoneClient*, int, int, int, bool, bool, bool), CSkillMgr__GetSkillCap)
 #endif
 #ifdef CSkillMgr__SkillAvailableAtLevel_x
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::SkillAvailableAtLevel(int, int), CSkillMgr__SkillAvailableAtLevel);

@@ -2455,10 +2455,8 @@ void DoAbility(PSPAWNINFO pChar, char* szLine)
 						WriteChatf("you do not have this skill");
 						return;
 					}
-					if (CHARINFO* pChar = GetCharInfo()) {
-						if (pChar->vtable2) {
-							pCharData1->UseSkill((unsigned char)Index, (PlayerClient*)pCharData1);
-						}
+					if (pCharData) {
+						pCharData->UseSkill((unsigned char)Index, pCharData->me);
 					}
 					return;
 				}
@@ -3639,12 +3637,7 @@ void DropCmd(PSPAWNINFO pChar, char* szLine)
 		}
 	}
 }
-class mercenary
-{
-public:
-	void SelectMercenaryType();
-};
-FUNCTION_AT_ADDRESS(void mercenary::SelectMercenaryType(), EQ_Character__Max_Mana);
+
 void HudCmd(PSPAWNINFO pChar, char* szLine)
 {
 	if (!szLine[0])

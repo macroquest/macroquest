@@ -7360,7 +7360,7 @@ DWORD GetSpellGemTimer2(int nGem)
 				if( RecastDuration > LinkedDuration )
 				{
 					VePointer<CONTENTS> pFocusItem;
-					int ReuseMod = ((CharacterZoneClient*)pCharData1)->GetFocusReuseMod((EQ_Spell*)pSpell, pFocusItem);
+					int ReuseMod = pCharData->GetFocusReuseMod((EQ_Spell*)pSpell, pFocusItem);
 					TotalDuration = pSpell->RecastTime - ReuseMod;
 				}
 				//do stuff
@@ -10745,12 +10745,8 @@ void InitKeyRings()
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
 void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 {
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (pChar->vtable2)
-		{
-			((CharacterZoneClient*)pCharData1)->MakeMeVisible(0, false);
-		}
+	if (pCharData) {
+		pCharData->MakeMeVisible(0, false);
 	}
 }
 

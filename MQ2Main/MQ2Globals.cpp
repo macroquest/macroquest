@@ -109,7 +109,7 @@ namespace MQ2Globals
 		ppEverQuest = (CEverQuest**)pinstCEverQuest;
 		ppDisplay = (CDisplay**)pinstCDisplay;
 		ppPCData = (EQ_PC**)pinstPCData;
-		ppCharData = (EQ_Character**)pinstCharData;
+		ppCharData = (PcClient**)pinstCharData;
 		ppCharSpawn = (PlayerClient**)pinstCharSpawn;
 		ppActiveMerchant = (PlayerClient**)pinstActiveMerchant;
 		ppSpawnManager = (PlayerManagerClient**)pinstSpawnManager;
@@ -1063,7 +1063,7 @@ namespace MQ2Globals
 	CEverQuest** ppEverQuest = nullptr;
 	CDisplay** ppDisplay = nullptr;
 	EQ_PC** ppPCData = nullptr;
-	EQ_Character** ppCharData = nullptr;
+	PcClient** ppCharData = nullptr;
 	PlayerClient** ppCharSpawn = nullptr;
 	PlayerClient** ppActiveMerchant = nullptr;
 	PlayerManagerClient** ppSpawnManager = nullptr;

@@ -116,508 +116,499 @@ FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusReuseMod(const EQ_Spe
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsStackBlocked(const EQ_Spell*, PSPAWNINFO, EQ_Affect*, int, bool), CharacterZoneClient__IsStackBlocked);
 #endif
 #ifdef CharacterZoneClient__CanUseMemorizedSpellSlot_x
-FUNCTION_AT_ADDRESS(bool EQ_Character::CanUseMemorizedSpellSlot(int), CharacterZoneClient__CanUseMemorizedSpellSlot);
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::CanUseMemorizedSpellSlot(int), CharacterZoneClient__CanUseMemorizedSpellSlot);
 #endif
-
-
-//============================================================================
-// EQ_Character
-//============================================================================
-
-#ifdef EQ_Character__Max_Endurance_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Endurance(bool), EQ_Character__Max_Endurance);
+#ifdef CharacterZoneClient__Max_Endurance_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Max_Endurance(bool), CharacterZoneClient__Max_Endurance);
 #endif
-#ifdef EQ_Character__Max_Mana_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Mana(bool), EQ_Character__Max_Mana);
+#ifdef CharacterZoneClient__Max_Mana_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Max_Mana(bool), CharacterZoneClient__Max_Mana);
 #endif
-#ifdef EQ_Character__Max_HP_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::Max_HP(int, bool), EQ_Character__Max_HP);
+#ifdef CharacterZoneClient__Max_HP_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Max_HP(int, bool), CharacterZoneClient__Max_HP);
 #endif
-#ifdef EQ_Character__doCombatAbility_x
-FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), EQ_Character__doCombatAbility);
+#ifdef CharacterZoneClient__doCombatAbility_x
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::DoCombatAbility(int spellID, int dummy), CharacterZoneClient__doCombatAbility);
 #endif
-#ifdef EQ_Character__EQ_Character_x
-FUNCTION_AT_ADDRESS(EQ_Character::EQ_Character(), EQ_Character__EQ_Character);
+#ifdef CharacterZoneClient__dCharacterZoneClient_x
+FUNCTION_AT_ADDRESS(CharacterZoneClient::~CharacterZoneClient(), CharacterZoneClient__dCharacterZoneClient);
 #endif
-#ifdef EQ_Character__dEQ_Character_x
-FUNCTION_AT_ADDRESS(EQ_Character::~EQ_Character(), EQ_Character__dEQ_Character);
+#ifdef CharacterZoneClient__CharacterZoneClientResetAllMembers_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::CharacterZoneClientResetAllMembers(), CharacterZoneClient__CharacterZoneClientResetAllMembers);
 #endif
-#ifdef EQ_Character__EQ_CharacterResetAllMembers_x
-FUNCTION_AT_ADDRESS(void EQ_Character::EQ_CharacterResetAllMembers(), EQ_Character__EQ_CharacterResetAllMembers);
+#ifdef CharacterZoneClient__ModifyCurHP_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ModifyCurHP(int32_t modification, PlayerZoneClient* resposibleplayer, int skilltype), CharacterZoneClient__ModifyCurHP);
 #endif
-#ifdef EQ_Character__ModifyCurHP_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ModifyCurHP(int32_t modification, PlayerZoneClient* resposibleplayer, int skilltype), EQ_Character__ModifyCurHP);
+#ifdef CharacterZoneClient__normal_to_special_x
+FUNCTION_AT_ADDRESS(int __cdecl CharacterZoneClient::normal_to_special(int), CharacterZoneClient__normal_to_special);
 #endif
-#ifdef EQ_Character__normal_to_special_x
-FUNCTION_AT_ADDRESS(int __cdecl EQ_Character::normal_to_special(int), EQ_Character__normal_to_special);
+#ifdef CharacterZoneClient__IsSpellcaster_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::IsSpellcaster(), CharacterZoneClient__IsSpellcaster);
 #endif
-#ifdef EQ_Character__IsSpellcaster_x
-FUNCTION_AT_ADDRESS(int EQ_Character::IsSpellcaster(), EQ_Character__IsSpellcaster);
+#ifdef CharacterZoneClient__DoLight_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::DoLight(unsigned char), CharacterZoneClient__DoLight);
 #endif
-#ifdef EQ_Character__DoLight_x
-FUNCTION_AT_ADDRESS(void EQ_Character::DoLight(unsigned char), EQ_Character__DoLight);
+#ifdef CharacterZoneClient__Skill_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Skill(int), CharacterZoneClient__Skill);
 #endif
-#ifdef EQ_Character__Skill_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Skill(int), EQ_Character__Skill);
+#ifdef CharacterZoneClient__HasSpell_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::HasSpell(int), CharacterZoneClient__HasSpell);
 #endif
-#ifdef EQ_Character__HasSpell_x
-FUNCTION_AT_ADDRESS(int EQ_Character::HasSpell(int), EQ_Character__HasSpell);
+#ifdef CharacterZoneClient__ResetCur_HP_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ResetCur_HP(int), CharacterZoneClient__ResetCur_HP);
 #endif
-#ifdef EQ_Character__ResetCur_HP_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ResetCur_HP(int), EQ_Character__ResetCur_HP);
+#ifdef CharacterZoneClient__GetEnduranceRegen_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetEnduranceRegen(bool bIncItemsAndBuffs, bool bCombat), CharacterZoneClient__GetEnduranceRegen);
 #endif
-#ifdef EQ_Character__GetEnduranceRegen_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::GetEnduranceRegen(bool bIncItemsAndBuffs, bool bCombat), EQ_Character__GetEnduranceRegen);
+#ifdef CharacterZoneClient__GetHPRegen_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetHPRegen(bool bIncItemsAndBuffs, bool* bIsBleeding, bool bCombat), CharacterZoneClient__GetHPRegen);
 #endif
-#ifdef EQ_Character__GetHPRegen_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::GetHPRegen(bool bIncItemsAndBuffs, bool* bIsBleeding, bool bCombat), EQ_Character__GetHPRegen);
+#ifdef CharacterZoneClient__GetManaRegen_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetManaRegen(bool bincItemsAndBuffs, bool bCombat), CharacterZoneClient__GetManaRegen);
 #endif
-#ifdef EQ_Character__GetManaRegen_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::GetManaRegen(bool bincItemsAndBuffs, bool bCombat), EQ_Character__GetManaRegen);
+#ifdef CharacterZoneClient__Cur_HP_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Cur_HP(int SpawnType, bool bCapAtMax), CharacterZoneClient__Cur_HP);
 #endif
-#ifdef EQ_Character__Cur_HP_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::Cur_HP(int SpawnType, bool bCapAtMax), EQ_Character__Cur_HP);
+#ifdef CharacterZoneClient__GetHPFromStamina_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetHPFromStamina(int), CharacterZoneClient__GetHPFromStamina);
 #endif
-#ifdef EQ_Character__GetHPFromStamina_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetHPFromStamina(int), EQ_Character__GetHPFromStamina);
+#ifdef CharacterZoneClient__Cur_Mana_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Cur_Mana(bool bCapAtMax), CharacterZoneClient__Cur_Mana);
 #endif
-#ifdef EQ_Character__Cur_Mana_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Cur_Mana(bool bCapAtMax), EQ_Character__Cur_Mana);
+#ifdef CharacterZoneClient__IsMage_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::IsMage(), CharacterZoneClient__IsMage);
 #endif
-#ifdef EQ_Character__IsMage_x
-FUNCTION_AT_ADDRESS(int EQ_Character::IsMage(), EQ_Character__IsMage);
+#ifdef CharacterZoneClient__GetClassACBonus_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetClassACBonus(int), CharacterZoneClient__GetClassACBonus);
 #endif
-#ifdef EQ_Character__GetClassACBonus_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetClassACBonus(int), EQ_Character__GetClassACBonus);
+#ifdef CharacterZoneClient__ac_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::ac(bool), CharacterZoneClient__ac);
 #endif
-#ifdef EQ_Character__ac_x
-FUNCTION_AT_ADDRESS(int EQ_Character::ac(bool), EQ_Character__ac);
+#ifdef CharacterZoneClient__compute_tohit_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::compute_tohit(unsigned char), CharacterZoneClient__compute_tohit);
 #endif
-#ifdef EQ_Character__compute_tohit_x
-FUNCTION_AT_ADDRESS(int EQ_Character::compute_tohit(unsigned char), EQ_Character__compute_tohit);
+#ifdef CharacterZoneClient__defense_agility_bonus_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::defense_agility_bonus(), CharacterZoneClient__defense_agility_bonus);
 #endif
-#ifdef EQ_Character__defense_agility_bonus_x
-FUNCTION_AT_ADDRESS(int EQ_Character::defense_agility_bonus(), EQ_Character__defense_agility_bonus);
+#ifdef CharacterZoneClient__compute_defense_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::compute_defense(), CharacterZoneClient__compute_defense);
 #endif
-#ifdef EQ_Character__compute_defense_x
-FUNCTION_AT_ADDRESS(int EQ_Character::compute_defense(), EQ_Character__compute_defense);
+#ifdef CharacterZoneClient__offense_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::offense(unsigned char), CharacterZoneClient__offense);
 #endif
-#ifdef EQ_Character__offense_x
-FUNCTION_AT_ADDRESS(int EQ_Character::offense(unsigned char), EQ_Character__offense);
+#ifdef CharacterZoneClient__HasSkill_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::HasSkill(unsigned char), CharacterZoneClient__HasSkill);
 #endif
-#ifdef EQ_Character__HasSkill_x
-FUNCTION_AT_ADDRESS(int EQ_Character::HasSkill(unsigned char), EQ_Character__HasSkill);
+#ifdef CharacterZoneClient__HasInnateSkill_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::HasInnateSkill(unsigned char, int), CharacterZoneClient__HasInnateSkill);
 #endif
-#ifdef EQ_Character__HasInnateSkill_x
-FUNCTION_AT_ADDRESS(int EQ_Character::HasInnateSkill(unsigned char, int), EQ_Character__HasInnateSkill);
+#ifdef CharacterZoneClient__InitMyLanguages_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::InitMyLanguages(), CharacterZoneClient__InitMyLanguages);
 #endif
-#ifdef EQ_Character__InitMyLanguages_x
-FUNCTION_AT_ADDRESS(void EQ_Character::InitMyLanguages(), EQ_Character__InitMyLanguages);
+#ifdef CharacterZoneClient__BaneDamage_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::BaneDamage(EQ_Equipment*), CharacterZoneClient__BaneDamage);
 #endif
-#ifdef EQ_Character__BaneDamage_x
-FUNCTION_AT_ADDRESS(int EQ_Character::BaneDamage(EQ_Equipment*), EQ_Character__BaneDamage);
+#ifdef CharacterZoneClient__ElementResistDmg_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::ElementResistDmg(EQ_Equipment*, int), CharacterZoneClient__ElementResistDmg);
 #endif
-#ifdef EQ_Character__ElementResistDmg_x
-FUNCTION_AT_ADDRESS(int EQ_Character::ElementResistDmg(EQ_Equipment*, int), EQ_Character__ElementResistDmg);
+#ifdef CharacterZoneClient__save_bash_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::save_bash(int), CharacterZoneClient__save_bash);
 #endif
-#ifdef EQ_Character__save_bash_x
-FUNCTION_AT_ADDRESS(int EQ_Character::save_bash(int), EQ_Character__save_bash);
+#ifdef CharacterZoneClient__CapStat_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::CapStat(int, int), CharacterZoneClient__CapStat);
 #endif
-#ifdef EQ_Character__CapStat_x
-FUNCTION_AT_ADDRESS(int EQ_Character::CapStat(int, int), EQ_Character__CapStat);
+#ifdef CharacterZoneClient__CalcFoodDrinkBonus_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::CalcFoodDrinkBonus(int), CharacterZoneClient__CalcFoodDrinkBonus);
 #endif
-#ifdef EQ_Character__CalcFoodDrinkBonus_x
-FUNCTION_AT_ADDRESS(void EQ_Character::CalcFoodDrinkBonus(int), EQ_Character__CalcFoodDrinkBonus);
+#ifdef CharacterZoneClient__basesave_magic_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::basesave_magic(), CharacterZoneClient__basesave_magic);
 #endif
-#ifdef EQ_Character__basesave_magic_x
-FUNCTION_AT_ADDRESS(int EQ_Character::basesave_magic(), EQ_Character__basesave_magic);
+#ifdef CharacterZoneClient__save_magic_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::save_magic(), CharacterZoneClient__save_magic);
 #endif
-#ifdef EQ_Character__save_magic_x
-FUNCTION_AT_ADDRESS(int EQ_Character::save_magic(), EQ_Character__save_magic);
+#ifdef CharacterZoneClient__basesave_fire_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::basesave_fire(), CharacterZoneClient__basesave_fire);
 #endif
-#ifdef EQ_Character__basesave_fire_x
-FUNCTION_AT_ADDRESS(int EQ_Character::basesave_fire(), EQ_Character__basesave_fire);
+#ifdef CharacterZoneClient__save_fire_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::save_fire(), CharacterZoneClient__save_fire);
 #endif
-#ifdef EQ_Character__save_fire_x
-FUNCTION_AT_ADDRESS(int EQ_Character::save_fire(), EQ_Character__save_fire);
+#ifdef CharacterZoneClient__basesave_cold_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::basesave_cold(), CharacterZoneClient__basesave_cold);
 #endif
-#ifdef EQ_Character__basesave_cold_x
-FUNCTION_AT_ADDRESS(int EQ_Character::basesave_cold(), EQ_Character__basesave_cold);
+#ifdef CharacterZoneClient__save_cold_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::save_cold(), CharacterZoneClient__save_cold);
 #endif
-#ifdef EQ_Character__save_cold_x
-FUNCTION_AT_ADDRESS(int EQ_Character::save_cold(), EQ_Character__save_cold);
+#ifdef CharacterZoneClient__basesave_disease_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::basesave_disease(), CharacterZoneClient__basesave_disease);
 #endif
-#ifdef EQ_Character__basesave_disease_x
-FUNCTION_AT_ADDRESS(int EQ_Character::basesave_disease(), EQ_Character__basesave_disease);
+#ifdef CharacterZoneClient__save_disease_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::save_disease(), CharacterZoneClient__save_disease);
 #endif
-#ifdef EQ_Character__save_disease_x
-FUNCTION_AT_ADDRESS(int EQ_Character::save_disease(), EQ_Character__save_disease);
+#ifdef CharacterZoneClient__basesave_poison_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::basesave_poison(), CharacterZoneClient__basesave_poison);
 #endif
-#ifdef EQ_Character__basesave_poison_x
-FUNCTION_AT_ADDRESS(int EQ_Character::basesave_poison(), EQ_Character__basesave_poison);
+#ifdef CharacterZoneClient__save_poison_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::save_poison(), CharacterZoneClient__save_poison);
 #endif
-#ifdef EQ_Character__save_poison_x
-FUNCTION_AT_ADDRESS(int EQ_Character::save_poison(), EQ_Character__save_poison);
+#ifdef CharacterZoneClient__Str_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Str(), CharacterZoneClient__Str);
 #endif
-#ifdef EQ_Character__Str_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Str(), EQ_Character__Str);
+#ifdef CharacterZoneClient__Sta_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Sta(), CharacterZoneClient__Sta);
 #endif
-#ifdef EQ_Character__Sta_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Sta(), EQ_Character__Sta);
+#ifdef CharacterZoneClient__Cha_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Cha(), CharacterZoneClient__Cha);
 #endif
-#ifdef EQ_Character__Cha_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Cha(), EQ_Character__Cha);
+#ifdef CharacterZoneClient__Dex_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Dex(), CharacterZoneClient__Dex);
 #endif
-#ifdef EQ_Character__Dex_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Dex(), EQ_Character__Dex);
+#ifdef CharacterZoneClient__Int_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Int(), CharacterZoneClient__Int);
 #endif
-#ifdef EQ_Character__Int_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Int(), EQ_Character__Int);
+#ifdef CharacterZoneClient__Agi_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Agi(), CharacterZoneClient__Agi);
 #endif
-#ifdef EQ_Character__Agi_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Agi(), EQ_Character__Agi);
+#ifdef CharacterZoneClient__Wis_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::Wis(), CharacterZoneClient__Wis);
 #endif
-#ifdef EQ_Character__Wis_x
-FUNCTION_AT_ADDRESS(int EQ_Character::Wis(), EQ_Character__Wis);
+#ifdef CharacterZoneClient__ApplyFatigue_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::ApplyFatigue(int), CharacterZoneClient__ApplyFatigue);
 #endif
-#ifdef EQ_Character__ApplyFatigue_x
-FUNCTION_AT_ADDRESS(int EQ_Character::ApplyFatigue(int), EQ_Character__ApplyFatigue);
+#ifdef CharacterZoneClient__max_encumbrance_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::max_encumbrance(), CharacterZoneClient__max_encumbrance);
 #endif
-#ifdef EQ_Character__max_encumbrance_x
-FUNCTION_AT_ADDRESS(int EQ_Character::max_encumbrance(), EQ_Character__max_encumbrance);
+#ifdef CharacterZoneClient__CanUseItem_x
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::CanUseItem(CONTENTS**, bool, bool), CharacterZoneClient__CanUseItem);
 #endif
-#ifdef EQ_Character__CanUseItem_x
-FUNCTION_AT_ADDRESS(bool EQ_Character1::CanUseItem(CONTENTS**, bool, bool), EQ_Character__CanUseItem);
+#ifdef CharacterZoneClient__encum_factor_x
+FUNCTION_AT_ADDRESS(float CharacterZoneClient::encum_factor(), CharacterZoneClient__encum_factor);
 #endif
-#ifdef EQ_Character__encum_factor_x
-FUNCTION_AT_ADDRESS(float EQ_Character::encum_factor(), EQ_Character__encum_factor);
+#ifdef CharacterZoneClient__cur_encumbrance_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::cur_encumbrance(), CharacterZoneClient__cur_encumbrance);
 #endif
-#ifdef EQ_Character__cur_encumbrance_x
-FUNCTION_AT_ADDRESS(int EQ_Character::cur_encumbrance(), EQ_Character__cur_encumbrance);
+#ifdef CharacterZoneClient__Race_x
+FUNCTION_AT_ADDRESS(char* CharacterZoneClient::Race(int), CharacterZoneClient__Race);
 #endif
-#ifdef EQ_Character__Race_x
-FUNCTION_AT_ADDRESS(char* EQ_Character::Race(int), EQ_Character__Race);
+#ifdef CharacterZoneClient__Class_x
+FUNCTION_AT_ADDRESS(char* CharacterZoneClient::Class(int), CharacterZoneClient__Class);
 #endif
-#ifdef EQ_Character__Class_x
-FUNCTION_AT_ADDRESS(char* EQ_Character::Class(int), EQ_Character__Class);
+#ifdef CharacterZoneClient__KunarkClass_x
+FUNCTION_AT_ADDRESS(char* CharacterZoneClient::KunarkClass(int, int, int, bool), CharacterZoneClient__KunarkClass);
 #endif
-#ifdef EQ_Character__KunarkClass_x
-FUNCTION_AT_ADDRESS(char* EQ_Character::KunarkClass(int, int, int, bool), EQ_Character__KunarkClass);
+#ifdef CharacterZoneClient__ClassMin_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::ClassMin(int, int, unsigned char), CharacterZoneClient__ClassMin);
 #endif
-#ifdef EQ_Character__ClassMin_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::ClassMin(int, int, unsigned char), EQ_Character__ClassMin);
+#ifdef CharacterZoneClient__CheckClass_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CheckClass(int, int), CharacterZoneClient__CheckClass);
 #endif
-#ifdef EQ_Character__CheckClass_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CheckClass(int, int), EQ_Character__CheckClass);
+#ifdef CharacterZoneClient__CanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CanWorship(int, int, unsigned char), CharacterZoneClient__CanWorship);
 #endif
-#ifdef EQ_Character__CanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CanWorship(int, int, unsigned char), EQ_Character__CanWorship);
+#ifdef CharacterZoneClient__HumanCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::HumanCanWorship(unsigned char, unsigned char), CharacterZoneClient__HumanCanWorship);
 #endif
-#ifdef EQ_Character__HumanCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::HumanCanWorship(unsigned char, unsigned char), EQ_Character__HumanCanWorship);
+#ifdef CharacterZoneClient__BarbarianCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::BarbarianCanWorship(unsigned char, unsigned char), CharacterZoneClient__BarbarianCanWorship);
 #endif
-#ifdef EQ_Character__BarbarianCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::BarbarianCanWorship(unsigned char, unsigned char), EQ_Character__BarbarianCanWorship);
+#ifdef CharacterZoneClient__EruditeCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::EruditeCanWorship(unsigned char, unsigned char), CharacterZoneClient__EruditeCanWorship);
 #endif
-#ifdef EQ_Character__EruditeCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::EruditeCanWorship(unsigned char, unsigned char), EQ_Character__EruditeCanWorship);
+#ifdef CharacterZoneClient__ElfCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::ElfCanWorship(unsigned char, unsigned char), CharacterZoneClient__ElfCanWorship);
 #endif
-#ifdef EQ_Character__ElfCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::ElfCanWorship(unsigned char, unsigned char), EQ_Character__ElfCanWorship);
+#ifdef CharacterZoneClient__HighElfCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::HighElfCanWorship(unsigned char, unsigned char), CharacterZoneClient__HighElfCanWorship);
 #endif
-#ifdef EQ_Character__HighElfCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::HighElfCanWorship(unsigned char, unsigned char), EQ_Character__HighElfCanWorship);
+#ifdef CharacterZoneClient__DarkElfCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::DarkElfCanWorship(unsigned char, unsigned char), CharacterZoneClient__DarkElfCanWorship);
 #endif
-#ifdef EQ_Character__DarkElfCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::DarkElfCanWorship(unsigned char, unsigned char), EQ_Character__DarkElfCanWorship);
+#ifdef CharacterZoneClient__HalfElfCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::HalfElfCanWorship(unsigned char, unsigned char), CharacterZoneClient__HalfElfCanWorship);
 #endif
-#ifdef EQ_Character__HalfElfCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::HalfElfCanWorship(unsigned char, unsigned char), EQ_Character__HalfElfCanWorship);
+#ifdef CharacterZoneClient__DwarfCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::DwarfCanWorship(unsigned char, unsigned char), CharacterZoneClient__DwarfCanWorship);
 #endif
-#ifdef EQ_Character__DwarfCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::DwarfCanWorship(unsigned char, unsigned char), EQ_Character__DwarfCanWorship);
+#ifdef CharacterZoneClient__TrollCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::TrollCanWorship(unsigned char, unsigned char), CharacterZoneClient__TrollCanWorship);
 #endif
-#ifdef EQ_Character__TrollCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::TrollCanWorship(unsigned char, unsigned char), EQ_Character__TrollCanWorship);
+#ifdef CharacterZoneClient__OgreCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::OgreCanWorship(unsigned char, unsigned char), CharacterZoneClient__OgreCanWorship);
 #endif
-#ifdef EQ_Character__OgreCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::OgreCanWorship(unsigned char, unsigned char), EQ_Character__OgreCanWorship);
+#ifdef CharacterZoneClient__HalflingCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::HalflingCanWorship(unsigned char, unsigned char), CharacterZoneClient__HalflingCanWorship);
 #endif
-#ifdef EQ_Character__HalflingCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::HalflingCanWorship(unsigned char, unsigned char), EQ_Character__HalflingCanWorship);
+#ifdef CharacterZoneClient__GnomeCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::GnomeCanWorship(unsigned char, unsigned char), CharacterZoneClient__GnomeCanWorship);
 #endif
-#ifdef EQ_Character__GnomeCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::GnomeCanWorship(unsigned char, unsigned char), EQ_Character__GnomeCanWorship);
+#ifdef CharacterZoneClient__IksarCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::IksarCanWorship(unsigned char, unsigned char), CharacterZoneClient__IksarCanWorship);
 #endif
-#ifdef EQ_Character__IksarCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::IksarCanWorship(unsigned char, unsigned char), EQ_Character__IksarCanWorship);
+#ifdef CharacterZoneClient__VahShirCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::VahShirCanWorship(unsigned char, unsigned char), CharacterZoneClient__VahShirCanWorship);
 #endif
-#ifdef EQ_Character__VahShirCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::VahShirCanWorship(unsigned char, unsigned char), EQ_Character__VahShirCanWorship);
+#ifdef CharacterZoneClient__FroglockCanWorship_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::FroglockCanWorship(unsigned char, unsigned char), CharacterZoneClient__FroglockCanWorship);
 #endif
-#ifdef EQ_Character__FroglockCanWorship_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::FroglockCanWorship(unsigned char, unsigned char), EQ_Character__FroglockCanWorship);
+#ifdef CharacterZoneClient__CityCanStart_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CityCanStart(int, int, int, int), CharacterZoneClient__CityCanStart);
 #endif
-#ifdef EQ_Character__CityCanStart_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CityCanStart(int, int, int, int), EQ_Character__CityCanStart);
+#ifdef CharacterZoneClient__BaseAttr_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::BaseAttr(int, unsigned char), CharacterZoneClient__BaseAttr);
 #endif
-#ifdef EQ_Character__BaseAttr_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::BaseAttr(int, unsigned char), EQ_Character__BaseAttr);
+#ifdef CharacterZoneClient__InitSkills_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::InitSkills(unsigned char, unsigned int), CharacterZoneClient__InitSkills);
 #endif
-#ifdef EQ_Character__InitSkills_x
-FUNCTION_AT_ADDRESS(void EQ_Character::InitSkills(unsigned char, unsigned int), EQ_Character__InitSkills);
+#ifdef CharacterZoneClient__InitInnates_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::InitInnates(unsigned int, unsigned int), CharacterZoneClient__InitInnates);
 #endif
-#ifdef EQ_Character__InitInnates_x
-FUNCTION_AT_ADDRESS(void EQ_Character::InitInnates(unsigned int, unsigned int), EQ_Character__InitInnates);
+#ifdef CharacterZoneClient__IsSpecialBazaarSpot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::IsSpecialBazaarSpot(EQPlayer*), CharacterZoneClient__IsSpecialBazaarSpot);
 #endif
-#ifdef EQ_Character__IsSpecialBazaarSpot_x
-FUNCTION_AT_ADDRESS(int EQ_Character::IsSpecialBazaarSpot(EQPlayer*), EQ_Character__IsSpecialBazaarSpot);
+#ifdef CharacterZoneClient__CanSecondaryAttack_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CanSecondaryAttack(EQPlayer*), CharacterZoneClient__CanSecondaryAttack);
 #endif
-#ifdef EQ_Character__CanSecondaryAttack_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CanSecondaryAttack(EQPlayer*), EQ_Character__CanSecondaryAttack);
+#ifdef CharacterZoneClient__CanDoubleAttack_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CanDoubleAttack(EQPlayer*, unsigned char), CharacterZoneClient__CanDoubleAttack);
 #endif
-#ifdef EQ_Character__CanDoubleAttack_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CanDoubleAttack(EQPlayer*, unsigned char), EQ_Character__CanDoubleAttack);
+#ifdef CharacterZoneClient__AntiTwinkAdj_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::AntiTwinkAdj(EQ_Equipment*, int, int), CharacterZoneClient__AntiTwinkAdj);
 #endif
-#ifdef EQ_Character__AntiTwinkAdj_x
-FUNCTION_AT_ADDRESS(int EQ_Character::AntiTwinkAdj(EQ_Equipment*, int, int), EQ_Character__AntiTwinkAdj);
+#ifdef CharacterZoneClient__GetSkillBaseDamage_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::GetSkillBaseDamage(unsigned char, EQPlayer*), CharacterZoneClient__GetSkillBaseDamage);
 #endif
-#ifdef EQ_Character__GetSkillBaseDamage_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::GetSkillBaseDamage(unsigned char, EQPlayer*), EQ_Character__GetSkillBaseDamage);
+#ifdef CharacterZoneClient__UseSkill_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::UseSkill(unsigned char skill, PlayerZoneClient* target, bool), CharacterZoneClient__UseSkill);
 #endif
-#ifdef EQ_Character__UseSkill_x
-FUNCTION_AT_ADDRESS(void EQ_Character1::UseSkill(unsigned char skill, PlayerZoneClient* target, bool), EQ_Character__UseSkill);
+#ifdef CharacterZoneClient__DoIntimidationEvent_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::DoIntimidationEvent(), CharacterZoneClient__DoIntimidationEvent);
 #endif
-#ifdef EQ_Character__DoIntimidationEvent_x
-FUNCTION_AT_ADDRESS(void EQ_Character::DoIntimidationEvent(), EQ_Character__DoIntimidationEvent);
+#ifdef CharacterZoneClient__DoFishingEvent_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::DoFishingEvent(), CharacterZoneClient__DoFishingEvent);
 #endif
-#ifdef EQ_Character__DoFishingEvent_x
-FUNCTION_AT_ADDRESS(void EQ_Character::DoFishingEvent(), EQ_Character__DoFishingEvent);
+#ifdef CharacterZoneClient__FindClosest_x
+FUNCTION_AT_ADDRESS(EQPlayer* CharacterZoneClient::FindClosest(int, int, int, int, int), CharacterZoneClient__FindClosest);
 #endif
-#ifdef EQ_Character__FindClosest_x
-FUNCTION_AT_ADDRESS(EQPlayer* EQ_Character::FindClosest(int, int, int, int, int), EQ_Character__FindClosest);
+#ifdef CharacterZoneClient__IAmDead_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::IAmDead(struct _EQMissileHitinfo*, int), CharacterZoneClient__IAmDead);
 #endif
-#ifdef EQ_Character__IAmDead_x
-FUNCTION_AT_ADDRESS(void EQ_Character::IAmDead(struct _EQMissileHitinfo*, int), EQ_Character__IAmDead);
+#ifdef CharacterZoneClient__TotalOnPerson_x
+FUNCTION_AT_ADDRESS(long CharacterZoneClient::TotalOnPerson(), CharacterZoneClient__TotalOnPerson);
 #endif
-#ifdef EQ_Character__TotalOnPerson_x
-FUNCTION_AT_ADDRESS(long EQ_Character::TotalOnPerson(), EQ_Character__TotalOnPerson);
+#ifdef CharacterZoneClient__ItemSold_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ItemSold(long), CharacterZoneClient__ItemSold);
 #endif
-#ifdef EQ_Character__ItemSold_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ItemSold(long), EQ_Character__ItemSold);
+#ifdef CharacterZoneClient__TakeFallDamage_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::TakeFallDamage(float), CharacterZoneClient__TakeFallDamage);
 #endif
-#ifdef EQ_Character__TakeFallDamage_x
-FUNCTION_AT_ADDRESS(int EQ_Character::TakeFallDamage(float), EQ_Character__TakeFallDamage);
+#ifdef CharacterZoneClient__IHaveSkill_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::IHaveSkill(unsigned char), CharacterZoneClient__IHaveSkill);
 #endif
-#ifdef EQ_Character__IHaveSkill_x
-FUNCTION_AT_ADDRESS(int EQ_Character::IHaveSkill(unsigned char), EQ_Character__IHaveSkill);
+#ifdef CharacterZoneClient__NoMezMe_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::NoMezMe(int, EQPlayer*, EQ_Spell*), CharacterZoneClient__NoMezMe);
 #endif
-#ifdef EQ_Character__NoMezMe_x
-FUNCTION_AT_ADDRESS(int EQ_Character::NoMezMe(int, EQPlayer*, EQ_Spell*), EQ_Character__NoMezMe);
+#ifdef CharacterZoneClient__NoBashMe_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::NoBashMe(int), CharacterZoneClient__NoBashMe);
 #endif
-#ifdef EQ_Character__NoBashMe_x
-FUNCTION_AT_ADDRESS(int EQ_Character::NoBashMe(int), EQ_Character__NoBashMe);
+#ifdef CharacterZoneClient__StunMe_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient1::StunMe(unsigned int, bool, bool, bool), CharacterZoneClient__StunMe);
 #endif
-#ifdef EQ_Character__StunMe_x
-FUNCTION_AT_ADDRESS(void EQ_Character1::StunMe(unsigned int, bool, bool, bool), EQ_Character__StunMe);
+#ifdef CharacterZoneClient__UnStunMe_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient1::UnStunMe(), CharacterZoneClient__UnStunMe);
 #endif
-#ifdef EQ_Character__UnStunMe_x
-FUNCTION_AT_ADDRESS(void EQ_Character1::UnStunMe(), EQ_Character__UnStunMe);
+#ifdef CharacterZoneClient__ApplyDamage_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::ApplyDamage(int, struct _EQMissileHitinfo*, bool, HateListEntry*, bool), CharacterZoneClient__ApplyDamage);
 #endif
-#ifdef EQ_Character__ApplyDamage_x
-FUNCTION_AT_ADDRESS(int EQ_Character::ApplyDamage(int, struct _EQMissileHitinfo*, bool, HateListEntry*, bool), EQ_Character__ApplyDamage);
+#ifdef CharacterZoneClient__NotifyPCAffectChange_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::NotifyPCAffectChange(int, int), CharacterZoneClient__NotifyPCAffectChange);
 #endif
-#ifdef EQ_Character__NotifyPCAffectChange_x
-FUNCTION_AT_ADDRESS(void EQ_Character::NotifyPCAffectChange(int, int), EQ_Character__NotifyPCAffectChange);
+#ifdef CharacterZoneClient__UpdateMyVisibleStatus_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::UpdateMyVisibleStatus(), CharacterZoneClient__UpdateMyVisibleStatus);
 #endif
-#ifdef EQ_Character__UpdateMyVisibleStatus_x
-FUNCTION_AT_ADDRESS(void EQ_Character::UpdateMyVisibleStatus(), EQ_Character__UpdateMyVisibleStatus);
+#ifdef CharacterZoneClient__CanISeeInvis_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CanISeeInvis(), CharacterZoneClient__CanISeeInvis);
 #endif
-#ifdef EQ_Character__CanISeeInvis_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CanISeeInvis(), EQ_Character__CanISeeInvis);
+#ifdef CharacterZoneClient__CanIBreathe_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CanIBreathe(), CharacterZoneClient__CanIBreathe);
 #endif
-#ifdef EQ_Character__CanIBreathe_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CanIBreathe(), EQ_Character__CanIBreathe);
+#ifdef CharacterZoneClient__ProcessEnvironment_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ProcessEnvironment(), CharacterZoneClient__ProcessEnvironment);
 #endif
-#ifdef EQ_Character__ProcessEnvironment_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ProcessEnvironment(), EQ_Character__ProcessEnvironment);
+#ifdef CharacterZoneClient__ProcessHungerandThirst_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ProcessHungerandThirst(unsigned int), CharacterZoneClient__ProcessHungerandThirst);
 #endif
-#ifdef EQ_Character__ProcessHungerandThirst_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ProcessHungerandThirst(unsigned int), EQ_Character__ProcessHungerandThirst);
+#ifdef CharacterZoneClient__ItemSpellAffects_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::ItemSpellAffects(int), CharacterZoneClient__ItemSpellAffects);
 #endif
-#ifdef EQ_Character__ItemSpellAffects_x
-FUNCTION_AT_ADDRESS(int EQ_Character::ItemSpellAffects(int), EQ_Character__ItemSpellAffects);
+#ifdef CharacterZoneClient__ProcessAllStats_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ProcessAllStats(), CharacterZoneClient__ProcessAllStats);
 #endif
-#ifdef EQ_Character__ProcessAllStats_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ProcessAllStats(), EQ_Character__ProcessAllStats);
+#ifdef CharacterZoneClient__DoPassageOfTime_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::DoPassageOfTime(), CharacterZoneClient__DoPassageOfTime);
 #endif
-#ifdef EQ_Character__DoPassageOfTime_x
-FUNCTION_AT_ADDRESS(void EQ_Character::DoPassageOfTime(), EQ_Character__DoPassageOfTime);
+#ifdef CharacterZoneClient__FindItemByClass_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::FindItemByClass(int, int*, int*), CharacterZoneClient__FindItemByClass);
 #endif
-#ifdef EQ_Character__FindItemByClass_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::FindItemByClass(int, int*, int*), EQ_Character__FindItemByClass);
+#ifdef CharacterZoneClient__FindItemQty_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::FindItemQty(int, int), CharacterZoneClient__FindItemQty);
 #endif
-#ifdef EQ_Character__FindItemQty_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::FindItemQty(int, int), EQ_Character__FindItemQty);
+#ifdef CharacterZoneClient__CanMedOnHorse_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CanMedOnHorse(), CharacterZoneClient__CanMedOnHorse);
 #endif
-#ifdef EQ_Character__CanMedOnHorse_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CanMedOnHorse(), EQ_Character__CanMedOnHorse);
+#ifdef CharacterZoneClient__ExpendItemCharge_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::ExpendItemCharge(int, int), CharacterZoneClient__ExpendItemCharge);
 #endif
-#ifdef EQ_Character__ExpendItemCharge_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::ExpendItemCharge(int, int), EQ_Character__ExpendItemCharge);
+#ifdef CharacterZoneClient__AutoEat_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::AutoEat(unsigned char), CharacterZoneClient__AutoEat);
 #endif
-#ifdef EQ_Character__AutoEat_x
-FUNCTION_AT_ADDRESS(int EQ_Character::AutoEat(unsigned char), EQ_Character__AutoEat);
+#ifdef CharacterZoneClient__CheckFoodAndWater_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::CheckFoodAndWater(), CharacterZoneClient__CheckFoodAndWater);
 #endif
-#ifdef EQ_Character__CheckFoodAndWater_x
-FUNCTION_AT_ADDRESS(int EQ_Character::CheckFoodAndWater(), EQ_Character__CheckFoodAndWater);
+#ifdef CharacterZoneClient__DoMeditation_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::DoMeditation(), CharacterZoneClient__DoMeditation);
 #endif
-#ifdef EQ_Character__DoMeditation_x
-FUNCTION_AT_ADDRESS(void EQ_Character::DoMeditation(), EQ_Character__DoMeditation);
+#ifdef CharacterZoneClient__SetLocalVar_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::SetLocalVar(char*, int), CharacterZoneClient__SetLocalVar);
 #endif
-#ifdef EQ_Character__SetLocalVar_x
-FUNCTION_AT_ADDRESS(int EQ_Character::SetLocalVar(char*, int), EQ_Character__SetLocalVar);
+#ifdef CharacterZoneClient__GetIndexSkillMinDamageMod_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetIndexSkillMinDamageMod(int), CharacterZoneClient__GetIndexSkillMinDamageMod);
 #endif
-#ifdef EQ_Character__GetIndexSkillMinDamageMod_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetIndexSkillMinDamageMod(int), EQ_Character__GetIndexSkillMinDamageMod);
+#ifdef CharacterZoneClient__GetFocusConserveRegChance_x
+FUNCTION_AT_ADDRESS(int const CharacterZoneClient::GetFocusConserveRegChance(EQ_Spell const*, EQ_Equipment**), CharacterZoneClient__GetFocusConserveRegChance);
 #endif
-#ifdef EQ_Character__GetFocusConserveRegChance_x
-FUNCTION_AT_ADDRESS(int const EQ_Character::GetFocusConserveRegChance(EQ_Spell const*, EQ_Equipment**), EQ_Character__GetFocusConserveRegChance);
+#ifdef CharacterZoneClient__GetFocusCastingTimeModifier_x
+FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly), CharacterZoneClient__GetFocusCastingTimeModifier);
 #endif
-#ifdef EQ_Character__GetFocusCastingTimeModifier_x
-FUNCTION_AT_ADDRESS(const int EQ_Character1::GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly), EQ_Character__GetFocusCastingTimeModifier);
+#ifdef CharacterZoneClient__GetFocusRangeModifier_x
+FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut), CharacterZoneClient__GetFocusRangeModifier);
 #endif
-#ifdef EQ_Character__GetFocusRangeModifier_x
-FUNCTION_AT_ADDRESS(const int EQ_Character1::GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut), EQ_Character__GetFocusRangeModifier);
+#ifdef CharacterZoneClient__IsExpansionFlag_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::IsExpansionFlag(int), CharacterZoneClient__IsExpansionFlag);
 #endif
-#ifdef EQ_Character__IsExpansionFlag_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::IsExpansionFlag(int), EQ_Character__IsExpansionFlag);
+#ifdef CharacterZoneClient__GetFocusItem_x
+FUNCTION_AT_ADDRESS(EQ_Equipment* CharacterZoneClient::GetFocusItem(EQ_Spell const*, int), CharacterZoneClient__GetFocusItem);
 #endif
-#ifdef EQ_Character__GetFocusItem_x
-FUNCTION_AT_ADDRESS(EQ_Equipment* EQ_Character::GetFocusItem(EQ_Spell const*, int), EQ_Character__GetFocusItem);
+#ifdef CharacterZoneClient__GetFocusEffect_x
+FUNCTION_AT_ADDRESS(EQ_Spell* CharacterZoneClient::GetFocusEffect(EQ_Spell const*, int), CharacterZoneClient__GetFocusEffect);
 #endif
-#ifdef EQ_Character__GetFocusEffect_x
-FUNCTION_AT_ADDRESS(EQ_Spell* EQ_Character::GetFocusEffect(EQ_Spell const*, int), EQ_Character__GetFocusEffect);
+#ifdef CharacterZoneClient__DoesSpellMatchFocusFilters_x
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::DoesSpellMatchFocusFilters(EQ_Spell const*, EQ_Spell const*), CharacterZoneClient__DoesSpellMatchFocusFilters);
 #endif
-#ifdef EQ_Character__DoesSpellMatchFocusFilters_x
-FUNCTION_AT_ADDRESS(bool EQ_Character::DoesSpellMatchFocusFilters(EQ_Spell const*, EQ_Spell const*), EQ_Character__DoesSpellMatchFocusFilters);
+#ifdef CharacterZoneClient__GetMyPetPlayer_x
+FUNCTION_AT_ADDRESS(EQPlayer* CharacterZoneClient::GetMyPetPlayer(), CharacterZoneClient__GetMyPetPlayer);
 #endif
-#ifdef EQ_Character__GetMyPetPlayer_x
-FUNCTION_AT_ADDRESS(EQPlayer* EQ_Character::GetMyPetPlayer(), EQ_Character__GetMyPetPlayer);
+#ifdef CharacterZoneClient__SetEffectId_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient1::SetEffectId(unsigned char, unsigned int), CharacterZoneClient__SetEffectId);
 #endif
-#ifdef EQ_Character__SetEffectId_x
-FUNCTION_AT_ADDRESS(void EQ_Character1::SetEffectId(unsigned char, unsigned int), EQ_Character__SetEffectId);
+#ifdef CharacterZoneClient__CastSpell_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CastSpell(unsigned char gemid, int spellid, EQ_Item** ppItem, const ItemGlobalIndex&, enum ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10), CharacterZoneClient__CastSpell);
 #endif
-#ifdef EQ_Character__CastSpell_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, EQ_Item** ppItem, const ItemGlobalIndex&, enum ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10), EQ_Character__CastSpell);
+#ifdef CharacterZoneClient__GetBardInstrumentMod_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetBardInstrumentMod(int), CharacterZoneClient__GetBardInstrumentMod);
 #endif
-#ifdef EQ_Character__GetBardInstrumentMod_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetBardInstrumentMod(int), EQ_Character__GetBardInstrumentMod);
+#ifdef CharacterZoneClient__CalculateBardSongMod_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::CalculateBardSongMod(int), CharacterZoneClient__CalculateBardSongMod);
 #endif
-#ifdef EQ_Character__CalculateBardSongMod_x
-FUNCTION_AT_ADDRESS(int EQ_Character::CalculateBardSongMod(int), EQ_Character__CalculateBardSongMod);
+#ifdef CharacterZoneClient__CastingRequirementsMet_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CastingRequirementsMet(int), CharacterZoneClient__CastingRequirementsMet);
 #endif
-#ifdef EQ_Character__CastingRequirementsMet_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CastingRequirementsMet(int), EQ_Character__CastingRequirementsMet);
+#ifdef CharacterZoneClient__GetCastingTimeModifier_x
+FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetCastingTimeModifier(const EQ_Spell*), CharacterZoneClient__GetCastingTimeModifier);
 #endif
-#ifdef EQ_Character__GetCastingTimeModifier_x
-FUNCTION_AT_ADDRESS(const int EQ_Character1::GetCastingTimeModifier(const EQ_Spell*), EQ_Character__GetCastingTimeModifier);
+#ifdef CharacterZoneClient__IsValidAffect_x
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsValidAffect(int), CharacterZoneClient__IsValidAffect);
 #endif
-#ifdef EQ_Character__IsValidAffect_x
-FUNCTION_AT_ADDRESS(bool EQ_Character::IsValidAffect(int), EQ_Character__IsValidAffect);
+#ifdef CharacterZoneClient__LaunchSpell_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::LaunchSpell(unsigned char, int, EQ_Item**), CharacterZoneClient__LaunchSpell);
 #endif
-#ifdef EQ_Character__LaunchSpell_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::LaunchSpell(unsigned char, int, EQ_Item**), EQ_Character__LaunchSpell);
+#ifdef CharacterZoneClient__HandleSpecialPCAffects_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::HandleSpecialPCAffects(int), CharacterZoneClient__HandleSpecialPCAffects);
 #endif
-#ifdef EQ_Character__HandleSpecialPCAffects_x
-FUNCTION_AT_ADDRESS(void EQ_Character::HandleSpecialPCAffects(int), EQ_Character__HandleSpecialPCAffects);
+#ifdef CharacterZoneClient__GetPCSpellAffect_x
+FUNCTION_AT_ADDRESS(EQ_Affect* CharacterZoneClient::GetPCSpellAffect(int theaffect, int* slotnum, int* spaslot) const, CharacterZoneClient__GetPCSpellAffect);
 #endif
-#ifdef EQ_Character__GetPCSpellAffect_x
-FUNCTION_AT_ADDRESS(EQ_Affect* EQ_Character::GetPCSpellAffect(int theaffect, int* slotnum, int* spaslot) const, EQ_Character__GetPCSpellAffect);
+#ifdef CharacterZoneClient__TotalSpellAffects_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::TotalSpellAffects(unsigned char, bool, int*), CharacterZoneClient__TotalSpellAffects);
 #endif
-#ifdef EQ_Character__TotalSpellAffects_x
-FUNCTION_AT_ADDRESS(int EQ_Character::TotalSpellAffects(unsigned char, bool, int*), EQ_Character__TotalSpellAffects);
+#ifdef CharacterZoneClient__IsSpellAffectingPC_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::IsSpellAffectingPC(int, int), CharacterZoneClient__IsSpellAffectingPC);
 #endif
-#ifdef EQ_Character__IsSpellAffectingPC_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::IsSpellAffectingPC(int, int), EQ_Character__IsSpellAffectingPC);
+#ifdef CharacterZoneClient__SpellFizzled_x
+FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::SpellFizzled(unsigned char, EQ_Spell*), CharacterZoneClient__SpellFizzled);
 #endif
-#ifdef EQ_Character__SpellFizzled_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character::SpellFizzled(unsigned char, EQ_Spell*), EQ_Character__SpellFizzled);
+#ifdef CharacterZoneClient__ProcessAffects_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::ProcessAffects(), CharacterZoneClient__ProcessAffects);
 #endif
-#ifdef EQ_Character__ProcessAffects_x
-FUNCTION_AT_ADDRESS(int EQ_Character::ProcessAffects(), EQ_Character__ProcessAffects);
+#ifdef CharacterZoneClient__GetOpenEffectSlot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetOpenEffectSlot(bool, int), CharacterZoneClient__GetOpenEffectSlot);
 #endif
-#ifdef EQ_Character__GetOpenEffectSlot_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetOpenEffectSlot(bool, int), EQ_Character__GetOpenEffectSlot);
+#ifdef CharacterZoneClient__GetFirstEffectSlot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetFirstEffectSlot(bool), CharacterZoneClient__GetFirstEffectSlot);
 #endif
-#ifdef EQ_Character__GetFirstEffectSlot_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetFirstEffectSlot(bool), EQ_Character__GetFirstEffectSlot);
+#ifdef CharacterZoneClient__GetLastEffectSlot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetLastEffectSlot(bool), CharacterZoneClient__GetLastEffectSlot);
 #endif
-#ifdef EQ_Character__GetLastEffectSlot_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetLastEffectSlot(bool), EQ_Character__GetLastEffectSlot);
+#ifdef CharacterZoneClient__IsSpellTooPowerfull_x
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsSpellTooPowerfull(EQ_Spell*, CharacterZoneClient*), CharacterZoneClient__IsSpellTooPowerfull);
 #endif
-#ifdef EQ_Character__IsSpellTooPowerfull_x
-FUNCTION_AT_ADDRESS(bool EQ_Character::IsSpellTooPowerfull(EQ_Spell*, EQ_Character*), EQ_Character__IsSpellTooPowerfull);
+#ifdef CharacterZoneClient__HitBySpell_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::HitBySpell(struct _EQMissileHitinfo*), CharacterZoneClient__HitBySpell);
 #endif
-#ifdef EQ_Character__HitBySpell_x
-FUNCTION_AT_ADDRESS(void EQ_Character::HitBySpell(struct _EQMissileHitinfo*), EQ_Character__HitBySpell);
+#ifdef CharacterZoneClient__EQSPA_Feign_Death_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::EQSPA_Feign_Death(int), CharacterZoneClient__EQSPA_Feign_Death);
 #endif
-#ifdef EQ_Character__EQSPA_Feign_Death_x
-FUNCTION_AT_ADDRESS(void EQ_Character::EQSPA_Feign_Death(int), EQ_Character__EQSPA_Feign_Death);
+#ifdef CharacterZoneClient__SpellDuration_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::SpellDuration(EQ_Spell const*, unsigned char, unsigned char), CharacterZoneClient__SpellDuration);
 #endif
-#ifdef EQ_Character__SpellDuration_x
-FUNCTION_AT_ADDRESS(int EQ_Character::SpellDuration(EQ_Spell const*, unsigned char, unsigned char), EQ_Character__SpellDuration);
+#ifdef CharacterZoneClient__eqspa_change_form_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::eqspa_change_form(EQ_Spell*, int, int, EQ_Affect*), CharacterZoneClient__eqspa_change_form);
 #endif
-#ifdef EQ_Character__eqspa_change_form_x
-FUNCTION_AT_ADDRESS(int EQ_Character::eqspa_change_form(EQ_Spell*, int, int, EQ_Affect*), EQ_Character__eqspa_change_form);
+#ifdef CharacterZoneClient__eqspa_movement_rate_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::eqspa_movement_rate(int), CharacterZoneClient__eqspa_movement_rate);
 #endif
-#ifdef EQ_Character__eqspa_movement_rate_x
-FUNCTION_AT_ADDRESS(void EQ_Character::eqspa_movement_rate(int), EQ_Character__eqspa_movement_rate);
+#ifdef CharacterZoneClient__eqspa_levitation_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::eqspa_levitation(), CharacterZoneClient__eqspa_levitation);
 #endif
-#ifdef EQ_Character__eqspa_levitation_x
-FUNCTION_AT_ADDRESS(void EQ_Character::eqspa_levitation(), EQ_Character__eqspa_levitation);
+#ifdef CharacterZoneClient__eqspa_hp_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::eqspa_hp(unsigned int, EQ_Affect*, int, EQ_Spell*), CharacterZoneClient__eqspa_hp);
 #endif
-#ifdef EQ_Character__eqspa_hp_x
-FUNCTION_AT_ADDRESS(int EQ_Character::eqspa_hp(unsigned int, EQ_Affect*, int, EQ_Spell*), EQ_Character__eqspa_hp);
+#ifdef CharacterZoneClient__eqspa_locate_corpse_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::eqspa_locate_corpse(), CharacterZoneClient__eqspa_locate_corpse);
 #endif
-#ifdef EQ_Character__eqspa_locate_corpse_x
-FUNCTION_AT_ADDRESS(void EQ_Character::eqspa_locate_corpse(), EQ_Character__eqspa_locate_corpse);
+#ifdef CharacterZoneClient__InSpecialBindSpot_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::InSpecialBindSpot(EQPlayer*), CharacterZoneClient__InSpecialBindSpot);
 #endif
-#ifdef EQ_Character__InSpecialBindSpot_x
-FUNCTION_AT_ADDRESS(int EQ_Character::InSpecialBindSpot(EQPlayer*), EQ_Character__InSpecialBindSpot);
+#ifdef CharacterZoneClient__RemovePCAffect_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::RemovePCAffect(EQ_Affect*), CharacterZoneClient__RemovePCAffect);
 #endif
-#ifdef EQ_Character__RemovePCAffect_x
-FUNCTION_AT_ADDRESS(void EQ_Character::RemovePCAffect(EQ_Affect*), EQ_Character__RemovePCAffect);
+#ifdef CharacterZoneClient__RemovePCAffectex_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::RemovePCAffectex(EQ_Affect*, int), CharacterZoneClient__RemovePCAffectex);
 #endif
-#ifdef EQ_Character__RemovePCAffectex_x
-FUNCTION_AT_ADDRESS(void EQ_Character::RemovePCAffectex(EQ_Affect*, int), EQ_Character__RemovePCAffectex);
+#ifdef CharacterZoneClient__StopSpellCast_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient1::StopSpellCast(unsigned char), CharacterZoneClient__StopSpellCast);
 #endif
-#ifdef EQ_Character__StopSpellCast_x
-FUNCTION_AT_ADDRESS(void EQ_Character1::StopSpellCast(unsigned char), EQ_Character__StopSpellCast);
+#ifdef CharacterZoneClient__StopSpellCast1_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient1::StopSpellCast(unsigned char, int), CharacterZoneClient__StopSpellCast1);
 #endif
-#ifdef EQ_Character__StopSpellCast1_x
-FUNCTION_AT_ADDRESS(void EQ_Character1::StopSpellCast(unsigned char, int), EQ_Character__StopSpellCast1);
+#ifdef CharacterZoneClient__ReCachSpellEffects_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ReCachSpellEffects(), CharacterZoneClient__ReCachSpellEffects);
 #endif
-#ifdef EQ_Character__ReCachSpellEffects_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ReCachSpellEffects(), EQ_Character__ReCachSpellEffects);
+#ifdef CharacterZoneClient__ReCachItemEffects_x
+FUNCTION_AT_ADDRESS(void CharacterZoneClient::ReCachItemEffects(), CharacterZoneClient__ReCachItemEffects);
 #endif
-#ifdef EQ_Character__ReCachItemEffects_x
-FUNCTION_AT_ADDRESS(void EQ_Character::ReCachItemEffects(), EQ_Character__ReCachItemEffects);
+#ifdef CharacterZoneClient__GetCachEQSPA_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetCachEQSPA(int), CharacterZoneClient__GetCachEQSPA);
 #endif
-#ifdef EQ_Character__GetCachEQSPA_x
-FUNCTION_AT_ADDRESS(int EQ_Character::GetCachEQSPA(int), EQ_Character__GetCachEQSPA);
+#ifdef PcClient__GetConLevel_x
+FUNCTION_AT_ADDRESS(unsigned long PcClient::GetConLevel(const PlayerClient*), PcClient__GetConLevel);
 #endif
-#ifdef EQ_Character__GetConLevel_x
-FUNCTION_AT_ADDRESS(unsigned long EQ_Character::GetConLevel(const PlayerClient*), EQ_Character__GetConLevel);
+#ifdef CharacterZoneClient__TotalEffect_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::TotalEffect(int, bool, int, bool, bool), CharacterZoneClient__TotalEffect);
 #endif
-#ifdef EQ_Character__TotalEffect_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::TotalEffect(int, bool, int, bool, bool), EQ_Character__TotalEffect);
+#ifdef CharacterZoneClient__GetAdjustedSkill_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetAdjustedSkill(int), CharacterZoneClient__GetAdjustedSkill);
 #endif
-#ifdef EQ_Character__GetAdjustedSkill_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::GetAdjustedSkill(int), EQ_Character__GetAdjustedSkill);
-#endif
-#ifdef EQ_Character__GetBaseSkill_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::GetBaseSkill(int), EQ_Character__GetBaseSkill);
+#ifdef CharacterZoneClient__GetBaseSkill_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetBaseSkill(int), CharacterZoneClient__GetBaseSkill);
 #endif
 
 //============================================================================
