@@ -216,6 +216,7 @@ EQLIB_API void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
 EQLIB_API void PluginsBeginZone();
 EQLIB_API void PluginsEndZone();
 EQLIB_API bool IsPluginsInitialized();
+EQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
 
 /* DIRECT INPUT */
 EQLIB_API void InitializeMQ2DInput();

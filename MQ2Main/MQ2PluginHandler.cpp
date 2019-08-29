@@ -788,3 +788,17 @@ bool IsPluginsInitialized()
 {
 	return s_pluginsInitialized;
 }
+
+void* GetPluginProc(const char* plugin, const char* proc)
+{
+	unsigned int uiLength = strlen(plugin) + 1;
+	auto pLook = pPlugins;
+	while (pLook)
+	{
+		if (!_strnicmp(plugin, pLook->szFilename, uiLength))
+			return GetProcAddress(pLook->hModule, proc);
+		pLook = pLook->pNext;
+	}
+
+	return nullptr;
+}
