@@ -1153,7 +1153,7 @@ FUNCTION_AT_ADDRESS(void CGuild::UpdateGuildMemberOnWindow(GuildMember*), CGuild
 FUNCTION_AT_ADDRESS(void CGuild::ChangeGuildMemberName(char*), CGuild__ChangeGuildMemberName);
 #endif
 #ifdef CGuild__FindMemberByName_x
-FUNCTION_AT_ADDRESS(GuildMember* CGuild::FindMemberByName(char*), CGuild__FindMemberByName);
+FUNCTION_AT_ADDRESS(GuildMember* CGuild::FindMemberByName(const char*), CGuild__FindMemberByName);
 #endif
 
 //============================================================================

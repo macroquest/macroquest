@@ -522,7 +522,7 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
 		return 0xFFFF0000;
 	}
 }
-static inline int IsRaidMember(char * SpawnName)
+static inline int IsRaidMember(const char * SpawnName)
 {
 	if (pRaid && pRaid->Invited == 4) {
 		for (DWORD N = 0; N < 72; N++)
@@ -542,7 +542,7 @@ static inline int IsRaidMember(PSPAWNINFO pSpawn)
 	}
 	return -1;
 }
-inline BOOL IsGroupMember(char* SpawnName)
+inline BOOL IsGroupMember(const char* SpawnName)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (!pChar->pGroupInfo)
@@ -561,7 +561,7 @@ inline BOOL IsGroupMember(char* SpawnName)
 	}
 	return 0;
 }
-static inline BOOL IsFellowshipMember(char * SpawnName)
+static inline BOOL IsFellowshipMember(const char * SpawnName)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (!pChar->pFellowship)
@@ -574,7 +574,7 @@ static inline BOOL IsFellowshipMember(char * SpawnName)
 	}
 	return 0;
 }
-static inline BOOL IsGuildMember(char * SpawnName)
+static inline BOOL IsGuildMember(const char * SpawnName)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
 		if (pChar->GuildID == 0)

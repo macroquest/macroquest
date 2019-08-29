@@ -705,7 +705,7 @@ public:
 	EQLIB_OBJECT char* GetGuildMotdAuthor();
 	EQLIB_OBJECT char* GetGuildName(int64_t);
 	EQLIB_OBJECT int64_t GetGuildIndex(char*);
-	EQLIB_OBJECT GuildMember* FindMemberByName(char*);
+	EQLIB_OBJECT GuildMember* FindMemberByName(const char*);
 	EQLIB_OBJECT void DeleteAllMembers();
 	EQLIB_OBJECT void DemoteMember(GuildMember*);
 	EQLIB_OBJECT void HandleGuildMessage(connection_t*, uint32_t, char*, uint32_t);
