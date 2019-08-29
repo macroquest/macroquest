@@ -14,185 +14,202 @@
 
 #include "MQ2Main.h"
 
-inline void DeleteMQ2DataVariable(PDATAVAR pVar)
+#include <mutex>
+
+static std::mutex s_dataVarMutex;
+
+void DeleteMQ2DataVariable(PDATAVAR pVar)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_dataVarMutex);
+
 	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
 		VariableMap.erase(pVar->szName);
-    if (pVar->pNext)
-        pVar->pNext->pPrev=pVar->pPrev;
-    if (pVar->pPrev)
-        pVar->pPrev->pNext=pVar->pNext;
-    else
-        *pVar->ppHead=pVar->pNext;
-    pVar->Var.Type->FreeVariable(pVar->Var.VarPtr);
-    delete pVar;
+	if (pVar->pNext)
+		pVar->pNext->pPrev = pVar->pPrev;
+	if (pVar->pPrev)
+		pVar->pPrev->pNext = pVar->pNext;
+	else
+		*pVar->ppHead = pVar->pNext;
+	pVar->Var.Type->FreeVariable(pVar->Var.VarPtr);
+	delete pVar;
 }
 
-inline PDATAVAR FindMQ2DataVariable(char* Name)
+PDATAVAR FindMQ2DataVariable(const char* Name)
 {
-	lockit lk(ghVariableLock);
-	PDATAVAR pFind = 0;
-	auto it = VariableMap.find(Name); 
+	std::scoped_lock lock(s_dataVarMutex);
+
+	PDATAVAR pFind = nullptr;
+	auto it = VariableMap.find(Name);
 	if (it != VariableMap.end())
-	  pFind = it->second;
+		pFind = it->second;
 
-    if (pFind)
-        return pFind;
-    // local?
-    if (gMacroStack)
-    {
-        PDATAVAR pVar=gMacroStack->Parameters;
-        while(pVar)
-        {
-            if (!strcmp(pVar->szName,Name))
-                return pVar;
-            pVar=pVar->pNext;
-        }
-        pVar=gMacroStack->LocalVariables;
-        while(pVar)
-        {
-            if (!strcmp(pVar->szName,Name))
-                return pVar;
-            pVar=pVar->pNext;
-        }
-    }
-    return 0;
+	if (pFind)
+		return pFind;
+	// local?
+	if (gMacroStack)
+	{
+		PDATAVAR pVar = gMacroStack->Parameters;
+		while (pVar)
+		{
+			if (!strcmp(pVar->szName, Name))
+				return pVar;
+			pVar = pVar->pNext;
+		}
+		pVar = gMacroStack->LocalVariables;
+		while (pVar)
+		{
+			if (!strcmp(pVar->szName, Name))
+				return pVar;
+			pVar = pVar->pNext;
+		}
+	}
+	return nullptr;
 }
 
-BOOL AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default)
+bool AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type* pType, PDATAVAR* ppHead, char* Default)
 {
-	lockit lk(ghVariableLock);
-    if (!ppHead || !Name[0])
-        return FALSE;
-    if (!Index)
-        Index="";
-    if (!Default)
-        Default="";
-    if (FindMQ2Data(Name) || FindMQ2DataType(Name))
-        return FALSE; // name in use
-    if (!pType)
-        return FALSE;
+	std::scoped_lock lock(s_dataVarMutex);
 
-    // create variable
-    PDATAVAR pVar = new DATAVAR;
-    pVar->ppHead=ppHead;
-    pVar->pNext=*ppHead;
-    *ppHead=pVar;
-    pVar->pPrev=0;
-    if (pVar->pNext)
-        pVar->pNext->pPrev=pVar;
-    strcpy_s(pVar->szName,Name);
-    if (Index[0])
-    {
-        CDataArray *pArray=new CDataArray(pType,Index,Default);
-        pVar->Var.Ptr=pArray;
+	if (!ppHead || !Name[0])
+		return false;
+	if (!Index)
+		Index = "";
+	if (!Default)
+		Default = "";
+	if (FindMQ2Data(Name) || FindMQ2DataType(Name))
+		return false; // name in use
+	if (!pType)
+		return false;
 
-    }
-    else
-    {
-        pVar->Var.Type=pType;
-        pType->InitVariable(pVar->Var.VarPtr);
-        pType->FromString(pVar->Var.VarPtr,Default);
-    }
-    if (pVar->ppHead==&pMacroVariables || pVar->ppHead==&pGlobalVariables)
-    {
-        VariableMap[Name]=pVar;
-    }
-    return TRUE;
+	// create variable
+	PDATAVAR pVar = new DATAVAR;
+	pVar->ppHead = ppHead;
+	pVar->pNext = *ppHead;
+	*ppHead = pVar;
+	pVar->pPrev = 0;
+	if (pVar->pNext)
+		pVar->pNext->pPrev = pVar;
+	strcpy_s(pVar->szName, Name);
+
+	if (Index[0])
+	{
+		CDataArray* pArray = new CDataArray(pType, Index, Default);
+		pVar->Var.Ptr = pArray;
+
+	}
+	else
+	{
+		pVar->Var.Type = pType;
+		pType->InitVariable(pVar->Var.VarPtr);
+		pType->FromString(pVar->Var.VarPtr, Default);
+	}
+
+	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
+	{
+		VariableMap[Name] = pVar;
+	}
+
+	return true;
 }
 
-
-BOOL AddMQ2DataVariableBy(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default, BOOL ByData)
+bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default, bool ByData)
 {
-	lockit lk(ghVariableLock);
-    if (!ppHead || !Name[0])
-        return FALSE;
-    if (!Index)
-        Index="";
-    if (!Default)
-        Default="";
-    if (FindMQ2DataVariable(Name) || FindMQ2Data(Name) || FindMQ2DataType(Name))
-        return FALSE; // name in use
-    if (!pType)
-        return FALSE;
+	std::scoped_lock lock(s_dataVarMutex);
 
-    // create variable
-    PDATAVAR pVar = new DATAVAR;
-    pVar->ppHead=ppHead;
-    pVar->pNext=*ppHead;
-    *ppHead=pVar;
-    pVar->pPrev=0;
-    if (pVar->pNext)
-        pVar->pNext->pPrev=pVar;
-    strcpy_s(pVar->szName,Name);
-    if (Index[0])
-    {
-        CDataArray *pArray=new CDataArray(pType,Index,Default);
-        pVar->Var.Ptr=pArray;
-        pVar->Var.Type=pArrayType;
-    }
-    else
-    {
-        pVar->Var.Type=pType;
-        pType->InitVariable(pVar->Var.VarPtr);
-        if (ByData)
-            pType->FromData(pVar->Var.VarPtr,*(MQ2TYPEVAR *)Default);
-        else
-            pType->FromString(pVar->Var.VarPtr,Default);
-    }
-    if (!(gMacroStack && (ppHead==&gMacroStack->LocalVariables || ppHead==&gMacroStack->Parameters)))
-    {
-        VariableMap[Name]=pVar;
-    }
-    return TRUE;
+	if (!ppHead || !Name[0])
+		return false;
+	if (!Index)
+		Index = "";
+	if (!Default)
+		Default = "";
+	if (FindMQ2DataVariable(Name) || FindMQ2Data(Name) || FindMQ2DataType(Name))
+		return false; // name in use
+	if (!pType)
+		return false;
+
+	// create variable
+	PDATAVAR pVar = new DATAVAR;
+	pVar->ppHead = ppHead;
+	pVar->pNext = *ppHead;
+	*ppHead = pVar;
+	pVar->pPrev = nullptr;
+	if (pVar->pNext)
+		pVar->pNext->pPrev = pVar;
+	strcpy_s(pVar->szName, Name);
+
+	if (Index[0])
+	{
+		CDataArray* pArray = new CDataArray(pType, (char*)Index, Default);
+		pVar->Var.Ptr = pArray;
+		pVar->Var.Type = pArrayType;
+	}
+	else
+	{
+		pVar->Var.Type = pType;
+		pType->InitVariable(pVar->Var.VarPtr);
+		if (ByData)
+			pType->FromData(pVar->Var.VarPtr, *(MQ2TYPEVAR*)Default);
+		else
+			pType->FromString(pVar->Var.VarPtr, (char*)Default);
+	}
+
+	if (!(gMacroStack && (ppHead == &gMacroStack->LocalVariables || ppHead == &gMacroStack->Parameters)))
+	{
+		VariableMap[Name] = pVar;
+	}
+
+	return true;
 }
 
-BOOL AddMQ2DataVariable(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default)
+bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default)
 {
-    return AddMQ2DataVariableBy(Name, Index, pType, ppHead, Default, 0);
+	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, Default, false);
 }
 
-
-BOOL AddMQ2DataVariableFromData(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default)
+bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, MQ2TYPEVAR Default)
 {
-    return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (char*)&Default, 1);
+	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (const char*)&Default, 1);
 }
 
-
-
-PDATAVAR *FindVariableScope(char* Name)
+PDATAVAR* FindVariableScope(const char* Name)
 {
-    if (!_stricmp(Name,"global"))
-        return &pGlobalVariables;
-    if (!_stricmp(Name,"outer"))
-        return &pMacroVariables;
-    if (gMacroStack && !_stricmp(Name,"local"))
-        return &gMacroStack->LocalVariables;
-    return 0;
+	if (!_stricmp(Name, "global"))
+		return &pGlobalVariables;
+
+	if (!_stricmp(Name, "outer"))
+		return &pMacroVariables;
+
+	if (gMacroStack && !_stricmp(Name, "local"))
+		return &gMacroStack->LocalVariables;
+
+	return nullptr;
 }
 
-BOOL DeleteMQ2DataVariable(char* Name)
+bool DeleteMQ2DataVariable(const char* Name)
 {
-    if (PDATAVAR pVar=FindMQ2DataVariable(Name))
-    {
-        DeleteMQ2DataVariable(pVar);
-        return TRUE;
-    }
-    return FALSE;
+	if (PDATAVAR pVar = FindMQ2DataVariable(Name))
+	{
+		DeleteMQ2DataVariable(pVar);
+		return true;
+	}
+
+	return false;
 }
 
-void ClearMQ2DataVariables(PDATAVAR *ppHead)
+void ClearMQ2DataVariables(PDATAVAR* ppHead)
 {
-    PDATAVAR pVar=*ppHead;
-    while(pVar)
-    {
-        PDATAVAR pNext=pVar->pNext;
-        DeleteMQ2DataVariable(pVar);
-        pVar=pNext;
-    }
-    *ppHead=0;
+	PDATAVAR pVar = *ppHead;
+	while (pVar)
+	{
+		PDATAVAR pNext = pVar->pNext;
+		DeleteMQ2DataVariable(pVar);
+
+		pVar = pNext;
+	}
+
+	*ppHead = nullptr;
 }
+
 void NewDeclareVar(PSPAWNINFO pChar, char* szLine)
 {
     if (!szLine[0])

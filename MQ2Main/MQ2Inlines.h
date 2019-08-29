@@ -68,10 +68,11 @@ static inline PSPELL GetSpellByID(LONG dwSpellID)
 	return &(*((PSPELLMGR)pSpellMgr)->Spells[absedspellid]);
 }
 
-static inline char* GetBodyTypeDesc(DWORD BodyTypeID)
+inline const char* GetBodyTypeDesc(DWORD BodyTypeID)
 {
 	if (BodyTypeID<104 && BodyTypeID >= 0)
 		return szBodyType[BodyTypeID];
+
 	return "*UNKNOWN BODYTYPE";
 }
 
@@ -806,7 +807,7 @@ static inline ULONGLONG GetTickCount64()
 }
 */
 
-static inline LONG GetSpellNumEffects(PSPELL pSpell)
+inline int GetSpellNumEffects(PSPELL pSpell)
 {
 	if (pSpell)
 	{

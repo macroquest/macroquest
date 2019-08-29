@@ -69,13 +69,9 @@ EQLIB_API int gBuild;
 EQLIB_API bool g_bDoingModuleChecks;
 
 EQLIB_API ePVPServer PVPServer;
-EQLIB_API HANDLE ghInitializeMQ2SpellDb;
-EQLIB_VAR HANDLE ghLockSpellMap;
-EQLIB_VAR HANDLE ghLockPickZone;
-EQLIB_VAR HANDLE ghVariableLock;
-EQLIB_VAR HANDLE ghGetClassMemberLock;
+EQLIB_API HANDLE ghInitializeSpellDbThread;
 
-EQLIB_VAR BOOL g_Loaded;
+EQLIB_VAR bool g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
 EQLIB_VAR BOOL gStringTableFixed;
@@ -94,9 +90,9 @@ EQLIB_VAR HMODULE ghModule;
 EQLIB_VAR HINSTANCE ghInstance;
 EQLIB_VAR HWND ghInjectorWnd;
 EQLIB_VAR BOOL gbEQWLoaded;
-EQLIB_VAR BOOL gbUnload;
+EQLIB_VAR bool gbUnload;
 EQLIB_VAR bool gBindInProgress;
-EQLIB_VAR BOOL gbLoad;
+EQLIB_VAR bool gbLoad;
 EQLIB_VAR DWORD gpHook;
 EQLIB_VAR HMODULE ghmq2ic;
 EQLIB_VAR PMACROBLOCK gMacroBlock;
@@ -215,7 +211,7 @@ EQLIB_VAR std::map<std::string, unsigned long> ItemSlotMap;
 
 EQLIB_VAR MOUSESPOOF* gMouseData;
 
-EQLIB_VAR char* gDiKeyName[256];
+EQLIB_VAR const char* gDiKeyName[256];
 
 EQLIB_VAR DWORD gGameState;
 EQLIB_VAR BOOL gbMQ2LoadingMsg;
@@ -312,21 +308,21 @@ EQLIB_VAR bool bDetMouse;
 // ***************************************************************************
 EQLIB_VAR const char* szEQMappableCommands[nEQMappableCommands];
 
-EQLIB_VAR char* szHeading[];
-EQLIB_VAR char* szHeadingShort[];
-EQLIB_VAR char* szHeadingNormal[];
-EQLIB_VAR char* szHeadingNormalShort[];
-EQLIB_VAR char* szSize[];
-EQLIB_VAR char* szSpawnType[];
-EQLIB_VAR char* szGuildStatus[];
-EQLIB_VAR char* szGender[];
-EQLIB_VAR char* szDeityTeam[];
-EQLIB_VAR char* szLights[];
+EQLIB_VAR const char* szHeading[];
+EQLIB_VAR const char* szHeadingShort[];
+EQLIB_VAR const char* szHeadingNormal[];
+EQLIB_VAR const char* szHeadingNormalShort[];
+EQLIB_VAR const char* szSize[];
+EQLIB_VAR const char* szSpawnType[];
+EQLIB_VAR const char* szGuildStatus[];
+EQLIB_VAR const char* szGender[];
+EQLIB_VAR const char* szDeityTeam[];
+EQLIB_VAR const char* szLights[];
 EQLIB_VAR BYTE LightBrightness[];
-EQLIB_VAR char* szSkills[];
-EQLIB_VAR char* szInnates[];
+EQLIB_VAR const char* szSkills[];
+EQLIB_VAR const char* szInnates[];
 
-EQLIB_VAR char* szWornLoc[];
+EQLIB_VAR const char* szWornLoc[];
 
 EQLIB_VAR fEQCommand			cmdHelp;
 EQLIB_VAR fEQCommand			cmdWho;
@@ -364,21 +360,21 @@ EQLIB_VAR bool IsResEffectSpell(int);
 //EQLIB_VAR char* szItemName[];
 //EQLIB_VAR char* szItemName4xx[];
 //EQLIB_VAR char* szTheme[];
-EQLIB_VAR char* szDmgBonusType[];
-EQLIB_VAR char* szBodyType[];
-EQLIB_VAR char* szAugRestrictions[];
-EQLIB_VAR char* szItemSlot[];
-EQLIB_VAR char* szEquipmentSlot[];
-EQLIB_VAR char* szExpansions[];
+EQLIB_VAR const char* szDmgBonusType[];
+EQLIB_VAR const char* szBodyType[];
+EQLIB_VAR const char* szAugRestrictions[];
+EQLIB_VAR const char* szItemSlot[];
+EQLIB_VAR const char* szEquipmentSlot[];
+EQLIB_VAR const char* szExpansions[];
 
 EQLIB_VAR BOOL bLaxColor;
-EQLIB_VAR char* szColorAdjective[];
-EQLIB_VAR char* szColorAdjectiveYou[];
-EQLIB_VAR char* szColorExpletive[];
-EQLIB_VAR char* szColorSyntaxError[];
-EQLIB_VAR char* szColorMacroError[];
-EQLIB_VAR char* szColorMQ2DataError[];
-EQLIB_VAR char* szColorFatalError[];
+EQLIB_VAR const char* szColorAdjective[];
+EQLIB_VAR const char* szColorAdjectiveYou[];
+EQLIB_VAR const char* szColorExpletive[];
+EQLIB_VAR const char* szColorSyntaxError[];
+EQLIB_VAR const char* szColorMacroError[];
+EQLIB_VAR const char* szColorMQ2DataError[];
+EQLIB_VAR const char* szColorFatalError[];
 EQLIB_VAR DWORD nColorAdjective;
 EQLIB_VAR DWORD nColorAdjectiveYou;
 EQLIB_VAR DWORD nColorExpletive;
@@ -388,7 +384,7 @@ EQLIB_VAR DWORD nColorMQ2DataError;
 EQLIB_VAR DWORD nColorFatalError;
 
 EQLIB_VAR std::map<std::string, PDATAVAR> VariableMap;
-EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
+EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQ2DataItem>> MQ2DataMap;
 EQLIB_VAR MQPlugin* pPlugins;
 
 EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;

@@ -519,6 +519,9 @@ void PluginsReloadUI()
 	}
 }
 
+// Defined in MQ2Utilities.cpp
+DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
+
 void PluginsSetGameState(DWORD GameState)
 {
 	if (!s_pluginsInitialized)
@@ -537,14 +540,14 @@ void PluginsSetGameState(DWORD GameState)
 	if (GameState != GAMESTATE_INGAME && GameState != GAMESTATE_LOGGINGIN)
 	{
 		gbSpelldbLoaded = false;
-		ghInitializeMQ2SpellDb = nullptr;
+		ghInitializeSpellDbThread = nullptr;
 	}
 
 	if (GameState == GAMESTATE_INGAME)
 	{
-		if (!gbSpelldbLoaded && ghInitializeMQ2SpellDb == nullptr)
+		if (!gbSpelldbLoaded && ghInitializeSpellDbThread == nullptr)
 		{
-			ghInitializeMQ2SpellDb = CreateThread(nullptr, 0, InitializeMQ2SpellDb, (void*)1, 0, nullptr);
+			ghInitializeSpellDbThread = CreateThread(nullptr, 0, InitializeMQ2SpellDb, (void*)1, 0, nullptr);
 		}
 
 		gZoning = false;

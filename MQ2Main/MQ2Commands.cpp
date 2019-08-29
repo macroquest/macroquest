@@ -38,8 +38,10 @@ void Unload(PSPAWNINFO pChar, char* szLine)
 	}
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
-	gbUnload = TRUE;
-	if (GetModuleHandle("mq2ic.dll")) {
+	gbUnload = true;
+
+	if (IC_MQ2Unload)
+	{
 		IC_MQ2Unload(GetCurrentProcessId());
 	}
 }
@@ -4534,75 +4536,80 @@ void AdvLootCmd(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
-DWORD __stdcall openpickzonewnd(void* pData)
+std::mutex s_openPickZoneWndMutex;
+
+DWORD CALLBACK openpickzonewnd(void* pData)
 {
-	lockit lk(ghLockPickZone, "openpickzonewnd");
+	std::scoped_lock lock(s_openPickZoneWndMutex);
+
 	int nInst = (int)pData;
 	char szInst[32] = { 0 };
 	_itoa_s(nInst, szInst, 10);
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	// this thread is definitely not threadsafe. BEWARE!
+
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return 0;
+
+	cmdPickZone(pCharInfo->pSpawn, nullptr);
+	Sleep(2000); // i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
+
+	CXWnd* zoneSelectWnd = FindMQ2Window("MIZoneSelectWnd");
+	if (!zoneSelectWnd)
+		return 0;
+
+	if (!zoneSelectWnd->IsVisible())
+		return 0;
+
+	CListWnd* pListWnd     = (CListWnd*)zoneSelectWnd->GetChildItem("MIZ_ZoneList");
+	CButtonWnd* pButtonWnd = (CButtonWnd*)zoneSelectWnd->GetChildItem("MIZ_SelectButton");
+
+	if (pListWnd->ItemsArray.IsEmpty())
+		return 0;
+
+	bool isMain = false;
+	bool doClick = false;
+
+	for (int i = 0; i < pListWnd->ItemsArray.GetCount(); i++)
 	{
-		cmdPickZone(pCharInfo->pSpawn, NULL);
-		Sleep(2000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
+		CXStr Str = pListWnd->GetItemText(i, 0);
+		if (Str.empty())
+			continue;
 
-		if (CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd"))
+		std::string s{ Str };
+
+		if (s.find_first_of("123456789") == std::string::npos)
 		{
-			if (krwnd->IsVisible())
+			isMain = true;
+		}
+
+		if (isMain && nInst == 0)
+		{
+			doClick = true;
+		}
+		else if (nInst >= 1)
+		{
+			if (std::string::npos != s.find(szInst))
 			{
-				if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList"))
-				{
-					if (DWORD numitems = clist->ItemsArray.Count)
-					{
-						if (CButtonWnd* cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton"))
-						{
-							std::string s;
-							bool itsmain = false;
-							bool clickit = false;
-
-							for (DWORD i = 0; i<numitems; i++)
-							{
-								CXStr Str =clist->GetItemText(i, 0);
-								if (!Str.empty())
-								{
-									std::string s{ Str };
-
-									if (std::string::npos == s.find_first_of("123456789"))
-									{
-										itsmain = true;
-									}
-									if (itsmain && nInst == 0)
-									{
-										clickit = true;
-									}
-									else if (nInst >= 1)
-									{
-										if (std::string::npos != s.find(szInst))
-										{
-											clickit = true;
-										}
-									}
-
-									if (clickit)
-									{
-										SendListSelect("MIZoneSelectWnd", "MIZ_ZoneList", i);
-										Sleep(500);
-										SendWndClick2((CXWnd*)cbutt, "leftmouseup");
-										WriteChatf("%s selected.", Str.c_str());
-										return 0;
-									}
-								}
-							}
-
-							WriteChatf("%s instance %d NOT found in list", GetFullZone(pCharInfo->zoneId), nInst);
-						}
-					}
-				}
+				doClick = true;
 			}
 		}
+
+		if (doClick)
+		{
+			SendListSelect("MIZoneSelectWnd", "MIZ_ZoneList", i);
+			Sleep(500);
+			SendWndClick2(pButtonWnd, "leftmouseup");
+			WriteChatf("%s selected.", Str.c_str());
+			return 0;
+		}
 	}
+
+	WriteChatf("%s instance %d NOT found in list", GetFullZone(pCharInfo->zoneId), nInst);
 	return 0;
 }
+
 // ***************************************************************************
 // Function:    PickZoneCmd
 // Description: '/pickzone' command
@@ -4616,10 +4623,12 @@ void PickZoneCmd(PSPAWNINFO pChar, char* szLine)
 		cmdPickZone(pChar, szLine);
 		return;
 	}
-	else {
+	else
+	{
 		DWORD index = atoi(szLine);
 		DWORD nThreadID = 0;
-		CreateThread(NULL, 0, openpickzonewnd, (void*)index, 0, &nThreadID);
+
+		CreateThread(nullptr, 0, openpickzonewnd, (void*)index, 0, &nThreadID);
 	}
 }
 // ***************************************************************************

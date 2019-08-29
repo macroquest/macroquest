@@ -334,7 +334,7 @@ int Heartbeat()
 		return 1;
 	}
 	if (gbLoad) {
-		gbLoad = FALSE;
+		gbLoad = false;
 		return 2;
 	}
 
@@ -643,6 +643,8 @@ void GameLoop_Detour()
 // Description: Our ProcessGameEvents Hook
 // ***************************************************************************
 
+void DoInitialization();
+
 bool Trampoline_ProcessGameEvents();
 bool Detour_ProcessGameEvents()
 {
@@ -655,19 +657,11 @@ bool Detour_ProcessGameEvents()
 
 	if (ret == 2 && !IsPluginsInitialized())
 	{
-		// we are loading stuff
 		OutputDebugString("I am loading in ProcessGameEvents");
 
 		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 
-		InitializeMQ2Commands();
-		InitializeMQ2Windows();
-		MQ2MouseHooks(true);
-
-		Sleep(100); // ??
-
-		InitializeMQ2KeyBinds();
-		InitializeMQ2Plugins();
+		DoInitialization();
 
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
@@ -687,7 +681,7 @@ bool Detour_ProcessGameEvents()
 		MQ2Shutdown();
 		DebugSpew("Shutdown completed");
 
-		g_Loaded = FALSE;
+		g_Loaded = false;
 		ScreenMode = oldscreenmode;
 		SetEvent(hUnloadComplete);
 	}
@@ -697,11 +691,8 @@ bool Detour_ProcessGameEvents()
 }
 DETOUR_TRAMPOLINE_EMPTY(bool Trampoline_ProcessGameEvents());
 
-
-std::map<int, std::string>targetBuffSlotToCasterMap; 
-
-
-std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
+std::map<int, std::string> targetBuffSlotToCasterMap;
+std::map<int, std::map<int, cTargetBuff>> CachedBuffsMap;
 
 void RemoveLoginPulse();
 DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());

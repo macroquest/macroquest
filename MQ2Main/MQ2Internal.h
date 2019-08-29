@@ -16,11 +16,13 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 
 EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
-EQLIB_VAR HANDLE ghMemberMapLock;
 
 namespace MQ2Internal {
+
+	class MQ2Type;
 
 	enum eAdventureTheme
 	{
@@ -675,25 +677,27 @@ namespace MQ2Internal {
         };
     } MQ2TYPEVAR, *PMQ2TYPEVAR;
 
-    typedef struct _MQ2TypeMember
-    {
-        DWORD ID;
-        char* Name;
-		DWORD Type;
-    } MQ2TYPEMEMBER, *PMQ2TYPEMEMBER;
+	struct MQ2TypeMember
+	{
+		int          ID;
+		const char*  Name;
+		uint32_t     Type;
+	};
+	using PMQ2TYPEMEMBER [[deprecated]] = MQ2TypeMember*;
 
-    typedef BOOL  (__cdecl *fMQData)(char* szIndex, MQ2TYPEVAR &Ret);
+	using fMQData = BOOL(*)(char*, MQ2TYPEVAR&);
 
-    typedef struct _MQ2DataItem
-    {
-        char Name[64];
-        fMQData Function;
-    } MQ2DATAITEM, *PMQ2DATAITEM;
+	struct MQ2DataItem
+	{
+		char Name[64];
+		fMQData Function;
+	};
+	using PMQ2DATAITEM [[deprecated]] = MQ2DataItem*;
 
-    EQLIB_API BOOL AddMQ2Type(class MQ2Type &Type);
-    EQLIB_API BOOL RemoveMQ2Type(class MQ2Type &Type);
+	EQLIB_API bool AddMQ2Type(MQ2Type& type);
+	EQLIB_API bool RemoveMQ2Type(MQ2Type& type);
 
-    typedef struct _DATAVAR {
+	typedef struct _DATAVAR {
         char szName[MAX_STRING];
         MQ2TYPEVAR Var;
         struct _DATAVAR *pNext;
@@ -701,184 +705,214 @@ namespace MQ2Internal {
         struct _DATAVAR **ppHead;
     } DATAVAR, *PDATAVAR;
 
-    class MQ2Type
-    {
-    public:
-        inline MQ2Type(char* NewName)
-        {
-            strcpy_s(TypeName,NewName);
-            Official=AddMQ2Type(*this);
-            pInherits=0;
-        }
+	class MQ2Type
+	{
+	public:
+		MQ2Type(const char* NewName)
+		{
+			strcpy_s(TypeName, NewName);
+			Official = AddMQ2Type(*this);
+		}
 
-        inline void InitializeMembers(PMQ2TYPEMEMBER MemberArray)
-        {
-            for (unsigned long i = 0 ; MemberArray[i].ID ; i++)
-            {
-                AddMember(MemberArray[i].ID,MemberArray[i].Name);
-            }
-        }
-
-        virtual inline ~MQ2Type() 
-        {
-			if (Official) {
+		virtual ~MQ2Type()
+		{
+			if (Official)
+			{
 				RemoveMQ2Type(*this);
 			}
-            Members.Cleanup();
-            Methods.Cleanup();
-        }
 
-        virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)=0;
-        virtual bool FromString(MQ2VARPTR &VarPtr, char* Source)=0;
-        virtual void InitVariable(MQ2VARPTR &VarPtr) {
-			VarPtr.Ptr=0;
+			Members.Cleanup();
+			Methods.Cleanup();
+		}
+
+		void InitializeMembers(MQ2TypeMember* MemberArray)
+		{
+			for (int i = 0; MemberArray[i].ID; i++)
+			{
+				AddMember(MemberArray[i].ID, MemberArray[i].Name);
+			}
+		}
+
+		virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source) = 0;
+		virtual bool FromString(MQ2VARPTR& VarPtr, char* Source) = 0;
+
+		virtual void InitVariable(MQ2VARPTR& VarPtr)
+		{
+			VarPtr.Ptr = 0;
 			VarPtr.HighPart = 0;
 		}
-        virtual void FreeVariable(MQ2VARPTR &VarPtr) {}
 
-		virtual bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR &Dest) = 0;
-        //    virtual bool SetMember(void* Ptr, char* Member, DWORD Index, MQ2TYPEVAR &Data)=0;
-        virtual bool ToString(MQ2VARPTR VarPtr, char* Destination)
-        {
-            strcpy_s(Destination,MAX_STRING,TypeName);
-            return true;
-        }
+		virtual void FreeVariable(MQ2VARPTR& VarPtr) {}
 
-        inline char* GetName() {
-			if(TypeName)
-				return &TypeName[0];
-			return NULL;
+		virtual bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest) = 0;
+
+		virtual bool ToString(MQ2VARPTR VarPtr, char* Destination)
+		{
+			strcpy_s(Destination, MAX_STRING, TypeName);
+			return true;
 		}
 
-        char* GetMemberName(DWORD ID)
-        {
-            for (unsigned long N=0 ; N < Members.Size ; N++)
-            {
-                if (PMQ2TYPEMEMBER pMember = Members[N])
-                {
-                    if (pMember->ID==ID)
-                        return &pMember->Name[0];
-                }
-            }
-            return 0;
-        }
+		const char* GetName()
+		{
+			if (TypeName)
+				return &TypeName[0];
 
-        BOOL GetMemberID(char* Name, DWORD &Result)
-        {
-			lockit lk(ghMemberMapLock, "GetMemberID");
+			return nullptr;
+		}
+
+		const char* GetMemberName(int ID)
+		{
+			for (size_t index = 0; index < Members.Size; index++)
+			{
+				if (MQ2TypeMember* pMember = Members[index])
+				{
+					if (pMember->ID == ID)
+						return &pMember->Name[0];
+				}
+			}
+
+			return nullptr;
+		}
+
+		bool GetMemberID(const char* Name, int& Result)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MemberMap.find(Name) == MemberMap.end())
 				return false;
-			unsigned long N = MemberMap[Name];
-			if (N == 0)
+
+			int index = MemberMap[Name] - 1;
+			if (index < 0)
 				return false;
-			N--;
-			PMQ2TYPEMEMBER pMember = Members[N];
+
+			MQ2TypeMember* pMember = Members[index];
 			Result = pMember->ID;
 			return true;
-        }
-        PMQ2TYPEMEMBER FindMember(char* Name)
-        {
-			lockit lk(ghMemberMapLock, __FUNCTION__);
+		}
+
+		MQ2TypeMember* FindMember(const char* Name)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MemberMap.find(Name) == MemberMap.end())
-				return 0;
-			unsigned long N=MemberMap[Name];
-			if (!N)
-				return 0;
-			N--;
-			return Members[N];
-        }
-		PMQ2TYPEMEMBER FindMethod(char* Name)
-        {
-			lockit lk(ghMemberMapLock, __FUNCTION__);
+				return nullptr;
+
+			int index = MemberMap[Name] - 1;
+			if (index < 0)
+				return nullptr;
+
+			return Members[index];
+		}
+
+		MQ2TypeMember* FindMethod(const char* Name)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MethodMap.find(Name) == MethodMap.end())
-				return 0;
-			unsigned long N = MethodMap[Name];
-			if (!N)
-				return 0;
-			N--;
-			return Methods[N];
-        }
-        BOOL InheritedMember(char* Name)
-        {
-            if (!pInherits || !pInherits->FindMember(Name))
-                return FALSE;
-            return TRUE;
-        }
-        void SetInheritance(MQ2Type *pNewInherit)
-        {
-            pInherits=pNewInherit;
-        }
+				return nullptr;
 
-    protected:
+			int index = MethodMap[Name] - 1;
+			if (index < 0)
+				return nullptr;
 
-        BOOL AddMember(DWORD ID, char* Name)
-        {
-			lockit lk(ghMemberMapLock, __FUNCTION__);
+			return Methods[index];
+		}
+
+		bool InheritedMember(const char* Name)
+		{
+			if (!pInherits || !pInherits->FindMember(Name))
+				return false;
+
+			return true;
+		}
+
+		void SetInheritance(MQ2Type* pNewInherit)
+		{
+			pInherits = pNewInherit;
+		}
+
+	protected:
+		bool AddMember(DWORD ID, const char* Name)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MemberMap.find(Name) != MemberMap.end())
 				return false;
-            unsigned long N=MemberMap[Name];
-            if (N>0)
-                return false;
-            N=Members.GetUnused();
-            MemberMap[Name]=N+1;
-            PMQ2TYPEMEMBER pMember = new MQ2TYPEMEMBER;
-            pMember->Name=Name;
-            pMember->ID=ID;
+
+			int index = Members.GetUnused();
+			MemberMap[Name] = index + 1;
+
+			MQ2TypeMember* pMember = new MQ2TypeMember;
+			pMember->Name = Name;
+			pMember->ID = ID;
 			pMember->Type = 0;
-            Members[N]=pMember;
-            return true;
-        }
-		inline BOOL AddMethod(DWORD ID, char* Name)
-        {
-			lockit lk(ghMemberMapLock, __FUNCTION__);
+			Members[index] = pMember;
+			return true;
+		}
+
+		bool AddMethod(int ID, const char* Name)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MethodMap.find(Name) != MethodMap.end())
-				 return false;
-            unsigned long N=MethodMap[Name];
-            if (N>0)
-                return false;
-            N=Methods.GetUnused();
-            MethodMap[Name]=N+1;
-            PMQ2TYPEMEMBER pMethod = new MQ2TYPEMEMBER;
-            pMethod->Name=Name;
-            pMethod->ID=ID;
+				return false;
+
+			int index = Methods.GetUnused();
+			MethodMap[Name] = index + 1;
+
+			MQ2TypeMember* pMethod = new MQ2TypeMember;
+			pMethod->Name = Name;
+			pMethod->ID = ID;
 			pMethod->Type = 1;
-            Methods[N]=pMethod;
-            return true;
-        }
-        BOOL RemoveMember(char* Name)
-        {
-			lockit lk(ghMemberMapLock, __FUNCTION__);
+			Methods[index] = pMethod;
+			return true;
+		}
+
+		bool RemoveMember(const char* Name)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MemberMap.find(Name) == MemberMap.end())
-				 return false;
-            unsigned long N=MemberMap[Name];
-            if (N==0)
-                return false;
-            N--;
-            PMQ2TYPEMEMBER pMember = Members[N];
-            delete pMember;
-            Members[N]=0;
-        }
-		BOOL RemoveMethod(char* Name)
-        {
-			lockit lk(ghMemberMapLock, __FUNCTION__);
+				return false;
+
+			int index = MemberMap[Name] - 1;
+			if (index < 0)
+				return false;
+
+			MQ2TypeMember* pMember = Members[index];
+			delete pMember;
+
+			Members[index] = 0;
+		}
+
+		bool RemoveMethod(const char* Name)
+		{
+			std::scoped_lock lock(m_mutex);
+
 			if (MethodMap.find(Name) == MethodMap.end())
-				 return false;
-            unsigned long N=MethodMap[Name];
-            if (N==0)
-                return false;
-            N--;
-            PMQ2TYPEMEMBER pMethod = Methods[N];
-            delete pMethod;
-            Methods[N]=0;
-        }
-        char TypeName[32];
-        BOOL Official;
-        CIndex<PMQ2TYPEMEMBER> Members;
-        CIndex<PMQ2TYPEMEMBER> Methods;
-        std::map<std::string,DWORD> MemberMap;
-        std::map<std::string,DWORD> MethodMap;
-        MQ2Type *pInherits;
-    };
+				return false;
+
+			int index = MethodMap[Name] - 1;
+			if (index < 0)
+				return false;
+
+			MQ2TypeMember* pMethod = Methods[index];
+			delete pMethod;
+
+			Methods[index] = 0;
+		}
+
+		char TypeName[32];
+		bool Official;
+		CIndex<MQ2TypeMember*> Members;
+		CIndex<MQ2TypeMember*> Methods;
+		std::map<std::string, int> MemberMap;
+		std::map<std::string, int> MethodMap;
+		MQ2Type* pInherits = nullptr;
+
+	protected:
+		std::mutex m_mutex;
+	};
 
     class CDataArray
     {
@@ -892,13 +926,13 @@ namespace MQ2Internal {
             TotalElements=0;
         }
 
-        CDataArray(MQ2Type *Type, char* Index, char* Default, BOOL ByData=FALSE)
+        CDataArray(MQ2Type *Type, char* Index, const char* Default, BOOL ByData=FALSE)
         {
             nExtents=1;
 			TotalElements=1;
 
             // count number of , 's
-            if (char* pComma=strchr(Index,','))
+            if (const char* pComma=strchr(Index,','))
             {
                 nExtents++;
                 while(pComma=strchr(&pComma[1],','))
@@ -935,7 +969,7 @@ namespace MQ2Internal {
 						if (ByData)
 							pType->FromData(pData[N],*(MQ2TYPEVAR *)Default);
 						else
-							pType->FromString(pData[N],Default);
+							pType->FromString(pData[N], (char*)Default);
 					}
 				}
 			}

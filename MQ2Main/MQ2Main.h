@@ -265,12 +265,12 @@ EQLIB_API void ShutdownMQ2DataTypes();
 EQLIB_API void InitializeMQ2Data();
 EQLIB_API void ShutdownMQ2Data();
 EQLIB_API BOOL ParseMacroData(char* szOriginal, size_t BufferSize);
-EQLIB_API BOOL AddMQ2Data(char* szName, fMQData Function);
-EQLIB_API BOOL RemoveMQ2Data(char* szName);
-EQLIB_API MQ2Type *FindMQ2DataType(char* szName);
-EQLIB_API PMQ2DATAITEM FindMQ2Data(char* szName);
-EQLIB_API PDATAVAR FindMQ2DataVariable(char* szName);
-EQLIB_API BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result);
+EQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
+EQLIB_API bool RemoveMQ2Data(const char* szName);
+EQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
+EQLIB_API MQ2DataItem* FindMQ2Data(const char* szName);
+EQLIB_API PDATAVAR FindMQ2DataVariable(const char* szName);
+EQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result);
 EQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
@@ -402,7 +402,7 @@ EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 
 EQLIB_API BOOL AddMacroLine(char* FileName, char* szLine, size_t Linelen, int *LineNumber, int localLine);
 
-EQLIB_API char* GetLightForSpawn(PSPAWNINFO pSpawn);
+EQLIB_API const char* GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
@@ -438,7 +438,7 @@ EQLIB_API float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, flo
 EQLIB_API char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize);
 EQLIB_API char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, LONG level = 100);
 
-EQLIB_API LONG GetSpellAttrib(PSPELL pSpell, int index);
+EQLIB_API int GetSpellAttrib(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellBase(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellBase2(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellMax(PSPELL pSpell, int index);
@@ -473,12 +473,12 @@ EQLIB_API bool LoH_HT_Ready();
 /* MQ2DATAVARS */
 EQLIB_API char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
 //EQLIB_API char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, char* szParamType);
-EQLIB_API PDATAVAR FindMQ2DataVariable(char* Name);
-EQLIB_API BOOL AddMQ2DataVariable(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, char* Default);
-EQLIB_API BOOL AddMQ2DataVariableFromData(char* Name, char* Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default);
-EQLIB_API PDATAVAR *FindVariableScope(char* Name);
-EQLIB_API BOOL DeleteMQ2DataVariable(char* Name);
-EQLIB_API void ClearMQ2DataVariables(PDATAVAR *ppHead);
+EQLIB_API PDATAVAR FindMQ2DataVariable(const char* Name);
+EQLIB_API bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default);
+EQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, MQ2TYPEVAR Default);
+EQLIB_API PDATAVAR* FindVariableScope(const char* Name);
+EQLIB_API bool DeleteMQ2DataVariable(const char* Name);
+EQLIB_API void ClearMQ2DataVariables(PDATAVAR* ppHead);
 EQLIB_API void NewDeclareVar(PSPAWNINFO pChar, char* szLine);
 EQLIB_API void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine);
 EQLIB_API void NewVarset(PSPAWNINFO pChar, char* szLine);
@@ -581,13 +581,11 @@ EQLIB_API bool        IsSpellUsableForClass(SPELL* pSpell, unsigned int classmas
 EQLIB_API bool        IsAegoSpell(SPELL* pSpell);
 EQLIB_API int         GetSpellCategory(SPELL* pSpell);
 EQLIB_API int         GetSpellSubcategory(SPELL* pSpell);
-EQLIB_API void		  PopulateSpellMap();
 EQLIB_API PSPELL      GetSpellParent(int id);
-EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(void* pData);
 EQLIB_API HMODULE GetCurrentModule();
-EQLIB_API DWORD WINAPI MQ2End(void* lpParameter);
-EQLIB_API DWORD WINAPI GetlocalPlayerOffset();
-EQLIB_API void __cdecl MQ2Shutdown();
+EQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
+EQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
+EQLIB_API void MQ2Shutdown();
 EQLIB_API HANDLE hUnloadComplete;
 EQLIB_API HANDLE hLoadComplete;
 ///////////////////////////////////////////////////////////////////////////////////////////////////

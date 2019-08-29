@@ -58,7 +58,7 @@ struct [[offsetcomments]] SPELL
 /*0x03c*/ DWORD   ReagentCount[0x4];             // ReagentCount1-ReagentCount4
 /*0x04c*/ DWORD   NoExpendReagent[0x4];
 /*0x05c*/ LONG    CalcIndex;
-/*0x060*/ LONG    NumEffects;
+/*0x060*/ int     NumEffects;
 /*0x064*/ DWORD   BookIcon;
 /*0x068*/ DWORD   GemIcon;
 /*0x06c*/ DWORD   DescriptionIndex;

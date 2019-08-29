@@ -15,13 +15,18 @@
 #include "MQ2Main.h"
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
+std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
-MQ2Type *FindMQ2DataType(char* Name)
+std::mutex s_variableMutex;
+
+MQ2Type* FindMQ2DataType(const char* Name)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	auto iter = MQ2DataTypeMap.find(Name);
 	if (iter == MQ2DataTypeMap.end())
 		return nullptr;
@@ -29,9 +34,10 @@ MQ2Type *FindMQ2DataType(char* Name)
 	return iter->second;
 }
 
-BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
+bool MQ2Internal::AddMQ2Type(MQ2Type& Type)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	// returns pair with iterator pointing to the constructed
 	// element, and a bool indicating if it was actually inserted.
 	// this will not replace existing elements.
@@ -39,14 +45,16 @@ BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
 	return result.second;
 }
 
-BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
+bool MQ2Internal::RemoveMQ2Type(MQ2Type& Type)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	// use iterator to erase. allows us to check for existence
 	// and erase it without any waste
-	char* thetypename = Type.GetName();
+	const char* thetypename = Type.GetName();
 	if (!thetypename)
 		return false;
+
 	auto iter = MQ2DataTypeMap.find(thetypename);
 	if (iter == MQ2DataTypeMap.end())
 		return false;
@@ -56,9 +64,10 @@ BOOL MQ2Internal::RemoveMQ2Type(MQ2Type &Type)
 	return true;
 }
 
-inline PMQ2DATAITEM FindMQ2Data(char* szName)
+MQ2DataItem* FindMQ2Data(const char* szName)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	auto iter = MQ2DataMap.find(szName);
 	if (iter == MQ2DataMap.end())
 		return nullptr;
@@ -66,16 +75,17 @@ inline PMQ2DATAITEM FindMQ2Data(char* szName)
 	return iter->second.get();
 }
 
-BOOL AddMQ2Data(char* szName, fMQData Function)
+bool AddMQ2Data(const char* szName, fMQData Function)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	// check if the item exists first, so we don't construct
 	// something we don't actually need.
 	if (MQ2DataMap.find(szName) != MQ2DataMap.end())
 		return false;
 
 	// create new MQ2DATAITEM inside a unique_ptr
-	auto newItem = std::make_unique<MQ2DATAITEM>();
+	auto newItem = std::make_unique<MQ2DataItem>();
 	strcpy_s(newItem->Name, szName);
 	newItem->Function = Function;
 
@@ -84,9 +94,10 @@ BOOL AddMQ2Data(char* szName, fMQData Function)
 	return true;
 }
 
-BOOL RemoveMQ2Data(char* szName)
+bool RemoveMQ2Data(const char* szName)
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	auto iter = MQ2DataMap.find(szName);
 	if (iter == MQ2DataMap.end())
 		return false;
@@ -94,8 +105,6 @@ BOOL RemoveMQ2Data(char* szName)
 	MQ2DataMap.erase(iter);
 	return true;
 }
-
-std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
 bool AddMQ2TypeExtension(const char* szName, MQ2Type* extension)
 {
@@ -176,7 +185,8 @@ int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, char* pStart, char* p
 
 	return 0;
 }
-void DumpWarning(char* pStart, int index)
+
+void DumpWarning(const char* pStart, int index)
 {
 	if (PMACROBLOCK pBlock = GetCurrentMacroBlock())
 	{
@@ -265,7 +275,7 @@ bool EvaluateDataExpression(MQ2TYPEVAR& Result, char* pStart, char* pIndex, bool
 			if (gUndeclaredVars.find(pStart) != gUndeclaredVars.end())
 				return false;//its a undefined variable no point in moving on further.
 		}
-		if (PMQ2DATAITEM DataItem = FindMQ2Data(pStart))
+		if (MQ2DataItem* DataItem = FindMQ2Data(pStart))
 		{
 			if (!DataItem->Function(pIndex, Result))
 			{
@@ -399,11 +409,12 @@ void InitializeMQ2Data()
 
 void ShutdownMQ2Data()
 {
-	lockit lk(ghVariableLock);
+	std::scoped_lock lock(s_variableMutex);
+
 	MQ2DataMap.clear();
 }
 
-BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
+bool ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 {
 	Result.Type = 0;
 	Result.Int64 = 0;
@@ -414,7 +425,8 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 	char* pIndex = &Index[0];
 	BOOL Quote = FALSE;
 	bool function_allowed = false;
-	while (1)
+
+	while (true)
 	{
 		if (*pPos == 0)
 		{
@@ -424,16 +436,16 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 				if (!Result.Type)
 				{
 					MQ2DataError("Nothing to parse");
-					return FALSE;
+					return false;
 				}
-				return TRUE;
+				return true;
 			}
 
 			if (!EvaluateDataExpression(Result, pStart, pIndex, function_allowed))
-				return FALSE;
+				return false;
 
 			// done processing
-			return TRUE;
+			return true;
 		}
 
 		if (*pPos == '(')
@@ -444,20 +456,20 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 				if (!Result.Type)
 				{
 					MQ2DataError("Encountered typecast without object to cast");
-					return FALSE;
+					return false;
 				}
 
-				return TRUE;
+				return true;
 			}
 			else
 			{
 				if (!EvaluateDataExpression(Result, pStart, pIndex))
-					return FALSE;
+					return false;
 			}
 			if (!Result.Type)
 			{
 				// error
-				return FALSE;
+				return false;
 			}
 			*pPos = 0;
 			++pPos;
@@ -468,7 +480,7 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 				{
 					// error
 					MQ2DataError("Encountered unmatched parenthesis");
-					return FALSE;
+					return false;
 				}
 				++pPos;
 			}
@@ -478,7 +490,7 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 			{
 				// error
 				MQ2DataError("Unknown type '%s'", pType);
-				return FALSE;
+				return false;
 			}
 			if (pNewType == pTypeType)
 			{
@@ -496,12 +508,12 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 			else if (!pPos[1])
 			{
 				//Result.Type->ToString(Result.VarPtr,szCurrent);
-				return TRUE;
+				return true;
 			}
 			else
 			{
 				MQ2DataError("Invalid character found after typecast ')%s'", &pPos[1]);
-				return FALSE;
+				return false;
 			}
 		}
 		else
@@ -519,7 +531,7 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 					if (*pPos == 0)
 					{
 						MQ2DataError("Unmatched bracket or invalid character following bracket found in index: '%s'", pIndex);
-						return FALSE;
+						return false;
 					}
 
 					if (BeginParam)
@@ -574,14 +586,14 @@ BOOL ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
 						if (!Result.Type)
 						{
 							MQ2DataError("Encountered member access without object");
-							return FALSE;
+							return false;
 						}
 
-						return TRUE;
+						return true;
 					}
 
 					if (!EvaluateDataExpression(Result, pStart, pIndex))
-						return FALSE;
+						return false;
 
 					pStart = &pPos[1];
 					Index[0] = 0;

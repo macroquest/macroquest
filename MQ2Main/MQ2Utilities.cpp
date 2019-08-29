@@ -157,11 +157,11 @@ EQLIB_API void DebugSpewNoFile(char* szFormat, ...)
 #endif
 }
 
-void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, char* szNewString)
+void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
 {
 	DWORD NewLength = (DWORD)strlen(szNewString);
 	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
-	memcpy_s(szInsert, InsertLen-NewLength,szNewString, NewLength);
+	memcpy_s(szInsert, InsertLen - NewLength, szNewString, NewLength);
 }
 
 void ConvertCR(char* Text, size_t LineLen)
@@ -1041,11 +1041,17 @@ char* GetSpellNameByID(LONG dwSpellID)
 	}
 	return "Unknown Spell";
 }
-typedef struct _SpellCompare
+
+struct SpellCompare
 {
-	std::map<DWORD, PSPELL>Duplicates;
-} SpellCompare, *PSpellCompare;
-std::map<std::string, std::map<std::string, SpellCompare>>g_SpellNameMap;
+	std::map<int, SPELL*> Duplicates;
+};
+
+std::map<std::string, std::map<std::string, SpellCompare>> s_spellNameMap;
+std::map<int, int> s_triggeredSpells;
+std::mutex s_initializeSpellsMutex;
+
+
 bool IsRecursiveEffect2(int spa)
 {
 	switch (spa)
@@ -1059,136 +1065,222 @@ bool IsRecursiveEffect2(int spa)
 	}
 	return false;
 }
-std::map<int, int>g_TriggeredSpells;
 
-void PopulateTriggeredmap(PSPELL pSpell)
+void PopulateTriggeredmap(SPELL* pSpell)
 {
 	if (pSpell->CannotBeScribed == 1)
 		return;
-	LONG slots = GetSpellNumEffects(pSpell);
-	for (LONG i = 0; i < slots; i++) {
-		LONG attrib = GetSpellAttrib(pSpell, i);
-		if (IsRecursiveEffect2(attrib)) {
-			if (int triggeredspellid = GetSpellBase2(pSpell, i)) {
-				g_TriggeredSpells[triggeredspellid] = pSpell->ID;
+
+	int slots = GetSpellNumEffects(pSpell);
+
+	for (int i = 0; i < slots; i++)
+	{
+		int attrib = GetSpellAttrib(pSpell, i);
+
+		if (IsRecursiveEffect2(attrib))
+		{
+			if (int triggeredSpellId = GetSpellBase2(pSpell, i))
+			{
+				s_triggeredSpells[triggeredSpellId] = pSpell->ID;
 			}
 		}
 	}
 }
-PSPELL GetSpellParent(int id)
+
+SPELL* GetSpellParent(int id)
 {
-	if (g_TriggeredSpells.find(id) != g_TriggeredSpells.end()) {
-		return GetSpellByID(g_TriggeredSpells[id]);
+	auto iter = s_triggeredSpells.find(id);
+	if (iter != s_triggeredSpells.end())
+	{
+		return GetSpellByID(iter->second);
 	}
-	return NULL;
+
+	return nullptr;
 }
+
 void PopulateSpellMap()
 {
-	lockit lk(ghLockSpellMap,"PopulateSpellMap");
+	std::scoped_lock lock(s_initializeSpellsMutex);
+
 	gbSpelldbLoaded = false;
-	g_TriggeredSpells.clear();
-	g_SpellNameMap.clear();
-	std::string lowname, threelow;
-	PSPELLMGR psmgr = (PSPELLMGR)pSpellMgr;
-	for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-		if (PSPELL pSpell = psmgr->Spells[dwSpellID]) {
-			if (pSpell->Name[0] != '\0') {
+	s_triggeredSpells.clear();
+	s_spellNameMap.clear();
+
+	for (int dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++)
+	{
+		if (SPELL* pSpell = pSpellMgr->Spells[dwSpellID])
+		{
+			if (pSpell->Name[0] != '\0')
+			{
 				PopulateTriggeredmap(pSpell);
-				lowname = pSpell->Name;
-				std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
-				threelow = lowname;
+
+				std::string lowname = pSpell->Name;
+				MakeLower(lowname);
+
+				std::string threelow = lowname;
 				threelow.erase(3);
-				g_SpellNameMap[threelow][lowname].Duplicates[dwSpellID] = pSpell;
+
+				s_spellNameMap[threelow][lowname].Duplicates[dwSpellID] = pSpell;
 			}
 		}
 	}
+
 	gbSpelldbLoaded = true;
 }
-BOOL IsSpellClassUsable(PSPELL pSpell)
+
+DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 {
-	for (int N = Warrior; N <= Berserker; N++)
+	int state = reinterpret_cast<int>(pData);
+
+	switch (state)
 	{
-		if (pSpell->ClassLevel[N] == 255 || pSpell->ClassLevel[N] == 127) {
+	case 1: WriteChatfSafe("Initializing SpellMap from SetGameState."); break;
+	case 2: WriteChatfSafe("Initializing SpellMap from GetSpellByName."); break;
+	default: WriteChatfSafe("Initializing SpellMap. (%d)", state); break;
+	}
+
+	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME)
+	{
+		Sleep(10);
+	}
+
+	while (pSpellMgr && (!pSpellMgr->Spells || (pSpellMgr->Spells && !pSpellMgr->Spells[TOTAL_SPELL_COUNT - 1])))
+	{
+		Sleep(10);
+	}
+
+	// ok everything checks out lets fill our own map with spells
+	PopulateSpellMap();
+
+	switch (state)
+	{
+	case 1: WriteChatfSafe("SpellMap Initialized from SetGameState."); break;
+	case 2: WriteChatfSafe("SpellMap Initialized from GetSpellByName."); break;
+	default: WriteChatfSafe("SpellMap Initialized. (%d)", state); break;
+	}
+
+	ghInitializeSpellDbThread = nullptr;
+	return 0;
+}
+
+bool IsSpellClassUsable(SPELL* pSpell)
+{
+	for (int index = Warrior; index <= Berserker; index++)
+	{
+		if (pSpell->ClassLevel[index] == 255 || pSpell->ClassLevel[index] == 127) {
 			continue;
 		}
-		else {
-			return TRUE;
+		else
+		{
+			return true;
 		}
 	}
-	return FALSE;
+
+	return false;
 }
+
 SPELL* GetSpellByName(const char* szName)
 {
 	// PSPELL GetSpellByName(char* NameOrID)
 	// This function now accepts SpellID as an argument as well as SpellName
-	//echo ${Spell[Concussive Burst].Level}
-	//echo ${Spell[Nature's Serenity].Level}
-	try {
-		if (ppSpellMgr == NULL || gbSpelldbLoaded == false || ghLockSpellMap == NULL || szName == NULL) {
-			InitializeMQ2SpellDb((void*)2);
-			if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
-				return NULL;
-			}
-		}
-		lockit lk(ghLockSpellMap,"GetSpellByName");
-		if (szName[0] >= '0' && szName[0] <= '9')
+	// /echo ${Spell[Concussive Burst].Level}
+	// /echo ${Spell[Nature's Serenity].Level}
+
+	if (ppSpellMgr == nullptr) // no spellMgr offset?
+		return nullptr;
+	if (szName == nullptr)     // no spell name?
+		return nullptr;
+
+	if (gbSpelldbLoaded == false)
+	{
+		InitializeMQ2SpellDb((void*)2);
+
+		if (gbSpelldbLoaded == false)
 		{
-			return GetSpellByID(abs(atoi(szName)));
+			return nullptr;
 		}
+	}
 
-		std::string lowname = szName;
-		if (lowname.size() < 3 || g_SpellNameMap.size() == 0)
-			return NULL;
-		std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
-		std::string threelow = lowname;
-		threelow.erase(3);
+	std::scoped_lock lock(s_initializeSpellsMutex);
 
-		auto i = g_SpellNameMap.find(threelow);
-		if (i != g_SpellNameMap.end()) {
-			auto j = i->second.find(lowname);
-			if (j != i->second.end()) {
-				auto mspell = j->second.Duplicates.begin();
-				if (mspell != j->second.Duplicates.end()) {
-					PSPELL pSpell = mspell->second;
-					if (j->second.Duplicates.size() > 1) {
-						if (CHARINFO2* pChar2 = GetCharInfo2()) {
-							DWORD highestclasslevel = 0;
-							DWORD classlevel = 0;
-							DWORD playerclass = pChar2->Class;
-							DWORD currlevel = pChar2->Level;
-							if (playerclass && playerclass >= Warrior && playerclass <= Berserker) {
-								for (auto k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
-									if (k->second) {
-										classlevel = k->second->ClassLevel[playerclass];
-										if (classlevel <= currlevel && highestclasslevel < classlevel) {
-											highestclasslevel = classlevel;
-											pSpell = k->second;
-										}
-									}
-								}
-							}
-							if (highestclasslevel == 0) {
-								//well if we got here, the spell the user is after isnt one his character can cast, so
-								//we will have to roll through it again and see if its usable by any other class
-								for (auto k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
-									if (k->second && IsSpellClassUsable(k->second)) {
-										pSpell = k->second;
-									}
-								}
-							}
-						}
-					}
-					return pSpell;
+	if (szName[0] >= '0' && szName[0] <= '9')
+	{
+		return GetSpellByID(abs(atoi(szName)));
+	}
+
+	// is this even necessary?
+	CHARINFO2* profile = GetCharInfo2();
+	if (!profile)
+		return nullptr;
+
+	std::string lowname = szName;
+	if (lowname.size() < 3 || s_spellNameMap.empty())
+		return nullptr;
+
+	MakeLower(lowname);
+
+	std::string threelow = lowname;
+	threelow.erase(3);
+
+	// look up threelow
+	auto iter = s_spellNameMap.find(threelow);
+	if (iter == s_spellNameMap.end())
+		return nullptr;
+
+	// look up lowname
+	std::map<std::string, SpellCompare>& spellLookup = iter->second;
+	auto iter2 = spellLookup.find(lowname);
+	if (iter2 == spellLookup.end())
+		return nullptr;
+
+	SpellCompare& comp = iter2->second;
+	if (comp.Duplicates.empty())
+		return nullptr;
+
+	SPELL* pSpell = comp.Duplicates.begin()->second;
+	if (comp.Duplicates.size() == 1)
+	{
+		return pSpell;
+	}
+
+	int highestclasslevel = 0;
+	int classlevel        = 0;
+	int playerclass       = profile->Class;
+	int currlevel         = profile->Level;
+
+	if (playerclass && playerclass >= Warrior && playerclass <= Berserker)
+	{
+		for (auto& duplicate : iter2->second.Duplicates)
+		{
+			if (SPELL* dupeSpell = duplicate.second)
+			{
+				classlevel = dupeSpell->ClassLevel[playerclass];
+
+				if (classlevel <= currlevel && highestclasslevel < classlevel)
+				{
+					highestclasslevel = classlevel;
+					pSpell = dupeSpell;
 				}
 			}
 		}
 	}
-	catch (...)
+
+	if (highestclasslevel == 0)
 	{
-		DebugSpewAlways("Caught exception in GetSpellByName");
-		//throw;
+		// if we got here, the spell the user is after isnt one his character can cast, so
+		// we will have to roll through it again and see if its usable by any other class
+
+		for (auto& duplicate : iter2->second.Duplicates)
+		{
+			SPELL* dupeSpell = duplicate.second;
+			if (dupeSpell && IsSpellClassUsable(dupeSpell))
+			{
+				pSpell = dupeSpell;
+			}
+		}
 	}
-	return NULL;
+
+	return nullptr;
 }
 //This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
 PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
@@ -1313,7 +1405,7 @@ int64_t GetGuildIDByName(char* szGuild)
 	return pGuild->GetGuildIndex(szGuild);
 }
 
-char* GetLightForSpawn(PSPAWNINFO pSpawn)
+const char* GetLightForSpawn(PSPAWNINFO pSpawn)
 {
 	BYTE Light = pSpawn->Light;
 	if (Light>LIGHT_COUNT) Light = 0;
@@ -2519,26 +2611,33 @@ template <unsigned int _Size> char* FormatTimer(char* szEffectName, float value,
 	sprintf_s(szBuffer, "%s by %.2f sec", szEffectName, value);
 	return szBuffer;
 }
-LONG GetSpellAttrib(PSPELL pSpell, int index)
+
+int GetSpellAttrib(SPELL* pSpell, int index)
 {
-	if (index<0)
+	if (index < 0)
 		index = 0;
-	if (pSpell) {
+
+	if (pSpell && pSpellMgr)
+	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
-			return 0;//this is so stupid, it didnt use to do this prior to test on may 7 2018, what changed? we need to check that. -eqmule
-		if (numeff > index) {
-			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
-					return pCalcInfo->Attrib;
-				}
+			return 0; // this is so stupid, it didnt use to do this prior to test on may 7 2018, what changed? we need to check that. -eqmule
+
+		if (numeff > index)
+		{
+			if (PSPELLCALCINFO pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
+			{
+				return pCalcInfo->Attrib;
 			}
-		} else {
-			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+		else
+		{
+			DebugSpewAlways("Bad usage of GetSpellAttrib: index=%d", index);
 		}
 	}
 	return 0;
 }
+
 LONG GetSpellBase(PSPELL pSpell, int index)
 {
 	if (index<0)
@@ -5722,7 +5821,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bLight)
 	{
-		char* pLight = GetLightForSpawn(pSpawn);
+		const char* pLight = GetLightForSpawn(pSpawn);
 		if (!_stricmp(pLight, "NONE"))
 			return FALSE;
 		if (pSearchSpawn->szLight[0] && _stricmp(pLight, pSearchSpawn->szLight))
@@ -6348,7 +6447,7 @@ void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 		}
 	}
 	if (gFilterSWho.Light) {
-		char* szLight = GetLightForSpawn(pSpawn);
+		const char* szLight = GetLightForSpawn(pSpawn);
 		if (_stricmp(szLight, "NONE")) {
 			strcat_s(szMsg, " (");
 			strcat_s(szMsg, szLight);

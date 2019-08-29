@@ -45,7 +45,7 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 #define pType ((MQ2Type*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
-	PMQ2TYPEMEMBER pMember = MQ2TypeType::FindMember(Member);
+	MQ2TypeMember* pMember = MQ2TypeType::FindMember(Member);
 	if (!pMember)
 		return false;
 	switch ((TypeMembers)pMember->ID)
@@ -61,7 +61,7 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 			if (IsNumber(Index))
 			{
 				// name by number
-				if (Dest.Ptr = pType->GetMemberName(atoi(Index)))
+				if (Dest.Ptr = (void*)pType->GetMemberName(atoi(Index)))
 				{
 					Dest.Type = pStringType;
 					return true;
@@ -70,7 +70,7 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 			else
 			{
 				// number by name
-				if (pType->GetMemberID(Index, Dest.DWord))
+				if (pType->GetMemberID(Index, (int&)Dest.DWord))
 				{
 					Dest.Type = pIntType;
 					return true;

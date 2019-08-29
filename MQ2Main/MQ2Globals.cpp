@@ -232,15 +232,8 @@ namespace MQ2Globals
 		return true;
 	}
 
-	/* SpellMap */
-	HANDLE ghLockSpellMap = nullptr;
-
 	/* PickZone */
-	HANDLE ghLockPickZone = nullptr;
-	HANDLE ghInitializeMQ2SpellDb = nullptr;
-	HANDLE ghVariableLock = nullptr;
-	HANDLE ghMacroBlockLock = nullptr;
-	HANDLE ghGetClassMemberLock = nullptr;
+	HANDLE ghInitializeSpellDbThread = nullptr;
 
 	/* BENCHMARKS */
 	DWORD bmWriteChatColor = 0;
@@ -279,17 +272,16 @@ namespace MQ2Globals
 	BOOL gAnonymize = FALSE;
 	DWORD gAnonymizeFlag = 0;
 	DWORD ThreadID = 0;
-	BOOL g_Loaded = FALSE;
+	bool g_Loaded = false;
 
 	BOOL gStringTableFixed = FALSE;
 
 	HMODULE ghModule = nullptr;
 	HINSTANCE ghInstance = nullptr;
 	HWND ghInjectorWnd = nullptr;
-	//PHOTKEY pHotkey = nullptr;
-	BOOL gbUnload = FALSE;
+	bool gbUnload = false;
 	bool gBindInProgress = false;
-	BOOL gbLoad = TRUE;
+	bool gbLoad = true;
 	DWORD gpHook = 0;
 	HMODULE ghmq2ic = nullptr;
 	PMACROBLOCK gMacroBlock = nullptr;
@@ -448,9 +440,9 @@ namespace MQ2Globals
 
 	// End of mouse variables
 
-	char* gDiKeyName[256];
+	const char* gDiKeyName[256];
 
-	char* szHeading[] = {
+	const char* szHeading[] = {
 		"south",                //0
 		"south by southeast",   //1
 		"southeast",            //2
@@ -469,7 +461,7 @@ namespace MQ2Globals
 		"south by southwest"    //15
 	};
 
-	char* szHeadingShort[] = {
+	const char* szHeadingShort[] = {
 		"S",    //0
 		"SSE",  //1
 		"SE",   //2
@@ -488,7 +480,7 @@ namespace MQ2Globals
 		"SSW"   //15
 	};
 
-	char* szHeadingNormal[] = {
+	const char* szHeadingNormal[] = {
 		"north",                //0
 		"north by northeast",   //1
 		"northeast",            //2
@@ -507,7 +499,7 @@ namespace MQ2Globals
 		"north by northwest"    //15
 	};
 
-	char* szHeadingNormalShort[] = {
+	const char* szHeadingNormalShort[] = {
 		"N",    //0
 		"NNE",  //1
 		"NE",   //2
@@ -526,7 +518,7 @@ namespace MQ2Globals
 		"NNW"   //15
 	};
 
-	char* szSize[] = {
+	const char* szSize[] = {
 		"Tiny",
 		"Small",
 		"Normal",
@@ -536,7 +528,7 @@ namespace MQ2Globals
 		"Unknown" //?
 	};
 
-	char* szSpawnType[] = {
+	const char* szSpawnType[] = {
 		"player",
 		"NPC",
 		"corpse",
@@ -545,7 +537,7 @@ namespace MQ2Globals
 		nullptr // SuperWhoTarget
 	};
 
-	char* szGuildStatus[] = {
+	const char* szGuildStatus[] = {
 		"",
 		"Leader",
 		"Senior Officer",
@@ -558,35 +550,35 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szGender[] = {
+	const char* szGender[] = {
 		"male",
 		"female",
 		"neuter",
 		"unknown"
 	};
 
-	char* szDeityTeam[] = {
+	const char* szDeityTeam[] = {
 		"none",     //0
 		"good",     //1
 		"neutral",  //2
 		"evil"      //3
 	};
 
-	char* szLights[] = {
+	const char* szLights[] = {
 		"NONE",    // 0  - No light
-		"CDL", // 1  - Candle
-		"TR",  // 2  - Torch
-		"TGS", // 3  - Tiny Glowing Skull
-		"SL",  // 4  - Small Lantern
-		"SoM", // 5  - Stein of Moggok
-		"LL",  // 6  - Large Lantern
-		"FL",  // 7  - Flameless lantern, Halo of Light
-		"GOS", // 8  - Globe of stars
-		"LG",  // 9  - Light Globe
-		"LS",  // 10 - Lightstone, Burnt-out lightstone, wispstone
-		"GLS", // 11 - Greater lightstone
-		"FBE", // 12 - Fire Beatle Eye, Firefly Globe
-		"CL"  // 13 - Coldlight
+		"CDL",     // 1  - Candle
+		"TR",      // 2  - Torch
+		"TGS",     // 3  - Tiny Glowing Skull
+		"SL",      // 4  - Small Lantern
+		"SoM",     // 5  - Stein of Moggok
+		"LL",      // 6  - Large Lantern
+		"FL",      // 7  - Flameless lantern, Halo of Light
+		"GOS",     // 8  - Globe of stars
+		"LG",      // 9  - Light Globe
+		"LS",      // 10 - Lightstone, Burnt-out lightstone, wispstone
+		"GLS",     // 11 - Greater lightstone
+		"FBE",     // 12 - Fire Beatle Eye, Firefly Globe
+		"CL"       // 13 - Coldlight
 	};
 
 	BYTE LightBrightness[] = {
@@ -606,12 +598,12 @@ namespace MQ2Globals
 		5       //13
 	};
 
-	char* szSkills[] = {
+	const char* szSkills[] = {
 #include "EQLib/data/skills.h"
 		nullptr
 	};
 
-	char* szInnates[] = {
+	const char* szInnates[] = {
 		"Awareness",//c4c
 		"Bash Door",//c50
 		"Breathe Fire",//c54
@@ -630,7 +622,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szZoneExpansionName[] = {
+	const char* szZoneExpansionName[] = {
 		"Original EQ",              //0
 		"Kunark",                   //1
 		"Velious",                  //2
@@ -655,7 +647,7 @@ namespace MQ2Globals
 		"Broken Mirror",            //21
 	};
 
-	char* szDmgBonusType[] = {
+	const char* szDmgBonusType[] = {
 		"None",
 		"Magic",
 		"Fire",
@@ -664,7 +656,7 @@ namespace MQ2Globals
 		"Disease"
 	};
 
-	char* szBodyType[] = {
+	const char* szBodyType[] = {
 		"Object",//0       (catapults, tents, practice dummies, etc)
 		"Humanoid", //1
 		"Lycanthrope", //2
@@ -771,7 +763,7 @@ namespace MQ2Globals
 		"Property Suicide",//103
 	};
 
-	char* szAugRestrictions[] = {
+	const char* szAugRestrictions[] = {
 		"None",
 		"Armor Only",
 		"Weapons Only",
@@ -788,7 +780,7 @@ namespace MQ2Globals
 		"Shields Only"
 	};
 
-	char* szEquipmentSlot[] = {
+	const char* szEquipmentSlot[] = {
 		"head",
 		"chest",
 		"arms",
@@ -801,7 +793,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szItemSlot[] = {
+	const char* szItemSlot[] = {
 		"charm",        // 0
 		"leftear",      // 1
 		"head",
@@ -839,7 +831,7 @@ namespace MQ2Globals
 		nullptr            // 31
 	};
 
-	char* szExpansions[] = {
+	const char* szExpansions[] = {
 		"The Ruins of Kunark",
 		"The Scars of Velious",
 		"The Shadows of Luclin",
@@ -885,7 +877,7 @@ namespace MQ2Globals
 	DWORD nColorMQ2DataError = 0;
 	DWORD nColorFatalError = 0;
 
-	char* szColorAdjective[] =
+	const char* szColorAdjective[] =
 	{
 		"",
 		"GOD DAMN ",
@@ -894,7 +886,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szColorAdjectiveYou[] =
+	const char* szColorAdjectiveYou[] =
 	{
 		"",
 		" FUCKER",
@@ -914,7 +906,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szColorExpletive[] =
+	const char* szColorExpletive[] =
 	{
 		"",
 		"CHRIST ",
@@ -926,14 +918,14 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szColorSyntaxError[] =
+	const char* szColorSyntaxError[] =
 	{
 		"",
 		"%edont you know how to use a simple %acommand%y",
 		nullptr
 	};
 
-	char* szColorMacroError[] =
+	const char* szColorMacroError[] =
 	{
 		"",
 		"%ei'm pretty sure you're on %acrack%y"
@@ -945,7 +937,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szColorFatalError[] =
+	const char* szColorFatalError[] =
 	{
 		"",
 		"%eyou fucking broke it%y",
@@ -953,7 +945,7 @@ namespace MQ2Globals
 		nullptr
 	};
 
-	char* szColorMQ2DataError[] =
+	const char* szColorMQ2DataError[] =
 	{
 		"",
 		"%ewhy dont you %aread the %areference%y",
@@ -966,7 +958,7 @@ namespace MQ2Globals
 
 	MQPlugin* pPlugins = nullptr;
 	std::map<std::string, PDATAVAR> VariableMap;
-	std::unordered_map<std::string, std::unique_ptr<MQ2DATAITEM>> MQ2DataMap;
+	std::unordered_map<std::string, std::unique_ptr<MQ2DataItem>> MQ2DataMap;
 
 	// Offset Initialization
 

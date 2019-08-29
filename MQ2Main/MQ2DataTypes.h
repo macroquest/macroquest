@@ -3815,7 +3815,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		char* pDesc = GetBodyTypeDesc(VarPtr.DWord);
+		const char* pDesc = GetBodyTypeDesc(VarPtr.DWord);
 		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}

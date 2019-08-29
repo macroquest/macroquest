@@ -21,10 +21,6 @@
 #define __ActualVersionTime_x                                      0xAE6530
 #define __ActualVersionBuild_x                                     0xAE6FD4
 
-#define __ClientOverride                                           0
-#define __MacroQuestWinClassName                                  "__MacroQuest2Tray(Live)"
-#define __MacroQuestWinName                                       "MacroQuest2(Live)"
-
 // Memory Protection
 #define __MemChecker0_x                                            0x61BFA0
 #define __MemChecker1_x                                            0x8F4140
