@@ -3953,8 +3953,8 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ
 				}
 				if (nSkill < NUM_SKILLS)
 				{
-					if (CHARINFO* pCharInfo = GetCharInfo()) {
-						Dest.DWord = pCSkillMgr->GetSkillCap((EQ_Character*)pCharInfo, pChar2->Level, pChar2->Class, nSkill, true, true, true);
+					if (pCharData) {
+						Dest.DWord = pCSkillMgr->GetSkillCap(pCharData, pChar2->Level, pChar2->Class, nSkill, true, true, true);
 						return true;
 					}
 				}
@@ -5021,7 +5021,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		if (CHARINFO* pCharInfo = GetCharInfo()) {
 			if (pCharInfo->vtable2) {
-				Dest.DWord = pCharData1->TotalEffect(0xb, true, 0, true, true);
+				Dest.DWord = pCharData->TotalEffect(0xb, true, 0, true, true);
 				return true;
 			}
 		}
@@ -5037,7 +5037,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ
 		{
 			if (CHARINFO* pCharInfo = GetCharInfo()) {
 				if (pCharInfo->vtable2) {
-					Dest.DWord = pCharData1->TotalEffect(atoi(Index), true, 0, true, true);
+					Dest.DWord = pCharData->TotalEffect(atoi(Index), true, 0, true, true);
 					return true;
 				}
 			}
@@ -6971,7 +6971,7 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
 		if (BYTE spellindex = ((EQ_Spell*)pSpell)->SpellAffects(SPA_CHANGE_FORM)) {
-			if (EQ_Affect *aff = ((EQ_Character*)pCharData1)->GetPCSpellAffect(SPA_SUMMON_MOUNT, NULL)) {
+			if (EQ_Affect *aff = pCharData->GetPCSpellAffect(SPA_SUMMON_MOUNT, NULL)) {
 				if (PlayerZoneClient*pzc = (PlayerZoneClient*)pLocalPlayer) {
 					for (int i = 0; i < GetSpellNumEffects(pSpell); ++i)
 					{
@@ -8489,7 +8489,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (CONTENTS* pCont = pItem) {
-			Dest.DWord = pCharData1->CanUseItem(&pCont, false, false);
+			Dest.DWord = pCharData->CanUseItem(&pCont, false, false);
 			return true;
 		}
 		return false;
@@ -11060,7 +11060,7 @@ bool MQ2PointMerchantItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* I
 		Dest.Type = pIntType;
 		return true;
 	case CanUse:
-		Dest.Int = pCharData1->CanUseItem(&pCont, false, false);
+		Dest.Int = pCharData->CanUseItem(&pCont, false, false);
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -11993,9 +11993,9 @@ bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 		case SkillCap:
 			Dest.DWord = 0;
 			Dest.Type = pIntType;
-			if (CHARINFO* pCharInfo = GetCharInfo()) {
+			if (pCharData) {
 				DWORD i = GetSkillIDFromName(pStringTable->getString(pSkill->nName, 0));
-				Dest.DWord = pCSkillMgr->GetSkillCap((EQ_Character*)pCharInfo, pChar2->Level, pChar2->Class, i, true, true, true);
+				Dest.DWord = pCSkillMgr->GetSkillCap(pCharData, pChar2->Level, pChar2->Class, i, true, true, true);
 				return true;
 			}
 			return false;

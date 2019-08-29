@@ -883,29 +883,28 @@
 // CDBStr
 #define CDBStr__GetString_x                                        0x530CB0
 
-// EQ_Character
-#define EQ_Character__CastSpell_x                                  0x4B9750
-#define EQ_Character__Cur_HP_x                                     0x4CF8B0
-#define EQ_Character__Cur_Mana_x                                   0x4D7080
-#define EQ_Character__GetCastingTimeModifier_x                     0x4BC680
-#define EQ_Character__GetFocusCastingTimeModifier_x                0x4B0170
-#define EQ_Character__GetFocusRangeModifier_x                      0x4B02C0
-#define EQ_Character__GetHPRegen_x                                 0x4DCEB0
-#define EQ_Character__GetEnduranceRegen_x                          0x4DD4C0
-#define EQ_Character__GetManaRegen_x                               0x4DD900
-#define EQ_Character__Max_Endurance_x                              0x636D40
-#define EQ_Character__Max_HP_x                                     0x4CF6E0
-#define EQ_Character__Max_Mana_x                                   0x636B40
-#define EQ_Character__doCombatAbility_x                            0x639200
-#define EQ_Character__UseSkill_x                                   0x4DF710
-#define EQ_Character__GetConLevel_x                                0x630170
-#define EQ_Character__IsExpansionFlag_x                            0x594210
-#define EQ_Character__TotalEffect_x                                0x4C2D20
-#define EQ_Character__GetPCSpellAffect_x                           0x4BD280
-#define EQ_Character__SpellDuration_x                              0x4BCDB0
-#define EQ_Character__GetAdjustedSkill_x                           0x4D2690
-#define EQ_Character__GetBaseSkill_x                               0x4D3630
-#define EQ_Character__CanUseItem_x                                 0x4D7390
+// CharacterZoneClient
+#define CharacterZoneClient__CastSpell_x                           0x4B9750
+#define CharacterZoneClient__Cur_HP_x                              0x4CF8B0
+#define CharacterZoneClient__Cur_Mana_x                            0x4D7080
+#define CharacterZoneClient__GetCastingTimeModifier_x              0x4BC680
+#define CharacterZoneClient__GetFocusCastingTimeModifier_x         0x4B0170
+#define CharacterZoneClient__GetFocusRangeModifier_x               0x4B02C0
+#define CharacterZoneClient__GetHPRegen_x                          0x4DCEB0
+#define CharacterZoneClient__GetEnduranceRegen_x                   0x4DD4C0
+#define CharacterZoneClient__GetManaRegen_x                        0x4DD900
+#define CharacterZoneClient__Max_Endurance_x                       0x636D40
+#define CharacterZoneClient__Max_HP_x                              0x4CF6E0
+#define CharacterZoneClient__Max_Mana_x                            0x636B40
+#define CharacterZoneClient__doCombatAbility_x                     0x639200
+#define CharacterZoneClient__UseSkill_x                            0x4DF710
+#define CharacterZoneClient__IsExpansionFlag_x                     0x594210
+#define CharacterZoneClient__TotalEffect_x                         0x4C2D20
+#define CharacterZoneClient__GetPCSpellAffect_x                    0x4BD280
+#define CharacterZoneClient__SpellDuration_x                       0x4BCDB0
+#define CharacterZoneClient__GetAdjustedSkill_x                    0x4D2690
+#define CharacterZoneClient__GetBaseSkill_x                        0x4D3630
+#define CharacterZoneClient__CanUseItem_x                          0x4D7390
 
 // ProfileManager
 #define ProfileManager__GetCurrentProfile_x                        0x8C0ED0
@@ -915,6 +914,7 @@
 
 // PcClient
 #define PcClient__PcClient_x                                       0x62D8B0
+#define PcClient__GetConLevel_x                                    0x630170
 
 // CCharacterListWnd
 #define CCharacterListWnd__SelectCharacter_x                       0x4B73C0

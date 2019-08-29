@@ -705,7 +705,7 @@ public:
 	EQLIB_OBJECT char* GetGuildMotdAuthor();
 	EQLIB_OBJECT char* GetGuildName(int64_t);
 	EQLIB_OBJECT int64_t GetGuildIndex(char*);
-	EQLIB_OBJECT GuildMember* FindMemberByName(char*);
+	EQLIB_OBJECT GuildMember* FindMemberByName(const char*);
 	EQLIB_OBJECT void DeleteAllMembers();
 	EQLIB_OBJECT void DemoteMember(GuildMember*);
 	EQLIB_OBJECT void HandleGuildMessage(connection_t*, uint32_t, char*, uint32_t);
@@ -2682,7 +2682,7 @@ class CSkillMgr
 {
 public:
 	EQLIB_OBJECT unsigned long GetNameToken(int);
-	EQLIB_OBJECT unsigned long GetSkillCap(EQ_Character*, int, int, int, bool, bool, bool);
+	EQLIB_OBJECT unsigned long GetSkillCap(PcZoneClient*, int, int, int, bool, bool, bool); // TODO: CharacterZoneClient or PcZoneClient ?
 	EQLIB_OBJECT unsigned long SkillAvailableAtLevel(int, int);
 	EQLIB_OBJECT bool IsActivatedSkill(int);
 	EQLIB_OBJECT unsigned long GetBaseDamage(int);

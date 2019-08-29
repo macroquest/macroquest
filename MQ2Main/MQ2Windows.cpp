@@ -91,39 +91,26 @@ void DestroyMQUI();
 
 bool PickupItemNew(CONTENTS* pCont)
 {
-	if (PCHARINFO pCharInfo = GetCharInfo()) {
-		if (pCharInfo->vtable2) {
-			if (CharacterZoneClient* czc = (CharacterZoneClient*)pCharData1)
+	if (pCharData && pInvSlotMgr && pCursorAttachment && pCursorAttachment->Type == -1/*none*/)
+	{
+		int slot1 = -1;
+		int slot2 = -1;
+		bool bFound = pCharData->FindItemByGuid(pCont->ItemGUID, &slot1, &slot2);
+		if (bFound && slot1 > -1)
+		{
+			ItemIndex IIndex = pCharData->CreateItemIndex(slot1, slot2);
+			VePointer<CONTENTS> Cont = pCharData->GetItemPossession(IIndex);
+			if (Cont.pObject != nullptr)
 			{
-				if ((czc && pInvSlotMgr) && (pCursorAttachment && pCursorAttachment->Type == -1/*none*/))
+				if (pInvSlotMgr->MoveItem(pCharData->CreateItemGlobalIndex(slot1, slot2), pCharData->CreateItemGlobalIndex(33/*HELD*/), false, false))
 				{
-					int slot1 = -1;
-					int slot2 = -1;
-					bool bFound = czc->FindItemByGuid(pCont->ItemGUID, &slot1, &slot2);
-					if (bFound && slot1 > -1)
+					pCursorAttachment->Deactivate();
+					pCursorAttachment->AttachToCursor(NULL, NULL, 2/*ITEM*/, -1, NULL, NULL);
+					if (CDisplay* pDisp = (CDisplay*)pDisplay)
 					{
-						if (pCharInfo->CharacterBase_vftable)
-						{
-							if (CharacterBase* cbase = (CharacterBase*)&pCharInfo->CharacterBase_vftable)
-							{
-								ItemIndex IIndex = cbase->CreateItemIndex(slot1, slot2);
-								VePointer<CONTENTS> Cont = ((CharacterBase*)cbase)->GetItemPossession(IIndex);
-								if (Cont.pObject != nullptr)
-								{
-									if (pInvSlotMgr->MoveItem(cbase->CreateItemGlobalIndex(slot1, slot2), cbase->CreateItemGlobalIndex(33/*HELD*/), false, false))
-									{
-										pCursorAttachment->Deactivate();
-										pCursorAttachment->AttachToCursor(NULL, NULL, 2/*ITEM*/, -1, NULL, NULL);
-										if (CDisplay* pDisp = (CDisplay*)pDisplay)
-										{
-											pDisp->DragItem = TRUE;
-										}
-										return true;
-									}
-								}
-							}
-						}
+						pDisp->DragItem = TRUE;
 					}
+					return true;
 				}
 			}
 		}

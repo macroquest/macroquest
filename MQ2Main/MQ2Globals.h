@@ -411,9 +411,8 @@ EQLIB_VAR CDisplay** ppDisplay;
 #define pDisplay (*ppDisplay)
 EQLIB_VAR EQ_PC** ppPCData;
 #define pPCData (*ppPCData)
-EQLIB_VAR EQ_Character** ppCharData;
+EQLIB_VAR PcClient** ppCharData;
 #define pCharData (*ppCharData)
-#define pCharData1 ((EQ_Character1 *)&GetCharInfo()->vtable2)
 EQLIB_VAR PlayerClient** ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR PlayerClient** ppActiveMerchant;
