@@ -562,6 +562,29 @@ int CListWnd::AddString(const char* Str, COLORREF Color, uint64_t Data, const CT
 	return AddString(CXStr(Str), Color, Data, pTa, TooltipStr);
 }
 
+int CListWnd::IndexOf(int column, std::function<bool(const CXStr)> predicate)
+{
+	for (auto row = 0; row < ItemsArray.GetLength(); row++)
+		if (predicate(GetItemText(row, column)))
+			return row;
+	return -1;
+}
+
+int CListWnd::IndexOf(std::function<bool(const CXStr)> predicate)
+{
+	return IndexOf(0, predicate);
+}
+
+bool CListWnd::Contains(int column, std::function<bool(const CXStr)> predicate)
+{
+	return IndexOf(column, predicate) != -1;
+}
+
+bool CListWnd::Contains(std::function<bool(const CXStr)> predicate)
+{
+	return IndexOf(0, predicate) != -1;
+}
+
 //============================================================================
 // CPageWnd
 //============================================================================

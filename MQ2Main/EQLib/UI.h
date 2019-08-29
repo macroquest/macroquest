@@ -24,6 +24,7 @@
 #include "EQData.h"
 
 #include <list>
+#include <functional>
 
 #undef FindWindow
 #undef InsertMenuItem
@@ -941,6 +942,18 @@ public:
 	EQLIB_OBJECT CXWnd* GetItemWnd(int Index, int SubItem) const;
 	EQLIB_OBJECT void SetItemIcon(int Index, int SubItem, const CTextureAnimation* pTA);
 	EQLIB_OBJECT void CalculateCustomWindowPositions();
+
+	// Index of the first row in the list where the text in column matches predicate, or -1 if no row matches
+	EQLIB_OBJECT int IndexOf(int column, std::function<bool(const CXStr)> predicate);
+
+	// Index of the first row in the list where the text in the first column matches predicate, or -1 if no row matches
+	EQLIB_OBJECT int IndexOf(std::function<bool(const CXStr)> predicate);
+
+	// True if the list contains a row where the text in columns matches predicate
+	EQLIB_OBJECT bool Contains(int column, std::function<bool(const CXStr)> predicate);
+
+	// True if the list contains a row the text in the first column matches predicate
+	EQLIB_OBJECT bool Contains(std::function<bool(const CXStr)> predicate);
 
 	//----------------------------------------------------------------------------
 	// data members
