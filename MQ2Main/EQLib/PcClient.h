@@ -2154,6 +2154,9 @@ public:
 	EQLIB_OBJECT void ReCachSpellEffects();
 };
 
+using EQ_Character [[deprecated("Use CharacterZoneClient (or PcClient) instead")]] = CharacterZoneClient;
+using EQ_Character1 [[deprecated("Use CharacterZoneClient instead")]] = CharacterZoneClient;
+
 // work in progres
 class [[offsetcomments]] PcBase : virtual public CharacterBase
 {
