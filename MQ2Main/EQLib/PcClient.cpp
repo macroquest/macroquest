@@ -620,143 +620,6 @@ FUNCTION_AT_ADDRESS(void EQ_CharacterData::EQ_CharacterDataResetAllMembers(), EQ
 #endif
 
 //============================================================================
-// EQ_PC
-//============================================================================
-
-#ifdef EQ_PC__EQ_PC_x
-FUNCTION_AT_ADDRESS(EQ_PC::EQ_PC(EQ_PC*), EQ_PC__EQ_PC);
-#endif
-#ifdef EQ_PC__dEQ_PC_x
-FUNCTION_AT_ADDRESS(EQ_PC::~EQ_PC(), EQ_PC__dEQ_PC);
-#endif
-#ifdef EQ_PC__ClearSharedVault_x
-FUNCTION_AT_ADDRESS(void EQ_PC::ClearSharedVault(), EQ_PC__ClearSharedVault);
-#endif
-#ifdef EQ_PC__IsAGroupMember_x
-FUNCTION_AT_ADDRESS(int EQ_PC::IsAGroupMember(char*), EQ_PC__IsAGroupMember);
-#endif
-#ifdef EQ_PC__CheckForGroupChanges_x
-FUNCTION_AT_ADDRESS(void EQ_PC::CheckForGroupChanges(), EQ_PC__CheckForGroupChanges);
-#endif
-#ifdef EQ_PC__UnpackMyNetPC_x
-FUNCTION_AT_ADDRESS(void EQ_PC::UnpackMyNetPC(char*, int), EQ_PC__UnpackMyNetPC);
-#endif
-#ifdef EQ_PC__AlertInventoryChanged_x
-FUNCTION_AT_ADDRESS(void EQ_PC::AlertInventoryChanged(), EQ_PC__AlertInventoryChanged);
-#endif
-#ifdef EQ_PC__InitPlayerStart_x
-FUNCTION_AT_ADDRESS(void EQ_PC::InitPlayerStart(unsigned int, unsigned char, int), EQ_PC__InitPlayerStart);
-#endif
-#ifdef EQ_PC__EmptyPossessionSlots_x
-FUNCTION_AT_ADDRESS(void EQ_PC::EmptyPossessionSlots(), EQ_PC__EmptyPossessionSlots);
-#endif
-#ifdef EQ_PC__RefreshMe_x
-FUNCTION_AT_ADDRESS(void EQ_PC::RefreshMe(int), EQ_PC__RefreshMe);
-#endif
-#ifdef EQ_PC__PrepareForRepop_x
-FUNCTION_AT_ADDRESS(void EQ_PC::PrepareForRepop(int), EQ_PC__PrepareForRepop);
-#endif
-#ifdef EQ_PC__RefitNewbieEQ_x
-FUNCTION_AT_ADDRESS(void EQ_PC::RefitNewbieEQ(), EQ_PC__RefitNewbieEQ);
-#endif
-#ifdef EQ_PC__RemoveMyAffect_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_PC::RemoveMyAffect(int), EQ_PC__RemoveMyAffect);
-#endif
-#ifdef EQ_PC__ProcessFatigue_x
-FUNCTION_AT_ADDRESS(void EQ_PC::ProcessFatigue(), EQ_PC__ProcessFatigue);
-#endif
-#ifdef EQ_PC__DelLoreItemDup_x
-FUNCTION_AT_ADDRESS(int EQ_PC::DelLoreItemDup(int, int, int, EQ_Item*), EQ_PC__DelLoreItemDup);
-#endif
-#ifdef EQ_PC__CheckDupLoreItems_x
-FUNCTION_AT_ADDRESS(int EQ_PC::CheckDupLoreItems(), EQ_PC__CheckDupLoreItems);
-#endif
-#ifdef EQ_PC__CostToTrain_x
-FUNCTION_AT_ADDRESS(int EQ_PC::CostToTrain(int, float, int), EQ_PC__CostToTrain);
-#endif
-#ifdef EQ_PC__checkLang_x
-FUNCTION_AT_ADDRESS(int EQ_PC::checkLang(int), EQ_PC__checkLang);
-#endif
-#ifdef EQ_PC__BitchCanTrain_x
-FUNCTION_AT_ADDRESS(int EQ_PC::BitchCanTrain(int, int, int), EQ_PC__BitchCanTrain);
-#endif
-#ifdef EQ_PC__HandleMoney_x
-FUNCTION_AT_ADDRESS(int EQ_PC::HandleMoney(long), EQ_PC__HandleMoney);
-#endif
-#ifdef EQ_PC__DetermineQuestExpGained_x
-FUNCTION_AT_ADDRESS(void EQ_PC::DetermineQuestExpGained(int), EQ_PC__DetermineQuestExpGained);
-#endif
-#ifdef EQ_PC__ProcessAirSupply_x
-FUNCTION_AT_ADDRESS(void EQ_PC::ProcessAirSupply(), EQ_PC__ProcessAirSupply);
-#endif
-#ifdef EQ_PC__MaxAirSupply_x
-FUNCTION_AT_ADDRESS(int EQ_PC::MaxAirSupply(), EQ_PC__MaxAirSupply);
-#endif
-#ifdef EQ_PC__SetFatigue_x
-FUNCTION_AT_ADDRESS(void EQ_PC::SetFatigue(int), EQ_PC__SetFatigue);
-#endif
-#ifdef EQ_PC__numInParty_x
-FUNCTION_AT_ADDRESS(int EQ_PC::numInParty(), EQ_PC__numInParty);
-#endif
-#ifdef EQ_PC__AtSkillLimit_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_PC::AtSkillLimit(int), EQ_PC__AtSkillLimit);
-#endif
-#ifdef EQ_PC__GetItemRecastTimer_x
-FUNCTION_AT_ADDRESS(unsigned long EQ_PC::GetItemRecastTimer(EQ_Item* item, ItemSpellTypes etype), EQ_PC__GetItemRecastTimer);
-#endif
-#ifdef EQ_PC__GetAlternateAbilityId_x
-FUNCTION_AT_ADDRESS(int EQ_PC::GetAlternateAbilityId(int), EQ_PC__GetAlternateAbilityId);
-#endif
-#ifdef EQ_PC__GetCombatAbility_x
-FUNCTION_AT_ADDRESS(int EQ_PC::GetCombatAbility(int), EQ_PC__GetCombatAbility);
-#endif
-#ifdef EQ_PC__GetPcZoneClient_x
-FUNCTION_AT_ADDRESS(PcZoneClient* EQ_PC::GetPcZoneClient() const, EQ_PC__GetPcZoneClient);
-#endif
-#ifdef EQ_PC__GetCombatAbilityTimer_x
-FUNCTION_AT_ADDRESS(unsigned long EQ_PC::GetCombatAbilityTimer(int, int), EQ_PC__GetCombatAbilityTimer);
-#endif
-#ifdef EQ_PC__HasLoreItem_x
-FUNCTION_AT_ADDRESS(bool EQ_PC::HasLoreItem(EQ_Item*, int, int, int, int), EQ_PC__HasLoreItem);
-#endif
-#ifdef EQ_PC__GetItemContainedRealEstateIds_x
-FUNCTION_AT_ADDRESS(void EQ_PC::GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate>&, bool, bool, bool), EQ_PC__GetItemContainedRealEstateIds);
-#endif
-#ifdef EQ_PC__GetNonArchivedOwnedRealEstates_x
-FUNCTION_AT_ADDRESS(void EQ_PC::GetNonArchivedOwnedRealEstates(ArrayClass<int>&), EQ_PC__GetNonArchivedOwnedRealEstates);
-#endif
-#ifdef EQ_PC__CheckForLanguageImprovement_x
-FUNCTION_AT_ADDRESS(void EQ_PC::CheckForLanguageImprovement(unsigned char, unsigned char), EQ_PC__CheckForLanguageImprovement);
-#endif
-#ifdef EQ_PC__CheckSkillImprove_x
-FUNCTION_AT_ADDRESS(void EQ_PC::CheckSkillImprove(int, float), EQ_PC__CheckSkillImprove);
-#endif
-#ifdef EQ_PC__GetBodyTint_x
-FUNCTION_AT_ADDRESS(unsigned long EQ_PC::GetBodyTint(int), EQ_PC__GetBodyTint);
-#endif
-#ifdef EQ_PC__SetAltAbilityIndex_x
-FUNCTION_AT_ADDRESS(void EQ_PC::SetAltAbilityIndex(int, int), EQ_PC__SetAltAbilityIndex);
-#endif
-#ifdef EQ_PC__GetArmorTint_x
-FUNCTION_AT_ADDRESS(unsigned long EQ_PC::GetArmorTint(int), EQ_PC__GetArmorTint);
-#endif
-#ifdef EQ_PC__SetArmorTint_x
-FUNCTION_AT_ADDRESS(void EQ_PC::SetArmorTint(int, unsigned long), EQ_PC__SetArmorTint);
-#endif
-#ifdef EQ_PC__GetArmorType_x
-FUNCTION_AT_ADDRESS(int EQ_PC::GetArmorType(int), EQ_PC__GetArmorType);
-#endif
-#ifdef EQ_PC__SetArmorType_x
-FUNCTION_AT_ADDRESS(void EQ_PC::SetArmorType(int, int), EQ_PC__SetArmorType);
-#endif
-#ifdef EQ_PC__InitializeNewPCVariables_x
-FUNCTION_AT_ADDRESS(void EQ_PC::InitializeNewPCVariables(int), EQ_PC__InitializeNewPCVariables);
-#endif
-#ifdef EQ_PC__DestroyHeldItemOrMoney_x
-FUNCTION_AT_ADDRESS(void EQ_PC::DestroyHeldItemOrMoney(), EQ_PC__DestroyHeldItemOrMoney);
-#endif
-
-//============================================================================
 // PcClient
 //============================================================================
 
@@ -804,6 +667,141 @@ FUNCTION_AT_ADDRESS(void PcZoneClient::BandolierSwap(int index), PcZoneClient__B
 #ifdef PcZoneClient__GetLinkedSpellReuseTimer_x
 FUNCTION_AT_ADDRESS(UINT PcZoneClient::GetLinkedSpellReuseTimer(int index), PcZoneClient__GetLinkedSpellReuseTimer);
 #endif
+
+// TODO: Rename defines
+#ifdef EQ_PC__EQ_PC_x
+FUNCTION_AT_ADDRESS(PcClient::PcZoneClient(PcZoneClient*), EQ_PC__EQ_PC);
+#endif
+#ifdef EQ_PC__dEQ_PC_x
+FUNCTION_AT_ADDRESS(PcClient::~PcZoneClient(), EQ_PC__dEQ_PC);
+#endif
+#ifdef EQ_PC__ClearSharedVault_x
+FUNCTION_AT_ADDRESS(void PcClient::ClearSharedVault(), EQ_PC__ClearSharedVault);
+#endif
+#ifdef EQ_PC__IsAGroupMember_x
+FUNCTION_AT_ADDRESS(int PcClient::IsAGroupMember(char*), EQ_PC__IsAGroupMember);
+#endif
+#ifdef EQ_PC__CheckForGroupChanges_x
+FUNCTION_AT_ADDRESS(void PcClient::CheckForGroupChanges(), EQ_PC__CheckForGroupChanges);
+#endif
+#ifdef EQ_PC__UnpackMyNetPC_x
+FUNCTION_AT_ADDRESS(void PcClient::UnpackMyNetPC(char*, int), EQ_PC__UnpackMyNetPC);
+#endif
+#ifdef EQ_PC__AlertInventoryChanged_x
+FUNCTION_AT_ADDRESS(void PcClient::AlertInventoryChanged(), EQ_PC__AlertInventoryChanged);
+#endif
+#ifdef EQ_PC__InitPlayerStart_x
+FUNCTION_AT_ADDRESS(void PcClient::InitPlayerStart(unsigned int, unsigned char, int), EQ_PC__InitPlayerStart);
+#endif
+#ifdef EQ_PC__EmptyPossessionSlots_x
+FUNCTION_AT_ADDRESS(void PcClient::EmptyPossessionSlots(), EQ_PC__EmptyPossessionSlots);
+#endif
+#ifdef EQ_PC__RefreshMe_x
+FUNCTION_AT_ADDRESS(void PcClient::RefreshMe(int), EQ_PC__RefreshMe);
+#endif
+#ifdef EQ_PC__PrepareForRepop_x
+FUNCTION_AT_ADDRESS(void PcClient::PrepareForRepop(int), EQ_PC__PrepareForRepop);
+#endif
+#ifdef EQ_PC__RefitNewbieEQ_x
+FUNCTION_AT_ADDRESS(void PcClient::RefitNewbieEQ(), EQ_PC__RefitNewbieEQ);
+#endif
+#ifdef EQ_PC__RemoveMyAffect_x
+FUNCTION_AT_ADDRESS(unsigned char PcClient::RemoveMyAffect(int), EQ_PC__RemoveMyAffect);
+#endif
+#ifdef EQ_PC__ProcessFatigue_x
+FUNCTION_AT_ADDRESS(void PcClient::ProcessFatigue(), EQ_PC__ProcessFatigue);
+#endif
+#ifdef EQ_PC__DelLoreItemDup_x
+FUNCTION_AT_ADDRESS(int PcClient::DelLoreItemDup(int, int, int, EQ_Item*), EQ_PC__DelLoreItemDup);
+#endif
+#ifdef EQ_PC__CheckDupLoreItems_x
+FUNCTION_AT_ADDRESS(int PcClient::CheckDupLoreItems(), EQ_PC__CheckDupLoreItems);
+#endif
+#ifdef EQ_PC__CostToTrain_x
+FUNCTION_AT_ADDRESS(int PcClient::CostToTrain(int, float, int), EQ_PC__CostToTrain);
+#endif
+#ifdef EQ_PC__checkLang_x
+FUNCTION_AT_ADDRESS(int PcClient::checkLang(int), EQ_PC__checkLang);
+#endif
+#ifdef EQ_PC__BitchCanTrain_x
+FUNCTION_AT_ADDRESS(int PcClient::BitchCanTrain(int, int, int), EQ_PC__BitchCanTrain);
+#endif
+#ifdef EQ_PC__HandleMoney_x
+FUNCTION_AT_ADDRESS(int PcClient::HandleMoney(long), EQ_PC__HandleMoney);
+#endif
+#ifdef EQ_PC__DetermineQuestExpGained_x
+FUNCTION_AT_ADDRESS(void PcClient::DetermineQuestExpGained(int), EQ_PC__DetermineQuestExpGained);
+#endif
+#ifdef EQ_PC__ProcessAirSupply_x
+FUNCTION_AT_ADDRESS(void PcClient::ProcessAirSupply(), EQ_PC__ProcessAirSupply);
+#endif
+#ifdef EQ_PC__MaxAirSupply_x
+FUNCTION_AT_ADDRESS(int PcClient::MaxAirSupply(), EQ_PC__MaxAirSupply);
+#endif
+#ifdef EQ_PC__SetFatigue_x
+FUNCTION_AT_ADDRESS(void PcClient::SetFatigue(int), EQ_PC__SetFatigue);
+#endif
+#ifdef EQ_PC__numInParty_x
+FUNCTION_AT_ADDRESS(int PcClient::numInParty(), EQ_PC__numInParty);
+#endif
+#ifdef EQ_PC__AtSkillLimit_x
+FUNCTION_AT_ADDRESS(unsigned char PcClient::AtSkillLimit(int), EQ_PC__AtSkillLimit);
+#endif
+#ifdef EQ_PC__GetItemRecastTimer_x
+FUNCTION_AT_ADDRESS(unsigned long PcClient::GetItemRecastTimer(EQ_Item* item, ItemSpellTypes etype), EQ_PC__GetItemRecastTimer);
+#endif
+#ifdef EQ_PC__GetAlternateAbilityId_x
+FUNCTION_AT_ADDRESS(int PcClient::GetAlternateAbilityId(int), EQ_PC__GetAlternateAbilityId);
+#endif
+#ifdef EQ_PC__GetCombatAbility_x
+FUNCTION_AT_ADDRESS(int PcClient::GetCombatAbility(int), EQ_PC__GetCombatAbility);
+#endif
+#ifdef EQ_PC__GetPcZoneClient_x
+FUNCTION_AT_ADDRESS(PcZoneClient* PcClient::GetPcZoneClient() const, EQ_PC__GetPcZoneClient);
+#endif
+#ifdef EQ_PC__GetCombatAbilityTimer_x
+FUNCTION_AT_ADDRESS(unsigned long PcClient::GetCombatAbilityTimer(int, int), EQ_PC__GetCombatAbilityTimer);
+#endif
+#ifdef EQ_PC__HasLoreItem_x
+FUNCTION_AT_ADDRESS(bool PcClient::HasLoreItem(EQ_Item*, int, int, int, int), EQ_PC__HasLoreItem);
+#endif
+#ifdef EQ_PC__GetItemContainedRealEstateIds_x
+FUNCTION_AT_ADDRESS(void PcClient::GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate>&, bool, bool, bool), EQ_PC__GetItemContainedRealEstateIds);
+#endif
+#ifdef EQ_PC__GetNonArchivedOwnedRealEstates_x
+FUNCTION_AT_ADDRESS(void PcClient::GetNonArchivedOwnedRealEstates(ArrayClass<int>&), EQ_PC__GetNonArchivedOwnedRealEstates);
+#endif
+#ifdef EQ_PC__CheckForLanguageImprovement_x
+FUNCTION_AT_ADDRESS(void PcClient::CheckForLanguageImprovement(unsigned char, unsigned char), EQ_PC__CheckForLanguageImprovement);
+#endif
+#ifdef EQ_PC__CheckSkillImprove_x
+FUNCTION_AT_ADDRESS(void PcClient::CheckSkillImprove(int, float), EQ_PC__CheckSkillImprove);
+#endif
+#ifdef EQ_PC__GetBodyTint_x
+FUNCTION_AT_ADDRESS(unsigned long PcClient::GetBodyTint(int), EQ_PC__GetBodyTint);
+#endif
+#ifdef EQ_PC__SetAltAbilityIndex_x
+FUNCTION_AT_ADDRESS(void PcClient::SetAltAbilityIndex(int, int), EQ_PC__SetAltAbilityIndex);
+#endif
+#ifdef EQ_PC__GetArmorTint_x
+FUNCTION_AT_ADDRESS(unsigned long PcClient::GetArmorTint(int), EQ_PC__GetArmorTint);
+#endif
+#ifdef EQ_PC__SetArmorTint_x
+FUNCTION_AT_ADDRESS(void PcClient::SetArmorTint(int, unsigned long), EQ_PC__SetArmorTint);
+#endif
+#ifdef EQ_PC__GetArmorType_x
+FUNCTION_AT_ADDRESS(int PcClient::GetArmorType(int), EQ_PC__GetArmorType);
+#endif
+#ifdef EQ_PC__SetArmorType_x
+FUNCTION_AT_ADDRESS(void PcClient::SetArmorType(int, int), EQ_PC__SetArmorType);
+#endif
+#ifdef EQ_PC__InitializeNewPCVariables_x
+FUNCTION_AT_ADDRESS(void PcClient::InitializeNewPCVariables(int), EQ_PC__InitializeNewPCVariables);
+#endif
+#ifdef EQ_PC__DestroyHeldItemOrMoney_x
+FUNCTION_AT_ADDRESS(void PcClient::DestroyHeldItemOrMoney(), EQ_PC__DestroyHeldItemOrMoney);
+#endif
+
 
 //============================================================================
 // ProfileManager

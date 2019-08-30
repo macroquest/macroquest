@@ -49,7 +49,7 @@ public:
 
 	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest) override
 	{
-		PMQ2TYPEMEMBER pMember = MQ2TelNetType::FindMember(Member);
+		MQ2TypeMember* pMember = MQ2TelNetType::FindMember(Member);
 		if (pMember)
 		{
 			switch ((IfsMembers)pMember->ID)

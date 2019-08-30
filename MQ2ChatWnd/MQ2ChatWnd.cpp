@@ -710,7 +710,7 @@ public:
 
 	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
-		PMQ2TYPEMEMBER pMember = MQ2ChatWndType::FindMember(Member);
+		MQ2TypeMember* pMember = MQ2ChatWndType::FindMember(Member);
 		if (!pMember)
 			return false;
 

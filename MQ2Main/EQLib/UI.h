@@ -944,16 +944,16 @@ public:
 	EQLIB_OBJECT void CalculateCustomWindowPositions();
 
 	// Index of the first row in the list where the text in column matches predicate, or -1 if no row matches
-	EQLIB_OBJECT int IndexOf(int column, std::function<bool(const CXStr)> predicate);
+	EQLIB_OBJECT int IndexOf(int column, const std::function<bool(const CXStr)>& predicate);
 
 	// Index of the first row in the list where the text in the first column matches predicate, or -1 if no row matches
-	EQLIB_OBJECT int IndexOf(std::function<bool(const CXStr)> predicate);
+	EQLIB_OBJECT int IndexOf(const std::function<bool(const CXStr)>& predicate);
 
 	// True if the list contains a row where the text in columns matches predicate
-	EQLIB_OBJECT bool Contains(int column, std::function<bool(const CXStr)> predicate);
+	EQLIB_OBJECT bool Contains(int column, const std::function<bool(const CXStr)>& predicate);
 
 	// True if the list contains a row the text in the first column matches predicate
-	EQLIB_OBJECT bool Contains(std::function<bool(const CXStr)> predicate);
+	EQLIB_OBJECT bool Contains(const std::function<bool(const CXStr)>& predicate);
 
 	//----------------------------------------------------------------------------
 	// data members
@@ -2974,8 +2974,8 @@ public:
 	EQLIB_OBJECT void ClearUiPointers();
 	EQLIB_OBJECT void FetchUiPointers();
 	EQLIB_OBJECT void FilterOutBadWords(const char*, char*) const;
-	EQLIB_OBJECT void GetDefaultLfgLevelRange(EQ_PC const*, int*, int*) const;
-	EQLIB_OBJECT void GetDefaultLfpLevelRange(EQ_PC const*, int*, int*) const;
+	EQLIB_OBJECT void GetDefaultLfgLevelRange(const PcClient*, int*, int*) const;
+	EQLIB_OBJECT void GetDefaultLfpLevelRange(const PcClient*, int*, int*) const;
 	EQLIB_OBJECT void InitLfg();
 	EQLIB_OBJECT void InitLfp();
 	EQLIB_OBJECT void LockQueryButtonAtTime(long);

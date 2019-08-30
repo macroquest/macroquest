@@ -406,9 +406,9 @@ namespace MQ2Internal {
 	class CIndex
 	{
 	public:
-		CIndex() = default;
+		[[deprecated("Use std::vector instead")]] CIndex() = default ;
 
-		CIndex(size_t InitialSize)
+		[[deprecated("Use std::vector instead")]] CIndex(size_t InitialSize)
 		{
 			Resize(InitialSize);
 		}
@@ -463,6 +463,8 @@ namespace MQ2Internal {
 			}
 		}
 
+		size_t GetSize() const { return m_size; }
+
 		// gets the next unused index, resizing if necessary
 		size_t GetUnused()
 		{
@@ -491,6 +493,8 @@ namespace MQ2Internal {
 			}
 			return ret;
 		}
+
+		//__declspec(property(get = GetSize)) size_t Size;
 
 	private:
 		size_t m_size = 0;
@@ -578,7 +582,7 @@ namespace MQ2Internal {
 		const char*  Name;
 		uint32_t     Type;
 	};
-	using PMQ2TYPEMEMBER [[deprecated]] = MQ2TypeMember*;
+	using PMQ2TYPEMEMBER [[deprecated("Use MQ2TypeMember* instead")]] = MQ2TypeMember*;
 
 	using fMQData = BOOL(*)(char*, MQ2TYPEVAR&);
 
@@ -657,7 +661,7 @@ namespace MQ2Internal {
 
 		const char* GetMemberName(int ID)
 		{
-			for (size_t index = 0; index < Members.m_size; index++)
+			for (size_t index = 0; index < Members.GetSize(); index++)
 			{
 				if (MQ2TypeMember* pMember = Members[index])
 				{
@@ -1028,46 +1032,47 @@ namespace MQ2Internal {
         DWORD TotalElements;
     };
 
-    typedef struct _MQRANK
-    {
-        MQ2VARPTR VarPtr;
-        MQ2VARPTR Value;
-    } MQRANK, *PMQRANK;
+	struct MQRANK
+	{
+		MQ2VARPTR VarPtr;
+		MQ2VARPTR Value;
+	};
 
-    static bool pMQRankFloatCompare(const PMQRANK A, const PMQRANK B)
-    {
-        return A->Value.Float < B->Value.Float;
-    }
-	static bool MQRankFloatCompare(const MQRANK &A, const MQRANK &B)
+	static bool pMQRankFloatCompare(const MQRANK* A, const MQRANK* B)
+	{
+		return A->Value.Float < B->Value.Float;
+	}
+	static bool MQRankFloatCompare(const MQRANK& A, const MQRANK& B)
 	{
 		return A.Value.Float < B.Value.Float;
 	}
 
-    static int MQRankFloatCompareReverse(const void *A, const void *B)
-    {
-        if (((PMQRANK)A)->Value.Float==((PMQRANK)B)->Value.Float)
-            return 0;
-        if (((PMQRANK)A)->Value.Float>((PMQRANK)B)->Value.Float)
-            return -1;
-        return 1;
-    }
-    static int MQRankCompare(const void *A, const void *B)
-    {
-        if (((PMQRANK)A)->Value.DWord==((PMQRANK)B)->Value.DWord)
-            return 0;
-        if (((PMQRANK)A)->Value.DWord<((PMQRANK)B)->Value.DWord)
-            return -1;
-        return 1;
-    }
+	static int MQRankFloatCompareReverse(const void* A, const void* B)
+	{
+		if (((MQRANK*)A)->Value.Float == ((MQRANK*)B)->Value.Float)
+			return 0;
+		if (((MQRANK*)A)->Value.Float > ((MQRANK*)B)->Value.Float)
+			return -1;
+		return 1;
+	}
+	static int MQRankCompare(const void* A, const void* B)
+	{
+		if (((MQRANK*)A)->Value.DWord == ((MQRANK*)B)->Value.DWord)
+			return 0;
+		if (((MQRANK*)A)->Value.DWord < ((MQRANK*)B)->Value.DWord)
+			return -1;
+		return 1;
+	}
 
-    static int MQRankCompareReverse(const void *A, const void *B)
-    {
-        if (((PMQRANK)A)->Value.DWord==((PMQRANK)B)->Value.DWord)
-            return 0;
-        if (((PMQRANK)A)->Value.DWord>((PMQRANK)B)->Value.DWord)
-            return -1;
-        return 1;
-    }
+	static int MQRankCompareReverse(const void* A, const void* B)
+	{
+		if (((MQRANK*)A)->Value.DWord == ((MQRANK*)B)->Value.DWord)
+			return 0;
+		if (((MQRANK*)A)->Value.DWord > ((MQRANK*)B)->Value.DWord)
+			return -1;
+		return 1;
+	}
+
 	static bool nonalpha ( int value ) {
 		int ret = isalnum(value);
 		if(ret==0)

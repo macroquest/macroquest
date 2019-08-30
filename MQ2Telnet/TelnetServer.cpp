@@ -117,7 +117,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 		Sends = nullptr;
 		lock.unlock();
 
-		std::scoped_lock lock(s_listMutex);
+		std::scoped_lock lock2(s_listMutex);
 		while (Conn)
 		{
 			if (!Conn->connection->isConnected())

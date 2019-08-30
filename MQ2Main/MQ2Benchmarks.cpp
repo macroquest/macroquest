@@ -117,7 +117,7 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("MQ2 Benchmarks");
 		WriteChatColor("--------------");
 
-		for (unsigned long i = 0; i < pBenchmarks->Size; i++)
+		for (size_t i = 0; i < pBenchmarks->GetSize(); i++)
 		{
 			if (benchmarks[i])
 			{
@@ -142,7 +142,7 @@ void DumpBenchmarks()
 	DebugSpewAlways("MQ2 Benchmarks");
 	DebugSpewAlways("--------------");
 
-	for (unsigned long i = 0; i < pBenchmarks->Size; i++)
+	for (size_t i = 0; i < pBenchmarks->GetSize(); i++)
 	{
 		if (benchmarks[i])
 		{
@@ -164,7 +164,7 @@ void InitializeMQ2Benchmarks()
 	DebugSpew("Initializing MQ2 Benchmarks");
 	pBenchmarks = new BMIndex(10);
 
-	AddCommand("/benchmark", Cmd_DumpBenchmarks, 0, 0);
+	AddCommand("/benchmark", Cmd_DumpBenchmarks, false, false);
 }
 
 void ShutdownMQ2Benchmarks()

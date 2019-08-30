@@ -916,7 +916,7 @@ public:
 
 	bool MQ2IrcType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
-		PMQ2TYPEMEMBER pMember = MQ2IrcType::FindMember(Member);
+		MQ2TypeMember* pMember = MQ2IrcType::FindMember(Member);
 		if (!pMember)
 			return false;
 		switch ((IrcMembers)pMember->ID)

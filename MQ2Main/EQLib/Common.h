@@ -708,7 +708,6 @@ class EQ_Item;
 class EQ_LoadingS;
 class CLineBase;
 class EQ_Note;
-class EQ_PC;
 class EQ_Skill;
 class EQ_Spell;
 class EQAnimation;

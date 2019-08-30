@@ -41,6 +41,16 @@ inline CHARINFO2* GetCharInfo2()
 	return nullptr;
 }
 
+inline PcProfile* GetPcProfile()
+{
+	if (pCharData)
+	{
+		return pCharData->GetCurrentPcProfile();
+	}
+
+	return nullptr;
+}
+
 inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)
 {
 	//    if (dwSpawnID<3000)
@@ -749,26 +759,6 @@ inline int EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 	}
 	return 0;
 }
-
-/*need to figure out why this fails in xp and the above doesn't - eqmule
-static inline ULONGLONG GetTickCount64()
-{
-	static int once = 1;
-	static ULONGLONG(WINAPI * pGetTickCount64)();
-	if (once) {
-		//we dont want to call this one over and over thats just stupid, so once is enough - eqmule
-		pGetTickCount64 = (ULONGLONG(WINAPI*)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
-		if (!pGetTickCount64)
-			pGetTickCount64 = (ULONGLONG(WINAPI*)())GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
-		if (!pGetTickCount64) {
-			//MessageBox(NULL,"CRAP","What kind of OS are you running anyway?",MB_OK);
-			return (ULONGLONG)GetTickCount();
-		}
-		once = 0;
-	}
-	return pGetTickCount64();
-}
-*/
 
 inline int GetSpellNumEffects(PSPELL pSpell)
 {

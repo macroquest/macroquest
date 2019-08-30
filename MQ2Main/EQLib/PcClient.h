@@ -172,10 +172,10 @@ public:
 /*0x04*/ eProfileListType CurProfileList;
 /*0x08*/
 
-	inline const ProfileList* GetCurrentProfileList() const
+	const ProfileList* GetCurrentProfileList() const
 	{
 		ProfileList* pWalk = pFirst;
-		while (pWalk != NULL)
+		while (pWalk != nullptr)
 		{
 			if (pWalk->ListType == CurProfileList)
 			{
@@ -184,17 +184,17 @@ public:
 
 			pWalk = pWalk->pNext;
 		}
-		return NULL;
+		return nullptr;
 	}
 
-	inline const BaseProfile* GetCurrentProfile() const
+	const BaseProfile* GetCurrentProfile() const
 	{
 		const ProfileList* pList = GetCurrentProfileList();
-		if (pList != NULL)
+		if (pList != nullptr)
 		{
 			return pList->pFirst;
 		}
-		return NULL;
+		return nullptr;
 	}
 };
 
@@ -1561,58 +1561,6 @@ struct [[offsetcomments]] ItemContainingRealEstate
 	ItemGlobalIndex    ItemLocation;
 };
 
-// This is now PcZoneClient. Most of this class is defunct
-class EQ_PC
-{
-public:
-	EQLIB_OBJECT ~EQ_PC();
-	EQLIB_OBJECT EQ_PC(EQ_PC*);
-	EQLIB_OBJECT int BitchCanTrain(int, int, int);
-	EQLIB_OBJECT int CheckDupLoreItems();
-	EQLIB_OBJECT int checkLang(int);
-	EQLIB_OBJECT int CostToTrain(int, float, int);
-	EQLIB_OBJECT int DelLoreItemDup(int, int, int, EQ_Item*);
-	// GetAlternateAbilityId checked on May 1 2016 only reason why it looks like it takes 2 args(which it doesnt) is cause it pushes another which is meant for AltAdvManager__GetAAById_x see 43BBB7 in eqgame 21 apr 2016 live for an example.
-	EQLIB_OBJECT int GetAlternateAbilityId(int);
-	EQLIB_OBJECT int GetArmorType(int);
-	EQLIB_OBJECT int GetCombatAbility(int);
-	EQLIB_OBJECT PcZoneClient* GetPcZoneClient() const;
-	EQLIB_OBJECT int HandleMoney(long);
-	EQLIB_OBJECT int IsAGroupMember(char*);
-	EQLIB_OBJECT int MaxAirSupply();
-	EQLIB_OBJECT int numInParty();
-	EQLIB_OBJECT static EQ_PC* top;
-	EQLIB_OBJECT unsigned char AtSkillLimit(int);
-	EQLIB_OBJECT unsigned char RemoveMyAffect(int);
-	EQLIB_OBJECT unsigned long GetArmorTint(int);
-	EQLIB_OBJECT unsigned long GetBodyTint(int);
-	EQLIB_OBJECT void CheckForGroupChanges();
-	EQLIB_OBJECT void CheckForLanguageImprovement(unsigned char, unsigned char);
-	EQLIB_OBJECT void CheckSkillImprove(int, float);
-	EQLIB_OBJECT void ClearSharedVault();
-	EQLIB_OBJECT void DestroyHeldItemOrMoney();
-	EQLIB_OBJECT void DetermineQuestExpGained(int);
-	EQLIB_OBJECT void EmptyPossessionSlots();
-	EQLIB_OBJECT void InitializeNewPCVariables(int);
-	EQLIB_OBJECT void InitPlayerStart(unsigned int, unsigned char, int);
-	EQLIB_OBJECT void PrepareForRepop(int);
-	EQLIB_OBJECT void ProcessAirSupply();
-	EQLIB_OBJECT void ProcessFatigue();
-	EQLIB_OBJECT void RefitNewbieEQ();
-	EQLIB_OBJECT void RefreshMe(int);
-	EQLIB_OBJECT void SetAltAbilityIndex(int, int);
-	EQLIB_OBJECT void SetArmorTint(int, unsigned long);
-	EQLIB_OBJECT void SetArmorType(int, int);
-	EQLIB_OBJECT void SetFatigue(int);
-	EQLIB_OBJECT void UnpackMyNetPC(char*, int);
-	EQLIB_OBJECT void AlertInventoryChanged();
-	EQLIB_OBJECT unsigned long GetCombatAbilityTimer(int, int);
-	EQLIB_OBJECT unsigned long GetItemRecastTimer(EQ_Item* item, ItemSpellTypes etype);
-	EQLIB_OBJECT bool HasLoreItem(EQ_Item*, int, int, int, int);
-	EQLIB_OBJECT void GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate>& Out, bool bCurrentProfileOnly = false, bool bIncludeAltStorage = true, bool bIncludeArchived = true);
-	EQLIB_OBJECT void GetNonArchivedOwnedRealEstates(ArrayClass<int>& output);
-};
-
 //============================================================================
 // ProfileManager
 //============================================================================
@@ -2366,6 +2314,11 @@ public:
 /*0x231c*/ int                                   Unknown0x1ffc;
 /*0x2320*/ int                                   FPStuff[0x1c];
 /*0x2390*/ //CharacterZoneClient
+
+	PcProfile* GetCurrentPcProfile()
+	{
+		return (PcProfile*)& GetCurrentBaseProfile();
+	}
 };
 
 class DebugText
@@ -2412,7 +2365,55 @@ public:
 
 	// Formerly in EQ_Character
 	EQLIB_OBJECT unsigned long GetConLevel(const PlayerClient*);
+
+	// TODO: Methods from EQ_PC: The ones we use need to be validated. Not all of them live in PcClient.
+	// but it may not matter.
+	EQLIB_OBJECT int BitchCanTrain(int, int, int);
+	EQLIB_OBJECT int CheckDupLoreItems();
+	EQLIB_OBJECT int checkLang(int);
+	EQLIB_OBJECT int CostToTrain(int, float, int);
+	EQLIB_OBJECT int DelLoreItemDup(int, int, int, EQ_Item*);
+	// GetAlternateAbilityId checked on May 1 2016 only reason why it looks like it takes 2 args(which it doesnt) is cause it pushes another which is meant for AltAdvManager__GetAAById_x see 43BBB7 in eqgame 21 apr 2016 live for an example.
+	EQLIB_OBJECT int GetAlternateAbilityId(int);
+	EQLIB_OBJECT int GetArmorType(int);
+	EQLIB_OBJECT int GetCombatAbility(int);
+	EQLIB_OBJECT PcZoneClient* GetPcZoneClient() const;
+	EQLIB_OBJECT int HandleMoney(long);
+	EQLIB_OBJECT int IsAGroupMember(char*);
+	EQLIB_OBJECT int MaxAirSupply();
+	EQLIB_OBJECT int numInParty();
+	EQLIB_OBJECT unsigned char AtSkillLimit(int);
+	EQLIB_OBJECT unsigned char RemoveMyAffect(int);
+	EQLIB_OBJECT unsigned long GetArmorTint(int);
+	EQLIB_OBJECT unsigned long GetBodyTint(int);
+	EQLIB_OBJECT void CheckForGroupChanges();
+	EQLIB_OBJECT void CheckForLanguageImprovement(unsigned char, unsigned char);
+	EQLIB_OBJECT void CheckSkillImprove(int, float);
+	EQLIB_OBJECT void ClearSharedVault();
+	EQLIB_OBJECT void DestroyHeldItemOrMoney();
+	EQLIB_OBJECT void DetermineQuestExpGained(int);
+	EQLIB_OBJECT void EmptyPossessionSlots();
+	EQLIB_OBJECT void InitializeNewPCVariables(int);
+	EQLIB_OBJECT void InitPlayerStart(unsigned int, unsigned char, int);
+	EQLIB_OBJECT void PrepareForRepop(int);
+	EQLIB_OBJECT void ProcessAirSupply();
+	EQLIB_OBJECT void ProcessFatigue();
+	EQLIB_OBJECT void RefitNewbieEQ();
+	EQLIB_OBJECT void RefreshMe(int);
+	EQLIB_OBJECT void SetAltAbilityIndex(int, int);
+	EQLIB_OBJECT void SetArmorTint(int, unsigned long);
+	EQLIB_OBJECT void SetArmorType(int, int);
+	EQLIB_OBJECT void SetFatigue(int);
+	EQLIB_OBJECT void UnpackMyNetPC(char*, int);
+	EQLIB_OBJECT void AlertInventoryChanged();
+	EQLIB_OBJECT unsigned long GetCombatAbilityTimer(int, int);
+	EQLIB_OBJECT unsigned long GetItemRecastTimer(EQ_Item* item, ItemSpellTypes etype);
+	EQLIB_OBJECT bool HasLoreItem(EQ_Item*, int, int, int, int);
+	EQLIB_OBJECT void GetItemContainedRealEstateIds(ArrayClass<ItemContainingRealEstate>& Out, bool bCurrentProfileOnly = false, bool bIncludeAltStorage = true, bool bIncludeArchived = true);
+	EQLIB_OBJECT void GetNonArchivedOwnedRealEstates(ArrayClass<int>& output);
 };
+using EQ_PC [[deprecated("Use PcClient instead")]] = PcZoneClient;
+
 
 } // namespace
 

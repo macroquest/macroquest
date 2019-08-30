@@ -5113,7 +5113,7 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius)
 	return false;
 }
 
-bool IsInGroup(PSPAWNINFO pSpawn, bool bCorpse)
+bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
 {
 	CHARINFO* pChar = GetCharInfo();
 	if (!pChar->pGroupInfo)
@@ -5422,57 +5422,43 @@ char* FormatSearchSpawn(char* Buffer, size_t BufferSize, PSEARCHSPAWN pSearchSpa
 	return Buffer;
 }
 
-PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
+SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin)
 {
 	if (!pSearchSpawn || !Nth || !pOrigin)
-		return 0;
-	CIndex<PMQRANK> SpawnSet;
-	PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
-	// create our set    
-	DWORD TotalMatching = 0;
-	if (IncludeOrigin)
+		return nullptr;
+
+	std::vector<std::unique_ptr<MQRANK>> spawnSet;
+	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+
+	while (pSpawn)
 	{
-		while (pSpawn)
+		if (IncludeOrigin || pSpawn != pOrigin)
 		{
 			if (SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
 			{
 				// matches search, add to our set
-				TotalMatching++;
-				PMQRANK pNewRank = new MQRANK;
+				auto pNewRank = std::make_unique<MQRANK>();
 				pNewRank->VarPtr.Ptr = pSpawn;
 				pNewRank->Value.Float = GetDistance3D(pOrigin->X, pOrigin->Y, pOrigin->Z, pSpawn->X, pSpawn->Y, pSpawn->Z);
-				SpawnSet += pNewRank;
+
+				spawnSet.push_back(std::move(pNewRank));
 			}
-			pSpawn = pSpawn->pNext;
 		}
+
+		pSpawn = pSpawn->pNext;
 	}
-	else
+
+	if (Nth > static_cast<int>(spawnSet.size()))
 	{
-		while (pSpawn)
-		{
-			if (pSpawn != pOrigin && SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
-			{
-				// matches search, add to our set
-				TotalMatching++;
-				PMQRANK pNewRank = new MQRANK;
-				pNewRank->VarPtr.Ptr = pSpawn;
-				pNewRank->Value.Float = GetDistance3D(pOrigin->X, pOrigin->Y, pOrigin->Z, pSpawn->X, pSpawn->Y, pSpawn->Z);
-				SpawnSet += pNewRank;
-			}
-			pSpawn = pSpawn->pNext;
-		}
+		return nullptr;
 	}
-	if (TotalMatching<Nth)
-	{// CIndex.Cleanup will call "delete" on every valid pointer in our list.
-		SpawnSet.Cleanup();
-		return 0;
-	}
+
 	// sort our list
-	std::sort(&SpawnSet.List[0], &SpawnSet.List[0] + TotalMatching, pMQRankFloatCompare);
+	std::sort(std::begin(spawnSet), std::end(spawnSet),
+		[](const auto& a, const auto& b) { return a->Value.Float < b->Value.Float; });
+
 	// get our Nth nearest
-	pSpawn = (PSPAWNINFO)SpawnSet[Nth - 1]->VarPtr.Ptr;
-	SpawnSet.Cleanup();
-	return pSpawn;
+	return (SPAWNINFO*)spawnSet[Nth - 1]->VarPtr.Ptr;
 }
 
 DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
@@ -6181,89 +6167,133 @@ void ParseSearchSpawn(char* Buffer, PSEARCHSPAWN pSearchSpawn)
 	}
 }
 
-BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
+bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 {
-	char szName[MAX_STRING] = { 0 };
-	if (!ppSpawnManager) return FALSE;
-	if (!pSpawnList) return FALSE;
-	PSPAWNINFO pSpawn, pClosest = FALSE;
+	if (!ppSpawnManager)
+		return false;
+	if (!pSpawnList)
+		return false;
+
+	SPAWNINFO* pSpawn = nullptr;
+	SPAWNINFO* pClosest = nullptr;
+
 	float ClosestDistance = 50000.0f;
-	std::list<SEARCHSPAWN>ss;
-	if (CAlerts.GetAlert(List, ss)) {
-		for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
-			if (pSpawn = SearchThroughSpawns(&(*i), pChar)) {
-				if (Distance3DToSpawn(pChar, pSpawn)<ClosestDistance) {
+
+	char szName[MAX_STRING] = { 0 };
+
+	std::vector<SEARCHSPAWN> search;
+	if (CAlerts.GetAlert(id, search))
+	{
+		for (auto& s : search)
+		{
+			if (pSpawn = SearchThroughSpawns(&s, pChar))
+			{
+				if (Distance3DToSpawn(pChar, pSpawn) < ClosestDistance)
+				{
 					pClosest = pSpawn;
 				}
 			}
 		}
 	}
-	return (pClosest != NULL);
+
+	return pClosest != nullptr;
 }
 
-BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
+bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id)
 {
 	char szName[MAX_STRING] = { 0 };
+
 	SEARCHSPAWN SearchSpawn = { 0 };
-	std::list<SEARCHSPAWN>ss;
-	if (CAlerts.GetAlert(List, ss)) {
-		for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
-			CopyMemory(&SearchSpawn, &(*i), sizeof(SEARCHSPAWN));
-			if (SearchSpawn.SpawnID > 0 && SearchSpawn.SpawnID != pSpawn->SpawnID)
+
+	std::vector<SEARCHSPAWN> alerts;
+	if (CAlerts.GetAlert(id, alerts))
+	{
+		for (auto& search : alerts)
+		{
+			if (search.SpawnID > 0 && search.SpawnID != pSpawn->SpawnID)
 				continue;
+
+			memcpy(&SearchSpawn, &search, sizeof(SEARCHSPAWN));
 			SearchSpawn.SpawnID = pSpawn->SpawnID;
-			// if this spawn matches, it's true 
-			// this is an implied logical or
+
+			// if this spawn matches, it's true. This is an implied logical or
 			if (SpawnMatchesSearch(&SearchSpawn, pChar, pSpawn))
-				return TRUE;
+				return true;
 		}
 	}
-	return FALSE;
+
+	return false;
 }
 
-BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List)
+// FIXME: This function is broken, and doesn't actually check against the CAlerts list.
+bool CheckAlertForRecursion(SEARCHSPAWN* pSearchSpawn, uint32_t id)
 {
 	if (gbIgnoreAlertRecursion)
-		return FALSE;
-	if (!pSearchSpawn) return FALSE;
-	std::list<SEARCHSPAWN>ss;
-	if (CAlerts.GetAlert(List, ss)) {
-		for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
-			if (pSearchSpawn->bAlert) {
-				if (pSearchSpawn->AlertList == List) {
-					return TRUE;
+		return false;
+
+	if (!pSearchSpawn)
+		return false;
+
+	std::vector<SEARCHSPAWN> ss;
+	if (CAlerts.GetAlert(id, ss))
+	{
+		for (auto i = ss.begin(); i != ss.end(); i++)
+		{
+			if (pSearchSpawn->bAlert)
+			{
+				if (pSearchSpawn->AlertList == id)
+				{
+					return true;
 				}
-				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->AlertList)) {
-					return TRUE;
-				}
-			}
-			if (pSearchSpawn->bNoAlert) {
-				if (pSearchSpawn->NoAlertList == List) {
-					return TRUE;
-				}
-				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->NoAlertList)) {
-					return TRUE;
-				}
-			}
-			if (pSearchSpawn->bNearAlert) {
-				if (pSearchSpawn->NearAlertList == List) {
-					return TRUE;
-				}
-				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->NearAlertList)) {
-					return TRUE;
+
+				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->AlertList))
+				{
+					return true;
 				}
 			}
-			if (pSearchSpawn->bNotNearAlert) {
-				if (pSearchSpawn->NotNearAlertList == List) {
-					return TRUE;
+
+			if (pSearchSpawn->bNoAlert)
+			{
+				if (pSearchSpawn->NoAlertList == id)
+				{
+					return true;
 				}
-				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->NotNearAlertList)) {
-					return TRUE;
+
+				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->NoAlertList))
+				{
+					return true;
+				}
+			}
+
+			if (pSearchSpawn->bNearAlert)
+			{
+				if (pSearchSpawn->NearAlertList == id)
+				{
+					return true;
+				}
+
+				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->NearAlertList))
+				{
+					return true;
+				}
+			}
+
+			if (pSearchSpawn->bNotNearAlert)
+			{
+				if (pSearchSpawn->NotNearAlertList == id)
+				{
+					return true;
+				}
+
+				if (CheckAlertForRecursion(pSearchSpawn, pSearchSpawn->NotNearAlertList))
+				{
+					return true;
 				}
 			}
 		}
 	}
-	return FALSE;
+
+	return false;
 }
 // ***************************************************************************
 // Function:    CleanupName
@@ -6319,7 +6349,7 @@ char* CleanupName(char* szName, size_t BufferSize, BOOL Article, BOOL ForWhoList
 // Function:    SuperWhoDisplay
 // Description: Displays our SuperWho / SuperWhoTarget
 // ***************************************************************************
-void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
+void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 {
 	char szName[MAX_STRING] = { 0 };
 	char szMsg[MAX_STRING] = { 0 };
@@ -6511,8 +6541,9 @@ void SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 }
 
 DWORD SWhoSortValue = 0;
-PSPAWNINFO SWhoSortOrigin = 0;
-bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
+SPAWNINFO* SWhoSortOrigin = nullptr;
+
+bool pWHOSORTCompare(SPAWNINFO* SpawnA, SPAWNINFO* SpawnB)
 {
 	switch (SWhoSortValue)
 	{
@@ -6556,45 +6587,53 @@ bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 	return _stricmp(SpawnA->DisplayedName, SpawnB->DisplayedName) < 0;
 }
 
-void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
+void SuperWhoDisplay(SPAWNINFO* pChar, SEARCHSPAWN* pSearchSpawn, DWORD Color)
 {
 	if (!pSearchSpawn)
 		return;
-	CIndex<PSPAWNINFO> SpawnSet;
-	PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
-	PSPAWNINFO pOrigin = 0;
-	// create our set
-	DWORD TotalMatching = 0;
+
+	std::vector<SPAWNINFO*> SpawnSet;
+
+	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+	SPAWNINFO* pOrigin = nullptr;
+
 	if (pSearchSpawn->FromSpawnID)
-		pOrigin = (PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
+		pOrigin = (SPAWNINFO*)GetSpawnByID(pSearchSpawn->FromSpawnID);
 	if (!pOrigin)
 		pOrigin = pChar;
+
 	while (pSpawn)
 	{
 		if (SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
 		{
 			// matches search, add to our set
-			TotalMatching++;
-			SpawnSet += pSpawn;
+			SpawnSet.push_back(pSpawn);
 		}
+
 		pSpawn = pSpawn->pNext;
 	}
-	if (TotalMatching)
+
+	if (!SpawnSet.empty())
 	{
-		if (TotalMatching > 1)
+		if (SpawnSet.size() > 1)
 		{
 			// sort our list
 			SWhoSortValue = pSearchSpawn->SortBy;
 			SWhoSortOrigin = pOrigin;
-			std::sort(&SpawnSet.List[0], &SpawnSet.List[0] + TotalMatching, pWHOSORTCompare);
+
+			std::sort(std::begin(SpawnSet), std::end(SpawnSet),
+				[](SPAWNINFO* a, SPAWNINFO* b) { return pWHOSORTCompare(a, b); });
 		}
+
 		WriteChatColor("List of matching spawns", USERCOLOR_WHO);
 		WriteChatColor("--------------------------------", USERCOLOR_WHO);
-		for (DWORD N = 0; N < TotalMatching; N++)
+
+		for (SPAWNINFO* spawn: SpawnSet)
 		{
-			SuperWhoDisplay(SpawnSet[N], Color);
+			SuperWhoDisplay(spawn, Color);
 		}
-		char* pszSpawnType;
+
+		char* pszSpawnType = nullptr;
 		switch (pSearchSpawn->SpawnType)
 		{
 		case NONE:
@@ -6647,14 +6686,20 @@ void SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			pszSpawnType = "flyer";
 			break;
 		}
-		if (PCHARINFO pCharinf = GetCharInfo()) {
-			WriteChatf("There %s \ag%d\ax %s%s in %s.", (TotalMatching == 1) ? "is" : "are", TotalMatching, pszSpawnType, (TotalMatching == 1) ? "" : "s", GetFullZone(pCharinf->zoneId));
+
+		if (CHARINFO* pCharinf = GetCharInfo())
+		{
+			size_t count = SpawnSet.size();
+
+			WriteChatf("There %s \ag%d\ax %s%s in %s.",
+				(count == 1) ? "is" : "are", count, pszSpawnType, (count == 1) ? "" : "s", GetFullZone(pCharinf->zoneId));
 		}
 	}
 	else
 	{
 		WriteChatColor("List of matching spawns", USERCOLOR_WHO);
 		WriteChatColor("--------------------------------", USERCOLOR_WHO);
+
 		char szMsg[MAX_STRING] = { 0 };
 		FormatSearchSpawn(szMsg, sizeof(szMsg), pSearchSpawn);
 		strcat_s(szMsg, " was not found.");

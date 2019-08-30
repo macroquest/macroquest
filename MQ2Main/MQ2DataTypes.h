@@ -5616,7 +5616,7 @@ public:
 		List = 1,
 		Size = 2,
 	};
-	MQ2AlertType() :MQ2Type("alert")
+	MQ2AlertType() : MQ2Type("alert")
 	{
 		TypeMember(List);
 		TypeMember(Size);
@@ -5627,22 +5627,25 @@ public:
 	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		std::list<SEARCHSPAWN>ss;
-		if (CAlerts.GetAlert(VarPtr.DWord, ss)) {
+		std::vector<SEARCHSPAWN> ss;
+
+		if (CAlerts.GetAlert(VarPtr.DWord, ss))
+		{
 			_itoa_s(ss.size(), Destination, MAX_STRING, 10);
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
 };
+
 class MQ2AlertListType : public MQ2Type
 {
 public:

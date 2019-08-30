@@ -249,8 +249,9 @@ public:
 		if (!VarPtr.Ptr)
 			return false;
 
-#define pBzrItem ((BazaarSearchResponsePacket*)VarPtr.Ptr)
-		PMQ2TYPEMEMBER pMember = MQ2BazaarItemType::FindMember(Member);
+		auto pBzrItem = (BazaarSearchResponsePacket*)VarPtr.Ptr;
+
+		MQ2TypeMember* pMember = MQ2BazaarItemType::FindMember(Member);
 		if (!pMember)
 			return false;
 
@@ -289,7 +290,6 @@ public:
 		}
 
 		return false;
-#undef pBzrItem
 	}
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
@@ -354,7 +354,7 @@ public:
 
 	bool MQ2BazaarType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
-		PMQ2TYPEMEMBER pMember = MQ2BazaarType::FindMember(Member);
+		MQ2TypeMember* pMember = MQ2BazaarType::FindMember(Member);
 		if (!pMember)
 			return false;
 

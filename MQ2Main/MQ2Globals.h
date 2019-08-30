@@ -409,7 +409,7 @@ EQLIB_VAR CEverQuest** ppEverQuest;
 #define pEverQuest (*ppEverQuest)
 EQLIB_VAR CDisplay** ppDisplay;
 #define pDisplay (*ppDisplay)
-EQLIB_VAR EQ_PC** ppPCData;
+EQLIB_VAR PcClient** ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR PcClient** ppCharData;
 #define pCharData (*ppCharData)

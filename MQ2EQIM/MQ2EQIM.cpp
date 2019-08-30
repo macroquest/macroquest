@@ -62,7 +62,7 @@ BOOL BuddiesLoaded=false;
 
 int FindEQIMBuddy(char* Name)
 {
-    for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
+    for (unsigned long N = 0 ; N < BuddyList.GetSize() ; N++)
     {
         if (EQIMBuddy *pBuddy=BuddyList[N])
         {
@@ -103,7 +103,7 @@ public:
         if (!VarPtr.Ptr)
             return false;
         EQIMBuddy *pBuddy = (EQIMBuddy*)VarPtr.Ptr;
-        PMQ2TYPEMEMBER pMember=MQ2BuddyType::FindMember(Member);
+		MQ2TypeMember* pMember=MQ2BuddyType::FindMember(Member);
         if (!pMember)
             return false;
         switch((BuddyMembers)pMember->ID)
@@ -159,7 +159,7 @@ class MQ2BuddyType *pBuddyType=0;
 
 BOOL dataBuddies(char* szIndex, MQ2TYPEVAR &Ret)
 {
-    Ret.DWord=BuddyList.Size;
+    Ret.DWord=BuddyList.GetSize();
     Ret.Type=pIntType;
     return true;
 }
@@ -170,7 +170,7 @@ BOOL dataBuddy(char* szIndex, MQ2TYPEVAR &Ret)
     {
         // by number
         unsigned long N=atoi(szIndex)-1;
-        if (N<BuddyList.Size && BuddyList[N])
+        if (N<BuddyList.GetSize() && BuddyList[N])
         {
             Ret.Ptr=BuddyList[N];
             Ret.Type=pBuddyType;
@@ -367,7 +367,7 @@ void LoadBuddyList()
     }
 
     // import "last seen" global
-    for ( N = 0 ; N < BuddyList.Size ; N++)
+    for ( N = 0 ; N < BuddyList.GetSize() ; N++)
     {
         if (EQIMBuddy *pBuddy = BuddyList[N])
         {
@@ -390,7 +390,7 @@ void SaveBuddyList()
     // save buddies per char and "last seen" global
     WritePrivateProfileSection(Character,"",INIFileName);
 
-    for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
+    for (unsigned long N = 0 ; N < BuddyList.GetSize() ; N++)
     {
         if (EQIMBuddy *pBuddy = BuddyList[N])
         {
@@ -417,7 +417,7 @@ void BuddiesCmd(PSPAWNINFO pChar, char* Line)
     unsigned long Count=0;
     WriteChatColor("List of Buddies");
     WriteChatColor("---------------");
-    for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
+    for (unsigned long N = 0 ; N < BuddyList.GetSize() ; N++)
     {
         if (EQIMBuddy *pBuddy = BuddyList[N])
         {

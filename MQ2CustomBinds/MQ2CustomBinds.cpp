@@ -29,7 +29,7 @@ static void ExecuteCustomBind(const char* Name, bool Down);
 
 static int FindCustomBind(const char* Name)
 {
-	for (unsigned long index = 0; index < s_customBinds.Size; index++)
+	for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
 	{
 		if (CustomBind* pBind = s_customBinds[index])
 		{
@@ -63,7 +63,7 @@ static CustomBind* AddCustomBind(const char* Name, const char* CommandDown = nul
 
 static void RemoveCustomBind(unsigned long index)
 {
-	if (index >= s_customBinds.Size)
+	if (index >= s_customBinds.GetSize())
 		return;
 
 	if (CustomBind* pBind = s_customBinds[index])
@@ -95,7 +95,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/custombind");
 	//SaveCustomBinds();
 
-	for (unsigned long index = 0; index < s_customBinds.Size; index++)
+	for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
 	{
 		if (CustomBind* pBind = s_customBinds[index])
 		{
@@ -171,7 +171,7 @@ static void SaveCustomBinds()
 	if (err)
 		return;
 
-	for (unsigned long index = 0; index < s_customBinds.Size; index++)
+	for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
 	{
 		if (CustomBind* pBind = s_customBinds[index])
 		{
@@ -227,7 +227,7 @@ void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("Custom binds");
 		WriteChatColor("--------------");
 
-		for (unsigned long index = 0; index < s_customBinds.Size; index++)
+		for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
 		{
 			if (CustomBind* pBind = s_customBinds[index])
 			{

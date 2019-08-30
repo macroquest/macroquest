@@ -131,7 +131,7 @@ public:
 		if (!pCont)
 			return false;
 
-		PMQ2TYPEMEMBER pMethod = MQ2DisplayItemType::FindMethod(Member);
+		MQ2TypeMember* pMethod = MQ2DisplayItemType::FindMethod(Member);
 
 		if (pMethod)
 		{
@@ -155,7 +155,7 @@ public:
 			return true;
 		}
 
-		PMQ2TYPEMEMBER pMember = MQ2DisplayItemType::FindMember(Member);
+		MQ2TypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
 		if (!pMember)
 		{
 			return pItemType->GetMember(*(MQ2VARPTR*)& pCont, Member, Index, Dest);
@@ -2827,7 +2827,7 @@ public:
 
 	bool MQ2GearScoreType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 	{
-		PMQ2TYPEMEMBER pMember = MQ2GearScoreType::FindMember(Member);
+		MQ2TypeMember* pMember = MQ2GearScoreType::FindMember(Member);
 		if (!pMember)
 			return false;
 		char* pName = GetCharInfo()->Name;

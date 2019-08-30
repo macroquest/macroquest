@@ -83,7 +83,7 @@ bool MQ2HandleKeyDown(const KeyCombo& combo)
 		}
 	}
 
-	for (int index = 0; index < (int)s_keybinds.Size; index++)
+	for (size_t index = 0; index < s_keybinds.GetSize(); index++)
 	{
 		if (MQ2KeyBind* pBind = s_keybinds[index])
 		{
@@ -116,7 +116,7 @@ bool MQ2HandleKeyUp(const KeyCombo& combo)
 		}
 	}
 
-	for (int index = 0; index < (int)s_keybinds.Size; index++)
+	for (int index = 0; index < (int)s_keybinds.GetSize(); index++)
 	{
 		if (MQ2KeyBind* pBind = s_keybinds[index])
 		{
@@ -137,7 +137,7 @@ class KeypressHandlerHook
 public:
 	void ClearCommandStateArray_Hook()
 	{
-		for (int index = 0; index < (int)s_keybinds.Size; index++)
+		for (int index = 0; index < (int)s_keybinds.GetSize(); index++)
 		{
 			if (MQ2KeyBind* pBind = s_keybinds[index])
 			{
@@ -351,7 +351,7 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("MQ2 Binds");
 		WriteChatColor("--------------");
 
-		for (int i = 0; i < (int)s_keybinds.Size; i++)
+		for (int i = 0; i < (int)s_keybinds.GetSize(); i++)
 		{
 			if (MQ2KeyBind* pBind = s_keybinds[i])
 			{
@@ -409,7 +409,7 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		KeyCombo ClearCombo;
 
 		// mq2 binds
-		for (int i = 0; i < (int)s_keybinds.Size; i++)
+		for (int i = 0; i < (int)s_keybinds.GetSize(); i++)
 		{
 			MQ2KeyBind* pBind = s_keybinds[i];
 			if (pBind)
@@ -511,7 +511,7 @@ bool DumpBinds(const char* Filename)
 		fprintf(file, "/bind ~%s %s\n", szEQMappableCommands[index], DescribeKeyCombo(pKeypressHandler->AltKey[index], szBuffer, sizeof(szBuffer)));
 	}
 
-	for (int index = 0; index < (int)s_keybinds.Size; index++)
+	for (int index = 0; index < (int)s_keybinds.GetSize(); index++)
 	{
 		if (MQ2KeyBind* pBind = s_keybinds[index])
 		{
