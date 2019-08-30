@@ -12,19 +12,20 @@
  * GNU General Public License for more details.
  */
 
-//		This plugin will provide fast item comparisons based strictly on the base 
-//		armor status. It does NOT add in augs. This makes it bad for cultural vs 
+//		This plugin will provide fast item comparisons based strictly on the base
+//		armor status. It does NOT add in augs. This makes it bad for cultural vs
 //		traditional gear.
 //
-//		/iScore 			; shows basic status 
-//		/iScore AC 10 		; scores AC as 10:1 
-//		/iScore HP 1 		; scores HP as 1:1 
-//		/iScore HeroicSTA 15; scores HeroicSTA at 15:1 
+//		/iScore 			; shows basic status
+//		/iScore AC 10 		; scores AC as 10:1
+//		/iScore HP 1 		; scores HP as 1:1
+//		/iScore HeroicSTA 15; scores HeroicSTA at 15:1
 //
 
 #include "../MQ2Plugin.h"
 #include "resource.h"
 
+#include <mutex>
 #include <string_view>
 
 PreSetup("MQ2ItemDisplay");
@@ -40,6 +41,7 @@ bool bDisabledComparetip = false;
 bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
+std::mutex s_mutex;
 
 struct ButtonInfo
 {
@@ -78,7 +80,6 @@ EQLIB_EXPORT MQ2DisplayItemType* pDisplayItemType = 0;
 EQLIB_EXPORT ITEMINFO g_Item;
 EQLIB_EXPORT CONTENTS g_Contents[6] = { 0 };
 EQLIB_EXPORT DWORD g_LastIndex = 5;
-EQLIB_EXPORT HANDLE hDisplayItemLock = 0;
 EQLIB_EXPORT std::map<DWORD, DISPLAYITEMSTRINGS> contentsitemstrings;
 }
 
@@ -243,7 +244,7 @@ public:
 
 BOOL dataLastItem(char* szName, MQ2TYPEVAR& Ret)
 {
-	lockit lockid(hDisplayItemLock, "dataLastItem");
+	std::scoped_lock lock(s_mutex);
 
 	if (szName[0])
 	{
@@ -366,7 +367,7 @@ bool ItemInfoManager::doValidateURI(eqlib::libMozilla::Window* wnd, const char* 
 
 // ***************************************************************************
 // Function:    ItemDisplayHook
-// Description: Our Item display hook 
+// Description: Our Item display hook
 // ***************************************************************************
 
 CONTENTS* pOldCont = 0;
@@ -938,7 +939,7 @@ public:
 		char* lore = NULL;
 
 		UpdateStrings_Trampoline();
-		lockit lockid(hDisplayItemLock, "UpdateStrings_Detour");
+		std::scoped_lock lock(s_mutex);
 
 		// add the strings to our map
 
@@ -1133,7 +1134,7 @@ public:
 			strcat_s(out, temp);
 		}
 
-		// Ziggy - for item level highlights 
+		// Ziggy - for item level highlights
 		// Will be 0 for no effect or -1 if other effects present
 		if (Item->Proc.SpellID && Item->Proc.SpellID != -1)
 		{
@@ -1158,7 +1159,7 @@ public:
 			strcat_s(out, temp);
 		}
 
-		// Teh_Ish (02/08/2004) 
+		// Teh_Ish (02/08/2004)
 		if (Item->Clicky.EffectType == 4 || Item->Clicky.EffectType == 1 || Item->Clicky.EffectType == 5)
 		{
 			if (Item->Clicky.RequiredLevel == 0)
@@ -1205,7 +1206,7 @@ public:
 		}
 
 		// TheColonel (1/18/2004)
-		if (Item->Type == ITEMTYPE_PACK) 
+		if (Item->Type == ITEMTYPE_PACK)
 		{
 			sprintf_s(temp, "Container Type: %s<BR>", szCombineTypes[Item->Combine]);
 			strcat_s(out, temp);
@@ -1954,7 +1955,7 @@ void ItemDisplayCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (szArg2 && szArg2[0] != '\0')
 	{
-		if (!_stricmp(szArg2, "off")) 
+		if (!_stricmp(szArg2, "off"))
 		{
 			bToggle = false;
 			bon = false;
@@ -2523,9 +2524,9 @@ tSLOTINFO SlotInfo[] = {
 /*23 | 0x800000*/ { 0,         nullptr }
 };
 
-// *************************************************************************** 
-//	This section is methods to interact with the AttributeList 
-// *************************************************************************** 
+// ***************************************************************************
+//	This section is methods to interact with the AttributeList
+// ***************************************************************************
 
 void LoadAttribListWeights(char* Section)
 {
@@ -2655,9 +2656,9 @@ void CheckForBest(float ItemScore, int ItemSlot)
 	}
 }
 
-// *************************************************************************** 
-//	This section is to set, save, and report global profile variables. 
-// *************************************************************************** 
+// ***************************************************************************
+//	This section is to set, save, and report global profile variables.
+// ***************************************************************************
 
 void ClearProfile(int Echo)
 {
@@ -2740,9 +2741,9 @@ void EchoCommands(int Echo)
 	EchoProfile(TRUE, FALSE, TRUE);
 }
 
-// *************************************************************************** 
-//	This section is for each of the user commands. 
-// *************************************************************************** 
+// ***************************************************************************
+//	This section is for each of the user commands.
+// ***************************************************************************
 
 void DoScoreForCursor();
 
@@ -2761,9 +2762,9 @@ void SetClickMode(char* pName, char* Val)
 	EchoProfile(FALSE, TRUE, FALSE);
 }
 
-// *************************************************************************** 
+// ***************************************************************************
 //	This is the actual entry point for user commands. Parse and divy up the work.
-// *************************************************************************** 
+// ***************************************************************************
 
 void DoGearScoreUserCommand(PSPAWNINFO pChar, char* szLine)
 {
@@ -3253,7 +3254,7 @@ void AddGearScores(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br
 		strcat_s(out, br);
 	}
 
-	// Trap the 3x call back stuff. 
+	// Trap the 3x call back stuff.
 	if (MQGetTickCount64() - lastTick > 1000 && ReportBestStr[0] != 0 && ReportChannel[0] == '/')
 	{
 		char szCmd[MAX_STRING];
@@ -3307,11 +3308,6 @@ void CreateCompareTipWnd()
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	hDisplayItemLock = CreateMutex(NULL, FALSE, NULL);
-	if (!hDisplayItemLock) {
-		MessageBox(NULL, "Could not initialize hDisplayItemLock Mutex", "MQ2ItemDisplay not initialized", MB_OK);
-		return;
-	}
 	pGearScoreType = new MQ2GearScoreType;
 	gLootButton = 1 == GetPrivateProfileInt("Settings", "LootButton", 1, INIFileName);
 	gLucyButton = 1 == GetPrivateProfileInt("Settings", "LucyButton", 1, INIFileName);
@@ -3428,13 +3424,6 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/itemdisplay");
 
 	delete pDisplayItemType;
-
-	if (hDisplayItemLock)
-	{
-		ReleaseMutex(hDisplayItemLock);
-		CloseHandle(hDisplayItemLock);
-		hDisplayItemLock = 0;
-	}
 
 	DestroyCompareTipWnd();
 }

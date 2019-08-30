@@ -14,7 +14,7 @@
 
 #include "MQ2Main.h"
 
-using BMIndex = CIndex<MQBENCH*>;
+using BMIndex = CIndex<MQBenchmark*>;
 BMIndex* pBenchmarks = nullptr;
 
 uint32_t AddMQ2Benchmark(const char* Name)
@@ -23,9 +23,9 @@ uint32_t AddMQ2Benchmark(const char* Name)
 	auto& benchmarks = *pBenchmarks;
 
 	DWORD NewHandle = pBenchmarks->GetUnused();
-	benchmarks[NewHandle] = new MQBENCH;
+	benchmarks[NewHandle] = new MQBenchmark;
 
-	memset(benchmarks[NewHandle], 0, sizeof(MQBENCH));
+	memset(benchmarks[NewHandle], 0, sizeof(MQBenchmark));
 	strcpy_s(benchmarks[NewHandle]->szName, Name);
 
 	return NewHandle;
@@ -85,7 +85,7 @@ void ExitMQ2Benchmark(uint32_t BMHandle)
 	}
 }
 
-bool GetMQ2Benchmark(uint32_t BMHandle, MQBENCH& Dest)
+bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 {
 	if (!pBenchmarks)
 		return false;

@@ -140,7 +140,7 @@
 #endif
 EQLIB_API void ShutdownMQ2Benchmarks();
 EQLIB_API void InitializeMQ2Benchmarks();
-EQLIB_API bool GetMQ2Benchmark(uint32_t BMHandle, MQBENCH& Dest);
+EQLIB_API bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest);
 EQLIB_API void ExitMQ2Benchmark(uint32_t BMHandle);
 EQLIB_API void EnterMQ2Benchmark(uint32_t BMHandle);
 EQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);

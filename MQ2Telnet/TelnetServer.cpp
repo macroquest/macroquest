@@ -23,12 +23,15 @@
 #include "WinTelnet.h"
 #include "TelnetServer.h"
 
+#include <mutex>
+
 #pragma comment(lib, "ws2_32")
 
-CRITICAL_SECTION ProcessingCS;
-CRITICAL_SECTION ListCS;
-CRITICAL_SECTION BufferCS;
-CRITICAL_SECTION CommandCS;
+std::mutex s_processingMutex;
+std::mutex s_listMutex;
+std::mutex s_bufferMutex;
+std::mutex s_commandMutex;
+
 TELNET* Connections;
 SOCKET Listener;
 bool bListening;
@@ -45,7 +48,7 @@ extern int PortUsed;
 
 DWORD WINAPI ProcessingThread(void* lpParam)
 {
-	EnterCriticalSection(&ProcessingCS);
+	std::scoped_lock lock(s_processingMutex);
 
 	CTelnetServer* server = (CTelnetServer*)lpParam;
 	bThreading = true;
@@ -78,7 +81,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 					continue;
 				}
 
-				EnterCriticalSection(&ListCS);
+				std::scoped_lock lock(s_listMutex);
 
 				TELNET* NewConn = new TELNET;
 				memset(NewConn, 0, sizeof(TELNET));
@@ -94,13 +97,12 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 				if (Connections)
 					Connections->pLast = NewConn;
 				Connections = NewConn;
-
-				LeaveCriticalSection(&ListCS);
 			}
 		}
 
-		// process sends
-		EnterCriticalSection(&BufferCS);
+			// process sends
+		std::unique_lock lock(s_bufferMutex);
+
 		TELNET* Conn = Connections;
 		char szText[MAX_STRING * 25] = { 0 };
 		TXTBUFFER* pBuff = Sends;
@@ -112,10 +114,10 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 			free(pBuff);
 			pBuff = NextChat;
 		}
-		Sends = 0;
-		LeaveCriticalSection(&BufferCS);
+		Sends = nullptr;
+		lock.unlock();
 
-		EnterCriticalSection(&ListCS);
+		std::scoped_lock lock(s_listMutex);
 		while (Conn)
 		{
 			if (!Conn->connection->isConnected())
@@ -210,9 +212,9 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 			{
 				if (Conn->State == TS_MAININPUT)
 				{
-					EnterCriticalSection(&CommandCS);
-					// Add command to list
+					std::scoped_lock lock(s_commandMutex);
 
+					// Add command to list
 					TXTBUFFER* pChat = (TXTBUFFER*)calloc(1, sizeof(TXTBUFFER));
 					if (pChat)
 					{
@@ -229,8 +231,6 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 							pCurrent->pNext = pChat;
 						}
 					}
-
-					LeaveCriticalSection(&CommandCS);
 				}
 				else if (Conn->State == TS_GETLOGIN)
 				{
@@ -281,11 +281,9 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 			Conn = Conn->pNext;
 		}
 
-		LeaveCriticalSection(&ListCS);
 		Sleep(10);
 	}
 
-	LeaveCriticalSection(&ProcessingCS);
 	DebugSpew("MQ2Telnet processing thread ending");
 	bThreading = false;
 	return 0;
@@ -294,10 +292,7 @@ DWORD WINAPI ProcessingThread(void* lpParam)
 CTelnetServer::CTelnetServer()
 {
 	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 0), &wsa) || (HIBYTE(wsa.wVersion) != 0) || (LOBYTE(wsa.wVersion) != 2))
-	{
-		// failed...
-	}
+	WSAStartup(MAKEWORD(2, 0), &wsa);
 
 	Sends = nullptr;
 	Commands = nullptr;
@@ -306,25 +301,15 @@ CTelnetServer::CTelnetServer()
 	bKillThread = false;
 	LocalOnly = false;
 	bThreading = false;
-	InitializeCriticalSection(&ProcessingCS);
-	InitializeCriticalSection(&ListCS);
-	InitializeCriticalSection(&BufferCS);
-	InitializeCriticalSection(&CommandCS);
-	DWORD ThreadId;
-	CreateThread(nullptr, 0, &ProcessingThread, this, 0, &ThreadId);
 
+	CreateThread(nullptr, 0, &ProcessingThread, this, 0, nullptr);
 }
 
 CTelnetServer::~CTelnetServer()
 {
 	DebugTry(Shutdown());
-	DebugTry(DeleteCriticalSection(&ProcessingCS));
-	DebugTry(DeleteCriticalSection(&ListCS));
-	DebugTry(DeleteCriticalSection(&BufferCS));
-	DebugTry(DeleteCriticalSection(&CommandCS));
 	// DONT WSACleanup(?)
 }
-
 
 void CTelnetServer::ShutdownListener()
 {
@@ -371,7 +356,8 @@ bool CTelnetServer::Listen(int Port)
 
 void CTelnetServer::Broadcast(char* String)
 {
-	EnterCriticalSection(&BufferCS);
+	std::scoped_lock lock(s_bufferMutex);
+
 	TXTBUFFER* pChat = (TXTBUFFER*)malloc(sizeof(TXTBUFFER));
 
 	if (pChat)
@@ -389,8 +375,6 @@ void CTelnetServer::Broadcast(char* String)
 			pCurrent->pNext = pChat;
 		}
 	}
-
-	LeaveCriticalSection(&BufferCS);
 }
 
 void CTelnetServer::Shutdown()
@@ -400,9 +384,7 @@ void CTelnetServer::Shutdown()
 	bKillThread = true;
 	while (bThreading) Sleep(20);
 
-	// the critical section wasnt holding for some reason..
-	//EnterCriticalSection(&ProcessingCS); // wait until thread shuts down..
-	EnterCriticalSection(&CommandCS);
+	std::scoped_lock lock(s_commandMutex);
 
 	// close all connections
 	while (Connections)
@@ -435,8 +417,6 @@ void CTelnetServer::Shutdown()
 		free(Commands);
 		Commands = pNext;
 	}
-
-	LeaveCriticalSection(&CommandCS);
 }
 
 bool CTelnetServer::IsValidUser(char* user, char* pwdest)
@@ -450,7 +430,8 @@ bool CTelnetServer::IsValidUser(char* user, char* pwdest)
 
 void CTelnetServer::ProcessIncoming()
 {
-	EnterCriticalSection(&CommandCS);
+	std::scoped_lock lock(s_commandMutex);
+
 	if (Commands) // process only 1 per pulse, no loop.
 	{
 		CHARINFO* pCharInfo = GetCharInfo();
@@ -461,6 +442,4 @@ void CTelnetServer::ProcessIncoming()
 		free(Commands);
 		Commands = Next;
 	}
-
-	LeaveCriticalSection(&CommandCS);
 }

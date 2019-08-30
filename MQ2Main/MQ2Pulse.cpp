@@ -21,8 +21,8 @@
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
-BOOL TurnNotDone = FALSE;
-CRITICAL_SECTION gPulseCS;
+bool TurnNotDone = false;
+static std::mutex s_pulseMutex;
 
 BOOL DoNextCommand(PMACROBLOCK pBlock)
 {
@@ -36,7 +36,7 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 	{
 		return FALSE;
 	}
-	if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && (TurnNotDone))
+	if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && TurnNotDone)
 		return FALSE;
 	if (IsMouseWaiting())
 		return FALSE;
@@ -135,7 +135,7 @@ void NaturalTurnOld(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 		gFaceAngle = 10000.0f;
 	}
 	else {
-		TurnNotDone = TRUE;
+		TurnNotDone = true;
 		double c1 = pCharOrMount->Heading + 256.0f;
 		double c2 = gFaceAngle;
 		if (c2<pChar->Heading) c2 += 512.0f;
@@ -167,7 +167,7 @@ void NaturalTurn(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
 		gFaceAngle = 10000.0f;
 	}
 	else {
-		TurnNotDone = TRUE;
+		TurnNotDone = true;
 		//lets make this look natural mkay...
 		if (AbsHeadingDiff < TurnRate) {
 			TurnRate = AbsHeadingDiff;
@@ -293,7 +293,7 @@ void Pulse()
 		}
 	}
 	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
-		TurnNotDone = FALSE;
+		TurnNotDone = false;
 		if (gFaceAngle != 10000.0f) {
 			NaturalTurn(pCharOrMount,pChar);
 		}
@@ -301,10 +301,10 @@ void Pulse()
 			if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f) {
 				pChar->CameraAngle = (float)gLookAngle;
 				gLookAngle = 10000.0f;
-				TurnNotDone = FALSE;
+				TurnNotDone = false;
 			}
 			else {
-				TurnNotDone = TRUE;
+				TurnNotDone = true;
 				float c1 = pChar->CameraAngle;
 				float c2 = (float)gLookAngle;
 
@@ -650,7 +650,7 @@ bool Detour_ProcessGameEvents()
 {
 	DebugTryBeginRet();
 
-	CAutoLock Lock(&gPulseCS);
+	std::scoped_lock lock(s_pulseMutex);
 
 	int ret = Heartbeat();
 	int ret2 = Trampoline_ProcessGameEvents();
@@ -774,16 +774,20 @@ public:
 		}
 		gTargetbuffs = count + 1;
 	}
-	//This is called continually during the login mainloop so we can use it as our pulse when the MAIN gameloop pulse is not active but login is. -eqmule
-	//that will allow plugins to work and execute commands all the way back pre login and server select etc.
+
+	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN
+	// gameloop pulse is not active but login is.
+	// that will allow plugins to work and execute commands all the way back pre login and server select etc.
 	void LoginController__GiveTime_Tramp();
 	void LoginController__GiveTime_Detour()
 	{
-		CAutoLock Lock(&gPulseCS);
+		std::scoped_lock lock(s_pulseMutex);
+
 		PulsePlugins();
 		LoginController__GiveTime_Tramp();
 	}
 };
+
 int isNotOKToReadMemory(void *ptr, DWORD size)
 {
 	size_t	dw;
@@ -806,23 +810,18 @@ int isNotOKToReadMemory(void *ptr, DWORD size)
 
 void RemoveLoginPulse()
 {
-	if (LoginController__GiveTime) {
-		try
+	if (LoginController__GiveTime)
+	{
+		if (!isNotOKToReadMemory((void*)LoginController__GiveTime, 4))
 		{
-			if (!isNotOKToReadMemory((void*)LoginController__GiveTime, 4)) {
-				RemoveDetour(LoginController__GiveTime);
-				LoginController__GiveTime = 0;
-			}
-			else {
-				DeleteDetour(LoginController__GiveTime);
-				LoginController__GiveTime = 0;
-			}
+			RemoveDetour(LoginController__GiveTime);
 		}
-		catch (...)
+		else
 		{
-			//do nothing ita not a crash its just a exception that happens when in fact the memory is not readable
-			OutputDebugString("Bad ReadPointer detected in RemoveLoginPulse, no action taken, all is good.");
+			DeleteDetour(LoginController__GiveTime);
 		}
+
+		LoginController__GiveTime = 0;
 	}
 }
 
@@ -836,14 +835,18 @@ static char lpMask[] = "xxxx????xx";
 
 void InitializeLoginPulse()
 {
-	if (*(DWORD*)__heqmain && !LoginController__GiveTime) {
+	if (*(DWORD*)__heqmain && !LoginController__GiveTime)
+	{
 		if (!(LoginController__GiveTime = FindPattern(*(DWORD*)__heqmain, 0x200000, lpPattern, lpMask)))
 		{
-			MessageBox(NULL, "MQ2 needs an update.", "Couldn't find LoginController__GiveTime", MB_SYSTEMMODAL | MB_OK);
+			MessageBox(nullptr, "MQ2 needs an update.", "Couldn't find LoginController__GiveTime", MB_SYSTEMMODAL | MB_OK);
 			return;
 		}
-		if (LoginController__GiveTime) {
-			if (*(BYTE*)LoginController__GiveTime != 0xe9) {
+
+		if (LoginController__GiveTime)
+		{
+			if (*(BYTE*)LoginController__GiveTime != 0xe9)
+			{
 				EzDetourwName(LoginController__GiveTime, &CEverQuestHook::LoginController__GiveTime_Detour, &CEverQuestHook::LoginController__GiveTime_Tramp, "LoginController__GiveTime");
 			}
 		}
@@ -859,7 +862,7 @@ void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
 
-	InitializeCriticalSection(&gPulseCS);
+	std::scoped_lock lock(s_pulseMutex);
 
 	//EzDetourwName(__GameLoop, GameLoop_Detour, GameLoop_Tramp,"GameLoop");
 	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
@@ -878,14 +881,12 @@ void InitializeMQ2Pulse()
 
 void ShutdownMQ2Pulse()
 {
-	EnterCriticalSection(&gPulseCS);
+	std::scoped_lock lock(s_pulseMutex);
+
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveLoginPulse();
 	//RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
-	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);
-	LeaveCriticalSection(&gPulseCS);
-	//RemoveDetour(__GameLoop);
-	DeleteCriticalSection(&gPulseCS);
+	RemoveDetour(CTargetWnd__RefreshTargetBuffs);
 }

@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
 
@@ -302,7 +303,7 @@ namespace MQ2Internal {
         DWORD (__cdecl *fAddress)(char*, char*, PSPAWNINFO);
     } PARMLIST, *PPARMLIST;
 
-	struct MQBENCH
+	struct MQBenchmark
 	{
 		char     szName[64];
 		uint64_t Entry;
@@ -345,114 +346,24 @@ namespace MQ2Internal {
 		MQPlugin*            pNext;
 	};
 
-    class CAutoLock {
-    public:
-        inline void Lock() {if (!bLocked) {if(TryEnterCriticalSection(pLock)) {bLocked = TRUE;}}}
-
-        inline void Unlock() {if (bLocked) {LeaveCriticalSection(pLock);bLocked = FALSE;}}
-
-        CAutoLock(LPCRITICAL_SECTION _pLock) {bLocked = FALSE;pLock = _pLock;Lock();}
-        ~CAutoLock() { Unlock(); }
-
-    private:
-        LPCRITICAL_SECTION pLock;
-        BOOL bLocked;
-    };
-
-	//2015-01-14 Lock class for mutexes... -eqmule
-	class lockit {
-	private:
-		bool _locked;
-		HANDLE _hMutex;
-	public:
-		BOOL ok;
-		lockit(HANDLE hMutex, char*Name=0)
-		{
-			_hMutex = hMutex;
-			ok = 0;
-			_locked = 0;
-			DWORD ret = WaitForSingleObject(_hMutex,5000);
-			if(ret==WAIT_OBJECT_0)
-			{
-				_locked = 1;
-				ok = 1;
-			} else {
-				if (Name) {
-					WriteChatfSafe("lockit timed out in %s",Name);
-				}
-				ok = ret;
-			}
-		}
-		~lockit()
-		{
-			//this is COMPLETELY safe to do even if we nest calls, according to doc for ReleaseMutex at MSDN:
-			//http://msdn.microsoft.com/en-us/library/windows/desktop/ms685066(v=vs.85).aspx
-			//A thread can specify a mutex that it already owns in a call to one of the wait functions without blocking its execution.
-			//This prevents a thread from deadlocking itself while waiting for a mutex that it already owns.
-			//However, to release its ownership, the thread must call ReleaseMutex one time for each time
-			//that it obtained ownership (either through CreateMutex or a wait function). -eqmule
-			ReleaseMutex(_hMutex);
-			_locked = 0;
-		}
-
-	};
 	class CMQ2Alerts
 	{
 	private:
-		HANDLE _hLockMapWrite;
-		std::map<DWORD,std::list<SEARCHSPAWN>>_AlertMap;
-	public:
-		CMQ2Alerts()
-		{
-			_hLockMapWrite = CreateMutex(NULL,FALSE,NULL);
-		}
-		~CMQ2Alerts()
-		{
-			if(_hLockMapWrite) {
-				ReleaseMutex(_hLockMapWrite);
-				CloseHandle(_hLockMapWrite);
-				_hLockMapWrite = 0;
-				_AlertMap.clear();
-			}
-		}
-		BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
-		BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn,DWORD List);
-		BOOL RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
-		BOOL GetAlert(DWORD Id,std::list<SEARCHSPAWN>&ss)
-		{
-			lockit lk(_hLockMapWrite);
-			if(_AlertMap.find(Id)!=_AlertMap.end()) {
-				ss = _AlertMap[Id];
-				return TRUE;
-			}
-			return FALSE;
-		}
-		BOOL AlertExist(DWORD List)
-		{
-			lockit lk(_hLockMapWrite);
-			if(_AlertMap.find(List)!=_AlertMap.end()) {
-				return TRUE;
-			}
-			return FALSE;
-		}
-		BOOL ListAlerts(char* szOut,size_t max)
-		{
-			lockit lk(_hLockMapWrite);
-			if(_AlertMap.size()==0)
-				return FALSE;
-			char szTemp[32] = {0};
+		std::mutex m_mutex;
+		std::map<uint32_t, std::vector<SEARCHSPAWN>> m_alertMap;
 
-			for(std::map<DWORD,std::list<SEARCHSPAWN>>::iterator i = _AlertMap.begin();i!=_AlertMap.end();i++) {
-				_itoa_s((*i).first,szTemp,10);
-				strcat_s(szOut,max,szTemp);
-				strcat_s(szOut,max,"|");
-			}
-			size_t len = strlen(szOut);
-			if(len && szOut[len-1] == '|')
-				szOut[len-1] = '\0';
-			return TRUE;
-		}
-		void FreeAlerts(DWORD List);
+	public:
+		CMQ2Alerts() = default;
+		~CMQ2Alerts() = default;
+
+		bool AddNewAlertList(uint32_t id, SEARCHSPAWN* pSearchSpawn);
+		bool RemoveAlertFromList(uint32_t id, SEARCHSPAWN* pSearchSpawn);
+
+		bool GetAlert(uint32_t id, std::vector<SEARCHSPAWN>& ss);
+		bool AlertExist(uint32_t id);
+
+		bool ListAlerts(char* szOut, size_t max);
+		void FreeAlerts(uint32_t id);
 	};
 
 	class CCustomWnd : public CSidlScreenWnd
@@ -482,7 +393,6 @@ namespace MQ2Internal {
 	class CCustomMenu : public CContextMenu
 	{
 	public:
-		//class CXWnd *,uint32_t,class CXRect const &
 		CCustomMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect) : CContextMenu(pParent, MenuID, rect)
 		{
 		}
@@ -492,116 +402,101 @@ namespace MQ2Internal {
 		}
 	};
 
-    template <class Any>
-    class CIndex
-    {
-    public:
-        CIndex()
-        {
-			__try
+	template <class Any>
+	class CIndex
+	{
+	public:
+		CIndex() = default;
+
+		CIndex(size_t InitialSize)
+		{
+			Resize(InitialSize);
+		}
+
+		~CIndex()
+		{
+			std::scoped_lock lock(m_mutex);
+
+			delete[] m_list;
+			m_size = 0;
+		}
+
+		Any& operator+=(Any Value)
+		{
+			return m_list[GetUnused()] = Value;
+		}
+
+		Any& operator[](size_t Index)
+		{
+			return m_list[Index];
+		}
+
+		void Cleanup()
+		{
+			std::scoped_lock lock(m_mutex);
+
+			for (size_t index = 0; index < m_size; index++)
 			{
-				InitializeCriticalSection(&CS);
-			}
-			__except(EXCEPTION_EXECUTE_HANDLER)
-			{
-				//DWORD Status = GetExceptionCode();
-				MessageBox(NULL,"could not initialize the CIndex.", "an exception occured in CIndex",MB_OK);
-				return;
-			}
-
-            Size=0;
-            List=0;
-        }
-
-        CIndex(unsigned long InitialSize)
-        {
-            InitializeCriticalSection(&CS);
-            Size=0;
-            List=0;
-            Resize(InitialSize);
-        }
-
-        ~CIndex()
-        {// user is responsible for managing elements
-            CAutoLock L(&CS);
-            if (List)
-                free(List);
-            List=0;
-            Size=0;
-            DeleteCriticalSection(&CS);
-        }
-
-        void Cleanup()
-        {
-            for (unsigned long i = 0 ; i < Size ; i++)
-            {
-                if (List[i])
-                {
-                    delete List[i];
-                    List[i]=0;
-                }
-            }
-        }
-
-        void Resize(unsigned long NewSize)
-        {
-            CAutoLock L(&CS);
-            if (List)
-            {
-                if (NewSize>Size)
-                {
-                    // because we want to zero out the unused portions, we wont use realloc
-                    if(Any *NewList=(Any*)malloc(NewSize*sizeof(Any))) {
-						memset(NewList,0,NewSize*sizeof(Any));
-						memcpy(NewList,List,Size*sizeof(Any));
-						free(List);
-						List=NewList;
-						Size=NewSize;
-					}
-                }
-            }
-            else
-            {
-				if(List=(Any*)malloc(NewSize*sizeof(Any))) {
-					memset(List,0,NewSize*sizeof(Any));
-					Size=NewSize;
+				if (m_list[index])
+				{
+					delete m_list[index];
+					m_list[index] = nullptr;
 				}
-            }
-        }
+			}
+		}
 
-        // gets the next unused index, resizing if necessary
-        inline unsigned long GetUnused()
-        {
-            unsigned long i;
-            CAutoLock L(&CS);
-            for (i = 0 ; i < Size ; i++)
-            {
-                if (!List[i])
-                    return i;
-            }
-            Resize(Size+10);
-            return i;
-        }
+		void Resize(size_t newSize)
+		{
+			std::scoped_lock lock(m_mutex);
+			if (newSize > m_size)
+			{
+				Any* newList = new Any[newSize];
+				for (size_t i = 0; i < newSize; ++i)
+					newList[i] = nullptr;
 
-        unsigned long Count()
-        {
-            CAutoLock L(&CS);
-            unsigned long ret=0;
-            for (unsigned long i = 0 ; i < Size ; i++)
-            {
-                if (List[i])
-                    ret++;
-            }
-            return ret;
-        }
+				memset(newList, 0, newSize * sizeof(Any));
+				memcpy(newList, m_list, m_size * sizeof(Any));
 
-        unsigned long Size;
-        Any *List;
+				delete[] m_list;
+				m_list = newList;
+				m_size = newSize;
+			}
+		}
 
-        inline Any& operator+=(Any& Value){return List[GetUnused()]=Value;}
-        inline Any& operator[](unsigned long Index){return List[Index];}
-        CRITICAL_SECTION CS;
-    };
+		// gets the next unused index, resizing if necessary
+		size_t GetUnused()
+		{
+			std::scoped_lock lock(m_mutex);
+
+			size_t index = 0;
+			for (index = 0; index < m_size; index++)
+			{
+				if (!m_list[index])
+					return index;
+			}
+
+			Resize(m_size + 10);
+			return index;
+		}
+
+		size_t Count() const
+		{
+			std::scoped_lock lock(m_mutex);
+
+			size_t ret = 0;
+			for (size_t i = 0; i < m_size; i++)
+			{
+				if (m_list[i])
+					ret++;
+			}
+			return ret;
+		}
+
+	private:
+		size_t m_size = 0;
+		Any* m_list = nullptr;
+		std::mutex m_mutex;
+	};
 
     typedef struct _MQ2VarPtr
     {
@@ -762,7 +657,7 @@ namespace MQ2Internal {
 
 		const char* GetMemberName(int ID)
 		{
-			for (size_t index = 0; index < Members.Size; index++)
+			for (size_t index = 0; index < Members.m_size; index++)
 			{
 				if (MQ2TypeMember* pMember = Members[index])
 				{

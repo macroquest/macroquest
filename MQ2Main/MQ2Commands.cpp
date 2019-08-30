@@ -1786,51 +1786,115 @@ void Location(PSPAWNINFO pChar, char* szLine)
 	WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 }
 
-BOOL CMQ2Alerts::RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
+bool CMQ2Alerts::RemoveAlertFromList(uint32_t Id, SEARCHSPAWN* pSearchSpawn)
 {
-	std::list<SEARCHSPAWN>ss;
-	if (_AlertMap.find(Id) != _AlertMap.end()) {
-		for (std::list<SEARCHSPAWN>::iterator i = _AlertMap[Id].begin(); i != _AlertMap[Id].end(); i++) {
-			BOOL bmatch = SearchSpawnMatchesSearchSpawn(&(*i), pSearchSpawn);
-			if (bmatch) {
-				_AlertMap[Id].erase(i);
-				return TRUE;
+	std::scoped_lock lock(m_mutex);
+
+	auto alertIter = m_alertMap.find(Id);
+	if (alertIter != m_alertMap.end())
+	{
+		auto& alertMap = alertIter->second;
+
+		for (auto iter = alertMap.begin(); iter != alertMap.end(); iter++)
+		{
+			SEARCHSPAWN* pSearch = &*iter;
+
+			if (SearchSpawnMatchesSearchSpawn(pSearch, pSearchSpawn))
+			{
+				alertMap.erase(iter);
+				return true;
 			}
 		}
 	}
-	return FALSE;
+
+	return false;
 }
-BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
+
+bool CMQ2Alerts::AddNewAlertList(uint32_t Id, SEARCHSPAWN* pSearchSpawn)
 {
-	lockit lk(_hLockMapWrite, "AddNewAlertList");
-	BOOL bCanAdd = 1;
-	if (_AlertMap.find(Id) != _AlertMap.end()) {
-		for (std::list<SEARCHSPAWN>::iterator i = _AlertMap[Id].begin(); i != _AlertMap[Id].end(); i++) {
-			if (SearchSpawnMatchesSearchSpawn(&(*i), pSearchSpawn)) {
-				bCanAdd = 0;
-				break;
+	std::scoped_lock lock(m_mutex);
+
+	auto alertIter = m_alertMap.find(Id);
+	if (alertIter != m_alertMap.end())
+	{
+		auto& alertMap = alertIter->second;
+
+		for (auto& iter : alertMap)
+		{
+			if (SearchSpawnMatchesSearchSpawn(&iter, pSearchSpawn))
+			{
+				return false;
 			}
 		}
 	}
-	if (bCanAdd) {
-		_AlertMap[Id].push_back(*pSearchSpawn);
-		return TRUE;
-	}
-	return FALSE;
+
+	m_alertMap[Id].push_back(*pSearchSpawn);
+	return true;
 }
-void CMQ2Alerts::FreeAlerts(DWORD List)
+
+void CMQ2Alerts::FreeAlerts(uint32_t id)
 {
-	lockit lk(_hLockMapWrite, "FreeAlerts");
+	std::scoped_lock lock(m_mutex);
+
 	char szBuffer[64] = { 0 };
-	if (_AlertMap.find(List) != _AlertMap.end()) {
-		_AlertMap.erase(List);
-		sprintf_s(szBuffer, "Alert list %d cleared.", List);
+
+	auto alertIter = m_alertMap.find(id);
+	if (alertIter != m_alertMap.end())
+	{
+		m_alertMap.erase(alertIter);
+		WriteChatf("Alert list %d cleared.", id);
 	}
-	else {
-		sprintf_s(szBuffer, "No Alert list for %d was found.", List);
+	else
+	{
+		WriteChatf("No Alert list for %d was found.", id);
 	}
-	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 }
+
+bool CMQ2Alerts::GetAlert(uint32_t id, std::vector<SEARCHSPAWN>& ss)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto alertIter = m_alertMap.find(id);
+	if (alertIter != m_alertMap.end())
+	{
+		ss = alertIter->second;
+		return true;
+	}
+
+	return false;
+}
+
+bool CMQ2Alerts::AlertExist(uint32_t List)
+{
+	std::scoped_lock lock(m_mutex);
+
+	return m_alertMap.find(List) != m_alertMap.end();
+}
+
+bool CMQ2Alerts::ListAlerts(char* szOut, size_t max)
+{
+	std::scoped_lock lock(m_mutex);
+
+	if (m_alertMap.empty())
+		return false;
+
+	char szTemp[32] = { 0 };
+
+	for (auto& [id, alertMap] : m_alertMap)
+	{
+		_itoa_s(id, szTemp, 10);
+		strcat_s(szOut, max, szTemp);
+		strcat_s(szOut, max, "|");
+	}
+
+	// remove trailing pipe.
+	size_t len = strlen(szOut);
+	if (len && szOut[len - 1] == '|')
+		szOut[len - 1] = '\0';
+
+	return true;
+}
+
 // ***************************************************************************
 // Function:    Alert
 // Description: Our '/alert' command
