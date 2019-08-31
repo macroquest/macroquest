@@ -61,7 +61,7 @@ EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;
 EQLIB_VAR BOOL bAllErrorsLog;
 EQLIB_API char DataTypeTemp[MAX_STRING];
-EQLIB_API cTargetBuff TargetBuffTemp;
+EQLIB_API TargetBuff TargetBuffTemp;
 EQLIB_API char gszVersion[32];
 EQLIB_VAR DWORD gdwLocalPlayer;
 EQLIB_API char gszTime[32];
@@ -146,7 +146,7 @@ EQLIB_VAR bool gZoning;
 EQLIB_VAR ULONGLONG OldLastEnteredZone;
 EQLIB_VAR ULONGLONG LastEnteredZone;
 EQLIB_VAR bool WereWeZoning;
-EQLIB_VAR BOOL gbInChat;
+EQLIB_VAR bool gbInChat;
 EQLIB_VAR BOOL gFilterSkillsAll;
 EQLIB_VAR BOOL gFilterSkillsIncrease;
 EQLIB_VAR BOOL gFilterTarget;
@@ -711,13 +711,13 @@ EQLIB_VAR CZoneGuideWnd** ppCZoneGuideWnd;
 #define pDZTimerInfo (*ppDZTimerInfo)
 #define pTaskMember (*ppTaskMember)
 
-EQLIB_VAR BOOL gbTimeStampChat;
+EQLIB_VAR bool gbTimeStampChat;
 EQLIB_VAR size_t g_eqgameimagesize;
 
 EQLIB_VAR BOOL gUseTradeOnTarget;
-EQLIB_VAR BOOL gbBeepOnTells;
-EQLIB_VAR BOOL gbFlashOnTells;
-EQLIB_VAR BOOL gbShowCurrentCamera;
+EQLIB_VAR bool gbBeepOnTells;
+EQLIB_VAR bool gbFlashOnTells;
+EQLIB_VAR bool gbShowCurrentCamera;
 EQLIB_VAR int  oldcameratype;
 EQLIB_VAR char CameraText[2048];
 EQLIB_VAR BOOL gbIgnoreAlertRecursion;

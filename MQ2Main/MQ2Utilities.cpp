@@ -9799,7 +9799,7 @@ int GetTargetBuffBySubCat(const char* subcat, unsigned int classmask, int starts
 	return -1;
 }
 
-bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, cTargetBuff* pcTargetBuff, unsigned int classmask)
+bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff, unsigned int classmask)
 {
 	if (CachedBuffsMap.empty())
 		return false;
@@ -9838,7 +9838,7 @@ bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, cTargetBuf
 	return false;
 }
 
-bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, cTargetBuff* pcTargetBuff)
+bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff)
 {
 	auto i = CachedBuffsMap.find(pSpawn->SpawnID);
 	if (i == CachedBuffsMap.end())
@@ -11705,7 +11705,7 @@ void CallMessage(DWORD pwnd)
 	char szTitle[MAX_STRING] = { 0 };
 	//char *szTemp2 = new char[Str.size() + 2048];
 	sprintf_s(szTitle, "Bad Function call detected in GetClassMember, pWnd was: %x that is NOT a valid CXWnd* pointer for sure...", pwnd);
-	
+
 	int ret = MessageBox(NULL, Str.c_str(), szTitle, MB_YESNO | MB_SYSTEMMODAL);
 	if (ret == IDYES)
 	{
@@ -11726,13 +11726,59 @@ int RangeRandom(int min, int max)
 		x = rand();
 	} while (x >= RAND_MAX - remainder);
 	return min + x % n;
+
 }
-//                                                                                               //
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
+//============================================================================
 
 ITEMINFO* GetItemFromContents(CONTENTS* c)
 {
 	if (!c)
-		return NULL;
+		return nullptr;
+
 	return c->Item1 ? c->Item1 : c->Item2;
+}
+
+struct EnumWindowsData
+{
+	HWND outHWnd;
+	DWORD processId;
+};
+
+static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
+{
+	EnumWindowsData* enumData = reinterpret_cast<EnumWindowsData*>(lParam);
+
+	// Get the process id for the window.
+	DWORD dwProcessId = 0;
+	GetWindowThreadProcessId(hWnd, &dwProcessId);
+
+	// Only check windows in the current process
+	if (enumData->processId == dwProcessId)
+	{
+		char szClass[24] = { 0 };
+		GetClassName(hWnd, szClass, 23);
+
+		// If its the EverQuest window class, return it.
+		if (strcmp(szClass, "_EverQuestwndclass") == 0)
+		{
+			enumData->outHWnd = hWnd;
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+EQLIB_API HWND GetEQWindowHandle()
+{
+	DWORD dwProcessId = GetCurrentProcessId();
+
+	EnumWindowsData enumData;
+	enumData.outHWnd = nullptr;
+	enumData.processId = dwProcessId;
+
+	EnumWindows(EnumWindowsProc, (LPARAM)&enumData);
+
+	return enumData.outHWnd;
 }

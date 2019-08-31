@@ -45,6 +45,7 @@ void Unload(PSPAWNINFO pChar, char* szLine)
 		IC_MQ2Unload(GetCurrentProcessId());
 	}
 }
+
 // ***************************************************************************
 // Function:    ListMacros
 // Description: Our '/listmacros' command
@@ -574,7 +575,7 @@ void Items(PSPAWNINFO pChar, char* szLine)
 	else {
 		WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
 		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-		for (std::map<float, iteminfo>::iterator i = itemsmap.begin(); i != itemsmap.end(); i++) {
+		for (auto i = itemsmap.begin(); i != itemsmap.end(); i++) {
 			sprintf_s(szBuffer, "%s: %1.2f away to the %s", i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
@@ -795,7 +796,7 @@ void Doors(PSPAWNINFO pChar, char* szLine)
 	else {
 		WriteChatColor("Doors:", USERCOLOR_DEFAULT);
 		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-		for (std::map<float, doorinfo>::iterator i = doorsmap.begin(); i != doorsmap.end(); i++) {
+		for (auto i = doorsmap.begin(); i != doorsmap.end(); i++) {
 			sprintf_s(szBuffer, "%d: %s: %1.2f away to the %s", i->second.ID, i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
@@ -4126,22 +4127,7 @@ void Echo(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void LootAll(PSPAWNINFO pChar, char* szLine)
 {
-	pLootWnd->LootAll(1);
-}
-
-BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
-{
-	DWORD procid = 0;
-	GetWindowThreadProcessId(hwnd, &procid);
-	if (procid == *(LPARAM *)lParam) {
-		char szClass[2048] = { 0 };
-		GetClassName(hwnd, szClass, 2047);
-		if (!_stricmp(szClass, "_EverQuestwndclass")) {
-			*(LPARAM *)lParam = (LPARAM)hwnd;
-			return FALSE;
-		}
-	}
-	return TRUE;
+	pLootWnd->LootAll(true);
 }
 
 // ***************************************************************************
@@ -4152,25 +4138,28 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 // ***************************************************************************
 void SetWinTitle(PSPAWNINFO pChar, char* szLine)
 {
-	DWORD lReturn = GetCurrentProcessId();
-	DWORD pid = lReturn;
-	BOOL ret = EnumWindows(EnumWindowsProc, (LPARAM)&lReturn);
-	if (lReturn != pid) {
-		if (szLine && szLine[0] != '\0') {
-			SetWindowText((HWND)lReturn, szLine);
+	HWND hEQWnd = GetEQWindowHandle();
+
+	if (hEQWnd)
+	{
+		if (szLine && szLine[0] != '\0')
+		{
+			SetWindowText(hEQWnd, szLine);
 		}
 	}
 }
 
 void GetWinTitle(PSPAWNINFO pChar, char* szLine)
 {
-	BOOL bHide = atoi(szLine);
-	szLine[0] = '\0';
-	DWORD lReturn = GetCurrentProcessId();
-	DWORD pid = lReturn;
-	BOOL ret = EnumWindows(EnumWindowsProc, (LPARAM)&lReturn);
-	if (lReturn != pid) {
-		if (GetWindowTextA((HWND)lReturn, szLine, 255) && szLine[0] != '\0') {
+	bool bHide = atoi(szLine) != 0;
+	szLine[0] = 0;
+
+	HWND hEQWnd = GetEQWindowHandle();
+
+	if (hEQWnd)
+	{
+		if (GetWindowTextA(hEQWnd, szLine, 255) && szLine[0] != 0)
+		{
 			if (!bHide)
 				WriteChatf("Window Title: \ay%s\ax", szLine);
 		}
@@ -4876,7 +4865,7 @@ void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 	} else if (!_stricmp(szArg1, "7")) {
 		*(DWORD*)CDisplay__cameraType = 7;
 	} else if (!_stricmp(szArg1, "on")) {
-		gbShowCurrentCamera = 1;
+		gbShowCurrentCamera = true;
 		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "1", gszINIFilename);
 		if (pSelectorWnd) {
 			char szOut[2048] = { 0 };
@@ -4884,7 +4873,7 @@ void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
 			pSelectorWnd->SetWindowText(szOut);
 		}
 	} else if (!_stricmp(szArg1, "off")) {
-		gbShowCurrentCamera = 0;
+		gbShowCurrentCamera = false;
 		if (pSelectorWnd)
 		{
 			pSelectorWnd->SetWindowText("Selector Window");
@@ -5017,22 +5006,21 @@ void SetForegroundWindowInternal(HWND hWnd)
 // Function:    ForeGroundCmd
 // Description: '/foreground' command
 // Purpose:     Adds the ability to move your eq window to the foreground.
-// Usage:		/foreground
-// Example:		/bct <toonname> //foreground
+// Usage:       /foreground
+// Example:     /bct <toonname> //foreground
 // Author:      EqMule
 // ***************************************************************************
-//todo: check manually
+
 void ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 {
-	HWND EQhWnd = 0;
-	DWORD lReturn = GetCurrentProcessId();
-	DWORD pid = lReturn;
-	AllowSetForegroundWindow(pid);
-	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
-	if(lReturn!=pid) {
-		EQhWnd = (HWND)lReturn;
+	HWND EQhWnd = GetEQWindowHandle();
+
+	// Is this even necessary?
+	AllowSetForegroundWindow(GetCurrentProcessId());
+
+	if (EQhWnd)
+	{
 		SetForegroundWindowInternal(EQhWnd);
-		//ShowWindow(hWnd, SW_SHOWNORMAL);
 	}
 	else
 	{
@@ -5040,7 +5028,7 @@ void ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 			EQhWnd = EQW_GetDisplayWindow();
 		else
 			EQhWnd = *(HWND*)EQADDR_HWND;
+
 		SetForegroundWindowInternal(EQhWnd);
-		//ShowWindow(hWnd, SW_SHOWNORMAL);
 	}
 }

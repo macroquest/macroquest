@@ -14,234 +14,291 @@
 
 #include "MQ2Main.h"
 
-DWORD __stdcall BeepOnTellThread(void* pData)
+DWORD CALLBACK BeepOnTellThread(void* pData)
 {
 	Beep(750, 200);
 	return 0;
 }
-DWORD __stdcall FlashOnTellThread(void* pData)
+
+DWORD CALLBACK FlashOnTellThread(void* pData)
 {
-	DWORD lReturn = GetCurrentProcessId();
-	DWORD pid = lReturn;
-	AllowSetForegroundWindow(pid);
-	BOOL ret = EnumWindows(EnumWindowsProc, (LPARAM)&lReturn);
-	if (lReturn != pid) {
-		//SetForegroundWindow((HWND)lReturn);
+	HWND hEQWnd = GetEQWindowHandle();
+
+	if (hEQWnd)
+	{
 		FLASHWINFO fwi = { sizeof(FLASHWINFO) };
 		fwi.dwFlags = FLASHW_ALL;
-		fwi.hwnd = (HWND)lReturn;
+		fwi.hwnd = hEQWnd;
 		fwi.uCount = 3;
 		fwi.dwTimeout = 0;
 		FlashWindowEx(&fwi);
 	}
+
 	return 0;
 }
 
 class CChatHook
 {
 public:
-	void Trampoline(const char* szMsg, DWORD dwColor, bool, bool, char *SomeStr);
-	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr)
+	// ChatManagerClient::DisplaychatText(
+	void Trampoline(const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr);
+	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
 	{
-		//DebugSpew("CChatHook::Detour(%s)",szMsg);
-		gbInChat = TRUE;
+		gbInChat = true;
 		if (dwColor != 269)
 		{
-			CheckChatForEvent((char*)szMsg);
+			CheckChatForEvent(szMsg);
 		}
 
-		BOOL Filtered = FALSE;
-		PFILTER Filter = gpFilters;
-		while (Filter && !Filtered) {
-			if (!Filter->pEnabled || (*Filter->pEnabled)) {
-				if (*Filter->FilterText == '*') {
+		bool Filtered = false;
+		FILTER* Filter = gpFilters;
+
+		while (Filter && !Filtered)
+		{
+			if (!Filter->pEnabled || *Filter->pEnabled)
+			{
+				if (*Filter->FilterText == '*')
+				{
 					if (strstr(szMsg, Filter->FilterText + 1))
-						Filtered = TRUE;
+						Filtered = true;
 				}
-				else {
+				else
+				{
 					if (!_strnicmp(szMsg, Filter->FilterText, Filter->Length))
-						Filtered = TRUE;
+						Filtered = true;
 				}
 			}
 			Filter = Filter->pNext;
 		}
 
-		if (!Filtered) {
-			//if (gTelnetServer && gTelnetConnection && !gPauseTelnetOutput) TelnetServer_Write(szMsg); 
-			BOOL SkipTrampoline;
-			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat((char*)szMsg, dwColor));
-			if (!SkipTrampoline) {
-				if (gAnonymize && dwColor!=269 /*System messages don't need anon*/)
+		if (!Filtered)
+		{
+			bool SkipTrampoline = false;
+			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, dwColor));
+
+			if (!SkipTrampoline)
+			{
+				// don't need to anonymize system messages
+				if (gAnonymize && dwColor != 269)
 				{
-					int len = strlen(szMsg);
-					char myName[MAX_STRING] = "*";
-					int namelen = 0;
-					char *szAnonMsg = (char *)LocalAlloc(LPTR, len + 64);
-					if (pLocalPlayer) {
-						strcpy_s(myName, MAX_STRING, ((PSPAWNINFO)pLocalPlayer)->Name);
+					size_t len = strlen(szMsg) + 64;
+					size_t namelen = 0;
+
+					auto pAnonMsg = std::make_unique<char[]>(len);
+					char* szAnonMsg = pAnonMsg.get();
+
+					if (pLocalPlayer)
+					{
+						char myName[40];
+						strcpy_s(myName, ((PSPAWNINFO)pLocalPlayer)->Name);
 						namelen = strlen(myName);
-						if (szAnonMsg) {
-							strcpy_s(szAnonMsg, len + 64, szMsg);
-							while (strstr(szAnonMsg, myName)) {
-								if (char *p = strstr(szAnonMsg, myName)) {
-									for (int i = 1; i < namelen - 1; i++) {
-										p[i] = '*';
-									}
+
+						strcpy_s(szAnonMsg, len, szMsg);
+
+						while (strstr(szAnonMsg, myName))
+						{
+							if (char* p = strstr(szAnonMsg, myName))
+							{
+								for (size_t i = 1; i < namelen - 1; i++)
+								{
+									p[i] = '*';
 								}
 							}
 						}
 					}
-					if (szAnonMsg) {
-						if (char *pDest = strchr(szAnonMsg, ' ')) {
-							int len = strlen(szAnonMsg) - strlen(pDest);
-							if (len >= 2) {
-								if (szAnonMsg[0] == 0x12) {
-									for (int i = 3; i < len - 2; i++) {
+
+					// TODO: Fix this case for when pLocalPlayer is null.
+					if (char* pDest = strchr(szAnonMsg, ' '))
+					{
+						int len = strlen(szAnonMsg) - strlen(pDest);
+						if (len >= 2)
+						{
+							if (szAnonMsg[0] == 0x12)
+							{
+								for (int i = 3; i < len - 2; i++)
+								{
+									szAnonMsg[i] = '*';
+								}
+							}
+							else
+							{
+								if (strstr(szAnonMsg, "You have healed "))
+								{
+									for (size_t i = 17; i < 17 + namelen - 1; i++)
+									{
 										szAnonMsg[i] = '*';
 									}
 								}
-								else {
-									if (strstr(szAnonMsg, "You have healed ")) {
-										for (int i = 17; i < 17 + namelen - 1; i++) {
-											szAnonMsg[i] = '*';
-										}
-									}
-									else if (_strnicmp(szAnonMsg, "you ", 4) && _strnicmp(szAnonMsg, "your ", 5)) {
-										for (int i = 1; i < len - 1; i++) {
-											szAnonMsg[i] = '*';
-										}
+								else if (_strnicmp(szAnonMsg, "you ", 4) && _strnicmp(szAnonMsg, "your ", 5))
+								{
+									for (int i = 1; i < len - 1; i++)
+									{
+										szAnonMsg[i] = '*';
 									}
 								}
 							}
 						}
-						Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
-						LocalFree(szAnonMsg);
 					}
+
+					Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 				}
-				else {
+				else
+				{
 					Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 				}
 			}
 		}
-		gbInChat = FALSE;
+
+		gbInChat = false;
 	}
 
-	void TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk);
-	void TellWnd_Detour(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk)
+	// ChatManagerClient::DisplayTellText
+	void TellWnd_Trampoline(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk);
+	void TellWnd_Detour(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk)
 	{
-		int len = strlen(message);
-		char *szMsg = (char *)LocalAlloc(LPTR, len + 64);
-		BOOL SkipTrampoline = 0;
 		gbInChat = true;
-		if (szMsg) {
-			sprintf_s(szMsg, len + 64, "%s tells you, '%s'", from, message);
+		bool SkipTrampoline = false;
+
+		int len = strlen(message) + 64;
+		auto pBuffer = std::make_unique<char[]>(len);
+		char* szMsg = pBuffer.get();
+
+		if (szMsg)
+		{
+			sprintf_s(szMsg, len, "%s tells you, '%s'", from, message);
 			CheckChatForEvent(szMsg);
 			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, color));
 		}
 
-		if (!SkipTrampoline) {
-			if (gAnonymize) {
-				char *szName = new char[64];
-				strcpy_s(szName, 64, from);
-				Anonymize(szName,64);
-				TellWnd_Trampoline(message, szName, szName, text, color, bLogOk);
-				delete szName;
+		if (!SkipTrampoline)
+		{
+			if (gAnonymize)
+			{
+				char szNameCopy[64];
+				strcpy_s(szNameCopy, 64, from);
+				Anonymize(szNameCopy, 64);
+
+				TellWnd_Trampoline(message, szNameCopy, szNameCopy, text, color, bLogOk);
 			}
 			else
 			{
 				TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
 			}
 		}
-		if (szMsg)
-			LocalFree(szMsg);
+
 		gbInChat = false;
 	}
 
+	// CEverQuest::UniversalChatProxyNotificationFlush
 	void UPCNotificationFlush_Trampoline();
 	void UPCNotificationFlush_Detour()
 	{
-		if (EVERQUEST* eq = (EVERQUEST*)this) {
-			char szBuf[MAX_STRING] = { 0 };
-			if (eq->ChannelQty > 0) {
-				int len = 0;
-				sprintf_s(szBuf, "* %s has %s channel ", eq->ChannelPlayerName, eq->bJoinedChannel ? "entered" : "left");
-				char szTemp[MAX_STRING] = { 0 };
-				int max = eq->ChannelQty;
-				if (max > 9)
-					max = 9;
-				for (int i = 0; i < max; i++) {
-					if (i) {
-						sprintf_s(szTemp, ", %s:%d", eq->ChannelName[i], eq->ChannelNumber[i] + 1);
-					}
-					else {
-						sprintf_s(szTemp, "%s:%d", eq->ChannelName[i], eq->ChannelNumber[i] + 1);
-					}
-					strcat_s(szBuf, szTemp);
+		EVERQUEST* eq = (EVERQUEST*)this;
+
+		char szBuf[128] = { 0 };
+
+		if (eq->ChannelQty > 0)
+		{
+			sprintf_s(szBuf, "* %s has %s channel ", eq->ChannelPlayerName, eq->bJoinedChannel ? "entered" : "left");
+
+			char szTemp[MAX_STRING] = { 0 };
+			int max = std::min<int>(eq->ChannelQty, 9);
+
+			for (int index = 0; index < max; index++)
+			{
+				if (index)
+				{
+					sprintf_s(szTemp, ", %s:%d", eq->ChannelName[index], eq->ChannelNumber[index] + 1);
 				}
-				CheckChatForEvent(szBuf);
+				else
+				{
+					sprintf_s(szTemp, "%s:%d", eq->ChannelName[index], eq->ChannelNumber[index] + 1);
+				}
+
+				strcat_s(szBuf, szTemp);
 			}
+
+			CheckChatForEvent(szBuf);
 		}
+
 		UPCNotificationFlush_Trampoline();
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, char *SomeStr));
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::TellWnd_Trampoline(char* message, char*from, char*windowtitle, char*text, int color, bool bLogOk));
+DETOUR_TRAMPOLINE_EMPTY(void CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* outStr));
+DETOUR_TRAMPOLINE_EMPTY(void CChatHook::TellWnd_Trampoline(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk));
 DETOUR_TRAMPOLINE_EMPTY(void CChatHook::UPCNotificationFlush_Trampoline());
 
-void dsp_chat_no_events(const char *Text, int Color, bool EqLog, bool dopercentsubst, char *SomeStr)
+void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
-	((CChatHook*)pEverQuest)->Trampoline((char*)Text, Color, EqLog, dopercentsubst, SomeStr);
+	((CChatHook*)pEverQuest)->Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
 }
 
-unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value, size_t ValueLen)
+unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
 {
 	strcpy_s(Value, ValueLen, VarName);
-	if (PCHARINFO pChar = GetCharInfo()) {
+
+	if (PCHARINFO pChar = GetCharInfo())
+	{
 		return strlen(ParseMacroParameter(pChar->pSpawn, Value, ValueLen));
 	}
+
 	return strlen(Value);
 }
 
 void FlashOnTells(PSPAWNINFO pChar, char* szLine)
 {
-	if (szLine[0] != '\0') {
-		if (!_stricmp(szLine, "on")) {
-			gbFlashOnTells = 0;
+	if (szLine[0] != '\0')
+	{
+		if (!_stricmp(szLine, "on"))
+		{
+			gbFlashOnTells = false;
 		}
-		else if (!_stricmp(szLine, "off")) {
-			gbFlashOnTells = 1;
+		else if (!_stricmp(szLine, "off"))
+		{
+			gbFlashOnTells = true;
 		}
 	}
-	if (gbFlashOnTells) {
-		gbFlashOnTells = 0;
+
+	if (gbFlashOnTells)
+	{
+		gbFlashOnTells = false;
 		WriteChatColor("Flash On Tells is OFF", CONCOLOR_LIGHTBLUE);
+
 		WritePrivateProfileString("MacroQuest", "FlashOnTells", "0", gszINIFilename);
 	}
-	else {
-		gbFlashOnTells = 1;
+	else
+	{
+		gbFlashOnTells = true;
 		WriteChatColor("Flash On Tells is ON", CONCOLOR_YELLOW);
+
 		WritePrivateProfileString("MacroQuest", "FlashOnTells", "1", gszINIFilename);
 	}
 }
 
 void BeepOnTells(PSPAWNINFO pChar, char* szLine)
 {
-	if (szLine[0] != '\0') {
-		if (!_stricmp(szLine, "on")) {
-			gbBeepOnTells = 0;
+	if (szLine[0] != '\0')
+	{
+		if (!_stricmp(szLine, "on"))
+		{
+			gbBeepOnTells = false;
 		}
-		else if (!_stricmp(szLine, "off")) {
-			gbBeepOnTells = 1;
+		else if (!_stricmp(szLine, "off"))
+		{
+			gbBeepOnTells = true;
 		}
 	}
-	if (gbBeepOnTells) {
-		gbBeepOnTells = 0;
+
+	if (gbBeepOnTells)
+	{
+		gbBeepOnTells = false;
 		WriteChatColor("Beep On Tells is OFF", CONCOLOR_LIGHTBLUE);
 		WritePrivateProfileString("MacroQuest", "BeepOnTells", "0", gszINIFilename);
 	}
-	else {
-		gbBeepOnTells = 1;
+	else
+	{
+		gbBeepOnTells = true;
 		WriteChatColor("Beep On Tells is ON", CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest", "BeepOnTells", "1", gszINIFilename);
 	}
@@ -249,35 +306,40 @@ void BeepOnTells(PSPAWNINFO pChar, char* szLine)
 
 void TimeStampChat(PSPAWNINFO pChar, char* szLine)
 {
-	if (szLine[0] != '\0') {
-		if (!_stricmp(szLine, "on")) {
-			gbTimeStampChat = 0;
+	if (szLine[0] != '\0')
+	{
+		if (!_stricmp(szLine, "on"))
+		{
+			gbTimeStampChat = false;
 		}
-		else if (!_stricmp(szLine, "off")) {
-			gbTimeStampChat = 1;
+		else if (!_stricmp(szLine, "off"))
+		{
+			gbTimeStampChat = true;
 		}
 	}
-	if (gbTimeStampChat) {
-		gbTimeStampChat = 0;
+
+	if (gbTimeStampChat)
+	{
+		gbTimeStampChat = false;
 		WriteChatColor("Chat Time Stamping is OFF", CONCOLOR_LIGHTBLUE);
+
 		WritePrivateProfileString("MacroQuest", "TimeStampChat", "0", gszINIFilename);
 	}
 	else
 	{
-		gbTimeStampChat = 1;
+		gbTimeStampChat = true;
 		WriteChatColor("Chat Time Stamping is ON", CONCOLOR_YELLOW);
+
 		WritePrivateProfileString("MacroQuest", "TimeStampChat", "1", gszINIFilename);
 	}
 }
 
 void InitializeChatHook()
 {
-	DebugSpew("Initializing chat hook");
-
 	// initialize Blech
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
-	DebugSpew("%s", pMQ2Blech->Version);
+
 	EzDetourwName(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline, "CEverQuest__dsp_chat");
 	EzDetourwName(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline, "CEverQuest__DoTellWindow");
 	EzDetourwName(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline, "CEverQuest__UPCNotificationFlush");
@@ -294,7 +356,9 @@ void ShutdownChatHook()
 	RemoveDetour(CEverQuest__dsp_chat);
 	RemoveDetour(CEverQuest__DoTellWindow);
 	RemoveDetour(CEverQuest__UPCNotificationFlush);
+
 	delete pEventBlech;
+	pEventBlech = nullptr;
 	delete pMQ2Blech;
-	pMQ2Blech = 0;
+	pMQ2Blech = nullptr;
 }

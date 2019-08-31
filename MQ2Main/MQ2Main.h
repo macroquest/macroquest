@@ -155,7 +155,7 @@ EQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 EQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 
 /* WINDOWS */
-EQLIB_API BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
+EQLIB_API HWND GetEQWindowHandle();
 EQLIB_API void InitializeMQ2Windows();
 EQLIB_API void ShutdownMQ2Windows();
 EQLIB_API void RemoveXMLFile(const char* filename);
@@ -179,7 +179,7 @@ EQLIB_API void DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 EQLIB_API void InitializeChatHook();
 EQLIB_API void ShutdownChatHook();
-EQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true, char* SomeStr = NULL);
+EQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 /* DETOURING API */
 EQLIB_API void InitializeMQ2Detours();
@@ -412,7 +412,7 @@ EQLIB_API char* GetGuildByID(int64_t GuildID);
 EQLIB_API int64_t GetGuildIDByName(char* szGuild);
 
 extern std::map<int, std::string>targetBuffSlotToCasterMap;
-extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
+extern std::map<int, std::map<int,TargetBuff>>CachedBuffsMap;
 EQLIB_API CONTENTS* GetEnviroContainer();
 EQLIB_API CContainerWnd* FindContainerForContents(CONTENTS* pContents);
 EQLIB_API float FindSpeed(SPAWNINFO* pSpawn);
@@ -572,8 +572,8 @@ EQLIB_API bool        CloseContainer(CONTENTS* pItem);
 EQLIB_API int         GetTargetBuffByCategory(int category, unsigned int classmask = 0, int startslot = 0);
 EQLIB_API int         GetTargetBuffBySubCat(const char* subcat, unsigned int classmask = 0, int startslot = 0);
 EQLIB_API int         GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-EQLIB_API bool        HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, cTargetBuff* pcTargetBuff, unsigned int classmask = 0);
-EQLIB_API bool        HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, cTargetBuff* pcTargetBuff);
+EQLIB_API bool        HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff, unsigned int classmask = 0);
+EQLIB_API bool        HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff);
 EQLIB_API int         GetSelfBuffByCategory(int category, unsigned int classmask = 0, int startslot = 0);
 EQLIB_API int         GetSelfBuffBySubCat(const char* subcat, unsigned int classmask = 0, int startslot = 0);
 EQLIB_API int         GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);

@@ -14,27 +14,27 @@
 
 #include "MQ2Main.h"
 
-// Datatype Definitions.
-#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
-	class _class_ *_var_ = 0;
+ // Datatype Definitions.
+#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_)       \
+	_class_* _var_ = nullptr;
 #include "DataTypeList.h"
 #undef DATATYPE
 
 void InitializeMQ2DataTypes()
 {
-#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
-    _var_ = new _class_; \
-    if (_inherits_ != nullptr) \
-    { \
-        _var_->SetInheritance(_inherits_); \
-    }
+#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_)       \
+	_var_ = new _class_;                                              \
+	if (_inherits_ != nullptr)                                        \
+	{                                                                 \
+		_var_->SetInheritance(_inherits_);                            \
+	}
 #include "DataTypeList.h"
 #undef DATATYPE
 }
 
 void ShutdownMQ2DataTypes()
 {
-#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
+#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_)       \
 	delete _var_;
 #include "DataTypeList.h"
 #undef DATATYPE
@@ -42,19 +42,23 @@ void ShutdownMQ2DataTypes()
 
 bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
-#define pType ((MQ2Type*)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+
 	MQ2TypeMember* pMember = MQ2TypeType::FindMember(Member);
 	if (!pMember)
 		return false;
-	switch ((TypeMembers)pMember->ID)
+
+	MQ2Type* pType = static_cast<MQ2Type*>(VarPtr.Ptr);
+
+	switch (static_cast<TypeMembers>(pMember->ID))
 	{
 	case Name:
 		strcpy_s(DataTypeTemp, pType->GetName());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
+
 	case TypeMember:
 		if (Index[0])
 		{
@@ -77,10 +81,11 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 				}
 			}
 		}
+
 		return false;
 	}
+
 	return false;
-#undef pType
 }
 
 bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
@@ -864,7 +869,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 				if (gMacroBlock && !gUndeclaredVars.empty()) {
 					WriteChatf("----------- Undeclared Variables (bad) -----------");
 					int count = 1;
-					for (std::map<std::string, int>::iterator i = gUndeclaredVars.begin(); i != gUndeclaredVars.end(); i++)
+					for (auto i = gUndeclaredVars.begin(); i != gUndeclaredVars.end(); i++)
 					{
 						MACROLINE ml = gMacroBlock->Line[i->second];
 						WriteChatf("[%d] %s see: %d@%s: %s", count++, i->first.c_str(),ml.LineNumber,ml.SourceFile.c_str(),ml.Command.c_str());
@@ -2224,10 +2229,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 			}
 			if (SpellID)
 			{
-				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+				auto ps = CachedBuffsMap.find(pSpawn->SpawnID);
 				if (ps != CachedBuffsMap.end())
 				{
-					for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
+					for (auto i = ps->second.begin(); i != ps->second.end(); i++)
 					{
 						if (i->first == SpellID)
 						{
@@ -2247,10 +2252,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 			{
 				int idx = atoi(pIndex);
 				idx--;
-				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+				auto ps = CachedBuffsMap.find(pSpawn->SpawnID);
 				if (ps != CachedBuffsMap.end())
 				{
-					std::map<int, cTargetBuff>::iterator i = ps->second.begin();
+					auto i = ps->second.begin();
 					if (i != ps->second.end())
 					{
 						if (idx < 0)
@@ -2259,7 +2264,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 						{
 							idx = NUM_BUFF_SLOTS;
 						}
-						for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
+						for (auto i = ps->second.begin(); i != ps->second.end(); i++)
 						{
 							if (i->second.slot == idx)
 							{
@@ -2280,10 +2285,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 			{
 				int idx = atoi(pIndex);
 				idx--;
-				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+				auto ps = CachedBuffsMap.find(pSpawn->SpawnID);
 				if (ps != CachedBuffsMap.end())
 				{
-					std::map<int, cTargetBuff>::iterator i = ps->second.begin();
+					auto i = ps->second.begin();
 					if (i != ps->second.end())
 					{
 						if (idx < 0)
@@ -2424,10 +2429,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 				{
 					Dest.Ptr = 0;
 					Dest.Type = pCachedBuffType;
-					std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+					auto ps = CachedBuffsMap.find(pSpawn->SpawnID);
 					if (ps != CachedBuffsMap.end())
 					{
-						for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
+						for (auto i = ps->second.begin(); i != ps->second.end(); i++)
 						{
 							if (SPELL* pSpell = GetSpellByID(i->first)) {
 								if (pSpell->SpellType != 0)
@@ -2461,7 +2466,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 	{
 		Dest.Type = pIntType;
 		Dest.DWord = -1;
-		std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
+		auto ps = CachedBuffsMap.find(pSpawn->SpawnID);
 		if (ps != CachedBuffsMap.end())
 		{
 			Dest.DWord = ps->second.size();
@@ -2715,7 +2720,7 @@ bool MQ2TargetBuffType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, M
 }
 bool MQ2CachedBuffType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
-	PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
+	TargetBuff* pcTB = (TargetBuff*)VarPtr.Ptr;
 	if (!pcTB)
 		return false;
 	int buffid = pcTB->spellId;
@@ -6451,10 +6456,10 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 				EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
 				int j = 0;
 
-				std::map<int, std::map<int, cTargetBuff>>::iterator i = CachedBuffsMap.find(pSpawn->SpawnID);
+				auto i = CachedBuffsMap.find(pSpawn->SpawnID);
 				if (i != CachedBuffsMap.end())
 				{
-					for (std::map<int, cTargetBuff>::iterator k = i->second.begin(); k != i->second.end(); k++)
+					for (auto k = i->second.begin(); k != i->second.end(); k++)
 					{
 						if (SPELL* pBuff = GetSpellByID(k->first)) {
 							pAffects[j].Type = 2;

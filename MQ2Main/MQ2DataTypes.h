@@ -1887,7 +1887,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		PcTargetBuff pcTB = (PcTargetBuff)VarPtr.Ptr;
+		TargetBuff* pcTB = (TargetBuff*)VarPtr.Ptr;
 		if (!pcTB)
 			return false;
 		if (PSPELL pSpell = GetSpellByID(pcTB->spellId))

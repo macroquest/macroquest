@@ -237,11 +237,11 @@ static bool call_function(const char* name, const char* args)
 	strcpy_s(sub_line, name);
 	if (csvColumn.size()) {
 		strcat_s(sub_line, " ");
-		for (std::list<std::string>::iterator i = csvColumn.begin(); i != csvColumn.end();i++) {
+		for (auto i = csvColumn.begin(); i != csvColumn.end();i++) {
 			strcat_s(sub_line, "\"");
 			strcat_s(sub_line, (*i).c_str());
 			strcat_s(sub_line, "\"");
-			std::list<std::string>::iterator j = i;
+			auto j = i;
 			j++;
 			if(j!=csvColumn.end())
 				strcat_s(sub_line, " ");

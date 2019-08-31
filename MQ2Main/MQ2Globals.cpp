@@ -346,7 +346,7 @@ namespace MQ2Globals
 	ULONGLONG OldLastEnteredZone = 0;
 	ULONGLONG LastEnteredZone = 0;
 	bool WereWeZoning = true;
-	BOOL gbInChat = FALSE;
+	bool gbInChat = false;
 	BOOL gFilterSkillsAll = FALSE;
 	BOOL gFilterSkillsIncrease = FALSE;
 	BOOL gFilterTarget = FALSE;
@@ -429,14 +429,14 @@ namespace MQ2Globals
 	decltype(ItemSlotMap) ItemSlotMap;
 
 	char DataTypeTemp[MAX_STRING] = { 0 };
-	cTargetBuff TargetBuffTemp = { 0 };
+	TargetBuff TargetBuffTemp = { 0 };
 
 	decltype(SpawnByName) SpawnByName;
 	MQRANK EQP_DistArray[3000];
 	DWORD gSpawnCount = 0;
 
 	// Motd and Pulse's mouse variables
-	bool gMouseClickInProgress[8] = { FALSE };
+	bool gMouseClickInProgress[8] = { false };
 
 	// End of mouse variables
 
@@ -995,12 +995,12 @@ namespace MQ2Globals
 	BYTE* gpShiftKeyDown = nullptr; // addr+1=ctrl, addr+2=alt
 	DWORD *gpMouseEventTime = nullptr;
 	DWORD *gpbCommandEvent = nullptr;
-	BOOL gbTimeStampChat = 0;
+	bool gbTimeStampChat = false;
 	BOOL gUseTradeOnTarget = 1;
-	BOOL gbBeepOnTells = 0;
-	BOOL gbFlashOnTells = 0;
+	bool gbBeepOnTells = false;
+	bool gbFlashOnTells = false;
 	BOOL gbIgnoreAlertRecursion = 0;
-	BOOL gbShowCurrentCamera = 1;
+	bool gbShowCurrentCamera = true;
 	int  oldcameratype = -1;
 	char CameraText[2048] = { "Window Selector (Camera 0)" };
 	void* EQADDR_GWORLD = nullptr;

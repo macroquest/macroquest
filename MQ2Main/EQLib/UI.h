@@ -3653,7 +3653,7 @@ public:
 	EQLIB_OBJECT void AddEquipmentToLootArray(EQ_Item*);
 	EQLIB_OBJECT void AddNoteToLootArray(EQ_Item*);
 	EQLIB_OBJECT void Deactivate(bool);
-	EQLIB_OBJECT void LootAll(bool);
+	EQLIB_OBJECT void LootAll(bool close);
 	EQLIB_OBJECT void RequestLootSlot(int Slot, bool bAutoInventory);
 	EQLIB_OBJECT void SlotLooted(int);
 	EQLIB_OBJECT void FinalizeLoot();

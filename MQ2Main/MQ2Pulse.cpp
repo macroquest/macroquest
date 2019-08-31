@@ -17,310 +17,381 @@
 #include "DebugHandler.h"
 
 #include <dbghelp.h>
-#include <locale> //for tolower
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
 bool TurnNotDone = false;
 static std::mutex s_pulseMutex;
 
-BOOL DoNextCommand(PMACROBLOCK pBlock)
+std::map<int, std::string> targetBuffSlotToCasterMap;
+std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
+
+
+static bool DoNextCommand(PMACROBLOCK pBlock)
 {
-	if (!ppCharSpawn || !pCharSpawn) return FALSE;
-	PSPAWNINFO pCharOrMount = NULL;
+	if (!ppCharSpawn || !pCharSpawn)
+		return false;
+
+	PSPAWNINFO pCharOrMount = nullptr;
 	PCHARINFO pCharInfo = GetCharInfo();
 	PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
+
 	if (pCharInfo && pCharInfo->pSpawn)
 		pChar = pCharInfo->pSpawn;
 	if (!pChar)
-	{
-		return FALSE;
-	}
+		return false;
+
+	// Don't process commands until current /face is done
 	if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && TurnNotDone)
-		return FALSE;
+		return false;
+
+	// Don't process command if we're in the middle of a mouse click.
 	if (IsMouseWaiting())
-		return FALSE;
+		return false;
+
 	if (gDelay && gDelayCondition[0])
 	{
 		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
+
 		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
+
 		double Result;
 		if (!Calculate(szCond, Result))
 		{
 			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
 			return false;
 		}
+
 		if (Result != 0)
 		{
 			DebugSpewNoFile("/delay ending early, conditions met");
 			gDelay = 0;
 		}
 	}
-	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) && gMacroStack) {
+
+	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) && gMacroStack)
+	{
 		MACROLINE ml = pBlock->Line[pBlock->CurrIndex];
-		if (pBlock->BindStackIndex == pBlock->CurrIndex) {
-			//WriteChatf("Ending Bind @ %d %s",pBlock->CurrIndex,ml.Command.c_str());
+
+		if (pBlock->BindStackIndex == pBlock->CurrIndex)
+		{
 			gBindInProgress = false;
 			pBlock->BindStackIndex = -1;
 		}
+
 		gMacroStack->LocationIndex = pBlock->CurrIndex;
 #ifdef MQ2_PROFILING
 		LARGE_INTEGER BeforeCommand;
 		QueryPerformanceCounter(&BeforeCommand);
 		int ThisMacroBlock = pBlock->CurrIndex;
 #endif
+
 		if (gbInZone && !gZoning)
 		{
 			DoCommand(pChar, (char*)ml.Command.c_str());
 			PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
 
-			if (pCurrentBlock)
+			if (!pCurrentBlock)
+				return false;
+
+			if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1)
 			{
-				if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1) {
-					if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
-						std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
-						if (i != pCurrentBlock->Line.end()) {
-							i++;
-							if (i != pCurrentBlock->Line.end()) {
-								//WriteChatf("Starting %s @ %d %s", pBlock->BindCmd.c_str(), i->first, i->second.Command.c_str());
-								pCurrentBlock->BindStackIndex = i->first;
-							}
-							else {
-								FatalError("Reached end of macro.");
-							}
+				if (ci_find_substr(ml.Command, "/varset") == 0
+					|| ci_find_substr(ml.Command, "/echo") == 0
+					|| ci_find_substr(ml.Command, "Sub") == 0
+					|| ci_find_substr(ml.Command, "/call") == 0)
+				{
+					auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+					if (iter != pCurrentBlock->Line.end())
+					{
+						iter++;
+						if (iter != pCurrentBlock->Line.end())
+						{
+							pCurrentBlock->BindStackIndex = iter->first;
 						}
-						Call(pChar, (char*)pCurrentBlock->BindCmd.c_str());
-						pCurrentBlock->BindCmd.clear();
+						else
+						{
+							FatalError("Reached end of macro.");
+						}
+					}
+
+					Call(pChar, (char*)pCurrentBlock->BindCmd.c_str());
+					pCurrentBlock->BindCmd.clear();
+				}
+			}
+
+#ifdef MQ2_PROFILING
+			LARGE_INTEGER AfterCommand;
+			QueryPerformanceCounter(&AfterCommand);
+			pCurrentBlock->Line[ThisMacroBlock].ExecutionCount++;
+			pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
+#endif
+
+			int lastindex = pCurrentBlock->Line.rbegin()->first;
+			if (pCurrentBlock->CurrIndex > lastindex)
+			{
+				FatalError("Reached end of macro.");
+			}
+			else
+			{
+				auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+				if (iter != pCurrentBlock->Line.end())
+				{
+					iter++;
+					if (iter != pCurrentBlock->Line.end())
+					{
+						pCurrentBlock->CurrIndex = iter->first;
 					}
 				}
-#ifdef MQ2_PROFILING
-				LARGE_INTEGER AfterCommand;
-				QueryPerformanceCounter(&AfterCommand);
-				pCurrentBlock->Line[ThisMacroBlock].ExecutionCount++;
-				pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
-#endif
-				int lastindex = pCurrentBlock->Line.rbegin()->first;
-				if (pCurrentBlock->CurrIndex > lastindex) {
+				else
+				{
 					FatalError("Reached end of macro.");
 				}
-				else {
-					std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
-					if (i != pCurrentBlock->Line.end()) {
-						i++;
-						if (i != pCurrentBlock->Line.end()) {
-							pCurrentBlock->CurrIndex = i->first;
-						}
-					}
-					else {
-						FatalError("Reached end of macro.");
-					}
-				}
 			}
-			else {
-				return FALSE;
-			}
-			return TRUE;
+
+			return true;
 		}
 	}
-	return FALSE;
+
+	return false;
 }
 
-//added these so I can work on making face look natural - eqmule
-void NaturalTurnOld(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
+// added these so I can work on making face look natural - eqmule
+void NaturalTurnOld(PSPAWNINFO pCharOrMount, PSPAWNINFO pChar)
 {
-	if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f) {
+	if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f)
+	{
 		pCharOrMount->Heading = (float)gFaceAngle;
 		pCharOrMount->SpeedHeading = 0.0f;
 		gFaceAngle = 10000.0f;
 	}
-	else {
+	else
+	{
 		TurnNotDone = true;
-		double c1 = pCharOrMount->Heading + 256.0f;
+		double c1 = pCharOrMount->Heading + 256.0;
 		double c2 = gFaceAngle;
-		if (c2<pChar->Heading) c2 += 512.0f;
+
+		if (c2 < pChar->Heading) c2 += 512.0f;
 		double turn = (double)(rand() % 200) / 10;
-		if (c2<c1) {
+
+		if (c2 < c1)
+		{
 			pCharOrMount->Heading += (float)turn;
 			pCharOrMount->SpeedHeading = 12.0f;
-			if (pCharOrMount->Heading >= 512.0f) pCharOrMount->Heading -= 512.0f;
+
+			if (pCharOrMount->Heading >= 512.0f)
+				pCharOrMount->Heading -= 512.0f;
 		}
-		else {
+		else
+		{
 			pCharOrMount->Heading -= (float)turn;
 			pCharOrMount->SpeedHeading = -12.0f;
-			if (pCharOrMount->Heading<0.0f) pCharOrMount->Heading += 512.0f;
+
+			if (pCharOrMount->Heading < 0.0f)
+				pCharOrMount->Heading += 512.0f;
 		}
 	}
 }
 
-void NaturalTurn(PSPAWNINFO pCharOrMount,PSPAWNINFO pChar)
+void NaturalTurn(SPAWNINFO* pCharOrMount, SPAWNINFO* pChar)
 {
-	//ok we need to turn now, but there are some things we need to take into account
-	//first of all the turn rate mkay...
+	// calc the turn rate
 	float TurnRate = 4.0f;
 	float fHeadingDiff = 0.0f;
 	float AbsHeadingDiff = HeadingDiff(pCharOrMount->Heading, (float)gFaceAngle, &fHeadingDiff);
-	if (AbsHeadingDiff < 1.0f) {
-		//thats nothing... just set it...
+
+	if (AbsHeadingDiff < 1.0f)
+	{
+		// small enough to just set the heading.
 		pCharOrMount->Heading = (float)gFaceAngle;
 		pCharOrMount->SpeedHeading = 0.0f;
 		gFaceAngle = 10000.0f;
 	}
-	else {
+	else
+	{
 		TurnNotDone = true;
-		//lets make this look natural mkay...
-		if (AbsHeadingDiff < TurnRate) {
+
+		if (AbsHeadingDiff < TurnRate)
+		{
 			TurnRate = AbsHeadingDiff;
-		} else if (AbsHeadingDiff > 128.0f)	{
+		}
+		else if (AbsHeadingDiff > 128.0f)
+		{
 			TurnRate = 9.0f;
 		}
-		if (((pCharOrMount->Heading < gFaceAngle) && (fHeadingDiff < 0.0f)) || ((gFaceAngle < pCharOrMount->Heading) && (fHeadingDiff > 0.0f)))	{
+
+		if (((pCharOrMount->Heading < gFaceAngle) && (fHeadingDiff < 0.0f))
+			|| ((gFaceAngle < pCharOrMount->Heading) && (fHeadingDiff > 0.0f)))
+		{
 			pCharOrMount->Heading = pCharOrMount->Heading - TurnRate;
-		} else {
+		}
+		else
+		{
 			pCharOrMount->Heading = pCharOrMount->Heading + TurnRate;
 		}
+
 		pCharOrMount->Heading = FixHeading(pCharOrMount->Heading);
 	}
 }
-//extern BOOL gbInForeground;
+
 void Pulse()
 {
 	static HWND EQhWnd = *(HWND*)EQADDR_HWND;
 	if (EQW_GetDisplayWindow)
 		EQhWnd = EQW_GetDisplayWindow();
+
 	gbInForeground = (GetForegroundWindow() == EQhWnd);
 
 	if (!ppCharSpawn || !pCharSpawn) return;
-	SPAWNINFO* pCharOrMount = NULL;
 
+	SPAWNINFO* pCharOrMount = nullptr;
 	CHARINFO* pCharInfo = GetCharInfo();
 	CHARINFO2* pCharInfo2 = GetCharInfo2();
 	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
-	if (pCharInfo && pCharInfo->pSpawn) pChar = pCharInfo->pSpawn;
-
-	static WORD LastZone = -1;
-
-	static SPAWNINFO* pCharOld = NULL;
-	static float LastX = 0.0f;
-	static float LastY = 0.0f;
-	static ULONGLONG LastMoveTick = 0;
-	static DWORD MapDelay = 0;
 
 	// Drop out here if we're waiting for something.
 	if (!pChar || gZoning /* || gDelayZoning*/) return;
-	if (!pCharInfo) {
-		//DebugSpew("Pulse: no charinfo returning\n");
-		return;
-	}
+	if (!pCharInfo) return;
 
-	if ((unsigned int)GetCharInfo()->charinfo_info & 0x80000000) return;
+	if (pCharInfo && pCharInfo->pSpawn)
+		pChar = pCharInfo->pSpawn;
+
+	static int16_t LastZone = -1;
+	static SPAWNINFO* pCharOld = nullptr;
+	static float LastX = 0.0f;
+	static float LastY = 0.0f;
+	static uint64_t LastMoveTick = 0;
+	static uint32_t MapDelay = 0;
 
 	if (pChar != pCharOld && WereWeZoning)
 	{
+		// Reset after zoning completes
 		WereWeZoning = false;
 		pCharOld = pChar;
 		gFaceAngle = 10000.0f;
 		gLookAngle = 10000.0f;
-		gbMoving = FALSE;
+		gbMoving = false;
 		LastX = pChar->X;
 		LastY = pChar->Y;
 		LastMoveTick = MQGetTickCount64();
 		EnviroTarget.Name[0] = 0;
-		pGroundTarget = 0;
+		pGroundTarget = nullptr;
 		ZeroMemory(&GroundObject, sizeof(GroundObject));
 		DoorEnviroTarget.Name[0] = 0;
 		DoorEnviroTarget.DisplayedName[0] = 0;
-		pDoorTarget = 0;
+		pDoorTarget = nullptr;
 
 		// see if we're on a pvp server
-		if (!_strnicmp(EQADDR_SERVERNAME, "tallon", 6) || !_strnicmp(EQADDR_SERVERNAME, "vallon", 6))
-		{
-			PVPServer = PVP_TEAM;
-		}
-		else if (!_strnicmp(EQADDR_SERVERNAME, "sullon", 6))
-		{
-			PVPServer = PVP_SULLON;
-		}
-		else if (!_strnicmp(EQADDR_SERVERNAME, "rallos", 6))
+		if (!_strnicmp(EQADDR_SERVERNAME, "zek", 3))
 		{
 			PVPServer = PVP_RALLOS;
 		}
 		else
+		{
 			PVPServer = PVP_NONE;
-		srand((unsigned int)time(NULL) + (unsigned int)GetCurrentProcessId()); // reseed
+		}
+
+		srand((unsigned int)time(nullptr)); // reseed
+
 		Benchmark(bmPluginsOnZoned, PluginsZoned());
-		
 	}
-	else if ((LastX != pChar->X) || (LastY != pChar->Y) || LastMoveTick>MQGetTickCount64() - 100) {
+	else if ((LastX != pChar->X) || (LastY != pChar->Y) || LastMoveTick > MQGetTickCount64() - 100)
+	{
 		if ((LastX != pChar->X) || (LastY != pChar->Y)) LastMoveTick = MQGetTickCount64();
-		gbMoving = TRUE;
+		gbMoving = true;
 		LastX = pChar->X;
 		LastY = pChar->Y;
 	}
-	else {
-		gbMoving = FALSE;
+	else
+	{
+		gbMoving = false;
 	}
+
 	if (!pTarget)
-		gTargetbuffs = FALSE;
-	if (pMerchantWnd && pMerchantWnd->IsVisible()==false)
-		gItemsReceived = FALSE;
-	if (gbDoAutoRun && pChar && pCharInfo) {
+		gTargetbuffs = false;
+
+	if (pMerchantWnd && !pMerchantWnd->IsVisible())
+		gItemsReceived = false;
+
+	if (gbDoAutoRun && pChar && pCharInfo)
+	{
 		gbDoAutoRun = false;
 		InitKeyRings();
-		char szServerAndName[MAX_STRING] = { 0 };
 		char szAutoRun[MAX_STRING] = { 0 };
 		char* pAutoRun = szAutoRun;
-		/* autorun for everyone */
+
+		// autorun command for everyone
 		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, gszINIFilename);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
 			DoCommand(pChar, pAutoRun);
-		/* autorun for toon */
-		ZeroMemory(szAutoRun, MAX_STRING); pAutoRun = szAutoRun;
+
+		// autorun command for toon
+		szAutoRun[0] = 0;
+		pAutoRun = szAutoRun;
+		char szServerAndName[128] = { 0 };
 		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharInfo->Name);
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, gszINIFilename);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
 			DoCommand(pChar, pAutoRun);
 	}
-	if (gbShowCurrentCamera) {
-		if (pWndMgr && pSelectorWnd) {
-			if (oldcameratype != *(DWORD*)CDisplay__cameraType) {
+
+	if (gbShowCurrentCamera)
+	{
+		if (pWndMgr && pSelectorWnd)
+		{
+			// See Also /usercamera code
+			if (oldcameratype != *(DWORD*)CDisplay__cameraType)
+			{
 				oldcameratype = *(DWORD*)CDisplay__cameraType;
 				sprintf_s(CameraText, "Selector Window (Camera %d)", oldcameratype);
 				pSelectorWnd->SetWindowText(CameraText);
 			}
 		}
 	}
-	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
+
+	if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f))
+	{
 		TurnNotDone = false;
-		if (gFaceAngle != 10000.0f) {
-			NaturalTurn(pCharOrMount,pChar);
+
+		if (gFaceAngle != 10000.0f)
+		{
+			NaturalTurn(pCharOrMount, pChar);
 		}
-		if (gLookAngle != 10000.0f) {
-			if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f) {
+
+		if (gLookAngle != 10000.0f)
+		{
+			if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f)
+			{
 				pChar->CameraAngle = (float)gLookAngle;
 				gLookAngle = 10000.0f;
 				TurnNotDone = false;
 			}
-			else {
+			else
+			{
 				TurnNotDone = true;
 				float c1 = pChar->CameraAngle;
 				float c2 = (float)gLookAngle;
 
 				double turn = (double)(rand() % 200) / 20;
-				if (c1<c2) {
+
+				if (c1 < c2)
+				{
 					pChar->CameraAngle += (float)turn;
 					if (pChar->CameraAngle >= 128.0f) pChar->CameraAngle -= 128.0f;
 				}
-				else {
+				else
+				{
 					pChar->CameraAngle -= (float)turn;
 					if (pChar->CameraAngle <= -128.0f) pChar->CameraAngle += 128.0f;
 				}
 			}
 		}
 
-		if (TurnNotDone) {
+		if (TurnNotDone)
+		{
 			bRunNextCommand = false;
 			IsMouseWaiting();
 			return;
@@ -330,21 +401,24 @@ void Pulse()
 
 int Heartbeat()
 {
-	if (gbUnload) {
+	if (gbUnload)
+	{
 		return 1;
 	}
-	if (gbLoad) {
+
+	if (gbLoad)
+	{
 		gbLoad = false;
 		return 2;
 	}
 
-	static ULONGLONG LastGetTick = 0;
+	static uint64_t LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
-	static ULONGLONG TickDiff = 0;
-	static fMQPulse pEQPlayNicePulse = NULL;
+	static uint64_t TickDiff = 0;
+	static fMQPulse pEQPlayNicePulse = nullptr;
 	static DWORD BeatCount = 0;
 
-	ULONGLONG Tick = MQGetTickCount64();
+	uint64_t Tick = MQGetTickCount64();
 
 	BeatCount++;
 
@@ -353,18 +427,22 @@ int Heartbeat()
 		LastGetTick = Tick;
 		bFirstHeartBeat = false;
 	}
+
 	// This accounts for rollover
 	TickDiff += (Tick - LastGetTick);
 	LastGetTick = Tick;
-	while (TickDiff >= 100) {
+
+	while (TickDiff >= 100)
+	{
 		TickDiff -= 100;
-		if (gDelay>0) gDelay--;
+		if (gDelay > 0) gDelay--;
 		DropTimers();
 	}
+
 	if (!gStringTableFixed && pStringTable) // Please dont remove the second condition
 	{
 		FixStringTable();
-		gStringTableFixed = TRUE;
+		gStringTableFixed = true;
 	}
 
 	DebugTry(int GameState = GetGameState());
@@ -376,6 +454,7 @@ int Heartbeat()
 			gGameState = GameState;
 			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState)));
 		}
+
 		// they "zoned" to charselect...
 		if (gZoning && (GameState == GAMESTATE_CHARSELECT || GameState == GAMESTATE_CHARCREATE))
 		{
@@ -384,33 +463,37 @@ int Heartbeat()
 		}
 	}
 	else
+	{
 		return 0;
+	}
+
 	DebugTry(UpdateMQ2SpawnSort());
 	DebugTry(DrawHUD());
+
 	if (gGameState == GAMESTATE_INGAME)
 	{
 		AddAutoBankMenu();
 		AutoBankPulse();
 	}
-	//if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
-	//{
-	//    DebugTry(pWndMgr->DrawCursor());
-	//}
 
 	bRunNextCommand = true;
 	DebugTry(Pulse());
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
 
-	if (pEQPlayNicePulse) {
+	if (pEQPlayNicePulse)
+	{
 		pEQPlayNicePulse();
 	}
-	else {
+	else
+	{
 		HMODULE hmEQPlayNice;
-		if (((BeatCount % 63) == 0) && (hmEQPlayNice = GetModuleHandle("EQPlayNice.dll"))) {
+		if (((BeatCount % 63) == 0) && (hmEQPlayNice = GetModuleHandle("EQPlayNice.dll")))
+		{
 			if (pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_ProcessFrame"))
 				pEQPlayNicePulse();
 		}
 	}
+
 	DebugTry(ProcessPendingGroundItems());
 
 	static bool ShownNews = false;
@@ -434,7 +517,7 @@ int Heartbeat()
 			return 1;
 		if (!gTurbo)
 			break;
-		if (++CurTurbo>gMaxTurbo)
+		if (++CurTurbo > gMaxTurbo)
 			break;
 
 		// re-fetch current macro block in case one of the previous instructions changed it
@@ -447,54 +530,54 @@ int Heartbeat()
 }
 
 template <unsigned int _Size>
-static void make_minidump (char* filename, EXCEPTION_POINTERS* e, char(&dumppath)[_Size])
+static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)[_Size])
 //void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
 {
 	char szTemp[MAX_PATH] = { 0 };
 	char name[MAX_PATH] = { 0 };
 	strcpy_s(name, filename);
-	if (char*pDest = strrchr(name, '\\'))
+	if (char* pDest = strrchr(name, '\\'))
 	{
 		pDest[0] = '\0';
 		pDest++;
 		strcpy_s(szTemp, pDest);
 	}
 
-
-	if (char*pDest = strstr(szTemp, "."))
+	if (char* pDest = strstr(szTemp, "."))
 		pDest[0] = '\0';
-    SYSTEMTIME t;
-    GetSystemTime(&t);
-    sprintf_s(name,"%s\\%s_%4d%02d%02d_%02d%02d%02d.dmp",gszLogPath,szTemp, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+	SYSTEMTIME t;
+	GetSystemTime(&t);
+	sprintf_s(name, "%s\\%s_%4d%02d%02d_%02d%02d%02d.dmp", gszLogPath, szTemp, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
 	auto hFile = CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    if(hFile == INVALID_HANDLE_VALUE)
-        return;
+	if (hFile == INVALID_HANDLE_VALUE)
+		return;
 
-    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
-    exceptionInfo.ThreadId = GetCurrentThreadId();
-    exceptionInfo.ExceptionPointers = e;
-    exceptionInfo.ClientPointers = FALSE;
+	MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
+	exceptionInfo.ThreadId = GetCurrentThreadId();
+	exceptionInfo.ExceptionPointers = e;
+	exceptionInfo.ClientPointers = false;
 
-    BOOL dumped = MiniDumpWriteDump(
-        GetCurrentProcess(),
-        GetCurrentProcessId(),
-        hFile,
-        MINIDUMP_TYPE(MiniDumpWithUnloadedModules | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
-        e ? &exceptionInfo : nullptr,
-        nullptr,
-        nullptr);
-	if(dumped)
+	bool dumped = MiniDumpWriteDump(
+		GetCurrentProcess(),
+		GetCurrentProcessId(),
+		hFile,
+		MINIDUMP_TYPE(MiniDumpWithUnloadedModules | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
+		e ? &exceptionInfo : nullptr,
+		nullptr,
+		nullptr);
+	if (dumped)
 		strcpy_s(dumppath, _Size, name);
-    CloseHandle(hFile);
-
-    return;
+	CloseHandle(hFile);
 }
-bool DirectoryExists(LPCTSTR lpszPath) {
+
+bool DirectoryExists(LPCTSTR lpszPath)
+{
 	DWORD dw = ::GetFileAttributes(lpszPath);
 	return (dw != INVALID_FILE_ATTRIBUTES && (dw & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
-int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...)
+
+int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
 {
 	char szOut[MAX_STRING] = { 0 };
 	char szTemp[MAX_STRING] = { 0 };
@@ -503,16 +586,16 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 	HANDLE hProcess;
 	if (!DirectoryExists(gszLogPath))
 	{
-		CreateDirectory(gszLogPath, NULL);
+		CreateDirectory(gszLogPath, nullptr);
 	}
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
 	hProcess = GetCurrentProcess();
 
-	SymInitialize(hProcess, NULL, TRUE);
+	SymInitialize(hProcess, nullptr, true);
 
 	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, gszINIFilename);
-	if(szTemp[0])
+	if (szTemp[0])
 		SymSetSearchPath(hProcess, szTemp);
 	SymGetSearchPath(hProcess, szOut, MAX_STRING);
 
@@ -520,62 +603,65 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 	DWORD  dwDisplacement;
 	IMAGEHLP_LINE64 line;
 
-
 	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 	dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = NULL;
-	GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
+	HMODULE hModule = nullptr;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
 	GetModuleFileName(hModule, szOut, MAX_STRING);
 
-	make_minidump(szOut,ex,szDumpPath);
+	make_minidump(szOut, ex, szDumpPath);
 	DWORD64  dwDisplacement2 = 0;
 	DWORD64  dwAddress2 = (DWORD64)ex->ExceptionRecord->ExceptionAddress;
-	
+
 	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
 	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
 
 	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 	pSymbol->MaxNameLen = MAX_SYM_NAME;
-	
+
 	if (SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol))
 	{
 		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
 		{
-			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
+			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber, line.Address - (DWORD)hModule, szDumpPath);
 		}
-		else {
-			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
+		else
+		{
+			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, pSymbol->Address - (DWORD)hModule, szDumpPath);
 		}
 	}
-	else {
+	else
+	{
 		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
 	}
+
 	SymCleanup(hProcess);
-	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
-	if (mbret==IDCANCEL)
+
+	int mbret = MessageBox(nullptr, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
+	if (mbret == IDCANCEL)
 	{
 		exit(0);
 	}
+
 	return EXCEPTION_EXECUTE_HANDLER;
 }
+
 int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
 {
-//int filterException(PEXCEPTION_POINTERS ex) {
 	char szOut[MAX_STRING] = { 0 };
 	char szTemp[MAX_STRING] = { 0 };
 	char szDumpPath[MAX_STRING] = { 0 };
 
-//	DWORD  error;
 	HANDLE hProcess;
 
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
 	hProcess = GetCurrentProcess();
 
-	SymInitialize(hProcess, NULL, TRUE);
+	SymInitialize(hProcess, nullptr, true);
 
 	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, gszINIFilename);
-	if(szTemp[0])
+	if (szTemp[0])
 		SymSetSearchPath(hProcess, szTemp);
 	SymGetSearchPath(hProcess, szOut, MAX_STRING);
 
@@ -583,42 +669,46 @@ int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
 	DWORD  dwDisplacement;
 	IMAGEHLP_LINE64 line;
 
-
 	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 	dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = NULL;
-	GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
+	HMODULE hModule = nullptr;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
 	GetModuleFileName(hModule, szOut, MAX_STRING);
 
-	make_minidump(szOut,ex,szDumpPath);
+	make_minidump(szOut, ex, szDumpPath);
 	DWORD64  dwDisplacement2 = 0;
 	DWORD64  dwAddress2 = (DWORD64)ex->ExceptionRecord->ExceptionAddress;
-	
+
 	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
 	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
 
 	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 	pSymbol->MaxNameLen = MAX_SYM_NAME;
-	
+
 	if (SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol))
 	{
 		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
 		{
-			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber,line.Address - (DWORD)hModule,szDumpPath);	
+			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber, line.Address - (DWORD)hModule, szDumpPath);
 		}
-		else {
-			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name,pSymbol->Address - (DWORD)hModule,szDumpPath);
+		else
+		{
+			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, pSymbol->Address - (DWORD)hModule, szDumpPath);
 		}
 	}
-	else {
+	else
+	{
 		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
 	}
+
 	SymCleanup(hProcess);
-	int mbret = MessageBox(NULL, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
-	if (mbret==IDCANCEL)
+
+	int mbret = MessageBox(nullptr, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
+	if (mbret == IDCANCEL)
 	{
 		exit(0);
 	}
+
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -627,17 +717,19 @@ void GameLoop_Detour()
 {
 	__try
 	{
-		//MessageBox(NULL, "Starting EQ", "", MB_SYSTEMMODAL | MB_OK);
+		//MessageBox(nullptr, "Starting EQ", "", MB_SYSTEMMODAL | MB_OK);
 		GameLoop_Tramp();
 	}
 	//__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), "GameLoop_Detour %d",1))
 	__except (MQ2ExceptionFilter2(GetExceptionInformation()))
 	{
 		//RemoveDetour(__GameLoop);
-		MessageBox(NULL, "Exception caught in GameLoop", "", MB_SYSTEMMODAL | MB_OK);
+		MessageBox(nullptr, "Exception caught in GameLoop", "", MB_SYSTEMMODAL | MB_OK);
 		exit(0);
 	}
 }
+DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
+
 // ***************************************************************************
 // Function:    ProcessGameEvents
 // Description: Our ProcessGameEvents Hook
@@ -691,13 +783,10 @@ bool Detour_ProcessGameEvents()
 }
 DETOUR_TRAMPOLINE_EMPTY(bool Trampoline_ProcessGameEvents());
 
-std::map<int, std::string> targetBuffSlotToCasterMap;
-std::map<int, std::map<int, cTargetBuff>> CachedBuffsMap;
-
 void RemoveLoginPulse();
-DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
 
-class CEverQuestHook {
+class CEverQuestHook
+{
 public:
 	void EnterZone_Trampoline(void* pVoid);
 	void EnterZone_Detour(void* pVoid)
@@ -708,70 +797,93 @@ public:
 	void SetGameState_Trampoline(DWORD GameState);
 	void SetGameState_Detour(DWORD GameState)
 	{
-		//DebugSpew("SetGameState_Detour(%d)",GameState);
 		SetGameState_Trampoline(GameState);
+
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
-		if (GameState == GAMESTATE_LOGGINGIN) {
+
+		if (GameState == GAMESTATE_LOGGINGIN)
+		{
 			RemoveLoginPulse();
 		}
 	}
+
 	void CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
 	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
 	{
-		CMerchantWnd*me = (CMerchantWnd*)this;
-		CMerchantWnd*me2 = (CMerchantWnd*)pMerchantWnd;
-		gItemsReceived = FALSE;
+		gItemsReceived = false;
+
 		CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
-		gItemsReceived = TRUE;
+
+		gItemsReceived = true;
 	}
+
 	void CTargetWnd__RefreshTargetBuffs_Trampoline(BYTE*);
 	void CTargetWnd__RefreshTargetBuffs_Detour(BYTE* buffer)
 	{
-		//ok so we can cache songs as well here, they are not displayed in the client for some reason...
+		// ok so we can cache songs as well here, they are not displayed in the client for some reason...
+		gTargetbuffs = false;
 
-		gTargetbuffs = FALSE;
 		int count = 0;
+
 		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
 		CTargetWnd* pTW = (CTargetWnd*)this;
-		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-			if (pTW->BuffSpellID[i] > 0)
+
+		for (int i : pTW->BuffSpellID)
+		{
+			if (i > 0)
 				count++;
-        targetBuffSlotToCasterMap.clear();
+		}
+		targetBuffSlotToCasterMap.clear();
 
-        CUnSerializeBuffer* packet = (CUnSerializeBuffer*)buffer;
-        packet->Reset();
+		CUnSerializeBuffer* packet = (CUnSerializeBuffer*)buffer;
+		packet->Reset();
 
-        cTargetHeader header;
+		struct TargetHeader
+		{
+			int m_id;
+			int m_timeNext;
+			bool m_bComplete;
+			short m_count;
+		};
+		TargetHeader header;
 
-        packet->Read( header.m_id );
-        packet->Read( header.m_timeNext );
-        packet->Read( header.m_bComplete );
-        packet->Read( header.m_count );
-        cTargetBuff curBuff;
-		//should we clear it here?
-		//if (pTarget && header.m_bComplete) {
-			int id = pTarget->SpawnID;
-			CachedBuffsMap[id].clear();
-		//}
-        for( int i = 0; i < header.m_count; i++ ) {
-			ZeroMemory(&curBuff, sizeof(cTargetBuff));
-            packet->Read( curBuff.slot );
-            packet->Read( curBuff.spellId );
-            packet->Read( curBuff.duration );
-            packet->Read( curBuff.count );
-            packet->ReadpChar( curBuff.casterName );
-			if (pTarget) {
+		packet->Read(header.m_id);
+		packet->Read(header.m_timeNext);
+		packet->Read(header.m_bComplete);
+		packet->Read(header.m_count);
+		TargetBuff curBuff;
+
+		int id = pTarget->SpawnID;
+		CachedBuffsMap[id].clear();
+
+		for (int i = 0; i < header.m_count; i++)
+		{
+			ZeroMemory(&curBuff, sizeof(TargetBuff));
+			packet->Read(curBuff.slot);
+			packet->Read(curBuff.spellId);
+			packet->Read(curBuff.duration);
+			packet->Read(curBuff.count);
+			packet->ReadpChar(curBuff.casterName);
+
+			if (pTarget)
+			{
 				curBuff.timeStamp = EQGetTime();
 				CachedBuffsMap[pTarget->SpawnID][curBuff.spellId] = curBuff;
-				if ((curBuff.slot >= 42 && (pTarget->Type == SPAWN_PLAYER || pTarget->Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
+
+				if ((curBuff.slot >= 42 && (pTarget->Type == SPAWN_PLAYER || pTarget->Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0))
+				{
 					continue;
 				}
+
 				targetBuffSlotToCasterMap[curBuff.slot] = curBuff.casterName;
 			}
-        }
-		if (gbAssistComplete == 1) {
+		}
+
+		if (gbAssistComplete == 1)
+		{
 			gbAssistComplete = 2;
 		}
+
 		gTargetbuffs = count + 1;
 	}
 
@@ -788,24 +900,17 @@ public:
 	}
 };
 
-int isNotOKToReadMemory(void *ptr, DWORD size)
+bool isNotOKToReadMemory(void* ptr, DWORD size)
 {
-	size_t	dw;
-	MEMORY_BASIC_INFORMATION	mbi;
-	int	ok;
+	MEMORY_BASIC_INFORMATION mbi;
+	size_t dw = VirtualQuery(ptr, &mbi, sizeof(mbi));
 
-	dw = VirtualQuery(ptr, &mbi, sizeof(mbi));
-	ok = ((mbi.Protect & PAGE_READONLY) ||
-		  (mbi.Protect & PAGE_READWRITE) ||
-		  (mbi.Protect & PAGE_WRITECOPY) ||
-		  (mbi.Protect & PAGE_EXECUTE_READ) ||
-		  (mbi.Protect & PAGE_EXECUTE_READWRITE) ||
-		  (mbi.Protect & PAGE_EXECUTE_WRITECOPY));
-	if (mbi.Protect & PAGE_GUARD)
-		ok = FALSE;
-	if (mbi.Protect & PAGE_NOACCESS)
-		ok = FALSE;
-	return !ok;
+	if ((mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) != 0)
+		return true;
+
+	DWORD flags = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+
+	return (mbi.Protect & flags) == 0;
 }
 
 void RemoveLoginPulse()
@@ -865,11 +970,11 @@ void InitializeMQ2Pulse()
 	std::scoped_lock lock(s_pulseMutex);
 
 	//EzDetourwName(__GameLoop, GameLoop_Detour, GameLoop_Tramp,"GameLoop");
-	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
+	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents, "ProcessGameEvents");
 	//EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
-	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
+	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline, "CEverQuest__SetGameState");
 	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline, "CTargetWnd__RefreshTargetBuffs");
-	EzDetourwName(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline,"CMerchantWnd__PurchasePageHandler__UpdateList");
+	EzDetourwName(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline, "CMerchantWnd__PurchasePageHandler__UpdateList");
 
 	InitializeLoginPulse();
 

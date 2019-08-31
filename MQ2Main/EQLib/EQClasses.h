@@ -31,15 +31,7 @@ namespace eqlib {
 class CMemoryStream;
 class CVector3;
 
-struct cTargetHeader
-{
-	int m_id;
-	int m_timeNext;
-	bool m_bComplete;
-	short m_count;
-};
-
-struct cTargetBuff
+struct TargetBuff
 {
 	int slot;
 	int spellId;
@@ -50,7 +42,7 @@ struct cTargetBuff
 	// not actually part of this packet but we need it for cachedbuffs map
 	DWORD timeStamp;         // when the buffpacket arrived.
 };
-using PcTargetBuff = cTargetBuff*;
+using PTargetBuff [[deprecated("Use TargetBuff* Instead")]] = TargetBuff*;
 
 struct AggroMeterListEntry
 {

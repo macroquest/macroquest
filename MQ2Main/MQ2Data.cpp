@@ -895,7 +895,7 @@ BOOL dataIni(char* szIndex, MQ2TYPEVAR& Ret)
 	std::map<DWORD, DWORD>argmap;
 	std::string sTemp = szIndex;
 	//lets see how many commas are in the string
-	for (std::string::iterator i = sTemp.begin(); i != sTemp.end(); i++) {
+	for (auto i = sTemp.begin(); i != sTemp.end(); i++) {
 		if (i[0] == ',' && i + 1 != sTemp.end() && i[1] != ' ') {
 			argmap[count] = std::distance(sTemp.begin(), i);
 			count++;

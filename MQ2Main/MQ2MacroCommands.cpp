@@ -44,7 +44,7 @@ void FailIf(SPAWNINFO* pChar, char* szCommand, int StartLine, BOOL All)
 					FatalError("{} pairing ran into anther subroutine");
 					return;
 				}
-				std::map<int, MACROLINE>::iterator forward = i;
+				auto forward = i;
 				forward++;
 				if (forward == gMacroBlock->Line.end()) {
 					gMacroBlock->CurrIndex = StartLine;
@@ -698,7 +698,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 	//std::advance(gMacroBlock->CurrIndex, 1);
-	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+	auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
 	if (i != gMacroBlock->Line.end()) {
 		std::advance(i, 1);
 		gMacroBlock->CurrIndex = i->first;
@@ -802,7 +802,7 @@ void Goto(PSPAWNINFO pChar, char* szLine)
 		}
 	}
 	//now that we found our start lets look forward for the goto label:
-	std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(FromIndex);
+	auto i = gMacroBlock->Line.find(FromIndex);
 	for (; i != gMacroBlock->Line.end(); i++)
 	{
 		if (!_strnicmp(i->second.Command.c_str(), "Sub ", 4))
@@ -876,7 +876,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	}
 	/////////////// 
 	// Code allowing for a routine for "OnExit"
-	for (std::map<int, MACROLINE>::iterator i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
+	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
 	{
 		if (!_stricmp(":OnExit", i->second.Command.c_str()))
 		{
@@ -909,7 +909,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 
 	char Filename[MAX_STRING] = { 0 };
 	FILE *fMacro = NULL;
-	for (std::map<int, MACROLINE>::iterator i = pBlock->Line.begin(); i != pBlock->Line.end(); i++) {
+	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); i++) {
 		// Is this a different macro file?
 		if (strcmp(Filename, i->second.SourceFile.c_str())) {
 			// Close existing file
@@ -1417,7 +1417,7 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 
 		// back the current location to previous one so we fall into
 		// /doevents again.
-		std::map<int, MACROLINE>::iterator i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+		auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
 		i--;
 		if (i != gMacroBlock->Line.end())
 			pStack->LocationIndex = i->first;

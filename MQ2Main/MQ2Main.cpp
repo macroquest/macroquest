@@ -393,16 +393,15 @@ bool MQ2Initialize()
 		// I dont know why but if we dont sleep here for a while
 		// we will crash but only if I have a detour on wwsCrashReportCheckForUploader
 		// I suspect Lax would know more about this than me -eqmule
-		DWORD lReturn = GetCurrentProcessId();
-		DWORD pid = lReturn;
+		HWND hEQWnd = nullptr;
 
 		// we use this loop to just wait for wineq2 to get the eqwindow up and running before we move on
 		// there is some kind of weird race condition going on... again lax would know more about this than I...
-		while (lReturn == pid)
+		while (hEQWnd == nullptr)
 		{
-			EnumWindows(EnumWindowsProc, (LPARAM)&lReturn);
+			hEQWnd = GetEQWindowHandle();
 
-			if (lReturn == pid)
+			if (!hEQWnd)
 			{
 				Sleep(1000);
 			}
