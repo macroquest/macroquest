@@ -188,9 +188,9 @@ int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, char* pStart, char* p
 
 void DumpWarning(const char* pStart, int index)
 {
-	if (PMACROBLOCK pBlock = GetCurrentMacroBlock())
+	if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
 	{
-		MACROLINE ml = pBlock->Line[index];
+		MQMacroLine ml = pBlock->Line[index];
 		BOOL oldbAllErrorsDumpStack = bAllErrorsDumpStack;
 		BOOL oldbAllErrorsFatal = bAllErrorsFatal;
 		bAllErrorsDumpStack = FALSE;
@@ -212,7 +212,7 @@ static bool call_function(const char* name, const char* args)
 {
 	std::list<std::string>csvColumn;
 	const char *mystart=args;
-	bool instring{false};        
+	bool instring{false};
 	std::string str;
 	for (const char* p=mystart; *p; p++) {
 		if (*p==',') {
@@ -301,7 +301,7 @@ bool EvaluateDataExpression(MQ2TYPEVAR& Result, char* pStart, char* pIndex, bool
 		{
 			if (!call_function(pStart, pIndex))
 				return false;
-			strcpy_s(DataTypeTemp, gMacroStack->Return);
+			strcpy_s(DataTypeTemp, gMacroStack->Return.c_str());
 			Result.Ptr = &DataTypeTemp[0];
 			Result.Type = pStringType;
 		}
@@ -1123,7 +1123,7 @@ BOOL ParseMacroData(char* szOriginal, size_t BufferSize)
 		// If the result is larger than MAX_STRING
 		if (strReturn.length() >= MAX_STRING) {
 			// If we are currently in a macro block
-			if (PMACROBLOCK currblock = GetCurrentMacroBlock()) {
+			if (MQMacroBlockPtr currblock = GetCurrentMacroBlock()) {
 				//currblock->Line[currblock->CurrIndex].Command.c_str();
 				MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d",
 					currblock->Line[currblock->CurrIndex].SourceFile.c_str(),
@@ -1224,7 +1224,7 @@ BOOL ParseMacroData(char* szOriginal, size_t BufferSize)
 			int addrlen = (int)(pBrace - szOriginal);
 			if (NewLength > BufferSize - addrlen)
 			{
-				if (PMACROBLOCK currblock = GetCurrentMacroBlock())
+				if (MQMacroBlockPtr currblock = GetCurrentMacroBlock())
 				{
 					//currblock->Line[currblock->CurrIndex].Command.c_str();
 					SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?",

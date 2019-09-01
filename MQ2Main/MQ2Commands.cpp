@@ -167,9 +167,9 @@ void SuperWho(PSPAWNINFO pChar, char* szLine)
 		}
 		else if (!strcmp(szArg, "sort")) {
 			GetArg(szArg, szRest, 1);
-			//  <name|level|distance|race|class|guild|id> 
+			//  <name|level|distance|race|class|guild|id>
 			char* szSortBy[] = {
-				"level",   // Default sort by 
+				"level",   // Default sort by
 				"name",
 				"race",
 				"class",
@@ -203,23 +203,19 @@ void SuperWho(PSPAWNINFO pChar, char* szLine)
 // Function:    MacroPause
 // Description: Our '/mqpause' command
 //              Pause/resume a macro
-// Usage:       /mqpause <off> 
-//            /mqpause chat [on|off] 
+// Usage:       /mqpause <off>
+//            /mqpause chat [on|off]
 // ***************************************************************************
 void MacroPause(PSPAWNINFO pChar, char* szLine)
 {
-	BOOL Pause = TRUE;
+	bool Pause = true;
 	char szBuffer[MAX_STRING] = { 0 };
 
 	DWORD Command;
 	char szArg[MAX_STRING] = { 0 };
 	char szArg1[MAX_STRING] = { 0 };
 
-	char* szPause[] = {
-		"off",
-		"on",
-		NULL
-	};
+	char* szPause[] = { "off", "on", nullptr };
 
 	bRunNextCommand = true;
 
@@ -243,7 +239,7 @@ void MacroPause(PSPAWNINFO pChar, char* szLine)
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		return;
 	}
-	PMACROBLOCK pBlock = GetCurrentMacroBlock();
+	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if (!pBlock) {
 		MacroError("You cannot pause a macro when one isn't running.");
 		return;
@@ -1016,7 +1012,7 @@ void MemSpell(PSPAWNINFO pSpawn, char* szLine)
 // Function:    selectitem
 // Description: Our '/selectitem' command
 // Usage:       /selectitem Name
-// 
+//
 // will select the specified item in your inventory if merchantwindow is open
 // ***************************************************************************
 void SelectItem(PSPAWNINFO pChar, char* szLine)
@@ -3038,7 +3034,7 @@ void SetAutoRun(PSPAWNINFO pChar, char* szLine)
 // Function:   IniOutput our /ini command
 // Description:   Outputs string data to an INI file using WritePrivateProfileString.
 // If the inifile does'nt exist one will be created.
-// Usage:     	
+// Usage:
 //
 //	/ini "someini.ini" "the section" "NULL" "NULL"
 //	adds a key named NULL and a value named NULL under the [the section]:
@@ -3301,7 +3297,7 @@ void DoMappable(PSPAWNINFO pChar, char* szLine)
 					pWndMgr->HandleKeyboardMsg(Temp.Data[3], 0);
 				}
 				else {
-					// ugly ass hack -- the ':' char no longer 
+					// ugly ass hack -- the ':' char no longer
 					// seems to be handled independently.  simulate
 					// a shift and a ;
 					pWndMgr->HandleKeyboardMsg(0x2a, 1);

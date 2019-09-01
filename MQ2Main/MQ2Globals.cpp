@@ -284,12 +284,12 @@ namespace MQ2Globals
 	bool gbLoad = true;
 	DWORD gpHook = 0;
 	HMODULE ghmq2ic = nullptr;
-	PMACROBLOCK gMacroBlock = nullptr;
+	MQMacroBlockPtr gMacroBlock = nullptr;
 	int BlockIndex = 0;
-	PMACROSTACK gMacroStack = nullptr;
+	MQMacroStack* gMacroStack = nullptr;
 	decltype(gMacroSubLookupMap) gMacroSubLookupMap;
 	decltype(gUndeclaredVars) gUndeclaredVars;
-	PEVENTQUEUE gEventQueue = nullptr;
+	MQEventQueue* gEventQueue = nullptr;
 	int gEventFunc[NUM_EVENTS] = { 0 };
 	UCHAR gLastFind = 0;
 	double gZFilter = 10000.0f;
@@ -329,7 +329,7 @@ namespace MQ2Globals
 	Blech *pMQ2Blech = nullptr;
 	char EventMsg[MAX_STRING] = { 0 };
 	Blech *pEventBlech = nullptr;
-	PEVENTLIST pEventList = nullptr;
+	MQEventList* pEventList = nullptr;
 
 	DWORD gEventChat = 0;
 	ULONGLONG gRunning = 0;
@@ -392,10 +392,10 @@ namespace MQ2Globals
 	PDOOR pDoorTarget = nullptr;
 	PITEMDB gItemDB = nullptr;
 	bool bRunNextCommand = false;
-	BOOL gTurbo = FALSE;
-	BOOL gWarning = FALSE;
-	PDEFINE pDefines = nullptr;
-	PBINDLIST pBindList = nullptr;
+	bool gTurbo = false;
+	bool gWarning = false;
+	MQDefine* pDefines = nullptr;
+	MQBindList* pBindList = nullptr;
 	char gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = nullptr;
 

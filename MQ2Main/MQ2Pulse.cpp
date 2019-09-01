@@ -26,15 +26,14 @@ static std::mutex s_pulseMutex;
 std::map<int, std::string> targetBuffSlotToCasterMap;
 std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
-
-static bool DoNextCommand(PMACROBLOCK pBlock)
+static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
 	if (!ppCharSpawn || !pCharSpawn)
 		return false;
 
-	PSPAWNINFO pCharOrMount = nullptr;
-	PCHARINFO pCharInfo = GetCharInfo();
-	PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
+	SPAWNINFO* pCharOrMount = nullptr;
+	CHARINFO* pCharInfo = GetCharInfo();
+	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
 
 	if (pCharInfo && pCharInfo->pSpawn)
 		pChar = pCharInfo->pSpawn;
@@ -72,7 +71,7 @@ static bool DoNextCommand(PMACROBLOCK pBlock)
 
 	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) && gMacroStack)
 	{
-		MACROLINE ml = pBlock->Line[pBlock->CurrIndex];
+		MQMacroLine ml = pBlock->Line[pBlock->CurrIndex];
 
 		if (pBlock->BindStackIndex == pBlock->CurrIndex)
 		{
@@ -90,7 +89,7 @@ static bool DoNextCommand(PMACROBLOCK pBlock)
 		if (gbInZone && !gZoning)
 		{
 			DoCommand(pChar, (char*)ml.Command.c_str());
-			PMACROBLOCK pCurrentBlock = GetCurrentMacroBlock();
+			MQMacroBlockPtr pCurrentBlock = GetCurrentMacroBlock();
 
 			if (!pCurrentBlock)
 				return false;
@@ -506,7 +505,7 @@ int Heartbeat()
 
 	DWORD CurTurbo = 0;
 
-	PMACROBLOCK pBlock = GetNextMacroBlock();
+	MQMacroBlockPtr pBlock = GetNextMacroBlock();
 	while (bRunNextCommand)
 	{
 		if (!pBlock)

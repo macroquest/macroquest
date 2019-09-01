@@ -765,7 +765,7 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 	return pchar_out_string_position;
 }
 
-char* GetFilenameFromFullPath(char* Filename)
+const char* GetFilenameFromFullPath(const char* Filename)
 {
 	while (Filename && strstr(Filename, "\\"))
 		Filename = strstr(Filename, "\\") + 1;
@@ -774,7 +774,7 @@ char* GetFilenameFromFullPath(char* Filename)
 
 char* GetSubFromLine(int Line, char* szSub, size_t Sublen)
 {
-	std::map<int, MACROLINE>::reverse_iterator ri(gMacroBlock->Line.find(Line));
+	std::map<int, MQMacroLine>::reverse_iterator ri(gMacroBlock->Line.find(Line));
 	for (; ri != gMacroBlock->Line.rend();ri++) {
 	//while (pLine != NULL) {
 		if (!_strnicmp(ri->second.Command.c_str(), "sub ", 4)) {

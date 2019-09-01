@@ -55,7 +55,7 @@ static std::vector<std::string> s_delayedCommands;
 static std::map<std::string, std::string> mAliases;
 
 
-void pop_loop();
+void PopMacroLoop();
 
 void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 {
@@ -99,13 +99,13 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 		return;
 	}
 
-	PMACROBLOCK pBlock = GetCurrentMacroBlock();
+	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if (szArg1[0] == '}')
 	{
 		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0)
 		{
 			pBlock->CurrIndex = pBlock->Line[pBlock->CurrIndex].LoopStart;
-			pop_loop();
+			PopMacroLoop();
 			return;
 		}
 
@@ -188,7 +188,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 		pCommand = pCommand->pNext;
 	}
 
-	PBINDLIST pBind = pBindList;
+	MQBindList* pBind = pBindList;
 	while (pBind)
 	{
 		if (gGameState != GAMESTATE_INGAME)
@@ -406,8 +406,8 @@ public:
 				pCommand = pCommand->pNext;
 			}
 
-			PBINDLIST pBind = pBindList;
-			PMACROBLOCK pBlock = GetCurrentMacroBlock();
+			MQBindList* pBind = pBindList;
+			MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 			while (pBind)
 			{
 				if (gGameState != GAMESTATE_INGAME)

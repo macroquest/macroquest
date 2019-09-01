@@ -247,7 +247,7 @@ EQLIB_API void EndMacro(PSPAWNINFO, char*);
 EQLIB_API void Echo(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
-void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues);
+void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
 
 EQLIB_API char* ParseMacroParameter(PSPAWNINFO pChar, char* szOriginal, size_t BufferSize);
 
@@ -257,7 +257,7 @@ inline char* ParseMacroParameter(PSPAWNINFO pChar, char(&szOriginal)[_Size])
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
 
-EQLIB_API void FailIf(PSPAWNINFO pChar, char* szCommand, int pStartLine, BOOL All = FALSE);
+EQLIB_API void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All = false);
 EQLIB_API void InitializeParser();
 EQLIB_API void ShutdownParser();
 
@@ -324,7 +324,6 @@ EQLIB_API void DebugSpewAlwaysFile(char* szFormat, ...);
 EQLIB_API void DebugSpewNoFile(char* szFormat, ...);
 EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, char Separator = 0);
 EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, char Separator = 0, BOOL AnyNonAlphaNum = FALSE);
-EQLIB_API void AddCustomEvent(PEVENTLIST pEList, char* szLine);
 EQLIB_API float DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 
@@ -336,7 +335,7 @@ EQLIB_API DWORD MQToSTML(const char* in, char* out, DWORD maxlen = MAX_STRING, D
 EQLIB_API void StripMQChat(const char* in, char* out);
 EQLIB_API void STMLToPlainText(char* in, char* out);
 EQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
-EQLIB_API char* GetFilenameFromFullPath(char* Filename);
+EQLIB_API const char* GetFilenameFromFullPath(const char* Filename);
 EQLIB_API BOOL CompareTimes(char* RealTime, char* ExpectedTime);
 EQLIB_API void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API void DefaultFilters();
@@ -401,7 +400,7 @@ EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 
 #include "MQ2DataTypes.h"
 
-EQLIB_API BOOL AddMacroLine(char* FileName, char* szLine, size_t Linelen, int *LineNumber, int localLine);
+EQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
 EQLIB_API const char* GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
@@ -472,8 +471,7 @@ EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *fi
 EQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
-EQLIB_API char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
-//EQLIB_API char* GetFuncParam(char* szMacroLine, DWORD ParamNum, char* szParamName, char* szParamType);
+EQLIB_API char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
 EQLIB_API PDATAVAR FindMQ2DataVariable(const char* Name);
 EQLIB_API bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default);
 EQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, MQ2TYPEVAR Default);
@@ -522,21 +520,15 @@ extern void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
 EQLIB_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 
 EQLIB_API void        OverwriteTable(DWORD Address);
-EQLIB_API DWORD      Include(char* szFile, int *LineNumber);
+EQLIB_API bool        Include(const char* szFile, int* LineNumber);
 EQLIB_API char*       GetFullZone(DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID(char* ZoneShortName);
 EQLIB_API char*       GetShortZone(DWORD ZoneID);
-//EQLIB_API void        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
-//EQLIB_API void        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
-//EQLIB_API void        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
-//EQLIB_API void        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding = 0, DWORD Color = 0);
 EQLIB_API float       DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API float       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API DWORD WINAPI InsertCommands(void* lpParameter);
 EQLIB_API void        UpdateMonitoredSpawns();
 EQLIB_API char*       GetModel(PSPAWNINFO pSpawn, DWORD Slot);
-//EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
-//EQLIB_API BOOL        IfCompare               (char* szCond);
 EQLIB_API bool        PlayerHasAAAbility(DWORD AAIndex);
 EQLIB_API char*       GetAANameByIndex(DWORD AAIndex);
 EQLIB_API DWORD       GetAAIndexByName(char* AAName);
@@ -594,8 +586,8 @@ EQLIB_API HANDLE hLoadComplete;
 
 EQLIB_API void AttackRanged(PlayerClient* pRangedTarget = pTarget);
 EQLIB_API void UseAbility(char *sAbility);
-EQLIB_OBJECT PMACROBLOCK GetNextMacroBlock();
-EQLIB_OBJECT PMACROBLOCK GetCurrentMacroBlock();
+EQLIB_OBJECT MQMacroBlockPtr GetNextMacroBlock();
+EQLIB_OBJECT MQMacroBlockPtr GetCurrentMacroBlock();
 EQLIB_API int GetMacroBlockCount();
 EQLIB_API void EndAllMacros();
 //                                                                                               //

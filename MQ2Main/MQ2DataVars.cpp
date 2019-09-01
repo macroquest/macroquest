@@ -86,7 +86,7 @@ bool AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type* pType, PDATAVAR* 
 	pVar->ppHead = ppHead;
 	pVar->pNext = *ppHead;
 	*ppHead = pVar;
-	pVar->pPrev = 0;
+	pVar->pPrev = nullptr;
 	if (pVar->pNext)
 		pVar->pNext->pPrev = pVar;
 	strcpy_s(pVar->szName, Name);
@@ -496,12 +496,14 @@ void NewVardata(PSPAWNINFO pChar, char* szLine)
 
 void AddEvent(DWORD Event, char* FirstArg, ...)
 {
-    PEVENTQUEUE pEvent = NULL;
+    MQEventQueue* pEvent = nullptr;
     if (!gEventFunc[Event])
         return;
+
 	//this is deleted in 2 locations DoEvents and EndMacro
 	DebugSpewNoFile("Adding Event %d %s", Event, FirstArg);
-	pEvent = new EVENTQUEUE;
+
+	pEvent = new MQEventQueue;
     if (!pEvent)
         return;
 	pEvent->Parameters = 0;
@@ -543,66 +545,79 @@ void AddEvent(DWORD Event, char* FirstArg, ...)
     }
     else
     {
-        PEVENTQUEUE pTemp = NULL;
+        MQEventQueue* pTemp = nullptr;
         for (pTemp = gEventQueue;pTemp->pNext;pTemp=pTemp->pNext);
         pTemp->pNext = pEvent;
         pEvent->pPrev=pTemp;
     }
 }
 
-void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues)
+void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues)
 {
-    DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'",ID,pData,pValues,EventMsg);
-    PEVENTLIST pEList=(PEVENTLIST)pData;
-    PEVENTQUEUE pEvent = NULL;
-    if (!pEList->pEventFunc) 
-    {
-        DebugSpew("EventBlechCallback() -- pEventFunc is NULL, cannot call event sub");
-        return;
-    }
-    pEvent = (PEVENTQUEUE)malloc(sizeof(EVENTQUEUE));
-    if (!pEvent) 
-        return;
-    ZeroMemory(pEvent,sizeof(EVENTQUEUE));
-    pEvent->Type = EVENT_CUSTOM;
-    pEvent->pEventList = pEList;
-    char szParamName[MAX_STRING] = {0};
-    char szParamType[MAX_STRING] = {0};
-	if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
-		GetFuncParam((char*)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
+	DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'", ID, pData, pValues, EventMsg);
+
+	MQEventList* pEList = (MQEventList*)pData;
+	MQEventQueue* pEvent = nullptr;
+
+	if (!pEList->pEventFunc)
+	{
+		DebugSpew("EventBlechCallback() -- pEventFunc is NULL, cannot call event sub");
+		return;
 	}
-    MQ2Type *pType = FindMQ2DataType(szParamType);
-    if (!pType)
-        pType=pStringType;
 
-    AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,EventMsg);
-    DWORD nParam=1;
-    while(pValues)
-    {
-        if (pValues->Name[0]!='*')
-        {
-			if (gMacroBlock->Line.find(pEList->pEventFunc) != gMacroBlock->Line.end()) {
-				GetFuncParam((char*)gMacroBlock->Line[pEList->pEventFunc].Command.c_str(), atoi(pValues->Name), szParamName, MAX_STRING, szParamType, MAX_STRING);
+	pEvent = new MQEventQueue();
+	if (!pEvent)
+		return;
+
+	ZeroMemory(pEvent, sizeof(MQEventQueue));
+	pEvent->Type = EVENT_CUSTOM;
+	pEvent->pEventList = pEList;
+	char szParamName[MAX_STRING] = { 0 };
+	char szParamType[MAX_STRING] = { 0 };
+
+	auto eventIter = gMacroBlock->Line.find(pEList->pEventFunc);
+	if (eventIter != gMacroBlock->Line.end())
+	{
+		GetFuncParam(&eventIter->second.Command[0], 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
+	}
+
+	MQ2Type* pType = FindMQ2DataType(szParamType);
+	if (!pType)
+		pType = pStringType;
+
+	AddMQ2DataEventVariable(szParamName, "", pType, &pEvent->Parameters, EventMsg);
+
+	while (pValues)
+	{
+		if (pValues->Name[0] != '*')
+		{
+			auto eventIter = gMacroBlock->Line.find(pEList->pEventFunc);
+			if (eventIter != gMacroBlock->Line.end())
+			{
+				GetFuncParam(&eventIter->second.Command[0], atoi(pValues->Name), szParamName, MAX_STRING, szParamType, MAX_STRING);
 			}
-			MQ2Type *pType = FindMQ2DataType(szParamType);
-            if (!pType)
-                pType=pStringType;
-            AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,pValues->Value);    
-        }
-        pValues=pValues->pNext;
-    }
 
-    if (!gEventQueue) 
-    {
-        gEventQueue = pEvent;
-    } 
-    else 
-    {
-        PEVENTQUEUE pTemp;
-        for (pTemp = gEventQueue;pTemp->pNext;pTemp=pTemp->pNext);
-        pTemp->pNext = pEvent;
-        pEvent->pPrev=pTemp;
-    }
+			MQ2Type* pType = FindMQ2DataType(szParamType);
+			if (!pType)
+				pType = pStringType;
+
+			AddMQ2DataEventVariable(szParamName, "", pType, &pEvent->Parameters, pValues->Value);
+		}
+
+		pValues = pValues->pNext;
+	}
+
+	if (!gEventQueue)
+	{
+		gEventQueue = pEvent;
+	}
+	else
+	{
+		MQEventQueue* pTemp;
+		for (pTemp = gEventQueue; pTemp->pNext; pTemp = pTemp->pNext);
+		pTemp->pNext = pEvent;
+		pEvent->pPrev = pTemp;
+	}
 
 }
 
@@ -715,7 +730,7 @@ void CheckChatForEvent(const char* szMsg)
 	EventMsg[0] = 0;
 	TellCheck(szClean);
 
-	PMACROBLOCK pBlock = GetCurrentMacroBlock();
+	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if ((pBlock && !pBlock->Line.empty()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning))
 	{
 		char Arg1[MAX_STRING] = { 0 };

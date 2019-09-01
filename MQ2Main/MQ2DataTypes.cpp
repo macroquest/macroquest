@@ -871,7 +871,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 					int count = 1;
 					for (auto i = gUndeclaredVars.begin(); i != gUndeclaredVars.end(); i++)
 					{
-						MACROLINE ml = gMacroBlock->Line[i->second];
+						MQMacroLine ml = gMacroBlock->Line[i->second];
 						WriteChatf("[%d] %s see: %d@%s: %s", count++, i->first.c_str(),ml.LineNumber,ml.SourceFile.c_str(),ml.Command.c_str());
 					}
 				}
@@ -884,7 +884,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 				return false;
 		}
 	}
-		
+
 	MQ2TypeMember* pMember = MQ2MacroType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -902,7 +902,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 	{
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (PMACROBLOCK pBlock = GetCurrentMacroBlock())
+		if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
 		{
 			Dest.DWord = pBlock->Paused;
 		}
@@ -910,7 +910,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 	}
 	case Return:
 		Dest.Ptr = &DataTypeTemp[0];
-		strcpy_s(DataTypeTemp, gMacroStack->Return);
+		strcpy_s(DataTypeTemp, gMacroStack->Return.c_str());
 		Dest.Type = pStringType;
 		return true;
 	case IsTLO:
@@ -933,7 +933,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		PMACROSTACK pStack = gMacroStack;
+		MQMacroStack* pStack = gMacroStack;
 		while (pStack) {
 			Dest.DWord++;
 			pStack = pStack->pNext;
@@ -988,18 +988,18 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYP
 		{
 			int size = 0;
 			if (gMacroStack) {
-				PMACROSTACK pStack = gMacroStack;
+				MQMacroStack* pStack = gMacroStack;
 				while (pStack) {
 					size += sizeof(pStack);
 					pStack = pStack->pNext;
 				}
 			}
 			if (gMacroBlock) {
-				PMACROBLOCK pBlock = gMacroBlock;
+				MQMacroBlockPtr pBlock = gMacroBlock;
 				size += sizeof(pBlock);
 			}
 			if (gEventQueue) {
-				PEVENTQUEUE pQueue = gEventQueue;
+				MQEventQueue* pQueue = gEventQueue;
 				while (pQueue) {
 					size += sizeof(pQueue);
 					pQueue = pQueue->pNext;

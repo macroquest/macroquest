@@ -225,27 +225,37 @@ namespace MQ2Internal {
         DWORD Y;
     } PACKLOC, *PPACKLOC;
 
-	typedef struct _MACROLINE {
+	struct MQMacroLine
+	{
 		std::string Command;
 		std::string SourceFile;
 		int LoopStart;
-		int LoopEnd;//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated. -eqmule
+
+		//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated.
+		int LoopEnd;
 		int LineNumber;
 #ifdef MQ2_PROFILING
 		DWORD ExecutionCount;
 		LONGLONG ExecutionTime;
 #endif
-	} MACROLINE,*PMACROLINE;
-	struct MACROBLOCK {
-		std::string Name;//our macro Name
-		BOOL Paused;
-		int CurrIndex;//the current macro line we are on
-		int BindStackIndex;//where we were at before calling the bind.
-		std::string BindCmd;//the actual command including parameters
-		std::map<int, MACROLINE>Line;
-		bool Removed;
 	};
-	using PMACROBLOCK = std::shared_ptr<MACROBLOCK>;
+	using PMACROLINE [[deprecated("Use MQMacroLine* instead")]] = MQMacroLine;
+	using MACROLINE [[deprecated("Use MQMacroLine instead")]] = MQMacroLine;
+
+	struct MQMacroBlock
+	{
+		std::string Name;       // our macro Name
+		bool Paused = false;
+		int CurrIndex = 0;      // the current macro line we are on
+		int BindStackIndex;     // where we were at before calling the bind.
+		std::string BindCmd;    // the actual command including parameters
+		std::map<int, MQMacroLine> Line;
+		bool Removed = false;
+	};
+	using MQMacroBlockPtr = std::shared_ptr<MQMacroBlock>;
+
+	using PMACROBLOCK [[deprecated("Use MQMacroBlockPtr instead")]] = MQMacroBlockPtr;
+	using MACROBLOCK [[deprecated("Use MQMacroBlock instead")]] = MQMacroBlock;
 
     typedef struct _MQTIMER {
         char szName[MAX_VARNAME];
@@ -270,26 +280,36 @@ namespace MQ2Internal {
         char szName[256];
     } ITEMDB, *PITEMDB;
 
-    typedef struct _DEFINE {
-        struct _DEFINE *pNext;
-        char szName[MAX_STRING];
-        char szReplace[MAX_STRING];
-    } DEFINE, *PDEFINE;
+	struct MQDefine
+	{
+		char szName[MAX_STRING];
+		char szReplace[MAX_STRING];
 
-    typedef struct _EVENTLIST {
-        struct _EVENTLIST *pNext;
-        char szName[MAX_STRING];
-        char szMatch[MAX_STRING];
-        int pEventFunc;
-        DWORD BlechID;
-    } EVENTLIST, *PEVENTLIST;
+		MQDefine* pNext = nullptr;
+	};
 
-    typedef struct _BINDLIST {
-        struct _BINDLIST *pNext;
-        char szName[MAX_STRING];
-        char szFuncName[MAX_STRING];
+	struct MQEventList
+	{
+		char szName[MAX_STRING];
+		char szMatch[MAX_STRING];
+		int pEventFunc = 0;
+		DWORD BlechID = 0;
+
+		MQEventList* pNext = nullptr;
+	};
+	using EVENTLIST [[deprecated("Use MQEventList instead")]] = MQEventList;
+	using PEVENTLIST [[deprecated("Use MQEventList* instead")]] = MQEventList*;
+
+	struct MQBindList
+	{
+		char szName[MAX_STRING];
+		char szFuncName[MAX_STRING];
 		bool Parse = true;
-    } BINDLIST, *PBINDLIST;
+
+		MQBindList* pNext = nullptr;
+	};
+	using BINDLIST [[deprecated("Use MQBindList instead")]] = MQBindList;
+	using PBINDLIST [[deprecated("Use MQBindList* instead")]] = MQBindList*;
 
     typedef struct _FILTER {
         struct _FILTER *pNext;
@@ -1137,41 +1157,52 @@ namespace MQ2Internal {
 		return result;
 	}
 
-struct Loop
+struct MQLoop
 {
-	enum Type {None,For,While};
-	Type type{None};
-	int	first_line{0};
-	int last_line{0};
-	std::string for_variable;
+	enum Type { None, For, While };
+	Type type = None;
+	int	firstLine = 0;
+	int lastLine = 0;
+	std::string forVariable;
 };
 
-    typedef struct MACROSTACK {
-		bool bIsBind;
-         int LocationIndex;
-        struct MACROSTACK *pNext;
-        char Return[MAX_STRING];
-        PDATAVAR Parameters;
-        PDATAVAR LocalVariables;
-		std::vector<Loop> loop_stack;
-	} *PMACROSTACK;
+struct MQMacroStack
+{
+	bool bIsBind = false;
+	int LocationIndex = 0;
+	PDATAVAR Parameters = nullptr;
+	PDATAVAR LocalVariables = nullptr;
+	std::vector<MQLoop> loopStack;
+	std::string Return;
 
-    typedef struct _EVENTQUEUE {
-        struct _EVENTQUEUE *pPrev;
-        struct _EVENTQUEUE *pNext;
-        DWORD Type;
-		std::string Name;
-        PEVENTLIST pEventList;
-        PDATAVAR Parameters;
-    } EVENTQUEUE, *PEVENTQUEUE;
-
-	struct MercDesc
-	{
-		std::string Race;
-		std::string Type;
-		std::string Confidence;
-		std::string Proficiency;
-	};
+	MQMacroStack* pNext;
 };
+using PMACROSTACK [[deprecated("Use MQMacroStack* instead")]] = MQMacroStack *;
+using MACROSTACK [[deprecated("Use MQMacroStack instead")]] = MQMacroStack;
+
+struct MQEventQueue
+{
+	MQEventQueue* pPrev;
+	MQEventQueue* pNext;
+
+	DWORD Type;
+	std::string Name;
+
+	MQEventList* pEventList;
+	PDATAVAR Parameters;
+};
+using EVENTQUEUE [[deprecated("Use MQEventQueue instead")]] = MQEventQueue;
+using PEVENTQUEUE [[deprecated("Use MQEventQueue* instead")]] = MQEventQueue*;
+
+struct MercDesc
+{
+	std::string Race;
+	std::string Type;
+	std::string Confidence;
+	std::string Proficiency;
+};
+
+}
+
 using namespace MQ2Internal;
 
