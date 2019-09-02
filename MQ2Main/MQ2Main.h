@@ -489,15 +489,15 @@ EQLIB_API void DropTimers();
 
 EQLIB_API BOOL LoadCfgFile(char* Filename, BOOL Delayed = FromPlugin);
 //EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName);
-EQLIB_API void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
+EQLIB_API void ClearSearchSpawn(SEARCHSPAWN* pSearchSpawn);
 EQLIB_API SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
-EQLIB_API DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin = FALSE);
-EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
-EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
-EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2);
-EQLIB_API char* ParseSearchSpawnArgs(char* szArg, char* szRest, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API void ParseSearchSpawn(char* Buffer, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API char* FormatSearchSpawn(char* Buffer, size_t BufferSize, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API DWORD CountMatchingSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin = FALSE);
+EQLIB_API PSPAWNINFO SearchThroughSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar);
+EQLIB_API BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
+EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(SEARCHSPAWN* pSearchSpawn1, SEARCHSPAWN* pSearchSpawn2);
+EQLIB_API char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn);
+EQLIB_API void ParseSearchSpawn(char* Buffer, SEARCHSPAWN* pSearchSpawn);
+EQLIB_API char* FormatSearchSpawn(char* Buffer, size_t BufferSize, SEARCHSPAWN* pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius);
 EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
 EQLIB_API BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
@@ -514,7 +514,6 @@ EQLIB_API void RewriteAliases();
 EQLIB_API void WriteAliasToIni(const char* Name, const char* Command);
 EQLIB_API DWORD FindSpellListByName(char* szName);
 EQLIB_API float StateHeightMultiplier(DWORD StandState);
-EQLIB_API DWORD WINAPI thrMsgBox(void* lpParameter);
 extern void SuperWhoDisplay(SPAWNINFO* pChar, SEARCHSPAWN* pSearchSpawn, DWORD Color);
 extern void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
 EQLIB_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
@@ -597,7 +596,7 @@ EQLIB_API void EndAllMacros();
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
 
-EQLIB_API BOOL Calculate(char* szFormula, double& Dest);
+EQLIB_API bool Calculate(const char* szFormula, double& Dest);
 
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"

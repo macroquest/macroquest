@@ -7124,12 +7124,15 @@ bool MQ2ItemSpellType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ
 bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
 	DWORD N, cmp, tmp;
-#define pItem ((CONTENTS*)VarPtr.Ptr)
+
 	if (!VarPtr.Ptr)
 		return false;
+	CONTENTS* pItem = static_cast<CONTENTS*>(VarPtr.Ptr);
+
 	PITEMINFO pItemInfo = GetItemFromContents(pItem);
 	if (!pItemInfo)
 		return false;
+
 	MQ2TypeMember* pMember = MQ2ItemType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -8511,8 +8514,8 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPE
 		Dest.Type = pIntType;
 		return true;
 	}
+
 	return false;
-#undef pItem
 }
 
 bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
@@ -10276,12 +10279,12 @@ bool MQ2EverQuestType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ
 		return true;
 
 	case MouseX:
-		Dest.DWord = ((PMOUSEINFO)EQADDR_MOUSE)->X;
+		Dest.DWord = EQADDR_MOUSE->X;
 		Dest.Type = pIntType;
 		return true;
 
 	case MouseY:
-		Dest.DWord = ((PMOUSEINFO)EQADDR_MOUSE)->Y;
+		Dest.DWord = EQADDR_MOUSE->Y;
 		Dest.Type = pIntType;
 		return true;
 
@@ -11898,43 +11901,52 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2T
 
 bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
 {
-#define pTimer ((PMQTIMER)VarPtr.Ptr)
-	if (!pTimer)
+	if (!VarPtr.Ptr)
 		return false;
+	MQTimer* pTimer = static_cast<MQTimer*>(VarPtr.Ptr);
+
 	MQ2TypeMember* pMethod = MQ2TimerType::FindMethod(Member);
-	if (pMethod) {
-		switch ((TimerMethods)pMethod->ID)
+	if (pMethod)
+	{
+		switch (static_cast<TimerMethods>(pMethod->ID))
 		{
 		case Expire:
 			pTimer->Current = 0;
 			return true;
+
 		case Reset:
 			pTimer->Current = pTimer->Original;
 			return true;
+
 		case Set:
-		{
 			FromString(VarPtr, Index);
 			return true;
-		}
+
+		default: break;
 		}
 		return false;
 	}
+
 	MQ2TypeMember* pMember = MQ2TimerType::FindMember(Member);
 	if (!pMember)
 		return false;
-	switch ((TimerMembers)pMember->ID)
+
+	switch (static_cast<TimerMembers>(pMember->ID))
 	{
 	case Value:
 		Dest.DWord = pTimer->Current;
 		Dest.Type = pIntType;
 		return true;
+
 	case OriginalValue:
 		Dest.DWord = pTimer->Original;
 		Dest.Type = pIntType;
 		return true;
+
+	default: break;
 	}
+
 	return false;
-#undef pTimer
 }
 
 bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)

@@ -310,7 +310,7 @@ bool ParseINIFile(const char* lpINIPath)
 		fgets(szBuffer, MAX_STRING, fDB);
 		while ((!feof(fDB)) && (strstr(szBuffer, "\t")))
 		{
-			if (PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB)))
+			if (ITEMDB* Item = new ITEMDB())
 			{
 				Item->pNext = gItemDB;
 				Item->ID = atoi(szBuffer);
@@ -336,6 +336,7 @@ bool ParseINIFile(const char* lpINIPath)
 				}
 			}
 		}
+
 		fclose(fDB);
 	}
 

@@ -188,7 +188,7 @@ EQLIB_VAR char EventMsg[MAX_STRING];
 EQLIB_VAR Blech* pEventBlech;
 EQLIB_VAR MQEventList* pEventList;
 
-EQLIB_VAR PMQTIMER gTimer;
+EQLIB_VAR MQTimer* gTimer;
 EQLIB_VAR LONG gDelay;
 EQLIB_VAR char gDelayCondition[MAX_STRING];
 EQLIB_VAR SPAWNINFO EnviroTarget;
@@ -259,19 +259,19 @@ EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD2;
 EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD3;
 EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD4;
 
-EQLIB_VAR PMOUSEINFO EQADDR_MOUSE;
-EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
+EQLIB_VAR MOUSEINFO* EQADDR_MOUSE;
+EQLIB_VAR MOUSECLICK* EQADDR_MOUSECLICK;
 
-EQLIB_VAR PMAPLABEL * ppCurrentMapLabel;
+EQLIB_VAR PMAPLABEL* ppCurrentMapLabel;
 #define pCurrentMapLabel (*ppCurrentMapLabel)
 
 EQLIB_VAR char* gpbRangedAttackReady;
 #define gbRangedAttackReady (*gpbRangedAttackReady)
 EQLIB_VAR char* gpbShowNetStatus;
 #define gbShowNetStatus (*gpbShowNetStatus)
-EQLIB_VAR DWORD * gpShowNames;
+EQLIB_VAR DWORD* gpShowNames;
 #define gShowNames (*gpShowNames)
-EQLIB_VAR DWORD * gpPCNames;
+EQLIB_VAR DWORD* gpPCNames;
 #define gPCNames (*gpPCNames)
 EQLIB_VAR BYTE* gpAutoFire;
 #define gAutoFire (*gpAutoFire)

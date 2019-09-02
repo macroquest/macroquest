@@ -680,6 +680,8 @@ struct [[offsetcomments]] SPAWNINFO
 	EQLIB_OBJECT int   GetCurrentEndurance() const;
 	EQLIB_OBJECT int   GetMaxEndurance() const;
 	EQLIB_OBJECT int   GetSpellCooldownETA() const;
+
+	// TODO: Add a PlayerClient() constructor
 };
 using PSPAWNINFO /*[[deprecated]]*/ = SPAWNINFO*;
 

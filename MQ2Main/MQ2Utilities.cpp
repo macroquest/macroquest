@@ -801,8 +801,7 @@ BOOL CompareTimes(char* RealTime, char* ExpectedTime)
 
 void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled)
 {
-	PFILTER New = (PFILTER)malloc(sizeof(FILTER));
-	if (!New) return;
+	FILTER* New = new FILTER();
 	if (Length == -1) Length = strlen(szFilter);
 	strcpy_s(New->FilterText, szFilter);
 	New->Length = Length;
@@ -1627,7 +1626,7 @@ bool ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* pContents)
 BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResult)
 {
 	// TODO
-#define Result(pContents, nresult) {   \
+#define DoResult(pContents, nresult) { \
 	if (pResult)                       \
 		*pResult = pContents;          \
 	if (nResult)                       \
@@ -1644,7 +1643,7 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 				{
 					if (CONTENTS* pContents = pChar2->pInventoryArray->InventoryArray[N]) {
 						if (ItemMatchesSearch(SearchItem, pContents)) {
-							Result(pContents, N);
+							DoResult(pContents, N);
 						}
 					}
 				}
@@ -1658,7 +1657,7 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 					if (CONTENTS* pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
 					{
 						if (ItemMatchesSearch(SearchItem, pContents))
-							Result(pContents, nPack + 21);
+							DoResult(pContents, nPack + 21);
 					}
 				}
 				for (nPack = 0; nPack < 10; nPack++)
@@ -1671,7 +1670,7 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 							{
 								if (CONTENTS* pItem = pContents->GetContent(nItem))
 									if (ItemMatchesSearch(SearchItem, pItem))
-										Result(pItem, nPack * 100 + nItem);
+										DoResult(pItem, nPack * 100 + nItem);
 							}
 						}
 					}
@@ -1682,11 +1681,12 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 	// TODO
 	return 0;
 }
+#undef DoResult
 #undef RequireFlag
 #undef Flag
 #undef MaskSet
 
-void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
+void ClearSearchSpawn(SEARCHSPAWN* pSearchSpawn)
 {
 	if (!pSearchSpawn) return;
 	ZeroMemory(pSearchSpawn, sizeof(SEARCHSPAWN));
@@ -1700,7 +1700,6 @@ void ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 		pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
 	else if(pLocalPlayer)
 		pSearchSpawn->zLoc = ((PSPAWNINFO)pLocalPlayer)->Z;
-
 }
 
 // *************************************************************************** 
@@ -4551,234 +4550,235 @@ int CalcOpPrecedence[CO_TOTAL] =
 	0,
 	0,
 	0,
-	9,//add
-	9,//subtract
-	10,//multiply
-	10,//divide
-	10,//integer divide
-	2,//logical and
-	5,//bitwise and
-	1,//logical or
-	3,//bitwise or
-	4,//bitwise xor
-	6,//equal
-	6,//not equal
-	7,//greater
-	7,//not greater
-	7,//less
-	7,//not less
-	10,//modulus
-	11,//power
-	12,//logical not
-	12,//bitwise not
-	8,//shl
-	8,//shr
-	12,//negate
+	9,    // add
+	9,    // subtract
+	10,   // multiply
+	10,   // divide
+	10,   // integer divide
+	2,    // logical and
+	5,    // bitwise and
+	1,    // logical or
+	3,    // bitwise or
+	4,    // bitwise xor
+	6,    // equal
+	6,    // not equal
+	7,    // greater
+	7,    // not greater
+	7,    // less
+	7,    // not less
+	10,   // modulus
+	11,   // power
+	12,   // logical not
+	12,   // bitwise not
+	8,    // shl
+	8,    // shr
+	12,   // negate
 };
 
-struct _CalcOp
+struct CalcOp
 {
 	eCalcOp Op;
 	double Value;
 };
 
-BOOL EvaluateRPN(_CalcOp *pList, int Size, double &Result)
+BOOL EvaluateRPN(CalcOp* pList, int Size, double& Result)
 {
 	if (!Size)
 		return 0;
-	int StackSize = (sizeof(double)*(Size / 2 + 2));
-	if(double *pStack = (double*)malloc(StackSize)) {
-		int nStack = 0;
-		#define StackEmpty() (nStack==0)
-		#define StackTop() (pStack[nStack])
-		#define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
-		#define StackPush(val) {nStack++;pStack[nStack]=val;}
-		#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pStack);return 0;};nStack--;}
 
-		#define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(double)(((int)StackTop())##op##RightSide));}
-		#define BinaryOp(op) {double RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
-		#define BinaryAssign(op) {double RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
+	std::unique_ptr<double[]> stackPtr = std::make_unique<double[]>(Size / 2 + 2);
+	double* pStack = stackPtr.get();
 
-		#define UnaryIntOp(op) {StackSetTop(=op##((int)StackTop()));}
-		#define UnaryOp(op)    {StackSetTop(=op##(StackTop()));}
-		for (int i = 0; i < Size; i++)
+	int nStack = 0;
+
+#define StackEmpty()           (nStack==0)
+#define StackTop()             (pStack[nStack])
+#define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
+#define StackPush(val)         {nStack++;pStack[nStack]=val;}
+#define StackPop()             {if (!nStack) {FatalError("Illegal arithmetic in calculation"); return 0;}; nStack--;}
+
+#define BinaryIntOp(op)        {int RightSide=(int)StackTop();StackPop();StackSetTop(=(double)(((int)StackTop())##op##RightSide));}
+#define BinaryOp(op)           {double RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
+#define BinaryAssign(op)       {double RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
+
+#define UnaryIntOp(op)         {StackSetTop(=op##((int)StackTop()));}
+#define UnaryOp(op)            {StackSetTop(=op##(StackTop()));}
+
+	for (int i = 0; i < Size; i++)
+	{
+		switch (pList[i].Op)
 		{
-			switch (pList[i].Op)
+		case CO_NUMBER:
+			StackPush(pList[i].Value);
+			break;
+		case CO_ADD:
+			BinaryAssign(+);
+			break;
+		case CO_MULTIPLY:
+			BinaryAssign(*);
+			break;
+		case CO_SUBTRACT:
+			BinaryAssign(-);
+			break;
+		case CO_NEGATE:
+			UnaryOp(-);
+			break;
+		case CO_DIVIDE:
+			if (StackTop())
 			{
-			case CO_NUMBER:
-				StackPush(pList[i].Value);
-				break;
-			case CO_ADD:
-				BinaryAssign(+);
-				break;
-			case CO_MULTIPLY:
-				BinaryAssign(*);
-				break;
-			case CO_SUBTRACT:
-				BinaryAssign(-);
-				break;
-			case CO_NEGATE:
-				UnaryOp(-);
-				break;
-			case CO_DIVIDE:
-				if (StackTop())
-				{
-					BinaryAssign(/ );
-				}
-				else
-				{
-					//printf("Divide by zero error\n");
-					FatalError("Divide by zero in calculation");
-					free(pStack);
-					return false;
-				}
-				break;
-			case CO_IDIVIDE://TODO: SPECIAL HANDLING
+				BinaryAssign(/);
+			}
+			else
 			{
-				int Right = (int)StackTop();
-				if (Right)
-				{
-					StackPop();
-					int Left = (int)StackTop();
-					Left /= Right;
-					StackSetTop(= Left);
-				}
-				else
-				{
-					//printf("Integer divide by zero error\n");
-					FatalError("Divide by zero in calculation");
-					free(pStack);
-					return false;
-				}
+				//printf("Divide by zero error\n");
+				FatalError("Divide by zero in calculation");
+				return false;
 			}
 			break;
-			case CO_MODULUS://TODO: SPECIAL HANDLING
+
+		case CO_IDIVIDE://TODO: SPECIAL HANDLING
+		{
+			int Right = (int)StackTop();
+			if (Right)
 			{
-				int Right = (int)StackTop();
-				if (Right)
-				{
-					StackPop();
-					int Left = (int)StackTop();
-					Left %= Right;
-					StackSetTop(= Left);
-				}
-				else
-				{
-					//printf("Modulus by zero error\n");
-					FatalError("Modulus by zero in calculation");
-					free(pStack);
-					return false;
-				}
-			}
-			break;
-			case CO_LAND:
-				BinaryOp(&&);
-				break;
-			case CO_LOR:
-				BinaryOp(|| );
-				break;
-			case CO_EQUAL:
-				BinaryOp(== );
-				break;
-			case CO_NOTEQUAL:
-				BinaryOp(!= );
-				break;
-			case CO_GREATER:
-				BinaryOp(>);
-				break;
-			case CO_NOTGREATER:
-				BinaryOp(<= );
-				break;
-			case CO_LESS:
-				BinaryOp(<);
-				break;
-			case CO_NOTLESS:
-				BinaryOp(>= );
-				break;
-			case CO_SHL:
-				BinaryIntOp(<< );
-				break;
-			case CO_SHR:
-				BinaryIntOp(>> );
-				break;
-			case CO_AND:
-				BinaryIntOp(&);
-				break;
-			case CO_OR:
-				BinaryIntOp(| );
-				break;
-			case CO_XOR:
-				BinaryIntOp(^);
-				break;
-			case CO_LNOT:
-				UnaryIntOp(!);
-				break;
-			case CO_NOT:
-				UnaryIntOp(~);
-				break;
-			case CO_POWER:
-			{
-				double RightSide = StackTop();
 				StackPop();
-				StackSetTop(= pow(StackTop(), RightSide));
+				int Left = (int)StackTop();
+				Left /= Right;
+				StackSetTop(= Left);
 			}
-			break;
+			else
+			{
+				//printf("Integer divide by zero error\n");
+				FatalError("Divide by zero in calculation");
+				return false;
 			}
 		}
-		Result = StackTop();
+		break;
 
-		#undef StackEmpty
-		#undef StackTop
-		#undef StackPush
-		#undef StackPop
-		try {
-			free(pStack);
-			return true;
-		} catch(...) {
-			MessageBox(NULL, "Tried to free the stack in EvaluateRPN but failed", "MQ2 Error", MB_SYSTEMMODAL | MB_OK);
+		case CO_MODULUS://TODO: SPECIAL HANDLING
+		{
+			int Right = (int)StackTop();
+			if (Right)
+			{
+				StackPop();
+				int Left = (int)StackTop();
+				Left %= Right;
+				StackSetTop(= Left);
+			}
+			else
+			{
+				//printf("Modulus by zero error\n");
+				FatalError("Modulus by zero in calculation");
+				return false;
+			}
+		}
+		break;
+
+		case CO_LAND:
+			BinaryOp(&&);
+			break;
+		case CO_LOR:
+			BinaryOp(|| );
+			break;
+		case CO_EQUAL:
+			BinaryOp(== );
+			break;
+		case CO_NOTEQUAL:
+			BinaryOp(!= );
+			break;
+		case CO_GREATER:
+			BinaryOp(>);
+			break;
+		case CO_NOTGREATER:
+			BinaryOp(<= );
+			break;
+		case CO_LESS:
+			BinaryOp(<);
+			break;
+		case CO_NOTLESS:
+			BinaryOp(>= );
+			break;
+		case CO_SHL:
+			BinaryIntOp(<< );
+			break;
+		case CO_SHR:
+			BinaryIntOp(>> );
+			break;
+		case CO_AND:
+			BinaryIntOp(&);
+			break;
+		case CO_OR:
+			BinaryIntOp(| );
+			break;
+		case CO_XOR:
+			BinaryIntOp(^);
+			break;
+		case CO_LNOT:
+			UnaryIntOp(!);
+			break;
+		case CO_NOT:
+			UnaryIntOp(~);
+			break;
+		case CO_POWER:
+		{
+			double RightSide = StackTop();
+			StackPop();
+			StackSetTop(= pow(StackTop(), RightSide));
+		}
+		break;
 		}
 	}
-	return false;
+
+	Result = StackTop();
+
+#undef StackEmpty
+#undef StackTop
+#undef StackPush
+#undef StackPop
+
+	delete[] pStack;
+	return true;
 }
 
-BOOL FastCalculate(char* szFormula, double &Result)
+bool FastCalculate(char* szFormula, double &Result)
 {
 	//DebugSpew("FastCalculate(%s)",szFormula);
 	if (!szFormula || !szFormula[0])
 		return false;
+
 	int Length = (int)strlen(szFormula);
 	int MaxOps = (Length + 1);
-	int ListSize = sizeof(_CalcOp)*MaxOps;
-	int StackSize = sizeof(eCalcOp)*MaxOps;
-	_CalcOp *pOpList = (_CalcOp *)malloc(ListSize);
-	eCalcOp *pStack = (eCalcOp *)malloc(StackSize);
-	memset(pOpList, 0, ListSize);
-	memset(pStack, 0, StackSize);
+
+	std::unique_ptr<CalcOp[]> OpsList = std::make_unique<CalcOp[]>(MaxOps);
+	CalcOp* pOpList = OpsList.get();
+	memset(pOpList, 0, sizeof(CalcOp) * MaxOps);
+
+	std::unique_ptr<eCalcOp[]> Stack = std::make_unique<eCalcOp[]>(MaxOps);
+	eCalcOp* pStack = Stack.get();
+	memset(pStack, 0, sizeof(eCalcOp) * MaxOps);
+
 	int nOps = 0;
 	int nStack = 0;
-	char *pEnd = szFormula + Length;
+	char* pEnd = szFormula + Length;
 	char CurrentToken[MAX_STRING] = { 0 };
-	char *pToken = &CurrentToken[0];
+	char* pToken = &CurrentToken[0];
 
-#define OpToList(op) {pOpList[nOps].Op=op;nOps++;}
-#define ValueToList(val) {pOpList[nOps].Value=val;nOps++;}
-#define StackEmpty() (nStack==0)
-#define StackTop() (pStack[nStack])
-#define StackPush(op) {nStack++;pStack[nStack]=op;}
-#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pOpList);free(pStack);return 0;} nStack--;}
-#define HasPrecedence(a,b) (CalcOpPrecedence[a]>=CalcOpPrecedence[b])
-#define MoveStack(op)  \
-    { \
-    while(!StackEmpty() && StackTop()!=CO_OPENPARENS && HasPrecedence(StackTop(),op)) \
-    { \
-    OpToList(StackTop()); \
-    StackPop(); \
-    } \
-    }
-
-#define FinishString() {if (pToken!=&CurrentToken[0]) {*pToken=0;ValueToList(atof(CurrentToken));pToken=&CurrentToken[0];*pToken=0;}}
-#define NewOp(op) {FinishString();MoveStack(op);StackPush(op);}
-#define NextChar(ch) {*pToken=ch;pToken++;}
+#define OpToList(op)         { pOpList[nOps].Op = op; nOps++; }
+#define ValueToList(val)     { pOpList[nOps].Value = val; nOps++; }
+#define StackEmpty()         (nStack == 0)
+#define StackTop()           (pStack[nStack])
+#define StackPush(op)        { nStack++; pStack[nStack] = op; }
+#define StackPop()           { if (!nStack) { FatalError("Illegal arithmetic in calculation"); return 0; } nStack--;}
+#define HasPrecedence(a,b)   ( CalcOpPrecedence[a] >= CalcOpPrecedence[b])
+#define MoveStack(op) {                                                                        \
+	while (!StackEmpty() && StackTop() != CO_OPENPARENS && HasPrecedence(StackTop(), op)) {    \
+		OpToList(StackTop());                                                                  \
+		StackPop();                                                                            \
+	}                                                                                          \
+}
+#define FinishString()       { if (pToken != &CurrentToken[0]) { *pToken = 0; ValueToList(atof(CurrentToken)); pToken = &CurrentToken[0]; *pToken=0; }}
+#define NewOp(op)            { FinishString(); MoveStack(op); StackPush(op); }
+#define NextChar(ch)         { *pToken = ch; pToken++; }
 
 	bool WasParen = false;
 	for (char *pCur = szFormula; pCur<pEnd; pCur++)
@@ -4896,8 +4896,6 @@ BOOL FastCalculate(char* szFormula, double &Result)
 			{
 				//printf("Unparsable: '%c'\n",*pCur);
 				// error
-				free(pOpList);
-				free(pStack);
 				return false;
 			}
 			break;
@@ -4951,8 +4949,6 @@ BOOL FastCalculate(char* szFormula, double &Result)
 			//printf("Unparsable: '%c'\n",*pCur);
 			FatalError("Unparsable in Calculation: '%c'", *pCur);
 			// unparsable
-			free(pOpList);
-			free(pStack);
 			return false;
 		}
 		break;
@@ -4966,26 +4962,16 @@ BOOL FastCalculate(char* szFormula, double &Result)
 		OpToList(StackTop());
 		StackPop();
 	}
-	free(pStack);
-	/*
-	for (int i = 0 ; i < nOps ; i++)
-	{
-	if (pOpList[i].Op)
-	printf("Op: %d\n",pOpList[i].Op);
-	else
-	printf("Value: %f\n",pOpList[i].Value);
-	}
-	/**/
-	BOOL Ret = EvaluateRPN(pOpList, nOps, Result);
-	free(pOpList);
-	return Ret;
+
+	return EvaluateRPN(pOpList, nOps, Result);
 }
 
-BOOL Calculate(char* szFormula, double &Result)
+bool Calculate(const char* szFormula, double& Result)
 {
 	char Buffer[MAX_STRING] = { 0 };
 	strcpy_s(Buffer, szFormula);
 	_strupr_s(Buffer);
+
 	while (char* pNull = strstr(Buffer, "NULL"))
 	{
 		pNull[0] = '0';
@@ -4993,6 +4979,7 @@ BOOL Calculate(char* szFormula, double &Result)
 		pNull[2] = '0';
 		pNull[3] = '0';
 	}
+
 	while (char* pTrue = strstr(Buffer, "TRUE"))
 	{
 		pTrue[0] = '1';
@@ -5000,6 +4987,7 @@ BOOL Calculate(char* szFormula, double &Result)
 		pTrue[2] = '0';
 		pTrue[3] = '0';
 	}
+
 	while (char* pFalse = strstr(Buffer, "FALSE"))
 	{
 		pFalse[0] = '0';
@@ -5008,8 +4996,8 @@ BOOL Calculate(char* szFormula, double &Result)
 		pFalse[3] = '0';
 		pFalse[4] = '0';
 	}
-	BOOL Ret;
-	//Benchmark(bmCalculate,Ret=ActualCalculate(Buffer,Result));
+
+	bool Ret;
 	Benchmark(bmCalculate, Ret = FastCalculate(Buffer, Result));
 	return Ret;
 }
@@ -5271,7 +5259,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 	return false;
 }
 
-char* FormatSearchSpawn(char* Buffer, size_t BufferSize, PSEARCHSPAWN pSearchSpawn)
+char* FormatSearchSpawn(char* Buffer, size_t BufferSize, SEARCHSPAWN* pSearchSpawn)
 {
 	if (!Buffer)
 		return NULL;
@@ -5461,7 +5449,7 @@ SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigi
 	return (SPAWNINFO*)spawnSet[Nth - 1]->VarPtr.Ptr;
 }
 
-DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
+DWORD CountMatchingSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
 {
 	if (!pSearchSpawn || !pOrigin)
 		return 0;
@@ -5494,7 +5482,7 @@ DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL In
 }
 
 
-PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
+PSPAWNINFO SearchThroughSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar)
 {
 	PSPAWNINFO pFromSpawn = NULL;
 
@@ -5533,7 +5521,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 	return NthNearestSpawn(pSearchSpawn, 1, pChar, TRUE);
 }
 
-BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2)
+BOOL SearchSpawnMatchesSearchSpawn(SEARCHSPAWN* pSearchSpawn1, SEARCHSPAWN* pSearchSpawn2)
 {
 	if (pSearchSpawn1->AlertList != pSearchSpawn2->AlertList)
 		return false;
@@ -5647,7 +5635,7 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	return true;
 }
-BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
 	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET)) {
@@ -5854,7 +5842,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	return TRUE;
 }
 
-char* ParseSearchSpawnArgs(char* szArg, char* szRest, PSEARCHSPAWN pSearchSpawn)
+char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn)
 {
 	if (szArg && pSearchSpawn) {
 		if (!_stricmp(szArg, "pc")) {
@@ -6143,7 +6131,7 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, PSEARCHSPAWN pSearchSpawn)
 	return szRest;
 }
 
-void ParseSearchSpawn(char* Buffer, PSEARCHSPAWN pSearchSpawn)
+void ParseSearchSpawn(char* Buffer, SEARCHSPAWN* pSearchSpawn)
 {
 	char szArg[MAX_STRING] = { 0 };
 	char szMsg[MAX_STRING] = { 0 };
@@ -6705,13 +6693,6 @@ void SuperWhoDisplay(SPAWNINFO* pChar, SEARCHSPAWN* pSearchSpawn, DWORD Color)
 		strcat_s(szMsg, " was not found.");
 		WriteChatColor(szMsg, USERCOLOR_WHO);
 	}
-}
-
-DWORD WINAPI thrMsgBox(void* lpParameter)
-{
-	MessageBox(NULL, (char*)lpParameter, "MacroQuest", MB_OK);
-	free(lpParameter);
-	return 0;
 }
 
 float StateHeightMultiplier(DWORD StandState)

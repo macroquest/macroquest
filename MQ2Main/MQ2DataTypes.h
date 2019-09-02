@@ -881,21 +881,30 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		// FIXME: Do not Allocate a SPAWNINFO
+		VarPtr.Ptr = new SPAWNINFO();
 		VarPtr.HighPart = 0;
+
+		// FIXME: Do not ZeroMemory a SPAWNINFO
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		// FIXME: Find way to not allocate SPAWNINFO
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		delete pSpawn;
 	}
 
-	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -904,7 +913,7 @@ public:
 		}
 		else
 		{
-			if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(Source.DWord))
+			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
 			{
 				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 				return true;
@@ -912,9 +921,10 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
-		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -1197,6 +1207,7 @@ public:
 		BlockedPetBuff = 277,
 		LastZoned = 278,
 	};
+
 	enum CharacterMethods
 	{
 		Stand,
@@ -1204,6 +1215,7 @@ public:
 		Dismount,
 		StopCast,
 	};
+
 	MQ2CharacterType() :MQ2Type("character")
 	{
 		TypeMember(Exp);//4,
@@ -1490,33 +1502,44 @@ public:
 	{
 		if (!pLocalPlayer)
 			return false;
-		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)pLocalPlayer)->Name);
+
+		CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, pCharInfo->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(CHARINFO));
+		// FIXME: Do not allocate a CHARINFO
+		VarPtr.Ptr = new CHARINFO();
 		VarPtr.HighPart = 0;
+
+		// FIXME: Do not ZeroMemory a CHARINFO
 		ZeroMemory(VarPtr.Ptr, sizeof(CHARINFO));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		// FIXME: Remove need to allocate a CHARINFO
+		CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
+		delete pCharInfo;
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pCharacterType)
 			return false;
+
+		// TODO: Find way to remove this.
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CHARINFO));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
 };
-
 
 class MQ2SpellType : public MQ2Type
 {
@@ -1602,10 +1625,12 @@ public:
 		NoExpendReagentID = 77,
 		StacksSpawn = 78,
 	};
+
 	enum SpellMethods
 	{
 	};
-	MQ2SpellType() :MQ2Type("spell")
+
+	MQ2SpellType() : MQ2Type("spell")
 	{
 		TypeMember(ID);//1,
 		TypeMember(Name);//2,
@@ -1625,9 +1650,9 @@ public:
 		TypeMember(SpellType);//16,
 		TypeMember(TargetType);//17,
 		TypeMember(ResistType);//18,
-		TypeMember(CastOnYou);//19, 
-		TypeMember(CastOnAnother);//20, 
-		TypeMember(WearOff);//21, 
+		TypeMember(CastOnYou);//19,
+		TypeMember(CastOnAnother);//20,
+		TypeMember(WearOff);//21,
 		TypeMember(CounterType);//22,
 		TypeMember(CounterNumber);//23,
 		TypeMember(Stacks);//24,
@@ -1697,28 +1722,36 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, ((PSPELL)VarPtr.Ptr)->Name);
+
+		SPELL* pSpell = static_cast<SPELL*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, pSpell->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPELL));
+		// FIXME: Do not allocate a SPELL
+		VarPtr.Ptr = new SPELL();
 		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(SPELL));
-	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
-	{
-		free(VarPtr.Ptr);
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	void FreeVariable(MQ2VARPTR& VarPtr)
+	{
+		// FIXME: Do not allocate a SPELL
+		SPELL* pSpell = static_cast<SPELL*>(VarPtr.Ptr);
+		delete pSpell;
+	}
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pSpellType)
 			return false;
+
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELL));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -1743,11 +1776,13 @@ public:
 		CountersCurse = 12,
 		CountersCorruption = 13,
 	};
+
 	enum BuffMethods
 	{
 		Remove = 1,
 	};
-	MQ2BuffType() :MQ2Type("buff")
+
+	MQ2BuffType() : MQ2Type("buff")
 	{
 		TypeMember(Address);
 		TypeMember(ID);
@@ -1777,9 +1812,11 @@ public:
 		if (!VarPtr.Ptr)
 			return false;
 
-		if ((int)((SPELLBUFF*)VarPtr.Ptr)->SpellID > 0)
+		SPELLBUFF* pSpellBuff = static_cast<SPELLBUFF*>(VarPtr.Ptr);
+
+		if (pSpellBuff->SpellID > 0)
 		{
-			if (SPELL* pSpell = GetSpellByID(((SPELLBUFF*)VarPtr.Ptr)->SpellID))
+			if (SPELL* pSpell = GetSpellByID(pSpellBuff->SpellID))
 			{
 				strcpy_s(Destination, MAX_STRING, pSpell->Name);
 				return true;
@@ -1787,29 +1824,36 @@ public:
 		}
 		return false;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPELLBUFF));
+		// FIXME: Do not allocate a SPELLBUFF
+		VarPtr.Ptr = new SPELLBUFF();
 		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(SPELLBUFF));
-	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
-	{
-		free(VarPtr.Ptr);
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	void FreeVariable(MQ2VARPTR& VarPtr)
+	{
+		// FIXME: Do not allocate a SPELLBUFF
+		SPELLBUFF* pSpellBuff = static_cast<SPELLBUFF*>(VarPtr.Ptr);
+		delete pSpellBuff;
+	}
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pBuffType)
 			return false;
+
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELLBUFF));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
 };
+
 class MQ2TargetBuffType : public MQ2Type
 {
 public:
@@ -1909,6 +1953,7 @@ public:
 		return false;
 	}
 };
+
 class MQ2ItemSpellType : public MQ2Type
 {
 public:
@@ -1929,7 +1974,7 @@ public:
 	};
 	MQ2ItemSpellType() :MQ2Type("itemspell")
 	{
-		TypeMember(SpellID); 
+		TypeMember(SpellID);
 		TypeMember(RequiredLevel);
 		TypeMember(EffectType);
 		TypeMember(EffectiveCasterLevel);
@@ -1952,33 +1997,42 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		if (int spellid = ((PITEMSPELLS)VarPtr.Ptr)->SpellID) {
-			if (PSPELL pSpell = GetSpellByID(spellid)) {
+
+		ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
+		if (int spellid = pItemSpells->SpellID)
+		{
+			if (SPELL* pSpell = GetSpellByID(spellid))
+			{
 				strcpy_s(Destination, MAX_STRING, pSpell->Name);
 				return true;
 			}
 		}
 		return false;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(ITEMSPELLS));
+		// FIXME: Do not allocate an ITEMSPELLS
+		VarPtr.Ptr = new ITEMSPELLS();
 		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(ITEMSPELLS));
-	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
-	{
-		free(VarPtr.Ptr);
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	void FreeVariable(MQ2VARPTR& VarPtr)
+	{
+		// FIXME: Do not allocate an ITEMSPELLS
+		ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
+		delete pItemSpells;
+	}
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pItemSpellType)
 			return false;
+
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2337,33 +2391,41 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, GetItemFromContents((CONTENTS*)VarPtr.Ptr)->Name);
+
+		CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, GetItemFromContents(pContents)->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(CONTENTS));
+		// FIXME: Do not allocate a CONTENTS
+		VarPtr.Ptr = new CONTENTS();
 		VarPtr.HighPart = 0;
+
+		// FIXME: Do not ZeroMemory a CONTENTS
 		ZeroMemory(VarPtr.Ptr, sizeof(CONTENTS));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
+		delete pContents;
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pItemType)
 			return false;
+
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CONTENTS));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
 };
-
 
 class MQ2SwitchType : public MQ2Type
 {
@@ -2393,28 +2455,30 @@ public:
 		Address = 21,
 		Distance3D = 22,
 	};
+
 	enum SwitchMethods
 	{
 		Toggle = 1,
 	};
-	MQ2SwitchType() :MQ2Type("switch")
+
+	MQ2SwitchType() : MQ2Type("switch")
 	{
-		TypeMember(ID);//1,
-		TypeMember(Distance);//2,
-		TypeMember(X);//3,
-		TypeMember(Y);//4,
-		TypeMember(Z);//5,
-		TypeMember(Heading);//6,
-		TypeMember(DefaultX);//7,
-		TypeMember(DefaultY);//8,
-		TypeMember(DefaultZ);//9,
-		TypeMember(DefaultHeading);//10,
-		TypeMember(Open);//11,
-		TypeMember(HeadingTo);//12,
-		TypeMember(Name);//13,
+		TypeMember(ID);
+		TypeMember(Distance);
+		TypeMember(X);
+		TypeMember(Y);
+		TypeMember(Z);
+		TypeMember(Heading);
+		TypeMember(DefaultX);
+		TypeMember(DefaultY);
+		TypeMember(DefaultZ);
+		TypeMember(DefaultHeading);
+		TypeMember(Open);
+		TypeMember(HeadingTo);
+		TypeMember(Name);
 		AddMember(xLineOfSight, "LineOfSight");
-		TypeMember(Address);//21,
-		TypeMember(Distance3D);//22,
+		TypeMember(Address);
+		TypeMember(Distance3D);
 	}
 
 	~MQ2SwitchType()
@@ -2426,37 +2490,45 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		if (VarPtr.Ptr)
-		{
-			_itoa_s(((PDOOR)VarPtr.Ptr)->ID, Destination, MAX_STRING, 10);
-			return true;
-		}
-		return false;
-	}
-	void InitVariable(MQ2VARPTR &VarPtr)
-	{
-		VarPtr.Ptr = malloc(sizeof(DOOR));
-		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(DOOR));
-	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
-	{
-		free(VarPtr.Ptr);
+		if (!VarPtr.Ptr)
+			return false;
+
+		DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
+		_itoa_s(pDoor->ID, Destination, MAX_STRING, 10);
+		return true;
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	void InitVariable(MQ2VARPTR& VarPtr)
+	{
+		// FIXME: Do not allocate a DOOR
+		VarPtr.Ptr = new DOOR();
+		VarPtr.HighPart = 0;
+	}
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
+	{
+		// FIXME: Do not allocate a DOOR
+		DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
+		delete pDoor;
+	}
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pSwitchType)
 			return false;
+
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(DOOR));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
 };
+
 EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
+
 class MQ2GroundType : public MQ2Type
 {
 public:
@@ -2484,21 +2556,23 @@ public:
 		Next = 20,
 		Prev = 21,
 	};
+
 	enum GroundMethods
 	{
 		Grab = 1,
 		DoTarget = 2,
 		DoFace = 3,
 	};
-	MQ2GroundType() :MQ2Type("ground")
+
+	MQ2GroundType() : MQ2Type("ground")
 	{
-		TypeMember(ID);//1,
-		TypeMember(Distance);//2,
-		TypeMember(X);//3,
-		TypeMember(Y);//4,
-		TypeMember(Z);//5,
-		TypeMember(Heading);//6,
-		TypeMember(Name);//7,
+		TypeMember(ID);
+		TypeMember(Distance);
+		TypeMember(X);
+		TypeMember(Y);
+		TypeMember(Z);
+		TypeMember(Heading);
+		TypeMember(Name);
 		TypeMember(HeadingTo);
 		AddMember(xLineOfSight, "LineOfSight");
 		TypeMember(Address);
@@ -2510,6 +2584,7 @@ public:
 		TypeMember(Last);
 		TypeMember(Next);
 		TypeMember(Prev);
+
 		//methods
 		TypeMethod(Grab);
 		TypeMethod(DoTarget);
@@ -2522,64 +2597,73 @@ public:
 
 	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
-	void InitVariable(MQ2VARPTR &VarPtr)
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(GROUNDOBJECT));
+		VarPtr.Ptr = new GROUNDOBJECT();
 		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(GROUNDOBJECT));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		GROUNDOBJECT* pGroundObject = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
+		delete pGroundObject;
 	}
+
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		if (VarPtr.Ptr)
+		if (!VarPtr.Ptr)
+			return false;
+
+		GROUNDOBJECT* pObj = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
+
+		if (pObj->Type == GO_GroundType)
 		{
-			PGROUNDOBJECT pObj = (PGROUNDOBJECT)VarPtr.Ptr;
-			if (pObj->Type == GO_GroundType)
+			GetFriendlyNameForGroundItem(pObj->pGroundItem, Destination, MAX_STRING);
+			return true;
+		}
+
+		if (pObj->Type == GO_ObjectType)
+		{
+			RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+			if (&manager)
 			{
-				GetFriendlyNameForGroundItem(pObj->pGroundItem, Destination, MAX_STRING);
-				return true;
-			}
-			else if (pObj->Type == GO_ObjectType)
-			{
-				RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
-				if (&manager)
+				if (EQPlacedItem * pPlaced = (EQPlacedItem*)pObj->ObjPtr)
 				{
-					if (EQPlacedItem*pPlaced = (EQPlacedItem*)pObj->ObjPtr)
+					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
+					if (pRealEstateItem)
 					{
-						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
-						if (pRealEstateItem)
+						if (CONTENTS * pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
-							if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
+							if (ITEMINFO * pItem = GetItemFromContents(pCont))
 							{
-								if (ITEMINFO* pItem = GetItemFromContents(pCont))
-								{
-									strcpy_s(Destination, MAX_STRING, pItem->Name);
-									return true;
-								}
+								strcpy_s(Destination, MAX_STRING, pItem->Name);
+								return true;
 							}
 						}
 					}
 				}
 			}
 		}
+
 		return true;
 	}
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pGroundType)
 			return false;
+
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(GROUNDOBJECT));
 		return true;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		int id = atoi(Source);
+
 		PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
 		GROUNDOBJECT go;
-		ZeroMemory(&go, sizeof(go));
+
 		while (pGroundItem)
 		{
 			if (pGroundItem->DropID == id)
@@ -2591,13 +2675,14 @@ public:
 			}
 			pGroundItem = pGroundItem->pNext;
 		}
-		//didn't find one, check objects...
-		RealEstateManagerClient *manager = &RealEstateManagerClient::Instance();
+
+		// didn't find one, check objects...
+		RealEstateManagerClient* manager = &RealEstateManagerClient::Instance();
 		if (manager)
 		{
-			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+			if (EQPlacedItemManager * pPIM = &EQPlacedItemManager::Instance())
 			{
-				if (EQPlacedItem *top = pPIM->Top) {
+				if (EQPlacedItem * top = pPIM->Top) {
 					while (top)
 					{
 						if (top->RealEstateItemID == id)
@@ -2878,9 +2963,11 @@ public:
 		WIS = 28,
 #endif
 	};
+
 	enum MercenaryMethods
 	{
 	};
+
 	MQ2MercenaryType() :MQ2Type("mercenary")
 	{
 		TypeMember(AAPoints);
@@ -2917,29 +3004,38 @@ public:
 
 	~MQ2MercenaryType()
 	{
-
 	}
+
 	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		// FIXME: Do not Allocate a SPAWNINFO
+		VarPtr.Ptr = new SPAWNINFO();
 		VarPtr.HighPart = 0;
+
+		// FIXME: Do not ZeroMemory a SPAWNINFO
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		// FIXME: Do not Allocate a SPAWNINFO
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		delete pSpawn;
 	}
 
-	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -2948,7 +3044,7 @@ public:
 		}
 		else
 		{
-			if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(Source.DWord))
+			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
 			{
 				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 				return true;
@@ -2956,9 +3052,10 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
-		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -2966,6 +3063,7 @@ public:
 		return false;
 	}
 };
+
 class MQ2PetType : public MQ2Type
 {
 public:
@@ -2982,10 +3080,12 @@ public:
 		Taunt = 9,
 		BuffDuration = 10,
 	};
+
 	enum PetMethods
 	{
 	};
-	MQ2PetType() :MQ2Type("pet")
+
+	MQ2PetType() : MQ2Type("pet")
 	{
 		TypeMember(Buff);
 		TypeMember(Combat);
@@ -3001,29 +3101,38 @@ public:
 
 	~MQ2PetType()
 	{
-
 	}
+
 	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest);
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		// FIXME: Do not allocate a SPAWNINFO
+		VarPtr.Ptr = new SPAWNINFO();
 		VarPtr.HighPart = 0;
+
+		// FIXME: Do not ZeroMemory a SPAWNINFO
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		// FIXME: Do not allocate a SPAWNINFO
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		delete pSpawn;
 	}
 
-	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -3032,7 +3141,7 @@ public:
 		}
 		else
 		{
-			if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(Source.DWord))
+			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
 			{
 				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 				return true;
@@ -3040,9 +3149,10 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
-		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -3914,34 +4024,34 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		struct tm *Now = (struct tm*)VarPtr.Ptr;
+		tm* Now = static_cast<tm*>(VarPtr.Ptr);
+
 		sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(struct tm));
+		VarPtr.Ptr = new tm();
 		VarPtr.HighPart = 0;
-		ZeroMemory(VarPtr.Ptr, sizeof(struct tm));
+
+		ZeroMemory(VarPtr.Ptr, sizeof(tm));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		tm* Now = static_cast<tm*>(VarPtr.Ptr);
+		delete Now;
 	}
 
-#ifndef MQ2PLUGIN
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type != pTimeType)
 			return false;
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(struct tm));
+
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(tm));
 		return true;
 	}
-#else
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
-#endif
 
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4333,13 +4443,15 @@ public:
 		Value = 1,
 		OriginalValue = 2,
 	};
+
 	enum TimerMethods
 	{
 		Reset = 1,
 		Expire = 2,
 		Set = 3,
 	};
-	MQ2TimerType() :MQ2Type("timer")
+
+	MQ2TimerType() : MQ2Type("timer")
 	{
 		TypeMember(Value);
 		TypeMember(OriginalValue);
@@ -4357,41 +4469,42 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
-		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
+		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 		_ultoa_s(pTimer->Current, Destination, MAX_STRING, 10);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		if (PMQTIMER pVar = (PMQTIMER)malloc(sizeof(MQTIMER))) {
-			pVar->szName[0] = '\0';
-			pVar->Current = 0;
-			pVar->Original = 0;
-			pVar->pNext = gTimer;
-			pVar->pPrev = 0;
-			if (gTimer)
-				gTimer->pPrev = pVar;
-			gTimer = pVar;
-			VarPtr.Ptr = pVar;
-			VarPtr.HighPart = 0;
-		}
+		MQTimer* pVar = new MQTimer();
+		pVar->pNext = gTimer;
+
+		if (gTimer)
+			gTimer->pPrev = pVar;
+		gTimer = pVar;
+
+		VarPtr.Ptr = pVar;
+		VarPtr.HighPart = 0;
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		if (PMQTIMER pVar = (PMQTIMER)VarPtr.Ptr) {
+		if (MQTimer * pVar = reinterpret_cast<MQTimer*>(VarPtr.Ptr))
+		{
 			if (pVar->pPrev)
 				pVar->pPrev->pNext = pVar->pNext;
 			else
 				gTimer = pVar->pNext;
 			if (pVar->pNext)
 				pVar->pNext->pPrev = pVar->pPrev;
-			free(VarPtr.Ptr);
+
+			delete pVar;
 		}
 	}
-#ifndef MQ2PLUGIN
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+
+	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
-		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
+		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 		if (Source.Type == pFloatType)
 		{
 			pTimer->Current = (DWORD)Source.Float;
@@ -4404,14 +4517,10 @@ public:
 		}
 		return true;
 	}
-#else
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
-#endif
 
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
-		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
-
+		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 
 		float VarValue = (float)atof(Source);
 		switch (Source[strlen(Source) - 1])
@@ -5092,21 +5201,30 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		// FIXME: Do not allocate a SPAWNINFO
+		VarPtr.Ptr = new SPAWNINFO();
 		VarPtr.HighPart = 0;
+
+		// FIXME: Do not ZeroMemory a SPAWNINFO
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		// FIXME: Do not allocate a SPAWNINFO
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		delete pSpawn;
 	}
 
-	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -5115,7 +5233,7 @@ public:
 		}
 		else
 		{
-			if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(Source.DWord))
+			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
 			{
 				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 				return true;
@@ -5123,9 +5241,10 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
-		if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO * pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -5294,7 +5413,7 @@ public:
 		PctAggro = 5,
 	};
 
-	MQ2XTargetType() :MQ2Type("xtarget")
+	MQ2XTargetType() : MQ2Type("xtarget")
 	{
 		TypeMember(xAddress);
 		TypeMember(TargetType);
@@ -5312,28 +5431,40 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, char* Destination)
 	{
 		int index = VarPtr.DWord;
-		if (PCHARINFO pChar = GetCharInfo()) {
-			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count) {
-				//XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
+
+		if (CHARINFO* pChar = GetCharInfo())
+		{
+			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
+			{
 				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
 				strcpy_s(Destination, MAX_STRING, xtd.Name);
 			}
 		}
 		else
-			strcpy_s(Destination,MAX_STRING, "NULL");
+		{
+			strcpy_s(Destination, MAX_STRING, "NULL");
+		}
+
 		return true;
 	}
-	void InitVariable(MQ2VARPTR &VarPtr)
+
+	void InitVariable(MQ2VARPTR& VarPtr)
 	{
-		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		// FIXME: Do not allocate a SPAWNINFO
+		VarPtr.Ptr = new SPAWNINFO();
 		VarPtr.HighPart = 0;
+
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
+
+	void FreeVariable(MQ2VARPTR& VarPtr)
 	{
-		free(VarPtr.Ptr);
+		// FIXME: Do not allocate a SPAWNINFO
+		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		delete pSpawn;
 	}
-	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+
+	virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -5343,11 +5474,14 @@ public:
 		else
 		{
 			int index = Source.DWord;
-			if (PCHARINFO pChar = GetCharInfo()) {
-				if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count) {
-					//XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[Source.DWord];
+
+			if (CHARINFO* pChar = GetCharInfo())
+			{
+				if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
+				{
 					XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
-					if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
+
+					if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(xtd.SpawnID))
 					{
 						memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 						return true;
@@ -5355,16 +5489,21 @@ public:
 				}
 			}
 		}
+
 		return false;
 	}
-	bool FromString(MQ2VARPTR &VarPtr, char* Source)
+
+	bool FromString(MQ2VARPTR& VarPtr, char* Source)
 	{
 		int index = atoi(Source);
-		if (PCHARINFO pChar = GetCharInfo()) {
-			if (index<=23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count) {
-				//XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[atoi(Source)];
+
+		if (CHARINFO* pChar = GetCharInfo())
+		{
+			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
+			{
 				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
-				if (PSPAWNINFO pOther = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
+
+				if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(xtd.SpawnID))
 				{
 					memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 					return true;

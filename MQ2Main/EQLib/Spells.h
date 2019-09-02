@@ -177,6 +177,9 @@ struct [[offsetcomments]] SPELL
 /*0x224*/ BYTE    CRC32Marker[4];
 /*0x228*/ float   DistanceMod;                   // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
 /*0x22c*/
+
+	// Currently necessary because of MQ2DataTypes
+	SPELL() { ZeroMemory(this, sizeof(SPELL)); }
 };
 using PSPELL = SPELL*;
 
@@ -281,7 +284,7 @@ struct [[offsetcomments]] SPELLBUFF
 /*0x02*/ BYTE      ChargesRemaining;
 /*0x03*/ char      DamageShield;                 // Activatable
 /*0x04*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
-/*0x08*/ LONG      SpellID;                      // -1 or 0 for no spell..
+/*0x08*/ int       SpellID;                      // -1 or 0 for no spell..
 /*0x0c*/ DWORD     Duration;
 /*0x10*/ DWORD     MaxDuration;
 /*0x14*/ DWORD     Duration3;
@@ -294,6 +297,9 @@ struct [[offsetcomments]] SPELLBUFF
 /*0x34*/ SlotData  SlotData[NUM_SLOTDATA];       // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
 /*0x64*/ DWORD     Unknown0x64;
 /*0x68*/
+
+	// Currently necessary because of MQ2DataTypes
+	SPELLBUFF() { ZeroMemory(this, sizeof(SPELLBUFF)); }
 };
 using PSPELLBUFF [[deprecated]] = SPELLBUFF *;
 

@@ -231,6 +231,9 @@ struct [[offsetcomments]] ITEMSPELLS
 /*0x20*/ char  OtherName[0x40];                  // some kind of override
 /*0x60*/ DWORD OtherID;                          // Description ID
 /*0x64*/
+
+	// Currently necessary because of MQ2DataTypes
+	ITEMSPELLS() { ZeroMemory(this, sizeof(ITEMSPELLS)); }
 };
 using PITEMSPELLS = ITEMSPELLS*;
 

@@ -1489,12 +1489,12 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 						if (pFilter->pEnabled == &gFilterCustom) {
 							if (!pLastFilter) {
 								gpFilters = pFilter->pNext;
-								free(pFilter);
+								delete pFilter;
 								pFilter = gpFilters->pNext;
 							}
 							else {
 								pLastFilter->pNext = pFilter->pNext;
-								free(pFilter);
+								delete pFilter;
 								pFilter = pLastFilter->pNext;
 							}
 						}
@@ -1518,7 +1518,7 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 							else {
 								pLastFilter->pNext = pFilter->pNext;
 							}
-							free(pFilter);
+							delete pFilter;
 							sprintf_s(szCmd, "Stopped filtering on: %s", szRest);
 							WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 							WriteFilterNames();
@@ -2107,10 +2107,14 @@ void SuperWhoTarget(PSPAWNINFO pChar, char* szLine)
 	//SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
+//============================================================================
 
-
-/**/
-
+static DWORD WINAPI thrMsgBox(void* lpParameter)
+{
+	MessageBox(nullptr, (char*)lpParameter, "MacroQuest", MB_OK);
+	free(lpParameter);
+	return 0;
+}
 
 // ***************************************************************************
 // Function:    MQMsgBox
@@ -2120,17 +2124,14 @@ void SuperWhoTarget(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void MQMsgBox(PSPAWNINFO pChar, char* szLine)
 {
-	FILE *fOut = NULL;
 	char szBuffer[MAX_STRING] = { 0 };
-	DWORD i;
 	bRunNextCommand = true;
 
 	sprintf_s(szBuffer, "${Time.Date} ${Time}\r\n%s", szLine);
 	ParseMacroParameter(pChar, szBuffer);
 
-	CreateThread(NULL, 0, thrMsgBox, _strdup(szBuffer), 0, &i);
+	CreateThread(nullptr, 0, thrMsgBox, _strdup(szBuffer), 0, nullptr);
 }
-
 
 // ***************************************************************************
 // Function:    MacroLog

@@ -1010,6 +1010,9 @@ struct [[offsetcomments]] DOOR
 /*0xd8*/ bool          bAllowCorpseDrag;
 /*0xdc*/ int           RealEstateDoorID;
 /*0xe0*/
+
+	// Currently necessary because of MQ2DataTypes
+	DOOR() { ZeroMemory(this, sizeof(DOOR)); }
 };
 using PDOOR = DOOR*;
 
@@ -1059,6 +1062,9 @@ struct [[offsetcomments]] GROUNDOBJECT
 /*0x84*/ void*                    ObjPtr;             // EQPlacedItem *
 /*0x88*/ PGROUNDITEM              pGroundItem;
 /*0x8c*/
+
+	// Currently necessary because of MQ2DataTypes
+	GROUNDOBJECT() { ZeroMemory(this, sizeof(GROUNDOBJECT)); }
 };
 using PGROUNDOBJECT = GROUNDOBJECT*;
 

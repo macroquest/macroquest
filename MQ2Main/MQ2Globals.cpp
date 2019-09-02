@@ -81,7 +81,7 @@ namespace MQ2Globals
 		pScreenYMax = (DWORD*)__ScreenYMax;
 		pScreenMode = (DWORD*)__ScreenMode;
 		pMouseLook = (char*)__MouseLook;
-		EQADDR_MOUSE = (PMOUSEINFO)__Mouse;
+		EQADDR_MOUSE = (MOUSEINFO*)__Mouse;
 		EQADDR_MOUSECLICK = (PMOUSECLICK)__Clicks;
 
 		EQADDR_DIMAIN = DI8__Main;
@@ -376,7 +376,7 @@ namespace MQ2Globals
 	double DegToRad = 57.295779513082320876846364344191;
 	double PI = 3.1415926535;
 
-	PMQTIMER gTimer = nullptr;
+	MQTimer* gTimer = nullptr;
 	LONG gDelay = 0;
 	char gDelayCondition[MAX_STRING] = { 0 };
 	BOOL bAllowCommandParse = TRUE;
@@ -386,7 +386,7 @@ namespace MQ2Globals
 	SPAWNINFO MercenarySpawn = { 0 };
 	SPAWNINFO PetSpawn = { 0 };
 	SPAWNINFO EnviroTarget = { 0 };
-	GROUNDOBJECT GroundObject = { GO_None, { 0 } };
+	GROUNDOBJECT GroundObject;
 	PGROUNDITEM	pGroundTarget = nullptr;
 	SPAWNINFO DoorEnviroTarget = { 0 };
 	PDOOR pDoorTarget = nullptr;
@@ -957,7 +957,7 @@ namespace MQ2Globals
 	};
 
 	MQPlugin* pPlugins = nullptr;
-	std::map<std::string, PDATAVAR> VariableMap;
+	std::map<std::string, DATAVAR*> VariableMap;
 	std::unordered_map<std::string, std::unique_ptr<MQ2DataItem>> MQ2DataMap;
 
 	// Offset Initialization
@@ -993,8 +993,8 @@ namespace MQ2Globals
 	PAUTOSKILL gpAutoSkill = nullptr;
 	size_t g_eqgameimagesize = 0;
 	BYTE* gpShiftKeyDown = nullptr; // addr+1=ctrl, addr+2=alt
-	DWORD *gpMouseEventTime = nullptr;
-	DWORD *gpbCommandEvent = nullptr;
+	DWORD* gpMouseEventTime = nullptr;
+	DWORD* gpbCommandEvent = nullptr;
 	bool gbTimeStampChat = false;
 	BOOL gUseTradeOnTarget = 1;
 	bool gbBeepOnTells = false;
@@ -1006,8 +1006,8 @@ namespace MQ2Globals
 	void* EQADDR_GWORLD = nullptr;
 	PDWORD EQADDR_DOABILITYLIST = nullptr;
 
-	PMAPLABEL *ppCurrentMapLabel = nullptr;
-	char* *EQMappableCommandList = nullptr;
+	PMAPLABEL* ppCurrentMapLabel = nullptr;
+	char** EQMappableCommandList = nullptr;
 	BYTE* EQbCommandStates = nullptr;
 
 	BYTE* EQADDR_ENCRYPTPAD0 = nullptr;
@@ -1016,14 +1016,14 @@ namespace MQ2Globals
 	BYTE* EQADDR_ENCRYPTPAD3 = nullptr;
 	BYTE* EQADDR_ENCRYPTPAD4 = nullptr;
 
-	DWORD *pScreenX = nullptr;
-	DWORD *pScreenY = nullptr;
-	DWORD *pScreenXMax = nullptr;
-	DWORD *pScreenYMax = nullptr;
-	DWORD *pScreenMode = nullptr;
-	char  *pMouseLook = nullptr;
-	PMOUSEINFO EQADDR_MOUSE = nullptr;
-	PMOUSECLICK EQADDR_MOUSECLICK = nullptr;
+	DWORD* pScreenX = nullptr;
+	DWORD* pScreenY = nullptr;
+	DWORD* pScreenXMax = nullptr;
+	DWORD* pScreenYMax = nullptr;
+	DWORD* pScreenMode = nullptr;
+	char* pMouseLook = nullptr;
+	MOUSEINFO* EQADDR_MOUSE = nullptr;
+	MOUSECLICK* EQADDR_MOUSECLICK = nullptr;
 
 	DWORD EQADDR_DIMAIN = 0;
 	IDirectInputDevice8A **EQADDR_DIKEYBOARD = nullptr;

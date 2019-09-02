@@ -628,9 +628,8 @@ PLUGIN_API void OnDrawHUD()
 		{
 			if (pElement->Type & HUDTYPE_CURSOR)
 			{
-				PMOUSEINFO pMouse = (PMOUSEINFO)EQADDR_MOUSE;
-				X = pMouse->X + pElement->X;
-				Y = pMouse->Y + pElement->Y;
+				X = EQADDR_MOUSE->X + pElement->X;
+				Y = EQADDR_MOUSE->Y + pElement->Y;
 			}
 			else
 			{
