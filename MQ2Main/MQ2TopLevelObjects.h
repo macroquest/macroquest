@@ -34,7 +34,6 @@ EQLIB_API bool dataMacroQuest(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataMath(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataZone(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataGroup(const char* szIndex, MQTypeVar& Ret);
-EQLIB_API bool dataString(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataInt(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataBool(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataFloat(const char* szIndex, MQTypeVar& Ret);

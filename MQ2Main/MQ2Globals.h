@@ -207,6 +207,7 @@ EQLIB_VAR MQDefine* pDefines;
 EQLIB_VAR MQBindList* pBindList;
 EQLIB_VAR MQFilter* gpFilters;
 
+// TODO: Change to use case insensitive comparison
 EQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
 EQLIB_VAR MOUSESPOOF* gMouseData;

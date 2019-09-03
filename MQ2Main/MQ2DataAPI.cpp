@@ -361,7 +361,6 @@ void InitializeMQ2Data()
 	AddMQ2Data("Math", dataMath);
 	AddMQ2Data("Zone", dataZone);
 	AddMQ2Data("Group", dataGroup);
-	AddMQ2Data("String", dataString);
 	AddMQ2Data("Int", dataInt);
 	AddMQ2Data("Bool", dataBool);
 	AddMQ2Data("Float", dataFloat);
@@ -383,8 +382,6 @@ void InitializeMQ2Data()
 	AddMQ2Data("SelectedItem", dataSelectedItem);
 	AddMQ2Data("FindItemCount", dataFindItemCount);
 	AddMQ2Data("FindItemBankCount", dataFindItemBankCount);
-	//AddMQ2Data("GroupLeader",dataGroupLeader);
-	//AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
 	AddMQ2Data("Skill", dataSkill);
 	AddMQ2Data("AltAbility", dataAltAbility);
 	AddMQ2Data("Raid", dataRaid);

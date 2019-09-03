@@ -274,9 +274,6 @@ class [[offsetcomments]] CXWnd
 	, public TList<CXWnd>       // list of children
 {
 public:
-
-#include "CXWnd-Members.h"
-
 	EQLIB_OBJECT CXWnd(CXWnd* parent, uint32_t id, CXRect rect);
 
 	//----------------------------------------------------------------------------
@@ -663,6 +660,8 @@ public:
 
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
+
+#include "CXWnd-Members.h"
 
 /*0x1d8*/ };
 
