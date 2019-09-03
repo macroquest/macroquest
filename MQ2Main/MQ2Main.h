@@ -269,12 +269,18 @@ EQLIB_API BOOL ParseMacroData(char* szOriginal, size_t BufferSize);
 EQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 EQLIB_API bool RemoveMQ2Data(const char* szName);
 EQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
-EQLIB_API MQ2DataItem* FindMQ2Data(const char* szName);
-EQLIB_API PDATAVAR FindMQ2DataVariable(const char* szName);
-EQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result);
+EQLIB_API MQDataItem* FindMQ2Data(const char* szName);
+EQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
+EQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar &Result);
 EQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
+// Compatibility shims
+inline [[deprecated("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")]]
+bool AddMQ2Data(const char* szName, fMQDataOld Function)
+{
+	return AddMQ2Data(szName, (fMQData)Function);
+}
 
 /* MOUSE */
 EQLIB_API bool IsMouseWaiting();
@@ -337,7 +343,7 @@ EQLIB_API void STMLToPlainText(char* in, char* out);
 EQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
 EQLIB_API const char* GetFilenameFromFullPath(const char* Filename);
 EQLIB_API BOOL CompareTimes(char* RealTime, char* ExpectedTime);
-EQLIB_API void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled);
+EQLIB_API void AddFilter(const char* szFilter, int Length, bool& pEnabled);
 EQLIB_API void DefaultFilters();
 EQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
 EQLIB_API void CheckChatForEvent(const char* szMsg);
@@ -352,8 +358,7 @@ EQLIB_API int GetLanguageIDByName(char* szName);
 EQLIB_API int GetCurrencyIDByName(char* szName);
 EQLIB_API char* GetSpellNameByID(LONG dwSpellID);
 EQLIB_API SPELL* GetSpellByName(const char* szName);
-EQLIB_API PSPELL GetSpellByAAName(char* szName);
-EQLIB_API PSPELL GetSpellByAAName(char* szName);
+EQLIB_API SPELL* GetSpellByAAName(const char* szName);
 EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 EQLIB_API int GetSpellRankByName(const char* SpellName);
 EQLIB_API void TruncateSpellRankName(char* SpellName);
@@ -363,8 +368,7 @@ EQLIB_API bool StripQuotes(char* str);
 EQLIB_API void MakeMeVisible(SPAWNINFO* pChar, char* szLine);
 EQLIB_API void RemoveAura(SPAWNINFO* pChar, char* szLine);
 EQLIB_API bool GetAllMercDesc(std::map<int, MercDesc>& minfo);
-
-DWORD GetKeyRingIndex(DWORD KeyRing, char* szItemName, size_t BuffLen, bool bExact = true, bool usecmd = false);
+EQLIB_API int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API int GetIllusionCount();
 EQLIB_API int GetFamiliarCount();
@@ -377,8 +381,8 @@ EQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalLis
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
 EQLIB_API int RangeRandom(int min, int max);
-EQLIB_API DWORD __stdcall BeepOnTellThread(void* pData);
-EQLIB_API DWORD __stdcall FlashOnTellThread(void* pData);
+EQLIB_API DWORD CALLBACK BeepOnTellThread(void* pData);
+EQLIB_API DWORD CALLBACK FlashOnTellThread(void* pData);
 EQLIB_API CMQ2Alerts CAlerts;
 
 struct RefreshKeyRingsThreadData
@@ -472,12 +476,12 @@ EQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
 EQLIB_API char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
-EQLIB_API PDATAVAR FindMQ2DataVariable(const char* Name);
-EQLIB_API bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default);
-EQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, MQ2TYPEVAR Default);
-EQLIB_API PDATAVAR* FindVariableScope(const char* Name);
+EQLIB_API MQDataVar* FindMQ2DataVariable(const char* Name);
+EQLIB_API bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
+EQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
+EQLIB_API MQDataVar** FindVariableScope(const char* Name);
 EQLIB_API bool DeleteMQ2DataVariable(const char* Name);
-EQLIB_API void ClearMQ2DataVariables(PDATAVAR* ppHead);
+EQLIB_API void ClearMQ2DataVariables(MQDataVar** ppHead);
 EQLIB_API void NewDeclareVar(PSPAWNINFO pChar, char* szLine);
 EQLIB_API void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine);
 EQLIB_API void NewVarset(PSPAWNINFO pChar, char* szLine);
@@ -489,15 +493,15 @@ EQLIB_API void DropTimers();
 
 EQLIB_API BOOL LoadCfgFile(char* Filename, BOOL Delayed = FromPlugin);
 //EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName);
-EQLIB_API void ClearSearchSpawn(SEARCHSPAWN* pSearchSpawn);
-EQLIB_API SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
-EQLIB_API DWORD CountMatchingSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin = FALSE);
-EQLIB_API PSPAWNINFO SearchThroughSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar);
-EQLIB_API BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
-EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(SEARCHSPAWN* pSearchSpawn1, SEARCHSPAWN* pSearchSpawn2);
-EQLIB_API char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn);
-EQLIB_API void ParseSearchSpawn(char* Buffer, SEARCHSPAWN* pSearchSpawn);
-EQLIB_API char* FormatSearchSpawn(char* Buffer, size_t BufferSize, SEARCHSPAWN* pSearchSpawn);
+EQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);
+EQLIB_API SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
+EQLIB_API int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
+EQLIB_API SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar);
+EQLIB_API bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn);
+EQLIB_API bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* pSearchSpawn2);
+EQLIB_API char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpawn);
+EQLIB_API void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn);
+EQLIB_API char* FormatSearchSpawn(char* Buffer, size_t BufferSize, MQSpawnSearch* pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius);
 EQLIB_API bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse = false);
 EQLIB_API BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
@@ -505,23 +509,21 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
 EQLIB_API bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id);
 EQLIB_API bool GetClosestAlert(SPAWNINFO* pSpawn, uint32_t id);
 EQLIB_API bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t List);
-EQLIB_API bool CheckAlertForRecursion(SEARCHSPAWN* pSearchSpawn, uint32_t id);
+EQLIB_API bool CheckAlertForRecursion(MQSpawnSearch* pSearchSpawn, uint32_t id);
 EQLIB_API void WriteFilterNames();
-EQLIB_API void SetDisplaySWhoFilter(PBOOL bToggle, char* szFilter, char* szToggle);
 EQLIB_API char* GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API void RewriteSubstitutions();
 EQLIB_API void RewriteAliases();
 EQLIB_API void WriteAliasToIni(const char* Name, const char* Command);
 EQLIB_API DWORD FindSpellListByName(char* szName);
 EQLIB_API float StateHeightMultiplier(DWORD StandState);
-extern void SuperWhoDisplay(SPAWNINFO* pChar, SEARCHSPAWN* pSearchSpawn, DWORD Color);
+extern void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
 extern void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
-EQLIB_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 
 EQLIB_API void        OverwriteTable(DWORD Address);
 EQLIB_API bool        Include(const char* szFile, int* LineNumber);
 EQLIB_API char*       GetFullZone(DWORD ZoneID);
-EQLIB_API DWORD       GetZoneID(char* ZoneShortName);
+EQLIB_API int         GetZoneID(const char* ZoneShortName);
 EQLIB_API char*       GetShortZone(DWORD ZoneID);
 EQLIB_API float       DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API float       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
@@ -543,14 +545,14 @@ EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API void		  ListMercAltAbilities();
 EQLIB_API CONTENTS*   FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 EQLIB_API CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx);
-EQLIB_API CONTENTS*   FindItemByName(char* pName, BOOL bExact = false);
+EQLIB_API CONTENTS*   FindItemByName(const char* pName, bool bExact = false);
 EQLIB_API CONTENTS*   FindItemByID(int ItemID);
-EQLIB_API DWORD	      FindItemCountByName(char* pName, BOOL bExact = false);
+EQLIB_API int	      FindItemCountByName(const char* pName, bool bExact = false);
 EQLIB_API DWORD	      FindItemCountByID(int ItemID);
-EQLIB_API CONTENTS*   FindBankItemByName(char *pName, BOOL bExact);
+EQLIB_API CONTENTS*   FindBankItemByName(const char* pName, bool bExact);
 EQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
-EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
-EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
+EQLIB_API int         FindBankItemCountByName(const char* pName, bool bExact);
+EQLIB_API int         FindBankItemCountByID(int ItemID);
 EQLIB_API CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
 EQLIB_API CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx);
 EQLIB_API bool        IsItemInsideContainer(CONTENTS* pItem);

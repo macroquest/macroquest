@@ -30,7 +30,7 @@ HRESULT CALLBACK DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData
 {
 	gbInDInput = true;
 	HRESULT hResult = 0;
-	KEYPRESS* pNext = nullptr;
+	MQKeyPress* pNext = nullptr;
 	DWORD didAdd = 0;
 	bool bLoop;
 	bool bRemoveItem = false;

@@ -528,7 +528,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 
 	MQChatWnd->SetVisible(true);
 
-	PFILTER pFilter = gpFilters;
+	MQFilter* pFilter = gpFilters;
 	while (pFilter)
 	{
 		if (!pFilter->pEnabled || (*pFilter->pEnabled))
@@ -708,9 +708,9 @@ public:
 
 	~MQ2ChatWndType() {}
 
-	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		MQ2TypeMember* pMember = MQ2ChatWndType::FindMember(Member);
+		MQTypeMember* pMember = MQ2ChatWndType::FindMember(Member);
 		if (!pMember)
 			return false;
 
@@ -734,7 +734,7 @@ public:
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		Destination[0] = 0;
 
@@ -746,19 +746,19 @@ public:
 		return true;
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
 };
 MQ2ChatWndType* pChatWndType = nullptr;
 
-BOOL dataChatWnd(char* szName, MQ2TYPEVAR& Dest)
+bool dataChatWnd(const char* szName, MQTypeVar& Dest)
 {
 	Dest.DWord = 1;
 	Dest.Type = pChatWndType;
@@ -767,7 +767,7 @@ BOOL dataChatWnd(char* szName, MQ2TYPEVAR& Dest)
 
 PLUGIN_API void InitializePlugin()
 {
-	// Add commands, macro parameters, hooks, etc. 
+	// Add commands, macro parameters, hooks, etc.
 	AddMQ2Data("ChatWnd", dataChatWnd);
 	pChatWndType = new MQ2ChatWndType;
 

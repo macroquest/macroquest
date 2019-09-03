@@ -2162,7 +2162,7 @@ public:
 class EQSpellStrings
 {
 public:
-	EQLIB_OBJECT char* GetString(int SpellID, int StrIndex);
+	EQLIB_OBJECT const char* GetString(int SpellID, int StrIndex);
 };
 
 enum InstanceType

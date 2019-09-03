@@ -799,47 +799,44 @@ BOOL CompareTimes(char* RealTime, char* ExpectedTime)
 	return FALSE;
 }
 
-void AddFilter(char* szFilter, DWORD Length, PBOOL pEnabled)
+void AddFilter(const char* szFilter, int Length, bool& pEnabled)
 {
-	FILTER* New = new FILTER();
-	if (Length == -1) Length = strlen(szFilter);
-	strcpy_s(New->FilterText, szFilter);
-	New->Length = Length;
-	New->pEnabled = pEnabled;
+	MQFilter* New = new MQFilter(szFilter, Length, pEnabled);
+
 	New->pNext = gpFilters;
 	gpFilters = New;
 }
 
 void DefaultFilters()
 {
-	AddFilter("You have become better at ", 26, &gFilterSkillsIncrease);
-	AddFilter("You lacked the skills to fashion the items together.", -1, &gFilterSkillsAll);
-	AddFilter("You have fashioned the items together to create something new!", -1, &gFilterSkillsAll);
-	AddFilter("You have fashioned the items together to create an alternate product.", -1, &gFilterSkillsAll);
-	AddFilter("You can no longer advance your skill from making this item.", -1, &gFilterSkillsAll);
-	AddFilter("You no longer have a target.", -1, &gFilterTarget);
-	AddFilter("You give ", 9, &gFilterMoney);
-	AddFilter("You receive ", 12, &gFilterMoney);
-	AddFilter("You are encumbered", 17, &gFilterEncumber);
-	AddFilter("You are no longer encumbered", 27, &gFilterEncumber);
-	AddFilter("You are low on drink", 19, &gFilterFood);
-	AddFilter("You are low on food", 18, &gFilterFood);
-	AddFilter("You are out of drink", 19, &gFilterFood);
-	AddFilter("You are out of food", 18, &gFilterFood);
-	AddFilter("You and your mount are thirsty.", -1, &gFilterFood);
-	AddFilter("You and your mount are hungry.", -1, &gFilterFood);
-	AddFilter("You are hungry", 13, &gFilterFood);
-	AddFilter("You are thirsty", 14, &gFilterFood);
-	AddFilter("You take a bite out of", 22, &gFilterFood);
-	AddFilter("You take a bite of", 18, &gFilterFood);
-	AddFilter("You take a drink from", 21, &gFilterFood);
-	AddFilter("Ahhh. That was tasty.", -1, &gFilterFood);
-	AddFilter("Ahhh. That was refreshing.", -1, &gFilterFood);
-	AddFilter("Chomp, chomp, chomp...", 22, &gFilterFood);
-	AddFilter("Glug, glug, glug...", 19, &gFilterFood);
-	AddFilter("You could not possibly eat any more, you would explode!", -1, &gFilterFood);
-	AddFilter("You could not possibly drink any more, you would explode!", -1, &gFilterFood);
-	AddFilter("You could not possibly consume more alcohol or become more intoxicated!", -1, &gFilterFood);
+	AddFilter("You have become better at ", 26, gFilterSkillsIncrease);
+	AddFilter("You lacked the skills to fashion the items together.", -1, gFilterSkillsAll);
+	AddFilter("You have fashioned the items together to create something new!", -1, gFilterSkillsAll);
+	AddFilter("You have fashioned the items together to create an alternate product.", -1, gFilterSkillsAll);
+	AddFilter("You can no longer advance your skill from making this item.", -1, gFilterSkillsAll);
+	AddFilter("You no longer have a target.", -1, gFilterTarget);
+	AddFilter("You give ", 9, gFilterMoney);
+	AddFilter("You receive ", 12, gFilterMoney);
+	AddFilter("You are encumbered", 17, gFilterEncumber);
+	AddFilter("You are no longer encumbered", 27, gFilterEncumber);
+	AddFilter("You are low on drink", 19, gFilterFood);
+	AddFilter("You are low on food", 18, gFilterFood);
+	AddFilter("You are out of drink", 19, gFilterFood);
+	AddFilter("You are out of food", 18, gFilterFood);
+	AddFilter("You and your mount are thirsty.", -1, gFilterFood);
+	AddFilter("You and your mount are hungry.", -1, gFilterFood);
+	AddFilter("You are hungry", 13, gFilterFood);
+	AddFilter("You are thirsty", 14, gFilterFood);
+	AddFilter("You take a bite out of", 22, gFilterFood);
+	AddFilter("You take a bite of", 18, gFilterFood);
+	AddFilter("You take a drink from", 21, gFilterFood);
+	AddFilter("Ahhh. That was tasty.", -1, gFilterFood);
+	AddFilter("Ahhh. That was refreshing.", -1, gFilterFood);
+	AddFilter("Chomp, chomp, chomp...", 22, gFilterFood);
+	AddFilter("Glug, glug, glug...", 19, gFilterFood);
+	AddFilter("You could not possibly eat any more, you would explode!", -1, gFilterFood);
+	AddFilter("You could not possibly drink any more, you would explode!", -1, gFilterFood);
+	AddFilter("You could not possibly consume more alcohol or become more intoxicated!", -1, gFilterFood);
 }
 
 char* ConvertHotkeyNameToKeyName(char* szName, size_t Namelen)
@@ -892,9 +889,10 @@ char* GetShortZone(DWORD ZoneID)
 // Description: Returns a ZoneID from a short or long zone name
 // ***************************************************************************
 
-DWORD GetZoneID(char* ZoneShortName)
+int GetZoneID(const char* ZoneShortName)
 {
-	PZONELIST pZone = NULL;
+	PZONELIST pZone = nullptr;
+
 	if (!ppWorldData || (ppWorldData && !pWorldData))
 		return (DWORD)-1;
 	for (int nIndex = 0; nIndex < MAX_ZONES; nIndex++) {
@@ -1287,7 +1285,7 @@ PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
 }
 
-PSPELL GetSpellByAAName(char* szName)
+SPELL* GetSpellByAAName(const char* szName)
 {
 	int level = -1;
 	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
@@ -1589,18 +1587,20 @@ void STMLToPlainText(char* in, char* out)
 	out[pchar_out_string_position++] = 0;
 }
 
-void ClearSearchItem(SEARCHITEM &SearchItem)
+void ClearSearchItem(MQItemSearch& SearchItem)
 {
-	ZeroMemory(&SearchItem, sizeof(SEARCHITEM));
+	SearchItem = MQItemSearch();
 }
+
 #define MaskSet(n) (SearchItem.FlagMask[(SearchItemFlag)n])
 #define Flag(n) (SearchItem.Flag[(SearchItemFlag)n])
 #define RequireFlag(flag,value) {if (MaskSet(flag) && Flag(flag)!=(char)((value)!=0)) return false;}
 
-bool ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* pContents)
+bool ItemMatchesSearch(MQItemSearch& SearchItem, CONTENTS* pContents)
 {
 	if (SearchItem.ID && GetItemFromContents(pContents)->ItemNumber != SearchItem.ID)
 		return false;
+
 	RequireFlag(Lore, GetItemFromContents(pContents)->Lore);
 	RequireFlag(NoRent, GetItemFromContents(pContents)->NoRent);
 	RequireFlag(NoDrop, GetItemFromContents(pContents)->NoDrop);
@@ -1623,7 +1623,7 @@ bool ItemMatchesSearch(SEARCHITEM &SearchItem, CONTENTS* pContents)
 	return true;
 }
 
-BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResult)
+bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nResult)
 {
 	// TODO
 #define DoResult(pContents, nresult) { \
@@ -1631,11 +1631,13 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 		*pResult = pContents;          \
 	if (nResult)                       \
 		*nResult = nresult;            \
-	return TRUE;                       \
+	return true;                       \
 }
 
-	if (CHARINFO2* pChar2 = GetCharInfo2()) {
-		if (pChar2->pInventoryArray) {
+	if (CHARINFO2* pChar2 = GetCharInfo2())
+	{
+		if (pChar2->pInventoryArray)
+		{
 			if (MaskSet(Worn) && Flag(Worn))
 			{
 				// iterate through worn items
@@ -1648,6 +1650,7 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 					}
 				}
 			}
+
 			if (MaskSet(Inventory) && Flag(Inventory))
 			{
 				unsigned long nPack;
@@ -1678,27 +1681,24 @@ BOOL SearchThroughItems(SEARCHITEM& SearchItem, CONTENTS** pResult, DWORD* nResu
 			}
 		}
 	}
+
 	// TODO
-	return 0;
+	return false;
 }
 #undef DoResult
 #undef RequireFlag
 #undef Flag
 #undef MaskSet
 
-void ClearSearchSpawn(SEARCHSPAWN* pSearchSpawn)
+void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn)
 {
 	if (!pSearchSpawn) return;
-	ZeroMemory(pSearchSpawn, sizeof(SEARCHSPAWN));
-	// 0? fine. set anything thats NOT zero.
-	pSearchSpawn->MaxLevel = MAX_NPC_LEVEL;
-	pSearchSpawn->SpawnType = NONE;
-	pSearchSpawn->GuildID = -1;
-	pSearchSpawn->ZRadius = 10000.0f;
-	pSearchSpawn->FRadius = 10000.0f;
-	if(pCharSpawn)
+
+	*pSearchSpawn = MQSpawnSearch();
+
+	if (pCharSpawn)
 		pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
-	else if(pLocalPlayer)
+	else if (pLocalPlayer)
 		pSearchSpawn->zLoc = ((PSPAWNINFO)pLocalPlayer)->Z;
 }
 
@@ -5259,17 +5259,20 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 	return false;
 }
 
-char* FormatSearchSpawn(char* Buffer, size_t BufferSize, SEARCHSPAWN* pSearchSpawn)
+char* FormatSearchSpawn(char* Buffer, size_t BufferSize, MQSpawnSearch* pSearchSpawn)
 {
 	if (!Buffer)
-		return NULL;
+		return nullptr;
+
 	char szTemp[MAX_STRING] = { 0 };
 
-	if (!pSearchSpawn) {
+	if (!pSearchSpawn)
+	{
 		strcpy_s(Buffer,BufferSize, "None");
 		return Buffer;
 	}
-	char* pszSpawnType;
+
+	const char* pszSpawnType = nullptr;
 	switch (pSearchSpawn->SpawnType)
 	{
 	case NONE:
@@ -5325,71 +5328,104 @@ char* FormatSearchSpawn(char* Buffer, size_t BufferSize, SEARCHSPAWN* pSearchSpa
 
 	sprintf_s(Buffer, BufferSize, "(%d-%d) %s", pSearchSpawn->MinLevel, pSearchSpawn->MaxLevel, pszSpawnType);
 
-	if (pSearchSpawn->szName[0] != 0) {
-		if (pSearchSpawn->bExactName) {
+	if (pSearchSpawn->szName[0] != 0)
+	{
+		if (pSearchSpawn->bExactName)
+		{
 			sprintf_s(szTemp, " whose name exactly matches %s", pSearchSpawn->szName);
-		} else {
+		}
+		else
+		{
 			sprintf_s(szTemp, " whose name contains %s", pSearchSpawn->szName);
 		}
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->szRace[0] != 0) {
+
+	if (pSearchSpawn->szRace[0] != 0)
+	{
 		sprintf_s(szTemp, " Race:%s", pSearchSpawn->szRace);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->szClass[0] != 0) {
+
+	if (pSearchSpawn->szClass[0] != 0)
+	{
 		sprintf_s(szTemp, " Class:%s", pSearchSpawn->szClass);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->szBodyType[0] != 0) {
+
+	if (pSearchSpawn->szBodyType[0] != 0)
+	{
 		sprintf_s(szTemp, " Body:%s", pSearchSpawn->szBodyType);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->GuildID != -1 && pSearchSpawn->GuildID != 0) {
-		char *szGuild = GetGuildByID(pSearchSpawn->GuildID);
+
+	if (pSearchSpawn->GuildID != -1 && pSearchSpawn->GuildID != 0)
+	{
+		char* szGuild = GetGuildByID(pSearchSpawn->GuildID);
 		sprintf_s(szTemp, " Guild:%s", szGuild ? szGuild : "Unknown");
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->bKnownLocation) {
+
+	if (pSearchSpawn->bKnownLocation)
+	{
 		sprintf_s(szTemp, " at %1.2f,%1.2f", pSearchSpawn->yLoc, pSearchSpawn->xLoc);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->FRadius<10000.0f) {
+
+	if (pSearchSpawn->FRadius < 10000.0f)
+	{
 		sprintf_s(szTemp, " Radius:%1.2f", pSearchSpawn->FRadius);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->ZRadius<10000.0f) {
+
+	if (pSearchSpawn->ZRadius < 10000.0f)
+	{
 		sprintf_s(szTemp, " Z:%1.2f", pSearchSpawn->ZRadius);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->Radius>0.0f) {
+
+	if (pSearchSpawn->Radius > 0.0f)
+	{
 		sprintf_s(szTemp, " NoPC:%1.2f", pSearchSpawn->Radius);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->SpawnID) {
+
+	if (pSearchSpawn->SpawnID)
+	{
 		sprintf_s(szTemp, " ID:%d", pSearchSpawn->SpawnID);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->NotID) {
+
+	if (pSearchSpawn->NotID)
+	{
 		sprintf_s(szTemp, " NotID:%d", pSearchSpawn->NotID);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->bAlert) {
+
+	if (pSearchSpawn->bAlert)
+	{
 		sprintf_s(szTemp, " Alert:%d", pSearchSpawn->AlertList);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->bNoAlert) {
+
+	if (pSearchSpawn->bNoAlert)
+	{
 		sprintf_s(szTemp, " NoAlert:%d", pSearchSpawn->NoAlertList);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->bNearAlert) {
+
+	if (pSearchSpawn->bNearAlert)
+	{
 		sprintf_s(szTemp, " NearAlert:%d", pSearchSpawn->NearAlertList);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->bNotNearAlert) {
+
+	if (pSearchSpawn->bNotNearAlert)
+	{
 		sprintf_s(szTemp, " NotNearAlert:%d", pSearchSpawn->NotNearAlertList);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
+
 	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType != NPC)
 		strcat_s(Buffer, BufferSize, " GM");
 	if (pSearchSpawn->bTrader)
@@ -5398,24 +5434,29 @@ char* FormatSearchSpawn(char* Buffer, size_t BufferSize, SEARCHSPAWN* pSearchSpa
 		strcat_s(Buffer, BufferSize, " XTarHater");
 	if (pSearchSpawn->bLFG)
 		strcat_s(Buffer, BufferSize, " LFG");
-	if (pSearchSpawn->bLight) {
+
+	if (pSearchSpawn->bLight)
+	{
 		strcat_s(Buffer, BufferSize, " Light");
-		if (pSearchSpawn->szLight[0]) {
+		if (pSearchSpawn->szLight[0])
+		{
 			strcat_s(Buffer, BufferSize, ":");
 			strcat_s(Buffer, BufferSize, pSearchSpawn->szLight);
 		}
 	}
+
 	if (pSearchSpawn->bLoS)
 		strcat_s(Buffer, BufferSize, " LoS");
+
 	return Buffer;
 }
 
-SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin)
+SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin)
 {
 	if (!pSearchSpawn || !Nth || !pOrigin)
 		return nullptr;
 
-	std::vector<std::unique_ptr<MQRANK>> spawnSet;
+	std::vector<std::unique_ptr<MQRank>> spawnSet;
 	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
 
 	while (pSpawn)
@@ -5425,7 +5466,7 @@ SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigi
 			if (SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
 			{
 				// matches search, add to our set
-				auto pNewRank = std::make_unique<MQRANK>();
+				auto pNewRank = std::make_unique<MQRank>();
 				pNewRank->VarPtr.Ptr = pSpawn;
 				pNewRank->Value.Float = GetDistance3D(pOrigin->X, pOrigin->Y, pOrigin->Z, pSpawn->X, pSpawn->Y, pSpawn->Z);
 
@@ -5449,12 +5490,14 @@ SPAWNINFO* NthNearestSpawn(SEARCHSPAWN* pSearchSpawn, int Nth, SPAWNINFO* pOrigi
 	return (SPAWNINFO*)spawnSet[Nth - 1]->VarPtr.Ptr;
 }
 
-DWORD CountMatchingSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
+int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin)
 {
 	if (!pSearchSpawn || !pOrigin)
 		return 0;
-	DWORD TotalMatching = 0;
-	PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
+
+	int TotalMatching = 0;
+	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+
 	if (IncludeOrigin)
 	{
 		while (pSpawn)
@@ -5482,14 +5525,14 @@ DWORD CountMatchingSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pOrigin, BOOL In
 }
 
 
-PSPAWNINFO SearchThroughSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar)
+SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
 {
-	PSPAWNINFO pFromSpawn = NULL;
+	SPAWNINFO* pFromSpawn = nullptr;
 
 	if (pSearchSpawn->FromSpawnID>0 && (pSearchSpawn->bTargNext || pSearchSpawn->bTargPrev))
 	{
-		pFromSpawn = (PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
-		if (!pFromSpawn) return NULL;
+		pFromSpawn = (SPAWNINFO*)GetSpawnByID(pSearchSpawn->FromSpawnID);
+		if (!pFromSpawn) return nullptr;
 		for (int N = 0; N < 3000; N++)
 		{
 			if (EQP_DistArray[N].VarPtr.Ptr == pFromSpawn)
@@ -5521,7 +5564,7 @@ PSPAWNINFO SearchThroughSpawns(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar)
 	return NthNearestSpawn(pSearchSpawn, 1, pChar, TRUE);
 }
 
-BOOL SearchSpawnMatchesSearchSpawn(SEARCHSPAWN* pSearchSpawn1, SEARCHSPAWN* pSearchSpawn2)
+bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* pSearchSpawn2)
 {
 	if (pSearchSpawn1->AlertList != pSearchSpawn2->AlertList)
 		return false;
@@ -5633,34 +5676,47 @@ BOOL SearchSpawnMatchesSearchSpawn(SEARCHSPAWN* pSearchSpawn1, SEARCHSPAWN* pSea
 		return false;
 	if (pSearchSpawn1->bXTarHater != pSearchSpawn2->bXTarHater)
 		return false;
+
 	return true;
 }
-BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+
+bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
-	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET)) {
-		if (PSPAWNINFO pTheMaster = (PSPAWNINFO)GetSpawnByID(pSpawn->MasterID)) {
-			if (pTheMaster->Type == SPAWN_NPC) {
+
+	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET))
+	{
+		if (SPAWNINFO * pTheMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
+		{
+			if (pTheMaster->Type == SPAWN_NPC)
+			{
 				SpawnType = NPCPET;
 			}
-			else if (pTheMaster->Type == SPAWN_PLAYER) {
+			else if (pTheMaster->Type == SPAWN_PLAYER)
+			{
 				SpawnType = PCPET;
 			}
 		}
 	}
+
 	if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType != NONE)
 	{
-		if (pSearchSpawn->SpawnType == NPCCORPSE) {
-			if (SpawnType != CORPSE || pSpawn->Deity) {
-				return FALSE;
+		if (pSearchSpawn->SpawnType == NPCCORPSE)
+		{
+			if (SpawnType != CORPSE || pSpawn->Deity)
+			{
+				return false;
 			}
 		}
-		else if (pSearchSpawn->SpawnType == PCCORPSE) {
-			if (SpawnType != CORPSE || !pSpawn->Deity) {
-				return FALSE;
+		else if (pSearchSpawn->SpawnType == PCCORPSE)
+		{
+			if (SpawnType != CORPSE || !pSpawn->Deity)
+			{
+				return false;
 			}
 		}
-		else  if (pSearchSpawn->SpawnType == NPC && SpawnType == UNTARGETABLE) {
+		else if (pSearchSpawn->SpawnType == NPC && SpawnType == UNTARGETABLE)
+		{
 			return FALSE;
 		}
 		else {
@@ -5720,15 +5776,15 @@ BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bXTarHater) {
 		bool foundhater = 0;
-		if(PCHARINFO pmyChar = GetCharInfo()) {
-			if (ExtendedTargetList *xtm = pmyChar->pXTargetMgr)
+		if (PCHARINFO pmyChar = GetCharInfo()) {
+			if (ExtendedTargetList * xtm = pmyChar->pXTargetMgr)
 			{
 				if (xtm->XTargetSlots.Count) {
 					for (int i = 0; i < pmyChar->pXTargetMgr->XTargetSlots.Count; i++) {
 						XTARGETSLOT xts = xtm->XTargetSlots[i];
 						if (xts.xTargetType == XTARGET_AUTO_HATER && xts.XTargetSlotStatus && xts.SpawnID) {
 							if (PSPAWNINFO pxtarSpawn = (PSPAWNINFO)GetSpawnByID(xts.SpawnID)) {
-								if(pxtarSpawn->SpawnID == pSpawn->SpawnID) {
+								if (pxtarSpawn->SpawnID == pSpawn->SpawnID) {
 									foundhater = true;
 								}
 							}
@@ -5737,7 +5793,7 @@ BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 				}
 			}
 		}
-		if(!foundhater) {
+		if (!foundhater) {
 			return FALSE;
 		}
 	}
@@ -5787,11 +5843,11 @@ BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	else if (pSearchSpawn->FRadius<10000.0f && Distance3DToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
 		return FALSE;
 
-	if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn, pSearchSpawn->Radius))
+	if (pSearchSpawn->Radius > 0.0f && IsPCNear(pSpawn, pSearchSpawn->Radius))
 		return FALSE;
-	if (gZFilter<10000.0f && ((pSpawn->Z > pSearchSpawn->zLoc + gZFilter) || (pSpawn->Z < pSearchSpawn->zLoc - gZFilter)))
+	if (gZFilter < 10000.0f && ((pSpawn->Z > pSearchSpawn->zLoc + gZFilter) || (pSpawn->Z < pSearchSpawn->zLoc - gZFilter)))
 		return FALSE;
-	if (pSearchSpawn->ZRadius<10000.0f && (pSpawn->Z > pSearchSpawn->zLoc + pSearchSpawn->ZRadius || pSpawn->Z < pSearchSpawn->zLoc - pSearchSpawn->ZRadius))
+	if (pSearchSpawn->ZRadius < 10000.0f && (pSpawn->Z > pSearchSpawn->zLoc + pSearchSpawn->ZRadius || pSpawn->Z < pSearchSpawn->zLoc - pSearchSpawn->ZRadius))
 		return FALSE;
 	if (pSearchSpawn->bLight)
 	{
@@ -5842,7 +5898,7 @@ BOOL SpawnMatchesSearch(SEARCHSPAWN* pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	return TRUE;
 }
 
-char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn)
+char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpawn)
 {
 	if (szArg && pSearchSpawn) {
 		if (!_stricmp(szArg, "pc")) {
@@ -5994,8 +6050,9 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn)
 			pSearchSpawn->zLoc = (float)atof(szArg);
 			if (pSearchSpawn->zLoc == 0.0) {
 				pSearchSpawn->zLoc = ((PSPAWNINFO)pCharSpawn)->Z;
-			szRest = GetNextArg(szRest, 2);
-			} else {
+				szRest = GetNextArg(szRest, 2);
+			}
+			else {
 				szRest = GetNextArg(szRest, 3);
 			}
 		}
@@ -6029,7 +6086,7 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn)
 			DWORD Light = -1;
 			DWORD i = 0;
 			GetArg(szArg, szRest, 1);
-			if (szArg[0] != 0) for (i = 0; i<LIGHT_COUNT; i++) if (!_stricmp(szLights[i], szArg)) Light = i;
+			if (szArg[0] != 0) for (i = 0; i < LIGHT_COUNT; i++) if (!_stricmp(szLights[i], szArg)) Light = i;
 			if (Light != -1) {
 				strcpy_s(pSearchSpawn->szLight, szLights[Light]);
 				szRest = GetNextArg(szRest, 1);
@@ -6100,38 +6157,44 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, SEARCHSPAWN* pSearchSpawn)
 			pSearchSpawn->PlayerState |= atoi(szArg); // This allows us to pass multiple playerstate args
 			szRest = GetNextArg(szRest, 1);
 		}
-		else if (IsNumber(szArg)) {
+		else if (IsNumber(szArg))
+		{
 			pSearchSpawn->MinLevel = atoi(szArg);
 			pSearchSpawn->MaxLevel = pSearchSpawn->MinLevel;
 		}
-		else {
-			for (DWORD N = 1; N<17; N++)
+		else
+		{
+			for (int index = 1; index < 17; index++)
 			{
-				if (!_stricmp(szArg, ClassInfo[N].Name) || !_stricmp(szArg, ClassInfo[N].ShortName))
+				if (!_stricmp(szArg, ClassInfo[index].Name) || !_stricmp(szArg, ClassInfo[index].ShortName))
 				{
-					strcpy_s(pSearchSpawn->szClass, pEverQuest->GetClassDesc(N));
+					strcpy_s(pSearchSpawn->szClass, pEverQuest->GetClassDesc(index));
 					return szRest;
 				}
 			}
+
 			if (pSearchSpawn->szName[0])
-			{// multiple word name
+			{
+				// multiple word name
 				strcat_s(pSearchSpawn->szName, " ");
 				strcat_s(pSearchSpawn->szName, szArg);
 			}
-			else {
+			else
+			{
 				if (szArg[0] == '=')
 				{
-					pSearchSpawn->bExactName = TRUE;
+					pSearchSpawn->bExactName = true;
 					szArg++;
 				}
 				strcpy_s(pSearchSpawn->szName, szArg);
 			}
 		}
 	}
+
 	return szRest;
 }
 
-void ParseSearchSpawn(char* Buffer, SEARCHSPAWN* pSearchSpawn)
+void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn)
 {
 	char szArg[MAX_STRING] = { 0 };
 	char szMsg[MAX_STRING] = { 0 };
@@ -6169,7 +6232,7 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 
 	char szName[MAX_STRING] = { 0 };
 
-	std::vector<SEARCHSPAWN> search;
+	std::vector<MQSpawnSearch> search;
 	if (CAlerts.GetAlert(id, search))
 	{
 		for (auto& s : search)
@@ -6191,9 +6254,9 @@ bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id)
 {
 	char szName[MAX_STRING] = { 0 };
 
-	SEARCHSPAWN SearchSpawn = { 0 };
+	MQSpawnSearch SearchSpawn;
 
-	std::vector<SEARCHSPAWN> alerts;
+	std::vector<MQSpawnSearch> alerts;
 	if (CAlerts.GetAlert(id, alerts))
 	{
 		for (auto& search : alerts)
@@ -6201,7 +6264,8 @@ bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id)
 			if (search.SpawnID > 0 && search.SpawnID != pSpawn->SpawnID)
 				continue;
 
-			memcpy(&SearchSpawn, &search, sizeof(SEARCHSPAWN));
+			// FIXME
+			memcpy(&SearchSpawn, &search, sizeof(MQSpawnSearch));
 			SearchSpawn.SpawnID = pSpawn->SpawnID;
 
 			// if this spawn matches, it's true. This is an implied logical or
@@ -6214,7 +6278,7 @@ bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id)
 }
 
 // FIXME: This function is broken, and doesn't actually check against the CAlerts list.
-bool CheckAlertForRecursion(SEARCHSPAWN* pSearchSpawn, uint32_t id)
+bool CheckAlertForRecursion(MQSpawnSearch* pSearchSpawn, uint32_t id)
 {
 	if (gbIgnoreAlertRecursion)
 		return false;
@@ -6222,7 +6286,7 @@ bool CheckAlertForRecursion(SEARCHSPAWN* pSearchSpawn, uint32_t id)
 	if (!pSearchSpawn)
 		return false;
 
-	std::vector<SEARCHSPAWN> ss;
+	std::vector<MQSpawnSearch> ss;
 	if (CAlerts.GetAlert(id, ss))
 	{
 		for (auto i = ss.begin(); i != ss.end(); i++)
@@ -6288,11 +6352,13 @@ bool CheckAlertForRecursion(SEARCHSPAWN* pSearchSpawn, uint32_t id)
 // Description: Cleans up NPC names
 //              an_iksar_marauder23 = iksar marauder, an
 // ***************************************************************************
-char* CleanupName(char* szName, size_t BufferSize, BOOL Article, BOOL ForWhoList)
+char* CleanupName(char* szName, size_t BufferSize, bool Article, bool ForWhoList)
 {
-	DWORD i, j = 0;
 	char szTemp[MAX_STRING] = { 0 };
-	for (i = 0; i<strlen(szName); i++) {
+	int j = 0;
+
+	for (size_t i = 0; i < strlen(szName); i++)
+	{
 		switch (szName[i])
 		{
 		case '_':
@@ -6316,20 +6382,27 @@ char* CleanupName(char* szName, size_t BufferSize, BOOL Article, BOOL ForWhoList
 			szTemp[j++] = szName[i];
 		}
 	}
+
 	strcpy_s(szName, BufferSize, szTemp);
+
 	if (!Article) return szName;
-	if (!_strnicmp(szName, "a ", 2)) {
+
+	if (!_strnicmp(szName, "a ", 2))
+	{
 		sprintf_s(szTemp, "%s, a", szName + 2);
 		strcpy_s(szName, BufferSize, szTemp);
 	}
-	else if (!_strnicmp(szName, "an ", 3)) {
+	else if (!_strnicmp(szName, "an ", 3))
+	{
 		sprintf_s(szTemp, "%s, an", szName + 3);
 		strcpy_s(szName, BufferSize, szTemp);
 	}
-	else if (!_strnicmp(szName, "the ", 4)) {
+	else if (!_strnicmp(szName, "the ", 4))
+	{
 		sprintf_s(szTemp, "%s, the", szName + 4);
 		strcpy_s(szName, BufferSize, szTemp);
 	}
+
 	return szName;
 }
 
@@ -6528,54 +6601,65 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 	WriteChatColor(szMsg, USERCOLOR_WHO);
 }
 
-DWORD SWhoSortValue = 0;
-SPAWNINFO* SWhoSortOrigin = nullptr;
-
-bool pWHOSORTCompare(SPAWNINFO* SpawnA, SPAWNINFO* SpawnB)
+struct SuperWhoSortPredicate
 {
-	switch (SWhoSortValue)
+	SuperWhoSortPredicate(SearchSortBy sortBy, SPAWNINFO* pSeachOrigin)
+		: m_sortBy(sortBy)
+		, m_pOrigin(pSeachOrigin)
 	{
-		/*
-		char* szSortBy[] = {
-		"level",   // Default sort by
-		"name",
-		"race",
-		"class",
-		"distance",
-		"guild",
-		"id",
-		NULL };
-		/**/
-	case 0://level
-		return SpawnA->Level < SpawnB->Level;
-		//case 1://name   done at the bottom ;)
-	case 2://race
-		return _stricmp(pEverQuest->GetRaceDesc(SpawnA->mActorClient.Race), pEverQuest->GetRaceDesc(SpawnB->mActorClient.Race)) < 0;
-	case 3://class
-		return _stricmp(GetClassDesc(SpawnA->mActorClient.Class), GetClassDesc(SpawnB->mActorClient.Class)) < 0;
-	case 4://distance
-		return GetDistance(SWhoSortOrigin, SpawnA) < GetDistance(SWhoSortOrigin, SpawnB);
-	case 5://guild
-	{
-		char szGuild1[256] = { "" };
-		char szGuild2[256] = { "" };
-		char *pDest1 = GetGuildByID(SpawnA->GuildID);
-		char *pDest2 = GetGuildByID(SpawnB->GuildID);
-		if (pDest1) {
-			strcpy_s(szGuild1, pDest1);
-		}
-		if (pDest2) {
-			strcpy_s(szGuild2, pDest2);
-		}
-		return _stricmp(szGuild1, szGuild2) < 0;
 	}
-	case 6://id
-		return SpawnA->SpawnID < SpawnB->SpawnID;
-	}
-	return _stricmp(SpawnA->DisplayedName, SpawnB->DisplayedName) < 0;
-}
 
-void SuperWhoDisplay(SPAWNINFO* pChar, SEARCHSPAWN* pSearchSpawn, DWORD Color)
+	bool operator()(SPAWNINFO* SpawnA, SPAWNINFO* SpawnB)
+	{
+		switch (m_sortBy)
+		{
+		case SearchSortBy::Level:
+			return SpawnA->Level < SpawnB->Level;
+
+		case SearchSortBy::Name:
+			return _stricmp(SpawnA->DisplayedName, SpawnB->DisplayedName) < 0;
+
+		case SearchSortBy::Race:
+			return _stricmp(pEverQuest->GetRaceDesc(SpawnA->mActorClient.Race), pEverQuest->GetRaceDesc(SpawnB->mActorClient.Race)) < 0;
+
+		case SearchSortBy::Class:
+			return _stricmp(GetClassDesc(SpawnA->mActorClient.Class), GetClassDesc(SpawnB->mActorClient.Class)) < 0;
+
+		case SearchSortBy::Distance:
+			return GetDistanceSquared(m_pOrigin, SpawnA) < GetDistanceSquared(m_pOrigin, SpawnB);
+
+		case SearchSortBy::Guild:
+		{
+			char szGuild1[256] = { "" };
+			char szGuild2[256] = { "" };
+			char* pDest1 = GetGuildByID(SpawnA->GuildID);
+			char* pDest2 = GetGuildByID(SpawnB->GuildID);
+
+			if (pDest1)
+			{
+				strcpy_s(szGuild1, pDest1);
+			}
+
+			if (pDest2)
+			{
+				strcpy_s(szGuild2, pDest2);
+			}
+
+			return _stricmp(szGuild1, szGuild2) < 0;
+		}
+
+		case SearchSortBy::Id:
+		default:
+			return SpawnA->SpawnID < SpawnB->SpawnID;
+		}
+	}
+
+private:
+	SearchSortBy m_sortBy;
+	SPAWNINFO* m_pOrigin;
+};
+
+void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 {
 	if (!pSearchSpawn)
 		return;
@@ -6606,11 +6690,8 @@ void SuperWhoDisplay(SPAWNINFO* pChar, SEARCHSPAWN* pSearchSpawn, DWORD Color)
 		if (SpawnSet.size() > 1)
 		{
 			// sort our list
-			SWhoSortValue = pSearchSpawn->SortBy;
-			SWhoSortOrigin = pOrigin;
-
 			std::sort(std::begin(SpawnSet), std::end(SpawnSet),
-				[](SPAWNINFO* a, SPAWNINFO* b) { return pWHOSORTCompare(a, b); });
+				SuperWhoSortPredicate{ pSearchSpawn->SortBy, pOrigin });
 		}
 
 		WriteChatColor("List of matching spawns", USERCOLOR_WHO);
@@ -6743,40 +6824,12 @@ char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t Buffe
 	return szName;
 }
 
-// deprecated
-#if 0
-char* GetModel(PSPAWNINFO pSpawn, DWORD Slot)
-{
-	if (!pSpawn) return NULL;
-	if (Slot>20) return NULL;
-	PMODELINFO pMod = pSpawn->Model[Slot];
-	if (!pMod) return NULL;
-	if (!pMod->pModelInfo) return NULL;
-	if (pMod->pModelInfo->Type != 0x48) return NULL;
-	PMODELINFO_48 pModInfo = (PMODELINFO_48)pMod->pModelInfo;
-	if (!pModInfo->pModelName) return NULL;
-	char* szModel = pModInfo->pModelName->Name;
-	if (!szModel) return szItemName[0];
-	return szItemName[atoi(szModel + 2)];
-}
-#endif
-
-void SetDisplaySWhoFilter(PBOOL bToggle, char* szFilter, char* szToggle)
-{
-	char szTemp[MAX_STRING] = { 0 };
-	if (!_stricmp(szToggle, "on")) *bToggle = TRUE;
-	else if (!_stricmp(szToggle, "off")) *bToggle = FALSE;
-	sprintf_s(szTemp, "%s is: %s", szFilter, (*bToggle) ? "on" : "off");
-	WriteChatColor(szTemp, USERCOLOR_DEFAULT);
-	_itoa_s(*bToggle, szTemp, 10);
-	WritePrivateProfileString("SWho Filter", szFilter, szTemp, gszINIFilename);
-}
-
 void WriteFilterNames()
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	int filternumber = 1;
-	PFILTER pFilter = gpFilters;
+
+	MQFilter* pFilter = gpFilters;
 	WritePrivateProfileSection("Filter Names", szBuffer, gszINIFilename);
 	while (pFilter) {
 		if (pFilter->pEnabled == &gFilterCustom) {
@@ -7648,15 +7701,18 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 	}
 	return 0;
 }
-CONTENTS* FindItemByName(char* pName, BOOL bExact)
+
+CONTENTS* FindItemByName(const char* pName, bool bExact)
 {
 	char Name[MAX_STRING] = { 0 };
 	char Temp[MAX_STRING] = { 0 };
+
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
+
 	CHARINFO2* pChar2 = GetCharInfo2();
 
-	//check cursor
+	// check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 		if (CONTENTS* pItem = pChar2->pInventoryArray->Inventory.Cursor) {
 			if (bExact) {
@@ -8052,16 +8108,19 @@ CONTENTS* FindItemByID(int ItemID)
 
 	return 0;
 }
-DWORD FindItemCountByName(char* pName, BOOL bExact)
+
+int FindItemCountByName(const char* pName, bool bExact)
 {
-	DWORD Count = 0;
+
 	char Name[MAX_STRING] = { 0 };
-	char Temp[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
 	CHARINFO2* pChar2 = GetCharInfo2();
 
-	//check cursor
+	char Temp[MAX_STRING] = { 0 };
+	int Count = 0;
+
+	// check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 		if (CONTENTS* pItem = pChar2->pInventoryArray->Inventory.Cursor) {
 			if (bExact) {
@@ -8575,189 +8634,123 @@ DWORD FindItemCountByID(int ItemID)
 
 	return Count;
 }
-CONTENTS* FindBankItemByName(char *pName,BOOL bExact)
+
+CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 {
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return nullptr;
+
 	char Name[MAX_STRING] = { 0 };
-	char Temp[MAX_STRING] = { 0 };
 	strcpy_s(Name, pName);
 	_strlwr_s(Name);
-	PCHARINFO pCharInfo = GetCharInfo();
 
-	// Check bank slots
-#ifdef NEWCHARINFO
-	if (pCharInfo) {
-		for (unsigned long nPack = 0; nPack < pCharInfo->BankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->BankItems.Items[nPack].pObject) {
-#else
-	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
-		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pBankArray->Bank[nPack]) {
-#endif
-				if (bExact) {
-					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
-						return pPack;
-					}
-				}
-				else {
-					strcpy_s(Temp, GetItemFromContents(pPack)->Name);
-					_strlwr_s(Temp);
-					if (strstr(Temp, Name)) {
-						return pPack;
-					}
-				}
-				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
-					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
-						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
-								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
-									if (bExact) {
-										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
-											return pAugItem;
-										}
-									}
-									else {
-										strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
-										_strlwr_s(Temp);
-										if (strstr(Temp, Name)) {
-											return pAugItem;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
-							if (bExact) {
-								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
-									return pItem;
-								}
-							}
-							else {
-								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
-								_strlwr_s(Temp);
-								if (strstr(Temp, Name)) {
-									return pItem;
-								}
-							}
-							// Check for augs next
-							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
-								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
-										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
-											if (bExact) {
-												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
-													return pAugItem;
-												}
-											}
-											else {
-												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
-												_strlwr_s(Temp);
-												if (strstr(Temp, Name)) {
-													return pAugItem;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
+	char Temp[MAX_STRING] = { 0 };
+
+	auto checkItem = [&](CONTENTS* pContents) -> bool
+	{
+		ITEMINFO* pItem = GetItemFromContents(pContents);
+		const char* itemName = pItem->Name;
+
+		if (bExact)
+		{
+			if (!_stricmp(Name, itemName))
+				return true;
+		}
+		else
+		{
+			if (ci_find_substr(itemName, Name) != 0)
+				return true;
+		}
+
+		return false;
+	};
+
+	auto checkAugs = [&](CONTENTS* pContents) -> CONTENTS*
+	{
+		if (pContents->Contents.ContainedItems.pItems && pContents->Contents.ContainedItems.Size)
+		{
+			for (size_t nAug = 0; nAug < pContents->Contents.ContainedItems.Size; nAug++)
+			{
+				if (CONTENTS* pAugItem = pContents->Contents.ContainedItems.pItems->Item[nAug])
+				{
+					ITEMINFO* pItem = GetItemFromContents(pAugItem);
+					if (pItem->Type == ITEMTYPE_NORMAL && pItem->AugType)
+					{
+						if (checkItem(pAugItem))
+							return pAugItem;
 					}
 				}
 			}
+		}
+
+		return nullptr;
+	};
+
+	auto checkContainer = [&](CONTENTS* pPack) -> CONTENTS*
+	{
+		// check this item
+		if (checkItem(pPack))
+			return pPack;
+
+		if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK)
+		{
+			// Hey it's not a pack we should check for augs
+			if (CONTENTS * pAugItem = checkAugs(pPack))
+				return pAugItem;
+		}
+		else if (pPack->Contents.ContainedItems.pItems)
+		{
+			// Ok it was a pack, if it has items in it lets check them
+			for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+			{
+				if (CONTENTS * pItem = pPack->GetContent(nItem))
+				{
+					// check this item
+					if (checkItem(pItem))
+						return pItem;
+
+					// Check for augs next
+					if (CONTENTS * pAugItem = checkAugs(pItem))
+						return pAugItem;
+				}
+			}
+		}
+
+		return nullptr;
+	};
+
+	// Check bank slots
+	if (pCharInfo->pBankArray && pCharInfo->pBankArray->Bank)
+	{
+		for (int nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
+		{
+			CONTENTS* pPack = pCharInfo->pBankArray->Bank[nPack];
+			if (!pPack)
+				continue;
+
+			if (CONTENTS* pItem = checkContainer(pPack))
+				return pItem;
 		}
 	}
 
 	// Check shared bank slots
-#ifdef NEWCHARINFO
-	if (pCharInfo) {
-		for (unsigned long nPack = 0; nPack < pCharInfo->SharedBankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
-#else
-	if (pCharInfo->pSharedBankArray) {
-		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) 		{
-			if (CONTENTS* pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
-#endif
-				if (bExact) {
-					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
-						return pPack;
-					}
-				}
-				else {
-					strcpy_s(Temp, GetItemFromContents(pPack)->Name);
-					_strlwr_s(Temp);
-					if (strstr(Temp, Name)) {
-						return pPack;
-					}
-				}
-				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
-					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
-						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
-								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
-									if (bExact) {
-										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
-											return pAugItem;
-										}
-									}
-									else {
-										strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
-										_strlwr_s(Temp);
-										if (strstr(Temp, Name)) {
-											return pAugItem;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
-							if (bExact) {
-								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
-									return pItem;
-								}
-							}
-							else {
-								strcpy_s(Temp, GetItemFromContents(pItem)->Name);
-								_strlwr_s(Temp);
-								if (strstr(Temp, Name)) {
-									return pItem;
-								}
-							}
-							// Check for augs next
-							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
-								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
-										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
-											if (bExact) {
-												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
-													return pAugItem;
-												}
-											}
-											else {
-												strcpy_s(Temp, GetItemFromContents(pAugItem)->Name);
-												_strlwr_s(Temp);
-												if (strstr(Temp, Name)) {
-													return pAugItem;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+	if (pCharInfo->pSharedBankArray)
+	{
+		for (int nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
+		{
+			CONTENTS* pPack = pCharInfo->pSharedBankArray->SharedBank[nPack];
+			if (!pPack)
+				continue;
+
+			if (CONTENTS* pItem = checkContainer(pPack))
+				return pItem;
 		}
 	}
-	return NULL;
+
+	return nullptr;
 }
+
 CONTENTS* FindBankItemByID(int ItemID)
 {
 	PCHARINFO pCharInfo = GetCharInfo();
@@ -8865,7 +8858,8 @@ CONTENTS* FindBankItemByID(int ItemID)
 	}
 	return NULL;
 }
-DWORD FindBankItemCountByName(char *pName, BOOL bExact)
+
+int FindBankItemCountByName(const char* pName, bool bExact)
 {
 	DWORD Count = 0;
 	char Name[MAX_STRING] = { 0 };
@@ -8878,11 +8872,11 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 #ifdef NEWCHARINFO
 	if (pCharInfo) {
 		for (unsigned long nPack = 0; nPack < pCharInfo->BankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+			if (CONTENTS * pPack = pCharInfo->BankItems.Items[nPack].pObject) {
 #else
 	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pBankArray->Bank[nPack]) {
+			if (CONTENTS * pPack = pCharInfo->pBankArray->Bank[nPack]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
@@ -8909,7 +8903,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
 						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (CONTENTS * pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
 								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 									if (bExact) {
 										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -8930,7 +8924,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 				}
 				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (bExact) {
 								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8956,7 +8950,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (bExact) {
 												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -8985,11 +8979,11 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 #ifdef NEWCHARINFO
 	if (pCharInfo) {
 		for (unsigned long nPack = 0; nPack < pCharInfo->SharedBankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+			if (CONTENTS * pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
 #else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+			if (CONTENTS * pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pPack)->Name)) {
@@ -9016,7 +9010,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
 						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (CONTENTS * pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
 								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 									if (bExact) {
 										if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -9037,7 +9031,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 				}
 				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (bExact) {
 								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -9063,7 +9057,7 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (bExact) {
 												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -9090,7 +9084,8 @@ DWORD FindBankItemCountByName(char *pName, BOOL bExact)
 
 	return Count;
 }
-DWORD FindBankItemCountByID(int ItemID)
+
+int FindBankItemCountByID(int ItemID)
 {
 	DWORD Count = 0;
 	char Temp[MAX_STRING] = { 0 };
@@ -9100,11 +9095,11 @@ DWORD FindBankItemCountByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pCharInfo) {
 		for (unsigned long nPack = 0; nPack < pCharInfo->BankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+			if (CONTENTS * pPack = pCharInfo->BankItems.Items[nPack].pObject) {
 #else
 	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pBankArray->Bank[nPack]) {
+			if (CONTENTS * pPack = pCharInfo->pBankArray->Bank[nPack]) {
 #endif
 				if (ItemID == pPack->ID) {
 					if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
@@ -9117,7 +9112,7 @@ DWORD FindBankItemCountByID(int ItemID)
 				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
 						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (CONTENTS * pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
 								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 									if (ItemID == pAugItem->ID) {
 										Count++;
@@ -9129,7 +9124,7 @@ DWORD FindBankItemCountByID(int ItemID)
 				}
 				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (ItemID == pItem->ID) {
 								if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 									Count++;
@@ -9141,7 +9136,7 @@ DWORD FindBankItemCountByID(int ItemID)
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (ItemID == pAugItem->ID) {
 												Count++;
@@ -9161,11 +9156,11 @@ DWORD FindBankItemCountByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pCharInfo) {
 		for (unsigned long nPack = 0; nPack < pCharInfo->SharedBankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+			if (CONTENTS * pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
 #else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+			if (CONTENTS * pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
 #endif
 				if (ItemID == pPack->ID) {
 					if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1)) {
@@ -9178,7 +9173,7 @@ DWORD FindBankItemCountByID(int ItemID)
 				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
 						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (CONTENTS * pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
 								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 									if (ItemID == pAugItem->ID) {
 										Count++;
@@ -9190,7 +9185,7 @@ DWORD FindBankItemCountByID(int ItemID)
 				}
 				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (ItemID == pItem->ID) {
 								if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 									Count++;
@@ -9202,7 +9197,7 @@ DWORD FindBankItemCountByID(int ItemID)
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (ItemID == pAugItem->ID) {
 												Count++;
@@ -10628,9 +10623,10 @@ int GetFamiliarCount()
 	return Count;
 }
 
-DWORD GetKeyRingIndex(DWORD KeyRing, char* szItemName, size_t BuffLen, bool bExact, bool usecmd)
+int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact, bool usecmd)
 {
 	int index = 0;
+
 	if (CSidlScreenWnd * krwnd = (CSidlScreenWnd*)FindMQ2Window(KeyRingWindowParent))
 	{
 		CListWnd* clist = nullptr;
@@ -10644,8 +10640,6 @@ DWORD GetKeyRingIndex(DWORD KeyRing, char* szItemName, size_t BuffLen, bool bExa
 
 		if (clist)
 		{
-			char szOut[MAX_STRING];
-
 			if (int numitems = clist->ItemsArray.GetCount())
 			{
 				for (int i = 0; i < numitems; i++)
@@ -10664,11 +10658,7 @@ DWORD GetKeyRingIndex(DWORD KeyRing, char* szItemName, size_t BuffLen, bool bExa
 						}
 						else
 						{
-							strcpy_s(szOut, Str.c_str());
-							_strlwr_s(szItemName, BuffLen);
-							_strlwr_s(szOut);
-
-							if (strstr(szOut, szItemName))
+							if (ci_find_substr(Str, szItemName))
 							{
 								index = i + 1;
 								break;
@@ -11144,6 +11134,7 @@ void WeDidStuff()
 	gbCommandEvent = 1;
 	gMouseEventTime = GetFastTime();
 }
+
 int GetFreeInventory(int nSize)
 {
 	int freeslots = 0;
@@ -11368,22 +11359,21 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 {
 	if (GetGameState() != GAMESTATE_INGAME || !pLocalPlayer)
 		return false;
-	BOOL bisTarget = false;
+	bool bisTarget = false;
 	int isRmember = -1;
-	BOOL isGmember = false;
+	bool isGmember = false;
 	bool bChange = false;
 	int ItsMe = _stricmp(((PSPAWNINFO)pLocalPlayer)->Name, name);
 	if(ItsMe!=0)//well if it is me, then there is no point in checking if its a group member
 		isGmember = IsGroupMember(name);
 	if(!isGmember && ItsMe!=0)//well if it is me or a groupmember, then there is no point in checking if its a raid member
 		isRmember = IsRaidMember(name);
-	if (ItsMe != 0 && !isGmember && isRmember==-1) {
+	if (ItsMe != 0 && !isGmember && isRmember) {
 		//my target?
 		if (pTarget && ((PSPAWNINFO)pTarget)->Type!=SPAWN_NPC)
 		{
 			if (!_strnicmp(((PSPAWNINFO)pTarget)->DisplayedName, name,strlen(((PSPAWNINFO)pTarget)->DisplayedName))) {
 				bisTarget = true;
-			//	Sleep(0);
 			}
 		}
 	}

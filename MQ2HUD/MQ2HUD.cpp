@@ -420,7 +420,7 @@ void ZoneHUD(SPAWNINFO* pChar, char* szLine)
 	HandleINI();
 }
 
-BOOL dataHUD(char* szIndex, MQ2TYPEVAR& Ret)
+bool dataHUD(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Ptr = HUDNames;
 	Ret.Type = pStringType;

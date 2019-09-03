@@ -51,7 +51,7 @@ public:
 		}
 
 		bool Filtered = false;
-		FILTER* Filter = gpFilters;
+		MQFilter* Filter = gpFilters;
 
 		while (Filter && !Filtered)
 		{

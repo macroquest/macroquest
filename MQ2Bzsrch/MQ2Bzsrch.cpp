@@ -28,6 +28,9 @@
 PLUGIN_VERSION(2.0);
 PreSetup("MQ2Bzsrch");
 
+class MQ2BazaarType;
+class MQ2BazaarItemType;
+
 struct BazaarSearchRequestPacket
 {
 /*0x00*/ int     BSRCommand;     // should be 7               -7c
@@ -120,7 +123,7 @@ std::mutex s_bzrMutex;
 void BzSrchMe(SPAWNINFO* pChar, char* szLine);
 void MQ2BzSrch(SPAWNINFO* pChar, char* szLine);
 void bzpc(SPAWNINFO* pChar, char* szLine);
-BOOL dataBazaar(char* szName, MQ2TYPEVAR& Ret);
+bool dataBazaar(const char* szName, MQTypeVar& Ret);
 
 // length is variable based on item name
 struct bzrItemData
@@ -219,8 +222,8 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(void BzSrchHook::BzTrampoline(bzrData *));
 
-class MQ2BazaarType* pBazaarType = 0;
-class MQ2BazaarItemType* pBazaarItemType = 0;
+MQ2BazaarType* pBazaarType = nullptr;
+MQ2BazaarItemType* pBazaarItemType = nullptr;
 
 class MQ2BazaarItemType : public MQ2Type
 {
@@ -234,7 +237,8 @@ public:
 		Name = 6,
 	};
 
-	MQ2BazaarItemType() : MQ2Type("bazaaritem") {
+	MQ2BazaarItemType() : MQ2Type("bazaaritem")
+	{
 		TypeMember(Price);
 		TypeMember(Quantity);
 		TypeMember(ItemID);
@@ -242,16 +246,14 @@ public:
 		TypeMember(Name);
 	}
 
-	~MQ2BazaarItemType() {}
-
-	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
 
 		auto pBzrItem = (BazaarSearchResponsePacket*)VarPtr.Ptr;
 
-		MQ2TypeMember* pMember = MQ2BazaarItemType::FindMember(Member);
+		MQTypeMember* pMember = MQ2BazaarItemType::FindMember(Member);
 		if (!pMember)
 			return false;
 
@@ -292,7 +294,7 @@ public:
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -304,19 +306,19 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQ2VARPTR& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(BazaarSearchResponsePacket));
 		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(BazaarSearchResponsePacket));
 	}
 
-	void FreeVariable(MQ2VARPTR& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr)
 	{
 		free(VarPtr.Ptr);
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pBazaarItemType)
 			return false;
@@ -324,7 +326,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -350,11 +352,10 @@ public:
 		TypeMember(Pricecheckdone);
 		TypeMember(Pricecheck);
 	}
-	~MQ2BazaarType() {}
 
-	bool MQ2BazaarType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		MQ2TypeMember* pMember = MQ2BazaarType::FindMember(Member);
+		MQTypeMember* pMember = MQ2BazaarType::FindMember(Member);
 		if (!pMember)
 			return false;
 
@@ -429,7 +430,7 @@ public:
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (BzDone)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
@@ -439,12 +440,12 @@ public:
 		return true;
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
@@ -461,8 +462,6 @@ void BZQuery(SPAWNINFO* pChar, char* szLine)
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	DebugSpewAlways("Initializing MQ2Bzsrch");
-
 	LoadMQ2Plugin("MQ2ItemDisplay");
 
 	if (HMODULE h = GetModuleHandle("MQ2ItemDisplay.dll"))
@@ -479,7 +478,6 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/bzsrch", BzSrchMe);
 	AddCommand("/breset", BzSrchMe);
 	AddCommand("/mq2bzsrch", MQ2BzSrch);
-	//AddCommand("/pricecheck",bzpc);
 	AddMQ2Data("Bazaar", dataBazaar);              // cc - added, but not using TLO yet
 
 	EzDetourwName(CBazaarSearchWnd__HandleBazaarMsg, &BzSrchHook::BzDetour, &BzSrchHook::BzTrampoline, "CBazaarSearchWnd__HandleBazaarMsg");
@@ -490,12 +488,9 @@ PLUGIN_API void InitializePlugin()
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-	DebugSpewAlways("Shutting down MQ2Bzsrch");
-
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
 	RemoveMQ2Data("Bazaar");
-	//RemoveCommand("/pricecheck");
 	RemoveCommand("/mq2bzsrch");
 	RemoveCommand("/breset");
 	RemoveCommand("/bzsrch");
@@ -504,7 +499,6 @@ PLUGIN_API void ShutdownPlugin()
 	delete pBazaarType;
 	delete pBazaarItemType;
 }
-
 
 void MQ2BzSrch(SPAWNINFO* pChar, char* szLine)
 {
@@ -924,7 +918,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-BOOL dataBazaar(char* szName, MQ2TYPEVAR& Ret)
+bool dataBazaar(const char* szName, MQTypeVar& Ret)
 {
 	Ret.DWord = 1;
 	Ret.Type = pBazaarType;

@@ -18,7 +18,7 @@
 
 static std::mutex s_dataVarMutex;
 
-void DeleteMQ2DataVariable(PDATAVAR pVar)
+void DeleteMQ2DataVariable( MQDataVar* pVar)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -34,11 +34,11 @@ void DeleteMQ2DataVariable(PDATAVAR pVar)
 	delete pVar;
 }
 
-PDATAVAR FindMQ2DataVariable(const char* Name)
+ MQDataVar* FindMQ2DataVariable(const char* Name)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
-	PDATAVAR pFind = nullptr;
+	 MQDataVar* pFind = nullptr;
 	auto it = VariableMap.find(Name);
 	if (it != VariableMap.end())
 		pFind = it->second;
@@ -48,7 +48,7 @@ PDATAVAR FindMQ2DataVariable(const char* Name)
 	// local?
 	if (gMacroStack)
 	{
-		PDATAVAR pVar = gMacroStack->Parameters;
+		 MQDataVar* pVar = gMacroStack->Parameters;
 		while (pVar)
 		{
 			if (!strcmp(pVar->szName, Name))
@@ -66,7 +66,7 @@ PDATAVAR FindMQ2DataVariable(const char* Name)
 	return nullptr;
 }
 
-static bool AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default)
+static bool AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type* pType,  MQDataVar** ppHead, const char* Default)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -82,7 +82,7 @@ static bool AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type* pType, PDA
 		return false;
 
 	// create variable
-	PDATAVAR pVar = new DATAVAR;
+	 MQDataVar* pVar = new MQDataVar;
 	pVar->ppHead = ppHead;
 	pVar->pNext = *ppHead;
 	*ppHead = pVar;
@@ -114,7 +114,7 @@ static bool AddMQ2DataEventVariable(char* Name, char* Index, MQ2Type* pType, PDA
 	return true;
 }
 
-bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default, bool ByData)
+bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType,  MQDataVar** ppHead, const char* Default, bool ByData)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -130,7 +130,7 @@ bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, P
 		return false;
 
 	// create variable
-	PDATAVAR pVar = new DATAVAR;
+	 MQDataVar* pVar = new MQDataVar;
 	pVar->ppHead = ppHead;
 	pVar->pNext = *ppHead;
 	*ppHead = pVar;
@@ -150,7 +150,7 @@ bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, P
 		pVar->Var.Type = pType;
 		pType->InitVariable(pVar->Var.VarPtr);
 		if (ByData)
-			pType->FromData(pVar->Var.VarPtr, *(MQ2TYPEVAR*)Default);
+			pType->FromData(pVar->Var.VarPtr, *(MQTypeVar*)Default);
 		else
 			pType->FromString(pVar->Var.VarPtr, (char*)Default);
 	}
@@ -163,17 +163,17 @@ bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, P
 	return true;
 }
 
-bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, const char* Default)
+bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType,  MQDataVar** ppHead, const char* Default)
 {
 	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, Default, false);
 }
 
-bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, PDATAVAR* ppHead, MQ2TYPEVAR Default)
+bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType,  MQDataVar** ppHead, MQTypeVar Default)
 {
 	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (const char*)&Default, 1);
 }
 
-PDATAVAR* FindVariableScope(const char* Name)
+ MQDataVar** FindVariableScope(const char* Name)
 {
 	if (!_stricmp(Name, "global"))
 		return &pGlobalVariables;
@@ -189,7 +189,7 @@ PDATAVAR* FindVariableScope(const char* Name)
 
 bool DeleteMQ2DataVariable(const char* Name)
 {
-	if (PDATAVAR pVar = FindMQ2DataVariable(Name))
+	if ( MQDataVar* pVar = FindMQ2DataVariable(Name))
 	{
 		DeleteMQ2DataVariable(pVar);
 		return true;
@@ -198,12 +198,12 @@ bool DeleteMQ2DataVariable(const char* Name)
 	return false;
 }
 
-void ClearMQ2DataVariables(PDATAVAR* ppHead)
+void ClearMQ2DataVariables( MQDataVar** ppHead)
 {
-	PDATAVAR pVar = *ppHead;
+	 MQDataVar* pVar = *ppHead;
 	while (pVar)
 	{
-		PDATAVAR pNext = pVar->pNext;
+		 MQDataVar* pNext = pVar->pNext;
 		DeleteMQ2DataVariable(pVar);
 
 		pVar = pNext;
@@ -212,14 +212,14 @@ void ClearMQ2DataVariables(PDATAVAR* ppHead)
 	*ppHead = nullptr;
 }
 
-void NewDeclareVar(PSPAWNINFO pChar, char* szLine)
+void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 {
     if (!szLine[0])
     {
         SyntaxError("Usage: /declare <varname|varname[array extents]> [type] [global|outer|local|bind] [default value]");
         return;
     }
-    PDATAVAR *pScope=0;
+     MQDataVar* *pScope=0;
     MQ2Type *pType=0;
     char szIndex[MAX_STRING]={0};
     char szName[MAX_STRING]={0};
@@ -298,7 +298,7 @@ void NewDeclareVar(PSPAWNINFO pChar, char* szLine)
     }
 }
 
-void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine)
+void NewDeleteVarCmd(SPAWNINFO* pChar, char* szLine)
 {
     if (szLine[0]==0) {
         SyntaxError("Usage: /deletevar <varname|* global>");
@@ -318,7 +318,7 @@ void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine)
     }
 }
 
-void NewVarset(PSPAWNINFO pChar, char* szLine)
+void NewVarset(SPAWNINFO* pChar, char* szLine)
 {
     if (!szLine[0])
     {
@@ -334,7 +334,7 @@ void NewVarset(PSPAWNINFO pChar, char* szLine)
         *pBracket=0;
         strcpy_s(szIndex,&pBracket[1]);
     }
-    PDATAVAR pVar=FindMQ2DataVariable(szName);
+     MQDataVar* pVar=FindMQ2DataVariable(szName);
     if (!pVar)
     {
         MacroError("/varset failed, variable '%s' not found",szName);
@@ -368,7 +368,7 @@ void NewVarset(PSPAWNINFO pChar, char* szLine)
     }
 }
 
-void NewVarcalc(PSPAWNINFO pChar, char* szLine)
+void NewVarcalc(SPAWNINFO* pChar, char* szLine)
 {
     if (!szLine[0])
     {
@@ -400,7 +400,7 @@ void NewVarcalc(PSPAWNINFO pChar, char* szLine)
         *pBracket=0;
         strcpy_s(szIndex,&pBracket[1]);
     }
-    PDATAVAR pVar=FindMQ2DataVariable(szName);
+     MQDataVar* pVar=FindMQ2DataVariable(szName);
     if (!pVar)
     {
         MacroError("/varcalc failed, variable '%s' not found",szName);
@@ -434,7 +434,7 @@ void NewVarcalc(PSPAWNINFO pChar, char* szLine)
     }
 }
 
-void NewVardata(PSPAWNINFO pChar, char* szLine)
+void NewVardata(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -455,13 +455,14 @@ void NewVardata(PSPAWNINFO pChar, char* szLine)
 		*pBracket = 0;
 		strcpy_s(szIndex, &pBracket[1]);
 	}
-	PDATAVAR pVar = FindMQ2DataVariable(szName);
+	 MQDataVar* pVar = FindMQ2DataVariable(szName);
 	if (!pVar)
 	{
 		MacroError("/vardata '%s' failed, variable not found", szName);
 		return;
 	}
-	MQ2TYPEVAR Result = { 0 };
+
+	MQTypeVar Result;
 	if (!ParseMQ2DataPortion(szRest, Result))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
@@ -637,18 +638,18 @@ void TellCheck(char *szClean)
 			itsatell = true;
 		}
 		if(gbFlashOnTells && itsatell) {
-			if(PCHARINFO pChar = GetCharInfo()) {
+			if(CHARINFO* pChar = GetCharInfo()) {
 				if (_stricmp(pChar->Name, name)) {//dont flash if its our own character doing the tell...
 					if (pChar->pSpawn) {
 						if (pChar->pSpawn->PetID!=-1) {
-							if (PSPAWNINFO pPet = (PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
+							if (SPAWNINFO* pPet = (SPAWNINFO*)GetSpawnByID(pChar->pSpawn->PetID)) {
 								if (!_stricmp(pPet->DisplayedName, name)) {
 									return;//its our pet dont flash on its tells.
 								}
 							}
 						}
 					}
-					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
+					if (SPAWNINFO* pNpc = (SPAWNINFO*)GetSpawnByPartialName(name)) {
 						if (pNpc->Type != SPAWN_PLAYER) {
 							return;//its an npc or something, dont flash on it
 						}
@@ -658,10 +659,10 @@ void TellCheck(char *szClean)
 					} else {
 						char szSearch[MAX_STRING] = { 0 };
 						sprintf_s(szSearch, "npc %s", name);
-						SEARCHSPAWN ssSpawn;
+						MQSpawnSearch ssSpawn;
 						ClearSearchSpawn(&ssSpawn);
 						ParseSearchSpawn(szSearch, &ssSpawn);
-						if (PSPAWNINFO pNpc = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pCharSpawn)) {
+						if (SPAWNINFO* pNpc = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn)) {
 							if (pNpc->Type != SPAWN_PLAYER) {
 								return;//its an npc or something, dont flash on it
 							}
@@ -673,18 +674,18 @@ void TellCheck(char *szClean)
 			}
 		}
 		if(gbBeepOnTells && itsatell) {
-			if(PCHARINFO pChar = GetCharInfo()) {
+			if(CHARINFO* pChar = GetCharInfo()) {
 				if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
 					if(pChar->pSpawn) {
 						if (pChar->pSpawn->PetID!=-1) {
-							if(PSPAWNINFO pPet =(PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
+							if(SPAWNINFO* pPet =(SPAWNINFO*)GetSpawnByID(pChar->pSpawn->PetID)) {
 								if(!_stricmp(pPet->DisplayedName,name)) {
 									return;//its our pet dont beep on its tells.
 								}
 							}
 						}
 					}
-					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
+					if (SPAWNINFO* pNpc = (SPAWNINFO*)GetSpawnByPartialName(name)) {
 						if (pNpc->Type != SPAWN_PLAYER) {
 							return;//its an npc or something, dont beep on it
 						}
@@ -694,10 +695,10 @@ void TellCheck(char *szClean)
 					} else {
 						char szSearch[MAX_STRING] = { 0 };
 						sprintf_s(szSearch, "npc %s", name);
-						SEARCHSPAWN ssSpawn;
+						MQSpawnSearch ssSpawn;
 						ClearSearchSpawn(&ssSpawn);
 						ParseSearchSpawn(szSearch, &ssSpawn);
-						if (PSPAWNINFO pNpc = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pCharSpawn)) {
+						if (SPAWNINFO* pNpc = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn)) {
 							if (pNpc->Type != SPAWN_PLAYER) {
 								return;//its an npc or something, dont flash on it
 							}

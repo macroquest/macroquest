@@ -885,7 +885,7 @@ void MapClickLocation(float world_point_x, float world_point_y, const std::vecto
 	}
 }
 
-DWORD MapHighlight(SEARCHSPAWN* pSearch)
+int MapHighlight(MQSpawnSearch* pSearch)
 {
 	if (!pSearch)
 	{
@@ -1198,7 +1198,7 @@ PMAPLINE GenerateVector(MAPSPAWN* pMapSpawn)
 	return pNewLine;
 }
 
-DWORD MapHide(SEARCHSPAWN& Search)
+int MapHide(MQSpawnSearch& Search)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo || !pCharInfo->pSpawn)
@@ -1222,7 +1222,7 @@ DWORD MapHide(SEARCHSPAWN& Search)
 	return Count;
 }
 
-DWORD MapShow(SEARCHSPAWN& Search)
+int MapShow(MQSpawnSearch& Search)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo)
@@ -1242,7 +1242,7 @@ DWORD MapShow(SEARCHSPAWN& Search)
 	return Count;
 }
 
-BOOL dataMapSpawn(char* szIndex, MQ2TYPEVAR& Ret)
+bool dataMapSpawn(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!pCurrentMapLabel)
 		return false;
@@ -1483,7 +1483,7 @@ void MoveMarker(MAPSPAWN* pMapSpawn)
 	}
 }
 
-DWORD FindMarker(char* szMark)
+int FindMarker(const char* szMark)
 {
 	if (!_stricmp(szMark, "none"))
 		return 0;

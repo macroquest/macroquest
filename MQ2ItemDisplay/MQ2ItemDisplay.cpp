@@ -85,9 +85,6 @@ EQLIB_EXPORT std::map<DWORD, DISPLAYITEMSTRINGS> contentsitemstrings;
 
 class MQ2DisplayItemType : public MQ2Type
 {
-private:
-	char Temps[MAX_STRING];
-
 public:
 	enum DisplayItemMembers
 	{
@@ -124,27 +121,28 @@ public:
 		TypeMethod(AddLootFilter);
 	}
 
-	bool MQ2DisplayItemType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
+	bool MQ2DisplayItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		int index = VarPtr.DWord;
 		CONTENTS* pCont = &g_Contents[index];
+
 		if (!pCont)
 			return false;
 
-		MQ2TypeMember* pMethod = MQ2DisplayItemType::FindMethod(Member);
+		MQTypeMember* pMethod = MQ2DisplayItemType::FindMethod(Member);
 
 		if (pMethod)
 		{
 			Dest.DWord = 0;
 			Dest.Type = pBoolType;
-			switch ((DisplayItemMethods)pMethod->ID)
+
+			switch (static_cast<DisplayItemMethods>(pMethod->ID))
 			{
 			case AddLootFilter:
 				if (ITEMINFO* pItem = GetItemFromContents(pCont))
 				{
-					DWORD ptr = (DWORD)pLootFiltersManager;
-					Sleep(0);
 					pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
+
 					WriteChatf("Added %s to AG and Roll LootFilters.", pItem->Name);
 					Dest.DWord = 1;
 				}
@@ -155,10 +153,13 @@ public:
 			return true;
 		}
 
-		MQ2TypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
+		MQTypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
 		if (!pMember)
 		{
-			return pItemType->GetMember(*(MQ2VARPTR*)& pCont, Member, Index, Dest);
+			MQVarPtr varPtr;
+			varPtr.Ptr = pCont;
+
+			return pItemType->GetMember(varPtr, Member, Index, Dest);
 		}
 
 		if (pMember)
@@ -215,7 +216,7 @@ public:
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (CONTENTS* pCont = &g_Contents[VarPtr.DWord])
 		{
@@ -229,20 +230,18 @@ public:
 		return true;
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
-
-	~MQ2DisplayItemType() {}
 };
 
-BOOL dataLastItem(char* szName, MQ2TYPEVAR& Ret)
+bool dataLastItem(const char* szName, MQTypeVar& Ret)
 {
 	std::scoped_lock lock(s_mutex);
 
@@ -274,18 +273,15 @@ BOOL dataLastItem(char* szName, MQ2TYPEVAR& Ret)
 
 class ItemInfoManager : public libMozilla::ICallback, public CObservable, public IObserver
 {
-	virtual void onStatusChanged(eqlib::libMozilla::Window* wnd);
-	virtual void onURIChanged(eqlib::libMozilla::Window* wnd);
-	virtual void onProgressChanged(eqlib::libMozilla::Window* wnd);
-	virtual bool doValidateURI(eqlib::libMozilla::Window* wnd, const char* uri);
+	virtual void onStatusChanged(eqlib::libMozilla::Window* wnd) override;
+	virtual void onURIChanged(eqlib::libMozilla::Window* wnd) override;
+	virtual void onProgressChanged(eqlib::libMozilla::Window* wnd) override;
+	virtual bool doValidateURI(eqlib::libMozilla::Window* wnd, const char* uri) override;
 
 public:
-	CHtmlWnd* htmlwnd;
+	CHtmlWnd* htmlwnd = nullptr;
 
-	ItemInfoManager()
-	{
-		htmlwnd = 0;
-	};
+	ItemInfoManager() = default;
 
 	~ItemInfoManager()
 	{
@@ -300,7 +296,7 @@ public:
 	};
 
 	static ItemInfoManager& GetInstance();
-	void Notify(CObservable* Src, const CNotification* const Notification);
+	void Notify(CObservable* Src, const CNotification* const Notification) override;
 };
 
 ItemInfoManager& ItemInfoManager::GetInstance()
@@ -682,36 +678,36 @@ public:
 
 		if (bUseableClasses) strcat_s(out, "<br><br>");
 
-		if (char* str = GetSpellString(pSpell->ID, 2))
+		if (const char* str = GetSpellString(pSpell->ID, 2))
 		{
 			sprintf_s(temp, "Cast on you: %s<br>", str);
 			strcat_s(out, temp);
 		}
 
-		if (char* str = GetSpellString(pSpell->ID, 3))
+		if (const char* str = GetSpellString(pSpell->ID, 3))
 		{
 			sprintf_s(temp, "Cast on another: %s<br>", str);
 			strcat_s(out, temp);
 		}
 
-		if (char* str = GetSpellString(pSpell->ID, 4))
+		if (const char* str = GetSpellString(pSpell->ID, 4))
 		{
 			sprintf_s(temp, "Wears off: %s<br>", str);
 			strcat_s(out, temp);
 		}
 
-		if (DWORD cat = GetSpellCategory(pSpell))
+		if (int cat = GetSpellCategory(pSpell))
 		{
-			if (const char* ptr = pCDBStr->GetString(cat, 5, NULL))
+			if (const char* ptr = pCDBStr->GetString(cat, 5LL))
 			{
 				sprintf_s(temp, "Category: %s<br>", ptr);
 				strcat_s(out, temp);
 			}
 		}
 
-		if (DWORD cat = GetSpellSubcategory(pSpell))
+		if (int cat = GetSpellSubcategory(pSpell))
 		{
-			if (const char* ptr = pCDBStr->GetString(cat, 5, NULL))
+			if (const char* ptr = pCDBStr->GetString(cat, 5))
 			{
 				sprintf_s(temp, "Subcategory: %s<br>", ptr);
 				strcat_s(out, temp);
@@ -895,19 +891,19 @@ public:
 
 		if (bUseableClasses) strcat_s(out, "<br><br>");
 
-		if (char* str = GetSpellString(pSpell->ID, 2))
+		if (const char* str = GetSpellString(pSpell->ID, 2))
 		{
 			sprintf_s(temp, "Cast on you: %s<br>", str);
 			strcat_s(out, temp);
 		}
 
-		if (char* str = GetSpellString(pSpell->ID, 3))
+		if (const char* str = GetSpellString(pSpell->ID, 3))
 		{
 			sprintf_s(temp, "Cast on another: %s<br>", str);
 			strcat_s(out, temp);
 		}
 
-		if (char* str = GetSpellString(pSpell->ID, 4))
+		if (const char* str = GetSpellString(pSpell->ID, 4))
 		{
 			sprintf_s(temp, "Wears off: %s<br>", str);
 			strcat_s(out, temp);
@@ -935,8 +931,6 @@ public:
 		ITEMINFO* Item = GetItemFromContents(item);
 
 		char out[MAX_STRING * 2] = { 0 };
-		char temp[MAX_STRING] = { 0 };
-		char* lore = NULL;
 
 		UpdateStrings_Trampoline();
 		std::scoped_lock lock(s_mutex);
@@ -985,6 +979,7 @@ public:
 		// keep a global copy of the last item displayed...
 		if (index <= 5)
 		{
+			// FIXME: Do not memcpy classes
 			memcpy(&g_Contents[index], item, sizeof(CONTENTS));
 			memcpy(&g_Item, Item, sizeof(ITEMINFO));
 
@@ -992,6 +987,9 @@ public:
 		}
 
 		strcpy_s(out, "<BR><c \"#00FFFF\">");
+
+		char temp[MAX_STRING] = { 0 };
+
 		if (Item->ItemNumber > 0)
 		{
 			sprintf_s(temp, "Item ID: %d<br>", Item->ItemNumber);
@@ -1018,10 +1016,10 @@ public:
 
 		if (Item->Cost > 0)
 		{
-			DWORD cp = Item->Cost;
-			DWORD sp = cp / 10; cp = cp % 10;
-			DWORD gp = sp / 10; sp = sp % 10;
-			DWORD pp = gp / 10; gp = gp % 10;
+			int cp = Item->Cost;
+			int sp = cp / 10; cp = cp % 10;
+			int gp = sp / 10; sp = sp % 10;
+			int pp = gp / 10; gp = gp % 10;
 
 			strcat_s(out, "Value:");
 			if (pp > 0)
@@ -1125,7 +1123,7 @@ public:
 			}
 		}
 
-		lore = Item->LoreName;
+		char* lore = Item->LoreName;
 		if (lore[0] == '*') lore++;
 
 		if (strcmp(lore, Item->Name))
@@ -2823,53 +2821,57 @@ public:
 		TypeMember(UpgradeSlot);
 	}
 
-	~MQ2GearScoreType() {}
-
-	bool MQ2GearScoreType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
+	bool MQ2GearScoreType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		MQ2TypeMember* pMember = MQ2GearScoreType::FindMember(Member);
+		MQTypeMember* pMember = MQ2GearScoreType::FindMember(Member);
+
 		if (!pMember)
 			return false;
+
 		char* pName = GetCharInfo()->Name;
 		if (!pName)
 			return false;
-		switch ((GearScoreMembers)pMember->ID)
+
+		switch (static_cast<GearScoreMembers>(pMember->ID))
 		{
 		case Upgrade:
 			Dest.Type = pStringType;
 			Dest.Ptr = ReportBestStr;
 			return true;
+
 		case UpgradeName:
 			Dest.Type = pStringType;
 			Dest.Ptr = ReportBestName;
 			return true;
+
 		case UpgradeSlot:
 			Dest.Type = pStringType;
 			Dest.Ptr = ReportBestSlot;
 			return true;
 		}
+
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, "TRUE");
 		return true;
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
 };
 MQ2GearScoreType* pGearScoreType = nullptr;
 
-BOOL dataGearScore(char* szName, MQ2TYPEVAR& Dest)
+bool dataGearScore(const char* szName, MQTypeVar& Dest)
 {
 	Dest.DWord = 1;
 	Dest.Type = pGearScoreType;

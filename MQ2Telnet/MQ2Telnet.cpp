@@ -47,9 +47,9 @@ public:
 		TypeMember(LoginInfo);
 	};
 
-	bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest) override
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		MQ2TypeMember* pMember = MQ2TelNetType::FindMember(Member);
+		MQTypeMember* pMember = MQ2TelNetType::FindMember(Member);
 		if (pMember)
 		{
 			switch ((IfsMembers)pMember->ID)
@@ -109,25 +109,25 @@ public:
 		Dest.Ptr = Tempos;
 		return true;
 	}
-	bool ToString(MQ2VARPTR VarPtr, char* Destination) override
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, 4, "TRUE");
 		return true;
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source) override
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source) override
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
 };
 MQ2TelNetType* pTelNetTypes = nullptr;
 
-BOOL DataTelNet(char* Index, MQ2TYPEVAR& Dest)
+bool DataTelNet(const char* Index, MQTypeVar& Dest)
 {
 	Dest.Type = pTelNetTypes;
 	Dest.DWord = 1;

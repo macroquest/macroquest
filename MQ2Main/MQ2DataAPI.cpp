@@ -64,7 +64,7 @@ bool MQ2Internal::RemoveMQ2Type(MQ2Type& Type)
 	return true;
 }
 
-MQ2DataItem* FindMQ2Data(const char* szName)
+MQDataItem* FindMQ2Data(const char* szName)
 {
 	std::scoped_lock lock(s_variableMutex);
 
@@ -85,7 +85,7 @@ bool AddMQ2Data(const char* szName, fMQData Function)
 		return false;
 
 	// create new MQ2DATAITEM inside a unique_ptr
-	auto newItem = std::make_unique<MQ2DataItem>();
+	auto newItem = std::make_unique<MQDataItem>();
 	strcpy_s(newItem->Name, szName);
 	newItem->Function = Function;
 
@@ -144,7 +144,7 @@ bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
 }
 
 // -1 = no exists, 0 = fail, 1 = success
-int FindMacroDataMember(MQ2Type* type, MQ2TYPEVAR& Result, char* pStart, char* pIndex,
+int FindMacroDataMember(MQ2Type* type, MQTypeVar& Result, char* pStart, char* pIndex,
 	bool checkFirst = false)
 {
 	// search for extensions on this type
@@ -267,7 +267,7 @@ static bool call_function(const char* name, const char* args)
 	return false;
 }
 
-bool EvaluateDataExpression(MQ2TYPEVAR& Result, char* pStart, char* pIndex, bool function_allowed = false)
+bool EvaluateDataExpression(MQTypeVar& Result, char* pStart, char* pIndex, bool function_allowed = false)
 {
 	if (!Result.Type)
 	{
@@ -275,14 +275,14 @@ bool EvaluateDataExpression(MQ2TYPEVAR& Result, char* pStart, char* pIndex, bool
 			if (gUndeclaredVars.find(pStart) != gUndeclaredVars.end())
 				return false;//its a undefined variable no point in moving on further.
 		}
-		if (MQ2DataItem* DataItem = FindMQ2Data(pStart))
+		if (MQDataItem* DataItem = FindMQ2Data(pStart))
 		{
 			if (!DataItem->Function(pIndex, Result))
 			{
 				return false;
 			}
 		}
-		else if (PDATAVAR DataVar = FindMQ2DataVariable(pStart))
+		else if (MQDataVar* DataVar = FindMQ2DataVariable(pStart))
 		{
 			if (pIndex[0])
 			{
@@ -329,7 +329,7 @@ bool EvaluateDataExpression(MQ2TYPEVAR& Result, char* pStart, char* pIndex, bool
 	return true;
 }
 
-BOOL dataType(char* szIndex, MQ2TYPEVAR &Ret)
+bool dataType(const char* szIndex, MQTypeVar& Ret)
 {
 	if (MQ2Type* pType = FindMQ2DataType(szIndex))
 	{
@@ -414,7 +414,7 @@ void ShutdownMQ2Data()
 	MQ2DataMap.clear();
 }
 
-bool ParseMQ2DataPortion(char* szOriginal, MQ2TYPEVAR &Result)
+bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result)
 {
 	Result.Type = 0;
 	Result.Int64 = 0;
@@ -723,11 +723,10 @@ std::string GetMacroVarData(std::string strVarToParse)
 		char szCurrent[MAX_STRING] = { 0 };
 		// Copy in our parse variable
 		strcpy_s(szCurrent, MAX_STRING, strVarToParse.c_str());
+
 		// Set the MQ2Type stored in Result to a empty as well
-		MQ2TYPEVAR Result = { 0 };
-		ZeroMemory(&Result, sizeof(Result));
-		Result.Type = nullptr;
-		Result.Int64 = 0;
+		MQTypeVar Result;
+
 		// If the parse was successful and there is a result type and we could convert that type to a string
 		if (ParseMQ2DataPortion(szCurrent, Result) && Result.Type && Result.Type->ToString(Result.VarPtr, szCurrent)) {
 			// Set our return whatever szCurrent was modified to be
@@ -1144,11 +1143,10 @@ BOOL ParseMacroData(char* szOriginal, size_t BufferSize)
 			return false;
 		unsigned long NewLength;
 		BOOL Changed = false;
-		//char* pPos;
-		//char* pStart;
-		//char* pIndex;
+
 		char szCurrent[MAX_STRING] = { 0 };
-		MQ2TYPEVAR Result = { 0 };
+		MQTypeVar Result;
+
 		do
 		{
 			// find this brace's end

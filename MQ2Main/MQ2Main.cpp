@@ -294,7 +294,7 @@ bool ParseINIFile(const char* lpINIPath)
 
 		if (szBuffer[0] != 0 && strcmp(szBuffer, "NOBODY"))
 		{
-			AddFilter(szBuffer, -1, &gFilterCustom);
+			AddFilter(szBuffer, -1, gFilterCustom);
 		}
 		pFilterList += strlen(pFilterList) + 1;
 	}

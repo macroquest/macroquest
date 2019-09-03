@@ -126,8 +126,8 @@ extern char MapNameString[MAX_STRING];
 extern char MapTargetNameString[MAX_STRING];
 extern char mapshowStr[MAX_STRING];
 extern char maphideStr[MAX_STRING];
-extern SEARCHSPAWN MapFilterCustom;
-extern SEARCHSPAWN MapFilterNamed;
+extern MQSpawnSearch MapFilterCustom;
+extern MQSpawnSearch MapFilterNamed;
 extern MAPFILTER MapFilterOptions[];
 extern char MapSpecialClickString[16][MAX_STRING];
 extern char MapLeftClickString[16][MAX_STRING];
@@ -156,9 +156,9 @@ CVector3 GetTargetLoc();
 void MapInit();
 void MapClear();
 void MapGenerate();
-DWORD MapHighlight(SEARCHSPAWN *pSearch);
-DWORD MapHide(SEARCHSPAWN &Search);
-DWORD MapShow(SEARCHSPAWN &Search);
+int MapHighlight(MQSpawnSearch* pSearch);
+int MapHide(MQSpawnSearch& Search);
+int MapShow(MQSpawnSearch& Search);
 void MapUpdate();
 void MapAttach();
 void MapDetach();
@@ -173,24 +173,24 @@ void AddMapSpawnForMapLoc(MAPLOC* mapLoc);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);
-DWORD FindMarker(char* szMark);
+int FindMarker(const char* szMark);
 long  MakeTime();
 
-BOOL dataMapSpawn(char* szIndex, MQ2TYPEVAR &Ret);
+bool dataMapSpawn(const char* szIndex, MQTypeVar& Ret);
 
 MAPSPAWN* AddSpawn(SPAWNINFO* pNewSpawn, BOOL ExplicitAllow = false);
 bool RemoveSpawn(SPAWNINFO* pSpawn);
 void AddGroundItem(PGROUNDITEM pGroundItem);
 void RemoveGroundItem(PGROUNDITEM pGroundItem);
 
-inline BOOL IsOptionEnabled(DWORD Option)
+inline bool IsOptionEnabled(DWORD Option)
 {
 	if (Option == MAPFILTER_Invalid)
 		return true;
 	return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
 
-inline BOOL RequirementsMet(DWORD Option)
+inline bool RequirementsMet(DWORD Option)
 {
 	if (Option == MAPFILTER_Invalid)
 		return true;

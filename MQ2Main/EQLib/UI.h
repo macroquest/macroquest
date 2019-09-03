@@ -3060,24 +3060,43 @@ public:
 // todo: update, some of this is obsolete
 struct [[offsetcomments]] GuildMember
 {
-/*0x000*/ GuildMember* next;
-/*0x004*/ bool         OnlineStatus;
-/*0x005*/ uint8_t      Unknown0x008[0x8];
-/*0x00d*/ char         Name[0x40];
-/*0x050*/ int          Level;
-/*0x054*/ int          Class;
-/*0x058*/ int          Rank;                     // 0=member, 1=officer, 2=leader
-/*0x05c*/ float        UnknownData0x05c;
-/*0x060*/ char         PublicNote[0x80];
-/*0x0e0*/ BYTE         Unknown0x0e0[0x180];
-/*0x260*/ WORD         UnknownData0x260;
-/*0x262*/ WORD         UnknownData0x262;
-/*0x264*/ WORD         UnknownData0x264;
-/*0x266*/ WORD         UnknownData0x266;
-/*0x268*/
+	// Start of GuildMember
+/*0x000*/ GuildMember*       pNext;
+/*0x004*/ bool               bOnline;
+/*0x005*/ BYTE               Filler0x005[0x3];
+/*0x008*/ WORD               ZoneID;
+/*0x00a*/ WORD               Instance;
+/*0x00c*/ DWORD              PlayerSerial;
+/*0x010*/ bool               bMainProfile;
+/*0x011*/ bool               bOfflineMode;
+/*0x012*/ char               Name[0x40];
+/*0x052*/ BYTE               Filler0x52[0x2];
+/*0x054*/ int                Level;
+/*0x058*/ int                Flags; //1=banker, 2=alt
+/*0x05c*/ DWORD              Class;
+/*0x060*/ DWORD              Rank; //0=member 1=officer 2=leader
+/*0x064*/ char               PlayerHandle[0x20];
+/*0x084*/ char               PlayerComments[0x100];
+/*0x184*/ DWORD              LastLoginTime;
+/*0x188*/ EqGuid             PlayerGuild;//size is 8
+/*0x190*/ bool               bGuildShowSprite;
+/*0x191*/ bool               bTributeStatus;//active on/off
+/*0x192*/ bool               bTrophyStatus;//active on/off
+/*0x194*/ int                TributeDonations;
+/*0x198*/ DWORD              LastDonation;//timestamp
+/*0x19c*/ // end of GuildMember
+	// start of GuildMemberClient
+/*0x19c*/ char               PublicNote[0x100];
+/*0x29c*/ char               PersonalNote[0x100];
+/*0x39c*/ bool               bTributeOptIn;
+/*0x39d*/ bool               bTrophyTributeOptIn;
+/*0x3a0*/
 };
+using GUILDMEMBERCLIENT [[deprecated]] = GuildMember;
+using PGUILDMEMBERCLIENT [[deprecated]] = GuildMember*;
 using GUILDMEMBERINFO [[deprecated]] = GuildMember;
-using PGUILDMEMBERINFO [[deprecated]] = GuildMember *;
+using PGUILDMEMBERINFO [[deprecated]] = GuildMember*;
+using GuildMember = GuildMember;
 
 
 // Size: 0x3d0 (02/18/2004)

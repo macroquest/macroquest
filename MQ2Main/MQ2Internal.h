@@ -34,11 +34,12 @@ enum eAdventureTheme
 	eAT_Rujarkian,
 	eAT_Takish,
 };
+
 enum ePVPServer
 {
 	PVP_NONE = 0,
 	PVP_TEAM = 1,
-	PVP_RALLOS = 2,
+	PVP_RALLOS = 2, // the only PVP server type still alive
 	PVP_SULLON = 3,
 };
 
@@ -69,68 +70,80 @@ enum eSpawnType
 	PCCORPSE,
 };
 
-struct SEARCHSPAWN
+enum class SearchSortBy
 {
-	DWORD MinLevel;
-	DWORD MaxLevel;
-	eSpawnType SpawnType;
-	DWORD SpawnID;
-	DWORD FromSpawnID;
-	float Radius;
-	char szName[MAX_STRING];
-	char szBodyType[MAX_STRING];
-	char szRace[MAX_STRING];
-	char szClass[MAX_STRING];
-	char szLight[MAX_STRING];
-	int64_t GuildID;
-	BOOL bSpawnID;
-	BOOL bNotNearAlert;
-	BOOL bNearAlert;
-	BOOL bNoAlert;
-	BOOL bAlert;
-	BOOL bLFG;
-	BOOL bTrader;
-	BOOL bLight;
-	BOOL bTargNext;
-	BOOL bTargPrev;
-	BOOL bGroup;
-	BOOL bFellowship;
-	BOOL bXTarHater;
-	BOOL bNoGroup;
-	BOOL bRaid;
-	BOOL bGM;
-	BOOL bNamed;
-	BOOL bMerchant;
-	BOOL bBanker;
-	BOOL bTributeMaster;
-	BOOL bKnight;
-	BOOL bTank;
-	BOOL bHealer;
-	BOOL bDps;
-	BOOL bSlower;
-	BOOL bAura;
-	BOOL bBanner;
-	BOOL bCampfire;
-	DWORD NotID;
-	DWORD NotNearAlertList;
-	DWORD NearAlertList;
-	DWORD NoAlertList;
-	DWORD AlertList;
-	double ZRadius;
-	double FRadius;
-	float xLoc;
-	float yLoc;
-	float zLoc;
-	BOOL bKnownLocation;
-	BOOL bNoPet;
-	DWORD SortBy;
-	BOOL bNoGuild;
-	BOOL bLoS;
-	BOOL bExactName;
-	BOOL bTargetable;
-	DWORD PlayerState;
+	Level = 0,
+	Name = 1,
+	Race = 2,
+	Class = 3,
+	Distance = 4,
+	Guild = 5,
+	Id = 6
 };
-using PSEARCHSPAWN [[deprecated]] = SEARCHSPAWN*;
+
+struct MQSpawnSearch
+{
+	int MinLevel = 0;
+	int MaxLevel = MAX_NPC_LEVEL;
+	eSpawnType SpawnType = NONE;
+	uint32_t SpawnID = 0;
+	uint32_t FromSpawnID = 0;
+	float Radius = 0;
+	char szName[MAX_STRING] = { 0 };
+	char szBodyType[MAX_STRING] = { 0 };
+	char szRace[MAX_STRING] = { 0 };
+	char szClass[MAX_STRING] = { 0 };
+	char szLight[MAX_STRING] = { 0 };
+	int64_t GuildID = -1;
+	bool bSpawnID = false;
+	bool bNotNearAlert = false;
+	bool bNearAlert = false;
+	bool bNoAlert = false;
+	bool bAlert = false;
+	bool bLFG = false;
+	bool bTrader = false;
+	bool bLight = false;
+	bool bTargNext = false;
+	bool bTargPrev = false;
+	bool bGroup = false;
+	bool bFellowship = false;
+	bool bXTarHater = false;
+	bool bNoGroup = false;
+	bool bRaid = false;
+	bool bGM = false;
+	bool bNamed = false;
+	bool bMerchant = false;
+	bool bBanker = false;
+	bool bTributeMaster = false;
+	bool bKnight = false;
+	bool bTank = false;
+	bool bHealer = false;
+	bool bDps = false;
+	bool bSlower = false;
+	bool bAura = false;
+	bool bBanner = false;
+	bool bCampfire = false;
+	uint32_t NotID = 0;
+	uint32_t NotNearAlertList = 0;
+	uint32_t NearAlertList = 0;
+	uint32_t NoAlertList = 0;
+	uint32_t AlertList = 0;
+	double ZRadius = 10000.0f;
+	double FRadius = 10000.0f;
+	float xLoc = 0;
+	float yLoc = 0;
+	float zLoc = 0;
+	bool bKnownLocation = false;
+	bool bNoPet = false;
+	SearchSortBy SortBy = SearchSortBy::Level;
+	bool bNoGuild;
+	bool bLoS;
+	bool bExactName;
+	bool bTargetable;
+	uint32_t PlayerState;
+};
+using SEARCHSPAWN [[deprecated("Use MQSpawnSearch instead")]] = MQSpawnSearch;
+using PSEARCHSPAWN [[deprecated("Use MQSpawnSearch* instead")]] = MQSpawnSearch *;
 
 enum SearchItemFlag
 {
@@ -160,83 +173,82 @@ enum SearchItemFlag
 
 };
 
-struct SEARCHITEM
+struct MQItemSearch
 {
 	char FlagMask[MAX_STRING];
 	char Flag[MAX_STRING];
 
 	char szName[MAX_STRING];
-	DWORD ID;
+	DWORD ID = 0;
 };
-using PSEARCHITEM [[deprecated]] = SEARCHITEM*;
+using SEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch;
+using PSEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch*;
 
-struct SWHOFILTER
+struct MQWhoFilter
 {
-	BOOL Lastname;
-	BOOL Class;
-	BOOL Race;
-	BOOL Body;
-	BOOL Level;
-	BOOL Distance;
-	BOOL GM;
-	BOOL Guild;
-	BOOL LD;
-	BOOL Sneak;
-	BOOL Anon;
-	BOOL LFG;
-	BOOL NPCTag;
-	BOOL SpawnID;
-	BOOL Trader;
-	BOOL AFK;
-	BOOL Light;
-	BOOL Holding;
-	BOOL ConColor;
-	BOOL Invisible;
+	bool Lastname = false;
+	bool Class = false;
+	bool Race = false;
+	bool Body = false;
+	bool Level = false;
+	bool Distance = false;
+	bool GM = false;
+	bool Guild = false;
+	bool LD = false;
+	bool Sneak = false;
+	bool Anon = false;
+	bool LFG = false;
+	bool NPCTag = false;
+	bool SpawnID = false;
+	bool Trader = false;
+	bool AFK = false;
+	bool Light = false;
+	bool Holding = false;
+	bool ConColor = false;
+	bool Invisible = false;
 };
-using PSWHOFILTER [[deprecated]] = SWHOFILTER*;
+using SWHOFILTER [[deprecated("Use MQWhoFilter instead")]] = MQWhoFilter;
+using PSWHOFILTER [[deprecated("Use MQWhoFilter* instead")]] = MQWhoFilter*;
 
-struct SWHOSORT
+struct MQWhoSort
 {
 	char szName[MAX_STRING];
 	char szLine[MAX_STRING];
-	BYTE Level;
-	DWORD SpawnID;
-	float Distance;
-	DWORD Class;
-	DWORD Race;
+	uint8_t Level = 0;
+	uint32_t SpawnID = 0;
+	float Distance = 0;
+	int Class = 0;
+	int Race = 0;
 	int64_t GuildID;
 };
-using PSWHOSORT [[deprecated]] = SWHOSORT*;
+using WHOSORT [[deprecated("Use MQWhoSort instead")]] = MQWhoSort;
+using PWHOSORT [[deprecated("Use MQWhoSort* instead")]] = MQWhoSort*;
 
-struct MOUSEINFO
+// this struct is actually part of EverQuestInfo struct
+struct MQMouseInfo
 {
-	DWORD X;
-	DWORD Y;
-	DWORD SpeedX;
-	DWORD SpeedY;
-	DWORD Scroll;
+	int X = 0;
+	int Y = 0;
+	int SpeedX = 0;
+	int SpeedY = 0;
+	int Scroll = 0;
 };
-using PMOUSEINFO [[deprecated]] = MOUSEINFO*;
-
-struct SPELLINFO
-{
-	char Name[32];
-	char Target[32];
-};
-using PSPELLINFO [[deprecated]] = SPELLINFO*;
+using MOUSEINFO [[deprecated("Use MQMouseInfo isntead")]] = MQMouseInfo;
+using PMOUSEINFO [[deprecated("Use MQMouseInfo* isntead")]] = MQMouseInfo*;
 
 struct MQMacroLine
 {
 	std::string Command;
 	std::string SourceFile;
-	int LoopStart;
+	int LoopStart = 0;
 
-	//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated.
-	int LoopEnd;
-	int LineNumber;
+	// used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated.
+	int LoopEnd = 0;
+	int LineNumber = 0;
+
 #ifdef MQ2_PROFILING
-	DWORD ExecutionCount;
-	LONGLONG ExecutionTime;
+	int ExecutionCount = 0;
+	uint64_t ExecutionTime = 0;
 #endif
 };
 using PMACROLINE [[deprecated("Use MQMacroLine* instead")]] = MQMacroLine;
@@ -244,11 +256,11 @@ using MACROLINE [[deprecated("Use MQMacroLine instead")]] = MQMacroLine;
 
 struct MQMacroBlock
 {
-	std::string Name;       // our macro Name
+	std::string Name;                           // our macro Name
 	bool Paused = false;
-	int CurrIndex = 0;      // the current macro line we are on
-	int BindStackIndex;     // where we were at before calling the bind.
-	std::string BindCmd;    // the actual command including parameters
+	int CurrIndex = 0;                          // the current macro line we are on
+	int BindStackIndex = 0;                     // where we were at before calling the bind.
+	std::string BindCmd;                        // the actual command including parameters
 	std::map<int, MQMacroLine> Line;
 	bool Removed = false;
 };
@@ -268,14 +280,14 @@ struct MQTimer
 using MQTIMER [[deprecated("Use MQTimer instead")]] = MQTimer;
 using PMQTIMER [[deprecated("Use MQTimer* instead")]] = MQTimer*;
 
-struct KEYPRESS
+struct MQKeyPress
 {
-	uint16_t KeyId;
-	bool     Pressed;
+	uint16_t KeyId = 0;
+	bool     Pressed = false;
 
-	KEYPRESS* pNext;
+	MQKeyPress* pNext = nullptr;
 };
-
+using KEYPRESS [[deprecated("Use MQKeyPress instead")]] = MQKeyPress;
 typedef struct _ITEMDB {
 	struct _ITEMDB* pNext;
 	DWORD ID;
@@ -314,75 +326,82 @@ struct MQBindList
 using BINDLIST [[deprecated("Use MQBindList instead")]] = MQBindList;
 using PBINDLIST [[deprecated("Use MQBindList* instead")]] = MQBindList *;
 
-typedef struct _FILTER {
-	struct _FILTER* pNext;
-	char FilterText[MAX_STRING];
-	DWORD Length;
-	PBOOL pEnabled;
-} FILTER, * PFILTER;
+struct MQFilter
+{
+	MQFilter(const char* szFilter, int length, bool& bEnabled)
+		: pEnabled(&bEnabled)
+		, Length(length == -1 ? strlen(szFilter) : length)
+	{
+		strcpy_s(FilterText, szFilter);
+	}
 
-typedef struct _PARMLIST {
-	char szName[MAX_STRING];
-	DWORD(__cdecl* fAddress)(char*, char*, PSPAWNINFO);
-} PARMLIST, * PPARMLIST;
+	char FilterText[MAX_STRING];
+	size_t Length;
+	bool* pEnabled;
+	MQFilter* pNext = nullptr;
+};
+using FILTER [[deprecated("use MQFilter instead")]] = MQFilter;
+using PFILTER [[deprecated("use MQFilter* instead")]] = MQFilter*;
 
 struct MQBenchmark
 {
 	char     szName[64];
-	uint64_t Entry;
-	uint64_t LastTime;
-	uint64_t TotalTime;
-	uint64_t Count;
+	uint64_t Entry = 0;
+	uint64_t LastTime = 0;
+	uint64_t TotalTime = 0;
+	uint64_t Count = 0;
 };
 
 struct MQGroundPending
 {
-	GROUNDITEM* pGroundItem;
-	MQGroundPending* pLast;
-	MQGroundPending* pNext;
+	GROUNDITEM* pGroundItem = nullptr;
+	MQGroundPending* pLast = nullptr;
+	MQGroundPending* pNext = nullptr;
 };
 
 struct MQPlugin
 {
 	char                 szFilename[MAX_PATH];
-	HMODULE              hModule;
-	float                fpVersion;
-	bool                 bCustom;
-	fMQInitializePlugin  Initialize;
-	fMQShutdownPlugin    Shutdown;
-	fMQZoned             Zoned;
-	fMQWriteChatColor    WriteChatColor;
-	fMQPulse             Pulse;
-	fMQIncomingChat      IncomingChat;
-	fMQCleanUI           CleanUI;
-	fMQReloadUI          ReloadUI;
-	fMQDrawHUD           DrawHUD;
-	fMQSetGameState      SetGameState;
-	fMQSpawn             AddSpawn;
-	fMQSpawn             RemoveSpawn;
-	fMQGroundItem        AddGroundItem;
-	fMQGroundItem        RemoveGroundItem;
-	fMQBeginZone         BeginZone;
-	fMQEndZone           EndZone;
+	HMODULE              hModule = nullptr;
+	float                fpVersion = 1.0;
+	bool                 bCustom = false;
+	fMQInitializePlugin  Initialize = 0;
+	fMQShutdownPlugin    Shutdown = 0;
+	fMQZoned             Zoned = 0;
+	fMQWriteChatColor    WriteChatColor = 0;
+	fMQPulse             Pulse = 0;
+	fMQIncomingChat      IncomingChat = 0;
+	fMQCleanUI           CleanUI = 0;
+	fMQReloadUI          ReloadUI = 0;
+	fMQDrawHUD           DrawHUD = 0;
+	fMQSetGameState      SetGameState =0;
+	fMQSpawn             AddSpawn = 0;
+	fMQSpawn             RemoveSpawn = 0;
+	fMQGroundItem        AddGroundItem = 0;
+	fMQGroundItem        RemoveGroundItem = 0;
+	fMQBeginZone         BeginZone = 0;
+	fMQEndZone           EndZone = 0;
 
-	MQPlugin* pLast;
-	MQPlugin* pNext;
+	MQPlugin* pLast = nullptr;
+	MQPlugin* pNext = nullptr;
 };
+
+//============================================================================
 
 class CMQ2Alerts
 {
 private:
 	std::mutex m_mutex;
-	std::map<uint32_t, std::vector<SEARCHSPAWN>> m_alertMap;
+	std::map<uint32_t, std::vector<MQSpawnSearch>> m_alertMap;
 
 public:
 	CMQ2Alerts() = default;
 	~CMQ2Alerts() = default;
 
-	bool AddNewAlertList(uint32_t id, SEARCHSPAWN* pSearchSpawn);
-	bool RemoveAlertFromList(uint32_t id, SEARCHSPAWN* pSearchSpawn);
+	bool AddNewAlertList(uint32_t id, MQSpawnSearch* pSearchSpawn);
+	bool RemoveAlertFromList(uint32_t id, MQSpawnSearch* pSearchSpawn);
 
-	bool GetAlert(uint32_t id, std::vector<SEARCHSPAWN>& ss);
+	bool GetAlert(uint32_t id, std::vector<MQSpawnSearch>& ss);
 	bool AlertExist(uint32_t id);
 
 	bool ListAlerts(char* szOut, size_t max);
@@ -525,107 +544,124 @@ private:
 	std::mutex m_mutex;
 };
 
-typedef struct _MQ2VarPtr
+struct MQVarPtr
 {
 	union {
 		struct {
 			void* Ptr;
-			LONG HighPart;
+			int32_t HighPart;
 		};
 		struct {
 			float Float;
-			LONG HighPart;
+			int32_t HighPart;
 		};
 		struct {
 			DWORD DWord;
-			LONG HighPart;
+			int32_t HighPart;
 		};
 		struct {
 			ARGBCOLOR Argb;
-			LONG HighPart;
+			int32_t HighPart;
 		};
 		struct {
-			int   Int;
-			LONG HighPart;
+			int32_t Int;
+			int32_t HighPart;
 		};
 		struct {
-			UCHAR Array[4];
-			LONG HighPart;
+			uint8_t Array[4];
+			int32_t HighPart;
 		};
 		struct {
-			UCHAR FullArray[8];
+			uint8_t FullArray[8];
 		};
-		double Double;
-		int64_t   Int64;
-		uint64_t   UInt64;
-	};
-} MQ2VARPTR, * PMQ2VARPTR;
 
-typedef struct _MQ2TypeVar
+		double   Double;
+		int64_t  Int64;
+		uint64_t UInt64;
+	};
+};
+using MQ2VARPTR [[deprecated("Use MQVarPtr instead")]] = MQVarPtr;
+using PMQ2VARPTR [[deprecated("Use MQVarPtr* instead")]] = MQVarPtr*;
+
+struct MQTypeVar
 {
-	class MQ2Type* Type;
+	MQ2Type* Type = nullptr;
+
 	union {
-		MQ2VARPTR VarPtr;
+		MQVarPtr VarPtr;
+
 		struct {
-			void* Ptr;
-			LONG HighPart;
+			void*   Ptr;
+			int32_t HighPart;
 		};
 		struct {
-			float Float;
-			LONG HighPart;
+			float   Float;
+			int32_t HighPart;
 		};
 		struct {
-			DWORD DWord;
-			LONG HighPart;
+			uint32_t DWord;
+			int32_t HighPart;
 		};
 		struct {
 			ARGBCOLOR Argb;
-			LONG HighPart;
+			int32_t HighPart;
 		};
 		struct {
 			int   Int;
-			LONG HighPart;
+			int32_t HighPart;
 		};
 		struct {
-			UCHAR Array[4];
-			LONG HighPart;
+			uint8_t Array[4];
+			int32_t HighPart;
 		};
 		struct {
-			UCHAR FullArray[8];
+			uint8_t FullArray[8];
 		};
-		double Double;
-		int64_t   Int64;
-		uint64_t   UInt64;
+		double   Double;
+		int64_t  Int64;
+		uint64_t UInt64;
 	};
-} MQ2TYPEVAR, * PMQ2TYPEVAR;
 
-struct MQ2TypeMember
+	// Initialization that covers the full range of data
+	MQTypeVar() { Int64 = 0; }
+};
+using MQ2TYPEVAR [[deprecated("Use MQTypeVar instead")]] = MQTypeVar;
+using PMQ2TYPEVAR [[deprecated("Use MQTypeVar* instead")]] = MQTypeVar;
+
+struct MQTypeMember
 {
 	int          ID;
-	const char* Name;
+	const char*  Name;
 	uint32_t     Type;
 };
-using PMQ2TYPEMEMBER [[deprecated("Use MQ2TypeMember* instead")]] = MQ2TypeMember *;
+using MQ2TYPEMEMBER [[deprecated("Use MQTypeMember instead")]] = MQTypeMember;
+using PMQ2TYPEMEMBER [[deprecated("Use MQTypeMember* instead")]] = MQTypeMember*;
 
-using fMQData = BOOL(*)(char*, MQ2TYPEVAR&);
+using fMQData = bool(*)(const char*, MQTypeVar&);
+using fMQDataOld = BOOL(*)(char*, MQTypeVar&);
 
-struct MQ2DataItem
+struct MQDataItem
 {
 	char Name[64];
 	fMQData Function;
 };
-using PMQ2DATAITEM [[deprecated]] = MQ2DataItem *;
+using MQ2DATAITEM [[deprecated("Use MQDataItem instead")]] = MQDataItem;
+using PMQ2DATAITEM [[deprecated("Use MQDataItem* instead")]] = MQDataItem*;
 
 EQLIB_API bool AddMQ2Type(MQ2Type& type);
 EQLIB_API bool RemoveMQ2Type(MQ2Type& type);
 
-typedef struct _DATAVAR {
+struct MQDataVar
+{
 	char szName[MAX_STRING];
-	MQ2TYPEVAR Var;
-	struct _DATAVAR* pNext;
-	struct _DATAVAR* pPrev;
-	struct _DATAVAR** ppHead;
-} DATAVAR, * PDATAVAR;
+	MQTypeVar Var;
+
+	MQDataVar* pNext;
+	MQDataVar* pPrev;
+	MQDataVar** ppHead;
+};
+using PDATAVAR [[deprecated("Use MQDataVar* instead")]] = MQDataVar*;
+using DATAVAR [[deprecated("Use MQDataVar instead")]] = MQDataVar;
 
 class MQ2Type
 {
@@ -647,7 +683,7 @@ public:
 		Methods.Cleanup();
 	}
 
-	void InitializeMembers(MQ2TypeMember* MemberArray)
+	void InitializeMembers(MQTypeMember* MemberArray)
 	{
 		for (int i = 0; MemberArray[i].ID; i++)
 		{
@@ -655,20 +691,20 @@ public:
 		}
 	}
 
-	virtual bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source) = 0;
-	virtual bool FromString(MQ2VARPTR& VarPtr, char* Source) = 0;
+	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) = 0;
+	virtual bool FromString(MQVarPtr& VarPtr, char* Source) = 0;
 
-	virtual void InitVariable(MQ2VARPTR& VarPtr)
+	virtual void InitVariable(MQVarPtr& VarPtr)
 	{
 		VarPtr.Ptr = 0;
 		VarPtr.HighPart = 0;
 	}
 
-	virtual void FreeVariable(MQ2VARPTR& VarPtr) {}
+	virtual void FreeVariable(MQVarPtr& VarPtr) {}
 
-	virtual bool GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest) = 0;
+	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) = 0;
 
-	virtual bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	virtual bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		strcpy_s(Destination, MAX_STRING, TypeName);
 		return true;
@@ -686,7 +722,7 @@ public:
 	{
 		for (size_t index = 0; index < Members.GetSize(); index++)
 		{
-			if (MQ2TypeMember * pMember = Members[index])
+			if (MQTypeMember * pMember = Members[index])
 			{
 				if (pMember->ID == ID)
 					return &pMember->Name[0];
@@ -707,12 +743,12 @@ public:
 		if (index < 0)
 			return false;
 
-		MQ2TypeMember* pMember = Members[index];
+		MQTypeMember* pMember = Members[index];
 		Result = pMember->ID;
 		return true;
 	}
 
-	MQ2TypeMember* FindMember(const char* Name)
+	MQTypeMember* FindMember(const char* Name)
 	{
 		std::scoped_lock lock(m_mutex);
 
@@ -726,7 +762,7 @@ public:
 		return Members[index];
 	}
 
-	MQ2TypeMember* FindMethod(const char* Name)
+	MQTypeMember* FindMethod(const char* Name)
 	{
 		std::scoped_lock lock(m_mutex);
 
@@ -764,7 +800,7 @@ protected:
 		int index = Members.GetUnused();
 		MemberMap[Name] = index + 1;
 
-		MQ2TypeMember* pMember = new MQ2TypeMember;
+		MQTypeMember* pMember = new MQTypeMember;
 		pMember->Name = Name;
 		pMember->ID = ID;
 		pMember->Type = 0;
@@ -782,7 +818,7 @@ protected:
 		int index = Methods.GetUnused();
 		MethodMap[Name] = index + 1;
 
-		MQ2TypeMember* pMethod = new MQ2TypeMember;
+		MQTypeMember* pMethod = new MQTypeMember;
 		pMethod->Name = Name;
 		pMethod->ID = ID;
 		pMethod->Type = 1;
@@ -801,7 +837,7 @@ protected:
 		if (index < 0)
 			return false;
 
-		MQ2TypeMember* pMember = Members[index];
+		MQTypeMember* pMember = Members[index];
 		delete pMember;
 
 		Members[index] = 0;
@@ -818,7 +854,7 @@ protected:
 		if (index < 0)
 			return false;
 
-		MQ2TypeMember* pMethod = Methods[index];
+		MQTypeMember* pMethod = Methods[index];
 		delete pMethod;
 
 		Methods[index] = 0;
@@ -826,8 +862,8 @@ protected:
 
 	char TypeName[32];
 	bool Official;
-	CIndex<MQ2TypeMember*> Members;
-	CIndex<MQ2TypeMember*> Methods;
+	CIndex<MQTypeMember*> Members;
+	CIndex<MQTypeMember*> Methods;
 	std::map<std::string, int> MemberMap;
 	std::map<std::string, int> MethodMap;
 	MQ2Type* pInherits = nullptr;
@@ -848,7 +884,7 @@ public:
 		TotalElements = 0;
 	}
 
-	CDataArray(MQ2Type* Type, char* Index, const char* Default, BOOL ByData = FALSE)
+	CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = FALSE)
 	{
 		nExtents = 1;
 		TotalElements = 1;
@@ -883,13 +919,13 @@ public:
 			}
 		}
 
-		if (pData = (MQ2VARPTR*)malloc(sizeof(MQ2VARPTR) * TotalElements)) {
+		if (pData = (MQVarPtr*)malloc(sizeof(MQVarPtr) * TotalElements)) {
 			if (pType = Type) {
 				for (DWORD N = 0; N < TotalElements; N++)
 				{
 					pType->InitVariable(pData[N]);
 					if (ByData)
-						pType->FromData(pData[N], *(MQ2TYPEVAR*)Default);
+						pType->FromData(pData[N], *(MQTypeVar*)Default);
 					else
 						pType->FromString(pData[N], (char*)Default);
 				}
@@ -972,7 +1008,7 @@ public:
 		}
 	}
 
-	BOOL GetElement(char* Index, MQ2TYPEVAR& Dest)
+	bool GetElement(char* Index, MQTypeVar& Dest)
 	{
 		DWORD Element = 0;
 		if (nExtents == 1)
@@ -1051,113 +1087,25 @@ public:
 	MQ2Type* pType;
 	DWORD nExtents;
 	DWORD* pExtents;
-	MQ2VARPTR* pData;
+	MQVarPtr* pData;
 	DWORD TotalElements;
 };
 
-struct MQRANK
+struct MQRank
 {
-	MQ2VARPTR VarPtr;
-	MQ2VARPTR Value;
+	MQVarPtr VarPtr;
+	MQVarPtr Value;
 };
+using MQRANK [[deprecated("Use MQRank instead")]] = MQRank;
 
-static bool pMQRankFloatCompare(const MQRANK* A, const MQRANK* B)
+static bool pMQRankFloatCompare(const MQRank* A, const MQRank* B)
 {
 	return A->Value.Float < B->Value.Float;
 }
-static bool MQRankFloatCompare(const MQRANK& A, const MQRANK& B)
+
+static bool MQRankFloatCompare(const MQRank& A, const MQRank& B)
 {
 	return A.Value.Float < B.Value.Float;
-}
-
-static int MQRankFloatCompareReverse(const void* A, const void* B)
-{
-	if (((MQRANK*)A)->Value.Float == ((MQRANK*)B)->Value.Float)
-		return 0;
-	if (((MQRANK*)A)->Value.Float > ((MQRANK*)B)->Value.Float)
-		return -1;
-	return 1;
-}
-static int MQRankCompare(const void* A, const void* B)
-{
-	if (((MQRANK*)A)->Value.DWord == ((MQRANK*)B)->Value.DWord)
-		return 0;
-	if (((MQRANK*)A)->Value.DWord < ((MQRANK*)B)->Value.DWord)
-		return -1;
-	return 1;
-}
-
-static int MQRankCompareReverse(const void* A, const void* B)
-{
-	if (((MQRANK*)A)->Value.DWord == ((MQRANK*)B)->Value.DWord)
-		return 0;
-	if (((MQRANK*)A)->Value.DWord > ((MQRANK*)B)->Value.DWord)
-		return -1;
-	return 1;
-}
-
-static bool nonalpha(int value) {
-	int ret = isalnum(value);
-	if (ret == 0)
-		return true;
-	return false;
-}
-static bool noblank(char value) {
-	if (value == ' ' || value == '\t')
-		return true;
-	return false;
-}
-static errno_t _httoi_s(const char* thevalue, size_t _Size)
-{
-	struct CHexMap {
-		char chr;
-		int avalue;
-	};
-	const int HexMapL = 16;
-	CHexMap HexMap[HexMapL] =
-	{
-		{'0', 0}, {'1', 1},
-		{'2', 2}, {'3', 3},
-		{'4', 4}, {'5', 5},
-		{'6', 6}, {'7', 7},
-		{'8', 8}, {'9', 9},
-		{'A', 10}, {'B', 11},
-		{'C', 12}, {'D', 13},
-		{'E', 14}, {'F', 15}
-	};
-	char* mstr = _strdup(thevalue);
-	mstr[_Size] = '\0';
-	_strupr_s(mstr, _Size + 1);
-	char* s = mstr;
-	int result = 0;
-	std::string s1 = mstr;
-
-	s1.erase(remove_if(s1.begin(), s1.end(), nonalpha), s1.end());
-
-	s = (char*)s1.c_str();
-	if (*s == '0' && *(s + 1) == 'X')
-		s += 2;
-	bool firsttime = true;
-	while (*s != '\0') {
-		bool found = false;
-		for (int i = 0; i < HexMapL; i++) {
-			if (*s == HexMap[i].chr) {
-				if (!firsttime) {
-					result <<= 4;
-				}
-				result |= HexMap[i].avalue;
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			break;
-		}
-		s++;
-		firsttime = false;
-	}
-	free(mstr);
-	return result;
 }
 
 struct MQLoop
@@ -1173,12 +1121,12 @@ struct MQMacroStack
 {
 	bool bIsBind = false;
 	int LocationIndex = 0;
-	PDATAVAR Parameters = nullptr;
-	PDATAVAR LocalVariables = nullptr;
+	MQDataVar* Parameters = nullptr;
+	MQDataVar* LocalVariables = nullptr;
 	std::vector<MQLoop> loopStack;
 	std::string Return;
 
-	MQMacroStack* pNext;
+	MQMacroStack* pNext = nullptr;
 };
 using PMACROSTACK [[deprecated("Use MQMacroStack* instead")]] = MQMacroStack *;
 using MACROSTACK [[deprecated("Use MQMacroStack instead")]] = MQMacroStack;
@@ -1187,10 +1135,10 @@ struct MQEventQueue
 {
 	MQEventQueue* pPrev = nullptr;
 	MQEventQueue* pNext = nullptr;
-	DWORD         Type = 0;
+	int           Type = 0; // one of EVENT_xxx defines
 	std::string   Name;
 	MQEventList*  pEventList = nullptr;
-	DATAVAR*      Parameters = nullptr;
+	MQDataVar*      Parameters = nullptr;
 };
 using EVENTQUEUE [[deprecated("Use MQEventQueue instead")]] = MQEventQueue;
 using PEVENTQUEUE [[deprecated("Use MQEventQueue* instead")]] = MQEventQueue *;
@@ -1203,7 +1151,7 @@ struct MercDesc
 	std::string Proficiency;
 };
 
-}
+} // namespace MQ2Internal
 
 using namespace MQ2Internal;
 

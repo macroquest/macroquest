@@ -903,7 +903,7 @@ public:
 		Nick = 4,
 	};
 
-	MQ2IrcType() :MQ2Type("irc")
+	MQ2IrcType() : MQ2Type("irc")
 	{
 		TypeMember(Server);
 		TypeMember(Port);
@@ -914,12 +914,13 @@ public:
 	{
 	}
 
-	bool MQ2IrcType::GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
+	bool MQ2IrcType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		MQ2TypeMember* pMember = MQ2IrcType::FindMember(Member);
+		MQTypeMember* pMember = MQ2IrcType::FindMember(Member);
 		if (!pMember)
 			return false;
-		switch ((IrcMembers)pMember->ID)
+
+		switch (static_cast<IrcMembers>(pMember->ID))
 		{
 		case Server:
 			strcpy_s(DataTypeTemp, IrcServer);
@@ -941,10 +942,11 @@ public:
 			Dest.Type = pStringType;
 			return true;
 		}
+
 		return false;
 	}
 
-	bool ToString(MQ2VARPTR VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (bConnected)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
@@ -953,19 +955,19 @@ public:
 		return true;
 	}
 
-	bool FromData(MQ2VARPTR& VarPtr, MQ2TYPEVAR& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		return false;
 	}
 
-	bool FromString(MQ2VARPTR& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
 };
 MQ2IrcType* pIrcType = nullptr;
 
-BOOL dataIrc(char* szName, MQ2TYPEVAR& Dest)
+bool dataIrc(const char* szName, MQTypeVar& Dest)
 {
 	Dest.DWord = 1;
 	Dest.Type = pIrcType;

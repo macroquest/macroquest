@@ -1339,46 +1339,6 @@ public:
 /*0x2E9B2C*/
 };
 
-struct GUILDMEMBER;
-
-// actual size 0x3a8 11-15-11  ieatacid
-// actual size ? last checked by rlane187 may 19 2015
-struct [[offsetcomments]] GUILDMEMBERCLIENT
-{
-	// Start of GuildMember
-/*0x000*/ GUILDMEMBER*       pNext;
-/*0x004*/ bool               bOnline;
-/*0x005*/ BYTE               Filler0x005[0x3];
-/*0x008*/ WORD               ZoneID;
-/*0x00a*/ WORD               Instance;
-/*0x00c*/ DWORD              PlayerSerial;
-/*0x010*/ bool               bMainProfile;
-/*0x011*/ bool               bOfflineMode;
-/*0x012*/ char               Name[0x40];
-/*0x052*/ BYTE               Filler0x52[0x2];
-/*0x054*/ int                Level;
-/*0x058*/ int                Flags; //1=banker, 2=alt
-/*0x05c*/ DWORD              Class;
-/*0x060*/ DWORD              Rank; //0=member 1=officer 2=leader
-/*0x064*/ char               PlayerHandle[0x20];
-/*0x084*/ char               PlayerComments[0x100];
-/*0x184*/ DWORD              LastLoginTime;
-/*0x188*/ EqGuid             PlayerGuild;//size is 8
-/*0x190*/ bool               bGuildShowSprite;
-/*0x191*/ bool               bTributeStatus;//active on/off
-/*0x192*/ bool               bTrophyStatus;//active on/off
-/*0x194*/ int                TributeDonations;
-/*0x198*/ DWORD              LastDonation;//timestamp
-/*0x19c*/ // end of GuildMember
-	// start of GuildMemberClient
-/*0x19c*/ char               PublicNote[0x100];
-/*0x29c*/ char               PersonalNote[0x100];
-/*0x39c*/ bool               bTributeOptIn;
-/*0x39d*/ bool               bTrophyTributeOptIn;
-/*0x3a0*/
-};
-using PGUILDMEMBERCLIENT = GUILDMEMBERCLIENT*;
-
 struct [[offsetcomments]] GUILDDATA
 {
 /*0x00*/ char   Name[0x40];
@@ -1406,7 +1366,7 @@ struct [[offsetcomments]] GUILDS
 /*0x0000*/ void*             pOneEntryVTable;
 /*0x0004*/ BYTE              Unknown0x4[0x4];
 /*0x0008*/ DWORD             GuildMemberCount;
-/*0x000c*/ GUILDMEMBER*      pMember;
+/*0x000c*/ GuildMember*      pMember;
 /*0x0010*/ BYTE              Unknown0x10[0x51];
 /*0x0061*/ char              GuildMotD[0x200];
 /*0x0261*/ char              GuildLeader[0x40];

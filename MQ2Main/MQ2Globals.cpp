@@ -81,7 +81,7 @@ namespace MQ2Globals
 		pScreenYMax = (DWORD*)__ScreenYMax;
 		pScreenMode = (DWORD*)__ScreenMode;
 		pMouseLook = (char*)__MouseLook;
-		EQADDR_MOUSE = (MOUSEINFO*)__Mouse;
+		EQADDR_MOUSE = (MQMouseInfo*)__Mouse;
 		EQADDR_MOUSECLICK = (PMOUSECLICK)__Clicks;
 
 		EQADDR_DIMAIN = DI8__Main;
@@ -251,8 +251,8 @@ namespace MQ2Globals
 	DWORD bmBeginZone = 0;
 	DWORD bmEndZone = 0;
 
-	PDATAVAR pGlobalVariables = nullptr;
-	PDATAVAR pMacroVariables = nullptr;
+	MQDataVar* pGlobalVariables = nullptr;
+	MQDataVar* pMacroVariables = nullptr;
 
 	ePVPServer PVPServer = PVP_NONE;
 	DWORD gdwLocalPlayer = pinstLocalPlayer_x;
@@ -347,22 +347,22 @@ namespace MQ2Globals
 	ULONGLONG LastEnteredZone = 0;
 	bool WereWeZoning = true;
 	bool gbInChat = false;
-	BOOL gFilterSkillsAll = FALSE;
-	BOOL gFilterSkillsIncrease = FALSE;
-	BOOL gFilterTarget = FALSE;
+	bool gFilterSkillsAll = false;
+	bool gFilterSkillsIncrease = false;
+	bool gFilterTarget = false;
 	BOOL gFilterDebug = FALSE;
-	BOOL gFilterMoney = FALSE;
-	BOOL gFilterFood = FALSE;
+	bool gFilterMoney = false;
+	bool gFilterFood = false;
 	BOOL gFilterMacro = FALSE;
 	BOOL gFilterMQ = FALSE;
-	BOOL gFilterEncumber = FALSE;
-	BOOL gFilterCustom = TRUE;
+	bool gFilterEncumber = false;
+	bool gFilterCustom = true;
 	BOOL gSpewToFile = FALSE;
 	bool gbDoAutoRun = false;
 	BOOL gMQPauseOnChat = FALSE;
 	BOOL gKeepKeys = FALSE;
 	bool gLClickedObject = false;
-	SWHOFILTER gFilterSWho = { 0 };
+	MQWhoFilter gFilterSWho = { 0 };
 	EQLIB_VAR BOOL gFilterMQ2DataErrors = FALSE;
 	BOOL gCreateMQ2NewsWindow = TRUE;
 	char gIfDelimiter = ',';
@@ -381,7 +381,7 @@ namespace MQ2Globals
 	char gDelayCondition[MAX_STRING] = { 0 };
 	BOOL bAllowCommandParse = TRUE;
 	LONG gDelayZoning = 0;
-	std::map<DWORD, std::list<SEARCHSPAWN>> gAlertMap;
+	std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
 	SPAWNINFO MercenarySpawn = { 0 };
 	SPAWNINFO PetSpawn = { 0 };
@@ -397,7 +397,7 @@ namespace MQ2Globals
 	MQDefine* pDefines = nullptr;
 	MQBindList* pBindList = nullptr;
 	char gLastFindSlot[MAX_STRING] = { 0 };
-	PFILTER gpFilters = nullptr;
+	MQFilter* gpFilters = nullptr;
 
 	// TODO: Remove this once the parsing engine is fully backwards compatible.
 	// Alternatively, move it into the macro block.
@@ -432,7 +432,7 @@ namespace MQ2Globals
 	TargetBuff TargetBuffTemp = { 0 };
 
 	decltype(SpawnByName) SpawnByName;
-	MQRANK EQP_DistArray[3000];
+	MQRank EQP_DistArray[3000];
 	DWORD gSpawnCount = 0;
 
 	// Motd and Pulse's mouse variables
@@ -957,8 +957,8 @@ namespace MQ2Globals
 	};
 
 	MQPlugin* pPlugins = nullptr;
-	std::map<std::string, DATAVAR*> VariableMap;
-	std::unordered_map<std::string, std::unique_ptr<MQ2DataItem>> MQ2DataMap;
+	std::map<std::string, MQDataVar*> VariableMap;
+	std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 
 	// Offset Initialization
 
@@ -1022,7 +1022,7 @@ namespace MQ2Globals
 	DWORD* pScreenYMax = nullptr;
 	DWORD* pScreenMode = nullptr;
 	char* pMouseLook = nullptr;
-	MOUSEINFO* EQADDR_MOUSE = nullptr;
+	MQMouseInfo* EQADDR_MOUSE = nullptr;
 	MOUSECLICK* EQADDR_MOUSECLICK = nullptr;
 
 	DWORD EQADDR_DIMAIN = 0;

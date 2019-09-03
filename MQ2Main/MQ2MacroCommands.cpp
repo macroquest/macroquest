@@ -1657,7 +1657,7 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 	pStack->Return[0] = 0;
 	pStack->Parameters = pEvent->Parameters;
 
-	PDATAVAR pParam = pStack->Parameters;
+	MQDataVar* pParam = pStack->Parameters;
 	while (pParam) // FIX THE HEAD ON EVERY VAR WE MOVED
 	{
 		pParam->ppHead = &pStack->Parameters;
@@ -1738,7 +1738,7 @@ void For(PSPAWNINFO pChar, char* szLine)
 	GetArg(ArgEnd, szLine, 4);
 	_strlwr_s(ArgDirection);
 
-	PDATAVAR pVar = FindMQ2DataVariable(ArgLoop);
+	MQDataVar* pVar = FindMQ2DataVariable(ArgLoop);
 	if (!pVar)
 	{
 		FatalError("/for loop using invalid variable");
@@ -1789,7 +1789,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 	char szNext[MAX_STRING];
 	GetArg(szNext, szLine, 1);
 
-	PDATAVAR pVar = FindMQ2DataVariable(szNext);
+	MQDataVar* pVar = FindMQ2DataVariable(szNext);
 	if (!pVar)
 	{
 		FatalError("/next using invalid variable");

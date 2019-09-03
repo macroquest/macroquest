@@ -753,11 +753,11 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (CHARINFO* pCharInfo = GetCharInfo())
 	{
-		SEARCHSPAWN ssHighlight;
+		MQSpawnSearch ssHighlight;
 		ClearSearchSpawn(&ssHighlight);
 		ParseSearchSpawn(szLine, &ssHighlight);
-		sprintf_s(szBuffer, "%d mapped spawns highlighted", MapHighlight(&ssHighlight));
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		WriteChatf("%d mapped spawns highlighted", MapHighlight(&ssHighlight));
 	}
 }
 
@@ -798,18 +798,17 @@ void MapHideCmd(SPAWNINFO* pChar, char* szLine)
 		_itoa_s(repeatMaphide, szBuffer, 10);
 		WritePrivateProfileString("Map Filters", "Maphide-Repeat", szBuffer, INIFileName);
 
-		sprintf_s(szBuffer, "maphide repeat set to: %s", (repeatMaphide ? "on" : "off"));
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		WriteChatf("maphide repeat set to: %s", (repeatMaphide ? "on" : "off"));
 		return;
 	}
 
 	if (CHARINFO* pCharInfo = GetCharInfo())
 	{
-		SEARCHSPAWN ssHide;
+		MQSpawnSearch ssHide;
 		ClearSearchSpawn(&ssHide);
 		ParseSearchSpawn(szLine, &ssHide);
-		sprintf_s(szBuffer, "%d mapped spawns hidden", MapHide(ssHide));
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		WriteChatf("%d mapped spawns hidden", MapHide(ssHide));
 	}
 }
 
@@ -851,7 +850,7 @@ void MapShowCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (CHARINFO* pCharInfo = GetCharInfo())
 	{
-		SEARCHSPAWN ssShow;
+		MQSpawnSearch ssShow;
 		ClearSearchSpawn(&ssShow);
 		ParseSearchSpawn(szLine, &ssShow);
 		sprintf_s(szBuffer, "%d previously hidden spawns shown", MapShow(ssShow));

@@ -275,7 +275,7 @@ struct [[offsetcomments]] ITEMINFO
 /*0x0ce*/ char                IDFile2[0x1e];
 /*0x0ec*/ DWORD               ItemNumber;                        // recordnum
 /*0x0f0*/ DWORD               EquipSlots;                        // its position, where it can be equipped
-/*0x0f4*/ DWORD               Cost;
+/*0x0f4*/ int                 Cost;
 /*0x0f8*/ DWORD               IconNumber;
 /*0x0fc*/ BYTE                eGMRequirement;                    // todo figure out this enum
 /*0x0fd*/ bool                bPoofOnDeath;

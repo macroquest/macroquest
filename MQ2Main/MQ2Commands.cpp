@@ -131,74 +131,83 @@ void SetError(PSPAWNINFO pChar, char* szLine)
 //              Displays a list of spawns in the zone
 // Usage:       /who <search string>
 // ***************************************************************************
+
+// <name|level|distance|race|class|guild|id>
+const char* szSortBy[] = {
+	"level",   // Default sort by
+	"name",
+	"race",
+	"class",
+	"distance",
+	"guild",
+	"id",
+	nullptr
+};
+
 void SuperWho(PSPAWNINFO pChar, char* szLine)
 {
 	bRunNextCommand = true;
+
 	char szLLine[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
+
 	char* szRest = szLLine;
-	BOOL Parsing = TRUE;
-	BOOL bConColor = 0;
-	SEARCHSPAWN SearchSpawn;
-	strcpy_s(szLLine, szLine);
-	_strlwr_s(szLLine);
+	bool Parsing = true;
+	bool bConColor = false;
+
+	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
 	SearchSpawn.SpawnType = PC;
 
+	strcpy_s(szLLine, szLine);
+	_strlwr_s(szLLine);
 
-	if ((!_stricmp(szLine, "all")) ||
-		(!_strnicmp(szLine, "all ", 4)) ||
-		(!_strnicmp(szLine + strlen(szLine) - 4, " all", 4)) ||
-		(strstr(szLine, " all ")))
+	if ((!_stricmp(szLine, "all"))
+		|| (!_strnicmp(szLine, "all ", 4))
+		|| (!_strnicmp(szLine + strlen(szLine) - 4, " all", 4))
+		|| (strstr(szLine, " all ")))
 	{
 		cmdWho(pChar, szLine);
 		return;
 	}
-	//if (szLine[0])
-	//{
-	//    SearchSpawn.bTargInvis=true;
-	//}
 
-	while (Parsing) {
+	while (Parsing)
+	{
 		GetArg(szArg, szRest, 1);
 		szRest = GetNextArg(szRest, 1);
-		if (szArg[0] == 0) {
-			Parsing = FALSE;
-		}
-		else if (!strcmp(szArg, "sort")) {
-			GetArg(szArg, szRest, 1);
-			//  <name|level|distance|race|class|guild|id>
-			char* szSortBy[] = {
-				"level",   // Default sort by
-				"name",
-				"race",
-				"class",
-				"distance",
-				"guild",
-				"id",
-				NULL };
-			DWORD Command = 0;
 
-			for (Command; szSortBy[Command]; Command++) {
-				if (!strcmp(szArg, szSortBy[Command])) {
-					SearchSpawn.SortBy = Command;
+		if (szArg[0] == 0)
+		{
+			Parsing = false;
+		}
+		else if (!strcmp(szArg, "sort"))
+		{
+			GetArg(szArg, szRest, 1);
+
+			for (int Command = 0; szSortBy[Command]; Command++)
+			{
+				if (!strcmp(szArg, szSortBy[Command]))
+				{
+					SearchSpawn.SortBy = static_cast<SearchSortBy>(Command);
 					szRest = GetNextArg(szRest, 1);
 					break;
 				}
 			}
 		}
-		else if (!strcmp(szArg, "concolor")) {
-			bConColor = 1;
+		else if (!strcmp(szArg, "concolor"))
+		{
+			bConColor = true;
 		}
-		else {
+		else
+		{
 			szRest = ParseSearchSpawnArgs(szArg, szRest, &SearchSpawn);
 		}
 	}
 
 	DebugSpew("SuperWho - filtering %s", SearchSpawn.szName);
 	SuperWhoDisplay(pChar, &SearchSpawn, bConColor);
-	//SuperWhoDisplay(pChar, &SearchSpawn,0,0,bConColor);
 }
+
 // ***************************************************************************
 // Function:    MacroPause
 // Description: Our '/mqpause' command
@@ -1153,74 +1162,108 @@ void MacroBeep(PSPAWNINFO pChar, char* szLine)
 //              Sets SuperWho filters
 // Usage:       /whofilter [options]
 // ***************************************************************************
+
+void SetDisplaySWhoFilter(bool& bToggle, const char* szFilter, const char* szToggle)
+{
+	if (!_stricmp(szToggle, "on"))
+		bToggle = true;
+	else if (!_stricmp(szToggle, "off"))
+		bToggle = false;
+
+	WriteChatf("%s is: %s", szFilter, bToggle ? "on" : "off");
+	WritePrivateProfileString("SWho Filter", szFilter, (bToggle ? "1" : "0"), gszINIFilename);
+}
+
 void SWhoFilter(PSPAWNINFO pChar, char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
-	char szToggle[MAX_STRING] = { 0 };
-	char szTemp[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
+
+	char szToggle[MAX_STRING] = { 0 };
 	GetArg(szToggle, szLine, 2);
-	if (!_stricmp(szArg, "Lastname")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Lastname, "Lastname", szToggle);
+
+	if (!_stricmp(szArg, "Lastname"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Lastname, "Lastname", szToggle);
 	}
-	else if (!_stricmp(szArg, "Class")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Class, "Class", szToggle);
+	else if (!_stricmp(szArg, "Class"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Class, "Class", szToggle);
 	}
-	else if (!_stricmp(szArg, "Race")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Race, "Race", szToggle);
+	else if (!_stricmp(szArg, "Race"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Race, "Race", szToggle);
 	}
-	else if (!_stricmp(szArg, "Body")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Body, "Body", szToggle);
+	else if (!_stricmp(szArg, "Body"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Body, "Body", szToggle);
 	}
-	else if (!_stricmp(szArg, "Level")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Level, "Level", szToggle);
+	else if (!_stricmp(szArg, "Level"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Level, "Level", szToggle);
 	}
-	else if (!_stricmp(szArg, "GM")) {
-		SetDisplaySWhoFilter(&gFilterSWho.GM, "GM", szToggle);
+	else if (!_stricmp(szArg, "GM"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.GM, "GM", szToggle);
 	}
-	else if (!_stricmp(szArg, "Guild")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Guild, "Guild", szToggle);
+	else if (!_stricmp(szArg, "Guild"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Guild, "Guild", szToggle);
 	}
-	else if (!_stricmp(szArg, "LD")) {
-		SetDisplaySWhoFilter(&gFilterSWho.LD, "LD", szToggle);
+	else if (!_stricmp(szArg, "LD"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.LD, "LD", szToggle);
 	}
-	else if (!_stricmp(szArg, "Sneak")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Sneak, "Sneak", szToggle);
+	else if (!_stricmp(szArg, "Sneak"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Sneak, "Sneak", szToggle);
 	}
-	else if (!_stricmp(szArg, "LFG")) {
-		SetDisplaySWhoFilter(&gFilterSWho.LFG, "LFG", szToggle);
+	else if (!_stricmp(szArg, "LFG"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.LFG, "LFG", szToggle);
 	}
-	else if (!_stricmp(szArg, "NPCTag")) {
-		SetDisplaySWhoFilter(&gFilterSWho.NPCTag, "NPCTag", szToggle);
+	else if (!_stricmp(szArg, "NPCTag"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.NPCTag, "NPCTag", szToggle);
 	}
-	else if (!_stricmp(szArg, "SpawnID")) {
-		SetDisplaySWhoFilter(&gFilterSWho.SpawnID, "SpawnID", szToggle);
+	else if (!_stricmp(szArg, "SpawnID"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.SpawnID, "SpawnID", szToggle);
 	}
-	else if (!_stricmp(szArg, "Trader")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Trader, "Trader", szToggle);
+	else if (!_stricmp(szArg, "Trader"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Trader, "Trader", szToggle);
 	}
-	else if (!_stricmp(szArg, "AFK")) {
-		SetDisplaySWhoFilter(&gFilterSWho.AFK, "AFK", szToggle);
+	else if (!_stricmp(szArg, "AFK"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.AFK, "AFK", szToggle);
 	}
-	else if (!_stricmp(szArg, "Anon")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Anon, "Anon", szToggle);
+	else if (!_stricmp(szArg, "Anon"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Anon, "Anon", szToggle);
 	}
-	else if (!_stricmp(szArg, "Distance")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Distance, "Distance", szToggle);
+	else if (!_stricmp(szArg, "Distance"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Distance, "Distance", szToggle);
 	}
-	else if (!_stricmp(szArg, "Light")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Light, "Light", szToggle);
+	else if (!_stricmp(szArg, "Light"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Light, "Light", szToggle);
 	}
-	else if (!_stricmp(szArg, "Holding")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Holding, "Holding", szToggle);
+	else if (!_stricmp(szArg, "Holding"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Holding, "Holding", szToggle);
 	}
-	else if (!_stricmp(szArg, "ConColor")) {
-		SetDisplaySWhoFilter(&gFilterSWho.ConColor, "ConColor", szToggle);
+	else if (!_stricmp(szArg, "ConColor"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.ConColor, "ConColor", szToggle);
 	}
-	else if (!_stricmp(szArg, "invisible")) {
-		SetDisplaySWhoFilter(&gFilterSWho.Invisible, "Invisible", szToggle);
+	else if (!_stricmp(szArg, "invisible"))
+	{
+		SetDisplaySWhoFilter(gFilterSWho.Invisible, "Invisible", szToggle);
 	}
-	else {
+	else
+	{
 		SyntaxError("Usage: /whofilter <lastname|class|race|body|level|gm|guild|ld|sneak|lfg|npctag|spawnid|trader|afk|anon|distance|light|holding|concolor|invisible> [on|off]");
 	}
 }
@@ -1231,39 +1274,41 @@ void SWhoFilter(PSPAWNINFO pChar, char* szLine)
 //              Adds 'skills' to the built-in filter command
 // Usage:       /filter skills
 // ***************************************************************************
+
+const char* szFilterSkills[] = {
+	"all",
+	"increase",
+	"none",
+	nullptr
+};
+
+const char* szFilterMacro[] = {
+	"all",
+	"enhanced",
+	"none",
+	"macroended",
+	nullptr
+};
+
+const char* szFilterTarget[] = {
+	"off",
+	"on",
+	nullptr
+};
+
+const char* szUseChat[] = {
+	"off",
+	"on",
+	nullptr
+};
+
 void Filter(PSPAWNINFO pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	DWORD Command;
+
 	char szCmd[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
-	char* szRest = NULL;
-	char* szFilterSkills[] = {
-		"all",
-		"increase",
-		"none",
-		NULL
-	};
-
-	char* szFilterMacro[] = {
-		"all",
-		"enhanced",
-		"none",
-		"macroended",
-		NULL
-	};
-
-	char* szFilterTarget[] = {
-		"off",
-		"on",
-		NULL
-	};
-
-	char* szUseChat[] = {
-		"off",
-		"on",
-		NULL
-	};
+	char* szRest = nullptr;
 
 	szRest = szLine;
 	GetArg(szArg, szRest, 1);
@@ -1274,301 +1319,420 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	if ((_stricmp("skills", szArg)) &&
-		(_stricmp("macros", szArg)) &&
-		(_stricmp("target", szArg)) &&
-		(_stricmp("name", szArg)) &&
-		(_stricmp("food", szArg)) &&
-		(_stricmp("money", szArg)) &&
-		(_stricmp("encumber", szArg)) &&
-		(_stricmp("mq", szArg)) &&
-		(_stricmp("debug", szArg)) &&
-		(_stricmp("zrange", szArg))) {
+	if (_stricmp("skills", szArg)
+		&& _stricmp("macros", szArg)
+		&& _stricmp("target", szArg)
+		&& _stricmp("name", szArg)
+		&& _stricmp("food", szArg)
+		&& _stricmp("money", szArg)
+		&& _stricmp("encumber", szArg)
+		&& _stricmp("mq", szArg)
+		&& _stricmp("debug", szArg)
+		&& _stricmp("zrange", szArg))
+	{
 		cmdFilter(pChar, szArg);
 		return;
 	}
-	if (!_stricmp("skills", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of skills is set to: %s",
+
+	if (!_stricmp("skills", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of skills is set to: %s",
 				(gFilterSkillsIncrease) ? "None" : (gFilterSkillsAll) ? "Increase" : "All");
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
-		for (Command = 0; szFilterSkills[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterSkills[Command])) {
+
+		for (int Command = 0; szFilterSkills[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterSkills[Command]))
+			{
 				gFilterSkillsAll = (0 != Command);
 				gFilterSkillsIncrease = (2 == Command);
-				sprintf_s(szCmd, "Filtering of skills changed to: %s",
-					(gFilterSkillsIncrease) ? "None" : (gFilterSkillsAll) ? "Increase" : "All");
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(Command, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterSkills", szCmd, gszINIFilename);
-				return;
-			}
-		}
-		SyntaxError("Usage: /filter skills [all|increase|none]");
 
-	}
-	else if (!_stricmp("macros", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of macros is set to: %s", szFilterMacro[gFilterMacro]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-			return;
-		}
-		for (Command = 0; szFilterMacro[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterMacro[Command])) {
-				gFilterMacro = Command;
-				sprintf_s(szCmd, "Filtering of macros changed to: %s", szFilterMacro[gFilterMacro]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(gFilterMacro, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterMacro", szCmd, gszINIFilename);
+				WriteChatf("Filtering of skills changed to: %s",
+					(gFilterSkillsIncrease) ? "None" : (gFilterSkillsAll) ? "Increase" : "All");
+
+				_itoa_s(Command, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterSkills", szCmd, gszINIFilename);
 				return;
 			}
 		}
-		SyntaxError("Usage: /filter macros [all|enhanced|none|macroended]");
+
+		SyntaxError("Usage: /filter skills [all|increase|none]");
+		return;
 	}
-	else if (!_stricmp("mq", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of MQ is set to: %s", szUseChat[gFilterMQ]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("macros", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of macros is set to: %s", szFilterMacro[gFilterMacro]);
 			return;
 		}
-		for (Command = 0; szUseChat[Command]; Command++) {
-			if (!_stricmp(szRest, szUseChat[Command])) {
+
+		for (int Command = 0; szFilterMacro[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterMacro[Command]))
+			{
+				gFilterMacro = Command;
+
+				WriteChatf(szCmd, "Filtering of macros changed to: %s", szFilterMacro[gFilterMacro]);
+
+				_itoa_s(gFilterMacro, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterMacro", szCmd, gszINIFilename);
+				return;
+			}
+		}
+
+		SyntaxError("Usage: /filter macros [all|enhanced|none|macroended]");
+		return;
+	}
+
+	if (!_stricmp("mq", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of MQ is set to: %s", szUseChat[gFilterMQ]);
+			return;
+		}
+
+		for (int Command = 0; szUseChat[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szUseChat[Command]))
+			{
 				gFilterMQ = Command;
-				sprintf_s(szCmd, "Filtering of MQ changed to: %s", szUseChat[gFilterMQ]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+				WriteChatf("Filtering of MQ changed to: %s", szUseChat[gFilterMQ]);
+
 				_itoa_s(gFilterMQ, szCmd, 10);
 				WritePrivateProfileString("MacroQuest", "FilterMQ", szCmd, gszINIFilename);
 				return;
 			}
 		}
+
 		SyntaxError("Usage: /filter mq [on|off]");
+		return;
 	}
-	else if (!_stricmp("mq2data", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of MQ2Data Errors is set to: %s", szUseChat[gFilterMQ2DataErrors]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("mq2data", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of MQ2Data Errors is set to: %s", szUseChat[gFilterMQ2DataErrors]);
 			return;
 		}
-		for (Command = 0; szUseChat[Command]; Command++) {
-			if (!_stricmp(szRest, szUseChat[Command])) {
+
+		for (int Command = 0; szUseChat[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szUseChat[Command]))
+			{
 				gFilterMQ2DataErrors = Command;
-				sprintf_s(szCmd, "Filtering of MQ changed to: %s", szUseChat[gFilterMQ2DataErrors]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+				WriteChatf("Filtering of MQ changed to: %s", szUseChat[gFilterMQ2DataErrors]);
+
 				_itoa_s(gFilterMQ2DataErrors, szCmd, 10);
 				WritePrivateProfileString("MacroQuest", "FilterMQ2Data", szCmd, gszINIFilename);
 				return;
 			}
 		}
+
 		SyntaxError("Usage: /filter mq2data [on|off]");
-
-
+		return;
 	}
-	else if (!_stricmp("target", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of target lost messages is set to: %s", szFilterTarget[gFilterTarget]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("target", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of target lost messages is set to: %s", szFilterTarget[gFilterTarget ? 1 : 0]);
 			return;
 		}
-		for (Command = 0; szFilterTarget[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterTarget[Command])) {
+
+		for (int Command = 0; szFilterTarget[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterTarget[Command]))
+			{
 				gFilterTarget = Command;
-				sprintf_s(szCmd, "Filtering of target lost messages changed to: %s", szFilterTarget[gFilterTarget]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(gFilterTarget, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterTarget", szCmd, gszINIFilename);
+
+				WriteChatf("Filtering of target lost messages changed to: %s", szFilterTarget[gFilterTarget ? 1 : 0]);
+
+				_itoa_s(gFilterTarget, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterTarget", szCmd, gszINIFilename);
 				return;
 			}
 		}
+
 		SyntaxError("Usage: /filter target [on|off]");
-
+		return;
 	}
-	else if (!_stricmp("debug", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of debug messages is set to: %s", szFilterTarget[gFilterDebug]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("debug", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of debug messages is set to: %s", szFilterTarget[gFilterDebug]);
 			return;
 		}
-		for (Command = 0; szFilterTarget[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterTarget[Command])) {
+
+		for (int Command = 0; szFilterTarget[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterTarget[Command]))
+			{
 				gFilterDebug = Command;
-				sprintf_s(szCmd, "Filtering of debug messages changed to: %s", szFilterTarget[gFilterDebug]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(gFilterTarget, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterDebug", szCmd, gszINIFilename);
-				return;
-			}
-		}
-		SyntaxError("Usage: /filter debug [on|off]");
 
+				WriteChatf("Filtering of debug messages changed to: %s", szFilterTarget[gFilterDebug]);
+
+				_itoa_s(gFilterTarget, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterDebug", szCmd, gszINIFilename);
+				return;
+			}
+		}
+
+		SyntaxError("Usage: /filter debug [on|off]");
+		return;
 	}
-	else if (!_stricmp("money", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of money messages is set to: %s", szFilterTarget[gFilterMoney]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("money", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of money messages is set to: %s", szFilterTarget[gFilterMoney]);
 			return;
 		}
-		for (Command = 0; szFilterTarget[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterTarget[Command])) {
+
+		for (int Command = 0; szFilterTarget[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterTarget[Command]))
+			{
 				gFilterMoney = Command;
-				sprintf_s(szCmd, "Filtering of money messages changed to: %s", szFilterTarget[gFilterMoney]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(gFilterMoney, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterMoney", szCmd, gszINIFilename);
+
+				WriteChatf("Filtering of money messages changed to: %s", szFilterTarget[gFilterMoney]);
+
+				_itoa_s(gFilterMoney, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterMoney", szCmd, gszINIFilename);
 				return;
 			}
 		}
+
 		SyntaxError("Usage: /filter money [on|off]");
+		return;
 	}
-	else if (!_stricmp("encumber", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of encumber messages is set to: %s", szFilterTarget[gFilterEncumber]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("encumber", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of encumber messages is set to: %s", szFilterTarget[gFilterEncumber]);
 			return;
 		}
-		for (Command = 0; szFilterTarget[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterTarget[Command])) {
+
+		for (int Command = 0; szFilterTarget[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterTarget[Command]))
+			{
 				gFilterEncumber = Command;
-				sprintf_s(szCmd, "Filtering of encumber messages changed to: %s", szFilterTarget[gFilterEncumber]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(gFilterEncumber, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterEncumber", szCmd, gszINIFilename);
+
+				WriteChatf("Filtering of encumber messages changed to: %s", szFilterTarget[gFilterEncumber]);
+
+				_itoa_s(gFilterEncumber, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterEncumber", szCmd, gszINIFilename);
 				return;
 			}
 		}
+
 		SyntaxError("Usage: /filter encumber [on|off]");
+		return;
 	}
-	else if (!_stricmp("food", szArg)) {
-		if (szRest[0] == 0) {
-			sprintf_s(szCmd, "Filtering of food messages is set to: %s", szFilterTarget[gFilterFood]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+	if (!_stricmp("food", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			WriteChatf("Filtering of food messages is set to: %s", szFilterTarget[gFilterFood ? 1 : 0]);
 			return;
 		}
-		for (Command = 0; szFilterTarget[Command]; Command++) {
-			if (!_stricmp(szRest, szFilterTarget[Command])) {
-				gFilterFood = Command;
-				sprintf_s(szCmd, "Filtering of food messages changed to: %s", szFilterTarget[gFilterFood]);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				_itoa_s(gFilterFood, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterFood", szCmd, gszINIFilename);
+
+		for (int Command = 0; szFilterTarget[Command]; Command++)
+		{
+			if (!_stricmp(szRest, szFilterTarget[Command]))
+			{
+				gFilterFood = Command != 0;
+
+				WriteChatf("Filtering of food messages changed to: %s", szFilterTarget[gFilterFood ? 1 : 0]);
+
+				_itoa_s(gFilterFood, szCmd, 10);
+				WritePrivateProfileString("MacroQuest", "FilterFood", szCmd, gszINIFilename);
 				return;
 			}
 		}
+
 		SyntaxError("Usage: /filter food [on|off]");
+		return;
 	}
-	else if (!_stricmp("name", szArg)) {
-		if (szRest[0] == 0) {
+
+	if (!_stricmp("name", szArg))
+	{
+		if (szRest[0] == 0)
+		{
 			WriteChatColor("Names currently filtered:", USERCOLOR_DEFAULT);
 			WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-			PFILTER pFilter = gpFilters;
-			while (pFilter) {
-				if (pFilter->pEnabled == &gFilterCustom) {
-					sprintf_s(szCmd, "   %s", pFilter->FilterText);
-					WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+			MQFilter* pFilter = gpFilters;
+			while (pFilter)
+			{
+				if (pFilter->pEnabled == &gFilterCustom)
+				{
+					WriteChatf("   %s", pFilter->FilterText);
 				}
+
 				pFilter = pFilter->pNext;
 			}
 		}
-		else {
+		else
+		{
 			GetArg(szArg, szRest, 1);
 			szRest = GetNextArg(szRest);
-			if (!_stricmp(szArg, "on") || !_stricmp(szArg, "off")) {
-				for (Command = 0; szFilterTarget[Command]; Command++) {
-					if (!_stricmp(szArg, szFilterTarget[Command])) {
+
+			if (!_stricmp(szArg, "on") || !_stricmp(szArg, "off"))
+			{
+				for (int Command = 0; szFilterTarget[Command]; Command++)
+				{
+					if (!_stricmp(szArg, szFilterTarget[Command]))
+					{
 						gFilterCustom = Command;
-						sprintf_s(szCmd, "Filtering of custom messages changed to: %s", szFilterTarget[gFilterCustom]);
-						WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-						_itoa_s(gFilterCustom, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterCustom", szCmd, gszINIFilename);
+
+						WriteChatf("Filtering of custom messages changed to: %s", szFilterTarget[gFilterCustom]);
+
+						_itoa_s(gFilterCustom, szCmd, 10);
+						WritePrivateProfileString("MacroQuest", "FilterCustom", szCmd, gszINIFilename);
 						return;
 					}
 				}
+
+				return;
 			}
-			else if (!_stricmp(szArg, "remove")) {
-				if (szRest[0] == 0) {
+
+			if (!_stricmp(szArg, "remove"))
+			{
+				if (szRest[0] == 0)
+				{
 					WriteChatColor("Remove what?", USERCOLOR_DEFAULT);
 				}
-				if (!_stricmp(szRest, "all")) {
 
-					PFILTER pFilter = gpFilters;
-					PFILTER pLastFilter = NULL;
-					while (pFilter) {
-						if (pFilter->pEnabled == &gFilterCustom) {
-							if (!pLastFilter) {
+				if (!_stricmp(szRest, "all"))
+				{
+					MQFilter* pFilter = gpFilters;
+					MQFilter* pLastFilter = nullptr;
+
+					while (pFilter)
+					{
+						if (pFilter->pEnabled == &gFilterCustom)
+						{
+							if (!pLastFilter)
+							{
 								gpFilters = pFilter->pNext;
 								delete pFilter;
 								pFilter = gpFilters->pNext;
 							}
-							else {
+							else
+							{
 								pLastFilter->pNext = pFilter->pNext;
 								delete pFilter;
 								pFilter = pLastFilter->pNext;
 							}
 						}
-						else {
+						else
+						{
 							pLastFilter = pFilter;
 							pFilter = pFilter->pNext;
 						}
 					}
+
 					WriteChatColor("Cleared all name filters.", USERCOLOR_DEFAULT);
 					WriteFilterNames();
 					return;
 				}
-				else {
-					PFILTER pFilter = gpFilters;
-					PFILTER pLastFilter = NULL;
-					while (pFilter) {
-						if ((pFilter->pEnabled == &gFilterCustom) && (!_stricmp(pFilter->FilterText, szRest))) {
-							if (!pLastFilter) {
-								gpFilters = pFilter->pNext;
-							}
-							else {
-								pLastFilter->pNext = pFilter->pNext;
-							}
-							delete pFilter;
-							sprintf_s(szCmd, "Stopped filtering on: %s", szRest);
-							WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-							WriteFilterNames();
-							return;
+
+				MQFilter* pFilter = gpFilters;
+				MQFilter* pLastFilter = nullptr;
+
+				while (pFilter)
+				{
+					if ((pFilter->pEnabled == &gFilterCustom) && !_stricmp(pFilter->FilterText, szRest))
+					{
+						if (!pLastFilter)
+						{
+							gpFilters = pFilter->pNext;
 						}
-						else {
-							pLastFilter = pFilter;
-							pFilter = pFilter->pNext;
+						else
+						{
+							pLastFilter->pNext = pFilter->pNext;
 						}
-					}
-				}
-			}
-			else if (!_stricmp(szArg, "add")) {
-				if (szRest[0] == 0) {
-					WriteChatColor("Add what?", USERCOLOR_DEFAULT);
-					return;
-				}
-				PFILTER pFilter = gpFilters;
-				while (pFilter) {
-					if ((pFilter->pEnabled == &gFilterCustom) && (!_stricmp(pFilter->FilterText, szRest))) {
-						sprintf_s(szCmd, "Name '%s' is already being filtered.", szRest);
-						WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+						delete pFilter;
+
+						WriteChatf("Stopped filtering on: %s", szRest);
+						WriteFilterNames();
 						return;
 					}
+
+					pLastFilter = pFilter;
 					pFilter = pFilter->pNext;
 				}
 
-				AddFilter(szRest, -1, &gFilterCustom);
+				return;
+			}
+
+			if (!_stricmp(szArg, "add"))
+			{
+				if (szRest[0] == 0)
+				{
+					WriteChatColor("Add what?", USERCOLOR_DEFAULT);
+					return;
+				}
+
+				MQFilter* pFilter = gpFilters;
+				while (pFilter)
+				{
+					if ((pFilter->pEnabled == &gFilterCustom) && !_stricmp(pFilter->FilterText, szRest))
+					{
+						WriteChatf("Name '%s' is already being filtered.", szRest);
+						return;
+					}
+
+					pFilter = pFilter->pNext;
+				}
+
+				AddFilter(szRest, -1, gFilterCustom);
 				WriteFilterNames();
-				sprintf_s(szCmd, "Started filtering on: %s", szRest);
-				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+
+				WriteChatf(szCmd, "Started filtering on: %s", szRest);
 				return;
 			}
-			else {
-				SyntaxError("Usage: /filter name on|off|add|remove <name>");
-				return;
-			}
+
+			SyntaxError("Usage: /filter name on|off|add|remove <name>");
+			return;
 		}
+
+		return;
 	}
-	else if (!_stricmp("zrange", szArg)) {
-		if (szRest[0] == 0) {
-			if (gZFilter >= 10000.0f) {
+
+	if (!_stricmp("zrange", szArg))
+	{
+		if (szRest[0] == 0)
+		{
+			if (gZFilter >= 10000.0f)
+			{
 				WriteChatColor("Z range is not currently set.", USERCOLOR_DEFAULT);
 			}
-			else {
-				sprintf_s(szArg, "Z range is set to: %1.2f", gZFilter);
-				WriteChatColor(szArg, USERCOLOR_DEFAULT);
+			else
+			{
+				WriteChatf("Z range is set to: %1.2f", gZFilter);
 			}
 		}
-		else {
+		else
+		{
 			gZFilter = (float)atof(szRest);
 		}
 	}
@@ -1783,7 +1947,7 @@ void Location(PSPAWNINFO pChar, char* szLine)
 	WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 }
 
-bool CMQ2Alerts::RemoveAlertFromList(uint32_t Id, SEARCHSPAWN* pSearchSpawn)
+bool CMQ2Alerts::RemoveAlertFromList(uint32_t Id, MQSpawnSearch* pSearchSpawn)
 {
 	std::scoped_lock lock(m_mutex);
 
@@ -1794,7 +1958,7 @@ bool CMQ2Alerts::RemoveAlertFromList(uint32_t Id, SEARCHSPAWN* pSearchSpawn)
 
 		for (auto iter = alertMap.begin(); iter != alertMap.end(); iter++)
 		{
-			SEARCHSPAWN* pSearch = &*iter;
+			MQSpawnSearch* pSearch = &*iter;
 
 			if (SearchSpawnMatchesSearchSpawn(pSearch, pSearchSpawn))
 			{
@@ -1807,7 +1971,7 @@ bool CMQ2Alerts::RemoveAlertFromList(uint32_t Id, SEARCHSPAWN* pSearchSpawn)
 	return false;
 }
 
-bool CMQ2Alerts::AddNewAlertList(uint32_t Id, SEARCHSPAWN* pSearchSpawn)
+bool CMQ2Alerts::AddNewAlertList(uint32_t Id, MQSpawnSearch* pSearchSpawn)
 {
 	std::scoped_lock lock(m_mutex);
 
@@ -1847,7 +2011,7 @@ void CMQ2Alerts::FreeAlerts(uint32_t id)
 	}
 }
 
-bool CMQ2Alerts::GetAlert(uint32_t id, std::vector<SEARCHSPAWN>& ss)
+bool CMQ2Alerts::GetAlert(uint32_t id, std::vector<MQSpawnSearch>& ss)
 {
 	std::scoped_lock lock(m_mutex);
 
@@ -1937,7 +2101,7 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 				GetArg(szArg, szRest, 1);
 				szRest = GetNextArg(szRest, 1);
 
-				std::vector<SEARCHSPAWN> ss;
+				std::vector<MQSpawnSearch> ss;
 
 				if (CAlerts.GetAlert(atoi(szArg), ss))
 				{
@@ -1969,8 +2133,7 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 				GetArg(szArg, szRest, 1);
 				szRest = GetNextArg(szRest, 1);
 
-				SEARCHSPAWN searchSpawn;
-				ZeroMemory(&searchSpawn, sizeof(SEARCHSPAWN));
+				MQSpawnSearch searchSpawn;
 
 				ClearSearchSpawn(&searchSpawn);
 
@@ -2009,9 +2172,7 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 				GetArg(szArg, szRest, 1);
 				szRest = GetNextArg(szRest, 1);
 
-				SEARCHSPAWN searchSpawn;
-
-				ZeroMemory(&searchSpawn, sizeof(SEARCHSPAWN));
+				MQSpawnSearch searchSpawn;
 				ClearSearchSpawn(&searchSpawn);
 
 				bool ParsingAdd = true;
@@ -2202,20 +2363,26 @@ void Face(PSPAWNINFO pChar, char* szLine)
 {
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
-	if (GetGameState() != GAMESTATE_INGAME) {
+
+	if (GetGameState() != GAMESTATE_INGAME)
+	{
 		MacroError("You shouldn't execute /face when not in game. Gamestate is %d", GetGameState());
 		return;
 	}
-	PSPAWNINFO pSpawnClosest = NULL;
-	PSPAWNINFO psTarget = NULL;
+
+	SPAWNINFO* pSpawnClosest = nullptr;
+	SPAWNINFO* psTarget = nullptr;
 	SPAWNINFO LocSpawn = { 0 };
-	SEARCHSPAWN SearchSpawn;
+
+	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
+
 	char szMsg[MAX_STRING] = { 0 };
 	char szName[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
 	char szLLine[MAX_STRING] = { 0 };
 	char* szFilter = szLLine;
+
 	BOOL bArg = TRUE;
 	BOOL bOtherArgs = FALSE;
 	BOOL Away = FALSE;
@@ -2223,6 +2390,7 @@ void Face(PSPAWNINFO pChar, char* szLine)
 	BOOL Fast = FALSE;
 	BOOL Look = TRUE;
 	BOOL Parsing = TRUE;
+
 	double Distance;
 	bRunNextCommand = false;
 	strcpy_s(szLLine, szLine);
@@ -2410,16 +2578,19 @@ void Where(PSPAWNINFO pChar, char* szLine)
 {
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
-	PSPAWNINFO pSpawnClosest = NULL;
-	SEARCHSPAWN SearchSpawn;
+
+	bRunNextCommand = true;
+
+	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
+
 	char szMsg[MAX_STRING] = { 0 };
 	char szName[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
 	char szLLine[MAX_STRING] = { 0 };
 	char* szFilter = szLLine;
 	BOOL bArg = TRUE;
-	bRunNextCommand = true;
+	SPAWNINFO* pSpawnClosest = nullptr;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
 
@@ -2846,10 +3017,13 @@ void Cast(PSPAWNINFO pChar, char* szLine)
 void Target(PSPAWNINFO pChar, char* szLine)
 {
 	gTargetbuffs = FALSE;
+
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
-	PSPAWNINFO pSpawnClosest = NULL;
-	SEARCHSPAWN SearchSpawn;
+
+	SPAWNINFO* pSpawnClosest = NULL;
+
+	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
 	char szArg[MAX_STRING] = { 0 };
 	char szMsg[MAX_STRING] = { 0 };
@@ -3551,7 +3725,7 @@ void UseItemCmd(PSPAWNINFO pChar, char* szLine)
 
 				// is it a mount?
 				if (bMount) {
-					if (DWORD index = GetKeyRingIndex(0, szCmd, sizeof(szCmd), stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(0, szCmd, stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if (DWORD numitems = clist->ItemsArray.Count) {
@@ -3565,7 +3739,7 @@ void UseItemCmd(PSPAWNINFO pChar, char* szLine)
 				}
 				else if (bIllusion) {
 					//uhm ok, maybe an illusion then?
-					if (DWORD index = GetKeyRingIndex(1, szCmd, sizeof(szCmd), stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(1, szCmd, stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 								if (DWORD numitems = clist->ItemsArray.Count) {
@@ -3579,7 +3753,7 @@ void UseItemCmd(PSPAWNINFO pChar, char* szLine)
 				}
 				else if (bFamiliar) {
 					//uhm ok, maybe a Familiar then?
-					if (DWORD index = GetKeyRingIndex(2, szCmd, sizeof(szCmd), stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(2, szCmd, stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
 								if (DWORD numitems = clist->ItemsArray.Count) {

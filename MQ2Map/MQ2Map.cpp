@@ -82,8 +82,8 @@ char MapNameString[MAX_STRING] = { "%N" };
 char MapTargetNameString[MAX_STRING] = { "%N" };
 char mapshowStr[MAX_STRING] = { "" };
 char maphideStr[MAX_STRING] = { "" };
-SEARCHSPAWN MapFilterCustom = { 0 };
-SEARCHSPAWN MapFilterNamed = { 0 };
+MQSpawnSearch MapFilterCustom;
+MQSpawnSearch MapFilterNamed;
 
 MAPFILTER MapFilterOptions[] =
 {
@@ -490,7 +490,7 @@ PLUGIN_API void OnPulse()
 				cleared = true;
 			}
 
-			SEARCHSPAWN ss;
+			MQSpawnSearch ss;
 			ClearSearchSpawn(&ss);
 			ParseSearchSpawn(mapshowStr, &ss);
 			MapShow(ss);
@@ -505,7 +505,7 @@ PLUGIN_API void OnPulse()
 				cleared = true;
 			}
 
-			SEARCHSPAWN ss;
+			MQSpawnSearch ss;
 			ClearSearchSpawn(&ss);
 			ParseSearchSpawn(maphideStr, &ss);
 			MapHide(ss);

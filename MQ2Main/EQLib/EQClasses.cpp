@@ -2013,7 +2013,7 @@ FUNCTION_AT_ADDRESS(void EqSoundManager::EmitterAdd(EqEmitterData*), EqSoundMana
 //============================================================================
 
 #ifdef EQSpellStrings__GetString_x
-FUNCTION_AT_ADDRESS(char* EQSpellStrings::GetString(int SpellID, int StrIndex), EQSpellStrings__GetString);
+FUNCTION_AT_ADDRESS(const char* EQSpellStrings::GetString(int SpellID, int StrIndex), EQSpellStrings__GetString);
 #endif
 
 //============================================================================

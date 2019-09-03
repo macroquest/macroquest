@@ -54,8 +54,8 @@ EQLIB_API DWORD bmEndZone;
 
 /* OTHER */
 
-EQLIB_VAR PDATAVAR pGlobalVariables;
-EQLIB_VAR PDATAVAR pMacroVariables;
+EQLIB_VAR MQDataVar* pGlobalVariables;
+EQLIB_VAR MQDataVar* pMacroVariables;
 
 EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;
@@ -147,22 +147,22 @@ EQLIB_VAR ULONGLONG OldLastEnteredZone;
 EQLIB_VAR ULONGLONG LastEnteredZone;
 EQLIB_VAR bool WereWeZoning;
 EQLIB_VAR bool gbInChat;
-EQLIB_VAR BOOL gFilterSkillsAll;
-EQLIB_VAR BOOL gFilterSkillsIncrease;
-EQLIB_VAR BOOL gFilterTarget;
+EQLIB_VAR bool gFilterSkillsAll;
+EQLIB_VAR bool gFilterSkillsIncrease;
+EQLIB_VAR bool gFilterTarget;
 EQLIB_VAR BOOL gFilterDebug;
-EQLIB_VAR BOOL gFilterMoney;
-EQLIB_VAR BOOL gFilterFood;
+EQLIB_VAR bool gFilterMoney;
+EQLIB_VAR bool gFilterFood;
 EQLIB_VAR BOOL gFilterMQ;
 EQLIB_VAR BOOL gFilterMacro;
-EQLIB_VAR BOOL gFilterEncumber;
-EQLIB_VAR BOOL gFilterCustom;
+EQLIB_VAR bool gFilterEncumber;
+EQLIB_VAR bool gFilterCustom;
 EQLIB_VAR BOOL gSpewToFile;
 EQLIB_VAR bool gbDoAutoRun;
 EQLIB_VAR BOOL gMQPauseOnChat;
 EQLIB_VAR BOOL gKeepKeys;
 EQLIB_VAR bool gLClickedObject;
-EQLIB_VAR SWHOFILTER gFilterSWho;
+EQLIB_VAR MQWhoFilter gFilterSWho;
 EQLIB_VAR BOOL gCreateMQ2NewsWindow;
 EQLIB_VAR BOOL gUseNewNamedTest;
 EQLIB_VAR BOOL gbInForeground;
@@ -205,9 +205,9 @@ EQLIB_VAR bool gTurbo;
 EQLIB_VAR bool gWarning;
 EQLIB_VAR MQDefine* pDefines;
 EQLIB_VAR MQBindList* pBindList;
-EQLIB_VAR PFILTER gpFilters;
+EQLIB_VAR MQFilter* gpFilters;
 
-EQLIB_VAR std::map<std::string, unsigned long> ItemSlotMap;
+EQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
 EQLIB_VAR MOUSESPOOF* gMouseData;
 
@@ -259,7 +259,7 @@ EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD2;
 EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD3;
 EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD4;
 
-EQLIB_VAR MOUSEINFO* EQADDR_MOUSE;
+EQLIB_VAR MQMouseInfo* EQADDR_MOUSE;
 EQLIB_VAR MOUSECLICK* EQADDR_MOUSECLICK;
 
 EQLIB_VAR PMAPLABEL* ppCurrentMapLabel;
@@ -383,15 +383,15 @@ EQLIB_VAR DWORD nColorMacroError;
 EQLIB_VAR DWORD nColorMQ2DataError;
 EQLIB_VAR DWORD nColorFatalError;
 
-EQLIB_VAR std::map<std::string, PDATAVAR> VariableMap;
-EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQ2DataItem>> MQ2DataMap;
+EQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
+EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 EQLIB_VAR MQPlugin* pPlugins;
 
 EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;
 
 EQLIB_VAR std::map<std::string, PSPAWNINFO> SpawnByName;
 //EQLIB_VAR EQPlayer **ppEQP_IDArray;
-EQLIB_VAR MQRANK EQP_DistArray[3000];
+EQLIB_VAR MQRank EQP_DistArray[3000];
 EQLIB_VAR DWORD gSpawnCount;
 //#define ppEQP_IDArray (*pppEQP_IDArray)
 
