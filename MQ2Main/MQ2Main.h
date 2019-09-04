@@ -265,7 +265,7 @@ EQLIB_API void InitializeMQ2DataTypes();
 EQLIB_API void ShutdownMQ2DataTypes();
 EQLIB_API void InitializeMQ2Data();
 EQLIB_API void ShutdownMQ2Data();
-EQLIB_API BOOL ParseMacroData(char* szOriginal, size_t BufferSize);
+EQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
 EQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 EQLIB_API bool RemoveMQ2Data(const char* szName);
 EQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
@@ -595,8 +595,12 @@ EQLIB_API void EndAllMacros();
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Parse Operations
-std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
-std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
+std::string HandleParseParam(std::string_view strOriginal, bool bParseOnce = false);
+
+enum class ModifyMacroMode { Default, Wrap, WrapNoDoubles };
+
+std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = false,
+	ModifyMacroMode iOperation = ModifyMacroMode::Default);
 
 EQLIB_API bool Calculate(const char* szFormula, double& Dest);
 

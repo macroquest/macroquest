@@ -861,7 +861,7 @@ namespace MQ2Globals
 	};
 
 	BOOL bAllErrorsFatal = FALSE;
-	BOOL bAllErrorsDumpStack = FALSE;
+	bool bAllErrorsDumpStack = false;
 	BOOL bLaxColor = FALSE;
 	BOOL bAllErrorsLog = FALSE;
 	BOOL gbHUDUnderUI = 1;

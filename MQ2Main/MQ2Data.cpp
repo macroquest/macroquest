@@ -152,7 +152,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 			{
 				GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 
-				if (ci_find_substr(szName, szIndex));
+				if (ci_find_substr(szName, szIndex))
 				{
 					float X = pSpawn->X - pItem->X;
 					float Y = pSpawn->Y - pItem->Y;
@@ -927,7 +927,7 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 					if (Default.find("${") != std::string::npos)
 					{
 						// Modify Macro String with parameter 0 to wrap Parse Zero
-						Default = ModifyMacroString(Default, true, 0);
+						Default = ModifyMacroString(Default, true, ModifyMacroMode::Wrap);
 					}
 				}
 
@@ -976,7 +976,7 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 				if (strstr(DataTypeTemp, "${"))
 				{
 					// Modify Macro String with parameter 0 to wrap Parse Zero
-					strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, 0).c_str());
+					strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, ModifyMacroMode::Wrap).c_str());
 				}
 			}
 			else if (strchr(DataTypeTemp, '$'))
@@ -1001,7 +1001,7 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 				{
 
 					// Modify Macro String with parameter 0 to wrap Parse Zero
-					Default = ModifyMacroString(Default, true, 0);
+					Default = ModifyMacroString(Default, true, ModifyMacroMode::Wrap);
 				}
 			}
 

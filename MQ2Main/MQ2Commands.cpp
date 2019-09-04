@@ -4071,7 +4071,9 @@ void NoParseCmd(PSPAWNINFO pChar, char* szLine)
 		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
 		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
 		// Cast it as a char*, Modify the line, and run the command
-		DoCommand(pChar, (char*)ModifyMacroString(szLine, true, -2).c_str());
+		std::string macroString = ModifyMacroString(szLine, true, ModifyMacroMode::WrapNoDoubles);
+
+		DoCommand(pChar, &macroString[0]);
 	}
 	else
 	{

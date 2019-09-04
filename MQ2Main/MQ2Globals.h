@@ -58,7 +58,7 @@ EQLIB_VAR MQDataVar* pGlobalVariables;
 EQLIB_VAR MQDataVar* pMacroVariables;
 
 EQLIB_VAR BOOL bAllErrorsFatal;
-EQLIB_VAR BOOL bAllErrorsDumpStack;
+EQLIB_VAR bool bAllErrorsDumpStack;
 EQLIB_VAR BOOL bAllErrorsLog;
 EQLIB_API char DataTypeTemp[MAX_STRING];
 EQLIB_API TargetBuff TargetBuffTemp;

@@ -1365,7 +1365,7 @@ void NewIf(PSPAWNINFO pChar, char* szLine)
 			// the correct output.  So let's wrap this in a ${Parse[0 until we can fix /if to short
 			// circuit prior to processing.
 			// Cast it as a char*, Modify the command, and run it
-			std::string str = ModifyMacroString(pEnd, true, 0);
+			std::string str = ModifyMacroString(pEnd, true, ModifyMacroMode::Wrap);
 
 			DoCommand(pChar, &str[0]);
 		}

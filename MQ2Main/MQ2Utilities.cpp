@@ -242,7 +242,7 @@ void MacroError(char* szFormat, ...)
 	if (gMacroBlock)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
-			DumpStack(0, 0);
+			DumpStack(nullptr, nullptr);
 		if (bAllErrorsFatal) {
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 		}
@@ -309,7 +309,7 @@ void MQ2DataError(char* szFormat, ...)
 	if (gMacroBlock)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
-			DumpStack(0, 0);
+			DumpStack(false, false);
 		if (bAllErrorsFatal)
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
