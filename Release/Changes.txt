@@ -1,3 +1,12 @@
+Aug 21 2019 by EqMule
+- Updated for LIVE
+- Fixed the parser so it can run at charselect again. (Don't run macros there that need access to ingame variables...)
+-
+-
+Aug 16 2019 by EqMule
+- #knightlyparse is now a macro keyword, add it to the top of your macros if you want to use this version of the parser.
+- Previously Fixed: EQGroundItemListManager
+-
 Aug 15 2019 by EqMule
 - Fixed a zoning crash
 - Fixed a crash on TEST in mq2itemdisplay when inspecting spells.

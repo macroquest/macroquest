@@ -218,6 +218,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL bAllowCommandParse;
 	EQLIB_VAR BOOL gTurbo;
 	EQLIB_VAR BOOL gWarning;
+	EQLIB_VAR BOOL gknightlyparse;
 	EQLIB_VAR PDEFINE pDefines;
     EQLIB_VAR PBINDLIST pBindList;
 	//EQLIB_VAR CHAR gLastFindSlot[MAX_STRING];
@@ -1785,9 +1786,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
 
-#ifdef KNIGHTLYPARSE
+	//used for KNIGHTLYPARSE
 	const std::string PARSE_PARAM_BEG = "${Parse[";
 	const std::string PARSE_PARAM_END = "]}";
-#endif // KNIGHTLYPARSE
 }
 using namespace MQ2Globals;

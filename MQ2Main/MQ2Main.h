@@ -102,22 +102,17 @@ extern CRITICAL_SECTION gPluginCS;
 #if defined(LIVE)
 #include "eqgame.h"
 //#define NEWCHARINFO
-#define KNIGHTLYPARSE
 #elif defined(TEST)
 #include "eqgame(Test).h"
 //#define NEWCHARINFO
-#define KNIGHTLYPARSE
 #elif defined(EQBETA)
 #include "eqgame(beta).h"
 //#define NEWCHARINFO
-//#define KNIGHTLYPARSE
 #elif defined(ROF2EMU)
 #include "eqgame(emu).h"
 //#define NEWCHARINFO
-//#define KNIGHTLYPARSE
 #elif defined(UFEMU)
 #include "eqgame(uf).h"
-//#define KNIGHTLYPARSE
 #endif
 #ifndef ISXEQ
 #define RETURN(x) return;
@@ -817,11 +812,11 @@ EQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef KNIGHTLYPARSE
+//used for KNIGHTLYPARSE
 // Parse Operations
 std::string HandleParseParam(const std::string& strOriginal, bool bParseOnce = false);
 std::string ModifyMacroString(const std::string& strOriginal, bool bParseOnce = false, int iOperation = -1);
-#endif
+
 
 
 LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);

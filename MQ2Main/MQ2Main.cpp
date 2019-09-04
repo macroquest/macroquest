@@ -744,10 +744,9 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 		Sleep(500);
 	}
     InitializeMQ2DInput();
-    if (gGameState == GAMESTATE_INGAME) {
-        gbInZone = TRUE;
-		//InitializeMQ2SpellDb(0);
-		PluginsSetGameState(GAMESTATE_INGAME);
+	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE) {
+		gbInZone = TRUE;
+		PluginsSetGameState(gGameState);
 	}
 
     WriteChatfSafe(LoadedString);

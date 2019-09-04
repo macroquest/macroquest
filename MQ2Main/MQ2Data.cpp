@@ -1014,20 +1014,23 @@ TLO(dataIni)
 	{
 		if (Default.size())
 		{
-#ifdef KNIGHTLYPARSE
-			// If we're set not to parse and there's a ${
-			if (bNoParse && Default.find("${") != std::string::npos)
+			if (gknightlyparse)
 			{
-				// Wrap this in a $Parse[0 so it doesn't get parsed
-				Default = PARSE_PARAM_BEG + "0," + Default + PARSE_PARAM_END;
+				// If we're set not to parse and there's a ${
+				if (bNoParse && Default.find("${") != std::string::npos)
+				{
+					// Wrap this in a $Parse[0 so it doesn't get parsed
+					Default = PARSE_PARAM_BEG + "0," + Default + PARSE_PARAM_END;
+				}
 			}
-#else // KNIGHTLYPARSE
-			// I think the below is actually wrong, since it's checking whatever was stored in
-			// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
-			// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
-			if (bNoParse && strchr(DataTypeTemp, '$'))
-				bAllowCommandParse = false;
-#endif // KNIGHTLYPARSE
+			else
+			{
+				// I think the below is actually wrong, since it's checking whatever was stored in
+				// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
+				// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
+				if (bNoParse && strchr(DataTypeTemp, '$'))
+					bAllowCommandParse = false;
+			}
 			strcpy_s(DataTypeTemp, Default.c_str());
 			Ret.Ptr = &DataTypeTemp[0];
 			Ret.Type = pStringType;
@@ -1056,37 +1059,43 @@ TLO(dataIni)
 					DataTypeTemp[N] = '|';
 		if ((Section.size() == 0 || Key.size() == 0) && (nSize<MAX_STRING - 3))
 			strcat_s(DataTypeTemp, "||");
-#ifdef KNIGHTLYPARSE
-		// If we are not supposed to parse and there is a ${
-		if (bNoParse && strstr(DataTypeTemp, "${"))
+		if (gknightlyparse)
 		{
-			// Modify Macro String with parameter 0 to wrap Parse Zero
-			strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, 0).c_str());
+			// If we are not supposed to parse and there is a ${
+			if (bNoParse && strstr(DataTypeTemp, "${"))
+			{
+				// Modify Macro String with parameter 0 to wrap Parse Zero
+				strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, 0).c_str());
+			}
 		}
-#else // KNIGHTLYPARSE
-		if (bNoParse && strchr(DataTypeTemp, '$'))
-			bAllowCommandParse = false;
-#endif // KNIGHTLYPARSE
+		else
+		{
+			if (bNoParse && strchr(DataTypeTemp, '$'))
+				bAllowCommandParse = false;
+		}
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;
 		return true;
 	}
 	if (Default.size())
 	{
-#ifdef KNIGHTLYPARSE
-		// If we're set not to parse and there's a ${
-		if (bNoParse && Default.find("${") != std::string::npos)
+		if (gknightlyparse)
 		{
-			// Modify Macro String with parameter 0 to wrap Parse Zero
-			Default = ModifyMacroString(Default, true, 0);
+			// If we're set not to parse and there's a ${
+			if (bNoParse && Default.find("${") != std::string::npos)
+			{
+				// Modify Macro String with parameter 0 to wrap Parse Zero
+				Default = ModifyMacroString(Default, true, 0);
+			}
 		}
-#else // KNIGHTLYPARSE
-		// I think the below is actually wrong, since it's checking whatever was stored in
-		// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
-		// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
-		if (bNoParse && strchr(DataTypeTemp, '$'))
-			bAllowCommandParse = false;
-#endif // KNIGHTLYPARSE
+		else
+		{
+			// I think the below is actually wrong, since it's checking whatever was stored in
+			// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
+			// to see if DataTypeTemp was getting set to default somewhere else. --Knightly
+			if (bNoParse && strchr(DataTypeTemp, '$'))
+				bAllowCommandParse = false;
+		}
 		strcpy_s(DataTypeTemp, Default.c_str());
 		Ret.Ptr = &DataTypeTemp[0];
 		Ret.Type = pStringType;

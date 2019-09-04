@@ -602,7 +602,6 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 
 }
 
-#ifdef KNIGHTLYPARSE
 /**
  * @fn FindMacroClosingBrace
  *
@@ -1110,140 +1109,142 @@ std::string ModifyMacroString(const std::string &strOriginal, bool bParseOnce, i
  *
  * @return BOOL (MQ2) Success
  */
+
 BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 {
-	// Let's use a string instead of a character array so C++ handles all that stuff for us.
-	std::string strOriginal = szOriginal;
-	// Pass it off to our String Parser
-	std::string strReturn = ModifyMacroString(strOriginal);
-	// If the result is larger than MAX_STRING
-	if (strReturn.length() >= MAX_STRING) {
-		// If we are currently in a macro block
-		if (PMACROBLOCK currblock = GetCurrentMacroBlock()) {
-			currblock->Line[currblock->CurrIndex].Command.c_str();
-			MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d", currblock->Line[currblock->CurrIndex].SourceFile.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
-		}
-		// Trim the result.
-		strReturn = strReturn.substr(0, MAX_STRING - 1);
-	}
-	// Copy the parsed string into the original string
-	strcpy_s(szOriginal, strReturn.length() + 1, strReturn.c_str());
-	return true;
-}
-#else // KNIGHTLYPARSE
-BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
-{
-	// find each {}
-	PCHAR pBrace = strstr(szOriginal, "${");
-	if (!pBrace)
-		return false;
-	unsigned long NewLength;
-	BOOL Changed = false;
-	//PCHAR pPos;
-	//PCHAR pStart;
-	//PCHAR pIndex;
-	CHAR szCurrent[MAX_STRING] = { 0 };
-	MQ2TYPEVAR Result = { 0 };
-	do
+	if (gknightlyparse)
 	{
-		// find this brace's end
-		PCHAR pEnd = &pBrace[1];
-		BOOL Quote = false;
-		BOOL BeginParam = false;
-		int nBrace = 1;
-		while (nBrace)
+		// Let's use a string instead of a character array so C++ handles all that stuff for us.
+		std::string strOriginal = szOriginal;
+		// Pass it off to our String Parser
+		std::string strReturn = ModifyMacroString(strOriginal);
+		// If the result is larger than MAX_STRING
+		if (strReturn.length() >= MAX_STRING) {
+			// If we are currently in a macro block
+			if (PMACROBLOCK currblock = GetCurrentMacroBlock()) {
+				currblock->Line[currblock->CurrIndex].Command.c_str();
+				MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d", currblock->Line[currblock->CurrIndex].SourceFile.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
+			}
+			// Trim the result.
+			strReturn = strReturn.substr(0, MAX_STRING - 1);
+		}
+		// Copy the parsed string into the original string
+		strcpy_s(szOriginal, strReturn.length() + 1, strReturn.c_str());
+		return true;
+	}
+	else
+	{
+		// find each {}
+		PCHAR pBrace = strstr(szOriginal, "${");
+		if (!pBrace)
+			return false;
+		unsigned long NewLength;
+		BOOL Changed = false;
+		//PCHAR pPos;
+		//PCHAR pStart;
+		//PCHAR pIndex;
+		CHAR szCurrent[MAX_STRING] = { 0 };
+		MQ2TYPEVAR Result = { 0 };
+		do
 		{
-			++pEnd;
-			if (BeginParam)
+			// find this brace's end
+			PCHAR pEnd = &pBrace[1];
+			BOOL Quote = false;
+			BOOL BeginParam = false;
+			int nBrace = 1;
+			while (nBrace)
 			{
-				BeginParam = false;
-				if (*pEnd == '\"')
+				++pEnd;
+				if (BeginParam)
 				{
-					Quote = true;
-				}
-				continue;
-			}
-			if (*pEnd == 0)
-			{// unmatched brace or quote
-				goto pmdbottom;
-			}
-			if (Quote)
-			{
-				if (*pEnd == '\"')
-				{
-					if (pEnd[1] == ']' || pEnd[1] == ',')
+					BeginParam = false;
+					if (*pEnd == '\"')
 					{
-						Quote = false;
+						Quote = true;
+					}
+					continue;
+				}
+				if (*pEnd == 0)
+				{// unmatched brace or quote
+					goto pmdbottom;
+				}
+				if (Quote)
+				{
+					if (*pEnd == '\"')
+					{
+						if (pEnd[1] == ']' || pEnd[1] == ',')
+						{
+							Quote = false;
+						}
 					}
 				}
-			}
-			else
-			{
-				if (*pEnd == '}')
+				else
 				{
-					nBrace--;
+					if (*pEnd == '}')
+					{
+						nBrace--;
+					}
+					else if (*pEnd == '{')
+					{
+						nBrace++;
+					}
+					else if (*pEnd == '[' || *pEnd == ',')
+						BeginParam = true;
 				}
-				else if (*pEnd == '{')
-				{
-					nBrace++;
-				}
-				else if (*pEnd == '[' || *pEnd == ',')
-					BeginParam = true;
-			}
 
-		}
-		*pEnd = 0;
-		strcpy_s(szCurrent, &pBrace[2]);
-		if (szCurrent[0] == 0)
-		{
-			goto pmdbottom;
-		}
-		if (ParseMacroData(szCurrent, sizeof(szCurrent)))
-		{
-			unsigned long NewLength = strlen(szCurrent);
-			memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
-			int addrlen = (int)(pBrace - szOriginal);
-			memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
-			pEnd = &pBrace[NewLength];
-			*pEnd = 0;
-		}
-		ZeroMemory(&Result, sizeof(Result));
-		Result.Type = 0;
-		Result.Int64 = 0;
-		if (!ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent)) {
-			strcpy_s(szCurrent, "NULL");
-		}
-		NewLength = strlen(szCurrent);
-		int endlen = strlen(&pEnd[1]) + 1;
-		memmove(&pBrace[NewLength], &pEnd[1], endlen);
-		int addrlen = (int)(pBrace - szOriginal);
-		if (NewLength > BufferSize - addrlen)
-		{
-			if (PMACROBLOCK currblock = GetCurrentMacroBlock())
-			{
-				currblock->Line[currblock->CurrIndex].Command.c_str();
-				SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?", currblock->Line[currblock->CurrIndex].Command.c_str(),currblock->Line[currblock->CurrIndex].LineNumber,currblock->Line[currblock->CurrIndex].SourceFile.c_str(), NewLength, BufferSize - addrlen);
 			}
-			NewLength = BufferSize - addrlen;
-			//return false;
-		}
-		memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
-		if (bAllowCommandParse == false) {
-			bAllowCommandParse = true;
-			Changed = false;
-			break;
-		}
-		else {
-			Changed = true;
-		}
-	pmdbottom:;
-	} while (pBrace = strstr(&pBrace[1], "${"));
-	if (Changed)
-		while (ParseMacroData(szOriginal, BufferSize))
-		{
-		}
-	return Changed;
+			*pEnd = 0;
+			strcpy_s(szCurrent, &pBrace[2]);
+			if (szCurrent[0] == 0)
+			{
+				goto pmdbottom;
+			}
+			if (ParseMacroData(szCurrent, sizeof(szCurrent)))
+			{
+				unsigned long NewLength = strlen(szCurrent);
+				memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
+				int addrlen = (int)(pBrace - szOriginal);
+				memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
+				pEnd = &pBrace[NewLength];
+				*pEnd = 0;
+			}
+			ZeroMemory(&Result, sizeof(Result));
+			Result.Type = 0;
+			Result.Int64 = 0;
+			if (!ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent)) {
+				strcpy_s(szCurrent, "NULL");
+			}
+			NewLength = strlen(szCurrent);
+			int endlen = strlen(&pEnd[1]) + 1;
+			memmove(&pBrace[NewLength], &pEnd[1], endlen);
+			int addrlen = (int)(pBrace - szOriginal);
+			if (NewLength > BufferSize - addrlen)
+			{
+				if (PMACROBLOCK currblock = GetCurrentMacroBlock())
+				{
+					currblock->Line[currblock->CurrIndex].Command.c_str();
+					SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?", currblock->Line[currblock->CurrIndex].Command.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, currblock->Line[currblock->CurrIndex].SourceFile.c_str(), NewLength, BufferSize - addrlen);
+				}
+				NewLength = BufferSize - addrlen;
+				//return false;
+			}
+			memcpy_s(pBrace, BufferSize - addrlen, szCurrent, NewLength);
+			if (bAllowCommandParse == false) {
+				bAllowCommandParse = true;
+				Changed = false;
+				break;
+			}
+			else {
+				Changed = true;
+			}
+		pmdbottom:;
+		} while (pBrace = strstr(&pBrace[1], "${"));
+		if (Changed)
+			while (ParseMacroData(szOriginal, BufferSize))
+			{
+			}
+		return Changed;
+	}
 }
-#endif // KNIGHTLYPARSE
 
 #endif

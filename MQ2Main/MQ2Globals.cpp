@@ -469,6 +469,7 @@ namespace MQ2Globals
 	BOOL bRunNextCommand = FALSE;
 	BOOL gTurbo = FALSE;
 	BOOL gWarning = FALSE;
+	BOOL gknightlyparse = FALSE;
 	PDEFINE pDefines = NULL;
 	PBINDLIST pBindList = NULL;
 	CHAR gLastFindSlot[MAX_STRING] = { 0 };

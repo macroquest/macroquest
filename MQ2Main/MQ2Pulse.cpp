@@ -409,6 +409,12 @@ int Heartbeat()
 			gGameState = GameState;
 			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState)));
 		}
+		//they "zoned" to charselect...
+		if (gZoning && (GameState == GAMESTATE_CHARSELECT || GameState == GAMESTATE_CHARCREATE))
+		{
+			gZoning = 0;
+			PluginsEndZone();
+		}
 	}
 	else
 		return 0;

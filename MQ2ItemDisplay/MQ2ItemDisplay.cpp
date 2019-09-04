@@ -512,12 +512,9 @@ public:
 	#if defined(ROF2EMU) || defined(UFEMU)
 	VOID SetSpell_Trampoline(int SpellID, bool bFullInfo);
     VOID SetSpell_Detour(int SpellID,bool bFullInfo)
-	#elif defined(TEST) 
+	#else
 	VOID SetSpell_Trampoline(int SpellID, int blah);
     VOID SetSpell_Detour(int SpellID, int blah)
-	#else
-	VOID SetSpell_Trampoline(int SpellID);
-    VOID SetSpell_Detour(int SpellID)
 	#endif
     {
         PEQSPELLINFOWINDOW This=(PEQSPELLINFOWINDOW)this;
@@ -532,10 +529,8 @@ public:
         if (!bNoSpellTramp) {
 			#if defined(ROF2EMU) || defined(UFEMU)
 			SetSpell_Trampoline(SpellID,bFullInfo);
-			#elif defined(TEST) 
-			SetSpell_Trampoline(SpellID,blah);
 			#else
-			SetSpell_Trampoline(SpellID);
+			SetSpell_Trampoline(SpellID,blah);
 			#endif
             strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
@@ -728,10 +723,8 @@ public:
         if (!bNoSpellTramp) {
 			#if defined(ROF2EMU) || defined(UFEMU)
 			SetSpell_Trampoline(Effect.SpellID, bFullInfo);
-			#elif defined(TEST)
-			SetSpell_Trampoline(Effect.SpellID,0);
 			#else
-			SetSpell_Trampoline(Effect.SpellID);
+			SetSpell_Trampoline(Effect.SpellID,0);
 			#endif
             strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
@@ -1795,10 +1788,8 @@ DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, 
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline(void));
 #if defined(ROF2EMU) || defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool bFullInfo));
-#elif defined (TEST)
-DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID, int blah));
 #else
-DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID));
+DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID, int blah));
 #endif
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
 enum eAugTypes

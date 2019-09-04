@@ -2128,7 +2128,7 @@ FUNCTION_AT_ADDRESS(class CXStr  CItemDisplayWnd::CreateModString(class EQ_Equip
 FUNCTION_AT_ADDRESS(class CXStr  CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *),CItemDisplayWnd__CreateEquipmentStatusString);
 #endif
 #ifdef CItemDisplayWnd__SetSpell_x
-FUNCTION_AT_ADDRESS(void  CItemDisplayWnd::SetSpell(int SpellID,bool HasSpellDescr,int),CItemDisplayWnd__SetSpell);
+FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetSpell(int SpellID,bool HasSpellDescr,int),CItemDisplayWnd__SetSpell);
 #endif
 #ifdef CJournalCatWnd__CJournalCatWnd_x
 FUNCTION_AT_ADDRESS( CJournalCatWnd::CJournalCatWnd(class CXWnd *),CJournalCatWnd__CJournalCatWnd);

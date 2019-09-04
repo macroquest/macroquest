@@ -4025,16 +4025,19 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /noparse <command>");
 		return;
 	}
-#ifdef KNIGHTLYPARSE
-	// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
-	// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
-	// Cast it as a PCHAR, Modify the line, and run the command
-	DoCommand(pChar, PCHAR(ModifyMacroString(szLine, true, -2).c_str()));
-#else // KNIGHTLYPARSE
-	bAllowCommandParse = false;
-	DoCommand(pChar, szLine);
-	bAllowCommandParse = true;
-#endif // KNIGHTLYPARSE
+	if (gknightlyparse)
+	{
+		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
+		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
+		// Cast it as a PCHAR, Modify the line, and run the command
+		DoCommand(pChar, PCHAR(ModifyMacroString(szLine, true, -2).c_str()));
+	}
+	else
+	{
+		bAllowCommandParse = false;
+		DoCommand(pChar, szLine);
+		bAllowCommandParse = true;
+	}
 }
 
 VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
