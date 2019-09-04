@@ -308,6 +308,67 @@ VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	SyntaxError("Usage: /keepkeys [on|off]");
 }
+// ***************************************************************************
+// Function:      EngineCommand
+// Description:   Allows for switching engines.
+// Usage:         /ENGINE_SWITCH_CMD <type> <version> [noauto]
+// ***************************************************************************
+VOID EngineCommand(PSPAWNINFO pChar, PCHAR szLine) 
+{
+	bool bNoAuto = false;
+	if (strstr(szLine, "noauto") != nullptr) {
+		bNoAuto = true;
+	}
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	// TODO:  Fix GetArg and shorten the length of these.  Probably 10 & 3 are good.
+	// GetArg crashes if you pass it anything except MAX_STRING due to RtlZeroMemory
+	CHAR szEngine[MAX_STRING] = { 0 };
+	CHAR szVersion[MAX_STRING] = { 0 };
+	GetArg(szEngine, szLine, 1);
+	GetArg(szVersion, szLine, 2);
+
+	if (strlen(szEngine) == 0) {
+		SyntaxError(static_cast<char*>("Usage: /%s parser <version> [noauto]"), ENGINE_SWITCH_CMD.c_str());
+	}
+	else if (!_stricmp(szEngine, "parser")) {
+		if (strlen(szVersion) == 0) {
+			SyntaxError(static_cast<char*>("Usage: /%s parser <version> [noauto]"), ENGINE_SWITCH_CMD.c_str());
+		}
+		else {
+			char *szEndPtr = nullptr;
+			errno = 0;
+			const int iVersion = strtol(szVersion, &szEndPtr, 0);
+			// If out of range || extra stuff left || no conversion
+			if (errno == ERANGE || *szEndPtr != '\0' || szVersion == szEndPtr) {
+				SyntaxError(static_cast<char*>("Invalid Parser Version (%s) valid versions are 1 or 2."), szVersion);
+			}
+			else {
+				switch (iVersion) {
+					case 2:
+					case 1:
+						gdwParserEngineVer = iVersion;
+						sprintf_s(szBuffer, "Parser Version %d Enabled", iVersion);
+						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+						if (!bNoAuto) {
+							try {
+								WritePrivateProfileString("MacroQuest", ("Parser" + ENGINE_SWITCH_CMD).c_str(), szVersion, gszINIFilename);
+							}
+							catch (int eException) {
+								MacroError(static_cast<char*>("Could not write parser default settings to ini file %s, Exception: %d"), gszINIFilename, eException);
+							}
+						}
+						break;
+					default:
+						MacroError(static_cast<char*>("Invalid Parser Version (%d) valid versions are 1 or 2."), iVersion);
+						break;	
+				}		
+			}			
+		}
+	}
+	else {
+		SyntaxError(static_cast<char*>("Invalid Engine type (%s).  Valid types are: parser"), szEngine);
+	}
+}
 #ifndef ISXEQ_LEGACY
 // ***************************************************************************
 // Function:      PluginCommand
@@ -4025,7 +4086,7 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /noparse <command>");
 		return;
 	}
-	if (gknightlyparse)
+	if (gdwParserEngineVer == 2)
 	{
 		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
 		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.

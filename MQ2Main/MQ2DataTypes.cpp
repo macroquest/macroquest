@@ -10356,6 +10356,13 @@ bool MQ2MacroQuestType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}
+	case Parser:
+	{
+		Dest.DWord = gdwParserEngineVer;
+		Dest.Type = pIntType;
+		return true;
+	}
+		
 	}
 	return false;
 }

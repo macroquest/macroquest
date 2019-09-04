@@ -469,9 +469,11 @@ namespace MQ2Globals
 	BOOL bRunNextCommand = FALSE;
 	BOOL gTurbo = FALSE;
 	BOOL gWarning = FALSE;
-	BOOL gknightlyparse = FALSE;
 	PDEFINE pDefines = NULL;
 	PBINDLIST pBindList = NULL;
+	// TODO: Remove this once the parsing engine is fully backwards compatible.  Alternatively, move it into the macro block.
+	DWORD gdwParserEngineVer = 1;
+	
 	CHAR gLastFindSlot[MAX_STRING] = { 0 };
 	PFILTER gpFilters = NULL;
 

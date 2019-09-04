@@ -291,9 +291,6 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			//DebugSpewNoFile("AddMacroLine - Including file: %s",Filename);
 			return (BOOL)Include(Filename, LineNumber);
 		}
-		else if (!_strnicmp(szLine, "#knightlyparse", 14)) {
-			gknightlyparse = TRUE;
-		}
 		else if (!_strnicmp(szLine, "#warning", 8)) {
 			gWarning = TRUE;
 		}
@@ -379,13 +376,11 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 				MacroError("Bad #bind: %s", szLine);
 			}
 		}
-		else if (!_strnicmp(szLine, "#bind_noparse ", 14))
-		{
-			if (gknightlyparse)
-			{
+		else if (!_strnicmp(szLine, "#bind_noparse ", 14)) {
+			if (gdwParserEngineVer == 2) {
 				CHAR szArg1[MAX_STRING] = { 0 };
 				CHAR szArg2[MAX_STRING] = { 0 };
-				PBINDLIST pBind = (PBINDLIST)malloc(sizeof(BINDLIST));
+				PBINDLIST pBind = static_cast<PBINDLIST>(malloc(sizeof(BINDLIST)));
 				GetArg(szArg1, szLine, 2);
 				GetArg(szArg2, szLine, 3);
 				if ((szArg1[0] != 0) && (szArg2[0] != 0)) {
@@ -395,14 +390,19 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 					pBind->pNext = pBindList;
 					pBindList = pBind;
 				}
-				else
-				{
-					MacroError("Bad #bind_noparse: %s", szLine);
+				else {
+					MacroError(static_cast<char*>("Bad #bind_noparse: %s"), szLine);
 				}
 			}
 			else {
-				MacroError("You are using #bind_noparse in your macro but you have no #knightlyparse defined. %s", szLine);
+				MacroError(static_cast<char*>("#bind_noparse requires enabling Parser Version 2."));
 			}
+		}
+		else if (!_strnicmp(szLine, "#engine ", 8)) {
+			std::string strLine = szLine;
+			strLine = strLine.substr(8, strLine.length()) + " noauto";
+			strcpy_s(szLine, strLine.length() + 1, strLine.c_str());
+			EngineCommand(GetCharInfo()->pSpawn, szLine);
 		}
 		else if (!_strnicmp(szLine, "#chat ", 6)) {
 			szLine += 5;
@@ -629,8 +629,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 	gBindInProgress = true;//we dont want people to use binds until the macro is read.
 	// we get ourself a new block, this will be valid until the macro ends.
 	gMacroBlock = AddMacroBlock(szLine);
-	//note to self: gknightlyparse will need to be moved from global scope to local when I finish multimacro support - eqmule
-	gknightlyparse = FALSE;
+
 	gMaxTurbo = 80;
 	gTurbo = true;
 	GetArg(szTemp, szLine, 1);
@@ -912,6 +911,12 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 				break;
 		}
 	}
+	// Set the parser back to whatever the default is
+	const DWORD dwTemp = GetPrivateProfileInt("MacroQuest", ("Parser" + ENGINE_SWITCH_CMD).c_str(),1,gszINIFilename);
+	if (dwTemp != gdwParserEngineVer) {
+		gdwParserEngineVer = dwTemp;
+		WriteChatColor(static_cast<char*>("Parser Version Reset to your default."), USERCOLOR_DEFAULT);
+	}
 	gReturn = true;            // reset for next time
 							   //
 							   ///////////////
@@ -1174,7 +1179,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	if (Result != 0) {
-		if (gknightlyparse)
+		if (gdwParserEngineVer == 2) 
 		{
 			// Due to the way that MQ2 currently processes the whole line before reaching this point:
 			// At this point the command has already passed through the parser once.  We don't want

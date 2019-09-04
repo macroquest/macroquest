@@ -293,7 +293,6 @@ namespace MQ2Internal {
         struct _BINDLIST *pNext;
         CHAR szName[MAX_STRING];
         CHAR szFuncName[MAX_STRING];
-		//used for KNIGHTLYPARSE
 		bool Parse = true;
     } BINDLIST, *PBINDLIST;
 

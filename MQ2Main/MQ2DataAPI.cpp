@@ -620,15 +620,12 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
  * we're trying to match a macro's closing braces and all macro variables start with ${.
  *
  * @param strOrigString The string that you would like to check
- * @param iStartPos The position to start at in the string (allows for starting in the middle to get an interior match)
+ * @param iCurrentPosition The position to start at in the string (allows for starting in the middle to get an interior match)
  *
  * @return size_t position of the matching brace (or npos if no match found)
  */
-size_t FindMacroClosingBrace(std::string strOrigString, size_t iStartPos)
+size_t FindMacroClosingBrace(std::string strOrigString, size_t iCurrentPosition)
 {
-	// Set our current position to the start Position
-	size_t iCurrentPosition = iStartPos;
-
 	// Setup our needed trackers
 	int iBraceTracker = 0; // Track {
 	bool bQuoteTracker = false; // Track "
@@ -716,14 +713,15 @@ std::string GetMacroVarData(std::string strVarToParse) {
 	if (strVarToParse.substr(0, 2) == "${" && strVarToParse.substr(strVarToParse.length() - 1) == "}") {
 		// Strip the ${ and } off of the variable to pass it to ParseMQ2DataPortion
 		strVarToParse = strVarToParse.substr(2, strVarToParse.length() - 3);
+		// TODO:  Check to see if this exceeds MAX_STRING and error.
 		// Create a place to hold our "current" character array and initialize it to empty
 		CHAR szCurrent[MAX_STRING] = { 0 };
 		// Copy in our parse variable
-		strcpy_s(szCurrent, strVarToParse.c_str());
+		strcpy_s(szCurrent, MAX_STRING, strVarToParse.c_str());
 		// Set the MQ2Type stored in Result to a empty as well
 		MQ2TYPEVAR Result = { 0 };
 		ZeroMemory(&Result, sizeof(Result));
-		Result.Type = 0;
+		Result.Type = nullptr;
 		Result.Int64 = 0;
 		// If the parse was successful and there is a result type and we could convert that type to a string
 		if (ParseMQ2DataPortion(szCurrent, Result) && Result.Type && Result.Type->ToString(Result.VarPtr, szCurrent)) {
@@ -744,7 +742,7 @@ std::string GetMacroVarData(std::string strVarToParse) {
  * this function will figure out which of the two comes first.
  *
  * Note that there is no error handling on this to make sure you passed in
- * a ${Parse so passing anythin gelse into this is going to to just tell you
+ * a ${Parse so passing anything else into this is going to to just tell you
  * where the first comma or space in your string is.
  *
  * @param strOriginal The string you want to check for the first comma or space
@@ -752,11 +750,11 @@ std::string GetMacroVarData(std::string strVarToParse) {
  *
  * @return size_t The location found or std::string::npos
  */
-size_t GetParseDelimiterPos(const std::string &strOriginal, size_t iStartPos = 0) {
+size_t GetParseDelimiterPos(const std::string &strOriginal, const size_t iStartPos = 0) {
 	// Setup the location of the first delimiter (and default it to comma)
 	size_t iFirstDelimiter = strOriginal.find(',', iStartPos);
 	// Find the position of the first space
-	size_t iFirstSpace = strOriginal.find(' ', iStartPos);
+	const size_t iFirstSpace = strOriginal.find(' ', iStartPos);
 	// If we found both a comma and a space
 	if (iFirstDelimiter != std::string::npos && iFirstSpace != std::string::npos) {
 		// If the comma is further than the space...
@@ -807,7 +805,7 @@ size_t GetParseDelimiterPos(const std::string &strOriginal, size_t iStartPos = 0
  *
  * @return std::string The parsed string (or the original string if there was no ${Parse parameter)
  */
-std::string HandleParseParam(const std::string &strOriginal, bool bParseOnce) {
+std::string HandleParseParam(const std::string &strOriginal, const bool bParseOnce) {
 	// Setup a return string to handle our return and initialize it to the original string.
 	std::string strReturn = strOriginal;
 	// If the string passed to us doesn't start with ${Parse[
@@ -844,12 +842,12 @@ std::string HandleParseParam(const std::string &strOriginal, bool bParseOnce) {
 			if (iFirstDelimiter != std::string::npos) {
 				// Save what the delimiter actually is because we're going to need it later
 				std::string strDelimiter = strReturn.substr(iFirstDelimiter, 1);
-				char *endPtr;
+				char *szEndPtr;
 				errno = 0;
 				// Get between the bracket and the first delimiter and save that int as our number of iterations
-				int iParseIterations = strtol(strReturn.substr(iFirstBracket + 1, iFirstDelimiter - 1 - iFirstBracket).c_str(), &endPtr, 10);
+				int iParseIterations = strtol(strReturn.substr(iFirstBracket + 1, iFirstDelimiter - 1 - iFirstBracket).c_str(), &szEndPtr, 10);
 				// If there was an error in the conversion to int or we have garbage, set the parses to 0
-				if(errno != 0 || *endPtr != '\0') {
+				if(errno != 0 || *szEndPtr != '\0') {
 					iParseIterations = 0;
 				}
 
@@ -925,26 +923,23 @@ std::string HandleParseParam(const std::string &strOriginal, bool bParseOnce) {
  *
  * @return std::string The parsed string
  */
-std::string ParseMacroVar(const std::string &strOriginal, bool bParseOnce = false) {
+std::string ParseMacroVar(const std::string &strOriginal, const bool bParseOnce = false) {
 	// Setup a return string and initialize it to the original string
 	std::string strReturn = strOriginal;
 
-	// Check for a Parse Parameter
-	size_t iParsePosition = strOriginal.find(PARSE_PARAM_BEG);
-
 	// If there is no parse parameter
-	if (iParsePosition == std::string::npos) {
+	if (strOriginal.find(PARSE_PARAM_BEG) == std::string::npos) {
 		// Track our position and we're starting from the right
 		size_t iCurrentPosition = strReturn.length();
 
 		// Loop until we reach the beginning of the string
 		while (iCurrentPosition > 0) {
 			// Starting from one position left of our current position in the string, find the farthest right ${.
-			size_t iPosition = strReturn.rfind("${", iCurrentPosition - 1);
+			const size_t iPosition = strReturn.rfind("${", iCurrentPosition - 1);
 			// If we found a variable marker
 			if (iPosition != std::string::npos) {
 				// Find the closing brace
-				size_t iCloseBrace = FindMacroClosingBrace(strReturn, iPosition);
+				const size_t iCloseBrace = FindMacroClosingBrace(strReturn, iPosition);
 				// If we found the Closing Brace then we can get the variable's data
 				if (iCloseBrace != std::string::npos) {
 					// If the Closing Brace is AFTER our last parsed variable and we're only parsing once then we need to skip parsing this.
@@ -1025,7 +1020,7 @@ std::string ModifyMacroString(const std::string &strOriginal, bool bParseOnce, i
 	// While we have ${ sections
 	while (iCurrentPosition != std::string::npos) {
 		// Find the next ${
-		size_t iNewPosition = strOriginal.find("${", iCurrentPosition);
+		const size_t iNewPosition = strOriginal.find("${", iCurrentPosition);
 		// If we couldn't find ${ by the end of the string
 		if (iNewPosition == std::string::npos) {
 			// Add the rest of the line
@@ -1044,7 +1039,7 @@ std::string ModifyMacroString(const std::string &strOriginal, bool bParseOnce, i
 			iCurrentPosition = iNewPosition;
 
 			// Get the matching brace position.
-			size_t iBracePosition = FindMacroClosingBrace(strOriginal, iCurrentPosition);
+			const size_t iBracePosition = FindMacroClosingBrace(strOriginal, iCurrentPosition);
 
 			// If we didn't find the matching brace, return the rest of the string
 			if (iBracePosition == std::string::npos) {
@@ -1109,10 +1104,9 @@ std::string ModifyMacroString(const std::string &strOriginal, bool bParseOnce, i
  *
  * @return BOOL (MQ2) Success
  */
-
 BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 {
-	if (gknightlyparse)
+	if (gdwParserEngineVer == 2)
 	{
 		// Let's use a string instead of a character array so C++ handles all that stuff for us.
 		std::string strOriginal = szOriginal;
@@ -1122,8 +1116,8 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 		if (strReturn.length() >= MAX_STRING) {
 			// If we are currently in a macro block
 			if (PMACROBLOCK currblock = GetCurrentMacroBlock()) {
-				currblock->Line[currblock->CurrIndex].Command.c_str();
-				MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d", currblock->Line[currblock->CurrIndex].SourceFile.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
+				//currblock->Line[currblock->CurrIndex].Command.c_str();
+				MacroError(static_cast<char*>("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d"), currblock->Line[currblock->CurrIndex].SourceFile.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
 			}
 			// Trim the result.
 			strReturn = strReturn.substr(0, MAX_STRING - 1);
@@ -1223,7 +1217,7 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 				if (PMACROBLOCK currblock = GetCurrentMacroBlock())
 				{
 					currblock->Line[currblock->CurrIndex].Command.c_str();
-					SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?", currblock->Line[currblock->CurrIndex].Command.c_str(), currblock->Line[currblock->CurrIndex].LineNumber, currblock->Line[currblock->CurrIndex].SourceFile.c_str(), NewLength, BufferSize - addrlen);
+					SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?", currblock->Line[currblock->CurrIndex].Command.c_str(),currblock->Line[currblock->CurrIndex].LineNumber,currblock->Line[currblock->CurrIndex].SourceFile.c_str(), NewLength, BufferSize - addrlen);
 				}
 				NewLength = BufferSize - addrlen;
 				//return false;
@@ -1246,5 +1240,4 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 		return Changed;
 	}
 }
-
 #endif

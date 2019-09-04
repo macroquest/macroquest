@@ -3669,6 +3669,7 @@ public:
 		Path = 6,
 		Version = 7,
 		InternalName = 8,
+		Parser = 9,
 	};
 	MQ2MacroQuestType() :MQ2Type("macroquest")
 	{
@@ -3680,6 +3681,7 @@ public:
 		TypeMember(Path);
 		TypeMember(Version);
 		TypeMember(InternalName);
+		TypeMember(Parser);
 	}
 	~MQ2MacroQuestType()
 	{

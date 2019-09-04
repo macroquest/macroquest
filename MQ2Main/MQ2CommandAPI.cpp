@@ -142,32 +142,20 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         {// command not found
             break;
         }
-		if (Pos == 0)
-		{
-			if (gknightlyparse)
-			{
-				if (pCommand->Parse)
-				{
-					pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
-				}
-				else {
-					pCommand->Function(pChar, szParam);
-				}
+        if (Pos==0)
+        {
+        	//                      the parser version is 2 or It's not version 2 and we're allowing command parses
+			if (pCommand->Parse && (gdwParserEngineVer == 2 || (gdwParserEngineVer != 2 && bAllowCommandParse)))
+            {
+                pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
+            }
+			else {
+                pCommand->Function(pChar,szParam);
 			}
-			else
-			{
-				if (pCommand->Parse && bAllowCommandParse)
-				{
-					pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
-				}
-				else {
-					pCommand->Function(pChar, szParam);
-				}
-			}
-			strcpy_s(szLastCommand, szOriginalLine);
-			return;
-		}
-		pCommand = pCommand->pNext;
+            strcpy_s(szLastCommand,szOriginalLine);
+            return;
+        }
+        pCommand=pCommand->pNext;
     }
     PBINDLIST pBind = pBindList;
     while( pBind )
@@ -193,14 +181,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
                     sCallFunc += szParam;
 					CHAR szCallFunc[MAX_STRING] = { 0 };
 					strcpy_s(szCallFunc, sCallFunc.c_str());
-					if (gknightlyparse)
-					{
-						if (pBind->Parse)
-						{
-							ParseMacroData(szCallFunc, MAX_STRING);
-						}
-					}
-					else
+					if (pBind->Parse)
 					{
 						ParseMacroData(szCallFunc, MAX_STRING);
 					}
@@ -344,33 +325,26 @@ public:
                 {// command not found
                     break;
                 }
-				if (Pos == 0)
-				{
-					if (gknightlyparse)
+                if (Pos==0)
+                {
+       	        	//                      the parser version is 2 or It's not version 2 and we're allowing command parses
+					if (pCommand->Parse && (gdwParserEngineVer == 2 || (gdwParserEngineVer != 2 && bAllowCommandParse))) 
 					{
-						if (pCommand->Parse) {
-							ParseMacroParameter(pChar, szArgs);
-						}
+						ParseMacroParameter(pChar, szArgs);
 					}
-					else
-					{
-						if (pCommand->Parse && bAllowCommandParse) {
-							ParseMacroParameter(pChar, szArgs);
-						}
-					}
-					if (pCommand->EQ)
-					{
-						strcat_s(szCommand, " ");
-						strcat_s(szCommand, szArgs);
-						Trampoline(pChar, szCommand);
-					}
-					else
-					{
-						pCommand->Function(pChar, szArgs);
-					}
-					strcpy_s(szLastCommand, szFullCommand);
-					return;
-				}
+                    if (pCommand->EQ)
+                    {
+                        strcat_s(szCommand," "); 
+						strcat_s(szCommand,szArgs);
+                        Trampoline(pChar,szCommand); 
+                    }
+                    else
+                    {
+                        pCommand->Function(pChar,szArgs);
+                    }
+                    strcpy_s(szLastCommand,szFullCommand);
+                    return;
+                }
                 pCommand=pCommand->pNext;
             }
 
@@ -399,13 +373,7 @@ public:
                             sCallFunc += szArgs;
 							CHAR szCallFunc[MAX_STRING] = { 0 };
 							strcpy_s(szCallFunc, sCallFunc.c_str());
-							if(gknightlyparse)
-							{
-								if (pBind->Parse) {
-									ParseMacroData(szCallFunc, MAX_STRING);
-								}
-							}
-							else
+							if (pBind->Parse)
 							{
 								ParseMacroData(szCallFunc, MAX_STRING);
 							}
@@ -746,6 +714,8 @@ void InitializeMQ2Commands()
 		{"/mapzoom",    MapZoomCmd,1,0},
 		{"/foreground", ForeGroundCmd,1,0},
 		{"/quit",		QuitCmd,1,0},
+    	// The below needs to match ENGINE_SWITCH_CMD in MQ2Globals.h (adding a slash)
+		{static_cast<char*>("/engine"),		EngineCommand,1,0},
 		
         {NULL,          NULL,0,1},
     };
