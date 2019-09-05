@@ -86,7 +86,7 @@ public:
 	EQLIB_OBJECT AltAdvManager();
 
 	// IsAbilityReady was checked on apr 29 2016, it looks like it has 5 arguments in IDA, but it doesnt. (it has 4)
-	EQLIB_OBJECT bool IsAbilityReady(PcZoneClient*, ALTABILITY*, int* Refresh/*out*/, int* Timer/*out*/ = 0);
+	EQLIB_OBJECT bool IsAbilityReady(PcZoneClient*, ALTABILITY*, int* Refresh/*out*/, int* Timer/*out*/ = nullptr);
 	EQLIB_OBJECT int AbilitiesByClass(int, int);
 	EQLIB_OBJECT int AltSkillReqs(PcZoneClient*, int);
 	EQLIB_OBJECT int CalculateDoubleAttackChance(PcZoneClient*, int, unsigned char);
@@ -2159,6 +2159,15 @@ public:
 /*0x48c*/
 };
 
+enum eSpellStringType
+{
+	SpellStringCastByMe,
+	SpellStringCastByOther,
+	SpellStringCastOnYou,
+	SpellStringCastOnAnother,
+	SpellStringWearOff,
+};
+
 class EQSpellStrings
 {
 public:
@@ -2612,7 +2621,7 @@ public:
 class StringTable
 {
 public:
-	EQLIB_OBJECT char* getString(unsigned long ID, bool* bFound = nullptr);
+	EQLIB_OBJECT const char* getString(unsigned long ID, bool* bFound = nullptr);
 };
 
 class Wave3dInstance : public SoundInstance
@@ -2673,7 +2682,7 @@ public:
 class CSkillMgr
 {
 public:
-	EQLIB_OBJECT unsigned long GetNameToken(int);
+	EQLIB_OBJECT int GetNameToken(int);
 	EQLIB_OBJECT unsigned long GetSkillCap(PcZoneClient*, int, int, int, bool, bool, bool); // TODO: CharacterZoneClient or PcZoneClient ?
 	EQLIB_OBJECT unsigned long SkillAvailableAtLevel(int, int);
 	EQLIB_OBJECT bool IsActivatedSkill(int);

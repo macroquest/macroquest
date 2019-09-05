@@ -407,15 +407,15 @@ EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
 EQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
 EQLIB_API const char* GetLightForSpawn(PSPAWNINFO pSpawn);
-EQLIB_API unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
+EQLIB_API int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
 EQLIB_API char* GetGuildByID(int64_t GuildID);
 EQLIB_API int64_t GetGuildIDByName(char* szGuild);
 
-extern std::map<int, std::string>targetBuffSlotToCasterMap;
-extern std::map<int, std::map<int,TargetBuff>>CachedBuffsMap;
+extern std::map<int, std::string> targetBuffSlotToCasterMap;
+extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 EQLIB_API CONTENTS* GetEnviroContainer();
 EQLIB_API CContainerWnd* FindContainerForContents(CONTENTS* pContents);
 EQLIB_API float FindSpeed(SPAWNINFO* pSpawn);
@@ -442,11 +442,11 @@ EQLIB_API float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, flo
 EQLIB_API char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize);
 EQLIB_API char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, LONG level = 100);
 
-EQLIB_API int GetSpellAttrib(PSPELL pSpell, int index);
-EQLIB_API LONG GetSpellBase(PSPELL pSpell, int index);
-EQLIB_API LONG GetSpellBase2(PSPELL pSpell, int index);
-EQLIB_API LONG GetSpellMax(PSPELL pSpell, int index);
-EQLIB_API LONG GetSpellCalc(PSPELL pSpell, int index);
+EQLIB_API int GetSpellAttrib(SPELL* pSpell, int index);
+EQLIB_API int GetSpellBase(SPELL* pSpell, int index);
+EQLIB_API int GetSpellBase2(SPELL* pSpell, int index);
+EQLIB_API int GetSpellMax(SPELL* pSpell, int index);
+EQLIB_API int GetSpellCalc(SPELL* pSpell, int index);
 
 EQLIB_API void SlotValueCalculate(char* szBuff, PSPELL pSpell, int i, double mp = 1.0);
 EQLIB_API LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel = MAX_PC_LEVEL, LONG level = MAX_PC_LEVEL);
@@ -463,12 +463,12 @@ EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
 EQLIB_API BOOL IsBardSong(PSPELL pSpell);
 EQLIB_API BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID);
-EQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, DWORD& nID);
-EQLIB_API bool GetBuffID(SPELLBUFF* pBuff, DWORD& nID);
+EQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, int& nID);
+EQLIB_API bool GetBuffID(SPELLBUFF* pBuff, int& nID);
 EQLIB_API char* GetLDoNTheme(DWORD LDTheme);
 EQLIB_API BOOL TriggeringEffectSpell(PSPELL aSpell, int i);
 EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects = FALSE, BOOL bTriggeredEffectCheck = FALSE);
-EQLIB_API DWORD GetItemTimer(CONTENTS* pItem);
+EQLIB_API uint32_t GetItemTimer(CONTENTS* pItem);
 EQLIB_API CONTENTS* GetItemContentsBySlotID(DWORD dwSlotID);
 EQLIB_API CONTENTS* GetItemContentsByName(const char* ItemName);
 EQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *firstavailableslot);
@@ -534,7 +534,7 @@ EQLIB_API bool        PlayerHasAAAbility(DWORD AAIndex);
 EQLIB_API char*       GetAANameByIndex(DWORD AAIndex);
 EQLIB_API DWORD       GetAAIndexByName(char* AAName);
 EQLIB_API DWORD       GetAAIndexByID(DWORD ID);
-EQLIB_API DWORD       GetSkillIDFromName(char* name);
+EQLIB_API int         GetSkillIDFromName(const char* name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState();
 EQLIB_API DWORD       GetWorldState();

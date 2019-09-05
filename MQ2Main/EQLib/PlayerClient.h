@@ -673,7 +673,7 @@ struct [[offsetcomments]] SPAWNINFO
 	uint8_t GetCharacterType() { return Type; }
 	unsigned int GetId() const { return SpawnID; }
 
-	EQLIB_OBJECT void* GetCharacter() const;
+	EQLIB_OBJECT void* GetCharacter() const; // a.k.a. GetPcClient()
 	EQLIB_OBJECT int   GetZoneID() const;
 	EQLIB_OBJECT int   GetCurrentMana() const;
 	EQLIB_OBJECT int   GetMaxMana() const;

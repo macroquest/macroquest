@@ -52,8 +52,10 @@ enum PlayerClass
 	Enchanter                                  = 14,
 	Beastlord                                  = 15,
 	Berserker                                  = 16,
+	TotalPlayerClasses                         = Berserker,
+
 	Mercenary                                  = 17,
-	TotalClasses                               = 17,
+	TotalClasses                               = Mercenary,
 };
 
 // class 20 through 35 are the NPC GMs (same class order as above)
@@ -627,6 +629,13 @@ enum ePetCommandType
 	PCT_Something,
 	PCT_Something2,
 	PCT_DoNothing
+};
+
+enum eMembershipLevel
+{
+	MembershipFreeToPlay = 0,
+	MembershipSilver,
+	MembershipGold
 };
 
 template <typename T>
@@ -1988,7 +1997,7 @@ struct [[offsetcomments]] MERCENARYINFO
 /*0x21c*/ BYTE               Unknown0x21c[0x8];
 /*0x224*/ DWORD              MercSpawnId;        // yes its the spawnID of the mercenary
 /*0x228*/ BYTE               Unknown0x228[0x30];
-/*0x258*/ DWORD              NumStances;
+/*0x258*/ int                NumStances;
 /*0x25c*/ MERCSTANCEDATA**   pMercStanceData;
 /*0x260*/ BYTE               Unknown0x260[0x9c];
 /*0x2fc*/

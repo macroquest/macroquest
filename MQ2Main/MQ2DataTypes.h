@@ -4339,7 +4339,7 @@ public:
 		if (!VarPtr.Ptr)
 			return false;
 		if (PSKILL pSkill = *(PSKILL*)VarPtr.Ptr)
-			if (char* pName = pStringTable->getString(pSkill->nName, 0))
+			if (const char* pName = pStringTable->getString(pSkill->nName, 0))
 			{
 				strcpy_s(Destination,MAX_STRING, pName);
 				return true;

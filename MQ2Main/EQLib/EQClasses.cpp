@@ -1453,7 +1453,7 @@ FUNCTION_AT_ADDRESS(bool CResolutionHandler::IsFullscreenAvailable(), CResolutio
 //============================================================================
 
 #ifdef CSkillMgr__GetNameToken_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetNameToken(int), CSkillMgr__GetNameToken);
+FUNCTION_AT_ADDRESS(int CSkillMgr::GetNameToken(int), CSkillMgr__GetNameToken);
 #endif
 #ifdef CSkillMgr__IsCombatSkill_x
 FUNCTION_AT_ADDRESS(bool CSkillMgr::IsCombatSkill(int), CSkillMgr__IsCombatSkill);
@@ -2566,7 +2566,7 @@ FUNCTION_AT_ADDRESS(const EQ_Spell* SpellManager::GetSpellByGroupAndRank(int Gro
 //============================================================================
 
 #ifdef StringTable__getString_x
-FUNCTION_AT_ADDRESS(char* StringTable::getString(unsigned long, bool*), StringTable__getString);
+FUNCTION_AT_ADDRESS(const char* StringTable::getString(unsigned long, bool*), StringTable__getString);
 #endif
 
 //============================================================================

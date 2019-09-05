@@ -1316,7 +1316,7 @@ SPELL* GetSpellByAAName(const char* szName)
 	return nullptr;
 }
 
-unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
+int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
 {
 	switch (pSpell->DurationType) {
 	case 0:
@@ -1350,11 +1350,11 @@ unsigned int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
 	case 13:
 		return pSpell->DurationCap * 6 / 10;
 	case 50:
-		return 0xFFFFFFFF;
+		return -1;
 	case 3600:
 		return 6000;
 	default:
-		return 0xFFFFFFFE;
+		return -2;
 	}
 }
 
@@ -2637,84 +2637,107 @@ int GetSpellAttrib(SPELL* pSpell, int index)
 	return 0;
 }
 
-LONG GetSpellBase(PSPELL pSpell, int index)
+int GetSpellBase(SPELL* pSpell, int index)
 {
-	if (index<0)
+	if (index < 0)
 		index = 0;
-	if (pSpell) {
+
+	if (pSpell)
+	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
 			return 0;
-		if (numeff > index) {
-			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
+
+		if (numeff > index)
+		{
+			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			{
+				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				{
 					return pCalcInfo->Base;
 				}
 			}
-		} else {
-			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
 		}
 	}
+
 	return 0;
 }
-LONG GetSpellBase2(PSPELL pSpell, int index)
+
+int GetSpellBase2(SPELL* pSpell, int index)
 {
-	if (index<0)
+	if (index < 0)
 		index = 0;
-	if (pSpell) {
+
+	if (pSpell)
+	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
 			return 0;
-		if (numeff > index) {
-			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
+
+		if (numeff > index)
+		{
+			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			{
+				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				{
 					return pCalcInfo->Base2;
 				}
 			}
-		} else {
-			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
 		}
 	}
+
 	return 0;
 }
-LONG GetSpellMax(PSPELL pSpell, int index)
+
+int GetSpellMax(SPELL* pSpell, int index)
 {
-	if (index<0)
+	if (index < 0)
 		index = 0;
-	if (pSpell) {
+
+	if (pSpell)
+	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
 			return 0;
-		if (numeff > index) {
-			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
+
+		if (numeff > index)
+		{
+			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			{
+				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				{
 					return pCalcInfo->Max;
 				}
 			}
-		} else {
-			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
 		}
 	}
+
 	return 0;
 }
-LONG GetSpellCalc(PSPELL pSpell, int index)
+
+int GetSpellCalc(SPELL* pSpell, int index)
 {
-	if (index<0)
+	if (index < 0)
 		index = 0;
-	if (pSpell) {
+
+	if (pSpell)
+	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
 			return 0;
-		if (numeff > index) {
-			if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index)) {
+
+		if (numeff > index)
+		{
+			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			{
+				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				{
 					return pCalcInfo->Calc;
 				}
 			}
-		} else {
-			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
 		}
 	}
+
 	return 0;
 }
 
@@ -6841,7 +6864,7 @@ void WriteFilterNames()
 
 }
 
-bool GetShortBuffID(SPELLBUFF* pBuff, DWORD& nID)
+bool GetShortBuffID(SPELLBUFF* pBuff, int& nID)
 {
 	CHARINFO2* pChar = GetCharInfo2();
 	unsigned long N = (pBuff - &pChar->ShortBuff[0]);
@@ -6853,13 +6876,14 @@ bool GetShortBuffID(SPELLBUFF* pBuff, DWORD& nID)
 	return false;
 }
 
-bool GetBuffID(SPELLBUFF* pBuff, DWORD& nID)
+bool GetBuffID(SPELLBUFF* pBuff, int& nID)
 {
 	CHARINFO2* pChar = GetCharInfo2();
-	unsigned long N = (pBuff - &pChar->Buff[0]);
-	if (N < NUM_LONG_BUFFS)
+	int index = (pBuff - &pChar->Buff[0]);
+
+	if (index < NUM_LONG_BUFFS)
 	{
-		nID = N + 1;
+		nID = index + 1;
 		return true;
 	}
 	return false;
@@ -6884,11 +6908,13 @@ char* GetLDoNTheme(DWORD LDTheme)
 	return "Unknown";
 }
 
-DWORD GetItemTimer(CONTENTS* pItem)
+uint32_t GetItemTimer(CONTENTS* pItem)
 {
-	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem,eActivatableSpell);
+	uint32_t Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem,eActivatableSpell);
+
 	if (Timer < GetFastTime())
 		return 0;
+
 	return Timer - GetFastTime();
 }
 
@@ -6969,12 +6995,17 @@ bool LoH_HT_Ready()
 	return false;
 }
 
-DWORD GetSkillIDFromName(char* name)
+int GetSkillIDFromName(const char* name)
 {
-	for (DWORD i = 0; i<NUM_SKILLS; i++)
-		if (PSKILL pSkill = pSkillMgr->pSkill[i])
-			if (!_stricmp(name, pStringTable->getString(pSkill->nName, 0)))
+	for (int i = 0; i < NUM_SKILLS; i++)
+	{
+		if (SKILL * pSkill = pSkillMgr->pSkill[i])
+		{
+			if (!_stricmp(name, pStringTable->getString(pSkill->nName)))
 				return i;
+		}
+	}
+
 	return 0;
 }
 
@@ -8659,7 +8690,7 @@ CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 		}
 		else
 		{
-			if (ci_find_substr(itemName, Name) != 0)
+			if (ci_find_substr(itemName, Name) != -1)
 				return true;
 		}
 
@@ -10658,7 +10689,7 @@ int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact, bool usecm
 						}
 						else
 						{
-							if (ci_find_substr(Str, szItemName))
+							if (ci_find_substr(Str, szItemName) != -1)
 							{
 								index = i + 1;
 								break;

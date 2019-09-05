@@ -38,6 +38,9 @@
 #define USE_NEW_CHARINFO       0
 #define USE_NEW_PCPROFILE      0
 
+#define MAX_BLOCKED_SPELLS     40
+#define MAX_BLOCKED_SPELLS_PET 40
+
 namespace eqlib {
 
 class BaseProfile;
@@ -265,7 +268,7 @@ struct [[offsetcomments]] XTARGETSLOT
 {
 /*0x00*/ DWORD  xTargetType;
 /*0x04*/ eXTSlotStatus  XTargetSlotStatus;
-/*0x08*/ DWORD  SpawnID;
+/*0x08*/ uint32_t SpawnID;
 /*0x0c*/ char   Name[0x40];
 /*0x4c*/
 };
@@ -839,20 +842,20 @@ struct [[offsetcomments]] CHARINFOOLD
 /*0x2430*/ int                                           LastHitPointSendPercent;
 /*0x2434*/ int                                           LastManaPointSendPercent;
 /*0x2438*/ int                                           LastEndurancePointSendPercent;
-/*0x243c*/ DWORD                                         HPBonus;                        // vtable2+24
-/*0x2440*/ DWORD                                         ManaBonus;                      // vtable2+28
-/*0x2444*/ DWORD                                         EnduranceBonus;                 // vtable2+2c
+/*0x243c*/ int                                           HPBonus;                        // vtable2+24
+/*0x2440*/ int                                           ManaBonus;                      // vtable2+28
+/*0x2444*/ int                                           EnduranceBonus;                 // vtable2+2c
 /*0x2448*/ int                                           EnduranceCostPerSecond;
-/*0x244c*/ DWORD                                         CombatEffectsBonus;             // vtable2+34 Combat Effects in UI
-/*0x2450*/ DWORD                                         ShieldingBonus;                 // vtable2+38 Melee Shielding in UI
-/*0x2454*/ DWORD                                         SpellShieldBonus;               // vtable2+3c Spell Shielding in UI
-/*0x2458*/ DWORD                                         AvoidanceBonus;                 // vtable2+40 Avoidance in UI
-/*0x245c*/ DWORD                                         AccuracyBonus;                  // vtable2+44 Accuracy in UI
-/*0x2460*/ DWORD                                         StunResistBonus;                // vtable2+48 Stun Resist in UI
-/*0x2464*/ DWORD                                         StrikeThroughBonus;             // vtable2+4c Strike Through in UI
-/*0x2468*/ DWORD                                         DoTShieldBonus;                 // vtable2+50 Dot Shielding in UI
-/*0x246c*/ DWORD                                         DamageShieldMitigationBonus;    // vtable2+54 Damage Shield Mitig in UI
-/*0x2470*/ DWORD                                         DamageShieldBonus;              // vtable2+58 Damage Shielding in UI
+/*0x244c*/ int                                           CombatEffectsBonus;             // vtable2+34 Combat Effects in UI
+/*0x2450*/ int                                           ShieldingBonus;                 // vtable2+38 Melee Shielding in UI
+/*0x2454*/ int                                           SpellShieldBonus;               // vtable2+3c Spell Shielding in UI
+/*0x2458*/ int                                           AvoidanceBonus;                 // vtable2+40 Avoidance in UI
+/*0x245c*/ int                                           AccuracyBonus;                  // vtable2+44 Accuracy in UI
+/*0x2460*/ int                                           StunResistBonus;                // vtable2+48 Stun Resist in UI
+/*0x2464*/ int                                           StrikeThroughBonus;             // vtable2+4c Strike Through in UI
+/*0x2468*/ int                                           DoTShieldBonus;                 // vtable2+50 Dot Shielding in UI
+/*0x246c*/ int                                           DamageShieldMitigationBonus;    // vtable2+54 Damage Shield Mitig in UI
+/*0x2470*/ int                                           DamageShieldBonus;              // vtable2+58 Damage Shielding in UI
 /*0x2474*/ TSafeArrayStatic<int, 9>                      ItemSkillMinDamageMod;          // size 0x24
 /*0x2498*/ TSafeArrayStatic<int, 9>                      SkillMinDamageModBonus;         // size 0x24
 /*0x24bc*/ DWORD                                         HeroicSTRBonus;                 // vtable2+a4
@@ -965,21 +968,21 @@ struct [[offsetcomments]] CHARINFOOLD
 /*0x2ac0*/ DWORD                                         BankGold;                       // CharBaseBegin+49c
 /*0x2ac4*/ DWORD                                         BankSilver;                     // CharBaseBegin+4a0
 /*0x2ac8*/ DWORD                                         BankCopper;                     // CharBaseBegin+4a4
-/*0x2acc*/ DWORD                                         STR;                            // CharBaseBegin+4a8
-/*0x2ad0*/ DWORD                                         STA;                            // CharBaseBegin+4ac
-/*0x2ad4*/ DWORD                                         CHA;                            // CharBaseBegin+4b0
-/*0x2ad8*/ DWORD                                         DEX;                            // CharBaseBegin+4b4
-/*0x2adc*/ DWORD                                         INT;                            // CharBaseBegin+4b8
-/*0x2ae0*/ DWORD                                         AGI;                            // CharBaseBegin+4bc
-/*0x2ae4*/ DWORD                                         WIS;                            // CharBaseBegin+4c0
-/*0x2ae8*/ DWORD                                         LCK;                            // CharBaseBegin+4c4
-/*0x2aec*/ DWORD                                         SavePoison;                     // CharBaseBegin+4c8
-/*0x2af0*/ DWORD                                         SaveMagic;                      // CharBaseBegin+4cc
-/*0x2af4*/ DWORD                                         SaveDisease;                    // CharBaseBegin+4d0
-/*0x2af8*/ DWORD                                         SaveCorruption;                 // CharBaseBegin+4d4
-/*0x2afc*/ DWORD                                         SaveFire;                       // CharBaseBegin+4d8
-/*0x2b00*/ DWORD                                         SaveCold;                       // CharBaseBegin+4dc
-/*0x2b04*/ DWORD                                         SavePhysical;                   // CharBaseBegin+4e0
+/*0x2acc*/ int                                           STR;                            // CharBaseBegin+4a8
+/*0x2ad0*/ int                                           STA;                            // CharBaseBegin+4ac
+/*0x2ad4*/ int                                           CHA;                            // CharBaseBegin+4b0
+/*0x2ad8*/ int                                           DEX;                            // CharBaseBegin+4b4
+/*0x2adc*/ int                                           INT;                            // CharBaseBegin+4b8
+/*0x2ae0*/ int                                           AGI;                            // CharBaseBegin+4bc
+/*0x2ae4*/ int                                           WIS;                            // CharBaseBegin+4c0
+/*0x2ae8*/ int                                           LCK;                            // CharBaseBegin+4c4
+/*0x2aec*/ int                                           SavePoison;                     // CharBaseBegin+4c8
+/*0x2af0*/ int                                           SaveMagic;                      // CharBaseBegin+4cc
+/*0x2af4*/ int                                           SaveDisease;                    // CharBaseBegin+4d0
+/*0x2af8*/ int                                           SaveCorruption;                 // CharBaseBegin+4d4
+/*0x2afc*/ int                                           SaveFire;                       // CharBaseBegin+4d8
+/*0x2b00*/ int                                           SaveCold;                       // CharBaseBegin+4dc
+/*0x2b04*/ int                                           SavePhysical;                   // CharBaseBegin+4e0
 /*0x2b08*/ int                                           UncappedStr;
 /*0x2b0c*/ int                                           UncappedSta;
 /*0x2b10*/ int                                           UncappedCha;
@@ -1182,9 +1185,9 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x2080*/ char*                                         pCorruptionReport;
 /*0x2084*/ TString<0x100>                                InspectText;
 /*0x2184*/ HashTable<int>                                BlockedSpellsHash;
-/*0x2194*/ int                                           BlockedSpell[0x28];
+/*0x2194*/ int                                           BlockedSpell[MAX_BLOCKED_SPELLS];
 /*0x2234*/ HashTable<int>                                BlockedPetSpellsHash;
-/*0x2244*/ int                                           BlockedPetSpell[0x28];
+/*0x2244*/ int                                           BlockedPetSpell[MAX_BLOCKED_SPELLS_PET];
 /*0x22e4*/ ClaimDataCollection                           ConsumableFeatures;
 /*0x22f4*/ bool                                          bGrantItemsRegistered;
 /*0x22f8*/ uint64_t                                      CreatedGuildID;
@@ -1358,21 +1361,21 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x2ac0*/ DWORD                                         BankGold;                       // CharBaseBegin+49c
 /*0x2ac4*/ DWORD                                         BankSilver;                     // CharBaseBegin+4a0
 /*0x2ac8*/ DWORD                                         BankCopper;                     // CharBaseBegin+4a4
-/*0x2acc*/ DWORD                                         STR;                            // CharBaseBegin+4a8
-/*0x2ad0*/ DWORD                                         STA;                            // CharBaseBegin+4ac
-/*0x2ad4*/ DWORD                                         CHA;                            // CharBaseBegin+4b0
-/*0x2ad8*/ DWORD                                         DEX;                            // CharBaseBegin+4b4
-/*0x2adc*/ DWORD                                         INT;                            // CharBaseBegin+4b8
-/*0x2ae0*/ DWORD                                         AGI;                            // CharBaseBegin+4bc
-/*0x2ae4*/ DWORD                                         WIS;                            // CharBaseBegin+4c0
-/*0x2ae8*/ DWORD                                         LCK;                            // CharBaseBegin+4c4
-/*0x2aec*/ DWORD                                         SavePoison;                     // CharBaseBegin+4c8
-/*0x2af0*/ DWORD                                         SaveMagic;                      // CharBaseBegin+4cc
-/*0x2af4*/ DWORD                                         SaveDisease;                    // CharBaseBegin+4d0
-/*0x2af8*/ DWORD                                         SaveCorruption;                 // CharBaseBegin+4d4
-/*0x2afc*/ DWORD                                         SaveFire;                       // CharBaseBegin+4d8
-/*0x2b00*/ DWORD                                         SaveCold;                       // CharBaseBegin+4dc
-/*0x2b04*/ DWORD                                         SavePhysical;                   // CharBaseBegin+4e0
+/*0x2acc*/ int                                           STR;                            // CharBaseBegin+4a8
+/*0x2ad0*/ int                                           STA;                            // CharBaseBegin+4ac
+/*0x2ad4*/ int                                           CHA;                            // CharBaseBegin+4b0
+/*0x2ad8*/ int                                           DEX;                            // CharBaseBegin+4b4
+/*0x2adc*/ int                                           INT;                            // CharBaseBegin+4b8
+/*0x2ae0*/ int                                           AGI;                            // CharBaseBegin+4bc
+/*0x2ae4*/ int                                           WIS;                            // CharBaseBegin+4c0
+/*0x2ae8*/ int                                           LCK;                            // CharBaseBegin+4c4
+/*0x2aec*/ int                                           SavePoison;                     // CharBaseBegin+4c8
+/*0x2af0*/ int                                           SaveMagic;                      // CharBaseBegin+4cc
+/*0x2af4*/ int                                           SaveDisease;                    // CharBaseBegin+4d0
+/*0x2af8*/ int                                           SaveCorruption;                 // CharBaseBegin+4d4
+/*0x2afc*/ int                                           SaveFire;                       // CharBaseBegin+4d8
+/*0x2b00*/ int                                           SaveCold;                       // CharBaseBegin+4dc
+/*0x2b04*/ int                                           SavePhysical;                   // CharBaseBegin+4e0
 /*0x2b08*/ int                                           UncappedStr;
 /*0x2b0c*/ int                                           UncappedSta;
 /*0x2b10*/ int                                           UncappedCha;
@@ -1422,7 +1425,7 @@ struct [[offsetcomments]] CHARINFO2
 /*0x0020*/ BYTE                                            Unknown0x0020[0x48];
 /*0x0068*/ SPELLBUFF                                       Buff[NUM_LONG_BUFFS];                   // EQ_Affect size is 0x68 * 0x2a = 0x1110
 /*0x1178*/ SPELLBUFF                                       ShortBuff[NUM_SHORT_BUFFS];             // EQ_Affect size is 0x68 * 0x37 = 0x1658
-/*0x27d0*/ DWORD                                           SpellBook[NUM_BOOK_SLOTS];
+/*0x27d0*/ int                                             SpellBook[NUM_BOOK_SLOTS];
 /*0x36d0*/ DWORD                                           MemorizedSpells[0x12];
 /*0x3718*/ DWORD                                           Skill[NUM_SKILLS];
 /*0x38a8*/ DWORD                                           InnateSkill[0x19];
@@ -1587,7 +1590,7 @@ public:
 /*0x0020*/ BYTE                                            Unknown0x0020[0x48];
 /*0x0068*/ SPELLBUFF                                       Buff[NUM_LONG_BUFFS];                   // EQ_Affect size is 0x68 * 0x2a = 0x1110
 /*0x1178*/ SPELLBUFF                                       ShortBuff[NUM_SHORT_BUFFS];             // EQ_Affect size is 0x68 * 0x37 = 0x1658
-/*0x27d0*/ DWORD                                           SpellBook[NUM_BOOK_SLOTS];
+/*0x27d0*/ int                                             SpellBook[NUM_BOOK_SLOTS];
 /*0x36d0*/ DWORD                                           MemorizedSpells[0x12];
 /*0x3718*/ DWORD                                           Skill[NUM_SKILLS];
 /*0x38a8*/ DWORD                                           InnateSkill[0x19];
@@ -1916,8 +1919,8 @@ public:
 	EQLIB_OBJECT int GetItemCountInInventory(int);
 	EQLIB_OBJECT int GetCursorItemCount(int);
 	EQLIB_OBJECT bool HasSkill(int);
-	EQLIB_OBJECT EQ_Affect* FindAffectSlot(int SpellID, SPAWNINFO* Caster, int* slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
-	EQLIB_OBJECT EQ_Affect* FindAffectSlotMine(int SpellID, SPAWNINFO* Caster, int* slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = NULL, int BuffArraySize = 0, bool bFailAltAbilities = true);
+	EQLIB_OBJECT EQ_Affect* FindAffectSlot(int SpellID, SPAWNINFO* Caster, int* slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = nullptr, int BuffArraySize = 0, bool bFailAltAbilities = true);
+	EQLIB_OBJECT EQ_Affect* FindAffectSlotMine(int SpellID, SPAWNINFO* Caster, int* slindex, bool bJustTest, int CasterLevel = -1, EQ_Affect* BuffArray = nullptr, int BuffArraySize = 0, bool bFailAltAbilities = true);
 	EQLIB_OBJECT bool IsStackBlocked(const EQ_Spell* pSpell, SPAWNINFO* pCaster, EQ_Affect* pEffecs = NULL, int EffectsSize = 0, bool bMessageOn = false);
 	EQLIB_OBJECT int BardCastBard(const EQ_Spell* pSpell, signed int caster_class) const;
 	EQLIB_OBJECT unsigned char GetMaxEffects() const;
@@ -2283,9 +2286,9 @@ public:
 /*0x1ff8*/ char*                                 pCorruptionReport;
 /*0x1ffc*/ TString<0x100>                        InspectText;
 /*0x20fc*/ HashTable<int>                        BlockedSpellsHash;
-/*0x210c*/ int                                   BlockedSpell[0x28];
+/*0x210c*/ int                                   BlockedSpell[MAX_BLOCKED_SPELLS];
 /*0x21ac*/ HashTable<int>                        BlockedPetSpellsHash;
-/*0x21bc*/ int                                   BlockedPetSpell[0x28];
+/*0x21bc*/ int                                   BlockedPetSpell[MAX_BLOCKED_SPELLS_PET];
 /*0x225c*/ ClaimDataCollection                   ConsumableFeatures;
 /*0x226c*/ bool                                  bGrantItemsRegistered;
 /*0x2270*/ uint64_t                              CreatedGuildID;

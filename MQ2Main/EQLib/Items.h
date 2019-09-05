@@ -216,20 +216,36 @@ public:
 
 //============================================================================
 
+enum eItemEffectType : uint8_t
+{
+	ItemEffectProc = 0,
+	ItemEffectClicky,
+	ItemEffectWorn,
+	ItemEffectConsumable,
+	ItemEffectClickyWorn,
+	ItemEffectClickyRestricted,
+	ItemEffectFocus,
+	ItemEffectSpell,
+	ItemEffectFocus2,
+	ItemEffectMount,
+	ItemEffectIllusion,
+	ItemEffectFamiliar
+};
+
 // size is 0x64 02-16-2007
 struct [[offsetcomments]] ITEMSPELLS
 {
 /*0x00*/ DWORD SpellID;
 /*0x04*/ BYTE  RequiredLevel;
 /*0x05*/ BYTE  EffectType;                       // bIsActivated
-/*0x08*/ DWORD EffectiveCasterLevel;
-/*0x0c*/ DWORD MaxCharges;
-/*0x10*/ DWORD CastTime;
-/*0x14*/ DWORD TimerID;                          // RecastTime
-/*0x18*/ DWORD RecastType;
-/*0x1c*/ DWORD ProcRate;                         // chance to proc
+/*0x08*/ int   EffectiveCasterLevel;
+/*0x0c*/ int   MaxCharges;
+/*0x10*/ int   CastTime;
+/*0x14*/ int   TimerID;                          // RecastTime
+/*0x18*/ int   RecastType;
+/*0x1c*/ int   ProcRate;                         // chance to proc
 /*0x20*/ char  OtherName[0x40];                  // some kind of override
-/*0x60*/ DWORD OtherID;                          // Description ID
+/*0x60*/ int   OtherID;                          // Description ID
 /*0x64*/
 
 	// Currently necessary because of MQ2DataTypes
@@ -256,11 +272,14 @@ struct [[offsetcomments]] AugSocket
 /*0x08*/
 };
 
+#define MAX_AUG_SOCKETS 6
+
 class ItemSocketData
 {
 public:
-	AugSocket Sockets[6];
+	AugSocket Sockets[MAX_AUG_SOCKETS];
 };
+
 
 // ItemDefinition class
 // to check this look at ItemBase__ResetItemInstance_x
@@ -273,8 +292,8 @@ struct [[offsetcomments]] ITEMINFO
 /*0x090*/ char                AdvancedLoreName[0x20];
 /*0x0b0*/ char                IDFile[0x1e];
 /*0x0ce*/ char                IDFile2[0x1e];
-/*0x0ec*/ DWORD               ItemNumber;                        // recordnum
-/*0x0f0*/ DWORD               EquipSlots;                        // its position, where it can be equipped
+/*0x0ec*/ int                 ItemNumber;                        // recordnum
+/*0x0f0*/ int                 EquipSlots;                        // its position, where it can be equipped
 /*0x0f4*/ int                 Cost;
 /*0x0f8*/ DWORD               IconNumber;
 /*0x0fc*/ BYTE                eGMRequirement;                    // todo figure out this enum
@@ -408,8 +427,8 @@ struct [[offsetcomments]] ITEMINFO
 /*0x654*/ int                 SomeIDFlag;
 /*0x658*/ DWORD               StackSize;
 /*0x65c*/ bool                bNoStorage;
-/*0x660*/ DWORD               MaxPower;
-/*0x664*/ DWORD               Purity;
+/*0x660*/ int                 MaxPower;
+/*0x664*/ int                 Purity;
 /*0x668*/ bool                bIsEpic;
 /*0x66c*/ int                 RightClickScriptID;
 /*0x670*/ int                 ItemLaunchScriptID;

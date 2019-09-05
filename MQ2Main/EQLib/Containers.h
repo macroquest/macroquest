@@ -709,16 +709,21 @@ class EQList : public EQList<T, -1>
 {};
 
 // strings
-template <typename TheType, unsigned int _Size>
+template <typename T, unsigned int Size>
 class TSafeArrayStatic
 {
 public:
-	inline TheType& operator[](uint32_t index)
+	T& operator[](uint32_t index)
 	{
 		return Data[index];
 	}
 
-	TheType Data[_Size];
+	const T& operator[](uint32_t index) const
+	{
+		return Data[index];
+	}
+
+	T Data[Size];
 };
 
 template <uint32_t _Len>

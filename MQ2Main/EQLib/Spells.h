@@ -100,7 +100,7 @@ struct [[offsetcomments]] SPELL
 /*0x0e4*/ DWORD   NPCMemCategory;
 /*0x0e8*/ DWORD   SpellGroup;
 /*0x0ec*/ DWORD   SpellSubGroup;                 // unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
-/*0x0f0*/ DWORD   SpellRank;                     // Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on
+/*0x0f0*/ int     SpellRank;                     // Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on
 /*0x0f4*/ DWORD   SpellClass;                    // Unknown222 from Lucy
 /*0x0f8*/ DWORD   SpellSubClass;                 // Unknown223 from Lucy
 /*0x0fc*/ DWORD   SpellReqAssociationID;

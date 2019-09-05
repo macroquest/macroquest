@@ -152,7 +152,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 			{
 				GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 
-				if (ci_find_substr(szName, szIndex))
+				if (ci_find_substr(szName, szIndex) != -1)
 				{
 					float X = pSpawn->X - pItem->X;
 					float Y = pSpawn->Y - pItem->Y;
@@ -180,7 +180,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 				{
 					if (PITEMINFO pItem = GetItemFromContents(pCont))
 					{
-						if (ci_find_substr(pItem->Name, szIndex))
+						if (ci_find_substr(pItem->Name, szIndex) != -1)
 						{
 							float X = pSpawn->X - pObj->X;
 							float Y = pSpawn->Y - pObj->Y;
@@ -273,7 +273,7 @@ bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret)
 		{
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 
-			if (ci_find_substr(szName, szIndex))
+			if (ci_find_substr(szName, szIndex) != -1)
 			{
 				Count++;
 			}
@@ -1285,7 +1285,7 @@ bool dataSkill(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (SKILL* pSkill = pSkillMgr->pSkill[nSkill])
 		{
-			if (char* pName = pStringTable->getString(pSkill->nName))
+			if (const char* pName = pStringTable->getString(pSkill->nName))
 			{
 				if (!_stricmp(szIndex, pName))
 				{
@@ -1505,7 +1505,7 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 			{
 				CTaskEntry& entry = pTaskManager.QuestEntries[i];
 
-				if (ci_find_substr(entry.TaskTitle, szIndex))
+				if (ci_find_substr(entry.TaskTitle, szIndex) != -1)
 				{
 					//Ret.Int = i;
 					break;
@@ -1517,7 +1517,7 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 				for (int i = 0; i < clist->ItemsArray.GetCount(); i++)
 				{
 					CXStr Str = clist->GetItemText(i, 2);
-					if (ci_find_substr(Str, szIndex))
+					if (ci_find_substr(Str, szIndex) != -1)
 					{
 						Ret.Int = i;
 						break;

@@ -2646,7 +2646,7 @@ void DoAbility(PSPAWNINFO pChar, char* szLine)
 	{
 		if (DWORD nToken = pCSkillMgr->GetNameToken(abil))
 		{
-			if (char *thename = pStringTable->getString(nToken, 0)) {
+			if (const char *thename = pStringTable->getString(nToken, 0)) {
 				strcpy_s(szBuffer, thename);
 			}
 		}
