@@ -51,12 +51,14 @@ struct AggroMeterListEntry
 };
 using PAggroMeterListEntry = AggroMeterListEntry*;
 
+constexpr int MAX_AGGRO_METER_SIZE = 30;
+
 class [[offsetcomments]] AggroMeterManagerClient
 {
 public:
 	static EQLIB_OBJECT AggroMeterManagerClient& Instance();
 
-/*0x00*/ TSafeArrayStatic<AggroMeterListEntry, 0x1e> aggroData;
+/*0x00*/ TSafeArrayStatic<AggroMeterListEntry, MAX_AGGRO_METER_SIZE> aggroData;
 /*0xf0*/ DWORD AggroLockID;                     // this can be 0, I dont know what it is...
 /*0xf4*/ DWORD AggroTargetID;                   // this is id of whoever we are fighting
 /*0xf8*/ DWORD AggroSecondaryID;                // this is id of whoever the npc is fighting
@@ -70,14 +72,6 @@ class _EverQuestinfo
 {
 public:
 	void EQLIB_OBJECT SetAutoAttack(bool);
-};
-
-class CAltAbilityData
-{
-public:
-	EQLIB_OBJECT int GetMercCurrentRank(int);
-	EQLIB_OBJECT int GetMercMaxRank(int);
-	EQLIB_OBJECT int GetMaxRank();
 };
 
 class AltAdvManager
@@ -787,8 +781,6 @@ struct RaidMember;
 class CRaid
 {
 public:
-	EQLIB_OBJECT ~CRaid();
-	EQLIB_OBJECT CRaid();
 	EQLIB_OBJECT bool IsInRaid();
 	EQLIB_OBJECT bool IsInvited();
 	EQLIB_OBJECT bool IsRaidGroupLeader();
@@ -2664,10 +2656,29 @@ public:
 	EQLIB_OBJECT void DisplayText(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
 };
 
+enum eDatabaseStringType
+{
+	eDefaultStringType = 0,
+	eAltAbilityName = 1,
+	eAltAbilityDescription = 4,
+	eSpellCategory = 5,
+	eSpellDescription = 6,
+
+	eMercenarySubCategoryDescription = 23,
+	eMercenaryStanceName = 24,
+
+	eMercenaryAbilityName = 37,
+};
+
 class DatabaseStringTable
 {
 public:
-	EQLIB_OBJECT const char* GetString(int id, int type, bool* found = nullptr);
+	EQLIB_OBJECT const char* GetString(int id, eDatabaseStringType type, bool* found = nullptr);
+
+	[[deprecated("Use eDatabaseStringType enum")]] const char* GetString(int id, int type)
+	{
+		return GetString(id, static_cast<eDatabaseStringType>(type), nullptr);
+	}
 };
 using CDBStr = DatabaseStringTable;
 
@@ -2696,7 +2707,7 @@ class CChatService
 {
 public:
 	EQLIB_OBJECT int GetNumberOfFriends();
-	EQLIB_OBJECT char* GetFriendName(int);
+	EQLIB_OBJECT const char* GetFriendName(int);
 
 	// TODO: Merge with _CHATSERVICE
 };

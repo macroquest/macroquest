@@ -454,20 +454,20 @@ enum MOUSE_DATA_TYPES
 };
 
 // KeypressHandler__HandleKeyUp_x has this one
-#define nEQMappableCommands                      0x221
+constexpr int nEQMappableCommands = 545;
 
 // found using __BindList_x
-#define nNormalEQMappableCommands                (nEQMappableCommands - 0x16)
+constexpr int nNormalEQMappableCommands = nEQMappableCommands - 22;
 
-#define MAX_PC_LEVEL                             110
-#define MAX_NPC_LEVEL                            200
-#define MAX_SPELL_LEVEL                          255
-#define NUM_SPELL_GEMS                           0xe
-#define NUM_SPELL_SETS                           30
-#define NUM_BUFF_SLOTS                           0x61
-#define NUM_LONG_BUFFS                           0x2a
-#define NUM_SHORT_BUFFS                          0x37
-#define NUM_RACES                                17
+constexpr int MAX_PC_LEVEL = 110;
+constexpr int MAX_NPC_LEVEL = 200;
+constexpr int MAX_SPELL_LEVEL = 255;
+constexpr int NUM_SPELL_GEMS = 14;
+constexpr int NUM_SPELL_SETS = 30;
+constexpr int NUM_BUFF_SLOTS = 97;
+constexpr int NUM_LONG_BUFFS = 42;
+constexpr int NUM_SHORT_BUFFS = 55;
+constexpr int NUM_RACES = 17;
 
 #define EQ_EXPANSION(x)                          (1 << (x - 1))
 #define EXPANSION_RoK                            EQ_EXPANSION(1)
@@ -662,25 +662,25 @@ struct MOUSECLICK {
 using PMOUSECLICK = MOUSECLICK*;
 
 // need to find this one
-#define NUM_ALT_ABILITIES_ARRAY                  0x1F7
+constexpr int NUM_ALT_ABILITIES_ARRAY = 503;
 
 // see 4FBD46 in eqgame.exe dated oct 29 2013 test
-#define NUM_ALT_ABILITIES                        0xC34F
+constexpr int NUM_ALT_ABILITIES = 49999;
 
 // these two will merge when i get a chance - ieatacid wrote this?
-#define AA_CHAR_MAX                              0xF5
+constexpr int AA_CHAR_MAX = 245;
+
 // EQ_PC__GetAlternateAbilityId_x
 // size is at 7EE7F8 in eqgame dated jun 13 2014
-#define AA_CHAR_MAX_REAL                         0x12C
+constexpr int AA_CHAR_MAX_REAL = 300;
 
 // found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta)
 // Find by searching for A1 ? ? ? ? 53 83 CB FF 85 C0 in IDA
-#define NUM_BOOK_SLOTS                           0x3C0
-#define NUM_COMBAT_ABILITIES                     0x12c
-#define BAG_SLOT_START                           23
-#define ExactLocation                            0
-#define NUM_SKILLS                               0x64
-#define CONCURRENT_SKILLS                        2
+constexpr int NUM_BOOK_SLOTS = 960;
+constexpr int NUM_COMBAT_ABILITIES = 300;
+constexpr int BAG_SLOT_START = 23;
+constexpr int NUM_SKILLS = 100;
+constexpr int CONCURRENT_SKILLS = 2;
 
 struct [[offsetcomments]] LEADERABILITIES
 {
@@ -1077,7 +1077,7 @@ struct [[offsetcomments]] GROUNDOBJECT
 };
 using PGROUNDOBJECT = GROUNDOBJECT*;
 
-#define MAX_ZONES                                0x3e8
+constexpr int MAX_ZONES = 1000; // 0x3e8
 
 extern char* szZoneExpansionName[];              // defined in LibEQ_Utilities.cpp
 
@@ -1306,14 +1306,16 @@ struct [[offsetcomments]] SKILL
 };
 using PSKILL = SKILL*;
 
+constexpr int MAX_SKILL_CLASSES = 36;
+
 // see SkillManager__IsValidSkillIndex_x (5C87C0) in eqgame dated 20140611
 // SkillManager__SkillManager
 // Actual Size: 0x2E9B2C see 571E37 in eqgame dated 20170411 test
 struct [[offsetcomments]] SKILLMGR
 {
 /*0x000000*/ SKILL*    pSkill[NUM_SKILLS];
-/*0x000190*/ int       SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x186550*/ float     SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x000190*/ int       SkillCaps[MAX_SKILL_CLASSES][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x186550*/ float     SkillMods[MAX_SKILL_CLASSES][NUM_SKILLS][MAX_PC_LEVEL+1];
 /*0x30c910*/ char      SkillCapsFilename[MAX_PATH];
 /*0x30ca14*/ UINT      SkillLastUsed[NUM_SKILLS];
 /*0x30cba4*/ UINT      SkillTimerDuration[NUM_SKILLS];
@@ -1456,8 +1458,9 @@ using PAAEFFECTDATA = AAEFFECTDATA*;
 // Size 0xa4    11/15/2011 ieatacid in msg_send_alt_data
 // Size 0xa8    06/11/2014 eqmule in msg_send_alt_data
 // Size 0xa8    See 4EF12F (msg_send_alt_data) in 2015-09-24
-struct [[offsetcomments]] ALTABILITY
+class [[offsetcomments]] CAltAbilityData
 {
+public:
 /*0x00*/ DWORD         Index;
 /*0x04*/ bool          bShowInAbilityWindow;               // [0] = enabled flag? everything 1
 /*0x05*/ BYTE          bShowInAbilityWindowdPadding[0x3];
@@ -1506,8 +1509,13 @@ struct [[offsetcomments]] ALTABILITY
 /*0x9c*/ DWORD**       effects;                            // this is repeated a few times some times depending on list size
 /*0xa0*/ BYTE          Unknown0xA0[0x8];                   // part of their internal list class, I need to re that at some point
 /*0xa8*/
+
+	EQLIB_OBJECT int GetMercCurrentRank(int);
+	EQLIB_OBJECT int GetMercMaxRank(int);
+	EQLIB_OBJECT int GetMaxRank();
 };
-using PALTABILITY = ALTABILITY*;
+using ALTABILITY = CAltAbilityData;
+using PALTABILITY = CAltAbilityData*;
 
 struct [[offsetcomments]] ALTABILITIESLISTMGR
 {
@@ -1557,13 +1565,15 @@ struct [[offsetcomments]] MERCAA
 };
 using PMERCAA = MERCAA*;
 
+constexpr int MERC_ALT_ABILITY_COUNT = 12;
+
 // pinstMercAltAbilities_x
 // MercAltAbilities__MercAltAbilities
 // Actual Size: 0x478 in eqgame dated oct 04 2013 (see 4A96D4) - eqmule
 struct [[offsetcomments]] EQMERCALTABILITIES
 {
 /*0x000*/ BYTE    Unknown0x000[0x408];
-/*0x408*/ PMERCAA MercAAInfo[0xc];               // 12 pointers since there are currently only 12 mercenary aa's
+/*0x408*/ PMERCAA MercAAInfo[MERC_ALT_ABILITY_COUNT];  // 12 pointers since there are currently only 12 mercenary aa's
 /*0x438*/ BYTE    Unknown0x438[0x40];
 /*0x478*/
 };
@@ -1588,6 +1598,18 @@ struct [[offsetcomments]] EQRAIDMEMBER
 };
 using PEQRAIDMEMBER = EQRAIDMEMBER*;
 
+constexpr int MAX_RAID_LOOTERS = 19;
+constexpr int MAX_RAID_SIZE = 72;
+constexpr int MAX_RAID_MOTD = 1024;
+
+enum eRaidLootType : int32_t
+{
+	RaidLootUnknown = 0,
+	RaidLootLeaderOnly = 1,
+	RaidLootLeaderAndGroupLeader = 2,
+	RaidLootAssignments = 3,
+};
+
 // sizeof(_EQRAID) is 0x3668 (12-09-2009)
 // is size calculated by doing instCGuild_x - 4 - instCRaid_x ? 366C
 // 0x3668 is locked so if its 4 byte aligned size should be /*0x366c*/ - eqmule Aug 10 2016
@@ -1597,15 +1619,17 @@ using PEQRAIDMEMBER = EQRAIDMEMBER*;
 // as for the size... I have no idea...
 // maybe 3544h? see 48055F                 mov     [esi+3544h], bl (jun 11 2014)
 // 392C in mar 18 205 test? not sure...
+
+// CRaid
 struct [[offsetcomments]] EQRAID
 {
 /*0x0000*/ BYTE              Unknown0x0000[0xe0];
-/*0x00e0*/ char              RaidMemberUsed[0x48];
-/*0x0128*/ EQRAIDMEMBER      RaidMember[0x48];
+/*0x00e0*/ char              RaidMemberUsed[MAX_RAID_SIZE];
+/*0x0128*/ EQRAIDMEMBER      RaidMember[MAX_RAID_SIZE];
 /*0x2d08*/ BYTE              Unknown0x2d08[0x4];
-/*0x2d0c*/ DWORD             RaidMemberCount;
+/*0x2d0c*/ int               RaidMemberCount;
 /*0x2d10*/ char              RaidLeaderName[0x40];
-/*0x2d50*/ char              RaidMOTD[0x400];
+/*0x2d50*/ char              RaidMOTD[MAX_RAID_MOTD];
 /*0x3150*/ char              Inviter[0x40];
 /*0x3190*/ int               Invited;                      // this is an enum, 1 = not in raid, 2 = invited, 4 = in raid
 /*0x3194*/ UINT              RaidID;                       // not sure
@@ -1613,8 +1637,8 @@ struct [[offsetcomments]] EQRAID
 /*0x3199*/ bool              IsRaidLeader;
 /*0x319a*/ BYTE              Filler0x319a[0x2];
 /*0x319c*/ DWORD             RaidTarget;
-/*0x31a0*/ DWORD             LootType;
-/*0x31a4*/ char              RaidLooters[0x13][0x40];
+/*0x31a0*/ eRaidLootType     LootType;
+/*0x31a4*/ char              RaidLooters[MAX_RAID_LOOTERS][0x40];
 /*0x3664*/ DWORD             TotalRaidMemberLevels;        // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
 /*0x3668*/ BYTE              Locked;
 /*0x3669*/ BYTE              Unknown0x3669[0x7];
@@ -1762,7 +1786,7 @@ struct [[offsetcomments]] _CHATSERVICE
 /*0x04*/ void*        pChatProxyHandler;
 /*0x08*/ void*        pUdpManager;
 /*0x0c*/ CHATCHANNELS* ChannelList;             // really just a char**
-/*0x10*/ DWORD        ActiveChannels;           // number of channels joined, aka channelcount
+/*0x10*/ int          ActiveChannels;           // number of channels joined, aka channelcount
 /*0x14*/ bool         mAuthenticated;
 /*0x15*/ bool         bLoginSent;
 /*0x16*/ bool         bInvisible;

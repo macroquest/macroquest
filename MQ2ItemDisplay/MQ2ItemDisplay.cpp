@@ -698,7 +698,7 @@ public:
 
 		if (int cat = GetSpellCategory(pSpell))
 		{
-			if (const char* ptr = pCDBStr->GetString(cat, 5LL))
+			if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
 			{
 				sprintf_s(temp, "Category: %s<br>", ptr);
 				strcat_s(out, temp);
@@ -707,7 +707,7 @@ public:
 
 		if (int cat = GetSpellSubcategory(pSpell))
 		{
-			if (const char* ptr = pCDBStr->GetString(cat, 5))
+			if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
 			{
 				sprintf_s(temp, "Subcategory: %s<br>", ptr);
 				strcat_s(out, temp);

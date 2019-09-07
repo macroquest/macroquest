@@ -414,7 +414,7 @@ EQLIB_VAR PcClient** ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR PcClient** ppCharData;
 #define pCharData (*ppCharData)
-EQLIB_VAR PlayerClient** ppCharSpawn;
+EQLIB_VAR PlayerClient** ppCharSpawn; // player that is being controlled
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR PlayerClient** ppActiveMerchant;
 #define pActiveMerchant (*ppActiveMerchant)
@@ -424,7 +424,7 @@ EQLIB_VAR PlayerManagerClient** ppSpawnManager;
 #define pChatService ((CChatService*)((EVERQUEST*)pEverQuest)->ChatService)
 #define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PointManager.vfTable)
 
-EQLIB_VAR PlayerClient** ppLocalPlayer;
+EQLIB_VAR PlayerClient** ppLocalPlayer; // the local player
 #define pLocalPlayer (*ppLocalPlayer)
 EQLIB_VAR PlayerClient** ppControlledPlayer;
 #define pControlledPlayer (*ppControlledPlayer)

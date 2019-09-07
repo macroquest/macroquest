@@ -2025,6 +2025,19 @@ bool CMQ2Alerts::GetAlert(uint32_t id, std::vector<MQSpawnSearch>& ss)
 	return false;
 }
 
+size_t CMQ2Alerts::GetCount(uint32_t id) const
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto alertIter = m_alertMap.find(id);
+	if (alertIter != m_alertMap.end())
+	{
+		return alertIter->second.size();
+	}
+
+	return 0;
+}
+
 bool CMQ2Alerts::AlertExist(uint32_t List)
 {
 	std::scoped_lock lock(m_mutex);
@@ -3384,11 +3397,13 @@ void WindowState(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 void DisplayLoginName(PSPAWNINFO pChar, char* szLine)
 {
-	char* szLogin = GetLoginName();
-	if (!szLogin) {
+	const char* szLogin = GetLoginName();
+	if (!szLogin)
+	{
 		MacroError("Unable to retrieve login name.");
 	}
-	else {
+	else
+	{
 		WriteChatf("Login name: \ay%s\ax", szLogin);
 	}
 }
@@ -4083,19 +4098,19 @@ void NoParseCmd(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
-void AltAbility(PSPAWNINFO pChar, char* szLine)
+void AltAbility(SPAWNINFO* pChar, char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	char szCommand[MAX_STRING] = { 0 };
 	char szSpellInfo[MAX_STRING] = { 0 };
-	char* szName = NULL;
+	char* szName = nullptr;
+
 	GetArg(szCommand, szLine, 1);
 	szName = GetNextArg(szLine);
-	unsigned long nAbility = 0;
-	int i = 0;
 	MQ2TicksType szTime;
 
-	if ((szName[0] == 0) || (szCommand[0] == 0)) {
+	if ((szName[0] == 0) || (szCommand[0] == 0))
+	{
 		SyntaxError("Usage: /aa list [all|timers], /aa info [ability name], or /aa act [ability name]");
 		return;
 	}
@@ -4106,11 +4121,13 @@ void AltAbility(PSPAWNINFO pChar, char* szLine)
 		{
 			WriteChatColor("Alternative Abilities (Complete List)", CONCOLOR_YELLOW);
 			WriteChatColor("-------------------------------------", USERCOLOR_WHO);
-			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
-					sprintf_s(szBuffer, "[ %d: %s ]", pAbility->ID,
-						pCDBStr->GetString(pAbility->nName, 1));
-					WriteChatColor(szBuffer, USERCOLOR_WHO);
+
+			for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+			{
+				if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+				{
+					WriteChatColorf("[ %d: %s ]", USERCOLOR_WHO, pAbility->ID,
+						pCDBStr->GetString(pAbility->nName, eAltAbilityName));
 				}
 			}
 		}
@@ -4118,26 +4135,27 @@ void AltAbility(PSPAWNINFO pChar, char* szLine)
 		{
 			WriteChatColor("Alternative Abilities With Timers", CONCOLOR_YELLOW);
 			WriteChatColor("---------------------------------", USERCOLOR_WHO);
-			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++)
+
+			for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 			{
-				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+				if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
 				{
-					if ((pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility)) > 0)
+					if ((pAltAdvManager->GetCalculatedTimer(pPCData, pAbility)) > 0)
 					{
-						if (pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, 0))
+						if (pAltAdvManager->IsAbilityReady(pPCData, pAbility, nullptr))
 						{
-							sprintf_s(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
-								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1),
+							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready>", USERCOLOR_WHO,
+								pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
 								pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility));
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
 						}
 						else
 						{
-							pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, &i);
-							sprintf_s(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
-								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1),
-								pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility), i);
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
+							int i = 0;
+							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i);
+
+							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
+								USERCOLOR_WHO, pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
+								pAltAdvManager->GetCalculatedTimer(pPCData, pAbility), i);
 						}
 					}
 				}
@@ -4151,87 +4169,90 @@ void AltAbility(PSPAWNINFO pChar, char* szLine)
 	}
 	else if (!_stricmp(szCommand, "info"))
 	{
-		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++)
+		for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 		{
-			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility))
+			if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
 			{
-				const char *pName;
-				if (!_stricmp(pName = pCDBStr->GetString(pAbility->nName, 1), szName))
+				const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName);
+				if (!_stricmp(pName, szName))
 				{
-
 					WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
 					WriteChatColor("-------------------------------------------", USERCOLOR_WHO);
 
-					if ((pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility)) > 0)
-					{//has a timer
-						if (!pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, 0))
-						{//it's not ready
-							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4));
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
-							sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
-								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility));
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
+					if ((pAltAdvManager->GetCalculatedTimer(pPCData, pAbility)) > 0)
+					{
+						// has a timer
+						int i = 0;
+						if (!pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i))
+						{
+							// it's not ready
+							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
+								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
+
 							if (pAbility->SpellID > 0)
 							{
-								sprintf_s(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
-								WriteChatColor(szBuffer, USERCOLOR_WHO);
+								WriteChatColorf("Casts Spell: %s", USERCOLOR_WHO, GetSpellNameByID(pAbility->SpellID));
 							}
+
 							if (PlayerHasAAAbility(pAbility->Index))
 							{
-								sprintf_s(szBuffer, "Ready: No (%d seconds until refresh)", i);
-								WriteChatColor(szBuffer, USERCOLOR_WHO);
+								WriteChatColorf("Ready: No (%d seconds until refresh)", USERCOLOR_WHO, i);
 							}
 							else
 							{
 								WriteChatColor("Ready: Not Purchased", USERCOLOR_WHO);
 							}
-
 						}
 						else
 						{
-							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4));
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
-							sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
-								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer((PcClient*)pPCData, pAbility));
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
+							WriteChatColorf( "[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
+								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
+
 							if (pAbility->SpellID > 0)
 							{
-								sprintf_s(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
-								WriteChatColor(szBuffer, USERCOLOR_WHO);
+								WriteChatColorf("Casts Spell: %s", USERCOLOR_WHO, GetSpellNameByID(pAbility->SpellID));
 							}
-							sprintf_s(szBuffer, "Ready: Yes");
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
+
+							WriteChatColorf("Ready: Yes", USERCOLOR_WHO);
 						}
 					}
 					else
 					{
-						pAltAdvManager->IsAbilityReady((PcClient*)pPCData, pAbility, &i);
-						sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4));
-						WriteChatColor(szBuffer, USERCOLOR_WHO);
-						sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d",
+						int i = 0;
+						pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i);
+
+						WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityName));
+						WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d", USERCOLOR_WHO,
 							pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type);
-						WriteChatColor(szBuffer, USERCOLOR_WHO);
+
 						if (pAbility->SpellID > 0)
 						{
-							sprintf_s(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
-							WriteChatColor(szBuffer, USERCOLOR_WHO);
+							WriteChatColorf("Casts Spell: %s", USERCOLOR_WHO, GetSpellNameByID(pAbility->SpellID));
 						}
 					}
-				} // name matches
-			} // if pability != null
-		} //for loop
+				}
+			}
+		}
 	}
 	else if (!_stricmp(szCommand, "act"))
 	{
-		//we want to get the rank thats for our level here
+		// we want to get the rank thats for our level here
 		int level = -1;
-		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+
+		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer)
+		{
 			level = pMe->Level;
 		}
+
 		// only search through the ones we have...
-		for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-			if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
+		for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+		{
+			if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+			{
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+				{
 					if (!_stricmp(szName, pName)) {
 						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);
 						DoCommand(pChar, szBuffer);

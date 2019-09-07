@@ -30,39 +30,27 @@
 // key state (ctrl/shift/alt)
 // spawn count
 
-#define pIntPtrType pIntType
-#define pInt64PtrType pInt64Type
-#define pBytePtrType pByteType
-#define pBoolPtrType pBoolType
-#define pFloatPtrType pFloatType
-#define pDoublePtrType pDoubleType
+#define TypeMember(name) AddMember(static_cast<int>(name), #name)
+#define TypeMethod(name) AddMethod(static_cast<int>(name), #name)
 
-#define INTPTR(x) Dest.DWord=x
-#define INT64PTR(x) Dest.Int64=x
-#define BYTEPTR(x) Dest.Byte=x
-#define BOOLPTR(x) Dest.DWord=x
-#define FLOATPTR(x) Dest.Float=x
-#define DOUBLEPTR(x) Dest.Double=x
-
-#define TypeMember(name) AddMember((DWORD)name,""#name)
-#define TypeMethod(name) AddMethod((DWORD)name,""#name)
-//#define TypeMethod(x)
-//#define AddMethod(x,y)
-
-EQLIB_API EQGroundItemListManager *GetItemList();
+//----------------------------------------------------------------------------
 // Datatype Declarations
-#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) EQLIB_VAR class _class_ *_var_;
+
+// class MQBoolType;
+// MQ2BoolType* pBoolType
+#define DATATYPE(Class, Var, Inherits, PersistentClass)              \
+	class Class;                                                     \
+	EQLIB_VAR Class* Var;
 #include "DataTypeList.h"
 #undef DATATYPE
+
+//============================================================================
+// MQ2BoolType
 
 class MQ2BoolType : public MQ2Type
 {
 public:
-	MQ2BoolType() :MQ2Type("bool")
-	{
-	}
-
-	~MQ2BoolType()
+	MQ2BoolType() : MQ2Type("bool")
 	{
 	}
 
@@ -75,9 +63,9 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		if (VarPtr.DWord)
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
 	}
 
@@ -86,6 +74,7 @@ public:
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
+
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.DWord = 0;
@@ -96,6 +85,9 @@ public:
 		return true;
 	}
 };
+
+//============================================================================
+// MQ2IntType
 
 class MQ2IntType : public MQ2Type
 {
@@ -109,7 +101,8 @@ public:
 		LowPart = 5,
 		HighPart = 6,
 	};
-	MQ2IntType() :MQ2Type("int")
+
+	MQ2IntType() : MQ2Type("int")
 	{
 		TypeMember(Float);
 		TypeMember(Double);
@@ -119,29 +112,29 @@ public:
 		TypeMember(HighPart);
 	}
 
-	~MQ2IntType()
-	{
-	}
-
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		_itoa_s(VarPtr.Int, Destination,MAX_STRING, 10);
+		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.Int = Source.Int;
 		return true;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.Int = atoi(Source);
 		return true;
 	}
 };
+
+//============================================================================
+// MQ2Int64Type
 
 class MQ2Int64Type : public MQ2Type
 {
@@ -155,7 +148,8 @@ public:
 		LowPart = 5,
 		HighPart = 6,
 	};
-	MQ2Int64Type() :MQ2Type("int64")
+
+	MQ2Int64Type() : MQ2Type("int64")
 	{
 		TypeMember(Float);
 		TypeMember(Double);
@@ -165,29 +159,29 @@ public:
 		TypeMember(HighPart);
 	}
 
-	~MQ2Int64Type()
-	{
-	}
-
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		_i64toa_s(VarPtr.Int64, Destination,MAX_STRING, 10);
+		_i64toa_s(VarPtr.Int64, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.Int64 = Source.Int64;
 		return true;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.Int64 = _atoi64(Source);
 		return true;
 	}
 };
+
+//============================================================================
+// MQ2ArgbType
 
 class MQ2ArgbType : public MQ2Type
 {
@@ -200,7 +194,8 @@ public:
 		B = 3,
 		Int = 4,
 	};
-	MQ2ArgbType() :MQ2Type("argb")
+
+	MQ2ArgbType() : MQ2Type("argb")
 	{
 		TypeMember(A);
 		TypeMember(R);
@@ -213,20 +208,21 @@ public:
 	{
 	}
 
-
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		sprintf_s(Destination,MAX_STRING, "%x", VarPtr.Int);
+		sprintf_s(Destination, MAX_STRING, "%x", VarPtr.Int);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		if (sscanf_s(Source, "%x", &VarPtr.Int)) {
 			return true;
@@ -235,14 +231,13 @@ public:
 	}
 };
 
+//============================================================================
+// MQ2ByteType
+
 class MQ2ByteType : public MQ2Type
 {
 public:
-	MQ2ByteType() :MQ2Type("byte")
-	{
-	}
-
-	~MQ2ByteType()
+	MQ2ByteType() : MQ2Type("byte")
 	{
 	}
 
@@ -254,20 +249,25 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		_itoa_s(VarPtr.Int, Destination,MAX_STRING, 10);
+		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord % 0xFF;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source) % 0xFF;
 		return true;
 	}
 };
+
+//============================================================================
+// MQ2StringType
 
 class MQ2StringType : public MQ2Type
 {
@@ -293,7 +293,7 @@ public:
 		Replace = 17
 	};
 
-	MQ2StringType() :MQ2Type("string")
+	MQ2StringType() : MQ2Type("string")
 	{
 		TypeMember(Arg);
 		TypeMember(Mid);
@@ -314,37 +314,43 @@ public:
 		TypeMember(Replace);
 	}
 
-	~MQ2StringType()
-	{
-	}
 	bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, (const char *)VarPtr.Ptr);
+		strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
 		return true;
 	}
-	void InitVariable(MQVarPtr &VarPtr)
+
+	void InitVariable(MQVarPtr& VarPtr)
 	{
-		VarPtr.Ptr = LocalAlloc(LPTR,MAX_STRING);
+		VarPtr.Ptr = LocalAlloc(LPTR, MAX_STRING);
 		VarPtr.HighPart = 0;
 	}
-	void FreeVariable(MQVarPtr &VarPtr)
+
+	void FreeVariable(MQVarPtr& VarPtr)
 	{
 		LocalFree(VarPtr.Ptr);
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pStringType)
 			return false;
-		strcpy_s((char*)VarPtr.Ptr, MAX_STRING,(char*)Source.Ptr);
+
+		strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, static_cast<const char*>(Source.Ptr));
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		strcpy_s((char*)VarPtr.Ptr, MAX_STRING, Source);
+		strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
 		return true;
 	}
 };
+
+//============================================================================
+// MQ2FloatType
 
 class MQ2FloatType : public MQ2Type
 {
@@ -359,7 +365,7 @@ public:
 		Raw = 6,
 	};
 
-	MQ2FloatType() :MQ2Type("float")
+	MQ2FloatType() : MQ2Type("float")
 	{
 		TypeMember(Deci);
 		TypeMember(Centi);
@@ -380,7 +386,7 @@ public:
 		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Float);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pFloatType && Source.Type != (MQ2Type*)pHeadingType)
 			VarPtr.Float = (float)Source.DWord;
@@ -388,7 +394,7 @@ public:
 			VarPtr.Float = Source.Float;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.Float = (float)atof(Source);
 		return true;
@@ -407,7 +413,7 @@ public:
 		Precision = 5,
 	};
 
-	MQ2DoubleType() :MQ2Type("double")
+	MQ2DoubleType() : MQ2Type("double")
 	{
 		TypeMember(Deci);
 		TypeMember(Centi);
@@ -427,7 +433,7 @@ public:
 		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Double);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pDoubleType && Source.Type != (MQ2Type*)pHeadingType)
 			VarPtr.Double = Source.Double;
@@ -435,7 +441,7 @@ public:
 			VarPtr.Double = Source.Double;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.Double = atof(Source);
 		return true;
@@ -456,7 +462,7 @@ public:
 		Ticks = 7,
 		TimeHMS = 8,
 	};
-	MQ2TicksType() :MQ2Type("ticks")
+	MQ2TicksType() : MQ2Type("ticks")
 	{
 		TypeMember(Hours);
 		TypeMember(Minutes);
@@ -480,12 +486,12 @@ public:
 		_itoa_s(VarPtr.DWord, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -507,7 +513,7 @@ public:
 		TimeHMS = 9,
 		Float = 10,
 	};
-	MQ2TimeStampType() :MQ2Type("timestamp")
+	MQ2TimeStampType() : MQ2Type("timestamp")
 	{
 		TypeMember(Hours);
 		TypeMember(Minutes);
@@ -538,12 +544,12 @@ public:
 		_i64toa_s(VarPtr.UInt64, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.UInt64 = Source.UInt64;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.UInt64 = _atoi64(Source);
 		return true;
@@ -713,7 +719,7 @@ public:
 		LeftClick = 5,
 		RightClick = 6,
 	};
-	MQ2SpawnType() :MQ2Type("spawn")
+	MQ2SpawnType() : MQ2Type("spawn")
 	{
 		TypeMember(ID);//1,
 		TypeMember(Name);//2,
@@ -1216,7 +1222,7 @@ public:
 		StopCast,
 	};
 
-	MQ2CharacterType() :MQ2Type("character")
+	MQ2CharacterType() : MQ2Type("character")
 	{
 		TypeMember(Exp);//4,
 		TypeMember(Spawn);//5,
@@ -1863,7 +1869,7 @@ public:
 		xIndex = 2,
 		Duration = 3,
 	};
-	MQ2TargetBuffType() :MQ2Type("targetbuff")
+	MQ2TargetBuffType() : MQ2Type("targetbuff")
 	{
 		TypeMember(Address);
 		AddMember(xIndex, "Index");
@@ -1885,19 +1891,19 @@ public:
 		{
 			if (PSPELL pSpell = GetSpellByID(buffid))
 			{
-				strcpy_s(Destination,MAX_STRING, pSpell->Name);
+				strcpy_s(Destination, MAX_STRING, pSpell->Name);
 				return true;
 			}
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.Int = Source.Int;
 		return true;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.Int = atoi(Source);
 		return true;
@@ -1908,13 +1914,13 @@ class MQ2CachedBuffType : public MQ2Type
 public:
 	enum CachedBuffMembers
 	{
-		CasterName	= 1,
-		Count		= 2,
-		Slot		= 3,
-		SpellID		= 4,
-		Duration	= 5,
+		CasterName = 1,
+		Count = 2,
+		Slot = 3,
+		SpellID = 4,
+		Duration = 5,
 	};
-	MQ2CachedBuffType() :MQ2Type("cachedbuff")
+	MQ2CachedBuffType() : MQ2Type("cachedbuff")
 	{
 		TypeMember(CasterName);
 		TypeMember(Count);
@@ -1941,13 +1947,13 @@ public:
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		//VarPtr.Int = atoi(Source);
 		return false;
@@ -1972,7 +1978,7 @@ public:
 		OtherID = 11,
 		Spell = 12,
 	};
-	MQ2ItemSpellType() :MQ2Type("itemspell")
+	MQ2ItemSpellType() : MQ2Type("itemspell")
 	{
 		TypeMember(SpellID);
 		TypeMember(RequiredLevel);
@@ -2629,14 +2635,14 @@ public:
 			RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 			if (&manager)
 			{
-				if (EQPlacedItem * pPlaced = (EQPlacedItem*)pObj->ObjPtr)
+				if (EQPlacedItem* pPlaced = (EQPlacedItem*)pObj->ObjPtr)
 				{
 					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
 					if (pRealEstateItem)
 					{
-						if (CONTENTS * pCont = pRealEstateItem->Object.pItemBase.pObject)
+						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
-							if (ITEMINFO * pItem = GetItemFromContents(pCont))
+							if (ITEMINFO* pItem = GetItemFromContents(pCont))
 							{
 								strcpy_s(Destination, MAX_STRING, pItem->Name);
 								return true;
@@ -2682,9 +2688,9 @@ public:
 		RealEstateManagerClient* manager = &RealEstateManagerClient::Instance();
 		if (manager)
 		{
-			if (EQPlacedItemManager * pPIM = &EQPlacedItemManager::Instance())
+			if (EQPlacedItemManager* pPIM = &EQPlacedItemManager::Instance())
 			{
-				if (EQPlacedItem * top = pPIM->Top) {
+				if (EQPlacedItem* top = pPIM->Top) {
 					while (top)
 					{
 						if (top->RealEstateItemID == id)
@@ -2716,7 +2722,7 @@ public:
 	enum CorpseMethods
 	{
 	};
-	MQ2CorpseType() :MQ2Type("corpse")
+	MQ2CorpseType() : MQ2Type("corpse")
 	{
 		TypeMember(Open);
 		TypeMember(Item);
@@ -2733,20 +2739,20 @@ public:
 	{
 		if (pActiveCorpse && pLootWnd)
 		{
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		}
 		else
 		{
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		}
 		return true;
 	}
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2773,7 +2779,7 @@ public:
 		OpenWindow = 4,
 		CloseWindow = 5,
 	};
-	MQ2MerchantType() :MQ2Type("merchant")
+	MQ2MerchantType() : MQ2Type("merchant")
 	{
 		TypeMember(Markup);
 		TypeMember(Item);
@@ -2782,7 +2788,7 @@ public:
 		TypeMember(Full);
 		TypeMember(ItemsReceived);
 		TypeMember(SelectedItem);
-		
+
 		TypeMethod(SelectItem);
 		TypeMethod(Buy);
 		TypeMethod(Sell);
@@ -2801,19 +2807,19 @@ public:
 	{
 		if (pActiveMerchant && pMerchantWnd)
 		{
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		}
 		else
 		{
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		}
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2837,7 +2843,7 @@ public:
 	enum PointMerchantMethods
 	{
 	};
-	MQ2PointMerchantItemType() :MQ2Type("pointmerchantitem")
+	MQ2PointMerchantItemType() : MQ2Type("pointmerchantitem")
 	{
 		TypeMember(Name);
 		TypeMember(ItemID);
@@ -2874,12 +2880,12 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2895,7 +2901,7 @@ public:
 	enum PointMerchantMethods
 	{
 	};
-	MQ2PointMerchantType() :MQ2Type("pointmerchant")
+	MQ2PointMerchantType() : MQ2Type("pointmerchant")
 	{
 		TypeMember(Item);
 	}
@@ -2911,19 +2917,19 @@ public:
 	{
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		}
 		else
 		{
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		}
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -2970,7 +2976,7 @@ public:
 	{
 	};
 
-	MQ2MercenaryType() :MQ2Type("mercenary")
+	MQ2MercenaryType() : MQ2Type("mercenary")
 	{
 		TypeMember(AAPoints);
 		TypeMember(Stance);
@@ -3256,7 +3262,7 @@ public:
 		TypeMember(MyTradeReady);
 		TypeMember(GetCurSel);
 		TypeMember(Address);
-		
+
 		TypeMethod(LeftMouseDown);
 		TypeMethod(LeftMouseUp);
 		TypeMethod(LeftMouseHeld);
@@ -3279,20 +3285,20 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr && ((CXWnd*)VarPtr.Ptr)->IsVisible())
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
 	}
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pWindowType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		if (VarPtr.Ptr = FindMQ2Window(Source))
 			return true;
@@ -3324,7 +3330,7 @@ public:
 		TypeMember(Name);
 		TypeMember(NumItems);
 		TypeMember(Items);
-		
+
 		TypeMethod(Select);
 	}
 
@@ -3339,7 +3345,7 @@ public:
 		strcpy_s(Destination, MAX_STRING, "No Menu Open");
 		if (VarPtr.Ptr && ((CContextMenuManager*)VarPtr.Ptr)->NumVisibleMenus == 1)
 		{
-			CContextMenuManager*pMgr = (CContextMenuManager*)VarPtr.Ptr;
+			CContextMenuManager* pMgr = (CContextMenuManager*)VarPtr.Ptr;
 			if (pMgr->CurrMenu < 8)
 			{
 				int currmen = pMgr->CurrMenu;
@@ -3351,14 +3357,14 @@ public:
 		}
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pMenuType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3417,16 +3423,16 @@ public:
 	{
 		if (gRunning)
 		{
-			strcpy_s(Destination,MAX_STRING, gszMacroName);
+			strcpy_s(Destination, MAX_STRING, gszMacroName);
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3443,7 +3449,7 @@ public:
 		Address = 4,
 		ZoneFlags = 5,
 	};
-	MQ2ZoneType() :MQ2Type("zone")
+	MQ2ZoneType() : MQ2Type("zone")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);//2,
@@ -3460,10 +3466,10 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, &((PZONELIST)VarPtr.Int)->LongName[0]);
+		strcpy_s(Destination, MAX_STRING, &((PZONELIST)VarPtr.Int)->LongName[0]);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type == pZoneType)
 		{
@@ -3482,7 +3488,7 @@ public:
 		}
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3514,7 +3520,7 @@ public:
 		Outdoor = 19,
 		NoBind = 20,
 	};
-	MQ2CurrentZoneType() :MQ2Type("currentzone")
+	MQ2CurrentZoneType() : MQ2Type("currentzone")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);//2,
@@ -3546,17 +3552,17 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, &((PZONEINFO)pZoneInfo)->LongName[0]);
+		strcpy_s(Destination, MAX_STRING, &((PZONEINFO)pZoneInfo)->LongName[0]);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pCurrentZoneType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3576,7 +3582,7 @@ public:
 	enum CharSelectListMethods
 	{
 	};
-	MQ2CharSelectListType() :MQ2Type("charselectlist")
+	MQ2CharSelectListType() : MQ2Type("charselectlist")
 	{
 		TypeMember(Name);
 		TypeMember(Level);
@@ -3595,11 +3601,11 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3643,7 +3649,7 @@ public:
 	enum EverQuestMethods
 	{
 	};
-	MQ2EverQuestType() :MQ2Type("everquest")
+	MQ2EverQuestType() : MQ2Type("everquest")
 	{
 		TypeMember(GameState);
 		TypeMember(LoginName);
@@ -3687,11 +3693,11 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3712,7 +3718,7 @@ public:
 		InternalName = 8,
 		Parser = 9,
 	};
-	MQ2MacroQuestType() :MQ2Type("macroquest")
+	MQ2MacroQuestType() : MQ2Type("macroquest")
 	{
 		TypeMember(Error);
 		TypeMember(SyntaxError);
@@ -3734,11 +3740,11 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3763,9 +3769,9 @@ public:
 		Not = 12,
 		Distance = 13,
 		Sqrt = 14,
-        Clamp = 15,
+		Clamp = 15,
 	};
-	MQ2MathType() :MQ2Type("math")
+	MQ2MathType() : MQ2Type("math")
 	{
 		TypeMember(Abs);
 		TypeMember(Rand);//2,
@@ -3781,7 +3787,7 @@ public:
 		TypeMember(Not);//12,
 		TypeMember(Distance);
 		TypeMember(Sqrt);
-        TypeMember(Clamp);
+		TypeMember(Clamp);
 	}
 
 	~MQ2MathType()
@@ -3794,11 +3800,11 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -3913,7 +3919,7 @@ public:
 		Name = 1,
 		ID = 2
 	};
-	MQ2BodyType() :MQ2Type("body")
+	MQ2BodyType() : MQ2Type("body")
 	{
 		TypeMember(Name);
 		TypeMember(ID);
@@ -3928,15 +3934,15 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		const char* pDesc = GetBodyTypeDesc(VarPtr.DWord);
-		strcpy_s(Destination,MAX_STRING, pDesc);
+		strcpy_s(Destination, MAX_STRING, pDesc);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -3951,7 +3957,7 @@ public:
 		Team = 2,
 		ID = 3
 	};
-	MQ2DeityType() :MQ2Type("Deity")
+	MQ2DeityType() : MQ2Type("Deity")
 	{
 		TypeMember(Name);
 		TypeMember(Team);
@@ -3967,15 +3973,15 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		char* pDesc = pEverQuest->GetDeityDesc(VarPtr.DWord);
-		strcpy_s(Destination,MAX_STRING, pDesc);
+		strcpy_s(Destination, MAX_STRING, pDesc);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.DWord = atoi(Source);
 		return true;
@@ -4001,7 +4007,7 @@ public:
 		SecondsSinceMidnight = 12,
 		Hour12 = 13,
 	};
-	MQ2TimeType() :MQ2Type("time")
+	MQ2TimeType() : MQ2Type("time")
 	{
 		TypeMember(Hour);
 		TypeMember(Minute);
@@ -4067,7 +4073,7 @@ public:
 		Name = 1,
 		TypeMember = 2,
 	};
-	MQ2TypeType() :MQ2Type("type")
+	MQ2TypeType() : MQ2Type("type")
 	{
 		TypeMember(Name);
 		AddMember((DWORD)TypeMember, "Member");
@@ -4081,15 +4087,15 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
+		strcpy_s(Destination, MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.Ptr = Source.Type;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		if (VarPtr.Ptr = FindMQ2DataType(Source))
 			return true;
@@ -4111,7 +4117,7 @@ public:
 	enum HeadingMethods
 	{
 	};
-	MQ2HeadingType() :MQ2Type("heading")
+	MQ2HeadingType() : MQ2Type("heading")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);
@@ -4128,11 +4134,11 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
+		strcpy_s(Destination, MAX_STRING, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
 		return true;
 	}
 #ifndef MQ2PLUGIN
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pHeadingType && Source.Type != pFloatType)
 			VarPtr.Float = (float)Source.DWord;
@@ -4141,9 +4147,9 @@ public:
 		return true;
 	}
 #else
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source);
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source);
 #endif
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		VarPtr.Float = (float)atof(Source);
 		return true;
@@ -4164,7 +4170,7 @@ public:
 	enum InvSlotMethods
 	{
 	};
-	MQ2InvSlotType() :MQ2Type("invslot")
+	MQ2InvSlotType() : MQ2Type("invslot")
 	{
 		TypeMember(Pack);
 		TypeMember(Slot);
@@ -4184,12 +4190,12 @@ public:
 		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		if (IsNumber(Source))
 		{
@@ -4219,7 +4225,7 @@ public:
 		Name = 1,
 		Version = 2,
 	};
-	MQ2PluginType() :MQ2Type("plugin")
+	MQ2PluginType() : MQ2Type("plugin")
 	{
 		TypeMember(Name);
 		TypeMember(Version);
@@ -4235,19 +4241,19 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			strcpy_s(Destination,MAX_STRING, ((MQPlugin*)VarPtr.Ptr)->szFilename);
+			strcpy_s(Destination, MAX_STRING, ((MQPlugin*)VarPtr.Ptr)->szFilename);
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pPluginType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4264,7 +4270,7 @@ public:
 		TimeSpent = 4,
 		AvgTimeSpent = 5,
 	};
-	MQ2BenchmarkType() :MQ2Type("benchmark")
+	MQ2BenchmarkType() : MQ2Type("benchmark")
 	{
 		TypeMember(Name);
 		TypeMember(ID);
@@ -4283,12 +4289,12 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		if (IsNumber(Source))
 		{
@@ -4316,7 +4322,7 @@ public:
 	enum SkillMethods
 	{
 	};
-	MQ2SkillType() :MQ2Type("skill")
+	MQ2SkillType() : MQ2Type("skill")
 	{
 		TypeMember(Name);
 		TypeMember(ID);
@@ -4341,19 +4347,19 @@ public:
 		if (PSKILL pSkill = *(PSKILL*)VarPtr.Ptr)
 			if (const char* pName = pStringTable->getString(pSkill->nName, 0))
 			{
-				strcpy_s(Destination,MAX_STRING, pName);
+				strcpy_s(Destination, MAX_STRING, pName);
 				return true;
 			}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pSkillType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4390,7 +4396,7 @@ public:
 	enum AltAbilityMethods
 	{
 	};
-	MQ2AltAbilityType() :MQ2Type("altability")
+	MQ2AltAbilityType() : MQ2Type("altability")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);
@@ -4424,14 +4430,14 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pAltAbilityType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4491,7 +4497,7 @@ public:
 
 	void FreeVariable(MQVarPtr& VarPtr)
 	{
-		if (MQTimer * pVar = reinterpret_cast<MQTimer*>(VarPtr.Ptr))
+		if (MQTimer* pVar = reinterpret_cast<MQTimer*>(VarPtr.Ptr))
 		{
 			if (pVar->pPrev)
 				pVar->pPrev->pNext = pVar->pNext;
@@ -4548,7 +4554,7 @@ public:
 		Dimensions = 1,
 		Size = 2,
 	};
-	MQ2ArrayType() :MQ2Type("array")
+	MQ2ArrayType() : MQ2Type("array")
 	{
 		TypeMember(Dimensions);
 		TypeMember(Size);
@@ -4565,20 +4571,20 @@ public:
 		return false;
 	}
 
-	void InitVariable(MQVarPtr &VarPtr)
+	void InitVariable(MQVarPtr& VarPtr)
 	{
 	}
-	void FreeVariable(MQVarPtr &VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr)
 	{
-		CDataArray *pArray = (CDataArray*)VarPtr.Ptr;
+		CDataArray* pArray = (CDataArray*)VarPtr.Ptr;
 		delete pArray;
 	}
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4614,7 +4620,7 @@ public:
 	enum GroupMethods
 	{
 	};
-	MQ2GroupType() :MQ2Type("group")
+	MQ2GroupType() : MQ2Type("group")
 	{
 		TypeMember(Address);
 		AddMember(xMember, "Member");
@@ -4646,11 +4652,11 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination);
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4681,7 +4687,7 @@ public:
 	enum GroupMemberMethods
 	{
 	};
-	MQ2GroupMemberType() :MQ2Type("groupmember")
+	MQ2GroupMemberType() : MQ2Type("groupmember")
 	{
 		TypeMember(Address);
 		TypeMember(Name);
@@ -4708,14 +4714,14 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination);
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pGroupMemberType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4743,7 +4749,7 @@ public:
 	enum RaidMethods
 	{
 	};
-	MQ2RaidType() :MQ2Type("raid")
+	MQ2RaidType() : MQ2Type("raid")
 	{
 		AddMember(xMember, "Member");
 		TypeMember(Members);
@@ -4770,11 +4776,11 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4797,7 +4803,7 @@ public:
 	enum RaidMemberMethods
 	{
 	};
-	MQ2RaidMemberType() :MQ2Type("raidmember")
+	MQ2RaidMemberType() : MQ2Type("raidmember")
 	{
 		TypeMember(Name);
 		TypeMember(Group);
@@ -4823,17 +4829,17 @@ public:
 		if (!pRaid->RaidMemberUsed[nRaidMember])
 			return false;
 		PEQRAIDMEMBER pRaidMember = &pRaid->RaidMember[nRaidMember];
-		strcpy_s(Destination,MAX_STRING, pRaidMember->Name);
+		strcpy_s(Destination, MAX_STRING, pRaidMember->Name);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pRaidMemberType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4849,7 +4855,7 @@ public:
 		Level = 3,
 		MaxLevel = 4,
 	};
-	MQ2EvolvingItemType() :MQ2Type("Evolving")
+	MQ2EvolvingItemType() : MQ2Type("Evolving")
 	{
 		TypeMember(ExpPct);
 		TypeMember(ExpOn);
@@ -4866,16 +4872,16 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr && ((CONTENTS*)VarPtr.Ptr)->IsEvolvingItem)
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4893,7 +4899,7 @@ public:
 		Leader = 5,
 		InRaid = 6,
 	};
-	MQ2DynamicZoneType() :MQ2Type("dynamiczone")
+	MQ2DynamicZoneType() : MQ2Type("dynamiczone")
 	{
 		TypeMember(Name);
 		TypeMember(Members);
@@ -4910,16 +4916,16 @@ public:
 	{
 		if (pDZMember)
 		{
-			strcpy_s(Destination,MAX_STRING, pDynamicZone->ExpeditionName);
+			strcpy_s(Destination, MAX_STRING, pDynamicZone->ExpeditionName);
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4933,7 +4939,7 @@ public:
 		Name = 1,
 		Status = 2,
 	};
-	MQ2DZMemberType() :MQ2Type("dzmember")
+	MQ2DZMemberType() : MQ2Type("dzmember")
 	{
 		TypeMember(Name);
 		TypeMember(Status);
@@ -4947,11 +4953,11 @@ public:
 		strcpy_s(Destination, MAX_STRING, ((DZMEMBER*)VarPtr.Ptr)->Name);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4974,7 +4980,7 @@ public:
 		CampfireZone = 10,
 		Campfire = 11,
 	};
-	MQ2FellowshipType() :MQ2Type("fellowship")
+	MQ2FellowshipType() : MQ2Type("fellowship")
 	{
 		TypeMember(ID);
 		TypeMember(Leader);
@@ -4995,16 +5001,16 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipID)
-			strcpy_s(Destination,MAX_STRING, "TRUE");
+			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5021,7 +5027,7 @@ public:
 		LastOn = 4,
 		Name = 5,
 	};
-	MQ2FellowshipMemberType() :MQ2Type("fellowshipmember")
+	MQ2FellowshipMemberType() : MQ2Type("fellowshipmember")
 	{
 		TypeMember(Zone);
 		TypeMember(Level);
@@ -5038,11 +5044,11 @@ public:
 		strcpy_s(Destination, MAX_STRING, ((FELLOWSHIPMEMBER*)VarPtr.Ptr)->Name);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5059,7 +5065,7 @@ public:
 	{
 	};
 
-	MQ2FriendsType() :MQ2Type("friend")
+	MQ2FriendsType() : MQ2Type("friend")
 	{
 		AddMember(xFriend, "Friend");
 	}
@@ -5074,17 +5080,17 @@ public:
 	{
 		// return the number of friends here...
 		if (((EVERQUEST*)pEverQuest)->ChatService) {
-			class CChatService *pChat = (class CChatService *) ((EVERQUEST*)pEverQuest)->ChatService;
+			class CChatService* pChat = (class CChatService*) ((EVERQUEST*)pEverQuest)->ChatService;
 			sprintf_s(Destination, MAX_STRING, "%d", pChat->GetNumberOfFriends());
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5133,8 +5139,8 @@ public:
 		Cursed = 36,
 		Corrupted = 37,
 		BuffsPopulated = 38,
-        MyBuff = 39,
-        MyBuffCount = 40,
+		MyBuff = 39,
+		MyBuffCount = 40,
 		MyBuffDuration = 41,
 		Feared = 42,
 		Silenced = 43,
@@ -5183,8 +5189,8 @@ public:
 		TypeMember(Cursed);
 		TypeMember(Corrupted);
 		TypeMember(BuffsPopulated);
-        TypeMember(MyBuff);
-        TypeMember(MyBuffCount);
+		TypeMember(MyBuff);
+		TypeMember(MyBuffCount);
 		TypeMember(MyBuffDuration);
 		TypeMember(Feared);
 		TypeMember(Silenced);
@@ -5246,7 +5252,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		if (SPAWNINFO * pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -5257,7 +5263,7 @@ public:
 
 class MQ2TaskObjectiveType : public MQ2Type
 {
-	public:
+public:
 	enum TaskObjectiveTypeMembers
 	{
 		Instruction = 1,
@@ -5265,7 +5271,7 @@ class MQ2TaskObjectiveType : public MQ2Type
 		Zone = 3,
 		xIndex = 4,
 	};
-	MQ2TaskObjectiveType() :MQ2Type("taskobjectivemember")
+	MQ2TaskObjectiveType() : MQ2Type("taskobjectivemember")
 	{
 		TypeMember(Instruction);
 		TypeMember(Status);
@@ -5278,7 +5284,7 @@ class MQ2TaskObjectiveType : public MQ2Type
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		if (CListWnd* clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList"))
+		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskElementList"))
 		{
 			// we return Objective by default:
 			CXStr out = clist->GetItemText(VarPtr.Int, 0);
@@ -5290,11 +5296,11 @@ class MQ2TaskObjectiveType : public MQ2Type
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5308,7 +5314,7 @@ public:
 		Leader = 2,
 		xIndex = 3,
 	};
-	MQ2TaskMemberType() :MQ2Type("taskmember")
+	MQ2TaskMemberType() : MQ2Type("taskmember")
 	{
 		TypeMember(Name);
 		TypeMember(Leader);
@@ -5320,14 +5326,14 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,MAX_STRING, ((PTASKMEMBER)VarPtr.Ptr)->Name);
+		strcpy_s(Destination, MAX_STRING, ((PTASKMEMBER)VarPtr.Ptr)->Name);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5353,10 +5359,10 @@ public:
 	{
 		Select = 1,
 	};
-	MQ2TaskType() :MQ2Type("task")
+	MQ2TaskType() : MQ2Type("task")
 	{
 		TypeMember(Address);
-		AddMember(xIndex,"Index");
+		AddMember(xIndex, "Index");
 		TypeMember(Title);
 		TypeMember(Timer);
 		AddMember(xMember, "Member");
@@ -5375,7 +5381,7 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination,254, "NULL");
+		strcpy_s(Destination, 254, "NULL");
 		int index = VarPtr.Int;
 		if (pTaskWnd)
 		{
@@ -5393,11 +5399,11 @@ public:
 		}
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5524,7 +5530,7 @@ public:
 		xIndex = 1,
 		Name = 2,
 	};
-	MQ2KeyRingType() :MQ2Type("keyring")
+	MQ2KeyRingType() : MQ2Type("keyring")
 	{
 		AddMember(xIndex, "Index");
 		TypeMember(Name);
@@ -5535,7 +5541,7 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent))
+		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
 		{
 			CListWnd* clist = nullptr;
 
@@ -5554,18 +5560,18 @@ public:
 				CXStr Str = clist->GetItemText(n, 2);
 				if (!Str.empty())
 				{
-					strcpy_s(Destination,MAX_STRING, Str.c_str());
+					strcpy_s(Destination, MAX_STRING, Str.c_str());
 					return true;
 				}
 			}
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5588,7 +5594,7 @@ public:
 	enum MQ2ItemFilterDataMethods
 	{
 	};
-	MQ2ItemFilterDataType() :MQ2Type("itemfilterdata")
+	MQ2ItemFilterDataType() : MQ2Type("itemfilterdata")
 	{
 		TypeMember(Name);
 		TypeMember(ID);
@@ -5616,7 +5622,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pItemFilterDataType)
 			return false;
@@ -5624,7 +5630,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5654,7 +5660,7 @@ public:
 	enum MQ2AdvLootItemMethods
 	{
 	};
-	MQ2AdvLootItemType() :MQ2Type("advlootitem")
+	MQ2AdvLootItemType() : MQ2Type("advlootitem")
 	{
 		TypeMember(Address);
 		AddMember(xIndex, "Index");
@@ -5681,7 +5687,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		if (AdvancedLootItem * pitem = (AdvancedLootItem*)VarPtr.Ptr)
+		if (AdvancedLootItem* pitem = (AdvancedLootItem*)VarPtr.Ptr)
 		{
 			strcpy_s(Destination, 64, pitem->Name);
 			return true;
@@ -5690,7 +5696,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pAdvLootItemType)
 			return false;
@@ -5699,7 +5705,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5719,7 +5725,7 @@ public:
 		xLootInProgress = 7,
 		Filter = 8,
 	};
-	MQ2AdvLootType() :MQ2Type("advloot")
+	MQ2AdvLootType() : MQ2Type("advloot")
 	{
 		TypeMember(PList);
 		TypeMember(PCount);
@@ -5727,7 +5733,7 @@ public:
 		TypeMember(SCount);
 		TypeMember(PWantCount);
 		TypeMember(SWantCount);
-		AddMember(xLootInProgress,"LootInProgress");
+		AddMember(xLootInProgress, "LootInProgress");
 		TypeMember(Filter);
 
 	}
@@ -5739,11 +5745,11 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5850,7 +5856,7 @@ public:
 		bFellowship = 56,
 		bBanker = 57,
 	};
-	MQ2AlertListType() :MQ2Type("alertlist")
+	MQ2AlertListType() : MQ2Type("alertlist")
 	{
 		TypeMember(MinLevel);
 		TypeMember(MaxLevel);
@@ -5921,11 +5927,11 @@ public:
 		sprintf_s(Destination, 128, "${Alert[%d].List[%d].Name}", (int)theindex, (int)theitem);
 		return true;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5943,7 +5949,7 @@ public:
 		Heading = 5,
 		Zone = 6,
 	};
-	MQ2WorldLocationType() :MQ2Type("worldlocation")
+	MQ2WorldLocationType() : MQ2Type("worldlocation")
 	{
 		TypeMember(ID);
 		TypeMember(Y);
@@ -5975,11 +5981,11 @@ public:
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5994,7 +6000,7 @@ public:
 		Item = 3,
 		Count = 4,
 	};
-	MQ2SolventType() :MQ2Type("solventtype")
+	MQ2SolventType() : MQ2Type("solventtype")
 	{
 		TypeMember(Name);
 		TypeMember(ID);
@@ -6005,69 +6011,69 @@ public:
 	{
 	}
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
-	static const char*GetAugmentNameByID(int itemid)
+	static const char* GetAugmentNameByID(int itemid)
 	{
 		switch (itemid)
 		{
-			case 47001:
-				return "Class I Augmentation Distiller";
-			case 47002:
-				return "Class II Augmentation Distiller";
-			case 47003:
-				return "Class III Augmentation Distiller";
-			case 47004:
-				return "Class IV Augmentation Distiller";
-			case 47005:
-				return "Class V Augmentation Distiller";
-			case 47006:
-				return "Class VI Augmentation Distiller";
-			case 47007:
-				return "Class VII Augmentation Distiller";
-			case 47008:
-				return "Class VIII Augmentation Distiller";
-			case 47009:
-				return "Class IX Augmentation Distiller";
-			case 47010:
-				return "Class X Augmentation Distiller";
-			case 47011:
-				return "Class XI Augmentation Distiller";
-			case 47012:
-				return "Class XII Augmentation Distiller";
-			case 47013:
-				return "Class XIII Augmentation Distiller";
-			case 47014:
-				return "Class XIV Augmentation Distiller";
-			case 47015:
-				return "Class XV Augmentation Distiller";
-			case 47016:
-				return "Class XVI Augmentation Distiller";
-			case 47017:
-				return "Class XVII Augmentation Distiller";
-			case 47018:
-				return "Class XVIII Augmentation Distiller";
-			case 47019:
-				return "Class XIX Augmentation Distiller";
-			case 47020:
-				return "Class XX Augmentation Distiller";
-			case 47021:
-				return "Class XXI Augmentation Distiller";
-			default:
-				return "Perfected Augmentation Distiller";
+		case 47001:
+			return "Class I Augmentation Distiller";
+		case 47002:
+			return "Class II Augmentation Distiller";
+		case 47003:
+			return "Class III Augmentation Distiller";
+		case 47004:
+			return "Class IV Augmentation Distiller";
+		case 47005:
+			return "Class V Augmentation Distiller";
+		case 47006:
+			return "Class VI Augmentation Distiller";
+		case 47007:
+			return "Class VII Augmentation Distiller";
+		case 47008:
+			return "Class VIII Augmentation Distiller";
+		case 47009:
+			return "Class IX Augmentation Distiller";
+		case 47010:
+			return "Class X Augmentation Distiller";
+		case 47011:
+			return "Class XI Augmentation Distiller";
+		case 47012:
+			return "Class XII Augmentation Distiller";
+		case 47013:
+			return "Class XIII Augmentation Distiller";
+		case 47014:
+			return "Class XIV Augmentation Distiller";
+		case 47015:
+			return "Class XV Augmentation Distiller";
+		case 47016:
+			return "Class XVI Augmentation Distiller";
+		case 47017:
+			return "Class XVII Augmentation Distiller";
+		case 47018:
+			return "Class XVIII Augmentation Distiller";
+		case 47019:
+			return "Class XIX Augmentation Distiller";
+		case 47020:
+			return "Class XX Augmentation Distiller";
+		case 47021:
+			return "Class XXI Augmentation Distiller";
+		default:
+			return "Perfected Augmentation Distiller";
 		};
 	}
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		if(const char*pstr = GetAugmentNameByID(VarPtr.DWord)) {
+		if (const char* pstr = GetAugmentNameByID(VarPtr.DWord)) {
 			strcpy_s(Destination, MAX_STRING, pstr);
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6086,7 +6092,7 @@ public:
 		Item = 7,
 		Solvent = 8,
 	};
-	MQ2AugType() :MQ2Type("augtype")
+	MQ2AugType() : MQ2Type("augtype")
 	{
 		TypeMember(Slot);
 		TypeMember(Type);
@@ -6113,11 +6119,11 @@ public:
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6131,7 +6137,7 @@ public:
 		Inside = 2,
 	};
 
-	MQ2RangeType() :MQ2Type("Range")
+	MQ2RangeType() : MQ2Type("Range")
 	{
 		TypeMember(Between);
 		TypeMember(Inside);
@@ -6146,14 +6152,14 @@ public:
 	{
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		if (Source.Type != pRangeType)
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6173,7 +6179,7 @@ public:
 	{
 		Remove = 1,
 	};
-	MQ2AuraType() :MQ2Type("auratype")
+	MQ2AuraType() : MQ2Type("auratype")
 	{
 		TypeMember(ID);
 		TypeMember(Name);
@@ -6194,11 +6200,11 @@ public:
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6214,7 +6220,7 @@ public:
 		IconID = 3,
 		Name = 4,
 	};
-	MQ2BandolierItemType() :MQ2Type("bandolieritem")
+	MQ2BandolierItemType() : MQ2Type("bandolieritem")
 	{
 		AddMember(xIndex, "Index");
 		TypeMember(ID);
@@ -6227,18 +6233,18 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		if (BandolierItemInfo *ptr = (BandolierItemInfo *)VarPtr.Ptr)
+		if (BandolierItemInfo* ptr = (BandolierItemInfo*)VarPtr.Ptr)
 		{
 			strcpy_s(Destination, MAX_STRING, ptr->Name);
 			return true;
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -6257,7 +6263,7 @@ public:
 	{
 		Activate = 1,
 	};
-	MQ2BandolierType() :MQ2Type("bandolier")
+	MQ2BandolierType() : MQ2Type("bandolier")
 	{
 		AddMember(xIndex, "Index");
 		TypeMember(Active);
@@ -6284,11 +6290,11 @@ public:
 		}
 		return false;
 	}
-	bool FromData(MQVarPtr &VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	{
 		return false;
 	}
-	bool FromString(MQVarPtr &VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}

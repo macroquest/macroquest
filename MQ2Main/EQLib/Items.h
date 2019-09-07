@@ -25,7 +25,7 @@ namespace eqlib {
 #define ITEM_NAME_LEN                            0x40
 #define LORE_NAME_LEN                            0x50
 
-#define NUM_INV_SLOTS                            0x21
+#define NUM_INV_SLOTS                            33
 #define NUM_BANK_SLOTS                           24
 #define NUM_SHAREDBANK_SLOTS                     6
 #define MAX_KEYRINGITEMS                         0x1B // not really sure need to confirm this

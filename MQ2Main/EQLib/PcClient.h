@@ -130,7 +130,7 @@ struct [[offsetcomments]] BandolierItemInfo
 struct [[offsetcomments]] BandolierSet
 {
 /*0x000*/ char Name[0x20];
-/*0x020*/ BandolierItemInfo Items[4];            // 0x120 = 0x48 * 4
+/*0x020*/ BandolierItemInfo Items[MAX_BANDOLIER_SLOTS];            // 0x120 = 0x48 * 4
 /*0x140*/
 };
 
@@ -273,6 +273,8 @@ struct [[offsetcomments]] XTARGETSLOT
 /*0x4c*/
 };
 using PXTARGETSLOT = XTARGETSLOT*;
+
+constexpr int MAX_EXTENDED_TARGETS = 23;
 
 class [[offsetcomments]] ExtendedTargetList
 {
@@ -1598,7 +1600,7 @@ public:
 /*0x39c0*/ TSafeArrayStatic<DWORD, 9>                      CharacterTint;                          // size 0x24
 /*0x39e4*/ BYTE                                            Gender;
 /*0x39e8*/ DWORD                                           Race;
-/*0x39ec*/ DWORD                                           Class;
+/*0x39ec*/ int                                             Class;
 /*0x39f0*/ HashTable<int>                                  properties;
 /*0x3a00*/ DWORD                                           Level;
 /*0x3a04*/ DWORD                                           Mana;
@@ -1654,6 +1656,8 @@ public:
 // PcProfile
 //============================================================================
 
+constexpr int MAX_BANDOLIER_ITEMS = 20;
+
 class [[offsetcomments]] PcProfile : public BaseProfile
 {
 public:
@@ -1669,7 +1673,7 @@ public:
 /*0x70b0*/ TSafeArrayStatic<UINT, 0x19>                    LinkedSpellTimers;                      // for sure, we used to call thius CombatAbilityTimes...
 /*0x7114*/ TSafeArrayStatic<UINT, 0x64>                    ItemRecastTimers;                       // for sure
 /*0x72a4*/ TSafeArrayStatic<UINT, 0x64>                    AATimers;                               // for sure
-/*0x7434*/ TSafeArrayStatic<BandolierSet, 0x14>            Bandolier;                              // size 0x1900 = 0x140 * 0x14 for sure see 8DE476 Jan 04 2019 test
+/*0x7434*/ TSafeArrayStatic<BandolierSet, MAX_BANDOLIER_ITEMS> Bandolier;                              // size 0x1900 = 0x140 * 0x14 for sure see 8DE476 Jan 04 2019 test
 /*0x8d34*/ TSafeArrayStatic<BenefitSelection, 5>           ActiveTributeBenefits;                  // size 0x28 = 8 * 5 for sure see 8DE437 Jan 04 2019 test
 /*0x8d5c*/ TSafeArrayStatic<BenefitSelection, 0xa>         ActiveTrophyTributeBenefits;            // size 0x50 = 8 * 0xa
 /*0x8dac*/ ItemBaseContainer                               GuildTributeBenefitItems;               // size 0x1c for sure see 8C9D9C in 21 Sep 2018

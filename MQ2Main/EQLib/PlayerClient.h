@@ -345,7 +345,7 @@ struct [[offsetcomments]] FELLOWSHIPINFO
 /*0x014*/ unsigned int     FellowshipID2;                  // guild does this too, need to figure out why
 /*0x018*/ char             Leader[0x40];
 /*0x058*/ char             MotD[0x400];
-/*0x458*/ unsigned int     Members;
+/*0x458*/ int              Members;
 /*0x45c*/ FELLOWSHIPMEMBER FellowshipMember[0xc];          // size 0xc * 0x54 = 0x3f0
 /*0x84c*/ unsigned int     Sync;
 /*0x850*/ FSDATA           Somedata[0xc];//size 0x180

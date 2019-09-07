@@ -1038,7 +1038,7 @@ void SetupCustomIni()
 	if (szCustomIni && szCustomIni[0] != '\0')
 		return;
 
-	if (char* pLogin = GetLoginName())
+	if (const char* pLogin = GetLoginName())
 	{
 		strcpy_s(szStationName, pLogin);
 		if (gpps)
@@ -1197,7 +1197,7 @@ PLUGIN_API void InitializePlugin()
 		}
 		else
 		{
-			if (char* pLogin = GetLoginName())
+			if (const char* pLogin = GetLoginName())
 			{
 				strcpy_s(szStationName, pLogin);
 				GetPrivateProfileString(szStationName, "Password", 0, szPassword, 64, INIFileName);

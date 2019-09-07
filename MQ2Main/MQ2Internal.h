@@ -390,10 +390,6 @@ struct MQPlugin
 
 class CMQ2Alerts
 {
-private:
-	std::mutex m_mutex;
-	std::map<uint32_t, std::vector<MQSpawnSearch>> m_alertMap;
-
 public:
 	CMQ2Alerts() = default;
 	~CMQ2Alerts() = default;
@@ -402,10 +398,15 @@ public:
 	bool RemoveAlertFromList(uint32_t id, MQSpawnSearch* pSearchSpawn);
 
 	bool GetAlert(uint32_t id, std::vector<MQSpawnSearch>& ss);
+	size_t GetCount(uint32_t id) const;
 	bool AlertExist(uint32_t id);
 
 	bool ListAlerts(char* szOut, size_t max);
 	void FreeAlerts(uint32_t id);
+
+private:
+	mutable std::mutex m_mutex;
+	std::map<uint32_t, std::vector<MQSpawnSearch>> m_alertMap;
 };
 
 class CCustomWnd : public CSidlScreenWnd
@@ -790,7 +791,7 @@ public:
 	}
 
 protected:
-	bool AddMember(DWORD ID, const char* Name)
+	bool AddMember(int id, const char* Name)
 	{
 		std::scoped_lock lock(m_mutex);
 
@@ -802,7 +803,7 @@ protected:
 
 		MQTypeMember* pMember = new MQTypeMember;
 		pMember->Name = Name;
-		pMember->ID = ID;
+		pMember->ID = id;
 		pMember->Type = 0;
 		Members[index] = pMember;
 		return true;

@@ -51,6 +51,18 @@ void WriteChatf(const char* szFormat, ...)
 	}
 }
 
+void WriteChatColorf(const char* szFormat, int color, ...)
+{
+	va_list vaList;
+	va_start(vaList, color);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
+	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
+		vsprintf_s(szOutput, len, szFormat, vaList);
+		WriteChatColor(szOutput, color);
+		LocalFree(szOutput);
+	}
+}
+
 //"threadsafe" chat output
 void WriteChatfSafe(const char* szFormat, ...)
 {
@@ -1280,7 +1292,7 @@ SPELL* GetSpellByName(const char* szName)
 	return nullptr;
 }
 //This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
-PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
+ALTABILITY* GetAAByIdWrapper(int nAbilityId, int playerLevel)
 {
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
 }
@@ -1288,18 +1300,19 @@ PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
 SPELL* GetSpellByAAName(const char* szName)
 {
 	int level = -1;
+
 	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
 	{
 		level = pMe->Level;
 	}
 
-	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility, level))
 		{
 			if (pAbility->SpellID != -1)
 			{
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1))
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
 					if (!_stricmp(szName, pName))
 					{
@@ -1318,7 +1331,8 @@ SPELL* GetSpellByAAName(const char* szName)
 
 int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
 {
-	switch (pSpell->DurationType) {
+	switch (pSpell->DurationType)
+	{
 	case 0:
 		return 0;
 	case 1:
@@ -1358,7 +1372,8 @@ int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
 	}
 }
 
-DWORD GetDeityTeamByID(DWORD DeityID) {
+DWORD GetDeityTeamByID(DWORD DeityID)
+{
 	switch (DeityID) {
 	case DEITY_ErollisiMarr:
 	case DEITY_MithanielMarr:
@@ -1529,12 +1544,14 @@ bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, BOOL Clickable
 	return retVal;
 }
 
-char* GetLoginName()
+const char* GetLoginName()
 {
-	if (__LoginName) {
+	if (__LoginName)
+	{
 		return (char*)__LoginName;
 	}
-	return NULL;
+
+	return nullptr;
 }
 
 void STMLToPlainText(char* in, char* out)
@@ -5042,7 +5059,7 @@ char* GetAANameByIndex(DWORD AAIndex)
 	{
 		if (((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
 		{
-			if (PALTABILITY pAbility = ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
+			if (ALTABILITY* pAbility = ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
 			{
 				if (pAbility->Index == AAIndex)
 				{
@@ -5055,53 +5072,73 @@ char* GetAANameByIndex(DWORD AAIndex)
 }
 #endif
 
-DWORD GetAAIndexByName(char* AAName)
+int GetAAIndexByName(const char* AAName)
 {
 	int level = -1;
-	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer)
+	{
 		level = pMe->Level;
 	}
-	//check bought aa's first
-	for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-			if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
-				if (!_stricmp(AAName, pName)) {
+
+	// check bought aa's first
+	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+	{
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+		{
+			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+			{
+				if (!_stricmp(AAName, pName))
+				{
 					return pAbility->Index;
 				}
 			}
 		}
 	}
-	//not found? fine lets check them all then...
-	for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++) {
-		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level)) {
-			if (const char* pName = pCDBStr->GetString(pAbility->nName, 1)) {
-				if (!_stricmp(AAName, pName)) {
+
+	// not found? fine lets check them all then...
+	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+	{
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility, level))
+		{
+			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+			{
+				if (!_stricmp(AAName, pName))
+				{
 					return pAbility->Index;
 				}
 			}
 		}
 	}
+
 	return 0;
 }
 
-DWORD GetAAIndexByID(DWORD ID)
+int GetAAIndexByID(int ID)
 {
-	//check our bought aa's first
-	for (unsigned long nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++) {
-		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
-			if (pAbility->ID == ID) {
+	// check our bought aa's first
+	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+	{
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+		{
+			if (pAbility->ID == ID)
+			{
 				return pAbility->Index;
 			}
 		}
 	}
-	//didnt find it? fine we go through them all then...
-	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++) {
-		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility)) {
-			if (pAbility->ID == ID) {
+
+	// didnt find it? fine we go through them all then...
+	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+	{
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
+		{
+			if (pAbility->ID == ID)
+			{
 				return pAbility->Index;
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -5194,7 +5231,7 @@ BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
 		if (!pChar->pSpawn)
 			return FALSE;
 		FELLOWSHIPINFO Fellowship = (FELLOWSHIPINFO)pChar->pSpawn->Fellowship;
-		for (DWORD i = 0; i < Fellowship.Members; i++)
+		for (int i = 0; i < Fellowship.Members; i++)
 		{
 			if (!bCorpse) {
 				if (!_stricmp(Fellowship.FellowshipMember[i].Name, pSpawn->Name))
@@ -5788,8 +5825,10 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		if (pSpawn->mActorClient.Class != 2 && pSpawn->mActorClient.Class != 6)
 			return FALSE;
 	if (pSearchSpawn->bDps && pSearchSpawn->SpawnType != NPC)
+	{
 		if (pSpawn->mActorClient.Class != 4 && pSpawn->mActorClient.Class != 9 && pSpawn->mActorClient.Class != 12)
-			return FALSE;
+			return false;
+	}
 	if (pSearchSpawn->bSlower && pSearchSpawn->SpawnType != NPC)
 		if (pSpawn->mActorClient.Class != 10 && pSpawn->mActorClient.Class != 14 && pSpawn->mActorClient.Class != 15)
 			return FALSE;
@@ -7589,22 +7628,29 @@ bool HasExpansion(DWORD nExpansion)
 {
 	return (bool)((GetCharInfo()->ExpansionFlags & nExpansion) != 0);
 }
-//Just a Function that needs more work
-//I use this to test merc aa struct -eqmule
+
+// Just a Function that needs more work
+// I use this to test merc aa struct -eqmule
 void ListMercAltAbilities()
 {
-	if (pMercAltAbilities) {
+	if (pMercAltAbilities)
+	{
 		int mercaapoints = ((PCHARINFO)pCharData)->MercAAPoints;
-		for (int i = 0; i<12; i++) {
+
+		for (int i = 0; i < MERC_ALT_ABILITY_COUNT; i++)
+		{
 			PEQMERCALTABILITIES pinfo = (PEQMERCALTABILITIES)pMercAltAbilities;
-			if (pinfo->MercAAInfo[i]) {
-				if (pinfo->MercAAInfo[i]->Ptr) {
+			if (pinfo->MercAAInfo[i])
+			{
+				if (pinfo->MercAAInfo[i]->Ptr)
+				{
 					int nName = pinfo->MercAAInfo[i]->Ptr->nName;
 					int maxpoints = pinfo->MercAAInfo[i]->Max;
-					if (nName) {
-						char szBuffer[256] = { 0 };
-						sprintf_s(szBuffer, "%s", pCDBStr->GetString(nName, 37));
-						WriteChatf("You have %d mercaapoints to spend on %s (max is %d)", mercaapoints, szBuffer, maxpoints);
+
+					if (nName)
+					{
+						WriteChatf("You have %d mercaapoints to spend on %s (max is %d)",
+							mercaapoints, pCDBStr->GetString(nName, eMercenaryAbilityName), maxpoints);
 					}
 				}
 			}
@@ -9782,7 +9828,7 @@ int GetTargetBuffBySubCat(const char* subcat, unsigned int classmask, int starts
 			int cat = GetSpellSubcategory(pSpell);
 			if (!cat) continue;
 
-			const char* ptr = pCDBStr->GetString(cat, 5);
+			const char* ptr = pCDBStr->GetString(cat, eSpellCategory);
 			if (!ptr) continue;
 
 			if (!_stricmp(ptr, subcat))
@@ -9822,7 +9868,7 @@ bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff
 		{
 			if (int cat = GetSpellSubcategory(pSpell))
 			{
-				if (const char* ptr = pCDBStr->GetString(cat, 5))
+				if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
 				{
 					if (!_stricmp(ptr, subcat))
 					{
@@ -10029,17 +10075,17 @@ int GetSelfBuffByCategory(int category, unsigned int classmask, int startslot)
 
 int GetSelfBuffBySubCat(const char* subcat, unsigned int classmask, int startslot)
 {
-	CHARINFO2* pChar2 = GetCharInfo2();
-	if (!pChar2)
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
 		return -1;
 
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
+	for (int i = startslot; i < NUM_LONG_BUFFS; i++)
 	{
-		if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
+		if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
 		{
 			if (DWORD cat = GetSpellSubcategory(pSpell))
 			{
-				if (const char *ptr = pCDBStr->GetString(cat, 5))
+				if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
 				{
 					if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(pSpell, classmask))
 					{
@@ -10852,7 +10898,7 @@ bool GetAllMercDesc(std::map<int, MercDesc>& minfo)
 			MercDesc& outDesc = minfo[i];
 
 			int mdesc = pmlist->mercinfo[i].nMercDesc;
-			std::string smdesc = pCDBStr->GetString(mdesc, 0x17);
+			std::string smdesc = pCDBStr->GetString(mdesc, eMercenarySubCategoryDescription);
 			size_t pos = 0;
 
 			if ((pos = smdesc.find("Race: ")) != std::string::npos)
@@ -10896,22 +10942,29 @@ bool GetAllMercDesc(std::map<int, MercDesc>& minfo)
 	return true;
 }
 
-BOOL IsActiveAA(char* pSpellName)
+bool IsActiveAA(const char* pSpellName)
 {
 	int level = -1;
-	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer)
+	{
 		level = pMe->Level;
 	}
-	for (DWORD nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, 1))) {
-				if (pAbility->SpellID <= 0) {
-					return TRUE;
+
+	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+	{
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+		{
+			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, eAltAbilityName)))
+			{
+				if (pAbility->SpellID <= 0)
+				{
+					return true;
 				}
 			}
 		}
 	}
-	return FALSE;
+
+	return false;
 }
 
 struct Personal_Loot

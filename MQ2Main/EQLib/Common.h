@@ -460,6 +460,9 @@ enum EQExpansionOwned
 	EQExpansionAllOwned                = 0x01ffffff,
 };
 
+// TODO: Find a common place to put constants
+constexpr int MAX_BANDOLIER_SLOTS = 4;
+
 
 // Enumerations...
 using EQZoneIndex = uint32_t;

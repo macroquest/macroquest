@@ -874,7 +874,7 @@ FUNCTION_AT_ADDRESS(float get_bearing(float x1, float y1, float x2, float y2), _
 FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(), Util__FastTime);
 #endif
 #ifdef __GetXTargetType_x
-FUNCTION_AT_ADDRESS(char* __stdcall GetXtargetType(DWORD type), __GetXTargetType);
+FUNCTION_AT_ADDRESS(const char* __stdcall GetXtargetType(DWORD type), __GetXTargetType);
 #endif
 #ifdef __EQGetTime_x
 FUNCTION_AT_ADDRESS(DWORD EQGetTime(), __EQGetTime);

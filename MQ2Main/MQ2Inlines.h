@@ -676,7 +676,7 @@ inline bool IsFellowshipMember(const char* SpawnName)
 		if (!pChar->pFellowship)
 			return false;
 
-		for (unsigned int index = 0; index < pChar->pFellowship->Members; index++)
+		for (int index = 0; index < pChar->pFellowship->Members; index++)
 		{
 			if (!_stricmp(SpawnName, pChar->pFellowship->FellowshipMember[index].Name))
 				return true;

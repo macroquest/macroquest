@@ -1559,8 +1559,6 @@ public:
 // CBandolierWnd
 //============================================================================
 
-#define MAX_BANDOLIER_SLOTS 4
-
 class [[offsetcomments]] CBandolierWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -2839,6 +2837,8 @@ public:
 // CGiveWnd
 //============================================================================
 
+constexpr int MAX_GIVE_SLOTS = 4;
+
 class [[offsetcomments]] CGiveWnd : public CSidlScreenWnd, public PopDialogHandler, public WndEventHandler
 {
 public:
@@ -2858,7 +2858,7 @@ public:
 /*0x238*/ CButtonWnd*    TradeButton;
 /*0x23c*/ CButtonWnd*    CancelButton;
 /*0x240*/ CLabel*        NPCNameLabel;
-/*0x244*/ CInvSlotWnd*   pInvSlotWnd[4];
+/*0x244*/ CInvSlotWnd*   pInvSlotWnd[MAX_GIVE_SLOTS];
 /*0x254*/
 };
 
@@ -4897,6 +4897,8 @@ using PEQTRADESKILLWINDOW [[deprecated]] = CTradeSkillWnd*;
 // CTradeWnd
 //============================================================================
 
+constexpr int MAX_TRADE_SLOTS = 16;
+
 // CTradeWnd__CTradeWnd aTradewnd
 // CTradeWnd__size: 0x2e0 (see 5445A7) in Aug 15 2019 Live
 class [[offsetcomments]] CTradeWnd : public CSidlScreenWnd, public WndEventHandler
@@ -4930,7 +4932,7 @@ public:
 /*0x250*/ CButtonWnd*        CancelButton;
 /*0x254*/ CLabel*            HisNameLabel;
 /*0x258*/ CLabel*            MyNameLabel;
-/*0x25c*/ CInvSlotWnd*       pInvSlotWnd[16];
+/*0x25c*/ CInvSlotWnd*       pInvSlotWnd[MAX_TRADE_SLOTS];
 /*0x29c*/ long               HisMoney[4];
 /*0x2ac*/ long               MyMoney[4];
 /*0x2bc*/ ItemBaseContainer  TradeItems;

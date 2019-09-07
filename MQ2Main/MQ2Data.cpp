@@ -1333,7 +1333,7 @@ bool dataAltAbility(const char* szIndex, MQTypeVar& Ret)
 		{
 			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
 			{
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, 1))
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
 					if (!_stricmp(szIndex, pName))
 					{

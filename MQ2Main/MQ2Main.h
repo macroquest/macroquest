@@ -193,7 +193,8 @@ EQLIB_API void DeleteDetour(DWORD address);
 
 EQLIB_API void WriteChatf(const char* Format, ...);
 EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
-EQLIB_API void WriteChatColor(const char* Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
+EQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
+EQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
 
 /* PLUGIN HANDLING */
 EQLIB_API void InitializeMQ2Plugins();
@@ -314,7 +315,9 @@ EQLIB_API float HeadingDiff(float h1, float h2, float *DiffOut);
 EQLIB_API float FixHeading(float Heading);
 EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
 EQLIB_API unsigned long GetFastTime();
-EQLIB_API char * __stdcall GetXtargetType(DWORD type);
+
+// definitely not a __Stdcall -- ExtendedTargetList member
+EQLIB_API const char * __stdcall GetXtargetType(DWORD type);
 EQLIB_API DWORD EQGetTime();
 EQLIB_OBJECT CXStr STMLToText(const CXStr& In, bool bReplaceBrWithNewline = true);
 EQLIB_API class IconCache *__cdecl GetAnimationCache(int index);
@@ -374,7 +377,7 @@ EQLIB_API int GetIllusionCount();
 EQLIB_API int GetFamiliarCount();
 EQLIB_API void RefreshKeyRings(void* kr);
 EQLIB_API void InitKeyRings();
-EQLIB_API BOOL IsActiveAA(char* pSpellName);
+EQLIB_API bool IsActiveAA(const char* pSpellName);
 EQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
 EQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
 EQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
@@ -393,7 +396,8 @@ struct RefreshKeyRingsThreadData
 	bool bUseCmd;
 };
 
-EQLIB_API ITEMINFO *GetItemFromContents(CONTENTS* c);
+EQLIB_API ITEMINFO* GetItemFromContents(CONTENTS* c);
+EQLIB_API EQGroundItemListManager* GetItemList();
 
 #include "MQ2Inlines.h"
 
@@ -436,7 +440,7 @@ inline bool GetItemLink(CONTENTS* Item, char(&Buffer)[_Size], BOOL Clickable = T
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
 
-EQLIB_API char* GetLoginName();
+EQLIB_API const char* GetLoginName();
 EQLIB_API float DistanceToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc);
 EQLIB_API float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, float zLoc);
 EQLIB_API char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize);
@@ -532,8 +536,8 @@ EQLIB_API void        UpdateMonitoredSpawns();
 EQLIB_API char*       GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API bool        PlayerHasAAAbility(DWORD AAIndex);
 EQLIB_API char*       GetAANameByIndex(DWORD AAIndex);
-EQLIB_API DWORD       GetAAIndexByName(char* AAName);
-EQLIB_API DWORD       GetAAIndexByID(DWORD ID);
+EQLIB_API int         GetAAIndexByName(const char* AAName);
+EQLIB_API int         GetAAIndexByID(int ID);
 EQLIB_API int         GetSkillIDFromName(const char* name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState();
@@ -699,7 +703,7 @@ struct ci_less
 	}
 };
 
-inline int ci_find_substr(std::string_view haystack, std::string_view needle, const std::locale& loc = std::locale())
+inline int ci_find_substr(std::string_view haystack, std::string_view needle)
 {
 	auto iter = std::search(std::begin(haystack), std::end(haystack),
 		std::begin(needle), std::end(needle), ci_less::nocase_compare());
@@ -707,8 +711,36 @@ inline int ci_find_substr(std::string_view haystack, std::string_view needle, co
 	return iter - std::begin(haystack);
 }
 
+// todo implement a better ci_starts_with that doesn't search past needle.length chars
+inline bool ci_starts_with(std::string_view haystack, std::string_view needle)
+{
+	return ci_find_substr(haystack, needle) == 0;
+}
+
 inline bool ci_equals(std::string_view sv1, std::string_view sv2)
 {
 	return sv1.size() == sv2.size()
 		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_compare());
+}
+
+inline bool string_equals(std::string_view sv1, std::string_view sv2)
+{
+	return sv1.size() == sv2.size()
+		&& std::equal(sv1.begin(), sv1.end(), sv2.begin());
+}
+
+inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle)
+{
+	if (needle.empty())
+		return haystack.empty();
+
+	bool exact = false;
+
+	if (needle[0] == '=')
+		needle = needle.substr(1);
+
+	if (exact)
+		return ci_equals(haystack, needle);
+
+	return ci_find_substr(haystack, needle) != -1;
 }

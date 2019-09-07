@@ -150,7 +150,7 @@ FUNCTION_AT_ADDRESS(CBroadcast* CBroadcast::Get(), CBroadcast__Get);
 FUNCTION_AT_ADDRESS(int CChatService::GetNumberOfFriends(), CChatService__GetNumberOfFriends);
 #endif
 #ifdef CChatService__GetFriendName_x
-FUNCTION_AT_ADDRESS(char* CChatService::GetFriendName(int), CChatService__GetFriendName);
+FUNCTION_AT_ADDRESS(const char* CChatService::GetFriendName(int), CChatService__GetFriendName);
 #endif
 
 //============================================================================
@@ -158,7 +158,7 @@ FUNCTION_AT_ADDRESS(char* CChatService::GetFriendName(int), CChatService__GetFri
 //============================================================================
 
 #ifdef CDBStr__GetString_x
-FUNCTION_AT_ADDRESS(const char* CDBStr::GetString(int, int, bool*), CDBStr__GetString); // GetString(index, subindex, &success)
+FUNCTION_AT_ADDRESS(const char* CDBStr::GetString(int, eDatabaseStringType type, bool*), CDBStr__GetString); // GetString(index, subindex, &success)
 #endif
 
 //============================================================================
