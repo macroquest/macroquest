@@ -489,6 +489,12 @@ static HeartbeatState Heartbeat()
 	{
 		LastGetTick = Tick;
 		bFirstHeartBeat = false;
+
+		if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE)
+		{
+			gbInZone = true;
+			PluginsSetGameState(gGameState);
+		}
 	}
 
 	// This accounts for rollover

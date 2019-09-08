@@ -546,7 +546,7 @@ public:
 private:
 	size_t m_size = 0;
 	Any* m_list = nullptr;
-	std::mutex m_mutex;
+	std::recursive_mutex m_mutex;
 };
 
 //============================================================================

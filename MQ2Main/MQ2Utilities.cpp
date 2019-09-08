@@ -2072,7 +2072,6 @@ bool EvaluateRPN(CalcOp* pList, int Size, double& Result)
 #undef StackPush
 #undef StackPop
 
-	delete[] pStack;
 	return true;
 }
 

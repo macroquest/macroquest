@@ -647,12 +647,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 	InitializeMQ2DInput();
 
-	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE)
-	{
-		gbInZone = true;
-		PluginsSetGameState(gGameState);
-	}
-
 	DebugSpewAlways("%s", LoadedString);
 
 	while (!gbUnload)

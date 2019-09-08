@@ -237,11 +237,13 @@ public:
 		BLECHASSERT(String && *String);
 		BLECHASSERT(Root);
 
-		if (StringType == BST_NORMAL)
-			Length = (uint32_t)strlen(String);
+		Length = (uint32_t)strlen(String);
 
 		pString = new char[Length + 1];
 		strcpy_s(pString, Length + 1, String);
+
+		if (StringType != BST_NORMAL)
+			Length = 0;
 	}
 
 	~BlechNode()
