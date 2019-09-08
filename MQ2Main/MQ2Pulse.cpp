@@ -26,6 +26,34 @@ static std::mutex s_pulseMutex;
 std::map<int, std::string> targetBuffSlotToCasterMap;
 std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
+//----------------------------------------------------------------------------
+
+std::vector<std::function<void()>> s_queuedEvents;
+std::mutex s_queuedEventMutex;
+
+void PostToMainThread(std::function<void()>&& callback)
+{
+	std::scoped_lock lock(s_queuedEventMutex);
+
+	s_queuedEvents.push_back(std::move(callback));
+}
+
+static void ProcessQueuedEvents()
+{
+	std::scoped_lock lock(s_queuedEventMutex);
+
+	if (s_queuedEvents.empty())
+		return;
+
+	std::vector<std::function<void()>> events;
+	events.swap(s_queuedEvents);
+
+	for (auto& ev : s_queuedEvents)
+		ev();
+}
+
+//----------------------------------------------------------------------------
+
 static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
 	if (!ppCharSpawn || !pCharSpawn)
@@ -234,13 +262,16 @@ void NaturalTurn(SPAWNINFO* pCharOrMount, SPAWNINFO* pChar)
 	}
 }
 
-void Pulse()
+static void Pulse()
 {
 	static HWND EQhWnd = *(HWND*)EQADDR_HWND;
 	if (EQW_GetDisplayWindow)
 		EQhWnd = EQW_GetDisplayWindow();
 
 	gbInForeground = (GetForegroundWindow() == EQhWnd);
+
+	// handle queued events.
+	ProcessQueuedEvents();
 
 	if (!ppCharSpawn || !pCharSpawn) return;
 
@@ -398,17 +429,24 @@ void Pulse()
 	}
 }
 
-int Heartbeat()
+enum HeartbeatState
+{
+	HeartbeatNormal = 0,
+	HeartbeatUnload = 1,
+	HeartbeatLoad = 2,
+};
+
+static HeartbeatState Heartbeat()
 {
 	if (gbUnload)
 	{
-		return 1;
+		return HeartbeatUnload;
 	}
 
 	if (gbLoad)
 	{
 		gbLoad = false;
-		return 2;
+		return HeartbeatLoad;
 	}
 
 	static uint64_t LastGetTick = 0;
@@ -463,7 +501,7 @@ int Heartbeat()
 	}
 	else
 	{
-		return 0;
+		return HeartbeatNormal;
 	}
 
 	DebugTry(UpdateMQ2SpawnSort());
@@ -513,7 +551,7 @@ int Heartbeat()
 		if (!DoNextCommand(pBlock))
 			break;
 		if (gbUnload)
-			return 1;
+			return HeartbeatUnload;
 		if (!gTurbo)
 			break;
 		if (++CurTurbo > gMaxTurbo)
@@ -525,7 +563,7 @@ int Heartbeat()
 
 	PulseCommands();
 
-	return 0;
+	return HeartbeatNormal;
 }
 
 template <unsigned int _Size>
@@ -743,10 +781,10 @@ bool Detour_ProcessGameEvents()
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	int ret = Heartbeat();
-	int ret2 = Trampoline_ProcessGameEvents();
+	HeartbeatState hbState = Heartbeat();
+	int pgeResult = Trampoline_ProcessGameEvents();
 
-	if (ret == 2 && !IsPluginsInitialized())
+	if (hbState == HeartbeatLoad && !IsPluginsInitialized())
 	{
 		OutputDebugString("I am loading in ProcessGameEvents");
 
@@ -757,7 +795,7 @@ bool Detour_ProcessGameEvents()
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
 	}
-	else if (ret == 1 && g_Loaded)
+	else if (hbState == HeartbeatUnload && g_Loaded)
 	{
 		// we are unloading stuff
 		OutputDebugString("I am unloading in ProcessGameEvents");
@@ -777,7 +815,7 @@ bool Detour_ProcessGameEvents()
 		SetEvent(hUnloadComplete);
 	}
 
-	return ret2;
+	return pgeResult;
 	DebugTryEndRet();
 }
 DETOUR_TRAMPOLINE_EMPTY(bool Trampoline_ProcessGameEvents());

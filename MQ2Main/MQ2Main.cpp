@@ -35,6 +35,7 @@
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
+DWORD dwMainThreadId = 0;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
@@ -371,6 +372,9 @@ void DeInitializeMQ2IcExports()
 
 void DoInitialization()
 {
+	// initialize main thread id
+	dwMainThreadId = ::GetCurrentThreadId();
+
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 
@@ -666,7 +670,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 		PluginsSetGameState(gGameState);
 	}
 
-	WriteChatfSafe(LoadedString);
 	DebugSpewAlways("%s", LoadedString);
 
 	while (!gbUnload)
@@ -826,6 +829,23 @@ void CreateMQ2NewsWindow()
 	}
 
 	InsertMQ2News();
+}
+
+//============================================================================
+
+DWORD GetMainThreadId()
+{
+	return dwMainThreadId;
+}
+
+bool IsMainThread()
+{
+	// If not initialized yet, we don't know. Treat as if we're on another
+	// thread, then we'll stay extra safe.
+	if (dwMainThreadId == 0)
+		return false;
+
+	return dwMainThreadId == ::GetCurrentProcessId();
 }
 
 //============================================================================

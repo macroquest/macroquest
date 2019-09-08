@@ -14,29 +14,6 @@
 
 #include "MQ2Main.h"
 
-DWORD CALLBACK BeepOnTellThread(void* pData)
-{
-	Beep(750, 200);
-	return 0;
-}
-
-DWORD CALLBACK FlashOnTellThread(void* pData)
-{
-	HWND hEQWnd = GetEQWindowHandle();
-
-	if (hEQWnd)
-	{
-		FLASHWINFO fwi = { sizeof(FLASHWINFO) };
-		fwi.dwFlags = FLASHW_ALL;
-		fwi.hwnd = hEQWnd;
-		fwi.uCount = 3;
-		fwi.dwTimeout = 0;
-		FlashWindowEx(&fwi);
-	}
-
-	return 0;
-}
-
 class CChatHook
 {
 public:

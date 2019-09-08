@@ -19,8 +19,6 @@
 #include <mutex>
 #include <vector>
 
-EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
-
 namespace MQ2Internal {
 
 class MQ2Type;

@@ -132,6 +132,13 @@
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
 
+/* THREADING */
+EQLIB_API DWORD GetMainThreadId();
+EQLIB_API bool IsMainThread();
+
+// Queue a function to be called on the main thread on the next pulse
+EQLIB_OBJECT void PostToMainThread(std::function<void()>&& callback);
+
 /* BENCHMARKING */
 #ifdef DISABLE_BENCHMARKS
 #define Benchmark(BMHandle, code) code
@@ -185,15 +192,14 @@ EQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true
 EQLIB_API void InitializeMQ2Detours();
 EQLIB_API void ShutdownMQ2Detours();
 
-
 EQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, char* Name = 0);
 EQLIB_API void AddDetourf(DWORD address, ...);
 EQLIB_API void RemoveDetour(DWORD address);
 EQLIB_API void DeleteDetour(DWORD address);
 
+EQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
 EQLIB_API void WriteChatf(const char* Format, ...);
-EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
-EQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
+EQLIB_API [[deprecated("Use WriteChatf instead")]] void WriteChatfSafe(const char* szFormat, ...);
 EQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
 
 /* PLUGIN HANDLING */
@@ -327,10 +333,13 @@ EQLIB_API void SaveColors(int, int, int, int);
 EQLIB_API void ConvertCR(char* Text, size_t LineLen);
 EQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 EQLIB_API void FixStringTable();
-EQLIB_API void DebugSpew(char* szFormat, ...);
-EQLIB_API void DebugSpewAlways(char* szFormat, ...);
-EQLIB_API void DebugSpewAlwaysFile(char* szFormat, ...);
-EQLIB_API void DebugSpewNoFile(char* szFormat, ...);
+
+// Logging utilities
+EQLIB_API void DebugSpew(const char* szFormat, ...);
+EQLIB_API void DebugSpewAlways(const char* szFormat, ...);
+EQLIB_API void DebugSpewAlwaysFile(const char* szFormat, ...);
+EQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
+
 EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, char Separator = 0);
 EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, char Separator = 0, BOOL AnyNonAlphaNum = FALSE);
 EQLIB_API float DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
@@ -384,8 +393,6 @@ EQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalLis
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
 EQLIB_API int RangeRandom(int min, int max);
-EQLIB_API DWORD CALLBACK BeepOnTellThread(void* pData);
-EQLIB_API DWORD CALLBACK FlashOnTellThread(void* pData);
 EQLIB_API CMQ2Alerts CAlerts;
 
 struct RefreshKeyRingsThreadData
@@ -486,11 +493,11 @@ EQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, M
 EQLIB_API MQDataVar** FindVariableScope(const char* Name);
 EQLIB_API bool DeleteMQ2DataVariable(const char* Name);
 EQLIB_API void ClearMQ2DataVariables(MQDataVar** ppHead);
-EQLIB_API void NewDeclareVar(PSPAWNINFO pChar, char* szLine);
-EQLIB_API void NewDeleteVarCmd(PSPAWNINFO pChar, char* szLine);
-EQLIB_API void NewVarset(PSPAWNINFO pChar, char* szLine);
-EQLIB_API void NewVarcalc(PSPAWNINFO pChar, char* szLine);
-EQLIB_API void NewVardata(PSPAWNINFO pChar, char* szLine);
+EQLIB_API void NewDeclareVar(SPAWNINFO* pChar, char* szLine);
+EQLIB_API void NewDeleteVarCmd(SPAWNINFO* pChar, char* szLine);
+EQLIB_API void NewVarset(SPAWNINFO* pChar, char* szLine);
+EQLIB_API void NewVarcalc(SPAWNINFO* pChar, char* szLine);
+EQLIB_API void NewVardata(SPAWNINFO* pChar, char* szLine);
 EQLIB_API void DropTimers();
 
 /*                 */

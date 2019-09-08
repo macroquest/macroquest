@@ -18,156 +18,183 @@
 #define DBG_SPEW // enable DebugSpew messages in debug builds
 #endif
 
-// ***************************************************************************
+//***************************************************************************
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
-// ***************************************************************************
-void DebugSpew(char* szFormat, ...)
+//***************************************************************************
+
+static void LogToFile(const char* szOutput)
 {
-	if (gFilterDebug) return;
+	FILE* fOut = nullptr;
+	char szFilename[MAX_PATH] = { 0 };
+
+	sprintf_s(szFilename, "%s\\DebugSpew.log", gszLogPath);
+	errno_t err = fopen_s(&fOut, szFilename, "at");
+
+	if (err || !fOut)
+		return;
+
+#ifdef DBG_CHARNAME
+	char Name[256] = "Unknown";
+	if (CHARINFO * pCharInfo = GetCharInfo())
+	{
+		strcpy_s(Name, pCharInfo->Name);
+	}
+	fprintf(fOut, "%s - ", Name);
+#endif
+
+	fprintf(fOut, "%s\r\n", szOutput);
+	fclose(fOut);
+}
+
+static void DebugSpewImpl(bool always, bool logToFile, const char* szFormat, va_list vaList)
+{
+	if (!always && gFilterDebug)
+		return;
+
+	// _vscprintf doesn't count // terminating '\0'
+	int len = _vscprintf(szFormat, vaList) + 1;
+	int headerlen = strlen(DebugHeader) + 1;
+	size_t theLen = len + headerlen + 32;
+
+	auto out = std::make_unique<char[]>(theLen);
+	char* szOutput = out.get();
+
+	strcpy_s(szOutput, theLen, DebugHeader " ");
+	vsprintf_s(szOutput + headerlen, theLen - headerlen, szFormat, vaList);
+
+	strcat_s(szOutput, theLen, "\n");
+	OutputDebugString(szOutput);
+
+	if (logToFile)
+	{
+		LogToFile(szOutput);
+	}
+}
+
+void DebugSpew(const char* szFormat, ...)
+{
 	va_list vaList;
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	int headerlen = strlen(DebugHeader) + 1;
-	size_t thelen = len + headerlen + 32;
-	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
-		strcpy_s(szOutput, thelen, DebugHeader " ");
-		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
-		strcat_s(szOutput, thelen, "\n");
-		OutputDebugString(szOutput);
-		LocalFree(szOutput);
+
+	DebugSpewImpl(false, false, szFormat, vaList);
+}
+
+void DebugSpewAlways(const char* szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+
+	DebugSpewImpl(true, gSpewToFile, szFormat, vaList);
+}
+
+void DebugSpewAlwaysFile(const char* szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+
+	DebugSpewImpl(true, true, szFormat, vaList);
+}
+
+EQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
+{
+#ifdef DBG_SPEW
+	va_list vaList;
+	va_start(vaList, szFormat);
+
+	DebugSpewImpl(true, false, szFormat, vaList);
+#endif
+}
+
+// Implemented in MQ2PluginHandler.cpp
+void PluginsWriteChatColor(const char* Line, int Color, int Filter);
+
+static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, int Filter)
+{
+	if (IsMainThread())
+	{
+		PluginsWriteChatColor(Ptr.get(), Color, Filter);
 	}
+
+	// Queue it up to run on the main thread
+	PostToMainThread(
+		[Ptr = std::shared_ptr<char[]>{ std::move(Ptr) }, Color, Filter]()
+	{
+		PluginsWriteChatColor(Ptr.get(), Color, Filter);
+	});
+}
+
+void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)
+{
+	// If we're alreadyon the main thread, avoid copying anything and just call
+	// straight to PluginsWriteChatColor
+
+	if (IsMainThread())
+	{
+		PluginsWriteChatColor(Line, Color, Filter);
+		return;
+	}
+
+	// we're not on the main thread, we need to copy the string and queue up a function
+	// to be executed on the main thread.
+	size_t length = strlen(Line) + 1;
+	std::shared_ptr<char[]> Ptr{ new char[length] };
+	strcpy_s(Ptr.get(), length, Line);
+
+	// Queue it up to run on the main thread
+	PostToMainThread(
+		[Ptr, Color, Filter]()
+	{
+		PluginsWriteChatColor(Ptr.get(), Color, Filter);
+	});
 }
 
 void WriteChatf(const char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf_s(szOutput, len, szFormat, vaList);
-		WriteChatColor(szOutput);
-		LocalFree(szOutput);
-	}
+
+	// _vscprintf doesn't count // terminating '\0'
+	int len = _vscprintf(szFormat, vaList) + 1;
+
+	auto out = std::make_unique<char[]>(len);
+	char* szOutput = out.get();
+
+	vsprintf_s(szOutput, len, szFormat, vaList);
+	WriteChatColor(szOutput);
+}
+
+void WriteChatfSafe(const char* szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+
+	// _vscprintf doesn't count // terminating '\0'
+	int len = _vscprintf(szFormat, vaList) + 1;
+
+	auto out = std::make_unique<char[]>(len);
+	char* szOutput = out.get();
+
+	vsprintf_s(szOutput, len, szFormat, vaList);
+	WriteChatColor(szOutput);
 }
 
 void WriteChatColorf(const char* szFormat, int color, ...)
 {
 	va_list vaList;
 	va_start(vaList, color);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
-		vsprintf_s(szOutput, len, szFormat, vaList);
-		WriteChatColor(szOutput, color);
-		LocalFree(szOutput);
-	}
-}
 
-//"threadsafe" chat output
-void WriteChatfSafe(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
+	// _vscprintf doesn't count // terminating '\0'
 	int len = _vscprintf(szFormat, vaList) + 1;
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf_s(szOutput, len, szFormat, vaList);
-		if (char *szOut = (char *)LocalAlloc(LPTR, len + 64)) {
-			sprintf_s(szOut, len + 64, "/echo %s", szOutput);
-			HideDoCommand((PSPAWNINFO)pLocalPlayer, szOut, TRUE);
-			LocalFree(szOut);
-		}
-		LocalFree(szOutput);
-	}
+
+	auto out = std::make_unique<char[]>(len);
+	char* szOutput = out.get();
+
+	vsprintf_s(szOutput, len, szFormat, vaList);
+	WriteChatColor(szOutput, color);
 }
 
-void DebugSpewAlways(char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
-	int headerlen = strlen(DebugHeader) + 1;
-	size_t thelen = len + headerlen + 32;
-	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
-		strcpy_s(szOutput, thelen, DebugHeader " ");
-		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
-		strcat_s(szOutput, thelen, "\n");
-		OutputDebugString(szOutput);
-		if (gSpewToFile) {
-			FILE *fOut = NULL;
-			char Filename[MAX_STRING] = { 0 };
-			sprintf_s(Filename, "%s\\DebugSpew.log", gszLogPath);
-			errno_t err = fopen_s(&fOut, Filename, "at");
-			if (err)
-				return;
-#ifdef DBG_CHARNAME
-			char Name[256] = "Unknown";
-			PCHARINFO pCharInfo = GetCharInfo();
-			if (pCharInfo)
-			{
-				strcpy_s(Name, pCharInfo->Name);
-			}
-			fprintf(fOut, "%s - %s\r\n", Name, szOutput);
-#else
-			fprintf(fOut, "%s\r\n", szOutput);
-#endif
-			fclose(fOut);
-		}
-		LocalFree(szOutput);
-	}
-}
-void DebugSpewAlwaysFile(char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
-	int headerlen = strlen(DebugHeader) + 1;
-	size_t thelen = len + headerlen + 32;
-	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
-		strcpy_s(szOutput, thelen, DebugHeader " ");
-		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
-		strcat_s(szOutput, thelen, "\n");
-		OutputDebugString(szOutput);
-		//if (gSpewToFile) {
-			FILE *fOut = NULL;
-			char Filename[MAX_STRING] = { 0 };
-			sprintf_s(Filename, "%s\\DebugSpew.log", gszLogPath);
-			errno_t err = fopen_s(&fOut, Filename, "at");
-			if (err)
-				return;
-#ifdef DBG_CHARNAME
-			char Name[256] = "Unknown";
-			PCHARINFO pCharInfo = GetCharInfo();
-			if (pCharInfo)
-			{
-				strcpy_s(Name, pCharInfo->Name);
-			}
-			fprintf(fOut, "%s - %s\r\n", Name, szOutput);
-#else
-			fprintf(fOut, "%s\r\n", szOutput);
-#endif
-			fclose(fOut);
-		//}
-		LocalFree(szOutput);
-	}
-}
-
-EQLIB_API void DebugSpewNoFile(char* szFormat, ...)
-{
-#ifdef DBG_SPEW
-	va_list vaList;
-	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
-	int headerlen = strlen(DebugHeader) + 1;
-	size_t thelen = len + headerlen + 32;
-	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
-		strcpy_s(szOutput, thelen, DebugHeader " ");
-		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
-		strcat_s(szOutput, thelen, "\n");
-		OutputDebugString(szOutput);
-		LocalFree(szOutput);
-	}
-#endif
-}
+//============================================================================
 
 void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
 {
@@ -181,7 +208,7 @@ void ConvertCR(char* Text, size_t LineLen)
 	while (char* Next = strstr(Text, "\\n"))
 	{
 		int len = (int)(Next - Text);
-		StrReplaceSection(Next, LineLen-len, 2, "\n");
+		StrReplaceSection(Next, LineLen - len, 2, "\n");
 	}
 }
 
@@ -191,7 +218,7 @@ void Flavorator(char* szLine, size_t LineLen)
 	while (pSpot = strstr(szLine, "%e"))
 	{
 		int len = (int)(pSpot - szLine);
-		StrReplaceSection(pSpot, LineLen-len, 2, szColorExpletive[rand() % nColorExpletive]);
+		StrReplaceSection(pSpot, LineLen - len, 2, szColorExpletive[rand() % nColorExpletive]);
 	}
 	while (pSpot = strstr(szLine, "%a"))
 	{
@@ -210,7 +237,7 @@ void SyntaxError(char* szFormat, ...)
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (bLaxColor)
 		{
@@ -218,7 +245,7 @@ void SyntaxError(char* szFormat, ...)
 			strcpy_s(szColor, szColorSyntaxError[rand() % nColorSyntaxError]);
 			if (szColor[0])
 			{
-				Flavorator(szColor,MAX_STRING);
+				Flavorator(szColor, MAX_STRING);
 				WriteChatColor(szColor);
 			}
 		}
@@ -233,7 +260,7 @@ void MacroError(char* szFormat, ...)
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (bLaxColor)
 		{
@@ -265,7 +292,7 @@ void FatalError(char* szFormat, ...)
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (bLaxColor)
 		{
@@ -295,7 +322,7 @@ void MQ2DataError(char* szFormat, ...)
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
 		if (gFilterMQ2DataErrors)
 			DebugSpew("%s", szOutput);
@@ -368,7 +395,7 @@ PSTR GetNextArg(PCSTR szLine, DWORD dwNumber, BOOL CSV, char Separator)
 		) szNext++;
 
 	if ((INT)dwNumber < 1) return (PSTR)szNext;
-	for (dwNumber; dwNumber>0; dwNumber--) {
+	for (dwNumber; dwNumber > 0; dwNumber--) {
 		while ((
 			((CustomSep) || (szNext[0] != ' '))
 			&& ((CustomSep) || (szNext[0] != '\t'))
@@ -408,7 +435,7 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 	BOOL CustomSep = FALSE;
 	BOOL InQuotes = FALSE;
 	PCSTR szTemp = szSrc;
-	ZeroMemory(szDest,MAX_STRING);
+	ZeroMemory(szDest, MAX_STRING);
 
 	if (Separator != 0) CustomSep = TRUE;
 
@@ -420,7 +447,7 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 		&& ((CustomSep) || (!CSV) || (szTemp[i] != ','))
 		&& ((!CustomSep) || (szTemp[i] != Separator))
 		&& ((!AnyNonAlphaNum) || (
-			(szTemp[i] >= '0' && szTemp[i] <= '9') ||
+		(szTemp[i] >= '0' && szTemp[i] <= '9') ||
 			(szTemp[i] >= 'a' && szTemp[i] <= 'z') ||
 			(szTemp[i] >= 'A' && szTemp[i] <= 'Z') ||
 			(szTemp[i] == '_')
@@ -461,11 +488,11 @@ char* GetEQPath(char* szBuffer, size_t len)
 	char* pSearch = 0;
 	_strlwr_s(szBuffer, len);
 	if (pSearch = strstr(szBuffer, "\\wineq\\"))
-		*pSearch = 0;
+		* pSearch = 0;
 	else if (pSearch = strstr(szBuffer, "\\testeqgame.exe"))
-		*pSearch = 0;
+		* pSearch = 0;
 	else if (pSearch = strstr(szBuffer, "\\eqgame.exe"))
-		*pSearch = 0;
+		* pSearch = 0;
 	return szBuffer;
 }
 
@@ -522,7 +549,7 @@ void StripMQChat(const char* in, char* out)
 	//DebugSpew("StripMQChat=>(%s)",out);
 }
 
-bool ReplaceSafely(char** out, DWORD *pchar_out_string_position, char chr,DWORD maxlen)
+bool ReplaceSafely(char** out, DWORD* pchar_out_string_position, char chr, DWORD maxlen)
 {
 	if ((*pchar_out_string_position) + 1 > maxlen)
 		return false;
@@ -538,7 +565,7 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 	//char szCmd[MAX_STRING] = { 0 };
 	//strcpy_s(szCmd, out);
 	int outlen = maxlen;
-	if (maxlen>14)
+	if (maxlen > 14)
 		maxlen -= 14; // make room for this: <c "#123456">
 	DWORD pchar_in_string_position = 0;
 	DWORD pchar_out_string_position = 0;
@@ -547,9 +574,9 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 	ColorOverride &= 0xFFFFFF;
 	DWORD CurrentColor = ColorOverride;
 	int TotalColors = 0; // this MUST be signed.
-	pchar_out_string_position += InsertColorSafe(&out[pchar_out_string_position],outlen-pchar_out_string_position, CurrentColor);
+	pchar_out_string_position += InsertColorSafe(&out[pchar_out_string_position], outlen - pchar_out_string_position, CurrentColor);
 
-	while (in[pchar_in_string_position] != 0 && pchar_out_string_position<maxlen)
+	while (in[pchar_in_string_position] != 0 && pchar_out_string_position < maxlen)
 	{
 		if (in[pchar_in_string_position] == ' ')
 		{
@@ -585,7 +612,7 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 				if (in[pchar_in_string_position] == 'x')
 				{
 					CurrentColor = -1;
-					pchar_out_string_position += InsertStopColorSafe(&out[pchar_out_string_position],outlen-pchar_out_string_position);
+					pchar_out_string_position += InsertStopColorSafe(&out[pchar_out_string_position], outlen - pchar_out_string_position);
 					if (pchar_out_string_position >= maxlen)
 						break;
 				}
@@ -602,7 +629,7 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 						temp[6] = 0;
 						CurrentColor = -1;
 						//pchar_out_string_position += sprintf_s(&out[pchar_out_string_position],outlen-pchar_out_string_position, "<c \"#%s\">", &temp[0]);
-						pchar_out_string_position += sprintf_s(&out[pchar_out_string_position],outlen-pchar_out_string_position, "<c \"#%s\">", &temp[0]);
+						pchar_out_string_position += sprintf_s(&out[pchar_out_string_position], outlen - pchar_out_string_position, "<c \"#%s\">", &temp[0]);
 						TotalColors++;
 						if (pchar_out_string_position >= maxlen)
 							break;
@@ -679,7 +706,7 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 						if ((int)CurrentColor != LastColor)
 						{
 							//pchar_out_string_position += InsertColor(&out[pchar_out_string_position], CurrentColor);
-							pchar_out_string_position += InsertColorSafe(&out[pchar_out_string_position],outlen-pchar_out_string_position, CurrentColor);
+							pchar_out_string_position += InsertColorSafe(&out[pchar_out_string_position], outlen - pchar_out_string_position, CurrentColor);
 							if (pchar_out_string_position >= maxlen)
 								break;
 						}
@@ -762,15 +789,15 @@ DWORD MQToSTML(const char* in, char* out, DWORD maxlen, DWORD ColorOverride)
 		if (pchar_out_string_position >= maxlen)
 			break;
 		else
-		pchar_in_string_position++;
+			pchar_in_string_position++;
 	}
-	if (pchar_out_string_position > maxlen)	{
+	if (pchar_out_string_position > maxlen) {
 		pchar_out_string_position = maxlen;
 	}
-	for (TotalColors; TotalColors>0;)
+	for (TotalColors; TotalColors > 0;)
 	{
 		//pchar_out_string_position += InsertStopColor(&out[pchar_out_string_position]);
-		pchar_out_string_position += InsertStopColorSafe(&out[pchar_out_string_position],outlen-pchar_out_string_position);
+		pchar_out_string_position += InsertStopColorSafe(&out[pchar_out_string_position], outlen - pchar_out_string_position);
 	}
 	out[pchar_out_string_position++] = 0;
 	//szCmd[pchar_out_string_positions++] = 0;
@@ -787,8 +814,8 @@ const char* GetFilenameFromFullPath(const char* Filename)
 char* GetSubFromLine(int Line, char* szSub, size_t Sublen)
 {
 	std::map<int, MQMacroLine>::reverse_iterator ri(gMacroBlock->Line.find(Line));
-	for (; ri != gMacroBlock->Line.rend();ri++) {
-	//while (pLine != NULL) {
+	for (; ri != gMacroBlock->Line.rend(); ri++) {
+		//while (pLine != NULL) {
 		if (!_strnicmp(ri->second.Command.c_str(), "sub ", 4)) {
 			strcpy_s(szSub, Sublen, ri->second.Command.c_str() + 4);
 			return szSub;
@@ -912,7 +939,8 @@ int GetZoneID(const char* ZoneShortName)
 		if (pZone) {
 			if (!_stricmp(pZone->ShortName, ZoneShortName)) {
 				return nIndex;
-			} else if (!_stricmp(pZone->LongName, ZoneShortName)) {
+			}
+			else if (!_stricmp(pZone->LongName, ZoneShortName)) {
 				return nIndex;
 			}
 		}
@@ -932,9 +960,9 @@ void GetGameTime(int* Hour, int* Minute, int* Night)
 		return;
 	eqHour = ((PWORLDDATA)pWorldData)->Hour - 1; // Midnight = 1 in EQ time
 	eqMinute = ((PWORLDDATA)pWorldData)->Minute;
-	if (Hour) *Hour = eqHour;
-	if (Minute) *Minute = eqMinute;
-	if (Night) *Night = ((eqHour < 7) || (eqHour > 18));//?TRUE:FALSE; // already handled by operators
+	if (Hour)* Hour = eqHour;
+	if (Minute)* Minute = eqMinute;
+	if (Night)* Night = ((eqHour < 7) || (eqHour > 18));//?TRUE:FALSE; // already handled by operators
 }
 
 // ***************************************************************************
@@ -945,9 +973,9 @@ void GetGameDate(int* Month, int* Day, int* Year)
 {
 	if (!ppWorldData || (ppWorldData && !pWorldData))
 		return;
-	if (Month) *Month = ((PWORLDDATA)pWorldData)->Month;
-	if (Day) *Day = ((PWORLDDATA)pWorldData)->Day;
-	if (Year) *Year = ((PWORLDDATA)pWorldData)->Year;
+	if (Month)* Month = ((PWORLDDATA)pWorldData)->Month;
+	if (Day)* Day = ((PWORLDDATA)pWorldData)->Day;
+	if (Year)* Year = ((PWORLDDATA)pWorldData)->Year;
 }
 
 int GetLanguageIDByName(char* SzName)
@@ -1117,7 +1145,7 @@ void PopulateSpellMap()
 
 	for (int dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++)
 	{
-		if (SPELL* pSpell = pSpellMgr->Spells[dwSpellID])
+		if (SPELL * pSpell = pSpellMgr->Spells[dwSpellID])
 		{
 			if (pSpell->Name[0] != '\0')
 			{
@@ -1143,9 +1171,9 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 
 	switch (state)
 	{
-	case 1: WriteChatfSafe("Initializing SpellMap from SetGameState."); break;
-	case 2: WriteChatfSafe("Initializing SpellMap from GetSpellByName."); break;
-	default: WriteChatfSafe("Initializing SpellMap. (%d)", state); break;
+	case 1: WriteChatf("Initializing SpellMap from SetGameState."); break;
+	case 2: WriteChatf("Initializing SpellMap from GetSpellByName."); break;
+	default: WriteChatf("Initializing SpellMap. (%d)", state); break;
 	}
 
 	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME)
@@ -1163,9 +1191,9 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 
 	switch (state)
 	{
-	case 1: WriteChatfSafe("SpellMap Initialized from SetGameState."); break;
-	case 2: WriteChatfSafe("SpellMap Initialized from GetSpellByName."); break;
-	default: WriteChatfSafe("SpellMap Initialized. (%d)", state); break;
+	case 1: WriteChatf("SpellMap Initialized from SetGameState."); break;
+	case 2: WriteChatf("SpellMap Initialized from GetSpellByName."); break;
+	default: WriteChatf("SpellMap Initialized. (%d)", state); break;
 	}
 
 	ghInitializeSpellDbThread = nullptr;
@@ -1253,15 +1281,15 @@ SPELL* GetSpellByName(const char* szName)
 	}
 
 	int highestclasslevel = 0;
-	int classlevel        = 0;
-	int playerclass       = profile->Class;
-	int currlevel         = profile->Level;
+	int classlevel = 0;
+	int playerclass = profile->Class;
+	int currlevel = profile->Level;
 
 	if (playerclass && playerclass >= Warrior && playerclass <= Berserker)
 	{
 		for (auto& duplicate : iter2->second.Duplicates)
 		{
-			if (SPELL* dupeSpell = duplicate.second)
+			if (SPELL * dupeSpell = duplicate.second)
 			{
 				classlevel = dupeSpell->ClassLevel[playerclass];
 
@@ -1301,14 +1329,14 @@ SPELL* GetSpellByAAName(const char* szName)
 {
 	int level = -1;
 
-	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
+	if (SPAWNINFO * pMe = (SPAWNINFO*)pLocalPlayer)
 	{
 		level = pMe->Level;
 	}
 
 	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility, level))
+		if (ALTABILITY * pAbility = GetAAByIdWrapper(nAbility, level))
 		{
 			if (pAbility->SpellID != -1)
 			{
@@ -1316,7 +1344,7 @@ SPELL* GetSpellByAAName(const char* szName)
 				{
 					if (!_stricmp(szName, pName))
 					{
-						if (SPELL* psp = GetSpellByID(pAbility->SpellID))
+						if (SPELL * psp = GetSpellByID(pAbility->SpellID))
 						{
 							return psp;
 						}
@@ -1420,7 +1448,7 @@ int64_t GetGuildIDByName(char* szGuild)
 const char* GetLightForSpawn(PSPAWNINFO pSpawn)
 {
 	BYTE Light = pSpawn->Light;
-	if (Light>LIGHT_COUNT) Light = 0;
+	if (Light > LIGHT_COUNT) Light = 0;
 	return szLights[Light];
 }
 
@@ -1433,7 +1461,7 @@ float DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 	float X = pChar->X - pSpawn->X;
 	float Y = pChar->Y - pSpawn->Y;
 	float Z = pChar->Z - pSpawn->Z;
-	return sqrtf(X*X + Y*Y + Z*Z);
+	return sqrtf(X * X + Y * Y + Z * Z);
 }
 
 // ***************************************************************************
@@ -1445,7 +1473,7 @@ float EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 	float RDistance = DistanceToSpawn(pChar, pSpawn);
 	float X = pChar->X - (pSpawn->X + pSpawn->SpeedX * RDistance);
 	float Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
-	return sqrtf(X*X + Y*Y);
+	return sqrtf(X * X + Y * Y);
 }
 
 // ***************************************************************************
@@ -1533,10 +1561,11 @@ bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, BOOL Clickable
 	char hash[MAX_STRING] = { 0 };
 	bool retVal = false;
 	GetItemLinkHash(Item, hash);
-	if (int len=strlen(hash)) {
+	if (int len = strlen(hash)) {
 		if (Clickable) {
 			sprintf_s(Buffer, BufferSize, "%c0%s%s%c", 0x12, hash, GetItemFromContents(Item)->Name, 0x12);
-		} else {
+		}
+		else {
 			sprintf_s(Buffer, BufferSize, "0%s%s", hash, GetItemFromContents(Item)->Name);
 		}
 		retVal = true;
@@ -1651,7 +1680,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 	return true;                       \
 }
 
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (CHARINFO2 * pChar2 = GetCharInfo2())
 	{
 		if (pChar2->pInventoryArray)
 		{
@@ -1660,7 +1689,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 				// iterate through worn items
 				for (unsigned long N = 0; N < 21; N++)
 				{
-					if (CONTENTS* pContents = pChar2->pInventoryArray->InventoryArray[N]) {
+					if (CONTENTS * pContents = pChar2->pInventoryArray->InventoryArray[N]) {
 						if (ItemMatchesSearch(SearchItem, pContents)) {
 							DoResult(pContents, N);
 						}
@@ -1674,7 +1703,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 				// iterate through inventory slots before in-pack slots
 				for (nPack = 0; nPack < 10; nPack++)
 				{
-					if (CONTENTS* pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
+					if (CONTENTS * pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
 					{
 						if (ItemMatchesSearch(SearchItem, pContents))
 							DoResult(pContents, nPack + 21);
@@ -1682,13 +1711,13 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 				}
 				for (nPack = 0; nPack < 10; nPack++)
 				{
-					if (CONTENTS* pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
+					if (CONTENTS * pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
 					{
 						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->Contents.ContainedItems.Capacity)
 						{
 							for (unsigned long nItem = 0; nItem < GetItemFromContents(pContents)->Slots; nItem++)
 							{
-								if (CONTENTS* pItem = pContents->GetContent(nItem))
+								if (CONTENTS * pItem = pContents->GetContent(nItem))
 									if (ItemMatchesSearch(SearchItem, pItem))
 										DoResult(pItem, nPack * 100 + nItem);
 							}
@@ -1727,7 +1756,7 @@ float DistanceToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc)
 {
 	float X = pSpawn->X - xLoc;
 	float Y = pSpawn->Y - yLoc;
-	return sqrtf(X*X + Y*Y);
+	return sqrtf(X * X + Y * Y);
 }
 // *************************************************************************** 
 // Function:    Distance3DToPoint 
@@ -1738,7 +1767,7 @@ float Distance3DToPoint(PSPAWNINFO pSpawn, float xLoc, float yLoc, float zLoc)
 	float dX = pSpawn->X - xLoc;
 	float dY = pSpawn->Y - yLoc;
 	float dZ = pSpawn->Z - zLoc;
-	return sqrtf(dX*dX + dY*dY + dZ*dZ);
+	return sqrtf(dX * dX + dY * dY + dZ * dZ);
 }
 // *************************************************************************** 
 // Function:    IsBardSong
@@ -1756,8 +1785,8 @@ BOOL IsBardSong(PSPELL pSpell)
 // *************************************************************************** 
 BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 {
-	for (int slot = 0; slot<GetSpellNumEffects(pSpell); slot++)
-		if (GetSpellAttrib(pSpell,slot) == EffectID)
+	for (int slot = 0; slot < GetSpellNumEffects(pSpell); slot++)
+		if (GetSpellAttrib(pSpell, slot) == EffectID)
 			return true;
 	return false;
 }
@@ -1779,13 +1808,15 @@ char* GetClassesFromMask(LONG mask, char(&szBuffer)[_Size])
 	for (int playerclass = Warrior; playerclass <= Berserker; playerclass++) {
 		if (mask & (1 << playerclass)) {
 			matching++;
-		} else {
+		}
+		else {
 			excluding++;
 		}
 	}
 	if (matching == numofclasses) {
 		strcat_s(szBuffer, "ALL");
-	} else if (excluding <= 4) {
+	}
+	else if (excluding <= 4) {
 		strcat_s(szBuffer, "ALL EXCEPT: ");
 		for (int playerclass = Warrior; playerclass <= Berserker; playerclass++) {
 			if (!(mask & (1 << playerclass))) {
@@ -1794,7 +1825,8 @@ char* GetClassesFromMask(LONG mask, char(&szBuffer)[_Size])
 				strcat_s(szBuffer, ClassInfo[playerclass].UCShortName);
 			}
 		}
-	} else {
+	}
+	else {
 		for (int playerclass = Warrior; playerclass <= Berserker; playerclass++) {
 			//WriteChatf("Checking playerclass(%d)", 1 << playerclass);
 			if (mask & (1 << playerclass)) {
@@ -1821,114 +1853,114 @@ char* GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, char* szBuffer, s
 		return(szBuffer);
 	}
 	//switch (pSpell->Base2[nIndex])
-	switch (GetSpellBase2(pSpell,nIndex))
+	switch (GetSpellBase2(pSpell, nIndex))
 	{
-	case 0:	strcat_s(szBuffer,BufferSize, "None"); break;
-	case 100: strcat_s(szBuffer,BufferSize, "Only works on Animal or Humanoid"); break;
-	case 101: strcat_s(szBuffer,BufferSize, "Only works on Dragon"); break;
-	case 102: strcat_s(szBuffer,BufferSize, "Only works on Animal or Insect"); break;
-	case 104: strcat_s(szBuffer,BufferSize, "Only works on Animal"); break;
-	case 105: strcat_s(szBuffer,BufferSize, "Only works on Plant"); break;
-	case 106: strcat_s(szBuffer,BufferSize, "Only works on Giant"); break;
-	case 108: strcat_s(szBuffer,BufferSize, "Doesn't work on Animals or Humanoids"); break;
-	case 109: strcat_s(szBuffer,BufferSize, "Only works on Bixie"); break;
-	case 110: strcat_s(szBuffer,BufferSize, "Only works on Harpy"); break;
-	case 111: strcat_s(szBuffer,BufferSize, "Only works on Gnoll"); break;
-	case 112: strcat_s(szBuffer,BufferSize, "Only works on Sporali"); break;
-	case 113: strcat_s(szBuffer,BufferSize, "Only works on Kobold"); break;
-	case 114: strcat_s(szBuffer,BufferSize, "Only works on Shade"); break;
-	case 115: strcat_s(szBuffer,BufferSize, "Only works on Drakkin"); break;
-	case 117: strcat_s(szBuffer,BufferSize, "Only works on Animals or Plants"); break;
-	case 118: strcat_s(szBuffer,BufferSize, "Only works on Summoned"); break;
-	case 119: strcat_s(szBuffer,BufferSize, "Only works on Fire_Pet"); break;
-	case 120: strcat_s(szBuffer,BufferSize, "Only works on Undead"); break;
-	case 121: strcat_s(szBuffer,BufferSize, "Only works on Living"); break;
-	case 122: strcat_s(szBuffer,BufferSize, "Only works on Fairy"); break;
-	case 123: strcat_s(szBuffer,BufferSize, "Only works on Humanoid"); break;
-	case 124: strcat_s(szBuffer,BufferSize, "Undead HP Less Than 10%"); break;
-	case 125: strcat_s(szBuffer,BufferSize, "Clockwork HP Less Than 45%"); break;
-	case 126: strcat_s(szBuffer,BufferSize, "Wisp HP Less Than 10%"); break;
-	case 190: strcat_s(szBuffer,BufferSize, "Doesn't work on Raid Bosses"); break;
-	case 191: strcat_s(szBuffer,BufferSize, "Only works on Raid Bosses"); break;
-	case 201: strcat_s(szBuffer,BufferSize, "HP Above 75%"); break;
-	case 203: strcat_s(szBuffer,BufferSize, "HP Less Than 20%"); break;
-	case 204: strcat_s(szBuffer,BufferSize, "HP Less Than 50%"); break;
-	case 216: strcat_s(szBuffer,BufferSize, "Not In Combat"); break;
-	case 221: strcat_s(szBuffer,BufferSize, "At Least 1 Pet On Hatelist"); break;
-	case 222: strcat_s(szBuffer,BufferSize, "At Least 2 Pets On Hatelist"); break;
-	case 223: strcat_s(szBuffer,BufferSize, "At Least 3 Pets On Hatelist"); break;
-	case 224: strcat_s(szBuffer,BufferSize, "At Least 4 Pets On Hatelist"); break;
-	case 225: strcat_s(szBuffer,BufferSize, "At Least 5 Pets On Hatelist"); break;
-	case 226: strcat_s(szBuffer,BufferSize, "At Least 6 Pets On Hatelist"); break;
-	case 227: strcat_s(szBuffer,BufferSize, "At Least 7 Pets On Hatelist"); break;
-	case 228: strcat_s(szBuffer,BufferSize, "At Least 8 Pets On Hatelist"); break;
-	case 229: strcat_s(szBuffer,BufferSize, "At Least 9 Pets On Hatelist"); break;
-	case 230: strcat_s(szBuffer,BufferSize, "At Least 10 Pets On Hatelist"); break;
-	case 231: strcat_s(szBuffer,BufferSize, "At Least 11 Pets On Hatelist"); break;
-	case 232: strcat_s(szBuffer,BufferSize, "At Least 12 Pets On Hatelist"); break;
-	case 233: strcat_s(szBuffer,BufferSize, "At Least 13 Pets On Hatelist"); break;
-	case 234: strcat_s(szBuffer,BufferSize, "At Least 14 Pets On Hatelist"); break;
-	case 235: strcat_s(szBuffer,BufferSize, "At Least 15 Pets On Hatelist"); break;
-	case 236: strcat_s(szBuffer,BufferSize, "At Least 16 Pets On Hatelist"); break;
-	case 237: strcat_s(szBuffer,BufferSize, "At Least 17 Pets On Hatelist"); break;
-	case 238: strcat_s(szBuffer,BufferSize, "At Least 18 Pets On Hatelist"); break;
-	case 239: strcat_s(szBuffer,BufferSize, "At Least 19 Pets On Hatelist"); break;
-	case 240: strcat_s(szBuffer,BufferSize, "At Least 20 Pets On Hatelist"); break;
-	case 250: strcat_s(szBuffer,BufferSize, "HP Less Than 35%"); break;
-	case 304: strcat_s(szBuffer,BufferSize, "Chain Plate Classes"); break;
-	case 399: strcat_s(szBuffer,BufferSize, "HP Between 15 and 25%"); break;
-	case 400: strcat_s(szBuffer,BufferSize, "HP Between 1 and 25%"); break;
-	case 401: strcat_s(szBuffer,BufferSize, "HP Between 25 and 35%"); break;
-	case 402: strcat_s(szBuffer,BufferSize, "HP Between 35 and 45%"); break;
-	case 403: strcat_s(szBuffer,BufferSize, "HP Between 45 and 55%"); break;
-	case 404: strcat_s(szBuffer,BufferSize, "HP Between 55 and 65%"); break;
-	case 412: strcat_s(szBuffer,BufferSize, "HP Above 99%"); break;
-	case 501: strcat_s(szBuffer,BufferSize, "HP Below 5%"); break;
-	case 502: strcat_s(szBuffer,BufferSize, "HP Below 10%"); break;
-	case 503: strcat_s(szBuffer,BufferSize, "HP Below 15%"); break;
-	case 504: strcat_s(szBuffer,BufferSize, "HP Below 20%"); break;
-	case 505: strcat_s(szBuffer,BufferSize, "HP Below 25%"); break;
-	case 506: strcat_s(szBuffer,BufferSize, "HP Below 30%"); break;
-	case 507: strcat_s(szBuffer,BufferSize, "HP Below 35%"); break;
-	case 508: strcat_s(szBuffer,BufferSize, "HP Below 40%"); break;
-	case 509: strcat_s(szBuffer,BufferSize, "HP Below 45%"); break;
-	case 510: strcat_s(szBuffer,BufferSize, "HP Below 50%"); break;
-	case 511: strcat_s(szBuffer,BufferSize, "HP Below 55%"); break;
-	case 512: strcat_s(szBuffer,BufferSize, "HP Below 60%"); break;
-	case 513: strcat_s(szBuffer,BufferSize, "HP Below 65%"); break;
-	case 514: strcat_s(szBuffer,BufferSize, "HP Below 70%"); break;
-	case 515: strcat_s(szBuffer,BufferSize, "HP Below 75%"); break;
-	case 516: strcat_s(szBuffer,BufferSize, "HP Below 80%"); break;
-	case 517: strcat_s(szBuffer,BufferSize, "HP Below 85%"); break;
-	case 518: strcat_s(szBuffer,BufferSize, "HP Below 90%"); break;
-	case 519: strcat_s(szBuffer,BufferSize, "HP Below 95%"); break;
-	case 521: strcat_s(szBuffer,BufferSize, "Mana Below X%"); break;
-	case 522: strcat_s(szBuffer,BufferSize, "End Below 40%"); break;
-	case 523: strcat_s(szBuffer,BufferSize, "Mana Below 40%"); break;
-	case 603: strcat_s(szBuffer,BufferSize, "Only works on Undead2"); break;
-	case 608: strcat_s(szBuffer,BufferSize, "Only works on Undead3"); break;
-	case 624: strcat_s(szBuffer,BufferSize, "Only works on Summoned2"); break;
-	case 701: strcat_s(szBuffer,BufferSize, "Doesn't work on Pets"); break;
-	case 818: strcat_s(szBuffer,BufferSize, "Only works on Undead4"); break;
-	case 819: strcat_s(szBuffer,BufferSize, "Doesn't work on Undead4"); break;
-	case 825: strcat_s(szBuffer,BufferSize, "End Below 21%"); break;
-	case 826: strcat_s(szBuffer,BufferSize, "End Below 25%"); break;
-	case 827: strcat_s(szBuffer,BufferSize, "End Below 29%"); break;
-	case 836: strcat_s(szBuffer,BufferSize, "Only works on Regular Servers"); break;
-	case 837: strcat_s(szBuffer,BufferSize, "Doesn't work on Progression Servers"); break;
-	case 842: strcat_s(szBuffer,BufferSize, "Only works on Humanoid Level 84 Max"); break;
-	case 843: strcat_s(szBuffer,BufferSize, "Only works on Humanoid Level 86 Max"); break;
-	case 844: strcat_s(szBuffer,BufferSize, "Only works on Humanoid Level 88 Max"); break;
-	case 1000: strcat_s(szBuffer,BufferSize, "Between Level 1 and 75"); break;
-	case 1001: strcat_s(szBuffer,BufferSize, "Between Level 76 and 85"); break;
-	case 1002: strcat_s(szBuffer,BufferSize, "Between Level 86 and 95"); break;
-	case 1003: strcat_s(szBuffer,BufferSize, "Between Level 96 and 100"); break;
-	case 1004: strcat_s(szBuffer,BufferSize, "HP Less Than 80%"); break;
-	case 38311: strcat_s(szBuffer,BufferSize, "Mana Below 20%"); break;
-	case 38312: strcat_s(szBuffer,BufferSize, "Mana Below 10%"); break;
-	default: 
+	case 0:	strcat_s(szBuffer, BufferSize, "None"); break;
+	case 100: strcat_s(szBuffer, BufferSize, "Only works on Animal or Humanoid"); break;
+	case 101: strcat_s(szBuffer, BufferSize, "Only works on Dragon"); break;
+	case 102: strcat_s(szBuffer, BufferSize, "Only works on Animal or Insect"); break;
+	case 104: strcat_s(szBuffer, BufferSize, "Only works on Animal"); break;
+	case 105: strcat_s(szBuffer, BufferSize, "Only works on Plant"); break;
+	case 106: strcat_s(szBuffer, BufferSize, "Only works on Giant"); break;
+	case 108: strcat_s(szBuffer, BufferSize, "Doesn't work on Animals or Humanoids"); break;
+	case 109: strcat_s(szBuffer, BufferSize, "Only works on Bixie"); break;
+	case 110: strcat_s(szBuffer, BufferSize, "Only works on Harpy"); break;
+	case 111: strcat_s(szBuffer, BufferSize, "Only works on Gnoll"); break;
+	case 112: strcat_s(szBuffer, BufferSize, "Only works on Sporali"); break;
+	case 113: strcat_s(szBuffer, BufferSize, "Only works on Kobold"); break;
+	case 114: strcat_s(szBuffer, BufferSize, "Only works on Shade"); break;
+	case 115: strcat_s(szBuffer, BufferSize, "Only works on Drakkin"); break;
+	case 117: strcat_s(szBuffer, BufferSize, "Only works on Animals or Plants"); break;
+	case 118: strcat_s(szBuffer, BufferSize, "Only works on Summoned"); break;
+	case 119: strcat_s(szBuffer, BufferSize, "Only works on Fire_Pet"); break;
+	case 120: strcat_s(szBuffer, BufferSize, "Only works on Undead"); break;
+	case 121: strcat_s(szBuffer, BufferSize, "Only works on Living"); break;
+	case 122: strcat_s(szBuffer, BufferSize, "Only works on Fairy"); break;
+	case 123: strcat_s(szBuffer, BufferSize, "Only works on Humanoid"); break;
+	case 124: strcat_s(szBuffer, BufferSize, "Undead HP Less Than 10%"); break;
+	case 125: strcat_s(szBuffer, BufferSize, "Clockwork HP Less Than 45%"); break;
+	case 126: strcat_s(szBuffer, BufferSize, "Wisp HP Less Than 10%"); break;
+	case 190: strcat_s(szBuffer, BufferSize, "Doesn't work on Raid Bosses"); break;
+	case 191: strcat_s(szBuffer, BufferSize, "Only works on Raid Bosses"); break;
+	case 201: strcat_s(szBuffer, BufferSize, "HP Above 75%"); break;
+	case 203: strcat_s(szBuffer, BufferSize, "HP Less Than 20%"); break;
+	case 204: strcat_s(szBuffer, BufferSize, "HP Less Than 50%"); break;
+	case 216: strcat_s(szBuffer, BufferSize, "Not In Combat"); break;
+	case 221: strcat_s(szBuffer, BufferSize, "At Least 1 Pet On Hatelist"); break;
+	case 222: strcat_s(szBuffer, BufferSize, "At Least 2 Pets On Hatelist"); break;
+	case 223: strcat_s(szBuffer, BufferSize, "At Least 3 Pets On Hatelist"); break;
+	case 224: strcat_s(szBuffer, BufferSize, "At Least 4 Pets On Hatelist"); break;
+	case 225: strcat_s(szBuffer, BufferSize, "At Least 5 Pets On Hatelist"); break;
+	case 226: strcat_s(szBuffer, BufferSize, "At Least 6 Pets On Hatelist"); break;
+	case 227: strcat_s(szBuffer, BufferSize, "At Least 7 Pets On Hatelist"); break;
+	case 228: strcat_s(szBuffer, BufferSize, "At Least 8 Pets On Hatelist"); break;
+	case 229: strcat_s(szBuffer, BufferSize, "At Least 9 Pets On Hatelist"); break;
+	case 230: strcat_s(szBuffer, BufferSize, "At Least 10 Pets On Hatelist"); break;
+	case 231: strcat_s(szBuffer, BufferSize, "At Least 11 Pets On Hatelist"); break;
+	case 232: strcat_s(szBuffer, BufferSize, "At Least 12 Pets On Hatelist"); break;
+	case 233: strcat_s(szBuffer, BufferSize, "At Least 13 Pets On Hatelist"); break;
+	case 234: strcat_s(szBuffer, BufferSize, "At Least 14 Pets On Hatelist"); break;
+	case 235: strcat_s(szBuffer, BufferSize, "At Least 15 Pets On Hatelist"); break;
+	case 236: strcat_s(szBuffer, BufferSize, "At Least 16 Pets On Hatelist"); break;
+	case 237: strcat_s(szBuffer, BufferSize, "At Least 17 Pets On Hatelist"); break;
+	case 238: strcat_s(szBuffer, BufferSize, "At Least 18 Pets On Hatelist"); break;
+	case 239: strcat_s(szBuffer, BufferSize, "At Least 19 Pets On Hatelist"); break;
+	case 240: strcat_s(szBuffer, BufferSize, "At Least 20 Pets On Hatelist"); break;
+	case 250: strcat_s(szBuffer, BufferSize, "HP Less Than 35%"); break;
+	case 304: strcat_s(szBuffer, BufferSize, "Chain Plate Classes"); break;
+	case 399: strcat_s(szBuffer, BufferSize, "HP Between 15 and 25%"); break;
+	case 400: strcat_s(szBuffer, BufferSize, "HP Between 1 and 25%"); break;
+	case 401: strcat_s(szBuffer, BufferSize, "HP Between 25 and 35%"); break;
+	case 402: strcat_s(szBuffer, BufferSize, "HP Between 35 and 45%"); break;
+	case 403: strcat_s(szBuffer, BufferSize, "HP Between 45 and 55%"); break;
+	case 404: strcat_s(szBuffer, BufferSize, "HP Between 55 and 65%"); break;
+	case 412: strcat_s(szBuffer, BufferSize, "HP Above 99%"); break;
+	case 501: strcat_s(szBuffer, BufferSize, "HP Below 5%"); break;
+	case 502: strcat_s(szBuffer, BufferSize, "HP Below 10%"); break;
+	case 503: strcat_s(szBuffer, BufferSize, "HP Below 15%"); break;
+	case 504: strcat_s(szBuffer, BufferSize, "HP Below 20%"); break;
+	case 505: strcat_s(szBuffer, BufferSize, "HP Below 25%"); break;
+	case 506: strcat_s(szBuffer, BufferSize, "HP Below 30%"); break;
+	case 507: strcat_s(szBuffer, BufferSize, "HP Below 35%"); break;
+	case 508: strcat_s(szBuffer, BufferSize, "HP Below 40%"); break;
+	case 509: strcat_s(szBuffer, BufferSize, "HP Below 45%"); break;
+	case 510: strcat_s(szBuffer, BufferSize, "HP Below 50%"); break;
+	case 511: strcat_s(szBuffer, BufferSize, "HP Below 55%"); break;
+	case 512: strcat_s(szBuffer, BufferSize, "HP Below 60%"); break;
+	case 513: strcat_s(szBuffer, BufferSize, "HP Below 65%"); break;
+	case 514: strcat_s(szBuffer, BufferSize, "HP Below 70%"); break;
+	case 515: strcat_s(szBuffer, BufferSize, "HP Below 75%"); break;
+	case 516: strcat_s(szBuffer, BufferSize, "HP Below 80%"); break;
+	case 517: strcat_s(szBuffer, BufferSize, "HP Below 85%"); break;
+	case 518: strcat_s(szBuffer, BufferSize, "HP Below 90%"); break;
+	case 519: strcat_s(szBuffer, BufferSize, "HP Below 95%"); break;
+	case 521: strcat_s(szBuffer, BufferSize, "Mana Below X%"); break;
+	case 522: strcat_s(szBuffer, BufferSize, "End Below 40%"); break;
+	case 523: strcat_s(szBuffer, BufferSize, "Mana Below 40%"); break;
+	case 603: strcat_s(szBuffer, BufferSize, "Only works on Undead2"); break;
+	case 608: strcat_s(szBuffer, BufferSize, "Only works on Undead3"); break;
+	case 624: strcat_s(szBuffer, BufferSize, "Only works on Summoned2"); break;
+	case 701: strcat_s(szBuffer, BufferSize, "Doesn't work on Pets"); break;
+	case 818: strcat_s(szBuffer, BufferSize, "Only works on Undead4"); break;
+	case 819: strcat_s(szBuffer, BufferSize, "Doesn't work on Undead4"); break;
+	case 825: strcat_s(szBuffer, BufferSize, "End Below 21%"); break;
+	case 826: strcat_s(szBuffer, BufferSize, "End Below 25%"); break;
+	case 827: strcat_s(szBuffer, BufferSize, "End Below 29%"); break;
+	case 836: strcat_s(szBuffer, BufferSize, "Only works on Regular Servers"); break;
+	case 837: strcat_s(szBuffer, BufferSize, "Doesn't work on Progression Servers"); break;
+	case 842: strcat_s(szBuffer, BufferSize, "Only works on Humanoid Level 84 Max"); break;
+	case 843: strcat_s(szBuffer, BufferSize, "Only works on Humanoid Level 86 Max"); break;
+	case 844: strcat_s(szBuffer, BufferSize, "Only works on Humanoid Level 88 Max"); break;
+	case 1000: strcat_s(szBuffer, BufferSize, "Between Level 1 and 75"); break;
+	case 1001: strcat_s(szBuffer, BufferSize, "Between Level 76 and 85"); break;
+	case 1002: strcat_s(szBuffer, BufferSize, "Between Level 86 and 95"); break;
+	case 1003: strcat_s(szBuffer, BufferSize, "Between Level 96 and 100"); break;
+	case 1004: strcat_s(szBuffer, BufferSize, "HP Less Than 80%"); break;
+	case 38311: strcat_s(szBuffer, BufferSize, "Mana Below 20%"); break;
+	case 38312: strcat_s(szBuffer, BufferSize, "Mana Below 10%"); break;
+	default:
 		sprintf_s(szTemp, "Unknown[%d]", GetSpellBase2(pSpell, nIndex));
-		strcat_s(szBuffer,BufferSize, szTemp); break;
+		strcat_s(szBuffer, BufferSize, szTemp); break;
 	}
 	return szBuffer;
 }
@@ -1939,7 +1971,7 @@ char* GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, char* szBuffer, s
 // ***************************************************************************
 char* GetSpellEffectNameByID(LONG EffectID, char* szBuffer, size_t BufferSize)
 {
-	return GetSpellEffectName(abs(EffectID),szBuffer, BufferSize);
+	return GetSpellEffectName(abs(EffectID), szBuffer, BufferSize);
 }
 
 char* GetSpellEffectName(LONG EffectID, char* szBuffer, size_t BufferSize)
@@ -1970,7 +2002,7 @@ char* GetResistTypeName(LONG ResistType, char(&szBuffer)[_Size])
 	case 5: strcat_s(szBuffer, "Disease"); break;
 	case 6: strcat_s(szBuffer, "Chromatic"); break;
 	case 7: strcat_s(szBuffer, "Prismatic"); break;
-	default: 
+	default:
 		sprintf_s(szTemp, "Unknown[%d]", ResistType);
 		strcat_s(szBuffer, szTemp); break;
 	}
@@ -1986,7 +2018,7 @@ char* GetSpellTypeName(LONG SpellType, char(&szBuffer)[_Size])
 	case 0: strcat_s(szBuffer, "Detrimental only"); break;
 	case 1: strcat_s(szBuffer, "Beneficial only"); break;
 	case 2: strcat_s(szBuffer, "Beneficial - Group Only"); break;
-	default: 
+	default:
 		sprintf_s(szTemp, "Unknown[%d]", SpellType);
 		strcat_s(szBuffer, szTemp); break;
 	}
@@ -2035,7 +2067,7 @@ char* GetTargetTypeLimitsName(LONG TargetLimitsType, char(&szBuffer)[_Size])
 	case 3: strcat_s(szBuffer, "Group v1"); break;
 	case 2: strcat_s(szBuffer, "AE PC v1"); break;
 	case 1: strcat_s(szBuffer, "Line of Sight"); break;
-	default: 
+	default:
 		sprintf_s(szTemp, "Unknown[%d]", abs(TargetLimitsType));
 		strcat_s(szBuffer, szTemp); break;
 	}
@@ -2060,7 +2092,7 @@ char* GetStatShortName(LONG StatType, char(&szBuffer)[_Size])
 	case 9: strcat_s(szBuffer, "FR"); break;
 	case 10: strcat_s(szBuffer, "PR"); break;  // either PR or DR
 	case 11: strcat_s(szBuffer, "DR"); break;  // either DR or PR
-	default: 
+	default:
 		sprintf_s(szTemp, "Unknown[%d]", StatType);
 		strcat_s(szBuffer, szTemp); break;
 	}
@@ -2080,7 +2112,7 @@ char* GetFactionName(LONG FactionID, char(&szBuffer)[_Size])
 	case 1150: strcat_s(szBuffer, "(Jewel of Atiiki Efreetis)"); break;
 	case 1178: strcat_s(szBuffer, "(S.H.I.P. Workshop Base Population)"); break;
 	case 1229: strcat_s(szBuffer, "(Sebilisian Empire)"); break;
-	default: 
+	default:
 		sprintf_s(szTemp, "(Unknown[%d])", FactionType);
 		strcat_s(szBuffer, szTemp); break;
 	}
@@ -2315,7 +2347,7 @@ LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel, LONG le
 LONG CalcMaxSpellLevel(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel, LONG level)
 {
 	//WriteChatf("CalcMaxSpellLevel(CALC:%d, BASE:%d, MAX:%d, TICK:%d, LEVEL:%d)", calc, base, max, tick, level);
-	if (abs(max)>0) {
+	if (abs(max) > 0) {
 		//WriteChatf("Inside if (abs(max)>0)");
 		for (LONG maxlevel = 1; maxlevel <= level; maxlevel++) {
 			LONG value = CalcValue(calc, base, max, tick, minlevel, maxlevel);
@@ -2332,8 +2364,8 @@ LONG CalcMinSpellLevel(PSPELL pSpell)
 {
 	LONG minspelllvl = ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(Warrior);
 	for (LONG j = Warrior; j <= Berserker; j++)
-		if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<minspelllvl)  minspelllvl = ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j);
-	if (minspelllvl>MAX_PC_LEVEL)
+		if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j) < minspelllvl)  minspelllvl = ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j);
+	if (minspelllvl > MAX_PC_LEVEL)
 		minspelllvl = 1;
 	return minspelllvl;
 }
@@ -2426,7 +2458,7 @@ template <unsigned int _Size> char* FormatMinMaxBase(char* szEffectName, LONG ba
 
 template <unsigned int _Size> char* FormatCount(char* szEffectName, LONG value, char(&szBuffer)[_Size], char* preposition = "by", char* szPercent = "")
 {
-	sprintf_s(szBuffer, "%s %s %s %d%s", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
+	sprintf_s(szBuffer, "%s %s %s %d%s", value < 0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
@@ -2440,13 +2472,13 @@ char* FormatExtra(const char* szEffectName, const char* extra, char(&szBuffer)[_
 template <unsigned int _Size>
 char* FormatLimits(char* szEffectName, LONG value, char* extra, char(&szBuffer)[_Size])
 {
-	sprintf_s(szBuffer, "%s (%s %s)", szEffectName, extra, value<0 ? "excluded" : "allowed");
+	sprintf_s(szBuffer, "%s (%s %s)", szEffectName, extra, value < 0 ? "excluded" : "allowed");
 	return szBuffer;
 }
 
 template <unsigned int _Size> char* FormatMax(char* szEffectName, LONG value, LONG max, char(&szBuffer)[_Size])
 {
-	sprintf_s(szBuffer, "%s %s by %d (%d%% max)", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), value);
+	sprintf_s(szBuffer, "%s %s by %d (%d%% max)", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), value);
 	return szBuffer;
 }
 
@@ -2466,23 +2498,23 @@ template <unsigned int _Size> char* FormatPercent(char* szEffectName, LONG value
 	if (hundreds)
 		if (value == max)
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %.2f%s", max<0 ? "Decrease" : "Increase", szEffectName, abs(max / 100.0f), szPercent);
+				sprintf_s(szBuffer, "%s %s by %.2f%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max / 100.0f), szPercent);
 			else
 				sprintf_s(szBuffer, "%s by %.2f%s", szEffectName, abs(max / 100.0f), szPercent);
 		else
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %.2f%s to %.2f%s", max<0 ? "Decrease" : "Increase", szEffectName, abs(value / 100.0f), szPercent, abs(max / 100.0f), szPercent);
+				sprintf_s(szBuffer, "%s %s by %.2f%s to %.2f%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value / 100.0f), szPercent, abs(max / 100.0f), szPercent);
 			else
 				sprintf_s(szBuffer, "%s by %.2f%s to %.2f%s", szEffectName, abs(value / 100.0f), szPercent, abs(max / 100.0f), szPercent);
 	else
 		if (value == max)
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %d%s", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), szPercent);
+				sprintf_s(szBuffer, "%s %s by %d%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), szPercent);
 			else
 				sprintf_s(szBuffer, "%s by %d%s", szEffectName, abs(max), szPercent);
 		else
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %d%s to %d%s", max<0 ? "Decrease" : "Increase", szEffectName, abs(value), szPercent, abs(max), szPercent);
+				sprintf_s(szBuffer, "%s %s by %d%s to %d%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value), szPercent, abs(max), szPercent);
 			else
 				sprintf_s(szBuffer, "%s by %d%s to %d%s", szEffectName, abs(value), szPercent, abs(max), szPercent);
 	return szBuffer;
@@ -2495,7 +2527,7 @@ template <unsigned int _Size> char* FormatPercent(char* szEffectName, LONG value
 
 template <unsigned int _Size> char* FormatRange(char* szEffectName, LONG value, char* range, char(&szBuffer)[_Size], char* extra = "")
 {
-	sprintf_s(szBuffer, "%s %s%s%s", value<0 ? "Decrease" : "Increase", szEffectName, range, extra);
+	sprintf_s(szBuffer, "%s %s%s%s", value < 0 ? "Decrease" : "Increase", szEffectName, range, extra);
 	return szBuffer;
 }
 
@@ -2511,9 +2543,9 @@ template <unsigned int _Size> char* FormatRateMod(char* szEffectName, LONG value
 template <unsigned int _Size> char* FormatRefreshTimer(char* szEffectName, LONG value, LONG max, LONG skill, char(&szBuffer)[_Size], char* preposition = "with")
 {
 	if (value == max)
-		sprintf_s(szBuffer, "%s %s by %d sec %s %s", max<0 ? "Decrease" : "Increase", szEffectName, abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
+		sprintf_s(szBuffer, "%s %s by %d sec %s %s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	else
-		sprintf_s(szBuffer, "%s %s by %d sec to %d sec %s %s", max<0 ? "Decrease" : "Increase", szEffectName, abs(value), abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
+		sprintf_s(szBuffer, "%s %s by %d sec to %d sec %s %s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value), abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	return szBuffer;
 }
 
@@ -2527,7 +2559,8 @@ template <unsigned int _Size> char* FormatResists(char* szEffectName, LONG value
 	if (value < 100) {
 		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szBuffer, "%s (%d%% Chance)", GetSpellEffectNameByID(base, szTemp, MAX_STRING), value);
-	} else {
+	}
+	else {
 		sprintf_s(szBuffer, "%s", szEffectName);
 	}
 	return szBuffer;
@@ -2550,7 +2583,7 @@ template <unsigned int _Size> char* FormatSeconds(char* szEffectName, float valu
 
 template <unsigned int _Size> char* FormatSecondsCount(char* szEffectName, float value, char(&szBuffer)[_Size], char* preposition = "by")
 {
-	sprintf_s(szBuffer, "%s %s %s %.2f sec", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value));
+	sprintf_s(szBuffer, "%s %s %s %.2f sec", value < 0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value));
 	return szBuffer;
 }
 
@@ -2605,7 +2638,7 @@ template <unsigned int _Size> char* FormatStacking(char* szEffectName, LONG slot
 
 template <unsigned int _Size> char* FormatStatsCapRange(char* szEffectName, LONG value, char* stat, char* range, char(&szBuffer)[_Size])
 {
-	sprintf_s(szBuffer, "%s %s %s%s", value<0 ? "Decrease" : "Increase", stat, szEffectName, range);
+	sprintf_s(szBuffer, "%s %s %s%s", value < 0 ? "Decrease" : "Increase", stat, szEffectName, range);
 	return szBuffer;
 }
 
@@ -2667,9 +2700,9 @@ int GetSpellBase(SPELL* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (ClientSpellManager * pSpellM = (ClientSpellManager*)pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO * pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Base;
 				}
@@ -2693,9 +2726,9 @@ int GetSpellBase2(SPELL* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (ClientSpellManager * pSpellM = (ClientSpellManager*)pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO * pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Base2;
 				}
@@ -2719,9 +2752,9 @@ int GetSpellMax(SPELL* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (ClientSpellManager * pSpellM = (ClientSpellManager*)pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO * pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Max;
 				}
@@ -2745,9 +2778,9 @@ int GetSpellCalc(SPELL* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (ClientSpellManager * pSpellM = (ClientSpellManager*)pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO * pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Calc;
 				}
@@ -2765,11 +2798,11 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 	char szTemp2[MAX_STRING] = { 0 };
 
 	LONG id = pSpell->ID;
-	LONG spa = GetSpellAttrib(pSpell,i);
-	LONG base = GetSpellBase(pSpell,i);
-	LONG base2 = GetSpellBase2(pSpell,i);
-	LONG max = GetSpellMax(pSpell,i);
-	LONG calc = GetSpellCalc(pSpell,i);
+	LONG spa = GetSpellAttrib(pSpell, i);
+	LONG base = GetSpellBase(pSpell, i);
+	LONG base2 = GetSpellBase2(pSpell, i);
+	LONG max = GetSpellMax(pSpell, i);
+	LONG calc = GetSpellCalc(pSpell, i);
 	LONG spellgroup = pSpell->SpellGroup;
 	LONG ticks = pSpell->DurationCap;
 	LONG targets = pSpell->MaxTargets;
@@ -2829,7 +2862,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		spa == SPA_SPELLCRITCHANCE || spa == SPA_SHIELDBLOCKCHANCE || spa == SPA_DAMAGECRITMOD || spa == SPA_SPELLDAMAGETAKEN);
 	BOOL AEEffect = (targettype == TT_PBAE || targettype == TT_TARGETED_AE || targettype == TT_AE_PC_V2 || targettype == TT_DIRECTIONAL);
 
-	strcat_s(range, CalcValueRange(calc, base, max, ticks, minspelllvl, level, szTemp2,sizeof(szTemp2), usePercent ? szPercent : ""));
+	strcat_s(range, CalcValueRange(calc, base, max, ticks, minspelllvl, level, szTemp2, sizeof(szTemp2), usePercent ? szPercent : ""));
 	strcat_s(extendedrange, CalcExtendedRange(calc, value, finish, minspelllvl, maxspelllvl, szTemp2, sizeof(szTemp2), usePercent ? szPercent : "", (spa == SPA_AC || spa == SPA_AC2)));
 	if (ticks) sprintf_s(repeating, " per tick ");
 	if (max) sprintf_s(maxlevel, " up to level %d", max);
@@ -2840,7 +2873,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		i + 1, spa, base, base2, max, calc, ticks, value, finish, minspelllvl, maxspelllvl, range, extendedrange, usePercent ? "TRUE" : "FALSE", repeating, maxlevel);
 #endif
 
-	sprintf_s(szBuff, "Slot %d: ", i+1);
+	sprintf_s(szBuff, "Slot %d: ", i + 1);
 	switch (spa)
 	{
 	case 0: //hp +/-: heals/regen/dd 
@@ -2946,7 +2979,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 			ItemDB = ItemDB->pNext;
 		}
 		if (ItemDB) {
-			sprintf_s(szTemp, "%s (Qty:%d)", ItemDB->szName, (LONG)ItemDB->StackSize<calc ? ItemDB->StackSize : calc);
+			sprintf_s(szTemp, "%s (Qty:%d)", ItemDB->szName, (LONG)ItemDB->StackSize < calc ? ItemDB->StackSize : calc);
 		}
 		else {
 			sprintf_s(szTemp, "[%5d] (Qty:%d)", base, calc);
@@ -3060,7 +3093,8 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 	case 83: //zone portal spells 
 		if (targettype == 6) {
 			sprintf_s(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
-		} else {
+		}
+		else {
 			sprintf_s(szTemp, " Group to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		}
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
@@ -3263,7 +3297,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		strcat_s(szBuff, FormatStacking(spelleffectname, base2, value, /*(max>1000 ? max - 1000 : max)*/ max, spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
 		break;
 	case 149: //Stacking: Overwrite 
-		strcat_s(szBuff, FormatStacking(spelleffectname, calc - 200, value, (max>1000 ? max - 1000 : max), spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
+		strcat_s(szBuff, FormatStacking(spelleffectname, calc - 200, value, (max > 1000 ? max - 1000 : max), spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
 		break;
 	case 150: //Death Save - Restore Full Health 
 		sprintf_s(szTemp, "Restore %s Health", base == 1 ? "Partial" : base == 2 ? "Full" : "Unknown");
@@ -3416,7 +3450,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 210: //Pet Shield 
-		strcat_s(szBuff, FormatSeconds(spelleffectname, value*1.0f, szTemp2));
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value * 1.0f, szTemp2));
 		break;
 	case 211: //AE Melee 
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
@@ -3601,7 +3635,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 	case 296: //Incoming Spell Damage
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
-    case 297: //Incoming Spell Damage Amt
+	case 297: //Incoming Spell Damage Amt
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
 	case 298: //Tiny Companion
@@ -3820,7 +3854,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 	case 382: //Negate: Effect
 	{
 		char szString[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2,szString,MAX_STRING));
+		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2, szString, MAX_STRING));
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	}
@@ -4087,7 +4121,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		break;
 	case 486: //Same Caster
 		strcat_s(szBuff, FormatExtra(spelleffectname, base ? "(Same)" : "(Different)", szTemp2, "", ""));
-		 break;
+		break;
 	case 487: //Extend Tradeskill Cap
 		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
 		strcat_s(szBuff, szTemp);
@@ -4100,7 +4134,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		break;
 	case 490: //Limit: ReuseTime Min
 	case 491: //Limit: ReuseTime Max
-		strcat_s(szBuff, FormatSeconds(spelleffectname, value/1000.0f, szTemp2));
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value / 1000.0f, szTemp2));
 		break;
 	case 492: //Limit: Endurance Min
 	case 493: //Limit: Endurance Max
@@ -4108,7 +4142,7 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
 	case 495: //Limit: Duration Max
-		strcat_s(szBuff, FormatSeconds(spelleffectname, value*6, szTemp2));
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value * 6, szTemp2));
 		break;
 	case 496: //Critical Hit Damage (Non-stacking)
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
@@ -4125,10 +4159,10 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 		break;
 	case 501: //Spell Cast Time
 	case 502: //Stun and Fear
-		strcat_s(szBuff, FormatSeconds(spelleffectname, value/1000.0f, szTemp2));
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value / 1000.0f, szTemp2));
 		break;
 	case 503: //Rear Arc Melee Damage Mod
-		strcat_s(szBuff, FormatSeconds(spelleffectname, value/10.0f, szTemp2));
+		strcat_s(szBuff, FormatSeconds(spelleffectname, value / 10.0f, szTemp2));
 		break;
 	case 504: //Rear Arc Melee Damage
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
@@ -4160,9 +4194,9 @@ char* ParseSpellEffect(PSPELL pSpell, int i, char* szBuffer, size_t BufferSize, 
 	}
 
 #ifdef DEBUGSPELLS
-	if (strlen(szBuff)>0) WriteChatf("%s",szBuff);
+	if (strlen(szBuff) > 0) WriteChatf("%s", szBuff);
 #endif
-	strcat_s(szBuffer,BufferSize, szBuff);
+	strcat_s(szBuffer, BufferSize, szBuff);
 	return szBuffer;
 }
 
@@ -4171,14 +4205,14 @@ char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize)
 	char szTemp[MAX_STRING] = { 0 };
 	char szBuff[MAX_STRING] = { 0 };
 	int count = 0;
-	for (int i = 0; i<GetSpellNumEffects(pSpell); i++)
+	for (int i = 0; i < GetSpellNumEffects(pSpell); i++)
 	{
 		szBuff[0] = szTemp[0] = '\0';
-		strcat_s(szBuff, ParseSpellEffect(pSpell, i, szTemp,sizeof(szTemp)));
+		strcat_s(szBuff, ParseSpellEffect(pSpell, i, szTemp, sizeof(szTemp)));
 		size_t len = strlen(szBuff);
 		if (len > 0 && count + len < BufferSize) {
-			strcat_s(szBuffer,BufferSize, szBuff);
-			strcat_s(szBuffer,BufferSize, "<br>");
+			strcat_s(szBuffer, BufferSize, szBuff);
+			strcat_s(szBuffer, BufferSize, "<br>");
 		}
 		count += len + 4;
 	}
@@ -4187,19 +4221,19 @@ char* ShowSpellSlotInfo(PSPELL pSpell, char* szBuffer, size_t BufferSize)
 
 void SlotValueCalculate(char* szBuff, PSPELL pSpell, int i, double mp)
 {
-	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell,i), GetSpellBase(pSpell,i), GetSpellMax(pSpell,i), pSpell->DurationCap));
+	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 	return;
 }
 
 void DisplayOverlayText(char* szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
 {
-	CBroadcast *pBC = GetTextOverlay();
+	CBroadcast* pBC = GetTextOverlay();
 	if (!pBC) {
 		WriteChatColor(szText, dwColor);
 		return;
 	}
 	DWORD dwAlpha = (DWORD)(dwTransparency * 255 / 100);
-	if (dwAlpha>255) dwAlpha = 255;
+	if (dwAlpha > 255) dwAlpha = 255;
 
 	((CTextOverlay*)pBC)->DisplayText(
 		szText,
@@ -4228,11 +4262,11 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 	{
 		if (bPopOutput)
 		{
-			WriteChatf("%s",szErrorEcho);
+			WriteChatf("%s", szErrorEcho);
 		}
 		else
 		{
-			WriteChatf("%s",szErrorCust);
+			WriteChatf("%s", szErrorCust);
 		}
 		return;
 	}
@@ -4261,7 +4295,7 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 	if (bPopOutput) WriteChatf("\ayPopup\aw:: %s", szPopupMsg);
 }
 
-BOOL ParseKeyCombo(char* text, KeyCombo &Dest)
+BOOL ParseKeyCombo(char* text, KeyCombo& Dest)
 {
 	KeyCombo Ret;
 	if (!_stricmp(text, "clear"))
@@ -4271,8 +4305,8 @@ BOOL ParseKeyCombo(char* text, KeyCombo &Dest)
 	}
 	char Copy[MAX_STRING];
 	strcpy_s(Copy, text);
-	char *token1 = NULL;
-	char *next_token1 = NULL;
+	char* token1 = NULL;
+	char* next_token1 = NULL;
 
 	token1 = strtok_s(Copy, "+ ", &next_token1);
 	while (token1 != NULL)
@@ -4307,13 +4341,13 @@ BOOL ParseKeyCombo(char* text, KeyCombo &Dest)
 	return false;
 }
 
-char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize)
+char* DescribeKeyCombo(KeyCombo& Combo, char* szDest, size_t BufferSize)
 {
 	unsigned long pos = 0;
 	szDest[0] = 0;
 	if (Combo.Data[2])
 	{
-		strcpy_s(&szDest[pos],BufferSize-pos, "shift");
+		strcpy_s(&szDest[pos], BufferSize - pos, "shift");
 		pos += 5;
 	}
 	if (Combo.Data[1])
@@ -4323,7 +4357,7 @@ char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize)
 			szDest[pos] = '+';
 			pos++;
 		}
-		strcpy_s(&szDest[pos],BufferSize-pos, "ctrl");
+		strcpy_s(&szDest[pos], BufferSize - pos, "ctrl");
 		pos += 4;
 	}
 	if (Combo.Data[0])
@@ -4333,7 +4367,7 @@ char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize)
 			szDest[pos] = '+';
 			pos++;
 		}
-		strcpy_s(&szDest[pos],BufferSize-pos, "alt");
+		strcpy_s(&szDest[pos], BufferSize - pos, "alt");
 		pos += 3;
 	}
 	if (pos)
@@ -4343,18 +4377,18 @@ char* DescribeKeyCombo(KeyCombo &Combo, char* szDest, size_t BufferSize)
 	}
 	if (Combo.Data[3])
 	{
-		strcpy_s(&szDest[pos],BufferSize-pos, gDiKeyName[Combo.Data[3]]);
+		strcpy_s(&szDest[pos], BufferSize - pos, gDiKeyName[Combo.Data[3]]);
 	}
 	else
 	{
-		strcpy_s(&szDest[pos],BufferSize-pos, "clear");
+		strcpy_s(&szDest[pos], BufferSize - pos, "clear");
 	}
 	return &szDest[0];
 }
 
 BOOL LoadCfgFile(char* Filename, BOOL Delayed)
 {
-	FILE *file = 0;
+	FILE* file = 0;
 	errno_t err = 0;
 	char szFilename[MAX_STRING] = { 0 };
 	strcpy_s(szFilename, Filename);
@@ -4378,8 +4412,8 @@ havecfgfile:
 	char szBuffer[MAX_STRING] = { 0 };
 	while (fgets(szBuffer, MAX_STRING, file))
 	{
-		char *Next_Token1 = 0;
-		char* Cmd = strtok_s(szBuffer, "\r\n",&Next_Token1);
+		char* Next_Token1 = 0;
+		char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
 		if (Cmd && Cmd[0] && Cmd[0] != ';')
 		{
 			HideDoCommand(((PSPAWNINFO)pLocalPlayer), Cmd, Delayed);
@@ -4666,7 +4700,7 @@ BOOL EvaluateRPN(CalcOp* pList, int Size, double& Result)
 		case CO_DIVIDE:
 			if (StackTop())
 			{
-				BinaryAssign(/);
+				BinaryAssign(/ );
 			}
 			else
 			{
@@ -4727,13 +4761,13 @@ BOOL EvaluateRPN(CalcOp* pList, int Size, double& Result)
 			BinaryOp(!= );
 			break;
 		case CO_GREATER:
-			BinaryOp(>);
+			BinaryOp(> );
 			break;
 		case CO_NOTGREATER:
 			BinaryOp(<= );
 			break;
 		case CO_LESS:
-			BinaryOp(<);
+			BinaryOp(< );
 			break;
 		case CO_NOTLESS:
 			BinaryOp(>= );
@@ -4780,7 +4814,7 @@ BOOL EvaluateRPN(CalcOp* pList, int Size, double& Result)
 	return true;
 }
 
-bool FastCalculate(char* szFormula, double &Result)
+bool FastCalculate(char* szFormula, double& Result)
 {
 	//DebugSpew("FastCalculate(%s)",szFormula);
 	if (!szFormula || !szFormula[0])
@@ -4821,7 +4855,7 @@ bool FastCalculate(char* szFormula, double &Result)
 #define NextChar(ch)         { *pToken = ch; pToken++; }
 
 	bool WasParen = false;
-	for (char *pCur = szFormula; pCur<pEnd; pCur++)
+	for (char* pCur = szFormula; pCur < pEnd; pCur++)
 	{
 		switch (*pCur)
 		{
@@ -5055,11 +5089,11 @@ bool PlayerHasAAAbility(DWORD AAIndex)
 #if 0
 char* GetAANameByIndex(DWORD AAIndex)
 {
-	for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES_ARRAY; nAbility++)
+	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES_ARRAY; nAbility++)
 	{
 		if (((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
 		{
-			if (ALTABILITY* pAbility = ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
+			if (ALTABILITY * pAbility = ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
 			{
 				if (pAbility->Index == AAIndex)
 				{
@@ -5083,7 +5117,7 @@ int GetAAIndexByName(const char* AAName)
 	// check bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+		if (ALTABILITY * pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
 		{
 			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
@@ -5098,7 +5132,7 @@ int GetAAIndexByName(const char* AAName)
 	// not found? fine lets check them all then...
 	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility, level))
+		if (ALTABILITY * pAbility = GetAAByIdWrapper(nAbility, level))
 		{
 			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
@@ -5118,7 +5152,7 @@ int GetAAIndexByID(int ID)
 	// check our bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+		if (ALTABILITY * pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
 		{
 			if (pAbility->ID == ID)
 			{
@@ -5130,7 +5164,7 @@ int GetAAIndexByID(int ID)
 	// didnt find it? fine we go through them all then...
 	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
+		if (ALTABILITY * pAbility = GetAAByIdWrapper(nAbility))
 		{
 			if (pAbility->ID == ID)
 			{
@@ -5153,7 +5187,7 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, float Radius)
 	{
 		if (!IsInGroup(pClose) && (pClose->Type == SPAWN_PLAYER))
 		{
-			if ((pClose != pSpawn) && (Distance3DToSpawn(pClose, pSpawn)<Radius))
+			if ((pClose != pSpawn) && (Distance3DToSpawn(pClose, pSpawn) < Radius))
 				return TRUE;
 		}
 		pClose = pClose->pNext;
@@ -5205,7 +5239,7 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
 	if (pSpawn == GetCharInfo()->pSpawn)
 		return TRUE;
 	DWORD l = strlen(pSpawn->Name);
-	for (i = 0; i<72; i++)
+	for (i = 0; i < 72; i++)
 	{
 		if (!bCorpse) {
 			if (!_strnicmp(pRaid->RaidMember[i].Name, pSpawn->Name, l + 1) && pRaid->RaidMember[i].nClass == pSpawn->mActorClient.Class) {
@@ -5284,7 +5318,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 			return false;
 
 		strcpy_s(szTemp, pSpawn->Name);
-		char *Next_Token1 = 0;
+		char* Next_Token1 = 0;
 		if (char* Cmd = strtok_s(szTemp, " ", &Next_Token1)) {
 
 			// Checking for mobs that have 'A' or 'An' as their first name
@@ -5328,7 +5362,7 @@ char* FormatSearchSpawn(char* Buffer, size_t BufferSize, MQSpawnSearch* pSearchS
 
 	if (!pSearchSpawn)
 	{
-		strcpy_s(Buffer,BufferSize, "None");
+		strcpy_s(Buffer, BufferSize, "None");
 		return Buffer;
 	}
 
@@ -5589,7 +5623,7 @@ SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
 {
 	SPAWNINFO* pFromSpawn = nullptr;
 
-	if (pSearchSpawn->FromSpawnID>0 && (pSearchSpawn->bTargNext || pSearchSpawn->bTargPrev))
+	if (pSearchSpawn->FromSpawnID > 0 && (pSearchSpawn->bTargNext || pSearchSpawn->bTargPrev))
 	{
 		pFromSpawn = (SPAWNINFO*)GetSpawnByID(pSearchSpawn->FromSpawnID);
 		if (!pFromSpawn) return nullptr;
@@ -6481,20 +6515,20 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 	//strcpy_s(szName,pSpawn->Name);
 	strcpy_s(szName, pSpawn->DisplayedName);
 	if (pSpawn->Type == SPAWN_PLAYER) {
-		if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
+		if (gFilterSWho.Lastname && strlen(pSpawn->Lastname) > 0) {
 			strcat_s(szName, " ");
 			strcat_s(szName, pSpawn->Lastname);
 		}
-		if (gFilterSWho.Guild && pSpawn->GuildID != -1 && pSpawn->GuildID!=0) {
+		if (gFilterSWho.Guild && pSpawn->GuildID != -1 && pSpawn->GuildID != 0) {
 			strcat_s(szName, " <");
-			char *szGuild = GetGuildByID(pSpawn->GuildID);
+			char* szGuild = GetGuildByID(pSpawn->GuildID);
 			strcat_s(szName, szGuild ? szGuild : "Unknown Guild");
 			strcat_s(szName, ">");
 		}
 	}
 	else {
 		//CleanupName(szName);
-		if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
+		if (gFilterSWho.Lastname && strlen(pSpawn->Lastname) > 0) {
 			strcat_s(szName, " (");
 			strcat_s(szName, pSpawn->Lastname);
 			strcat_s(szName, ")");
@@ -6577,7 +6611,7 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 	//strcat_s(szMsg,"\ax");
 
 	if (pSpawn->Type == SPAWN_PLAYER) {
-		if (gFilterSWho.Anon && pSpawn->Anon>0) {
+		if (gFilterSWho.Anon && pSpawn->Anon > 0) {
 			if (pSpawn->Anon == 2) {
 				strcat_s(szMsg, " \ag*RP*\ax");
 			}
@@ -6759,7 +6793,7 @@ void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 		WriteChatColor("List of matching spawns", USERCOLOR_WHO);
 		WriteChatColor("--------------------------------", USERCOLOR_WHO);
 
-		for (SPAWNINFO* spawn: SpawnSet)
+		for (SPAWNINFO* spawn : SpawnSet)
 		{
 			SuperWhoDisplay(spawn, Color);
 		}
@@ -6818,7 +6852,7 @@ void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 			break;
 		}
 
-		if (CHARINFO* pCharinf = GetCharInfo())
+		if (CHARINFO * pCharinf = GetCharInfo())
 		{
 			size_t count = SpawnSet.size();
 
@@ -6857,7 +6891,7 @@ float StateHeightMultiplier(DWORD StandState)
 DWORD FindSpellListByName(char* szName)
 {
 	DWORD Index;
-	for (Index = 0; Index<NUM_SPELL_SETS; Index++) {
+	for (Index = 0; Index < NUM_SPELL_SETS; Index++) {
 		if (!_stricmp(pSpellSets[Index].Name, szName)) return Index;
 	}
 	return -1;
@@ -6949,7 +6983,7 @@ char* GetLDoNTheme(DWORD LDTheme)
 
 uint32_t GetItemTimer(CONTENTS* pItem)
 {
-	uint32_t Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem,eActivatableSpell);
+	uint32_t Timer = pPCData->GetItemRecastTimer((EQ_Item*)& pItem, eActivatableSpell);
 
 	if (Timer < GetFastTime())
 		return 0;
@@ -6961,19 +6995,19 @@ CONTENTS* GetItemContentsBySlotID(DWORD dwSlotID)
 {
 	int InvSlot = -1;
 	int SubSlot = -1;
-	if (dwSlotID >= 0 && dwSlotID<NUM_INV_SLOTS) InvSlot = dwSlotID;
-	else if (dwSlotID >= 262 && dwSlotID<342) {
+	if (dwSlotID >= 0 && dwSlotID < NUM_INV_SLOTS) InvSlot = dwSlotID;
+	else if (dwSlotID >= 262 && dwSlotID < 342) {
 		InvSlot = BAG_SLOT_START + (dwSlotID - 262) / 10;
 		SubSlot = (dwSlotID - 262) % 10;
 	}
-	if (InvSlot >= 0 && InvSlot<NUM_INV_SLOTS) {
-		if (CHARINFO2* pChar2 = GetCharInfo2()) {
+	if (InvSlot >= 0 && InvSlot < NUM_INV_SLOTS) {
+		if (CHARINFO2 * pChar2 = GetCharInfo2()) {
 			if (pChar2->pInventoryArray) {
-				if (CONTENTS* iSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]) {
+				if (CONTENTS * iSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]) {
 					if (SubSlot < 0)
 						return iSlot;
 					if (pChar2->pInventoryArray->InventoryArray[InvSlot]->Contents.ContainedItems.pItems) {
-						if (CONTENTS* sSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]->GetContent(SubSlot)) {
+						if (CONTENTS * sSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]->GetContent(SubSlot)) {
 							return sSlot;
 						}
 					}
@@ -6986,20 +7020,20 @@ CONTENTS* GetItemContentsBySlotID(DWORD dwSlotID)
 
 CONTENTS* GetItemContentsByName(const char* ItemName)
 {
-	if (CHARINFO2* pChar2 = GetCharInfo2()) {
+	if (CHARINFO2 * pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
-				if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+				if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 					if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) {
 						return pItem;
 					}
 				}
 			}
 			for (unsigned long nPack = 0; nPack < 10; nPack++) {
-				if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+				if (CONTENTS * pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-							if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+							if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 								if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) {
 									return pItem;
 								}
@@ -7030,7 +7064,7 @@ bool LoH_HT_Ready()
 {
 	DWORD i = ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[InnateETA];
 	DWORD j = i - ((CDISPLAY*)pDisplay)->TimeStamp;
-	if (i<j) return true;
+	if (i < j) return true;
 	return false;
 }
 
@@ -7138,19 +7172,19 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 		|| (aAttrib == 340 || bAttrib == 340)		// Trigger DD on cast
 		|| (aAttrib == 348 || bAttrib == 348)		// Limit: Min Mana
 //		|| (aAttrib == 374 || bAttrib == 374)		// Add Effect: xxx		
-		|| (aAttrib == 385 || bAttrib == 385)		// Limit: SpellGroup
-		|| (aAttrib == 391 || bAttrib == 391)		// Limit: Max Mana
-		|| (aAttrib == 403 || bAttrib == 403)		// Limit: SpellClass
-		|| (aAttrib == 404 || bAttrib == 404)		// Limit: SpellSubclass
-		|| (aAttrib == 411 || bAttrib == 411)		// Limit: PlayerClass
-		|| (aAttrib == 412 || bAttrib == 412)		// Limit: Race
-		|| (aAttrib == 414 || bAttrib == 414)		// Limit: CastingSkill
-		|| (aAttrib == 422 || bAttrib == 422)		// Limit: Use Min
-		|| (aAttrib == 423 || bAttrib == 423)		// Limit: Use Type
-		|| (aAttrib == 428 || bAttrib == 428)		// Skill_Proc_Modifier
-		|| (LargerEffectTest(aSpell, bSpell, i, bTriggeredEffectCheck))	// Ignore if the new effect is greater than the old effect
-		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
-		|| ((aSpell->SpellType == 1 || aSpell->SpellType == 2) && (bSpell->SpellType == 1 || bSpell->SpellType == 2) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
+|| (aAttrib == 385 || bAttrib == 385)		// Limit: SpellGroup
+|| (aAttrib == 391 || bAttrib == 391)		// Limit: Max Mana
+|| (aAttrib == 403 || bAttrib == 403)		// Limit: SpellClass
+|| (aAttrib == 404 || bAttrib == 404)		// Limit: SpellSubclass
+|| (aAttrib == 411 || bAttrib == 411)		// Limit: PlayerClass
+|| (aAttrib == 412 || bAttrib == 412)		// Limit: Race
+|| (aAttrib == 414 || bAttrib == 414)		// Limit: CastingSkill
+|| (aAttrib == 422 || bAttrib == 422)		// Limit: Use Min
+|| (aAttrib == 423 || bAttrib == 423)		// Limit: Use Type
+|| (aAttrib == 428 || bAttrib == 428)		// Skill_Proc_Modifier
+|| (LargerEffectTest(aSpell, bSpell, i, bTriggeredEffectCheck))	// Ignore if the new effect is greater than the old effect
+|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
+|| ((aSpell->SpellType == 1 || aSpell->SpellType == 2) && (bSpell->SpellType == 1 || bSpell->SpellType == 2) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
 }
 
 // ***************************************************************************
@@ -7264,10 +7298,10 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 				if (gStackingDebug == -1)
 					WriteChatColor("Inside IF", USERCOLOR_CHAT_CHANNEL);
 			}
-//			if (aAttrib == 55 && bAttrib == 55) {	//Mitigate Melee Damage
-//				return (aBase >= bBase);
-//			}
-//			else 
+			//			if (aAttrib == 55 && bAttrib == 55) {	//Mitigate Melee Damage
+			//				return (aBase >= bBase);
+			//			}
+			//			else 
 			if (!((bAttrib == 10 && (bBase == -6 || bBase == 0)) ||
 				(aAttrib == 10 && (aBase == -6 || aBase == 0)) ||
 				(bAttrib == 79 && bBase > 0 && bSpell->TargetType == 6) ||
@@ -7321,9 +7355,9 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects, 
 			}
 		}
 		/*
-		//Now Check to see if the first buff blocks second buff. This is necessary 
-		//because only some spells carry the Block Slot. Ex. Brells and Spiritual 
-		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2 
+		//Now Check to see if the first buff blocks second buff. This is necessary
+		//because only some spells carry the Block Slot. Ex. Brells and Spiritual
+		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2
 		//of which block Brells.
 		if (aAttrib == 148 || aAttrib == 149) {
 			// in this branch we know aSpell has enough slots
@@ -7389,10 +7423,10 @@ BOOL BuffStackTestOld(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffect
 			}
 			else if (!((GetSpellAttrib(bSpell, i) == 10 && (GetSpellBase(bSpell, i) == -6 || GetSpellBase(bSpell, i) == 0)) ||
 				(GetSpellAttrib(aSpell, i) == 10 && (GetSpellBase(aSpell, i) == -6 || GetSpellBase(aSpell, i) == 0)) ||
-				(GetSpellAttrib(bSpell, i) == 79 && GetSpellBase(bSpell, i)>0 && bSpell->TargetType == 6) ||
-				(GetSpellAttrib(aSpell, i) == 79 && GetSpellBase(aSpell, i)>0 && aSpell->TargetType == 6) ||
-				(GetSpellAttrib(bSpell, i) == 0 && GetSpellBase(bSpell, i)<0) ||
-				(GetSpellAttrib(aSpell, i) == 0 && GetSpellBase(aSpell, i)<0) ||
+				(GetSpellAttrib(bSpell, i) == 79 && GetSpellBase(bSpell, i) > 0 && bSpell->TargetType == 6) ||
+				(GetSpellAttrib(aSpell, i) == 79 && GetSpellBase(aSpell, i) > 0 && aSpell->TargetType == 6) ||
+				(GetSpellAttrib(bSpell, i) == 0 && GetSpellBase(bSpell, i) < 0) ||
+				(GetSpellAttrib(aSpell, i) == 0 && GetSpellBase(aSpell, i) < 0) ||
 				(GetSpellAttrib(bSpell, i) == 148 || GetSpellAttrib(bSpell, i) == 149) ||
 				(GetSpellAttrib(aSpell, i) == 148 || GetSpellAttrib(aSpell, i) == 149)))
 				return false;
@@ -7429,7 +7463,7 @@ BOOL BuffStackTestOld(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffect
 }
 #endif
 
-float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient*pSpawn2)
+float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 {
 	float f, g, h;
 	if (pSpawn1 && pSpawn2)
@@ -7439,14 +7473,14 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient*pSpawn2)
 
 		h = abs(((SPAWNINFO*)pSpawn1)->AvatarHeight - ((SPAWNINFO*)pSpawn2)->AvatarHeight);
 
-		f = (f + g)*0.75f;
+		f = (f + g) * 0.75f;
 
-		if (f<14.0f)
+		if (f < 14.0f)
 			f = 14.0f;
 
 		g = f + 2 + h;
 
-		if (g>75.0f)
+		if (g > 75.0f)
 			return 75.0f;
 		else
 			return g;
@@ -7479,7 +7513,7 @@ DWORD GetSpellGemTimer2(int nGem)
 	if (bValidSlot)
 	{
 		int memspell = GetMemorizedSpell(nGem);
-		if(PSPELL pSpell = GetSpellByID(memspell))
+		if (PSPELL pSpell = GetSpellByID(memspell))
 		{
 			int ReuseTimerIndex = pSpell->ReuseTimerIndex;
 			UINT linkedtimer = ((PcZoneClient*)pPCData)->GetLinkedSpellReuseTimer(ReuseTimerIndex);
@@ -7488,12 +7522,12 @@ DWORD GetSpellGemTimer2(int nGem)
 			UINT LinkedDuration = 0;
 			UINT gemeta = ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[nGem];
 			DWORD now = ((CDISPLAY*)pDisplay)->TimeStamp;
-			if (gemeta > now )
+			if (gemeta > now)
 			{
 				RecastDuration = gemeta - now;
 			}
 			__time32_t fasttime = (__time32_t)GetFastTime();
-			if ( RecastTime > fasttime)
+			if (RecastTime > fasttime)
 			{
 				LinkedDuration = (RecastTime - fasttime) * 1000;
 			}
@@ -7502,11 +7536,11 @@ DWORD GetSpellGemTimer2(int nGem)
 			UINT timeremaining = gem->GetCoolDownTimeRemaining();
 			UINT totaldur = gem->GetCoolDownTotalDuration();
 
-			bool TimerChanged = !(abs(long(Timer - timeremaining)) < 1000 );
-			if( Timer > 0 && (totaldur == 0 || TimerChanged))
+			bool TimerChanged = !(abs(long(Timer - timeremaining)) < 1000);
+			if (Timer > 0 && (totaldur == 0 || TimerChanged))
 			{
 				int TotalDuration = Timer;
-				if( RecastDuration > LinkedDuration )
+				if (RecastDuration > LinkedDuration)
 				{
 					VePointer<CONTENTS> pFocusItem;
 					int ReuseMod = pCharData->GetFocusReuseMod((EQ_Spell*)pSpell, pFocusItem);
@@ -7560,7 +7594,7 @@ void AttackRanged(PlayerClient* pRangedTarget)
 	}
 }
 
-void UseAbility(char *sAbility) {
+void UseAbility(char* sAbility) {
 
 	char szBuffer[MAX_STRING] = { 0 };
 	sprintf_s(szBuffer, "%s", sAbility);
@@ -7585,10 +7619,10 @@ void UseAbility(char *sAbility) {
 	DWORD Index, DoIndex = 0xFFFFFFFF;
 	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
 
-	for (Index = 0; Index<10; Index++) {
+	for (Index = 0; Index < 10; Index++) {
 		if (EQADDR_DOABILITYLIST[Index] != 0xFFFFFFFF) {
 			if (!_strnicmp(szBuffer, szSkills[EQADDR_DOABILITYLIST[Index]], strlen(szSkills[EQADDR_DOABILITYLIST[Index]]))) {
-				if (Index<4) {
+				if (Index < 4) {
 					DoIndex = Index + 7; // 0-3 = Combat abilities (7-10)
 				}
 				else {
@@ -7603,7 +7637,7 @@ void UseAbility(char *sAbility) {
 		cmdDoAbility(pChar, szBuffer);
 	}
 	else {
-		if (CHARINFO2* pChar2 = GetCharInfo2()) {
+		if (CHARINFO2 * pChar2 = GetCharInfo2()) {
 			for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++) {
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
 					if (PSPELL pCA = GetSpellByID(pChar2->CombatAbilities[Index])) {
@@ -7670,9 +7704,9 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 		//check regular inventory
 		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
-				if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+				if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 					if (pItem->GetGlobalIndex().GetTopSlot() == InvSlot && pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot) {
-							return pItem;
+						return pItem;
 					}
 				}
 			}
@@ -7680,10 +7714,10 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 		//not found? ok check inside bags
 		if (pChar2 && pChar2->pInventoryArray) {
 			for (unsigned long nPack = 0; nPack < 10; nPack++) {
-				if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+				if (CONTENTS * pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-							if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+							if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 								if (pItem->GetGlobalIndex().GetTopSlot() == InvSlot && pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot) {
 									return pItem;
 								}
@@ -7700,11 +7734,11 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 #ifdef NEWCHARINFO
 		if (pChar) {
 			for (unsigned long nSlot = 0; nSlot < pChar->BankItems.Items.Size; nSlot++) {
-				if (CONTENTS* pItem = pChar->BankItems.Items[nSlot].pObject) {
+				if (CONTENTS * pItem = pChar->BankItems.Items[nSlot].pObject) {
 #else
 		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
 			for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++) {
-				if (CONTENTS* pItem = pChar->pBankArray->Bank[nSlot]) {
+				if (CONTENTS * pItem = pChar->pBankArray->Bank[nSlot]) {
 #endif
 					if (pItem->GetGlobalIndex().GetTopSlot() == InvSlot && pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot) {
 						return pItem;
@@ -7716,15 +7750,15 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 #ifdef NEWCHARINFO
 		if (pChar) {
 			for (unsigned long nPack = 0; nPack < pChar->BankItems.Items.Size; nPack++) {
-				if (CONTENTS* pPack = pChar->BankItems.Items[nPack].pObject) {
+				if (CONTENTS * pPack = pChar->BankItems.Items[nPack].pObject) {
 #else
 		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
 			for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
-				if (CONTENTS* pPack = pChar->pBankArray->Bank[nPack]) {
+				if (CONTENTS * pPack = pChar->pBankArray->Bank[nPack]) {
 #endif
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-							if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+							if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 								if (pItem->GetGlobalIndex().GetTopSlot() == InvSlot && pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot) {
 									return pItem;
 								}
@@ -7741,11 +7775,11 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 #ifdef NEWCHARINFO
 		if (pChar) {
 			for (unsigned long nSlot = 0; nSlot < pChar->SharedBankItems.Items.Size; nSlot++) {
-				if (CONTENTS* pItem = pChar->SharedBankItems.Items[nSlot].pObject) {
+				if (CONTENTS * pItem = pChar->SharedBankItems.Items[nSlot].pObject) {
 #else
 		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
 			for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++) {
-				if (CONTENTS* pItem = pChar->pSharedBankArray->SharedBank[nSlot]) {
+				if (CONTENTS * pItem = pChar->pSharedBankArray->SharedBank[nSlot]) {
 #endif
 					if (pItem->GetGlobalIndex().GetTopSlot() == InvSlot && pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot) {
 						return pItem;
@@ -7757,15 +7791,15 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 #ifdef NEWCHARINFO
 		if (pChar) {
 			for (unsigned long nPack = 0; nPack < pChar->SharedBankItems.Items.Size; nPack++) {
-				if (CONTENTS* pPack = pChar->SharedBankItems.Items[nPack].pObject) {
+				if (CONTENTS * pPack = pChar->SharedBankItems.Items[nPack].pObject) {
 #else
 		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
 			for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
-				if (CONTENTS* pPack = pChar->pSharedBankArray->SharedBank[nPack]) {
+				if (CONTENTS * pPack = pChar->pSharedBankArray->SharedBank[nPack]) {
 #endif
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-							if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+							if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 								if (pItem->GetGlobalIndex().GetTopSlot() == InvSlot && pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot) {
 									return pItem;
 								}
@@ -7791,7 +7825,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 
 	// check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		if (CONTENTS* pItem = pChar2->pInventoryArray->Inventory.Cursor) {
+		if (CONTENTS * pItem = pChar2->pInventoryArray->Inventory.Cursor) {
 			if (bExact) {
 				if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 					return pItem;
@@ -7807,7 +7841,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 								if (bExact) {
 									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -7829,7 +7863,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 				CONTENTS* pPack = pItem;
 				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-					if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+					if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 						if (bExact) {
 							if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 								return pItem;
@@ -7845,7 +7879,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 						// Check for augs next
 						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-								if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 										if (bExact) {
 											if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -7873,7 +7907,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
-			if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+			if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						return pItem;
@@ -7889,7 +7923,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 				// Check for augs next
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 								if (bExact) {
 									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -7914,10 +7948,10 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
 		for (unsigned long nPack = 0; nPack < 10; nPack++) {
-			if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+			if (CONTENTS * pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (bExact) {
 								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 									return pItem;
@@ -7933,7 +7967,7 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 							// We should check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (bExact) {
 												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -7963,11 +7997,11 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->MountKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pMountsArray->Mounts[nSlot]) {
+			if (CONTENTS * pItem = pChar->pMountsArray->Mounts[nSlot]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -7989,11 +8023,11 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->IllusionKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+			if (CONTENTS * pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -8015,11 +8049,11 @@ CONTENTS* FindItemByName(const char* pName, bool bExact)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->FamiliarKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+			if (CONTENTS * pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -8045,14 +8079,14 @@ CONTENTS* FindItemByID(int ItemID)
 
 	//check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		if (CONTENTS* pItem = pChar2->pInventoryArray->Inventory.Cursor) {
+		if (CONTENTS * pItem = pChar2->pInventoryArray->Inventory.Cursor) {
 			if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 				return pItem;
 			}
 			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 								return pAugItem;
 							}
@@ -8063,14 +8097,14 @@ CONTENTS* FindItemByID(int ItemID)
 			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 				CONTENTS* pPack = pItem;
 				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-					if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+					if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 						if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 							return pItem;
 						}
 						// Check for augs next
 						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-								if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 										return pAugItem;
 									}
@@ -8086,14 +8120,14 @@ CONTENTS* FindItemByID(int ItemID)
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
-			if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+			if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
 				}
 				// Check for augs next
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 								return pAugItem;
 							}
@@ -8107,17 +8141,17 @@ CONTENTS* FindItemByID(int ItemID)
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
 		for (unsigned long nPack = 0; nPack < 10; nPack++) {
-			if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+			if (CONTENTS * pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 								return pItem;
 							}
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType && ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 											return pAugItem;
 										}
@@ -8136,11 +8170,11 @@ CONTENTS* FindItemByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->MountKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pMountsArray->Mounts[nSlot]) {
+			if (CONTENTS * pItem = pChar->pMountsArray->Mounts[nSlot]) {
 #endif
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
@@ -8153,11 +8187,11 @@ CONTENTS* FindItemByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->IllusionKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+			if (CONTENTS * pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
 #endif
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
@@ -8170,11 +8204,11 @@ CONTENTS* FindItemByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->FamiliarKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+			if (CONTENTS * pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
 #endif
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
@@ -8199,7 +8233,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 
 	// check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		if (CONTENTS* pItem = pChar2->pInventoryArray->Inventory.Cursor) {
+		if (CONTENTS * pItem = pChar2->pInventoryArray->Inventory.Cursor) {
 			if (bExact) {
 				if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8225,7 +8259,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 								if (bExact) {
 									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -8247,7 +8281,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 				CONTENTS* pPack = pItem;
 				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-					if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+					if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 						if (bExact) {
 							if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 								if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8273,7 +8307,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 						// Check for augs next
 						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-								if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 										if (bExact) {
 											if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -8301,7 +8335,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
-			if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+			if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8327,7 +8361,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 				// Check for augs next
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 								if (bExact) {
 									if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -8352,10 +8386,10 @@ int FindItemCountByName(const char* pName, bool bExact)
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
 		for (unsigned long nPack = 0; nPack < 10; nPack++) {
-			if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+			if (CONTENTS * pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (bExact) {
 								if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
 									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8381,7 +8415,7 @@ int FindItemCountByName(const char* pName, bool bExact)
 							// We should check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (bExact) {
 												if (!_stricmp(Name, GetItemFromContents(pAugItem)->Name)) {
@@ -8411,11 +8445,11 @@ int FindItemCountByName(const char* pName, bool bExact)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->MountKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pMountsArray->Mounts[nSlot]) {
+			if (CONTENTS * pItem = pChar->pMountsArray->Mounts[nSlot]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -8447,11 +8481,11 @@ int FindItemCountByName(const char* pName, bool bExact)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->IllusionKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+			if (CONTENTS * pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -8483,11 +8517,11 @@ int FindItemCountByName(const char* pName, bool bExact)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->FamiliarKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+			if (CONTENTS * pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
 #endif
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -8527,7 +8561,7 @@ DWORD FindItemCountByID(int ItemID)
 
 	//check cursor
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		if (CONTENTS* pItem = pChar2->pInventoryArray->Inventory.Cursor) {
+		if (CONTENTS * pItem = pChar2->pInventoryArray->Inventory.Cursor) {
 			if (ItemID == pItem->ID) {
 				if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 					Count++;
@@ -8539,7 +8573,7 @@ DWORD FindItemCountByID(int ItemID)
 			if (GetItemFromContents(pItem)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 								if (ItemID == pAugItem->ID) {
 									Count++;
@@ -8552,7 +8586,7 @@ DWORD FindItemCountByID(int ItemID)
 			else if (pItem->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 				CONTENTS* pPack = pItem;
 				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-					if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+					if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 						if (ItemID == pItem->ID) {
 							if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 								Count++;
@@ -8564,7 +8598,7 @@ DWORD FindItemCountByID(int ItemID)
 						// Check for augs next
 						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 							for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-								if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+								if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 									if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 										if (ItemID == pAugItem->ID) {
 											Count++;
@@ -8583,7 +8617,7 @@ DWORD FindItemCountByID(int ItemID)
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
-			if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+			if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 						Count++;
@@ -8595,7 +8629,7 @@ DWORD FindItemCountByID(int ItemID)
 				// Check for augs next
 				if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 					for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-						if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+						if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 							if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 								if (ItemID == pAugItem->ID) {
 									Count++;
@@ -8611,10 +8645,10 @@ DWORD FindItemCountByID(int ItemID)
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
 		for (unsigned long nPack = 0; nPack < 10; nPack++) {
-			if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+			if (CONTENTS * pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (ItemID == pItem->ID) {
 								if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
 									Count++;
@@ -8626,7 +8660,7 @@ DWORD FindItemCountByID(int ItemID)
 							// We should check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (ItemID == pAugItem->ID) {
 												Count++;
@@ -8647,11 +8681,11 @@ DWORD FindItemCountByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->MountKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->MountKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pMountsArray->Mounts[nSlot]) {
+			if (CONTENTS * pItem = pChar->pMountsArray->Mounts[nSlot]) {
 #endif
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8669,11 +8703,11 @@ DWORD FindItemCountByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->IllusionKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->IllusionKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
+			if (CONTENTS * pItem = pChar->pIllusionsArray->Illusions[nSlot]) {
 #endif
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8691,11 +8725,11 @@ DWORD FindItemCountByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pChar) {
 		for (unsigned long nSlot = 0; nSlot < pChar->FamiliarKeyRingItems.Items.Size; nSlot++) {
-			if (CONTENTS* pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
+			if (CONTENTS * pItem = pChar->FamiliarKeyRingItems.Items[nSlot].pObject) {
 #else
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++) {
-			if (CONTENTS* pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
+			if (CONTENTS * pItem = pChar->pFamiliarArray->Familiars[nSlot]) {
 #endif
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -8743,13 +8777,13 @@ CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 		return false;
 	};
 
-	auto checkAugs = [&](CONTENTS* pContents) -> CONTENTS*
+	auto checkAugs = [&](CONTENTS* pContents) -> CONTENTS *
 	{
 		if (pContents->Contents.ContainedItems.pItems && pContents->Contents.ContainedItems.Size)
 		{
 			for (size_t nAug = 0; nAug < pContents->Contents.ContainedItems.Size; nAug++)
 			{
-				if (CONTENTS* pAugItem = pContents->Contents.ContainedItems.pItems->Item[nAug])
+				if (CONTENTS * pAugItem = pContents->Contents.ContainedItems.pItems->Item[nAug])
 				{
 					ITEMINFO* pItem = GetItemFromContents(pAugItem);
 					if (pItem->Type == ITEMTYPE_NORMAL && pItem->AugType)
@@ -8764,7 +8798,7 @@ CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 		return nullptr;
 	};
 
-	auto checkContainer = [&](CONTENTS* pPack) -> CONTENTS*
+	auto checkContainer = [&](CONTENTS* pPack) -> CONTENTS *
 	{
 		// check this item
 		if (checkItem(pPack))
@@ -8806,7 +8840,7 @@ CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 			if (!pPack)
 				continue;
 
-			if (CONTENTS* pItem = checkContainer(pPack))
+			if (CONTENTS * pItem = checkContainer(pPack))
 				return pItem;
 		}
 	}
@@ -8820,7 +8854,7 @@ CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 			if (!pPack)
 				continue;
 
-			if (CONTENTS* pItem = checkContainer(pPack))
+			if (CONTENTS * pItem = checkContainer(pPack))
 				return pItem;
 		}
 	}
@@ -8836,11 +8870,11 @@ CONTENTS* FindBankItemByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pCharInfo) {
 		for (unsigned long nPack = 0; nPack < pCharInfo->BankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->BankItems.Items[nPack].pObject) {
+			if (CONTENTS * pPack = pCharInfo->BankItems.Items[nPack].pObject) {
 #else
 	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank) {
 		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pBankArray->Bank[nPack]) {
+			if (CONTENTS * pPack = pCharInfo->pBankArray->Bank[nPack]) {
 #endif
 				if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
 					return pPack;
@@ -8848,7 +8882,7 @@ CONTENTS* FindBankItemByID(int ItemID)
 				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
 						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (CONTENTS * pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
 								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 									if (ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 										return pAugItem;
@@ -8860,14 +8894,14 @@ CONTENTS* FindBankItemByID(int ItemID)
 				}
 				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 								return pItem;
 							}
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 												return pItem;
@@ -8887,11 +8921,11 @@ CONTENTS* FindBankItemByID(int ItemID)
 #ifdef NEWCHARINFO
 	if (pCharInfo) {
 		for (unsigned long nPack = 0; nPack < pCharInfo->SharedBankItems.Items.Size; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
+			if (CONTENTS * pPack = pCharInfo->SharedBankItems.Items[nPack].pObject) {
 #else
 	if (pCharInfo->pSharedBankArray) {
 		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
-			if (CONTENTS* pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
+			if (CONTENTS * pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]) {
 #endif
 				if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
 					return pPack;
@@ -8899,7 +8933,7 @@ CONTENTS* FindBankItemByID(int ItemID)
 				if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK) { // Hey it's not a pack we should check for augs
 					if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size) {
 						for (unsigned long nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++) {
-							if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
+							if (CONTENTS * pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug]) {
 								if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 									if (ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 										return pAugItem;
@@ -8911,14 +8945,14 @@ CONTENTS* FindBankItemByID(int ItemID)
 				}
 				else if (pPack->Contents.ContainedItems.pItems) { // Ok it was a pack, if it has items in it lets check them
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-						if (CONTENTS* pItem = pPack->GetContent(nItem)) {
+						if (CONTENTS * pItem = pPack->GetContent(nItem)) {
 							if (ItemID == GetItemFromContents(pPack)->ItemNumber) {
 								return pPack;
 							}
 							// Check for augs next
 							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
 								for (unsigned long nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++) {
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+									if (CONTENTS * pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug]) {
 										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) {
 											if (ItemID == GetItemFromContents(pAugItem)->ItemNumber) {
 												return pAugItem;
@@ -9293,7 +9327,7 @@ int FindBankItemCountByID(int ItemID)
 	return Count;
 }
 
-CInvSlot* GetInvSlot2(const ItemGlobalIndex& index)
+CInvSlot* GetInvSlot2(const ItemGlobalIndex & index)
 {
 	return GetInvSlot(index.Location, index.GetIndex().GetSlot(0), index.GetIndex().GetSlot(1));
 }
@@ -9311,7 +9345,7 @@ CInvSlot* GetInvSlot(DWORD type, short invslot, short bagslot)
 				&& (short)pSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(0) == invslot
 				&& (short)pSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1) == bagslot)
 			{
-				if (CXMLData* pXMLData = pSlot->pInvSlotWnd->GetXMLData())
+				if (CXMLData * pXMLData = pSlot->pInvSlotWnd->GetXMLData())
 				{
 					if (!_stricmp(pXMLData->ScreenID.c_str(), "HB_InvSlot"))
 					{
@@ -9329,7 +9363,7 @@ CInvSlot* GetInvSlot(DWORD type, short invslot, short bagslot)
 }
 
 //work in progress -eqmule
-bool IsItemInsideContainer(CONTENTS* pItem)
+bool IsItemInsideContainer(CONTENTS * pItem)
 {
 	if (!pItem)
 		return false;
@@ -9344,7 +9378,7 @@ bool IsItemInsideContainer(CONTENTS* pItem)
 	{
 		if (pChar2 && pChar2->pInventoryArray)
 		{
-			if (CONTENTS* pItemFound = pChar2->pInventoryArray->InventoryArray[index])
+			if (CONTENTS * pItemFound = pChar2->pInventoryArray->InventoryArray[index])
 			{
 				if (pItemFound != pItem)
 				{
@@ -9356,19 +9390,19 @@ bool IsItemInsideContainer(CONTENTS* pItem)
 	return false;
 }
 
-bool OpenContainer(CONTENTS* pItem, bool hidden, bool flag)
+bool OpenContainer(CONTENTS * pItem, bool hidden, bool flag)
 {
 	if (!pItem)
 		return false;
 
-	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
+	if (CONTENTS * pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
 	{
 		if (pcont->Open)
 			return true;
 
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK)
 		{
-			if (CInvSlot* pSlot = GetInvSlot2(pcont->GetGlobalIndex()))
+			if (CInvSlot * pSlot = GetInvSlot2(pcont->GetGlobalIndex()))
 			{
 				if (hidden)
 				{
@@ -9388,12 +9422,12 @@ bool OpenContainer(CONTENTS* pItem, bool hidden, bool flag)
 	return false;
 }
 
-bool CloseContainer(CONTENTS* pItem)
+bool CloseContainer(CONTENTS * pItem)
 {
 	if (!pItem)
 		return false;
 
-	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
+	if (CONTENTS * pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
 	{
 		if (!pcont->Open)
 			return false;
@@ -9416,11 +9450,11 @@ DWORD __stdcall WaitForBagToOpen(void* pData)
 	CONTENTS* pItem = (CONTENTS*)i64tmp->HighPart;
 	int timeout = 0;
 
-	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
+	if (CONTENTS * pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
 	{
 		if (pInvSlotMgr)
 		{
-			if (CInvSlot* theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex()))
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex()))
 			{
 				if (theslot->pInvSlotWnd)
 				{
@@ -9487,7 +9521,7 @@ bool ItemOnCursor()
 	return false;
 }
 
-bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
+bool PickupItem(ItemContainerInstance type, CONTENTS * pItem)
 {
 	if (!pItem || !pInvSlotMgr)
 	{
@@ -9508,13 +9542,13 @@ bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
 		if (!pSlot || !pSlot->pInvSlotWnd)
 		{
 			// if we got all the way here this really shouldnt happen... but why assume...
-			WriteChatfSafe("Could not find the %d itemslot", pItem->GetGlobalIndex().GetTopSlot());
+			WriteChatf("Could not find the %d itemslot", pItem->GetGlobalIndex().GetTopSlot());
 			return false;
 		}
 
 		if (bSelectSlot)
 		{
-			if (CInvSlot* theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot()))
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot()))
 			{
 				pInvSlotMgr->SelectSlot(theslot);
 
@@ -9547,7 +9581,7 @@ bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
 		// BagSlot is NOT -1 so they want to pick it up from INSIDE a bag
 		if (bSelectSlot)
 		{
-			if (CInvSlot* theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1)))
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1)))
 			{
 				pInvSlotMgr->SelectSlot(theslot);
 				ItemGlobalIndex To;
@@ -9587,7 +9621,7 @@ bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
 				if (!pSlot)
 				{
 					// well lets try to open it then
-					if (CONTENTS* pBag = FindItemBySlot2(pItem->GetGlobalIndex().GetParent()))
+					if (CONTENTS * pBag = FindItemBySlot2(pItem->GetGlobalIndex().GetParent()))
 					{
 						bool wechangedpackopenstatus = OpenContainer(pBag, true);
 						if (wechangedpackopenstatus)
@@ -9604,7 +9638,7 @@ bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
 					}
 					else
 					{
-						WriteChatfSafe("[PickupItem] falied due to no bag found in slot %d", pItem->GetGlobalIndex().GetTopSlot());
+						WriteChatf("[PickupItem] falied due to no bag found in slot %d", pItem->GetGlobalIndex().GetTopSlot());
 						return false;
 					}
 				}
@@ -9614,7 +9648,7 @@ bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
 					// well we just select it then...
 					if (!pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, "leftmouseup"))
 					{
-						WriteChatfSafe("Could not pickup %s", GetItemFromContents(pItem)->Name);
+						WriteChatf("Could not pickup %s", GetItemFromContents(pItem)->Name);
 					}
 					return true;
 				}
@@ -9661,7 +9695,7 @@ bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
 	return false;
 }
 
-bool DropItem2(const ItemGlobalIndex& index)
+bool DropItem2(const ItemGlobalIndex & index)
 {
 	return DropItem(index.GetLocation(), index.GetTopSlot(), index.GetIndex().GetSlot(1));
 }
@@ -9691,7 +9725,7 @@ bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 
 		if (bSelectSlot)
 		{
-			if (CInvSlot* theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot))
+			if (CInvSlot * theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot))
 			{
 				// we select the slot, and that will set pSelectedItem correctly
 				// we do this cause later on we need that address for the .Selection member
@@ -9725,7 +9759,7 @@ bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 		// BagSlot is NOT -1 so they want to drop it INSIDE a bag
 		if (bSelectSlot)
 		{
-			if (CInvSlot* theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot, ToBagSlot))
+			if (CInvSlot * theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot, ToBagSlot))
 			{
 				pInvSlotMgr->SelectSlot(theSlot);
 
@@ -9800,7 +9834,7 @@ int GetTargetBuffByCategory(int category, unsigned int classmask, int startslot)
 		buffID = pTargetWnd->BuffSpellID[i];
 		if (buffID > 0)
 		{
-			if (SPELL* pSpell = GetSpellByID(buffID))
+			if (SPELL * pSpell = GetSpellByID(buffID))
 			{
 				if (GetSpellCategory(pSpell) == category && IsSpellUsableForClass(pSpell, classmask))
 				{
@@ -9852,7 +9886,7 @@ int GetTargetBuffBySubCat(const char* subcat, unsigned int classmask, int starts
 	return -1;
 }
 
-bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff, unsigned int classmask)
+bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO * pSpawn, TargetBuff * pcTargetBuff, unsigned int classmask)
 {
 	if (CachedBuffsMap.empty())
 		return false;
@@ -9864,7 +9898,7 @@ bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff
 	for (auto& iter : i->second)
 	{
 		int buffID = iter.first;
-		if (SPELL* pSpell = GetSpellByID(buffID))
+		if (SPELL * pSpell = GetSpellByID(buffID))
 		{
 			if (int cat = GetSpellSubcategory(pSpell))
 			{
@@ -9891,7 +9925,7 @@ bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff
 	return false;
 }
 
-bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff)
+bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO * pSpawn, TargetBuff * pcTargetBuff)
 {
 	auto i = CachedBuffsMap.find(pSpawn->SpawnID);
 	if (i == CachedBuffsMap.end())
@@ -9901,7 +9935,7 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBu
 	{
 		int buffID = iter.first;
 
-		if (SPELL* pSpell = GetSpellByID(buffID))
+		if (SPELL * pSpell = GetSpellByID(buffID))
 		{
 			if (LONG base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
 			{
@@ -9987,9 +10021,9 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 		buffID = pTargetWnd->BuffSpellID[i];
 		if (buffID > 0 && buffID != -1)
 		{
-			if (SPELL* pSpell = GetSpellByID(buffID))
+			if (SPELL * pSpell = GetSpellByID(buffID))
 			{
-				if (int base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa))
+				if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
 				{
 					switch (spa)
 					{
@@ -10061,7 +10095,7 @@ int GetSelfBuffByCategory(int category, unsigned int classmask, int startslot)
 
 	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
 	{
-		if (SPELL* pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
+		if (SPELL * pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 		{
 			if (GetSpellCategory(pSpell) == category && IsSpellUsableForClass(pSpell, classmask))
 			{
@@ -10081,7 +10115,7 @@ int GetSelfBuffBySubCat(const char* subcat, unsigned int classmask, int startslo
 
 	for (int i = startslot; i < NUM_LONG_BUFFS; i++)
 	{
-		if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
+		if (SPELL * pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
 		{
 			if (DWORD cat = GetSpellSubcategory(pSpell))
 			{
@@ -10107,9 +10141,9 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 
 	for (int i = startslot; i < NUM_LONG_BUFFS; i++)
 	{
-		if (SPELL* pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
+		if (SPELL * pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 		{
-			if (int base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa))
+			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
 			{
 				switch (spa)
 				{
@@ -10181,9 +10215,9 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 
 	for (int i = startslot; i < NUM_SHORT_BUFFS; i++)
 	{
-		if (SPELL* pSpell = GetSpellByID(pChar2->ShortBuff[i].SpellID))
+		if (SPELL * pSpell = GetSpellByID(pChar2->ShortBuff[i].SpellID))
 		{
-			if (int base = ((EQ_Spell *)pSpell)->SpellAffectBase(spa))
+			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
 			{
 				switch (spa)
 				{
@@ -10247,13 +10281,13 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 	return -1;
 }
 
-int GetSpellCategory(SPELL* pSpell)
+int GetSpellCategory(SPELL * pSpell)
 {
 	if (pSpell)
 	{
 		if (pSpell->CannotBeScribed)
 		{
-			if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+			if (SPELL * pTrigger = GetSpellParent(pSpell->ID))
 			{
 				return pTrigger->Category;
 			}
@@ -10267,13 +10301,13 @@ int GetSpellCategory(SPELL* pSpell)
 	return 0;
 }
 
-int GetSpellSubcategory(SPELL* pSpell)
+int GetSpellSubcategory(SPELL * pSpell)
 {
 	if (pSpell)
 	{
 		if (pSpell->CannotBeScribed)
 		{
-			if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+			if (SPELL * pTrigger = GetSpellParent(pSpell->ID))
 			{
 				return pTrigger->Subcategory;
 			}
@@ -10287,15 +10321,15 @@ int GetSpellSubcategory(SPELL* pSpell)
 	return 0;
 }
 
-bool IsAegoSpell(SPELL* pSpell)
+bool IsAegoSpell(SPELL * pSpell)
 {
 	if (pSpell->CannotBeScribed)
 	{
-		if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+		if (SPELL * pTrigger = GetSpellParent(pSpell->ID))
 		{
 			if ((pTrigger->Subcategory == 1) || (pTrigger->Subcategory == 112))
 			{
-				int base = ((EQ_Spell *)pSpell)->SpellAffectBase(1); // check if it has ac?
+				int base = ((EQ_Spell*)pSpell)->SpellAffectBase(1); // check if it has ac?
 				if (base)
 				{
 					return true;
@@ -10307,7 +10341,7 @@ bool IsAegoSpell(SPELL* pSpell)
 	{
 		if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112))
 		{
-			int base = ((EQ_Spell *)pSpell)->SpellAffectBase(1);
+			int base = ((EQ_Spell*)pSpell)->SpellAffectBase(1);
 			if (base)
 			{
 				return true;
@@ -10318,7 +10352,7 @@ bool IsAegoSpell(SPELL* pSpell)
 	return false;
 }
 
-bool IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask)
+bool IsSpellUsableForClass(SPELL * pSpell, unsigned int classmask)
 {
 	if (classmask != Unknown)
 	{
@@ -10418,7 +10452,7 @@ void TruncateSpellRankName(char* SpellName)
 	}
 }
 
-void RemoveBuff(SPAWNINFO* pChar, char* szLine)
+void RemoveBuff(SPAWNINFO * pChar, char* szLine)
 {
 	bool bPet = false;
 	bool bAll = false;
@@ -10444,7 +10478,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 			{
 				for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
 				{
-					if (SPELL* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+					if (SPELL * pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 					{
 						if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
 						{
@@ -10457,14 +10491,14 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 			if (bPet) return;
 		}
 
-		if (CHARINFO2* pChar2 = GetCharInfo2())
+		if (CHARINFO2 * pChar2 = GetCharInfo2())
 		{
 			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
 			{
 				if (pChar2->Buff[nBuff].SpellID == 0 || pChar2->Buff[nBuff].SpellID == -1)
 					continue;
 
-				if (SPELL* pBuffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
+				if (SPELL * pBuffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID))
 				{
 					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
 					{
@@ -10478,7 +10512,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 			{
 				if (pChar2->ShortBuff[nBuff].SpellID == 0 || pChar2->ShortBuff[nBuff].SpellID == -1)
 					continue;
-				if (SPELL* pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID))
+				if (SPELL * pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID))
 				{
 					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
 					{
@@ -10492,13 +10526,13 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
+void RemovePetBuff(SPAWNINFO * pChar, char* szLine)
 {
 	if (pPetInfoWnd && szLine && szLine[0] != '\0')
 	{
 		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
 		{
-			if (SPELL* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+			if (SPELL * pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 			{
 				if (!_strnicmp(pBuffSpell->Name, szLine, strlen(szLine)))
 				{
@@ -10515,7 +10549,7 @@ bool StripQuotes(char* str)
 	bool bRet = false;
 	if (strchr(str, '"'))
 		bRet = true;
-	char *s, *d;
+	char* s, * d;
 	for (s = d = str; *d = *s; d += (*s++ != '"'));
 	return bRet;
 }
@@ -10633,7 +10667,7 @@ void RefreshKeyRings(void* kr)
 int GetMountCount()
 {
 	int Count = 0;
-	if (CHARINFO* pChar = GetCharInfo())
+	if (CHARINFO * pChar = GetCharInfo())
 	{
 #ifdef NEWCHARINFO
 		return pChar->MountKeyRingItems.Items.Size;
@@ -10642,7 +10676,7 @@ int GetMountCount()
 		{
 			for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 			{
-				if (CONTENTS* pItem = pChar->pMountsArray->Mounts[nSlot])
+				if (CONTENTS * pItem = pChar->pMountsArray->Mounts[nSlot])
 				{
 					Count++;
 				}
@@ -10656,7 +10690,7 @@ int GetMountCount()
 int GetIllusionCount()
 {
 	int Count = 0;
-	if (CHARINFO* pChar = GetCharInfo())
+	if (CHARINFO * pChar = GetCharInfo())
 	{
 #ifdef NEWCHARINFO
 		return pChar->IllusionKeyRingItems.Items.Size;
@@ -10665,7 +10699,7 @@ int GetIllusionCount()
 		{
 			for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 			{
-				if (CONTENTS* pItem = pChar->pIllusionsArray->Illusions[nSlot])
+				if (CONTENTS * pItem = pChar->pIllusionsArray->Illusions[nSlot])
 				{
 					Count++;
 				}
@@ -10679,7 +10713,7 @@ int GetIllusionCount()
 int GetFamiliarCount()
 {
 	int Count = 0;
-	if (CHARINFO* pChar = GetCharInfo())
+	if (CHARINFO * pChar = GetCharInfo())
 	{
 #ifdef NEWCHARINFO
 		return pChar->FamiliarKeyRingItems.Items.Size;
@@ -10688,7 +10722,7 @@ int GetFamiliarCount()
 		{
 			for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 			{
-				if (CONTENTS* pItem = pChar->pFamiliarArray->Familiars[nSlot])
+				if (CONTENTS * pItem = pChar->pFamiliarArray->Familiars[nSlot])
 
 				{
 					Count++;
@@ -10746,10 +10780,10 @@ int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact, bool usecm
 			}
 			else
 			{
-				if (CONTENTS* pCont = FindItemByName(szItemName, bExact))
+				if (CONTENTS * pCont = FindItemByName(szItemName, bExact))
 				{
 					bool bKeyring = false;
-					if (CHARINFO* pCharInfo = GetCharInfo())
+					if (CHARINFO * pCharInfo = GetCharInfo())
 					{
 						bKeyring = pCont->GetGlobalIndex().IsKeyRingLocation();
 					}
@@ -10778,7 +10812,7 @@ int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact, bool usecm
 
 void InitKeyRings()
 {
-	if (CSidlScreenWnd* krwnd = (CSidlScreenWnd*)FindMQ2Window(KeyRingWindowParent))
+	if (CSidlScreenWnd * krwnd = (CSidlScreenWnd*)FindMQ2Window(KeyRingWindowParent))
 	{
 		CListWnd* clist = nullptr;
 		bool bRefresh = false;
@@ -10836,7 +10870,7 @@ void InitKeyRings()
 //.text:00638051                 push    0
 //.text:00638053                 add     ecx, 1FE0h
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
-void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
+void MakeMeVisible(SPAWNINFO * pChar, char* szLine)
 {
 	if (pCharData) {
 		pCharData->MakeMeVisible(0, false);
@@ -10849,7 +10883,7 @@ void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 // Usage:       /removeaura <name> or <partial name>
 // Author:      EqMule
 // ***************************************************************************
-void RemoveAura(SPAWNINFO* pChar, char* szLine)
+void RemoveAura(SPAWNINFO * pChar, char* szLine)
 {
 	if (!pAuraWnd)
 		return;
@@ -10864,7 +10898,7 @@ void RemoveAura(SPAWNINFO* pChar, char* szLine)
 	char szCmp[MAX_STRING] = { 0 };
 	strcpy_s(szCmp, szLine);
 
-	if (CListWnd* clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList"))
+	if (CListWnd * clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList"))
 	{
 		for (int i = 0; i < clist->ItemsArray.Count; i++)
 		{
@@ -10886,12 +10920,12 @@ void RemoveAura(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-bool GetAllMercDesc(std::map<int, MercDesc>& minfo)
+bool GetAllMercDesc(std::map<int, MercDesc> & minfo)
 {
 	if (!pMercInfo)
 		return false;
 
-	if (MERCSLIST* pmlist = pMercInfo->pMercsList)
+	if (MERCSLIST * pmlist = pMercInfo->pMercsList)
 	{
 		for (int i = 0; i < pMercInfo->MercenaryCount; i++)
 		{
@@ -10952,7 +10986,7 @@ bool IsActiveAA(const char* pSpellName)
 
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+		if (ALTABILITY * pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
 		{
 			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, eAltAbilityName)))
 			{
@@ -10980,7 +11014,7 @@ struct Personal_Loot
 
 CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type)
 {
-	if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList"))
+	if (CListWnd * clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList"))
 	{
 		Personal_Loot pPAdvLoot;
 		bool bFound = false;
@@ -11074,7 +11108,7 @@ struct Shared_Loot
 
 CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type)
 {
-	if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLList"))
+	if (CListWnd * clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLList"))
 	{
 		Shared_Loot pSAdvLoot;
 		bool bFound = false;
@@ -11176,7 +11210,7 @@ CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type)
 	return nullptr;
 }
 
-bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList)
+bool LootInProgress(CAdvancedLootWnd * pAdvLoot, CListWnd * pPersonalList, CListWnd * pSharedList)
 {
 	if (pPersonalList)
 	{
@@ -11222,11 +11256,11 @@ void WeDidStuff()
 int GetFreeInventory(int nSize)
 {
 	int freeslots = 0;
-	if (CHARINFO2* pChar2 = GetCharInfo2()) {
-		if(nSize) {
+	if (CHARINFO2 * pChar2 = GetCharInfo2()) {
+		if (nSize) {
 			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++) {
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-					if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
+					if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
 						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity >= nSize) {
 							if (!pItem->Contents.ContainedItems.pItems) {
 								freeslots += GetItemFromContents(pItem)->Slots;
@@ -11250,12 +11284,12 @@ int GetFreeInventory(int nSize)
 			}
 		}
 		else {
-			for (DWORD slot = BAG_SLOT_START; slot<NUM_INV_SLOTS; slot++) {
+			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++) {
 				if (!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START + 7) {
 					break;
 				}
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-					if (CONTENTS* pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
+					if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
 						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK) {
 							if (!pItem->Contents.ContainedItems.pItems) {
 								freeslots += GetItemFromContents(pItem)->Slots;
@@ -11281,11 +11315,11 @@ int GetFreeInventory(int nSize)
 	}
 	return freeslots;
 }
-bool CanItemMergeInPack(CONTENTS* pPack,CONTENTS* pItem)
+bool CanItemMergeInPack(CONTENTS * pPack, CONTENTS * pItem)
 {
 	for (UINT i = 0; i < pPack->Contents.ContainedItems.Size; i++)
 	{
-		if (CONTENTS* pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
+		if (CONTENTS * pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
 		{
 			if (pSlot->ID == pItem->ID)
 			{
@@ -11301,18 +11335,18 @@ bool CanItemMergeInPack(CONTENTS* pPack,CONTENTS* pItem)
 	}
 	return false;
 }
-void DoCommandf(char* szFormat,...)
+void DoCommandf(char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len, szFormat, vaList);
-		HideDoCommand((PSPAWNINFO)pLocalPlayer,szOutput,false);
+		HideDoCommand((PSPAWNINFO)pLocalPlayer, szOutput, false);
 		LocalFree(szOutput);
 	}
 }
-bool CanItemGoInPack(CONTENTS* pPack, CONTENTS* pItem)
+bool CanItemGoInPack(CONTENTS * pPack, CONTENTS * pItem)
 {
 	//so cangoinbag doesnt actually check if there is any room, all it checks is IF there where room, could the item go in it.
 	bool bRet = ((EQ_Item*)pItem)->CanGoInBag(&pPack);
@@ -11320,7 +11354,7 @@ bool CanItemGoInPack(CONTENTS* pPack, CONTENTS* pItem)
 		return false;//no point in checking slots.
 	for (UINT i = 0; i < pPack->Contents.ContainedItems.Size; i++)
 	{
-		if (CONTENTS* pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
+		if (CONTENTS * pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
 		{
 
 		}
@@ -11330,17 +11364,17 @@ bool CanItemGoInPack(CONTENTS* pPack, CONTENTS* pItem)
 	}
 	return false;
 }
-bool WillFitInBank(CONTENTS* pContent)
+bool WillFitInBank(CONTENTS * pContent)
 {
 	if (PITEMINFO pMyItem = GetItemFromContents(pContent))
 	{
 #ifdef NEWCHARINFO
 		if (PCHARINFO pChar = GetCharInfo()) {
 #else
-		if (CHARINFONEW* pChar = (CHARINFONEW*)GetCharInfo()) {
+		if (CHARINFONEW * pChar = (CHARINFONEW*)GetCharInfo()) {
 #endif
 			for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
-				if (CONTENTS* pCont = pChar->BankItems.Items[slot].pObject) {
+				if (CONTENTS * pCont = pChar->BankItems.Items[slot].pObject) {
 					if (PITEMINFO pItem = GetItemFromContents(pCont))
 					{
 						if (pItem->Type == ITEMTYPE_PACK)
@@ -11373,16 +11407,16 @@ bool WillFitInBank(CONTENTS* pContent)
 	}
 	return false;
 }
-bool WillFitInInventory(CONTENTS* pContent)
+bool WillFitInInventory(CONTENTS * pContent)
 {
 	if (PITEMINFO pMyItem = GetItemFromContents(pContent))
 	{
-		if (CHARINFO2* pChar2 = (CHARINFO2*)GetCharInfo2()) {
+		if (CHARINFO2 * pChar2 = (CHARINFO2*)GetCharInfo2()) {
 			if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray)
 			{
 				for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
 				{
-					if (CONTENTS* pCont = pChar2->pInventoryArray->InventoryArray[slot])
+					if (CONTENTS * pCont = pChar2->pInventoryArray->InventoryArray[slot])
 					{
 						if (PITEMINFO pItem = GetItemFromContents(pCont))
 						{
@@ -11448,24 +11482,24 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 	bool isGmember = false;
 	bool bChange = false;
 	int ItsMe = _stricmp(((PSPAWNINFO)pLocalPlayer)->Name, name);
-	if(ItsMe!=0)//well if it is me, then there is no point in checking if its a group member
+	if (ItsMe != 0)//well if it is me, then there is no point in checking if its a group member
 		isGmember = IsGroupMember(name);
-	if(!isGmember && ItsMe!=0)//well if it is me or a groupmember, then there is no point in checking if its a raid member
+	if (!isGmember && ItsMe != 0)//well if it is me or a groupmember, then there is no point in checking if its a raid member
 		isRmember = IsRaidMember(name);
 	if (ItsMe != 0 && !isGmember && isRmember) {
 		//my target?
-		if (pTarget && ((PSPAWNINFO)pTarget)->Type!=SPAWN_NPC)
+		if (pTarget && ((PSPAWNINFO)pTarget)->Type != SPAWN_NPC)
 		{
-			if (!_strnicmp(((PSPAWNINFO)pTarget)->DisplayedName, name,strlen(((PSPAWNINFO)pTarget)->DisplayedName))) {
+			if (!_strnicmp(((PSPAWNINFO)pTarget)->DisplayedName, name, strlen(((PSPAWNINFO)pTarget)->DisplayedName))) {
 				bisTarget = true;
 			}
 		}
 	}
-	if (ItsMe==0 || isGmember || isRmember!=-1 || (bisTarget && pTarget)) {
-		if (NameFlag==1) {
+	if (ItsMe == 0 || isGmember || isRmember != -1 || (bisTarget && pTarget)) {
+		if (NameFlag == 1) {
 			char buffer[L_tmpnam] = { 0 };
 			tmpnam_s(buffer);
-			char*pDest = strrchr(buffer, '\\');
+			char* pDest = strrchr(buffer, '\\');
 
 			int len = strlen(name);
 			for (int i = 1; i < len - 1; i++) {
@@ -11482,7 +11516,7 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 				strncpy_s(name, 16, GetClassDesc(((PSPAWNINFO)pLocalPlayer)->mActorClient.Class), 15);
 				if (NameFlag == 2)
 				{
-					strcat_s(name,16, "_0");
+					strcat_s(name, 16, "_0");
 				}
 				bChange = true;
 			}
@@ -11498,20 +11532,20 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 				if (NameFlag == 2)
 				{
 					char sztmp[16];
-					sprintf_s(sztmp,"_%d",isGmember);
-					strcat_s(name,16, sztmp);
+					sprintf_s(sztmp, "_%d", isGmember);
+					strcat_s(name, 16, sztmp);
 				}
 				bChange = true;
 			}
-			else if (isRmember!=-1)
+			else if (isRmember != -1)
 			{
 				int theclass = GetRaidMemberClassByIndex(isRmember);
 				strncpy_s(name, 16, GetClassDesc(theclass), 15);
 				if (NameFlag == 2)
 				{
 					char sztmp[16];
-					sprintf_s(sztmp,"_%d",isRmember);
-					strcat_s(name,16, sztmp);
+					sprintf_s(sztmp, "_%d", isRmember);
+					strcat_s(name, 16, sztmp);
 				}
 				bChange = true;
 			}
@@ -11528,7 +11562,7 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 }
 
 // this is not ideal.
-bool Anonymize2(CXStr& name, int LootFlag /*= 0*/)
+bool Anonymize2(CXStr & name, int LootFlag /*= 0*/)
 {
 	char szOut[MAX_STRING];
 	strcpy_s(szOut, name.c_str());
@@ -11668,9 +11702,9 @@ void CallMessage(DWORD pwnd)
 		CreateDirectory(gszLogPath, NULL);
 	}
 	char name[MAX_STRING] = { 0 };
-    SYSTEMTIME t;
-    GetSystemTime(&t);
-    sprintf_s(name,"%s\\WindowBug_%4d%02d%02d_%02d%02d%02d.dmp",gszLogPath, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+	SYSTEMTIME t;
+	GetSystemTime(&t);
+	sprintf_s(name, "%s\\WindowBug_%4d%02d%02d_%02d%02d%02d.dmp", gszLogPath, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
 	auto hFile = CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -11681,20 +11715,20 @@ void CallMessage(DWORD pwnd)
 		return;
 	}
 
-    BOOL dumped = MiniDumpWriteDump(
-        GetCurrentProcess(),
-        GetCurrentProcessId(),
-        hFile,
-        MINIDUMP_TYPE(MiniDumpWithUnloadedModules |MiniDumpWithFullMemory | MiniDumpWithIndirectlyReferencedMemory),
-        nullptr,
-        nullptr,
-        nullptr);
-    CloseHandle(hFile);
+	BOOL dumped = MiniDumpWriteDump(
+		GetCurrentProcess(),
+		GetCurrentProcessId(),
+		hFile,
+		MINIDUMP_TYPE(MiniDumpWithUnloadedModules | MiniDumpWithFullMemory | MiniDumpWithIndirectlyReferencedMemory),
+		nullptr,
+		nullptr,
+		nullptr);
+	CloseHandle(hFile);
 	std::string Log = "You have stumbled upon a serious MQ2 Bug, please send this dump to eqmule@hotmail.com :\n\n";
 	Log.append(name);
 	MessageBox(NULL, Log.c_str(), "Send this dmp file to eqmule on discord/skype or mail.", MB_SYSTEMMODAL | MB_OK);
 	//exit(0);
-    return;
+	return;
 
 	DWORD64  dwAddress;
 	DWORD  dwDisplacement;
@@ -11713,7 +11747,7 @@ void CallMessage(DWORD pwnd)
 	char szpath[2048] = { 0 };
 
 	GetCurrentDirectory(2048, szpath);
-	MessageBox(NULL, szpath,"break in", MB_SYSTEMMODAL | MB_OK);
+	MessageBox(NULL, szpath, "break in", MB_SYSTEMMODAL | MB_OK);
 	DebugBreak();
 	sprintf_s(szpath, "cache*C:\\Cache;srv*\\\\share\\MQ2Symbols");
 	SymInitialize(hProcess, szpath, TRUE);
@@ -11743,13 +11777,13 @@ void CallMessage(DWORD pwnd)
 		SymSrvGetFileIndexInfo(szOut, &sii, NULL);
 		char szFound[2048] = { 0 };
 		char pFound[2048] = { 0 };
-		char*pDest = 0;
+		char* pDest = 0;
 		if (pDest = strrchr(szOut, '\\'))
 		{
 			pDest[0] = '\0';
 			pDest++;
 		}
-		sprintf_s(szTmp, MAX_STRING, "%s!%s Line %d",pDest,pSymbol->Name,line.LineNumber);
+		sprintf_s(szTmp, MAX_STRING, "%s!%s Line %d", pDest, pSymbol->Name, line.LineNumber);
 		Str.append(szTmp);
 		Str.append("\n");
 	}
@@ -11786,7 +11820,7 @@ int RangeRandom(int min, int max)
 
 //============================================================================
 
-ITEMINFO* GetItemFromContents(CONTENTS* c)
+ITEMINFO* GetItemFromContents(CONTENTS * c)
 {
 	if (!c)
 		return nullptr;
@@ -11833,7 +11867,7 @@ EQLIB_API HWND GetEQWindowHandle()
 	enumData.outHWnd = nullptr;
 	enumData.processId = dwProcessId;
 
-	EnumWindows(EnumWindowsProc, (LPARAM)&enumData);
+	EnumWindows(EnumWindowsProc, (LPARAM)& enumData);
 
 	return enumData.outHWnd;
 }

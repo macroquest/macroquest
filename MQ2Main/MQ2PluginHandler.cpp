@@ -363,7 +363,7 @@ void ShutdownMQ2Plugins()
 	UnloadMQ2Plugin("mq2ic");
 }
 
-void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, DWORD Filter /* = 0 */)
+void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 {
 	if (!s_pluginsInitialized)
 		return;
