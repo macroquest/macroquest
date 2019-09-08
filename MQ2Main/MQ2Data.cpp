@@ -1536,22 +1536,21 @@ bool dataMount(const char* szIndex, MQTypeVar& Ret)
 		return false;
 	if (IsNumber(szIndex))
 	{
-		int n = atoi(szIndex);
-		if (n <= 0)
+		int n = atoi(szIndex) - 1;
+		if (n < 0)
 			return false;
-		n--;
 
 		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
 		{
-			if (CListWnd * clist = (CListWnd*)krwnd->GetChildItem(MountWindowList))
+			if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem(MountWindowList))
 			{
 				int numitems = clist->ItemsArray.GetCount();
-				if (numitems >= n)
+				if (n <= numitems)
 				{
 					CXStr Str = clist->GetItemText(n, 2);
 					if (!Str.empty())
 					{
-						Ret.DWord = MAKELPARAM(n, 0);
+						Ret.DWord = MAKELPARAM(n, eMount);
 						Ret.Type = pKeyRingType;
 						return true;
 					}
@@ -1569,10 +1568,9 @@ bool dataMount(const char* szIndex, MQTypeVar& Ret)
 			pName++;
 		}
 
-		if (int n = GetKeyRingIndex(0, pName, bExact))
+		if (int n = GetKeyRingIndex(eMount, pName, bExact))
 		{
-			n--;
-			Ret.DWord = MAKELPARAM(n, 0);
+			Ret.DWord = MAKELPARAM(n - 1, eMount);
 			Ret.Type = pKeyRingType;
 			return true;
 		}
@@ -1588,22 +1586,21 @@ bool dataIllusion(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		int n = atoi(szIndex);
-		if (n <= 0)
+		int n = atoi(szIndex) - 1;
+		if (n < 0)
 			return false;
-		n--;
 
 		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
 		{
 			if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList))
 			{
 				int numitems = clist->ItemsArray.GetCount();
-				if (numitems >= n)
+				if (n <= numitems)
 				{
 					CXStr Str = clist->GetItemText(n, 2);
 					if (!Str.empty())
 					{
-						Ret.DWord = MAKELPARAM(n, 1);
+						Ret.DWord = MAKELPARAM(n, eIllusion);
 						Ret.Type = pKeyRingType;
 						return true;
 					}
@@ -1621,10 +1618,9 @@ bool dataIllusion(const char* szIndex, MQTypeVar& Ret)
 			pName++;
 		}
 
-		if (int n = GetKeyRingIndex(1, pName, bExact))
+		if (int n = GetKeyRingIndex(eIllusion, pName, bExact))
 		{
-			n--;
-			Ret.DWord = MAKELPARAM(n, 1);
+			Ret.DWord = MAKELPARAM(n - 1, eIllusion);
 			Ret.Type = pKeyRingType;
 			return true;
 		}
@@ -1639,21 +1635,21 @@ bool dataFamiliar(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		int n = atoi(szIndex);
-		if (n <= 0)
+		int n = atoi(szIndex) - 1;
+		if (n < 0)
 			return false;
-		n--;
 
 		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
 		{
 			if (CListWnd* clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList))
 			{
 				int numitems = clist->ItemsArray.GetCount();
-				if (numitems >= n)
+				if (n <= numitems)
 				{
 					CXStr Str = clist->GetItemText(n, 2);
-					if (!Str.empty()) {
-						Ret.DWord = MAKELPARAM(n, 2);
+					if (!Str.empty())
+					{
+						Ret.DWord = MAKELPARAM(n, eFamiliar);
 						Ret.Type = pKeyRingType;
 						return true;
 					}
@@ -1671,10 +1667,9 @@ bool dataFamiliar(const char* szIndex, MQTypeVar& Ret)
 			pName++;
 		}
 
-		if (DWORD n = GetKeyRingIndex(2, pName, bExact))
+		if (int n = GetKeyRingIndex(eFamiliar, pName, bExact))
 		{
-			n--;
-			Ret.DWord = MAKELPARAM(n, 2);
+			Ret.DWord = MAKELPARAM(n - 1, eFamiliar);
 			Ret.Type = pKeyRingType;
 			return true;
 		}

@@ -119,7 +119,7 @@ namespace MQ2Globals
 		ppSpellMgr = (ClientSpellManager**)pinstSpellManager;
 		ppTarget = (PlayerClient**)pinstTarget;
 		ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
-		pSpellSets = (SPELLFAVORITE*)pinstSpellSets;
+		pSpellSets = (SpellLoadout*)pinstSpellSets;
 		pZoneInfo = (EQZoneInfo*)instEQZoneInfo;
 		ppAltAdvManager = (AltAdvManager**)pinstAltAdvManager;
 		ppConnection = (connection_t**)__gWorld;
@@ -862,99 +862,11 @@ namespace MQ2Globals
 
 	BOOL bAllErrorsFatal = FALSE;
 	bool bAllErrorsDumpStack = false;
-	BOOL bLaxColor = FALSE;
 	BOOL bAllErrorsLog = FALSE;
 	BOOL gbHUDUnderUI = 1;
 	BOOL gbAlwaysDrawMQHUD = 0;
 	BOOL gbMQ2LoadingMsg = TRUE;
 	BOOL gbExactSearchCleanNames = FALSE;
-
-	DWORD nColorAdjective = 0;
-	DWORD nColorAdjectiveYou = 0;
-	DWORD nColorExpletive = 0;
-	DWORD nColorSyntaxError = 0;
-	DWORD nColorMacroError = 0;
-	DWORD nColorMQ2DataError = 0;
-	DWORD nColorFatalError = 0;
-
-	const char* szColorAdjective[] =
-	{
-		"",
-		"GOD DAMN ",
-		"FUCKING ",
-		"MOTHER FUCKING ",
-		nullptr
-	};
-
-	const char* szColorAdjectiveYou[] =
-	{
-		"",
-		" FUCKER",
-		" MOTHER FUCKER",
-		" ASSHOLE",
-		" FUCKTARD",
-		" FUCKING RETARDED MONKEY",
-		" GOD DAMN SHORT BUS PASSENGER",
-		" ASSMONKEY",
-		" PIGFUCKER",
-		" PEEN",
-		" FUCKING IDIOT",
-		" STUPID FUCKER",
-		" DUMBASS",
-		" FUCKING DUMBASS",
-		" STUPID FUCK",
-		nullptr
-	};
-
-	const char* szColorExpletive[] =
-	{
-		"",
-		"CHRIST ",
-		"JESUS FUCK ",
-		"GOD ",
-		"JESUS FUCKING CHRIST ",
-		"FUCKING CHRIST ",
-		"GKFJDGJKFDGJKDF ",
-		nullptr
-	};
-
-	const char* szColorSyntaxError[] =
-	{
-		"",
-		"%edont you know how to use a simple %acommand%y",
-		nullptr
-	};
-
-	const char* szColorMacroError[] =
-	{
-		"",
-		"%ei'm pretty sure you're on %acrack%y"
-		"%egood job%y, cant you do anything %aright%y",
-		"%ewhatever you're %asmoking, pass it %aalong%y",
-		"%e%aRTFM%y",
-		"%e%aRTFM%y, until then fuck off%y",
-		"%eget a %abrain%y",
-		nullptr
-	};
-
-	const char* szColorFatalError[] =
-	{
-		"",
-		"%eyou fucking broke it%y",
-		"%egood job%y. what's next? your head on a %astick thats %awhat%y",
-		nullptr
-	};
-
-	const char* szColorMQ2DataError[] =
-	{
-		"",
-		"%ewhy dont you %aread the %areference%y",
-		"%eget a %aclue%y",
-		"%ewhatever you're %asmoking, pass it %aalong%y",
-		"%e%aread the %areference%y",
-		"%e%aread the %areference%y, until then fuck off%y",
-		nullptr
-	};
 
 	MQPlugin* pPlugins = nullptr;
 	std::map<std::string, MQDataVar*> VariableMap;
@@ -1073,7 +985,7 @@ namespace MQ2Globals
 	ClientSpellManager** ppSpellMgr = nullptr;
 	PlayerClient** ppTarget = nullptr;
 	EqSwitchManager** ppSwitchMgr = nullptr;
-	SPELLFAVORITE* pSpellSets = nullptr;
+	SpellLoadout* pSpellSets = nullptr;
 	EQZoneInfo* pZoneInfo = nullptr;
 	AltAdvManager** ppAltAdvManager = nullptr;
 	connection_t** ppConnection = nullptr;

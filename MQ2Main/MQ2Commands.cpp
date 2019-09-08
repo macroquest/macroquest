@@ -27,15 +27,17 @@ CMQ2Alerts CAlerts;
 // Usage:       /unload
 // ***************************************************************************
 
-void Unload(PSPAWNINFO pChar, char* szLine)
+void Unload(SPAWNINFO* pChar, char* szLine)
 {
 	if (!pChar)
-		pChar = (PSPAWNINFO)pLocalPlayer;
+		pChar = (SPAWNINFO*)pLocalPlayer;
+
 	bRunNextCommand = true;
 	if (GetCurrentMacroBlock())
 	{
 		EndAllMacros();
 	}
+
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = true;
@@ -52,75 +54,65 @@ void Unload(PSPAWNINFO pChar, char* szLine)
 //              Lists macro files
 // Usage:       /listmacros <partial filename>
 // ***************************************************************************
-void ListMacros(PSPAWNINFO pChar, char* szLine)
+void ListMacros(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	HANDLE hSearch;
-	WIN32_FIND_DATA FileData;
-	BOOL fFinished = FALSE;
 
-	DWORD Count = 0, a, b;
-	char szFilename[MAX_STRING] = { 0 };
-	char szName[100][MAX_STRING] = { 0 };
-	if (szLine[0] != 0) {
+	char szFilename[MAX_PATH] = { 0 };
+	if (szLine[0] != 0)
+	{
 		sprintf_s(szFilename, "%s\\*%s*.*", gszMacroPath, szLine);
 	}
-	else {
+	else
+	{
 		sprintf_s(szFilename, "%s\\*.*", gszMacroPath);
 	}
 
-
-
 	// Start searching for .TXT files in the current directory.
-
-	hSearch = FindFirstFile(szFilename, &FileData);
-	if (hSearch == INVALID_HANDLE_VALUE) {
+	WIN32_FIND_DATA FileData;
+	HANDLE hSearch = FindFirstFile(szFilename, &FileData);
+	if (hSearch == INVALID_HANDLE_VALUE)
+	{
 		WriteChatColor("Couldn't find any macros", USERCOLOR_DEFAULT);
 		return;
 	}
 
+	std::vector<std::string> files;
 
-	while (!fFinished)
+	while (true)
 	{
-		strcat_s(szName[Count], FileData.cFileName);
-		Count++;
-		if (Count>99) fFinished = TRUE;
+		files.emplace_back(FileData.cFileName);
 
 		if (!FindNextFile(hSearch, &FileData))
-			fFinished = TRUE;
+			break;
 	}
-	FindClose(hSearch);
-	Count;
 
-	for (a = Count - 1; a>0; a--) {
-		for (b = 0; b<a; b++) {
-			if (szName[b]>szName[b + 1]) {
-				strcat_s(szFilename, szName[b]);
-				strcat_s(szName[b], szName[b + 1]);
-				strcat_s(szName[b + 1], szFilename);
-			}
-		}
-	}
+	FindClose(hSearch);
+
+	std::sort(std::begin(files), std::end(files));
 
 	WriteChatColor("Macro list", USERCOLOR_WHO);
 	WriteChatColor("----------------", USERCOLOR_WHO);
-	for (a = 0; a<Count; a++) {
-		WriteChatColor(szName[a], USERCOLOR_WHO);
-	}
+
+	for (const std::string& file : files)
+		WriteChatColor(file.c_str(), USERCOLOR_WHO);
 }
+
 // ***************************************************************************
 // Function:    SetError
 // Description: Our '/seterror' command
 // Usage:       /seterror <clear|errormsg>
 // ***************************************************************************
-
-void SetError(PSPAWNINFO pChar, char* szLine)
+void SetError(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	if ((szLine[0] == 0) || (_stricmp(szLine, "clear"))) {
-		gszLastNormalError[0] = 0; // QUIT SETTING THIS MANUALLY, USE MacroError or FatalError!
+
+	if ((szLine[0] == 0) || (_stricmp(szLine, "clear")))
+	{
+		gszLastNormalError[0] = 0;
 	}
-	else {
+	else
+	{
 		strcpy_s(gszLastNormalError, szLine);
 	}
 }
@@ -133,7 +125,8 @@ void SetError(PSPAWNINFO pChar, char* szLine)
 // ***************************************************************************
 
 // <name|level|distance|race|class|guild|id>
-const char* szSortBy[] = {
+const char* szSortBy[] =
+{
 	"level",   // Default sort by
 	"name",
 	"race",
@@ -144,14 +137,12 @@ const char* szSortBy[] = {
 	nullptr
 };
 
-void SuperWho(PSPAWNINFO pChar, char* szLine)
+void SuperWho(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-	char szLLine[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
 
-	char* szRest = szLLine;
 	bool Parsing = true;
 	bool bConColor = false;
 
@@ -159,6 +150,7 @@ void SuperWho(PSPAWNINFO pChar, char* szLine)
 	ClearSearchSpawn(&SearchSpawn);
 	SearchSpawn.SpawnType = PC;
 
+	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
 
@@ -170,6 +162,8 @@ void SuperWho(PSPAWNINFO pChar, char* szLine)
 		cmdWho(pChar, szLine);
 		return;
 	}
+
+	char* szRest = szLLine;
 
 	while (Parsing)
 	{
@@ -213,102 +207,117 @@ void SuperWho(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/mqpause' command
 //              Pause/resume a macro
 // Usage:       /mqpause <off>
-//            /mqpause chat [on|off]
+//              /mqpause chat [on|off]
 // ***************************************************************************
-void MacroPause(PSPAWNINFO pChar, char* szLine)
+void MacroPause(SPAWNINFO* pChar, char* szLine)
 {
-	bool Pause = true;
-	char szBuffer[MAX_STRING] = { 0 };
-
-	DWORD Command;
-	char szArg[MAX_STRING] = { 0 };
-	char szArg1[MAX_STRING] = { 0 };
-
-	char* szPause[] = { "off", "on", nullptr };
+	const char* szPause[] = { "off", "on", nullptr };
 
 	bRunNextCommand = true;
 
+	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
-	if (!_stricmp(szArg, "chat")) {
-		GetArg(szArg1, szLine, 2);
-		if (szLine[0] == 0) {
 
+	if (!_stricmp(szArg, "chat"))
+	{
+		char szArg1[MAX_STRING] = { 0 };
+		GetArg(szArg1, szLine, 2);
+		if (szLine[0] == 0)
+		{
 			gMQPauseOnChat = !gMQPauseOnChat;
 		}
-		else {
-			for (Command = 0; szPause[Command]; Command++) {
-				if (!_stricmp(szArg1, szPause[Command])) {
+		else
+		{
+			for (int Command = 0; szPause[Command]; Command++)
+			{
+				if (!_stricmp(szArg1, szPause[Command]))
+				{
 					gMQPauseOnChat = Command;
 				}
 			}
 		}
 
 		WritePrivateProfileString("MacroQuest", "MQPauseOnChat", (gMQPauseOnChat) ? "1" : "0", gszINIFilename);
-		sprintf_s(szBuffer, "Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		WriteChatf("Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
 		return;
 	}
+
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (!pBlock) {
+	if (!pBlock)
+	{
 		MacroError("You cannot pause a macro when one isn't running.");
 		return;
 	}
 
-	for (Command = 0; szPause[Command]; Command++) {
-		if (!_stricmp(szArg, szPause[Command])) {
+	bool Pause = true;
+	for (int Command = 0; szPause[Command]; Command++)
+	{
+		if (!_stricmp(szArg, szPause[Command]))
+		{
 			Pause = Command;
 		}
 	}
 
-	if (szLine[0] != 0) {
+	if (szLine[0] != 0)
+	{
 		WriteChatColor("Syntax: /mqpause [on|off] [chat [on|off]]", USERCOLOR_DEFAULT);
 	}
-	else {
+	else
+	{
 		Pause = !pBlock->Paused;
 	}
-	if (pBlock->Paused == Pause) {
-		sprintf_s(szBuffer, "Macro is already %s.", (Pause) ? "paused" : "running");
+
+	if (pBlock->Paused == Pause)
+	{
+		WriteChatf("Macro is already %s.", (Pause) ? "paused" : "running");
 	}
-	else {
-		sprintf_s(szBuffer, "Macro is %s.", (Pause) ? "paused" : "running again");
+	else
+	{
+		WriteChatf("Macro is %s.", (Pause) ? "paused" : "running again");
 		pBlock->Paused = Pause;
 	}
-	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 }
+
 // ***************************************************************************
 // Function:      KeepKeys
-// Description:      Our /keepkeys command. Toggles if /endmacro will keep keys
-//               by default.
-// 2003-10-08      MacroFiend
+// Description:   Our /keepkeys command. Toggles if /endmacro will keep keys
+//                by default.
+// 2003-10-08     MacroFiend
 // ***************************************************************************
-void KeepKeys(PSPAWNINFO pChar, char* szLine)
+void KeepKeys(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	DWORD Command;
+
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
-	char szCmd[MAX_STRING] = { 0 };
 
-	char* szKeepKeys[] = {
+	const char* szKeepKeys[] = {
 		"off",
 		"on",
-		NULL
+		nullptr
 	};
 
-	if (szArg[0] == 0) {
-		sprintf_s(szCmd, "Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
-		WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+	if (szArg[0] == 0)
+	{
+		WriteChatf("Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
 		return;
 	}
-	for (Command = 0; szKeepKeys[Command]; Command++) {
-		if (!_stricmp(szArg, szKeepKeys[Command])) {
+
+	for (int Command = 0; szKeepKeys[Command]; Command++)
+	{
+		if (!_stricmp(szArg, szKeepKeys[Command]))
+		{
 			gKeepKeys = Command;
-			sprintf_s(szCmd, "Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-			_itoa_s(gKeepKeys, szCmd, 10); WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, gszINIFilename);
+
+			WriteChatf("Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
+
+			char szCmd[16] = { 0 };
+			_itoa_s(gKeepKeys, szCmd, 10);
+			WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, gszINIFilename);
 			return;
 		}
 	}
+
 	SyntaxError("Usage: /keepkeys [on|off]");
 }
 
@@ -389,59 +398,70 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 // Function:      PluginCommand
 // Description:   Our /plugin command.
 // ***************************************************************************
-void PluginCommand(PSPAWNINFO pChar, char* szLine)
+void PluginCommand(SPAWNINFO* pChar, char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	char szName[MAX_STRING] = { 0 };
-	char* szCommand = NULL;
+
 	GetArg(szName, szLine, 1);
-	szCommand = GetNextArg(szLine);
-	if (!_stricmp(szName, "list")) {
+	char* szCommand = GetNextArg(szLine);
+
+	if (!_stricmp(szName, "list"))
+	{
 		MQPlugin* pLoop = pPlugins;
-		DWORD Count = 0;
+		int Count = 0;
+
 		WriteChatColor("Active Plugins", USERCOLOR_WHO);
 		WriteChatColor("--------------------------", USERCOLOR_WHO);
-		while (pLoop) {
-			sprintf_s(szName, "%s", pLoop->szFilename);
-			WriteChatColor(szName, USERCOLOR_WHO);
+
+		while (pLoop)
+		{
+			WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
 			Count++;
 			pLoop = pLoop->pNext;
 		}
-		if (Count == 0) {
+
+		if (Count == 0)
+		{
 			WriteChatColor("No Plugins defined.", USERCOLOR_WHO);
 		}
-		else {
-			sprintf_s(szName, "%d Plugin%s displayed.", Count, (Count == 1) ? "" : "s");
-			WriteChatColor(szName, USERCOLOR_WHO);
+		else
+		{
+			WriteChatColorf("%d Plugin%s displayed.", USERCOLOR_WHO, Count, (Count == 1) ? "" : "s");
 		}
 		return;
 	}
-	if (szName[0] == 0) {
+
+	if (szName[0] == 0)
+	{
 		SyntaxError("Usage: /Plugin name [unload] [noauto], or /Plugin list");
 		return;
 	}
 
-	if (!_strnicmp(szCommand, "unload", 6)) {
+	if (!_strnicmp(szCommand, "unload", 6))
+	{
 		if (UnloadMQ2Plugin(szName))
 		{
-			sprintf_s(szBuffer, "Plugin '%s' unloaded.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (!strstr(szCommand, "noauto")) {
+			WriteChatf("Plugin '%s' unloaded.", szName);
+
+			if (!strstr(szCommand, "noauto"))
+			{
 				SaveMQ2PluginLoadStatus(szName, false);
 			}
-
 		}
 		else
 		{
 			MacroError("Plugin '%s' not found.", szName);
 		}
 	}
-	else {
+	else
+	{
 		if (LoadMQ2Plugin(szName))
 		{
-			sprintf_s(szBuffer, "Plugin '%s' loaded.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (_stricmp(szCommand, "noauto")) {
+			WriteChatf("Plugin '%s' loaded.", szName);
+
+			if (_stricmp(szCommand, "noauto"))
+			{
 				SaveMQ2PluginLoadStatus(szName, true);
 			}
 		}
@@ -456,136 +476,138 @@ void PluginCommand(PSPAWNINFO pChar, char* szLine)
 // Function:    Invoke
 // Description: '/invoke' command
 // Purpose:     Adds the ability to invoke Methods
-// Example:		/invoke ${Target.DoAssist}
+// Example      /invoke ${Target.DoAssist}
 //              will execute the DoAssist Method of the Spawn TLO
 // Author:      EqMule
 // ***************************************************************************
-void InvokeCmd(PSPAWNINFO pChar, char* szLine)
+void InvokeCmd(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 }
-// /squelch
-void SquelchCommand(PSPAWNINFO pChar, char* szLine)
+
+// ***************************************************************************
+// Function:    SquelchCommand
+// Description: Our '/squelch' command
+// Usage:       /squelch <command>
+// ***************************************************************************
+void SquelchCommand(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /squelch <command>");
 		return;
 	}
-	BOOL Temp = gFilterMQ;
+
+	bool Temp = gFilterMQ;
 	gFilterMQ = true;
 	DoCommand(pChar, szLine);
 	gFilterMQ = Temp;
 }
+
 // ***************************************************************************
 // Function:    Items
 // Description: Our '/items' command
 //              Lists ground item info
 // Usage:       /items <filter>
 // ***************************************************************************
-void Items(PSPAWNINFO pChar, char* szLine)
+void Items(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	typedef struct _iteminfo
-	{
-		std::string Name;
-		INT angle;
-	}iteminfo;
-	std::map<float, iteminfo>itemsmap;
+
 	if (!pItemList)
 		return;
-	char szBuffer[MAX_STRING] = { 0 };
-	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
-		char szLineLwr[MAX_STRING] = { 0 };
-		char szName[MAX_STRING] = { 0 };
-		SPAWNINFO TempSpawn = { 0 };
-		iteminfo ii;
-		strcpy_s(szLineLwr, szLine);
 
-		_strlwr_s(szLineLwr);
-		while (pItem) {
+	struct iteminfo
+	{
+		std::string name;
+		int angle;
+	};
+	std::map<float, iteminfo> itemsMap;
+
+	if (GROUNDITEM* pItem = *(GROUNDITEM**)pItemList)
+	{
+		char szName[MAX_STRING] = { 0 };
+
+		while (pItem)
+		{
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
-			strcpy_s(szBuffer, szName);
-			_strlwr_s(szBuffer);
-			//DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ItemPtr.pObject[0]->ID, pItem->DropID, szName, pItem->Name);
+
 			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
-			if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
-				ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-				TempSpawn.Y = pItem->Y;
-				TempSpawn.X = pItem->X;
-				TempSpawn.Z = pItem->Z;
-				float Distance = Distance3DToSpawn(pChar, &TempSpawn);
-				INT Angle = (INT)((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-				ii.angle = Angle;
-				ii.Name = szName;
-				itemsmap[Distance] = ii;
+
+			if (szLine[0] == 0 || ci_find_substr(szName, szLine) != -1)
+			{
+				float Distance = Get3DDistance(
+					pChar->X, pChar->Y, pChar->Z,
+					pItem->X, pItem->Y, pItem->Z);
+				int Angle = static_cast<int>((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+
+				itemsMap.emplace(Distance, iteminfo{ szName, Angle });
 			}
 
 			pItem = pItem->pNext;
 		}
 	}
-	RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
-	if (&manager)
-	{
-		char szLineLwr[MAX_STRING] = { 0 };
-		char szName[MAX_STRING] = { 0 };
-		SPAWNINFO TempSpawn = { 0 };
-		iteminfo ii;
-		strcpy_s(szLineLwr, szLine);
 
-		_strlwr_s(szLineLwr);
-		if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+	RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+	EQPlacedItemManager& pPIM = EQPlacedItemManager::Instance();
+
+	for (EQPlacedItem* pObj = pPIM.Top; pObj != nullptr; pObj = pObj->pNext)
+	{
+		const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+		if (!pRealEstateItem)
+			continue;
+
+		CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject;
+		if (!pCont)
+			continue;
+
+		ITEMINFO* pItem = GetItemFromContents(pCont);
+		if (!pItem)
+			continue;
+
+		DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->Name);
+
+		if (szLine[0] == 0 || ci_find_substr(pItem->Name, szLine) != -1)
 		{
-			for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
-			{
-				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-				if (pRealEstateItem)
-				{
-					if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
-					{
-						if (PITEMINFO pItem = GetItemFromContents(pCont))
-						{
-							strcpy_s(szBuffer, pItem->Name);
-							_strlwr_s(szBuffer);
-							DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->Name);
-							if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
-								ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-								TempSpawn.Y = pObj->Y;
-								TempSpawn.X = pObj->X;
-								TempSpawn.Z = pObj->Z;
-								float Distance = Distance3DToSpawn(pChar, &TempSpawn);
-								INT Angle = (INT)((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-								ii.angle = Angle;
-								_itoa_s(pObj->RealEstateItemID, szName, 10);
-								ii.Name.append("[");
-								ii.Name = szName;
-								ii.Name.append("] ");
-								ii.Name.append(pItem->Name);
-								ii.Name.append(" ");
-								ii.Name.append(pObj->Name);//
-								ii.Name.append(" (");
-								ii.Name.append(pRealEstateItem->OwnerInfo.OwnerName.c_str());
-								ii.Name.append(")");
-								itemsmap[Distance] = ii;
-							}
-						}
-					}
-				}
-			}
+			float Distance = Get3DDistance(
+				pChar->X, pChar->Y, pChar->Z,
+				pObj->X, pObj->Y, pObj->Z);
+
+			int Angle = static_cast<int>((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+
+			std::string name;
+			name.reserve(32);
+
+			// TODO: Switch to using fmt for this
+			name.append("[");
+			name = std::to_string(pObj->RealEstateItemID);
+			name.append("] ");
+			name.append(pItem->Name);
+			name.append(" ");
+			name.append(pObj->Name);
+			name.append(" (");
+			name.append(pRealEstateItem->OwnerInfo.OwnerName);
+			name.append(")");
+
+			itemsMap.emplace(Distance, iteminfo{ std::move(name), Angle });
 		}
 	}
-	if (itemsmap.size() == 0) {
-		WriteChatColor("No items found.", USERCOLOR_DEFAULT);
+
+	if (itemsMap.empty())
+	{
+		WriteChatColor("No items found.");
 	}
-	else {
-		WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
-		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-		for (auto i = itemsmap.begin(); i != itemsmap.end(); i++) {
-			sprintf_s(szBuffer, "%s: %1.2f away to the %s", i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	else
+	{
+		WriteChatColor("Items on the ground:");
+		WriteChatColor("---------------------------");
+
+		for (auto& item : itemsMap)
+		{
+			WriteChatf("%s: %1.2f away to the %s", item.second.name.c_str(), item.first, szHeading[item.second.angle]);
 		}
-		sprintf_s(szBuffer, "%d item%s found.", itemsmap.size(), (itemsmap.size() == 1) ? "" : "s");
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		WriteChatf("%d item%s found.", itemsMap.size(), (itemsMap.size() == 1) ? "" : "s");
 	}
 }
 
@@ -595,29 +617,39 @@ void Items(PSPAWNINFO pChar, char* szLine)
 //              Lists ground item info
 // Usage:       /itemtarget <text>
 // ***************************************************************************
-void ItemTarget(PSPAWNINFO pChar, char* szLine)
+void ItemTarget(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
+
 	if (!szLine) return;
-	EQGroundItemListManager *pGroundList = GetItemList();
+
+	EQGroundItemListManager* pGroundList = GetItemList();
 	if (!pGroundList)
 		return;
-	char szBuffer[MAX_STRING] = { 0 };
+
 	char Arg1[MAX_STRING] = { 0 };
-	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 	_strlwr_s(Arg1);
+
+	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg2, szLine, 2);
+
 	ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-	ZeroMemory(&GroundObject,sizeof(GroundObject));
-	pGroundTarget = NULL;
-	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
+	ZeroMemory(&GroundObject, sizeof(GroundObject));
+
+	pGroundTarget = nullptr;
+
+	if (GROUNDITEM* pItem = *(GROUNDITEM**)pItemList)
+	{
 		char szName[MAX_STRING] = { 0 };
 		float cDistance = 100000.0f;
 		SPAWNINFO tSpawn = { 0 };
-		while (pItem) {
+
+		while (pItem)
+		{
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 			_strlwr_s(szName);
+
 			if (((szLine[0] == '\0') || (strstr(szName, Arg1))))
 			{
 				if (((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter))))
@@ -633,7 +665,7 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 					tSpawn.HPMax = 1;
 					tSpawn.Heading = pItem->Heading;
 					tSpawn.mActorClient.Race = pItem->DropID;
-					tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+					tSpawn.StandState = STANDSTATE_STAND; //im using this for /clicked left item -eqmule
 					float Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
 					if (Distance < cDistance) {
 						CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
@@ -642,9 +674,11 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 					}
 				}
 			}
+
 			pItem = pItem->pNext;
 		}
 	}
+
 	if (pGroundTarget)
 	{
 		GroundObject.Type = GO_GroundType;
@@ -654,26 +688,29 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 	{
 		float cDistance = 100000.0f;
 		SPAWNINFO tSpawn = { 0 };
+
 		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
 		if (&manager)
 		{
-			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+			if (EQPlacedItemManager* pPIM = &EQPlacedItemManager::Instance())
 			{
 				char szName[MAX_STRING] = { 0 };
-				for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
+				for (EQPlacedItem* pObj = pPIM->Top; pObj != nullptr; pObj = pObj->pNext)
 				{
 					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
 					if (pRealEstateItem)
 					{
 						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
 						{
-							if (PITEMINFO pItem = GetItemFromContents(pCont))
+							if (ITEMINFO* pItem = GetItemFromContents(pCont))
 							{
 								strcpy_s(szName, pItem->Name);
 								_strlwr_s(szName);
+
 								if (((szLine[0] == '\0') || (strstr(szName, Arg1)) || (strstr(szName, Arg1))))
 								{
-									if (((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter)))) {
+									if (((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter))))
+									{
 										ZeroMemory(&tSpawn, sizeof(tSpawn));
 										strcpy_s(tSpawn.Name, pItem->Name);
 										PEQSWITCH si = (PEQSWITCH)pObj->pActor;
@@ -686,16 +723,16 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 										tSpawn.HPMax = 1;
 										tSpawn.Heading = pObj->Heading;
 										tSpawn.mActorClient.Race = pObj->RealEstateItemID;
-										tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+										tSpawn.StandState = STANDSTATE_STAND; // im using this for /clicked left item -eqmule
 										float Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-										if (Distance < cDistance) {
+										if (Distance < cDistance)
+										{
 											CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 											cDistance = Distance;
 											GroundObject.Type = GO_ObjectType;
 											GroundObject.ObjPtr = (void*)pObj;
 										}
 									}
-									//WriteChatf("[%d] %s %0.2f,%0.2f,%0.2f , %0.2f, %0.2f,", pObj->RealEstateItemID, pItem->Name, pObj->Y, pObj->X, pObj->Z, pObj->Heading * 0.703125f, pObj->Angle * 0.703125f);
 								}
 							}
 						}
@@ -703,19 +740,23 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 				}
 			}
 		}
+
 		if (GroundObject.Type == GO_ObjectType)
 		{
-			EQPlacedItem *ObjPtr = (EQPlacedItem *)GroundObject.ObjPtr;
-			//ok so its not actually a grounditem, we need to fake that for the tlo to be work
-			//we do this because I want people to be able to use ${Ground} in their macros and not worry about if its an object or not.
-			//also I want people to not have to update their macros.
-			//this should make older tradeskill macros for example work in guild halls... -eqmule
+			EQPlacedItem* ObjPtr = (EQPlacedItem*)GroundObject.ObjPtr;
+
+			// ok so its not actually a grounditem, we need to fake that for the tlo to be work
+			// we do this because I want people to be able to use ${Ground} in their macros and not worry about if its an object or not.
+			// also I want people to not have to update their macros.
+			// this should make older tradeskill macros for example work in guild halls... -eqmule
+
 			GroundObject.GroundItem.DropID = ObjPtr->RealEstateItemID;
 			GroundObject.GroundItem.DropSubID = ObjPtr->RealEstateID;
 			GroundObject.GroundItem.Expires = 0;
 			GroundObject.GroundItem.Heading = ObjPtr->Heading;
-			GroundObject.GroundItem.ID.pObject = NULL;
-			if (EnviroTarget.DisplayedName[0] != '\0') {
+			GroundObject.GroundItem.ID.pObject = nullptr;
+			if (EnviroTarget.DisplayedName[0] != '\0')
+			{
 				strcpy_s(GroundObject.GroundItem.Name, EnviroTarget.DisplayedName);
 			}
 			else
@@ -732,14 +773,14 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 			GroundObject.GroundItem.X = ObjPtr->X;
 			GroundObject.GroundItem.Y = ObjPtr->Y;
 			GroundObject.GroundItem.Z = ObjPtr->Z;
-			GroundObject.GroundItem.ZoneID = ((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF;
+			GroundObject.GroundItem.ZoneID = ((SPAWNINFO*)pLocalPlayer)->GetZoneID() & 0x7FFF;
 			pGroundTarget = &GroundObject.GroundItem;
 		}
 	}
 
-	if (EnviroTarget.DisplayedName[0] != 0) {
-		sprintf_s(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	if (EnviroTarget.DisplayedName[0] != 0)
+	{
+		WriteChatf("Item '%s' targeted.", EnviroTarget.DisplayedName);
 	}
 	else
 	{
@@ -754,59 +795,51 @@ void ItemTarget(PSPAWNINFO pChar, char* szLine)
 //              Lists door info
 // Usage:       /doors <filter>
 // ***************************************************************************
-void Doors(PSPAWNINFO pChar, char* szLine)
+void Doors(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-	if (!ppSwitchMgr) return;
 	if (!pSwitchMgr) return;
-	typedef struct _doorinfo
+
+	struct doorinfo
 	{
-		std::string Name;
-		INT angle;
-		DWORD ID;
-	}doorinfo;
-	std::map<float, doorinfo>doorsmap;
+		std::string name;
+		int angle;
+		int ID;
+	};
+	std::map<float, doorinfo> doorsMap;
 
-	PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
-	char szLineLwr[MAX_STRING] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
-	size_t slen = strlen(szLine);
-	SPAWNINFO TempSpawn = { 0 };
-	doorinfo di;
-	strcpy_s(szLineLwr, szLine);
-	_strlwr_s(szLineLwr);
-	for (DWORD Count = 0; Count<pDoorTable->NumEntries; Count++) {
-		strcpy_s(szBuffer, pDoorTable->pDoor[Count]->Name);
-		_strlwr_s(szBuffer);
-		if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
-			ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-			strcpy_s(TempSpawn.Name, pDoorTable->pDoor[Count]->Name);
-			strcpy_s(TempSpawn.DisplayedName, pDoorTable->pDoor[Count]->Name);
-			TempSpawn.Y = pDoorTable->pDoor[Count]->Y;
-			TempSpawn.X = pDoorTable->pDoor[Count]->X;
-			TempSpawn.Z = pDoorTable->pDoor[Count]->Z;
-			TempSpawn.Heading = pDoorTable->pDoor[Count]->Heading;
-			float Distance = Distance3DToSpawn(pChar, &TempSpawn);
-			di.angle = (INT)((atan2f(pChar->X - pDoorTable->pDoor[Count]->X, pChar->Y - pDoorTable->pDoor[Count]->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-			di.Name = TempSpawn.Name;
-			di.ID = pDoorTable->pDoor[Count]->ID;
-			doorsmap[Distance] = di;
+	DOORTABLE* pDoorTable = (DOORTABLE*)pSwitchMgr;
+
+	for (int Count = 0; Count < pDoorTable->NumEntries; Count++)
+	{
+		DOOR* pDoor = pDoorTable->pDoor[Count];
+
+		if (szLine[0] == 0 || ci_find_substr(pDoor->Name, szLine))
+		{
+			float distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, pDoor->X, pDoor->Y, pDoor->Z);
+			int angle = static_cast<int>((atan2f(pChar->X - pDoor->X, pChar->Y - pDoor->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+
+			doorsMap.emplace(distance, doorinfo{ pDoor->Name, angle, pDoor->ID });
 		}
 	}
 
-	if (doorsmap.size() == 0) {
-		WriteChatColor("No Doors found.", USERCOLOR_DEFAULT);
+	if (doorsMap.empty())
+	{
+		WriteChatColor("No Doors found.");
 	}
-	else {
-		WriteChatColor("Doors:", USERCOLOR_DEFAULT);
-		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
-		for (auto i = doorsmap.begin(); i != doorsmap.end(); i++) {
-			sprintf_s(szBuffer, "%d: %s: %1.2f away to the %s", i->second.ID, i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	else
+	{
+		WriteChatColor("Doors:");
+		WriteChatColor("---------------------------");
+
+		for (auto& door : doorsMap)
+		{
+			WriteChatf("%d: %s: %1.2f away to the %s", door.second.ID,
+				door.second.name.c_str(), door.first, szHeading[door.second.angle]);
 		}
-		sprintf_s(szBuffer, "%d door%s found.", doorsmap.size(), (doorsmap.size() == 1) ? "" : "s");
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		WriteChatf("%d door%s found.", doorsMap.size(), (doorsMap.size() == 1) ? "" : "s");
 	}
 }
 
@@ -816,36 +849,40 @@ void Doors(PSPAWNINFO pChar, char* szLine)
 //              Targets the nearest specified door
 // Usage:       /doortarget <text>
 // ***************************************************************************
-void DoorTarget(PSPAWNINFO pChar, char* szLine)
+void DoorTarget(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
 	if (!ppSwitchMgr) return;
 	if (!pSwitchMgr) return;
-	PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
-	DWORD Count;
 
-	char szBuffer[MAX_STRING] = { 0 };
-	char szSearch[MAX_STRING] = { 0 };
-	char Arg1[MAX_STRING] = { 0 };
-	char Arg2[MAX_STRING] = { 0 };
-	float cDistance = 100000.0f;
-	BYTE ID = -1;
+	DOORTABLE* pDoorTable = (DOORTABLE*)pSwitchMgr;
+
+	// FIXME: Do not ZeroMemory SPAWNINFO
 	ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
-	pDoorTarget = NULL;
+	pDoorTarget = nullptr;
 
+	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
+
+	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg2, szLine, 2);
-	if (!_stricmp(Arg1, "id")) {
-		if (Arg2[0] == 0) {
+
+	if (!_stricmp(Arg1, "id"))
+	{
+		if (Arg2[0] == 0)
+		{
 			MacroError("DoorTarget: id specified but no number provided.");
 			return;
 		}
 
-		ID = atoi(Arg2);
+		int ID = atoi(Arg2);
 		GetArg(Arg2, szLine, 3);
-		for (Count = 0; Count<pDoorTable->NumEntries; Count++) {
-			if (pDoorTable->pDoor[Count]->ID == ID) {
+
+		for (int Count = 0; Count < pDoorTable->NumEntries; Count++)
+		{
+			if (pDoorTable->pDoor[Count]->ID == ID)
+			{
 				strcpy_s(DoorEnviroTarget.Name, pDoorTable->pDoor[Count]->Name);
 				strcpy_s(DoorEnviroTarget.DisplayedName, pDoorTable->pDoor[Count]->Name);
 				DoorEnviroTarget.Y = pDoorTable->pDoor[Count]->Y;
@@ -860,46 +897,48 @@ void DoorTarget(PSPAWNINFO pChar, char* szLine)
 			}
 		}
 	}
-	else {
-		strcpy_s(szSearch, Arg1);
-		for (Count = 0; Count<pDoorTable->NumEntries; Count++) {
-			if (((szSearch[0] == 0) ||
-				(!_strnicmp(pDoorTable->pDoor[Count]->Name, szSearch, strlen(szSearch)))) &&
-				((gZFilter >= 10000.0f) ||
-					((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
-						(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
+	else
+	{
+		float cDistance = 100000.0f;
+
+		for (int Count = 0; Count < pDoorTable->NumEntries; Count++)
+		{
+			DOOR* pDoor = pDoorTable->pDoor[Count];
+
+			// Match against the name if it is within the z filter (or if the z filter is disabled)
+			if ((Arg1[0] == 0 || ci_find_substr(pDoor->Name, Arg1) == 0)
+				&& (gZFilter >= 10000.0f || (pDoor->Z <= pChar->Z + gZFilter && pDoor->Z >= pChar->Z - gZFilter)))
+			{
+				// FIXME: Do not ZeroMemory SPAWNINFO
 				SPAWNINFO tSpawn;
 				ZeroMemory(&tSpawn, sizeof(tSpawn));
-				strcpy_s(tSpawn.Name, pDoorTable->pDoor[Count]->Name);
-				strcpy_s(tSpawn.DisplayedName, pDoorTable->pDoor[Count]->Name);
-				tSpawn.Y = pDoorTable->pDoor[Count]->Y;
-				tSpawn.X = pDoorTable->pDoor[Count]->X;
-				tSpawn.Z = pDoorTable->pDoor[Count]->Z;
+				strcpy_s(tSpawn.Name, pDoor->Name);
+				strcpy_s(tSpawn.DisplayedName, pDoor->Name);
+				tSpawn.Y = pDoor->Y;
+				tSpawn.X = pDoor->X;
+				tSpawn.Z = pDoor->Z;
 				tSpawn.Type = SPAWN_NPC;
 				tSpawn.HPCurrent = 1;
 				tSpawn.HPMax = 1;
-				tSpawn.Heading = pDoorTable->pDoor[Count]->Heading;
+				tSpawn.Heading = pDoor->Heading;
 				float Distance = Distance3DToSpawn(pChar, &tSpawn);
-				if (Distance<cDistance) {
+
+				if (Distance < cDistance)
+				{
 					CopyMemory(&DoorEnviroTarget, &tSpawn, sizeof(DoorEnviroTarget));
-					pDoorTarget = pDoorTable->pDoor[Count];
+					pDoorTarget = pDoor;
 					cDistance = Distance;
 				}
 			}
 		}
 	}
 
-
-	if (pDoorTarget && DoorEnviroTarget.Name[0] != '\0') {
-		sprintf_s(szBuffer, "Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		//DO NOT mess with the pTarget here doors should not ever be targeted...
-		//if (_stricmp(Arg2,"notarget") && ppTarget && 0)
-		//	pTarget = (EQPlayer*)&DoorEnviroTarget;
+	if (pDoorTarget && DoorEnviroTarget.Name[0] != '\0')
+	{
+		WriteChatf("Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
 	}
-	else {
-		//if (ppTarget)
-		//	pTarget = NULL;
+	else
+	{
 		MacroError("Couldn't find door '%s' to target.", szLine);
 	}
 }
@@ -910,30 +949,23 @@ void DoorTarget(PSPAWNINFO pChar, char* szLine)
 //              Displays character bind points
 // Usage:       /charinfo
 // ***************************************************************************
-
-
-void CharInfo(PSPAWNINFO pChar, char* szLine)
+void CharInfo(SPAWNINFO* pChar, char* szLine)
 {
-	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = true;
+
 	if (gFilterMacro == FILTERMACRO_NONE)
 		cmdCharInfo(pChar, szLine);
-	if (CHARINFO* pCharInfo = GetCharInfo()) {
+
+	if (CHARINFO* pCharInfo = GetCharInfo())
+	{
 		DoCommand(pCharInfo->pSpawn, "/charinfo");
-		if (CHARINFO2* pChar2 = GetCharInfo2()) {
-			sprintf_s(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->BoundLocations[0].ZoneBoundX, pChar2->BoundLocations[0].ZoneBoundY, pChar2->BoundLocations[0].ZoneBoundZ);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		if (PcProfile* pProfile = GetPcProfile())
+		{
+			WriteChatf("The location of your bind is: %1.2f, %1.2f, %1.2f",
+				pProfile->BoundLocations[0].ZoneBoundX, pProfile->BoundLocations[0].ZoneBoundY, pProfile->BoundLocations[0].ZoneBoundZ);
 		}
 	}
-}
-
-
-void UpdateItemInfo(PSPAWNINFO pChar, char* szLine)
-{
-	char szEcho[MAX_STRING] = { 0 };
-	strcpy_s(szEcho, DebugHeader);
-	strcat_s(szEcho, " This command has been disabled since the itemdb is maintained by the devs.");
-	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
 }
 
 // ***************************************************************************
@@ -941,28 +973,30 @@ void UpdateItemInfo(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/SpellSlotInfo' command
 // Usage:       /SpellSlotInfo [#|"spell name"]
 // ***************************************************************************
-void SpellSlotInfo(PSPAWNINFO pChar, char* szLine)
+void SpellSlotInfo(SPAWNINFO* pChar, char* szLine)
 {
+	SPELL* pSpell = nullptr;
+
 	char szArg1[MAX_STRING] = { 0 };
-	char szBuff[MAX_STRING] = { 0 };
-	char szTemp[MAX_STRING] = { 0 };
-
-	SPELL* pSpell = NULL;
-
 	GetArg(szArg1, szLine, 1);
 
 	IsNumber(szArg1) ? pSpell = GetSpellByID(atoi(szArg1)) : pSpell = GetSpellByName(szLine);
-	if (!pSpell) {
+	if (!pSpell)
+	{
 		WriteChatf("Usage: /SpellSlotInfo [#|\"spell name\"]");
 		return;
 	}
 
-	//ItemDisplayHook->SetSpell_Detour(pSpell->ID, TRUE);
+	char szBuff[MAX_STRING] = { 0 };
+	char szTemp[MAX_STRING] = { 0 };
+
 	WriteChatf("\ay%s\ax (ID: %d)", pSpell->Name, pSpell->ID);
-	for (int i = 0; i<GetSpellNumEffects(pSpell); i++) {
-		szBuff[0] = szTemp[0] = '\0';
-		strcat_s(szBuff, ParseSpellEffect(pSpell, i, szTemp,sizeof(szTemp)));
-		if (strlen(szBuff)>0)
+	for (int i = 0; i < GetSpellNumEffects(pSpell); i++)
+	{
+		szBuff[0] = szTemp[0] = 0;
+		strcat_s(szBuff, ParseSpellEffect(pSpell, i, szTemp, sizeof(szTemp)));
+
+		if (szBuff[0] != 0)
 			WriteChatf("%s", szBuff);
 	}
 }
@@ -972,51 +1006,58 @@ void SpellSlotInfo(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/MemSpell' command
 // Usage:       /MemSpell gem# "spell name"
 // ***************************************************************************
-SPELLFAVORITE MemSpellFavorite;
-void MemSpell(PSPAWNINFO pSpawn, char* szLine)
+void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 {
 	if (!ppSpellBookWnd)
 		return;
 	if (!pSpellBookWnd)
 		return;
-	DWORD Favorite = (DWORD)&MemSpellFavorite;
-	char szGem[MAX_STRING] = { 0 };
-	DWORD sp;
-	WORD Gem = -1;
-	char SpellName[MAX_STRING] = { 0 };
 
-	if (CHARINFO* pCharInfo = GetCharInfo()) {
-		GetArg(szGem, szLine, 1);
-		GetArg(SpellName, szLine, 2);
-		Gem = atoi(szGem);
-		if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
-		Gem--;
-		if (CHARINFO2* pChar2 = GetCharInfo2()) {
-			SPELL* pSpell = 0;
-			for (DWORD N = 0; N < NUM_BOOK_SLOTS; N++) {
-				if (SPELL* pTempSpell = GetSpellByID(pChar2->SpellBook[N]))
-				{
-					// exact name match only
-					if (!_stricmp(SpellName, pTempSpell->Name))
-					{
-						pSpell = pTempSpell;
-						break;
-					}
-				}
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return;
+
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return;
+
+	char szGem[MAX_STRING] = { 0 };
+	GetArg(szGem, szLine, 1);
+
+	int Gem = atoi(szGem) - 1;
+	if (Gem < 0 || Gem >= NUM_SPELL_GEMS) return;
+
+	char SpellName[MAX_STRING] = { 0 };
+	GetArg(SpellName, szLine, 2);
+
+	SPELL* pSpell = nullptr;
+	for (int index = 0; index < NUM_BOOK_SLOTS; index++)
+	{
+		if (SPELL* pTempSpell = GetSpellByID(pProfile->SpellBook[index]))
+		{
+			// exact name match only
+			if (ci_equals(pTempSpell->Name, SpellName))
+			{
+				pSpell = pTempSpell;
+				break;
 			}
-			if (!pSpell)
-				return;
-			if (pSpell->ClassLevel[pSpawn->mActorClient.Class]>pSpawn->Level)
-				return;
-			ZeroMemory(&MemSpellFavorite, sizeof(MemSpellFavorite));
-			strcpy_s(MemSpellFavorite.Name, "Mem a Spell");
-			MemSpellFavorite.inuse = 1;
-			for (sp = 0; sp < NUM_SPELL_GEMS; sp++) MemSpellFavorite.SpellId[sp] = 0xFFFFFFFF;
-			MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-			pSpellBookWnd->MemorizeSet((int*)Favorite, NUM_SPELL_GEMS);
 		}
 	}
+
+	if (!pSpell)
+		return; // did not find spell
+
+	if (pSpell->ClassLevel[pSpawn->mActorClient.Class] > pSpawn->Level)
+		return; // level requirement not met
+
+	int loadout[NUM_SPELL_GEMS];
+	for (int sp = 0; sp < NUM_SPELL_GEMS; sp++)
+		loadout[sp] = -1;
+	loadout[Gem] = pSpell->ID;
+
+	pSpellBookWnd->MemorizeSet(loadout, NUM_SPELL_GEMS);
 }
+
 // ***************************************************************************
 // Function:    selectitem
 // Description: Our '/selectitem' command
@@ -1024,30 +1065,30 @@ void MemSpell(PSPAWNINFO pSpawn, char* szLine)
 //
 // will select the specified item in your inventory if merchantwindow is open
 // ***************************************************************************
-void SelectItem(PSPAWNINFO pChar, char* szLine)
+void SelectItem(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = false;
 
 	if (!pMerchantWnd)
 		return;
-	bool bExact = false;
+
 	char szBuffer[MAX_STRING] = { 0 };
-	char szTemp[MAX_STRING] = { 0 };
-	char szTemp2[MAX_STRING] = { 0 };
-	char *pName = 0 ;
 	GetArg(szBuffer, szLine, 1);
+
 	if (szBuffer[0])
 	{
-		pName = &szBuffer[0];
+		char* pName = &szBuffer[0];
+		bool bExact = false;
+
 		if (*pName == '=')
 		{
 			bExact = true;
 			pName++;
 		}
 
-		if (CHARINFO* pCharInfo = GetCharInfo())
+		if (CHARINFO * pCharInfo = GetCharInfo())
 		{
-			if (CMerchantWnd* pmercho = (CMerchantWnd *)pMerchantWnd)
+			if (CMerchantWnd* pmercho = (CMerchantWnd*)pMerchantWnd)
 			{
 				if (pmercho->IsVisible())
 				{
@@ -1066,7 +1107,8 @@ void SelectItem(PSPAWNINFO pChar, char* szLine)
 					}
 					else
 					{
-						WriteChatf("/selectitem Could NOT find %s in your inventory to select.\nUse /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer,szBuffer);
+						WriteChatf("/selectitem Could NOT find %s in your inventory to select.\n"
+							"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer, szBuffer);
 					}
 				}
 			}
@@ -1074,18 +1116,21 @@ void SelectItem(PSPAWNINFO pChar, char* szLine)
 	}
 	else
 	{
-		WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\nUse /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
-		WriteChatf("Usage: /selectitem \"some item in YOUR inventory\", use \"=some item in YOUR inventory\" for EXACT name search.");
+		WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\n"
+			"Use /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
+		WriteChatf(R"(Usage: /selectitem "some item in YOUR inventory", use "=some item in YOUR inventory" for EXACT name search.)");
 	}
 }
+
 // ***************************************************************************
 // Function:    buyitem
 // Description: Our '/buyitem' command
 // Usage:       /buyitem Quantity#
-// uses private: void __thiscall CMerchantWnd::RequestBuyItem(int)
+//
+// uses void CMerchantWnd::RequestBuyItem(int)
 // will buy the specified quantity of the currently selected item
 // ***************************************************************************
-void BuyItem(PSPAWNINFO pChar, char* szLine)
+void BuyItem(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = false;
 
@@ -1114,7 +1159,7 @@ void BuyItem(PSPAWNINFO pChar, char* szLine)
 // uses private: void __thiscall CMerchantWnd::RequestSellItem(int)
 // will sell the specified quantity of the currently selected item
 // ***************************************************************************
-void SellItem(PSPAWNINFO pChar, char* szLine)
+void SellItem(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = false;
 
@@ -1142,7 +1187,7 @@ void SellItem(PSPAWNINFO pChar, char* szLine)
 //              Beeps the system speaker
 // Usage:       /beep
 // ***************************************************************************
-void MacroBeep(PSPAWNINFO pChar, char* szLine)
+void MacroBeep(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -1152,9 +1197,8 @@ void MacroBeep(PSPAWNINFO pChar, char* szLine)
 	if (szArg[0] == '\0')
 		Beep(0x500, 250);
 	else
-		PlaySound(szArg, 0, SND_ASYNC);
+		PlaySound(szArg, nullptr, SND_ASYNC);
 }
-
 
 // ***************************************************************************
 // Function:    SWhoFilter
@@ -1174,7 +1218,7 @@ void SetDisplaySWhoFilter(bool& bToggle, const char* szFilter, const char* szTog
 	WritePrivateProfileString("SWho Filter", szFilter, (bToggle ? "1" : "0"), gszINIFilename);
 }
 
-void SWhoFilter(PSPAWNINFO pChar, char* szLine)
+void SWhoFilter(SPAWNINFO* pChar, char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
@@ -1302,20 +1346,22 @@ const char* szUseChat[] = {
 	nullptr
 };
 
-void Filter(PSPAWNINFO pChar, char* szLine)
+void Filter(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
 	char szCmd[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
-	char* szRest = nullptr;
 
-	szRest = szLine;
+	char* szRest = szLine;
 	GetArg(szArg, szRest, 1);
 	szRest = GetNextArg(szRest, 1);
-	if (szArg[0] == 0) {
+
+	if (szArg[0] == 0)
+	{
 		cmdFilter(pChar, szArg);
-		if (gFilterMacro != FILTERMACRO_NONE) WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug", USERCOLOR_DEFAULT);
+		if (gFilterMacro != FILTERMACRO_NONE)
+			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug");
 		return;
 	}
 
@@ -1575,8 +1621,8 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 	{
 		if (szRest[0] == 0)
 		{
-			WriteChatColor("Names currently filtered:", USERCOLOR_DEFAULT);
-			WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
+			WriteChatColor("Names currently filtered:");
+			WriteChatColor("---------------------------");
 
 			MQFilter* pFilter = gpFilters;
 			while (pFilter)
@@ -1617,7 +1663,7 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 			{
 				if (szRest[0] == 0)
 				{
-					WriteChatColor("Remove what?", USERCOLOR_DEFAULT);
+					WriteChatColor("Remove what?");
 				}
 
 				if (!_stricmp(szRest, "all"))
@@ -1649,7 +1695,7 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 						}
 					}
 
-					WriteChatColor("Cleared all name filters.", USERCOLOR_DEFAULT);
+					WriteChatColor("Cleared all name filters.");
 					WriteFilterNames();
 					return;
 				}
@@ -1688,7 +1734,7 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 			{
 				if (szRest[0] == 0)
 				{
-					WriteChatColor("Add what?", USERCOLOR_DEFAULT);
+					WriteChatColor("Add what?");
 					return;
 				}
 
@@ -1724,7 +1770,7 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 		{
 			if (gZFilter >= 10000.0f)
 			{
-				WriteChatColor("Z range is not currently set.", USERCOLOR_DEFAULT);
+				WriteChatColor("Z range is not currently set.");
 			}
 			else
 			{
@@ -1745,32 +1791,32 @@ void Filter(PSPAWNINFO pChar, char* szLine)
 //              Controls logging of DebugSpew to a file
 // Usage:       /spewfile [on,off]
 // ***************************************************************************
-void DebugSpewFile(PSPAWNINFO pChar, char* szLine)
+void DebugSpewFile(SPAWNINFO* pChar, char* szLine)
 {
-	BOOL Pause = TRUE;
-	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = true;
-	if (!_strnicmp(szLine, "off", 3)) {
-		gSpewToFile = FALSE;
-	}
-	else if (!_strnicmp(szLine, "on", 2)) {
-		gSpewToFile = TRUE;
-	}
-	else if (szLine[0] != 0) {
-		WriteChatColor("Syntax: /spewfile [on|off]", USERCOLOR_DEFAULT);
-	}
-	else {
-		Pause = !gSpewToFile;
-	}
-	if (gSpewToFile) {
-		sprintf_s(szBuffer, "Debug Spew is being logged to a file.");
-	}
-	else {
-		sprintf_s(szBuffer, "Debug Spew is not being logged to a file.");
-	}
-	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-}
 
+	if (!_strnicmp(szLine, "off", 3))
+	{
+		gSpewToFile = false;
+	}
+	else if (!_strnicmp(szLine, "on", 2))
+	{
+		gSpewToFile = true;
+	}
+	else if (szLine[0] != 0)
+	{
+		WriteChatColor("Syntax: /spewfile [on|off]");
+	}
+
+	if (gSpewToFile)
+	{
+		WriteChatColor("Debug Spew is being logged to a file.");
+	}
+	else
+	{
+		WriteChatColor("Debug Spew is not being logged to a file.");
+	}
+}
 
 // ***************************************************************************
 // Function:    Identify
@@ -1778,156 +1824,246 @@ void DebugSpewFile(PSPAWNINFO pChar, char* szLine)
 //              Identifies the item on the cursor, displaying the LORE name.
 // Usage:       /identify
 // ***************************************************************************
-void Identify(PSPAWNINFO pChar, char* szLine)
+void Identify(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	char szMsg[MAX_STRING] = { 0 };
-	char szTmp[MAX_STRING] = { 0 };
-	CHARINFO2* pCharInfo = NULL;
-	PITEMINFO pItemInfo = NULL;
-	if (NULL == (pCharInfo = GetCharInfo2())) return;
-	if (!pCharInfo->pInventoryArray->Inventory.Cursor) {
+
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return;
+
+	CONTENTS* pCursor = pProfile->pInventoryArray->Inventory.Cursor;
+	if (!pCursor)
+	{
 		MacroError("You must be holding an item to identify it.");
 		return;
 	}
 
-	pItemInfo = GetItemFromContents(pCharInfo->pInventoryArray->Inventory.Cursor);
+	ITEMINFO* pItemInfo = GetItemFromContents(pCursor);
 	DebugSpew("Identify - %s", pItemInfo->LoreName);
+
 	WriteChatColor(" ", USERCOLOR_SPELLS);
-	if (pItemInfo->Type == ITEMTYPE_NORMAL && pItemInfo->ItemType < MAX_ITEMTYPES && szItemTypes[pItemInfo->ItemType] != NULL)
-		sprintf_s(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp, Type: %s)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost, szItemTypes[pItemInfo->ItemType]);
-	else if (pItemInfo->Type == ITEMTYPE_PACK && pItemInfo->Combine < MAX_COMBINES && szCombineTypes[pItemInfo->Combine] != NULL)
-		sprintf_s(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp, Type: %s)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost, szCombineTypes[pItemInfo->Combine]);
+
+	if (pItemInfo->Type == ITEMTYPE_NORMAL && pItemInfo->ItemType < MAX_ITEMTYPES && szItemTypes[pItemInfo->ItemType] != nullptr)
+	{
+		WriteChatColorf("Item: %s (Slot: %s, Weight: %.1f, Value: %dcp, Type: %s)", USERCOLOR_SPELLS,
+			pItemInfo->Name,
+			szSize[pItemInfo->Size],
+			static_cast<float>(pItemInfo->Weight) / 10.f,
+			pItemInfo->Cost,
+			szItemTypes[pItemInfo->ItemType]);
+	}
+	else if (pItemInfo->Type == ITEMTYPE_PACK && pItemInfo->Combine < MAX_COMBINES && szCombineTypes[pItemInfo->Combine] != nullptr)
+	{
+		WriteChatColorf("Item: %s (Slot: %s, Weight: %.1f, Value: %dcp, Type: %s)", USERCOLOR_SPELLS,
+			pItemInfo->Name,
+			szSize[pItemInfo->Size],
+			static_cast<float>(pItemInfo->Weight) / 10.f,
+			pItemInfo->Cost,
+			szCombineTypes[pItemInfo->Combine]);
+	}
 	else
-		sprintf_s(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost);
-
-
-	WriteChatColor(szMsg, USERCOLOR_SPELLS);
-	if ((pItemInfo->LoreName[0] != '*') && (strcmp(pItemInfo->LoreName, pItemInfo->Name))) {
-		sprintf_s(szMsg, "Lore Name: %s", pItemInfo->LoreName);
-		WriteChatColor(szMsg, USERCOLOR_SPELLS);
-	}
-	else     if ((pItemInfo->LoreName[0] == '*') && (strcmp(pItemInfo->LoreName + 1, pItemInfo->Name))) {
-		sprintf_s(szMsg, "Lore Name: %s", pItemInfo->LoreName + 1);
-		WriteChatColor(szMsg, USERCOLOR_SPELLS);
+	{
+		WriteChatColorf("Item: %s (Slot: %s, Weight: %.1f, Value: %dcp)", USERCOLOR_SPELLS,
+			pItemInfo->Name, szSize[pItemInfo->Size],
+			static_cast<float>(pItemInfo->Weight) / 10.f,
+			pItemInfo->Cost);
 	}
 
-	strcpy_s(szMsg, "Flags: ");
-	if (pItemInfo->LoreName[0] == '*') strcat_s(szMsg, "LORE ");
-	if (pItemInfo->NoDrop == 0) strcat_s(szMsg, "NODROP ");
-	if (pItemInfo->NoRent == 0) strcat_s(szMsg, "NORENT ");
-	if (pItemInfo->Type == ITEMTYPE_NORMAL) {
-		if (pItemInfo->Magic == 1) strcat_s(szMsg, "MAGIC ");
-		BYTE Light = pItemInfo->Light;
-		if ((Light>0) && (Light <= LIGHT_COUNT)) {
+	if (pItemInfo->LoreName[0] != '*' && strcmp(pItemInfo->LoreName, pItemInfo->Name))
+	{
+		WriteChatColorf("Lore Name: %s", USERCOLOR_SPELLS, pItemInfo->LoreName);
+	}
+	else if (pItemInfo->LoreName[0] == '*' && strcmp(pItemInfo->LoreName + 1, pItemInfo->Name))
+	{
+		WriteChatColorf("Lore Name: %s", USERCOLOR_SPELLS, pItemInfo->LoreName + 1);
+	}
+
+	char szMsg[MAX_STRING] = { 0 };
+
+	if (pItemInfo->LoreName[0] == '*')
+		strcat_s(szMsg, "LORE ");
+	if (!pItemInfo->NoDrop)
+		strcat_s(szMsg, "NODROP ");
+	if (!pItemInfo->NoRent)
+		strcat_s(szMsg, "NORENT ");
+
+	if (pItemInfo->Type == ITEMTYPE_NORMAL)
+	{
+		if (pItemInfo->Magic)
+			strcat_s(szMsg, "MAGIC ");
+
+		uint8_t Light = pItemInfo->Light;
+		if (Light > 0 && Light <= LIGHT_COUNT)
+		{
 			strcat_s(szMsg, "(Light: ");
 			strcat_s(szMsg, szLights[Light]);
 			strcat_s(szMsg, ") ");
 		}
 	}
-	if (strlen(szMsg) > 7) WriteChatColor(szMsg, USERCOLOR_SPELLS);
 
-	if (pItemInfo->Type == ITEMTYPE_PACK) {
-		char szCombine[MAX_STRING] = { 0 };
-		if ((pItemInfo->Combine < MAX_COMBINES) && (szCombineTypes[pItemInfo->Combine] != NULL)) {
+	if (szMsg[0] != 0)
+	{
+		WriteChatColorf("Flags: %s", USERCOLOR_SPELLS, szMsg);
+	}
+
+	// Reset for round two:
+	szMsg[0] = 0;
+
+	if (pItemInfo->Type == ITEMTYPE_PACK)
+	{
+		char szCombine[256] = { 0 };
+
+		if (pItemInfo->Combine < MAX_COMBINES && szCombineTypes[pItemInfo->Combine] != nullptr)
+		{
 			strcpy_s(szCombine, szCombineTypes[pItemInfo->Combine]);
 		}
-		else {
+		else
+		{
 			sprintf_s(szCombine, "*Unknown%d", pItemInfo->Combine);
 		}
-		sprintf_s(szMsg, "Container: %d Slot %s, %d%% Reduction, Combine=%s", pItemInfo->Slots, szSize[pItemInfo->SizeCapacity], pItemInfo->WeightReduction, szCombine);
+
+		sprintf_s(szMsg, "Container: %d Slot %s, %d%% Reduction, Combine=%s",
+			pItemInfo->Slots,
+			szSize[pItemInfo->SizeCapacity],
+			pItemInfo->WeightReduction,
+			szCombine);
 	}
-	else if (pItemInfo->Type == ITEMTYPE_BOOK) {
+	else if (pItemInfo->Type == ITEMTYPE_BOOK)
+	{
 		//sprintf_s(szMsg,"Book file: %s", pItemInfo->Book.File);
 	}
-	else {
+	else
+	{
+		char szTmp[MAX_STRING] = { 0 };
+
 		strcpy_s(szMsg, "Item: ");
-		if (pItemInfo->AC) {
+		if (pItemInfo->AC)
+		{
 			sprintf_s(szTmp, "AC%d ", pItemInfo->AC);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->Damage) {
+
+		if (pItemInfo->Damage)
+		{
 			sprintf_s(szTmp, "%dDam ", pItemInfo->Damage);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->Delay) {
+
+		if (pItemInfo->Delay)
+		{
 			sprintf_s(szTmp, "%dDly ", pItemInfo->Delay);
 			strcat_s(szMsg, szTmp);
 		}
 
-		if (pItemInfo->Range) {
+		if (pItemInfo->Range)
+		{
 			sprintf_s(szTmp, "%dRng ", pItemInfo->Range);
 			strcat_s(szMsg, szTmp);
 		}
 
-		if (pItemInfo->HP) {
+		if (pItemInfo->HP)
+		{
 			sprintf_s(szTmp, "%dHP ", pItemInfo->HP);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->Mana) {
+
+		if (pItemInfo->Mana)
+		{
 			sprintf_s(szTmp, "%dMana ", pItemInfo->Mana);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->STR) {
+
+		if (pItemInfo->STR)
+		{
 			sprintf_s(szTmp, "%dSTR ", pItemInfo->STR);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->STA) {
+
+		if (pItemInfo->STA)
+		{
 			sprintf_s(szTmp, "%dSTA ", pItemInfo->STA);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->DEX) {
+
+		if (pItemInfo->DEX)
+		{
 			sprintf_s(szTmp, "%dDEX ", pItemInfo->DEX);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->AGI) {
+
+		if (pItemInfo->AGI)
+		{
 			sprintf_s(szTmp, "%dAGI ", pItemInfo->AGI);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->WIS) {
+
+		if (pItemInfo->WIS)
+		{
 			sprintf_s(szTmp, "%dWIS ", pItemInfo->WIS);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->INT) {
+
+		if (pItemInfo->INT)
+		{
 			sprintf_s(szTmp, "%dINT ", pItemInfo->INT);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->CHA) {
+
+		if (pItemInfo->CHA)
+		{
 			sprintf_s(szTmp, "%dCHA ", pItemInfo->CHA);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->SvMagic) {
+
+		if (pItemInfo->SvMagic)
+		{
 			sprintf_s(szTmp, "%dSvM ", pItemInfo->SvMagic);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->SvDisease) {
+
+		if (pItemInfo->SvDisease)
+		{
 			sprintf_s(szTmp, "%dSvD ", pItemInfo->SvDisease);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->SvPoison) {
+
+		if (pItemInfo->SvPoison)
+		{
 			sprintf_s(szTmp, "%dSvP ", pItemInfo->SvPoison);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->SvFire) {
+
+		if (pItemInfo->SvFire)
+		{
 			sprintf_s(szTmp, "%dSvF ", pItemInfo->SvFire);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->SvCold) {
+
+		if (pItemInfo->SvCold)
+		{
 			sprintf_s(szTmp, "%dSvC ", pItemInfo->SvCold);
 			strcat_s(szMsg, szTmp);
 		}
-		if (pItemInfo->SvCorruption) {
+
+		if (pItemInfo->SvCorruption)
+		{
 			sprintf_s(szTmp, "%dSvCorruption ", pItemInfo->SvCorruption);
 			strcat_s(szMsg, szTmp);
 		}
-		if (((EQ_Item*)pCharInfo->pInventoryArray->Inventory.Cursor)->IsStackable() == 1) {
-			sprintf_s(szTmp, "Stack size = %d ", pCharInfo->pInventoryArray->Inventory.Cursor->StackCount);
+
+		if (((EQ_Item*)pCursor)->IsStackable() == 1)
+		{
+			sprintf_s(szTmp, "Stack size = %d ", pCursor->StackCount);
 			strcat_s(szMsg, szTmp);
 		}
 	}
-	if (strlen(szMsg)>6) WriteChatColor(szMsg, USERCOLOR_SPELLS);
-}
 
+	if (strlen(szMsg) > 6)
+	{
+		WriteChatColor(szMsg, USERCOLOR_SPELLS);
+	}
+}
 
 // ***************************************************************************
 // Function:    Location
@@ -1936,17 +2072,20 @@ void Identify(PSPAWNINFO pChar, char* szLine)
 //              on a 16 point compass (ie. NNE)
 // Usage:       /loc
 // ***************************************************************************
-void Location(PSPAWNINFO pChar, char* szLine)
+void Location(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
-	if (gFilterMacro == FILTERMACRO_NONE) cmdLocation(pChar, szLine);
 
-	char szMsg[MAX_STRING] = { 0 };
-	INT Angle = (INT)((pChar->Heading / 32.0f) + 8.5f) % 16;
-	sprintf_s(szMsg, "Your Location is %3.2f, %3.2f, %3.2f, and are heading %s.", pChar->Y, pChar->X, pChar->Z, szHeading[Angle]);
-	WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+	if (gFilterMacro == FILTERMACRO_NONE)
+		cmdLocation(pChar, szLine);
+
+	int Angle = static_cast<int>((pChar->Heading / 32.0f) + 8.5f) % 16;
+
+	WriteChatf("Your Location is %3.2f, %3.2f, %3.2f, and are heading %s.",
+		pChar->Y, pChar->X, pChar->Z, szHeading[Angle]);
 }
 
+// FIXME: CMQ2Alerts should not be implementd in MQ2Commands.cpp
 bool CMQ2Alerts::RemoveAlertFromList(uint32_t Id, MQSpawnSearch* pSearchSpawn)
 {
 	std::scoped_lock lock(m_mutex);
@@ -2075,21 +2214,19 @@ bool CMQ2Alerts::ListAlerts(char* szOut, size_t max)
 //              Sets up $alert notifications
 // Usage:       /alert [clear #] [list #] [add/remove # [pc|npc|corpse|any] [radius ###] [zradius ###] [race race] [class class] [range min max] [name]]
 // ***************************************************************************
-void Alert(PSPAWNINFO pChar, char* szLine)
+void Alert(SPAWNINFO* pChar, char* szLine)
 {
-	bool bOutput = pChar != nullptr;
 	bRunNextCommand = true;
+
+	bool bOutput = pChar != nullptr;
 	char szArg[MAX_STRING] = { 0 };
 	char szLLine[MAX_STRING] = { 0 };
-	char* szRest = szLLine;
 	bool Parsing = true;
 	bool DidSomething = false;
 
-	// if szLLine is not referenced above by szRest
-	// the compiler thinks it is not used and optimizes it out
-	// don't be too tricky
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
+	char* szRest = szLLine;
 
 	while (Parsing)
 	{
@@ -2118,8 +2255,8 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 
 				if (CAlerts.GetAlert(atoi(szArg), ss))
 				{
-					WriteChatColor(" ", USERCOLOR_DEFAULT);
-					WriteChatColor("Current alerts:", USERCOLOR_DEFAULT);
+					WriteChatColor(" ");
+					WriteChatColor("Current alerts:");
 
 					char szTemp[2048] = { 0 };
 					for (auto i = ss.begin(); i != ss.end(); i++)
@@ -2135,7 +2272,7 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 				}
 				else
 				{
-					WriteChatColor("No alerts active.", USERCOLOR_DEFAULT);
+					WriteChatColor("No alerts active.");
 				}
 
 				DidSomething = true;
@@ -2257,35 +2394,41 @@ void Alert(PSPAWNINFO pChar, char* szLine)
 //              Displays spawn currently selected
 // Usage:       /whotarget
 // ***************************************************************************
-void SuperWhoTarget(PSPAWNINFO pChar, char* szLine)
+void SuperWhoTarget(SPAWNINFO* pChar, char* szLine)
 {
-	PSPAWNINFO psTarget = NULL;
 	bRunNextCommand = true;
-	if (gFilterMacro == FILTERMACRO_NONE) cmdWhoTarget(pChar, szLine);
 
-	if (ppTarget && pTarget) {
-		psTarget = (PSPAWNINFO)pTarget;
+	SPAWNINFO* psTarget = nullptr;
+
+	if (gFilterMacro == FILTERMACRO_NONE)
+		cmdWhoTarget(pChar, szLine);
+
+	if (pTarget)
+	{
+		psTarget = (SPAWNINFO*)pTarget;
 	}
 
-
-
-	if (!psTarget) {
+	if (!psTarget)
+	{
 		MacroError("You must have a target selected for /whotarget.");
 		return;
 	}
+
 	DebugSpew("SuperWhoTarget - %s", psTarget->Name);
-	BOOL Temp = gFilterSWho.Distance;
-	gFilterSWho.Distance = TRUE;
+
+	bool Temp = gFilterSWho.Distance;
+	gFilterSWho.Distance = true;
+
 	SuperWhoDisplay(psTarget, USERCOLOR_WHO);
+
 	gFilterSWho.Distance = Temp;
-	//SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
 //============================================================================
 
 static DWORD WINAPI thrMsgBox(void* lpParameter)
 {
-	MessageBox(nullptr, (char*)lpParameter, "MacroQuest", MB_OK);
+	MessageBox(nullptr, (const char*)lpParameter, "MacroQuest", MB_OK);
 	free(lpParameter);
 	return 0;
 }
@@ -2296,7 +2439,7 @@ static DWORD WINAPI thrMsgBox(void* lpParameter)
 //              Our message box
 // Usage:       /msgbox text
 // ***************************************************************************
-void MQMsgBox(PSPAWNINFO pChar, char* szLine)
+void MQMsgBox(SPAWNINFO* pChar, char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = true;
@@ -2313,57 +2456,71 @@ void MQMsgBox(PSPAWNINFO pChar, char* szLine)
 //              Our logging
 // Usage:       /mqlog text
 // ***************************************************************************
-void MacroLog(PSPAWNINFO pChar, char* szLine)
+void MacroLog(SPAWNINFO* pChar, char* szLine)
 {
-	FILE *fOut = NULL;
-	char Filename[MAX_STRING] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
-	DWORD i;
 	bRunNextCommand = true;
 
-	if (gszMacroName[0] == 0) {
+
+	char Filename[MAX_PATH] = { 0 };
+	if (gszMacroName[0] == 0)
+	{
 		sprintf_s(Filename, "%s\\MacroQuest.log", gszLogPath);
 	}
-	else {
+	else
+	{
 		sprintf_s(Filename, "%s\\%s.log", gszLogPath, gszMacroName);
 	}
 
-	for (i = 0; i<strlen(Filename); i++) {
-		if (Filename[i] == '\\') {
+	char szBuffer[MAX_STRING] = { 0 };
+
+	// recursively create logging directory
+	for (size_t i = 0; i < strlen(Filename); i++)
+	{
+		if (Filename[i] == '\\')
+		{
 			strncpy_s(szBuffer, Filename, i);
 			szBuffer[i] = '\0';
-			if (2 == _mkdir(szBuffer)) {
+
+			if (2 == _mkdir(szBuffer))
+			{
 				MacroError("Log path doesn't appear valid: %s", Filename);
 				return;
 			}
 		}
 	}
-	if (!_stricmp(szLine, "clear")) {
-		errno_t err = fopen_s(&fOut,Filename, "wt");
-		if (err) {
+
+
+	if (!_stricmp(szLine, "clear"))
+	{
+		FILE* fOut = nullptr;
+		errno_t err = fopen_s(&fOut, Filename, "wt");
+		if (err || !fOut)
+		{
 			MacroError("Couldn't open log file: %s", Filename);
 			return;
 		}
+
 		WriteChatColor("Cleared log.", USERCOLOR_DEFAULT);
 		fclose(fOut);
 		return;
 	}
 
-	errno_t err = fopen_s(&fOut,Filename, "at");
-	if (err) {
+	FILE* fOut = nullptr;
+	errno_t err = fopen_s(&fOut, Filename, "at");
+	if (err || !fOut)
+	{
 		MacroError("Couldn't open log file: %s", Filename);
 		return;
 	}
 
 	sprintf_s(szBuffer, "[${Time.Date} ${Time.Time24}] %s", szLine);
 	ParseMacroParameter(pChar, szBuffer);
+
 	fprintf(fOut, "%s\n", szBuffer);
 	DebugSpew("MacroLog - %s", szBuffer);
 
 	fclose(fOut);
-
 }
-
 
 // ***************************************************************************
 // Function:    Face
@@ -2372,7 +2529,7 @@ void MacroLog(PSPAWNINFO pChar, char* szLine)
 // Usage:       /face <spawn>
 // Usage:       /face loc <y>,<x>
 // ***************************************************************************
-void Face(PSPAWNINFO pChar, char* szLine)
+void Face(SPAWNINFO* pChar, char* szLine)
 {
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
@@ -2382,6 +2539,8 @@ void Face(PSPAWNINFO pChar, char* szLine)
 		MacroError("You shouldn't execute /face when not in game. Gamestate is %d", GetGameState());
 		return;
 	}
+
+	bRunNextCommand = false;
 
 	SPAWNINFO* pSpawnClosest = nullptr;
 	SPAWNINFO* psTarget = nullptr;
@@ -2393,185 +2552,238 @@ void Face(PSPAWNINFO pChar, char* szLine)
 	char szMsg[MAX_STRING] = { 0 };
 	char szName[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
+
+	bool bArg = true;
+	bool bOtherArgs = false;
+	bool Away = false;
+	bool Predict = false;
+	bool Fast = false;
+	bool Look = true;
+	bool Parsing = true;
+
 	char szLLine[MAX_STRING] = { 0 };
-	char* szFilter = szLLine;
-
-	BOOL bArg = TRUE;
-	BOOL bOtherArgs = FALSE;
-	BOOL Away = FALSE;
-	BOOL Predict = FALSE;
-	BOOL Fast = FALSE;
-	BOOL Look = TRUE;
-	BOOL Parsing = TRUE;
-
-	double Distance;
-	bRunNextCommand = false;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
-	while (bArg) {
+	char* szFilter = szLLine;
+
+	while (bArg)
+	{
 		GetArg(szArg, szFilter, 1);
 		szFilter = GetNextArg(szFilter, 1);
-		if (szArg[0] == 0) {
-			bArg = FALSE;
+
+		if (szArg[0] == 0)
+		{
+			bArg = false;
 		}
-		else if (!strcmp(szArg, "predict")) {
-			Predict = TRUE;
+		else if (!strcmp(szArg, "predict"))
+		{
+			Predict = true;
 		}
-		else if (!strcmp(szArg, "fast")) {
-			Fast = TRUE;
+		else if (!strcmp(szArg, "fast"))
+		{
+			Fast = true;
 		}
-		else if (!strcmp(szArg, "away")) {
-			Away = TRUE;
+		else if (!strcmp(szArg, "away"))
+		{
+			Away = true;
 		}
-		else if (!strcmp(szArg, "nolook")) {
-			Look = FALSE;
+		else if (!strcmp(szArg, "nolook"))
+		{
+			Look = false;
 		}
-		else if (!_stricmp(szArg, "loc")) {
+		else if (!_stricmp(szArg, "loc"))
+		{
 			pSpawnClosest = &LocSpawn;
 			strcpy_s(LocSpawn.Name, "location");
-			if ((szFilter[0] == 0) || (!strstr(szFilter, ","))) {
+
+			if ((szFilter[0] == 0) || (!strstr(szFilter, ",")))
+			{
 				MacroError("Face: loc specified but <y>,<x> not found.");
 				return;
 			}
+
 			pSpawnClosest->Y = (float)atof(szFilter);
-			while ((szFilter[0] != ',') && (szFilter[0] != 0)) szFilter++;
-			if (szFilter[0] == 0) {
+
+			while ((szFilter[0] != ',') && (szFilter[0] != 0))
+				szFilter++;
+
+			if (szFilter[0] == 0)
+			{
 				MacroError("Face: loc specified but <y>,<x> not found.");
 				return;
 			}
+
 			szFilter++;
 			pSpawnClosest->X = (float)atof(szFilter);
-			while ((szFilter[0] != ',') && (szFilter[0] != 0)) szFilter++;
-			if (szFilter[0] != 0) {
+
+			while ((szFilter[0] != ',') && (szFilter[0] != 0))
+				szFilter++;
+
+			if (szFilter[0] != 0)
+			{
 				szFilter++;
 				pSpawnClosest->Z = (float)atof(szFilter);
 			}
 		}
-		else if (!_stricmp(szArg, "item")) {
-			if (EnviroTarget.Name[0] == 0) {
+		else if (!_stricmp(szArg, "item"))
+		{
+			if (EnviroTarget.Name[0] == 0)
+			{
 				MacroError("Face: item specified but no item targetted.");
 				return;
 			}
+
 			pSpawnClosest = &EnviroTarget;
 		}
-		else if (!_stricmp(szArg, "door")) {
-			if (DoorEnviroTarget.Name[0] == 0) {
+		else if (!_stricmp(szArg, "door"))
+		{
+			if (DoorEnviroTarget.Name[0] == 0)
+			{
 				MacroError("Face: door specified but no door targetted.");
 				return;
 			}
+
 			pSpawnClosest = &DoorEnviroTarget;
 		}
-		else if (!_stricmp(szArg, "heading")) {
-			if (szFilter[0] == 0) {
+		else if (!_stricmp(szArg, "heading"))
+		{
+			if (szFilter[0] == 0)
+			{
 				MacroError("Face: heading specified but angle not found.");
 			}
-			else {
+			else
+			{
 				float Heading = (float)(atof(szFilter));
 				gFaceAngle = Heading / 0.703125f;
-				if (gFaceAngle >= 512.0f) gFaceAngle -= 512.0f;
-				if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
-				if (Fast) {
+
+				if (gFaceAngle >= 512.0f)
+					gFaceAngle -= 512.0f;
+				if (gFaceAngle < 0.0f)
+					gFaceAngle += 512.0f;
+
+				if (Fast)
+				{
 					//changed
-					((PSPAWNINFO)pCharSpawn)->Heading = (float)gFaceAngle;
+					((SPAWNINFO*)pCharSpawn)->Heading = (float)gFaceAngle;
 					gFaceAngle = 10000.0f;
 					bRunNextCommand = true;
 				}
 			}
+
 			return;
 		}
-		else if (!strcmp(szArg, "help")) {
+		else if (!strcmp(szArg, "help"))
+		{
 			SyntaxError("Usage: /face [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]");
 			bRunNextCommand = true;
 			return;
 		}
-		else {
-			bOtherArgs = TRUE;
+		else
+		{
+			bOtherArgs = true;
 			szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
 		}
 	}
 
-	if (!pSpawnClosest) {
-		if (!bOtherArgs) {
-			if (ppTarget && pTarget) {
-				pSpawnClosest = (PSPAWNINFO)pTarget;
+	if (!pSpawnClosest)
+	{
+		if (!bOtherArgs)
+		{
+			if (pTarget)
+			{
+				pSpawnClosest = (SPAWNINFO*)pTarget;
 			}
 		}
-		else {
+		else
+		{
 			pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 		}
 	}
 
 	szMsg[0] = 0;
 
-	if (!pSpawnClosest) {
+	if (!pSpawnClosest)
+	{
 		MacroError("There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
 	}
-	else {
-		if (Predict) {
-			Distance = Distance3DToSpawn(pChar, pSpawnClosest);
-			gFaceAngle = (
-				atan2((pSpawnClosest->X + (pSpawnClosest->SpeedX * Distance)) - pChar->X,
-					(pSpawnClosest->Y + (pSpawnClosest->SpeedY * Distance)) - pChar->Y)
-				* 256.0f / PI);
+	else
+	{
+		if (Predict)
+		{
+			float distance = Distance3DToSpawn(pChar, pSpawnClosest);
+
+			gFaceAngle = atan2(
+				(pSpawnClosest->X + (pSpawnClosest->SpeedX * distance)) - pChar->X,
+				(pSpawnClosest->Y + (pSpawnClosest->SpeedY * distance)) - pChar->Y)
+				* 256.0f / PI;
 		}
-		else {
-			gFaceAngle = (
-				atan2(pSpawnClosest->X - pChar->X,
-					pSpawnClosest->Y - pChar->Y)
-				* 256.0f / PI);
+		else
+		{
+			gFaceAngle = atan2(pSpawnClosest->X - pChar->X,pSpawnClosest->Y - pChar->Y) * 256.0f / PI;
 		}
-		if (Look) {
-			Distance = Distance3DToSpawn(pChar, pSpawnClosest);
-			gLookAngle = (
-				atan2(pSpawnClosest->Z + pSpawnClosest->AvatarHeight*StateHeightMultiplier(pSpawnClosest->StandState) - pChar->Z - pChar->AvatarHeight*StateHeightMultiplier(pChar->StandState),
-					(float)Distance)
-				* 256.0f / PI);
-			if (Away) gLookAngle = -gLookAngle;
-			if (Fast) {
+
+		if (Look)
+		{
+			float distance = Distance3DToSpawn(pChar, pSpawnClosest);
+
+			float spawnHeight = pSpawnClosest->AvatarHeight * StateHeightMultiplier(pSpawnClosest->StandState);
+			float charHeight = pChar->AvatarHeight * StateHeightMultiplier(pChar->StandState);
+
+			gLookAngle = atan2(pSpawnClosest->Z + spawnHeight - pChar->Z - charHeight, distance) * 256.0f / PI;
+
+			if (Away)
+				gLookAngle = -gLookAngle;
+
+			if (Fast)
+			{
 				pChar->CameraAngle = (float)gLookAngle;
 				gLookAngle = 10000.0f;
 			}
 		}
-		if (Away) {
+
+		if (Away)
 			gFaceAngle += 256.0f;
-		}
-		if (gFaceAngle >= 512.0f) gFaceAngle -= 512.0f;
-		if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
-		if (Fast) {
-			//changed
-			((PSPAWNINFO)pCharSpawn)->Heading = (float)gFaceAngle;
+
+		if (gFaceAngle >= 512.0f)
+			gFaceAngle -= 512.0f;
+		if (gFaceAngle < 0.0f)
+			gFaceAngle += 512.0f;
+
+		if (Fast)
+		{
+			((SPAWNINFO*)pCharSpawn)->Heading = (float)gFaceAngle;
 			gFaceAngle = 10000.0f;
 			bRunNextCommand = true;
 		}
-		//sprintf_s(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy_s(szName,pSpawnClosest->Name),FALSE));
+
 		sprintf_s(szMsg, "Facing %s'%s'...", (Away) ? "away from " : "", pSpawnClosest->DisplayedName);
 	}
-	if (ppTarget && pTarget) {
-		psTarget = (PSPAWNINFO)pTarget;
-	}
-	if (szMsg[0] && ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget)))) WriteChatColor(szMsg, USERCOLOR_WHO);
-	DebugSpew("Face - %s", szMsg);
-	return;
-}
 
+	if (pTarget)
+	{
+		psTarget = (SPAWNINFO*)pTarget;
+	}
+
+	if (szMsg[0] && ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget))))
+		WriteChatColor(szMsg, USERCOLOR_WHO);
+
+	DebugSpew("Face - %s", szMsg);
+}
 
 // ***************************************************************************
 // Function:      Look
-// Description:      Our /look command. Changes camera angle
-// 2003-08-30      MacroFiend
+// Description:   Our /look command. Changes camera angle
+// 2003-08-30     MacroFiend
 // ***************************************************************************
-void Look(PSPAWNINFO pChar, char* szLine)
+void Look(SPAWNINFO* pChar, char* szLine)
 {
 	char szLookAngle[MAX_STRING] = { 0 };
-	char szTemp[MAX_STRING] = { 0 };
-	float fLookAngle = 0.0f;
-
 	GetArg(szLookAngle, szLine, 1);
 
+	float fLookAngle = (float)atof(szLookAngle);
 
-	fLookAngle = (float)atof(szLookAngle);
-
-	if (fLookAngle>128.0f || fLookAngle<-128.0f) {
+	if (fLookAngle > 128.0f || fLookAngle < -128.0f)
+	{
 		MacroError("/look -- Angle %f out of range.", fLookAngle);
 		return;
 	}
@@ -2580,14 +2792,13 @@ void Look(PSPAWNINFO pChar, char* szLine)
 	gLookAngle = 10000.0f;
 }
 
-
 // ***************************************************************************
 // Function:    Where
 // Description: Our '/where' command
 //              Displays the direction and distance to the closest spawn
 // Usage:       /where <spawn>
 // ***************************************************************************
-void Where(PSPAWNINFO pChar, char* szLine)
+void Where(SPAWNINFO* pChar, char* szLine)
 {
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
@@ -2597,48 +2808,45 @@ void Where(PSPAWNINFO pChar, char* szLine)
 	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
 
-	char szMsg[MAX_STRING] = { 0 };
-	char szName[MAX_STRING] = { 0 };
-	char szArg[MAX_STRING] = { 0 };
 	char szLLine[MAX_STRING] = { 0 };
-	char* szFilter = szLLine;
-	BOOL bArg = TRUE;
-	SPAWNINFO* pSpawnClosest = nullptr;
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
+	char* szFilter = szLLine;
 
-	while (bArg) {
+	char szArg[MAX_STRING] = { 0 };
+	while (true)
+	{
 		GetArg(szArg, szFilter, 1);
 		szFilter = GetNextArg(szFilter, 1);
-		if (szArg[0] == 0) {
-			bArg = FALSE;
+
+		if (szArg[0] == 0)
+		{
+			break;
 		}
-		else {
-			szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
-		}
+
+		szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
 	}
 
+	SPAWNINFO* pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 
-	if (!(pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar))) {
-		sprintf_s(szMsg, "There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
+	if (!pSpawnClosest)
+	{
+		WriteChatColorf("There were no matches for: %s", USERCOLOR_WHO, FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
 	}
-	else {
-		INT Angle = (INT)((atan2f(pChar->X - pSpawnClosest->X, pChar->Y - pSpawnClosest->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-		strcpy_s(szName, pSpawnClosest->DisplayedName);
-		sprintf_s(szMsg, "The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
-			//CleanupName(strcpy_s(szName,pSpawnClosest->Name),FALSE),
-			szName,
+	else
+	{
+		int Angle = static_cast<int>((atan2f(pChar->X - pSpawnClosest->X, pChar->Y - pSpawnClosest->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+
+		WriteChatColorf("The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f", USERCOLOR_WHO,
+			pSpawnClosest->DisplayedName,
 			pSpawnClosest->Level,
 			pEverQuest->GetRaceDesc(pSpawnClosest->mActorClient.Race),
 			GetClassDesc(pSpawnClosest->mActorClient.Class),
-			Distance3DToSpawn(pChar, pSpawnClosest), szHeading[Angle],
+			Distance3DToSpawn(pChar, pSpawnClosest),
+			szHeading[Angle],
 			pSpawnClosest->Z - pChar->Z);
-		DebugSpew("Where - %s", szMsg);
 	}
-	WriteChatColor(szMsg, USERCOLOR_WHO);
-	return;
 }
-
 
 // ***************************************************************************
 // Function:    DoAbility
@@ -2646,111 +2854,128 @@ void Where(PSPAWNINFO pChar, char* szLine)
 //              Does (or lists) your abilities
 // Usage:       /doability [list|ability|#]
 // ***************************************************************************
-void DoAbility(PSPAWNINFO pChar, char* szLine)
+void DoAbility(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0] || !cmdDoAbility)
 		return;
-	PSKILLMGR pSkmgr = pSkillMgr;
-	DWORD Index;
+
 	char szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
+
 	int abil = atoi(szBuffer);
-	if (abil && abil > 5 && abil < NUM_SKILLS)//user wants us to activate a ability by its REAL ID...
+	if (abil && abil > 5 && abil < NUM_SKILLS) // user wants us to activate a ability by its REAL ID...
 	{
-		if (DWORD nToken = pCSkillMgr->GetNameToken(abil))
+		if (int nToken = pCSkillMgr->GetNameToken(abil))
 		{
-			if (const char *thename = pStringTable->getString(nToken, 0)) {
+			if (const char* thename = pStringTable->getString(nToken))
+			{
 				strcpy_s(szBuffer, thename);
 			}
 		}
 	}
 	else
 	{
-		if (abil || !EQADDR_DOABILITYLIST) {
+		if (abil || !EQADDR_DOABILITYLIST)
+		{
 			cmdDoAbility(pChar, szLine);
 			return;
 		}
 	}
-	//SkillManager*pSkillm = (SkillManager*)pSkillMgr;
-	if (CHARINFO2* pChar2 = GetCharInfo2()) {
-		// display available abilities list
-		if (!_stricmp(szBuffer, "list")) {
-			WriteChatColor("Abilities & Combat Skills:", USERCOLOR_DEFAULT);
-			// display skills that have activated state
-			for (Index = 0; Index < NUM_SKILLS; Index++)
+
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return;
+
+	SKILLMGR* pSkmgr = pSkillMgr;
+
+	// display available abilities list
+	if (!_stricmp(szBuffer, "list"))
+	{
+		WriteChatColor("Abilities & Combat Skills:");
+
+		// display skills that have activated state
+		for (int Index = 0; Index < NUM_SKILLS; Index++)
+		{
+			if (HasSkill(Index))
 			{
-				if (HasSkill(Index))
+				bool Avail = pSkmgr->pSkill[Index]->Activated;
+
+				// make sure remove trap is added, they give it to everyone except rogues
+				if (Index == 75 && strncmp(pEverQuest->GetClassDesc(pProfile->Class & 0xFF), "Rogue", 6))
+					Avail = true;
+
+				if (Avail)
 				{
-					bool Avail = pSkmgr->pSkill[Index]->Activated;
-
-					// make sure remove trap is added, they give it to everyone except rogues
-					if (Index == 75 && strncmp(pEverQuest->GetClassDesc(pChar2->Class & 0xFF), "Rogue", 6))
-						Avail = true;
-
-					if (Avail)
-					{
-						sprintf_s(szBuffer, "<\ag%s\ax>", szSkills[Index]);
-						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-					}
+					WriteChatf("<\ag%s\ax>", szSkills[Index]);
 				}
 			}
-			// display innate skills that are available
-			for (Index = 0; Index < 28; Index++)
-			{
-				if (pChar2->InnateSkill[Index] != 0xFF && strlen(szSkills[Index + 100])>3)
-				{
-					sprintf_s(szBuffer, "<\ag%s\ax>", szSkills[Index + 100]);
-					WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-				}
-			}
-
-			// display discipline i have
-			WriteChatColor("Combat Abilities:", USERCOLOR_DEFAULT);
-			for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++) {
-				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-					if (SPELL* pCA = GetSpellByID(pPCData->GetCombatAbility(Index))) {
-						sprintf_s(szBuffer, "<\ag%s\ax>", pCA->Name);
-						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-					}
-				}
-			}
-			return;
 		}
-		// scan for matching abilities name
-		for (Index = 0; Index < 128; Index++) {
-			if ((Index < NUM_SKILLS && (pSkmgr->pSkill[Index])->Activated) ||
-				(Index > NUM_SKILLS && pChar2->InnateSkill[Index - 100] != 0xFF))
+
+		// display innate skills that are available
+		for (int Index = 0; Index < 28; Index++)
+		{
+			if (pProfile->InnateSkill[Index] != 0xFF && strlen(szSkills[Index + 100]) > 3)
 			{
-				if (!_stricmp(szBuffer, szSkills[Index]))
+				WriteChatf("<\ag%s\ax>", szSkills[Index + 100]);
+			}
+		}
+
+		// display discipline i have
+		WriteChatColor("Combat Abilities:", USERCOLOR_DEFAULT);
+
+		for (int Index = 0; Index < NUM_COMBAT_ABILITIES; Index++)
+		{
+			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
+			{
+				if (SPELL* pCA = GetSpellByID(pPCData->GetCombatAbility(Index)))
 				{
-					if (!HasSkill(Index))
-					{
-						WriteChatf("you do not have this skill");
-						return;
-					}
-					if (pCharData) {
-						pCharData->UseSkill((unsigned char)Index, pCharData->me);
-					}
+					WriteChatf("<\ag%s\ax>", pCA->Name);
+				}
+			}
+		}
+		return;
+	}
+
+	// scan for matching abilities name
+	for (int Index = 0; Index < 128; Index++)
+	{
+		if (Index < NUM_SKILLS && (pSkmgr->pSkill[Index])->Activated
+			|| Index > NUM_SKILLS && pProfile->InnateSkill[Index - 100] != 0xFF)
+		{
+			if (!_stricmp(szBuffer, szSkills[Index]))
+			{
+				if (!HasSkill(Index))
+				{
+					WriteChatf("you do not have this skill");
+					return;
+				}
+
+				if (pCharData)
+				{
+					pCharData->UseSkill(static_cast<uint8_t>(Index), pCharData->me);
+				}
+
+				return;
+			}
+		}
+	}
+
+	// scan for matching discipline name
+	for (int Index = 0; Index < NUM_COMBAT_ABILITIES; Index++)
+	{
+		if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
+		{
+			if (SPELL* pCA = GetSpellByID(pProfile->CombatAbilities[Index]))
+			{
+				if (!_stricmp(pCA->Name, szBuffer))
+				{
+					pCharData->DoCombatAbility(pCA->ID);
 					return;
 				}
 			}
 		}
-
-		// scan for matching discipline name
-		for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++)
-		{
-			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-				if (SPELL* pCA = GetSpellByID(pChar2->CombatAbilities[Index]))
-				{
-					if (!_stricmp(pCA->Name, szBuffer))
-					{
-						pCharData->DoCombatAbility(pCA->ID);
-						return;
-					}
-				}
-			}
-		}
 	}
+
 	// else display that we didnt found abilities
 	WriteChatColor("You do not seem to have that ability available", USERCOLOR_DEFAULT);
 }
@@ -2761,118 +2986,138 @@ void DoAbility(PSPAWNINFO pChar, char* szLine)
 //              Loads (or lists) a spell favorite list
 // Usage:       /loadspells [list|"name"]
 // ***************************************************************************
-void LoadSpells(PSPAWNINFO pChar, char* szLine)
+void LoadSpells(SPAWNINFO* pChar, char* szLine)
 {
-	if (!pSpellSets || !ppSpellBookWnd || szLine[0] == 0) return;
-
-	DWORD Index, DoIndex = 0xFFFFFFFF;
-	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
-	BOOL szMissingSpell = FALSE;
+	if (!pSpellSets || !ppSpellBookWnd || szLine[0] == 0)
+		return;
 
 	if (!pSpellBookWnd) return;
 
+	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
+
+	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	if ((!_stricmp(szArg1, "list")) && (szArg2[0] == 0)) {
-		WriteChatColor("Spell favorites list:", USERCOLOR_DEFAULT);
-		WriteChatColor("--------------------------", USERCOLOR_DEFAULT);
-		for (Index = 0; Index<NUM_SPELL_SETS; Index++) {
-			if (pSpellSets[Index].Name[0] != 0) {
-				sprintf_s(szBuffer, "%d) %s", Index, pSpellSets[Index].Name);
-				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	if (!_stricmp(szArg1, "list") && szArg2[0] == 0)
+	{
+		WriteChatColor("Spell favorites list:");
+		WriteChatColor("--------------------------");
+
+		for (int Index = 0; Index < NUM_SPELL_SETS; Index++)
+		{
+			if (pSpellSets[Index].Name[0] != 0)
+			{
+				WriteChatf("%d) %s", Index, pSpellSets[Index].Name);
 			}
 		}
 		return;
 	}
 
-	if (!_stricmp(szArg1, "list")) {
+	if (!_stricmp(szArg1, "list"))
+	{
+		int DoIndex = IsNumber(szArg2) ? atoi(szArg2) : FindSpellListByName(szArg2);
 
-		DoIndex = IsNumber(szArg2) ? atoi(szArg2) : FindSpellListByName(szArg2);
-		if (DoIndex < 0 || DoIndex > NUM_SPELL_SETS - 1) {
-			sprintf_s(szBuffer, "Unable to find favorite list '%s'", szArg2);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		if (DoIndex < 0 || DoIndex > NUM_SPELL_SETS - 1)
+		{
+			WriteChatf("Unable to find favorite list '%s'", szArg2);
 			return;
 		}
-		sprintf_s(szBuffer, "Favorite list '%s':", pSpellSets[DoIndex].Name);
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		for (Index = 0; Index<NUM_SPELL_GEMS; Index++) {
-			if (pSpellSets[DoIndex].SpellId[Index] != 0xFFFFFFFF) {
-				sprintf_s(szBuffer, "%d) %s", Index, GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name);
-				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		WriteChatf("Favorite list '%s':", pSpellSets[DoIndex].Name);
+
+		for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
+		{
+			if (pSpellSets[DoIndex].SpellId[Index] != -1)
+			{
+				WriteChatf("%d) %s", Index, GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name);
 			}
 		}
+
 		return;
 	}
 
-	DoIndex = IsNumber(szArg1) ? atoi(szArg1) : FindSpellListByName(szArg1);
-	if (DoIndex >= 0 && DoIndex < NUM_SPELL_SETS) {
-		for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
-			if (pSpellSets[DoIndex].SpellId[Index] != 0xFFFFFFFF) {
+	int DoIndex = IsNumber(szArg1) ? atoi(szArg1) : FindSpellListByName(szArg1);
+	if (DoIndex >= 0 && DoIndex < NUM_SPELL_SETS)
+	{
+		bool bMissingSpell = false;
 
-				if (GetMemorizedSpell(Index) != pSpellSets[DoIndex].SpellId[Index]) {
-					szMissingSpell = TRUE;
-					//sprintf_s(szBuffer, "Missing %d) %s", Index, GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name);
-					//WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
+		{
+			if (pSpellSets[DoIndex].SpellId[Index] != -1)
+			{
+				if (GetMemorizedSpell(Index) != pSpellSets[DoIndex].SpellId[Index])
+				{
+					bMissingSpell = true;
 				}
 
 			}
 		}
 
-		if (szMissingSpell) {
-			pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex], NUM_SPELL_GEMS);
+		if (bMissingSpell)
+		{
+			pSpellBookWnd->MemorizeSet(pSpellSets[DoIndex].SpellId, NUM_SPELL_GEMS);
 		}
 	}
-	else {
-		sprintf_s(szBuffer, "Unable to find favorite list '%s'", szArg1);
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	else
+	{
+		WriteChatf("Unable to find favorite list '%s'", szArg1);
 	}
 }
 
-void CastSplash(int Index, SPELL* pSpell,CVector3 *pos)
+static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 {
-	CVector3 vec3;
-	ItemGlobalIndex IGE;
-	IGE.Location = eItemContainerInvalid; // setting up the defaults for the targetindicator (splashring)
+	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), eActivatableSpell);
+	SPAWNINFO* pMySpawn = reinterpret_cast<SPAWNINFO*>(pLocalPlayer);
 
-	pEverQuest->CreateTargetIndicator(Index, pSpell, IGE, eActivatableSpell);
-
-	if (CTargetRing* pTR = (CTargetRing *)((EVERQUEST*)pEverQuest)->pFreeTargetRing)
+	if (CTargetRing* pTR = (CTargetRing*)((EVERQUEST*)pEverQuest)->pFreeTargetRing)
 	{
-		if (pos) {
+		CVector3 vec3;
+
+		if (pos)
+		{
 			vec3.X = pos->Y;
 			vec3.Y = pos->X;
 			vec3.Z = pos->Z;
-		} else if (pTarget) {
-			vec3.X = ((PSPAWNINFO)pTarget)->Y;//yes we really need to set Y to x, this is not a bug.
-			vec3.Y = ((PSPAWNINFO)pTarget)->X;
-			vec3.Z = ((PSPAWNINFO)pTarget)->Z;
 		}
-		else {//ok fine, this is probably not what the user wants but if he doesnt have a target im just gonna splash myself...
-			vec3.X = ((PSPAWNINFO)pLocalPlayer)->Y;
-			vec3.Y = ((PSPAWNINFO)pLocalPlayer)->X;
-			vec3.Z = ((PSPAWNINFO)pLocalPlayer)->Z;
+		else if (pTarget)
+		{
+			vec3.X = ((SPAWNINFO*)pTarget)->Y; // yes we really need to set Y to x, this is not a bug.
+			vec3.Y = ((SPAWNINFO*)pTarget)->X;
+			vec3.Z = ((SPAWNINFO*)pTarget)->Z;
 		}
-		//ok we better check if splash can be cast in the location
-		bool cansee = pLocalPlayer->CanSee(vec3);
-		if (cansee) {
-			float dist = Get3DDistance(vec3.Y, vec3.X, vec3.Z, ((PSPAWNINFO)pLocalPlayer)->X, ((PSPAWNINFO)pLocalPlayer)->Y, ((PSPAWNINFO)pLocalPlayer)->Z);
-			if (dist < pTR->thespell->Range) {
-				pTR->Cast(&vec3);
+		else
+		{
+			// ok fine, this is probably not what the user wants but if he doesnt have a target im just gonna splash myself...
+			vec3.X = pMySpawn->Y;
+			vec3.Y = pMySpawn->X;
+			vec3.Z = pMySpawn->Z;
+		}
+
+		// check if splash can be cast in the location
+		if (pLocalPlayer->CanSee(vec3))
+		{
+			float dist = Get3DDistance(vec3.Y, vec3.X, vec3.Z, pMySpawn->X, pMySpawn->Y, pMySpawn->Z);
+
+			if (dist < pTR->thespell->Range)
+			{
+				pTR->Cast(vec3);
 			}
-			else {
+			else
+			{
 				WriteChatColor("You too far away from your target", CONCOLOR_LIGHTBLUE);
 			}
 		}
-		else {
+		else
+		{
 			WriteChatColor("You cannot see your target", CONCOLOR_LIGHTBLUE);
 		}
-		//need to delete it...
+
+		// cleanup the target indicator
 		pEverQuest->DeleteTargetIndicator();
 	}
-	else {
+	else
+	{
 		WriteChatColor("Creation of a TargetIndicator Failed.", CONCOLOR_YELLOW);
 	}
 }
@@ -2882,59 +3127,74 @@ void CastSplash(int Index, SPELL* pSpell,CVector3 *pos)
 // Description: Our '/cast' command
 // Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (spash location)
 // ***************************************************************************
-void Cast(PSPAWNINFO pChar, char* szLine)
+void Cast(SPAWNINFO* pChar, char* szLine)
 {
 	if (!cmdCast)
 		return;
-	DWORD Index;
-	char szBuffer[MAX_STRING] = { 0 };
+
 	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
+	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
-	//DebugSpew("Cast: szArg1 = %s szArg2 = %s", szArg1, szArg2);
-	if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData) {
-		int Index = atoi(szLine);
-		Index--;
-		if (Index >= 0 && Index < NUM_SPELL_GEMS) {
-			if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(Index))) {
-				if (pSpell->TargetType == 0x2d) {//is it a splashspell?
-					if (!_stricmp(szArg2, "loc")) {
-						//ok they want to cast it at a specific location
-						char locx[MAX_STRING] = { 0 };
-						char locy[MAX_STRING] = { 0 };
-						char locz[MAX_STRING] = { 0 };
-						GetArg(locx, szLine, 3);
-						GetArg(locy, szLine, 4);
-						GetArg(locz, szLine, 5);
-						CVector3 castloc;
-						castloc.X = (float)atof(locx);
-						castloc.Y = (float)atof(locy);
-						castloc.Z = (float)atof(locz);
-						CastSplash(Index, pSpell, &castloc);
+
+	if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData)
+	{
+		int Index = atoi(szLine) - 1;
+
+		if (Index >= 0 && Index < NUM_SPELL_GEMS)
+		{
+			if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(Index)))
+			{
+				if (pSpell->TargetType == TT_SPLASH)
+				{
+					// is it a splashspell?
+					if (!_stricmp(szArg2, "loc"))
+					{
+						CVector3 castLoc;
+
+						// they want to cast it at a specific location
+						char loc[32] = { 0 };
+						GetArg(loc, szLine, 3);
+						castLoc.X = (float)atof(loc);
+
+						GetArg(loc, szLine, 4);
+						castLoc.Y = (float)atof(loc);
+
+						GetArg(loc, szLine, 5);
+						castLoc.Z = (float)atof(loc);
+
+						CastSplash(Index, pSpell, &castLoc);
 					}
-					else {
-						CastSplash(Index, pSpell, NULL);
+					else
+					{
+						CastSplash(Index, pSpell, nullptr);
 					}
 					return;
 				}
 			}
 		}
+
 		cmdCast(pChar, szLine);
 		return;
 	}
-	if (!_stricmp(szLine, "list")) {
-		WriteChatColor("Spells:", USERCOLOR_DEFAULT);
-		for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
-			LONG Spellid = GetMemorizedSpell(Index);
-			if (Spellid == 0xFFFFFFFF) {
-				sprintf_s(szBuffer, "%d. <Empty>", Index + 1);
+
+	if (!_stricmp(szLine, "list"))
+	{
+		WriteChatColor("Spells:");
+
+		for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
+		{
+			int Spellid = GetMemorizedSpell(Index);
+			if (Spellid == -1)
+			{
+				WriteChatf("%d. <Empty>", Index + 1);
 			}
-			else {
-				sprintf_s(szBuffer, "%d. %s", Index + 1, GetSpellNameByID(Spellid));
+			else
+			{
+				WriteChatf("%d. %s", Index + 1, GetSpellNameByID(Spellid));
 			}
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
+
 		return;
 	}
 
@@ -2951,7 +3211,8 @@ void Cast(PSPAWNINFO pChar, char* szLine)
 					EzCommand(cmd);
 				}
 			}
-			else {
+			else
+			{
 				WriteChatf("Item '%s' not found.", szArg2);
 			}
 		}
@@ -2974,51 +3235,65 @@ void Cast(PSPAWNINFO pChar, char* szLine)
 					}
 				}
 			}
-			else {
+			else
+			{
 				WriteChatf("Item '%s' not found.", szArg2);
 			}
 		}
 		return;
 	}
-	GetArg(szBuffer, szLine, 1);
-	for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
-		LONG Spellid = GetMemorizedSpell(Index);
-		if (Spellid != 0xFFFFFFFF) {
-			if (SPELL* pSpell = GetSpellByID(Spellid)) {
-				if (!_strnicmp(szBuffer, pSpell->Name, strlen(szBuffer))) {
-					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
-						if (!_stricmp(szArg2, "loc")) {
-							//ok they want to cast it at a specific location
-							char locx[MAX_STRING] = { 0 };
-							char locy[MAX_STRING] = { 0 };
-							char locz[MAX_STRING] = { 0 };
-							GetArg(locx, szLine, 3);
-							GetArg(locy, szLine, 4);
-							GetArg(locz, szLine, 5);
-							CVector3 castloc;
-							castloc.X = (float)atof(locx);
-							castloc.Y = (float)atof(locy);
-							castloc.Z = (float)atof(locz);
-							CastSplash(Index, pSpell, &castloc);
+
+	// Check this, but i think it isn't necessary.
+	GetArg(szArg1, szLine, 1);
+
+	for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
+	{
+		int Spellid = GetMemorizedSpell(Index);
+		if (Spellid != -1)
+		{
+			if (SPELL* pSpell = GetSpellByID(Spellid))
+			{
+				if (!_strnicmp(szArg1, pSpell->Name, strlen(szArg1)))
+				{
+					if (pSpell->TargetType == TT_SPLASH)
+					{
+						// is it a splashspell?
+						if (!_stricmp(szArg2, "loc"))
+						{
+							CVector3 castLoc;
+
+							// they want to cast it at a specific location
+							char loc[32] = { 0 };
+							GetArg(loc, szLine, 3);
+							castLoc.X = (float)atof(loc);
+
+							GetArg(loc, szLine, 4);
+							castLoc.Y = (float)atof(loc);
+
+							GetArg(loc, szLine, 5);
+							castLoc.Z = (float)atof(loc);
+
+							CastSplash(Index, pSpell, &castLoc);
 						}
-						else {
-							CastSplash(Index, pSpell, NULL);
+						else
+						{
+							CastSplash(Index, pSpell, nullptr);
 						}
-						return;
 					}
-					else {//nope normal, so just pipe it through
-						  //DebugSpew("SpellName = %s",SpellName);
-						_itoa_s(Index + 1, szBuffer, 10);
-						cmdCast(pChar, szBuffer);
-						//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,_itoa_s(Index+1,szBuffer,10));
+					else
+					{
+						// nope normal, so just pipe it through
+						_itoa_s(Index + 1, szArg1, 10);
+						cmdCast(pChar, szArg1);
 					}
+
 					return;
 				}
 			}
 		}
 	}
-	WriteChatColor("You do not seem to have that spell memorized.", USERCOLOR_DEFAULT);
-	return;
+
+	WriteChatColor("You do not seem to have that spell memorized.");
 }
 
 // ***************************************************************************
@@ -3027,119 +3302,126 @@ void Cast(PSPAWNINFO pChar, char* szLine)
 //              Selects the closest spawn
 // Usage:       /target [spawn|myself|mycorpse]
 // ***************************************************************************
-void Target(PSPAWNINFO pChar, char* szLine)
+void Target(SPAWNINFO* pChar, char* szLine)
 {
-	gTargetbuffs = FALSE;
+	gTargetbuffs = false;
 
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
 
-	SPAWNINFO* pSpawnClosest = NULL;
+	bRunNextCommand = true;
 
 	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
-	char szArg[MAX_STRING] = { 0 };
-	char szMsg[MAX_STRING] = { 0 };
-	char szLLine[MAX_STRING] = { 0 };
-	char* szFilter = szLLine;
-	BOOL DidTarget = FALSE;
-	BOOL bArg = TRUE;
 
-	bRunNextCommand = true;
+	bool DidTarget = false;
+	SPAWNINFO* pSpawnClosest = nullptr;
+
+	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
-	while (bArg) {
+	char* szFilter = szLLine;
+
+	char szArg[MAX_STRING] = { 0 };
+
+	while (true)
+	{
 		GetArg(szArg, szFilter, 1);
 		szFilter = GetNextArg(szFilter, 1);
-		if (szArg[0] == 0) {
-			bArg = FALSE;
+
+		if (szArg[0] == 0)
+		{
+			break;
 		}
-		else if (!strcmp(szArg, "myself")) {
-			if (((CHARINFO*)pCharData)->pSpawn) {
-				pSpawnClosest = ((CHARINFO*)pCharData)->pSpawn;
-				DidTarget = TRUE;
-			}
-		}
-		else if (!strcmp(szArg, "buffs")) {
-			if(CHARINFO2* pinfo2 =  (CHARINFO2*)GetCharInfo2())
+
+		if (!strcmp(szArg, "myself"))
+		{
+			if (((CHARINFO*)pCharData)->pSpawn)
 			{
-				for (int i = 0; i < NUM_LONG_BUFFS; i++)
-				{
-					pinfo2->Buff[i].SpellID = 0;
-				}
+				pSpawnClosest = ((CHARINFO*)pCharData)->pSpawn;
+				DidTarget = true;
 			}
 		}
-		else if (!strcmp(szArg, "mycorpse")) {
-			if (((CHARINFO*)pCharData)->pSpawn) {
-				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((CHARINFO*)pCharData)->pSpawn->Name);
+		else if (!strcmp(szArg, "mycorpse"))
+		{
+			if (((CHARINFO*)pCharData)->pSpawn)
+			{
+				sprintf_s(szFilter, MAX_STRING, "%s's Corpse", ((CHARINFO*)pCharData)->pSpawn->Name);
 				_strlwr_s(szFilter, MAX_STRING);
 			}
 		}
-		else if (!strcmp(szArg, "clear")) {
-			pTarget = NULL;
-			pDoorTarget = 0;
-			pGroundTarget = 0;
+		else if (!strcmp(szArg, "clear"))
+		{
+			pTarget = nullptr;
+			pDoorTarget = nullptr;
+			pGroundTarget = nullptr;
+
 			ZeroMemory(&GroundObject, sizeof(GroundObject));
 			ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
 			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
+
 			if (pChar)
-				pChar->GroupMemberTargeted = 0xFFFFFFFF;
+				pChar->GroupMemberTargeted = 1;
+
 			DebugSpew("Target cleared.");
 			WriteChatColor("Target cleared.", USERCOLOR_WHO);
 			return;
 		}
-		else if (!strcmp(szArg, "ccb")) {
-			if (pTarget)
-			{
-				int id = pTarget->SpawnID;
-				if (CachedBuffsMap.find(id) != CachedBuffsMap.end())
-				{
-					pTarget = NULL;
-					CachedBuffsMap.erase(id);
-				}
-			}
-			WriteChatColor("Cached Buffs for Target cleared.", USERCOLOR_WHO);
-			return;
-		}else if (!strcmp(szArg, "cacb"))
+		else if (!strcmp(szArg, "ccb"))
 		{
 			if (pTarget)
 			{
-				pTarget = NULL;
+				int id = pTarget->SpawnID;
+
+				if (CachedBuffsMap.find(id) != CachedBuffsMap.end())
+				{
+					pTarget = nullptr;
+					CachedBuffsMap.erase(id);
+				}
 			}
+
+			WriteChatColor("Cached Buffs for Target cleared.", USERCOLOR_WHO);
+			return;
+		}
+		else if (!strcmp(szArg, "cacb"))
+		{
+			pTarget = nullptr;
+
 			WriteChatColor("Cached Buffs for ALL Targets cleared.", USERCOLOR_WHO);
 			CachedBuffsMap.clear();
 			return;
 		}
-		else {
+		else
+		{
 			szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
 		}
 	}
-	if (pTarget) SearchSpawn.FromSpawnID = ((PSPAWNINFO)pTarget)->SpawnID;
 
-	if (!DidTarget) {
+	if (pTarget)
+		SearchSpawn.FromSpawnID = ((SPAWNINFO*)pTarget)->SpawnID;
+
+	if (!DidTarget)
+	{
 		pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 	}
-	if (!pSpawnClosest) {
-		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), &SearchSpawn));
-	}
-	else {
-		PSPAWNINFO *psTarget = NULL;
-		if (ppTarget) {
-			psTarget = (PSPAWNINFO*)ppTarget;
-			*psTarget = pSpawnClosest;
-			DebugSpew("Target - %s selected", pSpawnClosest->Name);
-			szMsg[0] = 0;
-		}
-		else {
-			sprintf_s(szMsg, "Unable to target, address = 0");
-		}
-	}
-	if (szMsg[0])
-		if (!gFilterTarget) WriteChatColor(szMsg, USERCOLOR_WHO);
-	return;
-}
 
+	if (!pSpawnClosest)
+	{
+		if (!gFilterTarget)
+		{
+			char szTemp[MAX_STRING] = { 0 };
+			WriteChatColorf("There are no spawns matching: %s",
+				USERCOLOR_WHO, FormatSearchSpawn(szTemp, sizeof(szTemp), &SearchSpawn));
+		}
+	}
+	else
+	{
+		SPAWNINFO** psTarget = (SPAWNINFO**)ppTarget;
+		*psTarget = pSpawnClosest;
+
+		DebugSpew("Target - %s selected", pSpawnClosest->Name);
+	}
+}
 
 // ***************************************************************************
 // Function:    Skills
@@ -3147,59 +3429,69 @@ void Target(PSPAWNINFO pChar, char* szLine)
 //              Displays what your current skill levels are
 // Usage:       /skills [skill name]
 // ***************************************************************************
-void Skills(PSPAWNINFO pChar, char* szLine)
+void Skills(SPAWNINFO* pChar, char* szLine)
 {
-	DWORD Skill, SkillCount = 0;
-	char szMsg[MAX_STRING] = { 0 };
 	bRunNextCommand = true;
-	CHARINFO* pCharInfo = NULL;
-	char szCopy[MAX_STRING] = { 0 };
-	strcpy_s(szCopy, szLine);
-	if (NULL == (pCharInfo = GetCharInfo())) return;
-	if (szCopy[0] != 0)
-		_strlwr_s(szCopy);
-	WriteChatColor("Skills", USERCOLOR_DEFAULT);
-	WriteChatColor("-----------------------", USERCOLOR_DEFAULT);
-	if (CHARINFO2* pChar2 = GetCharInfo2()) {
-		for (Skill = 0; szSkills[Skill]; Skill++) {
-			if (szCopy[0] != 0) {
-				char szName[MAX_STRING] = { 0 };
-				strcpy_s(szName, szSkills[Skill]);
-				_strlwr_s(szName);
-				if (!strstr(szName, szCopy))
-					continue;
-			}
-			SkillCount++;
-			switch (pChar2->Skill[Skill]) {
-			case 255:
-				//Untrainable
-				SkillCount--;
-				break;
-			case 254:
-				//Can train
-				sprintf_s(szMsg, "%s: Trainable", szSkills[Skill]);
-				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
-				break;
-			case 253:
-				//Unknown
-				sprintf_s(szMsg, "%s: Unknown(253)", szSkills[Skill]);
-				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
-				break;
-			default:
-				//Have skill
-				sprintf_s(szMsg, "%s: %d", szSkills[Skill], pChar2->Skill[Skill]);
-				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
-			}
+
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return;
+
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return;
+
+	int SkillCount = 0;
+
+	WriteChatColor("Skills");
+	WriteChatColor("-----------------------");
+
+
+	for (int Skill = 0; szSkills[Skill]; Skill++)
+	{
+		if (szLine[0] != 0)
+		{
+			char szName[MAX_STRING] = { 0 };
+			strcpy_s(szName, szSkills[Skill]);
+			_strlwr_s(szName);
+
+			if (ci_find_substr(szSkills[Skill], szLine) != -1)
+				continue;
+		}
+
+		SkillCount++;
+
+		switch (pProfile->Skill[Skill])
+		{
+		case 255:
+			// Untrainable
+			SkillCount--;
+			break;
+
+		case 254:
+			// Can train
+			WriteChatf("%s: Trainable", szSkills[Skill]);
+			break;
+
+		case 253:
+			// Unknown
+			WriteChatf("%s: Unknown(253)", szSkills[Skill]);
+			break;
+
+		default:
+			// Have skill
+			WriteChatf( "%s: %d", szSkills[Skill], pProfile->Skill[Skill]);
+			break;
 		}
 	}
-	if (SkillCount == 0) {
-		sprintf_s(szMsg, "No skills matched '%s'.", szCopy);
-		WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+
+	if (SkillCount == 0)
+	{
+		WriteChatf("No skills matched '%s'.", szLine);
 	}
-	else {
-		DebugSpew("Skills - %d skills listed", SkillCount);
-		sprintf_s(szMsg, "%d skills displayed.", SkillCount);
-		WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+	else
+	{
+		WriteChatf("%d skills displayed.", SkillCount);
 	}
 }
 
@@ -3209,13 +3501,13 @@ void Skills(PSPAWNINFO pChar, char* szLine)
 //              Set autorun value
 // Usage:       /setautorun [command]
 // ***************************************************************************
-void SetAutoRun(PSPAWNINFO pChar, char* szLine)
+void SetAutoRun(SPAWNINFO* pChar, char* szLine)
 {
-	char szServerAndName[MAX_STRING] = { 0 };
+	char szServerAndName[256] = { 0 };
 	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, ((CHARINFO*)pCharData)->Name);
 	WritePrivateProfileStringA("AutoRun", szServerAndName, szLine, gszINIFilename);
-	sprintf_s(szServerAndName, "Set autorun to: '%s'", szLine);
-	WriteChatColor(szServerAndName, USERCOLOR_DEFAULT);
+
+	WriteChatf("Set autorun to: '%s'", szLine);
 }
 
 // ***************************************************************************
@@ -3224,31 +3516,33 @@ void SetAutoRun(PSPAWNINFO pChar, char* szLine)
 // If the inifile does'nt exist one will be created.
 // Usage:
 //
-//	/ini "someini.ini" "the section" "NULL" "NULL"
-//	adds a key named NULL and a value named NULL under the [the section]:
-//	to remove the key named NULL:
-//	/ini "someini.ini" "the section" "NULL" NULL
-//	OR /ini "someini.ini" "the section" "NULL"
+//	/ini "someini.ini" "the section" "nullptr" "nullptr"
+//	adds a key named nullptr and a value named nullptr under the [the section]:
+//	to remove the key named nullptr:
+//	/ini "someini.ini" "the section" "nullptr" nullptr
+//	OR /ini "someini.ini" "the section" "nullptr"
 //	to remove section "the section":
-//	/ini "someini.ini" "the section" NULL
+//	/ini "someini.ini" "the section" nullptr
 //	OR /ini "someini.ini" "the section"
 //
-//	Basically leaving the third and/or fourth parameter blank will be interpreted as NULL
-//	enclosing NULL in quotes will interpret it as an actual string "NULL"
+//	Basically leaving the third and/or fourth parameter blank will be interpreted as nullptr
+//	enclosing nullptr in quotes will interpret it as an actual string "nullptr"
 // ***************************************************************************
-void IniOutput(PSPAWNINFO pChar, char* szLine)
+void IniOutput(SPAWNINFO* pChar, char* szLine)
 {
-	char szArg1[MAX_STRING] = { 0 };   //Filename
-	char szArg2[MAX_STRING] = { 0 };   //Section
-	char szArg3[MAX_STRING] = { 0 };   //Key
-	char szArg4[MAX_STRING] = { 0 };   //Data to write
+	char szArg1[MAX_STRING] = { 0 };   // Filename
+	GetArg(szArg1, szLine, 1);
+
+	char szArg2[MAX_STRING] = { 0 };   // Section
+	GetArg(szArg2, szLine, 2);
+
+	char szArg3[MAX_STRING] = { 0 };   // Key
+	GetArg(szArg3, szLine, 3, 1);
+
+	char szArg4[MAX_STRING] = { 0 };   // Data to write
+	GetArg(szArg4, szLine, 4, 1);
 
 	char szOutput[MAX_STRING] = { 0 };  //Success / Error Output
-
-	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-	GetArg(szArg3, szLine, 3, 1);
-	GetArg(szArg4, szLine, 4, 1);
 
 	DebugSpew("/ini input -- %s %s %s %s", szArg1, szArg2, szArg3, szArg4);
 	char* pTemp = szArg1;
@@ -3263,35 +3557,45 @@ void IniOutput(PSPAWNINFO pChar, char* szLine)
 	{
 		sprintf_s(szOutput, "%s\\%s", gszMacroPath, szArg1);
 		strcpy_s(szArg1, szOutput);
+
+		szOutput[0] = 0;
 	}
-	if (!strstr(szArg1, ".")) {
+
+	if (!strstr(szArg1, "."))
+	{
 		strcat_s(szArg1, ".ini");
 	}
-	ZeroMemory(szOutput, MAX_STRING);
 
-	void *Arg3 = (void *)&szArg3[0];
-	void *Arg4 = (void *)&szArg4[0];
+	char* Arg3 = &szArg3[0];
+	char* Arg4 = &szArg4[0];
 
-	if (!_strnicmp(szArg3, "NULL", 4) && strlen(szArg3) == 4) {
-		Arg3 = 0;
+	if (!_strnicmp(szArg3, "NULL", 4) && strlen(szArg3) == 4)
+	{
+		Arg3 = nullptr;
 	}
-	if (!_strnicmp(szArg4, "NULL", 4) && strlen(szArg4) == 4) {
-		Arg4 = 0;
+	if (!_strnicmp(szArg4, "NULL", 4) && strlen(szArg4) == 4)
+	{
+		Arg4 = nullptr;
 	}
-	//Lets strip the '"'
-	if (Arg3) {
+
+	// Lets strip the '"'
+	if (Arg3)
+	{
 		GetArg(szArg3, szLine, 3);
 	}
-	if (Arg4) {
+
+	if (Arg4)
+	{
 		GetArg(szArg4, szLine, 4);
 	}
-	if (!WritePrivateProfileString(szArg2, (char*)Arg3, (char*)Arg4, szArg1)) {
-		sprintf_s(szOutput, "IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
-		DebugSpew("%s", szOutput);
+
+	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, szArg1))
+	{
+		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 	}
-	else {
-		sprintf_s(szOutput, "IniOutput Write Successful!");
-		DebugSpew("%s: %s", szOutput, szLine);
+	else
+	{
+		DebugSpew("IniOutput Write Successful: %s", szLine);
 	}
 }
 
@@ -3300,37 +3604,42 @@ void IniOutput(PSPAWNINFO pChar, char* szLine)
 // Description:     Our /banklist command. Lists bank contents to chat buffer.
 // 2003-08-30       Valerian
 // ***************************************************************************
-void BankList(PSPAWNINFO pChar, char* szLine)
+void BankList(SPAWNINFO* pChar, char* szLine)
 {
-	char szTemp[MAX_STRING] = { 0 };
-	CHARINFO* pCharInfo = NULL;
-	CONTENTS* pContainer = NULL;
-	if (NULL == (pCharInfo = GetCharInfo())) {
-		MacroError("/banklist -- Bad offset: CharInfo");
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
 		return;
-	}
-	WriteChatColor("Listing of Bank Inventory", USERCOLOR_DEFAULT);
-	WriteChatColor("-------------------------", USERCOLOR_DEFAULT);
+
+	WriteChatColor("Listing of Bank Inventory");
+	WriteChatColor("-------------------------");
+
 	char Link[MAX_STRING] = { 0 };
-	for (int a = 0; a<NUM_BANK_SLOTS; a++) {
-#ifdef NEWCHARINFO
-		if (pCharInfo && pCharInfo->BankItems.Items.Size > (UINT)a)
-			pContainer = pCharInfo->BankItems.Items[a].pObject;
-#else
+
+	for (int a = 0; a < NUM_BANK_SLOTS; a++)
+	{
+		CONTENTS* pContainer = nullptr;
+
 		if (pCharInfo && pCharInfo->pBankArray)
 			pContainer = pCharInfo->pBankArray->Bank[a];
-#endif
-		if (pContainer) {
+
+		if (pContainer)
+		{
 			GetItemLink(pContainer, Link);
-			sprintf_s(szTemp, "Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
-			WriteChatColor(szTemp, USERCOLOR_DEFAULT);
+			WriteChatf("Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
+
 			if (pContainer->Contents.ContainedItems.pItems)
 			{
-				for (int b = 0; b<GetItemFromContents(pContainer)->Slots; b++) {
-					if (pContainer->Contents.ContainedItems.pItems->Item[b]) {
-						GetItemLink(pContainer->Contents.ContainedItems.pItems->Item[b], Link);
-						sprintf_s(szTemp, "- Slot %d: %dx %s (%s)", b, pContainer->Contents.ContainedItems.pItems->Item[b]->StackCount ? pContainer->Contents.ContainedItems.pItems->Item[b]->StackCount : 1, Link, GetItemFromContents(pContainer->Contents.ContainedItems.pItems->Item[b])->LoreName);
-						WriteChatColor(szTemp, USERCOLOR_DEFAULT);
+				for (int b = 0; b < GetItemFromContents(pContainer)->Slots; b++)
+				{
+					CONTENTS* pItem = pContainer->Contents.ContainedItems.pItems->Item[b];
+
+					if (pItem)
+					{
+						GetItemLink(pItem, Link);
+						WriteChatf("- Slot %d: %dx %s (%s)", b,
+							pItem->StackCount ? pItem->StackCount : 1,
+							Link,
+							GetItemFromContents(pItem)->LoreName);
 					}
 				}
 			}
@@ -3342,11 +3651,12 @@ void BankList(PSPAWNINFO pChar, char* szLine)
 // Function:      WindowState
 // Description:      Our /windowstate command. Toggles windows open/closed.
 // ***************************************************************************
-void WindowState(PSPAWNINFO pChar, char* szLine)
+void WindowState(SPAWNINFO* pChar, char* szLine)
 {
 	char Arg1[MAX_STRING] = { 0 };
-	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
+
+	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg2, szLine, 2);
 
 	CSidlScreenWnd* pWnd = (CSidlScreenWnd*)FindMQ2Window(Arg1);
@@ -3366,36 +3676,27 @@ void WindowState(PSPAWNINFO pChar, char* szLine)
 			pWnd->Show(true);
 		}
 
-		char szBuffer[256];
-
 		if (!pWnd->GetWindowText().empty())
 		{
-			sprintf_s(szBuffer, "Window '%s' is now %s.",
-				show ? "open" : "closed",
-				pWnd->GetWindowText().c_str());
+			WriteChatf("Window '%s' is now %s.", show ? "open" : "closed", pWnd->GetWindowText().c_str());
 		}
 		else
 		{
-			sprintf_s(szBuffer, "Window '%s' is now %s.",
-				show ? "open" : "closed",
-				Arg1);
+			WriteChatf("Window '%s' is now %s.", show ? "open" : "closed", Arg1);
 		}
 
 		pWnd->StoreIniVis();
-
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		return;
 	}
 
 	SyntaxError("Usage: /windowstate <window> [open|close]");
 }
 
-
 // ***************************************************************************
 // Function:      DisplayLoginName
 // Description:   Our /loginname command.
 // ***************************************************************************
-void DisplayLoginName(PSPAWNINFO pChar, char* szLine)
+void DisplayLoginName(SPAWNINFO* pChar, char* szLine)
 {
 	const char* szLogin = GetLoginName();
 	if (!szLogin)
@@ -3408,97 +3709,123 @@ void DisplayLoginName(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
-void EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, char* szLine)
+// ***************************************************************************
+// Function:      EQDestroyHeldItemOrMoney
+// Description:   Our /destroy command.
+// ***************************************************************************
+void EQDestroyHeldItemOrMoney(SPAWNINFO* pChar, char* szLine)
 {
 	(pPCData)->DestroyHeldItemOrMoney();
 }
 
-void Exec(PSPAWNINFO pChar, char* szLine) {
-	char exepath[MAX_STRING] = { 0 };
+// ***************************************************************************
+// Function:      Exec
+// Description:   Our /exec command.
+// ***************************************************************************
+void Exec(SPAWNINFO* pChar, char* szLine)
+{
 	char szTemp1[MAX_STRING] = { 0 };
-	char szTemp2[MAX_STRING] = { 0 };
-	char szTemp3[MAX_STRING] = { 0 };
 	GetArg(szTemp1, szLine, 1);
+
+	char szTemp2[MAX_STRING] = { 0 };
 	GetArg(szTemp2, szLine, 2);
+
+	char szTemp3[MAX_STRING] = { 0 };
 	GetArg(szTemp3, szLine, 3);
 
-	if (szTemp1[0] != 0 && szTemp2[0] != 0) {
+	if (szTemp1[0] != 0 && szTemp2[0] != 0)
+	{
 		WriteChatf("Opening %s %s %s", szTemp1, szTemp2, szTemp3);
 
+		char exepath[MAX_STRING] = { 0 };
 		GetPrivateProfileString("Application Paths", szTemp1, szTemp1, exepath, MAX_STRING, gszINIFilename);
 
-		if (!strcmp(szTemp2, "bg")) {
-			ShellExecute(NULL, "open", exepath, NULL, NULL, SW_SHOWMINNOACTIVE);
+		if (!strcmp(szTemp2, "bg"))
+		{
+			ShellExecute(nullptr, "open", exepath, nullptr, nullptr, SW_SHOWMINNOACTIVE);
 		}
-		else if (!strcmp(szTemp2, "fg")) {
-			ShellExecute(NULL, "open", exepath, NULL, NULL, SW_SHOWNOACTIVATE);
+		else if (!strcmp(szTemp2, "fg"))
+		{
+			ShellExecute(nullptr, "open", exepath, nullptr, nullptr, SW_SHOWNOACTIVATE);
 		}
-		else if (!strcmp(szTemp3, "bg")) {
-			ShellExecute(NULL, "open", exepath, szTemp2, NULL, SW_SHOWMINNOACTIVE);
+		else if (!strcmp(szTemp3, "bg"))
+		{
+			ShellExecute(nullptr, "open", exepath, szTemp2, nullptr, SW_SHOWMINNOACTIVE);
 		}
-		else if (!strcmp(szTemp3, "fg")) {
-			ShellExecute(NULL, "open", exepath, szTemp2, NULL, SW_SHOWNOACTIVATE);
+		else if (!strcmp(szTemp3, "fg"))
+		{
+			ShellExecute(nullptr, "open", exepath, szTemp2, nullptr, SW_SHOWNOACTIVATE);
 		}
 	}
-	else {
+	else
+	{
 		WriteChatColor("/exec [application \"parameters\"] [fg | bg]", USERCOLOR_DEFAULT);
 	}
 }
 
 // /keypress
-void DoMappable(PSPAWNINFO pChar, char* szLine)
+void DoMappable(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine[0] == 0)
 	{
 		SyntaxError("Usage: /keypress <eqcommand|keycombo> [hold|chat]");
 		return;
 	}
+
 	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-
 	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-	BOOL Hold = (_stricmp(szArg2, "hold") == 0);
 
+	char szArg2[MAX_STRING] = { 0 };
+	GetArg(szArg2, szLine, 2);
+
+	bool Hold = (_stricmp(szArg2, "hold") == 0);
 
 	if (!PressMQ2KeyBind(szArg1, Hold))
 	{
-		int N = FindMappableCommand(szArg1);
-		if (N >= 0)
+		int nCmd = FindMappableCommand(szArg1);
+		if (nCmd >= 0)
 		{
-			//ok if the user issues a movement keypress like "FORWARD" here and at charselect he ctd
-			//lets see if we can fix that -eqmule
-			if (EQbCommandStates[N] == FALSE) {
+			// ok if the user issues a movement keypress like "FORWARD" here and at charselect he ctd
+			// lets see if we can fix that -eqmule
+			if (EQbCommandStates[nCmd] == false)
+			{
 				MacroError("%s is disabled right now Gamestate is %d", szArg1, GetGameState());
 				return;
 			}
-			ExecuteCmd(N, 1, 0);
+
+			ExecuteCmd(nCmd, true);
 			if (!Hold)
-				ExecuteCmd(N, 0, 0);
+				ExecuteCmd(nCmd, false);
+
 			return;
 		}
+
 		KeyCombo Temp;
+
 		if (ParseKeyCombo(szArg1, Temp))
 		{
 			if (!_stricmp(szArg2, "chat"))
 			{
-				if (Temp.Data[3] != 0x92) {
-					pWndMgr->HandleKeyboardMsg(Temp.Data[3], 1);
-					pWndMgr->HandleKeyboardMsg(Temp.Data[3], 0);
+				if (Temp.Data[3] != 0x92)
+				{
+					pWndMgr->HandleKeyboardMsg(Temp.Data[3], true);
+					pWndMgr->HandleKeyboardMsg(Temp.Data[3], false);
 				}
-				else {
+				else
+				{
 					// ugly ass hack -- the ':' char no longer
 					// seems to be handled independently.  simulate
 					// a shift and a ;
-					pWndMgr->HandleKeyboardMsg(0x2a, 1);
-					pWndMgr->HandleKeyboardMsg(0x27, 1);
-					pWndMgr->HandleKeyboardMsg(0x27, 0);
-					pWndMgr->HandleKeyboardMsg(0x2a, 0);
+					pWndMgr->HandleKeyboardMsg(0x2a, true);
+					pWndMgr->HandleKeyboardMsg(0x27, true);
+					pWndMgr->HandleKeyboardMsg(0x27, false);
+					pWndMgr->HandleKeyboardMsg(0x2a, false);
 				}
 			}
 			else
 			{
 				MQ2HandleKeyDown(Temp);
+
 				if (!Hold)
 					MQ2HandleKeyUp(Temp);
 			}
@@ -3511,57 +3838,60 @@ void DoMappable(PSPAWNINFO pChar, char* szLine)
 }
 
 // /popup
-void PopupText(PSPAWNINFO pChar, char* szLine)
+void PopupText(SPAWNINFO* pChar, char* szLine)
 {
 	DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500, 500, 3000);
 }
 
 // /popcustom
-void PopupTextCustom(PSPAWNINFO pChar, char* szLine)
+void PopupTextCustom(SPAWNINFO* pChar, char* szLine)
 {
 	CustomPopup(szLine, false);
 }
 
 // /popupecho
-void PopupTextEcho(PSPAWNINFO pChar, char* szLine)
+void PopupTextEcho(SPAWNINFO* pChar, char* szLine)
 {
 	CustomPopup(szLine, true);
 }
 
 // /multiline
-void MultilineCommand(PSPAWNINFO pChar, char* szLine)
+void MultilineCommand(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine[0] == 0)
 	{
 		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
 		return;
 	}
+
 	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
 	GetArg(szArg, szLine, 1);
+
 	char* szRest = GetNextArg(szLine);
 	if (!szRest[0])
 		return;
-	char Copy[MAX_STRING], szCmd[MAX_STRING] = { 0 };
-	strcpy_s(Copy, szRest);// dont destroy original...
-	char *token1 = NULL;
-	char *next_token1 = NULL;
 
-	token1 = strtok_s(Copy, szArg, &next_token1);
-	while (token1 != NULL)
+	char Copy[MAX_STRING];
+	strcpy_s(Copy, szRest); // dont destroy original...
+
+	char szCmd[MAX_STRING] = { 0 };
+
+	char* next_token1 = nullptr;
+	char* token1 = strtok_s(Copy, szArg, &next_token1);
+	while (token1 != nullptr)
 	{
-		if (token1 != NULL)
-		{
-			strcpy_s(szCmd, token1);
-			DoCommand(pChar, szCmd);
-			token1 = strtok_s(NULL, szArg, &next_token1);
-		}
+		strcpy_s(szCmd, token1);
+		DoCommand(pChar, szCmd);
+
+		token1 = strtok_s(nullptr, szArg, &next_token1);
 	}
 }
 
 // /ranged
-void do_ranged(PSPAWNINFO pChar, char* szLine)
+void do_ranged(SPAWNINFO* pChar, char* szLine)
 {
 	PlayerClient* pRangedTarget = pTarget;
+
 	if (szLine[0])
 	{
 		pRangedTarget = GetSpawnByID(atoi(szLine));
@@ -3571,16 +3901,18 @@ void do_ranged(PSPAWNINFO pChar, char* szLine)
 			return;
 		}
 	}
+
 	if (!pRangedTarget)
 	{
 		MacroError("No target for ranged attack");
 		return;
 	}
+
 	AttackRanged(pRangedTarget);
 }
 
 // /loadcfg
-void LoadCfgCommand(PSPAWNINFO pChar, char* szLine)
+void LoadCfgCommand(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3590,40 +3922,42 @@ void LoadCfgCommand(PSPAWNINFO pChar, char* szLine)
 
 	if (LoadCfgFile(szLine, false))
 		return;
+
 	MacroError("Could not /loadcfg '%s'", szLine);
 }
 
 // /dumpbinds
-void DumpBindsCommand(PSPAWNINFO pChar, char* szLine)
+void DumpBindsCommand(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage /dumpbinds <filename>");
 		return;
 	}
-	char szBuffer[MAX_STRING] = { 0 };
+
 	if (!DumpBinds(szLine))
 	{
 		MacroError("Could not dump binds to %s", szLine);
 		return;
 	}
+
 	WriteChatColor("Binds dumped to file.");
 }
 
-
 // /docommand
-void DoCommandCmd(PSPAWNINFO pChar, char* szLine)
+void DoCommandCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /docommand <command>");
 		return;
 	}
+
 	DoCommand(pChar, szLine);
 }
 
 // /alt
-void DoAltCmd(PSPAWNINFO pChar, char* szLine)
+void DoAltCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3640,7 +3974,7 @@ void DoAltCmd(PSPAWNINFO pChar, char* szLine)
 }
 
 // /shift
-void DoShiftCmd(PSPAWNINFO pChar, char* szLine)
+void DoShiftCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3659,7 +3993,7 @@ void DoShiftCmd(PSPAWNINFO pChar, char* szLine)
 }
 
 // /ctrl
-void DoCtrlCmd(PSPAWNINFO pChar, char* szLine)
+void DoCtrlCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3675,7 +4009,7 @@ void DoCtrlCmd(PSPAWNINFO pChar, char* szLine)
 	pWndMgr->KeyboardFlags[1] = Old;
 }
 
-void NoModKeyCmd(PSPAWNINFO pChar, char* szLine)
+void NoModKeyCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3698,26 +4032,34 @@ void NoModKeyCmd(PSPAWNINFO pChar, char* szLine)
 //              Activates an item that has a clicky effect.
 // Usage:       /useitem 1 0 or /useitem "item name" or /useitem item name
 // ***************************************************************************
-void UseItemCmd(PSPAWNINFO pChar, char* szLine)
+void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
 	strcpy_s(szCmd, szLine);
+
 	if (!szCmd[0])
 	{
 		WriteChatColor("Usage: /useitem \"item name\"");
+
 		cmdUseItem(pChar, szCmd);
 		return;
 	}
-	else {
+	else
+	{
 		char szSlot1[MAX_STRING] = { 0 };
 		GetArg(szSlot1, szCmd, 1);
+
 		bool stripped = StripQuotes(szCmd);
-		if (IsNumber(szSlot1)) {
+		if (IsNumber(szSlot1))
+		{
 			cmdUseItem(pChar, szCmd);
 		}
-		else {
-			if (CONTENTS* pItem = FindItemByName(szCmd, stripped)) {
+		else
+		{
+			if (CONTENTS* pItem = FindItemByName(szCmd, stripped))
+			{
 				bool bKeyring = false;
+
 				if (CHARINFO* pCharInfo = GetCharInfo())
 				{
 					ItemGlobalIndex location;
@@ -3734,50 +4076,38 @@ void UseItemCmd(PSPAWNINFO pChar, char* szLine)
 					return;
 				}
 
-				bool bMount = ((EQ_Item*)pItem)->IsKeyRingItem(eMount);
-				bool bIllusion = ((EQ_Item*)pItem)->IsKeyRingItem(eIllusion);
-				bool bFamiliar = ((EQ_Item*)pItem)->IsKeyRingItem(eFamiliar);
+				auto checkKeyRing = [&](KeyRingType keyringType, const char* windowList) -> bool
+				{
+					if (!((EQ_Item*)pItem)->IsKeyRingItem(keyringType))
+						return false;
 
-				// is it a mount?
-				if (bMount) {
-					if (DWORD index = GetKeyRingIndex(0, szCmd, stripped, true)) {
-						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-								if (DWORD numitems = clist->ItemsArray.Count) {
-									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
-									int listdata = (int)clist->GetItemData(index - 1);
-									cmdToggleKeyRingItem(0, &pItem, listdata);
+					if (int index = GetKeyRingIndex(keyringType, szCmd, stripped, true))
+					{
+						if (CXWnd* krWnd = FindMQ2Window(KeyRingWindowParent))
+						{
+							if (CListWnd* pListWnd = (CListWnd*)krWnd->GetChildItem(windowList))
+							{
+								int numItems = pListWnd->ItemsArray.Count;
+								if (numItems > 0)
+								{
+									SendListSelect(KeyRingWindowParent, windowList, index - 1);
+									int listData = static_cast<int>(pListWnd->GetItemData(index - 1));
+
+									cmdToggleKeyRingItem(keyringType, &pItem, listData);
 								}
 							}
 						}
 					}
-				}
-				else if (bIllusion) {
-					//uhm ok, maybe an illusion then?
-					if (DWORD index = GetKeyRingIndex(1, szCmd, stripped, true)) {
-						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
-								if (DWORD numitems = clist->ItemsArray.Count) {
-									SendListSelect(KeyRingWindowParent, IllusionWindowList, index - 1);
-									int listdata = (int)clist->GetItemData(index - 1);
-									cmdToggleKeyRingItem(1, &pItem, listdata);
-								}
-							}
-						}
-					}
-				}
-				else if (bFamiliar) {
-					//uhm ok, maybe a Familiar then?
-					if (DWORD index = GetKeyRingIndex(2, szCmd, stripped, true)) {
-						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
-								if (DWORD numitems = clist->ItemsArray.Count) {
-									SendListSelect(KeyRingWindowParent, FamiliarWindowList, index - 1);
-									int listdata = (int)clist->GetItemData(index - 1);
-									cmdToggleKeyRingItem(2, &pItem, listdata);
-								}
-							}
-						}
+
+					return true;
+				};
+
+				// TODO: Further refactor this to clean it up
+				if (!checkKeyRing(eMount, MountWindowList))
+				{
+					if (!checkKeyRing(eIllusion, IllusionWindowList))
+					{
+						checkKeyRing(eFamiliar, FamiliarWindowList);
 					}
 				}
 			}
@@ -3791,40 +4121,54 @@ void UseItemCmd(PSPAWNINFO pChar, char* szLine)
 //              Does (or lists) your programmed socials
 // Usage:       /dosocial [list|"social name"]
 // ***************************************************************************
-void DoSocial(PSPAWNINFO pChar, char* szLine)
+void DoSocial(SPAWNINFO* pChar, char* szLine)
 {
 	if (!pSocialList) return;
 
-	DWORD SocialIndex = -1, LineIndex;
-	DWORD SocialPage = 0, SocialNum = 0;
+	//DWORD SocialIndex = -1, LineIndex;
+	//DWORD SocialPage = 0, SocialNum = 0;
 	char szBuffer[MAX_STRING] = { 0 };
-	BOOL displayUsage = FALSE;
-
 	GetArg(szBuffer, szLine, 1);
 
-	if (!_stricmp(szBuffer, "list")) {
-		WriteChatColor("Socials: (page,number) name", USERCOLOR_DEFAULT);
-		for (SocialIndex = 0; SocialIndex < 120; SocialIndex++) {
-			SocialPage = SocialIndex / 12;
-			SocialNum = SocialIndex - (SocialPage * 12);
-			if (strlen(pSocialList[SocialIndex].Name)) {
-				sprintf_s(szBuffer, "(%2d,%2d) %s ", SocialPage + 1, SocialNum + 1, pSocialList[SocialIndex].Name);
-				WriteChatColor(szBuffer, USERCOLOR_ECHO_EMOTE);
-				for (LineIndex = 0; LineIndex < 5; LineIndex++) {
-					if (strlen(pSocialList[SocialIndex].Line[LineIndex])) {
-						sprintf_s(szBuffer, "  %d: %s", LineIndex + 1, pSocialList[SocialIndex].Line[LineIndex]);
-						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	bool displayUsage = false;
+
+	if (!_stricmp(szBuffer, "list"))
+	{
+		WriteChatColor("Socials: (page,number) name");
+
+		for (int SocialIndex = 0; SocialIndex < 120; SocialIndex++)
+		{
+			int SocialPage = SocialIndex / 12;
+			int SocialNum = SocialIndex - (SocialPage * 12);
+
+			if (pSocialList[SocialIndex].Name[0] != 0)
+			{
+				WriteChatColorf("(%2d,%2d) %s ", USERCOLOR_ECHO_EMOTE, SocialPage + 1, SocialNum + 1, pSocialList[SocialIndex].Name);
+
+				for (int LineIndex = 0; LineIndex < 5; LineIndex++)
+				{
+					if (pSocialList[SocialIndex].Line[LineIndex][0] != 0)
+					{
+						WriteChatf("  %d: %s", LineIndex + 1, pSocialList[SocialIndex].Line[LineIndex]);
 					}
 				}
 			}
 		}
+
 		return;
 	}
-	else if (strlen(szBuffer)) { /* assume we have a social name to match */
-		for (unsigned long N = 0; N < 120; N++) {
-			if (!_stricmp(szBuffer, pSocialList[N].Name))
+
+	int SocialIndex = -1;
+
+	if (szBuffer[0] != 0)
+	{
+		// assume we have a social name to match
+		// FIXME: Add a constant
+		for (int index = 0; index < 120; index++)
+		{
+			if (!_stricmp(szBuffer, pSocialList[index].Name))
 			{
-				SocialIndex = N;
+				SocialIndex = index;
 				break;
 			}
 		}
@@ -3836,23 +4180,28 @@ void DoSocial(PSPAWNINFO pChar, char* szLine)
 	}
 	else
 	{
-		if (SocialIndex < 120) {
-			for (LineIndex = 0; LineIndex < 5; LineIndex++) {
-				if (strlen(pSocialList[SocialIndex].Line[LineIndex])) DoCommand(pChar, pSocialList[SocialIndex].Line[LineIndex]);
+		if (SocialIndex < 120)
+		{
+			for (int LineIndex = 0; LineIndex < 5; LineIndex++)
+			{
+				if (pSocialList[SocialIndex].Line[LineIndex][0] != 0)
+					DoCommand(pChar, pSocialList[SocialIndex].Line[LineIndex]);
 			}
 		}
-		else {
-			if (strlen(szLine)) {
-				sprintf_s(szBuffer, "Invalid Argument(s): %s", szLine);
-				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		else
+		{
+			if (szLine[0] != 0)
+			{
+				WriteChatf("Invalid Argument(s): %s", szLine);
 			}
+
 			SyntaxError("Usage: /dosocial <list|\"social name\">", USERCOLOR_DEFAULT);
 		}
 	}
 }
 
 // /timed
-void DoTimedCmd(PSPAWNINFO pChar, char* szLine)
+void DoTimedCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3862,6 +4211,7 @@ void DoTimedCmd(PSPAWNINFO pChar, char* szLine)
 
 	char szArg[MAX_STRING] = { 0 }; // delay
 	GetArg(szArg, szLine, 1);
+
 	char* szRest = GetNextArg(szLine);
 	if (!szRest[0])
 		return;
@@ -3869,14 +4219,14 @@ void DoTimedCmd(PSPAWNINFO pChar, char* szLine)
 	TimedCommand(szRest, atoi(szArg) * 100);
 }
 
-void ClearErrorsCmd(PSPAWNINFO pChar, char* szLine)
+void ClearErrorsCmd(SPAWNINFO* pChar, char* szLine)
 {
 	gszLastNormalError[0] = 0;
 	gszLastSyntaxError[0] = 0;
 	gszLastMQ2DataError[0] = 0;
 }
 
-void CombineCmd(PSPAWNINFO pChar, char* szLine)
+void CombineCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3903,20 +4253,22 @@ void CombineCmd(PSPAWNINFO pChar, char* szLine)
 	MacroError("Window '%s' not container window", szLine);
 }
 
-void DropCmd(PSPAWNINFO pChar, char* szLine)
+void DropCmd(SPAWNINFO* pChar, char* szLine)
 {
-	if (CHARINFO2* pChar2 = GetCharInfo2()) {
-		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return;
+
+	if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
+	{
+		if (((EQ_Item*)pProfile->pInventoryArray->Inventory.Cursor)->CanDrop(0, 1))
 		{
-			if (((EQ_Item*)pChar2->pInventoryArray->Inventory.Cursor)->CanDrop(0, 1))
-			{
-				pEverQuest->DropHeldItemOnGround(1);
-			}
+			pEverQuest->DropHeldItemOnGround(1);
 		}
 	}
 }
 
-void HudCmd(PSPAWNINFO pChar, char* szLine)
+void HudCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3924,38 +4276,37 @@ void HudCmd(PSPAWNINFO pChar, char* szLine)
 		WriteChatColor("Note: 'always' forces 'underui' also. The Network Status indicator is not 'always' drawn and is toggled with F11.");
 		return;
 	}
-	else
-		if (!_stricmp(szLine, "normal"))
-		{
-			WritePrivateProfileString("MacroQuest", "HUDMode", "Normal", gszINIFilename);
-			gbAlwaysDrawMQHUD = false;
-			gbHUDUnderUI = false;
-		}
-		else
-			if (!_stricmp(szLine, "underui"))
-			{
-				WritePrivateProfileString("MacroQuest", "HUDMode", "UnderUI", gszINIFilename);
-				gbHUDUnderUI = true;
-				gbAlwaysDrawMQHUD = false;
-			}
-			else
-				if (!_stricmp(szLine, "always"))
-				{
-					WritePrivateProfileString("MacroQuest", "HUDMode", "Always", gszINIFilename);
-					gbHUDUnderUI = true;
-					gbAlwaysDrawMQHUD = true;
-				}
+	else if (!_stricmp(szLine, "normal"))
+	{
+		WritePrivateProfileString("MacroQuest", "HUDMode", "Normal", gszINIFilename);
+		gbAlwaysDrawMQHUD = false;
+		gbHUDUnderUI = false;
+	}
+	else if (!_stricmp(szLine, "underui"))
+	{
+		WritePrivateProfileString("MacroQuest", "HUDMode", "UnderUI", gszINIFilename);
+		gbHUDUnderUI = true;
+		gbAlwaysDrawMQHUD = false;
+	}
+	else if (!_stricmp(szLine, "always"))
+	{
+		WritePrivateProfileString("MacroQuest", "HUDMode", "Always", gszINIFilename);
+		gbHUDUnderUI = true;
+		gbAlwaysDrawMQHUD = true;
+	}
 }
 
-void CaptionCmd(PSPAWNINFO pChar, char* szLine)
+void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
+
 	if (!Arg1[0])
 	{
 		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anon <on|off>>");
 		return;
 	}
+
 	if (!_stricmp(Arg1, "list"))
 	{
 		WriteChatf("\ayPlayer1\ax: \ag%s\ax", gszSpawnPlayerName[1]);
@@ -3970,7 +4321,9 @@ void CaptionCmd(PSPAWNINFO pChar, char* szLine)
 		WriteChatf("\ayCorpse\ax: \ag%s\ax", gszSpawnCorpseName);
 		return;
 	}
-	char* pCaption = 0;
+
+	char* pCaption = nullptr;
+
 	if (!_stricmp(Arg1, "Player1"))
 	{
 		pCaption = gszSpawnPlayerName[1];
@@ -4009,12 +4362,9 @@ void CaptionCmd(PSPAWNINFO pChar, char* szLine)
 	}
 	else if (!_stricmp(Arg1, "Update"))
 	{
-		gMaxSpawnCaptions = atoi(GetNextArg(szLine));
-		if (gMaxSpawnCaptions<8)
-			gMaxSpawnCaptions = 8;
-		if (gMaxSpawnCaptions>70)
-			gMaxSpawnCaptions = 70;
+		gMaxSpawnCaptions = std::clamp(atoi(GetNextArg(szLine)), 8, 70);
 		_itoa_s(gMaxSpawnCaptions, Arg1, 10);
+
 		WritePrivateProfileString("Captions", "Update", Arg1, gszINIFilename);
 		WriteChatf("\ay%d\ax nearest spawns will have their caption updated each pass.", gMaxSpawnCaptions);
 		return;
@@ -4029,16 +4379,19 @@ void CaptionCmd(PSPAWNINFO pChar, char* szLine)
 	else if (!_stricmp(Arg1, "Anon"))
 	{
 		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
-		if (gAnonymize) {
+		if (gAnonymize)
+		{
 			UpdatedMasterLooterLabel();
 		}
 		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), gszINIFilename);
 		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
 		return;
 	}
-	else if (!_stricmp(Arg1, "reload")) {
-		char Filename[MAX_STRING] = { 0 };
-		sprintf_s(Filename, "%s", gszINIFilename);
+	else if (!_stricmp(Arg1, "reload"))
+	{
+		char Filename[MAX_PATH] = { 0 };
+		strcpy_s(Filename, gszINIFilename);
+
 		GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, Filename);
 		GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, Filename);
 		GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, Filename);
@@ -4060,6 +4413,7 @@ void CaptionCmd(PSPAWNINFO pChar, char* szLine)
 		ConvertCR(gszSpawnCorpseName, MAX_STRING);
 		ConvertCR(gszSpawnPetName, MAX_STRING);
 		ConvertCR(gszAnonCaption, MAX_STRING);
+
 		WriteChatf("Updated Captions from INI.");
 		return;
 	}
@@ -4068,19 +4422,21 @@ void CaptionCmd(PSPAWNINFO pChar, char* szLine)
 		MacroError("Invalid caption type '%s'", Arg1);
 		return;
 	}
+
 	strcpy_s(pCaption, MAX_STRING, GetNextArg(szLine));
 	WritePrivateProfileString("Captions", Arg1, pCaption, gszINIFilename);
 	ConvertCR(pCaption, MAX_STRING);
 	WriteChatf("\ay%s\ax caption set.", Arg1);
 }
 
-void NoParseCmd(PSPAWNINFO pChar, char* szLine)
+void NoParseCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /noparse <command>");
 		return;
 	}
+
 	if (gdwParserEngineVer == 2)
 	{
 		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
@@ -4100,16 +4456,11 @@ void NoParseCmd(PSPAWNINFO pChar, char* szLine)
 
 void AltAbility(SPAWNINFO* pChar, char* szLine)
 {
-	char szBuffer[MAX_STRING] = { 0 };
 	char szCommand[MAX_STRING] = { 0 };
-	char szSpellInfo[MAX_STRING] = { 0 };
-	char* szName = nullptr;
-
 	GetArg(szCommand, szLine, 1);
-	szName = GetNextArg(szLine);
-	MQ2TicksType szTime;
+	char* szName = GetNextArg(szLine);
 
-	if ((szName[0] == 0) || (szCommand[0] == 0))
+	if (szName[0] == 0 || szCommand[0] == 0)
 	{
 		SyntaxError("Usage: /aa list [all|timers], /aa info [ability name], or /aa act [ability name]");
 		return;
@@ -4206,7 +4557,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 						}
 						else
 						{
-							WriteChatColorf( "[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
 
@@ -4241,7 +4592,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 		// we want to get the rank thats for our level here
 		int level = -1;
 
-		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer)
+		if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
 		{
 			level = pMe->Level;
 		}
@@ -4253,7 +4604,9 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 			{
 				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
-					if (!_stricmp(szName, pName)) {
+					if (!_stricmp(szName, pName))
+					{
+						char szBuffer[MAX_STRING] = { 0 };
 						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);
 						DoCommand(pChar, szBuffer);
 						break;
@@ -4265,9 +4618,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 	else
 	{
 		SyntaxError("Usage: /aa list [all|timers|ready], /aa info [ability name], or /aa act [ability name]");
-		return;
 	}
-	return;
 }
 
 // ***************************************************************************
@@ -4278,39 +4629,54 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void Echo(SPAWNINFO* pChar, char* szLine)
 {
-	char szEcho[MAX_STRING] = { 0 };
 	bRunNextCommand = true;
+
+	char szEcho[MAX_STRING] = { 0 };
 	strcpy_s(szEcho, DebugHeader);
 	strcat_s(szEcho, " ");
-	int NewPos = strlen(DebugHeader)+1, OldPos = 0;
-	if (szLine) {
-		while (OldPos < (int)strlen(szLine)) {
-			if (szLine[OldPos] == '\\') {
+	int NewPos = strlen(DebugHeader) + 1, OldPos = 0;
+
+	if (szLine)
+	{
+		while (OldPos < (int)strlen(szLine))
+		{
+			if (szLine[OldPos] == '\\')
+			{
 				OldPos++;
-				if (szLine[OldPos]) {
+				if (szLine[OldPos])
+				{
 					if (szLine[OldPos] == '\\')
 						szEcho[NewPos] = szLine[OldPos];
-					else if (szLine[OldPos] == 'n') {
+					else if (szLine[OldPos] == 'n')
+					{
 						szEcho[NewPos++] = '\r';
 						szEcho[NewPos] = '\n';
 					}
 					else if (szLine[OldPos] >= 'a' && szLine[OldPos] <= 'z')
+					{
 						szEcho[NewPos] = szLine[OldPos] - 'a' + 7;
+					}
 					else if (szLine[OldPos] >= 'A' && szLine[OldPos] <= 'Z')
+					{
 						szEcho[NewPos] = szLine[OldPos] - 'a' + 7;
+					}
+
 					NewPos++;
 					OldPos++;
 				}
 			}
-			else {
+			else
+			{
 				szEcho[NewPos] = szLine[OldPos];
 				NewPos++;
 				OldPos++;
 			}
+
 			szEcho[NewPos] = 0;
 		}
 	}
-	WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
+
+	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
 }
 
 // ***************************************************************************
@@ -4319,7 +4685,7 @@ void Echo(SPAWNINFO* pChar, char* szLine)
 //              Loots everything on the targeted corpse
 // Usage:       /lootall
 // ***************************************************************************
-void LootAll(PSPAWNINFO pChar, char* szLine)
+void LootAll(SPAWNINFO* pChar, char* szLine)
 {
 	pLootWnd->LootAll(true);
 }
@@ -4330,7 +4696,7 @@ void LootAll(PSPAWNINFO pChar, char* szLine)
 //              Set the Window Title
 // Usage:       /setwintitle <something something>
 // ***************************************************************************
-void SetWinTitle(PSPAWNINFO pChar, char* szLine)
+void SetWinTitle(SPAWNINFO* pChar, char* szLine)
 {
 	HWND hEQWnd = GetEQWindowHandle();
 
@@ -4343,56 +4709,70 @@ void SetWinTitle(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
-void GetWinTitle(PSPAWNINFO pChar, char* szLine)
+// ***************************************************************************
+// Function:    GetWinTitle
+// Description: Our '/getwintitle' command
+//              Gets the Window Title
+// Usage:       /getwintitle
+// ***************************************************************************
+void GetWinTitle(SPAWNINFO* pChar, char* szLine)
 {
-	bool bHide = atoi(szLine) != 0;
-	szLine[0] = 0;
-
 	HWND hEQWnd = GetEQWindowHandle();
 
 	if (hEQWnd)
 	{
 		if (GetWindowTextA(hEQWnd, szLine, 255) && szLine[0] != 0)
 		{
-			if (!bHide)
-				WriteChatf("Window Title: \ay%s\ax", szLine);
+			WriteChatf("Window Title: \ay%s\ax", szLine);
 		}
 	}
 }
+
 // ***************************************************************************
 // Function:    PetCmd
 // Description: '/pet' command
 //              Adds the ability to do /pet attack #id
 // Usage:       /pet attack 1234 or whatever the spawnid is you want the pet to attack
 // ***************************************************************************
-void PetCmd(PSPAWNINFO pChar, char* szLine)
+void PetCmd(SPAWNINFO* pChar, char* szLine)
 {
-	if (!szLine[0]) {
+	if (!szLine[0])
+	{
 		WriteChatColor("Usage: /pet attack/qattack # where # is the spawnid of the mob you want the pet to attack");
 		cmdPet(pChar, szLine);
 		return;
 	}
-	else {
+
+	char szCmd[MAX_STRING] = { 0 };
+	GetArg(szCmd, szLine, 1);
+
+	ePetCommandType cmdtype = PCT_DoNothing;
+
+	if (!_stricmp(szCmd, "attack"))
+	{
+		cmdtype = PCT_Attack;
+	}
+	else if (!_stricmp(szCmd, "qattack"))
+	{
+		cmdtype = PCT_QueueAttack;
+	}
+
+	if (cmdtype)
+	{
 		char szID[MAX_STRING] = { 0 };
-		char szCmd[MAX_STRING] = { 0 };
-		GetArg(szCmd, szLine, 1);
-		ePetCommandType cmdtype = PCT_DoNothing;
-		if (!_stricmp(szCmd, "attack")) {
-			cmdtype = PCT_Attack;
-		}
-		else if (!_stricmp(szCmd, "qattack")) {
-			cmdtype = PCT_QueueAttack;
-		}
-		if (cmdtype) {
-			GetArg(szID, szLine, 2);
-			if (IsNumber(szID)) {
-				if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(szID))) {
-					return pEverQuest->IssuePetCommand(cmdtype, pSpawn->SpawnID, false);
-				}
+		GetArg(szID, szLine, 2);
+
+		if (IsNumber(szID))
+		{
+			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(atoi(szID)))
+			{
+				pEverQuest->IssuePetCommand(cmdtype, pSpawn->SpawnID, false);
+				return;
 			}
 		}
-		cmdPet(pChar, szLine);
 	}
+
+	cmdPet(pChar, szLine);
 }
 
 // ***************************************************************************
@@ -4401,7 +4781,7 @@ void PetCmd(PSPAWNINFO pChar, char* szLine)
 //              Adds the ability to do /mercswitch Healer,Damage Caster,Melee Damage or Tank
 // Usage:       /mercswitch healer will switch to a Healer merc
 // ***************************************************************************
-void MercSwitchCmd(PSPAWNINFO pChar, char* szLine)
+void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4409,24 +4789,23 @@ void MercSwitchCmd(PSPAWNINFO pChar, char* szLine)
 		cmdMercSwitch(pChar, szLine);
 		return;
 	}
-	else
+
+	std::map<int, MercDesc> descmap;
+	GetAllMercDesc(descmap);
+
+	for (auto& n : descmap)
 	{
-		std::map<int, MercDesc> descmap;
-		GetAllMercDesc(descmap);
-
-		for (auto& n : descmap)
+		if (ci_equals(n.second.Type, szLine))
 		{
-			if (!_stricmp(n.second.Type.c_str(), szLine))
-			{
-				char szTemp[256] = { 0 };
-				sprintf_s(szTemp, "%d", n.first + 1);
+			char szTemp[256] = { 0 };
+			sprintf_s(szTemp, "%d", n.first + 1);
 
-				cmdMercSwitch(pChar, szTemp);
-				return;
-			}
+			cmdMercSwitch(pChar, szTemp);
+			return;
 		}
-		cmdMercSwitch(pChar, szLine);
 	}
+
+	cmdMercSwitch(pChar, szLine);
 }
 
 // ***************************************************************************
@@ -4438,189 +4817,66 @@ void MercSwitchCmd(PSPAWNINFO pChar, char* szLine)
 // Or:    /advloot shared set "item from the shared set to all combo box, can be player name any of the other items that exist in that box..."
 // ***************************************************************************
 
-void AdvLootCmd(PSPAWNINFO pChar, char* szLine)
+void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 		return;
+
 	char szAction[MAX_STRING] = { 0 };
 	GetArg(szAction, szLine, 3);
-	if (!szLine[0] || !szAction[0]) {
-		WriteChatColor("Usage: /advloot personal #(listid) item,loot,leave,an,ag,never,name");
-		WriteChatColor("Or:    /advloot shared <#(listid) or \"item name\"> item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name");
-		WriteChatColor("Or:    you can \"Give To:\" /advloot shared <#(listid) or \"Item Name\"> giveto <name> <qty>");
-		WriteChatColor("Or:    you can \"Leave on Corpse\" /advloot shared <#(listid) or \"Item Name\"> leave");
-		WriteChatColor("Or:    /advloot shared set \"name from the shared set to all combo box, can be player name or any of the other names that exist in that box...\"");
+
+	if (!szLine[0] || !szAction[0])
+	{
+		WriteChatColor(R"(Usage: /advloot personal #(listid) item,loot,leave,an,ag,never,name)");
+		WriteChatColor(R"(Or:    /advloot shared <#(listid) or \"item name\"> item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name)");
+		WriteChatColor(R"(Or:    you can "Give To:" /advloot shared <#(listid) or "Item Name"> giveto <name> <qty>)");
+		WriteChatColor(R"(Or:    you can "Leave on Corpse" /advloot shared <#(listid) or "Item Name"> leave)");
+		WriteChatColor(R"(Or:    /advloot shared set "name from the shared set to all combo box, can be player name or any of the other names that exist in that box...")");
 		cmdAdvLoot(pChar, szLine);
 		return;
 	}
-	else
+
+	if (pAdvancedLootWnd)
 	{
-		if (pAdvancedLootWnd)
+		CListWnd* pPersonalList = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList");
+		CListWnd* pSharedList = nullptr;
+
+		if (pAdvancedLootWnd->pCLootList)
 		{
-			CListWnd* pPersonalList = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList");
-			CListWnd* pSharedList = 0;
+			pSharedList = (CListWnd*)pAdvancedLootWnd->pCLootList->SharedLootList;
+		}
 
-			if (pAdvancedLootWnd->pCLootList)
-			{
-				pSharedList = (CListWnd*)pAdvancedLootWnd->pCLootList->SharedLootList;
-			}
-			//ok at this point, we dont know if we have a user that checks if loot is in progress in his macro, so we do that for him here
-			if (LootInProgress(pAdvancedLootWnd, pPersonalList, pSharedList))
-			{
-				MacroError("Woah! hold your horses there little filly... You better add a !${AdvLoot.LootInProgress} check in your macro to make sure loot is not in progress.");
-				return;
-			}
+		// we dont know if we have a user that checks if loot is in progress in his macro, so we do that for him here
+		if (LootInProgress(pAdvancedLootWnd, pPersonalList, pSharedList))
+		{
+			MacroError("Woah! hold your horses there little filly... You better add a !${AdvLoot.LootInProgress} check in your macro to make sure loot is not in progress.");
+			return;
+		}
 
+		char szCmd[MAX_STRING] = { 0 };
+		GetArg(szCmd, szLine, 1);
+
+		int cmdtype = 0;
+		if (!_stricmp(szCmd, "personal"))
+		{
+			cmdtype = 2;
+		}
+		else if (!_stricmp(szCmd, "shared"))
+		{
+			cmdtype = 3;
+		}
+
+		AdvancedLootItem* pitem = nullptr;
+
+		if (cmdtype == 2)
+		{
 			char szID[MAX_STRING] = { 0 };
-			char szCmd[MAX_STRING] = { 0 };
-			GetArg(szCmd, szLine, 1);
+			GetArg(szID, szLine, 2);
 
-			int cmdtype = 0;
-			if (!_stricmp(szCmd, "personal"))
+			int index = -1;
+
+			if (pPersonalList)
 			{
-				cmdtype = 2;
-			}
-			else if (!_stricmp(szCmd, "shared"))
-			{
-				cmdtype = 3;
-			}
-
-			AdvancedLootItem* pitem = nullptr;
-
-			if (cmdtype == 2)
-			{
-				GetArg(szID, szLine, 2);
-				int index = -1;
-
-				if (pPersonalList)
-				{
-					if (IsNumber(szID))
-					{
-						index = atoi(szID) - 1;
-					}
-					else
-					{
-						// if its not a number its a itemname
-						// need to roll through the list to get the index
-						if (pAdvancedLootWnd->pPLootList)
-						{
-							for (int k = 0; k < pPersonalList->ItemsArray.Count; k++)
-							{
-								int listindex = (int)pPersonalList->GetItemData(k);
-								if (listindex != -1)
-								{
-									AdvancedLootItem& item = pAdvancedLootWnd->pPLootList->Items[listindex];
-
-									if (!_stricmp(item.Name, szID))
-									{
-										index = k;
-										break;
-									}
-								}
-							}
-						}
-					}
-
-					int listindex = (int)pPersonalList->GetItemData(index);
-					if (pAdvancedLootWnd && pAdvancedLootWnd->pPLootList && listindex != -1)
-					{
-						if (!_stricmp(szAction, "loot"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 2)) // loot
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-						else if (!_stricmp(szAction, "leave"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 3)) // leave
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-						else if (!_stricmp(szAction, "name"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 0)) // name
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-						else if (!_stricmp(szAction, "item"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 1)) // item
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-						else if (!_stricmp(szAction, "never"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 4)) // never
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-						else if (!_stricmp(szAction, "an"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 5)) // an
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-						else if (!_stricmp(szAction, "ag"))
-						{
-							if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 6)) // ag
-							{
-								SendWndClick2(pwnd, "leftmouseup");
-							}
-						}
-					}
-				}
-				return;
-			}
-
-			if (cmdtype == 3)
-			{
-				GetArg(szID, szLine, 2);
-				if (!_stricmp(szID, "set"))
-				{
-					char szEntity[MAX_STRING] = { 0 };
-					GetArg(szEntity, szLine, 3);
-
-					if (CComboWnd* pCombo = (CComboWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo"))
-					{
-						if (CListWnd* pListWnd = pCombo->pListWnd)
-						{
-							for (int i = 0; i < pCombo->GetItemCount(); i++)
-							{
-								CXStr str = pListWnd->GetItemText(i, 0);
-								if (!str.empty())
-								{
-									if (!_stricmp(szEntity, str.c_str()))
-									{
-										CXPoint combopt = pCombo->GetScreenRect().CenterPoint();
-										pCombo->SetChoice(i);
-										pCombo->HandleLButtonDown(combopt, 0);
-										int index = pListWnd->GetCurSel();
-										CXRect listrect = pListWnd->GetItemRect(index, 0);
-										CXPoint listpt = listrect.CenterPoint();
-										pListWnd->HandleLButtonDown(listpt, 0);
-										pListWnd->HandleLButtonUp(listpt, 0);
-										gMouseEventTime = GetFastTime();
-
-										if (CXWnd* pButton = pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn"))
-										{
-											SendWndClick2(pButton, "leftmouseup");
-										}
-										break;
-									}
-								}
-							}
-						}
-					}
-					return;
-				}
-
-				int index = -1;
 				if (IsNumber(szID))
 				{
 					index = atoi(szID) - 1;
@@ -4629,14 +4885,15 @@ void AdvLootCmd(PSPAWNINFO pChar, char* szLine)
 				{
 					// if its not a number its a itemname
 					// need to roll through the list to get the index
-					if (pSharedList)
+					if (pAdvancedLootWnd->pPLootList)
 					{
-						for (int k = 0; k < pSharedList->ItemsArray.Count; k++)
+						for (int k = 0; k < pPersonalList->ItemsArray.Count; k++)
 						{
-							int listindex = (int)pSharedList->GetItemData(k);
+							int listindex = (int)pPersonalList->GetItemData(k);
 							if (listindex != -1)
 							{
-								AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+								AdvancedLootItem& item = pAdvancedLootWnd->pPLootList->Items[listindex];
+
 								if (!_stricmp(item.Name, szID))
 								{
 									index = k;
@@ -4647,150 +4904,99 @@ void AdvLootCmd(PSPAWNINFO pChar, char* szLine)
 					}
 				}
 
-				if (index != -1)
+				int listindex = (int)pPersonalList->GetItemData(index);
+				if (pAdvancedLootWnd && pAdvancedLootWnd->pPLootList && listindex != -1)
 				{
-					if (pSharedList)
+					if (!_stricmp(szAction, "loot"))
 					{
-						int listindex = (int)pSharedList->GetItemData(index);
-						if (listindex != -1)
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 2)) // loot
 						{
-							AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
-							if (!_stricmp(szAction, "leave"))
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+					else if (!_stricmp(szAction, "leave"))
+					{
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 3)) // leave
+						{
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+					else if (!_stricmp(szAction, "name"))
+					{
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 0)) // name
+						{
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+					else if (!_stricmp(szAction, "item"))
+					{
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 1)) // item
+						{
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+					else if (!_stricmp(szAction, "never"))
+					{
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 4)) // never
+						{
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+					else if (!_stricmp(szAction, "an"))
+					{
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 5)) // an
+						{
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+					else if (!_stricmp(szAction, "ag"))
+					{
+						if (CXWnd* pwnd = GetAdvLootPersonalListItem(listindex, 6)) // ag
+						{
+							SendWndClick2(pwnd, "leftmouseup");
+						}
+					}
+				}
+			}
+			return;
+		}
+
+		if (cmdtype == 3)
+		{
+			char szID[MAX_STRING] = { 0 };
+			GetArg(szID, szLine, 2);
+
+			if (!_stricmp(szID, "set"))
+			{
+				char szEntity[MAX_STRING] = { 0 };
+				GetArg(szEntity, szLine, 3);
+
+				if (CComboWnd* pCombo = (CComboWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo"))
+				{
+					if (CListWnd* pListWnd = pCombo->pListWnd)
+					{
+						for (int i = 0; i < pCombo->GetItemCount(); i++)
+						{
+							CXStr str = pListWnd->GetItemText(i, 0);
+							if (!str.empty())
 							{
-								if (CHARINFO* pchar = GetCharInfo())
+								if (!_stricmp(szEntity, str.c_str()))
 								{
-									if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.GetSize())
+									CXPoint combopt = pCombo->GetScreenRect().CenterPoint();
+									pCombo->SetChoice(i);
+									pCombo->HandleLButtonDown(combopt, 0);
+									int index = pListWnd->GetCurSel();
+									CXRect listrect = pListWnd->GetItemRect(index, 0);
+									CXPoint listpt = listrect.CenterPoint();
+									pListWnd->HandleLButtonDown(listpt, 0);
+									pListWnd->HandleLButtonUp(listpt, 0);
+									gMouseEventTime = GetFastTime();
+
+									if (CXWnd* pButton = pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn"))
 									{
-										pAdvancedLootWnd->DoSharedAdvLootAction(pitem, pchar->Name, true, pitem->LootDetails[0].StackCount);
+										SendWndClick2(pButton, "leftmouseup");
 									}
-								}
-							}
-							else if (!_stricmp(szAction, "giveto"))
-							{
-								char szEntity[MAX_STRING] = { 0 };
-								GetArg(szEntity, szLine, 4);
-								char szQty[MAX_STRING] = { 0 };
-								GetArg(szQty, szLine, 5);
-
-								if (szEntity[0] != '\0')
-								{
-									if (CHARINFO* pCI = GetCharInfo())
-									{
-										CXStr out;
-
-										if (pCI->pGroupInfo)
-										{
-											for (int i = 0; i < 6; i++)
-											{
-												if (pCI->pGroupInfo->pMember[i]
-													&& pCI->pGroupInfo->pMember[i]->Mercenary == 0
-													&& !pCI->pGroupInfo->pMember[i]->Name.empty())
-												{
-													if (!_stricmp(pCI->pGroupInfo->pMember[i]->Name.c_str(), szEntity))
-													{
-														out = pCI->pGroupInfo->pMember[i]->Name;
-														break;
-													}
-												}
-											}
-										}
-
-										// not found? check raid
-										if (out.empty())
-										{
-											if (pRaid && pRaid->RaidMemberCount)
-											{
-												for (DWORD nMember = 0; nMember < 72; nMember++)
-												{
-													if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity))
-													{
-														out = pRaid->RaidMember[nMember].Name;
-														break;
-													}
-												}
-											}
-										}
-
-										if (!_stricmp(out.c_str(), szEntity))
-										{
-											// TODO: Check array usage
-											int qty = atoi(szQty);
-											if (pitem && !pitem->LootDetails.IsEmpty())
-											{
-												if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
-												{
-													qty = pitem->LootDetails[0].StackCount;
-													if (qty == 0)
-													{
-														qty = 1;
-													}
-												}
-
-												pAdvancedLootWnd->DoSharedAdvLootAction(pitem, out, 0, qty);
-												return;
-											}
-										}
-									}
-								}
-							}
-							else if (!_stricmp(szAction, "name")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 0)) {//name
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "item")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 1)) {//item
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "status")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 2)) {//status
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "action")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 3)) {//action
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "manage")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 4)) {//manage
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "an")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 5)) {//an
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "ag")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 6)) {//ag
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "autoroll")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 7)) {//autoroll
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "nv")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 8)) {//nv
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "nd")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 9)) {//nd
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "gd")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 10)) {//gd
-									SendWndClick2(pwnd, "leftmouseup");
-								}
-							}
-							else if (!_stricmp(szAction, "no")) {
-								if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 11)) {//no
-									SendWndClick2(pwnd, "leftmouseup");
+									break;
 								}
 							}
 						}
@@ -4798,13 +5004,217 @@ void AdvLootCmd(PSPAWNINFO pChar, char* szLine)
 				}
 				return;
 			}
-			cmdAdvLoot(pChar, szLine);
+
+			int index = -1;
+			if (IsNumber(szID))
+			{
+				index = atoi(szID) - 1;
+			}
+			else
+			{
+				// if its not a number its a itemname
+				// need to roll through the list to get the index
+				if (pSharedList)
+				{
+					for (int k = 0; k < pSharedList->ItemsArray.Count; k++)
+					{
+						int listindex = (int)pSharedList->GetItemData(k);
+						if (listindex != -1)
+						{
+							AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+							if (!_stricmp(item.Name, szID))
+							{
+								index = k;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (index != -1)
+			{
+				if (pSharedList)
+				{
+					int listindex = (int)pSharedList->GetItemData(index);
+					if (listindex != -1)
+					{
+						AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+						if (!_stricmp(szAction, "leave"))
+						{
+							if (CHARINFO * pchar = GetCharInfo())
+							{
+								if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.GetSize())
+								{
+									pAdvancedLootWnd->DoSharedAdvLootAction(pitem, pchar->Name, true, pitem->LootDetails[0].StackCount);
+								}
+							}
+						}
+						else if (!_stricmp(szAction, "giveto"))
+						{
+							char szEntity[MAX_STRING] = { 0 };
+							GetArg(szEntity, szLine, 4);
+							char szQty[MAX_STRING] = { 0 };
+							GetArg(szQty, szLine, 5);
+
+							if (szEntity[0] != '\0')
+							{
+								if (CHARINFO * pCI = GetCharInfo())
+								{
+									CXStr out;
+
+									if (pCI->pGroupInfo)
+									{
+										for (int i = 0; i < 6; i++)
+										{
+											if (pCI->pGroupInfo->pMember[i]
+												&& pCI->pGroupInfo->pMember[i]->Mercenary == 0
+												&& !pCI->pGroupInfo->pMember[i]->Name.empty())
+											{
+												if (!_stricmp(pCI->pGroupInfo->pMember[i]->Name.c_str(), szEntity))
+												{
+													out = pCI->pGroupInfo->pMember[i]->Name;
+													break;
+												}
+											}
+										}
+									}
+
+									// not found? check raid
+									if (out.empty())
+									{
+										if (pRaid && pRaid->RaidMemberCount)
+										{
+											for (DWORD nMember = 0; nMember < 72; nMember++)
+											{
+												if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity))
+												{
+													out = pRaid->RaidMember[nMember].Name;
+													break;
+												}
+											}
+										}
+									}
+
+									if (!_stricmp(out.c_str(), szEntity))
+									{
+										// TODO: Check array usage
+										int qty = atoi(szQty);
+										if (pitem && !pitem->LootDetails.IsEmpty())
+										{
+											if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
+											{
+												qty = pitem->LootDetails[0].StackCount;
+												if (qty == 0)
+												{
+													qty = 1;
+												}
+											}
+
+											pAdvancedLootWnd->DoSharedAdvLootAction(pitem, out, 0, qty);
+											return;
+										}
+									}
+								}
+							}
+						}
+						else if (!_stricmp(szAction, "name"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 0))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "item"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 1))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "status"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 2))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "action"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 3))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "manage"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 4))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "an"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 5))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "ag"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 6))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "autoroll"))
+						{
+							if (CXWnd * pwnd = GetAdvLootSharedListItem(listindex, 7))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "nv"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 8))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "nd"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 9))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "gd"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 10))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "no"))
+						{
+							if (CXWnd* pwnd = GetAdvLootSharedListItem(listindex, 11))
+							{
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+					}
+				}
+			}
+			return;
 		}
+
+		cmdAdvLoot(pChar, szLine);
 	}
 }
 
-std::mutex s_openPickZoneWndMutex;
+static std::mutex s_openPickZoneWndMutex;
 
+// FIXME: Never do this
 DWORD CALLBACK openpickzonewnd(void* pData)
 {
 	std::scoped_lock lock(s_openPickZoneWndMutex);
@@ -4829,7 +5239,7 @@ DWORD CALLBACK openpickzonewnd(void* pData)
 	if (!zoneSelectWnd->IsVisible())
 		return 0;
 
-	CListWnd* pListWnd     = (CListWnd*)zoneSelectWnd->GetChildItem("MIZ_ZoneList");
+	CListWnd* pListWnd = (CListWnd*)zoneSelectWnd->GetChildItem("MIZ_ZoneList");
 	CButtonWnd* pButtonWnd = (CButtonWnd*)zoneSelectWnd->GetChildItem("MIZ_SelectButton");
 
 	if (pListWnd->ItemsArray.IsEmpty())
@@ -4883,48 +5293,45 @@ DWORD CALLBACK openpickzonewnd(void* pData)
 //              Adds the ability to do /pickzone #
 // Usage:       /pickzone 2 will switch zone to number 2 pickzone 0 will pick main instance
 // ***************************************************************************
-void PickZoneCmd(PSPAWNINFO pChar, char* szLine)
+void PickZoneCmd(SPAWNINFO* pChar, char* szLine)
 {
-	if (!szLine[0]) {
+	if (!szLine[0])
+	{
 		WriteChatColor("Usage: /pick # where # is the instance number you want to pick");
 		cmdPickZone(pChar, szLine);
 		return;
 	}
-	else
-	{
-		DWORD index = atoi(szLine);
-		DWORD nThreadID = 0;
 
-		CreateThread(nullptr, 0, openpickzonewnd, (void*)index, 0, &nThreadID);
-	}
+	int index = atoi(szLine);
+	CreateThread(nullptr, 0, openpickzonewnd, (void*)index, 0, nullptr);
 }
+
 // ***************************************************************************
 // Function:    QuitCmd
 // Description: '/quit' command
-// Purpose:     Adds the ability to /quit at charselect not just from ingame
+// Purpose:     Adds the ability to /quit at charselect
 // Author:      EqMule
 // ***************************************************************************
-void QuitCmd(PSPAWNINFO pChar, char* szLine)
+void QuitCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 	{
-		if (HANDLE hHandle = OpenProcess(PROCESS_ALL_ACCESS, 0, GetCurrentProcessId())) {
-			DWORD dwExitCode = 0;
-			GetExitCodeProcess(hHandle, &dwExitCode);
-			TerminateProcess(hHandle, dwExitCode);
-			WaitForSingleObject(hHandle,5000);
-			CloseHandle(hHandle);
+		if (HANDLE hHandle = OpenProcess(PROCESS_TERMINATE, 0, GetCurrentProcessId()))
+		{
+			TerminateProcess(hHandle, 0);
 		}
 	}
+
 	cmdQuit(pChar, szLine);
 }
+
 // ***************************************************************************
 // Function:    AssistCmd
 // Description: '/assist' command
 // Purpose:     Adds the ability to forward /assist so we can set the gbAssist flag
 // Author:      EqMule
 // ***************************************************************************
-void AssistCmd(PSPAWNINFO pChar, char* szLine)
+void AssistCmd(SPAWNINFO* pChar, char* szLine)
 {
 	gbAssistComplete = 0;
 	cmdAssist(pChar, szLine);
@@ -4937,54 +5344,62 @@ void AssistCmd(PSPAWNINFO pChar, char* szLine)
 // Example:		/setprio <1-6> Where 1 is Low 2 is below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime
 // Author:      EqMule
 // ***************************************************************************
-void SetProcessPriority(PSPAWNINFO pChar, char *szLine)
+void SetProcessPriority(SPAWNINFO* pChar, char* szLine)
 {
-	if (szLine && szLine[0] == '\0') {
+	if (!szLine || szLine[0] == 0)
+	{
 		WriteChatf("Usage: /setprio <1-6> Where 1 is Low 2 is Below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime");
 		return;
 	}
-	DWORD prio = NORMAL_PRIORITY_CLASS;
-	char szPrio[2048] = { 0 };
-	if(int newprio = atoi(szLine)) {
-		switch (newprio)
-		{
-		case 1:
-			prio = IDLE_PRIORITY_CLASS;
-			strcpy_s(szPrio,"Process Priority Set to \agLOW\ax");
-			break;
-		case 2:
-			prio = BELOW_NORMAL_PRIORITY_CLASS;
-			strcpy_s(szPrio,"Process Priority Set to \agBELOW NORMAL\ax");
-			break;
-		case 3:
-			prio = NORMAL_PRIORITY_CLASS;
-			strcpy_s(szPrio,"Process Priority Set to \agNORMAL\ax");
-			break;
-		case 4:
-			prio = ABOVE_NORMAL_PRIORITY_CLASS;
-			strcpy_s(szPrio,"Process Priority Set to \agABOVE NORMAL\ax");
-			break;
-		case 5:
-			prio = HIGH_PRIORITY_CLASS;
-			strcpy_s(szPrio,"Process Priority Set to \agHIGH\ax");
-			break;
-		case 6:
-			prio = REALTIME_PRIORITY_CLASS;
-			strcpy_s(szPrio,"Process Priority Set to \agREALTIME\ax");
-			break;
-		default:
-			prio = NORMAL_PRIORITY_CLASS;
-			break;
-		}
-	}
-	if(HANDLE heqg = OpenProcess(PROCESS_SET_INFORMATION, FALSE, GetCurrentProcessId())) {
-		SetPriorityClass(heqg, prio);
-		CloseHandle(heqg);
-		WriteChatf("%s", szPrio);
-	} else {
+
+	HANDLE hProcess = OpenProcess(PROCESS_SET_INFORMATION, false, GetCurrentProcessId());
+	if (!hProcess)
+	{
 		WriteChatf("Process Priority was NOT changed, Could not open Process");
+		return;
 	}
+
+	switch (atoi(szLine))
+	{
+	case 1:
+		SetPriorityClass(hProcess, IDLE_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agLOW\ax");
+		break;
+
+	case 2:
+		SetPriorityClass(hProcess, BELOW_NORMAL_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agBELOW NORMAL\ax");
+		break;
+
+	case 3:
+		SetPriorityClass(hProcess, NORMAL_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agNORMAL\ax");
+		break;
+
+	case 4:
+		SetPriorityClass(hProcess, ABOVE_NORMAL_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agABOVE NORMAL\ax");
+		break;
+
+	case 5:
+		SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agHIGH\ax");
+		break;
+
+	case 6:
+		SetPriorityClass(hProcess, REALTIME_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agREALTIME\ax");
+		break;
+
+	default:
+		SetPriorityClass(hProcess, NORMAL_PRIORITY_CLASS);
+		WriteChatf("Process Priority Set to \agREALTIME\ax");
+		break;
+	}
+
+	CloseHandle(hProcess);
 }
+
 // ***************************************************************************
 // Function:    ScreenModeCmd
 // Description: '/screenmode' command
@@ -4992,17 +5407,21 @@ void SetProcessPriority(PSPAWNINFO pChar, char *szLine)
 // Example:		/screenmode <#> Where 2 is Normal and 3 is No Windows
 // Author:      EqMule
 // ***************************************************************************
-void ScreenModeCmd(PSPAWNINFO pChar, char *szLine)
+void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
 {
-	if (szLine && szLine[0] == '\0') {
+	if (szLine && szLine[0] == '\0')
+	{
 		WriteChatf("Usage: /screenmode <#>");
 		return;
 	}
+
 	int newprio = atoi(szLine);
 	ScreenMode = newprio;
 	WriteChatf("Screen Mode Set to \ag%d\ax", newprio);
 }
-template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+
+template <unsigned int _Size>
+LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
 {
 	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
 	if (!err) {
@@ -5010,11 +5429,14 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 	}
 	return "";
 }
-template <unsigned int _Size>char* ftoa_s(float fNum, char(&szText)[_Size])
+
+template <unsigned int _Size>
+char* ftoa_s(float fNum, char(&szText)[_Size])
 {
-    sprintf_s(szText, "%.2f", fNum);
-    return szText;
+	sprintf_s(szText, "%.2f", fNum);
+	return szText;
 }
+
 // ***************************************************************************
 // Function:    UserCameraCmd
 // Description: '/usercamera' command
@@ -5024,160 +5446,161 @@ template <unsigned int _Size>char* ftoa_s(float fNum, char(&szText)[_Size])
 // Example:		/usercamera load loades the user 1 camera settings
 // Author:      EqMule
 // ***************************************************************************
-#define EQ_USER_CAM_1 3
-void UserCameraCmd(PSPAWNINFO pChar, char *szLine)
+void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 {
-	if(szLine && szLine[0]=='\0') {
+	if (szLine && szLine[0] == '\0')
+	{
 		WriteChatf("Usage: /usercamera 0-7 sets camera to the number specified.");
 		WriteChatf("Usage: /usercamera save <optional charname> to save the user 1 camera");
 		WriteChatf("Usage: /usercamera load <optional charname> to load your saved user 1 camera");
 		WriteChatf("Usage: /usercamera on/off to toggle Window Selector Display of Current Camera");
 		return;
 	}
+
 	char szArg1[2048] = { 0 };
-	char szArg2[2048] = { 0 };
 	GetArg(szArg1, szLine, 1);
+
+	char szArg2[2048] = { 0 };
 	GetArg(szArg2, szLine, 2);
-	PEQCAMERABASE pUserCam1 = (PEQCAMERABASE)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
+
+	EQCAMERABASE* pUserCam1 = (EQCAMERABASE*)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
 	char szTemp[2048] = { 0 };
-	if (!_stricmp(szArg1, "0")) {
-		*(DWORD*)CDisplay__cameraType = 0;
-	} else if (!_stricmp(szArg1, "0")) {
-		*(DWORD*)CDisplay__cameraType = 0;
-	} else if (!_stricmp(szArg1, "1")) {
-		*(DWORD*)CDisplay__cameraType = 1;
-	} else if (!_stricmp(szArg1, "2")) {
-		*(DWORD*)CDisplay__cameraType = 2;
-	} else if (!_stricmp(szArg1, "3")) {
-		*(DWORD*)CDisplay__cameraType = 3;
-	} else if (!_stricmp(szArg1, "4")) {
-		*(DWORD*)CDisplay__cameraType = 4;
-	} else if (!_stricmp(szArg1, "5")) {
+
+	if (!_stricmp(szArg1, "0"))
+	{
+		*(DWORD*)CDisplay__cameraType = EQ_FIRST_PERSON_CAM;
+	}
+	else if (!_stricmp(szArg1, "1"))
+	{
+		*(DWORD*)CDisplay__cameraType = EQ_OVERHEAD_CAM;
+	}
+	else if (!_stricmp(szArg1, "2"))
+	{
+		*(DWORD*)CDisplay__cameraType = EQ_CHASE_CAM;
+	}
+	else if (!_stricmp(szArg1, "3"))
+	{
+		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
+	}
+	else if (!_stricmp(szArg1, "4"))
+	{
+		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_2;
+	}
+	else if (!_stricmp(szArg1, "5"))
+	{
 		*(DWORD*)CDisplay__cameraType = 5;
-	} else if (!_stricmp(szArg1, "6")) {
+	}
+	else if (!_stricmp(szArg1, "6"))
+	{
 		*(DWORD*)CDisplay__cameraType = 6;
-	} else if (!_stricmp(szArg1, "7")) {
+	}
+	else if (!_stricmp(szArg1, "7"))
+	{
 		*(DWORD*)CDisplay__cameraType = 7;
-	} else if (!_stricmp(szArg1, "on")) {
+	}
+	else if (!_stricmp(szArg1, "on"))
+	{
 		gbShowCurrentCamera = true;
 		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "1", gszINIFilename);
-		if (pSelectorWnd) {
+
+		if (pSelectorWnd)
+		{
 			char szOut[2048] = { 0 };
 			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
 			pSelectorWnd->SetWindowText(szOut);
 		}
-	} else if (!_stricmp(szArg1, "off")) {
+	}
+	else if (!_stricmp(szArg1, "off"))
+	{
 		gbShowCurrentCamera = false;
+		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", gszINIFilename);
+
 		if (pSelectorWnd)
 		{
 			pSelectorWnd->SetWindowText("Selector Window");
 		}
-		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", gszINIFilename);
-	} else if (!_stricmp(szArg1, "save")) {
+	}
+	else if (!_stricmp(szArg1, "save"))
+	{
 		char szIniFile[2048] = { 0 };
 		strcpy_s(szIniFile, gszINIFilename);
-		if (szArg2 && szArg2[0] != '\0') {
+
+		if (szArg2 && szArg2[0] != '\0')
+		{
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
 		}
+
 		WritePrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10), szIniFile);
 		WritePrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10), szIniFile);
 		WritePrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Distance", ftoa_s(pUserCam1->Distance, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Heading", ftoa_s(pUserCam1->Heading, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Height", ftoa_s(pUserCam1->Height, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Pitch", ftoa_s(pUserCam1->Pitch, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szIniFile);
-        WritePrivateProfileString("User Camera 1",   "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szIniFile);
-	} else if (!_stricmp(szArg1, "load")) {
+		WritePrivateProfileString("User Camera 1", "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Distance", ftoa_s(pUserCam1->Distance, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Heading", ftoa_s(pUserCam1->Heading, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Height", ftoa_s(pUserCam1->Height, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Pitch", ftoa_s(pUserCam1->Pitch, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szIniFile);
+	}
+	else if (!_stricmp(szArg1, "load"))
+	{
 		char szIniFile[2048] = { 0 };
 		strcpy_s(szIniFile, gszINIFilename);
+
 		char szOut[2048] = { 0 };
-		if (szArg2 && szArg2[0] != '\0') {
+		if (szArg2 && szArg2[0] != '\0')
+		{
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
 		}
-		GetPrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10),szOut,2048, szIniFile);
-		pUserCam1->bAutoHeading = atoi(szOut)!=0;
-		GetPrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10),szOut,2048, szIniFile);
-		pUserCam1->bAutoPitch = atoi(szOut)!=0;
-		GetPrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10),szOut,2048, szIniFile);
-		pUserCam1->bSkipFrame = atoi(szOut)!=0;
-		GetPrivateProfileString("User Camera 1", "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp),szOut,2048, szIniFile);
+
+		GetPrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10), szOut, 2048, szIniFile);
+		pUserCam1->bAutoHeading = atoi(szOut) != 0;
+		GetPrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10), szOut, 2048, szIniFile);
+		pUserCam1->bAutoPitch = atoi(szOut) != 0;
+		GetPrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10), szOut, 2048, szIniFile);
+		pUserCam1->bSkipFrame = atoi(szOut) != 0;
+		GetPrivateProfileString("User Camera 1", "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->DirectionalHeading = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Distance", ftoa_s(pUserCam1->Distance, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Distance", ftoa_s(pUserCam1->Distance, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Distance = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Heading", ftoa_s(pUserCam1->Heading, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Heading", ftoa_s(pUserCam1->Heading, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Heading = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Height", ftoa_s(pUserCam1->Height, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Height", ftoa_s(pUserCam1->Height, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Height = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->OldPosition_X = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->OldPosition_Y = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->OldPosition_Z = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Orientation_X = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Orientation_Y = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Orientation_Z = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Pitch", ftoa_s(pUserCam1->Pitch, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Pitch", ftoa_s(pUserCam1->Pitch, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Pitch = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp),szOut,2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->SideMovement = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Zoom", ftoa_s(pUserCam1->Zoom, szTemp),szOut,2048,szIniFile);
+		GetPrivateProfileString("User Camera 1", "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szOut, 2048, szIniFile);
 		pUserCam1->Zoom = (float)atof(szOut);
 		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
 	}
 }
-// ***************************************************************************
-// Function:    MapZoomCmd
-// Description: '/mapzoom' command
-// Purpose:     Adds the ability to set the maps zoom from commandline.
-// Usage:		/mapzoom <float>
-// Example:		/mapzoom 750
-// Author:      EqMule
-// ***************************************************************************
-//todo: check manually
-void MapZoomCmd(PSPAWNINFO pChar, char *szLine)
-{
-	// Added a new command: /mapzoom - feature request by Bogreaper
-	// It sets the maps zoom.
-	// Example: /mapzoom 750
-	WriteChatf("not implemented yet");
-	return;
-	if(szLine && szLine[0]=='\0') {
-		WriteChatf("Usage: /mapzoom <float>\nExample: /mapzoom 750");
-		return;
-	}
-	float fZoom = (float)atof(szLine);
-	if (fZoom <= 0)
-		fZoom = 1000;
 
-	if (pMapViewWnd)
-	{
-		//PsMapViewMap pMapView = (PsMapViewMap)&pMap->pMapViewMapVfTable;
-		//float fTemp = fabsf(pMapView->MapViewMaxX - pMapView->MapViewMinX);
-		////todo: get the formulae right...
-		//float theabs = fTemp / 360.0f / (fZoom + 1) * 10000;
-		//int Range = (int)fTemp;
-		//((MapViewMap*)pMapView)->SetZoom(theabs);
-	}
-}
 void SetForegroundWindowInternal(HWND hWnd)
 {
 	if (!IsWindow(hWnd)) return;
 
 	BYTE keyState[256] = { 0 };
 	//to unlock SetForegroundWindow we need to imitate Alt pressing
-	if (GetKeyboardState((LPBYTE)&keyState))
+	if (GetKeyboardState((LPBYTE)& keyState))
 	{
 		if (!(keyState[VK_MENU] & 0x80))
 		{
@@ -5188,7 +5611,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 	SetForegroundWindow(hWnd);
 	ShowWindow(hWnd, SW_SHOWNORMAL);
 
-	if (GetKeyboardState((LPBYTE)&keyState))
+	if (GetKeyboardState((LPBYTE)& keyState))
 	{
 		if (!(keyState[VK_MENU] & 0x80))
 		{
@@ -5196,6 +5619,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 		}
 	}
 }
+
 // ***************************************************************************
 // Function:    ForeGroundCmd
 // Description: '/foreground' command
@@ -5204,8 +5628,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 // Example:     /bct <toonname> //foreground
 // Author:      EqMule
 // ***************************************************************************
-
-void ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
+void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
 {
 	HWND EQhWnd = GetEQWindowHandle();
 

@@ -620,7 +620,7 @@ struct [[offsetcomments]] SPAWNINFO
 /*0x12cc*/ bool              bHideCorpse;
 /*0x12cd*/ char              AssistName[0x40];
 /*0x130d*/ bool              InvitedToGroup;
-/*0x1310*/ int               GroupMemberTargeted;          // 0xFFFFFFFF if no target, else 1 through 5
+/*0x1310*/ int               GroupMemberTargeted;          // -1 if no target, else 1 through 5
 /*0x1314*/ bool              bRemovalPending;              // see 5E0763 in feb 14 2019 test
 /*0x1318*/ void*             pCorpse;
 /*0x131c*/ float             EmitterScalingRadius;

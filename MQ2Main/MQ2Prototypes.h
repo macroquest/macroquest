@@ -25,7 +25,7 @@ typedef void(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
 typedef void(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
 typedef void(__cdecl *fMQCommand)(SPAWNINFO*, char* Buffer,size_t BuffLen);
 typedef void(__cdecl *fEQMemSpell)(DWORD, DWORD);
-typedef void(__cdecl *fEQLoadSpells)(PSPELLFAVORITE, DWORD);
+typedef void(__cdecl *fEQLoadSpells)(SpellLoadout*, DWORD);
 typedef void(__cdecl *fEQSelectItem)(class ItemGlobalIndex *, int Unknown);
 typedef void(__cdecl *fEQBuyItem)(int);
 typedef void(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem

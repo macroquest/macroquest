@@ -20,15 +20,15 @@
 
 namespace eqlib {
 
-#define NUM_SLOTDATA                             0x6
+constexpr int NUM_SLOTDATA = 6;
 
-#define ITEM_NAME_LEN                            0x40
-#define LORE_NAME_LEN                            0x50
+constexpr int ITEM_NAME_LEN = 64;
+constexpr int LORE_NAME_LEN = 80;
 
-#define NUM_INV_SLOTS                            33
-#define NUM_BANK_SLOTS                           24
-#define NUM_SHAREDBANK_SLOTS                     6
-#define MAX_KEYRINGITEMS                         0x1B // not really sure need to confirm this
+constexpr int NUM_INV_SLOTS = 33;
+constexpr int NUM_BANK_SLOTS = 24;
+constexpr int NUM_SHAREDBANK_SLOTS = 6;
+constexpr int MAX_KEYRINGITEMS = 27; // not really sure need to confirm this
 
 #if 0 // to be enabled when compatible
 class ItemClient;

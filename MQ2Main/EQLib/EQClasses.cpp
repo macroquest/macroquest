@@ -1490,7 +1490,7 @@ FUNCTION_AT_ADDRESS(CTargetManager* CTargetManager::Get(), CTargetManager__Get);
 //============================================================================
 
 #ifdef CTargetRing__Cast_x
-FUNCTION_AT_ADDRESS(int CTargetRing::Cast(CVector3*), CTargetRing__Cast);
+FUNCTION_AT_ADDRESS(int CTargetRing::Cast(const CVector3&), CTargetRing__Cast);
 #endif
 
 //============================================================================

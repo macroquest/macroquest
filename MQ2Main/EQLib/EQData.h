@@ -357,9 +357,9 @@ static SClassInfo ClassInfo[] =
 #define DEITY_Veeshan                            216
 #define NUM_DEITIES                              16
 
-#define ITEMTYPE_NORMAL                          0
-#define ITEMTYPE_PACK                            1
-#define ITEMTYPE_BOOK                            2
+constexpr int ITEMTYPE_NORMAL = 0;
+constexpr int ITEMTYPE_PACK = 1;
+constexpr int ITEMTYPE_BOOK = 2;
 
 #define COMP_NONE                                0
 #define COMP_EQ                                  1
@@ -559,10 +559,25 @@ constexpr int NUM_RACES = 17;
 #define SPA_TRIGGER_BEST_SPELL_GROUP             470
 #define SPA_SPELLDAMAGETAKEN                     483
 
-#define TT_PBAE                                  0x04
-#define TT_TARGETED_AE                           0x08
-#define TT_AE_PC_V2                              0x28
-#define TT_DIRECTIONAL                           0x2a
+// Camera modes
+constexpr int EQ_FIRST_PERSON_CAM = 0;
+constexpr int EQ_OVERHEAD_CAM = 1;
+constexpr int EQ_CHASE_CAM = 2;
+constexpr int EQ_USER_CAM_1 = 3;
+constexpr int EQ_USER_CAM_2 = 4;
+
+// Spell targeting types
+constexpr int TT_PBAE = 4;
+constexpr int TT_TARGETED_AE = 8;
+constexpr int TT_AE_PC_V2 = 40;
+constexpr int TT_DIRECTIONAL = 42;
+constexpr int TT_SPLASH = 45;
+
+constexpr char* KeyRingWindowParent = "KeyRingWnd";
+constexpr char* MountWindowList = "KRW_Mounts_List";
+constexpr char* IllusionWindowList = "KRW_Illusions_List";
+constexpr char* FamiliarWindowList = "KRW_Familiars_list";
+constexpr char* KeyRingTab = "KRW_Subwindows";
 
 enum ETargetRelationship
 {
@@ -1025,9 +1040,10 @@ struct [[offsetcomments]] DOOR
 };
 using PDOOR = DOOR*;
 
+// This is EqSwitchManager
 struct [[offsetcomments]] DOORTABLE
 {
-/*0x000*/ DWORD NumEntries;
+/*0x000*/ int   NumEntries;
 /*0x004*/ PDOOR pDoor[0x0FF];
 /*0x400*/
 };
@@ -1404,16 +1420,18 @@ struct [[offsetcomments]] INTERACTGROUNDITEM
 };
 using PINTERACTGROUNDITEM = INTERACTGROUNDITEM;
 
-struct [[offsetcomments]] SPELLFAVORITE
+constexpr int MAX_SPELL_LOADOUT_NAME = 24;
+
+struct [[offsetcomments]] SpellLoadout
 {
-/*0x00*/ DWORD SpellId[NUM_SPELL_GEMS];
-/*0x38*/ char  Name[0x19];
-/*0x51*/ BYTE  inuse;
-/*0x52*/ BYTE  Byte_0x4a;
-/*0x53*/ BYTE  Byte_0x4b;
+/*0x00*/ int  SpellId[NUM_SPELL_GEMS];
+/*0x38*/ char Name[MAX_SPELL_LOADOUT_NAME + 1];
+/*0x51*/ bool inuse;
+/*0x52*/ bool changed;
 /*0x54*/
 };
-using PSPELLFAVORITE = SPELLFAVORITE*;
+using SPELLFAVORITE [[deprecated("Use SpellLoadout instead")]] = SpellLoadout;
+using PSPELLFAVORITE [[deprecated("Use SpellLoadout* instead")]] = SpellLoadout*;
 
 struct [[offsetcomments]] CMDLIST
 {

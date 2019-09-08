@@ -14,8 +14,6 @@
 
 #pragma once
 
-#if defined(ISXEQ_LEGACY) || !defined(ISXDK_VERSION)
-
 /* COMMANDS */
 EQLIB_API void SetError                            (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void SuperWho                            (PSPAWNINFO pChar, char* szLine);
@@ -106,7 +104,6 @@ EQLIB_API void SuperWhoTarget                      (PSPAWNINFO pChar, char* szLi
 EQLIB_API void SWhoFilter                          (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void Target                              (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void Unload                              (PSPAWNINFO pChar, char* szLine);
-EQLIB_API void UpdateItemInfo                      (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void ZapVars                             (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void PopupText                           (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void PopupTextCustom                     (PSPAWNINFO pChar, char* szLine);
@@ -125,8 +122,6 @@ EQLIB_API void InvokeCmd                           (PSPAWNINFO pChar, char* szLi
 EQLIB_API void SetProcessPriority                  (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void ScreenModeCmd                       (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void UserCameraCmd                       (PSPAWNINFO pChar, char* szLine);
-EQLIB_API void MapZoomCmd                          (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void ForeGroundCmd                       (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void QuitCmd                             (PSPAWNINFO pChar, char* szLine);
 EQLIB_API void EngineCommand                       (PSPAWNINFO pChar, char* szLine);
-#endif

@@ -368,22 +368,6 @@ EQLIB_VAR const char* szItemSlot[];
 EQLIB_VAR const char* szEquipmentSlot[];
 EQLIB_VAR const char* szExpansions[];
 
-EQLIB_VAR BOOL bLaxColor;
-EQLIB_VAR const char* szColorAdjective[];
-EQLIB_VAR const char* szColorAdjectiveYou[];
-EQLIB_VAR const char* szColorExpletive[];
-EQLIB_VAR const char* szColorSyntaxError[];
-EQLIB_VAR const char* szColorMacroError[];
-EQLIB_VAR const char* szColorMQ2DataError[];
-EQLIB_VAR const char* szColorFatalError[];
-EQLIB_VAR DWORD nColorAdjective;
-EQLIB_VAR DWORD nColorAdjectiveYou;
-EQLIB_VAR DWORD nColorExpletive;
-EQLIB_VAR DWORD nColorSyntaxError;
-EQLIB_VAR DWORD nColorMacroError;
-EQLIB_VAR DWORD nColorMQ2DataError;
-EQLIB_VAR DWORD nColorFatalError;
-
 EQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
 EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 EQLIB_VAR MQPlugin* pPlugins;
@@ -482,7 +466,7 @@ EQLIB_VAR DWORD* pScreenMode;
 EQLIB_VAR char* pMouseLook;
 #define bMouseLook (*pMouseLook)
 
-EQLIB_VAR SPELLFAVORITE* pSpellSets;
+EQLIB_VAR SpellLoadout* pSpellSets;
 EQLIB_VAR AltAdvManager** ppAltAdvManager;
 #define pAltAdvManager (*ppAltAdvManager)
 

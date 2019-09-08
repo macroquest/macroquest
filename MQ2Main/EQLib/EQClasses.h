@@ -915,7 +915,7 @@ public:
 class [[offsetcomments]] CTargetRing
 {
 public:
-	EQLIB_OBJECT int Cast(CVector3* pos);
+	EQLIB_OBJECT int Cast(const CVector3& pos);
 
 /*0x00*/ DWORD         Gem;           // the gem the spell below is memmed in... 0-11
 /*0x04*/ PSPELL        thespell;
@@ -1333,9 +1333,9 @@ public:
 
 enum KeyRingType
 {
-	eMount,
-	eIllusion,
-	eFamiliar,
+	eMount = 0,
+	eIllusion = 1,
+	eFamiliar = 2,
 };
 
 enum eAugFitRet

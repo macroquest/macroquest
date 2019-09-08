@@ -86,12 +86,6 @@
 //#define TEST
 #define LIVE
 
-#define KeyRingWindowParent "KeyRingWnd"
-#define MountWindowList "KRW_Mounts_List"
-#define IllusionWindowList "KRW_Illusions_List"
-#define FamiliarWindowList "KRW_Familiars_list"
-#define KeyRingTab "KRW_Subwindows"
-
 #ifdef EQLIB_EXPORTS
 #define EQLIB_API extern "C" __declspec(dllexport)
 #define EQLIB_VAR extern "C" __declspec(dllexport)
@@ -380,7 +374,7 @@ EQLIB_API bool StripQuotes(char* str);
 EQLIB_API void MakeMeVisible(SPAWNINFO* pChar, char* szLine);
 EQLIB_API void RemoveAura(SPAWNINFO* pChar, char* szLine);
 EQLIB_API bool GetAllMercDesc(std::map<int, MercDesc>& minfo);
-EQLIB_API int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact = true, bool usecmd = false);
+EQLIB_API int GetKeyRingIndex(KeyRingType KeyRing, const char* szItemName, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API int GetIllusionCount();
 EQLIB_API int GetFamiliarCount();
@@ -526,7 +520,7 @@ EQLIB_API char* GetModel(PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API void RewriteSubstitutions();
 EQLIB_API void RewriteAliases();
 EQLIB_API void WriteAliasToIni(const char* Name, const char* Command);
-EQLIB_API DWORD FindSpellListByName(char* szName);
+EQLIB_API int FindSpellListByName(const char* szName);
 EQLIB_API float StateHeightMultiplier(DWORD StandState);
 extern void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
 extern void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
@@ -618,7 +612,7 @@ EQLIB_API bool Calculate(const char* szFormula, double& Dest);
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 
-#define LIGHT_COUNT			13
+constexpr int LIGHT_COUNT = 13;
 //#define MAX_COMBINES		61
 //#define MAX_ITEMTYPES		71
 //#define MAX_SPELLEFFECTS	487

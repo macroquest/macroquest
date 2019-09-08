@@ -723,7 +723,7 @@ DWORD __stdcall searchthread(void* pData)
 
 			if (startwait < MQGetTickCount64())
 			{
-				WriteChatfSafe("1. timed out in /bzsrch waiting for BZR_QueryButton to enable.");
+				WriteChatf("1. timed out in /bzsrch waiting for BZR_QueryButton to enable.");
 				break;
 			}
 		}
@@ -751,12 +751,12 @@ DWORD __stdcall searchthread(void* pData)
 		}
 		else
 		{
-			WriteChatfSafe("woah! hold your horses there bazaarmule... BZR_QueryButton is not enabled, I suggest you check that in your macro before you issue a /bzsrch command.");
+			WriteChatf("woah! hold your horses there bazaarmule... BZR_QueryButton is not enabled, I suggest you check that in your macro before you issue a /bzsrch command.");
 		}
 	}
 	else
 	{
-		WriteChatfSafe("Whats wrong? couldnt find the BZR_QueryButton window.");
+		WriteChatf("Whats wrong? couldnt find the BZR_QueryButton window.");
 	}
 
 	return 0;

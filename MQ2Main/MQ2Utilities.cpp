@@ -196,7 +196,7 @@ void WriteChatColorf(const char* szFormat, int color, ...)
 
 //============================================================================
 
-void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
+static void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
 {
 	DWORD NewLength = (DWORD)strlen(szNewString);
 	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
@@ -204,31 +204,12 @@ void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const cha
 }
 
 void ConvertCR(char* Text, size_t LineLen)
-{// not super-efficient but this is only being called at initialization currently.
+{
+	// not super-efficient but this is only being called at initialization currently.
 	while (char* Next = strstr(Text, "\\n"))
 	{
 		int len = (int)(Next - Text);
 		StrReplaceSection(Next, LineLen - len, 2, "\n");
-	}
-}
-
-void Flavorator(char* szLine, size_t LineLen)
-{
-	char* pSpot = 0;
-	while (pSpot = strstr(szLine, "%e"))
-	{
-		int len = (int)(pSpot - szLine);
-		StrReplaceSection(pSpot, LineLen - len, 2, szColorExpletive[rand() % nColorExpletive]);
-	}
-	while (pSpot = strstr(szLine, "%a"))
-	{
-		int len = (int)(pSpot - szLine);
-		StrReplaceSection(pSpot, LineLen - len, 2, szColorAdjective[rand() % nColorAdjective]);
-	}
-	while (pSpot = strstr(szLine, "%y"))
-	{
-		int len = (int)(pSpot - szLine);
-		StrReplaceSection(pSpot, LineLen - len, 2, szColorAdjectiveYou[rand() % nColorAdjectiveYou]);
 	}
 }
 
@@ -239,16 +220,6 @@ void SyntaxError(char* szFormat, ...)
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
 	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
-		if (bLaxColor)
-		{
-			char szColor[MAX_STRING] = { 0 };
-			strcpy_s(szColor, szColorSyntaxError[rand() % nColorSyntaxError]);
-			if (szColor[0])
-			{
-				Flavorator(szColor, MAX_STRING);
-				WriteChatColor(szColor);
-			}
-		}
 		WriteChatColor(szOutput, CONCOLOR_YELLOW);
 		strcpy_s(gszLastSyntaxError, szOutput);
 		LocalFree(szOutput);
@@ -262,16 +233,6 @@ void MacroError(char* szFormat, ...)
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
 	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
-		if (bLaxColor)
-		{
-			char szColor[MAX_STRING] = { 0 };
-			strcpy_s(szColor, szColorMacroError[rand() % nColorMacroError]);
-			if (szColor[0])
-			{
-				Flavorator(szColor, MAX_STRING);
-				WriteChatColor(szColor);
-			}
-		}
 		WriteChatColor(szOutput, CONCOLOR_RED);
 		if (bAllErrorsLog) MacroLog(NULL, "Macro Error");
 		if (bAllErrorsLog) MacroLog(NULL, szOutput);
@@ -287,6 +248,7 @@ void MacroError(char* szFormat, ...)
 		}
 	}
 }
+
 void FatalError(char* szFormat, ...)
 {
 	va_list vaList;
@@ -294,22 +256,13 @@ void FatalError(char* szFormat, ...)
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
 	if (char* szOutput = (char*)LocalAlloc(LPTR, len + 32)) {
 		vsprintf_s(szOutput, len + 32, szFormat, vaList);
-		if (bLaxColor)
-		{
-			char szColor[MAX_STRING] = { 0 };
-			strcpy_s(szColor, szColorFatalError[rand() % nColorFatalError]);
-			if (szColor[0])
-			{
-				Flavorator(szColor, MAX_STRING);
-				WriteChatColor(szColor);
-			}
-		}
 		WriteChatColor(szOutput, CONCOLOR_RED);
 		strcpy_s(gszLastNormalError, szOutput);
 		if (bAllErrorsLog) MacroLog(NULL, "Fatal Error");
 		if (bAllErrorsLog) MacroLog(NULL, szOutput);
 		LocalFree(szOutput);
 	}
+
 	if (gMacroBlock)
 	{
 		DumpStack(0, 0);
@@ -328,16 +281,6 @@ void MQ2DataError(char* szFormat, ...)
 			DebugSpew("%s", szOutput);
 		else
 		{
-			if (bLaxColor)
-			{
-				char szColor[MAX_STRING] = { 0 };
-				strcpy_s(szColor, szColorMQ2DataError[rand() % nColorMQ2DataError]);
-				if (szColor[0])
-				{
-					Flavorator(szColor, MAX_STRING);
-					WriteChatColor(szColor);
-				}
-			}
 			WriteChatColor(szOutput, CONCOLOR_RED);
 		}
 		strcpy_s(gszLastMQ2DataError, szOutput);
@@ -6888,12 +6831,15 @@ float StateHeightMultiplier(DWORD StandState)
 		return 0.9f;
 	}
 }
-DWORD FindSpellListByName(char* szName)
+
+int FindSpellListByName(const char* szName)
 {
-	DWORD Index;
-	for (Index = 0; Index < NUM_SPELL_SETS; Index++) {
-		if (!_stricmp(pSpellSets[Index].Name, szName)) return Index;
+	for (int Index = 0; Index < NUM_SPELL_SETS; Index++)
+	{
+		if (!_stricmp(pSpellSets[Index].Name, szName))
+			return Index;
 	}
+
 	return -1;
 }
 
@@ -10734,7 +10680,7 @@ int GetFamiliarCount()
 	return Count;
 }
 
-int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact, bool usecmd)
+int GetKeyRingIndex(KeyRingType KeyRing, const char* szItemName, bool bExact, bool usecmd)
 {
 	int index = 0;
 
@@ -10742,11 +10688,11 @@ int GetKeyRingIndex(int KeyRing, const char* szItemName, bool bExact, bool usecm
 	{
 		CListWnd* clist = nullptr;
 
-		if (KeyRing == 2)
+		if (KeyRing == eFamiliar)
 			clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
-		else if (KeyRing == 1)
+		else if (KeyRing == eIllusion)
 			clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
-		else
+		else if (KeyRing == eMount)
 			clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
 
 		if (clist)

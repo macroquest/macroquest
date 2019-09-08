@@ -161,7 +161,6 @@ bool ParseINIFile(const char* lpINIPath)
 	gSpewToFile              = 1 == GetPrivateProfileInt("MacroQuest", "DebugSpewToFile", 0, Filename);
 	gMQPauseOnChat           = 1 == GetPrivateProfileInt("MacroQuest", "MQPauseOnChat", 0, Filename);
 	gKeepKeys                = 1 == GetPrivateProfileInt("MacroQuest", "KeepKeys", 0, Filename);
-	bLaxColor                = 1 == GetPrivateProfileInt("MacroQuest", "LaxColor", 0, Filename);
 	bAllErrorsDumpStack      = 1 == GetPrivateProfileInt("MacroQuest", "AllErrorsDumpStack", 1, Filename);
 	bAllErrorsFatal          = 1 == GetPrivateProfileInt("MacroQuest", "AllErrorsFatal", 0, Filename);
 	gbMQ2LoadingMsg          = 1 == GetPrivateProfileInt("MacroQuest", "MQ2LoadingMsg", 1, Filename);
@@ -476,14 +475,6 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands - 3] = "UNKNOWN0x21b";
 	szEQMappableCommands[nEQMappableCommands - 2] = "UNKNOWN0x21c";
 	szEQMappableCommands[nEQMappableCommands - 1] = "UNKNOWN0x21d";
-
-	for (nColorAdjective = 0; szColorAdjective[nColorAdjective]; nColorAdjective++) {}
-	for (nColorAdjectiveYou = 0; szColorAdjectiveYou[nColorAdjectiveYou]; nColorAdjectiveYou++) {}
-	for (nColorExpletive = 0; szColorExpletive[nColorExpletive]; nColorExpletive++) {}
-	for (nColorSyntaxError = 0; szColorSyntaxError[nColorSyntaxError]; nColorSyntaxError++) {}
-	for (nColorMacroError = 0; szColorMacroError[nColorMacroError]; nColorMacroError++) {}
-	for (nColorMQ2DataError = 0; szColorMQ2DataError[nColorMQ2DataError]; nColorMQ2DataError++) {}
-	for (nColorFatalError = 0; szColorFatalError[nColorFatalError]; nColorFatalError++) {}
 
 	// from now on MQ2IC is not optional.
 	LoadMQ2Plugin("mq2ic");
