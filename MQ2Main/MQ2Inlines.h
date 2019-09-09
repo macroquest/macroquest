@@ -526,13 +526,22 @@ inline float Get3DDistance(float X1, float Y1, float Z1, float X2, float Y2, flo
 	return sqrtf(dX * dX + dY * dY + dZ * dZ);
 }
 
-#define DistanceToSpawn(pChar, pSpawn) \
-	GetDistance(pChar, pSpawn)
-#define Distance3DToSpawn(pSpawn1, pSpawn2) \
-	Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z, \
-	              ((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z)
+inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+{
+	return GetDistance(pChar, pSpawn);
+}
 
-#define _FileExists(filename) ((_access( filename, 0 )) != -1)
+template <typename T1, typename T2>
+inline float Distance3DToSpawn(T1* pSpawn1, T2* pSpawn2)
+{
+	return Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z, \
+		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
+}
+
+inline bool _FileExists(const char* filename)
+{
+	return _access(filename, 0) != 1;
+}
 
 // ***************************************************************************
 // FindMount(SPAWNINFO*) - Used to find the mount of a spawn, if one

@@ -40,13 +40,15 @@ void PostToMainThread(std::function<void()>&& callback)
 
 static void ProcessQueuedEvents()
 {
-	std::scoped_lock lock(s_queuedEventMutex);
+	std::unique_lock lock(s_queuedEventMutex);
 
 	if (s_queuedEvents.empty())
 		return;
 
 	std::vector<std::function<void()>> events;
 	events.swap(s_queuedEvents);
+
+	lock.unlock();
 
 	for (auto& ev : s_queuedEvents)
 		ev();
@@ -428,6 +430,30 @@ static void Pulse()
 		}
 	}
 }
+
+// Trims trailing whitespace from strings in the string table.
+static void FixStringTable()
+{
+	EQSTRINGTABLE* pTable = (EQSTRINGTABLE*)pStringTable;
+	for (int index = 0; index < pTable->Count; index++)
+	{
+		if (EQSTRING* pStr = pTable->StringItems[index])
+		{
+			if (char* p = pStr->String)
+			{
+				while (*p)
+					p++;
+				p--;
+				while (*p == ' ' && p != pStr->String)
+				{
+					*p = 0;
+					p--;
+				}
+			}
+		}
+	}
+}
+
 
 enum HeartbeatState
 {

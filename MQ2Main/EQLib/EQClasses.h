@@ -689,7 +689,7 @@ public:
 	EQLIB_OBJECT bool ValidGuildName(int);
 	EQLIB_OBJECT char* GetGuildMotd();
 	EQLIB_OBJECT char* GetGuildMotdAuthor();
-	EQLIB_OBJECT char* GetGuildName(int64_t);
+	EQLIB_OBJECT const char* GetGuildName(int64_t);
 	EQLIB_OBJECT int64_t GetGuildIndex(char*);
 	EQLIB_OBJECT GuildMember* FindMemberByName(const char*);
 	EQLIB_OBJECT void DeleteAllMembers();

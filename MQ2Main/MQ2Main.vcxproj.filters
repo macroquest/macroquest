@@ -125,6 +125,9 @@
     <ClCompile Include="EQLib\EQLib.cpp">
       <Filter>Source Files\EQLib</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2Spells.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">

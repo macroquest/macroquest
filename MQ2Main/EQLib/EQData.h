@@ -415,34 +415,34 @@ constexpr int ITEMTYPE_BOOK = 2;
 #define MAX_STRING                               2048
 #define MAX_VARNAME                              64
 
-#define ALTCURRENCY_DOUBLOONS                    0xa
-#define ALTCURRENCY_ORUX                         0xb
-#define ALTCURRENCY_PHOSPHENES                   0xc
-#define ALTCURRENCY_PHOSPHITES                   0xd
-#define ALTCURRENCY_FAYCITES                     0xe
-#define ALTCURRENCY_CHRONOBINES                  0xf
-#define ALTCURRENCY_SILVERTOKENS                 0x10
-#define ALTCURRENCY_GOLDTOKENS                   0x11
-#define ALTCURRENCY_MCKENZIE                     0x12
-#define ALTCURRENCY_BAYLE                        0x13
-#define ALTCURRENCY_RECLAMATION                  0x14
-#define ALTCURRENCY_BRELLIUM                     0x15
-#define ALTCURRENCY_MOTES                        0x16
-#define ALTCURRENCY_REBELLIONCHITS               0x17
-#define ALTCURRENCY_DIAMONDCOINS                 0x18
-#define ALTCURRENCY_BRONZEFIATS                  0x19
-#define ALTCURRENCY_VOUCHER                      0x1a
-#define ALTCURRENCY_VELIUMSHARDS                 0x1b
-#define ALTCURRENCY_CRYSTALLIZEDFEAR             0x1c
-#define ALTCURRENCY_SHADOWSTONES                 0x1d
-#define ALTCURRENCY_DREADSTONES                  0x1e
-#define ALTCURRENCY_MARKSOFVALOR                 0x1f
-#define ALTCURRENCY_MEDALSOFHEROISM              0x20
-#define ALTCURRENCY_COMMEMORATIVE_COINS          0x21
-#define ALTCURRENCY_FISTSOFBAYLE                 0x22
-#define ALTCURRENCY_NOBLES                       0x23
-#define ALTCURRENCY_ENERGYCRYSTALS               0x24
-#define ALTCURRENCY_PIECESOFEIGHT                0x25
+constexpr int ALTCURRENCY_DOUBLOONS            = 10;
+constexpr int ALTCURRENCY_ORUX                 = 11;
+constexpr int ALTCURRENCY_PHOSPHENES           = 12;
+constexpr int ALTCURRENCY_PHOSPHITES           = 13;
+constexpr int ALTCURRENCY_FAYCITES             = 14;
+constexpr int ALTCURRENCY_CHRONOBINES          = 15;
+constexpr int ALTCURRENCY_SILVERTOKENS         = 16;
+constexpr int ALTCURRENCY_GOLDTOKENS           = 17;
+constexpr int ALTCURRENCY_MCKENZIE             = 18;
+constexpr int ALTCURRENCY_BAYLE                = 19;
+constexpr int ALTCURRENCY_RECLAMATION          = 20;
+constexpr int ALTCURRENCY_BRELLIUM             = 21;
+constexpr int ALTCURRENCY_MOTES                = 22;
+constexpr int ALTCURRENCY_REBELLIONCHITS       = 23;
+constexpr int ALTCURRENCY_DIAMONDCOINS         = 24;
+constexpr int ALTCURRENCY_BRONZEFIATS          = 25;
+constexpr int ALTCURRENCY_VOUCHER              = 26;
+constexpr int ALTCURRENCY_VELIUMSHARDS         = 27;
+constexpr int ALTCURRENCY_CRYSTALLIZEDFEAR     = 28;
+constexpr int ALTCURRENCY_SHADOWSTONES         = 29;
+constexpr int ALTCURRENCY_DREADSTONES          = 30;
+constexpr int ALTCURRENCY_MARKSOFVALOR         = 31;
+constexpr int ALTCURRENCY_MEDALSOFHEROISM      = 32;
+constexpr int ALTCURRENCY_COMMEMORATIVE_COINS  = 33;
+constexpr int ALTCURRENCY_FISTSOFBAYLE         = 34;
+constexpr int ALTCURRENCY_NOBLES               = 35;
+constexpr int ALTCURRENCY_ENERGYCRYSTALS       = 36;
+constexpr int ALTCURRENCY_PIECESOFEIGHT        = 37;
 
 enum MOUSE_DATA_TYPES
 {
@@ -496,6 +496,14 @@ constexpr int NUM_RACES = 17;
 #define EXPANSION_RoS                            EQ_EXPANSION(24)
 #define EXPANSION_TBL                            EQ_EXPANSION(25)
 #define NUM_EXPANSIONS                           25
+
+// LDON Dungeon themes. This is a bitmask.
+constexpr int LDON_None = 0;
+constexpr int LDON_DG   = 1;      // deepest guk
+constexpr int LDON_MIR  = 2;      // miragul's menagerie
+constexpr int LDON_MIS  = 4;      // Mistmoore catacombs
+constexpr int LDON_RUJ  = 8;      // rujarkian hills
+constexpr int LDON_TAK  = 16;     // takish-hiz
 
 #define CALC_1TICK                               107
 #define CALC_2TICK                               108
@@ -842,8 +850,8 @@ using PEQCAMERABASE = EQCAMERABASE*;
 #define MODEL_GLOVES2                            0x0c
 #endif
 
-#define InnateETA                                0xC
-
+// This is the # of spell gems + 1 (zero-based)
+constexpr int InnateETA = 12;
 
 enum InvisibleTypes
 {
@@ -1274,8 +1282,10 @@ struct [[offsetcomments]] SPELLCALCINFO
 };
 using PSPELLCALCINFO = SPELLCALCINFO*;
 
-#define TOTAL_SPELL_COUNT                        0xF230      // # of spells allocated in memory (07/10/2019 test 4F1197)
-#define CalcInfoSize                             0x324B0     // 4E8814 in eqgame 2018 10 Apr test
+constexpr int TOTAL_SPELL_COUNT = 62000; // # of spells allocated in memory (07/10/2019 test 4F1197)
+constexpr int CalcInfoSize = 206000;     // 4E8814 in eqgame 2018 10 Apr test
+
+// CalcInfoSize is 3 * TOTAL_SPELL_COUNT
 
 // this is actually the size of the struct thats populated from aSpells_S_txt
 // SpellManager__SpellManager_x
@@ -1689,7 +1699,7 @@ struct [[offsetcomments]] EQSTRINGTABLE
 {
 /*0x00*/ EQSTRING** StringItems;
 /*0x04*/ DWORD      Size;
-/*0x08*/ DWORD      Count;
+/*0x08*/ int        Count;
 /*0x0c*/ DWORD      Unknown0x0c;
 /*0x10*/
 };
@@ -1918,7 +1928,7 @@ struct [[offsetcomments]] _EVERQUEST
 /*0x005bc*/ int              ChannelQty;
 /*0x005c0*/ void*            pFreeTargetRing;              // PTARGETRING
 /*0x005c4*/ DWORD            WorldState;                   // 0 everything is fine, 1 we are getting disconnected 2 player not released from zone
-/*0x005c8*/ DWORD            GameState;
+/*0x005c8*/ int              GameState;
 /*0x005cc*/ bool             bStopAreaProcessing;
 /*0x005cd*/ bool             bRAFEnabled;
 /*0x005d0*/ int64_t          ServerTimeSync;

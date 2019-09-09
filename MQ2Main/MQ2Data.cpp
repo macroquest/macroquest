@@ -53,10 +53,12 @@ bool dataSelect(const char* szIndex, MQTypeVar& Ret)
 	char szArg[MAX_STRING] = { 0 };
 	char szArg1[MAX_STRING] = { 0 };
 	int N = 2;
-	GetArg(szArg1, szIndex, 1, FALSE, FALSE, TRUE);
-	while (1)
+	// FIXME: const
+	GetArg(szArg1, (char*)szIndex, 1, false, false, false);
+	while (true)
 	{
-		GetArg(szArg, szIndex, N, FALSE, FALSE, TRUE);
+		// FIXME: const
+		GetArg(szArg, (char*)szIndex, N, false, false, true);
 		N++;
 		if (!szArg[0])
 		{
@@ -64,6 +66,7 @@ bool dataSelect(const char* szIndex, MQTypeVar& Ret)
 			Ret.Type = pIntType;
 			return true;
 		}
+
 		if (!_stricmp(szArg1, szArg))
 		{
 			Ret.DWord = N - 2;

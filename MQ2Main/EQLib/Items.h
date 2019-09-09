@@ -27,6 +27,8 @@ constexpr int LORE_NAME_LEN = 80;
 
 constexpr int NUM_INV_SLOTS = 33;
 constexpr int NUM_BANK_SLOTS = 24;
+constexpr int NUM_INV_BAG_SLOTS = 10;
+constexpr int NUM_WORN_ITEMS = 21;
 constexpr int NUM_SHAREDBANK_SLOTS = 6;
 constexpr int MAX_KEYRINGITEMS = 27; // not really sure need to confirm this
 
@@ -480,7 +482,7 @@ class [[offsetcomments]] ItemArray
 {
 public:
 /*0x00*/ ITEMBASEARRAY* pItems;
-/*0x04*/ unsigned int   Size;
+/*0x04*/ size_t         Size;
 /*0x08*/ unsigned int   Capacity;
 /*0x0c*/
 };
@@ -608,7 +610,7 @@ struct [[offsetcomments]] INVENTORY
 /*0x50*/ CONTENTS* Waist;
 /*0x54*/ CONTENTS* PowerSource;
 /*0x58*/ CONTENTS* Ammo;
-/*0x5c*/ CONTENTS* Pack[0xa];
+/*0x5c*/ CONTENTS* Pack[NUM_INV_BAG_SLOTS];
 /*0x84*/ CONTENTS* Cursor;
 /*0x88*/
 };

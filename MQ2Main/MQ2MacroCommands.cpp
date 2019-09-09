@@ -174,7 +174,8 @@ char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, siz
 	if (szSubParamNamePointer[0] != 0)
 	{
 		char Temp[MAX_STRING] = { 0 };
-		GetArg(Temp, szSubParamNamePointer, ParamNum + 1, TRUE, TRUE, TRUE, ',');
+		// FIXME: const
+		GetArg(Temp, (char*)szSubParamNamePointer, ParamNum + 1, true, true, true, ',');
 
 		if (*Temp && Temp[strlen(Temp) - 1] == ')')
 			Temp[strlen(Temp) - 1] = 0;
@@ -976,6 +977,23 @@ void Goto(PSPAWNINFO pChar, char* szLine)
 	}
 
 	FatalError("Couldn't find label %s", szLine);
+}
+
+char* GetSubFromLine(int Line, char* szSub, size_t Sublen)
+{
+	std::map<int, MQMacroLine>::reverse_iterator ri(gMacroBlock->Line.find(Line));
+
+	for (; ri != gMacroBlock->Line.rend(); ri++)
+	{
+		if (!_strnicmp(ri->second.Command.c_str(), "sub ", 4))
+		{
+			strcpy_s(szSub, Sublen, ri->second.Command.c_str() + 4);
+			return szSub;
+		}
+	}
+
+	strcpy_s(szSub, Sublen, "NULL");
+	return szSub;
 }
 
 void DumpStack(PSPAWNINFO pChar, char* szLine)
@@ -1927,7 +1945,9 @@ void Continue(PSPAWNINFO pChar, char* szLine)
 		if (!_strnicmp(line, "/next", 5))
 		{
 			char for_var[MAX_STRING];
-			GetArg(for_var, line, 2);
+
+			// FIXME: const
+			GetArg(for_var, (char*)line, 2);
 
 			if (_stricmp(for_var, loop.forVariable.c_str()))
 				continue;
@@ -1983,7 +2003,9 @@ void Break(PSPAWNINFO pChar, char* szLine)
 		if (!_strnicmp(line, "/next", 5))
 		{
 			char for_var[MAX_STRING];
-			GetArg(for_var, line, 2);
+
+			// FIXME: const
+			GetArg(for_var, (char*)line, 2);
 
 			if (_stricmp(for_var, loop.forVariable.c_str()))
 				continue;

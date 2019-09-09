@@ -1096,7 +1096,7 @@ FUNCTION_AT_ADDRESS(char* CGuild::GetGuildMotd(), CGuild__GetGuildMotd);
 FUNCTION_AT_ADDRESS(char* CGuild::GetGuildMotdAuthor(), CGuild__GetGuildMotdAuthor);
 #endif
 #ifdef CGuild__GetGuildName_x
-FUNCTION_AT_ADDRESS(char* CGuild::GetGuildName(int64_t), CGuild__GetGuildName);
+FUNCTION_AT_ADDRESS(const char* CGuild::GetGuildName(int64_t), CGuild__GetGuildName);
 #endif
 #ifdef CGuild__GetGuildIndex_x
 FUNCTION_AT_ADDRESS(int64_t CGuild::GetGuildIndex(char*), CGuild__GetGuildIndex);
