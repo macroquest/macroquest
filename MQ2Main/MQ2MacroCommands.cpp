@@ -1078,7 +1078,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	}
 
 	// Set the parse back to whatever the default is
-	const DWORD dwTemp = GetPrivateProfileInt("MacroQuest", ("Parser" + ENGINE_SWITCH_CMD).c_str(), 1, gszINIFilename);
+	const DWORD dwTemp = GetPrivateProfileInt("MacroQuest", "ParserEngine", 1, gszINIFilename);
 	if (dwTemp != gdwParserEngineVer)
 	{
 		gdwParserEngineVer = dwTemp;

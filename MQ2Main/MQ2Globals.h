@@ -711,8 +711,6 @@ const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
 EQLIB_VAR DWORD gdwParserEngineVer;
-// The below needs to match the command in MQ2CommandAPI.cp (without the slash)
-const std::string ENGINE_SWITCH_CMD = "engine";
 
 #if __has_include("MQ2Globals-private.h")
 #include "MQ2Globals-private.h"

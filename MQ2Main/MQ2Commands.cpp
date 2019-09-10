@@ -346,7 +346,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 
 	if (strlen(szEngine) == 0)
 	{
-		SyntaxError("Usage: /%s parser <version> [noauto]", ENGINE_SWITCH_CMD.c_str());
+		SyntaxError("Usage: /engine parser <version> [noauto]");
 		return;
 	}
 
@@ -354,7 +354,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 	{
 		if (strlen(szVersion) == 0)
 		{
-			SyntaxError("Usage: /%s parser <version> [noauto]", ENGINE_SWITCH_CMD.c_str());
+			SyntaxError("Usage: /engine parser <version> [noauto]");
 			return;
 		}
 
@@ -377,7 +377,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 			gdwParserEngineVer = iVersion;
 			if (!bNoAuto)
 			{
-				WritePrivateProfileString("MacroQuest", ("Parser" + ENGINE_SWITCH_CMD).c_str(), szVersion, gszINIFilename);
+				WritePrivateProfileString("MacroQuest", "ParserEngine", szVersion, gszINIFilename);
 			}
 
 			WriteChatf("Parser Version %d Enabled", iVersion);
