@@ -275,12 +275,10 @@ public:
 			return true;
 
 		case Trader:
-			if (Dest.Ptr = GetSpawnByName(pBzrItem->BSSTraderName))
-			{
-				Dest.Type = pSpawnType;
-				return true;
-			}
-			return false;
+			strcpy_s(DataTypeTemp, &pBzrItem->BSSTraderName[0]);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
 
 		case Name:
 			strcpy_s(DataTypeTemp, &pBzrItem->BSSName[0]);
