@@ -574,16 +574,16 @@ void PluginsSetGameState(DWORD GameState)
 				LoadCfgFile(szBuffer, false);
 			}
 
-			if (CHARINFO2* pCharInfo2 = GetCharInfo2())
+			if (PcProfile* pProfile = GetPcProfile())
 			{
-				DebugSpew("PluginsSetGameState(%d class)", pCharInfo2->Class);
+				DebugSpew("PluginsSetGameState(%d class)", pProfile->Class);
 
-				sprintf_s(szBuffer, "%s", GetClassDesc(pCharInfo2->Class));
+				sprintf_s(szBuffer, "%s", GetClassDesc(pProfile->Class));
 				LoadCfgFile(szBuffer, false);
 
 				if (IC_ClassLvl)
 				{
-					IC_ClassLvl(pCharInfo2->Class, pCharInfo2->Level, GetCurrentProcessId());
+					IC_ClassLvl(pProfile->Class, pProfile->Level, GetCurrentProcessId());
 				}
 			}
 		}

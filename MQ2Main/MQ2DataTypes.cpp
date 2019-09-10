@@ -54,6 +54,34 @@ void ShutdownMQ2DataTypes()
 }
 
 //----------------------------------------------------------------------------
+// MQ2Type
+
+MQ2Type::MQ2Type(const char* newName)
+{
+	strcpy_s(TypeName, newName);
+	m_owned = AddMQ2Type(*this);
+}
+
+MQ2Type::~MQ2Type()
+{
+	if (m_owned)
+	{
+		RemoveMQ2Type(*this);
+	}
+
+	Members.Cleanup();
+	Methods.Cleanup();
+}
+
+void MQ2Type::InitializeMembers(MQTypeMember* memberArray)
+{
+	for (int i = 0; memberArray[i].ID; i++)
+	{
+		AddMember(memberArray[i].ID, memberArray[i].Name);
+	}
+}
+
+//----------------------------------------------------------------------------
 // MQ2TypeType
 
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -739,27 +767,28 @@ bool MQ2ArrayType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	switch (static_cast<ArrayMembers>(pMember->ID))
 	{
 	case Dimensions:
-		Dest.DWord = pArray->nExtents;
+		Dest.DWord = pArray->GetNumExtents();
 		Dest.Type = pIntType;
 		return true;
 
 	case Size:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
+
 		if (Index[0])
 		{
-			int N = atoi(Index) - 1;
-			if (N < 0)
+			int index = atoi(Index) - 1;
+			if (index < 0)
 				return false;
-			if ((DWORD)N < pArray->nExtents)
+			if (index < pArray->GetNumExtents())
 			{
-				Dest.DWord = pArray->pExtents[N];
+				Dest.DWord = pArray->GetExtents(index);
 				return true;
 			}
 		}
 		else
 		{
-			Dest.DWord = pArray->TotalElements;
+			Dest.DWord = pArray->GetTotalElements();
 			return true;
 		}
 		return false;
@@ -3527,7 +3556,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (!Index[0])
 			return false;
 
-		if (CHARINFO2* pProfile = GetCharInfo2())
+		if (PcProfile* pProfile = GetPcProfile())
 		{
 			if (IsNumber(Index))
 			{
@@ -3564,7 +3593,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (!Index[0])
 			return false;
 
-		if (CHARINFO2* pProfile = GetCharInfo2())
+		if (PcProfile* pProfile = GetPcProfile())
 		{
 			if (IsNumber(Index))
 			{
@@ -3760,7 +3789,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case CurrentEndurance:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (CHARINFO2 * pProfile = GetCharInfo2()) {
+		if (PcProfile* pProfile = GetPcProfile())
+		{
 			Dest.DWord = pProfile->Endurance;
 		}
 		return true;
@@ -3773,7 +3803,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case PctEndurance:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (const PcProfile* profile = GetPcProfile())
+		if (PcProfile* profile = GetPcProfile())
 		{
 			if (int Temp = GetMaxEndurance())
 			{
@@ -7475,7 +7505,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (pLocalPlayer)
 		{
 			SPAWNINFO* pPlayer = (SPAWNINFO*)pLocalPlayer;
-			PcClient* pPc = (PcClient*)pPlayer->GetCharacter();
+			PcClient* pPc = pPlayer->GetPcClient();
 			if (pPc)
 			{
 				int SlotIndex = -1;
@@ -7524,7 +7554,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (pLocalPlayer)
 		{
 			SPAWNINFO* pPlayer = (SPAWNINFO*)pLocalPlayer;
-			PcClient* pPc = (PcClient*)pPlayer->GetCharacter();
+			PcClient* pPc = pPlayer->GetPcClient();
 			if (pPc)
 			{
 				EQ_Affect eff = { 0 };
@@ -7563,7 +7593,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (pSpawn)
 		{
 			SPAWNINFO* pPlayer = (SPAWNINFO*)pLocalPlayer;
-			PcClient* pPc = (PcClient*)pSpawn->GetCharacter();
+			PcClient* pPc = pSpawn->GetPcClient();
 			if (pPc)
 			{
 				EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
@@ -7605,7 +7635,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (pLocalPlayer)
 		{
 			SPAWNINFO* pPlayer = (SPAWNINFO*)pLocalPlayer;
-			PcClient* pPc = (PcClient*)pPlayer->GetCharacter();
+			PcClient* pPc = pPlayer->GetPcClient();
 			if (pPc)
 			{
 				if (pTarget)
@@ -11744,6 +11774,84 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	return false;
 }
 
+bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	GROUNDOBJECT* pObj = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
+
+	if (pObj->Type == GO_GroundType)
+	{
+		GetFriendlyNameForGroundItem(pObj->pGroundItem, Destination, MAX_STRING);
+		return true;
+	}
+
+	if (pObj->Type == GO_ObjectType)
+	{
+		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+
+		if (EQPlacedItem* pPlaced = (EQPlacedItem*)pObj->ObjPtr)
+		{
+			const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
+			if (pRealEstateItem)
+			{
+				if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
+				{
+					if (ITEMINFO* pItem = GetItemFromContents(pCont))
+					{
+						strcpy_s(Destination, MAX_STRING, pItem->Name);
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	int id = atoi(Source);
+
+	PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
+	GROUNDOBJECT go;
+
+	while (pGroundItem)
+	{
+		if (pGroundItem->DropID == id)
+		{
+			go.pGroundItem = pGroundItem;
+			go.Type = GO_GroundType;
+			memcpy(VarPtr.Ptr, &go, sizeof(GROUNDOBJECT));
+			return true;
+		}
+		pGroundItem = pGroundItem->pNext;
+	}
+
+	// didn't find one, check objects...
+	RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+	EQPlacedItemManager& pPIM = EQPlacedItemManager::Instance();
+
+	if (EQPlacedItem* top = pPIM.Top)
+	{
+		while (top)
+		{
+			if (top->RealEstateItemID == id)
+			{
+				go.ObjPtr = (void*)top;
+				go.Type = GO_ObjectType;
+				memcpy(VarPtr.Ptr, &go, sizeof(GROUNDOBJECT));
+				return true;
+			}
+			top = top->pNext;
+		}
+	}
+
+	return false;
+}
+
 //----------------------------------------------------------------------------
 // MQ2MacroQuestType
 
@@ -12505,6 +12613,16 @@ bool MQ2HeadingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 	}
 
 	return false;
+}
+
+bool MQ2HeadingType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pHeadingType && Source.Type != pFloatType)
+		VarPtr.Float = (float)Source.DWord;
+	else
+		VarPtr.Float = Source.Float;
+
+	return true;
 }
 
 //----------------------------------------------------------------------------
@@ -15254,7 +15372,7 @@ bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 }
 
 //----------------------------------------------------------------------------
-// namespace MQ2FellowshipType
+// MQ2FellowshipType
 
 bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -17798,7 +17916,7 @@ bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 	if (!pMember)
 		return false;
 
-	CHARINFO2* pProfile = GetCharInfo2();
+	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return false;
 

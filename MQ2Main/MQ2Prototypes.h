@@ -14,55 +14,47 @@
 
 #pragma once
 
-namespace MQ2Prototypes {
+namespace mq2 {
 
-using fEQGetStringByID = char* (__stdcall*)(DWORD);
-using fEQScreenItem = DWORD (__stdcall*)(DWORD, DWORD, DWORD);
+// These prototypes are unnecessary and should be converted into functions
+using fEQNewUIINI            = char*  (*)();
+using fEQProcGameEvts        = int    (*)();
+using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
+using fGetLabelFromEQ        = bool   (*)(int, CXStr*, bool*, COLORREF*);
+using fEQToggleKeyRingItem   = int    (*)(int, CONTENTS**, int);
 
-typedef DWORD(__stdcall *fEQScreenSpawn)(DWORD, DWORD);
-typedef char*(__stdcall *fEQNewUIINI)();
-typedef void(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
-typedef void(__cdecl* fEQCommand)(SPAWNINFO*, char* Buffer);
-typedef void(__cdecl *fMQCommand)(SPAWNINFO*, char* Buffer,size_t BuffLen);
-typedef void(__cdecl *fEQMemSpell)(DWORD, DWORD);
-typedef void(__cdecl *fEQLoadSpells)(SpellLoadout*, DWORD);
-typedef void(__cdecl *fEQSelectItem)(class ItemGlobalIndex *, int Unknown);
-typedef void(__cdecl *fEQBuyItem)(int);
-typedef void(__cdecl *fEQSellItem)(int);//CMerchantWnd::PurchasePageHandler::RequestPutItem
-typedef void(__cdecl *fEQWriteMapfile)(char*, int);//void __thiscall ZZZ::WriteMapfile(char* zonename, int Layer);
-typedef BOOL(__cdecl *fEQProcGameEvts)();
-typedef float(__cdecl *fEQGetMelee)(PlayerClient *, PlayerClient*);
-typedef void(__cdecl *fMQExecuteCmd)(const char* Name, bool Down);
-typedef void(__cdecl fEQSaveToUIIniFile)(char* Section, char* Key, char* Value);
-typedef DWORD(__cdecl *fMQParm)(char*, char*, PSPAWNINFO);
-typedef bool(__cdecl *fGetLabelFromEQ)(int, class CXStr *, bool *, unsigned long *);
-typedef BOOL(__cdecl *fEQToggleKeyRingItem)(DWORD RingType, CONTENTS** itemptr, DWORD listindex);//0 is mounts, 1 is illusions, 2 is familiars
+// MQ2 Callback types
+using fEQCommand             = void   (*)(SPAWNINFO*, char* Buffer);
+using fMQCommand             = void   (*)(SPAWNINFO*, char* Buffer, size_t BuffLen);
+using fMQExecuteCmd          = void   (*)(const char* Name, bool Down);
 
-/* PLUGINS */
-typedef DWORD(__cdecl *fMQWriteChatColor)(const char* Line, DWORD Color, DWORD Filter);
-typedef void(__cdecl *fMQPulse)();
-typedef bool(__cdecl *fMQIncomingChat)(const char* Line, DWORD Color);
-typedef void(__cdecl *fMQInitializePlugin)();
-typedef void(__cdecl *fMQShutdownPlugin)();
-typedef void(__cdecl *fMQZoned)();
-typedef void(__cdecl *fMQReloadUI)();
-typedef void(__cdecl *fMQCleanUI)();
-typedef void(__cdecl *fMQDrawHUD)();
-typedef void(__cdecl *fMQSetGameState)(DWORD GameState);
-typedef void(__cdecl *fMQSpawn)(PSPAWNINFO);
-typedef void(__cdecl *fMQGroundItem)(PGROUNDITEM);
-typedef void(__cdecl *fMQBeginZone)();
-typedef void(__cdecl *fMQEndZone)();
+// Plugin Function Types
+using fMQWriteChatColor      = DWORD  (*)(const char*, DWORD, DWORD);
+using fMQPulse               = void   (*)();
+using fMQIncomingChat        = bool   (*)(const char* Line, DWORD Color);
+using fMQInitializePlugin    = void   (*)();
+using fMQShutdownPlugin      = void   (*)();
+using fMQZoned               = void   (*)();
+using fMQReloadUI            = void   (*)();
+using fMQCleanUI             = void   (*)();
+using fMQDrawHUD             = void   (*)();
+using fMQSetGameState        = void   (*)(DWORD GameState);
+using fMQSpawn               = void   (*)(SPAWNINFO*);
+using fMQGroundItem          = void   (*)(GROUNDITEM*);
+using fMQBeginZone           = void   (*)();
+using fMQEndZone             = void   (*)();
 
-/* UTILITIES */
-typedef int64_t(__cdecl *fICGetHashData)(void*,int);
-typedef void(__cdecl *fICSetHashData)(void*,int,int64_t);
-typedef DWORD(__cdecl *fLoaderSetLoaded)(char* profile, char* stationname, char* servername, char* charactername, DWORD pid);
-typedef DWORD(__cdecl *fLoaderClearLoaded)(char* profile, char* stationname, char* servername, char* charactername, DWORD pid);
-typedef DWORD(__cdecl *fMQ2Unload)(DWORD pid);
-typedef DWORD(__cdecl *fClassLvl)(DWORD playerClass, DWORD playerLevel, DWORD pid);
-typedef HWND(__stdcall *fEQW_GetDisplayWindow )();
+// MQ2Ic Function Types
+using fICGetHashData         = int64_t(*)(void*, int);
+using fICSetHashData         = void   (*)(void*, int, int64_t);
+using fLoaderSetLoaded       = DWORD  (*)(char*, char*, char*, char*, DWORD);
+using fLoaderClearLoaded     = DWORD  (*)(char*, char*, char*, char*, DWORD);
+using fMQ2Unload             = DWORD  (*)(DWORD);
+using fClassLvl              = DWORD  (*)(DWORD, DWORD, DWORD);
 
-} // namespace MQ2Prototypes
+// Misc Function types
+using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();
 
-using namespace MQ2Prototypes;
+} // namespace mq2
+
+using namespace mq2;

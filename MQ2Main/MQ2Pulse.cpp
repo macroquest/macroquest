@@ -279,7 +279,7 @@ static void Pulse()
 
 	SPAWNINFO* pCharOrMount = nullptr;
 	CHARINFO* pCharInfo = GetCharInfo();
-	CHARINFO2* pCharInfo2 = GetCharInfo2();
+	PcProfile* pProfile = GetPcProfile();
 	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
 
 	// Drop out here if we're waiting for something.

@@ -227,7 +227,7 @@ SPELL* GetSpellByName(const char* szName)
 	}
 
 	// is this even necessary?
-	CHARINFO2* profile = GetCharInfo2();
+	PcProfile* profile = GetPcProfile();
 	if (!profile)
 		return nullptr;
 
@@ -1511,7 +1511,7 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 
 #ifdef DEBUGSPELLS
 	WriteChatf("SLOT:%d, SPA:%d, BASE:%d, BASE2:%d, MAX:%d, CALC:%d, TICKS:%d, VALUE:%d, FINISH:%d, MINSPELLLVL:%d, MAXSPELLLVL:%d, RANGE:%s, EXTENDEDRANGE:%s, USEPERCENT:%s, REPEATING:%s, MAXLEVEL:%s",
-		i + 1, spa, base, base2, max, calc, ticks, value, finish, minspelllvl, maxspelllvl, range, extendedrange, usePercent ? "true" : "false", repeating, maxlevel);
+		i + 1, spa, base, base2, max, calc, ticks, value, finish, minspelllvl, maxspelllvl, range, extendedrange, usePercent ? "TRUE" : "FALSE", repeating, maxlevel);
 #endif
 
 	sprintf_s(szBuff, "Slot %d: ", i + 1);

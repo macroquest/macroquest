@@ -19,9 +19,9 @@
 #include <mutex>
 #include <vector>
 
-namespace MQ2Internal {
-
 class MQ2Type;
+
+namespace mq2 {
 
 enum eAdventureTheme
 {
@@ -407,6 +407,8 @@ private:
 	std::map<uint32_t, std::vector<MQSpawnSearch>> m_alertMap;
 };
 
+//============================================================================
+
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
@@ -431,6 +433,8 @@ public:
 	}
 };
 
+//============================================================================
+
 class CCustomMenu : public CContextMenu
 {
 public:
@@ -442,6 +446,8 @@ public:
 	{
 	}
 };
+
+//============================================================================
 
 template <class Any>
 class CIndex
@@ -542,6 +548,8 @@ private:
 	Any* m_list = nullptr;
 	std::mutex m_mutex;
 };
+
+//============================================================================
 
 struct MQVarPtr
 {
@@ -647,9 +655,6 @@ struct MQDataItem
 using MQ2DATAITEM [[deprecated("Use MQDataItem instead")]] = MQDataItem;
 using PMQ2DATAITEM [[deprecated("Use MQDataItem* instead")]] = MQDataItem*;
 
-EQLIB_API bool AddMQ2Type(MQ2Type& type);
-EQLIB_API bool RemoveMQ2Type(MQ2Type& type);
-
 struct MQDataVar
 {
 	char szName[MAX_STRING];
@@ -662,433 +667,7 @@ struct MQDataVar
 using PDATAVAR [[deprecated("Use MQDataVar* instead")]] = MQDataVar*;
 using DATAVAR [[deprecated("Use MQDataVar instead")]] = MQDataVar;
 
-class MQ2Type
-{
-public:
-	MQ2Type(const char* NewName)
-	{
-		strcpy_s(TypeName, NewName);
-		Official = AddMQ2Type(*this);
-	}
-
-	virtual ~MQ2Type()
-	{
-		if (Official)
-		{
-			RemoveMQ2Type(*this);
-		}
-
-		Members.Cleanup();
-		Methods.Cleanup();
-	}
-
-	void InitializeMembers(MQTypeMember* MemberArray)
-	{
-		for (int i = 0; MemberArray[i].ID; i++)
-		{
-			AddMember(MemberArray[i].ID, MemberArray[i].Name);
-		}
-	}
-
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) = 0;
-	virtual bool FromString(MQVarPtr& VarPtr, char* Source) = 0;
-
-	virtual void InitVariable(MQVarPtr& VarPtr)
-	{
-		VarPtr.Ptr = 0;
-		VarPtr.HighPart = 0;
-	}
-
-	virtual void FreeVariable(MQVarPtr& VarPtr) {}
-
-	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) = 0;
-
-	virtual bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		strcpy_s(Destination, MAX_STRING, TypeName);
-		return true;
-	}
-
-	const char* GetName()
-	{
-		if (TypeName)
-			return &TypeName[0];
-
-		return nullptr;
-	}
-
-	const char* GetMemberName(int ID)
-	{
-		for (size_t index = 0; index < Members.GetSize(); index++)
-		{
-			if (MQTypeMember * pMember = Members[index])
-			{
-				if (pMember->ID == ID)
-					return &pMember->Name[0];
-			}
-		}
-
-		return nullptr;
-	}
-
-	bool GetMemberID(const char* Name, int& Result)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) == MemberMap.end())
-			return false;
-
-		int index = MemberMap[Name] - 1;
-		if (index < 0)
-			return false;
-
-		MQTypeMember* pMember = Members[index];
-		Result = pMember->ID;
-		return true;
-	}
-
-	MQTypeMember* FindMember(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) == MemberMap.end())
-			return nullptr;
-
-		int index = MemberMap[Name] - 1;
-		if (index < 0)
-			return nullptr;
-
-		return Members[index];
-	}
-
-	MQTypeMember* FindMethod(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MethodMap.find(Name) == MethodMap.end())
-			return nullptr;
-
-		int index = MethodMap[Name] - 1;
-		if (index < 0)
-			return nullptr;
-
-		return Methods[index];
-	}
-
-	bool InheritedMember(const char* Name)
-	{
-		if (!pInherits || !pInherits->FindMember(Name))
-			return false;
-
-		return true;
-	}
-
-	void SetInheritance(MQ2Type* pNewInherit)
-	{
-		pInherits = pNewInherit;
-	}
-
-protected:
-	bool AddMember(int id, const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) != MemberMap.end())
-			return false;
-
-		int index = Members.GetUnused();
-		MemberMap[Name] = index + 1;
-
-		MQTypeMember* pMember = new MQTypeMember;
-		pMember->Name = Name;
-		pMember->ID = id;
-		pMember->Type = 0;
-		Members[index] = pMember;
-		return true;
-	}
-
-	bool AddMethod(int ID, const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MethodMap.find(Name) != MethodMap.end())
-			return false;
-
-		int index = Methods.GetUnused();
-		MethodMap[Name] = index + 1;
-
-		MQTypeMember* pMethod = new MQTypeMember;
-		pMethod->Name = Name;
-		pMethod->ID = ID;
-		pMethod->Type = 1;
-		Methods[index] = pMethod;
-		return true;
-	}
-
-	bool RemoveMember(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) == MemberMap.end())
-			return false;
-
-		int index = MemberMap[Name] - 1;
-		if (index < 0)
-			return false;
-
-		MQTypeMember* pMember = Members[index];
-		delete pMember;
-
-		Members[index] = 0;
-	}
-
-	bool RemoveMethod(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MethodMap.find(Name) == MethodMap.end())
-			return false;
-
-		int index = MethodMap[Name] - 1;
-		if (index < 0)
-			return false;
-
-		MQTypeMember* pMethod = Methods[index];
-		delete pMethod;
-
-		Methods[index] = 0;
-	}
-
-	char TypeName[32];
-	bool Official;
-	CIndex<MQTypeMember*> Members;
-	CIndex<MQTypeMember*> Methods;
-	std::map<std::string, int> MemberMap;
-	std::map<std::string, int> MethodMap;
-	MQ2Type* pInherits = nullptr;
-
-protected:
-	std::mutex m_mutex;
-};
-
-class CDataArray
-{
-public:
-	CDataArray()
-	{
-		pType = 0;
-		nExtents = 0;
-		pExtents = 0;
-		pData = 0;
-		TotalElements = 0;
-	}
-
-	CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = FALSE)
-	{
-		nExtents = 1;
-		TotalElements = 1;
-
-		// count number of , 's
-		if (const char* pComma = strchr(Index, ','))
-		{
-			nExtents++;
-			while (pComma = strchr(&pComma[1], ','))
-			{
-				nExtents++;
-			}
-		}
-
-		// allocate extents
-		if (pExtents = (DWORD*)malloc(sizeof(DWORD) * nExtents)) {
-			// read extents
-			char* pStart = Index;
-			for (DWORD N = 0; N < nExtents; N++)
-			{
-				char* pComma = strchr(pStart, ',');
-				if (pComma)
-					* pComma = 0;
-
-				pExtents[N] = atoi(pStart);
-				TotalElements *= pExtents[N];
-				if (pComma)
-				{
-					*pComma = ',';
-					pStart = &pComma[1];
-				}
-			}
-		}
-
-		if (pData = (MQVarPtr*)malloc(sizeof(MQVarPtr) * TotalElements)) {
-			if (pType = Type) {
-				for (DWORD N = 0; N < TotalElements; N++)
-				{
-					pType->InitVariable(pData[N]);
-					if (ByData)
-						pType->FromData(pData[N], *(MQTypeVar*)Default);
-					else
-						pType->FromString(pData[N], (char*)Default);
-				}
-			}
-		}
-	}
-
-	void Delete()
-	{
-		if (pExtents)
-			free(pExtents);
-		if (pType && pData)
-			for (DWORD N = 0; N < TotalElements; N++)
-			{
-				pType->FreeVariable(pData[N]);
-			}
-		free(pData);
-		pType = 0;
-		nExtents = 0;
-		pExtents = 0;
-		pData = 0;
-		TotalElements = 0;
-	}
-
-	int GetElement(char* Index)
-	{
-		DWORD Element = 0;
-		if (nExtents == 1)
-		{
-			if (strchr(Index, ','))
-				return -1;
-			Element = atoi(Index) - 1;
-			if (Element >= TotalElements)
-				return -1;
-			return Element;
-		}
-		else
-		{
-			DWORD nGetExtents = 1;
-
-			if (char* pComma = strchr(Index, ','))
-			{
-				nGetExtents++;
-				while (pComma = strchr(&pComma[1], ','))
-				{
-					nGetExtents++;
-				}
-			}
-			if (nGetExtents != nExtents)
-				return -1;
-
-			// read extents
-			char* pStart = Index;
-			for (DWORD N = 0; N < nExtents; N++)
-			{
-				char* pComma = strchr(pStart, ',');
-				if (pComma)
-					* pComma = 0;
-
-				DWORD Temp = atoi(pStart) - 1;
-				if (Temp >= pExtents[N])
-					return -1;
-				for (unsigned long i = N + 1; i < nExtents; i++)
-					Temp *= pExtents[i];
-				Element += Temp;
-
-				if (pComma)
-				{
-					*pComma = ',';
-					pStart = &pComma[1];
-				}
-			}
-			if (Element >= TotalElements)
-			{
-				// bug in array logic
-				OutputDebugString("Bug in array logic\n");
-				return -1;
-			}
-			return Element;
-		}
-	}
-
-	bool GetElement(char* Index, MQTypeVar& Dest)
-	{
-		DWORD Element = 0;
-		if (nExtents == 1)
-		{
-			if (strchr(Index, ','))
-				return FALSE;
-			Element = atoi(Index) - 1;
-			if (Element >= TotalElements)
-				return FALSE;
-			Dest.Type = pType;
-			Dest.VarPtr = pData[Element];
-			return TRUE;
-		}
-		else
-		{
-			DWORD nGetExtents = 1;
-
-			if (char* pComma = strchr(Index, ','))
-			{
-				nGetExtents++;
-				while (pComma = strchr(&pComma[1], ','))
-				{
-					nGetExtents++;
-				}
-			}
-			if (nGetExtents != nExtents)
-				return FALSE;
-
-			// read extents
-			char* pStart = Index;
-			unsigned long N;
-			for (N = 0; N < nExtents; N++)
-			{
-				char* pComma = strchr(pStart, ',');
-				if (pComma)
-					* pComma = 0;
-
-				DWORD Temp = atoi(pStart) - 1;
-				if (Temp >= pExtents[N])
-					return FALSE;
-				for (unsigned long i = N + 1; i < nExtents; i++)
-					Temp *= pExtents[i];
-				Element += Temp;
-
-				if (pComma)
-				{
-					*pComma = ',';
-					pStart = &pComma[1];
-				}
-			}
-			if (Element >= TotalElements)
-			{
-				// bug in array logic
-				OutputDebugString("Bug in array logic\n");
-				return FALSE;
-			}
-			Dest.Type = pType;
-			Dest.VarPtr = pData[Element];
-			return TRUE;
-		}
-
-	}
-
-	~CDataArray()
-	{
-		if (pExtents)
-			free(pExtents);
-		if (pType && pData)
-			for (unsigned long N = 0; N < TotalElements; N++)
-			{
-				pType->FreeVariable(pData[N]);
-			}
-		free(pData);
-	}
-
-	MQ2Type* pType;
-	DWORD nExtents;
-	DWORD* pExtents;
-	MQVarPtr* pData;
-	DWORD TotalElements;
-};
+//============================================================================
 
 struct MQRank
 {
@@ -1150,7 +729,7 @@ struct MercDesc
 	std::string Proficiency;
 };
 
-} // namespace MQ2Internal
+} // namespace mq2
 
-using namespace MQ2Internal;
+using namespace mq2;
 

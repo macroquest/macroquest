@@ -400,11 +400,11 @@ CCompareTipWnd* pCompareTipWnd = nullptr;
 
 int CanIUseThisItem(ITEMINFO* pItem)
 {
-	if (CHARINFO2 * pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (!pChar2->Class)
+		if (!pProfile->Class)
 			return -1;
-		DWORD ClassMask = (1 << (pChar2->Class - 1));
+		DWORD ClassMask = (1 << (pProfile->Class - 1));
 		if ((ClassMask & pItem->Classes) == 0)
 			return -2;
 		return 1;
@@ -436,9 +436,9 @@ CONTENTS* GetEquippedSlot(CONTENTS* pCont)
 		{
 			if (cmp & (1 << N))
 			{
-				if (CHARINFO2* pChar2 = GetCharInfo2())
+				if (PcProfile* pProfile = GetPcProfile())
 				{
-					if (CONTENTS* pInvSlot = pChar2->pInventoryArray->InventoryArray[N])
+					if (CONTENTS* pInvSlot = pProfile->pInventoryArray->InventoryArray[N])
 					{
 						return pInvSlot;
 					}
@@ -1098,9 +1098,9 @@ public:
 					// Calculate Efficiency
 					int dmgbonus = 0;
 
-					if (CHARINFO2* pChar2 = GetCharInfo2())
+					if (PcProfile* pProfile = GetPcProfile())
 					{
-						if (pChar2->Level > 27 && !pThis->ItemInfo.empty())
+						if (pProfile->Level > 27 && !pThis->ItemInfo.empty())
 						{
 							// bonus is 0 for anything below 28
 							dmgbonus = GetDmgBonus(pThis->ItemInfo);
@@ -1142,9 +1142,9 @@ public:
 			}
 			else
 			{
-				if (CHARINFO2* pChar2 = GetCharInfo2())
+				if (PcProfile* pProfile = GetPcProfile())
 				{
-					sprintf_s(temp, "%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pChar2->Level ? "</C>" : ""), Item->Proc.ProcRate);
+					sprintf_s(temp, "%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pProfile->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pProfile->Level ? "</C>" : ""), Item->Proc.ProcRate);
 				}
 			}
 			strcat_s(out, temp);
@@ -1166,9 +1166,9 @@ public:
 			}
 			else
 			{
-				if (CHARINFO2* pChar2 = GetCharInfo2())
+				if (PcProfile* pProfile = GetPcProfile())
 				{
-					sprintf_s(temp, "%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pChar2->Level ? "</C>" : ""));
+					sprintf_s(temp, "%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pProfile->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pProfile->Level ? "</C>" : ""));
 				}
 			}
 
@@ -2148,7 +2148,7 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	if (CHARINFO2* pMe = GetCharInfo2())
+	if (PcProfile* pMe = GetPcProfile())
 	{
 		if (pMe->pInventoryArray)
 		{
@@ -2217,7 +2217,7 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 
 void RemoveAug(SPAWNINFO* pChar, char* szLine)
 {
-	if (CHARINFO2* pMe = GetCharInfo2())
+	if (PcProfile* pMe = GetPcProfile())
 	{
 		if (pMe->pInventoryArray)
 		{
@@ -2786,11 +2786,11 @@ void DoGearScoreUserCommand(PSPAWNINFO pChar, char* szLine)
 
 void DoScoreForCursor()
 {
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pChar2->pInventoryArray)
+		if (pProfile->pInventoryArray)
 		{
-			if (CONTENTS* pCursorContents = pChar2->pInventoryArray->Inventory.Cursor)
+			if (CONTENTS* pCursorContents = pProfile->pInventoryArray->Inventory.Cursor)
 			{
 				if (ITEMINFO* pCursorItem = GetItemFromContents(pCursorContents))
 				{
@@ -2924,9 +2924,9 @@ void AddGearScores_CheckAugs(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size]
 	sprintf_s(temp, "Base Aug Score : %6.0f%s", score, br);
 	strcat_s(out, temp);
 
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pChar2->pInventoryArray)
+		if (pProfile->pInventoryArray)
 		{
 			ITEMINFO* pInvItem;
 			CONTENTS* pInvContent;
@@ -2938,7 +2938,7 @@ void AddGearScores_CheckAugs(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size]
 				uint32_t mask = SlotInfo[i].SlotMask;
 				char* name = SlotInfo[i].SlotName;
 				pInvItem = nullptr;
-				pInvContent = pChar2->pInventoryArray->InventoryArray[i];
+				pInvContent = pProfile->pInventoryArray->InventoryArray[i];
 				if (pInvContent)
 					pInvItem = GetItemFromContents(pInvContent);
 
@@ -2964,14 +2964,14 @@ int DoIHave(ITEMINFO* Item)
 
 	int nHowMany = 0;
 
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pChar2->pInventoryArray)
+		if (pProfile->pInventoryArray)
 		{
 			// Normal Inventory worn slots
 			for (int iSlot = 0; iSlot < NUM_INV_SLOTS; iSlot++)
 			{
-				if (CONTENTS * pItem = pChar2->pInventoryArray->InventoryArray[iSlot])
+				if (CONTENTS * pItem = pProfile->pInventoryArray->InventoryArray[iSlot])
 				{
 					if (GetItemFromContents(pItem)->ItemNumber == ID)
 					{
@@ -3007,7 +3007,7 @@ int DoIHave(ITEMINFO* Item)
 			// Bags
 			for (int nPack = 0; nPack < 10; nPack++)
 			{
-				if (CONTENTS* pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
+				if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Pack[nPack])
 				{
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
@@ -3197,9 +3197,9 @@ void AddGearScores_CheckItems(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size
 	sprintf_s(temp, "This Item Score : %6.0f%s", CurrScore, br);
 	strcat_s(out, temp);
 
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pChar2->pInventoryArray)
+		if (pProfile->pInventoryArray)
 		{
 			for (int i = 0; i < BAG_SLOT_START - 1; i++)
 			{
@@ -3209,7 +3209,7 @@ void AddGearScores_CheckItems(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size
 					float score = 0;
 					ClearAttribListVal();
 
-					CONTENTS* pInvSlot = pChar2->pInventoryArray->InventoryArray[i];
+					CONTENTS* pInvSlot = pProfile->pInventoryArray->InventoryArray[i];
 					if (pInvSlot)
 					{
 						ITEMINFO* pItemInfo = GetItemFromContents(pInvSlot);

@@ -427,7 +427,7 @@ struct [[offsetcomments]] ITEMINFO
 /*0x650*/ bool                bNoPetGive;
 /*0x651*/ bool                bSomeProfile;
 /*0x654*/ int                 SomeIDFlag;
-/*0x658*/ DWORD               StackSize;
+/*0x658*/ int                 StackSize;
 /*0x65c*/ bool                bNoStorage;
 /*0x660*/ int                 MaxPower;
 /*0x664*/ int                 Purity;

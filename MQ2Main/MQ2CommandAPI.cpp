@@ -255,6 +255,19 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 	}
 }
 
+void DoCommandf(const char* szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+
+	int len = _vscprintf(szFormat, vaList) + 1 + 32;
+	auto out = std::make_unique<char[]>(len);
+	char* szOutput = out.get();
+
+	vsprintf_s(szOutput, len, szFormat, vaList);
+	HideDoCommand((SPAWNINFO*)pLocalPlayer, szOutput, false);
+}
+
 class CCommandHook
 {
 public:

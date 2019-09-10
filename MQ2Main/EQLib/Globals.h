@@ -1003,6 +1003,26 @@ EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
 
+// Global Functions
+
+struct SPAWNINFO;
+
+/* OTHER IMPORTED FROM EQ */
+EQLIB_API int CastRay(SPAWNINFO*, float y, float x, float z);
+EQLIB_API int CastRayLoc(const CVector3& SourcePos, int Race, float DestX, float DestY, float DestZ);
+EQLIB_OBJECT CXStr CleanItemTags(const CXStr& In, bool bFlag);
+EQLIB_API float HeadingDiff(float h1, float h2, float* DiffOut);
+EQLIB_API float FixHeading(float Heading);
+EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
+EQLIB_API unsigned long GetFastTime();
+
+// definitely not a __Stdcall -- ExtendedTargetList member
+EQLIB_API const char* __stdcall GetXtargetType(DWORD type);
+EQLIB_API DWORD EQGetTime();
+EQLIB_OBJECT CXStr STMLToText(const CXStr& In, bool bReplaceBrWithNewline = true);
+EQLIB_API class IconCache* __cdecl GetAnimationCache(int index);
+EQLIB_API void SaveColors(int, int, int, int);
+
 } // namespace eqlib
 
 using namespace eqlib;

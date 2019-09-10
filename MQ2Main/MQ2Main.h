@@ -275,6 +275,8 @@ EQLIB_API bool RemoveMQ2Data(const char* szName);
 EQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
 EQLIB_API MQDataItem* FindMQ2Data(const char* szName);
 EQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
+EQLIB_API bool AddMQ2Type(MQ2Type& type);
+EQLIB_API bool RemoveMQ2Type(MQ2Type& type);
 EQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar &Result);
 EQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
@@ -310,22 +312,6 @@ EQLIB_API int FindMappableCommand(const char* name);
 EQLIB_API void InitializeMQ2Pulse();
 EQLIB_API void ShutdownMQ2Pulse();
 
-/* OTHER IMPORTED FROM EQ */
-EQLIB_API int CastRay(SPAWNINFO*, float y, float x, float z);
-EQLIB_API int CastRayLoc(const CVector3& SourcePos, int Race, float DestX, float DestY, float DestZ);
-EQLIB_OBJECT CXStr CleanItemTags(const CXStr& In, bool bFlag);
-EQLIB_API float HeadingDiff(float h1, float h2, float *DiffOut);
-EQLIB_API float FixHeading(float Heading);
-EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
-EQLIB_API unsigned long GetFastTime();
-
-// definitely not a __Stdcall -- ExtendedTargetList member
-EQLIB_API const char * __stdcall GetXtargetType(DWORD type);
-EQLIB_API DWORD EQGetTime();
-EQLIB_OBJECT CXStr STMLToText(const CXStr& In, bool bReplaceBrWithNewline = true);
-EQLIB_API class IconCache *__cdecl GetAnimationCache(int index);
-EQLIB_API void SaveColors(int, int, int, int);
-
 /* UTILITIES */
 EQLIB_API void ConvertCR(char* Text, size_t LineLen);
 EQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
@@ -341,9 +327,14 @@ EQLIB_API char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes
 EQLIB_API float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn);
 EQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 
-#define DoCommand(pspawninfo, commandtoexecute) HideDoCommand(pspawninfo, commandtoexecute, FromPlugin != 0)
+// Command Execution
 EQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
-#define EzCommand(commandtoexecute) DoCommand((SPAWNINFO*)pLocalPlayer, commandtoexecute)
+EQLIB_API void DoCommandf(const char* szFormat, ...);
+inline void DoCommand(PSPAWNINFO pSpawnInfo, const char* szCommand)
+{
+	HideDoCommand(pSpawnInfo, szCommand, FromPlugin);
+}
+inline void EzCommand(const char* szCommand) { DoCommand((SPAWNINFO*)pLocalPlayer, szCommand); }
 
 EQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, uint32_t ColorOverride = 0xFFFFFF);
 EQLIB_API void StripMQChat(const char* in, char* out);
@@ -390,6 +381,25 @@ EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
 EQLIB_API int RangeRandom(int min, int max);
 
+EQLIB_API int GetCharMaxBuffSlots();
+EQLIB_API int GetBodyType(SPAWNINFO* pSpawn);
+EQLIB_API eSpawnType GetSpawnType(SPAWNINFO* pSpawn);
+
+EQLIB_OBJECT bool IsRaidMember(const char* SpawnName);
+EQLIB_OBJECT bool IsRaidMember(SPAWNINFO* pSpawn);
+EQLIB_OBJECT int GetRaidMemberIndex(const char* SpawnName);
+EQLIB_OBJECT int GetRaidMemberIndex(SPAWNINFO* pSpawn);
+EQLIB_OBJECT bool IsGroupMember(const char* SpawnName);
+EQLIB_OBJECT bool IsGroupMember(SPAWNINFO* pSpawn);
+EQLIB_API bool IsFellowshipMember(const char* SpawnName);
+EQLIB_API bool IsGuildMember(const char* SpawnName);
+EQLIB_API int GetGroupMercenaryCount(uint32_t ClassMASK);
+EQLIB_API SPAWNINFO* GetRaidMember(int index);
+EQLIB_API SPAWNINFO* GetGroupMember(int index);
+EQLIB_API uint32_t GetGroupMainAssistTargetID();
+EQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
+EQLIB_API bool IsAssistNPC(SPAWNINFO* pSpawn);
+
 EQLIB_API CMQ2Alerts CAlerts;
 
 struct RefreshKeyRingsThreadData
@@ -404,12 +414,6 @@ EQLIB_API ITEMINFO* GetItemFromContents(CONTENTS* c);
 EQLIB_API EQGroundItemListManager* GetItemList();
 
 #include "MQ2Inlines.h"
-
-//#define GETMEMBER() GetMember(MQ2VARPTR VarPtr, char* Member, char* Index, MQ2TYPEVAR& Dest)
-//#define DECLAREGETMETHOD()
-//#define INHERITDIRECT(X)
-//#define INHERITINDIRECT(X,Y,Z)
-
 #include "MQ2DataTypes.h"
 
 EQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
@@ -498,7 +502,7 @@ EQLIB_API void DropTimers();
 /*                 */
 
 EQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = FromPlugin);
-//EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName);
+EQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 EQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);
 EQLIB_API SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
 EQLIB_API int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
@@ -548,8 +552,8 @@ EQLIB_API CONTENTS*   FindItemBySlot(short InvSlot, short BagSlot = -1, ItemCont
 EQLIB_API CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx);
 EQLIB_API CONTENTS*   FindItemByName(const char* pName, bool bExact = false);
 EQLIB_API CONTENTS*   FindItemByID(int ItemID);
-EQLIB_API int	      FindItemCountByName(const char* pName, bool bExact = false);
-EQLIB_API DWORD	      FindItemCountByID(int ItemID);
+EQLIB_API int         FindItemCountByName(const char* pName, bool bExact = false);
+EQLIB_API int         FindItemCountByID(int ItemID);
 EQLIB_API CONTENTS*   FindBankItemByName(const char* pName, bool bExact);
 EQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
 EQLIB_API int         FindBankItemCountByName(const char* pName, bool bExact);
@@ -583,11 +587,12 @@ EQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
 EQLIB_API void MQ2Shutdown();
 EQLIB_API HANDLE hUnloadComplete;
 EQLIB_API HANDLE hLoadComplete;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 
 EQLIB_API void AttackRanged(PlayerClient* pRangedTarget = pTarget);
-EQLIB_API void UseAbility(char *sAbility);
+EQLIB_API void UseAbility(const char* sAbility);
 EQLIB_OBJECT MQMacroBlockPtr GetNextMacroBlock();
 EQLIB_OBJECT MQMacroBlockPtr GetCurrentMacroBlock();
 EQLIB_API int GetMacroBlockCount();
@@ -648,86 +653,14 @@ EQLIB_API bool WillFitInBank(CONTENTS* pContent);
 EQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 EQLIB_API void AddAutoBankMenu();
 EQLIB_API void AutoBankPulse();
-EQLIB_API void DoCommandf(char* szFormat, ...);
-EQLIB_API KeypressHandler *GetKeyPresshandler();
-EQLIB_API AggroMeterManagerClient *GetAggroInfo();
-EQLIB_API ClientSOIManager *GetAuraMgr();
-EQLIB_API CBroadcast *GetTextOverlay();
-EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
+EQLIB_API KeypressHandler* GetKeyPresshandler();
+EQLIB_API AggroMeterManagerClient* GetAggroInfo();
+EQLIB_API ClientSOIManager* GetAuraMgr();
+EQLIB_API CBroadcast* GetTextOverlay();
+EQLIB_API MercenaryAlternateAdvancementManagerClient* GetMercAltAbilities();
 EQLIB_API bool Anonymize(char* name, int maxlen, int LootFlag = 0);
 EQLIB_API bool Anonymize2(CXStr& name, int LootFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
-//EQLIB_API EQGroundItemListManager *GetItemList();
+//EQLIB_API EQGroundItemListManager* GetItemList();
 
 EQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
-
-extern std::map<int, std::string> targetBuffSlotToCasterMap;
-extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
-
-inline void MakeLower(std::string& str)
-{
-	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-}
-
-struct ci_less
-{
-	struct nocase_compare
-	{
-		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
-		{
-			if (c1 == c2)
-				return true;
-			return ::tolower(c1) < ::tolower(c2);
-		}
-	};
-
-	bool operator()(std::string_view s1, std::string_view s2) const noexcept
-	{
-		return std::lexicographical_compare(
-			s1.begin(), s1.end(),
-			s2.begin(), s2.end(),
-			nocase_compare());
-	}
-};
-
-inline int ci_find_substr(std::string_view haystack, std::string_view needle)
-{
-	auto iter = std::search(std::begin(haystack), std::end(haystack),
-		std::begin(needle), std::end(needle), ci_less::nocase_compare());
-	if (iter == std::end(haystack)) return -1;
-	return iter - std::begin(haystack);
-}
-
-// todo implement a better ci_starts_with that doesn't search past needle.length chars
-inline bool ci_starts_with(std::string_view haystack, std::string_view needle)
-{
-	return ci_find_substr(haystack, needle) == 0;
-}
-
-inline bool ci_equals(std::string_view sv1, std::string_view sv2)
-{
-	return sv1.size() == sv2.size()
-		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_compare());
-}
-
-inline bool string_equals(std::string_view sv1, std::string_view sv2)
-{
-	return sv1.size() == sv2.size()
-		&& std::equal(sv1.begin(), sv1.end(), sv2.begin());
-}
-
-inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle)
-{
-	if (needle.empty())
-		return haystack.empty();
-
-	bool exact = false;
-
-	if (needle[0] == '=')
-		needle = needle.substr(1);
-
-	if (exact)
-		return ci_equals(haystack, needle);
-
-	return ci_find_substr(haystack, needle) != -1;
-}

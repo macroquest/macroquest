@@ -253,10 +253,11 @@ struct [[offsetcomments]] GROUPMEMBER
 };
 using PGROUPMEMBER [[deprecated]] = GROUPMEMBER*;
 
+
 struct [[offsetcomments]] GROUPINFO
 {
 /*0x00*/ void* vftable;
-/*0x04*/ GROUPMEMBER* pMember[0x6];
+/*0x04*/ GROUPMEMBER* pMember[MAX_GROUP_SIZE];
 /*0x1c*/ GROUPMEMBER* pLeader;
 /*0x20*/
 };

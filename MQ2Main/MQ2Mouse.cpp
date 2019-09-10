@@ -68,7 +68,7 @@ public:
 	HRESULT GetViewport(void* This, void* pViewport);
 	HRESULT GetTransform(void* This, DWORD State, void* pMatrix);
 	void SetCursorPosition(void* This, int X, int Y, DWORD Flags);//0x2c
-	BOOL ShowCursor(void* This, BOOL bShow); // 0x30
+	bool ShowCursor(void* This, bool bShow); // 0x30
 
 	/*0x000*/ BYTE Unknown0x0[0xec8];
 	/*0xec8*/ void* pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
@@ -493,11 +493,11 @@ void Click(SPAWNINFO* pChar, char* szLine)
 							int KeyID = 0;
 							int Skill = 0;
 
-							if (CHARINFO2 * pChar2 = GetCharInfo2())
+							if (PcProfile* pProfile = GetPcProfile())
 							{
-								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
+								if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
 								{
-									if (PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor))
+									if (PITEMINFO pItem = GetItemFromContents(pProfile->pInventoryArray->Inventory.Cursor))
 									{
 										switch (pItem->ItemType)
 										{
@@ -637,7 +637,7 @@ EQD3DMATRIX9 g_projection, g_view, g_world;
 
 //we also need a couple virtual functions defined and we can just put them FakeCDisplay 
 FUNCTION_AT_VIRTUAL_ADDRESS(void FakeCDisplay::SetCursorPosition(void* This, int X, int Y, DWORD Flags), 0x2c);
-FUNCTION_AT_VIRTUAL_ADDRESS(BOOL FakeCDisplay::ShowCursor(void* This, BOOL bShow), 0x30);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool FakeCDisplay::ShowCursor(void* This, bool bShow), 0x30);
 FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetViewport(void*, void* pViewport), 0xc0);
 FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetTransform(void*, DWORD State, void* pMatrix), 0xB4);
 

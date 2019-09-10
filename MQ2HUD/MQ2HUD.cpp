@@ -202,9 +202,9 @@ void LoadElements()
 	{
 		if (bClassHUD && ((ppCharData) && (pCharData)))
 		{
-			if (CHARINFO2* pChar2 = GetCharInfo2())
+			if (PcProfile* pProfile = GetPcProfile())
 			{
-				strcpy_s(ClassDesc, GetClassDesc(pChar2->Class));
+				strcpy_s(ClassDesc, GetClassDesc(pProfile->Class));
 				GetPrivateProfileString(ClassDesc, nullptr, "", ElementList, MAX_STRING * 10, INIFileName);
 
 				char* pElementList = ElementList;

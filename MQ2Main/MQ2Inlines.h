@@ -27,7 +27,7 @@ inline CHARINFO* GetCharInfo()
 	return (CHARINFO*)pCharData;
 }
 
-inline CHARINFO2* GetCharInfo2()
+inline [[deprecated("Use GetPcProfile instead")]] CHARINFO2* GetCharInfo2()
 {
 	if (CHARINFO* pChar = (CHARINFO*)pCharData)
 	{
@@ -72,11 +72,11 @@ inline SPELL* GetSpellByID(int dwSpellID)
 	if (dwSpellID == 0 || dwSpellID == -1)
 		return nullptr;
 
-	long absedspellid = abs(dwSpellID);
-	if (absedspellid >= TOTAL_SPELL_COUNT)
+	int spellId = abs(dwSpellID);
+	if (spellId >= TOTAL_SPELL_COUNT)
 		return nullptr;
 
-	return &(*((PSPELLMGR)pSpellMgr)->Spells[absedspellid]);
+	return ((PSPELLMGR)pSpellMgr)->Spells[spellId];
 }
 
 inline const char* GetBodyTypeDesc(uint32_t BodyTypeID)
@@ -228,9 +228,9 @@ inline int GetMaxEndurance()
 
 inline int GetCurEndurance()
 {
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		return pChar2->Endurance;
+		return pProfile->Endurance;
 	}
 
 	return 0;
@@ -290,14 +290,15 @@ inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENT
 {
 	if (pCharData)
 	{
-		//ok so as far as i can tell RefCount gets increased by us calling this function
-		//and its weird that it's no decremented properly afterwards
-		//it's possible we don't understand this, but there is also a chance this
-		//is a real serious eq bug, either way, decrementing it after the return
-		//seems to work...
-		//if they ever fix this, we must remove our decrement here...
+		// ok so as far as i can tell RefCount gets increased by us calling this function
+		// and its weird that it's no decremented properly afterwards
+		// it's possible we don't understand this, but there is also a chance this
+		// is a real serious eq bug, either way, decrementing it after the return
+		// seems to work...
+		// if they ever fix this, we must remove our decrement here...
 		int ret = pCharData->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
 
+		// Need to decrement refcount because we aren't using it.
 		if (pItemOut.pObject)
 		{
 			InterlockedDecrement((long volatile*)& pItemOut.pObject->RefCount);
@@ -332,150 +333,6 @@ inline bool HasSkill(int nSkill)
 	}
 
 	return false;
-}
-
-// ***************************************************************************
-// Function:    GetCharMaxBuffSlots
-// Description: Returns the max number of buff slots available for a character
-// ***************************************************************************
-inline int GetCharMaxBuffSlots()
-{
-	int NumBuffs = 15;
-
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (pChar->vtable2)
-		{
-			NumBuffs += pCharData->TotalEffect(327, 1, 0, 1, 1);
-		}
-
-		if (pChar->pSpawn && pChar->pSpawn->Level > 70)
-			NumBuffs++;
-		if (pChar->pSpawn && pChar->pSpawn->Level > 74)
-			NumBuffs++;
-	}
-
-	return NumBuffs;
-}
-
-inline int GetBodyType(SPAWNINFO* pSpawn)
-{
-	for (int i = 0; i < 104; i++)
-	{
-		PlayerClient* pc = (PlayerClient*)pSpawn;
-
-		if (pc->HasProperty(i, 0, 0))
-		{
-			if (i == 100)
-			{
-				if (pc->HasProperty(i, 101, 0))
-					return 101;
-				if (pc->HasProperty(i, 102, 0))
-					return 102;
-				if (pc->HasProperty(i, 103, 0))
-					return 103;
-			}
-			return i;
-		}
-	}
-
-	return 0;
-}
-
-inline eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
-{
-	switch (pSpawn->Type)
-	{
-	case SPAWN_PLAYER:
-		return PC;
-
-	case SPAWN_NPC:
-		if (pSpawn->Rider)
-			return MOUNT;
-
-		if (pSpawn->MasterID)
-			return PET;
-		if (pSpawn->Mercenary)
-			return MERCENARY;
-
-		// some type of controller spawn for flying mobs - locations, speed, heading, all NaN
-		if (IsNaN(pSpawn->Y) && IsNaN(pSpawn->X) && IsNaN(pSpawn->Z))
-			return FLYER;
-
-		switch (GetBodyType(pSpawn))
-		{
-		case 0:
-			if (pSpawn->mActorClient.Class == 62)
-				return OBJECT;
-			return NPC;
-
-		case 1:
-			if (pSpawn->mActorClient.Race == 567)
-				return CAMPFIRE;
-			if (pSpawn->mActorClient.Race == 500 || (pSpawn->mActorClient.Race >= 553 && pSpawn->mActorClient.Race <= 557) || pSpawn->mActorClient.Race == 586)
-				return BANNER;
-			return NPC;
-
-		//case 3:
-		//    return NPC;
-
-		case 5:
-			if (strstr(pSpawn->Name, "Idol") || strstr(pSpawn->Name, "Poison") || strstr(pSpawn->Name, "Rune"))
-				return AURA;
-			if (pSpawn->mActorClient.Class == 62)
-				return OBJECT;
-			return NPC;
-
-		case 7:
-			if (pSpawn->mActorClient.Class == 62)
-				return OBJECT;
-			return NPC;
-
-		case 11:
-			if (strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength"))
-				return AURA;
-			return UNTARGETABLE;
-
-		//case 21:
-		//    return NPC;
-		//case 23:
-		//    return NPC;
-
-		case 33:
-			return CHEST;
-
-		//case 34:
-		//    return NPC;
-		//case 65:
-		//    return TRAP;
-		//case 66:
-		//    return TIMER;
-		//case 67:
-		//    return TRIGGER;
-
-		case 100:
-			return UNTARGETABLE
-				;
-		case 101:
-			return TRAP;
-
-		case 102:
-			return TIMER;
-
-		case 103:
-			return TRIGGER;
-
-		default: break;
-		}
-		return NPC;
-
-	case SPAWN_CORPSE:
-		return CORPSE;
-
-	default: break;
-	}
-
-	return ITEM;
 }
 
 inline float GetDistance(float X1, float Y1)
@@ -534,13 +391,13 @@ inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 template <typename T1, typename T2>
 inline float Distance3DToSpawn(T1* pSpawn1, T2* pSpawn2)
 {
-	return Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z, \
+	return Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
 		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
 }
 
 inline bool _FileExists(const char* filename)
 {
-	return _access(filename, 0) != 1;
+	return _access(filename, 0) != -1;
 }
 
 // ***************************************************************************
@@ -576,210 +433,6 @@ inline uint32_t ConColorToARGB(int ConColor)
 	default:
 		return 0xFFFF0000;
 	}
-}
-
-inline bool IsRaidMember(const char* SpawnName)
-{
-	if (pRaid && pRaid->Invited == 4)
-	{
-		for (int index = 0; index < 72; index++)
-		{
-			if (pRaid->RaidMemberUsed[index] && !_stricmp(SpawnName, pRaid->RaidMember[index].Name))
-				return true;
-		}
-	}
-
-	return false;
-}
-
-inline int GetRaidMemberIndex(const char* SpawnName)
-{
-	if (pRaid && pRaid->Invited == 4)
-	{
-		for (int index = 0; index < 72; index++)
-		{
-			if (pRaid->RaidMemberUsed[index] && !_stricmp(SpawnName, pRaid->RaidMember[index].Name))
-				return index;
-		}
-	}
-
-	return -1;
-}
-
-inline bool IsRaidMember(SPAWNINFO* pSpawn)
-{
-	for (int index = 0; index < 72; index++)
-	{
-		if (pRaid->RaidMemberUsed[index] && !_stricmp(pSpawn->Name, pRaid->RaidMember[index].Name))
-			return true;
-	}
-
-	return false;
-}
-
-inline int GetRaidMemberIndex(SPAWNINFO* pSpawn)
-{
-	for (int index = 0; index < 72; index++)
-	{
-		if (pRaid->RaidMemberUsed[index] && !_stricmp(pSpawn->Name, pRaid->RaidMember[index].Name))
-			return index;
-	}
-
-	return -1;
-}
-
-inline bool IsGroupMember(const char* SpawnName)
-{
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (!pChar->pGroupInfo)
-			return nullptr;
-
-		for (int index = 1; index < 6; index++)
-		{
-			if (pChar->pGroupInfo->pMember[index])
-			{
-				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pChar->pGroupInfo->pMember[index]->Name.c_str());
-
-				CleanupName(Name, sizeof(Name), false, false);
-
-				if (!_stricmp(SpawnName, Name))
-					return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-inline bool IsGroupMember(SPAWNINFO* pSpawn)
-{
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (!pChar->pGroupInfo)
-			return false;
-
-		for (int index = 1; index < 6; index++)
-		{
-			if (pChar->pGroupInfo->pMember[index])
-			{
-				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pChar->pGroupInfo->pMember[index]->Name.c_str());
-
-				//CleanupName(Name, sizeof(Name), false, false);
-
-				if (!_stricmp(pSpawn->Name, Name))
-					return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-inline bool IsFellowshipMember(const char* SpawnName)
-{
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (!pChar->pFellowship)
-			return false;
-
-		for (int index = 0; index < pChar->pFellowship->Members; index++)
-		{
-			if (!_stricmp(SpawnName, pChar->pFellowship->FellowshipMember[index].Name))
-				return true;
-		}
-	}
-
-	return false;
-}
-
-inline bool IsGuildMember(const char* SpawnName)
-{
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (pChar->GuildID == 0)
-			return false;
-
-		if (pGuild)
-		{
-			if (GuildMember* mem = pGuild->FindMemberByName(SpawnName))
-			{
-				if (!_stricmp(SpawnName, mem->Name))
-					return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-inline int GetGroupMercenaryCount(uint32_t ClassMASK)
-{
-	int retValue = 0;
-
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (!pChar->pGroupInfo)
-			return 0;
-
-		for (int index = 1; index < 6; index++)
-		{
-			if (pChar->pGroupInfo->pMember[index])
-			{
-				if (pChar->pGroupInfo->pMember[index]->Mercenary
-					&& (ClassMASK & (1 << (pChar->pGroupInfo->pMember[index]->pSpawn->mActorClient.Class - 1))))
-				{
-					retValue++;
-				}
-			}
-		}
-	}
-
-	return retValue;
-}
-
-inline SPAWNINFO* GetRaidMember(int index)
-{
-	if (index >= 72)
-		return nullptr;
-
-	PEQRAIDMEMBER pRaidMember = &pRaid->RaidMember[index];
-
-	if (!pRaidMember)
-		return nullptr;
-
-	return (SPAWNINFO*)GetSpawnByName(pRaidMember->Name);
-}
-
-inline SPAWNINFO* GetGroupMember(int index)
-{
-	if (index > 5)
-		return nullptr;
-
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar->pGroupInfo)
-		return nullptr;
-
-	for (int i = 1; i < 6; i++)
-	{
-		if (pChar->pGroupInfo->pMember[i])
-		{
-			index--;
-
-			if (index == 0)
-			{
-				// FIXME: Why a copy?
-				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
-
-				return (SPAWNINFO*)GetSpawnByName(Name);
-			}
-		}
-	}
-
-	return nullptr;
 }
 
 inline bool IsNumber(const char* String)
@@ -867,12 +520,6 @@ inline uint64_t MQGetTickCount64()
 	return ::GetTickCount64();
 }
 
-// Deprecated: Forwards to MQGetTickCount64()
-inline [[deprecated("Use GetTickCount64() instead")]] uint64_t GetTickCount642()
-{
-	return MQGetTickCount64();
-}
-
 inline int GetMemorizedSpell(int index)
 {
 	if (index < 0 || index > 0xF)
@@ -906,96 +553,6 @@ inline int GetSpellNumEffects(SPELL* pSpell)
 	}
 
 	return 0xc;
-}
-
-inline uint32_t GetGroupMainAssistTargetID()
-{
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		bool bMainAssist = false;
-
-		if (GROUPINFO* pGroup = pChar->pGroupInfo)
-		{
-			if (GROUPMEMBER* pMember = pGroup->pMember[0])
-			{
-				for (int i = 0; i < 6; i++)
-				{
-					if (pGroup->pMember[i])
-					{
-						if (pGroup->pMember[i]->MainAssist)
-						{
-							bMainAssist = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		if (bMainAssist && pChar->pSpawn)
-		{
-			return pChar->pSpawn->GroupAssistNPC[0];
-		}
-	}
-
-	return 0;
-}
-
-inline uint32_t GetRaidMainAssistTargetID(int index)
-{
-	if (SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer)
-	{
-		if (pRaid)
-		{
-			bool bMainAssist = false;
-
-			for (int i = 0; i < 72; i++)
-			{
-				if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
-				{
-					bMainAssist = true;
-					break;
-				}
-			}
-
-			if (bMainAssist)
-			{
-				if (index < 0 || index > 3)
-					index = 0;
-
-				return pSpawn->RaidAssistNPC[index];
-			}
-		}
-	}
-
-	return 0;
-}
-
-inline bool IsAssistNPC(SPAWNINFO* pSpawn)
-{
-	if (pSpawn)
-	{
-		if (uint32_t AssistID = GetGroupMainAssistTargetID())
-		{
-			if (AssistID == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-
-		for (int nAssist = 0; nAssist < 3; nAssist++)
-		{
-			if (uint32_t AssistID = GetRaidMainAssistTargetID(nAssist))
-			{
-				if (AssistID == pSpawn->SpawnID)
-				{
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
 }
 
 inline bool CanTank(int Class)
@@ -1102,4 +659,78 @@ inline uint32_t GetDWordAt(uint32_t address, uint32_t numBytes)
 	}
 
 	return 0;
+}
+
+
+inline void MakeLower(std::string& str)
+{
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+struct ci_less
+{
+	struct nocase_compare
+	{
+		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
+		{
+			if (c1 == c2)
+				return true;
+			return ::tolower(c1) < ::tolower(c2);
+		}
+	};
+
+	bool operator()(std::string_view s1, std::string_view s2) const noexcept
+	{
+		return std::lexicographical_compare(
+			s1.begin(), s1.end(),
+			s2.begin(), s2.end(),
+			nocase_compare());
+	}
+};
+
+inline int ci_find_substr(std::string_view haystack, std::string_view needle)
+{
+	auto iter = std::search(std::begin(haystack), std::end(haystack),
+		std::begin(needle), std::end(needle), ci_less::nocase_compare());
+	if (iter == std::end(haystack)) return -1;
+	return iter - std::begin(haystack);
+}
+
+// todo implement a better ci_starts_with that doesn't search past needle.length chars
+inline bool ci_starts_with(std::string_view haystack, std::string_view needle)
+{
+	return ci_find_substr(haystack, needle) == 0;
+}
+
+inline bool ci_equals(std::string_view sv1, std::string_view sv2)
+{
+	return sv1.size() == sv2.size()
+		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_compare());
+}
+
+inline bool ci_equals(std::string_view haystack, std::string_view needle, bool isExact)
+{
+	if (isExact)
+		return ci_equals(haystack, needle);
+
+	return ci_find_substr(haystack, needle) != -1;
+}
+
+inline bool string_equals(std::string_view sv1, std::string_view sv2)
+{
+	return sv1.size() == sv2.size()
+		&& std::equal(sv1.begin(), sv1.end(), sv2.begin());
+}
+
+inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle)
+{
+	if (needle.empty())
+		return haystack.empty();
+
+	bool exact = false;
+
+	if (needle[0] == '=')
+		needle = needle.substr(1);
+
+	return ci_equals(haystack, needle, exact);
 }

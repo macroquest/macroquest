@@ -54,8 +54,6 @@ EQLIB_API bool dataSelectedItem(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataFindItemBank(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret);
-//EQLIB_API bool dataGroupLeader(const char* szIndex, MQTypeVar &Ret);
-//EQLIB_API bool dataGroupLeaderName(const char* szIndex, MQTypeVar &Ret);
 EQLIB_API bool dataSkill(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataAltAbility(const char* szIndex, MQTypeVar& Ret);
 EQLIB_API bool dataRaid(const char* szIndex, MQTypeVar& Ret);

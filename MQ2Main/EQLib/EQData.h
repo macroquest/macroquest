@@ -415,6 +415,50 @@ constexpr int ITEMTYPE_BOOK = 2;
 #define MAX_STRING                               2048
 #define MAX_VARNAME                              64
 
+// Inventory Slots
+enum eInventorySlot
+{
+	InvSlot_Charm = 0,
+	InvSlot_LeftEar,
+	InvSlot_Head,
+	InvSlot_Face,
+	InvSlot_RightEar,
+	InvSlot_Neck,
+	InvSlot_Shoulders,
+	InvSlot_Arms,
+	InvSlot_Back,
+	InvSlot_LeftWrist,
+	InvSlot_RightWrist,
+	InvSlot_Range,
+	InvSlot_Hands,
+	InvSlot_Primary,
+	InvSlot_Secondary,
+	InvSlot_LeftFingers,
+	InvSlot_RightFingers,
+	InvSlot_Chest,
+	InvSlot_Legs,
+	InvSlot_Feet,
+	InvSlot_Waist,
+	InvSlot_PowerSource,
+	InvSlot_Ammo,
+	InvSlot_Bag1,
+	InvSlot_Bag2,
+	InvSlot_Bag3,
+	InvSlot_Bag4,
+	InvSlot_Bag5,
+	InvSlot_Bag6,
+	InvSlot_Bag7,
+	InvSlot_Bag8,
+	InvSlot_Bag9,
+	InvSlot_Bag10,
+	InvSlot_Held,
+
+	InvSlot_Max,
+	InvSlot_FirstBagSlot = InvSlot_Bag1,
+	InvSlot_LastBagsLot = InvSlot_Bag10,
+};
+
+// AltCurrency values
 constexpr int ALTCURRENCY_DOUBLOONS            = 10;
 constexpr int ALTCURRENCY_ORUX                 = 11;
 constexpr int ALTCURRENCY_PHOSPHENES           = 12;
@@ -1630,12 +1674,21 @@ constexpr int MAX_RAID_LOOTERS = 19;
 constexpr int MAX_RAID_SIZE = 72;
 constexpr int MAX_RAID_MOTD = 1024;
 
+constexpr int MAX_GROUP_SIZE = 6;
+
 enum eRaidLootType : int32_t
 {
 	RaidLootUnknown = 0,
 	RaidLootLeaderOnly = 1,
 	RaidLootLeaderAndGroupLeader = 2,
 	RaidLootAssignments = 3,
+};
+
+enum eRaidState : int32_t
+{
+	RaidStateNotInRaid = 1,
+	RaidStateInvited = 2,
+	RaidStateInRaid = 4
 };
 
 // sizeof(_EQRAID) is 0x3668 (12-09-2009)
@@ -1659,7 +1712,7 @@ struct [[offsetcomments]] EQRAID
 /*0x2d10*/ char              RaidLeaderName[0x40];
 /*0x2d50*/ char              RaidMOTD[MAX_RAID_MOTD];
 /*0x3150*/ char              Inviter[0x40];
-/*0x3190*/ int               Invited;                      // this is an enum, 1 = not in raid, 2 = invited, 4 = in raid
+/*0x3190*/ eRaidState        Invited;
 /*0x3194*/ UINT              RaidID;                       // not sure
 /*0x3198*/ bool              bCreateRaidInvite;
 /*0x3199*/ bool              IsRaidLeader;

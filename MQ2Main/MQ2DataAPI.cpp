@@ -34,7 +34,7 @@ MQ2Type* FindMQ2DataType(const char* Name)
 	return iter->second;
 }
 
-bool MQ2Internal::AddMQ2Type(MQ2Type& Type)
+bool AddMQ2Type(MQ2Type& Type)
 {
 	std::scoped_lock lock(s_variableMutex);
 
@@ -45,7 +45,7 @@ bool MQ2Internal::AddMQ2Type(MQ2Type& Type)
 	return result.second;
 }
 
-bool MQ2Internal::RemoveMQ2Type(MQ2Type& Type)
+bool RemoveMQ2Type(MQ2Type& Type)
 {
 	std::scoped_lock lock(s_variableMutex);
 

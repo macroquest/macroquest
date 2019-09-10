@@ -29,7 +29,7 @@ struct CaseInsensitiveLess
 	};
 };
 
-namespace MQ2Globals {
+namespace mq2 {
 
 	EQLIB_API DWORD baseAddress [[deprecated]];
 
@@ -241,7 +241,7 @@ EQLIB_VAR BYTE* EQADDR_NOTINCHATMODE;
 EQLIB_VAR BYTE* EQADDR_RUNWALKSTATE;
 EQLIB_VAR char* EQADDR_LASTTELL;
 EQLIB_VAR void* EQADDR_GWORLD;
-EQLIB_VAR PDWORD EQADDR_DOABILITYLIST;
+EQLIB_VAR int* EQADDR_DOABILITYLIST;
 EQLIB_VAR PDWORD EQADDR_SUBSCRIPTIONTYPE;
 EQLIB_VAR DWORD EQADDR_GROUPAGGRO;
 EQLIB_VAR char* EQADDR_TARGETAGGROHOLDER;
@@ -716,5 +716,8 @@ EQLIB_VAR DWORD gdwParserEngineVer;
 #include "MQ2Globals-private.h"
 #endif
 
-} // namespace MQ2Globals
-using namespace MQ2Globals;
+} // namespace mq2
+using namespace mq2;
+
+extern std::map<int, std::string> targetBuffSlotToCasterMap;
+extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;

@@ -38,6 +38,7 @@ class EQPlacedItem;
 class PlayerAnimationBase;
 class PlayerBase;
 class PlayerClient;
+class PcClient;
 class MissileBase;
 
 struct EQC_INFO;
@@ -673,13 +674,16 @@ struct [[offsetcomments]] SPAWNINFO
 	uint8_t GetCharacterType() { return Type; }
 	unsigned int GetId() const { return SpawnID; }
 
-	EQLIB_OBJECT void* GetCharacter() const; // a.k.a. GetPcClient()
-	EQLIB_OBJECT int   GetZoneID() const;
-	EQLIB_OBJECT int   GetCurrentMana() const;
-	EQLIB_OBJECT int   GetMaxMana() const;
-	EQLIB_OBJECT int   GetCurrentEndurance() const;
-	EQLIB_OBJECT int   GetMaxEndurance() const;
-	EQLIB_OBJECT int   GetSpellCooldownETA() const;
+	// a.k.a. GetPcClient
+	EQLIB_OBJECT [[deprecated("Use GetPcClient instead")]] void* GetCharacter() const { return spawneqc_info; }
+	EQLIB_OBJECT PcClient* GetPcClient() const { return (PcClient*)spawneqc_info; }
+
+	EQLIB_OBJECT unsigned int GetZoneID() const { return (int)Zone; }
+	EQLIB_OBJECT int GetCurrentMana() const { return ManaCurrent; }
+	EQLIB_OBJECT int GetMaxMana() const { return ManaMax; }
+	EQLIB_OBJECT int GetCurrentEndurance() const { return EnduranceCurrent; }
+	EQLIB_OBJECT int GetMaxEndurance() const { return EnduranceMax; }
+	EQLIB_OBJECT unsigned int GetSpellCooldownETA() const { return SpellCooldownETA; }
 
 	// TODO: Add a PlayerClient() constructor
 };

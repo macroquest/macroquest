@@ -670,7 +670,7 @@ bool dataIf(const char* szIndex, MQTypeVar& Ret)
 
 bool dataCursor(const char* szIndex, MQTypeVar& Ret)
 {
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pChar2 = GetPcProfile())
 	{
 		if (pChar2->pInventoryArray)
 		{

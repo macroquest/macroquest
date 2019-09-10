@@ -166,13 +166,13 @@ public:
 		{
 			if (uiMessage == XWM_LCLICK)
 			{
-				if (CHARINFO2* pChar2 = GetCharInfo2())
+				if (PcProfile* pProfile = GetPcProfile())
 				{
 					if (pTarget && pLocalPlayer
 						&& ((SPAWNINFO*)pTarget)->SpawnID != ((SPAWNINFO*)pLocalPlayer)->SpawnID
-						&& pEverQuest && pChar2->pInventoryArray
-						&& (pChar2->pInventoryArray->Inventory.Cursor
-							|| pChar2->CursorPlat || pChar2->CursorGold || pChar2->CursorSilver || pChar2->CursorCopper))
+						&& pEverQuest && pProfile->pInventoryArray
+						&& (pProfile->pInventoryArray->Inventory.Cursor
+							|| pProfile->CursorPlat || pProfile->CursorGold || pProfile->CursorSilver || pProfile->CursorCopper))
 					{
 						// player has a item or coin on his cursor and clicked targetwindow, he wants to trade with target...
 						pEverQuest->LeftClickedOnPlayer(pTarget);
@@ -721,10 +721,10 @@ public:
 							if (!deletelist.empty())
 								return 0;
 
-							if (CHARINFO2* pChar2 = GetCharInfo2())
+							if (PcProfile* pProfile = GetPcProfile())
 							{
 								// if we have something on cursor we let eq handle the destroy
-								if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == nullptr)
+								if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == nullptr)
 								{
 									// if we have something on cursor we let eq handle the destroy
 									// IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
@@ -847,9 +847,9 @@ public:
 				switch (uiMessage)
 				{
 				case XWM_LCLICK:
-					if (CHARINFO2* pChar2 = GetCharInfo2())
+					if (PcProfile* pProfile = GetPcProfile())
 					{
-						if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
+						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == 0)
 						{
 							if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
 							{
@@ -864,9 +864,9 @@ public:
 					break;
 
 				case XWM_LMOUSEUP:
-					if (CHARINFO2* pChar2 = GetCharInfo2())
+					if (PcProfile* pProfile = GetPcProfile())
 					{
-						if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor == 0)
+						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == 0)
 						{
 							if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
 							{
@@ -1730,11 +1730,11 @@ CXWnd* FindMQ2Window(const char* WindowName)
 		unsigned long nPack = atoi(&WindowName[4]);
 		if (nPack && nPack <= 10)
 		{
-			if (CHARINFO2* pChar2 = GetCharInfo2())
+			if (PcProfile* pProfile = GetPcProfile())
 			{
-				if (pChar2->pInventoryArray)
+				if (pProfile->pInventoryArray)
 				{
-					pPack = pChar2->pInventoryArray->Inventory.Pack[nPack - 1];
+					pPack = pProfile->pInventoryArray->Inventory.Pack[nPack - 1];
 				}
 			}
 		}
@@ -3329,10 +3329,10 @@ void AutoBankPulse()
 		if (autobanklist.empty() && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
 		{
 			// check toplevel slots
-			CHARINFO2* pChar2 = GetCharInfo2();
-			if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray)
+			PcProfile* pProfile = GetPcProfile();
+			if (pProfile && pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
 			{
-				for (CONTENTS* pCont : pChar2->pInventoryArray->InventoryArray)
+				for (CONTENTS* pCont : pProfile->pInventoryArray->InventoryArray)
 				{
 					if (pCont)
 					{
@@ -3359,9 +3359,9 @@ void AutoBankPulse()
 			}
 
 			// check the bags
-			if (pChar2 && pChar2->pInventoryArray)
+			if (pProfile && pProfile->pInventoryArray)
 			{
-				for (CONTENTS* pPack : pChar2->pInventoryArray->Inventory.Pack)
+				for (CONTENTS* pPack : pProfile->pInventoryArray->Inventory.Pack)
 				{
 					if (pPack)
 					{
@@ -3411,9 +3411,9 @@ void AutoBankPulse()
 		}
 	}
 
-	if (CHARINFO2* pChar2 = GetCharInfo2())
+	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor != 0)
+		if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor != 0)
 		{
 			if (bAutoInventoryInProgress)
 				DoCommandf("/autoinventory");
