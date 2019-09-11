@@ -25,10 +25,7 @@
 *.zip
 .vs/
 
-Debug/
-Release/
-Intermediate*/
-ISXEQ*Intermediate
+build/
 packages/
 
 UpgradeLog.htm
