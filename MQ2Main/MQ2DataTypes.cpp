@@ -3521,6 +3521,23 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					}
 				}
 			}
+			else
+			{
+				for (int nBuff = 0; nBuff < MAX_BLOCKED_SPELLS_PET; ++nBuff)
+				{
+					if (int spellId = pCharnew->BlockedPetSpell[nBuff])
+					{
+						if (SPELL* pSpell = GetSpellByID(spellId))
+						{
+							if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
+							{
+								Dest.Ptr = pSpell;
+								return true;
+							}
+						}
+					}
+				}
+			}
 		}
 		return false;
 
@@ -3545,6 +3562,23 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						Dest.Ptr = pSpell;
 						return true;
+					}
+				}
+			}
+			else
+			{
+				for (int nBuff = 0; nBuff < MAX_BLOCKED_SPELLS; ++nBuff)
+				{
+					if (int spellId = pCharnew->BlockedSpell[nBuff])
+					{
+						if (SPELL* pSpell = GetSpellByID(spellId))
+						{
+							if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
+							{
+								Dest.Ptr = pSpell;
+								return true;
+							}
+						}
 					}
 				}
 			}

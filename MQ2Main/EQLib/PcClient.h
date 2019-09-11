@@ -38,8 +38,8 @@
 #define USE_NEW_CHARINFO       0
 #define USE_NEW_PCPROFILE      0
 
-#define MAX_BLOCKED_SPELLS     40
-#define MAX_BLOCKED_SPELLS_PET 40
+constexpr int MAX_BLOCKED_SPELLS = 40;
+constexpr int MAX_BLOCKED_SPELLS_PET = 40;
 
 namespace eqlib {
 
