@@ -3022,6 +3022,23 @@ bool MQ2CharacterType::GETMEMBER()
 					}
 				}
 			}
+			else
+			{
+				for (unsigned long nBuff = 0; nBuff < 0x28; nBuff++)
+				{
+					if (int spellid = pCharnew->BlockedPetSpell[nBuff])
+					{
+						if (PSPELL pSpell = GetSpellByID(spellid))
+						{
+							if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
+							{
+								Dest.Ptr = pSpell;
+								return true;
+							}
+						}
+					}
+				}
+			}
 		}
 		return false;
 	case BlockedBuff:
@@ -3042,6 +3059,23 @@ bool MQ2CharacterType::GETMEMBER()
 					{
 						Dest.Ptr = pSpell;
 						return true;
+					}
+				}
+			}
+			else
+			{
+				for (unsigned long nBuff = 0; nBuff < 0x28; nBuff++)
+				{
+					if (int spellid = pCharnew->BlockedSpell[nBuff])
+					{
+						if (PSPELL pSpell = GetSpellByID(spellid))
+						{
+							if (!_strnicmp(GETFIRST(), pSpell->Name, strlen(GETFIRST())))
+							{
+								Dest.Ptr = pSpell;
+								return true;
+							}
+						}
 					}
 				}
 			}

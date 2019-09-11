@@ -5781,7 +5781,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		if (pSpawn->mActorClient.Class != 2 && pSpawn->mActorClient.Class != 6)
 			return FALSE;
 	if (pSearchSpawn->bDps && pSearchSpawn->SpawnType != NPC)
-		if (pSpawn->mActorClient.Class != 4 && pSpawn->mActorClient.Class != 9 && pSpawn->mActorClient.Class != 12)
+		if (pSpawn->mActorClient.Class != 4 && pSpawn->mActorClient.Class != 9 && pSpawn->mActorClient.Class != 12 && pSpawn->mActorClient.Class != 16)
 			return FALSE;
 	if (pSearchSpawn->bSlower && pSearchSpawn->SpawnType != NPC)
 		if (pSpawn->mActorClient.Class != 10 && pSpawn->mActorClient.Class != 14 && pSpawn->mActorClient.Class != 15)
