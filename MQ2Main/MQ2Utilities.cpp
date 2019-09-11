@@ -3106,15 +3106,12 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		{
 			return false;
 		}
-		else {
 
-			// if the search type is not npc or the mob type is UNT, continue?
-			// stupid /who
+		// if the search type is not npc or the mob type is UNT, continue?
+		// stupid /who
 
-
-			if (pSearchSpawn->SpawnType != NPC || SpawnType != UNTARGETABLE)
-				return false;
-		}
+		if (pSearchSpawn->SpawnType != NPC || SpawnType != UNTARGETABLE)
+			return false;
 	}
 
 	if (pSearchSpawn->MinLevel && pSpawn->Level < pSearchSpawn->MinLevel)
@@ -3133,11 +3130,13 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		if (!pSpawn->GM)
 			return false;
 	}
+
 	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType == NPC)
 	{
 		if (pSpawn->mActorClient.Class < 20 || pSpawn->mActorClient.Class > 35)
 			return false;
 	}
+
 	if (pSearchSpawn->bNamed && !IsNamed(pSpawn))
 		return false;
 	if (pSearchSpawn->bMerchant && pSpawn->mActorClient.Class != 41)
@@ -3148,35 +3147,61 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		return false;
 	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != -1 && pSpawn->GuildID != 0))
 		return false;
+
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != 3 && pSpawn->mActorClient.Class != 5)
+		if (pSpawn->mActorClient.Class != Paladin
+			&& pSpawn->mActorClient.Class != Shadowknight)
+		{
 			return false;
+		}
 	}
+
 	if (pSearchSpawn->bTank && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != 3 && pSpawn->mActorClient.Class != 5 && pSpawn->mActorClient.Class != 1)
+		if (pSpawn->mActorClient.Class != Paladin
+			&& pSpawn->mActorClient.Class != Shadowknight
+			&& pSpawn->mActorClient.Class != Warrior)
+		{
 			return false;
+		}
 	}
+
 	if (pSearchSpawn->bHealer && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != 2 && pSpawn->mActorClient.Class != 6)
+		if (pSpawn->mActorClient.Class != Cleric
+			&& pSpawn->mActorClient.Class != Druid)
+		{
 			return false;
+		}
 	}
+
 	if (pSearchSpawn->bDps && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != 4 && pSpawn->mActorClient.Class != 9 && pSpawn->mActorClient.Class != 12)
+		if (pSpawn->mActorClient.Class != Ranger
+			&& pSpawn->mActorClient.Class != Rogue
+			&& pSpawn->mActorClient.Class != Wizard
+			&& pSpawn->mActorClient.Class != Berserker)
+		{
 			return false;
+		}
 	}
+
 	if (pSearchSpawn->bSlower && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != 10 && pSpawn->mActorClient.Class != 14 && pSpawn->mActorClient.Class != 15)
+		if (pSpawn->mActorClient.Class != Shaman
+			&& pSpawn->mActorClient.Class != Enchanter
+			&& pSpawn->mActorClient.Class != Beastlord)
+		{
 			return false;
+		}
 	}
+
 	if (pSearchSpawn->bLFG && !pSpawn->LFG)
 		return false;
 	if (pSearchSpawn->bTrader && !pSpawn->Trader)
 		return false;
+
 	if (pSearchSpawn->bXTarHater)
 	{
 		bool foundhater = false;
@@ -5906,7 +5931,7 @@ int CountBankItems(T&& checkItem)
 								{
 									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug])
 									{
-										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType) 
+										if (GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL && GetItemFromContents(pAugItem)->AugType)
 										{
 											if (checkItem(pAugItem))
 											{
