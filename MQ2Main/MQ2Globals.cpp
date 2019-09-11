@@ -19,7 +19,7 @@
 
 #include "MQ2Main.h"
 
-namespace mq2 {
+namespace mq {
 
 DWORD baseAddress = (DWORD)GetModuleHandle(nullptr);
 bool InitOffsets()
@@ -1112,7 +1112,7 @@ bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 #include "MQ2Globals-private.cpp"
 #endif
 
-} // namespace mq2
+} // namespace mq
 
 
 KeypressHandler* GetKeyPresshandler()

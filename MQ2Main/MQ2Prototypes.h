@@ -14,7 +14,7 @@
 
 #pragma once
 
-namespace mq2 {
+namespace mq {
 
 // These prototypes are unnecessary and should be converted into functions
 using fEQNewUIINI            = char*  (*)();
@@ -55,6 +55,6 @@ using fClassLvl              = DWORD  (*)(DWORD, DWORD, DWORD);
 // Misc Function types
 using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();
 
-} // namespace mq2
+} // namespace mq
 
-using namespace mq2;
+using namespace mq;

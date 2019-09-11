@@ -29,7 +29,7 @@ struct CaseInsensitiveLess
 	};
 };
 
-namespace mq2 {
+namespace mq {
 
 	EQLIB_API DWORD baseAddress [[deprecated]];
 
@@ -716,8 +716,8 @@ EQLIB_VAR DWORD gdwParserEngineVer;
 #include "MQ2Globals-private.h"
 #endif
 
-} // namespace mq2
-using namespace mq2;
+} // namespace mq
+using namespace mq;
 
 extern std::map<int, std::string> targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;

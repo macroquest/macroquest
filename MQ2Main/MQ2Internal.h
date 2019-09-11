@@ -21,7 +21,7 @@
 
 class MQ2Type;
 
-namespace mq2 {
+namespace mq {
 
 enum eAdventureTheme
 {
@@ -729,7 +729,7 @@ struct MercDesc
 	std::string Proficiency;
 };
 
-} // namespace mq2
+} // namespace mq
 
-using namespace mq2;
+using namespace mq;
 
