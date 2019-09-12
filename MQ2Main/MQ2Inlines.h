@@ -19,6 +19,9 @@
 #include <cctype>
 #include <locale>
 
+// For Conversions
+#include <charconv>
+
 EQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true, bool ForWhoList = true);
 
 inline CHARINFO* GetCharInfo()
@@ -608,6 +611,29 @@ inline std::string trim_copy(std::string s)
 {
 	trim(s);
 	return s;
+}
+
+/**
+ * @fn GetIntFromString
+ *
+ * @brief Gets the int value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to an int and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
+ *
+ * @param svString The string to convert to an integer
+ * @param iReturnOnFail The integer that should be returned if conversion fails
+ *
+ * @return int The converted integer or the "failure" value
+ **/
+inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), iReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return iReturnOnFail;
 }
 
 inline const char* GetSpellString(int ID, int SpellIndex)

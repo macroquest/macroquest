@@ -3498,65 +3498,25 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case BlockedPetBuff:
-		Dest.Type = pSpellType;
-		if (!Index[0])
-			return false;
-
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			if (IsNumber(Index))
-			{
-				int nBuff = atoi(Index) - 1;
-				if (nBuff < 0)
-					nBuff = 0;
-				if (nBuff > MAX_BLOCKED_SPELLS_PET)
-					return false;
-
-				if (int spellId = pCharnew->BlockedPetSpell[nBuff])
-				{
-					if (SPELL* pSpell = GetSpellByID(spellId))
-					{
-						Dest.Ptr = pSpell;
-						return true;
-					}
-				}
-			}
-			else
-			{
-				for (int nBuff = 0; nBuff < MAX_BLOCKED_SPELLS_PET; ++nBuff)
-				{
-					if (int spellId = pCharnew->BlockedPetSpell[nBuff])
-					{
-						if (SPELL* pSpell = GetSpellByID(spellId))
-						{
-							if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-							{
-								Dest.Ptr = pSpell;
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-		return false;
-
+		// Fall through to BlockedBuff
 	case BlockedBuff:
 		Dest.Type = pSpellType;
 		if (!Index[0])
 			return false;
 
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
+		// TODO:  Move this into a function for both BlockedPetBuff and BlockedBuff
+		if (CHARINFONEW* pCharnew = reinterpret_cast<CHARINFONEW*>(GetCharInfo()))
 		{
+			int iMaxBlockedSpells = (static_cast<CharacterMembers>(pMember->ID) == BlockedBuff ? MAX_BLOCKED_SPELLS : MAX_BLOCKED_SPELLS_PET);
 			if (IsNumber(Index))
 			{
-				int nBuff = atoi(Index) - 1;
+				int nBuff = GetIntFromString(Index, iMaxBlockedSpells + 2) - 1;
 				if (nBuff < 0)
 					nBuff = 0;
-				if (nBuff > MAX_BLOCKED_SPELLS)
+				if (nBuff > iMaxBlockedSpells)
 					return false;
 
-				if (int spellId = pCharnew->BlockedSpell[nBuff])
+				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == BlockedBuff) ? pCharnew->BlockedSpell[nBuff] : pCharnew->BlockedPetSpell[nBuff])
 				{
 					if (SPELL* pSpell = GetSpellByID(spellId))
 					{
@@ -3567,9 +3527,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			}
 			else
 			{
-				for (int nBuff = 0; nBuff < MAX_BLOCKED_SPELLS; ++nBuff)
+				for (auto i = 0; i < iMaxBlockedSpells; ++i)
 				{
-					if (int spellId = pCharnew->BlockedSpell[nBuff])
+					if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == BlockedBuff) ? pCharnew->BlockedSpell[i] : pCharnew->BlockedPetSpell[i])
 					{
 						if (SPELL* pSpell = GetSpellByID(spellId))
 						{
@@ -3607,7 +3567,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				return true;
 			}
 
-			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
 			{
 				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 				{

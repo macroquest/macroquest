@@ -430,6 +430,7 @@ char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToP
 	return szDest;
 }
 
+// TODO:  Remove since the working directory is the EQ directory
 char* GetEQPath(char* szBuffer, size_t len)
 {
 	GetModuleFileName(nullptr, szBuffer, MAX_STRING);
