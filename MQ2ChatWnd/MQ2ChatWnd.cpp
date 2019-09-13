@@ -22,11 +22,12 @@
 
 PreSetup("MQ2ChatWnd");
 
-#define MAX_CHAT_SIZE        700 
-#define LINES_PER_FRAME      3 
+static constexpr auto MAX_CHAT_SIZE = 700;
+static constexpr auto LINES_PER_FRAME = 3;
+static constexpr auto CMD_HIST_MAX = 50;
+static constexpr auto MAX_LINES_OUTBOX = 400;
 
 std::list<CXStr> sPendingChat;
-const int CMD_HIST_MAX = 50;
 DWORD ulOldVScrollPos = 0;
 DWORD bmStripFirstStmlLines = 0;
 char szChatINISection[MAX_STRING] = { 0 };
@@ -62,7 +63,7 @@ public:
 		OutputBox = (CStmlWnd*)GetChildItem("CW_ChatOutput");
 		OutputBox->SetParentWindow(this);
 		InputBox->SetParentWindow(this);
-		OutputBox->MaxLines = 0x190;
+		OutputBox->MaxLines = MAX_LINES_OUTBOX;
 		OutputBox->SetClickable(true);
 		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
 		iCurrentCmd = -1;

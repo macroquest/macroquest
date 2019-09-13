@@ -50,8 +50,8 @@ static void ProcessQueuedEvents()
 
 	lock.unlock();
 
-	for (auto& ev : s_queuedEvents)
-		ev();
+	for (auto& ev : events)
+		std::invoke(ev);
 }
 
 //----------------------------------------------------------------------------
