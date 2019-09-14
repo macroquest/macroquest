@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#include "../MQ2Plugin.h" 
+#include <mq/Plugin.h>
 
 #include <vector>
 #include <list>

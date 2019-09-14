@@ -14,7 +14,7 @@
 
 #include "MQ2Main.h"
 
-#include "..\Dxsdk90\include\dinput.h"
+#include "dxsdk90\include\dinput.h"
 
 static bool gbInDState = false;
 static bool gbInDAcquire = false;

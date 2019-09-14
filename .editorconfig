@@ -8,3 +8,7 @@ indent_size = 4
 [*.{py,cs}]
 indent_style = space
 indent_size = 4
+
+[*.props]
+indent_style = space
+indent_size = 2

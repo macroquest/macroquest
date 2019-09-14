@@ -17,7 +17,7 @@
 // Updated 4/17/17 by Sym - Updated for a recent patch
 // Updated 8/27/17 by Eqmule - Added Stringsafeness
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 
 #include <list>
 #include <mutex>

@@ -13,7 +13,7 @@
  */
 
 // The "old" chat plugin
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 
 PreSetup("MQ2Chat");
 

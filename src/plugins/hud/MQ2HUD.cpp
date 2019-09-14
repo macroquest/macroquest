@@ -15,7 +15,7 @@
  // Cr4zyb4rd patch: 1/7/2005
  // Updated Sep 09 2017 by eqmule to take undeclared macro variables into account
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 
 #include <mutex>
 

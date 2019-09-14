@@ -36,3 +36,8 @@ ipch/
 
 .cvsignore
 .vscode/
+
+# ignore ida files
+*.id?
+*.nam
+*.til

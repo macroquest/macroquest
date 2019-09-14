@@ -60,11 +60,11 @@
 // Windows Header Files:
 #include <windows.h>
 
-#include "..\Dxsdk90\include\dinput.h"
-#include "..\Detours\inc\detours.h"
+#include "dxsdk90\include\dinput.h"
+#include "detours\inc\detours.h"
 
 // MQ2
-#include "..\Blech\Blech.h"
+#include "blech\Blech.h"
 
 //#define MQ2_PROFILING
 
@@ -123,7 +123,7 @@
 #define LODWORD(_qw)          ((uint32_t)(_qw))
 #define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
 
-#include "EQLib/EQLib.h"
+#include "../eqlib/EQLib.h"
 
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"

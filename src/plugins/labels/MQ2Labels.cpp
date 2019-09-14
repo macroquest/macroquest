@@ -15,7 +15,7 @@
  // 2.0 - May 14 2016 - Added code to allow anonymizing labels, for streaming/video recording. - eqmule
  // MQ2 Custom Labels
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 
 PLUGIN_VERSION(2.0);
 

@@ -16,7 +16,7 @@
 // 2.1 Added enums for menu and go to menu item
 // 2.2 Added fix from dannuic/knightly to stop clearing target when using hotbuttons.
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 #include "resource.h"
 
 #include <map>

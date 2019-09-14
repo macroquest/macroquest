@@ -109,7 +109,7 @@ Change log:
 - Initial release
 ******************************************************************************/
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 
 #include <map>
 #include <tlhelp32.h>

@@ -23,36 +23,36 @@ DWORD EQGameBaseAddress = (DWORD)GetModuleHandle(nullptr);
 //============================================================================
 
 const char* szCombineTypes[] = {
-#include "data/combines.h"
+#include "../eqdata/combines.h"
 	nullptr
 };
 size_t MAX_COMBINES = lengthof(szCombineTypes);
 
 const char* szItemTypes[] = {
-#include "data/itemtypes.h"
+#include "../eqdata/itemtypes.h"
 	nullptr
 };
 size_t MAX_ITEMTYPES = lengthof(szItemTypes);
 
 const char* szSPATypes[] = {
-#include "data/spelleffects.h"
+#include "../eqdata/spelleffects.h"
 	nullptr
 };
 size_t MAX_SPELLEFFECTS = lengthof(szSPATypes) - 1;
 
 const char* szFactionNames[] = {
-#include "data/factionnames.h"
+#include "../eqdata/factionnames.h"
 	nullptr
 };
 size_t MAX_FACTIONNAMES = lengthof(szFactionNames) - 1;
 
 ACTORDEFENTRY ActorDefList[] = {
-#include "data/actordef.h"
+#include "../eqdata/actordef.h"
 	0, 0, "NULL"
 };
 
 DIKEYID gDiKeyID[] = {
-#include "data/dikeys.h"
+#include "../eqdata/dikeys.h"
 	{ 0, 0 }
 };
 

@@ -22,7 +22,7 @@
 //		/iScore HeroicSTA 15; scores HeroicSTA at 15:1
 //
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 #include "resource.h"
 
 #include <mutex>

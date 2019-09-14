@@ -599,7 +599,7 @@ BYTE LightBrightness[] = {
 };
 
 const char* szSkills[] = {
-#include "EQLib/data/skills.h"
+#include "../eqdata/skills.h"
 	nullptr
 };
 

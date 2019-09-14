@@ -20,7 +20,8 @@
 //  MQ2Data so Lax redid it.
 // v2.0 - Eqmule 07-22-2016 - Added string safety.
 //
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
+
 #include "netstream.h"
 
 #include <mutex>
