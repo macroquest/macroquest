@@ -221,6 +221,8 @@ public:
 
 		// scroll to bottom of chat window 
 		OutputBox->SetVScrollPos(OutputBox->GetVScrollMax());
+
+		FontSize = size;
 	};
 
 	void Clear()
@@ -289,16 +291,6 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 	pWindow->SetWindowText(szTemp);
 }
 
-template <unsigned int _Size>
-char* SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
-	}
-	return "";
-}
-
 void SaveChatToINI(CSidlScreenWnd* pWindow)
 {
 	char szTemp[MAX_STRING] = { 0 };
@@ -308,32 +300,32 @@ void SaveChatToINI(CSidlScreenWnd* pWindow)
 
 	if (pWindow->IsMinimized())
 	{
-		WritePrivateProfileString(szChatINISection, "ChatTop", SafeItoa(pWindow->GetOldLocation().top, szTemp, 10), INIFileName);
-		WritePrivateProfileString(szChatINISection, "ChatBottom", SafeItoa(pWindow->GetOldLocation().bottom, szTemp, 10), INIFileName);
-		WritePrivateProfileString(szChatINISection, "ChatLeft", SafeItoa(pWindow->GetOldLocation().left, szTemp, 10), INIFileName);
-		WritePrivateProfileString(szChatINISection, "ChatRight", SafeItoa(pWindow->GetOldLocation().right, szTemp, 10), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatTop", std::to_string(pWindow->GetOldLocation().top), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatBottom", std::to_string(pWindow->GetOldLocation().bottom), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatLeft", std::to_string(pWindow->GetOldLocation().left), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatRight", std::to_string(pWindow->GetOldLocation().right), INIFileName);
 	}
 	else
 	{
-		WritePrivateProfileString(szChatINISection, "ChatTop", SafeItoa(pWindow->GetLocation().top, szTemp, 10), INIFileName);
-		WritePrivateProfileString(szChatINISection, "ChatBottom", SafeItoa(pWindow->GetLocation().bottom, szTemp, 10), INIFileName);
-		WritePrivateProfileString(szChatINISection, "ChatLeft", SafeItoa(pWindow->GetLocation().left, szTemp, 10), INIFileName);
-		WritePrivateProfileString(szChatINISection, "ChatRight", SafeItoa(pWindow->GetLocation().right, szTemp, 10), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatTop", std::to_string(pWindow->GetLocation().top), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatBottom", std::to_string(pWindow->GetLocation().bottom), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatLeft", std::to_string(pWindow->GetLocation().left), INIFileName);
+		WritePrivateProfileString(szChatINISection, "ChatRight", std::to_string(pWindow->GetLocation().right), INIFileName);
 	}
-	WritePrivateProfileString(szChatINISection, "Locked", SafeItoa(pWindow->IsLocked(), szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "Fades", SafeItoa(pWindow->GetFades(), szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "Delay", SafeItoa(pWindow->GetFadeDelay(), szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "Duration", SafeItoa(pWindow->GetFadeDuration(), szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "Alpha", SafeItoa(pWindow->GetAlpha(), szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "FadeToAlpha", SafeItoa(pWindow->GetFadeToAlpha(), szTemp, 10), INIFileName);
+	WritePrivateProfileString(szChatINISection, "Locked", std::to_string(pWindow->IsLocked()), INIFileName);
+	WritePrivateProfileString(szChatINISection, "Fades", std::to_string(pWindow->GetFades()), INIFileName);
+	WritePrivateProfileString(szChatINISection, "Delay", std::to_string(pWindow->GetFadeDelay()), INIFileName);
+	WritePrivateProfileString(szChatINISection, "Duration", std::to_string(pWindow->GetFadeDuration()), INIFileName);
+	WritePrivateProfileString(szChatINISection, "Alpha", std::to_string(pWindow->GetAlpha()), INIFileName);
+	WritePrivateProfileString(szChatINISection, "FadeToAlpha", std::to_string(pWindow->GetFadeToAlpha()), INIFileName);
 	ARGBCOLOR col = { 0 };
 	col.ARGB = pWindow->GetBGColor();
-	WritePrivateProfileString(szChatINISection, "BGType", SafeItoa(pWindow->GetBGType(), szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "BGTint.alpha", SafeItoa(col.A, szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "BGTint.red", SafeItoa(col.R, szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "BGTint.green", SafeItoa(col.G, szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "BGTint.blue", SafeItoa(col.B, szTemp, 10), INIFileName);
-	WritePrivateProfileString(szChatINISection, "FontSize", SafeItoa(MQChatWnd->FontSize, szTemp, 10), INIFileName);
+	WritePrivateProfileString(szChatINISection, "BGType", std::to_string(pWindow->GetBGType()), INIFileName);
+	WritePrivateProfileString(szChatINISection, "BGTint.alpha", std::to_string(col.A), INIFileName);
+	WritePrivateProfileString(szChatINISection, "BGTint.red", std::to_string(col.R), INIFileName);
+	WritePrivateProfileString(szChatINISection, "BGTint.green", std::to_string(col.G), INIFileName);
+	WritePrivateProfileString(szChatINISection, "BGTint.blue", std::to_string(col.B), INIFileName);
+	WritePrivateProfileString(szChatINISection, "FontSize", std::to_string(MQChatWnd->FontSize), INIFileName);
 	WritePrivateProfileString(szChatINISection, "WindowTitle", pWindow->GetWindowText().c_str(), INIFileName);
 }
 
@@ -403,7 +395,7 @@ void MQChatFont(SPAWNINFO* pChar, char* Line)
 {
 	if (MQChatWnd && Line[0])
 	{
-		int size = atoi(Line);
+		const int size = GetIntFromString(Line, -1);
 		if (size < 0 || size>10)
 		{
 			WriteChatf("Usage: /mqfont 0-10");
@@ -545,7 +537,6 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	// TODO: Use shared code in MQ2Main
 	if (gAnonymize)
 	{
-		int len = strlen(Line);
 		char Name[MAX_STRING] = { "*" };
 		int namelen = 0;
 
@@ -591,8 +582,8 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 							{
 								if (char* p = strstr(Line, Name))
 								{
-									for (int i = 1; i < namelen - 1; i++) {
-										p[i] = '*';
+									for (int j = 1; j < namelen - 1; j++) {
+										p[j] = '*';
 									}
 								}
 							}
