@@ -5420,6 +5420,7 @@ void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
 	WriteChatf("Screen Mode Set to \ag%d\ax", newprio);
 }
 
+// TODO:  Replace with generic format_to function (see ftoa_s as well)
 template <unsigned int _Size>
 LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
 {
@@ -5430,6 +5431,7 @@ LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
 	return "";
 }
 
+// TODO:  Replace with generic format_to function (see SafeItoa as well)
 template <unsigned int _Size>
 char* ftoa_s(float fNum, char(&szText)[_Size])
 {

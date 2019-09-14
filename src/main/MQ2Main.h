@@ -664,3 +664,28 @@ EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager* GetItemList();
 
 EQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
+
+// These are replaced with our own wrappers
+#undef GetPrivateProfileInt
+#undef GetPrivateProfileString
+#undef WritePrivateProfileSection
+#undef WritePrivateProfileString
+inline int GetPrivateProfileInt(std::string_view Section, std::string_view Key, int DefaultValue, std::string_view iniFileName)
+{
+	return GetPrivateProfileIntA(&Section[0], &Key[0], DefaultValue, &iniFileName[0]);
+}
+
+inline int GetPrivateProfileString(std::string_view Section, std::string_view Key, std::string_view DefaultValue, char* Return, size_t Size, std::string_view iniFileName)
+{
+	return GetPrivateProfileStringA(&Section[0], &Key[0], &DefaultValue[0], Return, Size, &iniFileName[0]);
+}
+
+inline bool WritePrivateProfileSection(std::string_view Section, std::string_view KeysAndValues, std::string_view iniFileName)
+{
+	return WritePrivateProfileSectionA(&Section[0], &KeysAndValues[0], &iniFileName[0]);
+}
+
+inline bool WritePrivateProfileString(std::string_view Section, std::string_view Key, std::string_view Value, std::string_view iniFileName)
+{
+	return WritePrivateProfileStringA(&Section[0], &Key[0], &Value[0], &iniFileName[0]);
+}
