@@ -1,4 +1,7 @@
-Sep 10 2019 by Eqmule
+Sep 18 2019 by Eqmule
+- Updated for LIVE
+
+-Sep 10 2019 by Eqmule
 - Updated for TEST
 -
 -Aug 27 2019 by Eqmule
