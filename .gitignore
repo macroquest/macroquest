@@ -25,17 +25,19 @@
 *.zip
 .vs/
 
-Debug/
-Release/
-Intermediate*/
-ISXEQ*Intermediate
+build/
 packages/
 
 UpgradeLog.htm
 
-MQ2Auth0.h
+MQ2Auth.h
 CVS/
 ipch/
 
 .cvsignore
 .vscode/
+
+# ignore ida files
+*.id?
+*.nam
+*.til
