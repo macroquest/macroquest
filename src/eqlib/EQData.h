@@ -751,6 +751,8 @@ constexpr int CONCURRENT_SKILLS = 2;
 
 struct [[offsetcomments]] LEADERABILITIES
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ DWORD MarkNPC;
 /*0x04*/ DWORD NPCHealth;
 /*0x08*/ DWORD Unknown0x8;
@@ -769,71 +771,6 @@ struct [[offsetcomments]] LEADERABILITIES
 /*0x3c*/
 };
 using PLEADERABILITIES = LEADERABILITIES*;
-
-struct [[offsetcomments]] MODELINFONAME
-{
-/*0x00*/ DWORD Unknown0000;
-/*0x04*/ DWORD Unknown0004;
-/*0x08*/ char* Name;
-/*0x0c*/
-};
-using PMODELINFONAME = MODELINFONAME*;
-
-struct [[offsetcomments]] MODELINFO_GENERIC
-{
-/*0x00*/ DWORD Type;
-/*0x04*/ DWORD Unknown0x04;
-/*0x08*/ DWORD Unknown0x08;
-/*0x0c*/ DWORD Unknown0x0c;
-/*0x10*/ DWORD Unknown0x10;
-/*0x14*/
-};
-using PMODELINFO_GENERIC = MODELINFO_GENERIC*;
-
-struct [[offsetcomments]] MODELINFO_48
-{
-/*0x00*/ MODELINFO_GENERIC Header;
-/*0x14*/ float Float1;
-/*0x18*/ float Float2;
-/*0x1c*/ float Float3;
-/*0x20*/ MODELINFONAME* pModelName;
-/*0x24*/
-};
-using PMODELINFO_48 = MODELINFO_48*;
-
-struct [[offsetcomments]] MODELINFO_51
-{
-/*0x00*/ MODELINFO_GENERIC Header;
-/*0x14*/ MODELINFONAME* pFontName;
-/*0x18*/ char* LabelText;
-/*0x1c*/
-};
-using PMODELINFO_51 = MODELINFO_51*;
-
-struct [[offsetcomments]] MODELINFO
-{
-/*0x00*/ DWORD              Unknown;
-/*0x04*/ char*              NameDAG;
-/*0x08*/ MODELINFO_GENERIC* pModelInfo;
-/*0x0c*/ MODELINFO*         pNextInChain;
-/*0x10*/ void*              pUnknown;
-/*0x14*/ MODELINFONAME*     pTrack1;
-/*0x18*/ MODELINFONAME*     pTrack2;
-};
-using PMODELINFO = MODELINFO*;
-
-struct [[offsetcomments]] CAMERAINFO
-{
-/*0x00*/ DWORD Unknown0x00;
-/*0x04*/ DWORD Unknown0x04;
-/*0x08*/ BYTE  Unknown0x08[0x8];
-/*0x10*/ float Y;
-/*0x14*/ float X;
-/*0x18*/ float Z;
-/*0x1c*/ float LightRadius;
-/*0x20*/
-};
-using PCAMERAINFO = CAMERAINFO*;
 
 struct [[offsetcomments]] USINGSKILL
 {
@@ -919,7 +856,7 @@ enum InvisibleTypes
 #define MONITOR_SPAWN_SPEEDRUN                   16
 #define MONITOR_SPAWN_HPCURRENT                  32
 
-struct [[offsetcomments]] SPAWNMONITORINFO
+struct SPAWNMONITORINFO
 {
 	WORD SpawnID;
 	float Y;
@@ -946,7 +883,7 @@ struct Matrix4x4
 	};
 };
 
-struct [[offsetcomments]] SWITCHCLICK
+struct SWITCHCLICK
 {
 	float Y;
 	float X;
@@ -1383,6 +1320,7 @@ constexpr int MAX_SKILL_CLASSES = 36;
 // Actual Size: 0x2E9B2C see 571E37 in eqgame dated 20170411 test
 struct [[offsetcomments]] SKILLMGR
 {
+	FORCE_SYMBOLS;
 /*0x000000*/ SKILL*    pSkill[NUM_SKILLS];
 /*0x000190*/ int       SkillCaps[MAX_SKILL_CLASSES][NUM_SKILLS][MAX_PC_LEVEL+1];
 /*0x186550*/ float     SkillMods[MAX_SKILL_CLASSES][NUM_SKILLS][MAX_PC_LEVEL+1];
@@ -1406,25 +1344,29 @@ using PAUTOSKILL = AUTOSKILL*;
 // Same as SKILLMGR
 class [[offsetcomments]] SkillManager
 {
+	FORCE_SYMBOLS;
+
 public:
 /*0x000000*/ TSafeArrayStatic<PSKILL, NUM_SKILLS> pSkill;
 /*0x000190*/ int       SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x174C10*/ float     SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x2E9690*/ char      SkillCapsFilename[MAX_PATH];
-/*0x2E9794*/ UINT      SkillLastUsed[NUM_SKILLS];
-/*0x2E9924*/ UINT      SkillTimerDuration[NUM_SKILLS];
-/*0x2E9AB4*/ UINT      CombatSkillLastUsed[CONCURRENT_SKILLS];
-/*0x2E9ABC*/ UINT      CombatSkillDuration[CONCURRENT_SKILLS];
-/*0x2E9AC4*/ bool      bSkillCanUse[NUM_SKILLS];
-/*0x2E9B28*/ bool      bCombatSkillCanUse[CONCURRENT_SKILLS];
-/*0x2E9B2C*/
+/*0x186550*/ float     SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x30c910*/ char      SkillCapsFilename[MAX_PATH];
+/*0x30ca14*/ UINT      SkillLastUsed[NUM_SKILLS];
+/*0x30cba4*/ UINT      SkillTimerDuration[NUM_SKILLS];
+/*0x30cd34*/ UINT      CombatSkillLastUsed[CONCURRENT_SKILLS];
+/*0x30cd3c*/ UINT      CombatSkillDuration[CONCURRENT_SKILLS];
+/*0x30cd44*/ bool      bSkillCanUse[NUM_SKILLS];
+/*0x30cda8*/ bool      bCombatSkillCanUse[CONCURRENT_SKILLS];
+/*0x30cdac*/
 };
 
 struct [[offsetcomments]] GUILDDATA
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ char   Name[0x40];
-/*0x04*/ DWORD  ID;
-/*0x08*/
+/*0x40*/ DWORD  ID;
+/*0x44*/
 };
 using PGUILDDATA = GUILDDATA*;
 
@@ -1469,8 +1411,11 @@ using PGUILDS = GUILDS*;
 
 struct [[offsetcomments]] INTERACTGROUNDITEM
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ DWORD DropID;
 /*0x04*/ DWORD SpawnID;
+/*0x08*/
 };
 using PINTERACTGROUNDITEM = INTERACTGROUNDITEM;
 
@@ -1513,6 +1458,8 @@ using PEQSOCIAL = EQSOCIAL*;
 
 struct [[offsetcomments]] EQFRIENDSLIST
 {
+	FORCE_SYMBOLS;
+
 /*0x0000*/ char Name[0x64][0x40];
 /*0x1900*/
 };
@@ -1520,10 +1467,13 @@ using PEQFRIENDSLIST = EQFRIENDSLIST*;
 
 struct [[offsetcomments]] AAEFFECTDATA
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ int EffectType;
 /*0x04*/ int BaseEffect1;
 /*0x08*/ int BaseEffect2;
 /*0x0c*/ int Slot;
+/*0x10*/
 };
 using PAAEFFECTDATA = AAEFFECTDATA*;
 
@@ -1591,31 +1541,43 @@ using PALTABILITY = CAltAbilityData*;
 
 struct [[offsetcomments]] ALTABILITIESLISTMGR
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ ALTABILITY* Ability;
 /*0x04*/ DWORD Index;
+/*0x08*/
 };
 using PALTABILITIESLISTMGR = ALTABILITIESLISTMGR*;
 
 // NUM_ALT_ABILITIES is now defined before CHARINFO definition in this same header file.
 struct [[offsetcomments]] ALTABILITIESLIST
 {
-/*0x00*/ ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES_ARRAY];
+	FORCE_SYMBOLS;
+
+/*0x000*/ ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES_ARRAY];
+/*0x7dc*/
 };
 using PALTABILITIESLIST = ALTABILITIESLIST*;
 
 struct [[offsetcomments]] NEWALTADVMGR
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ ALTABILITIESLIST*   AltAbilityList;
 /*0x04*/ DWORD               NumAltAbilities;    // NUM_ALT_ABILITIES
 /*0x08*/ DWORD               Unknown0x08;        // data here
 /*0x0c*/ DWORD               Unknown0x0c;        // data here
 /*0x10*/ BYTE                Unknown0x10[0x8];
+/*0x18*/
 };
 using PNEWALTADVMGR = NEWALTADVMGR*;
 
 struct [[offsetcomments]] ALTADVMGR
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ NEWALTADVMGR* AltAbilities;
+/*0x04*/
 };
 using PALTADVMGR = ALTADVMGR*;
 
@@ -1730,12 +1692,14 @@ using PEQRAID = EQRAID*;
 // size 0x19C 3-23-2005
 struct [[offsetcomments]] EQGROUP
 {
+	FORCE_SYMBOLS;
+
 /*0x000*/ BYTE         MemberExists[5];
 /*0x005*/ char         MemberName[5][0x40];
 /*0x145*/ BYTE         Unused[3];
 /*0x148*/ SPAWNINFO*   pMember[5];
-/*0x15C*/ char         LeaderName[0x40];
-/*0x19C*/
+/*0x15c*/ char         LeaderName[0x40];
+/*0x19c*/
 };
 using PEQGROUP = EQGROUP*;
 
@@ -1963,8 +1927,11 @@ using PCSINFO [[deprecated]] = CSINFO*;
 
 struct [[offsetcomments]] CharSelectPlayerArray
 {
+	FORCE_SYMBOLS;
+
 	// note that CharSelectPlayerCount determines how many are actully here
-	CSINFO CharacterInfo[13];                    // is 13 chars the max u can have?
+/*0x0000*/ CSINFO CharacterInfo[13];                    // is 13 chars the max u can have?
+/*0x12b0*/
 };
 using PCharSelectPlayerArray [[deprecated]] = CharSelectPlayerArray*;
 
@@ -2026,6 +1993,8 @@ using PAURAINFO [[deprecated]] = AURAINFO*;
 
 struct [[offsetcomments]] AURAS
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ AURAINFO     Aura[0x2];
 /*0x98*/
 };
@@ -2033,20 +2002,25 @@ using PAURAS = AURAS*;
 
 struct [[offsetcomments]] AURAMGR
 {
-/*0x000*/ DWORD        NumAuras;
-/*0x004*/ BYTE         Unknown0x4[0xc];
-/*0x010*/ AURAS**      pAuraInfo;
-/*0x014*/ BYTE         Unknown0x14[0x8];
-/*0x01c*/
+	FORCE_SYMBOLS;
+
+/*0x00*/ DWORD        NumAuras;
+/*0x04*/ BYTE         Unknown0x4[0xc];
+/*0x10*/ AURAS**      pAuraInfo;
+/*0x14*/ BYTE         Unknown0x14[0x8];
+/*0x1c*/
 };
 using PAURAMGR [[deprecated]] = AURAMGR*;
 
 struct [[offsetcomments]] INTERACTSWITCH
 {
-/*0x000*/ DWORD        switchID;
-/*0x004*/ DWORD        dwzero;
-/*0x008*/ DWORD        dwneg1;
-/*0x00c*/ DWORD        spawnID;
+	FORCE_SYMBOLS;
+
+/*0x00*/ DWORD        switchID;
+/*0x04*/ DWORD        dwzero;
+/*0x08*/ DWORD        dwneg1;
+/*0x0c*/ DWORD        spawnID;
+/*0x10*/
 };
 using PINTERACTSWITCH [[deprecated]] = INTERACTSWITCH*;
 
@@ -2111,28 +2085,30 @@ using PMERCENARYINFO [[deprecated]] = MERCENARYINFO*;
 
 struct [[offsetcomments]] MERCENARYSTATS
 {
-/*0x000*/ DWORD        MaxHP;
-/*0x004*/ DWORD        CurrHP;
-/*0x008*/ DWORD        MaxMana;
-/*0x00c*/ DWORD        CurrMana;
-/*0x010*/ DWORD        MaxEndurance;
-/*0x014*/ DWORD        CurrEndurance;
-/*0x018*/ DWORD        AC;
-/*0x01c*/ DWORD        Attack;
-/*0x020*/ DWORD        Haste;
-/*0x024*/ DWORD        STR;
-/*0x028*/ DWORD        STA;
-/*0x02c*/ DWORD        INT;
-/*0x030*/ DWORD        WIS;
-/*0x034*/ DWORD        AGI;
-/*0x038*/ DWORD        DEX;
-/*0x03c*/ DWORD        CHA;
-/*0x040*/ DWORD        CombatHPRegen;
-/*0x044*/ DWORD        CombatManaRegen;
-/*0x048*/ DWORD        CombatEnduranceRegen;
-/*0x04c*/ DWORD        HealAmount;
-/*0x050*/ DWORD        SpellDamage;
-/*0x054*/
+	FORCE_SYMBOLS;
+
+/*0x00*/ DWORD        MaxHP;
+/*0x04*/ DWORD        CurrHP;
+/*0x08*/ DWORD        MaxMana;
+/*0x0c*/ DWORD        CurrMana;
+/*0x10*/ DWORD        MaxEndurance;
+/*0x14*/ DWORD        CurrEndurance;
+/*0x18*/ DWORD        AC;
+/*0x1c*/ DWORD        Attack;
+/*0x20*/ DWORD        Haste;
+/*0x24*/ DWORD        STR;
+/*0x28*/ DWORD        STA;
+/*0x2c*/ DWORD        INT;
+/*0x30*/ DWORD        WIS;
+/*0x34*/ DWORD        AGI;
+/*0x38*/ DWORD        DEX;
+/*0x3c*/ DWORD        CHA;
+/*0x40*/ DWORD        CombatHPRegen;
+/*0x44*/ DWORD        CombatManaRegen;
+/*0x48*/ DWORD        CombatEnduranceRegen;
+/*0x4c*/ DWORD        HealAmount;
+/*0x50*/ DWORD        SpellDamage;
+/*0x54*/
 };
 using PMERCENARYSTATS [[deprecated]] = MERCENARYSTATS*;
 
@@ -2171,6 +2147,8 @@ enum xTargetTypes
 
 struct [[offsetcomments]] AGGRODATA
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ DWORD         Unknown0x0;
 /*0x04*/ BYTE          AggroPct;
 /*0x05*/ BYTE          padding[3];
@@ -2182,6 +2160,8 @@ using PAGGRODATA [[deprecated]] = AGGRODATA*;
 // size 0xfc see 422F94 in 20 Aug 2015
 struct [[offsetcomments]] AGGROINFO
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ AGGRODATA     aggroData[0x1e];
 /*0xf0*/ DWORD         AggroLockID;              // this can be 0, I dont know what it is...
 /*0xf4*/ DWORD         AggroTargetID;            // this is id of whoever we are fighting

@@ -198,8 +198,10 @@ EQLIB_API void DeleteDetour(DWORD address);
 
 EQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
 EQLIB_API void WriteChatf(const char* Format, ...);
-EQLIB_API [[deprecated("Use WriteChatf instead")]] void WriteChatfSafe(const char* szFormat, ...);
 EQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
+
+[[deprecated("Use WriteChatf instead")]]
+EQLIB_API void WriteChatfSafe(const char* szFormat, ...);
 
 /* PLUGIN HANDLING */
 EQLIB_API void InitializeMQ2Plugins();
@@ -284,8 +286,8 @@ EQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 EQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
 // Compatibility shims
-inline [[deprecated("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")]]
-bool AddMQ2Data(const char* szName, fMQDataOld Function)
+[[deprecated("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")]]
+inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
 {
 	return AddMQ2Data(szName, (fMQData)Function);
 }

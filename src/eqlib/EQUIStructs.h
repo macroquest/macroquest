@@ -27,6 +27,8 @@ namespace eqlib {
 
 struct [[offsetcomments]] EQCURRENTSELECTION
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ DWORD Unknown;
 /*0x04*/ DWORD SelectedWnd;                      // address to selection in tree
 /*0x08*/ DWORD Unknownlodncrap;
@@ -35,37 +37,6 @@ struct [[offsetcomments]] EQCURRENTSELECTION
 /*0x14*/
 };
 using PEQCURRENTSELECTION = EQCURRENTSELECTION*;
-
-struct [[offsetcomments]] CSidlScreenWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
-{
-/*0x16c*/ void* CSidlScreenWnd__OnPreZone1c;
-/*0x170*/ void* CSidlScreenWnd__OnPreZone1d;
-/*0x170*/ void* LoadIniInfo;
-/*0x174*/ void* StoreIniInfo;
-/*0x178*/ void* EQObject__AsObject;
-/*0x17c*/ void* CTreeViewPropertySet__IsPropertySet;
-/*0x180*/
-};
-
-struct [[offsetcomments]] CListWnd_VirtualFunctions// : public CXWnd_VirtualFunctions
-{
-/*0x168*/ void* CListWnd__OnHeaderClick;
-/*0x16c*/ void* CListWnd__DrawColumnSeparators;
-/*0x170*/ void* CListWnd__DrawSeparator;
-/*0x174*/ void* CListWnd__DrawLine;
-/*0x178*/ void* CListWnd__DrawHeader;
-/*0x17c*/ void* CListWnd__DrawItem;
-/*0x180*/ void* CListWnd__DeleteAll;
-/*0x184*/ void* CListWnd__Compare;
-/*0x188*/ void* CListWnd__Sort;
-};
-
-struct [[offsetcomments]] CContextMenu_VirtualFunctions : public CListWnd_VirtualFunctions
-{
-/*0x18c*/ void* CContextMenu__ShowAt;
-};
-using CCONTEXTMENUVFTABLE = CContextMenu_VirtualFunctions;
-using PCCONTEXTMENUVFTABLE = CContextMenu_VirtualFunctions*;
 
 enum eContextMenuFilterIDs
 {
@@ -165,24 +136,26 @@ enum eContextMenuFilterIDs
 
 struct [[offsetcomments]] LOOTCORPSE
 {
-/*0x000*/ BYTE         Unknown0x000;             // 03 seems very common (for NPC anyway)
-/*0x001*/ char         Name[0x4b];
-/*0x04c*/ float        Timer;                    // Uncertain the equation used here, but fairly certain it's the timer
-/*0x050*/ float        X;
-/*0x054*/ BYTE         Unknown0x054[0x4];
-/*0x058*/ float        Y;
-/*0x05c*/ float        Z;
-/*0x060*/ BYTE         Unknown0x060[0x24];
-/*0x084*/ DWORD        Flags;
-/*0x088*/ BYTE         Unknown0x088[0x4];
-/*0x08c*/ DWORD        Unknown0x08c;             // 256 seems very common
-/*0x090*/
+	FORCE_SYMBOLS;
+
+/*0x00*/ BYTE         Unknown0x000;             // 03 seems very common (for NPC anyway)
+/*0x01*/ char         Name[0x4b];
+/*0x4c*/ float        Timer;                    // Uncertain the equation used here, but fairly certain it's the timer
+/*0x50*/ float        X;
+/*0x54*/ BYTE         Unknown0x054[0x4];
+/*0x58*/ float        Y;
+/*0x5c*/ float        Z;
+/*0x60*/ BYTE         Unknown0x060[0x24];
+/*0x84*/ DWORD        Flags;
+/*0x88*/ BYTE         Unknown0x088[0x4];
+/*0x8c*/ DWORD        Unknown0x08c;             // 256 seems very common
+/*0x90*/
 };
 using PLOOTCORPSE = LOOTCORPSE*;
 
 
 // size 0x28 4-24-2004 Lax
-struct [[offsetcomments]] EQGRAPHICSENGINE
+struct EQGRAPHICSENGINE
 {
 /*0x00*/ // Graphics file handler
 /*0x04*/
@@ -193,10 +166,12 @@ using PEQGRAPHICSENGINE = EQGRAPHICSENGINE*;
 // size 0x48 see 4BA434 in Oct 26 2015 -eqmule
 struct [[offsetcomments]] TARGETINDICATOR
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ bool          bVisible;
 /*0x01*/ bool          bSettingsLoaded;
 /*0x04*/ SPAWNINFO*    lasttarget;
-/*0x04*/ SPAWNINFO*    MarkedTarget[4];          // Assist,FirstMarked,LastMarked
+/*0x08*/ SPAWNINFO*    MarkedTarget[4];          // Assist,FirstMarked,LastMarked
 /*0x18*/ BYTE          IndicatorHidden;          // if this is 1 our mouse is over another window and not on the main one - shouldnt cast when this is 1
 /*0x19*/ BYTE          CanActivate;              // if 0 the indicator is red if 1 its green, i.e. it can be activated.
 /*0x1a*/ BYTE          Unknown0x1a[0x2];
@@ -214,10 +189,12 @@ using PTARGETINDICATOR = TARGETINDICATOR*;
 
 struct [[offsetcomments]] TARGETDATA
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ SPAWNINFO*    pPlayer;
 /*0x04*/ float         Dist;
 /*0x08*/ bool          bUpdated;                 // not sure what this is for tbh
-/*0x0c*/ 
+/*0x0c*/
 };
 using PTARGETDATA = TARGETDATA*;
 
@@ -225,9 +202,11 @@ using PTARGETDATA = TARGETDATA*;
 // size 0x1a4 see 5FE489 in Oct 26 2015 -eqmule
 struct [[offsetcomments]] TARGETMANAGER
 {
+	FORCE_SYMBOLS;
+
 /*0x000*/ TARGETDATA   CycleNPCList[0xa];        // size 0xc*0xa
 /*0x078*/ TARGETDATA   CyclePCList[0xa];
-/*0x0F0*/ TARGETDATA   CycleCorpseList[0xa];
+/*0x0f0*/ TARGETDATA   CycleCorpseList[0xa];
 /*0x168*/ DWORD        LastTargetID;
 /*0x16c*/ DWORD        TabTargetID;
 /*0x170*/ DWORD        AttackTargetID;
@@ -242,7 +221,7 @@ struct [[offsetcomments]] TARGETMANAGER
 /*0x194*/ float        target_ring_x;            // CVector3 class, this is whats passed to castspell
 /*0x198*/ float        target_ring_y;
 /*0x19c*/ float        target_ring_z;
-/*0x1a0*/ bool         target_ring_good;         // 0=red 1=green 
+/*0x1a0*/ bool         target_ring_good;         // 0=red 1=green
 /*0x1a4*/
 };
 using PTARGETMANAGER = TARGETMANAGER*;

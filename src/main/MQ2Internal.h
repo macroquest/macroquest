@@ -556,27 +556,25 @@ struct MQVarPtr
 	union {
 		struct {
 			void* Ptr;
-			int32_t HighPart;
 		};
 		struct {
 			float Float;
-			int32_t HighPart;
 		};
 		struct {
 			DWORD DWord;
+		};
+		struct {
+			int32_t LowPart;
 			int32_t HighPart;
 		};
 		struct {
 			ARGBCOLOR Argb;
-			int32_t HighPart;
 		};
 		struct {
 			int32_t Int;
-			int32_t HighPart;
 		};
 		struct {
 			uint8_t Array[4];
-			int32_t HighPart;
 		};
 		struct {
 			uint8_t FullArray[8];
@@ -599,27 +597,25 @@ struct MQTypeVar
 
 		struct {
 			void*   Ptr;
+		};
+		struct {
+			int32_t LowPart;
 			int32_t HighPart;
 		};
 		struct {
 			float   Float;
-			int32_t HighPart;
 		};
 		struct {
 			uint32_t DWord;
-			int32_t HighPart;
 		};
 		struct {
 			ARGBCOLOR Argb;
-			int32_t HighPart;
 		};
 		struct {
 			int   Int;
-			int32_t HighPart;
 		};
 		struct {
 			uint8_t Array[4];
-			int32_t HighPart;
 		};
 		struct {
 			uint8_t FullArray[8];

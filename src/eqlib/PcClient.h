@@ -145,8 +145,11 @@ using PAALIST [[deprecated]] = AALIST;
 
 struct [[offsetcomments]] ALCHEMYBONUSSKILLDATA
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ int SkillID;
 /*0x04*/ int BonusPoints;
+/*0x08*/
 };
 
 struct [[offsetcomments]] BenefitSelection
@@ -288,9 +291,12 @@ public:
 
 class [[offsetcomments]] ExtendedTargetListClient : public ExtendedTargetList
 {
+	FORCE_SYMBOLS;
+
 public:
-	int CurrentSlot;
-	int ContextSlot;
+/*0x18*/ int CurrentSlot;
+/*0x1c*/ int ContextSlot;
+/*0x20*/
 };
 
 struct [[offsetcomments]] MailItemData
@@ -377,6 +383,8 @@ struct [[offsetcomments]] TaskTimerData
 
 class [[offsetcomments]] PendingReward
 {
+	FORCE_SYMBOLS;
+
 public:
 /*0x00*/ void* vfTable;
 /*0x04*/ int   ID;
@@ -493,6 +501,8 @@ struct [[offsetcomments]] RaidData
 
 struct [[offsetcomments]] TradeskillRecipeCount
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ int SkillID;
 /*0x04*/ int RecipeCount;
 /*0x08*/
@@ -1544,6 +1554,8 @@ using PCHARINFO2 [[deprecated]] = CHARINFO2*;
 #if !defined(NEWCHARINFO)
 struct [[offsetcomments]] CI2_INFO
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ eProfileListType ListType;
 /*0x04*/ CHARINFO2* pCharInfo2;
 /*0x08*/ CHARINFO2* pLast;
@@ -1563,8 +1575,11 @@ using PCI2_INFO = CI2_INFO*;
 
 struct [[offsetcomments]] ItemContainingRealEstate
 {
-	int                RealEstateID;
-	ItemGlobalIndex    ItemLocation;
+	FORCE_SYMBOLS;
+
+/*0x00*/ int                RealEstateID;
+/*0x04*/ ItemGlobalIndex    ItemLocation;
+/*0x10*/
 };
 
 //============================================================================

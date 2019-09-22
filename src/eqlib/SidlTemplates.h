@@ -48,6 +48,8 @@ enum enDir
 
 struct [[offsetcomments]] CUITextureInfo
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CUITextureInfo();
 	EQLIB_OBJECT CUITextureInfo(const CXStr& name, int size);
@@ -73,6 +75,8 @@ public:
 
 class [[offsetcomments]] CUITexturePiece
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CUITexturePiece();
 	EQLIB_OBJECT CUITexturePiece(const CUITextureInfo&, const CXRect&);
@@ -98,6 +102,8 @@ private:
 
 struct [[offsetcomments]] STextureAnimationFrame
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ CUITexturePiece    Piece;
 /*0x28*/ uint32_t           Ticks = 0;
 /*0x2c*/ CXPoint            Hotspot;
@@ -106,6 +112,8 @@ struct [[offsetcomments]] STextureAnimationFrame
 
 class [[offsetcomments]] CTextureAnimation
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CTextureAnimation();
 	EQLIB_OBJECT CTextureAnimation(const CXStr& name);
@@ -157,6 +165,8 @@ public:
 
 class [[offsetcomments]] CTAFrameDraw
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CTAFrameDraw(CXStr = {});
 
@@ -220,6 +230,8 @@ private:
 
 class [[offsetcomments]] CButtonDrawTemplate
 {
+	FORCE_SYMBOLS;
+
 public:
 	// Returns the appropriate texture to use for the button given the specified properties
 	EQLIB_OBJECT CTextureAnimation* GetAnimation(bool pressed, bool hover, bool disabled, bool decal = false) const;
@@ -245,31 +257,37 @@ public:
 // CGaugeDrawTemplate
 //============================================================================
 
-class CGaugeDrawTemplate
+class [[offsetcomments]] CGaugeDrawTemplate
 {
-public:
-	CXStr                    strName;
+	FORCE_SYMBOLS;
 
-	CTextureAnimation*       ptaBackground = nullptr;
-	CTextureAnimation*       ptaFill = nullptr;
-	CTextureAnimation*       ptaLines = nullptr;
-	CTextureAnimation*       ptaLinesFill = nullptr;
-	CTextureAnimation*       ptaEndCapLeft = nullptr;
-	CTextureAnimation*       ptaEndCapRight = nullptr;
+public:
+/*0x00*/ CXStr                    strName;
+
+/*0x04*/ CTextureAnimation*       ptaBackground = nullptr;
+/*0x08*/ CTextureAnimation*       ptaFill = nullptr;
+/*0x0c*/ CTextureAnimation*       ptaLines = nullptr;
+/*0x10*/ CTextureAnimation*       ptaLinesFill = nullptr;
+/*0x14*/ CTextureAnimation*       ptaEndCapLeft = nullptr;
+/*0x18*/ CTextureAnimation*       ptaEndCapRight = nullptr;
+/*0x1c*/
 };
 
 //============================================================================
 // CGaugeDrawTemplate
 //============================================================================
 
-class CSpellGemDrawTemplate
+class [[offsetcomments]] CSpellGemDrawTemplate
 {
-public:
-	CXStr                    strName;
+	FORCE_SYMBOLS;
 
-	CTextureAnimation*       ptaBackground = nullptr;
-	CTextureAnimation*       ptaHolder = nullptr;
-	CTextureAnimation*       ptaHighlight = nullptr;
+public:
+/*0x00*/ CXStr                    strName;
+
+/*0x04*/ CTextureAnimation*       ptaBackground = nullptr;
+/*0x08*/ CTextureAnimation*       ptaHolder = nullptr;
+/*0x0c*/ CTextureAnimation*       ptaHighlight = nullptr;
+/*0x10*/
 };
 
 
@@ -277,15 +295,18 @@ public:
 // CSliderDrawTemplate
 //============================================================================
 
-class CSliderDrawTemplate
+class [[offsetcomments]] CSliderDrawTemplate
 {
-public:
-	CXStr                    strName;
+	FORCE_SYMBOLS;
 
-	CButtonDrawTemplate      bdtThumb;
-	CTextureAnimation*       ptaBackground = nullptr;
-	CTextureAnimation*       ptaEndCapRight = nullptr;
-	CTextureAnimation*       ptaEndCapLeft = nullptr;
+public:
+/*0x00*/ CXStr                    strName;
+
+/*0x04*/ CButtonDrawTemplate      bdtThumb;
+/*0x38*/ CTextureAnimation*       ptaBackground = nullptr;
+/*0x3c*/ CTextureAnimation*       ptaEndCapRight = nullptr;
+/*0x40*/ CTextureAnimation*       ptaEndCapLeft = nullptr;
+/*0x44*/
 };
 
 //============================================================================
@@ -293,38 +314,44 @@ public:
 //============================================================================
 
 // not ScrollbarDrawTemplate ??
-class CScrollbarTemplate
+class [[offsetcomments]] CScrollbarTemplate
 {
-public:
-	CXStr                       strName;
+	FORCE_SYMBOLS;
 
-	CButtonDrawTemplate         bdtUp;
-	CButtonDrawTemplate         bdtDown;
-	CTAFrameDraw                frameThumb;
-	CUITextureInfo              tiMiddle;
-	D3DCOLOR                    colorMiddleTint = 0;
+public:
+/*0x00*/ CXStr                       strName;
+
+/*0x04*/ CButtonDrawTemplate         bdtUp;
+/*0x38*/ CButtonDrawTemplate         bdtDown;
+/*0x6c*/ CTAFrameDraw                frameThumb;
+/*0xb8*/ CUITextureInfo              tiMiddle;
+/*0xd0*/ D3DCOLOR                    colorMiddleTint = 0;
+/*0xd4*/
 };
 
 //============================================================================
 // CXWndDrawTemplate
 //============================================================================
 
-class CXWndDrawTemplate
+class [[offsetcomments]] CXWndDrawTemplate
 {
-public:
-	CXStr                       strName;
+	FORCE_SYMBOLS;
 
-	CUITextureInfo              tiBackground;
-	int                         nBackgroundDrawType = 0;
-	CScrollbarTemplate          sbtVScroll;
-	CScrollbarTemplate          sbtHScroll;
-	CButtonDrawTemplate         bdtCloseBox;
-	CButtonDrawTemplate         bdtQMarkBox;
-	CButtonDrawTemplate         bdtMinimizeBox;
-	CButtonDrawTemplate         bdtMaximizeBox;
-	CButtonDrawTemplate         bdtTileBox;
-	CTAFrameDraw                frameBorder;
-	CTAFrameDraw                frameTitlebar;
+public:
+/*0x000*/ CXStr                       strName;
+
+/*0x004*/ CUITextureInfo              tiBackground;
+/*0x01c*/ int                         nBackgroundDrawType = 0;
+/*0x020*/ CScrollbarTemplate          sbtVScroll;
+/*0x0f4*/ CScrollbarTemplate          sbtHScroll;
+/*0x1c8*/ CButtonDrawTemplate         bdtCloseBox;
+/*0x1fc*/ CButtonDrawTemplate         bdtQMarkBox;
+/*0x230*/ CButtonDrawTemplate         bdtMinimizeBox;
+/*0x264*/ CButtonDrawTemplate         bdtMaximizeBox;
+/*0x298*/ CButtonDrawTemplate         bdtTileBox;
+/*0x2cc*/ CTAFrameDraw                frameBorder;
+/*0x318*/ CTAFrameDraw                frameTitlebar;
+/*0x364*/
 };
 
 //============================================================================
@@ -333,6 +360,8 @@ public:
 
 class [[offsetcomments]] CScreenPieceTemplate
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CScreenPieceTemplate(CScreenPieceTemplate*);
 	EQLIB_OBJECT CScreenPieceTemplate(CParamScreenPiece*);
@@ -379,11 +408,14 @@ public:
 
 class [[offsetcomments]] CStaticScreenPieceTemplate : public CScreenPieceTemplate
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CStaticScreenPieceTemplate(CStaticScreenPieceTemplate*);
 	EQLIB_OBJECT CStaticScreenPieceTemplate(CParamStaticScreenPiece*);
 
-	bool                     bAutoDraw = true;
+/*0x80*/ bool                     bAutoDraw = true;
+/*0x84*/
 };
 
 //============================================================================
@@ -394,6 +426,8 @@ class CParamLayoutStrategy;
 
 class [[offsetcomments]] CLayoutStrategyTemplate
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CLayoutStrategyTemplate(CParamLayoutStrategy*, uint32_t type);
 	virtual ~CLayoutStrategyTemplate() {}
@@ -412,6 +446,8 @@ public:
 
 class [[offsetcomments]] CControlTemplate : public CScreenPieceTemplate
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CControlTemplate(CParamControl*);
 
@@ -431,21 +467,24 @@ public:
 
 class [[offsetcomments]] CButtonTemplate : public CControlTemplate
 {
+	FORCE_SYMBOLS;
+
 public:
 	EQLIB_OBJECT CButtonTemplate(CParamButton*);
 
-	bool                     bCheckbox = false;
-	CXStr                    strRadioGroup;
-	CXStr                    strText;
-	bool                     bTextAlignCenter = true;
-	bool                     bTextAlignRight = false;
-	bool                     bTextAlignVCenter = true;
-	CButtonDrawTemplate      bdt;
-	CXStr                    strSoundPressed;
-	CXStr                    strSoundUp;
-	CXStr                    strSoundFlyby;
-	CXPoint                  ptDecalOffset;
-	CXSize                   sizeDecalSize;
+/*0x98*/ bool                     bCheckbox = false;
+/*0x9c*/ CXStr                    strRadioGroup;
+/*0xa0*/ CXStr                    strText;
+/*0xa4*/ bool                     bTextAlignCenter = true;
+/*0xa5*/ bool                     bTextAlignRight = false;
+/*0xa6*/ bool                     bTextAlignVCenter = true;
+/*0xa8*/ CButtonDrawTemplate      bdt;
+/*0xdc*/ CXStr                    strSoundPressed;
+/*0xe0*/ CXStr                    strSoundUp;
+/*0xe4*/ CXStr                    strSoundFlyby;
+/*0xe8*/ CXPoint                  ptDecalOffset;
+/*0xf0*/ CXSize                   sizeDecalSize;
+/*0xf8*/
 };
 
 //============================================================================

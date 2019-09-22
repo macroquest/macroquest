@@ -4803,7 +4803,7 @@ public:
 
 	}
 
-	bool MQ2AltAbilityType::ToString(MQVarPtr VarPtr, char* Destination);
+	bool ToString(MQVarPtr VarPtr, char* Destination);
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 

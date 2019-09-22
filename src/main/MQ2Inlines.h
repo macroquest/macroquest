@@ -30,7 +30,8 @@ inline CHARINFO* GetCharInfo()
 	return (CHARINFO*)pCharData;
 }
 
-inline [[deprecated("Use GetPcProfile instead")]] CHARINFO2* GetCharInfo2()
+[[deprecated("Use GetPcProfile instead")]]
+inline CHARINFO2* GetCharInfo2()
 {
 	if (CHARINFO* pChar = (CHARINFO*)pCharData)
 	{

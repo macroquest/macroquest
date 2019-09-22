@@ -3923,7 +3923,10 @@ struct [[offsetcomments]] CONTENTDATA
 
 struct [[offsetcomments]] CONTENTSARRAY
 {
-	struct CONTENTDATA Array[1];
+	FORCE_SYMBOLS;
+
+/*0x00*/ struct CONTENTDATA Array[1];
+/*0x08*/
 };
 using PCONTENTSARRAY [[deprecated]] = CONTENTSARRAY *;
 
@@ -3985,17 +3988,19 @@ public:
 
 class [[offsetcomments]] PurchasePageHandler : public MerchantPageHandler
 {
+	FORCE_SYMBOLS;
+
 public:
-/*0x84*/ bool bShowAllItems;
-/*0x88*/ int Unknown0x88;
-/*0x8c*/ int Unknown0x8c;
-/*0x90*/ int Unknown0x90;
-/*0x94*/ int Unknown0x94;
-/*0x98*/ int Unknown0x98;
-/*0x9c*/ int Unknown0x9c;
-/*0xa0*/ int Unknown0xa0;
-/*0xa4*/ int Unknown0xa4;
-/*0xa8*/
+/*0x74*/ bool bShowAllItems;
+/*0x78*/ int Unknown0x88;
+/*0x7c*/ int Unknown0x8c;
+/*0x80*/ int Unknown0x90;
+/*0x84*/ int Unknown0x94;
+/*0x88*/ int Unknown0x98;
+/*0x8c*/ int Unknown0x9c;
+/*0x90*/ int Unknown0xa0;
+/*0x94*/ int Unknown0xa4;
+/*0x98*/
 
 	EQLIB_OBJECT bool RequestGetItem(int);
 	EQLIB_OBJECT void RequestPutItem(int);
@@ -4008,6 +4013,8 @@ struct sell_msg;
 // this is actually PurchasePageHandler?
 struct [[offsetcomments]] merchdata
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ void* vftable;                  // VeBaseReferenceCount
 /*0x04*/ BYTE          Unknown0x4[0x8];
 /*0x0c*/ DWORD         MerchSlots;
@@ -4020,9 +4027,12 @@ struct [[offsetcomments]] merchdata
 
 struct [[offsetcomments]] merch_other
 {
-	merchdata* pMerchData;          // purchase page
-	void* other;                    // buyback page
-	void* other2;                   // mail page
+	FORCE_SYMBOLS;
+
+/*0x00*/ merchdata* pMerchData;          // purchase page
+/*0x04*/ void* other;                    // buyback page
+/*0x08*/ void* other2;                   // mail page
+/*0x0c*/
 };
 
 enum MerchantPages
@@ -4847,6 +4857,8 @@ public:
 
 struct [[offsetcomments]] TradeskillRecipe
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ int ID;
 /*0x04*/ int Trivial;
 /*0x08*/ int ContainerType;
@@ -4856,6 +4868,7 @@ struct [[offsetcomments]] TradeskillRecipe
 /*0x54*/ bool bUnknown;
 /*0x58*/ int Ingredient[MAX_RECIPE_ITEMS];                 // ID# of ingredient(s)
 /*0x80*/ int IngredientIcon[MAX_RECIPE_ITEMS];             // Icon# of ingredient(s) (Note: 499 is blank)
+/*0xa8*/
 };
 using EQTRADESKILLRECIPE [[deprecated]] = TradeskillRecipe;
 using PEQTRADESKILLRECIPE [[deprecated]] = TradeskillRecipe *;
@@ -4863,6 +4876,8 @@ using PEQTRADESKILLRECIPE [[deprecated]] = TradeskillRecipe *;
 // size: 0xd28 Jun 10, 2019 (test)
 class [[offsetcomments]] CTradeSkillWnd : public CSidlScreenWnd
 {
+	FORCE_SYMBOLS;
+
 public:
 	CTradeSkillWnd(CXWnd* parent);
 	virtual ~CTradeSkillWnd();
@@ -4871,24 +4886,25 @@ public:
 	// data members
 
 	// todo: check and update
-/*0x148*/ DWORD        Unknown0x148[0x1b];
-/*0x1b4*/ TradeskillRecipe* SearchResults[0x64];
-/*0x344*/ DWORD        Unknown0x344;
-/*0x348*/ DWORD        Unknown0x348;
-/*0x34c*/ DWORD        Unknown0x34c;
-/*0x350*/ CONTENTS*    Container;
-/*0x354*/ DWORD        Unknown0x354;
-/*0x358*/ TradeskillRecipe* SelectedRecipe;
-/*0x35c*/ DWORD        Unknown0x35c;
-/*0x360*/ DWORD        SkillLevel;
-/*0x364*/ DWORD        Unknown0x364;
-/*0x368*/ DWORD        Unknown0x368;
-/*0x36c*/ BYTE         Unknown0x36c[0x58];
-/*0x3c4*/ DWORD        Unknown0x3c4;
-/*0x3c8*/ DWORD        Unknown0x3c8;
-/*0x3cc*/ BYTE         Unknonw0x3cc[0x8];
-/*0x3d4*/ DWORD        Unknown0x3d4;
-/*0x3d8*/ DWORD        Unknown0x3d8;
+/*0x220*/ DWORD        Unknown0x148[0x1b];
+/*0x28c*/ TradeskillRecipe* SearchResults[0x64];
+/*0x41c*/ DWORD        Unknown0x344;
+/*0x420*/ DWORD        Unknown0x348;
+/*0x424*/ DWORD        Unknown0x34c;
+/*0x428*/ CONTENTS*    Container;
+/*0x42c*/ DWORD        Unknown0x354;
+/*0x430*/ TradeskillRecipe* SelectedRecipe;
+/*0x434*/ DWORD        Unknown0x35c;
+/*0x438*/ DWORD        SkillLevel;
+/*0x43c*/ DWORD        Unknown0x364;
+/*0x440*/ DWORD        Unknown0x368;
+/*0x444*/ BYTE         Unknown0x36c[0x58];
+/*0x49c*/ DWORD        Unknown0x3c4;
+/*0x4a0*/ DWORD        Unknown0x3c8;
+/*0x4a4*/ BYTE         Unknonw0x3cc[0x8];
+/*0x4ac*/ DWORD        Unknown0x3d4;
+/*0x4b0*/ DWORD        Unknown0x3d8;
+/*0x4b4*/
 };
 using EQTRADESKILLWINDOW [[deprecated]] = CTradeSkillWnd;
 using PEQTRADESKILLWINDOW [[deprecated]] = CTradeSkillWnd*;
@@ -4997,54 +5013,71 @@ enum eZoneGuideConnectionsView
 
 class [[offsetcomments]] ZoneGuideConnection
 {
+	FORCE_SYMBOLS;
+
 public:
-	EQZoneIndex        DestZone;
-	int                TransferTypeIndex;
-	int                RequiredExpansions;       // EQExpansionOwned
-	bool               bDisabled;
+/*0x00*/ EQZoneIndex        DestZone;
+/*0x04*/ int                TransferTypeIndex;
+/*0x08*/ int                RequiredExpansions;       // EQExpansionOwned
+/*0x0c*/ bool               bDisabled;
+/*0x10*/
 };
 
 class [[offsetcomments]] ZoneGuideContinent
 {
+	FORCE_SYMBOLS;
+
 public:
-	int                ID;
-	int                DisplaySequence;
-	CXStr              Name;
+/*0x00*/ int                ID;
+/*0x04*/ int                DisplaySequence;
+/*0x08*/ CXStr              Name;
+/*0x0c*/
 };
 
 class [[offsetcomments]] ZoneGuideZoneType
 {
+	FORCE_SYMBOLS;
+
 public:
-	int                ID;
-	int                DisplaySequence;
-	CXStr              Name;
+/*0x00*/ int                ID;
+/*0x04*/ int                DisplaySequence;
+/*0x08*/ CXStr              Name;
+/*0x0c*/
 };
 
 class [[offsetcomments]] ZoneGuideTransferType
 {
+	FORCE_SYMBOLS;
+
 public:
-	int                ID;
-	CXStr              Description;
+/*0x00*/ int                ID;
+/*0x04*/ CXStr              Description;
+/*0x08*/
 };
 
 // see 8E87D6 in Apr 15 2019 exe
 class [[offsetcomments]] ZoneGuideZone
 {
+	FORCE_SYMBOLS;
+
 public:
 /*0x00*/ EQZoneIndex   ID;
 /*0x04*/ CXStr         Name;
 /*0x08*/ int           ContinentIndex;
-/*0x0C*/ int           MinLevel;
+/*0x0c*/ int           MinLevel;
 /*0x10*/ int           MaxLevel;
 /*0x14*/ DynamicBitField<unsigned short, short> Types;
-/*0x1C*/ ArrayClass<ZoneGuideConnection> ZoneConnections;
-/*0x2C*/
+/*0x1c*/ ArrayClass<ZoneGuideConnection> ZoneConnections;
+/*0x2c*/
 };
 
 struct [[offsetcomments]] ZonePathData
 {
-	EQZoneIndex        ZoneID;
-	int                TransferTypeIndex;
+	FORCE_SYMBOLS;
+
+/*0x00*/ EQZoneIndex        ZoneID;
+/*0x04*/ int                TransferTypeIndex;
+/*0x08*/
 };
 
 // see 8D35C1 in may 10 2018 exe
@@ -5052,6 +5085,8 @@ struct [[offsetcomments]] ZonePathData
 
 class [[offsetcomments]] ZoneGuideManagerBase
 {
+	FORCE_SYMBOLS;
+
 public:
 	ZoneGuideManagerBase();
 	virtual ~ZoneGuideManagerBase();
@@ -5061,24 +5096,26 @@ public:
 	//virtual void Unserialize(CUnserializeBuffer&);
 
 /*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];
-/*0x8FB4*/ ArrayClass<ZoneGuideContinent> Continents;
-/*0x8FC4*/ ArrayClass<ZoneGuideZoneType> ZoneTypes;
-/*0x8FD4*/ ArrayClass<ZoneGuideTransferType> TransferTypes;
-/*0x8FE4*/
+/*0x8fb4*/ ArrayClass<ZoneGuideContinent> Continents;
+/*0x8fc4*/ ArrayClass<ZoneGuideZoneType> ZoneTypes;
+/*0x8fd4*/ ArrayClass<ZoneGuideTransferType> TransferTypes;
+/*0x8fe4*/
 };
 
 // size: 0x9010 see 6AB098 in Apr 15 2019 exe
 class [[offsetcomments]] ZoneGuideManagerClient : public ZoneGuideManagerBase
 {
+	FORCE_SYMBOLS;
+
 public:
-/*0x8FE4*/ ArrayClass<ZonePathData> ActivePath;
-/*0x8FF4*/ ArrayClass<ZonePathData> PreviewPath;
+/*0x8fe4*/ ArrayClass<ZonePathData> ActivePath;
+/*0x8ff4*/ ArrayClass<ZonePathData> PreviewPath;
 /*0x9004*/ EQZoneIndex CurrZone;
 /*0x9008*/ int         HerosJourneyIndex;
-/*0x900C*/ bool        bZoneGuideDataSet;
-/*0x900D*/ bool        bIncludeBindZoneInPath;
-/*0x900E*/ bool        bAutoFindActivePath;
-/*0x900F*/ bool        bFindActivePath;
+/*0x900c*/ bool        bZoneGuideDataSet;
+/*0x900d*/ bool        bIncludeBindZoneInPath;
+/*0x900e*/ bool        bAutoFindActivePath;
+/*0x900f*/ bool        bFindActivePath;
 /*0x9010*/
 
 	static ZoneGuideManagerClient& Instance();

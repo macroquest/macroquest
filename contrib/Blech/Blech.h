@@ -528,7 +528,7 @@ public:
 		if (Root > 255) {
 			Sleep(0);
 		}
-		return Chew(Tree[Root], Input, _Size) + Chew(Tree[0], Input, _Size)/*+Swallow(Input)/**/;
+		return Chew(Tree[Root], Input, _Size) + Chew(Tree[0], Input, _Size);
 	}
 
 	inline bool IsExact(const char* Text)

@@ -205,7 +205,7 @@ FUNCTION_AT_ADDRESS(void CDisplay::HandleMaterial(EQ_PC*, int, EQ_Item*, EQ_Item
 FUNCTION_AT_ADDRESS(float CDisplay::FixHeading(float), CDisplay__FixHeading);
 #endif
 #ifdef CDisplay__GetFloorHeight_x
-FUNCTION_AT_ADDRESS(float CDisplay::GetFloorHeight(float, float, float, float, CVector3&, CActorApplicationData*, EActorType, float), CDisplay__GetFloorHeight);
+FUNCTION_AT_ADDRESS(float CDisplay::GetFloorHeight(float, float, float, float, const CVector3&, CActorApplicationData*, EActorType, float), CDisplay__GetFloorHeight);
 #endif
 #ifdef CDisplay__HeadingDiff_x
 FUNCTION_AT_ADDRESS(float CDisplay::HeadingDiff(float, float, float*), CDisplay__HeadingDiff);

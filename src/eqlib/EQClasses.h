@@ -262,7 +262,7 @@ public:
 	EQLIB_OBJECT PlayerClient* GetNearestPlayerInView(float, bool);
 	EQLIB_OBJECT float FindZoneTopZ(float, float, float);
 	EQLIB_OBJECT float FixHeading(float);
-	EQLIB_OBJECT float GetFloorHeight(float X, float Y, float F, float Radius = 0.0f, CVector3& CollisionVector = CVector3(-1, -1, 1), CActorApplicationData* pAppData = 0, EActorType eActorType = Undefined, float ZOffset = 1.0f);
+	EQLIB_OBJECT float GetFloorHeight(float X, float Y, float F, float Radius = 0.0f, const CVector3& CollisionVector = CVector3(-1, -1, 1), CActorApplicationData* pAppData = 0, EActorType eActorType = Undefined, float ZOffset = 1.0f);
 	EQLIB_OBJECT float HeadingDiff(float, float, float*);
 	EQLIB_OBJECT float PlayerDistance(PlayerZoneClient*, PlayerZoneClient*, float);
 	EQLIB_OBJECT float PlayerSimpleDistance(PlayerZoneClient*, PlayerZoneClient*, float);
@@ -393,6 +393,8 @@ public:
 
 struct [[offsetcomments]] TARGETRING
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ DWORD         Gem;                      // the gem the spell below is memmed in... 0-11
 /*0x04*/ PSPELL        thespell;
 /*0x08*/ ItemGlobalIndex ItemLoc;
@@ -1721,25 +1723,34 @@ public:
 
 class [[offsetcomments]] CGroupMemberClient : public CGroupMemberBase
 {
+	FORCE_SYMBOLS;
+
 public:
-	CharacterZoneClient* pCharacter;
-	SPAWNINFO*           pSpawn;
-	int                  GroupIndex;
+/*0x2c*/ CharacterZoneClient* pCharacter;
+/*0x30*/ SPAWNINFO*           pSpawn;
+/*0x34*/ int                  GroupIndex;
+/*0x38*/
 };
 
 class [[offsetcomments]] CGroupBase
 {
+	FORCE_SYMBOLS;
+
 public:
 /*0x00*/ void*         vftable;
 /*0x04*/ CGroupMemberClient* pMembers[6];
 /*0x1c*/ CGroupMemberClient* pGroupLeader;
 /*0x20*/ uint32_t      ID;
+/*0x24*/
 };
 
 class [[offsetcomments]] CGroupClient : public CGroupBase
 {
+	FORCE_SYMBOLS;
+
 public:
-/*0x024*/ int          GroupSelectID;
+/*0x24*/ int          GroupSelectID;
+/*0x28*/
 };
 
 #define EQR_GNOME           0xc        // 5A1511 in rof2
@@ -2936,14 +2947,16 @@ using PEVERQUESTINFO = EVERQUESTINFO*;
 // size 0x20 -- brainiac 11/14/2016
 struct [[offsetcomments]] tp_coords
 {
+	FORCE_SYMBOLS;
+
 /*0x00*/ int           Index;
 /*0x04*/ float         Y;
 /*0x08*/ float         X;
-/*0x0C*/ float         Z;
+/*0x0c*/ float         Z;
 /*0x10*/ float         Heading;
 /*0x14*/ int           ZoneId;
 /*0x18*/ int           FilterID;
-/*0x1C*/ UINT          VehicleID;
+/*0x1c*/ UINT          VehicleID;
 /*0x20*/
 };
 

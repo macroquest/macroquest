@@ -675,7 +675,7 @@ struct [[offsetcomments]] SPAWNINFO
 	unsigned int GetId() const { return SpawnID; }
 
 	// a.k.a. GetPcClient
-	EQLIB_OBJECT [[deprecated("Use GetPcClient instead")]] void* GetCharacter() const { return spawneqc_info; }
+	[[deprecated("Use GetPcClient instead")]] EQLIB_OBJECT void* GetCharacter() const { return spawneqc_info; }
 	EQLIB_OBJECT PcClient* GetPcClient() const { return (PcClient*)spawneqc_info; }
 
 	EQLIB_OBJECT unsigned int GetZoneID() const { return (int)Zone; }
