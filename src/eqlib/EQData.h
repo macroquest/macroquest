@@ -539,7 +539,7 @@ constexpr int NUM_RACES = 17;
 #define EXPANSION_EoK                            EQ_EXPANSION(23)
 #define EXPANSION_RoS                            EQ_EXPANSION(24)
 #define EXPANSION_TBL                            EQ_EXPANSION(25)
-#define NUM_EXPANSIONS                           25
+constexpr int NUM_EXPANSIONS = 25;
 
 // LDON Dungeon themes. This is a bitmask.
 constexpr int LDON_None = 0;

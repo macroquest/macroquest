@@ -5420,25 +5420,6 @@ void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
 	WriteChatf("Screen Mode Set to \ag%d\ax", newprio);
 }
 
-// TODO:  Replace with generic format_to function (see ftoa_s as well)
-template <unsigned int _Size>
-LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
-	}
-	return "";
-}
-
-// TODO:  Replace with generic format_to function (see SafeItoa as well)
-template <unsigned int _Size>
-char* ftoa_s(float fNum, char(&szText)[_Size])
-{
-	sprintf_s(szText, "%.2f", fNum);
-	return szText;
-}
-
 // ***************************************************************************
 // Function:    UserCameraCmd
 // Description: '/usercamera' command
@@ -5466,7 +5447,6 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	GetArg(szArg2, szLine, 2);
 
 	EQCAMERABASE* pUserCam1 = (EQCAMERABASE*)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
-	char szTemp[2048] = { 0 };
 
 	if (!_stricmp(szArg1, "0"))
 	{
@@ -5532,22 +5512,22 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
 		}
 
-		WritePrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10), szIniFile);
-		WritePrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10), szIniFile);
-		WritePrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10), szIniFile);
-		WritePrivateProfileString("User Camera 1", "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Distance", ftoa_s(pUserCam1->Distance, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Heading", ftoa_s(pUserCam1->Heading, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Height", ftoa_s(pUserCam1->Height, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Pitch", ftoa_s(pUserCam1->Pitch, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szIniFile);
-		WritePrivateProfileString("User Camera 1", "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szIniFile);
+		WritePrivateProfileString("User Camera 1", "bAutoHeading", std::to_string(pUserCam1->bAutoHeading), szIniFile);
+		WritePrivateProfileString("User Camera 1", "bAutoPitch", std::to_string(pUserCam1->bAutoPitch), szIniFile);
+		WritePrivateProfileString("User Camera 1", "bSkipFrame", std::to_string(pUserCam1->bSkipFrame), szIniFile);
+		WritePrivateProfileString("User Camera 1", "DirectionalHeading", std::to_string(pUserCam1->DirectionalHeading), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Distance", std::to_string(pUserCam1->Distance), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Heading", std::to_string(pUserCam1->Heading), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Height", std::to_string(pUserCam1->Height), szIniFile);
+		WritePrivateProfileString("User Camera 1", "OldPosition_X", std::to_string(pUserCam1->OldPosition_X), szIniFile);
+		WritePrivateProfileString("User Camera 1", "OldPosition_Y", std::to_string(pUserCam1->OldPosition_Y), szIniFile);
+		WritePrivateProfileString("User Camera 1", "OldPosition_Z", std::to_string(pUserCam1->OldPosition_Z), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Orientation_X", std::to_string(pUserCam1->Orientation_X), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Orientation_Y", std::to_string(pUserCam1->Orientation_Y), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Orientation_Z", std::to_string(pUserCam1->Orientation_Z), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Pitch", std::to_string(pUserCam1->Pitch), szIniFile);
+		WritePrivateProfileString("User Camera 1", "SideMovement", std::to_string(pUserCam1->SideMovement), szIniFile);
+		WritePrivateProfileString("User Camera 1", "Zoom", std::to_string(pUserCam1->Zoom), szIniFile);
 	}
 	else if (!_stricmp(szArg1, "load"))
 	{
@@ -5560,37 +5540,37 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
 		}
 
-		GetPrivateProfileString("User Camera 1", "bAutoHeading", SafeItoa(pUserCam1->bAutoHeading, szTemp, 10), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "bAutoHeading", std::to_string(pUserCam1->bAutoHeading), szOut, 2048, szIniFile);
 		pUserCam1->bAutoHeading = atoi(szOut) != 0;
-		GetPrivateProfileString("User Camera 1", "bAutoPitch", SafeItoa(pUserCam1->bAutoPitch, szTemp, 10), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "bAutoPitch", std::to_string(pUserCam1->bAutoPitch), szOut, 2048, szIniFile);
 		pUserCam1->bAutoPitch = atoi(szOut) != 0;
-		GetPrivateProfileString("User Camera 1", "bSkipFrame", SafeItoa(pUserCam1->bSkipFrame, szTemp, 10), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "bSkipFrame", std::to_string(pUserCam1->bSkipFrame), szOut, 2048, szIniFile);
 		pUserCam1->bSkipFrame = atoi(szOut) != 0;
-		GetPrivateProfileString("User Camera 1", "DirectionalHeading", ftoa_s(pUserCam1->DirectionalHeading, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "DirectionalHeading", std::to_string(pUserCam1->DirectionalHeading), szOut, 2048, szIniFile);
 		pUserCam1->DirectionalHeading = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Distance", ftoa_s(pUserCam1->Distance, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Distance", std::to_string(pUserCam1->Distance), szOut, 2048, szIniFile);
 		pUserCam1->Distance = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Heading", ftoa_s(pUserCam1->Heading, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Heading", std::to_string(pUserCam1->Heading), szOut, 2048, szIniFile);
 		pUserCam1->Heading = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Height", ftoa_s(pUserCam1->Height, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Height", std::to_string(pUserCam1->Height), szOut, 2048, szIniFile);
 		pUserCam1->Height = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_X", ftoa_s(pUserCam1->OldPosition_X, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "OldPosition_X", std::to_string(pUserCam1->OldPosition_X), szOut, 2048, szIniFile);
 		pUserCam1->OldPosition_X = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_Y", ftoa_s(pUserCam1->OldPosition_Y, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "OldPosition_Y", std::to_string(pUserCam1->OldPosition_Y), szOut, 2048, szIniFile);
 		pUserCam1->OldPosition_Y = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_Z", ftoa_s(pUserCam1->OldPosition_Z, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "OldPosition_Z", std::to_string(pUserCam1->OldPosition_Z), szOut, 2048, szIniFile);
 		pUserCam1->OldPosition_Z = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_X", ftoa_s(pUserCam1->Orientation_X, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Orientation_X", std::to_string(pUserCam1->Orientation_X), szOut, 2048, szIniFile);
 		pUserCam1->Orientation_X = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_Y", ftoa_s(pUserCam1->Orientation_Y, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Orientation_Y", std::to_string(pUserCam1->Orientation_Y), szOut, 2048, szIniFile);
 		pUserCam1->Orientation_Y = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_Z", ftoa_s(pUserCam1->Orientation_Z, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Orientation_Z", std::to_string(pUserCam1->Orientation_Z), szOut, 2048, szIniFile);
 		pUserCam1->Orientation_Z = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Pitch", ftoa_s(pUserCam1->Pitch, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Pitch", std::to_string(pUserCam1->Pitch), szOut, 2048, szIniFile);
 		pUserCam1->Pitch = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "SideMovement", ftoa_s(pUserCam1->SideMovement, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "SideMovement", std::to_string(pUserCam1->SideMovement), szOut, 2048, szIniFile);
 		pUserCam1->SideMovement = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Zoom", ftoa_s(pUserCam1->Zoom, szTemp), szOut, 2048, szIniFile);
+		GetPrivateProfileString("User Camera 1", "Zoom", std::to_string(pUserCam1->Zoom), szOut, 2048, szIniFile);
 		pUserCam1->Zoom = (float)atof(szOut);
 		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
 	}

@@ -574,16 +574,6 @@ bool CheckNavCommand()
 	return 0;
 }
 
-template <unsigned int _Size>
-LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
-	}
-	return "";
-}
-
 void WriteSetting(const char* Key, const char* value)
 {
 	char szSettingINISection[MAX_STRING] = { 0 };
@@ -757,8 +747,7 @@ int ReadSetting(char* Key, int defaultval)
 	int ret = GetPrivateProfileInt(szSettingINISection, Key, -1, INIFileName);
 	if (ret == -1)
 	{
-		char szTemp[MAX_STRING] = { 0 };
-		WritePrivateProfileString(szSettingINISection, Key, SafeItoa(defaultval, szTemp, 10), INIFileName);
+		WritePrivateProfileString(szSettingINISection, Key, std::to_string(defaultval), INIFileName);
 		return defaultval;
 	}
 	else
@@ -768,8 +757,7 @@ int ReadSetting(char* Key, int defaultval)
 			if (ret == 7)
 			{
 				WriteChatf("MQ2TargetInfo.ini changed: Setting HotButtonBottom to %d because it was 7 and that makes it cover the disband button so it can't be clicked.", defaultval);
-				char szTemp[MAX_STRING] = { 0 };
-				WritePrivateProfileString(szSettingINISection, Key, SafeItoa(defaultval, szTemp, 10), INIFileName);
+				WritePrivateProfileString(szSettingINISection, Key, std::to_string(defaultval), INIFileName);
 				return defaultval;
 			}
 		}
@@ -778,11 +766,10 @@ int ReadSetting(char* Key, int defaultval)
 			if (ret == 102)
 			{
 				WriteChatf("MQ2TargetInfo.ini changed: Setting MimicMeTop to %d because it was 102 and that is no longer the default.", defaultval);
-				char szTemp[MAX_STRING] = { 0 };
-				WritePrivateProfileString(szSettingINISection, Key, SafeItoa(64, szTemp, 10), INIFileName);
-				WritePrivateProfileString(szSettingINISection, "MimicMeBottom", SafeItoa(31, szTemp, 10), INIFileName);
-				WritePrivateProfileString(szSettingINISection, "MimicMeLeft", SafeItoa(92, szTemp, 10), INIFileName);
-				WritePrivateProfileString(szSettingINISection, "MimicMeRight", SafeItoa(132, szTemp, 10), INIFileName);
+				WritePrivateProfileString(szSettingINISection, Key, "64", INIFileName);
+				WritePrivateProfileString(szSettingINISection, "MimicMeBottom", "31", INIFileName);
+				WritePrivateProfileString(szSettingINISection, "MimicMeLeft", "92", INIFileName);
+				WritePrivateProfileString(szSettingINISection, "MimicMeRight", "132", INIFileName);
 				return defaultval;
 			}
 		}
@@ -2251,25 +2238,12 @@ PLUGIN_API void InitializePlugin()
 		strcat_s(szMyIniName, ".ini");
 		strcat_s(szMyName, ".txt");
 	}
-	char szDBExpansion[MAX_STRING] = { 0 };
 	bool UpdateDBFile = false;
-	int ret = GetPrivateProfileInt("Default", "DBExpansion", -1, INIFileName);
-	if (ret == -1)
+	const int ret = GetPrivateProfileInt("Default", "DBExpansion", -1, INIFileName);
+	if (ret != NUM_EXPANSIONS)
 	{
 		UpdateDBFile = true;
-		ret = NUM_EXPANSIONS;
-		SafeItoa(ret, szDBExpansion, 10);
-		WritePrivateProfileString("Default", "DBExpansion", szDBExpansion, INIFileName);
-	}
-	else
-	{
-		if (ret != NUM_EXPANSIONS)
-		{
-			UpdateDBFile = true;
-			ret = NUM_EXPANSIONS;
-			SafeItoa(ret, szDBExpansion, 10);
-			WritePrivateProfileString("Default", "DBExpansion", szDBExpansion, INIFileName);
-		}
+		WritePrivateProfileString("Default", "DBExpansion", std::to_string(NUM_EXPANSIONS), INIFileName);
 	}
 
 	WIN32_FIND_DATA FindFile = { 0 };

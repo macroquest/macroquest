@@ -248,16 +248,6 @@ void LoadElements()
 	}
 }
 
-template <unsigned int _Size>
-LPSTR SafeItoa(int _Value, char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
-	}
-	return "";
-}
-
 void HandleINI()
 {
 	std::scoped_lock lock(s_mutex);
@@ -284,8 +274,8 @@ void HandleINI()
 	bUseFontSize = _strnicmp(szBuffer, "on", 2) ? false : true;
 
 	// Write the SkipParse and CheckINI section, in case they didn't have one
-	WritePrivateProfileString(HUDSection, "SkipParse", SafeItoa(SkipParse, szBuffer, 10), INIFileName);
-	WritePrivateProfileString(HUDSection, "CheckINI", SafeItoa(CheckINI, szBuffer, 10), INIFileName);
+	WritePrivateProfileString(HUDSection, "SkipParse", std::to_string(SkipParse), INIFileName);
+	WritePrivateProfileString(HUDSection, "CheckINI", std::to_string(CheckINI), INIFileName);
 	WritePrivateProfileString(HUDSection, "UpdateInBackground", bBGUpdate ? "on" : "off", INIFileName);
 	WritePrivateProfileString(HUDSection, "ClassHUD", bClassHUD ? "on" : "off", INIFileName);
 	WritePrivateProfileString(HUDSection, "ZoneHUD", bZoneHUD ? "on" : "off", INIFileName);
