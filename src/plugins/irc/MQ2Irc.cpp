@@ -974,20 +974,9 @@ bool dataIrc(const char* szName, MQTypeVar& Dest)
 	return true;
 }
 
-template <unsigned int _Size>
-LPSTR Safe_itoa_s(int _Value, char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
-	}
-	return "";
-}
-
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	char szTemp[MAX_STRING] = { 0 };
 	strcpy_s(strDefault, "[%H:%M:%S] ");
 	maxLength = 20;
 
@@ -1025,10 +1014,10 @@ PLUGIN_API void InitializePlugin()
 	WritePrivateProfileString("Settings", "UseWnd", UseWnd, INIFileName);
 	WritePrivateProfileString("Settings", "UseTimeStamp", UseTimeStamp, INIFileName);
 
-	WritePrivateProfileString("Settings", "ChatTop", Safe_itoa_s(irctop, szTemp, 10), INIFileName);
-	WritePrivateProfileString("Settings", "ChatBottom", Safe_itoa_s(ircbottom, szTemp, 10), INIFileName);
-	WritePrivateProfileString("Settings", "ChatLeft", Safe_itoa_s(ircleft, szTemp, 10), INIFileName);
-	WritePrivateProfileString("Settings", "ChatRight", Safe_itoa_s(ircright, szTemp, 10), INIFileName);
+	WritePrivateProfileString("Settings", "ChatTop", std::to_string(irctop), INIFileName);
+	WritePrivateProfileString("Settings", "ChatBottom", std::to_string(ircbottom), INIFileName);
+	WritePrivateProfileString("Settings", "ChatLeft", std::to_string(ircleft), INIFileName);
+	WritePrivateProfileString("Settings", "ChatRight", std::to_string(ircright), INIFileName);
 
 	if (_stricmp(UseTimeStamp, "yes") == 0)
 	{
@@ -1094,8 +1083,6 @@ PLUGIN_API void OnPulse()
 
 PLUGIN_API void OnCleanUI()
 {
-	char szTemp[MAX_STRING] = { 0 };
-
 	if (MyWnd)
 	{
 		irctop = MyWnd->GetLocation().top;
@@ -1103,10 +1090,10 @@ PLUGIN_API void OnCleanUI()
 		ircleft = MyWnd->GetLocation().left;
 		ircright = MyWnd->GetLocation().right;
 
-		WritePrivateProfileString("Settings", "ChatTop", Safe_itoa_s(irctop, szTemp, 10), INIFileName);
-		WritePrivateProfileString("Settings", "ChatBottom", Safe_itoa_s(ircbottom, szTemp, 10), INIFileName);
-		WritePrivateProfileString("Settings", "ChatLeft", Safe_itoa_s(ircleft, szTemp, 10), INIFileName);
-		WritePrivateProfileString("Settings", "ChatRight", Safe_itoa_s(ircright, szTemp, 10), INIFileName);
+		WritePrivateProfileString("Settings", "ChatTop", std::to_string(irctop), INIFileName);
+		WritePrivateProfileString("Settings", "ChatBottom", std::to_string(ircbottom), INIFileName);
+		WritePrivateProfileString("Settings", "ChatLeft", std::to_string(ircleft), INIFileName);
+		WritePrivateProfileString("Settings", "ChatRight", std::to_string(ircright), INIFileName);
 
 		delete MyWnd;
 		MyWnd = nullptr;
