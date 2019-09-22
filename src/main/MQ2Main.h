@@ -66,6 +66,8 @@
 // MQ2
 #include "blech\Blech.h"
 
+#include <fmt/format.h>
+
 //#define MQ2_PROFILING
 
 // uncomment this line to turn off the single-line benchmark macro

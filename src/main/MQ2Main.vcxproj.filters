@@ -18,6 +18,15 @@
     <Filter Include="Source Files\EQLib">
       <UniqueIdentifier>{e26f03ab-c185-4d6b-826d-5a02608b633d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Contrib">
+      <UniqueIdentifier>{1a953c64-aeaf-4397-94a6-58df056d33ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contrib">
+      <UniqueIdentifier>{37f552ce-de79-4c09-bc69-6022bc7cedd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contrib\fmt">
+      <UniqueIdentifier>{e802e118-a7b2-4236-96b5-0f5ddce7bda0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -124,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="MQ2Spells.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\fmt\src\format.cc">
+      <Filter>Source Files\Contrib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -252,6 +264,42 @@
     </ClInclude>
     <ClInclude Include="..\EQLib\data\spelleffects.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\chrono.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\color.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\compile.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\core.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\format.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\format-inl.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\locale.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\ostream.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\posix.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\printf.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\ranges.h">
+      <Filter>Header Files\contrib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h">
+      <Filter>Header Files\contrib\fmt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

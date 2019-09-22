@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include <mq/Plugin.h>
 #include <map>
 
 #define MAPFILTER_All            0

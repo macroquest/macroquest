@@ -12,9 +12,11 @@
  * GNU General Public License for more details.
  */
 
-#include <mq/Plugin.h>
 #include "MQ2Map.h"
 
+#include <mq/Plugin.h>
+
+#include <fmt/format.h>
 #include <sstream>
 
 #define FAKESPAWNTYPE 0xFF
@@ -1555,16 +1557,9 @@ void PrintDefaultMapLocSettings()
 	DefaultMapLoc->rg_color = GetPrivateProfileInt("MapLoc", "RadiusGreen", 0, INIFileName);
 	DefaultMapLoc->rb_color = GetPrivateProfileInt("MapLoc", "RadiusBlue", 255, INIFileName);
 
-	std::stringstream MapLocVars;
-	MapLocVars << "MapLoc Defaults: ";
-
-	MapLocVars << "Width:" << DefaultMapLoc->width
-		<< ", Size:" << DefaultMapLoc->lineSize
-		<< ", Color:" << DefaultMapLoc->r_color << "," << DefaultMapLoc->g_color << "," << DefaultMapLoc->b_color
-		<< ", Radius:" << DefaultMapLoc->radius
-		<< ", Radius Color:" << DefaultMapLoc->rr_color << "," << DefaultMapLoc->rg_color << "," << DefaultMapLoc->rb_color;
-
-	WriteChatf("%s", MapLocVars.str().c_str());
+	WriteChatf("%s", fmt::format("MapLoc Defaults: Width:{}, Size:{}, Color:{},{},{}, Radius:{}, Radius Color:{},{},{}",
+		DefaultMapLoc->width, DefaultMapLoc->lineSize, DefaultMapLoc->r_color, DefaultMapLoc->g_color, DefaultMapLoc->b_color,
+		DefaultMapLoc->radius, DefaultMapLoc->rr_color, DefaultMapLoc->rg_color, DefaultMapLoc->rb_color).c_str());
 }
 
 void MapLocSyntaxOutput()

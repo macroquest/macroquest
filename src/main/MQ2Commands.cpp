@@ -14,6 +14,8 @@
 
 #include "MQ2Main.h"
 
+#include <fmt/format.h>
+
 #include <Shellapi.h>
 #include <mmsystem.h>
 #include <direct.h>
@@ -575,19 +577,8 @@ void Items(SPAWNINFO* pChar, char* szLine)
 
 			int Angle = static_cast<int>((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 
-			std::string name;
-			name.reserve(32);
-
-			// TODO: Switch to using fmt for this
-			name.append("[");
-			name = std::to_string(pObj->RealEstateItemID);
-			name.append("] ");
-			name.append(pItem->Name);
-			name.append(" ");
-			name.append(pObj->Name);
-			name.append(" (");
-			name.append(pRealEstateItem->OwnerInfo.OwnerName);
-			name.append(")");
+			std::string name = fmt::format("[{0}] {1} {2} ({3})",
+				pObj->RealEstateItemID, pItem->Name, pObj->Name, pRealEstateItem->OwnerInfo.OwnerName);
 
 			itemsMap.emplace(Distance, iteminfo{ std::move(name), Angle });
 		}

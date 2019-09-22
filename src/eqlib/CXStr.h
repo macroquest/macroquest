@@ -17,6 +17,8 @@
 #include "Allocator.h"
 #include "DynamicArray.h"
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -1704,3 +1706,16 @@ inline void swap(CXStr& lhs, CXStr& rhs) noexcept
 }
 
 } // namespace eqlib
+
+//----------------------------------------------------------------------------
+
+// custom formatter to support using CXStr in fmt format strings
+template <>
+struct fmt::formatter<eqlib::CXStr> : fmt::formatter<std::string_view>
+{
+	template <typename FormatContext>
+	auto format(const eqlib::CXStr& s, FormatContext& ctx)
+	{
+		return fmt::formatter<std::string_view>::format(std::string_view{ s }, ctx);
+	}
+};

@@ -60,6 +60,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\contrib\fmt\src\format.cc" />
     <ClCompile Include="..\EQLib\CXStr.cpp" />
     <ClCompile Include="..\EQLib\CXWnd.cpp" />
     <ClCompile Include="..\EQLib\EQClasses.cpp" />
@@ -100,6 +101,18 @@
     <ClCompile Include="MQ2Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\chrono.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\color.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\compile.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\core.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\format-inl.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\format.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\locale.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\ostream.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\posix.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\printf.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\ranges.h" />
+    <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h" />
     <ClInclude Include="..\Blech\Blech.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="..\EQLib\Allocator.h" />
