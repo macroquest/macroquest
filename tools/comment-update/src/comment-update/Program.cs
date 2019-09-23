@@ -10,38 +10,138 @@ using System.Threading.Tasks;
 using ClangSharp;
 using ClangSharp.Interop;
 using Dia2Lib;
+using Newtonsoft.Json;
 
 namespace comment_update
 {
+    public class ProgramOptions
+    {
+        public string sourceRoot { get; set; }
+        public string[] inputSources { get; set; }
+        public string inputSymbols { get; set; }
+        public string[] includePaths { get; set; }
+        public string[] compilerArguments { get; set; }
+
+        public static ProgramOptions LoadJson(string filename)
+        {
+            try
+            {
+                using (StreamReader r = new StreamReader(filename))
+                {
+                    var json = r.ReadToEnd();
+                    var items = JsonConvert.DeserializeObject<ProgramOptions>(json);
+
+                    return items;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+    }
+
     class Program
     {
         static int Main(string[] args)
         {
-            if (args.Length < 2)
+            var currentDir = System.IO.Directory.GetCurrentDirectory();
+            var settingsFile = Path.Combine(currentDir, "comment-update.config");
+            var settings = ProgramOptions.LoadJson(settingsFile);
+
+            if (settings == null)
             {
-                Console.WriteLine($"Usage: {Path.GetFileName(Process.GetCurrentProcess().MainModule?.FileName)} <pdb file> <source file 1> [<source file 2> ...]");
-                if (Debugger.IsAttached)
-                    args = new[] { @"..\..\..\..\..\..\Release\MQ2Main.pdb", @"..\..\..\..\..\..\MQ2Main\MQ2Main.cpp" };
-                else
-                    return 1;
+                Console.WriteLine("Failed to load settings");
+                return 1;
+            }
+
+            var sourceRoot = Path.Combine(currentDir, settings.sourceRoot);
+
+            // Get the Pdb
+            var PdbFile = Path.Combine(sourceRoot, settings.inputSymbols);
+
+            if (!File.Exists(PdbFile))
+            {
+                Console.WriteLine("ERROR: PDB file doesn't exist: {0}", PdbFile);
+                return 1;
             }
 
             // Get offsets from PDB
-            var structs = StructDefinition.ParsePdb(args[0]).ToList();
+            var structs = StructDefinition.ParsePdb(PdbFile).ToList();
+
+            // build the arguments to clang.
+            List<string> clangArgs = new List<string>();
+
+            // build include path arguments
+            foreach (string arg in settings.includePaths)
+            {
+                clangArgs.Add("-I" + Path.Combine(sourceRoot, arg));
+            }
+
+            // add the rest of the arguments
+            clangArgs.AddRange(settings.compilerArguments);
 
             // Get location in source files from clang
-            List<(string File, uint Line, string Offset)> offsetLocations = new List<(string, uint, string)>();
-            foreach (var sourceFile in args.Skip(1))
+            HashSet<(string File, uint Line, string Offset)> offsetLocations = new HashSet<(string, uint, string)>();
+            foreach (var sourceFile in settings.inputSources)
             {
-                var tuHandle = CXTranslationUnit.Parse(CXIndex.Create(), sourceFile, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies);
-                var tu = TranslationUnit.GetOrCreate(tuHandle).TranslationUnitDecl;
+                CXTranslationUnit tuHandle;
 
-                foreach (var ns in tu.CursorChildren.Where(c => c is NamespaceDecl).Cast<NamespaceDecl>())
-                    offsetLocations.AddRange(GetOffsetLocations(ns, structs));
+                Console.WriteLine("Parsing {0}...", sourceFile);
+                var sourceFile2 = Path.Combine(sourceRoot, sourceFile);
+
+                CXErrorCode ec = CXTranslationUnit.TryParse(CXIndex.Create(), sourceFile2, clangArgs.ToArray(),
+                    Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies, out tuHandle);
+                if (ec != CXErrorCode.CXError_Success || tuHandle == null)
+                {
+                    Console.WriteLine("Failed to parse {0}: {1}", sourceFile, ec.ToString());
+                    return 1;
+                }
+
+                CXDiagnosticSet diags = tuHandle.DiagnosticSet;
+                bool hasError = false;
+
+                if (diags.Count > 0)
+                {
+                    Console.WriteLine("{0} Diagnostic messages:", diags.Count);
+                }
+
+                for (var i = 0u; i < diags.Count; ++i)
+                {
+                    var diag = diags[i];
+                    CXString s = diag.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplaySourceLocation
+                        | CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption);
+                    Console.WriteLine("{0}", s.ToString());
+
+                    if (diag.Severity == CXDiagnosticSeverity.CXDiagnostic_Error
+                        || diag.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal)
+                    {
+                        hasError = true;
+                    }
+                }
+
+                if (hasError)
+                {
+                    Console.WriteLine("One or more errors occurred while parsing {0}", sourceFile);
+                    return 1;
+                }
+
+                var tu = TranslationUnit.GetOrCreate(tuHandle).TranslationUnitDecl;
+                if (tu == null)
+                {
+                    Console.WriteLine("Failed to create translation unit for {0}", sourceFile);
+                    return 1;
+                }
+
+                var children = tu.CursorChildren;
+
+                foreach (var ns in children.Where(c => c is NamespaceDecl).Cast<NamespaceDecl>())
+                    offsetLocations.UnionWith(GetOffsetLocations(ns, structs));
             }
 
             foreach (var fileGroup in offsetLocations.GroupBy(loc => loc.File))
             {
+                Console.WriteLine("Updating {0}...", Path.GetFullPath(fileGroup.Key));
                 var lines = File.ReadAllLines(fileGroup.Key);
                 foreach (var location in fileGroup)
                 {
@@ -54,6 +154,8 @@ namespace comment_update
 
                 File.WriteAllLines(fileGroup.Key, lines);
             }
+
+            Console.WriteLine("Done!");
 
             return 0;
         }
@@ -78,6 +180,8 @@ namespace comment_update
 
         private static IEnumerable<(string File, uint Line, string Offset)> GetOffsetLocations(RecordDecl record, IReadOnlyList<StructDefinition> structs)
         {
+            var name = GetFullName(record);
+
             // Even if we're not updating comments for this type, still need to check nested types
             foreach (var child in record.CursorChildren.Where(c => c is RecordDecl).Cast<RecordDecl>())
                 foreach (var offsetLocation in GetOffsetLocations(child, structs))
@@ -98,8 +202,6 @@ namespace comment_update
                 if (!int.TryParse(baseStr, out baseOffset))
                     baseOffset = Convert.ToInt32(baseStr, 16);
             }
-
-            var name = GetFullName(record);
 
             var definition = structs.SingleOrDefault(s => s.Name == name);
             if (definition == null)
@@ -163,7 +265,7 @@ namespace comment_update
 
             // Return locations for all members
             foreach (var location in locations)
-                yield return (location.File, location.Line, location.Offset.ToString($"x{digits}"));
+                yield return (Path.GetFullPath(location.File), location.Line, location.Offset.ToString($"x{digits}"));
 
             // And one for the size.
             // If the last member is in the same source file as the struct itself, it just goes on the following line
@@ -176,7 +278,7 @@ namespace comment_update
 
                 actualLastMember.Extent.End.GetFileLocation(out var file, out var line, out _, out _);
 
-                yield return (file.ToString(), line + 1, size.ToString($"x{digits}"));
+                yield return (Path.GetFullPath(file.ToString()), line + 1, size.ToString($"x{digits}"));
                 yield break;
             }
 
@@ -194,7 +296,7 @@ namespace comment_update
                     if (i != (children.Count - 1))
                     {
                         children[i + 1].Location.GetFileLocation(out var file, out var line, out _, out _);
-                        yield return (file.ToString(), line - 1, size.ToString($"x{digits}"));
+                        yield return (Path.GetFullPath(file.ToString()), line - 1, size.ToString($"x{digits}"));
                         yield break;
                     }
                 }
@@ -202,7 +304,7 @@ namespace comment_update
 
             // If we still couldn't place it, throw it on the last line of the class
             record.Extent.End.GetFileLocation(out var lastLineFile, out var lastLine, out _, out _);
-            yield return (lastLineFile.ToString(), lastLine, size.ToString($"x{digits}"));
+            yield return (Path.GetFullPath(lastLineFile.ToString()), lastLine, size.ToString($"x{digits}"));
         }
 
         private static string GetFullName(RecordDecl record)

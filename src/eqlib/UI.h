@@ -3211,8 +3211,8 @@ public:
 	CHtmlComponentWnd(CXWnd* parent, uint32_t id, CXRect rect, CXStr startURI = "");
 	virtual ~CHtmlComponentWnd();
 
-/*0x1e4*/ libMozilla::Window* m_mozillaWnd;
-/*0x1e8*/
+/*0x1e8*/ libMozilla::Window* m_mozillaWnd;
+/*0x1ec*/
 	// more ...
 };
 
