@@ -41,3 +41,6 @@ ipch/
 *.id?
 *.nam
 *.til
+
+# ignore user plugins
+plugins/
