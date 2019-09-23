@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 //void InjectMQ2Binds(COptionsWnd* pWnd);
 //void EjectMQ2Binds(COptionsWnd* pWnd);
 
@@ -520,3 +522,5 @@ bool DumpBinds(const char* Filename)
 	fclose(file);
 	return true;
 }
+
+} // namespace mq

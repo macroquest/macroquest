@@ -21,6 +21,8 @@
 #define DBG_SPEW // enable DebugSpew messages in debug builds
 #endif
 
+namespace mq {
+
 //***************************************************************************
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
@@ -8872,3 +8874,5 @@ bool IsAssistNPC(SPAWNINFO* pSpawn)
 
 	return false;
 }
+
+} // namespace mq

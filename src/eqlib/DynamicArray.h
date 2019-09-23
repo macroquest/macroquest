@@ -21,5 +21,3 @@
 namespace eqlib {
 
 }
-
-using namespace eqlib;

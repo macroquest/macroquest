@@ -304,5 +304,3 @@ struct [[offsetcomments]] SPELLBUFF
 using PSPELLBUFF [[deprecated]] = SPELLBUFF *;
 
 } // namespace eqlib
-
-using namespace eqlib;

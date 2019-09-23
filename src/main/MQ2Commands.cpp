@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 CMQ2Alerts CAlerts;
 
 // ***************************************************************************
@@ -5617,3 +5619,5 @@ void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
 		SetForegroundWindowInternal(EQhWnd);
 	}
 }
+
+} // namespace mq

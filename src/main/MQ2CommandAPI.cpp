@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#include <mutex>
+namespace mq {
 
 static std::recursive_mutex s_commandMutex;
 
@@ -1276,3 +1276,5 @@ void Alias(SPAWNINFO* pChar, char* szLine)
 		WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
 	}
 }
+
+} // namespace mq

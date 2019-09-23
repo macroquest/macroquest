@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 static std::mutex s_dataVarMutex;
 
 void DeleteMQ2DataVariable(MQDataVar* pVar)
@@ -890,3 +892,5 @@ void DropTimers()
 		pTimer = pTimer->pNext;
 	}
 }
+
+} // namespace mq

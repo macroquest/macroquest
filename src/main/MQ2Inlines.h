@@ -22,6 +22,8 @@
 // For Conversions
 #include <charconv>
 
+namespace mq {
+
 MQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true, bool ForWhoList = true);
 
 inline CHARINFO* GetCharInfo()
@@ -761,3 +763,51 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 
 	return ci_equals(haystack, needle, exact);
 }
+
+// These are replaced with our own wrappers
+#undef GetPrivateProfileInt
+#undef GetPrivateProfileString
+#undef WritePrivateProfileSection
+#undef WritePrivateProfileString
+
+inline int GetPrivateProfileInt(std::string Section, std::string Key, int DefaultValue, std::string iniFileName)
+{
+	return GetPrivateProfileIntA(Section.data(), Key.data(), DefaultValue, iniFileName.data());
+}
+
+inline int GetPrivateProfileInt(char* Section, char* Key, int DefaultValue, char* iniFileName)
+{
+	return GetPrivateProfileIntA(Section, Key, DefaultValue, iniFileName);
+}
+
+inline int GetPrivateProfileString(std::string Section, std::string Key, std::string DefaultValue, char* Return, size_t Size, std::string iniFileName)
+{
+	return GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), Return, Size, iniFileName.data());
+}
+
+inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* Return, size_t Size, char* iniFileName)
+{
+	return GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
+}
+
+inline bool WritePrivateProfileSection(std::string Section, std::string KeysAndValues, std::string iniFileName)
+{
+	return WritePrivateProfileSectionA(Section.data(), KeysAndValues.data(), iniFileName.data());
+}
+
+inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char* iniFileName)
+{
+	return WritePrivateProfileSectionA(Section, KeysAndValues, iniFileName);
+}
+
+inline bool WritePrivateProfileString(std::string Section, std::string Key, std::string Value, std::string iniFileName)
+{
+	return WritePrivateProfileStringA(Section.data(), Key.data(), Value.data(), iniFileName.data());
+}
+
+inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, char* iniFileName)
+{
+	return WritePrivateProfileStringA(Section, Key, Value, iniFileName);
+}
+
+} // namespace mq

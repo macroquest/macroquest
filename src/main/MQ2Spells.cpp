@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 static SPELL* GetSpellBySpellGroupID(int dwSpellGroupID)
 {
 	if (!ppSpellMgr) return nullptr;
@@ -2865,3 +2867,5 @@ void SlotValueCalculate(char* szBuff, SPELL* pSpell, int i, double mp)
 	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 	return;
 }
+
+} // namespace mq

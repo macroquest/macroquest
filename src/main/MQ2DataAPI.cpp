@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
 
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
@@ -1399,3 +1400,5 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 
 	return Changed;
 }
+
+} // namespace mq

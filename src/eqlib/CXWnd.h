@@ -1016,5 +1016,3 @@ using PCXWNDMGR [[deprecated]] = CEQXWndManager*;
 void InitializeCXWnd();
 
 } // namespace eqlib
-
-using namespace eqlib;

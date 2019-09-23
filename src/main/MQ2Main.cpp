@@ -32,6 +32,8 @@
 #define MacroQuestWinName "MacroQuest2(Test)"
 #endif
 
+namespace mq {
+
 //============================================================================
 
 DWORD WINAPI MQ2Start(void* lpParameter);
@@ -846,3 +848,5 @@ void InjectDisable()
 	UnhookWindowsHookEx(g_hHook);
 	g_hHook = nullptr;
 }
+
+} // namespace mq

@@ -2228,5 +2228,3 @@ using PGROUPAGGRO [[deprecated]] = GROUPAGGRO*;
 #define EQ_LoadingS__ArraySize                   0x5a      // EQ_LoadingS__SetProgressBar_x+76  (4C7396 yes it says 5b there, but we dont want to overwrite the NULL term... 2016 Apr 21
 
 } // namespace eqlib
-
-using namespace eqlib;

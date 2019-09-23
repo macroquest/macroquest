@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 static void MouseButtonUp(DWORD x, DWORD y, char* szButton);
 
 // ***************************************************************************
@@ -739,3 +741,5 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 
 	return false;
 }
+
+} // namespace mq

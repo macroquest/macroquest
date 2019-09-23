@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 bool dataSpawn(const char* szIndex, MQTypeVar& Ret)
 {
 	if (szIndex[0])
@@ -1740,3 +1742,5 @@ bool dataPointMerchant(const char* szIndex, MQTypeVar& Ret)
 
 	return false;
 }
+
+} // namespace mq

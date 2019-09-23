@@ -14,6 +14,10 @@
 
 #pragma once
 
+#include "MQ2Main.h"
+
+namespace mq {
+
 /* COMMANDS */
 MQLIB_API void SetError                            (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void SuperWho                            (PSPAWNINFO pChar, char* szLine);
@@ -125,3 +129,5 @@ MQLIB_API void UserCameraCmd                       (PSPAWNINFO pChar, char* szLi
 MQLIB_API void ForeGroundCmd                       (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void QuitCmd                             (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void EngineCommand                       (PSPAWNINFO pChar, char* szLine);
+
+} // namespace mq

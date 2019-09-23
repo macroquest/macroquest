@@ -20,6 +20,8 @@
 #include <string>
 #include <algorithm>
 
+namespace mq {
+
 std::list<ItemGlobalIndex> selllist;
 std::list<ItemGlobalIndex> deletelist;
 std::list<ItemGlobalIndex> autobanklist;
@@ -3504,3 +3506,5 @@ void AutoBankPulse()
 		WriteChatf("\ay[AutoBank Finished.]\ax");
 	}
 }
+
+} // namespace mq

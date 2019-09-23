@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 void InitializeParser()
 {
 	DebugSpewNoFile("InitializeParser()");
@@ -46,3 +48,5 @@ char* ParseMacroParameter(PSPAWNINFO pChar, char* szOriginal, size_t BufferSize)
 	ExitMQ2Benchmark(bmParseMacroParameter);
 	return (szOriginal);
 }
+
+} // namespace mq

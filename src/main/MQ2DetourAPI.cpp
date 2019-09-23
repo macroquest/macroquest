@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 struct DetourRecord
 {
 /*0x00*/ uint32_t      addr;
@@ -1347,6 +1349,8 @@ void emotify()
 }
 #pragma optimize( "", on )
 
+} // namespace mq
+
 //============================================================================
 // this shit is here to satisfy mq2ic. Just because its here doesn't mean you should ever use it
 class CCXStr
@@ -1356,4 +1360,3 @@ public:
 	void* Ptr [[deprecated]] ;
 };
 FUNCTION_AT_ADDRESS(CCXStr& CCXStr::operator=(char const*), CXStr__operator_equal1);
-

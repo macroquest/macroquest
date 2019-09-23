@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 using BMIndex = CIndex<MQBenchmark*>;
 BMIndex* pBenchmarks = nullptr;
 
@@ -183,3 +185,5 @@ void ShutdownMQ2Benchmarks()
 
 	pBenchmarks = nullptr;
 }
+
+} // namespace mq

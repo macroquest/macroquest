@@ -245,5 +245,3 @@ struct [[offsetcomments]] ScreenVector3
 using PScreenVector3 = ScreenVector3*;
 
 } // namespace eqlib
-
-using namespace eqlib;

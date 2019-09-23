@@ -20,6 +20,8 @@
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
+namespace mq {
+
 bool TurnNotDone = false;
 static std::mutex s_pulseMutex;
 
@@ -1064,3 +1066,5 @@ void ShutdownMQ2Pulse()
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 	RemoveDetour(CTargetWnd__RefreshTargetBuffs);
 }
+
+} // namespace mq

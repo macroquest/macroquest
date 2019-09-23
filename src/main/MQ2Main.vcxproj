@@ -112,7 +112,6 @@
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
-    <ClInclude Include="MQ2Globals-private_default.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />
     <ClInclude Include="MQ2Internal.h" />

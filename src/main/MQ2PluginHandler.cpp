@@ -17,6 +17,8 @@
 
 //#define DEBUG_PLUGINS
 
+namespace mq {
+
 #ifdef DEBUG_PLUGINS
 #define PluginDebug DebugSpew
 #else
@@ -800,3 +802,5 @@ void* GetPluginProc(const char* plugin, const char* proc)
 
 	return nullptr;
 }
+
+} // namespace mq

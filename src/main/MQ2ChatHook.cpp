@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 class CChatHook
 {
 public:
@@ -340,3 +342,5 @@ void ShutdownChatHook()
 	delete pMQ2Blech;
 	pMQ2Blech = nullptr;
 }
+
+} // namespace mq

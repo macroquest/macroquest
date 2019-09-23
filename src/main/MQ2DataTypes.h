@@ -14,6 +14,10 @@
 
 #pragma once
 
+#include "MQ2Main.h"
+
+namespace mq {
+
 // non-mq2data TODO
 // command to clear macro return value
 // networking
@@ -41,7 +45,9 @@
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
 	class Class;                                                     \
 	MQLIB_VAR Class* Var;
+
 #include "DataTypeList.h"
+
 #undef DATATYPE
 
 //============================================================================
@@ -55,8 +61,8 @@ public:
 
 	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) = 0;
-	virtual bool FromString(MQVarPtr& VarPtr, char* Source) = 0;
+	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) { return false; }
+	virtual bool FromString(MQVarPtr& VarPtr, char* Source) { return false; }
 
 	virtual void InitVariable(MQVarPtr& VarPtr)
 	{
@@ -1950,11 +1956,6 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CHARINFO));
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -2165,11 +2166,6 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELL));
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -2260,11 +2256,6 @@ public:
 
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELLBUFF));
 		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -2365,11 +2356,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -2450,11 +2436,6 @@ public:
 
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
 		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -2806,17 +2787,9 @@ public:
 		TypeMember(MaxLuck);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		if (!VarPtr.Ptr)
-			return false;
-
-		CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
-		strcpy_s(Destination, MAX_STRING, GetItemFromContents(pContents)->Name);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
 	void InitVariable(MQVarPtr& VarPtr)
 	{
@@ -2841,11 +2814,6 @@ public:
 
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CONTENTS));
 		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -2942,11 +2910,6 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(DOOR));
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -3039,7 +3002,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source);
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -3079,15 +3042,6 @@ public:
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 		}
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -3148,16 +3102,6 @@ public:
 		}
 		return true;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -3215,16 +3159,6 @@ public:
 		}
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -3260,16 +3194,6 @@ public:
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 		}
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -3635,12 +3559,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		if (VarPtr.Ptr = FindMQ2Window(Source))
-			return true;
-		return false;
-	}
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -3703,11 +3622,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -3769,16 +3683,6 @@ public:
 
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -3832,11 +3736,6 @@ public:
 				}
 			}
 		}
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
 		return false;
 	}
 };
@@ -3910,11 +3809,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -3950,16 +3844,6 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4049,16 +3933,6 @@ public:
 	{
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -4096,16 +3970,6 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4155,16 +4019,6 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -4429,11 +4283,6 @@ public:
 		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(tm));
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -4444,36 +4293,16 @@ class MQ2TypeType : public MQ2Type
 public:
 	enum TypeMembers
 	{
-		Name = 1,
-		TypeMember = 2,
+		xName = 1,
+		xTypeMember = 2,
 	};
 
-	MQ2TypeType() : MQ2Type("type")
-	{
-		TypeMember(Name);
-		AddMember((DWORD)TypeMember, "Member");
-	}
+	MQ2TypeType();
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
-
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		strcpy_s(Destination, MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		VarPtr.Ptr = Source.Type;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		if (VarPtr.Ptr = FindMQ2DataType(Source))
-			return true;
-		return false;
-	}
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -4622,11 +4451,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -4733,11 +4557,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -4813,11 +4632,6 @@ public:
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -4956,16 +4770,6 @@ public:
 		CDataArray* pArray = (CDataArray*)VarPtr.Ptr;
 		delete pArray;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5031,15 +4835,6 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination);
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5103,11 +4898,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5157,16 +4947,6 @@ public:
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
 		return false;
 	}
@@ -5227,11 +5007,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5265,16 +5040,6 @@ public:
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -5315,16 +5080,6 @@ public:
 		}
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5351,16 +5106,6 @@ public:
 	{
 		strcpy_s(Destination, MAX_STRING, ((DZMEMBER*)VarPtr.Ptr)->Name);
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -5410,16 +5155,6 @@ public:
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5452,16 +5187,6 @@ public:
 	{
 		strcpy_s(Destination, MAX_STRING, ((FELLOWSHIPMEMBER*)VarPtr.Ptr)->Name);
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -5496,16 +5221,6 @@ public:
 			sprintf_s(Destination, MAX_STRING, "%d", pChat->GetNumberOfFriends());
 			return true;
 		}
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
 		return false;
 	}
 };
@@ -5712,16 +5427,6 @@ public:
 		}
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -5750,16 +5455,6 @@ public:
 	{
 		strcpy_s(Destination, MAX_STRING, ((PTASKMEMBER)VarPtr.Ptr)->Name);
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -5828,16 +5523,6 @@ public:
 		}
 
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -5962,55 +5647,13 @@ public:
 	enum KeyRingTypeMembers
 	{
 		xIndex = 1,
-		Name = 2,
+		xName = 2,
 	};
 
-	MQ2KeyRingType() : MQ2Type("keyring")
-	{
-		AddMember(xIndex, "Index");
-		TypeMember(Name);
-	}
+	MQ2KeyRingType();
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
-
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
-		{
-			CListWnd* clist = nullptr;
-
-			WORD n = LOWORD(VarPtr.DWord);
-			WORD type = HIWORD(VarPtr.DWord);
-
-			if (type == 2)
-				clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
-			else if (type == 1)
-				clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
-			else
-				clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
-
-			if (clist)
-			{
-				CXStr Str = clist->GetItemText(n, 2);
-				if (!Str.empty())
-				{
-					strcpy_s(Destination, MAX_STRING, Str.c_str());
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -6065,11 +5708,6 @@ public:
 			return false;
 		VarPtr.Ptr = Source.Ptr;
 		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -6142,11 +5780,6 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -6179,22 +5812,8 @@ public:
 		TypeMember(Filter);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
-
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override { return false; }
 };
 
 //============================================================================
@@ -6209,35 +5828,10 @@ public:
 		Size = 2,
 	};
 
-	MQ2AlertType() : MQ2Type("alert")
-	{
-		TypeMember(List);
-		TypeMember(Size);
-	}
+	MQ2AlertType();
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
-
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		std::vector<MQSpawnSearch> ss;
-
-		if (CAlerts.GetAlert(VarPtr.DWord, ss))
-		{
-			_itoa_s(ss.size(), Destination, MAX_STRING, 10);
-			return true;
-		}
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -6377,16 +5971,6 @@ public:
 		sprintf_s(Destination, 128, "${Alert[%d].List[%d].Name}", (int)theindex, (int)theitem);
 		return true;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -6433,16 +6017,6 @@ public:
 				}
 			}
 		}
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
 		return false;
 	}
 };
@@ -6531,16 +6105,6 @@ public:
 		}
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -6561,45 +6125,10 @@ public:
 		Solvent = 8,
 	};
 
-	MQ2AugType() : MQ2Type("augtype")
-	{
-		TypeMember(Slot);
-		TypeMember(Type);
-		TypeMember(Visible);
-		TypeMember(Infusable);
-		TypeMember(Empty);
-		TypeMember(Name);
-		TypeMember(Item);
-		TypeMember(Solvent);
-	}
+	MQ2AugType();
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
-
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		if (CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart)
-		{
-			if (CONTENTS* pAug = pCont->GetContent(VarPtr.DWord))
-			{
-				if (ITEMINFO* pAugItem = GetItemFromContents(pAug))
-				{
-					strcpy_s(Destination, MAX_STRING, pAugItem->Name);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -6631,13 +6160,9 @@ public:
 	{
 		if (Source.Type != pRangeType)
 			return false;
+
 		VarPtr.Ptr = Source.Ptr;
 		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
 	}
 };
 
@@ -6680,16 +6205,6 @@ public:
 		}
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
 
 //============================================================================
@@ -6723,16 +6238,6 @@ public:
 			strcpy_s(Destination, MAX_STRING, ptr->Name);
 			return true;
 		}
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
 		return false;
 	}
 };
@@ -6778,14 +6283,6 @@ public:
 		}
 		return false;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source)
-	{
-		return false;
-	}
 };
+
+} // namespace mq

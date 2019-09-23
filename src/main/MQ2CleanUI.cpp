@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 const char* g_customCaption = "MQ2: Think of it as evolution in action.";
 
 class CDisplayHook
@@ -223,3 +225,5 @@ void ShutdownDisplayHook()
 	//RemoveDetour(EQ_LoadingS__SetProgressBar);
 	//RemoveDetour(CDisplay__GetWorldFilePath);
 }
+
+} // namespace mq

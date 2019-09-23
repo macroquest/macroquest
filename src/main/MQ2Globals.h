@@ -15,7 +15,6 @@
 #pragma once
 
 #include "../EQLib/EQLib.h"
-
 #include "MQ2Internal.h"
 
 #include <memory>
@@ -31,7 +30,7 @@ struct CaseInsensitiveLess
 
 namespace mq {
 
-	MQLIB_API DWORD baseAddress [[deprecated]];
+MQLIB_API DWORD baseAddress [[deprecated]];
 
 bool InitOffsets();
 
@@ -308,14 +307,9 @@ MQLIB_VAR BOOL gbIgnoreAlertRecursion;
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
-MQLIB_VAR DWORD gdwParserEngineVer;
-
-#if __has_include("MQ2Globals-private.h")
-#include "MQ2Globals-private.h"
-#endif
-
-} // namespace mq
-using namespace mq;
-
 extern std::map<int, std::string> targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
+
+MQLIB_VAR DWORD gdwParserEngineVer;
+
+} // namespace mq

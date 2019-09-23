@@ -14,7 +14,9 @@
 
 #pragma once
 
- /* DATA ITEMS */
+namespace mq {
+
+/* DATA ITEMS */
 MQLIB_API bool dataSpawn(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataTarget(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
@@ -74,3 +76,5 @@ MQLIB_API bool dataAlias(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAdvLoot(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAlert(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataRange(const char* szIndex, MQTypeVar& Ret);
+
+} // namespace mq

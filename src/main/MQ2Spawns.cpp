@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+namespace mq {
+
 static MQGroundPending* pPendingGrounds = nullptr;
 static bool ProcessPending = false;
 static std::recursive_mutex s_groundsMutex;
@@ -777,3 +779,5 @@ bool IsTargetable(SPAWNINFO* pSpawn)
 {
 	return ((EQPlayerHook*)pSpawn)->IsTargetable();
 }
+
+} // namespace mq

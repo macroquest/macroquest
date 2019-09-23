@@ -596,5 +596,3 @@ public:
 };
 
 } // namespace eqlib
-
-using namespace eqlib;

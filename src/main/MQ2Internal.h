@@ -19,9 +19,9 @@
 #include <mutex>
 #include <vector>
 
-class MQ2Type;
-
 namespace mq {
+
+class MQ2Type;
 
 enum eAdventureTheme
 {
@@ -714,6 +714,3 @@ struct MercDesc
 };
 
 } // namespace mq
-
-using namespace mq;
-

@@ -1390,5 +1390,3 @@ public:
 
 } // namespace SoeUtil
 } // namespace eqlib
-
-using namespace eqlib;

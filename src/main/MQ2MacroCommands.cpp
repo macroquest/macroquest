@@ -17,6 +17,8 @@
 
 #include <regex>
 
+namespace mq {
+
 static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
 
 void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
@@ -2025,3 +2027,5 @@ void Break(PSPAWNINFO pChar, char* szLine)
 
 	FatalError("/break without matching /for ... /next (or while) block");
 }
+
+} // namespace mq

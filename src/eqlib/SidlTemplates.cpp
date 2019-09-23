@@ -756,5 +756,3 @@ bool CScreenPieceTemplate::IsType(uint32_t type) const
 //============================================================================
 
 } // namespace eqlib
-
-using namespace eqlib;

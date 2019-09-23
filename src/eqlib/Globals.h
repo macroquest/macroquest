@@ -1467,4 +1467,6 @@ EQLIB_API void ShutdownEQLib();
 
 } // namespace eqlib
 
-using namespace eqlib;
+#if __has_include("globals-private.h")
+#include "globals-private.h"
+#endif

@@ -2433,7 +2433,4 @@ public:
 };
 using EQ_PC [[deprecated("Use PcClient instead")]] = PcZoneClient;
 
-
 } // namespace
-
-using namespace eqlib;

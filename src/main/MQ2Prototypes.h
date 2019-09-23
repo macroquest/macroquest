@@ -51,5 +51,3 @@ using fClassLvl              = DWORD  (*)(DWORD, DWORD, DWORD);
 using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();
 
 } // namespace mq
-
-using namespace mq;

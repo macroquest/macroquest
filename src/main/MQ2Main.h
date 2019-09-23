@@ -17,7 +17,9 @@
 #include "pch.h"
 
 #include "blech\Blech.h"
+
 #include "../eqlib/eqlib.h"
+using namespace eqlib;
 
 //#define MQ2_PROFILING
 
@@ -79,6 +81,12 @@
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
+#include "MQ2Inlines.h"
+#include "MQ2DataTypes.h"
+#include "MQ2TopLevelObjects.h"
+#include "MQ2Commands.h"
+
+namespace mq {
 
 /* THREADING */
 MQLIB_API DWORD GetMainThreadId();
@@ -277,7 +285,6 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 MQLIB_API char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
 MQLIB_API char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
-MQLIB_API float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn);
 MQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 
 // Command Execution
@@ -364,9 +371,6 @@ struct RefreshKeyRingsThreadData
 };
 
 MQLIB_API ITEMINFO* GetItemFromContents(CONTENTS* c);
-
-#include "MQ2Inlines.h"
-#include "MQ2DataTypes.h"
 
 MQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
@@ -562,9 +566,6 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = fa
 
 MQLIB_API bool Calculate(const char* szFormula, double& Dest);
 
-#include "MQ2TopLevelObjects.h"
-#include "MQ2Commands.h"
-
 constexpr int LIGHT_COUNT = 13;
 //#define MAX_COMBINES		61
 //#define MAX_ITEMTYPES		71
@@ -611,47 +612,4 @@ MQLIB_API void UpdatedMasterLooterLabel();
 
 MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 
-// These are replaced with our own wrappers
-#undef GetPrivateProfileInt
-#undef GetPrivateProfileString
-#undef WritePrivateProfileSection
-#undef WritePrivateProfileString
-inline int GetPrivateProfileInt(std::string Section, std::string Key, int DefaultValue, std::string iniFileName)
-{
-	return GetPrivateProfileIntA(Section.data(), Key.data(), DefaultValue, iniFileName.data());
-}
-
-inline int GetPrivateProfileInt(char* Section, char* Key, int DefaultValue, char* iniFileName)
-{
-	return GetPrivateProfileIntA(Section, Key, DefaultValue, iniFileName);
-}
-
-inline int GetPrivateProfileString(std::string Section, std::string Key, std::string DefaultValue, char* Return, size_t Size, std::string iniFileName)
-{
-	return GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), Return, Size, iniFileName.data());
-}
-
-inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* Return, size_t Size, char* iniFileName)
-{
-	return GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
-}
-
-inline bool WritePrivateProfileSection(std::string Section, std::string KeysAndValues, std::string iniFileName)
-{
-	return WritePrivateProfileSectionA(Section.data(), KeysAndValues.data(), iniFileName.data());	
-}
-
-inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char* iniFileName)
-{
-	return WritePrivateProfileSectionA(Section, KeysAndValues, iniFileName);
-}
-
-inline bool WritePrivateProfileString(std::string Section, std::string Key, std::string Value, std::string iniFileName)
-{
-	return WritePrivateProfileStringA(Section.data(), Key.data(), Value.data(), iniFileName.data());
-}
-
-inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, char* iniFileName)
-{
-	return WritePrivateProfileStringA(Section, Key, Value, iniFileName);
-}
+} // namespace mq

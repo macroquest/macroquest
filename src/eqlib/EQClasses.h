@@ -2961,5 +2961,3 @@ struct [[offsetcomments]] tp_coords
 };
 
 } // namespace eqlib
-
-using namespace eqlib;

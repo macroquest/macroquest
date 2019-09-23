@@ -17,29 +17,29 @@
 #define MQ2PLUGIN
 
 #include "../src/main/MQ2Main.h"
-#include "../src/main/MQ2Globals.h"
+using namespace mq;
 
 #pragma comment(lib, "MQ2Main")
+#pragma comment(lib, "eqlib")
 
 #define PLUGIN_API extern "C" __declspec(dllexport)
 #define PLUGIN_VERSION(X) __declspec(dllexport) float MQ2Version = (float)X
 
-
-//#define SetINIFileName(ini) sprintf_s(INIFileName,"%s\\%s",gszINIPath,ini);
 extern char INIFileName[MAX_STRING];
 
-#define PreSetup(pluginname) char INIFileName[MAX_STRING]={0};\
-BOOL APIENTRY DllMain( HANDLE hModule, \
-                       DWORD  ul_reason_for_call, \
-                       void* lpReserved\
-                     )\
-{\
-    if (ul_reason_for_call==DLL_PROCESS_ATTACH)\
-    {\
-    DebugSpewAlways("%s Module Loaded",pluginname );\
-    sprintf_s(INIFileName,"%s\\%s.ini",gszINIPath,pluginname);\
-    }\
-    else if (ul_reason_for_call==DLL_PROCESS_DETACH)\
-    DebugSpewAlways("%s Module Unloaded",pluginname);\
-    return TRUE;\
+#define PreSetup(pluginname) char INIFileName[MAX_STRING] = {0};              \
+BOOL APIENTRY DllMain(HANDLE hModule,                                         \
+                      DWORD ul_reason_for_call,                               \
+                      void* lpReserved)                                       \
+{                                                                             \
+    if (ul_reason_for_call == DLL_PROCESS_ATTACH)                             \
+    {                                                                         \
+        DebugSpewAlways("%s Module Loaded", pluginname);                      \
+        sprintf_s(INIFileName,"%s\\%s.ini", gszINIPath, pluginname);          \
+    }                                                                         \
+    else if (ul_reason_for_call == DLL_PROCESS_DETACH)                        \
+    {                                                                         \
+        DebugSpewAlways("%s Module Unloaded", pluginname);                    \
+    }                                                                         \
+    return TRUE;                                                              \
 }

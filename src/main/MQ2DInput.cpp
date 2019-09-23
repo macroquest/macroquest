@@ -18,6 +18,8 @@
 #define DIRECTINPUT_VERSION    0x800
 #include <dxsdk90\include\dinput.h>
 
+namespace mq {
+
 static bool gbInDState = false;
 static bool gbInDAcquire = false;
 static bool gbInDInput = false;
@@ -296,3 +298,5 @@ void ShutdownMQ2DInput()
 		}
 	}
 }
+
+} // namespace mq

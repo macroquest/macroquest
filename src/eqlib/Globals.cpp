@@ -1488,6 +1488,8 @@ EQGroundItemListManager* GetItemList()
 	return ptr;
 }
 
-
-
 } // namespace eqlib
+
+#if __has_include("globals-private.cpp")
+#include "globals-private.cpp"
+#endif

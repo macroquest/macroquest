@@ -690,5 +690,3 @@ using PITEMLOCATION [[deprecated("Use ItemGlobalIndex")]] = ITEMLOCATION*;
 
 
 } // namespace eqlib
-
-using namespace eqlib;

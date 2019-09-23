@@ -2972,5 +2972,3 @@ void InitializeUI()
 }
 
 } // namespace eqlib
-
-using namespace eqlib;

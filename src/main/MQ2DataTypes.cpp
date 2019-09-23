@@ -13,7 +13,9 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+#include "MQ2DataTypes.h"
+
+namespace mq {
 
 //----------------------------------------------------------------------------
 // Datatype Definitions
@@ -85,6 +87,12 @@ void MQ2Type::InitializeMembers(MQTypeMember* memberArray)
 //----------------------------------------------------------------------------
 // MQ2TypeType
 
+MQ2TypeType::MQ2TypeType() : MQ2Type("type")
+{
+	AddMember(xName, "Name");
+	AddMember(xTypeMember, "Member");
+}
+
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQ2Type* pType = static_cast<MQ2Type*>(VarPtr.Ptr);
@@ -98,13 +106,13 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<TypeMembers>(pMember->ID))
 	{
-	case Name:
+	case xName:
 		strcpy_s(DataTypeTemp, pType->GetName());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case TypeMember:
+	case xTypeMember:
 		if (!Index[0])
 			return false;
 
@@ -131,6 +139,25 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	default: break;
 	}
+
+	return false;
+}
+
+bool MQ2TypeType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
+	return true;
+}
+bool MQ2TypeType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.Ptr = Source.Type;
+	return true;
+}
+
+bool MQ2TypeType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	if (VarPtr.Ptr = FindMQ2DataType(Source))
+		return true;
 
 	return false;
 }
@@ -9998,6 +10025,16 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	return false;
 }
 
+bool MQ2ItemType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
+	strcpy_s(Destination, MAX_STRING, GetItemFromContents(pContents)->Name);
+	return true;
+}
+
 //----------------------------------------------------------------------------
 // MQ2WindowType
 
@@ -10475,6 +10512,14 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	default: break;
 	}
+
+	return false;
+}
+
+bool MQ2WindowType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	if (VarPtr.Ptr = FindMQ2Window(Source))
+		return true;
 
 	return false;
 }
@@ -17076,6 +17121,12 @@ bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 //----------------------------------------------------------------------------
 // MQ2KeyRingType
 
+MQ2KeyRingType::MQ2KeyRingType() : MQ2Type("keyring")
+{
+	AddMember(xIndex, "Index");
+	AddMember(xName, "Name");
+}
+
 bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2KeyRingType::FindMember(Member);
@@ -17089,7 +17140,7 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case xName:
 		Dest.Type = pStringType;
 		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
 		{
@@ -17116,6 +17167,35 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 			}
 		}
 		return false;
+	}
+	return false;
+}
+
+bool MQ2KeyRingType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (CXWnd * krwnd = FindMQ2Window(KeyRingWindowParent))
+	{
+		CListWnd* clist = nullptr;
+
+		WORD n = LOWORD(VarPtr.DWord);
+		WORD type = HIWORD(VarPtr.DWord);
+
+		if (type == 2)
+			clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
+		else if (type == 1)
+			clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
+		else
+			clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
+
+		if (clist)
+		{
+			CXStr Str = clist->GetItemText(n, 2);
+			if (!Str.empty())
+			{
+				strcpy_s(Destination, MAX_STRING, Str.c_str());
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -17519,6 +17599,12 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 //----------------------------------------------------------------------------
 // MQ2AlertType
 
+MQ2AlertType::MQ2AlertType() : MQ2Type("alert")
+{
+	TypeMember(List);
+	TypeMember(Size);
+}
+
 // /echo ${Alert[a].List[b].bGM}
 // /echo ${Alert[a].Size}
 // /echo ${Alert}
@@ -17548,6 +17634,19 @@ bool MQ2AlertType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 
 	default: break;
+	}
+
+	return false;
+}
+
+bool MQ2AlertType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	std::vector<MQSpawnSearch> ss;
+
+	if (CAlerts.GetAlert(VarPtr.DWord, ss))
+	{
+		_itoa_s(ss.size(), Destination, MAX_STRING, 10);
+		return true;
 	}
 
 	return false;
@@ -18022,6 +18121,18 @@ bool MQ2SolventType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 //----------------------------------------------------------------------------
 // MQ2AugType
 
+MQ2AugType::MQ2AugType() : MQ2Type("augtype")
+{
+	TypeMember(Slot);
+	TypeMember(Type);
+	TypeMember(Visible);
+	TypeMember(Infusable);
+	TypeMember(Empty);
+	TypeMember(Name);
+	TypeMember(Item);
+	TypeMember(Solvent);
+}
+
 bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart;
@@ -18105,6 +18216,22 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 	default: break;
 	};
 
+	return false;
+}
+
+bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (CONTENTS * pCont = (CONTENTS*)VarPtr.HighPart)
+	{
+		if (CONTENTS * pAug = pCont->GetContent(VarPtr.DWord))
+		{
+			if (ITEMINFO * pAugItem = GetItemFromContents(pAug))
+			{
+				strcpy_s(Destination, MAX_STRING, pAugItem->Name);
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -18453,3 +18580,5 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	return false;
 }
+
+} // namespace mq

@@ -16,7 +16,11 @@
 
 #include <functional>
 #include <excpt.h>
+
 #pragma warning (disable : 4509)
+
+namespace mq {
+
 //extern "C" { __declspec(dllexport) int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ep, const char * description, ...); }
 
 #define MQ2Except() __except(MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), __FUNCTION__))
@@ -87,3 +91,5 @@ void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const
 
 #define DebugTryEx(x) \
 	Debug_TryExecuteEx(__FUNCTION__, __LINE__, #x, [&]() { x; });
+
+} // namespace mq

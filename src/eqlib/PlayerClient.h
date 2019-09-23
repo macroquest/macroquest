@@ -1137,5 +1137,3 @@ public:
 using EQPlayer [[deprecated]] = PlayerClient;
 
 } // namespace eqlib
-
-using namespace eqlib;

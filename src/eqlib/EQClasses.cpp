@@ -22,6 +22,8 @@
 #pragma warning(disable:4740) // warning C4740: flow in or out of inline asm code suppresses global optimization
 #pragma warning(disable:4530) // warning C4530: c++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
 
+namespace eqlib {
+
 //============================================================================
 // Global Functions
 //============================================================================
@@ -2615,3 +2617,5 @@ FUNCTION_AT_ADDRESS(void _EverQuestinfo::SetAutoAttack(bool), _EverQuestinfo__Se
 #endif
 
 #pragma warning(pop)
+
+} // namespace eqlib

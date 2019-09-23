@@ -567,7 +567,4 @@ public:
 	EQLIB_OBJECT void WriteToStream(CMemoryStream&);
 };
 
-
 } // namespace eqlib
-
-using namespace eqlib;
