@@ -1944,8 +1944,8 @@ struct MQMouseInfo
 	int SpeedY = 0;
 	int Scroll = 0;
 };
-using MOUSEINFO [[deprecated("Use MQMouseInfo isntead")]] = MQMouseInfo;
-using PMOUSEINFO [[deprecated("Use MQMouseInfo* isntead")]] = MQMouseInfo *;
+using MOUSEINFO [[deprecated("Use MQMouseInfo instead")]] = MQMouseInfo;
+using PMOUSEINFO [[deprecated("Use MQMouseInfo* instead")]] = MQMouseInfo *;
 
 struct [[offsetcomments]] _EVERQUEST
 {
