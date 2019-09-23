@@ -1092,8 +1092,8 @@ public:
 
 namespace SoeUtil {
 
-void* Alloc(int bytes, int align);
-void Free(void* p, int align);
+EQLIB_OBJECT void* Alloc(int bytes, int align);
+EQLIB_OBJECT void Free(void* p, int align);
 
 // class SoeUtil::Array<unsigned char, 0, 1> `RTTI Type Descriptor'
 template <typename T>

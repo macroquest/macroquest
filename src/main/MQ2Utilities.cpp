@@ -98,7 +98,7 @@ void DebugSpewAlwaysFile(const char* szFormat, ...)
 	DebugSpewImpl(true, true, szFormat, vaList);
 }
 
-EQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
+MQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
 {
 #ifdef DBG_SPEW
 	va_list vaList;
@@ -8423,7 +8423,7 @@ static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
 	return true;
 }
 
-EQLIB_API HWND GetEQWindowHandle()
+MQLIB_API HWND GetEQWindowHandle()
 {
 	DWORD dwProcessId = GetCurrentProcessId();
 

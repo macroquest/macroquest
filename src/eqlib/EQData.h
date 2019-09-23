@@ -1935,6 +1935,18 @@ struct [[offsetcomments]] CharSelectPlayerArray
 };
 using PCharSelectPlayerArray [[deprecated]] = CharSelectPlayerArray*;
 
+// this struct is actually part of EverQuestInfo struct
+struct MQMouseInfo
+{
+	int X = 0;
+	int Y = 0;
+	int SpeedX = 0;
+	int SpeedY = 0;
+	int Scroll = 0;
+};
+using MOUSEINFO [[deprecated("Use MQMouseInfo isntead")]] = MQMouseInfo;
+using PMOUSEINFO [[deprecated("Use MQMouseInfo* isntead")]] = MQMouseInfo *;
+
 struct [[offsetcomments]] _EVERQUEST
 {
 /*0x00000*/ BYTE             Unknown[0x2a4];

@@ -1,4 +1,4 @@
-LIBRARY MQ2Main
+LIBRARY EQLib
 
 EXPORTS
     ??0CXWnd@eqlib@@QAE@PAV01@IUCXRect@1@@Z

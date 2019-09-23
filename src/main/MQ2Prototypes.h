@@ -16,12 +16,7 @@
 
 namespace mq {
 
-// These prototypes are unnecessary and should be converted into functions
-using fEQNewUIINI            = char*  (*)();
-using fEQProcGameEvts        = int    (*)();
 using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
-using fGetLabelFromEQ        = bool   (*)(int, CXStr*, bool*, COLORREF*);
-using fEQToggleKeyRingItem   = int    (*)(int, CONTENTS**, int);
 
 // MQ2 Callback types
 using fEQCommand             = void   (*)(SPAWNINFO*, char* Buffer);

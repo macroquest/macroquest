@@ -222,18 +222,6 @@ struct MQWhoSort
 using WHOSORT [[deprecated("Use MQWhoSort instead")]] = MQWhoSort;
 using PWHOSORT [[deprecated("Use MQWhoSort* instead")]] = MQWhoSort*;
 
-// this struct is actually part of EverQuestInfo struct
-struct MQMouseInfo
-{
-	int X = 0;
-	int Y = 0;
-	int SpeedX = 0;
-	int SpeedY = 0;
-	int Scroll = 0;
-};
-using MOUSEINFO [[deprecated("Use MQMouseInfo isntead")]] = MQMouseInfo;
-using PMOUSEINFO [[deprecated("Use MQMouseInfo* isntead")]] = MQMouseInfo*;
-
 struct MQMacroLine
 {
 	std::string Command;

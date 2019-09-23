@@ -12,6 +12,9 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
+
+#include "Globals.h"
 #include "SidlTemplates.h"
 
 namespace eqlib {

@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "UI.h"
 #include "EQClasses.h"
 #include "Globals.h"

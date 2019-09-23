@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "EQClasses.h"
 #include "Globals.h"
 
@@ -1507,7 +1508,7 @@ FUNCTION_AT_ADDRESS(CTaskEntry* CTaskManager::GetEntry(int Index, int System, bo
 
 #ifdef CTextOverlay__DisplayText_x
 //this is really:
-//EQLIB_OBJECT void CBroadcast::BroadcastString(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
+//MQLIB_OBJECT void CBroadcast::BroadcastString(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
 FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime), CTextOverlay__DisplayText);
 #endif
 

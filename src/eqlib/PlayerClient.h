@@ -26,7 +26,7 @@
 // Class hierarchies:
 //
 // SPAWNINFO:
-//   PlayerClient -> PlayerZoneClinet -> PlayerBase
+//   PlayerClient -> PlayerZoneClient -> PlayerBase
 
 namespace eqlib {
 
@@ -864,66 +864,66 @@ public:
 /*0x1188*/ ArrayClass<PhysicsEffect> mPhysicsEffects;
 /*0x1198*/ ArrayClass<bool>   PhysicsEffectsUpdated;
 /*0x11a8*/
-	int LegalPlayerRace(int race);
+	EQLIB_OBJECT int LegalPlayerRace(int race);
 
 	// Some methods that were from EQPlayer in the past
-	bool AllowedToAttack(PlayerZoneClient*, int);
-	bool CanChangeForm(int Race, unsigned char Sex, float Height);
-	bool CanIFitHere(const CVector3& pos, bool ignoreHeight = false);
-	bool CanIHit(const PlayerZoneClient*, int);
-	bool IsFlyer();
-	bool IsInvisible(PlayerZoneClient*, bool = false);
-	bool IWasHit(EQMissileHitinfo*, LAUNCHSPELLDATA*, int = 0);
-	bool UpdatePlayerActor();
-	float GetDefaultHeight(int race, unsigned char);
-	float GetPlayerFloorHeight(float, float, float, unsigned char);
-	int AimAtTarget(PlayerZoneClient*, EQMissile*);
-	int CheckForJump();
-	int GetArmorType(int, char*);
-	int GetGuild() const;
-	bool IsValidTeleport(float X, float Y, float Z, float Heading, float Distance);
-	int Levitating();
-	int MountableRace();
-	int MovePlayer();
-	int NotOnSameDeity(const PlayerZoneClient*, const EQ_Spell*);
-	static void ComputeSpecialHeights(int, float*, float*, float*, float*, bool);
-	unsigned char DoTeleport(char*, int);
-	unsigned char DoTeleportB(int, float, float, float, float, char*, int);
-	unsigned char GetNearestActorTag(char*, EActorType);
-	unsigned char HandleAmmo();
-	static unsigned char SkillUsed(unsigned char);
-	unsigned int ModifyAttackSpeed(unsigned int, int);
-	unsigned long GetArmorTint(int);
-	void BodyEnvironmentChange(unsigned char);
-	void ChangeHeight(float);
-	void ChangePosition(unsigned char);
-	void CheckForUnderFloor();
-	void CleanUpVehicle();
-	void DeleteMyMissiles();
-	void DoFloorCheck();
-	void FacePlayer(PlayerZoneClient*);
-	void FeetEnvironmentChange(unsigned char);
-	void GetActorTag(char*);
-	void GetConscious();
-	void HeadEnvironmentChange(unsigned char);
-	void IDied(EQPlayerDeath*);
-	void IHaveFallen(float);
-	void InitSneakMod();
-	void KnockedOut();
-	void MakeRiderMountUp();
-	void PositionOnFloor();
-	void PushAlongHeading(float);
-	void PutPlayerOnFloor();
-	void ResetVariables();
-	void SetAnimVariation();
-	void SetArmorTint(int, unsigned long);
-	void SetHeights();
-	void SetRace(int);
-	unsigned char GetLevel() const;
+	EQLIB_OBJECT bool AllowedToAttack(PlayerZoneClient*, int);
+	EQLIB_OBJECT bool CanChangeForm(int Race, unsigned char Sex, float Height);
+	EQLIB_OBJECT bool CanIFitHere(const CVector3& pos, bool ignoreHeight = false);
+	EQLIB_OBJECT bool CanIHit(const PlayerZoneClient*, int);
+	EQLIB_OBJECT bool IsFlyer();
+	EQLIB_OBJECT bool IsInvisible(PlayerZoneClient*, bool = false);
+	EQLIB_OBJECT bool IWasHit(EQMissileHitinfo*, LAUNCHSPELLDATA*, int = 0);
+	EQLIB_OBJECT bool UpdatePlayerActor();
+	EQLIB_OBJECT float GetDefaultHeight(int race, unsigned char);
+	EQLIB_OBJECT float GetPlayerFloorHeight(float, float, float, unsigned char);
+	EQLIB_OBJECT int AimAtTarget(PlayerZoneClient*, EQMissile*);
+	EQLIB_OBJECT int CheckForJump();
+	EQLIB_OBJECT int GetArmorType(int, char*);
+	EQLIB_OBJECT int GetGuild() const;
+	EQLIB_OBJECT bool IsValidTeleport(float X, float Y, float Z, float Heading, float Distance);
+	EQLIB_OBJECT int Levitating();
+	EQLIB_OBJECT int MountableRace();
+	EQLIB_OBJECT int MovePlayer();
+	EQLIB_OBJECT int NotOnSameDeity(const PlayerZoneClient*, const EQ_Spell*);
+	EQLIB_OBJECT static void ComputeSpecialHeights(int, float*, float*, float*, float*, bool);
+	EQLIB_OBJECT unsigned char DoTeleport(char*, int);
+	EQLIB_OBJECT unsigned char DoTeleportB(int, float, float, float, float, char*, int);
+	EQLIB_OBJECT unsigned char GetNearestActorTag(char*, EActorType);
+	EQLIB_OBJECT unsigned char HandleAmmo();
+	EQLIB_OBJECT static unsigned char SkillUsed(unsigned char);
+	EQLIB_OBJECT unsigned int ModifyAttackSpeed(unsigned int, int);
+	EQLIB_OBJECT unsigned long GetArmorTint(int);
+	EQLIB_OBJECT void BodyEnvironmentChange(unsigned char);
+	EQLIB_OBJECT void ChangeHeight(float);
+	EQLIB_OBJECT void ChangePosition(unsigned char);
+	EQLIB_OBJECT void CheckForUnderFloor();
+	EQLIB_OBJECT void CleanUpVehicle();
+	EQLIB_OBJECT void DeleteMyMissiles();
+	EQLIB_OBJECT void DoFloorCheck();
+	EQLIB_OBJECT void FacePlayer(PlayerZoneClient*);
+	EQLIB_OBJECT void FeetEnvironmentChange(unsigned char);
+	EQLIB_OBJECT void GetActorTag(char*);
+	EQLIB_OBJECT void GetConscious();
+	EQLIB_OBJECT void HeadEnvironmentChange(unsigned char);
+	EQLIB_OBJECT void IDied(EQPlayerDeath*);
+	EQLIB_OBJECT void IHaveFallen(float);
+	EQLIB_OBJECT void InitSneakMod();
+	EQLIB_OBJECT void KnockedOut();
+	EQLIB_OBJECT void MakeRiderMountUp();
+	EQLIB_OBJECT void PositionOnFloor();
+	EQLIB_OBJECT void PushAlongHeading(float);
+	EQLIB_OBJECT void PutPlayerOnFloor();
+	EQLIB_OBJECT void ResetVariables();
+	EQLIB_OBJECT void SetAnimVariation();
+	EQLIB_OBJECT void SetArmorTint(int, unsigned long);
+	EQLIB_OBJECT void SetHeights();
+	EQLIB_OBJECT void SetRace(int);
+	EQLIB_OBJECT unsigned char GetLevel() const;
 
-	bool DoAttack(BYTE slot, BYTE skill, PlayerZoneClient* Target, bool bSomething = false, bool bAuto = false, bool bDontknow = false);
+	EQLIB_OBJECT bool DoAttack(BYTE slot, BYTE skill, PlayerZoneClient* Target, bool bSomething = false, bool bAuto = false, bool bDontknow = false);
 
-	static PlayerZoneClient* GetClosestPlayerFromPartialName(const char* name, PlayerZoneClient* player, int maxPlayerType = 1);
+	EQLIB_OBJECT static PlayerZoneClient* GetClosestPlayerFromPartialName(const char* name, PlayerZoneClient* player, int maxPlayerType = 1);
 };
 
 //============================================================================
@@ -1063,74 +1063,74 @@ public:
 	void Initialize(PlayerClient*, unsigned char, unsigned int, unsigned char, char*);
 	~PlayerClient();
 
-	int GetClass() const { return mActorClient.Class; }
-	BYTE GetCharacterType() const { return Type; }
-	unsigned int GetId() const { return SpawnID; }
-	CharacterZoneClient* GetCharacter() const { return (CharacterZoneClient*)spawneqc_info; }
-	int GetZoneID() const { return Zone; }
-	int GetCurrentMana() const { return ManaCurrent; }
-	int GetMaxMana() const { return ManaMax; }
-	int GetCurrentEndurance() const { return EnduranceCurrent; }
-	int GetMaxEndurance() const { return EnduranceMax; }
-	int GetSpellCooldownETA() const { return SpellCooldownETA; }
-	bool IsGm() const { return GM; }
+	inline int GetClass() const { return mActorClient.Class; }
+	inline BYTE GetCharacterType() const { return Type; }
+	inline unsigned int GetId() const { return SpawnID; }
+	inline CharacterZoneClient* GetCharacter() const { return (CharacterZoneClient*)spawneqc_info; }
+	inline int GetZoneID() const { return Zone; }
+	inline int GetCurrentMana() const { return ManaCurrent; }
+	inline int GetMaxMana() const { return ManaMax; }
+	inline int GetCurrentEndurance() const { return EnduranceCurrent; }
+	inline int GetMaxEndurance() const { return EnduranceMax; }
+	inline int GetSpellCooldownETA() const { return SpellCooldownETA; }
+	inline bool IsGm() const { return GM; }
 
-	PcClient* GetPcClient() const;
+	EQLIB_OBJECT PcClient* GetPcClient() const;
 
 	// These come from the old EQPlayer class. Not all of these methods still exist.
-	bool IsInvited();
-	bool IsRoleplaying();
-	bool IsUntexturedHorse();
-	bool const HasInvalidRiderTexture() const;
-	int CanBeBald();
-	int SetPlayerPitchType();
-	int SwapBody(int, int);
-	int SwapFace(int, int);
-	int SwapHead(int, int, unsigned long, int);
-	int SwapMaterial(int, int, int, int, unsigned char);
-	int SwapNPCMaterials();
-	static void UpdateAllPlayersVisibility();
-	CLightInterface* CreateUserLight(CLightDefinitionInterface*, int);
-	unsigned char GetBaseFaceNbr(int, unsigned char*);
-	unsigned char HasAttachedBeard();
-	unsigned char HasAttachedHair();
-	unsigned char UpdateItemSlot(unsigned char, char*, int);
-	unsigned int CalcAnimLength(int);
-	void ChangeLight();
-	void CleanUpMyEffects();
-	void CleanUpTarget();
-	void Dismount();
-	void DisplayWeaponsAndArmor();
-	void do_change_form(chngForm*);
-	void DoCamAi();
-	void DoClassRandomAnimation();
-	void DoItemSlot(int);
-	void DoSwimJump(unsigned char);
-	void FollowPlayerAI();
-	void ForceInvisible(bool);
-	void HandleMaterialEx(int, unsigned int, unsigned int, unsigned long, int);
-	void HandoverControlToZoneserver();
-	void MountEQPlayer(PlayerZoneClient*);
-	void PlaySound(int);
-	void SetAccel(float, int);
-	void SetAfk(int);
-	void SetCurrentLoopSound(int);
-	void SetDefaultFacialFeaturesByFace(int, unsigned char, unsigned char);
-	void SetInvited(bool);
-	void SetSounds();
-	void SetToRandomRace();
-	void TouchingSwitch();
-	void TriggerSpellEffect(EQMissileHitinfo*);
-	void TurnOffAutoFollow();
-	void UpdateAppearance();
-	void UpdateBonePointers();
-	void UpdateNameSprite();
-	void UpdatePlayerVisibility();
-	void ChangeBoneStringSprite(int bone, const char* spriteText);
-	int SetNameSpriteState(bool);
-	bool SetNameSpriteTint();
+	EQLIB_OBJECT bool IsInvited();
+	EQLIB_OBJECT bool IsRoleplaying();
+	EQLIB_OBJECT bool IsUntexturedHorse();
+	EQLIB_OBJECT bool const HasInvalidRiderTexture() const;
+	EQLIB_OBJECT int CanBeBald();
+	EQLIB_OBJECT int SetPlayerPitchType();
+	EQLIB_OBJECT int SwapBody(int, int);
+	EQLIB_OBJECT int SwapFace(int, int);
+	EQLIB_OBJECT int SwapHead(int, int, unsigned long, int);
+	EQLIB_OBJECT int SwapMaterial(int, int, int, int, unsigned char);
+	EQLIB_OBJECT int SwapNPCMaterials();
+	EQLIB_OBJECT static void UpdateAllPlayersVisibility();
+	EQLIB_OBJECT CLightInterface* CreateUserLight(CLightDefinitionInterface*, int);
+	EQLIB_OBJECT unsigned char GetBaseFaceNbr(int, unsigned char*);
+	EQLIB_OBJECT unsigned char HasAttachedBeard();
+	EQLIB_OBJECT unsigned char HasAttachedHair();
+	EQLIB_OBJECT unsigned char UpdateItemSlot(unsigned char, char*, int);
+	EQLIB_OBJECT unsigned int CalcAnimLength(int);
+	EQLIB_OBJECT void ChangeLight();
+	EQLIB_OBJECT void CleanUpMyEffects();
+	EQLIB_OBJECT void CleanUpTarget();
+	EQLIB_OBJECT void Dismount();
+	EQLIB_OBJECT void DisplayWeaponsAndArmor();
+	EQLIB_OBJECT void do_change_form(chngForm*);
+	EQLIB_OBJECT void DoCamAi();
+	EQLIB_OBJECT void DoClassRandomAnimation();
+	EQLIB_OBJECT void DoItemSlot(int);
+	EQLIB_OBJECT void DoSwimJump(unsigned char);
+	EQLIB_OBJECT void FollowPlayerAI();
+	EQLIB_OBJECT void ForceInvisible(bool);
+	EQLIB_OBJECT void HandleMaterialEx(int, unsigned int, unsigned int, unsigned long, int);
+	EQLIB_OBJECT void HandoverControlToZoneserver();
+	EQLIB_OBJECT void MountEQPlayer(PlayerZoneClient*);
+	EQLIB_OBJECT void PlaySound(int);
+	EQLIB_OBJECT void SetAccel(float, int);
+	EQLIB_OBJECT void SetAfk(int);
+	EQLIB_OBJECT void SetCurrentLoopSound(int);
+	EQLIB_OBJECT void SetDefaultFacialFeaturesByFace(int, unsigned char, unsigned char);
+	EQLIB_OBJECT void SetInvited(bool);
+	EQLIB_OBJECT void SetSounds();
+	EQLIB_OBJECT void SetToRandomRace();
+	EQLIB_OBJECT void TouchingSwitch();
+	EQLIB_OBJECT void TriggerSpellEffect(EQMissileHitinfo*);
+	EQLIB_OBJECT void TurnOffAutoFollow();
+	EQLIB_OBJECT void UpdateAppearance();
+	EQLIB_OBJECT void UpdateBonePointers();
+	EQLIB_OBJECT void UpdateNameSprite();
+	EQLIB_OBJECT void UpdatePlayerVisibility();
+	EQLIB_OBJECT void ChangeBoneStringSprite(int bone, const char* spriteText);
+	EQLIB_OBJECT int SetNameSpriteState(bool);
+	EQLIB_OBJECT bool SetNameSpriteTint();
 
-	static PlayerClient* IsPlayerActor(CActorInterface*);
+	EQLIB_OBJECT static PlayerClient* IsPlayerActor(CActorInterface*);
 };
 
 // For compatibility with all the old stuff

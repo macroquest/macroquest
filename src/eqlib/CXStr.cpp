@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "Common.h"
 #include "CXStr.h"
 #include "Mutex.h"

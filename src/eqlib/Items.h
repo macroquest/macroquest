@@ -518,8 +518,8 @@ public:
 
 /*0x144*/
 /*0x140*/
-	bool IsLore(bool bIncludeSockets = false) const;
-	bool IsLoreEquipped(bool bIncludeSockets = false) const;
+	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
+	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
 
 // Actual Size: 0x158 (see 0x611DAC in eqgame.exe Test dated Jun 10 2019)

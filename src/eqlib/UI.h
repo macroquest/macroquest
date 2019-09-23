@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "ForwardDecls.h"
 #include "Common.h"
 #include "CXStr.h"
 #include "CXWnd.h"

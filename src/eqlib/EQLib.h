@@ -16,8 +16,6 @@
 
 // EQLib Configuration
 
-//#define NEWCHARINFO
-
 // pull in offsets first
 #include "eqgame.h"
 
@@ -58,9 +56,3 @@
 #include "PlayerClient.h"
 #include "PcClient.h"
 #include "Spells.h"
-
-namespace eqlib
-{
-	void InitializeEQLib();
-	void ShutdownEQLib();
-}

@@ -29,7 +29,7 @@ struct DetourRecord
 /*0xbc*/
 };
 
-EQLIB_VAR DetourRecord* g_detours = nullptr;
+MQLIB_VAR DetourRecord* g_detours = nullptr;
 std::mutex g_detourMutex;
 bool g_bDoingSpellChecks = false;
 
@@ -1270,7 +1270,7 @@ struct CrashReport
 // you can customize the crash dialog message here if this doesn't suit you.
 // these args needs to be allocated properly if u call this func, but you shouldnt...
 // just know that you can customize it for now as long as u keep the string lenghts < MAX_STRING
-EQLIB_API void GetCrashDialogMessage(char* Title, char* Message1, char* Message2, char* Message3, char* Message4)
+MQLIB_API void GetCrashDialogMessage(char* Title, char* Message1, char* Message2, char* Message3, char* Message4)
 {
 	strcpy_s(Title, MAX_STRING, "MQ2 Crash Notification");
 	strcpy_s(Message1, MAX_STRING, "MQ2 has detected that your client may have crashed.");
@@ -1280,7 +1280,7 @@ EQLIB_API void GetCrashDialogMessage(char* Title, char* Message1, char* Message2
 }
 
 // this function is called after a crashdump has been generated and it points to that file
-EQLIB_API void MQ2CrashCallBack(char* DumpFile)
+MQLIB_API void MQ2CrashCallBack(char* DumpFile)
 {
 	// add your own handling here if you dont want like the default one or have other ideas on how to handle crashes yourself
 	// you can delete the file, copy/move it or just upload to your own dump server etc...
@@ -1353,7 +1353,7 @@ void emotify()
 class CCXStr
 {
 public:
-	EQLIB_OBJECT CCXStr& operator= (char const* str);
+	MQLIB_OBJECT CCXStr& operator= (char const* str);
 	void* Ptr [[deprecated]] ;
 };
 FUNCTION_AT_ADDRESS(CCXStr& CCXStr::operator=(char const*), CXStr__operator_equal1);

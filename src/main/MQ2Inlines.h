@@ -22,7 +22,7 @@
 // For Conversions
 #include <charconv>
 
-EQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true, bool ForWhoList = true);
+MQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true, bool ForWhoList = true);
 
 inline CHARINFO* GetCharInfo()
 {
@@ -503,7 +503,7 @@ inline bool IsMobFleeing(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 // TODO: Move this elsewhere
 inline DWORD FixOffset(DWORD nOffset)
 {
-	return ((nOffset - 0x400000) + EQGameBaseAddress);
+	return ((nOffset - 0x400000) + eqlib::EQGameBaseAddress);
 }
 
 inline bool endsWith(const char* base, const char* str)

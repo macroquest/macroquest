@@ -14,4 +14,4 @@
 
 #pragma once
 
-//EQLIB_VAR DWORD SomeClass__SomeFunction;
+//MQLIB_VAR DWORD SomeClass__SomeFunction;

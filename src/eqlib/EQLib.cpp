@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "Common.h"
 #include "Allocator.h"
 #include "UI.h"
@@ -38,6 +39,8 @@ void InitializeEQLib()
 {
 	eqAlloc = eqAllocImpl;
 	eqFree = eqFreeImpl;
+
+	InitializeGlobals();
 
 	InitializeUI();
 	InitializeCXWnd();

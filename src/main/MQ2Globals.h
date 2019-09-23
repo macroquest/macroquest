@@ -31,53 +31,52 @@ struct CaseInsensitiveLess
 
 namespace mq {
 
-	EQLIB_API DWORD baseAddress [[deprecated]];
+	MQLIB_API DWORD baseAddress [[deprecated]];
 
 bool InitOffsets();
 
 /* BENCHMARK HANDLES */
 
-EQLIB_API DWORD bmWriteChatColor;
-EQLIB_API DWORD bmPluginsIncomingChat;
-EQLIB_API DWORD bmPluginsPulse;
-EQLIB_API DWORD bmPluginsOnZoned;
-EQLIB_API DWORD bmPluginsCleanUI;
-EQLIB_API DWORD bmPluginsReloadUI;
-EQLIB_API DWORD bmPluginsDrawHUD;
-EQLIB_API DWORD bmPluginsSetGameState;
-EQLIB_API DWORD bmParseMacroParameter;
-EQLIB_API DWORD bmUpdateSpawnSort;
-EQLIB_API DWORD bmUpdateSpawnCaptions;
-EQLIB_API DWORD bmCalculate;
-EQLIB_API DWORD bmBeginZone;
-EQLIB_API DWORD bmEndZone;
+MQLIB_API DWORD bmWriteChatColor;
+MQLIB_API DWORD bmPluginsIncomingChat;
+MQLIB_API DWORD bmPluginsPulse;
+MQLIB_API DWORD bmPluginsOnZoned;
+MQLIB_API DWORD bmPluginsCleanUI;
+MQLIB_API DWORD bmPluginsReloadUI;
+MQLIB_API DWORD bmPluginsDrawHUD;
+MQLIB_API DWORD bmPluginsSetGameState;
+MQLIB_API DWORD bmParseMacroParameter;
+MQLIB_API DWORD bmUpdateSpawnSort;
+MQLIB_API DWORD bmUpdateSpawnCaptions;
+MQLIB_API DWORD bmCalculate;
+MQLIB_API DWORD bmBeginZone;
+MQLIB_API DWORD bmEndZone;
 
 /* OTHER */
 
-EQLIB_VAR MQDataVar* pGlobalVariables;
-EQLIB_VAR MQDataVar* pMacroVariables;
+MQLIB_VAR MQDataVar* pGlobalVariables;
+MQLIB_VAR MQDataVar* pMacroVariables;
 
-EQLIB_VAR BOOL bAllErrorsFatal;
-EQLIB_VAR bool bAllErrorsDumpStack;
-EQLIB_VAR BOOL bAllErrorsLog;
-EQLIB_API char DataTypeTemp[MAX_STRING];
-EQLIB_API TargetBuff TargetBuffTemp;
-EQLIB_API char gszVersion[32];
-EQLIB_VAR DWORD gdwLocalPlayer;
-EQLIB_API char gszTime[32];
-EQLIB_API int gBuild;
-EQLIB_API bool g_bDoingModuleChecks;
+MQLIB_VAR BOOL bAllErrorsFatal;
+MQLIB_VAR bool bAllErrorsDumpStack;
+MQLIB_VAR BOOL bAllErrorsLog;
+MQLIB_API char DataTypeTemp[MAX_STRING];
+MQLIB_API TargetBuff TargetBuffTemp;
+MQLIB_API char gszVersion[32];
+MQLIB_API char gszTime[32];
+MQLIB_API int gBuild;
+MQLIB_API bool g_bDoingModuleChecks;
 
-EQLIB_API ePVPServer PVPServer;
-EQLIB_API HANDLE ghInitializeSpellDbThread;
+MQLIB_API ePVPServer PVPServer;
+MQLIB_API HANDLE ghInitializeSpellDbThread;
 
-EQLIB_VAR bool g_Loaded;
-EQLIB_VAR DWORD ThreadID;
+MQLIB_VAR bool g_Loaded;
+MQLIB_VAR DWORD ThreadID;
 
-EQLIB_VAR BOOL gStringTableFixed;
-EQLIB_VAR int gMaxSpawnCaptions;
-EQLIB_VAR BOOL gMQCaptions;
-EQLIB_VAR BOOL gAnonymize;
+MQLIB_VAR BOOL gStringTableFixed;
+MQLIB_VAR int gMaxSpawnCaptions;
+MQLIB_VAR BOOL gMQCaptions;
+MQLIB_VAR BOOL gAnonymize;
 
 enum EAnonFlags
 {
@@ -85,632 +84,231 @@ enum EAnonFlags
 	EAF_Class,
 };
 
-EQLIB_VAR DWORD gAnonymizeFlag;
-EQLIB_VAR HMODULE ghModule;
-EQLIB_VAR HINSTANCE ghInstance;
-EQLIB_VAR HWND ghInjectorWnd;
-EQLIB_VAR BOOL gbEQWLoaded;
-EQLIB_VAR bool gbUnload;
-EQLIB_VAR bool gBindInProgress;
-EQLIB_VAR bool gbLoad;
-EQLIB_VAR DWORD gpHook;
-EQLIB_VAR HMODULE ghmq2ic;
-EQLIB_VAR MQMacroBlockPtr gMacroBlock;
-EQLIB_VAR int BlockIndex;
-EQLIB_VAR MQMacroStack* gMacroStack;
-EQLIB_VAR std::map<std::string, int, CaseInsensitiveLess> gMacroSubLookupMap;
-EQLIB_VAR std::map<std::string, int> gUndeclaredVars;
-EQLIB_VAR MQEventQueue* gEventQueue;
-EQLIB_VAR int gEventFunc[NUM_EVENTS];
-EQLIB_VAR UCHAR gLastFind;
-EQLIB_VAR BOOL gInClick;
-EQLIB_VAR double gZFilter;
-EQLIB_VAR double gFaceAngle;
-EQLIB_VAR double gLookAngle;
-EQLIB_VAR bool gbSpelldbLoaded;
-EQLIB_VAR char gszEQPath[MAX_STRING];
-EQLIB_VAR char gszMacroPath[MAX_STRING];
-EQLIB_VAR char gszLogPath[MAX_STRING];
-EQLIB_VAR char gszINIPath[MAX_STRING];
-EQLIB_VAR char gszINIFilename[MAX_STRING];
-EQLIB_VAR char gszItemDB[MAX_STRING];
-EQLIB_VAR char gszMacroName[MAX_STRING];
-EQLIB_VAR char szLastCommand[MAX_STRING];
+MQLIB_VAR DWORD gAnonymizeFlag;
+MQLIB_VAR HMODULE ghModule;
+MQLIB_VAR HINSTANCE ghInstance;
+MQLIB_VAR HWND ghInjectorWnd;
+MQLIB_VAR BOOL gbEQWLoaded;
+MQLIB_VAR bool gbUnload;
+MQLIB_VAR bool gBindInProgress;
+MQLIB_VAR bool gbLoad;
+MQLIB_VAR DWORD gpHook;
+MQLIB_VAR HMODULE ghmq2ic;
+MQLIB_VAR MQMacroBlockPtr gMacroBlock;
+MQLIB_VAR int BlockIndex;
+MQLIB_VAR MQMacroStack* gMacroStack;
+MQLIB_VAR std::map<std::string, int, CaseInsensitiveLess> gMacroSubLookupMap;
+MQLIB_VAR std::map<std::string, int> gUndeclaredVars;
+MQLIB_VAR MQEventQueue* gEventQueue;
+MQLIB_VAR int gEventFunc[NUM_EVENTS];
+MQLIB_VAR UCHAR gLastFind;
+MQLIB_VAR BOOL gInClick;
+MQLIB_VAR double gZFilter;
+MQLIB_VAR double gFaceAngle;
+MQLIB_VAR double gLookAngle;
+MQLIB_VAR bool gbSpelldbLoaded;
+MQLIB_VAR char gszEQPath[MAX_STRING];
+MQLIB_VAR char gszMacroPath[MAX_STRING];
+MQLIB_VAR char gszLogPath[MAX_STRING];
+MQLIB_VAR char gszINIPath[MAX_STRING];
+MQLIB_VAR char gszINIFilename[MAX_STRING];
+MQLIB_VAR char gszItemDB[MAX_STRING];
+MQLIB_VAR char gszMacroName[MAX_STRING];
+MQLIB_VAR char szLastCommand[MAX_STRING];
 
-EQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
-EQLIB_VAR char gszLastSyntaxError[MAX_STRING];
-EQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
+MQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
+MQLIB_VAR char gszLastSyntaxError[MAX_STRING];
+MQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
 
-EQLIB_VAR SPAWNINFO* pNamingSpawn;
-EQLIB_VAR char gszSpawnNPCName[MAX_STRING];
-EQLIB_VAR char gszSpawnPlayerName[8][MAX_STRING];
-EQLIB_VAR char gszSpawnPetName[MAX_STRING];
-EQLIB_VAR char gszSpawnCorpseName[MAX_STRING];
-EQLIB_VAR char gszAnonCaption[MAX_STRING];
+MQLIB_VAR SPAWNINFO* pNamingSpawn;
+MQLIB_VAR char gszSpawnNPCName[MAX_STRING];
+MQLIB_VAR char gszSpawnPlayerName[8][MAX_STRING];
+MQLIB_VAR char gszSpawnPetName[MAX_STRING];
+MQLIB_VAR char gszSpawnCorpseName[MAX_STRING];
+MQLIB_VAR char gszAnonCaption[MAX_STRING];
 
-EQLIB_VAR DWORD DrawHUDParams[4];
+MQLIB_VAR DWORD DrawHUDParams[4];
 
-EQLIB_VAR DWORD gEventChat;
-EQLIB_VAR ULONGLONG gRunning;
-EQLIB_VAR BOOL gbMoving;
-EQLIB_VAR DWORD gMaxTurbo;
-EQLIB_VAR DWORD gTurboLimit;
+MQLIB_VAR DWORD gEventChat;
+MQLIB_VAR ULONGLONG gRunning;
+MQLIB_VAR BOOL gbMoving;
+MQLIB_VAR DWORD gMaxTurbo;
+MQLIB_VAR DWORD gTurboLimit;
 
-EQLIB_VAR BOOL gReturn;
+MQLIB_VAR BOOL gReturn;
 
-EQLIB_VAR DWORD gbAssistComplete;
-EQLIB_VAR BOOL gTargetbuffs;
-EQLIB_VAR BOOL gItemsReceived;
-EQLIB_VAR bool gbInZone;
-EQLIB_VAR bool gZoning;
-EQLIB_VAR ULONGLONG OldLastEnteredZone;
-EQLIB_VAR ULONGLONG LastEnteredZone;
-EQLIB_VAR bool WereWeZoning;
-EQLIB_VAR bool gbInChat;
-EQLIB_VAR bool gFilterSkillsAll;
-EQLIB_VAR bool gFilterSkillsIncrease;
-EQLIB_VAR bool gFilterTarget;
-EQLIB_VAR BOOL gFilterDebug;
-EQLIB_VAR bool gFilterMoney;
-EQLIB_VAR bool gFilterFood;
-EQLIB_VAR BOOL gFilterMQ;
-EQLIB_VAR BOOL gFilterMacro;
-EQLIB_VAR bool gFilterEncumber;
-EQLIB_VAR bool gFilterCustom;
-EQLIB_VAR BOOL gSpewToFile;
-EQLIB_VAR bool gbDoAutoRun;
-EQLIB_VAR BOOL gMQPauseOnChat;
-EQLIB_VAR BOOL gKeepKeys;
-EQLIB_VAR bool gLClickedObject;
-EQLIB_VAR MQWhoFilter gFilterSWho;
-EQLIB_VAR BOOL gCreateMQ2NewsWindow;
-EQLIB_VAR BOOL gUseNewNamedTest;
-EQLIB_VAR BOOL gbInForeground;
+MQLIB_VAR DWORD gbAssistComplete;
+MQLIB_VAR BOOL gTargetbuffs;
+MQLIB_VAR BOOL gItemsReceived;
+MQLIB_VAR bool gbInZone;
+MQLIB_VAR bool gZoning;
+MQLIB_VAR ULONGLONG OldLastEnteredZone;
+MQLIB_VAR ULONGLONG LastEnteredZone;
+MQLIB_VAR bool WereWeZoning;
+MQLIB_VAR bool gbInChat;
+MQLIB_VAR bool gFilterSkillsAll;
+MQLIB_VAR bool gFilterSkillsIncrease;
+MQLIB_VAR bool gFilterTarget;
+MQLIB_VAR BOOL gFilterDebug;
+MQLIB_VAR bool gFilterMoney;
+MQLIB_VAR bool gFilterFood;
+MQLIB_VAR BOOL gFilterMQ;
+MQLIB_VAR BOOL gFilterMacro;
+MQLIB_VAR bool gFilterEncumber;
+MQLIB_VAR bool gFilterCustom;
+MQLIB_VAR BOOL gSpewToFile;
+MQLIB_VAR bool gbDoAutoRun;
+MQLIB_VAR BOOL gMQPauseOnChat;
+MQLIB_VAR BOOL gKeepKeys;
+MQLIB_VAR bool gLClickedObject;
+MQLIB_VAR MQWhoFilter gFilterSWho;
+MQLIB_VAR BOOL gCreateMQ2NewsWindow;
+MQLIB_VAR BOOL gUseNewNamedTest;
+MQLIB_VAR BOOL gbInForeground;
 
-EQLIB_VAR BOOL gbHUDUnderUI;
-EQLIB_VAR BOOL gbAlwaysDrawMQHUD;
+MQLIB_VAR BOOL gbHUDUnderUI;
+MQLIB_VAR BOOL gbAlwaysDrawMQHUD;
 
-EQLIB_VAR BOOL gFilterMQ2DataErrors;
+MQLIB_VAR BOOL gFilterMQ2DataErrors;
 
-EQLIB_VAR char gIfDelimiter;
-EQLIB_VAR char gIfAltDelimiter;
+MQLIB_VAR char gIfDelimiter;
+MQLIB_VAR char gIfAltDelimiter;
 
-EQLIB_VAR DWORD gNetStatusXPos;
-EQLIB_VAR DWORD gNetStatusYPos;
+MQLIB_VAR DWORD gNetStatusXPos;
+MQLIB_VAR DWORD gNetStatusYPos;
 
-EQLIB_VAR LONG gStackingDebug;
+MQLIB_VAR LONG gStackingDebug;
 
-EQLIB_VAR double DegToRad;
-EQLIB_VAR double PI;
+MQLIB_VAR double DegToRad;
+MQLIB_VAR double PI;
 
 extern Blech* pMQ2Blech;
-EQLIB_VAR char EventMsg[MAX_STRING];
-EQLIB_VAR Blech* pEventBlech;
-EQLIB_VAR MQEventList* pEventList;
+MQLIB_VAR char EventMsg[MAX_STRING];
+MQLIB_VAR Blech* pEventBlech;
+MQLIB_VAR MQEventList* pEventList;
 
-EQLIB_VAR MQTimer* gTimer;
-EQLIB_VAR LONG gDelay;
-EQLIB_VAR char gDelayCondition[MAX_STRING];
-EQLIB_VAR SPAWNINFO EnviroTarget;
-EQLIB_VAR SPAWNINFO PetSpawn;
-EQLIB_VAR SPAWNINFO MercenarySpawn;
-EQLIB_VAR GROUNDOBJECT GroundObject;
-EQLIB_VAR PGROUNDITEM pGroundTarget;
-EQLIB_VAR SPAWNINFO DoorEnviroTarget;
-EQLIB_VAR PDOOR pDoorTarget;
-EQLIB_VAR PITEMDB gItemDB;
-EQLIB_VAR bool bRunNextCommand;
-EQLIB_VAR BOOL bAllowCommandParse;
-EQLIB_VAR bool gTurbo;
-EQLIB_VAR bool gWarning;
-EQLIB_VAR MQDefine* pDefines;
-EQLIB_VAR MQBindList* pBindList;
-EQLIB_VAR MQFilter* gpFilters;
+MQLIB_VAR MQTimer* gTimer;
+MQLIB_VAR LONG gDelay;
+MQLIB_VAR char gDelayCondition[MAX_STRING];
+MQLIB_VAR SPAWNINFO EnviroTarget;
+MQLIB_VAR SPAWNINFO PetSpawn;
+MQLIB_VAR SPAWNINFO MercenarySpawn;
+MQLIB_VAR GROUNDOBJECT GroundObject;
+MQLIB_VAR PGROUNDITEM pGroundTarget;
+MQLIB_VAR SPAWNINFO DoorEnviroTarget;
+MQLIB_VAR PDOOR pDoorTarget;
+MQLIB_VAR PITEMDB gItemDB;
+MQLIB_VAR bool bRunNextCommand;
+MQLIB_VAR BOOL bAllowCommandParse;
+MQLIB_VAR bool gTurbo;
+MQLIB_VAR bool gWarning;
+MQLIB_VAR MQDefine* pDefines;
+MQLIB_VAR MQBindList* pBindList;
+MQLIB_VAR MQFilter* gpFilters;
 
 // TODO: Change to use case insensitive comparison
-EQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
+MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
-EQLIB_VAR MOUSESPOOF* gMouseData;
+MQLIB_VAR MOUSESPOOF* gMouseData;
 
-EQLIB_VAR const char* gDiKeyName[256];
+MQLIB_VAR const char* gDiKeyName[256];
 
-EQLIB_VAR DWORD gGameState;
-EQLIB_VAR BOOL gbMQ2LoadingMsg;
-EQLIB_VAR BOOL gbExactSearchCleanNames;
+MQLIB_VAR DWORD gGameState;
+MQLIB_VAR BOOL gbMQ2LoadingMsg;
+MQLIB_VAR BOOL gbExactSearchCleanNames;
 
-EQLIB_VAR DWORD EQADDR_CONVERTITEMTAGS;
 
-EQLIB_VAR DWORD EQADDR_MEMCHECK0;
-EQLIB_VAR DWORD EQADDR_MEMCHECK1;
-EQLIB_VAR DWORD EQADDR_MEMCHECK2;
-EQLIB_VAR DWORD EQADDR_MEMCHECK3;
-EQLIB_VAR DWORD EQADDR_MEMCHECK4;
-EQLIB_VAR char* EQADDR_SERVERHOST;
-EQLIB_VAR char* EQADDR_SERVERNAME;
-EQLIB_VAR DWORD EQADDR_HWND;
-
-EQLIB_VAR SKILLMGR** ppSkillMgr;
-#define pSkillMgr (*ppSkillMgr)
-EQLIB_VAR EVERQUESTINFO* ppEverQuestInfo;
-#define pEverQuestInfo (ppEverQuestInfo)
-
-EQLIB_VAR PCMDLIST EQADDR_CMDLIST;
-
-EQLIB_VAR BYTE* EQADDR_ATTACK;
-EQLIB_VAR BYTE* EQADDR_NOTINCHATMODE;
-EQLIB_VAR BYTE* EQADDR_RUNWALKSTATE;
-EQLIB_VAR char* EQADDR_LASTTELL;
-EQLIB_VAR void* EQADDR_GWORLD;
-EQLIB_VAR int* EQADDR_DOABILITYLIST;
-EQLIB_VAR PDWORD EQADDR_SUBSCRIPTIONTYPE;
-EQLIB_VAR DWORD EQADDR_GROUPAGGRO;
-EQLIB_VAR char* EQADDR_TARGETAGGROHOLDER;
-EQLIB_VAR BYTE* EQADDR_ZONETYPE;
-EQLIB_VAR BOOL gbUseTellWindows;
-
-#define indoor (((*EQADDR_ZONETYPE) == 0) || ((*EQADDR_ZONETYPE) == 3) || ((*EQADDR_ZONETYPE) == 4))
-#define outdoor (((*EQADDR_ZONETYPE) == 1) || ((*EQADDR_ZONETYPE) == 2) || ((*EQADDR_ZONETYPE) == 5))
-#define bindable (((*EQADDR_ZONETYPE) == 2) || ((*EQADDR_ZONETYPE) == 3) || ((*EQADDR_ZONETYPE) == 4))
-//EQLIB_VAR BYTE* EQADDR_DOABILITYAVAILABLE;
-EQLIB_VAR BYTE* pTributeActive;
-
-EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD0;
-EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD1;
-EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD2;
-EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD3;
-EQLIB_VAR BYTE* EQADDR_ENCRYPTPAD4;
-
-EQLIB_VAR MQMouseInfo* EQADDR_MOUSE;
-EQLIB_VAR MOUSECLICK* EQADDR_MOUSECLICK;
-
-EQLIB_VAR PMAPLABEL* ppCurrentMapLabel;
-#define pCurrentMapLabel (*ppCurrentMapLabel)
-
-EQLIB_VAR char* gpbRangedAttackReady;
-#define gbRangedAttackReady (*gpbRangedAttackReady)
-EQLIB_VAR char* gpbShowNetStatus;
-#define gbShowNetStatus (*gpbShowNetStatus)
-EQLIB_VAR DWORD* gpShowNames;
-#define gShowNames (*gpShowNames)
-EQLIB_VAR DWORD* gpPCNames;
-#define gPCNames (*gpPCNames)
-EQLIB_VAR BYTE* gpAutoFire;
-#define gAutoFire (*gpAutoFire)
-EQLIB_VAR PAUTOSKILL gpAutoSkill;
-#define gAutoSkill (*gpAutoSkill)
-EQLIB_VAR BYTE* gpShiftKeyDown;
-#define gShiftKeyDown (*gpShiftKeyDown)
-EQLIB_VAR DWORD * gpMouseEventTime;
-#define gMouseEventTime (*gpMouseEventTime)
-EQLIB_VAR DWORD * gpbCommandEvent;
-#define gbCommandEvent (*gpbCommandEvent)
-
-EQLIB_VAR CResolutionHandler * *ppCResolutionHandler;
-#define pCResolutionHandler (*ppCResolutionHandler)
-EQLIB_VAR DWORD * g_ppDrawHandler;
-#define g_pDrawHandler (*g_ppDrawHandler)
-
-EQLIB_VAR char* * EQMappableCommandList;
-EQLIB_VAR BYTE* EQbCommandStates;
-
-EQLIB_VAR DWORD EQADDR_DIMAIN;
-EQLIB_VAR IDirectInputDevice8A * *EQADDR_DIKEYBOARD;
-EQLIB_VAR IDirectInputDevice8A * *EQADDR_DIMOUSE;
-EQLIB_VAR PPOINT EQADDR_DIMOUSECOPY;
-EQLIB_VAR PPOINT EQADDR_DIMOUSECHECK;
-
-EQLIB_VAR DWORD EQADDR_EQLABELS;
-
-EQLIB_VAR bool gMouseClickInProgress[8];
-EQLIB_VAR bool bDetMouse;
+MQLIB_VAR bool gMouseClickInProgress[8];
+MQLIB_VAR bool bDetMouse;
 
 // ***************************************************************************
 // String arrays
 // ***************************************************************************
-EQLIB_VAR const char* szEQMappableCommands[nEQMappableCommands];
+MQLIB_VAR const char* szEQMappableCommands[nEQMappableCommands];
 
-EQLIB_VAR const char* szHeading[];
-EQLIB_VAR const char* szHeadingShort[];
-EQLIB_VAR const char* szHeadingNormal[];
-EQLIB_VAR const char* szHeadingNormalShort[];
-EQLIB_VAR const char* szSize[];
-EQLIB_VAR const char* szSpawnType[];
-EQLIB_VAR const char* szGuildStatus[];
-EQLIB_VAR const char* szGender[];
-EQLIB_VAR const char* szDeityTeam[];
-EQLIB_VAR const char* szLights[];
-EQLIB_VAR BYTE LightBrightness[];
-EQLIB_VAR const char* szSkills[];
-EQLIB_VAR const char* szInnates[];
+MQLIB_VAR const char* szHeading[];
+MQLIB_VAR const char* szHeadingShort[];
+MQLIB_VAR const char* szHeadingNormal[];
+MQLIB_VAR const char* szHeadingNormalShort[];
+MQLIB_VAR const char* szSize[];
+MQLIB_VAR const char* szSpawnType[];
+MQLIB_VAR const char* szGuildStatus[];
+MQLIB_VAR const char* szGender[];
+MQLIB_VAR const char* szDeityTeam[];
+MQLIB_VAR const char* szLights[];
+MQLIB_VAR BYTE LightBrightness[];
+MQLIB_VAR const char* szSkills[];
+MQLIB_VAR const char* szInnates[];
 
-EQLIB_VAR const char* szWornLoc[];
+MQLIB_VAR const char* szWornLoc[];
 
-EQLIB_VAR fEQCommand			cmdHelp;
-EQLIB_VAR fEQCommand			cmdWho;
-EQLIB_VAR fEQCommand			cmdWhoTarget;
-EQLIB_VAR fEQCommand			cmdLocation;
-EQLIB_VAR fEQCommand			cmdFace;
-EQLIB_VAR fEQCommand			cmdTarget;
-EQLIB_VAR fEQCommand			cmdCharInfo;
-EQLIB_VAR fEQCommand			cmdFilter;
-EQLIB_VAR fEQCommand			cmdDoAbility;
-EQLIB_VAR fEQCommand			cmdCast;
-EQLIB_VAR fEQCommand			cmdUseItem;
-EQLIB_VAR fEQCommand			cmdPet;
-EQLIB_VAR fEQCommand			cmdMercSwitch;
-EQLIB_VAR fEQCommand			cmdAdvLoot;
-EQLIB_VAR fEQCommand			cmdPickZone;
-EQLIB_VAR fEQCommand			cmdAssist;
-EQLIB_VAR fEQCommand			cmdQuit;
+MQLIB_VAR fEQCommand            cmdHelp;
+MQLIB_VAR fEQCommand            cmdWho;
+MQLIB_VAR fEQCommand            cmdWhoTarget;
+MQLIB_VAR fEQCommand            cmdLocation;
+MQLIB_VAR fEQCommand            cmdFace;
+MQLIB_VAR fEQCommand            cmdTarget;
+MQLIB_VAR fEQCommand            cmdCharInfo;
+MQLIB_VAR fEQCommand            cmdFilter;
+MQLIB_VAR fEQCommand            cmdDoAbility;
+MQLIB_VAR fEQCommand            cmdCast;
+MQLIB_VAR fEQCommand            cmdUseItem;
+MQLIB_VAR fEQCommand            cmdPet;
+MQLIB_VAR fEQCommand            cmdMercSwitch;
+MQLIB_VAR fEQCommand            cmdAdvLoot;
+MQLIB_VAR fEQCommand            cmdPickZone;
+MQLIB_VAR fEQCommand            cmdAssist;
+MQLIB_VAR fEQCommand            cmdQuit;
 
-EQLIB_VAR fEQNewUIINI			NewUIINI;
-EQLIB_VAR fEQProcGameEvts		ProcessGameEvents;
-EQLIB_VAR fEQGetMelee			get_melee_range;
-EQLIB_VAR fEQToggleKeyRingItem	cmdToggleKeyRingItem;
-EQLIB_VAR fICGetHashData		IC_GetHashData;
-EQLIB_VAR fICSetHashData		IC_SetHashData;
-EQLIB_VAR fLoaderSetLoaded		IC_LoaderSetLoaded;
-EQLIB_VAR fLoaderClearLoaded	IC_LoaderClearLoaded;
-EQLIB_VAR fMQ2Unload            IC_MQ2Unload;
-EQLIB_VAR fClassLvl				IC_ClassLvl;
+MQLIB_VAR fEQGetMelee           get_melee_range;
 
-EQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
+MQLIB_VAR fICGetHashData        IC_GetHashData;
+MQLIB_VAR fICSetHashData        IC_SetHashData;
+MQLIB_VAR fLoaderSetLoaded      IC_LoaderSetLoaded;
+MQLIB_VAR fLoaderClearLoaded    IC_LoaderClearLoaded;
+MQLIB_VAR fMQ2Unload            IC_MQ2Unload;
+MQLIB_VAR fClassLvl             IC_ClassLvl;
 
-EQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data = nullptr);
-EQLIB_VAR bool IsResEffectSpell(int);
-//EQLIB_VAR char* szItemName[];
-//EQLIB_VAR char* szItemName4xx[];
-//EQLIB_VAR char* szTheme[];
-EQLIB_VAR const char* szDmgBonusType[];
-EQLIB_VAR const char* szBodyType[];
-EQLIB_VAR const char* szAugRestrictions[];
-EQLIB_VAR const char* szItemSlot[];
-EQLIB_VAR const char* szEquipmentSlot[];
-EQLIB_VAR const char* szExpansions[];
+MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
-EQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
-EQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
-EQLIB_VAR MQPlugin* pPlugins;
+MQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data = nullptr);
+MQLIB_VAR bool IsResEffectSpell(int);
+//MQLIB_VAR char* szItemName[];
+//MQLIB_VAR char* szItemName4xx[];
+//MQLIB_VAR char* szTheme[];
+MQLIB_VAR const char* szDmgBonusType[];
+MQLIB_VAR const char* szBodyType[];
+MQLIB_VAR const char* szAugRestrictions[];
+MQLIB_VAR const char* szItemSlot[];
+MQLIB_VAR const char* szEquipmentSlot[];
+MQLIB_VAR const char* szExpansions[];
 
-EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;
+MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
+MQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
+MQLIB_VAR MQPlugin* pPlugins;
 
-EQLIB_VAR std::map<std::string, PSPAWNINFO> SpawnByName;
-//EQLIB_VAR EQPlayer **ppEQP_IDArray;
-EQLIB_VAR MQRank EQP_DistArray[3000];
-EQLIB_VAR DWORD gSpawnCount;
+MQLIB_VAR std::map<std::string, SPAWNINFO*> SpawnByName;
+
+//MQLIB_VAR EQPlayer **ppEQP_IDArray;
+MQLIB_VAR MQRank EQP_DistArray[3000];
+MQLIB_VAR DWORD gSpawnCount;
 //#define ppEQP_IDArray (*pppEQP_IDArray)
 
-EQLIB_VAR StringTable **ppStringTable;
-#define pStringTable (*ppStringTable)
+MQLIB_VAR bool gbTimeStampChat;
+MQLIB_VAR size_t g_eqgameimagesize;
 
-EQLIB_VAR CDBStr** ppCDBStr;
-#define pCDBStr (*ppCDBStr)
-EQLIB_VAR EQMisc* pEQMisc;
-EQLIB_VAR CSkillMgr** ppCSkillMgr;
-#define pCSkillMgr (*ppCSkillMgr)
-EQLIB_VAR CGuild* pGuild;
-
-EQLIB_VAR CEverQuest** ppEverQuest;
-#define pEverQuest (*ppEverQuest)
-EQLIB_VAR CDisplay** ppDisplay;
-#define pDisplay (*ppDisplay)
-EQLIB_VAR PcClient** ppPCData;
-#define pPCData (*ppPCData)
-EQLIB_VAR PcClient** ppCharData;
-#define pCharData (*ppCharData)
-EQLIB_VAR PlayerClient** ppCharSpawn; // player that is being controlled
-#define pCharSpawn (*ppCharSpawn)
-EQLIB_VAR PlayerClient** ppActiveMerchant;
-#define pActiveMerchant (*ppActiveMerchant)
-EQLIB_VAR PlayerManagerClient** ppSpawnManager;
-#define pSpawnManager (*ppSpawnManager)
-#define pSpawnList ((pSpawnManager)->FirstSpawn)
-#define pChatService ((CChatService*)((EVERQUEST*)pEverQuest)->ChatService)
-#define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PointManager.vfTable)
-
-EQLIB_VAR PlayerClient** ppLocalPlayer; // the local player
-#define pLocalPlayer (*ppLocalPlayer)
-EQLIB_VAR PlayerClient** ppControlledPlayer;
-#define pControlledPlayer (*ppControlledPlayer)
-
-EQLIB_VAR EQWorldData** ppWorldData;
-#define pWorldData (*ppWorldData)
-EQLIB_VAR ClientSpellManager** ppSpellMgr;
-#define pSpellMgr (*ppSpellMgr)
-EQLIB_VAR PlayerClient** ppTarget;
-#define pTarget (*ppTarget)
-EQLIB_VAR EqSwitchManager** ppSwitchMgr;
-#define pSwitchMgr (*ppSwitchMgr)
-EQLIB_VAR EQZoneInfo* pZoneInfo;
-EQLIB_VAR PGUILDS pGuildList;
-EQLIB_VAR PEQSOCIAL   pSocialList;
-
-EQLIB_VAR BYTE* pgHotkeyPage;
-#define gHotkeyPage (*pgHotkeyPage)
-
-EQLIB_VAR PlayerClient** ppTradeTarget;
-#define pTradeTarget (*ppTradeTarget)
-EQLIB_VAR PlayerClient** ppActiveBanker;
-#define pActiveBanker (*ppActiveBanker)
-EQLIB_VAR PlayerClient** ppActiveGMaster;
-#define pActiveGMaster (*ppActiveGMaster)
-EQLIB_VAR PlayerClient** ppActiveCorpse;
-#define pActiveCorpse (*ppActiveCorpse)
-
-EQLIB_VAR CSidlManager** ppSidlMgr;
-#define pSidlMgr (*ppSidlMgr)
-
-EQLIB_VAR CXWndManager** ppWndMgr;
-#define pWndMgr (*ppWndMgr)
-#define pItemList GetItemList()
-#define pKeypressHandler GetKeyPresshandler()
-EQLIB_VAR PEQRAID pRaid;
-EQLIB_VAR DZMEMBER** ppDZMember;
-EQLIB_VAR TASKMEMBER** ppTaskMember;
-EQLIB_VAR DZTIMERINFO** ppDZTimerInfo;
-EQLIB_VAR DYNAMICZONE* pDynamicZone;
-
-EQLIB_VAR PINT pgCurrentSocial;
-#define gCurrentSocial (*pgCurrentSocial)
-
-EQLIB_VAR DWORD* pScreenX;
-#define ScreenX (*pScreenX)
-EQLIB_VAR DWORD* pScreenY;
-#define ScreenY (*pScreenY)
-EQLIB_VAR DWORD* pScreenXMax;
-#define ScreenXMax (*pScreenXMax)
-EQLIB_VAR DWORD* pScreenYMax;
-#define ScreenYMax (*pScreenYMax)
-EQLIB_VAR DWORD* pScreenMode;
-#define ScreenMode (*pScreenMode)
-EQLIB_VAR char* pMouseLook;
-#define bMouseLook (*pMouseLook)
-
-EQLIB_VAR SpellLoadout* pSpellSets;
-EQLIB_VAR AltAdvManager** ppAltAdvManager;
-#define pAltAdvManager (*ppAltAdvManager)
-
-EQLIB_VAR connection_t** ppConnection;
-#define pConnection (*ppConnection)
-#define pAuraMgr GetAuraMgr()
-EQLIB_VAR CAuraWnd** ppAuraWnd;
-#define pAuraWnd (*ppAuraWnd)
-
-EQLIB_VAR MERCENARYINFO** ppMercInfo;
-#define pMercInfo (*ppMercInfo)
-
-#define pMercAltAbilities GetMercAltAbilities()
-EQLIB_VAR LootFiltersManager** ppLootFiltersManager;
-#define pLootFiltersManager (*ppLootFiltersManager)
-EQLIB_VAR EQSpellStrings** ppEQSpellStrings;
-#define pEQSpellStrings (*ppEQSpellStrings)
-#define pAggroInfo GetAggroInfo()
-EQLIB_VAR CLargeDialogWnd** ppLargeDialog;
-#define pLargeDialog (*ppLargeDialog)
-EQLIB_VAR CItemDisplayManager** ppItemDisplayManager;
-#define pItemDisplayManager (*ppItemDisplayManager)
-EQLIB_VAR EqSoundManager** ppEqSoundManager;
-#define pEqSoundManager (*ppEqSoundManager)
-
-/* WINDOW INSTANCES */
-EQLIB_VAR CContextMenuManager** ppContextMenuManager;
-EQLIB_VAR CCursorAttachment** ppCursorAttachment;
-EQLIB_VAR CSocialEditWnd** ppSocialEditWnd;
-EQLIB_VAR CContainerMgr** ppContainerMgr;
-EQLIB_VAR CChatWindowManager** ppChatManager;
-EQLIB_VAR CConfirmationDialog** ppConfirmationDialog;
-
-EQLIB_VAR CFacePick** ppFacePick;
-EQLIB_VAR CFactionWnd** ppFactionWnd;
-EQLIB_VAR CExtendedTargetWnd** ppExtendedTargetWnd;
-EQLIB_VAR CFindItemWnd** ppFindItemWnd;
-EQLIB_VAR CFindLocationWnd** ppFindLocationWnd;
-EQLIB_VAR CInvSlotMgr** ppInvSlotMgr;
-//EQLIB_VAR CPopupWndManager **ppPopupWndManager;
-EQLIB_VAR CNoteWnd** ppNoteWnd;
-EQLIB_VAR CHelpWnd** ppHelpWnd;
-EQLIB_VAR CTipWnd** ppTipWnd;
-EQLIB_VAR CTipWnd** ppTipWnd;
-EQLIB_VAR CBookWnd** ppBookWnd;
-EQLIB_VAR CFriendsWnd** ppFriendsWnd;
-EQLIB_VAR CMusicPlayerWnd** ppMusicPlayerWnd;
-
-EQLIB_VAR CRealEstateItemsWnd** ppRealEstateItemsWnd;
-EQLIB_VAR CAchievementsWnd** ppAchievementsWnd;
-EQLIB_VAR CAlarmWnd** ppAlarmWnd;
-EQLIB_VAR CLoadskinWnd** ppLoadskinWnd;
-EQLIB_VAR CPetInfoWnd** ppPetInfoWnd;
-EQLIB_VAR CTrainWnd** ppTrainWnd;
-EQLIB_VAR CSkillsWnd** ppSkillsWnd;
-EQLIB_VAR CSkillsSelectWnd** ppSkillsSelectWnd;
-EQLIB_VAR CAAWnd** ppAAWnd;
-EQLIB_VAR CGroupWnd** ppGroupWnd;
-//EQLIB_VAR CSystemInfoDialogBox **ppSystemInfoDialogBox;
-EQLIB_VAR CGroupSearchWnd** ppGroupSearchWnd;
-EQLIB_VAR CGroupSearchFiltersWnd** ppGroupSearchFiltersWnd;
-EQLIB_VAR CRaidWnd** ppRaidWnd;
-EQLIB_VAR CRaidOptionsWnd** ppRaidOptionsWnd;
-EQLIB_VAR CBreathWnd** ppBreathWnd;
-EQLIB_VAR CMapToolbarWnd** ppMapToolbarWnd;
-EQLIB_VAR CMapViewWnd** ppMapViewWnd;
-EQLIB_VAR CEditLabelWnd** ppEditLabelWnd;
-EQLIB_VAR COptionsWnd** ppOptionsWnd;
-EQLIB_VAR CBuffWindow** ppBuffWindowNORMAL;
-EQLIB_VAR CBuffWindow** ppBuffWindowSHORT;
-EQLIB_VAR CTargetWnd** ppTargetWnd;
-EQLIB_VAR CColorPickerWnd** ppColorPickerWnd;
-EQLIB_VAR CCombatSkillsSelectWnd** ppCombatSkillsSelectWnd;
-EQLIB_VAR CHotButtonWnd** ppHotButtonWnd;
-EQLIB_VAR CPlayerWnd** ppPlayerWnd;
-EQLIB_VAR CCastingWnd** ppCastingWnd;
-EQLIB_VAR CCastSpellWnd** ppCastSpellWnd;
-EQLIB_VAR CSpellBookWnd** ppSpellBookWnd;
-EQLIB_VAR CInventoryWnd** ppInventoryWnd;
-EQLIB_VAR CBankWnd** ppBankWnd;
-EQLIB_VAR CQuantityWnd** ppQuantityWnd;
-EQLIB_VAR CTextEntryWnd** ppTextEntryWnd;
-EQLIB_VAR CFileSelectionWnd** ppFileSelectionWnd;
-EQLIB_VAR CLootWnd** ppLootWnd;
-EQLIB_VAR CRespawnWnd** ppRespawnWnd;
-EQLIB_VAR CActionsWnd** ppActionsWnd;
-EQLIB_VAR CCombatAbilityWnd** ppCombatAbilityWnd;
-EQLIB_VAR CMerchantWnd** ppMerchantWnd;
-EQLIB_VAR CTradeWnd** ppTradeWnd;
-EQLIB_VAR CBazaarWnd** ppBazaarWnd;
-EQLIB_VAR CBazaarSearchWnd** ppBazaarSearchWnd;
-EQLIB_VAR CGiveWnd** ppGiveWnd;
-EQLIB_VAR CSelectorWnd** ppSelectorWnd;
-EQLIB_VAR CTrackingWnd** ppTrackingWnd;
-EQLIB_VAR CInspectWnd** ppInspectWnd;
-EQLIB_VAR CFeedbackWnd** ppFeedbackWnd;
-EQLIB_VAR CBugReportWnd** ppBugReportWnd;
-EQLIB_VAR CVideoModesWnd** ppVideoModesWnd;
-EQLIB_VAR CCompassWnd** ppCompassWnd;
-EQLIB_VAR CPlayerNotesWnd** ppPlayerNotesWnd;
-EQLIB_VAR CGemsGameWnd** ppGemsGameWnd;
-EQLIB_VAR CStoryWnd** ppStoryWnd;
-//EQLIB_VAR CAdventureRequestWnd **ppAdventureRequestWnd;
-//EQLIB_VAR CAdventureMerchantWnd **ppAdventureMerchantWnd;
-//EQLIB_VAR CAdventureStatsWnd **ppAdventureStatsWnd;
-//EQLIB_VAR CAdventureLeaderboardWnd **ppAdventureLeaderboardWnd;
-//EQLIB_VAR CLeadershipWindow **ppLeadershipWindow;
-EQLIB_VAR CBodyTintWnd** ppBodyTintWnd;
-EQLIB_VAR CGuildMgmtWnd** ppGuildMgmtWnd;
-EQLIB_VAR CJournalTextWnd** ppJournalTextWnd;
-EQLIB_VAR CJournalCatWnd** ppJournalCatWnd;
-//EQLIB_VAR CTributeBenefitWnd **ppTributeBenefitWnd;
-//EQLIB_VAR CTributeMasterWnd **ppTributeMasterWnd;
-EQLIB_VAR CPetitionQWnd** ppPetitionQWnd;
-EQLIB_VAR CBandolierWnd** ppBandolierWnd;
-EQLIB_VAR CWebManager** ppCWebManager;
-#define pCWebManager (*ppCWebManager)
-EQLIB_VAR CTaskWnd** ppTaskWnd;
-EQLIB_VAR CTaskManager* ppTaskManager;
-#define pTaskManager (*ppTaskManager)
-EQLIB_VAR CTimeLeftWnd** ppTimeLeftWnd;
-EQLIB_VAR CAdvancedLootWnd** ppAdvancedLootWnd;
-EQLIB_VAR CRewardSelectionWnd** ppRewardSelectionWnd;
-EQLIB_VAR CEQSuiteTextureLoader* ppEQSuiteTextureLoader;
-EQLIB_VAR PointMerchantWnd** ppPointMerchantWnd;
-EQLIB_VAR CZoneGuideWnd** ppCZoneGuideWnd;
-
-
-#define pPointMerchantWnd (*ppPointMerchantWnd)
-#define pCZoneGuideWnd (*ppCZoneGuideWnd)
-#define pConfirmationDialog (*ppConfirmationDialog)
-#define pRewardSelectionWnd (*ppRewardSelectionWnd)
-#define pAdvancedLootWnd (*ppAdvancedLootWnd)
-#define pContextMenuManager (*ppContextMenuManager)
-#define pCursorAttachment (*ppCursorAttachment)
-#define pSocialEditWnd (*ppSocialEditWnd)
-#define pContainerMgr (*ppContainerMgr)
-#define pChatManager (*ppChatManager)
-#define pEQSuiteTextureLoader (ppEQSuiteTextureLoader)
-#define pFacePick (*ppFacePick)
-#define pFactionWnd (*ppFactionWnd)
-#define pExtendedTargetWnd (*ppExtendedTargetWnd)
-#define pFindItemWnd (*ppFindItemWnd)
-#define pFindLocationWnd (*ppFindLocationWnd)
-#define pInvSlotMgr (*ppInvSlotMgr)
-#define pPopupWndManager (*ppPopupWndManager)
-#define pNoteWnd (*ppNoteWnd)
-#define pHelpWnd (*ppHelpWnd)
-#define pTipWnd (*ppTipWnd)
-#define pTipWnd (*ppTipWnd)
-#define pBookWnd (*ppBookWnd)
-#define pFriendsWnd (*ppFriendsWnd)
-#define pMusicPlayerWnd (*ppMusicPlayerWnd)
-#define pRealEstateItemsWnd (*ppRealEstateItemsWnd)
-#define pAchievementsWnd (*ppAchievementsWnd)
-#define pAlarmWnd (*ppAlarmWnd)
-#define pLoadskinWnd (*ppLoadskinWnd)
-#define pPetInfoWnd (*ppPetInfoWnd)
-#define pTrainWnd (*ppTrainWnd)
-#define pSkillsWnd (*ppSkillsWnd)
-#define pSkillsSelectWnd (*ppSkillsSelectWnd)
-#define pAAWnd (*ppAAWnd)
-#define pGroupWnd (*ppGroupWnd)
-#define pSystemInfoDialogBox (*ppSystemInfoDialogBox)
-#define pGroupSearchWnd (*ppGroupSearchWnd)
-#define pGroupSearchFiltersWnd (*ppGroupSearchFiltersWnd)
-#define pRaidWnd (*ppRaidWnd)
-#define pRaidOptionsWnd (*ppRaidOptionsWnd)
-#define pBreathWnd (*ppBreathWnd)
-#define pMapToolbarWnd (*ppMapToolbarWnd)
-#define pMapViewWnd (*ppMapViewWnd)
-#define pEditLabelWnd (*ppEditLabelWnd)
-#define pOptionsWnd (*ppOptionsWnd)
-#define pBuffWnd (*ppBuffWindowNORMAL)
-#define pSongWnd (*ppBuffWindowSHORT)
-#define pTargetWnd (*ppTargetWnd)
-#define pColorPickerWnd (*ppColorPickerWnd)
-#define pCombatAbilityWnd (*ppCombatAbilityWnd)
-#define pCombatSkillsSelectWnd (*ppCombatSkillsSelectWnd)
-#define pHotButtonWnd (*ppHotButtonWnd)
-#define pPlayerWnd (*ppPlayerWnd)
-#define pCastingWnd (*ppCastingWnd)
-#define pCastSpellWnd (*ppCastSpellWnd)
-#define pSpellBookWnd (*ppSpellBookWnd)
-#define pInventoryWnd (*ppInventoryWnd)
-#define pBankWnd (*ppBankWnd)
-#define pQuantityWnd (*ppQuantityWnd)
-#define pTextEntryWnd (*ppTextEntryWnd)
-#define pFileSelectionWnd (*ppFileSelectionWnd)
-#define pLootWnd (*ppLootWnd)
-#define pRespawnWnd (*ppRespawnWnd)
-#define pActionsWnd (*ppActionsWnd)
-#define pMerchantWnd (*ppMerchantWnd)
-#define pTradeWnd (*ppTradeWnd)
-#define pBazaarWnd (*ppBazaarWnd)
-#define pBazaarSearchWnd (*ppBazaarSearchWnd)
-#define pGiveWnd (*ppGiveWnd)
-#define pSelectorWnd (*ppSelectorWnd)
-#define pTrackingWnd (*ppTrackingWnd)
-#define pInspectWnd (*ppInspectWnd)
-#define pFeedbackWnd (*ppFeedbackWnd)
-#define pBugReportWnd (*ppBugReportWnd)
-#define pVideoModesWnd (*ppVideoModesWnd)
-#define pCompassWnd (*ppCompassWnd)
-#define pPlayerNotesWnd (*ppPlayerNotesWnd)
-#define pGemsGameWnd (*ppGemsGameWnd)
-#define pStoryWnd (*ppStoryWnd)
-#define pAdventureRequestWnd (*ppAdventureRequestWnd)
-#define pAdventureMerchantWnd (*ppAdventureMerchantWnd)
-#define pAdventureStatsWnd (*ppAdventureStatsWnd)
-#define pAdventureLeaderboardWnd (*ppAdventureLeaderboardWnd)
-#define pLeadershipWindow (*ppLeadershipWindow)
-#define pBodyTintWnd (*ppBodyTintWnd)
-#define pGuildMgmtWnd (*ppGuildMgmtWnd)
-#define pJournalTextWnd (*ppJournalTextWnd)
-#define pJournalCatWnd (*ppJournalCatWnd)
-#define pTributeBenefitWnd (*ppTributeBenefitWnd)
-#define pTributeMasterWnd (*ppTributeMasterWnd)
-#define pPetitionQWnd (*ppPetitionQWnd)
-#define pTaskWnd (*ppTaskWnd)
-#define pTaskSomething (ppTaskSomething)
-#define pTimeLeftWnd (*ppTimeLeftWnd)
-#define pTextOverlay GetTextOverlay()
-#define pPotionBeltWnd (*ppPotionBeltWnd)
-#define pBandolierWnd (*ppBandolierWnd)
-#define pDZMember (*ppDZMember)
-#define pDZTimerInfo (*ppDZTimerInfo)
-#define pTaskMember (*ppTaskMember)
-
-EQLIB_VAR bool gbTimeStampChat;
-EQLIB_VAR size_t g_eqgameimagesize;
-
-EQLIB_VAR BOOL gUseTradeOnTarget;
-EQLIB_VAR bool gbBeepOnTells;
-EQLIB_VAR bool gbFlashOnTells;
-EQLIB_VAR bool gbShowCurrentCamera;
-EQLIB_VAR int  oldcameratype;
-EQLIB_VAR char CameraText[2048];
-EQLIB_VAR BOOL gbIgnoreAlertRecursion;
+MQLIB_VAR BOOL gUseTradeOnTarget;
+MQLIB_VAR bool gbBeepOnTells;
+MQLIB_VAR bool gbFlashOnTells;
+MQLIB_VAR bool gbShowCurrentCamera;
+MQLIB_VAR int  oldcameratype;
+MQLIB_VAR char CameraText[2048];
+MQLIB_VAR BOOL gbIgnoreAlertRecursion;
 
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
-EQLIB_VAR DWORD gdwParserEngineVer;
+MQLIB_VAR DWORD gdwParserEngineVer;
 
 #if __has_include("MQ2Globals-private.h")
 #include "MQ2Globals-private.h"

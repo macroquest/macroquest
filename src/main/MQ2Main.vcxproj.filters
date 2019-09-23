@@ -12,12 +12,6 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{f444558d-0978-4637-9574-41e30a49f137}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\EQLib">
-      <UniqueIdentifier>{17e7d0ab-83f1-410b-82da-0190a178bbf4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\EQLib">
-      <UniqueIdentifier>{e26f03ab-c185-4d6b-826d-5a02608b633d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Contrib">
       <UniqueIdentifier>{1a953c64-aeaf-4397-94a6-58df056d33ed}</UniqueIdentifier>
     </Filter>
@@ -98,39 +92,6 @@
     <ClCompile Include="MQ2Windows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\EQLib\ExceptionsDisabled.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\Globals.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\Items.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\PcClient.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\PlayerClient.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\SidlTemplates.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\UI.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\CXStr.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\CXWnd.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\EQClasses.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\EQLib.cpp">
-      <Filter>Source Files\EQLib</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2Spells.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -175,96 +136,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\EQLib\EQUIStructs.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Globals.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\ItemBase-Members.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Items.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Mutex.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\PcClient.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\PlayerClient.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\SidlParams.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\SidlTemplates.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Spells.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\UI.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Allocator.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Common.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\Containers.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\CXStr.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\CXWnd.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\CXWnd-Members.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\DynamicArray.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\EQClasses.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\EQData.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\EQLib.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\eqgame.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\PlayerZoneClient-Members.h">
-      <Filter>Header Files\EQLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\actordef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\combines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\dikeys.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\factionnames.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\itemtypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\skills.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EQLib\data\spelleffects.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\fmt\include\fmt\chrono.h">
       <Filter>Header Files\contrib\fmt</Filter>
     </ClInclude>
@@ -306,16 +177,6 @@
     <ResourceCompile Include="MQ2Main.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\EQLib\AssemblyFunctions.asm">
-      <Filter>Source Files\EQLib</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\EQLib\AssemblyFunctions.def">
-      <Filter>Source Files\EQLib</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\MQ2.natvis">

@@ -40,7 +40,7 @@
 // MQ2BoolType* pBoolType
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
 	class Class;                                                     \
-	EQLIB_VAR Class* Var;
+	MQLIB_VAR Class* Var;
 #include "DataTypeList.h"
 #undef DATATYPE
 
@@ -50,10 +50,10 @@
 class MQ2Type
 {
 public:
-	EQLIB_OBJECT MQ2Type(const char* NewName);
-	EQLIB_OBJECT virtual ~MQ2Type();
+	MQLIB_OBJECT MQ2Type(const char* NewName);
+	MQLIB_OBJECT virtual ~MQ2Type();
 
-	EQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
+	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
 
 	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) = 0;
 	virtual bool FromString(MQVarPtr& VarPtr, char* Source) = 0;

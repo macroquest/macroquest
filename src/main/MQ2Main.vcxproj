@@ -29,11 +29,11 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\Plugin.props" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\Plugin.props" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -42,39 +42,23 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
-      <ModuleDefinitionFile>../EQLib/AssemblyFunctions.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>EQLIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
-      <ModuleDefinitionFile>../EQLib/AssemblyFunctions.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\contrib\fmt\src\format.cc" />
-    <ClCompile Include="..\EQLib\CXStr.cpp" />
-    <ClCompile Include="..\EQLib\CXWnd.cpp" />
-    <ClCompile Include="..\EQLib\EQClasses.cpp" />
-    <ClCompile Include="..\EQLib\EQLib.cpp" />
-    <ClCompile Include="..\EQLib\ExceptionsDisabled.cpp">
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExceptionHandling>
-    </ClCompile>
-    <ClCompile Include="..\EQLib\Globals.cpp" />
-    <ClCompile Include="..\EQLib\Items.cpp" />
-    <ClCompile Include="..\EQLib\PcClient.cpp" />
-    <ClCompile Include="..\EQLib\PlayerClient.cpp" />
-    <ClCompile Include="..\EQLib\SidlTemplates.cpp" />
-    <ClCompile Include="..\EQLib\UI.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
@@ -115,36 +99,6 @@
     <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h" />
     <ClInclude Include="..\Blech\Blech.h" />
     <ClInclude Include="DataTypeList.h" />
-    <ClInclude Include="..\EQLib\Allocator.h" />
-    <ClInclude Include="..\EQLib\Common.h" />
-    <ClInclude Include="..\EQLib\Containers.h" />
-    <ClInclude Include="..\EQLib\CXStr.h" />
-    <ClInclude Include="..\EQLib\CXWnd-Members.h" />
-    <ClInclude Include="..\EQLib\CXWnd.h" />
-    <ClInclude Include="..\EQLib\data\actordef.h" />
-    <ClInclude Include="..\EQLib\data\combines.h" />
-    <ClInclude Include="..\EQLib\data\dikeys.h" />
-    <ClInclude Include="..\EQLib\data\factionnames.h" />
-    <ClInclude Include="..\EQLib\data\itemtypes.h" />
-    <ClInclude Include="..\EQLib\data\skills.h" />
-    <ClInclude Include="..\EQLib\data\spelleffects.h" />
-    <ClInclude Include="..\EQLib\DynamicArray.h" />
-    <ClInclude Include="..\EQLib\EQClasses.h" />
-    <ClInclude Include="..\EQLib\EQData.h" />
-    <ClInclude Include="..\EQLib\eqgame.h" />
-    <ClInclude Include="..\EQLib\EQLib.h" />
-    <ClInclude Include="..\EQLib\EQUIStructs.h" />
-    <ClInclude Include="..\EQLib\Globals.h" />
-    <ClInclude Include="..\EQLib\ItemBase-Members.h" />
-    <ClInclude Include="..\EQLib\Items.h" />
-    <ClInclude Include="..\EQLib\Mutex.h" />
-    <ClInclude Include="..\EQLib\PcClient.h" />
-    <ClInclude Include="..\EQLib\PlayerClient.h" />
-    <ClInclude Include="..\EQLib\PlayerZoneClient-Members.h" />
-    <ClInclude Include="..\EQLib\SidlParams.h" />
-    <ClInclude Include="..\EQLib\SidlTemplates.h" />
-    <ClInclude Include="..\EQLib\Spells.h" />
-    <ClInclude Include="..\EQLib\UI.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
     <ClInclude Include="MQ2Globals-private_default.h" />
@@ -160,22 +114,6 @@
     <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\EQLib\AssemblyFunctions.asm">
-      <FileType>Document</FileType>
-      <PreserveIdentifierCase Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">1</PreserveIdentifierCase>
-      <PreserveIdentifierCase Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</PreserveIdentifierCase>
-      <MakeAllSymbolsPublic Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MakeAllSymbolsPublic>
-      <MakeAllSymbolsPublic Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MakeAllSymbolsPublic>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(MQ2Root)tools\NASM\nasm.exe "%(FullPath)" -f win32 -o "$(IntDir)%(Filename).obj"</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(MQ2Root)tools\NASM\nasm.exe "%(FullPath)" -f win32 -o "$(IntDir)%(Filename).obj"</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\EQLib\AssemblyFunctions.def" />
-  </ItemGroup>
-  <ItemGroup>
     <Natvis Include="..\MQ2.natvis" />
   </ItemGroup>
   <ItemGroup>
@@ -183,6 +121,11 @@
     <Text Include="..\Release\GPL.txt" />
     <Text Include="..\Release\ItemDB.txt" />
     <Text Include="..\Release\locations.txt" />
+  </ItemGroup>
+    <ItemGroup>
+    <ProjectReference Include="..\eqlib\eqlib.vcxproj">
+      <Project>{7cc5690f-593c-4938-922d-73a0ac84537a}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -12,8 +12,10 @@
  * GNU General Public License for more details.
  */
 
-#include "PlayerClient.h"
+#include "pch.h"
+
 #include "Globals.h"
+#include "PlayerClient.h"
 
 namespace eqlib {
 

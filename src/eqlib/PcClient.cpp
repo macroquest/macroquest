@@ -12,7 +12,9 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "PcClient.h"
+
 #include "Globals.h"
 
 namespace eqlib {
