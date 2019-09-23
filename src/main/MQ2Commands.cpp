@@ -12,13 +12,8 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "MQ2Main.h"
-
-#include <fmt/format.h>
-
-#include <Shellapi.h>
-#include <mmsystem.h>
-#include <direct.h>
 
 CMQ2Alerts CAlerts;
 

@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "MQ2Main.h"
 
 bool dataSpawn(const char* szIndex, MQTypeVar& Ret)

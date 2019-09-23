@@ -13,20 +13,3 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-
-DWORD gh;
-LRESULT CALLBACK proc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	return ::CallNextHookEx((HHOOK)gh, nCode, wParam, lParam);
-}
-using FNCB = DWORD(*)(DWORD, HINSTANCE, DWORD&);
-
-#undef  MQ2AUTH
-#define MQ2AUTH(z) MQLIB_API void z(DWORD x){FNCB f=(FNCB)x;f((DWORD)proc,ghInstance,gh);}
-
-#if __has_include("../../MQ2Auth.h")
-#include "../../MQ2Auth.h"
-#else
-#error "Missing MQ2Auth.h - be sure to run MQ2Auth to generate it"
-#endif

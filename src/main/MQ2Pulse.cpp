@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-
+#include "pch.h"
 #include "MQ2Main.h"
 #include "DebugHandler.h"
 

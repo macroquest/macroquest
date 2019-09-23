@@ -14,59 +14,10 @@
 
 #pragma once
 
-#if !defined(NOMINMAX)
-#define NOMINMAX
-#endif
-#if !defined(WIN32_LEAN_AND_MEAN)
-#define WIN32_LEAN_AND_MEAN
-#endif
+#include "pch.h"
 
-// targeting Windows 7+
-#if defined(_WIN32_WINNT)
-#undef _WIN32_WINNT
-#endif
-#define  _WIN32_WINNT          0x0601
-#if defined(WINVER)
-#undef WINVER
-#endif
-#define WINVER                 0x0601
-
-#define DIRECTINPUT_VERSION    0x800
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <io.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <winsock.h>
-#include <math.h>
-#include <list>
-#include <map>
-#include <queue>
-#include <set>
-#include <stack>
-#include <string>
-#include <string_view>
-#include <algorithm>
-
-// warning C4530 : C++ exception handler used, but unwind semantics are not enabled.Specify / EHsc
-#pragma warning(disable:4530)
-
-// disable the noexcept warning there isnt really anything we can do about it as far as i know or is there? let me know if u know how to fix it - eqmule
-#pragma warning(disable:4577)
-
-// Windows Header Files:
-#include <windows.h>
-
-#include "dxsdk90\include\dinput.h"
-#include "detours\inc\detours.h"
-
-// MQ2
 #include "blech\Blech.h"
-
-#include <fmt/format.h>
+#include "../eqlib/eqlib.h"
 
 //#define MQ2_PROFILING
 
@@ -124,8 +75,6 @@
 
 #define LODWORD(_qw)          ((uint32_t)(_qw))
 #define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
-
-#include "../eqlib/EQLib.h"
 
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"

@@ -12,11 +12,9 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "MQ2Main.h"
 
-#include <memory>
-#include <mutex>
-#include <unordered_map>
 
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;

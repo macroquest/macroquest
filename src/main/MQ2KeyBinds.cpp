@@ -12,11 +12,8 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "MQ2Main.h"
-
-#include <map>
-#include <string>
-#include <algorithm>
 
 //void InjectMQ2Binds(COptionsWnd* pWnd);
 //void EjectMQ2Binds(COptionsWnd* pWnd);

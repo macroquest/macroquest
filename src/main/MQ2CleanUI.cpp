@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "MQ2Main.h"
 
 const char* g_customCaption = "MQ2: Think of it as evolution in action.";

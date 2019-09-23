@@ -12,11 +12,7 @@
  * GNU General Public License for more details.
  */
 
-// Exclude rarely-used stuff from Windows headers
-#define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT 0x510
-#define DIRECTINPUT_VERSION 0x800
-
+#include "pch.h"
 #include "MQ2Main.h"
 
 namespace mq {
