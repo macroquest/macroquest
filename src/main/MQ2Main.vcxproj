@@ -49,6 +49,9 @@
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -60,6 +63,9 @@
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\contrib\fmt\src\format.cc">

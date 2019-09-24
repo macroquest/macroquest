@@ -1,0 +1,8 @@
+macros/*.mac
+Changes.txt
+GPL.txt
+ItemDB.txt
+MacroQuest_default.ini
+MacroQuest2.exe
+MQ2Ic.dll
+readme.chm
