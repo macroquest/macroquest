@@ -1,3 +1,20 @@
+Sep 18 2019 by Eqmule
+- Updated for LIVE
+
+-Sep 10 2019 by Eqmule
+- Updated for TEST
+-
+-Aug 27 2019 by Eqmule
+- Updated for TEST
+-
+Aug 26 2019 by Knightly
+- Removed #knightlyparse
+- New TLO ${MacroQuest.Parser}
+- New slash command /engine parser <x> [noauto]      (where X is the version of the parser, right now 1 or 2 and noauto if you don't want it in your ini)
+- New macro command #engine parser <x> 
+- Parser gets reset to the default in your ini whenever a macro ends
+- Full documentation at https://gitlab.com/Knightly1/mq2-parser-changes
+-
 Aug 21 2019 by EqMule
 - Updated for LIVE
 - Fixed the parser so it can run at charselect again. (Don't run macros there that need access to ingame variables...)
@@ -2015,6 +2032,8 @@ Sub Main
 - Added new #bind command for macros.
   Short Explaination, this allows you to execute macro sub routines.
   Long Explaination:
+  Binds are triggered when a macro runs either:
+  /varset or /echo or /call or if a Sub is executed.
 #bind allows you to bind an ingame slash command to a macro function.
 Before you had to do this with #events and capture text that you sent to yourself for example: 
 #event SayMana "#*#SayManaPercent#*#"
