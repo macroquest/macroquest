@@ -691,8 +691,4 @@ bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 	return EQExecuteCmd(command, keyDown, data, nullptr);
 }
 
-#if __has_include("MQ2Globals-private.cpp")
-#include "MQ2Globals-private.cpp"
-#endif
-
 } // namespace mq
