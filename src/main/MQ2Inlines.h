@@ -703,7 +703,7 @@ struct ci_less
 		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
 		{
 			if (c1 == c2)
-				return true;
+				return false;
 			return ::tolower(c1) < ::tolower(c2);
 		}
 	};

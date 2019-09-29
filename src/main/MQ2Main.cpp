@@ -40,7 +40,7 @@ DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
 
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
+extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
 	char szFilename[MAX_STRING] = { 0 };
 	char* szProcessName;
@@ -407,14 +407,14 @@ bool MQ2Initialize()
 		}
 	}
 
+	eqlib::InitializeEQLib();
+
 	if (!InitOffsets())
 	{
 		DebugSpewAlways("InitOffsets returned false - thread aborted.");
 		g_Loaded = false;
 		return false;
 	}
-
-	eqlib::InitializeEQLib();
 
 	if (!ParseINIFile(gszINIPath))
 	{
@@ -471,6 +471,8 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands - 2] = "UNKNOWN0x21c";
 	szEQMappableCommands[nEQMappableCommands - 1] = "UNKNOWN0x21d";
 
+	InitializeMQ2Detours();
+
 	// from now on MQ2IC is not optional.
 	LoadMQ2Plugin("mq2ic");
 
@@ -479,7 +481,6 @@ bool MQ2Initialize()
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();
-	InitializeMQ2Detours();
 	InitializeDisplayHook();
 	InitializeChatHook();
 	InitializeMQ2Spawns();

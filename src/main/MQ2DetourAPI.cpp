@@ -1306,6 +1306,27 @@ int LoadFrontEnd_Detour()
 }
 #endif // !TESTMEM
 
+// MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
+DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
+void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
+{
+	if (void* result = GetProcAddress_Trampoline(hModule, lpProcName))
+	{
+		return result;
+	}
+
+	static HMODULE eqlibModule = GetModuleHandle("eqlib.dll");
+
+	// If this is our module...
+	if (hModule == ghModule)
+	{
+		return GetProcAddress_Trampoline(eqlibModule, lpProcName);
+	}
+
+	return nullptr;
+}
+
+
 void InitializeMQ2Detours()
 {
 	HookMemChecker(true);
@@ -1313,6 +1334,9 @@ void InitializeMQ2Detours()
 	// this is handled by mq2ic from now on
 	//EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
 	//EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
+
+	DWORD GetProcAddress_Addr = (DWORD)GetProcAddress(GetModuleHandle("kernel32.dll"), "GetProcAddress");
+	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 
 #ifndef TESTMEM
 	EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline, "__LoadFrontEnd");

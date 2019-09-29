@@ -385,7 +385,7 @@
 #define wwsCrashReportCheckForUploader_x                           0x853670
 #define wwsCrashReportPlatformLaunchUploader_x                     0x855D50
 #define __eq_delete_x                                              0x9948CE
-#define __eq_new_x                                                 0x994E9C
+#define __eq_new_x                                                 0x994E94
 
 ////
 // Section 4: Function Offsets

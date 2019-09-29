@@ -57,7 +57,10 @@ using namespace eqlib;
 #define FromPlugin false
 #endif
 
-#define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline)
+#define STRINGIFY_IMPL(x) #x
+#define STRINGIFY(x) STRINGIFY_IMPL(x)
+
+#define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline, STRINGIFY(offset))
 #define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
 
 #ifndef THIS_
