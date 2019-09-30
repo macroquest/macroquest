@@ -6,6 +6,8 @@
 extern _CXWnd__CXWnd
 extern _CSidlScreenWnd__CSidlScreenWnd1
 extern _CSidlScreenWnd__CSidlScreenWnd2
+extern _MapViewMap__MapViewMap
+extern _MapViewMap__dMapViewMap
 
 section .text
 
@@ -29,4 +31,20 @@ global ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@@Z
 global ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z
 ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z:
 	mov eax, [_CSidlScreenWnd__CSidlScreenWnd1]
+	jmp eax
+
+;---------------------------------------------------------------------------------------
+
+; _DWORD __thiscall eqlib::MapViewMap::MapViewMap(eqlib::MapViewMap *__hidden this)
+global ??0MapViewMap@eqlib@@QAE@XZ
+??0MapViewMap@eqlib@@QAE@XZ:
+	mov eax, [_MapViewMap__MapViewMap]
+	jmp eax
+
+;---------------------------------------------------------------------------------------
+
+; void __thiscall eqlib::MapViewMap::~MapViewMap(eqlib::MapViewMap *__hidden this)
+global ??1MapViewMap@eqlib@@UAE@XZ
+??1MapViewMap@eqlib@@UAE@XZ:
+	mov eax, [_MapViewMap__dMapViewMap]
 	jmp eax

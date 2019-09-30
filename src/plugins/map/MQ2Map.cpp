@@ -125,66 +125,6 @@ MAPFILTER MapFilterOptions[] =
 	{ NULL,           FALSE, (DWORD)-1,         FALSE, (DWORD)MAPFILTER_Invalid, FALSE, NULL }
 };
 
-CSidlScreenWnd::VirtualFunctionTable* CMyMapViewWnd__OldvfTable = nullptr;
-CSidlScreenWnd::VirtualFunctionTable* MapViewMap_OldvfTable = nullptr;
-void* CMyMapViewWnd__OldDestructor = nullptr;
-void* CMyMapViewWnd__OldHandleRButtonDown = nullptr;
-void* CMyMapViewWnd__OldPostDraw = nullptr;
-void* MapViewMap__OldHandleRButtonDown = nullptr;
-
-DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
-{
-	// IMPORTANT NOTE: This function was written thinking that the code being detoured is the Destructor
-	// but that is NOT THE CASE. This is the scalar deleter aka CMapViewWnd::`scalar deleting destructor'(uint)
-
-	// maybe a compiler issue, but if we dont push edx as well here, we will crash on /loadskin... -eqmule Oct 23 2015
-	// it doesnt really matter what the reason is, because it wont hurt pushing it in older compilers
-	// cause we pop it anyway at the bottom of this func...
-	// the important thing is that esp is the same both on entering this func and on exit...
-	// (and it is now)
-
-	__asm {
-		push ecx;
-		push edx;
-		push eax;
-	}
-
-	if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable)
-	{
-		// make our own little stack frame here
-		// operator delete assumes that it is there
-		// it uses (unnecessarily) ebp-4
-		__asm {
-			push    ebp
-			push    eax
-			push    eax
-			mov     ebp, esp
-		}
-
-		// TODO: FIXME
-		delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pMapViewWnd);
-		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pMapViewWnd) = CMyMapViewWnd__OldvfTable;
-		delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pMapViewWnd->MapView);
-		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pMapViewWnd->MapView) = MapViewMap_OldvfTable;
-
-		CMyMapViewWnd__OldvfTable = nullptr;
-		MapViewMap_OldvfTable = nullptr;
-
-		__asm {
-			pop     eax
-			pop     eax
-			pop     ebp
-		}
-	}
-
-	__asm {
-		pop eax;
-		pop edx;
-		pop ecx;
-		jmp [CMyMapViewWnd__OldDestructor];
-	}
-}
-
 bool RButtonDown()
 {
 	if (pCurrentMapLabel)
@@ -200,146 +140,116 @@ bool RButtonDown()
 	return true;
 }
 
-//int MapViewMap::HandleRButtonDown(const CXPoint& point, UINT Flags) - should probably just change to this
-int __declspec(naked) MapViewMap__HandleRButtonDown(const CXPoint& point, uint32_t flags)
-{
-	__asm {
-		push ecx;
-		push eax;
-	}
-	if (RButtonDown())
-	{
-		__asm {
-			pop eax;
-			pop ecx;
-			jmp[MapViewMap__OldHandleRButtonDown];
-		};
-	}
-	else
-	{
-		__asm {
-			pop eax;
-			pop ecx;
-			xor eax, eax;
-			retn 8;
-		}
-	}
-}
-
-void __declspec(naked) CMyMapViewWnd__PostDraw()
-{
-	__asm {
-
-		push esi;
-		mov esi, ecx;
-
-		call[MapUpdate];
-		call[MapAttach];
-
-		mov ecx, esi;
-		call[CMyMapViewWnd__OldPostDraw];
-		push eax;
-
-		call[MapDetach];
-		pop eax;
-		mov ecx, esi;
-		pop esi;
-		ret;
-	};
-}
-
-class CMyMapViewWnd
+// This class inherits from MapViewMap to set up virtual functions, but we
+// do not ever actually instantiate this class. As a result, we can't store any
+// data members in it. We're using some tricks to use the compiler's generation
+// of the virtual function table to essentially inherit this class and override
+// virtuals.
+class CCustomMapViewMap : public MapViewMap
 {
 public:
-	int HandleLButtonDown_Trampoline(const CXPoint&, uint32_t);
-	int HandleLButtonDown_Detour(const CXPoint& point, uint32_t flags)
+	inline static VirtualFunctionTable* s_mapViewWndTablePatched = nullptr;
+	inline static VirtualFunctionTable* s_mapViewWndTableOrig = nullptr;
+	inline static bool s_patchingVFTable = false;
+
+	CCustomMapViewMap* Constructor_Trampoline();
+	CCustomMapViewMap* Constructor_Detour()
 	{
-		CVector3 points = { (float)point.x, (float)point.y, 0 };
-		pMapViewWnd->GetWorldCoordinates(points); // this writes the world X & Y coords into points
+		CCustomMapViewMap* pThis = Constructor_Trampoline();
+		HookVFTable(pThis);
+		return pThis;
+	}
+
+	// We need to do this *before* we patch the constructor.
+	static VirtualFunctionTable* GetPatchedVFTable()
+	{
+		static VirtualFunctionTable* table = nullptr;
+
+		if (table == nullptr)
+		{
+			// If we crash here, it means that the size of
+			// MapViewMap is off.
+			CCustomMapViewMap tempMap;
+			table = tempMap.GetVFTable();
+		}
+
+		return table;
+	}
+
+	static void HookVFTable(MapViewMap* pThis)
+	{
+		if (s_patchingVFTable)
+			return;
+		s_patchingVFTable = true;
+
+		// initialize the MapViewMap patched virtual function table
+		s_mapViewWndTablePatched = GetPatchedVFTable();
+
+		// save the original vftable in case we need to put it back
+		s_mapViewWndTableOrig = pThis->GetVFTable();
+
+		// now replace with the patched version
+		pThis->ReplaceVFTable(s_mapViewWndTablePatched);
+
+		s_patchingVFTable = false;
+	}
+
+	static void UnhookVFTable(MapViewMap* pThis)
+	{
+		// put the original table back
+		pThis->ReplaceVFTable(s_mapViewWndTableOrig);
+	}
+
+	virtual int PostDraw() override
+	{
+		MapUpdate();
+		MapAttach();
+		int result = MapViewMap::PostDraw();
+		MapDetach();
+		return result;
+	}
+
+	virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override
+	{
+		CVector3 points = { (float)pos.x, (float)pos.y, 0.f };
+		GetWorldCoordinates(points); // this writes the world X & Y coords into points
 
 		ZONEINFO* pZone = reinterpret_cast<ZONEINFO*>(pZoneInfo);
-		CDisplay* pDsp = reinterpret_cast<CDisplay*>(pDisplay);
 
 		std::vector<float> z_hits;
 
-		if (pZone && pDsp)
+		float curr_z = 0.0f;
+		for (float f = pZone->Ceiling; f > pZone->Floor; f -= 2.0f)
 		{
-			float curr_z = 0.0f;
-			for (float f = pZone->Ceiling; f > pZone->Floor; f -= 2.0f)
+			curr_z = pDisplay->GetFloorHeight(points.X, points.Y, f);
+			if (curr_z != INVALID_FLOOR)
 			{
-				curr_z = pDsp->GetFloorHeight(points.X, points.Y, f);
-				if (curr_z != INVALID_FLOOR)
-				{
-					break;
-				}
+				break;
 			}
-			do
-			{
-				z_hits.push_back(curr_z);
-				curr_z = pDsp->GetFloorHeight(points.X, points.Y, curr_z - 2.f);
-			} while (curr_z >= pZone->Floor - 1.f);
 		}
-		else if (auto pSpawn = reinterpret_cast<SPAWNINFO*>(pLocalPlayer))
+
+		do
 		{
-			// if no zone or pDsp, let's just put our own Z here. Shouldn't actually happen...
-			z_hits.push_back(pSpawn->Z);
-		}
+			z_hits.push_back(curr_z);
+			curr_z = pDisplay->GetFloorHeight(points.X, points.Y, curr_z - 2.f);
+		} while (curr_z >= pZone->Floor - 1.f);
 
 		MapClickLocation(points.X, points.Y, z_hits);
 
-		return HandleLButtonDown_Trampoline(point, flags);
+		return MapViewMap::HandleLButtonDown(pos, flags);
 	}
 
-	DWORD Constructor_Trampoline(CXWnd*);
-	DWORD Constructor_Detour(CXWnd* wnd)
+	virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override
 	{
-		DWORD Ret = Constructor_Trampoline(wnd);
-		StealVFTable(reinterpret_cast<CMapViewWnd*>(this));
-		return Ret;
-	}
-
-	static void StealVFTable(CMapViewWnd* pWnd)
-	{
-		// TODO: FIXME
-
-		// Copy existing vftables
-		auto pvfTable = new CSidlScreenWnd::VirtualFunctionTable(**reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd));
-		auto pMapViewMapVfTable = new CSidlScreenWnd::VirtualFunctionTable(**reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView));
-
-		// Replace functions with our detoured ones
-		pvfTable->Destructor = CMyMapViewWnd__Destructor;
-		pMapViewMapVfTable->PostDraw = CMyMapViewWnd__PostDraw;
-		pMapViewMapVfTable->HandleRButtonDown = MapViewMap__HandleRButtonDown;
-
-		// Preserve pointers to existing vftables
-		CMyMapViewWnd__OldvfTable = *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd);
-		MapViewMap_OldvfTable = *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView);
-
-		// Preserve
-		CMyMapViewWnd__OldPostDraw = MapViewMap_OldvfTable->PostDraw;
-		CMyMapViewWnd__OldDestructor = CMyMapViewWnd__OldvfTable->Destructor;
-		MapViewMap__OldHandleRButtonDown = pMapViewMapVfTable->HandleRButtonDown;
-
-		// Replace vftables with our ones
-		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd) = pvfTable;
-		*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView) = pMapViewMapVfTable;
-	}
-
-	static void RestoreVFTable(CMapViewWnd* pWnd)
-	{
-		if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable)
+		if (RButtonDown())
 		{
-			delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd);
-			*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(pWnd) = CMyMapViewWnd__OldvfTable;
-
-			delete *reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView);
-			*reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable**>(&pWnd->MapView) = MapViewMap_OldvfTable;
+			return MapViewMap::HandleRButtonDown(pos, flags);
 		}
+
+		return 0;
 	}
 };
-
-DETOUR_TRAMPOLINE_EMPTY(DWORD CMyMapViewWnd::Constructor_Trampoline(CXWnd *));
-DETOUR_TRAMPOLINE_EMPTY(int CMyMapViewWnd::HandleLButtonDown_Trampoline(const CXPoint&, uint32_t));
+DETOUR_TRAMPOLINE_EMPTY(CCustomMapViewMap* CCustomMapViewMap::Constructor_Trampoline());
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
@@ -404,11 +314,13 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mapactivelayer", MapActiveLayerCmd, 0, 1, 1);
 	AddCommand("/maploc", MapSetLocationCmd, 0, 1, 1);
 
-	EzDetourwName(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline, "CMapViewWnd__CMapViewWnd");
+	// Hook the constructor. If window already exists then we just hook the vftable.
+	// If it does not exist then we need to hook the constructor to do the same thing when the window is created.
+	EzDetour(MapViewMap__MapViewMap, &CCustomMapViewMap::Constructor_Detour, &CCustomMapViewMap::Constructor_Trampoline);
 	if (pMapViewWnd)
-		CMyMapViewWnd::StealVFTable(pMapViewWnd);
-
-	EzDetourwName(CMapViewWnd__HandleLButtonDown, &CMyMapViewWnd::HandleLButtonDown_Detour, &CMyMapViewWnd::HandleLButtonDown_Trampoline, "CMapViewWnd__HandleLButton");
+	{
+		CCustomMapViewMap::HookVFTable(&pMapViewWnd->MapView);
+	}
 
 	AddMQ2Data("MapSpawn", dataMapSpawn);
 	ClearSearchSpawn(&MapFilterNamed);
@@ -422,15 +334,13 @@ PLUGIN_API void ShutdownPlugin()
 	Update = false;
 	RemoveMQ2Data("MapSpawn");
 
-	RemoveDetour(CMapViewWnd__CMapViewWnd);
-	RemoveDetour(CMapViewWnd__HandleLButtonDown);
-
-	MapClear();
-
 	if (pMapViewWnd)
 	{
-		CMyMapViewWnd::RestoreVFTable(pMapViewWnd);
+		CCustomMapViewMap::UnhookVFTable(&pMapViewWnd->MapView);
 	}
+	RemoveDetour(MapViewMap__MapViewMap);
+
+	MapClear();
 
 	RemoveMQ2Benchmark(bmMapRefresh);
 	RemoveCommand("/maphide");

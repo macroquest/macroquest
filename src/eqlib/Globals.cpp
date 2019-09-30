@@ -614,9 +614,10 @@ INITIALIZE_EQGAME_OFFSET(CListWnd__SetItemIcon);
 INITIALIZE_EQGAME_OFFSET(CListWnd__CalculateCustomWindowPositions);
 INITIALIZE_EQGAME_OFFSET(CListWnd__SetVScrollPos);
 
-INITIALIZE_EQGAME_OFFSET(CMapViewWnd__CMapViewWnd);
-INITIALIZE_EQGAME_OFFSET(CMapViewWnd__HandleLButtonDown);
-INITIALIZE_EQGAME_OFFSET(CMapViewWnd__GetWorldCoordinates);
+INITIALIZE_EQGAME_OFFSET(MapViewMap__MapViewMap);
+INITIALIZE_EQGAME_OFFSET(MapViewMap__dMapViewMap);
+INITIALIZE_EQGAME_OFFSET(MapViewMap__vftable);
+INITIALIZE_EQGAME_OFFSET(MapViewMap__GetWorldCoordinates);
 
 INITIALIZE_EQGAME_OFFSET(CMerchantWnd__DisplayBuyOrSellPrice);
 INITIALIZE_EQGAME_OFFSET(CMerchantWnd__PurchasePageHandler__RequestGetItem);
@@ -1238,6 +1239,9 @@ FUNCTION_AT_ADDRESS(IconCache* GetAnimationCache(int index), __GetAnimationCache
 #endif
 #ifdef __SaveColors_x
 FUNCTION_AT_ADDRESS(void SaveColors(int, int, int, int), __SaveColors);
+#endif
+#ifdef __ExecuteCmd_x
+FUNCTION_AT_ADDRESS(bool EQExecuteCmd(unsigned int command, bool keyDown, void* data, const KeyCombo* combo), __ExecuteCmd);
 #endif
 
 //============================================================================

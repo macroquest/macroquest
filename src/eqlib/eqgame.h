@@ -668,14 +668,17 @@
 #define CListWnd__SetVScrollPos_x                                  0x91A080
 
 // CMapViewWnd
-#define CMapViewWnd__CMapViewWnd_x                                 0x7724C0
-#define CMapViewWnd__GetWorldCoordinates_x                         0x770BD0
-#define CMapViewWnd__HandleLButtonDown_x                           0x76DC10
+#define CMapViewWnd__CMapViewWnd_x                                 0x7736C0
 
 // MapViewMap
+#define MapViewMap__MapViewMap_x                                   0x76D9B0
+#define MapViewMap__dMapViewMap_x                                  0x76DB00
+#define MapViewMap__vftable_x                                      0xAF1F20
 #define MapViewMap__Clear_x                                        0x76E330
 #define MapViewMap__SaveEx_x                                       0x7716F0
 #define MapViewMap__SetZoom_x                                      0x775DB0
+#define MapViewMap__HandleLButtonDown_x                            0x76DC10
+#define MapViewMap__GetWorldCoordinates_x                          0x770BD0
 
 // CMerchantWnd
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x7953C0

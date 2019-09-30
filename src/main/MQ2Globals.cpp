@@ -682,13 +682,9 @@ fLoaderClearLoaded IC_LoaderClearLoaded = nullptr;
 fMQ2Unload IC_MQ2Unload = nullptr;
 fClassLvl IC_ClassLvl = nullptr;
 
-#ifdef __ExecuteCmd_x
-FUNCTION_AT_ADDRESS(bool EQExecuteCmd(unsigned int command, bool keyDown, void* data, const KeyCombo* combo), __ExecuteCmd);
-#endif
-
 bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 {
-	return EQExecuteCmd(command, keyDown, data, nullptr);
+	return eqlib::EQExecuteCmd(command, keyDown, data, nullptr);
 }
 
 } // namespace mq

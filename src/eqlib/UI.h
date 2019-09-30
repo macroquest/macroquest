@@ -3742,8 +3742,7 @@ struct [[offsetcomments]] MAPLINE
 using PMAPLINE = MAPLINE *;
 
 // pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
-// CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x628 (see 543ADA) in Aug 15 2019 Live
+// MapViewMap_size: 0x628 - 0x358 = 0x2d0 (see 543ADA) in Aug 15 2019 Live
 class [[offsetcomments]] MapViewMap : public CSidlScreenWnd
 {
 public:
@@ -3752,17 +3751,18 @@ public:
 	virtual ~MapViewMap();
 
 	// virtual functions
-	virtual int PostDraw() override;
-	virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override;
-	virtual int HandleLButtonUp(const CXPoint& pos, uint32_t flags) override;
-	virtual int HandleLButtonUpAfterHeld(const CXPoint& pos, uint32_t flags) override;
-	virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override;
-	virtual int HandleWheelMove(const CXPoint& pos, int scroll, uint32_t flags) override;
+	EQLIB_OBJECT virtual int PostDraw() override;
+	EQLIB_OBJECT virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleLButtonUp(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleLButtonUpAfterHeld(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override;
+	EQLIB_OBJECT virtual int HandleWheelMove(const CXPoint& pos, int scroll, uint32_t flags) override;
 
 	// methods
 	EQLIB_OBJECT void Clear();
 	EQLIB_OBJECT void SaveEx(char*, int);
 	EQLIB_OBJECT void SetZoom(float);
+	EQLIB_OBJECT void GetWorldCoordinates(CVector3&);
 
 	//EQLIB_OBJECT bool DrawClippedLine(CVector3*, RGB, CXRect);
 	//EQLIB_OBJECT bool IsLayerVisible(int);
@@ -3807,15 +3807,19 @@ public:
 /*0x244*/ float              scaleDiffY;
 /*0x248*/ float              mapViewScaleX;
 /*0x24c*/ float              mapViewScaleY;
-/*0x250*/ PMAPLINE           pLines;
-/*0x254*/ PMAPLABEL          pLabels;
+/*0x250*/ MAPLINE*           pLines;
+/*0x254*/ MAPLABEL*          pLabels;
 /*0x258*/ uint32_t           nextLabelId;
 /*0x25c*/ bool               lineActive;
-/*0x260*/
-	// more members, need to map it out. Fortunately, this is the last member of
-	// CMapViewWnd so its not necessary at this time to do so ...
+/*0x25d*/ uint8_t            filler[0x73]; // more members, need to map it out.
+/*0x2d0*/
+
+	// points to the eq instance of the virtual function table for this class
+	static VirtualFunctionTable* sm_vftable;
 };
 
+// CMapViewWnd__CMapViewWnd_x
+// CMapViewWnd_size: 0x628 (see 543ADA) in Aug 15 2019 Live
 class [[offsetcomments]] CMapViewWnd : public CSidlScreenWnd, public WndEventHandler
 {
 public:
@@ -3840,7 +3844,6 @@ public:
 	EQLIB_OBJECT bool IsMappingEnabled();
 
 	EQLIB_OBJECT void SetCurrentZone(EQZoneIndex, CVector3* v3Min, CVector3* v3Max, bool);
-	EQLIB_OBJECT void GetWorldCoordinates(CVector3&); // actually MapViewMap
 
 	// these are almost all the controls belonging to the CMapViewWnd
 /*0x224*/ int         ZoneId;
@@ -3890,7 +3893,7 @@ public:
 /*0x350*/ CXWnd*      wndSpacer;
 /*0x354*/ bool        bEditing;
 /*0x358*/ MapViewMap  MapView;                            // a window component owned by CMapViewWnd.
-/*0x5b8*/
+/*0x628*/
 	// alias the stupid
 	__declspec(property(get = getLines)) PMAPLINE pLines;
 	__declspec(property(get = getLabels)) PMAPLABEL pLabels;

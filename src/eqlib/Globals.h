@@ -628,9 +628,10 @@ EQLIB_VAR DWORD CListWnd__SetItemIcon;
 EQLIB_VAR DWORD CListWnd__CalculateCustomWindowPositions;
 EQLIB_VAR DWORD CListWnd__SetVScrollPos;
 
-EQLIB_VAR DWORD CMapViewWnd__CMapViewWnd;
-EQLIB_VAR DWORD CMapViewWnd__GetWorldCoordinates;
-EQLIB_VAR DWORD CMapViewWnd__HandleLButtonDown;
+EQLIB_VAR DWORD MapViewMap__MapViewMap;
+EQLIB_VAR DWORD MapViewMap__dMapViewMap;
+EQLIB_VAR DWORD MapViewMap__vftable;
+EQLIB_VAR DWORD MapViewMap__GetWorldCoordinates;
 
 EQLIB_VAR DWORD CMerchantWnd__DisplayBuyOrSellPrice;
 EQLIB_VAR DWORD CMerchantWnd__PurchasePageHandler__RequestGetItem;
@@ -1445,6 +1446,7 @@ EQLIB_API DWORD EQGetTime();
 EQLIB_OBJECT CXStr STMLToText(const CXStr& In, bool bReplaceBrWithNewline = true);
 EQLIB_API class IconCache* __cdecl GetAnimationCache(int index);
 EQLIB_API void SaveColors(int, int, int, int);
+EQLIB_API bool EQExecuteCmd(unsigned int command, bool keyDown, void* data, const KeyCombo* combo);
 
 //----------------------------------------------------------------------------
 

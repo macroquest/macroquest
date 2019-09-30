@@ -658,6 +658,14 @@ public:
 	/*0x168*/
 	};
 
+	// Returns the current instance of this class's vftable. Might represent some other
+	// inherited class (and not CXWnd's)
+	inline VirtualFunctionTable* GetVFTable()
+	{
+		if (this == nullptr) return nullptr;
+		return *reinterpret_cast<VirtualFunctionTable**>(this);
+	}
+
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
 
@@ -769,6 +777,20 @@ public:
 	/*0x17c*/ void* GetScreenWndType;
 	/*0x180*/
 	};
+
+	// Returns the current instance of this class's vftable. Might represent some other
+	// inherited class (and not CSidlScreenWnd's)
+	inline VirtualFunctionTable* GetVFTable()
+	{
+		if (this == nullptr) return nullptr;
+		return *reinterpret_cast<VirtualFunctionTable**>(this);
+	}
+
+	inline void ReplaceVFTable(VirtualFunctionTable* table)
+	{
+		if (this == nullptr) return;
+		*reinterpret_cast<VirtualFunctionTable**>(this) = table;
+	}
 
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;

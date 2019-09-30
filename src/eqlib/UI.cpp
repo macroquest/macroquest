@@ -25,6 +25,7 @@ namespace eqlib {
 
 CButtonWnd::VirtualFunctionTable* CButtonWnd::sm_vftable = nullptr;
 CListWnd::VirtualFunctionTable* CListWnd::sm_vftable = nullptr;
+CSidlScreenWnd::VirtualFunctionTable* MapViewMap::sm_vftable = nullptr;
 
 //============================================================================
 // CEQSuiteTextureLoader
@@ -2005,16 +2006,17 @@ FUNCTION_AT_ADDRESS(void CMapViewWnd::ActivateAutoMapping(), CMapViewWnd__Activa
 #ifdef CMapViewWnd__DeactivateAutoMapping_x
 FUNCTION_AT_ADDRESS(void CMapViewWnd::DeactivateAutoMapping(), CMapViewWnd__DeactivateAutoMapping);
 #endif
-#ifdef CMapViewWnd__GetWorldCoordinates_x
-FUNCTION_AT_ADDRESS(void CMapViewWnd::GetWorldCoordinates(CVector3&), CMapViewWnd__GetWorldCoordinates);
-#endif
 
-// MapViewMap
+// MapViewMap virtual override implementations
+FORWARD_FUNCTION_TO_VTABLE2(int MapViewMap::PostDraw(), MapViewMap, CXWnd, PostDraw);
+FORWARD_FUNCTION_TO_VTABLE2(int MapViewMap::HandleLButtonDown(const CXPoint&, uint32_t), MapViewMap, CXWnd, HandleLButtonDown);
+FORWARD_FUNCTION_TO_VTABLE2(int MapViewMap::HandleLButtonUp(const CXPoint&, uint32_t), MapViewMap, CXWnd, HandleLButtonUp);
+FORWARD_FUNCTION_TO_VTABLE2(int MapViewMap::HandleLButtonUpAfterHeld(const CXPoint&, uint32_t), MapViewMap, CXWnd, HandleLButtonUpAfterHeld);
+FORWARD_FUNCTION_TO_VTABLE2(int MapViewMap::HandleRButtonDown(const CXPoint&, uint32_t), MapViewMap, CXWnd, HandleRButtonDown);
+FORWARD_FUNCTION_TO_VTABLE2(int MapViewMap::HandleWheelMove(const CXPoint&, int, uint32_t), MapViewMap, CXWnd, HandleWheelMove);
+
 #ifdef MapViewMap__MapViewMap_x
-FUNCTION_AT_ADDRESS(MapViewMap::MapViewMap(), MapViewMap__MapViewMap);
-#endif
-#ifdef MapViewMap__dMapViewMap_x
-FUNCTION_AT_ADDRESS(MapViewMap::~MapViewMap(), MapViewMap__dMapViewMap);
+CONSTRUCTOR_AT_ADDRESS(MapViewMap::MapViewMap(), MapViewMap__MapViewMap);
 #endif
 #ifdef CMapViewWnd__HandleLButtonDown_x
 FUNCTION_AT_ADDRESS(int MapViewMap::HandleLButtonDown(const CXPoint&, uint32_t), CMapViewWnd__HandleLButtonDown);
@@ -2118,6 +2120,10 @@ FUNCTION_AT_ADDRESS(int MapViewMap::GetMinZ(), MapViewMap__GetMinZ);
 #ifdef MapViewMap__GetMaxZ_x
 FUNCTION_AT_ADDRESS(int MapViewMap::GetMaxZ(), MapViewMap__GetMaxZ);
 #endif
+#ifdef MapViewMap__GetWorldCoordinates_x
+FUNCTION_AT_ADDRESS(void MapViewMap::GetWorldCoordinates(CVector3&), MapViewMap__GetWorldCoordinates);
+#endif
+
 
 //============================================================================
 // CMerchantWnd
@@ -2969,6 +2975,7 @@ void InitializeUI()
 {
 	CButtonWnd::sm_vftable = reinterpret_cast<CButtonWnd::VirtualFunctionTable*>(CButtonWnd__vftable);
 	CListWnd::sm_vftable = reinterpret_cast<CListWnd::VirtualFunctionTable*>(CListWnd__vftable);
+	MapViewMap::sm_vftable = reinterpret_cast<CSidlScreenWnd::VirtualFunctionTable*>(MapViewMap__vftable);
 }
 
 } // namespace eqlib
