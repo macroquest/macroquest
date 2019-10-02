@@ -5232,13 +5232,29 @@ class MQ2TaskObjectiveType : public MQ2Type
 		Status = 2,
 		Zone = 3,
 		xIndex = 4,
+		Type = 5,
+		RequiredCount = 6,
+		Optional = 7,
+		RequiredItem = 8,
+		RequiredSkill = 9,
+		RequiredSpell = 10,
+		DZSwitchID = 11,
+		CurrentCount = 12,
 	};
-	MQ2TaskObjectiveType() :MQ2Type("taskobjectivemember")
+	MQ2TaskObjectiveType() :MQ2Type("taskobjectivemember")//its should be renamed TaskElementType...
 	{
 		TypeMember(Instruction);
 		TypeMember(Status);
 		TypeMember(Zone);
 		AddMember(xIndex, "Index");
+		TypeMember(Type);
+		TypeMember(RequiredCount);
+		TypeMember(Optional);
+		TypeMember(RequiredItem);
+		TypeMember(RequiredSkill);
+		TypeMember(RequiredSpell);
+		TypeMember(DZSwitchID);
+		TypeMember(CurrentCount);
 	}
 	~MQ2TaskObjectiveType()
 	{
@@ -5246,16 +5262,38 @@ class MQ2TaskObjectiveType : public MQ2Type
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		CXStr Str;
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-			//we return Objective by default:
-			clist->GetItemText(&Str, VarPtr.Int, 0);
-			CHAR szOut[MAX_STRING] = { 0 };
-			GetCXStr(Str.Ptr, szOut, MAX_STRING);
-			if (szOut[0] != '\0') {
-				strcpy_s(Destination, MAX_STRING, szOut);
-				return true;
-			}
+		int Elementindex = VarPtr.HighPart;
+		if (Elementindex == -1)
+			return false;
+		CTaskManager*tm = ppTaskManager;
+		if (!tm)
+			return false;
+		if (VarPtr.Int == -1)
+			return false;
+		DWORD index = HIWORD(VarPtr.DWord);
+		if (index == 0xFFFFFFFF)
+			return false;
+		int type = LOWORD(VarPtr.DWord);
+
+		PCTaskStatus*ts = 0;
+		CTaskEntry * entry = 0;
+		switch (type)
+		{
+		case TST_SoloQuest:
+			entry = &tm->QuestEntries[index];
+			break;
+		case TST_SharedQuest:
+			entry = &tm->SharedTaskEntries[0];
+			break;
+		};
+		CHAR szOut[MAX_STRING] = { 0 };
+		if (entry)
+		{
+			tm->GetElementDescription(&entry->Elements[Elementindex], szOut);
+		}
+		if (szOut[0] != '\0') {
+			strcpy_s(Destination, MAX_STRING, szOut);
+			return true;
 		}
 		return false;
 	}
@@ -5317,6 +5355,7 @@ public:
 		Objective = 9,
 		Type = 10,
 		MemberList = 11,
+		ID = 12,
 	};
 	enum TaskMethods
 	{
@@ -5335,6 +5374,7 @@ public:
 		TypeMember(Objective);
 		TypeMember(Type);
 		TypeMember(MemberList);
+		TypeMember(ID);
 
 		TypeMethod(Select);
 	}
@@ -5344,20 +5384,21 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy_s(Destination,254, "NULL");
-		int index = VarPtr.Int;
-		if (pTaskWnd) {
-			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-				if (index == -1)
-					index = clist->GetCurSel();
-				CXStr Str;
-				clist->GetItemText(&Str, index, 2);
-				CHAR szOut[MAX_STRING] = { 0 };
-				GetCXStr(Str.Ptr, szOut, MAX_STRING);
-				if (szOut[0] != '\0') {
-					strcpy_s(Destination, MAX_STRING, szOut);
-				}
-			}
+		strcpy_s(Destination,MAX_STRING, "NULL");
+		int index = HIWORD(VarPtr.DWord);
+		int type = LOWORD(VarPtr.DWord);
+		if (CTaskManager*tm = ppTaskManager) {
+			CTaskEntry * entry = 0;
+			switch (type)
+			{
+			case TST_SoloQuest:
+				entry = &tm->QuestEntries[index];
+				break;
+			case TST_SharedQuest:
+				entry = &tm->SharedTaskEntries[0];
+				break;
+			};
+			strcpy_s(Destination, MAX_STRING, entry->TaskTitle);
 		}
 		return true;
 	}

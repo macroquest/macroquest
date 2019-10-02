@@ -6741,47 +6741,53 @@ enum TaskGroupType {
 typedef struct _CTaskElement
 {
 /*0x000*/ TaskType Type;
+#if defined(ROF2EMU) || defined(UFEMU)
 /*0x004*/ TaskGroupType GroupType;
-/*0x008*/ CHAR TargetName[0x40];
-/*0x048*/ CHAR ZoneID[0x40];
-/*0x088*/ CHAR TargetZoneID[0x40];
-/*0x0c8*/ int RequiredCount;
-/*0x0cc*/ bool bOptional;
-/*0x0d0*/ int ElementGroup;
-/*0x0d4*/ int DZSwitchID;
-/*0x0d8*/ CHAR ElementDescriptionOverride[0x80];
-/*0x158*/ PCXSTR ItemNameList;
-/*0x15c*/ PCXSTR SkillIDList;
-/*0x160*/ PCXSTR SpellIDList;
-/*0x164*/ PCXSTR TaskTitle;
-/*0x168*/
+#endif
+/*0x004*/ CHAR TargetName[0x40];
+/*0x044*/ CHAR ZoneID[0x40];
+/*0x084*/ CHAR TargetZoneID[0x40];
+/*0x0c4*/ int RequiredCount;
+/*0x0c8*/ bool bOptional;
+/*0x0cc*/ int ElementGroup;
+/*0x0d0*/ int DZSwitchID;
+/*0x0d4*/ CHAR ElementDescriptionOverride[0x80];//see 5288AE in Sep 13 2019
+/*0x154*/ PCXSTR ItemNameList;
+/*0x158*/ PCXSTR SkillIDList;
+/*0x15c*/ PCXSTR SpellIDList;
+/*0x160*/ PCXSTR TaskTitle;
+/*0x164*/
 } CTaskElement, *PCTaskElement;
+//3BAC in sep 13 2019 see 528C9F -eqmule
 typedef struct _CTaskEntry
 {
 /*0x0000*/ int TaskID;
 /*0x0004*/ FLOAT RewardAdjustment;
 /*0x0008*/ CHAR TaskTitle[0x40];
 /*0x0048*/ int DurationSeconds;
-/*0x004C*/ int DurCode;
-/*0x0050*/ CHAR StartText[0xFa0];//4000
-/*0x0FF0*/ bool bShowReward;
-/*0x0FF4*/ int RewardCash;
-/*0x0FF8*/ int RewardExp;
-/*0x0FFC*/ int RewardPoints;
-/*0x1000*/ int RewardFactionID;
-/*0x1004*/ int RewardFactionAmount;
-/*0x1008*/ PCXSTR RewardItemTag;
-/*0x100C*/ CTaskElement Elements[0x14];//0x168 * 0x14 = 0x1C20
-/*0x2C2C*/ int TaskSystem;
-/*0x2C30*/ int PointType;
-/*0x2C34*/ bool StartTextCompiled;//for sure see 51B861 in Nov 13 2018 Live
-/*0x0000*/ CHAR RawStartText[0xFa0];//4000
-/*0x0000*/ bool bElementsReceived;
-/*0x0000*/ __time32_t TimeCompleted;
-/*0x3BDC*/ ArrayClass_RO<MonsterMissionTemplate> MonsterTemplates;
-/*0x3BEC*/ bool bTemplateSelectionLocked;//51B887
-/*0x3BED*/ bool bHasRewardSet;
-/*0x3BF0*/ 
+/*0x004C*/ CHAR StartText[0xFa0];//4000
+/*0x0FEC*/ bool bShowReward;
+/*0x0FF0*/ int RewardCash;
+/*0x0FF4*/ int RewardExp;
+/*0x0FF8*/ int RewardPoints;
+/*0x0FFC*/ int RewardFactionID;
+/*0x1000*/ int RewardFactionAmount;
+/*0x1004*/ PCXSTR RewardItemTag;
+/*0x1008*/ CTaskElement Elements[0x14];//0x164 * 0x14 = 0x1BD0
+/*0x2BD8*/ int TaskSystem;
+/*0x2BDC*/ int PointType;
+/*0x2BE0*/ bool StartTextCompiled;//for sure see 528BD7 in Sep 13 2019 Live
+/*0x2BE1*/ CHAR RawStartText[0xFA0];//4000
+/*0x3B81*/ bool bElementsReceived;
+/*0x3B84*/ __time32_t TimeCompleted;
+/*0x3B88*/ ArrayClass_RO<MonsterMissionTemplate> MonsterTemplates;
+/*0x3B98*/ bool bTemplateSelectionLocked;
+/*0x3B99*/ bool bHasRewardSet;
+/*0x3B9C*/ int Unknown0x3B9C;
+/*0x3BA0*/ int Unknown0x3BA0;
+/*0x3BA4*/ int Unknown0x3BA4;
+/*0x3BA8*/ int Unknown0x3BA8;
+/*0x3BAC*/ 
 } CTaskEntry,*PCTaskEntry;
 enum SharedTaskPlayerRole 
 { 
@@ -6795,24 +6801,31 @@ typedef struct _SharedTaskClientPlayerInfo
 	SharedTaskPlayerRole m_role;
 	_SharedTaskClientPlayerInfo *pNext;
 }SharedTaskClientPlayerInfo,*PSharedTaskClientPlayerInfo;
-
+enum TaskSystemType
+{
+	TST_Task,
+	TST_SharedQuest,
+	TST_SoloQuest
+};
 class CTaskManager// : public PopDialogHandler /*0x000000*/ 
 {
 public:
 /*0x000000*/ PVOID vfTable;
 /*0x000004*/ CTaskEntry TaskEntries[1];
-/*0x003BF4*/ CTaskEntry QuestEntries[0x1d];//see 51B93B 0x1d * 0x3BF0 = 0x6CA30
+/*0x003BF4*/ CTaskEntry QuestEntries[0x1d];//0x1d * 0x3BF0 = 0x6CA30 see 51B93B in Nov 13 2018
 /*0x070624*/ CTaskEntry SharedTaskEntries[1];
 /*0x074214*/ CTaskEntry QuestHistoryEntries[0x32];
 /*0x12F6F4*/ int AddPlayerID;
 /*0x12F6F8*/ bool bAddPlayerIsSwap;
 /*0x12F6FC*/ CHAR AddPlayerSwapeeName[0x40];
-/*0x12F73C*/ SharedTaskClientPlayerInfo *pFirstMember;//51B9D8
+/*0x12F73C*/ SharedTaskClientPlayerInfo *pFirstMember;//see 51B9D8 in Nov 13 2018
 /*0x12F740*/
 EQLIB_OBJECT CTaskManager::CTaskManager(class CXWnd *);
 // virtual
 EQLIB_OBJECT CTaskManager::~CTaskManager(void);
 EQLIB_OBJECT CTaskEntry *CTaskManager::GetEntry(int Index, int System, bool bCheckEmpty = true);
+EQLIB_OBJECT PCTaskStatus * CTaskManager::GetTaskStatus(PcClient *pMe, int Index, TaskSystemType System);
+EQLIB_OBJECT void CTaskManager::GetElementDescription(const CTaskElement *pElement, char *Out);
 };
 class CTextEntryWnd : public CEditBaseWnd
 {

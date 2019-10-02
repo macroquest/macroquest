@@ -3017,6 +3017,12 @@ FUNCTION_AT_ADDRESS(int CTaskWnd::UpdateTaskTimers(unsigned long),CTaskWnd__Upda
 #ifdef CTaskManager__GetEntry_x
 FUNCTION_AT_ADDRESS(CTaskEntry *CTaskManager::GetEntry(int Index, int System, bool bCheckEmpty), CTaskManager__GetEntry);
 #endif
+#ifdef CTaskManager__GetTaskStatus_x
+FUNCTION_AT_ADDRESS(PCTaskStatus * CTaskManager::GetTaskStatus(PcClient *pMe, int Index, TaskSystemType System),CTaskManager__GetTaskStatus);
+#endif
+#ifdef CTaskManager__GetElementDescription_x
+FUNCTION_AT_ADDRESS(void CTaskManager::GetElementDescription(const CTaskElement *pElement, char *Out),CTaskManager__GetElementDescription);
+#endif
 #ifdef CTextEntryWnd__CTextEntryWnd_x
 FUNCTION_AT_ADDRESS( CTextEntryWnd::CTextEntryWnd(class CXWnd *),CTextEntryWnd__CTextEntryWnd);
 #endif

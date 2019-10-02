@@ -1543,53 +1543,98 @@ TLO(dataFriends)
 
 TLO(dataTask)
 {
-	Ret.Int = -1;
-	if (ppTaskManager) {
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
+	Ret.Type = pTaskType;
+	Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, 0xFFFFFFFF);
+	if (CTaskManager*tm = ppTaskManager)
+	{
+		if (ISINDEX())
+		{
+			CTaskEntry * sharedentry = (CTaskEntry *)&tm->SharedTaskEntries[0];
+			if (ISNUMBER())
+			{
 				int n = GETNUMBER();
 				n--;
 				if (n < 0)
 					n = 0;
-				Ret.Int = n;
+				if (n > 28)
+					n = 28;
+
+				//well, if it is 0, and we have a shared quest, then we need to return that...
+				//people really should not use index by number it's stupid and lazy.
+				if (n==0 && sharedentry && sharedentry->TaskID)
+				{
+					Ret.DWord = (int)MAKELPARAM(TST_SharedQuest, 0);
+				}
+				else
+				{
+					Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, n);
+				}
 			}
-			else {
+			else
+			{
 				CHAR szOut[MAX_STRING] = { 0 };
 				CHAR szTemp[MAX_STRING] = { 0 };
 				strcpy_s(szTemp, GETFIRST());
 				_strlwr_s(szTemp);
-				//todo: finish this, we can get this stuff done without taskwindow being open.
-				for (int i = 0; i < 29; i++)
+				PCHAR pName = &szTemp[0];
+				bool bExact = false;
+				if (*pName == '=')
 				{
-					if (CTaskEntry * entry = &pTaskManager.QuestEntries[i])
+					bExact = true;
+					pName++;
+				}
+				//need to check this first
+				if(sharedentry && sharedentry->TaskID)
+				{
+					if (bExact)
 					{
-						strcpy_s(szOut, entry->TaskTitle);
+						if (!_stricmp(sharedentry->TaskTitle, pName))
+						{
+							Ret.DWord = (int)MAKELPARAM(TST_SharedQuest, 0);
+							return true;
+						}
+					}
+					else
+					{
+						strcpy_s(szOut, sharedentry->TaskTitle);
 						_strlwr_s(szOut);
-						if (strstr(szOut, szTemp)) {
-							//Ret.Int = i;
-							break;
+						if (strstr(szOut, pName))
+						{
+							//ok we actually do have one, and its always index 0 but 0 can also be a valid
+							//index for solo quests so we need to se it to something else
+							Ret.DWord = (int)MAKELPARAM(TST_SharedQuest, 0);
+							return true;
 						}
 					}
 				}
-				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-					CXStr Str;
-					strcpy_s(szTemp, GETFIRST());
-					_strlwr_s(szTemp);
-					for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-						clist->GetItemText(&Str, i, 2);
-						GetCXStr(Str.Ptr, szOut, MAX_STRING);
-						_strlwr_s(szOut);
-						if (strstr(szOut, szTemp)) {
-							Ret.Int = i;
-							break;
+				//lets roll through solo quests if we got this far...
+				for (int i = 0; i < 29; i++)
+				{
+					if (CTaskEntry * entry = &tm->QuestEntries[i])
+					{
+						if (bExact)
+						{
+							if (!_stricmp(szOut, pName))
+							{
+								Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, i);
+								return true;
+							}
+						}
+						else
+						{
+							strcpy_s(szOut, entry->TaskTitle);
+							_strlwr_s(szOut);
+							if (strstr(szOut, pName)) {
+								Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, i);
+								return true;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	Ret.Type = pTaskType;
-	return true;
+	return false;
 }
 
 TLO(dataMount)

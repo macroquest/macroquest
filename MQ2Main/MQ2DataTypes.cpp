@@ -9200,7 +9200,7 @@ bool MQ2WindowType::GETMEMBER()
 		}
 		else if (((CXWnd*)pWnd)->GetType() != UI_Listbox)
 			return false;
-		Dest.DWord = 1 + ((CListWnd*)pWnd)->GetCurSel();
+		Dest.DWord = 1 + ((CListWnd *)pWnd)->GetCurSel();
 		return true;
 	}
 	return false;
@@ -14604,39 +14604,174 @@ Dest.Ptr=&DataTypeTemp[0];
 
 bool MQ2TaskObjectiveType::GETMEMBER()
 {
+	int Elementindex = VarPtr.HighPart;
+	if (Elementindex == -1)
+		return false;
+	CTaskManager*tm = ppTaskManager;
+	if (!tm)
+		return false;
 	if (VarPtr.Int == -1)
 		return false;
+	int index = HIWORD(VarPtr.DWord);
+	if (index == -1)
+		return false;
+	int type = LOWORD(VarPtr.DWord);
 	PMQ2TYPEMEMBER pMember = MQ2TaskObjectiveType::FindMember(Member);
 	if (!pMember)
 		return false;
-	CXStr Str;
-	if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-		switch ((TaskObjectiveTypeMembers)pMember->ID)
-		{
+
+	PCTaskStatus*ts = 0;
+	CTaskEntry * entry = 0;
+	switch (type)
+	{
+	case TST_SoloQuest:
+		ts = tm->GetTaskStatus((PcClient *)pPCData, index, TST_SoloQuest);
+		entry = &tm->QuestEntries[index];
+		break;
+	case TST_SharedQuest:
+		ts = tm->GetTaskStatus((PcClient *)pPCData, 0, TST_SharedQuest);
+		entry = &tm->SharedTaskEntries[0];
+		break;
+	};
+	CHAR szOut[MAX_STRING] = { 0 };
+	switch ((TaskObjectiveTypeMembers)pMember->ID)
+	{
 		case Instruction:
 		{
-			clist->GetItemText(&Str, VarPtr.Int, 0);
+			tm->GetElementDescription(&entry->Elements[Elementindex], szOut);
 			break;
 		}
 		case Status:
-			clist->GetItemText(&Str, VarPtr.Int, 1);
+			if (ts->CurrentCounts[Elementindex]==entry->Elements[Elementindex].RequiredCount) {
+				strcpy_s(szOut,"Done");
+			}
+			else {
+				sprintf_s(szOut, "%d/%d", ts->CurrentCounts[Elementindex], entry->Elements[Elementindex].RequiredCount);
+			}
 			break;
 		case Zone:
-			clist->GetItemText(&Str, VarPtr.Int, 2);
+		{
+			int zid = atoi(entry->Elements[Elementindex].TargetZoneID) & 0x7FFF;
+			//int zid = tmpzid & 0x7FFF;
+			if (zid == 0)
+			{
+				strcpy_s(szOut, "ALL");
+			}
+			else
+			{
+				if (zid < MAX_ZONES)
+				{
+					if (PZONELIST pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
+					{
+						Dest.Type = pZoneType;
+						Dest.Ptr = pZList;
+						return true;
+					}
+				}
+			}
 			break;
+		}
 		case xIndex:
-			Dest.Int = VarPtr.Int;
+			Dest.Int = Elementindex+1;
 			Dest.Type = pIntType;
 			return true;
-		}
-		CHAR szOut[MAX_STRING] = { 0 };
-		GetCXStr(Str.Ptr, szOut, MAX_STRING);
-		if (szOut[0] != '\0') {
-			strcpy_s(DataTypeTemp, szOut);
+		case Type:
+		{
+			switch (entry->Elements[Elementindex].Type)
+			{
+				case TT_Unknown:
+					strcpy_s(DataTypeTemp, "Unknown");
+					break;
+				case TT_None:
+					strcpy_s(DataTypeTemp, "None");
+					break;
+				case TT_Deliver:
+					strcpy_s(DataTypeTemp, "Deliver");
+					break;
+				case TT_Kill:
+					strcpy_s(DataTypeTemp, "Kill");
+					break;
+				case TT_Loot:
+					strcpy_s(DataTypeTemp, "Loot");
+					break;
+				case TT_Hail:
+					strcpy_s(DataTypeTemp, "Hail");
+					break;
+				case TT_Explore:
+					strcpy_s(DataTypeTemp, "Explore");
+					break;
+				case TT_Tradeskill:
+					strcpy_s(DataTypeTemp, "Tradeskill");
+					break;
+				case TT_Fishing:
+					strcpy_s(DataTypeTemp, "Fishing");
+					break;
+				case TT_Foraging:
+					strcpy_s(DataTypeTemp, "Foraging");
+					break;
+				case TT_Cast:
+					strcpy_s(DataTypeTemp, "Cast");
+					break;
+				case TT_UseSkill:
+					strcpy_s(DataTypeTemp, "UseSkill");
+					break;
+				case TT_DZSwitch:
+					strcpy_s(DataTypeTemp, "DZSwitch");
+					break;
+				case TT_DestroyObject:
+					strcpy_s(DataTypeTemp, "DestroyObject");
+					break;
+				case TT_Collect:
+					strcpy_s(DataTypeTemp, "Collect");
+					break;
+				case TT_Dialogue:
+					strcpy_s(DataTypeTemp, "Dialogue");
+					break;
+				default:
+					strcpy_s(DataTypeTemp, "NULL");
+					break;
+			};
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;
 		}
+		case CurrentCount:
+			Dest.Int = ts->CurrentCounts[Elementindex];
+			Dest.Type = pIntType;
+			return true;
+		case RequiredCount:
+			Dest.Int = entry->Elements[Elementindex].RequiredCount;
+			Dest.Type = pIntType;
+			return true;
+		case Optional:
+			Dest.DWord = entry->Elements[Elementindex].bOptional;
+			Dest.Type = pBoolType;
+			return true;
+		case RequiredItem:
+		{
+			GetCXStr(entry->Elements[Elementindex].ItemNameList, szOut);
+			break;
+		}
+		case RequiredSkill:
+		{
+			GetCXStr(entry->Elements[Elementindex].SkillIDList, szOut);
+			break;
+		}
+		case RequiredSpell:
+		{
+			GetCXStr(entry->Elements[Elementindex].SpellIDList, szOut);
+			break;
+		}
+		case DZSwitchID:
+			Dest.DWord = entry->Elements[Elementindex].DZSwitchID;
+			Dest.Type = pIntType;
+			return true;
+	}
+	if (szOut[0] != '\0') {
+		strcpy_s(DataTypeTemp, szOut);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	}
 	return false;
 }
@@ -14682,27 +14817,31 @@ bool MQ2TaskMemberType::GETMEMBER()
 
 bool MQ2TaskType::GETMEMBER()
 {
+	CTaskManager*tm = ppTaskManager;
+	if (!tm)
+		return false;
 	if (!pTaskWnd)
 		return false;
+	int index = HIWORD(VarPtr.DWord);
+	if (index == -1)
+		return false;
+	int type = LOWORD(VarPtr.DWord);
 	PMQ2TYPEMEMBER pMethod = MQ2TaskType::FindMethod(Member);
 	if (pMethod) {
 		switch ((TaskMethods)pMethod->ID)
 		{
-		case Select:
-		{
-			Dest.DWord = 0;
-			Dest.Type = pBoolType;
-			int index = VarPtr.Int;
-			CHAR szOut[255] = { 0 };
-			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-				if (index != -1) {
+			case Select:
+			{
+				Dest.DWord = 0;
+				Dest.Type = pBoolType;
+				CHAR szOut[255] = { 0 };
+				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 					if (SendListSelect2((CXWnd*)clist, index)) {
 						Dest.DWord = 1;
 					}
 				}
-			}
-			return true;
-		};
+				return true;
+			};
 		}
 		return false;
 	}
@@ -14712,208 +14851,235 @@ bool MQ2TaskType::GETMEMBER()
 	PTASKMEMBER pTaskmember = (PTASKMEMBER)pTaskMember;
 	switch ((TaskTypeMembers)pMember->ID)
 	{
-	case Address:
-		Dest.DWord = (DWORD)pTaskmember;
-		Dest.Type = pIntType;
-		return true;
-	case Type:
-	{
-		Dest.Type = pStringType;
-		int index = VarPtr.Int;
-		if (index == -1)
-			return false;
-
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-			CXStr Str;
-			clist->GetItemText(&Str, index, 1);
-			CHAR szOut[MAX_STRING] = { 0 };
-			GetCXStr(Str.Ptr, szOut, MAX_STRING);
-			if (!_stricmp(szOut, "S")) {
-				strcpy_s(DataTypeTemp, "Shared");
-				Dest.Ptr = &DataTypeTemp[0];
-				return true;
-			}
-			else {
+		case Address:
+			Dest.DWord = (DWORD)pTaskmember;
+			Dest.Type = pIntType;
+			return true;
+		case Type:
+		{
+			Dest.Type = pStringType;
+			switch (type)
+			{
+			case TST_SoloQuest:
 				strcpy_s(DataTypeTemp, "Quest");
 				Dest.Ptr = &DataTypeTemp[0];
-				return true;
-			}
-		}
-		return false;
-	}
-	case xIndex:
-		Dest.Int = VarPtr.Int + 1;
-		Dest.Type = pIntType;
-		return true;
-	case Leader:
-	{
-		strcpy_s(DataTypeTemp, "NULL");
-		for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
-			if (pTaskmember->IsLeader) {
-				strcpy_s(DataTypeTemp, pTaskmember->Name);
 				break;
-			}
-		}
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	}
-	case Title:
-	{
-		int index = VarPtr.Int;
-		strcpy_s(DataTypeTemp, "NULL");
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-			if (index == -1)
-				index = clist->GetCurSel();
-			CXStr Str;
-			clist->GetItemText(&Str, index, 2);
-			CHAR szOut[MAX_STRING] = { 0 };
-			GetCXStr(Str.Ptr, szOut, MAX_STRING);
-			if (szOut[0] != '\0') {
-				strcpy_s(DataTypeTemp, szOut);
-			}
-		}
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	}
-	case Timer:
-	{
-		Dest.UInt64 = 0;
-		Dest.Type = pTimeStampType;
-		int index = VarPtr.Int;
-		pTaskWnd->UpdateTaskTimers(_time32(NULL));
-		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist) {
-			CXStr Str;
-			if (index == -1)
-				index = clist->GetCurSel();
-			clist->GetItemText(&Str, index, 3);
-			CHAR szOut[MAX_STRING] = { 0 };
-			GetCXStr(Str.Ptr, szOut, MAX_STRING);
-			if (szOut[0] != '\0') {
-				int hh, mm, ss;
-				if (sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss)) {
-					Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
-					return true;
-				}
-				return false;
-			}
-		}
-		return false;
-	}
-	case xMember:
-		Dest.Type = pTaskMemberType;
-		if (!ISINDEX())
-			return false;
-		if (ISNUMBER())
-		{
-			for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
-				if (i == GETNUMBER()) {
-					Dest.Ptr = pTaskmember;
-					return true;
-				}
-			}
-		}
-		else {
-			for (; pTaskmember; pTaskmember = pTaskmember->pNext) {
-				if (!_stricmp(pTaskmember->Name, GETFIRST())) {
-					Dest.Ptr = pTaskmember;
-					return true;
-				}
-			}
-		}
-		return false;
-	case Members:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-		for (; pTaskmember && Dest.DWord<6; pTaskmember = pTaskmember->pNext, Dest.DWord++) {
-		}
-		return true;
-	case Objective:
-	{
-		Dest.Int = 0;
-		Dest.Type = pTaskObjectiveType;
-		int taskindex = VarPtr.Int;
-		if (CListWnd *tasklist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-			if (taskindex != -1) {
-				if (tasklist->GetCurSel() != taskindex) {
-					if (!SendListSelect2((CXWnd*)tasklist, taskindex)) {
-						return false;
-					}
-					if (tasklist->GetCurSel() != taskindex) {
-						return false;
-					}
-				}
-			}
-			else {
-				return false;
-			}
-		}
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-			CXStr Str;
-			int stepindex = -1;
-			if (ISNUMBER()) {
-				stepindex = GETNUMBER();
-				stepindex--;
-				if (stepindex < 0) {
-					stepindex = 0;
-				}
-			}
-			else {
-				CHAR szOut[MAX_STRING] = { 0 };
-				CHAR szTemp[MAX_STRING] = { 0 };
-				strcpy_s(szTemp, GETFIRST());
-				_strlwr_s(szTemp);
-				for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-					clist->GetItemText(&Str, i, 0);
-					GetCXStr(Str.Ptr, szOut, MAX_STRING);
-					_strlwr_s(szOut);
-					if (strstr(szOut, szTemp)) {
-						stepindex = i;
-						break;
-					}
-				}
-			}
-			Dest.Int = stepindex;
+			case TST_SharedQuest:
+				strcpy_s(DataTypeTemp, "Shared");
+				Dest.Ptr = &DataTypeTemp[0];
+				break;
+			default:
+				strcpy_s(DataTypeTemp, "Unknown");
+				Dest.Ptr = &DataTypeTemp[0];
+				break;
+			};
 			return true;
 		}
-		return false;
-	}
-	case Step://gets the first step thats not Done in the task objective.
-	{
-		Dest.Int = 0;
-		Dest.Type = pTaskObjectiveType;
-		int taskindex = VarPtr.Int;
-		if (CListWnd *tasklist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-			if (taskindex != -1) {
-				if (tasklist->GetCurSel() != taskindex) {
-					if (!SendListSelect2((CXWnd*)tasklist, taskindex)) {
-						return false;
-					}
-					if (tasklist->GetCurSel() != taskindex) {
-						return false;
+		case xIndex:
+			Dest.Int = index+1;//hate this but the users are used to indexes starting at 1... so we got to continue that...
+			Dest.Type = pIntType;
+			return true;
+		case Leader:
+		{
+			strcpy_s(DataTypeTemp, "NULL");
+			for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
+				if (pTaskmember->IsLeader) {
+					strcpy_s(DataTypeTemp, pTaskmember->Name);
+					break;
+				}
+			}
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		}
+		case Title:
+		{
+			strcpy_s(DataTypeTemp, "NULL");
+			switch (type)
+			{
+			case TST_SoloQuest:
+				if (CTaskEntry *entry = &tm->QuestEntries[index])
+				{
+					strcpy_s(DataTypeTemp, entry->TaskTitle);
+				}
+				break;
+			case TST_SharedQuest:
+				if (CTaskEntry *entry = &tm->SharedTaskEntries[0])
+				{
+					strcpy_s(DataTypeTemp, entry->TaskTitle);
+				}
+				break;
+			};
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		}
+		case Timer:
+		{
+			Dest.UInt64 = 0;
+			Dest.Type = pTimeStampType;
+			PCTaskStatus*ts = 0;
+			CTaskEntry * entry = 0;
+			switch (type)
+			{
+			case TST_SoloQuest:
+				ts = tm->GetTaskStatus((PcClient *)pPCData, index, TST_SoloQuest);
+				entry = &tm->QuestEntries[index];
+				break;
+			case TST_SharedQuest:
+				ts = tm->GetTaskStatus((PcClient *)pPCData, 0, TST_SharedQuest);
+				entry = &tm->SharedTaskEntries[0];
+				break;
+			};
+			if (ts && entry)
+			{
+				DWORD ft = GetFastTime();
+				int timer = 0;
+				CHAR szTime[256] = { 0 };
+				if (((DWORD)ts->MovingStartTime + (DWORD)entry->DurationSeconds) > ft)
+				{
+					timer = (ts->MovingStartTime + entry->DurationSeconds) - ft;
+				}
+				sprintf_s(szTime, "%02d:%02d:%02d", timer / 3600, (timer % 3600) / 60, timer % 60);
+				WriteChatf("%s", szTime);
+				Dest.UInt64 = timer * 1000;
+				return true;
+			}
+			return false;
+		}
+		case xMember:
+			Dest.Type = pTaskMemberType;
+			if (!ISINDEX())
+				return false;
+			if (ISNUMBER())
+			{
+				for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
+					if (i == GETNUMBER()) {
+						Dest.Ptr = pTaskmember;
+						return true;
 					}
 				}
 			}
 			else {
-				return false;
-			}
-		}
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-			CXStr Str;
-			CHAR szOut[MAX_STRING] = { 0 };
-			for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
-				clist->GetItemText(&Str, i, 1);
-				GetCXStr(Str.Ptr, szOut, MAX_STRING);
-				if (_stricmp(szOut, "done")) {
-					Dest.Int = i;
-					return true;
+				for (; pTaskmember; pTaskmember = pTaskmember->pNext) {
+					if (!_stricmp(pTaskmember->Name, GETFIRST())) {
+						Dest.Ptr = pTaskmember;
+						return true;
+					}
 				}
 			}
+			return false;
+		case Members:
+			Dest.DWord = 0;
+			Dest.Type = pIntType;
+			for (; pTaskmember && Dest.DWord<6; pTaskmember = pTaskmember->pNext, Dest.DWord++) {
+			}
+			return true;
+		case ID:
+		{
+			Dest.Int = 0;
+			Dest.Type = pIntType;
+			CTaskEntry * entry = 0;
+			switch (type)
+			{
+			case TST_SoloQuest:
+				entry = &tm->QuestEntries[index];
+				break;
+			case TST_SharedQuest:
+				entry = &tm->SharedTaskEntries[0];
+				break;
+			};
+			if (entry)
+			{
+				Dest.Int = entry->TaskID;
+			}
+			return true;
 		}
-		return false;
-	}
+		case Objective:
+		{
+			Dest.Int = 0;
+			Dest.Type = pTaskObjectiveType;
+			PCTaskStatus*ts = 0;
+			CTaskEntry * entry = 0;
+			switch (type)
+			{
+			case TST_SoloQuest:
+				ts = tm->GetTaskStatus((PcClient *)pPCData, index, TST_SoloQuest);
+				entry = &tm->QuestEntries[index];
+				break;
+			case TST_SharedQuest:
+				ts = tm->GetTaskStatus((PcClient *)pPCData, 0, TST_SharedQuest);
+				entry = &tm->SharedTaskEntries[0];
+				break;
+			};
+			if (ts && entry)
+			{
+				int stepindex = -1;
+				if (ISNUMBER()) {
+					stepindex = GETNUMBER();
+					stepindex--;
+					if (stepindex < 0) {
+						stepindex = 0;
+					}
+					if (stepindex > 19) {
+						stepindex = 19;
+					}
+				}
+				else {
+					CHAR szOut[MAX_STRING] = { 0 };			
+					CHAR szTemp[MAX_STRING] = { 0 };
+					strcpy_s(szTemp, GETFIRST());
+					_strlwr_s(szTemp);
+					for (int i = 0; i < 20; i++) {
+						tm->GetElementDescription(&entry->Elements[i], szOut);
+						_strlwr_s(szOut);
+						if (strstr(szOut, szTemp)) {
+							stepindex = i;
+							break;
+						}
+					}
+				}
+				Dest.DWord = (int)MAKELPARAM(type, index);
+				Dest.HighPart = stepindex;
+				return true;
+			}
+			return false;
+		}
+		case Step://gets the first step thats not Done in the task objective.
+		{
+			Dest.Int = 0;
+			Dest.Type = pTaskObjectiveType;
+			PCTaskStatus*ts = 0;
+			CTaskEntry * entry = 0;
+			switch (type)
+			{
+			case TST_SoloQuest:
+				ts = tm->GetTaskStatus((PcClient *)pPCData, index, TST_SoloQuest);
+				entry = &tm->QuestEntries[index];
+				break;
+			case TST_SharedQuest:
+				ts = tm->GetTaskStatus((PcClient *)pPCData, 0, TST_SharedQuest);
+				entry = &tm->SharedTaskEntries[0];
+				break;
+			};
+			if (ts && entry)
+			{
+				int reqcount = 0;
+				int currcount = 0;
+				for (int i = 0; i < 20; i++)
+				{
+					reqcount = entry->Elements[i].RequiredCount;
+					currcount = ts->CurrentCounts[i];
+					if (currcount < reqcount && entry->Elements[i].bOptional==false)
+					{
+						Dest.DWord = (int)MAKELPARAM(type, index);
+						Dest.HighPart = i;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 	}
 	return false;
 }

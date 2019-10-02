@@ -1057,6 +1057,8 @@ GNU General Public License for more details.
 //CTaskManager
 #define CTaskManager__GetEntry_x                                   0x52A950
 #define CTaskManager__HandleMessage_x                              0x528DF0
+#define CTaskManager__GetTaskStatus_x                              0x52AA00
+#define CTaskManager__GetElementDescription_x                      0x52AA80
 
 //EqSoundManager
 #define EqSoundManager__WavePlay_x                                 0x562290
