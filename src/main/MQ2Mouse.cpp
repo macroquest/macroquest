@@ -196,8 +196,8 @@ static bool ParseMouseLoc(CHARINFO* pCharInfo, char* szMouseLoc)
 		GetArg(szArg2, szMouseLoc, 2);
 
 		// actual location to click, calculated from ButtonX
-		int ClickX = atoi(szArg1);
-		int ClickY = atoi(szArg2);
+		int ClickX = GetIntFromString(szArg1, 0);
+		int ClickY = GetIntFromString(szArg2, 0);
 
 		if ((szArg1[0] == '+') || (szArg1[0] == '-') || (szArg2[0] == '+') || (szArg2[0] == '-'))
 		{
@@ -287,8 +287,8 @@ void ClickMouseLoc(char* szMouseLoc, char* szButton)
 		GetArg(szArg2, szMouseLoc, 2);
 
 		// actual location to click, calculated from ButtonX
-		int ClickX = atoi(szArg1);
-		int ClickY = atoi(szArg2);
+		int ClickX = GetIntFromString(szArg1, 0);
+		int ClickY = GetIntFromString(szArg2, 0);
 
 		if ((szArg1[0] == '+') || (szArg1[0] == '-') || (szArg2[0] == '+') || (szArg2[0] == '-'))
 		{

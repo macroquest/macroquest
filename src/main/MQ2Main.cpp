@@ -308,12 +308,12 @@ bool ParseINIFile(const char* lpINIPath)
 			if (ITEMDB* Item = new ITEMDB())
 			{
 				Item->pNext = gItemDB;
-				Item->ID = atoi(szBuffer);
+				Item->ID = GetIntFromString(szBuffer, Item->ID);
 
 				if (pDest = (strstr(szBuffer, "\t") + 1))
 				{
 					strcpy_s(szBuffer2, pDest);
-					Item->StackSize = atoi(szBuffer2);
+					Item->StackSize = GetIntFromString(szBuffer2, Item->StackSize);
 
 					if (pDest = strstr(szBuffer2, "\t"))
 					{
@@ -781,7 +781,7 @@ void InsertMQ2News()
 
 		if (char* Cmd = strtok_s(szLine, "\r\n", &Next_Token1))
 		{
-			if (atoi(Cmd))
+			if (GetIntFromString(Cmd, 1))
 				AddNewsLine(Cmd, CONCOLOR_GREEN);
 			else
 				AddNewsLine(Cmd, CONCOLOR_YELLOW);

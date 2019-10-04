@@ -85,7 +85,7 @@ void AddElement(char* IniString)
 
 	int X = 0;
 	int Y = 0;
-	DWORD Type;
+	int Type = 0;  // FIXME: What is a sane default value for Type?
 	ARGBCOLOR Color;
 	Color.A = 0xFF;
 
@@ -96,7 +96,7 @@ void AddElement(char* IniString)
 	if (!pComma)
 		return;
 	*pComma = 0;
-	Type = atoi(IniString);
+	Type = GetIntFromString(IniString, Type);
 	IniString = &pComma[1];
 
 	if (bUseFontSize)
@@ -105,7 +105,7 @@ void AddElement(char* IniString)
 		if (!pComma)
 			return;
 		*pComma = 0;
-		Size = atoi(IniString);
+		Size = GetIntFromString(IniString, Size);
 		IniString = &pComma[1];
 	}
 	else
@@ -117,7 +117,7 @@ void AddElement(char* IniString)
 	if (!pComma)
 		return;
 	*pComma = 0;
-	X = atoi(IniString);
+	X = GetIntFromString(IniString, X);
 	IniString = &pComma[1];
 
 	// y
@@ -125,7 +125,7 @@ void AddElement(char* IniString)
 	if (!pComma)
 		return;
 	*pComma = 0;
-	Y = atoi(IniString);
+	Y = GetIntFromString(IniString, Y);
 	IniString = &pComma[1];
 
 	// color R
@@ -133,7 +133,7 @@ void AddElement(char* IniString)
 	if (!pComma)
 		return;
 	*pComma = 0;
-	Color.R = atoi(IniString);
+	Color.R = GetIntFromString(IniString, 0);
 	IniString = &pComma[1];
 
 	// color G
@@ -141,7 +141,7 @@ void AddElement(char* IniString)
 	if (!pComma)
 		return;
 	*pComma = 0;
-	Color.G = atoi(IniString);
+	Color.G = GetIntFromString(IniString, 0);
 	IniString = &pComma[1];
 
 	// color B
@@ -149,7 +149,7 @@ void AddElement(char* IniString)
 	if (!pComma)
 		return;
 	*pComma = 0;
-	Color.B = atoi(IniString);
+	Color.B = GetIntFromString(IniString, 0);
 	IniString = &pComma[1];
 
 	// string

@@ -818,7 +818,7 @@ void Cmd_Relog(PSPAWNINFO pChar, char* szLine)
 			return;
 		}
 
-		DWORD n = atol(szLine);
+		DWORD n = GetIntFromString(szLine, 0);
 
 		switch (szLine[strlen(szLine) - 1])
 		{

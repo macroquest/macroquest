@@ -626,17 +626,17 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 	{
 		if (pValues->Name[0] != '*')
 		{
-			auto eventIter = gMacroBlock->Line.find(pEList->pEventFunc);
-			if (eventIter != gMacroBlock->Line.end())
+			auto eventIter2 = gMacroBlock->Line.find(pEList->pEventFunc);
+			if (eventIter2 != gMacroBlock->Line.end())
 			{
-				GetFuncParam(&eventIter->second.Command[0], atoi(pValues->Name.c_str()), szParamName, MAX_STRING, szParamType, MAX_STRING);
+				GetFuncParam(&eventIter2->second.Command[0], GetIntFromString(pValues->Name, 0), szParamName, MAX_STRING, szParamType, MAX_STRING);
 			}
 
-			MQ2Type* pType = FindMQ2DataType(szParamType);
-			if (!pType)
-				pType = pStringType;
+			MQ2Type* pType2 = FindMQ2DataType(szParamType);
+			if (!pType2)
+				pType2 = pStringType;
 
-			AddMQ2DataEventVariable(szParamName, "", pType, &pEvent->Parameters, pValues->Value.c_str());
+			AddMQ2DataEventVariable(szParamName, "", pType2, &pEvent->Parameters, pValues->Value.c_str());
 		}
 
 		pValues = pValues->pNext;

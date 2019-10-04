@@ -45,7 +45,7 @@ char szIrcPort[MAX_STRING] = {0};
 char szIrcChan[MAX_STRING] = {0};
 char IrcServer[MAX_STRING] = {0};
 char IrcNick[MAX_STRING] = {0};
-char IrcPort[MAX_STRING] = {0};
+int IrcPort = 6667;
 char IrcChan[MAX_STRING] = {0};
 char Version[MAX_STRING] = {0};
 char Username[MAX_STRING] = {0};
@@ -222,7 +222,7 @@ void IrcStatusCmd(SPAWNINFO* pChar, char* szLine)
 	if (bConnected)
 	{
 		// Connected
-		sprintf_s(buff, "\ar#\ax MQ2Irc Status: ONLINE - %s - %s - %s - %s", IrcServer, IrcPort, IrcChan, IrcNick);
+		sprintf_s(buff, "\ar#\ax MQ2Irc Status: ONLINE - %s - %d - %s - %s", IrcServer, IrcPort, IrcChan, IrcNick);
 		ircout(buff);
 	}
 	else
@@ -260,43 +260,43 @@ void IrcConnectCmd(SPAWNINFO* pChar, char* szLine)
 	if (Arg1[0] == 0 && Arg2[0] == 0 && Arg3[0] == 0 && Arg4[0] == 0)
 	{
 		GetPrivateProfileString("Last Connect", "Server", "irc.ipdn.org", IrcServer, MAX_STRING, INIFileName);
-		GetPrivateProfileString("Last Connect", "Port", "6667", IrcPort, MAX_STRING, INIFileName);
+		IrcPort = GetPrivateProfileInt("Last Connect", "Port", 6667, INIFileName);
 		GetPrivateProfileString("Last Connect", "Chan", "#macroquest", IrcChan, MAX_STRING, INIFileName);
 		GetPrivateProfileString("Last Connect", "Nick", "What-Ini", IrcNick, MAX_STRING, INIFileName);
 	}
 	else if (Arg2[0] == 0 && Arg3[0] == 0 && Arg4[0] == 0)
 	{
 		GetPrivateProfileString(Arg1, "Server", "irc.ipdn.org", IrcServer, MAX_STRING, INIFileName);
-		GetPrivateProfileString(Arg1, "Port", "6667", IrcPort, MAX_STRING, INIFileName);
+		IrcPort = GetPrivateProfileInt(Arg1, "Port", 6667, INIFileName);
 		GetPrivateProfileString(Arg1, "Chan", "#macroquest", IrcChan, MAX_STRING, INIFileName);
 		GetPrivateProfileString(Arg1, "Nick", "What-Ini", IrcNick, MAX_STRING, INIFileName);
 	}
 	else if (Arg3[0] == 0 && Arg4[0] == 0)
 	{
 		sprintf_s(IrcServer, "%s", Arg1);
-		sprintf_s(IrcPort, "%s", Arg2);
+		IrcPort = GetIntFromString(Arg2, IrcPort);
 
 	}
 	else if (Arg4[0] == 0)
 	{
 		sprintf_s(IrcServer, "%s", Arg1);
-		sprintf_s(IrcPort, "%s", Arg2);
+		IrcPort = GetIntFromString(Arg2, IrcPort);
 		sprintf_s(IrcChan, "%s", Arg3);
 	}
 	else
 	{
 		sprintf_s(IrcServer, "%s", Arg1);
-		sprintf_s(IrcPort, "%s", Arg2);
+		IrcPort = GetIntFromString(Arg2, IrcPort);
 		sprintf_s(IrcChan, "%s", Arg3);
 		sprintf_s(IrcNick, "%s", Arg4);
 	}
 
 	WritePrivateProfileString("Last Connect", "Server", IrcServer, INIFileName);
-	WritePrivateProfileString("Last Connect", "Port", IrcPort, INIFileName);
+	WritePrivateProfileString("Last Connect", "Port", std::to_string(IrcPort), INIFileName);
 	WritePrivateProfileString("Last Connect", "Chan", IrcChan, INIFileName);
 	WritePrivateProfileString("Last Connect", "Nick", IrcNick, INIFileName);
 	WritePrivateProfileString(IrcServer, "Server", IrcServer, INIFileName);
-	WritePrivateProfileString(IrcServer, "Port", IrcPort, INIFileName);
+	WritePrivateProfileString(IrcServer, "Port", std::to_string(IrcPort), INIFileName);
 	WritePrivateProfileString(IrcServer, "Chan", IrcChan, INIFileName);
 	WritePrivateProfileString(IrcServer, "Nick", IrcNick, INIFileName);
 	WritePrivateProfileString("Settings", "Version", Version, INIFileName);
@@ -329,7 +329,7 @@ void IrcConnectCmd(SPAWNINFO* pChar, char* szLine)
 
 	serverInfo.sin_family = AF_INET;
 	serverInfo.sin_addr = *((LPIN_ADDR)* hostEntry->h_addr_list);
-	serverInfo.sin_port = htons(atoi(IrcPort));
+	serverInfo.sin_port = htons(IrcPort);
 	DWORD ThreadId;
 	CreateThread(NULL, 0, &IRCConnectThread, 0, 0, &ThreadId);
 	return;
@@ -480,6 +480,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 				szLine++;
 			}
 		}
+		// FIXME:  z[2] is out of bounds (probably wrong above too).
 		sprintf_s(buff, "PRIVMSG %s :%s\n\0", z[1], z[2]);
 		send(theSocket, buff, strlen(buff), 0);
 		sprintf_s(buff, "\ab[\a-rmsg\ab(\ar%s\ab)]\a-w %s\0", z[1], z[2]);
@@ -505,10 +506,6 @@ char* parse(char* rawmsg)
 	NUL or CR or LF>
 	<crlf> ::= CR LF
 	*/
-	char Arg1[MAX_STRING] = { 0 };
-	char Arg2[MAX_STRING] = { 0 };
-	char Arg3[MAX_STRING] = { 0 };
-	char Arg4[MAX_STRING] = { 0 };
 	int x = 0, y;
 	char* prefix = NULL, * tmp, * tmpb, * param[32], * command, * lnk;
 	sprintf_s(buff, "%s", rawmsg); //save a copy of the original
@@ -740,9 +737,9 @@ char* parse(char* rawmsg)
 		return buff;
 	}
 
-	if (atoi(command) > 0)
+	if (GetIntFromString(command, 0) > 0)
 	{
-		switch (atoi(command))
+		switch (GetIntFromString(command, 0))
 		{
 			// it wasnt one of the above commands, maybe its a numeric
 		case 001:
@@ -928,7 +925,7 @@ public:
 			Dest.Type = pStringType;
 			return true;
 		case Port:
-			Dest.Int = atoi(IrcPort);
+			Dest.Int = IrcPort;
 			Dest.Type = pIntType;
 			return true;
 		case Channel:
@@ -994,7 +991,7 @@ PLUGIN_API void InitializePlugin()
 	ircout("\ar#\ax /i help for a list of commands");
 	ircout("\ar#\ax To connect to a server, type /iconnect <server> <port> <channel> <nick>");
 	GetPrivateProfileString("Last Connect", "Server", "irc.ipdn.org", IrcServer, MAX_STRING, INIFileName);
-	GetPrivateProfileString("Last Connect", "Port", "6667", IrcPort, MAX_STRING, INIFileName);
+	IrcPort = GetPrivateProfileInt("Last Connect", "Port", 6667, INIFileName);
 	GetPrivateProfileString("Last Connect", "Chan", "#macroquest", IrcChan, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Last Connect", "Nick", "What-Ini", IrcNick, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Settings", "Version", "MQ2Irc 120703", Version, MAX_STRING, INIFileName);

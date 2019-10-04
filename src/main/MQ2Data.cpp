@@ -23,7 +23,7 @@ bool dataSpawn(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			if (Ret.Ptr = GetSpawnByID(atoi(szIndex)))
+			if ((Ret.Ptr = GetSpawnByID(GetIntFromString(szIndex, 0))))
 			{
 				Ret.Type = pSpawnType;
 				return true;
@@ -107,7 +107,7 @@ bool dataSpell(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			if (Ret.Ptr = GetSpellByID(atoi(szIndex)))
+			if ((Ret.Ptr = GetSpellByID(GetIntFromString(szIndex, 0))))
 			{
 				Ret.Type = pSpellType;
 				return true;
@@ -476,7 +476,7 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 	{
 		PZONELIST pZone = nullptr;
 
-		if (int nIndex = (atoi(szIndex) & 0x7FFF))
+		if (int nIndex = (GetIntFromString(szIndex, 0) & 0x7FFF))
 		{
 			if (CHARINFO* pChar = GetCharInfo()) {
 				if ((pChar->zoneId & 0x7FFF) == nIndex)
@@ -528,7 +528,7 @@ bool dataInt(const char* szIndex, MQTypeVar& Ret)
 	if (!szIndex[0])
 		return false;
 
-	Ret.DWord = atol(szIndex);
+	Ret.DWord = GetIntFromString(szIndex, 0);
 	Ret.Type = pIntType;
 	return true;
 }
@@ -538,7 +538,7 @@ bool dataFloat(const char* szIndex, MQTypeVar& Ret)
 	if (!szIndex[0])
 		return false;
 
-	Ret.Float = (float)atof(szIndex);
+	Ret.Float = GetFloatFromString(szIndex, 0);
 	Ret.Type = pFloatType;
 	return true;
 }
@@ -554,11 +554,12 @@ bool dataHeading(const char* szIndex, MQTypeVar& Ret)
 	if (char* pComma = strchr(szInput, ','))
 	{
 		*pComma = 0;
-		float Y = (float)atof(szInput);
+		float Y = GetFloatFromString(szInput, 0);
 		*pComma = ',';
-		float X = (float)atof(&pComma[1]);
+		float X = GetFloatFromString(&pComma[1], 0);
 
-		Ret.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - Y, X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Ret.Float = static_cast<float>(atan2f(reinterpret_cast<SPAWNINFO*>(pCharSpawn)->Y - Y,
+		                                      X - reinterpret_cast<SPAWNINFO*>(pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Ret.Float < 0.0f)
 			Ret.Float += 360.0f;
 		else if (Ret.Float >= 360.0f)
@@ -567,7 +568,7 @@ bool dataHeading(const char* szIndex, MQTypeVar& Ret)
 		return true;
 	}
 
-	Ret.Float = (float)atof(szIndex);
+	Ret.Float = GetFloatFromString(szIndex, 0);
 	Ret.Type = pHeadingType;
 	return true;
 }
@@ -692,36 +693,26 @@ bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 {
 	if (szIndex[0])
 	{
-		if (szIndex[0] == '-')
+		if (IsNumber(szIndex))
 		{
-			int index = atoi(&szIndex[1]) - 1;
-
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer)
-			{
-				while (index)
-				{
-					pSpawn = pSpawn->pPrev;
-					if (!pSpawn)
-						return false;
-					index--;
-				}
-
-				Ret.Ptr = pSpawn;
-				Ret.Type = pSpawnType;
-				return true;
-			}
-		}
-		else if (IsNumber(szIndex))
-		{
-			int index = atoi(szIndex) - 1;
+			bool bPosIndex = true;
+			int index = GetIntFromString(szIndex, 0);
 			if (index < 0)
-				index = 0;
+			{
+				bPosIndex = false;
+				index *= -1;
+			}
+			else if (index == 0)
+			{
+				index = 1;
+			}
+			index--;
 
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList)
+			if (SPAWNINFO* pSpawn = bPosIndex ? static_cast<SPAWNINFO*>pSpawnList : reinterpret_cast<SPAWNINFO*>(pLocalPlayer))
 			{
 				while (index)
 				{
-					pSpawn = pSpawn->pNext;
+					pSpawn = bPosIndex ? pSpawn->pNext : pSpawn->pPrev;
 					if (!pSpawn)
 						return false;
 					index--;
@@ -761,13 +752,13 @@ bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 			++pSearch;
 
 			ParseSearchSpawn(pSearch, &ssSpawn);
-			nth = atoi(szIndex);
+			nth = GetIntFromString(szIndex, nth);
 		}
 		else
 		{
 			if (IsNumberToComma(szIndex))
 			{
-				nth = atoi(szIndex);
+				nth = GetIntFromString(szIndex, nth);
 			}
 			else
 			{
@@ -1077,7 +1068,7 @@ bool dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if (pItem = FindBankItemByID(atoi(szIndex)))
+		if ((pItem = FindBankItemByID(GetIntFromString(szIndex, 0))))
 		{
 			Ret.Ptr = pItem;
 			Ret.Type = pItemType;
@@ -1112,7 +1103,7 @@ bool dataFindItem(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if (CONTENTS* pItem = FindItemByID(atoi(szIndex)))
+		if (CONTENTS* pItem = FindItemByID(GetIntFromString(szIndex, 0)))
 		{
 			Ret.Ptr = pItem;
 			Ret.Type = pItemType;
@@ -1147,7 +1138,7 @@ bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		Ret.DWord = FindItemCountByID(atoi(szIndex));
+		Ret.DWord = FindItemCountByID(GetIntFromString(szIndex, 0));
 		Ret.Type = pIntType;
 		return true;
 	}
@@ -1173,7 +1164,7 @@ bool dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		Ret.DWord = FindBankItemCountByID(atoi(szIndex));
+		Ret.DWord = FindBankItemCountByID(GetIntFromString(szIndex, 0));
 		Ret.Type = pIntType;
 		return true;
 	}
@@ -1199,7 +1190,7 @@ bool dataInvSlot(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		Ret.DWord = atoi(szIndex);
+		Ret.DWord = GetIntFromString(szIndex, 0);
 		Ret.Type = pInvSlotType;
 		return true;
 	}
@@ -1231,7 +1222,7 @@ bool dataPlugin(const char* szIndex, MQTypeVar& Ret)
 		return false;
 	if (IsNumber(szIndex))
 	{
-		int index = atoi(szIndex) - 1;
+		int index = GetIntFromString(szIndex, 0) - 1;
 		if (index < 0)
 			index = 0;
 
@@ -1275,7 +1266,7 @@ bool dataSkill(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		int nSkill = atoi(szIndex) - 1;
+		int nSkill = GetIntFromString(szIndex, 0) - 1;
 		if (nSkill < 0)
 			nSkill = 0;
 
@@ -1317,7 +1308,7 @@ bool dataAltAbility(const char* szIndex, MQTypeVar& Ret)
 		{
 			if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
 			{
-				if (pAbility->ID == atoi(szIndex))
+				if (pAbility->ID == GetIntFromString(szIndex, 0))
 				{
 					Ret.Ptr = pAbility;
 					Ret.Type = pAltAbilityType;
@@ -1388,49 +1379,50 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 		char szTemp[MAX_STRING];
 		strcpy_s(szTemp, szIndex);
 
+		// TODO:  This code appears in MQ2MathType Distance, possibly clean and combine
 		if (char* pColon = strchr(szTemp, ':'))
 		{
 			*pColon = 0;
 			if (char* pComma = strchr(&pColon[1], ','))
 			{
 				*pComma = 0;
-				P2[0] = (float)atof(&pColon[1]);
+				P2[0] = GetFloatFromString(&pColon[1], P2[0]);
 				*pComma = ',';
 				if (char* pComma2 = strchr(&pComma[1], ','))
 				{
 					*pComma2 = 0;
-					P2[1] = (float)atof(&pComma[1]);
+					P2[1] = GetFloatFromString(&pComma[1], P2[1]);
 					*pComma2 = ',';
-					P2[2] = (float)atof(&pComma2[1]);
+					P2[2] = GetFloatFromString(&pComma2[1], P2[2]);
 				}
 				else
 				{
-					P2[1] = (float)atof(&pComma[1]);
+					P2[1] = GetFloatFromString(&pComma[1], P2[1]);
 				}
 			}
 			else
-				P2[0] = (float)atof(&pColon[1]);
+				P2[0] = GetFloatFromString(&pColon[1], P2[0]);
 		}
 
 		if (char* pComma = strchr(szTemp, ','))
 		{
 			*pComma = 0;
-			P1[0] = (float)atof(szTemp);
+			P1[0] = GetFloatFromString(szTemp, P1[0]);
 			*pComma = ',';
 			if (char* pComma2 = strchr(&pComma[1], ','))
 			{
 				*pComma2 = 0;
-				P1[1] = (float)atof(&pComma[1]);
+				P1[1] = GetFloatFromString(&pComma[1], P1[1]);
 				*pComma2 = ',';
-				P1[2] = (float)atof(&pComma2[1]);
+				P1[2] = GetFloatFromString(&pComma2[1], P1[2]);
 			}
 			else
 			{
-				P1[1] = (float)atof(&pComma[1]);
+				P1[1] = GetFloatFromString(&pComma[1], P1[1]);
 			}
 		}
 		else
-			P1[0] = (float)atof(szTemp);
+			P1[0] = GetFloatFromString(szTemp, P1[0]);
 
 		// FIXME: Can't copy data like this. Refactor to use line of sight calculation
 		// without using a SPAWNINFO.
@@ -1498,8 +1490,7 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			int n = atoi(szIndex);
-			n--;
+			int n = GetIntFromString(szIndex, 0) - 1;
 			if (n < 0)
 				n = 0;
 			Ret.Int = n;
@@ -1542,7 +1533,7 @@ bool dataMount(const char* szIndex, MQTypeVar& Ret)
 		return false;
 	if (IsNumber(szIndex))
 	{
-		int n = atoi(szIndex) - 1;
+		int n = GetIntFromString(szIndex, 0) - 1;
 		if (n < 0)
 			return false;
 
@@ -1592,7 +1583,7 @@ bool dataIllusion(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		int n = atoi(szIndex) - 1;
+		int n = GetIntFromString(szIndex, 0) - 1;
 		if (n < 0)
 			return false;
 
@@ -1641,7 +1632,7 @@ bool dataFamiliar(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		int n = atoi(szIndex) - 1;
+		int n = GetIntFromString(szIndex, 0) - 1;
 		if (n < 0)
 			return false;
 
@@ -1723,7 +1714,7 @@ bool dataAlert(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		Ret.DWord = atoi(szIndex);
+		Ret.DWord = GetIntFromString(szIndex, 0);
 		Ret.Type = pAlertType;
 		return true;
 	}

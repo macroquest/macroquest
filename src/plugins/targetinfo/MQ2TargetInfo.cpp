@@ -588,7 +588,7 @@ void WriteSetting(const char* Key, const char* value)
 	}
 
 	WritePrivateProfileString(szSettingINISection, Key, value, INIFileName);
-	int ival = atoi(value);
+	int ival = GetIntFromString(value, 0);
 	WriteChatf("\ayMQ2TargetInfo\ax::\am%s is now %s\ax.", Key, ival ? "\aoON" : "\agOFF");
 }
 
@@ -610,7 +610,7 @@ void WriteUIStringSetting(const char* Key, const char* value)
 	}
 
 	WritePrivateProfileString(szSettingINISection, Key, value, INIFileName);
-	int ival = atoi(value);
+	int ival = GetIntFromString(value, 0);
 	WriteChatf("\ayMQ2TargetInfo\ax::\am%s is now %s\ax.", Key, ival ? "\aoON" : "\agOFF");
 }
 
@@ -702,10 +702,10 @@ bool ReadUILocSetting(char* Key, int top, int bottom, int left, int right, CXRec
 		}
 	}
 
-	rect.top = atoi(szLocs[0]);
-	rect.bottom = atoi(szLocs[1]);
-	rect.left = atoi(szLocs[2]);
-	rect.right = atoi(szLocs[3]);
+	rect.top = GetIntFromString(szLocs[0], rect.top);
+	rect.bottom = GetIntFromString(szLocs[1], rect.bottom);
+	rect.left = GetIntFromString(szLocs[2], rect.left);
+	rect.right = GetIntFromString(szLocs[3], rect.right);
 	return true;
 }
 
@@ -911,19 +911,19 @@ void Initialize()
 		ReadIniSettings();
 		char szBuff[MAX_STRING] = { 0 };
 		ReadUIStringSetting("Target_BuffWindow_TopOffset", "76", szBuff);
-		Target_BuffWindow_TopOffset = atoi(szBuff);
+		Target_BuffWindow_TopOffset = GetIntFromString(szBuff, 76);
 		ReadUIStringSetting("dTopOffset", "60", szBuff);
-		dTopOffset = atoi(szBuff);
+		dTopOffset = GetIntFromString(szBuff, 60);
 		ReadUIStringSetting("dBottomOffset", "74", szBuff);
-		dBottomOffset = atoi(szBuff);
+		dBottomOffset = GetIntFromString(szBuff, 74);
 		ReadUIStringSetting("CanSeeTopOffset", "47", szBuff);
-		CanSeeTopOffset = atoi(szBuff);
+		CanSeeTopOffset = GetIntFromString(szBuff, 47);
 		ReadUIStringSetting("CanSeeBottomOffset", "61", szBuff);
-		CanSeeBottomOffset = atoi(szBuff);
+		CanSeeBottomOffset = GetIntFromString(szBuff, 61);
 		ReadUIStringSetting("dLeftOffset", "50", szBuff);
-		dLeftOffset = atoi(szBuff);
+		dLeftOffset = GetIntFromString(szBuff, 50);
 		ReadUIStringSetting("TargetInfoWindowStyle", "0", szBuff);
-		TargetInfoWindowStyle = atoi(szBuff);
+		TargetInfoWindowStyle = GetIntFromString(szBuff, 0);
 
 		// Player_ManaLabel ManaLabel 20
 		// Player_FatigueLabel FatigueLabel 21
@@ -939,7 +939,7 @@ void Initialize()
 
 		char szDynamic[MAX_STRING] = { 0 };
 		ReadUIStringSetting("DynamicUI", "1", szDynamic);
-		int isDynamic = atoi(szDynamic);
+		int isDynamic = GetIntFromString(szDynamic, 1);
 
 		// setup the group info
 		if (pGroupWnd)
@@ -990,9 +990,9 @@ void Initialize()
 				char szOutLoc[MAX_STRING] = { 0 };
 
 				ReadUIStringSetting("GroupDistanceFontSize", "2", szOutLoc);
-				int GroupDistanceFontSize = atoi(szOutLoc);
+				int GroupDistanceFontSize = GetIntFromString(szOutLoc, 2);
 				ReadUIStringSetting("UseGroupLayoutBox", "0", szOutLoc);
-				int UseLayoutBox = atoi(szOutLoc);
+				int UseLayoutBox = GetIntFromString(szOutLoc, 0);
 				sprintf_s(szLoc, "%d,%d,%d,%d", 0, -20, 70, 0);
 				ReadUIStringSetting("GroupDistanceLoc", szLoc, szOutLoc);
 				char* token1 = nullptr;
@@ -1011,15 +1011,15 @@ void Initialize()
 					}
 				}
 
-				int ttop = atoi(szLocs[0]);
-				int tbottom = atoi(szLocs[1]);
-				int tleft = atoi(szLocs[2]);
-				int tright = atoi(szLocs[3]);
+				int ttop = GetIntFromString(szLocs[0], 0);
+				int tbottom = GetIntFromString(szLocs[1], 0);
+				int tleft = GetIntFromString(szLocs[2], 0);
+				int tright = GetIntFromString(szLocs[3], 0);
 
 				if (UseLayoutBox) // they have a weird UI like sars that uses a layout box these UI's dont have any locations we can read
 				{
 					ReadUIStringSetting("GroupDistanceOffset", "0", szOutLoc);
-					int GroupDistanceOffset = atoi(szOutLoc);
+					int GroupDistanceOffset = GetIntFromString(szOutLoc, 0);
 
 					ReadUIStringSetting("GroupDistanceElementPrefix", "GW_Gauge", szOutLoc);
 					sprintf_s(szLoc, "%s1", szOutLoc);
@@ -1256,7 +1256,7 @@ void Initialize()
 
 					ReadUIStringSetting("TargetInfoAnchoredToRight", "0", szOutLoc);
 
-					int anchoredright = atoi(szOutLoc);
+					int anchoredright = GetIntFromString(szOutLoc, 0);
 					if (anchoredright)
 					{
 						InfoLabel->SetRightAnchoredToLeft(true);
@@ -1293,10 +1293,10 @@ void Initialize()
 						}
 					}
 
-					InfoLabel->SetTopOffset(atoi(szLocs[0]));
-					InfoLabel->SetBottomOffset(atoi(szLocs[1]));
-					InfoLabel->SetLeftOffset(atoi(szLocs[2]));
-					InfoLabel->SetRightOffset(atoi(szLocs[3]));
+					InfoLabel->SetTopOffset(GetIntFromString(szLocs[0], 0));
+					InfoLabel->SetBottomOffset(GetIntFromString(szLocs[1], 0));
+					InfoLabel->SetLeftOffset(GetIntFromString(szLocs[2], 0));
+					InfoLabel->SetRightOffset(GetIntFromString(szLocs[3], 0));
 
 					InfoLabel->SetCRNormal(0xFF00FF00);//green
 					InfoLabel->SetBGColor(0xFFFFFFFF);
@@ -1326,10 +1326,10 @@ void Initialize()
 					}
 				}
 
-				int ttop = atoi(szLocs[0]);
-				int tbottom = atoi(szLocs[1]);
-				int tleft = atoi(szLocs[2]);
-				int tright = atoi(szLocs[3]);
+				int ttop = GetIntFromString(szLocs[0], 0);
+				int tbottom = GetIntFromString(szLocs[1], 0);
+				int tleft = GetIntFromString(szLocs[2], 0);
+				int tright = GetIntFromString(szLocs[3], 0);
 				CreateDistLabel(pGroupWnd, DistLabelTemplate, &DistanceLabel, "Target_DistLabel", 2, ttop, tbottom, tleft, tright, true, gBShowExtDistance);
 
 				//create can see label
@@ -1428,7 +1428,7 @@ void Initialize()
 				char szOutLoc[MAX_STRING] = { 0 };
 
 				ReadUIStringSetting("UseExtLayoutBox", "0", szOutLoc);
-				int UseExtLayoutBox = atoi(szOutLoc);
+				int UseExtLayoutBox = GetIntFromString(szOutLoc, 0);
 
 				DistLabelTemplate->strController = "0";
 				sprintf_s(szLoc, "%d,%d,%d,%d", 0, -20, 70, 0);
@@ -1448,10 +1448,10 @@ void Initialize()
 						j++;
 					}
 				}
-				int ttop = atoi(szLocs[0]);
-				int tbottom = atoi(szLocs[1]);
-				int tleft = atoi(szLocs[2]);
-				int tright = atoi(szLocs[3]);
+				int ttop = GetIntFromString(szLocs[0], 0);
+				int tbottom = GetIntFromString(szLocs[1], 0);
+				int tleft = GetIntFromString(szLocs[2], 0);
+				int tright = GetIntFromString(szLocs[3], 0);
 				for (int i = 0; i < 13; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);

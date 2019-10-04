@@ -627,6 +627,9 @@ inline std::string trim_copy(std::string s)
  *
  * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
  *
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
  * @param svString The string to convert to an integer
  * @param iReturnOnFail The integer that should be returned if conversion fails
  *
@@ -637,6 +640,58 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
 	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), iReturnOnFail);
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
 	return iReturnOnFail;
+}
+
+/**
+ * @fn GetFloatFromString
+ *
+ * @brief Gets the float value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a float and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atof (removing the undefined behavior) with a cast.
+ *
+ * @see GetDoubleFromString
+ * @see GetIntFromString
+ *
+ * @param svString The string to convert to a float
+ * @param fReturnOnFail The float that should be returned if conversion fails
+ *
+ * @return float The converted float or the "failure" value
+ **/
+inline float GetFloatFromString(const std::string_view svString, float fReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), fReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return fReturnOnFail;
+}
+
+/**
+ * @fn GetDoubleFromString
+ *
+ * @brief Gets the double value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a double and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atof (removing the undefined behavior) and strtod.
+ *
+ * @see GetFloatFromString
+ * @see GetIntFromString
+ *
+ * @param svString The string to convert to a double
+ * @param dReturnOnFail The double that should be returned if conversion fails
+ *
+ * @return float The converted double or the "failure" value
+ **/
+inline double GetDoubleFromString(const std::string_view svString, double dReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), dReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return dReturnOnFail;
 }
 
 inline const char* GetSpellString(int ID, int SpellIndex)
@@ -764,33 +819,49 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 	return ci_equals(haystack, needle, exact);
 }
 
+inline float GetPrivateProfileFloat(const std::string& Section, const std::string& Key, const float DefaultValue, const std::string& iniFileName)
+{
+	const std::string strDefaultValue = std::to_string(DefaultValue);
+	const size_t Size = 100;
+	char Return[Size] = { 0 };
+	GetPrivateProfileStringA(Section.data(), Key.data(), strDefaultValue.data(), Return, Size, iniFileName.data());
+	return GetFloatFromString(Return, DefaultValue);
+}
+
+inline std::string GetPrivateProfileStdString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::string& iniFileName)
+{
+    char szBuffer[MAX_STRING] = { 0 };
+    GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), szBuffer, MAX_STRING, iniFileName.data());
+    return std::string(szBuffer);
+}
+
 // These are replaced with our own wrappers
 #undef GetPrivateProfileInt
 #undef GetPrivateProfileString
 #undef WritePrivateProfileSection
 #undef WritePrivateProfileString
 
-inline int GetPrivateProfileInt(std::string Section, std::string Key, int DefaultValue, std::string iniFileName)
+inline int GetPrivateProfileInt(const std::string& Section, const std::string& Key, const int DefaultValue, const std::string& iniFileName)
 {
 	return GetPrivateProfileIntA(Section.data(), Key.data(), DefaultValue, iniFileName.data());
 }
 
-inline int GetPrivateProfileInt(char* Section, char* Key, int DefaultValue, char* iniFileName)
+inline int GetPrivateProfileInt(char* Section, char* Key, const int DefaultValue, char* iniFileName)
 {
 	return GetPrivateProfileIntA(Section, Key, DefaultValue, iniFileName);
 }
 
-inline int GetPrivateProfileString(std::string Section, std::string Key, std::string DefaultValue, char* Return, size_t Size, std::string iniFileName)
+inline int GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, char* Return, const size_t Size, const std::string& iniFileName)
 {
 	return GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), Return, Size, iniFileName.data());
 }
 
-inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* Return, size_t Size, char* iniFileName)
+inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* Return, const size_t Size, char* iniFileName)
 {
 	return GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
 }
 
-inline bool WritePrivateProfileSection(std::string Section, std::string KeysAndValues, std::string iniFileName)
+inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::string& iniFileName)
 {
 	return WritePrivateProfileSectionA(Section.data(), KeysAndValues.data(), iniFileName.data());
 }
@@ -800,7 +871,7 @@ inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char*
 	return WritePrivateProfileSectionA(Section, KeysAndValues, iniFileName);
 }
 
-inline bool WritePrivateProfileString(std::string Section, std::string Key, std::string Value, std::string iniFileName)
+inline bool WritePrivateProfileString(const std::string& Section, const std::string& Key, const std::string& Value, const std::string& iniFileName)
 {
 	return WritePrivateProfileStringA(Section.data(), Key.data(), Value.data(), iniFileName.data());
 }

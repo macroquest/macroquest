@@ -121,7 +121,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 	ParseMacroParameter(GetCharInfo()->pSpawn, szVal);
 	strcpy_s(gDelayCondition, GetNextArg(szLine));
 
-	int VarValue = atoi(szVal);
+	int VarValue = GetIntFromString(szVal, 0);
 	switch (szVal[strlen(szVal) - 1])
 	{
 	case 'm':
@@ -370,7 +370,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 			char szArg[MAX_STRING] = { 0 };
 			GetArg(szArg, szLine, 2);
 
-			gMaxTurbo = atoi(szArg);
+			gMaxTurbo = GetIntFromString(szArg, 0);
 			if (gMaxTurbo == 0)
 				gMaxTurbo = 80;
 			else if (gMaxTurbo > gTurboLimit)
@@ -1844,7 +1844,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 	strcpy_s(ForLine, iter->second.Command.c_str());
 
 	ParseMacroParameter(pChar, ForLine);
-	int VarNum = atoi(szLine + 1);
+	int VarNum = GetIntFromString(&szLine[1], 0);
 	int StepSize = 1;
 
 	int pos = ci_find_substr(ForLine, "step");
@@ -1855,7 +1855,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 		while ((pTemp[0] != 0) && (pTemp[0] != ' ') && (pTemp[0] != '\t'))
 			pTemp++;
 		if (pTemp[0] != 0)
-			StepSize = atoi(pTemp);
+			StepSize = GetIntFromString(pTemp, StepSize);
 	}
 
 	pVar = FindMQ2DataVariable(szNext);
@@ -1869,7 +1869,8 @@ void Next(PSPAWNINFO pChar, char* szLine)
 	if (pos != -1)
 	{
 		char* pDest = ForLine + pos;
-		auto Loop = atoi(pDest + 7);
+		// TODO: This is easily broken, should search for the param rather than getting the specific point
+		auto Loop = GetIntFromString(&pDest[7], 0);
 
 		//DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
 		pVar->Var.Int -= StepSize;
@@ -1890,7 +1891,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 		if (pos != -1)
 		{
 			char* pDest = ForLine + pos + 3;
-			Loop = atoi(pDest);
+			Loop = GetIntFromString(pDest, 0);
 		}
 
 		//DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);

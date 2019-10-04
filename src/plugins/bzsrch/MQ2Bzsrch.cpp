@@ -388,7 +388,7 @@ public:
 
 				if (isNumber)
 				{
-					int N = atoi(Index) - 1;
+					int N = GetIntFromString(Index, 0) - 1;
 					if (N < 0 || N >= BzCount)
 						return false;
 					Dest.Ptr = &BzArray[N];
@@ -567,7 +567,7 @@ void DoClass(char* szArg)
 
 	if (isdigit(szArg[0]))
 	{
-		index = atoi(szArg);
+		index = GetIntFromString(szArg, index);
 		if (index == 0)
 		{
 			strcpy_s(szClass, "Any Class");
@@ -625,7 +625,7 @@ void DoRace(char* szArg)
 	char szRace[255] = { 0 };
 	if (isdigit(szArg[0]))
 	{
-		index = atoi(szArg);
+		index = GetIntFromString(szArg, index);
 		if (index == 0)
 		{
 			strcpy_s(szRace, "Any Race");
@@ -684,7 +684,7 @@ void DoCombo(CComboWnd* pCombo, const char* szArg, const char* key)
 
 	if (isdigit(szArg[0]))
 	{
-		index = atoi(szArg) - 1;
+		index = GetIntFromString(szArg, index) - 1;
 	}
 	if (!_stricmp(szArg, "any"))
 	{

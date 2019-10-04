@@ -275,7 +275,7 @@ public:
 			if (pComma)
 				*pComma = 0;
 
-			m_pExtents[index] = atoi(pStart);
+			m_pExtents[index] = GetIntFromString(pStart, 0);
 			m_totalElements *= m_pExtents[index];
 
 			if (pComma)
@@ -343,7 +343,7 @@ public:
 			if (strchr(Index, ','))
 				return -1;
 
-			Element = atoi(Index) - 1;
+			Element = GetIntFromString(Index, Element) - 1;
 			if (Element >= m_totalElements)
 				return -1;
 
@@ -372,8 +372,8 @@ public:
 			if (pComma)
 				*pComma = 0;
 
-			int Temp = atoi(pStart) - 1;
-			if (Temp >= m_pExtents[index])
+			int Temp = GetIntFromString(pStart, 0) - 1;
+			if (Temp >= m_pExtents[index] || Temp < 0)
 				return -1;
 
 			for (int i = index + 1; i < m_nExtents; i++)
@@ -397,8 +397,8 @@ public:
 			if (strchr(Index, ','))
 				return false;
 
-			int Element = atoi(Index) - 1;
-			if (Element >= m_totalElements)
+			int Element = GetIntFromString(Index, 0) - 1;
+			if (Element >= m_totalElements || Element < 0)
 				return false;
 
 			Dest.Type = m_pType;
@@ -431,8 +431,8 @@ public:
 			if (pComma)
 				*pComma = 0;
 
-			int Temp = atoi(pStart) - 1;
-			if (Temp >= m_pExtents[index])
+			int Temp = GetIntFromString(pStart, 0) - 1;
+			if (Temp >= m_pExtents[index] || Temp < 0)
 				return false;
 
 			for (int i = index + 1; i < m_nExtents; i++)
@@ -503,7 +503,7 @@ public:
 		VarPtr.DWord = 0;
 		if (!_stricmp(Source, "TRUE"))
 			VarPtr.DWord = 1;
-		else if (atof(Source) != 0.0f)
+		else if (GetFloatFromString(Source, 0) != 0)
 			VarPtr.DWord = 1;
 		return true;
 	}
@@ -551,7 +551,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.Int = atoi(Source);
+		VarPtr.Int = GetIntFromString(Source, -1);
 		return true;
 	}
 };
@@ -684,7 +684,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.DWord = atoi(Source) % 0xFF;
+		VarPtr.DWord = GetIntFromString(Source, 0) % 0xFF;
 		return true;
 	}
 };
@@ -815,7 +815,7 @@ public:
 	}
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.Float = (float)atof(Source);
+		VarPtr.Float = GetFloatFromString(Source, 0);
 		return true;
 	}
 };
@@ -863,7 +863,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.Double = atof(Source);
+		VarPtr.Double = GetDoubleFromString(Source, 0);
 		return true;
 	}
 };
@@ -913,7 +913,7 @@ public:
 	}
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.DWord = atoi(Source);
+		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
 	}
 };
@@ -1347,7 +1347,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -2307,7 +2307,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.Int = atoi(Source);
+		VarPtr.Int = GetIntFromString(Source, 0);
 		return true;
 	}
 };
@@ -3324,7 +3324,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -3420,7 +3420,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -4059,7 +4059,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.DWord = atoi(Source);
+		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
 	}
 };
@@ -4120,7 +4120,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.DWord = atoi(Source);
+		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
 	}
 };
@@ -4164,7 +4164,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.DWord = atoi(Source);
+		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
 	}
 };
@@ -4206,7 +4206,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.DWord = atoi(Source);
+		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
 	}
 };
@@ -4345,7 +4345,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		VarPtr.Float = (float)atof(Source);
+		VarPtr.Float = GetFloatFromString(Source, 0);
 		return true;
 	}
 };
@@ -4396,7 +4396,7 @@ public:
 	{
 		if (IsNumber(Source))
 		{
-			VarPtr.DWord = atoi(Source);
+			VarPtr.DWord = GetIntFromString(Source, 0);
 			return true;
 		}
 		else
@@ -4494,7 +4494,7 @@ public:
 	{
 		if (IsNumber(Source))
 		{
-			VarPtr.DWord = atoi(Source);
+			VarPtr.DWord = GetIntFromString(Source, 0);
 			return true;
 		}
 		return false;
@@ -4721,7 +4721,7 @@ public:
 	{
 		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 
-		float VarValue = (float)atof(Source);
+		float VarValue = GetFloatFromString(Source, 0);
 		switch (Source[strlen(Source) - 1])
 		{
 		case 'm':
@@ -5380,7 +5380,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(atoi(Source)))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
 			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
 			return true;
@@ -5619,7 +5619,7 @@ public:
 
 	bool FromString(MQVarPtr& VarPtr, char* Source)
 	{
-		int index = atoi(Source);
+		int index = GetIntFromString(Source, 0);
 
 		if (CHARINFO* pChar = GetCharInfo())
 		{

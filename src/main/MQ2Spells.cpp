@@ -225,7 +225,7 @@ SPELL* GetSpellByName(const char* szName)
 
 	if (szName[0] >= '0' && szName[0] <= '9')
 	{
-		return GetSpellByID(abs(atoi(szName)));
+		return GetSpellByID(abs(GetIntFromString(szName, 0)));
 	}
 
 	// is this even necessary?

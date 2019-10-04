@@ -1529,11 +1529,11 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 	{
 		if (isdigit(szCurArg[0]))
 		{
-			iMsgColor = atoi(szCurArg);
+			iMsgColor = GetIntFromString(szCurArg, iMsgColor);
 			GetArg(szCurArg, szPopText, iArgNum++);
 			if (isdigit(szCurArg[0]))
 			{
-				iMsgTime = atoi(szCurArg) * 1000;
+				iMsgTime = GetIntFromString(szCurArg, iMsgTime) * 1000;
 				sprintf_s(szPopupMsg, "%s", GetNextArg(szPopText, 2, false, 0));
 			}
 			else
@@ -2115,7 +2115,7 @@ bool FastCalculate(char* szFormula, double& Result)
 		StackPop();                                                                            \
 	}                                                                                          \
 }
-#define FinishString()       { if (pToken != &CurrentToken[0]) { *pToken = 0; ValueToList(atof(CurrentToken)); pToken = &CurrentToken[0]; *pToken=0; }}
+#define FinishString()       { if (pToken != &CurrentToken[0]) { *pToken = 0; ValueToList(GetDoubleFromString(CurrentToken, 0)); pToken = &CurrentToken[0]; *pToken=0; }}
 #define NewOp(op)            { FinishString(); MoveStack(op); StackPush(op); }
 #define NextChar(ch)         { *pToken = ch; pToken++; }
 
@@ -3547,20 +3547,20 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpaw
 		else if (!_stricmp(szArg, "range"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->MinLevel = atoi(szArg);
+			pSearchSpawn->MinLevel = GetIntFromString(szArg, pSearchSpawn->MinLevel);
 			GetArg(szArg, szRest, 2);
-			pSearchSpawn->MaxLevel = atoi(szArg);
+			pSearchSpawn->MaxLevel = GetIntFromString(szArg, pSearchSpawn->MaxLevel);
 			szRest = GetNextArg(szRest, 2);
 		}
 		else if (!_stricmp(szArg, "loc"))
 		{
 			pSearchSpawn->bKnownLocation = true;
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->xLoc = (float)atof(szArg);
+			pSearchSpawn->xLoc = GetFloatFromString(szArg, 0);
 			GetArg(szArg, szRest, 2);
-			pSearchSpawn->yLoc = (float)atof(szArg);
+			pSearchSpawn->yLoc = GetFloatFromString(szArg, 0);
 			GetArg(szArg, szRest, 3);
-			pSearchSpawn->zLoc = (float)atof(szArg);
+			pSearchSpawn->zLoc = GetFloatFromString(szArg, 0);
 			if (pSearchSpawn->zLoc == 0.0)
 			{
 				pSearchSpawn->zLoc = ((SPAWNINFO*)pCharSpawn)->Z;
@@ -3575,13 +3575,13 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpaw
 		{
 			GetArg(szArg, szRest, 1);
 			pSearchSpawn->bSpawnID = true;
-			pSearchSpawn->SpawnID = atoi(szArg);
+			pSearchSpawn->SpawnID = GetIntFromString(szArg, pSearchSpawn->SpawnID);
 			szRest = GetNextArg(szRest, 1);
 		}
 		else if (!_stricmp(szArg, "radius"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->FRadius = atof(szArg);
+			pSearchSpawn->FRadius = GetDoubleFromString(szArg, 0);
 			szRest = GetNextArg(szRest, 1);
 		}
 		else if (!_stricmp(szArg, "body"))
@@ -3645,47 +3645,47 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpaw
 		else if (!_stricmp(szArg, "alert"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->AlertList = atoi(szArg);
+			pSearchSpawn->AlertList = GetIntFromString(szArg, pSearchSpawn->AlertList);
 			szRest = GetNextArg(szRest, 1);
 			pSearchSpawn->bAlert = true;
 		}
 		else if (!_stricmp(szArg, "noalert"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->NoAlertList = atoi(szArg);
+			pSearchSpawn->NoAlertList = GetIntFromString(szArg, pSearchSpawn->NoAlertList);
 			szRest = GetNextArg(szRest, 1);
 			pSearchSpawn->bNoAlert = true;
 		}
 		else if (!_stricmp(szArg, "notnearalert"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->NotNearAlertList = atoi(szArg);
+			pSearchSpawn->NotNearAlertList = GetIntFromString(szArg, pSearchSpawn->NotNearAlertList);
 			szRest = GetNextArg(szRest, 1);
 			pSearchSpawn->bNotNearAlert = true;
 		}
 		else if (!_stricmp(szArg, "nearalert"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->NearAlertList = atoi(szArg);
+			pSearchSpawn->NearAlertList = GetIntFromString(szArg, pSearchSpawn->NearAlertList);
 			szRest = GetNextArg(szRest, 1);
 			pSearchSpawn->bNearAlert = true;
 		}
 		else if (!_stricmp(szArg, "zradius"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->ZRadius = atof(szArg);
+			pSearchSpawn->ZRadius = GetDoubleFromString(szArg, 0);
 			szRest = GetNextArg(szRest, 1);
 		}
 		else if (!_stricmp(szArg, "notid"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->NotID = atoi(szArg);
+			pSearchSpawn->NotID = GetIntFromString(szArg, pSearchSpawn->NotID);
 			szRest = GetNextArg(szRest, 1);
 		}
 		else if (!_stricmp(szArg, "nopcnear"))
 		{
 			GetArg(szArg, szRest, 1);
-			if ((szArg[0] == 0) || (0.0f == (pSearchSpawn->Radius = (float)atof(szArg))))
+			if ((szArg[0] == 0) || (0.0f == (pSearchSpawn->Radius = GetFloatFromString(szArg, 0))))
 			{
 				pSearchSpawn->Radius = 200.0f;
 			}
@@ -3697,12 +3697,12 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpaw
 		else if (!_stricmp(szArg, "playerstate"))
 		{
 			GetArg(szArg, szRest, 1);
-			pSearchSpawn->PlayerState |= atoi(szArg); // This allows us to pass multiple playerstate args
+			pSearchSpawn->PlayerState |= GetIntFromString(szArg, 0); // This allows us to pass multiple playerstate args
 			szRest = GetNextArg(szRest, 1);
 		}
 		else if (IsNumber(szArg))
 		{
-			pSearchSpawn->MinLevel = atoi(szArg);
+			pSearchSpawn->MinLevel = GetIntFromString(szArg, pSearchSpawn->MinLevel);
 			pSearchSpawn->MaxLevel = pSearchSpawn->MinLevel;
 		}
 		else
@@ -4396,7 +4396,7 @@ char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t Buffe
 	if (!pItem)
 		return &szName[0];
 
-	int Item = atoi(pItem->Name + 2);
+	int Item = GetIntFromString(&pItem->Name[2], 0);
 	ACTORDEFENTRY* ptr = ActorDefList;
 	while (ptr->Def)
 	{
@@ -5095,7 +5095,7 @@ void UseAbility(const char* sAbility)
 	if (!cmdDoAbility)
 		return;
 
-	if (atoi(szBuffer) || !EQADDR_DOABILITYLIST)
+	if (GetIntFromString(szBuffer, 0) || !EQADDR_DOABILITYLIST)
 	{
 		cmdDoAbility((SPAWNINFO*)pLocalPlayer, szBuffer);
 		return;

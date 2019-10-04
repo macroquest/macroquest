@@ -357,17 +357,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		char* szEndPtr = nullptr;
-		errno = 0;
-		const int iVersion = strtol(szVersion, &szEndPtr, 0);
-
-		// If out of range || extra stuff left || no conversion
-		if (errno == ERANGE || *szEndPtr != '\0' || szVersion == szEndPtr)
-		{
-			SyntaxError("Invalid Parser Version (%s) valid versions are 1 or 2.", szVersion);
-			return;
-
-		}
+		const int iVersion = GetIntFromString(szVersion, 1);
 
 		switch (iVersion)
 		{
@@ -864,7 +854,7 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		int ID = atoi(Arg2);
+		int ID = GetIntFromString(Arg2, 0);
 		GetArg(Arg2, szLine, 3);
 
 		for (int Count = 0; Count < pDoorTable->NumEntries; Count++)
@@ -968,7 +958,7 @@ void SpellSlotInfo(SPAWNINFO* pChar, char* szLine)
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 
-	IsNumber(szArg1) ? pSpell = GetSpellByID(atoi(szArg1)) : pSpell = GetSpellByName(szLine);
+	IsNumber(szArg1) ? pSpell = GetSpellByID(GetIntFromString(szArg1, 0)) : pSpell = GetSpellByName(szLine);
 	if (!pSpell)
 	{
 		WriteChatf("Usage: /SpellSlotInfo [#|\"spell name\"]");
@@ -1012,7 +1002,7 @@ void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 	char szGem[MAX_STRING] = { 0 };
 	GetArg(szGem, szLine, 1);
 
-	int Gem = atoi(szGem) - 1;
+	int Gem = GetIntFromString(szGem, 0) - 1;
 	if (Gem < 0 || Gem >= NUM_SPELL_GEMS) return;
 
 	char SpellName[MAX_STRING] = { 0 };
@@ -1133,7 +1123,7 @@ void BuyItem(SPAWNINFO* pChar, char* szLine)
 	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
 	{
 		GetArg(szQty, szLine, 1);
-		int Qty = atoi(szQty);
+		int Qty = GetIntFromString(szQty, 0);
 		if (Qty < 1) return;
 
 		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestGetItem(Qty);
@@ -1162,7 +1152,7 @@ void SellItem(SPAWNINFO* pChar, char* szLine)
 	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
 	{
 		GetArg(szQty, szLine, 1);
-		int Qty = atoi(szQty);
+		int Qty = GetIntFromString(szQty, 0);
 		if (Qty < 1) return;
 
 		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestPutItem(Qty);
@@ -1767,7 +1757,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
-			gZFilter = (float)atof(szRest);
+			gZFilter = GetDoubleFromString(szRest, 0);
 		}
 	}
 }
@@ -2230,7 +2220,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 			if (!strcmp(szArg, "clear"))
 			{
 				GetArg(szArg, szRest, 1);
-				CAlerts.FreeAlerts(atoi(szArg));
+				CAlerts.FreeAlerts(GetIntFromString(szArg, 0));
 
 				DidSomething = true;
 			}
@@ -2241,7 +2231,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 
 				std::vector<MQSpawnSearch> ss;
 
-				if (CAlerts.GetAlert(atoi(szArg), ss))
+				if (CAlerts.GetAlert(GetIntFromString(szArg, 0), ss))
 				{
 					WriteChatColor(" ");
 					WriteChatColor("Current alerts:");
@@ -2292,7 +2282,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 				}
 
 				char szTemp[MAX_STRING] = { 0 };
-				int List = atoi(szArg);
+				int List = GetIntFromString(szArg, 0);
 
 				if (CAlerts.RemoveAlertFromList(List, &searchSpawn))
 				{
@@ -2335,7 +2325,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 				searchSpawn.bTargPrev = false;
 
 				char szTemp[MAX_STRING] = { 0 };
-				int List = atoi(szArg);
+				int List = GetIntFromString(szArg, 0);
 
 				if (CheckAlertForRecursion(&searchSpawn, List))
 				{
@@ -2590,7 +2580,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			pSpawnClosest->Y = (float)atof(szFilter);
+			pSpawnClosest->Y = GetFloatFromString(szFilter, 0);
 
 			while ((szFilter[0] != ',') && (szFilter[0] != 0))
 				szFilter++;
@@ -2602,7 +2592,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 			}
 
 			szFilter++;
-			pSpawnClosest->X = (float)atof(szFilter);
+			pSpawnClosest->X = GetFloatFromString(szFilter, 0);
 
 			while ((szFilter[0] != ',') && (szFilter[0] != 0))
 				szFilter++;
@@ -2610,7 +2600,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 			if (szFilter[0] != 0)
 			{
 				szFilter++;
-				pSpawnClosest->Z = (float)atof(szFilter);
+				pSpawnClosest->Z = GetFloatFromString(szFilter, 0);
 			}
 		}
 		else if (!_stricmp(szArg, "item"))
@@ -2641,7 +2631,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 			}
 			else
 			{
-				float Heading = (float)(atof(szFilter));
+				float Heading = GetFloatFromString(szFilter, 0);
 				gFaceAngle = Heading / 0.703125f;
 
 				if (gFaceAngle >= 512.0f)
@@ -2768,7 +2758,7 @@ void Look(SPAWNINFO* pChar, char* szLine)
 	char szLookAngle[MAX_STRING] = { 0 };
 	GetArg(szLookAngle, szLine, 1);
 
-	float fLookAngle = (float)atof(szLookAngle);
+	float fLookAngle = GetFloatFromString(szLookAngle, 0);
 
 	if (fLookAngle > 128.0f || fLookAngle < -128.0f)
 	{
@@ -2850,7 +2840,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	char szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
 
-	int abil = atoi(szBuffer);
+	int abil = GetIntFromString(szBuffer, 0);
 	if (abil && abil > 5 && abil < NUM_SKILLS) // user wants us to activate a ability by its REAL ID...
 	{
 		if (int nToken = pCSkillMgr->GetNameToken(abil))
@@ -3004,7 +2994,7 @@ void LoadSpells(SPAWNINFO* pChar, char* szLine)
 
 	if (!_stricmp(szArg1, "list"))
 	{
-		int DoIndex = IsNumber(szArg2) ? atoi(szArg2) : FindSpellListByName(szArg2);
+		int DoIndex = IsNumber(szArg2) ? GetIntFromString(szArg2, -1) : FindSpellListByName(szArg2);
 
 		if (DoIndex < 0 || DoIndex > NUM_SPELL_SETS - 1)
 		{
@@ -3025,7 +3015,7 @@ void LoadSpells(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	int DoIndex = IsNumber(szArg1) ? atoi(szArg1) : FindSpellListByName(szArg1);
+	int DoIndex = IsNumber(szArg1) ? GetIntFromString(szArg1, -1) : FindSpellListByName(szArg1);
 	if (DoIndex >= 0 && DoIndex < NUM_SPELL_SETS)
 	{
 		bool bMissingSpell = false;
@@ -3125,9 +3115,9 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData)
+	if (szLine[0] == 0 || GetIntFromString(szLine, 0) || !ppSpellMgr || !ppCharData || !pCharData)
 	{
-		int Index = atoi(szLine) - 1;
+		int Index = GetIntFromString(szLine, 0) - 1;
 
 		if (Index >= 0 && Index < NUM_SPELL_GEMS)
 		{
@@ -3143,13 +3133,13 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 						// they want to cast it at a specific location
 						char loc[32] = { 0 };
 						GetArg(loc, szLine, 3);
-						castLoc.X = (float)atof(loc);
+						castLoc.X = GetFloatFromString(loc, 0);
 
 						GetArg(loc, szLine, 4);
-						castLoc.Y = (float)atof(loc);
+						castLoc.Y = GetFloatFromString(loc, 0);
 
 						GetArg(loc, szLine, 5);
-						castLoc.Z = (float)atof(loc);
+						castLoc.Z = GetFloatFromString(loc, 0);
 
 						CastSplash(Index, pSpell, &castLoc);
 					}
@@ -3253,13 +3243,13 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 							// they want to cast it at a specific location
 							char loc[32] = { 0 };
 							GetArg(loc, szLine, 3);
-							castLoc.X = (float)atof(loc);
+							castLoc.X = GetFloatFromString(loc, 0);
 
 							GetArg(loc, szLine, 4);
-							castLoc.Y = (float)atof(loc);
+							castLoc.Y = GetFloatFromString(loc, 0);
 
 							GetArg(loc, szLine, 5);
-							castLoc.Z = (float)atof(loc);
+							castLoc.Z = GetFloatFromString(loc, 0);
 
 							CastSplash(Index, pSpell, &castLoc);
 						}
@@ -3882,7 +3872,7 @@ void do_ranged(SPAWNINFO* pChar, char* szLine)
 
 	if (szLine[0])
 	{
-		pRangedTarget = GetSpawnByID(atoi(szLine));
+		pRangedTarget = GetSpawnByID(GetIntFromString(szLine, 0));
 		if (!pRangedTarget)
 		{
 			MacroError("Invalid spawn ID.  Use /ranged with no parameters, or with a spawn ID");
@@ -4204,7 +4194,7 @@ void DoTimedCmd(SPAWNINFO* pChar, char* szLine)
 	if (!szRest[0])
 		return;
 
-	TimedCommand(szRest, atoi(szArg) * 100);
+	TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
 }
 
 void ClearErrorsCmd(SPAWNINFO* pChar, char* szLine)
@@ -4350,7 +4340,7 @@ void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!_stricmp(Arg1, "Update"))
 	{
-		gMaxSpawnCaptions = std::clamp(atoi(GetNextArg(szLine)), 8, 70);
+		gMaxSpawnCaptions = std::clamp(GetIntFromString(GetNextArg(szLine), 0), 8, 70);
 		_itoa_s(gMaxSpawnCaptions, Arg1, 10);
 
 		WritePrivateProfileString("Captions", "Update", Arg1, gszINIFilename);
@@ -4752,7 +4742,7 @@ void PetCmd(SPAWNINFO* pChar, char* szLine)
 
 		if (IsNumber(szID))
 		{
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(atoi(szID)))
+			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(GetIntFromString(szID, 0)))
 			{
 				pEverQuest->IssuePetCommand(cmdtype, pSpawn->SpawnID, false);
 				return;
@@ -4867,7 +4857,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 			{
 				if (IsNumber(szID))
 				{
-					index = atoi(szID) - 1;
+					index = GetIntFromString(szID, index) - 1;
 				}
 				else
 				{
@@ -4996,7 +4986,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 			int index = -1;
 			if (IsNumber(szID))
 			{
-				index = atoi(szID) - 1;
+				index = GetIntFromString(szID, index) - 1;
 			}
 			else
 			{
@@ -5087,7 +5077,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 									if (!_stricmp(out.c_str(), szEntity))
 									{
 										// TODO: Check array usage
-										int qty = atoi(szQty);
+										int qty = GetIntFromString(szQty, 0);
 										if (pitem && !pitem->LootDetails.IsEmpty())
 										{
 											if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
@@ -5290,7 +5280,7 @@ void PickZoneCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	int index = atoi(szLine);
+	int index = GetIntFromString(szLine, 0);
 	CreateThread(nullptr, 0, openpickzonewnd, (void*)index, 0, nullptr);
 }
 
@@ -5329,7 +5319,7 @@ void AssistCmd(SPAWNINFO* pChar, char* szLine)
 // Function:    SetProcessPriority
 // Description: '/setprio' command
 // Purpose:     Adds the ability to set the process priority
-// Example:		/setprio <1-6> Where 1 is Low 2 is below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime
+// Example:		/setprio <1-6> Where 1 is Low, 2 is below Normal, 3 is Normal, 4 is Above Normal, 5 is High, and 6 is RealTime
 // Author:      EqMule
 // ***************************************************************************
 void SetProcessPriority(SPAWNINFO* pChar, char* szLine)
@@ -5347,7 +5337,7 @@ void SetProcessPriority(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	switch (atoi(szLine))
+	switch (GetIntFromString(szLine, 3))
 	{
 	case 1:
 		SetPriorityClass(hProcess, IDLE_PRIORITY_CLASS);
@@ -5403,7 +5393,7 @@ void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	int newprio = atoi(szLine);
+	int newprio = GetIntFromString(szLine, 2);
 	ScreenMode = newprio;
 	WriteChatf("Screen Mode Set to \ag%d\ax", newprio);
 }
@@ -5428,10 +5418,10 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	char szArg1[2048] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 
-	char szArg2[2048] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
 	EQCAMERABASE* pUserCam1 = (EQCAMERABASE*)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
@@ -5475,7 +5465,7 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 
 		if (pSelectorWnd)
 		{
-			char szOut[2048] = { 0 };
+			char szOut[MAX_STRING] = { 0 };
 			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
 			pSelectorWnd->SetWindowText(szOut);
 		}
@@ -5492,7 +5482,7 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!_stricmp(szArg1, "save"))
 	{
-		char szIniFile[2048] = { 0 };
+		char szIniFile[MAX_STRING] = { 0 };
 		strcpy_s(szIniFile, gszINIFilename);
 
 		if (szArg2 && szArg2[0] != '\0')
@@ -5519,47 +5509,30 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!_stricmp(szArg1, "load"))
 	{
-		char szIniFile[2048] = { 0 };
+		char szIniFile[MAX_STRING] = { 0 };
 		strcpy_s(szIniFile, gszINIFilename);
 
-		char szOut[2048] = { 0 };
 		if (szArg2 && szArg2[0] != '\0')
 		{
 			sprintf_s(szIniFile, "%s\\%s_%s.ini", gszINIPath, EQADDR_SERVERNAME, szArg2);
 		}
 
-		GetPrivateProfileString("User Camera 1", "bAutoHeading", std::to_string(pUserCam1->bAutoHeading), szOut, 2048, szIniFile);
-		pUserCam1->bAutoHeading = atoi(szOut) != 0;
-		GetPrivateProfileString("User Camera 1", "bAutoPitch", std::to_string(pUserCam1->bAutoPitch), szOut, 2048, szIniFile);
-		pUserCam1->bAutoPitch = atoi(szOut) != 0;
-		GetPrivateProfileString("User Camera 1", "bSkipFrame", std::to_string(pUserCam1->bSkipFrame), szOut, 2048, szIniFile);
-		pUserCam1->bSkipFrame = atoi(szOut) != 0;
-		GetPrivateProfileString("User Camera 1", "DirectionalHeading", std::to_string(pUserCam1->DirectionalHeading), szOut, 2048, szIniFile);
-		pUserCam1->DirectionalHeading = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Distance", std::to_string(pUserCam1->Distance), szOut, 2048, szIniFile);
-		pUserCam1->Distance = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Heading", std::to_string(pUserCam1->Heading), szOut, 2048, szIniFile);
-		pUserCam1->Heading = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Height", std::to_string(pUserCam1->Height), szOut, 2048, szIniFile);
-		pUserCam1->Height = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_X", std::to_string(pUserCam1->OldPosition_X), szOut, 2048, szIniFile);
-		pUserCam1->OldPosition_X = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_Y", std::to_string(pUserCam1->OldPosition_Y), szOut, 2048, szIniFile);
-		pUserCam1->OldPosition_Y = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "OldPosition_Z", std::to_string(pUserCam1->OldPosition_Z), szOut, 2048, szIniFile);
-		pUserCam1->OldPosition_Z = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_X", std::to_string(pUserCam1->Orientation_X), szOut, 2048, szIniFile);
-		pUserCam1->Orientation_X = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_Y", std::to_string(pUserCam1->Orientation_Y), szOut, 2048, szIniFile);
-		pUserCam1->Orientation_Y = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Orientation_Z", std::to_string(pUserCam1->Orientation_Z), szOut, 2048, szIniFile);
-		pUserCam1->Orientation_Z = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Pitch", std::to_string(pUserCam1->Pitch), szOut, 2048, szIniFile);
-		pUserCam1->Pitch = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "SideMovement", std::to_string(pUserCam1->SideMovement), szOut, 2048, szIniFile);
-		pUserCam1->SideMovement = (float)atof(szOut);
-		GetPrivateProfileString("User Camera 1", "Zoom", std::to_string(pUserCam1->Zoom), szOut, 2048, szIniFile);
-		pUserCam1->Zoom = (float)atof(szOut);
+		pUserCam1->bAutoHeading = GetPrivateProfileInt("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, szIniFile);
+		pUserCam1->bAutoPitch = GetPrivateProfileInt("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, szIniFile);
+		pUserCam1->bSkipFrame = GetPrivateProfileInt("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, szIniFile);
+		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, szIniFile);
+		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, szIniFile);
+		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, szIniFile);
+		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, szIniFile);
+		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, szIniFile);
+		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, szIniFile);
+		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, szIniFile);
+		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, szIniFile);
+		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, szIniFile);
+		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, szIniFile);
+		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, szIniFile);
+		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, szIniFile);
+		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, szIniFile);
 		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
 	}
 }

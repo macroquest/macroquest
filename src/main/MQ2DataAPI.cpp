@@ -920,19 +920,9 @@ std::string HandleParseParam(std::string_view strOriginal, const bool bParseOnce
 			{
 				// Save what the delimiter actually is because we're going to need it later
 				std::string strDelimiter = strReturn.substr(iFirstDelimiter, 1);
-				char* szEndPtr = nullptr;
-				errno = 0;
 
 				// Get between the bracket and the first delimiter and save that int as our number of iterations
-				int iParseIterations = strtol(
-					strReturn.substr(iFirstBracket + 1, iFirstDelimiter - 1 - iFirstBracket).c_str(),
-					&szEndPtr, 10);
-
-				// If there was an error in the conversion to int or we have garbage, set the parses to 0
-				if (errno != 0 || *szEndPtr != '\0')
-				{
-					iParseIterations = 0;
-				}
+				int iParseIterations = GetIntFromString(strReturn.substr(iFirstBracket + 1, iFirstDelimiter - 1 - iFirstBracket), 0);
 
 				do {
 					// Find the first bracket in the return string

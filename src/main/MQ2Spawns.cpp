@@ -738,9 +738,9 @@ void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 				{
 					ARGBCOLOR NewColor;
 					NewColor.A = 0;
-					NewColor.R = atoi(Arg2);
-					NewColor.G = atoi(GetArg(Arg2, szLine, 3));
-					NewColor.B = atoi(GetArg(Arg2, szLine, 4));
+					NewColor.R = GetIntFromString(Arg2, 0);
+					NewColor.G = GetIntFromString(GetArg(Arg2, szLine, 3), 0);
+					NewColor.B = GetIntFromString(GetArg(Arg2, szLine, 4), 0);
 					CaptionColors[index].Color = NewColor.ARGB;
 				}
 				else

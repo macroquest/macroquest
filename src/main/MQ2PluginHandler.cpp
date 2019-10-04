@@ -274,10 +274,8 @@ void InitializeMQ2Plugins()
 	bmEndZone = AddMQ2Benchmark("EndZone");
 
 	char PluginList[MAX_STRING * 10] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
 	char MainINI[MAX_STRING] = { 0 };
 	char* pPluginList = nullptr;
-	bool bLoadPlugin = false; // should probably be initialized in the loop
 
 	// lock plugin list before manipulating it
 	std::scoped_lock lock(s_pluginsMutex);
@@ -289,15 +287,7 @@ void InitializeMQ2Plugins()
 
 	while (pPluginList[0] != 0)
 	{
-		GetPrivateProfileString("Plugins", pPluginList, "", szBuffer, MAX_STRING, MainINI);
-
-		if (IsNumber(szBuffer))
-		{
-			bLoadPlugin = atoi(szBuffer) != 0;
-			szBuffer[0] = 0;
-		}
-
-		if (bLoadPlugin || szBuffer[0] != 0)
+		if (GetPrivateProfileInt("Plugins", pPluginList, 0, MainINI) != 0)
 		{
 			LoadMQ2Plugin(pPluginList);
 		}
@@ -312,15 +302,7 @@ void InitializeMQ2Plugins()
 
 	while (pPluginList[0] != 0)
 	{
-		GetPrivateProfileString("Plugins", pPluginList, "", szBuffer, MAX_STRING, MainINI);
-
-		if (IsNumber(szBuffer))
-		{
-			bLoadPlugin = atoi(szBuffer) != 0;
-			szBuffer[0] = 0;
-		}
-
-		if (bLoadPlugin || szBuffer[0] != 0)
+		if (GetPrivateProfileInt("Plugins", pPluginList, 0, MainINI) != 0)
 		{
 			LoadMQ2Plugin(pPluginList, true);
 		}

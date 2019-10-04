@@ -141,7 +141,7 @@ static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 	if (szLine[0])
 	{
 		char szArg[MAX_STRING] = { 0 };
-		gNetStatusXPos = strtol(GetArg(szArg, szLine, 1), nullptr, 0);
+		gNetStatusXPos = GetIntFromString(GetArg(szArg, szLine, 1), gNetStatusXPos);
 		WriteChatf("\ayNetStatus XPos is \ax\at%d\ax", gNetStatusXPos);
 
 		char szCmd[20] = { 0 };
@@ -156,7 +156,7 @@ static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
 	if (szLine[0])
 	{
 		char szArg[MAX_STRING] = { 0 };
-		gNetStatusYPos = strtol(GetArg(szArg, szLine, 1), nullptr, 0);
+		gNetStatusYPos = GetIntFromString(GetArg(szArg, szLine, 1), gNetStatusYPos);
 		WriteChatf("\ayNetStatus YPos is \ax\at%d\ax", gNetStatusYPos);
 
 		char szCmd[20] = { 0 };

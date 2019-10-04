@@ -249,7 +249,7 @@ bool dataLastItem(const char* szName, MQTypeVar& Ret)
 	{
 		if (IsNumber(szName))
 		{
-			int index = atoi(szName);
+			int index = GetIntFromString(szName, 7);
 			if (index < 6 && g_Contents[index].vtable)
 			{
 				Ret.DWord = index;
@@ -496,7 +496,7 @@ public:
 			std::string displayCopy{ ItemDisplay };
 			strcpy_s(ActualDmgBonus, displayCopy.c_str());
 
-			dmgbonus = atoi(ActualDmgBonus);
+			dmgbonus = GetIntFromString(ActualDmgBonus, 0);
 		}
 
 		return dmgbonus;
@@ -2097,8 +2097,8 @@ void AddLootFilter(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	int itemid = atoi(szArg1);
-	int itemicon = atoi(szArg2);
+	int itemid = GetIntFromString(szArg1, 0);
+	int itemicon = GetIntFromString(szArg2, 0);
 
 	pLootFiltersManager->AddItemLootFilter(itemid, itemicon, szArg3, 5);
 	WriteChatf("Added %s to AG and Roll LootFilters.", szArg3);
@@ -2117,18 +2117,18 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 		if (szArg2[0] == '\0')
 		{
 			// its an itemid...
-			int iID = atoi(szArg1);
+			int iID = GetIntFromString(szArg1, -1);
 			pCont = FindItemByID(iID);
 		}
 		else
 		{
 			// it must be a slot then...
-			int slot1 = atoi(szArg1);
+			int slot1 = GetIntFromString(szArg1, -1);
 			int slot2 = -1;
 
 			if (szArg2[0] != '\0')
 			{
-				slot2 = atoi(szArg2);
+				slot2 = GetIntFromString(szArg2, -1);
 			}
 			pCont = FindItemBySlot(slot1, slot2);
 		}
@@ -2242,7 +2242,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 	if (szArg2[0] != '\0' && IsNumber(szArg2))
 	{
 		// its an id
-		int iID = atoi(szArg2);
+		int iID = GetIntFromString(szArg2, -1);
 		pCont = FindItemByID(iID);
 	}
 	else if (szArg2[0] != '\0')
@@ -2268,7 +2268,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 	if (IsNumber(szArg1))
 	{
 		// its an id
-		iID = atoi(szArg1);
+		iID = GetIntFromString(szArg1, 0);
 	}
 
 	ITEMINFO* ptheAug = nullptr;
@@ -2401,9 +2401,9 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 		strcat_s(Comment, " ");
 		GetArg(szTemp, szLine, i);
 	}
-	int itemno = atoi(ItemNo);
+	const int itemno = GetIntFromString(ItemNo, 0);
 
-	if (_stricmp(Arg, "add") && _stricmp(Arg, "del"))
+	if (_stricmp(Arg, "add") != 0 && _stricmp(Arg, "del") != 0)
 	{
 		WriteChatColor("Use: /inote <add|del> <itemno> \"Comment\"", CONCOLOR_YELLOW);
 		return;
@@ -2416,14 +2416,14 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	if (strlen(Comment) == 0 || !_stricmp(Arg, "del"))
+	if (strlen(Comment) == 0 || _stricmp(Arg, "del") == 0)
 	{
 		sprintf_s(szTemp, "%07d", itemno);
 		WritePrivateProfileString("Notes", szTemp, "", INIFileName);
 		return;
 	}
 
-	if (!_stricmp(Arg, "add"))
+	if (_stricmp(Arg, "add") == 0)
 	{
 		sprintf_s(szTemp, "%07d", itemno);
 		WritePrivateProfileString("Notes", szTemp, Comment, INIFileName);
@@ -2533,7 +2533,7 @@ void LoadAttribListWeights(char* Section)
 	for (int i = 0; i <= AttribMax; i++)
 	{
 		GetPrivateProfileString(Section, AttribList[i].Name, "0", szVal, 256, INIFileName);
-		AttribList[i].Weight = (float)atof(szVal);
+		AttribList[i].Weight = GetFloatFromString(szVal, 0);
 	}
 }
 
@@ -2555,7 +2555,7 @@ int SetAttribListWeight(char* Key, char* Val)
 		if (_stricmp(AttribList[i].Name, Key) == 0)
 		{
 			WriteChatf("MQ2GearScore::Setting %s to %s", AttribList[i].Name, Val);
-			AttribList[i].Weight = (float)atof(Val);
+			AttribList[i].Weight = GetFloatFromString(Val, 0);
 			return 1;
 		}
 	}
@@ -2671,13 +2671,12 @@ void ClearProfile(int Echo)
 
 void ReadProfile(char* pName, int Echo)
 {
-	char szVal[MAX_STRING];
 	if (Echo) WriteChatf("MQ2ItemDisplay::loading settings for [%s]", pName);
 	GetPrivateProfileString(pName, "Report", "None", ReportChannel, 256, INIFileName);
-	GetPrivateProfileString(pName, "ClickGroup", "0", szVal, 256, INIFileName); ClickGroup = atoi(szVal);
-	GetPrivateProfileString(pName, "ClickGuild", "0", szVal, 256, INIFileName); ClickGuild = atoi(szVal);
-	GetPrivateProfileString(pName, "ClickRaid", "0", szVal, 256, INIFileName); ClickRaid = atoi(szVal);
-	GetPrivateProfileString(pName, "ClickAny", "0", szVal, 256, INIFileName); ClickAny = atoi(szVal);
+	ClickGroup = GetPrivateProfileInt(pName, "ClickGroup", 0, INIFileName);
+	ClickGuild = GetPrivateProfileInt(pName, "ClickGuild", 0, INIFileName);
+	ClickRaid = GetPrivateProfileInt(pName, "ClickRaid", 0, INIFileName);
+	ClickAny = GetPrivateProfileInt(pName, "ClickAny", 0, INIFileName);
 	LoadAttribListWeights(pName);
 	IniLoaded = 1;
 }

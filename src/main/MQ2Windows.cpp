@@ -356,28 +356,28 @@ public:
 		if (char* pDest = strstr(szLabel1, "pp"))
 		{
 			pDest[0] = '\0';
-			pp = atoi(szLabel1);
+			pp = GetIntFromString(szLabel1, pp);
 			strcpy_s(szLabel1, &pDest[2]);
 		}
 
 		if (char* pDest = strstr(szLabel1, "gp"))
 		{
 			pDest[0] = '\0';
-			gp = atoi(szLabel1);
+			gp = GetIntFromString(szLabel1, gp);
 			strcpy_s(szLabel1, &pDest[2]);
 		}
 
 		if (char* pDest = strstr(szLabel1, "sp"))
 		{
 			pDest[0] = '\0';
-			sp = atoi(szLabel1);
+			sp = GetIntFromString(szLabel1, sp);
 			strcpy_s(szLabel1, &pDest[2]);
 		}
 
 		if (char* pDest = strstr(szLabel1, "cp"))
 		{
 			pDest[0] = '\0';
-			cp = atoi(szLabel1);
+			cp = GetIntFromString(szLabel1, cp);
 			strcpy_s(szLabel1, &pDest[2]);
 		}
 
@@ -1712,7 +1712,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 	CONTENTS* pPack = nullptr;
 	if (!_strnicmp(WindowName, "bank", 4))
 	{
-		unsigned long nPack = atoi(&WindowName[4]);
+		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
 		if (nPack && nPack <= NUM_BANK_SLOTS)
 		{
 #ifdef NEWCHARINFO
@@ -1730,7 +1730,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 	}
 	else if (!_strnicmp(WindowName, "pack", 4))
 	{
-		unsigned long nPack = atoi(&WindowName[4]);
+		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
 		if (nPack && nPack <= 10)
 		{
 			if (PcProfile* pProfile = GetPcProfile())
@@ -2564,7 +2564,7 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 
 	if (szArg4[0])
 	{
-		Data = atoi(szArg4);
+		Data = GetIntFromString(szArg4, Data);
 	}
 
 	if (!_stricmp(szArg2, "menuselect"))
@@ -2619,10 +2619,10 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 	if (IsNumber(szArg1))
 	{
 		// we have a number. it means the user want us to click a window he has found the address for...
-		int addr = atoi(szArg1);
+		int addr = GetIntFromString(szArg1, 0);
 		if (!_stricmp(szArg2, "listselect"))
 		{
-			SendListSelect2(reinterpret_cast<CXWnd*>(addr), atoi(szArg3));
+			SendListSelect2(reinterpret_cast<CXWnd*>(addr), GetIntFromString(szArg3, 0));
 			return;
 		}
 
@@ -2706,7 +2706,7 @@ bool CheckLootArg(char* arg, char* search, int argcnt, int* slot)
 		int theslot = -1;
 		if (IsNumber(numptr))
 		{
-			theslot = atoi(numptr) - 1;
+			theslot = GetIntFromString(numptr, 0) - 1;
 			if (theslot < 0)
 				theslot = 0;
 			*slot = theslot;
@@ -2753,20 +2753,20 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 
 		if (!_strnicmp(szArg2, "bank", 4))
 		{
-			invslot = atoi(&szArg2[4]) - 1;
-			bagslot = atoi(szArg3) - 1;
+			invslot = GetIntFromString(&szArg2[4], invslot) - 1;
+			bagslot = GetIntFromString(szArg3, bagslot) - 1;
 			type = eItemContainerBank;
 		}
 		else if (!_strnicmp(szArg2, "sharedbank", 10))
 		{
-			invslot = atoi(&szArg2[10]) - 1;
-			bagslot = atoi(szArg3) - 1;
+			invslot = GetIntFromString(&szArg2[10], invslot) - 1;
+			bagslot = GetIntFromString(szArg3, bagslot) - 1;
 			type = eItemContainerSharedBank;
 		}
 		else if (!_strnicmp(szArg2, "pack", 4))
 		{
-			invslot = atoi(&szArg2[4]) - 1 + BAG_SLOT_START;
-			bagslot = atoi(szArg3) - 1;
+			invslot = GetIntFromString(&szArg2[4], invslot) - 1 + BAG_SLOT_START;
+			bagslot = GetIntFromString(szArg3, bagslot) - 1;
 			type = eItemContainerPossessions;
 		}
 
@@ -2855,7 +2855,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 	{
 		// user didnt specify "in" so it should be outside a container
 		// OR it's an item, either way we can "click" it -eqmule
-		int Slot = atoi(szArg1);
+		int Slot = GetIntFromString(szArg1, -1);
 		if (Slot == 0)
 		{
 			_strlwr_s(szArg1);
@@ -2868,32 +2868,32 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 			{
 				if (!_strnicmp(szArg1, "loot", 4))
 				{
-					invslot = atoi(szArg1 + 4) - 1;
+					invslot = GetIntFromString(&szArg1[4], invslot) - 1;
 					type = eItemContainerCorpse;
 				}
 				else if (!_strnicmp(szArg1, "enviro", 6))
 				{
-					invslot = atoi(szArg1 + 6) - 1;
+					invslot = GetIntFromString(&szArg1[6], invslot) - 1;
 					type = eItemContainerWorld;
 				}
 				else if (!_strnicmp(szArg1, "pack", 4))
 				{
-					invslot = atoi(szArg1 + 4) - 1 + BAG_SLOT_START;
+					invslot = GetIntFromString(&szArg1[4], invslot) - 1 + BAG_SLOT_START;
 					type = eItemContainerPossessions;
 				}
 				else if (!_strnicmp(szArg1, "bank", 4))
 				{
-					invslot = atoi(szArg1 + 4) - 1;
+					invslot = GetIntFromString(&szArg1[4], invslot) - 1;
 					type = eItemContainerBank;
 				}
 				else if (!_strnicmp(szArg1, "sharedbank", 10))
 				{
-					invslot = atoi(szArg1 + 10) - 1;
+					invslot = GetIntFromString(&szArg1[10], invslot) - 1;
 					type = eItemContainerSharedBank;
 				}
 				else if (!_strnicmp(szArg1, "trade", 5))
 				{
-					invslot = atoi(szArg1 + 5) - 1;
+					invslot = GetIntFromString(&szArg1[5], invslot) - 1;
 					type = eItemContainerTrade;
 				}
 
@@ -2933,7 +2933,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 
 			if (szArg1[0] == '#')
 			{
-				int id = atoi(&szArg1[1]);
+				int id = GetIntFromString(&szArg1[1], 0);
 				ptheitem = FindItemByID(id);
 			}
 			else

@@ -138,7 +138,7 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 		}
 		else
 		{
-			pMapFilter->Enabled = atoi(szValue);
+			pMapFilter->Enabled = GetIntFromString(szValue, 0);
 			sprintf_s(szBuffer, "%s is now set to: %d", pMapFilter->szName, pMapFilter->Enabled);
 		}
 	}
@@ -207,9 +207,9 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 						}
 						else
 						{
-							R = atoi(szArg);
-							G = atoi(GetArg(szArg, szRest, 3));
-							B = atoi(GetArg(szArg, szRest, 4));
+							R = GetIntFromString(szArg, 256);
+							G = GetIntFromString(GetArg(szArg, szRest, 3), 256);
+							B = GetIntFromString(GetArg(szArg, szRest, 4), 256);
 							if (R>255) R = 255;
 							if (G>255) G = 255;
 							if (B>255) B = 255;
@@ -245,12 +245,12 @@ void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
-	int newActiveLayer = atoi(szLine);
+	const int newActiveLayer = GetIntFromString(szLine, -1);
 	if (szLine == nullptr || szLine[0] == 0 || newActiveLayer < 0 || newActiveLayer > 3)
 	{
 		SyntaxError("Usage: /mapactivelayer [0|1|2|3]");
 		return;
-	};
+	}
 
 	activeLayer = newActiveLayer;
 
@@ -324,7 +324,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (atoi(size) < 10 || atoi(width) > 200)
+			if (GetIntFromString(size, 9) < 10 || GetIntFromString(width, 201) > 200)
 			{
 				MapLocSyntaxOutput();
 				return;
@@ -343,7 +343,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (atoi(width) < 1 || atoi(width) > 10)
+			if (GetIntFromString(width, 0) < 1 || GetIntFromString(width, 11) > 10)
 			{
 				MapLocSyntaxOutput();
 				return;
@@ -380,7 +380,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (atoi(red) < 0 || atoi(red) > 255 || atoi(green) < 0 || atoi(green) > 255 || atoi(blue) < 0 || atoi(blue) > 255)
+			if (GetIntFromString(red, -1) < 0 || GetIntFromString(red, 256) > 255 || GetIntFromString(green, -1) < 0 || GetIntFromString(green, 256) > 255 || GetIntFromString(blue, -1) < 0 || GetIntFromString(blue, 256) > 255)
 			{
 				MapLocSyntaxOutput();
 				return;
@@ -430,7 +430,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (atoi(radius_red) < 0 || atoi(radius_red) > 255 || atoi(radius_green) < 0 || atoi(radius_green) > 255 || atoi(radius_blue) < 0 || atoi(radius_blue) > 255)
+			if (GetIntFromString(radius_red, -1) < 0 || GetIntFromString(radius_red, 256) > 255 || GetIntFromString(radius_green, -1) < 0 || GetIntFromString(radius_green, 256) > 255 || GetIntFromString(radius_blue, -1) < 0 || GetIntFromString(radius_blue, 256) > 255)
 			{
 				MapLocSyntaxOutput();
 				return;
@@ -565,27 +565,27 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (size != 0 && size[0] != 0)
 	{
-		loc->lineSize = atoi(size);
+		loc->lineSize = GetIntFromString(size, DefaultMapLoc->lineSize);
 	}
 	if (width != 0 && width[0] != 0)
 	{
-		loc->width = atoi(width);
+		loc->width = GetIntFromString(width, DefaultMapLoc->width);
 	}
 	if (red != 0 && red[0] != 0)
 	{
-		loc->r_color = atoi(red);
-		loc->g_color = atoi(green);
-		loc->b_color = atoi(blue);
+		loc->r_color = GetIntFromString(red, DefaultMapLoc->r_color);
+		loc->g_color = GetIntFromString(green, DefaultMapLoc->g_color);
+		loc->b_color = GetIntFromString(blue, DefaultMapLoc->b_color);
 	}
 	if (radius != 0 && radius[0] != 0)
 	{
-		loc->radius = atoi(radius);
+		loc->radius = GetIntFromString(radius, DefaultMapLoc->radius);
 	}
 	if (radius_red != 0 && radius_red[0] != 0)
 	{
-		loc->rr_color = atoi(radius_red);
-		loc->rg_color = atoi(radius_green);
-		loc->rb_color = atoi(radius_blue);
+		loc->rr_color = GetIntFromString(radius_red, DefaultMapLoc->rr_color);
+		loc->rg_color = GetIntFromString(radius_green, DefaultMapLoc->rg_color);
+		loc->rb_color = GetIntFromString(radius_blue, DefaultMapLoc->rb_color);
 	}
 
 	// Are we placing a new MapLoc?
@@ -688,18 +688,15 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		if (atoi(red) < 0 || atoi(red) > 255 || atoi(green) < 0 || atoi(green) > 255 || atoi(blue) < 0 || atoi(blue) > 255
-			|| strcmp(szArg, std::to_string(atoi(szArg)).c_str()) != 0
-			|| strcmp(szArg, std::to_string(atoi(green)).c_str()) != 0
-			|| strcmp(szArg, std::to_string(atoi(blue)).c_str()) != 0)
+		if (GetIntFromString(red, -1) < 0 || GetIntFromString(red, 256) > 255 || GetIntFromString(green, -1) < 0 || GetIntFromString(green, 256) > 255 || GetIntFromString(blue, -1) < 0 || GetIntFromString(blue, 256) > 255)
 		{
 			SyntaxError(usage);
 			return;
 		}
 
-		unsigned char R = atoi(szArg);
-		unsigned char G = atoi(green);
-		unsigned char B = atoi(blue);
+		unsigned char R = GetIntFromString(red, 255);
+		unsigned char G = GetIntFromString(green, 255);
+		unsigned char B = GetIntFromString(blue, 255);
 		HighlightColor = 0xFF000000 | (R << 16) | (G << 8) | (B);
 		sprintf_s(szBuffer, "Highlight color: %d %d %d", R, G, B);
 		WriteChatColor(szBuffer);
@@ -723,12 +720,12 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		if (strcmp(szArg, std::to_string(atoi(szArg)).c_str()) != 0) {
+		if (GetIntFromString(szArg, -1) == -1) {
 			SyntaxError("Usage: /highlight size #");
 			return;
 		}
 
-		HighlightSIDELEN = strtol(szArg, 0, 0);
+		HighlightSIDELEN = GetIntFromString(szArg, HighlightSIDELEN);
 		PulseReset();
 		sprintf_s(szBuffer, "Highlight size: %d", HighlightSIDELEN);
 		WriteChatColor(szBuffer);
@@ -1108,10 +1105,10 @@ char* FormatMarker(char* szLine, char* szDest, size_t BufferSize)
 				return szDest;
 			}
 
-			DWORD Size = 6;
+			int Size = 6;
 			if (strlen(MarkSize))
 			{
-				Size = (int)atoi(MarkSize);
+				Size = GetIntFromString(MarkSize, 0);
 				if (!Size)
 				{
 					sprintf_s(szDest, BufferSize, "unchanged, invalid size: '%s'", MarkSize);

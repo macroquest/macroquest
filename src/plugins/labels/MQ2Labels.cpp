@@ -93,7 +93,7 @@ public:
 	CLabel* CreateLabel_Detour(CXWnd* CWin, CControlTemplate* CControl)
 	{
 		auto pLabel = CreateLabel_Trampoline(CWin, CControl);
-		pLabel->EQType = atoi(CControl->strController.c_str());
+		pLabel->EQType = GetIntFromString(CControl->strController, pLabel->EQType);
 		return pLabel;
 	}
 };
