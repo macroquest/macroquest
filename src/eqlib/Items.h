@@ -555,11 +555,11 @@ struct [[offsetcomments]] CONTENTS
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x140*/ uint8_t           Filler0x0141[0x8];
-/*0x148*/ ITEMINFO*         Item2;
-/*0x14c*/ CXStr             ClientString;
-/*0x150*/ uint8_t           Filler0x0154[0x4];
-/*0x154*/
+/*0x140*/ uint8_t           Filler0x0141[0x4];
+/*0x144*/ ITEMINFO*         Item2;
+/*0x148*/ CXStr             ClientString;
+/*0x14c*/ uint8_t           Filler0x0154[0x4];
+/*0x150*/
 
 EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
 EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
