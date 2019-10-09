@@ -27,16 +27,15 @@ BOOL Update = false;
 
 #define CASTRADIUS_ANGLESIZE 10
 PMAPLINE pCastRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
-
 PMAPLINE pSpellRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
-
-PMAPSPAWN pLastTarget = 0;
-
+PMAPLINE pCampRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+PMAPLINE pPullRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
 PMAPLINE pTargetRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
-
 PMAPLINE pTargetMelee[(360 / CASTRADIUS_ANGLESIZE) + 1];
 
+PMAPSPAWN pLastTarget = 0;
 PMAPLINE pTargetLine = 0;
+
 
 
 inline PMAPLINE InitLine()
@@ -54,6 +53,8 @@ inline PMAPLINE InitLine()
 
 inline void DeleteLine(PMAPLINE pLine)
 {
+	if (!pLine)
+		return;
 	if (pLine->pNext)
 		pLine->pNext->pPrev = pLine->pPrev;
 	else
@@ -152,6 +153,8 @@ VOID MapInit()
 		pCastRadius[i] = 0;
 		pSpellRadius[i] = 0;
 		pTargetRadius[i] = 0;
+		pCampRadius[i] = 0;
+		pPullRadius[i] = 0;
 		pTargetMelee[i] = 0;
 	}
 }
@@ -393,6 +396,20 @@ void MapClear()
 			pTargetMelee[i] = 0;
 		}
 	}
+	if (pCampRadius[0]) {
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		{
+			DeleteLine(pCampRadius[i]);
+			pCampRadius[i] = 0;
+		}
+	}
+	if (pPullRadius[0]) {
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		{
+			DeleteLine(pPullRadius[i]);
+			pPullRadius[i] = 0;
+		}
+	}
 }
 
 void MapUpdate()
@@ -559,6 +576,62 @@ void MapUpdate()
 		{
 			DeleteLine(pCastRadius[i]);
 			pCastRadius[i] = 0;
+		}
+	}
+
+	if (IsOptionEnabled(MAPFILTER_CampRadius))
+	{
+		unsigned long Angle = 0;
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		{
+			if (!pCampRadius[i])
+			{
+				pCampRadius[i] = InitLine();
+				pCampRadius[i]->Layer = activeLayer;
+			}
+
+			pCampRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_CampRadius].Color;
+			pCampRadius[i]->Start.Z = pCharInfo->pSpawn->Z;//the Z Locations are always my character current Z location because I want it to show up regardless of where I am on the map.
+			pCampRadius[i]->End.Z = pCharInfo->pSpawn->Z;
+			pCampRadius[i]->Start.X = -CampX + (FLOAT)MapFilterOptions[MAPFILTER_CampRadius].Enabled * cosf((FLOAT)Angle / 180.0f * (FLOAT)PI);
+			pCampRadius[i]->Start.Y = -CampY + (FLOAT)MapFilterOptions[MAPFILTER_CampRadius].Enabled * sinf((FLOAT)Angle / 180.0f * (FLOAT)PI);;
+			pCampRadius[i]->End.X = -CampX + (FLOAT)MapFilterOptions[MAPFILTER_CampRadius].Enabled * cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (FLOAT)PI);
+			pCampRadius[i]->End.Y = -CampY + (FLOAT)MapFilterOptions[MAPFILTER_CampRadius].Enabled * sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (FLOAT)PI);
+		}
+	}
+	else if (pCampRadius[0])
+	{
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++) {
+			DeleteLine(pCampRadius[i]);
+			pCampRadius[i] = 0;
+		}
+	}
+
+	if (IsOptionEnabled(MAPFILTER_PullRadius))
+	{
+		unsigned long Angle = 0;
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		{
+			if (!pPullRadius[i])
+			{
+				pPullRadius[i] = InitLine();
+				pPullRadius[i]->Layer = activeLayer;
+			}
+
+			pPullRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_PullRadius].Color;
+			pPullRadius[i]->Start.Z = pCharInfo->pSpawn->Z;//the Z Locations are always my character current Z location because I want it to show up regardless of where I am on the map.
+			pPullRadius[i]->End.Z = pCharInfo->pSpawn->Z;
+			pPullRadius[i]->Start.X = -PullX + (FLOAT)MapFilterOptions[MAPFILTER_PullRadius].Enabled * cosf((FLOAT)Angle / 180.0f * (FLOAT)PI);
+			pPullRadius[i]->Start.Y = -PullY + (FLOAT)MapFilterOptions[MAPFILTER_PullRadius].Enabled * sinf((FLOAT)Angle / 180.0f * (FLOAT)PI);;
+			pPullRadius[i]->End.X = -PullX + (FLOAT)MapFilterOptions[MAPFILTER_PullRadius].Enabled * cosf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (FLOAT)PI);
+			pPullRadius[i]->End.Y = -PullY + (FLOAT)MapFilterOptions[MAPFILTER_PullRadius].Enabled * sinf((FLOAT)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (FLOAT)PI);
+		}
+	}
+	else if (pPullRadius[0])
+	{
+		for (unsigned long i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++) {
+			DeleteLine(pPullRadius[0]);
+			pPullRadius[i] = 0;
 		}
 	}
 

@@ -39,8 +39,11 @@ using namespace std;
 #define MAPFILTER_Named          32
 #define MAPFILTER_TargetPath     33
 #define MAPFILTER_Marker         34
-#define MAPFILTER_NUMBER         35
+#define MAPFILTER_CampRadius	 35
+#define MAPFILTER_PullRadius	 36
+//#define MAPFILTER_NUMBER         35 //This is not used in the options list, what is this for??
 #define MAPFILTER_Invalid        (-1)
+
 // normal labels
 
 typedef struct _MAPSPAWN
@@ -99,6 +102,10 @@ typedef struct _MAPFILTER {
 extern unsigned long bmMapRefresh;
 
 extern int activeLayer;
+extern float CampX;
+extern float CampY;
+extern float PullX;
+extern float PullY;
 
 extern map<string, PMAPLOC> LocationMap;
 extern PMAPLOC DefaultMapLoc;

@@ -19,6 +19,10 @@ long highPulseRepeatIntervalMillis = 50;
 unsigned long bmMapRefresh = 0;
 
 int activeLayer = 2;
+float CampX = 0.0f;
+float CampY = 0.0f;
+float PullX = 0.0f;
+float PullY = 0.0f;
 
 WORD currentZoneId = 0;
 
@@ -79,42 +83,45 @@ CHAR maphideStr[MAX_STRING] = { "" };
 SEARCHSPAWN MapFilterCustom = { 0 };
 SEARCHSPAWN MapFilterNamed = { 0 };
 MAPFILTER MapFilterOptions[] = {
-	{ "All",          TRUE,(DWORD)-1,          TRUE,(DWORD)MAPFILTER_Invalid,TRUE,  "Enables/disables map functions" },
-	{ "PC",           FALSE,(DWORD)0xFF00FF,   TRUE,MAPFILTER_All,TRUE,      "Displays PCs" },
-	{ "PCConColor",   FALSE,(DWORD)-1,         TRUE,MAPFILTER_PC,FALSE,      "Displays PCs in consider colors" },
-	{ "Group",        FALSE,(DWORD)0x0080C0,   TRUE,MAPFILTER_PC,FALSE,      "Displays group members in a specific color" },
-	{ "Mount",        FALSE,(DWORD)0x707070,   TRUE,MAPFILTER_All,TRUE,      "Displays mounts" },
-	{ "NPC",          FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays NPCs" },
-	{ "NPCConColor",  FALSE,(DWORD)-1,         TRUE,MAPFILTER_NPC,FALSE,     "Displays NPCs in consider colors" },
-	{ "Untargetable", FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays Untargetable NPCs" },
-	{ "Pet",          FALSE,(DWORD)0x707070,   TRUE,MAPFILTER_All,TRUE,      "Displays pets" },
-	{ "Corpse",       FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays corpses" },
-	{ "Chest",        FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays chestesses" },
-	{ "Trigger",      FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden triggers" },
-	{ "Trap",         FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden traps" },
-	{ "Timer",        FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden timers" },
-	{ "Ground",       FALSE,(DWORD)0xC0C0C0,   TRUE,MAPFILTER_All,TRUE,      "Displays ground items" },
-	{ "Target",       FALSE,(DWORD)0xC00000,   TRUE,MAPFILTER_All,FALSE,     "Displays your target" },
-	{ "TargetLine",   FALSE,(DWORD)0x808080,   TRUE,MAPFILTER_Target,FALSE,  "Displays a line to your target" },
-	{ "TargetRadius", FALSE,(DWORD)0x808080,   FALSE,MAPFILTER_Target,FALSE, "Sets radius of a circle around your target to # (omit or set to 0 to disable)" },
-	{ "TargetMelee",  FALSE,(DWORD)0xFF8080,   FALSE,MAPFILTER_Target,FALSE, "Draws a melee-range circle around your target" },
-	{ "Vector",       FALSE,(DWORD)-1,         TRUE,MAPFILTER_All,TRUE,      "Displays heading vectors" },
-	{ "Custom",       FALSE,(DWORD)-1,         FALSE,MAPFILTER_All,TRUE,     "Sets custom filter (omit to disable)" },
-	{ "CastRadius",   FALSE,(DWORD)0x808080,   FALSE,MAPFILTER_All,FALSE,    "Sets radius of casting circle to # (omit or set to 0 to disable)" },
-	{ "NormalLabels", FALSE,(DWORD)-1,         TRUE,(DWORD)MAPFILTER_Invalid,FALSE, "Toggles non-MQ2 label display" },
-	{ "Menu",         FALSE,(DWORD)-1,         TRUE,(DWORD)MAPFILTER_Invalid,FALSE, "Allows display of right-click context menu" },
-	{ "SpellRadius",  FALSE,(DWORD)0x00C000,   FALSE,MAPFILTER_All,FALSE,    "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)" },
-	{ "Aura",         FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays Auras" },
-	{ "Object",       FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays inanimate objects" },
-	{ "Banner",       FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays banners" },
-	{ "Campfire",     FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays campfires" },
-	{ "PCCorpse",     FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,	     "Displays PC corpses, when corpse setting is on" },
-	{ "NPCCorpse",    FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays NPC corpses, when corpse setting is on" },
-	{ "Mercenary",    FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays mercenaries" },
-	{ "Named",        FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays named NPCs" },
-	{ "Marker",       FALSE,(DWORD)-1,         FALSE,MAPFILTER_All,TRUE,  "Displays marker (mobtype triangle/square/diamond size)" },
-	{ "TargetPath",   FALSE,(DWORD)-1,         TRUE,MAPFILTER_Target,FALSE,  "Draws EQ Path to selected target" },
-	{ NULL,           FALSE,(DWORD)-1,         FALSE,(DWORD)MAPFILTER_Invalid,FALSE,  NULL }
+	{ "All",          TRUE,(DWORD)-1,          TRUE,(DWORD)MAPFILTER_Invalid,TRUE,  "Enables/disables map functions" },//0
+	{ "PC",           FALSE,(DWORD)0xFF00FF,   TRUE,MAPFILTER_All,TRUE,      "Displays PCs" },//1
+	{ "PCConColor",   FALSE,(DWORD)-1,         TRUE,MAPFILTER_PC,FALSE,      "Displays PCs in consider colors" },//2
+	{ "Group",        FALSE,(DWORD)0x0080C0,   TRUE,MAPFILTER_PC,FALSE,      "Displays group members in a specific color" },//3
+	{ "Mount",        FALSE,(DWORD)0x707070,   TRUE,MAPFILTER_All,TRUE,      "Displays mounts" },//4
+	{ "NPC",          FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays NPCs" },//5
+	{ "NPCConColor",  FALSE,(DWORD)-1,         TRUE,MAPFILTER_NPC,FALSE,     "Displays NPCs in consider colors" },//6
+	{ "Untargetable", FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays Untargetable NPCs" },//7
+	{ "Pet",          FALSE,(DWORD)0x707070,   TRUE,MAPFILTER_All,TRUE,      "Displays pets" },//8
+	{ "Corpse",       FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays corpses" },//9
+	{ "Chest",        FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays chestesses" },//10
+	{ "Trigger",      FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden triggers" },//11
+	{ "Trap",         FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden traps" },//12
+	{ "Timer",        FALSE,(DWORD)0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden timers" },//13
+	{ "Ground",       FALSE,(DWORD)0xC0C0C0,   TRUE,MAPFILTER_All,TRUE,      "Displays ground items" },//14
+	{ "Target",       FALSE,(DWORD)0xC00000,   TRUE,MAPFILTER_All,FALSE,     "Displays your target" },//15
+	{ "TargetLine",   FALSE,(DWORD)0x808080,   TRUE,MAPFILTER_Target,FALSE,  "Displays a line to your target" },//16
+	{ "TargetRadius", FALSE,(DWORD)0x808080,   FALSE,MAPFILTER_Target,FALSE, "Sets radius of a circle around your target to # (omit or set to 0 to disable)" },//17
+	{ "TargetMelee",  FALSE,(DWORD)0xFF8080,   FALSE,MAPFILTER_Target,FALSE, "Draws a melee-range circle around your target" },//18
+	{ "Vector",       FALSE,(DWORD)-1,         TRUE,MAPFILTER_All,TRUE,      "Displays heading vectors" },//19
+	{ "Custom",       FALSE,(DWORD)-1,         FALSE,MAPFILTER_All,TRUE,     "Sets custom filter (omit to disable)" },//20
+	{ "CastRadius",   FALSE,(DWORD)0x808080,   FALSE,MAPFILTER_All,FALSE,    "Sets radius of casting circle to # (omit or set to 0 to disable)" },//21
+	{ "NormalLabels", FALSE,(DWORD)-1,         TRUE,(DWORD)MAPFILTER_Invalid,FALSE, "Toggles non-MQ2 label display" },//22
+	{ "Menu",         FALSE,(DWORD)-1,         TRUE,(DWORD)MAPFILTER_Invalid,FALSE, "Allows display of right-click context menu" },//23
+	{ "SpellRadius",  FALSE,(DWORD)0x00C000,   FALSE,MAPFILTER_All,FALSE,    "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)" },//24
+	{ "Aura",         FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays Auras" },//25
+	{ "Object",       FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays inanimate objects" },//26
+	{ "Banner",       FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays banners" },//27
+	{ "Campfire",     FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays campfires" },//28
+	{ "PCCorpse",     FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,	     "Displays PC corpses, when corpse setting is on" },//29
+	{ "NPCCorpse",    FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays NPC corpses, when corpse setting is on" },//30
+	{ "Mercenary",    FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays mercenaries" },//31
+	{ "Named",        FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays named NPCs" },//32
+	{ "TargetPath",   FALSE,(DWORD)-1,         TRUE,MAPFILTER_Target,FALSE,  "Draws EQ Path to selected target" },//33
+	{ "Marker",       FALSE,(DWORD)-1,         FALSE,MAPFILTER_All,TRUE,  "Displays marker (mobtype triangle/square/diamond size)" },//34
+	{ "CampRadius",   FALSE,(DWORD)0x808080,   FALSE,MAPFILTER_All,FALSE,    "Sets radius of Camp circle to # (omit or set to 0 to disable)" },//35
+	{ "PullRadius",   FALSE,(DWORD)0x808080,   FALSE,MAPFILTER_All,FALSE,    "Sets radius of casting circle to # (omit or set to 0 to disable)" },//36
+
+	{ NULL,           FALSE,(DWORD)-1,         FALSE,(DWORD)MAPFILTER_Invalid,FALSE,  NULL }//-1
 };
 
 PCSIDLWNDVFTABLE CMyMapViewWnd__OldvfTable = 0;
@@ -341,7 +348,14 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	CHAR tmp_2[MAX_STRING] = { 0 };
 	for (i = 0; MapFilterOptions[i].szName; i++) {
 		sprintf_s(szBuffer, "%s-Color", MapFilterOptions[i].szName);
-		MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
+		//if it's the CampRadius or PullRadius, lets not get the last on/off state, lets assume it's off so we don't draw a circle at 0, 0.
+		if (_stricmp(MapFilterOptions[i].szName, "CampRadius") && _stricmp(MapFilterOptions[i].szName, "PullRadius")) {
+			MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
+		}
+		else {
+			MapFilterOptions[i].Enabled = 0;
+		}
+		//Lets see what color option was last saved as, if any. If none then use the default.
 		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", szBuffer, MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
 		sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
 		GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", tmp_2, MAX_STRING, INIFileName);
