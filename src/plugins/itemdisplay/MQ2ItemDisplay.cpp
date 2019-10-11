@@ -34,6 +34,9 @@ PreSetup("MQ2ItemDisplay");
 #define DISABLE_TOOLTIP_TIMERS
 
 #define EQLIB_EXPORT __declspec(dllexport)
+// starting position of link text found in MQ2Web__ParseItemLink_x
+constexpr int LINK_LEN = 90;
+constexpr int MAX_ITEMDISPLAY_WINDOWS = 6;
 
 char ConvertFrom[2048] = { 0 };
 char ConvertTo[2048] = { 0 };
@@ -59,27 +62,24 @@ void AddGearScores(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br
 
 struct DISPLAYITEMSTRINGS
 {
-	// this item is placable in yards, guild yards blah blah, This item can be used in tradeskills
+	// this item is placeable in yards, guild yard, etc, This item can be used in tradeskills
 	std::string ItemInfo;
 	std::string WindowTitle;
 	std::string ItemAdvancedLoreText;
 	std::string ItemMadeByText;
 
-	// Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
+	// Item Information: Placing this augment into <*>, this armor can only be used in <*>
 	std::string ItemInformationText;
-	bool bCollected;
-	bool bCollectedRecieved;
-	bool bScribed;
-	bool bScribedRecieved;
+	bool bCollected = false;
+	bool bCollectedRecieved = false;
+	bool bScribed = false;
+	bool bScribedRecieved = false;
 };
 
 class MQ2DisplayItemType;
 
 extern "C" {
 EQLIB_EXPORT MQ2DisplayItemType* pDisplayItemType = 0;
-EQLIB_EXPORT ITEMINFO g_Item;
-EQLIB_EXPORT CONTENTS g_Contents[6] = { 0 };
-EQLIB_EXPORT DWORD g_LastIndex = 5;
 EQLIB_EXPORT std::map<DWORD, DISPLAYITEMSTRINGS> contentsitemstrings;
 }
 
@@ -96,8 +96,7 @@ public:
 		Collected = 6,
 		ScribedRecieved = 7,
 		Scribed = 8,
-		Information = 9,
-		DisplayIndex = 10
+		Information = 9
 	};
 
 	enum DisplayItemMethods
@@ -116,15 +115,15 @@ public:
 		TypeMember(ScribedRecieved);
 		TypeMember(Scribed);
 		TypeMember(Information);
-		TypeMember(DisplayIndex);
 
 		TypeMethod(AddLootFilter);
 	}
 
-	bool MQ2DisplayItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		int index = VarPtr.DWord;
-		CONTENTS* pCont = &g_Contents[index];
+		const int index = VarPtr.DWord;
+		CONTENTS fullContents[MAX_ITEMDISPLAY_WINDOWS] = { 0 };
+		CONTENTS* pCont = &fullContents[index];
 
 		if (!pCont)
 			return false;
@@ -207,10 +206,6 @@ public:
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
-			case DisplayIndex:
-				Dest.DWord = g_LastIndex;
-				Dest.Type = pIntType;
-				return true;
 			}
 		}
 		return false;
@@ -218,7 +213,8 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (CONTENTS* pCont = &g_Contents[VarPtr.DWord])
+		CONTENTS fullContents[MAX_ITEMDISPLAY_WINDOWS] = { 0 };
+		if (CONTENTS* pCont = &fullContents[VarPtr.DWord])
 		{
 			if (ITEMINFO* pItem = GetItemFromContents(pCont))
 			{
@@ -240,36 +236,6 @@ public:
 		return false;
 	}
 };
-
-bool dataLastItem(const char* szName, MQTypeVar& Ret)
-{
-	std::scoped_lock lock(s_mutex);
-
-	if (szName[0])
-	{
-		if (IsNumber(szName))
-		{
-			int index = GetIntFromString(szName, 7);
-			if (index < 6 && g_Contents[index].vtable)
-			{
-				Ret.DWord = index;
-				Ret.Type = pDisplayItemType;
-				return true;
-			}
-		}
-	}
-	else
-	{
-		if (g_Contents[g_LastIndex].vtable)
-		{
-			Ret.DWord = g_LastIndex;
-			Ret.Type = pDisplayItemType;
-			return true;
-		}
-	}
-
-	return false;
-}
 
 class ItemInfoManager : public libMozilla::ICallback, public CObservable, public IObserver
 {
@@ -458,12 +424,11 @@ class ItemDisplayHook
 	static SEffectType eEffectType;
 
 public:
-	int GetDmgBonus(const CXStr& Str)
+	int GetDmgBonus(const CXStr& Str) const
 	{
-		char cTemp[MAX_STRING] = { 0 };
-		int dmgbonuspos = 0;
+		size_t dmgbonuspos = std::string_view::npos;
 		int dmgbonus = 0;
-		int badcharpos = 0;
+		size_t badcharpos = std::string_view::npos;
 
 		char ActualDmgBonus[3];
 		std::string_view ItemDisplay = Str;
@@ -502,10 +467,65 @@ public:
 		return dmgbonus;
 	}
 
+	static void GetEffectInfo(const SEffectType effect, std::string& Color, std::string& Name)
+	{
+			if(Color.empty())
+			{
+				Color = "FF0000";
+			}
+			if(Name.empty())
+			{
+				// Is "Blub" significant or just known nonsense?
+				Name = "Blub";
+			}
+		
+			switch (eEffectType)
+			{
+			case Clicky:
+				Color = "00FF00";
+				Name = "Clicky";
+				break;
+			case Proc:
+				Color = "FF00FF";
+				Name = "Proc";
+				break;
+			case Worn:
+				Color = "FFFF00";
+				Name = "Worn";
+				break;
+			case Focus:
+			case Focus2:
+				Color = "9F9F00";
+				Name = "Focus";
+				break;
+			case Scroll:
+				Color = "9F9F9F";
+				Name = "Scroll";
+				break;
+			case Mount:
+				Color = "00FF00";
+				Name = "Mount";
+				break;
+			case Illusion:
+				Color = "00FF00";
+				Name = "Illusion";
+				break;
+			case Familiar:
+				Color = "00FF00";
+				Name = "Familiar";
+				break;
+			case None:
+				Name = "None";
+				break;
+			default:
+				break;
+			}		
+	}
+
 	void SetSpell_Trampoline(int SpellID, bool bFullInfo);
 	void SetSpell_Detour(int SpellID, bool bFullInfo)
 	{
-		CSpellDisplayWnd* pThis = (CSpellDisplayWnd*)this;
+		CSpellDisplayWnd* pThis = reinterpret_cast<CSpellDisplayWnd*>(this);
 		CHARINFO* pCharInfo = GetCharInfo();
 
 		if (pCharInfo == nullptr) return;
@@ -526,47 +546,10 @@ public:
 		}
 		else
 		{
-			char* cColour = "FF0000";
-			char* cName = "Blub";
-
-			switch (eEffectType)
-			{
-			case Clicky:
-				cColour = "00FF00";
-				cName = "Clicky";
-				break;
-			case Proc:
-				cColour = "FF00FF";
-				cName = "Proc";
-				break;
-			case Worn:
-				cColour = "FFFF00";
-				cName = "Worn";
-				break;
-			case Focus:
-			case Focus2:
-				cColour = "9F9F00";
-				cName = "Focus";
-				break;
-			case Scroll:
-				cColour = "9F9F9F";
-				cName = "Scroll";
-				break;
-			case Mount:
-				cColour = "00FF00";
-				cName = "Mount";
-				break;
-			case Illusion:
-				cColour = "00FF00";
-				cName = "Illusion";
-				break;
-			case Familiar:
-				cColour = "00FF00";
-				cName = "Familiar";
-				break;
-			}
-
-			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+            std::string cColour = "FF0000";
+			std::string cName = "Blub";
+			GetEffectInfo(eEffectType, cColour, cName);
+			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), pSpell->Name);
 			strcat_s(out, temp);
 		}
 
@@ -636,6 +619,7 @@ public:
 				case 2: strcat_s(out, "Resist: Fire"); break;
 				case 1: strcat_s(out, "Resist: Magic"); break;
 				case 0: strcat_s(out, "Resist: Unresistable"); break;
+				default: break;
 				}
 
 				if (pSpell->ResistAdj != 0)
@@ -723,7 +707,7 @@ public:
 
 	void ItemSetSpell_Detour(ITEMSPELLS Effect)
 	{
-		CItemDisplayWnd* pThis = (CItemDisplayWnd*)this;
+		CItemDisplayWnd* pThis = reinterpret_cast<CItemDisplayWnd*>(this);
 		CHARINFO* pCharInfo = GetCharInfo();
 
 		if (!pCharInfo) return;
@@ -744,37 +728,13 @@ public:
 		}
 		else
 		{
-			char* cColour = "FF0000";
-			char* cName = "Blub";
+			std::string cColour = "FF0000";
+			std::string cName = "Blub";
 
-			switch (eEffectType)
-			{
-			case Clicky:
-				cColour = "00FF00";
-				cName = "Clicky";
-				break;
-			case Proc:
-				cColour = "FF00FF";
-				cName = "Proc";
-				break;
-			case Worn:
-				cColour = "FFFF00";
-				cName = "Worn";
-				break;
-			case Focus:
-			case Focus2:
-				cColour = "9F9F00";
-				cName = "Focus";
-				break;
-			case Scroll:
-				cColour = "9F9F9F";
-				cName = "Scroll";
-				break;
-			}
-
+            GetEffectInfo(eEffectType, cColour, cName);
 			char aliased[MAX_STRING] = { 0 };
 			sprintf_s(aliased, "%s%s", Effect.OtherName, " (aliased)");
-			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, Effect.OtherName[0] ? aliased : pSpell->Name);
+			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), Effect.OtherName[0] ? aliased : pSpell->Name);
 			strcat_s(out, temp);
 
 			if (strstr(pThis->ItemInfo.c_str(), out))
@@ -919,15 +879,15 @@ public:
 	void UpdateStrings_Trampoline();
 	void UpdateStrings_Detour()
 	{
-		CItemDisplayWnd* pThis = (CItemDisplayWnd*)this;
+		CItemDisplayWnd* pThis = reinterpret_cast<CItemDisplayWnd*>(this);
 		int index = pThis->ItemWndIndex;
-		if (index > 5 || index < 0)
+		if (index >= MAX_ITEMDISPLAY_WINDOWS || index < 0)
 		{
 			index = 0;
 			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
 		}
 
-		CONTENTS* item = (CONTENTS*)pThis->pItem;
+		CONTENTS* item = static_cast<CONTENTS*>(pThis->pItem);
 		ITEMINFO* Item = GetItemFromContents(item);
 
 		char out[MAX_STRING * 2] = { 0 };
@@ -937,9 +897,8 @@ public:
 
 		// add the strings to our map
 
-		CXStr text;
+		CXStr text =  STMLToText(pThis->ItemInformationText);
 
-		text = STMLToText(pThis->ItemInformationText);
 		contentsitemstrings[index].ItemInformationText = text;
 
 		text = STMLToText(pThis->ItemInfo);
@@ -974,16 +933,6 @@ public:
 		{
 			contentsitemstrings[index].bScribedRecieved = false;
 			contentsitemstrings[index].bScribed = false;
-		}
-
-		// keep a global copy of the last item displayed...
-		if (index <= 5)
-		{
-			// FIXME: Do not memcpy classes
-			memcpy(&g_Contents[index], item, sizeof(CONTENTS));
-			memcpy(&g_Item, Item, sizeof(ITEMINFO));
-
-			g_LastIndex = index;
 		}
 
 		strcpy_s(out, "<BR><c \"#00FFFF\">");
@@ -2431,11 +2380,6 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void Ireset(SPAWNINFO* pChar, char* szLine)
-{
-	g_Item.ItemNumber = 0;
-}
-
 char  ReportChannel[MAX_STRING];
 char  ReportBestStr[MAX_STRING];
 char  ReportBestSlot[MAX_STRING];
@@ -2587,45 +2531,35 @@ void ClearAttribListVal()
 	}
 }
 
-#define cvtfloat(x) x / 1.0f
-
-float CalcRatio(ITEMINFO *pItem)
-{
-	float dam = cvtfloat(pItem->Damage);
-	float del = cvtfloat(pItem->Delay);
-	if (!del) del = 1;
-	return ((float)dam / del);
-}
-
 void LoadAttribListVal(ITEMINFO* pItem)
 {
-	AttribList[0].Val = cvtfloat(pItem->AC);
-	AttribList[1].Val = cvtfloat(pItem->HP);
-	AttribList[2].Val = cvtfloat(pItem->HPRegen);
-	AttribList[3].Val = cvtfloat(pItem->Mana);
-	AttribList[4].Val = cvtfloat(pItem->ManaRegen);
-	AttribList[5].Val = cvtfloat(pItem->HeroicSTR);
-	AttribList[6].Val = cvtfloat(pItem->HeroicSTA);
-	AttribList[7].Val = cvtfloat(pItem->HeroicAGI);
-	AttribList[8].Val = cvtfloat(pItem->HeroicDEX);
-	AttribList[9].Val = cvtfloat(pItem->HeroicINT);
-	AttribList[10].Val = cvtfloat(pItem->HeroicWIS);
-	AttribList[11].Val = cvtfloat(pItem->HeroicCHA);
-	AttribList[12].Val = cvtfloat(pItem->HealAmount);
-	AttribList[13].Val = cvtfloat(pItem->SpellDamage);
-	AttribList[14].Val = cvtfloat(pItem->Clairvoyance);
-	AttribList[15].Val = cvtfloat(pItem->Attack);
-	AttribList[16].Val = 0; // FIX THIS cvtfloat(pItem->Accuracy);
-	AttribList[17].Val = 0; // FIX THIS cvtfloat(pItem->CombatEffects);
-	AttribList[18].Val = 0; // FIX THIS cvtfloat(pItem->StrikeThrough);
-	AttribList[19].Val = 0; // FIX THIS cvtfloat(pItem->Avoidance);
-	AttribList[20].Val = 0; // FIX THIS cvtfloat(pItem->Shielding);
-	AttribList[21].Val = 0; // FIX THIS cvtfloat(pItem->DoTShielding);
-	AttribList[22].Val = 0; // FIX THIS cvtfloat(pItem->SpellShield);
-	AttribList[23].Val = 0; // FIX THIS cvtfloat(pItem->StunResist);
-	AttribList[24].Val = 0; // FIX THIS cvtfloat(pItem->DamageShieldMitigation);
-	AttribList[25].Val = cvtfloat(pItem->Haste);
-	AttribList[26].Val = CalcRatio(pItem);
+	AttribList[0].Val = static_cast<float>(pItem->AC);
+	AttribList[1].Val = static_cast<float>(pItem->HP);
+	AttribList[2].Val = static_cast<float>(pItem->HPRegen);
+	AttribList[3].Val = static_cast<float>(pItem->Mana);
+	AttribList[4].Val = static_cast<float>(pItem->ManaRegen);
+	AttribList[5].Val = static_cast<float>(pItem->HeroicSTR);
+	AttribList[6].Val = static_cast<float>(pItem->HeroicSTA);
+	AttribList[7].Val = static_cast<float>(pItem->HeroicAGI);
+	AttribList[8].Val = static_cast<float>(pItem->HeroicDEX);
+	AttribList[9].Val = static_cast<float>(pItem->HeroicINT);
+	AttribList[10].Val = static_cast<float>(pItem->HeroicWIS);
+	AttribList[11].Val = static_cast<float>(pItem->HeroicCHA);
+	AttribList[12].Val = static_cast<float>(pItem->HealAmount);
+	AttribList[13].Val = static_cast<float>(pItem->SpellDamage);
+	AttribList[14].Val = static_cast<float>(pItem->Clairvoyance);
+	AttribList[15].Val = static_cast<float>(pItem->Attack);
+	AttribList[16].Val = 0; // FIX THIS static_cast<float>(pItem->Accuracy);
+	AttribList[17].Val = 0; // FIX THIS static_cast<float>(pItem->CombatEffects);
+	AttribList[18].Val = 0; // FIX THIS static_cast<float>(pItem->StrikeThrough);
+	AttribList[19].Val = 0; // FIX THIS static_cast<float>(pItem->Avoidance);
+	AttribList[20].Val = 0; // FIX THIS static_cast<float>(pItem->Shielding);
+	AttribList[21].Val = 0; // FIX THIS static_cast<float>(pItem->DoTShielding);
+	AttribList[22].Val = 0; // FIX THIS static_cast<float>(pItem->SpellShield);
+	AttribList[23].Val = 0; // FIX THIS static_cast<float>(pItem->StunResist);
+	AttribList[24].Val = 0; // FIX THIS static_cast<float>(pItem->DamageShieldMitigation);
+	AttribList[25].Val = static_cast<float>(pItem->Haste);
+	AttribList[26].Val = static_cast<float>(pItem->Damage) / (pItem->Delay == 0 ? 1.0f : static_cast<float>(pItem->Delay));
 }
 #undef cvtfloat
 
@@ -3325,11 +3259,9 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/insertaug", InsertAug);
 	AddCommand("/removeaug", RemoveAug);
 	AddCommand("/inote", Comment);
-	AddCommand("/ireset", Ireset);
 	AddCommand("/iScore", DoGearScoreUserCommand);
 	AddCommand("/GearScore", DoGearScoreUserCommand);
 	pDisplayItemType = new MQ2DisplayItemType;
-	AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore", dataGearScore);
 
 	if (!IsXMLFilePresent("MQUI_CompareTipWnd.xml"))
@@ -3416,7 +3348,6 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveMQ2Data("RemoveAug");
 	RemoveMQ2Data("DisplayItem");
 	RemoveMQ2Data("GearScore");
-	RemoveCommand("/ireset");
 	RemoveCommand("/inote");
 	RemoveCommand("/iScore");
 	RemoveCommand("/GearScore");
@@ -3454,9 +3385,6 @@ PLUGIN_API void OnReloadUI()
 		CreateCompareTipWnd();
 	}
 }
-
-// starting position of link text found in MQ2Web__ParseItemLink_x
-#define LINK_LEN 0x5A
 
 PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)
 {
@@ -3499,10 +3427,4 @@ PLUGIN_API void OnPulse()
 	{
 		CreateCompareTipWnd();
 	}
-}
-
-PLUGIN_API void OnBeginZone()
-{
-	// TODO: Get rid of this CONTENTS array
-	memset(&g_Contents, 0x0, sizeof(CONTENTS) * 6);
 }

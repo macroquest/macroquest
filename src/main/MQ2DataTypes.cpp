@@ -15659,7 +15659,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	{
 	case BuffsPopulated:
 		Dest.DWord = 0;
-		Dest.Type = pIntType;
+		Dest.Type = pBoolType;
 		if (gTargetbuffs && pTarget)
 			Dest.DWord = gTargetbuffs;
 		return true;

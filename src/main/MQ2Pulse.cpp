@@ -955,7 +955,7 @@ public:
 			gbAssistComplete = 2;
 		}
 
-		gTargetbuffs = count + 1;
+		gTargetbuffs = true;
 	}
 
 	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN

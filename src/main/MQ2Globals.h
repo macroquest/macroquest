@@ -137,7 +137,7 @@ MQLIB_VAR DWORD gTurboLimit;
 MQLIB_VAR BOOL gReturn;
 
 MQLIB_VAR DWORD gbAssistComplete;
-MQLIB_VAR BOOL gTargetbuffs;
+MQLIB_VAR bool gTargetbuffs;
 MQLIB_VAR BOOL gItemsReceived;
 MQLIB_VAR bool gbInZone;
 MQLIB_VAR bool gZoning;
