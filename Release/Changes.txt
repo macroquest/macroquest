@@ -1,3 +1,6 @@
+Oct 10 2019 by Eqmule
+- Fixed ${Me.Buff for TEST
+-
 Oct 09 2019 by Eqmule
 - Updated for TEST
 -

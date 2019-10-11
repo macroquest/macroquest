@@ -1418,29 +1418,30 @@ void Initialize()
 int rightclickindex = -1;
 void StopMovement(bool bChange = true)
 {
-	if (GetModuleHandle("mq2advpath"))
-	{
-		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/squelch /dgge /squelch /afollow off");
-		else if (GetModuleHandle("mq2eqbc"))
-			DoCommandf("/squelch /bcg //squelch /afollow off");
-	}
-	if (GetModuleHandle("mq2moveutils"))
-	{
-		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/squelch /dgge /squelch /stick off");
-		else if (GetModuleHandle("mq2eqbc"))
-			DoCommandf("/squelch /bcg //squelch /stick off");
-	}
-	if (GetModuleHandle("mq2nav"))
-	{
-		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/squelch /dgge /squelch /nav stop");
-		else if (GetModuleHandle("mq2eqbc"))
-			DoCommandf("/squelch /bcg //squelch /nav stop");
-	}
 	if (bChange)
 	{
+		if (GetModuleHandle("mq2advpath"))
+		{
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/squelch /dgge /squelch /afollow off");
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/squelch /bcg //squelch /afollow off");
+		}
+		if (GetModuleHandle("mq2moveutils"))
+		{
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/squelch /dgge /squelch /stick off");
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/squelch /bcg //squelch /stick off");
+		}
+		if (GetModuleHandle("mq2nav"))
+		{
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/squelch /dgge /squelch /nav stop");
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/squelch /bcg //squelch /nav stop");
+		}
+		//
 		FollowMeButton->Checked = false;
 		gbFollowme = false;
 	}
@@ -1629,7 +1630,7 @@ public:
 				ParseMacroData(szMe, MAX_STRING);
 				if (gbFollowme)
 				{
-					if (strstr(szMe, "//afollow"))
+					if ((GetModuleHandle("mq2eqbc") && strstr(szMe, "//afollow")) || (GetModuleHandle("mq2dannet") && strstr(szMe, "/afollow")))
 					{
 						if (!GetModuleHandle("mq2advpath"))
 						{
@@ -1638,7 +1639,7 @@ public:
 							return 1;
 						}
 					}
-					else if (strstr(szMe, "//stick"))
+					else if ( (GetModuleHandle("mq2eqbc") && strstr(szMe, "//stick")) || (GetModuleHandle("mq2dannet") && strstr(szMe, "/stick")))
 					{
 						if (!GetModuleHandle("mq2moveutils"))
 						{

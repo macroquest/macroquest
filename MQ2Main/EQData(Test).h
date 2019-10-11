@@ -1030,25 +1030,26 @@ typedef struct _SlotData {
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
 // Size 0x68 Apr 10 2018 test see 8B2FD5 - eqmule
-// this is EQ_Affect todo: check the new stuff in it
+// Size 0x68 Oct 07 2019 test see 8C9BAD - eqmule
+// this is EQ_Affect
 typedef struct _SPELLBUFF {
-/*0x00*/ BYTE      Type;
-/*0x01*/ BYTE      Level;//casterlevel
-/*0x02*/ BYTE      ChargesRemaining;
-/*0x03*/ CHAR      DamageShield;  // Activatable
-/*0x04*/ FLOAT     Modifier;      // Bard song modifier, 1.0 is default BaseDmgMod
-/*0x08*/ LONG      SpellID;       // -1 or 0 for no spell..
-/*0x0c*/ DWORD     Duration;
-/*0x10*/ DWORD     MaxDuration;
-/*0x14*/ DWORD     Duration3;
-/*0x18*/ EqGuid    CasterGuid;
-/*0x20*/ DWORD     HitCount;
-/*0x24*/ FLOAT     Y;             // Referenced by SPA 441 (distance removal)
-/*0x28*/ FLOAT     X;
-/*0x2c*/ FLOAT     Z;
-/*0x30*/ UINT      Flags;
-/*0x34*/ SlotData  SlotData[NUM_SLOTDATA]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
-/*0x64*/ DWORD     Unknown0x64;
+/*0x00*/ EqGuid    CasterGuid;
+/*0x08*/ SlotData SlotData[NUM_SLOTDATA]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
+/*0x38*/ DWORD     Flags;
+/*0x3C*/ LONG      SpellID;       // -1 or 0 for no spell..
+/*0x40*/ DWORD     Duration;
+/*0x44*/ DWORD     InitialDuration;
+/*0x48*/ DWORD     HitCount;
+/*0x4c*/ UINT      ViralTimer;		//not 100% sure this is correct
+/*0x50*/ FLOAT     Modifier;      // Bard song modifier, 1.0 is default BaseDmgMod
+/*0x54*/ FLOAT     Y;             // Referenced by SPA 441 (distance removal)
+/*0x58*/ FLOAT     X;
+/*0x5c*/ FLOAT     Z;
+/*0x60*/ BYTE      Type;
+/*0x61*/ BYTE      Level;//casterlevel
+/*0x62*/ BYTE      ChargesRemaining; //dont think this is used anymore.
+/*0x63*/ BYTE      Activatable;//dont think this is used anymore. We used to think this was DamageShield
+/*0x64*/ DWORD     Unknown0x64;//not 100% sure this is correct it could be ViralTimer
 /*0x68*/
 } SPELLBUFF, *PSPELLBUFF;
 
