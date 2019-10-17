@@ -528,7 +528,8 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_EoK                   EQ_EXPANSION(23)
 #define EXPANSION_RoS                   EQ_EXPANSION(24)
 #define EXPANSION_TBL                   EQ_EXPANSION(25)
-#define NUM_EXPANSIONS                  25
+#define EXPANSION_TOV                   EQ_EXPANSION(26)
+#define NUM_EXPANSIONS                  26
 
 #if _MSC_VER < 1600
 #define nullptr                         NULL

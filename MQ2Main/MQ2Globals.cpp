@@ -969,6 +969,7 @@ namespace MQ2Globals
 		"Empires of Kunark",
 		"Ring of Scale",
 		"The Burning Lands",
+		"Torment of Velious",
 		NULL
 	};
 

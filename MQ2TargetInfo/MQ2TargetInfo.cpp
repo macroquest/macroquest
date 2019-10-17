@@ -2136,14 +2136,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		SafeItoa(ret, szDBExpansion, 10);
 		WritePrivateProfileString("Default", "DBExpansion", szDBExpansion, INIFileName);
 	}
-	else {
-		if (ret != NUM_EXPANSIONS) {
-			UpdateDBFile = true;
-			ret = NUM_EXPANSIONS;
-			SafeItoa(ret, szDBExpansion, 10);
-			WritePrivateProfileString("Default", "DBExpansion", szDBExpansion, INIFileName);
-		}
-	}
 	WIN32_FIND_DATA FindFile = { 0 };
 	HANDLE hSearch = FindFirstFile(szMyName, &FindFile);
 	if (hSearch == INVALID_HANDLE_VALUE) {
