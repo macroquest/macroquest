@@ -25,6 +25,10 @@ clock_t highPulseRepeatLast = clock();
 long highPulseRepeatIntervalMillis = 50;
 unsigned long bmMapRefresh = 0;
 int activeLayer = 2;
+float CampX = 0.0f;
+float CampY = 0.0f;
+float PullX = 0.0f;
+float PullY = 0.0f;
 bool Update = true;
 WORD currentZoneId = 0;
 BOOL repeatMaphide = FALSE;
@@ -120,8 +124,11 @@ MAPFILTER MapFilterOptions[] =
 	{ "NPCCorpse",    FALSE, (DWORD)0x00C000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays NPC corpses, when corpse setting is on" },
 	{ "Mercenary",    FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays mercenaries" },
 	{ "Named",        FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays named NPCs" },
-	{ "Marker",       FALSE, (DWORD)-1,         FALSE, MAPFILTER_All,            TRUE,  "Displays marker (mobtype triangle/square/diamond size)" },
 	{ "TargetPath",   FALSE, (DWORD)-1,         TRUE,  MAPFILTER_Target,         FALSE, "Draws EQ Path to selected target" },
+	{ "Marker",       FALSE, (DWORD)-1,         FALSE, MAPFILTER_All,            TRUE,  "Displays marker (mobtype triangle/square/diamond size)" },
+	{ "CampRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of Camp circle to # (omit or set to 0 to disable)" },
+	{ "PullRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of casting circle to # (omit or set to 0 to disable)" },
+
 	{ NULL,           FALSE, (DWORD)-1,         FALSE, (DWORD)MAPFILTER_Invalid, FALSE, NULL }
 };
 
@@ -265,7 +272,16 @@ PLUGIN_API void InitializePlugin()
 	for (i = 0; MapFilterOptions[i].szName; i++)
 	{
 		sprintf_s(szBuffer, "%s-Color", MapFilterOptions[i].szName);
-		MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
+		//if it's the CampRadius or PullRadius, let's not get the last on/off state, lets assume it's off so we don't draw a circle at 0, 0.
+		if (_stricmp(MapFilterOptions[i].szName, "CampRadius") && _stricmp(MapFilterOptions[i].szName, "PullRadius"))
+		{
+			MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
+		}
+		else
+		{
+			MapFilterOptions[i].Enabled = 0;
+		}
+		//Lets see what color option was last saved as, if any. If none then use the default.
 		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", szBuffer, MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
 		sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
 		GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", tmp_2, MAX_STRING, INIFileName);

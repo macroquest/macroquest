@@ -46,6 +46,8 @@ MAPSPAWN* pLastTarget = nullptr;
 MAPLINE* pTargetRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
 MAPLINE* pTargetMelee[(360 / CASTRADIUS_ANGLESIZE) + 1];
 MAPLINE* pTargetLine = nullptr;
+MAPLINE* pCampRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
+MAPLINE* pPullRadius[(360 / CASTRADIUS_ANGLESIZE) + 1];
 
 MAPLINE* InitLine()
 {
@@ -164,6 +166,8 @@ void MapInit()
 		pSpellRadius[i] = nullptr;
 		pTargetRadius[i] = nullptr;
 		pTargetMelee[i] = nullptr;
+		pCampRadius[i] = nullptr;
+		pPullRadius[i] = nullptr;
 	}
 }
 
@@ -421,6 +425,23 @@ void MapClear()
 			pTargetMelee[i] = nullptr;
 		}
 	}
+
+	if (pCampRadius[0])
+	{
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		{
+			DeleteLine(pCampRadius[i]);
+			pCampRadius[i] = nullptr;
+		}
+	}
+	if (pPullRadius[0])
+	{
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		{
+			DeleteLine(pPullRadius[i]);
+			pPullRadius[i] = nullptr;
+		}
+	}
 }
 
 void MapUpdate()
@@ -550,6 +571,64 @@ void MapUpdate()
 		{
 			DeleteLine(pCastRadius[i]);
 			pCastRadius[i] = nullptr;
+		}
+	}
+
+	if (IsOptionEnabled(MAPFILTER_CampRadius))
+	{
+		unsigned long Angle = 0;
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		{
+			if (!pCampRadius[i])
+			{
+				pCampRadius[i] = InitLine();
+				pCampRadius[i]->Layer = activeLayer;
+			}
+
+			pCampRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_CampRadius].Color;
+			pCampRadius[i]->Start.Z = pCharInfo->pSpawn->Z; //the Z Locations are always my character current Z location because I want it to show up regardless of where I am on the map.
+			pCampRadius[i]->End.Z = pCharInfo->pSpawn->Z;
+			pCampRadius[i]->Start.X = -CampX + (float)MapFilterOptions[MAPFILTER_CampRadius].Enabled * cosf((float)Angle / 180.0f * (float)PI);
+			pCampRadius[i]->Start.Y = -CampY + (float)MapFilterOptions[MAPFILTER_CampRadius].Enabled * sinf((float)Angle / 180.0f * (float)PI);;
+			pCampRadius[i]->End.X = -CampX + (float)MapFilterOptions[MAPFILTER_CampRadius].Enabled * cosf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+			pCampRadius[i]->End.Y = -CampY + (float)MapFilterOptions[MAPFILTER_CampRadius].Enabled * sinf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+		}
+	}
+	else if (pCampRadius[0])
+	{
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		{
+			DeleteLine(pCampRadius[i]);
+			pCampRadius[i] = nullptr;
+		}
+	}
+
+	if (IsOptionEnabled(MAPFILTER_PullRadius))
+	{
+		unsigned long Angle = 0;
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++, Angle += CASTRADIUS_ANGLESIZE)
+		{
+			if (!pPullRadius[i])
+			{
+				pPullRadius[i] = InitLine();
+				pPullRadius[i]->Layer = activeLayer;
+			}
+
+			pPullRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_PullRadius].Color;
+			pPullRadius[i]->Start.Z = pCharInfo->pSpawn->Z; //the Z Locations are always my character current Z location because I want it to show up regardless of where I am on the map.
+			pPullRadius[i]->End.Z = pCharInfo->pSpawn->Z;
+			pPullRadius[i]->Start.X = -PullX + (float)MapFilterOptions[MAPFILTER_PullRadius].Enabled * cosf((float)Angle / 180.0f * (float)PI);
+			pPullRadius[i]->Start.Y = -PullY + (float)MapFilterOptions[MAPFILTER_PullRadius].Enabled * sinf((float)Angle / 180.0f * (float)PI);;
+			pPullRadius[i]->End.X = -PullX + (float)MapFilterOptions[MAPFILTER_PullRadius].Enabled * cosf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+			pPullRadius[i]->End.Y = -PullY + (float)MapFilterOptions[MAPFILTER_PullRadius].Enabled * sinf((float)(Angle + CASTRADIUS_ANGLESIZE) / 180.0f * (float)PI);
+		}
+	}
+	else if (pPullRadius[0])
+	{
+		for (int i = 0; i < (360 / CASTRADIUS_ANGLESIZE); i++)
+		{
+			DeleteLine(pPullRadius[0]);
+			pPullRadius[i] = nullptr;
 		}
 	}
 

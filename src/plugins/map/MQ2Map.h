@@ -15,43 +15,44 @@
 #include <mq/Plugin.h>
 #include <map>
 
-#define MAPFILTER_All            0
-#define MAPFILTER_PC             1
-#define MAPFILTER_PCConColor     2
-#define MAPFILTER_Group          3
-#define MAPFILTER_Mount          4
-#define MAPFILTER_NPC            5
-#define MAPFILTER_NPCConColor    6
-#define MAPFILTER_Untargetable   7
-#define MAPFILTER_Pet            8
-#define MAPFILTER_Corpse         9
-#define MAPFILTER_Chest          10
-#define MAPFILTER_Trigger        11
-#define MAPFILTER_Trap           12
-#define MAPFILTER_Timer          13
-#define MAPFILTER_Ground         14
-#define MAPFILTER_Target         15
-#define MAPFILTER_TargetLine     16
-#define MAPFILTER_TargetRadius   17
-#define MAPFILTER_TargetMelee    18
-#define MAPFILTER_Vector         19
-#define MAPFILTER_Custom         20
-#define MAPFILTER_CastRadius     21
-#define MAPFILTER_NormalLabels   22
-#define MAPFILTER_ContextMenu    23
-#define MAPFILTER_SpellRadius    24
-#define MAPFILTER_Aura           25
-#define MAPFILTER_Object         26
-#define MAPFILTER_Banner         27
-#define MAPFILTER_Campfire       28
-#define MAPFILTER_PCCorpse       29
-#define MAPFILTER_NPCCorpse      30
-#define MAPFILTER_Mercenary      31
-#define MAPFILTER_Named          32
-#define MAPFILTER_TargetPath     33
-#define MAPFILTER_Marker         34
-#define MAPFILTER_NUMBER         35
-#define MAPFILTER_Invalid        (-1)
+constexpr int MAPFILTER_All          = 0;
+constexpr int MAPFILTER_PC           = 1;
+constexpr int MAPFILTER_PCConColor   = 2;
+constexpr int MAPFILTER_Group        = 3;
+constexpr int MAPFILTER_Mount        = 4;
+constexpr int MAPFILTER_NPC          = 5;
+constexpr int MAPFILTER_NPCConColor  = 6;
+constexpr int MAPFILTER_Untargetable = 7;
+constexpr int MAPFILTER_Pet          = 8;
+constexpr int MAPFILTER_Corpse       = 9;
+constexpr int MAPFILTER_Chest        = 10;
+constexpr int MAPFILTER_Trigger      = 11;
+constexpr int MAPFILTER_Trap         = 12;
+constexpr int MAPFILTER_Timer        = 13;
+constexpr int MAPFILTER_Ground       = 14;
+constexpr int MAPFILTER_Target       = 15;
+constexpr int MAPFILTER_TargetLine   = 16;
+constexpr int MAPFILTER_TargetRadius = 17;
+constexpr int MAPFILTER_TargetMelee  = 18;
+constexpr int MAPFILTER_Vector       = 19;
+constexpr int MAPFILTER_Custom       = 20;
+constexpr int MAPFILTER_CastRadius   = 21;
+constexpr int MAPFILTER_NormalLabels = 22;
+constexpr int MAPFILTER_ContextMenu  = 23;
+constexpr int MAPFILTER_SpellRadius  = 24;
+constexpr int MAPFILTER_Aura         = 25;
+constexpr int MAPFILTER_Object       = 26;
+constexpr int MAPFILTER_Banner       = 27;
+constexpr int MAPFILTER_Campfire     = 28;
+constexpr int MAPFILTER_PCCorpse     = 29;
+constexpr int MAPFILTER_NPCCorpse    = 30;
+constexpr int MAPFILTER_Mercenary    = 31;
+constexpr int MAPFILTER_Named        = 32;
+constexpr int MAPFILTER_TargetPath   = 33;
+constexpr int MAPFILTER_Marker       = 34;
+constexpr int MAPFILTER_CampRadius   = 35;
+constexpr int MAPFILTER_PullRadius   = 36;
+constexpr int MAPFILTER_Invalid      = -1;
 // normal labels
 
 struct MAPSPAWN
@@ -112,6 +113,10 @@ struct MAPSPAWN;
 
 extern unsigned long bmMapRefresh;
 extern int activeLayer;
+extern float CampX;
+extern float CampY;
+extern float PullX;
+extern float PullY;
 
 extern std::map<std::string, MAPLOC*> LocationMap;
 extern MAPLOC* DefaultMapLoc;
