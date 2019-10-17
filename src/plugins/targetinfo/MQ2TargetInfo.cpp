@@ -26,6 +26,9 @@
 PreSetup("MQ2TargetInfo");
 PLUGIN_VERSION(2.0);
 
+// TODO:  Break the group window stuff into its own plugin
+// TODO:  Break the specific hotbuttons out into commands that can be used independently
+
 enum TI_MenuCommands
 {
 	TIMC_MakeMeLeader = 54,
@@ -1500,32 +1503,32 @@ void Initialize()
 
 void StopMovement(bool bChange = true)
 {
-	if (GetModuleHandle("mq2advpath"))
-	{
-		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/squelch /dgge /squelch /afollow off");
-		else if (GetModuleHandle("mq2eqbc"))
-			DoCommandf("/squelch /bcg //squelch /afollow off");
-	}
-
-	if (GetModuleHandle("mq2moveutils"))
-	{
-		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/squelch /dgge /squelch /stick off");
-		else if (GetModuleHandle("mq2eqbc"))
-			DoCommandf("/squelch /bcg //squelch /stick off");
-	}
-
-	if (GetModuleHandle("mq2nav"))
-	{
-		if (GetModuleHandle("mq2dannet"))
-			DoCommandf("/squelch /dgge /squelch /nav stop");
-		else if (GetModuleHandle("mq2eqbc"))
-			DoCommandf("/squelch /bcg //squelch /nav stop");
-	}
-
 	if (bChange)
 	{
+		// FIXME:  This should just be a user setting instead of guessing which the user wants to use.
+		if (GetModuleHandle("mq2advpath"))
+		{
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/squelch /dgge /squelch /afollow off");
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/squelch /bcg //squelch /afollow off");
+		}
+
+		if (GetModuleHandle("mq2moveutils"))
+		{
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/squelch /dgge /squelch /stick off");
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/squelch /bcg //squelch /stick off");
+		}
+
+		if (GetModuleHandle("mq2nav"))
+		{
+			if (GetModuleHandle("mq2dannet"))
+				DoCommandf("/squelch /dgge /squelch /nav stop");
+			else if (GetModuleHandle("mq2eqbc"))
+				DoCommandf("/squelch /bcg //squelch /nav stop");
+		}
 		FollowMeButton->bChecked = false;
 		gbFollowme = false;
 	}
@@ -1719,7 +1722,8 @@ public:
 
 				if (gbFollowme)
 				{
-					if (strstr(szMe, "//afollow"))
+					// FIXME:  These should be by setting, not by loaded module.
+					if ((GetModuleHandle("mq2eqbc") && strstr(szMe, "//afollow")) || (GetModuleHandle("mq2dannet") && strstr(szMe, "/afollow")))
 					{
 						if (!GetModuleHandle("mq2advpath"))
 						{
@@ -1728,7 +1732,7 @@ public:
 							return 1;
 						}
 					}
-					else if (strstr(szMe, "//stick"))
+					else if ( (GetModuleHandle("mq2eqbc") && strstr(szMe, "//stick")) || (GetModuleHandle("mq2dannet") && strstr(szMe, "/stick")))
 					{
 						if (!GetModuleHandle("mq2moveutils"))
 						{
