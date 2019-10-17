@@ -2396,7 +2396,7 @@ int CurrSlot = 0;
 
 struct trATR
 {
-	char *Name;
+	char* Name;
 	float Weight;
 	float Val;
 	float Best;
@@ -2904,7 +2904,7 @@ int DoIHave(ITEMINFO* Item)
 			// Normal Inventory worn slots
 			for (int iSlot = 0; iSlot < NUM_INV_SLOTS; iSlot++)
 			{
-				if (CONTENTS * pItem = pProfile->pInventoryArray->InventoryArray[iSlot])
+				if (CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[iSlot])
 				{
 					if (GetItemFromContents(pItem)->ItemNumber == ID)
 					{

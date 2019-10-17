@@ -359,7 +359,7 @@ bool EvaluateDataExpression(MQTypeVar& Result, char* pStart, char* pIndex, bool 
 
 bool dataType(const char* szIndex, MQTypeVar& Ret)
 {
-	if (MQ2Type * pType = FindMQ2DataType(szIndex))
+	if (MQ2Type* pType = FindMQ2DataType(szIndex))
 	{
 		Ret.Ptr = pType;
 		Ret.Type = pTypeType;

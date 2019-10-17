@@ -660,7 +660,7 @@ DWORD GetServerIDFromName(char(&szShortName)[_Size])
 	{
 		if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end())
 		{
-			if (CListWnd * serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"])
+			if (CListWnd* serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"])
 			{
 				if (serverlist->ItemsArray.Count && dwServerInfo)
 				{
@@ -1456,7 +1456,7 @@ void SwitchCharacter(char* szName)
 	{
 		if (CXWnd*pWnd = FindMQ2Window("CLW_CharactersScreen"))
 		{
-			if (CListWnd * charlist = (CListWnd*)pWnd->GetChildItem("Character_List"))
+			if (CListWnd* charlist = (CListWnd*)pWnd->GetChildItem("Character_List"))
 			{
 				if (charlist->ItemsArray.Count)
 				{
@@ -2287,7 +2287,7 @@ void DebugLog(char* szFormat, ...)
 	char szTmp[512] = { 0 };
 	va_list vaList;
 
-	if (FILE * fLog = fopen(DBG_LOGFILE_PATH, "a"))
+	if (FILE* fLog = fopen(DBG_LOGFILE_PATH, "a"))
 	{
 		va_start(vaList, szFormat);
 		vsprintf(szTmp, szFormat, vaList);
