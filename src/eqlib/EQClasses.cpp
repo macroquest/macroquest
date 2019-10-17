@@ -1503,6 +1503,12 @@ FUNCTION_AT_ADDRESS(int CTargetRing::Cast(const CVector3&), CTargetRing__Cast);
 #ifdef CTaskManager__GetEntry_x
 FUNCTION_AT_ADDRESS(CTaskEntry* CTaskManager::GetEntry(int Index, int System, bool bCheckEmpty), CTaskManager__GetEntry);
 #endif
+#ifdef CTaskManager__GetTaskStatus_x
+FUNCTION_AT_ADDRESS(PCTaskStatus* CTaskManager::GetTaskStatus(PcClient* pMe, int Index, TaskSystemType System),CTaskManager__GetTaskStatus);
+#endif
+#ifdef CTaskManager__GetElementDescription_x
+FUNCTION_AT_ADDRESS(void CTaskManager::GetElementDescription(const CTaskElement* pElement, char* Out),CTaskManager__GetElementDescription);
+#endif
 
 //============================================================================
 // CTextOverlay

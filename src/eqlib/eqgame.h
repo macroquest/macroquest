@@ -1071,6 +1071,8 @@
 // CTaskManager
 #define CTaskManager__GetEntry_x                                   0x52A980
 #define CTaskManager__HandleMessage_x                              0x528E30
+#define CTaskManager__GetTaskStatus_x                              0x52AA30
+#define CTaskManager__GetElementDescription_x                      0x52AAB0
 
 // EqSoundManager
 #define EqSoundManager__WavePlay_x                                 0x5622B0

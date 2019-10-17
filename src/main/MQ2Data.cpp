@@ -1481,50 +1481,97 @@ bool dataFriends(const char* szIndex, MQTypeVar& Ret)
 bool dataTask(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Type = pTaskType;
-	Ret.Int = -1;
-
-	if (!ppTaskManager)
-		return true;
-
-	if (szIndex[0])
+	Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, 0xFFFFFFFF);
+	if (CTaskManager* tm = ppTaskManager)
 	{
-		if (IsNumber(szIndex))
+		if (szIndex[0])
 		{
-			int n = GetIntFromString(szIndex, 0) - 1;
-			if (n < 0)
-				n = 0;
-			Ret.Int = n;
-		}
-		else
-		{
-			// todo: finish this, we can get this stuff done without taskwindow being open.
-			for (int i = 0; i < 29; i++)
+			CTaskEntry* sharedentry = (CTaskEntry*)&tm->SharedTaskEntries[0];
+			if (IsNumber(szIndex))
 			{
-				CTaskEntry& entry = pTaskManager.QuestEntries[i];
+				int n = GetIntFromString(szIndex, 0);
+				n--;
+				if (n < 0)
+					n = 0;
+				if (n > 28)
+					n = 28;
 
-				if (ci_find_substr(entry.TaskTitle, szIndex) != -1)
+				//well, if it is 0, and we have a shared quest, then we need to return that...
+				//people really should not use index by number it's stupid and lazy.
+				if (n==0 && sharedentry && sharedentry->TaskID)
 				{
-					//Ret.Int = i;
-					break;
+					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
+				}
+				else
+				{
+					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, n);
 				}
 			}
-
-			if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+			else
 			{
-				for (int i = 0; i < clist->ItemsArray.GetCount(); i++)
+				char szOut[MAX_STRING] = { 0 };
+				char szTemp[MAX_STRING] = { 0 };
+				strcpy_s(szTemp, szIndex);
+				_strlwr_s(szTemp);
+				char* pName = &szTemp[0];
+				bool bExact = false;
+				if (*pName == '=')
 				{
-					CXStr Str = clist->GetItemText(i, 2);
-					if (ci_find_substr(Str, szIndex) != -1)
+					bExact = true;
+					pName++;
+				}
+				//need to check this first
+				if(sharedentry && sharedentry->TaskID)
+				{
+					if (bExact)
 					{
-						Ret.Int = i;
-						break;
+						if (!_stricmp(sharedentry->TaskTitle, pName))
+						{
+							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
+							return true;
+						}
+					}
+					else
+					{
+						strcpy_s(szOut, sharedentry->TaskTitle);
+						_strlwr_s(szOut);
+						if (strstr(szOut, pName))
+						{
+							//ok we actually do have one, and its always index 0 but 0 can also be a valid
+							//index for solo quests so we need to se it to something else
+							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
+							return true;
+						}
+					}
+				}
+				//lets roll through solo quests if we got this far...
+				for (int i = 0; i < 29; i++)
+				{
+					if (CTaskEntry* entry = &tm->QuestEntries[i])
+					{
+						if (bExact)
+						{
+							if (!_stricmp(szOut, pName))
+							{
+								Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, i);
+								return true;
+							}
+						}
+						else
+						{
+							strcpy_s(szOut, entry->TaskTitle);
+							_strlwr_s(szOut);
+							if (strstr(szOut, pName)) {
+								Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, i);
+								return true;
+							}
+						}
 					}
 				}
 			}
 		}
 	}
-
-	return true;
+	return false;
 }
 
 bool dataMount(const char* szIndex, MQTypeVar& Ret)

@@ -3251,7 +3251,7 @@ bool MQ2TargetBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	MQTypeMember* pMember = MQ2TargetBuffType::FindMember(Member);
 	if (!pMember)
 	{
-		if (SPELL * pSpell = GetSpellByID(buffid))
+		if (SPELL* pSpell = GetSpellByID(buffid))
 		{
 			return pSpellType->GetMember(*(MQVarPtr*)& pSpell, Member, Index, Dest);
 		}
@@ -4212,7 +4212,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			// name
 			for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 			{
-				if (SPELL * pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
+				if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 				{
 					if (!_stricmp(Index, pSpell->Name))
 					{
@@ -4264,7 +4264,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 				{
-					if (SPELL * pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+					if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 					{
 						Dest.Ptr = pSpell;
 						Dest.Type = pSpellType;
@@ -4331,7 +4331,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				for (int nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
-						if (SPELL * pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							if (!_stricmp(Index, pSpell->Name))
 							{
@@ -4529,7 +4529,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY * pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
@@ -6848,7 +6848,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				while (nBuff < NUM_BUFF_SLOTS)
 				{
-					if (SPELL * pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
+					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 					{
 						if (GetSpellSubcategory(pSpell) == 62)
 						{
@@ -7120,7 +7120,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case Bandolier:
 		Dest.DWord = 0;
 		Dest.Type = pBandolierType;
-		if (PcProfile * pProfile = GetPcProfile())
+		if (PcProfile* pProfile = GetPcProfile())
 		{
 			if (IsNumber(Index)) {
 				int index = GetIntFromString(Index, 0);
@@ -10638,7 +10638,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 			if (pMgr->CurrMenu < MAX_CONTEXT_MENU_DEPTH)
 			{
 				int currMenu = pMgr->CurrMenu;
-				if (CContextMenu * menu = pMgr->pCurrMenus[currMenu])
+				if (CContextMenu* menu = pMgr->pCurrMenus[currMenu])
 				{
 					CXStr Str = menu->GetItemText(0, 1);
 					if (!Str.empty())
@@ -16645,47 +16645,176 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
+	int Elementindex = VarPtr.HighPart;
+	if (Elementindex == -1)
+		return false;
+	CTaskManager* tm = ppTaskManager;
+	if (!tm)
+		return false;
 	if (VarPtr.Int == -1)
 		return false;
-
+	int index = HIWORD(VarPtr.DWord);
+	if (index == -1)
+		return false;
+	int type = LOWORD(VarPtr.DWord);
 	MQTypeMember* pMember = MQ2TaskObjectiveType::FindMember(Member);
 	if (!pMember)
 		return false;
 
-	CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskElementList");
-	if (!clist)
-		return false;
-
-	CXStr str;
-
-	switch (static_cast<TaskObjectiveTypeMembers>(pMember->ID))
+	PCTaskStatus* ts = 0;
+	CTaskEntry* entry = 0;
+	switch (type)
 	{
-	case Instruction:
-		str = clist->GetItemText(VarPtr.Int, 0);
+	case cTaskSystemTypeSoloQuest:
+		ts = tm->GetTaskStatus((PcClient*)pPCData, index, cTaskSystemTypeSoloQuest);
+		entry = &tm->QuestEntries[index];
 		break;
-
-	case Status:
-		str = clist->GetItemText(VarPtr.Int, 1);
+	case cTaskSystemTypeSharedQuest:
+		ts = tm->GetTaskStatus((PcClient*)pPCData, 0, cTaskSystemTypeSharedQuest);
+		entry = &tm->SharedTaskEntries[0];
 		break;
-
-	case Zone:
-		str = clist->GetItemText(VarPtr.Int, 2);
-		break;
-
-	case xIndex:
-		Dest.Int = VarPtr.Int;
-		Dest.Type = pIntType;
-		return true;
+	};
+	CHAR szOut[MAX_STRING] = { 0 };
+	switch ((TaskObjectiveTypeMembers)pMember->ID)
+	{
+		case Instruction:
+		{
+			tm->GetElementDescription(&entry->Elements[Elementindex], szOut);
+			break;
+		}
+		case Status:
+			if (ts->CurrentCounts[Elementindex]==entry->Elements[Elementindex].RequiredCount) {
+				strcpy_s(szOut,"Done");
+			}
+			else {
+				sprintf_s(szOut, "%d/%d", ts->CurrentCounts[Elementindex], entry->Elements[Elementindex].RequiredCount);
+			}
+			break;
+		case Zone:
+		{
+			int zid = GetIntFromString(entry->Elements[Elementindex].TargetZoneID, 0) & 0x7FFF;
+			//int zid = tmpzid & 0x7FFF;
+			if (zid == 0)
+			{
+				strcpy_s(szOut, "ALL");
+			}
+			else
+			{
+				if (zid < MAX_ZONES)
+				{
+					if (PZONELIST pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
+					{
+						Dest.Type = pZoneType;
+						Dest.Ptr = pZList;
+						return true;
+					}
+				}
+			}
+			break;
+		}
+		case xIndex:
+			Dest.Int = Elementindex+1;
+			Dest.Type = pIntType;
+			return true;
+		case Type:
+		{
+			switch (entry->Elements[Elementindex].Type)
+			{
+				case cTaskTypeUnknown:
+					strcpy_s(DataTypeTemp, "Unknown");
+					break;
+				case cTaskTypeNone:
+					strcpy_s(DataTypeTemp, "None");
+					break;
+				case cTaskTypeDeliver:
+					strcpy_s(DataTypeTemp, "Deliver");
+					break;
+				case cTaskTypeKill:
+					strcpy_s(DataTypeTemp, "Kill");
+					break;
+				case cTaskTypeLoot:
+					strcpy_s(DataTypeTemp, "Loot");
+					break;
+				case cTaskTypeHail:
+					strcpy_s(DataTypeTemp, "Hail");
+					break;
+				case cTaskTypeExplore:
+					strcpy_s(DataTypeTemp, "Explore");
+					break;
+				case cTaskTypeTradeskill:
+					strcpy_s(DataTypeTemp, "Tradeskill");
+					break;
+				case cTaskTypeFishing:
+					strcpy_s(DataTypeTemp, "Fishing");
+					break;
+				case cTaskTypeForaging:
+					strcpy_s(DataTypeTemp, "Foraging");
+					break;
+				case cTaskTypeCast:
+					strcpy_s(DataTypeTemp, "Cast");
+					break;
+				case cTaskTypeUseSkill:
+					strcpy_s(DataTypeTemp, "UseSkill");
+					break;
+				case cTaskTypeDZSwitch:
+					strcpy_s(DataTypeTemp, "DZSwitch");
+					break;
+				case cTaskTypeDestroyObject:
+					strcpy_s(DataTypeTemp, "DestroyObject");
+					break;
+				case cTaskTypeCollect:
+					strcpy_s(DataTypeTemp, "Collect");
+					break;
+				case cTaskTypeDialogue:
+					strcpy_s(DataTypeTemp, "Dialogue");
+					break;
+				default:
+					strcpy_s(DataTypeTemp, "NULL");
+					break;
+			};
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		}
+		case CurrentCount:
+			Dest.Int = ts->CurrentCounts[Elementindex];
+			Dest.Type = pIntType;
+			return true;
+		case RequiredCount:
+			Dest.Int = entry->Elements[Elementindex].RequiredCount;
+			Dest.Type = pIntType;
+			return true;
+		case Optional:
+			Dest.DWord = entry->Elements[Elementindex].bOptional;
+			Dest.Type = pBoolType;
+			return true;
+		case RequiredItem:
+		{
+			strcpy_s(szOut, entry->Elements[Elementindex].ItemNameList.c_str());
+			break;
+		}
+		case RequiredSkill:
+		{
+			strcpy_s(szOut, entry->Elements[Elementindex].SkillIDList.c_str());
+			break;
+		}
+		case RequiredSpell:
+		{
+			strcpy_s(szOut, entry->Elements[Elementindex].SpellIDList.c_str());
+			break;
+		}
+		case DZSwitchID:
+			Dest.DWord = entry->Elements[Elementindex].DZSwitchID;
+			Dest.Type = pIntType;
+			return true;
+		default: break;
 	}
-
-	if (!str.empty())
-	{
-		strcpy_s(DataTypeTemp, str.c_str());
+	if (szOut[0] != '\0') {
+		strcpy_s(DataTypeTemp, szOut);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 	}
-
 	return false;
 }
 
@@ -16694,7 +16823,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 
 bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	PTASKMEMBER pTaskMemberData = (PTASKMEMBER)VarPtr.Ptr;
+	TASKMEMBER* pTaskMemberData = static_cast<TASKMEMBER*>(VarPtr.Ptr);
 	if (!pTaskMemberData)
 		return false;
 
@@ -16747,8 +16876,16 @@ bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 
 bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
+	CTaskManager* tm = ppTaskManager;
+	if (!tm)
+		return false;
 	if (!pTaskWnd)
 		return false;
+	// TODO:  Move back into members where used
+	int index = HIWORD(VarPtr.DWord);
+	if (index == -1)
+		return false;
+	int type = LOWORD(VarPtr.DWord);
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -16761,16 +16898,16 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		case Select: {
 			Dest.DWord = 0;
 			Dest.Type = pBoolType;
-			int index = VarPtr.Int;
+			int index2 = VarPtr.Int;
 			char szOut[255] = { 0 };
 
 			CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList");
 			if (!clist)
 				return false;
 
-			if (index != -1)
+			if (index2 != -1)
 			{
-				if (SendListSelect2(clist, index))
+				if (SendListSelect2(clist, index2))
 				{
 					Dest.DWord = 1;
 				}
@@ -16794,47 +16931,41 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	TASKMEMBER* pTaskmember = (TASKMEMBER*)pTaskMember;
 	switch (static_cast<TaskTypeMembers>(pMember->ID))
 	{
-	case Address:
+	case Address: {
 		Dest.DWord = (DWORD)pTaskmember;
 		Dest.Type = pIntType;
 		return true;
+	}
 
 	case Type: {
 		Dest.Type = pStringType;
-		int index = VarPtr.Int;
-		if (index == -1)
-			return false;
-
-		CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (!clist)
-			return false;
-
-		CXStr Str = clist->GetItemText(index, 1);
-
-		if (ci_equals(Str, "S"))
+		switch (type)
 		{
-			strcpy_s(DataTypeTemp, "Shared");
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		else
-		{
+		case cTaskSystemTypeSoloQuest:
 			strcpy_s(DataTypeTemp, "Quest");
 			Dest.Ptr = &DataTypeTemp[0];
-			return true;
+			break;
+		case cTaskSystemTypeSharedQuest:
+			strcpy_s(DataTypeTemp, "Shared");
+			Dest.Ptr = &DataTypeTemp[0];
+			break;
+		default:
+			strcpy_s(DataTypeTemp, "Unknown");
+			Dest.Ptr = &DataTypeTemp[0];
+			break;
 		}
-
-		return false;
+		return true;
 	}
 
-	case xIndex:
+	case xIndex: {
 		Dest.Int = VarPtr.Int + 1;
 		Dest.Type = pIntType;
 		return true;
+	}
 
 	case Leader: {
 		strcpy_s(DataTypeTemp, "NULL");
-		for (int i = 1; pTaskmember && i < 7; pTaskmember = pTaskmember->pNext, i++)
+		for (int i = 1; pTaskmember && i <= MAX_GROUP_SIZE; pTaskmember = pTaskmember->pNext, i++)
 		{
 			if (pTaskmember->IsLeader)
 			{
@@ -16849,19 +16980,23 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	}
 
 	case Title: {
-		int index = VarPtr.Int;
 		strcpy_s(DataTypeTemp, "NULL");
 
-		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+		switch (type)
 		{
-			if (index == -1)
-				index = clist->GetCurSel();
-
-			CXStr Str = clist->GetItemText(index, 2);
-			if (!Str.empty())
+		case cTaskSystemTypeSoloQuest:
+			if (CTaskEntry* entry = &tm->QuestEntries[index])
 			{
-				strcpy_s(DataTypeTemp, Str.c_str());
+				strcpy_s(DataTypeTemp, entry->TaskTitle);
 			}
+			break;
+		case cTaskSystemTypeSharedQuest:
+			if (CTaskEntry* entry = &tm->SharedTaskEntries[0])
+			{
+				strcpy_s(DataTypeTemp, entry->TaskTitle);
+			}
+			break;
+		default: break;
 		}
 
 		Dest.Ptr = &DataTypeTemp[0];
@@ -16873,40 +17008,46 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
 
-		pTaskWnd->UpdateTaskTimers(_time32(nullptr));
-		CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist)
+		PCTaskStatus* ts = 0;
+		CTaskEntry* entry = 0;
+		switch (type)
 		{
-			int index = VarPtr.Int;
-			if (index == -1)
-				index = clist->GetCurSel();
-
-			CXStr str = clist->GetItemText(index, 3);
-			if (!str.empty())
+		case cTaskSystemTypeSoloQuest:
+			ts = tm->GetTaskStatus(static_cast<PcClient*>(*ppPCData), index, cTaskSystemTypeSoloQuest);
+			entry = &tm->QuestEntries[index];
+			break;
+		case cTaskSystemTypeSharedQuest:
+			ts = tm->GetTaskStatus(static_cast<PcClient*>(*ppPCData), 0, cTaskSystemTypeSharedQuest);
+			entry = &tm->SharedTaskEntries[0];
+			break;
+		default: break;
+		}
+		if (ts && entry)
+		{
+			// FIXME:  Math casting
+			const unsigned long ft = GetFastTime();
+			int timer = 0;
+			char szTime[256] = { 0 };
+			if ((static_cast<unsigned long>(ts->MovingStartTime) + static_cast<unsigned long>(entry->DurationSeconds)) > ft)
 			{
-				char szOut[MAX_STRING] = { 0 };
-				strcpy_s(szOut, str.c_str());
-
-				int hh, mm, ss;
-				if (sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss))
-				{
-					Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
-					return true;
-				}
-				return false;
+				timer = (ts->MovingStartTime + entry->DurationSeconds) - ft;
 			}
+			//sprintf_s(szTime, "%02d:%02d:%02d", timer / 3600, (timer % 3600) / 60, timer % 60);
+			//WriteChatf("%s", szTime);
+			Dest.UInt64 = timer * 1000;
+			return true;
 		}
 		return false;
 	}
 
-	case xMember:
+	case xMember: {
 		Dest.Type = pTaskMemberType;
 		if (!Index[0])
 			return false;
 
 		if (IsNumber(Index))
 		{
-			for (int i = 1; pTaskmember && i < 7; pTaskmember = pTaskmember->pNext, i++)
+			for (int i = 1; pTaskmember && i <= MAX_GROUP_SIZE; pTaskmember = pTaskmember->pNext, i++)
 			{
 				if (i == GetIntFromString(Index, 0))
 				{
@@ -16927,45 +17068,61 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 			}
 		}
 		return false;
+	}
 
-	case Members:
+	case Members: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		for (; pTaskmember && Dest.DWord < 6; pTaskmember = pTaskmember->pNext, Dest.DWord++)
+		for (; pTaskmember && Dest.DWord < MAX_GROUP_SIZE; pTaskmember = pTaskmember->pNext, Dest.DWord++)
 		{
 		}
 		return true;
+	}
+
+	case ID: {
+		Dest.Int = 0;
+		Dest.Type = pIntType;
+		CTaskEntry* entry = 0;
+		switch (type)
+		{
+		case cTaskSystemTypeSoloQuest:
+			entry = &tm->QuestEntries[index];
+			break;
+		case cTaskSystemTypeSharedQuest:
+			entry = &tm->SharedTaskEntries[0];
+			break;
+		default:
+			break;
+		}
+		if (entry)
+		{
+			Dest.Int = entry->TaskID;
+		}
+		return true;
+	}
 
 	case Objective: {
 		Dest.Int = 0;
 		Dest.Type = pTaskObjectiveType;
 
-		int taskindex = VarPtr.Int;
-		if (CListWnd* tasklist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+		PCTaskStatus* ts = 0;
+		CTaskEntry* entry = 0;
+		switch (type)
 		{
-			if (taskindex != -1)
-			{
-				if (tasklist->GetCurSel() != taskindex)
-				{
-					if (!SendListSelect2(tasklist, taskindex))
-					{
-						return false;
-					}
-
-					if (tasklist->GetCurSel() != taskindex)
-					{
-						return false;
-					}
-				}
-			}
-			else
-			{
-				return false;
-			}
+		case cTaskSystemTypeSoloQuest:
+			ts = tm->GetTaskStatus((PcClient*)pPCData, index, cTaskSystemTypeSoloQuest);
+			entry = &tm->QuestEntries[index];
+			break;
+		case cTaskSystemTypeSharedQuest:
+			ts = tm->GetTaskStatus((PcClient*)pPCData, 0, cTaskSystemTypeSharedQuest);
+			entry = &tm->SharedTaskEntries[0];
+			break;
+		default: break;
 		}
 
-		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskElementList"))
+		if (ts && entry)
 		{
+			// TODO:  What is the significance of 19?  Max objectives?
 			int stepindex = -1;
 			if (IsNumber(Index))
 			{
@@ -16975,62 +17132,62 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 				{
 					stepindex = 0;
 				}
+				if (stepindex > 19)
+				{
+					stepindex = 19;
+				}
 			}
 			else
 			{
-				for (int i = 0; i < clist->ItemsArray.Count; i++)
+				char szOut[MAX_STRING] = { 0 };
+				for (int i = 0; i < 20; i++)
 				{
-					CXStr str = clist->GetItemText(i, 0);
-
-					if (ci_find_substr(str, Index))
-					{
+					tm->GetElementDescription(&entry->Elements[i], szOut);
+					if (ci_find_substr(szOut, Index)) {
 						stepindex = i;
 						break;
 					}
 				}
 			}
-			Dest.Int = stepindex;
+			// FIXME: Search Dword = (int)MAKELPARAM and fix through this whole commit.
+			Dest.DWord = (int)MAKELPARAM(type, index);
+			Dest.HighPart = stepindex;
 			return true;
 		}
 		return false;
 	}
 
-	case Step: { // gets the first step thats not Done in the task objective.
+	case Step: { // gets the first step that's not Done in the task objective.
 		Dest.Int = 0;
 		Dest.Type = pTaskObjectiveType;
 
-		int taskindex = VarPtr.Int;
-		if (CListWnd* tasklist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
-		{
-			if (taskindex != -1)
-			{
-				if (tasklist->GetCurSel() != taskindex)
-				{
-					if (!SendListSelect2(tasklist, taskindex))
-					{
-						return false;
-					}
+		PCTaskStatus* ts = 0;
+		CTaskEntry* entry = 0;
 
-					if (tasklist->GetCurSel() != taskindex)
-					{
-						return false;
-					}
-				}
-			}
-			else
-			{
-				return false;
-			}
+		switch (type)
+		{
+		case cTaskSystemTypeSoloQuest:
+			ts = tm->GetTaskStatus((PcClient*)pPCData, index, cTaskSystemTypeSoloQuest);
+			entry = &tm->QuestEntries[index];
+			break;
+		case cTaskSystemTypeSharedQuest:
+			ts = tm->GetTaskStatus((PcClient*)pPCData, 0, cTaskSystemTypeSharedQuest);
+			entry = &tm->SharedTaskEntries[0];
+			break;
 		}
-
-		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskElementList"))
+		if (ts && entry)
 		{
-			for (int i = 0; i < clist->ItemsArray.Count; i++)
+			int reqcount = 0;
+			int currcount = 0;
+			// TODO:  Significance of 19 (see Objective)
+			for (int i = 0; i < 20; i++)
 			{
-				CXStr str = clist->GetItemText(i, 1);
-				if (ci_equals(str, "done"))
+				reqcount = entry->Elements[i].RequiredCount;
+				currcount = ts->CurrentCounts[i];
+				if (currcount < reqcount && entry->Elements[i].bOptional==false)
 				{
-					Dest.Int = i;
+					Dest.DWord = (int)MAKELPARAM(type, index);
+					Dest.HighPart = i;
 					return true;
 				}
 			}
@@ -17176,7 +17333,7 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 
 bool MQ2KeyRingType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (CXWnd * krwnd = FindMQ2Window(KeyRingWindowParent))
+	if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
 	{
 		CListWnd* clist = nullptr;
 
@@ -17352,7 +17509,7 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		Dest.Type = pSpawnType;
 		if (pItem && pItem->LootDetails.GetSize())
 		{
-			if (SPAWNINFO * pSpawn = (SPAWNINFO*)GetSpawnByID(pItem->LootDetails[0].CorpseID))
+			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(pItem->LootDetails[0].CorpseID))
 			{
 				Dest.Ptr = pSpawn;
 				return true;
@@ -18096,7 +18253,7 @@ bool MQ2SolventType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 
 	case Item: // do we have this solvent?
 		Dest.Type = pItemType;
-		if (CONTENTS * pItem = FindItemByID(itemid))
+		if (CONTENTS* pItem = FindItemByID(itemid))
 		{
 			Dest.Ptr = pItem;
 			return true;
@@ -18106,7 +18263,7 @@ bool MQ2SolventType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 	case Count: // do we have this solvent and if so how many?
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (CONTENTS * pCont = FindItemByID(itemid))
+		if (CONTENTS* pCont = FindItemByID(itemid))
 		{
 			if (PITEMINFO pItem = GetItemFromContents(pCont))
 			{
@@ -18224,11 +18381,11 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 
 bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (CONTENTS * pCont = (CONTENTS*)VarPtr.HighPart)
+	if (CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart)
 	{
-		if (CONTENTS * pAug = pCont->GetContent(VarPtr.DWord))
+		if (CONTENTS* pAug = pCont->GetContent(VarPtr.DWord))
 		{
-			if (ITEMINFO * pAugItem = GetItemFromContents(pAug))
+			if (ITEMINFO* pAugItem = GetItemFromContents(pAug))
 			{
 				strcpy_s(Destination, MAX_STRING, pAugItem->Name);
 				return true;
@@ -18379,7 +18536,7 @@ bool MQ2AuraType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 			if (!pAuraWnd)
 				break;
 
-			if (CListWnd * clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList"))
+			if (CListWnd* clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList"))
 			{
 				if (index > clist->ItemsArray.Count)
 					break;

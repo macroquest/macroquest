@@ -961,6 +961,8 @@ INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 INITIALIZE_EQGAME_OFFSET(CTaskManager__GetEntry);
+INITIALIZE_EQGAME_OFFSET(CTaskManager__GetTaskStatus);
+INITIALIZE_EQGAME_OFFSET(CTaskManager__GetElementDescription);
 INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
 INITIALIZE_EQGAME_OFFSET(EqSoundManager__PlayScriptMp3);
 INITIALIZE_EQGAME_OFFSET(EqSoundManager__SoundAssistPlay);

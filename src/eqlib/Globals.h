@@ -985,6 +985,8 @@ EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 EQLIB_VAR DWORD CTargetWnd__WndNotification;
 EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 EQLIB_VAR DWORD CTaskManager__GetEntry;
+EQLIB_VAR DWORD CTaskManager__GetTaskStatus;
+EQLIB_VAR DWORD CTaskManager__GetElementDescription;
 
 EQLIB_VAR DWORD EqSoundManager__WavePlay;
 EQLIB_VAR DWORD EqSoundManager__PlayScriptMp3;

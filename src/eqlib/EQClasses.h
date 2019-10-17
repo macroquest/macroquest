@@ -957,6 +957,13 @@ enum TaskGroupType
 	cTaskGroupTypeRaid,
 };
 
+enum TaskSystemType
+{
+	cTaskSystemTypeTask,
+	cTaskSystemTypeSharedQuest,
+	cTaskSystemTypeSoloQuest
+};
+
 struct [[offsetcomments]] CTaskElement
 {
 /*0x000*/ TaskType           Type;
@@ -1036,6 +1043,8 @@ public:
 	// virtual
 	EQLIB_OBJECT ~CTaskManager();
 	EQLIB_OBJECT CTaskEntry* GetEntry(int Index, int System, bool bCheckEmpty = true);
+	EQLIB_OBJECT PCTaskStatus* GetTaskStatus(PcClient* pMe, int Index, TaskSystemType System);
+	EQLIB_OBJECT void GetElementDescription(const CTaskElement* pElement, char* Out);
 };
 
 class [[offsetcomments]] CXMLData
