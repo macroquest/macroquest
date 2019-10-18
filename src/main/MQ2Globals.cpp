@@ -647,6 +647,7 @@ const char* szExpansions[] = {
 	"Empires of Kunark",
 	"Ring of Scale",
 	"The Burning Lands",
+	"Torment of Velious",
 	nullptr
 };
 

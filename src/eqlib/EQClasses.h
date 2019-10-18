@@ -967,7 +967,6 @@ enum TaskSystemType
 struct [[offsetcomments]] CTaskElement
 {
 /*0x000*/ TaskType           Type;
-/*0x004*/ TaskGroupType      GroupType;
 /*0x008*/ char               TargetName[0x40];
 /*0x048*/ char               ZoneID[0x40];
 /*0x088*/ char               TargetZoneID[0x40];
@@ -983,13 +982,14 @@ struct [[offsetcomments]] CTaskElement
 /*0x168*/
 };
 
+const int MAX_TASK_ELEMENTS = 20;
+
 struct [[offsetcomments]] CTaskEntry
 {
 /*0x0000*/ int               TaskID;
 /*0x0004*/ float             RewardAdjustment;
 /*0x0008*/ char              TaskTitle[0x40];
 /*0x0048*/ int               DurationSeconds;
-/*0x004c*/ int               DurCode;
 /*0x0050*/ char              StartText[0xFa0];
 /*0x0ff0*/ bool              bShowReward;
 /*0x0ff4*/ int               RewardCash;
@@ -998,16 +998,20 @@ struct [[offsetcomments]] CTaskEntry
 /*0x1000*/ int               RewardFactionID;
 /*0x1004*/ int               RewardFactionAmount;
 /*0x1008*/ CXStr             RewardItemTag;
-/*0x100c*/ CTaskElement      Elements[0x14];
+/*0x100c*/ CTaskElement      Elements[MAX_TASK_ELEMENTS];
 /*0x2c2c*/ int               TaskSystem;
 /*0x2c30*/ int               PointType;
 /*0x2c34*/ bool              StartTextCompiled;
 /*0x2c35*/ char              RawStartText[0xFa0];
 /*0x3bd5*/ bool              bElementsReceived;
-/*0x3bd8*/ __time32_t        TimeCompleted;
+/*0x3bd8*/ time_t            TimeCompleted;
 /*0x3bdc*/ ArrayClass<MonsterMissionTemplate> MonsterTemplates;
 /*0x3bec*/ bool              bTemplateSelectionLocked;
 /*0x3bed*/ bool              bHasRewardSet;
+/*0x3b9c*/ int               Unknown1;
+/*0x3b9c*/ int               Unknown2;
+/*0x3b9c*/ int               Unknown3;
+/*0x3b9c*/ int               Unknown4;
 /*0x3bf0*/
 };
 
@@ -1025,13 +1029,20 @@ struct SharedTaskClientPlayerInfo
 	SharedTaskClientPlayerInfo*        pNext;
 };
 
+constexpr int MAX_TASK_ENTRIES = 1;
+constexpr int MAX_QUEST_ENTRIES = 29;
+constexpr int MAX_UNKNOWN_ENTRIES = 12; // 29 + 12 = 41
+constexpr int MAX_SHARED_TASK_ENTRIES = 1;
+constexpr int MAX_QUEST_HISTORY_ENTRIES = 50;
+
 class [[offsetcomments]] CTaskManager : public PopDialogHandler
 {
 public:
-/*0x000004*/ CTaskEntry                TaskEntries[1];
-/*0x003bf4*/ CTaskEntry                QuestEntries[0x1d];
-/*0x070624*/ CTaskEntry                SharedTaskEntries[1];
-/*0x074214*/ CTaskEntry                QuestHistoryEntries[0x32];
+/*0x000004*/ CTaskEntry                TaskEntries[MAX_TASK_ENTRIES];
+/*0x003bf4*/ CTaskEntry                QuestEntries[MAX_QUEST_ENTRIES];
+/*0x070624*/ CTaskEntry                SharedTaskEntries[MAX_SHARED_TASK_ENTRIES];
+/*0x070624*/ CTaskEntry                UnkTaskEntries[MAX_UNKNOWN_ENTRIES];
+/*0x074214*/ CTaskEntry                QuestHistoryEntries[MAX_QUEST_HISTORY_ENTRIES];
 /*0x12f6f4*/ int                       AddPlayerID;
 /*0x12f6f8*/ bool                      bAddPlayerIsSwap;
 /*0x12f6f9*/ char                      AddPlayerSwapeeName[0x40];

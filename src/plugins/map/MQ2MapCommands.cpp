@@ -139,16 +139,19 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 		else
 		{
 			pMapFilter->Enabled = GetIntFromString(szValue, 0);
+
 			if (pMapFilter->Enabled && !_stricmp(pMapFilter->szName, "CampRadius"))
 			{
 				CampX = pChar->X;
 				CampY = pChar->Y;
 			}
+
 			if (pMapFilter->Enabled && !_stricmp(pMapFilter->szName , "PullRadius"))
 			{
 				PullX = pChar->X;
 				PullY = pChar->Y;
 			}
+
 			sprintf_s(szBuffer, "%s is now set to: %d", pMapFilter->szName, pMapFilter->Enabled);
 		}
 	}

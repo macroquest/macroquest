@@ -1482,23 +1482,18 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Type = pTaskType;
 	Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, 0xFFFFFFFF);
+
 	if (CTaskManager* tm = ppTaskManager)
 	{
 		if (szIndex[0])
 		{
-			CTaskEntry* sharedentry = (CTaskEntry*)&tm->SharedTaskEntries[0];
+			CTaskEntry* sharedEntry = (CTaskEntry*)&tm->SharedTaskEntries[0];
 			if (IsNumber(szIndex))
 			{
-				int n = GetIntFromString(szIndex, 0);
-				n--;
-				if (n < 0)
-					n = 0;
-				if (n > 28)
-					n = 28;
+				int n = std::clamp(GetIntFromString(szIndex, 0) - 1, 0, MAX_QUEST_ENTRIES - 1);
 
-				//well, if it is 0, and we have a shared quest, then we need to return that...
-				//people really should not use index by number it's stupid and lazy.
-				if (n==0 && sharedentry && sharedentry->TaskID)
+				// If it is 0, and we have a shared quest, then we need to return that
+				if (n == 0 && sharedEntry && sharedEntry->TaskID)
 				{
 					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
 				}
@@ -1506,71 +1501,35 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 				{
 					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, n);
 				}
+
+				return true;
 			}
 			else
 			{
-				char szOut[MAX_STRING] = { 0 };
-				char szTemp[MAX_STRING] = { 0 };
-				strcpy_s(szTemp, szIndex);
-				_strlwr_s(szTemp);
-				char* pName = &szTemp[0];
-				bool bExact = false;
-				if (*pName == '=')
+				if (sharedEntry && sharedEntry->TaskID)
 				{
-					bExact = true;
-					pName++;
-				}
-				//need to check this first
-				if(sharedentry && sharedentry->TaskID)
-				{
-					if (bExact)
+					if (MaybeExactCompare(sharedEntry->TaskTitle, szIndex))
 					{
-						if (!_stricmp(sharedentry->TaskTitle, pName))
-						{
-							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
-							return true;
-						}
-					}
-					else
-					{
-						strcpy_s(szOut, sharedentry->TaskTitle);
-						_strlwr_s(szOut);
-						if (strstr(szOut, pName))
-						{
-							//ok we actually do have one, and its always index 0 but 0 can also be a valid
-							//index for solo quests so we need to se it to something else
-							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
-							return true;
-						}
+						Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
+						return true;
 					}
 				}
-				//lets roll through solo quests if we got this far...
-				for (int i = 0; i < 29; i++)
+
+				for (int i = 0; i < MAX_QUEST_ENTRIES; i++)
 				{
 					if (CTaskEntry* entry = &tm->QuestEntries[i])
 					{
-						if (bExact)
+						if (MaybeExactCompare(entry->TaskTitle, szIndex))
 						{
-							if (!_stricmp(szOut, pName))
-							{
-								Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, i);
-								return true;
-							}
-						}
-						else
-						{
-							strcpy_s(szOut, entry->TaskTitle);
-							_strlwr_s(szOut);
-							if (strstr(szOut, pName)) {
-								Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, i);
-								return true;
-							}
+							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, 0);
+							return true;
 						}
 					}
 				}
 			}
 		}
 	}
+
 	return false;
 }
 

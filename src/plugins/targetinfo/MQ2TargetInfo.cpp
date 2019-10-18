@@ -1505,7 +1505,7 @@ void StopMovement(bool bChange = true)
 {
 	if (bChange)
 	{
-		// FIXME:  This should just be a user setting instead of guessing which the user wants to use.
+		// FIXME: This should just be a user setting instead of guessing which the user wants to use.
 		if (GetModuleHandle("mq2advpath"))
 		{
 			if (GetModuleHandle("mq2dannet"))
@@ -1529,6 +1529,7 @@ void StopMovement(bool bChange = true)
 			else if (GetModuleHandle("mq2eqbc"))
 				DoCommandf("/squelch /bcg //squelch /nav stop");
 		}
+
 		FollowMeButton->bChecked = false;
 		gbFollowme = false;
 	}
@@ -2244,11 +2245,6 @@ PLUGIN_API void InitializePlugin()
 	}
 	bool UpdateDBFile = false;
 	const int ret = GetPrivateProfileInt("Default", "DBExpansion", -1, INIFileName);
-	if (ret != NUM_EXPANSIONS)
-	{
-		UpdateDBFile = true;
-		WritePrivateProfileString("Default", "DBExpansion", std::to_string(NUM_EXPANSIONS), INIFileName);
-	}
 
 	WIN32_FIND_DATA FindFile = { 0 };
 	HANDLE hSearch = FindFirstFile(szMyName, &FindFile);

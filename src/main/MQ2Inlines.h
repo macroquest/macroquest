@@ -830,9 +830,9 @@ inline float GetPrivateProfileFloat(const std::string& Section, const std::strin
 
 inline std::string GetPrivateProfileStdString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::string& iniFileName)
 {
-    char szBuffer[MAX_STRING] = { 0 };
-    GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), szBuffer, MAX_STRING, iniFileName.data());
-    return std::string(szBuffer);
+	char szBuffer[MAX_STRING] = { 0 };
+	GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), szBuffer, MAX_STRING, iniFileName.data());
+	return std::string(szBuffer);
 }
 
 // These are replaced with our own wrappers

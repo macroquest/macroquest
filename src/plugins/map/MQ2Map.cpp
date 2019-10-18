@@ -272,7 +272,8 @@ PLUGIN_API void InitializePlugin()
 	for (i = 0; MapFilterOptions[i].szName; i++)
 	{
 		sprintf_s(szBuffer, "%s-Color", MapFilterOptions[i].szName);
-		//if it's the CampRadius or PullRadius, let's not get the last on/off state, lets assume it's off so we don't draw a circle at 0, 0.
+
+		// If it's the CampRadius or PullRadius, let's not get the last on/off state, lets assume it's off so we don't draw a circle at 0, 0.
 		if (_stricmp(MapFilterOptions[i].szName, "CampRadius") && _stricmp(MapFilterOptions[i].szName, "PullRadius"))
 		{
 			MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
@@ -281,7 +282,8 @@ PLUGIN_API void InitializePlugin()
 		{
 			MapFilterOptions[i].Enabled = 0;
 		}
-		//Lets see what color option was last saved as, if any. If none then use the default.
+
+		// Lets see what color option was last saved as, if any. If none then use the default.
 		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", szBuffer, MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
 		sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
 		GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", tmp_2, MAX_STRING, INIFileName);

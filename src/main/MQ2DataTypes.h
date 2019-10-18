@@ -5427,44 +5427,9 @@ public:
 		TypeMember(CurrentCount);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		const int Elementindex = VarPtr.HighPart;
-		if (Elementindex == -1)
-			return false;
-		CTaskManager* tm = ppTaskManager;
-		if (!tm)
-			return false;
-		if (VarPtr.Int == -1)
-			return false;
-		const DWORD index = HIWORD(VarPtr.DWord);
-		if (index == 0xFFFFFFFF)
-			return false;
-		const int type = LOWORD(VarPtr.DWord);
-
-		CTaskEntry* entry = 0;
-		switch (type)
-		{
-		case cTaskSystemTypeSoloQuest:
-			entry = &tm->QuestEntries[index];
-			break;
-		case cTaskSystemTypeSharedQuest:
-			entry = &tm->SharedTaskEntries[0];
-			break;
-		};
-		char szOut[MAX_STRING] = { 0 };
-		if (entry)
-		{
-			tm->GetElementDescription(&entry->Elements[Elementindex], szOut);
-		}
-		if (szOut[0] != '\0') {
-			strcpy_s(Destination, MAX_STRING, szOut);
-			return true;
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -5541,29 +5506,9 @@ public:
 		TypeMethod(Select);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		strcpy_s(Destination, MAX_STRING, "NULL");
-		int index = HIWORD(VarPtr.DWord);
-		int type = LOWORD(VarPtr.DWord);
-		if (CTaskManager* tm = ppTaskManager) {
-			CTaskEntry* entry = 0;
-			switch (type)
-			{
-			case cTaskSystemTypeSoloQuest:
-				entry = &tm->QuestEntries[index];
-				break;
-			case cTaskSystemTypeSharedQuest:
-				entry = &tm->SharedTaskEntries[0];
-				break;
-			};
-			strcpy_s(Destination, MAX_STRING, entry->TaskTitle);
-		}
-
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
