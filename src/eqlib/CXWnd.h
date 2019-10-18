@@ -671,7 +671,7 @@ public:
 
 #include "CXWnd-Members.h"
 
-/*0x1d8*/ };
+/*0x1e4*/ };
 
 using CXWND [[deprecated]] = CXWnd;
 using PCXWND [[deprecated]] = CXWnd*;
@@ -728,23 +728,23 @@ public:
 
 	//----------------------------------------------------------------------------
 	// data members
-/*0x1d8*/ bool                         bControlsCreated;
-/*0x1dc*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
-/*0x1e0*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
-/*0x1e4*/ ArrayClass<CRadioGroup*>     RadioGroup;
-/*0x1f4*/ bool                         bInitVisibility;
-/*0x1f5*/ bool                         bVisibleBeforeResize;
-/*0x1f8*/ int                          IniFlags;
-/*0x1fc*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
-/*0x200*/ int                          IniVersion;
-/*0x204*/ int                          LastResX;
-/*0x208*/ int                          LastResY;
-/*0x20c*/ bool                         bLastResFullscreen;
-/*0x210*/ int                          ContextMenuID;
-/*0x214*/ CXWnd*                       pFirstVScrollChild;
-/*0x218*/ int                          ContextMenuTipID;
-/*0x21c*/ bool                         bHasActivatedFirstTimeAlert;
-/*0x220*/
+/*0x1e8*/ bool                         bControlsCreated;
+/*0x1ec*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
+/*0x1f0*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
+/*0x1f4*/ ArrayClass<CRadioGroup*>     RadioGroup;
+/*0x204*/ bool                         bInitVisibility;
+/*0x205*/ bool                         bVisibleBeforeResize;
+/*0x208*/ int                          IniFlags;
+/*0x20c*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
+/*0x210*/ int                          IniVersion;
+/*0x214*/ int                          LastResX;
+/*0x218*/ int                          LastResY;
+/*0x21c*/ bool                         bLastResFullscreen;
+/*0x220*/ int                          ContextMenuID;
+/*0x224*/ CXWnd*                       pFirstVScrollChild;
+/*0x228*/ int                          ContextMenuTipID;
+/*0x22c*/ bool                         bHasActivatedFirstTimeAlert;
+/*0x230*/
 
 	//----------------------------------------------------------------------------
 	// functions that we provide offsets for

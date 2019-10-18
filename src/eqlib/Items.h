@@ -517,7 +517,7 @@ public:
 #include "ItemBase-Members.h"
 
 /*0x144*/
-/*0x140*/
+
 	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
@@ -555,11 +555,11 @@ struct [[offsetcomments]] CONTENTS
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x140*/ uint8_t           Filler0x0141[0x4];
-/*0x144*/ ITEMINFO*         Item2;
-/*0x148*/ CXStr             ClientString;
-/*0x14c*/ uint8_t           Filler0x0154[0x4];
-/*0x150*/
+/*0x141*/ uint8_t           Filler0x0141[0xB];
+/*0x14c*/ ITEMINFO*         Item2;
+/*0x150*/ CXStr             ClientString;
+/*0x154*/ uint8_t           Filler0x0154[0x4];
+/*0x158*/
 
 EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
 EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;

@@ -539,7 +539,8 @@ constexpr int NUM_RACES = 17;
 #define EXPANSION_EoK                            EQ_EXPANSION(23)
 #define EXPANSION_RoS                            EQ_EXPANSION(24)
 #define EXPANSION_TBL                            EQ_EXPANSION(25)
-constexpr int NUM_EXPANSIONS = 25;
+#define EXPANSION_TOV                            EQ_EXPANSION(26)
+constexpr int NUM_EXPANSIONS = 26;
 
 // LDON Dungeon themes. This is a bitmask.
 constexpr int LDON_None = 0;
@@ -2223,8 +2224,8 @@ struct [[offsetcomments]] GROUPAGGRO
 using PGROUPAGGRO [[deprecated]] = GROUPAGGRO*;
 
 #define EQ_ASSIST_CALC                           0x020c0f19
-#define EQ_ASSIST_COMPLETE                       0x2D01   // aMsgTimeStampRe
-#define EQ_ASSIST                                0x0C24   // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
+#define EQ_ASSIST_COMPLETE                       0x36CF    // aMsgTimeStampRe
+#define EQ_ASSIST                                0x5D3E    // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
 #define EQ_LoadingS__ArraySize                   0x5a      // EQ_LoadingS__SetProgressBar_x+76  (4C7396 yes it says 5b there, but we dont want to overwrite the NULL term... 2016 Apr 21
 
 } // namespace eqlib
