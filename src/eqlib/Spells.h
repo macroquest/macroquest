@@ -42,6 +42,7 @@ enum ItemSpellTypes
 // actual size: 0x22d Apr 10 2018 test see 557362 - eqmule
 // actual size: 0x229 May 07 2018 test see 6628CA  - eqmule
 // actual size: 0x231 Oct 07 2019 test see 565BE2  - eqmule
+// This is EQ_Spell
 struct [[offsetcomments]] SPELL
 {
 /*0x000*/ float   Range;

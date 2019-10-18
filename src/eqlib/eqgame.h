@@ -384,8 +384,8 @@
 #define Util__FastTime_x                                           0x8EDCB0
 #define wwsCrashReportCheckForUploader_x                           0x850070
 #define wwsCrashReportPlatformLaunchUploader_x                     0x852750
-#define __eq_delete_x                                              0x0
-#define __eq_new_x                                                 0x0
+#define __eq_delete_x                                              0x990D3E
+#define __eq_new_x                                                 0x991304
 
 ////
 // Section 4: Function Offsets
@@ -436,8 +436,8 @@
 // CButtonWnd
 #define CButtonWnd__SetCheck_x                                     0x60AFE0
 #define CButtonWnd__CButtonWnd_x                                   0x928190
-#define CButtonWnd__dCButtonWnd_x                                  0x0
-#define CButtonWnd__vftable_x                                      0x0
+#define CButtonWnd__dCButtonWnd_x                                  0x928470
+#define CButtonWnd__vftable_x                                      0xB187A4
 
 // CChatWindowManager
 #define CChatWindowManager__GetRGBAFromIndex_x                     0x6FD500
@@ -615,7 +615,7 @@
 // CListWnd
 #define CListWnd__CListWnd_x                                       0x9122E0
 #define CListWnd__dCListWnd_x                                      0x9125F0
-#define CListWnd__vftable_x                                        0x0
+#define CListWnd__vftable_x                                        0xB180F8
 #define CListWnd__AddColumn_x                                      0x916A30
 #define CListWnd__AddColumn1_x                                     0x916A80
 #define CListWnd__AddLine_x                                        0x916E10
@@ -671,9 +671,9 @@
 #define CMapViewWnd__CMapViewWnd_x                                 0x7718D0
 
 // MapViewMap
-#define MapViewMap__MapViewMap_x                                   0x0
-#define MapViewMap__dMapViewMap_x                                  0x0
-#define MapViewMap__vftable_x                                      0x0
+#define MapViewMap__MapViewMap_x                                   0x76CDC0
+#define MapViewMap__dMapViewMap_x                                  0x76CF10
+#define MapViewMap__vftable_x                                      0xAEDDF0
 #define MapViewMap__Clear_x                                        0x76D740
 #define MapViewMap__SaveEx_x                                       0x770B00
 #define MapViewMap__SetZoom_x                                      0x7751C0
@@ -729,7 +729,7 @@
 #define CSidlScreenWnd__m_layoutCopy_x                             0x16CC3B0
 #define CSidlScreenWnd__StoreIniInfo_x                             0x92EF80
 #define CSidlScreenWnd__StoreIniVis_x                              0x92F2F0
-#define CSidlScreenWnd__vftable_x                                  0x0
+#define CSidlScreenWnd__vftable_x                                  0xB18A40
 #define CSidlScreenWnd__WndNotification_x                          0x92E2A0
 
 // CSkillMgr
@@ -826,8 +826,8 @@
 #define CXStr__Mid_x                                               0x477B80
 #define CXStr__Insert_x                                            0x8EC810
 #define CXStr__FindNext_x                                          0x8EC480
-#define CXStr__gFreeLists_x                                        0x0
-#define CXStr__gCXStrAccess_x                                      0x0
+#define CXStr__gFreeLists_x                                        0xC6C9D8
+#define CXStr__gCXStrAccess_x                                      0x16CBACC
 
 // CTileLayoutWnd
 #define CTileLayoutWnd__SetOriginalAutoStretchInfo_x               0x93C450
@@ -867,9 +867,9 @@
 #define CXWnd__SetMouseOver_x                                      0x91EAA0
 #define CXWnd__SetParent_x                                         0x920360
 #define CXWnd__StartFade_x                                         0x920470
-#define CXWnd__vftable_x                                           0x0
-#define CXWnd__CXWnd_x                                             0x0
-#define CXWnd__dCXWnd_x                                            0x0
+#define CXWnd__vftable_x                                           0xB18544
+#define CXWnd__CXWnd_x                                             0x91B270
+#define CXWnd__dCXWnd_x                                            0x91B7A0
 
 // CScreenPieceTemplate
 #define CScreenPieceTemplate__IsType_x                             0x9545B0
