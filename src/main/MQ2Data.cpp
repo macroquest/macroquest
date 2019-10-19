@@ -577,9 +577,21 @@ bool dataBool(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 		return false;
-
-	Ret.DWord = (_stricmp(szIndex, "NULL") && _stricmp(szIndex, "FALSE") && strcmp(szIndex, "0"));
+	
 	Ret.Type = pBoolType;
+	Ret.DWord = 1;
+	if (IsNumber(szIndex))
+	{
+		Ret.DWord = GetFloatFromString(szIndex, 0.0) == 0.0 ? 0 : 1;
+	}
+	else
+	{
+		if (_stricmp(szIndex, "NULL") == 0 || _stricmp(szIndex, "FALSE") == 0)
+		{
+			Ret.DWord = 0;
+		}
+	}
+
 	return true;
 }
 
