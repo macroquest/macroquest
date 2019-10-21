@@ -1,3 +1,6 @@
+Oct 20 2019 by Eqmule
+- Updated for BETA
+-
 Oct 16 2019 by Eqmule
 - Updated for LIVE
 - I am aware the .Select for the task tlo needs a fix, I can't get that in right now but will be looking at a fix the next couple days.

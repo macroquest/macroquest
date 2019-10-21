@@ -22,7 +22,7 @@ GNU General Public License for more details.
 #define __ExpectedVersionTime                                     "19:45:36"
 #define __ActualVersionDate_x                                      0xADE3AC
 #define __ActualVersionTime_x                                      0xADE3A0
-#define __ActualVersionBuild_x                                     0xADEE44
+#define __ActualVersionBuild_x                                     0xAC9B9C
 
 #define __ClientOverride                                           0
 #define __MacroQuestWinClassName                                  "__MacroQuest2Tray(Test)"

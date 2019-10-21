@@ -9453,7 +9453,7 @@ bool MQ2ZoneType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
-#define pZone ((PZONELIST)VarPtr.Ptr)
+	PZONELIST pZone = (PZONELIST)VarPtr.Ptr;
 	PMQ2TYPEMEMBER pMember = MQ2ZoneType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -9483,7 +9483,6 @@ bool MQ2ZoneType::GETMEMBER()
 		return true;
 	}
 	return false;
-#undef pZone
 }
 
 bool MQ2BodyType::GETMEMBER()
