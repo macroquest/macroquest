@@ -155,8 +155,9 @@ public:
 			{
 				CHAR *szStr = new CHAR[MAX_STRING];
 				GetCXStr(Str.Ptr, szStr);
-				//WriteChatf("CListWnd__AddString_Detour %s", szStr);
-				Anonymize(szStr,MAX_STRING,true);
+				if (Anonymize(szStr, MAX_STRING, 2)) {
+					//WriteChatf("CListWnd__AddString_Detour %s", szStr);
+				}
 				int ret = CListWnd__AddString_Trampoline(szStr,Color,Data,pTa,TooltipStr);
 				delete szStr;
 				return ret;
@@ -180,7 +181,7 @@ public:
 		{
 			if (ret.Ptr) {
 				CHAR *szTemp = new CHAR[MAX_STRING];
-				GetCXStr(ret.Ptr, szTemp);
+				GetCXStr(ret.Ptr, szTemp, MAX_STRING);
 				if (lootcombo.find(szTemp) != lootcombo.end())
 				{
 					std::string str = lootcombo[szTemp];
@@ -200,11 +201,10 @@ public:
 	int CComboWnd__InsertChoiceAtIndex_Trampoline(const CXStr& Str, unsigned __int32 index);
 	int CComboWnd__InsertChoiceAtIndex_Detour(const CXStr& Str, unsigned __int32 index)
 	{
-		if (gAnonymize && gweareaddingpeople) {
-			Advlootcombo = (CComboWnd*)this;
-			//CHAR *szTemp = new CHAR[MAX_STRING];
-			CHAR szTemp[MAX_STRING];
-			//CHAR *orgszTemp = szTemp;
+		// && gweareaddingpeople
+		if (gAnonymize) {
+			//Advlootcombo = (CComboWnd*)this;
+			CHAR szTemp[MAX_STRING] = { 0 };
 			GetCXStr(Str.Ptr, szTemp);
 			std::string str = szTemp;
 			std::string Found;
@@ -219,7 +219,7 @@ public:
 			}
 			if(Found.empty())
 			{
-				Anonymize(szTemp, MAX_STRING, true);
+				Anonymize(szTemp, MAX_STRING, 2);
 				lootcombo[szTemp] = str;
 			}
 			else {
@@ -290,7 +290,7 @@ public:
 			}
 			if (pThisLabel && pThisLabel->CGetWindowText()) {
 				GetCXStr(pThisLabel->CGetWindowText(), szBuffer);
-				Anonymize(szBuffer,MAX_STRING);
+				Anonymize(szBuffer,MAX_STRING,2);
 			}
 		} else {
 			if (bTrimnames) {
@@ -314,7 +314,7 @@ public:
        if ((DWORD)pThisLabel->EQType==9999) {
 		   if (PCXSTR Str = pThisLabel->GetXMLToolTip())
 		   {
-				CHAR *szBuf = new CHAR[MAX_STRING];
+			   CHAR *szBuf = new CHAR[MAX_STRING];
 
 			   GetCXStr(Str, szBuf);
 			   STMLToPlainText(szBuf, szBuffer);
@@ -399,6 +399,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		bTrimnames = 1;
 	}
 }
+
 void CleanupLootCombo(bool bupdatemasterlooter)
 {
 #if !defined(ROF2EMU) && !defined(UFEMU)

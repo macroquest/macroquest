@@ -107,6 +107,40 @@ void DrawHUD()
 
 VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb, DWORD Font)
 {
+	//Add Anonymize logic here.
+	if (gAnonymize) {
+		if (PCHARINFO pChar = GetCharInfo()) {
+			PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
+			char word[MAX_STRING] = "";
+			while (pSpawn) {
+				if (pSpawn->Type != SPAWN_NPC || (pSpawn->Type == SPAWN_NPC && pSpawn->MasterID)) {
+					while (strstr(Text, pSpawn->DisplayedName)) {
+						int EntEnd = (int)(strstr(Text, pSpawn->DisplayedName) - Text + strlen(pSpawn->DisplayedName));
+						int EntStart = (int)(strstr(Text, pSpawn->DisplayedName) - Text);
+						int namelen = EntEnd - EntStart;
+						strncpy_s(word, &Text[EntStart], EntEnd - EntStart);
+						if (!Anonymize(word, MAX_STRING, 2)) {//try to anonymize word, if I fail, then replace the word with asterix.
+							for (int i = EntStart + 1; i < EntEnd - 1; i++) {
+								Text[i] = '*';
+							}
+						}
+						else {//if the word gets anonymized, lets build the new output string, nessesary for Anonymize where AnonymizeFlag=1
+							char *firsthalf = new char[MAX_STRING];
+							strncpy_s(firsthalf, MAX_STRING, &Text[0], EntStart);//copy the first half of the string and store it here.
+							char *secondhalf = new char[MAX_STRING];
+							strncpy_s(secondhalf, MAX_STRING, &Text[EntEnd], strlen(Text));//copy the part after the word and store it here.
+							strcat_s(firsthalf, MAX_STRING, word);//concatinate the word to the first half
+							strcat_s(firsthalf, MAX_STRING, secondhalf);//concatinate the second half to the end of the firsthalf+word.
+							strcpy_s(Text, MAX_STRING, firsthalf);//store the newly built string as the Text to output.
+							delete firsthalf;
+							delete secondhalf;
+						}
+					}
+				}
+				pSpawn = pSpawn->pNext;
+			}
+		}
+	}
     DWORD sX=((PCXWNDMGR)pWndMgr)->ScreenExtentX;
     DWORD sY=((PCXWNDMGR)pWndMgr)->ScreenExtentY;
 

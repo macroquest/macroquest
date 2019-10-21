@@ -530,21 +530,11 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
     }
 	if (gAnonymize) {
 		int len = strlen(Line);
-		char Name[MAX_STRING] = { "*" };
+		char *Name = new char[MAX_STRING];
+		char *NameAddr = Name;
+		strcpy_s(Name, MAX_STRING, "*");
 		int namelen = 0;
-		if (pLocalPlayer) {
-			strcpy_s(Name, MAX_STRING, ((PSPAWNINFO)pLocalPlayer)->Name);
-			namelen = strlen(Name);
-			//DebugSpew("szAnonMsg was valid.");
-			while (strstr(Line, Name)) {
-				if (char *p = strstr(Line, Name)) {
-					for (int i = 1; i < namelen - 1; i++) {
-						p[i] = '*';
-					}
-				}
-			}
-		}
-		//check for group members??
+		//check for group members (in case they aren't in the zone with me)
 		if (PCHARINFO pChar = GetCharInfo()) {
 			DWORD n = 0;
 			if (pChar->pGroupInfo) {
@@ -556,16 +546,26 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 					n++;
 					for (DWORD i = 1; i <= n; i++)
 					{
-						if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn)
+						if (pChar->pGroupInfo->pMember[i])
 						{
-							strcpy_s(Name, MAX_STRING, pChar->pGroupInfo->pMember[i]->pSpawn->Name);
+							GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);//Get the group members name from the group info, not the pSpawn, they might not be in the zone.
 							namelen = strlen(Name);
-							while (strstr(Line, Name))
-							{
-								if (char *p = strstr(Line, Name))
-								{
-									for (int i = 1; i < namelen - 1; i++) {
-										p[i] = '*';
+							if (namelen) {
+								if (strstr(Line, Name)) {
+									int EntEnd = (int)(strstr(Line, Name) - Line + strlen(Name));
+									int EntStart = (int)(strstr(Line, Name) - Line);
+									if (Anonymize(Name, namelen, 2)) {
+										char *firsthalf = new char[MAX_STRING];
+										char*firsthalfaddr = firsthalf;
+										strncpy_s(firsthalf,MAX_STRING, &Line[0], EntStart);//copy the first half of the string and store it here.
+										char *secondhalf = new char[MAX_STRING];
+										char *secondhalfaddr = secondhalf;
+										strncpy_s(secondhalf,MAX_STRING, &Line[EntEnd], strlen(Line));//copy the part after the word and store it here.
+										strcat_s(firsthalf, MAX_STRING, Name);//concatinate the word to the first half
+										strcat_s(firsthalf, MAX_STRING, secondhalf);//concatinate the second half to the end of the firsthalf+word.
+										strcpy_s(Line, MAX_STRING, firsthalf);//store the newly built string as the line to output.
+										delete firsthalfaddr;
+										delete secondhalfaddr;
 									}
 								}
 							}
@@ -573,20 +573,52 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 					}
 				}
 			}
+			//Anonymize my name, and any other spawn in the zone.
+			PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
+			char *word = new char[MAX_STRING];
+			char *wordaddr = word;
+			while (pSpawn) {
+				if (pSpawn->Type != SPAWN_NPC || (pSpawn->Type == SPAWN_NPC && pSpawn->MasterID)) {
+					while (strstr(Line, pSpawn->DisplayedName)) {
+						int EntEnd = (int)(strstr(Line, pSpawn->DisplayedName) - Line + strlen(pSpawn->DisplayedName));
+						int EntStart = (int)(strstr(Line, pSpawn->DisplayedName) - Line);
+						int namelen = EntEnd - EntStart;
+						strncpy_s(word, MAX_STRING, &Line[EntStart], EntEnd - EntStart);
+						if (!Anonymize(word, MAX_STRING, 2)) {//try to anonymize word, if I fail, then replace the word with asterix.
+							for (int i = EntStart + 1; i < EntEnd - 1; i++) {
+								Line[i] = '*';
+							}
+						}
+						else {//if the word gets anonymized, lets build the new output string, nessesary for Anonymize where AnonymizeFlag=1
+							char firsthalf[MAX_STRING] = "";
+							strncpy_s(firsthalf, &Line[0], EntStart);//copy the first half of the string and store it here.
+							char secondhalf[MAX_STRING] = "";
+							strncpy_s(secondhalf, &Line[EntEnd], strlen(Line));//copy the part after the word and store it here.
+							strcat_s(firsthalf, MAX_STRING, word);//concatinate the word to the first half
+							strcat_s(firsthalf, MAX_STRING, secondhalf);//concatinate the second half to the end of the firsthalf+word.
+							strcpy_s(Line, MAX_STRING, firsthalf);//store the newly built string as the line to output.
+						}
+					}
+				}
+				pSpawn = pSpawn->pNext;
+			}
+			delete wordaddr;
 		}
+		delete NameAddr;
 	}
     Color=pChatManager->GetRGBAFromIndex(Color); 
-	CHAR szProcessed[MAX_STRING] = { 0 };
+	CHAR *szProcessed = new CHAR[MAX_STRING];
 	
     int pos = MQToSTML(Line,szProcessed,MAX_STRING-4,Color); 
 	try {
-		strcat_s(szProcessed, "<br>");//we left room for this above...
+		strcat_s(szProcessed,MAX_STRING, "<br>");//we left room for this above...
 		CXStr NewText(szProcessed);
 		DebugTry(ConvertItemTags(NewText, FALSE));
 		sPendingChat.push_back(NewText.Ptr->Text);
 	} catch (...) {
 		Sleep(0);
 	}
+	delete szProcessed;
     return 0; 
 } 
 

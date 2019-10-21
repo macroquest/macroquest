@@ -509,12 +509,25 @@ BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
                         strcpy_s(szType, "Player");
                         break;
                     case PET:
-                        oktoanon = true;
-                        strcpy_s(szType, "PET");
+						if (pSpawn->MasterID) {
+							PSPAWNINFO petMaster = (PSPAWNINFO)GetSpawnByID(pSpawn->MasterID);
+							if (petMaster && petMaster->Type == SPAWN_PLAYER) {
+								oktoanon = true;
+								strcpy_s(szType, "PET");
+							}
+							else {
+								ParseMacroParameter(pChar->pSpawn, NewCaption);
+							}
+						}
                         break;
 					case CORPSE:
-						oktoanon = true;
-						strcpy_s(szType, "CORPSE");
+						if (pSpawn->Deity) {
+							oktoanon = true;
+							strcpy_s(szType, "CORPSE");
+						}
+						else {
+							ParseMacroParameter(pChar->pSpawn, NewCaption);
+						}
 						break;
                 };
                 if (oktoanon) {

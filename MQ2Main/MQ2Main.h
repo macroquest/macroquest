@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define LIVE
+#define EQBETA
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -920,7 +920,7 @@ EQLIB_API AggroMeterManagerClient *GetAggroInfo();
 EQLIB_API ClientSOIManager *GetAuraMgr();
 EQLIB_API CBroadcast *GetTextOverlay();
 EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
-EQLIB_API bool Anonymize(char *name, int maxlen, int LootFlag = 0);
+EQLIB_API bool Anonymize(char *name, int maxlen, int NameFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 

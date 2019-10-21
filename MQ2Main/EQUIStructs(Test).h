@@ -267,7 +267,7 @@ CXW_NO_VTABLE_BEGIN \
 /*0x0084*/ void   *TitlePiece2; \
 /*0x0088*/ int		VScrollPos; \
 /*0x008C*/ RECT		Location; \
-/*0x009C*/ bool		CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
+/*0x009C*/ bool		bBorder; \
 /*0x00A0*/ LONG		BlinkStartTimer; \
 /*0x00A4*/ bool		ValidCXWnd; /* IsValid has this one */ \
 /*0x00A5*/ bool		Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
@@ -311,7 +311,7 @@ CXW_NO_VTABLE_BEGIN \
 /*0x0130*/ tagSIZE	MaxClientSize; \
 /*0x0138*/ int		BlinkState; \
 /*0x013C*/ BYTE     bResizableMask; \
-/*0x013D*/ bool		bEscapableLocked; \
+/*0x013D*/ bool		bCaptureTitle; \
 /*0x013E*/ BYTE		TargetAlpha; \
 /*0x013F*/ bool		Minimized; \
 /*0x0140*/ UINT		TransitionDuration; \
@@ -341,9 +341,9 @@ CXW_NO_VTABLE_BEGIN \
 /*0x01C4*/ void* pTipTextObject; \
 /*0x01C8*/ DWORD	LastTimeMouseOver; \
 /*0x01CC*/ bool		Enabled; \
-/*0x01CD*/ bool		bBorder; \
+/*0x01CD*/ bool		bEscapableLocked; \
 /*0x01D0*/ void   *TitlePiece; \
-/*0x01D4*/ bool		bCaptureTitle; \
+/*0x01D4*/ bool		CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
 /*0x01D5*/ bool		Faded; \
 /*0x01D6*/ bool		bRightAnchoredToLeft; \
 /*0x01D7*/ bool		MouseOver; /* found in CXWnd__SetMouseOver_x */ \
@@ -1765,7 +1765,12 @@ typedef struct _CTARGETWND {
 /*0x03c0*/ struct _CBUTTONWND * pTargetBuff[NUM_BUFF_SLOTS]; // buff icons
 /*0x0544*/ int          BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
 /*0x06c8*/ DWORD        BuffTimer[NUM_BUFF_SLOTS];
-/*0x084c*/ BYTE         Unknown0x084c[0x24];
+/*0x084c*/ int			LastBuffRecievedTime;
+/*0x0850*/ UINT			Timer;
+/*0x0854*/ HashTable<PCXSTR> Casters;
+/*0x0864*/ int			ContextMenuID;
+/*0x0868*/ PCXWND		RequestingWnd;
+/*0x086c*/ bool			bRemovedBuffBlockMenuItem;
 /*0x0870*/ DWORD        Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
 /*0x0874*/ BYTE         Unknown0x0874[0x4c];
 /*0x08c0*/
