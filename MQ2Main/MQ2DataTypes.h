@@ -3231,10 +3231,28 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->IsVisible())
-			strcpy_s(Destination,MAX_STRING, "TRUE");
-		else
-			strcpy_s(Destination,MAX_STRING, "FALSE");
+		if (CXWnd*pWnd = (CXWnd*)VarPtr.Ptr)
+		{
+			if (VarPtr.HighPart==24)
+			{
+				if (CXMLData *pXMLData = pWnd->GetXMLData())
+				{
+					if (GetCXStr(pXMLData->Name.Ptr, Destination, MAX_STRING))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+			if (((PCSIDLWND)VarPtr.Ptr)->IsVisible())
+			{
+				strcpy_s(Destination, MAX_STRING, "TRUE");
+			}
+			else
+			{
+				strcpy_s(Destination, MAX_STRING, "FALSE");
+			}
+		}
 		return true;
 	}
 

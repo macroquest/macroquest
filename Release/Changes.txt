@@ -1,3 +1,7 @@
+Oct 22 2019 by Eqmule
+- Updated for BETA
+- Fixed ${Task[blah].Select}
+-
 Oct 21 2019 by Eqmule
 - Updated for BETA
 - Fixed SetEscapable and SetEscapableLocked

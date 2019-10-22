@@ -10680,6 +10680,7 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.Type = pWindowType;
 		if (PCXWNDMGR pwndmgr = (PCXWNDMGR)pWndMgr) {
 			Dest.Ptr = pwndmgr->LastMouseOver;
+			Dest.HighPart = 24;
 			return true;
 		}
 		return false;
@@ -14833,13 +14834,41 @@ bool MQ2TaskType::GETMEMBER()
 			{
 				Dest.DWord = 0;
 				Dest.Type = pBoolType;
-				CHAR szOut[255] = { 0 };
-				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-					if (SendListSelect2((CXWnd*)clist, index)) {
-						Dest.DWord = 1;
+				CHAR szTask[2048] = { 0 };
+				switch (type)
+				{
+				case TST_SoloQuest:
+					if (CTaskEntry *entry = &tm->QuestEntries[index])
+					{
+						strcpy_s(szTask, entry->TaskTitle);
 					}
+					break;
+				case TST_SharedQuest:
+					if (CTaskEntry *entry = &tm->SharedTaskEntries[0])
+					{
+						strcpy_s(szTask, entry->TaskTitle);
+					}
+					break;
+				};
+				if (szTask[0])
+				{
+					CHAR szOut[2048] = { 0 };
+					if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+						CXStr str;
+						for (int i=0;i<clist->ItemsArray.Count;i++)
+						{
+							clist->GetItemText(&str, i, 2);
+							GetCXStr(str.Ptr, szOut);
+							if (!_stricmp(szTask, szOut))
+							{
+								if (SendListSelect2((CXWnd*)clist, i)) {
+									Dest.DWord = 1;
+								}
+							}
+						}
+					}
+					return true;
 				}
-				return true;
 			};
 		}
 		return false;
