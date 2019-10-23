@@ -950,7 +950,7 @@ public:
 /*0xb8*/
 };
 
-//Actual Size: 0x158 (see 0x611A9C in eqgame.exe Test dated Oct  7 2019) - eqmule
+//Actual Size: 0x158 (see 0x611FCC in eqgame.exe Test dated Oct 22 2019) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ mutable int	RefCount;
@@ -1008,8 +1008,8 @@ typedef struct _CONTENTS {
 /*0x0150*/ struct _CXSTR *ClientString;
 /*0x0154*/ BYTE Filler0x0154[0x4];
 /*0x0158*/
-EQLIB_OBJECT _CONTENTS* GetContent(UINT index);
-EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
+EQLIB_OBJECT _CONTENTS *GetContent(UINT index);
+EQLIB_OBJECT ItemGlobalIndex2 &GetGlobalIndex();
 } CONTENTS, *PCONTENTS;
 
 #pragma pack(push)
@@ -3662,7 +3662,7 @@ typedef struct _SPAWNINFO {
 /*0x0f7c*/ UINT		ParticleCastStartTime;
 /*0x0f80*/ UINT		ParticleCastDuration;
 /*0x0f84*/ int		ParticleVisualSpellNum;
-/*0x0f88*/ int		Filler0x0f88;
+/*0x0f88*/ BYTE		Filler0x0f88[0x4];
 /*0x0f8c*/ ActorClient	mActorClient;          // start of ActorClient struct  size 0x1BC?
 /*0x1148*/ PlayerAnimationBase *pAnimation;
 /*0x114c*/ FLOAT	MeleeRadius;      // used by GetMeleeRange

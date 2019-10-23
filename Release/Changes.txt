@@ -1,3 +1,7 @@
+Oct 23 2019 by Eqmule
+- Updated for BETA
+- Updated for TEST
+-
 Oct 22 2019 by Eqmule
 - Updated for BETA
 - Fixed ${Task[blah].Select}
