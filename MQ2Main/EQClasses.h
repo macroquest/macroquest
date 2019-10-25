@@ -2309,7 +2309,9 @@ class CDistillerInfo
 {
 public:
 EQLIB_OBJECT static CDistillerInfo &CDistillerInfo::Instance();
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT int CDistillerInfo::GetIDFromRecordNum(int ID, bool bWhat);
+#endif
 };
 
 enum eTextAlign
@@ -6017,7 +6019,7 @@ EQLIB_OBJECT class CXMLData * CXMLParamManager::AllocPtr(class CXMLDataPtr &,int
 
 class CSidlManagerBase
 {
-#if !defined(TEST) && !defined(LIVE) && !defined(EQBETA)
+#if defined(ROF2EMU) || defined(UFEMU)
 /*0x000*/ void *vftable;
 /*0x004*/ int ScreenPieceClassIndex[5];
 /*0x018*/ ArrayClass_RO<CUITextureInfo*>		Textures;
@@ -7999,7 +8001,7 @@ EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;//this one takes an 
 EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int)const;//takes a Class, druid for example is 6
 EQLIB_OBJECT int EQ_Spell::SpellAffectBase(int)const;//takes a SPA, returns the first matching base it finds for it
 EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int Slot) const;
-#if !defined(ROF2EMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int Index) const;
 #endif
 EQLIB_OBJECT bool EQ_Spell::IsNoRemove(void)const;

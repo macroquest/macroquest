@@ -126,6 +126,7 @@ extern CRITICAL_SECTION gPluginCS;
 #define MountWindowList "KRW_Mounts_List"
 #define IllusionWindowList "KRW_Illusions_List"
 #define FamiliarWindowList "KRW_Familiars_list"
+#define HeroForgeWindowList "KRW_HeroForge_List"
 #define KeyRingTab "KRW_Subwindows"
 
 #if defined(ROF2EMU) || defined(UFEMU)

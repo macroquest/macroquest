@@ -3005,7 +3005,11 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pSpellType;
 		if (!ISINDEX())
 			return false;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			if (ISNUMBER())
 			{
 				int nBuff = GETNUMBER() - 1;
@@ -3045,7 +3049,11 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pSpellType;
 		if (!ISINDEX())
 			return false;
+#ifdef NEWCHARINFO
+		if (PCHARINFO pCharnew = GetCharInfo()) {
+#else
 		if (PCHARINFONEW pCharnew = (PCHARINFONEW)GetCharInfo()) {
+#endif
 			if (ISNUMBER())
 			{
 				int nBuff = GETNUMBER() - 1;
@@ -5992,7 +6000,11 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case GuildID:
 	{
+#ifdef NEWCHARINFO
+		Dest.UInt64 = pChar->GuildID.GUID;
+#else
 		Dest.UInt64 = pChar->GuildID;
+#endif
 		Dest.Type = pInt64Type;
 		return true;
 	}
@@ -6585,6 +6597,7 @@ bool MQ2SpellType::GETMEMBER()
 						if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 							buffduration = 99999 + 1;
 						}
+						if (buffSpell == pSpell) WriteChatf("Spell.Stacks(%d:%d,%d)", buffSpell->ID, duration, buffduration);
 						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell == pSpell) && (buffduration > duration))) {
 							Dest.DWord = false;
 							return true;
@@ -11241,12 +11254,9 @@ bool MQ2MerchantType::GETMEMBER()
 		return true;
 	}
 	case Markup:
-	{
-		
 		Dest.Float = pMerch->Markup;
 		Dest.Type = pFloatType;
 		return true;
-	}
 	case Full://todo: check manually for uf
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
@@ -14834,7 +14844,7 @@ bool MQ2TaskType::GETMEMBER()
 			{
 				Dest.DWord = 0;
 				Dest.Type = pBoolType;
-				CHAR szTask[2048] = { 0 };
+				CHAR szTask[MAX_STRING] = { 0 };
 				switch (type)
 				{
 				case TST_SoloQuest:
@@ -14852,7 +14862,7 @@ bool MQ2TaskType::GETMEMBER()
 				};
 				if (szTask[0])
 				{
-					CHAR szOut[2048] = { 0 };
+					CHAR szOut[MAX_STRING] = { 0 };
 					if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 						CXStr str;
 						for (int i=0;i<clist->ItemsArray.Count;i++)

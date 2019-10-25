@@ -70,13 +70,13 @@ CXWnd *RecurseAndFindName(CXWnd *pWnd, PCHAR Name)
 		GetCXStr(pXMLData->Name.Ptr, Buffer, MAX_STRING);
         if (Buffer[0] && !_stricmp(Buffer,Name)) {
             delete Buffer;
-			return pWnd;
+            return pWnd;
         }
         //DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
 		GetCXStr(pXMLData->ScreenID.Ptr, Buffer, MAX_STRING);
         if (Buffer[0] && !_stricmp(Buffer,Name)) {
             delete Buffer;
-			return pWnd;
+            return pWnd;
         }
     }
 
@@ -84,8 +84,8 @@ CXWnd *RecurseAndFindName(CXWnd *pWnd, PCHAR Name)
         if(CXWnd *tmp = RecurseAndFindName(pChildWnd, Name))
 		{
 			delete Buffer;
-			return tmp;
-		}
+            return tmp;
+    }
     }
 	delete Buffer;
 	if (CXWnd *pSiblingWnd = (CXWnd *)pWnd->GetNextSiblingWnd()) {
@@ -4717,8 +4717,10 @@ FUNCTION_AT_ADDRESS(bool EQ_Spell::IsStackable(void)const ,EQ_Spell__IsStackable
 #ifdef EQ_Spell__GetSpellAffectBySlot_x
 FUNCTION_AT_ADDRESS(const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int)const ,EQ_Spell__GetSpellAffectBySlot);
 #endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
 #ifdef EQ_Spell__GetSpellAffectByIndex_x
 FUNCTION_AT_ADDRESS(const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int)const ,EQ_Spell__GetSpellAffectByIndex);
+#endif
 #endif
 #ifdef EQ_Spell__IsSPAStacking_x
 FUNCTION_AT_ADDRESS(bool EQ_Spell::IsSPAStacking(int) ,EQ_Spell__IsSPAStacking);
@@ -7798,7 +7800,7 @@ FUNCTION_AT_ADDRESS(void  CXWnd::BringToTop(bool),CXWnd__BringToTop);
 FUNCTION_AT_ADDRESS(void  CXWnd::StartFade(unsigned char,unsigned __int32),CXWnd__StartFade);
 #endif
 #ifdef CXWnd__Minimize_x
-FUNCTION_AT_ADDRESS(int CXWnd::Minimize(bool),CXWnd__Minimize);
+FUNCTION_AT_ADDRESS(int  CXWnd::Minimize(bool),CXWnd__Minimize);
 #endif
 #ifdef CXWnd__IsReallyVisible_x
 FUNCTION_AT_ADDRESS(bool  CXWnd::IsReallyVisible(void)const ,CXWnd__IsReallyVisible);

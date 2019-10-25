@@ -4156,6 +4156,18 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	case 510: //Resist Incoming
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
+	case 518: //Attack Accuracy Max Percent
+		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
+	case 511: //Focus Timer Min
+	case 512: //Proc Timer Modifier
+	case 513: //Mana Max Percent
+	case 514: //Endurance Max Percent
+	case 515: //AC Avoidance Max Percent
+	case 516: //AC Mitigation Max Percent
+	case 517: //Attack Offense Max Percent
+	case 519: //Luck Amt
+	case 520: //Luck Percent
 	default: //undefined effect
 		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname, base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);
@@ -6114,14 +6126,18 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->bLight = TRUE;
 		}
 		else if (!_stricmp(szArg, "guild")) {
+#ifdef NEWCHARINFO
+			pSearchSpawn->GuildID = GetCharInfo()->GuildID.GUID;
+#else
 			pSearchSpawn->GuildID = GetCharInfo()->GuildID;
+#endif
 		}
 		else if (!_stricmp(szArg, "guildname")) {
-			#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 			__int64 GuildID = -1;
-			#else
+#else
 			DWORD GuildID = -1;
-			#endif
+#endif
 			GetArg(szArg, szRest, 1);
 			if (szArg[0] != 0)
 				GuildID = GetGuildIDByName(szArg);
@@ -7390,7 +7406,7 @@ DWORD GetSpellGemTimer(DWORD nGem)
 {
 	return GetSpellGemTimer2(nGem);
 /*	_EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
-#if !defined(UFEMU)//todo: check manually
+#if !defined(ROF2EMU) && !defined(UFEMU) //todo: check manually
 	if (g->Wnd.CoolDownBeginTime) {
 		UINT cSpellCompletion = g->Wnd.CoolDownBeginTime + g->Wnd.CoolDownDuration;
 		DWORD now = EQGetTime();
@@ -11355,7 +11371,7 @@ EQGroundItemListManager* GetItemList()
 ItemGlobalIndex2 ig;
 ItemGlobalIndex2& CONTENTS::GetGlobalIndex()
 {
-#if !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	return this->GlobalIndex;
 #else
 	ig.Location = eItemContainerInvalid;
@@ -11367,6 +11383,7 @@ ItemGlobalIndex2& CONTENTS::GetGlobalIndex()
 }
 
 #if defined(LIVE)
+//#pragma warning(disable : 4091)
 #include <DbgHelp.h>
 //PFINDFILEINPATHCALLBACK Pfindfileinpathcallback;
 
@@ -11529,7 +11546,7 @@ namespace EQData
 	{
 		if (!c)
 			return NULL;
-#if !defined(UFEMU)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 		return c->Item1 ? c->Item1 : c->Item2;
 #else
 		return c->Item1;

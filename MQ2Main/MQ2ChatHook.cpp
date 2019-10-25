@@ -135,9 +135,9 @@ public:
 									strcpy_s(szAnonMsg, MAX_STRING, firsthalf);//store the newly built string as the szAnonMsg to output.
 									delete firsthalf;
 									delete secondhalf;
-								}
 							}
 						}
+					}
 						pSpawn = pSpawn->pNext;
 					}
 					delete word;
@@ -185,25 +185,25 @@ public:
 							int EntEnd = (int)(strstr(szAnonMsg, " that you agree to join the group.") - szAnonMsg);
 							int EntStart = (int)(strstr(szAnonMsg, "You notify ") - szAnonMsg + strlen("You notify "));
 							for (int i = EntStart + 1; i < EntEnd - 1; i++) {
-								szAnonMsg[i] = '*';
-							}
-						}
+											szAnonMsg[i] = '*';
+										}
+									}
 						//PlayerName has left the group
 						if (strstr(szAnonMsg, " has left the group.")) {
 							int EntEnd = (int)(strstr(szAnonMsg, " has left the group.") - szAnonMsg);
 							int EntStart = 0;
 							for (int i = EntStart + 1; i < EntEnd - 1; i++) {
-								szAnonMsg[i] = '*';
-							}
-						}
+											szAnonMsg[i] = '*';
+										}
+									}
 						//PlayerName has left the group
 						if (strstr(szAnonMsg, "You invite ") && strstr(szAnonMsg, " to join your group.")) {
 							int EntEnd = (int)(strstr(szAnonMsg, " to join your group.") - szAnonMsg);
 							int EntStart = (int)(strstr(szAnonMsg, "You invite ") - szAnonMsg + strlen("You invite "));;
 							for (int i = EntStart + 1; i < EntEnd - 1; i++) {
 								szAnonMsg[i] = '*';
+								}
 							}
-						}
 						break;
 					case 349://Color: 349 - Achievement - Guildmate
 						if (strstr(szAnonMsg, " has completed ") && strstr(szAnonMsg, "Your guildmate ")) {
@@ -311,7 +311,7 @@ public:
 			}
 #else
 			if (gAnonymize) {
-				char szName[64] = { 0 };
+				CHAR *szName = new CHAR[64];
 				strcpy_s(szName, 64, from);
 				if (!Anonymize(szName, 64)) {
 					for (int i = 1; i < (int)strlen(szName) - 1; i++) {
@@ -319,6 +319,7 @@ public:
 					}
 				}
 				TellWnd_Trampoline(message, szName, szName, text, color, bLogOk);
+				delete szName;
 			}
 			else
 			{

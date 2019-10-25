@@ -351,9 +351,12 @@ void SwitchCharacter(PCHAR szName);
 void SelectCharacter(PCHAR szName );
 DWORD GetProcessCount(PCHAR exeName);
 void DebugLog(PCHAR szFormat, ...);
-unsigned long _FindPattern(unsigned long dwAddress,unsigned long dwLen,unsigned char *bPattern,char *szMask);
-unsigned long _GetDWordAt(unsigned long address, unsigned long numBytes);
-unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long addressOffset, unsigned long numBytes);
+#define _FindPattern FindPattern
+#define _GetDWordAt GetDWordAt
+#define _GetFunctionAddressAt GetFunctionAddressAt
+//unsigned long _FindPattern(unsigned long dwAddress,unsigned long dwLen,unsigned char *bPattern,char *szMask);
+//unsigned long _GetDWordAt(unsigned long address, unsigned long numBytes);
+//unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long addressOffset, unsigned long numBytes);
 
 //__LoadFrontEnd_x not used?
 //ida style sig1 just mov     ecx, hLibModule : 8B 0D ? ? ? ? 68 ? ? ? ? 51 FF D6 A3 ? ? ? ? 85 C0 75 18
@@ -2286,6 +2289,7 @@ void DebugLog(PCHAR szFormat, ...)
 }
 #endif
 
+/*
 // originally created by: radioactiveman/bunny771/(dom1n1k?) of GameDeception -----------
 inline bool _DataCompare(const unsigned char *pData, const unsigned char *bMask, const char *szMask)
 {
@@ -2327,3 +2331,4 @@ unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long address
     }
     return 0;
 }
+*/

@@ -450,7 +450,7 @@ namespace MQ2Globals
 	EQLIB_VAR CDisplay **ppDisplay;
 #define pDisplay (*ppDisplay)
 	EQLIB_VAR EQ_PC **ppPCData;
-	#define pPCData (*ppPCData)
+#define pPCData (*ppPCData)
 	EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
 #ifdef NEWCHARINFO
@@ -914,11 +914,11 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstLocalPlayer;
 	EQLIB_VAR DWORD pinstMercenaryData;
 	EQLIB_VAR DWORD pinstMercenaryStats;
-	#if defined(ROF2EMU) || defined(UFEMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR DWORD pinstEQObjectList;
 	EQLIB_VAR DWORD pinstEQItemList;
 	EQLIB_VAR DWORD pinstMercAltAbilities;
-	#endif
+#endif
 	EQLIB_VAR DWORD pinstModelPlayer;
 	EQLIB_VAR DWORD pinstPCData;
 	EQLIB_VAR DWORD pinstCResolutionHandler;
@@ -939,11 +939,11 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstWorldData;
 	EQLIB_VAR DWORD pinstPlayerPath;
 	EQLIB_VAR DWORD pinstTargetIndicator;
-	#if defined(ROF2EMU) || defined(UFEMU)
+#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR DWORD pinstCTargetManager;
 	EQLIB_VAR DWORD pinstRealEstateItems;
 	EQLIB_VAR DWORD pinstCTextOverlay;
-	#endif
+#endif
 	EQLIB_VAR DWORD EQObject_Top;
 	
 	EQLIB_VAR DWORD pinstCRealEstateItemsWnd;

@@ -290,18 +290,19 @@ static inline const int GetCastingTimeModifier(const EQ_Spell  * cSpell) {
 //const int EQ_Character1::GetFocusCastingTimeModifier(const EQ_Spell*pSpell, VePointer<ItemBase>&pItemOut, bool bEvalOnly = false);
 static inline const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly) {
 	if (PCHARINFO pChar = GetCharInfo()) {
+		//ok so as far as i can tell RefCount gets increased by us calling this function
+		//and its weird that it's no decremented properly afterwards
+		//it's possible we don't understand this, but there is also a chance this
+		//is a real serious eq bug, either way, decrementing it after the return
+		//seems to work...
+		//if they ever fix this, we must remove our decrement here...
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+			int ret = ((EQ_Character1*)&pChar->PcClient_CharacterZoneClient_vfTable)->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
 #else
 		if (pChar->vtable2) {
-#endif
-			//ok so as far as i can tell RefCount gets increased by us calling this function
-			//and its weird that it's no decremented properly afterwards
-			//it's possible we don't understand this, but there is also a chance this
-			//is a real serious eq bug, either way, decrementing it after the return
-			//seems to work...
-			//if they ever fix this, we must remove our decrement here...
 			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
+#endif
 			if (pItemOut.pObject)
 			{
 				InterlockedDecrement((long volatile*)&pItemOut.pObject->RefCount);
@@ -315,10 +316,11 @@ static inline const int GetFocusRangeModifier(const EQ_Spell *pSpell, VePointer<
 	if (PCHARINFO pChar = GetCharInfo()) {
 #ifdef NEWCHARINFO
 		if (pChar->PcClient_CharacterZoneClient_vfTable) {
+			int ret = ((EQ_Character1*)&pChar->PcClient_CharacterZoneClient_vfTable)->GetFocusRangeModifier(pSpell, pItemOut);
 #else
 		if (pChar->vtable2) {
-#endif
 			int ret = ((EQ_Character1*)&pChar->vtable2)->GetFocusRangeModifier(pSpell, pItemOut);
+#endif
 			if (pItemOut.pObject)
 			{
 				InterlockedDecrement((long volatile*)&((PCONTENTS)pItemOut.pObject)->RefCount);
@@ -604,7 +606,11 @@ static inline BOOL IsFellowshipMember(char * SpawnName)
 static inline BOOL IsGuildMember(char * SpawnName)
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pChar->GuildID.GUID == 0)
+#else
 		if (pChar->GuildID == 0)
+#endif
 			return 0;
 		if (pGuild) {
 			if (PGUILDMEMBERCLIENT mem = (PGUILDMEMBERCLIENT)pGuild->FindMemberByName(SpawnName)) {
