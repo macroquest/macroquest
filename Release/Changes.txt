@@ -1,5 +1,11 @@
+Oct 27 2019 by Eqmule
+- Updated for BETA
+-
 Oct 26 2019 by Eqmule
 - Updated for BETA
+-
+Oct 26 2019 by SwiftyMUSE
+- Fixed ${Spawn.State} so DEAD spawns don't show as STUN
 -
 Oct 25 2019 by Eqmule
 - Updated for BETA
