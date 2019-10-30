@@ -1,5 +1,6 @@
 Oct 30 2019 by Eqmule
 - Updated for BETA
+- Fixed a bug in macroquest2.exe that would prevent loading live clients. (I am focused on beta this month)
 -
 Oct 29 2019 by Eqmule
 - Updated for BETA
