@@ -2884,11 +2884,18 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 	case Name:
 	{
-			strcpy_s(DataTypeTemp, ((PSPAWNINFO)pLocalPlayer)->Name);
+		strcpy_s(DataTypeTemp, ((PSPAWNINFO)pLocalPlayer)->Name);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}
+	case Origin:
+		Dest.Type = pZoneType;
+		if (pChar->StartingCity > 0 && pChar->StartingCity < MAX_ZONES) {
+				Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar->StartingCity];
+				return true;
+		}
+		return false;
 	case Exp:
 		Dest.Int64 = pChar->Exp;
 		Dest.Type = pInt64Type;

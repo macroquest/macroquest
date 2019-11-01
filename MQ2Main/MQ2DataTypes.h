@@ -1225,6 +1225,7 @@ public:
 		BlockedBuff = 276,
 		BlockedPetBuff = 277,
 		LastZoned = 278,
+		Origin = 279,
 	};
 	enum CharacterMethods
 	{
@@ -1505,6 +1506,8 @@ public:
 		TypeMember(BlockedBuff);
 		TypeMember(BlockedPetBuff);
 		TypeMember(LastZoned);
+		TypeMember(Origin);
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
