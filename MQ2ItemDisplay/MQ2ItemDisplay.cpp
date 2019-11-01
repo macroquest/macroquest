@@ -3101,6 +3101,10 @@ void CreateCompareTipWnd()
 			"You can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
 	}
 }
+bool DirectoryExists(LPCTSTR lpszPath) {
+	DWORD dw = ::GetFileAttributes(lpszPath);
+	return (dw != INVALID_FILE_ATTRIBUTES && (dw & FILE_ATTRIBUTE_DIRECTORY) != 0);
+}
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
@@ -3134,7 +3138,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	pDisplayItemType = new MQ2DisplayItemType;
 	AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore", dataGearScore);
-
+	//MessageBox(NULL, "", "load in now", MB_SYSTEMMODAL | MB_OK);
 	if (!IsXMLFilePresent("MQUI_CompareTipWnd.xml"))
 	{
 		HMODULE hMe = nullptr;
@@ -3152,7 +3156,18 @@ PLUGIN_API VOID InitializePlugin(VOID)
 					// save it to the default mq uifiles dir
 					DWORD ressize = SizeofResource(hMe, hRes);
 					FILE* File = nullptr;
-
+					CHAR szDirname[MAX_PATH] = { 0 };
+					sprintf_s(szDirname, "%s\\uifiles", gszINIPath);
+					if (!DirectoryExists(szDirname))
+					{
+						CreateDirectory(szDirname, NULL);
+					}
+					sprintf_s(szDirname, "%s\\uifiles\\default", gszINIPath);
+					if (!DirectoryExists(szDirname))
+					{
+						CreateDirectory(szDirname, NULL);
+					}
+					
 					CHAR szFilename[MAX_PATH] = { 0 };
 					sprintf_s(szFilename, "%s\\uifiles\\default\\MQUI_CompareTipWnd.xml", gszINIPath);
 

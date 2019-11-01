@@ -526,8 +526,8 @@ PLUGIN_API VOID OnDrawHUD(VOID)
     {
         N=0;
         struct _stat now;
-        if (Stat(INIFileName,now) && now.st_mtime!=LastRead.st_mtime)
-            HandleINI();
+		if (Stat(INIFileName, now) && now.st_mtime != LastRead.st_mtime)
+			LoadElements();
 
         // check for EQ in foreground
 		if (!bBGUpdate && !gbInForeground)
