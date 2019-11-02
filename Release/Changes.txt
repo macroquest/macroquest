@@ -1,3 +1,11 @@
+Nov 02 2019
+- Updated for BETA
+- Added item search by number to the ${Ground} TLO
+- Example: /echo ${Ground[4]} will return the 4th closest item it finds.
+- You should probably check that there actually are 4 items on the ground 
+  with ${GroundItemCount} though, or it will obviously return NULL if there is'nt.
+  I don't know how useful this feature is since we can iterate through .Next anyway, but someone asked for it so...
+-
 Nov 01 2019
 - Updated for BETA
 - Added ${Me.Origin} which returns a pZoneType of your starting city.

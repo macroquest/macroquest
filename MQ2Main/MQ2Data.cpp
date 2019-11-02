@@ -171,17 +171,16 @@ TLO(dataGroundItem)
 	std::map<FLOAT, GROUNDOBJECT>itemmap;
 	//if they did ${Ground[name]}
 	if (ISINDEX()) {
-		CHAR szSearch[MAX_STRING] = { 0 };
-		strcpy_s(szSearch, GETFIRST());
-		_strlwr_s(szSearch);
-		CHAR szName[MAX_STRING] = { 0 };
-		if (pItemList && pItemList->Top)
+		if (ISNUMBER())
 		{
-			PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
-			while (pItem) {
-				GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
-				_strlwr_s(szName);
-				if (strstr(szName, szSearch)) {
+			int id = GETNUMBER();
+			id--;
+			if (id < 0)
+				id = 0;
+			if (pItemList && pItemList->Top)
+			{
+				PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+				while (pItem) {
 					FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
 					FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
 					FLOAT Z = 0;
@@ -192,34 +191,102 @@ TLO(dataGroundItem)
 					float dist = sqrtf(X*X + Y * Y + Z * Z);
 					itemmap[dist].Type = GO_GroundType;
 					itemmap[dist].pGroundItem = pItem;
+					pItem = pItem->pNext;
 				}
-				pItem = pItem->pNext;
 			}
-		}
-		//lets see if there are any objects that match as well:
-		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
-		if (&manager)
-		{
-			if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+			//lets see if there are any objects that match as well:
+			RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+			if (&manager)
 			{
-				for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
+				if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
 				{
-					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-					if (pRealEstateItem)
+					for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
 					{
-						if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+						if (pRealEstateItem)
 						{
-							if (PITEMINFO pItem = GetItemFromContents(pCont))
+							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
 							{
-								strcpy_s(szName, pItem->Name);
-								_strlwr_s(szName);
-								if (strstr(szName, szSearch)) {
+								if (PITEMINFO pItem = GetItemFromContents(pCont))
+								{
 									FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pObj->X;
 									FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pObj->Y;
 									FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pObj->Z;
 									float dist = sqrtf(X*X + Y * Y + Z * Z);
 									itemmap[dist].Type = GO_ObjectType;
 									itemmap[dist].ObjPtr = pObj;
+								}
+							}
+						}
+					}
+				}
+			}
+			if ((int)itemmap.size() > id)
+			{
+				std::map<FLOAT, GROUNDOBJECT>::iterator it = itemmap.begin();
+				std::advance(it, id);
+				if (it != itemmap.end())
+				{
+					memcpy(&GroundObject, &it->second, sizeof(GROUNDOBJECT));
+					Ret.Ptr = &GroundObject;
+					Ret.Type = pGroundType;
+					return true;
+				}
+			}
+			return false;
+		}
+		else
+		{
+			CHAR szSearch[MAX_STRING] = { 0 };
+			strcpy_s(szSearch, GETFIRST());
+			_strlwr_s(szSearch);
+			CHAR szName[MAX_STRING] = { 0 };
+			if (pItemList && pItemList->Top)
+			{
+				PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+				while (pItem) {
+					GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
+					_strlwr_s(szName);
+					if (strstr(szName, szSearch)) {
+						FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
+						FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
+						FLOAT Z = 0;
+						if (pItem->pSwitch)
+							Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->pSwitch->Z;
+						else
+							Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->Z;
+						float dist = sqrtf(X*X + Y * Y + Z * Z);
+						itemmap[dist].Type = GO_GroundType;
+						itemmap[dist].pGroundItem = pItem;
+					}
+					pItem = pItem->pNext;
+				}
+			}
+			//lets see if there are any objects that match as well:
+			RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+			if (&manager)
+			{
+				if (EQPlacedItemManager *pPIM = &EQPlacedItemManager::Instance())
+				{
+					for (EQPlacedItem *pObj = pPIM->Top; pObj != NULL; pObj = pObj->pNext)
+					{
+						const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+						if (pRealEstateItem)
+						{
+							if (PCONTENTS pCont = pRealEstateItem->Object.pItemBase.pObject)
+							{
+								if (PITEMINFO pItem = GetItemFromContents(pCont))
+								{
+									strcpy_s(szName, pItem->Name);
+									_strlwr_s(szName);
+									if (strstr(szName, szSearch)) {
+										FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pObj->X;
+										FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pObj->Y;
+										FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pObj->Z;
+										float dist = sqrtf(X*X + Y * Y + Z * Z);
+										itemmap[dist].Type = GO_ObjectType;
+										itemmap[dist].ObjPtr = pObj;
+									}
 								}
 							}
 						}
