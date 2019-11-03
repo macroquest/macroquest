@@ -7822,8 +7822,11 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
 			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (bExact) {
-					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
-						return pItem;
+					if (PITEMINFO pItemi = GetItemFromContents(pItem))
+					{
+						if (!_stricmp(Name, pItemi->Name)) {
+							return pItem;
+						}
 					}
 				}
 				else {
@@ -11546,7 +11549,7 @@ namespace EQData
 	{
 		if (!c)
 			return NULL;
-#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(UFEMU)
 		return c->Item1 ? c->Item1 : c->Item2;
 #else
 		return c->Item1;

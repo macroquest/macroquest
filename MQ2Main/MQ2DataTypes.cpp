@@ -3066,7 +3066,7 @@ bool MQ2CharacterType::GETMEMBER()
 				int nBuff = GETNUMBER() - 1;
 				if (nBuff < 0)
 					nBuff = 0;
-				if(nBuff > 0x28)
+				if(nBuff > NUM_BLOCKED_BUFFS)
 					return false;
 				if (int spellid = pCharnew->BlockedSpell[nBuff])
 				{
@@ -3079,7 +3079,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			else
 			{
-				for (unsigned long nBuff = 0; nBuff < 0x28; nBuff++)
+				for (unsigned long nBuff = 0; nBuff < NUM_BLOCKED_BUFFS; nBuff++)
 				{
 					if (int spellid = pCharnew->BlockedSpell[nBuff])
 					{
@@ -3105,7 +3105,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				int nBuff = GETNUMBER() - 1;
 				if (nBuff < 0)
-					return false;
+					nBuff = 0;
 				if (nBuff >= NUM_LONG_BUFFS)
 					return false;
 				if (pChar2->Buff[nBuff].SpellID <= 0)
@@ -3768,15 +3768,23 @@ bool MQ2CharacterType::GETMEMBER()
 							#if !defined(ROF2EMU) && !defined(UFEMU)
 							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
 							#else
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
+								if (pSpell->ReuseTimerIndex > 20)
+								{
+									return false;
+								}
+								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
 							#endif
-							{
-								#if !defined(ROF2EMU) && !defined(UFEMU)
-								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
-								#else
-								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
-								#endif
-								Dest.Int /= 6;
+								{
+									#if !defined(ROF2EMU) && !defined(UFEMU)
+									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
+									#else
+									if (pSpell->ReuseTimerIndex > 20)
+									{
+										return false;
+									}
+									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
+									#endif
+									Dest.Int /= 6;
 							}
 							return true;
 						}
@@ -3797,12 +3805,20 @@ bool MQ2CharacterType::GETMEMBER()
 								#if !defined(ROF2EMU) && !defined(UFEMU)
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
 								#else
+								if (pSpell->ReuseTimerIndex > 20)
+								{
+									return false;
+								}
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
 								#endif
 								{
 									#if !defined(ROF2EMU) && !defined(UFEMU)
 									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
 									#else
+									if (pSpell->ReuseTimerIndex > 20)
+									{
+										return false;
+									}
 									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
 									#endif
 									Dest.Int /= 6;
@@ -3833,6 +3849,10 @@ bool MQ2CharacterType::GETMEMBER()
 							#if !defined(ROF2EMU) && !defined(UFEMU)
 							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
 							#else
+							if (pSpell->ReuseTimerIndex > 20)
+							{
+								return false;
+							}
 							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
 							#endif
 							{
@@ -3857,6 +3877,10 @@ bool MQ2CharacterType::GETMEMBER()
 								#if !defined(ROF2EMU) && !defined(UFEMU)
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
 								#else
+								if (pSpell->ReuseTimerIndex > 20)
+								{
+									return false;
+								}
 								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
 								#endif
 								{
@@ -6241,7 +6265,7 @@ bool MQ2CharacterType::GETMEMBER()
 
 bool MQ2SpellType::GETMEMBER()
 {
-#define pSpell ((PSPELL)VarPtr.Ptr)
+	PSPELL pSpell = (PSPELL)VarPtr.Ptr;
 	if (!VarPtr.Ptr)
 		return false;
 	if (IsBadReadPtr((void*)pSpell, 4))
@@ -7298,9 +7322,9 @@ bool MQ2SpellType::GETMEMBER()
 		return false;
 	}
 	}
-#undef pSpell
 	return false;
 }
+
 bool MQ2ItemSpellType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)

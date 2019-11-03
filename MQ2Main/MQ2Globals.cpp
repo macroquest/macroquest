@@ -1835,6 +1835,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__GetItemFilterData);
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__RemoveItemLootFilter);
 	INITIALIZE_EQGAME_OFFSET(LootFiltersManager__SetItemLootFilter);
+#endif
+#if !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildIndex);
 #endif
@@ -2213,10 +2215,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__IsValidTeleport);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee1);
 	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
-#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__LegalPlayerRace);
 #endif
-	
 	INITIALIZE_EQGAME_OFFSET(PlayerClient__GetPcClient);
 	INITIALIZE_EQGAME_OFFSET(PcClient__PcClient);
 	

@@ -501,6 +501,7 @@ enum MOUSE_DATA_TYPES {
 #define NUM_SHORT_BUFFS                 0x37
 #define NUM_RACES                       17
 #define NUM_SLOTDATA                    0x6
+#define NUM_BLOCKED_BUFFS               40
 
 #define EQ_EXPANSION(x)                 (1 << (x - 1))
 #define EXPANSION_RoK                   EQ_EXPANSION(1)

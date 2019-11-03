@@ -116,6 +116,22 @@ int __cdecl CachedTextBug_Detour(class CTextObject *obj)
 	return 0;
 }
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl CachedTextBug_Tramp(class CTextObject *));
+
+class BugFix
+{
+public:
+	int EQ_PC__GetCombatAbilityTimer_Trampoline(int);
+	int EQ_PC__GetCombatAbilityTimer_Detour(int arg1)
+	{
+		if (arg1 > 20) {
+			return 0;
+		}
+		int ret = EQ_PC__GetCombatAbilityTimer_Trampoline(arg1);
+		return ret;
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(int BugFix::EQ_PC__GetCombatAbilityTimer_Trampoline(int));
+
 DWORD __UpdateDisplay = 0;
 DWORD __Reset = 0;
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -157,12 +173,18 @@ PLUGIN_API VOID InitializePlugin(VOID)
     #ifdef EQMULETESTINGSTUFF
 	//EzDetourwName(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline,"startworlddisplayexceptionhandler");
 	#endif
+	#if defined(ROF2EMU) || defined(UFEMU)
+    EzDetourwName(EQ_PC__GetCombatAbilityTimer, &BugFix::EQ_PC__GetCombatAbilityTimer_Detour, &BugFix::EQ_PC__GetCombatAbilityTimer_Trampoline,"EQ_PC__GetCombatAbilityTimer");
+	#endif
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2EQBugFix");
 	RemoveDetour(CDisplay__is3dON);
+	#if defined(ROF2EMU) || defined(UFEMU)
+    RemoveDetour(EQ_PC__GetCombatAbilityTimer);
+	#endif
 	if (switchbug) {
 		//RemoveDetour(switchbug);
 	}
