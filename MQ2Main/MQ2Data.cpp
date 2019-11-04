@@ -1631,10 +1631,18 @@ TLO(dataTask)
 				if (n==0 && sharedentry && sharedentry->TaskID)
 				{
 					Ret.DWord = (int)MAKELPARAM(TST_SharedQuest, 0);
+					return true;
 				}
 				else
 				{
-					Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, n);
+					if (CTaskEntry * entry = &tm->QuestEntries[n])
+					{
+						if (entry->TaskID)
+						{
+							Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, n);
+							return true;
+						}
+					}
 				}
 			}
 			else

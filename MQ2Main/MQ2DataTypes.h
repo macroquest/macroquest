@@ -5377,6 +5377,7 @@ public:
 		Type = 10,
 		MemberList = 11,
 		ID = 12,
+		WindowIndex = 13,
 	};
 	enum TaskMethods
 	{
@@ -5396,6 +5397,7 @@ public:
 		TypeMember(Type);
 		TypeMember(MemberList);
 		TypeMember(ID);
+		TypeMember(WindowIndex);
 
 		TypeMethod(Select);
 	}

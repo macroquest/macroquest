@@ -14906,46 +14906,46 @@ bool MQ2TaskType::GETMEMBER()
 	if (pMethod) {
 		switch ((TaskMethods)pMethod->ID)
 		{
-		case Select:
-		{
-			Dest.DWord = 0;
-			Dest.Type = pBoolType;
+			case Select:
+			{
+				Dest.DWord = 0;
+				Dest.Type = pBoolType;
 				CHAR szTask[MAX_STRING] = { 0 };
 				switch (type)
 				{
-				case TST_SoloQuest:
-					if (CTaskEntry *entry = &tm->QuestEntries[index])
-					{
-						strcpy_s(szTask, entry->TaskTitle);
-					}
-					break;
-				case TST_SharedQuest:
-					if (CTaskEntry *entry = &tm->SharedTaskEntries[0])
-					{
-						strcpy_s(szTask, entry->TaskTitle);
-					}
-					break;
+					case TST_SoloQuest:
+						if (CTaskEntry *entry = &tm->QuestEntries[index])
+						{
+							strcpy_s(szTask, entry->TaskTitle);
+						}
+						break;
+					case TST_SharedQuest:
+						if (CTaskEntry *entry = &tm->SharedTaskEntries[0])
+						{
+							strcpy_s(szTask, entry->TaskTitle);
+						}
+						break;
 				};
 				if (szTask[0])
 				{
 					CHAR szOut[MAX_STRING] = { 0 };
-			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+					if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 						CXStr str;
-						for (int i=0;i<clist->ItemsArray.Count;i++)
+						for (int i = 0; i < clist->ItemsArray.Count; i++)
 						{
 							clist->GetItemText(&str, i, 2);
 							GetCXStr(str.Ptr, szOut);
 							if (!_stricmp(szTask, szOut))
 							{
 								if (SendListSelect2((CXWnd*)clist, i)) {
-						Dest.DWord = 1;
-					}
-				}
+									Dest.DWord = 1;
+								}
+							}
 						}
 					}
-			return true;
+					return true;
 				}
-		};
+			};
 		}
 		return false;
 	}
@@ -14980,9 +14980,44 @@ bool MQ2TaskType::GETMEMBER()
 				return true;
 			}
 	case xIndex:
-			Dest.Int = index+1;//hate this but the users are used to indexes starting at 1... so we got to continue that...
+		Dest.Int = index+1;//hate this but the users are used to indexes starting at 1... so we got to continue that...
 		Dest.Type = pIntType;
 		return true;
+	case WindowIndex:
+	{
+		CHAR szTask[MAX_STRING] = { 0 };
+		switch (type)
+		{
+			case TST_SoloQuest:
+				if (CTaskEntry *entry = &tm->QuestEntries[index])
+				{
+					strcpy_s(szTask, entry->TaskTitle);
+			}
+				break;
+			case TST_SharedQuest:
+				if (CTaskEntry *entry = &tm->SharedTaskEntries[0])
+				{
+					strcpy_s(szTask, entry->TaskTitle);
+				}
+				break;
+		};
+		CHAR szOut[MAX_STRING] = { 0 };
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+			CXStr str;
+			for (int i = 0; i < clist->ItemsArray.Count; i++)
+			{
+				clist->GetItemText(&str, i, 2);
+				GetCXStr(str.Ptr, szOut);
+				if (!_stricmp(szTask, szOut))
+				{
+					Dest.DWord = i+1;
+					Dest.Type = pIntType;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	case Leader:
 	{
 		strcpy_s(DataTypeTemp, "NULL");
@@ -14999,8 +15034,8 @@ bool MQ2TaskType::GETMEMBER()
 	case Title:
 	{
 		strcpy_s(DataTypeTemp, "NULL");
-			switch (type)
-			{
+		switch (type)
+		{
 			case TST_SoloQuest:
 				if (CTaskEntry *entry = &tm->QuestEntries[index])
 				{
@@ -15011,9 +15046,9 @@ bool MQ2TaskType::GETMEMBER()
 				if (CTaskEntry *entry = &tm->SharedTaskEntries[0])
 				{
 					strcpy_s(DataTypeTemp, entry->TaskTitle);
-		}
+				}
 				break;
-			};
+		};
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;

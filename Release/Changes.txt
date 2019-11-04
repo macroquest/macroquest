@@ -1,3 +1,14 @@
+Nov 04 2019
+- Updated for BETA
+- Task TLO can now be accessed by index to make iteration possible.
+  Example: /echo ${Task[2].Title}
+  NOTE: THIS INDEX IS NOT THE SAME INDEX AS THE ONE YOU SEE IN THE QUEST WINDOW LIST.
+        We are iterating through the IN MEMORY quest entries, we are NOT
+		iterating the window list, if you want to do that, use the Window TLO.
+- Added .WindowIndex to the Task TLO it returns the Quest Window List Index. (if the window actually have the list filled...)
+  Usage: /echo ${Task[3].WindowIndex}
+  Usage: /echo ${Task[Into The Muck].WindowIndex}
+-
 Nov 03 2019
 - Updated for BETA
 - Fixed a bug in emu compile
