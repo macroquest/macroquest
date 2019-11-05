@@ -1,3 +1,8 @@
+Nov 05 2019
+- Updated for BETA
+- Right Clicking the Lucy button on the item display window will now open Lucy in your external default browser.
+  Left Click opens it inside of eq as usual.
+-
 Nov 04 2019
 - Updated for BETA
 - Task TLO can now be accessed by index to make iteration possible.

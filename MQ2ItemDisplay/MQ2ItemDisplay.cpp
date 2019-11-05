@@ -21,6 +21,7 @@
 #ifndef ISXEQ
 #include "../MQ2Plugin.h"
 #include "resource.h"
+#include <Shellapi.h>
 PreSetup("MQ2ItemDisplay");
 #else
 #include "../ISXEQClient.h"
@@ -1194,7 +1195,27 @@ public:
 	int WndNotification_Detour(CXWnd* pWnd, unsigned __int32 Message, void* pData)
     {
 #if !defined(ROF2EMU) && !defined(UFEMU)
-		if (Message == XWM_LCLICK)
+		if (Message == XWM_RCLICK)
+		{
+			std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.find((CButtonWnd*)pWnd);
+			if (i != ButtonMap.end()) {
+				switch (i->second.ID)
+				{
+					case 6://open in lucy
+					{
+						if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
+							std::string url = "http://lucy.allakhazam.com/item.html?id=";
+							CHAR szID[64] = { 0 };
+							_itoa_s(pItem->ItemNumber, szID, 10);
+							url.append(szID);
+							ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+						}
+						return 0;
+					}
+				}
+			}
+		}
+		else if (Message == XWM_LCLICK)
 		{
 			std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.find((CButtonWnd*)pWnd);
 			if (i != ButtonMap.end()) {
