@@ -25,6 +25,9 @@
 #include <mq/Plugin.h>
 #include "resource.h"
 
+#include <shellapi.h>
+#include <fmt/format.h>
+
 #include <mutex>
 #include <string_view>
 
@@ -1179,7 +1182,28 @@ public:
 	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t Message, void* pData)
 	{
-		if (Message == XWM_LCLICK)
+		if (Message == XWM_RCLICK)
+		{
+			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
+			if (iter != ButtonMap.end())
+			{
+				ButtonInfo& buttonInfo = iter->second;
+
+				// open in lucy
+				if (buttonInfo.ID == 6)
+				{
+					if (ITEMINFO* pItem = GetItemFromContents(buttonInfo.ItemDisplayWnd->pItem))
+					{
+						std::string url = fmt::format(
+							"http://lucy.allakhazam.com/item.html?id={}", pItem->ItemNumber);
+						ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+					}
+
+					return 0;
+				}
+			}
+		}
+		else if (Message == XWM_LCLICK)
 		{
 			auto i = ButtonMap.find((CButtonWnd*)pWnd);
 

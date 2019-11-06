@@ -17303,6 +17303,42 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return false;
 	}
 
+	case WindowIndex: {
+		char szTask[MAX_STRING] = { 0 };
+		switch (type)
+		{
+		case cTaskSystemTypeSoloQuest:
+			if (CTaskEntry* entry = &tm->QuestEntries[index])
+			{
+				strcpy_s(szTask, entry->TaskTitle);
+			}
+			break;
+
+		case cTaskSystemTypeSharedQuest:
+			if (CTaskEntry* entry = &tm->SharedTaskEntries[0])
+			{
+				strcpy_s(szTask, entry->TaskTitle);
+			}
+			break;
+		};
+
+		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+		{
+			for (int i = 0; i < clist->ItemsArray.Count; i++)
+			{
+				CXStr str = clist->GetItemText(i, 2);
+
+				if (ci_equals(szTask, str))
+				{
+					Dest.DWord = i + 1;
+					Dest.Type = pIntType;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	default: break;
 	}
 

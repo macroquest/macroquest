@@ -1582,13 +1582,19 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 				if (n == 0 && sharedEntry && sharedEntry->TaskID)
 				{
 					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
+					return true;
 				}
 				else
 				{
-					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, n);
+					if (CTaskEntry* entry = &tm->QuestEntries[n])
+					{
+						if (entry->TaskID)
+						{
+							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, n);
+							return true;
+						}
+					}
 				}
-
-				return true;
 			}
 			else
 			{
