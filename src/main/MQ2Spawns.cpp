@@ -372,12 +372,12 @@ bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString, eSpawnType type)
 			if (gAnonymize)
 			{
 				char szType[64] = { 0 };
-				bool okToanon = false;
+				bool okToAnon = false;
 
 				switch (type)
 				{
 				case MERCENARY:
-					okToanon = true;
+					okToAnon = true;
 					strcpy_s(szType, "Mercenary");
 					break;
 
@@ -386,22 +386,41 @@ bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString, eSpawnType type)
 					break;
 
 				case PC:
-					okToanon = true;
+					okToAnon = true;
 					strcpy_s(szType, "Player");
 					break;
 
 				case PET:
-					okToanon = true;
-					strcpy_s(szType, "PET");
+					if (pSpawn->MasterID)
+					{
+						SPAWNINFO* petMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID);
+
+						if (petMaster && petMaster->Type == SPAWN_PLAYER)
+						{
+							okToAnon = true;
+							strcpy_s(szType, "PET");
+						}
+						else
+						{
+							ParseMacroParameter(pChar->pSpawn, NewCaption);
+						}
+					}
 					break;
 
 				case CORPSE:
-					okToanon = true;
-					strcpy_s(szType, "CORPSE");
+					if (pSpawn->Deity)
+					{
+						okToAnon = true;
+						strcpy_s(szType, "CORPSE");
+					}
+					else
+					{
+						ParseMacroParameter(pChar->pSpawn, NewCaption);
+					}
 					break;
 				};
 
-				if (okToanon)
+				if (okToAnon)
 				{
 					if (!gszAnonCaption[0])
 					{

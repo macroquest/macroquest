@@ -4357,10 +4357,7 @@ void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	else if (!_stricmp(Arg1, "Anon"))
 	{
 		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
-		if (gAnonymize)
-		{
-			UpdatedMasterLooterLabel();
-		}
+		UpdatedMasterLooterLabel();
 		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), gszINIFilename);
 		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
 		return;

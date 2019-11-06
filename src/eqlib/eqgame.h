@@ -19,7 +19,7 @@
 #define __ExpectedVersionTime                                     "12:24:00"
 #define __ActualVersionDate_x                                      0xADD374
 #define __ActualVersionTime_x                                      0xADD368
-#define __ActualVersionBuild_x                                     0xADDE0C
+#define __ActualVersionBuild_x                                     0xAC8BB4
 
 // Memory Protection
 #define __MemChecker0_x                                            0x61B2D0

@@ -134,7 +134,7 @@
     <Natvis Include="..\MQ2.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Release\Changes.txt" />
+    <Text Include="..\..\data\Changes.txt" />
     <Text Include="..\Release\GPL.txt" />
     <Text Include="..\Release\ItemDB.txt" />
     <Text Include="..\Release\locations.txt" />

@@ -12413,6 +12413,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (pWndMgr)
 		{
 			Dest.Ptr = pWndMgr->LastMouseOver;
+			Dest.HighPart = 24; // ??
 			return true;
 		}
 		return false;
@@ -16965,21 +16966,47 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		case Select: {
 			Dest.DWord = 0;
 			Dest.Type = pBoolType;
-			int index2 = VarPtr.Int;
-			char szOut[255] = { 0 };
 
-			CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList");
-			if (!clist)
-				return false;
+			char szTask[MAX_STRING] = { 0 };
 
-			if (index2 != -1)
+			switch (type)
 			{
-				if (SendListSelect2(clist, index2))
+			case cTaskSystemTypeSoloQuest:
+				if (CTaskEntry* entry = &tm->QuestEntries[index])
 				{
-					Dest.DWord = 1;
+					strcpy_s(szTask, entry->TaskTitle);
 				}
+				break;
+			case cTaskSystemTypeSharedQuest:
+				if (CTaskEntry* entry = &tm->SharedTaskEntries[0])
+				{
+					strcpy_s(szTask, entry->TaskTitle);
+				}
+				break;
+			};
+
+			if (szTask[0])
+			{
+				char szOut[MAX_STRING] = { 0 };
+
+				if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+				{
+					CXStr str;
+					for (int i = 0; i < clist->ItemsArray.Count; i++)
+					{
+						CXStr str = clist->GetItemText(i, 2);
+
+						if (ci_equals(szTask, str))
+						{
+							if (SendListSelect2(clist, i))
+							{
+								Dest.DWord = 1;
+							}
+						}
+					}
+				}
+				return true;
 			}
-			return true;
 		}
 
 		default: break;

@@ -135,7 +135,7 @@ public:
 		if (gAnonymize)
 		{
 			CXStr anonymized = Str;
-			Anonymize2(anonymized, true);
+			Anonymize2(anonymized, 2);
 			return CListWnd__AddString_Trampoline(anonymized, Color, Data, pTa, TooltipStr);
 		}
 		return CListWnd__AddString_Trampoline(Str, Color, Data, pTa, TooltipStr);
@@ -169,7 +169,8 @@ public:
 	int CComboWnd__InsertChoiceAtIndex_Trampoline(const CXStr& Str, uint32_t index);
 	int CComboWnd__InsertChoiceAtIndex_Detour(const CXStr& Str, uint32_t index)
 	{
-		if (gAnonymize && gweareaddingpeople) {
+		if (gAnonymize)
+		{
 			Advlootcombo = (CComboWnd*)this;
 
 			// If we've already anonymized this string, use the cached version
@@ -179,7 +180,7 @@ public:
 
 			// Otherwise, anonymize & cache it
 			CXStr anonymized = Str;
-			Anonymize2(anonymized, true);
+			Anonymize2(anonymized, 2);
 			lootcombo[anonymized] = Str;
 
 			return CComboWnd__InsertChoiceAtIndex_Trampoline(anonymized, index);
@@ -205,7 +206,8 @@ public:
 	char* CEverQuest__trimName_Detour(char* arg1)
 	{
 		char* ret = CEverQuest__trimName_Trampoline(arg1);
-		if (gAnonymize) {
+		if (gAnonymize)
+		{
 			Anonymize(ret, strlen(ret));
 		}
 		return ret;
@@ -237,13 +239,13 @@ public:
 				EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline, "CEverQuest__trimName");
 				EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline, "__GetGaugeValueFromEQ");
 				EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline, "__GetLabelFromEQ");
-				bTrimnames = 1;
+				bTrimnames = true;
 			}
 
 			if (pThisLabel)
 			{
 				buffer = pThisLabel->GetWindowText();
-				Anonymize2(buffer);
+				Anonymize2(buffer, 2);
 			}
 		}
 		else
@@ -264,7 +266,7 @@ public:
 		}
 
 		Draw_Trampoline();
-	
+
 		if (pThisLabel->EQType == 9999)
 		{
 			auto tooltip = pThisLabel->GetXMLTooltip();
@@ -345,7 +347,7 @@ PLUGIN_API void InitializePlugin()
 		EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline, "CEverQuest__trimName");
 		EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline, "__GetGaugeValueFromEQ");
 		EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline, "__GetLabelFromEQ");
-		bTrimnames = 1;
+		bTrimnames = true;
 	}
 }
 
@@ -355,12 +357,12 @@ void CleanupLootCombo(bool bupdatemasterlooter)
 	{
 		if (pChar->pGroupInfo)
 		{
-			for (int i = 0; i < 6; i++)
+			for (auto& i : pChar->pGroupInfo->pMember)
 			{
-				if (pChar->pGroupInfo->pMember && pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MasterLooter)
+				if (i && i->MasterLooter)
 				{
 					gAnonMasterLooterName = bupdatemasterlooter;
-					((CLabelHook*)pAdvancedLootWnd)->CAdvancedLootWnd__UpdateMasterLooter_Detour(pChar->pGroupInfo->pMember[i]->Name, true);
+					((CLabelHook*)pAdvancedLootWnd)->CAdvancedLootWnd__UpdateMasterLooter_Detour(i->Name, true);
 					gAnonMasterLooterName = true;
 					break;
 				}
@@ -395,7 +397,7 @@ PLUGIN_API void OnCleanUI()
 {
 	if (Advlootcombo)
 	{
-		Advlootcombo = 0;
+		Advlootcombo = nullptr;
 		lootcombo.clear();
 	}
 }

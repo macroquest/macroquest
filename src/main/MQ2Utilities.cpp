@@ -8214,27 +8214,31 @@ int GetRaidMemberClassByIndex(int index)
 
 bool Anonymize(char* name, int maxlen, int NameFlag)
 {
-	if (GetGameState() != GAMESTATE_INGAME || !pLocalPlayer)
+	if (GetGameState() != GAMESTATE_INGAME || !pLocalPlayer || !strlen(name))
 		return false;
 
-	int isRmember = -1;
+	bool itsMe = false;
+	bool isRmember = false;
 	bool isGmember = false;
+	bool bisTarget = false;
 	bool bChange = false;
 
 	SPAWNINFO* pMySpawn = (SPAWNINFO*)pLocalPlayer;
 	SPAWNINFO* pMyTarget = (SPAWNINFO*)pTarget;
 
-	// if it is me, then there is no point in checking if its a group member
-	int ItsMe = _stricmp(pMySpawn->Name, name);
-	if (ItsMe != 0)
+	// Do I find my name as a substring in name (necessary for surname consideration in player window
+	if (strstr(name, pMySpawn->Name))
+		itsMe = true;
+
+	// If it is i me, then there is no point in checking if its a group member
+	if (!itsMe)
 		isGmember = IsGroupMember(name);
 
-	// if it is me or a groupmember, then there is no point in checking if its a raid member
-	if (!isGmember && ItsMe != 0)
+	// If its me or a group member, no point in checking if its a raid member
+	if (!isGmember && !itsMe)
 		isRmember = IsRaidMember(name);
 
-	bool bisTarget = false;
-	if (ItsMe != 0 && !isGmember && isRmember)
+	if (itsMe && !isGmember && !isRmember)
 	{
 		// my target?
 		if (pTarget && pMyTarget->Type != SPAWN_NPC)
@@ -8246,7 +8250,7 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 		}
 	}
 
-	if (ItsMe == 0 || isGmember || isRmember != -1 || bisTarget)
+	if (itsMe == 0 || isGmember || isRmember || bisTarget)
 	{
 		if (NameFlag == 1)
 		{
@@ -8266,7 +8270,8 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 
 		if (gAnonymizeFlag == EAF_Class)
 		{
-			if (ItsMe == 0)
+			// decide how to change the name w/ class desc or just asterisk
+			if (itsMe)
 			{
 				strncpy_s(name, 16, GetClassDesc(pMySpawn->mActorClient.Class), 15);
 				if (NameFlag == 2)
@@ -8348,27 +8353,14 @@ void UpdatedMasterLooterLabel()
 	if (!MasterLooterLabel)
 		return;
 
-	CXStr text;
-	bool bFound = false;
-
-	for (auto member : pChar->pGroupInfo->pMember)
+	if (gAnonymize)
 	{
-		if (member && member->MasterLooter)
+		CXStr text = MasterLooterLabel->Text;
+
+		if (Anonymize2(text))
 		{
-			text = member->Name;
-			if (gAnonymize)
-			{
-				Anonymize2(text);
-			}
-
-			bFound = true;
-			break;
+			MasterLooterLabel->SetWindowText(text);
 		}
-	}
-
-	if (bFound)
-	{
-		MasterLooterLabel->SetWindowText(text);
 	}
 }
 

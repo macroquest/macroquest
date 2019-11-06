@@ -516,10 +516,9 @@ void MapUpdate()
 
 				pMapSpawn->SpawnType = Type;
 				free(pMapSpawn->pMapLabel->Label);
+				pMapSpawn->pMapLabel->Color.ARGB = GetSpawnColor(pMapSpawn->SpawnType, pMapSpawn->pSpawn);
 				pMapSpawn->pMapLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
-
 			}
-			pMapSpawn->pMapLabel->Color.ARGB = GetSpawnColor(pMapSpawn->SpawnType, pMapSpawn->pSpawn);
 		}
 
 		if (pMapSpawn->pVector)
@@ -668,7 +667,7 @@ void MapUpdate()
 	if (IsOptionEnabled(MAPFILTER_Group))
 	{
 		CHARINFO* pChar = GetCharInfo();
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo && pChar->pGroupInfo->pMember[i])
 			{
@@ -678,6 +677,9 @@ void MapUpdate()
 					if (pMapSpawn = SpawnMap[pSpawn->SpawnID])
 					{
 						pMapSpawn->pMapLabel->Color.ARGB = MapFilterOptions[MAPFILTER_Group].Color;
+
+						// Needed to anonymize group members, but keep the color change.
+						pMapSpawn->pMapLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
 					}
 				}
 			}
@@ -1011,6 +1013,68 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 #define AddInt(yourint) {sOutput.append( std::to_string( yourint ) );}
 #define AddFloat10th(yourfloat) {sOutput.append( std::to_string( yourfloat ) );}
 
+	auto FormatAnonymizedName = [&](SPAWNINFO* pSpawn, const char* defaultName)
+	{
+		switch (pSpawn->Type)
+		{
+		case SPAWN_CORPSE:
+			if (pSpawn->Deity)
+			{
+				AddString(GetClassDesc(pSpawn->GetClass()));
+			}
+			else
+			{
+				AddString(pSpawn->DisplayedName);
+			}
+			break;
+
+		case SPAWN_NPC:
+			if (pSpawn->MasterID || pSpawn->Rider)
+			{
+				bool isPlayers = false;
+
+				if (SPAWNINFO * petOwner = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
+				{
+					if (petOwner->Type == SPAWN_PLAYER || petOwner->Type == SPAWN_CORPSE)
+					{
+						isPlayers = true;
+					}
+				}
+
+				if (pSpawn->Rider)
+				{
+					if (SPAWNINFO * rider = (SPAWNINFO*)GetSpawnByID(pSpawn->Rider->SpawnID))
+					{
+						if (rider->Type == SPAWN_PLAYER)
+							isPlayers = true;
+					}
+				}
+
+				if (isPlayers)
+				{
+					AddString(GetClassDesc(pSpawn->GetClass()));
+				}
+				else
+				{
+					AddString(defaultName);
+				}
+			}
+			else
+			{
+				AddString(defaultName);
+			}
+			break;
+
+		case SPAWN_PLAYER:
+			AddString(GetClassDesc(pSpawn->GetClass()));
+			break;
+
+		default:
+			AddString(defaultName);
+			break;
+		}
+	};
+
 	for (unsigned long N = 0; NameString[N]; N++)
 	{
 		if (NameString[N] == '%')
@@ -1018,43 +1082,94 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 			N++;
 			switch (NameString[N])
 			{
-			case 'N':// cleaned up name
-				sOutput.append(pSpawn->DisplayedName);
+			case 'N': // cleaned up name
+				if (gAnonymize)
+				{
+					FormatAnonymizedName(pSpawn, pSpawn->DisplayedName);
+				}
+				else
+				{
+					AddString(pSpawn->DisplayedName);
+				}
+
 				if (pSpawn->Type == SPAWN_CORPSE)
 				{
 					sOutput.append("'s Corpse");
 				}
 				break;
-			case 'n':// original name
-				AddString(pSpawn->Name);
+
+			case 'n': // original name
+				if (gAnonymize)
+				{
+					FormatAnonymizedName(pSpawn, pSpawn->Name);
+				}
+				else
+				{
+					AddString(pSpawn->Name);
+				}
 				break;
-			case 'h':// current health %
+
+			case 'h': // current health %
 				AddInt(pSpawn->HPCurrent);
 				break;
+
 			case 'i':
-				AddInt(pSpawn->SpawnID);
+				if (gAnonymize)
+				{
+					AddInt(0); // Don't display SpawnID if we are Anon.
+				}
+				else
+				{
+					AddInt(pSpawn->SpawnID);
+				}
 				break;
+
 			case 'x':
 				AddFloat10th(pSpawn->X);
 				break;
+
 			case 'y':
 				AddFloat10th(pSpawn->Y);
 				break;
+
 			case 'z':
 				AddFloat10th(pSpawn->Z);
 				break;
+
 			case 'R':
 				AddString(pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race));
 				break;
+
 			case 'C':
-				AddString(GetClassDesc(pSpawn->mActorClient.Class));
+				if (gAnonymize)
+				{
+					// Only display the class if it's an NPC, otherwise we'll display it twice for corpses and players.
+					if (pSpawn->Type == SPAWN_NPC)
+						AddString(GetClassDesc(pSpawn->mActorClient.Class));
+				}
+				else
+				{
+					AddString(GetClassDesc(pSpawn->mActorClient.Class));
+				}
 				break;
+
 			case 'c':
-				AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
+				if (gAnonymize)
+				{
+					// Only display the 3 letter race if it's an NPC, we're already displaying the full race name otherwise.
+					if (pSpawn->Type == SPAWN_NPC)
+						AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
+				}
+				else
+				{
+					AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
+				}
 				break;
+
 			case 'l':
 				AddInt(pSpawn->Level);
 				break;
+
 			case '%':
 				sOutput.append(1, NameString[N]);
 				break;

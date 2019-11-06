@@ -107,13 +107,84 @@ void DrawHUD()
 
 void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 {
+	CTextureFont* pFont = pWndMgr->GetFont(Font);
+	if (!pFont)
+		return;
+
 	int sX = pWndMgr->ScreenExtentX;
 	int sY = pWndMgr->ScreenExtentY;
 
-	if (CTextureFont* pFont = pWndMgr->GetFont(Font))
+	// Add Anonymize logic here.
+	if (gAnonymize)
 	{
-		pFont->DrawWrappedText(Text, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
+		if (CHARINFO* pChar = GetCharInfo())
+		{
+			SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+
+			char word[MAX_STRING] = { 0 };
+			char szText[MAX_STRING] = { 0 };
+
+			strcpy_s(szText, Text);
+
+			while (pSpawn)
+			{
+				if (pSpawn->Type != SPAWN_NPC
+					|| (pSpawn->Type == SPAWN_NPC && pSpawn->MasterID))
+				{
+					// FIXME: Deduplicate this code
+
+					while (strstr(szText, pSpawn->DisplayedName))
+					{
+						int EntEnd = (int)(strstr(szText, pSpawn->DisplayedName) - szText + strlen(pSpawn->DisplayedName));
+						int EntStart = (int)(strstr(szText, pSpawn->DisplayedName) - szText);
+						int namelen = EntEnd - EntStart;
+
+						strncpy_s(word, &szText[EntStart], EntEnd - EntStart);
+
+						if (!Anonymize(word, MAX_STRING, 2))
+						{
+							// try to anonymize word, if I fail, then replace the word with asterisk.
+							for (int i = EntStart + 1; i < EntEnd - 1; i++)
+							{
+								szText[i] = '*';
+							}
+						}
+						else
+						{
+							// if the word gets anonymized, lets build the new output string, nessesary for Anonymize where AnonymizeFlag=1
+							char* firsthalf = new char[MAX_STRING];
+
+							// copy the first half of the string and store it here.
+							strncpy_s(firsthalf, MAX_STRING, &szText[0], EntStart);
+
+							char* secondhalf = new char[MAX_STRING];
+
+							// copy the part after the word and store it here.
+							strncpy_s(secondhalf, MAX_STRING, &szText[EntEnd], strlen(szText));
+
+							//concatinate the word to the first half
+							strcat_s(firsthalf, MAX_STRING, word);
+
+							// concatenate the second half to the end of the firsthalf+word.
+							strcat_s(firsthalf, MAX_STRING, secondhalf);
+
+							// store the newly built string as the szText to output.
+							strcpy_s(szText, MAX_STRING, firsthalf);
+
+							delete[] firsthalf;
+							delete[] secondhalf;
+						}
+					}
+				}
+				pSpawn = pSpawn->pNext;
+			}
+
+			pFont->DrawWrappedText(szText, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
+			return;
+		}
 	}
+
+	pFont->DrawWrappedText(Text, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
 }
 
 class EQ_LoadingSHook

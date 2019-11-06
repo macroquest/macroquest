@@ -609,8 +609,8 @@ MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 MQLIB_API void AddAutoBankMenu();
 MQLIB_API void AutoBankPulse();
-MQLIB_API bool Anonymize(char* name, int maxlen, int LootFlag = 0);
-MQLIB_API bool Anonymize2(CXStr& name, int LootFlag = 0);
+MQLIB_API bool Anonymize(char* name, int maxlen, int NameFlag = 0);
+MQLIB_API bool Anonymize2(CXStr& name, int NameFlag = 0);
 MQLIB_API void UpdatedMasterLooterLabel();
 
 MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);

@@ -881,4 +881,44 @@ inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, cha
 	return WritePrivateProfileStringA(Section, Key, Value, iniFileName);
 }
 
+[[deprecated("Access CXStr directly instead of calling GetCXStr")]]
+inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
+{
+	if (!szBuffer)
+		return 0;
+
+	szBuffer[0] = 0;
+
+	if (!pCXStr || length == 0)
+		return 0;
+
+	if (length > pCXStr->length())
+	{
+		strcpy_s(szBuffer, length, pCXStr->data());
+		return pCXStr->length();
+	}
+
+	strncpy_s(szBuffer, length, pCXStr->data(), _TRUNCATE);
+	szBuffer[length - 1] = 0;
+	return length;
+}
+
+[[deprecated("Set CXStr directly instead of using SetCXStr")]]
+inline void SetCXStr(CXStr* pCXStr, const char* text)
+{
+	if (pCXStr)
+	{
+		*pCXStr = text;
+	}
+}
+
+[[deprecated("modify CXStr directly instead of using AppendCXStr")]]
+inline void AppendCXStr(CXStr* pCXStr, const char* text)
+{
+	if (pCXStr)
+	{
+		*pCXStr += text;
+	}
+}
+
 } // namespace mq

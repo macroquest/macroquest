@@ -196,7 +196,7 @@
     <Text Include="..\Release\GPL.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="..\Release\Changes.txt">
+    <Text Include="..\..\data\Changes.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

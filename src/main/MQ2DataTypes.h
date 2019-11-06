@@ -3542,16 +3542,32 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (VarPtr.Ptr && ((CXWnd*)VarPtr.Ptr)->IsVisible())
-			strcpy_s(Destination, MAX_STRING, "TRUE");
-		else
-			strcpy_s(Destination, MAX_STRING, "FALSE");
+		CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+
+		if (pWnd)
+		{
+			if (VarPtr.HighPart == 24) // ???
+			{
+				if (CXMLData* pXMLData = pWnd->GetXMLData())
+				{
+					strcpy_s(Destination, MAX_STRING, pXMLData->Name.c_str());
+					return true;
+				}
+
+				return false;
+			}
+
+			if (pWnd->IsVisible())
+				strcpy_s(Destination, MAX_STRING, "TRUE");
+			else
+				strcpy_s(Destination, MAX_STRING, "FALSE");
+		}
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pWindowType)
 			return false;

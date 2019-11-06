@@ -253,6 +253,12 @@ struct [[offsetcomments]] GROUPMEMBER
 /*0x28*/ BYTE   Unknown0x28[0x8];
 /*0x30*/ SPAWNINFO* pSpawn;
 /*0x34*/
+
+	// Compat wrapper for pName
+	__declspec(property(get = getPName)) CXStr* pName;
+
+	[[deprecated("Use Name instead of pName")]]
+	inline CXStr* getPName() { return &Name; }
 };
 using PGROUPMEMBER [[deprecated]] = GROUPMEMBER*;
 

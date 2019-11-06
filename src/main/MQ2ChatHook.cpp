@@ -61,66 +61,174 @@ public:
 				// don't need to anonymize system messages
 				if (gAnonymize && dwColor != 269)
 				{
-					size_t len = strlen(szMsg) + 64;
-					size_t namelen = 0;
+					// FIXME: These buffers really should be of reasonable sizes.
+					auto pAnonMsg = std::make_unique<char[]>(MAX_STRING);
 
-					auto pAnonMsg = std::make_unique<char[]>(len);
 					char* szAnonMsg = pAnonMsg.get();
+					strcpy_s(szAnonMsg, MAX_STRING, szMsg);
+					int len = strlen(szAnonMsg);
 
-					if (pLocalPlayer)
+					//Anonymize my name, and any other PC spawn in the zone.
+					SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+
+					auto pWord = std::make_unique<char[]>(MAX_STRING);
+					char* word = pWord.get();
+
+					while (pSpawn)
 					{
-						char myName[40];
-						strcpy_s(myName, ((PSPAWNINFO)pLocalPlayer)->Name);
-						namelen = strlen(myName);
-
-						strcpy_s(szAnonMsg, len, szMsg);
-
-						while (strstr(szAnonMsg, myName))
+						if (pSpawn->Type != SPAWN_NPC
+							|| (pSpawn->Type == SPAWN_NPC && pSpawn->MasterID))
 						{
-							if (char* p = strstr(szAnonMsg, myName))
+							while (strstr(szAnonMsg, pSpawn->DisplayedName))
 							{
-								for (size_t i = 1; i < namelen - 1; i++)
-								{
-									p[i] = '*';
-								}
-							}
-						}
-					}
+								// FIXME: Dedupe with other blocks of the same code.
+								int EntEnd = (int)(strstr(szAnonMsg, pSpawn->DisplayedName) - szAnonMsg + strlen(pSpawn->DisplayedName));
+								int EntStart = (int)(strstr(szAnonMsg, pSpawn->DisplayedName) - szAnonMsg);
+								int namelen = EntEnd - EntStart;
+								strncpy_s(word, MAX_STRING, &szAnonMsg[EntStart], EntEnd - EntStart);
 
-					// TODO: Fix this case for when pLocalPlayer is null.
-					if (char* pDest = strchr(szAnonMsg, ' '))
-					{
-						int len = strlen(szAnonMsg) - strlen(pDest);
-						if (len >= 2)
-						{
-							if (szAnonMsg[0] == 0x12)
-							{
-								for (int i = 3; i < len - 2; i++)
+								// try to anonymize word, if I fail, then replace the word with asterisk.
+								if (!Anonymize(word, MAX_STRING, 2))
 								{
-									szAnonMsg[i] = '*';
-								}
-							}
-							else
-							{
-								if (strstr(szAnonMsg, "You have healed "))
-								{
-									for (size_t i = 17; i < 17 + namelen - 1; i++)
+									for (int i = EntStart + 1; i < EntEnd - 1; i++)
 									{
 										szAnonMsg[i] = '*';
 									}
 								}
-								else if (_strnicmp(szAnonMsg, "you ", 4) && _strnicmp(szAnonMsg, "your ", 5))
+								else
 								{
-									for (int i = 1; i < len - 1; i++)
+									// if the word gets anonymized, lets build the new output string, nessesary for Anonymize where AnonymizeFlag=1
+									char* firsthalf = new char[MAX_STRING];
+									char* secondhalf = new char[MAX_STRING];
+
+									// copy the first half of the string and store it here.
+									strncpy_s(firsthalf, MAX_STRING, &szAnonMsg[0], EntStart);
+
+									// copy the part after the word and store it here.
+									strncpy_s(secondhalf, MAX_STRING, &szAnonMsg[EntEnd], strlen(szAnonMsg));
+
+									// concatenate the word to the first half
+									strcat_s(firsthalf, MAX_STRING, word);
+
+									// concatenate the second half to the end of the firsthalf+word.
+									strcat_s(firsthalf, MAX_STRING, secondhalf);
+
+									// store the newly built string as the szAnonMsg to output.
+									strcpy_s(szAnonMsg, MAX_STRING, firsthalf);
+
+									delete[] firsthalf;
+									delete[] secondhalf;
+								}
+							}
+						}
+						pSpawn = pSpawn->pNext;
+					}
+
+					switch (dwColor)
+					{
+					case 13: // Color: 13 - Attack is on/off - Other invites to raid.
+					case 256: // Color: 256 - Other player /say messages
+					case 257: // Color: 257 - Other /tell's you
+					case 258: // Color: 258 - Other tells /group
+					case 259: // Color: 259 - Guild Chat - Incoming
+					case 279: // Color: 279 - Others Hits Other
+					case 280: // Color: 280 - Other Misses Other
+					case 291: // Color: 291 - Chat Channel 1 - Incoming
+					case 292: // Color: 292 - Chat Channel 2 - Incoming
+					case 293: // Color: 293 - Chat Channel 3 - Incoming
+					case 294: // Color: 294 - Chat Channel 4 - Incoming
+					case 295: // Color: 295 - Chat Channel 5 - Incoming
+					case 296: // Color: 296 - Chat Channel 6 - Incoming
+					case 297: // Color: 297 - Chat Channel 7 - Incoming
+					case 298: // Color: 298 - Chat Channel 8 - Incoming
+					case 299: // Color: 299 - Chat Channel 9 - Incoming
+					case 300: // Color: 300 - Chat Channel 10 - Incoming
+					case 309: // Color: 309 - Group conversation
+					case 310: // Color: 310 - Guild conversation - Outgoing
+					case 327: // Color: 327 - Any /rsay
+					case 330: // Color: 330 - Raid Role messages.
+					case 342: // Color: 342 - fellowship messages
+					case 343: // Color: 343 - corpse emote
+					case 345: // Color: 345 - Guild plants banner
+						if (char* pDest = strchr(szAnonMsg, ' '))
+						{
+							int len = strlen(szAnonMsg) - strlen(pDest);
+							if (len >= 2)
+							{
+								if (szAnonMsg[0] == 0x12)
+								{
+									for (int i = 3; i < len - 2; i++)
 									{
 										szAnonMsg[i] = '*';
 									}
 								}
+
 							}
 						}
+						break;
+
+					case 273: // Color: 273 - Charged mercenary upkeep/Group Invites/Joins/Banker tells you welcome to bank.
+						// If you accept an invite from someone not current in the zone, make sure you catch the accept message
+						if (strstr(szAnonMsg, " that you agree to join the group.")
+							&& strstr(szAnonMsg, "You notify "))
+						{
+							int EntEnd = (int)(strstr(szAnonMsg, " that you agree to join the group.") - szAnonMsg);
+							int EntStart = (int)(strstr(szAnonMsg, "You notify ") - szAnonMsg + strlen("You notify "));
+
+							for (int i = EntStart + 1; i < EntEnd - 1; i++)
+							{
+								szAnonMsg[i] = '*';
+							}
+						}
+
+						// PlayerName has left the group
+						if (strstr(szAnonMsg, " has left the group."))
+						{
+							int EntEnd = (int)(strstr(szAnonMsg, " has left the group.") - szAnonMsg);
+							int EntStart = 0;
+
+							for (int i = EntStart + 1; i < EntEnd - 1; i++)
+							{
+								szAnonMsg[i] = '*';
+							}
+						}
+
+						// PlayerName has left the group
+						if (strstr(szAnonMsg, "You invite ")
+							&& strstr(szAnonMsg, " to join your group."))
+						{
+							int EntEnd = (int)(strstr(szAnonMsg, " to join your group.") - szAnonMsg);
+							int EntStart = (int)(strstr(szAnonMsg, "You invite ") - szAnonMsg + strlen("You invite "));;
+
+							for (int i = EntStart + 1; i < EntEnd - 1; i++)
+							{
+								szAnonMsg[i] = '*';
+							}
+						}
+						break;
+
+					case 349: // Color: 349 - Achievement - Guildmate
+						if (strstr(szAnonMsg, " has completed ") && strstr(szAnonMsg, "Your guildmate "))
+						{
+							int EntEnd = (int)(strstr(szAnonMsg, " has completed ") - szAnonMsg);
+							int EntStart = (int)(strstr(szAnonMsg, "Your guildmate ") - szAnonMsg + strlen("Your guildmate "));
+
+							for (int i = EntStart + 1; i < EntEnd - 1; i++)
+							{
+								szAnonMsg[i] = '*';
+							}
+						}
+						break;
+
+					default:
+						//WriteChatf("Color: %i Message: %s", dwColor, szMsg);
+						break;
 					}
 
-					Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
+					if (szAnonMsg)
+					{
+						Trampoline(szAnonMsg, dwColor, EqLog, dopercentsubst, SomeStr);
+					}
 				}
 				else
 				{

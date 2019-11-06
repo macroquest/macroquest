@@ -148,7 +148,7 @@ struct {
 	{"vulak",       157},
 	{"mayong",      163},
 	{"antonius",    100},
-	{"beta",        67},
+	{"beta",        2},
 	{"brekt",       162},
 	{"bertox",      102},
 	{"bristle",     104},
