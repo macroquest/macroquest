@@ -512,6 +512,7 @@ constexpr int NUM_BUFF_SLOTS = 97;
 constexpr int NUM_LONG_BUFFS = 42;
 constexpr int NUM_SHORT_BUFFS = 55;
 constexpr int NUM_RACES = 17;
+constexpr int NUM_BLOCKED_BUFFS = 40;
 
 #define EQ_EXPANSION(x)                          (1 << (x - 1))
 #define EXPANSION_RoK                            EQ_EXPANSION(1)
@@ -630,6 +631,7 @@ constexpr char* KeyRingWindowParent = "KeyRingWnd";
 constexpr char* MountWindowList = "KRW_Mounts_List";
 constexpr char* IllusionWindowList = "KRW_Illusions_List";
 constexpr char* FamiliarWindowList = "KRW_Familiars_list";
+constexpr char* HeroForgeWindowList = "KRW_HeroForge_List";
 constexpr char* KeyRingTab = "KRW_Subwindows";
 
 enum ETargetRelationship

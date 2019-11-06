@@ -1349,13 +1349,8 @@ struct [[offsetcomments]] CHARINFONEW
 /*0x2968*/ TSafeString<0x40>                             VehicleName;
 /*0x29a8*/ BYTE                                          Stunned;                        // CharBaseBegin+104
 /*0x29a9*/ BYTE                                          Unknown0x29a9[0x3];
-	union {
-/*0x29ac*/ int                                           zoneId;                         // CharBaseBegin+108 Zone_0
-		struct {
-/*0x29ac*/ WORD                                          Unknown0x29ac;
-/*0x29ae*/ WORD                                          instance;
-		};
-	};
+/*0x29ac*/ uint16_t                                      zoneId;                         // CharBaseBegin+108 Zone_0
+/*0x29ae*/ uint16_t                                      instance;
 /*0x29b0*/ BYTE                                          standstate;                     // CharBaseBegin+10c
 /*0x29b4*/ RaidData                                      raidData;                       // size 0xdc
 /*0x2a90*/ DWORD                                         ExpansionFlags;                 // CharBaseBegin+464

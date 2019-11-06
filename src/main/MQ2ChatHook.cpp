@@ -264,7 +264,13 @@ public:
 			{
 				char szNameCopy[64];
 				strcpy_s(szNameCopy, 64, from);
-				Anonymize(szNameCopy, 64);
+				if (!Anonymize(szNameCopy, 64))
+				{
+					for (int i = 1; i < (int)strlen(szNameCopy) - 1; ++i)
+					{
+						szNameCopy[i] = '*';
+					}
+				}
 
 				TellWnd_Trampoline(message, szNameCopy, szNameCopy, text, color, bLogOk);
 			}

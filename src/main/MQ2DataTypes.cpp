@@ -3391,12 +3391,20 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	switch (static_cast<CharacterMembers>(pMember->ID))
 	{
 	case Name:
-	{
 		strcpy_s(DataTypeTemp, ((SPAWNINFO*)pLocalPlayer)->Name);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
-	}
+
+	case Origin:
+		Dest.Type = pZoneType;
+		if (pChar->StartingCity > 0 && pChar->StartingCity < MAX_ZONES)
+		{
+			Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar->StartingCity];
+			return true;
+		}
+		return false;
+
 	case Exp:
 		Dest.Int64 = pChar->Exp;
 		Dest.Type = pInt64Type;

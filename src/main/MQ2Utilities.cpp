@@ -5416,7 +5416,7 @@ CONTENTS* FindItem(T&& callback)
 			{
 				ITEMINFO* pItemInfo = GetItemFromContents(pItem);
 
-				if (callback(pItem, pItemInfo))
+				if (pItemInfo && callback(pItem, pItemInfo))
 					return pItem;
 
 				// Check for augs next
@@ -8297,7 +8297,7 @@ bool Anonymize(char* name, int maxlen, int NameFlag)
 				}
 				bChange = true;
 			}
-			else if (isRmember != -1)
+			else if (isRmember)
 			{
 				int theclass = GetRaidMemberClassByIndex(isRmember);
 				strncpy_s(name, 16, GetClassDesc(theclass), 15);

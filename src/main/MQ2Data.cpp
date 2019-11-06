@@ -144,27 +144,86 @@ bool dataSwitch(const char* szIndex, MQTypeVar& Ret)
 
 bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 {
-	std::map<float, GROUNDOBJECT> itemMap;
 	SPAWNINFO* pSpawn = (SPAWNINFO*)pCharSpawn;
 
 	// if they did ${Ground[name]}
 	if (szIndex[0])
 	{
+		// holds a list of items stored by distance squared.
+		std::map<float, GROUNDOBJECT> itemMap;
+
 		if (IsNumber(szIndex))
 		{
 			int index = std::max(GetIntFromString(szIndex, 0) - 1, 0);
 
 			if (pItemList && pItemList->Top)
 			{
+				GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
 
+				while (pItem)
+				{
+					float X = pSpawn->X - pItem->X;
+					float Y = pSpawn->Y - pItem->Y;
+					float Z = pSpawn->Z - (pItem->pSwitch ? pItem->pSwitch->Z : pItem->Z);
+
+					float distSq = X * X + Y * Y + Z * Z;
+
+					itemMap[distSq].Type = GO_GroundType;
+					itemMap[distSq].pGroundItem = pItem;
+					pItem = pItem->pNext;
+				}
 			}
+
+			// lets see if there are any objects that match as well:
+			RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
+			EQPlacedItemManager& pPIM = EQPlacedItemManager::Instance();
+
+			for (EQPlacedItem* pObj = pPIM.Top; pObj != nullptr; pObj = pObj->pNext)
+			{
+				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(
+					pObj->RealEstateID, pObj->RealEstateItemID);
+				if (!pRealEstateItem)
+					continue;
+
+				CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject;
+				if (!pCont)
+					continue;
+
+				ITEMINFO* pItem = GetItemFromContents(pCont);
+				if (!pItem)
+					continue;
+
+				float X = pSpawn->X - pObj->X;
+				float Y = pSpawn->Y - pObj->Y;
+				float Z = pSpawn->Z - pObj->Z;
+
+				float distSq = X * X + Y * Y + Z * Z;
+				itemMap[distSq].Type = GO_ObjectType;
+				itemMap[distSq].ObjPtr = pObj;
+			}
+
+			if (index < (int)itemMap.size())
+			{
+				auto it = itemMap.begin();
+				std::advance(it, index);
+
+				if (it != itemMap.end())
+				{
+					memcpy(&GroundObject, &it->second, sizeof(GROUNDOBJECT));
+					Ret.Ptr = &GroundObject;
+					Ret.Type = pGroundType;
+					return true;
+				}
+			}
+
+			return false;
 		}
 		else
 		{
 			char szName[MAX_STRING] = { 0 };
 			if (pItemList && pItemList->Top)
 			{
-				PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+				GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
 				while (pItem)
 				{
 					GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
@@ -175,9 +234,9 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 						float Y = pSpawn->Y - pItem->Y;
 						float Z = pSpawn->Z - (pItem->pSwitch ? pItem->pSwitch->Z : pItem->Z);
 
-						float dist = sqrtf(X * X + Y * Y + Z * Z);
-						itemMap[dist].Type = GO_GroundType;
-						itemMap[dist].pGroundItem = pItem;
+						float distSq = X * X + Y * Y + Z * Z;
+						itemMap[distSq].Type = GO_GroundType;
+						itemMap[distSq].pGroundItem = pItem;
 					}
 
 					pItem = pItem->pNext;
@@ -190,25 +249,28 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 
 			for (EQPlacedItem* pObj = pPIM.Top; pObj != nullptr; pObj = pObj->pNext)
 			{
-				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-				if (pRealEstateItem)
-				{
-					if (CONTENTS * pCont = pRealEstateItem->Object.pItemBase.pObject)
-					{
-						if (PITEMINFO pItem = GetItemFromContents(pCont))
-						{
-							if (ci_find_substr(pItem->Name, szIndex) != -1)
-							{
-								float X = pSpawn->X - pObj->X;
-								float Y = pSpawn->Y - pObj->Y;
-								float Z = pSpawn->Z - pObj->Z;
+				const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(
+					pObj->RealEstateID, pObj->RealEstateItemID);
+				if (!pRealEstateItem)
+					continue;
 
-								float dist = sqrtf(X * X + Y * Y + Z * Z);
-								itemMap[dist].Type = GO_ObjectType;
-								itemMap[dist].ObjPtr = pObj;
-							}
-						}
-					}
+				CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject;
+				if (!pCont)
+					continue;
+
+				ITEMINFO* pItem = GetItemFromContents(pCont);
+				if (!pItem)
+					continue;
+
+				if (ci_find_substr(pItem->Name, szIndex) != -1)
+				{
+					float X = pSpawn->X - pObj->X;
+					float Y = pSpawn->Y - pObj->Y;
+					float Z = pSpawn->Z - pObj->Z;
+
+					float distSq = X * X + Y * Y + Z * Z;
+					itemMap[distSq].Type = GO_ObjectType;
+					itemMap[distSq].ObjPtr = pObj;
 				}
 			}
 		}

@@ -2830,6 +2830,18 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 	case 510: //Resist Incoming
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
+	case 518: //Attack Accuracy Max Percent
+		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
+	case 511: //Focus Timer Min
+	case 512: //Proc Timer Modifier
+	case 513: //Mana Max Percent
+	case 514: //Endurance Max Percent
+	case 515: //AC Avoidance Max Percent
+	case 516: //AC Mitigation Max Percent
+	case 517: //Attack Offense Max Percent
+	case 519: //Luck Amt
+	case 520: //Luck Percent
 	default: //undefined effect
 		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname, base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);

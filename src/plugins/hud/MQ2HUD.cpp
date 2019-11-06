@@ -587,7 +587,7 @@ PLUGIN_API void OnDrawHUD()
 
 		struct _stat now;
 		if (Stat(INIFileName, now) && now.st_mtime != LastRead.st_mtime)
-			HandleINI();
+			LoadElements();
 
 		// check for EQ in foreground
 		if (!bBGUpdate && !gbInForeground)
