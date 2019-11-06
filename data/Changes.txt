@@ -1,8 +1,12 @@
+Nov 03 2019
+- Updated for BETA
+- Fixed a bug in emu compile
+
 Nov 02 2019
 - Updated for BETA
 - Added item search by number to the ${Ground} TLO
 - Example: /echo ${Ground[4]} will return the 4th closest item it finds.
-- You should probably check that there actually are 4 items on the ground
+- You should probably check that there actually are 4 items on the ground 
   with ${GroundItemCount} though, or it will obviously return NULL if there is'nt.
   I don't know how useful this feature is since we can iterate through .Next anyway, but someone asked for it so...
 
@@ -76,6 +80,7 @@ Oct 02 2019 by Eqmule
 - Made some changes to the ${Task} TLO
 - It's likely some macros will break due to these changes, but
   I felt the upside with not having to rely on the window warrants that.
+
 - New Feature: It's no longer needed to have the task window open to access the TLO.
 - Added .Type to the TaskObjective TLO
   It returns a string that can be one of the following:
@@ -105,10 +110,10 @@ Sep 18 2019 by Eqmule
 
 -Sep 10 2019 by Eqmule
 - Updated for TEST
--
+
 -Aug 27 2019 by Eqmule
 - Updated for TEST
--
+
 Aug 26 2019 by Knightly
 - Removed #knightlyparse
 - New TLO ${MacroQuest.Parser}
@@ -116,28 +121,27 @@ Aug 26 2019 by Knightly
 - New macro command #engine parser <x> 
 - Parser gets reset to the default in your ini whenever a macro ends
 - Full documentation at https://gitlab.com/Knightly1/mq2-parser-changes
--
+
 Aug 21 2019 by EqMule
 - Updated for LIVE
 - Fixed the parser so it can run at charselect again. (Don't run macros there that need access to ingame variables...)
--
--
+
 Aug 16 2019 by EqMule
 - #knightlyparse is now a macro keyword, add it to the top of your macros if you want to use this version of the parser.
 - Previously Fixed: EQGroundItemListManager
--
+
 Aug 15 2019 by EqMule
 - Fixed a zoning crash
 - Fixed a crash on TEST in mq2itemdisplay when inspecting spells.
--
+
 Aug 13 2019 by EqMule
 - Updated for TEST
--
+
 Jul 31 2019 by EqMule
 - Fixed a clear target bug in mq2targetinfo -dannuic -knighty
 - Next release:
 - TODO: Fix EQGroundItemListManager so we can get /itemtarget working for guild objects again.
--
+
 Jul 27 2019 by EqMule
 - Turned on Knightlyparse.
 - Added support for mq2dannet to mq2targetinfo.
@@ -146,29 +150,28 @@ Jul 27 2019 by EqMule
 - Removed EQ_END_ZONE and EQ_BEGIN_ZONE.
 - Added new detours for zonechange detection.
 - ${Me.Zoning} is depreciated, use ${Me.LastZoned} or just wait for ${Zone.ID} to change.
--
--
+
 Jul 17 2019 by EqMule
 - Updated for LIVE
--
+
 Jul 15 2019 by EqMule
 - Updated for TEST
--
+
 Jul 11 2019 by EqMule
 - Updated for TEST
 - Updated for LIVE
 - updated for EMU
 - Fixed a crash when /echo ${InvSlot[enviro1].Item.ID} - cred report kaen01
--
+
 Jun 22 2019 by EqMule
 - Updated for TEST
 - Updated for LIVE
--
+
 Jun 20 2019 by EqMule
 - Fixed Me.PctExp and Me.PctAAExp
 - Fixed /advloot
 - Fixed a mq2ic crash. cred: psxoxo
--
+
 Jun 19 2019 by EqMule
 - Updated for LIVE
 - Added ${Macro.CurSub} returns the name of the current Sub being executed. -cred alynel
@@ -178,19 +181,19 @@ Jun 19 2019 by EqMule
 - Previously Added: .CachedBuff[*x] to the spawn tlo where *x is a index (buffslots are not sorted). It returns a MQ2CachedBuffType.
 - Previously Added: .CachedBuff[^x] to the spawn tlo where ^x is a keyword. It returns a MQ2CachedBuffType.
 	^x keywords: Slowed Rooted Mezzed Crippled Maloed Tashed Snared and Beneficial
--
+
 - MQ2CachedBuffType has the following members:
 	.CasterName .Count .Slot .SpellID .Duration
--
+
 - Previously Added: .CachedBuffCount to the spawn tlo. it returns -1 if no buffs are cached for the spawn or number of buffs cached.
 - Using CachedBuff to get buff info on targets, group members etc, only requires you to target the entity once. after thats done, buffs are cached.
 - The upside is obviously that we don't have to target back and forth constantly.
 - Usage: well lets say you are a druid and you want to know if a group members sow buff has worn off, you can just check CachedBuff without having to retarget the group member.
 - /echo ${Group.Member[2].CachedBuff[Spirit of Wolf].Duration}
--
+
 Jun 14 2019 by EqMule
 - Updated for TEST
--
+
 Jun 05 2019 by EqMule
 - Fixed a crash in the TEST build.
 
@@ -198,7 +201,7 @@ Jun 01 2019 by EqMule
 - Fixed Events for text that contain 'x12' tags
 - Added Me.BlockedBuff and Me.BlockedPetBuff both return a pSpellType idea cred: chatwiththisname
 - Usage: /echo ${Me.BlockedBuff[x].ID} where x is 1-40
--
+
 May 30 2019 by EqMule
 - Fixed /dosocial
 - Some other stuff I'll documment later.
@@ -209,7 +212,7 @@ May 24 2019 by EqMule
   any number above 1 means the list was not empty...
   NOTE: Use ${Target.BuffCount} to get the ACTUAL VISIBLE buffs (BuffsPopulated is BuffCount + 1)
 - Some other stuff I'll documment later.
--
+
 May 23 2019 by EqMule
 - Added the possibility to login new characters using plaintext credentials, no mq2 login profile needed:
 	Usage:
@@ -218,14 +221,14 @@ May 23 2019 by EqMule
 	/loginchar servername^login^password
 - Made /quit command work at charselect
 - Added a Syntax Error to the parser when you try to parse strings greater than 2048 instead of crashing you.
--
+
 May 22 2019 by SwiftyMuse & EqMule
 - Fixed ${Me.SpellInCooldown}
 - Fixed some parsing bugs.
 - 
 May 17 2019 by EqMule
 - Updated for TEST
--
+
 May 16 2019 by EqMule
 - Fixed Get Current Mana and Get Current Endurance
 - Fixed MQ2Rez spam (yes really this time)
@@ -280,14 +283,14 @@ May 09 2019 by Brainiac & EqMule
 May 07 2019 by EqMule
 - Updated for TEST
 - Events are not caught for system messages anymore.
--
+
 May 02 2019 by Brainiac
 - Fixed the CXWnd__IsActive_x offset
--
+
 May 01 2019 by EqMule
 - Fixed a crash in /caption anon on
 - Fixed a crash in /unload
--
+
 Apr 30 2019 by EqMule
 - TBL plavceholder info will again display correctly on the targetwindow if you use mq2targetinfo.
 - Changed a bunch of stuff, plugin authors you have until next patch to update your plugins.
@@ -312,13 +315,13 @@ Apr 22 2019 by EqMule
 - Added sorting to find location window for the distance column
 - Fixed .NewStacks
 - Fixed a autologin bug
--
+
 Apr 20 2019 by EqMule
 - Added Colors to Quest items and Tradeskill items in the FindItem Window list.
   Yellow=Quest
   Magenta=Tradeskill
   (No this is not configurable, I might add an option later.)
--
+
 - Added a Value(Price) column to the FindItem window.
 - Enjoy marking items for sale in the FindItem Window.
   Usage: mark some items while you have a merchant open, then click the Sell Marked button.
@@ -328,15 +331,15 @@ Apr 20 2019 by EqMule
 Apr 19 2019 by EqMule
 - Updated for TEST
 - Updated for LIVE
--
+
 Apr 18 2019 by EqMule
 - Added ${EverQuest.ValidLoc}
   Usage: /echo ${EverQuest.ValidLoc[123 456 789]}
   it returns true or false if the X Y Z location in the world is a valid player location.
   in other words: can I go to this loc or is it inside a wall or a mountain or a tree or whatever invalid location?(those locs will return false obviously)
--
+
 - Fixed the ZoneGuideManagerClient class.
--
+
 Apr 17 2019 by EqMule
 - Updated for LIVE
 - Previous updates see Apr 12 2019 by EqMule entry below.
@@ -364,7 +367,7 @@ Apr 12 2019 by EqMule
 	pinstEQObjectList_x
 - All of the above offsets are no longer static in the client so I have replaced them with 
   calls to the proper Instance/Get functions instead.
--
+
 - Plugin authors, you need to make a few changes to access some SPAWNINFO members from now on:
   (don't change any other struct members if they happen to have the same name!)
   All instances of ->SpellCooldownETA needs to be changed to ->GetSpellCooldownETA()
@@ -374,16 +377,16 @@ Apr 12 2019 by EqMule
   All instances of ->EnduranceMax needs to be changed to ->GetMaxEndurance()
   All instances of ->EnduranceCurrent needs to be changed to ->GetCurrentEndurance()
   All instances of ->Zone needs to be changed to ->GetZoneID()
--
+
 
 Mar 29 2019 by EqMule
 - Fixed MQ2Autologin
 - Added .SelectedItem to the Merchant TLO
   it returns the currently selected item in the merchant window as a pItemType
--
+
 Mar 26 2019 by EqMule
 - Fixed multiple problems in arrayclass.h due to client changes.
--
+
 Mar 23 2019 by EqMule
 - GetAACastingTimeModifier has been renamed to GetCastingTimeModifier (because it is)
 - GetCastingTimeModifier and GetFocusRangeModifier has been changed to deal with a ctd.
@@ -399,61 +402,61 @@ Mar 23 2019 by EqMule
 Mar 18 2019 by EqMule
 - Fixed a bug when doing /ctrl /itemnotify and OpenContainer needed to be called
 - Added Make Me Leader to mq2targetinfo rightclick on group member menu
--
+
 Mar 16 2019 by EqMule
 - Updated for TEST
--
+
 Mar 14 2019 by EqMule
 - Fixed a crash when doing: /echo ${Window[MarketplaceWnd].Child[MKPW_AvailableFundsUpper].Text}
 - Fixed ${Math.Abs} - SwiftyMUSE
--
+
 Mar 13 2019 by EqMule
 - Updated for LIVE
--
+
 Mar 06 2019 by EqMule
 - Updated for TEST
 - All instances of CWChatInput has been changed to CW_ChatInput due to a client change.
 - All instances of CWChatOutput has been changed to CW_ChatOutput due to a client change.
 - If your plugin uses these, YOU need to change these as well.
 - Plugins affected: mq2eqbc, mq2irc, mq2moveutils
--
+
 Feb 22 2019 by EqMule
 - Updated for TEST
--
+
 Feb 21 2019 #2 by EqMule
 - Fixed /ranged crash, yes really this time. It got another parameter, don't know what it is.
--
+
 Feb 21 2019 by EqMule
 - Fixed the spawninfo struct this means most weird crashes in mq2main and all kinds of plugins like mq2heals,mq2posse etc are now fixed.
 - I will realign address comments for it later in practice it works.
--
+
 Feb 20 2019 by EqMule
 - Updated for LIVE
--
+
 Feb 15 2019 by EqMule
 - Updated for TEST
--
+
 Feb 14 2019 by SwiftyMUSE
 - MQ2ItemDisplay fixes:
   Crash bug for ${DisplayItem} and fix to handle display of links via raid/group/tells.
--
+
 Feb 13 2019 by EqMule
 - Updated for TEST
--
+
 Feb 09 2019 by EqMule
 - Added .StacksTarget to the Spell TLO it returns true or false
   Usage: /echo ${Spell[Shield of the Void].StacksTarget}
 - Fixed IsSTackBlocked once and for all. Yes really this time.
--
+
 Feb 08 2019 by EqMule
 - Added /convertitem to mq2itemdisplay
 - Example: /convertitem Wishing Lamp:
--
+
 Feb 05 2019 by EqMule
 - Fixed a bug in /unload
 - Misc Stability fixes all over the place.
 - Fixed a nasty stack overflow crash in mq2log
--
+
 Jan 21 2019 by SwiftyMUSE
 - Resync of code with ROF2EMU
 
@@ -474,29 +477,29 @@ Jan 18 2019 by EqMule
 - Added some code to catch crashes.
   I guess I'll find out if it works once people report if they see the dialog.
   It will save dump files as well. send those to eqmule@hotmail.com
--
+
 
 Jan 16 2019 by EqMule
 -Updated for LIVE
--
+
 Jan 15 2019 by EqMule
 - Added a fixed up version of Inventory.mac - wired420
 
 Jan 15 2019 by SwiftyMUSE
 - Resync of code with ROF2EMU
--
+
 Jan 14 2019 by EqMule
 - Added a new column to the Find Item Window which will let you mark items for delete or add them to never loot filter.
   Usage: mark some items by checking the ckecboxes, then click the Never Loot button to set their never loot advloot filter.
   Usage: mark some items by checking the ckecboxes, then click the Destroy Items button to delete them.
--
+
 - It goes without saying, that if you have no idea what you are doing or if you are a complete imbecile, this feature might
   be too dangerous for you to have enabled, in which case you can disable it by right clicking the Destroy Item or the Never Loot button
   and then toggle the "Cool Checkbox Feature" on the menu that pops up. Default is ON.
--
+
 Jan 09 2019 by EqMule
 -Updated for TEST
--
+
 Jan 07 2019 by SwiftyMUSE
 - Added .Dotted to ${Me} and ${Target}
 - Added .MaxMeleeTo to ${Target}
@@ -508,17 +511,17 @@ Jan 07 2019 by SwiftyMUSE
   MQ2AdvPath, MQ2CpuLoad, MQ2FPS and MQ2Radar
   These Personal plugins should be updated, including, but not limited to:
   MQ2Clip, MQ2Focus, MQ2Nav, MQ2SoD, MQ2Task, MQ2ViewPort, MQ2WinPath
--
+
 Jan 03 2019 by EqMule
 - ${Me.Ability[#|X]} now return the real ID/Name of a Ability...
   Example /echo ${Me.Ability[Hide]}
   returns: 29
   /echo ${Me.Ability[29]}
   returns: Hide
--
+
   Before this change doing ${Me.Ability[Hide]} would return whatever number 1-6 you had assigned to Hide in Abilities.
   NOW it returns 29, which is the actual ability ID for Hide.
--
+
 - /doability # now takes REAL ability IDs as well as the "fake ones", which are 1-6
   This means you can do /doability 29 and it will activate the Hide ability since it's REAL ID is 29...
   You can also still do /doability 1 and if you have Hide assigned as 1 in your abilities tab on the actions window, it will activate it.
@@ -602,7 +605,7 @@ Dec 07 2018 by eqmule
 	.Select : It will select a menu item (click it)
 	usage: /invoke ${Menu.Select[open the door]}
 	Output: none, it just clicks that entry if it finds it.
--
+
   It has 6 members:
 	.Address : pIntType it returns the address of the currently open menu.
 	.NumVisibleMenus : pIntType it returns number of currently visible menus. Ordinarily this is going to be 1 if a menu is showing and 0 if not
@@ -620,7 +623,7 @@ Dec 07 2018 by eqmule
 	/echo ${Menu.Items[2]}
 	Output: Adjust Placement
 - Added some door defines.
--
+
 Dec 06 2018 by eqmule
 - Updated to include all faction names - SwiftyMUSE
 - Updated for BETA
@@ -640,7 +643,7 @@ Dec 05 2018 by eqmule & SwiftyMUSE
 Dec 04 2018 by eqmule & SwiftyMUSE
 - Updated for BETA
 - Updated for TEST
--
+
 Dec 03 2018 by eqmule
 - Updated for BETA
 - Added /groupinfo mimicme on|off - it will do what the button does but from commandline
@@ -651,13 +654,13 @@ Dec 03 2018 by eqmule
   and put them wherever you like to get the same functionallity.
 - Fixed a bug in mq2targetinfo that would change the alpha of the targetwindow/groupwindow/exttargetwindow
   it had no business doing that, sorry.
--
+
 Dec 02 2018 by eqmule
 - Updated for BETA
--
+
 Dec 01 2018 by eqmule
 - Updated for BETA
--
+
 Nov 30 2018 by eqmule
 - Updated for BETA
 
@@ -686,7 +689,7 @@ Nov 26 2018 by eqmule
 - Updated for BETA, LIVE and TEST
 - Added /groupinfo reset if you have ANY problem at all with default UI, just run this command it will reset to WORKING ini.
   Old settings will be saved in MQ2TargetInfo.bak
--
+
 - Added /groupinfo reload
   you can use it to reload the ini when you make changes to button locations etc.
 - I made a lot of changes to how mq2targetinfo adds itself to the UI
@@ -789,7 +792,7 @@ Nov 23 2018 by eqmule
   If this still isnt enough, you are going to have to actually edit either mq2targetinfo.ini
   and set the button locations there, or edit your UI's XML files.
   Well, or just unload mq2targetinfo...
--
+
   Bottomline is, the code I added now, should at a minimum not crash your custom UI
   and there is a good chance it actually works for it as well, although u might have to resize the window
   in order to see all buttons and distance etc.
@@ -798,7 +801,7 @@ Nov 22 2018 by eqmule thanksgiving edition.
 - Updated for BETA
 - I now disable MQ2TargetInfo for incompatible UI's
   I plan on fixing it but I dont have time today.
--
+
 - Started the Task TLO overhaul, we are going to be able to access these things without having to have the window open.
   This also means we can now add some new members to it, like the type of task, reward, npc to turn into etc.
   More to come.
@@ -895,7 +898,7 @@ Nov 08 2018 by eqmule
 - Added a tooltip for /groupinfo help on the main groupwindow.
 - Fixed a bug in mq2targetinfo which would cause the groupwindow hotbutton "hitbox" to overlap the disband button making it difficult to click.
 - Added CheckMenu items for showing/hiding the groupinfo buttons to the rightclick group window menu.
--
+
 - Updated for TEST
 - Updated for BETA
 - GLOBAL gMacroPause is gone now. Use gMacroBlock->Paused instead.
@@ -952,7 +955,7 @@ Oct 26 2018 by SwiftyMUSE
 
 Oct 26 2018 by eqmule
 - Previously Added: ${Merchant.ItemsReceived} its true if the merchants itemlist has been filled in.
--
+
 - Fixed a issue that prevented isboxer from launching eqgame processes without them crashing.
 - Added a /groupinfo command to hide/show buttons on the group window
   Usage: /groupinfo help
@@ -997,11 +1000,11 @@ Oct 19 2018 by eqmule
 - Added a button to the group window called "Come to Me"
 	If you have mq2eqbc, mq2nav and mq2advpath and a proper mq2nav mesh loaded
 	the button will work and will make your whole group come running to you.
--
+
 - Added a button called "Follow Me" to the group window.
 	If you have mq2eqbc and mq2advpath loaded the button will work and will
 	make your whole group follow you around.
--
+
 - Added a new character TLO member: Bandolier it has 4 members: Index,Active,Name,Item
     it has one method: Activate
 	Usage: (assuming you have a bandoiler saved as "1HB")
@@ -1015,7 +1018,7 @@ Oct 19 2018 by eqmule
 	Output: I have a Snowreaver in my primary bandoilier slot
 	Item returns a bandolieritemtype which has 4 members: Index,ID,IconID,Name
 	[/code]
--
+
 - Made some adjustments to the ${Ground} TLO and added .First and .Last members to it.
 	  /echo ${Ground} will now return the FIRST item in the list if you DO NOT done a /itemtarget
 	  in which case it will return that item.
@@ -1048,7 +1051,7 @@ Oct 19 2018 by eqmule
 		/next Count
 	/return
 	[/code]
--
+
 - Fixed AAPointsAssigned in the CHARINFO2 struct, it is actually an array.
 	Prior to this fix we used it like this: pChar2->AAPointsAssigned;
 	Now we use it like this: pChar2->AAPointsAssigned[0];
@@ -1353,7 +1356,7 @@ Jan 24 2018 by eqmule
 - New command: /itemdisplay
 - Usage: /itemdisplay LootButton off/on if not specified its a toggle
 - Usage: /itemdisplay LucytButton off/on if not specified its a toggle
--
+
 - The following APIs where incorrectly named and has been changed to their correct names:
 - CHtmlWnd__OpenUrl_x is now  CWebManager__CreateHtmlWnd_x
 - CHtmlComponent__CheckUrl_x has is now CHtmlComponentWnd__ValidateUri_x
@@ -1380,7 +1383,7 @@ Jan 15 2018 by eqmule
 - Added a AddLootFilter method to the DisplayItem TLO.
 - Usage: /invoke ${DisplayItem.AddLootFilter} or ${DisplayItem[x].AddLootFilter} where x is 1 to 6
 - this will add whatever item is in the DisplayItem to advloot filters as AG and Roll
--
+
 - Added a new TLO MQ2ItemSpellType as pItemSpellType:
 - Added some new pItemType members:
 	Clicky,Proc,Worn,Focus,Scroll,Focus2,Mount,Illusion and Familiar
@@ -1793,12 +1796,12 @@ MQ2Rez
 14 Sep 2017 by eqmule
 - Updated for TEST
 - Fixed ${Familiar[x].} it will return familiars and not illusions now...
--
+
 - Fixed a bunch of window structs that we where completely misusing anyway.
   this could require some plugin changes, contact me for help if you get errors.
--
+
 - Fix: Variables that are undeclared but supplied as paramters now default to an actual NULL or 0 not the string "NULL"
--
+
 - Inspecting the Blessed Spiritstaff of the Heyokah will no longer ctd you.
 - Added Math.Clamp ${Math.Clamp[Min, N, Max]} will clamp N between Min and Max. - cred derple
   Example:
@@ -1828,15 +1831,15 @@ MQ2Rez
   see http://www.macroquest2.com/wiki/index.php/MQ2HUD for more info.
   Basically using a hud that tries to parse variables that are used in macros, before they are declared will fail.
   This new flag lets mq2hud know to not even try unless its set.
--
+
 - Adding events from a macro will now also automatically /declare variable as outer if used.
   Example: #Event Burn              "[MQ2] |${BurnText}|"
   As you can see this event uses the variable ${BurnText} and it will therefor /declare it as well.
   This means you can remove /declare BurnText in your Sub Main since adding the event did it for you already.
--
+
 - Added ${Macro.IsOuterVariable[xxx]} which returns TRUE/FALSE, it checks if a outer variable exists. (read is declared)
   I would recommend NOT using this in macros unless its for debug purposes because it can get quickly get expensive in terms of cpu cycles.
--
+
 - Added ${Macro.IsTLO[xxx]} which returns TRUE/FALSE, it checks if a Top Level Object exists. This should be faster than checking if a plugin is loaded. *should*
   Usage:
     [code]
@@ -1866,10 +1869,10 @@ http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174399#p174399
 	using namespace std;
 	[/code]
 	OR just change the line to say std:: map<std::string, class CXWnd2 *> WindowMap;
--
+
 -  The reason for that change is that right now we litter ALL projects with the std namespace and it is just not good.
    Let everyone that needs that namespace use it in their own projects from now on.
--
+
 - #bind(s) are now fixed and won't screw up the macrostack anymore.
 - Todays update is significant because I rebuilt the macro engine to improve performance,
   it was well overdue. The biggest change is that gMacroBlock is now a map.
@@ -1877,16 +1880,16 @@ http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=174399#p174399
   if they exist. I have added a TLO to check for them because of this and a new macro keyword #warning as well
   so there is no good reason to run old macros where these kinds of variables hog cpu power:
 AGAIN:   IMPORTANT: Undeclared variables will slow down macro performance a LOT if they are used over and over, so, fix your macros.
--
+
 - The Macro TLO has a new method: .Undeclared
   Usage: /invoke ${Macro.Undeclared} and it will list all undeclared variables.
 - New macro keyword: #warning
   add it at the top of your macro, and you will get warnings if there are undeclared variables used in it.
--
+
 - /while and /for loops can now be nested inside each other.
 - /continue and /break should work properly inside /for loops now.
 - /continue and /break works in /while loops now.
--
+
 - Updated MQ2Rez and MQ2Cast to not hog the cpu looking up windows over and over.
 - Other stuff to optimize and cut down on cpu intensive tasks.
 
@@ -1969,7 +1972,7 @@ Sub Main
   would cast the splash spell at that location...
   just doing a /cast "Reforming Splash" will cast it either on your targets location
   and if you have no target on your own location.
--
+
 - Added IsSummoned to the spawn tlo, returns true/false if its a summoned being (pet for example)
 - MQ2Template now (correcty) creates OnBeginZone & OnEndZone functions. - cred htw
 - Distances in searchspawn now return the true 3D distance (instead of 2d distance)
@@ -2512,7 +2515,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	LastCastTime (pIntType), DragNames[x] 0-1 (pStringType), DraggingPlayer (pStringType), bStationary (pBoolType), BearingToTarget (pFloatType), bTempPet (pBoolType), 
 	HoldingAnimation (pIntType), Blind (pIntType), LastCastNum (pIntType), CollisionCounter (pIntType), CeilingHeightAtCurrLocation (pFloatType), AssistName (pStringType), 
 	SeeInvis[x] 0-2 (pIntType), SpawnStatus[x] 0-5 (pIntType), bWaitingForPort (pBoolType)
--
+
 - SolventNeeded in the iteminfo struct has been renamed to SolventItemID 
 - Added some new members to the iteminfo struct and cleaned it up a little.
 - Added MQ2AugType TLO, it has these members: Slot (pIntType), Type (pIntType), Visible (pBoolType), Infusable (pBoolType), Empty (pBoolType), Name (pStringType), Item (pItemType)
@@ -2575,7 +2578,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
   LARGE_INTEGER guildlarge = {0};
   guildlarge.QuadPart = GetCharInfo()->GuildID;
   char  *pGuild = GetGuildByID( guildlarge.LowPart,guildlarge.HighPart );
--
+
 - I started correcting the iteminfo struct it's a work in progress so expect more changes to fully implement this.
 - Initially the Augment members has gotten a review (and a fix since they where broken)
 - So... AugSlot1 etc is now part of its own class
@@ -2604,7 +2607,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 -  Therefor:
 -	NumOfSlots1 has been renamed to ContentSize Ths also effects macros that use the NumOfSlots1 member.
 -	NumOfSlots2 has been renamed to Size
--
+
 -	MOST of these changes affect core only, I dont think there will be many plugins that needs updating
 -	BUT here are some examples of how to fix errors that I have seen:
 -	change:
@@ -2665,7 +2668,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 - ReadWindowINI in MQ2AdvPath correctly read the ini but never set the window value
   this has been corrected - cred Brainiac
   a zip which has the corrected version in it is located here : http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=172713#p172713
--
+
 - Corrected the zoneinfo struct 
   What we previously had been refering to as "ZoneType" was not in fact it, so it has been renamed to FOgOnOff which is what its for.
   This means that ${Zone.Type} has changed a bit...
@@ -2690,7 +2693,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 - In preparation for the expansion on the 16th and for future faster patching,
   THE FOLLOWING STUFF has undergone some serious changes:
   You have 5 days to adjust your personal builds and plugins.
--
+
 - BGColor is now a COLORREF change plugins accordingly.
   and no, it CANNOT be changed back to a ARGBCOLOR since that contains a union with bytes and that screws up the 4 aligned padding.
 - UnknownCW has been renamed to CRNormal change plugins accordingly.
@@ -2981,13 +2984,13 @@ Sunday is funday... so here is some fluff:
 - DO NOT I REPEAT DO NOT ADD A PRAGMA TO FIX IT
 - I'm seriously going to go ballistic if i see any more #pragma warnings
   If a #pragam warning is needed we are doing it wrong.
--
+
 - So... the whambulance will be comming for sure when you update to this version.
   Sorry about that, but it was needed because I'm sick of all the buffer overflows
   that are crashing us randomly and I can never get a good call stack in order to fix them.
   This fix is years overdue, and I consider it crucial in order to move forward
   towards a 100% stable mq2.
--
+
 - Anyway... I made a whole bunch of stuff stringsafe
   too much to list, if u have plugins that wont build
   post about it or message me and ill help u fix them.
@@ -3022,7 +3025,7 @@ Sunday is funday... so here is some fluff:
 - Added a check for "failed login attempts on your account since the last time you logged in."  to mq2autologin
 - Added a check for "This login requires that the account be activated.  Please make sure your account is active in order to login"  to mq2autologin
 - Added a check for "Error - A timeout occurred"  to mq2autologin
--
+
 - Added a setting for the "Trade when you have something on the cursor and click on the name of the target in the target window" feature
   its in macroquest.ini as UseTradeOnTarget. default is 1. (on)
 
@@ -3063,24 +3066,24 @@ Sunday is funday... so here is some fluff:
 	You can save as many profiles as you want and they will sort per server on the menu.
 	Each server profile has a Load/Unload All option so once you have added all your accounts for a server you just click the Load All and away it goes,
 	it will login all of the characters under that server. (Well all that are check marked)
--
+
 - Check marks: each character can be marked for loading by simply right clicking the character name to toggle it marked on or off.
--
+
 - Loading individual accounts:
 	You just left click on a character name and if it is check marked, it will load and the name will be changed to <Charname> (Loaded)
--
+
 - Unloading individual accounts:
 	If a char is loaded and has the text (Loaded) behind it you just left click it to unload.
 	I kept this as simple as I possibly could so its a Toggle.
--
+
 - I can add window positioning and stuff I guess but for now it's just a easy way to login a box team on a server.
--
+
 - Batch Files and hotkeys:
 	If you currently use batch files or hotkeys or whatever, those should still be usable if you don't want to click the menu.
 	Example: (this example assumes you HAVE profiles created with "Create New..." in mq2autologin.ini)
 	Batch file can launch your accounts by sending the server_charname to the eqgame client like this: <path to eqgame.exe> patchme /login:drinal_eqmule
 	And that's really all there is to it... You would of course change the server and Charname to your server and your char (drinal and eqmule)
--
+
 - Encryption:
 	I strongly recommend getting this setup though, because it encrypts your password in a way that in "theory" makes it only decryptable on YOUR computer,
 	this means that even if you accidently post your mq2autologin.ini somewhere, or someone gets hold of it, the information inside it will be useless to them.
@@ -3271,12 +3274,12 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 - Usage: /echo ${Me.ItemReady[drunkard]}
 - will look for an item name that has the word "drunkard" in it and return true if its ready to click/cast/use and false if not.
 - the item name is not case sensitive.
--
+
 - CHANGES:
 - MacroQuest2.exe should once again be winxp compatible.
 - ${Me.AltAbilityTimer[xxxx]} does NOT return a pTickType anymore, its NOW a pTimeStampType, so update your macros.
 - Changed the name of __bCommandEnabled_x to g_eqCommandStates_x (cause thats what it is)
--
+
 - FIXES:
 - Created a wrapper for ExecuteCmd cause it has 4 paramters now, and i didnt want to break plugins.
 - This should fix multiple crashes as well as the "mash hotkeys too quickly crash". (yes that was likely us)
@@ -3425,7 +3428,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 		} else {
 			/echo I did not find a task that has the word "hatch" in it, so nothing was selected.
 		}
--
+
 - Fixed a racecondition crash in mq2bzsrch.
 - Fixed a plugin unload/load crash
 - Made some changes to mutex locks.
@@ -3494,7 +3497,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
   output: The closest Brew Barrel is 26.4 away from you.
   Note that both of the searchfunctions are case insensitive and are sorted by distance colosest to you.
   The only acceptale parameter in the search filter is by name or partial name.
--
+
 - Added .Distance3D and .DisplayName to the Ground tlo
   DisplayName will display the actual name of the ground item, .Name will still display the actorname...
   ${Ground} now defaults to ${Ground.DisplayName} instead of ${Ground.ID}
@@ -3502,13 +3505,13 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 
 15 Mar 2016
 - Maintenance Release, bunch of cleanups and stuff that should improve overall stability.
--
+
 -Updated all vcxproj files and solutions to use build.props for easier administration - Cred: brainiac
--
+
 - Fixed Me.Dar, Me.Counters, Buff Dar and Buff Counters - Cred: Demonstar55
 - Community can provide input if we should separate them into their elements.
 - For now they return combined, which might be useless.
--
+
 - FRIENDLY DEV TIP OF THE DAY:
 - Some people has been asking me how to run VS as admin by default in windows 8-10:
 - There is a simple trick to it, and I recommend that everyone do this, but
@@ -3531,7 +3534,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 - New SPA's added
 - IsBodyType has been renamed to HasProperty (cause thats what it is)
 - Bunch of changes to mq2windows, lets see if it works as intended.
--
+
 - Added a new TLO Member to ${Me} .AssistComplete
 . You can check it after you do a /assist. It will be true when the assist request has been completed.
 .  Usage Example: /assist Eqmule
@@ -3541,7 +3544,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 .				  }
 - Turned on Exception Handling (/EHsc) for all projects except mq2main
 - when we move to the v140xp toolset we can use the noexcept keyword to turn it on for mq2main as well...
--
+
 - --------------------> VERY IMPORTANT STUFF BEGIN <-------------------
 - It's time to upgrade to Visual Studio 2013 Community or newer.
 - From this version and onward we will not support older compilers.
@@ -3553,13 +3556,13 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 - If you use 2015, just install the vs 2013 community edition if you want to build ISXEQ
 - For mq2 it doesn't really matter, you can build it with 2015 toolset (v140 or v140xp)
 - just let it upgrade if it asks for it.
--
+
 - Older solution files has been removed:
 - For building MQ2 use MacroQuest2.sln
 - --------------------> VERY IMPORTANT STUFF END <---------------------
--
+
 - If you have no interest in building ISXEQ you can stop reading now.
--
+
 - For building ISXEQ use ISXEQ.sln PLEASE NOTE: --------------->
 - The red headed stepchild ISXEQ has gotten some love this week.
 - You might have noticed that the zip grew a bit in size this release
@@ -3586,7 +3589,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 -  /target pet
 -  /delay 5s ${Target.ID}==${Pet.ID} && ${Target.BuffsPopulated}==TRUE
 -  /echo ${Target} has ${Target.BuffCount} buffs on him.
--
+
 - Trampoline following - cred: brainiac
 
 18 Feb 2016 by SwiftyMUSE
@@ -3611,7 +3614,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 - Other stuff
 - Updated for TEST
 - BELOW THIS LINE ARE TEST RELATED CHANGES, BUT LIVE BUILDERS SHOULD READ IT AS WELL (cause it is comming your way)
--
+
 - Added CalcIndex to ${Spell} (on TEST)
 - Added NumEffects to ${Spell} (on TEST)
 -  Both of them SHOULD be used in macros that enumurate Base, Base2, Calc,Attrib and Max
@@ -3625,7 +3628,7 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 -			/echo Base ${i} is : ${Spell[Augmentation].Base[${i}]}
 -		/next i
 -							
--
+
 - Ok, listen PEOPLE WHO BUILD MQ2 FOR -> TEST <- : this is IMPORTANT!:
 -  This patch punched a bunch of holes in mq2, and Im telling you folks right now:
 -  IF YOU DONT UPDATE YOUR PLUGINS THEY WILL Fail to build.
@@ -3644,12 +3647,12 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 -	if (PSPELL spell = GetSpellByID(SpellID)) {
 -		for (int a = 0; a < GetSpellNumEffects(spell); a++) {
 -			switch (GetSpellAttrib(spell, a))
--
+
 -	Notice what I did there? you CANNOT and SHOULD NOT use hardcoded "12" anymore
 -	It just isn't how spell effects are stored anymore, they only store
 -	the ACTUAL number of effects in memory, not all 12 slots...
 -	So... the new Spell member function GetSpellNumEffects(x) SHOULD ALWAYS be used from now on.
--
+
 -	Mkay? questions?, come talk to us on irc/skype/email whatever...
 -	And finally, for the LIVE people... this is comming your way within a week or so when
 -	they patch for LIVE, so get ready, cause I'm not going to repeat this info again.
@@ -3690,11 +3693,11 @@ when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
 - Updated for TEST
 - Added a new feature. cred: dewey2461
 - Description: Extends the Task TLO with the TaskElementList's Objective[ ]
--
+
 - The TaskElementList is a row,column address where column 0 is the text, 1 is the status, etc.
--
+
 - Examples: 
--
+
 - /echo ${Task.Objective} The first objective
 - /echo ${Task.Objective[0]} The first objective
 - /echo ${Task.Objective[0,1]} The first objective's status
