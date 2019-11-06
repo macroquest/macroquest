@@ -984,106 +984,70 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 	if (IniFile.empty())
 		return false;
 
-	char FileName[MAX_STRING] = { 0 };
-	std::replace(IniFile.begin(), IniFile.end(), '/', '\\');
-
-	if (!IniFile.empty() && IniFile[0] != '\\' && IniFile.find(":") == IniFile.npos)
-		sprintf_s(FileName, "%s\\%s", gszMacroPath, IniFile.c_str());
-	else
-		strcpy_s(FileName, IniFile.c_str());
-
-	IniFile = FileName;
-	if (IniFile.find(".") == IniFile.npos)
+	if (IniFile.find('.') == std::string::npos)
 	{
 		IniFile.append(".ini");
 	}
 
-	if (!_FileExists(IniFile.c_str()))
+	std::filesystem::path pathIniFile = IniFile;
+
+	if (pathIniFile.is_relative())
 	{
-		if (!Default.empty())
+		pathIniFile = mq::internal_paths::Config / pathIniFile;
+	}
+
+	if (std::filesystem::exists(pathIniFile))
+	{
+		const int nSize = GetPrivateProfileString(Section, Key, Default, DataTypeTemp, MAX_STRING, pathIniFile);
+
+		if (nSize)
 		{
+			if (nSize > 2)
+			{
+				for (int index = 0; index < nSize - 2; index++)
+				{
+					if (DataTypeTemp[index] == 0)
+						DataTypeTemp[index] = '|';
+				}
+			}
+
+			if ((Section.empty() || Key.empty()) && (nSize < MAX_STRING - 3))
+				strcat_s(DataTypeTemp, "||");
+
 			if (bNoParse)
 			{
-				if (gdwParserEngineVer == 2)
+				if (gParserVersion == 2)
 				{
-					// If we're set not to parse and there's a ${
-					if (Default.find("${") != std::string::npos)
+					// If we are not supposed to parse and there is a ${
+					if (strstr(DataTypeTemp, "${"))
 					{
-						// Modify Macro String with parameter 0 to wrap Parse Zero
-						Default = ModifyMacroString(Default, true, ModifyMacroMode::Wrap);
+						// Modify Macro String with parameter to wrap Parse Zero
+						strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, ModifyMacroMode::Wrap).data());
 					}
 				}
-
-				// I think the below is actually wrong, since it's checking whatever was stored in
-				// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
-				// to see if DataTypeTemp was getting set to default somewhere else and this is how
-				// it was originally in parser v1. So I left it.  -- Knightly
 				else if (strchr(DataTypeTemp, '$'))
 				{
 					bAllowCommandParse = false;
 				}
 			}
 
-			strcpy_s(DataTypeTemp, Default.c_str());
 			Ret.Ptr = &DataTypeTemp[0];
 			Ret.Type = pStringType;
 			return true;
 		}
-		return false;
-	}
-
-	int nSize = GetPrivateProfileString(
-		Section.empty() ? nullptr : Section.c_str(),
-		Key.empty() ? nullptr : Key.c_str(),
-		Default.c_str(), DataTypeTemp, MAX_STRING, IniFile.c_str());
-
-	if (nSize)
-	{
-		if (nSize > 2)
-		{
-			for (int index = 0; index < nSize - 2; index++)
-			{
-				if (DataTypeTemp[index] == 0)
-					DataTypeTemp[index] = '|';
-			}
-		}
-
-		if ((Section.empty() || Key.empty()) && (nSize < MAX_STRING - 3))
-			strcat_s(DataTypeTemp, "||");
-
-		if (bNoParse)
-		{
-			if (gdwParserEngineVer == 2)
-			{
-				// If we are not supposed to parse and there is a ${
-				if (strstr(DataTypeTemp, "${"))
-				{
-					// Modify Macro String with parameter 0 to wrap Parse Zero
-					strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, ModifyMacroMode::Wrap).c_str());
-				}
-			}
-			else if (strchr(DataTypeTemp, '$'))
-			{
-				bAllowCommandParse = false;
-			}
-		}
-
-		Ret.Ptr = &DataTypeTemp[0];
-		Ret.Type = pStringType;
-		return true;
 	}
 
 	if (!Default.empty())
 	{
 		if (bNoParse)
 		{
-			if (gdwParserEngineVer == 2)
+			if (gParserVersion == 2)
 			{
 				// If we're set not to parse and there's a ${
 				if (Default.find("${") != std::string::npos)
 				{
 
-					// Modify Macro String with parameter 0 to wrap Parse Zero
+					// Modify Macro String with parameter to wrap Parse Zero
 					Default = ModifyMacroString(Default, true, ModifyMacroMode::Wrap);
 				}
 			}

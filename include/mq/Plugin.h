@@ -35,7 +35,7 @@ BOOL APIENTRY DllMain(HANDLE hModule,                                         \
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)                             \
     {                                                                         \
         DebugSpewAlways("%s Module Loaded", pluginname);                      \
-        sprintf_s(INIFileName,"%s\\%s.ini", gszINIPath, pluginname);          \
+        sprintf_s(INIFileName,"%s\\%s.ini", gPathConfig, pluginname);         \
     }                                                                         \
     else if (ul_reason_for_call == DLL_PROCESS_DETACH)                        \
     {                                                                         \

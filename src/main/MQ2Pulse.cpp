@@ -356,7 +356,7 @@ static void Pulse()
 		char* pAutoRun = szAutoRun;
 
 		// autorun command for everyone
-		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, gszINIFilename);
+		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
 			DoCommand(pChar, pAutoRun);
@@ -366,7 +366,7 @@ static void Pulse()
 		pAutoRun = szAutoRun;
 		char szServerAndName[128] = { 0 };
 		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharInfo->Name);
-		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, gszINIFilename);
+		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
 			DoCommand(pChar, pAutoRun);
@@ -604,23 +604,29 @@ template <unsigned int _Size>
 static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)[_Size])
 //void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
 {
-	char szTemp[MAX_PATH] = { 0 };
-	char name[MAX_PATH] = { 0 };
-	strcpy_s(name, filename);
-	if (char* pDest = strrchr(name, '\\'))
+	std::filesystem::path dumpFilePath = filename;
+	dumpFilePath = dumpFilePath.filename();
+
+	std::string dumpFileName = dumpFilePath.string();
+	if (dumpFileName.find('.') != std::string::npos)
 	{
-		pDest[0] = '\0';
-		pDest++;
-		strcpy_s(szTemp, pDest);
+		dumpFileName = dumpFileName.substr(0, dumpFileName.find('.'));
 	}
 
-	if (char* pDest = strstr(szTemp, "."))
-		pDest[0] = '\0';
 	SYSTEMTIME t;
 	GetSystemTime(&t);
-	sprintf_s(name, "%s\\%s_%4d%02d%02d_%02d%02d%02d.dmp", gszLogPath, szTemp, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
-	auto hFile = CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	dumpFileName = fmt::format("{FileName}_{Year:0=4d}{Month:0=2d}{Day:0=2d}_{Hour:0=2d}{Minute:0=2d}{Second:0=2d}.dmp",
+						fmt::arg("FileName", dumpFileName),
+						fmt::arg("Year", t.wYear),
+						fmt::arg("Month", t.wMonth),
+						fmt::arg("Day", t.wDay),
+						fmt::arg("Hour", t.wHour),
+						fmt::arg("Minute", t.wMinute),
+						fmt::arg("Second", t.wSecond));
+	dumpFilePath = mq::internal_paths::CrashDumps / dumpFileName;
+
+	auto hFile = CreateFileA(dumpFilePath.string().data(), GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return;
 
@@ -638,7 +644,7 @@ static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)
 		nullptr,
 		nullptr);
 	if (dumped)
-		strcpy_s(dumppath, _Size, name);
+		strcpy_s(dumppath, _Size, dumpFilePath.string().data());
 	CloseHandle(hFile);
 }
 
@@ -655,17 +661,13 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 	char szDumpPath[MAX_STRING] = { 0 };
 
 	HANDLE hProcess;
-	if (!DirectoryExists(gszLogPath))
-	{
-		CreateDirectory(gszLogPath, nullptr);
-	}
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
 	hProcess = GetCurrentProcess();
 
 	SymInitialize(hProcess, nullptr, true);
 
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, gszINIFilename);
+	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, mq::internal_paths::MQini);
 	if (szTemp[0])
 		SymSetSearchPath(hProcess, szTemp);
 	SymGetSearchPath(hProcess, szOut, MAX_STRING);
@@ -731,7 +733,7 @@ int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
 
 	SymInitialize(hProcess, nullptr, true);
 
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, gszINIFilename);
+	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, mq::internal_paths::MQini);
 	if (szTemp[0])
 		SymSetSearchPath(hProcess, szTemp);
 	SymGetSearchPath(hProcess, szOut, MAX_STRING);

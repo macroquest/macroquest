@@ -59,6 +59,8 @@
 
 #include <fmt/format.h>
 
+#include <filesystem>
+
 // Windows Header Files:
 #include <windows.h>
 #include <direct.h>

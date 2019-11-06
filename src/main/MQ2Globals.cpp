@@ -86,14 +86,21 @@ double gZFilter = 10000.0f;
 double gFaceAngle = 10000.0f;
 double gLookAngle = 10000.0f;
 bool gbSpelldbLoaded = false;
-char gszEQPath[MAX_STRING] = { 0 };
-char gszMacroPath[MAX_STRING] = { 0 };
-char gszLogPath[MAX_STRING] = { 0 };
-char gszINIPath[MAX_STRING] = { 0 };
-char gszINIFilename[MAX_STRING] = { 0 };
-char gszItemDB[MAX_STRING] = { 0 };
+char gszMacroPath[MAX_STRING] = { 0 }; // Deprecate
+char gszLogPath[MAX_STRING] = { 0 }; // Deprecate
+char gszINIPath[MAX_STRING] = { 0 }; // Deprecate
+char gszINIFilename[MAX_STRING] = { 0 }; // Deprecate
+char gszItemDB[MAX_STRING] = { 0 }; // Deprecate
 char gszMacroName[MAX_STRING] = { 0 };
 char szLastCommand[MAX_STRING] = { 0 };
+char gPathMQRoot[MAX_PATH] = { 0 };
+char gPathConfig[MAX_PATH] = { 0 };
+char gPathMQini[MAX_PATH] = { 0 };
+char gPathMacros[MAX_PATH] = { 0 };
+char gPathLogs[MAX_PATH] = { 0 };
+char gPathCrashDumps[MAX_PATH] = { 0 };
+char gPathPlugins[MAX_PATH] = { 0 };
+char gPathResources[MAX_PATH] = { 0 };
 
 char gszLastNormalError[MAX_STRING] = { 0 };
 char gszLastSyntaxError[MAX_STRING] = { 0 };
@@ -159,7 +166,7 @@ char gIfDelimiter = ',';
 char gIfAltDelimiter = '~';
 DWORD gNetStatusXPos = 0;
 DWORD gNetStatusYPos = 0;
-LONG gStackingDebug = 0;
+int gStackingDebug = 0;
 BOOL gUseNewNamedTest = 0;
 BOOL gbInForeground = FALSE;
 
@@ -191,7 +198,7 @@ MQFilter* gpFilters = nullptr;
 
 // TODO: Remove this once the parsing engine is fully backwards compatible.
 // Alternatively, move it into the macro block.
-DWORD gdwParserEngineVer = 1;
+int gParserVersion = 1;
 
 MOUSESPOOF* gMouseData = nullptr;
 bool bDetMouse = true;

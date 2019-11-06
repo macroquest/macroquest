@@ -288,7 +288,6 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 MQLIB_API char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
 MQLIB_API char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
-MQLIB_API char* GetEQPath(char* szBuffer, size_t len);
 
 // Command Execution
 MQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);

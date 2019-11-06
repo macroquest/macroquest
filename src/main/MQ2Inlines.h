@@ -616,84 +616,6 @@ inline std::string trim_copy(std::string s)
 	return s;
 }
 
-/**
- * @fn GetIntFromString
- *
- * @brief Gets the int value from a well formatted string
- *
- * Takes the input of a string and a value that should be returned if conversion fails.
- * Attempts to convert the string to an int and returns the converted value on success
- * or the failure value on fail.
- *
- * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
- *
- * @see GetDoubleFromString
- * @see GetFloatFromString
- *
- * @param svString The string to convert to an integer
- * @param iReturnOnFail The integer that should be returned if conversion fails
- *
- * @return int The converted integer or the "failure" value
- **/
-inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
-{
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), iReturnOnFail);
-	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
-	return iReturnOnFail;
-}
-
-/**
- * @fn GetFloatFromString
- *
- * @brief Gets the float value from a well formatted string
- *
- * Takes the input of a string and a value that should be returned if conversion fails.
- * Attempts to convert the string to a float and returns the converted value on success
- * or the failure value on fail.
- *
- * Suitable replacement for atof (removing the undefined behavior) with a cast.
- *
- * @see GetDoubleFromString
- * @see GetIntFromString
- *
- * @param svString The string to convert to a float
- * @param fReturnOnFail The float that should be returned if conversion fails
- *
- * @return float The converted float or the "failure" value
- **/
-inline float GetFloatFromString(const std::string_view svString, float fReturnOnFail)
-{
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), fReturnOnFail);
-	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
-	return fReturnOnFail;
-}
-
-/**
- * @fn GetDoubleFromString
- *
- * @brief Gets the double value from a well formatted string
- *
- * Takes the input of a string and a value that should be returned if conversion fails.
- * Attempts to convert the string to a double and returns the converted value on success
- * or the failure value on fail.
- *
- * Suitable replacement for atof (removing the undefined behavior) and strtod.
- *
- * @see GetFloatFromString
- * @see GetIntFromString
- *
- * @param svString The string to convert to a double
- * @param dReturnOnFail The double that should be returned if conversion fails
- *
- * @return float The converted double or the "failure" value
- **/
-inline double GetDoubleFromString(const std::string_view svString, double dReturnOnFail)
-{
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), dReturnOnFail);
-	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
-	return dReturnOnFail;
-}
-
 inline const char* GetSpellString(int ID, int SpellIndex)
 {
 	if (pEQSpellStrings)
@@ -786,6 +708,22 @@ inline bool ci_starts_with(std::string_view haystack, std::string_view needle)
 	return ci_find_substr(haystack, needle) == 0;
 }
 
+/**
+ * @fn ci_equals
+ *
+ * @brief Case Insensitive Compare for two strings
+ *
+ * Determines if two strings are the same without regard to case.
+ *
+ * First makes sure the strings are the same size, then sends each character
+ * through the equal function passing them to the @ref nocase_compare function.
+ *
+ * @param sv1 The first string to Compare
+ * @param sv2 The second string to Compare
+ *
+ * @return bool The result of the comparison
+ *
+ **/
 inline bool ci_equals(std::string_view sv1, std::string_view sv2)
 {
 	return sv1.size() == sv2.size()
@@ -819,20 +757,141 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 	return ci_equals(haystack, needle, exact);
 }
 
-inline float GetPrivateProfileFloat(const std::string& Section, const std::string& Key, const float DefaultValue, const std::string& iniFileName)
+/**
+ * @fn GetIntFromString
+ *
+ * @brief Gets the int value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to an int and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
+ *
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
+ * @param svString The string to convert to an integer
+ * @param iReturnOnFail The integer that should be returned if conversion fails
+ *
+ * @return int The converted integer or the "failure" value
+ **/
+inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), iReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return iReturnOnFail;
+}
+
+/**
+ * @fn GetFloatFromString
+ *
+ * @brief Gets the float value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a float and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atof (removing the undefined behavior) with a cast.
+ *
+ * @see GetDoubleFromString
+ * @see GetIntFromString
+ *
+ * @param svString The string to convert to a float
+ * @param fReturnOnFail The float that should be returned if conversion fails
+ *
+ * @return float The converted float or the "failure" value
+ **/
+inline float GetFloatFromString(const std::string_view svString, float fReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), fReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return fReturnOnFail;
+}
+
+/**
+ * @fn GetDoubleFromString
+ *
+ * @brief Gets the double value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a double and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atof (removing the undefined behavior) and strtod.
+ *
+ * @see GetFloatFromString
+ * @see GetIntFromString
+ *
+ * @param svString The string to convert to a double
+ * @param dReturnOnFail The double that should be returned if conversion fails
+ *
+ * @return float The converted double or the "failure" value
+ **/
+inline double GetDoubleFromString(const std::string_view svString, double dReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), dReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return dReturnOnFail;
+}
+
+/**
+ * @fn GetBoolFromString
+ *
+ * @brief Gets the bool value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a bool and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * @see GetIntFromString
+ * @see CaseInsCompare
+ *
+ * @param svString The string to convert to an integer
+ * @param bReturnOnFail The bool that should be returned if conversion fails
+ *
+ * @return int The converted integer or the "failure" value
+ **/
+inline bool GetBoolFromString(const std::string_view svString, bool bReturnOnFail)
+{
+	if (ci_equals(svString, "True"))
+	{
+		bReturnOnFail = true;
+	}
+	else if (ci_equals(svString, "False"))
+	{
+		bReturnOnFail = false;
+	}
+	else
+	{
+		bReturnOnFail = static_cast<bool>(GetIntFromString(svString, static_cast<int>(bReturnOnFail)));
+	}
+	return bReturnOnFail;
+}
+
+inline float GetPrivateProfileFloat(const std::string& Section, const std::string& Key, const float DefaultValue, const std::filesystem::path& iniFileName)
 {
 	const std::string strDefaultValue = std::to_string(DefaultValue);
 	const size_t Size = 100;
 	char Return[Size] = { 0 };
-	GetPrivateProfileStringA(Section.data(), Key.data(), strDefaultValue.data(), Return, Size, iniFileName.data());
+	GetPrivateProfileStringA(Section.data(), Key.data(), strDefaultValue.data(), Return, Size, iniFileName.string().data());
 	return GetFloatFromString(Return, DefaultValue);
 }
 
-inline std::string GetPrivateProfileStdString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::string& iniFileName)
+inline std::string GetPrivateProfileStdString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::filesystem::path& iniFileName)
 {
 	char szBuffer[MAX_STRING] = { 0 };
-	GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), szBuffer, MAX_STRING, iniFileName.data());
+	GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), szBuffer, MAX_STRING, iniFileName.string().data());
 	return std::string(szBuffer);
+}
+
+inline bool GetPrivateProfileBool(const std::string& Section, const std::string& Key, const bool DefaultValue, const std::filesystem::path& iniFileName)
+{
+	const std::string strDefaultValue = std::to_string(DefaultValue);
+	const size_t Size = 10;
+	char Return[Size] = { 0 };
+	GetPrivateProfileStringA(Section.data(), Key.data(), strDefaultValue.data(), Return, Size, iniFileName.string().data());
+	return GetBoolFromString(Return, DefaultValue);
 }
 
 // These are replaced with our own wrappers
@@ -841,9 +900,9 @@ inline std::string GetPrivateProfileStdString(const std::string& Section, const 
 #undef WritePrivateProfileSection
 #undef WritePrivateProfileString
 
-inline int GetPrivateProfileInt(const std::string& Section, const std::string& Key, const int DefaultValue, const std::string& iniFileName)
+inline int GetPrivateProfileInt(const std::string& Section, const std::string& Key, const int DefaultValue, const std::filesystem::path& iniFileName)
 {
-	return GetPrivateProfileIntA(Section.data(), Key.data(), DefaultValue, iniFileName.data());
+	return GetPrivateProfileIntA(Section.data(), Key.data(), DefaultValue, iniFileName.string().data());
 }
 
 inline int GetPrivateProfileInt(char* Section, char* Key, const int DefaultValue, char* iniFileName)
@@ -851,9 +910,9 @@ inline int GetPrivateProfileInt(char* Section, char* Key, const int DefaultValue
 	return GetPrivateProfileIntA(Section, Key, DefaultValue, iniFileName);
 }
 
-inline int GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, char* Return, const size_t Size, const std::string& iniFileName)
+inline int GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, char* Return, const size_t Size, const std::filesystem::path& iniFilePath)
 {
-	return GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), Return, Size, iniFileName.data());
+	return GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), Return, Size, iniFilePath.string().data());
 }
 
 inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* Return, const size_t Size, char* iniFileName)
@@ -861,9 +920,9 @@ inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue,
 	return GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
 }
 
-inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::string& iniFileName)
+inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::filesystem::path& iniFileName)
 {
-	return WritePrivateProfileSectionA(Section.data(), KeysAndValues.data(), iniFileName.data());
+	return WritePrivateProfileSectionA(Section.data(), KeysAndValues.data(), iniFileName.string().data());
 }
 
 inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char* iniFileName)
@@ -871,9 +930,9 @@ inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char*
 	return WritePrivateProfileSectionA(Section, KeysAndValues, iniFileName);
 }
 
-inline bool WritePrivateProfileString(const std::string& Section, const std::string& Key, const std::string& Value, const std::string& iniFileName)
+inline bool WritePrivateProfileString(const std::string& Section, const std::string& Key, const std::string& Value, const std::filesystem::path& iniFileName)
 {
-	return WritePrivateProfileStringA(Section.data(), Key.data(), Value.data(), iniFileName.data());
+	return WritePrivateProfileStringA(Section.data(), Key.data(), Value.data(), iniFileName.string().data());
 }
 
 inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, char* iniFileName)

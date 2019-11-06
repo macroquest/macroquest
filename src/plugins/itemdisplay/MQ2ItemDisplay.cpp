@@ -48,6 +48,7 @@ bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
 std::mutex s_mutex;
+const char* TipWndXML = "MQUI_CompareTipWnd.xml";
 
 struct ButtonInfo
 {
@@ -3239,7 +3240,7 @@ void CreateCompareTipWnd()
 		return;
 	}
 
-	if (IsXMLFilePresent("MQUI_CompareTipWnd.xml"))
+	if (IsXMLFilePresent(TipWndXML))
 	{
 		if (pSidlMgr && pSidlMgr->FindScreenPieceTemplate("CompareTipWnd"))
 		{
@@ -3288,7 +3289,7 @@ PLUGIN_API void InitializePlugin()
 	pDisplayItemType = new MQ2DisplayItemType;
 	AddMQ2Data("GearScore", dataGearScore);
 
-	if (!IsXMLFilePresent("MQUI_CompareTipWnd.xml"))
+	if (!IsXMLFilePresent(TipWndXML))
 	{
 		HMODULE hMe = nullptr;
 
@@ -3303,22 +3304,21 @@ PLUGIN_API void InitializePlugin()
 				BOOL bResult = 0;
 				if (void* pMyBinaryData = LockResource(bin))
 				{
+					std::filesystem::path pathUI = gPathResources;
+					pathUI = pathUI / "uifiles" / "default";
+
+					if (!std::filesystem::exists(pathUI))
+					{
+						std::filesystem::create_directories(pathUI);
+					}
+
+					pathUI /= TipWndXML;
+
 					// save it to the default mq uifiles dir
 					DWORD ressize = SizeofResource(hMe, hRes);
 					FILE* File = nullptr;
 
-					char szFilename[MAX_PATH] = { 0 };
-					sprintf_s(szFilename, "%s\\uifiles", gszINIPath);
-
-					// Make sure directories exist already.
-					CreateDirectoryA(szFilename, nullptr);
-
-					strcat_s(szFilename, "\\default");
-					CreateDirectoryA(szFilename, nullptr);
-
-					strcat_s(szFilename, "\\MQUI_CompareTipWnd.xml");
-
-					errno_t err = fopen_s(&File, szFilename, "wb");
+					errno_t err = fopen_s(&File, pathUI.string().data(), "wb");
 					if (!err && File)
 					{
 						fwrite(pMyBinaryData, ressize, 1, File);
@@ -3331,7 +3331,7 @@ PLUGIN_API void InitializePlugin()
 		}
 	}
 
-	AddXMLFile("MQUI_CompareTipWnd.xml");
+	AddXMLFile(TipWndXML);
 	EzDetourwName(CInvSlotWnd__DrawTooltip, &ItemDisplayHook::CInvSlotWnd_DrawTooltipDetour, &ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp,"CInvSlotWnd__DrawTooltip");
 
 	if (gGameState == GAMESTATE_INGAME)
@@ -3350,7 +3350,7 @@ PLUGIN_API void SetGameState(DWORD GameState)
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-	RemoveXMLFile("MQUI_CompareTipWnd.xml");
+	RemoveXMLFile(TipWndXML);
 
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CInvSlotWnd__DrawTooltip);

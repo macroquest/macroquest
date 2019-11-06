@@ -573,7 +573,7 @@ void InitializeMQ2Spawns()
 	// load custom spawn caption colors
 	for (int index = 0; CaptionColors[index].szName[0]; index++)
 	{
-		if (GetPrivateProfileString("Caption Colors", CaptionColors[index].szName, "", Temp, MAX_STRING, gszINIFilename))
+		if (GetPrivateProfileString("Caption Colors", CaptionColors[index].szName, "", Temp, MAX_STRING, mq::internal_paths::MQini))
 		{
 			if (!_stricmp(Temp, "on") || !_stricmp(Temp, "1"))
 				CaptionColors[index].Enabled = 1;
@@ -583,7 +583,7 @@ void InitializeMQ2Spawns()
 
 		sprintf_s(Name, "%s-Color", CaptionColors[index].szName);
 
-		if (GetPrivateProfileString("Caption Colors", Name, "", Temp, MAX_STRING, gszINIFilename))
+		if (GetPrivateProfileString("Caption Colors", Name, "", Temp, MAX_STRING, mq::internal_paths::MQini))
 		{
 			if (!sscanf_s(Temp, "%x", &CaptionColors[index].Color))
 			{
@@ -596,13 +596,13 @@ void InitializeMQ2Spawns()
 	// write custom spawn caption colors
 	for (int index = 0; CaptionColors[index].szName[0]; index++)
 	{
-		WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", gszINIFilename);
+		WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", mq::internal_paths::MQini);
 
 		if (!CaptionColors[index].ToggleOnly)
 		{
 			sprintf_s(Temp, "%x", CaptionColors[index].Color);
 			sprintf_s(Name, "%s-Color", CaptionColors[index].szName);
-			WritePrivateProfileString("Caption Colors", Name, Temp, gszINIFilename);
+			WritePrivateProfileString("Caption Colors", Name, Temp, mq::internal_paths::MQini);
 		}
 	}
 }
@@ -780,13 +780,13 @@ void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 				WriteChatf("%s ON Color: %d %d %d. (%s)", CaptionColors[index].szName, Color.R, Color.G, Color.B, CaptionColors[index].szDescription);
 			}
 
-			WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", gszINIFilename);
+			WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", mq::internal_paths::MQini);
 
 			if (!CaptionColors[index].ToggleOnly)
 			{
 				sprintf_s(Arg2, "%x", CaptionColors[index].Color);
 				sprintf_s(Arg1, "%s-Color", CaptionColors[index].szName);
-				WritePrivateProfileString("Caption Colors", Arg1, Arg2, gszINIFilename);
+				WritePrivateProfileString("Caption Colors", Arg1, Arg2, mq::internal_paths::MQini);
 			}
 
 			return;

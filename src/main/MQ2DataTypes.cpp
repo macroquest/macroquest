@@ -11945,9 +11945,8 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		SYSTEMTIME st;
 		HANDLE hFile;
 		WIN32_FIND_DATA FileData;
-		char szBuffer[MAX_STRING];
-		sprintf_s(szBuffer, "%s\\MQ2Main.dll", gszINIPath);
-		hFile = FindFirstFile(szBuffer, &FileData);
+		std::filesystem::path pathMQ2Main = mq::internal_paths::MQRoot / "MQ2Main.dll";
+		hFile = FindFirstFile(pathMQ2Main.string().data(), &FileData);
 		// Convert the creation time time to local time.
 		FileTimeToSystemTime(&FileData.ftLastWriteTime, &st);
 		FindClose(hFile);
@@ -11963,7 +11962,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 
 	case Path:
-		strcpy_s(DataTypeTemp, gszINIPath);
+		strcpy_s(DataTypeTemp, mq::internal_paths::MQRoot.string().data());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -12077,7 +12076,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	}
 
 	case Parser:
-		Dest.DWord = gdwParserEngineVer;
+		Dest.DWord = gParserVersion;
 		Dest.Type = pIntType;
 		return true;
 
@@ -12471,7 +12470,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (CHARINFO* pCharInfo = GetCharInfo())
 		{
 			char szFilename[MAX_STRING] = { 0 };
-			sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+			sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 			GetPrivateProfileString("Main", "UISkin", "default", DataTypeTemp, MAX_STRING, szFilename);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -12485,7 +12484,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (CHARINFO* pCharInfo = GetCharInfo())
 		{
 			char szFilename[MAX_STRING] = { 0 };
-			sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+			sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 			GetPrivateProfileString("Main", "UISkin", "default", DataTypeTemp, MAX_STRING, szFilename);
 
 			if (_stricmp(DataTypeTemp, "default"))
