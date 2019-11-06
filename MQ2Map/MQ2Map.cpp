@@ -23,6 +23,8 @@ float CampX = 0.0f;
 float CampY = 0.0f;
 float PullX = 0.0f;
 float PullY = 0.0f;
+BOOL wasAnon = gAnonymize;
+bool needAnon = false;
 
 WORD currentZoneId = 0;
 
@@ -459,6 +461,10 @@ PLUGIN_API VOID OnPulse(VOID)
 			}
 
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
+		}
+		if (gAnonymize != wasAnon) {
+			wasAnon = gAnonymize;
+			needAnon = true;
 		}
 	}
 

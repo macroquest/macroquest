@@ -106,6 +106,8 @@ extern float CampX;
 extern float CampY;
 extern float PullX;
 extern float PullY;
+extern BOOL wasAnon;
+extern bool needAnon;
 
 extern map<string, PMAPLOC> LocationMap;
 extern PMAPLOC DefaultMapLoc;

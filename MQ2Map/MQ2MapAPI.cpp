@@ -501,12 +501,11 @@ void MapUpdate()
 		if (pMapSpawn->Highlight)
 		{
 			pMapSpawn->pMapLabel->Color.ARGB = HighlightColor;
-			pMapSpawn->pMapLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
 		}
 		else
 		{
 			Type = GetSpawnType(pMapSpawn->pSpawn);
-			if (Type != pMapSpawn->SpawnType || ((pMapSpawn == pOldLastTarget) && bTargetChanged))
+			if (Type != pMapSpawn->SpawnType || ((pMapSpawn == pOldLastTarget) && bTargetChanged) || needAnon)
 			{
 				if (!pMapSpawn->Explicit && !CanDisplaySpawn(Type, pMapSpawn->pSpawn))
 				{
@@ -518,11 +517,10 @@ void MapUpdate()
 
 				pMapSpawn->SpawnType = Type;
 				free(pMapSpawn->pMapLabel->Label);
-				pMapSpawn->pMapLabel->Color.ARGB = GetSpawnColor(pMapSpawn->SpawnType, pMapSpawn->pSpawn);
 				pMapSpawn->pMapLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
 
 			}
-			
+			pMapSpawn->pMapLabel->Color.ARGB = GetSpawnColor(pMapSpawn->SpawnType, pMapSpawn->pSpawn);
 		}
 
 		if (pMapSpawn->pVector)
@@ -551,7 +549,7 @@ void MapUpdate()
 			RemoveMarker(pMapSpawn);
 		pMapSpawn = pMapSpawn->pNext;
 	}
-
+	if (needAnon) needAnon = false;
 	if (IsOptionEnabled(MAPFILTER_CastRadius))
 	{
 		unsigned long Angle = 0;
@@ -680,7 +678,6 @@ void MapUpdate()
 					if (pMapSpawn = SpawnMap[pSpawn->SpawnID])
 					{
 						pMapSpawn->pMapLabel->Color.ARGB = MapFilterOptions[MAPFILTER_Group].Color;
-						pMapSpawn->pMapLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);//Needed to anonymize group members, but keep the color change.
 					}
 			}
 		}

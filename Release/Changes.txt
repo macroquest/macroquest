@@ -1,3 +1,6 @@
+Nov 06 2019
+- Updated for BETA
+-
 Nov 05 2019
 - Updated for BETA
 - Right Clicking the Lucy button on the item display window will now open Lucy in your external default browser.
