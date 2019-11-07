@@ -589,7 +589,7 @@ static MQMacroBlockPtr AddMacroBlock(std::string Name)
 	macroBlock->Name = Name;
 	macroBlock->Paused = false;
 	macroBlock->Removed = false;
-	MacroBlockMap.insert_or_assign(Name, std::move(macroBlock));
+	MacroBlockMap.insert_or_assign(Name, macroBlock);
 
 	return macroBlock;
 }
