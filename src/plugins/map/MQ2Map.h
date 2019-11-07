@@ -118,6 +118,9 @@ extern float CampY;
 extern float PullX;
 extern float PullY;
 
+extern BOOL wasAnon;
+extern bool needAnon;
+
 extern std::map<std::string, MAPLOC*> LocationMap;
 extern MAPLOC* DefaultMapLoc;
 
@@ -135,8 +138,10 @@ extern char maphideStr[MAX_STRING];
 extern MQSpawnSearch MapFilterCustom;
 extern MQSpawnSearch MapFilterNamed;
 extern MAPFILTER MapFilterOptions[];
-extern char MapSpecialClickString[16][MAX_STRING];
-extern char MapLeftClickString[16][MAX_STRING];
+
+constexpr int MAX_CLICK_STRINGS = 16;
+extern char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING];
+extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern BOOL repeatMapshow;
 extern BOOL repeatMaphide;
 
