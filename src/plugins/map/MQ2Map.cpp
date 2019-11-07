@@ -29,6 +29,8 @@ float CampX = 0.0f;
 float CampY = 0.0f;
 float PullX = 0.0f;
 float PullY = 0.0f;
+BOOL wasAnon = 0;
+bool needAnon = false;
 bool Update = true;
 WORD currentZoneId = 0;
 BOOL repeatMaphide = FALSE;
@@ -42,7 +44,7 @@ DWORD HighlightPulseDiff = HighlightSIDELEN / 10;
 
 #define INVALID_FLOOR ((float)-1.0e27)
 
-char MapSpecialClickString[16][MAX_STRING] =
+char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING] =
 {
 	"",                      // unused, will always target
 	"",                      // SHIFT
@@ -62,7 +64,7 @@ char MapSpecialClickString[16][MAX_STRING] =
 	""                       // RALT|LALT|SHIFT|CTRL
 };
 
-char MapLeftClickString[16][MAX_STRING] =
+char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING] =
 {
 	"",                      //  unused, will always target
 	"",                      // SHIFT
@@ -263,13 +265,14 @@ PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("Initializing MQ2Map");
 
+	wasAnon = gAnonymize;
 	bmMapRefresh = AddMQ2Benchmark("Map Refresh");
-	unsigned long i;
+
 	char szBuffer[MAX_STRING] = { 0 };
 	char tmp_1[MAX_STRING] = { 0 };
 	char tmp_2[MAX_STRING] = { 0 };
 
-	for (i = 0; MapFilterOptions[i].szName; i++)
+	for (int i = 0; MapFilterOptions[i].szName; i++)
 	{
 		sprintf_s(szBuffer, "%s-Color", MapFilterOptions[i].szName);
 
@@ -313,7 +316,7 @@ PLUGIN_API void InitializePlugin()
 	GetPrivateProfileString("Naming Schemes", "Normal", "%N", MapNameString, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Naming Schemes", "Target", "%N", MapTargetNameString, MAX_STRING, INIFileName);
 
-	for (i = 1; i < 16; i++)
+	for (int i = 1; i < MAX_CLICK_STRINGS; i++)
 	{
 		sprintf_s(szBuffer, "KeyCombo%d", i);
 		GetPrivateProfileString("Right Click", szBuffer, MapSpecialClickString[i], MapSpecialClickString[i], MAX_STRING, INIFileName);
@@ -390,6 +393,12 @@ PLUGIN_API void OnPulse()
 
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
 		}
+	}
+
+	if (gAnonymize != wasAnon)
+	{
+		wasAnon = gAnonymize;
+		needAnon = true;
 	}
 
 	char szBuffer[MAX_STRING] = { 0 };
