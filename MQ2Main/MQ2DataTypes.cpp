@@ -3765,25 +3765,23 @@ bool MQ2CharacterType::GETMEMBER()
 						if (PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							DWORD timeNow = (DWORD)time(NULL);
+							DWORD timer = timeNow;
 							#if !defined(ROF2EMU) && !defined(UFEMU)
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
+							timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+							if (timer > timeNow)
 							#else
-								if (pSpell->ReuseTimerIndex > 20)
-								{
-									return false;
-								}
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
+							if (pSpell->ReuseTimerIndex == -1 || pSpell->ReuseTimerIndex > 20)
+							{
+								//if we don't check this on emu servers we will crash
+								//the fix should happen on the server but no one has fixed it so...
+								return true;
+							}
+							timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex);
+							if (timer > timeNow)
 							#endif
-								{
-									#if !defined(ROF2EMU) && !defined(UFEMU)
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
-									#else
-									if (pSpell->ReuseTimerIndex > 20)
-									{
-										return false;
-									}
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
-									#endif
+							{
+								Dest.Int = timer - timeNow + 6;
+								if(Dest.Int != 0)
 									Dest.Int /= 6;
 							}
 							return true;
@@ -3802,26 +3800,22 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
+								DWORD timer = timeNow;
 								#if !defined(ROF2EMU) && !defined(UFEMU)
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
+								timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+								if (timer > timeNow)
 								#else
-								if (pSpell->ReuseTimerIndex > 20)
+								if (pSpell->ReuseTimerIndex == -1 || pSpell->ReuseTimerIndex > 20)
 								{
-									return false;
+									return true;
 								}
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) > timeNow)
+								timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex);
+								if (timer > timeNow)
 								#endif
 								{
-									#if !defined(ROF2EMU) && !defined(UFEMU)
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
-									#else
-									if (pSpell->ReuseTimerIndex > 20)
-									{
-										return false;
-									}
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) - timeNow + 6;
-									#endif
-									Dest.Int /= 6;
+									Dest.Int = timer - timeNow + 6;
+									if(Dest.Int != 0)
+										Dest.Int /= 6;
 								}
 								return true;
 							}
@@ -3830,7 +3824,7 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 		}
-		return false;
+		return true;
 	case CombatAbilityReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
@@ -3846,14 +3840,18 @@ bool MQ2CharacterType::GETMEMBER()
 						if (PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							DWORD timeNow = (DWORD)time(NULL);
+							DWORD timer = timeNow;
 							#if !defined(ROF2EMU) && !defined(UFEMU)
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
+							timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+							if (timer < timeNow)
 							#else
-							if (pSpell->ReuseTimerIndex > 20)
+							if (pSpell->ReuseTimerIndex == -1 || pSpell->ReuseTimerIndex > 20)
 							{
-								return false;
+								Dest.DWord = 1;
+								return true;
 							}
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
+							timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex);
+							if (timer < timeNow)
 							#endif
 							{
 								Dest.DWord = 1;
@@ -3874,14 +3872,18 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
+								DWORD timer = timeNow;
 								#if !defined(ROF2EMU) && !defined(UFEMU)
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
+								timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+								if (timer < timeNow)
 								#else
-								if (pSpell->ReuseTimerIndex > 20)
+								if (pSpell->ReuseTimerIndex == -1 || pSpell->ReuseTimerIndex > 20)
 								{
-									return false;
+									Dest.DWord = 1;
+									return true;
 								}
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex) < timeNow)
+								timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex);
+								if (timer < timeNow)
 								#endif
 								{
 									Dest.DWord = 1;

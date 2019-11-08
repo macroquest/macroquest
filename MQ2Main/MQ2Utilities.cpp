@@ -11374,7 +11374,7 @@ EQGroundItemListManager* GetItemList()
 ItemGlobalIndex2 ig;
 ItemGlobalIndex2& CONTENTS::GetGlobalIndex()
 {
-#if !defined(ROF2EMU) && !defined(UFEMU)
+#if !defined(UFEMU)
 	return this->GlobalIndex;
 #else
 	ig.Location = eItemContainerInvalid;
