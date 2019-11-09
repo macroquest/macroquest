@@ -23,7 +23,7 @@
 namespace mq {
 
 bool TurnNotDone = false;
-static std::mutex s_pulseMutex;
+static std::recursive_mutex s_pulseMutex;
 
 std::map<int, std::string> targetBuffSlotToCasterMap;
 std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;

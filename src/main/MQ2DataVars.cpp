@@ -17,7 +17,7 @@
 
 namespace mq {
 
-static std::mutex s_dataVarMutex;
+static std::recursive_mutex s_dataVarMutex;
 
 void DeleteMQ2DataVariable(MQDataVar* pVar)
 {
