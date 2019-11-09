@@ -2582,7 +2582,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 				{
 					if (!HasSkill(Index))
 					{
-						WriteChatf("you do not have this skill");
+						WriteChatf("you do not have this skill (%s)",szBuffer);
 						return;
 					}
 					if (PCHARINFO pChar = GetCharInfo()) {

@@ -1194,7 +1194,6 @@ public:
 	int WndNotification_Trampoline(CXWnd*, unsigned __int32, void*);
 	int WndNotification_Detour(CXWnd* pWnd, unsigned __int32 Message, void* pData)
     {
-#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (Message == XWM_RCLICK)
 		{
 			std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.find((CButtonWnd*)pWnd);
@@ -1221,6 +1220,7 @@ public:
 			if (i != ButtonMap.end()) {
 				switch (i->second.ID)
 				{
+					#if !defined(ROF2EMU) && !defined(UFEMU)
 					case 2://Toggle the Need Loot Filter
 					{
 						if (i->first->Checked) {//check need
@@ -1356,10 +1356,10 @@ public:
 								if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd) {
 									if (j->second.ID == 5) {
 										bAutoRollisChecked = j->first->Checked;
-					break;
-				}
-			}
-		}
+										break;
+									}
+								}
+							}
 							if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
 								if (pLootFiltersManager) {
 									if (PItemFilterData pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber)) {
@@ -1419,7 +1419,8 @@ public:
 							}
 						}
 						return 0;
-					}			
+					}
+					#endif
 					case 6://open in lucy
 					{
 						if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
@@ -1458,7 +1459,6 @@ public:
 				}
 			}
 		}
-#endif
         return WndNotification_Trampoline(pWnd, Message, pData);
     };
 
@@ -1872,6 +1872,7 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 			bToggle = false;
 		}
 	}
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (!_stricmp(szArg1, "LootButton")) {
 		if (bToggle) {
 			gLootButton = !gLootButton;
@@ -1894,29 +1895,33 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 				i++;
 			}
 		}
-	} else if (!_stricmp(szArg1, "LucyButton")) {
-		if (bToggle) {
-			gLucyButton = !gLucyButton;
-		}
-		else {
-			gLucyButton = bon;
-		}
-		WriteChatf("Display of the %s is now \ay%s\ax.",szArg1, (gLucyButton ? "Enabled" : "Disabled"));
-		_itoa_s(gLucyButton, szArg1, 10);
-		WritePrivateProfileString("Settings","LucyButton",szArg1,INIFileName);
-		for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
-			if (i->second.ID == 2) {
-				i->first->Destroy();
-				std::map<CButtonWnd*, ButtonInfo>::iterator next = i;
-				next++;
-				ButtonMap.erase(i);
-				i = next;
+	}
+	else 
+#endif
+		if (!_stricmp(szArg1, "LucyButton"))
+		{
+			if (bToggle) {
+				gLucyButton = !gLucyButton;
 			}
 			else {
-				i++;
+				gLucyButton = bon;
+			}
+			WriteChatf("Display of the %s is now \ay%s\ax.",szArg1, (gLucyButton ? "Enabled" : "Disabled"));
+			_itoa_s(gLucyButton, szArg1, 10);
+			WritePrivateProfileString("Settings","LucyButton",szArg1,INIFileName);
+			for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end();) {
+				if (i->second.ID == 2) {
+					i->first->Destroy();
+					std::map<CButtonWnd*, ButtonInfo>::iterator next = i;
+					next++;
+					ButtonMap.erase(i);
+					i = next;
+				}
+				else {
+					i++;
+				}
 			}
 		}
-	}
 	else if (!_stricmp(szArg1, "Compare")) {
 		if (bToggle) {
 			gCompareTip = !gCompareTip;
@@ -3140,10 +3145,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	gLucyButton = 1 == GetPrivateProfileInt("Settings", "LucyButton", 1, INIFileName);
 	gCompareTip = 1 == GetPrivateProfileInt("Settings", "CompareTip", 0, INIFileName);
 
-#if !defined(ROF2EMU) && !defined(UFEMU)
+
 	EzDetourwName(CItemDisplayWnd__WndNotification, &ItemDisplayHook::WndNotification_Detour, &ItemDisplayHook::WndNotification_Trampoline, "CItemDisplayWnd__WndNotification");
 	EzDetourwName(CItemDisplayWnd__AboutToShow, &ItemDisplayHook::AboutToShow_Detour, &ItemDisplayHook::AboutToShow_Trampoline, "CItemDisplayWnd__AboutToShow");
-#endif
 	EzDetourwName(CItemDisplayWnd__SetSpell, &ItemDisplayHook::SetSpell_Detour, &ItemDisplayHook::SetSpell_Trampoline, "CItemDisplayWnd__SetSpell");
 	EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline, "CItemDisplayWnd__UpdateStrings");
 
@@ -3232,14 +3236,13 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveDetour(CInvSlotWnd__DrawTooltip);
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CItemDisplayWnd__UpdateStrings);
-#if !defined(ROF2EMU) && !defined(UFEMU)
 	RemoveDetour(CItemDisplayWnd__AboutToShow);
 	RemoveDetour(CItemDisplayWnd__WndNotification);
 	for (std::map<CButtonWnd*, ButtonInfo>::iterator i = ButtonMap.begin(); i != ButtonMap.end(); i++) {
 		i->first->Destroy();
 	}
 	ButtonMap.clear();
-#endif
+
 	delete pGearScoreType;
 	pGearScoreType = 0;
 	
