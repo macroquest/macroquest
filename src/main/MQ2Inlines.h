@@ -685,6 +685,17 @@ struct ci_less
 		}
 	};
 
+	struct nocase_equals
+	{
+		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
+		{
+			if (c1 == c2)
+				return true;
+
+			return ::tolower(c1) == ::tolower(c2);
+		}
+	};
+
 	bool operator()(std::string_view s1, std::string_view s2) const noexcept
 	{
 		return std::lexicographical_compare(
@@ -697,7 +708,7 @@ struct ci_less
 inline int ci_find_substr(std::string_view haystack, std::string_view needle)
 {
 	auto iter = std::search(std::begin(haystack), std::end(haystack),
-		std::begin(needle), std::end(needle), ci_less::nocase_compare());
+		std::begin(needle), std::end(needle), ci_less::nocase_equals());
 	if (iter == std::end(haystack)) return -1;
 	return iter - std::begin(haystack);
 }
@@ -727,7 +738,7 @@ inline bool ci_starts_with(std::string_view haystack, std::string_view needle)
 inline bool ci_equals(std::string_view sv1, std::string_view sv2)
 {
 	return sv1.size() == sv2.size()
-		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_compare());
+		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_equals());
 }
 
 inline bool ci_equals(std::string_view haystack, std::string_view needle, bool isExact)
