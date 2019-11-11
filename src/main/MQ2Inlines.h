@@ -880,28 +880,20 @@ inline bool GetBoolFromString(const std::string_view svString, bool bReturnOnFai
 	return bReturnOnFail;
 }
 
-inline float GetPrivateProfileFloat(const std::string& Section, const std::string& Key, const float DefaultValue, const std::filesystem::path& iniFileName)
+inline float GetPrivateProfileFloat(const std::string& Section, const std::string& Key, const float DefaultValue, const std::string& iniFileName)
 {
 	const std::string strDefaultValue = std::to_string(DefaultValue);
 	const size_t Size = 100;
 	char Return[Size] = { 0 };
-	GetPrivateProfileStringA(Section.data(), Key.data(), strDefaultValue.data(), Return, Size, iniFileName.string().data());
+	GetPrivateProfileStringA(Section.c_str(), Key.c_str(), strDefaultValue.c_str(), Return, Size, iniFileName.c_str());
 	return GetFloatFromString(Return, DefaultValue);
 }
 
-inline std::string GetPrivateProfileStdString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::filesystem::path& iniFileName)
+inline bool GetPrivateProfileBool(const std::string& Section, const std::string& Key, const bool DefaultValue, const std::string& iniFileName)
 {
-	char szBuffer[MAX_STRING] = { 0 };
-	GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), szBuffer, MAX_STRING, iniFileName.string().data());
-	return std::string(szBuffer);
-}
-
-inline bool GetPrivateProfileBool(const std::string& Section, const std::string& Key, const bool DefaultValue, const std::filesystem::path& iniFileName)
-{
-	const std::string strDefaultValue = std::to_string(DefaultValue);
 	const size_t Size = 10;
 	char Return[Size] = { 0 };
-	GetPrivateProfileStringA(Section.data(), Key.data(), strDefaultValue.data(), Return, Size, iniFileName.string().data());
+	GetPrivateProfileStringA(Section.c_str(), Key.c_str(), DefaultValue ? "true" : "false", Return, Size, iniFileName.c_str());
 	return GetBoolFromString(Return, DefaultValue);
 }
 
@@ -911,9 +903,9 @@ inline bool GetPrivateProfileBool(const std::string& Section, const std::string&
 #undef WritePrivateProfileSection
 #undef WritePrivateProfileString
 
-inline int GetPrivateProfileInt(const std::string& Section, const std::string& Key, const int DefaultValue, const std::filesystem::path& iniFileName)
+inline int GetPrivateProfileInt(const std::string& Section, const std::string& Key, const int DefaultValue, const std::string& iniFileName)
 {
-	return GetPrivateProfileIntA(Section.data(), Key.data(), DefaultValue, iniFileName.string().data());
+	return GetPrivateProfileIntA(Section.c_str(), Key.c_str(), DefaultValue, iniFileName.c_str());
 }
 
 inline int GetPrivateProfileInt(char* Section, char* Key, const int DefaultValue, char* iniFileName)
@@ -921,9 +913,9 @@ inline int GetPrivateProfileInt(char* Section, char* Key, const int DefaultValue
 	return GetPrivateProfileIntA(Section, Key, DefaultValue, iniFileName);
 }
 
-inline int GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, char* Return, const size_t Size, const std::filesystem::path& iniFilePath)
+inline int GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, char* Return, const size_t Size, const std::string& iniFileName)
 {
-	return GetPrivateProfileStringA(Section.data(), Key.data(), DefaultValue.data(), Return, Size, iniFilePath.string().data());
+	return GetPrivateProfileStringA(Section.empty() ? nullptr : Section.c_str(), Key.empty() ? nullptr : Key.c_str(), DefaultValue.c_str(), Return, Size, iniFileName.c_str());
 }
 
 inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* Return, const size_t Size, char* iniFileName)
@@ -931,9 +923,9 @@ inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue,
 	return GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
 }
 
-inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::filesystem::path& iniFileName)
+inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::string& iniFileName)
 {
-	return WritePrivateProfileSectionA(Section.data(), KeysAndValues.data(), iniFileName.string().data());
+	return WritePrivateProfileSectionA(Section.c_str(), KeysAndValues.c_str(), iniFileName.c_str());
 }
 
 inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char* iniFileName)
@@ -941,9 +933,9 @@ inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char*
 	return WritePrivateProfileSectionA(Section, KeysAndValues, iniFileName);
 }
 
-inline bool WritePrivateProfileString(const std::string& Section, const std::string& Key, const std::string& Value, const std::filesystem::path& iniFileName)
+inline bool WritePrivateProfileString(const std::string& Section, const std::string& Key, const std::string& Value, const std::string& iniFileName)
 {
-	return WritePrivateProfileStringA(Section.data(), Key.data(), Value.data(), iniFileName.string().data());
+	return WritePrivateProfileStringA(Section.c_str(), Key.c_str(), Value.c_str(), iniFileName.c_str());
 }
 
 inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, char* iniFileName)

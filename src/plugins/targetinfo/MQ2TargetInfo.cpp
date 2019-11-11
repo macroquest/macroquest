@@ -2237,7 +2237,7 @@ PLUGIN_API void InitializePlugin()
 					//save it...
 					DWORD ressize = SizeofResource(hMe, hRes);
 					FILE* File = 0;
-					errno_t err = fopen_s(&File, curFilepath.string().data(), "wb");
+					errno_t err = fopen_s(&File, curFilepath.string().c_str(), "wb");
 					if (!err) {
 						fwrite(pMyBinaryData, ressize, 1, File);
 						fclose(File);

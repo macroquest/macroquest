@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <list>
 #include <map>
 #include <memory>
@@ -58,8 +59,6 @@
 #include <unordered_map>
 
 #include <fmt/format.h>
-
-#include <filesystem>
 
 // Windows Header Files:
 #include <windows.h>

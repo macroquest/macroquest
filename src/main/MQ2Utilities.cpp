@@ -32,8 +32,8 @@ static void LogToFile(const char* szOutput)
 {
 	FILE* fOut = nullptr;
 
-	const std::filesystem::path pathDebugSpew = mq::internal_paths::Logs / "DebugSpew.log";
-	errno_t err = fopen_s(&fOut, pathDebugSpew.string().data(), "at");
+	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
+	errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
 
 	if (err || !fOut)
 		return;
@@ -430,6 +430,24 @@ char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToP
 		szDest[j] = ')';
 
 	return szDest;
+}
+
+// Deprecated
+char* GetEQPath(char* szBuffer, size_t len)
+{
+	GetModuleFileName(nullptr, szBuffer, MAX_STRING);
+
+	char* pSearch = nullptr;
+	_strlwr_s(szBuffer, len);
+
+	if (pSearch = strstr(szBuffer, "\\wineq\\"))
+		*pSearch = 0;
+	else if (pSearch = strstr(szBuffer, "\\testeqgame.exe"))
+		*pSearch = 0;
+	else if (pSearch = strstr(szBuffer, "\\eqgame.exe"))
+		*pSearch = 0;
+
+	return szBuffer;
 }
 
 void ConvertItemTags(CXStr& cxstr, bool Tag)
@@ -1651,7 +1669,7 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 	{
 		FILE* file = nullptr;
 		errno_t err = 0;
-		if((err = fopen_s(&file,pathFilename.string().data(),"rt"))==0)
+		if((err = fopen_s(&file,pathFilename.string().c_str(),"rt"))==0)
 		{
 			char szBuffer[MAX_STRING] = { 0 };
 			while (fgets(szBuffer, MAX_STRING, file))

@@ -57,9 +57,17 @@ void ListMacros(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-	// Start searching for .TXT files in the current directory.
 	WIN32_FIND_DATA FileData;
-	HANDLE hSearch = FindFirstFile(mq::internal_paths::Macros.string().data(), &FileData);
+	HANDLE hSearch;
+	if (szLine[0] != '\0')
+	{
+		hSearch = FindFirstFile((mq::internal_paths::Macros + "\\*" + szLine + "*.mac").c_str(), &FileData);
+	}
+	else
+	{
+		hSearch = FindFirstFile((mq::internal_paths::Macros + "\\*.mac").c_str(), &FileData);
+	}
+
 	if (hSearch == INVALID_HANDLE_VALUE)
 	{
 		WriteChatColor("Couldn't find any macros", USERCOLOR_DEFAULT);
@@ -2442,10 +2450,10 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	if (!_stricmp(szLine, "clear"))
 	{
 		FILE* fOut = nullptr;
-		errno_t err = fopen_s(&fOut, logFilePath.string().data(), "wt");
+		errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "wt");
 		if (err || !fOut)
 		{
-			MacroError("Couldn't open log file: %s", logFilePath.string().data());
+			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
 			return;
 		}
 
@@ -2455,10 +2463,10 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	}
 
 	FILE* fOut = nullptr;
-	errno_t err = fopen_s(&fOut, logFilePath.string().data(), "at");
+	errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "at");
 	if (err || !fOut)
 	{
-		MacroError("Couldn't open log file: %s", logFilePath.string().data());
+		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
 		return;
 	}
 
@@ -3530,7 +3538,7 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 		GetArg(szArg4, szLine, 4);
 	}
 
-	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, iniFile))
+	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, iniFile.string()))
 	{
 		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 	}
@@ -5444,25 +5452,25 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 		if (szArg2 && szArg2[0] != '\0')
 		{
 			const std::string tmpFileName = std::string(EQADDR_SERVERNAME) + "_" + std::string(szArg2) + ".ini";
-			pathIniFile = mq::internal_paths::Config / tmpFileName;
+			pathIniFile = std::filesystem::path(mq::internal_paths::Config) / tmpFileName;
 		}
 
-		WritePrivateProfileString("User Camera 1", "bAutoHeading", std::to_string(pUserCam1->bAutoHeading), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "bAutoPitch", std::to_string(pUserCam1->bAutoPitch), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "bSkipFrame", std::to_string(pUserCam1->bSkipFrame), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "DirectionalHeading", std::to_string(pUserCam1->DirectionalHeading), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Distance", std::to_string(pUserCam1->Distance), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Heading", std::to_string(pUserCam1->Heading), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Height", std::to_string(pUserCam1->Height), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "OldPosition_X", std::to_string(pUserCam1->OldPosition_X), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "OldPosition_Y", std::to_string(pUserCam1->OldPosition_Y), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "OldPosition_Z", std::to_string(pUserCam1->OldPosition_Z), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Orientation_X", std::to_string(pUserCam1->Orientation_X), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Orientation_Y", std::to_string(pUserCam1->Orientation_Y), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Orientation_Z", std::to_string(pUserCam1->Orientation_Z), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Pitch", std::to_string(pUserCam1->Pitch), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "SideMovement", std::to_string(pUserCam1->SideMovement), pathIniFile);
-		WritePrivateProfileString("User Camera 1", "Zoom", std::to_string(pUserCam1->Zoom), pathIniFile);
+		WritePrivateProfileString("User Camera 1", "bAutoHeading", std::to_string(pUserCam1->bAutoHeading), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "bAutoPitch", std::to_string(pUserCam1->bAutoPitch), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "bSkipFrame", std::to_string(pUserCam1->bSkipFrame), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "DirectionalHeading", std::to_string(pUserCam1->DirectionalHeading), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Distance", std::to_string(pUserCam1->Distance), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Heading", std::to_string(pUserCam1->Heading), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Height", std::to_string(pUserCam1->Height), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "OldPosition_X", std::to_string(pUserCam1->OldPosition_X), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "OldPosition_Y", std::to_string(pUserCam1->OldPosition_Y), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "OldPosition_Z", std::to_string(pUserCam1->OldPosition_Z), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Orientation_X", std::to_string(pUserCam1->Orientation_X), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Orientation_Y", std::to_string(pUserCam1->Orientation_Y), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Orientation_Z", std::to_string(pUserCam1->Orientation_Z), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Pitch", std::to_string(pUserCam1->Pitch), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "SideMovement", std::to_string(pUserCam1->SideMovement), pathIniFile.string());
+		WritePrivateProfileString("User Camera 1", "Zoom", std::to_string(pUserCam1->Zoom), pathIniFile.string());
 	}
 	else if (!_stricmp(szArg1, "load"))
 	{
@@ -5471,25 +5479,25 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 		if (szArg2 && szArg2[0] != '\0')
 		{
 			const std::string tmpFileName = std::string(EQADDR_SERVERNAME) + "_" + std::string(szArg2) + ".ini";
-			pathIniFile = mq::internal_paths::Config / tmpFileName;
+			pathIniFile = std::filesystem::path(mq::internal_paths::Config) / tmpFileName;
 		}
 
-		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
-		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
-		pUserCam1->bSkipFrame = GetPrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
-		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
-		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
-		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
-		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
-		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
-		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
-		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
-		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
-		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
-		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
-		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
-		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
-		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
+		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile.string());
+		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile.string());
+		pUserCam1->bSkipFrame = GetPrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile.string());
+		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile.string());
+		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile.string());
+		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile.string());
+		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile.string());
+		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile.string());
+		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile.string());
+		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile.string());
+		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile.string());
+		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile.string());
+		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile.string());
+		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile.string());
+		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile.string());
+		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile.string());
 		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
 	}
 }

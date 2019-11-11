@@ -63,7 +63,7 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 			szProcessName = strrchr(szFilename, '\\');
 			szProcessName[0] = '\0';
 
-			mq::internal_paths::MQRoot = std::filesystem::path(szFilename);
+			mq::internal_paths::MQRoot = szFilename;
 			g_Loaded = true;
 
 			hMQ2StartThread = CreateThread(nullptr, 0, MQ2Start, _strdup(szFilename), 0, &ThreadID);
@@ -89,10 +89,12 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 	return TRUE;
 }
 
-bool InitDirectory(std::filesystem::path& pathToInit, const std::string& strIniKey, const std::filesystem::path& iniToRead, const std::filesystem::path& appendPathIfRelative = mq::internal_paths::MQRoot, const bool bWriteAllConfig = false)
+bool InitDirectory(std::string& strPathToInit, const std::string& strIniKey, const std::string& iniToRead, const std::filesystem::path& appendPathIfRelative = mq::internal_paths::MQRoot, const bool bWriteAllConfig = false)
 {
-	DebugSpewAlways("Initializing Directory:  %s", strIniKey.data());
-	pathToInit = std::filesystem::path(GetPrivateProfileStdString("MacroQuest", strIniKey, pathToInit.string(), iniToRead));
+	DebugSpewAlways("Initializing Directory:  %s", strIniKey.c_str());
+	char szTempPath[MAX_PATH] = { 0 };
+	GetPrivateProfileString("MacroQuest", strIniKey, strPathToInit, szTempPath, MAX_PATH, iniToRead);
+	std::filesystem::path pathToInit = szTempPath;
 	if (bWriteAllConfig)
 	{
 		WritePrivateProfileString("MacroQuest", strIniKey, pathToInit.string(), iniToRead);
@@ -103,15 +105,18 @@ bool InitDirectory(std::filesystem::path& pathToInit, const std::string& strIniK
 		pathToInit = std::filesystem::absolute(appendPathIfRelative / pathToInit);
 	}
 
+	// Either way, update the string
+	strPathToInit = pathToInit.string();
+
 	if (std::filesystem::exists(pathToInit) || std::filesystem::create_directories(pathToInit))
 	{
-		DebugSpewAlways("Directory Init of %s successful at: %s", strIniKey.data(), pathToInit.string().data());
+		DebugSpewAlways("Directory Init of %s successful at: %s", strIniKey.c_str(), strPathToInit.c_str());
 		return true;
 	}
 
-	std::string strTemp = "Could not find or create " + strIniKey + " path: " + mq::internal_paths::Config.string();
-	DebugSpewAlways(strTemp.data());
-	MessageBox(nullptr, strTemp.data(), "MacroQuest", MB_OK);
+	const std::string strTemp = "Could not find or create " + strIniKey + " path: " + strPathToInit;
+	DebugSpewAlways(strTemp.c_str());
+	MessageBox(nullptr, strTemp.c_str(), "MacroQuest", MB_OK);
 	return false;
 }
 
@@ -124,61 +129,67 @@ bool InitDirectory(std::filesystem::path& pathToInit, const std::string& strIniK
  * from there since that could cause a circular config relationship.
  *
  */
-bool InitConfig()
+bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& strMQini)
 {
+	std::filesystem::path pathMQRoot = strMQRoot;
 	DebugSpewAlways("Initializing Configuration...");
 	// If we still have a relative path to the MQ2 directory, make it absolute.
-	if (mq::internal_paths::MQRoot.is_relative())
+	if (pathMQRoot.is_relative())
 	{
-		mq::internal_paths::MQRoot = std::filesystem::absolute(mq::internal_paths::MQRoot);
+		pathMQRoot = std::filesystem::absolute(pathMQRoot).string();
 	}
+	// Set strMQRoot to the path we found.
+	strMQRoot = pathMQRoot.string();
 
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work
-	if(std::filesystem::exists(mq::internal_paths::MQRoot))
+	if(std::filesystem::exists(pathMQRoot))
 	{
+		std::filesystem::path pathMQini = strMQini;
 		// If the ini path is relative, prepend the MQ2 path
-		if (mq::internal_paths::MQini.is_relative())
+		if (pathMQini.is_relative())
 		{
-			mq::internal_paths::MQini = mq::internal_paths::MQRoot / mq::internal_paths::MQini;
+			pathMQini = pathMQRoot / pathMQini;
 		}
 
-		if (!std::filesystem::exists(mq::internal_paths::MQini))
+		if (!std::filesystem::exists(pathMQini))
 		{
 			// Check if the ini file exists in the same directory as MQ2
-			if (std::filesystem::exists(mq::internal_paths::MQRoot / "MacroQuest.ini"))
+			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini"))
 			{
-				mq::internal_paths::MQini = mq::internal_paths::MQRoot / "MacroQuest.ini";
+				pathMQini = pathMQRoot / "MacroQuest.ini";
 			}
 		}
 
-		if (std::filesystem::exists(mq::internal_paths::MQini))
+		if (std::filesystem::exists(pathMQini))
 		{
 			// Check to see if there a different config folder we should be looking at?
-			std::string strTemp = GetPrivateProfileStdString("MacroQuest", "ConfigPath", "NULL", mq::internal_paths::MQini);
-			if (strTemp != "NULL")
-			{
-				mq::internal_paths::Config = std::filesystem::path(strTemp);
-				// Change the ini file to the one in the new config folder
-				mq::internal_paths::MQini = mq::internal_paths::Config / "MacroQuest.ini";
+			char szTempPath[MAX_PATH] = { 0 };
+			GetPrivateProfileString("MacroQuest", "ConfigPath", strConfig, szTempPath, MAX_PATH , pathMQini.string());
+			strConfig = szTempPath;
 
-				// If it's relative, make it absolute relative to MQ2
-				if (mq::internal_paths::MQini.is_relative())
-				{
-					mq::internal_paths::MQini = std::filesystem::absolute(mq::internal_paths::MQRoot / mq::internal_paths::MQini);
-				}
+			// Change the ini file to the one in the new config folder
+			pathMQini = std::filesystem::path(strConfig) / "MacroQuest.ini";
+
+			// If it's relative, make it absolute relative to MQ2
+			if (pathMQini.is_relative())
+			{
+				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
 			}
 		}
+		// Set the ini to whatever we ended up with.
+		strMQini = pathMQini.string();
 
 		// Init the Config directory based on the ini we found.
-		if (InitDirectory(mq::internal_paths::Config, "ConfigPath", mq::internal_paths::MQini, mq::internal_paths::MQRoot, GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, mq::internal_paths::MQini)))
+		if (InitDirectory(strConfig, "ConfigPath", strMQini, strMQRoot, GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini)))
 		{
 			// Backwards compatible before we deprecate
-			strcpy_s(gszINIPath, mq::internal_paths::MQRoot.string().data()); // or mq::internal_paths::Config but since it's mostly used to find the MQ2 directory...
-			strcpy_s(gszINIFilename, mq::internal_paths::MQini.string().data());
+			strcpy_s(gszEQPath, std::filesystem::absolute(".").string().c_str());
+			strcpy_s(gszINIPath, strMQRoot.c_str()); // or mq::internal_paths::Config but since it's mostly used to find the MQ2 directory...
+			strcpy_s(gszINIFilename, strMQini.c_str());
 			// API compatible
-			strcpy_s(gPathMQRoot, mq::internal_paths::MQRoot.string().data());
-			strcpy_s(gPathMQini, mq::internal_paths::MQini.string().data());
-			strcpy_s(gPathConfig, mq::internal_paths::Config.string().data());
+			strcpy_s(gPathMQRoot, strMQRoot.c_str());
+			strcpy_s(gPathMQini, strMQini.c_str());
+			strcpy_s(gPathConfig, strConfig.c_str());
 			return true;
 		}
 	}
@@ -186,7 +197,7 @@ bool InitConfig()
 	return false;
 }
 
-bool InitDirectories(const std::filesystem::path& iniToRead)
+bool InitDirectories(const std::string& iniToRead)
 {
 	DebugSpewAlways("Initializing Required Directories...");
 	const bool bWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniToRead);
@@ -198,14 +209,14 @@ bool InitDirectories(const std::filesystem::path& iniToRead)
 		)
 	{
 		// Backwards compatible before we deprecate
-		strcpy_s(gszMacroPath, mq::internal_paths::Macros.string().data());
-		strcpy_s(gszLogPath, mq::internal_paths::Logs.string().data());
+		strcpy_s(gszMacroPath, mq::internal_paths::Macros.c_str());
+		strcpy_s(gszLogPath, mq::internal_paths::Logs.c_str());
 		// API compatible
-		strcpy_s(gPathMacros, mq::internal_paths::Macros.string().data());
-		strcpy_s(gPathLogs, mq::internal_paths::Logs.string().data());
-		strcpy_s(gPathCrashDumps, mq::internal_paths::CrashDumps.string().data());
-		strcpy_s(gPathPlugins, mq::internal_paths::Plugins.string().data());
-		strcpy_s(gPathResources, mq::internal_paths::Resources.string().data());
+		strcpy_s(gPathMacros, mq::internal_paths::Macros.c_str());
+		strcpy_s(gPathLogs, mq::internal_paths::Logs.c_str());
+		strcpy_s(gPathCrashDumps, mq::internal_paths::CrashDumps.c_str());
+		strcpy_s(gPathPlugins, mq::internal_paths::Plugins.c_str());
+		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
 		return true;
 	}
 
@@ -217,7 +228,7 @@ bool InitDirectories(const std::filesystem::path& iniToRead)
 // Description: Parse INI file for settings
 // ***************************************************************************
 // FIXME:  We're over the stack size here.  MAX_STRING * 10...
-bool ParseINIFile(const std::filesystem::path& iniFile)
+bool ParseINIFile(const std::string& iniFile)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	const bool bWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniFile);
@@ -280,8 +291,10 @@ bool ParseINIFile(const std::filesystem::path& iniFile)
 	gStackingDebug           = GetPrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile); // 0 = off, 1 = on, 2 = on and output to chat
 	gUseNewNamedTest         = GetPrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
 	gParserVersion           = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
-	gIfDelimiter             = GetPrivateProfileStdString("Macroquest", "IfDelimiter", std::to_string(gIfDelimiter), iniFile)[0];
-	gIfAltDelimiter          = GetPrivateProfileStdString("Macroquest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), iniFile)[0];
+	GetPrivateProfileString("MacroQuest", "IfDelimiter", std::to_string(gIfDelimiter), szBuffer, MAX_STRING, iniFile);
+	gIfDelimiter = szBuffer[0];
+	GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), szBuffer, MAX_STRING, iniFile);
+	gIfAltDelimiter = szBuffer[0];
 	if (bWriteAllConfig)
 	{
 		WritePrivateProfileString("MacroQuest", "FilterDebug", std::to_string(gFilterDebug), iniFile);
@@ -312,32 +325,32 @@ bool ParseINIFile(const std::filesystem::path& iniFile)
 		WritePrivateProfileString("MacroQuest", "BuffStackDebugMode", std::to_string(gStackingDebug), iniFile);
 		WritePrivateProfileString("MacroQuest", "UseNewNamedTest", std::to_string(gUseNewNamedTest), iniFile);
 		WritePrivateProfileString("MacroQuest", "ParserEngine", std::to_string(gParserVersion), iniFile);
-		WritePrivateProfileString("Macroquest", "IfDelimiter", std::to_string(gIfDelimiter), iniFile);
-		WritePrivateProfileString("Macroquest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), iniFile);
+		WritePrivateProfileString("MacroQuest", "IfDelimiter", std::to_string(gIfDelimiter), iniFile);
+		WritePrivateProfileString("MacroQuest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), iniFile);
 	}
 
-	std::string strCustomSettings = GetPrivateProfileStdString("MacroQuest", "HUDMode", "UnderUI", iniFile);
+	GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", szBuffer, MAX_STRING, iniFile);
 
-	if (ci_equals(strCustomSettings, "normal"))
+	if (ci_equals(szBuffer, "normal"))
 	{
 		gbAlwaysDrawMQHUD = false;
 		gbHUDUnderUI = false;
 	}
 	else
 	{
-		if (ci_equals(strCustomSettings, "always"))
+		if (ci_equals(szBuffer, "always"))
 		{
 			gbAlwaysDrawMQHUD = true;
 			gbHUDUnderUI = true;
 		}
 		else
 		{
-			strCustomSettings = "UnderUI";
+			strcpy_s(szBuffer, "UnderUI");
 			gbAlwaysDrawMQHUD = false;
 			gbHUDUnderUI = true;
 		}
 	}
-	if (bWriteAllConfig) WritePrivateProfileString("MacroQuest", "HUDMode", strCustomSettings, iniFile);
+	if (bWriteAllConfig) WritePrivateProfileString("MacroQuest", "HUDMode", szBuffer, iniFile);
 
 	GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, iniFile);
@@ -435,7 +448,7 @@ bool ParseINIFile(const std::filesystem::path& iniFile)
 
 	// TODO:  Add a function that gets map for a section?
 	char FilterList[MAX_STRING * 10] = { 0 };
-	GetPrivateProfileString("Filter Names", nullptr, "", FilterList, MAX_STRING * 10, iniFile.string().data());
+	GetPrivateProfileString("Filter Names", "", "", FilterList, MAX_STRING * 10, iniFile);
 
 	char* pFilterList = FilterList;
 	while (pFilterList[0] != 0)
@@ -449,11 +462,11 @@ bool ParseINIFile(const std::filesystem::path& iniFile)
 		pFilterList += strlen(pFilterList) + 1;
 	}
 
-	const std::filesystem::path itemDBPath = mq::internal_paths::Resources / "ItemDB.txt";
+	const std::filesystem::path itemDBPath = std::filesystem::path(mq::internal_paths::Resources) / "ItemDB.txt";
 	if (std::filesystem::exists(itemDBPath))
 	{
 		// Backwards compatibility prior to deprecation
-		strcpy_s(gszItemDB, itemDBPath.string().data());
+		strcpy_s(gszItemDB, itemDBPath.string().c_str());
 
 		std::ifstream itemDB(itemDBPath);
 		std::string itemDBLine;
@@ -474,21 +487,21 @@ bool ParseINIFile(const std::filesystem::path& iniFile)
 						Item->pNext = gItemDB;
 						Item->ID = itemID;
 						Item->StackSize = stackQTY;
-						strcpy_s(Item->szName, itemName.data());
+						strcpy_s(Item->szName, itemName.c_str());
 						gItemDB = Item;
 					}
 				}
 				else
 				{
 					std::string strMessage = "Failed to parse ItemDB.  Check the data at " + itemDBPath.string();
-					MessageBox(nullptr, strMessage.data(), "MacroQuest", MB_OK);
+					MessageBox(nullptr, strMessage.c_str(), "MacroQuest", MB_OK);
 					break;
 				}
 			}
 			else
 			{
 				std::string strMessage = "Unexpected Data in ItemDB.  Check the format at " + itemDBPath.string();
-				MessageBox(nullptr, strMessage.data(), "MacroQuest", MB_OK);
+				MessageBox(nullptr, strMessage.c_str(), "MacroQuest", MB_OK);
 				break;
 			}
 		}
@@ -568,7 +581,7 @@ bool MQ2Initialize()
 		return false;
 	}
 
-	if (!InitConfig())
+	if (!InitConfig(mq::internal_paths::MQRoot, mq::internal_paths::Config, mq::internal_paths::MQini))
 	{
 		DebugSpewAlways("InitConfig returned false - thread aborted.");
 		g_Loaded = false;
@@ -922,7 +935,7 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 
 
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathChangeLog.string().data(), "rb");
+	errno_t err = fopen_s(&file, pathChangeLog.string().c_str(), "rb");
 	if (err || !file)
 	{
 		DeleteMQ2NewsWindow();
@@ -961,7 +974,7 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 
 void CreateMQ2NewsWindow()
 {
-	const std::filesystem::path pathChangeLog = mq::internal_paths::MQRoot / "CHANGELOG.md";
+	const std::filesystem::path pathChangeLog = std::filesystem::path(mq::internal_paths::MQRoot) / "CHANGELOG.md";
 
 	if (!pNewsWindow && std::filesystem::exists(pathChangeLog))
 	{

@@ -11945,8 +11945,8 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		SYSTEMTIME st;
 		HANDLE hFile;
 		WIN32_FIND_DATA FileData;
-		std::filesystem::path pathMQ2Main = mq::internal_paths::MQRoot / "MQ2Main.dll";
-		hFile = FindFirstFile(pathMQ2Main.string().data(), &FileData);
+		std::filesystem::path pathMQ2Main = std::filesystem::path(mq::internal_paths::MQRoot) / "MQ2Main.dll";
+		hFile = FindFirstFile(pathMQ2Main.string().c_str(), &FileData);
 		// Convert the creation time time to local time.
 		FileTimeToSystemTime(&FileData.ftLastWriteTime, &st);
 		FindClose(hFile);
@@ -11962,7 +11962,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 
 	case Path:
-		strcpy_s(DataTypeTemp, mq::internal_paths::MQRoot.string().data());
+		strcpy_s(DataTypeTemp, mq::internal_paths::MQRoot.c_str());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;

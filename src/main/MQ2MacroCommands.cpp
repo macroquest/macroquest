@@ -362,7 +362,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 				incFilePath = mq::internal_paths::Macros / incFilePath;
 			}
 
-			return Include(incFilePath.string().data(), LineNumber);
+			return Include(incFilePath.string().c_str(), LineNumber);
 		}
 		else if (!_strnicmp(szLine, "#warning", 8))
 		{
@@ -765,11 +765,11 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 	}
 
 	FILE* fMacro = nullptr;
-	errno_t err = fopen_s(&fMacro, macFilePath.string().data(), "rt");
+	errno_t err = fopen_s(&fMacro, macFilePath.string().c_str(), "rt");
 
 	if (err)
 	{
-		FatalError("Couldn't open macro file: %s", macFilePath.string().data());
+		FatalError("Couldn't open macro file: %s", macFilePath.string().c_str());
 		gszMacroName[0] = 0;
 		gRunning = 0;
 		return;
@@ -777,7 +777,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	gEventChat = 0;
 	strcpy_s(gszMacroName, szTemp);
-	DebugSpew("Macro - Loading macro: %s", macFilePath.string().data());
+	DebugSpew("Macro - Loading macro: %s", macFilePath.string().c_str());
 
 	int LineIndex = 0;
 	int LocalLine = 0;
@@ -800,7 +800,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 		if (!InBlockComment)
 		{
-			if (!AddMacroLine(strMacroName.data(), szTemp, MAX_STRING, &LineIndex, LocalLine))
+			if (!AddMacroLine(strMacroName.c_str(), szTemp, MAX_STRING, &LineIndex, LocalLine))
 			{
 				MacroError("Unable to add macro line.");
 				fclose(fMacro);
@@ -843,7 +843,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	if (!gMacroBlock)
 	{
-		MacroError("Not a valid macrofile %s no Sub Main found.", strMacroName.data());
+		MacroError("Not a valid macrofile %s no Sub Main found.", strMacroName.c_str());
 		gszMacroName[0] = 0;
 		gRunning = 0;
 		return;
@@ -872,7 +872,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		if (CListWnd* list = (CListWnd*)pWnd->GetChildItem("RMW_RunningMacrosList"))
 		{
 			int id = list->AddString("", 0xFF00FF00, 0);
-			list->SetItemText(id, 1, strMacroName.data());
+			list->SetItemText(id, 1, strMacroName.c_str());
 		}
 	}
 }

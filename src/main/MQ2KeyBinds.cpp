@@ -496,7 +496,7 @@ bool DumpBinds(const char* Filename)
 	}
 
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathFilename.string().data(), "wt");
+	errno_t err = fopen_s(&file, pathFilename.string().c_str(), "wt");
 	if (err)
 	{
 		return false;

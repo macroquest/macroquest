@@ -948,12 +948,12 @@ void InitializeMQ2Commands()
 	char szBuffer[MAX_STRING] = { 0 };
 
 	/* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
-	GetPrivateProfileString("Aliases", nullptr, "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini.string().data());
+	GetPrivateProfileString("Aliases", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);
 	char* pAliasList = largeBuffer.get();
 
 	while (pAliasList[0] != 0)
 	{
-		GetPrivateProfileString("Aliases", pAliasList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini.string().data());
+		GetPrivateProfileString("Aliases", pAliasList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini);
 		if (szBuffer[0] != 0)
 		{
 			AddAlias(pAliasList, szBuffer);
@@ -965,12 +965,12 @@ void InitializeMQ2Commands()
 	AddSubstitute("omg", "Oh My God");
 
 	// Importing the User's Substitution List from .ini file
-	GetPrivateProfileString("Substitutions", nullptr, "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini.string().data());
+	GetPrivateProfileString("Substitutions", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);
 
 	char* pSubsList = largeBuffer.get();
 	while (pSubsList[0] != 0)
 	{
-		GetPrivateProfileString("Substitutions", pSubsList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini.string().data());
+		GetPrivateProfileString("Substitutions", pSubsList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini);
 		if (szBuffer[0] != 0)
 		{
 			AddSubstitute(pSubsList, szBuffer);

@@ -1071,7 +1071,7 @@ public:
 		if (std::filesystem::exists(mq::internal_paths::Resources / localfile))
 		{
 			localfile = mq::internal_paths::Resources / localfile;
-			return SetFile_Trampoline(localfile.string().data(), unk8, unkC);
+			return SetFile_Trampoline(localfile.string().c_str(), unk8, unkC);
 		}
 
 		return SetFile_Trampoline(filename, unk8, unkC);

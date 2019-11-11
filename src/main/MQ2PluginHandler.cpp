@@ -54,19 +54,19 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 
 	if (HMODULE hThemod = GetModuleHandle((strFileName + ".dll").data()))
 	{
-		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded", (strFileName + ".dll").data());
+		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded", (strFileName + ".dll").c_str());
 		return 2;
 	}
 
 	std::scoped_lock lock(s_pluginsMutex);
 
-	DebugSpew("LoadMQ2Plugin(%s)", strFileName.data());
+	DebugSpew("LoadMQ2Plugin(%s)", strFileName.c_str());
 
-	std::filesystem::path pathToPlugin = mq::internal_paths::Plugins / (strFileName + ".dll");
-	HMODULE hmod = LoadLibrary(pathToPlugin.string().data());
+	std::filesystem::path pathToPlugin = std::filesystem::path(mq::internal_paths::Plugins) / (strFileName + ".dll");
+	HMODULE hmod = LoadLibrary(pathToPlugin.string().c_str());
 	if (!hmod)
 	{
-		DebugSpew("LoadMQ2Plugin(%s) Failed", strFileName.data());
+		DebugSpew("LoadMQ2Plugin(%s) Failed", strFileName.c_str());
 		return 0;
 	}
 
@@ -83,7 +83,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	{
 		char tmpbuff[MAX_PATH];
 		sprintf_s(tmpbuff, "Please recompile %s -- it is out of date with respect to mq2main (%d > %d)",
-			pathToPlugin.string().data(), s_mq2mainstamp, timestamp);
+			pathToPlugin.string().c_str(), s_mq2mainstamp, timestamp);
 		DebugSpew("%s", tmpbuff);
 		MessageBoxA(NULL, tmpbuff, "Plugin Load Failed", MB_OK);
 
@@ -97,7 +97,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	{
 		if (hmod == pPlugin->hModule)
 		{
-			DebugSpew("LoadMQ2Plugin(%s) already loaded", strFileName.data());
+			DebugSpew("LoadMQ2Plugin(%s) already loaded", strFileName.c_str());
 
 			// LoadLibrary count must match FreeLibrary count for unloading to work.
 			FreeLibrary(hmod);
@@ -110,7 +110,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	memset(pPlugin, 0, sizeof(MQPlugin));
 	pPlugin->bCustom           = bCustom;
 	pPlugin->hModule           = hmod;
-	strcpy_s(pPlugin->szFilename, strFileName.data());
+	strcpy_s(pPlugin->szFilename, strFileName.c_str());
 	pPlugin->Initialize        = (fMQInitializePlugin)GetProcAddress(hmod, "InitializePlugin");
 	pPlugin->Shutdown          = (fMQShutdownPlugin)GetProcAddress(hmod, "ShutdownPlugin");
 	pPlugin->IncomingChat      = (fMQIncomingChat)GetProcAddress(hmod, "OnIncomingChat");
@@ -172,7 +172,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	pPlugins = pPlugin;
 
 	// load cfg file if exists
-	LoadCfgFile((strFileName + "-AutoExec").data(), false);
+	LoadCfgFile((strFileName + "-AutoExec").c_str(), false);
 
 	return 1;
 }
@@ -224,6 +224,13 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 	return false;
 }
 
+// Deprecated
+void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad)
+{
+	std::scoped_lock lock(s_pluginsMutex);
+	WritePrivateProfileString("Plugins", Name, bLoad ? "1" : "0", mq::internal_paths::MQini);
+}
+
 // FIXME: Uses too much stack space
 void InitializeMQ2Plugins()
 {
@@ -249,7 +256,7 @@ void InitializeMQ2Plugins()
 	std::scoped_lock lock(s_pluginsMutex);
 	s_pluginsInitialized = true;
 
-	GetPrivateProfileString("Plugins", nullptr, "", PluginList, MAX_STRING * 4, mq::internal_paths::MQini.string().data());
+	GetPrivateProfileString("Plugins", "", "", PluginList, MAX_STRING * 4, mq::internal_paths::MQini);
 	pPluginList = PluginList;
 
 	while (pPluginList[0] != 0)

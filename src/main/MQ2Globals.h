@@ -106,6 +106,7 @@ MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
 MQLIB_VAR bool gbSpelldbLoaded;
+MQLIB_VAR char gszEQPath[MAX_STRING] [[deprecated("Your relative path from the working directory is already the EQ Path.")]];
 MQLIB_VAR char gszMacroPath[MAX_STRING] [[deprecated("Use internal_paths::Macros in Core or gPathMacros in Plugins")]];
 MQLIB_VAR char gszLogPath[MAX_STRING] [[deprecated("Use internal_paths::Logs in Core or gPathLogs in Plugins")]];
 MQLIB_VAR char gszINIPath[MAX_STRING] [[deprecated("Use internal_paths::MQRoot in Core or gPathMQRoot in Plugins - or one of the Resources/Config/Plugins paths")]];
@@ -116,14 +117,14 @@ MQLIB_VAR char szLastCommand[MAX_STRING];
 // FIXME:  Convert this to a Global Object.  Include setting of gPathX (and remove from Init).
 namespace internal_paths
 {
-	inline std::filesystem::path MQRoot = std::filesystem::path(".");
-	inline std::filesystem::path Config = std::filesystem::path("config");
-	inline std::filesystem::path MQini = std::filesystem::path(Config / "MacroQuest.ini");
-	inline std::filesystem::path Macros = std::filesystem::path("macros");
-	inline std::filesystem::path Logs = std::filesystem::path("logs");
-	inline std::filesystem::path CrashDumps = std::filesystem::path(Logs / "crashdumps");
-	inline std::filesystem::path Plugins = std::filesystem::path("plugins");
-	inline std::filesystem::path Resources = std::filesystem::path("resources");
+	extern std::string MQRoot;
+	extern std::string Config;
+	extern std::string MQini;
+	extern std::string Macros;
+	extern std::string Logs;
+	extern std::string CrashDumps;
+	extern std::string Plugins;
+	extern std::string Resources;
 }; // namespace internal_paths
 MQLIB_VAR char gPathMQRoot[MAX_PATH];
 MQLIB_VAR char gPathConfig[MAX_PATH];

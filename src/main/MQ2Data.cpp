@@ -998,7 +998,7 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 
 	if (std::filesystem::exists(pathIniFile))
 	{
-		const int nSize = GetPrivateProfileString(Section, Key, Default, DataTypeTemp, MAX_STRING, pathIniFile);
+		const int nSize = GetPrivateProfileString(Section, Key, Default, DataTypeTemp, MAX_STRING, pathIniFile.string());
 
 		if (nSize)
 		{

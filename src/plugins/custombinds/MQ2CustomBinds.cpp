@@ -127,7 +127,7 @@ static void LoadCustomBinds()
 	std::filesystem::path pathCustomBinds = gPathConfig;
 	pathCustomBinds /= BindsFile;
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathCustomBinds.string().data(), "rt");
+	errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "rt");
 	if (err)
 		return;
 
@@ -167,7 +167,7 @@ static void SaveCustomBinds()
 	std::filesystem::path pathCustomBinds = gPathConfig;
 	pathCustomBinds /= BindsFile;
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathCustomBinds.string().data(), "wt");
+	errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "wt");
 	if (err)
 		return;
 

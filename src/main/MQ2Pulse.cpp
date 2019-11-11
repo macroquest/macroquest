@@ -617,16 +617,16 @@ static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)
 	GetSystemTime(&t);
 
 	dumpFileName = fmt::format("{FileName}_{Year:0=4d}{Month:0=2d}{Day:0=2d}_{Hour:0=2d}{Minute:0=2d}{Second:0=2d}.dmp",
-						fmt::arg("FileName", dumpFileName),
-						fmt::arg("Year", t.wYear),
-						fmt::arg("Month", t.wMonth),
-						fmt::arg("Day", t.wDay),
-						fmt::arg("Hour", t.wHour),
-						fmt::arg("Minute", t.wMinute),
-						fmt::arg("Second", t.wSecond));
-	dumpFilePath = mq::internal_paths::CrashDumps / dumpFileName;
+	              fmt::arg("FileName", dumpFileName),
+	                    fmt::arg("Year", t.wYear),
+	                    fmt::arg("Month", t.wMonth),
+	                    fmt::arg("Day", t.wDay),
+	                    fmt::arg("Hour", t.wHour),
+	                    fmt::arg("Minute", t.wMinute),
+	                    fmt::arg("Second", t.wSecond));
+	dumpFilePath = std::filesystem::path(mq::internal_paths::CrashDumps) / dumpFileName;
 
-	auto hFile = CreateFileA(dumpFilePath.string().data(), GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	auto hFile = CreateFileA(dumpFilePath.string().c_str(), GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return;
 
@@ -644,7 +644,7 @@ static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)
 		nullptr,
 		nullptr);
 	if (dumped)
-		strcpy_s(dumppath, _Size, dumpFilePath.string().data());
+		strcpy_s(dumppath, _Size, dumpFilePath.string().c_str());
 	CloseHandle(hFile);
 }
 
