@@ -6337,10 +6337,20 @@ EQLIB_OBJECT void CSpellGemWnd::SetAttributesFromSidl(class CParamScreenPiece *)
 // protected
 EQLIB_OBJECT void CSpellGemWnd::Init(void);
 };
-
-class CStaticAnimationTemplate
+class CStaticScreenPieceTemplate : public CScreenPieceTemplate
 {
 public:
+	 bool bAutoDraw;
+EQLIB_OBJECT CStaticScreenPieceTemplate::CStaticScreenPieceTemplate(class CParamStaticScreenPiece *);
+// virtual
+EQLIB_OBJECT CStaticScreenPieceTemplate::~CStaticScreenPieceTemplate(void);
+//EQLIB_OBJECT void * CStaticScreenPieceTemplate::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CStaticScreenPieceTemplate::`vector deleting destructor'(unsigned int);
+};
+class CStaticAnimationTemplate : public CStaticScreenPieceTemplate
+{
+public:
+    CTextureAnimation *pTA;
 EQLIB_OBJECT CStaticAnimationTemplate::CStaticAnimationTemplate(class CParamStaticAnimation *);
 // virtual
 EQLIB_OBJECT CStaticAnimationTemplate::~CStaticAnimationTemplate(void);
@@ -6366,16 +6376,6 @@ EQLIB_OBJECT CStaticHeaderTemplate::CStaticHeaderTemplate(class CParamStaticHead
 EQLIB_OBJECT CStaticHeaderTemplate::~CStaticHeaderTemplate(void);
 //EQLIB_OBJECT void * CStaticHeaderTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CStaticHeaderTemplate::`vector deleting destructor'(unsigned int);
-};
-
-class CStaticScreenPieceTemplate
-{
-public:
-EQLIB_OBJECT CStaticScreenPieceTemplate::CStaticScreenPieceTemplate(class CParamStaticScreenPiece *);
-// virtual
-EQLIB_OBJECT CStaticScreenPieceTemplate::~CStaticScreenPieceTemplate(void);
-//EQLIB_OBJECT void * CStaticScreenPieceTemplate::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CStaticScreenPieceTemplate::`vector deleting destructor'(unsigned int);
 };
 
 class CStaticTextTemplate
