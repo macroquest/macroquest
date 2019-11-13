@@ -8628,9 +8628,20 @@ inline unsigned int GetId() const
 	return SpawnID;
 }
 };
+#define EQR_BARBARIAN		0x2
+#define EQR_DARK_ELF		0x6
+#define EQR_DWARF			0x8
+#define EQR_ERUDITE			0x3
 #define EQR_GNOME			0xc//5A1511 in rof2
+#define EQR_HALF_ELF		0x7
+#define EQR_HALFLING		0xb
+#define EQR_HIGH_ELF		0x5
+#define EQR_HUMAN			0x1
 #define EQR_IKSAR			0x80//5A1516 in rof2
+#define EQR_OGRE			0xa
+#define EQR_TROLL			0x9
 #define EQR_VAHSHIR			0x82//5A151D in rof2
+#define EQR_ELF				0x4
 #define EQR_FROGLOCK		0x14a//5A1524 in rof2
 #define EQR_DRAKKIN			0x20a//5A152B in rof2
 #define EQR_SKELETON		0x3c
@@ -10747,7 +10758,7 @@ class CDBStr
 {
 public:
 // GetString(index, subindex, &success)
-EQLIB_OBJECT char *CDBStr::GetString(int, int, int*);
+EQLIB_OBJECT char *CDBStr::GetString(int ID, int Type, bool*bFound = NULL);
 };
 
 class CCombatAbilityWnd : public CSidlScreenWnd

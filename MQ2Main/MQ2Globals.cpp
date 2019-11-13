@@ -1642,7 +1642,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__GetLabelFromEQ);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(__ToggleKeyRingItem);
-	#if !defined(EQBETA)
+	#if !defined(EQBETA) && !defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(wwsCrashReportCheckForUploader);
 	INITIALIZE_EQGAME_OFFSET(wwsCrashReportPlatformLaunchUploader);
 	INITIALIZE_EQGAME_OFFSET(__AppCrashWrapper);

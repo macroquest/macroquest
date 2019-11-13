@@ -2359,7 +2359,8 @@ tSLOTINFO SlotInfo[] = {
 	/* 20 | 0x100000 */	{ 1048576	,"Waist" },
 	/* 21 | 0x200000 */	{ 2097152	,"Power Source" },
 	/* 22 | 0x400000 */	{ 4194304	,"Ammo" },
-	/* 23 | 0x800000 */	{ 0			,NULL } };
+	/* 23 | 0x800000 */	{ 0			,NULL }
+};
 
 // *************************************************************************** 
 //	This section is methods to interact with the AttributeList 
