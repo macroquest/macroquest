@@ -4448,20 +4448,20 @@ int FindInvSlotForContents(PCONTENTS pContents)
 
 					if (pInvMgr->SlotArray[N]->pInvSlotWnd) {
 						DebugSpew("%d slot %d wnd %d %d %d", N, pInvMgr->SlotArray[N]->InvSlot,
-							pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType,
-							pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot,
-							pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot
+							pInvMgr->SlotArray[N]->pInvSlotWnd->Location,
+							pInvMgr->SlotArray[N]->pInvSlotWnd->Slot1,
+							pInvMgr->SlotArray[N]->pInvSlotWnd->Slot2
 							);
 					}
 					// if it is in the primary inventory,
 					// then pInvSlotWnd->WindowType is 0
-					if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType == 0) {
+					if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->Location == 0) {
 						return pInvMgr->SlotArray[N]->InvSlot;
 					}
-					else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot != 65535) {
+					else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->Slot2 != -1) {
 						return pInvMgr->SlotArray[N]->InvSlot;
 					}
-					else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType == 11) {
+					else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->Location == 11) {
 						// loot window items should not be anywhere else
 						return pInvMgr->SlotArray[N]->InvSlot;
 					}
@@ -4473,7 +4473,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 		}
 	}
 	// return specific window type if needed
-	if (LastMatch != -1 && pInvMgr->SlotArray[LastMatch]->pInvSlotWnd->WindowType == 9999)
+	if (LastMatch != -1 && pInvMgr->SlotArray[LastMatch]->pInvSlotWnd->Location == 9999)
 		return  pInvMgr->SlotArray[LastMatch]->InvSlot;
 #endif
 	return -1;
@@ -9315,7 +9315,7 @@ PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
 		CHAR szType[MAX_STRING] = { 0 };
 		for (DWORD i = 0; i<pInvMgr->TotalSlots; i++) {
 			pSlot = pInvMgr->SlotArray[i];
-			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && (short)pSlot->pInvSlotWnd->InvSlot == invslot && (short)pSlot->pInvSlotWnd->BagSlot == bagslot) {
+			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->Location == type && (short)pSlot->pInvSlotWnd->Slot1 == invslot && (short)pSlot->pInvSlotWnd->Slot2 == bagslot) {
 				CXMLData *pXMLData = ((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 				if (pXMLData) {
 					GetCXStr(pXMLData->ScreenID.Ptr, szType, MAX_STRING);
@@ -9344,7 +9344,7 @@ BOOL IsItemInsideContainer(PCONTENTS pItem)
 	}
 	return FALSE;
 }
-BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
+BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool bAllowTradeskill )
 {
 	if (!pItem)
 		return FALSE;
@@ -9359,12 +9359,12 @@ BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
 				}
 				ItemGlobalIndex To;// = { 0 };
 				To.Location = pcont->GetGlobalIndex().Location;// eItemContainerPossessions;
-				To.Index.Slot1 = pSlot->pInvSlotWnd->InvSlot;
-				To.Index.Slot2 = pSlot->pInvSlotWnd->BagSlot;
-				To.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
+				To.Index.Slot1 = pSlot->pInvSlotWnd->Slot1;
+				To.Index.Slot2 = pSlot->pInvSlotWnd->Slot2;
+				To.Index.Slot3 = pSlot->pInvSlotWnd->Slot3;
 				//To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 				//To.Selection = (long)pcont;
-				pContainerMgr->OpenContainer((EQ_Container*)&pcont, (int)&To, flag);
+				pContainerMgr->OpenContainer((EQ_Container*)&pcont, (int)&To, bAllowTradeskill);
 				//pPCData->AlertInventoryChanged();
 				if (pcont->Open) {
 					return TRUE;
@@ -9405,7 +9405,7 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().Index.Slot1, pItem->GetGlobalIndex().Index.Slot2)) {
 #endif
 				if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
-					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.IsVisible()) {
+					while (!((PEQINVSLOT)theslot)->pInvSlotWnd->ButtonWnd.Wnd.IsVisible()) {
 						if (GetGameState() != GAMESTATE_INGAME)
 							break;
 						Sleep(10);
@@ -9633,9 +9633,9 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 					pInvSlotMgr->SelectSlot(theslot);
 					ItemGlobalIndex To;
 					To.Location = eItemContainerPossessions;
-					To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
-					To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
-					To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
+					To.Index.Slot1 = cSlot->pInvSlotWnd->Slot1;
+					To.Index.Slot2 = cSlot->pInvSlotWnd->Slot2;
+					To.Index.Slot3 = cSlot->pInvSlotWnd->Slot3;
 					pMerchantWnd->SelectBuySellSlot(&To);
 					return TRUE;
 				}
@@ -9664,8 +9664,8 @@ BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 					pInvSlotMgr->SelectSlot(theslot);
 					ItemGlobalIndex To;
 					To.Location = eItemContainerPossessions;
-					To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
-					To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+					To.Index.Slot1 = cSlot->pInvSlotWnd->Slot1;
+					To.Index.Slot2 = cSlot->pInvSlotWnd->Slot2;
 					To.Index.Slot3 = -1;
 					pMerchantWnd->SelectBuySellSlot(&To);
 					return TRUE;

@@ -3030,8 +3030,8 @@ int ItemNotify(int argc, char *argv[])
 				{
                     pSlot = pInvMgr->SlotArray[i];
 					if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd
-						&& pSlot->pInvSlotWnd->WindowType == type
-						&& (short)pSlot->pInvSlotWnd->InvSlot == invslot)
+						&& pSlot->pInvSlotWnd->Location == type
+						&& (short)pSlot->pInvSlotWnd->Slot1 == invslot)
 					{
 						CXMLData* pXMLData = ((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 						if (pXMLData)
@@ -3179,7 +3179,7 @@ int ListItemSlots(int argc, char* argv[])
         {
             if (pSlot->pInvSlotWnd)
             {
-                WriteChatf("%d %d %d", N, pSlot->pInvSlotWnd->WindowType, pSlot->InvSlot);
+                WriteChatf("%d %d %d", N, pSlot->pInvSlotWnd->Location, pSlot->InvSlot);
                 Count++;
 			}
 			else if (pSlot->InvSlot)

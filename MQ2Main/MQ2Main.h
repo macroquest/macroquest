@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define TEST
+#define EQBETA
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -862,6 +862,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_MOUSEOVER           21
 #define XWM_HISTORY             22
 #define XWM_LCLICKHOLD          23
+#define XWM_RCLICKHOLD          24
 #define XWM_LINK                27
 #define XWM_MAXIMIZEBOX         29
 #define XWM_ACHIEVEMENTLINK     31

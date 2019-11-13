@@ -1249,7 +1249,7 @@ typedef struct _EQINVSLOTMGR {
 /*0x2404*/    DWORD TotalSlots;
 /*0x2408*/    UINT LastUpdate;
 /*0x240c*/    struct _EQINVSLOT *pSelectedItem;//LastSelectedSlot
-/*0x2410*/    int  Unknown0x2410;
+/*0x2410*/    struct _EQINVSLOT *pFindSelectedItem;
 /*0x2414*/    bool bToggleBagsOpen;
 /*0x2415*/    bool bToggleBankBagsOpen;
 /*0x2418*/
@@ -1838,25 +1838,30 @@ typedef struct _EQCASTSPELLWINDOW {
 //note that Invslot needs to be a short or pickupitem wont work
 // CInvSlotWnd_size: 0x2d8 (see 7F540C) in Nov  8 2019 Test - eqmule
 typedef struct _EQINVSLOTWND {
-/*0x0000*/ struct _CXWND        Wnd;      //----/ actually CButtonWnd
-/*0x01f0*/ BYTE         Unknown0x01f0[0x8c];
-/*0x027c*/ BYTE         Unknown0x0278[0x10];
-/*0x028c*/ LONG         WindowType;
-											// 00 for inventory
-											// 01 for bank
-											// 02 for shared bank
-											// 03 for trader window
-											// 04 for World/Tradeskill/Combine
-											// 11 for loot window
-/*0x0290*/ short         InvSlot;
-/*0x0292*/ short         BagSlot;
-/*0x0294*/ short         GlobalSlot;
-/*0x0296*/ short         RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
-/*0x0298*/ BYTE         Unknown0x0298[0x20];
-/*0x02b8*/ struct _EQINVSLOT *  pInvSlot;
-/*0x02bc*/ BYTE         Unknown0x02bc[0x8];
-/*0x02c4*/ BOOL         ProcessClick;
-/*0x02c8*/ BYTE         Unknown0x02c8[0x10];
+/*0x0000*/ struct _CBUTTONWND	ButtonWnd;
+/*0x0288*/ void*				pTABackground;//CTextureAnimation
+/*0x028c*/ LONG					Location;//this is stupid it's a ItemGlobalIndex		ItemLocation; but backw comp etc is bleh- eqmule
+/*0x0290*/ short				Slot1;
+/*0x0292*/ short				Slot2;
+/*0x0294*/ short				Slot3;
+/*0x0298*/ VePointer<CONTENTS>  pItem;
+/*0x029c*/ int					ItemOffsetX;
+/*0x02a0*/ int					ItemOffsetY;
+/*0x02a4*/ void*				pTAItem;//CTextureAnimation
+/*0x02a8*/ int					Quantity;
+/*0x02ac*/ bool					bSelected;
+/*0x02ad*/ bool					bFindSelected;
+/*0x02b0*/ int					RecastLeft;
+/*0x02b4*/ bool					bHotButton;
+/*0x02b5*/ bool					bInventorySlotLinked;
+/*0x02b8*/ struct _EQINVSLOT*	pInvSlot;
+/*0x02bc*/ void*				pTextObject;//CTextObjectInterface
+/*0x02c0*/ int					TextFontStyle;//EFontStyles
+/*0x02c4*/ BOOL					ProcessClick;
+/*0x02c8*/ D3DCOLOR				BGTintRollover;
+/*0x02cc*/ D3DCOLOR				BGTintNormal;
+/*0x02d0*/ long					LastTime;
+/*0x02d4*/ long					Unknown0x02d4;
 /*0x02d8*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
