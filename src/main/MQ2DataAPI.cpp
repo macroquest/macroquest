@@ -1231,7 +1231,7 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
  */
 bool ParseMacroData(char* szOriginal, size_t BufferSize)
 {
-	if (gdwParserEngineVer == 2)
+	if (gParserVersion == 2)
 	{
 		// Pass it off to our String Parser
 		std::string strReturn = ModifyMacroString(szOriginal);

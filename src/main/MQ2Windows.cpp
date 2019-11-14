@@ -432,7 +432,7 @@ public:
 				if (gCheckBoxFeatureEnabled)
 				{
 					gCheckBoxFeatureEnabled = 0;
-					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "0", gszINIFilename);
+					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "0", mq::internal_paths::MQini);
 
 					if (pNLMarkedButton)
 						pNLMarkedButton->SetVisible(false);
@@ -447,7 +447,7 @@ public:
 				else
 				{
 					gCheckBoxFeatureEnabled = 1;
-					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
+					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", mq::internal_paths::MQini);
 
 					if (pNLMarkedButton)
 						pNLMarkedButton->SetVisible(true);
@@ -474,12 +474,12 @@ public:
 				if (gColorsFeatureEnabled)
 				{
 					gColorsFeatureEnabled = 0;
-					WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "0", gszINIFilename);
+					WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "0", mq::internal_paths::MQini);
 				}
 				else
 				{
 					gColorsFeatureEnabled = 1;
-					WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", gszINIFilename);
+					WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", mq::internal_paths::MQini);
 				}
 
 				CheckBoxMenu->CheckMenuItem(iItemID, gColorsFeatureEnabled);
@@ -922,12 +922,12 @@ public:
 				if (gAutoBankTradeSkillItems)
 				{
 					gAutoBankTradeSkillItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", mq::internal_paths::MQini);
 				}
 				else
 				{
 					gAutoBankTradeSkillItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "1", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "1", mq::internal_paths::MQini);
 				}
 
 				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankTradeSkillItems);
@@ -937,12 +937,12 @@ public:
 				if (gAutoBankCollectibleItems)
 				{
 					gAutoBankCollectibleItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", mq::internal_paths::MQini);
 				}
 				else
 				{
 					gAutoBankCollectibleItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "1", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "1", mq::internal_paths::MQini);
 				}
 
 				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankCollectibleItems);
@@ -952,12 +952,12 @@ public:
 				if (gAutoBankQuestItems)
 				{
 					gAutoBankQuestItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", mq::internal_paths::MQini);
 				}
 				else
 				{
 					gAutoBankQuestItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "1", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "1", mq::internal_paths::MQini);
 				}
 
 				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankQuestItems);
@@ -967,12 +967,12 @@ public:
 				if (gAutoInventoryItems)
 				{
 					gAutoInventoryItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", mq::internal_paths::MQini);
 				}
 				else
 				{
 					gAutoInventoryItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "1", gszINIFilename);
+					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "1", mq::internal_paths::MQini);
 				}
 
 				AutoBankMenu->CheckMenuItem(iItemID, gAutoInventoryItems);
@@ -1052,13 +1052,12 @@ DETOUR_TRAMPOLINE_EMPTY(bool CXMLSOMDocumentBaseHook::XMLRead_Trampoline(const C
 
 bool DoesFileExist(const char* filename)
 {
-	char localfile[MAX_PATH];
-	sprintf_s(localfile, "%s\\%s", gszINIPath, filename);
+	std::filesystem::path localfile = filename;
 
-	if (_FileExists(localfile))
+	if (std::filesystem::exists(mq::internal_paths::Resources / localfile))
 		return true;
 
-	return _FileExists(filename);
+	return std::filesystem::exists(localfile);
 }
 DETOUR_TRAMPOLINE_EMPTY(bool DoesFileExist_Trampoline(const char*));
 
@@ -1067,11 +1066,13 @@ class CMemoryMappedFile
 public:
 	bool SetFile_Detour(const char* filename, bool unk8, unsigned int unkC)
 	{
-		char localfile[MAX_PATH];
-		sprintf_s(localfile, "%s\\%s", gszINIPath, filename);
+		std::filesystem::path localfile = filename;
 
-		if (_FileExists(localfile))
-			return SetFile_Trampoline(localfile, unk8, unkC);
+		if (std::filesystem::exists(mq::internal_paths::Resources / localfile))
+		{
+			localfile = mq::internal_paths::Resources / localfile;
+			return SetFile_Trampoline(localfile.string().c_str(), unk8, unkC);
+		}
 
 		return SetFile_Trampoline(filename, unk8, unkC);
 	}
@@ -1131,18 +1132,18 @@ void AddAutoBankMenu()
 			CheckBoxMenu = pContextMenuManager->GetMenu(OurCheckBoxMenuIndex);
 			CheckBoxMenu->RemoveAllMenuItems();
 
-			gCheckBoxFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "CheckBoxFeatureEnabled", -1, gszINIFilename);
+			gCheckBoxFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "CheckBoxFeatureEnabled", -1, mq::internal_paths::MQini);
 			if (gCheckBoxFeatureEnabled == -1)
 			{
 				gCheckBoxFeatureEnabled = 1;
-				WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", gszINIFilename);
+				WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", mq::internal_paths::MQini);
 			}
 
-			gColorsFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "ColorsFeatureEnabled", -1, gszINIFilename);
+			gColorsFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "ColorsFeatureEnabled", -1, mq::internal_paths::MQini);
 			if (gColorsFeatureEnabled == -1)
 			{
 				gColorsFeatureEnabled = 1;
-				WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", gszINIFilename);
+				WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", mq::internal_paths::MQini);
 			}
 
 			CoolCheckBoxoptionID = CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", 50, gCheckBoxFeatureEnabled);
@@ -1275,32 +1276,32 @@ void AddAutoBankMenu()
 			AutoBankMenu = pContextMenuManager->GetMenu(OurDefaultMenuIndex);
 			AutoBankMenu->RemoveAllMenuItems();
 
-			gAutoBankTradeSkillItems = GetPrivateProfileInt("AutoBank", "AutoBankTradeSkillItems", -1, gszINIFilename);
+			gAutoBankTradeSkillItems = GetPrivateProfileInt("AutoBank", "AutoBankTradeSkillItems", -1, mq::internal_paths::MQini);
 			if (gAutoBankTradeSkillItems == -1)
 			{
 				gAutoBankTradeSkillItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", gszINIFilename);
+				WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", mq::internal_paths::MQini);
 			}
 
-			gAutoBankCollectibleItems = GetPrivateProfileInt("AutoBank", "AutoBankCollectibleItems", -1, gszINIFilename);
+			gAutoBankCollectibleItems = GetPrivateProfileInt("AutoBank", "AutoBankCollectibleItems", -1, mq::internal_paths::MQini);
 			if (gAutoBankCollectibleItems == -1)
 			{
 				gAutoBankCollectibleItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", gszINIFilename);
+				WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", mq::internal_paths::MQini);
 			}
 
-			gAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", -1, gszINIFilename);
+			gAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", -1, mq::internal_paths::MQini);
 			if (gAutoBankQuestItems == -1)
 			{
 				gAutoBankQuestItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", gszINIFilename);
+				WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", mq::internal_paths::MQini);
 			}
 
-			gAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", -1, gszINIFilename);
+			gAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", -1, mq::internal_paths::MQini);
 			if (gAutoInventoryItems == -1)
 			{
 				gAutoInventoryItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", gszINIFilename);
+				WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", mq::internal_paths::MQini);
 			}
 
 			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", 50, gAutoBankTradeSkillItems);
@@ -1502,8 +1503,8 @@ bool GenerateMQUI()
 		return false;
 	}
 	sprintf_s(UISkin, "default");
-	sprintf_s(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
-	sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
+	sprintf_s(szOrgFilename, "uifiles\\%s\\EQUI.xml", UISkin);
+	sprintf_s(szFilename, "uifiles\\%s\\MQUI.xml", UISkin);
 
 	DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
@@ -1543,13 +1544,13 @@ bool GenerateMQUI()
 
 	if (pCharInfo != nullptr)
 	{
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 		if (strcmp(UISkin, "default") != 0)
 		{
-			sprintf_s(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
-			sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
+			sprintf_s(szOrgFilename, "uifiles\\%s\\EQUI.xml", UISkin);
+			sprintf_s(szFilename, "uifiles\\%s\\MQUI.xml", UISkin);
 
 			DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
@@ -1557,7 +1558,7 @@ bool GenerateMQUI()
 			if (err)
 			{
 				DebugSpew("GenerateMQUI::could not open %s (non-fatal)", szOrgFilename);
-				sprintf_s(szOrgFilename, "%s\\uifiles\\default\\EQUI.xml", gszEQPath);
+				sprintf_s(szOrgFilename, "uifiles\\default\\EQUI.xml");
 				err = fopen_s(&forg, szOrgFilename, "rt");
 				if (err)
 				{
@@ -1610,7 +1611,7 @@ bool IsXMLFilePresent(const char* filename)
 	{
 		char UISkin[256] = { 0 };
 
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 		sprintf_s(szFilename, "uifiles\\%s\\%s", UISkin, filename);
@@ -1629,16 +1630,16 @@ void DestroyMQUI()
 	char szFilename[MAX_PATH] = { 0 };
 	char UISkin[256] = { 0 };
 
-	sprintf_s(szFilename, "%s\\uifiles\\default\\MQUI.xml", gszEQPath);
+	sprintf_s(szFilename, "uifiles\\default\\MQUI.xml");
 	DebugSpew("DestroyMQUI: removing file %s", szFilename);
 	remove(szFilename);
 
 	if (pCharInfo != nullptr)
 	{
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
-		sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
+		sprintf_s(szFilename, "uifiles\\%s\\MQUI.xml", UISkin);
 		DebugSpew("DestroyMQUI: removing file %s", szFilename);
 		remove(szFilename);
 	}
@@ -1661,7 +1662,7 @@ void AddXMLFile(const char* filename)
 	// grab the name of the ui skin
 	if (pCharInfo != nullptr)
 	{
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 	}
 
@@ -3067,7 +3068,7 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine)
 	char szFilename[MAX_PATH];
 	char UISkin[256];
 
-	sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+	sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
 	GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 	char szBuffer[50];

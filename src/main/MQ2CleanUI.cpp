@@ -217,7 +217,7 @@ static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 
 		char szCmd[20] = { 0 };
 		_itoa_s(gNetStatusXPos, szCmd, 10);
-		WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
+		WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, mq::internal_paths::MQini);
 	}
 }
 
@@ -232,7 +232,7 @@ static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
 
 		char szCmd[20] = { 0 };
 		_itoa_s(gNetStatusYPos, szCmd, 10);
-		WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, gszINIFilename);
+		WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, mq::internal_paths::MQini);
 	}
 }
 

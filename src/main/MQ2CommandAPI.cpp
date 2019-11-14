@@ -173,7 +173,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 		if (Pos == 0)
 		{
 			// the parser version is 2 or It's not version 2 and we're allowing command parses
-			if (pCommand->Parse && (gdwParserEngineVer == 2 || (gdwParserEngineVer != 2 && bAllowCommandParse)))
+			if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 			{
 				pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
 			}
@@ -398,7 +398,7 @@ public:
 				if (Pos == 0)
 				{
 					// the parser version is 2 or It's not version 2 and we're allowing command parses
-					if (pCommand->Parse && (gdwParserEngineVer == 2 || (gdwParserEngineVer != 2 && bAllowCommandParse)))
+					if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 					{
 						ParseMacroParameter(pChar, szArgs);
 					}
@@ -592,7 +592,7 @@ bool RemoveAlias(const char* ShortCommand)
 	std::string sName = ShortCommand;
 	MakeLower(sName);
 
-	WritePrivateProfileString("Aliases", sName.c_str(), nullptr, gszINIFilename);
+	WritePrivateProfileString("Aliases", sName, "", mq::internal_paths::MQini);
 
 	if (mAliases.find(sName) != mAliases.end())
 	{
@@ -614,18 +614,18 @@ bool IsAlias(const char* alias)
 // this function is SUPER expensive, DO NOT use it unless you absolutely have to.
 void RewriteAliases()
 {
-	WritePrivateProfileSection("Aliases", "", gszINIFilename);
+	WritePrivateProfileSection("Aliases", "", mq::internal_paths::MQini);
 
 	for (const auto& [key, value] : mAliases)
 	{
-		WritePrivateProfileString("Aliases", key.c_str(), value.c_str(), gszINIFilename);
+		WritePrivateProfileString("Aliases", key, value, mq::internal_paths::MQini);
 	}
 }
 
 // better single write them instead...
 void WriteAliasToIni(const char* Name, const char* Command)
 {
-	WritePrivateProfileString("Aliases", Name, Command, gszINIFilename);
+	WritePrivateProfileString("Aliases", Name, Command, mq::internal_paths::MQini);
 }
 
 //============================================================================
@@ -713,11 +713,11 @@ bool RemoveSubstitute(const char* Original)
 void RewriteSubstitutions()
 {
 	MQSubstitution* pSubLoop = s_pSubstitutions;
-	WritePrivateProfileSection("Substitutions", "", gszINIFilename);
+	WritePrivateProfileSection("Substitutions", "", mq::internal_paths::MQini);
 
 	while (pSubLoop)
 	{
-		WritePrivateProfileString("Substitutions", pSubLoop->szOrig, pSubLoop->szSub, gszINIFilename);
+		WritePrivateProfileString("Substitutions", pSubLoop->szOrig, pSubLoop->szSub, mq::internal_paths::MQini);
 		pSubLoop = pSubLoop->pNext;
 	}
 }
@@ -944,20 +944,16 @@ void InitializeMQ2Commands()
 	AddAlias("/r", "/reply");
 	AddAlias("/newif", "/if");
 
-	char MainINI[MAX_PATH] = { 0 };
-	sprintf_s(MainINI, "%s\\macroquest.ini", gszINIPath);
-
 	auto largeBuffer = std::make_unique<char[]>(MAX_STRING * 10);
 	char szBuffer[MAX_STRING] = { 0 };
 
 	/* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
-
-	GetPrivateProfileString("Aliases", nullptr, "", largeBuffer.get(), MAX_STRING * 10, MainINI);
+	GetPrivateProfileString("Aliases", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);
 	char* pAliasList = largeBuffer.get();
 
 	while (pAliasList[0] != 0)
 	{
-		GetPrivateProfileString("Aliases", pAliasList, "", szBuffer, MAX_STRING, MainINI);
+		GetPrivateProfileString("Aliases", pAliasList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini);
 		if (szBuffer[0] != 0)
 		{
 			AddAlias(pAliasList, szBuffer);
@@ -969,13 +965,12 @@ void InitializeMQ2Commands()
 	AddSubstitute("omg", "Oh My God");
 
 	// Importing the User's Substitution List from .ini file
-	sprintf_s(MainINI, "%s\\macroquest.ini", gszINIPath);
-	GetPrivateProfileString("Substitutions", nullptr, "", largeBuffer.get(), MAX_STRING * 10, MainINI);
+	GetPrivateProfileString("Substitutions", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);
 
 	char* pSubsList = largeBuffer.get();
 	while (pSubsList[0] != 0)
 	{
-		GetPrivateProfileString("Substitutions", pSubsList, "", szBuffer, MAX_STRING, MainINI);
+		GetPrivateProfileString("Substitutions", pSubsList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini);
 		if (szBuffer[0] != 0)
 		{
 			AddSubstitute(pSubsList, szBuffer);

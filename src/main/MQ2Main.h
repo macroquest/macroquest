@@ -174,7 +174,7 @@ MQLIB_API int LoadMQ2Plugin(const char* pszFilename, bool bCustom = false);
 MQLIB_API bool UnloadMQ2Plugin(const char* pszFilename);
 MQLIB_API void UnloadMQ2Plugins();
 MQLIB_API void ShutdownMQ2Plugins();
-MQLIB_API void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
+MQLIB_API [[deprecated("This is handled on load/unload without the direct call.")]] void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
 MQLIB_API void PulsePlugins();
 MQLIB_API void PluginsZoned();
 MQLIB_API bool PluginsIncomingChat(const char* Line, DWORD Color);
@@ -293,7 +293,7 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 MQLIB_API char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
 MQLIB_API char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
-MQLIB_API char* GetEQPath(char* szBuffer, size_t len);
+MQLIB_API [[deprecated("The EQ Path is the working directory.")]] char* GetEQPath(char* szBuffer, size_t len);
 
 // Command Execution
 MQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);

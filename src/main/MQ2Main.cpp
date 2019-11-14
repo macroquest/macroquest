@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include <fstream>
 
 #include <Psapi.h>
 #pragma comment(lib, "dbghelp.lib")
@@ -43,19 +44,13 @@ DWORD dwMainThreadId = 0;
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
 	char szFilename[MAX_STRING] = { 0 };
-	char* szProcessName;
 	ghModule = (HMODULE)hModule;
 	ghInstance = (HINSTANCE)hModule;
 	ghInjectorWnd = FindWindowA(MacroQuestWinClassName, MacroQuestWinName);
 
-	GetModuleFileName(ghModule, szFilename, MAX_STRING);
-	szProcessName = strrchr(szFilename, '\\');
-	szProcessName[0] = '\0';
-	strcat_s(szFilename, "\\eqgame.ini");
-
 	GetModuleFileName(nullptr, szFilename, MAX_STRING);
 
-	szProcessName = strrchr(szFilename, '.');
+	char* szProcessName = strrchr(szFilename, '.');
 	szProcessName[0] = '\0';
 	szProcessName = strrchr(szFilename, '\\') + 1;
 
@@ -67,6 +62,8 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 			GetModuleFileName(ghModule, szFilename, MAX_STRING);
 			szProcessName = strrchr(szFilename, '\\');
 			szProcessName[0] = '\0';
+
+			mq::internal_paths::MQRoot = szFilename;
 			g_Loaded = true;
 
 			hMQ2StartThread = CreateThread(nullptr, 0, MQ2Start, _strdup(szFilename), 0, &ThreadID);
@@ -77,7 +74,7 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 
 			if (hMQ2StartThread)
 			{
-				int dwtime = WaitForSingleObject(hMQ2StartThread, 1000);
+				const int dwtime = WaitForSingleObject(hMQ2StartThread, 1000);
 				if (dwtime == WAIT_TIMEOUT)
 				{
 					Sleep(0);
@@ -89,39 +86,152 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 		}
 	}
 
-	if (szProcessName[0] != '\0' && !_stricmp(szProcessName, "LaunchPad"))
+	return TRUE;
+}
+
+bool InitDirectory(std::string& strPathToInit, const std::string& strIniKey, const std::string& iniToRead, const std::filesystem::path& appendPathIfRelative = mq::internal_paths::MQRoot, const bool bWriteAllConfig = false)
+{
+	DebugSpewAlways("Initializing Directory:  %s", strIniKey.c_str());
+	char szTempPath[MAX_PATH] = { 0 };
+	GetPrivateProfileString("MacroQuest", strIniKey, strPathToInit, szTempPath, MAX_PATH, iniToRead);
+	std::filesystem::path pathToInit = szTempPath;
+	if (bWriteAllConfig)
 	{
-		if (ul_reason_for_call == DLL_PROCESS_ATTACH)
+		WritePrivateProfileString("MacroQuest", strIniKey, pathToInit.string(), iniToRead);
+	}
+
+	if (pathToInit.is_relative())
+	{
+		pathToInit = std::filesystem::absolute(appendPathIfRelative / pathToInit);
+	}
+
+	// Either way, update the string
+	strPathToInit = pathToInit.string();
+
+	if (std::filesystem::exists(pathToInit) || std::filesystem::create_directories(pathToInit))
+	{
+		DebugSpewAlways("Directory Init of %s successful at: %s", strIniKey.c_str(), strPathToInit.c_str());
+		return true;
+	}
+
+	const std::string strTemp = "Could not find or create " + strIniKey + " path: " + strPathToInit;
+	DebugSpewAlways(strTemp.c_str());
+	MessageBox(nullptr, strTemp.c_str(), "MacroQuest", MB_OK);
+	return false;
+}
+
+/*
+ * @fn InitConfig()
+ *
+ * Find the initial MacroQuest.ini to set the config directory.
+ * Additional settings will be parsed out of the MacroQuest.ini in
+ * that directory, but we don't want to parse the config directory
+ * from there since that could cause a circular config relationship.
+ *
+ */
+bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& strMQini)
+{
+	std::filesystem::path pathMQRoot = strMQRoot;
+	DebugSpewAlways("Initializing Configuration...");
+	// If we still have a relative path to the MQ2 directory, make it absolute.
+	if (pathMQRoot.is_relative())
+	{
+		pathMQRoot = std::filesystem::absolute(pathMQRoot).string();
+	}
+	// Set strMQRoot to the path we found.
+	strMQRoot = pathMQRoot.string();
+
+	// If the path to MQ2 doesn't exist none of our relative paths are going to work
+	if(std::filesystem::exists(pathMQRoot))
+	{
+		std::filesystem::path pathMQini = strMQini;
+		// If the ini path is relative, prepend the MQ2 path
+		if (pathMQini.is_relative())
 		{
-			exit(-1);
+			pathMQini = pathMQRoot / pathMQini;
+		}
+
+		if (!std::filesystem::exists(pathMQini))
+		{
+			// Check if the ini file exists in the same directory as MQ2
+			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini"))
+			{
+				pathMQini = pathMQRoot / "MacroQuest.ini";
+			}
+		}
+
+		if (std::filesystem::exists(pathMQini))
+		{
+			// Check to see if there a different config folder we should be looking at?
+			char szTempPath[MAX_PATH] = { 0 };
+			GetPrivateProfileString("MacroQuest", "ConfigPath", strConfig, szTempPath, MAX_PATH , pathMQini.string());
+			strConfig = szTempPath;
+
+			// Change the ini file to the one in the new config folder
+			pathMQini = std::filesystem::path(strConfig) / "MacroQuest.ini";
+
+			// If it's relative, make it absolute relative to MQ2
+			if (pathMQini.is_relative())
+			{
+				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
+			}
+		}
+		// Set the ini to whatever we ended up with.
+		strMQini = pathMQini.string();
+
+		// Init the Config directory based on the ini we found.
+		if (InitDirectory(strConfig, "ConfigPath", strMQini, strMQRoot, GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini)))
+		{
+			// Backwards compatible before we deprecate
+			strcpy_s(gszEQPath, std::filesystem::absolute(".").string().c_str());
+			strcpy_s(gszINIPath, strMQRoot.c_str()); // or mq::internal_paths::Config but since it's mostly used to find the MQ2 directory...
+			strcpy_s(gszINIFilename, strMQini.c_str());
+			// API compatible
+			strcpy_s(gPathMQRoot, strMQRoot.c_str());
+			strcpy_s(gPathMQini, strMQini.c_str());
+			strcpy_s(gPathConfig, strConfig.c_str());
+			return true;
 		}
 	}
 
-	return TRUE;
+	return false;
+}
+
+bool InitDirectories(const std::string& iniToRead)
+{
+	DebugSpewAlways("Initializing Required Directories...");
+	const bool bWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniToRead);
+	if (InitDirectory(mq::internal_paths::Macros, "MacroPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
+		&& InitDirectory(mq::internal_paths::Logs, "LogPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
+		&& InitDirectory(mq::internal_paths::CrashDumps, "CrashDumpPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
+		&& InitDirectory(mq::internal_paths::Plugins, "PluginPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
+		&& InitDirectory(mq::internal_paths::Resources, "ResourcePath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
+		)
+	{
+		// Backwards compatible before we deprecate
+		strcpy_s(gszMacroPath, mq::internal_paths::Macros.c_str());
+		strcpy_s(gszLogPath, mq::internal_paths::Logs.c_str());
+		// API compatible
+		strcpy_s(gPathMacros, mq::internal_paths::Macros.c_str());
+		strcpy_s(gPathLogs, mq::internal_paths::Logs.c_str());
+		strcpy_s(gPathCrashDumps, mq::internal_paths::CrashDumps.c_str());
+		strcpy_s(gPathPlugins, mq::internal_paths::Plugins.c_str());
+		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
+		return true;
+	}
+
+	return false;
 }
 
 // ***************************************************************************
 // Function:    ParseINIFile
-// Description: Parse INI file for memory locations
+// Description: Parse INI file for settings
 // ***************************************************************************
-bool ParseINIFile(const char* lpINIPath)
+// FIXME:  We're over the stack size here.  MAX_STRING * 10...
+bool ParseINIFile(const std::string& iniFile)
 {
-	char Filename[MAX_STRING] = { 0 };
-	char MQChatSettings[MAX_STRING] = { 0 };
-	char CustomSettings[MAX_STRING] = { 0 };
-	char ClientINI[MAX_STRING] = { 0 };
 	char szBuffer[MAX_STRING] = { 0 };
-	char szBuffer2[MAX_STRING] = { 0 };
-	char ClientName[MAX_STRING] = { 0 };
-	char FilterList[MAX_STRING * 10] = { 0 };
-	char Delimiter[MAX_STRING] = { 0 };
-
-	GetEQPath(gszEQPath, MAX_STRING);
-	DWORD StackingDebug = 0;
-
-	sprintf_s(Filename, "%s\\MacroQuest.ini", lpINIPath);
-	sprintf_s(ClientINI, "%s\\eqgame.ini", lpINIPath);
-	strcpy_s(gszINIFilename, Filename);
+	const bool bWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniFile);
 
 	DebugSpew("Expected Client version: %s %s", __ExpectedVersionDate, __ExpectedVersionTime);
 	DebugSpew("    Real Client version: %s %s", __ActualVersionDate, __ActualVersionTime);
@@ -136,93 +246,148 @@ bool ParseINIFile(const char* lpINIPath)
 	}
 #endif
 
-	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", 1, Filename);
+	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", 1, iniFile);
 	if (ic == 0)
 	{
 		// its set to 0 thats not good
-		WritePrivateProfileString("Plugins", "MQ2Ic", "1", Filename);
+		WritePrivateProfileString("Plugins", "MQ2Ic", "1", iniFile);
 	}
 
-	gFilterSkillsAll         = 0 != GetPrivateProfileInt("MacroQuest", "FilterSkills", 0, Filename);
-	gFilterSkillsIncrease    = 2 == GetPrivateProfileInt("MacroQuest", "FilterSkills", 0, Filename);
-	gFilterDebug             = 1 == GetPrivateProfileInt("MacroQuest", "FilterDebug", 0, Filename);
-	gFilterMQ2DataErrors     = 1 == GetPrivateProfileInt("MacroQuest", "FilterMQ2Data", 0, Filename);
-	gFilterTarget            = 1 == GetPrivateProfileInt("MacroQuest", "FilterTarget", 0, Filename);
-	gFilterMoney             = 1 == GetPrivateProfileInt("MacroQuest", "FilterMoney", 0, Filename);
-	gFilterFood              = 1 == GetPrivateProfileInt("MacroQuest", "FilterFood", 0, Filename);
-	gFilterMacro             =      GetPrivateProfileInt("MacroQuest", "FilterMacro", 0, Filename);
-	gFilterEncumber          = 1 == GetPrivateProfileInt("MacroQuest", "FilterEncumber", 0, Filename);
-	gFilterCustom            = 1 == GetPrivateProfileInt("MacroQuest", "FilterCustom", 1, Filename);
-	gSpewToFile              = 1 == GetPrivateProfileInt("MacroQuest", "DebugSpewToFile", 0, Filename);
-	gMQPauseOnChat           = 1 == GetPrivateProfileInt("MacroQuest", "MQPauseOnChat", 0, Filename);
-	gKeepKeys                = 1 == GetPrivateProfileInt("MacroQuest", "KeepKeys", 0, Filename);
-	bAllErrorsDumpStack      = 1 == GetPrivateProfileInt("MacroQuest", "AllErrorsDumpStack", 1, Filename);
-	bAllErrorsFatal          = 1 == GetPrivateProfileInt("MacroQuest", "AllErrorsFatal", 0, Filename);
-	gbMQ2LoadingMsg          = 1 == GetPrivateProfileInt("MacroQuest", "MQ2LoadingMsg", 1, Filename);
-	gbExactSearchCleanNames  = 1 == GetPrivateProfileInt("MacroQuest", "ExactSearchCleanNames", 0, Filename);
-	gbTimeStampChat          = 1 == GetPrivateProfileInt("MacroQuest", "TimeStampChat", 1, Filename);
-	gUseTradeOnTarget        = 1 == GetPrivateProfileInt("MacroQuest", "UseTradeOnTarget", 1, Filename);
-	gbBeepOnTells            = 1 == GetPrivateProfileInt("MacroQuest", "BeepOnTells", 1, Filename);
-	gbFlashOnTells           = 1 == GetPrivateProfileInt("MacroQuest", "FlashOnTells", 1, Filename);
-	gbIgnoreAlertRecursion   = 1 == GetPrivateProfileInt("MacroQuest", "IgnoreAlertRecursion", 0, Filename);
-	gbShowCurrentCamera      = 1 == GetPrivateProfileInt("MacroQuest", "ShowCurrentCamera", 1, Filename);
-	gTurboLimit              =      GetPrivateProfileInt("MacroQuest", "TurboLimit", 240, Filename);
-	gCreateMQ2NewsWindow     = 1 == GetPrivateProfileInt("MacroQuest", "CreateMQ2NewsWindow", 1, Filename);
-	gNetStatusXPos           =      GetPrivateProfileInt("MacroQuest", "NetStatusXPos", 0, Filename);
-	gNetStatusYPos           =      GetPrivateProfileInt("MacroQuest", "NetStatusYPos", 0, Filename);
-	StackingDebug            =      GetPrivateProfileInt("MacroQuest", "BuffStackTestDebug", 0, Filename); gStackingDebug = (StackingDebug == 2 ? -1 : StackingDebug);
-	gUseNewNamedTest         = 1 == GetPrivateProfileInt("MacroQuest", "UseNewNamedTest", 0, Filename);
-	gdwParserEngineVer       =      GetPrivateProfileInt("MacroQuest", "ParserEngine", 1, Filename);
+	gFilterSkillsAll         = GetPrivateProfileBool("MacroQuest", "FilterSkills", gFilterSkillsAll, iniFile);
+	gFilterSkillsIncrease    = 2 == GetPrivateProfileInt("MacroQuest", "FilterSkills", gFilterSkillsIncrease ? 2 : 0, iniFile);
+	if (bWriteAllConfig)
+	{
+		if (gFilterSkillsAll && gFilterSkillsIncrease)
+			WritePrivateProfileString("MacroQuest", "FilterSkills", "2", iniFile);
+		else
+			WritePrivateProfileString("MacroQuest", "FilterSkills", std::to_string(gFilterSkillsAll), iniFile);
+	}
 
-	GetPrivateProfileString("Macroquest", "IfDelimiter", ",", Delimiter, MAX_STRING, Filename); gIfDelimiter = Delimiter[0];
-	GetPrivateProfileString("Macroquest", "IfAltDelimiter", "~", Delimiter, MAX_STRING, Filename); gIfAltDelimiter = Delimiter[0];
-	GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", CustomSettings, MAX_STRING, Filename);
+	gFilterDebug             = GetPrivateProfileBool("MacroQuest", "FilterDebug", gFilterDebug, iniFile);
+	gFilterMQ2DataErrors     = GetPrivateProfileBool("MacroQuest", "FilterMQ2Data", gFilterMQ2DataErrors, iniFile);
+	gFilterTarget            = GetPrivateProfileBool("MacroQuest", "FilterTarget", gFilterTarget, iniFile);
+	gFilterMoney             = GetPrivateProfileBool("MacroQuest", "FilterMoney", gFilterMoney, iniFile);
+	gFilterFood              = GetPrivateProfileBool("MacroQuest", "FilterFood", gFilterFood, iniFile);
+	gFilterMacro             = GetPrivateProfileBool("MacroQuest", "FilterMacro", gFilterMacro, iniFile);
+	gFilterEncumber          = GetPrivateProfileBool("MacroQuest", "FilterEncumber", gFilterEncumber, iniFile);
+	gFilterCustom            = GetPrivateProfileBool("MacroQuest", "FilterCustom", gFilterCustom, iniFile);
+	gSpewToFile              = GetPrivateProfileBool("MacroQuest", "DebugSpewToFile", gSpewToFile, iniFile);
+	gMQPauseOnChat           = GetPrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, iniFile);
+	gKeepKeys                = GetPrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
+	bAllErrorsDumpStack      = GetPrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
+	bAllErrorsFatal          = GetPrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
+	gbMQ2LoadingMsg          = GetPrivateProfileBool("MacroQuest", "MQ2LoadingMsg", gbMQ2LoadingMsg, iniFile);
+	gbExactSearchCleanNames  = GetPrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
+	gbTimeStampChat          = GetPrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, iniFile);
+	gUseTradeOnTarget        = GetPrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
+	gbBeepOnTells            = GetPrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, iniFile);
+	gbFlashOnTells           = GetPrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, iniFile);
+	gbIgnoreAlertRecursion   = GetPrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
+	gbShowCurrentCamera      = GetPrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
+	gTurboLimit              = GetPrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
+	gCreateMQ2NewsWindow     = GetPrivateProfileBool("MacroQuest", "CreateMQ2NewsWindow", gCreateMQ2NewsWindow, iniFile);
+	gNetStatusXPos           = GetPrivateProfileInt("MacroQuest", "NetStatusXPos", gNetStatusXPos, iniFile);
+	gNetStatusYPos           = GetPrivateProfileInt("MacroQuest", "NetStatusYPos", gNetStatusYPos, iniFile);
+	gStackingDebug           = GetPrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile); // 0 = off, 1 = on, 2 = on and output to chat
+	gUseNewNamedTest         = GetPrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
+	gParserVersion           = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
+	GetPrivateProfileString("MacroQuest", "IfDelimiter", std::to_string(gIfDelimiter), szBuffer, MAX_STRING, iniFile);
+	gIfDelimiter = szBuffer[0];
+	GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), szBuffer, MAX_STRING, iniFile);
+	gIfAltDelimiter = szBuffer[0];
+	if (bWriteAllConfig)
+	{
+		WritePrivateProfileString("MacroQuest", "FilterDebug", std::to_string(gFilterDebug), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterMQ2Data", std::to_string(gFilterMQ2DataErrors), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterTarget", std::to_string(gFilterTarget), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterMoney", std::to_string(gFilterMoney), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterFood", std::to_string(gFilterFood), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterMacro", std::to_string(gFilterMacro), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterEncumber", std::to_string(gFilterEncumber), iniFile);
+		WritePrivateProfileString("MacroQuest", "FilterCustom", std::to_string(gFilterCustom), iniFile);
+		WritePrivateProfileString("MacroQuest", "DebugSpewToFile", std::to_string(gSpewToFile), iniFile);
+		WritePrivateProfileString("MacroQuest", "MQPauseOnChat", std::to_string(gMQPauseOnChat), iniFile);
+		WritePrivateProfileString("MacroQuest", "KeepKeys", std::to_string(gKeepKeys), iniFile);
+		WritePrivateProfileString("MacroQuest", "AllErrorsDumpStack", std::to_string(bAllErrorsDumpStack), iniFile);
+		WritePrivateProfileString("MacroQuest", "AllErrorsFatal", std::to_string(bAllErrorsFatal), iniFile);
+		WritePrivateProfileString("MacroQuest", "MQ2LoadingMsg", std::to_string(gbMQ2LoadingMsg), iniFile);
+		WritePrivateProfileString("MacroQuest", "ExactSearchCleanNames", std::to_string(gbExactSearchCleanNames), iniFile);
+		WritePrivateProfileString("MacroQuest", "TimeStampChat", std::to_string(gbTimeStampChat), iniFile);
+		WritePrivateProfileString("MacroQuest", "UseTradeOnTarget", std::to_string(gUseTradeOnTarget), iniFile);
+		WritePrivateProfileString("MacroQuest", "BeepOnTells", std::to_string(gbBeepOnTells), iniFile);
+		WritePrivateProfileString("MacroQuest", "FlashOnTells", std::to_string(gbFlashOnTells), iniFile);
+		WritePrivateProfileString("MacroQuest", "IgnoreAlertRecursion", std::to_string(gbIgnoreAlertRecursion), iniFile);
+		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", std::to_string(gbShowCurrentCamera), iniFile);
+		WritePrivateProfileString("MacroQuest", "TurboLimit", std::to_string(gTurboLimit), iniFile);
+		WritePrivateProfileString("MacroQuest", "CreateMQ2NewsWindow", std::to_string(gCreateMQ2NewsWindow), iniFile);
+		WritePrivateProfileString("MacroQuest", "NetStatusXPos", std::to_string(gNetStatusXPos), iniFile);
+		WritePrivateProfileString("MacroQuest", "NetStatusYPos", std::to_string(gNetStatusYPos), iniFile);
+		WritePrivateProfileString("MacroQuest", "BuffStackDebugMode", std::to_string(gStackingDebug), iniFile);
+		WritePrivateProfileString("MacroQuest", "UseNewNamedTest", std::to_string(gUseNewNamedTest), iniFile);
+		WritePrivateProfileString("MacroQuest", "ParserEngine", std::to_string(gParserVersion), iniFile);
+		WritePrivateProfileString("MacroQuest", "IfDelimiter", std::to_string(gIfDelimiter), iniFile);
+		WritePrivateProfileString("MacroQuest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), iniFile);
+	}
 
-	if (!_stricmp(CustomSettings, "normal"))
+	GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", szBuffer, MAX_STRING, iniFile);
+
+	if (ci_equals(szBuffer, "normal"))
 	{
 		gbAlwaysDrawMQHUD = false;
 		gbHUDUnderUI = false;
 	}
 	else
 	{
-		if (!_stricmp(CustomSettings, "underui"))
+		if (ci_equals(szBuffer, "always"))
 		{
-			gbHUDUnderUI = true;
-			gbAlwaysDrawMQHUD = false;
-		}
-		else if (!_stricmp(CustomSettings, "always"))
-		{
-			gbHUDUnderUI = true;
 			gbAlwaysDrawMQHUD = true;
+			gbHUDUnderUI = true;
+		}
+		else
+		{
+			strcpy_s(szBuffer, "UnderUI");
+			gbAlwaysDrawMQHUD = false;
+			gbHUDUnderUI = true;
 		}
 	}
+	if (bWriteAllConfig) WritePrivateProfileString("MacroQuest", "HUDMode", szBuffer, iniFile);
 
-	GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], gszSpawnPlayerName[3], MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], gszSpawnPlayerName[4], MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], gszSpawnPlayerName[5], MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, Filename);
-	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, Filename);
-
-	gMaxSpawnCaptions        =      GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, Filename);
-	gMQCaptions              = 1 == GetPrivateProfileInt("Captions", "MQCaptions", 1, Filename);
-	gAnonymize               = 1 == GetPrivateProfileInt("Captions", "Anonymize", 0, Filename);
-	gAnonymizeFlag           =      GetPrivateProfileInt("Captions", "AnonymizeFlag", -1, Filename);
-
-	if (gAnonymizeFlag == -1)
+	GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], gszSpawnPlayerName[3], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], gszSpawnPlayerName[4], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], gszSpawnPlayerName[5], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
+	if (bWriteAllConfig)
 	{
-		WritePrivateProfileString("Captions", "AnonymizeFlag", "0", Filename);
-		gAnonymizeFlag = 0;
+		WritePrivateProfileString("Captions", "NPC", gszSpawnNPCName, iniFile);
+		WritePrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], iniFile);
+		WritePrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], iniFile);
+		WritePrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], iniFile);
+		WritePrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], iniFile);
+		WritePrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], iniFile);
+		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
+		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
+		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
 	}
 
-	GetPrivateProfileString("Captions", "AnonCaption", "", gszAnonCaption, MAX_STRING, Filename);
-	if (gszAnonCaption[0] == '\0')
+	gMaxSpawnCaptions        = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
+	gMQCaptions              = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
+	gAnonymize               = GetPrivateProfileBool("Captions", "Anonymize", gAnonymize, iniFile);
+	gAnonymizeFlag           = GetPrivateProfileInt("Captions", "AnonymizeFlag", gAnonymizeFlag, iniFile);
+	if (bWriteAllConfig)
 	{
-		WritePrivateProfileString("Captions", "AnonCaption", "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}", Filename);
+		WritePrivateProfileString("Captions", "Update", std::to_string(gMaxSpawnCaptions), iniFile);
+		WritePrivateProfileString("Captions", "MQCaptions", std::to_string(gMQCaptions), iniFile);
+		WritePrivateProfileString("Captions", "Anonymize", std::to_string(gAnonymize), iniFile);
+		WritePrivateProfileString("Captions", "AnonymizeFlag", std::to_string(gAnonymizeFlag), iniFile);
 	}
+
+	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
+	if (bWriteAllConfig) WritePrivateProfileString("Captions", "AnonCaption", gszAnonCaption, iniFile);
 
 	ConvertCR(gszSpawnNPCName, MAX_STRING);
 	ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
@@ -235,57 +400,60 @@ bool ParseINIFile(const char* lpINIPath)
 	ConvertCR(gszSpawnPetName, MAX_STRING);
 	ConvertCR(gszAnonCaption, MAX_STRING);
 
-	gFilterSWho.Lastname        = GetPrivateProfileInt("SWho Filter", "Lastname", 1, Filename);
-	gFilterSWho.Class           = GetPrivateProfileInt("SWho Filter", "Class", 1, Filename);
-	gFilterSWho.Race            = GetPrivateProfileInt("SWho Filter", "Race", 1, Filename);
-	gFilterSWho.Level           = GetPrivateProfileInt("SWho Filter", "Level", 1, Filename);
-	gFilterSWho.GM              = GetPrivateProfileInt("SWho Filter", "GM", 1, Filename);
-	gFilterSWho.Guild           = GetPrivateProfileInt("SWho Filter", "Guild", 1, Filename);
-	gFilterSWho.Sneak           = GetPrivateProfileInt("SWho Filter", "Sneak", 1, Filename);
-	gFilterSWho.LD              = GetPrivateProfileInt("SWho Filter", "LD", 1, Filename);
-	gFilterSWho.LFG             = GetPrivateProfileInt("SWho Filter", "LFG", 1, Filename);
-	gFilterSWho.NPCTag          = GetPrivateProfileInt("SWho Filter", "NPCTag", 1, Filename);
-	gFilterSWho.Trader          = GetPrivateProfileInt("SWho Filter", "Trader", 1, Filename);
-	gFilterSWho.AFK             = GetPrivateProfileInt("SWho Filter", "AFK", 1, Filename);
-	gFilterSWho.Anon            = GetPrivateProfileInt("SWho Filter", "Anon", 1, Filename);
-	gFilterSWho.Distance        = GetPrivateProfileInt("SWho Filter", "Distance", 1, Filename);
-	gFilterSWho.Light           = GetPrivateProfileInt("SWho Filter", "Light", 0, Filename);
-	gFilterSWho.Body            = GetPrivateProfileInt("SWho Filter", "Body", 0, Filename);
-	gFilterSWho.SpawnID         = GetPrivateProfileInt("SWho Filter", "SpawnID", 0, Filename);
-	gFilterSWho.Holding         = GetPrivateProfileInt("SWho Filter", "Holding", 0, Filename);
-	gFilterSWho.ConColor        = GetPrivateProfileInt("SWho Filter", "ConColor", 0, Filename);
-	gFilterSWho.Invisible       = GetPrivateProfileInt("SWho Filter", "Invisible", 0, Filename);
-
-	GetPrivateProfileString("MacroQuest", "MacroPath", ".", szBuffer, MAX_STRING, Filename);
-
-	if (szBuffer[0] == '.')
+	gFilterSWho.Lastname        = GetPrivateProfileBool("SWho Filter", "Lastname", gFilterSWho.Lastname, iniFile);
+	gFilterSWho.Class           = GetPrivateProfileBool("SWho Filter", "Class", gFilterSWho.Class, iniFile);
+	gFilterSWho.Race            = GetPrivateProfileBool("SWho Filter", "Race", gFilterSWho.Race, iniFile);
+	gFilterSWho.Level           = GetPrivateProfileBool("SWho Filter", "Level", gFilterSWho.Level, iniFile);
+	gFilterSWho.GM              = GetPrivateProfileBool("SWho Filter", "GM", gFilterSWho.GM, iniFile);
+	gFilterSWho.Guild           = GetPrivateProfileBool("SWho Filter", "Guild", gFilterSWho.Guild, iniFile);
+	gFilterSWho.Sneak           = GetPrivateProfileBool("SWho Filter", "Sneak", gFilterSWho.Sneak, iniFile);
+	gFilterSWho.LD              = GetPrivateProfileBool("SWho Filter", "LD", gFilterSWho.LD, iniFile);
+	gFilterSWho.LFG             = GetPrivateProfileBool("SWho Filter", "LFG", gFilterSWho.LFG, iniFile);
+	gFilterSWho.NPCTag          = GetPrivateProfileBool("SWho Filter", "NPCTag", gFilterSWho.NPCTag, iniFile);
+	gFilterSWho.Trader          = GetPrivateProfileBool("SWho Filter", "Trader", gFilterSWho.Trader, iniFile);
+	gFilterSWho.AFK             = GetPrivateProfileBool("SWho Filter", "AFK", gFilterSWho.AFK, iniFile);
+	gFilterSWho.Anon            = GetPrivateProfileBool("SWho Filter", "Anon", gFilterSWho.Anon, iniFile);
+	gFilterSWho.Distance        = GetPrivateProfileBool("SWho Filter", "Distance", gFilterSWho.Distance, iniFile);
+	gFilterSWho.Light           = GetPrivateProfileBool("SWho Filter", "Light", gFilterSWho.Light, iniFile);
+	gFilterSWho.Body            = GetPrivateProfileBool("SWho Filter", "Body", gFilterSWho.Body, iniFile);
+	gFilterSWho.SpawnID         = GetPrivateProfileBool("SWho Filter", "SpawnID", gFilterSWho.SpawnID, iniFile);
+	gFilterSWho.Holding         = GetPrivateProfileBool("SWho Filter", "Holding", gFilterSWho.Holding, iniFile);
+	gFilterSWho.ConColor        = GetPrivateProfileBool("SWho Filter", "ConColor", gFilterSWho.ConColor, iniFile);
+	gFilterSWho.Invisible       = GetPrivateProfileBool("SWho Filter", "Invisible", gFilterSWho.Invisible, iniFile);
+	if (bWriteAllConfig)
 	{
-		sprintf_s(gszMacroPath, "%s%s", lpINIPath, szBuffer + 1);
-	}
-	else
-	{
-		strcat_s(gszMacroPath, szBuffer);
-	}
-
-	GetPrivateProfileString("MacroQuest", "LogPath", ".", szBuffer, MAX_STRING, Filename);
-
-	if (szBuffer[0] == '.')
-	{
-		sprintf_s(gszLogPath, "%s%s", lpINIPath, szBuffer + 1);
-	}
-	else
-	{
-		strcat_s(gszLogPath, szBuffer);
+		WritePrivateProfileString("SWho Filter", "Lastname", std::to_string(gFilterSWho.Lastname), iniFile);
+		WritePrivateProfileString("SWho Filter", "Class", std::to_string(gFilterSWho.Class), iniFile);
+		WritePrivateProfileString("SWho Filter", "Race", std::to_string(gFilterSWho.Race), iniFile);
+		WritePrivateProfileString("SWho Filter", "Level", std::to_string(gFilterSWho.Level), iniFile);
+		WritePrivateProfileString("SWho Filter", "GM", std::to_string(gFilterSWho.GM), iniFile);
+		WritePrivateProfileString("SWho Filter", "Guild", std::to_string(gFilterSWho.Guild), iniFile);
+		WritePrivateProfileString("SWho Filter", "Sneak", std::to_string(gFilterSWho.Sneak), iniFile);
+		WritePrivateProfileString("SWho Filter", "LD", std::to_string(gFilterSWho.LD), iniFile);
+		WritePrivateProfileString("SWho Filter", "LFG", std::to_string(gFilterSWho.LFG), iniFile);
+		WritePrivateProfileString("SWho Filter", "NPCTag", std::to_string(gFilterSWho.NPCTag), iniFile);
+		WritePrivateProfileString("SWho Filter", "Trader", std::to_string(gFilterSWho.Trader), iniFile);
+		WritePrivateProfileString("SWho Filter", "AFK", std::to_string(gFilterSWho.AFK), iniFile);
+		WritePrivateProfileString("SWho Filter", "Anon", std::to_string(gFilterSWho.Anon), iniFile);
+		WritePrivateProfileString("SWho Filter", "Distance", std::to_string(gFilterSWho.Distance), iniFile);
+		WritePrivateProfileString("SWho Filter", "Light", std::to_string(gFilterSWho.Light), iniFile);
+		WritePrivateProfileString("SWho Filter", "Body", std::to_string(gFilterSWho.Body), iniFile);
+		WritePrivateProfileString("SWho Filter", "SpawnID", std::to_string(gFilterSWho.SpawnID), iniFile);
+		WritePrivateProfileString("SWho Filter", "Holding", std::to_string(gFilterSWho.Holding), iniFile);
+		WritePrivateProfileString("SWho Filter", "ConColor", std::to_string(gFilterSWho.ConColor), iniFile);
+		WritePrivateProfileString("SWho Filter", "Invisible", std::to_string(gFilterSWho.Invisible), iniFile);
 	}
 
 	DefaultFilters();
 
-	GetPrivateProfileString("Filter Names", nullptr, "", FilterList, MAX_STRING * 10, Filename);
+	// TODO:  Add a function that gets map for a section?
+	char FilterList[MAX_STRING * 10] = { 0 };
+	GetPrivateProfileString("Filter Names", "", "", FilterList, MAX_STRING * 10, iniFile);
 
 	char* pFilterList = FilterList;
 	while (pFilterList[0] != 0)
 	{
-		GetPrivateProfileString("Filter Names", pFilterList, "", szBuffer, MAX_STRING, Filename);
+		GetPrivateProfileString("Filter Names", pFilterList, "", szBuffer, MAX_STRING, iniFile);
 
 		if (szBuffer[0] != 0 && strcmp(szBuffer, "NOBODY"))
 		{
@@ -294,52 +462,49 @@ bool ParseINIFile(const char* lpINIPath)
 		pFilterList += strlen(pFilterList) + 1;
 	}
 
-	sprintf_s(Filename, "%s\\ItemDB.txt", lpINIPath);
-	FILE* fDB = nullptr;
-	errno_t err = fopen_s(&fDB, Filename, "rt");
-	strcpy_s(gszItemDB, Filename);
-	char* pDest = nullptr;
-
-	if (!err)
+	const std::filesystem::path itemDBPath = std::filesystem::path(mq::internal_paths::Resources) / "ItemDB.txt";
+	if (std::filesystem::exists(itemDBPath))
 	{
-		fgets(szBuffer, MAX_STRING, fDB);
-		while ((!feof(fDB)) && (strstr(szBuffer, "\t")))
+		// Backwards compatibility prior to deprecation
+		strcpy_s(gszItemDB, itemDBPath.string().c_str());
+
+		std::ifstream itemDB(itemDBPath);
+		std::string itemDBLine;
+		while (std::getline(itemDB, itemDBLine))
 		{
-			if (ITEMDB* Item = new ITEMDB())
+			size_t firstTab = itemDBLine.find('\t');
+			size_t lastTab = itemDBLine.rfind('\t');
+
+			if (firstTab != std::string::npos && lastTab != std::string::npos)
 			{
-				Item->pNext = gItemDB;
-				Item->ID = GetIntFromString(szBuffer, Item->ID);
-
-				if (pDest = (strstr(szBuffer, "\t") + 1))
+				int itemID = GetIntFromString(itemDBLine.substr(0, firstTab), 0);
+				int stackQTY = GetIntFromString(itemDBLine.substr(firstTab + 1, lastTab - firstTab), 0);
+				std::string itemName = itemDBLine.substr(lastTab + 1);
+				if (itemID != 0)
 				{
-					strcpy_s(szBuffer2, pDest);
-					Item->StackSize = GetIntFromString(szBuffer2, Item->StackSize);
-
-					if (pDest = strstr(szBuffer2, "\t"))
+					if (ITEMDB* Item = new ITEMDB())
 					{
-						strcpy_s(Item->szName, pDest + 1);
-						Item->szName[strstr(Item->szName, "\n") - Item->szName] = 0;
+						Item->pNext = gItemDB;
+						Item->ID = itemID;
+						Item->StackSize = stackQTY;
+						strcpy_s(Item->szName, itemName.c_str());
 						gItemDB = Item;
-						fgets(szBuffer, MAX_STRING, fDB);
-					}
-					else
-					{
-						sprintf_s(szBuffer, "Your file: %s is old.\nPlease replace it with the one from the latest zip", Filename);
-						MessageBox(nullptr, szBuffer, "ItemDB.txt version mismatch", MB_OK);
-						exit(0);
 					}
 				}
+				else
+				{
+					std::string strMessage = "Failed to parse ItemDB.  Check the data at " + itemDBPath.string();
+					MessageBox(nullptr, strMessage.c_str(), "MacroQuest", MB_OK);
+					break;
+				}
+			}
+			else
+			{
+				std::string strMessage = "Unexpected Data in ItemDB.  Check the format at " + itemDBPath.string();
+				MessageBox(nullptr, strMessage.c_str(), "MacroQuest", MB_OK);
+				break;
 			}
 		}
-
-		fclose(fDB);
-	}
-
-	if (!gSpewToFile)
-	{
-		// lets check if the user has it set in his/her custom ini
-		sprintf_s(Filename, "%s\\CustomPlugin.ini", lpINIPath);
-		gSpewToFile = 1 == GetPrivateProfileInt("MacroQuest", "DebugSpewToFile", 0, Filename);
 	}
 
 	return true;
@@ -416,7 +581,21 @@ bool MQ2Initialize()
 		return false;
 	}
 
-	if (!ParseINIFile(gszINIPath))
+	if (!InitConfig(mq::internal_paths::MQRoot, mq::internal_paths::Config, mq::internal_paths::MQini))
+	{
+		DebugSpewAlways("InitConfig returned false - thread aborted.");
+		g_Loaded = false;
+		return false;
+	}
+
+	if (!InitDirectories(mq::internal_paths::MQini))
+	{
+		DebugSpewAlways("InitDirectories returned false - thread aborted.");
+		g_Loaded = false;
+		return false;
+	}
+
+	if (!ParseINIFile(mq::internal_paths::MQini))
 	{
 		DebugSpewAlways("ParseINIFile returned false - thread aborted.");
 		g_Loaded = false;
@@ -625,10 +804,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 	hLoadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
-	char* lpINIPath = (char*)lpParameter;
-	strcpy_s(gszINIPath, lpINIPath);
-	free(lpINIPath);
-
 	char szBuffer[MAX_STRING] = { 0 };
 
 	if (!MQ2Initialize())
@@ -753,16 +928,14 @@ void DeleteMQ2NewsWindow()
 	pNewsWindow = nullptr;
 }
 
-void InsertMQ2News()
+void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 {
 	if (!pNewsWindow)
 		return;
 
-	char Filename[MAX_PATH] = { 0 };
-	sprintf_s(Filename, "%s\\changes.txt", gszINIPath);
 
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, Filename, "rb");
+	errno_t err = fopen_s(&file, pathChangeLog.string().c_str(), "rb");
 	if (err || !file)
 	{
 		DeleteMQ2NewsWindow();
@@ -801,15 +974,14 @@ void InsertMQ2News()
 
 void CreateMQ2NewsWindow()
 {
-	char Filename[MAX_STRING] = { 0 };
-	sprintf_s(Filename, "%s\\changes.txt", gszINIPath);
+	const std::filesystem::path pathChangeLog = std::filesystem::path(mq::internal_paths::MQRoot) / "CHANGELOG.md";
 
-	if (!pNewsWindow && _FileExists(Filename))
+	if (!pNewsWindow && std::filesystem::exists(pathChangeLog))
 	{
 		pNewsWindow = new CMQNewsWnd();
 	}
 
-	InsertMQ2News();
+	InsertMQ2News(pathChangeLog);
 }
 
 //============================================================================

@@ -16,6 +16,8 @@
 
 PreSetup("MQ2CustomBinds");
 
+const char* BindsFile = "MQ2CustomBinds.txt";
+
 struct CustomBind
 {
 	char Name[32];
@@ -122,11 +124,10 @@ PLUGIN_API void SetGameState(DWORD GameState)
 
 static void LoadCustomBinds()
 {
-	char filename[MAX_STRING];
-	strcpy_s(filename, gszINIPath);
-	strcat_s(filename, "\\MQ2CustomBinds.txt");
+	std::filesystem::path pathCustomBinds = gPathConfig;
+	pathCustomBinds /= BindsFile;
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, filename, "rt");
+	errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "rt");
 	if (err)
 		return;
 
@@ -163,11 +164,10 @@ static void LoadCustomBinds()
 
 static void SaveCustomBinds()
 {
-	char filename[MAX_STRING];
-	strcpy_s(filename, gszINIPath);
-	strcat_s(filename, "\\MQ2CustomBinds.txt");
+	std::filesystem::path pathCustomBinds = gPathConfig;
+	pathCustomBinds /= BindsFile;
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, filename, "wt");
+	errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "wt");
 	if (err)
 		return;
 

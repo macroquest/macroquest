@@ -211,12 +211,12 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function)
 	char szBuffer[MAX_STRING] = { 0 };
 
 	sprintf_s(szName, "%s_%s", pBind->Name, "Nrm");
-	GetPrivateProfileString("Key Binds", szName, "clear", szBuffer, MAX_STRING, gszINIFilename);
+	GetPrivateProfileString("Key Binds", szName, "clear", szBuffer, MAX_STRING, mq::internal_paths::MQini);
 
 	ParseKeyCombo(szBuffer, pBind->Normal);
 
 	sprintf_s(szName, "%s_%s", pBind->Name, "Alt");
-	GetPrivateProfileString("Key Binds", szName, "clear", szBuffer, MAX_STRING, gszINIFilename);
+	GetPrivateProfileString("Key Binds", szName, "clear", szBuffer, MAX_STRING, mq::internal_paths::MQini);
 	ParseKeyCombo(szBuffer, pBind->Alt);
 
 	pBind->Function = Function;
@@ -300,7 +300,7 @@ bool SetMQ2KeyBind(const char* name, bool alternate, KeyCombo& combo)
 			pBind->Alt = combo;
 		}
 
-		WritePrivateProfileString("Key Binds", szName, DescribeKeyCombo(combo, szBuffer, sizeof(szBuffer)), gszINIFilename);
+		WritePrivateProfileString("Key Binds", szName, DescribeKeyCombo(combo, szBuffer, sizeof(szBuffer)), mq::internal_paths::MQini);
 		return true;
 	}
 
@@ -486,14 +486,17 @@ static void DoRangedBind(const char* Name, bool Down)
 
 bool DumpBinds(const char* Filename)
 {
-	char szFilename[MAX_STRING] = { 0 };
-
-	sprintf_s(szFilename, "%s\\Configs\\%s", gszINIPath, Filename);
+	std::filesystem::path pathFilename = Filename;
 	if (!strchr(Filename, '.'))
-		strcat_s(szFilename, ".cfg");
+		pathFilename = std::string(Filename) + ".cfg";
+
+	if (pathFilename.is_relative())
+	{
+		pathFilename = mq::internal_paths::Config / pathFilename;
+	}
 
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, szFilename, "wt");
+	errno_t err = fopen_s(&file, pathFilename.string().c_str(), "wt");
 	if (err)
 	{
 		return false;

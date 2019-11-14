@@ -5,6 +5,10 @@
     <Import Project=".\Common.props" />
   </ImportGroup>
 
+  <PropertyGroup>
+    <OutDir>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\plugins\</OutDir>
+  </PropertyGroup>
+
   <ItemDefinitionGroup>
     <!-- Debug only compiler settings props-->
     <ClCompile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -31,6 +35,7 @@
 
     <!-- Shared linker settings -->
     <Link>
+      <AdditionalLibraryDirectories>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mq2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
