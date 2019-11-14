@@ -256,6 +256,7 @@ void CleanMacroLine(char* szLine)
 // Description: Includes another macro file
 // Usage:       #include <filename>
 // ***************************************************************************
+// TODO:  Switch this to take input of filesystem::path instead of const char*  Breaking change?
 bool Include(const char* szFile, int* LineNumber)
 {
 	FILE* fMacro = nullptr;
@@ -354,10 +355,14 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 			if (!strstr(szLine, "."))
 				strcat_s(szLine, Linelen, ".mac");
 
-			char Filename[MAX_STRING] = { 0 };
-			sprintf_s(Filename, "%s\\%s", gszMacroPath, szLine);
+			std::filesystem::path incFilePath = szLine;
 
-			return Include(Filename, LineNumber);
+			if (incFilePath.is_relative())
+			{
+				incFilePath = mq::internal_paths::Macros / incFilePath;
+			}
+
+			return Include(incFilePath.string().c_str(), LineNumber);
 		}
 		else if (!_strnicmp(szLine, "#warning", 8))
 		{
@@ -468,7 +473,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 		}
 		else if (!_strnicmp(szLine, "#bind_noparse ", 14))
 		{
-			if (gdwParserEngineVer == 2)
+			if (gParserVersion == 2)
 			{
 				char szArg1[MAX_STRING] = { 0 };
 				char szArg2[MAX_STRING] = { 0 };
@@ -752,15 +757,19 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	if (!strstr(szTemp, ".")) strcat_s(szTemp, ".mac");
 
-	char Filename[MAX_STRING] = { 0 };
-	sprintf_s(Filename, "%s\\%s", gszMacroPath, szTemp);
+	std::filesystem::path macFilePath = szTemp;
+
+	if (macFilePath.is_relative())
+	{
+		macFilePath = mq::internal_paths::Macros / macFilePath;
+	}
 
 	FILE* fMacro = nullptr;
-	errno_t err = fopen_s(&fMacro, Filename, "rt");
+	errno_t err = fopen_s(&fMacro, macFilePath.string().c_str(), "rt");
 
 	if (err)
 	{
-		FatalError("Couldn't open macro file: %s", Filename);
+		FatalError("Couldn't open macro file: %s", macFilePath.string().c_str());
 		gszMacroName[0] = 0;
 		gRunning = 0;
 		return;
@@ -768,13 +777,13 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	gEventChat = 0;
 	strcpy_s(gszMacroName, szTemp);
-	DebugSpew("Macro - Loading macro: %s", Filename);
+	DebugSpew("Macro - Loading macro: %s", macFilePath.string().c_str());
 
 	int LineIndex = 0;
 	int LocalLine = 0;
 	gMacroSubLookupMap.clear();
 
-	const char* Macroname = GetFilenameFromFullPath(Filename);
+	const std::string strMacroName = macFilePath.filename().string();
 
 	while (!feof(fMacro))
 	{
@@ -791,7 +800,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 		if (!InBlockComment)
 		{
-			if (!AddMacroLine(Macroname, szTemp, MAX_STRING, &LineIndex, LocalLine))
+			if (!AddMacroLine(strMacroName.c_str(), szTemp, MAX_STRING, &LineIndex, LocalLine))
 			{
 				MacroError("Unable to add macro line.");
 				fclose(fMacro);
@@ -834,7 +843,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	if (!gMacroBlock)
 	{
-		MacroError("Not a valid macrofile %s no Sub Main found.", Macroname);
+		MacroError("Not a valid macrofile %s no Sub Main found.", strMacroName.c_str());
 		gszMacroName[0] = 0;
 		gRunning = 0;
 		return;
@@ -863,7 +872,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		if (CListWnd* list = (CListWnd*)pWnd->GetChildItem("RMW_RunningMacrosList"))
 		{
 			int id = list->AddString("", 0xFF00FF00, 0);
-			list->SetItemText(id, 1, Macroname);
+			list->SetItemText(id, 1, strMacroName.c_str());
 		}
 	}
 }
@@ -1081,10 +1090,10 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	}
 
 	// Set the parse back to whatever the default is
-	const DWORD dwTemp = GetPrivateProfileInt("MacroQuest", "ParserEngine", 1, gszINIFilename);
-	if (dwTemp != gdwParserEngineVer)
+	const int iTemp = GetPrivateProfileInt("MacroQuest", "ParserEngine", 1, mq::internal_paths::MQini);
+	if (iTemp != gParserVersion)
 	{
-		gdwParserEngineVer = dwTemp;
+		gParserVersion = iTemp;
 		WriteChatColor("Parser Version Reset to your default", USERCOLOR_DEFAULT);
 	}
 
@@ -1378,7 +1387,7 @@ void NewIf(PSPAWNINFO pChar, char* szLine)
 
 	if (Result != 0)
 	{
-		if (gdwParserEngineVer == 2)
+		if (gParserVersion == 2)
 		{
 			// Due to the way that MQ2 currently processes the whole line before reaching this point:
 			// At this point the command has already passed through the parser once.  We don't want

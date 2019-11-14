@@ -31,10 +31,9 @@ namespace mq {
 static void LogToFile(const char* szOutput)
 {
 	FILE* fOut = nullptr;
-	char szFilename[MAX_PATH] = { 0 };
 
-	sprintf_s(szFilename, "%s\\DebugSpew.log", gszLogPath);
-	errno_t err = fopen_s(&fOut, szFilename, "at");
+	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
+	errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
 
 	if (err || !fOut)
 		return;
@@ -433,7 +432,7 @@ char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToP
 	return szDest;
 }
 
-// TODO:  Remove since the working directory is the EQ directory
+// Deprecated
 char* GetEQPath(char* szBuffer, size_t len)
 {
 	GetModuleFileName(nullptr, szBuffer, MAX_STRING);
@@ -1652,41 +1651,41 @@ char* DescribeKeyCombo(KeyCombo& Combo, char* szDest, size_t BufferSize)
 
 bool LoadCfgFile(const char* Filename, bool Delayed)
 {
-	FILE* file = nullptr;
-	errno_t err = 0;
+	std::filesystem::path pathFilename = Filename;
+	// The original search order was: Configs\Filename.cfg, root\Filename.cfg, EQ\Filename.cfg, EQ\Filename
+	// The new search order is just Config\Filename.cfg.  If it needs to be the other way, use exists() to check.
+	if (!strchr(Filename, '.'))
+		pathFilename = std::string(Filename) + ".cfg";
 
-	char szFilename[MAX_STRING] = { 0 };
-	strcpy_s(szFilename, Filename);
-	if (!strchr(szFilename, '.'))
-		strcat_s(szFilename, ".cfg");
-
-	char szFull[MAX_STRING] = { 0 };
-#define TryFile(name)  \
-    {\
-	if((err = fopen_s(&file,name,"rt"))==0)\
-    goto havecfgfile;\
-    }
-	sprintf_s(szFull, "%s\\Configs\\%s", gszINIPath, szFilename);
-	TryFile(szFull);
-	sprintf_s(szFull, "%s\\%s", gszINIPath, szFilename);
-	TryFile(szFull);
-	TryFile(szFilename);
-	TryFile(Filename);
-#undef TryFile
-	return false;
-havecfgfile:
-	char szBuffer[MAX_STRING] = { 0 };
-	while (fgets(szBuffer, MAX_STRING, file))
+	if (pathFilename.is_relative())
 	{
-		char* Next_Token1 = 0;
-		char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
-		if (Cmd && Cmd[0] && Cmd[0] != ';')
+		if (std::filesystem::exists(mq::internal_paths::Config / pathFilename))
 		{
-			HideDoCommand(((SPAWNINFO*)pLocalPlayer), Cmd, Delayed);
+			pathFilename = mq::internal_paths::Config / pathFilename;
 		}
 	}
-	fclose(file);
-	return true;
+
+	if (std::filesystem::exists(pathFilename))
+	{
+		FILE* file = nullptr;
+		errno_t err = 0;
+		if((err = fopen_s(&file,pathFilename.string().c_str(),"rt"))==0)
+		{
+			char szBuffer[MAX_STRING] = { 0 };
+			while (fgets(szBuffer, MAX_STRING, file))
+			{
+				char* Next_Token1 = 0;
+				char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
+				if (Cmd && Cmd[0] && Cmd[0] != ';')
+				{
+					HideDoCommand(((SPAWNINFO*)pLocalPlayer), Cmd, Delayed);
+				}
+			}
+			fclose(file);
+			return true;
+		}
+	}
+	return false;
 }
 
 int FindInvSlotForContents(CONTENTS* pContents)
@@ -4420,14 +4419,14 @@ void WriteFilterNames()
 	int filternumber = 1;
 
 	MQFilter* pFilter = gpFilters;
-	WritePrivateProfileSection("Filter Names", szBuffer, gszINIFilename);
+	WritePrivateProfileSection("Filter Names", szBuffer, mq::internal_paths::MQini);
 
 	while (pFilter)
 	{
 		if (pFilter->pEnabled == &gFilterCustom)
 		{
 			sprintf_s(szBuffer, "Filter%d", filternumber++);
-			WritePrivateProfileString("Filter Names", szBuffer, pFilter->FilterText, gszINIFilename);
+			WritePrivateProfileString("Filter Names", szBuffer, pFilter->FilterText, mq::internal_paths::MQini);
 		}
 		pFilter = pFilter->pNext;
 	}
@@ -4728,7 +4727,7 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 	if (aSpell->ID == bSpell->ID)
 		return true;
 
-	if (gStackingDebug)
+	if (gStackingDebug != 0)
 	{
 		char szStackingDebug[MAX_STRING] = { 0 };
 		sprintf_s(szStackingDebug, "aSpell->Name=%s(%d) bSpell->Name=%s(%d)",
@@ -4736,7 +4735,7 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 
 		DebugSpewAlwaysFile("%s", szStackingDebug);
 
-		if (gStackingDebug == -1)
+		if (gStackingDebug == 2)
 			WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
 	}
 
@@ -4767,13 +4766,13 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 			bBase2 = GetSpellBase2(bSpell, i);
 		}
 
-		if (gStackingDebug)
+		if (gStackingDebug != 0)
 		{
 			char szStackingDebug[MAX_STRING] = { 0 };
 			sprintf_s(szStackingDebug, "Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
 			DebugSpewAlwaysFile("%s", szStackingDebug);
 
-			if (gStackingDebug == -1)
+			if (gStackingDebug == 2)
 				WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
 		}
 
@@ -4786,14 +4785,14 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 
 			if (!pRetSpellA || !pRetSpellB)
 			{
-				if (gStackingDebug)
+				if (gStackingDebug != 0)
 				{
 					char szStackingDebug[MAX_STRING] = { 0 };
 					sprintf_s(szStackingDebug, "BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s",
 						aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
 					DebugSpewAlwaysFile("%s", szStackingDebug);
 
-					if (gStackingDebug == -1)
+					if (gStackingDebug == 2)
 						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
 				}
 			}
@@ -4802,10 +4801,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 			{
 				if (!BuffStackTest(pRetSpellA, pRetSpellB, bIgnoreTriggeringEffects, true))
 				{
-					if (gStackingDebug)
+					if (gStackingDebug != 0)
 					{
 						DebugSpewAlwaysFile("returning false #1");
-						if (gStackingDebug == -1)
+						if (gStackingDebug == 2)
 							WriteChatColor("returning false #1", USERCOLOR_CHAT_CHANNEL);
 					}
 					return false;
@@ -4815,10 +4814,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 
 		if (bAttrib == aAttrib && !SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects, bTriggeredEffectCheck))
 		{
-			if (gStackingDebug)
+			if (gStackingDebug != 0)
 			{
 				DebugSpewAlwaysFile("Inside IF");
-				if (gStackingDebug == -1)
+				if (gStackingDebug == 2)
 					WriteChatColor("Inside IF", USERCOLOR_CHAT_CHANNEL);
 			}
 
@@ -4831,10 +4830,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 				|| (bAttrib == 148 || bAttrib == 149)
 				|| (aAttrib == 148 || aAttrib == 149)))
 			{
-				if (gStackingDebug)
+				if (gStackingDebug != 0)
 				{
 					DebugSpewAlwaysFile("returning false #2");
-					if (gStackingDebug == -1)
+					if (gStackingDebug == 2)
 						WriteChatColor("returning false #2", USERCOLOR_CHAT_CHANNEL);
 				}
 				return false;
@@ -4853,12 +4852,12 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 			if (GetSpellNumEffects(aSpell) > tmpSlot)
 			{
 				// verify aSpell has that slot
-				if (gStackingDebug)
+				if (gStackingDebug != 0)
 				{
 					char szStackingDebug[MAX_STRING] = { 0 };
 					snprintf(szStackingDebug, sizeof(szStackingDebug), "aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
 					DebugSpewAlwaysFile("%s", szStackingDebug);
-					if (gStackingDebug == -1)
+					if (gStackingDebug == 2)
 						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
 				}
 
@@ -4867,10 +4866,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 					int tmpVal = abs(GetSpellMax(bSpell, i));
 					if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib && GetSpellBase(aSpell, tmpSlot) < tmpVal)
 					{
-						if (gStackingDebug)
+						if (gStackingDebug != 0)
 						{
 							DebugSpewAlwaysFile("returning false #3");
-							if (gStackingDebug == -1)
+							if (gStackingDebug == 2)
 								WriteChatColor("returning false #3", USERCOLOR_CHAT_CHANNEL);
 						}
 						return false;
@@ -4878,10 +4877,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 				}
 				else if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib)
 				{
-					if (gStackingDebug)
+					if (gStackingDebug != 0)
 					{
 						DebugSpewAlwaysFile("returning false #4");
-						if (gStackingDebug == -1)
+						if (gStackingDebug == 2)
 							WriteChatColor("returning false #4", USERCOLOR_CHAT_CHANNEL);
 					}
 					return false;
@@ -4930,10 +4929,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 		*/
 	}
 
-	if (gStackingDebug)
+	if (gStackingDebug != 0)
 	{
 		DebugSpewAlwaysFile("returning true");
-		if (gStackingDebug == -1)
+		if (gStackingDebug == 2)
 			WriteChatColor("returning true", USERCOLOR_CHAT_CHANNEL);
 	}
 	return true;

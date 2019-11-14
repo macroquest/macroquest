@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <list>
 #include <map>
 #include <memory>

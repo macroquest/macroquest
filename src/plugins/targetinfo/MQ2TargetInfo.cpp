@@ -175,19 +175,9 @@ void CleanUp(bool bUnload);
 
 void ResetIni()
 {
-	CopyFile(INIFileName, "MQ2TargetInfo.bak", false);
-	DeleteFile(INIFileName);
 	HMODULE hMe = 0;
-	char szMyIniName[2048] = { 0 };
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)ResetIni, &hMe);
 	void* pMyBinaryData = nullptr;
-	GetModuleFileName(hMe, szMyIniName, 2048);
-
-	if (char* pDest = strrchr(szMyIniName, '.'))
-	{
-		pDest[0] = '\0';
-		strcat_s(szMyIniName, ".ini");
-	}
 
 	if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_INI1), "INI"))
 	{
@@ -199,7 +189,7 @@ void ResetIni()
 				//save it...
 				DWORD ressize = SizeofResource(hMe, hRes);
 				FILE* File = 0;
-				errno_t err = fopen_s(&File, szMyIniName, "wb");
+				errno_t err = fopen_s(&File, INIFileName, "wb");
 				if (!err)
 				{
 					fwrite(pMyBinaryData, ressize, 1, File);
@@ -253,12 +243,12 @@ void LoadPHs(char* szMyName)
 	phinfo phinf;
 	std::string phs;
 	int commapos = 0;
-	char szBuffer[2048] = { 0 };
+	char szBuffer[MAX_STRING] = { 0 };
 	FILE* fp = nullptr;
 	errno_t err = fopen_s(&fp, szMyName, "rb");
 	if (!err)
 	{
-		while (fgets(szBuffer, 2048, fp) != 0)
+		while (fgets(szBuffer, MAX_STRING, fp) != 0)
 		{
 			if (char* pDest = strchr(szBuffer, '^'))
 			{
@@ -607,7 +597,7 @@ void WriteUIStringSetting(const char* Key, const char* value)
 	}
 	else
 	{
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
 		sprintf_s(szSettingINISection, "UI_%s", szUI);
 	}
@@ -631,7 +621,7 @@ LPSTR ReadUIStringSetting(char* Key, char* defaultval, char(&_Out)[_Size])
 	}
 	else
 	{
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
 		sprintf_s(szSettingINISection, "UI_%s", szUI);
 	}
@@ -672,7 +662,7 @@ bool ReadUILocSetting(char* Key, int top, int bottom, int left, int right, CXRec
 	}
 	else
 	{
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "UI_%s_%s.ini", ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
 		sprintf_s(szSettingINISection, "UI_%s", szUI);
 	}
@@ -2231,35 +2221,15 @@ PLUGIN_API void InitializePlugin()
 	EzDetourwName(CGroupWnd__UpdateDisplay, &CGroupWnd2::UpdateDisplay_Detour, &CGroupWnd2::UpdateDisplay_Tramp, "GUD");
 	EzDetourwName(CGroupWnd__WndNotification, &CGroupWnd2::WndNotification_Detour, &CGroupWnd2::WndNotification_Trampoline, "GWW");
 
-	HMODULE hMe = 0;
-	char szMyName[2048] = { 0 };
-	char szMyIniName[2048] = { 0 };
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
-	void* pMyBinaryData = 0;
-	GetModuleFileName(hMe, szMyName, 2048);
-	if (char* pDest = strrchr(szMyName, '.')) {
-		pDest[0] = '\0';
-		strcpy_s(szMyIniName, szMyName);
-		strcat_s(szMyIniName, ".ini");
-		strcat_s(szMyName, ".txt");
-	}
-	bool UpdateDBFile = false;
-	const int ret = GetPrivateProfileInt("Default", "DBExpansion", -1, INIFileName);
+	std::filesystem::path curFilepath = gPathResources;
+	curFilepath /= "MQ2TargetInfoPHs.txt";
 
-	WIN32_FIND_DATA FindFile = { 0 };
-	HANDLE hSearch = FindFirstFile(szMyName, &FindFile);
-	if (hSearch == INVALID_HANDLE_VALUE)
+	if (!std::filesystem::exists(curFilepath))
 	{
-		UpdateDBFile = true;
-	}
-	else
-	{
-		FindClose(hSearch);
-	}
-
-	// need to unpack our resource.
-	if (UpdateDBFile)
-	{
+		HMODULE hMe = 0;
+		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
+		void* pMyBinaryData = 0;
+		// need to unpack our resource.
 		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB")) {
 			if (HGLOBAL bin = LoadResource(hMe, hRes)) {
 				bool bResult = 0;
@@ -2267,7 +2237,7 @@ PLUGIN_API void InitializePlugin()
 					//save it...
 					DWORD ressize = SizeofResource(hMe, hRes);
 					FILE* File = 0;
-					errno_t err = fopen_s(&File, szMyName, "wb");
+					errno_t err = fopen_s(&File, curFilepath.string().c_str(), "wb");
 					if (!err) {
 						fwrite(pMyBinaryData, ressize, 1, File);
 						fclose(File);
@@ -2279,38 +2249,12 @@ PLUGIN_API void InitializePlugin()
 		}
 	}
 
-	LoadPHs(szMyName);
+	LoadPHs(curFilepath.string().data());
 
-	hSearch = FindFirstFile(szMyIniName, &FindFile);
-	if (hSearch == INVALID_HANDLE_VALUE)
+	curFilepath = INIFileName;
+	if (!std::filesystem::exists(curFilepath))
 	{
-		// need to unpack our resource.
-		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_INI1), "INI"))
-		{
-			if (HGLOBAL bin = LoadResource(hMe, hRes))
-			{
-				bool bResult = false;
-
-				if (pMyBinaryData = LockResource(bin))
-				{
-					// save it...
-					DWORD ressize = SizeofResource(hMe, hRes);
-					FILE* File = nullptr;
-					errno_t err = fopen_s(&File, szMyIniName, "wb");
-					if (!err)
-					{
-						fwrite(pMyBinaryData, ressize, 1, File);
-						fclose(File);
-					}
-					bResult = UnlockResource(hRes);
-				}
-				bResult = FreeResource(hRes);
-			}
-		}
-	}
-	else
-	{
-		FindClose(hSearch);
+		ResetIni();
 	}
 
 	EzDetourwName(CTargetWnd__HandleBuffRemoveRequest, &MyCTargetWnd::HandleBuffRemoveRequest_Detour, &MyCTargetWnd::HandleBuffRemoveRequest_Tramp, "CTargetWnd__HandleBuffRemoveRequest");

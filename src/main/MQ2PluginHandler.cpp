@@ -45,33 +45,28 @@ static uint32_t checkme(char* module)
 
 int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 {
-	char Filename[MAX_PATH] = { 0 };
-
-	strcpy_s(Filename, pszFilename);
-	_strlwr_s(Filename);
-
-	char* Temp = strstr(Filename, ".dll");
-	if (Temp) *Temp = 0;
-
-	char TheFilename[MAX_STRING] = { 0 };
-	sprintf_s(TheFilename, "%s.dll", Filename);
-
-	if (HMODULE hThemod = GetModuleHandle(TheFilename))
+	std::string strFileName = pszFilename;
+	const int Pos = ci_find_substr(strFileName, ".dll");
+	if (Pos != -1)
 	{
-		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded", TheFilename);
+		strFileName = strFileName.substr(0, Pos);
+	}
+
+	if (HMODULE hThemod = GetModuleHandle((strFileName + ".dll").data()))
+	{
+		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded", (strFileName + ".dll").c_str());
 		return 2;
 	}
 
 	std::scoped_lock lock(s_pluginsMutex);
 
-	DebugSpew("LoadMQ2Plugin(%s)", Filename);
+	DebugSpew("LoadMQ2Plugin(%s)", strFileName.c_str());
 
-	char FullFilename[MAX_STRING] = { 0 };
-	sprintf_s(FullFilename, "%s\\%s.dll", gszINIPath, Filename);
-	HMODULE hmod = LoadLibrary(FullFilename);
+	std::filesystem::path pathToPlugin = std::filesystem::path(mq::internal_paths::Plugins) / (strFileName + ".dll");
+	HMODULE hmod = LoadLibrary(pathToPlugin.string().c_str());
 	if (!hmod)
 	{
-		DebugSpew("LoadMQ2Plugin(%s) Failed", Filename);
+		DebugSpew("LoadMQ2Plugin(%s) Failed", strFileName.c_str());
 		return 0;
 	}
 
@@ -88,7 +83,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	{
 		char tmpbuff[MAX_PATH];
 		sprintf_s(tmpbuff, "Please recompile %s -- it is out of date with respect to mq2main (%d > %d)",
-			FullFilename, s_mq2mainstamp, timestamp);
+			pathToPlugin.string().c_str(), s_mq2mainstamp, timestamp);
 		DebugSpew("%s", tmpbuff);
 		MessageBoxA(NULL, tmpbuff, "Plugin Load Failed", MB_OK);
 
@@ -102,7 +97,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	{
 		if (hmod == pPlugin->hModule)
 		{
-			DebugSpew("LoadMQ2Plugin(%s) already loaded", Filename);
+			DebugSpew("LoadMQ2Plugin(%s) already loaded", strFileName.c_str());
 
 			// LoadLibrary count must match FreeLibrary count for unloading to work.
 			FreeLibrary(hmod);
@@ -115,7 +110,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	memset(pPlugin, 0, sizeof(MQPlugin));
 	pPlugin->bCustom           = bCustom;
 	pPlugin->hModule           = hmod;
-	strcpy_s(pPlugin->szFilename, Filename);
+	strcpy_s(pPlugin->szFilename, strFileName.c_str());
 	pPlugin->Initialize        = (fMQInitializePlugin)GetProcAddress(hmod, "InitializePlugin");
 	pPlugin->Shutdown          = (fMQShutdownPlugin)GetProcAddress(hmod, "ShutdownPlugin");
 	pPlugin->IncomingChat      = (fMQIncomingChat)GetProcAddress(hmod, "OnIncomingChat");
@@ -177,8 +172,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	pPlugins = pPlugin;
 
 	// load cfg file if exists
-	sprintf_s(FullFilename, "%s-AutoExec", Filename);
-	LoadCfgFile(FullFilename, false);
+	LoadCfgFile((strFileName + "-AutoExec").c_str(), false);
 
 	return 1;
 }
@@ -230,30 +224,11 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 	return false;
 }
 
+// Deprecated
 void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad)
 {
 	std::scoped_lock lock(s_pluginsMutex);
-
-	char MainINI[MAX_STRING] = { 0 };
-	sprintf_s(MainINI, "%s\\macroquest.ini", gszINIPath);
-
-	// What... why??!
-	DWORD dwAttrs = 0, bChangedfileattribs = 0;
-	if ((dwAttrs = GetFileAttributes(MainINI)) != INVALID_FILE_ATTRIBUTES)
-	{
-		if (dwAttrs & FILE_ATTRIBUTE_READONLY)
-		{
-			bChangedfileattribs = 1;
-			SetFileAttributes(MainINI, FILE_ATTRIBUTE_NORMAL);
-		}
-	}
-
-	WritePrivateProfileString("Plugins", Name, bLoad ? "1" : "0", gszINIFilename);
-
-	if (bChangedfileattribs)
-	{
-		SetFileAttributes(MainINI, dwAttrs);
-	}
+	WritePrivateProfileString("Plugins", Name, bLoad ? "1" : "0", mq::internal_paths::MQini);
 }
 
 // FIXME: Uses too much stack space
@@ -273,38 +248,22 @@ void InitializeMQ2Plugins()
 	bmBeginZone = AddMQ2Benchmark("BeginZone");
 	bmEndZone = AddMQ2Benchmark("EndZone");
 
-	char PluginList[MAX_STRING * 10] = { 0 };
-	char MainINI[MAX_STRING] = { 0 };
+	// Until we clean this up -- longest plugin name last time someone looked at this is 17 characters.  Assume 30 chars * 250 plugins = 7500.
+	char PluginList[MAX_STRING * 4] = { 0 };
 	char* pPluginList = nullptr;
 
 	// lock plugin list before manipulating it
 	std::scoped_lock lock(s_pluginsMutex);
 	s_pluginsInitialized = true;
 
-	sprintf_s(MainINI, "%s\\macroquest.ini", gszINIPath);
-	GetPrivateProfileString("Plugins", nullptr, "", PluginList, MAX_STRING * 10, MainINI);
+	GetPrivateProfileString("Plugins", "", "", PluginList, MAX_STRING * 4, mq::internal_paths::MQini);
 	pPluginList = PluginList;
 
 	while (pPluginList[0] != 0)
 	{
-		if (GetPrivateProfileInt("Plugins", pPluginList, 0, MainINI) != 0)
+		if (GetPrivateProfileBool("Plugins", pPluginList, false, mq::internal_paths::MQini))
 		{
 			LoadMQ2Plugin(pPluginList);
-		}
-
-		pPluginList += strlen(pPluginList) + 1;
-	}
-
-	// ok now check if user has a CustomPlugin.ini and load those as well...
-	sprintf_s(MainINI, "%s\\CustomPlugins.ini", gszINIPath);
-	GetPrivateProfileString("Plugins", nullptr, "", PluginList, MAX_STRING * 10, MainINI);
-	pPluginList = PluginList;
-
-	while (pPluginList[0] != 0)
-	{
-		if (GetPrivateProfileInt("Plugins", pPluginList, 0, MainINI) != 0)
-		{
-			LoadMQ2Plugin(pPluginList, true);
 		}
 
 		pPluginList += strlen(pPluginList) + 1;

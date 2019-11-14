@@ -184,22 +184,22 @@ using PSEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch*;
 
 struct MQWhoFilter
 {
-	bool Lastname = false;
-	bool Class = false;
-	bool Race = false;
+	bool Lastname = true;
+	bool Class = true;
+	bool Race = true;
 	bool Body = false;
-	bool Level = false;
-	bool Distance = false;
-	bool GM = false;
-	bool Guild = false;
-	bool LD = false;
-	bool Sneak = false;
-	bool Anon = false;
-	bool LFG = false;
-	bool NPCTag = false;
+	bool Level = true;
+	bool Distance = true;
+	bool GM = true;
+	bool Guild = true;
+	bool LD = true;
+	bool Sneak = true;
+	bool Anon = true;
+	bool LFG = true;
+	bool NPCTag = true;
 	bool SpawnID = false;
-	bool Trader = false;
-	bool AFK = false;
+	bool Trader = true;
+	bool AFK = true;
 	bool Light = false;
 	bool Holding = false;
 	bool ConColor = false;

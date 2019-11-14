@@ -106,14 +106,34 @@ MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
 MQLIB_VAR bool gbSpelldbLoaded;
-MQLIB_VAR char gszEQPath[MAX_STRING];
-MQLIB_VAR char gszMacroPath[MAX_STRING];
-MQLIB_VAR char gszLogPath[MAX_STRING];
-MQLIB_VAR char gszINIPath[MAX_STRING];
-MQLIB_VAR char gszINIFilename[MAX_STRING];
-MQLIB_VAR char gszItemDB[MAX_STRING];
+MQLIB_VAR char gszEQPath[MAX_STRING] [[deprecated("Your relative path from the working directory is already the EQ Path.")]];
+MQLIB_VAR char gszMacroPath[MAX_STRING] [[deprecated("Use internal_paths::Macros in Core or gPathMacros in Plugins")]];
+MQLIB_VAR char gszLogPath[MAX_STRING] [[deprecated("Use internal_paths::Logs in Core or gPathLogs in Plugins")]];
+MQLIB_VAR char gszINIPath[MAX_STRING] [[deprecated("Use internal_paths::MQRoot in Core or gPathMQRoot in Plugins - or one of the Resources/Config/Plugins paths")]];
+MQLIB_VAR char gszINIFilename[MAX_STRING] [[deprecated("Use internal_paths::MQini in Core or gPathMQini in Plugins")]];
+MQLIB_VAR char gszItemDB[MAX_STRING] [[deprecated("Use internal_paths::Resources / \"ItemDB.txt\" in Core or gResourcesPath / ItemDB.txt in Plugins")]];
 MQLIB_VAR char gszMacroName[MAX_STRING];
 MQLIB_VAR char szLastCommand[MAX_STRING];
+// FIXME:  Convert this to a Global Object.  Include setting of gPathX (and remove from Init).
+namespace internal_paths
+{
+	extern std::string MQRoot;
+	extern std::string Config;
+	extern std::string MQini;
+	extern std::string Macros;
+	extern std::string Logs;
+	extern std::string CrashDumps;
+	extern std::string Plugins;
+	extern std::string Resources;
+}; // namespace internal_paths
+MQLIB_VAR char gPathMQRoot[MAX_PATH];
+MQLIB_VAR char gPathConfig[MAX_PATH];
+MQLIB_VAR char gPathMQini[MAX_PATH];
+MQLIB_VAR char gPathMacros[MAX_PATH];
+MQLIB_VAR char gPathLogs[MAX_PATH];
+MQLIB_VAR char gPathCrashDumps[MAX_PATH];
+MQLIB_VAR char gPathPlugins[MAX_PATH];
+MQLIB_VAR char gPathResources[MAX_PATH];
 
 MQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
 MQLIB_VAR char gszLastSyntaxError[MAX_STRING];
@@ -176,7 +196,7 @@ MQLIB_VAR char gIfAltDelimiter;
 MQLIB_VAR DWORD gNetStatusXPos;
 MQLIB_VAR DWORD gNetStatusYPos;
 
-MQLIB_VAR LONG gStackingDebug;
+MQLIB_VAR int gStackingDebug;
 
 MQLIB_VAR double DegToRad;
 MQLIB_VAR double PI;
@@ -310,6 +330,6 @@ const std::string PARSE_PARAM_END = "]}";
 extern std::map<int, std::string> targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
-MQLIB_VAR DWORD gdwParserEngineVer;
+MQLIB_VAR int gParserVersion;
 
 } // namespace mq

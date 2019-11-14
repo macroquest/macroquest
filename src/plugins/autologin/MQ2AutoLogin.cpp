@@ -122,19 +122,9 @@ PLUGIN_VERSION(2.9);
 
 PreSetup("MQ2AutoLogin");
 
-#define MAX_WINDOWS 150 // had to lower this for CotF patch it never reaches 200...
+constexpr int MAX_WINDOWS  = 150; // had to lower this for CotF patch it never reaches 200...
 
-/*** un-comment to enable debug logging ***/
-//#define AUTOLOGIN_DBG
-
-/*** this can be changed ***/
-#define DBG_LOGFILE_PATH "c:\\MQ2AutoLogin_dbg.txt"
-
-#ifdef AUTOLOGIN_DBG
-#define AutoLoginDebug DebugLog
-#else
-#define AutoLoginDebug //
-#endif
+bool AUTOLOGIN_DBG = false;
 
 struct {
 	const char* Name;
@@ -242,7 +232,7 @@ struct SERVERSTUFF
 class CLoginViewManager;
 
 bool bWeAreDown = false;
-int bNotifyOnServerUP = 0;
+int NotifyOnServerUp = 0;
 bool bLoginCheckDone = false;
 bool bGotOffsets = false;
 ULONGLONG ullerrorwait = 0;
@@ -256,10 +246,10 @@ DWORD dwSendLMouseClickAddr = 0;
 DWORD dwEnterGameAddr = 0;
 DWORD dwLoginClient = 0;
 DWORD dwServerID = 0;
-UINT bKickActiveChar = 1;
-UINT bUseMQ2Login = false;
-UINT bUseStationNamesInsteadOfSessions = false;
-UINT bReLoggin = false;
+bool bKickActiveChar = true;
+bool bUseMQ2Login = false;
+bool bUseStationNamesInsteadOfSessions = false;
+bool bReLoggin = false;
 bool bEndAfterCharSelect = false;
 bool bLogin = true;
 bool bEnd = false;
@@ -296,7 +286,7 @@ void LoginReset();
 void SwitchCharacter(char* szName);
 void SelectCharacter(char* szName );
 DWORD GetProcessCount(char* exeName);
-void DebugLog(char* szFormat, ...);
+void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
 unsigned long _FindPattern(unsigned long dwAddress,unsigned long dwLen, unsigned char* bPattern, char* szMask);
 unsigned long _GetDWordAt(unsigned long address, unsigned long numBytes);
 unsigned long _GetFunctionAddressAt(unsigned long address, unsigned long addressOffset, unsigned long numBytes);
@@ -943,7 +933,7 @@ bool GetAllOffsets(DWORD dweqmain)
 			{
 				if (!pXMLData->Name.empty())
 				{
-					AutoLoginDebug("bLogin loop: adding window '%s'", pXMLData->Name.c_str());
+					AutoLoginDebug("bLogin loop: adding window '" + pXMLData->Name + "'");
 					WindowMap[pXMLData->Name.c_str()] = pWnd;
 				}
 			}
@@ -1118,6 +1108,7 @@ DETOUR_TRAMPOLINE_EMPTY(UINT WINAPI GetPrivateProfileIntA_Tramp(LPCSTR, LPCSTR, 
 
 PLUGIN_API void InitializePlugin()
 {
+	DebugSpewAlways("MQ2AutoLogin: InitializePlugin()");
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
 	int sizeofSPAWNINFO = sizeof(SPAWNINFO);
 	int sizeofCXWnd = sizeof(CXWnd);
@@ -1127,18 +1118,22 @@ PLUGIN_API void InitializePlugin()
 	GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
 	if (szPath[0])
 		strcpy_s(INIFileName, szPath);
-	bNotifyOnServerUP = GetPrivateProfileInt("Settings", "NotifyOnServerUP", -1, INIFileName);
-	if (bNotifyOnServerUP == -1)
+
+	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
+	AutoLoginDebug("MQ2AutoLogin: InitializePlugin()");
+
+	NotifyOnServerUp = GetPrivateProfileInt("Settings", "NotifyOnServerUp", -1, INIFileName);
+	if (NotifyOnServerUp == -1)
 	{
-		WritePrivateProfileString("Settings", "NotifyOnServerUP", "0", INIFileName);
-		bNotifyOnServerUP = 0;
+		WritePrivateProfileString("Settings", "NotifyOnServerUp", "0", INIFileName);
+		NotifyOnServerUp = 0;
 	}
-	bKickActiveChar = GetPrivateProfileInt("Settings", "KickActiveCharacter", 1, INIFileName);
-	bUseMQ2Login = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, INIFileName);
-	bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
-	bReLoggin = GetPrivateProfileInt("Settings", "LoginOnReLoadAtCharSelect", 0, INIFileName);
-	bool bUseCustomClientIni = GetPrivateProfileInt("Settings", "EnableCustomClientIni", 0, INIFileName) == 1;
-	bEndAfterCharSelect = GetPrivateProfileInt("Settings", "EndAfterCharSelect", 0, INIFileName) == 1;
+	bKickActiveChar = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
+	bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
+	bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
+	bReLoggin = GetPrivateProfileBool("Settings", "LoginOnReLoadAtCharSelect", false, INIFileName);
+	bEndAfterCharSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
+	bool bUseCustomClientIni = GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName);
 
 	// is eqmain.dll loaded
 	if (GetModuleHandle("eqmain.dll"))
@@ -1171,10 +1166,6 @@ PLUGIN_API void InitializePlugin()
 			EzDetourwName(wpps, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Tramp, "WritePrivateProfileStringA_Detour");
 		}
 	}
-
-#ifdef AUTOLOGIN_DBG
-	remove(DBG_LOGFILE_PATH);
-#endif
 
 	// force a check if user loads us at charselect for example...
 	if (GetGameState() == GAMESTATE_CHARSELECT && bReLoggin)
@@ -1723,7 +1714,7 @@ void HandleWindows()
 				if (strstr(str.c_str(), "password were not valid")
 					|| strstr(str.c_str(), "This login requires that the account be activated.  Please make sure your account is active in order to login."))
 				{
-					AutoLoginDebug("%s",str.c_str());
+					AutoLoginDebug(str);
 					bLogin = false;
 					return;
 				}
@@ -1758,7 +1749,7 @@ void HandleWindows()
 				if (szUserName[0])
 				{
 					strcpy_s(szProfile, szUserName);
-					AutoLoginDebug("HandleWindows() szUserName(%s)", szUserName);
+					AutoLoginDebug("HandleWindows() szUserName(" + std::string(szUserName) + ")");
 
 					if (char* pDest = strchr(szProfile, '_'))
 					{
@@ -1767,7 +1758,7 @@ void HandleWindows()
 						pDest++;
 						sprintf_s(szBlobKey, "%s_Blob", pDest);
 						strcpy_s(szCharacterName, szBlobKey);
-						AutoLoginDebug("HandleWindows() szProfile(%s), szCharacterName(%s)", szProfile, szCharacterName);
+						AutoLoginDebug(fmt::format("HandleWindows() szProfile({Profile}), szCharacterName({CharName})", fmt::arg("Profile", szProfile), fmt::arg("CharName", szCharacterName)));
 
 						if (char* pDest2 = strchr(szCharacterName, ':'))
 						{
@@ -1779,7 +1770,7 @@ void HandleWindows()
 							strcpy_s(szServerName, szUserName);
 						}
 
-						AutoLoginDebug("HandleWindows() szProfile(%s), szBlobKey(%s), szServerName(%s)", szProfile, szBlobKey, szServerName);
+						AutoLoginDebug(fmt::format("HandleWindows() szProfile({Profile}), szBlobKey({BlobKey}), szServerName({ServerName}", fmt::arg("Profile", szProfile), fmt::arg("BlobKey", szBlobKey), fmt::arg("ServerName", szServerName)));
 
 						// now that we have the server and the charname, we can figure out the stationname and password from the blob
 						char szBlob[MAX_STRING] = { 0 };
@@ -1789,7 +1780,7 @@ void HandleWindows()
 							{
 								pDest[0] = '\0';
 							}
-							AutoLoginDebug("HandleWindows() szBlob(%s)", szBlob);
+							AutoLoginDebug("HandleWindows() szBlob(" + std::string(szBlob) + ")");
 							if (ParseBlob(szBlob, szStationName, szCharacterName, szPassword, szHotkey, szCharClass, szCharLevel)) {
 								IC_LoaderSetLoaded(szProfile, szStationName, szServerName, szCharacterName, GetCurrentProcessId());
 							}
@@ -1913,6 +1904,11 @@ void HandleWindows()
 				AutoLoginDebug("HandleWindows(): Using station name instead of session number");
 				bLoginCheckDone = true;
 
+				// If the user used /login then we already have a login name and it may not yet be set
+				if(!pEditWnd->InputText.empty() && szStationName[0] == '\0')
+				{
+					strcpy_s(szStationName, pEditWnd->InputText.c_str());
+				}
 				pEditWnd->InputText = szStationName;
 
 				if (szStationName[0])
@@ -2110,18 +2106,18 @@ void HandleWindows()
 				{
 					bWeAreDown = false;
 
-					if (bNotifyOnServerUP == 2)
+					if (NotifyOnServerUp == 2)
 					{
 						if (IsCommand("/gmail"))
 						{
 							DoCommand(nullptr, "/gmail \"Server is UP\" \"Time to login!\"");
 						}
 
-						bNotifyOnServerUP = 0;
+						NotifyOnServerUp = 0;
 					}
-					else if (bNotifyOnServerUP == 1)
+					else if (NotifyOnServerUp == 1)
 					{
-						bNotifyOnServerUP = 0;
+						NotifyOnServerUp = 0;
 					}
 				}
 
@@ -2136,7 +2132,7 @@ void HandleWindows()
 		}
 		else
 		{
-			AutoLoginDebug("HandleWindows(): GetServerID(%s) returned 0 at serverselect", szServerName);
+			AutoLoginDebug("HandleWindows(): GetServerID(" + std::string(szServerName) + ") returned 0 at serverselect");
 		}
 		return;
 	}
@@ -2280,29 +2276,40 @@ void LoginReset()
 	WindowMap.clear();
 }
 
-#ifdef AUTOLOGIN_DBG
-void DebugLog(char* szFormat, ...)
+void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTOLOGIN_DBG */)
 {
-	char szOutput[512] = { 0 };
-	char szTmp[512] = { 0 };
-	va_list vaList;
-
-	if (FILE* fLog = fopen(DBG_LOGFILE_PATH, "a"))
+	if (bDebugOn)
 	{
-		va_start(vaList, szFormat);
-		vsprintf(szTmp, szFormat, vaList);
+		std::filesystem::path pathToDebugLog = gPathLogs;
+		pathToDebugLog /= "MQ2AutoLogin_DBG.log";
 
-		time_t CurTime;
-		time(&CurTime);
-		tm* pTime = localtime(&CurTime);
-		sprintf_s(szOutput, "[%02d/%02d/%04d %02d:%02d:%02d] ", pTime->tm_mon + 1, pTime->tm_mday, pTime->tm_year + 1900, pTime->tm_hour, pTime->tm_min, pTime->tm_sec);
-		strcat_s(szOutput, szTmp);
+		FILE* fLog = nullptr;
+		const errno_t err = fopen_s(&fLog, pathToDebugLog.string().c_str(), "a");
 
-		fprintf(fLog, "%s\n", szOutput);
-		fclose(fLog);
+		if (err || !fLog)
+		{
+			DebugSpewAlways("Could not open MQ2Autologin Debug log for appending.");
+		}
+		else
+		{
+			SYSTEMTIME t;
+			GetLocalTime(&t);
+
+			const std::string strLogMessage = fmt::format("[{Year:0=4d}-{Month:0=2d}-{Day:0=2d} {Hour:0=2d}:{Minute:0=2d}:{Second:0=2d}] {LogMessage}",
+			                            fmt::arg("Year", t.wYear),
+			                                  fmt::arg("Month", t.wMonth),
+			                                  fmt::arg("Day", t.wDay),
+			                                  fmt::arg("Hour", t.wHour),
+			                                  fmt::arg("Minute", t.wMinute),
+			                                  fmt::arg("Second", t.wSecond),
+			                                  fmt::arg("LogMessage", svLogMessage));
+
+			DebugSpewAlways(strLogMessage.c_str());
+			fprintf(fLog, "%s\n", strLogMessage.c_str());
+			fclose(fLog);
+		}
 	}
 }
-#endif
 
 // originally created by: radioactiveman/bunny771/(dom1n1k?) of GameDeception -----------
 inline bool _DataCompare(const unsigned char* pData, const unsigned char* bMask, const char* szMask)
