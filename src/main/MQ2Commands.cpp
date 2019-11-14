@@ -3510,7 +3510,7 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 	}
 
 	std::filesystem::path iniFile = szArg1;
-	if(iniFile.is_relative())
+	if (iniFile.is_relative())
 	{
 		iniFile = mq::internal_paths::Config / iniFile;
 	}

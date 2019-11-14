@@ -107,7 +107,7 @@ std::string mq::internal_paths::Config = "config";
 std::string mq::internal_paths::MQini = mq::internal_paths::Config + "\\MacroQuest.ini";
 std::string mq::internal_paths::Macros = "macros";
 std::string mq::internal_paths::Logs = "logs";
-std::string mq::internal_paths::CrashDumps = mq::internal_paths::Logs + "\\crashdumps";
+std::string mq::internal_paths::CrashDumps = mq::internal_paths::Logs + "\\dumps";
 std::string mq::internal_paths::Plugins = "plugins";
 std::string mq::internal_paths::Resources = "resources";
 

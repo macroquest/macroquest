@@ -1,5 +1,5 @@
 macros/*.mac
-Changes.txt
+CHANGELOG.md
 GPL.txt
 ItemDB.txt
 MacroQuest_default.ini

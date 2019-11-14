@@ -131,8 +131,10 @@ bool InitDirectory(std::string& strPathToInit, const std::string& strIniKey, con
  */
 bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& strMQini)
 {
-	std::filesystem::path pathMQRoot = strMQRoot;
 	DebugSpewAlways("Initializing Configuration...");
+
+	std::filesystem::path pathMQRoot = strMQRoot;
+
 	// If we still have a relative path to the MQ2 directory, make it absolute.
 	if (pathMQRoot.is_relative())
 	{
@@ -142,9 +144,10 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 	strMQRoot = pathMQRoot.string();
 
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work
-	if(std::filesystem::exists(pathMQRoot))
+	if (std::filesystem::exists(pathMQRoot))
 	{
 		std::filesystem::path pathMQini = strMQini;
+
 		// If the ini path is relative, prepend the MQ2 path
 		if (pathMQini.is_relative())
 		{
@@ -157,6 +160,13 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini"))
 			{
 				pathMQini = pathMQRoot / "MacroQuest.ini";
+			}
+			else if (std::filesystem::exists(pathMQRoot / "MacroQuest_default.ini"))
+			{
+				// copy into the config directory and work from there.
+				std::filesystem::copy_file(
+					pathMQRoot / "MacroQuest_default.ini",
+					pathMQRoot / strConfig / "MacroQuest.ini");
 			}
 		}
 
@@ -176,12 +186,15 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
 			}
 		}
+
 		// Set the ini to whatever we ended up with.
 		strMQini = pathMQini.string();
 
 		// Init the Config directory based on the ini we found.
 		if (InitDirectory(strConfig, "ConfigPath", strMQini, strMQRoot, GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini)))
 		{
+#pragma warning(push)
+#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
 			// Backwards compatible before we deprecate
 			strcpy_s(gszEQPath, std::filesystem::absolute(".").string().c_str());
 			strcpy_s(gszINIPath, strMQRoot.c_str()); // or mq::internal_paths::Config but since it's mostly used to find the MQ2 directory...
@@ -190,6 +203,7 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			strcpy_s(gPathMQRoot, strMQRoot.c_str());
 			strcpy_s(gPathMQini, strMQini.c_str());
 			strcpy_s(gPathConfig, strConfig.c_str());
+#pragma warning(pop)
 			return true;
 		}
 	}
@@ -208,6 +222,8 @@ bool InitDirectories(const std::string& iniToRead)
 		&& InitDirectory(mq::internal_paths::Resources, "ResourcePath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
 		)
 	{
+#pragma warning(push)
+#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
 		// Backwards compatible before we deprecate
 		strcpy_s(gszMacroPath, mq::internal_paths::Macros.c_str());
 		strcpy_s(gszLogPath, mq::internal_paths::Logs.c_str());
@@ -217,6 +233,7 @@ bool InitDirectories(const std::string& iniToRead)
 		strcpy_s(gPathCrashDumps, mq::internal_paths::CrashDumps.c_str());
 		strcpy_s(gPathPlugins, mq::internal_paths::Plugins.c_str());
 		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
+#pragma warning(pop)
 		return true;
 	}
 
@@ -465,8 +482,11 @@ bool ParseINIFile(const std::string& iniFile)
 	const std::filesystem::path itemDBPath = std::filesystem::path(mq::internal_paths::Resources) / "ItemDB.txt";
 	if (std::filesystem::exists(itemDBPath))
 	{
+#pragma warning(push)
+#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
 		// Backwards compatibility prior to deprecation
 		strcpy_s(gszItemDB, itemDBPath.string().c_str());
+#pragma warning(pop)
 
 		std::ifstream itemDB(itemDBPath);
 		std::string itemDBLine;

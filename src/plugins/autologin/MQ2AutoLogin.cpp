@@ -1905,7 +1905,7 @@ void HandleWindows()
 				bLoginCheckDone = true;
 
 				// If the user used /login then we already have a login name and it may not yet be set
-				if(!pEditWnd->InputText.empty() && szStationName[0] == '\0')
+				if (!pEditWnd->InputText.empty() && szStationName[0] == '\0')
 				{
 					strcpy_s(szStationName, pEditWnd->InputText.c_str());
 				}

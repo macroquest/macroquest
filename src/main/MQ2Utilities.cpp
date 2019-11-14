@@ -1669,7 +1669,7 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 	{
 		FILE* file = nullptr;
 		errno_t err = 0;
-		if((err = fopen_s(&file,pathFilename.string().c_str(),"rt"))==0)
+		if ((err = fopen_s(&file,pathFilename.string().c_str(),"rt"))==0)
 		{
 			char szBuffer[MAX_STRING] = { 0 };
 			while (fgets(szBuffer, MAX_STRING, file))
