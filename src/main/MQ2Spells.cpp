@@ -71,7 +71,7 @@ struct SpellCompare
 
 std::map<std::string, std::map<std::string, SpellCompare>> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
-std::mutex s_initializeSpellsMutex;
+std::recursive_mutex s_initializeSpellsMutex;
 
 bool IsRecursiveEffect2(int spa)
 {

@@ -20,7 +20,7 @@ namespace mq {
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
-std::mutex s_variableMutex;
+std::recursive_mutex s_variableMutex;
 
 MQ2Type* FindMQ2DataType(const char* Name)
 {

@@ -47,7 +47,7 @@ bool bDisabledComparetip = false;
 bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
-std::mutex s_mutex;
+std::recursive_mutex s_mutex;
 
 struct ButtonInfo
 {

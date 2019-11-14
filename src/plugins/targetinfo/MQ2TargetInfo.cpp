@@ -46,7 +46,7 @@ enum TI_MenuCommands
 	TIMC_Distance = 65,
 };
 
-std::mutex s_mutex;
+std::recursive_mutex s_mutex;
 
 bool bDisablePluginDueToBadUI = false;
 char szTargetInfo[128] = { "Target Info" };
@@ -2511,7 +2511,7 @@ PLUGIN_API void OnCleanUI()
 
 bool IsPlaceHolder(SPAWNINFO* pSpawn)
 {
-	std::unique_lock<std::mutex> lock(s_mutex); // is this even needed?
+	std::scoped_lock lock(s_mutex); // is this even needed?
 
 	if (pSpawn && phmap.find(pSpawn->DisplayedName) != phmap.end())
 	{
@@ -2523,7 +2523,7 @@ bool IsPlaceHolder(SPAWNINFO* pSpawn)
 
 bool GetPhMap(SPAWNINFO* pSpawn, phinfo* pinf)
 {
-	std::unique_lock<std::mutex> lock(s_mutex); // is this even needed?
+	std::scoped_lock lock(s_mutex); // is this even needed?
 
 	if (pSpawn && phmap.find(pSpawn->DisplayedName) != phmap.end())
 	{

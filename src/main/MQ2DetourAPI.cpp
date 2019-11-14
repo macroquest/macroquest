@@ -31,7 +31,7 @@ struct DetourRecord
 };
 
 MQLIB_VAR DetourRecord* g_detours = nullptr;
-std::mutex g_detourMutex;
+std::recursive_mutex g_detourMutex;
 bool g_bDoingSpellChecks = false;
 
 DetourRecord* FindDetour(DWORD address)

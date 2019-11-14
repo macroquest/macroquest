@@ -55,7 +55,7 @@ char UseTimeStamp[MAX_STRING] = {0};
 char strTimeBuffer[MAX_STRING] = {0};
 char szTemp[MAX_STRING] = {0};
 char strDefault[MAX_STRING] = {0};
-std::mutex s_mutex;
+std::recursive_mutex s_mutex;
 
 int maxLength;
 TIMESTAMP* pTimestamp = nullptr;
@@ -169,7 +169,7 @@ void ircout(char* text)
 
 DWORD WINAPI IRCConnectThread(void* lpParam)
 {
-	std::unique_lock<std::mutex> lock(s_mutex);
+	std::scoped_lock lock(s_mutex);
 
 	bConnecting = true;
 	nret = connect(theSocket, (LPSOCKADDR)& serverInfo, sizeof(struct sockaddr));

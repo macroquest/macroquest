@@ -31,7 +31,7 @@ std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 //----------------------------------------------------------------------------
 
 std::vector<std::function<void()>> s_queuedEvents;
-std::mutex s_queuedEventMutex;
+std::recursive_mutex s_queuedEventMutex;
 
 void PostToMainThread(std::function<void()>&& callback)
 {

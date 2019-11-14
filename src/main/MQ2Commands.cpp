@@ -5187,7 +5187,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-static std::mutex s_openPickZoneWndMutex;
+static std::recursive_mutex s_openPickZoneWndMutex;
 
 // FIXME: Never do this
 DWORD CALLBACK openpickzonewnd(void* pData)

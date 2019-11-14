@@ -119,7 +119,7 @@ int BzCount = 0;
 bool BzDone = false;
 BazaarSearchResponsePacket BzArray[200];
 ITEMINFO* pg_Item;                                // dependent on MQ2ItemDisplay
-std::mutex s_bzrMutex;
+std::recursive_mutex s_bzrMutex;
 
 void BzSrchMe(SPAWNINFO* pChar, char* szLine);
 void MQ2BzSrch(SPAWNINFO* pChar, char* szLine);
@@ -710,7 +710,7 @@ void DoCombo(CComboWnd* pCombo, const char* szArg, const char* key)
 
 DWORD __stdcall searchthread(void* pData)
 {
-	std::unique_lock<std::mutex> lock(s_bzrMutex);
+	std::scoped_lock lock(s_bzrMutex);
 
 	if (auto pQueryButton = pBazaarSearchWnd->pQueryButton)
 	{
@@ -763,7 +763,7 @@ DWORD __stdcall searchthread(void* pData)
 
 void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 {
-	std::unique_lock<std::mutex> lock(s_bzrMutex);
+	std::scoped_lock lock(s_bzrMutex);
 
 	BzDone = false;
 	char szArg[MAX_STRING] = { 0 };
