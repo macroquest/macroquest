@@ -2924,7 +2924,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 			{
 				if (!HasSkill(Index))
 				{
-					WriteChatf("you do not have this skill");
+					WriteChatf("you do not have this skill (%s)", szBuffer);
 					return;
 				}
 

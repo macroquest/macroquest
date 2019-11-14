@@ -40,6 +40,7 @@ class CTextureFont;
 #define XWM_MOUSEOVER           21
 #define XWM_HISTORY             22
 #define XWM_LCLICKHOLD          23
+#define XWM_RCLICKHOLD          24
 #define XWM_LINK                27
 #define XWM_MAXIMIZEBOX         29
 #define XWM_ACHIEVEMENTLINK     31

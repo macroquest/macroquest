@@ -1773,16 +1773,6 @@ public:
 /*0x28*/
 };
 
-#define EQR_GNOME           0xc        // 5A1511 in rof2
-#define EQR_IKSAR           0x80       // 5A1516 in rof2
-#define EQR_VAHSHIR         0x82       // 5A151D in rof2
-#define EQR_FROGLOCK        0x14a      // 5A1524 in rof2
-#define EQR_DRAKKIN         0x20a      // 5A152B in rof2
-#define EQR_SKELETON        0x3c
-#define EQR_SKELETON_NEW    0x16f
-#define EQR_OEQ_SKELETON    0x322
-#define EQR_SOL_SKELETON    0x323
-
 EQLIB_OBJECT char* build_token_string_PARAM(char* pBuffer, int token,
 	const char* param0 = nullptr,
 	const char* param1 = nullptr,

@@ -6099,7 +6099,7 @@ bool IsItemInsideContainer(CONTENTS* pItem)
 	return false;
 }
 
-bool OpenContainer(CONTENTS* pItem, bool hidden, bool flag)
+bool OpenContainer(CONTENTS* pItem, bool hidden, bool bAllowTradeskill)
 {
 	if (!pItem)
 		return false;
@@ -6122,7 +6122,7 @@ bool OpenContainer(CONTENTS* pItem, bool hidden, bool flag)
 				ItemGlobalIndex To = pSlot->pInvSlotWnd->ItemLocation;
 				To.Location = pcont->GetGlobalIndex().Location; // eItemContainerPossessions;
 
-				pContainerMgr->OpenContainer(&pcont, To, flag);
+				pContainerMgr->OpenContainer(&pcont, To, bAllowTradeskill);
 				//pPCData->AlertInventoryChanged();
 				return pcont->Open;
 			}

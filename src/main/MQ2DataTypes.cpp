@@ -4344,10 +4344,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 							if (!_stricmp(Index, pSpell->Name))
 							{
 								uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
+								uint32_t timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
 
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
+								if (timer > timeNow)
 								{
-									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
+									Dest.Int = timer - timeNow + 6;
 									Dest.Int /= 6;
 								}
 								return true;
@@ -4379,8 +4380,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
+							uint32_t timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
 
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
+							if (timer < timeNow)
 							{
 								Dest.DWord = 1;
 								return true;
@@ -4401,8 +4403,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 							if (!_stricmp(Index, pSpell->Name))
 							{
 								uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
+								uint32_t timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
 
-								if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) < timeNow)
+								if (timer < timeNow)
 								{
 									Dest.DWord = 1;
 									return true;

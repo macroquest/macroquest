@@ -60,6 +60,11 @@ using namespace eqlib;
 #define STRINGIFY_IMPL(x) #x
 #define STRINGIFY(x) STRINGIFY_IMPL(x)
 
+// Define access to a member with another name (and type if you so will it)
+#define ALT_MEMBER_GETTER(type, orig, name) \
+    type& getter_ ## name() { return (type&)orig; } \
+    __declspec(property(get=getter_ ## name)) type name;
+
 #define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline, STRINGIFY(offset))
 #define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
 

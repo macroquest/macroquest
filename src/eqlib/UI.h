@@ -3406,7 +3406,7 @@ public:
 /*0x2404*/ int          TotalSlots;
 /*0x2408*/ unsigned int LastUpdate;
 /*0x240c*/ CInvSlot*    pSelectedItem;
-/*0x2410*/ int          Unknown0x2410;
+/*0x2410*/ CInvSlot*    pFindSelectedItem;
 /*0x2414*/ bool         bToggleBagsOpen;
 /*0x2415*/ bool         bToggleBankBagsOpen;
 /*0x2418*/
@@ -3451,6 +3451,7 @@ public:
 /*0x29c*/ CTextureAnimation* ptItem;
 /*0x2a0*/ int                Quantity;
 /*0x2a4*/ bool               bSelected;
+/*0x2a5*/ bool               bFindSelected;
 /*0x2a8*/ int                RecastLeft;
 /*0x2ac*/ bool               bHotButton;
 /*0x2ad*/ bool               bInventorySlotLinked;
@@ -3461,7 +3462,7 @@ public:
 /*0x2c0*/ D3DCOLOR           BGTintRollover;
 /*0x2c4*/ D3DCOLOR           BGTintNormal;
 /*0x2c8*/ long               LastTime;
-/*0x2cc*/ int                Unknown0x2dc;
+/*0x2cc*/ int                Unknown0x2cc;
 /*0x2d0*/
 };
 using EQINVSLOTWND [[deprecated]] = CInvSlotWnd;
