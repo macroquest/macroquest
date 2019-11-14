@@ -1630,6 +1630,381 @@ VOID STMLToPlainText(PCHAR in, PCHAR out)
 	out[pchar_out_string_position++] = 0;
 }
 
+template <unsigned int _Size>bool ItemFitsInSlot(PCONTENTS pCont,char(&Buffer)[_Size])
+{
+	CHAR Temp[MAX_STRING] = { 0 };
+	CHAR szSlot[MAX_STRING] = { 0 };
+	strcpy_s(szSlot, _Size, Buffer);
+	_strlwr_s(szSlot);
+	if (!_stricmp(szSlot, "fingers"))
+	{
+		szSlot[6] = '\0';
+	}
+	else if (!_stricmp(szSlot, "power source"))
+	{
+		strcpy_s(szSlot, "power");
+	}
+	else if (!_stricmp(szSlot, "primary"))
+	{
+		strcpy_s(szSlot, "mainhand");
+	}
+	else if (!_stricmp(szSlot, "secondary"))
+	{
+		strcpy_s(szSlot, "offhand");
+	}
+	else if (!_stricmp(szSlot, "shoulders"))
+	{
+		strcpy_s(szSlot, "shoulder");
+	}
+	DWORD cmp = GetItemFromContents(pCont)->EquipSlots;
+	for (int N = 0; N < 32; N++)
+	{
+		if (cmp&(1 << N))
+		{
+			strcpy_s(Temp,szItemSlot[N]);
+			_strlwr_s(Temp);
+			if (strstr(Temp, szSlot))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+template <unsigned int _Size>bool ItemHasStat(PCONTENTS pCont, int*num, char(&Buffer)[_Size])
+{
+	CHAR Temp[MAX_STRING] = { 0 };
+	CHAR szStat[MAX_STRING] = { 0 };
+	strcpy_s(szStat, _Size, Buffer);
+	_strlwr_s(szStat);
+	if (!_stricmp(szStat, "armor class"))
+	{
+		if (*num = GetItemFromContents(pCont)->AC)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "agility"))
+	{
+		if (*num = GetItemFromContents(pCont)->AGI)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "charisma"))
+	{
+		if (*num = GetItemFromContents(pCont)->CHA)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "dexterity"))
+	{
+		if (*num = GetItemFromContents(pCont)->DEX)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "intelligence"))
+	{
+		if (*num = GetItemFromContents(pCont)->INT)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "stamina"))
+	{
+		if (*num = GetItemFromContents(pCont)->STA)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "strength"))
+	{
+		if (*num = GetItemFromContents(pCont)->STR)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "wisdom"))
+	{
+		if (*num = GetItemFromContents(pCont)->WIS)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "vs cold"))
+	{
+		if (*num = GetItemFromContents(pCont)->SvCold)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "vs fire"))
+	{
+		if (*num = GetItemFromContents(pCont)->SvFire)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "vs magic"))
+	{
+		if (*num = GetItemFromContents(pCont)->SvMagic)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "vs poison"))
+	{
+		if (*num = GetItemFromContents(pCont)->SvPoison)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "hit points"))
+	{
+		if (*num = GetItemFromContents(pCont)->HP)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "mana"))
+	{
+		if (*num = GetItemFromContents(pCont)->Mana)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "endurance"))
+	{
+		if (*num = GetItemFromContents(pCont)->Endurance)
+		{
+
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "attack"))
+	{
+		if (*num = GetItemFromContents(pCont)->Attack)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "hp regen"))
+	{
+		if (*num = GetItemFromContents(pCont)->HPRegen)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "mana regen"))
+	{
+		if (*num = GetItemFromContents(pCont)->ManaRegen)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "haste"))
+	{
+		if (*num = GetItemFromContents(pCont)->Haste)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heal amount"))
+	{
+		if (*num = GetItemFromContents(pCont)->HealAmount)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "spell damage"))
+	{
+		if (*num = GetItemFromContents(pCont)->SpellDamage)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "clairvoyance"))
+	{
+		if (*num = GetItemFromContents(pCont)->Clairvoyance)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic agility"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicAGI)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic charisma"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicCHA)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic dexterity"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicDEX)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic intelligence"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicINT)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic stamina"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicSTA)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic strength"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicSTR)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "heroic wisdom"))
+	{
+		if (*num = GetItemFromContents(pCont)->HeroicWIS)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "backstab"))
+	{
+		if (*num = GetItemFromContents(pCont)->BackstabDamage)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "bash"))
+	{
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 10)
+		{
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
+		}
+	}
+	else if (!_stricmp(szStat, "dragon punch"))
+	{
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 21)
+		{
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
+		}
+	}
+	else if (!_stricmp(szStat, "eagle strike"))
+	{
+		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "flying kick"))
+	{
+		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "kick"))
+	{
+		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "round kick"))
+	{
+		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "tiger claw"))
+	{
+		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "frenzy"))
+	{
+		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+template <unsigned int _Size>bool ItemHasRace(PCONTENTS pCont,char(&Buffer)[_Size])
+{
+	int tmp = 0;
+	CHAR szRace[MAX_STRING] = { 0 };
+	CHAR szRace2[MAX_STRING] = { 0 };
+	strcpy_s(szRace, _Size, Buffer);
+	_strlwr_s(szRace);
+	DWORD cmp = GetItemFromContents(pCont)->Races;
+	for (int N = 0; N < NUM_RACES; N++) {
+		if (cmp&(1 << N)) {
+			tmp = N + 1;
+			switch (N) {
+			case 12:
+				tmp = 128;   // IKS
+				break;
+			case 13:
+				tmp = 130;   // VAH
+				break;
+			case 14:
+				tmp = 330;   // FRG
+				break;
+			}
+			strcpy_s(szRace2, pEverQuest->GetRaceDesc(tmp));
+			_strlwr_s(szRace2);
+			if (!_stricmp(szRace, szRace2)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+template <unsigned int _Size>bool ItemHasClass(PCONTENTS pCont,char(&Buffer)[_Size])
+{
+	int tmp = 0;
+	CHAR szClass[MAX_STRING] = { 0 };
+	CHAR szClass2[MAX_STRING] = { 0 };
+	strcpy_s(szClass, _Size, Buffer);
+	_strlwr_s(szClass);
+	DWORD cmp = GetItemFromContents(pCont)->Classes;
+	for (int N = 0; N < 16; N++) {
+		if (cmp & (1 << N))
+		{
+			strcpy_s(szClass2, pEverQuest->GetClassDesc(tmp));
+			_strlwr_s(szClass2);
+			if (!_stricmp(szClass, szClass2)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
 VOID ClearSearchItem(SEARCHITEM &SearchItem)
 {
 	ZeroMemory(&SearchItem, sizeof(SEARCHITEM));
@@ -1659,7 +2034,15 @@ BOOL ItemMatchesSearch(SEARCHITEM &SearchItem, PCONTENTS pContents)
 	_strlwr_s(szName);
 	if (SearchItem.szName[0] && !strstr(szName, SearchItem.szName))
 		return FALSE;
-
+	if (SearchItem.szSlot[0] && !ItemFitsInSlot(pContents,SearchItem.szSlot))
+		return FALSE;
+	int num = 0;
+	if (SearchItem.szStat[0] && !ItemHasStat(pContents,&num,SearchItem.szStat))
+		return FALSE;
+	if (SearchItem.szRace[0] && !ItemHasRace(pContents,SearchItem.szRace))
+		return FALSE;
+	if (SearchItem.szClass[0] && !ItemHasClass(pContents,SearchItem.szClass))
+		return FALSE;
 	return true;
 }
 

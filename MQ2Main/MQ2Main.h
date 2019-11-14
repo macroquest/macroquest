@@ -229,6 +229,11 @@ extern DWORD CountFrees;
     SetvfTable(34,*(DWORD*)&pfWndNotification);\
 }
 
+// Define access to a member with another name (and type if you so will it)
+#define ALT_MEMBER_GETTER(type, orig, name) \
+    type& getter_ ## name() { return (type&)orig; } \
+    __declspec(property(get=getter_ ## name)) type name;
+
 #ifndef ISXEQ
 #ifdef ISXEQ_LEGACY
 #define EzDetour(offset,detour,trampoline)
@@ -774,6 +779,7 @@ EQLIB_API DWORD       FindBankItemCountByName(char *pName, BOOL bExact);
 EQLIB_API DWORD       FindBankItemCountByID(int ItemID);
 EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
 EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
+EQLIB_API BOOL		  ItemMatchesSearch(SEARCHITEM &SearchItem, PCONTENTS pContents);
 EQLIB_API BOOL		  PickupItem(ItemContainerInstance type, PCONTENTS pItem);
 EQLIB_API BOOL		  DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
 EQLIB_API bool		  ItemOnCursor();

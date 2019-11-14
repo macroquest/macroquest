@@ -1840,7 +1840,7 @@ typedef struct _EQCASTSPELLWINDOW {
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CBUTTONWND	ButtonWnd;
 /*0x0288*/ void*				pTABackground;//CTextureAnimation
-/*0x028c*/ LONG					Location;//this is stupid it's a ItemGlobalIndex		ItemLocation; but backw comp etc is bleh- eqmule
+/*0x028c*/ LONG					Location; // Really this is a ItemGlobalIndex
 /*0x0290*/ short				Slot1;
 /*0x0292*/ short				Slot2;
 /*0x0294*/ short				Slot3;
@@ -1863,6 +1863,13 @@ typedef struct _EQINVSLOTWND {
 /*0x02d0*/ long					LastTime;
 /*0x02d4*/ long					Unknown0x02d4;
 /*0x02d8*/
+
+	// Backwards Compat so we can use new names
+	ALT_MEMBER_GETTER(_CXWND, ButtonWnd, Wnd);
+	ALT_MEMBER_GETTER(LONG, Location, WindowType);
+	ALT_MEMBER_GETTER(short, Slot1, InvSlot);
+	ALT_MEMBER_GETTER(short, Slot2, BagSlot);
+	ALT_MEMBER_GETTER(short, Slot3, GlobalSlot);
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin

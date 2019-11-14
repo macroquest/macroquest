@@ -1,3 +1,13 @@
+Nov 14 2019
+- Updated for BETA
+-
+Nov 14 2019 by brainiac
+- Re-fixed EQINVSLOTWND
+- Added ALT_MEMBER_GETTER macro that defines an alternate name that a member can be
+  accessed with, thereby removing the need to immediately update all code to use new
+  variable names.
+- You can now use the old, or the new names for Slot1, Slot2, Slot3, Location and *suprise* Wnd.
+
 Nov 13 2019
 - Updated for BETA
 - Fixed EQINVSLOTWND.

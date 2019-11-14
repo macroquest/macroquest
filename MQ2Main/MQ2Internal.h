@@ -158,6 +158,11 @@ namespace MQ2Internal {
         CHAR Flag[MAX_STRING];
 
         CHAR szName[MAX_STRING];
+        CHAR szStat[MAX_STRING];
+        CHAR szSlot[MAX_STRING];
+        CHAR szRace[MAX_STRING];
+        CHAR szClass[MAX_STRING];
+		
         DWORD ID;
 
     } SEARCHITEM, *PSEARCHITEM;
