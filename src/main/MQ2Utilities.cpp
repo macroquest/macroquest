@@ -788,6 +788,268 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 	return pchar_out_string_position;
 }
 
+static bool ItemFitsInSlot(CONTENTS* pCont, std::string_view search)
+{
+	// map some commonly used synonyms
+	struct Mapping {
+		const char* search;
+		const char* replace;
+	};
+	static constexpr Mapping mappings[] = {
+		{ "fingers",       "finger" },
+		{ "power source",  "power" },
+		{ "primary",       "mainhand" },
+		{ "secondary",     "offhand" },
+		{ "shoulders",     "shoulder" },
+	};
+
+	for (const auto& mapping : mappings)
+	{
+		if (ci_equals(mapping.search, search))
+		{
+			search = mapping.replace;
+			break;
+		}
+	}
+
+	int cmp = GetItemFromContents(pCont)->EquipSlots;
+
+	for (int i = 0; i < NUM_WORN_ITEMS; ++i)
+	{
+		if (cmp & (1 << i))
+		{
+			if (ci_find_substr(szItemSlot[i], search))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+static int ItemHasStat(CONTENTS* pCont, std::string_view search)
+{
+	// map stat names to accessors
+	static const std::map<std::string, std::function<int(ITEMINFO*)>, ci_less> mapping = {
+		{
+			"armor class",
+			[](ITEMINFO* pi) { return pi->AC; }
+		},
+		{
+			"agility",
+			[](ITEMINFO* pi) { return pi->AGI; }
+		},
+		{
+			"charisma",
+			[](ITEMINFO* pi) { return pi->CHA; }
+		},
+		{
+			"dexterity",
+			[](ITEMINFO* pi) { return pi->DEX; }
+		},
+		{
+			"intelligence",
+			[](ITEMINFO* pi) { return pi->INT; }
+		},
+		{
+			"stamina",
+			[](ITEMINFO* pi) { return pi->STA; }
+		},
+		{
+			"strength",
+			[](ITEMINFO* pi) { return pi->STR; }
+		},
+		{
+			"wisdom",
+			[](ITEMINFO* pi) { return pi->WIS; }
+		},
+		{
+			"vs cold",
+			[](ITEMINFO* pi) { return pi->SvCold; }
+		},
+		{
+			"vs fire",
+			[](ITEMINFO* pi) { return pi->SvFire; }
+		},
+		{
+			"vs magic",
+			[](ITEMINFO* pi) { return pi->SvMagic; }
+		},
+		{
+			"vs poison",
+			[](ITEMINFO* pi) { return pi->SvPoison; }
+		},
+		{
+			"hit points",
+			[](ITEMINFO* pi) { return pi->HP; }
+		},
+		{
+			"mana",
+			[](ITEMINFO* pi) { return pi->Mana; }
+		},
+		{
+			"endurance",
+			[](ITEMINFO* pi) { return pi->Endurance; }
+		},
+		{
+			"attack",
+			[](ITEMINFO* pi) { return pi->Attack; }
+		},
+		{
+			"hp regen",
+			[](ITEMINFO* pi) { return pi->HPRegen; }
+		},
+		{
+			"mana regen",
+			[](ITEMINFO* pi) { return pi->ManaRegen; }
+		},
+		{
+			"haste",
+			[](ITEMINFO* pi) { return pi->Haste; }
+		},
+		{
+			"heal amount",
+			[](ITEMINFO* pi) { return pi->HealAmount; }
+		},
+		{
+			"spell damage",
+			[](ITEMINFO* pi) { return pi->SpellDamage; }
+		},
+		{
+			"clairvoyance",
+			[](ITEMINFO* pi) { return pi->Clairvoyance; }
+		},
+		{
+			"heroic agility",
+			[](ITEMINFO* pi) { return pi->HeroicAGI; }
+		},
+		{
+			"heroic charisma",
+			[](ITEMINFO* pi) { return pi->HeroicCHA; }
+		},
+		{
+			"heroic dexterity",
+			[](ITEMINFO* pi) { return pi->HeroicDEX; }
+		},
+		{
+			"heroic intelligence",
+			[](ITEMINFO* pi) { return pi->HeroicINT; }
+		},
+		{
+			"heroic stamina",
+			[](ITEMINFO* pi) { return pi->HeroicSTA; }
+		},
+		{
+			"heroic strength",
+			[](ITEMINFO* pi) { return pi->HeroicSTR; }
+		},
+		{
+			"heroic wisdom",
+			[](ITEMINFO* pi) { return pi->HeroicWIS; }
+		},
+		{
+			"backstab",
+			[](ITEMINFO* pi) { return pi->BackstabDamage; }
+		},
+		{
+			"bash",
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 10 ? pi->DmgBonusValue : 0; }
+		},
+		{
+			"dragon punch",
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 21 ? pi->DmgBonusValue : 0; }
+		},
+		{
+			"eagle strike",
+			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+		},
+		{
+			"flying kick",
+			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+		},
+		{
+			"kick",
+			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+		},
+		{
+			"round kick",
+			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+		},
+		{
+			"tiger claw",
+			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+		},
+		{
+			"frenzy",
+			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+		}
+	};
+
+	auto iter = mapping.find(search);
+	if (iter != mapping.end())
+	{
+		ITEMINFO* pItem = GetItemFromContents(pCont);
+		if (pItem)
+		{
+			return iter->second(pItem);
+		}
+	}
+
+	return 0;
+}
+
+static bool ItemHasRace(CONTENTS* pCont, std::string_view search)
+{
+	// FIXME: This code is duplicated in a multiple of places.
+	int cmp = GetItemFromContents(pCont)->Races;
+	for (int num = 0; num < NUM_RACES; num++)
+	{
+		if (cmp & (1 << num))
+		{
+			int tmp = num + 1;
+			switch (num)
+			{
+			case 12:
+				tmp = 128;   // IKS
+				break;
+			case 13:
+				tmp = 130;   // VAH
+				break;
+			case 14:
+				tmp = 330;   // FRG
+				break;
+			}
+
+			if (ci_equals(pEverQuest->GetRaceDesc(tmp), search))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+static bool ItemHasClass(CONTENTS* pCont, std::string_view search)
+{
+	// FIXME: This code is duplicated in a multiple of places.
+	int cmp = GetItemFromContents(pCont)->Classes;
+	for (int num = 0; num < TotalPlayerClasses; num++)
+	{
+		if (cmp & (1 << num))
+		{
+
+			if (ci_equals(pEverQuest->GetClassDesc(num), search))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 const char* GetFilenameFromFullPath(const char* Filename)
 {
 	while (Filename && strstr(Filename, "\\"))
@@ -1367,6 +1629,14 @@ bool ItemMatchesSearch(MQItemSearch& SearchItem, CONTENTS* pContents)
 	RequireFlag(Normal, pItem->Type == ITEMTYPE_NORMAL);
 
 	if (SearchItem.szName[0] && ci_find_substr(pItem->Name, SearchItem.szName))
+		return false;
+	if (SearchItem.szSlot[0] && !ItemFitsInSlot(pContents, SearchItem.szSlot))
+		return false;
+	if (SearchItem.szStat[0] && ItemHasStat(pContents, SearchItem.szStat) == 0)
+		return false;
+	if (SearchItem.szRace[0] && !ItemHasRace(pContents, SearchItem.szRace))
+		return false;
+	if (SearchItem.szClass[0] && !ItemHasClass(pContents, SearchItem.szClass))
 		return false;
 
 	return true;

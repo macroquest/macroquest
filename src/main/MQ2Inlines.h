@@ -703,6 +703,8 @@ struct ci_less
 			s2.begin(), s2.end(),
 			nocase_compare());
 	}
+
+	using is_transparent = void;
 };
 
 inline int ci_find_substr(std::string_view haystack, std::string_view needle)

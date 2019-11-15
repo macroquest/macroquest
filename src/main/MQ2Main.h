@@ -525,6 +525,7 @@ MQLIB_API int         FindBankItemCountByID(int ItemID);
 MQLIB_API CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
 MQLIB_API CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx);
 MQLIB_API bool        IsItemInsideContainer(CONTENTS* pItem);
+MQLIB_API bool        ItemMatchesSearch(MQItemSearch& itemSearch, CONTENTS* pItem);
 MQLIB_API bool        PickupItem(ItemContainerInstance type, CONTENTS* pItem);
 MQLIB_API bool        DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
 MQLIB_API bool        DropItem2(const ItemGlobalIndex& index);

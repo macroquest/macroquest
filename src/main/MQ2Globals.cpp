@@ -634,7 +634,7 @@ const char* szItemSlot[] = {
 	"pack9",
 	"pack10",
 	"cursor",
-	nullptr            // 31
+	nullptr         // 34
 };
 
 const char* szExpansions[] = {

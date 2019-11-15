@@ -168,7 +168,6 @@ enum SearchItemFlag
 	Bazaar = 107,
 	Inspect = 108,
 	Enviro = 109,
-
 };
 
 struct MQItemSearch
@@ -177,7 +176,12 @@ struct MQItemSearch
 	char Flag[MAX_STRING];
 
 	char szName[MAX_STRING];
-	DWORD ID = 0;
+	char szStat[MAX_STRING];
+	char szSlot[MAX_STRING];
+	char szRace[MAX_STRING];
+	char szClass[MAX_STRING];
+
+	uint32_t ID = 0;
 };
 using SEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch;
 using PSEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch*;
