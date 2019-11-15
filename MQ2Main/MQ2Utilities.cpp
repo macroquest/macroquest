@@ -1671,11 +1671,11 @@ template <unsigned int _Size>bool ItemFitsInSlot(PCONTENTS pCont,char(&Buffer)[_
 	}
 	return false;
 }
-template <unsigned int _Size>bool ItemHasStat(PCONTENTS pCont, int*num, char(&Buffer)[_Size])
+bool ItemHasStat(PCONTENTS pCont, int*num, PCHAR Buffer, SIZE_T BufferSize)
 {
 	CHAR Temp[MAX_STRING] = { 0 };
 	CHAR szStat[MAX_STRING] = { 0 };
-	strcpy_s(szStat, _Size, Buffer);
+	strcpy_s(szStat, BufferSize, Buffer);
 	_strlwr_s(szStat);
 	if (!_stricmp(szStat, "armor class"))
 	{
@@ -1736,6 +1736,13 @@ template <unsigned int _Size>bool ItemHasStat(PCONTENTS pCont, int*num, char(&Bu
 	else if (!_stricmp(szStat, "vs cold"))
 	{
 		if (*num = GetItemFromContents(pCont)->SvCold)
+		{
+			return true;
+		}
+	}
+	else if (!_stricmp(szStat, "vs disease"))
+	{
+		if (*num = GetItemFromContents(pCont)->SvDisease)
 		{
 			return true;
 		}
@@ -1910,44 +1917,62 @@ template <unsigned int _Size>bool ItemHasStat(PCONTENTS pCont, int*num, char(&Bu
 	}
 	else if (!_stricmp(szStat, "eagle strike"))
 	{
-		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 23)
 		{
-			return true;
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
 		}
 	}
 	else if (!_stricmp(szStat, "flying kick"))
 	{
-		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 26)
 		{
-			return true;
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
 		}
 	}
 	else if (!_stricmp(szStat, "kick"))
 	{
-		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 30)
 		{
-			return true;
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
 		}
 	}
 	else if (!_stricmp(szStat, "round kick"))
 	{
-		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 38)
 		{
-			return true;
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
 		}
 	}
 	else if (!_stricmp(szStat, "tiger claw"))
 	{
-		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 52)
 		{
-			return true;
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
 		}
 	}
 	else if (!_stricmp(szStat, "frenzy"))
 	{
-		if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+		if (GetItemFromContents(pCont)->DmgBonusSkill == 74)
 		{
-			return true;
+			if (*num = GetItemFromContents(pCont)->DmgBonusValue)
+			{
+				return true;
+			}
 		}
 	}
 	return false;
@@ -1974,6 +1999,9 @@ template <unsigned int _Size>bool ItemHasRace(PCONTENTS pCont,char(&Buffer)[_Siz
 			case 14:
 				tmp = 330;   // FRG
 				break;
+			case 15:
+				tmp = 522;   // DRK
+				break;
 			}
 			strcpy_s(szRace2, pEverQuest->GetRaceDesc(tmp));
 			_strlwr_s(szRace2);
@@ -1987,17 +2015,20 @@ template <unsigned int _Size>bool ItemHasRace(PCONTENTS pCont,char(&Buffer)[_Siz
 
 template <unsigned int _Size>bool ItemHasClass(PCONTENTS pCont,char(&Buffer)[_Size])
 {
-	int tmp = 0;
 	CHAR szClass[MAX_STRING] = { 0 };
 	CHAR szClass2[MAX_STRING] = { 0 };
 	strcpy_s(szClass, _Size, Buffer);
 	_strlwr_s(szClass);
+	DWORD T = 16;
+	DWORD tmp = 0xFFFF;
+	DWORD M = tmp & T;
 	DWORD cmp = GetItemFromContents(pCont)->Classes;
-	for (int N = 0; N < 16; N++) {
+	for (DWORD N = 0; N < 16; N++) {
 		if (cmp & (1 << N))
 		{
-			strcpy_s(szClass2, pEverQuest->GetClassDesc(tmp));
+			strcpy_s(szClass2, pEverQuest->GetClassDesc(N+1));
 			_strlwr_s(szClass2);
+			//WriteChatf("%s",szClass2);
 			if (!_stricmp(szClass, szClass2)) {
 				return true;
 			}

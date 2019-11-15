@@ -641,6 +641,13 @@ inline BOOL GetItemLink(PCONTENTS Item, CHAR(&Buffer)[_Size], BOOL Clickable = T
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
 
+EQLIB_API bool ItemHasStat(PCONTENTS pCont, int*num, PCHAR Buffer, SIZE_T BufferSize);
+
+template <unsigned int _Size>
+inline bool ItemHasStat(PCONTENTS pCont, int*num, char(&Buffer)[_Size])
+{
+	return ItemHasStat(pCont, num, Buffer, _Size);
+}
 EQLIB_API PCHAR GetLoginName();
 EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
 EQLIB_API FLOAT Distance3DToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc, FLOAT zLoc);

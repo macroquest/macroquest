@@ -8079,6 +8079,9 @@ bool MQ2ItemType::GETMEMBER()
 							case 14:
 								Dest.DWord = 330;   // FRG
 								break;
+							case 15:
+								Dest.DWord = 522;   // DRK
+								break;
 							}
 							return true;
 						}
@@ -8101,6 +8104,9 @@ bool MQ2ItemType::GETMEMBER()
 							break;
 						case 14:
 							tmp = 330;   // FRG
+							break;
+						case 15:
+							tmp = 522;   // DRK
 							break;
 						}
 						if (!_stricmp(GETFIRST(), pEverQuest->GetRaceDesc(tmp))) {
