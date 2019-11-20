@@ -4682,7 +4682,6 @@ typedef struct _CDISPLAY {
 /*0x2d6a*/ BYTE   NpcNames; // show npc names
 } CDISPLAY, *PCDISPLAY;
 
-//5-16-06 - ieatacid
 typedef struct _DZTIMERINFO {
 /*0x000*/ CHAR   ExpeditionName[0x80];
 /*0x080*/ CHAR   EventName[0x100];
@@ -4710,15 +4709,6 @@ typedef struct _TASKMEMBER {
 /*0x048*/ struct _TASKMEMBER *pNext;
 /*0x04c*/
 } TASKMEMBER, *PTASKMEMBER;
-
-typedef struct _DZTIMER {
-/*0x000*/ CHAR				ZoneName[0x80];
-/*0x040*/ CHAR				EventName[0x100];
-/*0x044*/ __time32_t		ExpirationTimer;
-/*0x048*/ int				EventID; //-1 is default
-/*0x049*/ struct _DZTIMER*	pNext;
-/*0x04c*/ 
-} DZTIMER, *PDZTIMER;
 
 typedef struct _DZSWITCHINFO
 {
@@ -4761,7 +4751,7 @@ typedef struct _DYNAMICZONE {
 /*0x08a*/ CHAR					DZName[0x80];
 /*0x10C*/ int					MaxPlayers;
 /*0x110*/ PDZMEMBER				pFirstMember;
-/*0x114*/ PDZTIMER				pFirstTimer;
+/*0x114*/ PDZTIMERINFO			pFirstTimer;
 /*0x118*/ HashTable<DZSWITCH>	Switches;
 /*0x128*/
 

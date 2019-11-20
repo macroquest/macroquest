@@ -591,7 +591,11 @@ class CXWnd
 public:
 	//CXWnd::CXWnd() {};
 EQLIB_OBJECT void CXWnd::dCXWnd(void);
+#if !defined(TEST)
+EQLIB_OBJECT CXWnd * CXWnd::SetParent(CXWnd *,bool);
+#else
 EQLIB_OBJECT CXWnd * CXWnd::SetParent(CXWnd *);
+#endif
 EQLIB_OBJECT enum UIType CXWnd::GetType();
 EQLIB_OBJECT class CXMLData * CXWnd::GetXMLData();
 EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(PCHAR Name);

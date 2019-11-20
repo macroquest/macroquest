@@ -4660,7 +4660,6 @@ typedef struct _CDISPLAY {
 /*0x2d6a*/ BYTE   NpcNames; // show npc names
 } CDISPLAY, *PCDISPLAY;
 
-//5-16-06 - ieatacid
 typedef struct _DZTIMERINFO {
 /*0x000*/ CHAR   ExpeditionName[0x80];
 /*0x080*/ CHAR   EventName[0x100];
@@ -4670,32 +4669,73 @@ typedef struct _DZTIMERINFO {
 /*0x18c*/
 } DZTIMERINFO, *PDZTIMERINFO;
 
+//Size 0x4c see 553F87 in Nov 19 2019 Beta -eqmule
 typedef struct _DZMEMBER {
-/*0x000*/ CHAR   Name[0x40];
-/*0x040*/ DWORD  Status;  // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
-/*0x044*/ struct _DZMEMBER *pNext;
-/*0x048*/
+/*0x000*/ CHAR			Name[0x40];
+/*0x040*/ DWORD			Status;  // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
+/*0x044*/ struct _DZMEMBER*		pNext;
+/*0x048*/ bool bFlagged;//do we meet zonereqs?
+/*0x049*/ bool bCheckedZoneReqs;//zone reqs serverside checked?
+/*0x04c*/ 
 } DZMEMBER, *PDZMEMBER;
 
+//Shared Task Member Info
 typedef struct _TASKMEMBER {
 /*0x000*/ CHAR   Name[0x40];
-/*0x040*/ DWORD  Unknown0x40;
-/*0x044*/ DWORD  IsLeader;
+/*0x040*/ DWORD  ShroudID;
+/*0x044*/ DWORD  IsLeader;//Role, 0 none 1 leader it really should be an enum
 /*0x048*/ struct _TASKMEMBER *pNext;
 /*0x04c*/
 } TASKMEMBER, *PTASKMEMBER;
 
+typedef struct _DZSWITCHINFO
+{
+/*0x000*/ int	DZID;
+/*0x004*/ int	Type;
+/*0x008*/ int	DZSwitchID;
+/*0x00c*/ float	SwitchX;
+/*0x010*/ float	SwitchY;
+/*0x014*/ float	SwitchZ;
+/*0x018*/ 
+} DZSWITCHINFO, *PDZSWITCHINFO;
+
+typedef struct _DZCOMPASS
+{
+/*0x000*/ int	R;
+/*0x004*/ int	G;
+/*0x008*/ int	B;
+/*0x00c*/ float	X;
+/*0x010*/ float	Y;
+/*0x014*/ float	Z;
+/*0x018*/ bool	bVisible;
+/*0x01c*/ int	PixelOffset;
+/*0x020*/ bool	bInWindow;
+/*0x024*/ 
+} DZCOMPASS, *PDZCOMPASS;
+
+typedef struct _DZSWITCH : _DZSWITCHINFO
+{
+/*0x000*/ struct _DZCOMPASS*	pCompass;
+} DZSWITCH, *PDZSWITCH;
+
+//CDynamicZone size: 0x128
 typedef struct _DYNAMICZONE {
-/*0x000*/ void   *vftable;
-/*0x004*/ BYTE   Unknown0x04[0x46];
-/*0x04a*/ CHAR   Name[0x40]; // Leaders name
-/*0x08a*/ CHAR   ExpeditionName[0x80];
-/*0x10a*/ BYTE   Unknown0x10a[0x2];
-/*0x10c*/ WORD   MaxPlayers;
-/*0x10e*/ BYTE   Unknown0x10e[0x2];
-/*0x110*/ struct _DZMEMBER *pMemberList;
-/*0x114*/ PCHAR  expeditionName;
-/*0x118*/ // more?
+/*0x000*/ void*					vftable;
+/*0x004*/ UINT					NewMemberDZID;
+/*0x008*/ CHAR					NewMemberName[0x40];
+/*0x048*/ bool					bNewSwap;
+/*0x049*/ bool					bNewAssignedToDZ;
+/*0x04a*/ CHAR					LeaderName[0x40];
+/*0x08a*/ CHAR					DZName[0x80];
+/*0x10C*/ int					MaxPlayers;
+/*0x110*/ PDZMEMBER				pFirstMember;
+/*0x114*/ PDZTIMERINFO			pFirstTimer;
+/*0x118*/ HashTable<DZSWITCH>	Switches;
+/*0x128*/
+
+	//ALT_MEMBER_GETTER(CHAR, LeaderName, Name);
+	//ALT_MEMBER_GETTER(CHAR, DZName, ExpeditionName);
+	//ALT_MEMBER_GETTER(PDZMEMBER, pFirstMember, pMemberList);
 } DYNAMICZONE, *PDYNAMICZONE;
 
 typedef struct _CHATCHANNELS {

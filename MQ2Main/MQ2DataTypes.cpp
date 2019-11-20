@@ -13524,7 +13524,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		PDZMEMBER pDynamicZoneMember = pDynamicZone->pMemberList;
+		PDZMEMBER pDynamicZoneMember = pDynamicZone->pFirstMember;
 		while (pDynamicZoneMember)
 		{
 			Dest.DWord++;
@@ -13548,7 +13548,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 		Dest.Type = pDZMemberType;
 		if (ISINDEX())
 		{
-			PDZMEMBER pDynamicZoneMember = pDynamicZone->pMemberList;
+			PDZMEMBER pDynamicZoneMember = pDynamicZone->pFirstMember;
 			if (ISNUMBER())
 			{
 				int Count = GETNUMBER();
@@ -13582,7 +13582,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 	case Leader:
 	{
 		Dest.Type = pDZMemberType;
-		PDZMEMBER pDynamicZoneMember = pDynamicZone->pMemberList;
+		PDZMEMBER pDynamicZoneMember = pDynamicZone->pFirstMember;
 		for (int i = 0; i<pDynamicZone->MaxPlayers && pDynamicZoneMember; i++)
 		{
 			if (!strcmp(pDynamicZoneMember->Name, (char*)instExpeditionLeader))

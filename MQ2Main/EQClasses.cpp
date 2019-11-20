@@ -7896,7 +7896,11 @@ FUNCTION_AT_ADDRESS(int  CXWnd::Resize(int, int, bool, bool, bool),CXWnd__Resize
 FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetChildItem(CXStr const &),CXWnd__GetChildItem);
 #endif
 #ifdef CXWnd__SetParent_x
+#if !defined(TEST)
+FUNCTION_AT_ADDRESS(CXWnd * CXWnd::SetParent(CXWnd *,bool),CXWnd__SetParent);
+#else
 FUNCTION_AT_ADDRESS(CXWnd * CXWnd::SetParent(CXWnd *),CXWnd__SetParent);
+#endif
 #endif
 #ifdef CXWnd__SetZLayer_x
 FUNCTION_AT_ADDRESS(void  CXWnd::SetZLayer(int),CXWnd__SetZLayer);
