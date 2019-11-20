@@ -13507,15 +13507,16 @@ bool MQ2EvolvingItemType::GETMEMBER()
 
 bool MQ2DynamicZoneType::GETMEMBER()
 {
-	if (!pDZMember)
-		return false;
 	PMQ2TYPEMEMBER pMember = MQ2DynamicZoneType::FindMember(Member);
 	if (!pMember)
+		return false;
+
+	if (!pDZMember && (DynamicZoneMembers)pMember->ID != LeaderFlagged)
 		return false;
 	switch ((DynamicZoneMembers)pMember->ID)
 	{
 	case Name:
-		strcpy_s(DataTypeTemp,  pDynamicZone->ExpeditionName);
+		strcpy_s(DataTypeTemp,  pDynamicZone->DZName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -13531,6 +13532,14 @@ bool MQ2DynamicZoneType::GETMEMBER()
 		}
 		return true;
 	}
+	case LeaderFlagged:
+		Dest.DWord = 0;
+		if (pDynamicZone && pDynamicZone->pFirstMember)
+		{
+			Dest.DWord = pDynamicZone->pFirstMember->bFlagged;
+		}
+		Dest.Type = pBoolType;
+		return true;
 	case MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
 		Dest.Type = pIntType;
@@ -13542,7 +13551,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 			PDZMEMBER pDynamicZoneMember = pDynamicZone->pMemberList;
 			if (ISNUMBER())
 			{
-				DWORD Count = GETNUMBER();
+				int Count = GETNUMBER();
 				if (!Count || Count>pDynamicZone->MaxPlayers)
 					return false;
 				Count--;
@@ -13574,7 +13583,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 	{
 		Dest.Type = pDZMemberType;
 		PDZMEMBER pDynamicZoneMember = pDynamicZone->pMemberList;
-		for (DWORD i = 0; i<pDynamicZone->MaxPlayers && pDynamicZoneMember; i++)
+		for (int i = 0; i<pDynamicZone->MaxPlayers && pDynamicZoneMember; i++)
 		{
 			if (!strcmp(pDynamicZoneMember->Name, (char*)instExpeditionLeader))
 			{
@@ -13588,7 +13597,7 @@ bool MQ2DynamicZoneType::GETMEMBER()
 	case InRaid:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (pDynamicZone && pDynamicZone->Name[0]) {
+		if (pDynamicZone && pDynamicZone->LeaderName[0]) {
 			Dest.DWord = 1;
 		}
 		return true;
@@ -13610,6 +13619,10 @@ bool MQ2DZMemberType::GETMEMBER()
 		strcpy_s(DataTypeTemp, pDynamicZoneMember->Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
+		return true;
+	case Flagged:
+		Dest.DWord = pDynamicZoneMember->bFlagged;
+		Dest.Type = pBoolType;
 		return true;
 	case Status:
 		strcpy_s(DataTypeTemp, "Unknown");

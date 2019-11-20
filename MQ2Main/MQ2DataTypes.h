@@ -4884,6 +4884,7 @@ public:
 		xMember = 4,
 		Leader = 5,
 		InRaid = 6,
+		LeaderFlagged = 7,
 	};
 	MQ2DynamicZoneType() :MQ2Type("dynamiczone")
 	{
@@ -4893,6 +4894,7 @@ public:
 		AddMember(xMember, "Member");
 		TypeMember(Leader);
 		TypeMember(InRaid);
+		TypeMember(LeaderFlagged);
 	}
 	~MQ2DynamicZoneType()
 	{
@@ -4902,7 +4904,7 @@ public:
 	{
 		if (pDZMember)
 		{
-			strcpy_s(Destination,MAX_STRING, pDynamicZone->ExpeditionName);
+			strcpy_s(Destination,MAX_STRING, pDynamicZone->DZName);
 			return true;
 		}
 		return false;
@@ -4924,11 +4926,13 @@ public:
 	{
 		Name = 1,
 		Status = 2,
+		Flagged = 3,
 	};
 	MQ2DZMemberType() :MQ2Type("dzmember")
 	{
 		TypeMember(Name);
 		TypeMember(Status);
+		TypeMember(Flagged);
 	}
 	~MQ2DZMemberType()
 	{
