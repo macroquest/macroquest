@@ -404,7 +404,7 @@ public:
 	EQLIB_OBJECT const CTAFrameDraw* GetBorderFrame() const;
 	EQLIB_OBJECT CXRect GetScreenRect() const;
 	EQLIB_OBJECT int Resize(int Width, int Height, bool bUpdateLayout = true, bool bCompleteMoveOrResize = false, bool bMoveAutoStretch = false);
-	EQLIB_OBJECT CXWnd* SetParent(CXWnd*);
+	EQLIB_OBJECT CXWnd* SetParent(CXWnd*, bool);
 	EQLIB_OBJECT void SetMouseOver(bool);
 	EQLIB_OBJECT void SetKeyTooltip(int, int);
 	EQLIB_OBJECT int SetFont(CTextureFont*);
@@ -672,7 +672,7 @@ public:
 
 #include "CXWnd-Members.h"
 
-/*0x1e4*/ };
+/*0x1e8*/ };
 
 using CXWND [[deprecated]] = CXWnd;
 using PCXWND [[deprecated]] = CXWnd*;

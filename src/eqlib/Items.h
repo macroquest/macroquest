@@ -516,8 +516,7 @@ public:
 
 #include "ItemBase-Members.h"
 
-/*0x144*/
-
+/*0x14c*/
 	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
@@ -525,14 +524,14 @@ public:
 // Actual Size: 0x158 (see 0x611DAC in eqgame.exe Test dated Jun 10 2019)
 class [[offsetcomments]] ItemClient : public ItemBase
 {
-public:
-	///*0x0141*/ BYTE Filler0x0141[0xB];
+	FORCE_SYMBOLS;
 
+public:
 	// Reference counted pointer to ItemDefinition
-/*0x140*/ DWORD        Item2RefCnt;
-/*0x144*/ ITEMINFO*    Item2;
-/*0x148*/ CXStr        ClientString;
-/*0x14c*/
+/*0x150*/ DWORD        Item2RefCnt;
+/*0x154*/ ITEMINFO*    Item2;
+/*0x158*/ CXStr        ClientString;
+/*0x15c*/
 
 	EQLIB_OBJECT ItemClient* GetContent(uint32_t index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
@@ -555,11 +554,11 @@ struct [[offsetcomments]] CONTENTS
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x141*/ uint8_t           Filler0x0141[0xB];
-/*0x14c*/ ITEMINFO*         Item2;
-/*0x150*/ CXStr             ClientString;
-/*0x154*/ uint8_t           Filler0x0154[0x4];
-/*0x158*/
+/*0x149*/ uint8_t           Filler0x0141[0xB];
+/*0x154*/ ITEMINFO*         Item2;
+/*0x158*/ CXStr             ClientString;
+/*0x15c*/ uint8_t           Filler0x0154[0x4];
+/*0x160*/
 
 EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
 EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
