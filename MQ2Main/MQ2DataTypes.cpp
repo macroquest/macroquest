@@ -12547,8 +12547,10 @@ bool MQ2AltAbilityType::GETMEMBER()
 		}
 		return false;
 	case ShortName:
+		//what is this even for? need to check -eqmule
 		Dest.Type = pStringType;
-		if (char *ptr = pStringTable->getString(pAbility->nShortName, 0))
+		//if (char *ptr = pStringTable->getString(pAbility->nShortName,0))
+		if (char *ptr = pCDBStr->GetString(pAbility->nName, 2, NULL))
 		{
 			strcpy_s(DataTypeTemp, ptr);
 			Dest.Ptr = &DataTypeTemp[0];
