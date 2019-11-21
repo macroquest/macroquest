@@ -60,11 +60,6 @@ using namespace eqlib;
 #define STRINGIFY_IMPL(x) #x
 #define STRINGIFY(x) STRINGIFY_IMPL(x)
 
-// Define access to a member with another name (and type if you so will it)
-#define ALT_MEMBER_GETTER(type, orig, name) \
-    type& getter_ ## name() { return (type&)orig; } \
-    __declspec(property(get=getter_ ## name)) type name;
-
 #define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline, STRINGIFY(offset))
 #define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
 
@@ -165,7 +160,7 @@ MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, i
 MQLIB_API void WriteChatf(const char* Format, ...);
 MQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
 
-MQLIB_API [[deprecated("Use WriteChatf instead")]]
+MQLIB_API DEPRECATE("Use WriteChatf instead")
 void WriteChatfSafe(const char* szFormat, ...);
 
 /* PLUGIN HANDLING */
@@ -174,7 +169,10 @@ MQLIB_API int LoadMQ2Plugin(const char* pszFilename, bool bCustom = false);
 MQLIB_API bool UnloadMQ2Plugin(const char* pszFilename);
 MQLIB_API void UnloadMQ2Plugins();
 MQLIB_API void ShutdownMQ2Plugins();
-MQLIB_API [[deprecated("This is handled on load/unload without the direct call.")]] void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
+
+MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
+void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
+
 MQLIB_API void PulsePlugins();
 MQLIB_API void PluginsZoned();
 MQLIB_API bool PluginsIncomingChat(const char* Line, DWORD Color);
@@ -251,7 +249,7 @@ MQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 MQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
 // Compatibility shims
-[[deprecated("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")]]
+DEPRECATE("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")
 inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
 {
 	return AddMQ2Data(szName, (fMQData)Function);
@@ -293,7 +291,9 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 MQLIB_API char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
 MQLIB_API char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
-MQLIB_API [[deprecated("The EQ Path is the working directory.")]] char* GetEQPath(char* szBuffer, size_t len);
+
+MQLIB_API DEPRECATE("The EQ Path is the working directory.")
+char* GetEQPath(char* szBuffer, size_t len);
 
 // Command Execution
 MQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);

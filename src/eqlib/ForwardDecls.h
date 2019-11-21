@@ -335,9 +335,6 @@ struct connection_t;
 struct CONTENTS;
 struct CStrRep;
 struct CUITextureInfo;
-struct DYNAMICZONE;
-struct DZMEMBER;
-struct DZTIMERINFO;
 struct EQMissileHitinfo;
 struct EQRAID;
 struct EQSOCIAL;
@@ -358,7 +355,6 @@ struct STableCell;
 struct STempTable;
 struct STempTableCell;
 struct STempTableRow;
-struct TASKMEMBER;
 
 // End forward class declarations
 

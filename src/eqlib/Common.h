@@ -107,6 +107,24 @@
 	__asm pop eax                                                                        \
 }
 
+ // Define access to a member with another name (and type if you so will it)
+#define ALT_MEMBER_GETTER(type, orig, name) \
+    type& getter_ ## name() { return (type&)orig; } \
+    __declspec(property(get=getter_ ## name)) type name;
+
+#define ALT_MEMBER_GETTER_ARRAY(type, size, orig, name) \
+    type (&getter_ ## name())[size] { return *reinterpret_cast<type(*)[size]>(&orig); } \
+    __declspec(property(get=getter_ ## name)) type (&name)[size];
+
+#if defined(DEPRECATE)
+#undef (DEPRECATE)
+#endif
+
+#if defined(COMMENT_UPDATER)
+#define DEPRECATE(x)
+#else
+#define DEPRECATE(x) [[deprecated(x)]]
+#endif
 
 template <typename T, size_t N>
 constexpr size_t lengthof(const T(&)[N])

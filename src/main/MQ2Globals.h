@@ -106,12 +106,12 @@ MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
 MQLIB_VAR bool gbSpelldbLoaded;
-MQLIB_VAR char gszEQPath[MAX_STRING] [[deprecated("Your relative path from the working directory is already the EQ Path.")]];
-MQLIB_VAR char gszMacroPath[MAX_STRING] [[deprecated("Use internal_paths::Macros in Core or gPathMacros in Plugins")]];
-MQLIB_VAR char gszLogPath[MAX_STRING] [[deprecated("Use internal_paths::Logs in Core or gPathLogs in Plugins")]];
-MQLIB_VAR char gszINIPath[MAX_STRING] [[deprecated("Use internal_paths::MQRoot in Core or gPathMQRoot in Plugins - or one of the Resources/Config/Plugins paths")]];
-MQLIB_VAR char gszINIFilename[MAX_STRING] [[deprecated("Use internal_paths::MQini in Core or gPathMQini in Plugins")]];
-MQLIB_VAR char gszItemDB[MAX_STRING] [[deprecated("Use internal_paths::Resources / \"ItemDB.txt\" in Core or gResourcesPath / ItemDB.txt in Plugins")]];
+MQLIB_VAR char gszEQPath[MAX_STRING] DEPRECATE("Your relative path from the working directory is already the EQ Path.");
+MQLIB_VAR char gszMacroPath[MAX_STRING] DEPRECATE("Use internal_paths::Macros in Core or gPathMacros in Plugins");
+MQLIB_VAR char gszLogPath[MAX_STRING] DEPRECATE("Use internal_paths::Logs in Core or gPathLogs in Plugins");
+MQLIB_VAR char gszINIPath[MAX_STRING] DEPRECATE("Use internal_paths::MQRoot in Core or gPathMQRoot in Plugins - or one of the Resources/Config/Plugins paths");
+MQLIB_VAR char gszINIFilename[MAX_STRING] DEPRECATE("Use internal_paths::MQini in Core or gPathMQini in Plugins");
+MQLIB_VAR char gszItemDB[MAX_STRING] DEPRECATE("Use internal_paths::Resources / \"ItemDB.txt\" in Core or gResourcesPath / ItemDB.txt in Plugins");
 MQLIB_VAR char gszMacroName[MAX_STRING];
 MQLIB_VAR char szLastCommand[MAX_STRING];
 // FIXME:  Convert this to a Global Object.  Include setting of gPathX (and remove from Init).

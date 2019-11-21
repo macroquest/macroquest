@@ -204,34 +204,6 @@ public:
 	}
 };
 
-enum eDynamicZoneType
-{
-	eDZT_Unknown,
-	eDZT_Expedition,
-	eDZT_Tutorial,
-	eDZT_Task,
-	eDZT_Mission,
-	eDZT_Quest
-};
-
-struct [[offsetcomments]] DynamicZoneData
-{
-/*0x00*/ int                DynamicZoneID;
-/*0x04*/ int                SetID;
-/*0x08*/ eDynamicZoneType   Type;
-/*0x0c*/
-};
-
-struct [[offsetcomments]] DynamicZoneTimerData
-{
-/*0x00*/ int                   DataSetID;
-/*0x04*/ UINT                  TimerExpiration;
-/*0x08*/ int                   EventID;
-/*0x0c*/ int                   DynamicZoneID;
-/*0x10*/ DynamicZoneTimerData* pNext;
-/*0x14*/
-};
-
 // size 34 i think in eqgame dated mar 23 2015 but i have no address for it atm
 struct [[offsetcomments]] GROUPMEMBER
 {

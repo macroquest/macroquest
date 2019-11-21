@@ -740,6 +740,12 @@ inline int EQHeading(T heading)
 // Structures
 // ***************************************************************************
 
+class PopDialogHandler
+{
+public:
+	virtual void DialogResponse(int, int, void*);
+};
+
 struct MOUSESPOOF
 {
 	MOUSE_DATA_TYPES   mdType;
@@ -1777,51 +1783,142 @@ struct [[offsetcomments]] CDISPLAY
 };
 using PCDISPLAY [[deprecated]] = CDISPLAY*;
 
-// 5-16-06 - ieatacid
-struct [[offsetcomments]] DZTIMERINFO
+enum eDynamicZoneType
 {
-/*0x000*/ char   ExpeditionName[0x80];
-/*0x080*/ char   EventName[0x100];
-/*0x180*/ DWORD  TimeStamp;                      // TimeStamp - Util__FastTime = time left
-/*0x184*/ DWORD  TimerID;
-/*0x188*/ DZTIMERINFO* pNext;
+	eDZT_Unknown,
+	eDZT_Expedition,
+	eDZT_Tutorial,
+	eDZT_Task,
+	eDZT_Mission,
+	eDZT_Quest
+};
+
+struct [[offsetcomments]] DynamicZoneData
+{
+/*0x00*/ int                DynamicZoneID;
+/*0x04*/ int                SetID;
+/*0x08*/ eDynamicZoneType   Type;
+/*0x0c*/
+};
+
+struct [[offsetcomments]] DynamicZoneTimerData
+{
+/*0x00*/ int                   DataSetID;
+/*0x04*/ time_t                TimerExpiration;
+/*0x08*/ int                   EventID;
+/*0x0c*/ int                   DynamicZoneID;
+/*0x10*/ DynamicZoneTimerData* pNext;
+/*0x14*/
+};
+
+struct [[offsetcomments]] DynamicZoneClientTimerData
+{
+/*0x000*/ char         ExpeditionName[0x80];
+/*0x080*/ char         EventName[0x100];
+/*0x180*/ time_t       TimeStamp;                      // TimeStamp - Util__FastTime = time left
+/*0x184*/ int          TimerID;
+/*0x188*/ DynamicZoneClientTimerData* pNext;
 /*0x18c*/
 };
+using DZTIMERINFO = DynamicZoneClientTimerData;
 using PDZTIMERINFO [[deprecated]] = DZTIMERINFO*;
 
-struct [[offsetcomments]] DZMEMBER
-{
-/*0x00*/ char         Name[0x40];
-/*0x40*/ DWORD        Status;                   // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
-/*0x44*/ DZMEMBER*    pNext;
-/*0x48*/
-};
-using PDZMEMBER [[deprecated]] = DZMEMBER*;
 
-struct [[offsetcomments]] TASKMEMBER
+enum eDyanicZonePlayerStatus
 {
-/*0x00*/ char         Name[0x40];
-/*0x40*/ DWORD        Unknown0x40;
-/*0x44*/ DWORD        IsLeader;
-/*0x48*/ TASKMEMBER*  pNext;
+	eStatusUnknown = 0,
+	eStatusOnline,
+	eStatusOffline,
+	eStatusInZone,
+	eStatusLinkDead,
+};
+
+struct [[offsetcomments]] DynamicZonePlayerInfo
+{
+	/*0x00*/ char                     Name[0x40];                // The usual name length
+	/*0x40*/ eDyanicZonePlayerStatus  Status;
+	/*0x44*/ DynamicZonePlayerInfo*   pNext;
+	/*0x48*/ bool                     bFlagged;                  // Do we meet the requirements?
+	/*0x49*/ bool                     bCheckedZoneReqs;          // Zone reqs serverside checked?
+/*0x4c*/ };
+using DZMEMBER = DynamicZonePlayerInfo;
+using PDZMEMBER [[deprecated]] = DynamicZonePlayerInfo*;
+
+enum eSharedTaskPlayerRole
+{
+	eSharedTaskRoleNone = 0,
+	eSharedTaskRoleLeader
+};
+
+// Shared Task Member Info
+struct [[offsetcomments]] SharedTaskPlayerInfo
+{
+/*0x00*/ char                     Name[0x40];
+/*0x40*/ int                      ShroudID;
+/*0x44*/ eSharedTaskPlayerRole    Role;
+/*0x48*/ SharedTaskPlayerInfo*    pNext;
 /*0x4c*/
-};
-using PTASKMEMBER = TASKMEMBER*;
 
-struct [[offsetcomments]] DYNAMICZONE
-{
-/*0x000*/ void*        vftable;
-/*0x004*/ BYTE         Unknown0x04[0x46];
-/*0x04a*/ char         Name[0x40];               // Leaders name
-/*0x08a*/ char         ExpeditionName[0x80];
-/*0x10a*/ BYTE         Unknown0x10a[0x2];
-/*0x10c*/ WORD         MaxPlayers;
-/*0x10e*/ BYTE         Unknown0x10e[0x2];
-/*0x110*/ DZMEMBER*    pMemberList;
-/*0x114*/ char*        expeditionName;
-/*0x118*/ // more?
+	ALT_MEMBER_GETTER(DWORD, Role, IsLeader);
 };
-using PDYNAMICZONE [[deprecated]] = DYNAMICZONE*;
+using TASKMEMBER = SharedTaskPlayerInfo;
+using PTASKMEMBER [[deprecated]] = SharedTaskPlayerInfo*;
+
+struct [[offsetcomments]] DynamicZoneSwitchInfo
+{
+	/*0x00*/ int          DZID;
+	/*0x04*/ int          Type;
+	/*0x08*/ int          DZSwitchID;
+	/*0x0c*/ float        SwitchX;
+	/*0x10*/ float        SwitchY;
+	/*0x14*/ float        SwitchZ;
+/*0x18*/ };
+using DZSWITCHINFO = DynamicZoneSwitchInfo;
+using PDZSWITCHINFO [[deprecated]] = DynamicZoneSwitchInfo*;
+using _DZSWITCHINFO [[deprecated]] = DynamicZoneSwitchInfo;
+
+struct [[offsetcomments]] DynamicZoneCompass
+{
+	/*0x00*/ int          R;
+	/*0x04*/ int          G;
+	/*0x08*/ int          B;
+	/*0x0c*/ float        X;
+	/*0x10*/ float        Y;
+	/*0x14*/ float        Z;
+	/*0x18*/ bool         bVisible;
+	/*0x1c*/ int          PixelOffset;
+	/*0x20*/ bool         bInWindow;
+/*0x24*/ };
+using DZCOMPASS = DynamicZoneCompass;
+using PDZCOMPASS [[deprecated]] = DynamicZoneCompass*;
+
+struct [[offsetcomments]] DynamicZoneClientSwitchInfo : public DynamicZoneSwitchInfo
+{
+	/*0x18*/ DynamicZoneCompass* pCompass;
+/*0x1c*/ };
+using DZSWITCH = DynamicZoneClientSwitchInfo;
+using PDZSWITCH [[deprecated]] = DynamicZoneClientSwitchInfo*;
+
+// CDynamicZone size: 0x128
+struct [[offsetcomments]] CDynamicZone : public PopDialogHandler
+{
+	/*0x004*/ uint32_t     NewMemberDZID;
+	/*0x008*/ char         NewMemberName[0x40];
+	/*0x048*/ bool         bNewSwap;
+	/*0x049*/ bool         bNewAssignedToDZ;
+	/*0x04a*/ char         LeaderName[0x40];
+	/*0x08a*/ char         DZName[0x80];
+	/*0x10c*/ int          MaxPlayers;
+	/*0x110*/ DynamicZonePlayerInfo* pFirstMember;
+	/*0x114*/ DynamicZoneClientTimerData* pFirstTimer;
+	/*0x118*/ HashTable<DynamicZoneClientSwitchInfo> Switches;
+/*0x128*/
+	ALT_MEMBER_GETTER_ARRAY(char, 0x40, LeaderName, Name);
+	ALT_MEMBER_GETTER_ARRAY(char, 0x80, DZName, ExpeditionName);
+	ALT_MEMBER_GETTER(DynamicZonePlayerInfo*, pFirstMember, pMemberList);
+};
+using DYNAMICZONE = CDynamicZone;
+using PDYNAMICZONE [[deprecated]] = CDynamicZone*;
 
 struct [[offsetcomments]] CHATCHANNELS
 {

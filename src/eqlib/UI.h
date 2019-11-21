@@ -69,14 +69,6 @@ public:
 
 //----------------------------------------------------------------------------
 
-class PopDialogHandler
-{
-public:
-	virtual void DialogResponse(int, int, void*);
-};
-
-//----------------------------------------------------------------------------
-
 class CVivoxManager;
 class CVivoxObserver
 {

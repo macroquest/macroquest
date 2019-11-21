@@ -1075,10 +1075,18 @@ EQLIB_VAR CXWndManager** ppWndMgr;
 #define pItemList GetItemList()
 #define pKeypressHandler GetKeyPresshandler()
 EQLIB_VAR EQRAID* pRaid;
-EQLIB_VAR DZMEMBER** ppDZMember;
-EQLIB_VAR TASKMEMBER** ppTaskMember;
-EQLIB_VAR DZTIMERINFO** ppDZTimerInfo;
-EQLIB_VAR DYNAMICZONE* pDynamicZone;
+
+struct DynamicZonePlayerInfo;
+EQLIB_VAR DynamicZonePlayerInfo** ppDZMember;
+
+struct SharedTaskPlayerInfo;
+EQLIB_VAR SharedTaskPlayerInfo** ppTaskMember;
+
+struct DynamicZoneClientTimerData;
+EQLIB_VAR DynamicZoneClientTimerData** ppDZTimerInfo;
+
+struct CDynamicZone;
+EQLIB_VAR CDynamicZone* pDynamicZone;
 
 EQLIB_VAR PINT pgCurrentSocial;
 #define gCurrentSocial (*pgCurrentSocial)
