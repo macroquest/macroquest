@@ -1,4 +1,8 @@
 Nov 20 2019
+- Fixed ${Me.SpellInCooldown} for LIVE
+- Fixed ${Me.InInstance} for LIVE
+-
+Nov 20 2019
 - Updated for LIVE
 - Updated for BETA
 - Added .LeaderFlagged to the DynamicZoneType TLO it returns true if the dzleader can successfully enter the dz (this also means the dz is actually Loaded.)
