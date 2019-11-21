@@ -828,7 +828,7 @@ static bool ItemFitsInSlot(CONTENTS* pCont, std::string_view search)
 	return false;
 }
 
-static int ItemHasStat(CONTENTS* pCont, std::string_view search)
+int ItemHasStat(CONTENTS* pCont, std::string_view search)
 {
 	// map stat names to accessors
 	static const std::map<std::string, std::function<int(ITEMINFO*)>, ci_less> mapping = {
@@ -962,27 +962,27 @@ static int ItemHasStat(CONTENTS* pCont, std::string_view search)
 		},
 		{
 			"eagle strike",
-			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 23 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"flying kick",
-			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 26 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"kick",
-			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 30 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"round kick",
-			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 38 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"tiger claw",
-			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 52 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"frenzy",
-			[](ITEMINFO* pi) { return pi->DmgBonusValue; }
+			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 74 ? pi->DmgBonusValue : 0; }
 		}
 	};
 
@@ -1018,6 +1018,9 @@ static bool ItemHasRace(CONTENTS* pCont, std::string_view search)
 				break;
 			case 14:
 				tmp = 330;   // FRG
+				break;
+			case 15:
+				tmp = 522;   // DRK
 				break;
 			}
 

@@ -9200,6 +9200,9 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 							case 14:
 								Dest.DWord = 330;   // FRG
 								break;
+							case 15:
+								Dest.DWord = 522;   // DRK
+								break;
 							}
 							return true;
 						}
@@ -9225,6 +9228,9 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 							break;
 						case 14:
 							tmp = 330;   // FRG
+							break;
+						case 15:
+							tmp = 522;   // DRK
 							break;
 						}
 
@@ -15273,14 +15279,15 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, 
 
 bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pDZMember)
-		return false;
-
 	MQTypeMember* pMember = MQ2DynamicZoneType::FindMember(Member);
 	if (!pMember)
 		return false;
 
-	switch (static_cast<DynamicZoneMembers>(pMember->ID))
+	DynamicZoneMembers dataMember = static_cast<DynamicZoneMembers>(pMember->ID);
+	if (!pDZMember && dataMember != LeaderFlagged)
+		return false;
+
+	switch (dataMember)
 	{
 	case Name:
 		strcpy_s(DataTypeTemp, pDynamicZone->ExpeditionName);
@@ -15291,7 +15298,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 	case Members: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		DZMEMBER* pDynamicZoneMember = pDynamicZone->pMemberList;
+		DynamicZonePlayerInfo* pDynamicZoneMember = pDynamicZone->pFirstMember;
 
 		while (pDynamicZoneMember)
 		{
@@ -15300,6 +15307,10 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		}
 		return true;
 	}
+
+	case LeaderFlagged:
+		Dest.DWord = pDynamicZone && pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged;
+		Dest.Type = pBoolType;
 
 	case MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
@@ -15310,7 +15321,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		Dest.Type = pDZMemberType;
 		if (Index[0])
 		{
-			DZMEMBER* pDynamicZoneMember = pDynamicZone->pMemberList;
+			DynamicZonePlayerInfo* pDynamicZoneMember = pDynamicZone->pFirstMember;
 			if (IsNumber(Index))
 			{
 				int Count = GetIntFromString(Index, 0) - 1;
@@ -15344,7 +15355,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 
 	case Leader: {
 		Dest.Type = pDZMemberType;
-		DZMEMBER* pDynamicZoneMember = pDynamicZone->pMemberList;
+		DynamicZonePlayerInfo* pDynamicZoneMember = pDynamicZone->pMemberList;
 
 		for (int i = 0; i < pDynamicZone->MaxPlayers && pDynamicZoneMember; i++)
 		{
@@ -15361,7 +15372,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 	case InRaid:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (pDynamicZone && pDynamicZone->Name[0])
+		if (pDynamicZone && pDynamicZone->LeaderName[0])
 		{
 			Dest.DWord = 1;
 		}
@@ -15378,7 +15389,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 
 bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	DZMEMBER* pDynamicZoneMember = reinterpret_cast<DZMEMBER*>(VarPtr.Ptr);
+	auto* pDynamicZoneMember = reinterpret_cast<DynamicZonePlayerInfo*>(VarPtr.Ptr);
 	if (pDynamicZoneMember)
 		return false;
 
@@ -15393,6 +15404,10 @@ bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
+
+	case Flagged:
+		Dest.DWord = pDynamicZoneMember->bFlagged;
+		Dest.Type = pBoolType;
 
 	case Status:
 		strcpy_s(DataTypeTemp, "Unknown");

@@ -109,12 +109,16 @@
 
  // Define access to a member with another name (and type if you so will it)
 #define ALT_MEMBER_GETTER(type, orig, name) \
-    type& getter_ ## name() { return (type&)orig; } \
+    type& getter_ ## name() { return (*reinterpret_cast<type*>(&orig)); } \
     __declspec(property(get=getter_ ## name)) type name;
 
 #define ALT_MEMBER_GETTER_ARRAY(type, size, orig, name) \
-    type (&getter_ ## name())[size] { return *reinterpret_cast<type(*)[size]>(&orig); } \
+    type (&getter_ ## name())[size] { return (*reinterpret_cast<type(*)[size]>(&orig)); } \
     __declspec(property(get=getter_ ## name)) type (&name)[size];
+
+#define ALT_MEMBER_GETTER_COPY(type, orig, name) \
+    type getter_ ## name() { return (type)(orig); } \
+    __declspec(property(get=getter_ ## name)) type name;
 
 #if defined(DEPRECATE)
 #undef (DEPRECATE)
@@ -125,6 +129,10 @@
 #else
 #define DEPRECATE(x) [[deprecated(x)]]
 #endif
+
+#define ALT_MEMBER_GETTER_DEPRECATED(type, orig, name) \
+    decltype(auto) getter_ ## name() { return (orig); } \
+    __declspec(property(get=getter_ ## name)) type name;
 
 template <typename T, size_t N>
 constexpr size_t lengthof(const T(&)[N])

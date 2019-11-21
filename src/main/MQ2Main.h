@@ -410,6 +410,17 @@ inline bool GetItemLink(CONTENTS* Item, char(&Buffer)[_Size], bool Clickable = t
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
 
+MQLIB_API int ItemHasStat(CONTENTS* pCont, std::string_view search);
+
+// Compatibility for ItemHasStat
+DEPRECATE("Use string_view form of ItemHasStat instead")
+inline bool ItemHasStat(CONTENTS* pCont, int* num, const char* buffer)
+{
+	*num = ItemHasStat(pCont, buffer);
+	return *num != 0;
+}
+
+
 MQLIB_API const char* GetLoginName();
 MQLIB_API float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc);
 MQLIB_API float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, float zLoc);
