@@ -630,7 +630,7 @@ void InitializeMQ2Commands()
         {"/help",       Help,1,0},
         {"/target",     Target,1,1},
         {"/alias",      Alias,0,0},
-        {"/aa",         AltAbility,0,1},
+        {"/aa",         AltAbility,1,1},
         {"/substitute", Substitute,0,0},
         {"/filter",     Filter,1,0},
         {"/whofilter",  SWhoFilter,1,1},
