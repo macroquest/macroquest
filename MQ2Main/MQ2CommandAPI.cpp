@@ -714,6 +714,7 @@ void InitializeMQ2Commands()
 		{"/mapzoom",    MapZoomCmd,1,0},
 		{"/foreground", ForeGroundCmd,1,0},
 		{"/quit",		QuitCmd,1,0},
+		{"/removelev", RemoveLev,1,0},
     	// The below needs to match ENGINE_SWITCH_CMD in MQ2Globals.h (adding a slash)
 		{static_cast<char*>("/engine"),		EngineCommand,1,0},
 		

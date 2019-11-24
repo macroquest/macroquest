@@ -5148,4 +5148,50 @@ VOID ForeGroundCmd(PSPAWNINFO pChar, char *szLine)
 		//ShowWindow(hWnd, SW_SHOWNORMAL);
 	}
 }
+
+bool HasLevSPA(PSPELL pBuff) {//no prototype on purpose. needed for /removelev
+	//looking for SPA 57 = LEVITATION!
+	int effects = GetSpellNumEffects(pBuff);
+	bool levfound = false;
+	for (int j = 0; j < effects; j++) {
+		if (GetSpellAttrib(pBuff, j)) {
+			switch (GetSpellAttrib(pBuff, j)) {
+			case 57://This is Levitation
+				levfound = true;
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	return levfound;
+}
+
+void RemoveLev(PSPAWNINFO pChar, PCHAR szLine) {
+	if (GetGameState() != GAMESTATE_INGAME || !GetCharInfo() || !GetCharInfo()->pSpawn || !GetCharInfo2())
+		return;
+	//check long buffs
+	for (int i = 0; i < NUM_LONG_BUFFS; i++) {
+		if (GetCharInfo2() && GetCharInfo2()->Buff) {
+			if (PSPELL pBuff = GetSpellByID(GetCharInfo2()->Buff[i].SpellID)) {
+				if (HasLevSPA(pBuff)) {
+					((PcZoneClient*)pPCData)->RemoveBuffEffect(i, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+					WriteChatf("\arRemoving: \ap%s", pBuff->Name);
+				}
+			}
+		}
+	}
+
+	//check short buffs
+	for (int i = 0; i < NUM_SHORT_BUFFS; i++) {
+		if (GetCharInfo2() && GetCharInfo2()->ShortBuff) {
+			if (PSPELL pBuff = GetSpellByID(GetCharInfo2()->ShortBuff[i].SpellID)) {
+				if (HasLevSPA(pBuff)) {
+					((PcZoneClient*)pPCData)->RemoveBuffEffect(i + NUM_LONG_BUFFS, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+					WriteChatf("\arRemoving: \ap%s", pBuff->Name);
+				}
+			}
+		}
+	}
+}
 #endif
