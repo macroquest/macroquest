@@ -7392,8 +7392,8 @@ bool MQ2ItemSpellType::GETMEMBER()
 bool MQ2ItemType::GETMEMBER()
 {
 	DWORD N, cmp, tmp;
-#define pItem ((PCONTENTS)VarPtr.Ptr)
-	if (!VarPtr.Ptr)
+	PCONTENTS pItem = (PCONTENTS)VarPtr.Ptr;
+	if (!pItem)
 		return false;
 	PITEMINFO pItemInfo = GetItemFromContents(pItem);
 	if (!pItemInfo)
@@ -7944,34 +7944,43 @@ bool MQ2ItemType::GETMEMBER()
 	case FreeStack:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			if (!((EQ_Item*)pItem)->IsStackable())
-				return true;
-			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
-			{
-				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
-					{
-						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
+		if(PITEMINFO pItemInfo = GetItemFromContents(pItem))
+		{
+			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+				if (!((EQ_Item*)pItem)->IsStackable())
+					return true;
+				for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+				{
+					if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
+						if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
 						{
-							for (DWORD pslot = 0; pslot < (GetItemFromContents(pTempItem)->Slots); pslot++)
+							if (PITEMINFO pTempItemInfo = GetItemFromContents(pTempItem))
 							{
-								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+								if (pTempItemInfo->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
 								{
-									if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+									for (DWORD pslot = 0; pslot < (pTempItemInfo->Slots); pslot++)
 									{
-										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
+										if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
 										{
-											Dest.DWord += (GetItemFromContents(pSlotItem)->StackSize - pSlotItem->StackCount);
+											if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+											{
+												if (PITEMINFO pSlotItemInfo = GetItemFromContents(pSlotItem))
+												{
+													if (pSlotItemInfo->ItemNumber == pItemInfo->ItemNumber)
+													{
+														Dest.DWord += (pSlotItemInfo->StackSize - pSlotItem->StackCount);
+													}
+												}
+											}
 										}
 									}
 								}
-							}
-						}
-						else {
-							if (GetItemFromContents(pTempItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-							{
-								Dest.DWord += (GetItemFromContents(pTempItem)->StackSize - pTempItem->StackCount);
+								else {
+									if (pTempItemInfo->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
+									{
+										Dest.DWord += (pTempItemInfo->StackSize - pTempItem->StackCount);
+									}
+								}
 							}
 						}
 					}
@@ -8882,7 +8891,6 @@ bool MQ2ItemType::GETMEMBER()
 #endif
 	}
 	return false;
-#undef pItem
 }
 
 bool MQ2WindowType::GETMEMBER()
