@@ -1,3 +1,6 @@
+Nov 27 2019
+- Updated for BETA
+-
 Nov 26 2019
 - Updated for TEST
 - Added SubscriptionDays to the Character TLO it returns an int. Cred request: @sic

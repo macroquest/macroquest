@@ -2897,7 +2897,11 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case SubscriptionDays:
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		Dest.Int = pChar->SubscriptionDays;
+		#else
+		Dest.Int = 30;
+		#endif
 		Dest.Type = pIntType;
 		return true;
 	case Exp:
