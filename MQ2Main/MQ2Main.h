@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define EQBETA
+#define TEST
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -570,6 +570,7 @@ EQLIB_API BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CL
 #endif
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
+EQLIB_API int GetFreeStack(PCONTENTS pCont);
 EQLIB_API int RangeRandom(int min, int max);
 EQLIB_API DWORD __stdcall BeepOnTellThread(PVOID pData);
 EQLIB_API DWORD __stdcall FlashOnTellThread(PVOID pData);

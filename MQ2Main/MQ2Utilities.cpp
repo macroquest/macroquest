@@ -11307,6 +11307,54 @@ void WeDidStuff()
 	gbCommandEvent = 1;
 	gMouseEventTime = GetFastTime();
 }
+int GetFreeStack(PCONTENTS pCont)
+{
+	int freestack = 0;
+	if (PITEMINFO pItemInfo = GetItemFromContents(pCont))
+	{
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			if (!((EQ_Item*)pCont)->IsStackable())
+				return 0;
+			for (DWORD slot = BAG_SLOT_START-1/*we want to check ammo slot as well...*/; slot < NUM_INV_SLOTS; slot++)
+			{
+				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
+					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
+					{
+						if (PITEMINFO pTempItemInfo = GetItemFromContents(pTempItem))
+						{
+							if (pTempItemInfo->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
+							{
+								for (DWORD pslot = 0; pslot < (pTempItemInfo->Slots); pslot++)
+								{
+									if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+									{
+										if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+										{
+											if (PITEMINFO pSlotItemInfo = GetItemFromContents(pSlotItem))
+											{
+												if (pSlotItemInfo->ItemNumber == pItemInfo->ItemNumber)
+												{
+													freestack += (pSlotItemInfo->StackSize - pSlotItem->StackCount);
+												}
+											}
+										}
+									}
+								}
+							}
+							else {
+								if (pTempItemInfo->ItemNumber == GetItemFromContents(pCont)->ItemNumber)
+								{
+									freestack += (pTempItemInfo->StackSize - pTempItem->StackCount);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return freestack;
+}
 int GetFreeInventory(int nSize)
 {
 	int freeslots = 0;

@@ -591,7 +591,7 @@ class CXWnd
 public:
 	//CXWnd::CXWnd() {};
 EQLIB_OBJECT void CXWnd::dCXWnd(void);
-#if !defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT CXWnd * CXWnd::SetParent(CXWnd *,bool);
 #else
 EQLIB_OBJECT CXWnd * CXWnd::SetParent(CXWnd *);

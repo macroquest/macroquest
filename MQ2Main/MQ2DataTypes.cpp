@@ -2896,6 +2896,10 @@ bool MQ2CharacterType::GETMEMBER()
 				return true;
 		}
 		return false;
+	case SubscriptionDays:
+		Dest.Int = pChar->SubscriptionDays;
+		Dest.Type = pIntType;
+		return true;
 	case Exp:
 		Dest.Int64 = pChar->Exp;
 		Dest.Type = pInt64Type;
@@ -7942,51 +7946,8 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return true;
 	case FreeStack:
-		Dest.DWord = 0;
+		Dest.DWord = GetFreeStack(pItem);
 		Dest.Type = pIntType;
-		if(PITEMINFO pItemInfo = GetItemFromContents(pItem))
-		{
-			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-				if (!((EQ_Item*)pItem)->IsStackable())
-					return true;
-				for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
-				{
-					if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-						if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
-						{
-							if (PITEMINFO pTempItemInfo = GetItemFromContents(pTempItem))
-							{
-								if (pTempItemInfo->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
-								{
-									for (DWORD pslot = 0; pslot < (pTempItemInfo->Slots); pslot++)
-									{
-										if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-										{
-											if (PCONTENTS pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-											{
-												if (PITEMINFO pSlotItemInfo = GetItemFromContents(pSlotItem))
-												{
-													if (pSlotItemInfo->ItemNumber == pItemInfo->ItemNumber)
-													{
-														Dest.DWord += (pSlotItemInfo->StackSize - pSlotItem->StackCount);
-													}
-												}
-											}
-										}
-									}
-								}
-								else {
-									if (pTempItemInfo->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-									{
-										Dest.DWord += (pTempItemInfo->StackSize - pTempItem->StackCount);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 	case MerchQuantity:
 		Dest.DWord = 0;
