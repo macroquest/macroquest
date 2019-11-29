@@ -1968,7 +1968,7 @@ void RequestConvertItem(PSPAWNINFO pSpawn, PCHAR szLine)
 		}
 	}
 	WriteChatf("\agUSAGE:\ax /convertitem \ay\"<item name>\"\ax");
-	WriteChatf("\agEaxmple:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
+	WriteChatf("\agExample:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
 #endif
 }
 void AddLootFilter(PSPAWNINFO pChar, PCHAR szLine)

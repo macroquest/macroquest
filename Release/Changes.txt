@@ -1,5 +1,9 @@
+Nov 29 2019
+- Updated for BETA
+-
 Nov 28 2019 Happy Thanksgiving!
 - Updated for BETA
+- Updated MQ2Melee. Yaulp in now default "off" by Sic/CWTN 
 -
 Nov 27 2019
 - Updated for BETA
