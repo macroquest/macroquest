@@ -1,60 +1,203 @@
 |*******************************************************************|
-| - YodaFish.mac -                                                 *|
-| - By: Yoda                                                       *|
-| - v2.0 by DKAA                                                   *|
+| - Fish.mac                                                       *|
+| - Originally Written By: Yoda & DKAA                             *|
+| - v3.0 Re-written by wired420                                    *|
+|                                                                  *|
 |                                                                  *|
 | Usage:                                                           *|
-| To Fish and Gate if anything attacks you.                        *|
-| Will Sit and camp out when you run out of bait.                  *|
-| To be used with a Fisherman's Companion.                         *|
+|    Have bait. Have a rod or rods (if breakable version) in your  *|
+|    inventory or in primary hand. Be standing at water facing it. *|
+|    Run Macro. If rod breaks it will look for another one,        *|
+|    highest fishing mod bonus first, in your inventory to equip.  *|
+|    If there is a certain rod you WANT to use equip it before     *|
+|    starting the macro                                            *|
+|                                                                  *|
+| Other Commands:                                                  *|
+|    /fishcampon  - Will log out when you run out of bait or rods. *|
+|    /fishcampoff - Will stay logged in but end macro when out of  *|
+|                   bait or rods.                                  *|
+|    /beermeon    - If you have Fisherman's Companion. DrUNk*hic*  *|
+|    /beermeoff   - Qui.... Wait. WHAT? Quit drinking?             *|
+|    /beernum #   - Number of beers to summon at a time.           *|
+|                   (Default: 30 [1min 30Seconds + Client Lag])    *|
 |                                                                  *|
 |*******************************************************************|
 
-#turbo
+	#event BrokenPole "#*#You need to put your fishing pole in your primary hand.#*#"
+	#event BrokenPole "#*#You can't fish without a fishing pole, go buy one.#*#"
+	#event NoBait "#*#You can't fish without fishing bait, go buy some.#*#"
 
-#event BrokenPole "#*#You can't fish without a fishing pole, go buy one.#*#"
-#event NoBait "#*#You can't fish without fishing bait, go buy some.#*#"
+	#define /info "/echo \ar[\atFishBot\ar]\ao"
 
-Sub Main
-    /cleanup
-    :Fish
-        /call CheckPole 
-        /doability Fishing
-        /delay 65 
-        /doevents
+	#bind FishLogoff /fishcampon
+	#bind FishLogon /fishcampoff
+	#bind BeerMeNow /beermeon
+	#bind BeerMeNoMore /beermeoff
+	#bind BeerNumber /beernum
 
-        /if (!${Cursor.ID}) /goto :Fish
+| --------------------------------------------------------------------------------------------
+| SUB: Main
+| --------------------------------------------------------------------------------------------
+	Sub Main
+	/declare CampWhenDone int outer 0
+	/declare AllBeeredUp int local 0
+	/declare BeerCount int local 0
+	/declare BeerMe	int outer 0
+	/declare BeerTry int local 0
+	/declare BeerNum int outer 30
+	/declare CurrentID int local 0
 
-        /if (${Cursor.Name.Equal[Tattered Cloth Sandal]}) {
-            /destroy
-            /delay 1s
-        } else {
-            /if (${Cursor.Name.Equal[Rusty Dagger]}) {
-                /destroy
-                /delay 1s
-            } else {
-                /call KeepItem
-            }
-      }
-   /goto :Fish
-/return
+:Fish
+	/doevents
+	/if (${FindItemCount[=Summoned: Ale]} != ${BeerCount}) {
+		/varset BeerCount ${FindItemCount[=Summoned: Ale]}
+		/if (!${BeerCount}) /varset AllBeeredUp 0
+	}
+	/if (${BeerMe}) {
+		/if (${FindItem[Brell's Fishin' Pole].ID} && !${AllBeeredUp}) {
+			/info WoooHooo! Let's make some beer!
+:BeerUp
+			/if (${BeerCount} < ${BeerNum}) {
+				/useitem "Brell's Fishin' Pole"
+				/delay 10s !${Me.Casting}
+				/varset BeerCount ${FindItemCount[=Summoned: Ale]}
+				/autoinventory
+				/delay 10s !${Cursor.ID}
+				/goto :BeerUp
+			} else {
+				/info Okay. Let's get to drinkin' n' fishin'!
+				/varset AllBeeredUp 1
+			}
+		} else {
+			/if (${BeerTry} < 3 && !${AllBeeredUp}) {
+				/varset BeerTry ${Math.Calc[${BeerTry}+1].Int}
+			} else {
+				/if (!${AllBeeredUp}) {
+					/varset BeerMe 0
+					/info Why are you playing with my emotions? You have no fisherman's companion. No beer for you.
+				}
+			}
+		}
+	}
 
-Sub KeepItem
-   /if (${Cursor.Name.NotEqual[Fish Scales]}) /echo Caught ${Cursor.Name}
-   /autoinventory
-/return
+	/if (${Cursor.ID}) {
+		/delay 1s
+		/if (${Cursor.Name.Equal[Tattered Cloth Sandal]} || ${Cursor.Name.Equal[Rusty Dagger]}) {
+			/varset CurrentID ${Cursor.ID}
+			/info \arDestroying\aw:\ao ${Cursor.Name}
+			/destroy
+			/delay 10s ${CursorID}!=${CurrentID}
+		} else {
+			/varset CurrentID ${Cursor.ID}
+			/if (${Cursor.Name.NotEqual[Fish Scales]} && ${Cursor.Name.NotEqual[Summoned: Ale]}) /info \agCaught\aw:\ao ${Cursor.Name}
+			/autoinventory
+			/delay 10s ${CursorID}!=${CurrentID}
+		}
+	} else {
+		/if (${Me.AbilityReady[Fishing]}) {
+			/delay 2s ${Cursor.ID}
+			/if (!${Cursor.ID}) {
+				/doability Fishing
+				/delay 10s !${Me.AbilityReady[Fishing]}
+				/if (${BeerMe} && ${BeerCount} > 0) /useitem "Summoned: Ale"
+			}
+		}
+	} 
 
-Sub CheckPole
-   /if (${Me.Inventory[mainhand].Name.Find[Fishing Pole]}) /return
-   /echo  You need to put your fishing pole in your primary hand.
-   /endm
-/return
+	/goto :Fish
+	/return
 
-Sub Event_BrokenPole
-   /endmacro
-/return
+| --------------------------------------------------------------------------------------------
+| SUB: Event_BrokenPole
+| --------------------------------------------------------------------------------------------
+	Sub Event_BrokenPole
+	/declare PoleName string local 
+	/if (${FindItem[Fisherman's Companion].ID} && !${FindItem[Brell's Fishin' Pole].Name.NotEqual["NULL"]}) {
+		/info You have a Fisherman's Companion but haven't summoned a rod yet.
+		/info Let's fix that!
+ 		/useitem "Fisherman's Companion"
+		/delay 15s !${Me.Casting}
+	}
+	/if (${FindItem[=Fishing Pole].ID}) /varset PoleName "Fishing Pole"
+	/if (${FindItem[=Kerran Fishing Pole].ID}) /varset PoleName "Kerran Fishing Pole"
+	/if (${FindItem[=Aglthin's Fishing Pole].ID}) /varset PoleName "Aglthin's Fishing Pole"
+	/if (${FindItem[=Grey Wood Fishing Pole].ID}) /varset PoleName "Grey Wood Fishing Pole"
+	/if (${FindItem[=Hintol's Fishing Pole].ID}) /varset PoleName "Hintol's Fishing Pole"
+	/if (${FindItem[=KT's Magic Fishing Pole].ID}) /varset PoleName "KT's Magic Fishing Pole"
+	/if (${FindItem[=Uliorn's Fishing Pole].ID}) /varset PoleName "Uliorn's Fishing Pole"
+	/if (${FindItem[=Brell's Fishin' Pole].ID}) /varset PoleName "Brell's Fishin' Pole"
+	/if (${FindItem[=Ancient Fishing Pole].ID}) /varset PoleName "Ancient Fishing Pole"
+	/if (${FindItem[=Collapsible Fishing Pole].ID}) /varset PoleName "Collapsible Fishing Pole"
+	/if (${FindItem[=Blessed Fishing Rod].ID}) /varset PoleName "Blessed Fishing Rod"
+	/if (${FindItem[=The Bone Rod].ID}) /varset PoleName "The Bone Rod"
+	/if (${Cursor.ID} != 29193) /itemnotify ${FindItem[${PoleName}].InvSlot} leftmouseup
+	/delay 10s ${Cursor.ID}
+	/if (${Cursor.ID}) {
+		/info Equipping \ar[\aw${PoleName}\ar]\ao in \atmainhand\ao.
+		/itemnotify mainhand leftmouseup
+		/autoinventory
+	} else {
+		/if (${CampWhenDone}) {
+			/info You broke or lost your last fishing pole and you have requested I camp.
+			/camp desktop
+			/endmacro
+		} else {
+			/info You broke or lost your last fishing pole. Ending.
+			/endmacro
+		}
+	}
+	/return
 
-Sub Event_NoBait
-   /endmacro
-/return
 
+| --------------------------------------------------------------------------------------------
+| SUB: Event_NoBait
+| --------------------------------------------------------------------------------------------
+	Sub Event_NoBait
+	/if (${CampWhenDone}) {
+		/info Fish will only bite if you have bait and you have requested I camp.
+		/camp desktop
+		/endmacro
+	} else {
+		/info Fish will only bite if you have bait. Ending.
+		/endmacro
+	}
+	/return
+
+| --------------------------------------------------------------------------------------------
+| SUB: FishLogoff
+| --------------------------------------------------------------------------------------------
+	Sub Bind_FishLogoff
+	/varset CampWhenDone 1
+	/info Will now camp when out of bait or fishing rods.
+	/return
+
+| --------------------------------------------------------------------------------------------
+| SUB: FishLogon
+| --------------------------------------------------------------------------------------------
+	Sub Bind_FishLogon
+	/varset CampWhenDone 0
+	/info Will no longer camp when out of bait or fishing rods.
+	/return
+
+| --------------------------------------------------------------------------------------------
+| SUB: BeerMeNow
+| --------------------------------------------------------------------------------------------
+	Sub Bind_BeerMeNow
+	/info Oh so you think you can drink? We'll see!
+	/varset BeerMe 1
+	/return
+| --------------------------------------------------------------------------------------------
+| SUB: BeerMeNoMore
+| --------------------------------------------------------------------------------------------
+	Sub Bind_BeerMeNoMore
+	/info No more beer? QUITTER!
+	/varset BeerMe 0
+	/return
+
+| --------------------------------------------------------------------------------------------
+| SUB: BeerNumber
+| --------------------------------------------------------------------------------------------
+	Sub Bind_BeerNumber(int numsum)
+	/info Number of beers to summon:\ag ${numsum}
+	/varset BeerNum ${numsum}
+	/return
