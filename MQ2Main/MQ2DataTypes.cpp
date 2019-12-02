@@ -2851,6 +2851,8 @@ bool MQ2CharacterType::GETMEMBER()
 	PCHARINFO pChar = ((PCHARINFO)VarPtr.Ptr);
 	if (!pChar)
 		return false;
+	if (!pLocalPlayer)
+		return false;
 	//do the methods first cause there are so few of them
 	PMQ2TYPEMEMBER pMethod = MQ2CharacterType::FindMethod(Member);
 	if (pMethod) {

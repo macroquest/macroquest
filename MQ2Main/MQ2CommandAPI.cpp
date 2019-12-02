@@ -37,6 +37,8 @@ PTIMEDCOMMAND pTimedCommands=0;
 
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
+	if (!pChar)
+		return;
     if (delayed)
     {
 		lockit lk(ghLockDelayCommand,"HideDoCommand");
