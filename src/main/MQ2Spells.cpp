@@ -73,17 +73,18 @@ std::map<std::string, std::map<std::string, SpellCompare>> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
 std::recursive_mutex s_initializeSpellsMutex;
 
-bool IsRecursiveEffect2(int spa)
+static bool IsRecursiveEffect(int spa)
 {
 	switch (spa)
 	{
-	case 374:
-	case 475:
-	case 340:
-	case 470:
-	case 469:
+	case SPA_CHANCE_SPELL:
+	case SPA_CHANCE_BEST_IN_SPELL_GROUP:
+	case SPA_TRIGGER_SPELL:
+	case SPA_TRIGGER_SPELL_NON_ITEM:
+	case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
 		return true;
 	}
+
 	return false;
 }
 
@@ -98,7 +99,7 @@ static void PopulateTriggeredmap(SPELL* pSpell)
 	{
 		int attrib = GetSpellAttrib(pSpell, i);
 
-		if (IsRecursiveEffect2(attrib))
+		if (IsRecursiveEffect(attrib))
 		{
 			if (int triggeredSpellId = GetSpellBase2(pSpell, i))
 			{
@@ -1461,22 +1462,22 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 	switch (spa)
 	{
 	case SPA_HASTE:
-	case SPA_PLAYERSIZE:
-	case SPA_BARDOVERHASTE: //Adjust for Base=100
+	case SPA_HEIGHT:
+	case SPA_BARD_HASTE:                   // Adjust for Base=100
 		base -= 100;
 		max -= 100;
 		break;
-	case SPA_SUMMONCORPSE: //Adjust for base/max swapped
+	case SPA_SUMMON_CORPSE:                // Adjust for base/max swapped
 		max = base;
 		base = 0;
 		break;
-	case SPA_SPELLDAMAGE:
-	case SPA_HEALING:
-	case SPA_SPELLMANACOST: //Adjust for base2 used as max
+	case SPA_FOCUS_DAMAGE_MOD:
+	case SPA_FOCUS_HEAL_MOD:
+	case SPA_FOCUS_MANACOST_MOD:           // Adjust for base2 used as max
 		max = base2;
 		break;
-	case SPA_REAGENTCHANCE:
-	case SPA_INCSPELLDMG: //Adjust for base2 used as base
+	case SPA_FOCUS_REAGENT_MOD:
+	case SPA_FOCUS_DAMAGE_AMT_DETRIMENTAL: // Adjust for base2 used as base
 		base = base2;
 		break;
 	}
@@ -1498,12 +1499,35 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 	int minspelllvl = CalcMinSpellLevel(pSpell);
 	int maxspelllvl = CalcMaxSpellLevel(calc, base, max, ticks, minspelllvl, level);
 	int value = CalcValue(calc, (spa == SPA_STACKING_BLOCK) ? max : base, max, 1, minspelllvl, minspelllvl);
-	int finish = CalcValue(calc, (spa == SPA_SPELLDAMAGETAKEN) ? base2 : base, max, ticks, minspelllvl, level);
+	int finish = CalcValue(calc, (spa == SPA_FOCUS_INCOMING_DMG_MOD) ? base2 : base, max, ticks, minspelllvl, level);
 
-	bool usePercent = (spa == SPA_MOVEMENTRATE || spa == SPA_HASTE || spa == SPA_BARDOVERHASTE || spa == SPA_SPELLDAMAGE || spa == SPA_HEALING || spa == SPA_DOUBLEATTACK || spa == SPA_STUNRESIST || spa == SPA_PROCMOD ||
-		spa == SPA_DIVINEREZ || spa == SPA_METABOLISM || spa == SPA_TRIPLEBACKSTAB || spa == SPA_DOTCRIT || spa == SPA_HEALCRIT || spa == SPA_MENDCRIT || spa == SPA_FLURRY || spa == SPA_PETFLURRY ||
-		spa == SPA_SPELLCRITCHANCE || spa == SPA_SHIELDBLOCKCHANCE || spa == SPA_DAMAGECRITMOD || spa == SPA_SPELLDAMAGETAKEN);
-	bool AEEffect = (targettype == TT_PBAE || targettype == TT_TARGETED_AE || targettype == TT_AE_PC_V2 || targettype == TT_DIRECTIONAL);
+	bool usePercent =
+		(spa == SPA_MOVEMENT_RATE
+			|| spa == SPA_HASTE
+			|| spa == SPA_BARD_HASTE
+			|| spa == SPA_FOCUS_DAMAGE_MOD
+			|| spa == SPA_FOCUS_HEAL_MOD
+			|| spa == SPA_DOUBLE_ATTACK
+			|| spa == SPA_STUN_RESIST
+			|| spa == SPA_PROC_CHANCE
+			|| spa == SPA_DIVINE_SAVE
+			|| spa == SPA_METABOLISM
+			|| spa == SPA_TRIPLE_BACKSTAB
+			|| spa == SPA_DOTCRIT
+			|| spa == SPA_HEALCRIT
+			|| spa == SPA_MENDCRIT
+			|| spa == SPA_FLURRY
+			|| spa == SPA_PET_FLURRY
+			|| spa == SPA_SPELL_CRIT_CHANCE
+			|| spa == SPA_SHIELD_BLOCK_CHANCE
+			|| spa == SPA_FOCUS_DAMAGE_MOD_CRIT
+			|| spa == SPA_FOCUS_INCOMING_DMG_MOD);
+
+	bool AEEffect =
+		(targettype == TT_PBAE
+			|| targettype == TT_TARGETED_AE
+			|| targettype == TT_AE_PC_V2
+			|| targettype == TT_DIRECTIONAL);
 
 	strcat_s(range, CalcValueRange(calc, base, max, ticks, minspelllvl, level, szTemp2, sizeof(szTemp2), usePercent ? szPercent : ""));
 	strcat_s(extendedrange, CalcExtendedRange(calc, value, finish, minspelllvl, maxspelllvl, szTemp2, sizeof(szTemp2), usePercent ? szPercent : "", (spa == SPA_AC || spa == SPA_AC2)));
@@ -1517,9 +1541,10 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 #endif
 
 	sprintf_s(szBuff, "Slot %d: ", i + 1);
+
 	switch (spa)
 	{
-	case 0: //hp +/-: heals/regen/dd
+	case SPA_HP:                  // hp +/-: heals/regen/dd
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(repeating)) strcat_s(szBuff, repeating);
 
@@ -1530,27 +1555,27 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 			strcat_s(szBuff, szTemp);
 		}
 		break;
-	case 1: //ac mod
-	case 2: //attack mod
-	case 3: //movement speed mod
-	case 4: //str mod
-	case 5: //dex mod
-	case 6: //agi mod
-	case 7: //sta mod
-	case 8: //int mod
-	case 9: //wis mod
-	case 10: //cha mod
-	case 11: //haste mod
+	case SPA_AC:                  // ac mod
+	case SPA_ATTACK_POWER:        // attack mod
+	case SPA_MOVEMENT_RATE:       // movement speed mod
+	case SPA_STR:                 // str mod
+	case SPA_DEX:                 // dex mod
+	case SPA_AGI:                 // agi mod
+	case SPA_STA:                 // sta mod
+	case SPA_INT:                 // int mod
+	case SPA_WIS:                 // wis mod
+	case SPA_CHA:                 // cha mod
+	case SPA_HASTE:               // haste mod
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		break;
-	case 12: //Invisibility
+	case SPA_INVISIBILITY:        // Invisibility
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 13: //See Invisible(c)
-	case 14: //Water Breathing(c)
+	case SPA_SEE_INVIS:           // See Invisible(c)
+	case SPA_ENDURING_BREATH:     // Water Breathing(c)
 		strcat_s(szBuff, FormatBase(spelleffectname, value, szTemp2));
 		break;
-	case 15: //mana +/-
+	case SPA_MANA:                // mana +/-
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(repeating)) strcat_s(szBuff, repeating);
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
@@ -1560,18 +1585,18 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 			strcat_s(szBuff, szTemp);
 		}
 		break;
-	case 16: //NPC Frenzy (no spells currently)
-	case 17: //NPC Awareness (no spells currently)
-	case 18: //NPC Aggro
+	case SPA_NPC_FRENZY:          // NPC Frenzy (no spells currently)
+	case SPA_NPC_AWARENESS:       // NPC Awareness (no spells currently)
+	case SPA_NPC_AGGRO:           // NPC Aggro
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 19: //NPC Faction
+	case SPA_NPC_FACTION:         // NPC Faction
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		break;
-	case 20: //Blindness
+	case SPA_BLINDNESS:           // Blindness
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 21: //stun  time = base in ms
+	case SPA_STUN:                // stun  time = base in ms
 		if (base2 != 0 && base != base2)
 			sprintf_s(szTemp, " NPC for %1.fs (PC for %1.fs)%s", base / 1000.0f, base2 / 1000.0f, maxlevel);
 		else
@@ -1579,45 +1604,45 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 22: //Charm(c/level)
-	case 23: //Fear(c/level)
+	case SPA_CHARM:               // Charm(c/level)
+	case SPA_FEAR:                // Fear(c/level)
 		strcat_s(szBuff, FormatString(spelleffectname, maxlevel, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 24: //Fatigue
+	case SPA_FATIGUE:             // Fatigue
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
-	case 25: //Bind Affinity
+	case SPA_BIND_AFFINITY:       // Bind Affinity
 		if (base == 2)
 			strcat_s(szTemp, " (Secondary Bind Point)");
 		if (base == 3)
 			strcat_s(szTemp, " (Tertiary Bind Point)");
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
-	case 26: //Gate
+	case SPA_GATE:                // Gate
 		if (base == 2)
 			strcat_s(szTemp, " to Secondary Bind Point");
 		if (base == 3)
 			strcat_s(szTemp, " (Tertiary Bind Point)");
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
-	case 27: //Cancel Magic(c)
+	case SPA_DISPEL_MAGIC:        // Cancel Magic(c)
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
-	case 28: //Invisibility versus Undead
-	case 29: //Invisibility versus Animal
+	case SPA_INVIS_VS_UNDEAD:     // Invisibility versus Undead
+	case SPA_INVIS_VS_ANIMALS:    // Invisibility versus Animal
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 30: //NPC Aggro Radius(c/level)
-			 // NPC Aggro Radius' use the reverse sign from normal base values
+	case SPA_NPC_AGGRO_RADIUS:    // NPC Aggro Radius(c/level)
+		                          // NPC Aggro Radius' use the reverse sign from normal base values
 		strcat_s(szBuff, FormatCount(spelleffectname, -value, szTemp2));
 		strcat_s(szBuff, maxlevel);
 		break;
-	case 31: //Mesmerize(c/level)
+	case SPA_ENTHRALL:            // Mesmerize(c/level)
 		strcat_s(szBuff, FormatString(spelleffectname, maxlevel, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 32: //Create Item
+	case SPA_CREATE_ITEM:         // Create Item
 		while ((ItemDB) && (base != ItemDB->ID)) {
 			ItemDB = ItemDB->pNext;
 		}
@@ -1629,32 +1654,32 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 		}
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
-	case 33: //Summon Pet
+	case SPA_SUMMON_PET:          // Summon Pet
 		strcat_s(szBuff, FormatExtra(spelleffectname, extra, szTemp2));
 		break;
-	case 34: //Confuse
+	case SPA_CONFUSE:             // Confuse
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 35: //disease counters
-	case 36: //poison counters
+	case SPA_DISEASE:             // disease counters
+	case SPA_POISON:              // poison counters
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		break;
-	case 37: //DetectHostile (no spells currently)
-	case 38: //DetectMagic (no spells currently)
-	case 39: //No Twincast
-	case 40: //Invulnerability
-	case 41: //Banish
-	case 42: //Shadow Step
-	case 43: //Berserk
-	case 44: //Lycanthropy
-	case 45: //Vampirism
+	case SPA_DETECT_HOSTILE: //DetectHostile (no spells currently)
+	case SPA_DETECT_MAGIC: //DetectMagic (no spells currently)
+	case SPA_NO_TWINCAST: //No Twincast
+	case SPA_INVULNERABILITY: //Invulnerability
+	case SPA_BANISH: //Banish
+	case SPA_SHADOW_STEP: //Shadow Step
+	case SPA_BERSERK: //Berserk
+	case SPA_LYCANTHROPY: //Lycanthropy
+	case SPA_VAMPIRISM: //Vampirism
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 46: //fire resist
-	case 47: //cold resist
-	case 48: //poison resist
-	case 49: //disease resist
-	case 50: //magic resist
+	case SPA_RESIST_FIRE: //fire resist
+	case SPA_RESIST_COLD: //cold resist
+	case SPA_RESIST_POISON: //poison resist
+	case SPA_RESIST_DISEASE: //disease resist
+	case SPA_RESIST_MAGIC: //magic resist
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
@@ -1792,9 +1817,9 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		strcat_s(szBuff, repeating);
 		break;
-	case 101: //Complete Heal (with duration)
-	case 102: //Fearless
-	case 103: //Call Pet
+	case SPA_COMPLETEHEAL: //Complete Heal (with duration)
+	case SPA_PET_FEARLESS: //Fearless
+	case SPA_CALL_PET: //Call Pet
 		strcat_s(szBuff, spelleffectname);
 		break;
 	case 104: //zone translocate spells

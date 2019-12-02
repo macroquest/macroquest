@@ -8276,7 +8276,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				{
 					for (int i = 0; i < GetSpellNumEffects(pSpell); ++i)
 					{
-						if (const SPELLCALCINFO* pSpellAffect = ((EQ_Spell*)pSpell)->GetSpellAffectByIndex(i))
+						if (const SpellAffectData* pSpellAffect = ((EQ_Spell*)pSpell)->GetSpellAffectByIndex(i))
 						{
 							if (pSpellAffect->Attrib == SPA_CHANGE_FORM)
 							{

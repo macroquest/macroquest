@@ -1689,10 +1689,10 @@ FUNCTION_AT_ADDRESS(bool EQ_Spell::IsStackableDot() const, EQ_Spell__IsStackable
 FUNCTION_AT_ADDRESS(bool EQ_Spell::IsStackable() const, EQ_Spell__IsStackable);
 #endif
 #ifdef EQ_Spell__GetSpellAffectBySlot_x
-FUNCTION_AT_ADDRESS(const SPELLCALCINFO* EQ_Spell::GetSpellAffectBySlot(int) const, EQ_Spell__GetSpellAffectBySlot);
+FUNCTION_AT_ADDRESS(const SpellAffectData* EQ_Spell::GetSpellAffectBySlot(int) const, EQ_Spell__GetSpellAffectBySlot);
 #endif
 #ifdef EQ_Spell__GetSpellAffectByIndex_x
-FUNCTION_AT_ADDRESS(const SPELLCALCINFO* EQ_Spell::GetSpellAffectByIndex(int) const, EQ_Spell__GetSpellAffectByIndex);
+FUNCTION_AT_ADDRESS(const SpellAffectData* EQ_Spell::GetSpellAffectByIndex(int) const, EQ_Spell__GetSpellAffectByIndex);
 #endif
 #ifdef EQ_Spell__IsSPAStacking_x
 FUNCTION_AT_ADDRESS(bool EQ_Spell::IsSPAStacking(int) , EQ_Spell__IsSPAStacking);

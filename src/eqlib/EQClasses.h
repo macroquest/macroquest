@@ -1452,8 +1452,8 @@ public:
 	EQLIB_OBJECT unsigned char SpellAffects(int) const;              // this one takes an attrib(soe calls it affect) and returns the index for it...
 	EQLIB_OBJECT unsigned char GetSpellLevelNeeded(int) const;       // takes a Class, druid for example is 6
 	EQLIB_OBJECT int SpellAffectBase(int) const;                     // takes a SPA, returns the first matching base it finds for it
-	EQLIB_OBJECT const SPELLCALCINFO* GetSpellAffectBySlot(int Slot) const;
-	EQLIB_OBJECT const SPELLCALCINFO* GetSpellAffectByIndex(int Index) const;
+	EQLIB_OBJECT const SpellAffectData* GetSpellAffectBySlot(int Slot) const;
+	EQLIB_OBJECT const SpellAffectData* GetSpellAffectByIndex(int Index) const;
 	EQLIB_OBJECT bool IsNoRemove() const;
 	EQLIB_OBJECT static bool IsDegeneratingLevelMod(int);
 

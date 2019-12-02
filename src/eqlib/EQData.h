@@ -1226,41 +1226,6 @@ struct [[offsetcomments]] ZONEINFO
 };
 using PZONEINFO = ZONEINFO*;
 
-struct [[offsetcomments]] SPELLCALCINFO
-{
-/*0x00*/ int Slot;
-/*0x04*/ int Base;
-/*0x08*/ int Base2;
-/*0x0c*/ int Max;
-/*0x10*/ int Calc;
-/*0x14*/ int Attrib;
-/*0x18*/
-};
-using PSPELLCALCINFO = SPELLCALCINFO*;
-
-constexpr int TOTAL_SPELL_COUNT = 62000; // # of spells allocated in memory (07/10/2019 test 4F1197)
-constexpr int CalcInfoSize = 206000;     // 4E8814 in eqgame 2018 10 Apr test
-
-// CalcInfoSize is 3 * TOTAL_SPELL_COUNT
-
-// this is actually the size of the struct thats populated from aSpells_S_txt
-// SpellManager__SpellManager_x
-// size: 0x1966A8 2017-04-11 test (see 55DC54) - eqmule
-// size: 0x1AED40 2018-04-10 test (see 5D32E2) - eqmule
-// size: 0x1BC800 2019-07-10 test (see 5E36C2) - eqmule
-struct [[offsetcomments]] SPELLMGR
-{
-/*0x000000*/ void*          vfTable;                       // need this for some calls later
-/*0x000004*/ BYTE           Unknown0x00004[0x3DAE0];
-/*0x03dae4*/ SPELL*         Spells[TOTAL_SPELL_COUNT];    // 60000
-/*0x07a3a4*/ SPELL*         PtrToUnknownSpell;            // default bailout pointer...
-/*0x07a3a8*/ SPELLCALCINFO* CalcInfo[CalcInfoSize];       // 200000
-/*0x143668*/ DWORD          What1[0x6];
-/*0x143680*/ DWORD          What2[0x1E460];               // 120000
-/*0x1bc800*/ //(1820672) 1.8 mill! large struct in memory for sure...
-};
-using PSPELLMGR = SPELLMGR*;
-
 // actual size: 0x148 04-11-2017 test confirmed see 5F7150
 enum eSkillCombatType
 {
