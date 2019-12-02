@@ -134,15 +134,16 @@
     <Natvis Include="..\MQ2.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\data\Changes.txt" />
-    <Text Include="..\Release\GPL.txt" />
-    <Text Include="..\Release\ItemDB.txt" />
-    <Text Include="..\Release\locations.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\eqlib\eqlib.vcxproj">
       <Project>{7cc5690f-593c-4938-922d-73a0ac84537a}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\data\CHANGELOG.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\data\GPL.txt" />
+    <Text Include="..\..\data\ItemDB.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

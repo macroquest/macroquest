@@ -187,16 +187,15 @@
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Release\locations.txt">
+    <None Include="..\..\data\CHANGELOG.md">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\data\ItemDB.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="..\Release\ItemDB.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="..\Release\GPL.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="..\..\data\Changes.txt">
+    <Text Include="..\..\data\GPL.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
