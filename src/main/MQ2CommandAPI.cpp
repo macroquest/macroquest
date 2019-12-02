@@ -812,7 +812,7 @@ void InitializeMQ2Commands()
 		{ "/help",              Help,                       true,  false },
 		{ "/target",            Target,                     true,  true  },
 		{ "/alias",             Alias,                      false, false },
-		{ "/aa",                AltAbility,                 false, true  },
+		{ "/aa",                AltAbility,                 true,  true  },
 		{ "/substitute",        Substitute,                 false, false },
 		{ "/filter",            Filter,                     true,  false },
 		{ "/whofilter",         SWhoFilter,                 true,  true  },
