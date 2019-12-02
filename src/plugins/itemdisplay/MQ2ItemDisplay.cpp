@@ -2044,7 +2044,7 @@ void RequestConvertItem(SPAWNINFO* pSpawn, char* szLine)
 	}
 
 	WriteChatf("\agUSAGE:\ax /convertitem \ay\"<item name>\"\ax");
-	WriteChatf("\agEaxmple:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
+	WriteChatf("\agExample:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
 }
 
 void AddLootFilter(SPAWNINFO* pChar, char* szLine)

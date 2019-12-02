@@ -4942,7 +4942,7 @@ bool SpellEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bIgnoreTriggering
 {
 	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
 	int bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : 254;
-	return ((aAttrib == 57 || bAttrib == 57)		// Levitate
+	return ((aAttrib == SPA_LEVITATION || bAttrib == SPA_LEVITATION)
 		|| (aAttrib == 134 || bAttrib == 134)		// Limit: Max Level
 		|| (aAttrib == 135 || bAttrib == 135)		// Limit: Resist
 		|| (aAttrib == 136 || bAttrib == 136)		// Limit: Target
@@ -8308,6 +8308,60 @@ int GetFreeInventory(int nSize)
 	}
 
 	return freeSlots;
+}
+
+int GetFreeStack(CONTENTS* pContents)
+{
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return 0;
+	if (!pProfile->pInventoryArray)
+		return 0;
+
+	ITEMINFO* pItem = GetItemFromContents(pContents);
+	if (!pItem)
+		return 0;
+
+	if (!((EQ_Item*)pItem)->IsStackable())
+		return 0;
+
+	int freeStack = 0;
+
+	for (int slot = InvSlot_Ammo; slot <= InvSlot_Bag10; slot++)
+	{
+		if (CONTENTS* pTempItem = pProfile->pInventoryArray->InventoryArray[slot])
+		{
+			ITEMINFO* pTempItemInfo = GetItemFromContents(pTempItem);
+
+			if (pTempItemInfo->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
+			{
+				for (int pslot = 0; pslot < pTempItemInfo->Slots; pslot++)
+				{
+					if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+					{
+						if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
+						{
+							ITEMINFO* pSlotItemInfo = GetItemFromContents(pSlotItem);
+
+							if (pSlotItemInfo->ItemNumber == pItem->ItemNumber)
+							{
+								freeStack += pSlotItemInfo->StackSize - pSlotItem->StackCount;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				if (pTempItemInfo->ItemNumber == pItem->ItemNumber)
+				{
+					freeStack += pTempItemInfo->StackSize - pTempItem->StackCount;
+				}
+			}
+		}
+	}
+
+	return freeStack;
 }
 
 bool CanItemMergeInPack(CONTENTS* pPack, CONTENTS* pItem)

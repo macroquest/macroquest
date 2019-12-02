@@ -1,3 +1,124 @@
+Dec 01 2019
+- Updated for BETA
+
+Nov 30 2019
+- Updated for BETA
+
+Nov 29 2019
+- Updated for BETA
+
+Nov 28 2019 Happy Thanksgiving!
+- Updated for BETA
+- Updated MQ2Melee. Yaulp in now default "off" by Sic/CWTN 
+
+Nov 27 2019
+- Updated for BETA
+
+Nov 26 2019
+- Updated for TEST
+- Added SubscriptionDays to the Character TLO it returns an int. Cred request: @sic
+  Usage: /echo I have ${Me.SubscriptionDays} left before my all access expires.
+- Updated MQ2AutoForage at https://www.macroquest2.com/phpBB3/viewtopic.php?f=50&t=9588&p=70471
+- Added MQ2AutoForage to builder global plugins.
+- Fixed a crash in MQ2AutoForage when inventory was full.
+  This crash would result in the EQGraphicsDX9.dll dumps some people has sent me. (Thank you.)
+
+Nov 25 2019
+- Updated for BETA
+
+Nov 24 2019
+- Updated for BETA
+
+Nov 23 2019
+- Updated for BETA
+- MQ2Main (ChatWithThisName) Add /removelev command. typing /removelev will remove any levitation in the buff or shortbuff window. 
+
+Nov 22 2019
+- Updated for BETA
+- Fixed a bug where /aa wouldn't parse input
+
+Nov 21 2019
+- Updated for BETA
+
+Nov 20 2019
+- Fixed ${Me.SpellInCooldown} for LIVE
+- Fixed ${Me.InInstance} for LIVE
+
+Nov 20 2019
+- Updated for LIVE
+- Updated for BETA
+- Added .LeaderFlagged to the DynamicZoneType TLO it returns true if the dzleader can successfully enter the dz (this also means the dz is actually Loaded.)
+- Usage: ${DynamicZone.LeaderFlagged}
+- Added .Flagged to the DZMemberType TLO it returns true if the dzmember can successfully enter the dz.
+- Usage: ${DynamicZone.Member[x].Flagged} where x is either index or the name.
+
+Nov 19 2019
+- Updated for BETA
+
+Nov 18 2019
+- Updated for BETA
+
+Nov 18 2019 by SwiftyMUSE
+- MQ2Cast Fixes:
+- Increased delay_cast to handle casting not happening for spells loading delays
+- Added blocked spell handling.
+- Fixed compile typecast warning.
+
+Nov 17 2019
+- Updated for BETA
+
+Nov 16 2019
+- Updated for BETA
+
+Nov 15 2019
+- Updated for BETA
+
+Nov 14 2019
+- Updated for BETA
+
+Nov 14 2019 by brainiac
+- Re-fixed EQINVSLOTWND
+- Added ALT_MEMBER_GETTER macro that defines an alternate name that a member can be
+  accessed with, thereby removing the need to immediately update all code to use new
+  variable names.
+- You can now use the old, or the new names for Slot1, Slot2, Slot3, Location and *suprise* Wnd.
+
+Nov 13 2019
+- Updated for BETA
+- Fixed EQINVSLOTWND.
+- Renamed WindowType in the EQINVSLOTWND struct to Location
+- Renamed InvSlot in the EQINVSLOTWND struct to Slot1
+- Renamed BagSlot in the EQINVSLOTWND struct to Slot2
+- Renamed GlobalSlot in the EQINVSLOTWND struct to Slot3
+
+Nov 12 2019
+- Updated for BETA
+- Updated for TEST
+
+Nov 11 2019
+- Updated for BETA
+
+Nov 10 2019
+- Updated for BETA
+
+Nov 09 2019
+- Updated for BETA
+
+Nov 08 2019
+- Updated for BETA
+- Activated NEWCHARINFO for BETA, this is a chance for you to fix your plugins.
+  I will activate it for live next patch because we have tested it for a year and
+  and im confident in it now.
+  I will then just remove the old charinfo which is just half filled anyway.
+- Plugins I know for sure needs fixes:
+  MQ2AutoLoot,MQ2Posse
+
+Nov 07 2019
+- Updated for BETA
+
+Nov 06 2019
+- Updated for BETA
+
 Nov 05 2019
 - Updated for BETA
 - Right Clicking the Lucy button on the item display window will now open Lucy in your external default browser.

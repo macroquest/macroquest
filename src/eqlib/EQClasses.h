@@ -2681,6 +2681,8 @@ enum eDatabaseStringType
 {
 	eDefaultStringType = 0,
 	eAltAbilityName = 1,
+	eAltAbilityButton1 = 2,
+	eAltAbilityButton2 = 3,
 	eAltAbilityDescription = 4,
 	eSpellCategory = 5,
 	eSpellDescription = 6,

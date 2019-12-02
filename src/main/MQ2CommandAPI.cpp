@@ -892,6 +892,7 @@ void InitializeMQ2Commands()
 		{ "/usercamera",        UserCameraCmd,              true,  false },
 		{ "/foreground",        ForeGroundCmd,              true,  false },
 		{ "/quit",              QuitCmd,                    true,  false },
+		{ "/removelev",         RemoveLevCmd,               true,  false },
 		{ "/engine",            EngineCommand,              true,  false },
 
 		{ nullptr,              nullptr,                    false, true  },

@@ -3405,6 +3405,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
+	case SubscriptionDays:
+		Dest.Int = pChar->SubscriptionDays;
+		Dest.Type = pIntType;
+		return true;
+
 	case Exp:
 		Dest.Int64 = pChar->Exp;
 		Dest.Type = pInt64Type;
@@ -9042,47 +9047,8 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 
 	case FreeStack:
-		Dest.DWord = 0;
+		Dest.DWord = GetFreeStack(pItem);
 		Dest.Type = pIntType;
-
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			if (!((EQ_Item*)pItem)->IsStackable())
-				return true;
-
-			for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
-			{
-				if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
-				{
-					if (CONTENTS* pTempItem = pProfile->pInventoryArray->InventoryArray[slot])
-					{
-						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
-						{
-							for (int pslot = 0; pslot < (GetItemFromContents(pTempItem)->Slots); pslot++)
-							{
-								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-								{
-									if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-									{
-										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-										{
-											Dest.DWord += (GetItemFromContents(pSlotItem)->StackSize - pSlotItem->StackCount);
-										}
-									}
-								}
-							}
-						}
-						else
-						{
-							if (GetItemFromContents(pTempItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-							{
-								Dest.DWord += (GetItemFromContents(pTempItem)->StackSize - pTempItem->StackCount);
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 
 	case MerchQuantity:
@@ -14142,8 +14108,9 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return false;
 
 	case ShortName:
+		// What is this even for? Need to check -eqmule
 		Dest.Type = pStringType;
-		if (const char* ptr = pStringTable->getString(pAbility->nShortName))
+		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityButton1))
 		{
 			strcpy_s(DataTypeTemp, ptr);
 			Dest.Ptr = &DataTypeTemp[0];

@@ -1633,6 +1633,7 @@ public:
 		BlockedPetBuff = 277,
 		LastZoned = 278,
 		Origin = 279,
+		SubscriptionDays = 280,
 	};
 
 	enum CharacterMethods
@@ -1914,6 +1915,7 @@ public:
 		TypeMember(BlockedPetBuff);
 		TypeMember(LastZoned);
 		TypeMember(Origin);
+		TypeMember(SubscriptionDays);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);

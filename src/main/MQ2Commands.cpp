@@ -5558,4 +5558,59 @@ void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+// ***************************************************************************
+// Function:    RemoveLevCmd
+// Description: '/removelev' command
+// Purpose:     Adds the ability to remove the levitate effect.
+// Usage:       /removelev
+// Author:      ChatWithThisName
+// ***************************************************************************
+
+static bool HasLevSPA(SPELL* pBuff)
+{
+	int effects = GetSpellNumEffects(pBuff);
+
+	for (int i = 0; i < effects; ++i)
+	{
+		if (GetSpellAttrib(pBuff, i) == SPA_LEVITATION)
+			return true;
+	}
+
+	return false;
+}
+
+void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
+{
+	PcProfile* pcProfile = GetPcProfile();
+	if (!pcProfile)
+		return;
+
+	// Check long buffs
+	for (int i = 0; i < NUM_LONG_BUFFS; ++i)
+	{
+		if (SPELL* pBuff = GetSpellByID(pcProfile->Buff[i].SpellID))
+		{
+			if (HasLevSPA(pBuff))
+			{
+				pPCData->RemoveBuffEffect(i, pLocalPlayer->SpawnID);
+
+				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
+			}
+		}
+	}
+
+	// Check short buffs
+	for (int i = 0; i < NUM_SHORT_BUFFS; ++i)
+	{
+		if (SPELL* pBuff = GetSpellByID(pcProfile->ShortBuff[i].SpellID))
+		{
+			if (HasLevSPA(pBuff))
+			{
+				pPCData->RemoveBuffEffect(i + NUM_LONG_BUFFS, pLocalPlayer->SpawnID);
+				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
+			}
+		}
+	}
+}
+
 } // namespace mq

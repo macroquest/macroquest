@@ -558,7 +558,7 @@ inline int GetSpellNumEffects(SPELL* pSpell)
 		return pSpell->NumEffects;
 	}
 
-	return 0xc;
+	return 0;
 }
 
 inline bool CanTank(int Class)

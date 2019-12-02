@@ -1670,7 +1670,7 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 	case 56: //True North
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 57: //Levitate(c)
+	case SPA_LEVITATION:
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 58: //Illusion: Base=Race
