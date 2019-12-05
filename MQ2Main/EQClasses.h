@@ -25,7 +25,7 @@ namespace EQClasses
 class CXSize
 {
 public:
-    DWORD A,B,C,D,E,F;
+	DWORD A, B;// , C, D, E, F;
 	CXSize::~CXSize() {};
 };
 // Enumerations...
@@ -1240,7 +1240,7 @@ class CBuffWindow : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CBuffWindow::CBuffWindow(class CXWnd *,enum BuffWindowType);
 EQLIB_OBJECT void CBuffWindow::Activate(void);
-EQLIB_OBJECT void CBuffWindow::SetBuffIcon(class CButtonWnd *,int,int);
+EQLIB_OBJECT void CBuffWindow::SetBuffIcon(class CButtonWnd *,int,int,bool);
 // virtual
 EQLIB_OBJECT CBuffWindow::~CBuffWindow(void);
 EQLIB_OBJECT class CXSize CBuffWindow::GetMinSize(void)const;
@@ -6880,13 +6880,26 @@ struct STextureAnimationFrame
     unsigned __int32 Ticks;
     POINT Hotspot;
 };
+//Size: 0x4C see 4A81DB in eqgame dated Dec 04 2019 beta -eqmule
 class CTextureAnimation
 {
 public:
-	PVOID vfTable;
-	PCXSTR Name;
-    ArrayClass_RO<STextureAnimationFrame> Frames;
-
+/*0x00*/ PVOID				vfTable;
+/*0x04*/ PCXSTR				Name;
+/*0x08*/ ArrayClass_RO<STextureAnimationFrame> Frames;
+/*0x18*/ unsigned __int32	TotalTicks;
+/*0x1C*/ int				ZeroFrame;
+/*0x20*/ unsigned __int32	StartTicks;
+/*0x24*/ tagSIZE			Size;
+/*0x2C*/ bool				bPaused;
+/*0x2D*/ bool				bCycle;
+/*0x2E*/ bool				bGrid;
+/*0x2F*/ bool				bVertical;
+/*0x30*/ int				CellWidth;
+/*0x34*/ int				CellHeight;
+/*0x38*/ int				CurCell;
+/*0x3c*/ tagRECT			CellRect;
+/*0x4c*/
 EQLIB_OBJECT CTextureAnimation::CTextureAnimation(class CXStr);
 EQLIB_OBJECT CTextureAnimation::CTextureAnimation(void);
 EQLIB_OBJECT class CTextureAnimation & CTextureAnimation::operator=(class CTextureAnimation const &);

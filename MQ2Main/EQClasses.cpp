@@ -629,7 +629,7 @@ FUNCTION_AT_ADDRESS(void  CBuffWindow::RefreshIconArrangement(void),CBuffWindow_
 FUNCTION_AT_ADDRESS(void  CBuffWindow::RefreshBuffDisplay(void),CBuffWindow__RefreshBuffDisplay);
 #endif
 #ifdef CBuffWindow__SetBuffIcon_x
-FUNCTION_AT_ADDRESS(void  CBuffWindow::SetBuffIcon(class CButtonWnd *,int,int),CBuffWindow__SetBuffIcon);
+FUNCTION_AT_ADDRESS(void  CBuffWindow::SetBuffIcon(class CButtonWnd *,int,int,bool),CBuffWindow__SetBuffIcon);
 #endif
 #ifdef CXRect__Move_x
 FUNCTION_AT_ADDRESS(void  CXRect::Move(class CXPoint),CXRect__Move);
