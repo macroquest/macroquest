@@ -1639,6 +1639,8 @@ public:
 		BaseName = 76,
 		NoExpendReagentID = 77,
 		StacksSpawn = 78,
+		SpellIcon = 79,
+		GemIcon = 80,
 	};
 	enum SpellMethods
 	{
@@ -1723,6 +1725,9 @@ public:
 		TypeMember(BaseName);
 		TypeMember(NoExpendReagentID);
 		TypeMember(StacksSpawn);
+		TypeMember(SpellIcon);
+		TypeMember(GemIcon);
+		
 	}
 
 	~MQ2SpellType()

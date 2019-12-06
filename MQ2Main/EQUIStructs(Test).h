@@ -762,6 +762,11 @@ public: \
 				CRNormal = Value; /*CRNormal*/ \
 				/*SetClassMember(this,58,Value); /*CRNormal*/ \
 			} \
+			void SetBringToTopWhenClicked(bool bValue) \
+			{ \
+				bBringToTopWhenClicked = bValue; /*bBringToTopWhenClicked*/ \
+				/*SetClassMember(this,59,bValue); /*bBringToTopWhenClicked*/ \
+			} \
 
 
 #define CXW \
@@ -1524,26 +1529,26 @@ typedef struct _CBUTTONWND {
 /*0x0234*/ PCXSTR	Indicator;
 /*0x0238*/ UINT		IndicatorVal;
 /*0x023c*/ void		*pIndicatorTextObject;
+/*0x0240*/ void*	Unknown0x240;//most likely a CTextureAnimation*
 /* CButtonDrawTemplate Start */
-/*0x0240*/ PCXSTR Name;
-/*0x0244*/ void   *Normal;//CTextureAnimation
-/*0x0248*/ void   *taPressed;
-/*0x024c*/ void   *Flyby;
-/*0x0250*/ void   *taDisabled;
-/*0x0254*/ void   *PressedFlyby;
-/*0x0258*/ void   *PressedDisabled;
-/*0x025c*/ void   *NormalDecal;
-/*0x0260*/ void   *PressedDecal;
-/*0x0264*/ void   *FlybyDecal;
-/*0x0268*/ void   *DisabledDecal;
-/*0x026c*/ void   *PressedFlybyDecal;
-/*0x0270*/ void   *PressedDisabledDecal;
-/*0x0274*/ bool		bAllowButtonClickThrough;
-/*0x0275*/ bool		bCoolDownDoDelayedStart;
-/*0x0276*/ bool		bIsCheckbox;
-/*0x0277*/ bool		bIsDrawLasso;
-/*0x0278*/ UINT		ButtonStyle;
-/*0x027c*/ PCLABEL	pButtonLabel;
+/*0x0244*/ PCXSTR	Name;
+/*0x0248*/ void*	Normal;//CTextureAnimation
+/*0x024c*/ void*	taPressed;
+/*0x0250*/ void*	Flyby;
+/*0x0254*/ void*	taDisabled;
+/*0x0258*/ void*	PressedFlyby;
+/*0x025c*/ void*	PressedDisabled;
+/*0x0260*/ void*	NormalDecal;
+/*0x0264*/ void*	PressedDecal;
+/*0x0268*/ void*	FlybyDecal;
+/*0x026c*/ void*	DisabledDecal;
+/*0x0270*/ void*	PressedFlybyDecal;
+/*0x0274*/ void*	PressedDisabledDecal;
+/*0x0278*/ bool		bAllowButtonClickThrough;
+/*0x0279*/ bool		bCoolDownDoDelayedStart;
+/*0x027a*/ bool		bIsCheckbox;
+/*0x027b*/ bool		bIsDrawLasso;
+/*0x027c*/ UINT		ButtonStyle;
 /*0x0280*/
 } CBUTTONWND, *PCBUTTONWND;
  

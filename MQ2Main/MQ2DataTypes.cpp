@@ -7056,6 +7056,14 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = pSpell->BookIcon;
 		Dest.Type = pIntType;
 		return true;
+	case SpellIcon:
+		Dest.DWord = pSpell->SpellIcon;
+		Dest.Type = pIntType;
+		return true;
+	case GemIcon:
+		Dest.DWord = pSpell->GemIcon;
+		Dest.Type = pIntType;
+		return true;
 	case Target:
 		strcpy_s(DataTypeTemp, pSpell->Target);
 		Dest.Ptr = &DataTypeTemp[0];
