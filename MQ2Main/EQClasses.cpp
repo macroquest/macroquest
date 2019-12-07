@@ -1420,6 +1420,9 @@ FUNCTION_AT_ADDRESS( CFeedbackWnd::CFeedbackWnd(class CXWnd *),CFeedbackWnd__CFe
 #ifdef CFeedbackWnd__Activate_x
 FUNCTION_AT_ADDRESS(void  CFeedbackWnd::Activate(void),CFeedbackWnd__Activate);
 #endif
+#ifdef CFileSelectionWnd__Open_x
+FUNCTION_AT_ADDRESS(int CFileSelectionWnd::Open(CXWnd *pWnd, int flags),CFileSelectionWnd__Open);
+#endif
 #ifdef CFileSelectionWnd__CFileSelectionWnd_x
 FUNCTION_AT_ADDRESS( CFileSelectionWnd::CFileSelectionWnd(class CXWnd *),CFileSelectionWnd__CFileSelectionWnd);
 #endif

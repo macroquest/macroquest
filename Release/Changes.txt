@@ -1,3 +1,6 @@
+Dec 07 2019
+- Updated for BETA
+-
 Dec 06 2019
 - Updated for BETA
 - Added .SpellIcon and .GemIcon to the Spell TLO.

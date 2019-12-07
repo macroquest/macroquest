@@ -1326,9 +1326,7 @@ public:
 /*0x234*/	struct  _CXSTR*Indicator;//correct
 /*0x238*/   UINT		IndicatorValue;//correct
 /*0x23c*/   void* pIndicatorTextObject;//correct
-
-/*0x240*/   PCLABEL	pButtonLabel;//not sure
-
+/*0x240*/   CTextureAnimation*		Unknown0x240;//probably a CTextureAnimation* not sure
 /*0x244*/   struct  _CXSTR*Name;
 /*0x248*/   CTextureAnimation   *TANormal;
 /*0x24c*/   CTextureAnimation   *TAPressed;
@@ -2921,9 +2919,23 @@ public:
 	EQLIB_OBJECT void CFindLocationWnd::HandleFindableZoneConnectionsMessage(CUnSerializeBuffer &buf);
 };
 
-class CFileSelectionWnd : public CSidlScreenWnd
+//Actual Size: 0x908 see 550473 in Dec 06 2019 beta -eqmule
+class CFileSelectionWnd : public CSidlScreenWnd, public WndEventHandler2
 {
 public:
+/*0x24c*/ int				Unknown0x24c;
+/*0x250*/ CXWnd*			pWndCaller;
+/*0x254*/ CListWnd*			pListFiles;
+/*0x258*/ CEditWnd*			pEditEntry;
+/*0x25c*/ CComboWnd*		pComboDirHistory;
+/*0x260*/ CButtonWnd*		pUpButton;
+/*0x264*/ CButtonWnd*		pOKButton;
+/*0x268*/ CButtonWnd*		pCancelButton;
+/*0x26c*/ int				Flags;
+/*0x270*/ CXStr				SelectedFile;
+/*0x274*/ IShellFolder*		ShellFolder;
+/*0x278*/ CXStr				CurrentDir;
+/*0x27c*/ //more todo fill in
 EQLIB_OBJECT CFileSelectionWnd::CFileSelectionWnd(class CXWnd *);
 EQLIB_OBJECT class CXStr CFileSelectionWnd::GetSelectedFile(int);
 EQLIB_OBJECT int CFileSelectionWnd::GetSelectedFileCount(void);
@@ -2943,6 +2955,7 @@ EQLIB_OBJECT void CFileSelectionWnd::GoSubdirectory(struct _ITEMIDLIST *);
 EQLIB_OBJECT void CFileSelectionWnd::MakeFilePath(void);
 EQLIB_OBJECT void CFileSelectionWnd::UpdateButtons(void);
 EQLIB_OBJECT void CFileSelectionWnd::UpdateFileList(void);
+EQLIB_OBJECT int CFileSelectionWnd::Open(CXWnd *pWnd, int flags = 0);
 };
 
 class CFriendsWnd : public CSidlScreenWnd
