@@ -846,7 +846,7 @@ VOID DoTimedCommands()
     while(pTimedCommands && pTimedCommands->Time<=Now)
     {
         PTIMEDCOMMAND pNext=pTimedCommands->pNext;
-        DoCommand(((PCHARINFO)pCharData)->pSpawn,pTimedCommands->Command);
+        DoCommand((PSPAWNINFO)pLocalPlayer,pTimedCommands->Command);
         delete pTimedCommands;
         pTimedCommands=pNext;
     }

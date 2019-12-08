@@ -1308,43 +1308,45 @@ EQLIB_OBJECT CButtonTemplate::~CButtonTemplate(void);
 class CButtonWnd : public CXWnd
 {
 public:
-/*0x1e8*/	int MouseButtonState;
-/*0x1ec*/	bool bImage;
-/*0x1f0*/	CRadioGroup	*RadioGroup;
-/*0x1f4*/	bool Checked;
-/*0x1f5*/   bool Highlighted;
-/*0x1f8*/	tagPOINT	DecalOffset;
-/*0x200*/	tagSIZE		DecalSize;
-/*0x208*/	COLORREF	DecalTint;
-/*0x20c*/	RECT		TextOffsets;
-/*0x21c*/	int			TextMode;
-/*0x220*/	COLORREF	MouseoverColor;
-/*0x224*/	COLORREF	PressedColor;
-/*0x228*/	COLORREF	DisabledColor;
-/*0x22c*/	UINT		CoolDownStartTime;
-/*0x230*/	UINT		CoolDownDuration;
-/*0x234*/	struct  _CXSTR*Indicator;//correct
-/*0x238*/   UINT		IndicatorValue;//correct
-/*0x23c*/   void* pIndicatorTextObject;//correct
-/*0x240*/   CTextureAnimation*		Unknown0x240;//probably a CTextureAnimation* not sure
-/*0x244*/   struct  _CXSTR*Name;
-/*0x248*/   CTextureAnimation   *TANormal;
-/*0x24c*/   CTextureAnimation   *TAPressed;
-/*0x250*/   CTextureAnimation   *TAFlyby;
-/*0x254*/   CTextureAnimation   *TADisabled;
-/*0x258*/   CTextureAnimation   *TAPressedFlyby;
-/*0x25c*/   CTextureAnimation   *TAPressedDisabled;
-/*0x260*/   CTextureAnimation   *TANormalDecal;//see 6FCCC9 in Dec 05 2019 beta -eqmule
-/*0x264*/   CTextureAnimation   *TAPressedDecal;
-/*0x268*/   CTextureAnimation   *TAFlybyDecal;
-/*0x26c*/   CTextureAnimation   *TADisabledDecal;
-/*0x270*/   CTextureAnimation   *TAPressedFlybyDecal;
-/*0x274*/   CTextureAnimation   *TAPressedDisabledDecal;
-/*0x278*/   bool bAllowButtonPassThrough;
-/*0x279*/   bool bCooldownrelated;
-/*0x27a*/   bool bIsCheckbox;
-/*0x27b*/   bool bDrawLasso;//draws the yellow border...
-/*0x27c*/   unsigned __int32 ButtonStyle;
+/*0x1e8*/	int					MouseButtonState;
+/*0x1ec*/	bool				bImage;
+/*0x1f0*/	CRadioGroup*		RadioGroup;
+/*0x1f4*/	bool				Checked;
+/*0x1f5*/   bool				Highlighted;
+/*0x1f8*/	tagPOINT			DecalOffset;
+/*0x200*/	tagSIZE				DecalSize;
+/*0x208*/	COLORREF			DecalTint;
+/*0x20c*/	RECT				TextOffsets;
+/*0x21c*/	int					TextMode;
+/*0x220*/	COLORREF			MouseoverColor;
+/*0x224*/	COLORREF			PressedColor;
+/*0x228*/	COLORREF			DisabledColor;
+/*0x22c*/	UINT				CoolDownStartTime;
+/*0x230*/	UINT				CoolDownDuration;
+#if !defined(ROF2EMU) && !defined(UFEMU)
+/*0x234*/	struct _CXSTR*		Indicator;//correct
+/*0x238*/   UINT				IndicatorValue;//correct
+/*0x23c*/   void*				pIndicatorTextObject;//correct
+/*0x240*/   CTextureAnimation*	Unknown0x240;//probably a CTextureAnimation* not sure
+#endif
+/*0x244*/   struct _CXSTR*		Name;
+/*0x248*/   CTextureAnimation*	TANormal;
+/*0x24c*/   CTextureAnimation*	TAPressed;
+/*0x250*/   CTextureAnimation*	TAFlyby;
+/*0x254*/   CTextureAnimation*	TADisabled;
+/*0x258*/   CTextureAnimation*	TAPressedFlyby;
+/*0x25c*/   CTextureAnimation*	TAPressedDisabled;
+/*0x260*/   CTextureAnimation*	TANormalDecal;//see 6FCCC9 in Dec 05 2019 beta -eqmule
+/*0x264*/   CTextureAnimation*	TAPressedDecal;
+/*0x268*/   CTextureAnimation*	TAFlybyDecal;
+/*0x26c*/   CTextureAnimation*	TADisabledDecal;
+/*0x270*/   CTextureAnimation*	TAPressedFlybyDecal;
+/*0x274*/   CTextureAnimation*	TAPressedDisabledDecal;
+/*0x278*/   bool				bAllowButtonPassThrough;
+/*0x279*/   bool				bCooldownrelated;
+/*0x27a*/   bool				bIsCheckbox;
+/*0x27b*/   bool				bDrawLasso;//draws the yellow border...
+/*0x27c*/   unsigned __int32	ButtonStyle;
 /*0x280*/
 EQLIB_OBJECT CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT void CButtonWnd::SetCheck(bool);

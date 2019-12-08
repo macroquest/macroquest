@@ -100,11 +100,11 @@ public:
                     SetCXStr(&InputBox->InputText,"");
                     if (szBuffer[0]=='/')
                     {
-	                    DoCommand(((PCHARINFO)pCharData)->pSpawn,szBuffer); 
+	                    DoCommand((PSPAWNINFO)pLocalPlayer,szBuffer); 
                     }
                     else
                     {
-	                    Echo(((PCHARINFO)pCharData)->pSpawn,szBuffer); 
+	                    Echo((PSPAWNINFO)pLocalPlayer,szBuffer); 
                     }
                 } 
                 ((CXWnd*)InputBox)->ClrFocus(); 
@@ -244,7 +244,7 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
 
     LoadChatSettings(); 
 
-    sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name); 
+    sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PSPAWNINFO)pLocalPlayer)->Name); 
     if (!bSaveByChar) sprintf_s(szChatINISection,"Default"); 
 	//left top right bottom
 	pWindow->SetLocation({ (LONG)GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName),

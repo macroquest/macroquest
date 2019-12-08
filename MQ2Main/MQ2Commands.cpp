@@ -2928,8 +2928,8 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			}
 		}
 		else if (!strcmp(szArg, "mycorpse")) {
-			if (((PCHARINFO)pCharData)->pSpawn) {
-				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((PCHARINFO)pCharData)->pSpawn->Name);
+			if (pLocalPlayer) {
+				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((PSPAWNINFO)pLocalPlayer)->Name);
 				_strlwr_s(szFilter, MAX_STRING);
 			}
 		}
