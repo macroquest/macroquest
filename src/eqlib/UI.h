@@ -1796,7 +1796,7 @@ public:
 	virtual int PostDraw() override;
 	virtual int WndNotification(CXWnd*, uint32_t, void*) override;
 
-	EQLIB_OBJECT void SetBuffIcon(CButtonWnd*, int, int);
+	EQLIB_OBJECT void SetBuffIcon(CButtonWnd*, int, int, bool);
 	EQLIB_OBJECT void HandleSpellInfoDisplay(CXWnd*);
 	EQLIB_OBJECT void RefreshBuffDisplay();
 	EQLIB_OBJECT void RefreshIconArrangement();
@@ -2746,8 +2746,10 @@ public:
 // CFileSelectionWnd
 //============================================================================
 
-class CFileSelectionWnd : public CSidlScreenWnd, public WndEventHandler
+class [[offsetcomments]] CFileSelectionWnd : public CSidlScreenWnd, public WndEventHandler
 {
+	FORCE_SYMBOLS;
+
 public:
 	CFileSelectionWnd(CXWnd*);
 	virtual ~CFileSelectionWnd();
@@ -2764,6 +2766,22 @@ public:
 	EQLIB_OBJECT void MakeFilePath();
 	EQLIB_OBJECT void UpdateButtons();
 	EQLIB_OBJECT void UpdateFileList();
+
+	EQLIB_OBJECT int Open(CXWnd* pWnd, int flags);
+
+/*0x24c*/ int             Unknown0x24c;
+/*0x250*/ CXWnd*          pWndCaller;
+/*0x254*/ CListWnd*       pListFiles;
+/*0x258*/ CEditWnd*       pEditEntry;
+/*0x25c*/ CComboWnd*      pComboDirHistory;
+/*0x260*/ CButtonWnd*     pUpButton;
+/*0x264*/ CButtonWnd*     pOKButton;
+/*0x268*/ CButtonWnd*     pCancelButton;
+/*0x26c*/ int             Flags;
+/*0x270*/ CXStr           SelectedFile;
+/*0x274*/ IShellFolder*   ShellFolder;
+/*0x278*/ CXStr           CurrentDir;
+/*0x27c*/ // more
 };
 
 //============================================================================

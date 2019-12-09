@@ -1034,7 +1034,7 @@ void PulseCommands()
 	while (s_pTimedCommands && s_pTimedCommands->Time <= Now)
 	{
 		MQTimedCommand* pNext = s_pTimedCommands->pNext;
-		DoCommand(((CHARINFO*)pCharData)->pSpawn, s_pTimedCommands->Command);
+		DoCommand((SPAWNINFO*)pLocalPlayer, s_pTimedCommands->Command);
 
 		delete s_pTimedCommands;
 		s_pTimedCommands = pNext;

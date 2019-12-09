@@ -113,11 +113,11 @@ public:
 					InputBox->InputText.clear();
 					if (text[0] == '/')
 					{
-						DoCommand(((CHARINFO*)pCharData)->pSpawn, text.c_str());
+						DoCommand((SPAWNINFO*)pLocalPlayer, text.c_str());
 					}
 					else
 					{
-						Echo(((CHARINFO*)pCharData)->pSpawn, (char*)text.c_str());
+						Echo((SPAWNINFO*)pLocalPlayer, (char*)text.c_str());
 					}
 				}
 
@@ -263,7 +263,7 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 
 	LoadChatSettings();
 
-	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((CHARINFO*)pCharData)->Name);
+	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((SPAWNINFO*)pLocalPlayer)->Name);
 	if (!bSaveByChar) sprintf_s(szChatINISection, "Default");
 
 	// left top right bottom

@@ -2049,6 +2049,8 @@ public:
 		BaseName = 76,
 		NoExpendReagentID = 77,
 		StacksSpawn = 78,
+		SpellIcon = 79,
+		GemIcon = 80,
 	};
 
 	enum SpellMethods
@@ -2135,11 +2137,13 @@ public:
 		TypeMember(BaseName);
 		TypeMember(NoExpendReagentID);
 		TypeMember(StacksSpawn);
+		TypeMember(SpellIcon);
+		TypeMember(GemIcon);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -2149,7 +2153,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPELL
 		VarPtr.Ptr = new SPELL();

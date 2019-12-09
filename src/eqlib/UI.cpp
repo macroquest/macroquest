@@ -1477,6 +1477,14 @@ FUNCTION_AT_ADDRESS(void CCursorAttachment::Deactivate(), CCursorAttachment__Dea
 #endif
 
 //============================================================================
+// CFileSelectionWnd
+//============================================================================
+
+#ifdef CFileSelectionWnd__Open_x
+FUNCTION_AT_ADDRESS(int CFileSelectionWnd::Open(CXWnd* pWnd, int flags), CFileSelectionWnd__Open);
+#endif
+
+//============================================================================
 // CFindItemWnd
 //============================================================================
 

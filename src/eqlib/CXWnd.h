@@ -564,6 +564,8 @@ public:
 
 	EQLIB_OBJECT void SetCRNormal(COLORREF Value) { CRNormal = Value; }
 
+	EQLIB_OBJECT void SetBringToTopWhenClicked(bool bValue) { bBringToTopWhenClicked = bValue; }
+
 	struct [[offsetcomments]] VirtualFunctionTable
 	{
 	/*0x000*/ void* IsValid;

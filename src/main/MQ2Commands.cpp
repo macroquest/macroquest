@@ -3294,9 +3294,9 @@ void Target(SPAWNINFO* pChar, char* szLine)
 
 		if (!strcmp(szArg, "myself"))
 		{
-			if (((CHARINFO*)pCharData)->pSpawn)
+			if (pLocalPlayer)
 			{
-				pSpawnClosest = ((CHARINFO*)pCharData)->pSpawn;
+				pSpawnClosest = (SPAWNINFO*)pLocalPlayer;
 				DidTarget = true;
 			}
 		}
@@ -3304,7 +3304,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 		{
 			if (((CHARINFO*)pCharData)->pSpawn)
 			{
-				sprintf_s(szFilter, MAX_STRING, "%s's Corpse", ((CHARINFO*)pCharData)->pSpawn->Name);
+				sprintf_s(szFilter, MAX_STRING, "%s's Corpse", ((SPAWNINFO*)pLocalPlayer)->Name);
 				_strlwr_s(szFilter, MAX_STRING);
 			}
 		}
