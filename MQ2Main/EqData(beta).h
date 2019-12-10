@@ -2148,9 +2148,7 @@ struct ALCHEMYBONUSSKILLDATA
 };
 
 //aStartingLoad
-//0x2B78 //in Nov 01 2018 beta (see 5D7008) - eqmule
 #define CHARINFO_Size 0x2BA8 //in Oct 18 2018 beta (see 5ECFE8) - eqmule
-/*0x1c4c*/ //ItemIndex	StatKeyRingItemIndex[3];//0xe46 confirmed
 //this thing here is an abomination, todo: fix it once and for all.
 // its like a frankenstruct mixing in PcBase etc. 
 typedef struct _CHARINFO {

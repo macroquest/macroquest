@@ -224,7 +224,7 @@ GNU General Public License for more details.
 #define pinstCContextMenuManager_x                                 0x15FD0D0
 #define pinstCCursorAttachment_x                                   0xE05550
 #define pinstCDynamicZoneWnd_x                                     0xF7ADF0
-#define pinstCEditLabelWnd_x                                       0xE0503C
+#define pinstCEditLabelWnd_x                                       0xE05040
 #define pinstCEQMainWnd_x                                          0xF7B038
 #define pinstCEventCalendarWnd_x                                   0xE05554
 #define pinstCExtendedTargetWnd_x                                  0xE050B8
@@ -280,7 +280,7 @@ GNU General Public License for more details.
 #define pinstCMarketplaceWnd_x                                     0xE04FC0
 #define pinstCMerchantWnd_x                                        0xE05574
 #define pinstCMIZoneSelectWnd_x                                    0xF7EE98
-#define pinstCMusicPlayerWnd_x                                     0xE0557C
+#define pinstCMusicPlayerWnd_x                                     0xE05588
 #define pinstCNameChangeMercWnd_x                                  0xE05810
 #define pinstCNameChangePetWnd_x                                   0xE057FC
 #define pinstCNameChangeWnd_x                                      0xE05820
