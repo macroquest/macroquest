@@ -2409,8 +2409,8 @@ EQLIB_OBJECT int CEditWnd::SelectableCharFromPoint(class CXPoint)const;
 EQLIB_OBJECT void CEditWnd::AddItemTag(int,char *,int);
 EQLIB_OBJECT void CEditWnd::CalculateScrollRange(void);
 EQLIB_OBJECT void CEditWnd::EnsureCaretVisible(void);
-EQLIB_OBJECT void CEditWnd::ReplaceSelection(char,bool);
-EQLIB_OBJECT void CEditWnd::ReplaceSelection(class CXStr,bool);
+EQLIB_OBJECT bool CEditWnd::ReplaceSelection(char ch, bool bFilter = true);
+EQLIB_OBJECT bool CEditWnd::ReplaceSelection(class CXStr,bool bFilter = true);
 EQLIB_OBJECT void CEditWnd::SetEditable(bool);
 // virtual
 EQLIB_OBJECT CEditWnd::~CEditWnd(void);
@@ -6645,11 +6645,11 @@ EQLIB_OBJECT class CXRect CTabWnd::GetTabRect(int)const;
 EQLIB_OBJECT int CTabWnd::GetCurrentTabIndex(void)const;
 EQLIB_OBJECT int CTabWnd::GetNumTabs(void)const;
 EQLIB_OBJECT void CTabWnd::InsertPage(class CPageWnd *,int);
-EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool);
+EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool bNotifyParent = true, bool bBringToTop = true);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-	EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent, bool bBringToTop = true, bool bSomething = true);
+	EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent = true, bool bBringToTop = true, bool bSomething = false);
 #else
-	EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent);
+	EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent = true);
 #endif
 EQLIB_OBJECT void CTabWnd::SetPageRect(class CXRect);
 EQLIB_OBJECT void CTabWnd::UpdatePage(void);

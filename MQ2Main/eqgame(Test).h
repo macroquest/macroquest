@@ -526,6 +526,8 @@ GNU General Public License for more details.
 #define CEditWnd__SelectableCharFromPoint_x                        0x957CF0
 #define CEditWnd__SetEditable_x                                    0x957140
 #define CEditWnd__SetWindowTextA_x                                 0x956820
+#define CEditWnd__ReplaceSelection_x                               0x957800
+#define CEditWnd__ReplaceSelection1_x                              0x957780
 
 // CEverQuest 
 #define CEverQuest__DoPercentConvert_x                             0x5FF8A0

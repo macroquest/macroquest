@@ -1785,7 +1785,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SelectableCharFromPoint);
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SetEditable);
 	INITIALIZE_EQGAME_OFFSET(CEditWnd__SetWindowTextA);
-
+	INITIALIZE_EQGAME_OFFSET(CEditWnd__ReplaceSelection);
+	INITIALIZE_EQGAME_OFFSET(CEditWnd__ReplaceSelection1);
+	
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoPercentConvert);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__ClickedPlayer);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoTellWindow);

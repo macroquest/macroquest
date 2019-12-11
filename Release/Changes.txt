@@ -1,3 +1,6 @@
+Dec 11 2019
+- Updated for BETA
+-
 Dec 10 2019
 - Updated for TEST
 - Updated for BETA
