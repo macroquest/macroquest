@@ -66,7 +66,7 @@ public:
 
 	virtual void InitVariable(MQVarPtr& VarPtr)
 	{
-		VarPtr.Ptr = 0;
+		VarPtr.Ptr = nullptr;
 		VarPtr.HighPart = 0;
 	}
 
@@ -478,12 +478,12 @@ public:
 	}
 
 	// pure type, no members
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		return false;
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (VarPtr.DWord)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
@@ -492,13 +492,13 @@ public:
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = 0;
 		if (!_stricmp(Source, "TRUE"))
@@ -535,21 +535,21 @@ public:
 		TypeMember(HighPart);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.Int = Source.Int;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.Int = GetIntFromString(Source, -1);
 		return true;
@@ -582,21 +582,21 @@ public:
 		TypeMember(HighPart);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		_i64toa_s(VarPtr.Int64, Destination, MAX_STRING, 10);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.Int64 = Source.Int64;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.Int64 = _atoi64(Source);
 		return true;
@@ -631,23 +631,24 @@ public:
 	{
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		sprintf_s(Destination, MAX_STRING, "%x", VarPtr.Int);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
-		if (sscanf_s(Source, "%x", &VarPtr.Int)) {
+		if (sscanf_s(Source, "%x", &VarPtr.Int))
+		{
 			return true;
 		}
 		return false;
@@ -665,24 +666,24 @@ public:
 	}
 
 	// pure type, no members
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		return false;
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord % 0xFF;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = GetIntFromString(Source, 0) % 0xFF;
 		return true;
@@ -737,26 +738,26 @@ public:
 		TypeMember(Replace);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		VarPtr.Ptr = LocalAlloc(LPTR, MAX_STRING);
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		LocalFree(VarPtr.Ptr);
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pStringType)
 			return false;
@@ -765,7 +766,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
 		return true;
@@ -798,14 +799,15 @@ public:
 		TypeMember(Raw);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Float);
 		return true;
 	}
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pFloatType && Source.Type != (MQ2Type*)pHeadingType)
 			VarPtr.Float = (float)Source.DWord;
@@ -813,7 +815,8 @@ public:
 			VarPtr.Float = Source.Float;
 		return true;
 	}
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.Float = GetFloatFromString(Source, 0);
 		return true;
@@ -844,15 +847,15 @@ public:
 		TypeMember(Precision);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Double);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pDoubleType && Source.Type != (MQ2Type*)pHeadingType)
 			VarPtr.Double = Source.Double;
@@ -861,7 +864,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.Double = GetDoubleFromString(Source, 0);
 		return true;
@@ -898,20 +901,20 @@ public:
 		TypeMember(TimeHMS);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		_itoa_s(VarPtr.DWord, Destination, MAX_STRING, 10);
 		return true;
 	}
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
@@ -952,21 +955,21 @@ public:
 		TypeMember(Float);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		_i64toa_s(VarPtr.UInt64, Destination, MAX_STRING, 10);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.UInt64 = Source.UInt64;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.UInt64 = _atoi64(Source);
 		return true;
@@ -1298,9 +1301,9 @@ public:
 		TypeMethod(RightClick);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -1310,7 +1313,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not Allocate a SPAWNINFO
 		VarPtr.Ptr = new SPAWNINFO();
@@ -1320,14 +1323,14 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Find way to not allocate SPAWNINFO
 		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 		delete pSpawn;
 	}
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -1345,7 +1348,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
@@ -1923,9 +1926,9 @@ public:
 		TypeMethod(StopCast);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!pLocalPlayer)
 			return false;
@@ -1935,7 +1938,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a CHARINFO
 		VarPtr.Ptr = new CHARINFO();
@@ -1945,14 +1948,14 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(CHARINFO));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Remove need to allocate a CHARINFO
 		CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
 		delete pCharInfo;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pCharacterType)
 			return false;
@@ -2160,14 +2163,14 @@ public:
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPELL
 		SPELL* pSpell = static_cast<SPELL*>(VarPtr.Ptr);
 		delete pSpell;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pSpellType)
 			return false;
@@ -2224,9 +2227,9 @@ public:
 		TypeMethod(Remove);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -2244,21 +2247,21 @@ public:
 		return false;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPELLBUFF
 		VarPtr.Ptr = new SPELLBUFF();
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPELLBUFF
 		SPELLBUFF* pSpellBuff = static_cast<SPELLBUFF*>(VarPtr.Ptr);
 		delete pSpellBuff;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pBuffType)
 			return false;
@@ -2288,9 +2291,9 @@ public:
 		TypeMember(Duration);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (VarPtr.Int == -1)
 			return false;
@@ -2308,13 +2311,13 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.Int = Source.Int;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.Int = GetIntFromString(Source, 0);
 		return true;
@@ -2345,9 +2348,9 @@ public:
 		TypeMember(Duration);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		TargetBuff* pcTB = (TargetBuff*)VarPtr.Ptr;
 		if (!pcTB)
@@ -2360,7 +2363,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.Ptr = Source.Ptr;
 		return true;
@@ -2405,9 +2408,9 @@ public:
 		TypeMember(Spell);
 	};
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -2424,21 +2427,21 @@ public:
 		return false;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate an ITEMSPELLS
 		VarPtr.Ptr = new ITEMSPELLS();
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate an ITEMSPELLS
 		ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
 		delete pItemSpells;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pItemSpellType)
 			return false;
@@ -2800,7 +2803,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a CONTENTS
 		VarPtr.Ptr = new CONTENTS();
@@ -2810,13 +2813,13 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(CONTENTS));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
 		delete pContents;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pItemType)
 			return false;
@@ -2885,9 +2888,9 @@ public:
 		TypeMethod(Toggle);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -2897,21 +2900,21 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a DOOR
 		VarPtr.Ptr = new DOOR();
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a DOOR
 		DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
 		delete pDoor;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pSwitchType)
 			return false;
@@ -2986,23 +2989,23 @@ public:
 		TypeMethod(DoFace);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		VarPtr.Ptr = new GROUNDOBJECT();
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		GROUNDOBJECT* pGroundObject = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
 		delete pGroundObject;
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination);
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pGroundType)
 			return false;
@@ -3038,9 +3041,9 @@ public:
 		TypeMember(Items);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (pActiveCorpse && pLootWnd)
 		{
@@ -3097,9 +3100,9 @@ public:
 		TypeMethod(CloseWindow);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (pActiveMerchant && pMerchantWnd)
 		{
@@ -3149,9 +3152,9 @@ public:
 		TypeMember(CanUse);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (pMerchantWnd)
 		{
@@ -3190,9 +3193,9 @@ public:
 		TypeMember(Item);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
@@ -3284,9 +3287,9 @@ public:
 #endif
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -3296,7 +3299,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not Allocate a SPAWNINFO
 		VarPtr.Ptr = new SPAWNINFO();
@@ -3306,14 +3309,14 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not Allocate a SPAWNINFO
 		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 		delete pSpawn;
 	}
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -3331,7 +3334,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
@@ -3380,9 +3383,9 @@ public:
 		TypeMember(BuffDuration);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -3392,7 +3395,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPAWNINFO
 		VarPtr.Ptr = new SPAWNINFO();
@@ -3402,14 +3405,14 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPAWNINFO
 		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 		delete pSpawn;
 	}
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -3427,7 +3430,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
@@ -3549,7 +3552,7 @@ public:
 		TypeMethod(Select);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
@@ -3620,9 +3623,9 @@ public:
 		TypeMethod(Select);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, "No Menu Open");
 		if (VarPtr.Ptr && ((CContextMenuManager*)VarPtr.Ptr)->NumVisibleMenus == 1)
@@ -3640,7 +3643,7 @@ public:
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pMenuType)
 			return false;
@@ -3696,9 +3699,9 @@ public:
 		TypeMethod(Undeclared);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (gRunning)
 		{
@@ -3734,15 +3737,15 @@ public:
 		TypeMember(ZoneFlags);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, &((PZONELIST)VarPtr.Int)->LongName[0]);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type == pZoneType)
 		{
@@ -3819,15 +3822,15 @@ public:
 		TypeMember(NoBind);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, &((PZONEINFO)pZoneInfo)->LongName[0]);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pCurrentZoneType)
 			return false;
@@ -3866,9 +3869,9 @@ public:
 		TypeMember(Race);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
@@ -3952,9 +3955,9 @@ public:
 		TypeMember(ValidLoc);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
@@ -3992,9 +3995,9 @@ public:
 		TypeMember(Parser);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
@@ -4041,9 +4044,9 @@ public:
 		TypeMember(Clamp);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
@@ -4067,22 +4070,22 @@ public:
 		TypeMember(ID);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		const char* pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
 		strcpy_s(Destination, MAX_STRING, pDesc);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
@@ -4127,9 +4130,9 @@ public:
 		TypeMember(MercType);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		const char* pDesc = GetClassDesc(VarPtr.DWord);
 		strcpy_s(Destination, MAX_STRING, pDesc);
@@ -4137,13 +4140,13 @@ public:
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
@@ -4172,22 +4175,22 @@ public:
 	{
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		const char* pDesc = GetBodyTypeDesc(VarPtr.DWord);
 		strcpy_s(Destination, MAX_STRING, pDesc);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
@@ -4214,22 +4217,22 @@ public:
 		TypeMember(ID);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		char* pDesc = pEverQuest->GetDeityDesc(VarPtr.DWord);
 		strcpy_s(Destination, MAX_STRING, pDesc);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.DWord = GetIntFromString(Source, 0);
 		return true;
@@ -4276,9 +4279,9 @@ public:
 		TypeMember(Hour12);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		tm* Now = static_cast<tm*>(VarPtr.Ptr);
 
@@ -4286,7 +4289,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		VarPtr.Ptr = new tm();
 		VarPtr.HighPart = 0;
@@ -4294,13 +4297,13 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(tm));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		tm* Now = static_cast<tm*>(VarPtr.Ptr);
 		delete Now;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pTimeType)
 			return false;
@@ -4358,17 +4361,17 @@ public:
 		TypeMember(DegreesCCW);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source);
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		VarPtr.Float = GetFloatFromString(Source, 0);
 		return true;
@@ -4403,21 +4406,21 @@ public:
 		TypeMember(Item);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		if (IsNumber(Source))
 		{
@@ -4457,9 +4460,9 @@ public:
 		TypeMember(Version);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (VarPtr.Ptr)
 		{
@@ -4469,7 +4472,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pPluginType)
 			return false;
@@ -4502,20 +4505,20 @@ public:
 		TypeMember(AvgTimeSpent);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		if (IsNumber(Source))
 		{
@@ -4560,14 +4563,14 @@ public:
 		TypeMember(Auto);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
 		if (PSKILL pSkill = *(PSKILL*)VarPtr.Ptr)
-			if (const char* pName = pStringTable->getString(pSkill->nName, 0))
+			if (const char* pName = pStringTable->getString(pSkill->nName))
 			{
 				strcpy_s(Destination, MAX_STRING, pName);
 				return true;
@@ -4575,7 +4578,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pSkillType)
 			return false;
@@ -4647,11 +4650,11 @@ public:
 
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination);
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pAltAbilityType)
 			return false;
@@ -4689,16 +4692,16 @@ public:
 		TypeMethod(Set);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 		_ultoa_s(pTimer->Current, Destination, MAX_STRING, 10);
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		MQTimer* pVar = new MQTimer();
 		pVar->pNext = gTimer;
@@ -4711,7 +4714,7 @@ public:
 		VarPtr.HighPart = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		if (MQTimer* pVar = reinterpret_cast<MQTimer*>(VarPtr.Ptr))
 		{
@@ -4726,7 +4729,7 @@ public:
 		}
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 		if (Source.Type == pFloatType)
@@ -4742,7 +4745,7 @@ public:
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 
@@ -4779,18 +4782,18 @@ public:
 		TypeMember(Size);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		CDataArray* pArray = (CDataArray*)VarPtr.Ptr;
 		delete pArray;
@@ -4857,9 +4860,9 @@ public:
 		AddMember(XCleric, "Cleric");
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination);
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -4912,11 +4915,11 @@ public:
 		TypeMember(Present);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination);
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pGroupMemberType)
 			return false;
@@ -4969,9 +4972,9 @@ public:
 		TypeMember(MasterLooter);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
@@ -5011,9 +5014,9 @@ public:
 		TypeMember(Level);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		DWORD nRaidMember = VarPtr.DWord - 1;
 		if (VarPtr.DWord >= 72)
@@ -5025,7 +5028,7 @@ public:
 		return true;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pRaidMemberType)
 			return false;
@@ -5056,9 +5059,9 @@ public:
 		TypeMember(MaxLevel);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (VarPtr.Ptr && ((CONTENTS*)VarPtr.Ptr)->IsEvolvingItem)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
@@ -5174,9 +5177,9 @@ public:
 		TypeMember(Campfire);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipID)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
@@ -5210,9 +5213,9 @@ public:
 		TypeMember(Name);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, ((FELLOWSHIPMEMBER*)VarPtr.Ptr)->Name);
 		return true;
@@ -5239,9 +5242,9 @@ public:
 		AddMember(xFriend, "Friend");
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		// return the number of friends here...
 		if (((EVERQUEST*)pEverQuest)->ChatService)
@@ -5360,9 +5363,9 @@ public:
 		TypeMember(MaxMeleeTo);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (!VarPtr.Ptr)
 			return false;
@@ -5372,7 +5375,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPAWNINFO
 		VarPtr.Ptr = new SPAWNINFO();
@@ -5382,14 +5385,14 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPAWNINFO
 		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 		delete pSpawn;
 	}
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -5407,7 +5410,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 		{
@@ -5481,9 +5484,9 @@ public:
 		AddMember(xIndex, "Index");
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, static_cast<TASKMEMBER*>(VarPtr.Ptr)->Name);
 		return true;
@@ -5566,9 +5569,9 @@ public:
 		TypeMember(PctAggro);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		int index = VarPtr.DWord;
 
@@ -5588,7 +5591,7 @@ public:
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	void InitVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPAWNINFO
 		VarPtr.Ptr = new SPAWNINFO();
@@ -5597,14 +5600,14 @@ public:
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		// FIXME: Do not allocate a SPAWNINFO
 		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 		delete pSpawn;
 	}
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type == pSpawnType)
 		{
@@ -5633,7 +5636,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		int index = GetIntFromString(Source, 0);
 
@@ -5706,9 +5709,9 @@ public:
 		TypeMember(Types);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (ItemFilterData* pitem = (ItemFilterData*)VarPtr.Ptr)
 		{
@@ -5718,7 +5721,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pItemFilterDataType)
 			return false;
@@ -5775,9 +5778,9 @@ public:
 		AddMember(xNoDrop, "NoDrop");
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (AdvancedLootItem* pitem = (AdvancedLootItem*)VarPtr.Ptr)
 		{
@@ -5788,7 +5791,7 @@ public:
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pAdvLootItemType)
 			return false;
@@ -5978,9 +5981,9 @@ public:
 		TypeMember(bBanker);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		DWORD theindex = LOWORD(VarPtr.DWord);
 		DWORD theitem = HIWORD(VarPtr.DWord);
@@ -6015,7 +6018,7 @@ public:
 		TypeMember(Zone);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
@@ -6059,7 +6062,7 @@ public:
 		TypeMember(Count);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
 	// TODO: Move this to a global
 	static const char* GetAugmentNameByID(int itemid)
@@ -6113,7 +6116,7 @@ public:
 		};
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (const char* pstr = GetAugmentNameByID(VarPtr.DWord)) {
 			strcpy_s(Destination, MAX_STRING, pstr);
@@ -6165,14 +6168,14 @@ public:
 		TypeMember(Inside);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		return false;
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pRangeType)
 			return false;
@@ -6211,9 +6214,9 @@ public:
 		TypeMethod(Remove);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (AURAINFO* pAura = (AURAINFO*)VarPtr.Ptr) {
 			strcpy_s(Destination, MAX_STRING, pAura->Name);
@@ -6245,9 +6248,9 @@ public:
 		TypeMember(Name);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (BandolierItemInfo* ptr = (BandolierItemInfo*)VarPtr.Ptr)
 		{
@@ -6287,9 +6290,9 @@ public:
 		TypeMethod(Activate);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest);
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (PcProfile* pProfile = GetPcProfile())
 		{
