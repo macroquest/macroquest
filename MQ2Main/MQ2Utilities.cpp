@@ -1044,34 +1044,82 @@ int GetLanguageIDByName(PCHAR SzName)
 
 int GetCurrencyIDByName(PCHAR szName)
 {
-	if (!_stricmp(szName, "Doubloons")) return ALTCURRENCY_DOUBLOONS;  // 0XA
-	if (!_stricmp(szName, "Orux")) return ALTCURRENCY_ORUX; //0XB
-	if (!_stricmp(szName, "Phosphenes")) return ALTCURRENCY_PHOSPHENES; //0XC
-	if (!_stricmp(szName, "Phosphites")) return ALTCURRENCY_PHOSPHITES; //0XD
-	if (!_stricmp(szName, "Faycitum")) return ALTCURRENCY_FAYCITES; //0XE
-	if (!_stricmp(szName, "Chronobines")) return ALTCURRENCY_CHRONOBINES; //0XF
-	if (!_stricmp(szName, "Silver Tokens")) return ALTCURRENCY_SILVERTOKENS; //0X10
-	if (!_stricmp(szName, "Gold Tokens")) return ALTCURRENCY_GOLDTOKENS; //0X11
-	if (!_stricmp(szName, "McKenzie's Special Brew")) return ALTCURRENCY_MCKENZIE; //0X12
-	if (!_stricmp(szName, "Bayle Marks")) return ALTCURRENCY_BAYLE; //0X13   
-	if (!_stricmp(szName, "Tokens of Reclamation")) return ALTCURRENCY_RECLAMATION; //0X14
-	if (!_stricmp(szName, "Brellium Tokens")) return ALTCURRENCY_BRELLIUM; //0X15
-	if (!_stricmp(szName, "Dream Motes")) return ALTCURRENCY_MOTES; //0X16
-	if (!_stricmp(szName, "Rebellion Chits")) return ALTCURRENCY_REBELLIONCHITS; //0X17
-	if (!_stricmp(szName, "Diamond Coins")) return ALTCURRENCY_DIAMONDCOINS; //0X18
-	if (!_stricmp(szName, "Bronze Fiats")) return ALTCURRENCY_BRONZEFIATS; //0X19
-	if (!_stricmp(szName, "Expedient Delivery Vouchers")) return ALTCURRENCY_VOUCHER; //0x1a
-	if (!_stricmp(szName, "Velium Shards")) return ALTCURRENCY_VELIUMSHARDS; //0X1b
-	if (!_stricmp(szName, "Crystallized Fear")) return ALTCURRENCY_CRYSTALLIZEDFEAR; //0X1c
-	if (!_stricmp(szName, "Shadowstones")) return ALTCURRENCY_SHADOWSTONES; //0X1d
-	if (!_stricmp(szName, "Dreadstones")) return ALTCURRENCY_DREADSTONES; //0X1e
-	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR; //0X1F
-	if (!_stricmp(szName, "Medals of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM; //0X20   
-	if (!_stricmp(szName, "Commemorative Coins")) return ALTCURRENCY_COMMEMORATIVE_COINS; //0X21 
-	if (!_stricmp(szName, "Fists of Bayle")) return ALTCURRENCY_FISTSOFBAYLE; //0X22
-	if (!_stricmp(szName, "Nobles")) return ALTCURRENCY_NOBLES; //0X23
-	if (!_stricmp(szName, "Arx Energy Crystals")) return ALTCURRENCY_ENERGYCRYSTALS; //0X24
-	if (!_stricmp(szName, "Pieces of Eight")) return ALTCURRENCY_PIECESOFEIGHT; //0X25
+	if (!_stricmp(szName, "Doubloons")) 
+		return ALTCURRENCY_DOUBLOONS;  //10
+	if (!_stricmp(szName, "Orux")) 
+		return ALTCURRENCY_ORUX; //11
+	if (!_stricmp(szName, "Phosphenes")) 
+		return ALTCURRENCY_PHOSPHENES; //12
+	if (!_stricmp(szName, "Phosphites")) 
+		return ALTCURRENCY_PHOSPHITES; //13
+	if (!_stricmp(szName, "Faycitum")) 
+		return ALTCURRENCY_FAYCITES; //14
+	if (!_stricmp(szName, "Chronobines")) 
+		return ALTCURRENCY_CHRONOBINES; //15
+	if (!_stricmp(szName, "Silver Tokens")) 
+		return ALTCURRENCY_SILVERTOKENS; //16
+	if (!_stricmp(szName, "Gold Tokens")) 
+		return ALTCURRENCY_GOLDTOKENS; //17
+	if (!_stricmp(szName, "McKenzie's Special Brew"))
+		return ALTCURRENCY_MCKENZIE; //18
+	if (!_stricmp(szName, "Bayle Marks"))
+		return ALTCURRENCY_BAYLE; //19
+	if (!_stricmp(szName, "Tokens of Reclamation"))
+		return ALTCURRENCY_RECLAMATION; //20
+	if (!_stricmp(szName, "Brellium Tokens"))
+		return ALTCURRENCY_BRELLIUM; //21
+	if (!_stricmp(szName, "Dream Motes"))
+		return ALTCURRENCY_MOTES; //22
+	if (!_stricmp(szName, "Rebellion Chits"))
+		return ALTCURRENCY_REBELLIONCHITS; //23
+	if (!_stricmp(szName, "Diamond Coins"))
+		return ALTCURRENCY_DIAMONDCOINS; //24
+	if (!_stricmp(szName, "Bronze Fiats"))
+		return ALTCURRENCY_BRONZEFIATS; //25
+	if (!_stricmp(szName, "Expedient Delivery Vouchers"))
+		return ALTCURRENCY_VOUCHER; //26
+	if (!_stricmp(szName, "Velium Shards"))
+		return ALTCURRENCY_VELIUMSHARDS; //27
+	if (!_stricmp(szName, "Crystallized Fear"))
+		return ALTCURRENCY_CRYSTALLIZEDFEAR; //28
+	if (!_stricmp(szName, "Shadowstones"))
+		return ALTCURRENCY_SHADOWSTONES; //29
+	if (!_stricmp(szName, "Dreadstones"))
+		return ALTCURRENCY_DREADSTONES; //30
+	if (!_stricmp(szName, "Marks of Valor"))
+		return ALTCURRENCY_MARKSOFVALOR; //31
+	if (!_stricmp(szName, "Medals of Heroism"))
+		return ALTCURRENCY_MEDALSOFHEROISM; //32 
+	if (!_stricmp(szName, "Commemorative Coins"))
+		return ALTCURRENCY_COMMEMORATIVE_COINS; //33 
+	if (!_stricmp(szName, "Fists of Bayle"))
+		return ALTCURRENCY_FISTSOFBAYLE; //34
+	if (!_stricmp(szName, "Nobles"))
+		return ALTCURRENCY_NOBLES; //35
+	if (!_stricmp(szName, "Arx Energy Crystals"))
+		return ALTCURRENCY_ENERGYCRYSTALS; //36
+	if (!_stricmp(szName, "Pieces of Eight")) 
+		return ALTCURRENCY_PIECESOFEIGHT; //37
+	if (!_stricmp(szName, "Remnants of Tranquility")) 
+		return ALTCURRENCY_REMNANTSOFTRANQUILITY ; //38
+	if (!_stricmp(szName, "Bifurcated Coin")) 
+		return ALTCURRENCY_BIFURCATEDCOIN ; //39
+	if (!_stricmp(szName, "Adoptive Coins")) 
+		return ALTCURRENCY_ADOPTIVE; //40
+	if (!_stricmp(szName, "Sathir's Trade Gems")) 
+		return ALTCURRENCY_SATHIRSTRADEGEMS; //41
+	if (!_stricmp(szName, "Ancient Sebilisian Coins")) 
+		return ALTCURRENCY_ANCIENTSEBILISIANCOINS; //42
+	if (!_stricmp(szName, "Bathezid Trade Gems")) 
+		return ALTCURRENCY_BATHEZIDTRADEGEMS; //43
+	if (!_stricmp(szName, "Ancient Draconic Coin")) 
+		return ALTCURRENCY_ANCIENTDRACONICCOIN; //44
+	if (!_stricmp(szName, "Fetterred Ifrit Coins")) 
+		return ALTCURRENCY_FETTERREDIFRITCOINS; //45
+	if (!_stricmp(szName, "Entwined Djinn Coins")) 
+		return ALTCURRENCY_ENTWINEDDJINNCOINS; //46
+	if (!_stricmp(szName, "Crystallized Luck")) 
+		return ALTCURRENCY_CRYSTALLIZEDLUCK; //47
 	return -1;
 }
 

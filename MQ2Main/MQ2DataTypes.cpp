@@ -6268,6 +6268,114 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
+	case SilverTokens://281,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SILVERTOKENS);
+		Dest.Type = pIntType;
+		return true;
+	case GoldTokens://282,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_GOLDTOKENS);
+		Dest.Type = pIntType;
+		return true;
+	case McKenzie://283,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MCKENZIE);
+		Dest.Type = pIntType;
+		return true;
+	case Bayle://284,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BAYLE);
+		Dest.Type = pIntType;
+		return true;
+	case Reclamation://285,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RECLAMATION);
+		Dest.Type = pIntType;
+		return true;
+	case Brellium://286,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRELLIUM);
+		Dest.Type = pIntType;
+		return true;
+	case Motes://287,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MOTES);
+		Dest.Type = pIntType;
+		return true;
+	case RebellionChits://288,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_REBELLIONCHITS);
+		Dest.Type = pIntType;
+		return true;
+	case DiamondCoins://289,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DIAMONDCOINS);
+		Dest.Type = pIntType;
+		return true;
+	case BronzeFiats://290,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRONZEFIATS);
+		Dest.Type = pIntType;
+		return true;
+	case Voucher://291,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VOUCHER);
+		Dest.Type = pIntType;
+		return true;
+	case VeliumShards://292,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VELIUMSHARDS);
+		Dest.Type = pIntType;
+		return true;
+	case CrystallizedFear://293,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDFEAR);
+		Dest.Type = pIntType;
+		return true;
+	case ShadowStones://294,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHADOWSTONES);
+		Dest.Type = pIntType;
+		return true;
+	case DreadStones://295,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DREADSTONES);
+		Dest.Type = pIntType;
+		return true;
+	case MarksOfValor://296,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MARKSOFVALOR);
+		Dest.Type = pIntType;
+		return true;
+	case MedalsOfHeroism://297,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MEDALSOFHEROISM);
+		Dest.Type = pIntType;
+		return true;
+	case RemnantOfTranquility://298,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_REMNANTSOFTRANQUILITY);
+		Dest.Type = pIntType;
+		return true;
+	case BifurcatedCoin://299,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BIFURCATEDCOIN);
+		Dest.Type = pIntType;
+		return true;
+	case AdoptiveCoin://300,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ADOPTIVE);
+		Dest.Type = pIntType;
+		return true;
+	case SathirsTradeGems://301,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SATHIRSTRADEGEMS);
+		Dest.Type = pIntType;
+		return true;
+	case AncientSebilisianCoins://302,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ANCIENTSEBILISIANCOINS);
+		Dest.Type = pIntType;
+		return true;
+	case BathezidTradeGems://303,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BATHEZIDTRADEGEMS);
+		Dest.Type = pIntType;
+		return true;
+	case AncientDraconicCoin://304,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ANCIENTDRACONICCOIN);
+		Dest.Type = pIntType;
+		return true;
+	case FetterredIfritCoins://305,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FETTERREDIFRITCOINS);
+		Dest.Type = pIntType;
+		return true;
+	case EntwinedDjinnCoins://306,
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ENTWINEDDJINNCOINS);
+		Dest.Type = pIntType;
+		return true;
+	case CrystallizedLuck://307
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDLUCK);
+		Dest.Type = pIntType;
+		return true;
 
 	//end of MQ2CharacterType
 	}
