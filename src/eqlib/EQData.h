@@ -573,12 +573,6 @@ constexpr int LDON_MIS  = 4;      // Mistmoore catacombs
 constexpr int LDON_RUJ  = 8;      // rujarkian hills
 constexpr int LDON_TAK  = 16;     // takish-hiz
 
-#define CALC_1TICK                               107
-#define CALC_2TICK                               108
-#define CALC_5TICK                               120
-#define CALC_12TICK                              122
-#define CALC_RANDOM                              123
-
 // Camera modes
 constexpr int EQ_FIRST_PERSON_CAM = 0;
 constexpr int EQ_OVERHEAD_CAM = 1;

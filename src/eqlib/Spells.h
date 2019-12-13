@@ -115,7 +115,7 @@ enum eEQSPA
 	SPA_CORPSE_BOMB                         = 70,
 	SPA_CREATE_UNDEAD                       = 71,
 	SPA_PRESERVE_CORPSE                     = 72,
-	SPA_TARGETS_VIEW                        = 73,
+	SPA_BIND_SIGHT                          = 73,
 	SPA_FEIGN_DEATH                         = 74,
 	SPA_VENTRILOQUISM                       = 75,
 	SPA_SENTINEL                            = 76,
@@ -574,6 +574,57 @@ enum eEQSPA
 	SPA_SPELLDAMAGETAKEN DEPRECATE("Use SPA_FOCUS_INCOMING_DMG_MOD instead") = SPA_FOCUS_INCOMING_DMG_MOD,
 };
 
+inline bool IsSpellCountersSPA(int attrib)
+{
+	return attrib == SPA_DISEASE                     // Disease Counters
+		|| attrib == SPA_POISON                      // Poison Counters
+		|| attrib == SPA_CURSE                       // Curse Counters
+		|| attrib == SPA_CORRUPTION;                 // Corruption Counters
+}
+
+inline bool IsDamageAbsorbSPA(int attrib)
+{
+	return attrib == SPA_STONESKIN                   // Absorb Damage
+		|| attrib == SPA_SPELL_SHIELD                // SpellShield
+		|| attrib == SPA_SPELL_GUARD                 // Mitigate Spell Damage
+		|| attrib == SPA_MELEE_GUARD                 // Mitigate Melee Damage
+		|| attrib == SPA_DOT_GUARD                   // DoT Guard
+		|| attrib == SPA_MELEE_THRESHOLD_GUARD       // Melee Threshold Guard
+		|| attrib == SPA_SPELL_THRESHOLD_GUARD;      // Spell Threshold Guard
+}
+
+enum eResistType
+{
+	ResistType_None = 0,
+	ResistType_Magic = 1,
+	ResistType_Fire = 2,
+	ResistType_Cold = 3,
+	ResistType_Poison = 4,
+	ResistType_Disease = 5,
+	ResistType_Chromatic = 6,
+	ResistType_Prismatic = 7,
+	ResistType_Physical = 8,
+	ResistType_Corruption = 9,
+};
+
+enum eSpellType
+{
+	SpellType_Detrimental = 0,
+	SpellType_Beneficial = 1,
+	SpellType_BeneficialGroupOnly = 2
+};
+
+// Determines the algorithm used to affect the spell value, potentially affected by
+// time or by level or other things too...
+enum eSpellValueRangeCalc
+{
+	SpellValueRangeCalc_DecayTick1 = 107,
+	SpellValueRangeCalc_DecayTick2 = 108,
+	SpellValueRangeCalc_DecayTick5 = 120,
+	SpellValueRangeCalc_DecayTick12 = 122,
+	SpellValueRangeCalc_Random = 123,
+};
+
 // actual size: 0x22e Feb 16 2018 test see 5F68F6 - eqmule
 // actual size: 0x22d Apr 10 2018 test see 557362 - eqmule
 // actual size: 0x229 May 07 2018 test see 6628CA  - eqmule
@@ -684,7 +735,7 @@ struct [[offsetcomments]] SPELL
 /*0x162*/ bool    ShowDoTMessage;
 /*0x163*/ BYTE    ClassLevel[0x24];              // per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014
 /*0x187*/ BYTE    LightType;
-/*0x188*/ BYTE    SpellType;                     // 0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
+/*0x188*/ eSpellType SpellType;                  // 0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
 /*0x189*/ BYTE    Resist;                        // see   4B0493 in apr 16 2018 exe        //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
 /*0x18a*/ BYTE    TargetType;                    // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
 /*0x18b*/ BYTE    CastDifficulty;
@@ -748,10 +799,10 @@ constexpr int CalcInfoSize = 206000;     // 4E8814 in eqgame 2018 10 Apr test
 // size: 0x1BC800 2019-07-10 test (see 5E36C2) - eqmule
 struct [[offsetcomments]] SPELLMGR
 {
-	/*0x000000*/ void* vfTable;                       // need this for some calls later
+/*0x000000*/ void*          vfTable;                       // need this for some calls later
 /*0x000004*/ BYTE           Unknown0x00004[0x3DAE0];
-/*0x03dae4*/ SPELL* Spells[TOTAL_SPELL_COUNT];    // 60000
-/*0x07a3a4*/ SPELL* PtrToUnknownSpell;            // default bailout pointer...
+/*0x03dae4*/ SPELL*         Spells[TOTAL_SPELL_COUNT];    // 60000
+/*0x07a3a4*/ SPELL*         PtrToUnknownSpell;            // default bailout pointer...
 /*0x07a3a8*/ SPELLCALCINFO* CalcInfo[CalcInfoSize];       // 200000
 /*0x143668*/ DWORD          What1[0x6];
 /*0x143680*/ DWORD          What2[0x1E460];               // 120000
@@ -762,31 +813,31 @@ using PSPELLMGR = SPELLMGR*;
 class [[offsetcomments]] MercenaryAbilityEffectsDefinition
 {
 public:
-/*0x00*/ void* vfTable;
-/*0x04*/ int   ID;
-/*0x08*/ int   AbilityID;
-/*0x0c*/ int   FromID;
-/*0x10*/ int   Base;
-/*0x14*/ int   Base2;
-/*0x18*/ int   LevelMod;
-/*0x1c*/ int   Cap;
-/*0x20*/ int   Slot;
+/*0x00*/ void*     vfTable;
+/*0x04*/ int       ID;
+/*0x08*/ int       AbilityID;
+/*0x0c*/ int       FromID;
+/*0x10*/ int       Base;
+/*0x14*/ int       Base2;
+/*0x18*/ int       LevelMod;
+/*0x1c*/ int       Cap;
+/*0x20*/ int       Slot;
 /*0x24*/
 };
 
 struct [[offsetcomments]] FocusEffectData
 {
-/*0x00*/ int Type;
-/*0x04*/ int Base;
-/*0x08*/ int Base2;
-/*0x0c*/ int Slot;
+/*0x00*/ int       Type;
+/*0x04*/ int       Base;
+/*0x08*/ int       Base2;
+/*0x0c*/ int       Slot;
 /*0x10*/
 };
 
 struct [[offsetcomments]] CachedFocusAbility
 {
-/*0x00*/ FocusEffectData* pEffectData;
-/*0x04*/ int Percent;
+/*0x00*/ FocusEffectData*   pEffectData;
+/*0x04*/ int                Percent;
 /*0x08*/
 };
 
@@ -828,11 +879,11 @@ public:
 		int Percent;
 	};
 
-/*0x00*/ HashTable<EffectCache>* pCachedEffects;
+/*0x00*/ HashTable<EffectCache>*                    pCachedEffects;
 /*0x04*/ bool                                       bCachedSpellEffects;
-/*0x08*/ HashTable<AltEffectCache>* pCachedAltAbilityEffects;
+/*0x08*/ HashTable<AltEffectCache>*                 pCachedAltAbilityEffects;
 /*0x0c*/ bool                                       bCachedAltEffects;
-/*0x10*/ HashTable<EffectCache>* pCachedLimitedEffects;
+/*0x10*/ HashTable<EffectCache>*                    pCachedLimitedEffects;
 /*0x14*/ bool                                       bCachedLimitedEffects;
 /*0x18*/ HashTable<CachedFocusItem, int64_t>        CachedFocusItems;
 /*0x28*/ HashTable<CachedFocusEffect, int64_t>      CachedFocusEffects;
@@ -840,7 +891,6 @@ public:
 /*0x48*/ HashTable<CachedFocusMercAbility, int64_t> CachedFocusMercAbilities;
 /*0x58*/
 };
-
 
 struct [[offsetcomments]] SlotData
 {

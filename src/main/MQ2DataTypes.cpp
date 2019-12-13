@@ -3058,14 +3058,13 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 				{
 					int attrib = GetSpellAttrib(pSpell, i);
 
-					// TODO: Replace constants with SPA enums
-					if (attrib == 55 || attrib == 78 || attrib == 161 || attrib == 162 || attrib == 450 || attrib == 451 || attrib == 452)
+					if (IsDamageAbsorbSPA(attrib))
 					{
-						for (int j = 0; j < NUM_SLOTDATA; j++)
+						for (auto& slotData : pBuff->SlotData)
 						{
-							if (pBuff->SlotData[j].Slot == i)
+							if (slotData.Slot == i)
 							{
-								Dest.DWord += pBuff->SlotData[j].Value;
+								Dest.DWord += slotData.Value;
 							}
 						}
 					}
@@ -3076,161 +3075,36 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return false;
 
 	case TotalCounters:
-		Dest.DWord = 0;
+		Dest.DWord = GetTotalSpellCounters(pBuff);
 		Dest.Type = pIntType;
-
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
-		{
-			if (pSpell->SpellType == 0)
-			{
-				int slots = GetSpellNumEffects(pSpell);
-
-				for (int i = 0; i < slots; i++)
-				{
-					int attrib = GetSpellAttrib(pSpell, i);
-
-					// TODO: Replace constants with SPA enums
-					if (attrib == 35 || attrib == 36 || attrib == 116 || attrib == 369)
-					{
-						for (int j = 0; j < NUM_SLOTDATA; j++)
-						{
-							if (pBuff->SlotData[j].Slot == i)
-							{
-								Dest.DWord += pBuff->SlotData[j].Value;
-							}
-						}
-					}
-				}
-				return true;
-			}
-		}
-		return false;
+		return true;
 
 	case CountersDisease:
-		Dest.DWord = 0;
+		Dest.DWord = GetSpellCounters(SPA_DISEASE, pBuff);
 		Dest.Type = pIntType;
-
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
-		{
-			if (pSpell->SpellType == 0)
-			{
-				int slots = GetSpellNumEffects(pSpell);
-
-				for (int i = 0; i < slots; i++)
-				{
-					int attrib = GetSpellAttrib(pSpell, i);
-
-					if (attrib == 35)
-					{
-						for (int j = 0; j < NUM_SLOTDATA; j++)
-						{
-							if (pBuff->SlotData[j].Slot == i)
-							{
-								Dest.DWord += pBuff->SlotData[j].Value;
-							}
-						}
-					}
-				}
-				return true;
-			}
-		}
-		return false;
+		return true;
 
 	case CountersPoison:
-		Dest.DWord = 0;
+		Dest.DWord = GetSpellCounters(SPA_POISON, pBuff);
 		Dest.Type = pIntType;
-
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
-		{
-			if (pSpell->SpellType == 0)
-			{
-				int slots = GetSpellNumEffects(pSpell);
-
-				for (int i = 0; i < slots; i++)
-				{
-					int attrib = GetSpellAttrib(pSpell, i);
-
-					if (attrib == 36)
-					{
-						for (int j = 0; j < NUM_SLOTDATA; j++)
-						{
-							if (pBuff->SlotData[j].Slot == i)
-							{
-								Dest.DWord += pBuff->SlotData[j].Value;
-							}
-						}
-					}
-				}
-				return true;
-			}
-		}
-		return false;
+		return true;
 
 	case CountersCurse:
-		Dest.DWord = 0;
+		Dest.DWord = GetSpellCounters(SPA_CURSE, pBuff);
 		Dest.Type = pIntType;
-
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
-		{
-			if (pSpell->SpellType == 0)
-			{
-				int slots = GetSpellNumEffects(pSpell);
-
-				for (int i = 0; i < slots; i++)
-				{
-					int attrib = GetSpellAttrib(pSpell, i);
-
-					if (attrib == 116)
-					{
-						for (int j = 0; j < NUM_SLOTDATA; j++)
-						{
-							if (pBuff->SlotData[j].Slot == i)
-							{
-								Dest.DWord += pBuff->SlotData[j].Value;
-							}
-						}
-					}
-				}
-				return true;
-			}
-		}
-		return false;
+		return true;
 
 	case CountersCorruption:
-		Dest.DWord = 0;
+		Dest.DWord = GetSpellCounters(SPA_CURSE, pBuff);
 		Dest.Type = pIntType;
-
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
-		{
-			if (pSpell->SpellType == 0)
-			{
-				int slots = GetSpellNumEffects(pSpell);
-
-				for (int i = 0; i < slots; i++)
-				{
-					int attrib = GetSpellAttrib(pSpell, i);
-
-					if (attrib == 369)
-					{
-						for (int j = 0; j < NUM_SLOTDATA; j++)
-						{
-							if (pBuff->SlotData[j].Slot == i)
-							{
-								Dest.DWord += pBuff->SlotData[j].Value;
-							}
-						}
-					}
-				}
-				return true;
-			}
-		}
-		return false;
+		return true;
 
 	case HitCount:
 		Dest.DWord = pBuff->HitCount;
 		Dest.Type = pIntType;
 		return true;
 
+	default: break;
 	}
 
 	return false;
@@ -3262,7 +3136,7 @@ bool MQ2TargetBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	switch (static_cast<TargetBuffMembers>(pMember->ID))
 	{
 	case Address:
-		Dest.DWord = (DWORD)& pTargetWnd->BuffSpellID[VarPtr.Int];
+		Dest.DWord = (DWORD)&pTargetWnd->BuffSpellID[VarPtr.Int];
 		Dest.Type = pIntType;
 		return true;
 
@@ -3347,7 +3221,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	if (!pChar)
 		return false;
 
+	const PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return false;
+
 	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pChar->pSpawn);
+
 
 	//------------------------------------------------------------------------
 	// methods
@@ -3489,13 +3368,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	}
 
 	case CurrentMana:
-		Dest.DWord = 0;
+		Dest.DWord = pProfile->Mana;
 		Dest.Type = pIntType;
-
-		if (const BaseProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->Mana;
-		}
 		return true;
 
 	case MaxMana:
@@ -3504,28 +3378,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case PctMana:
-		Dest.DWord = 0;
+		if (int maxMana = GetMaxMana())
+			Dest.DWord = pProfile->Mana * 100 / maxMana;
+		else
+			Dest.DWord = 0;
 		Dest.Type = pIntType;
-
-		if (const BaseProfile* pProfile = GetPcProfile())
-		{
-			if (int maxMana = GetMaxMana())
-				Dest.DWord = pProfile->Mana * 100 / maxMana;
-		}
 		return true;
 
 	case CountBuffs:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (const BaseProfile* pProfile = GetPcProfile())
+		for (const auto& buff : pProfile->Buff)
 		{
-			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+			if (buff.SpellID > 0)
 			{
-				if (pProfile->Buff[nBuff].SpellID > 0)
-				{
-					Dest.DWord++;
-				}
+				Dest.DWord++;
 			}
 		}
 		return true;
@@ -3534,14 +3402,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (const BaseProfile* pProfile = GetPcProfile())
+		for (const auto& buff : pProfile->ShortBuff)
 		{
-			for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
+			if (buff.SpellID > 0)
 			{
-				if (pProfile->ShortBuff[nBuff].SpellID > 0)
-				{
-					Dest.DWord++;
-				}
+				Dest.DWord++;
 			}
 		}
 		return true;
@@ -3600,33 +3465,30 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (!Index[0])
 			return false;
 
-		if (PcProfile* pProfile = GetPcProfile())
+		if (IsNumber(Index))
 		{
-			if (IsNumber(Index))
-			{
-				int nBuff = GetIntFromString(Index, 0) - 1;
-				if (nBuff < 0)
-					return false;
-				if (nBuff >= NUM_LONG_BUFFS)
-					return false;
-				if (pProfile->Buff[nBuff].SpellID <= 0)
-					return false;
+			int nBuff = GetIntFromString(Index, 0) - 1;
+			if (nBuff < 0)
+				return false;
+			if (nBuff >= NUM_LONG_BUFFS)
+				return false;
+			if (pProfile->Buff[nBuff].SpellID <= 0)
+				return false;
 
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				Dest.HighPart = nBuff;
-				return true;
-			}
+			Dest.Ptr = (SPELLBUFF*)&pProfile->Buff[nBuff];
+			Dest.HighPart = nBuff;
+			return true;
+		}
 
-			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
+		for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
+		{
+			if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
+				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-					{
-						Dest.Ptr = &pProfile->Buff[nBuff];
-						Dest.HighPart = nBuff;
-						return true;
-					}
+					Dest.Ptr = (SPELLBUFF*)&pProfile->Buff[nBuff];
+					Dest.HighPart = nBuff;
+					return true;
 				}
 			}
 		}
@@ -3637,33 +3499,30 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		if (!Index[0])
 			return false;
 
-		if (PcProfile* pProfile = GetPcProfile())
+		if (IsNumber(Index))
 		{
-			if (IsNumber(Index))
-			{
-				int nBuff = GetIntFromString(Index, 0) - 1;
-				if (nBuff < 0)
-					return false;
-				if (nBuff >= NUM_SHORT_BUFFS)
-					return false;
-				if (pProfile->ShortBuff[nBuff].SpellID <= 0)
-					return false;
+			int nBuff = GetIntFromString(Index, 0) - 1;
+			if (nBuff < 0)
+				return false;
+			if (nBuff >= NUM_SHORT_BUFFS)
+				return false;
+			if (pProfile->ShortBuff[nBuff].SpellID <= 0)
+				return false;
 
-				Dest.Ptr = &pProfile->ShortBuff[nBuff];
-				Dest.HighPart = nBuff;
-				return true;
-			}
+			Dest.Ptr = (SPELLBUFF*)&pProfile->ShortBuff[nBuff];
+			Dest.HighPart = nBuff;
+			return true;
+		}
 
-			for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
+		for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
+		{
+			if (SPELL* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
 			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
+				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-					{
-						Dest.Ptr = &pProfile->ShortBuff[nBuff];
-						Dest.HighPart = nBuff;
-						return true;
-					}
+					Dest.Ptr = (SPELLBUFF*)&pProfile->ShortBuff[nBuff];
+					Dest.HighPart = nBuff;
+					return true;
 				}
 			}
 		}
@@ -3829,14 +3688,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case Endurance: // Grandfathered, CurrentEndurance should be used instead.
+	case Endurance: // Backwards compat, CurrentEndurance should be used instead.
 	case CurrentEndurance:
-		Dest.DWord = 0;
+		Dest.DWord = pProfile->Endurance;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->Endurance;
-		}
 		return true;
 
 	case MaxEndurance:
@@ -3845,15 +3700,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case PctEndurance:
-		Dest.DWord = 0;
+		if (int maxEndurance = GetMaxEndurance())
+			Dest.DWord = pProfile->Endurance * 100 / maxEndurance;
+		else
+			Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* profile = GetPcProfile())
-		{
-			if (int Temp = GetMaxEndurance())
-			{
-				Dest.DWord = profile->Endurance * 100 / Temp;
-			}
-		}
 		return true;
 
 	case GukEarned:
@@ -3924,16 +3775,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pItemType;
 		if (Index[0])
 		{
-			const PcProfile* profile = GetPcProfile();
-			if (!profile)
-				return false;
-
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, NUM_INV_SLOTS);
 				if (nSlot < NUM_INV_SLOTS)
 				{
-					if (profile->pInventoryArray && ((Dest.Ptr = profile->pInventoryArray->InventoryArray[nSlot])))
+					if (pProfile->pInventoryArray && ((Dest.Ptr = pProfile->pInventoryArray->InventoryArray[nSlot])))
 					{
 						return true;
 					}
@@ -3945,7 +3792,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				{
 					if (!_stricmp(Index, szItemSlot[nSlot]))
 					{
-						if (profile->pInventoryArray && ((Dest.Ptr = profile->pInventoryArray->InventoryArray[nSlot])))
+						if (pProfile->pInventoryArray && ((Dest.Ptr = pProfile->pInventoryArray->InventoryArray[nSlot])))
 						{
 							return true;
 						}
@@ -3999,83 +3846,51 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case Cash:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->Plat * 1000 + profile->Gold * 100 + profile->Silver * 10 + profile->Copper;
-		}
+		Dest.DWord = pProfile->Plat * 1000 + pProfile->Gold * 100 + pProfile->Silver * 10 + pProfile->Copper;
 		Dest.Type = pIntType;
 		return true;
 
 	case Platinum:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->Plat;
-		}
+		Dest.DWord = pProfile->Plat;
 		Dest.Type = pIntType;
 		return true;
 
 	case CursorPlatinum:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->CursorPlat;
-		}
+		Dest.DWord = pProfile->CursorPlat;
 		Dest.Type = pIntType;
 		return true;
 
 	case Gold:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->Gold;
-		}
+		Dest.DWord = pProfile->Gold;
 		Dest.Type = pIntType;
 		return true;
 
 	case CursorGold:
 		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
+		if (const PcProfile* pProfile = GetPcProfile())
 		{
-			Dest.DWord = profile->CursorGold;
+			Dest.DWord = pProfile->CursorGold;
 		}
 		Dest.Type = pIntType;
 		return true;
 
 	case Silver:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->Silver;
-		}
+		Dest.DWord = pProfile->Silver;
 		Dest.Type = pIntType;
 		return true;
 
 	case CursorSilver:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->CursorSilver;
-		}
+		Dest.DWord = pProfile->CursorSilver;
 		Dest.Type = pIntType;
 		return true;
 
 	case Copper:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->Copper;
-		}
+		Dest.DWord = pProfile->Copper;
 		Dest.Type = pIntType;
 		return true;
 
 	case CursorCopper:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->CursorCopper;
-		}
+		Dest.DWord = pProfile->CursorCopper;
 		Dest.Type = pIntType;
 		return true;
 
@@ -4110,11 +3925,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case AAPoints:
-		Dest.DWord = 0;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = profile->AAPoints;
-		}
+		Dest.DWord = pProfile->AAPoints;
 		Dest.Type = pIntType;
 		return true;
 
@@ -4185,18 +3996,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case FreeBuffSlots:
-		Dest.DWord = 15;
-		if (const PcProfile* profile = GetPcProfile())
-		{
-			Dest.DWord = GetCharMaxBuffSlots();
-
-			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
-			{
-				if (profile->Buff[nBuff].SpellID > 0)
-					Dest.DWord--;
-			}
-		}
+		Dest.DWord = GetCharMaxBuffSlots();
 		Dest.Type = pIntType;
+
+		for (const auto& buff : pProfile->Buff)
+		{
+			if (buff.SpellID > 0)
+				Dest.DWord--;
+		}
 		return true;
 
 	case Gem:
@@ -4456,20 +4263,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case Hunger:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->hungerlevel;
-		}
+		Dest.DWord = pProfile->hungerlevel;
 		Dest.Type = pIntType;
 		return true;
 
 	case Thirst:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->thirstlevel;
-		}
+		Dest.DWord = pProfile->thirstlevel;
 		Dest.Type = pIntType;
 		return true;
 
@@ -4639,35 +4438,32 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		if (Index[0])
 		{
-			if (const PcProfile* pProfile = GetPcProfile())
+			int nSkill = 0;
+
+			if (IsNumber(Index))
 			{
-				int nSkill = 0;
+				// numeric
+				nSkill = GetIntFromString(Index, nSkill) - 1;
+				if (nSkill < 0)
+					return false;
+			}
+			else
+			{
+				// name
+				for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+				{
+					if (!_stricmp(Index, szSkills[nSkill]))
+						break;
+				}
+			}
 
-				if (IsNumber(Index))
+			if (nSkill < NUM_SKILLS)
+			{
+				if (pProfile->Skill[nSkill])
 				{
-					// numeric
-					nSkill = GetIntFromString(Index, nSkill) - 1;
-					if (nSkill < 0)
-						return false;
+					Dest.DWord = GetAdjustedSkill(nSkill);
 				}
-				else
-				{
-					// name
-					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-					{
-						if (!_stricmp(Index, szSkills[nSkill]))
-							break;
-					}
-				}
-
-				if (nSkill < NUM_SKILLS)
-				{
-					if (pProfile->Skill[nSkill])
-					{
-						Dest.DWord = GetAdjustedSkill(nSkill);
-					}
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;
@@ -4678,35 +4474,32 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		if (Index[0])
 		{
-			if (const PcProfile* pProfile = GetPcProfile())
+			int nSkill = 0;
+
+			if (IsNumber(Index))
 			{
-				int nSkill = 0;
+				// numeric
+				nSkill = GetIntFromString(Index, nSkill) - 1;
+				if (nSkill < 0)
+					return false;
+			}
+			else
+			{
+				// name
+				for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+				{
+					if (!_stricmp(Index, szSkills[nSkill]))
+						break;
+				}
+			}
 
-				if (IsNumber(Index))
+			if (nSkill < NUM_SKILLS)
+			{
+				if (pProfile->Skill[nSkill])
 				{
-					// numeric
-					nSkill = GetIntFromString(Index, nSkill) - 1;
-					if (nSkill < 0)
-						return false;
+					Dest.DWord = GetBaseSkill(nSkill);
 				}
-				else
-				{
-					// name
-					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-					{
-						if (!_stricmp(Index, szSkills[nSkill]))
-							break;
-					}
-				}
-
-				if (nSkill < NUM_SKILLS)
-				{
-					if (pProfile->Skill[nSkill])
-					{
-						Dest.DWord = GetBaseSkill(nSkill);
-					}
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;
@@ -4717,34 +4510,31 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		if (Index[0])
 		{
-			if (const PcProfile* pProfile = GetPcProfile())
+			int nSkill = 0;
+
+			if (IsNumber(Index))
 			{
-				int nSkill = 0;
-
-				if (IsNumber(Index))
+				// numeric
+				nSkill = GetIntFromString(Index, nSkill) - 1;
+				if (nSkill < 0)
+					return false;
+			}
+			else
+			{
+				// name
+				for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
 				{
-					// numeric
-					nSkill = GetIntFromString(Index, nSkill) - 1;
-					if (nSkill < 0)
-						return false;
+					if (!_stricmp(Index, szSkills[nSkill]))
+						break;
 				}
-				else
-				{
-					// name
-					for (nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-					{
-						if (!_stricmp(Index, szSkills[nSkill]))
-							break;
-					}
-				}
+			}
 
-				if (nSkill < NUM_SKILLS)
+			if (nSkill < NUM_SKILLS)
+			{
+				if (pCharData)
 				{
-					if (pCharData)
-					{
-						Dest.DWord = pCSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, nSkill, true, true, true);
-						return true;
-					}
+					Dest.DWord = pCSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, nSkill, true, true, true);
+					return true;
 				}
 			}
 		}
@@ -4853,37 +4643,34 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		if (Index[0])
 		{
-			if (const PcProfile* pProfile = GetPcProfile())
+			if (IsNumber(Index))
 			{
-				if (IsNumber(Index))
-				{
-					// numeric
-					int nSpell = GetIntFromString(Index, 0) - 1;
-					if (nSpell < 0)
-						return false;
+				// numeric
+				int nSpell = GetIntFromString(Index, 0) - 1;
+				if (nSpell < 0)
+					return false;
 
-					if (nSpell < NUM_BOOK_SLOTS)
+				if (nSpell < NUM_BOOK_SLOTS)
+				{
+					if (Dest.Ptr = GetSpellByID(pProfile->SpellBook[nSpell]))
 					{
-						if (Dest.Ptr = GetSpellByID(pProfile->SpellBook[nSpell]))
-						{
-							Dest.Type = pSpellType;
-							return true;
-						}
+						Dest.Type = pSpellType;
+						return true;
 					}
 				}
-				else
+			}
+			else
+			{
+				// name
+				for (int nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
 				{
-					// name
-					for (int nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
+					if (pProfile->SpellBook[nSpell] != -1)
 					{
-						if (pProfile->SpellBook[nSpell] != -1)
+						if (!_stricmp(GetSpellNameByID(pProfile->SpellBook[nSpell]), Index))
 						{
-							if (!_stricmp(GetSpellNameByID(pProfile->SpellBook[nSpell]), Index))
-							{
-								Dest.DWord = nSpell + 1;
-								Dest.Type = pIntType;
-								return true;
-							}
+							Dest.DWord = nSpell + 1;
+							Dest.Type = pIntType;
+							return true;
 						}
 					}
 				}
@@ -5050,32 +4837,30 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (const PcProfile* pProfile = GetPcProfile())
+
+		if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
 		{
-			if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
+			for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
 			{
-				for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+				if (CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot])
 				{
-					if (CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot])
+					if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK
+						&& GetItemFromContents(pItem)->SizeCapacity > Dest.DWord)
 					{
-						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK
-							&& GetItemFromContents(pItem)->SizeCapacity > Dest.DWord)
+						for (int pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++)
 						{
-							for (int pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++)
+							if (!pItem->Contents.ContainedItems.pItems || !pItem->GetContent(pslot))
 							{
-								if (!pItem->Contents.ContainedItems.pItems || !pItem->GetContent(pslot))
-								{
-									Dest.DWord = GetItemFromContents(pItem)->SizeCapacity;
-									break; // break the loop for this pack
-								}
+								Dest.DWord = GetItemFromContents(pItem)->SizeCapacity;
+								break; // break the loop for this pack
 							}
 						}
 					}
-					else
-					{
-						Dest.DWord = 4;
-						return true;
-					}
+				}
+				else
+				{
+					Dest.DWord = 4;
+					return true;
 				}
 			}
 		}
@@ -5098,11 +4883,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	}
 
 	case Drunk:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->Drunkenness;
-		}
+		Dest.DWord = pProfile->Drunkenness;
 		Dest.Type = pIntType;
 		return true;
 
@@ -5258,29 +5039,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case AAPointsSpent:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->AAPointsSpent;
-		}
+		Dest.DWord = pProfile->AAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
 
 	case AAPointsTotal:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->AAPointsSpent + pProfile->AAPoints;
-		}
+		Dest.DWord = pProfile->AAPointsSpent + pProfile->AAPoints;
 		Dest.Type = pIntType;
 		return true;
 
 	case AAPointsAssigned:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->AAPointsAssigned[0];
-		}
+		Dest.DWord = pProfile->AAPointsAssigned[0];
 		Dest.Type = pIntType;
 		return true;
 
@@ -5327,11 +5096,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case Shrouded:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->Shrouded;
-		}
+		Dest.DWord = pProfile->Shrouded;
 		Dest.Type = pBoolType;
 		return true;
 
@@ -5624,34 +5389,25 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (const PcProfile* pProfile = GetPcProfile())
+		for (const auto& buff : pProfile->Buff)
 		{
-			for (int k = 0; k < NUM_LONG_BUFFS; k++)
+			if (SPELL* pSpell = GetSpellByID(buff.SpellID))
 			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[k].SpellID))
+				if (pSpell->SpellType != 0)
 				{
-					if (pSpell->SpellType != 0)
+					int slots = GetSpellNumEffects(pSpell);
+
+					for (int i = 0; i < slots; i++)
 					{
-						int slots = GetSpellNumEffects(pSpell);
+						int attrib = GetSpellAttrib(pSpell, i);
 
-						for (int i = 0; i < slots; i++)
+						if (IsDamageAbsorbSPA(attrib))
 						{
-							int attrib = GetSpellAttrib(pSpell, i);
-
-							if (attrib == 55 /*Absorb Damage*/
-								|| attrib == 78 /*SpellShield*/
-								|| attrib == 161 /*Mitigate Spell Damage*/
-								|| attrib == 162 /*Mitigate Melee Damage*/
-								|| attrib == 450 /*DoT Guard*/
-								|| attrib == 451 /*Melee Threshold Guard*/
-								|| attrib == 452 /*Spell Threshold Guard*/)
+							for (auto buff : buff.SlotData)
 							{
-								for (int j = 0; j < NUM_SLOTDATA; j++)
+								if (buff.Slot == i)
 								{
-									if (pProfile->Buff[k].SlotData[j].Slot == i)
-									{
-										Dest.DWord += pProfile->Buff[k].SlotData[j].Value;
-									}
+									Dest.DWord += buff.Value;
 								}
 							}
 						}
@@ -5664,181 +5420,28 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		// this case adds all resist Counters and returns that, why is this useful?
 		// should we split these into 4? one for each debuff?
 	case TotalCounters:
-		Dest.DWord = 0;
+		Dest.DWord = GetMyTotalSpellCounters();
 		Dest.Type = pIntType;
-
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			for (int k = 0; k < NUM_LONG_BUFFS; k++)
-			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[k].SpellID))
-				{
-					if (pSpell->SpellType == 0)
-					{
-						int slots = GetSpellNumEffects(pSpell);
-
-						for (int i = 0; i < slots; i++)
-						{
-							int attrib = GetSpellAttrib(pSpell, i);
-
-							if (attrib == 35 /*Disease Counter*/
-								|| attrib == 36 /*Poison*/
-								|| attrib == 116 /*Curse*/
-								|| attrib == 369/*Corruption*/)
-							{
-								for (int j = 0; j < NUM_SLOTDATA; j++)
-								{
-									if (pProfile->Buff[k].SlotData[j].Slot == i)
-									{
-										Dest.DWord += pProfile->Buff[k].SlotData[j].Value;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 
 	case CountersDisease:
-		Dest.DWord = 0;
+		Dest.DWord += GetMySpellCounters(SPA_DISEASE);
 		Dest.Type = pIntType;
-
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			for (int k = 0; k < NUM_LONG_BUFFS; k++)
-			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[k].SpellID))
-				{
-					if (pSpell->SpellType == 0)
-					{
-						int slots = GetSpellNumEffects(pSpell);
-
-						for (int i = 0; i < slots; i++)
-						{
-							int attrib = GetSpellAttrib(pSpell, i);
-
-							if (attrib == 35 /*Disease Counter*/)
-							{
-								for (int j = 0; j < NUM_SLOTDATA; j++)
-								{
-									if (pProfile->Buff[k].SlotData[j].Slot == i)
-									{
-										Dest.DWord += pProfile->Buff[k].SlotData[j].Value;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 
 	case CountersPoison:
-		Dest.DWord = 0;
+		Dest.DWord = GetMySpellCounters(SPA_POISON);
 		Dest.Type = pIntType;
-
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			for (int k = 0; k < NUM_LONG_BUFFS; k++)
-			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[k].SpellID))
-				{
-					if (pSpell->SpellType == 0)
-					{
-						int slots = GetSpellNumEffects(pSpell);
-
-						for (int i = 0; i < slots; i++)
-						{
-							int attrib = GetSpellAttrib(pSpell, i);
-
-							if (attrib == 36 /*Poison*/)
-							{
-								for (int j = 0; j < NUM_SLOTDATA; j++)
-								{
-									if (pProfile->Buff[k].SlotData[j].Slot == i)
-									{
-										Dest.DWord += pProfile->Buff[k].SlotData[j].Value;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 
 	case CountersCurse:
-		Dest.DWord = 0;
+		Dest.DWord = GetMySpellCounters(SPA_CURSE);
 		Dest.Type = pIntType;
-
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			for (int k = 0; k < NUM_LONG_BUFFS; k++)
-			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[k].SpellID))
-				{
-					if (pSpell->SpellType == 0)
-					{
-						int slots = GetSpellNumEffects(pSpell);
-
-						for (int i = 0; i < slots; i++)
-						{
-							int attrib = GetSpellAttrib(pSpell, i);
-
-							if (attrib == 116 /*Curse*/)
-							{
-								for (int j = 0; j < NUM_SLOTDATA; j++)
-								{
-									if (pProfile->Buff[k].SlotData[j].Slot == i)
-									{
-										Dest.DWord += pProfile->Buff[k].SlotData[j].Value;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 
 	case CountersCorruption:
-		Dest.DWord = 0;
+		Dest.DWord = GetMySpellCounters(SPA_CORRUPTION);
 		Dest.Type = pIntType;
-
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			for (int k = 0; k < NUM_LONG_BUFFS; k++)
-			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[k].SpellID))
-				{
-					if (pSpell->SpellType == 0)
-					{
-						int slots = GetSpellNumEffects(pSpell);
-
-						for (int i = 0; i < slots; i++)
-						{
-							int attrib = GetSpellAttrib(pSpell, i);
-
-							if (attrib == 369/*Corruption*/)
-							{
-								for (int j = 0; j < NUM_SLOTDATA; j++)
-								{
-									if (pProfile->Buff[k].SlotData[j].Slot == i)
-									{
-										Dest.DWord += pProfile->Buff[k].SlotData[j].Value;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return true;
 
 	case Mercenary:
@@ -7497,16 +7100,16 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		{
 			switch (GetSpellAttrib(pSpell, i))
 			{
-			case 35:
+			case SPA_DISEASE:
 				strcpy_s(DataTypeTemp, "Disease");
 				break;
-			case 36:
+			case SPA_POISON:
 				strcpy_s(DataTypeTemp, "Poison");
 				break;
-			case 116:
+			case SPA_CURSE:
 				strcpy_s(DataTypeTemp, "Curse");
 				break;
-			case 369:
+			case SPA_CORRUPTION:
 				strcpy_s(DataTypeTemp, "Corruption");
 				break;
 			}
@@ -7520,10 +7123,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pIntType;
 		for (int i = 0; i < GetSpellNumEffects(pSpell); i++)
 		{
-			if ((GetSpellAttrib(pSpell, i) == 35)
-				|| (GetSpellAttrib(pSpell, i) == 36)
-				|| (GetSpellAttrib(pSpell, i) == 116)
-				|| (GetSpellAttrib(pSpell, i) == 369))
+			int attrib = GetSpellAttrib(pSpell, i);
+
+			if (IsSpellCountersSPA(attrib))
 			{
 				Dest.DWord = GetSpellBase(pSpell, i);
 				return true;
@@ -8255,7 +7857,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		for (int i = 0; i < slots; i++)
 		{
 			int attrib = GetSpellAttrib(pSpell, i);
-			if (attrib == 152 || attrib == 300)
+			if (attrib == SPA_PET_SWARM || attrib == SPA_DOPPELGANGER)
 			{
 				Dest.DWord = 1;
 				break;
@@ -8363,7 +7965,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				{
 					if (spafound == SPA_TRIGGER_BEST_SPELL_GROUP)
 						pTrigger = (SPELL*)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
-					else if (spafound == 374)
+					else if (spafound == SPA_TRIGGER_SPELL)
 						pTrigger = (SPELL*)pSpellMgr->GetSpellByID(groupid);
 					Dest.Ptr = pTrigger;
 					return true;

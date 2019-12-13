@@ -594,13 +594,15 @@ static char* GetResistTypeName(int ResistType, char(&szBuffer)[Size])
 	char szTemp[32] = { 0 };
 	switch (ResistType)
 	{
-	case 1: strcat_s(szBuffer, "Magic"); break;
-	case 2: strcat_s(szBuffer, "Fire"); break;
-	case 3: strcat_s(szBuffer, "Cold/Ice"); break;
-	case 4: strcat_s(szBuffer, "Poison"); break;
-	case 5: strcat_s(szBuffer, "Disease"); break;
-	case 6: strcat_s(szBuffer, "Chromatic"); break;
-	case 7: strcat_s(szBuffer, "Prismatic"); break;
+	case ResistType_Magic: strcat_s(szBuffer, "Magic"); break;
+	case ResistType_Fire: strcat_s(szBuffer, "Fire"); break;
+	case ResistType_Cold: strcat_s(szBuffer, "Cold/Ice"); break;
+	case ResistType_Poison: strcat_s(szBuffer, "Poison"); break;
+	case ResistType_Disease: strcat_s(szBuffer, "Disease"); break;
+	case ResistType_Chromatic: strcat_s(szBuffer, "Chromatic"); break;
+	case ResistType_Prismatic: strcat_s(szBuffer, "Prismatic"); break;
+	case ResistType_Physical: strcat_s(szBuffer, "Physical"); break;
+	case ResistType_Corruption: strcat_s(szBuffer, "Corruption"); break;
 	default:
 		sprintf_s(szTemp, "Unknown[%d]", ResistType);
 		strcat_s(szBuffer, szTemp); break;
@@ -614,9 +616,9 @@ static char* GetSpellTypeName(int SpellType, char(&szBuffer)[Size])
 	char szTemp[32] = { 0 };
 	switch (SpellType)
 	{
-	case 0: strcat_s(szBuffer, "Detrimental only"); break;
-	case 1: strcat_s(szBuffer, "Beneficial only"); break;
-	case 2: strcat_s(szBuffer, "Beneficial - Group Only"); break;
+	case SpellType_Detrimental: strcat_s(szBuffer, "Detrimental only"); break;
+	case SpellType_Beneficial: strcat_s(szBuffer, "Beneficial only"); break;
+	case SpellType_BeneficialGroupOnly: strcat_s(szBuffer, "Beneficial - Group Only"); break;
 	default:
 		sprintf_s(szTemp, "Unknown[%d]", SpellType);
 		strcat_s(szBuffer, szTemp); break;
@@ -716,6 +718,7 @@ static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 	return szBuffer;
 }
 
+// See also: GetSpellDuration
 static int CalcDuration(int calc, int max, int level)
 {
 	int value = 0;
@@ -975,19 +978,19 @@ static char* CalcValueRange(int calc, int base, int max, int duration, int minle
 
 	switch (calc)
 	{
-	case CALC_1TICK:
+	case SpellValueRangeCalc_DecayTick1:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 1/tick)", type, finish);
 		break;
-	case CALC_2TICK:
+	case SpellValueRangeCalc_DecayTick2:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 2/tick)", type, finish);
 		break;
-	case CALC_5TICK:
+	case SpellValueRangeCalc_DecayTick5:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 5/tick)", type, finish);
 		break;
-	case CALC_12TICK:
+	case SpellValueRangeCalc_DecayTick12:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 12/tick)", type, finish);
 		break;
-	case CALC_RANDOM:
+	case SpellValueRangeCalc_Random:
 		sprintf_s(szBuffer, BufferSize, " (Random: %d to %d)", start, finish* ((start >= 0) ? 1 : -1));
 		break;
 	default:
@@ -1003,7 +1006,7 @@ static char* CalcExtendedRange(int calc, int start, int finish, int minlevel, in
 {
 	switch (calc)
 	{
-	case CALC_RANDOM:
+	case SpellValueRangeCalc_Random:
 		sprintf_s(szBuffer, BufferSize, " (Random: %d to %d)", start, finish* ((start >= 0) ? 1 : -1));
 		break;
 
@@ -1683,82 +1686,82 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 51: //Detect Traps (no spells currently)
-	case 52: //Sense Undead
-	case 53: //Sense Summoned
-	case 54: //Sense Animals
+	case SPA_DETECT_TRAPS: //Detect Traps (no spells currently)
+	case SPA_DETECT_UNDEAD: //Sense Undead
+	case SPA_DETECT_SUMMONED: //Sense Summoned
+	case SPA_DETECT_ANIMALS: //Sense Animals
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 55: //most runes
+	case SPA_STONESKIN: //most runes
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		break;
-	case 56: //True North
+	case SPA_TRUE_NORTH: //True North
 		strcat_s(szBuff, spelleffectname);
 		break;
 	case SPA_LEVITATION:
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
-	case 58: //Illusion: Base=Race
+	case SPA_CHANGE_FORM: //Illusion: Base=Race
 		strcat_s(szBuff, FormatExtra(spelleffectname, pEverQuest->GetRaceDesc(base), szTemp2));
 		break;
-	case 59: //Damage Shield
-			 // Damage Shield's use the reverse sign from normal base values
+	case SPA_DAMAGE_SHIELD: //Damage Shield
+		// Damage Shield's use the reverse sign from normal base values
 		strcat_s(szBuff, FormatRange(spelleffectname, -value, extendedrange, szTemp2));
 		break;
-	case 60: //Transfer Item (no spells currently)
-	case 61: //Identify
-	case 62: //Item ID (no spells currently)
+	case SPA_TRANSFER_ITEM: //Transfer Item (no spells currently)
+	case SPA_ITEM_LORE: //Identify
+	case SPA_ITEM_IDENTIFY: //Item ID (no spells currently)
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 63: //Memblur e%
+	case SPA_NPC_WIPE_HATE_LIST: //Memblur e%
 		strcat_s(szBuff, FormatPenaltyChance(spelleffectname, value + 40, szTemp2, szPercent, "Chance"));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 64: //SpinStun
-	case 65: //Infravision
-	case 66: //ultravision
-	case 67: //Eye of Zomm
-	case 68: //Reclaim Energy
+	case SPA_SPIN_STUN: //SpinStun
+	case SPA_INFRAVISION: //Infravision
+	case SPA_ULTRAVISION: //ultravision
+	case SPA_EYE_OF_ZOMM: //Eye of Zomm
+	case SPA_RECLAIM_ENERGY: //Reclaim Energy
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 69: //max hp mod
+	case SPA_MAX_HP: //max hp mod
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		break;
-	case 70: //CorpseBomb (no spells currently)
+	case SPA_CORPSE_BOMB: //CorpseBomb (no spells currently)
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 71: //Create Undead Pet
+	case SPA_CREATE_UNDEAD: //Create Undead Pet
 		strcat_s(szBuff, FormatExtra(spelleffectname, extra, szTemp2));
 		break;
-	case 72: //Preserve Corpse (no spells currently)
-	case 73: //Bind Sight
+	case SPA_PRESERVE_CORPSE: //Preserve Corpse (no spells currently)
+	case SPA_BIND_SIGHT: //Bind Sight
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 74: //Feign Death
+	case SPA_FEIGN_DEATH: //Feign Death
 		strcat_s(szBuff, FormatPenaltyChance(spelleffectname, value, szTemp2, szPercent, "Chance"));
 		break;
-	case 75: //Voice Graft
-	case 76: //Sentinel
-	case 77: //Locate Corpse
+	case SPA_VENTRILOQUISM: //Voice Graft
+	case SPA_SENTINEL: //Sentinel
+	case SPA_LOCATE_CORPSE: //Locate Corpse
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 78: //Absorb Magic Damage
-	case 79: //+hp when cast (priest buffs that have heal component, DoTs with DDs)
+	case SPA_SPELL_SHIELD: //Absorb Magic Damage
+	case SPA_INSTANT_HP: //+hp when cast (priest buffs that have heal component, DoTs with DDs)
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 80: //Enchant:Light (no spells currently)
+	case SPA_ENCHANT_LIGHT: //Enchant:Light (no spells currently)
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 81: //Resurrect
+	case SPA_RESURRECT: //Resurrect
 		sprintf_s(szTemp, " and restore %d%s experience", value, szPercent);
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 82: //Summon Player
+	case SPA_SUMMON_TARGET: //Summon Player
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 83: //zone portal spells
+	case SPA_PORTAL: //zone portal spells
 		if (targettype == 6) {
 			sprintf_s(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		}
@@ -1767,53 +1770,53 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 		}
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
-	case 84: //Toss on Z axis
+	case SPA_HP_NPC_ONLY: //Toss on Z axis (is this right??)
 		strcat_s(szBuff, FormatBase(spelleffectname, abs(base), base >= 0 ? " Down" : " Up", szTemp2));
 		break;
-	case 85: //Add Proc
+	case SPA_MELEE_PROC: //Add Proc
 		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname, base, base2, szTemp), szTemp2));
 		break;
-	case 86: //Reaction Radius(c/level)
-			 // Reaction Radius' use the reverse sign from normal base values
+	case SPA_NPC_HELP_RADIUS: //Reaction Radius(c/level)
+		// Reaction Radius' use the reverse sign from normal base values
 		strcat_s(szBuff, FormatCount(spelleffectname, -value, szTemp2));
 		strcat_s(szBuff, maxlevel);
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 87: //Perspective Magnification
+	case SPA_MAGNIFICATION: //Perspective Magnification
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
-	case 88: //evac portal spells
+	case SPA_EVACUATE: //evac portal spells
 		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), extra, szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
-	case 89: //Player Size
+	case SPA_HEIGHT: //Player Size
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
-	case 90: //Cloak
-	case 91: //Summon Corpse
+	case SPA_IGNORE_PET: //Cloak
+	case SPA_SUMMON_CORPSE: //Summon Corpse
 		strcat_s(szBuff, FormatString(spelleffectname, maxlevel, szTemp2));
 		break;
-	case 92: //hate mod
+	case SPA_HATE: //hate mod
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 93: //Stop Rain
-	case 94: //Make Fragile
-	case 95: //Sacrifice
+	case SPA_WEATHER_CONTROL: //Stop Rain
+	case SPA_FRAGILE: //Make Fragile
+	case SPA_SACRIFICE: //Sacrifice
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 96: //Silence (no PC spells currently)
+	case SPA_SILENCE: //Silence (no PC spells currently)
 		strcat_s(szBuff, spelleffectname);
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 97: //Mana Pool
-	case 98: //Haste v2
+	case SPA_MAX_MANA: //Mana Pool
+	case SPA_BARD_HASTE: //Haste v2
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		break;
-	case 99: //Root
+	case SPA_ROOT: //Root
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 100: //hp mod: pet heals/regen
+	case SPA_HEALDOT: //hp mod: pet heals/regen
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		strcat_s(szBuff, repeating);
 		break;
@@ -1822,7 +1825,7 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 	case SPA_CALL_PET: //Call Pet
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 104: //zone translocate spells
+	case SPA_TRANSLOCATE: //zone translocate spells
 		if (extra[0])
 			if (extra[0] == '0')
 				strcat_s(szTemp, " to Bind Point");
@@ -1832,19 +1835,19 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 			strcat_s(szTemp, " to Bind Point");
 		strcat_s(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
-	case 105: //Anti-Gate
+	case SPA_NPC_ANTI_GATE: //Anti-Gate
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
-	case 106: //Summon Warder
+	case SPA_BEASTLORD_PET: //Summon Warder
 		strcat_s(szBuff, FormatExtra(spelleffectname, extra, szTemp2));
 		break;
-	case 107: //Alter NPC Level (no spells currently)
+	case SPA_ALTER_PET_LEVEL: //Alter NPC Level (no spells currently)
 		strcat_s(szBuff, spelleffectname);
 		break;
-	case 108: //Summon Familiar
+	case SPA_FAMILIAR: //Summon Familiar
 		strcat_s(szBuff, FormatExtra(spelleffectname, extra, szTemp2));
 		break;
-	case 109: //Summon Into Bag
+	case SPA_CREATE_ITEM_IN_BAG: //Summon Into Bag
 		while ((ItemDB) && (base != ItemDB->ID)) {
 			ItemDB = ItemDB->pNext;
 		}
@@ -1856,20 +1859,20 @@ char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, 
 		}
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
-	case 110: //Increase Archery (no spells currently)
+	case SPA_ARCHERY: //Increase Archery (no spells currently)
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
-	case 111: //Resistances
+	case SPA_RESIST_ALL: //Resistances
 		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
 		if (strlen(maxtargets)) strcat_s(szBuff, maxtargets);
 		break;
-	case 112: //Casting Level
+	case SPA_FIZZLE_SKILL: //Casting Level
 		strcat_s(szBuff, FormatCount(spelleffectname, value, szTemp2));
 		break;
-	case 113: //Summon Mount
+	case SPA_SUMMON_MOUNT: //Summon Mount
 		strcat_s(szBuff, FormatExtra(spelleffectname, extra, szTemp2));
 		break;
-	case 114: //aggro multiplier
+	case SPA_MODIFY_HATE: //aggro multiplier
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
 	case 115: //Food/Water
@@ -2903,6 +2906,103 @@ void SlotValueCalculate(char* szBuff, SPELL* pSpell, int i, double mp)
 {
 	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 	return;
+}
+
+int GetSpellCounters(eEQSPA spellAffect, const SPELLBUFF* buff)
+{
+	if (!buff)
+		return 0;
+
+	int count = 0;
+
+	SPELL* pSpell = GetSpellByID(buff->SpellID);
+	if (!pSpell || pSpell->SpellType != SpellType_Detrimental)
+		return 0;
+
+	int slots = GetSpellNumEffects(pSpell);
+
+	for (int i = 0; i < slots; i++)
+	{
+		int attrib = GetSpellAttrib(pSpell, i);
+
+		if (attrib == spellAffect)
+		{
+			for (auto& slotData : buff->SlotData)
+			{
+				if (slotData.Slot == i)
+				{
+					count += slotData.Value;
+				}
+			}
+		}
+	}
+
+	return count;
+}
+
+int GetMySpellCounters(eEQSPA spellAffect)
+{
+	const PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return 0;
+
+	int count = 0;
+
+	for (const auto& buff : pProfile->Buff)
+	{
+		count += GetSpellCounters(spellAffect, &buff);
+	}
+
+	return count;
+}
+
+int GetTotalSpellCounters(const SPELLBUFF* buff)
+{
+	if (!buff)
+		return 0;
+
+	int count = 0;
+
+	SPELL* pSpell = GetSpellByID(buff->SpellID);
+	if (!pSpell || pSpell->SpellType != SpellType_Detrimental)
+		return 0;
+
+	int slots = GetSpellNumEffects(pSpell);
+
+	for (int i = 0; i < slots; i++)
+	{
+		int attrib = GetSpellAttrib(pSpell, i);
+
+		if (IsSpellCountersSPA(attrib))
+		{
+			for (auto& slotData : buff->SlotData)
+			{
+				if (slotData.Slot == i)
+				{
+					count += slotData.Value;
+				}
+			}
+		}
+	}
+
+	return count;
+}
+
+
+int GetMyTotalSpellCounters()
+{
+	const PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return 0;
+
+	int total = 0;
+
+	for (const auto& buff : pProfile->Buff)
+	{
+		total += GetTotalSpellCounters(&buff);
+	}
+
+	return total;
 }
 
 } // namespace mq

@@ -558,6 +558,11 @@ MQLIB_API bool        IsAegoSpell(SPELL* pSpell);
 MQLIB_API int         GetSpellCategory(SPELL* pSpell);
 MQLIB_API int         GetSpellSubcategory(SPELL* pSpell);
 MQLIB_API SPELL*      GetSpellParent(int id);
+MQLIB_API int         GetSpellCounters(eEQSPA spa, const SPELLBUFF* buff); // Get spell counters of given spa for the given buff.
+MQLIB_API int         GetMySpellCounters(eEQSPA spa);                // Get spell counters of given spa on my character.
+MQLIB_API int         GetTotalSpellCounters(const SPELLBUFF* buff);        // Get total count of spell counters for the given buff.
+MQLIB_API int         GetMyTotalSpellCounters();                     // Get total count of spell counters for my character.
+
 MQLIB_API HMODULE GetCurrentModule();
 MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
 MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
