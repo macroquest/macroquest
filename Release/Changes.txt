@@ -1,3 +1,11 @@
+Dec 16 2019
+- Updated for BETA
+- Fixed MQ2Twist in global plugins
+- Added GetCachedBuffs to exports so plugins can make use of it.
+  Usage:
+  std::map<int, std::map<int,cTargetBuff>>cbuffs;
+  GetCachedBuffs(cbuffs);
+-
 Dec 15 2019
 - Updated for BETA
 -

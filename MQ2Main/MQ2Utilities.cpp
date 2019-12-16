@@ -10329,6 +10329,10 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetB
 	}
 	return false;
 }
+void GetCachedBuffs(std::map<int, std::map<int,cTargetBuff>> CBMap)
+{
+	CBMap = CachedBuffsMap;
+}
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
 //       the bIncrease tells the function if we want spells that increase or decrease the SPA
 int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
