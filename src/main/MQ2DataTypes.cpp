@@ -7933,9 +7933,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		SPELL* pmyspell = pSpell;
 		int spafound = 0;
 
-		if (IsSPAEffect(pSpell, SPA_TRIGGER_BEST_SPELL_GROUP))
+		if (IsSPAEffect(pSpell, SPA_TRIGGER_BEST_IN_SPELL_GROUP))
 		{
-			spafound = SPA_TRIGGER_BEST_SPELL_GROUP;
+			spafound = SPA_TRIGGER_BEST_IN_SPELL_GROUP;
 		}
 		else if (IsSPAEffect(pSpell, 374))
 		{
@@ -7963,7 +7963,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				SPELL* pTrigger = nullptr;
 				if (int groupid = GetSpellBase2(pmyspell, index))
 				{
-					if (spafound == SPA_TRIGGER_BEST_SPELL_GROUP)
+					if (spafound == SPA_TRIGGER_BEST_IN_SPELL_GROUP)
 						pTrigger = (SPELL*)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
 					else if (spafound == SPA_TRIGGER_SPELL)
 						pTrigger = (SPELL*)pSpellMgr->GetSpellByID(groupid);

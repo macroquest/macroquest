@@ -536,6 +536,30 @@ constexpr int NUM_SHORT_BUFFS = 55;
 constexpr int NUM_RACES = 17;
 constexpr int NUM_BLOCKED_BUFFS = 40;
 
+constexpr int MAX_MEMORIZED_SPELLS = 18;
+
+// need to find this one
+constexpr int NUM_ALT_ABILITIES_ARRAY = 503;
+
+// see 4FBD46 in eqgame.exe dated oct 29 2013 test
+constexpr int NUM_ALT_ABILITIES = 49999;
+
+// these two will merge when i get a chance - ieatacid wrote this?
+constexpr int AA_CHAR_MAX = 245;
+
+// EQ_PC__GetAlternateAbilityId_x
+// size is at 7EE7F8 in eqgame dated jun 13 2014
+constexpr int AA_CHAR_MAX_REAL = 300;
+
+// found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta)
+// Find by searching for A1 ? ? ? ? 53 83 CB FF 85 C0 in IDA
+constexpr int NUM_BOOK_SLOTS = 960;
+constexpr int NUM_COMBAT_ABILITIES = 300;
+constexpr int BAG_SLOT_START = 23;
+constexpr int NUM_SKILLS = 100;
+constexpr int NUM_INNATE = 25;
+constexpr int CONCURRENT_SKILLS = 2;
+
 #define EQ_EXPANSION(x)                          (1 << (x - 1))
 #define EXPANSION_RoK                            EQ_EXPANSION(1)
 #define EXPANSION_SoV                            EQ_EXPANSION(2)
@@ -696,27 +720,6 @@ struct MOUSECLICK {
 	BYTE Click[8];          // Left = 0, Right = 1, etc
 };
 using PMOUSECLICK = MOUSECLICK*;
-
-// need to find this one
-constexpr int NUM_ALT_ABILITIES_ARRAY = 503;
-
-// see 4FBD46 in eqgame.exe dated oct 29 2013 test
-constexpr int NUM_ALT_ABILITIES = 49999;
-
-// these two will merge when i get a chance - ieatacid wrote this?
-constexpr int AA_CHAR_MAX = 245;
-
-// EQ_PC__GetAlternateAbilityId_x
-// size is at 7EE7F8 in eqgame dated jun 13 2014
-constexpr int AA_CHAR_MAX_REAL = 300;
-
-// found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta)
-// Find by searching for A1 ? ? ? ? 53 83 CB FF 85 C0 in IDA
-constexpr int NUM_BOOK_SLOTS = 960;
-constexpr int NUM_COMBAT_ABILITIES = 300;
-constexpr int BAG_SLOT_START = 23;
-constexpr int NUM_SKILLS = 100;
-constexpr int CONCURRENT_SKILLS = 2;
 
 struct [[offsetcomments]] LEADERABILITIES
 {

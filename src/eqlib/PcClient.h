@@ -1582,9 +1582,9 @@ public:
 /*0x0068*/ SPELLBUFF                                       Buff[NUM_LONG_BUFFS];                   // EQ_Affect size is 0x68 * 0x2a = 0x1110
 /*0x1178*/ SPELLBUFF                                       ShortBuff[NUM_SHORT_BUFFS];             // EQ_Affect size is 0x68 * 0x37 = 0x1658
 /*0x27d0*/ int                                             SpellBook[NUM_BOOK_SLOTS];
-/*0x36d0*/ DWORD                                           MemorizedSpells[0x12];
+/*0x36d0*/ DWORD                                           MemorizedSpells[MAX_MEMORIZED_SPELLS];
 /*0x3718*/ DWORD                                           Skill[NUM_SKILLS];
-/*0x38a8*/ DWORD                                           InnateSkill[0x19];
+/*0x38a8*/ DWORD                                           InnateSkill[NUM_INNATE];
 /*0x390c*/ TSafeArrayStatic<ArmorProperties, 9>            ArmorProps;                             // size 0xb4
 /*0x39c0*/ TSafeArrayStatic<DWORD, 9>                      CharacterTint;                          // size 0x24
 /*0x39e4*/ BYTE                                            Gender;
