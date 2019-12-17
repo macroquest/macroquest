@@ -32,6 +32,11 @@ FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimatio
 	CXSize TextureSize, CXPoint TextureOffset), CListWnd__AddColumn1);
 #endif
 
+// CEditWnd
+#ifdef CEditWnd__ReplaceSelection_x
+FUNCTION_AT_ADDRESS(bool CEditWnd::ReplaceSelection(CXStr, bool), CEditWnd__ReplaceSelection);
+#endif
+
 // CStmlWnd
 #ifdef CStmlWnd__AppendSTML_x
 FUNCTION_AT_ADDRESS(CXSize CStmlWnd::AppendSTML(CXStr), CStmlWnd__AppendSTML);

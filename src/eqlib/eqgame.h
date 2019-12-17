@@ -523,6 +523,7 @@
 #define CEditWnd__SelectableCharFromPoint_x                        0x942F90
 #define CEditWnd__SetEditable_x                                    0x9423D0
 #define CEditWnd__SetWindowTextA_x                                 0x941A90
+#define CEditWnd__ReplaceSelection_x                               0x942A90
 
 // CEverQuest
 #define CEverQuest__DoPercentConvert_x                             0x5ECE60

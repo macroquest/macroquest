@@ -5367,6 +5367,141 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
+	case SilverTokens:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SILVERTOKENS);
+		Dest.Type = pIntType;
+		return true;
+
+	case GoldTokens:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_GOLDTOKENS);
+		Dest.Type = pIntType;
+		return true;
+
+	case McKenzie:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MCKENZIE);
+		Dest.Type = pIntType;
+		return true;
+
+	case Bayle:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BAYLE);
+		Dest.Type = pIntType;
+		return true;
+
+	case Reclamation:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RECLAMATION);
+		Dest.Type = pIntType;
+		return true;
+
+	case Brellium:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRELLIUM);
+		Dest.Type = pIntType;
+		return true;
+
+	case Motes:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MOTES);
+		Dest.Type = pIntType;
+		return true;
+
+	case RebellionChits:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_REBELLIONCHITS);
+		Dest.Type = pIntType;
+		return true;
+
+	case DiamondCoins:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DIAMONDCOINS);
+		Dest.Type = pIntType;
+		return true;
+
+	case BronzeFiats:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRONZEFIATS);
+		Dest.Type = pIntType;
+		return true;
+
+	case Voucher:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VOUCHER);
+		Dest.Type = pIntType;
+		return true;
+
+	case VeliumShards:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VELIUMSHARDS);
+		Dest.Type = pIntType;
+		return true;
+
+	case CrystallizedFear:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDFEAR);
+		Dest.Type = pIntType;
+		return true;
+
+	case ShadowStones:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHADOWSTONES);
+		Dest.Type = pIntType;
+		return true;
+
+	case DreadStones:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DREADSTONES);
+		Dest.Type = pIntType;
+		return true;
+
+	case MarksOfValor:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MARKSOFVALOR);
+		Dest.Type = pIntType;
+		return true;
+
+	case MedalsOfHeroism:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MEDALSOFHEROISM);
+		Dest.Type = pIntType;
+		return true;
+
+	case RemnantOfTranquility:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_REMNANTSOFTRANQUILITY);
+		Dest.Type = pIntType;
+		return true;
+
+	case BifurcatedCoin:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BIFURCATEDCOIN);
+		Dest.Type = pIntType;
+		return true;
+
+	case AdoptiveCoin:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ADOPTIVE);
+		Dest.Type = pIntType;
+		return true;
+
+	case SathirsTradeGems:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SATHIRSTRADEGEMS);
+		Dest.Type = pIntType;
+		return true;
+
+	case AncientSebilisianCoins:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ANCIENTSEBILISIANCOINS);
+		Dest.Type = pIntType;
+		return true;
+
+	case BathezidTradeGems:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BATHEZIDTRADEGEMS);
+		Dest.Type = pIntType;
+		return true;
+
+	case AncientDraconicCoin:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ANCIENTDRACONICCOIN);
+		Dest.Type = pIntType;
+		return true;
+
+	case FetterredIfritCoins:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FETTERREDIFRITCOINS);
+		Dest.Type = pIntType;
+		return true;
+
+	case EntwinedDjinnCoins:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ENTWINEDDJINNCOINS);
+		Dest.Type = pIntType;
+		return true;
+
+	case CrystallizedLuck:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDLUCK);
+		Dest.Type = pIntType;
+		return true;
+
 	case Fellowship:
 		Dest.Type = pFellowshipType;
 		if (pChar->pSpawn)
@@ -6937,16 +7072,16 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case ResistType:
 		switch (pSpell->Resist)
 		{
-		case 9: strcpy_s(DataTypeTemp, "Corruption"); break;
-		case 8:	strcpy_s(DataTypeTemp, "Physical"); break;
-		case 7: strcpy_s(DataTypeTemp, "Prismatic"); break;
-		case 6: strcpy_s(DataTypeTemp, "Chromatic"); break;
-		case 5: strcpy_s(DataTypeTemp, "Disease"); break;
-		case 4: strcpy_s(DataTypeTemp, "Poison"); break;
-		case 3: strcpy_s(DataTypeTemp, "Cold"); break;
-		case 2: strcpy_s(DataTypeTemp, "Fire"); break;
-		case 1: strcpy_s(DataTypeTemp, "Magic"); break;
-		case 0: strcpy_s(DataTypeTemp, "Unresistable"); break;
+		case ResistType_Corruption: strcpy_s(DataTypeTemp, "Corruption"); break;
+		case ResistType_Physical:	strcpy_s(DataTypeTemp, "Physical"); break;
+		case ResistType_Prismatic: strcpy_s(DataTypeTemp, "Prismatic"); break;
+		case ResistType_Chromatic: strcpy_s(DataTypeTemp, "Chromatic"); break;
+		case ResistType_Disease: strcpy_s(DataTypeTemp, "Disease"); break;
+		case ResistType_Poison: strcpy_s(DataTypeTemp, "Poison"); break;
+		case ResistType_Cold: strcpy_s(DataTypeTemp, "Cold"); break;
+		case ResistType_Fire: strcpy_s(DataTypeTemp, "Fire"); break;
+		case ResistType_Magic: strcpy_s(DataTypeTemp, "Magic"); break;
+		case ResistType_None: strcpy_s(DataTypeTemp, "Unresistable"); break;
 		default: strcpy_s(DataTypeTemp, "Unknown"); break;
 		}
 		Dest.Ptr = &DataTypeTemp[0];
@@ -6956,9 +7091,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case SpellType:
 		switch (pSpell->SpellType)
 		{
-		case 2: strcpy_s(DataTypeTemp, "Beneficial(Group)"); break;
-		case 1: strcpy_s(DataTypeTemp, "Beneficial"); break;
-		case 0: strcpy_s(DataTypeTemp, "Detrimental"); break;
+		case SpellType_BeneficialGroupOnly: strcpy_s(DataTypeTemp, "Beneficial(Group)"); break;
+		case SpellType_Beneficial: strcpy_s(DataTypeTemp, "Beneficial"); break;
+		case SpellType_Detrimental: strcpy_s(DataTypeTemp, "Detrimental"); break;
 		default: strcpy_s(DataTypeTemp, "Unknown"); break;
 		}
 		Dest.Ptr = &DataTypeTemp[0];

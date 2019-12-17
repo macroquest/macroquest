@@ -383,6 +383,12 @@ public:
 		assign(count, ch);
 	}
 
+	// Constructs the string with a signle character.
+	CXStr(char ch)
+	{
+		assign(1, ch);
+	}
+
 	// Constructs the string with the contents of the range [first, last).
 	template <typename InputIt, typename = std::enable_if_t<is_iterator_v<InputIt>>>
 	CXStr(InputIt first, InputIt last)

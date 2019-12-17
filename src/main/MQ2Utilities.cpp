@@ -1300,6 +1300,16 @@ int GetCurrencyIDByName(char* szName)
 	if (!_stricmp(szName, "Nobles")) return ALTCURRENCY_NOBLES;
 	if (!_stricmp(szName, "Arx Energy Crystals")) return ALTCURRENCY_ENERGYCRYSTALS;
 	if (!_stricmp(szName, "Pieces of Eight")) return ALTCURRENCY_PIECESOFEIGHT;
+	if (!_stricmp(szName, "Remnants of Tranquility")) return ALTCURRENCY_REMNANTSOFTRANQUILITY;
+	if (!_stricmp(szName, "Bifurcated Coin")) return ALTCURRENCY_BIFURCATEDCOIN;
+	if (!_stricmp(szName, "Adoptive Coins")) return ALTCURRENCY_ADOPTIVE;
+	if (!_stricmp(szName, "Sathir's Trade Gems")) return ALTCURRENCY_SATHIRSTRADEGEMS;
+	if (!_stricmp(szName, "Ancient Sebilisian Coins")) return ALTCURRENCY_ANCIENTSEBILISIANCOINS;
+	if (!_stricmp(szName, "Bathezid Trade Gems")) return ALTCURRENCY_BATHEZIDTRADEGEMS;
+	if (!_stricmp(szName, "Ancient Draconic Coin")) return ALTCURRENCY_ANCIENTDRACONICCOIN;
+	if (!_stricmp(szName, "Fetterred Ifrit Coins")) return ALTCURRENCY_FETTERREDIFRITCOINS;
+	if (!_stricmp(szName, "Entwined Djinn Coins")) return ALTCURRENCY_ENTWINEDDJINNCOINS;
+	if (!_stricmp(szName, "Crystallized Luck")) return ALTCURRENCY_CRYSTALLIZEDLUCK;
 	return -1;
 }
 

@@ -481,34 +481,47 @@ enum eInventorySlot
 };
 
 // AltCurrency values
-constexpr int ALTCURRENCY_DOUBLOONS            = 10;
-constexpr int ALTCURRENCY_ORUX                 = 11;
-constexpr int ALTCURRENCY_PHOSPHENES           = 12;
-constexpr int ALTCURRENCY_PHOSPHITES           = 13;
-constexpr int ALTCURRENCY_FAYCITES             = 14;
-constexpr int ALTCURRENCY_CHRONOBINES          = 15;
-constexpr int ALTCURRENCY_SILVERTOKENS         = 16;
-constexpr int ALTCURRENCY_GOLDTOKENS           = 17;
-constexpr int ALTCURRENCY_MCKENZIE             = 18;
-constexpr int ALTCURRENCY_BAYLE                = 19;
-constexpr int ALTCURRENCY_RECLAMATION          = 20;
-constexpr int ALTCURRENCY_BRELLIUM             = 21;
-constexpr int ALTCURRENCY_MOTES                = 22;
-constexpr int ALTCURRENCY_REBELLIONCHITS       = 23;
-constexpr int ALTCURRENCY_DIAMONDCOINS         = 24;
-constexpr int ALTCURRENCY_BRONZEFIATS          = 25;
-constexpr int ALTCURRENCY_VOUCHER              = 26;
-constexpr int ALTCURRENCY_VELIUMSHARDS         = 27;
-constexpr int ALTCURRENCY_CRYSTALLIZEDFEAR     = 28;
-constexpr int ALTCURRENCY_SHADOWSTONES         = 29;
-constexpr int ALTCURRENCY_DREADSTONES          = 30;
-constexpr int ALTCURRENCY_MARKSOFVALOR         = 31;
-constexpr int ALTCURRENCY_MEDALSOFHEROISM      = 32;
-constexpr int ALTCURRENCY_COMMEMORATIVE_COINS  = 33;
-constexpr int ALTCURRENCY_FISTSOFBAYLE         = 34;
-constexpr int ALTCURRENCY_NOBLES               = 35;
-constexpr int ALTCURRENCY_ENERGYCRYSTALS       = 36;
-constexpr int ALTCURRENCY_PIECESOFEIGHT        = 37;
+enum ALTCURRENCY
+{
+	ALTCURRENCY_DOUBLOONS              = 10, // TBS
+	ALTCURRENCY_ORUX                   = 11, // TBS
+	ALTCURRENCY_PHOSPHENES             = 12, // TBS
+	ALTCURRENCY_PHOSPHITES             = 13, // TBS
+	ALTCURRENCY_FAYCITES               = 14, // SoF
+	ALTCURRENCY_CHRONOBINES            = 15, // SoD
+	ALTCURRENCY_SILVERTOKENS           = 16, // UF
+	ALTCURRENCY_GOLDTOKENS             = 17, // UF
+	ALTCURRENCY_MCKENZIE               = 18, // SoD
+	ALTCURRENCY_BAYLE                  = 19, // SoD
+	ALTCURRENCY_RECLAMATION            = 20, // EQ
+	ALTCURRENCY_BRELLIUM               = 21, // UF
+	ALTCURRENCY_MOTES                  = 22, // HoT
+	ALTCURRENCY_REBELLIONCHITS         = 23, // VoA
+	ALTCURRENCY_DIAMONDCOINS           = 24, // VoA
+	ALTCURRENCY_BRONZEFIATS            = 25, // VoA
+	ALTCURRENCY_VOUCHER                = 26, // TDS
+	ALTCURRENCY_VELIUMSHARDS           = 27, // RoF
+	ALTCURRENCY_CRYSTALLIZEDFEAR       = 28, // RoF
+	ALTCURRENCY_SHADOWSTONES           = 29, // RoF
+	ALTCURRENCY_DREADSTONES            = 30, // RoF
+	ALTCURRENCY_MARKSOFVALOR           = 31, // CoTF
+	ALTCURRENCY_MEDALSOFHEROISM        = 32, // CoTF
+	ALTCURRENCY_COMMEMORATIVE_COINS    = 33, // VoA
+	ALTCURRENCY_FISTSOFBAYLE           = 34, // CoTF
+	ALTCURRENCY_NOBLES                 = 35, // EQ
+	ALTCURRENCY_ENERGYCRYSTALS         = 36, // TDS
+	ALTCURRENCY_PIECESOFEIGHT          = 37, // TDS
+	ALTCURRENCY_REMNANTSOFTRANQUILITY  = 38, // TBM
+	ALTCURRENCY_BIFURCATEDCOIN         = 39, // TBM
+	ALTCURRENCY_ADOPTIVE               = 40, // EQ
+	ALTCURRENCY_SATHIRSTRADEGEMS       = 41, // EoK
+	ALTCURRENCY_ANCIENTSEBILISIANCOINS = 42, // EoK
+	ALTCURRENCY_BATHEZIDTRADEGEMS      = 43, // RoS
+	ALTCURRENCY_ANCIENTDRACONICCOIN    = 44, // RoS
+	ALTCURRENCY_FETTERREDIFRITCOINS    = 45, // TBL
+	ALTCURRENCY_ENTWINEDDJINNCOINS     = 46, // TBL
+	ALTCURRENCY_CRYSTALLIZEDLUCK       = 47, // TBL
+};
 
 enum MOUSE_DATA_TYPES
 {

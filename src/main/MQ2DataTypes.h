@@ -1637,6 +1637,33 @@ public:
 		LastZoned = 278,
 		Origin = 279,
 		SubscriptionDays = 280,
+		SilverTokens = 281,
+		GoldTokens = 282,
+		McKenzie = 283,
+		Bayle = 284,
+		Reclamation = 285,
+		Brellium = 286,
+		Motes = 287,
+		RebellionChits = 288,
+		DiamondCoins = 289,
+		BronzeFiats = 290,
+		Voucher = 291,
+		VeliumShards = 292,
+		CrystallizedFear = 293,
+		ShadowStones = 294,
+		DreadStones = 295,
+		MarksOfValor = 296,
+		MedalsOfHeroism = 297,
+		RemnantOfTranquility = 298,
+		BifurcatedCoin = 299,
+		AdoptiveCoin = 300,
+		SathirsTradeGems = 301,
+		AncientSebilisianCoins = 302,
+		BathezidTradeGems = 303,
+		AncientDraconicCoin = 304,
+		FetterredIfritCoins = 305,
+		EntwinedDjinnCoins = 306,
+		CrystallizedLuck = 307
 	};
 
 	enum CharacterMethods
@@ -1846,6 +1873,33 @@ public:
 		TypeMember(Fists);
 		TypeMember(EnergyCrystals);
 		TypeMember(PiecesofEight);
+		TypeMember(SilverTokens);
+		TypeMember(GoldTokens);
+		TypeMember(McKenzie);
+		TypeMember(Bayle);
+		TypeMember(Reclamation);
+		TypeMember(Brellium);
+		TypeMember(Motes);
+		TypeMember(RebellionChits);
+		TypeMember(DiamondCoins);
+		TypeMember(BronzeFiats);
+		TypeMember(Voucher);
+		TypeMember(VeliumShards);
+		TypeMember(CrystallizedFear);
+		TypeMember(ShadowStones);
+		TypeMember(DreadStones);
+		TypeMember(MarksOfValor);
+		TypeMember(MedalsOfHeroism);
+		TypeMember(RemnantOfTranquility);
+		TypeMember(BifurcatedCoin);
+		TypeMember(AdoptiveCoin);
+		TypeMember(SathirsTradeGems);
+		TypeMember(AncientSebilisianCoins);
+		TypeMember(BathezidTradeGems);
+		TypeMember(AncientDraconicCoin);
+		TypeMember(FetterredIfritCoins);
+		TypeMember(EntwinedDjinnCoins);
+		TypeMember(CrystallizedLuck);
 		TypeMember(SpellInCooldown);
 		TypeMember(Slowed);
 		TypeMember(Rooted);

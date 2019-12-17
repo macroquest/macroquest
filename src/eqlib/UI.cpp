@@ -273,12 +273,6 @@ FUNCTION_AT_ADDRESS(CXPoint CEditWnd::GetSelEndPt() const, CEditWnd__GetSelEndPt
 #ifdef CEditWnd__FilterInputStr_x
 FUNCTION_AT_ADDRESS(void CEditWnd::FilterInputStr(CXStr&), CEditWnd__FilterInputStr);
 #endif
-#ifdef CEditWnd__ReplaceSelection_x
-FUNCTION_AT_ADDRESS(void CEditWnd::ReplaceSelection(CXStr, bool), CEditWnd__ReplaceSelection);
-#endif
-#ifdef CEditWnd__ReplaceSelection1_x
-FUNCTION_AT_ADDRESS(void CEditWnd::ReplaceSelection(char, bool), CEditWnd__ReplaceSelection1);
-#endif
 #ifdef CEditWnd__CalculateScrollRange_x
 FUNCTION_AT_ADDRESS(void CEditWnd::CalculateScrollRange(), CEditWnd__CalculateScrollRange);
 #endif
@@ -793,7 +787,7 @@ FUNCTION_AT_ADDRESS(CXRect CTabWnd::GetPageInnerRect() const, CTabWnd__GetPageIn
 FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(int, bool, bool, bool), CTabWnd__SetPage);
 #endif
 #ifdef CTabWnd__SetPage1_x
-FUNCTION_AT_ADDRESS(void CTabWnd::SetPage(CPageWnd*, bool), CTabWnd__SetPage1);
+FUNCTION_AT_ADDRESS(bool CTabWnd::SetPage(CPageWnd*, bool, bool), CTabWnd__SetPage1);
 #endif
 #ifdef CTabWnd__InsertPage_x
 FUNCTION_AT_ADDRESS(void CTabWnd::InsertPage(CPageWnd*, int), CTabWnd__InsertPage);

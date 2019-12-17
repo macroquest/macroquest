@@ -536,13 +536,18 @@ public:
 	EQLIB_OBJECT void AddItemTag(int, char*, int);
 	EQLIB_OBJECT void CalculateScrollRange();
 	EQLIB_OBJECT void EnsureCaretVisible();
-	EQLIB_OBJECT void ReplaceSelection(char, bool);
-	EQLIB_OBJECT void ReplaceSelection(CXStr, bool);
 	EQLIB_OBJECT void SetEditable(bool);
 
 	EQLIB_OBJECT void FillIndexArray(CXStr) const;
 	EQLIB_OBJECT void FilterInputStr(CXStr&);
 	EQLIB_OBJECT void ProcessText();
+
+	EQLIB_OBJECT bool ReplaceSelection(CXStr, bool bFilter = true);
+	inline bool ReplaceSelection(char ch, bool bFilter = true)
+	{
+		CXStr str(1, ch);
+		return ReplaceSelection(str, bFilter);
+	}
 
 	//----------------------------------------------------------------------------
 	// data members
@@ -1279,8 +1284,8 @@ public:
 	EQLIB_OBJECT int GetCurrentTabIndex() const;
 	EQLIB_OBJECT int GetNumTabs() const;
 	EQLIB_OBJECT void InsertPage(CPageWnd*, int);
-	EQLIB_OBJECT void SetPage(CPageWnd*, bool);
-	EQLIB_OBJECT void SetPage(int index, bool bNotifyParent, bool bBringToTop = true, bool bSomething = true);
+	EQLIB_OBJECT bool SetPage(CPageWnd*, bool bNotifyParent = true, bool bBringToTop = true);
+	EQLIB_OBJECT void SetPage(int index, bool bNotifyParent = true, bool bBringToTop = true, bool bSomething = true);
 	EQLIB_OBJECT void SetPageRect(const CXRect&);
 	EQLIB_OBJECT void UpdatePage();
 	EQLIB_OBJECT bool IndexInBounds(int) const;
