@@ -11552,7 +11552,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 				for (int i = 0; i < pMercWnd->PageHandlers.Begin->pObject->ItemContainer.m_length; i++) {
 					//pMercWnd->PageHandlers.Begin->pObject->Items.Items[i];
 					//pMerc->PageHandlers.Begin->pObject->Items.Items.Begin[1].pObject;
-					auto name = pMercWnd->PageHandlers.Begin->pObject->ItemContainer.m_array[i].pCont->Item2->Name;
+					auto name = GetItemFromContents(pMercWnd->PageHandlers.Begin->pObject->ItemContainer.m_array[i].pCont)->Name;
 					if (!_stricmp(name, GETFIRST())) {
 						Dest.Int = i;
 						return true;
@@ -13574,6 +13574,7 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		return false;
 	switch ((EvolvingItemMembers)pMember->ID)
 	{
+#if !defined(EQBETA)
 	case ExpPct:
 		Dest.Float = (FLOAT)pItem->EvolvingExpPct;
 		Dest.Type = pFloatType;
@@ -13594,6 +13595,12 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		Dest.DWord = pItem->EvolvingMaxLevel;
 		Dest.Type = pIntType;
 		return true;
+#else
+	case MaxLevel://work in progress
+		pItem->pEvolutionData->m_array;
+		Sleep(0);
+		break;
+#endif
 	}
 	return false;
 }

@@ -334,6 +334,13 @@ private:
 	}
 };
 
+template <typename T>
+class SharedData
+{
+public:
+	int m_length;
+	T* m_array;
+};
 //----------------------------------------------------------------------------
 
 // simpler than ArrayClass2, ArrayClass is a simple wrapper around a dynamically

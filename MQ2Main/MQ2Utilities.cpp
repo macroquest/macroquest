@@ -10329,9 +10329,18 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetB
 	}
 	return false;
 }
-void GetCachedBuffs(std::map<int, std::map<int,cTargetBuff>> CBMap)
+void GetCachedBuffs(std::map<int, std::map<int,cTargetBuff>>& CBMap)
 {
 	CBMap = CachedBuffsMap;
+}
+bool IsEvolvingItem(PCONTENTS pCont)
+{
+#if !defined(EQBETA)
+	return pCont->IsEvolvingItem;
+#else
+	pCont->pEvolutionData->m_array;
+	return FALSE;//todo fix
+#endif
 }
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
 //       the bIncrease tells the function if we want spells that increase or decrease the SPA
@@ -12063,10 +12072,14 @@ namespace EQData
 	{
 		if (!c)
 			return NULL;
-#if !defined(UFEMU)
-		return c->Item1 ? c->Item1 : c->Item2;
+#if defined(UFEMU)
+	return c->Item1;
 #else
-		return c->Item1;
+	#if defined(EQBETA)
+		return c->Item1 ? &c->Item1->Item : &c->Item2->Item;
+	#else
+		return c->Item1 ? c->Item1 : c->Item2;
+	#endif
 #endif
 	}
 };

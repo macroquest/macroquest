@@ -2887,7 +2887,7 @@ public:
 			int sz = pcm->PageHandlers.Begin->pObject->ItemContainer.m_length;
 			if (sz) {
 				if (VarPtr.Int >= 0 && VarPtr.Int < sz) {
-					strcpy_s(Destination, MAX_STRING, pcm->PageHandlers.Begin->pObject->ItemContainer.m_array[VarPtr.Int].pCont->Item2->Name);
+					strcpy_s(Destination, MAX_STRING, GetItemFromContents(pcm->PageHandlers.Begin->pObject->ItemContainer.m_array[VarPtr.Int].pCont)->Name);
 					return true;
 				}
 			}
@@ -4892,7 +4892,7 @@ public:
 		return false;
 	}
 };
-
+extern bool        IsEvolvingItem(PCONTENTS pCont);
 class MQ2EvolvingItemType : public MQ2Type
 {
 public:
@@ -4919,7 +4919,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr && ((PCONTENTS)VarPtr.Ptr)->IsEvolvingItem)
+		if (VarPtr.Ptr && IsEvolvingItem((PCONTENTS)VarPtr.Ptr))
 			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination,MAX_STRING, "FALSE");

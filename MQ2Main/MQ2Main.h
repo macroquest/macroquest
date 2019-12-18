@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define EQBETA
+#define LIVE
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -796,7 +796,7 @@ EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
 EQLIB_API int		  GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-EQLIB_API void        GetCachedBuffs(std::map<int, std::map<int, cTargetBuff>> CBMap);
+EQLIB_API void        GetCachedBuffs(std::map<int, std::map<int, cTargetBuff>>& CBMap);
 EQLIB_API bool		  HasCachedTargetBuffSubCat(const char*subcat, PSPAWNINFO pSpawn, PcTargetBuff pcTargetBuff, DWORD classmask = 0);
 EQLIB_API bool		  HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetBuff pcTargetBuff);
 EQLIB_API int		  GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);

@@ -116,7 +116,11 @@
 		/info You have a Fisherman's Companion but haven't summoned a rod yet.
 		/info Let's fix that!
  		/useitem "Fisherman's Companion"
-		/delay 15s !${Me.Casting}
+		/delay 2s
+		/delay 11s !${Me.Casting.ID}
+		/autoinventory
+		/delay 1s
+		/delay 10s !${Cursor.ID}
 	}
 	/if (${FindItem[=Fishing Pole].ID}) /varset PoleName "Fishing Pole"
 	/if (${FindItem[=Kerran Fishing Pole].ID}) /varset PoleName "Kerran Fishing Pole"
@@ -135,7 +139,10 @@
 	/if (${Cursor.ID}) {
 		/info Equipping \ar[\aw${PoleName}\ar]\ao in \atmainhand\ao.
 		/itemnotify mainhand leftmouseup
+		/delay 1s
 		/autoinventory
+		/delay 1s
+		/delay 10s !${Cursor.ID}
 	} else {
 		/if (${CampWhenDone}) {
 			/info You broke or lost your last fishing pole and you have requested I camp.

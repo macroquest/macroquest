@@ -468,28 +468,28 @@ bool __cdecl MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands - 2] = "UNKNOWN0x1f2";
 	szEQMappableCommands[nEQMappableCommands - 1] = "UNKNOWN0x1f3";
 #else
-	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x208";//"Magic"
-    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x209";//"Fire"
-    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x20a";//"Cold"
-    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x20b";//"Disease"
+	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x20c";//"Magic"
+    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x20d";//"Fire"
+    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x20e";//"Cold"
+    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x20f";//"Disease"
     szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SEMICOLON";//"Poison"
     szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SLASH";//"Physical"
     szEQMappableCommands[nEQMappableCommands - 16]="INSTANT_CAMP";//"Corruption" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x20f";//"Unknown"
-    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x210";//"Avatar"
-    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x211";//"RemoveButton"
+    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x213";//"Unknown"
+    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x214";//"Avatar"
+    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x215";//"RemoveButton"
     szEQMappableCommands[nEQMappableCommands - 12]="CHAT_EMPTY";//"ClearAll"
     szEQMappableCommands[nEQMappableCommands - 11]="TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x214";//"NoPlayersLeft"
-    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x215";//"CreatedSharedTask"
+    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x218";//"NoPlayersLeft"
+    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x219";//"CreatedSharedTask"
     szEQMappableCommands[nEQMappableCommands -  8]="CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
-    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x216";//Expired
-    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x217";//Script
-    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x219";//LeaderRemoved
-    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x21a";
-    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x21b";
-    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x21c";
-    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x21d";
+    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x21b";//Expired
+    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x21c";//Script
+    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x21d";//LeaderRemoved
+    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x21e";
+    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x21f";
+    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x220";
+    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x221";
 #endif
 
     for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}

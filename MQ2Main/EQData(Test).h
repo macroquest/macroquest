@@ -963,6 +963,29 @@ public:
 /*0xb8*/
 };
 
+//basically we should just fix the class but i ran out of time, ill mess with it a bit after expansion -eqmule
+typedef struct _SHAREDPTR
+{
+	int ID;
+	int Something;
+	int Something2;
+	struct _ITEMINFO Item;
+} SHAREDPTR, *PSHAREDPTR;
+typedef struct _ItemEvolutionData
+{
+/*0x00*/ bool	IsEvolvingItem;
+/*0x04*/ int	GroupID;
+/*0x08*/ int	EvolvingCurrentLevel;
+/*0x10*/ DOUBLE	EvolvingExpPct;
+/*0x14*/ int	EvolvingMaxLevel;
+/*0x18*/ int	LastEquipped;
+/*0x1c*/ int	Unknown0x1c;
+/*0x20*/ int	Unknown0x20;
+/*0x24*/ int	Unknown0x24;
+/*0x28*/ int	Unknown0x28;
+/*0x2c*/
+} ItemEvolutionData, *PItemEvolutionData;
+
 //Actual Size: 0x160 (see 0x626CEC in eqgame.exe Test dated Dec  9 2019) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
