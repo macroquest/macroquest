@@ -12871,7 +12871,7 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 			{
 				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize(); i++)
 				{
-					auto name = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[i].pCont->Item2->Name;
+					auto name = GetItemFromContents(pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[i].pCont)->Name;
 					if (!_stricmp(name, Index))
 					{
 						Dest.Int = i;

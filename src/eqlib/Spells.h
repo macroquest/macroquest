@@ -748,33 +748,33 @@ struct [[offsetcomments]] SPELL
 /*0x163*/ BYTE    ClassLevel[0x24];              // per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014
 /*0x187*/ BYTE    LightType;
 /*0x188*/ eSpellType SpellType;                  // 0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
-/*0x189*/ BYTE    Resist;                        // see   4B0493 in apr 16 2018 exe        //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
-/*0x18a*/ BYTE    TargetType;                    // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
-/*0x18b*/ BYTE    CastDifficulty;
-/*0x18c*/ BYTE    Skill;
-/*0x18d*/ BYTE    ZoneType;                      // 01=Outdoors, 02=dungeons, ff=Any
-/*0x18e*/ BYTE    Environment;
-/*0x18f*/ BYTE    TimeOfDay;                     // 0=any, 1=day only, 2=night only
-/*0x190*/ BYTE    CastingAnim;
-/*0x191*/ BYTE    AnimVariation;
-/*0x192*/ BYTE    TargetAnim;
-/*0x193*/ BYTE    TravelType;
-/*0x194*/ BYTE    CancelOnSit;
-/*0x195*/ bool    CountdownHeld;
-/*0x196*/ char    Name[0x40];                    // for sure see 557AAA
-/*0x1d6*/ char    Target[0x20];
-/*0x1f6*/ char    Extra[0x20];                   // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
-/*0x216*/ BYTE    ShowWearOffMessage;
-/*0x217*/ BYTE    NPCChanceofKnowingSpell;       // if this is 0 there is no way an npc can cast this spell...
-/*0x218*/ BYTE    SneakAttack;
-/*0x219*/ BYTE    NotFocusable;                  // ignores all(?) focus effects
-/*0x21a*/ BYTE    NoHate;
-/*0x21b*/ BYTE    StacksWithSelf;
-/*0x21c*/ BYTE    CannotBeScribed;               // this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
-/*0x21d*/ BYTE    NoBuffBlock;
-/*0x21e*/ bool    Scribable;                     // int?
-/*0x21f*/ BYTE    NoStripOnDeath;
-/*0x220*/ BYTE    NoRemove;                      // spell can't be clicked off?
+/*0x18c*/ BYTE    Resist;                        // see   4B0493 in apr 16 2018 exe        //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
+/*0x18d*/ BYTE    TargetType;                    // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
+/*0x18e*/ BYTE    CastDifficulty;
+/*0x18f*/ BYTE    Skill;
+/*0x190*/ BYTE    ZoneType;                      // 01=Outdoors, 02=dungeons, ff=Any
+/*0x191*/ BYTE    Environment;
+/*0x192*/ BYTE    TimeOfDay;                     // 0=any, 1=day only, 2=night only
+/*0x193*/ BYTE    CastingAnim;
+/*0x194*/ BYTE    AnimVariation;
+/*0x195*/ BYTE    TargetAnim;
+/*0x196*/ BYTE    TravelType;
+/*0x197*/ BYTE    CancelOnSit;
+/*0x198*/ bool    CountdownHeld;
+/*0x199*/ char    Name[0x40];                    // for sure see 557AAA
+/*0x1d9*/ char    Target[0x20];
+/*0x1f9*/ char    Extra[0x20];                   // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
+/*0x219*/ BYTE    ShowWearOffMessage;
+/*0x21a*/ BYTE    NPCChanceofKnowingSpell;       // if this is 0 there is no way an npc can cast this spell...
+/*0x21b*/ BYTE    SneakAttack;
+/*0x21c*/ BYTE    NotFocusable;                  // ignores all(?) focus effects
+/*0x21d*/ BYTE    NoHate;
+/*0x21e*/ BYTE    StacksWithSelf;
+/*0x21f*/ BYTE    CannotBeScribed;               // this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
+/*0x220*/ BYTE    NoBuffBlock;
+/*0x221*/ bool    Scribable;                     // int?
+/*0x222*/ BYTE    NoStripOnDeath;
+/*0x223*/ BYTE    NoRemove;                      // spell can't be clicked off?
 /*0x224*/ int     NoOverwrite;                   // an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
 /*0x228*/ DWORD   SpellRecourseType;
 /*0x22c*/ BYTE    CRC32Marker[4];

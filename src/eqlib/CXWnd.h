@@ -674,7 +674,7 @@ public:
 
 #include "CXWnd-Members.h"
 
-/*0x1e8*/ };
+/*0x1ec*/ };
 
 using CXWND [[deprecated]] = CXWnd;
 using PCXWND [[deprecated]] = CXWnd*;
@@ -699,7 +699,7 @@ enum eIniFlags
 
 // CSidlScreenWnd__CSidlScreenWnd1_x
 // to check do : CSidlScreenWnd* csidlwnd = (CSidlScreenWnd*)FindMQ2Window("MMTW_MerchantWnd");
-// Size 0x240 in Oct 13 2017 Test exe see 605AAD
+// Size 0x238 in Aug 10 2017 Live exe see 5FC76D
 class [[offsetcomments]] CSidlScreenWnd : public CXWnd
 {
 public:
@@ -731,23 +731,23 @@ public:
 
 	//----------------------------------------------------------------------------
 	// data members
-/*0x1e8*/ bool                         bControlsCreated;
-/*0x1ec*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
-/*0x1f0*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
-/*0x1f4*/ ArrayClass<CRadioGroup*>     RadioGroup;
-/*0x204*/ bool                         bInitVisibility;
-/*0x205*/ bool                         bVisibleBeforeResize;
-/*0x208*/ int                          IniFlags;
-/*0x20c*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
-/*0x210*/ int                          IniVersion;
-/*0x214*/ int                          LastResX;
-/*0x218*/ int                          LastResY;
-/*0x21c*/ bool                         bLastResFullscreen;
-/*0x220*/ int                          ContextMenuID;
-/*0x224*/ CXWnd*                       pFirstVScrollChild;
-/*0x228*/ int                          ContextMenuTipID;
-/*0x22c*/ bool                         bHasActivatedFirstTimeAlert;
-/*0x230*/
+/*0x1f0*/ bool                         bControlsCreated;
+/*0x1f4*/ CXStr                        SidlText;                               // found in CChatWindow__WndNotification_x*
+/*0x1f8*/ CScreenTemplate*             SidlPiece;                              // CScreenPieceTemplate (important)
+/*0x1fc*/ ArrayClass<CRadioGroup*>     RadioGroup;
+/*0x20c*/ bool                         bInitVisibility;
+/*0x20d*/ bool                         bVisibleBeforeResize;
+/*0x210*/ int                          IniFlags;
+/*0x214*/ CXStr                        IniStorageName;                         // found in CSidlScreenWnd__LoadSidlScreen
+/*0x218*/ int                          IniVersion;
+/*0x21c*/ int                          LastResX;
+/*0x220*/ int                          LastResY;
+/*0x224*/ bool                         bLastResFullscreen;
+/*0x228*/ int                          ContextMenuID;
+/*0x22c*/ CXWnd*                       pFirstVScrollChild;
+/*0x230*/ int                          ContextMenuTipID;
+/*0x234*/ bool                         bHasActivatedFirstTimeAlert;
+/*0x238*/
 
 	//----------------------------------------------------------------------------
 	// functions that we provide offsets for

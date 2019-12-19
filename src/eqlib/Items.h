@@ -516,7 +516,7 @@ public:
 
 #include "ItemBase-Members.h"
 
-/*0x14c*/
+/*0x144*/
 	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
@@ -528,10 +528,10 @@ class [[offsetcomments]] ItemClient : public ItemBase
 
 public:
 	// Reference counted pointer to ItemDefinition
-/*0x150*/ DWORD        Item2RefCnt;
-/*0x154*/ ITEMINFO*    Item2;
-/*0x158*/ CXStr        ClientString;
-/*0x15c*/
+/*0x148*/ DWORD        Item2RefCnt;
+/*0x14c*/ ITEMINFO*    Item2;
+/*0x150*/ CXStr        ClientString;
+/*0x154*/
 
 	EQLIB_OBJECT ItemClient* GetContent(uint32_t index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
@@ -554,16 +554,17 @@ struct [[offsetcomments]] CONTENTS
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x149*/ uint8_t           Filler0x0141[0xB];
-/*0x154*/ ITEMINFO*         Item2;
-/*0x158*/ CXStr             ClientString;
-/*0x15c*/ uint8_t           Filler0x0154[0x4];
-/*0x160*/
+/*0x144*/ uint32_t          Unknown0x144;
+/*0x148*/ uint32_t          Item2RefCnt;
+/*0x14c*/ ITEMINFO*         Item2;
+/*0x150*/ CXStr             ClientString;
+/*0x154*/ uint8_t           Filler0x0154[0x4];
+/*0x158*/
 
-EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
-EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
+	EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
+	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
 };
-using PCONTENTS [[deprecated]] = CONTENTS*;
+using PCONTENTS = CONTENTS*;
 
 
 struct ITEMBASEARRAY

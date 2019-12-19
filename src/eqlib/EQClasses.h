@@ -2109,9 +2109,9 @@ public:
 	EQLIB_OBJECT void SaveKeymapping(unsigned int, const KeyCombo&, int);
 
 /*0x0000*/ KeyCombo     NormalKey[nEQMappableCommands];
-/*0x0884*/ KeyCombo     AltKey[nEQMappableCommands];
-/*0x1108*/ char         CommandState[nEQMappableCommands];
-/*0x132c*/
+/*0x0888*/ KeyCombo     AltKey[nEQMappableCommands];
+/*0x1110*/ char         CommandState[nEQMappableCommands];
+/*0x1334*/
 };
 
 struct [[offsetcomments]] ItemFilterData
