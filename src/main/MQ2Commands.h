@@ -46,8 +46,6 @@ MQLIB_API void Echo                                (PSPAWNINFO pChar, char* szLi
 MQLIB_API void NoParseCmd                          (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void NoModKeyCmd                         (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void Where                               (PSPAWNINFO pChar, char* szLine);
-MQLIB_API void CaptionColorCmd                     (PSPAWNINFO pChar, char* szLine);
-MQLIB_API void CaptionCmd                          (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void HudCmd                              (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void DropCmd                             (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void CombineCmd                          (PSPAWNINFO pChar, char* szLine);

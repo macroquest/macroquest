@@ -17,101 +17,313 @@
 
 namespace mq {
 
-static MQGroundPending* pPendingGrounds = nullptr;
-static bool ProcessPending = false;
-static std::recursive_mutex s_groundsMutex;
+#pragma region Caption Colors
+//----------------------------------------------------------------------------
+// caption color code
+//----------------------------------------------------------------------------
 
-void AddGroundItem()
-{
-	if (GROUNDITEM* pGroundItem = *(GROUNDITEM**)pItemList)
-	{
-		std::scoped_lock lock(s_groundsMutex);
+static SPAWNINFO* pNamingSpawn = nullptr;
 
-		MQGroundPending* pPending = new MQGroundPending;
-		pPending->pGroundItem = pGroundItem;
-		pPending->pNext = pPendingGrounds;
-		pPending->pLast = nullptr;
-		if (pPendingGrounds)
-			pPendingGrounds->pLast = pPending;
-		pPendingGrounds = pPending;
-	}
-}
+static int gMaxSpawnCaptions = 30;
+static bool gMQCaptions = true;
 
-void RemoveGroundItem(GROUNDITEM* pGroundItem)
-{
-	if (pPendingGrounds)
-	{
-		std::scoped_lock lock(s_groundsMutex);
-
-		MQGroundPending* pPending = pPendingGrounds;
-		while (pPending)
-		{
-			if (pGroundItem == pPending->pGroundItem)
-			{
-				if (pPending->pNext)
-					pPending->pNext->pLast = pPending->pLast;
-				if (pPending->pLast)
-					pPending->pLast->pNext = pPending->pNext;
-				else
-					pPendingGrounds = pPending->pNext;
-
-				delete pPending;
-				break;
-			}
-			pPending = pPending->pNext;
-		}
-	}
-
-	PluginsRemoveGroundItem(pGroundItem);
-}
-
-class MyEQGroundItemListManager
-{
-public:
-	GROUNDITEM* m_pGroundItemList;
-
-	void FreeItemList_Trampoline();
-	void FreeItemList_Detour()
-	{
-		GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
-
-		while (pItem)
-		{
-			RemoveGroundItem(pItem);
-
-			pItem = pItem->pNext;
-		}
-
-		FreeItemList_Trampoline();
-	}
-
-	void Add_Trampoline(GROUNDITEM*);
-	void Add_Detour(GROUNDITEM* pItem)
-	{
-		if (m_pGroundItemList)
-		{
-			m_pGroundItemList->pPrev = pItem;
-			pItem->pNext = m_pGroundItemList;
-		}
-		m_pGroundItemList = pItem;
-
-		// if you drop something on the ground and this doesnt get called... you have the wrong offset
-
-		// dont call the trampoline, we just did the exact same thing the trampoline would do.
-		// for some reason, if we call the trampoline we will crash. and nobody has figured out why.
-		AddGroundItem();
-	}
-
-	void DeleteItem_Trampoline(GROUNDITEM*);
-	void DeleteItem_Detour(GROUNDITEM* pItem)
-	{
-		RemoveGroundItem(pItem);
-		return DeleteItem_Trampoline(pItem);
-	}
+static char gszSpawnPlayerName[8][MAX_STRING] = {
+	/* 0 */ "",
+	/* 1 */ "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}",
+	/* 2 */ "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}",
+	/* 3 */ "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}${If[${NamingSpawn.Guild.Length},\n<${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}",
+	/* 4 */ "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.AARank},${NamingSpawn.AATitle} ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.Suffix.Length}~${If[${NamingSpawn.Suffix.Left[1].Equal[,]}~${NamingSpawn.Suffix}~ ${NamingSpawn.Suffix}]}~]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}${If[${NamingSpawn.Guild.Length},\n<${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}",
+	/* 5 */ "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.AARank},\"${NamingSpawn.AATitle} \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Suffix.Length},\" ${NamingSpawn.Suffix}\",]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",
+	/* 6 */ "${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.AARank},\"${NamingSpawn.AATitle} \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length},\" ${NamingSpawn.Surname}\",]}${If[${NamingSpawn.Suffix.Length},\" ${NamingSpawn.Suffix}\",]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",
 };
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(GROUNDITEM*));
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(GROUNDITEM*));
+
+static char gszSpawnNPCName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
+static char gszSpawnPetName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
+static char gszSpawnCorpseName[MAX_STRING] = "${NamingSpawn.DisplayName}'s corpse";
+static char gszAnonCaption[MAX_STRING] = "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}";
+
+// TLO used for controlling what we are currently naming.
+static bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
+{
+	if (Ret.Ptr = pNamingSpawn)
+	{
+		Ret.Type = pSpawnType;
+		return true;
+	}
+	return false;
+}
+
+
+enum eCaptionColor
+{
+	CC_PC = 0,
+	CC_PCConColor = 1,
+	CC_PCPVPTeamColor = 2,
+	CC_PCRaidColor = 3,
+	CC_PCClassColor = 4,
+	CC_PCGroupColor = 5,
+	CC_PCTrader = 6,
+	CC_NPC = 7,
+	CC_NPCConColor = 8,
+	CC_NPCClassColor = 9,
+	CC_NPCMerchant = 10,
+	CC_NPCBanker = 11,
+	CC_NPCAssist = 12,
+	CC_NPCMark = 13,
+	CC_PetNPC = 14,
+	CC_PetPC = 15,
+	CC_PetConColor = 16,
+	CC_PetClassColor = 17,
+	CC_Corpse = 18,
+	CC_CorpseClassColor = 19,
+};
+
+struct CAPTIONCOLOR
+{
+	char* szName;
+	char* szDescription;
+	bool       Enabled;
+	bool       ToggleOnly;
+	DWORD      Color;
+};
+
+static CAPTIONCOLOR CaptionColors[] =
+{
+	// name          // description                           // enable // toggle // color
+	{ "PC",          "Default color for PCs",                 false,    false,    0x00FF00FF },
+	{ "PCCon",       "PCs by con color",                      false,    true,     0          },
+	{ "PCPVPTeam",   "PCs by PVP team color",                 false,    true,     0          },
+	{ "PCRaid",      "Raid members",                          false,    false,    0x0000FF7F },
+	{ "PCClass",     "PCs by class color (raid settings)",    false,    true,     0          },
+	{ "PCGroup",     "Group members",                         false,    false,    0x00FFFF00 },
+	{ "PCTrader",    "Traders",                               true,     false,    0x00FF7F00 },
+	{ "NPC",         "NPC default color",                     false,    false,    0x00FF0000 },
+	{ "NPCCon",      "NPCs by con color",                     true,     true,     0          },
+	{ "NPCClass",    "NPCs by class color (raid settings)",   false,    true,     0          },
+	{ "NPCMerchant", "NPC Merchants",                         true,     false,    0x00FF7F00 },
+	{ "NPCBanker",   "NPC Bankers",                           true,     false,    0x00C800FF },
+	{ "NPCAssist",   "NPCs from main assist",                 true,     false,    0x00FFFF00 },
+	{ "NPCMark",     "Marked NPCs",                           true,     false,    0x00FFFF00 },
+	{ "PetNPC",      "Pet with NPC owner",                    false,    false,    0x00FF0000 },
+	{ "PetPC",       "Pet with PC owner",                     false,    false,    0x00FFFF00 },
+	{ "PetClass",    "Pet by class color (raid settings)",    false,    false,    0x00FF0000 },
+	{ "Corpse",      "Corpses",                               false,    false,    0x00FF0000 },
+	{ "CorpseClass", "Corpse by class color (raid settings)", false,    false,    0x00FF0000 },
+	{ "",            "",                                      false,    false,    0          },
+};
+
+
+static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
+{
+	char Arg1[MAX_STRING] = { 0 };
+	GetArg(Arg1, szLine, 1);
+
+	if (!Arg1[0])
+	{
+		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anon <on|off>>");
+		return;
+	}
+
+	if (!_stricmp(Arg1, "list"))
+	{
+		WriteChatf("\ayPlayer1\ax: \ag%s\ax", gszSpawnPlayerName[1]);
+		WriteChatf("\ayPlayer2\ax: \ag%s\ax", gszSpawnPlayerName[2]);
+		WriteChatf("\ayPlayer3\ax: \ag%s\ax", gszSpawnPlayerName[3]);
+		WriteChatf("\ayPlayer4\ax: \ag%s\ax", gszSpawnPlayerName[4]);
+		WriteChatf("\ayPlayer5\ax: \ag%s\ax", gszSpawnPlayerName[5]);
+		WriteChatf("\ayPlayer6\ax: \ag%s\ax", gszSpawnPlayerName[6]);
+
+		WriteChatf("\ayNPC\ax: \ag%s\ax", gszSpawnNPCName);
+		WriteChatf("\ayPet\ax: \ag%s\ax", gszSpawnPetName);
+		WriteChatf("\ayCorpse\ax: \ag%s\ax", gszSpawnCorpseName);
+		return;
+	}
+
+	char* pCaption = nullptr;
+
+	if (!_stricmp(Arg1, "Player1"))
+	{
+		pCaption = gszSpawnPlayerName[1];
+	}
+	else if (!_stricmp(Arg1, "Player2"))
+	{
+		pCaption = gszSpawnPlayerName[2];
+	}
+	else if (!_stricmp(Arg1, "Player3"))
+	{
+		pCaption = gszSpawnPlayerName[3];
+	}
+	else if (!_stricmp(Arg1, "Player4"))
+	{
+		pCaption = gszSpawnPlayerName[4];
+	}
+	else if (!_stricmp(Arg1, "Player5"))
+	{
+		pCaption = gszSpawnPlayerName[5];
+	}
+	else if (!_stricmp(Arg1, "Player6"))
+	{
+		pCaption = gszSpawnPlayerName[6];
+	}
+	else if (!_stricmp(Arg1, "Pet"))
+	{
+		pCaption = gszSpawnPetName;
+	}
+	else if (!_stricmp(Arg1, "NPC"))
+	{
+		pCaption = gszSpawnNPCName;
+	}
+	else if (!_stricmp(Arg1, "Corpse"))
+	{
+		pCaption = gszSpawnCorpseName;
+	}
+	else if (!_stricmp(Arg1, "Update"))
+	{
+		gMaxSpawnCaptions = std::clamp(GetIntFromString(GetNextArg(szLine), 0), 8, 70);
+		_itoa_s(gMaxSpawnCaptions, Arg1, 10);
+
+		WritePrivateProfileString("Captions", "Update", Arg1, mq::internal_paths::MQini);
+		WriteChatf("\ay%d\ax nearest spawns will have their caption updated each pass.", gMaxSpawnCaptions);
+		return;
+	}
+	else if (!_stricmp(Arg1, "MQCaptions"))
+	{
+		gMQCaptions = (!_stricmp(GetNextArg(szLine), "On"));
+		WritePrivateProfileString("Captions", "MQCaptions", (gMQCaptions ? "1" : "0"), mq::internal_paths::MQini);
+		WriteChatf("MQCaptions are now \ay%s\ax.", (gMQCaptions ? "On" : "Off"));
+		return;
+	}
+	else if (!_stricmp(Arg1, "Anon"))
+	{
+		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
+		UpdatedMasterLooterLabel();
+		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), mq::internal_paths::MQini);
+		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
+		return;
+	}
+	else if (!_stricmp(Arg1, "reload"))
+	{
+		GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], gszSpawnPlayerName[3], MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], gszSpawnPlayerName[4], MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], gszSpawnPlayerName[5], MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, mq::internal_paths::MQini);
+
+		ConvertCR(gszSpawnNPCName, MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[2], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[3], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[4], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[5], MAX_STRING);
+		ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
+		ConvertCR(gszSpawnCorpseName, MAX_STRING);
+		ConvertCR(gszSpawnPetName, MAX_STRING);
+		ConvertCR(gszAnonCaption, MAX_STRING);
+
+		WriteChatf("Updated Captions from INI.");
+		return;
+	}
+	else
+	{
+		MacroError("Invalid caption type '%s'", Arg1);
+		return;
+	}
+
+	strcpy_s(pCaption, MAX_STRING, GetNextArg(szLine));
+	WritePrivateProfileString("Captions", Arg1, pCaption, mq::internal_paths::MQini);
+	ConvertCR(pCaption, MAX_STRING);
+	WriteChatf("\ay%s\ax caption set.", Arg1);
+}
+
+static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /captioncolor <list|<name off|on|#>>");
+		return;
+	}
+
+	char Arg1[MAX_STRING] = { 0 };
+	GetArg(Arg1, szLine, 1);
+
+	char Arg2[MAX_STRING] = { 0 };
+	GetArg(Arg2, szLine, 2);
+
+	if (!_stricmp(Arg1, "list"))
+	{
+		WriteChatColor("Caption Color Settings");
+		WriteChatColor("----------------------");
+
+		for (int index = 0; CaptionColors[index].szName[0]; index++)
+		{
+			if (!CaptionColors[index].Enabled || CaptionColors[index].ToggleOnly)
+				WriteChatf("%s %s (%s)", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", CaptionColors[index].szDescription);
+			else
+			{
+				ARGBCOLOR Color;
+				Color.ARGB = CaptionColors[index].Color;
+				WriteChatf("%s ON Color: %d %d %d. (%s)", CaptionColors[index].szName, Color.R, Color.G, Color.B, CaptionColors[index].szDescription);
+			}
+		}
+
+		return;
+	}
+
+	for (int index = 0; CaptionColors[index].szName[0]; index++)
+	{
+		if (!_stricmp(Arg1, CaptionColors[index].szName))
+		{
+			if (Arg2[0])
+			{
+				if (!_stricmp(Arg2, "on"))
+					CaptionColors[index].Enabled = 1;
+				else if (!_stricmp(Arg2, "off"))
+					CaptionColors[index].Enabled = 0;
+				else if (CaptionColors[index].Enabled && !CaptionColors[index].ToggleOnly)
+				{
+					ARGBCOLOR NewColor;
+					NewColor.A = 0;
+					NewColor.R = GetIntFromString(Arg2, 0);
+					NewColor.G = GetIntFromString(GetArg(Arg2, szLine, 3), 0);
+					NewColor.B = GetIntFromString(GetArg(Arg2, szLine, 4), 0);
+					CaptionColors[index].Color = NewColor.ARGB;
+				}
+				else
+				{
+					MacroError("Invalid option '%s' while '%s' is off.", Arg2, Arg1);
+					return;
+				}
+			}
+
+			if (!CaptionColors[index].Enabled || CaptionColors[index].ToggleOnly)
+			{
+				WriteChatf("%s %s (%s)", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", CaptionColors[index].szDescription);
+			}
+			else
+			{
+				ARGBCOLOR Color;
+				Color.ARGB = CaptionColors[index].Color;
+				WriteChatf("%s ON Color: %d %d %d. (%s)", CaptionColors[index].szName, Color.R, Color.G, Color.B, CaptionColors[index].szDescription);
+			}
+
+			WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", mq::internal_paths::MQini);
+
+			if (!CaptionColors[index].ToggleOnly)
+			{
+				sprintf_s(Arg2, "%x", CaptionColors[index].Color);
+				sprintf_s(Arg1, "%s-Color", CaptionColors[index].szName);
+				WritePrivateProfileString("Caption Colors", Arg1, Arg2, mq::internal_paths::MQini);
+			}
+
+			return;
+		}
+	}
+}
 
 void SetNameSpriteTint(SPAWNINFO* pSpawn);
 
@@ -185,6 +397,7 @@ public:
 		return true;
 	}
 
+	// FIXME: Move to the correct class
 	bool IsTargetable();
 
 };
@@ -202,62 +415,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char
 FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD& Color), 0x194);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD), 0x1a8);
 
-struct CAPTIONCOLOR
-{
-	char*      szName;
-	char*      szDescription;
-	bool       Enabled;
-	bool       ToggleOnly;
-	DWORD      Color;
-};
-
-#define CC_PC               0
-#define CC_PCConColor       1
-#define CC_PCPVPTeamColor   2
-#define CC_PCRaidColor      3
-#define CC_PCClassColor     4
-#define CC_PCGroupColor     5
-#define CC_PCTrader         6
-#define CC_NPC              7
-#define CC_NPCConColor      8
-#define CC_NPCClassColor    9
-#define CC_NPCMerchant      10
-#define CC_NPCBanker        11
-#define CC_NPCAssist        12
-#define CC_NPCMark          13
-#define CC_PetNPC           14
-#define CC_PetPC            15
-#define CC_PetConColor      16
-#define CC_PetClassColor    17
-#define CC_Corpse           18
-#define CC_CorpseClassColor 19
-
-CAPTIONCOLOR CaptionColors[] =
-{
-	// name          // description                           // enable // toggle // color
-	{ "PC",          "Default color for PCs",                 false,    false,    0x00FF00FF },
-	{ "PCCon",       "PCs by con color",                      false,    true,     0          },
-	{ "PCPVPTeam",   "PCs by PVP team color",                 false,    true,     0          },
-	{ "PCRaid",      "Raid members",                          false,    false,    0x0000FF7F },
-	{ "PCClass",     "PCs by class color (raid settings)",    false,    true,     0          },
-	{ "PCGroup",     "Group members",                         false,    false,    0x00FFFF00 },
-	{ "PCTrader",    "Traders",                               true,     false,    0x00FF7F00 },
-	{ "NPC",         "NPC default color",                     false,    false,    0x00FF0000 },
-	{ "NPCCon",      "NPCs by con color",                     true,     true,     0          },
-	{ "NPCClass",    "NPCs by class color (raid settings)",   false,    true,     0          },
-	{ "NPCMerchant", "NPC Merchants",                         true,     false,    0x00FF7F00 },
-	{ "NPCBanker",   "NPC Bankers",                           true,     false,    0x00C800FF },
-	{ "NPCAssist",   "NPCs from main assist",                 true,     false,    0x00FFFF00 },
-	{ "NPCMark",     "Marked NPCs",                           true,     false,    0x00FFFF00 },
-	{ "PetNPC",      "Pet with NPC owner",                    false,    false,    0x00FF0000 },
-	{ "PetPC",       "Pet with PC owner",                     false,    false,    0x00FFFF00 },
-	{ "PetClass",    "Pet by class color (raid settings)",    false,    false,    0x00FF0000 },
-	{ "Corpse",      "Corpses",                               false,    false,    0x00FF0000 },
-	{ "CorpseClass", "Corpse by class color (raid settings)", false,    false,    0x00FF0000 },
-	{ "",            "",                                      false,    false,    0          },
-};
-
-void SetNameSpriteTint(SPAWNINFO* pSpawn)
+static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 {
 	if (!gMQCaptions)
 		return;
@@ -358,7 +516,7 @@ void SetNameSpriteTint(SPAWNINFO* pSpawn)
 	}
 }
 
-bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString, eSpawnType type)
+static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString, eSpawnType type)
 {
 	char NewCaption[MAX_STRING] = { 0 };
 
@@ -450,7 +608,7 @@ bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString, eSpawnType type)
 	return false;
 }
 
-bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
+static bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 {
 	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
 	if (!Show)
@@ -514,7 +672,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 	return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 }
 
-void UpdateSpawnCaptions()
+static void UpdateSpawnCaptions()
 {
 	int Count = 0;
 	for (int index = 0; index < 120; index++)
@@ -548,96 +706,157 @@ DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::SetNameSpriteState_Trampoline(bool Sho
 DETOUR_TRAMPOLINE_EMPTY(void EQPlayerHook::dEQPlayer_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void EQPlayerHook::EQPlayer_Trampoline(void*, int, int, int, char*, char*, char*));
 
-void InitializeMQ2Spawns()
+static void LoadCaptionSettings()
 {
-	DebugSpew("Initializing Spawn-related Hooks");
+	const auto& iniFile = mq::internal_paths::MQini;
 
-	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
-	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
+	GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], gszSpawnPlayerName[3], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], gszSpawnPlayerName[4], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], gszSpawnPlayerName[5], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
 
-	EzDetourwName(EQPlayer__EQPlayer, &EQPlayerHook::EQPlayer_Detour, &EQPlayerHook::EQPlayer_Trampoline, "EQPlayer__EQPlayer");
-	EzDetourwName(EQPlayer__dEQPlayer, &EQPlayerHook::dEQPlayer_Detour, &EQPlayerHook::dEQPlayer_Trampoline, "EQPlayer__dEQPlayer");
-	EzDetourwName(EQPlayer__SetNameSpriteState, &EQPlayerHook::SetNameSpriteState_Detour, &EQPlayerHook::SetNameSpriteState_Trampoline, "EQPlayer__SetNameSpriteState");
-	EzDetourwName(EQPlayer__SetNameSpriteTint, &EQPlayerHook::SetNameSpriteTint_Detour, &EQPlayerHook::SetNameSpriteTint_Trampoline, "EQPlayer__SetNameSpriteTint");
-	EzDetourwName(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline, "EQItemList__FreeItemList");
-	EzDetourwName(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline, "EQGroundItemListManager__add");
-	EzDetourwName(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline, "EQItemList__delete_item");
+	gMaxSpawnCaptions = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
+	gMQCaptions = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
 
-	ProcessPending = true;
-	ZeroMemory(&EQP_DistArray, sizeof(EQP_DistArray));
-	gSpawnCount = 0;
+	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
 
-	char Temp[MAX_STRING] = { 0 };
-	char Name[MAX_STRING] = { 0 };
-
-	// load custom spawn caption colors
-	for (int index = 0; CaptionColors[index].szName[0]; index++)
+	if (gbWriteAllConfig)
 	{
-		if (GetPrivateProfileString("Caption Colors", CaptionColors[index].szName, "", Temp, MAX_STRING, mq::internal_paths::MQini))
-		{
-			if (!_stricmp(Temp, "on") || !_stricmp(Temp, "1"))
-				CaptionColors[index].Enabled = 1;
-			else
-				CaptionColors[index].Enabled = 0;
-		}
+		WritePrivateProfileString("Captions", "NPC", gszSpawnNPCName, iniFile);
+		WritePrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], iniFile);
+		WritePrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], iniFile);
+		WritePrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], iniFile);
+		WritePrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], iniFile);
+		WritePrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], iniFile);
+		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
+		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
+		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
 
-		sprintf_s(Name, "%s-Color", CaptionColors[index].szName);
+		WritePrivateProfileString("Captions", "Update", std::to_string(gMaxSpawnCaptions), iniFile);
+		WritePrivateProfileString("Captions", "MQCaptions", std::to_string(gMQCaptions), iniFile);
 
-		if (GetPrivateProfileString("Caption Colors", Name, "", Temp, MAX_STRING, mq::internal_paths::MQini))
-		{
-			if (!sscanf_s(Temp, "%x", &CaptionColors[index].Color))
-			{
-				// should handle this i guess
-				continue;
-			}
-		}
+		WritePrivateProfileString("Captions", "AnonCaption", gszAnonCaption, iniFile);
 	}
 
-	// write custom spawn caption colors
-	for (int index = 0; CaptionColors[index].szName[0]; index++)
-	{
-		WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", mq::internal_paths::MQini);
-
-		if (!CaptionColors[index].ToggleOnly)
-		{
-			sprintf_s(Temp, "%x", CaptionColors[index].Color);
-			sprintf_s(Name, "%s-Color", CaptionColors[index].szName);
-			WritePrivateProfileString("Caption Colors", Name, Temp, mq::internal_paths::MQini);
-		}
-	}
+	ConvertCR(gszSpawnNPCName, MAX_STRING);
+	ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
+	ConvertCR(gszSpawnPlayerName[2], MAX_STRING);
+	ConvertCR(gszSpawnPlayerName[3], MAX_STRING);
+	ConvertCR(gszSpawnPlayerName[4], MAX_STRING);
+	ConvertCR(gszSpawnPlayerName[5], MAX_STRING);
+	ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
+	ConvertCR(gszSpawnCorpseName, MAX_STRING);
+	ConvertCR(gszSpawnPetName, MAX_STRING);
+	ConvertCR(gszAnonCaption, MAX_STRING);
 }
 
-void ShutdownMQ2Spawns()
+#pragma endregion
+
+#pragma region Ground Item Management
+//----------------------------------------------------------------------------
+// ground item management
+//----------------------------------------------------------------------------
+
+static MQGroundPending* pPendingGrounds = nullptr;
+static bool ProcessPending = false;
+static std::recursive_mutex s_groundsMutex;
+
+static void AddGroundItem()
 {
-	DebugSpew("Shutting Down Spawn-related Hooks");
-
-	RemoveDetour(EQPlayer__EQPlayer);
-	RemoveDetour(EQPlayer__dEQPlayer);
-	//RemoveDetour(EQPlayer__SetNameSpriteState);
-	RemoveDetour(EQPlayer__SetNameSpriteTint);
-	RemoveDetour(EQItemList__FreeItemList);
-	RemoveDetour(EQItemList__add_item);
-	RemoveDetour(EQItemList__delete_item);
-
-	ProcessPending = false;
-
+	if (GROUNDITEM* pGroundItem = *(GROUNDITEM**)pItemList)
 	{
 		std::scoped_lock lock(s_groundsMutex);
 
-		while (pPendingGrounds)
+		MQGroundPending* pPending = new MQGroundPending;
+		pPending->pGroundItem = pGroundItem;
+		pPending->pNext = pPendingGrounds;
+		pPending->pLast = nullptr;
+		if (pPendingGrounds)
+			pPendingGrounds->pLast = pPending;
+		pPendingGrounds = pPending;
+	}
+}
+
+static void RemoveGroundItem(GROUNDITEM* pGroundItem)
+{
+	if (pPendingGrounds)
+	{
+		std::scoped_lock lock(s_groundsMutex);
+
+		MQGroundPending* pPending = pPendingGrounds;
+		while (pPending)
 		{
-			MQGroundPending* pNext = pPendingGrounds->pNext;
-			delete pPendingGrounds;
-			pPendingGrounds = pNext;
+			if (pGroundItem == pPending->pGroundItem)
+			{
+				if (pPending->pNext)
+					pPending->pNext->pLast = pPending->pLast;
+				if (pPending->pLast)
+					pPending->pLast->pNext = pPending->pNext;
+				else
+					pPendingGrounds = pPending->pNext;
+
+				delete pPending;
+				break;
+			}
+			pPending = pPending->pNext;
 		}
 	}
 
-	ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
-	gSpawnCount = 0;
-
-	RemoveMQ2Benchmark(bmUpdateSpawnSort);
-	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
+	PluginsRemoveGroundItem(pGroundItem);
 }
+
+class MyEQGroundItemListManager
+{
+public:
+	GROUNDITEM* m_pGroundItemList;
+
+	void FreeItemList_Trampoline();
+	void FreeItemList_Detour()
+	{
+		GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
+
+		while (pItem)
+		{
+			RemoveGroundItem(pItem);
+
+			pItem = pItem->pNext;
+		}
+
+		FreeItemList_Trampoline();
+	}
+
+	void Add_Trampoline(GROUNDITEM*);
+	void Add_Detour(GROUNDITEM* pItem)
+	{
+		if (m_pGroundItemList)
+		{
+			m_pGroundItemList->pPrev = pItem;
+			pItem->pNext = m_pGroundItemList;
+		}
+		m_pGroundItemList = pItem;
+
+		// if you drop something on the ground and this doesnt get called... you have the wrong offset
+
+		// dont call the trampoline, we just did the exact same thing the trampoline would do.
+		// for some reason, if we call the trampoline we will crash. and nobody has figured out why.
+		AddGroundItem();
+	}
+
+	void DeleteItem_Trampoline(GROUNDITEM*);
+	void DeleteItem_Detour(GROUNDITEM* pItem)
+	{
+		RemoveGroundItem(pItem);
+		return DeleteItem_Trampoline(pItem);
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(GROUNDITEM*));
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(GROUNDITEM*));
 
 void ProcessPendingGroundItems()
 {
@@ -657,6 +876,8 @@ void ProcessPendingGroundItems()
 		pPendingGrounds = pNext;
 	}
 }
+
+#pragma endregion
 
 void UpdateMQ2SpawnSort()
 {
@@ -709,89 +930,108 @@ void UpdateMQ2SpawnSort()
 	}
 }
 
-void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
+void InitializeMQ2Spawns()
 {
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /captioncolor <list|<name off|on|#>>");
-		return;
-	}
+	DebugSpew("Initializing Spawn-related Hooks");
 
-	char Arg1[MAX_STRING] = { 0 };
-	GetArg(Arg1, szLine, 1);
+	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
+	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	char Arg2[MAX_STRING] = { 0 };
-	GetArg(Arg2, szLine, 2);
+	EzDetourwName(EQPlayer__EQPlayer, &EQPlayerHook::EQPlayer_Detour, &EQPlayerHook::EQPlayer_Trampoline, "EQPlayer__EQPlayer");
+	EzDetourwName(EQPlayer__dEQPlayer, &EQPlayerHook::dEQPlayer_Detour, &EQPlayerHook::dEQPlayer_Trampoline, "EQPlayer__dEQPlayer");
+	EzDetourwName(EQPlayer__SetNameSpriteState, &EQPlayerHook::SetNameSpriteState_Detour, &EQPlayerHook::SetNameSpriteState_Trampoline, "EQPlayer__SetNameSpriteState");
+	EzDetourwName(EQPlayer__SetNameSpriteTint, &EQPlayerHook::SetNameSpriteTint_Detour, &EQPlayerHook::SetNameSpriteTint_Trampoline, "EQPlayer__SetNameSpriteTint");
+	EzDetourwName(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline, "EQItemList__FreeItemList");
+	EzDetourwName(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline, "EQGroundItemListManager__add");
+	EzDetourwName(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline, "EQItemList__delete_item");
 
-	if (!_stricmp(Arg1, "list"))
-	{
-		WriteChatColor("Caption Color Settings");
-		WriteChatColor("----------------------");
+	// Load Settings
+	LoadCaptionSettings();
 
-		for (int index = 0; CaptionColors[index].szName[0]; index++)
-		{
-			if (!CaptionColors[index].Enabled || CaptionColors[index].ToggleOnly)
-				WriteChatf("%s %s (%s)", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", CaptionColors[index].szDescription);
-			else
-			{
-				ARGBCOLOR Color;
-				Color.ARGB = CaptionColors[index].Color;
-				WriteChatf("%s ON Color: %d %d %d. (%s)", CaptionColors[index].szName, Color.R, Color.G, Color.B, CaptionColors[index].szDescription);
-			}
-		}
+	ProcessPending = true;
+	ZeroMemory(&EQP_DistArray, sizeof(EQP_DistArray));
+	gSpawnCount = 0;
 
-		return;
-	}
+	char Temp[MAX_STRING] = { 0 };
+	char Name[MAX_STRING] = { 0 };
 
+	// load custom spawn caption colors
 	for (int index = 0; CaptionColors[index].szName[0]; index++)
 	{
-		if (!_stricmp(Arg1, CaptionColors[index].szName))
+		if (GetPrivateProfileString("Caption Colors", CaptionColors[index].szName, "", Temp, MAX_STRING, mq::internal_paths::MQini))
 		{
-			if (Arg2[0])
-			{
-				if (!_stricmp(Arg2, "on"))
-					CaptionColors[index].Enabled = 1;
-				else if (!_stricmp(Arg2, "off"))
-					CaptionColors[index].Enabled = 0;
-				else if (CaptionColors[index].Enabled && !CaptionColors[index].ToggleOnly)
-				{
-					ARGBCOLOR NewColor;
-					NewColor.A = 0;
-					NewColor.R = GetIntFromString(Arg2, 0);
-					NewColor.G = GetIntFromString(GetArg(Arg2, szLine, 3), 0);
-					NewColor.B = GetIntFromString(GetArg(Arg2, szLine, 4), 0);
-					CaptionColors[index].Color = NewColor.ARGB;
-				}
-				else
-				{
-					MacroError("Invalid option '%s' while '%s' is off.", Arg2, Arg1);
-					return;
-				}
-			}
-
-			if (!CaptionColors[index].Enabled || CaptionColors[index].ToggleOnly)
-			{
-				WriteChatf("%s %s (%s)", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", CaptionColors[index].szDescription);
-			}
+			if (!_stricmp(Temp, "on") || !_stricmp(Temp, "1"))
+				CaptionColors[index].Enabled = 1;
 			else
+				CaptionColors[index].Enabled = 0;
+		}
+
+		sprintf_s(Name, "%s-Color", CaptionColors[index].szName);
+
+		if (GetPrivateProfileString("Caption Colors", Name, "", Temp, MAX_STRING, mq::internal_paths::MQini))
+		{
+			if (!sscanf_s(Temp, "%x", &CaptionColors[index].Color))
 			{
-				ARGBCOLOR Color;
-				Color.ARGB = CaptionColors[index].Color;
-				WriteChatf("%s ON Color: %d %d %d. (%s)", CaptionColors[index].szName, Color.R, Color.G, Color.B, CaptionColors[index].szDescription);
+				// should handle this i guess
+				continue;
 			}
-
-			WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", mq::internal_paths::MQini);
-
-			if (!CaptionColors[index].ToggleOnly)
-			{
-				sprintf_s(Arg2, "%x", CaptionColors[index].Color);
-				sprintf_s(Arg1, "%s-Color", CaptionColors[index].szName);
-				WritePrivateProfileString("Caption Colors", Arg1, Arg2, mq::internal_paths::MQini);
-			}
-
-			return;
 		}
 	}
+
+	// write custom spawn caption colors
+	for (int index = 0; CaptionColors[index].szName[0]; index++)
+	{
+		WritePrivateProfileString("Caption Colors", CaptionColors[index].szName, CaptionColors[index].Enabled ? "ON" : "OFF", mq::internal_paths::MQini);
+
+		if (!CaptionColors[index].ToggleOnly)
+		{
+			sprintf_s(Temp, "%x", CaptionColors[index].Color);
+			sprintf_s(Name, "%s-Color", CaptionColors[index].szName);
+			WritePrivateProfileString("Caption Colors", Name, Temp, mq::internal_paths::MQini);
+		}
+	}
+
+	AddMQ2Data("NamingSpawn", dataNamingSpawn);
+
+	AddCommand("/caption", CaptionCmd, false, false);
+	AddCommand("/captioncolor", CaptionColorCmd, true, false);
+}
+
+void ShutdownMQ2Spawns()
+{
+	DebugSpew("Shutting Down Spawn-related Hooks");
+
+	RemoveMQ2Data("NamingSpawn");
+
+	RemoveCommand("/caption");
+	RemoveCommand("/captioncolor");
+
+	RemoveDetour(EQPlayer__EQPlayer);
+	RemoveDetour(EQPlayer__dEQPlayer);
+	RemoveDetour(EQPlayer__SetNameSpriteState);
+	RemoveDetour(EQPlayer__SetNameSpriteTint);
+	RemoveDetour(EQItemList__FreeItemList);
+	RemoveDetour(EQItemList__add_item);
+	RemoveDetour(EQItemList__delete_item);
+
+	ProcessPending = false;
+
+	{
+		std::scoped_lock lock(s_groundsMutex);
+
+		while (pPendingGrounds)
+		{
+			MQGroundPending* pNext = pPendingGrounds->pNext;
+			delete pPendingGrounds;
+			pPendingGrounds = pNext;
+		}
+	}
+
+	ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
+	gSpawnCount = 0;
+
+	RemoveMQ2Benchmark(bmUpdateSpawnSort);
+	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
 }
 
 bool IsTargetable(SPAWNINFO* pSpawn)

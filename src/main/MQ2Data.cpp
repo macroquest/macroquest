@@ -1403,16 +1403,6 @@ bool dataRaid(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
-bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
-{
-	if (Ret.Ptr = pNamingSpawn)
-	{
-		Ret.Type = pSpawnType;
-		return true;
-	}
-	return false;
-}
-
 bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!GetCharInfo() && !GetCharInfo()->pSpawn)

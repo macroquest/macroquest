@@ -73,17 +73,16 @@ MQLIB_VAR bool g_Loaded;
 MQLIB_VAR DWORD ThreadID;
 
 MQLIB_VAR BOOL gStringTableFixed;
-MQLIB_VAR int gMaxSpawnCaptions;
-MQLIB_VAR BOOL gMQCaptions;
-MQLIB_VAR BOOL gAnonymize;
+MQLIB_VAR bool gbWriteAllConfig;
 
 enum EAnonFlags
 {
 	EAF_None,
 	EAF_Class,
 };
+MQLIB_VAR EAnonFlags gAnonymizeFlag;
+MQLIB_VAR bool gAnonymize;
 
-MQLIB_VAR DWORD gAnonymizeFlag;
 MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;
 MQLIB_VAR HWND ghInjectorWnd;
@@ -114,7 +113,8 @@ MQLIB_VAR char gszINIFilename[MAX_STRING] DEPRECATE("Use internal_paths::MQini i
 MQLIB_VAR char gszItemDB[MAX_STRING] DEPRECATE("Use internal_paths::Resources / \"ItemDB.txt\" in Core or gResourcesPath / ItemDB.txt in Plugins");
 MQLIB_VAR char gszMacroName[MAX_STRING];
 MQLIB_VAR char szLastCommand[MAX_STRING];
-// FIXME:  Convert this to a Global Object.  Include setting of gPathX (and remove from Init).
+
+// FIXME:  Convert this to a Global Object. Include setting of gPathX (and remove from Init).
 namespace internal_paths
 {
 	extern std::string MQRoot;
@@ -138,13 +138,6 @@ MQLIB_VAR char gPathResources[MAX_PATH];
 MQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
 MQLIB_VAR char gszLastSyntaxError[MAX_STRING];
 MQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
-
-MQLIB_VAR SPAWNINFO* pNamingSpawn;
-MQLIB_VAR char gszSpawnNPCName[MAX_STRING];
-MQLIB_VAR char gszSpawnPlayerName[8][MAX_STRING];
-MQLIB_VAR char gszSpawnPetName[MAX_STRING];
-MQLIB_VAR char gszSpawnCorpseName[MAX_STRING];
-MQLIB_VAR char gszAnonCaption[MAX_STRING];
 
 MQLIB_VAR DWORD DrawHUDParams[4];
 

@@ -872,8 +872,6 @@ void InitializeMQ2Commands()
 		{ "/drop",              DropCmd,                    true,  false },
 		{ "/delay",             Delay,                      false, false }, // do not parse
 		{ "/hud",               HudCmd,                     true,  false },
-		{ "/caption",           CaptionCmd,                 false, false },
-		{ "/captioncolor",      CaptionColorCmd,            true,  false },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
 		{ "/getwintitle",       GetWinTitle,                true,  false },
@@ -961,9 +959,6 @@ void InitializeMQ2Commands()
 		}
 		pAliasList += strlen(pAliasList) + 1;
 	}
-
-	// Here is where you can add in permanent Substitutions
-	AddSubstitute("omg", "Oh My God");
 
 	// Importing the User's Substitution List from .ini file
 	GetPrivateProfileString("Substitutions", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);

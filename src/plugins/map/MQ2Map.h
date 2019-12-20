@@ -118,7 +118,7 @@ extern float CampY;
 extern float PullX;
 extern float PullY;
 
-extern BOOL wasAnon;
+extern bool wasAnon;
 extern bool needAnon;
 
 extern std::map<std::string, MAPLOC*> LocationMap;
@@ -142,8 +142,8 @@ extern MAPFILTER MapFilterOptions[];
 constexpr int MAX_CLICK_STRINGS = 16;
 extern char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
-extern BOOL repeatMapshow;
-extern BOOL repeatMaphide;
+extern bool repeatMapshow;
+extern bool repeatMaphide;
 
 /* COMMANDS */
 void MapFilters(SPAWNINFO* pChar, char* szLine);

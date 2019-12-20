@@ -248,7 +248,7 @@ bool InitDirectories(const std::string& iniToRead)
 bool ParseINIFile(const std::string& iniFile)
 {
 	char szBuffer[MAX_STRING] = { 0 };
-	const bool bWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniFile);
+	gbWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniFile);
 
 	DebugSpew("Expected Client version: %s %s", __ExpectedVersionDate, __ExpectedVersionTime);
 	DebugSpew("    Real Client version: %s %s", __ActualVersionDate, __ActualVersionTime);
@@ -263,6 +263,7 @@ bool ParseINIFile(const std::string& iniFile)
 	}
 #endif
 
+	// TODO: Do not require MQ2Ic to be listed in plugins. Just load it.
 	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", 1, iniFile);
 	if (ic == 0)
 	{
@@ -272,7 +273,7 @@ bool ParseINIFile(const std::string& iniFile)
 
 	gFilterSkillsAll         = GetPrivateProfileBool("MacroQuest", "FilterSkills", gFilterSkillsAll, iniFile);
 	gFilterSkillsIncrease    = 2 == GetPrivateProfileInt("MacroQuest", "FilterSkills", gFilterSkillsIncrease ? 2 : 0, iniFile);
-	if (bWriteAllConfig)
+	if (gbWriteAllConfig)
 	{
 		if (gFilterSkillsAll && gFilterSkillsIncrease)
 			WritePrivateProfileString("MacroQuest", "FilterSkills", "2", iniFile);
@@ -312,7 +313,7 @@ bool ParseINIFile(const std::string& iniFile)
 	gIfDelimiter = szBuffer[0];
 	GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::to_string(gIfAltDelimiter), szBuffer, MAX_STRING, iniFile);
 	gIfAltDelimiter = szBuffer[0];
-	if (bWriteAllConfig)
+	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileString("MacroQuest", "FilterDebug", std::to_string(gFilterDebug), iniFile);
 		WritePrivateProfileString("MacroQuest", "FilterMQ2Data", std::to_string(gFilterMQ2DataErrors), iniFile);
@@ -367,55 +368,18 @@ bool ParseINIFile(const std::string& iniFile)
 			gbHUDUnderUI = true;
 		}
 	}
-	if (bWriteAllConfig) WritePrivateProfileString("MacroQuest", "HUDMode", szBuffer, iniFile);
 
-	GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], gszSpawnPlayerName[1], MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], gszSpawnPlayerName[2], MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], gszSpawnPlayerName[3], MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], gszSpawnPlayerName[4], MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], gszSpawnPlayerName[5], MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
-	if (bWriteAllConfig)
-	{
-		WritePrivateProfileString("Captions", "NPC", gszSpawnNPCName, iniFile);
-		WritePrivateProfileString("Captions", "Player1", gszSpawnPlayerName[1], iniFile);
-		WritePrivateProfileString("Captions", "Player2", gszSpawnPlayerName[2], iniFile);
-		WritePrivateProfileString("Captions", "Player3", gszSpawnPlayerName[3], iniFile);
-		WritePrivateProfileString("Captions", "Player4", gszSpawnPlayerName[4], iniFile);
-		WritePrivateProfileString("Captions", "Player5", gszSpawnPlayerName[5], iniFile);
-		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
-		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
-		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
-	}
+	if (gbWriteAllConfig)
+		WritePrivateProfileString("MacroQuest", "HUDMode", szBuffer, iniFile);
 
-	gMaxSpawnCaptions        = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
-	gMQCaptions              = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
 	gAnonymize               = GetPrivateProfileBool("Captions", "Anonymize", gAnonymize, iniFile);
-	gAnonymizeFlag           = GetPrivateProfileInt("Captions", "AnonymizeFlag", gAnonymizeFlag, iniFile);
-	if (bWriteAllConfig)
+	gAnonymizeFlag           = (EAnonFlags)GetPrivateProfileInt("Captions", "AnonymizeFlag", gAnonymizeFlag, iniFile);
+
+	if (gbWriteAllConfig)
 	{
-		WritePrivateProfileString("Captions", "Update", std::to_string(gMaxSpawnCaptions), iniFile);
-		WritePrivateProfileString("Captions", "MQCaptions", std::to_string(gMQCaptions), iniFile);
 		WritePrivateProfileString("Captions", "Anonymize", std::to_string(gAnonymize), iniFile);
 		WritePrivateProfileString("Captions", "AnonymizeFlag", std::to_string(gAnonymizeFlag), iniFile);
 	}
-
-	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
-	if (bWriteAllConfig) WritePrivateProfileString("Captions", "AnonCaption", gszAnonCaption, iniFile);
-
-	ConvertCR(gszSpawnNPCName, MAX_STRING);
-	ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
-	ConvertCR(gszSpawnPlayerName[2], MAX_STRING);
-	ConvertCR(gszSpawnPlayerName[3], MAX_STRING);
-	ConvertCR(gszSpawnPlayerName[4], MAX_STRING);
-	ConvertCR(gszSpawnPlayerName[5], MAX_STRING);
-	ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
-	ConvertCR(gszSpawnCorpseName, MAX_STRING);
-	ConvertCR(gszSpawnPetName, MAX_STRING);
-	ConvertCR(gszAnonCaption, MAX_STRING);
 
 	gFilterSWho.Lastname        = GetPrivateProfileBool("SWho Filter", "Lastname", gFilterSWho.Lastname, iniFile);
 	gFilterSWho.Class           = GetPrivateProfileBool("SWho Filter", "Class", gFilterSWho.Class, iniFile);
@@ -437,7 +401,7 @@ bool ParseINIFile(const std::string& iniFile)
 	gFilterSWho.Holding         = GetPrivateProfileBool("SWho Filter", "Holding", gFilterSWho.Holding, iniFile);
 	gFilterSWho.ConColor        = GetPrivateProfileBool("SWho Filter", "ConColor", gFilterSWho.ConColor, iniFile);
 	gFilterSWho.Invisible       = GetPrivateProfileBool("SWho Filter", "Invisible", gFilterSWho.Invisible, iniFile);
-	if (bWriteAllConfig)
+	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileString("SWho Filter", "Lastname", std::to_string(gFilterSWho.Lastname), iniFile);
 		WritePrivateProfileString("SWho Filter", "Class", std::to_string(gFilterSWho.Class), iniFile);
@@ -719,7 +683,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2Pulse());
 	DebugTry(ShutdownMQ2Windows());
 	DebugTry(MQ2MouseHooks(0));
-	RemoveDetour(EQPlayer__SetNameSpriteState); // put here so it doesnt crash :)
+	//RemoveDetour(EQPlayer__SetNameSpriteState); // put here so it doesnt crash :)
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());
 	DebugTry(ShutdownMQ2Plugins());

@@ -29,12 +29,12 @@ float CampX = 0.0f;
 float CampY = 0.0f;
 float PullX = 0.0f;
 float PullY = 0.0f;
-BOOL wasAnon = 0;
+bool wasAnon = false;
 bool needAnon = false;
 bool Update = true;
 WORD currentZoneId = 0;
-BOOL repeatMaphide = FALSE;
-BOOL repeatMapshow = FALSE;
+bool repeatMaphide = false;
+bool repeatMapshow = false;
 DWORD HighlightColor = 0xFF700070;
 DWORD HighlightSIDELEN = 100;
 BOOL HighlightPulse = FALSE;
@@ -301,8 +301,8 @@ PLUGIN_API void InitializePlugin()
 
 	UpdateDefaultMapLoc();
 
-	repeatMapshow = GetPrivateProfileInt("Map Filters", "Mapshow-Repeat", FALSE, INIFileName);
-	repeatMaphide = GetPrivateProfileInt("Map Filters", "Maphide-Repeat", FALSE, INIFileName);
+	repeatMapshow = GetPrivateProfileBool("Map Filters", "Mapshow-Repeat", false, INIFileName);
+	repeatMaphide = GetPrivateProfileBool("Map Filters", "Maphide-Repeat", false, INIFileName);
 
 	HighlightSIDELEN = GetPrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
 	HighlightPulse = GetPrivateProfileInt("Map Filters", "HighPulse", HighlightPulse, INIFileName);
