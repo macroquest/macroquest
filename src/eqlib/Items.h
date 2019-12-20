@@ -516,7 +516,7 @@ public:
 
 #include "ItemBase-Members.h"
 
-/*0x144*/
+/*0x14c*/
 	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
@@ -528,10 +528,10 @@ class [[offsetcomments]] ItemClient : public ItemBase
 
 public:
 	// Reference counted pointer to ItemDefinition
-/*0x148*/ DWORD        Item2RefCnt;
-/*0x14c*/ ITEMINFO*    Item2;
-/*0x150*/ CXStr        ClientString;
-/*0x154*/
+/*0x150*/ DWORD        Item2RefCnt;
+/*0x154*/ ITEMINFO*    Item2;
+/*0x158*/ CXStr        ClientString;
+/*0x15c*/
 
 	EQLIB_OBJECT ItemClient* GetContent(uint32_t index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
@@ -542,8 +542,7 @@ public:
 // This is ItemClient/ItemBase
 //============================================================================
 
-// Actual Size: 0x158 (see 0x610D4C in eqgame.exe Test dated May 17 2019) - eqmule
-// Actual Size: 0x158 (see 0x61251C in eqgame.exe Live dated Aug 15 2019) - eqmule
+// Actual Size: 0x160 (see 0x62856C in eqgame.exe Live dated Dec 19 2019)
 struct [[offsetcomments]] CONTENTS
 {
 /*0x000*/ void*             vtable;
@@ -554,12 +553,12 @@ struct [[offsetcomments]] CONTENTS
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x144*/ uint32_t          Unknown0x144;
-/*0x148*/ uint32_t          Item2RefCnt;
-/*0x14c*/ ITEMINFO*         Item2;
-/*0x150*/ CXStr             ClientString;
-/*0x154*/ uint8_t           Filler0x0154[0x4];
-/*0x158*/
+/*0x14c*/ uint32_t          Unknown0x144;
+/*0x150*/ uint32_t          Item2RefCnt;
+/*0x154*/ ITEMINFO*         Item2;
+/*0x158*/ CXStr             ClientString;
+/*0x15c*/ uint8_t           Filler0x0154[0x4];
+/*0x160*/
 
 	EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
