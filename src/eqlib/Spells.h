@@ -619,7 +619,7 @@ enum eResistType
 	ResistType_Corruption = 9,
 };
 
-enum eSpellType
+enum eSpellType : uint8_t
 {
 	SpellType_Detrimental = 0,
 	SpellType_Beneficial = 1,

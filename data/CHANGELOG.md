@@ -1,3 +1,63 @@
+Dec 18 2019 Torment of Velious Build
+- Updated for LIVE
+
+Dec 17 2019
+- Updated for BETA
+- Fixed a bug in GetCachedBuffs
+
+Dec 16 2019
+- Updated for BETA
+- Fixed MQ2Twist in global plugins
+- Added GetCachedBuffs to exports so plugins can make use of it.
+  Usage:
+  std::map<int, std::map<int,cTargetBuff>>cbuffs;
+  GetCachedBuffs(cbuffs);
+
+Dec 15 2019
+- Updated for BETA
+
+Dec 14 2019
+- Updated for BETA
+
+Dec 13 2019
+- Updated for BETA
+
+Dec 12 2019
+- Updated for BETA
+
+Dec 11 2019
+- Updated for BETA
+
+Dec 10 2019
+- Updated for TEST
+- Updated for BETA
+
+Dec 09 2019
+- Updated for BETA
+
+Dec 08 2019
+- Updated for BETA
+
+Dec 07 2019
+- Updated for BETA
+
+Dec 06 2019
+- Updated for BETA
+- Added .SpellIcon and .GemIcon to the Spell TLO.
+- Fixed the Button structure
+
+Dec 05 2019
+- Updated for BETA
+
+Dec 04 2019
+- Updated for BETA
+
+Dec 03 2019
+- Updated for BETA
+
+Dec 02 2019
+- Updated for BETA
+
 Dec 01 2019
 - Updated for BETA
 
