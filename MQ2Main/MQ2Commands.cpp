@@ -374,6 +374,23 @@ VOID EngineCommand(PSPAWNINFO pChar, PCHAR szLine)
 // Function:      PluginCommand
 // Description:   Our /plugin command.
 // ***************************************************************************
+void UnloadPlugin(PCHAR szName, PCHAR szCommand)
+{
+	if (UnloadMQ2Plugin(szName))
+	{
+		CHAR szBuffer[MAX_STRING] = { 0 };
+		sprintf_s(szBuffer, "Plugin '%s' unloaded.", szName);
+		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		if (!strstr(szCommand, "noauto")) {
+			SaveMQ2PluginLoadStatus(szName, false);
+		}
+
+	}
+	else
+	{
+		MacroError("Plugin '%s' not found.", szName);
+	}
+}
 VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
@@ -407,32 +424,29 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	if (!_strnicmp(szCommand, "unload", 6)) {
-		if (UnloadMQ2Plugin(szName))
-		{
-			sprintf_s(szBuffer, "Plugin '%s' unloaded.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (!strstr(szCommand, "noauto")) {
-				SaveMQ2PluginLoadStatus(szName, false);
-			}
-
-		}
-		else
-		{
-			MacroError("Plugin '%s' not found.", szName);
-		}
+		UnloadPlugin(szName, szCommand);
 	}
 	else {
-		if (LoadMQ2Plugin(szName))
+		if (GetModuleHandle(szName))
 		{
-			sprintf_s(szBuffer, "Plugin '%s' loaded.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (_stricmp(szCommand, "noauto")) {
-				SaveMQ2PluginLoadStatus(szName, true);
-			}
+			//unload it
+			UnloadPlugin(szName, szCommand);
 		}
 		else
 		{
-			MacroError("Plugin '%s' could not be loaded.", szName);
+			//load it
+			if (LoadMQ2Plugin(szName))
+			{
+				sprintf_s(szBuffer, "Plugin '%s' loaded.", szName);
+				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+				if (_stricmp(szCommand, "noauto")) {
+					SaveMQ2PluginLoadStatus(szName, true);
+				}
+			}
+			else
+			{
+				MacroError("Plugin '%s' could not be loaded.", szName);
+			}
 		}
 	}
 }

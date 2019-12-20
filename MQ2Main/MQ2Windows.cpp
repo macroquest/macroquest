@@ -1141,7 +1141,8 @@ bool DoesFileExist(const char* filename)
 {
 	char localfile[MAX_PATH];
 	sprintf_s(localfile, "%s\\%s", gszINIPath, filename);
-
+	//if (strstr(filename, ".tga"))
+	//	Sleep(0);
 	if (_FileExists(localfile))
 		return true;
 
@@ -1156,7 +1157,8 @@ public:
 	{
 		char localfile[MAX_PATH];
 		sprintf_s(localfile, "%s\\%s", gszINIPath, filename);
-
+		//if (strstr(filename, ".tga"))
+		//	Sleep(0);
 		if (_FileExists(localfile))
 			return SetFile_Trampoline(localfile, unk8, unkC);
 
