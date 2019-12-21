@@ -1,5 +1,7 @@
 Dec 21 2019
 - Fixed the chatwindow disappearing act.
+- Fixed mq2eqbc window disappearing act.
+  Don't forget to recheck it in builder.
 -
 Dec 20 2019
 - Updated for LIVE
