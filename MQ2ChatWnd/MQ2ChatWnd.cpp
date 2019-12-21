@@ -245,9 +245,15 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
     LoadChatSettings(); 
 
     sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PSPAWNINFO)pLocalPlayer)->Name); 
-    if (!bSaveByChar) sprintf_s(szChatINISection,"Default"); 
+    if (!bSaveByChar)
+		sprintf_s(szChatINISection,"Default"); 
 	//left top right bottom
-	pWindow->SetLocation({ (LONG)GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName),
+	int left = GetPrivateProfileInt(szChatINISection, "ChatLeft", 10, INIFileName);
+	if (left == 2000)
+	{
+		left = 10;
+	}
+	pWindow->SetLocation({ (LONG)left,
 		(LONG)GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName),
 		(LONG)GetPrivateProfileInt(szChatINISection,"ChatRight",    410,INIFileName),
 		(LONG)GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName) });
@@ -281,7 +287,13 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 }
 VOID SaveChatToINI(PCSIDLWND pWindow) 
 { 
-    CHAR szTemp[MAX_STRING]={0}; 
+    CHAR szTemp[MAX_STRING]={0};
+	GetPrivateProfileString("Settings", "SaveByChar",bSaveByChar?"on":"off",szTemp,MAX_STRING,INIFileName); 
+    bSaveByChar=(!_strnicmp(szTemp,"on",3));
+
+	sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PSPAWNINFO)pLocalPlayer)->Name); 
+    if (!bSaveByChar)
+		sprintf_s(szChatINISection,"Default"); 
     WritePrivateProfileString("Settings","AutoScroll",   bAutoScroll?"on":"off",INIFileName); 
     WritePrivateProfileString("Settings","NoCharSelect", bNoCharSelect?"on":"off",INIFileName); 
     WritePrivateProfileString("Settings","SaveByChar",   bSaveByChar?"on":"off",INIFileName); 
@@ -414,6 +426,7 @@ VOID MQChat(PSPAWNINFO pChar, PCHAR Line)
 			MQChatWnd->SetLocked(false);
 			CXRect rc = { 300, 10, 600, 210 };
 			((CXWnd*)MQChatWnd)->Move(rc, false);
+			SaveChatToINI((PCSIDLWND)MQChatWnd);
 		}
 	}
 } 
