@@ -1,5 +1,6 @@
 Dec 20 2019
 - Updated for LIVE
+- If your chatwindow does not show up type /mqchat reset
 -
 Dec 19 2019
 - Updated for TEST
