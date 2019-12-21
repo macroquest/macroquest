@@ -285,7 +285,7 @@ static void Pulse()
 	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
 
 	// Drop out here if we're waiting for something.
-	if (!pChar || gZoning /* || gDelayZoning*/) return;
+	if (!pChar || gZoning) return;
 	if (!pCharInfo) return;
 
 	if (pCharInfo && pCharInfo->pSpawn)
@@ -377,11 +377,14 @@ static void Pulse()
 		if (pWndMgr && pSelectorWnd)
 		{
 			// See Also /usercamera code
-			if (oldcameratype != *(DWORD*)CDisplay__cameraType)
+			if (gOldCameraType != *(DWORD*)CDisplay__cameraType)
 			{
-				oldcameratype = *(DWORD*)CDisplay__cameraType;
-				sprintf_s(CameraText, "Selector Window (Camera %d)", oldcameratype);
-				pSelectorWnd->SetWindowText(CameraText);
+				gOldCameraType = *(DWORD*)CDisplay__cameraType;
+
+				char szOut[64] = { 0 };
+				sprintf_s(szOut, "Selector Window (Camera %d)", gOldCameraType);
+
+				pSelectorWnd->SetWindowText(szOut);
 			}
 		}
 	}
@@ -575,7 +578,7 @@ static HeartbeatState Heartbeat()
 			CreateMQ2NewsWindow();
 	}
 
-	DWORD CurTurbo = 0;
+	int CurTurbo = 0;
 
 	MQMacroBlockPtr pBlock = GetNextMacroBlock();
 	while (bRunNextCommand)
@@ -952,9 +955,9 @@ public:
 			}
 		}
 
-		if (gbAssistComplete == 1)
+		if (gbAssistComplete == AS_AssistSent)
 		{
-			gbAssistComplete = 2;
+			gbAssistComplete = AS_AssistReceived;
 		}
 
 		gTargetbuffs = true;

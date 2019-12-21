@@ -4913,19 +4913,9 @@ int GetWorldState()
 // ***************************************************************************
 bool LargerEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bTriggeredEffectCheck)
 {
-	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
-	int bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : 254;
-	if (aAttrib == bAttrib)			// verify they are the same, we can do fewer checks this way
-//		&& (aAttrib == 1			// Ac Mod
-//			|| aAttrib == 2			// ATK*
-//			|| aAttrib == 15		// Mana*
-//			|| aAttrib == 55		// Add Effect: Absorb Damage
-//			|| aAttrib == 69		// Max HP Mod
-//			|| aAttrib == 79		// HP Mod
-//			|| aAttrib == 114		// Aggro Multiplier
-//			|| aAttrib == 127		// Spell Haste
-//			|| aAttrib == 162))		// Mitigate Melee Damage*
-									// We don't need to check NumEffects again since it wouldn't reach here if it would be too big
+	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : SPA_NOSPELL;
+	int bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : SPA_NOSPELL;
+	if (aAttrib == bAttrib) // verify they are the same, we can do fewer checks this way
 		return (abs(GetSpellBase(aSpell, i)) >= abs(GetSpellBase(bSpell, i)) || (bTriggeredEffectCheck && (aSpell->SpellGroup == bSpell->SpellGroup)));
 	return false;
 }
@@ -4938,9 +4928,9 @@ bool LargerEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bTriggeredEffect
 bool TriggeringEffectSpell(SPELL* aSpell, int i)
 {
 	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
-	return (aAttrib == 85	// Add Proc
-		|| aAttrib == 374 	// Trigger Spell
-		|| aAttrib == 419);	// Contact_Ability_2
+	return (aAttrib == SPA_MELEE_PROC      // Add Proc
+		|| aAttrib == SPA_TRIGGER_SPELL    // Trigger Spell
+		|| aAttrib == SPA_PROC_EFFECT_2);  // Contact_Ability_2
 }
 
 // ***************************************************************************
@@ -4953,36 +4943,50 @@ bool SpellEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bIgnoreTriggering
 	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
 	int bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : 254;
 	return ((aAttrib == SPA_LEVITATION || bAttrib == SPA_LEVITATION)
-		|| (aAttrib == 134 || bAttrib == 134)		// Limit: Max Level
-		|| (aAttrib == 135 || bAttrib == 135)		// Limit: Resist
-		|| (aAttrib == 136 || bAttrib == 136)		// Limit: Target
-		|| (aAttrib == 137 || bAttrib == 137)		// Limit: Effect
-		|| (aAttrib == 138 || bAttrib == 138)		// Limit: SpellType
-		|| (aAttrib == 139 || bAttrib == 139)		// Limit: Spell
-		|| (aAttrib == 140 || bAttrib == 140)		// Limit: Min Duraction
-		|| (aAttrib == 141 || bAttrib == 141)		// Limit: Instant
-		|| (aAttrib == 142 || bAttrib == 142)		// Limit: Min Level
-		|| (aAttrib == 143 || bAttrib == 143)		// Limit: Min Cast Time
-		|| (aAttrib == 144 || bAttrib == 144)		// Limit: Max Cast Time
-		|| (aAttrib == 254 || bAttrib == 254)		// Placeholder
-		|| (aAttrib == 311 || bAttrib == 311)		// Limit: Combat Skills not Allowed
-		|| (aAttrib == 339 || bAttrib == 339)		// Trigger DoT on cast
-		|| (aAttrib == 340 || bAttrib == 340)		// Trigger DD on cast
-		|| (aAttrib == 348 || bAttrib == 348)		// Limit: Min Mana
-//		|| (aAttrib == 374 || bAttrib == 374)		// Add Effect: xxx
-		|| (aAttrib == 385 || bAttrib == 385)		// Limit: SpellGroup
-		|| (aAttrib == 391 || bAttrib == 391)		// Limit: Max Mana
-		|| (aAttrib == 403 || bAttrib == 403)		// Limit: SpellClass
-		|| (aAttrib == 404 || bAttrib == 404)		// Limit: SpellSubclass
-		|| (aAttrib == 411 || bAttrib == 411)		// Limit: PlayerClass
-		|| (aAttrib == 412 || bAttrib == 412)		// Limit: Race
-		|| (aAttrib == 414 || bAttrib == 414)		// Limit: CastingSkill
-		|| (aAttrib == 422 || bAttrib == 422)		// Limit: Use Min
-		|| (aAttrib == 423 || bAttrib == 423)		// Limit: Use Type
-		|| (aAttrib == 428 || bAttrib == 428)		// Skill_Proc_Modifier
-		|| (LargerEffectTest(aSpell, bSpell, i, bTriggeredEffectCheck))	// Ignore if the new effect is greater than the old effect
-		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
-		|| ((aSpell->SpellType == 1 || aSpell->SpellType == 2) && (bSpell->SpellType == 1 || bSpell->SpellType == 2) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
+		|| (aAttrib == SPA_FOCUS_LEVEL_MAX || bAttrib == SPA_FOCUS_LEVEL_MAX)           // Limit: Max Level
+		|| (aAttrib == SPA_FOCUS_RESIST_TYPE || bAttrib == SPA_FOCUS_RESIST_TYPE)       // Limit: Resist
+		|| (aAttrib == SPA_FOCUS_TARGET_TYPE || bAttrib == SPA_FOCUS_TARGET_TYPE)       // Limit: Target
+		|| (aAttrib == SPA_FOCUS_WHICH_SPA || bAttrib == SPA_FOCUS_WHICH_SPA)           // Limit: Effect
+		|| (aAttrib == SPA_FOCUS_BENEFICIAL || bAttrib == SPA_FOCUS_BENEFICIAL)         // Limit: SpellType
+		|| (aAttrib == SPA_FOCUS_WHICH_SPELL || bAttrib == SPA_FOCUS_WHICH_SPELL)       // Limit: Spell
+		|| (aAttrib == SPA_FOCUS_DURATION_MIN || bAttrib == SPA_FOCUS_DURATION_MIN)     // Limit: Min Duraction
+		|| (aAttrib == SPA_FOCUS_INSTANT_ONLY || bAttrib == SPA_FOCUS_INSTANT_ONLY)     // Limit: Instant
+		|| (aAttrib == SPA_FOCUS_LEVEL_MIN || bAttrib == SPA_FOCUS_LEVEL_MIN)           // Limit: Min Level
+		|| (aAttrib == SPA_FOCUS_CASTTIME_MIN || bAttrib == SPA_FOCUS_CASTTIME_MIN)     // Limit: Min Cast Time
+		|| (aAttrib == SPA_FOCUS_CASTTIME_MAX || bAttrib == SPA_FOCUS_CASTTIME_MAX)	    // Limit: Max Cast Time
+		|| (aAttrib == SPA_NOSPELL || bAttrib == SPA_NOSPELL)                           // Placeholder
+		|| (aAttrib == SPA_FOCUS_COMBAT_SKILL || bAttrib == SPA_FOCUS_COMBAT_SKILL)     // Limit: Combat Skills not Allowed
+		|| (aAttrib == SPA_FOCUS_CASTING_PROC || bAttrib == SPA_FOCUS_CASTING_PROC)     // Trigger DoT on cast
+		|| (aAttrib == SPA_CHANCE_SPELL || bAttrib == SPA_CHANCE_SPELL)                 // Trigger DD on cast
+		|| (aAttrib == SPA_FOCUS_MANA_MIN || bAttrib == SPA_FOCUS_MANA_MIN)             // Limit: Min Mana
+//		|| (aAttrib == SPA_TRIGGER_SPELL || bAttrib == SPA_TRIGGER_SPELL)               // Add Effect: xxx
+		|| (aAttrib == SPA_FOCUS_WHICH_GROUP || bAttrib == SPA_FOCUS_WHICH_GROUP)       // Limit: SpellGroup
+		|| (aAttrib == SPA_FOCUS_MANA_MAX || bAttrib == SPA_FOCUS_MANA_MAX)             // Limit: Max Mana
+		|| (aAttrib == SPA_FOCUS_SPELL_CLASS || bAttrib == SPA_FOCUS_SPELL_CLASS)       // Limit: SpellClass
+		|| (aAttrib == SPA_FOCUS_SPELL_SUBCLASS || bAttrib == SPA_FOCUS_SPELL_SUBCLASS)	// Limit: SpellSubclass
+		|| (aAttrib == SPA_FOCUS_LIMIT_CLASS || bAttrib == SPA_FOCUS_LIMIT_CLASS)       // Limit: PlayerClass
+		|| (aAttrib == SPA_FOCUS_LIMIT_RACE || bAttrib == SPA_FOCUS_LIMIT_RACE)         // Limit: Race
+		|| (aAttrib == SPA_FOCUS_LIMIT_SKILL || bAttrib == SPA_FOCUS_LIMIT_SKILL)       // Limit: CastingSkill
+		|| (aAttrib == SPA_FOCUS_LIMIT_USE_MIN || bAttrib == SPA_FOCUS_LIMIT_USE_MIN)   // Limit: Use Min
+		|| (aAttrib == SPA_FOCUS_LIMIT_USE_TYPE || bAttrib == SPA_FOCUS_LIMIT_USE_TYPE) // Limit: Use Type
+		|| (aAttrib == SPA_PROC_SKILL_MODIFIER || bAttrib == SPA_PROC_SKILL_MODIFIER)   // Skill_Proc_Modifier
+		|| (LargerEffectTest(aSpell, bSpell, i, bTriggeredEffectCheck))	                // Ignore if the new effect is greater than the old effect
+		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i))) // Ignore triggering effects validation
+		|| ((aSpell->SpellType == eProcSpell || aSpell->SpellType == eWornSpell) && (bSpell->SpellType == eProcSpell || bSpell->SpellType == eWornSpell) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
+}
+
+template <typename ...Args>
+inline void StackingDebugLog(const char* string, Args&& ...args)
+{
+	if (gStackingDebug != STACKINGDEBUG_OFF)
+	{
+		DebugSpewAlwaysFile(string, args...);
+
+		if (gStackingDebug == STACKINGDEBUG_OUTPUT)
+		{
+			WriteChatColorf(string, USERCOLOR_CHAT_CHANNEL, args...);
+		}
+	}
 }
 
 // ***************************************************************************
@@ -5010,17 +5014,8 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 	if (aSpell->ID == bSpell->ID)
 		return true;
 
-	if (gStackingDebug != 0)
-	{
-		char szStackingDebug[MAX_STRING] = { 0 };
-		sprintf_s(szStackingDebug, "aSpell->Name=%s(%d) bSpell->Name=%s(%d)",
-			aSpell->Name, aSpell->ID, bSpell->Name, bSpell->ID);
-
-		DebugSpewAlwaysFile("%s", szStackingDebug);
-
-		if (gStackingDebug == 2)
-			WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
-	}
+	StackingDebugLog("aSpell->Name=%s(%d) bSpell->Name=%s(%d)",
+		aSpell->Name, aSpell->ID, bSpell->Name, bSpell->ID);
 
 	// We need to loop over the largest of the two, this may seem silly but one could have stacking command blocks
 	// which we will always need to check.
@@ -5032,7 +5027,7 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 		// Placeholder, exclude it so slots don't match up. Now Check to see if the slots
 		// have equal attribute values. If the do, they don't stack.
 
-		int aAttrib = 254, bAttrib = 254; // Default to placeholder ...
+		int aAttrib = SPA_NOSPELL, bAttrib = SPA_NOSPELL; // Default to placeholder ...
 		int aBase = 0, bBase = 0, aBase2 = 0, bBase2 = 0;
 
 		if (GetSpellNumEffects(aSpell) > i)
@@ -5049,47 +5044,28 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 			bBase2 = GetSpellBase2(bSpell, i);
 		}
 
-		if (gStackingDebug != 0)
-		{
-			char szStackingDebug[MAX_STRING] = { 0 };
-			sprintf_s(szStackingDebug, "Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
-			DebugSpewAlwaysFile("%s", szStackingDebug);
-
-			if (gStackingDebug == 2)
-				WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
-		}
+		StackingDebugLog("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d",
+			i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
 
 		bool bTriggerA = TriggeringEffectSpell(aSpell, i);
 		bool bTriggerB = TriggeringEffectSpell(bSpell, i);
+
 		if (bTriggerA || bTriggerB)
 		{
-			SPELL* pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == 374 ? aBase2 : aBase) : aSpell->ID);
-			SPELL* pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == 374 ? bBase2 : bBase) : bSpell->ID);
+			SPELL* pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == SPA_TRIGGER_SPELL ? aBase2 : aBase) : aSpell->ID);
+			SPELL* pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == SPA_TRIGGER_SPELL ? bBase2 : bBase) : bSpell->ID);
 
 			if (!pRetSpellA || !pRetSpellB)
 			{
-				if (gStackingDebug != 0)
-				{
-					char szStackingDebug[MAX_STRING] = { 0 };
-					sprintf_s(szStackingDebug, "BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s",
-						aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
-					DebugSpewAlwaysFile("%s", szStackingDebug);
-
-					if (gStackingDebug == 2)
-						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
-				}
+				StackingDebugLog("BuffStackTest ERROR: aSpell[%d]:%s%s, bSpell[%d]:%s%s",
+					aSpell->ID, aSpell->Name, pRetSpellA ? "" : "is null", bSpell->ID, bSpell->Name, pRetSpellB ? "" : "is null");
 			}
 
 			if (!((bTriggerA && (aSpell->ID == pRetSpellA->ID)) || (bTriggerB && (bSpell->ID == pRetSpellB->ID))))
 			{
 				if (!BuffStackTest(pRetSpellA, pRetSpellB, bIgnoreTriggeringEffects, true))
 				{
-					if (gStackingDebug != 0)
-					{
-						DebugSpewAlwaysFile("returning false #1");
-						if (gStackingDebug == 2)
-							WriteChatColor("returning false #1", USERCOLOR_CHAT_CHANNEL);
-					}
+					StackingDebugLog("returning false #1");
 					return false;
 				}
 			}
@@ -5097,28 +5073,20 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 
 		if (bAttrib == aAttrib && !SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects, bTriggeredEffectCheck))
 		{
-			if (gStackingDebug != 0)
-			{
-				DebugSpewAlwaysFile("Inside IF");
-				if (gStackingDebug == 2)
-					WriteChatColor("Inside IF", USERCOLOR_CHAT_CHANNEL);
-			}
+			StackingDebugLog("Inside IF");
 
-			if (!((bAttrib == 10 && (bBase == -6 || bBase == 0))
-				|| (aAttrib == 10 && (aBase == -6 || aBase == 0))
-				|| (bAttrib == 79 && bBase > 0 && bSpell->TargetType == 6)
-				|| (aAttrib == 79 && aBase > 0 && aSpell->TargetType == 6)
-				|| (bAttrib == 0 && bBase < 0)
-				|| (aAttrib == 0 && aBase < 0)
-				|| (bAttrib == 148 || bAttrib == 149)
-				|| (aAttrib == 148 || aAttrib == 149)))
+			// TODO: Add constant for target type
+			// SPA_CHA was used as a blocker if it had a base of 0 in the old days.
+			if (!((bAttrib == SPA_CHA && (bBase == -6 || bBase == 0))
+				|| (aAttrib == SPA_CHA && (aBase == -6 || aBase == 0))
+				|| (bAttrib == SPA_INSTANT_HP && bBase > 0 && bSpell->TargetType == 6) // targetType 6 = self
+				|| (aAttrib == SPA_INSTANT_HP && aBase > 0 && aSpell->TargetType == 6)
+				|| (bAttrib == SPA_HP && bBase < 0)
+				|| (aAttrib == SPA_HP && aBase < 0)
+				|| (bAttrib == SPA_STACKING_BLOCK || bAttrib == SPA_STRIP_VIRTUAL_SLOT)
+				|| (aAttrib == SPA_STACKING_BLOCK || aAttrib == SPA_STRIP_VIRTUAL_SLOT)))
 			{
-				if (gStackingDebug != 0)
-				{
-					DebugSpewAlwaysFile("returning false #2");
-					if (gStackingDebug == 2)
-						WriteChatColor("returning false #2", USERCOLOR_CHAT_CHANNEL);
-				}
+				StackingDebugLog("returning false #2");
 				return false;
 			}
 		}
@@ -5126,98 +5094,37 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 		// Check to see if second buffs blocks first buff:
 		// 148: Stacking: Block new spell if slot %d is effect
 		// 149: Stacking: Overwrite existing spell if slot %d is effect
-		if (bAttrib == 148 || bAttrib == 149)
+		if (bAttrib == SPA_STACKING_BLOCK || bAttrib == SPA_STRIP_VIRTUAL_SLOT)
 		{
 			// in this branch we know bSpell has enough slots
-			int tmpSlot = (bAttrib == 148 ? bBase2 - 1 : GetSpellCalc(bSpell, i) - 200 - 1);
+			int tmpSlot = (bAttrib == SPA_STACKING_BLOCK ? bBase2 - 1 : GetSpellCalc(bSpell, i) - 200 - 1);
 			int tmpAttrib = bBase;
 
 			if (GetSpellNumEffects(aSpell) > tmpSlot)
 			{
-				// verify aSpell has that slot
-				if (gStackingDebug != 0)
-				{
-					char szStackingDebug[MAX_STRING] = { 0 };
-					snprintf(szStackingDebug, sizeof(szStackingDebug), "aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
-					DebugSpewAlwaysFile("%s", szStackingDebug);
-					if (gStackingDebug == 2)
-						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
-				}
+				StackingDebugLog("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d",
+					tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
 
+				// verify aSpell has that slot
 				if (GetSpellMax(bSpell, i) > 0)
 				{
 					int tmpVal = abs(GetSpellMax(bSpell, i));
 					if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib && GetSpellBase(aSpell, tmpSlot) < tmpVal)
 					{
-						if (gStackingDebug != 0)
-						{
-							DebugSpewAlwaysFile("returning false #3");
-							if (gStackingDebug == 2)
-								WriteChatColor("returning false #3", USERCOLOR_CHAT_CHANNEL);
-						}
+						StackingDebugLog("returning false #3");
 						return false;
 					}
 				}
 				else if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib)
 				{
-					if (gStackingDebug != 0)
-					{
-						DebugSpewAlwaysFile("returning false #4");
-						if (gStackingDebug == 2)
-							WriteChatColor("returning false #4", USERCOLOR_CHAT_CHANNEL);
-					}
+					StackingDebugLog("returning false #4");
 					return false;
 				}
 			}
 		}
-
-		/*
-		//Now Check to see if the first buff blocks second buff. This is necessary
-		//because only some spells carry the Block Slot. Ex. Brells and Spiritual
-		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2
-		//of which block Brells.
-		if (aAttrib == 148 || aAttrib == 149) {
-			// in this branch we know aSpell has enough slots
-			int tmpSlot = (aAttrib == 148 ? aBase2 - 1 : GetSpellCalc(aSpell, i) - 200 - 1);
-			int tmpAttrib = aBase;
-			if (GetSpellNumEffects(bSpell) > tmpSlot) { // verify bSpell has that slot
-				if (gStackingDebug) {
-					char szStackingDebug[MAX_STRING] = { 0 };
-					snprintf(szStackingDebug, sizeof(szStackingDebug), "bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot, GetSpellAttrib(bSpell, tmpSlot), tmpSlot, GetSpellBase(bSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(aSpell, i)));
-					DebugSpewAlwaysFile("%s", szStackingDebug);
-					if (gStackingDebug == -1)
-						WriteChatColor(szStackingDebug, USERCOLOR_CHAT_CHANNEL);
-				}
-				if (GetSpellMax(aSpell, i) > 0) {
-					int tmpVal = abs(GetSpellMax(aSpell, i));
-					if (GetSpellAttrib(bSpell, tmpSlot) == tmpAttrib && GetSpellBase(bSpell, tmpSlot) < tmpVal) {
-						if (gStackingDebug) {
-							DebugSpewAlwaysFile("returning false #5");
-							if (gStackingDebug == -1)
-								WriteChatColor("returning false #5", USERCOLOR_CHAT_CHANNEL);
-						}
-						return false;
-					}
-				}
-				else if (GetSpellAttrib(bSpell, tmpSlot) == tmpAttrib) {
-					if (gStackingDebug) {
-						DebugSpewAlwaysFile("returning false #6");
-						if (gStackingDebug == -1)
-							WriteChatColor("returning false #6", USERCOLOR_CHAT_CHANNEL);
-					}
-					return false;
-				}
-			}
-		}
-		*/
 	}
 
-	if (gStackingDebug != 0)
-	{
-		DebugSpewAlwaysFile("returning true");
-		if (gStackingDebug == 2)
-			WriteChatColor("returning true", USERCOLOR_CHAT_CHANNEL);
-	}
+	StackingDebugLog("returning true");
 	return true;
 }
 

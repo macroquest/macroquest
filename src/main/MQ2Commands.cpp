@@ -229,12 +229,12 @@ void MacroPause(SPAWNINFO* pChar, char* szLine)
 			{
 				if (!_stricmp(szArg1, szPause[Command]))
 				{
-					gMQPauseOnChat = Command;
+					gMQPauseOnChat = Command != 0;
 				}
 			}
 		}
 
-		WritePrivateProfileString("MacroQuest", "MQPauseOnChat", (gMQPauseOnChat) ? "1" : "0", mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, mq::internal_paths::MQini);
 		WriteChatf("Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
 		return;
 	}
@@ -251,7 +251,7 @@ void MacroPause(SPAWNINFO* pChar, char* szLine)
 	{
 		if (!_stricmp(szArg, szPause[Command]))
 		{
-			Pause = Command;
+			Pause = Command != 0;
 		}
 	}
 
@@ -304,13 +304,11 @@ void KeepKeys(SPAWNINFO* pChar, char* szLine)
 	{
 		if (!_stricmp(szArg, szKeepKeys[Command]))
 		{
-			gKeepKeys = Command;
+			gKeepKeys = Command != 0;
 
 			WriteChatf("Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
 
-			char szCmd[16] = { 0 };
-			_itoa_s(gKeepKeys, szCmd, 10);
-			WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, mq::internal_paths::MQini);
+			WritePrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, mq::internal_paths::MQini);
 			return;
 		}
 	}
@@ -364,7 +362,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 			gParserVersion = iVersion;
 			if (!bNoAuto)
 			{
-				WritePrivateProfileString("MacroQuest", "ParserEngine", szVersion, mq::internal_paths::MQini);
+				WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, mq::internal_paths::MQini);
 			}
 
 			WriteChatf("Parser Version %d Enabled", iVersion);
@@ -433,7 +431,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 			if (!strstr(szCommand, "noauto"))
 			{
-				WritePrivateProfileString("Plugins", szName, "0", mq::internal_paths::MQini);
+				WritePrivateProfileBool("Plugins", szName, false, mq::internal_paths::MQini);
 			}
 		}
 		else
@@ -449,7 +447,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 			if (_stricmp(szCommand, "noauto"))
 			{
-				WritePrivateProfileString("Plugins", szName, "1", mq::internal_paths::MQini);
+				WritePrivateProfileBool("Plugins", szName, true, mq::internal_paths::MQini);
 			}
 		}
 		else
@@ -1191,7 +1189,7 @@ void SetDisplaySWhoFilter(bool& bToggle, const char* szFilter, const char* szTog
 		bToggle = false;
 
 	WriteChatf("%s is: %s", szFilter, bToggle ? "on" : "off");
-	WritePrivateProfileString("SWho Filter", szFilter, (bToggle ? "1" : "0"), mq::internal_paths::MQini);
+	WritePrivateProfileBool("SWho Filter", szFilter, bToggle, mq::internal_paths::MQini);
 }
 
 void SWhoFilter(SPAWNINFO* pChar, char* szLine)
@@ -1302,12 +1300,11 @@ const char* szFilterSkills[] = {
 	nullptr
 };
 
-const char* szFilterMacro[] = {
+const char* szFilterMacro[FILTERMACRO_MAX] = {
 	"all",
 	"enhanced",
 	"none",
 	"macroended",
-	nullptr
 };
 
 const char* szFilterTarget[] = {
@@ -1326,7 +1323,6 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-	char szCmd[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
 
 	char* szRest = szLine;
@@ -1338,21 +1334,6 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		cmdFilter(pChar, szArg);
 		if (gFilterMacro != FILTERMACRO_NONE)
 			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug");
-		return;
-	}
-
-	if (_stricmp("skills", szArg)
-		&& _stricmp("macros", szArg)
-		&& _stricmp("target", szArg)
-		&& _stricmp("name", szArg)
-		&& _stricmp("food", szArg)
-		&& _stricmp("money", szArg)
-		&& _stricmp("encumber", szArg)
-		&& _stricmp("mq", szArg)
-		&& _stricmp("debug", szArg)
-		&& _stricmp("zrange", szArg))
-	{
-		cmdFilter(pChar, szArg);
 		return;
 	}
 
@@ -1375,8 +1356,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 				WriteChatf("Filtering of skills changed to: %s",
 					(gFilterSkillsIncrease) ? "None" : (gFilterSkillsAll) ? "Increase" : "All");
 
-				_itoa_s(Command, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterSkills", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterSkills", Command, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1393,16 +1373,15 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		for (int Command = 0; szFilterMacro[Command]; Command++)
+		for (int Command = FILTERMACRO_ALL; Command != FILTERMACRO_MAX; ++Command)
 		{
 			if (!_stricmp(szRest, szFilterMacro[Command]))
 			{
-				gFilterMacro = Command;
+				gFilterMacro = (eFilterMacro)Command;
 
-				WriteChatf(szCmd, "Filtering of macros changed to: %s", szFilterMacro[gFilterMacro]);
+				WriteChatf("Filtering of macros changed to: %s", szFilterMacro[gFilterMacro]);
 
-				_itoa_s(gFilterMacro, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterMacro", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileInt("MacroQuest", "FilterMacro", gFilterMacro, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1423,12 +1402,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		{
 			if (!_stricmp(szRest, szUseChat[Command]))
 			{
-				gFilterMQ = Command;
+				gFilterMQ = Command != 0;
 
 				WriteChatf("Filtering of MQ changed to: %s", szUseChat[gFilterMQ]);
 
-				_itoa_s(gFilterMQ, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterMQ", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterMQ", gFilterMQ, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1449,12 +1427,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		{
 			if (!_stricmp(szRest, szUseChat[Command]))
 			{
-				gFilterMQ2DataErrors = Command;
+				gFilterMQ2DataErrors = Command != 0;
 
 				WriteChatf("Filtering of MQ changed to: %s", szUseChat[gFilterMQ2DataErrors]);
 
-				_itoa_s(gFilterMQ2DataErrors, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterMQ2Data", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterMQ2Data", gFilterMQ2DataErrors, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1475,12 +1452,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		{
 			if (!_stricmp(szRest, szFilterTarget[Command]))
 			{
-				gFilterTarget = Command;
+				gFilterTarget = Command != 0;
 
 				WriteChatf("Filtering of target lost messages changed to: %s", szFilterTarget[gFilterTarget ? 1 : 0]);
 
-				_itoa_s(gFilterTarget, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterTarget", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterTarget", gFilterTarget, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1501,12 +1477,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		{
 			if (!_stricmp(szRest, szFilterTarget[Command]))
 			{
-				gFilterDebug = Command;
+				gFilterDebug = Command != 0;
 
 				WriteChatf("Filtering of debug messages changed to: %s", szFilterTarget[gFilterDebug]);
 
-				_itoa_s(gFilterTarget, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterDebug", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterDebug", gFilterTarget, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1531,8 +1506,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 
 				WriteChatf("Filtering of money messages changed to: %s", szFilterTarget[gFilterMoney]);
 
-				_itoa_s(gFilterMoney, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterMoney", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterMoney", gFilterMoney, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1553,12 +1527,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		{
 			if (!_stricmp(szRest, szFilterTarget[Command]))
 			{
-				gFilterEncumber = Command;
+				gFilterEncumber = Command != 0;
 
 				WriteChatf("Filtering of encumber messages changed to: %s", szFilterTarget[gFilterEncumber]);
 
-				_itoa_s(gFilterEncumber, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterEncumber", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterEncumber", gFilterEncumber, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1583,8 +1556,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 
 				WriteChatf("Filtering of food messages changed to: %s", szFilterTarget[gFilterFood ? 1 : 0]);
 
-				_itoa_s(gFilterFood, szCmd, 10);
-				WritePrivateProfileString("MacroQuest", "FilterFood", szCmd, mq::internal_paths::MQini);
+				WritePrivateProfileBool("MacroQuest", "FilterFood", gFilterFood, mq::internal_paths::MQini);
 				return;
 			}
 		}
@@ -1622,12 +1594,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 				{
 					if (!_stricmp(szArg, szFilterTarget[Command]))
 					{
-						gFilterCustom = Command;
+						gFilterCustom = Command != 0;
 
 						WriteChatf("Filtering of custom messages changed to: %s", szFilterTarget[gFilterCustom]);
 
-						_itoa_s(gFilterCustom, szCmd, 10);
-						WritePrivateProfileString("MacroQuest", "FilterCustom", szCmd, mq::internal_paths::MQini);
+						WritePrivateProfileBool("MacroQuest", "FilterCustom", gFilterCustom, mq::internal_paths::MQini);
 						return;
 					}
 				}
@@ -1729,7 +1700,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 				AddFilter(szRest, -1, gFilterCustom);
 				WriteFilterNames();
 
-				WriteChatf(szCmd, "Started filtering on: %s", szRest);
+				WriteChatf("Started filtering on: %s", szRest);
 				return;
 			}
 
@@ -1757,6 +1728,11 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 		{
 			gZFilter = GetDoubleFromString(szRest, 0);
 		}
+	}
+
+	if (cmdFilter)
+	{
+		cmdFilter(pChar, szArg);
 	}
 }
 
@@ -3538,7 +3514,7 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 		GetArg(szArg4, szLine, 4);
 	}
 
-	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, iniFile.string()))
+	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, (iniFile.string())))
 	{
 		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 	}
@@ -4875,21 +4851,21 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 
 							if (szEntity[0] != '\0')
 							{
-								if (CHARINFO * pCI = GetCharInfo())
+								if (CHARINFO* pCI = GetCharInfo())
 								{
 									CXStr out;
 
 									if (pCI->pGroupInfo)
 									{
-										for (int i = 0; i < 6; i++)
+										for (auto& member : pCI->pGroupInfo->pMember)
 										{
-											if (pCI->pGroupInfo->pMember[i]
-												&& pCI->pGroupInfo->pMember[i]->Mercenary == 0
-												&& !pCI->pGroupInfo->pMember[i]->Name.empty())
+											if (member
+												&& member->Type == EQP_PC
+												&& !member->Name.empty())
 											{
-												if (!_stricmp(pCI->pGroupInfo->pMember[i]->Name.c_str(), szEntity))
+												if (!_stricmp(member->Name.c_str(), szEntity))
 												{
-													out = pCI->pGroupInfo->pMember[i]->Name;
+													out = member->Name;
 													break;
 												}
 											}
@@ -5149,7 +5125,7 @@ void QuitCmd(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void AssistCmd(SPAWNINFO* pChar, char* szLine)
 {
-	gbAssistComplete = 0;
+	gbAssistComplete = AS_None;
 	cmdAssist(pChar, szLine);
 }
 
@@ -5240,9 +5216,9 @@ void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
 // Function:    UserCameraCmd
 // Description: '/usercamera' command
 // Purpose:     Adds the ability to load and save the User 1 Camera
-// Example:		/usercamera on/off toggle the camera text in the Window Selector on/off
-// Example:		/usercamera save saves the user 1 camera settings
-// Example:		/usercamera load loades the user 1 camera settings
+// Example:     /usercamera on/off toggle the camera text in the Window Selector on/off
+// Example:     /usercamera save saves the user 1 camera settings
+// Example:     /usercamera load loades the user 1 camera settings
 // Author:      EqMule
 // ***************************************************************************
 void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
@@ -5299,19 +5275,20 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	else if (!_stricmp(szArg1, "on"))
 	{
 		gbShowCurrentCamera = true;
-		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "1", mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, mq::internal_paths::MQini);
 
 		if (pSelectorWnd)
 		{
-			char szOut[MAX_STRING] = { 0 };
+			char szOut[64] = { 0 };
 			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
+
 			pSelectorWnd->SetWindowText(szOut);
 		}
 	}
 	else if (!_stricmp(szArg1, "off"))
 	{
 		gbShowCurrentCamera = false;
-		WritePrivateProfileString("MacroQuest", "ShowCurrentCamera", "0", mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, mq::internal_paths::MQini);
 
 		if (pSelectorWnd)
 		{
@@ -5320,57 +5297,58 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!_stricmp(szArg1, "save"))
 	{
-		std::filesystem::path pathIniFile = mq::internal_paths::MQini;
+		std::string pathIniFile = mq::internal_paths::MQini;
 
 		if (szArg2 && szArg2[0] != '\0')
 		{
 			const std::string tmpFileName = std::string(EQADDR_SERVERNAME) + "_" + std::string(szArg2) + ".ini";
-			pathIniFile = std::filesystem::path(mq::internal_paths::Config) / tmpFileName;
+			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
 		}
 
-		WritePrivateProfileString("User Camera 1", "bAutoHeading", std::to_string(pUserCam1->bAutoHeading), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "bAutoPitch", std::to_string(pUserCam1->bAutoPitch), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "bSkipFrame", std::to_string(pUserCam1->bSkipFrame), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "DirectionalHeading", std::to_string(pUserCam1->DirectionalHeading), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Distance", std::to_string(pUserCam1->Distance), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Heading", std::to_string(pUserCam1->Heading), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Height", std::to_string(pUserCam1->Height), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "OldPosition_X", std::to_string(pUserCam1->OldPosition_X), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "OldPosition_Y", std::to_string(pUserCam1->OldPosition_Y), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "OldPosition_Z", std::to_string(pUserCam1->OldPosition_Z), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Orientation_X", std::to_string(pUserCam1->Orientation_X), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Orientation_Y", std::to_string(pUserCam1->Orientation_Y), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Orientation_Z", std::to_string(pUserCam1->Orientation_Z), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Pitch", std::to_string(pUserCam1->Pitch), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "SideMovement", std::to_string(pUserCam1->SideMovement), pathIniFile.string());
-		WritePrivateProfileString("User Camera 1", "Zoom", std::to_string(pUserCam1->Zoom), pathIniFile.string());
+		WritePrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
+		WritePrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
+		WritePrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
+		WritePrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
 	}
 	else if (!_stricmp(szArg1, "load"))
 	{
-		std::filesystem::path pathIniFile = mq::internal_paths::MQini;
+		std::string pathIniFile = mq::internal_paths::MQini;
 
 		if (szArg2 && szArg2[0] != '\0')
 		{
 			const std::string tmpFileName = std::string(EQADDR_SERVERNAME) + "_" + std::string(szArg2) + ".ini";
-			pathIniFile = std::filesystem::path(mq::internal_paths::Config) / tmpFileName;
+			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
 		}
 
-		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile.string());
-		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile.string());
-		pUserCam1->bSkipFrame = GetPrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile.string());
-		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile.string());
-		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile.string());
-		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile.string());
-		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile.string());
-		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile.string());
-		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile.string());
-		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile.string());
-		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile.string());
-		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile.string());
-		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile.string());
-		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile.string());
-		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile.string());
-		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile.string());
+		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
+		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
+		pUserCam1->bSkipFrame = GetPrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
+		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
+		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
+		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
+		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
+		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
+		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
+		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
+		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
+		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
+		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
+		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
+		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
+		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
+
 		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
 	}
 }

@@ -27,15 +27,15 @@ namespace eqlib {
 
 enum ItemSpellTypes
 {
-	eActivatableSpell,
-	eProcSpell,
-	eWornSpell,
-	eFocusSpell,
-	eScrollSpell,
-	eFocus2Spell,
-	eMountSpell,
-	eIllusionSpell,
-	eFamiliarSpell
+	eActivatableSpell = 0,
+	eProcSpell = 1,
+	eWornSpell = 2,
+	eFocusSpell = 3,
+	eScrollSpell = 4,
+	eFocus2Spell = 5,
+	eMountSpell = 6,
+	eIllusionSpell = 7,
+	eFamiliarSpell = 8,
 };
 
 // EQ Spell "Affect"

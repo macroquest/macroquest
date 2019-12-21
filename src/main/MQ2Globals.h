@@ -30,6 +30,9 @@ struct CaseInsensitiveLess
 
 namespace mq {
 
+MQLIB_VAR const double DegToRad;
+MQLIB_VAR const double PI;
+
 MQLIB_API DWORD baseAddress [[deprecated]];
 
 bool InitOffsets();
@@ -56,9 +59,9 @@ MQLIB_API DWORD bmEndZone;
 MQLIB_VAR MQDataVar* pGlobalVariables;
 MQLIB_VAR MQDataVar* pMacroVariables;
 
-MQLIB_VAR BOOL bAllErrorsFatal;
+MQLIB_VAR bool bAllErrorsFatal;
 MQLIB_VAR bool bAllErrorsDumpStack;
-MQLIB_VAR BOOL bAllErrorsLog;
+MQLIB_VAR bool bAllErrorsLog;
 MQLIB_API char DataTypeTemp[MAX_STRING];
 MQLIB_API TargetBuff TargetBuffTemp;
 MQLIB_API char gszVersion[32];
@@ -72,7 +75,7 @@ MQLIB_API HANDLE ghInitializeSpellDbThread;
 MQLIB_VAR bool g_Loaded;
 MQLIB_VAR DWORD ThreadID;
 
-MQLIB_VAR BOOL gStringTableFixed;
+MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
 enum EAnonFlags
@@ -86,7 +89,6 @@ MQLIB_VAR bool gAnonymize;
 MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;
 MQLIB_VAR HWND ghInjectorWnd;
-MQLIB_VAR BOOL gbEQWLoaded;
 MQLIB_VAR bool gbUnload;
 MQLIB_VAR bool gBindInProgress;
 MQLIB_VAR bool gbLoad;
@@ -100,7 +102,6 @@ MQLIB_VAR std::map<std::string, int> gUndeclaredVars;
 MQLIB_VAR MQEventQueue* gEventQueue;
 MQLIB_VAR int gEventFunc[NUM_EVENTS];
 MQLIB_VAR UCHAR gLastFind;
-MQLIB_VAR BOOL gInClick;
 MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
@@ -142,57 +143,66 @@ MQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
 MQLIB_VAR DWORD DrawHUDParams[4];
 
 MQLIB_VAR DWORD gEventChat;
-MQLIB_VAR ULONGLONG gRunning;
-MQLIB_VAR BOOL gbMoving;
-MQLIB_VAR DWORD gMaxTurbo;
-MQLIB_VAR DWORD gTurboLimit;
+MQLIB_VAR uint64_t gRunning;
+MQLIB_VAR bool gbMoving;
+MQLIB_VAR int gMaxTurbo;
+MQLIB_VAR int gTurboLimit;
 
-MQLIB_VAR BOOL gReturn;
-
-MQLIB_VAR DWORD gbAssistComplete;
+MQLIB_VAR bool gReturn;
 MQLIB_VAR bool gTargetbuffs;
-MQLIB_VAR BOOL gItemsReceived;
+MQLIB_VAR bool gItemsReceived;
 MQLIB_VAR bool gbInZone;
 MQLIB_VAR bool gZoning;
-MQLIB_VAR ULONGLONG OldLastEnteredZone;
-MQLIB_VAR ULONGLONG LastEnteredZone;
+MQLIB_VAR uint64_t OldLastEnteredZone;
+MQLIB_VAR uint64_t LastEnteredZone;
 MQLIB_VAR bool WereWeZoning;
 MQLIB_VAR bool gbInChat;
 MQLIB_VAR bool gFilterSkillsAll;
 MQLIB_VAR bool gFilterSkillsIncrease;
 MQLIB_VAR bool gFilterTarget;
-MQLIB_VAR BOOL gFilterDebug;
+MQLIB_VAR bool gFilterDebug;
 MQLIB_VAR bool gFilterMoney;
 MQLIB_VAR bool gFilterFood;
-MQLIB_VAR BOOL gFilterMQ;
-MQLIB_VAR BOOL gFilterMacro;
+MQLIB_VAR bool gFilterMQ;
+MQLIB_VAR eFilterMacro gFilterMacro;
 MQLIB_VAR bool gFilterEncumber;
 MQLIB_VAR bool gFilterCustom;
-MQLIB_VAR BOOL gSpewToFile;
+MQLIB_VAR bool gFilterMQ2DataErrors;
+MQLIB_VAR bool gSpewToFile;
 MQLIB_VAR bool gbDoAutoRun;
-MQLIB_VAR BOOL gMQPauseOnChat;
-MQLIB_VAR BOOL gKeepKeys;
+MQLIB_VAR bool gMQPauseOnChat;
+MQLIB_VAR bool gKeepKeys;
 MQLIB_VAR bool gLClickedObject;
 MQLIB_VAR MQWhoFilter gFilterSWho;
-MQLIB_VAR BOOL gCreateMQ2NewsWindow;
-MQLIB_VAR BOOL gUseNewNamedTest;
-MQLIB_VAR BOOL gbInForeground;
+MQLIB_VAR bool gCreateMQ2NewsWindow;
+MQLIB_VAR bool gUseNewNamedTest;
+MQLIB_VAR bool gbInForeground;
 
-MQLIB_VAR BOOL gbHUDUnderUI;
-MQLIB_VAR BOOL gbAlwaysDrawMQHUD;
+MQLIB_VAR bool gbHUDUnderUI;
+MQLIB_VAR bool gbAlwaysDrawMQHUD;
 
-MQLIB_VAR BOOL gFilterMQ2DataErrors;
 
 MQLIB_VAR char gIfDelimiter;
 MQLIB_VAR char gIfAltDelimiter;
 
-MQLIB_VAR DWORD gNetStatusXPos;
-MQLIB_VAR DWORD gNetStatusYPos;
+MQLIB_VAR int gNetStatusXPos;
+MQLIB_VAR int gNetStatusYPos;
 
-MQLIB_VAR int gStackingDebug;
+enum eStackingDebug
+{
+	STACKINGDEBUG_OFF = 0,
+	STACKINGDEBUG_ON = 1,
+	STACKINGDEBUG_OUTPUT = 2,
+};
+MQLIB_VAR eStackingDebug gStackingDebug;
 
-MQLIB_VAR double DegToRad;
-MQLIB_VAR double PI;
+enum eAssistStage
+{
+	AS_None = 0,
+	AS_AssistSent = 1,
+	AS_AssistReceived = 2
+};
+MQLIB_VAR eAssistStage gbAssistComplete;
 
 extern Blech* pMQ2Blech;
 MQLIB_VAR char EventMsg[MAX_STRING];
@@ -200,18 +210,18 @@ MQLIB_VAR Blech* pEventBlech;
 MQLIB_VAR MQEventList* pEventList;
 
 MQLIB_VAR MQTimer* gTimer;
-MQLIB_VAR LONG gDelay;
+MQLIB_VAR int gDelay;
 MQLIB_VAR char gDelayCondition[MAX_STRING];
 MQLIB_VAR SPAWNINFO EnviroTarget;
 MQLIB_VAR SPAWNINFO PetSpawn;
 MQLIB_VAR SPAWNINFO MercenarySpawn;
 MQLIB_VAR GROUNDOBJECT GroundObject;
-MQLIB_VAR PGROUNDITEM pGroundTarget;
+MQLIB_VAR GROUNDITEM* pGroundTarget;
 MQLIB_VAR SPAWNINFO DoorEnviroTarget;
 MQLIB_VAR PDOOR pDoorTarget;
-MQLIB_VAR PITEMDB gItemDB;
+MQLIB_VAR ITEMDB* gItemDB;
 MQLIB_VAR bool bRunNextCommand;
-MQLIB_VAR BOOL bAllowCommandParse;
+MQLIB_VAR bool bAllowCommandParse;
 MQLIB_VAR bool gTurbo;
 MQLIB_VAR bool gWarning;
 MQLIB_VAR MQDefine* pDefines;
@@ -226,8 +236,8 @@ MQLIB_VAR MOUSESPOOF* gMouseData;
 MQLIB_VAR const char* gDiKeyName[256];
 
 MQLIB_VAR DWORD gGameState;
-MQLIB_VAR BOOL gbMQ2LoadingMsg;
-MQLIB_VAR BOOL gbExactSearchCleanNames;
+MQLIB_VAR bool gbMQ2LoadingMsg;
+MQLIB_VAR bool gbExactSearchCleanNames;
 
 
 MQLIB_VAR bool gMouseClickInProgress[8];
@@ -285,9 +295,6 @@ MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
 MQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data = nullptr);
 MQLIB_VAR bool IsResEffectSpell(int);
-//MQLIB_VAR char* szItemName[];
-//MQLIB_VAR char* szItemName4xx[];
-//MQLIB_VAR char* szTheme[];
 MQLIB_VAR const char* szDmgBonusType[];
 MQLIB_VAR const char* szBodyType[];
 MQLIB_VAR const char* szAugRestrictions[];
@@ -301,21 +308,18 @@ MQLIB_VAR MQPlugin* pPlugins;
 
 MQLIB_VAR std::map<std::string, SPAWNINFO*> SpawnByName;
 
-//MQLIB_VAR EQPlayer **ppEQP_IDArray;
 MQLIB_VAR MQRank EQP_DistArray[3000];
-MQLIB_VAR DWORD gSpawnCount;
-//#define ppEQP_IDArray (*pppEQP_IDArray)
+MQLIB_VAR int gSpawnCount;
 
 MQLIB_VAR bool gbTimeStampChat;
 MQLIB_VAR size_t g_eqgameimagesize;
 
-MQLIB_VAR BOOL gUseTradeOnTarget;
+MQLIB_VAR bool gUseTradeOnTarget;
 MQLIB_VAR bool gbBeepOnTells;
 MQLIB_VAR bool gbFlashOnTells;
 MQLIB_VAR bool gbShowCurrentCamera;
-MQLIB_VAR int  oldcameratype;
-MQLIB_VAR char CameraText[2048];
-MQLIB_VAR BOOL gbIgnoreAlertRecursion;
+MQLIB_VAR int  gOldCameraType;
+MQLIB_VAR bool gbIgnoreAlertRecursion;
 
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";

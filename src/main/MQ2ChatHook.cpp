@@ -358,16 +358,14 @@ void FlashOnTells(PSPAWNINFO pChar, char* szLine)
 	{
 		gbFlashOnTells = false;
 		WriteChatColor("Flash On Tells is OFF", CONCOLOR_LIGHTBLUE);
-
-		WritePrivateProfileString("MacroQuest", "FlashOnTells", "0", mq::internal_paths::MQini);
 	}
 	else
 	{
 		gbFlashOnTells = true;
 		WriteChatColor("Flash On Tells is ON", CONCOLOR_YELLOW);
-
-		WritePrivateProfileString("MacroQuest", "FlashOnTells", "1", mq::internal_paths::MQini);
 	}
+
+	WritePrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, mq::internal_paths::MQini);
 }
 
 void BeepOnTells(PSPAWNINFO pChar, char* szLine)
@@ -388,14 +386,14 @@ void BeepOnTells(PSPAWNINFO pChar, char* szLine)
 	{
 		gbBeepOnTells = false;
 		WriteChatColor("Beep On Tells is OFF", CONCOLOR_LIGHTBLUE);
-		WritePrivateProfileString("MacroQuest", "BeepOnTells", "0", mq::internal_paths::MQini);
 	}
 	else
 	{
 		gbBeepOnTells = true;
 		WriteChatColor("Beep On Tells is ON", CONCOLOR_YELLOW);
-		WritePrivateProfileString("MacroQuest", "BeepOnTells", "1", mq::internal_paths::MQini);
 	}
+
+	WritePrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, mq::internal_paths::MQini);
 }
 
 void TimeStampChat(PSPAWNINFO pChar, char* szLine)
@@ -416,16 +414,14 @@ void TimeStampChat(PSPAWNINFO pChar, char* szLine)
 	{
 		gbTimeStampChat = false;
 		WriteChatColor("Chat Time Stamping is OFF", CONCOLOR_LIGHTBLUE);
-
-		WritePrivateProfileString("MacroQuest", "TimeStampChat", "0", mq::internal_paths::MQini);
 	}
 	else
 	{
 		gbTimeStampChat = true;
 		WriteChatColor("Chat Time Stamping is ON", CONCOLOR_YELLOW);
-
-		WritePrivateProfileString("MacroQuest", "TimeStampChat", "1", mq::internal_paths::MQini);
 	}
+
+	WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, mq::internal_paths::MQini);
 }
 
 void InitializeChatHook()

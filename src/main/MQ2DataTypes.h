@@ -80,71 +80,13 @@ public:
 		return true;
 	}
 
-	const char* GetName()
-	{
-		if (TypeName)
-			return &TypeName[0];
+	MQLIB_OBJECT const char* GetName() const;
+	MQLIB_OBJECT const char* GetMemberName(int ID) const;
 
-		return nullptr;
-	}
+	MQLIB_OBJECT bool GetMemberID(const char* Name, int& Result) const;
 
-	const char* GetMemberName(int ID)
-	{
-		for (size_t index = 0; index < Members.GetSize(); index++)
-		{
-			if (MQTypeMember * pMember = Members[index])
-			{
-				if (pMember->ID == ID)
-					return &pMember->Name[0];
-			}
-		}
-
-		return nullptr;
-	}
-
-	bool GetMemberID(const char* Name, int& Result)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) == MemberMap.end())
-			return false;
-
-		int index = MemberMap[Name] - 1;
-		if (index < 0)
-			return false;
-
-		MQTypeMember* pMember = Members[index];
-		Result = pMember->ID;
-		return true;
-	}
-
-	MQTypeMember* FindMember(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) == MemberMap.end())
-			return nullptr;
-
-		int index = MemberMap[Name] - 1;
-		if (index < 0)
-			return nullptr;
-
-		return Members[index];
-	}
-
-	MQTypeMember* FindMethod(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MethodMap.find(Name) == MethodMap.end())
-			return nullptr;
-
-		int index = MethodMap[Name] - 1;
-		if (index < 0)
-			return nullptr;
-
-		return Methods[index];
-	}
+	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
+	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
 
 	bool InheritedMember(const char* Name)
 	{
@@ -160,86 +102,21 @@ public:
 	}
 
 protected:
-	bool AddMember(int id, const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) != MemberMap.end())
-			return false;
-
-		int index = Members.GetUnused();
-		MemberMap[Name] = index + 1;
-
-		MQTypeMember* pMember = new MQTypeMember;
-		pMember->Name = Name;
-		pMember->ID = id;
-		pMember->Type = 0;
-		Members[index] = pMember;
-		return true;
-	}
-
-	bool AddMethod(int ID, const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MethodMap.find(Name) != MethodMap.end())
-			return false;
-
-		int index = Methods.GetUnused();
-		MethodMap[Name] = index + 1;
-
-		MQTypeMember* pMethod = new MQTypeMember;
-		pMethod->Name = Name;
-		pMethod->ID = ID;
-		pMethod->Type = 1;
-		Methods[index] = pMethod;
-		return true;
-	}
-
-	bool RemoveMember(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MemberMap.find(Name) == MemberMap.end())
-			return false;
-
-		int index = MemberMap[Name] - 1;
-		if (index < 0)
-			return false;
-
-		MQTypeMember* pMember = Members[index];
-		delete pMember;
-
-		Members[index] = 0;
-	}
-
-	bool RemoveMethod(const char* Name)
-	{
-		std::scoped_lock lock(m_mutex);
-
-		if (MethodMap.find(Name) == MethodMap.end())
-			return false;
-
-		int index = MethodMap[Name] - 1;
-		if (index < 0)
-			return false;
-
-		MQTypeMember* pMethod = Methods[index];
-		delete pMethod;
-
-		Methods[index] = 0;
-	}
+	MQLIB_OBJECT bool AddMember(int id, const char* Name);
+	MQLIB_OBJECT bool RemoveMember(const char* Name);
+	MQLIB_OBJECT bool AddMethod(int ID, const char* Name);
+	MQLIB_OBJECT bool RemoveMethod(const char* Name);
 
 	char TypeName[32];
 	bool m_owned = false;
-	CIndex<MQTypeMember*> Members;
-	CIndex<MQTypeMember*> Methods;
-	std::map<std::string, int> MemberMap;
-	std::map<std::string, int> MethodMap;
 	MQ2Type* pInherits = nullptr;
+	mutable std::mutex m_mutex;
 
-protected:
-	std::mutex m_mutex;
+private:
+	std::vector<std::unique_ptr<MQTypeMember>> Members;
+	std::vector<std::unique_ptr<MQTypeMember>> Methods;
+	std::unordered_map<std::string, int> MemberMap;
+	std::unordered_map<std::string, int> MethodMap;
 };
 
 //============================================================================

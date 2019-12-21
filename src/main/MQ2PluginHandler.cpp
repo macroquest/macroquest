@@ -228,7 +228,8 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad)
 {
 	std::scoped_lock lock(s_pluginsMutex);
-	WritePrivateProfileString("Plugins", Name, bLoad ? "1" : "0", mq::internal_paths::MQini);
+
+	WritePrivateProfileBool("Plugins", Name, bLoad, mq::internal_paths::MQini);
 }
 
 // FIXME: Uses too much stack space

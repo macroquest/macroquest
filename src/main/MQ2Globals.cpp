@@ -17,6 +17,9 @@
 
 namespace mq {
 
+const double DegToRad = 57.295779513082320876846364344191;
+const double PI = 3.1415926535;
+
 DWORD baseAddress = (DWORD)GetModuleHandle(nullptr);
 bool InitOffsets()
 {
@@ -62,7 +65,7 @@ EAnonFlags gAnonymizeFlag = EAF_None;
 DWORD ThreadID = 0;
 bool g_Loaded = false;
 bool gbWriteAllConfig = false;
-BOOL gStringTableFixed = FALSE;
+bool gStringTableFixed = false;
 
 HMODULE ghModule = nullptr;
 HINSTANCE ghInstance = nullptr;
@@ -113,6 +116,7 @@ char gszLastNormalError[MAX_STRING] = { 0 };
 char gszLastSyntaxError[MAX_STRING] = { 0 };
 char gszLastMQ2DataError[MAX_STRING] = { 0 };
 
+// TODO: This is a rect, for drawing the hud.
 DWORD DrawHUDParams[4] = { 0,0,0,0 };
 
 Blech *pMQ2Blech = nullptr;
@@ -121,65 +125,60 @@ Blech *pEventBlech = nullptr;
 MQEventList* pEventList = nullptr;
 
 DWORD gEventChat = 0;
-ULONGLONG gRunning = 0;
-BOOL gbMoving = FALSE;
-DWORD gMaxTurbo = 80;
-DWORD gTurboLimit = 240;
-BOOL gReturn = TRUE;
-BOOL gInClick = FALSE;
-DWORD gbAssistComplete = 0;
+uint64_t gRunning = 0;
+bool gbMoving = false;
+int gMaxTurbo = 80;
+int gTurboLimit = 240;
+bool gReturn = true;
 bool gTargetbuffs = false;
-BOOL gItemsReceived = FALSE;
+bool gItemsReceived = false;
 bool gbInZone = false;
 bool gZoning = false;
-ULONGLONG OldLastEnteredZone = 0;
-ULONGLONG LastEnteredZone = 0;
+uint64_t OldLastEnteredZone = 0;
+uint64_t LastEnteredZone = 0;
 bool WereWeZoning = true;
 bool gbInChat = false;
 bool gFilterSkillsAll = false;
 bool gFilterSkillsIncrease = false;
 bool gFilterTarget = false;
-BOOL gFilterDebug = FALSE;
+bool gFilterDebug = false;
 bool gFilterMoney = false;
 bool gFilterFood = false;
-BOOL gFilterMacro = FALSE;
-BOOL gFilterMQ = FALSE;
+eFilterMacro gFilterMacro = FILTERMACRO_ALL;
+bool gFilterMQ = false;
 bool gFilterEncumber = false;
 bool gFilterCustom = true;
-BOOL gSpewToFile = FALSE;
+bool gSpewToFile = false;
 bool gbDoAutoRun = false;
-BOOL gMQPauseOnChat = FALSE;
-BOOL gKeepKeys = FALSE;
+bool gMQPauseOnChat = false;
+bool gKeepKeys = false;
 bool gLClickedObject = false;
-MQWhoFilter gFilterSWho = { 0 };
-MQLIB_VAR BOOL gFilterMQ2DataErrors = FALSE;
-BOOL gCreateMQ2NewsWindow = TRUE;
+MQWhoFilter gFilterSWho;
+bool gFilterMQ2DataErrors = false;
+bool gCreateMQ2NewsWindow = true;
 char gIfDelimiter = ',';
 char gIfAltDelimiter = '~';
-DWORD gNetStatusXPos = 0;
-DWORD gNetStatusYPos = 0;
-int gStackingDebug = 0;
-BOOL gUseNewNamedTest = 0;
-BOOL gbInForeground = FALSE;
-
-double DegToRad = 57.295779513082320876846364344191;
-double PI = 3.1415926535;
+int gNetStatusXPos = 0;
+int gNetStatusYPos = 0;
+eStackingDebug gStackingDebug = STACKINGDEBUG_OFF;
+bool gUseNewNamedTest = false;
+bool gbInForeground = false;
+eAssistStage gbAssistComplete = AS_None;
 
 MQTimer* gTimer = nullptr;
-LONG gDelay = 0;
+int gDelay = 0;
 char gDelayCondition[MAX_STRING] = { 0 };
-BOOL bAllowCommandParse = TRUE;
-LONG gDelayZoning = 0;
+bool bAllowCommandParse = true;
 std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
 SPAWNINFO MercenarySpawn = { 0 };
 SPAWNINFO PetSpawn = { 0 };
 SPAWNINFO EnviroTarget = { 0 };
 GROUNDOBJECT GroundObject;
-PGROUNDITEM	pGroundTarget = nullptr;
+GROUNDITEM* pGroundTarget = nullptr;
 SPAWNINFO DoorEnviroTarget = { 0 };
-PDOOR pDoorTarget = nullptr;
-PITEMDB gItemDB = nullptr;
+DOOR* pDoorTarget = nullptr;
+ITEMDB* gItemDB = nullptr;
 bool bRunNextCommand = false;
 bool gTurbo = false;
 bool gWarning = false;
@@ -196,23 +195,23 @@ MOUSESPOOF* gMouseData = nullptr;
 bool bDetMouse = true;
 
 // EQ Functions Initialization
-fEQCommand        cmdHelp = nullptr;
-fEQCommand        cmdWho = nullptr;
-fEQCommand        cmdWhoTarget = nullptr;
-fEQCommand        cmdLocation = nullptr;
-fEQCommand        cmdFace = nullptr;
-fEQCommand        cmdTarget = nullptr;
-fEQCommand        cmdCharInfo = nullptr;
-fEQCommand        cmdFilter = nullptr;
-fEQCommand        cmdDoAbility = nullptr;
-fEQCommand        cmdCast = nullptr;
-fEQCommand        cmdUseItem = nullptr;
-fEQCommand        cmdPet = nullptr;
-fEQCommand        cmdMercSwitch = nullptr;
-fEQCommand        cmdAdvLoot = nullptr;
-fEQCommand        cmdPickZone = nullptr;
-fEQCommand        cmdAssist = nullptr;
-fEQCommand        cmdQuit = nullptr;
+fEQCommand cmdHelp = nullptr;
+fEQCommand cmdWho = nullptr;
+fEQCommand cmdWhoTarget = nullptr;
+fEQCommand cmdLocation = nullptr;
+fEQCommand cmdFace = nullptr;
+fEQCommand cmdTarget = nullptr;
+fEQCommand cmdCharInfo = nullptr;
+fEQCommand cmdFilter = nullptr;
+fEQCommand cmdDoAbility = nullptr;
+fEQCommand cmdCast = nullptr;
+fEQCommand cmdUseItem = nullptr;
+fEQCommand cmdPet = nullptr;
+fEQCommand cmdMercSwitch = nullptr;
+fEQCommand cmdAdvLoot = nullptr;
+fEQCommand cmdPickZone = nullptr;
+fEQCommand cmdAssist = nullptr;
+fEQCommand cmdQuit = nullptr;
 
 const char* szEQMappableCommands[nEQMappableCommands];
 decltype(ItemSlotMap) ItemSlotMap;
@@ -220,9 +219,9 @@ decltype(ItemSlotMap) ItemSlotMap;
 char DataTypeTemp[MAX_STRING] = { 0 };
 TargetBuff TargetBuffTemp = { 0 };
 
-decltype(SpawnByName) SpawnByName;
+std::map<std::string, SPAWNINFO*> SpawnByName;
 MQRank EQP_DistArray[3000];
-DWORD gSpawnCount = 0;
+int gSpawnCount = 0;
 
 // Motd and Pulse's mouse variables
 bool gMouseClickInProgress[8] = { false };
@@ -650,13 +649,13 @@ const char* szExpansions[] = {
 	nullptr
 };
 
-BOOL bAllErrorsFatal = FALSE;
+bool bAllErrorsFatal = false;
 bool bAllErrorsDumpStack = false;
-BOOL bAllErrorsLog = FALSE;
-BOOL gbHUDUnderUI = 1;
-BOOL gbAlwaysDrawMQHUD = 0;
-BOOL gbMQ2LoadingMsg = TRUE;
-BOOL gbExactSearchCleanNames = FALSE;
+bool bAllErrorsLog = false;
+bool gbHUDUnderUI = true;
+bool gbAlwaysDrawMQHUD = false;
+bool gbMQ2LoadingMsg = true;
+bool gbExactSearchCleanNames = false;
 
 MQPlugin* pPlugins = nullptr;
 std::map<std::string, MQDataVar*> VariableMap;
@@ -664,15 +663,14 @@ std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 
 size_t g_eqgameimagesize = 0;
 bool gbTimeStampChat = false;
-BOOL gUseTradeOnTarget = 1;
+bool gUseTradeOnTarget = true;
 bool gbBeepOnTells = false;
 bool gbFlashOnTells = false;
-BOOL gbIgnoreAlertRecursion = 0;
-bool gbShowCurrentCamera = true;
-int  oldcameratype = -1;
-char CameraText[2048] = { "Window Selector (Camera 0)" };
+bool gbIgnoreAlertRecursion = false;
+bool gbShowCurrentCamera = false;
+int  gOldCameraType = -1;
 
-fEQGetMelee     get_melee_range = GetMeleeRange;
+fEQGetMelee get_melee_range = GetMeleeRange;
 fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
 fICGetHashData IC_GetHashData = nullptr;

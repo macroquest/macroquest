@@ -2588,7 +2588,7 @@ public:
 enum ECursorAttachmentType
 {
 	eCursorAttachment_None              = -1,
-	eCursorAttachment_MemorizeSpel      = 1,
+	eCursorAttachment_MemorizeSpell     = 1,
 	eCursorAttachment_Item,
 	eCursorAttachment_Money,
 	eCursorAttachment_Social,
@@ -2628,9 +2628,11 @@ public:
 	EQLIB_OBJECT void DrawButtonText() const;
 	EQLIB_OBJECT void DrawQuantity() const;
 
-	EQLIB_OBJECT void AttachToCursor(CTextureAnimation* Overlay, CTextureAnimation* pTABG, int Type, int Index,
+	EQLIB_OBJECT void AttachToCursor(CTextureAnimation* Overlay, CTextureAnimation* pTABG,
+		ECursorAttachmentType Type, int Index,
 		const char* Assigned_Name, const char* Name, int Qty = -1, int IconID = -1);
-	EQLIB_OBJECT void AttachToCursor(CTextureAnimation* Overlay, CTextureAnimation* pTABG, int Type, int Index,
+	EQLIB_OBJECT void AttachToCursor(CTextureAnimation* Overlay, CTextureAnimation* pTABG,
+		ECursorAttachmentType Type, int Index,
 		const EqItemGuid& ItemGuid, int ItemID, const char* Assigned_Name, const char* Name, int Qty = -1, int IconID = -1);
 
 	//----------------------------------------------------------------------------

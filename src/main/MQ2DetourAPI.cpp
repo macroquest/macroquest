@@ -270,28 +270,24 @@ void SetAssist(BYTE* address)
 	if ((DWORD)address == -1)
 		return;
 
-	bool bexpectTarget = false;
+	bool bExpectTarget = false;
 	if (address)
 	{
 		if (DWORD Assistee = *(DWORD*)address)
 		{
 			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(Assistee))
 			{
-				bexpectTarget = true;
-				gbAssistComplete = 1;
+				bExpectTarget = true;
+				gbAssistComplete = AS_AssistSent;
 				//WriteChatf("We can expect a target packet because assist retuned %s", pSpawn->Name);
 			}
 		}
 	}
-	else
-	{
-		InterlockedIncrement((volatile unsigned long*)gbAssistComplete);
-	}
 
-	if (!bexpectTarget)
+	if (!bExpectTarget)
 	{
 		//WriteChatColor("We can NOT expect a target packet because assist was 0");
-		gbAssistComplete = 2;
+		gbAssistComplete = AS_AssistReceived;
 	}
 }
 

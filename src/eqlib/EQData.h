@@ -111,6 +111,11 @@ static SClassInfo ClassInfo[] =
 #define BI_TRAP                                  4
 #define BI_TIMER                                 8
 
+// player types
+constexpr int EQP_PC = 0;
+constexpr int EQP_NPC = 1;
+constexpr int EQP_CORPSE = 2;
+
 // door types
 #define EQSWITCH_STANDARD                        0
 #define EQSWITCH_STANDARD_METAL                  1
@@ -403,14 +408,22 @@ constexpr int ITEMTYPE_BOOK = 2;
 #define CHAT_CHAT                                128
 #define CHATEVENT(x)                             (gEventChat & x)
 
-#define FILTERSKILL_ALL                          0
-#define FILTERSKILL_INCREASE                     1
-#define FILTERSKILL_NONE                         2
+enum eFilterSkill
+{
+	FILTERSKILL_ALL = 0,
+	FILTERSKILL_INCREASE = 1,
+	FILTERSKILL_NONE = 2,
+};
 
-#define FILTERMACRO_ALL                          0
-#define FILTERMACRO_ENHANCED                     1
-#define FILTERMACRO_NONE                         2
-#define FILTERMACRO_MACROENDED                   3
+enum eFilterMacro
+{
+	FILTERMACRO_ALL = 0,
+	FILTERMACRO_ENHANCED = 1,
+	FILTERMACRO_NONE = 2,
+	FILTERMACRO_MACROENDED = 3,
+
+	FILTERMACRO_MAX,
+};
 
 #define MAX_STRING                               2048
 #define MAX_VARNAME                              64

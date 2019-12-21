@@ -22,23 +22,22 @@
 
 namespace mq {
 
-std::list<ItemGlobalIndex> selllist;
-std::list<ItemGlobalIndex> deletelist;
-std::list<ItemGlobalIndex> autobanklist;
-std::list<ItemGlobalIndex> autoinventorylist;
+static std::list<ItemGlobalIndex> gSellList;
+static std::list<ItemGlobalIndex> gDeleteList;
+static std::list<ItemGlobalIndex> gAutoBankList;
+static std::list<ItemGlobalIndex> gAutoInventoryList;
 
-CButtonWnd* gAutoBankButton = nullptr;
-bool gStartAutoBanking = false;
-bool gStartDeleting = false;
-bool gStartSelling = false;
-bool bAutoBankInProgress = false;
-bool bAutoInventoryInProgress = false;
-int gAutoBankTradeSkillItems = 0;
-int gCheckBoxFeatureEnabled = 1;
-int gColorsFeatureEnabled = 1;
-int gAutoBankCollectibleItems = 0;
-int gAutoBankQuestItems = 0;
-int gAutoInventoryItems = 0;
+bool gbStartAutoBanking = false;
+bool gbStartDeleting = false;
+bool gbStartSelling = false;
+bool gbAutoBankInProgress = false;
+bool gbAutoInventoryInProgress = false;
+bool gbAutoBankTradeSkillItems = false;
+bool gbCheckBoxFeatureEnabled = true;
+bool gbColorsFeatureEnabled = true;
+bool gbAutoBankCollectibleItems = false;
+bool gbAutoBankQuestItems = false;
+bool gbAutoInventoryItems = false;
 CContextMenu* AutoBankMenu = nullptr;
 CContextMenu* CheckBoxMenu = nullptr;
 int CoolCheckBoxoptionID = 0;
@@ -58,13 +57,33 @@ int OurDefaultMinItem = 0;
 int OurDefaultCloseItem = 0;
 CTextureAnimation* pChecked = nullptr;
 CTextureAnimation* pUnChecked = nullptr;
+CButtonWnd* gAutoBankButton = nullptr;
 CButtonWnd* pNLMarkedButton = nullptr;
 CLabelWnd* pCountLabel = nullptr;
+
+// BankWnd context menu items
+constexpr int ContextMenu_TradeskillItemsId = 50;
+constexpr int ContextMenu_CollectibleItemsId = 51;
+constexpr int ContextMenu_QuestItemsId = 52;
+constexpr int ContextMenu_CheckedItemsId = 53;
+
+// CFindItemWnd context menu items
+constexpr int ContextMenu_CheckboxFeatureEnabled = 50;
+constexpr int ContextMenu_ColorsFeatureEnabled = 51;
+
+// CFindItemWnd columns
+constexpr int Column_CheckBox = 6;
+constexpr int Column_Value = 7;
+
+// TODO: We should really be using these instead of the constants above. These have the
+// dynamically assigned column ids when the columns are added.
+int MarkCol = 0;
+int ValueCol = 0;
+
 std::map<std::string, CXWnd*> WindowMap;
 std::vector<std::string> XmlFiles;
 
 int WinCount = 0;
-const int FINDWINDOW_CHECKBOXCOLUMN = 6;
 
 char* szClickNotification[] = {
 	"leftmouse",        // 0
@@ -86,15 +105,12 @@ struct WindowInfo
 
 std::map<CXWnd*, WindowInfo> WindowList;
 
-int MarkCol = 0;
-int ValueCol = 0;
-
 bool GenerateMQUI();
 void DestroyMQUI();
 
 bool PickupItemNew(CONTENTS* pCont)
 {
-	if (pCharData && pInvSlotMgr && pCursorAttachment && pCursorAttachment->Type == -1/*none*/)
+	if (pCharData && pInvSlotMgr && pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_None)
 	{
 		int slot1 = -1;
 		int slot2 = -1;
@@ -105,10 +121,12 @@ bool PickupItemNew(CONTENTS* pCont)
 			VePointer<CONTENTS> Cont = pCharData->GetItemPossession(IIndex);
 			if (Cont.pObject != nullptr)
 			{
-				if (pInvSlotMgr->MoveItem(pCharData->CreateItemGlobalIndex(slot1, slot2), pCharData->CreateItemGlobalIndex(33/*HELD*/), false, false))
+				if (pInvSlotMgr->MoveItem(
+					pCharData->CreateItemGlobalIndex(slot1, slot2),
+					pCharData->CreateItemGlobalIndex(eItemContainerCursor), false, false))
 				{
 					pCursorAttachment->Deactivate();
-					pCursorAttachment->AttachToCursor(NULL, NULL, 2/*ITEM*/, -1, NULL, NULL);
+					pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, nullptr, nullptr);
 					if (CDisplay* pDisp = (CDisplay*)pDisplay)
 					{
 						pDisp->DragItem = TRUE;
@@ -194,7 +212,7 @@ public:
 		CFindItemWnd__Update_Tramp();
 
 		CListWnd* list = (CListWnd*)pFIWnd->GetChildItem("FIW_ItemList");
-		if (gCheckBoxFeatureEnabled && list)
+		if (gbCheckBoxFeatureEnabled && list)
 		{
 			if (MarkCol && list->Columns.Count > MarkCol)
 			{
@@ -277,7 +295,7 @@ public:
 									{
 										if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
 										{
-											if (gColorsFeatureEnabled)
+											if (gbColorsFeatureEnabled)
 											{
 												if (pItem->TradeSkills)
 												{
@@ -334,7 +352,7 @@ public:
 					pDisableConnectionTemplate->strScreenId = OldScreenName1;
 					pDisableConnectionTemplate->strController = OldController1;
 
-					if (list->SortCol == 7)
+					if (list->SortCol == Column_Value)
 					{
 						list->Sort();
 					}
@@ -396,9 +414,7 @@ public:
 			{
 				if (SListWndSortInfo* pSI = (SListWndSortInfo *)pData)
 				{
-					switch (pSI->SortCol)
-					{
-					case 7:
+					if (pSI->SortCol == Column_Value)
 					{
 						int int1 = GetMoneyFromString(pSI->StrLabel1.c_str());
 						int int2 = GetMoneyFromString(pSI->StrLabel2.c_str());
@@ -409,8 +425,8 @@ public:
 							pSI->SortResult = 1;
 						else
 							pSI->SortResult = 0;
-					}
-					break;
+
+						return 0;
 					}
 				}
 			}
@@ -428,11 +444,10 @@ public:
 
 			switch (ItemID)
 			{
-			case 50:
-				if (gCheckBoxFeatureEnabled)
+			case ContextMenu_CheckboxFeatureEnabled:
+				if (gbCheckBoxFeatureEnabled)
 				{
-					gCheckBoxFeatureEnabled = 0;
-					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "0", mq::internal_paths::MQini);
+					gbCheckBoxFeatureEnabled = false;
 
 					if (pNLMarkedButton)
 						pNLMarkedButton->SetVisible(false);
@@ -446,8 +461,7 @@ public:
 				}
 				else
 				{
-					gCheckBoxFeatureEnabled = 1;
-					WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", mq::internal_paths::MQini);
+					gbCheckBoxFeatureEnabled = true;
 
 					if (pNLMarkedButton)
 						pNLMarkedButton->SetVisible(true);
@@ -456,9 +470,9 @@ public:
 
 					if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
 					{
-						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
+						if (list->Columns.Count > Column_CheckBox)
 						{
-							if (SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+							if (SListWndColumn* col = &list->Columns[Column_CheckBox])
 							{
 								col->pTextureAnim = pUnChecked;
 							}
@@ -466,23 +480,17 @@ public:
 					}
 				}
 
-				CheckBoxMenu->CheckMenuItem(iItemID, gCheckBoxFeatureEnabled);
+				WritePrivateProfileBool("CoolBoxes", "CheckBoxFeatureEnabled", gbCheckBoxFeatureEnabled, mq::internal_paths::MQini);
+
+				CheckBoxMenu->CheckMenuItem(iItemID, gbCheckBoxFeatureEnabled);
 				pFindItemWnd->Update();
 				break;
 
-			case 51:
-				if (gColorsFeatureEnabled)
-				{
-					gColorsFeatureEnabled = 0;
-					WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "0", mq::internal_paths::MQini);
-				}
-				else
-				{
-					gColorsFeatureEnabled = 1;
-					WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", mq::internal_paths::MQini);
-				}
+			case ContextMenu_ColorsFeatureEnabled:
+				gbColorsFeatureEnabled = !gbColorsFeatureEnabled;
+				WritePrivateProfileBool("CoolBoxes", "ColorsFeatureEnabled", gbColorsFeatureEnabled, mq::internal_paths::MQini);
 
-				CheckBoxMenu->CheckMenuItem(iItemID, gColorsFeatureEnabled);
+				CheckBoxMenu->CheckMenuItem(iItemID, gbColorsFeatureEnabled);
 				pFindItemWnd->Update();
 				break;
 			}
@@ -505,7 +513,7 @@ public:
 				}
 			}
 		}
-		else if (gCheckBoxFeatureEnabled)
+		else if (gbCheckBoxFeatureEnabled)
 		{
 			if (uiMessage == XWM_LCLICK)
 			{
@@ -514,9 +522,9 @@ public:
 				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 				{
 					CXMLData* data = pWnd->GetXMLData();
-					if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
+					if (list->Columns.Count > Column_CheckBox)
 					{
-						SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
+						SListWndColumn* col = &list->Columns[Column_CheckBox];
 
 						if (bool bCheckBox = pWnd->IsType(WRT_CHECKBOXWND))
 						{
@@ -526,7 +534,7 @@ public:
 
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
+								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
 								{
 									if (button->bChecked)
 										Checked++;
@@ -599,7 +607,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
+								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
 								{
 									if (button->bChecked)
 									{
@@ -630,16 +638,16 @@ public:
 			{
 				int colindex = (int)pData;
 
-				if (colindex == FINDWINDOW_CHECKBOXCOLUMN)
+				if (colindex == Column_CheckBox)
 				{
 					CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList");
 					if (list)
 					{
-						if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
+						if (list->Columns.Count > Column_CheckBox)
 						{
 							list->CurSel = -1;
 							list->Selected = 0xFF004040;
-							SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
+							SListWndColumn* col = &list->Columns[Column_CheckBox];
 							bool checked = true;
 
 							if (col->pTextureAnim == pUnChecked)
@@ -665,7 +673,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
+								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
 								{
 									if (selected > 1)
 									{
@@ -717,11 +725,11 @@ public:
 
 				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 				{
-					if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
+					if (list->Columns.Count > Column_CheckBox)
 					{
 						if (FIW_DestroyItem && (CXWnd*)FIW_DestroyItem == pWnd)
 						{
-							if (!deletelist.empty())
+							if (!gDeleteList.empty())
 								return 0;
 
 							if (PcProfile* pProfile = GetPcProfile())
@@ -733,7 +741,7 @@ public:
 									// IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
 									for (int i = 0; i < list->ItemsArray.Count; i++)
 									{
-										if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
+										if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
 										{
 											if (button->bChecked)
 											{
@@ -742,19 +750,19 @@ public:
 
 												if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
 												{
-													deletelist.push_back(*igg);
+													gDeleteList.push_back(*igg);
 												}
 											}
 										}
 									}
 
-									if (SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+									if (SListWndColumn* col = &list->Columns[Column_CheckBox])
 									{
 										col->pTextureAnim = pUnChecked;
 									}
 
-									if (!deletelist.empty())
-										gStartDeleting = true;
+									if (!gDeleteList.empty())
+										gbStartDeleting = true;
 
 									return 1;
 								}
@@ -764,7 +772,7 @@ public:
 						{
 							if (pMerchantWnd && pMerchantWnd->IsVisible())
 							{
-								if (!selllist.empty())
+								if (!gSellList.empty())
 									return 0;
 							}
 
@@ -772,7 +780,7 @@ public:
 							{
 								for (int i = 0; i < list->ItemsArray.Count; i++)
 								{
-									if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, FINDWINDOW_CHECKBOXCOLUMN))
+									if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
 									{
 										if (button->bChecked)
 										{
@@ -791,7 +799,7 @@ public:
 															if (pMerchantWnd && pMerchantWnd->IsVisible())
 															{
 																WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
-																selllist.push_back(*gi);
+																gSellList.push_back(*gi);
 															}
 															else
 															{
@@ -809,8 +817,8 @@ public:
 									}
 								}
 
-								if (!selllist.empty())
-									gStartSelling = true;
+								if (!gSellList.empty())
+									gbStartSelling = true;
 							}
 							return 1;
 						}
@@ -818,13 +826,13 @@ public:
 				}
 			}
 		}
-		else if (!gCheckBoxFeatureEnabled)
+		else if (!gbCheckBoxFeatureEnabled)
 		{
 			if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 			{
-				if (list->Columns.Count > FINDWINDOW_CHECKBOXCOLUMN)
+				if (list->Columns.Count > Column_CheckBox)
 				{
-					if (SListWndColumn* col = &list->Columns[FINDWINDOW_CHECKBOXCOLUMN])
+					if (SListWndColumn* col = &list->Columns[Column_CheckBox])
 					{
 						col->pTextureAnim = nullptr;
 					}
@@ -852,15 +860,15 @@ public:
 				case XWM_LCLICK:
 					if (PcProfile* pProfile = GetPcProfile())
 					{
-						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == 0)
+						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == nullptr)
 						{
-							if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
+							if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
 							{
-								gAutoBankButton->bChecked = 0;
+								gAutoBankButton->bChecked = false;
 							}
 							else
 							{
-								gAutoBankButton->bChecked = 1;
+								gAutoBankButton->bChecked = true;
 							}
 						}
 					}
@@ -869,29 +877,29 @@ public:
 				case XWM_LMOUSEUP:
 					if (PcProfile* pProfile = GetPcProfile())
 					{
-						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == 0)
+						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == nullptr)
 						{
-							if (!gAutoBankTradeSkillItems && !gAutoBankCollectibleItems && !gAutoBankQuestItems)
+							if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
 							{
 								WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
-								gAutoBankButton->bChecked = 0;
+								gAutoBankButton->bChecked = false;
 								break;
 							}
 
-							if (!gStartAutoBanking)
+							if (!gbStartAutoBanking)
 							{
 								// user leftclicked the autobank button and nothing on cursor
 								// we will autobank from inventory instead and pick items he wants
 								// by using his menu settings.
-								gStartAutoBanking = true;
+								gbStartAutoBanking = true;
 
 								WriteChatf("\ay[Auto%s started. Please wait...]\ax",
-									gAutoInventoryItems ? "inventory" : "Bank");
+									gbAutoInventoryItems ? "Inventory" : "Bank");
 							}
 							else
 							{
 								WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
-									gAutoInventoryItems ? "inventory" : "Bank");
+									gbAutoInventoryItems ? "Inventory" : "Bank");
 								return 0;
 							}
 						}
@@ -918,64 +926,32 @@ public:
 
 			switch (ItemID)
 			{
-			case 50:
-				if (gAutoBankTradeSkillItems)
-				{
-					gAutoBankTradeSkillItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", mq::internal_paths::MQini);
-				}
-				else
-				{
-					gAutoBankTradeSkillItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "1", mq::internal_paths::MQini);
-				}
+			case ContextMenu_TradeskillItemsId:
+				gbAutoBankTradeSkillItems = !gbAutoBankTradeSkillItems;
+				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, mq::internal_paths::MQini);
 
-				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankTradeSkillItems);
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTradeSkillItems);
 				break;
 
-			case 51:
-				if (gAutoBankCollectibleItems)
-				{
-					gAutoBankCollectibleItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", mq::internal_paths::MQini);
-				}
-				else
-				{
-					gAutoBankCollectibleItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "1", mq::internal_paths::MQini);
-				}
+			case ContextMenu_CollectibleItemsId:
+				gbAutoBankCollectibleItems = !gbAutoBankCollectibleItems;
+				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, mq::internal_paths::MQini);
 
-				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankCollectibleItems);
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankCollectibleItems);
 				break;
 
-			case 52:
-				if (gAutoBankQuestItems)
-				{
-					gAutoBankQuestItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", mq::internal_paths::MQini);
-				}
-				else
-				{
-					gAutoBankQuestItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "1", mq::internal_paths::MQini);
-				}
+			case ContextMenu_QuestItemsId:
+				gbAutoBankQuestItems = !gbAutoBankQuestItems;
+				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, mq::internal_paths::MQini);
 
-				AutoBankMenu->CheckMenuItem(iItemID, gAutoBankQuestItems);
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankQuestItems);
 				break;
 
-			case 53:
-				if (gAutoInventoryItems)
-				{
-					gAutoInventoryItems = 0;
-					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", mq::internal_paths::MQini);
-				}
-				else
-				{
-					gAutoInventoryItems = 1;
-					WritePrivateProfileString("AutoBank", "AutoInventoryItems", "1", mq::internal_paths::MQini);
-				}
+			case ContextMenu_CheckedItemsId:
+				gbAutoInventoryItems = !gbAutoInventoryItems;
+				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, mq::internal_paths::MQini);
 
-				AutoBankMenu->CheckMenuItem(iItemID, gAutoInventoryItems);
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoInventoryItems);
 				break;
 			};
 		}
@@ -1132,22 +1108,17 @@ void AddAutoBankMenu()
 			CheckBoxMenu = pContextMenuManager->GetMenu(OurCheckBoxMenuIndex);
 			CheckBoxMenu->RemoveAllMenuItems();
 
-			gCheckBoxFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "CheckBoxFeatureEnabled", -1, mq::internal_paths::MQini);
-			if (gCheckBoxFeatureEnabled == -1)
+			gbCheckBoxFeatureEnabled = GetPrivateProfileBool("CoolBoxes", "CheckBoxFeatureEnabled", true, mq::internal_paths::MQini);
+			gbColorsFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "ColorsFeatureEnabled", true, mq::internal_paths::MQini);
+
+			if (gbWriteAllConfig)
 			{
-				gCheckBoxFeatureEnabled = 1;
-				WritePrivateProfileString("CoolBoxes", "CheckBoxFeatureEnabled", "1", mq::internal_paths::MQini);
+				WritePrivateProfileBool("CoolBoxes", "CheckBoxFeatureEnabled", gbCheckBoxFeatureEnabled, mq::internal_paths::MQini);
+				WritePrivateProfileBool("CoolBoxes", "ColorsFeatureEnabled", gbColorsFeatureEnabled, mq::internal_paths::MQini);
 			}
 
-			gColorsFeatureEnabled = GetPrivateProfileInt("CoolBoxes", "ColorsFeatureEnabled", -1, mq::internal_paths::MQini);
-			if (gColorsFeatureEnabled == -1)
-			{
-				gColorsFeatureEnabled = 1;
-				WritePrivateProfileString("CoolBoxes", "ColorsFeatureEnabled", "1", mq::internal_paths::MQini);
-			}
-
-			CoolCheckBoxoptionID = CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", 50, gCheckBoxFeatureEnabled);
-			CoolColorsoptionID = CheckBoxMenu->AddMenuItem("Cool Colors Feature", 51, gColorsFeatureEnabled);
+			CoolCheckBoxoptionID = CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", ContextMenu_CheckboxFeatureEnabled, gbCheckBoxFeatureEnabled);
+			CoolColorsoptionID = CheckBoxMenu->AddMenuItem("Cool Colors Feature", ContextMenu_ColorsFeatureEnabled, gbColorsFeatureEnabled);
 		}
 
 		if (CFindItemWnd* pFIWnd = pFindItemWnd)
@@ -1164,30 +1135,30 @@ void AddAutoBankMenu()
 				pChecked = pSidlMgr->FindAnimation("A_CheckBoxPressed");
 
 				// add checkbox column
-				if (list->Columns.Count == FINDWINDOW_CHECKBOXCOLUMN)
+				if (list->Columns.Count == Column_CheckBox)
 				{
 					// can't get this stupid tooltip to show for columns, i dont know why...
 					CXStr Str = "Toggle Checkboxes On/Off";
-					MarkCol = list->AddColumn(CXStr(""), pUnChecked, 20, 0, Str, 3, 0, 0, true, { 0,0 }, { 0,0 });
+					MarkCol = list->AddColumn("", pUnChecked, 20, 0, Str, 3, nullptr, nullptr, true, { 0,0 }, { 0,0 });
 					list->SetColumnJustification(MarkCol, 0);
 				}
 				else
 				{
-					SListWndColumn& col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN];
-					MarkCol = FINDWINDOW_CHECKBOXCOLUMN;
+					SListWndColumn& col = list->Columns[Column_CheckBox];
+					MarkCol = Column_CheckBox;
 				}
 
 				// add Value Column
-				if (list->Columns.Count == FINDWINDOW_CHECKBOXCOLUMN+1)
+				if (list->Columns.Count == Column_CheckBox+1)
 				{
 					CXStr Str = "Shows Merchant Value of item";
-					ValueCol = list->AddColumn(CXStr("Value"), nullptr, 160, 0, Str, 1, 0, 0, true, { 0,0 }, { 0,0 });
+					ValueCol = list->AddColumn("Value", nullptr, 160, 0, Str, 1, nullptr, nullptr, true, { 0,0 }, { 0,0 });
 					list->SetColumnJustification(ValueCol, 0);
 				}
 				else
 				{
-					SListWndColumn& col = list->Columns[FINDWINDOW_CHECKBOXCOLUMN + 1];
-					ValueCol = FINDWINDOW_CHECKBOXCOLUMN+1;
+					SListWndColumn& col = list->Columns[Column_CheckBox + 1];
+					ValueCol = Column_CheckBox+1;
 				}
 
 				// we need to add a couple controls, Checked count label and Never Loot Button
@@ -1225,7 +1196,7 @@ void AddAutoBankMenu()
 				}
 			}
 		}
-		if (!gCheckBoxFeatureEnabled)
+		if (!gbCheckBoxFeatureEnabled)
 		{
 			if (pNLMarkedButton)
 				pNLMarkedButton->SetVisible(false);
@@ -1276,39 +1247,24 @@ void AddAutoBankMenu()
 			AutoBankMenu = pContextMenuManager->GetMenu(OurDefaultMenuIndex);
 			AutoBankMenu->RemoveAllMenuItems();
 
-			gAutoBankTradeSkillItems = GetPrivateProfileInt("AutoBank", "AutoBankTradeSkillItems", -1, mq::internal_paths::MQini);
-			if (gAutoBankTradeSkillItems == -1)
+			gbAutoBankTradeSkillItems = GetPrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", false, mq::internal_paths::MQini);
+			gbAutoBankCollectibleItems = GetPrivateProfileBool("AutoBank", "AutoBankCollectibleItems", false, mq::internal_paths::MQini);
+			gbAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", false, mq::internal_paths::MQini);
+			gbAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", false, mq::internal_paths::MQini);
+
+			if (gbWriteAllConfig)
 			{
-				gAutoBankTradeSkillItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoBankTradeSkillItems", "0", mq::internal_paths::MQini);
+				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, mq::internal_paths::MQini);
+				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, mq::internal_paths::MQini);
+				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, mq::internal_paths::MQini);
+				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbWriteAllConfig, mq::internal_paths::MQini);
 			}
 
-			gAutoBankCollectibleItems = GetPrivateProfileInt("AutoBank", "AutoBankCollectibleItems", -1, mq::internal_paths::MQini);
-			if (gAutoBankCollectibleItems == -1)
-			{
-				gAutoBankCollectibleItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoBankCollectibleItems", "0", mq::internal_paths::MQini);
-			}
-
-			gAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", -1, mq::internal_paths::MQini);
-			if (gAutoBankQuestItems == -1)
-			{
-				gAutoBankQuestItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoBankQuestItems", "0", mq::internal_paths::MQini);
-			}
-
-			gAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", -1, mq::internal_paths::MQini);
-			if (gAutoInventoryItems == -1)
-			{
-				gAutoInventoryItems = 0;
-				WritePrivateProfileString("AutoBank", "AutoInventoryItems", "0", mq::internal_paths::MQini);
-			}
-
-			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", 50, gAutoBankTradeSkillItems);
-			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", 51, gAutoBankCollectibleItems);
-			questoptionID = AutoBankMenu->AddMenuItem("Quest Items", 52, gAutoBankQuestItems);
+			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
+			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", ContextMenu_CollectibleItemsId, gbAutoBankCollectibleItems);
+			questoptionID = AutoBankMenu->AddMenuItem("Quest Items", ContextMenu_QuestItemsId, gbAutoBankQuestItems);
 			separatoroptionID = AutoBankMenu->AddSeparator();
-			questoptionID = AutoBankMenu->AddMenuItem("Autoinventory Checked Items", 53, gAutoInventoryItems);
+			questoptionID = AutoBankMenu->AddMenuItem("AutoInventory Checked Items", ContextMenu_CheckedItemsId, gbAutoInventoryItems);
 		}
 	}
 }
@@ -2433,7 +2389,7 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 			WindowInfo Info = N.second;
 			if (bOpen)
 			{
-				if (Info.pWnd && Info.pWnd->IsVisible() == 1 && Info.pWnd->GetParentWindow() == 0)
+				if (Info.pWnd && Info.pWnd->IsVisible() && Info.pWnd->GetParentWindow() == nullptr)
 				{
 					if (bPartial)
 					{
@@ -3108,7 +3064,7 @@ void AutoBankPulse()
 		}
 	}
 
-	if (gStartSelling)
+	if (gbStartSelling)
 	{
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
@@ -3123,7 +3079,7 @@ void AutoBankPulse()
 				return;
 
 			// user wants us to sell stuff
-			for (auto g = selllist.begin(); g != selllist.end(); g++)
+			for (auto g = gSellList.begin(); g != gSellList.end(); g++)
 			{
 				ItemGlobalIndex& gi = *g;
 				if (CHARINFO* pCharInfo = GetCharInfo())
@@ -3139,7 +3095,7 @@ void AutoBankPulse()
 							{
 								if (pMerchantWnd->pSelectedItem.pObject->ID == ptr.pObject->ID)
 								{
-									selllist.pop_front();
+									gSellList.pop_front();
 									WriteChatf("Sold %d %s", pItem->StackSize, pItem->Name);
 
 									if (((EQ_Item*)ptr.pObject)->IsStackable())
@@ -3165,27 +3121,27 @@ void AutoBankPulse()
 					}
 				}
 
-				selllist.pop_front();
+				gSellList.pop_front();
 				break;
 			}
 
-			if (selllist.empty())
-				gStartSelling = false;
+			if (gSellList.empty())
+				gbStartSelling = false;
 		}
 		else
 		{
-			selllist.clear();
-			gStartSelling = false;
+			gSellList.clear();
+			gbStartSelling = false;
 		}
 		return;
 	}
 
-	if (gStartDeleting)
+	if (gbStartDeleting)
 	{
 		if (pCursorAttachment && pCursorAttachment->Type == -1/*none*/)
 		{
 			// user wants us to delete stuff
-			for (auto g = deletelist.begin(); g != deletelist.end(); g++)
+			for (auto g = gDeleteList.begin(); g != gDeleteList.end(); g++)
 			{
 				ItemGlobalIndex* gi = (ItemGlobalIndex*)&(*g);
 				if (PCHARINFO pCharInfo = GetCharInfo())
@@ -3199,7 +3155,7 @@ void AutoBankPulse()
 							{
 								if (PickupItemNew(ptr.pObject))
 								{
-									deletelist.pop_front();
+									gDeleteList.pop_front();
 									WriteChatf("Destroyed %s", pItem->Name);
 									DoCommandf("/destroyitem");
 									break;
@@ -3209,41 +3165,41 @@ void AutoBankPulse()
 					}
 				}
 
-				deletelist.pop_front();
+				gDeleteList.pop_front();
 				break;
 			}
 
-			if (deletelist.empty())
-				gStartDeleting = false;
+			if (gDeleteList.empty())
+				gbStartDeleting = false;
 		}
 
 		return;
 	}
 
-	if (!gStartAutoBanking)
+	if (!gbStartAutoBanking)
 	{
 		return;
 	}
 
 	if (!pBankWnd || (pBankWnd && pBankWnd->IsVisible() == 0))
 	{
-		gStartAutoBanking = false;
-		bAutoBankInProgress = false;
-		bAutoInventoryInProgress = false;
+		gbStartAutoBanking = false;
+		gbAutoBankInProgress = false;
+		gbAutoInventoryInProgress = false;
 
 		if (gAutoBankButton && gAutoBankButton->bChecked)
 			gAutoBankButton->bChecked = false;
 
-		autobanklist.clear();
-		autoinventorylist.clear();
+		gAutoBankList.clear();
+		gAutoInventoryList.clear();
 		return;
 	}
 
-	if (gAutoInventoryItems && !bAutoInventoryInProgress)
+	if (gbAutoInventoryItems && !gbAutoInventoryInProgress)
 	{
 		// user wants us to move items FROM bank back to their inventory
 
-		if (autoinventorylist.empty() && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
+		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
 #ifdef NEWCHARINFO
 			if (PCHARINFO pChar = GetCharInfo()) {
@@ -3260,17 +3216,17 @@ void AutoBankPulse()
 							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
 								continue; // dont add bags that has items inside of them...
 
-							if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+							if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
 							{
-								autoinventorylist.push_back(pCont->GetGlobalIndex());
+								gAutoInventoryList.push_back(pCont->GetGlobalIndex());
 							}
-							else if (gAutoBankCollectibleItems && pItem->Collectible)
+							else if (gbAutoBankCollectibleItems && pItem->Collectible)
 							{
-								autoinventorylist.push_back(pCont->GetGlobalIndex());
+								gAutoInventoryList.push_back(pCont->GetGlobalIndex());
 							}
-							else if (gAutoBankQuestItems && pItem->QuestItem)
+							else if (gbAutoBankQuestItems && pItem->QuestItem)
 							{
-								autoinventorylist.push_back(pCont->GetGlobalIndex());
+								gAutoInventoryList.push_back(pCont->GetGlobalIndex());
 							}
 						}
 					}
@@ -3289,17 +3245,17 @@ void AutoBankPulse()
 								{
 									if (PITEMINFO pItem = GetItemFromContents(pCont))
 									{
-										if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+										if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
 										{
-											autoinventorylist.push_back(pCont->GetGlobalIndex());
+											gAutoInventoryList.push_back(pCont->GetGlobalIndex());
 										}
-										else if (gAutoBankCollectibleItems && pItem->Collectible)
+										else if (gbAutoBankCollectibleItems && pItem->Collectible)
 										{
-											autoinventorylist.push_back(pCont->GetGlobalIndex());
+											gAutoInventoryList.push_back(pCont->GetGlobalIndex());
 										}
-										else if (gAutoBankQuestItems && pItem->QuestItem)
+										else if (gbAutoBankQuestItems && pItem->QuestItem)
 										{
-											autoinventorylist.push_back(pCont->GetGlobalIndex());
+											gAutoInventoryList.push_back(pCont->GetGlobalIndex());
 										}
 									}
 								}
@@ -3310,14 +3266,14 @@ void AutoBankPulse()
 			}
 		}
 
-		if (!autoinventorylist.empty())
+		if (!gAutoInventoryList.empty())
 		{
-			bAutoInventoryInProgress = true;
+			gbAutoInventoryInProgress = true;
 		}
 		else
 		{
-			gStartAutoBanking = false;
-			bAutoInventoryInProgress = false;
+			gbStartAutoBanking = false;
+			gbAutoInventoryInProgress = false;
 
 			if (gAutoBankButton && gAutoBankButton->bChecked)
 				gAutoBankButton->bChecked = false;
@@ -3328,9 +3284,9 @@ void AutoBankPulse()
 	}
 
 	// user wants us to autobank stuff
-	else if (!gAutoInventoryItems && !bAutoBankInProgress)
+	else if (!gbAutoInventoryItems && !gbAutoBankInProgress)
 	{
-		if (autobanklist.empty() && (gAutoBankTradeSkillItems || gAutoBankCollectibleItems || gAutoBankQuestItems))
+		if (gAutoBankList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
 			// check toplevel slots
 			PcProfile* pProfile = GetPcProfile();
@@ -3345,17 +3301,17 @@ void AutoBankPulse()
 							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
 								continue; //dont add bags that has items inside of them...
 
-							if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+							if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
 							{
-								autobanklist.push_back(pCont->GetGlobalIndex());
+								gAutoBankList.push_back(pCont->GetGlobalIndex());
 							}
-							else if (gAutoBankCollectibleItems && pItem->Collectible)
+							else if (gbAutoBankCollectibleItems && pItem->Collectible)
 							{
-								autobanklist.push_back(pCont->GetGlobalIndex());
+								gAutoBankList.push_back(pCont->GetGlobalIndex());
 							}
-							else if (gAutoBankQuestItems && pItem->QuestItem)
+							else if (gbAutoBankQuestItems && pItem->QuestItem)
 							{
-								autobanklist.push_back(pCont->GetGlobalIndex());
+								gAutoBankList.push_back(pCont->GetGlobalIndex());
 							}
 						}
 					}
@@ -3377,17 +3333,17 @@ void AutoBankPulse()
 								{
 									if (PITEMINFO pItem = GetItemFromContents(pCont))
 									{
-										if (gAutoBankTradeSkillItems && pItem->TradeSkills)
+										if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
 										{
-											autobanklist.push_back(pCont->GetGlobalIndex());
+											gAutoBankList.push_back(pCont->GetGlobalIndex());
 										}
-										else if (gAutoBankCollectibleItems && pItem->Collectible)
+										else if (gbAutoBankCollectibleItems && pItem->Collectible)
 										{
-											autobanklist.push_back(pCont->GetGlobalIndex());
+											gAutoBankList.push_back(pCont->GetGlobalIndex());
 										}
-										else if (gAutoBankQuestItems && pItem->QuestItem)
+										else if (gbAutoBankQuestItems && pItem->QuestItem)
 										{
-											autobanklist.push_back(pCont->GetGlobalIndex());
+											gAutoBankList.push_back(pCont->GetGlobalIndex());
 										}
 									}
 								}
@@ -3398,14 +3354,14 @@ void AutoBankPulse()
 			}
 		}
 
-		if (!autobanklist.empty())
+		if (!gAutoBankList.empty())
 		{
-			bAutoBankInProgress = true;
+			gbAutoBankInProgress = true;
 		}
 		else
 		{
-			gStartAutoBanking = false;
-			bAutoBankInProgress = false;
+			gbStartAutoBanking = false;
+			gbAutoBankInProgress = false;
 
 			if (gAutoBankButton && gAutoBankButton->bChecked)
 				gAutoBankButton->bChecked = false;
@@ -3419,7 +3375,7 @@ void AutoBankPulse()
 	{
 		if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor != 0)
 		{
-			if (bAutoInventoryInProgress)
+			if (gbAutoInventoryInProgress)
 				DoCommandf("/autoinventory");
 			else
 				DoCommandf("/autobank");
@@ -3427,9 +3383,9 @@ void AutoBankPulse()
 		}
 	}
 
-	if (!autoinventorylist.empty())
+	if (!gAutoInventoryList.empty())
 	{
-		const ItemGlobalIndex& ind = autoinventorylist.front();
+		const ItemGlobalIndex& ind = gAutoInventoryList.front();
 
 		if (CONTENTS* pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
 		{
@@ -3439,28 +3395,28 @@ void AutoBankPulse()
 				if (WillFitInInventory(pCont))
 				{
 					WriteChatf("[%d] Moving %s from slot %d %d to inventory",
-						autoinventorylist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+						gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 					PickupItem(indy.Location, pCont);
 				}
 				else
 				{
 					WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax",
-						autoinventorylist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+						gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 				}
 			}
 		}
 		else
 		{
 			WriteChatf("[%d] \arAutoinventory for slot %d %d to inventory \ayFAILED\ar, no item was found.\ax",
-				autoinventorylist.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
+				gAutoInventoryList.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
 		}
-		autoinventorylist.pop_front();
+		gAutoInventoryList.pop_front();
 		return;
 	}
 
-	if (!autobanklist.empty())
+	if (!gAutoBankList.empty())
 	{
-		const ItemGlobalIndex& ind = autobanklist.front();
+		const ItemGlobalIndex& ind = gAutoBankList.front();
 
 		if (CONTENTS* pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
 		{
@@ -3470,40 +3426,40 @@ void AutoBankPulse()
 				if (WillFitInBank(pCont))
 				{
 					WriteChatf("[%d] Moving %s from slot %d %d to bank",
-						autobanklist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+						gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 					PickupItem(indy.Location, pCont);
 				}
 				else {
 					WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax",
-						autobanklist.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+						gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 				}
 			}
 		}
 		else
 		{
 			WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax",
-				autobanklist.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
+				gAutoBankList.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
 		}
-		autobanklist.pop_front();
+		gAutoBankList.pop_front();
 		return;
 	}
 
-	if (bAutoInventoryInProgress)
+	if (gbAutoInventoryInProgress)
 	{
 		if (gAutoBankButton && gAutoBankButton->bChecked)
 			gAutoBankButton->bChecked = false;
 
-		bAutoInventoryInProgress = false;
-		gStartAutoBanking = false;
+		gbAutoInventoryInProgress = false;
+		gbStartAutoBanking = false;
 		WriteChatf("\ay[Autoinventory Finished.]\ax");
 	}
-	else if (bAutoBankInProgress)
+	else if (gbAutoBankInProgress)
 	{
 		if (gAutoBankButton && gAutoBankButton->bChecked)
 			gAutoBankButton->bChecked = false;
 
-		bAutoBankInProgress = false;
-		gStartAutoBanking = false;
+		gbAutoBankInProgress = false;
+		gbStartAutoBanking = false;
 		WriteChatf("\ay[AutoBank Finished.]\ax");
 	}
 }

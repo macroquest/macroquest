@@ -594,9 +594,10 @@ bool RemoveAlias(const char* ShortCommand)
 
 	WritePrivateProfileString("Aliases", sName, "", mq::internal_paths::MQini);
 
-	if (mAliases.find(sName) != mAliases.end())
+	auto iter = mAliases.find(sName);
+	if (iter != mAliases.end())
 	{
-		mAliases.erase(sName);
+		mAliases.erase(iter);
 		return true;
 	}
 

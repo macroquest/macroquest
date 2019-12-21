@@ -925,6 +925,22 @@ inline int GetPrivateProfileString(char* Section, char* Key, char* DefaultValue,
 	return GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
 }
 
+inline std::string GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::string& iniFileName)
+{
+	char szBuffer[MAX_STRING];
+
+	DWORD length = GetPrivateProfileStringA(Section.empty() ? nullptr : Section.c_str(), Key.empty() ? nullptr : Key.c_str(), DefaultValue.c_str(), szBuffer, MAX_STRING, iniFileName.c_str());
+	return std::string{ szBuffer, length };
+}
+
+inline std::string GetPrivateProfileString(char* Section, char* Key, char* DefaultValue, char* iniFileName)
+{
+	char szBuffer[MAX_STRING];
+
+	DWORD length = GetPrivateProfileStringA(Section, Key, DefaultValue, szBuffer, MAX_STRING, iniFileName);
+	return std::string{ szBuffer, length };
+}
+
 inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::string& iniFileName)
 {
 	return WritePrivateProfileSectionA(Section.c_str(), KeysAndValues.c_str(), iniFileName.c_str());
@@ -944,6 +960,41 @@ inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, cha
 {
 	return WritePrivateProfileStringA(Section, Key, Value, iniFileName);
 }
+
+inline bool WritePrivateProfileBool(const std::string& Section, const std::string& Key, bool Value, const std::string& iniFileName)
+{
+	return WritePrivateProfileStringA(Section.c_str(), Key.c_str(), Value ? "1" : "0", iniFileName.c_str());
+}
+
+inline bool WritePrivateProfileBool(char* Section, char* Key, bool Value, char* iniFileName)
+{
+	return WritePrivateProfileStringA(Section, Key, Value ? "1" : "0", iniFileName);
+}
+
+inline bool WritePrivateProfileInt(const std::string& Section, const std::string& Key, int Value, const std::string& iniFileName)
+{
+	std::string ValueString = std::to_string(Value);
+	return WritePrivateProfileStringA(Section.c_str(), Key.c_str(), ValueString.c_str(), iniFileName.c_str());
+}
+
+inline bool WritePrivateProfileInt(char* Section, char* Key, int Value, char* iniFileName)
+{
+	std::string ValueString = std::to_string(Value);
+	return WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
+}
+
+inline bool WritePrivateProfileFloat(const std::string& Section, const std::string& Key, float Value, const std::string& iniFileName)
+{
+	std::string ValueString = std::to_string(Value);
+	return WritePrivateProfileStringA(Section.c_str(), Key.c_str(), ValueString.c_str(), iniFileName.c_str());
+}
+
+inline bool WritePrivateProfileFloat(char* Section, char* Key, float Value, char* iniFileName)
+{
+	std::string ValueString = std::to_string(Value);
+	return WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
+}
+
 
 [[deprecated("Access CXStr directly instead of calling GetCXStr")]]
 inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)

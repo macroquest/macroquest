@@ -208,31 +208,25 @@ DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool));
 
 static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {
-
 	if (szLine[0])
 	{
 		char szArg[MAX_STRING] = { 0 };
 		gNetStatusXPos = GetIntFromString(GetArg(szArg, szLine, 1), gNetStatusXPos);
 		WriteChatf("\ayNetStatus XPos is \ax\at%d\ax", gNetStatusXPos);
 
-		char szCmd[20] = { 0 };
-		_itoa_s(gNetStatusXPos, szCmd, 10);
-		WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, mq::internal_paths::MQini);
+		WritePrivateProfileInt("MacroQuest", "NetStatusXPos", gNetStatusXPos, mq::internal_paths::MQini);
 	}
 }
 
 static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
 {
-
 	if (szLine[0])
 	{
 		char szArg[MAX_STRING] = { 0 };
 		gNetStatusYPos = GetIntFromString(GetArg(szArg, szLine, 1), gNetStatusYPos);
 		WriteChatf("\ayNetStatus YPos is \ax\at%d\ax", gNetStatusYPos);
 
-		char szCmd[20] = { 0 };
-		_itoa_s(gNetStatusYPos, szCmd, 10);
-		WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, mq::internal_paths::MQini);
+		WritePrivateProfileInt("MacroQuest", "NetStatusYPos", gNetStatusYPos, mq::internal_paths::MQini);
 	}
 }
 

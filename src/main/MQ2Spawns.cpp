@@ -189,7 +189,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	else if (!_stricmp(Arg1, "MQCaptions"))
 	{
 		gMQCaptions = (!_stricmp(GetNextArg(szLine), "On"));
-		WritePrivateProfileString("Captions", "MQCaptions", (gMQCaptions ? "1" : "0"), mq::internal_paths::MQini);
+		WritePrivateProfileBool("Captions", "MQCaptions", gMQCaptions, mq::internal_paths::MQini);
 		WriteChatf("MQCaptions are now \ay%s\ax.", (gMQCaptions ? "On" : "Off"));
 		return;
 	}
@@ -197,7 +197,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	{
 		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
 		UpdatedMasterLooterLabel();
-		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), mq::internal_paths::MQini);
+		WritePrivateProfileBool("Captions", "Anonymize", gAnonymize, mq::internal_paths::MQini);
 		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
 		return;
 	}
@@ -719,11 +719,10 @@ static void LoadCaptionSettings()
 	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
 
 	gMaxSpawnCaptions = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 	gMQCaptions = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
-
-	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
 
 	if (gbWriteAllConfig)
 	{
@@ -736,11 +735,10 @@ static void LoadCaptionSettings()
 		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
 		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
 		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
-
-		WritePrivateProfileString("Captions", "Update", std::to_string(gMaxSpawnCaptions), iniFile);
-		WritePrivateProfileString("Captions", "MQCaptions", std::to_string(gMQCaptions), iniFile);
-
 		WritePrivateProfileString("Captions", "AnonCaption", gszAnonCaption, iniFile);
+
+		WritePrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
+		WritePrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
 	}
 
 	ConvertCR(gszSpawnNPCName, MAX_STRING);

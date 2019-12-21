@@ -209,8 +209,7 @@ struct [[offsetcomments]] GROUPMEMBER
 {
 /*0x00*/ void*  vftable;
 /*0x04*/ CXStr  Name;
-/*0x08*/ BYTE   Mercenary;
-/*0x09*/ BYTE   Unknown0x9[0x3];
+/*0x08*/ short  Type;
 /*0x0c*/ CXStr  pOwner;                // name of mercenary's owner
 /*0x10*/ DWORD  Level;
 /*0x14*/ BYTE   Offline;               // 1 if groupmember is offline
@@ -231,6 +230,11 @@ struct [[offsetcomments]] GROUPMEMBER
 
 	[[deprecated("Use Name instead of pName")]]
 	inline CXStr* getPName() { return &Name; }
+
+	__declspec(property(get = getMercenary)) BYTE Mercenary;
+
+	[[deprecated("Use Type instead of Mercenary")]]
+	inline BYTE getMercenary() { return (BYTE)Type; }
 };
 using PGROUPMEMBER [[deprecated]] = GROUPMEMBER*;
 

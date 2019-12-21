@@ -853,7 +853,7 @@ bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 			}
 		}
 
-		for (size_t index = 0; index < gSpawnCount; index++)
+		for (int index = 0; index < gSpawnCount; index++)
 		{
 			if (EQP_DistArray[index].Value.Float > ssSpawn.FRadius && !ssSpawn.bKnownLocation)
 				return false;
