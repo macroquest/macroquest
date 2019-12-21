@@ -1,4 +1,5 @@
 Dec 21 2019
+- Fixed a crash in mq2chatwnd.cpp on /camp desktop
 - Fixed the chatwindow disappearing act.
 - Fixed mq2eqbc window disappearing act.
   Don't forget to recheck it in builder.

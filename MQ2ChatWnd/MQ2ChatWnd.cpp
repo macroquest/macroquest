@@ -288,12 +288,7 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 VOID SaveChatToINI(PCSIDLWND pWindow) 
 { 
     CHAR szTemp[MAX_STRING]={0};
-	GetPrivateProfileString("Settings", "SaveByChar",bSaveByChar?"on":"off",szTemp,MAX_STRING,INIFileName); 
-    bSaveByChar=(!_strnicmp(szTemp,"on",3));
 
-	sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PSPAWNINFO)pLocalPlayer)->Name); 
-    if (!bSaveByChar)
-		sprintf_s(szChatINISection,"Default"); 
     WritePrivateProfileString("Settings","AutoScroll",   bAutoScroll?"on":"off",INIFileName); 
     WritePrivateProfileString("Settings","NoCharSelect", bNoCharSelect?"on":"off",INIFileName); 
     WritePrivateProfileString("Settings","SaveByChar",   bSaveByChar?"on":"off",INIFileName); 
