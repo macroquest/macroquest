@@ -357,8 +357,8 @@ public:
 	EQLIB_OBJECT void SetRadioLook();
 
 	// protected
-/*0x288*/ bool bOrgState;
-/*0x28c*/
+/*0x278*/ bool bOrgState;
+/*0x27c*/
 };
 
 //============================================================================
@@ -693,17 +693,17 @@ public:
 	virtual void ResizeHeightToText();
 
 	// data members
-/*0x1f0*/ bool         bNoWrap;
-/*0x1f1*/ bool         bAlignRight;
-/*0x1f2*/ bool         bAlignCenter;
-/*0x1f4*/ int          xOffset;
-/*0x1f8*/ bool         bResizeHeightToText;
-/*0x1fc*/ int          Unknown0x204;
-/*0x200*/ CXStr        Text;
-/*0x204*/ int          Unknown0x20c;
-/*0x208*/ bool         Unknown0x210;
-/*0x20c*/ int          Unknown0x214;
-/*0x210*/
+/*0x1e0*/ bool         bNoWrap;
+/*0x1e1*/ bool         bAlignRight;
+/*0x1e2*/ bool         bAlignCenter;
+/*0x1e4*/ int          xOffset;
+/*0x1e8*/ bool         bResizeHeightToText;
+/*0x1ec*/ int          Unknown0x204;
+/*0x1f0*/ CXStr        Text;
+/*0x1f4*/ int          Unknown0x20c;
+/*0x1f8*/ bool         Unknown0x210;
+/*0x1fc*/ int          Unknown0x214;
+/*0x200*/
 };
 
 //============================================================================
@@ -724,8 +724,8 @@ public:
 	virtual void UpdateText() override;
 
 	// data members
-/*0x210*/ int          EQType;
-/*0x214*/
+/*0x200*/ int          EQType;
+/*0x204*/
 };
 using CLABEL [[deprecated]] = CLabel;
 using PCLABEL [[deprecated]] = CLabel*;
@@ -1506,18 +1506,18 @@ public:
 	//----------------------------------------------------------------------------
 	// data members
 
-/*0x240*/ uint8_t      Unknown0x0240[0x8c];      // ui controls
-/*0x2cc*/ AdvancedLootItemList* pCLootList;      // below ref to aAdlw_applyfilt
-/*0x2d0*/ AdvancedLootItemList* pPLootList;      // below ref to aAdlw_cllwnd
-/*0x2d4*/ DWORD        Unknown0x2d4;
-/*0x2d8*/ DWORD        Unknown0x2d8;
-/*0x2dc*/ DWORD        Unknown0x2dc;
-/*0x2e0*/ DWORD        TotalLootCount;
-/*0x2e4*/ DWORD        Unknown0x2e4;
-/*0x2e8*/ DWORD        ContextMenuId;
-/*0x2ec*/ DWORD        CLastStackSize;
-/*0x2f0*/ BYTE         Unknown0x2f0[0x18];
-/*0x308*/
+/*0x230*/ uint8_t      Unknown0x0240[0x8c];      // ui controls
+/*0x2bc*/ AdvancedLootItemList* pCLootList;      // below ref to aAdlw_applyfilt
+/*0x2c0*/ AdvancedLootItemList* pPLootList;      // below ref to aAdlw_cllwnd
+/*0x2c4*/ DWORD        Unknown0x2d4;
+/*0x2c8*/ DWORD        Unknown0x2d8;
+/*0x2cc*/ DWORD        Unknown0x2dc;
+/*0x2d0*/ DWORD        TotalLootCount;
+/*0x2d4*/ DWORD        Unknown0x2e4;
+/*0x2d8*/ DWORD        ContextMenuId;
+/*0x2dc*/ DWORD        CLastStackSize;
+/*0x2e0*/ BYTE         Unknown0x2f0[0x18];
+/*0x2f8*/
 };
 using EQADVLOOTWND [[deprecated]] = CAdvancedLootWnd;
 using PEQADVLOOTWND [[deprecated]] = CAdvancedLootWnd*;
@@ -1562,14 +1562,14 @@ public:
 	CBandolierWnd();
 	virtual ~CBandolierWnd();
 
-/*0x23c*/ CButtonWnd*        pAddButton;
-/*0x240*/ CButtonWnd*        pDeleteButton;
-/*0x244*/ CButtonWnd*        pUseButton;
-/*0x248*/ CButtonWnd*        pMkHotButton;
-/*0x24c*/ CButtonWnd*        pAutoSwapButton;
-/*0x250*/ CButtonWnd*        pDisplayButtons[MAX_BANDOLIER_SLOTS];
-/*0x260*/ CListWnd*          pWeaponSetList;
-/*0x264*/
+/*0x22c*/ CButtonWnd*        pAddButton;
+/*0x230*/ CButtonWnd*        pDeleteButton;
+/*0x234*/ CButtonWnd*        pUseButton;
+/*0x238*/ CButtonWnd*        pMkHotButton;
+/*0x23c*/ CButtonWnd*        pAutoSwapButton;
+/*0x240*/ CButtonWnd*        pDisplayButtons[MAX_BANDOLIER_SLOTS];
+/*0x250*/ CListWnd*          pWeaponSetList;
+/*0x254*/
 };
 
 //============================================================================
@@ -3265,8 +3265,8 @@ public:
 	CHtmlComponentWnd(CXWnd* parent, uint32_t id, CXRect rect, CXStr startURI = "");
 	virtual ~CHtmlComponentWnd();
 
-/*0x200*/ libMozilla::Window* m_mozillaWnd;
-/*0x204*/
+/*0x1f0*/ libMozilla::Window* m_mozillaWnd;
+/*0x1f4*/
 	// more ...
 };
 
@@ -3378,10 +3378,10 @@ public:
 
 	// todo: check me
 
-/*0x244*/ BYTE        Unknown0x0240[0x84];
-/*0x2c8*/ int64_t     VitalityCap;
-/*0x2d0*/ int         AAVitalityCap;
-/*0x2d4*/
+/*0x234*/ BYTE        Unknown0x0240[0x84];
+/*0x2b8*/ int64_t     VitalityCap;
+/*0x2c0*/ int         AAVitalityCap;
+/*0x2c4*/
 };
 using INVENTORYWND [[deprecated]] = CInventoryWnd;
 using PINVENTORYWND [[deprecated]] = CInventoryWnd*;
