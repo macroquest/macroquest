@@ -24,7 +24,7 @@ namespace mq {
 
 static SPAWNINFO* pNamingSpawn = nullptr;
 
-static int gMaxSpawnCaptions = 30;
+static int gMaxSpawnCaptions = 35;
 static bool gMQCaptions = true;
 
 static char gszSpawnPlayerName[8][MAX_STRING] = {

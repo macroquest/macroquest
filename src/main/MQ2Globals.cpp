@@ -104,20 +104,20 @@ char gPathCrashDumps[MAX_PATH] = { 0 };
 char gPathPlugins[MAX_PATH] = { 0 };
 char gPathResources[MAX_PATH] = { 0 };
 std::string mq::internal_paths::MQRoot = ".";
-std::string mq::internal_paths::Config = "config";
+std::string mq::internal_paths::Config = "Config";
 std::string mq::internal_paths::MQini = mq::internal_paths::Config + "\\MacroQuest.ini";
-std::string mq::internal_paths::Macros = "macros";
-std::string mq::internal_paths::Logs = "logs";
-std::string mq::internal_paths::CrashDumps = mq::internal_paths::Logs + "\\dumps";
-std::string mq::internal_paths::Plugins = "plugins";
-std::string mq::internal_paths::Resources = "resources";
+std::string mq::internal_paths::Macros = "Macros";
+std::string mq::internal_paths::Logs = "Logs";
+std::string mq::internal_paths::CrashDumps = mq::internal_paths::Logs + "\\Dumps";
+std::string mq::internal_paths::Plugins = "Plugins";
+std::string mq::internal_paths::Resources = "Resources";
 
 char gszLastNormalError[MAX_STRING] = { 0 };
 char gszLastSyntaxError[MAX_STRING] = { 0 };
 char gszLastMQ2DataError[MAX_STRING] = { 0 };
 
 // TODO: This is a rect, for drawing the hud.
-DWORD DrawHUDParams[4] = { 0,0,0,0 };
+DWORD DrawHUDParams[4] = { 0, 0, 0, 0 };
 
 Blech *pMQ2Blech = nullptr;
 char EventMsg[MAX_STRING] = { 0 };
@@ -151,7 +151,7 @@ bool gFilterCustom = true;
 bool gSpewToFile = false;
 bool gbDoAutoRun = false;
 bool gMQPauseOnChat = false;
-bool gKeepKeys = false;
+bool gKeepKeys = true;
 bool gLClickedObject = false;
 MQWhoFilter gFilterSWho;
 bool gFilterMQ2DataErrors = false;
@@ -650,7 +650,7 @@ const char* szExpansions[] = {
 };
 
 bool bAllErrorsFatal = false;
-bool bAllErrorsDumpStack = false;
+bool bAllErrorsDumpStack = true;
 bool bAllErrorsLog = false;
 bool gbHUDUnderUI = true;
 bool gbAlwaysDrawMQHUD = false;
@@ -665,7 +665,7 @@ size_t g_eqgameimagesize = 0;
 bool gbTimeStampChat = false;
 bool gUseTradeOnTarget = true;
 bool gbBeepOnTells = false;
-bool gbFlashOnTells = false;
+bool gbFlashOnTells = true;
 bool gbIgnoreAlertRecursion = false;
 bool gbShowCurrentCamera = false;
 int  gOldCameraType = -1;

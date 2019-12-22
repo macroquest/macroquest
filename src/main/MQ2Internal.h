@@ -205,7 +205,7 @@ struct MQWhoFilter
 	bool Trader = true;
 	bool AFK = true;
 	bool Light = false;
-	bool Holding = false;
+	bool Holding = true;
 	bool ConColor = false;
 	bool Invisible = false;
 };
