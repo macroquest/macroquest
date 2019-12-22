@@ -57,17 +57,18 @@ public:
 	*/
 };
 
-void DrawHUD_Trampoline(unsigned short, unsigned short, void*, unsigned int);
-void DrawHUD_Detour(unsigned short a, unsigned short b, void* c, unsigned int d)
+void DrawNetStatus_Trampoline(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps);
+void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps)
 {
-	DrawHUDParams[0] = a + gNetStatusXPos;
-	DrawHUDParams[1] = b + gNetStatusYPos;
-	DrawHUDParams[2] = (DWORD)c;
-	DrawHUDParams[3] = d;
+	DrawHUDParams[0] = x + gNetStatusXPos;
+	DrawHUDParams[1] = y + gNetStatusYPos;
+	DrawHUDParams[2] = (DWORD)udpConnection;
+	DrawHUDParams[3] = bps;
 
 	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
 		return;
-	DrawHUD_Trampoline(a, b, c, d);
+
+	DrawNetStatus_Trampoline(x, y, udpConnection, bps);
 	Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
 
 	if (HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll"))
@@ -86,7 +87,7 @@ void DrawHUD()
 		{
 			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
 			{
-				DrawHUD_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
+				DrawNetStatus_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;
 			}
 
@@ -202,7 +203,7 @@ public:
 
 //DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *));
 DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
-DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short, unsigned short, void*, unsigned int));
+DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool));
 
@@ -251,10 +252,10 @@ void InitializeDisplayHook()
 	}
 #endif
 
-	EzDetourwName(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline, "CDisplay__CleanGameUI");
-	EzDetourwName(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline, "CDisplay__ReloadUI");
+	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
+	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
 	//EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
-	EzDetourwName(DrawNetStatus, DrawHUD_Detour, DrawHUD_Trampoline, "DrawNetStatus");
+	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
 	//EzDetourwName(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline,"EQ_LoadingS__SetProgressBar");
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);

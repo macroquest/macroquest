@@ -396,44 +396,15 @@ void BeepOnTells(PSPAWNINFO pChar, char* szLine)
 	WritePrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, mq::internal_paths::MQini);
 }
 
-void TimeStampChat(PSPAWNINFO pChar, char* szLine)
-{
-	if (szLine[0] != '\0')
-	{
-		if (!_stricmp(szLine, "on"))
-		{
-			gbTimeStampChat = false;
-		}
-		else if (!_stricmp(szLine, "off"))
-		{
-			gbTimeStampChat = true;
-		}
-	}
-
-	if (gbTimeStampChat)
-	{
-		gbTimeStampChat = false;
-		WriteChatColor("Chat Time Stamping is OFF", CONCOLOR_LIGHTBLUE);
-	}
-	else
-	{
-		gbTimeStampChat = true;
-		WriteChatColor("Chat Time Stamping is ON", CONCOLOR_YELLOW);
-	}
-
-	WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, mq::internal_paths::MQini);
-}
-
 void InitializeChatHook()
 {
 	// initialize Blech
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 
-	EzDetourwName(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline, "CEverQuest__dsp_chat");
-	EzDetourwName(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline, "CEverQuest__DoTellWindow");
-	EzDetourwName(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline, "CEverQuest__UPCNotificationFlush");
-	AddCommand("/timestamp", TimeStampChat);
+	EzDetour(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline);
+	EzDetour(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline);
+	EzDetour(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline);
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
 }
@@ -442,7 +413,7 @@ void ShutdownChatHook()
 {
 	RemoveCommand("/flashontells");
 	RemoveCommand("/beepontells");
-	RemoveCommand("/timestamp");
+
 	RemoveDetour(CEverQuest__dsp_chat);
 	RemoveDetour(CEverQuest__DoTellWindow);
 	RemoveDetour(CEverQuest__UPCNotificationFlush);

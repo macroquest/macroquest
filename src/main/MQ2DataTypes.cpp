@@ -14531,17 +14531,17 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 
 	case XCleric:
-		Dest.Ptr = 0;
+		Dest.Ptr = nullptr;
 		Dest.Type = pSpawnType;
 
-		for (int i = 0; i < 6; i++)
+		for (auto& member : pChar->pGroupInfo->pMember)
 		{
-			if (pChar->pGroupInfo->pMember[i]
-				&& pChar->pGroupInfo->pMember[i]->Mercenary == 0
-				&& pChar->pGroupInfo->pMember[i]->pSpawn
-				&& pChar->pGroupInfo->pMember[i]->pSpawn->GetClass() == Cleric)
+			if (member
+				&& member->Type == EQP_PC
+				&& member->pSpawn
+				&& member->pSpawn->GetClass() == Cleric)
 			{
-				Dest.Ptr = pChar->pGroupInfo->pMember[i]->pSpawn;
+				Dest.Ptr = member->pSpawn;
 				return true;
 			}
 		}
@@ -14561,12 +14561,14 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 					if (ci_find_substr(pXMLData->Name, "GW_Gauge") == 0)
 					{
 						// ok they are actually hovering a groupmember, but which one?
-						std::string_view digit = pXMLData->Name.substr(8);
+						std::string_view digit{ pXMLData->Name };
+						digit = digit.substr(8);
+
 						if (digit.length() > 0)
 						{
 							// GW_Gauge1 -> GWGauge5
 							int i = digit[0] - '0';
-							if (i > 0 && i < 6 && pChar->pGroupInfo->pMember[i])
+							if (i > 0 && i < MAX_GROUP_SIZE && pChar->pGroupInfo->pMember[i])
 							{
 								Dest.DWord = i;
 								return true;
@@ -14601,15 +14603,16 @@ bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 		if (!pChar->pGroupInfo) return false;
 
 		// members 1 to 5. Count to the nth member.
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i])
+			GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+			if (pMember)
 			{
 				index--;
 				if (index == 0)
 				{
 					char Name[MAX_STRING] = { 0 };
-					strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
+					strcpy_s(Name, pMember->Name.c_str());
 
 					strcpy_s(Destination, MAX_STRING, CleanupName(Name, MAX_STRING, false, false));
 					return true;
@@ -14645,24 +14648,26 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 
 	if (int index = nMember)
 	{
-		if (index > 5)
+		if (index >= MAX_GROUP_SIZE)
 			return false;
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i])
+			GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+
+			if (pMember)
 			{
 				index--;
 				if (index == 0)
 				{
-					strcpy_s(MemberName, pChar->pGroupInfo->pMember[i]->Name.c_str());
+					strcpy_s(MemberName, pMember->Name.c_str());
 
-					if (pChar->pGroupInfo->pMember[i]->pSpawn)
+					if (pMember->pSpawn)
 					{
-						pGroupMember = pChar->pGroupInfo->pMember[i]->pSpawn;
+						pGroupMember = pMember->pSpawn;
 					}
 
-					pGroupMemberData = pChar->pGroupInfo->pMember[i];
+					pGroupMemberData = pMember;
 					break;
 				}
 			}
@@ -14783,10 +14788,11 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		return false;
 
 	case Mercenary:
+	case Type:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.DWord = pGroupMemberData->Mercenary;
+			Dest.DWord = pGroupMemberData->Type;
 			return true;
 		}
 		return false;

@@ -4820,6 +4820,7 @@ public:
 		Offline = 14,
 		OtherZone = 15,
 		Present = 16,
+		Type = 17,
 	};
 
 	enum GroupMemberMethods
@@ -4844,6 +4845,7 @@ public:
 		TypeMember(Offline);
 		TypeMember(OtherZone);
 		TypeMember(Present);
+		TypeMember(Type);
 	}
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;

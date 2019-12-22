@@ -311,7 +311,6 @@ MQLIB_VAR std::map<std::string, SPAWNINFO*> SpawnByName;
 MQLIB_VAR MQRank EQP_DistArray[3000];
 MQLIB_VAR int gSpawnCount;
 
-MQLIB_VAR bool gbTimeStampChat;
 MQLIB_VAR size_t g_eqgameimagesize;
 
 MQLIB_VAR bool gUseTradeOnTarget;
