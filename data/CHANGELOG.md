@@ -1,140 +1,31 @@
 Dec 18 2019 Torment of Velious Build
 - Updated for LIVE
 
-Dec 17 2019
-- Updated for BETA
-- Fixed a bug in GetCachedBuffs
-
-Dec 16 2019
-- Updated for BETA
-- Fixed MQ2Twist in global plugins
-- Added GetCachedBuffs to exports so plugins can make use of it.
-  Usage:
-  std::map<int, std::map<int,cTargetBuff>>cbuffs;
-  GetCachedBuffs(cbuffs);
-
-Dec 15 2019
-- Updated for BETA
-
-Dec 14 2019
-- Updated for BETA
-
-Dec 13 2019
-- Updated for BETA
-
-Dec 12 2019
-- Updated for BETA
-
-Dec 11 2019
-- Updated for BETA
-
-Dec 10 2019
-- Updated for TEST
-- Updated for BETA
-
-Dec 09 2019
-- Updated for BETA
-
-Dec 08 2019
-- Updated for BETA
-
-Dec 07 2019
-- Updated for BETA
-
 Dec 06 2019
-- Updated for BETA
 - Added .SpellIcon and .GemIcon to the Spell TLO.
 - Fixed the Button structure
 
-Dec 05 2019
-- Updated for BETA
-
-Dec 04 2019
-- Updated for BETA
-
-Dec 03 2019
-- Updated for BETA
-
-Dec 02 2019
-- Updated for BETA
-
-Dec 01 2019
-- Updated for BETA
-
-Nov 30 2019
-- Updated for BETA
-
-Nov 29 2019
-- Updated for BETA
-
-Nov 28 2019 Happy Thanksgiving!
-- Updated for BETA
-- Updated MQ2Melee. Yaulp in now default "off" by Sic/CWTN 
-
-Nov 27 2019
-- Updated for BETA
-
 Nov 26 2019
-- Updated for TEST
 - Added SubscriptionDays to the Character TLO it returns an int. Cred request: @sic
   Usage: /echo I have ${Me.SubscriptionDays} left before my all access expires.
 - Updated MQ2AutoForage at https://www.macroquest2.com/phpBB3/viewtopic.php?f=50&t=9588&p=70471
-- Added MQ2AutoForage to builder global plugins.
-- Fixed a crash in MQ2AutoForage when inventory was full.
-  This crash would result in the EQGraphicsDX9.dll dumps some people has sent me. (Thank you.)
-
-Nov 25 2019
-- Updated for BETA
-
-Nov 24 2019
-- Updated for BETA
 
 Nov 23 2019
-- Updated for BETA
 - MQ2Main (ChatWithThisName) Add /removelev command. typing /removelev will remove any levitation in the buff or shortbuff window. 
 
 Nov 22 2019
-- Updated for BETA
 - Fixed a bug where /aa wouldn't parse input
 
-Nov 21 2019
-- Updated for BETA
-
 Nov 20 2019
-- Fixed ${Me.SpellInCooldown} for LIVE
-- Fixed ${Me.InInstance} for LIVE
+- Fixed ${Me.SpellInCooldown}
+- Fixed ${Me.InInstance}
 
 Nov 20 2019
 - Updated for LIVE
-- Updated for BETA
 - Added .LeaderFlagged to the DynamicZoneType TLO it returns true if the dzleader can successfully enter the dz (this also means the dz is actually Loaded.)
 - Usage: ${DynamicZone.LeaderFlagged}
 - Added .Flagged to the DZMemberType TLO it returns true if the dzmember can successfully enter the dz.
 - Usage: ${DynamicZone.Member[x].Flagged} where x is either index or the name.
-
-Nov 19 2019
-- Updated for BETA
-
-Nov 18 2019
-- Updated for BETA
-
-Nov 18 2019 by SwiftyMUSE
-- MQ2Cast Fixes:
-- Increased delay_cast to handle casting not happening for spells loading delays
-- Added blocked spell handling.
-- Fixed compile typecast warning.
-
-Nov 17 2019
-- Updated for BETA
-
-Nov 16 2019
-- Updated for BETA
-
-Nov 15 2019
-- Updated for BETA
-
-Nov 14 2019
-- Updated for BETA
 
 Nov 14 2019 by brainiac
 - Re-fixed EQINVSLOTWND
@@ -144,48 +35,17 @@ Nov 14 2019 by brainiac
 - You can now use the old, or the new names for Slot1, Slot2, Slot3, Location and *suprise* Wnd.
 
 Nov 13 2019
-- Updated for BETA
 - Fixed EQINVSLOTWND.
 - Renamed WindowType in the EQINVSLOTWND struct to Location
 - Renamed InvSlot in the EQINVSLOTWND struct to Slot1
 - Renamed BagSlot in the EQINVSLOTWND struct to Slot2
 - Renamed GlobalSlot in the EQINVSLOTWND struct to Slot3
 
-Nov 12 2019
-- Updated for BETA
-- Updated for TEST
-
-Nov 11 2019
-- Updated for BETA
-
-Nov 10 2019
-- Updated for BETA
-
-Nov 09 2019
-- Updated for BETA
-
-Nov 08 2019
-- Updated for BETA
-- Activated NEWCHARINFO for BETA, this is a chance for you to fix your plugins.
-  I will activate it for live next patch because we have tested it for a year and
-  and im confident in it now.
-  I will then just remove the old charinfo which is just half filled anyway.
-- Plugins I know for sure needs fixes:
-  MQ2AutoLoot,MQ2Posse
-
-Nov 07 2019
-- Updated for BETA
-
-Nov 06 2019
-- Updated for BETA
-
 Nov 05 2019
-- Updated for BETA
 - Right Clicking the Lucy button on the item display window will now open Lucy in your external default browser.
   Left Click opens it inside of eq as usual.
 
 Nov 04 2019
-- Updated for BETA
 - Task TLO can now be accessed by index to make iteration possible.
   Example: /echo ${Task[2].Title}
   NOTE: THIS INDEX IS NOT THE SAME INDEX AS THE ONE YOU SEE IN THE QUEST WINDOW LIST.
@@ -195,12 +55,7 @@ Nov 04 2019
   Usage: /echo ${Task[3].WindowIndex}
   Usage: /echo ${Task[Into The Muck].WindowIndex}
 
-Nov 03 2019
-- Updated for BETA
-- Fixed a bug in emu compile
-
 Nov 02 2019
-- Updated for BETA
 - Added item search by number to the ${Ground} TLO
 - Example: /echo ${Ground[4]} will return the 4th closest item it finds.
 - You should probably check that there actually are 4 items on the ground 
@@ -208,65 +63,24 @@ Nov 02 2019
   I don't know how useful this feature is since we can iterate through .Next anyway, but someone asked for it so...
 
 Nov 01 2019
-- Updated for BETA
 - Added ${Me.Origin} which returns a pZoneType of your starting city.
-
-Oct 31 2019
-- Updated for BETA
-
-Oct 30 2019 by Eqmule
-- Updated for BETA
-- Fixed a bug in macroquest2.exe that would prevent loading live clients. (I am focused on beta this month)
-
-Oct 29 2019 by Eqmule
-- Updated for BETA
-
-Oct 28 2019 by Eqmule
-- Updated for BETA
-
-Oct 27 2019 by Eqmule
-- Updated for BETA
-
-Oct 26 2019 by Eqmule
-- Updated for BETA
 
 Oct 26 2019 by SwiftyMUSE
 - Fixed ${Spawn.State} so DEAD spawns don't show as STUN
 
-Oct 25 2019 by Eqmule
-- Updated for BETA
-
-Oct 24 2019 by Eqmule
-- Updated for BETA
-
-Oct 23 2019 by Eqmule
-- Updated for BETA
-- Updated for TEST
-
 Oct 22 2019 by Eqmule
-- Updated for BETA
 - Fixed ${Task[blah].Select}
 
 Oct 21 2019 by Eqmule
-- Updated for BETA
 - Fixed SetEscapable and SetEscapableLocked
 
 Oct 20 2019 by Chatwiththisname
 - More /caption anon fixes.
 
-Oct 20 2019 by Eqmule
-- Updated for BETA
-
 Oct 16 2019 by Eqmule
 - Updated for LIVE
 - I am aware the .Select for the task tlo needs a fix, I can't get that in right now but will be looking at a fix the next couple days.
 - Use the window tlo meanwhile if u need to select in that window.
-
-Oct 10 2019 by Eqmule
-- Fixed ${Me.Buff for TEST
-
-Oct 09 2019 by Eqmule
-- Updated for TEST
 
 Oct 09 2019 by Chatwiththisname
 - Added two new /mapfilter options for CampRadius and PullRadius.
@@ -304,12 +118,6 @@ Oct 02 2019 by Eqmule
 
 Sep 18 2019 by Eqmule
 - Updated for LIVE
-
--Sep 10 2019 by Eqmule
-- Updated for TEST
-
--Aug 27 2019 by Eqmule
-- Updated for TEST
 
 Aug 26 2019 by Knightly
 - Removed #knightlyparse
