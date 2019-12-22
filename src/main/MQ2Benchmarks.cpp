@@ -17,32 +17,40 @@
 
 namespace mq {
 
-using BMIndex = CIndex<MQBenchmark*>;
-BMIndex* pBenchmarks = nullptr;
+static std::vector<std::unique_ptr<MQBenchmark>> s_benchmarks;
 
 uint32_t AddMQ2Benchmark(const char* Name)
 {
 	DebugSpew("AddMQ2Benchmark(%s)", Name);
-	auto& benchmarks = *pBenchmarks;
 
-	DWORD NewHandle = pBenchmarks->GetUnused();
-	benchmarks[NewHandle] = new MQBenchmark;
+	// find an unused index from members.
+	int index = -1;
+	for (size_t i = 0; i < s_benchmarks.size(); ++i)
+	{
+		if (s_benchmarks[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
 
-	memset(benchmarks[NewHandle], 0, sizeof(MQBenchmark));
-	strcpy_s(benchmarks[NewHandle]->szName, Name);
+	if (index == -1)
+	{
+		s_benchmarks.emplace_back();
+		index = s_benchmarks.size() - 1;
+	}
 
-	return NewHandle;
+	s_benchmarks[index] = std::make_unique<MQBenchmark>(Name);
+	return index;
 }
 
 void RemoveMQ2Benchmark(uint32_t BMHandle)
 {
 	DebugSpewAlways("RemoveMQ2Benchmark()");
-	auto& benchmarks = *pBenchmarks;
 
-	if (BMHandle && benchmarks[BMHandle])
+	if (BMHandle && s_benchmarks[BMHandle])
 	{
-		delete benchmarks[BMHandle];
-		benchmarks[BMHandle] = 0;
+		s_benchmarks[BMHandle].reset();
 	}
 	else
 	{
@@ -52,51 +60,39 @@ void RemoveMQ2Benchmark(uint32_t BMHandle)
 
 void EnterMQ2Benchmark(uint32_t BMHandle)
 {
-	if (!pBenchmarks)
-		return;
-
-	auto& benchmarks = *pBenchmarks;
-	if (benchmarks[BMHandle])
+	if (s_benchmarks[BMHandle])
 	{
-		//DebugSpew("EnterMQ2Benchmark(%s)", benchmarks[BMHandle]->szName);
-		benchmarks[BMHandle]->Entry = MQGetTickCount64();
+		s_benchmarks[BMHandle]->Entry = MQGetTickCount64();
 	}
 }
 
 void ExitMQ2Benchmark(uint32_t BMHandle)
 {
-	if (!pBenchmarks)
-		return;
-
-	auto& benchmarks = *pBenchmarks;
-	if (benchmarks[BMHandle])
+	if (s_benchmarks[BMHandle])
 	{
-		uint64_t Time = MQGetTickCount64() - benchmarks[BMHandle]->Entry;
-		//DebugSpew("ExitMQ2Benchmark(%s)",Benchmarks[BMHandle]->szName);
+		MQBenchmark& benchmark = *s_benchmarks[BMHandle];
 
-		benchmarks[BMHandle]->LastTime = Time;
-		if (benchmarks[BMHandle]->Count > 4000000000)
+		uint64_t Time = MQGetTickCount64() - benchmark.Entry;
+
+		benchmark.LastTime = Time;
+		if (benchmark.Count > 4000000000)
 		{
-			benchmarks[BMHandle]->Count = 1;
-			benchmarks[BMHandle]->TotalTime = Time;
+			benchmark.Count = 1;
+			benchmark.TotalTime = Time;
 		}
 		else
 		{
-			benchmarks[BMHandle]->Count++;
-			benchmarks[BMHandle]->TotalTime += Time;
+			benchmark.Count++;
+			benchmark.TotalTime += Time;
 		}
 	}
 }
 
 bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 {
-	if (!pBenchmarks)
-		return false;
-
-	auto& benchmarks = *pBenchmarks;
-	if (benchmarks[BMHandle])
+	if (s_benchmarks[BMHandle])
 	{
-		Dest = *benchmarks[BMHandle]; // give them a copy of the data.
+		Dest = *s_benchmarks[BMHandle]; // give them a copy of the data.
 		return true;
 	}
 
@@ -115,21 +111,19 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		auto& benchmarks = *pBenchmarks;
-
 		WriteChatColor("MQ2 Benchmarks");
 		WriteChatColor("--------------");
 
-		for (size_t i = 0; i < pBenchmarks->GetSize(); i++)
+		for (auto& pBenchmark : s_benchmarks)
 		{
-			if (benchmarks[i])
+			if (pBenchmark)
 			{
 				float Avg = 0;
-				if (benchmarks[i]->Count)
-					Avg = static_cast<float>(benchmarks[i]->TotalTime) / static_cast<float>(benchmarks[i]->Count);
+				if (pBenchmark->Count)
+					Avg = static_cast<float>(pBenchmark->TotalTime) / static_cast<float>(pBenchmark->Count);
 
 				WriteChatf("[\ay%s\ax] \at%I64u\ax for \at%I64u\axms, \at%.2f\ax avg",
-					benchmarks[i]->szName, benchmarks[i]->Count, benchmarks[i]->TotalTime, Avg);
+					pBenchmark->Name.c_str(), pBenchmark->Count, pBenchmark->TotalTime, Avg);
 			}
 		}
 
@@ -140,21 +134,19 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 
 void DumpBenchmarks()
 {
-	auto& benchmarks = *pBenchmarks;
-
 	DebugSpewAlways("MQ2 Benchmarks");
 	DebugSpewAlways("--------------");
 
-	for (size_t i = 0; i < pBenchmarks->GetSize(); i++)
+	for (auto& pBenchmark : s_benchmarks)
 	{
-		if (benchmarks[i])
+		if (pBenchmark)
 		{
 			float Avg = 0;
-			if (benchmarks[i]->Count)
-				Avg = static_cast<float>(benchmarks[i]->TotalTime) / static_cast<float>(benchmarks[i]->Count);
+			if (pBenchmark->Count)
+				Avg = static_cast<float>(pBenchmark->TotalTime) / static_cast<float>(pBenchmark->Count);
 
 			DebugSpewAlways("%-40s  %d for %dms, %.2f avg",
-				benchmarks[i]->szName, benchmarks[i]->Count, benchmarks[i]->TotalTime, Avg);
+				pBenchmark->Name.c_str(), pBenchmark->Count, pBenchmark->TotalTime, Avg);
 		}
 	}
 
@@ -164,8 +156,7 @@ void DumpBenchmarks()
 
 void InitializeMQ2Benchmarks()
 {
-	DebugSpew("Initializing MQ2 Benchmarks");
-	pBenchmarks = new BMIndex(10);
+	DebugSpew("Initializing MQ2 Benchmarks");;
 
 	AddCommand("/benchmark", Cmd_DumpBenchmarks, false, false);
 }
@@ -177,13 +168,7 @@ void ShutdownMQ2Benchmarks()
 	DumpBenchmarks();
 	RemoveCommand("/benchmark");
 
-	if (pBenchmarks)
-	{
-		pBenchmarks->Cleanup();
-		delete pBenchmarks;
-	}
-
-	pBenchmarks = nullptr;
+	s_benchmarks.clear();
 }
 
 } // namespace mq

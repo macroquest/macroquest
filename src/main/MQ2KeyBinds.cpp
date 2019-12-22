@@ -15,32 +15,39 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <fmt/format.h>
+
 namespace mq {
 
 //void InjectMQ2Binds(COptionsWnd* pWnd);
 //void EjectMQ2Binds(COptionsWnd* pWnd);
 
-struct MQ2KeyBind
+struct MQKeyBind
 {
-	char          Name[32];
+	std::string   Name;
 	KeyCombo      Normal;
 	KeyCombo      Alt;
 	fMQExecuteCmd Function;
-	bool          State;
+	bool          State = false;
+
+	MQKeyBind(std::string name, fMQExecuteCmd func)
+		: Name(std::move(name))
+		, Function(func)
+	{}
 };
 
 using KeybindMap = std::map<std::string, int, ci_less>;
 
-CIndex<MQ2KeyBind*> s_keybinds(10);
+std::vector<std::unique_ptr<MQKeyBind>> s_keybinds;
 KeybindMap s_keybindMap;
 
-static MQ2KeyBind* KeyBindByName(const char* name)
+static MQKeyBind* KeyBindByName(const char* name)
 {
 	auto iter = s_keybindMap.find(name);
 	if (iter == std::end(s_keybindMap))
 		return nullptr;
 
-	return s_keybinds[iter->second];
+	return s_keybinds[iter->second].get();
 }
 
 static bool SetEQKeyBindByNumber(int index, bool alternate, KeyCombo& combo)
@@ -82,17 +89,16 @@ bool MQ2HandleKeyDown(const KeyCombo& combo)
 		}
 	}
 
-	for (size_t index = 0; index < s_keybinds.GetSize(); index++)
+	for (auto& pKeybind : s_keybinds)
 	{
-		if (MQ2KeyBind* pBind = s_keybinds[index])
+		if (pKeybind
+			&& pKeybind->State == 0
+			&& (pKeybind->Normal == combo || pKeybind->Alt == combo))
 		{
-			if (pBind->State == 0 && (pBind->Normal == combo || pBind->Alt == combo))
-			{
-				pBind->Function(pBind->Name, true);
-				pBind->State = true;
+			pKeybind->Function(pKeybind->Name.c_str(), true);
+			pKeybind->State = true;
 
-				Ret = true;
-			}
+			Ret = true;
 		}
 	}
 
@@ -115,19 +121,19 @@ bool MQ2HandleKeyUp(const KeyCombo& combo)
 		}
 	}
 
-	for (int index = 0; index < (int)s_keybinds.GetSize(); index++)
+	for (auto& pKeybind : s_keybinds)
 	{
-		if (MQ2KeyBind* pBind = s_keybinds[index])
+		if (pKeybind
+			&& pKeybind->State == 1
+			&& (pKeybind->Normal.Data[3] == combo.Data[3] || pKeybind->Alt.Data[3] == combo.Data[3]))
 		{
-			if (pBind->State == 1 && (pBind->Normal.Data[3] == combo.Data[3] || pBind->Alt.Data[3] == combo.Data[3]))
-			{
-				pBind->Function(pBind->Name, false);
-				pBind->State = false;
+			pKeybind->Function(pKeybind->Name.c_str(), false);
+			pKeybind->State = false;
 
-				Ret = true;
-			}
+			Ret = true;
 		}
 	}
+
 	return Ret;
 }
 
@@ -136,11 +142,11 @@ class KeypressHandlerHook
 public:
 	void ClearCommandStateArray_Hook()
 	{
-		for (int index = 0; index < (int)s_keybinds.GetSize(); index++)
+		for (auto& pKeybind : s_keybinds)
 		{
-			if (MQ2KeyBind* pBind = s_keybinds[index])
+			if (pKeybind)
 			{
-				pBind->State = false;
+				pKeybind->State = false;
 			}
 		}
 
@@ -178,21 +184,21 @@ void InitializeMQ2KeyBinds()
 {
 	AddMQ2KeyBind("RANGED", DoRangedBind);
 
-	EzDetourwName(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline, "KeypressHandler__ClearCommandStateArray");
-	EzDetourwName(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline, "KeypressHandler__HandleKeyDown");
-	EzDetourwName(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline, "KeypressHandler__HandleKeyUp");
+	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
 }
 
 void ShutdownMQ2KeyBinds()
 {
-	s_keybinds.Cleanup();
+	s_keybinds.clear();
 
 	RemoveDetour(KeypressHandler__ClearCommandStateArray);
 	RemoveDetour(KeypressHandler__HandleKeyDown);
 	RemoveDetour(KeypressHandler__HandleKeyUp);
 }
 
-bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function)
+bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 {
 	DebugSpew("AddMQ2KeyBind(%s)", name);
 
@@ -202,27 +208,35 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function)
 		return false;
 	}
 
-	MQ2KeyBind* pBind = new MQ2KeyBind;
-	pBind->State = false;
-	strncpy_s(pBind->Name, name, 32);
-	pBind->Name[31] = 0;
+	auto pKeybind = std::make_unique<MQKeyBind>(name, function);
 
-	char szName[MAX_STRING] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
+	std::string primarySettingName = fmt::format("{}_Nrm", pKeybind->Name);
+	std::string primaryBind = GetPrivateProfileString("Key Binds", primarySettingName, "clear", mq::internal_paths::MQini);
 
-	sprintf_s(szName, "%s_%s", pBind->Name, "Nrm");
-	GetPrivateProfileString("Key Binds", szName, "clear", szBuffer, MAX_STRING, mq::internal_paths::MQini);
+	std::string altSettingName = fmt::format("{}_Alt", pKeybind->Name);
+	std::string altBind = GetPrivateProfileString("Key Binds", altSettingName, "clear", mq::internal_paths::MQini);
 
-	ParseKeyCombo(szBuffer, pBind->Normal);
+	ParseKeyCombo(primaryBind.c_str(), pKeybind->Normal);
+	ParseKeyCombo(altBind.c_str(), pKeybind->Alt);
 
-	sprintf_s(szName, "%s_%s", pBind->Name, "Alt");
-	GetPrivateProfileString("Key Binds", szName, "clear", szBuffer, MAX_STRING, mq::internal_paths::MQini);
-	ParseKeyCombo(szBuffer, pBind->Alt);
+	// Find an unused index.
+	int index = -1;
+	for (size_t i = 0; i < s_keybinds.size(); ++i)
+	{
+		if (s_keybinds[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
 
-	pBind->Function = Function;
+	if (index == -1)
+	{
+		s_keybinds.emplace_back();
+		index = s_keybinds.size() - 1;
+	}
 
-	int index = s_keybinds.GetUnused();
-	s_keybinds[index] = pBind;
+	s_keybinds[index] = std::move(pKeybind);
 	s_keybindMap.insert_or_assign(name, index);
 
 	return true;
@@ -230,13 +244,9 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function)
 
 bool GetMQ2KeyBind(const char* name, bool alt, KeyCombo& combo)
 {
-	if (MQ2KeyBind* pBind = KeyBindByName(name))
+	if (MQKeyBind* pKeybind = KeyBindByName(name))
 	{
-		if (alt)
-			combo = pBind->Alt;
-		else
-			combo = pBind->Normal;
-
+		combo = alt ? pKeybind->Alt : pKeybind->Normal;
 		return true;
 	}
 	return false;
@@ -250,30 +260,22 @@ bool RemoveMQ2KeyBind(const char* name)
 	if (iter == std::end(s_keybindMap))
 		return false;
 
-	int index = iter->second;
+	s_keybinds[iter->second].reset();
+	s_keybindMap.erase(iter);
 
-	if (MQ2KeyBind* pBind = s_keybinds[index])
-	{
-		s_keybindMap.erase(iter);
-		s_keybinds[index] = 0;
-
-		delete pBind;
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 bool PressMQ2KeyBind(const char* name, bool hold)
 {
-	if (MQ2KeyBind* pBind = KeyBindByName(name))
+	if (MQKeyBind* pKeybind = KeyBindByName(name))
 	{
-		pBind->Function(pBind->Name, true);
+		pKeybind->Function(pKeybind->Name.c_str(), true);
 
 		// release the keypress if we aren't asked to hold it.
 		if (!hold)
 		{
-			pBind->Function(pBind->Name, false);
+			pKeybind->Function(pKeybind->Name.c_str(), false);
 		}
 
 		return true;
@@ -284,23 +286,25 @@ bool PressMQ2KeyBind(const char* name, bool hold)
 
 bool SetMQ2KeyBind(const char* name, bool alternate, KeyCombo& combo)
 {
-	if (MQ2KeyBind* pBind = KeyBindByName(name))
+	if (MQKeyBind* pKeybind = KeyBindByName(name))
 	{
-		char szName[MAX_STRING] = { 0 };
-		char szBuffer[MAX_STRING] = { 0 };
+		std::string settingName;
 
 		if (!alternate)
 		{
-			sprintf_s(szName, "%s_Nrm", pBind->Name);
-			pBind->Normal = combo;
+			settingName = fmt::format("{}_Nrm", pKeybind->Name);
+			pKeybind->Normal = combo;
 		}
 		else
 		{
-			sprintf_s(szName, "%s_Alt", pBind->Name);
-			pBind->Alt = combo;
+			settingName = fmt::format("{}_Alt", pKeybind->Name);
+			pKeybind->Alt = combo;
 		}
 
-		WritePrivateProfileString("Key Binds", szName, DescribeKeyCombo(combo, szBuffer, sizeof(szBuffer)), mq::internal_paths::MQini);
+		char szBuffer[MAX_STRING] = { 0 };
+
+		WritePrivateProfileString("Key Binds", settingName,
+			DescribeKeyCombo(combo, szBuffer, sizeof(szBuffer)), mq::internal_paths::MQini);
 		return true;
 	}
 
@@ -350,13 +354,13 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("MQ2 Binds");
 		WriteChatColor("--------------");
 
-		for (int i = 0; i < (int)s_keybinds.GetSize(); i++)
+		for (auto& pKeybind : s_keybinds)
 		{
-			if (MQ2KeyBind* pBind = s_keybinds[i])
+			if (pKeybind)
 			{
 				WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",
-					pBind->Name, DescribeKeyCombo(pBind->Normal, szNormal, sizeof(szNormal)),
-					DescribeKeyCombo(pBind->Alt, szAlt, sizeof(szAlt)));
+					pKeybind->Name.c_str(), DescribeKeyCombo(pKeybind->Normal, szNormal, sizeof(szNormal)),
+					DescribeKeyCombo(pKeybind->Alt, szAlt, sizeof(szAlt)));
 			}
 		}
 
@@ -408,19 +412,18 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		KeyCombo ClearCombo;
 
 		// mq2 binds
-		for (int i = 0; i < (int)s_keybinds.GetSize(); i++)
+		for (auto& pKeybind : s_keybinds)
 		{
-			MQ2KeyBind* pBind = s_keybinds[i];
-			if (pBind)
+			if (pKeybind)
 			{
-				if (pBind->Alt == newCombo && SetMQ2KeyBind(pBind->Name, true, ClearCombo))
+				if (pKeybind->Alt == newCombo && SetMQ2KeyBind(pKeybind->Name.c_str(), true, ClearCombo))
 				{
-					WriteChatf("Alternate %s cleared", pBind->Name);
+					WriteChatf("Alternate %s cleared", pKeybind->Name.c_str());
 				}
 
-				if (pBind->Normal == newCombo && SetMQ2KeyBind(pBind->Name, false, ClearCombo))
+				if (pKeybind->Normal == newCombo && SetMQ2KeyBind(pKeybind->Name.c_str(), false, ClearCombo))
 				{
-					WriteChatf("Normal %s cleared", pBind->Name);
+					WriteChatf("Normal %s cleared", pKeybind->Name.c_str());
 				}
 			}
 		}
@@ -447,9 +450,12 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 	char szBuffer[MAX_STRING] = { 0 };
 	if (SetMQ2KeyBind(szArg, altKey, newCombo))
 	{
-		MQ2KeyBind* pBind = KeyBindByName(szArg);
+		MQKeyBind* pKeybind = KeyBindByName(szArg);
 
-		WriteChatf("%s %s now bound as %s", altKey ? "Alternate" : "Normal", pBind->Name, DescribeKeyCombo(newCombo, szBuffer, sizeof(szBuffer)));
+		WriteChatf("%s %s now bound as %s",
+			altKey ? "Alternate" : "Normal",
+			pKeybind->Name.c_str(),
+			DescribeKeyCombo(newCombo, szBuffer, sizeof(szBuffer)));
 		return;
 	}
 
@@ -469,9 +475,9 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 	if (SetEQKeyBindByNumber(index, altKey, newCombo))
 	{
 		WriteChatf("%s %s now bound as %s",
-			(altKey) ? ("Alternate") : ("Normal"),
+			altKey ? "Alternate" : "Normal",
 			szEQMappableCommands[index],
-			DescribeKeyCombo((altKey) ? (pKeypressHandler->AltKey[index]) : (pKeypressHandler->NormalKey[index]), szBuffer, sizeof(szBuffer)));
+			DescribeKeyCombo(altKey ? pKeypressHandler->AltKey[index] : pKeypressHandler->NormalKey[index], szBuffer, sizeof(szBuffer)));
 	}
 }
 
@@ -509,16 +515,20 @@ bool DumpBinds(const char* Filename)
 		if (szEQMappableCommands[index] == nullptr || szEQMappableCommands[index] > reinterpret_cast<const char*>(g_eqgameimagesize))
 			continue;
 
-		fprintf(file, "/bind %s %s\n", szEQMappableCommands[index], DescribeKeyCombo(pKeypressHandler->NormalKey[index], szBuffer, sizeof(szBuffer)));
-		fprintf(file, "/bind ~%s %s\n", szEQMappableCommands[index], DescribeKeyCombo(pKeypressHandler->AltKey[index], szBuffer, sizeof(szBuffer)));
+		fprintf(file, "/bind %s %s\n", szEQMappableCommands[index],
+			DescribeKeyCombo(pKeypressHandler->NormalKey[index], szBuffer, sizeof(szBuffer)));
+		fprintf(file, "/bind ~%s %s\n", szEQMappableCommands[index],
+			DescribeKeyCombo(pKeypressHandler->AltKey[index], szBuffer, sizeof(szBuffer)));
 	}
 
-	for (int index = 0; index < (int)s_keybinds.GetSize(); index++)
+	for (auto& pKeybind : s_keybinds)
 	{
-		if (MQ2KeyBind* pBind = s_keybinds[index])
+		if (pKeybind)
 		{
-			fprintf(file, "/bind %s %s\n", pBind->Name, DescribeKeyCombo(pBind->Normal, szBuffer, sizeof(szBuffer)));
-			fprintf(file, "/bind ~%s %s\n", pBind->Name, DescribeKeyCombo(pBind->Alt, szBuffer, sizeof(szBuffer)));
+			fprintf(file, "/bind %s %s\n", pKeybind->Name.c_str(),
+				DescribeKeyCombo(pKeybind->Normal, szBuffer, sizeof(szBuffer)));
+			fprintf(file, "/bind ~%s %s\n", pKeybind->Name.c_str(),
+				DescribeKeyCombo(pKeybind->Alt, szBuffer, sizeof(szBuffer)));
 		}
 	}
 

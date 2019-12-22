@@ -1837,6 +1837,7 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 bool ParseKeyCombo(const char* text, KeyCombo& Dest)
 {
 	KeyCombo Ret;
+
 	if (!_stricmp(text, "clear"))
 	{
 		Dest = Ret;
@@ -1952,18 +1953,19 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 	{
 		FILE* file = nullptr;
 		errno_t err = 0;
-		if ((err = fopen_s(&file,pathFilename.string().c_str(),"rt"))==0)
+		if ((err = fopen_s(&file,pathFilename.string().c_str(),"rt")) == 0)
 		{
 			char szBuffer[MAX_STRING] = { 0 };
 			while (fgets(szBuffer, MAX_STRING, file))
 			{
-				char* Next_Token1 = 0;
+				char* Next_Token1 = nullptr;
 				char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
 				if (Cmd && Cmd[0] && Cmd[0] != ';')
 				{
 					HideDoCommand(((SPAWNINFO*)pLocalPlayer), Cmd, Delayed);
 				}
 			}
+
 			fclose(file);
 			return true;
 		}

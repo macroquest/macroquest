@@ -335,11 +335,13 @@ using PFILTER [[deprecated("use MQFilter* instead")]] = MQFilter*;
 
 struct MQBenchmark
 {
-	char     szName[64];
+	std::string Name;
 	uint64_t Entry = 0;
 	uint64_t LastTime = 0;
 	uint64_t TotalTime = 0;
 	uint64_t Count = 0;
+
+	MQBenchmark(const std::string& name) : Name(name) {}
 };
 
 struct MQGroundPending

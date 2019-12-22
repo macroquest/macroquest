@@ -254,9 +254,9 @@ void InitializeDisplayHook()
 
 	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
-	//EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
+	//EzDetour(CDisplay__GetWorldFilePath, &CDisplayHook::GetWorldFilePath_Detour, &CDisplayHook::GetWorldFilePath_Trampoline);
 	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
-	//EzDetourwName(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline,"EQ_LoadingS__SetProgressBar");
+	//EzDetour(EQ_LoadingS__SetProgressBar, &EQ_LoadingSHook::SetProgressBar_Detour, &EQ_LoadingSHook::SetProgressBar_Trampoline);
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);

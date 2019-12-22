@@ -281,9 +281,9 @@ static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 			if (Arg2[0])
 			{
 				if (!_stricmp(Arg2, "on"))
-					CaptionColors[index].Enabled = 1;
+					CaptionColors[index].Enabled = true;
 				else if (!_stricmp(Arg2, "off"))
-					CaptionColors[index].Enabled = 0;
+					CaptionColors[index].Enabled = false;
 				else if (CaptionColors[index].Enabled && !CaptionColors[index].ToggleOnly)
 				{
 					ARGBCOLOR NewColor;
@@ -935,13 +935,13 @@ void InitializeMQ2Spawns()
 	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	EzDetourwName(EQPlayer__EQPlayer, &EQPlayerHook::EQPlayer_Detour, &EQPlayerHook::EQPlayer_Trampoline, "EQPlayer__EQPlayer");
-	EzDetourwName(EQPlayer__dEQPlayer, &EQPlayerHook::dEQPlayer_Detour, &EQPlayerHook::dEQPlayer_Trampoline, "EQPlayer__dEQPlayer");
-	EzDetourwName(EQPlayer__SetNameSpriteState, &EQPlayerHook::SetNameSpriteState_Detour, &EQPlayerHook::SetNameSpriteState_Trampoline, "EQPlayer__SetNameSpriteState");
-	EzDetourwName(EQPlayer__SetNameSpriteTint, &EQPlayerHook::SetNameSpriteTint_Detour, &EQPlayerHook::SetNameSpriteTint_Trampoline, "EQPlayer__SetNameSpriteTint");
-	EzDetourwName(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline, "EQItemList__FreeItemList");
-	EzDetourwName(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline, "EQGroundItemListManager__add");
-	EzDetourwName(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline, "EQItemList__delete_item");
+	EzDetour(EQPlayer__EQPlayer, &EQPlayerHook::EQPlayer_Detour, &EQPlayerHook::EQPlayer_Trampoline);
+	EzDetour(EQPlayer__dEQPlayer, &EQPlayerHook::dEQPlayer_Detour, &EQPlayerHook::dEQPlayer_Trampoline);
+	EzDetour(EQPlayer__SetNameSpriteState, &EQPlayerHook::SetNameSpriteState_Detour, &EQPlayerHook::SetNameSpriteState_Trampoline);
+	EzDetour(EQPlayer__SetNameSpriteTint, &EQPlayerHook::SetNameSpriteTint_Detour, &EQPlayerHook::SetNameSpriteTint_Trampoline);
+	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
+	EzDetour(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
+	EzDetour(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
 
 	// Load Settings
 	LoadCaptionSettings();
@@ -959,9 +959,9 @@ void InitializeMQ2Spawns()
 		if (GetPrivateProfileString("Caption Colors", CaptionColors[index].szName, "", Temp, MAX_STRING, mq::internal_paths::MQini))
 		{
 			if (!_stricmp(Temp, "on") || !_stricmp(Temp, "1"))
-				CaptionColors[index].Enabled = 1;
+				CaptionColors[index].Enabled = true;
 			else
-				CaptionColors[index].Enabled = 0;
+				CaptionColors[index].Enabled = false;
 		}
 
 		sprintf_s(Name, "%s-Color", CaptionColors[index].szName);

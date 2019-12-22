@@ -563,17 +563,17 @@ void HookMemChecker(bool Patch)
 
 	if (Patch) {
 
-		EzDetourwName(EQADDR_MEMCHECK0, memcheck0, memcheck0_tramp, "EQADDR_MEMCHECK0");
-		EzDetourwName(EQADDR_MEMCHECK1, memcheck1, memcheck1_tramp, "EQADDR_MEMCHECK1");
-		EzDetourwName(EQADDR_MEMCHECK2, memcheck2, memcheck2_tramp, "EQADDR_MEMCHECK2");
-		EzDetourwName(EQADDR_MEMCHECK3, memcheck3, memcheck3_tramp, "EQADDR_MEMCHECK3");
-		EzDetourwName(EQADDR_MEMCHECK4, memcheck4, memcheck4_tramp, "EQADDR_MEMCHECK4");
+		EzDetour(EQADDR_MEMCHECK0, memcheck0, memcheck0_tramp);
+		EzDetour(EQADDR_MEMCHECK1, memcheck1, memcheck1_tramp);
+		EzDetour(EQADDR_MEMCHECK2, memcheck2, memcheck2_tramp);
+		EzDetour(EQADDR_MEMCHECK3, memcheck3, memcheck3_tramp);
+		EzDetour(EQADDR_MEMCHECK4, memcheck4, memcheck4_tramp);
 
-		EzDetourwName(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline, "CPacketScrambler__ntoh");
-		EzDetourwName(CEverQuest__Emote, &CEmoteHook::SendEmote_Detour, &CEmoteHook::SendEmote_Trampoline, "CEverQuest__Emote");
-		EzDetourwName(Spellmanager__LoadTextSpells, &Spellmanager::LoadTextSpells_Detour, &Spellmanager::LoadTextSpells_Trampoline, "Spellmanager__LoadTextSpells");
-		EzDetourwName(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline, "CDisplay__ZoneMainUI");
-		EzDetourwName(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline, "CDisplay__PreZoneMainUI");
+		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
+		EzDetour(CEverQuest__Emote, &CEmoteHook::SendEmote_Detour, &CEmoteHook::SendEmote_Trampoline);
+		EzDetour(Spellmanager__LoadTextSpells, &Spellmanager::LoadTextSpells_Detour, &Spellmanager::LoadTextSpells_Trampoline);
+		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
+		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
 
 		HookInlineChecks(Patch);
 	}
@@ -1197,73 +1197,6 @@ int memcheck4(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
-struct LaunchInfo
-{
-/*0x00*/ char*         eqgamepath;
-/*0x04*/ char*         CmdLine;
-};
-
-class SessionFolderDescription
-{
-public:
-/*0x00*/ uint32_t      TimeStamp;
-/*0x00*/ uint32_t      RootFolderId;
-};
-
-class SessionFolderLock
-{
-public:
-/*0x00*/ HANDLE        hLockFile;
-};
-
-struct EQCrash
-{
-/*0x00*/ void*         CrashCallback;
-/*0x04*/ char**        argv;
-/*0x08*/ int           argc;
-/*0x0C*/ char*         pAppName;                    // EverQuest 1 Client ( Live )
-/*0x10*/ void*         ReservedMemory;
-/*0x14*/ uint32_t      ReservedMeminMB;
-/*0x18*/ char*         SomeName;
-/*0x1c*/ uint32_t      MinidumpFlags;
-/*0x20*/ HANDLE        MinidumpThread;
-/*0x24*/ HANDLE        MinidumpThreadEvent;
-/*0x28*/ HANDLE        MinidumpAPCComplete;
-/*0x2c*/ HANDLE        MinidumpMutex;
-/*0x30*/ uint32_t      CrashedThreadId;
-/*0x34*/ uint32_t      BreakpointMode;
-/*0x38*/ uint32_t      PromptMode;
-/*0x3c*/ uint32_t      UploadTransport;
-/*0x40*/ char*         PublicKeyBase64;
-/*0x44*/ void*         PostUploadCallback;
-/*0x48*/ void*         PostUploadContext;
-/*0x4c*/ bool          bLocalFullDump;
-/*0x4d*/ bool          bContinueExecutionAfterDump;
-/*0x4e*/ bool          bInInit;
-/*0x50*/ char*         pPathToUploader;             // wws_crashreport_uploader.exe
-/*0x54*/ char*         pConnectHostName;            // recap.daybreakgames.com:15081
-/*0x58*/ char*         pRecapSessionName;
-/*0x5c*/ char*         pProductVersion;             // 87717
-/*0x60*/ uint32_t      LogLevel;
-/*0x64*/ void*         LogFunc;
-/*0x68*/ void*         LogContext;
-/*0x6c*/ SessionFolderDescription SessionFolderDesc;
-/*0x74*/ SessionFolderLock SFLock;
-/*0x78*/ bool          bNoUploaderUi;
-/*0x79*/ bool          bRequestCallstack;
-/*0x7a*/ bool          bCoreDumpInProgress;
-/*0x7b*/ uint8_t       NoExceptionHandler;
-/*0x7c*/ bool          bDisplaySessionURL;
-/*0x7d*/ bool          bUploadSupplemental;
-/*0x80*/
-};
-
-struct CrashReport
-{
-/*0x00*/ uint8_t       Unknown0x000[0x24];
-/*0x24*/ char*         sessionpath;
-};
-
 // you can customize the crash dialog message here if this doesn't suit you.
 // these args needs to be allocated properly if u call this func, but you shouldnt...
 // just know that you can customize it for now as long as u keep the string lenghts < MAX_STRING
@@ -1327,15 +1260,11 @@ void InitializeMQ2Detours()
 {
 	HookMemChecker(true);
 
-	// this is handled by mq2ic from now on
-	//EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
-	//EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
-
 	DWORD GetProcAddress_Addr = (DWORD)GetProcAddress(GetModuleHandle("kernel32.dll"), "GetProcAddress");
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 
 #ifndef TESTMEM
-	EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline, "__LoadFrontEnd");
+	EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
 #endif // !TESTMEM
 }
 
@@ -1346,9 +1275,6 @@ void ShutdownMQ2Detours()
 #endif // !TESTMEM
 	HookMemChecker(false);
 	RemoveDetours();
-
-	//RemoveDetour(CrashDetected);
-	//RemoveDetour(wwsCrashReportCheckForUploader);
 }
 
 //============================================================================

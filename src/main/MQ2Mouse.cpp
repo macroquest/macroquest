@@ -83,7 +83,7 @@ void MQ2MouseHooks(bool bFlag)
 {
 	if (bFlag)
 	{
-		EzDetourwName(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp, "CDisplay__GetClickedActor");
+		EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
 	}
 	else {
 		RemoveDetour(CDisplay__GetClickedActor);

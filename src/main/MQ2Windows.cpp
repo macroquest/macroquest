@@ -1344,37 +1344,34 @@ void InitializeMQ2Windows()
 	AddSlotArray(inspect, 31, 8000);
 #undef AddSlotArray
 
-	EzDetourwName(CBankWnd__WndNotification,
+	EzDetour(CBankWnd__WndNotification,
 		&CSidlInitHook::CBankWnd__WndNotification_Detour,
-		&CSidlInitHook::CBankWnd__WndNotification_Tramp, "CBankWnd__WndNotification");
-	EzDetourwName(CFindItemWnd__WndNotification,
+		&CSidlInitHook::CBankWnd__WndNotification_Tramp);
+	EzDetour(CFindItemWnd__WndNotification,
 		&CSidlInitHook::CFindItemWnd__WndNotification_Detour,
-		&CSidlInitHook::CFindItemWnd__WndNotification_Tramp, "CFindItemWnd__WndNotification");
-	EzDetourwName(CFindItemWnd__Update,
+		&CSidlInitHook::CFindItemWnd__WndNotification_Tramp);
+	EzDetour(CFindItemWnd__Update,
 		&CSidlInitHook::CFindItemWnd__Update_Detour,
-		&CSidlInitHook::CFindItemWnd__Update_Tramp, "CFindItemWnd__Update");
-	EzDetourwName(CXMLSOMDocumentBase__XMLRead,
+		&CSidlInitHook::CFindItemWnd__Update_Tramp);
+	EzDetour(CXMLSOMDocumentBase__XMLRead,
 		&CXMLSOMDocumentBaseHook::XMLRead,
-		&CXMLSOMDocumentBaseHook::XMLRead_Trampoline, "CXMLSOMDocumentBase__XMLRead");
-	EzDetourwName(CSidlScreenWnd__Init1,
+		&CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
+	EzDetour(CSidlScreenWnd__Init1,
 		&CSidlInitHook::Init_Detour,
-		&CSidlInitHook::Init_Trampoline, "CSidlScreenWnd__Init1");
-	EzDetourwName(CTargetWnd__WndNotification,
+		&CSidlInitHook::Init_Trampoline);
+	EzDetour(CTargetWnd__WndNotification,
 		&CSidlInitHook::CTargetWnd__WndNotification_Detour,
-		&CSidlInitHook::CTargetWnd__WndNotification_Tramp, "CTargetWnd__WndNotification");
-	EzDetourwName(CXWndManager__RemoveWnd,
+		&CSidlInitHook::CTargetWnd__WndNotification_Tramp);
+	EzDetour(CXWndManager__RemoveWnd,
 		&CXWndManagerHook::RemoveWnd_Detour,
-		&CXWndManagerHook::RemoveWnd_Trampoline, "CXWndManager__RemoveWnd");
-	EzDetourwName(CMemoryMappedFile__SetFile,
+		&CXWndManagerHook::RemoveWnd_Trampoline);
+	EzDetour(CMemoryMappedFile__SetFile,
 		&CMemoryMappedFile::SetFile_Detour,
-		&CMemoryMappedFile::SetFile_Trampoline, "CMemoryMappedFile__SetFile");
-	EzDetourwName(__DoesFileExist,
+		&CMemoryMappedFile::SetFile_Trampoline);
+	EzDetour(__DoesFileExist,
 		&DoesFileExist,
-		&DoesFileExist_Trampoline, "__DoesFileExist");
+		&DoesFileExist_Trampoline);
 
-	// debugging
-	// just remember this might be detoured in other plugins as well
-	//EzDetourwName(CChatWindow__WndNotification,&CSidlInitHook::CSidlScreenWnd__WndNotification_Detour,&CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp,"linktest");
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
 	AddCommand("/itemnotify", ItemNotify);
@@ -1438,16 +1435,12 @@ void ShutdownMQ2Windows()
 	RemoveDetour(CXWndManager__RemoveWnd);
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
-
-	// for testing notifications, only for debugging
-	// dont leave active for release
-	//RemoveDetour(CChatWindow__WndNotification);
 }
 
 bool GenerateMQUI()
 {
 	// create EverQuest\uifiles\default\MQUI.xml
-	PCHARINFO pCharInfo = GetCharInfo();
+	CHARINFO* pCharInfo = GetCharInfo();
 	char szFilename[MAX_PATH] = { 0 };
 	char szOrgFilename[MAX_PATH] = { 0 };
 	char UISkin[256] = { 0 };

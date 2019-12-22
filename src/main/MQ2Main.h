@@ -63,10 +63,6 @@ using namespace eqlib;
 #define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline, STRINGIFY(offset))
 #define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
 
-#ifndef THIS_
-#define THIS_                   INTERFACE FAR* This,
-#endif
-
 #ifdef DEBUG_TRY
 #define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
 #else
