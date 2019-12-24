@@ -40,6 +40,15 @@
 	</Type>
 
 	<Type Name="eqlib::CXWnd">
-		
+	</Type>
+
+	<Type Name="eqlib::ArrayClass&lt;*&gt;">
+		<DisplayString>{{Size={m_length} Capacity={m_alloc}}}</DisplayString>
+		<Expand>
+			<ArrayItems>
+				<Size>m_length</Size>
+				<ValuePointer>m_array</ValuePointer>
+			</ArrayItems>
+		</Expand>
 	</Type>
 </AutoVisualizer>

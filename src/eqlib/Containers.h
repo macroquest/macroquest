@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "Allocator.h"
 #include "Common.h"
 
 #include <cstdint>
@@ -185,8 +186,9 @@ public:
 	void Reset()
 	{
 		for (int i = 0; i < m_binCount; ++i)
-			delete[] m_array[i];
-		delete[] m_array;
+			eqVecDelete(m_array[i]);
+
+		eqVecDelete(m_array);
 		m_array = nullptr;
 		m_binCount = 0;
 		m_length = 0;
@@ -257,18 +259,18 @@ private:
 
 			if (newBinCount > m_binCount)
 			{
-				T** newArray = new T*[newBinCount];
+				T** newArray = eqNew<T*[]>(newBinCount);
 				if (newArray)
 				{
 					for (int i = 0; i < m_binCount; ++i)
 						newArray[i] = m_array[i];
 					for (int curBin = m_binCount; curBin < newBinCount; ++curBin)
 					{
-						T* newBin = new T[m_maxPerBin];
+						T* newBin = eqNew<T[]>(m_maxPerBin);
 						newArray[curBin] = newBin;
 					}
 
-					delete[] m_array;
+					eqVecDelete(m_array);
 					m_array = newArray;
 					m_binCount = newBinCount;
 				}
@@ -328,18 +330,22 @@ public:
 
 	ArrayClass(int reserve) : ArrayClass()
 	{
-		m_array = new T[reserve];
+		m_array = eqNew<T[]>(reserve);
 		m_alloc = reserve;
 	}
 
 	ArrayClass(const ArrayClass& rhs) : ArrayClass()
 	{
-		if (rhs.m_length) {
+		if (rhs.m_length)
+		{
 			AssureExact(rhs.m_length);
-			if (m_array) {
+
+			if (m_array)
+			{
 				for (int i = 0; i < rhs.m_length; ++i)
 					m_array[i] = rhs.m_array[i];
 			}
+
 			m_length = rhs.m_length;
 		}
 	}
@@ -353,23 +359,32 @@ public:
 	{
 		if (this == &rhs)
 			return *this;
+
 		Reset();
-		if (rhs.m_length) {
+
+		if (rhs.m_length)
+		{
 			AssureExact(rhs.m_length);
-			if (m_array) {
+
+			if (m_array)
+			{
 				for (int i = 0; i < rhs.m_length; ++i)
 					m_array[i] = rhs.m_array[i];
 			}
+
 			m_length = rhs.m_length;
 		}
+
 		return *this;
 	}
 
 	void Reset()
 	{
-		if (m_array) {
-			delete[] m_array;
+		if (m_array)
+		{
+			eqVecDelete(m_array);
 		}
+
 		m_array = nullptr;
 		m_alloc = 0;
 		m_length = 0;
@@ -382,14 +397,20 @@ public:
 
 	void SetElementIdx(int index, const T& element)
 	{
-		if (index >= 0) {
-			if (index >= m_length) {
+		if (index >= 0)
+		{
+			if (index >= m_length)
+			{
 				Assure(index + 1);
-				if (m_array) {
+
+				if (m_array)
+				{
 					m_length = index + 1;
 				}
 			}
-			if (m_array) {
+
+			if (m_array)
+			{
 				m_array[index] = element;
 			}
 		}
@@ -397,16 +418,23 @@ public:
 
 	void InsertElement(int index, const T& element)
 	{
-		if (index >= 0) {
-			if (index < m_length) {
+		if (index >= 0)
+		{
+			if (index < m_length)
+			{
 				Assure(m_length + 1);
-				if (m_array) {
+
+				if (m_array)
+				{
 					for (int idx = m_length; idx > index; --idx)
 						m_array[idx] = m_array[idx - 1];
+
 					m_array[index] = element;
 					m_length++;
 				}
-			} else {
+			}
+			else
+			{
 				SetElementIdx(index, element);
 			}
 		}
@@ -414,9 +442,11 @@ public:
 
 	void DeleteElement(int index)
 	{
-		if (index >= 0 && index < m_length && m_array) {
+		if (index >= 0 && index < m_length && m_array)
+		{
 			for (; index < m_length - 1; ++index)
 				m_array[index] = m_array[index + 1];
+
 			m_length--;
 		}
 	}
@@ -441,21 +471,27 @@ private:
 	// optimization aimed at reducing the number of allocations that occur.
 	void Assure(int requestedSize)
 	{
-		if (requestedSize && (requestedSize > m_alloc || !m_array)) {
+		if (requestedSize && (requestedSize > m_alloc || !m_array))
+		{
 			int allocatedSize = (requestedSize + 4) << 1;
-			T* newArray = new T[allocatedSize];
-			if (!newArray) {
-				delete[] m_array;
+			T* newArray = eqNew<T[]>(allocatedSize);
+
+			if (!newArray)
+			{
+				eqVecDelete(m_array);
 				m_array = nullptr;
 				m_alloc = 0;
 				m_isValid = false;
 				throw CExceptionMemoryAllocation{ allocatedSize };
 			}
-			if (m_array) {
+
+			if (m_array)
+			{
 				for (int i = 0; i < m_length; ++i)
 					newArray[i] = m_array[i];
-				delete[] m_array;
+				eqVecDelete(m_array);
 			}
+
 			m_array = newArray;
 			m_alloc = allocatedSize;
 		}
@@ -465,20 +501,25 @@ private:
 	// is exactly how much is requested.
 	void AssureExact(int requestedSize)
 	{
-		if (requestedSize && (requestedSize > m_alloc || !m_array)) {
-			T* newArray = new T[requestedSize];
-			if (!newArray) {
-				delete[] m_array;
+		if (requestedSize && (requestedSize > m_alloc || !m_array))
+		{
+			T* newArray = eqNew<T[]>(allocatedSize);
+			if (!newArray)
+			{
+				eqVecDelete(m_array);
 				m_array = nullptr;
 				m_alloc = 0;
 				m_isValid = false;
 				throw CExceptionMemoryAllocation(requestedSize);
 			}
-			if (m_array) {
+
+			if (m_array)
+			{
 				for (int i = 0; i < m_length; ++i)
 					newArray[i] = m_array[i];
-				delete[] m_array;
+				eqVecDelete(m_array);
 			}
+
 			m_array = newArray;
 			m_alloc = requestedSize;
 		}
@@ -572,24 +613,27 @@ void HashTable<T, Key, ResizePolicy>::Resize(int hashSize)
 	HashEntry** oldTable = Table;
 	int oldSize = TableSize;
 	TableSize = NextPrime(hashSize);
+
 	if (TableSize != oldSize)
 	{
-		Table = new HashEntry*[TableSize];
+		Table = eqNew<HashEntry*[]>(TableSize);
 		memset(Table, 0, sizeof(HashEntry*) * TableSize);
 		StatUsedSlots = 0;
+
 		if (EntryCount > 0)
 		{
 			for (int i = 0; i < oldSize; i++)
 			{
 				HashEntry* next = oldTable[i];
-				while (next != NULL)
+				while (next != nullptr)
 				{
 					HashEntry* hold = next;
 					next = next->NextEntry;
 					int spot = HashValue<Key>(hold->Key) % TableSize;
-					if (Table[spot] == NULL)
+
+					if (Table[spot] == nullptr)
 					{
-						hold->NextEntry = NULL;
+						hold->NextEntry = nullptr;
 						Table[spot] = hold;
 						StatUsedSlots++;
 					}
@@ -601,7 +645,8 @@ void HashTable<T, Key, ResizePolicy>::Resize(int hashSize)
 				}
 			}
 		}
-		delete[] oldTable;
+
+		eqVecDelete(oldTable);
 	}
 }
 
@@ -611,10 +656,10 @@ T* HashTable<T, Key, ResizePolicy>::WalkFirst() const
 	for (int i = 0; i < TableSize; i++)
 	{
 		HashEntry *entry = Table[i];
-		if (entry != NULL)
+		if (entry != nullptr)
 			return(&entry->Obj);
 	}
-	return NULL;
+	return nullptr;
 }
 
 template <typename T, typename Key, typename ResizePolicy>
@@ -734,61 +779,215 @@ template <uint32_t _Len>
 class TSafeString : public TString<_Len>
 {};
 
-class VePointerBase
+//----------------------------------------------------------------------------
+
+class VeBaseReferenceCount
 {
 public:
-	intptr_t Address;
+	EQLIB_OBJECT void IncrementRefCount()
+	{
+		_InterlockedIncrement((volatile long*)&ReferenceCount);
+	}
+
+	EQLIB_OBJECT void DecrementRefCount()
+	{
+		if (_InterlockedDecrement((volatile long*)&ReferenceCount) == 0)
+		{
+			eqDelete(this);
+		}
+	}
+
+	EQLIB_OBJECT int GetReferenceCount() const { return ReferenceCount; }
+
+	virtual uint32_t getUnknown() { return 8; }
+
+protected:
+	VeBaseReferenceCount() = default;
+	VeBaseReferenceCount(const VeBaseReferenceCount& other) {}
+	virtual ~VeBaseReferenceCount() {}
+
+private:
+	mutable int        ReferenceCount = 0;
 };
 
-template <class T>
-class VePointer// : public VePointerBase
+// This class implements an intrusive pointer, where T is a class that inherits from
+// VeBaseReferenceCount, which implements the reference counting.
+template <typename T>
+class VePointer
 {
 public:
-	VePointer();
-	~VePointer();
+	VePointer() = default;
 
-	T* pObject;
+	VePointer(nullptr_t) {}
+
+	explicit VePointer(T* init)
+	{
+		m_pObject = init;
+
+		if (m_pObject)
+		{
+			static_cast<VeBaseReferenceCount*>(m_pObject)->IncrementRefCount();
+		}
+	}
+
+	VePointer(const VePointer& other)
+	{
+		m_pObject = other.m_pObject;
+
+		if (m_pObject)
+		{
+			static_cast<VeBaseReferenceCount*>(m_pObject)->IncrementRefCount();
+		}
+	}
+
+	~VePointer()
+	{
+		if (m_pObject)
+		{
+			static_cast<VeBaseReferenceCount*>(m_pObject)->DecrementRefCount();
+		}
+	}
+
+	VePointer& operator=(const VePointer& other)
+	{
+		if (m_pObject != other.m_pObject)
+		{
+			if (other.m_pObject)
+			{
+				static_cast<VeBaseReferenceCount*>(other.m_pObject)->IncrementRefCount();
+			}
+
+			if (m_pObject)
+			{
+				static_cast<VeBaseReferenceCount*>(m_pObject)->DecrementRefCount();
+			}
+
+			m_pObject = other.m_pObject;
+		}
+
+		return *this;
+	}
+
+	template <typename U>
+	VePointer(const VePointer<U>& other)
+		: m_pObject(other.m_pObject)
+	{
+		if (m_pObject)
+		{
+			static_cast<VeBaseReferenceCount*>(m_pObject)->IncrementRefCount();
+		}
+	}
+
+	VePointer& operator=(T* pOther)
+	{
+		if (m_pObject != pOther)
+		{
+			if (pOther)
+			{
+				static_cast<VeBaseReferenceCount*>(other.m_pObject)->IncrementRefCount();
+			}
+
+			if (m_pObject)
+			{
+				static_cast<VeBaseReferenceCount*>(m_pObject)->DecrementRefCount();
+			}
+
+			m_pObject = pOther;
+		}
+
+		return *this;
+	}
+
+	VePointer& operator=(nullptr_t)
+	{
+		if (m_pObject)
+		{
+			static_cast<VeBaseReferenceCount*>(m_pObject)->DecrementRefCount();
+		}
+
+		m_pObject = nullptr;
+
+		return *this;
+	}
+
+	template <typename U>
+	VePointer& operator=(const VePointer<U>& other)
+	{
+		VePointer temp(other);
+		std::swap(temp.m_pObject, m_pObject);
+		return *this;
+	}
+
+	T& operator*() const
+	{
+		return *m_pObject;
+	}
+
+	T* operator->() const
+	{
+		return m_pObject;
+	}
+
+	explicit operator bool() const { return m_pObject != nullptr; }
+
+	inline bool operator<(const VePointer& other) const
+	{
+		return m_pObject < other.m_pObject;
+	}
+
+	inline bool operator<(const T* other) const
+	{
+		return m_pObject < other;
+	}
+
+	inline void reset()
+	{
+		if (m_pObject)
+		{
+			static_cast<VeBaseReferenceCount*>(m_pObject)->DecrementRefCount();
+		}
+
+		m_pObject = nullptr;
+	}
+
+	[[nodiscard]] T* get() const { return m_pObject; }
+
+	// Access the object through the get() function.
+	__declspec(property(get = get)) T* pObject;
+
+private:
+	T* m_pObject = nullptr;
 };
 
-template <class T>
-VePointer<T>::VePointer()
-{
-	//absolutely not do this here
-	//pObject = new T;
-	pObject = 0;
-}
-
-template <class T>
-VePointer<T>::~VePointer()
-{
-	//absolutely not do this here
-	//delete pObject;
-}
-
+// A vector-like array container
 template <typename T>
 class VeArray
 {
 public:
-	T& operator[](uint32_t);
-	const T& operator[](uint32_t) const;
+	VeArray() = default;
 
-/*0x00*/ T* Begin;
-/*0x04*/ uint32_t Size;
-/*0x08*/ uint32_t Capacity;
+	T& operator[](uint32_t i)
+	{
+		return m_data[i];
+	}
+
+	const T& operator[](uint32_t i) const
+	{
+		return m_data[i];
+	}
+
+	ALT_MEMBER_GETTER(T*, m_data, Begin);
+	ALT_MEMBER_GETTER(uint32_t, m_size, Size);
+	ALT_MEMBER_GETTER(uint32_t, m_capacity, Capacity);
+
+private:
+/*0x00*/ T*       m_data;
+/*0x04*/ uint32_t m_size;
+/*0x08*/ uint32_t m_capacity;
 /*0x0c*/
 };
 
-template <typename T>
-const T& VeArray<T>::operator[](uint32_t i) const
-{
-	return Begin[i];
-}
-
-template <typename T>
-T& VeArray<T>::operator[](uint32_t i)
-{
-	return Begin[i];
-}
+//----------------------------------------------------------------------------
 
 // LinkedLists
 template <class T>
@@ -1076,17 +1275,6 @@ public:
 	// private
 	EQLIB_OBJECT int KeyToBin(CXStr const&) const;
 };
-
-
-class VeBaseReferenceCount
-{
-public:
-	/*0x00*/ EQLIB_OBJECT virtual UINT GetMemUsage() const;
-	/*0x04*/ EQLIB_OBJECT virtual ~VeBaseReferenceCount();
-
-	/*0x04*/ int References;
-};
-
 
 //----------------------------------------------------------------------------
 

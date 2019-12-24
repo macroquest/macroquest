@@ -11283,7 +11283,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 					GroundObject.GroundItem.DropSubID = Placed->RealEstateID;
 					GroundObject.GroundItem.Expires = 0;
 					GroundObject.GroundItem.Heading = Placed->Heading;
-					GroundObject.GroundItem.ID.pObject = nullptr;
+					GroundObject.GroundItem.ID = nullptr;
 					strcpy_s(GroundObject.GroundItem.Name, Placed->Name);
 					GroundObject.GroundItem.Pitch = Placed->Angle;
 					GroundObject.GroundItem.pNext = nullptr;
@@ -12812,7 +12812,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 		{
 			if (pMerchantWnd)
 			{
-				auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject;
+				VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 
 				if (IsNumber(Index))
 				{
@@ -12879,7 +12879,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 
 		if (pMerchantWnd)
 		{
-			auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject;
+			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 			Dest.DWord = 1;
 
 			// is it possible to hit this? max is 200 i think?
