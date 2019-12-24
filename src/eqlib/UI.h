@@ -5541,7 +5541,7 @@ public:
 /*0x1d4*/
 };
 
-class CSidlManager : public CSidlManagerBase
+class [[offsetcomments]] CSidlManager : public CSidlManagerBase
 {
 	FORCE_SYMBOLS
 
@@ -5570,6 +5570,143 @@ public:
 
 using CSIDLMGR [[deprecated]] = CSidlManager;
 using PCSIDLMGR [[deprecated]] = CSidlManager*;
+
+//----------------------------------------------------------------------------
+
+class CascadeItemCommand;
+
+// this is a base class for the cascade menu items defined in CascadeMenu.txt
+class CascadeItemBase
+{
+public:
+	enum Type
+	{
+		eTypeSubMenu = 0,
+		eTypeCommand = 1,
+		eTypeSeparator = 2,
+	};
+
+	CascadeItemBase(Type type)
+		: m_type(type)
+	{}
+
+	virtual ~CascadeItemBase() {}
+
+	Type GetType() const { return m_type; }
+	bool IsChanged() const { return m_changed; }
+
+	virtual CascadeItemCommand* GetAsCommand() { return nullptr; }
+
+protected:
+	Type m_type;
+	bool m_changed = true;
+};
+
+using CascadeItemArray = ArrayClass<CascadeItemBase*>;
+
+// separator menu item (type 3 in CascadeMenu.txt)
+class CascadeItemSeparator : public CascadeItemBase
+{
+public:
+	CascadeItemSeparator() : CascadeItemBase(eTypeSeparator) {}
+};
+
+// a menu item that spawns another menu item
+class CascadeItemSubMenu : public CascadeItemBase
+{
+public:
+	CascadeItemSubMenu() : CascadeItemBase(eTypeSubMenu) {}
+
+	virtual ~CascadeItemSubMenu()
+	{
+		int count = m_items ? m_items->GetCount() : 0;
+		for (int i = 0; i < count; ++i)
+		{
+			delete m_items->GetElementIdx(i);
+		}
+		m_items->Reset();
+	}
+
+	CascadeItemArray* GetItems() { return m_items; }
+
+	CascadeItemArray* SetItems(CascadeItemArray* items)
+	{
+		m_changed = true;
+		return std::exchange(m_items, items);
+	}
+
+	CascadeItemBase* GetItem(int index)
+	{
+		if (m_items)
+		{
+			return m_items->GetElementIdx(index);
+		}
+
+		return nullptr;
+	}
+
+	int GetIcon() const { return m_icon; }
+	void SetIcon(int icon) { m_icon = icon; m_changed = true; }
+
+	const CXStr& GetText() const { return m_text; }
+	void SetText(const CXStr& text) { m_text = text; m_changed = true; }
+
+protected:
+	int m_icon = -1;
+	CXStr m_text;
+	CascadeItemArray* m_items = nullptr;
+};
+
+// base class for items that execute a command of some kind when clicked
+class CascadeItemCommandBase : public CascadeItemBase
+{
+public:
+	CascadeItemCommandBase() : CascadeItemBase(CascadeItemBase::eTypeCommand) {}
+
+	int GetIcon() const { return m_icon; }
+	void SetIcon(int icon) { m_icon = icon; m_changed = true; }
+
+	const CXStr& GetText() const { return m_text; }
+	void SetText(const CXStr& text) { m_text = text; m_changed = true; }
+
+	virtual void ExecuteCommand() = 0;
+	virtual CXStr GetTooltip() const = 0;
+
+protected:
+	int m_icon = -1;
+	CXStr m_text;
+};
+
+// A menu item that executes a command
+class CascadeItemCommand : public CascadeItemCommandBase
+{
+public:
+	CascadeItemCommand(int icon, const char* text, int command);
+
+	virtual void ExecuteCommand() override;
+	virtual CXStr GetTooltip() const override { return m_text; }
+
+private:
+	int m_command = -1;
+};
+
+//----------------------------------------------------------------------------
+
+// This is the frame the holds the EQ and store buttons
+class [[offsetcomments]] CEQMainWnd : public CSidlScreenWnd
+{
+public:
+	CEQMainWnd(CXWnd* pParent);
+	virtual ~CEQMainWnd();
+
+	virtual void UpdateCascadeMenuItems() {}
+
+/*0x228*/ CButtonWnd*       EQButtonWnd;
+/*0x22c*/ CButtonWnd*       SCButtonWnd;
+/*0x230*/ CButtonWnd*       FlashSaleButtonWnd;
+/*0x234*/ CascadeItemArray* CascadeMenuItems;
+/*0x238*/ int               MenuId;
+/*0x23c*/ };
 
 //----------------------------------------------------------------------------
 

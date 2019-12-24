@@ -206,7 +206,6 @@ INITIALIZE_EQGAME_OFFSET(pinstCCharacterListWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
 INITIALIZE_EQGAME_OFFSET(pinstCFactionWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCExtendedTargetWnd);
-
 INITIALIZE_EQGAME_OFFSET(pinstCFindItemWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCNoteWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCBookWnd);
@@ -328,12 +327,10 @@ INITIALIZE_EQGAME_OFFSET(__CastRay2);
 INITIALIZE_EQGAME_OFFSET(__HeadingDiff);
 INITIALIZE_EQGAME_OFFSET(__FixHeading);
 INITIALIZE_EQGAME_OFFSET(__get_bearing);
-
 INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);
 INITIALIZE_EQGAME_OFFSET(__CleanItemTags);
-
+INITIALIZE_EQGAME_OFFSET(__CreateCascadeMenuItems);
 INITIALIZE_EQGAME_OFFSET(__ExecuteCmd);
-
 INITIALIZE_EQGAME_OFFSET(__EQGetTime);
 INITIALIZE_EQGAME_OFFSET(__FlushDxKeyboard);
 INITIALIZE_EQGAME_OFFSET(__get_melee_range);
@@ -999,6 +996,7 @@ INITIALIZE_EQGAME_OFFSET(CDistillerInfo__Instance);
 INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
 INITIALIZE_EQGAME_OFFSET(CGroupWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CGroupWnd__UpdateDisplay);
+INITIALIZE_EQGAME_OFFSET(KeyCombo__GetTextDescription);
 
 // Offset Initialization
 DWORD EQADDR_HWND = 0;
@@ -1188,6 +1186,7 @@ CConfirmationDialog** ppConfirmationDialog = nullptr;
 CEQSuiteTextureLoader* ppEQSuiteTextureLoader = nullptr;
 PointMerchantWnd** ppPointMerchantWnd = nullptr;
 CZoneGuideWnd** ppCZoneGuideWnd = nullptr;
+CEQMainWnd** ppEQMainWnd = nullptr;
 
 CSidlManager** ppSidlMgr = nullptr;
 CXWndManager** ppWndMgr = nullptr;
@@ -1469,6 +1468,7 @@ void InitializeGlobals()
 	ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
 	ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
 	ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
+	ppEQMainWnd = (CEQMainWnd**)pinstCEQMainWnd;
 }
 
 KeypressHandler* GetKeyPresshandler()

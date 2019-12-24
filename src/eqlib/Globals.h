@@ -345,6 +345,7 @@ EQLIB_VAR DWORD __CastRay;
 EQLIB_VAR DWORD __CastRay2;
 EQLIB_VAR DWORD __ConvertItemTags;
 EQLIB_VAR DWORD __CleanItemTags;
+EQLIB_VAR DWORD __CreateCascadeMenuItems;
 EQLIB_VAR DWORD __DoesFileExist;
 EQLIB_VAR DWORD __EQGetTime;
 EQLIB_VAR DWORD __ExecuteCmd;
@@ -1031,6 +1032,7 @@ EQLIB_VAR DWORD CCursorAttachment__AttachToCursor1;
 EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
+EQLIB_VAR DWORD KeyCombo__GetTextDescription;
 
 //----------------------------------------------------------------------------
 // Global data
@@ -1256,6 +1258,8 @@ EQLIB_VAR CRewardSelectionWnd** ppRewardSelectionWnd;
 EQLIB_VAR CEQSuiteTextureLoader* ppEQSuiteTextureLoader;
 EQLIB_VAR PointMerchantWnd** ppPointMerchantWnd;
 EQLIB_VAR CZoneGuideWnd** ppCZoneGuideWnd;
+EQLIB_VAR CEQMainWnd** ppEQMainWnd;
+#define pEQMainWnd (*ppEQMainWnd)
 
 using fEQNewUIINI            = char* (*)();
 EQLIB_VAR fEQNewUIINI          NewUIINI;

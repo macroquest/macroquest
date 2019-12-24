@@ -2970,6 +2970,30 @@ FUNCTION_AT_ADDRESS(CXWnd* CSidlManager::CreateHotButtonWnd(CXWnd* pwndParent, C
 #endif
 
 //============================================================================
+// CascadeItemBase and friends
+//============================================================================
+
+CascadeItemCommand::CascadeItemCommand(int icon, const char* text, int command)
+{
+	m_icon = icon;
+	m_text = text;
+	m_command = command;
+
+	// Get KeyCombo for the command
+	if (command >= 0 && command < nEQMappableCommands)
+	{
+		const KeyCombo combo = pKeypressHandler->NormalKey[command];
+
+		m_text = CXStr{ text } +" <" + combo.GetTextDescription() + ">";
+	}
+}
+
+void CascadeItemCommand::ExecuteCommand()
+{
+	EQExecuteCmd(m_command, true, nullptr, nullptr);
+}
+
+//============================================================================
 
 //----------------------------------------------------------------------------
 

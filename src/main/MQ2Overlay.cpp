@@ -1011,6 +1011,71 @@ LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return WndProc_Trampoline(hWnd, msg, wParam, lParam);
 }
 
+class CascadeItemKeyBind : public CascadeItemCommandBase
+{
+public:
+	CascadeItemKeyBind(int icon, const char* text, const char* keybind)
+	{
+		m_icon = icon;
+		m_text = text;
+		m_keyBind = keybind;
+
+		KeyCombo combo;
+		if (GetMQ2KeyBind(keybind, false, combo) && !combo.IsEmpty())
+		{
+			m_text = m_text + " <" + combo.GetTextDescription() + ">";
+		}
+	}
+
+	~CascadeItemKeyBind()
+	{
+
+	}
+
+	void ExecuteCommand() override
+	{
+		PressMQ2KeyBind(m_keyBind, false);
+	}
+
+	CXStr GetTooltip() const override { return m_text; }
+
+private:
+	const char* m_keyBind;
+};
+
+DETOUR_TRAMPOLINE_EMPTY(CascadeItemArray* CreateCascadeMenuItems_Trampoline());
+CascadeItemArray* CreateCascadeMenuItems_Detour()
+{
+	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
+
+	CascadeItemBase* item = eqNew<CascadeItemKeyBind>(1, "MacroQuest2 Debug UI", "TOGGLE_DEBUG_UI");
+
+	// Prepend our MQ2 Menu Item to the cascade menu.
+	array->InsertElement(0, item);
+
+	return array;
+}
+
+void InstallCascadeMenuItems()
+{
+	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
+
+	if (pEQMainWnd)
+	{
+		pEQMainWnd->UpdateCascadeMenuItems();
+	}
+}
+
+void RemoveCascadeMenuItems()
+{
+	RemoveDetour(__CreateCascadeMenuItems);
+
+	if (pEQMainWnd)
+	{
+		pEQMainWnd->UpdateCascadeMenuItems();
+	}
+}
+
 static bool InstallD3D9Hooks()
 {
 	bool success = false;
@@ -1127,6 +1192,14 @@ static eOverlayHookStatus InitializeHooks()
 	return !gpD3D9Device ? eOverlayHookStatus::MissingDevice : eOverlayHookStatus::Success;
 }
 
+static void DoToggleDebugUI(const char* name, bool down)
+{
+	if (down)
+	{
+		imgui::g_bRenderImGui = !imgui::g_bRenderImGui;
+	}
+}
+
 void InitializeMQ2Overlay()
 {
 	auto status = InitializeHooks();
@@ -1139,6 +1212,10 @@ void InitializeMQ2Overlay()
 	}
 
 	imgui::InitializeImGui(gpD3D9Device);
+
+	AddMQ2KeyBind("TOGGLE_DEBUG_UI", DoToggleDebugUI);
+
+	InstallCascadeMenuItems();
 }
 
 void ShutdownMQ2Overlay()
@@ -1147,6 +1224,10 @@ void ShutdownMQ2Overlay()
 		return;
 
 	RemoveDetours();
+
+	RemoveCascadeMenuItems();
+
+	RemoveMQ2KeyBind("TOGGLE_DEBUG_UI");
 
 	gbHooksInstalled = false;
 	gHooks.clear();

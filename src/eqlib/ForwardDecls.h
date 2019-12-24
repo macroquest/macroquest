@@ -76,6 +76,7 @@ class CEditBaseWnd;
 class CEditboxTemplate;
 class CEditLabelWnd;
 class CEditWnd;
+class CEQMainWnd;
 class CEQSuiteTextureLoader;
 class CEverQuest;
 class CExploreModeWnd;

@@ -351,6 +351,7 @@
 #define __CastRay2_x                                               0x5B2910
 #define __ConvertItemTags_x                                        0x5CE470
 #define __CleanItemTags_x                                          0x47D080
+#define __CreateCascadeMenuItems_x                                 0x553280
 #define __DoesFileExist_x                                          0x908710
 #define __EQGetTime_x                                              0x905150
 #define __ExecuteCmd_x                                             0x5AB0D0
@@ -1227,3 +1228,6 @@
 
 // EverQuestinfo
 #define EverQuestinfo__IsItemPending_x                             0xF66160
+
+// KeyCombo
+#define KeyCombo__GetTextDescription_x                             0x91BEA0

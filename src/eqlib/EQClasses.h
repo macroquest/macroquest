@@ -2068,6 +2068,11 @@ public:
 	EQLIB_OBJECT operator int() const;
 	EQLIB_OBJECT bool GetPrintableLetter(unsigned short*) const;
 
+	inline bool IsEmpty()
+	{
+		return Data[0] == 0 && Data[1] == 0 && Data[2] == 0 && Data[3] == 0;
+	}
+
 	// private
 	EQLIB_OBJECT bool GetPrintableLetterFromScanCode(unsigned char, bool, bool, unsigned short*) const;
 	EQLIB_OBJECT bool GetPrintableLetterFromVirtualKey(unsigned int, unsigned int, bool, bool, unsigned short*) const;
