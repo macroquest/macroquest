@@ -309,7 +309,7 @@ void CXStr::FreeRepNoLock(CStrRep* rep)
 		++i;
 	}
 
-	eqlib::eqFree(rep);
+	eqDelete(rep);
 }
 
 int CXStr::Compare(const CXStr& other, ECompareMode mode /*= CaseSensitive*/) const

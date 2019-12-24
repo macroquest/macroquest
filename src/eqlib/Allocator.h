@@ -71,4 +71,95 @@ bool operator!=(const everquest_allocator<T>&, const everquest_allocator<T>&) no
 	return false;
 }
 
+// tag type used to enable the eq allocator overloads of operator new/delete
+// example:
+// int Foo = new(eqAllocator) int;
+constexpr struct EqAllocate {} eqAllocator;
+
 } // namespace eqlib
+
+inline void* operator new (size_t bytes, eqlib::EqAllocate)
+{
+	return eqlib::eqAlloc(bytes);
+}
+
+inline void* operator new[](size_t bytes, eqlib::EqAllocate)
+{
+	return eqlib::eqAlloc(bytes);
+}
+
+inline void operator delete(void* m, eqlib::EqAllocate)
+{
+	eqlib::eqFree(m);
+}
+
+inline void operator delete[](void* m, eqlib::EqAllocate)
+{
+	eqlib::eqFree(m);
+}
+
+namespace eqlib {
+
+template <class T>
+struct DeleterT : public T
+{
+	void operator delete(void* ptr)
+	{
+		eqlib::eqFree(ptr);
+	}
+
+	void operator delete[](void* ptr)
+	{
+		eqlib::eqFree(ptr);
+	}
+};
+
+template <typename T, std::enable_if_t<!std::is_trivial_v<T>, int> = 0>
+inline void eqDelete(T* m)
+{
+	delete (DeleterT<T>*)m;
+}
+
+template <typename T, std::enable_if_t<!std::is_trivial_v<T>, int> = 0>
+inline void eqVecDelete(T* m)
+{
+	delete[](DeleterT<T>*)m;
+}
+
+template <typename T, std::enable_if_t<std::is_trivial_v<T>, int> = 0>
+inline void eqDelete(T* m)
+{
+	eqlib::eqFree(m);
+}
+
+template <typename T, std::enable_if_t<std::is_trivial_v<T>, int> = 0>
+inline void eqVecDelete(T* m)
+{
+	eqlib::eqFree(m);
+}
+
+template <typename T, typename... Types, std::enable_if_t<!std::is_array_v<T> && std::is_trivial_v<T>, int> = 0>
+[[nodiscard]] T* eqNew()
+{
+	return new (eqlib::eqAlloc(sizeof(T))) T;
+}
+
+template <typename T, typename... Types, std::enable_if_t<!std::is_array_v<T> && !std::is_trivial_v<T>, int> = 0>
+[[nodiscard]] T* eqNew(Types&&... args)
+{
+	return new (eqAllocator) T(std::forward<Types>(args)...);
+}
+
+
+template <typename T, std::enable_if_t<std::is_array_v<T> && std::extent_v<T> == 0, int> = 0>
+[[nodiscard]] auto eqNew(size_t size)
+{
+	using Elem = std::remove_extent_t<T>;
+	return new (eqAllocator) Elem[size];
+}
+
+template <typename T, typename... Types, std::enable_if_t<std::extent_v<T> != 0, int> = 0>
+void eqNew(Types&&...) = delete;
+
+
+}
