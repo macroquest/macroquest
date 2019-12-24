@@ -26,7 +26,28 @@
 namespace eqlib {
 
 // the base address of eqgame.exe
-EQLIB_VAR DWORD EQGameBaseAddress;
+EQLIB_VAR uintptr_t EQGameBaseAddress;
+
+// the base address of eqgraphicsdx9.dll
+EQLIB_VAR uintptr_t EQGraphicsBaseAddress;
+
+// These macros are used for statically building offsets. If using dynamic offset generation
+// with the pattern matching, don't use the macro.
+
+#define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + EQGameBaseAddress)
+#define INITIALIZE_EQGRAPHICS_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x10000000) + EQGraphicsBaseAddress)
+
+// These functions are used for dynamically building offsets.
+
+inline uintptr_t FixEQGameOffset(uintptr_t nOffset)
+{
+	return (nOffset - 0x400000) + EQGameBaseAddress;
+}
+
+inline uintptr_t FixEQGraphicsOffset(uintptr_t nOffset)
+{
+	return (nOffset - 0x10000000) + EQGraphicsBaseAddress;
+}
 
 //============================================================================
 // Data
@@ -55,8 +76,6 @@ struct DIKEYID
 	WORD Id;
 };
 EQLIB_VAR DIKEYID gDiKeyID[];
-
-
 
 //============================================================================
 // Offsets
@@ -329,6 +348,7 @@ EQLIB_VAR DWORD __DoesFileExist;
 EQLIB_VAR DWORD __EQGetTime;
 EQLIB_VAR DWORD __ExecuteCmd;
 EQLIB_VAR DWORD __FixHeading;
+EQLIB_VAR DWORD __FlushDxKeyboard;
 EQLIB_VAR DWORD __get_bearing;
 EQLIB_VAR DWORD __get_melee_range;
 EQLIB_VAR DWORD __GetAnimationCache;
@@ -341,9 +361,12 @@ EQLIB_VAR DWORD __HelpPath;
 EQLIB_VAR DWORD __LoadFrontEnd;
 EQLIB_VAR DWORD __NewUIINI;
 EQLIB_VAR DWORD __ProcessGameEvents;
+EQLIB_VAR DWORD __ProcessKeyboardEvents;
+EQLIB_VAR DWORD __ProcessMouseEvents;
 EQLIB_VAR DWORD __SaveColors;
 EQLIB_VAR DWORD __STMLToText;
 EQLIB_VAR DWORD __ToggleKeyRingItem;
+EQLIB_VAR DWORD __WndProc;
 EQLIB_VAR DWORD CMemoryMappedFile__SetFile;
 EQLIB_VAR DWORD CrashDetected;
 EQLIB_VAR DWORD DrawNetStatus;
@@ -1445,6 +1468,7 @@ EQLIB_API float HeadingDiff(float h1, float h2, float* DiffOut);
 EQLIB_API float FixHeading(float Heading);
 EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
 EQLIB_API unsigned long GetFastTime();
+EQLIB_API void FlushDxKeyboard();
 
 // definitely not a __Stdcall -- ExtendedTargetList member
 EQLIB_API const char* __stdcall GetXtargetType(DWORD type);

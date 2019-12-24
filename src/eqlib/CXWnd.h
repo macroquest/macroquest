@@ -867,6 +867,8 @@ public:
 		return nullptr;
 	}
 
+	inline const CursorClass* GetCursorClass() const { return &CC; }
+
 	//----------------------------------------------------------------------------
 	// methods
 

@@ -28,6 +28,8 @@ struct CaseInsensitiveLess
 	};
 };
 
+struct IDirect3DDevice9;
+
 namespace mq {
 
 MQLIB_VAR const double DegToRad;
@@ -319,6 +321,8 @@ MQLIB_VAR bool gbFlashOnTells;
 MQLIB_VAR bool gbShowCurrentCamera;
 MQLIB_VAR int  gOldCameraType;
 MQLIB_VAR bool gbIgnoreAlertRecursion;
+
+MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
 
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";

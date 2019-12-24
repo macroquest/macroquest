@@ -541,14 +541,9 @@ static HeartbeatState Heartbeat()
 		return HeartbeatNormal;
 	}
 
-	DebugTry(UpdateMQ2SpawnSort());
+	DebugTry(PulseMQ2Spawns());
 	DebugTry(DrawHUD());
-
-	if (gGameState == GAMESTATE_INGAME)
-	{
-		AddAutoBankMenu();
-		AutoBankPulse();
-	}
+	DebugTry(PulseMQ2Windows());
 
 	bRunNextCommand = true;
 	DebugTry(Pulse());
@@ -568,8 +563,6 @@ static HeartbeatState Heartbeat()
 		}
 	}
 
-	DebugTry(ProcessPendingGroundItems());
-
 	static bool ShownNews = false;
 	if (gGameState == GAMESTATE_CHARSELECT && !ShownNews)
 	{
@@ -577,6 +570,8 @@ static HeartbeatState Heartbeat()
 		if (gCreateMQ2NewsWindow)
 			CreateMQ2NewsWindow();
 	}
+
+	DebugTry(PulseMQ2Overlay());
 
 	int CurTurbo = 0;
 
@@ -629,7 +624,8 @@ static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)
 	                    fmt::arg("Second", t.wSecond));
 	dumpFilePath = std::filesystem::path(mq::internal_paths::CrashDumps) / dumpFileName;
 
-	auto hFile = CreateFileA(dumpFilePath.string().c_str(), GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	auto hFile = CreateFileA(dumpFilePath.string().c_str(),
+		GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return;
 

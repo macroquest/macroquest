@@ -856,10 +856,8 @@ DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline(
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(GROUNDITEM*));
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(GROUNDITEM*));
 
-void ProcessPendingGroundItems()
+static void ProcessPendingGroundItems()
 {
-	if (gGameState != GAMESTATE_INGAME)
-		return;
 	if (!ProcessPending)
 		return;
 
@@ -877,11 +875,8 @@ void ProcessPendingGroundItems()
 
 #pragma endregion
 
-void UpdateMQ2SpawnSort()
+static void UpdateMQ2SpawnSort()
 {
-	if (gGameState != GAMESTATE_INGAME)
-		return;
-
 	EnterMQ2Benchmark(bmUpdateSpawnSort);
 	ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
 	gSpawnCount = 0;
@@ -1030,6 +1025,16 @@ void ShutdownMQ2Spawns()
 
 	RemoveMQ2Benchmark(bmUpdateSpawnSort);
 	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
+}
+
+void PulseMQ2Spawns()
+{
+	if (gGameState != GAMESTATE_INGAME)
+		return;
+
+	UpdateMQ2SpawnSort();
+	ProcessPendingGroundItems();
+
 }
 
 bool IsTargetable(SPAWNINFO* pSpawn)

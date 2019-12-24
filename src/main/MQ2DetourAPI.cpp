@@ -63,7 +63,7 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 	}
 
 	bool Ret = true;
-	DebugSpew("AddDetour(%s, 0x%X,0x%X,0x%X,0x%X)", szName, address, pfDetour, pfTrampoline, Count);
+	DebugSpew("AddDetour(%s, 0x%X, 0x%X, 0x%X, 0x%X)", szName, address, pfDetour, pfTrampoline, Count);
 	if (FindDetour(address))
 	{
 		DebugSpew("Address for %s (0x%x) already detoured.", szName, address);

@@ -111,15 +111,21 @@ MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
 /* SPAWN HANDLING */
 MQLIB_API void InitializeMQ2Spawns();
 MQLIB_API void ShutdownMQ2Spawns();
-MQLIB_API void ProcessPendingGroundItems();
-MQLIB_API void UpdateMQ2SpawnSort();
+MQLIB_API void PulseMQ2Spawns();
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
+
+/* OVERLAY */
+MQLIB_API void InitializeMQ2Overlay();
+MQLIB_API void ShutdownMQ2Overlay();
+MQLIB_API void PulseMQ2Overlay();
+MQLIB_API void SetOverlayVisible(bool visible);
 
 /* WINDOWS */
 MQLIB_API HWND GetEQWindowHandle();
 MQLIB_API void InitializeMQ2Windows();
 MQLIB_API void ShutdownMQ2Windows();
+MQLIB_API void PulseMQ2Windows();
 MQLIB_API void RemoveXMLFile(const char* filename);
 MQLIB_API void AddXMLFile(const char* filename);
 MQLIB_API bool IsXMLFilePresent(const char* filename);
@@ -626,8 +632,6 @@ MQLIB_API void InitializeLoginPulse();
 MQLIB_API void RemoveAutoBankMenu();
 MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
-MQLIB_API void AddAutoBankMenu();
-MQLIB_API void AutoBankPulse();
 MQLIB_API bool Anonymize(char* name, int maxlen, int NameFlag = 0);
 MQLIB_API bool Anonymize2(CXStr& name, int NameFlag = 0);
 MQLIB_API void UpdatedMasterLooterLabel();

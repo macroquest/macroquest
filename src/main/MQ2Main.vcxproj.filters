@@ -21,6 +21,15 @@
     <Filter Include="Header Files\contrib\fmt">
       <UniqueIdentifier>{e802e118-a7b2-4236-96b5-0f5ddce7bda0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Contrib\fmt">
+      <UniqueIdentifier>{ae7f2c4e-8df7-487e-96e0-7725daa2921e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\imgui">
+      <UniqueIdentifier>{bc72df53-5d06-4b30-9bea-5265828ea358}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contrib\imgui">
+      <UniqueIdentifier>{c9b8caa5-c7a6-4c28-86dc-65f7c261bc1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -95,11 +104,26 @@
     <ClCompile Include="MQ2Spells.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\fmt\src\format.cc">
-      <Filter>Source Files\Contrib</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Overlay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\fmt\src\format.cc">
+      <Filter>Source Files\Contrib\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\Contrib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui.cpp">
+      <Filter>Source Files\Contrib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui_demo.cpp">
+      <Filter>Source Files\Contrib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp">
+      <Filter>Source Files\Contrib\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +198,24 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imconfig.h">
+      <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imgui.h">
+      <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imgui_internal.h">
+      <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imstb_rectpack.h">
+      <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h">
+      <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h">
+      <Filter>Header Files\contrib\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

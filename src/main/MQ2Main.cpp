@@ -521,6 +521,7 @@ void DoInitialization()
 	Sleep(100);
 
 	InitializeMQ2KeyBinds();
+	InitializeMQ2Overlay();
 	InitializeMQ2Plugins();
 }
 
@@ -678,11 +679,11 @@ void MQ2Shutdown()
 	DebugTry(ShutdownChatHook());
 	DebugTry(ShutdownMQ2Pulse());
 	DebugTry(ShutdownMQ2Windows());
-	DebugTry(MQ2MouseHooks(0));
-	//RemoveDetour(EQPlayer__SetNameSpriteState); // put here so it doesnt crash :)
+	DebugTry(MQ2MouseHooks(false));
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());
 	DebugTry(ShutdownMQ2Plugins());
+	DebugTry(ShutdownMQ2Overlay());
 	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());

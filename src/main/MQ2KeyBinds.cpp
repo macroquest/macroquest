@@ -192,6 +192,7 @@ void InitializeMQ2KeyBinds()
 void ShutdownMQ2KeyBinds()
 {
 	s_keybinds.clear();
+	s_keybindMap.clear();
 
 	RemoveDetour(KeypressHandler__ClearCommandStateArray);
 	RemoveDetour(KeypressHandler__HandleKeyDown);

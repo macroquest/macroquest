@@ -17,7 +17,12 @@
 
 namespace eqlib {
 
-DWORD EQGameBaseAddress = (DWORD)GetModuleHandle(nullptr);
+// These don't change during the execution of the program. They can be loaded
+// at static initialization time because of this.
+uintptr_t EQGameBaseAddress = (uintptr_t)GetModuleHandle(nullptr);
+
+uintptr_t EQGraphicsBaseAddress = (uintptr_t)GetModuleHandle("EQGraphicsDX9.dll");
+
 
 //============================================================================
 // Data
@@ -60,8 +65,6 @@ DIKEYID gDiKeyID[] = {
 //============================================================================
 // Offset Definitions
 //============================================================================
-
-#define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + EQGameBaseAddress)
 
 INITIALIZE_EQGAME_OFFSET(__ActualVersionDate);
 INITIALIZE_EQGAME_OFFSET(__ActualVersionTime);
@@ -330,6 +333,7 @@ INITIALIZE_EQGAME_OFFSET(__CleanItemTags);
 INITIALIZE_EQGAME_OFFSET(__ExecuteCmd);
 
 INITIALIZE_EQGAME_OFFSET(__EQGetTime);
+INITIALIZE_EQGAME_OFFSET(__FlushDxKeyboard);
 INITIALIZE_EQGAME_OFFSET(__get_melee_range);
 INITIALIZE_EQGAME_OFFSET(__GetGaugeValueFromEQ);
 INITIALIZE_EQGAME_OFFSET(__GetLabelFromEQ);
@@ -338,6 +342,8 @@ INITIALIZE_EQGAME_OFFSET(__GetXTargetType);
 INITIALIZE_EQGAME_OFFSET(__LoadFrontEnd);
 INITIALIZE_EQGAME_OFFSET(__NewUIINI);
 INITIALIZE_EQGAME_OFFSET(__ProcessGameEvents);
+INITIALIZE_EQGAME_OFFSET(__ProcessKeyboardEvents);
+INITIALIZE_EQGAME_OFFSET(__ProcessMouseEvents);
 INITIALIZE_EQGAME_OFFSET(CrashDetected);
 INITIALIZE_EQGAME_OFFSET(__SaveColors);
 INITIALIZE_EQGAME_OFFSET(__HandleMouseWheel);
@@ -351,6 +357,7 @@ INITIALIZE_EQGAME_OFFSET(Teleport_Table);
 INITIALIZE_EQGAME_OFFSET(Teleport_Table_Size);
 INITIALIZE_EQGAME_OFFSET(__DoesFileExist);
 INITIALIZE_EQGAME_OFFSET(CMemoryMappedFile__SetFile);
+INITIALIZE_EQGAME_OFFSET(__WndProc);
 
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);
@@ -1240,6 +1247,9 @@ FUNCTION_AT_ADDRESS(void SaveColors(int, int, int, int), __SaveColors);
 #endif
 #ifdef __ExecuteCmd_x
 FUNCTION_AT_ADDRESS(bool EQExecuteCmd(unsigned int command, bool keyDown, void* data, const KeyCombo* combo), __ExecuteCmd);
+#endif
+#ifdef __FlushDxKeyboard_x
+FUNCTION_AT_ADDRESS(void FlushDxKeyboard(), __FlushDxKeyboard);
 #endif
 
 //============================================================================

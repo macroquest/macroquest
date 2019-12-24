@@ -355,6 +355,7 @@
 #define __EQGetTime_x                                              0x905150
 #define __ExecuteCmd_x                                             0x5AB0D0
 #define __FixHeading_x                                             0x99FF00
+#define __FlushDxKeyboard_x                                        0x6BC640
 #define __GameLoop_x                                               0x6BF950
 #define __get_bearing_x                                            0x5B2430
 #define __get_melee_range_x                                        0x5B2B00
@@ -368,10 +369,12 @@
 #define __LoadFrontEnd_x                                           0x6BCC70
 #define __NewUIINI_x                                               0x816FC0
 #define __ProcessGameEvents_x                                      0x6132E0
-#define __ProcessMouseEvent_x                                      0x612AA0
+#define __ProcessKeyboardEvents_x                                  0x6BE1B0
+#define __ProcessMouseEvents_x                                     0x612AA0
 #define __SaveColors_x                                             0x553160
 #define __STMLToText_x                                             0x943630
 #define __ToggleKeyRingItem_x                                      0x5169A0
+#define __WndProc_x                                                0x6BEC10
 #define CMemoryMappedFile__SetFile_x                               0xA8F200
 #define CrashDetected_x                                            0x6BE710
 #define DrawNetStatus_x                                            0x63F2D0

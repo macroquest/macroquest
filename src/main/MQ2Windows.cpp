@@ -1077,7 +1077,7 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine);
 #define WSF_CLOSEBOX        0x00000008
 #define WSF_TITLEBAR        0x00000004
 
-void AddAutoBankMenu()
+static void AddAutoBankMenu()
 {
 	if (OurCheckBoxMenuIndex == 0)
 	{
@@ -3029,7 +3029,7 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine)
 bool bChangedNL = false;
 ULONGLONG SellTimer = 0;
 
-void AutoBankPulse()
+static void AutoBankPulse()
 {
 	if (pMerchantWnd)
 	{
@@ -3455,6 +3455,15 @@ void AutoBankPulse()
 		gbStartAutoBanking = false;
 		WriteChatf("\ay[AutoBank Finished.]\ax");
 	}
+}
+
+void PulseMQ2Windows()
+{
+	if (gGameState != GAMESTATE_INGAME)
+		return;
+
+	AddAutoBankMenu();
+	AutoBankPulse();
 }
 
 } // namespace mq
