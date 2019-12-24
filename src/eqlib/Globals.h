@@ -76,6 +76,7 @@ struct DIKEYID
 	WORD Id;
 };
 EQLIB_VAR DIKEYID gDiKeyID[];
+EQLIB_VAR const char* gDiKeyName[256];
 
 //============================================================================
 // Offsets

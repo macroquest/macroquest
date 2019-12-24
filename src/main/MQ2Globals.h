@@ -235,8 +235,6 @@ MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
 MQLIB_VAR MOUSESPOOF* gMouseData;
 
-MQLIB_VAR const char* gDiKeyName[256];
-
 MQLIB_VAR DWORD gGameState;
 MQLIB_VAR bool gbMQ2LoadingMsg;
 MQLIB_VAR bool gbExactSearchCleanNames;

@@ -62,6 +62,8 @@ DIKEYID gDiKeyID[] = {
 	{ 0, 0 }
 };
 
+const char* gDiKeyName[256];
+
 //============================================================================
 // Offset Definitions
 //============================================================================
@@ -1257,6 +1259,12 @@ FUNCTION_AT_ADDRESS(void FlushDxKeyboard(), __FlushDxKeyboard);
 
 void InitializeGlobals()
 {
+	ZeroMemory(gDiKeyName, sizeof(gDiKeyName));
+	for (int i = 0; gDiKeyID[i].Id; i++)
+	{
+		gDiKeyName[gDiKeyID[i].Id] = gDiKeyID[i].szName;
+	}
+
 	if (!EQGameBaseAddress)
 	{
 		return;

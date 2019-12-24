@@ -584,17 +584,11 @@ bool MQ2Initialize()
 	}
 
 	srand(static_cast<uint32_t>(time(nullptr)));
-	ZeroMemory(gDiKeyName, sizeof(gDiKeyName));
-
-	for (int i = 0; gDiKeyID[i].Id; i++)
-	{
-		gDiKeyName[gDiKeyID[i].Id] = gDiKeyID[i].szName;
-	}
 
 	ZeroMemory(szEQMappableCommands, sizeof(szEQMappableCommands));
 	for (int i = 0; i < nEQMappableCommands; i++)
 	{
-		if ((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > g_eqgameimagesize)
+		if ((DWORD)EQMappableCommandList[i] == 0)
 		{
 			continue;
 		}

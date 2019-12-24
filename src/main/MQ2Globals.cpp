@@ -228,8 +228,6 @@ bool gMouseClickInProgress[8] = { false };
 
 // End of mouse variables
 
-const char* gDiKeyName[256];
-
 const char* szHeading[] = {
 	"south",                //0
 	"south by southeast",   //1
