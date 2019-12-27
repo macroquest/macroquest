@@ -296,20 +296,7 @@ inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENT
 {
 	if (pCharData)
 	{
-		// ok so as far as i can tell RefCount gets increased by us calling this function
-		// and its weird that it's no decremented properly afterwards
-		// it's possible we don't understand this, but there is also a chance this
-		// is a real serious eq bug, either way, decrementing it after the return
-		// seems to work...
-		// if they ever fix this, we must remove our decrement here...
-		int ret = pCharData->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
-
-		// Need to decrement refcount because we aren't using it.
-		if (pItemOut.pObject)
-		{
-			InterlockedDecrement((long volatile*)& pItemOut.pObject->RefCount);
-		}
-		return ret;
+		return pCharData->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
 	}
 
 	return 0;
@@ -319,13 +306,7 @@ inline int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pI
 {
 	if (pCharData)
 	{
-		int ret = pCharData->GetFocusRangeModifier(pSpell, pItemOut);
-
-		if (pItemOut.pObject)
-		{
-			InterlockedDecrement((long volatile*)&pItemOut.pObject->RefCount);
-		}
-		return ret;
+		return pCharData->GetFocusRangeModifier(pSpell, pItemOut);
 	}
 
 	return 0;
