@@ -8836,26 +8836,13 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 		if (pItem)
 		{
-			if (pItem->punknown)
+			if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1))
 			{
-				// since the call to >IsStackable() needs this vtable... we crash if its 0...
-				if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1))
-				{
-					// do nothing
-				}
-				else
-				{
-					Dest.DWord = GetItemFromContents(pItem)->StackSize;
-				}
+				// do nothing
 			}
 			else
 			{
-				ITEMINFO* theitem = GetItemFromContents(pItem);
-
-				if (theitem && theitem->StackSize >= 1)
-				{
-					Dest.DWord = theitem->StackSize;
-				}
+				Dest.DWord = GetItemFromContents(pItem)->StackSize;
 			}
 		}
 		return true;

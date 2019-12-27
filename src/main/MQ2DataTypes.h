@@ -2736,18 +2736,17 @@ public:
 
 	void InitVariable(MQVarPtr& VarPtr) override
 	{
-		// FIXME: Do not allocate a CONTENTS
-		VarPtr.Ptr = new CONTENTS();
-		VarPtr.HighPart = 0;
+		CONTENTS* pContents = eqNew<CONTENTS>();
+		pContents->IncrementRefCount();
 
-		// FIXME: Do not ZeroMemory a CONTENTS
-		ZeroMemory(VarPtr.Ptr, sizeof(CONTENTS));
+		VarPtr.Ptr = pContents;
+		VarPtr.HighPart = 0;
 	}
 
 	void FreeVariable(MQVarPtr& VarPtr) override
 	{
 		CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
-		delete pContents;
+		pContents->DecrementRefCount();
 	}
 
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
@@ -2755,7 +2754,15 @@ public:
 		if (Source.Type != pItemType)
 			return false;
 
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CONTENTS));
+		CONTENTS* pNewContents = static_cast<CONTENTS*>(Source.Ptr);
+		if (pNewContents)
+			pNewContents->IncrementRefCount();
+
+		CONTENTS* pOldContents = static_cast<CONTENTS*>(VarPtr.Ptr);
+		if (pOldContents)
+			pOldContents->DecrementRefCount();
+
+		VarPtr.Ptr = pNewContents;
 		return true;
 	}
 };
