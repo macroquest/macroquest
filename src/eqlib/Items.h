@@ -216,6 +216,37 @@ public:
 	}
 };
 
+template <typename T>
+class ItemContainer
+{
+public:
+	using ItemPointer = VePointer<T>;
+	using ItemArray = VeArray<ItemPointer>;
+
+/*0x00*/ uint32_t                Size;
+/*0x04*/ ItemContainerInstance   Spec;
+/*0x08*/ ItemArray               Items;
+/*0x0c*/ uint8_t                 AtDepth;
+/*0x10*/ short                   Slots[2];
+/*0x14*/ bool                    bDynamic;
+/*0x18*/
+};
+
+class ItemBaseContainer : public ItemContainer<CONTENTS>
+{
+public:
+};
+
+template <typename T>
+class IChildItemContainer
+{
+public:
+	virtual ItemContainer<T>* GetChildItemContainer() = 0;
+	virtual const ItemContainer<T>* GetChildItemContainer() const = 0;
+	virtual VePointer<T> CreateCopy() const = 0;
+	virtual void SetItemLocation(ItemContainerInstance container, const ItemIndex& index) = 0;
+};
+
 //============================================================================
 
 enum eItemEffectType : uint8_t
@@ -543,12 +574,9 @@ public:
 //============================================================================
 
 // Actual Size: 0x160 (see 0x62856C in eqgame.exe Live dated Dec 19 2019)
-struct [[offsetcomments]] CONTENTS
+struct [[offsetcomments]] CONTENTS : public VeBaseReferenceCount,
+	public IChildItemContainer<CONTENTS>
 {
-/*0x000*/ void*             vtable;
-/*0x004*/ int               RefCount;
-/*0x008*/ void*             punknown;
-
 	// start of ItemBase
 #include "ItemBase-Members.h"
 
@@ -559,6 +587,23 @@ struct [[offsetcomments]] CONTENTS
 /*0x158*/ CXStr             ClientString;
 /*0x15c*/ uint8_t           Filler0x0154[0x4];
 /*0x160*/
+
+	// Constructor is technically for ItemClient. Make sure the size
+	// of the class matches.
+	CONTENTS();
+
+	// ItemClient::`vftable'{for `VeBaseReferenceCount'}
+	virtual ~CONTENTS();
+	virtual ITEMINFO* GetItemDefinition() { return nullptr; }
+	virtual void SetItemDefinition(const ITEMINFO* item) {}
+	// ... more
+
+
+	// ItemClient::`vftable'{for `IChildItemContainer<class ItemBase>'}
+	virtual ItemContainer<CONTENTS>* GetChildItemContainer() override { return (ItemContainer<CONTENTS>*)&Contents; }
+	virtual const ItemContainer<CONTENTS>* GetChildItemContainer() const override { return (const ItemContainer<CONTENTS>*) & Contents; }
+	virtual VePointer<CONTENTS> CreateCopy() const { return nullptr; }
+	virtual void SetItemLocation(ItemContainerInstance container, const ItemIndex& index) {};
 
 	EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
@@ -657,24 +702,6 @@ struct KEYRINGARRAY
 	/*0x28*/
 };
 using PKEYRINGARRAY [[deprecated]] = KEYRINGARRAY*;
-
-template <typename TItem>
-class ItemContainer
-{
-public:
-/*0x00*/ UINT Size;
-/*0x04*/ int Spec;
-/*0x08*/ VeArray<VePointer<TItem>> Items;
-/*0x0c*/ BYTE AtDepth;
-/*0x10*/ short Slots[2];
-/*0x14*/ bool bDynamic;
-/*0x18*/
-};
-
-class ItemBaseContainer : public ItemContainer<CONTENTS>
-{
-public:
-};
 
 // offsets are relative to their position in LAUNCHSPELLDATA
 struct [[offsetcomments]] ITEMLOCATION

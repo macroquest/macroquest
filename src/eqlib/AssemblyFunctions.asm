@@ -8,6 +8,8 @@ extern _CSidlScreenWnd__CSidlScreenWnd1
 extern _CSidlScreenWnd__CSidlScreenWnd2
 extern _MapViewMap__MapViewMap
 extern _MapViewMap__dMapViewMap
+extern _ItemClient__ItemClient
+extern _ItemClient__dItemClient
 
 section .text
 
@@ -35,7 +37,7 @@ global ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z
 
 ;---------------------------------------------------------------------------------------
 
-; _DWORD __thiscall eqlib::MapViewMap::MapViewMap(eqlib::MapViewMap *__hidden this)
+; public: __thiscall eqlib::MapViewMap::MapViewMap(eqlib::MapViewMap *__hidden this)
 global ??0MapViewMap@eqlib@@QAE@XZ
 ??0MapViewMap@eqlib@@QAE@XZ:
 	mov eax, [_MapViewMap__MapViewMap]
@@ -47,4 +49,20 @@ global ??0MapViewMap@eqlib@@QAE@XZ
 global ??1MapViewMap@eqlib@@UAE@XZ
 ??1MapViewMap@eqlib@@UAE@XZ:
 	mov eax, [_MapViewMap__dMapViewMap]
+	jmp eax
+
+;---------------------------------------------------------------------------------------
+
+; public: __thiscall eqlib::CONTENTS::CONTENTS(eqlib::CONTENTS *__hidden this)
+global ??0CONTENTS@eqlib@@QAE@XZ
+??0CONTENTS@eqlib@@QAE@XZ:
+	mov eax, [_ItemClient__ItemClient]
+	jmp eax
+
+;---------------------------------------------------------------------------------------
+
+; void __thiscall eqlib::CONTENTS::~CONTENTS(eqlib::CONTENTS *__hidden this)
+global ??1CONTENTS@eqlib@@UAE@XZ:
+??1CONTENTS@eqlib@@UAE@XZ:
+	mov eax, [_ItemClient__dItemClient]
 	jmp eax

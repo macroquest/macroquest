@@ -880,6 +880,8 @@ EQLIB_VAR DWORD EQ_Item__CanGoInBag;
 EQLIB_VAR DWORD EQ_Item__IsEmpty;
 EQLIB_VAR DWORD EQ_Item__GetMaxItemCount;
 EQLIB_VAR DWORD EQ_Item__GetAugmentFitBySlot;
+EQLIB_VAR DWORD ItemClient__ItemClient;
+EQLIB_VAR DWORD ItemClient__dItemClient;
 
 EQLIB_VAR DWORD EQ_LoadingS__SetProgressBar;
 EQLIB_VAR DWORD EQ_LoadingS__Array;

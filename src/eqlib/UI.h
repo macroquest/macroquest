@@ -3601,7 +3601,7 @@ public:
 /*0x2ac*/ CXStr             BackupTabTitle;
 /*0x2b0*/ CXStr             SolventText;
 /*0x2b4*/ CXStr             ItemInformationText;      // Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
-/*0x2b8*/ CONTENTS*         pItem; // ItemBasePtr
+/*0x2b8*/ VePointer<CONTENTS> pItem; // ItemBasePtr
 /*0x2bc*/ bool              bActiveItem;
 /*0x2bd*/ bool              bItemTextSet;
 /*0x2c0*/ CTextureAnimation* BuffIcons;

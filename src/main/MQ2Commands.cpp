@@ -728,7 +728,7 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 			GroundObject.GroundItem.DropSubID = ObjPtr->RealEstateID;
 			GroundObject.GroundItem.Expires = 0;
 			GroundObject.GroundItem.Heading = ObjPtr->Heading;
-			GroundObject.GroundItem.ID.pObject = nullptr;
+			GroundObject.GroundItem.ID = nullptr;
 			if (EnviroTarget.DisplayedName[0] != '\0')
 			{
 				strcpy_s(GroundObject.GroundItem.Name, EnviroTarget.DisplayedName);

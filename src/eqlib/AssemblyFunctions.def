@@ -6,3 +6,5 @@ EXPORTS
     ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z
     ??0MapViewMap@eqlib@@QAE@XZ
     ??1MapViewMap@eqlib@@UAE@XZ
+    ??0CONTENTS@eqlib@@QAE@XZ
+    ??1CONTENTS@eqlib@@UAE@XZ

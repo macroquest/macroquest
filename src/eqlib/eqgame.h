@@ -938,6 +938,8 @@
 #define EQ_Item__GetMaxItemCount_x                                 0x8AADC0
 #define EQ_Item__GetHeldItem_x                                     0x8A9550
 #define EQ_Item__GetAugmentFitBySlot_x                             0x8A7580
+#define ItemClient__ItemClient_x                                   0x5A7C80
+#define ItemClient__dItemClient_x                                  0x6273F0
 
 // EQ_LoadingS
 #define EQ_LoadingS__SetProgressBar_x                              0x55BAA0
