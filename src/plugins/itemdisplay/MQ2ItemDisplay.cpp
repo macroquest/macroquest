@@ -33,10 +33,6 @@
 
 PreSetup("MQ2ItemDisplay");
 
-// thanks, finally, SOE. we'll leave this here for a while and eventually remove it
-#define DISABLE_TOOLTIP_TIMERS
-
-#define EQLIB_EXPORT __declspec(dllexport)
 // starting position of link text found in MQ2Web__ParseItemLink_x
 constexpr int LINK_LEN = 90;
 constexpr int MAX_ITEMDISPLAY_WINDOWS = 6;
@@ -64,7 +60,7 @@ void DoGearScoreUserCommand(SPAWNINFO* pChar, char* szLine);
 template <unsigned int _Size>
 void AddGearScores(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br);
 
-struct DISPLAYITEMSTRINGS
+struct DisplayItemStrings
 {
 	// this item is placeable in yards, guild yard, etc, This item can be used in tradeskills
 	std::string ItemInfo;
@@ -80,12 +76,13 @@ struct DISPLAYITEMSTRINGS
 	bool bScribedRecieved = false;
 };
 
-class MQ2DisplayItemType;
+// Keep data about the last 6 items displayed
+VePointer<CONTENTS> gContents[MAX_ITEMDISPLAY_WINDOWS];
+DisplayItemStrings gContentsItemStrings[MAX_ITEMDISPLAY_WINDOWS];
+int gLastIndex = 5;
 
-extern "C" {
-EQLIB_EXPORT MQ2DisplayItemType* pDisplayItemType = 0;
-EQLIB_EXPORT std::map<DWORD, DISPLAYITEMSTRINGS> contentsitemstrings;
-}
+class MQ2DisplayItemType;
+MQ2DisplayItemType* pDisplayItemType = 0;
 
 class MQ2DisplayItemType : public MQ2Type
 {
@@ -100,7 +97,8 @@ public:
 		Collected = 6,
 		ScribedRecieved = 7,
 		Scribed = 8,
-		Information = 9
+		Information = 9,
+		DisplayIndex = 10,
 	};
 
 	enum DisplayItemMethods
@@ -119,17 +117,17 @@ public:
 		TypeMember(ScribedRecieved);
 		TypeMember(Scribed);
 		TypeMember(Information);
+		TypeMember(DisplayIndex);
 
 		TypeMethod(AddLootFilter);
 	}
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		const int index = VarPtr.DWord;
-		CONTENTS fullContents[MAX_ITEMDISPLAY_WINDOWS] = { 0 };
-		CONTENTS* pCont = &fullContents[index];
+		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
+		VePointer<CONTENTS> pContents = gContents[index];
 
-		if (!pCont)
+		if (!pContents)
 			return false;
 
 		MQTypeMember* pMethod = MQ2DisplayItemType::FindMethod(Member);
@@ -142,7 +140,7 @@ public:
 			switch (static_cast<DisplayItemMethods>(pMethod->ID))
 			{
 			case AddLootFilter:
-				if (ITEMINFO* pItem = GetItemFromContents(pCont))
+				if (ITEMINFO* pItem = pContents->GetItemDefinition())
 				{
 					pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
 
@@ -160,7 +158,7 @@ public:
 		if (!pMember)
 		{
 			MQVarPtr varPtr;
-			varPtr.Ptr = pCont;
+			varPtr.Ptr = pContents.get();
 
 			return pItemType->GetMember(varPtr, Member, Index, Dest);
 		}
@@ -170,45 +168,49 @@ public:
 			switch ((DisplayItemMembers)pMember->ID)
 			{
 			case Info:
-				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemInfo.c_str());
+				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemInfo.c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
 			case WindowTitle:
-				strcpy_s(DataTypeTemp, contentsitemstrings[index].WindowTitle.c_str());
+				strcpy_s(DataTypeTemp, gContentsItemStrings[index].WindowTitle.c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
 			case AdvancedLore:
-				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemAdvancedLoreText.c_str());
+				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemAdvancedLoreText.c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
 			case MadeBy:
-				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemMadeByText.c_str());
+				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemMadeByText.c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
 			case Collected:
-				Dest.DWord = contentsitemstrings[index].bCollected;
+				Dest.DWord = gContentsItemStrings[index].bCollected;
 				Dest.Type = pBoolType;
 				return true;
 			case CollectedRecieved:
-				Dest.DWord = contentsitemstrings[index].bCollectedRecieved;
+				Dest.DWord = gContentsItemStrings[index].bCollectedRecieved;
 				Dest.Type = pBoolType;
 				return true;
 			case Scribed:
-				Dest.DWord = contentsitemstrings[index].bScribed;
+				Dest.DWord = gContentsItemStrings[index].bScribed;
 				Dest.Type = pBoolType;
 				return true;
 			case ScribedRecieved:
-				Dest.DWord = contentsitemstrings[index].bScribedRecieved;
+				Dest.DWord = gContentsItemStrings[index].bScribedRecieved;
 				Dest.Type = pBoolType;
 				return true;
 			case Information:
-				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemInformationText.c_str());
+				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemInformationText.c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
+				return true;
+			case DisplayIndex:
+				Dest.DWord = gLastIndex;
+				Dest.Type = pIntType;
 				return true;
 			}
 		}
@@ -217,16 +219,19 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		CONTENTS fullContents[MAX_ITEMDISPLAY_WINDOWS] = { 0 };
-		if (CONTENTS* pCont = &fullContents[VarPtr.DWord])
+		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
+		VePointer<CONTENTS> pContents = gContents[index];
+
+		if (pContents)
 		{
-			if (ITEMINFO* pItem = GetItemFromContents(pCont))
+			if (ITEMINFO* pItem = pContents->GetItemDefinition())
 			{
 				strcpy_s(Destination, 128, pItem->Name);
 				return true;
 			}
 		}
-		strcpy_s(Destination, 128, contentsitemstrings[VarPtr.DWord].WindowTitle.c_str());
+
+		strcpy_s(Destination, 128, gContentsItemStrings[index].WindowTitle.c_str());
 		return true;
 	}
 
@@ -240,6 +245,27 @@ public:
 		return false;
 	}
 };
+
+bool dataLastItem(const char* szName, MQTypeVar& Ret)
+{
+	std::scoped_lock lock(s_mutex);
+
+	int index = gLastIndex;
+
+	if (szName[0])
+	{
+		if (IsNumber(szName))
+		{
+			index = atoi(szName);
+			if (index < 0 || index >= MAX_ITEMDISPLAY_WINDOWS)
+				return false;
+		}
+	}
+
+	Ret.DWord = index;
+	Ret.Type = pDisplayItemType;
+	return true;
+}
 
 class ItemInfoManager : public libMozilla::ICallback, public CObservable, public IObserver
 {
@@ -550,7 +576,7 @@ public:
 		}
 		else
 		{
-            std::string cColour = "FF0000";
+			std::string cColour = "FF0000";
 			std::string cName = "Blub";
 			GetEffectInfo(eEffectType, cColour, cName);
 			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), pSpell->Name);
@@ -898,54 +924,45 @@ public:
 			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
 		}
 
-		CONTENTS* item = static_cast<CONTENTS*>(pThis->pItem);
-		ITEMINFO* Item = GetItemFromContents(item);
-
-		char out[MAX_STRING * 2] = { 0 };
+		VePointer<CONTENTS>& item = pThis->pItem;
+		ITEMINFO* Item = item->GetItemDefinition();
 
 		UpdateStrings_Trampoline();
 		std::scoped_lock lock(s_mutex);
 
 		// add the strings to our map
-
-		CXStr text =  STMLToText(pThis->ItemInformationText);
-
-		contentsitemstrings[index].ItemInformationText = text;
-
-		text = STMLToText(pThis->ItemInfo);
-		contentsitemstrings[index].ItemInfo = text;
-
-		text = STMLToText(pThis->ItemMadeByText);
-		contentsitemstrings[index].ItemMadeByText = text;
-
-		text = STMLToText(pThis->ItemAdvancedLoreText);
-		contentsitemstrings[index].ItemAdvancedLoreText = text;
-
-		text = STMLToText(pThis->WindowTitle);
-		contentsitemstrings[index].WindowTitle = text;
+		gContentsItemStrings[index].ItemInformationText  = STMLToText(pThis->ItemInformationText);
+		gContentsItemStrings[index].ItemInfo             = STMLToText(pThis->ItemInfo);
+		gContentsItemStrings[index].ItemMadeByText       = STMLToText(pThis->ItemMadeByText);
+		gContentsItemStrings[index].ItemAdvancedLoreText = STMLToText(pThis->ItemAdvancedLoreText);
+		gContentsItemStrings[index].WindowTitle          = STMLToText(pThis->WindowTitle);
 
 		if (pThis->bCollectedReceived)
 		{
-			contentsitemstrings[index].bCollectedRecieved = true;
-			contentsitemstrings[index].bCollected = pThis->bCollected;
+			gContentsItemStrings[index].bCollectedRecieved = true;
+			gContentsItemStrings[index].bCollected = pThis->bCollected;
 		}
 		else
 		{
-			contentsitemstrings[index].bCollectedRecieved = false;
-			contentsitemstrings[index].bCollected = false;
+			gContentsItemStrings[index].bCollectedRecieved = false;
+			gContentsItemStrings[index].bCollected = false;
 		}
 
 		if (pThis->bScribedReceived)
 		{
-			contentsitemstrings[index].bScribedRecieved = true;
-			contentsitemstrings[index].bScribed = pThis->bScribed;
+			gContentsItemStrings[index].bScribedRecieved = true;
+			gContentsItemStrings[index].bScribed = pThis->bScribed;
 		}
 		else
 		{
-			contentsitemstrings[index].bScribedRecieved = false;
-			contentsitemstrings[index].bScribed = false;
+			gContentsItemStrings[index].bScribedRecieved = false;
+			gContentsItemStrings[index].bScribed = false;
 		}
 
+		gContents[index] = item;
+		gLastIndex = index;
+
+		char out[MAX_STRING * 2] = { 0 };
 		strcpy_s(out, "<BR><c \"#00FFFF\">");
 
 		char temp[MAX_STRING] = { 0 };
@@ -963,9 +980,9 @@ public:
 		}
 
 		// Dewey 2461 - user defined score 12-22-2012
-		AddGearScores(pThis->pItem, Item, out, "<BR>");
+		AddGearScores(pThis->pItem.get(), Item, out, "<BR>");
 
-		if (((EQ_Item*)item)->IsStackable())
+		if (((EQ_Item*)item.get())->IsStackable())
 		{
 			if (Item->StackSize > 0)
 			{
@@ -1023,7 +1040,7 @@ public:
 
 		if (Item->Clicky.TimerID != 0)
 		{
-			int Secs = GetItemTimer(item);
+			int Secs = GetItemTimer(item.get());
 
 			if (!Secs)
 			{
@@ -1200,7 +1217,7 @@ public:
 				// open in lucy
 				if (buttonInfo.ID == 6)
 				{
-					if (ITEMINFO* pItem = GetItemFromContents(buttonInfo.ItemDisplayWnd->pItem))
+					if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 					{
 						std::string url = fmt::format(
 							"http://lucy.allakhazam.com/item.html?id={}", pItem->ItemNumber);
@@ -1213,30 +1230,33 @@ public:
 		}
 		else if (Message == XWM_LCLICK)
 		{
-			auto i = ButtonMap.find((CButtonWnd*)pWnd);
+			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
 
-			if (i != ButtonMap.end())
+			if (iter != ButtonMap.end())
 			{
-				switch (i->second.ID)
+				auto& [pButton, buttonInfo] = *iter;
+
+				// FIXME: What do these numbers mean??
+				switch (buttonInfo.ID)
 				{
 				case 2: // Toggle the Need Loot Filter
 				{
-					if (i->first->bChecked)
+					if (pButton->bChecked)
 					{
 						// check need
 						// uncheck 3 and 4
-						for (auto j = ButtonMap.begin(); j != ButtonMap.end(); j++)
+						for (auto& [pButton2, buttonInfo2] : ButtonMap)
 						{
-							if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd)
+							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
 							{
-								if (j->second.ID == 3 || j->second.ID == 4)
+								if (buttonInfo2.ID == 3 || buttonInfo2.ID == 4)
 								{
-									j->first->bChecked = false;
+									pButton2->bChecked = false;
 								}
 							}
 						}
 
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1247,20 +1267,20 @@ public:
 					else
 					{
 						// uncheck need
-						bool bAutoRollisChecked = false;
-						for (auto j = ButtonMap.begin(); j != ButtonMap.end(); j++)
+						bool bAutoRollIsChecked = false;
+						for (auto& [pButton2, buttonInfo2] : ButtonMap)
 						{
-							if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd)
+							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
 							{
-								if (j->second.ID == 5)
+								if (buttonInfo2.ID == 5)
 								{
-									bAutoRollisChecked = j->first->bChecked;
+									bAutoRollIsChecked = pButton2->bChecked;
 									break;
 								}
 							}
 						}
 
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1279,7 +1299,7 @@ public:
 								else
 								{
 									// its not currently in lootfilters
-									if (bAutoRollisChecked)
+									if (bAutoRollIsChecked)
 									{
 										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 2);
 									}
@@ -1297,26 +1317,27 @@ public:
 
 				case 3: // Toggle the Greed Loot Filter
 				{
-					if (i->first->bChecked)
+					if (pButton->bChecked)
 					{
 						// check greed
 						// uncheck 2 and 4
-						bool bAutoRollisChecked = false;
-						for (auto j = ButtonMap.begin(); j != ButtonMap.end(); j++)
+						bool bAutoRollIsChecked = false;
+						for (auto& [pButton2, buttonInfo2] : ButtonMap)
 						{
-							if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd)
+							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
 							{
-								if (j->second.ID == 2 || j->second.ID == 4) {
-									j->first->bChecked = false;
-								}
-								else if (j->second.ID == 5)
+								if (buttonInfo2.ID == 2 || buttonInfo2.ID == 4)
 								{
-									bAutoRollisChecked = j->first->bChecked;
+									pButton2->bChecked = false;
+								}
+								else if (buttonInfo2.ID == 5)
+								{
+									bAutoRollIsChecked = pButton2->bChecked;
 								}
 							}
 						}
 
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = iter->second.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1327,21 +1348,21 @@ public:
 					else
 					{
 						// uncheck greed
-						bool bAutoRollisChecked = false;
+						bool bAutoRollIsChecked = false;
 
-						for (auto j = ButtonMap.begin(); j != ButtonMap.end(); j++)
+						for (auto& [pButton2, buttonInfo2] : ButtonMap)
 						{
-							if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd)
+							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
 							{
-								if (j->second.ID == 5)
+								if (buttonInfo2.ID == 5)
 								{
-									bAutoRollisChecked = j->first->bChecked;
+									bAutoRollIsChecked = pButton2->bChecked;
 									break;
 								}
 							}
 						}
 
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1361,7 +1382,7 @@ public:
 								else
 								{
 									// its not currently in lootfilters
-									if (bAutoRollisChecked)
+									if (bAutoRollIsChecked)
 									{
 										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 4);
 									}
@@ -1378,27 +1399,28 @@ public:
 
 				case 4: // Toggle the Never Loot Filter
 				{
-					if (i->first->bChecked)
+					if (pButton->bChecked)
 					{
 						// check never
 						// uncheck 2 and 3
-						bool bAutoRollisChecked = false;
-						for (auto j = ButtonMap.begin(); j != ButtonMap.end(); j++)
+						bool bAutoRollIsChecked = false;
+
+						for (auto& [pButton2, buttonInfo2] : ButtonMap)
 						{
-							if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd)
+							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
 							{
-								if (j->second.ID == 2 || j->second.ID == 3)
+								if (buttonInfo2.ID == 2 || buttonInfo2.ID == 3)
 								{
-									j->first->bChecked = false;
+									pButton2->bChecked = false;
 								}
-								else if (j->second.ID == 5)
+								else if (buttonInfo2.ID == 5)
 								{
-									bAutoRollisChecked = j->first->bChecked;
+									bAutoRollIsChecked = pButton2->bChecked;
 								}
 							}
 						}
 
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1409,21 +1431,21 @@ public:
 					else
 					{
 						// uncheck never
-						bool bAutoRollisChecked = false;
+						bool bAutoRollIsChecked = false;
 
-						for (auto j = ButtonMap.begin(); j != ButtonMap.end(); j++)
+						for (auto& [pButton2, buttonInfo2] : ButtonMap)
 						{
-							if (j->second.ItemDisplayWnd == i->second.ItemDisplayWnd)
+							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
 							{
-								if (j->second.ID == 5)
+								if (buttonInfo2.ID == 5)
 								{
-									bAutoRollisChecked = j->first->bChecked;
+									bAutoRollIsChecked = pButton2->bChecked;
 									break;
 								}
 							}
 						}
 
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1443,7 +1465,7 @@ public:
 								else
 								{
 									// its not currently in lootfilters
-									if (bAutoRollisChecked)
+									if (bAutoRollIsChecked)
 									{
 										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 8);
 									}
@@ -1460,10 +1482,10 @@ public:
 
 				case 5: // Toggle the Auto Roll Loot Filter
 				{
-					if (i->first->bChecked)
+					if (pButton->bChecked)
 					{
 						// check autoroll
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1477,11 +1499,11 @@ public:
 									{
 										pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 3, false, true);
 									}
-									else  if (bGreed)
+									else if (bGreed)
 									{
 										pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5, false, true);
 									}
-									else  if (bNever)
+									else if (bNever)
 									{
 										pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 9, false, true);
 									}
@@ -1500,7 +1522,7 @@ public:
 					else
 					{
 						// uncheck autoroll
-						if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 1);
 						}
@@ -1510,12 +1532,9 @@ public:
 
 				case 6: // open in lucy
 				{
-					if (ITEMINFO* pItem = GetItemFromContents(i->second.ItemDisplayWnd->pItem))
+					if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 					{
-						std::string url = "http://lucy.allakhazam.com/item.html?id=";
-						char szID[64] = { 0 };
-						_itoa_s(pItem->ItemNumber, szID, 10);
-						url.append(szID);
+						std::string url = "http://lucy.allakhazam.com/item.html?id=" + std::to_string(pItem->ItemNumber);
 
 						if (CHtmlWnd* ItemHtmlwnd = pCWebManager->CreateHtmlWnd(url.c_str(), pItem->Name, nullptr, true, pItem->Name))
 						{
@@ -1540,12 +1559,12 @@ public:
 
 							ItemHtmlwnd->Resize(width + 1, height + 1);
 							ItemHtmlwnd->SetClientCallbacks(&manager);
-							// maybe later im not 100% sure what observers are for
-							// ItemHtmlwnd->AddObserver(&manager);
 						}
 					}
 					return 0;
 				}
+
+				default: break;
 				}
 			}
 		}
@@ -1564,8 +1583,8 @@ public:
 			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
 		}
 
-		CONTENTS* item = pThis->pItem;
-		ITEMINFO* Item = GetItemFromContents(item);
+		CONTENTS* item = pThis->pItem.get();
+		ITEMINFO* Item = item->GetItemDefinition();
 
 		// Ziggy - Items showing their spell details:
 		bNoSpellTramp = true;
@@ -1724,7 +1743,7 @@ public:
 					pAutoRollBtn->SetData(5);
 					ButtonMap[pAutoRollBtn] = { pThis, 5 };
 
-					if (ITEMINFO* pItem = GetItemFromContents(pThis->pItem))
+					if (ITEMINFO* pItem = pThis->pItem->GetItemDefinition())
 					{
 						if (pLootFiltersManager)
 						{
@@ -3293,7 +3312,9 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/inote", Comment);
 	AddCommand("/iScore", DoGearScoreUserCommand);
 	AddCommand("/GearScore", DoGearScoreUserCommand);
+
 	pDisplayItemType = new MQ2DisplayItemType;
+	AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore", dataGearScore);
 
 	if (!IsXMLFilePresent(TipWndXML))
@@ -3375,8 +3396,6 @@ PLUGIN_API void ShutdownPlugin()
 	delete pGearScoreType;
 	pGearScoreType = nullptr;
 
-	RemoveMQ2Data("InsertAug");
-	RemoveMQ2Data("RemoveAug");
 	RemoveMQ2Data("DisplayItem");
 	RemoveMQ2Data("GearScore");
 	RemoveCommand("/inote");
@@ -3385,9 +3404,10 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/addlootfilter");
 	RemoveCommand("/convertitem");
 	RemoveCommand("/itemdisplay");
+	RemoveMQ2Data("/insertaug");
+	RemoveMQ2Data("/removeaug");
 
 	delete pDisplayItemType;
-
 	DestroyCompareTipWnd();
 }
 
@@ -3458,4 +3478,10 @@ PLUGIN_API void OnPulse()
 	{
 		CreateCompareTipWnd();
 	}
+}
+
+PLUGIN_API void OnBeginZone()
+{
+	for (VePointer<CONTENTS>& ptr : gContents)
+		ptr.reset();
 }
