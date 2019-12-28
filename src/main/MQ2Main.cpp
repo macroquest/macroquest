@@ -516,6 +516,7 @@ void DoInitialization()
 
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
+	InitializeMQ2AutoInventory();
 
 	MQ2MouseHooks(true);
 	Sleep(100);
@@ -673,6 +674,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownChatHook());
 	DebugTry(ShutdownMQ2Pulse());
 	DebugTry(ShutdownMQ2Windows());
+	DebugTry(ShutdownMQ2AutoInventory());
 	DebugTry(MQ2MouseHooks(false));
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());

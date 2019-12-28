@@ -125,7 +125,6 @@ MQLIB_API void SetOverlayVisible(bool visible);
 MQLIB_API HWND GetEQWindowHandle();
 MQLIB_API void InitializeMQ2Windows();
 MQLIB_API void ShutdownMQ2Windows();
-MQLIB_API void PulseMQ2Windows();
 MQLIB_API void RemoveXMLFile(const char* filename);
 MQLIB_API void AddXMLFile(const char* filename);
 MQLIB_API bool IsXMLFilePresent(const char* filename);
@@ -571,6 +570,10 @@ MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
 MQLIB_API void MQ2Shutdown();
 MQLIB_API HANDLE hUnloadComplete;
 MQLIB_API HANDLE hLoadComplete;
+
+MQLIB_API void InitializeMQ2AutoInventory();
+MQLIB_API void ShutdownMQ2AutoInventory();
+MQLIB_API void PulseMQ2AutoInventory();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
