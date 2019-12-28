@@ -8858,7 +8858,7 @@ bool IsGroupMember(const char* SpawnName)
 	if (CHARINFO* pChar = GetCharInfo())
 	{
 		if (!pChar->pGroupInfo)
-			return nullptr;
+			return false;
 
 		for (int index = 1; index < MAX_GROUP_SIZE; index++)
 		{
