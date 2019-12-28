@@ -1,8 +1,8 @@
+config/MacroQuest_default.ini
 macros/*.mac
-CHANGELOG.md
-GPL.txt
-ItemDB.txt
-MacroQuest_default.ini
+resources/CHANGELOG.md
+resources/GPL.txt
+resources/ItemDB.txt
+resources/readme.chm
 MacroQuest2.exe
 MQ2Ic.dll
-readme.chm
