@@ -14,28 +14,35 @@
 
 #include <mq/Plugin.h>
 
+#include <memory>
+#include <vector>
+
 PreSetup("MQ2CustomBinds");
 
 const char* BindsFile = "MQ2CustomBinds.txt";
 
 struct CustomBind
 {
-	char Name[32];
-	char CommandDown[MAX_STRING];
-	char CommandUp[MAX_STRING];
+	std::string name;
+	std::string commandDown;
+	std::string commandUp;
 };
 
-static CIndex<CustomBind*> s_customBinds(10);
+static std::vector<std::unique_ptr<CustomBind>> sCustomBinds;
+static bool gbBindsLoaded = false;
 
 static void ExecuteCustomBind(const char* Name, bool Down);
+static void LoadCustomBinds();
+static void SaveCustomBinds();
+static void CustomBindCmd(SPAWNINFO* pChar, char* szLine);
 
 static int FindCustomBind(const char* Name)
 {
-	for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
+	for (size_t index = 0; index < sCustomBinds.size(); ++index)
 	{
-		if (CustomBind* pBind = s_customBinds[index])
+		if (CustomBind* pBind = sCustomBinds[index].get())
 		{
-			if (!_stricmp(Name, pBind->Name))
+			if (ci_equals(Name, pBind->name))
 				return index;
 		}
 	}
@@ -43,82 +50,52 @@ static int FindCustomBind(const char* Name)
 	return -1;
 }
 
-static CustomBind* AddCustomBind(const char* Name, const char* CommandDown = nullptr, const char* CommandUp = nullptr)
+static CustomBind* AddCustomBind(
+	const std::string& Name,
+	const std::string& CommandDown = {},
+	const std::string& CommandUp = {})
 {
-	if (AddMQ2KeyBind(Name, ExecuteCustomBind))
+	if (AddMQ2KeyBind(Name.c_str(), ExecuteCustomBind))
 	{
-		CustomBind* pBind = new CustomBind;
-		ZeroMemory(pBind, sizeof(CustomBind));
+		auto pBind = std::make_unique<CustomBind>();
+		pBind->name = Name;
+		pBind->commandDown = CommandDown;
+		pBind->commandUp = CommandUp;
 
-		strcpy_s(pBind->Name, Name);
-		if (CommandDown)
-			strcpy_s(pBind->CommandDown, CommandDown);
-		if (CommandUp)
-			strcpy_s(pBind->CommandUp, CommandUp);
-		s_customBinds += pBind;
+		// Find unused index.
+		int index = -1;
+		for (size_t i = 0; i < sCustomBinds.size(); ++i)
+		{
+			if (sCustomBinds[i] == nullptr)
+			{
+				index = i;
+				break;
+			}
+		}
 
-		return pBind;
+		if (index == -1)
+		{
+			sCustomBinds.emplace_back();
+			index = sCustomBinds.size() - 1;
+		}
+
+		sCustomBinds[index] = std::move(pBind);
+		return sCustomBinds[index].get();
 	}
 
 	return nullptr;
 }
 
-static void RemoveCustomBind(unsigned long index)
+static void RemoveCustomBind(size_t index)
 {
-	if (index >= s_customBinds.GetSize())
+	if (index >= sCustomBinds.size())
 		return;
 
-	if (CustomBind* pBind = s_customBinds[index])
+	if (CustomBind* pBind = sCustomBinds[index].get())
 	{
-		RemoveMQ2KeyBind(pBind->Name);
-		delete pBind;
+		RemoveMQ2KeyBind(pBind->name.c_str());
 
-		s_customBinds[index] = nullptr;
-	}
-}
-
-static void LoadCustomBinds();
-static void SaveCustomBinds();
-
-void CustomBindCmd(SPAWNINFO* pChar, char* szLine);
-
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
-{
-	DebugSpewAlways("Initializing MQ2CustomBinds");
-
-	AddCommand("/custombind", CustomBindCmd, false, true, false);
-}
-
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
-{
-	DebugSpewAlways("Shutting down MQ2CustomBinds");
-	RemoveCommand("/custombind");
-	//SaveCustomBinds();
-
-	for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
-	{
-		if (CustomBind* pBind = s_customBinds[index])
-		{
-			RemoveMQ2KeyBind(pBind->Name);
-		}
-	}
-
-	s_customBinds.Cleanup();
-}
-
-PLUGIN_API void SetGameState(DWORD GameState)
-{
-	static bool BindsLoaded = false;
-
-	if (GameState == GAMESTATE_INGAME || GameState == GAMESTATE_CHARSELECT)
-	{
-		if (!BindsLoaded)
-		{
-			LoadCustomBinds();
-			BindsLoaded = true;
-		}
+		sCustomBinds[index].reset();
 	}
 }
 
@@ -131,9 +108,6 @@ static void LoadCustomBinds()
 	if (err)
 		return;
 
-	CustomBind NewBind;
-	ZeroMemory(&NewBind, sizeof(CustomBind));
-
 	char szLine[MAX_STRING];
 
 	while (fgets(szLine, 2048, file))
@@ -143,19 +117,21 @@ static void LoadCustomBinds()
 		char* Cmd = strtok_s(szLine, "\r\n", &Next_Token1);
 		char* Cmd2 = strtok_s(Cmd, "=", &Next_Token2);
 
-		if (!_stricmp(Cmd2, "name"))
+		std::string name, down, up;
+
+		if (ci_equals(Cmd2, "name"))
 		{
-			ZeroMemory(&NewBind, sizeof(CustomBind));
-			strcpy_s(NewBind.Name, &szLine[5]);
+			name = &szLine[5];
 		}
-		else if (!_stricmp(Cmd2, "up"))
+		else if (ci_equals(Cmd2, "up"))
 		{
-			strcpy_s(NewBind.CommandUp, &szLine[3]);
-			AddCustomBind(NewBind.Name, NewBind.CommandDown, NewBind.CommandUp);
+			up = &szLine[3];
+
+			AddCustomBind(name, down, up);
 		}
-		else if (!_stricmp(Cmd2, "down"))
+		else if (ci_equals(Cmd2, "down"))
 		{
-			strcpy_s(NewBind.CommandDown, &szLine[5]);
+			down = &szLine[5];
 		}
 	}
 
@@ -171,11 +147,11 @@ static void SaveCustomBinds()
 	if (err)
 		return;
 
-	for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
+	for (const auto& pBind : sCustomBinds)
 	{
-		if (CustomBind* pBind = s_customBinds[index])
+		if (pBind)
 		{
-			fprintf(file, "name=%s\ndown=%s\nup=%s\n", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+			fprintf(file, "name=%s\ndown=%s\nup=%s\n", pBind->name.c_str(), pBind->commandDown.c_str(), pBind->commandUp.c_str());
 		}
 	}
 
@@ -192,18 +168,18 @@ void ExecuteCustomBind(const char* Name, bool Down)
 	if (!pCharInfo)
 		return;
 
-	if (CustomBind* pBind = s_customBinds[N])
+	if (CustomBind* pBind = sCustomBinds[N].get())
 	{
 		if (Down)
 		{
-			if (pBind->CommandDown[0])
+			if (!pBind->commandDown.empty())
 			{
-				DoCommand(pCharInfo->pSpawn, pBind->CommandDown);
+				DoCommand(pCharInfo->pSpawn, pBind->commandDown.c_str());
 			}
 		}
-		else if (pBind->CommandUp[0])
+		else if (!pBind->commandUp.empty())
 		{
-			DoCommand(pCharInfo->pSpawn, pBind->CommandUp);
+			DoCommand(pCharInfo->pSpawn, pBind->commandUp.c_str());
 		}
 	}
 }
@@ -227,11 +203,12 @@ void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("Custom binds");
 		WriteChatColor("--------------");
 
-		for (unsigned long index = 0; index < s_customBinds.GetSize(); index++)
+		for (const auto& pBind : sCustomBinds)
 		{
-			if (CustomBind* pBind = s_customBinds[index])
+			if (pBind)
 			{
-				WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+				WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",
+					pBind->name.c_str(), pBind->commandDown.c_str(), pBind->commandUp.c_str());
 			}
 		}
 
@@ -249,7 +226,7 @@ void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 
 		if (CustomBind* pBind = AddCustomBind(szArg2))
 		{
-			WriteChatColor("Custom bind added.  Use /custombind set to set the custom commands.");
+			WriteChatColor("Custom bind added. Use /custombind set to set the custom commands.");
 		}
 		else
 		{
@@ -292,13 +269,14 @@ void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CustomBind* pBind = s_customBinds[index];
+		const auto& pBind = sCustomBinds[index];
 		if (Down)
-			strcpy_s(pBind->CommandDown, szRest);
+			pBind->commandDown = szRest;
 		else
-			strcpy_s(pBind->CommandUp, szRest);
+			pBind->commandUp = szRest;
 
-		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",
+			pBind->name.c_str(), pBind->commandDown.c_str(), pBind->commandUp.c_str());
 
 		SaveCustomBinds();
 		return;
@@ -321,15 +299,51 @@ void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CustomBind* pBind = s_customBinds[index];
+		const auto& pBind = sCustomBinds[index];
 		if (Down)
-			pBind->CommandDown[0] = 0;
+			pBind->commandDown.clear();
 		else
-			pBind->CommandUp[0] = 0;
+			pBind->commandUp.clear();
 
-		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",
+			pBind->name.c_str(), pBind->commandDown.c_str(), pBind->commandUp.c_str());
+
 		SaveCustomBinds();
-
 		return;
+	}
+}
+
+// Called once, when the plugin is to initialize
+PLUGIN_API void InitializePlugin()
+{
+	DebugSpewAlways("Initializing MQ2CustomBinds");
+	AddCommand("/custombind", CustomBindCmd, false, true, false);
+}
+
+// Called once, when the plugin is to shutdown
+PLUGIN_API void ShutdownPlugin()
+{
+	DebugSpewAlways("Shutting down MQ2CustomBinds");
+	RemoveCommand("/custombind");
+
+	for (const auto& pBind : sCustomBinds)
+	{
+		if (pBind)
+		{
+			RemoveMQ2KeyBind(pBind->name.c_str());
+		}
+	}
+	sCustomBinds.clear();
+}
+
+PLUGIN_API void SetGameState(DWORD GameState)
+{
+	if (GameState == GAMESTATE_INGAME || GameState == GAMESTATE_CHARSELECT)
+	{
+		if (!gbBindsLoaded)
+		{
+			LoadCustomBinds();
+			gbBindsLoaded = true;
+		}
 	}
 }
