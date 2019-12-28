@@ -85,6 +85,8 @@ using namespace eqlib;
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 
+#include <imgui/imgui.h>
+
 namespace mq {
 
 /* THREADING */
