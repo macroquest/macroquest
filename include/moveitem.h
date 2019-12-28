@@ -57,8 +57,8 @@ inline long StackHasRoom(PCONTENTS Item)
 // returns true if a class other than bard is casting.
 bool NonBardCasting()
 {
-    if (!GetCharInfo() || !GetCharInfo2() || !pCharSpawn) return false;
-    if (GetCharInfo2()->Class == Bard) return false;
+    if (!GetCharInfo() || !GetPcProfile() || !pCharSpawn) return false;
+    if (GetPcProfile()->Class == Bard) return false;
     if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->mActorClient.Class == Bard) return false;
     if (((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA) return true;
     return false;
@@ -78,7 +78,7 @@ inline bool AbilityInUse()
 // returns true if there is something on the cursor
 inline bool CursorHasItem()
 {
-    if (GetCharInfo2()->pInventoryArray->Inventory.Cursor) return true;
+    if (GetPcProfile()->pInventoryArray->Inventory.Cursor) return true;
     return false;
 }
 
@@ -103,7 +103,7 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
     unsigned short usSlot  = 0;
     int iIsNum  = IsNumber(pcItemName);
     int iItemID = atoi(pcItemName);
-    PCHARINFO2 pChar2 = GetCharInfo2();
+    PcProfile* pChar2 = GetPcProfile();
 
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
         // loop through inv slots & worn slots
@@ -219,7 +219,7 @@ unsigned long CountItemByID(unsigned long ulID, unsigned short usMin, unsigned s
 
     // loop through inv slots & worn slots
     for (usSlot = usMin; usSlot < usInvSlots; usSlot++) {
-        if (PCONTENTS pInvSlot = GetCharInfo2()->pInventoryArray->InventoryArray[usSlot]) {
+        if (PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[usSlot]) {
             PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
             // if item provided by user is an item id and it matches, or item is by name and it matches
             if (pItemInfo && (ulID == pItemInfo->ItemNumber)) {
@@ -273,7 +273,7 @@ CItemLocation* PackFind(CItemLocation* pFreeSlot, PCONTENTS pUnequipSlot)
 
     // no user-specific slot given, find the first free bag slot
     for (usSlot = BAG_SLOT_START; usSlot < NUM_INV_SLOTS; usSlot++) {
-        if (PCONTENTS pInvSlot = GetCharInfo2()->pInventoryArray->InventoryArray[usSlot]) {
+        if (PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[usSlot]) {
             PITEMINFO pItemInfo    = GetItemFromContents(pInvSlot);
             PITEMINFO pUnequipInfo = GetItemFromContents(pUnequipSlot);
 
@@ -318,7 +318,7 @@ long FindSlotForPack()
 {
     long lSlot = 0;
     for (lSlot = BAG_SLOT_START; lSlot < NUM_INV_SLOTS; lSlot++) {
-        PCONTENTS pInvSlot = GetCharInfo2()->pInventoryArray->InventoryArray[lSlot];
+        PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[lSlot];
         if (!pInvSlot) {
             // main inventory slot is empty
             return lSlot;
@@ -341,7 +341,7 @@ long FreeSlotForItem(PCONTENTS pItem)
     bool bCheckStack = ItemIsStackable(pItem);
 
     for (lSlot = BAG_SLOT_START; lSlot < NUM_INV_SLOTS; lSlot++) {
-        PCONTENTS pInvSlot = GetCharInfo2()->pInventoryArray->InventoryArray[lSlot];
+        PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[lSlot];
         if (!pInvSlot) return lSlot; // free main inv slot, we are done
         PITEMINFO pItemInfo = GetItemFromContents(pItem);
         PITEMINFO pSlotInfo = GetItemFromContents(pInvSlot);
