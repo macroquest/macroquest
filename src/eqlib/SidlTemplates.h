@@ -118,6 +118,7 @@ public:
 	EQLIB_OBJECT CTextureAnimation();
 	EQLIB_OBJECT CTextureAnimation(const CXStr& name);
 	EQLIB_OBJECT CTextureAnimation(CUITexturePiece tp);
+	EQLIB_OBJECT CTextureAnimation(const CTextureAnimation& other);
 	EQLIB_OBJECT virtual ~CTextureAnimation();
 
 	EQLIB_OBJECT int AddFrame(const CUITextureInfo* ti, const CXRect& rect, uint32_t ticks, CXPoint hotspot = {});
@@ -142,7 +143,7 @@ public:
 
 	//----------------------------------------------------------------------------
 	// data members
-/*0x04*/ CXStr         Name;
+/*0x04*/ CXStr              Name;
 /*0x08*/ ArrayClass<STextureAnimationFrame> Frames;
 /*0x18*/ uint32_t           TotalTicks = 0;
 /*0x1c*/ int                ZeroFrame = 0;

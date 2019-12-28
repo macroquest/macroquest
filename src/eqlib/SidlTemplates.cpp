@@ -434,18 +434,18 @@ int CTAFrameDraw::GetExtent() const
 
 	if (IsVertical())
 	{
-		for (int i = 0; i < FrameDraw_Max; ++i)
+		for (auto frame : m_pta)
 		{
-			if (m_pta[i] != nullptr)
-				extent = std::max(extent, m_pta[i]->GetWidth());
+			if (frame != nullptr)
+				extent = std::max(extent, frame->GetWidth());
 		}
 	}
 	else if (IsHorizontal())
 	{
-		for (int i = 0; i < FrameDraw_Max; ++i)
+		for (auto frame : m_pta)
 		{
-			if (m_pta[i] != nullptr)
-				extent = std::max(extent, m_pta[i]->GetHeight());
+			if (frame != nullptr)
+				extent = std::max(extent, frame->GetHeight());
 		}
 	}
 
@@ -491,6 +491,24 @@ CTextureAnimation::CTextureAnimation(const CXStr& name)
 CTextureAnimation::CTextureAnimation(CUITexturePiece tp)
 {
 	AddFrame(tp, 1);
+}
+
+CTextureAnimation::CTextureAnimation(const CTextureAnimation& other)
+	: Name(other.Name)
+	, Frames(other.Frames)
+	, TotalTicks(other.TotalTicks)
+	, ZeroFrame(other.ZeroFrame)
+	, StartTicks(other.StartTicks)
+	, Size(other.Size)
+	, bPaused(other.bPaused)
+	, bCycle(other.bCycle)
+	, bGrid(other.bGrid)
+	, bVertical(other.bVertical)
+	, CellWidth(other.CellWidth)
+	, CellHeight(other.CellHeight)
+	, CurCell(other.CurCell)
+	, CellRect(other.CellRect)
+{
 }
 
 CTextureAnimation::~CTextureAnimation()
