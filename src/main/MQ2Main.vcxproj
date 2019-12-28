@@ -95,6 +95,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="MQ2Auth.cpp" />
+    <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
     <ClCompile Include="MQ2CleanUI.cpp" />
