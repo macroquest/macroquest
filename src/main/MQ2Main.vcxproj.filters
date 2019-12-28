@@ -125,9 +125,6 @@
     <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp">
       <Filter>Source Files\Contrib\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2AutoInventory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h">
@@ -235,16 +232,16 @@
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\data\CHANGELOG.md">
+    <Text Include="..\..\data\resources\GPL.txt">
       <Filter>Resource Files</Filter>
-    </None>
+    </Text>
+    <Text Include="..\..\data\resources\ItemDB.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\data\ItemDB.txt">
+    <None Include="..\..\data\resources\CHANGELOG.md">
       <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="..\..\data\GPL.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
+    </None>
   </ItemGroup>
 </Project>
