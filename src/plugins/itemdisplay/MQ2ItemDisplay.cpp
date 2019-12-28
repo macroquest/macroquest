@@ -3445,7 +3445,7 @@ PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)
 		char* szStart = new char[MAX_STRING];
 		sprintf_s(szStart, MAX_STRING, "%c%c", 0x12, 0x30);
 		char* p = strstr(Line, szStart);
-		delete szStart;
+		delete[] szStart;
 		if (!p)
 		{
 			return 0;
@@ -3464,9 +3464,9 @@ PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)
 			strncpy_s(szText, MAX_STRING, p + 2, LINK_LEN);
 			char* szCommand = new char[MAX_STRING];
 			sprintf_s(szCommand, MAX_STRING, "/notify ChatWindow CW_ChatOutput link %s", szText);
-			delete szText;
+			delete[] szText;
 			DoCommand(((SPAWNINFO*)pLocalPlayer), szCommand);
-			delete szCommand;
+			delete[] szCommand;
 		}
 	}
 	return 0;

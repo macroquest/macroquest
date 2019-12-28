@@ -136,6 +136,8 @@ static void RemoveDetours()
 	}
 }
 
+#pragma region ImGui Integration
+
 namespace imgui {
 
 //============================================================================
@@ -693,35 +695,6 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 
 //============================================================================
 
-void InitializeImGui(IDirect3DDevice9* device)
-{
-	ImGui::CreateContext();
-
-	ImGuiIO& io = ImGui::GetIO();
-	//io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
-
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config.c_str());
-	io.IniFilename = &ImGuiSettingsFile[0];
-
-	// Retrieve window handle from device
-	D3DDEVICE_CREATION_PARAMETERS params;
-	device->GetCreationParameters(&params);
-
-	// Initialize the platform backend and renderer bindings
-	ImGui_ImplWin32_Init(params.hFocusWindow);
-	ImGui_ImplDX9_Init(device);
-
-	// TODO: Setup style and fonts
-}
-
-void ShutdownImGui()
-{
-	ImGui_ImplDX9_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-
-	ImGui::DestroyContext();
-}
-
 void InvalidateDeviceObjects()
 {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
@@ -758,11 +731,44 @@ void RenderImGui()
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 }
 
+void InitializeImGui(IDirect3DDevice9* device)
+{
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	//io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
+
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config.c_str());
+	io.IniFilename = &ImGuiSettingsFile[0];
+
+	// Retrieve window handle from device
+	D3DDEVICE_CREATION_PARAMETERS params;
+	device->GetCreationParameters(&params);
+
+	// Initialize the platform backend and renderer bindings
+	ImGui_ImplWin32_Init(params.hFocusWindow);
+	ImGui_ImplDX9_Init(device);
+
+	// TODO: Setup style and fonts
+}
+
+void ShutdownImGui()
+{
+	ImGui_ImplDX9_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+
+	ImGui::DestroyContext();
+}
+
 //============================================================================
 
 } // namespace imgui
 
+#pragma endregion
+
 //============================================================================
+
+#pragma region Render Hooks
 
 class RenderHooks
 {
@@ -1021,82 +1027,6 @@ LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return WndProc_Trampoline(hWnd, msg, wParam, lParam);
 }
 
-class CascadeItemKeyBind : public CascadeItemCommandBase
-{
-public:
-	CascadeItemKeyBind(int icon, const char* text, const char* keybind)
-	{
-		m_icon = icon;
-		m_text = text;
-		m_keyBind = keybind;
-
-		KeyCombo combo;
-		if (GetMQ2KeyBind(keybind, false, combo) && !combo.IsEmpty())
-		{
-			m_text = m_text + " <" + combo.GetTextDescription() + ">";
-		}
-	}
-
-	~CascadeItemKeyBind()
-	{
-
-	}
-
-	void ExecuteCommand() override
-	{
-		PressMQ2KeyBind(m_keyBind, false);
-	}
-
-	CXStr GetTooltip() const override { return m_text; }
-
-private:
-	const char* m_keyBind;
-};
-
-DETOUR_TRAMPOLINE_EMPTY(CascadeItemArray* CreateCascadeMenuItems_Trampoline());
-CascadeItemArray* CreateCascadeMenuItems_Detour()
-{
-	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
-
-	// Create Submenu Item
-	CascadeItemSubMenu* mq2Menu = eqNew<CascadeItemSubMenu>();
-	mq2Menu->SetIcon(21);
-	mq2Menu->SetText("MacroQuest 2");
-
-	CascadeItemArray* itemArray = eqNew<CascadeItemArray>();
-	itemArray->Add(eqNew<CascadeItemKeyBind>(2, "Toggle Debug UI", "TOGGLE_DEBUG_UI"));
-
-	mq2Menu->SetItems(itemArray);
-
-	// Prepend our MQ2 Menu Item to the cascade menu.
-	array->InsertElement(0, mq2Menu);
-
-	CascadeItemSeparator* sep = eqNew<CascadeItemSeparator>();
-	array->InsertElement(1, sep);
-
-	return array;
-}
-
-void InstallCascadeMenuItems()
-{
-	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
-
-	if (pEQMainWnd)
-	{
-		pEQMainWnd->UpdateCascadeMenuItems();
-	}
-}
-
-void RemoveCascadeMenuItems()
-{
-	RemoveDetour(__CreateCascadeMenuItems);
-
-	if (pEQMainWnd)
-	{
-		pEQMainWnd->UpdateCascadeMenuItems();
-	}
-}
-
 static bool InstallD3D9Hooks()
 {
 	bool success = false;
@@ -1179,7 +1109,7 @@ enum class eOverlayHookStatus
 	MissingDevice,
 };
 
-static eOverlayHookStatus InitializeHooks()
+static eOverlayHookStatus InitializeOverlayHooks()
 {
 	if (gbHooksInstalled)
 	{
@@ -1212,8 +1142,93 @@ static eOverlayHookStatus InitializeHooks()
 	gbHooksInstalled = true;
 	return !gpD3D9Device ? eOverlayHookStatus::MissingDevice : eOverlayHookStatus::Success;
 }
+#pragma endregion
 
-static void DoToggleDebugUI(const char* name, bool down)
+//============================================================================
+
+#pragma region Cascade Menu Hooks
+
+class CascadeItemKeyBind : public CascadeItemCommandBase
+{
+public:
+	CascadeItemKeyBind(int icon, const char* text, const char* keybind)
+	{
+		m_icon = icon;
+		m_text = text;
+		m_keyBind = keybind;
+
+		KeyCombo combo;
+		if (GetMQ2KeyBind(keybind, false, combo) && !combo.IsEmpty())
+		{
+			m_text = m_text + " <" + combo.GetTextDescription() + ">";
+		}
+	}
+
+	~CascadeItemKeyBind()
+	{
+
+	}
+
+	void ExecuteCommand() override
+	{
+		PressMQ2KeyBind(m_keyBind, false);
+	}
+
+	CXStr GetTooltip() const override { return m_text; }
+
+private:
+	const char* m_keyBind;
+};
+
+DETOUR_TRAMPOLINE_EMPTY(CascadeItemArray* CreateCascadeMenuItems_Trampoline());
+CascadeItemArray* CreateCascadeMenuItems_Detour()
+{
+	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
+
+	// Create Submenu Item
+	CascadeItemSubMenu* mq2Menu = eqNew<CascadeItemSubMenu>();
+	mq2Menu->SetIcon(21);
+	mq2Menu->SetText("MacroQuest 2");
+
+	CascadeItemArray* itemArray = eqNew<CascadeItemArray>();
+	itemArray->Add(eqNew<CascadeItemKeyBind>(2, "Toggle Overlay UI", "TOGGLE_IMGUI_OVERLAY"));
+
+	mq2Menu->SetItems(itemArray);
+
+	// Prepend our MQ2 Menu Item to the cascade menu.
+	array->InsertElement(0, mq2Menu);
+
+	CascadeItemSeparator* sep = eqNew<CascadeItemSeparator>();
+	array->InsertElement(1, sep);
+
+	return array;
+}
+
+void InstallCascadeMenuItems()
+{
+	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
+
+	if (pEQMainWnd)
+	{
+		pEQMainWnd->UpdateCascadeMenuItems();
+	}
+}
+
+void RemoveCascadeMenuItems()
+{
+	RemoveDetour(__CreateCascadeMenuItems);
+
+	if (pEQMainWnd)
+	{
+		pEQMainWnd->UpdateCascadeMenuItems();
+	}
+}
+
+#pragma endregion
+
+//============================================================================
+
+static void DoToggleImGuiOverlay(const char* name, bool down)
 {
 	if (down)
 	{
@@ -1221,9 +1236,47 @@ static void DoToggleDebugUI(const char* name, bool down)
 	}
 }
 
+void SetOverlayVisible(bool visible)
+{
+	imgui::g_bRenderImGui = visible;
+}
+
+static bool gbShowSettingsWindow = false;
+static bool gbShowDebugWindow = false;
+static bool gbShowDemoWindow = false;
+
+static void UpdateOverlayUI()
+{
+	if (gbShowDemoWindow)
+	{
+		ImGui::ShowDemoWindow(&gbShowDemoWindow);
+	}
+
+	if (gbShowSettingsWindow)
+	{
+		if (ImGui::Begin("MacroQuest Settings", &gbShowSettingsWindow))
+		{
+			// Should be two columns, with the left column being a tree organizing settings
+			// pages, and the right side being the page that is being rendered for settings
+		}
+		ImGui::End();
+	}
+
+	if (gbShowDebugWindow)
+	{
+		if (ImGui::Begin("Test", &gbShowDebugWindow))
+		{
+			ImGui::LabelText("GameState", "%d", gGameState);
+		}
+		ImGui::End();
+	}
+}
+
+//============================================================================
+
 void InitializeMQ2Overlay()
 {
-	auto status = InitializeHooks();
+	auto status = InitializeOverlayHooks();
 
 	if (status != eOverlayHookStatus::Success)
 	{
@@ -1241,7 +1294,7 @@ void InitializeMQ2Overlay()
 	}
 
 	imgui::InitializeImGui(gpD3D9Device);
-	AddMQ2KeyBind("TOGGLE_DEBUG_UI", DoToggleDebugUI);
+	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
 	InstallCascadeMenuItems();
 }
 
@@ -1255,7 +1308,7 @@ void ShutdownMQ2Overlay()
 	gHooks.clear();
 
 	RemoveCascadeMenuItems();
-	RemoveMQ2KeyBind("TOGGLE_DEBUG_UI");
+	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
 	imgui::ShutdownImGui();
 
 	if (gpD3D9Device)
@@ -1281,20 +1334,5 @@ void PulseMQ2Overlay()
 	}
 }
 
-void SetOverlayVisible(bool visible)
-{
-	imgui::g_bRenderImGui = visible;
-}
-
-static void UpdateOverlayUI()
-{
-	ImGui::ShowDemoWindow();
-
-	ImGui::Begin("Test");
-
-	ImGui::LabelText("GameState", "%d", gGameState);
-
-	ImGui::End();
-}
 
 } // namespace mq

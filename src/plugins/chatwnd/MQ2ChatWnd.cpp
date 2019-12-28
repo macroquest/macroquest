@@ -540,7 +540,6 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 		char* Name = new char[MAX_STRING];
 		char* NameAddr = Name;
 		strcpy_s(Name, MAX_STRING, "*");
-		int namelen = 0;
 
 		// check for group members (in case they aren't in the zone with me)
 		if (CHARINFO* pChar = GetCharInfo())
@@ -559,14 +558,14 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 					n++;
 					for (int i = 1; i <= n; i++)
 					{
-						if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn)
+						GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+						if (pMember && pMember->pSpawn)
 						{
 							// Get the group members name from the group info, not the pSpawn, they might not be in the zone.
-							strcpy_s(Name, MAX_STRING, pChar->pGroupInfo->pMember[i]->Name.c_str());
+							strcpy_s(Name, MAX_STRING, pMember->Name.c_str());
+							size_t namelen = pMember->Name.length();
 
-							namelen = strlen(Name);
-
-							if (namelen)
+							if (!pMember->Name.empty())
 							{
 								if (strstr(Line, Name))
 								{
@@ -675,7 +674,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	ConvertItemTags(text);
 	sPendingChat.push_back(text);
 
-	delete szProcessed;
+	delete[] szProcessed;
 	return 0;
 }
 

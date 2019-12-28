@@ -16,16 +16,11 @@
 #include "MQ2Main.h"
 #include "DebugHandler.h"
 
-#include <map>
-#include <string>
 #include <algorithm>
+#include <string>
+#include <unordered_map>
 
 namespace mq {
-
-std::map<std::string, CXWnd*> WindowMap;
-std::vector<std::string> XmlFiles;
-
-int WinCount = 0;
 
 char* szClickNotification[] = {
 	"leftmouse",        // 0
@@ -43,12 +38,53 @@ struct WindowInfo
 	std::string Name;
 	CXWnd* pWnd = nullptr;
 	CXWnd** ppWnd = nullptr;
+
+	WindowInfo(std::string Name, CXWnd* pWnd, CXWnd** ppWnd)
+		: Name(std::move(Name))
+		, pWnd(pWnd)
+		, ppWnd(ppWnd)
+	{}
+	WindowInfo() = default;
 };
 
-std::map<CXWnd*, WindowInfo> WindowList;
+std::unordered_map<CXWnd*, WindowInfo> WindowList;
+std::unordered_map<std::string, CXWnd*> WindowMap;
+std::vector<std::string> XmlFiles;
+
+int WinCount = 0;
 
 bool GenerateMQUI();
 void DestroyMQUI();
+
+inline void AddWindowToList(const CXStr& Name, CXWnd* pWnd, bool log)
+{
+	std::string WindowName{ Name };
+	MakeLower(WindowName);
+
+	auto iter = WindowMap.find(WindowName);
+	if (iter != WindowMap.end())
+	{
+		WindowList[pWnd] = { std::move(WindowName), pWnd, nullptr };
+
+		if (log)
+		{
+			DebugSpew("Updating WndNotification target '%s'", Name.c_str());
+		}
+	}
+	else
+	{
+		WindowList[pWnd] = { WindowName, pWnd, nullptr };
+		WindowMap.emplace(std::move(WindowName), pWnd);
+
+		if (log)
+		{
+			if (!Name.empty())
+				DebugSpew("Adding WndNotification target '%s'", Name.c_str());
+			else
+				DebugSpew("Adding WndNotification target FAILED");
+		}
+	}
+}
 
 class CSidlInitHook
 {
@@ -56,38 +92,12 @@ public:
 	void Init_Trampoline(const CXStr& Name, int A);
 	void Init_Detour(const CXStr& Name, int A)
 	{
-		std::string WindowName{ Name };
-		MakeLower((WindowName));
-
-		unsigned long N = 0;
-		if (WindowMap.find(WindowName) != WindowMap.end())
-		{
-			WindowInfo wi;
-			wi.Name = WindowName;
-			wi.pWnd = (CXWnd*)this;
-			wi.ppWnd = nullptr;
-			WindowList[(CXWnd*)this] = wi;
-
-			DebugSpew("Updating WndNotification target '%s'", Name.c_str());
-		}
-		else
-		{
-			WindowInfo wi;
-			wi.Name = WindowName;
-			wi.pWnd = (CXWnd*)this;
-			wi.ppWnd = nullptr;
-			WindowList[(CXWnd*)this] = wi;
-			WindowMap[WindowName] = (CXWnd*)this;
-
-			if (Name[0] != '\0')
-				DebugSpew("Adding WndNotification target '%s'", Name.c_str());
-			else
-				DebugSpew("Adding WndNotification target FAILED");
-		}
+		AddWindowToList(Name, reinterpret_cast<CXWnd*>(this), true);
 
 		Init_Trampoline(Name, A);
 	}
 
+	// FIXME: Maybe this should go elsewhere? Isn't really related to what we're doing here...
 	int CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
 	int CTargetWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
@@ -119,29 +129,53 @@ DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXW
 class CXWndManagerHook
 {
 public:
-	int RemoveWnd_Trampoline(class CXWnd*);
-	int RemoveWnd_Detour(class CXWnd* pWnd)
+	int RemoveWnd_Trampoline(CXWnd*);
+	int RemoveWnd_Detour(CXWnd* pWnd)
 	{
 		if (pWnd)
 		{
-			auto N = WindowList.find(pWnd);
-			if (N != WindowList.end())
+			auto windowListIter = WindowList.find(pWnd);
+			if (windowListIter != WindowList.end())
 			{
-				std::string Name = N->second.Name;
+				std::string Name{ windowListIter->second.Name };
 				MakeLower(Name);
 
-				if (WindowMap.find(Name) != WindowMap.end())
+				auto windowMapIter = WindowMap.find(Name);
+				if (windowMapIter != WindowMap.end())
 				{
-					WindowMap.erase(Name);
+					WindowMap.erase(windowMapIter);
 				}
 
-				WindowList.erase(N);
+				WindowList.erase(windowListIter);
 			}
 		}
+
 		return RemoveWnd_Trampoline(pWnd);
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd*));
+
+static void InitializeWindowList()
+{
+	if (!pWndMgr)
+		return;
+
+	for (int i = 0; i < pWndMgr->pWindows.Count; i++)
+	{
+		CXWnd* pWnd = pWndMgr->pWindows[i];
+		if (!pWnd)
+			continue;
+
+		CXMLData* pXMLData = pWnd->GetXMLData();
+		if (!pXMLData)
+			continue;
+
+		if (pXMLData->Type == UI_Screen)
+		{
+			AddWindowToList(pXMLData->Name, pWnd, false);
+		}
+	}
+}
 
 class CXMLSOMDocumentBaseHook
 {
@@ -247,115 +281,6 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine);
 #define WSF_MINIMIZEBOX     0x00000020
 #define WSF_CLOSEBOX        0x00000008
 #define WSF_TITLEBAR        0x00000004
-
-void InitializeMQ2Windows()
-{
-	DebugSpew("Initializing MQ2 Windows");
-
-	for (int i = 0; i < NUM_INV_SLOTS; i++)
-		ItemSlotMap[szItemSlot[i]] = i;
-
-	char szOut[MAX_STRING] = { 0 };
-
-#define AddSlotArray(name, count, start)     \
-	for (int i = 0; i < count; i++)          \
-	{                                        \
-		sprintf_s(szOut, #name"%d", i + 1);  \
-		ItemSlotMap[szOut] = start + i;      \
-	}
-	AddSlotArray(bank, 24, 2000);
-	AddSlotArray(sharedbank, 4, 2500);
-	AddSlotArray(trade, 16, 3000);
-	AddSlotArray(world, 10, 4000);
-	AddSlotArray(enviro, 10, 4000);
-	ItemSlotMap["enviro"] = 4100;
-	AddSlotArray(loot, 31, 5000);
-	AddSlotArray(merchant, 80, 6000);
-	AddSlotArray(bazaar, 80, 7000);
-	AddSlotArray(inspect, 31, 8000);
-#undef AddSlotArray
-
-	EzDetour(CXMLSOMDocumentBase__XMLRead,
-		&CXMLSOMDocumentBaseHook::XMLRead,
-		&CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
-	EzDetour(CSidlScreenWnd__Init1,
-		&CSidlInitHook::Init_Detour,
-		&CSidlInitHook::Init_Trampoline);
-	EzDetour(CTargetWnd__WndNotification,
-		&CSidlInitHook::CTargetWnd__WndNotification_Detour,
-		&CSidlInitHook::CTargetWnd__WndNotification_Tramp);
-	EzDetour(CXWndManager__RemoveWnd,
-		&CXWndManagerHook::RemoveWnd_Detour,
-		&CXWndManagerHook::RemoveWnd_Trampoline);
-	EzDetour(CMemoryMappedFile__SetFile,
-		&CMemoryMappedFile::SetFile_Detour,
-		&CMemoryMappedFile::SetFile_Trampoline);
-	EzDetour(__DoesFileExist,
-		&DoesFileExist,
-		&DoesFileExist_Trampoline);
-	EzDetour(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline);
-
-	AddCommand("/windows", ListWindows);
-	AddCommand("/notify", WndNotify);
-	AddCommand("/itemnotify", ItemNotify);
-	AddCommand("/itemslots", ListItemSlots);
-	AddCommand("/reloadui", ReloadUI);
-
-	if (pWndMgr)
-	{
-		for (int i = 0; i < pWndMgr->pWindows.Count; i++)
-		{
-			if (CXWnd* pWnd = pWndMgr->pWindows[i])
-			{
-				if (CXMLData* pXMLData = pWnd->GetXMLData())
-				{
-					if (pXMLData->Type == UI_Screen)
-					{
-						std::string WindowName{ pXMLData->Name };
-						MakeLower(WindowName);
-
-						if (WindowMap.find(WindowName) != WindowMap.end())
-						{
-							WindowInfo wi;
-							wi.Name = WindowName;
-							wi.pWnd = (CXWnd*)pWnd;
-							wi.ppWnd = nullptr;
-							WindowList[(CXWnd*)pWnd] = wi;
-						}
-						else
-						{
-							WindowInfo wi;
-							wi.Name = WindowName;
-							wi.pWnd = (CXWnd*)pWnd;
-							wi.ppWnd = nullptr;
-							WindowList[(CXWnd*)pWnd] = wi;
-							WindowMap[WindowName] = (CXWnd*)pWnd;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void ShutdownMQ2Windows()
-{
-	DebugSpew("Shutting down MQ2 Windows");
-
-	RemoveCommand("/windows");
-	RemoveCommand("/notify");
-	RemoveCommand("/itemnotify");
-	RemoveCommand("/itemslots");
-	RemoveCommand("/reloadui");
-
-	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
-	RemoveDetour(CSidlScreenWnd__Init1);
-	RemoveDetour(CTargetWnd__WndNotification);
-	RemoveDetour(CXWndManager__RemoveWnd);
-	RemoveDetour(__DoesFileExist);
-	RemoveDetour(CMemoryMappedFile__SetFile);
-	RemoveDetour(__eqgraphics_fopen);
-}
 
 bool GenerateMQUI()
 {
@@ -1381,35 +1306,35 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 }
 
 const char* szWndNotification[] = {
-	0,                        // 0
+	nullptr,                  // 0
 	"leftmouse",              // 1
 	"leftmouseup",            // 2
 	"rightmouse",             // 3
-	0,                        // 4
-	0,                        // 5
+	nullptr,                  // 4
+	nullptr,                  // 5
 	"enter",                  // 6
-	0,                        // 7
-	0,                        // 8
+	nullptr,                  // 7
+	nullptr,                  // 8
 	"help",                   // 9
 	"close",                  // 10
-	0,                        // 11
-	0,                        // 12
-	0,                        // 13
+	nullptr,                  // 11
+	nullptr,                  // 12
+	nullptr,                  // 13
 	"newvalue",               // 14
-	0,                        // 15
-	0,                        // 16
-	0,                        // 17
-	0,                        // 18
-	0,                        // 19
+	nullptr,                  // 15
+	nullptr,                  // 16
+	nullptr,                  // 17
+	nullptr,                  // 18
+	nullptr,                  // 19
 	"contextmenu",            // 20
 	"mouseover",              // 21
 	"history",                // 22
 	"leftmousehold",          // 23
-	0,                        // 24
-	0,                        // 25
-	0,                        // 26
+	nullptr,                  // 24
+	nullptr,                  // 25
+	nullptr,                  // 26
 	"link",                   // 27
-	0,                        // 28
+	nullptr,                  // 28
 	"resetdefaultposition",   // 29
 };
 
@@ -1538,7 +1463,7 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 
 			if (szArg2[0] == '0')
 			{
-				if (!SendWndNotification(szArg1, 0, i, (void*)Data))
+				if (!SendWndNotification(szArg1, nullptr, i, (void*)Data))
 				{
 					MacroError("Could not send notification to %s %s", szArg1, szArg2);
 				}
@@ -1808,7 +1733,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 			}
 			else
 			{
-				ptheitem = FindItemByName(szArg1, 1);
+				ptheitem = FindItemByName(szArg1, true);
 			}
 
 			if (ptheitem)
@@ -1929,7 +1854,7 @@ void ListItemSlots(PSPAWNINFO pChar, char* szLine)
 	WriteChatf("%d available item slots", Count);
 }
 
-void ReloadUI(PSPAWNINFO pChar, char* szLine)
+void ReloadUI(SPAWNINFO* pChar, char* szLine)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo) return;
@@ -1944,6 +1869,81 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine)
 	sprintf_s(szBuffer, "/loadskin %s 1", UISkin);
 
 	DoCommand(pChar, szBuffer);
+}
+
+void InitializeMQ2Windows()
+{
+	DebugSpew("Initializing MQ2 Windows");
+
+	for (int i = 0; i < NUM_INV_SLOTS; i++)
+		ItemSlotMap[szItemSlot[i]] = i;
+
+	char szOut[MAX_STRING] = { 0 };
+
+#define AddSlotArray(name, count, start)     \
+	for (int i = 0; i < count; i++)          \
+	{                                        \
+		sprintf_s(szOut, #name"%d", i + 1);  \
+		ItemSlotMap[szOut] = start + i;      \
+	}
+	AddSlotArray(bank, 24, 2000);
+	AddSlotArray(sharedbank, 4, 2500);
+	AddSlotArray(trade, 16, 3000);
+	AddSlotArray(world, 10, 4000);
+	AddSlotArray(enviro, 10, 4000);
+	ItemSlotMap["enviro"] = 4100;
+	AddSlotArray(loot, 31, 5000);
+	AddSlotArray(merchant, 80, 6000);
+	AddSlotArray(bazaar, 80, 7000);
+	AddSlotArray(inspect, 31, 8000);
+#undef AddSlotArray
+
+	EzDetour(CXMLSOMDocumentBase__XMLRead,
+		&CXMLSOMDocumentBaseHook::XMLRead,
+		&CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
+	EzDetour(CSidlScreenWnd__Init1,
+		&CSidlInitHook::Init_Detour,
+		&CSidlInitHook::Init_Trampoline);
+	EzDetour(CTargetWnd__WndNotification,
+		&CSidlInitHook::CTargetWnd__WndNotification_Detour,
+		&CSidlInitHook::CTargetWnd__WndNotification_Tramp);
+	EzDetour(CXWndManager__RemoveWnd,
+		&CXWndManagerHook::RemoveWnd_Detour,
+		&CXWndManagerHook::RemoveWnd_Trampoline);
+	EzDetour(CMemoryMappedFile__SetFile,
+		&CMemoryMappedFile::SetFile_Detour,
+		&CMemoryMappedFile::SetFile_Trampoline);
+	EzDetour(__DoesFileExist,
+		&DoesFileExist,
+		&DoesFileExist_Trampoline);
+	EzDetour(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline);
+
+	AddCommand("/windows", ListWindows);
+	AddCommand("/notify", WndNotify);
+	AddCommand("/itemnotify", ItemNotify);
+	AddCommand("/itemslots", ListItemSlots);
+	AddCommand("/reloadui", ReloadUI);
+
+	InitializeWindowList();
+}
+
+void ShutdownMQ2Windows()
+{
+	DebugSpew("Shutting down MQ2 Windows");
+
+	RemoveCommand("/windows");
+	RemoveCommand("/notify");
+	RemoveCommand("/itemnotify");
+	RemoveCommand("/itemslots");
+	RemoveCommand("/reloadui");
+
+	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
+	RemoveDetour(CSidlScreenWnd__Init1);
+	RemoveDetour(CTargetWnd__WndNotification);
+	RemoveDetour(CXWndManager__RemoveWnd);
+	RemoveDetour(__DoesFileExist);
+	RemoveDetour(CMemoryMappedFile__SetFile);
+	RemoveDetour(__eqgraphics_fopen);
 }
 
 } // namespace mq
