@@ -1000,6 +1000,9 @@ INITIALIZE_EQGAME_OFFSET(CGroupWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CGroupWnd__UpdateDisplay);
 INITIALIZE_EQGAME_OFFSET(KeyCombo__GetTextDescription);
 
+// EQGraphicsDX9.dll Offsets
+INITIALIZE_EQGRAPHICS_OFFSET(__eqgraphics_fopen);
+
 // Offset Initialization
 DWORD EQADDR_HWND = 0;
 DWORD EQADDR_MEMCHECK0 = 0;
@@ -1269,6 +1272,14 @@ void InitializeGlobals()
 	if (!EQGameBaseAddress)
 	{
 		return;
+	}
+
+	if (!EQGraphicsBaseAddress)
+	{
+		// no EQGraphicsDx9.dll loaded yet
+		HMODULE hLibrary = LoadLibrary("EQGraphicsDX9.dll");
+
+		EQGraphicsBaseAddress = (uintptr_t)hLibrary;
 	}
 
 	EQADDR_HWND = __HWnd;

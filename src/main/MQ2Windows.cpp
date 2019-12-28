@@ -1057,6 +1057,27 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(bool CMemoryMappedFile::SetFile_Trampoline(const char*, bool, unsigned int));
 
+// Hook for fopen in eqgraphics.dll
+DETOUR_TRAMPOLINE_EMPTY(FILE* fopen_eqgraphics_trampoline(const char* filename, const char* mode));
+FILE* fopen_eqgraphics_detour(const char* filename, const char* mode)
+{
+	// Only intercept reads
+	if (strstr(mode, "r"))
+	{
+		std::filesystem::path localfile = filename;
+
+		// Find the file in our local filesystem.
+		std::filesystem::path overridePath = mq::internal_paths::Resources / localfile;
+		if (overridePath != localfile && std::filesystem::exists(overridePath))
+		{
+			auto overrideString = overridePath.string();
+
+			return fopen_eqgraphics_trampoline(overrideString.c_str(), mode);
+		}
+	}
+
+	return fopen_eqgraphics_trampoline(filename, mode);
+}
 
 void ListWindows(PSPAWNINFO pChar, char* szLine);
 void WndNotify(PSPAWNINFO pChar, char* szLine);
@@ -1372,6 +1393,8 @@ void InitializeMQ2Windows()
 		&DoesFileExist,
 		&DoesFileExist_Trampoline);
 
+	EzDetour(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline);
+
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
 	AddCommand("/itemnotify", ItemNotify);
@@ -1435,6 +1458,7 @@ void ShutdownMQ2Windows()
 	RemoveDetour(CXWndManager__RemoveWnd);
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
+	RemoveDetour(__eqgraphics_fopen);
 }
 
 bool GenerateMQUI()

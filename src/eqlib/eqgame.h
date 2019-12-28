@@ -1233,3 +1233,9 @@
 
 // KeyCombo
 #define KeyCombo__GetTextDescription_x                             0x91BEA0
+
+//
+// EQGraphicsDX9.dll offsets
+//
+
+#define __eqgraphics_fopen_x                                       0x101473C8

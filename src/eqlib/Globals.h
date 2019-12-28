@@ -79,7 +79,7 @@ EQLIB_VAR DIKEYID gDiKeyID[];
 EQLIB_VAR const char* gDiKeyName[256];
 
 //============================================================================
-// Offsets
+// EQGame.exe Offsets
 //============================================================================
 
 EQLIB_VAR DWORD __ActualVersionDate;
@@ -1036,6 +1036,13 @@ EQLIB_VAR DWORD CEQSuiteTextureLoader__GetDefaultUIPath;
 EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
 EQLIB_VAR DWORD KeyCombo__GetTextDescription;
 
+
+//============================================================================
+// EQGraphicsDX9.dll Offsets
+//============================================================================
+
+EQLIB_VAR DWORD __eqgraphics_fopen;
+
 //----------------------------------------------------------------------------
 // Global data
 
@@ -1262,6 +1269,8 @@ EQLIB_VAR PointMerchantWnd** ppPointMerchantWnd;
 EQLIB_VAR CZoneGuideWnd** ppCZoneGuideWnd;
 EQLIB_VAR CEQMainWnd** ppEQMainWnd;
 #define pEQMainWnd (*ppEQMainWnd)
+
+//----------------------------------------------------------------------------
 
 using fEQNewUIINI            = char* (*)();
 EQLIB_VAR fEQNewUIINI          NewUIINI;
