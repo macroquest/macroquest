@@ -562,7 +562,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 						if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn)
 						{
 							// Get the group members name from the group info, not the pSpawn, they might not be in the zone.
-							GetCXStr(pChar->pGroupInfo->pMember[i]->pName, Name, MAX_STRING);
+							strcpy_s(Name, MAX_STRING, pChar->pGroupInfo->pMember[i]->Name.c_str());
 
 							namelen = strlen(Name);
 
