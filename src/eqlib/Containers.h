@@ -503,7 +503,7 @@ private:
 	{
 		if (requestedSize && (requestedSize > m_alloc || !m_array))
 		{
-			T* newArray = eqNew<T[]>(allocatedSize);
+			T* newArray = eqNew<T[]>(requestedSize);
 			if (!newArray)
 			{
 				eqVecDelete(m_array);
@@ -549,16 +549,19 @@ struct ResizePolicyNoShrink
 
 struct ResizePolicyNoResize {};
 
+template <typename T, typename Key>
+class HashTableEntry
+{
+	T obj;
+	Key key;
+	HashTableEntry* next;
+};
+
 template <typename T, typename Key = int, typename ResizePolicy = ResizePolicyNoResize>
 class HashTable
 {
 public:
-	struct HashEntry
-	{
-		T Obj;
-		Key Key;
-		HashEntry *NextEntry;
-	};
+	using HashEntry = HashTableEntry<T, Key>;
 
 	template <typename K>
 	static unsigned HashValue(const K& key)
@@ -574,10 +577,10 @@ public:
 	void Resize(int hashSize);
 	void Insert(const T& obj, const Key& key);
 
-/*0x00*/ HashEntry **Table;
-/*0x04*/ int TableSize;
-/*0x08*/ int EntryCount;
-/*0x0c*/ int StatUsedSlots;
+/*0x00*/ HashEntry** Table;
+/*0x04*/ int         TableSize;
+/*0x08*/ int         EntryCount;
+/*0x0c*/ int         StatUsedSlots;
 /*0x10*/
 };
 
@@ -629,7 +632,7 @@ void HashTable<T, Key, ResizePolicy>::Resize(int hashSize)
 				{
 					HashEntry* hold = next;
 					next = next->NextEntry;
-					int spot = HashValue<Key>(hold->Key) % TableSize;
+					int spot = HashValue<Key>(hold->key) % TableSize;
 
 					if (Table[spot] == nullptr)
 					{
@@ -657,7 +660,7 @@ T* HashTable<T, Key, ResizePolicy>::WalkFirst() const
 	{
 		HashEntry *entry = Table[i];
 		if (entry != nullptr)
-			return(&entry->Obj);
+			return(&entry->obj);
 	}
 	return nullptr;
 }
@@ -666,17 +669,17 @@ template <typename T, typename Key, typename ResizePolicy>
 T* HashTable<T, Key, ResizePolicy>::WalkNext(const T* prevRes) const
 {
 	HashEntry *entry = (HashEntry *)(((char *)prevRes) - offsetof(HashEntry, Obj));
-	int i = (HashValue<Key>(entry->Key)) % TableSize;
+	int i = (HashValue<Key>(entry->key)) % TableSize;
 	entry = entry->NextEntry;
 	if (entry != NULL)
-		return(&entry->Obj);
+		return(&entry->obj);
 
 	i++;
 	for (; i < TableSize; i++)
 	{
 		HashEntry *entry = Table[i];
 		if (entry != NULL)
-			return(&entry->Obj);
+			return(&entry->obj);
 	}
 	return NULL;
 }
@@ -696,8 +699,8 @@ T* HashTable<T, Key, ResizePolicy>::FindFirst(const Key& key) const
 	HashEntry* entry = Table[(HashValue<Key>(key)) % TableSize];
 	while (entry != NULL)
 	{
-		if (entry->Key == key)
-			return(&entry->Obj);
+		if (entry->key == key)
+			return(&entry->obj);
 		entry = entry->NextEntry;
 	}
 	return NULL;
@@ -707,8 +710,8 @@ template <typename T, typename Key, typename ResizePolicy>
 void HashTable<T, Key, ResizePolicy>::Insert(const T& obj, const Key& key)
 {
 	HashEntry *entry = new HashEntry;
-	entry->Obj = obj;
-	entry->Key = key;
+	entry->obj = obj;
+	entry->key = key;
 
 	int spot = HashValue<Key>(key) % TableSize;
 	if (Table[spot] == NULL)

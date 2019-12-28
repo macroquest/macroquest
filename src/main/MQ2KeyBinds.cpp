@@ -379,15 +379,9 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("EQ Binds");
 		WriteChatColor("--------------");
 
-		//ok first of all, the 0x11111111 constant for ac1 is not even used anymore they stopped using those ones years ago
-		//its just left in there, legacy code, I suppose it would cause more problems removing it, than leaving it, and if a eq dev sees this, please
-		//just leave that stuff alone because i dont want to have to worry about where it went or if its active again. -eqmule
-		//second, even though its not active, now that eqgame uses aslr, we have to take that into account and actually add load address to the constant, thus the line below:
-
-		//anyway... from now on we will just use the size of the image... not reliable to have it hardcoded
 		for (int i = 0; i < nEQMappableCommands; i++)
 		{
-			if (szEQMappableCommands[i] == nullptr || szEQMappableCommands[i] > reinterpret_cast<const char*>(g_eqgameimagesize))
+			if (szEQMappableCommands[i] == nullptr)
 				continue;
 
 			WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax", szEQMappableCommands[i],

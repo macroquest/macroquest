@@ -1959,27 +1959,6 @@ public:
 	EQLIB_OBJECT ~EQZoneInfo();
 };
 
-enum eIconCacheType
-{
-	eit_Items,
-	eit_Spells,
-	eit_Menus,
-	eit_Vivox,
-};
-
-class [[offsetcomments]] IconCache
-{
-public:
-/*0x00*/ HashTable<CTextureAnimation*> IconTextures;
-/*0x10*/ CXStr              pAnimationName;
-/*0x14*/ int                Offset;
-/*0x18*/ int                MinValue;
-/*0x1c*/ int                MaxValue;
-/*0x20*/
-
-	EQLIB_OBJECT CTextureAnimation* GetIcon(int);
-};
-
 struct JournalEntry;
 
 class JournalNPC

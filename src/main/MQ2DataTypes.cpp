@@ -8830,19 +8830,15 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	case StackSize:
 		// This returns the MAX size of a stack for the item
-		// If this was properly named it should be called MaxStack... but ah well... to late now...
+		// If this was properly named it should be called MaxStack.
 		Dest.DWord = 1; //we know its at least 1
 		Dest.Type = pIntType;
 
 		if (pItem)
 		{
-			if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1))
+			if ((pItem->GetItemDefinition()->Type == ITEMTYPE_NORMAL) && (((EQ_Item*)pItem)->IsStackable()))
 			{
-				// do nothing
-			}
-			else
-			{
-				Dest.DWord = GetItemFromContents(pItem)->StackSize;
+				Dest.DWord = pItem->GetItemDefinition()->StackSize;
 			}
 		}
 		return true;

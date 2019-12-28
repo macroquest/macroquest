@@ -150,7 +150,7 @@ static LPDIRECT3DTEXTURE9       g_FontTexture = nullptr;
 static int                      g_VertexBufferSize = 5000;
 static int                      g_IndexBufferSize = 10000;
 static bool                     g_bImGuiReady = false;
-static bool                     g_bRenderImGui = true;
+static bool                     g_bRenderImGui = false;
 
 struct CUSTOMVERTEX
 {
@@ -1058,10 +1058,21 @@ CascadeItemArray* CreateCascadeMenuItems_Detour()
 {
 	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
 
-	CascadeItemBase* item = eqNew<CascadeItemKeyBind>(1, "MacroQuest2 Debug UI", "TOGGLE_DEBUG_UI");
+	// Create Submenu Item
+	CascadeItemSubMenu* mq2Menu = eqNew<CascadeItemSubMenu>();
+	mq2Menu->SetIcon(21);
+	mq2Menu->SetText("MacroQuest 2");
+
+	CascadeItemArray* itemArray = eqNew<CascadeItemArray>();
+	itemArray->Add(eqNew<CascadeItemKeyBind>(2, "Toggle Debug UI", "TOGGLE_DEBUG_UI"));
+
+	mq2Menu->SetItems(itemArray);
 
 	// Prepend our MQ2 Menu Item to the cascade menu.
-	array->InsertElement(0, item);
+	array->InsertElement(0, mq2Menu);
+
+	CascadeItemSeparator* sep = eqNew<CascadeItemSeparator>();
+	array->InsertElement(1, sep);
 
 	return array;
 }
@@ -1221,10 +1232,16 @@ void InitializeMQ2Overlay()
 		return;
 	}
 
+	// Init settings
+	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
+	}
+
 	imgui::InitializeImGui(gpD3D9Device);
-
 	AddMQ2KeyBind("TOGGLE_DEBUG_UI", DoToggleDebugUI);
-
 	InstallCascadeMenuItems();
 }
 
@@ -1234,14 +1251,11 @@ void ShutdownMQ2Overlay()
 		return;
 
 	RemoveDetours();
-
-	RemoveCascadeMenuItems();
-
-	RemoveMQ2KeyBind("TOGGLE_DEBUG_UI");
-
 	gbHooksInstalled = false;
 	gHooks.clear();
 
+	RemoveCascadeMenuItems();
+	RemoveMQ2KeyBind("TOGGLE_DEBUG_UI");
 	imgui::ShutdownImGui();
 
 	if (gpD3D9Device)

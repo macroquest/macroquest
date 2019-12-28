@@ -164,7 +164,7 @@ public:
 /*0x4c*/ UINT               ObjectIndex;
 /*0x50*/ UINT               Size;
 /*0x54*/ bool               bForceMipMap;
-/*0x58*/ int	               TrackingType;
+/*0x58*/ int                TrackingType;
 /*0x5c*/ float              SQDistanceToCamera;
 /*0x60*/ UINT               LastDistanceTime;
 /*0x64*/ UINT               LastRenderTime;
@@ -202,9 +202,13 @@ public:
 
 	EQLIB_OBJECT CEQSuiteTextureLoader();
 	EQLIB_OBJECT ~CEQSuiteTextureLoader();
+
 	EQLIB_OBJECT BMI* GetTexture(const CUITextureInfo& ti);
-	EQLIB_OBJECT unsigned int CreateTexture(const CUITextureInfo&);
+
+	EQLIB_OBJECT unsigned int CreateTexture(const CUITextureInfo& ti);
+	EQLIB_OBJECT void DestroyTexture(const CUITextureInfo& ti);
 	EQLIB_OBJECT void UnloadAllTextures();
+
 	EQLIB_OBJECT const CXStr& GetDefaultUIPath(int DirType) const;
 };
 
@@ -5576,7 +5580,7 @@ using PCSIDLMGR [[deprecated]] = CSidlManager*;
 class CascadeItemCommand;
 
 // this is a base class for the cascade menu items defined in CascadeMenu.txt
-class CascadeItemBase
+class [[offsetcomments]] CascadeItemBase
 {
 public:
 	enum Type
@@ -5598,24 +5602,30 @@ public:
 	virtual CascadeItemCommand* GetAsCommand() { return nullptr; }
 
 protected:
-	Type m_type;
-	bool m_changed = true;
+/*0x04*/ Type m_type;
+/*0x08*/ bool m_changed = true;
+/*0x0c*/
 };
 
 using CascadeItemArray = ArrayClass<CascadeItemBase*>;
 
 // separator menu item (type 3 in CascadeMenu.txt)
-class CascadeItemSeparator : public CascadeItemBase
+class [[offsetcomments]] CascadeItemSeparator : public CascadeItemBase
 {
 public:
 	CascadeItemSeparator() : CascadeItemBase(eTypeSeparator) {}
 };
 
 // a menu item that spawns another menu item
-class CascadeItemSubMenu : public CascadeItemBase
+class [[offsetcomments]] CascadeItemSubMenu : public CascadeItemBase
 {
 public:
 	CascadeItemSubMenu() : CascadeItemBase(eTypeSubMenu) {}
+	CascadeItemSubMenu(int iconId, const char* text)
+		: CascadeItemBase(eTypeSubMenu)
+		, m_icon(iconId)
+		, m_text(text)
+	{}
 
 	virtual ~CascadeItemSubMenu()
 	{
@@ -5652,13 +5662,14 @@ public:
 	void SetText(const CXStr& text) { m_text = text; m_changed = true; }
 
 protected:
-	int m_icon = -1;
-	CXStr m_text;
-	CascadeItemArray* m_items = nullptr;
+/*0x0c*/ int m_icon = -1;
+/*0x10*/ CXStr m_text;
+/*0x14*/ CascadeItemArray* m_items = nullptr;
+/*0x18*/
 };
 
 // base class for items that execute a command of some kind when clicked
-class CascadeItemCommandBase : public CascadeItemBase
+class [[offsetcomments]] CascadeItemCommandBase : public CascadeItemBase
 {
 public:
 	CascadeItemCommandBase() : CascadeItemBase(CascadeItemBase::eTypeCommand) {}
@@ -5673,12 +5684,13 @@ public:
 	virtual CXStr GetTooltip() const = 0;
 
 protected:
-	int m_icon = -1;
-	CXStr m_text;
+/*0x0c*/ int m_icon = -1;
+/*0x10*/ CXStr m_text;
+/*0x14*/
 };
 
 // A menu item that executes a command
-class CascadeItemCommand : public CascadeItemCommandBase
+class [[offsetcomments]] CascadeItemCommand : public CascadeItemCommandBase
 {
 public:
 	CascadeItemCommand(int icon, const char* text, int command);
@@ -5687,7 +5699,8 @@ public:
 	virtual CXStr GetTooltip() const override { return m_text; }
 
 private:
-	int m_command = -1;
+/*0x14*/ int m_command = -1;
+/*0x18*/
 };
 
 //----------------------------------------------------------------------------
@@ -5706,7 +5719,32 @@ public:
 /*0x230*/ CButtonWnd*       FlashSaleButtonWnd;
 /*0x234*/ CascadeItemArray* CascadeMenuItems;
 /*0x238*/ int               MenuId;
-/*0x23c*/ };
+/*0x23c*/
+};
+
+//----------------------------------------------------------------------------
+
+// there are four types of icon caches
+enum eIconCacheType
+{
+	IconCacheType_Item = 0,
+	IconCacheType_Spell = 1,
+	IconCacheType_Menu = 2,
+	IconCacheType_SpeakingIndicator = 3,
+};
+
+class [[offsetcomments]] IconCache
+{
+public:
+/*0x00*/ HashTable<CTextureAnimation*> IconTextures;
+/*0x10*/ CXStr              pAnimationName;
+/*0x14*/ int                Offset;
+/*0x18*/ int                MinValue;
+/*0x1c*/ int                MaxValue;
+/*0x20*/
+
+	EQLIB_OBJECT CTextureAnimation* GetIcon(int);
+};
 
 //----------------------------------------------------------------------------
 
