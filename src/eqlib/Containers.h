@@ -955,12 +955,37 @@ public:
 
 	[[nodiscard]] T* get() const { return m_pObject; }
 
+	DEPRECATE("Access pointer directly (or call .get()) instead of using pObject")
+	[[nodiscard]] T* get_pObject() const { return m_pObject; }
+
+#pragma warning(disable: 4996)
 	// Access the object through the get() function.
-	__declspec(property(get = get)) T* pObject;
+	__declspec(property(get = get_pObject)) T* pObject;
+#pragma warning(default: 4996)
 
 private:
 	T* m_pObject = nullptr;
 };
+
+template <typename T>
+[[nodiscard]] bool operator==(nullptr_t, const VePointer<T> & rhs) noexcept {
+	return nullptr == rhs.get();
+}
+
+template <typename T>
+[[nodiscard]] bool operator==(const VePointer<T>& lhs, nullptr_t) noexcept {
+	return lhs.get() == nullptr;
+}
+
+template <typename T>
+[[nodiscard]] bool operator!=(nullptr_t, const VePointer<T>& rhs) noexcept {
+	return nullptr != rhs.get();
+}
+
+template <typename T>
+[[nodiscard]] bool operator!=(const VePointer<T>& lhs, nullptr_t) noexcept {
+	return lhs.get() != nullptr;
+}
 
 // A vector-like array container
 template <typename T>

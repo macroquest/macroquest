@@ -542,11 +542,11 @@ void Items(SPAWNINFO* pChar, char* szLine)
 		if (!pRealEstateItem)
 			continue;
 
-		CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject;
+		CONTENTS* pCont = pRealEstateItem->Object.pItemBase.get();
 		if (!pCont)
 			continue;
 
-		ITEMINFO* pItem = GetItemFromContents(pCont);
+		ITEMINFO* pItem = pCont->GetItemDefinition();
 		if (!pItem)
 			continue;
 
@@ -674,9 +674,9 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
 					if (pRealEstateItem)
 					{
-						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
+						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.get())
 						{
-							if (ITEMINFO* pItem = GetItemFromContents(pCont))
+							if (ITEMINFO* pItem = pCont->GetItemDefinition())
 							{
 								strcpy_s(szName, pItem->Name);
 								_strlwr_s(szName);
@@ -1113,16 +1113,16 @@ void BuyItem(SPAWNINFO* pChar, char* szLine)
 	char szQty[MAX_STRING] = { 0 };
 	CHARINFO* pCharInfo = nullptr;
 
-	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
+	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem)
 		return;
 
-	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
+	if (pMerchantWnd->PageHandlers[RegularMerchantPage])
 	{
 		GetArg(szQty, szLine, 1);
 		int Qty = GetIntFromString(szQty, 0);
 		if (Qty < 1) return;
 
-		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestGetItem(Qty);
+		pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestGetItem(Qty);
 	}
 }
 
@@ -1142,16 +1142,16 @@ void SellItem(SPAWNINFO* pChar, char* szLine)
 	char szQty[MAX_STRING] = { 0 };
 	CHARINFO* pCharInfo = nullptr;
 
-	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem.pObject)
+	if (!GetCharInfo() || !pMerchantWnd->pSelectedItem)
 		return;
 
-	if (pMerchantWnd->PageHandlers[RegularMerchantPage].pObject)
+	if (pMerchantWnd->PageHandlers[RegularMerchantPage])
 	{
 		GetArg(szQty, szLine, 1);
 		int Qty = GetIntFromString(szQty, 0);
 		if (Qty < 1) return;
 
-		pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestPutItem(Qty);
+		pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestPutItem(Qty);
 	}
 }
 

@@ -11578,9 +11578,9 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pGround->RealEstateID, pGround->RealEstateItemID);
 		if (pRealEstateItem)
 		{
-			if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
+			if (VePointer<CONTENTS> pCont = pRealEstateItem->Object.pItemBase)
 			{
-				if (ITEMINFO* pItem = GetItemFromContents(pCont))
+				if (ITEMINFO* pItem = pCont->GetItemDefinition())
 				{
 					strcpy_s(DataTypeTemp, pItem->Name);
 					Dest.Ptr = &DataTypeTemp[0];
@@ -11707,9 +11707,9 @@ bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
 			const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pPlaced->RealEstateID, pPlaced->RealEstateItemID);
 			if (pRealEstateItem)
 			{
-				if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject)
+				if (VePointer<CONTENTS> pCont = pRealEstateItem->Object.pItemBase)
 				{
-					if (ITEMINFO* pItem = GetItemFromContents(pCont))
+					if (ITEMINFO* pItem = pCont->GetItemDefinition())
 					{
 						strcpy_s(Destination, MAX_STRING, pItem->Name);
 						return true;
@@ -12654,9 +12654,9 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 				CONTENTS* pCont = nullptr;
 				ITEMINFO* pItem = nullptr;
 
-				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize(); i++)
+				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize(); i++)
 				{
-					if (pCont = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[i].pCont)
+					if (pCont = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[i].pCont)
 					{
 						if (pItem = GetItemFromContents(pCont))
 						{
@@ -12702,10 +12702,10 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 				if (Qty < 1)
 					return false;
 
-				if (pMerchantWnd->pSelectedItem.pObject
-					&& pMerchantWnd->pSelectedItem.pObject->GetGlobalIndex().GetLocation() == eItemContainerMerchant)
+				if (pMerchantWnd->pSelectedItem
+					&& pMerchantWnd->pSelectedItem->GetGlobalIndex().GetLocation() == eItemContainerMerchant)
 				{
-					pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestGetItem(Qty);
+					pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestGetItem(Qty);
 					return true;
 				}
 			}
@@ -12719,10 +12719,10 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 				if (Qty < 1)
 					return false;
 
-				if (pMerchantWnd->pSelectedItem.pObject
-					&& pMerchantWnd->pSelectedItem.pObject->GetGlobalIndex().GetLocation() == eItemContainerPossessions)
+				if (pMerchantWnd->pSelectedItem
+					&& pMerchantWnd->pSelectedItem->GetGlobalIndex().GetLocation() == eItemContainerPossessions)
 				{
-					pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->RequestPutItem(Qty);
+					pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestPutItem(Qty);
 					return true;
 				}
 			}
@@ -12838,14 +12838,14 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 		Dest.Type = pIntType;
 		if (pMerchantWnd)
 		{
-			Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->MaxItems;
+			Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->MaxItems;
 		}
 		return true;
 
 	case SelectedItem:
 		if (pMerchantWnd)
 		{
-			Dest.Ptr = pMerchantWnd->pSelectedItem.pObject;
+			Dest.Ptr = pMerchantWnd->pSelectedItem.get();
 			Dest.Type = pItemType;
 			return true;
 		}
@@ -12899,7 +12899,7 @@ bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, char* Member, char* In
 	if (!pMerchantWnd)
 		return false;
 
-	if (VarPtr.Int < 0 || VarPtr.Int > pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize())
+	if (VarPtr.Int < 0 || VarPtr.Int > pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize())
 		return false;
 
 	int index = VarPtr.Int;
@@ -12910,7 +12910,7 @@ bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, char* Member, char* In
 
 	ITEMINFO* pItem = nullptr;
 	CONTENTS* pCont = nullptr;
-	if (pCont = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[index].pCont)
+	if (pCont = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[index].pCont)
 	{
 		pItem = GetItemFromContents(pCont);
 	}
@@ -12997,7 +12997,7 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 		if (IsNumber(Index))
 		{
 			int index = GetIntFromString(Index, 0) - 1;
-			if (index >= 0 && index < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize())
+			if (index >= 0 && index < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize())
 			{
 				Dest.Int = index;
 				return true;
@@ -13007,9 +13007,9 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 		{
 			if (Index[0] != '\0')
 			{
-				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize(); i++)
+				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize(); i++)
 				{
-					auto name = GetItemFromContents(pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[i].pCont)->Name;
+					auto name = GetItemFromContents(pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[i].pCont)->Name;
 					if (!_stricmp(name, Index))
 					{
 						Dest.Int = i;
@@ -13626,7 +13626,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 							if (pContainerMgr)
 							{
 								uint32_t index = nInvSlot - 4000;
-								if (CONTENTS* pContents = pContainerMgr->pWorldContainer.pObject)
+								if (CONTENTS* pContents = pContainerMgr->pWorldContainer.get())
 								{
 									if (index < pContents->Contents.ContainedItems.Size
 										&& pContents->Contents.ContainedItems.pItems)
@@ -13641,9 +13641,9 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 						{
 							if ( pContainerMgr)
 							{
-								if (pContainerMgr->pWorldContainer.pObject)
+								if (pContainerMgr->pWorldContainer)
 								{
-									Dest.Ptr = pContainerMgr->pWorldContainer.pObject;
+									Dest.Ptr = pContainerMgr->pWorldContainer.get();
 									return true;
 								}
 							}
@@ -13751,11 +13751,11 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 
 		if (nInvSlot == 4100) // its the worldcontainer
 		{
-			if (CContainerMgr* pContmgr = pContainerMgr)
+			if (pContainerMgr)
 			{
-				if (ITEMINFO* pIteminf = GetItemFromContents(pContmgr->pWorldContainer.pObject))
+				if (ITEMINFO* pItemInfo = pContainerMgr->pWorldContainer->GetItemDefinition())
 				{
-					strcpy_s(DataTypeTemp, pIteminf->Name);
+					strcpy_s(DataTypeTemp, pItemInfo->Name);
 					Dest.Ptr = &DataTypeTemp[0];
 					return true;
 				}

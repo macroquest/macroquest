@@ -892,7 +892,7 @@ void Cleanup(PSPAWNINFO pChar, char* szLine)
 	{
 		int concount = 2; // Close inv + clear target
 
-		if (pContainerMgr->pWorldContainer.pObject && pContainerMgr->pWorldContainer.pObject->Open == 1)
+		if (pContainerMgr->pWorldContainer && pContainerMgr->pWorldContainer->Open == 1)
 			concount++;
 
 		for (int i = 0; i < MAX_CONTAINERS; i++)

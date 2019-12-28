@@ -118,8 +118,8 @@ bool PickupItemNew(CONTENTS* pCont)
 		if (bFound && slot1 > -1)
 		{
 			ItemIndex IIndex = pCharData->CreateItemIndex(slot1, slot2);
-			VePointer<CONTENTS> Cont = pCharData->GetItemPossession(IIndex);
-			if (Cont.pObject != nullptr)
+			VePointer<CONTENTS> pCont = pCharData->GetItemPossession(IIndex);
+			if (pCont != nullptr)
 			{
 				if (pInvSlotMgr->MoveItem(
 					pCharData->CreateItemGlobalIndex(slot1, slot2),
@@ -157,7 +157,7 @@ public:
 			WindowInfo wi;
 			wi.Name = WindowName;
 			wi.pWnd = (CXWnd*)this;
-			wi.ppWnd = 0;
+			wi.ppWnd = nullptr;
 			WindowList[(CXWnd*)this] = wi;
 
 			DebugSpew("Updating WndNotification target '%s'", Name.c_str());
@@ -167,7 +167,7 @@ public:
 			WindowInfo wi;
 			wi.Name = WindowName;
 			wi.pWnd = (CXWnd*)this;
-			wi.ppWnd = 0;
+			wi.ppWnd = nullptr;
 			WindowList[(CXWnd*)this] = wi;
 			WindowMap[WindowName] = (CXWnd*)this;
 
@@ -291,9 +291,9 @@ public:
 									CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
 									VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
 
-									if (ptr.pObject)
+									if (ptr)
 									{
-										if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+										if (ITEMINFO* pItem = ptr->GetItemDefinition())
 										{
 											if (gbColorsFeatureEnabled)
 											{
@@ -311,7 +311,7 @@ public:
 
 											if (pItem->Cost > 0)
 											{
-												int sellprice = ((EQ_Item*)ptr.pObject)->ValueSellMerchant(1.05f, 1);
+												int sellprice = ((EQ_Item*)ptr.get())->ValueSellMerchant(1.05f, 1);
 												int cp = sellprice;
 												int sp = cp / 10; cp = cp % 10;
 												int gp = sp / 10; sp = sp % 10;
@@ -792,9 +792,9 @@ public:
 												{
 													CharacterBase* cb = (CharacterBase*)& pCharInfo->CharacterBase_vftable;
 													VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
-													if (ptr.pObject)
+													if (ptr)
 													{
-														if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+														if (PITEMINFO pItem = ptr->GetItemDefinition())
 														{
 															if (pMerchantWnd && pMerchantWnd->IsVisible())
 															{
@@ -1692,7 +1692,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 #ifdef NEWCHARINFO
 			if (pCharData && ((PCHARINFO)pCharData)->BankItems.Items.Size > nPack - 1)
 			{
-				pPack = ((PCHARINFO)pCharData)->BankItems.Items[nPack - 1].pObject;
+				pPack = ((PCHARINFO)pCharData)->BankItems.Items[nPack - 1].get();
 			}
 #else
 			if (pCharData && ((PCHARINFO)pCharData)->pBankArray)
@@ -1718,7 +1718,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 	}
 	else if (!_stricmp(WindowName, "enviro"))
 	{
-		pPack = pContainerMgr->pWorldContainer.pObject;
+		pPack = pContainerMgr->pWorldContainer.get();
 	}
 
 	if (pPack)
@@ -3103,19 +3103,19 @@ static void AutoBankPulse()
 				{
 					CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
 					VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(gi);
-					if (ptr.pObject)
+					if (ptr)
 					{
-						if (ITEMINFO* pItem = GetItemFromContents(ptr.pObject))
+						if (ITEMINFO* pItem = ptr->GetItemDefinition())
 						{
 							bool bwesold = false;
-							if (pMerchantWnd->pSelectedItem.pObject)
+							if (pMerchantWnd->pSelectedItem)
 							{
-								if (pMerchantWnd->pSelectedItem.pObject->ID == ptr.pObject->ID)
+								if (pMerchantWnd->pSelectedItem->ID == ptr->ID)
 								{
 									gSellList.pop_front();
 									WriteChatf("Sold %d %s", pItem->StackSize, pItem->Name);
 
-									if (((EQ_Item*)ptr.pObject)->IsStackable())
+									if (((EQ_Item*)ptr.get())->IsStackable())
 									{
 										DoCommandf("/sellitem %d", pItem->StackSize);
 									}
@@ -3166,11 +3166,11 @@ static void AutoBankPulse()
 					if (CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable)
 					{
 						VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
-						if (ptr.pObject)
+						if (ptr)
 						{
-							if (PITEMINFO pItem = GetItemFromContents(ptr.pObject))
+							if (ITEMINFO* pItem = ptr->GetItemDefinition())
 							{
-								if (PickupItemNew(ptr.pObject))
+								if (PickupItemNew(ptr.get()))
 								{
 									gDeleteList.pop_front();
 									WriteChatf("Destroyed %s", pItem->Name);
@@ -3226,9 +3226,9 @@ static void AutoBankPulse()
 				// check toplevel slots
 				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 				{
-					if (CONTENTS* pCont = pChar->BankItems.Items[slot].pObject)
+					if (CONTENTS* pCont = pChar->BankItems.Items[slot].get())
 					{
-						if (ITEMINFO* pItem = GetItemFromContents(pCont))
+						if (ITEMINFO* pItem = pCont->GetItemDefinition())
 						{
 							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
 								continue; // dont add bags that has items inside of them...
@@ -3252,7 +3252,7 @@ static void AutoBankPulse()
 				// check the bags
 				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 				{
-					if (CONTENTS* pPack = pChar->BankItems.Items[slot].pObject)
+					if (CONTENTS* pPack = pChar->BankItems.Items[slot].get())
 					{
 						if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 						{

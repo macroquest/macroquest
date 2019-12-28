@@ -1470,10 +1470,10 @@ CONTENTS* GetEnviroContainer()
 	if (!pContainerMgr)
 		return nullptr;
 
-	if (!pContainerMgr->pWorldContainer.pObject)
+	if (!pContainerMgr->pWorldContainer)
 		return nullptr;
 
-	return pContainerMgr->pWorldContainer.pObject;
+	return pContainerMgr->pWorldContainer.get();
 }
 
 CContainerWnd* FindContainerForContents(CONTENTS* pContents)
@@ -8325,14 +8325,14 @@ bool WillFitInBank(CONTENTS* pContent)
 
 	for (size_t slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 	{
-		CONTENTS* pCont = pChar->BankItems.Items[slot].pObject;
+		CONTENTS* pCont = pChar->BankItems.Items[slot].get();
 		if (!pCont)
 		{
 			// if its empty it will fit.
 			return true;
 		}
 
-		ITEMINFO* pItem = GetItemFromContents(pCont);
+		ITEMINFO* pItem = pCont->GetItemDefinition();
 		if (!pItem) continue;
 
 		if (pItem->Type == ITEMTYPE_PACK)
@@ -8615,7 +8615,7 @@ ITEMINFO* GetItemFromContents(CONTENTS* c)
 	if (!c)
 		return nullptr;
 
-	return c->Item1 ? c->Item1 : c->Item2;
+	return c->GetItemDefinition();
 }
 
 struct EnumWindowsData

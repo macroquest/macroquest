@@ -185,11 +185,11 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 				if (!pRealEstateItem)
 					continue;
 
-				CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject;
+				CONTENTS* pCont = pRealEstateItem->Object.pItemBase.get();
 				if (!pCont)
 					continue;
 
-				ITEMINFO* pItem = GetItemFromContents(pCont);
+				ITEMINFO* pItem = pCont->GetItemDefinition();
 				if (!pItem)
 					continue;
 
@@ -254,11 +254,11 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 				if (!pRealEstateItem)
 					continue;
 
-				CONTENTS* pCont = pRealEstateItem->Object.pItemBase.pObject;
+				CONTENTS* pCont = pRealEstateItem->Object.pItemBase.get();
 				if (!pCont)
 					continue;
 
-				ITEMINFO* pItem = GetItemFromContents(pCont);
+				ITEMINFO* pItem = pCont->GetItemDefinition();
 				if (!pItem)
 					continue;
 

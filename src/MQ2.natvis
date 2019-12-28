@@ -80,4 +80,22 @@
 			</CustomListItems>
 		</Expand>
 	</Type>
+
+	<Type Name="eqlib::VePointer&lt;*&gt;">
+		<DisplayString Condition="m_pObject == 0">empty</DisplayString>
+		<DisplayString Condition="m_pObject != 0">VePointer {*m_pObject}</DisplayString>
+		<Expand>
+			<Item Condition="m_pObject != 0" Name="[ptr]">m_pObject</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="eqlib::VeArray&lt;*&gt;">
+		<DisplayString>{{Size={m_size} Capacity={m_capacity}}}</DisplayString>
+		<Expand>
+			<ArrayItems>
+				<Size>m_size</Size>
+				<ValuePointer>m_data</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
 </AutoVisualizer>

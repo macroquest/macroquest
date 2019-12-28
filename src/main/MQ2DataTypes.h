@@ -3096,13 +3096,13 @@ public:
 	{
 		if (pMerchantWnd)
 		{
-			int sz = pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer.GetSize();
+			int sz = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
 			if (sz)
 			{
 				if (VarPtr.Int >= 0 && VarPtr.Int < sz)
 				{
 					strcpy_s(Destination, MAX_STRING,
-						pMerchantWnd->PageHandlers[RegularMerchantPage].pObject->ItemContainer[VarPtr.Int].pCont->Item2->Name);
+						pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[VarPtr.Int].pCont->Item2->Name);
 					return true;
 				}
 			}
