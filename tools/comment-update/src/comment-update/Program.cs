@@ -312,7 +312,7 @@ namespace comment_update
             // Returns e.g. eqlib::someclass::nestedstruct
             var nsPath = "";
             var parent = record.CursorParent;
-            while (parent != null && new[] { CXCursorKind.CXCursor_Namespace, CXCursorKind.CXCursor_ClassDecl, CXCursorKind.CXCursor_StructDecl }.Contains(parent.Kind))
+            while (parent != null && new[] { CXCursorKind.CXCursor_Namespace, CXCursorKind.CXCursor_ClassDecl, CXCursorKind.CXCursor_StructDecl }.Contains(parent.CursorKind))
             {
                 nsPath = $"{parent}::{nsPath}";
                 parent = parent.CursorParent;
