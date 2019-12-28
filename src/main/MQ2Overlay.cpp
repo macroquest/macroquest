@@ -510,13 +510,15 @@ static bool ImGui_ImplWin32_UpdateMouseCursor()
 	if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
 		return false;
 
+	bool useWin32Cursor = false;
+
 	ImGuiMouseCursor imguiCursor = ImGui::GetMouseCursor();
 	if (imguiCursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
 	{
 		// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
 		::SetCursor(nullptr);
 	}
-	else
+	else if (pWndMgr)
 	{
 		const CursorClass* cc = pWndMgr->GetCursorClass();
 
@@ -553,25 +555,33 @@ static bool ImGui_ImplWin32_UpdateMouseCursor()
 			break;
 		}
 
-		if (useWin32Cursor)
-		{
-			LPCTSTR cursor = IDC_ARROW;
-
-			switch (imguiCursor)
-			{
-			case ImGuiMouseCursor_Hand:
-				cursor = IDC_HAND;
-				break;
-
-			default: break;
-			}
-
-			::SetCursor(::LoadCursor(nullptr, cursor));
-		}
-		else
+		if (!useWin32Cursor)
 		{
 			::SetCursor(cc->CursorList[cursorType]);
 		}
+	}
+	else
+	{
+		useWin32Cursor = true;
+	}
+
+	if (useWin32Cursor)
+	{
+		LPTSTR cursor = IDC_ARROW;
+		switch (imguiCursor)
+		{
+		case ImGuiMouseCursor_Arrow:      cursor = IDC_ARROW; break;
+		case ImGuiMouseCursor_TextInput:  cursor = IDC_IBEAM; break;
+		case ImGuiMouseCursor_ResizeAll:  cursor = IDC_SIZEALL; break;
+		case ImGuiMouseCursor_ResizeEW:   cursor = IDC_SIZEWE; break;
+		case ImGuiMouseCursor_ResizeNS:   cursor = IDC_SIZENS; break;
+		case ImGuiMouseCursor_ResizeNESW: cursor = IDC_SIZENESW; break;
+		case ImGuiMouseCursor_ResizeNWSE: cursor = IDC_SIZENWSE; break;
+		case ImGuiMouseCursor_Hand:       cursor = IDC_HAND; break;
+		default: break;
+		}
+
+		::SetCursor(::LoadCursor(nullptr, cursor));
 	}
 
 	return true;
