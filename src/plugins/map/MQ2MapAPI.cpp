@@ -1683,19 +1683,20 @@ void MoveMarker(MAPSPAWN* pMapSpawn)
 	}
 }
 
-int FindMarker(const char* szMark)
+int FindMarker(std::string_view szMark, int fallback)
 {
-	if (!_stricmp(szMark, "none"))
+	if (ci_equals(szMark, "none"))
 		return 0;
-	else if (!_stricmp(szMark, "triangle"))
+	if (ci_equals(szMark, "triangle"))
 		return 1;
-	else if (!_stricmp(szMark, "square"))
+	if (ci_equals(szMark, "square"))
 		return 2;
-	else if (!_stricmp(szMark, "diamond"))
+	if (ci_equals(szMark, "diamond"))
 		return 3;
-	else if (!_stricmp(szMark, "ring"))
+	if (ci_equals(szMark, "ring"))
 		return 4;
-	return 99;
+
+	return fallback;
 }
 
 // make a current timestamp in tenths of a second
@@ -1885,9 +1886,8 @@ void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
 
 	// Update index labels for remaining locs
 	UpdateMapLocIndexes();
-	for (auto it = maplocOrder.begin(); it != maplocOrder.end(); it++)
+	for (MAPLOC* locToUpdate : maplocOrder)
 	{
-		MAPLOC* locToUpdate = *it;
 		if (locToUpdate->mapSpawn)
 		{
 			RemoveSpawn(locToUpdate->mapSpawn);
@@ -1903,12 +1903,12 @@ void DeleteMapLoc(MAPLOC* mapLoc)
 {
 	if (mapLoc)
 	{
-		for (int i = 0; i < 150; i++)
+		for (auto& markerLine : mapLoc->markerLines)
 		{
-			if (mapLoc->markerLines[i])
+			if (markerLine)
 			{
-				DeleteLine(mapLoc->markerLines[i]);
-				mapLoc->markerLines[i] = nullptr;
+				DeleteLine(markerLine);
+				markerLine = nullptr;
 			}
 		}
 
@@ -2079,7 +2079,7 @@ void AddMapSpawnForMapLoc(MAPLOC* mapLoc)
 	pMapSpawn->pSpawn = pFakeSpawn;
 	pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn, CONCOLOR_BLACK);
 	pMapSpawn->Explicit = true; // These are a unique "spawn type" but we don't have a way to make a new entry in the enum, so force show just like a /mapshow on a filtered object
-	pMapSpawn->pVector = 0;
+	pMapSpawn->pVector = nullptr;
 	pMapSpawn->Highlight = false;
 	if (pMapSpawn->Marker != 0)
 		pMapSpawn->Marker = 0;

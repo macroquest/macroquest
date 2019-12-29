@@ -125,11 +125,11 @@ extern std::map<std::string, MAPLOC*> LocationMap;
 extern MAPLOC* DefaultMapLoc;
 
 extern DWORD HighlightColor;
-extern DWORD HighlightSIDELEN;
-extern BOOL HighlightPulse;
-extern BOOL HighlightPulseIncreasing;
+extern int HighlightSIDELEN;
+extern bool HighlightPulse;
+extern bool HighlightPulseIncreasing;
 extern int HighlightPulseIndex;
-extern DWORD HighlightPulseDiff;
+extern int HighlightPulseDiff;
 
 extern char MapNameString[MAX_STRING];
 extern char MapTargetNameString[MAX_STRING];
@@ -184,7 +184,7 @@ void AddMapSpawnForMapLoc(MAPLOC* mapLoc);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);
-int FindMarker(const char* szMark);
+int FindMarker(std::string_view szMark, int fallback = 99);
 long  MakeTime();
 
 bool dataMapSpawn(const char* szIndex, MQTypeVar& Ret);

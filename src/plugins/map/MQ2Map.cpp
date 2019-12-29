@@ -32,15 +32,15 @@ float PullY = 0.0f;
 bool wasAnon = false;
 bool needAnon = false;
 bool Update = true;
-WORD currentZoneId = 0;
+uint16_t currentZoneId = 0;
 bool repeatMaphide = false;
 bool repeatMapshow = false;
 DWORD HighlightColor = 0xFF700070;
-DWORD HighlightSIDELEN = 100;
-BOOL HighlightPulse = FALSE;
-BOOL HighlightPulseIncreasing = TRUE;
+int HighlightSIDELEN = 100;
+bool HighlightPulse = false;
+bool HighlightPulseIncreasing = true;
 int HighlightPulseIndex = 0;
-DWORD HighlightPulseDiff = HighlightSIDELEN / 10;
+int HighlightPulseDiff = HighlightSIDELEN / 10;
 
 #define INVALID_FLOOR ((float)-1.0e27)
 
@@ -131,7 +131,7 @@ MAPFILTER MapFilterOptions[] =
 	{ "CampRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of Camp circle to # (omit or set to 0 to disable)" },
 	{ "PullRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of casting circle to # (omit or set to 0 to disable)" },
 
-	{ NULL,           FALSE, (DWORD)-1,         FALSE, (DWORD)MAPFILTER_Invalid, FALSE, NULL }
+	{ nullptr,        FALSE, (DWORD)-1,         FALSE, (DWORD)MAPFILTER_Invalid, FALSE, NULL }
 };
 
 bool RButtonDown()
@@ -269,13 +269,9 @@ PLUGIN_API void InitializePlugin()
 	bmMapRefresh = AddMQ2Benchmark("Map Refresh");
 
 	char szBuffer[MAX_STRING] = { 0 };
-	char tmp_1[MAX_STRING] = { 0 };
-	char tmp_2[MAX_STRING] = { 0 };
 
 	for (int i = 0; MapFilterOptions[i].szName; i++)
 	{
-		sprintf_s(szBuffer, "%s-Color", MapFilterOptions[i].szName);
-
 		// If it's the CampRadius or PullRadius, let's not get the last on/off state, lets assume it's off so we don't draw a circle at 0, 0.
 		if (_stricmp(MapFilterOptions[i].szName, "CampRadius") && _stricmp(MapFilterOptions[i].szName, "PullRadius"))
 		{
@@ -287,14 +283,13 @@ PLUGIN_API void InitializePlugin()
 		}
 
 		// Lets see what color option was last saved as, if any. If none then use the default.
-		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", szBuffer, MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
-		sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
-		GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", tmp_2, MAX_STRING, INIFileName);
-		DWORD mark = FindMarker(tmp_2);
-		if (mark == 99) mark = 0;
+		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", MapFilterOptions[i].szName),
+			MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
+		MapFilterOptions[i].MarkerSize = GetPrivateProfileInt("Marker Filters", fmt::format("{}-Size",
+			MapFilterOptions[i].szName), 0, INIFileName);
 
-		MapFilterOptions[i].Marker = mark;
-		MapFilterOptions[i].MarkerSize = GetPrivateProfileInt("Marker Filters", tmp_1, 0, INIFileName);
+		std::string markerString = GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", INIFileName);
+		MapFilterOptions[i].Marker = FindMarker(markerString, 0);
 	}
 
 	activeLayer = GetPrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
@@ -305,8 +300,8 @@ PLUGIN_API void InitializePlugin()
 	repeatMaphide = GetPrivateProfileBool("Map Filters", "Maphide-Repeat", false, INIFileName);
 
 	HighlightSIDELEN = GetPrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
-	HighlightPulse = GetPrivateProfileInt("Map Filters", "HighPulse", HighlightPulse, INIFileName);
-	HighlightPulseIncreasing = TRUE;
+	HighlightPulse = GetPrivateProfileBool("Map Filters", "HighPulse", HighlightPulse, INIFileName);
+	HighlightPulseIncreasing = true;
 	HighlightPulseIndex = 0;
 	HighlightPulseDiff = HighlightSIDELEN / 10;
 
@@ -326,14 +321,14 @@ PLUGIN_API void InitializePlugin()
 	// Do not use Custom, since the string isn't stored
 	MapFilterOptions[MAPFILTER_Custom].Enabled = 0;
 
-	AddCommand("/mapfilter", MapFilters, 0, 1, 1);
-	AddCommand("/maphide", MapHideCmd, 0, 1, 1);
-	AddCommand("/mapshow", MapShowCmd, 0, 1, 1);
-	AddCommand("/highlight", MapHighlightCmd, 0, 1, 1);
-	AddCommand("/mapnames", MapNames, 0, 1, 1);
-	AddCommand("/mapclick", MapClickCommand, 0, 1, 0);
-	AddCommand("/mapactivelayer", MapActiveLayerCmd, 0, 1, 1);
-	AddCommand("/maploc", MapSetLocationCmd, 0, 1, 1);
+	AddCommand("/mapfilter", MapFilters, false, true, true);
+	AddCommand("/maphide", MapHideCmd, false, true, true);
+	AddCommand("/mapshow", MapShowCmd, false, true, true);
+	AddCommand("/highlight", MapHighlightCmd, false, true, true);
+	AddCommand("/mapnames", MapNames, false, true, true);
+	AddCommand("/mapclick", MapClickCommand, false, true, false);
+	AddCommand("/mapactivelayer", MapActiveLayerCmd, false, true, true);
+	AddCommand("/maploc", MapSetLocationCmd, false, true, true);
 
 	// Hook the constructor. If window already exists then we just hook the vftable.
 	// If it does not exist then we need to hook the constructor to do the same thing when the window is created.
@@ -388,7 +383,7 @@ PLUGIN_API void OnPulse()
 		{
 			if (!LocationMap.empty())
 			{
-				MapRemoveLocation(0, "");
+				MapRemoveLocation(nullptr, "");
 			}
 
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
@@ -510,7 +505,7 @@ PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 	}
 }
 
-PLUGIN_API  PMAPLINE MQ2MapAddLine()
+PLUGIN_API PMAPLINE MQ2MapAddLine()
 {
 	return InitLine();
 }

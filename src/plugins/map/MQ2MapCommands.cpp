@@ -20,6 +20,8 @@
 #include <iomanip>
 #include <tuple>
 
+#include <fmt/format.h>
+
 // ***************************************************************************
 // Function:    MapFilters
 // Description: Our '/mapfilter' command
@@ -30,7 +32,6 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 {
 	if (!pChar) return;
 
-	char szBuffer[MAX_STRING] = { 0 };
 	char Buff[MAX_STRING] = { 0 };
 	DWORD dwValue = 0;
 
@@ -44,13 +45,14 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 	MAPFILTER* pMapFilter = &MapFilterOptions[nMapFilter];
 	if (!RequirementsMet(nMapFilter))
 	{
-		sprintf_s(szBuffer, "'%s' requires '%s' option.  Please enable this option first.", pMapFilter->szName, MapFilterOptions[pMapFilter->RequiresOption].szName);
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		WriteChatf("'%s' requires '%s' option.  Please enable this option first.", pMapFilter->szName, MapFilterOptions[pMapFilter->RequiresOption].szName);
 		return;
 	}
 
 	if (!szValue)
 	{
+		char szBuffer[MAX_STRING] = { 0 };
+
 		if (pMapFilter->bIsToggle)
 		{
 			sprintf_s(szBuffer, "%s: %s", pMapFilter->szName, szFilterMap[pMapFilter->Enabled]);
@@ -73,13 +75,14 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 
 		if (pMapFilter->DefaultColor != -1)
 		{
-			char szBuffer2[MAX_STRING] = { 0 };
-			DWORD R, G, B;
-			R = (pMapFilter->Color & 0xFF0000) / 0x10000;
-			G = (pMapFilter->Color & 0xFF00) / 0x100;
-			B = pMapFilter->Color & 0xFF;
-			sprintf_s(szBuffer2, "%s (Color: %d %d %d)", szBuffer, R, G, B);
-			strcpy_s(szBuffer, szBuffer2);
+			DWORD R = (pMapFilter->Color & 0xFF0000) / 0x10000;
+			DWORD G = (pMapFilter->Color & 0xFF00) / 0x100;
+			DWORD B = pMapFilter->Color & 0xFF;
+			WriteChatf("%s (Color: %d %d %d)", szBuffer, R, G, B);
+		}
+		else
+		{
+			WriteChatf("%s", szBuffer);
 		}
 	}
 	else
@@ -98,7 +101,7 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 			{
 				pMapFilter->Enabled = 1 - pMapFilter->Enabled;
 			}
-			sprintf_s(szBuffer, "%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
+			WriteChatf("%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
 		}
 		else if (nMapFilter == MAPFILTER_Custom)
 		{
@@ -106,13 +109,14 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 			if (szValue[0] == 0)
 			{
 				pMapFilter->Enabled = 0;
-				sprintf_s(szBuffer, "%s is now set to: Off", pMapFilter->szName);
+				WriteChatf("%s is now set to: Off", pMapFilter->szName);
 			}
 			else
 			{
 				pMapFilter->Enabled = 1;
 				ParseSearchSpawn(szValue, &MapFilterCustom);
-				sprintf_s(szBuffer, "%s is now set to: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
+
+				WriteChatf("%s is now set to: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
 			}
 		}
 		else if (nMapFilter == MAPFILTER_Marker)
@@ -123,17 +127,17 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 			if (!_stricmp(szFilterMap[0], szValue))
 			{
 				pMapFilter->Enabled = 0;
-				sprintf_s(szBuffer, "%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
+				WriteChatf("%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
 			}
 			else if (!_stricmp(szFilterMap[1], szValue))
 			{
 				pMapFilter->Enabled = 1;
-				sprintf_s(szBuffer, "%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
+				WriteChatf("%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
 			}
 			else
 			{
 				pMapFilter->Enabled = 1;
-				sprintf_s(szBuffer, "%s %s", pMapFilter->szName, FormatMarker(szValue, Buff, sizeof(Buff)));
+				WriteChatf("%s %s", pMapFilter->szName, FormatMarker(szValue, Buff, sizeof(Buff)));
 			}
 		}
 		else
@@ -152,30 +156,28 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
 				PullY = pChar->Y;
 			}
 
-			sprintf_s(szBuffer, "%s is now set to: %d", pMapFilter->szName, pMapFilter->Enabled);
+			WriteChatf("%s is now set to: %d", pMapFilter->szName, pMapFilter->Enabled);
 		}
 	}
 
-	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	if (szValue)
 	{
-		_itoa_s(pMapFilter->Enabled, szBuffer, 10);
-		WritePrivateProfileString("Map Filters", pMapFilter->szName, szBuffer, INIFileName);
+		WritePrivateProfileBool("Map Filters", pMapFilter->szName, pMapFilter->Enabled, INIFileName);
 	}
 }
 
 void MapFilters(SPAWNINFO* pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
+
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 	char* szRest = GetNextArg(szLine);
-	char szBuffer[MAX_STRING] = { 0 };
 
 	if (szArg[0] == 0) // Display Settings
 	{
-		WriteChatColor("Map filtering settings:", USERCOLOR_DEFAULT);
-		WriteChatColor("-----------------------", USERCOLOR_DEFAULT);
+		WriteChatColor("Map filtering settings:");
+		WriteChatColor("-----------------------");
 
 		for (DWORD i = 0; MapFilterOptions[i].szName != nullptr; i++)
 		{
@@ -185,14 +187,14 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!_strnicmp(szArg, "help", 4)) // Display Help
 	{
-		WriteChatColor("Map filtering options:", USERCOLOR_DEFAULT);
+		WriteChatColor("Map filtering options:");
+
 		for (DWORD i = 0; MapFilterOptions[i].szName != nullptr; i++)
 		{
-			sprintf_s(szBuffer, "%s%s: %s", MapFilterOptions[i].szName, (MapFilterOptions[i].bIsToggle) ? "" : " #", MapFilterOptions[i].szHelpString);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+			WriteChatf("%s%s: %s", MapFilterOptions[i].szName, (MapFilterOptions[i].bIsToggle) ? "" : " #", MapFilterOptions[i].szHelpString);
 		}
 
-		WriteChatColor("'option' color [r g b]: Set display color for 'option' (Omit to reset to default)", USERCOLOR_DEFAULT);
+		WriteChatColor("'option' color [r g b]: Set display color for 'option' (Omit to reset to default)");
 	}
 	else // Set Option
 	{
@@ -205,8 +207,7 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 				{
 					if (MapFilterOptions[i].DefaultColor == -1)
 					{
-						sprintf_s(szBuffer, "Option '%s' does not have a color.", MapFilterOptions[i].szName);
-						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+						WriteChatf("Option '%s' does not have a color.", MapFilterOptions[i].szName);
 					}
 					else
 					{
@@ -223,17 +224,18 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 							R = GetIntFromString(szArg, 256);
 							G = GetIntFromString(GetArg(szArg, szRest, 3), 256);
 							B = GetIntFromString(GetArg(szArg, szRest, 4), 256);
-							if (R>255) R = 255;
-							if (G>255) G = 255;
-							if (B>255) B = 255;
+							if (R > 255) R = 255;
+							if (G > 255) G = 255;
+							if (B > 255) B = 255;
 							MapFilterOptions[i].Color = R * 0x10000 + G * 0x100 + B;
 						}
 
-						sprintf_s(szBuffer, "Option '%s' color set to: %d %d %d", MapFilterOptions[i].szName, R, G, B);
-						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-						_itoa_s(MapFilterOptions[i].Color & 0xFFFFFF, szBuffer, 10);
-						sprintf_s(szBuffer2, "%s-Color", MapFilterOptions[i].szName);
-						WritePrivateProfileString("Map Filters", szBuffer2, szBuffer, INIFileName);
+						WriteChatf("Option '%s' color set to: %d %d %d", MapFilterOptions[i].szName, R, G, B);
+
+						WritePrivateProfileInt("Map Filters",
+							fmt::format("{}-Color", MapFilterOptions[i].szName),
+							MapFilterOptions[i].Color & 0xFFFFFF, INIFileName);
+
 						MapFilterOptions[i].Color |= 0xFF000000;
 					}
 				}
@@ -241,11 +243,15 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 				{
 					MapFilterSetting(pChar, i, szRest);
 				}
+
 				Found = &MapFilterOptions[i];
 			}
 		}
+
 		if (!Found)
+		{
 			SyntaxError("Usage: /mapfilter [option|help]");
+		}
 		else if (Found->RegenerateOnChange)
 		{
 			MapClear();
@@ -256,8 +262,7 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 
 void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine)
 {
-	char szBuffer[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 	const int newActiveLayer = GetIntFromString(szLine, -1);
 	if (szLine == nullptr || szLine[0] == 0 || newActiveLayer < 0 || newActiveLayer > 3)
 	{
@@ -267,13 +272,10 @@ void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine)
 
 	activeLayer = newActiveLayer;
 
-	sprintf_s(szBuffer, "Map Active Layer: %d", activeLayer);
-	WriteChatColor(szBuffer);
+	WriteChatf("Map Active Layer: %d", activeLayer);
 
 	// Write setting to file
-	char szTest[5];
-	sprintf_s(szTest, "%d", activeLayer);
-	WritePrivateProfileString("Map Filters", "ActiveLayer", szTest, INIFileName);
+	WritePrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
 
 	// refresh map
 	MapClear();
@@ -302,7 +304,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	bool isDefaultLocSettings = true;
 	bool isFirstLoop = true;
 
-	if (szLine == 0 || szLine[0] == 0)
+	if (szLine == nullptr || szLine[0] == 0)
 	{
 		MapLocSyntaxOutput();
 		return;
@@ -576,25 +578,25 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	std::stringstream MapLocVars;
 	MapLocVars << "MapLoc: ";
 
-	if (size != 0 && size[0] != 0)
+	if (size[0] != 0)
 	{
 		loc->lineSize = GetIntFromString(size, DefaultMapLoc->lineSize);
 	}
-	if (width != 0 && width[0] != 0)
+	if (width[0] != 0)
 	{
 		loc->width = GetIntFromString(width, DefaultMapLoc->width);
 	}
-	if (red != 0 && red[0] != 0)
+	if (red[0] != 0)
 	{
 		loc->r_color = GetIntFromString(red, DefaultMapLoc->r_color);
 		loc->g_color = GetIntFromString(green, DefaultMapLoc->g_color);
 		loc->b_color = GetIntFromString(blue, DefaultMapLoc->b_color);
 	}
-	if (radius != 0 && radius[0] != 0)
+	if (radius[0] != 0)
 	{
 		loc->radius = GetIntFromString(radius, DefaultMapLoc->radius);
 	}
-	if (radius_red != 0 && radius_red[0] != 0)
+	if (radius_red[0] != 0)
 	{
 		loc->rr_color = GetIntFromString(radius_red, DefaultMapLoc->rr_color);
 		loc->rg_color = GetIntFromString(radius_green, DefaultMapLoc->rg_color);
@@ -610,7 +612,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 		loc->isCreatedFromDefaultLoc = isDefaultLocSettings;
 		MapLocVars << "y:" << loc->yloc << " x:" << loc->xloc << " z:" << loc->zloc;
 
-		if (label != 0 && label[0] != 0)
+		if (label[0] != 0)
 		{
 			loc->label = label;
 			MapLocVars << ", Label: " << label;
@@ -626,15 +628,15 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 		MapLocVars << "DefaultLoc";
 
 		// If we aren't placing a loc, then the values are updates to the default. Persist them.
-		WritePrivateProfileString("MapLoc", "Size", std::to_string(loc->lineSize).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "Width", std::to_string(loc->width).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "Red", std::to_string(loc->r_color).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "Green", std::to_string(loc->g_color).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "Blue", std::to_string(loc->b_color).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "Radius", std::to_string(loc->radius).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "RadiusGreen", std::to_string(loc->rg_color).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "RadiusRed", std::to_string(loc->rr_color).c_str(), INIFileName);
-		WritePrivateProfileString("MapLoc", "RadiusBlue", std::to_string(loc->rb_color).c_str(), INIFileName);
+		WritePrivateProfileInt("MapLoc", "Size", loc->lineSize, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Width", loc->width, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Red", loc->r_color, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Green", loc->g_color, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Blue", loc->b_color, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Radius", loc->radius, INIFileName);
+		WritePrivateProfileInt("MapLoc", "RadiusGreen", loc->rg_color, INIFileName);
+		WritePrivateProfileInt("MapLoc", "RadiusRed", loc->rr_color, INIFileName);
+		WritePrivateProfileInt("MapLoc", "RadiusBlue", loc->rb_color, INIFileName);
 		UpdateDefaultMapLoc();
 	}
 
@@ -653,13 +655,12 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
-	char red[MAX_STRING] = { 0 };
-	char green[MAX_STRING] = { 0 };
-	char blue[MAX_STRING] = { 0 };
+	char red[64] = { 0 };
+	char green[64] = { 0 };
+	char blue[64] = { 0 };
 	std::stringstream ss(szLine);
 
-	if (szLine == 0 || szLine[0] == 0)
+	if (szLine[0] == 0)
 	{
 		SyntaxError("Usage: /highlight [reset|spawnfilter|size|pulse|[color # # #]]");
 		return;
@@ -711,14 +712,14 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 		unsigned char G = GetIntFromString(green, 255);
 		unsigned char B = GetIntFromString(blue, 255);
 		HighlightColor = 0xFF000000 | (R << 16) | (G << 8) | (B);
-		sprintf_s(szBuffer, "Highlight color: %d %d %d", R, G, B);
-		WriteChatColor(szBuffer);
+
+		WriteChatf("Highlight color: %d %d %d", R, G, B);
 		return;
 	}
 	else if (!_stricmp(szArg, "reset"))
 	{
-		MapHighlight(0);
-		WriteChatColor("Highlighting reset", USERCOLOR_DEFAULT);
+		MapHighlight(nullptr);
+		WriteChatColor("Highlighting reset");
 		return;
 	}
 	else if (!_stricmp(szArg, "size"))
@@ -733,31 +734,30 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		if (GetIntFromString(szArg, -1) == -1) {
+		if (GetIntFromString(szArg, -1) == -1)
+		{
 			SyntaxError("Usage: /highlight size #");
 			return;
 		}
 
 		HighlightSIDELEN = GetIntFromString(szArg, HighlightSIDELEN);
 		PulseReset();
-		sprintf_s(szBuffer, "Highlight size: %d", HighlightSIDELEN);
-		WriteChatColor(szBuffer);
+
+		WriteChatf("Highlight size: \ag%d", HighlightSIDELEN);
 
 		// Write setting to file
-		char szTest[5];
-		sprintf_s(szTest, "%d", HighlightSIDELEN);
-		WritePrivateProfileString("Map Filters", "HighSize", szTest, INIFileName);
+		WritePrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
 		return;
 	}
 	else if (!_stricmp(szArg, "pulse"))
 	{
 		HighlightPulse = !HighlightPulse;
 		PulseReset();
-		sprintf_s(szBuffer, "Highlight pulse: %s", HighlightPulse ? "ON" : "OFF");
-		WriteChatColor(szBuffer);
+
+		WriteChatf("Highlight pulse: %s", HighlightPulse ? "\agON" : "\arOFF");
 
 		// Write setting to file
-		WritePrivateProfileString("Map Filters", "HighPulse", HighlightPulse ? "1" : "0", INIFileName);
+		WritePrivateProfileBool("Map Filters", "HighPulse", HighlightPulse, INIFileName);
 		return;
 	}
 
@@ -773,7 +773,7 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 
 void PulseReset()
 {
-	HighlightPulseIncreasing = TRUE;
+	HighlightPulseIncreasing = true;
 	HighlightPulseIndex = 0;
 	HighlightPulseDiff = HighlightSIDELEN / 10;
 }
@@ -781,8 +781,8 @@ void PulseReset()
 void MapHideCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
-	char szBuffer[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
+
 	if (szLine == nullptr || szLine[0] == 0)
 	{
 		SyntaxError("Usage: /maphide [spawnfilter|reset|repeat]");
@@ -800,15 +800,11 @@ void MapHideCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (!_stricmp(szArg, "repeat"))
 	{
-		if (repeatMaphide)
-			repeatMaphide = FALSE;
-		else
-			repeatMaphide = TRUE;
+		repeatMaphide = !repeatMaphide;
 
-		_itoa_s(repeatMaphide, szBuffer, 10);
-		WritePrivateProfileString("Map Filters", "Maphide-Repeat", szBuffer, INIFileName);
+		WritePrivateProfileInt("Map Filters", "Maphide-Repeat", repeatMaphide, INIFileName);
 
-		WriteChatf("maphide repeat set to: %s", (repeatMaphide ? "on" : "off"));
+		WriteChatf("maphide repeat set to: %s", (repeatMaphide ? "\agon" : "\aroff"));
 		return;
 	}
 
@@ -826,7 +822,7 @@ void MapShowCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
 	char szBuffer[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
+	bRunNextCommand = true;
 
 	if (szLine == nullptr || szLine[0] == 0)
 	{
@@ -839,22 +835,18 @@ void MapShowCmd(SPAWNINFO* pChar, char* szLine)
 	{
 		MapClear();
 		MapGenerate();
+
 		WriteChatColor("Map spawns regenerated");
 		return;
 	}
 
 	if (!_stricmp(szArg, "repeat"))
 	{
-		if (repeatMapshow)
-			repeatMapshow = FALSE;
-		else
-			repeatMapshow = TRUE;
+		repeatMapshow = !repeatMapshow;
 
-		_itoa_s(repeatMapshow, szBuffer, 10);
-		WritePrivateProfileString("Map Filters", "Mapshow-Repeat", szBuffer, INIFileName);
+		WritePrivateProfileBool("Map Filters", "Mapshow-Repeat", repeatMapshow, INIFileName);
 
-		sprintf_s(szBuffer, "mapshow repeat set to: %s", (repeatMapshow ? "on" : "off"));
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		WriteChatf("mapshow repeat set to: %s", (repeatMapshow ? "\agon" : "\aroff"));
 		return;
 	}
 
@@ -863,35 +855,35 @@ void MapShowCmd(SPAWNINFO* pChar, char* szLine)
 		MQSpawnSearch ssShow;
 		ClearSearchSpawn(&ssShow);
 		ParseSearchSpawn(szLine, &ssShow);
-		sprintf_s(szBuffer, "%d previously hidden spawns shown", MapShow(ssShow));
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+
+		WriteChatf("%d previously hidden spawns shown", MapShow(ssShow));
 	}
 }
 
 void MapNames(SPAWNINFO* pChar, char* szLine)
 {
-	bRunNextCommand = TRUE;
-	char szOut[MAX_STRING] = { 0 };
+	bRunNextCommand = true;
+
 	if (!szLine[0])
 	{
-		sprintf_s(szOut, "Normal naming string: %s", MapNameString);
-		WriteChatColor(szOut, USERCOLOR_DEFAULT);
-		sprintf_s(szOut, "Target naming string: %s", MapTargetNameString);
-		WriteChatColor(szOut, USERCOLOR_DEFAULT);
+		WriteChatf("Normal naming string: %s", MapNameString);
+		WriteChatf("Target naming string: %s", MapTargetNameString);
 		return;
 	}
 
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 	char* szRest = GetNextArg(szLine);
+
 	if (!_stricmp(szArg, "target"))
 	{
 		if (!_stricmp(szRest, "reset"))
 			strcpy_s(MapTargetNameString, "%N");
 		else
 			strcpy_s(MapTargetNameString, szRest);
-		sprintf_s(szOut, "Target naming string: %s", MapTargetNameString);
-		WriteChatColor(szOut, USERCOLOR_DEFAULT);
+
+		WriteChatf("Target naming string: %s", MapTargetNameString);
+
 		WritePrivateProfileString("Naming Schemes", "Target", MapTargetNameString, INIFileName);
 		MapClear();
 		MapGenerate();
@@ -902,8 +894,9 @@ void MapNames(SPAWNINFO* pChar, char* szLine)
 			strcpy_s(MapNameString, "%N");
 		else
 			strcpy_s(MapNameString, szRest);
-		sprintf_s(szOut, "Normal naming string: %s", MapNameString);
-		WriteChatColor(szOut, USERCOLOR_DEFAULT);
+
+		WriteChatf("Normal naming string: %s", MapNameString);
+
 		WritePrivateProfileString("Naming Schemes", "Normal", MapNameString, INIFileName);
 		MapClear();
 		MapGenerate();
@@ -995,12 +988,13 @@ DWORD ParseCombo(char* Combo)
 
 void MapClickCommand(SPAWNINFO* pChar, char* szLine)
 {
+	bRunNextCommand = true;
+
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /mapclick [left] <list|<key[+key[...]]> <clear|command>>");
 		return;
 	}
-	bRunNextCommand = TRUE;
 
 	auto f = [](char szArg[MAX_STRING], char* szRest, char(&command_array)[16][MAX_STRING], const char* szSection)
 	{
@@ -1013,48 +1007,41 @@ void MapClickCommand(SPAWNINFO* pChar, char* szLine)
 			{
 				if (command_array[i][0])
 				{
-					sprintf_s(szBuffer, "%s: %s", DescribeCombo(i), command_array[i]);
-					WriteChatColor(szBuffer);
+					WriteChatf("%s: %s", DescribeCombo(i), command_array[i]);
 					Count++;
 				}
 			}
 
-			sprintf_s(szBuffer, "%d special right-click commands", Count);
-			WriteChatColor(szBuffer);
+			WriteChatf("%d special right-click commands", Count);
 			return;
 		}
 
 		DWORD Combo = ParseCombo(szArg);
 		if (!Combo)
 		{
-			sprintf_s(szBuffer, "Invalid combo '%s'", szArg);
-			WriteChatColor(szBuffer);
+			WriteChatf("Invalid combo '%s'", szArg);
 			return;
 		}
 
 		if (!szRest[0])
 		{
-			sprintf_s(szBuffer, "%s: %s", DescribeCombo(Combo), command_array[Combo]);
-			WriteChatColor(szBuffer);
+			WriteChatf("%s: %s", DescribeCombo(Combo), command_array[Combo]);
 			return;
 		}
 
 		if (!_stricmp(szRest, "clear"))
 		{
 			command_array[Combo][0] = 0;
+			WritePrivateProfileString(szSection, fmt::format("KeyCombo{:d}", Combo), command_array[Combo], INIFileName);
 
-			sprintf_s(szBuffer, "KeyCombo%d", Combo);
-			WritePrivateProfileString(szSection, szBuffer, command_array[Combo], INIFileName);
-			sprintf_s(szBuffer, "%s -- %s cleared", szSection, DescribeCombo(Combo));
-			WriteChatColor(szBuffer);
+			WriteChatf("%s -- %s cleared", szSection, DescribeCombo(Combo));
 			return;
 		}
 
 		strcpy_s(command_array[Combo], szRest);
-		sprintf_s(szBuffer, "KeyCombo%d", Combo);
-		WritePrivateProfileString(szSection, szBuffer, command_array[Combo], INIFileName);
-		sprintf_s(szBuffer, "%s -- %s: %s", szSection, DescribeCombo(Combo), command_array[Combo]);
-		WriteChatColor(szBuffer);
+		WritePrivateProfileString(szSection, fmt::format("KeyCombo{:d}", Combo), command_array[Combo], INIFileName);
+
+		WriteChatf("%s -- %s: %s", szSection, DescribeCombo(Combo), command_array[Combo]);
 	};
 
 	char szArg[MAX_STRING] = { 0 };
@@ -1111,7 +1098,7 @@ char* FormatMarker(char* szLine, char* szDest, size_t BufferSize)
 	{
 		if (!_stricmp(MarkType, MapFilterOptions[i].szName))
 		{
-			DWORD Marker = FindMarker(MarkShape);
+			int Marker = FindMarker(MarkShape);
 			if (Marker == 99)
 			{
 				sprintf_s(szDest, BufferSize, "unchanged, unknown shape: '%s'", MarkShape);
@@ -1129,13 +1116,8 @@ char* FormatMarker(char* szLine, char* szDest, size_t BufferSize)
 				}
 			}
 
-			char tmp_1[MAX_STRING] = { 0 };
-			char tmp_2[MAX_STRING] = { 0 };
-			sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
-			sprintf_s(tmp_2, "%d", Size);
-
 			WritePrivateProfileString("Marker Filters", MapFilterOptions[i].szName, szMarkType[Marker], INIFileName);
-			WritePrivateProfileString("Marker Filters", tmp_1, tmp_2, INIFileName);
+			WritePrivateProfileInt("Marker Filters", fmt::format("{}-Size", MapFilterOptions[i].szName), Size, INIFileName);
 
 			MapFilterOptions[i].Marker = Marker;
 			MapFilterOptions[i].MarkerSize = Size;
