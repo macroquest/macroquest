@@ -51,10 +51,11 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	{
 		strFileName = strFileName.substr(0, Pos);
 	}
+	std::string strFileNameWithDll = strFileName + ".dll";
 
-	if (HMODULE hThemod = GetModuleHandle((strFileName + ".dll").data()))
+	if (HMODULE hThemod = GetModuleHandle(strFileNameWithDll.c_str()))
 	{
-		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded", (strFileName + ".dll").c_str());
+		DebugSpew("LoadMQ2Plugin(%s) already loaded", strFileNameWithDll.c_str());
 		return 2;
 	}
 
@@ -62,7 +63,14 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 
 	DebugSpew("LoadMQ2Plugin(%s)", strFileName.c_str());
 
-	std::filesystem::path pathToPlugin = std::filesystem::path(mq::internal_paths::Plugins) / (strFileName + ".dll");
+	std::filesystem::path pathToPlugin;
+
+	if (ci_equals(strFileName, "mq2ic"))
+		pathToPlugin = std::filesystem::path(mq::internal_paths::MQRoot);
+	else
+		pathToPlugin = std::filesystem::path(mq::internal_paths::Plugins);
+	pathToPlugin /= strFileNameWithDll;
+
 	HMODULE hmod = LoadLibrary(pathToPlugin.string().c_str());
 	if (!hmod)
 	{

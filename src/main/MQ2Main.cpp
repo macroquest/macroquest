@@ -629,7 +629,7 @@ bool MQ2Initialize()
 	InitializeMQ2Detours();
 
 	// from now on MQ2Ic is not optional.
-	LoadMQ2Plugin("../mq2ic");
+	LoadMQ2Plugin("mq2ic");
 
 	if (ghmq2ic = GetModuleHandle("mq2ic.dll"))
 		InitializeMQ2IcExports();

@@ -401,8 +401,12 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 		while (pLoop)
 		{
-			WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
-			Count++;
+			// TODO: Remove mq2ic from plugin list
+			if (!ci_equals(pLoop->szFilename, "mq2ic"))
+			{
+				WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
+				Count++;
+			}
 			pLoop = pLoop->pNext;
 		}
 
@@ -419,13 +423,14 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 	if (szName[0] == 0)
 	{
-		SyntaxError("Usage: /Plugin name [unload] [noauto], or /Plugin list");
+		SyntaxError("Usage: /plugin name [unload] [noauto], or /Plugin list");
 		return;
 	}
 
 	if (!_strnicmp(szCommand, "unload", 6))
 	{
-		if (UnloadMQ2Plugin(szName))
+		// TODO: Remove mq2ic from plugin list
+		if (!ci_equals(szName, "mq2ic") && UnloadMQ2Plugin(szName))
 		{
 			WriteChatf("Plugin '%s' unloaded.", szName);
 
@@ -441,7 +446,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		if (LoadMQ2Plugin(szName))
+		// TODO: Remove mq2ic from plugin list
+		if (!ci_equals(szName, "mq2ic") && LoadMQ2Plugin(szName))
 		{
 			WriteChatf("Plugin '%s' loaded.", szName);
 
