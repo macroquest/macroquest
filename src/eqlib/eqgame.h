@@ -1239,4 +1239,4 @@
 //
 
 #define __eqgraphics_fopen_x                                       0x101473C8
-#define CParticleSystem__Render_x                                  0x1007114C
+#define CParticleSystem__Render_x                                  0x10071100

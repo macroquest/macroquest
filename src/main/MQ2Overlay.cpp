@@ -1136,6 +1136,9 @@ static eOverlayHookStatus InitializeOverlayHooks()
 	// Hook the main window proc.
 	InstallDetour(__WndProc, WndProc_Detour, WndProc_Trampoline, "__WndProc");
 
+	// Hook render function
+	InstallDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline, "CParticleSystem__Render");
+
 	gbDeviceHooksInstalled = true;
 	return !gpD3D9Device ? eOverlayHookStatus::MissingDevice : eOverlayHookStatus::Success;
 }
