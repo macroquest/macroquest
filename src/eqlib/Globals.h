@@ -649,6 +649,7 @@ EQLIB_VAR DWORD CListWnd__SetItemIcon;
 EQLIB_VAR DWORD CListWnd__CalculateCustomWindowPositions;
 EQLIB_VAR DWORD CListWnd__SetVScrollPos;
 
+EQLIB_VAR DWORD CMapViewWnd__CMapViewWnd;
 EQLIB_VAR DWORD MapViewMap__MapViewMap;
 EQLIB_VAR DWORD MapViewMap__dMapViewMap;
 EQLIB_VAR DWORD MapViewMap__vftable;

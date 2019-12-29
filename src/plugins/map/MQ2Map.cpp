@@ -161,14 +161,6 @@ public:
 	inline static VirtualFunctionTable* s_mapViewWndTableOrig = nullptr;
 	inline static bool s_patchingVFTable = false;
 
-	CCustomMapViewMap* Constructor_Trampoline();
-	CCustomMapViewMap* Constructor_Detour()
-	{
-		CCustomMapViewMap* pThis = Constructor_Trampoline();
-		HookVFTable(pThis);
-		return pThis;
-	}
-
 	// We need to do this *before* we patch the constructor.
 	static VirtualFunctionTable* GetPatchedVFTable()
 	{
@@ -258,7 +250,23 @@ public:
 		return 0;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(CCustomMapViewMap* CCustomMapViewMap::Constructor_Trampoline());
+
+// Note: Do not combine this with CCustomMapViewMap, as it will change the
+// layout of the function pointers used in the detour, which will break the detour.
+class CMapViewWndHook
+{
+public:
+	CMapViewWnd* Constructor_Trampoline(CXWnd*);
+	CMapViewWnd* Constructor_Detour(CXWnd* pParent)
+	{
+		CMapViewWnd* pThis = Constructor_Trampoline(pParent);
+		// the global pMapViewWnd isn't set yet, access MapView from this pointer.
+		CCustomMapViewMap* pMapViewMap = static_cast<CCustomMapViewMap*>(&pThis->MapView);
+		CCustomMapViewMap::HookVFTable(pMapViewMap);
+		return pThis;
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(CMapViewWnd* CMapViewWndHook::Constructor_Trampoline(CXWnd*));
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
@@ -332,7 +340,7 @@ PLUGIN_API void InitializePlugin()
 
 	// Hook the constructor. If window already exists then we just hook the vftable.
 	// If it does not exist then we need to hook the constructor to do the same thing when the window is created.
-	EzDetour(MapViewMap__MapViewMap, &CCustomMapViewMap::Constructor_Detour, &CCustomMapViewMap::Constructor_Trampoline);
+	EzDetour(CMapViewWnd__CMapViewWnd, &CMapViewWndHook::Constructor_Detour, &CMapViewWndHook::Constructor_Trampoline);
 	if (pMapViewWnd)
 	{
 		CCustomMapViewMap::HookVFTable(&pMapViewWnd->MapView);
@@ -354,7 +362,7 @@ PLUGIN_API void ShutdownPlugin()
 	{
 		CCustomMapViewMap::UnhookVFTable(&pMapViewWnd->MapView);
 	}
-	RemoveDetour(MapViewMap__MapViewMap);
+	RemoveDetour(CMapViewWnd__CMapViewWnd);
 
 	MapClear();
 
