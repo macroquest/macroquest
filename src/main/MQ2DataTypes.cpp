@@ -5693,11 +5693,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 						if (IsDamageAbsorbSPA(attrib))
 						{
-							for (auto buff : buff.SlotData)
+							for (auto buffData : buff.SlotData)
 							{
-								if (buff.Slot == i)
+								if (buffData.Slot == i)
 								{
-									Dest.DWord += buff.Value;
+									Dest.DWord += buffData.Value;
 								}
 							}
 						}
