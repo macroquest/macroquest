@@ -22,6 +22,7 @@ using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
 using fEQCommand             = void   (*)(SPAWNINFO*, char* Buffer);
 using fMQCommand             = void   (*)(SPAWNINFO*, char* Buffer, size_t BuffLen);
 using fMQExecuteCmd          = void   (*)(const char* Name, bool Down);
+using fCascadeItemFunction   = void   (*)();
 
 // Plugin Function Types
 using fMQWriteChatColor      = DWORD  (*)(const char*, DWORD, DWORD);

@@ -1871,6 +1871,258 @@ void ReloadUI(SPAWNINFO* pChar, char* szLine)
 	DoCommand(pChar, szBuffer);
 }
 
+//============================================================================
+
+class CascadeItemKeyBind : public CascadeItemCommandBase
+{
+public:
+	CascadeItemKeyBind(const char* text, const char* keybind)
+	{
+		m_text = text;
+		m_keyBind = keybind;
+
+		KeyCombo combo;
+		if (GetMQ2KeyBind(keybind, false, combo) && !combo.IsEmpty())
+		{
+			m_text = m_text + " <" + combo.GetTextDescription() + ">";
+		}
+	}
+
+	~CascadeItemKeyBind()
+	{
+
+	}
+
+	void ExecuteCommand() override
+	{
+		PressMQ2KeyBind(m_keyBind, false);
+	}
+
+	CXStr GetTooltip() const override { return m_text; }
+
+private:
+	const char* m_keyBind;
+};
+
+class CascadeItemCallback : public CascadeItemCommandBase
+{
+public:
+	CascadeItemCallback(const char* text, const std::function<void()>& callback)
+	{
+		m_text = text;
+		m_callback = callback;
+	}
+
+	~CascadeItemCallback()
+	{
+	}
+
+	void ExecuteCommand() override
+	{
+		if (m_callback)
+			m_callback();
+	}
+
+	CXStr GetTooltip() const override { return m_text; }
+
+private:
+	std::function<void()> m_callback;
+};
+
+struct CascadeItemData
+{
+	std::string name;
+	int icon = -1;
+
+	// keybind name
+	std::string keyBind;
+
+	// callback
+	fCascadeItemFunction callback = nullptr;
+
+	CascadeItemData(const char* name, const char* keybind, int icon = -1)
+		: name(name)
+		, keyBind(keybind)
+		, icon(icon)
+	{}
+
+	CascadeItemData(const char* name, fCascadeItemFunction callback, int icon = -1)
+		: name(name)
+		, callback(callback)
+		, icon(icon)
+	{}
+};
+
+static std::vector<CascadeItemData> gCascadeItemData;
+static bool gbCascadeMenuNeedsUpdate = false;
+
+static void AddCascadeMenuItem(CascadeItemData newData)
+{
+	for (const auto& data : gCascadeItemData)
+	{
+		if (data.name == newData.name)
+			return;
+	}
+
+	gCascadeItemData.push_back(std::move(newData));
+
+	// Schedule an update to the menu
+	gbCascadeMenuNeedsUpdate = true;
+}
+
+void AddCascadeMenuItem(const char* name, const char* keyBind, int icon = -1)
+{
+	AddCascadeMenuItem({ name, keyBind, icon });
+}
+
+void AddCascadeMenuItem(const char* name, fCascadeItemFunction function, int icon = -1)
+{
+	AddCascadeMenuItem({ name, function, icon });
+}
+
+void RemoveCascadeMenuItem(const char* name)
+{
+	gCascadeItemData.erase(
+		std::remove_if(std::begin(gCascadeItemData), std::end(gCascadeItemData),
+			[name](const CascadeItemData& data) { return data.name == name; }),
+		std::end(gCascadeItemData));
+
+	gbCascadeMenuNeedsUpdate = true;
+}
+
+static CascadeItemSubMenu* GetOrCreateSubMenuFromName(CascadeItemSubMenu* root, std::string_view name)
+{
+	size_t pos = name.find_first_of("/");
+	if (pos == std::string::npos)
+		return root;
+
+	std::string head{ name.substr(0, pos) };
+	std::string_view tail = name.substr(pos + 1);
+
+	trim(head);
+
+	// Find a sub-menu with this name.
+	CascadeItemArray* items = root->GetItems();
+	CascadeItemSubMenu* found = nullptr;
+
+	for (int i = 0; i < items->GetCount(); ++i)
+	{
+		CascadeItemBase* item = items->Get(i);
+
+		if (item->GetType() == CascadeItemBase::eTypeSubMenu)
+		{
+			CascadeItemSubMenu* subMenu = static_cast<CascadeItemSubMenu*>(item);
+
+			if (subMenu->GetText() == head)
+			{
+				found = subMenu;
+				break;
+			}
+		}
+	}
+
+	if (!found)
+	{
+		// Sub-menu was not found. we create and insert into items.
+		found = eqNew<CascadeItemSubMenu>();
+		found->SetText(CXStr{ head });
+		found->SetItems(eqNew<CascadeItemArray>());
+		
+		items->Add(found);
+	}
+
+	return GetOrCreateSubMenuFromName(found, tail);
+}
+
+DETOUR_TRAMPOLINE_EMPTY(CascadeItemArray* CreateCascadeMenuItems_Trampoline());
+CascadeItemArray* CreateCascadeMenuItems_Detour()
+{
+	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
+
+	// Create Submenu Item that holds all of our custom items
+	CascadeItemSubMenu* mq2Menu = eqNew<CascadeItemSubMenu>();
+	mq2Menu->SetIcon(21); // TODO: Custom Icon
+	mq2Menu->SetText("MacroQuest");
+
+	CascadeItemArray* itemArray = eqNew<CascadeItemArray>();
+	mq2Menu->SetItems(itemArray);
+
+	//----------------------------------------------------------------------------
+	// TODO: Implement cascade items from data
+
+	for (const CascadeItemData& data : gCascadeItemData)
+	{
+		CascadeItemBase* base = nullptr;
+
+		std::string name = data.name;
+		CascadeItemSubMenu* parent = GetOrCreateSubMenuFromName(mq2Menu, name);
+
+		if (parent != mq2Menu)
+		{
+			// if we changed the menu, find and strip out the /
+			name = name.substr(name.find_last_of("/") + 1);
+			trim(name);
+		}
+
+		if (!data.keyBind.empty())
+		{
+			// its a keybind thing.
+			auto item = eqNew<CascadeItemKeyBind>(name.c_str(), data.keyBind.c_str());
+			item->SetIcon(data.icon);
+
+			base = item;
+		}
+		else
+		{
+			auto item = eqNew<CascadeItemCallback>(name.c_str(), data.callback);
+			item->SetIcon(data.icon);
+
+			base = item;
+		}
+
+		parent->GetItems()->Add(base);
+	}
+
+	//----------------------------------------------------------------------------
+	// Prepend our MQ2 Menu Item to the cascade menu.
+
+	array->InsertElement(0, mq2Menu);
+
+	CascadeItemSeparator* sep = eqNew<CascadeItemSeparator>();
+	array->InsertElement(1, sep);
+
+	return array;
+}
+
+void UpdateCascadeMenu()
+{
+	if (pEQMainWnd)
+	{
+		pEQMainWnd->UpdateCascadeMenuItems();
+	}
+
+	gbCascadeMenuNeedsUpdate = false;
+}
+
+void InstallCascadeMenuItems()
+{
+	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
+
+	AddCascadeMenuItem("Toggle Overlay UI", "TOGGLE_IMGUI_OVERLAY", 2);
+
+	UpdateCascadeMenu();
+}
+
+void RemoveCascadeMenuItems()
+{
+	RemoveDetour(__CreateCascadeMenuItems);
+	RemoveCascadeMenuItem("Toggle Overlay UI");
+
+	gCascadeItemData.clear();
+
+	UpdateCascadeMenu();
+}
+
 void InitializeMQ2Windows()
 {
 	DebugSpew("Initializing MQ2 Windows");
@@ -1925,11 +2177,13 @@ void InitializeMQ2Windows()
 	AddCommand("/reloadui", ReloadUI);
 
 	InitializeWindowList();
+	InstallCascadeMenuItems();
 }
 
 void ShutdownMQ2Windows()
 {
 	DebugSpew("Shutting down MQ2 Windows");
+	RemoveCascadeMenuItems();
 
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
@@ -1944,6 +2198,14 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
 	RemoveDetour(__eqgraphics_fopen);
+}
+
+void PulseMQ2Windows()
+{
+	if (gbCascadeMenuNeedsUpdate)
+	{
+		UpdateCascadeMenu();
+	}
 }
 
 } // namespace mq

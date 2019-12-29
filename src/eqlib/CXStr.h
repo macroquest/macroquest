@@ -1545,6 +1545,16 @@ inline void swap(CXStr& lhs, CXStr& rhs) noexcept
 	return rhs.compare(lhs) == 0;
 }
 
+[[nodiscard]] inline bool operator==(const CXStr& lhs, const std::string& rhs)
+{
+	return lhs.compare(std::string_view{ rhs }) == 0;
+}
+
+[[nodiscard]] inline bool operator==(const std::string& lhs, const CXStr& rhs)
+{
+	return rhs.compare(std::string_view{ lhs }) == 0;
+}
+
 // Check for inequality
 [[nodiscard]] inline bool operator!=(const CXStr& lhs, const CXStr& rhs)
 {
@@ -1559,6 +1569,16 @@ inline void swap(CXStr& lhs, CXStr& rhs) noexcept
 [[nodiscard]] inline bool operator!=(const char* lhs, const CXStr& rhs)
 {
 	return rhs.compare(lhs) != 0;
+}
+
+[[nodiscard]] inline bool operator!=(const CXStr& lhs, const std::string& rhs)
+{
+	return lhs.compare(std::string_view{ rhs }) != 0;
+}
+
+[[nodiscard]] inline bool operator!=(const std::string& lhs, const CXStr& rhs)
+{
+	return rhs.compare(std::string_view{ lhs }) != 0;
 }
 
 // Check for less-than

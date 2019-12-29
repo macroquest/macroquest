@@ -1144,87 +1144,6 @@ static eOverlayHookStatus InitializeOverlayHooks()
 }
 #pragma endregion
 
-//============================================================================
-
-#pragma region Cascade Menu Hooks
-
-class CascadeItemKeyBind : public CascadeItemCommandBase
-{
-public:
-	CascadeItemKeyBind(int icon, const char* text, const char* keybind)
-	{
-		m_icon = icon;
-		m_text = text;
-		m_keyBind = keybind;
-
-		KeyCombo combo;
-		if (GetMQ2KeyBind(keybind, false, combo) && !combo.IsEmpty())
-		{
-			m_text = m_text + " <" + combo.GetTextDescription() + ">";
-		}
-	}
-
-	~CascadeItemKeyBind()
-	{
-
-	}
-
-	void ExecuteCommand() override
-	{
-		PressMQ2KeyBind(m_keyBind, false);
-	}
-
-	CXStr GetTooltip() const override { return m_text; }
-
-private:
-	const char* m_keyBind;
-};
-
-DETOUR_TRAMPOLINE_EMPTY(CascadeItemArray* CreateCascadeMenuItems_Trampoline());
-CascadeItemArray* CreateCascadeMenuItems_Detour()
-{
-	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
-
-	// Create Submenu Item
-	CascadeItemSubMenu* mq2Menu = eqNew<CascadeItemSubMenu>();
-	mq2Menu->SetIcon(21);
-	mq2Menu->SetText("MacroQuest 2");
-
-	CascadeItemArray* itemArray = eqNew<CascadeItemArray>();
-	itemArray->Add(eqNew<CascadeItemKeyBind>(2, "Toggle Overlay UI", "TOGGLE_IMGUI_OVERLAY"));
-
-	mq2Menu->SetItems(itemArray);
-
-	// Prepend our MQ2 Menu Item to the cascade menu.
-	array->InsertElement(0, mq2Menu);
-
-	CascadeItemSeparator* sep = eqNew<CascadeItemSeparator>();
-	array->InsertElement(1, sep);
-
-	return array;
-}
-
-void InstallCascadeMenuItems()
-{
-	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
-
-	if (pEQMainWnd)
-	{
-		pEQMainWnd->UpdateCascadeMenuItems();
-	}
-}
-
-void RemoveCascadeMenuItems()
-{
-	RemoveDetour(__CreateCascadeMenuItems);
-
-	if (pEQMainWnd)
-	{
-		pEQMainWnd->UpdateCascadeMenuItems();
-	}
-}
-
-#pragma endregion
 
 //============================================================================
 
@@ -1295,7 +1214,6 @@ void InitializeMQ2Overlay()
 
 	imgui::InitializeImGui(gpD3D9Device);
 	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
-	InstallCascadeMenuItems();
 }
 
 void ShutdownMQ2Overlay()
@@ -1307,7 +1225,6 @@ void ShutdownMQ2Overlay()
 	gbHooksInstalled = false;
 	gHooks.clear();
 
-	RemoveCascadeMenuItems();
 	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
 	imgui::ShutdownImGui();
 
