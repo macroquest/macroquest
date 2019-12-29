@@ -1280,6 +1280,8 @@ void InitializeGlobals()
 		HMODULE hLibrary = LoadLibrary("EQGraphicsDX9.dll");
 
 		EQGraphicsBaseAddress = (uintptr_t)hLibrary;
+
+		__eqgraphics_fopen = FixEQGraphicsOffset(__eqgraphics_fopen_x);
 	}
 
 	EQADDR_HWND = __HWnd;
