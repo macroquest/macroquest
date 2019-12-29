@@ -27,6 +27,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
 
     <!-- Release only compiler settings -->
@@ -34,6 +35,7 @@
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
 
     <!-- Shared compiler settings -->
@@ -44,7 +46,6 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
 
     <!-- Debug only linker settings -->

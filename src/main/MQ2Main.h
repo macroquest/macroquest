@@ -41,6 +41,10 @@ using namespace eqlib;
 //#define TEST
 #define LIVE
 
+// This is the MQNEXT build, it is here to help plugins conditionally compile against
+// the new interfaces
+#define MQNEXT
+
 #ifdef MQ2MAIN_EXPORTS
 #define MQLIB_API extern "C" __declspec(dllexport)
 #define MQLIB_VAR extern "C" __declspec(dllexport)
@@ -122,6 +126,21 @@ MQLIB_API void InitializeMQ2Overlay();
 MQLIB_API void ShutdownMQ2Overlay();
 MQLIB_API void PulseMQ2Overlay();
 MQLIB_API void SetOverlayVisible(bool visible);
+
+struct MQRenderCallbacks
+{
+	fMQCreateDeviceObjects CreateDeviceObjects = nullptr;
+	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
+	fMQImGuiRender ImGuiRender = nullptr;
+	fMQGraphicsSceneRender GraphicsSceneRender = nullptr;
+};
+MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
+MQLIB_API void RemoveRenderCallbacks(uint32_t id);
+
+/* EQ Menu */
+MQLIB_OBJECT void AddCascadeMenuItem(const char* name, const char* keyBind, int icon = -1);
+MQLIB_OBJECT void AddCascadeMenuItem(const char* name, fCascadeItemFunction function, int icon = -1);
+MQLIB_OBJECT void RemoveCascadeMenuItem(const char* name);
 
 /* WINDOWS */
 MQLIB_API HWND GetEQWindowHandle();

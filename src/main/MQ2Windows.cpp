@@ -1970,12 +1970,12 @@ static void AddCascadeMenuItem(CascadeItemData newData)
 	gbCascadeMenuNeedsUpdate = true;
 }
 
-void AddCascadeMenuItem(const char* name, const char* keyBind, int icon = -1)
+void AddCascadeMenuItem(const char* name, const char* keyBind, int icon)
 {
 	AddCascadeMenuItem({ name, keyBind, icon });
 }
 
-void AddCascadeMenuItem(const char* name, fCascadeItemFunction function, int icon = -1)
+void AddCascadeMenuItem(const char* name, fCascadeItemFunction function, int icon)
 {
 	AddCascadeMenuItem({ name, function, icon });
 }
@@ -2107,8 +2107,6 @@ void UpdateCascadeMenu()
 void InstallCascadeMenuItems()
 {
 	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
-
-	AddCascadeMenuItem("Toggle Overlay UI", "TOGGLE_IMGUI_OVERLAY", 2);
 
 	UpdateCascadeMenu();
 }

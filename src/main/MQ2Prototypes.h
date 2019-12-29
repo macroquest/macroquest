@@ -51,4 +51,10 @@ using fClassLvl              = DWORD  (*)(DWORD, DWORD, DWORD);
 // Misc Function types
 using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();
 
+// Overlay function types
+using fMQCreateDeviceObjects = void   (*)();
+using fMQInvalidateDeviceObjects = void(*)();
+using fMQImGuiRender         = void   (*)();
+using fMQGraphicsSceneRender = void   (*)();
+
 } // namespace mq

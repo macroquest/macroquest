@@ -190,8 +190,6 @@ public:
 	static EQLIB_OBJECT ChatManagerClient& Instance();
 };
 
-struct D3DXVECTOR3;
-
 class CPhysicsInfo;
 
 enum EnvironmentType

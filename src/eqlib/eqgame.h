@@ -1235,7 +1235,8 @@
 #define KeyCombo__GetTextDescription_x                             0x91BEA0
 
 //
-// EQGraphicsDX9.dll offsets
+// EQGraphicsDX9.dll offsets (maybe this should go in eqgraphics.h?)
 //
 
 #define __eqgraphics_fopen_x                                       0x101473C8
+#define CParticleSystem__Render_x                                  0x1007114C

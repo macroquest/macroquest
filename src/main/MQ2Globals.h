@@ -320,8 +320,6 @@ MQLIB_VAR bool gbShowCurrentCamera;
 MQLIB_VAR int  gOldCameraType;
 MQLIB_VAR bool gbIgnoreAlertRecursion;
 
-MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
@@ -329,5 +327,10 @@ extern std::map<int, std::string> targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
 MQLIB_VAR int gParserVersion;
+
+/* OVERLAY GLOBALS */
+MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
+MQLIB_VAR bool gbDeviceAcquired;
+MQLIB_VAR bool gbDeviceHooksInstalled;
 
 } // namespace mq

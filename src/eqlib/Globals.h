@@ -1043,6 +1043,7 @@ EQLIB_VAR DWORD KeyCombo__GetTextDescription;
 //============================================================================
 
 EQLIB_VAR DWORD __eqgraphics_fopen;
+EQLIB_VAR DWORD CParticleSystem__Render;
 
 //----------------------------------------------------------------------------
 // Global data

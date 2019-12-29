@@ -1003,6 +1003,7 @@ INITIALIZE_EQGAME_OFFSET(KeyCombo__GetTextDescription);
 
 // EQGraphicsDX9.dll Offsets
 INITIALIZE_EQGRAPHICS_OFFSET(__eqgraphics_fopen);
+INITIALIZE_EQGRAPHICS_OFFSET(CParticleSystem__Render);
 
 // Offset Initialization
 DWORD EQADDR_HWND = 0;
@@ -1283,6 +1284,7 @@ void InitializeGlobals()
 		EQGraphicsBaseAddress = (uintptr_t)hLibrary;
 
 		__eqgraphics_fopen = FixEQGraphicsOffset(__eqgraphics_fopen_x);
+		CParticleSystem__Render = FixEQGraphicsOffset(CParticleSystem__Render_x);
 	}
 
 	EQADDR_HWND = __HWnd;

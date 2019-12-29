@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "DebugHandler.h"
 
 #include <imgui/imgui.h>
 
@@ -40,19 +41,22 @@ namespace mq {
 // need to hook into it to understand when states change.
 IDirect3DDevice9* gpD3D9Device = nullptr;
 
+// Indicates that we've acquired the device and its usable
+bool gbDeviceAcquired = false;
+
+// Indicates that the graphics device hooks are installed
+bool gbDeviceHooksInstalled = false;
+
+
 //----------------------------------------------------------------------------
 // statics
 
-static bool gbHooksInstalled = false;
-static bool gbDeviceAcquired = false;
 static HMODULE ghD3D9Module = nullptr;
 static DWORD gResetDeviceAddress = 0;
-
 static POINT gMouseLocation;
 static bool gbMouseBlocked = false;
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
 static bool gbFlushNextMouse = false;
-
 static bool gbRetryHooks = false;
 static bool gbInitializationFailed = false;
 
@@ -71,7 +75,10 @@ static DIMOUSESTATE** gDIMouseState = (DIMOUSESTATE**)&EQADDR_DIMOUSECHECK;
 
 using D3D9CREATEEXPROC = HRESULT(WINAPI*)(UINT, IDirect3D9Ex**);
 
-static void UpdateOverlayUI();
+static void UpdateGraphicsScene();
+static void InvalidateDeviceObjects();
+static bool CreateDeviceObjects();
+static void RenderImGui();
 
 // Some of our hooks are determined dynamically. Rather than have a variable
 // for each one, we store them in a collection of these HookInfo objects.
@@ -145,14 +152,14 @@ namespace imgui {
 // written by Brainiac, based off of example code from github.com/ocornut/imgui
 
 // DirectX data
-static LPDIRECT3DDEVICE9        g_pd3dDevice = nullptr;
+static LPDIRECT3DDEVICE9        g_pImguiDevice = nullptr;
 static LPDIRECT3DVERTEXBUFFER9  g_pVB = nullptr;
 static LPDIRECT3DINDEXBUFFER9   g_pIB = nullptr;
 static LPDIRECT3DTEXTURE9       g_FontTexture = nullptr;
 static int                      g_VertexBufferSize = 5000;
 static int                      g_IndexBufferSize = 10000;
 static bool                     g_bImGuiReady = false;
-static bool                     g_bRenderImGui = false;
+static bool                     g_bRenderImGui = true;
 
 struct CUSTOMVERTEX
 {
@@ -178,30 +185,30 @@ static void ImGui_ImplDX9_SetupRenderState(ImDrawData* drawData)
 	vp.Height = (DWORD)drawData->DisplaySize.y;
 	vp.MinZ = 0.0f;
 	vp.MaxZ = 1.0f;
-	g_pd3dDevice->SetViewport(&vp);
+	g_pImguiDevice->SetViewport(&vp);
 
 	// Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing, shade mode (for gradient)
-	g_pd3dDevice->SetPixelShader(nullptr);
-	g_pd3dDevice->SetVertexShader(nullptr);
-	g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-	g_pd3dDevice->SetRenderState(D3DRS_LIGHTING, false);
-	g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, false);
-	g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
-	g_pd3dDevice->SetRenderState(D3DRS_ALPHATESTENABLE, false);
-	g_pd3dDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-	g_pd3dDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	g_pd3dDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
-	g_pd3dDevice->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
-	g_pd3dDevice->SetRenderState(D3DRS_FOGENABLE, false);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	g_pImguiDevice->SetPixelShader(nullptr);
+	g_pImguiDevice->SetVertexShader(nullptr);
+	g_pImguiDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	g_pImguiDevice->SetRenderState(D3DRS_LIGHTING, false);
+	g_pImguiDevice->SetRenderState(D3DRS_ZENABLE, false);
+	g_pImguiDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+	g_pImguiDevice->SetRenderState(D3DRS_ALPHATESTENABLE, false);
+	g_pImguiDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+	g_pImguiDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	g_pImguiDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	g_pImguiDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
+	g_pImguiDevice->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
+	g_pImguiDevice->SetRenderState(D3DRS_FOGENABLE, false);
+	g_pImguiDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+	g_pImguiDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+	g_pImguiDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+	g_pImguiDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+	g_pImguiDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+	g_pImguiDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+	g_pImguiDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	g_pImguiDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
 	// Setup orthographic projection matrix
 	// Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
@@ -219,9 +226,9 @@ static void ImGui_ImplDX9_SetupRenderState(ImDrawData* drawData)
 			0.0f,         0.0f,         0.5f,  0.0f,
 			(L+R)/(L-R),  (T+B)/(B-T),  0.5f,  1.0f
 		} } };
-		g_pd3dDevice->SetTransform(D3DTS_WORLD, &mat_identity);
-		g_pd3dDevice->SetTransform(D3DTS_VIEW, &mat_identity);
-		g_pd3dDevice->SetTransform(D3DTS_PROJECTION, &mat_projection);
+		g_pImguiDevice->SetTransform(D3DTS_WORLD, &mat_identity);
+		g_pImguiDevice->SetTransform(D3DTS_VIEW, &mat_identity);
+		g_pImguiDevice->SetTransform(D3DTS_PROJECTION, &mat_projection);
 	}
 }
 
@@ -243,7 +250,7 @@ static void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 		}
 
 		g_VertexBufferSize = drawData->TotalVtxCount + 5000;
-		if (g_pd3dDevice->CreateVertexBuffer(g_VertexBufferSize * sizeof(CUSTOMVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &g_pVB, nullptr) < 0)
+		if (g_pImguiDevice->CreateVertexBuffer(g_VertexBufferSize * sizeof(CUSTOMVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &g_pVB, nullptr) < 0)
 			return;
 	}
 
@@ -256,20 +263,20 @@ static void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 		}
 
 		g_IndexBufferSize = drawData->TotalIdxCount + 10000;
-		if (g_pd3dDevice->CreateIndexBuffer(g_IndexBufferSize * sizeof(ImDrawIdx), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &g_pIB, nullptr) < 0)
+		if (g_pImguiDevice->CreateIndexBuffer(g_IndexBufferSize * sizeof(ImDrawIdx), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &g_pIB, nullptr) < 0)
 			return;
 	}
 
 	// Backup the DX9 state
 	IDirect3DStateBlock9* d3d9StateBlock = nullptr;
-	if (g_pd3dDevice->CreateStateBlock(D3DSBT_ALL, &d3d9StateBlock) < 0)
+	if (g_pImguiDevice->CreateStateBlock(D3DSBT_ALL, &d3d9StateBlock) < 0)
 		return;
 
 	// Backup the DX9 transform (DX9 documentation suggests that it is included in the StateBlock but it doesn't appear to)
 	D3DMATRIX lastWorld, lastView, lastProjection;
-	g_pd3dDevice->GetTransform(D3DTS_WORLD, &lastWorld);
-	g_pd3dDevice->GetTransform(D3DTS_VIEW, &lastView);
-	g_pd3dDevice->GetTransform(D3DTS_PROJECTION, &lastProjection);
+	g_pImguiDevice->GetTransform(D3DTS_WORLD, &lastWorld);
+	g_pImguiDevice->GetTransform(D3DTS_VIEW, &lastView);
+	g_pImguiDevice->GetTransform(D3DTS_PROJECTION, &lastProjection);
 
 	// Copy and convert all vertices into a single contiguous buffer, convert colors to DX9 default format.
 	// FIXME-OPT: This is a waste of resource, the ideal is to use imconfig.h and
@@ -305,9 +312,9 @@ static void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 
 	g_pVB->Unlock();
 	g_pIB->Unlock();
-	g_pd3dDevice->SetStreamSource(0, g_pVB, 0, sizeof(CUSTOMVERTEX));
-	g_pd3dDevice->SetIndices(g_pIB);
-	g_pd3dDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
+	g_pImguiDevice->SetStreamSource(0, g_pVB, 0, sizeof(CUSTOMVERTEX));
+	g_pImguiDevice->SetIndices(g_pIB);
+	g_pImguiDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
 
 	// Setup desired DX state
 	ImGui_ImplDX9_SetupRenderState(drawData);
@@ -340,9 +347,9 @@ static void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 				const RECT r = { (LONG)(pCmd->ClipRect.x - clipOff.x), (LONG)(pCmd->ClipRect.y - clipOff.y), (LONG)(pCmd->ClipRect.z - clipOff.x), (LONG)(pCmd->ClipRect.w - clipOff.y) };
 				const LPDIRECT3DTEXTURE9 texture = (LPDIRECT3DTEXTURE9)pCmd->TextureId;
 
-				g_pd3dDevice->SetTexture(0, texture);
-				g_pd3dDevice->SetScissorRect(&r);
-				g_pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, pCmd->VtxOffset + globalVtxOffset, 0, (UINT)cmdList->VtxBuffer.Size, pCmd->IdxOffset + globalIdxOffset, pCmd->ElemCount / 3);
+				g_pImguiDevice->SetTexture(0, texture);
+				g_pImguiDevice->SetScissorRect(&r);
+				g_pImguiDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, pCmd->VtxOffset + globalVtxOffset, 0, (UINT)cmdList->VtxBuffer.Size, pCmd->IdxOffset + globalIdxOffset, pCmd->ElemCount / 3);
 			}
 		}
 
@@ -351,9 +358,9 @@ static void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	}
 
 	// Restore the DX9 transform
-	g_pd3dDevice->SetTransform(D3DTS_WORLD, &lastWorld);
-	g_pd3dDevice->SetTransform(D3DTS_VIEW, &lastView);
-	g_pd3dDevice->SetTransform(D3DTS_PROJECTION, &lastProjection);
+	g_pImguiDevice->SetTransform(D3DTS_WORLD, &lastWorld);
+	g_pImguiDevice->SetTransform(D3DTS_VIEW, &lastView);
+	g_pImguiDevice->SetTransform(D3DTS_PROJECTION, &lastProjection);
 
 	// Restore the DX9 state
 	d3d9StateBlock->Apply();
@@ -367,8 +374,8 @@ static bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 	io.BackendRendererName = "imgui_impl_dx9";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 
-	g_pd3dDevice = device;
-	g_pd3dDevice->AddRef();
+	g_pImguiDevice = device;
+	g_pImguiDevice->AddRef();
 	return true;
 }
 
@@ -378,10 +385,10 @@ static void ImGui_ImplDX9_Shutdown()
 {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 
-	if (g_pd3dDevice)
+	if (g_pImguiDevice)
 	{
-		g_pd3dDevice->Release();
-		g_pd3dDevice = nullptr;
+		g_pImguiDevice->Release();
+		g_pImguiDevice = nullptr;
 	}
 }
 
@@ -396,7 +403,7 @@ static bool ImGui_ImplDX9_CreateFontsTexture()
 
 	// Upload texture to graphics system
 	g_FontTexture = nullptr;
-	if (g_pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_FontTexture, nullptr) < 0)
+	if (g_pImguiDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_FontTexture, nullptr) < 0)
 		return false;
 
 	D3DLOCKED_RECT tex_locked_rect;
@@ -416,7 +423,7 @@ static bool ImGui_ImplDX9_CreateFontsTexture()
 
 static bool ImGui_ImplDX9_CreateDeviceObjects()
 {
-	if (!g_pd3dDevice)
+	if (!g_pImguiDevice)
 		return false;
 	if (!ImGui_ImplDX9_CreateFontsTexture())
 		return false;
@@ -426,7 +433,7 @@ static bool ImGui_ImplDX9_CreateDeviceObjects()
 
 static void ImGui_ImplDX9_InvalidateDeviceObjects()
 {
-	if (!g_pd3dDevice)
+	if (!g_pImguiDevice)
 		return;
 
 	if (g_pVB)
@@ -695,42 +702,6 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 
 //============================================================================
 
-void InvalidateDeviceObjects()
-{
-	ImGui_ImplDX9_InvalidateDeviceObjects();
-	g_bImGuiReady = false;
-}
-
-bool CreateDeviceObjects()
-{
-	g_bImGuiReady = ImGui_ImplDX9_CreateDeviceObjects();
-	return g_bImGuiReady;
-}
-
-void RenderImGui()
-{
-	if (!g_bImGuiReady)
-		return;
-	if (!g_bRenderImGui)
-		return;
-
-	// This is loading/transitioning screen
-	if (gGameState == GAMESTATE_LOGGINGIN)
-		return;
-
-	// Begin a new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	// Update the ui state
-	UpdateOverlayUI();
-
-	// Render the ui
-	ImGui::Render();
-	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-}
-
 void InitializeImGui(IDirect3DDevice9* device)
 {
 	ImGui::CreateContext();
@@ -816,7 +787,7 @@ public:
 
 		gbDeviceAcquired = false;
 
-		imgui::InvalidateDeviceObjects();
+		DebugTryEx(InvalidateDeviceObjects());
 
 		return Reset_Trampoline(pPresentationParameters);
 	}
@@ -842,7 +813,7 @@ public:
 		// When TestCooperativeLevel returns all good, then we can reinitialize.
 		// This will let the renderer control our flow instead of having to
 		// poll for the state ourselves.
-		if (!gbDeviceAcquired && imgui::g_pd3dDevice)
+		if (!gbDeviceAcquired && imgui::g_pImguiDevice)
 		{
 			HRESULT result = GetThisDevice()->TestCooperativeLevel();
 
@@ -852,10 +823,10 @@ public:
 
 				if (DetectResetDeviceHook())
 				{
-					imgui::InvalidateDeviceObjects();
+					DebugTryEx(InvalidateDeviceObjects());
 				}
 
-				imgui::CreateDeviceObjects();
+				DebugTryEx(CreateDeviceObjects());
 			}
 		}
 
@@ -866,7 +837,7 @@ public:
 			IDirect3DStateBlock9* stateBlock = nullptr;
 			gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
-			imgui::RenderImGui();
+			DebugTryEx(RenderImGui());
 
 			stateBlock->Apply();
 			stateBlock->Release();
@@ -878,6 +849,32 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::Reset_Trampoline(D3DPRESENT_PARAMETERS* pPresentationParameters));
 DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::BeginScene_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::EndScene_Trampoline());
+
+// This hooks into an area of the rendering pipeline that is suitable to perform
+// our own rendering before the scene is completed.
+class CParticleSystemHook
+{
+public:
+	void Render_Trampoline();
+	void Render_Detour()
+	{
+		// Perform the render within a stateblock so we don't upset the rest
+		// of the rendering pipeline
+		if (gbDeviceAcquired)
+		{
+			IDirect3DStateBlock9* stateBlock = nullptr;
+			gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
+
+			DebugTryEx(UpdateGraphicsScene());
+
+			stateBlock->Apply();
+			stateBlock->Release();
+		}
+
+		Render_Trampoline();
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(void CParticleSystemHook::Render_Trampoline());
 
 // Mouse hook prevents mouse events from reaching EQ when imgui captures
 // the mouse. Needed because ImGui uses win32 events but EQ uses direct input.
@@ -1000,7 +997,7 @@ uint32_t ProcessKeyboardEvents_Detour()
 DETOUR_TRAMPOLINE_EMPTY(LRESULT WINAPI WndProc_Trampoline(HWND, UINT, WPARAM, LPARAM));
 LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (imgui::g_pd3dDevice)
+	if (imgui::g_pImguiDevice)
 	{
 		if (imgui::ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 			return 1;
@@ -1111,7 +1108,7 @@ enum class eOverlayHookStatus
 
 static eOverlayHookStatus InitializeOverlayHooks()
 {
-	if (gbHooksInstalled)
+	if (gbDeviceHooksInstalled)
 	{
 		if (!gpD3D9Device)
 		{
@@ -1139,13 +1136,61 @@ static eOverlayHookStatus InitializeOverlayHooks()
 	// Hook the main window proc.
 	InstallDetour(__WndProc, WndProc_Detour, WndProc_Trampoline, "__WndProc");
 
-	gbHooksInstalled = true;
+	gbDeviceHooksInstalled = true;
 	return !gpD3D9Device ? eOverlayHookStatus::MissingDevice : eOverlayHookStatus::Success;
 }
 #pragma endregion
 
-
 //============================================================================
+
+static std::vector<std::unique_ptr<MQRenderCallbacks>> gRenderCallbacks;
+
+int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
+{
+	// Find an unused index.
+	int index = -1;
+	for (size_t i = 0; i < gRenderCallbacks.size(); ++i)
+	{
+		if (gRenderCallbacks[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		gRenderCallbacks.emplace_back();
+		index = gRenderCallbacks.size() - 1;
+	}
+
+	auto pCallbacks = std::make_unique<MQRenderCallbacks>();
+	*pCallbacks = callbacks;
+
+	// Make sure that we initialize if we're already acquired by
+	// calling CreateDeviceObjects.
+	if (gbDeviceAcquired && pCallbacks->CreateDeviceObjects)
+	{
+		pCallbacks->CreateDeviceObjects();
+	}
+
+	gRenderCallbacks[index] = std::move(pCallbacks);
+	return index;
+}
+
+void RemoveRenderCallbacks(uint32_t id)
+{
+	if (id >= 0 && id < gRenderCallbacks.size())
+	{
+		// not sure if we should do this here or in the calling plugin...
+		if (gRenderCallbacks[id] && gRenderCallbacks[id]->InvalidateDeviceObjects)
+		{
+			gRenderCallbacks[id]->InvalidateDeviceObjects();
+		}
+
+		gRenderCallbacks[id].reset();
+	}
+}
 
 static void DoToggleImGuiOverlay(const char* name, bool down)
 {
@@ -1191,6 +1236,80 @@ static void UpdateOverlayUI()
 	}
 }
 
+static void RenderImGui()
+{
+	using namespace imgui;
+
+	if (!g_bImGuiReady)
+		return;
+	if (!g_bRenderImGui)
+		return;
+
+	// This is loading/transitioning screen
+	if (gGameState == GAMESTATE_LOGGINGIN)
+		return;
+
+	// Begin a new frame
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// Update the ui state
+	UpdateOverlayUI();
+
+	for (const auto& pCallbacks : gRenderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->ImGuiRender)
+		{
+			pCallbacks->ImGuiRender();
+		}
+	}
+
+	// Render the ui
+	ImGui::Render();
+	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+}
+
+static void UpdateGraphicsScene()
+{
+	for (const auto& pCallbacks : gRenderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->GraphicsSceneRender)
+		{
+			pCallbacks->GraphicsSceneRender();
+		}
+	}
+}
+
+static void InvalidateDeviceObjects()
+{
+	imgui::ImGui_ImplDX9_InvalidateDeviceObjects();
+	imgui::g_bImGuiReady = false;
+
+	for (const auto& pCallbacks : gRenderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->InvalidateDeviceObjects)
+		{
+			pCallbacks->InvalidateDeviceObjects();
+		}
+	}
+}
+
+static bool CreateDeviceObjects()
+{
+	imgui::g_bImGuiReady = imgui::ImGui_ImplDX9_CreateDeviceObjects();
+
+	for (const auto& pCallbacks : gRenderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->CreateDeviceObjects)
+		{
+			pCallbacks->CreateDeviceObjects();
+		}
+	}
+
+	return imgui::g_bImGuiReady;
+}
+
 //============================================================================
 
 void InitializeMQ2Overlay()
@@ -1214,15 +1333,19 @@ void InitializeMQ2Overlay()
 
 	imgui::InitializeImGui(gpD3D9Device);
 	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
+
+	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
+	AddCascadeMenuItem("Debug Window", []() { gbShowDebugWindow = true; });
+	AddCascadeMenuItem("ImGui Demo", []() { gbShowDemoWindow = true; });
 }
 
 void ShutdownMQ2Overlay()
 {
-	if (!gbHooksInstalled)
+	if (!gbDeviceHooksInstalled)
 		return;
 
 	RemoveDetours();
-	gbHooksInstalled = false;
+	gbDeviceHooksInstalled = false;
 	gHooks.clear();
 
 	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
