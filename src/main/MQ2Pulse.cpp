@@ -103,7 +103,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) && gMacroStack)
 	{
-		MQMacroLine ml = pBlock->Line[pBlock->CurrIndex];
+		const MQMacroLine& ml = pBlock->Line.at(pBlock->CurrIndex);
 
 		if (pBlock->BindStackIndex == pBlock->CurrIndex)
 		{

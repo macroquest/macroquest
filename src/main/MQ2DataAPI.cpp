@@ -189,11 +189,12 @@ void DumpWarning(const char* pStart, int index)
 {
 	if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
 	{
-		MQMacroLine ml = pBlock->Line[index];
+		MQMacroLine& ml = pBlock->Line.at(index);
 		bool oldbAllErrorsDumpStack = std::exchange(bAllErrorsDumpStack, false);
 		bool oldbAllErrorsFatal = std::exchange(bAllErrorsFatal, false);
 
-		WriteChatf("\arWARNING: \awUndefined Variable \ag%s\aw used on line %d@%s \ay%s\ax\nMacro Paused.", pStart, ml.LineNumber, ml.SourceFile.c_str(), ml.Command.c_str());
+		WriteChatf("\arWARNING: \awUndefined Variable \ag%s\aw used on line %d@%s \ay%s\ax\nMacro Paused.",
+			pStart, ml.LineNumber, ml.SourceFile.c_str(), ml.Command.c_str());
 
 		pBlock->Paused = true;
 
@@ -1241,9 +1242,10 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 			// If we are currently in a macro block
 			if (MQMacroBlockPtr currblock = GetCurrentMacroBlock())
 			{
+				const MQMacroLine& line = currblock->Line.at(currblock->CurrIndex);
+
 				MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d",
-					currblock->Line[currblock->CurrIndex].SourceFile.c_str(),
-					currblock->Line[currblock->CurrIndex].LineNumber, MAX_STRING);
+					line.SourceFile.c_str(), line.LineNumber);
 			}
 
 			// Trim the result.
@@ -1355,10 +1357,12 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 		{
 			if (MQMacroBlockPtr currblock = GetCurrentMacroBlock())
 			{
-				SyntaxError("Syntax Error: %s Line:%d in %s\nNewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?",
-					currblock->Line[currblock->CurrIndex].Command.c_str(),
-					currblock->Line[currblock->CurrIndex].LineNumber,
-					currblock->Line[currblock->CurrIndex].SourceFile.c_str(),
+				const MQMacroLine& line = currblock->Line.at(currblock->CurrIndex);
+
+				SyntaxError(
+					"Syntax Error: %s Line:%d in %s\n"
+					"NewLength %d was greater than BufferSize - addrlen %d in ParseMacroData, did you try to read data that exceeds 2048 from your macro?",
+					line.Command.c_str(), line.LineNumber, line.SourceFile.c_str(),
 					NewLength, BufferSize - addrlen);
 			}
 

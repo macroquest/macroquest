@@ -229,17 +229,27 @@ using PWHOSORT [[deprecated("Use MQWhoSort* instead")]] = MQWhoSort*;
 struct MQMacroLine
 {
 	std::string Command;
-	std::string SourceFile;
-	int LoopStart = 0;
 
+	int LoopStart = 0;
 	// used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated.
 	int LoopEnd = 0;
+
+	std::string SourceFile;
 	int LineNumber = 0;
 
 #ifdef MQ2_PROFILING
 	int ExecutionCount = 0;
 	uint64_t ExecutionTime = 0;
 #endif
+
+	MQMacroLine(std::string Line, std::string sourceFile, int lineNumber)
+		: Command(std::move(Line))
+		, SourceFile(std::move(sourceFile))
+		, LineNumber(lineNumber)
+	{}
+
+	MQMacroLine(const MQMacroLine&) = delete;
+	MQMacroLine& operator=(const MQMacroLine&) = delete;
 };
 using PMACROLINE [[deprecated("Use MQMacroLine* instead")]] = MQMacroLine;
 using MACROLINE [[deprecated("Use MQMacroLine instead")]] = MQMacroLine;
@@ -249,10 +259,15 @@ struct MQMacroBlock
 	std::string Name;                           // our macro Name
 	bool Paused = false;
 	int CurrIndex = 0;                          // the current macro line we are on
-	int BindStackIndex = 0;                     // where we were at before calling the bind.
+	int BindStackIndex = -1;                    // where we were at before calling the bind.
 	std::string BindCmd;                        // the actual command including parameters
 	std::map<int, MQMacroLine> Line;
 	bool Removed = false;
+
+	MQMacroBlock(std::string name) : Name(std::move(name)) {}
+
+	MQMacroBlock(const MQMacroBlock&) = delete;
+	MQMacroBlock& operator=(const MQMacroBlock&) = delete;
 };
 using MQMacroBlockPtr = std::shared_ptr<MQMacroBlock>;
 
@@ -695,6 +710,13 @@ struct MQMacroStack
 	std::string Return;
 
 	MQMacroStack* pNext = nullptr;
+
+	MQMacroStack(int locationIndex)
+		: LocationIndex(locationIndex)
+	{}
+
+	MQMacroStack(const MQMacroStack&) = delete;
+	MQMacroStack& operator=(const MQMacroStack&) = delete;
 };
 using PMACROSTACK [[deprecated("Use MQMacroStack* instead")]] = MQMacroStack *;
 using MACROSTACK [[deprecated("Use MQMacroStack instead")]] = MQMacroStack;

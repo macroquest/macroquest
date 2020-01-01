@@ -103,11 +103,15 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if (szArg1[0] == '}')
 	{
-		if (pBlock && pBlock->Line[pBlock->CurrIndex].LoopStart != 0)
+		if (pBlock)
 		{
-			pBlock->CurrIndex = pBlock->Line[pBlock->CurrIndex].LoopStart;
-			PopMacroLoop();
-			return;
+			auto loopStart = pBlock->Line.at(pBlock->CurrIndex).LoopStart;
+			if (loopStart != 0)
+			{
+				pBlock->CurrIndex = loopStart;
+				PopMacroLoop();
+				return;
+			}
 		}
 
 		if (strstr(szTheCmd, "{"))
@@ -119,7 +123,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 			}
 			//DebugSpew("DoCommand - handing {} off to FailIf");
 			if (pBlock)
-				FailIf(pChar, "{", pBlock->CurrIndex, TRUE);
+				FailIf(pChar, "{", pBlock->CurrIndex, true);
 		}
 		else
 		{

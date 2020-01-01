@@ -1266,7 +1266,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				for (auto& [name, index] : gUndeclaredVars)
 				{
-					const MQMacroLine& ml = gMacroBlock->Line[index];
+					const MQMacroLine& ml = gMacroBlock->Line.at(index);
 
 					WriteChatf("[%d] %s see: %d@%s: %s", count++, name.c_str(),
 						ml.LineNumber, ml.SourceFile.c_str(), ml.Command.c_str());
@@ -1361,7 +1361,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pIntType;
 		if (gMacroBlock)
 		{
-			Dest.DWord = gMacroBlock->Line[gMacroBlock->CurrIndex].LineNumber;
+			Dest.DWord = gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber;
 			return true;
 		}
 		break;
@@ -1369,7 +1369,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case CurSub:
 		if (gMacroBlock)
 		{
-			GetSubFromLine(gMacroBlock->Line[gMacroBlock->CurrIndex].LineNumber, DataTypeTemp, MAX_STRING);
+			GetSubFromLine(gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber, DataTypeTemp, MAX_STRING);
 			Dest.Ptr = DataTypeTemp;
 			Dest.Type = pStringType;
 			return true;
@@ -1380,7 +1380,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pStringType;
 		if (gMacroBlock)
 		{
-			auto& line = gMacroBlock->Line[gMacroStack->LocationIndex];
+			auto& line = gMacroBlock->Line.at(gMacroStack->LocationIndex);
 
 			sprintf_s(DataTypeTemp, "%d@%s -> %s", line.LineNumber, line.SourceFile.c_str(), line.Command.c_str());
 			std::replace(std::begin(DataTypeTemp), std::begin(DataTypeTemp) + strlen(DataTypeTemp), '$', '#');

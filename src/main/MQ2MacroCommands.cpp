@@ -27,24 +27,30 @@ void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
 
 	if (szCommand[strlen(szCommand) - 1] == '{')
 	{
-		if (!gMacroBlock || gMacroBlock && gMacroBlock->Line.find(StartLine) == gMacroBlock->Line.end())
+		if (!gMacroBlock)
 		{
 			DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
 			return;
 		}
 
-		auto i = gMacroBlock->Line.find(StartLine);
-		i++; // move it forward once...
-		gMacroBlock->CurrIndex = i->first;
-
-		for (; i != gMacroBlock->Line.end() && Scope > 0; i++)
+		auto lineIter = gMacroBlock->Line.find(StartLine);
+		if (lineIter == gMacroBlock->Line.end())
 		{
-			if (i->second.Command[0] == '}')
+			DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
+			return;
+		}
+
+		lineIter++; // move it forward once...
+		gMacroBlock->CurrIndex = lineIter->first;
+
+		for (; lineIter != gMacroBlock->Line.end() && Scope > 0; lineIter++)
+		{
+			if (lineIter->second.Command[0] == '}')
 				Scope--;
 
 			if (All)
 			{
-				if (i->second.Command[i->second.Command.size() - 1] == '{')
+				if (lineIter->second.Command[lineIter->second.Command.size() - 1] == '{')
 				{
 					Scope++;
 				}
@@ -54,18 +60,18 @@ void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
 			{
 				if (!All)
 				{
-					if (i->second.Command[i->second.Command.size() - 1] == '{')
+					if (lineIter->second.Command[lineIter->second.Command.size() - 1] == '{')
 						Scope++;
 				}
 
-				if (!_strnicmp(i->second.Command.c_str(), "sub ", 4))
+				if (!_strnicmp(lineIter->second.Command.c_str(), "sub ", 4))
 				{
 					gMacroBlock->CurrIndex = StartLine;
 					FatalError("{} pairing ran into anther subroutine");
 					return;
 				}
 
-				auto forward = i;
+				auto forward = lineIter;
 				forward++;
 
 				if (forward == gMacroBlock->Line.end())
@@ -79,13 +85,16 @@ void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
 			}
 		}
 
-		if (gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end())
+		lineIter = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+		if (lineIter != gMacroBlock->Line.end())
 		{
-			if (!All && (!_strnicmp(gMacroBlock->Line[gMacroBlock->CurrIndex].Command.c_str(), "} else ", 7)))
+			auto& currLine = lineIter->second;
+
+			if (!All && (!_strnicmp(currLine.Command.c_str(), "} else ", 7)))
 			{
-				DoCommand(pChar, (char*)gMacroBlock->Line[gMacroBlock->CurrIndex].Command.substr(7).c_str());
+				DoCommand(pChar, (char*)currLine.Command.substr(7).c_str());
 			}
-			else if (!All && (!_strnicmp(gMacroBlock->Line[gMacroBlock->CurrIndex].Command.c_str(), "} else", 6)))
+			else if (!All && (!_strnicmp(currLine.Command.c_str(), "} else", 6)))
 			{
 				FatalError("} else lacks command or {");
 				return;
@@ -564,17 +573,19 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 		}
 	}
 
-#ifdef MQ2_PROFILING
-	gMacroBlock->Line[*LineNumber].ExecutionCount = 0;
-	gMacroBlock->Line[*LineNumber].ExecutionTime = 0;
-#endif
+	auto [iter, success] = gMacroBlock->Line.emplace(
+		std::piecewise_construct,
+		std::forward_as_tuple(*LineNumber),
+		std::forward_as_tuple(szLine, FileName, localLine));
+	if (!success)
+	{
+		MacroError("Duplicate line number detected! %s@%d", FileName, localLine);
+	}
 
-	auto& MacroLine = gMacroBlock->Line[*LineNumber];
-	MacroLine.Command = szLine;
-	MacroLine.LineNumber = localLine;
-	MacroLine.LoopStart = 0;
-	MacroLine.LoopEnd = 0;
-	MacroLine.SourceFile = FileName;
+#ifdef MQ2_PROFILING
+	iter->second.ExecutionCount = 0;
+	iter->second.ExecutionTime = 0;
+#endif
 
 	static const std::regex subrx("^sub (\\w+)", std::regex_constants::icase);
 	std::cmatch submatch;
@@ -588,12 +599,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 
 static MQMacroBlockPtr AddMacroBlock(std::string Name)
 {
-	auto macroBlock = std::make_shared<MQMacroBlock>();
-	macroBlock->CurrIndex = 0;
-	macroBlock->BindStackIndex = -1;
-	macroBlock->Name = Name;
-	macroBlock->Paused = false;
-	macroBlock->Removed = false;
+	auto macroBlock = std::make_shared<MQMacroBlock>(std::move(Name));
 	MacroBlockMap.insert_or_assign(Name, macroBlock);
 
 	return macroBlock;
@@ -1012,21 +1018,34 @@ void DumpStack(PSPAWNINFO pChar, char* szLine)
 {
 	char szSub[MAX_STRING] = { 0 };
 
-	MQMacroLine ml;
-
 	MQMacroStack* pMS = gMacroStack;
 	while (pMS != nullptr)
 	{
-		if (gMacroBlock->Line.find(pMS->LocationIndex) != gMacroBlock->Line.end())
+		const MQMacroLine* ml = nullptr;
+
+		auto lineIter = gMacroBlock->Line.find(pMS->LocationIndex);
+
+		if (lineIter != gMacroBlock->Line.end())
 		{
-			// wasteful copying
-			ml = gMacroBlock->Line[pMS->LocationIndex];
+			ml = &lineIter->second;
 		}
 
 		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "%s@%d (%s): %s", ml.SourceFile.c_str(), ml.LineNumber, GetSubFromLine(pMS->LocationIndex, szSub, MAX_STRING), ml.Command.c_str());
-		WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 
+		if (ml)
+		{
+			sprintf_s(szTemp, "%s@%d (%s): %s",
+				ml->SourceFile.c_str(),
+				ml->LineNumber,
+				GetSubFromLine(pMS->LocationIndex, szSub, MAX_STRING),
+				ml->Command.c_str());
+		}
+		else
+		{
+			sprintf_s(szTemp, "??? (%s): ???", GetSubFromLine(pMS->LocationIndex, szSub, MAX_STRING));
+		}
+
+		WriteChatColor(szTemp);
 		if (bAllErrorsLog) MacroLog(nullptr, szTemp);
 		pMS = pMS->pNext;
 	}
@@ -1271,15 +1290,9 @@ void Call(PSPAWNINFO pChar, char* szLine)
 	int MacroLine = iter->second;
 
 	// Prep to call the Sub
-	auto pStack = new MQMacroStack();
-	pStack->LocationIndex = MacroLine;
-	pStack->bIsBind = false;
-	pStack->Return[0] = '\0';
-	pStack->Parameters = nullptr;
-	pStack->LocalVariables = nullptr;
-	pStack->pNext = gMacroStack;
-	gMacroBlock->CurrIndex = MacroLine;
+	MQMacroStack* pStack = new MQMacroStack(MacroLine);
 
+	gMacroBlock->CurrIndex = MacroLine;
 	if (gMacroStack && gMacroBlock->BindStackIndex != -1)
 	{
 		// we need to check the stackchain now for the start of the bind
@@ -1303,9 +1316,10 @@ void Call(PSPAWNINFO pChar, char* szLine)
 		}
 	}
 
+	pStack->pNext = gMacroStack;
 	gMacroStack = pStack;
 
-	MQMacroLine ml = gMacroBlock->Line[MacroLine];
+	MQMacroLine& ml = gMacroBlock->Line.at(MacroLine);
 	int numsubargs = GetNumArgsFromSub(ml.Command);
 
 	if ((SubParam && SubParam[0] != '\0') || numsubargs)
@@ -1431,7 +1445,7 @@ static void PushMacroLoop(const MQLoop& loop)
 
 static void EndWhile()
 {
-	gMacroBlock->CurrIndex = gMacroBlock->Line[gMacroBlock->CurrIndex].LoopEnd;
+	gMacroBlock->CurrIndex = gMacroBlock->Line.at(gMacroBlock->CurrIndex).LoopEnd;
 	bRunNextCommand = true;
 }
 
@@ -1441,34 +1455,34 @@ static void MarkWhile(const char* szCommand, MQLoop& loop)
 	{
 		loop.type = MQLoop::Type::While;
 
-		auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
-		if (i->second.LoopStart && i->second.LoopEnd)
+		auto lineIter = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+		if (lineIter->second.LoopStart && lineIter->second.LoopEnd)
 		{
-			loop.firstLine = i->second.LoopStart;
-			loop.lastLine = i->second.LoopEnd;
+			loop.firstLine = lineIter->second.LoopStart;
+			loop.lastLine = lineIter->second.LoopEnd;
 			return;
 		}
 
-		const auto currentLine = i;
-		--i;
-		currentLine->second.LoopStart = i->first;
-		loop.firstLine = i->first;
-		++i;
+		const auto currentLine = lineIter;
+		--lineIter;
+		currentLine->second.LoopStart = lineIter->first;
+		loop.firstLine = lineIter->first;
+		++lineIter;
 		int Scope = 1;
 
-		while (++i != gMacroBlock->Line.end())
+		while (++lineIter != gMacroBlock->Line.end())
 		{
-			if (i->second.Command[0] == '}')
+			if (lineIter->second.Command[0] == '}')
 			{
 				--Scope;
 				if (Scope == 0) break;
 			}
 
-			if (i->second.Command[i->second.Command.size() - 1] == '{')
+			if (lineIter->second.Command[lineIter->second.Command.size() - 1] == '{')
 			{
 				++Scope;
 			}
-			else if (!_strnicmp(i->second.Command.c_str(), "sub ", 4))
+			else if (!_strnicmp(lineIter->second.Command.c_str(), "sub ", 4))
 			{
 				FatalError("{} pairing ran into anther subroutine");
 				return;
@@ -1481,9 +1495,9 @@ static void MarkWhile(const char* szCommand, MQLoop& loop)
 			return;
 		}
 
-		i->second.LoopStart = loop.firstLine;
-		loop.lastLine = i->first;
-		currentLine->second.LoopEnd = i->first;
+		lineIter->second.LoopStart = loop.firstLine;
+		loop.lastLine = lineIter->first;
+		currentLine->second.LoopEnd = lineIter->first;
 	}
 	else
 	{
@@ -1674,17 +1688,18 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 
 	DebugSpewNoFile("DoEvents: Running event type %d (%s) = 0x%p", pEvent->Type, (pEvent->pEventList) ? pEvent->pEventList->szName : "NONE", pEvent);
 
-	MQMacroStack* pStack = new MQMacroStack();
-
 	// back the current location to previous one so we fall into
 	// /doevents again.
 
-	auto i = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
-	i--;
-	if (i != gMacroBlock->Line.end())
-		pStack->LocationIndex = i->first;
+	int locationIndex = 0;
+	auto lineIter = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
+	if (lineIter != gMacroBlock->Line.end())
+	{
+		lineIter--;
+		locationIndex = lineIter->first;
+	}
 
-	pStack->Return[0] = 0;
+	MQMacroStack* pStack = new MQMacroStack(locationIndex);
 	pStack->Parameters = pEvent->Parameters;
 
 	MQDataVar* pParam = pStack->Parameters;
