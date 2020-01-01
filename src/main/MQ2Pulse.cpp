@@ -494,12 +494,6 @@ static HeartbeatState Heartbeat()
 	{
 		LastGetTick = Tick;
 		bFirstHeartBeat = false;
-
-		if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE)
-		{
-			gbInZone = true;
-			PluginsSetGameState(gGameState);
-		}
 	}
 
 	// This accounts for rollover
@@ -526,6 +520,7 @@ static HeartbeatState Heartbeat()
 		{
 			DebugSpew("GetGameState()=%d vs %d", GameState, gGameState);
 			gGameState = GameState;
+			gbInZone = (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE);
 			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState)));
 		}
 
