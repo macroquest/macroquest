@@ -783,8 +783,9 @@ std::string GetMacroVarData(std::string_view strVarToParse)
 		// If the parse was successful and there is a result type and we could convert that type to a string
 		if (ParseMQ2DataPortion(&currentStr[0], Result) && Result.Type && Result.Type->ToString(Result.VarPtr, &currentStr[0]))
 		{
-			// Set our return whatever szCurrent was modified to be
-			strReturn = currentStr;
+			// Set our return whatever szCurrent was modified to be (removing the additional  null terminators
+			// due to the above resize)
+			strReturn = currentStr.erase(currentStr.find('\0'));
 		}
 	}
 	return strReturn;
@@ -1192,7 +1193,7 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
 				case ModifyMacroMode::Default:
 				default:
 					// Parse it and add the result to our current string
-					strReturn += ParseMacroVar(strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition)), bParseOnce);
+					strReturn.append(ParseMacroVar(strOriginal.substr(iCurrentPosition, (iBracePosition - iCurrentPosition)), bParseOnce));
 				}
 
 				// Advance our position to where the brace is
@@ -1245,7 +1246,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 				const MQMacroLine& line = currblock->Line.at(currblock->CurrIndex);
 
 				MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d",
-					line.SourceFile.c_str(), line.LineNumber);
+					line.SourceFile.c_str(), line.LineNumber, MAX_STRING);
 			}
 
 			// Trim the result.
