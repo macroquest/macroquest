@@ -76,6 +76,7 @@ static void DebugSpewImpl(bool always, bool logToFile, const char* szFormat, va_
 	}
 }
 
+// Outputs to debug console when gFilterDebug is false.  Does not output to file. (/filter debug or FilterDebug=0 in ini)
 void DebugSpew(const char* szFormat, ...)
 {
 	va_list vaList;
@@ -84,6 +85,7 @@ void DebugSpew(const char* szFormat, ...)
 	DebugSpewImpl(false, false, szFormat, vaList);
 }
 
+// Outputs to debug console always.  Outputs to file when gSpewToFile is true. (/spewfile or DebugSpewToFile=1 in ini)
 void DebugSpewAlways(const char* szFormat, ...)
 {
 	va_list vaList;
@@ -92,6 +94,7 @@ void DebugSpewAlways(const char* szFormat, ...)
 	DebugSpewImpl(true, gSpewToFile, szFormat, vaList);
 }
 
+// Outputs to debug console always.  Outputs to file always.
 void DebugSpewAlwaysFile(const char* szFormat, ...)
 {
 	va_list vaList;
@@ -100,6 +103,7 @@ void DebugSpewAlwaysFile(const char* szFormat, ...)
 	DebugSpewImpl(true, true, szFormat, vaList);
 }
 
+// Outputs to debug console when DBG_SPEW is defined
 MQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
 {
 #ifdef DBG_SPEW
