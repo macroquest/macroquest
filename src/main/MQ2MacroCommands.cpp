@@ -509,10 +509,10 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 				MacroError("#bind_noparse requires enabling Parser Version 2.");
 			}
 		}
-		else if (!_strnicmp(szLine, "#engine", 8))
+		else if (!_strnicmp(szLine, "#engine ", 8))
 		{
 			std::string_view lineView{ szLine };
-			std::string strLine = std::string{ lineView.substr(8, strLine.length()) } + " noauto";
+			std::string strLine = std::string{ lineView.substr(8) } + " noauto";
 
 			strcpy_s(szLine, Linelen, strLine.c_str());
 			EngineCommand(GetCharInfo()->pSpawn, szLine);
