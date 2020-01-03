@@ -57,7 +57,7 @@ bool dataSelect(const char* szIndex, MQTypeVar& Ret)
 	char szArg1[MAX_STRING] = { 0 };
 	int N = 2;
 	// FIXME: const
-	GetArg(szArg1, (char*)szIndex, 1, false, false, false);
+	GetArg(szArg1, (char*)szIndex, 1, false, false, true);
 	while (true)
 	{
 		// FIXME: const
