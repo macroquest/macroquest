@@ -44,3 +44,6 @@ ipch/
 
 # ignore user plugins
 plugins/
+
+# ignore tools repo
+src/tools
