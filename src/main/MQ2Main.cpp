@@ -166,11 +166,11 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			{
 				pathMQini = pathMQRoot / "MacroQuest.ini";
 			}
-			else if (std::filesystem::exists(pathMQRoot / "MacroQuest_default.ini"))
+			else if (std::filesystem::exists(pathMQRoot / strConfig / "MacroQuest_default.ini"))
 			{
 				// copy into the config directory and work from there.
 				std::filesystem::copy_file(
-					pathMQRoot / "MacroQuest_default.ini",
+					pathMQRoot / strConfig / "MacroQuest_default.ini",
 					pathMQRoot / strConfig / "MacroQuest.ini");
 			}
 		}
