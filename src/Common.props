@@ -39,7 +39,6 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <!-- Debug only linker settings -->
     <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

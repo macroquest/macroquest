@@ -50,7 +50,7 @@ struct everquest_allocator
 
 	T* allocate(std::size_t count)
 	{
-		return reinterpret_cast<T*>(eqAlloc(size * sizeof(T)));
+		return reinterpret_cast<T*>(eqAlloc(count * sizeof(T)));
 	}
 
 	void deallocate(T* p, size_t)
