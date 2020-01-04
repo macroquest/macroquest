@@ -3497,30 +3497,29 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 		iniFile = mq::internal_paths::Config / iniFile;
 	}
 
-	char* Arg3 = &szArg3[0];
-	char* Arg4 = &szArg4[0];
+	std::string Arg3 = { szArg3 };
+	std::string Arg4 = { szArg4 };
 
-	if (!_strnicmp(szArg3, "NULL", 4) && strlen(szArg3) == 4)
+	if (ci_equals(szArg3, "NULL"))
 	{
-		Arg3 = nullptr;
+		Arg3 = "";
 	}
-	if (!_strnicmp(szArg4, "NULL", 4) && strlen(szArg4) == 4)
+	if (ci_equals(szArg4, "NULL"))
 	{
-		Arg4 = nullptr;
-	}
-
-	// Lets strip the '"'
-	if (Arg3)
-	{
-		GetArg(szArg3, szLine, 3);
+		Arg4 = "";
 	}
 
-	if (Arg4)
+	// Strip the double quotes
+	if (!Arg3.empty() && Arg3[0] == '"' && Arg3[Arg3.length() - 1] == '"')
 	{
-		GetArg(szArg4, szLine, 4);
+	    Arg3 = Arg3.substr(1, Arg3.length() - 2);
+	}
+	if (!Arg4.empty() && Arg4[0] == '"' && Arg4[Arg4.length() - 1] == '"')
+	{
+	    Arg4 = Arg4.substr(1, Arg4.length() - 2);
 	}
 
-	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, (iniFile.string())))
+	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, iniFile.string()))
 	{
 		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 	}
