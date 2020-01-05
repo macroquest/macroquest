@@ -1260,7 +1260,7 @@ void InitializeMQ2Detours()
 {
 	HookMemChecker(true);
 
-	DWORD GetProcAddress_Addr = (DWORD)GetProcAddress(GetModuleHandle("kernel32.dll"), "GetProcAddress");
+	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 
 #ifndef TESTMEM
@@ -1273,6 +1273,10 @@ void ShutdownMQ2Detours()
 #ifndef TESTMEM
 	RemoveDetour(__LoadFrontEnd);
 #endif // !TESTMEM
+
+	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
+	RemoveDetour(GetProcAddress_Addr);
+
 	HookMemChecker(false);
 	RemoveDetours();
 }

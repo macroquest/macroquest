@@ -528,29 +528,75 @@ void DoInitialization()
 
 bool MQ2Initialize()
 {
-	MODULEINFO modinfo = { nullptr };
-	HMODULE heagamemod = GetModuleHandle(nullptr);
+	MODULEINFO EQGameModuleInfo;
+	HMODULE hEQGameModule = GetModuleHandle(nullptr);
 
-	GetModuleInformation(GetCurrentProcess(), heagamemod, &modinfo, sizeof(MODULEINFO));
-	g_eqgameimagesize = (DWORD)heagamemod + modinfo.SizeOfImage;
+	GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
+	g_eqgameimagesize = (DWORD)hEQGameModule + EQGameModuleInfo.SizeOfImage;
 
 	if (GetModuleHandle("Lavish.dll") || GetModuleHandle("InnerSpace.dll"))
 	{
-		// I dont know why but if we dont sleep here for a while
-		// we will crash but only if I have a detour on wwsCrashReportCheckForUploader
-		// I suspect Lax would know more about this than me -eqmule
-		HWND hEQWnd = nullptr;
+		uintptr_t baseAddress = 0;
+		uintptr_t endAddress = 0;
 
-		// we use this loop to just wait for wineq2 to get the eqwindow up and running before we move on
-		// there is some kind of weird race condition going on... again lax would know more about this than I...
-		while (hEQWnd == nullptr)
+		MODULEINFO moduleInfo;
+		HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
+		HMODULE hKernelModule = GetModuleHandleA("kernel32.dll");
+
+		if (hISModule
+			&& GetModuleInformation(GetCurrentProcess(), hISModule, &moduleInfo, sizeof(MODULEINFO)))
 		{
-			hEQWnd = GetEQWindowHandle();
+			baseAddress = (uintptr_t)moduleInfo.lpBaseOfDll;
+			endAddress = baseAddress + (uintptr_t)moduleInfo.SizeOfImage;
+		}
 
-			if (!hEQWnd)
+		bool foundHooks = baseAddress == 0;             // skip checks if InnerSpace.dll isn't loaded
+		bool foundWindowHandle = false;
+
+		// Do some checks against Lavish/InnerSpace integrations. Wait a total of 10 seconds of we fail all checks.
+		auto startTime = std::chrono::steady_clock::now();
+		while (std::chrono::steady_clock::now() - startTime < std::chrono::seconds{ 10 } && !(foundHooks && foundWindowHandle))
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds{ 200 });
+
+			if (!foundHooks)
 			{
-				Sleep(1000);
+				// Wait for InnerSpace to finish loading before we try to continue. InnerSpace will modify our
+				// import address table, resulting in our detours being ineffective if we go first.
+				uintptr_t fnGetProcAddress = (uintptr_t)&::GetProcAddress;
+				if (fnGetProcAddress >= baseAddress && fnGetProcAddress < endAddress)
+				{
+					foundHooks = true;
+				}
+				else
+				{
+					fnGetProcAddress = (uintptr_t)GetProcAddress(hKernelModule, "GetProcAddress");
+					if (fnGetProcAddress >= baseAddress && fnGetProcAddress < endAddress)
+					{
+						foundHooks = true;
+					}
+				}
 			}
+
+			if (!foundWindowHandle)
+			{
+				// we also use this loop to wait for wineq2/innerspace to get the eqwindow up and running before we move on.
+				HWND hEQWnd = GetEQWindowHandle();
+				if (hEQWnd != nullptr)
+				{
+					foundWindowHandle = true;
+				}
+			}
+		};
+
+		if (!foundHooks)
+		{
+			DebugSpewAlways("Was not able to detect the InnerSpace hook on GetProcAddress!");
+		}
+
+		if (!foundWindowHandle)
+		{
+			DebugSpewAlways("Was not able to detect the main EQ window handle!");
 		}
 	}
 

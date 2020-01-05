@@ -748,7 +748,7 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 					strcat_s(szServers, ", ");
 				strcat_s(szServers, ServerData[n].Name);
 			}
-			strcat_s(szServers, " as well as any server you have defined in your mq2autologin.ini under the [Servers] section.");
+			strcat_s(szServers, " as well as any server you have defined in your MQ2AutoLogin.ini under the [Servers] section.");
 			WriteChatColor(szServers);
 			return;
 		}
@@ -1010,16 +1010,11 @@ void AddOurPulse()
 				GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
 				GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
 				GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
-                GetPrivateProfileString(szSession, "SelectCharacter", 0, szSelectCharacterName, 64, INIFileName);
+				GetPrivateProfileString(szSession, "SelectCharacter", 0, szSelectCharacterName, 64, INIFileName);
 			}
 		}
 	}
 }
-
-// custom ini support
-DWORD_PTR gppi = 0;
-DWORD_PTR gpps = 0;
-DWORD_PTR wpps = 0;
 
 DWORD WINAPI GetPrivateProfileStringA_Tramp(LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR);
 
@@ -1031,14 +1026,7 @@ void SetupCustomIni()
 	if (const char* pLogin = GetLoginName())
 	{
 		strcpy_s(szStationName, pLogin);
-		if (gpps)
-		{
-			GetPrivateProfileStringA_Tramp(szStationName, "CustomClientIni", 0, szCustomIni, 64, INIFileName);
-		}
-		else
-		{
-			GetPrivateProfileString(szStationName, "CustomClientIni", 0, szCustomIni, 64, INIFileName);
-		}
+		GetPrivateProfileStringA_Tramp(szStationName, "CustomClientIni", 0, szCustomIni, 64, INIFileName);
 	}
 }
 
@@ -1153,18 +1141,15 @@ PLUGIN_API void InitializePlugin()
 		{
 			SetupCustomIni();
 		}
-		if (gppi = (DWORD_PTR)GetProcAddress(GetModuleHandle("kernel32.dll"), "GetPrivateProfileIntA"))
-		{
-			EzDetourwName(gppi, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp, "GetPrivateProfileIntA_Detour");
-		}
-		if (gpps = (DWORD_PTR)GetProcAddress(GetModuleHandle("kernel32.dll"), "GetPrivateProfileStringA"))
-		{
-			EzDetourwName(gpps, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Tramp, "GetPrivateProfileStringA_Detour");
-		}
-		if (wpps = (DWORD_PTR)GetProcAddress(GetModuleHandle("kernel32.dll"), "WritePrivateProfileStringA"))
-		{
-			EzDetourwName(wpps, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Tramp, "WritePrivateProfileStringA_Detour");
-		}
+
+		DWORD pfnGetPrivateProfileIntA = (DWORD)&::GetPrivateProfileIntA;
+		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
+
+		DWORD pfnGetPrivateProfileStringA = (DWORD)&::GetPrivateProfileStringA;
+		EzDetour(pfnGetPrivateProfileStringA, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Tramp);
+
+		DWORD pfnWritePrivateProfileStringA = (DWORD) & ::WritePrivateProfileStringA;
+		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Tramp);
 	}
 
 	// force a check if user loads us at charselect for example...
@@ -1226,12 +1211,15 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
 
-	if (gppi)
-		RemoveDetour(gppi);
-	if (gpps)
-		RemoveDetour(gpps);
-	if (wpps)
-		RemoveDetour(wpps);
+	DWORD pfnGetPrivateProfileIntA = (DWORD)&::GetPrivateProfileIntA;
+	RemoveDetour(pfnGetPrivateProfileIntA);
+
+	DWORD pfnGetPrivateProfileStringA = (DWORD)&::GetPrivateProfileStringA;
+	RemoveDetour(pfnGetPrivateProfileStringA);
+
+	DWORD pfnWritePrivateProfileStringA = (DWORD)&::WritePrivateProfileStringA;
+	RemoveDetour(pfnWritePrivateProfileStringA);
+
 	LoginReset();
 }
 
