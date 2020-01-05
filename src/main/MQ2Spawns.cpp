@@ -396,12 +396,7 @@ public:
 
 		return true;
 	}
-
-	// FIXME: Move to the correct class
-	bool IsTargetable();
-
 };
-FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(), EQPlayer__IsTargetable);
 
 class CActorEx
 {
@@ -1039,7 +1034,7 @@ void PulseMQ2Spawns()
 
 bool IsTargetable(SPAWNINFO* pSpawn)
 {
-	return ((EQPlayerHook*)pSpawn)->IsTargetable();
+	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
 }
 
 } // namespace mq

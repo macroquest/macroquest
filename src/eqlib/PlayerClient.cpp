@@ -452,6 +452,9 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::IsInvisible(EQPlayer*), EQPlayer__IsInvisible
 #ifdef EQPlayer__IsAMount_x
 FUNCTION_AT_ADDRESS(bool EQPlayer::IsAMount(), EQPlayer__IsAMount);
 #endif
+#ifdef EQPlayer__IsTargetable_x
+FUNCTION_AT_ADDRESS(bool PlayerBase::IsTargetable(), EQPlayer__IsTargetable);
+#endif
 
 //============================================================================
 // EQPlayerManager
