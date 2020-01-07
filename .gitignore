@@ -43,7 +43,7 @@ ipch/
 *.til
 
 # ignore user plugins
-plugins/
+/plugins/
 
 # ignore tools repo
 src/tools

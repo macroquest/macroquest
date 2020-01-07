@@ -46,13 +46,17 @@
     <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AutoLoginShared.cpp" />
     <ClCompile Include="MQ2AutoLogin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\main\MQ2Main.vcxproj">
       <Project>{2a0a06a4-e9c6-4229-82ee-bd2d4e0a7221}</Project>
     </ProjectReference>
-  </ItemGroup>  
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AutoLoginShared.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

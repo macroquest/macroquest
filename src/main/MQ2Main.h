@@ -74,13 +74,13 @@ using namespace eqlib;
 #endif
 
 #define MAX_VARNAME           64
-#define MAX_STRING            2048
 
 #define IsNaN(x) (x != x)
 
 #define LODWORD(_qw)          ((uint32_t)(_qw))
 #define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
 
+#include "../common/Common.h"
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"

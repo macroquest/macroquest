@@ -16,6 +16,8 @@
 
 #include <limits>
 
+#include "../common/Common.h"
+
 #pragma warning(disable : 5030) // Single pragma seems to suffice for the entire codebase
 
 #if !defined(_USE_32BIT_TIME_T)
@@ -133,12 +135,6 @@
 #define ALT_MEMBER_GETTER_DEPRECATED(type, orig, name) \
     decltype(auto) getter_ ## name() { return (orig); } \
     __declspec(property(get=getter_ ## name)) type name;
-
-template <typename T, size_t N>
-constexpr size_t lengthof(const T(&)[N])
-{
-	return N;
-}
 
 namespace eqlib {
 

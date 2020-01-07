@@ -43,8 +43,8 @@ using fMQEndZone             = void   (*)();
 // MQ2Ic Function Types
 using fICGetHashData         = int64_t(*)(void*, int);
 using fICSetHashData         = void   (*)(void*, int, int64_t);
-using fLoaderSetLoaded       = DWORD  (*)(char*, char*, char*, char*, DWORD);
-using fLoaderClearLoaded     = DWORD  (*)(char*, char*, char*, char*, DWORD);
+using fLoaderSetLoaded       = DWORD  (*)(const char*, const char*, const char*, const char*, DWORD);
+using fLoaderClearLoaded     = DWORD  (*)(const char*, const char*, const char*, const char*, DWORD);
 using fMQ2Unload             = DWORD  (*)(DWORD);
 using fClassLvl              = DWORD  (*)(DWORD, DWORD, DWORD);
 

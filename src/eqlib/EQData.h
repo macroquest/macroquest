@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "../common/Common.h"
 #include "Containers.h"
 #include "Items.h"
 #include "PlayerClient.h"
@@ -425,7 +426,6 @@ enum eFilterMacro
 	FILTERMACRO_MAX,
 };
 
-#define MAX_STRING                               2048
 #define MAX_VARNAME                              64
 
 

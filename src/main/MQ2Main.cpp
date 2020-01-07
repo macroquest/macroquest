@@ -92,15 +92,14 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 bool InitDirectory(std::string& strPathToInit,
 	const std::string& strIniKey,
 	const std::string& iniToRead,
-	const std::filesystem::path& appendPathIfRelative = mq::internal_paths::MQRoot,
-	const bool bWriteAllConfig = false)
+	const std::filesystem::path& appendPathIfRelative = mq::internal_paths::MQRoot)
 {
 	DebugSpewAlways("Initializing Directory:  %s", strIniKey.c_str());
 
 	std::filesystem::path pathToInit =
 		GetPrivateProfileString("MacroQuest", strIniKey, strPathToInit, iniToRead);
 
-	if (bWriteAllConfig)
+	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileString("MacroQuest", strIniKey, pathToInit.string(), iniToRead);
 	}
@@ -195,8 +194,10 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 		// Set the ini to whatever we ended up with.
 		strMQini = pathMQini.string();
 
+		gbWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini);
+
 		// Init the Config directory based on the ini we found.
-		if (InitDirectory(strConfig, "ConfigPath", strMQini, strMQRoot, GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini)))
+		if (InitDirectory(strConfig, "ConfigPath", strMQini, strMQRoot))
 		{
 #pragma warning(push)
 #pragma warning(disable: 4996) // temporarily disable deprecation warnings.
@@ -219,12 +220,12 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 bool InitDirectories(const std::string& iniToRead)
 {
 	DebugSpewAlways("Initializing Required Directories...");
-	const bool bWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniToRead);
-	if (InitDirectory(mq::internal_paths::Macros, "MacroPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
-		&& InitDirectory(mq::internal_paths::Logs, "LogPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
-		&& InitDirectory(mq::internal_paths::CrashDumps, "CrashDumpPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
-		&& InitDirectory(mq::internal_paths::Plugins, "PluginPath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
-		&& InitDirectory(mq::internal_paths::Resources, "ResourcePath", iniToRead, mq::internal_paths::MQRoot, bWriteAllConfig)
+
+	if (InitDirectory(mq::internal_paths::Macros, "MacroPath", iniToRead, mq::internal_paths::MQRoot)
+		&& InitDirectory(mq::internal_paths::Logs, "LogPath", iniToRead, mq::internal_paths::MQRoot)
+		&& InitDirectory(mq::internal_paths::CrashDumps, "CrashDumpPath", iniToRead, mq::internal_paths::MQRoot)
+		&& InitDirectory(mq::internal_paths::Plugins, "PluginPath", iniToRead, mq::internal_paths::MQRoot)
+		&& InitDirectory(mq::internal_paths::Resources, "ResourcePath", iniToRead, mq::internal_paths::MQRoot)
 		)
 	{
 #pragma warning(push)
@@ -253,7 +254,6 @@ bool InitDirectories(const std::string& iniToRead)
 bool ParseINIFile(const std::string& iniFile)
 {
 	char szBuffer[MAX_STRING] = { 0 };
-	gbWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, iniFile);
 
 	DebugSpew("Expected Client version: %s %s", __ExpectedVersionDate, __ExpectedVersionTime);
 	DebugSpew("    Real Client version: %s %s", __ActualVersionDate, __ActualVersionTime);

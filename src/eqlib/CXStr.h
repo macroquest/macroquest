@@ -1456,6 +1456,37 @@ public:
 	int Compare(const CXStr& other, ECompareMode mode = CaseSensitive) const;
 	int CompareN(const CXStr& other, int len, ECompareMode mode = CaseSensitive) const;
 
+	size_t find(const CXStr& str, size_type pos = 0) const noexcept
+	{
+		std::string_view sv{ *this };
+		return sv.find(std::string_view{ str }, pos);
+	}
+
+	size_t find(const char* s, size_t pos, size_t count) const
+	{
+		std::string_view sv{ *this };
+		return sv.find(s, pos, count);
+	}
+
+	size_t find(const char* s, size_type pos = 0) const
+	{
+		std::string_view sv{ *this };
+		return sv.find(s, pos);
+	}
+
+	size_t find(char ch, size_type pos = 0) const noexcept
+	{
+		std::string_view sv{ *this };
+		return sv.find(ch, pos);
+	}
+
+	template <typename T, typename = is_string_view_ish<T>>
+	size_t find(const T& t, size_t pos = 0) const noexcept
+	{
+		std::string_view sv{ *this };
+		return sv.find(t, pos);
+	}
+
 private:
 	mutable CStrRep* m_data = nullptr;
 

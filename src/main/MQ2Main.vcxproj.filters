@@ -30,6 +30,9 @@
     <Filter Include="Header Files\contrib\imgui">
       <UniqueIdentifier>{c9b8caa5-c7a6-4c28-86dc-65f7c261bc1c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\common">
+      <UniqueIdentifier>{e98c76df-4e31-446f-a6ab-5ea6d565f09c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -219,6 +222,18 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h">
       <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Common.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ConfigUtils.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\OffsetUtils.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\StringUtils.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

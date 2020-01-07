@@ -145,6 +145,10 @@
     <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h" />
     <ClInclude Include="..\Blech\Blech.h" />
+    <ClInclude Include="..\common\Common.h" />
+    <ClInclude Include="..\common\ConfigUtils.h" />
+    <ClInclude Include="..\common\OffsetUtils.h" />
+    <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataTypes.h" />
