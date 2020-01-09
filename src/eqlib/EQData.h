@@ -18,6 +18,7 @@
 #include "Containers.h"
 #include "Items.h"
 #include "PlayerClient.h"
+#include "SoeUtil.h"
 
 namespace eqlib {
 

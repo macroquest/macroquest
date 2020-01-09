@@ -98,6 +98,7 @@
     <ClInclude Include="PlayerZoneClient-Members.h" />
     <ClInclude Include="SidlParams.h" />
     <ClInclude Include="SidlTemplates.h" />
+    <ClInclude Include="SoeUtil.h" />
     <ClInclude Include="Spells.h" />
     <ClInclude Include="UI.h" />
   </ItemGroup>

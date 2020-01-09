@@ -13,11 +13,7 @@
  */
 
 #include "pch.h"
-#include "Common.h"
-#include "Allocator.h"
-#include "UI.h"
-#include "CXWnd.h"
-#include "Globals.h"
+#include "EQLib.h"
 
 namespace eqlib {
 

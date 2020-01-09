@@ -31,11 +31,6 @@
 // Globals that are used throughout the eqlib project
 #include "Globals.h"
 
-// data structures - old headers. Eventually these will be consolidated
-#include "EQUIStructs.h"
-#include "EQData.h"
-#include "EQClasses.h"
-
 // Data structures and class definitions, broken up by topic. If any of these
 // gets too large, or has too many unrelated components, they should probably
 // be broken up into smaller chunks.
@@ -44,6 +39,12 @@
 #include "Allocator.h"
 #include "Containers.h"
 #include "CXStr.h"
+#include "SoeUtil.h"
+
+// data structures - old headers. Eventually these will be consolidated
+#include "EQUIStructs.h"
+#include "EQData.h"
+#include "EQClasses.h"
 
 // ui components
 #include "CXWnd.h"
