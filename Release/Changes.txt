@@ -5,7 +5,6 @@ Jan 08 2020
   Now: pCont->pEvolutionData.p->EvolvingCurrentLevel
   The Following are members of pEvolutionData: GroupID, EvolvingCurrentLevel, EvolvingExpPct, EvolvingMaxLevel, LastEquipped;
 - ItemColor is now gone from CONTENTS.
-- MQ2LinkDB has been updated. Don't forget to recheck it in builder if you use it.
 -
 Dec 21 2019
 - Fixed a crash in mq2chatwnd.cpp on /camp desktop
