@@ -10338,7 +10338,7 @@ bool IsEvolvingItem(PCONTENTS pCont)
 #if !defined(EQBETA) && !defined(TEST)
 	return pCont->IsEvolvingItem;
 #else
-	return pCont->pEvolutionData.shared ? true : false;
+	return pCont->pEvolutionData != nullptr;
 #endif
 }
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed

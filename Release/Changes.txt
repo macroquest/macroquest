@@ -1,8 +1,17 @@
+Jan 09 2020
+- Added Me.Spell it return a SpellType selecting spells only from YOUR SpellBook. - brainiac
+  Usage: /echo ${Me.Spell[Spirit of Wolf].ID}
+  Output: 278
+  Usage: /echo ${Me.Spell[278].Name}
+  Output: Spirit of Wolf
+- Fixed a wrong offset for pinstCBlockedBuffWnd_x for TEST build - SwiftyMuse
+- Book Icon and Gem Icon IDs will no longer be shown in ItemDisplay when they are 0 - SwiftyMuse
+-
 Jan 08 2020
 - Updated for TEST
 - CONTENTS changed by dbg. The evolving stuff is now in its own struct, plugins that use it need to be edited.
   Example: PrePatch: pCont->EvolvingCurrentLevel
-  Now: pCont->pEvolutionData.p->EvolvingCurrentLevel
+  Now: pCont->pEvolutionData->EvolvingCurrentLevel
   The Following are members of pEvolutionData: GroupID, EvolvingCurrentLevel, EvolvingExpPct, EvolvingMaxLevel, LastEquipped;
 - ItemColor is now gone from CONTENTS.
 -

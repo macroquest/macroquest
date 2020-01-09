@@ -200,7 +200,7 @@ GNU General Public License for more details.
 #define pinstCBazaarConfirmationWnd_x                              0xE04198
 #define pinstCBazaarSearchWnd_x                                    0xE04118
 #define pinstCBazaarWnd_x                                          0xE041B4
-#define pinstCBlockedBuffWnd_x                                     0xE042B8
+#define pinstCBlockedBuffWnd_x                                     0xE04218
 #define pinstCBlockedPetBuffWnd_x                                  0xE04258
 #define pinstCBodyTintWnd_x                                        0xE0414C
 #define pinstCBookWnd_x                                            0xE042A4

@@ -4323,6 +4323,49 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
+	case Spell:
+	{
+		Dest.Type = pSpellType;
+		if (ISINDEX())
+		{
+			if (PCHARINFO2 pChar2 = GetCharInfo2())
+			{
+				if (ISNUMBER())
+				{
+					// Look for spell in our book by ID
+					LONG spellID = GETNUMBER();
+					for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
+					{
+						if (pChar2->SpellBook[nSpell] == spellID)
+						{
+							Dest.Ptr = GetSpellByID(spellID);
+							return true;
+						}
+					}
+				}
+				else
+				{
+					// Look for spell in our book by Name like ${Spell}
+					if (PSPELL pSpell = GetSpellByName(GETFIRST()))
+					{
+						// If we found a spell check if its in the spellbook
+						int spellID = pSpell->ID;
+
+						for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
+						{
+							if (pChar2->SpellBook[nSpell] == spellID)
+							{
+								Dest.Ptr = pSpell;
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	case ItemReady:
 	{
 		Dest.DWord = 0;
@@ -13597,25 +13640,25 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		return true;
 #else
 	case ExpPct:
-		if (pItem->pEvolutionData.shared)
+		if (pItem->pEvolutionData)
 		{
-			Dest.Float = (FLOAT)pItem->pEvolutionData.p->EvolvingExpPct;
+			Dest.Float = (FLOAT)pItem->pEvolutionData->EvolvingExpPct;
 			Dest.Type = pFloatType;
 			return true;
 		}
 		break;
 	case Level:
-		if (pItem->pEvolutionData.shared)
+		if (pItem->pEvolutionData)
 		{
-			Dest.DWord = pItem->pEvolutionData.p->EvolvingCurrentLevel;
+			Dest.DWord = pItem->pEvolutionData->EvolvingCurrentLevel;
 			Dest.Type = pIntType;
 			return true;
 		}
 		break;
 	case MaxLevel:
-		if (pItem->pEvolutionData.shared)
+		if (pItem->pEvolutionData)
 		{
-			Dest.DWord = pItem->pEvolutionData.p->EvolvingMaxLevel;
+			Dest.DWord = pItem->pEvolutionData->EvolvingMaxLevel;
 			Dest.Type = pIntType;
 			return true;
 		}

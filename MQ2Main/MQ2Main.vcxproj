@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Blech\Blech.h" />
+    <ClInclude Include="ArrayClass.h" />
     <ClInclude Include="combines.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="EQClasses.h" />

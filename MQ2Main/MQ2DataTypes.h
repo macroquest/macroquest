@@ -1253,8 +1253,8 @@ public:
 		AncientDraconicCoin = 304,
 		FetterredIfritCoins = 305,
 		EntwinedDjinnCoins = 306,
-		CrystallizedLuck = 307
-
+		CrystallizedLuck = 307,
+		Spell = 308,
 	};
 	enum CharacterMethods
 	{
@@ -1564,7 +1564,8 @@ public:
 		TypeMember(FetterredIfritCoins);//305,
 		TypeMember(EntwinedDjinnCoins);//306,
 		TypeMember(CrystallizedLuck);//307
-		
+		TypeMember(Spell);//308
+
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);

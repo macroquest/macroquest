@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 
 #pragma pack(push)
@@ -333,24 +334,94 @@ private:
 		}
 	}
 };
+
 class AtomicInt
 {
 public:
-	volatile int Value;
+	std::atomic_int32_t Value;
 };
 
 class SharedData
 {
 public:
-	AtomicInt m_refs;
-	AtomicInt m_stronrefs;
-	int m_alignment;
+	SharedData() = default;
+
+	std::atomic_int32_t m_refs{ 1 };
+	std::atomic_int32_t m_strongRefs{ 1 };
+	int m_alignment = 0;
 };
-template <typename T> class SharedPtr
+
+template <typename T>
+class SharedPtr
 {
-    public:
-        mutable SharedData *shared;
-        mutable T *p;
+public:
+	SharedPtr() = default;
+	~SharedPtr() = default;
+
+	// Take ownership of the pointer
+	explicit SharedPtr(T* ptr)
+		: m_p(ptr)
+		, m_shared(new SharedData())
+	{
+	}
+
+	// Only call on a SharedPtr we created!!
+	void reset()
+	{
+		delete m_shared;
+		m_shared = nullptr;
+
+		delete m_p;
+		m_p = nullptr;
+	}
+
+	// This is DANGEROUS because we do not increment the reference count.
+	// Do not store a SharedPtr!!
+	SharedPtr(const SharedPtr& rhs)
+		: m_shared(rhs.m_shared)
+		, m_p(rhs.m_p)
+	{}
+
+	SharedPtr& operator=(const SharedPtr& rhs)
+	{
+		m_shared = rhs.m_shared;
+		m_p = rhs.m_p;
+		return *this;
+	}
+
+	// Only call on a SharedPtr we created!!
+	SharedPtr& operator=(T* rhs)
+	{
+		if (m_p != rhs)
+		{
+			reset();
+
+			m_p = rhs;
+			m_shared = new SharedData();
+		}
+
+		return *this;
+	}
+
+	// Direct access to the pointer.
+	T* get() const { return m_p; }
+
+	// Treat the SharedPtr like a regular pointer
+	T& operator*() const { return *m_p; }
+	T* operator->() const { return m_p; }
+
+	bool operator==(nullptr_t) const { return m_p == nullptr; }
+	bool operator!=(nullptr_t) const { return m_p != nullptr; }
+
+	bool operator==(const SharedPtr& other) { return m_p == other.m_p; }
+	bool operator!=(const SharedPtr& other) { return m_p != other.m_p; }
+
+	// Allow us to easily check if the pointer is set
+	explicit operator bool() const { return m_p != nullptr; }
+
+private:
+	SharedData* m_shared = nullptr;
+	T* m_p = nullptr;
 };
 //----------------------------------------------------------------------------
 

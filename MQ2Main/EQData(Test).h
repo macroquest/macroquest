@@ -1025,8 +1025,31 @@ typedef struct _CONTENTS {
 /*0x0100*/ struct _CXSTR *ClientString;
 /*0x0104*/ BYTE Filler0x0104[0x4];
 /*0x0108*/
-EQLIB_OBJECT _CONTENTS *GetContent(UINT index);
-EQLIB_OBJECT ItemGlobalIndex2 &GetGlobalIndex();
+	EQLIB_OBJECT _CONTENTS* GetContent(UINT index);
+	EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
+
+	// Compatibility properties for ItemEvolutionData
+	[[deprecated("Use pEvolutionData->EvolvingGroupID instead")]]
+	inline int get_EvolvingGroupID() { return pEvolutionData ? pEvolutionData->GroupID : 0; }
+	__declspec(property(get = get_EvolvingGroupID)) int GroupID;
+
+	[[deprecated("Use pEvolutionData->EvolvingCurrentLevel instead")]]
+	inline int get_EvolvingCurrentLevel() { return pEvolutionData ? pEvolutionData->EvolvingCurrentLevel : 0; }
+	__declspec(property(get = get_EvolvingCurrentLevel)) int EvolvingCurrentLevel;
+
+	[[deprecated("Use pEvolutionData->EvolvingExpPct instead")]]
+	inline double get_EvolvingExpPct() { return pEvolutionData ? pEvolutionData->EvolvingExpPct : 0.0; }
+	__declspec(property(get = get_EvolvingExpPct)) double EvolvingExpPct;
+
+	[[deprecated("Use pEvolutionData->EvolvingMaxLevel instead")]]
+	inline int get_EvolvingMaxLevel() { return pEvolutionData ? pEvolutionData->EvolvingMaxLevel : 0; }
+	__declspec(property(get = get_EvolvingMaxLevel)) int EvolvingMaxLevel;
+
+	[[deprecated("Use pEvolutionData->LastEquipped instead")]]
+	inline int get_LastEquipped() { return pEvolutionData ? pEvolutionData->LastEquipped : 0; }
+	__declspec(property(get = get_LastEquipped)) int LastEquipped;
+
+
 } CONTENTS, *PCONTENTS;
 
 #pragma pack(push)
