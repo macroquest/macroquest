@@ -10335,11 +10335,10 @@ void GetCachedBuffs(std::map<int, std::map<int,cTargetBuff>>& CBMap)
 }
 bool IsEvolvingItem(PCONTENTS pCont)
 {
-#if !defined(EQBETA)
+#if !defined(EQBETA) && !defined(TEST)
 	return pCont->IsEvolvingItem;
 #else
-	pCont->pEvolutionData->m_array;
-	return FALSE;//todo fix
+	return pCont->pEvolutionData.shared ? true : false;
 #endif
 }
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
@@ -12075,11 +12074,7 @@ namespace EQData
 #if defined(UFEMU)
 	return c->Item1;
 #else
-	#if defined(EQBETA)
-		return c->Item1 ? &c->Item1->Item : &c->Item2->Item;
-	#else
 		return c->Item1 ? c->Item1 : c->Item2;
-	#endif
 #endif
 	}
 };

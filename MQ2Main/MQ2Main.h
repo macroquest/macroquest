@@ -450,6 +450,7 @@ LEGACY_API BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize);
 LEGACY_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
 LEGACY_API BOOL RemoveMQ2Data(PCHAR szName);
 LEGACY_API MQ2Type *FindMQ2DataType(PCHAR szName);
+LEGACY_API void GetMQ2DataTypeMap(std::unordered_map<std::string, MQ2Type*>*map);
 LEGACY_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
 LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);

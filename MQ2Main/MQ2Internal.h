@@ -807,6 +807,11 @@ namespace MQ2Internal {
     class MQ2Type
     {
     public:
+		void GetMemberMap(std::map<std::string, DWORD>*map)
+		{
+			lockit lk(ghMemberMapLock, __FUNCTION__);
+			*map = MemberMap;
+		}
         inline MQ2Type(PCHAR NewName)
         {
             strcpy_s(TypeName,NewName);

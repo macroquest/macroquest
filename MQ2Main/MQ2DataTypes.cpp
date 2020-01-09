@@ -13574,11 +13574,6 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		return false;
 	switch ((EvolvingItemMembers)pMember->ID)
 	{
-#if !defined(EQBETA)
-	case ExpPct:
-		Dest.Float = (FLOAT)pItem->EvolvingExpPct;
-		Dest.Type = pFloatType;
-		return true;
 	case ExpOn:
 	#if defined(ROF2EMU) || defined(UFEMU)
 		Dest.DWord = pItem->EvolvingExpOn;
@@ -13586,6 +13581,11 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		Dest.DWord = true;//its always on after 2019-02-14 test patch
 	#endif
 		Dest.Type = pBoolType;
+		return true;
+#if !defined(EQBETA) && !defined(TEST)
+	case ExpPct:
+		Dest.Float = (FLOAT)pItem->EvolvingExpPct;
+		Dest.Type = pFloatType;
 		return true;
 	case Level:
 		Dest.DWord = pItem->EvolvingCurrentLevel;
@@ -13596,9 +13596,29 @@ bool MQ2EvolvingItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 #else
-	case MaxLevel://work in progress
-		pItem->pEvolutionData->m_array;
-		Sleep(0);
+	case ExpPct:
+		if (pItem->pEvolutionData.shared)
+		{
+			Dest.Float = (FLOAT)pItem->pEvolutionData.p->EvolvingExpPct;
+			Dest.Type = pFloatType;
+			return true;
+		}
+		break;
+	case Level:
+		if (pItem->pEvolutionData.shared)
+		{
+			Dest.DWord = pItem->pEvolutionData.p->EvolvingCurrentLevel;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
+	case MaxLevel:
+		if (pItem->pEvolutionData.shared)
+		{
+			Dest.DWord = pItem->pEvolutionData.p->EvolvingMaxLevel;
+			Dest.Type = pIntType;
+			return true;
+		}
 		break;
 #endif
 	}

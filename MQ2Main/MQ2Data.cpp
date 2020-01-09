@@ -301,6 +301,7 @@ TLO(dataGroundItem)
 			Ret.Type = pGroundType;
 			return true;
 		}
+		return false;
 	}
 	else if (GroundObject.Type!=GO_None)//they already did /itemtarget so return that.
 	{

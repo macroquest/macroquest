@@ -333,13 +333,24 @@ private:
 		}
 	}
 };
+class AtomicInt
+{
+public:
+	volatile int Value;
+};
 
-template <typename T>
 class SharedData
 {
 public:
-	int m_length;
-	T* m_array;
+	AtomicInt m_refs;
+	AtomicInt m_stronrefs;
+	int m_alignment;
+};
+template <typename T> class SharedPtr
+{
+    public:
+        mutable SharedData *shared;
+        mutable T *p;
 };
 //----------------------------------------------------------------------------
 
@@ -1012,12 +1023,6 @@ public:
 /*0x08*/ int Len;
 /*0x0c*/ int Space;
 /*0x10*/
-};
-
-class AtomicInt
-{
-public:
-	volatile int Value;
 };
 
 template <typename T, int T_SIZE>

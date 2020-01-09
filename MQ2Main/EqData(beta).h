@@ -976,15 +976,14 @@ typedef struct _SHAREDPTR
 } SHAREDPTR, *PSHAREDPTR;
 typedef struct _ItemEvolutionData
 {
-/*0x00*/ bool	IsEvolvingItem;
-/*0x04*/ int	GroupID;
+/*0x00*/ PVOID	vfTable;
+/*0x04*/ bool	IsEvolvingItem;
 /*0x08*/ int	EvolvingCurrentLevel;
-/*0x10*/ DOUBLE	EvolvingExpPct;
-/*0x14*/ int	EvolvingMaxLevel;
-/*0x18*/ int	LastEquipped;
-/*0x1c*/ int	Unknown0x1c;
-/*0x20*/ int	Unknown0x20;
-/*0x24*/ int	Unknown0x24;
+/*0x0c*/ int	Unknown0xc;
+/*0x10*/ int	GroupID;
+/*0x18*/ DOUBLE	EvolvingExpPct;
+/*0x20*/ int	EvolvingMaxLevel;
+/*0x24*/ int	LastEquipped;
 /*0x28*/ int	Unknown0x28;
 /*0x2c*/
 } ItemEvolutionData, *PItemEvolutionData;

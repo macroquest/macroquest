@@ -419,14 +419,33 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	if (szName[0] == 0) {
-		SyntaxError("Usage: /Plugin name [unload] [noauto], or /Plugin list");
+		SyntaxError("Usage: /Plugin name [load|unload] [noauto], or /Plugin list");
 		return;
 	}
 
 	if (!_strnicmp(szCommand, "unload", 6)) {
 		UnloadPlugin(szName, szCommand);
 	}
-	else {
+	else if (!_strnicmp(szCommand, "load", 5)) {
+		//load it
+		if (GetModuleHandle(szName))
+		{
+			sprintf_s(szBuffer, "Plugin '%s' was already loaded.", szName);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		}
+		else if (LoadMQ2Plugin(szName))	{
+			sprintf_s(szBuffer, "Plugin '%s' loaded.", szName);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+			if (!strstr(szCommand, "noauto")) {
+				SaveMQ2PluginLoadStatus(szName, true);
+			}
+		}
+		else
+		{
+			MacroError("Plugin '%s' could not be loaded.", szName);
+		}
+	}
+	else {//if load|unload not specified, toggle it.
 		if (GetModuleHandle(szName))
 		{
 			//unload it

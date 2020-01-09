@@ -35,6 +35,11 @@ MQ2Type *FindMQ2DataType(PCHAR Name)
 
 	return iter->second;
 }
+void GetMQ2DataTypeMap(std::unordered_map<std::string, MQ2Type*>*map)
+{
+	lockit lk(ghVariableLock);
+	*map = MQ2DataTypeMap;
+}
 
 BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
 {

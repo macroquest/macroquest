@@ -1,3 +1,12 @@
+Jan 08 2020
+- Updated for TEST
+- CONTENTS changed by dbg. The evolving stuff is now in its own struct, plugins that use it need to be edited.
+  Example: PrePatch: pCont->EvolvingCurrentLevel
+  Now: pCont->pEvolutionData.p->EvolvingCurrentLevel
+  The Following are members of pEvolutionData: GroupID, EvolvingCurrentLevel, EvolvingExpPct, EvolvingMaxLevel, LastEquipped;
+- ItemColor is now gone from CONTENTS.
+- MQ2LinkDB has been updated. Don't forget to recheck it in builder if you use it.
+-
 Dec 21 2019
 - Fixed a crash in mq2chatwnd.cpp on /camp desktop
 - Fixed the chatwindow disappearing act.
