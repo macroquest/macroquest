@@ -63,6 +63,8 @@ protected:
 	}
 };
 
+#pragma region ArrayClass2<T>
+
 // split into two types - one that is read-only and does not allocate or modify
 // memory, and one that can. Be careful using the ones that can modify memory,
 // as you can't memcpy, memset, etc on them.
@@ -279,7 +281,9 @@ private:
 	}
 };
 
-//----------------------------------------------------------------------------
+#pragma endregion
+
+#pragma region ArrayClass<T>
 
 // simpler than ArrayClass2, ArrayClass is a simple wrapper around a dynamically
 // allocated array. To grow this array requires reallocating the entire array and
@@ -526,6 +530,10 @@ private:
 	}
 };
 
+#pragma endregion
+
+#pragma region HashTable<T>
+
 struct HashTableStatistics
 {
 	int TableSize;
@@ -730,7 +738,8 @@ void HashTable<T, Key, ResizePolicy>::Insert(const T& obj, const Key& key)
 	ResizePolicy::ResizeOnAdd(*this);
 }
 
-// lists
+#pragma endregion
+
 template <typename T, int _cnt>
 class EQList;
 
@@ -782,7 +791,10 @@ template <uint32_t _Len>
 class TSafeString : public TString<_Len>
 {};
 
+
 //----------------------------------------------------------------------------
+
+#pragma region VePointer<T>
 
 class VeBaseReferenceCount
 {
@@ -987,6 +999,10 @@ template <typename T>
 	return lhs.get() != nullptr;
 }
 
+#pragma endregion
+
+#pragma region VeArray<T>
+
 // A vector-like array container
 template <typename T>
 class VeArray
@@ -1014,6 +1030,8 @@ private:
 /*0x08*/ uint32_t m_capacity;
 /*0x0c*/
 };
+
+#pragma endregion
 
 //----------------------------------------------------------------------------
 
@@ -1167,6 +1185,8 @@ class DynamicBitField
 
 // Linked List classes
 
+#pragma region TList<T>
+
 template <typename T> class TList;
 
 template <typename T>
@@ -1271,6 +1291,8 @@ public:
 		return pNode;
 	}
 };
+
+#pragma endregion
 
 // we dont need a fully implemented version. this does the job just fine
 template <typename T, uint32_t _Len>
