@@ -2932,44 +2932,10 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			}
 			else if (bByKeyword)
 			{
-				/*Slowed = 8,
-				Rooted = 9,
-				Mezzed = 10,
-				Crippled = 11,
-				Maloed = 12,
-				Tashed = 13,
-				Snared = 14,
-				Hasted = 15,
-				Aego = 16,
-				Skin = 17,
-				Focus = 18,
-				Regen = 19,
-				Symbol = 20,
-				Clarity = 21,
-				Pred = 22,
-				Strength = 23,
-				Brells = 24,
-				SV = 25,
-				SE = 26,
-				HybridHP = 27,
-				Growth = 28,
-				Shining = 29,
-				Beneficial = 30,
-				DSed = 31,
-				RevDSed = 32,
-				Charmed = 33,
-				Diseased = 34,
-				Poisoned = 35,
-				Cursed = 36,
-				Corrupted
-				*/
-
-				// TODO: Replace SPA constants with enum values
-
 				int type = -1;
 				if (!_stricmp(pIndex, "Slowed"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 
 					if (HasCachedTargetBuffSPA(11, false, pSpawn, &TargetBuffTemp))
@@ -2982,7 +2948,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Rooted"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 					if (HasCachedTargetBuffSPA(99, false, pSpawn, &TargetBuffTemp))
 					{
@@ -2994,7 +2960,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Mezzed"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 					if (HasCachedTargetBuffSPA(31, false, pSpawn, &TargetBuffTemp))
 					{
@@ -3006,7 +2972,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Crippled"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 					if (HasCachedTargetBuffSubCat("Disempowering", pSpawn, &TargetBuffTemp))
 					{
@@ -3018,7 +2984,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Maloed"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 					//GetTargetBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage));
 					if (HasCachedTargetBuffSubCat("Resist Debuffs", pSpawn, &TargetBuffTemp, (1 << Shaman) + (1 << Mage)))
@@ -3031,7 +2997,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Tashed"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 					if (HasCachedTargetBuffSubCat("Resist Debuffs", pSpawn, &TargetBuffTemp, 1 << Enchanter))
 					{
@@ -3043,7 +3009,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Snared"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 					if (HasCachedTargetBuffSPA(3, false, pSpawn, &TargetBuffTemp))
 					{
@@ -3055,7 +3021,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 				if (!_stricmp(pIndex, "Beneficial"))
 				{
-					Dest.Ptr = 0;
+					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 
 					auto ps = CachedBuffsMap.find(pSpawn->SpawnID);
@@ -3376,7 +3342,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	if (!pChar)
 		return false;
 
-	const PcProfile* pProfile = GetPcProfile();
+	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return false;
 
@@ -4021,11 +3987,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case CursorGold:
-		Dest.DWord = 0;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->CursorGold;
-		}
+		Dest.DWord = pProfile->CursorGold;
 		Dest.Type = pIntType;
 		return true;
 
@@ -4504,7 +4466,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
 							if (pAbility->SpellID != -1)
-								Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);
+								Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, nullptr);
 
 							return true;
 						}
@@ -4529,7 +4491,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 							if (!_stricmp(Index, pName))
 							{
 								if (pAbility->SpellID != -1)
-									Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);
+									Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, nullptr);
 
 								return true;
 							}
@@ -6082,41 +6044,26 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case ZoneBound:
 		Dest.Type = pZoneType;
-		if (const PcProfile* pProfile = GetPcProfile())
+		if (pProfile->BoundLocations[0].ZoneBoundID)
 		{
-			if (pProfile->BoundLocations[0].ZoneBoundID)
-			{
-				Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pProfile->BoundLocations[0].ZoneBoundID];
-				return true;
-			}
+			Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pProfile->BoundLocations[0].ZoneBoundID];
+			return true;
 		}
 		return false;
 
 	case ZoneBoundX:
-		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.Float = pProfile->BoundLocations[0].ZoneBoundX;
-		}
+		Dest.Float = pProfile->BoundLocations[0].ZoneBoundX;
 		return true;
 
 	case ZoneBoundY:
-		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.Float = pProfile->BoundLocations[0].ZoneBoundY;
-		}
+		Dest.Float = pProfile->BoundLocations[0].ZoneBoundY;
 		return true;
 
 	case ZoneBoundZ:
-		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		if (const PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.Float = pProfile->BoundLocations[0].ZoneBoundZ;
-		}
+		Dest.Float = pProfile->BoundLocations[0].ZoneBoundZ;
 		return true;
 
 	case PctMercAAExp:
@@ -6187,12 +6134,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Slowed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(11, false)) != -1) // Slowed
+			if ((nBuff = GetSelfBuffBySPA(SPA_HASTE, false)) != -1) // Slowed
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6200,12 +6146,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Rooted:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(99, false)) != -1) // Root
+			if ((nBuff = GetSelfBuffBySPA(SPA_ROOT, false)) != -1) // Root
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6213,12 +6158,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Mezzed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(31, false)) != -1)//Entrall
+			if ((nBuff = GetSelfBuffBySPA(SPA_ENTHRALL, false)) != -1)//Entrall
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6226,12 +6170,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Crippled:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySubCat("Disempowering")) != -1)
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6239,12 +6182,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Maloed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage))) != -1)
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6252,12 +6194,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Tashed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", 1 << Enchanter)) != -1)
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6265,12 +6206,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Snared:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySPA(3, false)) != -1) // Movement Rate
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6278,12 +6218,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Hasted:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySPA(11, true)) != -1) // Haste
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6316,12 +6255,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	}
 
 	case DSed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffBySPA(59, true)) != -1) // Damage Shield
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6329,12 +6267,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case RevDSed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(121, true)) != -1) // Reverse Damage Shield
+			if ((nBuff = GetSelfBuffBySPA(SPA_IRONMAIDEN, true)) != -1) // Reverse Damage Shield
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6342,12 +6279,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Charmed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(22, false)) != -1) // Charm
+			if ((nBuff = GetSelfBuffBySPA(SPA_CHARM, false)) != -1) // Charm
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6355,8 +6291,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Aego:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
 			{
@@ -6364,6 +6298,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				{
 					if (IsAegoSpell(pSpell))
 					{
+						Dest.Type = pBuffType;
 						Dest.Ptr = &pProfile->Buff[nBuff];
 						return true;
 					}
@@ -6373,8 +6308,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Skin:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid)) != -1)
@@ -6385,6 +6318,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 46)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6400,8 +6334,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Focus:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = 0;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Shaman)) != -1)
@@ -6412,6 +6344,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 87)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6427,11 +6360,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Regen:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(0, true)) != -1) // HP Regen
+			if ((nBuff = GetSelfBuffBySPA(SPA_HP, true)) != -1) // HP Regen
 			{
 				while (nBuff < NUM_BUFF_SLOTS)
 				{
@@ -6439,12 +6370,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if ((((EQ_Spell*)pSpell)->SpellAffectBase(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
 					}
 
-					if ((nBuff = GetSelfBuffBySPA(0, true, ++nBuff)) == -1)
+					if ((nBuff = GetSelfBuffBySPA(SPA_HP, true, ++nBuff)) == -1)
 					{
 						break;
 					}
@@ -6454,12 +6386,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Diseased:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(35, false)) != -1) // Disease Counter
+			if ((nBuff = GetSelfBuffBySPA(SPA_DISEASE, false)) != -1) // Disease Counter
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6467,12 +6398,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Poisoned:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(36, false)) != -1) // Poison Counter
+			if ((nBuff = GetSelfBuffBySPA(SPA_POISON, false)) != -1) // Poison Counter
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6480,12 +6410,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Cursed:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(116, false)) != -1) // Curse Counter
+			if ((nBuff = GetSelfBuffBySPA(SPA_CURSE, false)) != -1) // Curse Counter
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6493,12 +6422,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Corrupted:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(369, false)) != -1)//Corruption Counter
+			if ((nBuff = GetSelfBuffBySPA(SPA_CORRUPTION, false)) != -1)//Corruption Counter
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -6506,8 +6434,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Symbol:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric)) != -1)
@@ -6518,6 +6444,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 112)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6533,11 +6460,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Clarity:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(15, true)) != -1) // Mana Regen
+			if ((nBuff = GetSelfBuffBySPA(SPA_MANA, true)) != -1) // Mana Regen
 			{
 				while (nBuff < NUM_BUFF_SLOTS)
 				{
@@ -6545,12 +6470,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if ((((EQ_Spell*)pSpell)->SpellAffectBase(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
 					}
 
-					if ((nBuff = GetSelfBuffBySPA(15, true, ++nBuff)) == -1)
+					if ((nBuff = GetSelfBuffBySPA(SPA_MANA, true, ++nBuff)) == -1)
 					{
 						break;
 					}
@@ -6560,8 +6486,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Pred:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(95, 1 << Ranger)) != -1)
@@ -6572,6 +6496,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 7)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6587,8 +6512,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Strength:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger)) != -1)
@@ -6599,6 +6522,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 47)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6614,8 +6538,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Brells:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Paladin)) != -1)
@@ -6626,6 +6548,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 47)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6641,8 +6564,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case SV:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord)) != -1)
@@ -6653,6 +6574,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 59)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6668,8 +6590,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case SE:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord)) != -1)
@@ -6680,6 +6600,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 44)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6695,8 +6616,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case HybridHP:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger)) != -1)
@@ -6707,6 +6626,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 46)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6722,8 +6642,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Growth:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid)) != -1)
@@ -6734,6 +6652,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 141)
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
@@ -6749,8 +6668,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Shining:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
 			if ((nBuff = GetSelfBuffByCategory(125, 1 << Cleric)) != -1)
@@ -6763,6 +6680,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 						{
 							if (((EQ_Spell*)pSpell)->SpellAffectBase(162))
 							{
+								Dest.Type = pBuffType;
 								Dest.Ptr = &pProfile->Buff[nBuff];
 								return true;
 							}
@@ -6785,7 +6703,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			if (int zoneid = pChar->pSpawn->GetZoneID())
 			{
 				if (uint16_t instance = HIWORD(zoneid))
-					Dest.DWord = true;
+					Dest.DWord = 1;
 			}
 		}
 		Dest.Type = pBoolType;
@@ -6920,92 +6838,53 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case BaseSTR:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseSTR;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseSTR;
+		return true;
 
 	case BaseSTA:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseSTA;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseSTA;
+		return true;
 
 	case BaseAGI:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseAGI;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseAGI;
+		return true;
 
 	case BaseDEX:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseDEX;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseDEX;
+		return true;
 
 	case BaseWIS:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseWIS;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseWIS;
+		return true;
 
 	case BaseINT:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseINT;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseINT;
+		return true;
 
 	case BaseCHA:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			Dest.DWord = pProfile->BaseCHA;
-			return true;
-		}
-		return false;
+		Dest.DWord = pProfile->BaseCHA;
+		return true;
 
 	case Beneficial:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
+		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
 		{
-			for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-			{
-				if ((pProfile->Buff[i].SpellID == -1) || (pProfile->Buff[i].SpellID == 0))
-					continue;
+			if ((pProfile->Buff[i].SpellID == -1) || (pProfile->Buff[i].SpellID == 0))
+				continue;
 
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
+			if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
+			{
+				if (pSpell->SpellType != 0)
 				{
-					if (pSpell->SpellType != 0)
-					{
-						Dest.Int = i;
-						return true;
-					}
+					Dest.Int = i;
+					Dest.Type = pTargetBuffType;
+					return true;
 				}
 			}
 		}
@@ -7029,39 +6908,37 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case Bandolier:
 		Dest.DWord = 0;
 		Dest.Type = pBandolierType;
-		if (PcProfile* pProfile = GetPcProfile())
+
+		if (IsNumber(Index))
 		{
-			if (IsNumber(Index)) {
-				int index = GetIntFromString(Index, 0);
-				index--;
-				if (index < 0)
-					index = 0;
-				if (index > 19)
-					index = 19;
-				Dest.DWord = index;
-				return true;
-			}
-			else
+			int index = GetIntFromString(Index, 0) - 1;
+			if (index < 0)
+				index = 0;
+			if (index > 19)
+				index = 19;
+
+			Dest.DWord = index;
+			return true;
+		}
+		else
+		{
+			for (int index = 0; index < 20; index++)
 			{
-				for (int index = 0; index < 20; index++)
+				if (!_stricmp(Index, pProfile->Bandolier[index].Name))
 				{
-					if (!_stricmp(Index, pProfile->Bandolier[index].Name))
-					{
-						Dest.DWord = index;
-						return true;
-					}
+					Dest.DWord = index;
+					return true;
 				}
 			}
 		}
 		return false;
 
 	case Feared:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(23, false)) != -1) // Feared
+			if ((nBuff = GetSelfBuffBySPA(SPA_FEAR, false)) != -1) // Feared
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -7069,12 +6946,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Silenced:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(96, false)) != -1) // Silenced
+			if ((nBuff = GetSelfBuffBySPA(SPA_SILENCE, false)) != -1) // Silenced
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
@@ -7082,18 +6958,18 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Invulnerable:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(40, false)) != -1) // Invulnerable
+			if ((nBuff = GetSelfBuffBySPA(SPA_INVULNERABILITY, false)) != -1) // Invulnerable
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
 
-			if ((nBuff = GetSelfShortBuffBySPA(40, false)) != -1) // Invulnerable
+			if ((nBuff = GetSelfShortBuffBySPA(SPA_INVULNERABILITY, false)) != -1) // Invulnerable
 			{
+				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->ShortBuff[nBuff];
 				return true;
 			}
@@ -7101,11 +6977,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Dotted:
-		Dest.Type = pBuffType;
-		if (PcProfile* pProfile = GetPcProfile())
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(0, false)) != -1) // HP Mod
+			if ((nBuff = GetSelfBuffBySPA(SPA_HP, false)) != -1) // HP Mod
 			{
 				int slotnum = nBuff;
 				while (slotnum < NUM_BUFF_SLOTS)
@@ -7114,12 +6988,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (((EQ_Spell*)pSpell)->IsDetrimentalSpell() && ((EQ_Spell*)pSpell)->IsDoTSpell())
 						{
+							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
 							return true;
 						}
 					}
 
-					if ((nBuff = GetTargetBuffBySPA(0, false, ++slotnum)) == -1)
+					if ((nBuff = GetTargetBuffBySPA(SPA_HP, false, ++slotnum)) == -1)
 					{
 						break;
 					}
@@ -7581,9 +7456,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 						if (i != CachedBuffsMap.end())
 						{
 							// lets grab it from the cache so we get songs as well...
-							for (auto k = i->second.begin(); k != i->second.end(); k++)
+							for (auto& k : i->second)
 							{
-								if (SPELL* pBuff = GetSpellByID(k->first))
+								if (SPELL* pBuff = GetSpellByID(k.first))
 								{
 									pAffects[j].Type = 2;
 									pAffects[j].ID = pBuff->ID;
@@ -8078,11 +7953,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			}
 
 			// well AA should be used first so lets search spells last...
-			for (int nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
+			for (int nSpell : pProfile->SpellBook)
 			{
-				if (pProfile->SpellBook[nSpell] != -1)
+				if (nSpell != -1)
 				{
-					if (SPELL* pFoundSpell = GetSpellByID(pProfile->SpellBook[nSpell]))
+					if (SPELL* pFoundSpell = GetSpellByID(nSpell))
 					{
 						if (pFoundSpell->ID == thespell->ID)
 						{
@@ -8093,11 +7968,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				}
 			}
 
-			for (int nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
+			for (int nSpell : pProfile->SpellBook)
 			{
-				if (pProfile->SpellBook[nSpell] != -1)
+				if (nSpell != -1)
 				{
-					if (SPELL* pFoundSpell = GetSpellByID(pProfile->SpellBook[nSpell]))
+					if (SPELL* pFoundSpell = GetSpellByID(nSpell))
 					{
 						if (pFoundSpell->SpellGroup == thespell->SpellGroup
 							&& !_strnicmp(thespell->Name, pFoundSpell->Name, strlen(thespell->Name)))
