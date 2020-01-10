@@ -200,7 +200,7 @@ void LoadElements()
 
 	if (gGameState == GAMESTATE_INGAME)
 	{
-		if (bClassHUD && ((ppCharData) && (pCharData)))
+		if (bClassHUD && pCharData)
 		{
 			if (PcProfile* pProfile = GetPcProfile())
 			{

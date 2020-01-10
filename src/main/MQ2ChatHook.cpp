@@ -325,14 +325,14 @@ DETOUR_TRAMPOLINE_EMPTY(void CChatHook::UPCNotificationFlush_Trampoline());
 
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
-	((CChatHook*)pEverQuest)->Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
+	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
 }
 
 unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
 {
 	strcpy_s(Value, ValueLen, VarName);
 
-	if (PCHARINFO pChar = GetCharInfo())
+	if (CHARINFO* pChar = GetCharInfo())
 	{
 		return strlen(ParseMacroParameter(pChar->pSpawn, Value, ValueLen));
 	}
@@ -340,7 +340,7 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 	return strlen(Value);
 }
 
-void FlashOnTells(PSPAWNINFO pChar, char* szLine)
+void FlashOnTells(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{
@@ -368,7 +368,7 @@ void FlashOnTells(PSPAWNINFO pChar, char* szLine)
 	WritePrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, mq::internal_paths::MQini);
 }
 
-void BeepOnTells(PSPAWNINFO pChar, char* szLine)
+void BeepOnTells(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{

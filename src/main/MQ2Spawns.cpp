@@ -896,7 +896,7 @@ static void UpdateMQ2SpawnSort()
 	{
 		if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(LastTarget))
 		{
-			if (pSpawn != (SPAWNINFO*)pTarget)
+			if (pSpawn != pTarget)
 			{
 				SetNameSpriteState(pSpawn, false);
 			}
@@ -913,8 +913,8 @@ static void UpdateMQ2SpawnSort()
 	if (pTarget)
 	{
 		LastTarget = ((SPAWNINFO*)pTarget)->SpawnID;
-		((EQPlayerHook*)pTarget)->SetNameSpriteTint_Trampoline();
-		SetNameSpriteState((SPAWNINFO*)pTarget, true);
+		pTarget.get_as<EQPlayerHook>()->SetNameSpriteTint_Trampoline();
+		SetNameSpriteState(pTarget, true);
 	}
 }
 

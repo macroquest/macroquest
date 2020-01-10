@@ -1249,7 +1249,44 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	// If this is our module...
 	if (hModule == ghModule)
 	{
-		return GetProcAddress_Trampoline(eqlibModule, lpProcName);
+		void* pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
+
+		if (!pRet)
+		{
+			if (ci_equals("ppLocalPlayer", lpProcName))
+			{
+				pRet = &pLocalPlayer;
+			}
+			else if (ci_equals("ppCharData", lpProcName))
+			{
+				pRet = &pCharData;
+			}
+			else if (ci_equals("ppEverQuest", lpProcName))
+			{
+				pRet = &pEverQuest;
+			}
+			else if (ci_equals("ppEverQuestInfo", lpProcName))
+			{
+				pRet = &pEverQuestInfo;
+			}
+		}
+
+		char szModuleName[MAX_PATH] = { 0 };
+		char* pModuleName = szModuleName;
+
+		HMODULE hModuleCaller = nullptr;
+		if (::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)_ReturnAddress(), &hModuleCaller))
+		{
+			::GetModuleFileNameA(hModuleCaller, szModuleName, MAX_PATH);
+
+			if (char* value = strrchr(pModuleName, '\\'))
+			{
+				pModuleName = value + 1;
+			}
+		}
+
+		DebugSpewAlways("GetProcAddressHook: %s -> %p (from %s)", lpProcName, pRet, pModuleName);
+		return pRet;
 	}
 
 	return nullptr;

@@ -2471,7 +2471,7 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void Face(SPAWNINFO* pChar, char* szLine)
 {
-	if (!ppSpawnManager) return;
+	if (!pSpawnManager) return;
 	if (!pSpawnList) return;
 
 	if (GetGameState() != GAMESTATE_INGAME)
@@ -2740,7 +2740,7 @@ void Look(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void Where(SPAWNINFO* pChar, char* szLine)
 {
-	if (!ppSpawnManager) return;
+	if (!pSpawnManager) return;
 	if (!pSpawnList) return;
 
 	bRunNextCommand = true;
@@ -3008,7 +3008,7 @@ void LoadSpells(SPAWNINFO* pChar, char* szLine)
 static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 {
 	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), eActivatableSpell);
-	SPAWNINFO* pMySpawn = reinterpret_cast<SPAWNINFO*>(pLocalPlayer);
+	SPAWNINFO* pMySpawn = pLocalPlayer;
 
 	if (CTargetRing* pTR = (CTargetRing*)((EVERQUEST*)pEverQuest)->pFreeTargetRing)
 	{
@@ -3077,7 +3077,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	if (szLine[0] == 0 || GetIntFromString(szLine, 0) || !ppSpellMgr || !ppCharData || !pCharData)
+	if (szLine[0] == 0 || GetIntFromString(szLine, 0) || !ppSpellMgr || !pCharData)
 	{
 		int Index = GetIntFromString(szLine, 0) - 1;
 
@@ -3246,7 +3246,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 {
 	gTargetbuffs = false;
 
-	if (!ppSpawnManager) return;
+	if (!pSpawnManager) return;
 	if (!pSpawnList) return;
 
 	bRunNextCommand = true;
@@ -3356,8 +3356,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		SPAWNINFO** psTarget = (SPAWNINFO**)ppTarget;
-		*psTarget = pSpawnClosest;
+		pTarget = pSpawnClosest;
 
 		DebugSpew("Target - %s selected", pSpawnClosest->Name);
 	}

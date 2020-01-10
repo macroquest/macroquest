@@ -378,7 +378,7 @@ inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 }
 
 template <typename T1, typename T2>
-inline float Distance3DToSpawn(T1* pSpawn1, T2* pSpawn2)
+inline float Distance3DToSpawn(const T1& pSpawn1, const T2& pSpawn2)
 {
 	return Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
 		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
@@ -557,48 +557,6 @@ inline bool CanTank(int Class)
 	return false;
 }
 
-// trim from start (in place)
-inline void ltrim(std::string& s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-		[](int ch) { return !std::isspace(ch); }));
-}
-
-// trim from end (in place)
-inline void rtrim(std::string& s)
-{
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-		[](int ch) { return !std::isspace(ch); }).base(), s.end());
-}
-
-// trim from both ends (in place)
-inline void trim(std::string& s)
-{
-	ltrim(s);
-	rtrim(s);
-}
-
-// trim from start (copying)
-inline std::string ltrim_copy(std::string s)
-{
-	ltrim(s);
-	return s;
-}
-
-// trim from end (copying)
-inline std::string rtrim_copy(std::string s)
-{
-	rtrim(s);
-	return s;
-}
-
-// trim from both ends (copying)
-inline std::string trim_copy(std::string s)
-{
-	trim(s);
-	return s;
-}
-
 inline const char* GetSpellString(int ID, int SpellIndex)
 {
 	if (pEQSpellStrings)
@@ -613,41 +571,6 @@ inline const char* GetSpellString(int ID, int SpellIndex)
 	}
 
 	return nullptr;
-}
-
-inline bool DataCompare(const uint8_t* pData, const uint8_t* bMask, const char* szMask)
-{
-	for (; *szMask; ++szMask, ++pData, ++bMask)
-	{
-		if (*szMask == 'x' && *pData != *bMask)
-			return false;
-	}
-
-	return *szMask == 0;
-}
-
-// FIXME: Should maybe use uintptr_t for these
-inline uint32_t FindPattern(uint32_t dwAddress, uint32_t dwLen, const uint8_t* bPattern, const char* szMask)
-{
-	for (unsigned int i = 0; i < dwLen; i++)
-	{
-		if (DataCompare((uint8_t*)(dwAddress + i), bPattern, szMask))
-			return (uint32_t)(dwAddress + i);
-	}
-
-	return 0;
-}
-
-inline uint32_t GetDWordAt(uint32_t address, uint32_t numBytes)
-{
-	if (address)
-	{
-		address += numBytes;
-
-		return *(uint32_t*)address;
-	}
-
-	return 0;
 }
 
 inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle)

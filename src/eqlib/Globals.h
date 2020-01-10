@@ -1048,45 +1048,61 @@ EQLIB_VAR DWORD CParticleSystem__Render;
 //----------------------------------------------------------------------------
 // Global data
 
-EQLIB_VAR StringTable** ppStringTable;
-#define pStringTable (*ppStringTable)
+// Forward declarations
+struct CHARINFONEW;
+struct CHARINFOOLD;
 
-EQLIB_VAR DatabaseStringTable** ppCDBStr;
-#define pCDBStr (*ppCDBStr)
-EQLIB_VAR EQMisc* pEQMisc;
-EQLIB_VAR CSkillMgr** ppCSkillMgr;
-#define pCSkillMgr (*ppCSkillMgr)
-EQLIB_VAR CGuild* pGuild;
+#ifdef NEWCHARINFO
+using CHARINFO = CHARINFONEW;
+using PCHARINFO [[deprecated]] = CHARINFONEW*;
+#else
+using CHARINFO = CHARINFOOLD;
+using PCHARINFO /*[[deprecated]]*/ = CHARINFOOLD*;
+#endif
 
-EQLIB_VAR CEverQuest** ppEverQuest;
-#define pEverQuest (*ppEverQuest)
-EQLIB_VAR CDisplay** ppDisplay;
-#define pDisplay (*ppDisplay)
-EQLIB_VAR PcClient** ppPCData;
-#define pPCData (*ppPCData)
-EQLIB_VAR PcClient** ppCharData;
-#define pCharData (*ppCharData)
-EQLIB_VAR PlayerClient** ppCharSpawn; // player that is being controlled
-#define pCharSpawn (*ppCharSpawn)
-EQLIB_VAR PlayerClient** ppActiveMerchant;
-#define pActiveMerchant (*ppActiveMerchant)
-EQLIB_VAR PlayerManagerClient** ppSpawnManager;
-#define pSpawnManager (*ppSpawnManager)
+struct CDISPLAY;
+struct EQSTRINGTABLE;
+struct EVERQUEST;
+struct SPAWNINFO;
+
+// These two are actually the same thing
+EQLIB_VAR ForeignPointer<SKILLMGR> pSkillMgr;
+EQLIB_VAR ForeignPointer<CSkillMgr> pCSkillMgr;
+
+EQLIB_VAR ForeignPointer<StringTable, EQSTRINGTABLE> pStringTable;
+EQLIB_VAR ForeignPointer<DatabaseStringTable> pCDBStr;
+EQLIB_VAR ForeignReference<EQMisc> pEQMisc;
+EQLIB_VAR ForeignReference<CGuild> pGuild;
+EQLIB_VAR ForeignPointer<CEverQuest, EVERQUEST> pEverQuest;
+EQLIB_VAR ForeignReference<EVERQUESTINFO> pEverQuestInfo;
+EQLIB_VAR ForeignPointer<CDisplay, CDISPLAY> pDisplay;
+
+EQLIB_VAR ForeignPointer<PcClient, CHARINFO> pPCData;
+EQLIB_VAR ForeignPointer<PcClient, CHARINFO> pCharData;
+
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pCharSpawn;        // player that is being controlled
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pControlledPlayer;
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pLocalPlayer;      // the local player
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pActiveMerchant;
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pTarget;
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pTradeTarget;
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pActiveBanker;
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pActiveGMaster;
+EQLIB_VAR ForeignPointer<PlayerClient, SPAWNINFO> pActiveCorpse;
+
+EQLIB_VAR ForeignPointer<PlayerManagerClient> pSpawnManager;
+
 #define pSpawnList ((pSpawnManager)->FirstSpawn)
 #define pChatService ((CChatService*)((EVERQUEST*)pEverQuest)->ChatService)
 #define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PointManager.vfTable)
 
-EQLIB_VAR PlayerClient** ppLocalPlayer; // the local player
-#define pLocalPlayer (*ppLocalPlayer)
-EQLIB_VAR PlayerClient** ppControlledPlayer;
-#define pControlledPlayer (*ppControlledPlayer)
+
 
 EQLIB_VAR EQWorldData** ppWorldData;
 #define pWorldData (*ppWorldData)
 EQLIB_VAR ClientSpellManager** ppSpellMgr;
 #define pSpellMgr (*ppSpellMgr)
-EQLIB_VAR PlayerClient** ppTarget;
-#define pTarget (*ppTarget)
+
 EQLIB_VAR EqSwitchManager** ppSwitchMgr;
 #define pSwitchMgr (*ppSwitchMgr)
 EQLIB_VAR EQZoneInfo* pZoneInfo;
@@ -1096,14 +1112,7 @@ EQLIB_VAR EQSOCIAL*   pSocialList;
 EQLIB_VAR BYTE* pgHotkeyPage;
 #define gHotkeyPage (*pgHotkeyPage)
 
-EQLIB_VAR PlayerClient** ppTradeTarget;
-#define pTradeTarget (*ppTradeTarget)
-EQLIB_VAR PlayerClient** ppActiveBanker;
-#define pActiveBanker (*ppActiveBanker)
-EQLIB_VAR PlayerClient** ppActiveGMaster;
-#define pActiveGMaster (*ppActiveGMaster)
-EQLIB_VAR PlayerClient** ppActiveCorpse;
-#define pActiveCorpse (*ppActiveCorpse)
+
 
 EQLIB_VAR CSidlManager** ppSidlMgr;
 #define pSidlMgr (*ppSidlMgr)
@@ -1365,11 +1374,6 @@ EQLIB_VAR PPOINT EQADDR_DIMOUSECOPY;
 EQLIB_VAR PPOINT EQADDR_DIMOUSECHECK;
 
 EQLIB_VAR DWORD EQADDR_EQLABELS;
-
-EQLIB_VAR SKILLMGR** ppSkillMgr;
-#define pSkillMgr (*ppSkillMgr)
-EQLIB_VAR EVERQUESTINFO* ppEverQuestInfo;
-#define pEverQuestInfo (ppEverQuestInfo)
 
 #define pPointMerchantWnd (*ppPointMerchantWnd)
 #define pCZoneGuideWnd (*ppCZoneGuideWnd)

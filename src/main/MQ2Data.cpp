@@ -632,8 +632,8 @@ bool dataHeading(const char* szIndex, MQTypeVar& Ret)
 		*pComma = ',';
 		float X = GetFloatFromString(&pComma[1], 0);
 
-		Ret.Float = static_cast<float>(atan2f(reinterpret_cast<SPAWNINFO*>(pCharSpawn)->Y - Y,
-		                                      X - reinterpret_cast<SPAWNINFO*>(pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Ret.Float = static_cast<float>(atan2f(static_cast<SPAWNINFO*>(pCharSpawn)->Y - Y,
+			X - static_cast<SPAWNINFO*>(pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Ret.Float < 0.0f)
 			Ret.Float += 360.0f;
 		else if (Ret.Float >= 360.0f)
@@ -794,7 +794,7 @@ bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 			}
 			index--;
 
-			if (SPAWNINFO* pSpawn = bPosIndex ? static_cast<SPAWNINFO*>pSpawnList : reinterpret_cast<SPAWNINFO*>(pLocalPlayer))
+			if (SPAWNINFO* pSpawn = bPosIndex ? static_cast<SPAWNINFO*>pSpawnList : pLocalPlayer)
 			{
 				while (index)
 				{

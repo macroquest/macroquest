@@ -2732,7 +2732,7 @@ int GetAAIndexByID(int ID)
 bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
 {
 	SPAWNINFO* pClose = nullptr;
-	if (ppSpawnManager && pSpawnList)
+	if (pSpawnManager && pSpawnList)
 	{
 		pClose = (SPAWNINFO*)pSpawnList;
 	}
@@ -4052,10 +4052,8 @@ void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn)
 
 bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 {
-	if (!ppSpawnManager)
-		return false;
-	if (!pSpawnList)
-		return false;
+	if (!pSpawnManager) return false;
+	if (!pSpawnList) return false;
 
 	SPAWNINFO* pSpawn = nullptr;
 	SPAWNINFO* pClosest = nullptr;
@@ -4895,7 +4893,7 @@ bool InHoverState()
 
 int GetGameState()
 {
-	if (!ppEverQuest || !pEverQuest)
+	if (!pEverQuest)
 	{
 		return -1;
 	}
@@ -4905,7 +4903,7 @@ int GetGameState()
 
 int GetWorldState()
 {
-	if (!ppEverQuest || !pEverQuest)
+	if (!pEverQuest)
 	{
 		return -1;
 	}

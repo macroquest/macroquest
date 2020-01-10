@@ -2002,7 +2002,7 @@ struct MQMouseInfo
 using MOUSEINFO [[deprecated("Use MQMouseInfo instead")]] = MQMouseInfo;
 using PMOUSEINFO [[deprecated("Use MQMouseInfo* instead")]] = MQMouseInfo *;
 
-struct [[offsetcomments]] _EVERQUEST
+struct [[offsetcomments]] EVERQUEST
 {
 /*0x00000*/ BYTE             Unknown[0x2a4];
 /*0x002a4*/ CHATSERVICE*     ChatService;
@@ -2045,8 +2045,8 @@ struct [[offsetcomments]] _EVERQUEST
 /*0x38e80*/ ArrayClass<CSINFO> pCharSelectPlayerArray;
 /*0x38e90*/ // more data
 };
-using EVERQUEST /*[[deprecated]]*/ = _EVERQUEST;
-using PEVERQUEST [[deprecated]] = _EVERQUEST*;
+using _EVERQUEST DEPRECATE("Use EVERQUEST instead") = EVERQUEST;
+using PEVERQUEST DEPRECATE("Use EVERQUEST* instead") = EVERQUEST*;
 
 struct [[offsetcomments]] AURAINFO
 {

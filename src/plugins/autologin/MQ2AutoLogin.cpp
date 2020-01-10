@@ -30,7 +30,7 @@ PLUGIN_VERSION(3.0);
 
 PreSetup("MQ2AutoLogin");
 
-bool AUTOLOGIN_DBG = true;
+bool AUTOLOGIN_DBG = false;
 
 struct {
 	const char* Name;
@@ -694,9 +694,9 @@ bool GetAllOffsets()
 	if (!dwEQMainBase)
 		return false;
 
-	if (uint32_t dwLoginClient = offsets::FindPattern(dwEQMainBase, 0x100000, LoginServerAPI_Pattern, LoginServerAPI_Mask))
+	if (uint32_t dwLoginClient = FindPattern(dwEQMainBase, 0x100000, LoginServerAPI_Pattern, LoginServerAPI_Mask))
 	{
-		pLoginServerAPI = offsets::GetDWordAt(dwLoginClient, 2);
+		pLoginServerAPI = GetDWordAt(dwLoginClient, 2);
 	}
 	else
 	{
@@ -704,7 +704,7 @@ bool GetAllOffsets()
 		return false;
 	}
 
-	if (!(dwEnterGameAddr = offsets::FindPattern(dwEQMainBase, 0x200000, lcEGPattern, lcEGMask)))
+	if (!(dwEnterGameAddr = FindPattern(dwEQMainBase, 0x200000, lcEGPattern, lcEGMask)))
 	{
 		AutoLoginDebug("Error: !dwEnterGame");
 		return false;
@@ -712,21 +712,21 @@ bool GetAllOffsets()
 
 	DWORD dwSidlMgr = 0, dwWndMgr = 0, dwLoginMgr = 0;
 
-	if (!(dwGetXMLDataAddr = offsets::FindPattern(dwEQMainBase, 0x100000, xmldataPattern, xmldataMask)))
+	if (!(dwGetXMLDataAddr = FindPattern(dwEQMainBase, 0x100000, xmldataPattern, xmldataMask)))
 	{
 		AutoLoginDebug("Error: !dwGetXMLDataAddr");
 		return false;
 	}
 
-	if (!(dwSendLMouseClickAddr = offsets::FindPattern(dwEQMainBase, 0x100000, lmousePattern, lmouseMask)))
+	if (!(dwSendLMouseClickAddr = FindPattern(dwEQMainBase, 0x100000, lmousePattern, lmouseMask)))
 	{
 		AutoLoginDebug("Error: !dwSendLMouseClickAddr");
 		return false;
 	}
 
-	if (dwSidlMgr = offsets::FindPattern(dwEQMainBase, 0x100000, swmPattern, swmMask))
+	if (dwSidlMgr = FindPattern(dwEQMainBase, 0x100000, swmPattern, swmMask))
 	{
-		dwSidlMgr = offsets::GetDWordAt(dwSidlMgr, 2);
+		dwSidlMgr = GetDWordAt(dwSidlMgr, 2);
 	}
 	else
 	{
@@ -734,9 +734,9 @@ bool GetAllOffsets()
 		return false;
 	}
 
-	if (dwWndMgr = offsets::FindPattern(dwEQMainBase, 0x200000, xwmPattern, xwmMask))
+	if (dwWndMgr = FindPattern(dwEQMainBase, 0x200000, xwmPattern, xwmMask))
 	{
-		dwWndMgr = offsets::GetDWordAt(dwWndMgr, 1);
+		dwWndMgr = GetDWordAt(dwWndMgr, 1);
 	}
 	else
 	{
@@ -744,9 +744,9 @@ bool GetAllOffsets()
 		return false;
 	}
 
-	if (dwLoginMgr = offsets::FindPattern(dwEQMainBase, 0x200000, lvmPattern, lvmMask))
+	if (dwLoginMgr = FindPattern(dwEQMainBase, 0x200000, lvmPattern, lvmMask))
 	{
-		dwLoginMgr = offsets::GetDWordAt(dwLoginMgr, 1);
+		dwLoginMgr = GetDWordAt(dwLoginMgr, 1);
 		pServerInfo = dwLoginMgr - 4;
 	}
 	else

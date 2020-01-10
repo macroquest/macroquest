@@ -133,9 +133,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Blech\Blech.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2Commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -229,11 +226,11 @@
     <ClInclude Include="..\common\ConfigUtils.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\OffsetUtils.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\StringUtils.h">
       <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\Blech\Blech.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

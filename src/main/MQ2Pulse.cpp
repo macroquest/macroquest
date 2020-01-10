@@ -60,12 +60,12 @@ static void ProcessQueuedEvents()
 
 static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
-	if (!ppCharSpawn || !pCharSpawn)
+	if (!pCharSpawn)
 		return false;
 
 	SPAWNINFO* pCharOrMount = nullptr;
 	CHARINFO* pCharInfo = GetCharInfo();
-	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
+	SPAWNINFO* pChar = pCharOrMount = pCharSpawn;
 
 	if (pCharInfo && pCharInfo->pSpawn)
 		pChar = pCharInfo->pSpawn;
@@ -277,7 +277,7 @@ static void Pulse()
 	// handle queued events.
 	ProcessQueuedEvents();
 
-	if (!ppCharSpawn || !pCharSpawn) return;
+	if (!pCharSpawn) return;
 
 	SPAWNINFO* pCharOrMount = nullptr;
 	CHARINFO* pCharInfo = GetCharInfo();
@@ -439,7 +439,7 @@ static void Pulse()
 // Trims trailing whitespace from strings in the string table.
 static void FixStringTable()
 {
-	EQSTRINGTABLE* pTable = (EQSTRINGTABLE*)pStringTable;
+	EQSTRINGTABLE* pTable = pStringTable;
 	for (int index = 0; index < pTable->Count; index++)
 	{
 		if (EQSTRING* pStr = pTable->StringItems[index])

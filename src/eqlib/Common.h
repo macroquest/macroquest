@@ -17,6 +17,7 @@
 #include <limits>
 
 #include "../common/Common.h"
+#include "OffsetUtils.h"
 
 #pragma warning(disable : 5030) // Single pragma seems to suffice for the entire codebase
 

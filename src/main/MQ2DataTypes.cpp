@@ -1640,8 +1640,8 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return false;
 
 	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	SPAWNINFO* pMySpawn = reinterpret_cast<SPAWNINFO*>(pLocalPlayer);
-	SPAWNINFO* pControlledSpawn = reinterpret_cast<SPAWNINFO*>(pCharSpawn);
+	SPAWNINFO* pMySpawn = pLocalPlayer;
+	SPAWNINFO* pControlledSpawn = pCharSpawn;
 	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
 
 	//----------------------------------------------------------------------------
@@ -4927,7 +4927,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		if (pDisplay && pLocalPlayer && Index[0])
 		{
-			CDISPLAY* pDisp = reinterpret_cast<CDISPLAY*>(pDisplay);
+			CDISPLAY* pDisp = pDisplay;
 
 			if (IsNumber(Index))
 			{
@@ -11094,8 +11094,8 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	if (pGroundObject->Type == GO_None)
 		return false;
 
-	SPAWNINFO* pMySpawn = reinterpret_cast<SPAWNINFO*>(pLocalPlayer);
-	SPAWNINFO* pControlledSpawn = reinterpret_cast<SPAWNINFO*>(pCharSpawn);
+	SPAWNINFO* pMySpawn = pLocalPlayer;
+	SPAWNINFO* pControlledSpawn = pCharSpawn;
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -11891,7 +11891,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, char* Member, char* Index
 	if (!pMember)
 		return false;
 
-	EVERQUEST* pEQ = reinterpret_cast<EVERQUEST*>(pEverQuest);
+	EVERQUEST* pEQ = pEverQuest;
 
 	switch (static_cast<CharSelectListMembers>(pMember->ID))
 	{
@@ -12678,7 +12678,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 			}
 			else if (SPAWNINFO* pSpawn = SearchThroughSpawns(&SearchSpawn, (SPAWNINFO*)pLocalPlayer))
 			{
-				*ppTarget = (PlayerClient*)pSpawn;
+				pTarget = pSpawn;
 				pEverQuest->RightClickedOnPlayer((PlayerClient*)pSpawn, 0);
 				return true;
 			}
@@ -15247,7 +15247,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	if (!pMember)
 		return false;
 
-	SPAWNINFO* pMySpawn = reinterpret_cast<SPAWNINFO*>(pLocalPlayer);
+	SPAWNINFO* pMySpawn = pLocalPlayer;
 
 	switch (static_cast<FellowshipTypeMembers>(pMember->ID))
 	{
@@ -16926,12 +16926,12 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			ts = tm->GetTaskStatus(static_cast<PcClient*>(*ppPCData), index, cTaskSystemTypeSoloQuest);
+			ts = tm->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
 			entry = &tm->QuestEntries[index];
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			ts = tm->GetTaskStatus(static_cast<PcClient*>(*ppPCData), 0, cTaskSystemTypeSharedQuest);
+			ts = tm->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
 			entry = &tm->SharedTaskEntries[0];
 			break;
 

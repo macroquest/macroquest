@@ -92,6 +92,7 @@
     <ClInclude Include="ItemBase-Members.h" />
     <ClInclude Include="Items.h" />
     <ClInclude Include="Mutex.h" />
+    <ClInclude Include="OffsetUtils.h" />
     <ClInclude Include="PcClient.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerClient.h" />

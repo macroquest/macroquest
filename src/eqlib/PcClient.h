@@ -663,7 +663,6 @@ using PCHARINFO [[deprecated]] = CHARINFONEW*;
 #else
 using CHARINFO = CHARINFOOLD;
 using PCHARINFO /*[[deprecated]]*/ = CHARINFOOLD*;
-using PCHARINFONEW [[deprecated]] = CHARINFONEW*;
 #endif
 
 // these are just virtual base tables

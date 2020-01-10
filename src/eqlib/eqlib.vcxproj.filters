@@ -93,6 +93,9 @@
     <ClInclude Include="SoeUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OffsetUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

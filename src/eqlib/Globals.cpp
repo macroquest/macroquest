@@ -1072,35 +1072,37 @@ fEQProcGameEvts ProcessGameEvents = nullptr;
 fGetLabelFromEQ GetLabelFromEQ = nullptr;
 fEQToggleKeyRingItem  cmdToggleKeyRingItem = nullptr;
 
-StringTable** ppStringTable = nullptr;
-CDBStr** ppCDBStr = nullptr;
-EQMisc* pEQMisc = nullptr;
-CSkillMgr** ppCSkillMgr = nullptr;
-CGuild* pGuild = nullptr;
-SKILLMGR** ppSkillMgr = nullptr;
-EVERQUESTINFO* ppEverQuestInfo = nullptr;
+ForeignPointer<StringTable, EQSTRINGTABLE>      pStringTable;
+ForeignPointer<DatabaseStringTable>             pCDBStr;
+ForeignReference<EQMisc>                        pEQMisc;
+ForeignPointer<CSkillMgr>                       pCSkillMgr;
+ForeignReference<CGuild>                        pGuild;
+ForeignPointer<SKILLMGR>                        pSkillMgr;
+ForeignPointer<CEverQuest, EVERQUEST>           pEverQuest;
+ForeignReference<EVERQUESTINFO>                 pEverQuestInfo;
+ForeignPointer<CDisplay, CDISPLAY>              pDisplay;
+ForeignPointer<PcClient, CHARINFO>              pPCData;
+ForeignPointer<PcClient, CHARINFO>              pCharData;
+ForeignPointer<PlayerClient, SPAWNINFO>         pCharSpawn;
+ForeignPointer<PlayerClient, SPAWNINFO>         pActiveMerchant;
+ForeignPointer<PlayerClient, SPAWNINFO>         pLocalPlayer;
+ForeignPointer<PlayerClient, SPAWNINFO>         pControlledPlayer;
+ForeignPointer<PlayerClient, SPAWNINFO>         pTarget;
+ForeignPointer<PlayerClient, SPAWNINFO>         pTradeTarget;
+ForeignPointer<PlayerClient, SPAWNINFO>         pActiveBanker;
+ForeignPointer<PlayerClient, SPAWNINFO>         pActiveGMaster;
+ForeignPointer<PlayerClient, SPAWNINFO>         pActiveCorpse;
 
-CEverQuest** ppEverQuest = nullptr;
-CDisplay** ppDisplay = nullptr;
-PcClient** ppPCData = nullptr;
-PcClient** ppCharData = nullptr;
-PlayerClient** ppCharSpawn = nullptr;
-PlayerClient** ppActiveMerchant = nullptr;
-PlayerManagerClient** ppSpawnManager = nullptr;
-PlayerClient** ppLocalPlayer = nullptr;
-PlayerClient** ppControlledPlayer = nullptr;
+ForeignPointer<PlayerManagerClient>             pSpawnManager;
+
+connection_t** ppConnection = nullptr;
 EQWorldData** ppWorldData = nullptr;
 ClientSpellManager** ppSpellMgr = nullptr;
-PlayerClient** ppTarget = nullptr;
 EqSwitchManager** ppSwitchMgr = nullptr;
 SpellLoadout* pSpellSets = nullptr;
 EQZoneInfo* pZoneInfo = nullptr;
 AltAdvManager** ppAltAdvManager = nullptr;
-connection_t** ppConnection = nullptr;
-PlayerClient** ppTradeTarget = nullptr;
-PlayerClient** ppActiveBanker = nullptr;
-PlayerClient** ppActiveGMaster = nullptr;
-PlayerClient** ppActiveCorpse = nullptr;
+
 
 /* WINDOW INSTANCES */
 LootFiltersManager** ppLootFiltersManager = nullptr;
@@ -1353,29 +1355,34 @@ void InitializeGlobals()
 	pSocialList = (PEQSOCIAL)__Socials;
 	pgCurrentSocial = (PINT)__CurrentSocial;
 
-	NewUIINI = (fEQNewUIINI)__NewUIINI;
-	ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
-	GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
-	ppStringTable = (StringTable**)pinstStringTable;
-	ppCDBStr = (CDBStr**)pinstCDBStr;
-	pEQMisc = (EQMisc*)instEQMisc;
-	ppCSkillMgr = (CSkillMgr**)pinstSkillMgr;
-	pGuild = (CGuild*)__Guilds;
-	ppSkillMgr = (SKILLMGR**)pinstSkillMgr;
+	NewUIINI               = (fEQNewUIINI)__NewUIINI;
+	ProcessGameEvents      = (fEQProcGameEvts)__ProcessGameEvents;
+	GetLabelFromEQ         = (fGetLabelFromEQ)__GetLabelFromEQ;
 
-	pEverQuestInfo = (PEVERQUESTINFO)pinstEverQuestInfo;
-	ppEverQuest = (CEverQuest**)pinstCEverQuest;
-	ppDisplay = (CDisplay**)pinstCDisplay;
-	ppPCData = (PcClient**)pinstPCData;
-	ppCharData = (PcClient**)pinstCharData;
-	ppCharSpawn = (PlayerClient**)pinstCharSpawn;
-	ppActiveMerchant = (PlayerClient**)pinstActiveMerchant;
-	ppSpawnManager = (PlayerManagerClient**)pinstSpawnManager;
-	ppLocalPlayer = (PlayerClient**)pinstLocalPlayer;
-	ppControlledPlayer = (PlayerClient**)pinstControlledPlayer;
-	ppWorldData = (EQWorldData**)pinstWorldData;
+	pStringTable           = pinstStringTable;
+	pCDBStr                = pinstCDBStr;
+	pEQMisc                = instEQMisc;
+	pCSkillMgr             = pinstSkillMgr;
+	pGuild                 = __Guilds;
+	pSkillMgr              = pinstSkillMgr;
+	pEverQuest             = pinstCEverQuest;
+	pDisplay               = pinstCDisplay;
+	pPCData                = pinstPCData;
+	pEverQuestInfo         = pinstEverQuestInfo;
+	pCharData              = pinstCharData;
+	pCharSpawn             = pinstCharSpawn;
+	pActiveMerchant        = pinstActiveMerchant;
+	pLocalPlayer           = pinstLocalPlayer;
+	pControlledPlayer      = pinstControlledPlayer;
+	pSpawnManager          = pinstSpawnManager;
+	pTarget                = pinstTarget;
+	pTradeTarget           = pinstTradeTarget;
+	pActiveBanker          = pinstActiveBanker;
+	pActiveGMaster         = pinstActiveGMaster;
+	pActiveCorpse          = pinstActiveCorpse;
+
+	ppWorldData            = (EQWorldData**)pinstWorldData;
 	ppSpellMgr = (ClientSpellManager**)pinstSpellManager;
-	ppTarget = (PlayerClient**)pinstTarget;
 	ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
 	pSpellSets = (SpellLoadout*)pinstSpellSets;
 	pZoneInfo = (EQZoneInfo*)instEQZoneInfo;
@@ -1384,10 +1391,7 @@ void InitializeGlobals()
 	ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
 	ppLootFiltersManager = (LootFiltersManager**)pinstLootFiltersManager;
 
-	ppTradeTarget = (PlayerClient**)pinstTradeTarget;
-	ppActiveBanker = (PlayerClient**)pinstActiveBanker;
-	ppActiveGMaster = (PlayerClient**)pinstActiveGMaster;
-	ppActiveCorpse = (PlayerClient**)pinstActiveCorpse;
+
 
 	ppContextMenuManager = (CContextMenuManager**)pinstCContextMenuManager;
 	ppCursorAttachment = (CCursorAttachment**)pinstCCursorAttachment;
