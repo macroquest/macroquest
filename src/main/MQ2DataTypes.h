@@ -1540,7 +1540,8 @@ public:
 		AncientDraconicCoin = 304,
 		FetterredIfritCoins = 305,
 		EntwinedDjinnCoins = 306,
-		CrystallizedLuck = 307
+		CrystallizedLuck = 307,
+		Spell = 308,
 	};
 
 	enum CharacterMethods
@@ -1850,6 +1851,7 @@ public:
 		TypeMember(LastZoned);
 		TypeMember(Origin);
 		TypeMember(SubscriptionDays);
+		TypeMember(Spell);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);

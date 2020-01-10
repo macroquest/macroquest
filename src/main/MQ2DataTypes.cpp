@@ -4795,6 +4795,67 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
+	case Spell:
+	{
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				// Look for spell in our book by ID
+				int spellId = GetIntFromString(Index, 0);
+
+				for (int nSpell : pProfile->SpellBook)
+				{
+					if (nSpell == spellId)
+					{
+						Dest.Type = pSpellType;
+						Dest.Ptr = GetSpellByID(spellId);
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// Look for spell in our book by Name like ${Spell}
+				if (PSPELL pSpell = GetSpellByName(Index))
+				{
+					// If we found a spell check if its in the spellbook
+					int spellID = pSpell->ID;
+
+					for (int nSpell : pProfile->SpellBook)
+					{
+						if (nSpell == spellID)
+						{
+							Dest.Type = pSpellType;
+							Dest.Ptr = pSpell;
+							return true;
+						}
+					}
+
+					// Scan the spell book for spells in the same group that match
+					// at the substring level
+					for (int nSpell : pProfile->SpellBook)
+					{
+						if (nSpell != -1)
+						{
+							if (PSPELL pFoundSpell = GetSpellByID(nSpell))
+							{
+								if (pFoundSpell->SpellGroup == pSpell->SpellGroup
+									&& ci_find_substr(pSpell->Name, pFoundSpell->Name) == 0)
+								{
+									Dest.Ptr = pFoundSpell;
+									Dest.Type = pSpellType;
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	case ItemReady: {
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
