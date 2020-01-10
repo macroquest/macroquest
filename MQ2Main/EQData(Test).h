@@ -1029,7 +1029,7 @@ typedef struct _CONTENTS {
 	EQLIB_OBJECT ItemGlobalIndex2& GetGlobalIndex();
 
 	// Compatibility properties for ItemEvolutionData
-	[[deprecated("Use pEvolutionData->EvolvingGroupID instead")]]
+	[[deprecated("Use pEvolutionData->GroupID instead")]]
 	inline int get_EvolvingGroupID() { return pEvolutionData ? pEvolutionData->GroupID : 0; }
 	__declspec(property(get = get_EvolvingGroupID)) int GroupID;
 

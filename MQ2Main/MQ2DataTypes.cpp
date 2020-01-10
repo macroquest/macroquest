@@ -4359,6 +4359,24 @@ bool MQ2CharacterType::GETMEMBER()
 								return true;
 							}
 						}
+
+						// Ok it is not in the spell book. Lets check for other forms
+						// This is similar to the last part of SpellRank.
+						for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++)
+						{
+							if (pChar2->SpellBook[nSpell] != -1)
+							{
+								if (PSPELL pFoundSpell = GetSpellByID(pChar2->SpellBook[nSpell]))
+								{
+									if (pFoundSpell->SpellGroup == pSpell->SpellGroup
+										&& !_strnicmp(pSpell->Name, pFoundSpell->Name, strlen(pSpell->Name)))
+									{
+										Dest.Ptr = pFoundSpell;
+										return true;
+									}
+								}
+							}
+						}
 					}
 				}
 			}

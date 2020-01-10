@@ -1,3 +1,11 @@
+Jan 10 2020
+- ${Me.Spell[blah]} now searches for rank spells as well - brainiac
+  Example:  You have Demand For Power Rk. II in your spellbook.
+  Usage:    /echo ${Me.Spell[Demand for Power]}
+  Output:   Demand For Power Rk. II
+- MQ2Melee has been updated for ToV - Sic
+- (If you use builder don't forget to recheck it.)
+-
 Jan 09 2020
 - Added Me.Spell it return a SpellType selecting spells only from YOUR SpellBook. - brainiac
   Usage: /echo ${Me.Spell[Spirit of Wolf].ID}

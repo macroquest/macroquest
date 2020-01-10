@@ -966,26 +966,14 @@ public:
 /*0xb8*/
 };
 
-//basically we should just fix the class but i ran out of time, ill mess with it a bit after expansion -eqmule
-typedef struct _SHAREDPTR
-{
-	int ID;
-	int Something;
-	int Something2;
-	struct _ITEMINFO Item;
-} SHAREDPTR, *PSHAREDPTR;
 typedef struct _ItemEvolutionData
 {
-/*0x00*/ PVOID	vfTable;
-/*0x04*/ bool	IsEvolvingItem;
-/*0x08*/ int	EvolvingCurrentLevel;
-/*0x0c*/ int	Unknown0xc;
-/*0x10*/ int	GroupID;
-/*0x18*/ DOUBLE	EvolvingExpPct;
-/*0x20*/ int	EvolvingMaxLevel;
-/*0x24*/ int	LastEquipped;
-/*0x28*/ int	Unknown0x28;
-/*0x2c*/
+/*0x00*/ int	GroupID;
+/*0x04*/ int	EvolvingCurrentLevel;
+/*0x08*/ DOUBLE	EvolvingExpPct;
+/*0x10*/ int	EvolvingMaxLevel;
+/*0x14*/ int	LastEquipped;
+/*0x18*/
 } ItemEvolutionData, *PItemEvolutionData;
 
 //Actual Size: 0x100 (see 0x62828C in eqgame.exe Beta dated Dec 17 2019) - eqmule
@@ -1028,15 +1016,15 @@ typedef struct _CONTENTS {
 /*0x00C8*/ int	MerchantQuantity;
 /*0x00CC*/ int	OrnamentationIcon;
 /*0x00D0*/ int	AugFlag;
-/*0x00D4*/ SharedData<ItemEvolutionData>	*pEvolutionData;
-/*0x00DC*/ struct _SHAREDPTR *Item1;
+/*0x00D4*/ SharedPtr<ItemEvolutionData> pEvolutionData;
+/*0x00DC*/ struct _ITEMINFO* Item1;
 /*0x00E0*/ int	Power;
 /*0x00E4*/ UINT	ItemHash;
 /*0x00E8*/ struct _CXSTR *	ActorTag1;
 /*0x00EC*/ bool	bCopied;
 //start of ItemClient
 /*0x00ED*/ BYTE Filler0x00ED[0x7];
-/*0x00F4*/ struct _SHAREDPTR*	Item2;
+/*0x00F4*/ struct _ITEMINFO*	Item2;
 /*0x00F8*/ struct _CXSTR *ClientString;
 /*0x00FC*/ BYTE Filler0x00FC[0x4];
 /*0x0100*/
