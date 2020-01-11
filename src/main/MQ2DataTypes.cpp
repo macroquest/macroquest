@@ -668,24 +668,22 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case Find:
+	case Find: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
 		if (!Index[0])
 			return false;
 
+		int pos = ci_find_substr(szString, Index);
+		if (pos != -1)
 		{
-			int pos = ci_find_substr(szString, Index);
-			if (pos)
-			{
-				Dest.DWord = pos;
-				return true;
-			}
-
-			return false;
+			Dest.DWord = pos + 1;
+			return true;
 		}
+
 		return false;
+	}
 
 	case Replace: {
 		Dest.Type = pStringType;
