@@ -515,7 +515,7 @@ void Items(SPAWNINFO* pChar, char* szLine)
 	};
 	std::map<float, iteminfo> itemsMap;
 
-	if (GROUNDITEM* pItem = *(GROUNDITEM**)pItemList)
+	if (EQGroundItem* pItem = pItemList->Top)
 	{
 		char szName[MAX_STRING] = { 0 };
 
@@ -523,7 +523,7 @@ void Items(SPAWNINFO* pChar, char* szLine)
 		{
 			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 
-			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
+			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->pContents, pItem->DropID, szName, pItem->Name);
 
 			if (szLine[0] == 0 || ci_find_substr(szName, szLine) != -1)
 			{
@@ -603,8 +603,7 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 
 	if (!szLine) return;
 
-	EQGroundItemListManager* pGroundList = GetItemList();
-	if (!pGroundList)
+	if (!pItemList)
 		return;
 
 	char Arg1[MAX_STRING] = { 0 };
@@ -619,7 +618,7 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 
 	pGroundTarget = nullptr;
 
-	if (GROUNDITEM* pItem = *(GROUNDITEM**)pItemList)
+	if (EQGroundItem* pItem = pItemList->Top)
 	{
 		char szName[MAX_STRING] = { 0 };
 		float cDistance = 100000.0f;
@@ -734,7 +733,7 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 			GroundObject.GroundItem.DropSubID = ObjPtr->RealEstateID;
 			GroundObject.GroundItem.Expires = 0;
 			GroundObject.GroundItem.Heading = ObjPtr->Heading;
-			GroundObject.GroundItem.ID = nullptr;
+			GroundObject.GroundItem.pContents = nullptr;
 			if (EnviroTarget.DisplayedName[0] != '\0')
 			{
 				strcpy_s(GroundObject.GroundItem.Name, EnviroTarget.DisplayedName);
@@ -833,10 +832,7 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-	if (!ppSwitchMgr) return;
 	if (!pSwitchMgr) return;
-
-	DOORTABLE* pDoorTable = (DOORTABLE*)pSwitchMgr;
 
 	// FIXME: Do not ZeroMemory SPAWNINFO
 	ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
@@ -859,20 +855,22 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 		int ID = GetIntFromString(Arg2, 0);
 		GetArg(Arg2, szLine, 3);
 
-		for (int Count = 0; Count < pDoorTable->NumEntries; Count++)
+		for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
 		{
-			if (pDoorTable->pDoor[Count]->ID == ID)
+			EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
+
+			if (pSwitch->ID == ID)
 			{
-				strcpy_s(DoorEnviroTarget.Name, pDoorTable->pDoor[Count]->Name);
-				strcpy_s(DoorEnviroTarget.DisplayedName, pDoorTable->pDoor[Count]->Name);
-				DoorEnviroTarget.Y = pDoorTable->pDoor[Count]->Y;
-				DoorEnviroTarget.X = pDoorTable->pDoor[Count]->X;
-				DoorEnviroTarget.Z = pDoorTable->pDoor[Count]->Z;
-				DoorEnviroTarget.Heading = pDoorTable->pDoor[Count]->Heading;
+				strcpy_s(DoorEnviroTarget.Name, pSwitch->Name);
+				strcpy_s(DoorEnviroTarget.DisplayedName, pSwitch->Name);
+				DoorEnviroTarget.Y = pSwitch->Y;
+				DoorEnviroTarget.X = pSwitch->X;
+				DoorEnviroTarget.Z = pSwitch->Z;
+				DoorEnviroTarget.Heading = pSwitch->Heading;
 				DoorEnviroTarget.Type = SPAWN_NPC;
 				DoorEnviroTarget.HPCurrent = 1;
 				DoorEnviroTarget.HPMax = 1;
-				pDoorTarget = pDoorTable->pDoor[Count];
+				pDoorTarget = pSwitch;
 				break;
 			}
 		}
@@ -881,32 +879,32 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 	{
 		float cDistance = 100000.0f;
 
-		for (int Count = 0; Count < pDoorTable->NumEntries; Count++)
+		for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
 		{
-			DOOR* pDoor = pDoorTable->pDoor[Count];
+			EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
 
 			// Match against the name if it is within the z filter (or if the z filter is disabled)
-			if ((Arg1[0] == 0 || ci_find_substr(pDoor->Name, Arg1) == 0)
-				&& (gZFilter >= 10000.0f || (pDoor->Z <= pChar->Z + gZFilter && pDoor->Z >= pChar->Z - gZFilter)))
+			if ((Arg1[0] == 0 || ci_find_substr(pSwitch->Name, Arg1) == 0)
+				&& (gZFilter >= 10000.0f || (pSwitch->Z <= pChar->Z + gZFilter && pSwitch->Z >= pChar->Z - gZFilter)))
 			{
 				// FIXME: Do not ZeroMemory SPAWNINFO
 				SPAWNINFO tSpawn;
 				ZeroMemory(&tSpawn, sizeof(tSpawn));
-				strcpy_s(tSpawn.Name, pDoor->Name);
-				strcpy_s(tSpawn.DisplayedName, pDoor->Name);
-				tSpawn.Y = pDoor->Y;
-				tSpawn.X = pDoor->X;
-				tSpawn.Z = pDoor->Z;
+				strcpy_s(tSpawn.Name, pSwitch->Name);
+				strcpy_s(tSpawn.DisplayedName, pSwitch->Name);
+				tSpawn.Y = pSwitch->Y;
+				tSpawn.X = pSwitch->X;
+				tSpawn.Z = pSwitch->Z;
 				tSpawn.Type = SPAWN_NPC;
 				tSpawn.HPCurrent = 1;
 				tSpawn.HPMax = 1;
-				tSpawn.Heading = pDoor->Heading;
+				tSpawn.Heading = pSwitch->Heading;
 				float Distance = Distance3DToSpawn(pChar, &tSpawn);
 
 				if (Distance < cDistance)
 				{
 					CopyMemory(&DoorEnviroTarget, &tSpawn, sizeof(DoorEnviroTarget));
-					pDoorTarget = pDoor;
+					pDoorTarget = pSwitch;
 					cDistance = Distance;
 				}
 			}
@@ -988,8 +986,6 @@ void SpellSlotInfo(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 {
-	if (!ppSpellBookWnd)
-		return;
 	if (!pSpellBookWnd)
 		return;
 
@@ -2805,7 +2801,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	int abil = GetIntFromString(szBuffer, 0);
 	if (abil && abil > 5 && abil < NUM_SKILLS) // user wants us to activate a ability by its REAL ID...
 	{
-		if (int nToken = pCSkillMgr->GetNameToken(abil))
+		if (int nToken = pSkillMgr->GetNameToken(abil))
 		{
 			if (const char* thename = pStringTable->getString(nToken))
 			{
@@ -2826,8 +2822,6 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	if (!pProfile)
 		return;
 
-	SKILLMGR* pSkmgr = pSkillMgr;
-
 	// display available abilities list
 	if (!_stricmp(szBuffer, "list"))
 	{
@@ -2838,7 +2832,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 		{
 			if (HasSkill(Index))
 			{
-				bool Avail = pSkmgr->pSkill[Index]->Activated;
+				bool Avail = pSkillMgr->pSkill[Index]->Activated;
 
 				// make sure remove trap is added, they give it to everyone except rogues
 				if (Index == 75 && strncmp(pEverQuest->GetClassDesc(pProfile->Class & 0xFF), "Rogue", 6))
@@ -2879,7 +2873,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	// scan for matching abilities name
 	for (int Index = 0; Index < 128; Index++)
 	{
-		if (Index < NUM_SKILLS && (pSkmgr->pSkill[Index])->Activated
+		if (Index < NUM_SKILLS && pSkillMgr->pSkill[Index]->Activated
 			|| Index > NUM_SKILLS && pProfile->InnateSkill[Index - 100] != 0xFF)
 		{
 			if (!_stricmp(szBuffer, szSkills[Index]))
@@ -2928,10 +2922,8 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void LoadSpells(SPAWNINFO* pChar, char* szLine)
 {
-	if (!pSpellSets || !ppSpellBookWnd || szLine[0] == 0)
+	if (!pSpellSets || !pSpellBookWnd || szLine[0] == 0)
 		return;
-
-	if (!pSpellBookWnd) return;
 
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
@@ -3077,7 +3069,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	if (szLine[0] == 0 || GetIntFromString(szLine, 0) || !ppSpellMgr || !pCharData)
+	if (szLine[0] == 0 || GetIntFromString(szLine, 0) || !pSpellMgr || !pCharData)
 	{
 		int Index = GetIntFromString(szLine, 0) - 1;
 

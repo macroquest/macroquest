@@ -19,7 +19,7 @@ namespace mq {
 
 static SPELL* GetSpellBySpellGroupID(int dwSpellGroupID)
 {
-	if (!ppSpellMgr) return nullptr;
+	if (!pSpellMgr) return nullptr;
 
 	for (int dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++)
 	{
@@ -51,7 +51,7 @@ const char* GetSpellNameByID(int dwSpellID)
 {
 	int absedspellid = abs(dwSpellID);
 
-	if (ppSpellMgr && absedspellid != 0 && absedspellid != -1 && absedspellid < TOTAL_SPELL_COUNT)
+	if (pSpellMgr && absedspellid != 0 && absedspellid != -1 && absedspellid < TOTAL_SPELL_COUNT)
 	{
 		SPELL* pSpell = GetSpellByID(absedspellid);
 
@@ -207,9 +207,9 @@ SPELL* GetSpellByName(const char* szName)
 	// /echo ${Spell[Concussive Burst].Level}
 	// /echo ${Spell[Nature's Serenity].Level}
 
-	if (ppSpellMgr == nullptr) // no spellMgr offset?
+	if (!pSpellMgr) // no spellMgr?
 		return nullptr;
-	if (szName == nullptr)     // no spell name?
+	if (!szName)    // no spell name?
 		return nullptr;
 
 	if (gbSpelldbLoaded == false)

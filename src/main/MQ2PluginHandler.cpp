@@ -164,7 +164,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	// init ground items
 	if (pPlugin->AddGroundItem && GetGameState() == GAMESTATE_INGAME)
 	{
-		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+		EQGroundItem* pItem = pItemList->Top;
 		while (pItem)
 		{
 			pPlugin->AddGroundItem(pItem);

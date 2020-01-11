@@ -694,7 +694,7 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 {
 	if (pPlayer)
 	{
-		if (pRender = (FakeCDisplay*)g_pDrawHandler)
+		if (pRender = g_pDrawHandler.get_as<FakeCDisplay>())
 		{
 			g_vWorldLocation.x = ((SPAWNINFO*)pPlayer)->Y;
 			g_vWorldLocation.y = ((SPAWNINFO*)pPlayer)->X;

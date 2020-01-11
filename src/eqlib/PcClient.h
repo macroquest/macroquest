@@ -417,10 +417,13 @@ public:
 class [[offsetcomments]] CPlayerPointManager
 {
 public:
+	EQLIB_OBJECT unsigned long GetAltCurrency(unsigned long, unsigned long b = 1);
+
 /*0x00*/ void* vfTable;
 /*0x04*/ ArrayClass<Point*> Points;
 /*0x14*/
 };
+using PlayerPointManager = CPlayerPointManager;
 
 struct [[offsetcomments]] ProgressionExperience
 {

@@ -761,7 +761,7 @@ static std::recursive_mutex s_groundsMutex;
 
 static void AddGroundItem()
 {
-	if (GROUNDITEM* pGroundItem = *(GROUNDITEM**)pItemList)
+	if (EQGroundItem* pGroundItem = pItemList->Top)
 	{
 		std::scoped_lock lock(s_groundsMutex);
 
@@ -775,7 +775,7 @@ static void AddGroundItem()
 	}
 }
 
-static void RemoveGroundItem(GROUNDITEM* pGroundItem)
+static void RemoveGroundItem(EQGroundItem* pGroundItem)
 {
 	if (pPendingGrounds)
 	{
@@ -811,7 +811,7 @@ public:
 	void FreeItemList_Trampoline();
 	void FreeItemList_Detour()
 	{
-		GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
+		EQGroundItem* pItem = pItemList->Top;
 
 		while (pItem)
 		{
@@ -823,8 +823,8 @@ public:
 		FreeItemList_Trampoline();
 	}
 
-	void Add_Trampoline(GROUNDITEM*);
-	void Add_Detour(GROUNDITEM* pItem)
+	void Add_Trampoline(EQGroundItem*);
+	void Add_Detour(EQGroundItem* pItem)
 	{
 		if (m_pGroundItemList)
 		{
@@ -840,16 +840,16 @@ public:
 		AddGroundItem();
 	}
 
-	void DeleteItem_Trampoline(GROUNDITEM*);
-	void DeleteItem_Detour(GROUNDITEM* pItem)
+	void DeleteItem_Trampoline(EQGroundItem*);
+	void DeleteItem_Detour(EQGroundItem* pItem)
 	{
 		RemoveGroundItem(pItem);
 		return DeleteItem_Trampoline(pItem);
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(GROUNDITEM*));
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(GROUNDITEM*));
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(EQGroundItem*));
+DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(EQGroundItem*));
 
 static void ProcessPendingGroundItems()
 {

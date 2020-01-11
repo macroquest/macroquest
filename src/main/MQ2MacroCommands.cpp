@@ -913,11 +913,8 @@ void Cleanup(PSPAWNINFO pChar, char* szLine)
 			MQ2HandleKeyUp(Escape);
 		}
 
-		if (!ppInventoryWnd)
-		{
-			if (pInventoryWnd && !pInventoryWnd->IsVisible())
-				DoMappable(pChar, "inventory");
-		}
+		if (pInventoryWnd && !pInventoryWnd->IsVisible())
+			DoMappable(pChar, "inventory");
 	}
 	else
 	{

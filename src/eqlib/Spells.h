@@ -820,6 +820,7 @@ struct [[offsetcomments]] SPELLMGR
 /*0x143680*/ DWORD          What2[0x1E460];               // 120000
 /*0x1bc800*/ //(1820672) 1.8 mill! large struct in memory for sure...
 };
+// TODO: Merge with ClientSpellManager
 using PSPELLMGR = SPELLMGR*;
 
 class [[offsetcomments]] MercenaryAbilityEffectsDefinition

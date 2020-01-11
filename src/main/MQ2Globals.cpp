@@ -174,7 +174,7 @@ std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 SPAWNINFO MercenarySpawn = { 0 };
 SPAWNINFO PetSpawn = { 0 };
 SPAWNINFO EnviroTarget = { 0 };
-GROUNDOBJECT GroundObject;
+MQGroundObject GroundObject;
 GROUNDITEM* pGroundTarget = nullptr;
 SPAWNINFO DoorEnviroTarget = { 0 };
 DOOR* pDoorTarget = nullptr;

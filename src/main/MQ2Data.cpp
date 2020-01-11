@@ -150,7 +150,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 	if (szIndex[0])
 	{
 		// holds a list of items stored by distance squared.
-		std::map<float, GROUNDOBJECT> itemMap;
+		std::map<float, MQGroundObject> itemMap;
 
 		if (IsNumber(szIndex))
 		{
@@ -158,7 +158,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 
 			if (pItemList && pItemList->Top)
 			{
-				GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
+				EQGroundItem* pItem = pItemList->Top;
 
 				while (pItem)
 				{
@@ -209,7 +209,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 
 				if (it != itemMap.end())
 				{
-					memcpy(&GroundObject, &it->second, sizeof(GROUNDOBJECT));
+					memcpy(&GroundObject, &it->second, sizeof(MQGroundObject));
 					Ret.Ptr = &GroundObject;
 					Ret.Type = pGroundType;
 					return true;
@@ -223,7 +223,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 			char szName[MAX_STRING] = { 0 };
 			if (pItemList && pItemList->Top)
 			{
-				GROUNDITEM* pItem = *(GROUNDITEM**)pItemList;
+				EQGroundItem* pItem = pItemList->Top;
 				while (pItem)
 				{
 					GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
@@ -279,7 +279,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 		if (!itemMap.empty())
 		{
 			// FIXME: Don't copy with memcpy
-			memcpy(&GroundObject, &itemMap.begin()->second, sizeof(GROUNDOBJECT));
+			memcpy(&GroundObject, &itemMap.begin()->second, sizeof(MQGroundObject));
 			Ret.Ptr = &GroundObject;
 			Ret.Type = pGroundType;
 			return true;
@@ -297,7 +297,7 @@ bool dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 	float groundDist = 100000.0f;
 	float objectDist = 100000.0f;
 
-	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList)
+	if (EQGroundItem* pItem = pItemList->Top)
 	{
 		float X = pSpawn->X - pItem->X;
 		float Y = pSpawn->Y - pItem->Y;
@@ -340,7 +340,7 @@ bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret)
 	if (!pItemList)
 		return true;
 
-	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+	EQGroundItem* pItem = pItemList->Top;
 	if (!pItem)
 		return true;
 
@@ -794,7 +794,7 @@ bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 			}
 			index--;
 
-			if (SPAWNINFO* pSpawn = bPosIndex ? static_cast<SPAWNINFO*>pSpawnList : pLocalPlayer)
+			if (SPAWNINFO* pSpawn = bPosIndex ? pSpawnManager->FirstSpawn : pLocalPlayer)
 			{
 				while (index)
 				{
@@ -1523,7 +1523,7 @@ bool dataTask(const char* szIndex, MQTypeVar& Ret)
 	Ret.Type = pTaskType;
 	Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, 0xFFFFFFFF);
 
-	if (CTaskManager* tm = ppTaskManager)
+	if (CTaskManager* tm = pTaskManager)
 	{
 		if (szIndex[0])
 		{

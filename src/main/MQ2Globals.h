@@ -217,7 +217,7 @@ MQLIB_VAR char gDelayCondition[MAX_STRING];
 MQLIB_VAR SPAWNINFO EnviroTarget;
 MQLIB_VAR SPAWNINFO PetSpawn;
 MQLIB_VAR SPAWNINFO MercenarySpawn;
-MQLIB_VAR GROUNDOBJECT GroundObject;
+MQLIB_VAR MQGroundObject GroundObject;
 MQLIB_VAR GROUNDITEM* pGroundTarget;
 MQLIB_VAR SPAWNINFO DoorEnviroTarget;
 MQLIB_VAR PDOOR pDoorTarget;

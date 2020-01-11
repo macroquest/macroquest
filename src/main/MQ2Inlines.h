@@ -84,7 +84,7 @@ inline SPELL* GetSpellByID(int dwSpellID)
 	if (spellId >= TOTAL_SPELL_COUNT)
 		return nullptr;
 
-	return ((PSPELLMGR)pSpellMgr)->Spells[spellId];
+	return ((SPELLMGR*)pSpellMgr)->Spells[spellId];
 }
 
 inline const char* GetBodyTypeDesc(uint32_t BodyTypeID)

@@ -2933,13 +2933,13 @@ public:
 
 	void InitVariable(MQVarPtr& VarPtr) override
 	{
-		VarPtr.Ptr = new GROUNDOBJECT();
+		VarPtr.Ptr = new MQGroundObject();
 		VarPtr.HighPart = 0;
 	}
 
 	void FreeVariable(MQVarPtr& VarPtr) override
 	{
-		GROUNDOBJECT* pGroundObject = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
+		MQGroundObject* pGroundObject = static_cast<MQGroundObject*>(VarPtr.Ptr);
 		delete pGroundObject;
 	}
 
@@ -2950,7 +2950,7 @@ public:
 		if (Source.Type != pGroundType)
 			return false;
 
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(GROUNDOBJECT));
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(MQGroundObject));
 		return true;
 	}
 

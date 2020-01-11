@@ -1456,28 +1456,28 @@ FUNCTION_AT_ADDRESS(bool CResolutionHandler::IsFullscreenAvailable(), CResolutio
 //============================================================================
 
 #ifdef CSkillMgr__GetNameToken_x
-FUNCTION_AT_ADDRESS(int CSkillMgr::GetNameToken(int), CSkillMgr__GetNameToken);
+FUNCTION_AT_ADDRESS(int SkillManager::GetNameToken(int), CSkillMgr__GetNameToken);
 #endif
 #ifdef CSkillMgr__IsCombatSkill_x
-FUNCTION_AT_ADDRESS(bool CSkillMgr::IsCombatSkill(int), CSkillMgr__IsCombatSkill);
+FUNCTION_AT_ADDRESS(bool SkillManager::IsCombatSkill(int), CSkillMgr__IsCombatSkill);
 #endif
 #ifdef CSkillMgr__GetSkillCap_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(PcZoneClient*, int, int, int, bool, bool, bool), CSkillMgr__GetSkillCap)
+FUNCTION_AT_ADDRESS(unsigned long SkillManager::GetSkillCap(PcZoneClient*, int, int, int, bool, bool, bool), CSkillMgr__GetSkillCap)
 #endif
 #ifdef CSkillMgr__SkillAvailableAtLevel_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::SkillAvailableAtLevel(int, int), CSkillMgr__SkillAvailableAtLevel);
+FUNCTION_AT_ADDRESS(unsigned long SkillManager::SkillAvailableAtLevel(int, int), CSkillMgr__SkillAvailableAtLevel);
 #endif
 #ifdef CSkillMgr__IsActivatedSkill_x
-FUNCTION_AT_ADDRESS(bool CSkillMgr::IsActivatedSkill(int), CSkillMgr__IsActivatedSkill);
+FUNCTION_AT_ADDRESS(bool SkillManager::IsActivatedSkill(int), CSkillMgr__IsActivatedSkill);
 #endif
 #ifdef CSkillMgr__GetBaseDamage_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetBaseDamage(int), CSkillMgr__GetBaseDamage);
+FUNCTION_AT_ADDRESS(unsigned long SkillManager::GetBaseDamage(int), CSkillMgr__GetBaseDamage);
 #endif
 #ifdef CSkillMgr__GetReuseTime_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetReuseTime(int), CSkillMgr__GetReuseTime);
+FUNCTION_AT_ADDRESS(unsigned long SkillManager::GetReuseTime(int), CSkillMgr__GetReuseTime);
 #endif
 #ifdef CSkillMgr__IsAvailable_x
-FUNCTION_AT_ADDRESS(bool CSkillMgr::IsAvailable(int), CSkillMgr__IsAvailable);
+FUNCTION_AT_ADDRESS(bool SkillManager::IsAvailable(int), CSkillMgr__IsAvailable);
 #endif
 
 //============================================================================
@@ -1517,7 +1517,7 @@ FUNCTION_AT_ADDRESS(void CTaskManager::GetElementDescription(const CTaskElement*
 #ifdef CTextOverlay__DisplayText_x
 //this is really:
 //MQLIB_OBJECT void CBroadcast::BroadcastString(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime);
-FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime), CTextOverlay__DisplayText);
+FUNCTION_AT_ADDRESS(void CBroadcast::DisplayText(const char* Str, int TextColor, int Priority, int MaxAlpha, UINT FadeInTime, UINT FadeOutTime, UINT DisplayTime), CTextOverlay__DisplayText);
 #endif
 
 //============================================================================
@@ -2483,7 +2483,7 @@ FUNCTION_AT_ADDRESS(void MusicManager::Enable(bool), MusicManager__Enable);
 //============================================================================
 
 #ifdef PlayerPointManager__GetAltCurrency_x
-FUNCTION_AT_ADDRESS(unsigned long PlayerPointManager::GetAltCurrency(unsigned long, unsigned long), PlayerPointManager__GetAltCurrency);
+FUNCTION_AT_ADDRESS(unsigned long CPlayerPointManager::GetAltCurrency(unsigned long, unsigned long), PlayerPointManager__GetAltCurrency);
 #endif
 
 //============================================================================

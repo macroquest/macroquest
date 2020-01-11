@@ -741,4 +741,25 @@ struct MercDesc
 	std::string Proficiency;
 };
 
+//----------------------------------------------------------------------------
+
+enum eGroundObjectType
+{
+	GO_None,
+	GO_GroundType,
+	GO_ObjectType
+};
+
+struct MQGroundObject
+{
+/*0x00*/ eGroundObjectType  Type;
+/*0x04*/ EQGroundItem       GroundItem;         // for conversion between switch and gorunditems
+/*0x84*/ void*              ObjPtr;             // EQPlacedItem *
+/*0x88*/ EQGroundItem*      pGroundItem;
+/*0x8c*/
+
+	// Currently necessary because of MQ2DataTypes
+	MQGroundObject() { ZeroMemory(this, sizeof(MQGroundObject)); }
+};
+
 } // namespace mq

@@ -325,7 +325,7 @@ void MapGenerate()
 
 	if (IsOptionEnabled(MAPFILTER_Ground))
 	{
-		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+		EQGroundItem* pItem = pItemList->Top;
 		while (pItem)
 		{
 			AddGroundItem(pItem);

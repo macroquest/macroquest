@@ -175,6 +175,16 @@ public:
 		return *this;
 	}
 
+	bool operator== (nullptr_t) const noexcept
+	{
+		return get() == nullptr;
+	}
+
+	bool operator!= (nullptr_t) const noexcept
+	{
+		return get() != nullptr;
+	}
+
 	T& operator*() const noexcept
 	{
 		assert(m_ptr != nullptr && *m_ptr != nullptr);
@@ -207,45 +217,19 @@ public:
 	void reset() { m_ptr = nullptr; }
 };
 
+// A pointer-like type that gets its value by derive the computing from some expression.
+// This pointer is non-copyable and non-reassignable.
 template <typename T>
-class ForeignReference
+class ComputedPointer
 {
 public:
-	ForeignReference() noexcept = default;
-	~ForeignReference() noexcept = default;
+	using ComputedFn = T* (*)();
 
-	ForeignReference(uintptr_t addr) noexcept
-		: m_ptr(reinterpret_cast<T*>(addr)) {}
-	ForeignReference(const ForeignReference& other) noexcept
-		: m_ptr(other.m_ptr) {}
-	ForeignReference(ForeignReference&& other) noexcept
-		: m_ptr(other.m_ptr) {}
-	ForeignReference(T* other) noexcept
-		: m_ptr(other) {}
+	ComputedPointer(ComputedFn fn) : m_fn(fn) {}
+	~ComputedPointer() = default;
 
-	ForeignReference& operator=(const ForeignReference& other) noexcept
-	{
-		m_ptr = other.m_ptr;
-		return *this;
-	}
-
-	ForeignReference& operator=(ForeignReference&& other) noexcept
-	{
-		m_ptr = other.m_ptr;
-		return *this;
-	}
-
-	ForeignReference& operator=(uintptr_t other) noexcept
-	{
-		set_offset(other);
-		return *this;
-	}
-
-	ForeignReference& operator=(T* other) noexcept
-	{
-		m_ptr = other;
-		return *this;
-	}
+	ComputedPointer(const ComputedPointer&) = delete;
+	ComputedPointer& operator= (const ComputedPointer&) = delete;
 
 	operator T* () const noexcept
 	{
@@ -254,31 +238,26 @@ public:
 
 	T& operator* () const noexcept
 	{
-		assert(m_ptr != nullptr);
-		return *m_ptr;
+		T* value = get();
+		assert(value != nullptr);
+
+		return *value;
 	}
 
-	T* operator->() const noexcept
+	T* operator-> () const noexcept
 	{
 		return get();
 	}
 
-	explicit operator bool() const noexcept { return is_valid(); }
+	explicit operator bool() const noexcept { return get() != nullptr; }
 
 	T* get() const noexcept
 	{
-		return m_ptr;
+		return m_fn();
 	}
 
-	bool is_valid() const noexcept { return m_ptr; }
-
-	uintptr_t get_offset() const noexcept { return reinterpret_cast<uintptr_t>(m_ptr); }
-	void set_offset(uintptr_t offset) noexcept { m_ptr = reinterpret_cast<T*>(offset); }
-
-	void reset() { m_ptr = nullptr; }
-
 private:
-	T* m_ptr = nullptr;
+	ComputedFn m_fn;
 };
 
 

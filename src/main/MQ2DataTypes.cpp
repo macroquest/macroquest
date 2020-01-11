@@ -4648,7 +4648,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				if (pCharData)
 				{
-					Dest.DWord = pCSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, nSkill, true, true, true);
+					Dest.DWord = pSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, nSkill, true, true, true);
 					return true;
 				}
 			}
@@ -4664,9 +4664,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				// numeric
 				if (int nSkill = GetIntFromString(Index, 0))
 				{
-					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+					if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
 					{
-						int nToken = pCSkillMgr->GetNameToken(nSkill);
+						int nToken = pSkillMgr->GetNameToken(nSkill);
 
 						if (const char* thename = pStringTable->getString(nToken))
 						{
@@ -4683,13 +4683,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			// name
 			for (int i = 0; i < NUM_SKILLS; i++)
 			{
-				int nToken = pCSkillMgr->GetNameToken(i);
+				int nToken = pSkillMgr->GetNameToken(i);
 
 				if (const char* thename = pStringTable->getString(nToken))
 				{
 					if (!_stricmp(Index, thename))
 					{
-						if (bool bActivated = pCSkillMgr->IsActivatedSkill(i))
+						if (bool bActivated = pSkillMgr->IsActivatedSkill(i))
 						{
 							Dest.DWord = i;
 							Dest.Type = pIntType;
@@ -4715,9 +4715,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			// numeric
 			if (int nSkill = GetIntFromString(Index, 0))
 			{
-				if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+				if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
 				{
-					Dest.DWord = pCSkillMgr->IsAvailable(nSkill);
+					Dest.DWord = pSkillMgr->IsAvailable(nSkill);
 				}
 			}
 			return true;
@@ -4726,15 +4726,15 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		// name
 		for (int i = 0; i < NUM_SKILLS; i++)
 		{
-			int nToken = pCSkillMgr->GetNameToken(i);
+			int nToken = pSkillMgr->GetNameToken(i);
 
 			if (const char* thename = pStringTable->getString(nToken))
 			{
 				if (!_stricmp(Index, thename))
 				{
-					if (bool bActivated = pCSkillMgr->IsActivatedSkill(i))
+					if (bool bActivated = pSkillMgr->IsActivatedSkill(i))
 					{
-						Dest.DWord = pCSkillMgr->IsAvailable(i);
+						Dest.DWord = pSkillMgr->IsAvailable(i);
 					}
 					break;
 				}
@@ -11085,7 +11085,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	GROUNDOBJECT* pGroundObject = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
+	MQGroundObject* pGroundObject = static_cast<MQGroundObject*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)
 		return false;
 
@@ -11200,7 +11200,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 					GroundObject.GroundItem.DropSubID = Placed->RealEstateID;
 					GroundObject.GroundItem.Expires = 0;
 					GroundObject.GroundItem.Heading = Placed->Heading;
-					GroundObject.GroundItem.ID = nullptr;
+					GroundObject.GroundItem.pContents = nullptr;
 					strcpy_s(GroundObject.GroundItem.Name, Placed->Name);
 					GroundObject.GroundItem.Pitch = Placed->Angle;
 					GroundObject.GroundItem.pNext = nullptr;
@@ -11624,7 +11624,7 @@ bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (!VarPtr.Ptr)
 		return false;
 
-	GROUNDOBJECT* pObj = static_cast<GROUNDOBJECT*>(VarPtr.Ptr);
+	MQGroundObject* pObj = static_cast<MQGroundObject*>(VarPtr.Ptr);
 
 	if (pObj->Type == GO_GroundType)
 	{
@@ -11660,8 +11660,8 @@ bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
 {
 	int id = GetIntFromString(Source, 0);
 
-	PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList;
-	GROUNDOBJECT go;
+	EQGroundItem* pGroundItem = pItemList->Top;
+	MQGroundObject go;
 
 	while (pGroundItem)
 	{
@@ -11669,7 +11669,7 @@ bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
 		{
 			go.pGroundItem = pGroundItem;
 			go.Type = GO_GroundType;
-			memcpy(VarPtr.Ptr, &go, sizeof(GROUNDOBJECT));
+			memcpy(VarPtr.Ptr, &go, sizeof(MQGroundObject));
 			return true;
 		}
 		pGroundItem = pGroundItem->pNext;
@@ -11687,7 +11687,7 @@ bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
 			{
 				go.ObjPtr = (void*)top;
 				go.Type = GO_ObjectType;
-				memcpy(VarPtr.Ptr, &go, sizeof(GROUNDOBJECT));
+				memcpy(VarPtr.Ptr, &go, sizeof(MQGroundObject));
 				return true;
 			}
 			top = top->pNext;
@@ -13858,7 +13858,7 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			if (pCharData)
 			{
 				int i = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
-				Dest.DWord = pCSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, i, true, true, true);
+				Dest.DWord = pSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, i, true, true, true);
 				return true;
 			}
 			return false;
@@ -16467,8 +16467,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 	if (Elementindex == -1)
 		return false;
 
-	CTaskManager* tm = ppTaskManager;
-	if (!tm)
+	if (!pTaskManager)
 		return false;
 
 	if (VarPtr.Int == -1)
@@ -16488,13 +16487,13 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 	switch (type)
 	{
 	case cTaskSystemTypeSoloQuest:
-		ts = tm->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-		entry = &tm->QuestEntries[index];
+		ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
+		entry = &pTaskManager->QuestEntries[index];
 		break;
 
 	case cTaskSystemTypeSharedQuest:
-		ts = tm->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-		entry = &tm->SharedTaskEntries[0];
+		ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
+		entry = &pTaskManager->SharedTaskEntries[0];
 		break;
 	};
 
@@ -16504,7 +16503,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 	switch (static_cast<TaskObjectiveTypeMembers>(pMember->ID))
 	{
 		case Instruction:
-			tm->GetElementDescription(&entry->Elements[Elementindex], DataTypeTemp);
+			pTaskManager->GetElementDescription(&entry->Elements[Elementindex], DataTypeTemp);
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			break;
@@ -16663,8 +16662,7 @@ bool MQ2TaskObjectiveType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (Elementindex == -1)
 		return false;
 
-	CTaskManager* tm = ppTaskManager;
-	if (!tm)
+	if (!pTaskManager)
 		return false;
 
 	if (VarPtr.Int == -1)
@@ -16680,17 +16678,17 @@ bool MQ2TaskObjectiveType::ToString(MQVarPtr VarPtr, char* Destination)
 	switch (type)
 	{
 	case cTaskSystemTypeSoloQuest:
-		entry = &tm->QuestEntries[index];
+		entry = &pTaskManager->QuestEntries[index];
 		break;
 	case cTaskSystemTypeSharedQuest:
-		entry = &tm->SharedTaskEntries[0];
+		entry = &pTaskManager->SharedTaskEntries[0];
 		break;
 	};
 
 	char szOut[MAX_STRING] = { 0 };
 	if (entry)
 	{
-		tm->GetElementDescription(&entry->Elements[Elementindex], szOut);
+		pTaskManager->GetElementDescription(&entry->Elements[Elementindex], szOut);
 	}
 
 	if (szOut[0] != 0)
@@ -16760,8 +16758,7 @@ bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 
 bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	CTaskManager* tm = ppTaskManager;
-	if (!tm)
+	if (!pTaskManager)
 		return false;
 	if (!pTaskWnd)
 		return false;
@@ -16789,13 +16786,13 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 			switch (type)
 			{
 			case cTaskSystemTypeSoloQuest:
-				if (CTaskEntry* entry = &tm->QuestEntries[index])
+				if (CTaskEntry* entry = &pTaskManager->QuestEntries[index])
 				{
 					strcpy_s(szTask, entry->TaskTitle);
 				}
 				break;
 			case cTaskSystemTypeSharedQuest:
-				if (CTaskEntry* entry = &tm->SharedTaskEntries[0])
+				if (CTaskEntry* entry = &pTaskManager->SharedTaskEntries[0])
 				{
 					strcpy_s(szTask, entry->TaskTitle);
 				}
@@ -16893,14 +16890,14 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			if (CTaskEntry* entry = &tm->QuestEntries[index])
+			if (CTaskEntry* entry = &pTaskManager->QuestEntries[index])
 			{
 				strcpy_s(DataTypeTemp, entry->TaskTitle);
 			}
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			if (CTaskEntry* entry = &tm->SharedTaskEntries[0])
+			if (CTaskEntry* entry = &pTaskManager->SharedTaskEntries[0])
 			{
 				strcpy_s(DataTypeTemp, entry->TaskTitle);
 			}
@@ -16924,13 +16921,13 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			ts = tm->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-			entry = &tm->QuestEntries[index];
+			ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
+			entry = &pTaskManager->QuestEntries[index];
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			ts = tm->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-			entry = &tm->SharedTaskEntries[0];
+			ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
+			entry = &pTaskManager->SharedTaskEntries[0];
 			break;
 
 		default:
@@ -16999,11 +16996,11 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			entry = &tm->QuestEntries[index];
+			entry = &pTaskManager->QuestEntries[index];
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			entry = &tm->SharedTaskEntries[0];
+			entry = &pTaskManager->SharedTaskEntries[0];
 			break;
 
 		default:
@@ -17027,13 +17024,13 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			ts = tm->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-			entry = &tm->QuestEntries[index];
+			ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
+			entry = &pTaskManager->QuestEntries[index];
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			ts = tm->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-			entry = &tm->SharedTaskEntries[0];
+			ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
+			entry = &pTaskManager->SharedTaskEntries[0];
 			break;
 
 		default: break;
@@ -17053,7 +17050,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 				for (int i = 0; i < MAX_TASK_ELEMENTS; i++)
 				{
-					tm->GetElementDescription(&entry->Elements[i], szOut);
+					pTaskManager->GetElementDescription(&entry->Elements[i], szOut);
 
 					if (ci_find_substr(szOut, Index))
 					{
@@ -17082,12 +17079,12 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			ts = tm->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-			entry = &tm->QuestEntries[index];
+			ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
+			entry = &pTaskManager->QuestEntries[index];
 			break;
 		case cTaskSystemTypeSharedQuest:
-			ts = tm->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-			entry = &tm->SharedTaskEntries[0];
+			ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
+			entry = &pTaskManager->SharedTaskEntries[0];
 			break;
 		}
 
@@ -17117,14 +17114,14 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			if (CTaskEntry* entry = &tm->QuestEntries[index])
+			if (CTaskEntry* entry = &pTaskManager->QuestEntries[index])
 			{
 				strcpy_s(szTask, entry->TaskTitle);
 			}
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			if (CTaskEntry* entry = &tm->SharedTaskEntries[0])
+			if (CTaskEntry* entry = &pTaskManager->SharedTaskEntries[0])
 			{
 				strcpy_s(szTask, entry->TaskTitle);
 			}
@@ -17161,18 +17158,18 @@ bool MQ2TaskType::ToString(MQVarPtr VarPtr, char* Destination)
 	int index = HIWORD(VarPtr.DWord);
 	int type = LOWORD(VarPtr.DWord);
 
-	if (CTaskManager* tm = ppTaskManager)
+	if (pTaskManager)
 	{
 		CTaskEntry* entry = nullptr;
 
 		switch (type)
 		{
 		case cTaskSystemTypeSoloQuest:
-			entry = &tm->QuestEntries[index];
+			entry = &pTaskManager->QuestEntries[index];
 			break;
 
 		case cTaskSystemTypeSharedQuest:
-			entry = &tm->SharedTaskEntries[0];
+			entry = &pTaskManager->SharedTaskEntries[0];
 			break;
 		};
 

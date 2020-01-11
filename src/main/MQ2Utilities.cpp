@@ -1142,7 +1142,7 @@ const char* GetFullZone(int ZoneID)
 {
 	ZoneID &= 0x7FFF;
 
-	if (!ppWorldData || (ppWorldData && !pWorldData))
+	if (!pWorldData)
 		return nullptr;
 
 	if (ZoneID >= MAX_ZONES)
@@ -1163,7 +1163,7 @@ const char* GetShortZone(int ZoneID)
 {
 	ZoneID &= 0x7FFF;
 
-	if (!ppWorldData || (ppWorldData && !pWorldData))
+	if (!pWorldData)
 		return nullptr;
 
 	if (ZoneID >= MAX_ZONES)
@@ -1182,7 +1182,7 @@ const char* GetShortZone(int ZoneID)
 // ***************************************************************************
 int GetZoneID(const char* ZoneShortName)
 {
-	if (!ppWorldData || (ppWorldData && !pWorldData))
+	if (!pWorldData)
 		return -1;
 
 	for (int nIndex = 0; nIndex < MAX_ZONES; nIndex++)
@@ -1210,7 +1210,7 @@ int GetZoneID(const char* ZoneShortName)
 // ***************************************************************************
 void GetGameTime(int* Hour, int* Minute, int* Night)
 {
-	if (!ppWorldData || (ppWorldData && !pWorldData))
+	if (!pWorldData)
 		return;
 
 	int eqHour = ((PWORLDDATA)pWorldData)->Hour - 1; // Midnight = 1 in EQ time
@@ -1230,7 +1230,7 @@ void GetGameTime(int* Hour, int* Minute, int* Night)
 // ***************************************************************************
 void GetGameDate(int* Month, int* Day, int* Year)
 {
-	if (!ppWorldData || (ppWorldData && !pWorldData))
+	if (!pWorldData)
 		return;
 
 	if (Month)
@@ -1766,7 +1766,7 @@ float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, float zLoc)
 
 void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency, uint32_t msFadeIn, uint32_t msFadeOut, uint32_t msHold)
 {
-	CBroadcast* pBC = GetTextOverlay();
+	CBroadcast* pBC = CBroadcast::Get();
 	if (!pBC)
 	{
 		WriteChatColor(szText, dwColor);
@@ -1776,7 +1776,7 @@ void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency
 	uint32_t dwAlpha = (uint32_t)(dwTransparency * 255 / 100);
 	if (dwAlpha > 255) dwAlpha = 255;
 
-	((CTextOverlay*)pBC)->DisplayText(
+	pBC->DisplayText(
 		szText,
 		dwColor,
 		10, // Always 10 in eqgame.exe,
@@ -4873,7 +4873,7 @@ int GetSkillIDFromName(const char* name)
 {
 	for (int i = 0; i < NUM_SKILLS; i++)
 	{
-		if (SKILL* pSkill = pSkillMgr->pSkill[i])
+		if (EQ_Skill* pSkill = pSkillMgr->pSkill[i])
 		{
 			if (!_stricmp(name, pStringTable->getString(pSkill->nName)))
 				return i;

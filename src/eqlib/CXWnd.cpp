@@ -142,10 +142,6 @@ void CXWnd::SetClientRectDirty(bool dirty)
 
 //----------------------------------------------------------------------------
 
-// TEMP
-EQLIB_VAR CSidlManager** ppSidlMgr;
-#define pSidlMgr (*ppSidlMgr)
-
 UIType CXWnd::GetType() const
 {
 	CXMLDataManager* mgr = pSidlMgr->GetParamManager();
