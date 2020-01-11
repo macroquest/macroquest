@@ -166,7 +166,7 @@ public:
 			}
 			else
 			{
-				DebugSpew("InputBox message %Xh, value: %Xh", Message, data);
+				//DebugSpew("Unhandled InputBox message 0x%04x, value: 0x%04x", Message, data);
 			}
 		}
 		else if (Message == XWM_LINK)
