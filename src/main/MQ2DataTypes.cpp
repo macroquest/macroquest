@@ -11756,9 +11756,43 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 
 	case Path:
-		strcpy_s(DataTypeTemp, mq::internal_paths::MQRoot.c_str());
-		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
+		if (!Index[0] || ci_equals(Index, "root"))
+		{
+			Dest.Ptr = &mq::internal_paths::MQRoot[0];
+		}
+		else if (ci_equals(Index, "config"))
+		{
+			Dest.Ptr = &mq::internal_paths::Config[0];
+		}
+		else if (ci_equals(Index, "crashdumps"))
+		{
+			Dest.Ptr = &mq::internal_paths::CrashDumps[0];
+		}
+		else if (ci_equals(Index, "logs"))
+		{
+			Dest.Ptr = &mq::internal_paths::Logs[0];
+		}
+		else if (ci_equals(Index, "mqini"))
+		{
+			Dest.Ptr = &mq::internal_paths::MQini[0];
+		}
+		else if (ci_equals(Index, "macros"))
+		{
+			Dest.Ptr = &mq::internal_paths::Macros[0];
+		}
+		else if (ci_equals(Index, "plugins"))
+		{
+			Dest.Ptr = &mq::internal_paths::Plugins[0];
+		}
+		else if (ci_equals(Index, "resources"))
+		{
+			Dest.Ptr = &mq::internal_paths::Resources[0];
+		}
+		else
+		{
+			return false;
+		}
 		return true;
 
 	case Version: {
