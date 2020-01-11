@@ -31,9 +31,9 @@ CSidlScreenWnd::VirtualFunctionTable* CSidlScreenWnd::sm_vftable = nullptr;
 
 //----------------------------------------------------------------------------
 
-// constructor defined in Constructors.asm
+// defined in AssemblyFunctions.asm
 // FUNCTION_AT_ADDRESS(CXWnd::CXWnd(CXWnd*, uint32_t, CXRect), CXWnd__CXWnd);
-FUNCTION_AT_ADDRESS(CXWnd::~CXWnd(), CXWnd__dCXWnd);
+// FUNCTION_AT_ADDRESS(CXWnd::~CXWnd(), CXWnd__dCXWnd);
 
 //----------------------------------------------------------------------------
 // virtuals
@@ -316,10 +316,8 @@ FORWARD_FUNCTION_TO_VTABLE(CSidlScreenWnd* CSidlScreenWnd::AsSidlScreenWnd(), CS
 FORWARD_FUNCTION_TO_VTABLE(bool CSidlScreenWnd::GetScreenWndType(), CSidlScreenWnd, GetScreenWndType);
 
 #ifdef CSidlScreenWnd__dCSidlScreenWnd_x
-FUNCTION_AT_ADDRESS(CSidlScreenWnd::~CSidlScreenWnd(), CSidlScreenWnd__dCSidlScreenWnd);
-#endif
-#ifdef CSidlScreenWnd__CSidlScreenWnd_x
-CONSTRUCTOR_AT_ADDRESS(CSidlScreenWnd::CSidlScreenWnd(CXWnd*, uint32_t, const CXRect&, const CXStr&), CSidlScreenWnd__CSidlScreenWnd);
+// defined in AssemblyFunctions.asm
+//DESTRUCTOR_AT_ADDRESS(CSidlScreenWnd::~CSidlScreenWnd(), CSidlScreenWnd__dCSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1_x
 // defined in AssemblyFunctions.asm

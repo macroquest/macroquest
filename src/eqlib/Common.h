@@ -51,7 +51,9 @@
 #define EQLIB_OBJECT __declspec(dllimport)
 #endif
 
+// these macros do nothing but indicate to the reader that the function is actually in AssemblyFunctions.asm
 #define CONSTRUCTOR_AT_ADDRESS(function, offset)
+#define DESTRUCTOR_AT_ADDRESS(function, offset)
 
 #define FUNCTION_AT_ADDRESS(Function, Offset)                                            \
 	__declspec(naked) Function                                                           \

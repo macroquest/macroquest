@@ -2,8 +2,10 @@ LIBRARY EQLib
 
 EXPORTS
     ??0CXWnd@eqlib@@QAE@PAV01@IUCXRect@1@@Z
+    ??1CXWnd@eqlib@@UAE@XZ
     ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@@Z
     ??0CSidlScreenWnd@eqlib@@QAE@PAVCXWnd@1@ABVCXStr@1@HHPAD@Z
+    ??1CSidlScreenWnd@eqlib@@UAE@XZ
     ??0MapViewMap@eqlib@@QAE@XZ
     ??1MapViewMap@eqlib@@UAE@XZ
     ??0CONTENTS@eqlib@@QAE@XZ
