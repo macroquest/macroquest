@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#define DEBUG_GETPROCADDRESS 1
+
 namespace mq {
 
 struct DetourRecord
@@ -1244,6 +1246,7 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		return result;
 	}
 
+#if DEBUG_GETPROCADDRESS
 	static HMODULE eqlibModule = GetModuleHandle("eqlib.dll");
 
 	// If this is our module...
@@ -1275,7 +1278,8 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		char* pModuleName = szModuleName;
 
 		HMODULE hModuleCaller = nullptr;
-		if (::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)_ReturnAddress(), &hModuleCaller))
+		if (::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+			(LPCSTR)_ReturnAddress(), &hModuleCaller))
 		{
 			::GetModuleFileNameA(hModuleCaller, szModuleName, MAX_PATH);
 
@@ -1288,6 +1292,7 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		DebugSpewAlways("GetProcAddressHook: %s -> %p (from %s)", lpProcName, pRet, pModuleName);
 		return pRet;
 	}
+#endif
 
 	return nullptr;
 }
