@@ -5192,8 +5192,7 @@ struct [[offsetcomments]] ZonePathData
 /*0x08*/
 };
 
-// see 8D35C1 in may 10 2018 exe
-#define ZONE_COUNT 836
+constexpr int ZONE_COUNT = 836;
 
 class [[offsetcomments]] ZoneGuideManagerBase
 {
