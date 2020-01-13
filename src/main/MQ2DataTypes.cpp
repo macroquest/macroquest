@@ -7073,7 +7073,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	SPELL* pSpell = static_cast<SPELL*>(VarPtr.Ptr);
-	if (!VarPtr.Ptr)
+	if (!pSpell)
 		return false;
 
 	// FIXME: Remove this!! We shouldn't ever need it!!!
@@ -8198,6 +8198,16 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		}
 		return false;
 	}
+
+	case SlowPct:
+		Dest.Int = GetMeleeSpeedPctFromSpell(pSpell, false);
+		Dest.Type = pIntType;
+		return true;
+
+	case HastePct:
+		Dest.Int = GetMeleeSpeedPctFromSpell(pSpell, true);
+		Dest.Type = pIntType;
+		return true;
 	}
 
 	return false;

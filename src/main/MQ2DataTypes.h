@@ -1987,6 +1987,8 @@ public:
 		StacksSpawn = 78,
 		SpellIcon = 79,
 		GemIcon = 80,
+		SlowPct = 81,
+		HastePct = 82,
 	};
 
 	enum SpellMethods
@@ -2075,6 +2077,8 @@ public:
 		TypeMember(StacksSpawn);
 		TypeMember(SpellIcon);
 		TypeMember(GemIcon);
+		TypeMember(SlowPct);
+		TypeMember(HastePct);
 	}
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;

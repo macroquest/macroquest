@@ -6842,11 +6842,12 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBu
 						// below 0 means its a snare above its runspeed increase...
 						return true;
 					}
-					else if (bIncrease && base > 0)
+
+					if (bIncrease && base > 0)
 					{
 						return true;
 					}
-					return false;
+					break;
 
 				case SPA_HASTE: // Melee Speed
 					if (!bIncrease && base < 100)
@@ -6854,11 +6855,12 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBu
 						// below 100 means its a slow above its haste...
 						return true;
 					}
-					else if (bIncrease && base > 100)
+
+					if (bIncrease && base > 100)
 					{
 						return true;
 					}
-					return false;
+					break;
 
 				case SPA_DAMAGE_SHIELD: // Damage Shield
 					if (!bIncrease && base > 0)
@@ -6866,12 +6868,13 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBu
 						// decreased DS
 						return true;
 					}
-					else if (bIncrease && base < 0)
+
+					if (bIncrease && base < 0)
 					{
 						// increased DS
 						return true;
 					}
-					return false;
+					break;
 
 				case SPA_IRONMAIDEN: // Reverse Damage Shield
 					if (!bIncrease && base > 0)
@@ -6879,12 +6882,13 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBu
 						// decreased DS
 						return true;
 					}
-					else if (bIncrease && base < 0)
+
+					if (bIncrease && base < 0)
 					{
 						// increased DS
 						return true;
 					}
-					return false;
+					break;
 
 				default:
 					return true;
@@ -6921,11 +6925,12 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 							// below 0 means its a snare above its runspeed increase...
 							return i;
 						}
-						else if (bIncrease && base > 0)
+
+						if (bIncrease && base > 0)
 						{
 							return i;
 						}
-						return -1;
+						break;
 
 					case SPA_HASTE: // Melee Speed
 						if (!bIncrease && base < 100)
@@ -6933,11 +6938,12 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 							// below 100 means its a slow above its haste...
 							return i;
 						}
-						else if (bIncrease && base > 100)
+
+						if (bIncrease && base > 100)
 						{
 							return i;
 						}
-						return -1;
+						break;
 
 					case SPA_DAMAGE_SHIELD: // Damage Shield
 						if (!bIncrease && base > 0)
@@ -6945,12 +6951,13 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 							// decreased DS
 							return i;
 						}
-						else if (bIncrease && base < 0)
+
+						if (bIncrease && base < 0)
 						{
 							// increased DS
 							return i;
 						}
-						return -1;
+						break;
 
 					case SPA_IRONMAIDEN: // Reverse Damage Shield
 						if (!bIncrease && base > 0)
@@ -6958,12 +6965,13 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 							// decreased DS
 							return i;
 						}
-						else if (bIncrease && base < 0)
+
+						if (bIncrease && base < 0)
 						{
 							// increased DS
 							return i;
 						}
-						return -1;
+						break;
 
 					default:
 						return i;
@@ -7029,6 +7037,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 
 	for (int i = startslot; i < NUM_LONG_BUFFS; i++)
 	{
+		// TODO: De-duplicate this from GetTargetBuffBySPA and the cached buff version...
 		if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
 		{
 			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
@@ -7041,11 +7050,12 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						// below 0 means its a snare above its runspeed increase...
 						return i;
 					}
-					else if (bIncrease && base > 0)
+
+					if (bIncrease && base > 0)
 					{
 						return i;
 					}
-					return -1;
+					break;
 
 				case SPA_HASTE: // Melee Speed
 					if (!bIncrease && base < 100)
@@ -7053,11 +7063,12 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						// below 100 means its a slow above its haste...
 						return i;
 					}
-					else if (bIncrease && base > 100)
+
+					if (bIncrease && base > 100)
 					{
 						return i;
 					}
-					return -1;
+					break;
 
 				case SPA_DAMAGE_SHIELD: // Damage Shield
 					if (!bIncrease && base > 0)
@@ -7065,12 +7076,13 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						// decreased DS
 						return i;
 					}
-					else if (bIncrease && base < 0)
+
+					if (bIncrease && base < 0)
 					{
 						// increased DS
 						return i;
 					}
-					return -1;
+					break;
 
 				case SPA_IRONMAIDEN: // Reverse Damage Shield
 					if (!bIncrease && base > 0)
@@ -7078,12 +7090,13 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						// decreased DS
 						return i;
 					}
-					else if (bIncrease && base < 0)
+
+					if (bIncrease && base < 0)
 					{
 						// increased DS
 						return i;
 					}
-					return -1;
+					break;
 
 				default:
 					return i;
@@ -7103,6 +7116,7 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 
 	for (int i = startslot; i < NUM_SHORT_BUFFS; i++)
 	{
+		// TODO: De-duplicate this from GetTargetBuffBySPA and the cached buff version... etc...
 		if (SPELL* pSpell = GetSpellByID(pProfile->ShortBuff[i].SpellID))
 		{
 			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
@@ -7115,11 +7129,12 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						// below 0 means its a snare above its runspeed increase...
 						return i;
 					}
-					else if (bIncrease && base > 0)
+
+					if (bIncrease && base > 0)
 					{
 						return i;
 					}
-					return -1;
+					break;
 
 				case SPA_HASTE: // Melee Speed
 					if (!bIncrease && base < 100)
@@ -7127,11 +7142,12 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						// below 100 means its a slow above its haste...
 						return i;
 					}
-					else if (bIncrease && base > 100)
+
+					if (bIncrease && base > 100)
 					{
 						return i;
 					}
-					return -1;
+					break;
 
 				case SPA_DAMAGE_SHIELD: // Damage Shield
 					if (!bIncrease && base > 0)
@@ -7139,12 +7155,13 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						// decreased DS
 						return i;
 					}
-					else if (bIncrease && base < 0)
+
+					if (bIncrease && base < 0)
 					{
 						// increased DS
 						return i;
 					}
-					return -1;
+					break;
 
 				case SPA_IRONMAIDEN: // Reverse Damage Shield
 					if (!bIncrease && base > 0)
@@ -7152,12 +7169,13 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						// decreased DS
 						return i;
 					}
-					else if (bIncrease && base < 0)
+
+					if (bIncrease && base < 0)
 					{
 						// increased DS
 						return i;
 					}
-					return -1;
+					break;
 
 				default:
 					return i;

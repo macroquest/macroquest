@@ -3005,4 +3005,94 @@ int GetMyTotalSpellCounters()
 	return total;
 }
 
+static int GetTriggerSPA(SPELL* pSpell)
+{
+	eEQSPA SPAtoCheck[] = {
+		SPA_TRIGGER_BEST_IN_SPELL_GROUP,
+		SPA_TRIGGER_SPELL
+	};
+
+	for (eEQSPA spa : SPAtoCheck)
+	{
+		if (IsSPAEffect(pSpell, spa))
+			return spa;
+	}
+
+	return 0;
+}
+
+int GetMeleeSpeedFromTriggers(SPELL* pSpell, bool bIncrease)
+{
+	int triggerSPA = GetTriggerSPA(pSpell);
+	if (triggerSPA == 0)
+		return 0;
+
+	int result = 0;
+
+	int numEffects = GetSpellNumEffects(pSpell);
+	for (int index = 0; index < numEffects; index++)
+	{
+		if (int groupId = GetSpellBase2(pSpell, index))
+		{
+			SPELL* pTrigger = nullptr;
+
+			switch (triggerSPA)
+			{
+			case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
+				pTrigger = (SPELL*)pSpellMgr->GetSpellByGroupAndRank(groupId, pSpell->SpellSubGroup, pSpell->SpellRank, true);
+				break;
+
+			case SPA_TRIGGER_SPELL:
+				pTrigger = pSpellMgr->GetSpellByID(groupId);
+				break;
+
+			default:
+				break; // should not be reachable if we handled everything GetTriggerSPA returns
+			}
+
+			if (pTrigger
+				&& !ci_equals(pTrigger->Name, "Unknown Spell")
+				&& !ci_equals(pTrigger->Name, pSpell->Name))
+			{
+				result = std::max(GetMeleeSpeedPctFromSpell(pTrigger, bIncrease), result);
+			}
+		}
+	}
+
+	return result;
+}
+
+int GetMeleeSpeedPctFromSpell(SPELL* pSpell, bool bIncrease)
+{
+	if (GetTriggerSPA(pSpell) != 0)
+	{
+		return GetMeleeSpeedFromTriggers(pSpell, bIncrease);
+	}
+
+	if (!pLocalPlayer)
+		return 0;
+	SPAWNINFO* pSpawn = pLocalPlayer;
+
+	int numEffects = pSpell->NumEffects;
+	for (int index = 0; index < numEffects; index++)
+	{
+		int spa = GetSpellAttrib(pSpell, index);
+		if (spa == SPA_HASTE)
+		{
+			int base = GetSpellBase(pSpell, index) - 100;
+			if ((!bIncrease && base < 0) || (bIncrease && base > 0))
+			{
+				int max = GetSpellMax(pSpell, index) - 100;
+				int calc = GetSpellCalc(pSpell, index);
+				int minSpellLevel = CalcMinSpellLevel(pSpell);
+
+				int finish = CalcValue(calc, base, max, 0, minSpellLevel, pSpawn->Level);
+				return abs(finish);
+			}
+		}
+	}
+
+	return 0;
+}
+
 } // namespace mq
