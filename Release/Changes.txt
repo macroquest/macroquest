@@ -1,3 +1,9 @@
+Jan 12 2020
+- Updated for TEST
+-
+Jan 11 2020
+- Fixed the ZoneGuideManagerClient class for TEST build.
+-
 Jan 10 2020
 - ${Me.Spell[blah]} now searches for rank spells as well - brainiac
   Example:  You have Demand For Power Rk. II in your spellbook.
