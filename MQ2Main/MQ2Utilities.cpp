@@ -10295,7 +10295,7 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetB
 						else if (bIncrease && base > 0) {
 							return true;
 						}
-						return false;
+						break;
 					case 11: //Melee Speed
 						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
 							return true;
@@ -10303,7 +10303,7 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetB
 						else if (bIncrease && base > 100) {
 							return true;
 						}
-						return false;
+						break;
 					case 59: //Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return true;
@@ -10311,7 +10311,7 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetB
 						else if (bIncrease && base < 0) { //increased DS
 							return true;
 						}
-						return false;
+						break;
 					case 121: //Reverse Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return true;
@@ -10319,7 +10319,7 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PSPAWNINFO pSpawn,PcTargetB
 						else if (bIncrease && base < 0) { //increased DS
 							return true;
 						}
-						return false;
+						break;
 					default:
 						return true;
 					}
@@ -10372,7 +10372,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base > 0) {
 							return i;
 						}
-						return -1;
+						break;
 					case 11: //Melee Speed
 						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
 							return i;
@@ -10380,7 +10380,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base > 100) {
 							return i;
 						}
-						return -1;
+						break;
 					case 59: //Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return i;
@@ -10388,7 +10388,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base < 0) { //increased DS
 							return i;
 						}
-						return -1;
+						break;
 					case 121: //Reverse Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return i;
@@ -10396,7 +10396,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base < 0) { //increased DS
 							return i;
 						}
-						return -1;
+						break;
 					default:
 						return i;
 					}
@@ -10461,7 +10461,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base > 0) {
 							return i;
 						}
-						return -1;
+						break;
 					case 11: //Melee Speed
 						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
 							return i;
@@ -10469,7 +10469,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base > 100) {
 							return i;
 						}
-						return -1;
+						break;
 					case 59: //Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return i;
@@ -10477,7 +10477,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base < 0) { //increased DS
 							return i;
 						}
-						return -1;
+						break;
 					case 121: //Reverse Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return i;
@@ -10485,7 +10485,7 @@ int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base < 0) { //increased DS
 							return i;
 						}
-						return -1;
+						break;
 					default:
 						return i;
 					}
@@ -10512,7 +10512,7 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base > 0) {
 							return i;
 						}
-						return -1;
+						break;
 					case 11: //Melee Speed
 						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
 							return i;
@@ -10520,7 +10520,7 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base > 100) {
 							return i;
 						}
-						return -1;
+						break;
 					case 59: //Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return i;
@@ -10528,7 +10528,7 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base < 0) { //increased DS
 							return i;
 						}
-						return -1;
+						break;
 					case 121: //Reverse Damage Shield
 						if (!bIncrease && base > 0) { //decreased DS
 							return i;
@@ -10536,7 +10536,7 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 						else if (bIncrease && base < 0) { //increased DS
 							return i;
 						}
-						return -1;
+						break;
 					default:
 						return i;
 					}
@@ -12078,3 +12078,78 @@ namespace EQData
 #endif
 	}
 };
+
+int HasTrigger(PSPELL pSpell) {
+#if !defined(UFEMU)
+	PSPELL pmyspell = pSpell;
+	int spafound = 0;
+	if (IsSPAEffect(pSpell, 470L))//bestingroup
+	{
+		return spafound = 470L;
+	}
+	else if (IsSPAEffect(pSpell, 374L))
+	{
+		return spafound = 374L;
+	}
+#endif
+	return 0;
+}
+
+long GetMeleeSpeedFromTriggers(PSPELL pSpell, bool bIncrease) {
+	if (!pSpell)
+		return 0L;
+	long returnvalue = 0L;
+	int numeffects = GetSpellNumEffects(pSpell);
+	int spafound = 0;
+	spafound = HasTrigger(pSpell);
+	for (int index = 0; index < numeffects; index++) {
+		if (numeffects > index) {
+			PSPELL pTrigger = 0;
+			if (int groupid = GetSpellBase2(pSpell, index)) {
+				if (spafound == 470L) {
+					pTrigger = (PSPELL)pSpellMgr->GetSpellByGroupAndRank(groupid, pSpell->SpellSubGroup, pSpell->SpellRank, true);
+				}
+				else if (spafound == 374L) {
+					pTrigger = (PSPELL)pSpellMgr->GetSpellByID(groupid);
+				}
+				if (pTrigger && _stricmp(pTrigger->Name, "Unknown Spell") && _stricmp(pTrigger->Name, pSpell->Name)) {
+					if (long slowpct = GetMeleeSpeedPctFromSpell(pTrigger, bIncrease)) {
+						if (slowpct > returnvalue)
+							returnvalue = slowpct;
+					}
+				}
+			}
+		}
+	}
+	return returnvalue;
+}
+
+long GetMeleeSpeedPctFromSpell(PSPELL pSpell, bool bIncrease) {
+	if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer) {
+		if (HasTrigger(pSpell)) {
+			if (long slowpct = GetMeleeSpeedFromTriggers(pSpell, bIncrease)) {
+				return slowpct;
+			}
+			return 0;
+		}
+		if (long effects = pSpell->NumEffects) {
+			for (int j = 0; j < effects; j++) {
+				long spa = GetSpellAttrib(pSpell, j);
+				if (spa == 11) {
+					long base = GetSpellBase(pSpell, j);
+					if ((!bIncrease && base < 100) || bIncrease && base > 100) {
+						long max = GetSpellMax(pSpell, j);
+						base -= 100;
+						max -= 100;
+						long calc = GetSpellCalc(pSpell, j);
+						long minspelllvl = CalcMinSpellLevel(pSpell);
+						long finish = CalcValue(calc, base, max, 0, minspelllvl, GetCharInfo()->pSpawn->Level);
+						//WriteChatf("\aySlowed by\ax: \ap%s\ax\at -\ax \ar%ld%%", pSpell->Name, abs(finish));
+						return abs(finish);
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}

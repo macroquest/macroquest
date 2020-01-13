@@ -10895,7 +10895,11 @@ public:
 //see 7FEC8D in Rof2 -eqmule
 #define ZONE_COUNT 768
 #else
+#if defined(TEST)
 #define ZONE_COUNT 837
+#else
+#define ZONE_COUNT 836
+#endif
 #endif
 class ZoneGuideManagerBase
 {

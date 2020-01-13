@@ -1,4 +1,29 @@
+Jan 13 2020 by Chatwiththisname
+- Added MQ2SpellType Members: HastePct, SlowPct.
+- Added GetMeleeSpeedPctFromSpell(PSPELL, bool) (Exported in Main)
+- Added GetMeleeSpeedFromTriggers(PSPELL, bool) (not exported)
+- Added HasTrigger(PSPELL) (not exported)
+		GetMeleeSpeedPctFromSpell is used in HastePct and SlowPct.
+		If the pSpell has a trigger it will automatically check the triggers for the modification speed. 
+		Examples: 
+			${Target.Slowed.SlowPct}
+			${Me.Hasted.HastePct}
+			${Spell[Slowing Helix].SlowPct}
+			etc etc.
+- Fixed GetSelfBuffBySPA(int, bool, int);
+- Fixed GetTargetBuffBySPA(int, bool, int);
+- Fixed GetSelfShortBuffBySPA(int, bool, int);
+- Fixed HasCachedTargetBuffSPA(int, bool, PSPAWNINFO, PcTargetBuff);
+
+	In all the above SPA buff checks if the SPA matched, but wasn't the increase or decrease
+	desired, it would stop checking anymore buffs. 
+	Example: ${Target.Slowed} should return a pSpellType of a slow debuff on the target. But
+		if the target had a haste buff before the slow buff it would find SPA 11 and since it was
+		an increase instead of a decrease it would return -1, or NULL. Changing it to break; for those
+		SPA's allows it to continue checking the buffs and find any subsequent SPA 11's correctly.
+-
 Jan 12 2020
+- Fixed the ZoneGuideManagerClient class for LIVE build.
 - Updated for TEST
 -
 Jan 11 2020

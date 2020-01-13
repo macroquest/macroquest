@@ -7510,6 +7510,20 @@ bool MQ2SpellType::GETMEMBER()
 		#endif
 		return false;
 	}
+	case SlowPct:
+		Dest.Int = 0;
+		Dest.Type = pIntType;
+		if (long value = GetMeleeSpeedPctFromSpell(pSpell, false)) {
+			Dest.Int = value;
+		}
+		return true;
+	case HastePct:
+		Dest.Int = 0;
+		Dest.Type = pIntType;
+		if (long value = GetMeleeSpeedPctFromSpell(pSpell, true)) {
+			Dest.Int = value;
+		}
+		return true;
 	}
 	return false;
 }

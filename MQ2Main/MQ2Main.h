@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define TEST
+#define LIVE
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -577,6 +577,7 @@ EQLIB_API DWORD __stdcall BeepOnTellThread(PVOID pData);
 EQLIB_API DWORD __stdcall FlashOnTellThread(PVOID pData);
 EQLIB_API CMQ2Alerts CAlerts;
 EQLIB_VAR BOOL bPluginCS;
+EQLIB_API long GetMeleeSpeedPctFromSpell(PSPELL pSpell, bool bIncrease);
 typedef struct _krdata
 {
 	CHAR ItemName[256];
