@@ -2936,7 +2936,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
 
-					if (HasCachedTargetBuffSPA(11, false, pSpawn, &TargetBuffTemp))
+					if (HasCachedTargetBuffSPA(SPA_HASTE, false, pSpawn, &TargetBuffTemp))
 					{
 						Dest.Ptr = &TargetBuffTemp;
 						return true;
@@ -2948,7 +2948,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				{
 					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
-					if (HasCachedTargetBuffSPA(99, false, pSpawn, &TargetBuffTemp))
+					if (HasCachedTargetBuffSPA(SPA_ROOT, false, pSpawn, &TargetBuffTemp))
 					{
 						Dest.Ptr = &TargetBuffTemp;
 						return true;
@@ -2960,7 +2960,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				{
 					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
-					if (HasCachedTargetBuffSPA(31, false, pSpawn, &TargetBuffTemp))
+					if (HasCachedTargetBuffSPA(SPA_ENTHRALL, false, pSpawn, &TargetBuffTemp))
 					{
 						Dest.Ptr = &TargetBuffTemp;
 						return true;
@@ -3009,7 +3009,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				{
 					Dest.Ptr = nullptr;
 					Dest.Type = pCachedBuffType;
-					if (HasCachedTargetBuffSPA(3, false, pSpawn, &TargetBuffTemp))
+					if (HasCachedTargetBuffSPA(SPA_MOVEMENT_RATE, false, pSpawn, &TargetBuffTemp))
 					{
 						Dest.Ptr = &TargetBuffTemp;
 						return true;
@@ -6267,7 +6267,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case Snared:
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(3, false)) != -1) // Movement Rate
+			if ((nBuff = GetSelfBuffBySPA(SPA_MOVEMENT_RATE, false)) != -1) // Movement Rate
 			{
 				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
@@ -6279,7 +6279,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case Hasted:
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(11, true)) != -1) // Haste
+			if ((nBuff = GetSelfBuffBySPA(SPA_HASTE, true)) != -1) // Haste
 			{
 				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
@@ -6316,7 +6316,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	case DSed:
 		{
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(59, true)) != -1) // Damage Shield
+			if ((nBuff = GetSelfBuffBySPA(SPA_DAMAGE_SHIELD, true)) != -1) // Damage Shield
 			{
 				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
@@ -6427,7 +6427,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				{
 					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 					{
-						if ((((EQ_Spell*)pSpell)->SpellAffectBase(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
+						if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_HP) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
 						{
 							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
@@ -6527,7 +6527,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				{
 					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 					{
-						if ((((EQ_Spell*)pSpell)->SpellAffectBase(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
+						if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MANA) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
 						{
 							Dest.Type = pBuffType;
 							Dest.Ptr = &pProfile->Buff[nBuff];
@@ -6737,7 +6737,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					{
 						if (GetSpellSubcategory(pSpell) == 62)
 						{
-							if (((EQ_Spell*)pSpell)->SpellAffectBase(162))
+							if (((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MELEE_GUARD))
 							{
 								Dest.Type = pBuffType;
 								Dest.Ptr = &pProfile->Buff[nBuff];
@@ -15886,7 +15886,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(11, 0)) != -1)
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_HASTE, 0)) != -1)
 		{
 			return true;
 		}
@@ -15896,7 +15896,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 
 		Dest.Type = pTargetBuffType;
-		if ((Dest.Int = GetTargetBuffBySPA(99, 0)) != -1) // Root
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_ROOT, 0)) != -1) // Root
 		{
 			return true;
 		}
@@ -15906,7 +15906,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(31, 0)) != -1) // Entrall
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_ENTHRALL, 0)) != -1) // Entrall
 		{
 			return true;
 		}
@@ -15946,7 +15946,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(3, 0)) != -1) // Movement Rate
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_MOVEMENT_RATE, 0)) != -1) // Movement Rate
 		{
 			return true;
 		}
@@ -15956,7 +15956,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(11, 1)) != -1)
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_HASTE, 1)) != -1)
 		{
 			return true;
 		}
@@ -16003,7 +16003,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(59, 1)) != -1) // Damage Shield
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_DAMAGE_SHIELD, 1)) != -1) // Damage Shield
 		{
 			return true;
 		}
@@ -16013,7 +16013,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(121, 1)) != -1) // Reverse Damage Shield
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_IRONMAIDEN, 1)) != -1) // Reverse Damage Shield
 		{
 			return true;
 		}
@@ -16023,7 +16023,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(22, 0)) != -1) // Charm
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_CHARM, 0)) != -1) // Charm
 		{
 			return true;
 		}
@@ -16042,7 +16042,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 				{
 					if ((GetSpellSubcategory(pSpell) == 1) || (GetSpellSubcategory(pSpell) == 112))
 					{
-						if (((EQ_Spell*)pSpell)->SpellAffectBase(1))
+						if (((EQ_Spell*)pSpell)->SpellAffectBase(SPA_AC))
 						{
 							return true;
 						}
@@ -16111,20 +16111,20 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(0, 1)) != -1) // HP Regen
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 1)) != -1) // HP Regen
 		{
 			int slotnum = Dest.Int;
 			while (slotnum < NUM_BUFF_SLOTS)
 			{
 				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
 				{
-					if ((((EQ_Spell*)pSpell)->SpellAffectBase(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
+					if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_HP) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
 					{
 						return true;
 					}
 				}
 
-				if ((Dest.Int = GetTargetBuffBySPA(0, 1, ++slotnum)) == -1)
+				if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 1, ++slotnum)) == -1)
 				{
 					break;
 				}
@@ -16136,7 +16136,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(35, 0)) != -1) // Disease Counter
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_DISEASE, 0)) != -1) // Disease Counter
 		{
 			return true;
 		}
@@ -16146,7 +16146,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(36, 0)) != -1) // Poison Counter
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_POISON, 0)) != -1) // Poison Counter
 		{
 			return true;
 		}
@@ -16156,7 +16156,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(116, 0)) != -1) // Curse Counter
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_CURSE, 0)) != -1) // Curse Counter
 		{
 			return true;
 		}
@@ -16166,7 +16166,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(369, 0)) != -1) // Corruption Counter
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_CORRUPTION, 0)) != -1) // Corruption Counter
 		{
 			return true;
 		}
@@ -16201,20 +16201,20 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(15, 1)) != -1) // Mana Regen
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_MANA, 1)) != -1) // Mana Regen
 		{
 			int slotnum = Dest.Int;
 			while (slotnum < NUM_BUFF_SLOTS)
 			{
 				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
 				{
-					if ((((EQ_Spell*)pSpell)->SpellAffectBase(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
+					if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MANA) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
 					{
 						return true;
 					}
 				}
 
-				if ((Dest.Int = GetTargetBuffBySPA(15, 1, ++slotnum)) == -1)
+				if ((Dest.Int = GetTargetBuffBySPA(SPA_MANA, 1, ++slotnum)) == -1)
 				{
 					break;
 				}
@@ -16410,7 +16410,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 				{
 					if (GetSpellSubcategory(pSpell) == 62)
 					{
-						if (((EQ_Spell*)pSpell)->SpellAffectBase(162))
+						if (((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MELEE_GUARD))
 						{
 							return true;
 						}
@@ -16429,7 +16429,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(23, 0)) != -1) // Feared
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_FEAR, 0)) != -1) // Feared
 		{
 			return true;
 		}
@@ -16439,7 +16439,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(96, 0)) != -1) // Silenced
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_SILENCE, 0)) != -1) // Silenced
 		{
 			return true;
 		}
@@ -16449,7 +16449,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(40, 0)) != -1) // Invulnerable
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_INVULNERABILITY, 0)) != -1) // Invulnerable
 		{
 			return true;
 		}
@@ -16459,7 +16459,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Int = 0;
 		Dest.Type = pTargetBuffType;
 
-		if ((Dest.Int = GetTargetBuffBySPA(0, 0)) != -1) // HP Mod
+		if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 0)) != -1) // HP Mod
 		{
 			int slotnum = Dest.Int;
 			while (slotnum < NUM_BUFF_SLOTS)
@@ -16472,7 +16472,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 					}
 				}
 
-				if ((Dest.Int = GetTargetBuffBySPA(0, 0, ++slotnum)) == -1)
+				if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 0, ++slotnum)) == -1)
 				{
 					break;
 				}
