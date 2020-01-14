@@ -503,7 +503,7 @@ enum MOUSE_DATA_TYPES {
 //found using __BindList_x
 #define nNormalEQMappableCommands       (nEQMappableCommands - 0x16)
 
-#define MAX_PC_LEVEL                    110
+#define MAX_PC_LEVEL                    115
 #define MAX_NPC_LEVEL                   200
 #define MAX_SPELL_LEVEL					255
 #define NUM_SPELL_GEMS                  0xe
@@ -1130,6 +1130,7 @@ typedef struct _AALIST {
 #define ExactLocation                   0
 #define NUM_SKILLS						0x64
 #define CONCURRENT_SKILLS				2
+#define MAX_CLASSES						0x23//35 =GM_Berzerker
 
 typedef struct _LEADERABILITIES {
 /*0x00*/ DWORD MarkNPC;
@@ -4327,19 +4328,22 @@ typedef struct _SKILL {
 //see SkillManager__IsValidSkillIndex_x (5C87C0) in eqgame dated 20140611 -eqmule
 //SkillManager__SkillManager
 //Actual Size: 0x2C68AC see 5465F8 in eqgame dated 20140611 -eqmule
-//Actual Size: 0x2E9B2C see 571E37 in eqgame dated 20170411 test -eqmule
+//Actual Size: 0x2E9B2C see 57FDB7 in eqgame dated 20170911 test -eqmule
+//Actual Size: 0x3301CC see 5E747D in eqgame dated 20201219 -eqmule
 typedef struct _SKILLMGR {
 /*0x000000*/	struct _SKILL *pSkill[NUM_SKILLS];
-/*0x000190*/	int SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x174C10*/	FLOAT SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x2E9690*/	CHAR SkillCapsFilename[MAX_PATH];
-/*0x2E9794*/	UINT SkillLastUsed[NUM_SKILLS];
-/*0x2E9924*/	UINT SkillTimerDuration[NUM_SKILLS];
-/*0x2E9AB4*/	UINT CombatSkillLastUsed[CONCURRENT_SKILLS];
-/*0x2E9ABC*/	UINT CombatSkillDuration[CONCURRENT_SKILLS];
-/*0x2E9AC4*/	bool bSkillCanUse[NUM_SKILLS];
-/*0x2E9B28*/	bool bCombatSkillCanUse[CONCURRENT_SKILLS];
-/*0x2E9B2C*/
+/*0x000190*/	int SkillCaps[MAX_CLASSES+1][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x197E90*/	FLOAT SkillMods[MAX_CLASSES+1][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x32FB90*/	CHAR SkillCapsFilename[MAX_PATH];
+/*0x32FC94*/	UINT Unknown0x32FC94[0x4];
+/*0x32FCA4*/	struct _SKILL *pSkill2[NUM_SKILLS];//im absolutely not sure these are skills, but the struct fits here so...-eqmule
+/*0x32FE34*/	UINT SkillLastUsed[NUM_SKILLS];
+/*0x32FFC4*/	UINT SkillTimerDuration[NUM_SKILLS];
+/*0x330154*/	UINT CombatSkillLastUsed[CONCURRENT_SKILLS];
+/*0x33015C*/	UINT CombatSkillDuration[CONCURRENT_SKILLS];
+/*0x330164*/	bool bSkillCanUse[NUM_SKILLS];
+/*0x3301C8*/	bool bCombatSkillCanUse[CONCURRENT_SKILLS];
+/*0x3301CC*/
 } SKILLMGR, *PSKILLMGR;
 
 typedef struct _AUTOSKILL {
@@ -4349,17 +4353,19 @@ typedef struct _AUTOSKILL {
 class SkillManager
 {
 public:
-/*0x000000*/ TSafeArrayStatic<PSKILL, NUM_SKILLS> pSkill;
-/*0x000190*/ int SkillCaps[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x174C10*/ FLOAT SkillMods[0x24][NUM_SKILLS][MAX_PC_LEVEL+1];
-/*0x2E9690*/ CHAR SkillCapsFilename[MAX_PATH];
-/*0x2E9794*/ UINT SkillLastUsed[NUM_SKILLS];
-/*0x2E9924*/ UINT SkillTimerDuration[NUM_SKILLS];
-/*0x2E9AB4*/ UINT CombatSkillLastUsed[CONCURRENT_SKILLS];
-/*0x2E9ABC*/ UINT CombatSkillDuration[CONCURRENT_SKILLS];
-/*0x2E9AC4*/ bool bSkillCanUse[NUM_SKILLS];
-/*0x2E9B28*/ bool bCombatSkillCanUse[CONCURRENT_SKILLS];
-/*0x2E9B2C*/
+/*0x000000*/	TSafeArrayStatic<PSKILL, NUM_SKILLS> pSkill;
+/*0x000190*/	int SkillCaps[MAX_CLASSES+1][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x197E90*/	FLOAT SkillMods[MAX_CLASSES+1][NUM_SKILLS][MAX_PC_LEVEL+1];
+/*0x32FB90*/	CHAR SkillCapsFilename[MAX_PATH];
+/*0x32FC94*/	UINT Unknown0x32FC94[0x4];
+/*0x32FCA4*/	struct _SKILL *pSkill2[NUM_SKILLS];//im absolutely not sure these are skills, but the struct fits here so...-eqmule
+/*0x32FE34*/	UINT SkillLastUsed[NUM_SKILLS];
+/*0x32FFC4*/	UINT SkillTimerDuration[NUM_SKILLS];
+/*0x330154*/	UINT CombatSkillLastUsed[CONCURRENT_SKILLS];
+/*0x33015C*/	UINT CombatSkillDuration[CONCURRENT_SKILLS];
+/*0x330164*/	bool bSkillCanUse[NUM_SKILLS];
+/*0x3301C8*/	bool bCombatSkillCanUse[CONCURRENT_SKILLS];
+/*0x3301CC*/
 };
 
 //actual size 0x3a8 11-15-11  ieatacid

@@ -1,3 +1,7 @@
+Jan 13 2020
+- Updated max level to 115
+- Updated the skillmanager for all builds.
+-
 Jan 13 2020 by Chatwiththisname
 - Added MQ2SpellType Members: HastePct, SlowPct.
 - Added GetMeleeSpeedPctFromSpell(PSPELL, bool) (Exported in Main)
