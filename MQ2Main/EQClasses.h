@@ -2414,7 +2414,7 @@ EQLIB_OBJECT bool CEditWnd::ReplaceSelection(class CXStr,bool bFilter = true);
 EQLIB_OBJECT void CEditWnd::SetEditable(bool);
 // virtual
 EQLIB_OBJECT CEditWnd::~CEditWnd(void);
-EQLIB_OBJECT class CXPoint CEditWnd::GetCaretPt(void)const;
+EQLIB_OBJECT CXPoint CEditWnd::GetCaretPt(void) const;
 EQLIB_OBJECT class CXPoint CEditWnd::PointFromPrintableChar(int)const;
 EQLIB_OBJECT class CXStr CEditWnd::GetDisplayString(void)const;
 EQLIB_OBJECT class CXStr CEditWnd::GetWindowTextA(void)const;
@@ -10895,11 +10895,7 @@ public:
 //see 7FEC8D in Rof2 -eqmule
 #define ZONE_COUNT 768
 #else
-#if defined(TEST)
 #define ZONE_COUNT 837
-#else
-#define ZONE_COUNT 836
-#endif
 #endif
 class ZoneGuideManagerBase
 {

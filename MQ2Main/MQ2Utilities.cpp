@@ -10335,7 +10335,7 @@ void GetCachedBuffs(std::map<int, std::map<int,cTargetBuff>>& CBMap)
 }
 bool IsEvolvingItem(PCONTENTS pCont)
 {
-#if !defined(EQBETA) && !defined(TEST)
+#if defined(ROF2EMU) || defined(UFEMU)
 	return pCont->IsEvolvingItem;
 #else
 	return pCont->pEvolutionData != nullptr;

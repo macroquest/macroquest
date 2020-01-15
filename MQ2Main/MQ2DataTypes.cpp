@@ -13657,7 +13657,7 @@ bool MQ2EvolvingItemType::GETMEMBER()
 	#endif
 		Dest.Type = pBoolType;
 		return true;
-#if !defined(EQBETA) && !defined(TEST)
+#if defined(ROF2EMU) || defined(UFMU)
 	case ExpPct:
 		Dest.Float = (FLOAT)pItem->EvolvingExpPct;
 		Dest.Type = pFloatType;

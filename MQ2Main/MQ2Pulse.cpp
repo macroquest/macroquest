@@ -105,7 +105,7 @@ BOOL DoNextCommand(PMACROBLOCK pBlock)
 			if (pCurrentBlock)
 			{
 				if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1) {
-					if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
+					if (ci_find_substr(ml.Command, "/varset") == 0 || ci_find_substr(ml.Command, "/echo") == 0 || ci_find_substr(ml.Command, "/invoke") == 0 || ci_find_substr(ml.Command, "Sub") == 0 || ci_find_substr(ml.Command, "/call") == 0) {
 						std::map<int, MACROLINE>::iterator i = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
 						if (i != pCurrentBlock->Line.end()) {
 							i++;

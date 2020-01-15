@@ -9197,6 +9197,9 @@ FUNCTION_AT_ADDRESS(void  CEditWnd::AddItemTag(int,char *,int),CEditWnd__AddItem
 #ifdef CEditWnd__ProcessText_x
 FUNCTION_AT_ADDRESS(void  CEditWnd::ProcessText(void),CEditWnd__ProcessText);
 #endif
+#ifdef CEditWnd__GetCaretPt_x
+FUNCTION_AT_ADDRESS(CXPoint CEditWnd::GetCaretPt()const ,CEditWnd__GetCaretPt);
+#endif
 #ifdef CEditWnd__GetCharIndexPt_x
 FUNCTION_AT_ADDRESS(class CXPoint  CEditWnd::GetCharIndexPt(int)const ,CEditWnd__GetCharIndexPt);
 #endif
@@ -9219,7 +9222,7 @@ FUNCTION_AT_ADDRESS(bool CEditWnd::ReplaceSelection(char, bool),CEditWnd__Replac
 FUNCTION_AT_ADDRESS(void  CEditWnd::CalculateScrollRange(void),CEditWnd__CalculateScrollRange);
 #endif
 #ifdef CEditWnd__EnsureCaretVisible_x
-FUNCTION_AT_ADDRESS(void  CEditWnd::EnsureCaretVisible(void),CEditWnd__EnsureCaretVisible);
+FUNCTION_AT_ADDRESS(void CEditWnd::EnsureCaretVisible(void),CEditWnd__EnsureCaretVisible);
 #endif
 #ifdef CEditWnd__SetEditable_x
 FUNCTION_AT_ADDRESS(void  CEditWnd::SetEditable(bool),CEditWnd__SetEditable);

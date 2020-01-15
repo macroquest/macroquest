@@ -516,6 +516,8 @@ GNU General Public License for more details.
 
 // CEditWnd 
 #define CEditWnd__DrawCaret_x                                      0x9553B0
+#define CEditWnd__EnsureCaretVisible_x                             0x957580
+#define CEditWnd__GetCaretPt_x                                     0x956530
 #define CEditWnd__GetCharIndexPt_x                                 0x9562E0
 #define CEditWnd__GetDisplayString_x                               0x956180
 #define CEditWnd__GetHorzOffset_x                                  0x9549E0
