@@ -549,16 +549,16 @@ using ItemEvolutionDataPtr = SoeUtil::SharedPtr<ItemEvolutionData>;
 class [[offsetcomments]] ItemBase
 {
 public:
-/*0x000*/ void* vtable;
+/*0x00*/ void* vtable;
 
 	// base class member - reference count
-/*0x004*/ mutable int  RefCount;
+/*0x04*/ mutable int  RefCount;
 	// base class vftable
-/*0x008*/ void* punknown;
+/*0x08*/ void* punknown;
 
 #include "ItemBase-Members.h"
 
-/*0x128*/
+/*0xfc*/
 	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
@@ -570,10 +570,10 @@ class [[offsetcomments]] ItemClient : public ItemBase
 
 public:
 	// Reference counted pointer to ItemDefinition
-/*0x128*/ DWORD        Item2RefCnt;
-/*0x12c*/ ITEMINFO*    Item2;
-/*0x130*/ CXStr        ClientString;
-/*0x134*/
+/*0x100*/ DWORD        Item2RefCnt;
+/*0x104*/ ITEMINFO*    Item2;
+/*0x108*/ CXStr        ClientString;
+/*0x10c*/
 
 	EQLIB_OBJECT ItemClient* GetContent(uint32_t index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
@@ -592,12 +592,12 @@ struct [[offsetcomments]] CONTENTS : public VeBaseReferenceCount,
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x128*/ uint32_t          Unknown0x144;
-/*0x12c*/ uint32_t          Item2RefCnt;
-/*0x130*/ ITEMINFO*         Item2;
-/*0x134*/ CXStr             ClientString;
-/*0x138*/ uint8_t           Filler0x0154[0x4];
-/*0x13c*/
+/*0x0fc*/ uint32_t          Unknown0x144;
+/*0x100*/ uint32_t          Item2RefCnt;
+/*0x104*/ ITEMINFO*         Item2;
+/*0x108*/ CXStr             ClientString;
+/*0x10c*/ uint8_t           Filler0x0154[0x4];
+/*0x110*/
 
 	// Constructor is technically for ItemClient. Make sure the size
 	// of the class matches.
