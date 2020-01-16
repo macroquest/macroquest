@@ -1831,7 +1831,7 @@ public:
 
 class [[offsetcomments(0x2418)]] CharacterZoneClient : virtual public CharacterBase
 {
-	/*0x2418*/ virtual void vftableph() {};
+/*0x2418*/ virtual void vftableph() {};
 public:
 	union {
 /*0x2420*/ PlayerClient*               me;                 // just here for comparing the 2, todo: fix

@@ -676,8 +676,8 @@ struct [[offsetcomments]] SPAWNINFO
 	unsigned int GetId() const { return SpawnID; }
 
 	// a.k.a. GetPcClient
-	[[deprecated("Use GetPcClient instead")]] EQLIB_OBJECT void* GetCharacter() const { return spawneqc_info; }
-	EQLIB_OBJECT PcClient* GetPcClient() const { return (PcClient*)spawneqc_info; }
+	[[deprecated("Use GetPcClient instead")]] EQLIB_OBJECT void* GetCharacter() const { return GetPcClient(); }
+	EQLIB_OBJECT PcClient* GetPcClient() const;
 
 	EQLIB_OBJECT unsigned int GetZoneID() const { return (int)Zone; }
 	EQLIB_OBJECT int GetCurrentMana() const { return ManaCurrent; }
@@ -1067,7 +1067,7 @@ public:
 	inline int GetClass() const { return mActorClient.Class; }
 	inline BYTE GetCharacterType() const { return Type; }
 	inline unsigned int GetId() const { return SpawnID; }
-	inline CharacterZoneClient* GetCharacter() const { return (CharacterZoneClient*)spawneqc_info; }
+	inline CharacterZoneClient* GetCharacter() const { return (CharacterZoneClient*)GetPcClient(); }
 	inline int GetZoneID() const { return Zone; }
 	inline int GetCurrentMana() const { return ManaCurrent; }
 	inline int GetMaxMana() const { return ManaMax; }
@@ -1136,5 +1136,7 @@ public:
 
 // For compatibility with all the old stuff
 using EQPlayer [[deprecated]] = PlayerClient;
+
+inline PcClient* SPAWNINFO::GetPcClient() const { return ((PlayerClient*)this)->GetPcClient(); }
 
 } // namespace eqlib

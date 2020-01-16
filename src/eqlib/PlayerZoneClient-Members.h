@@ -89,7 +89,7 @@
 	/*0x03ac*/ int                      DontKnowYet;
 	/*0x03b0*/ bool                     bAttackRelated;
 	/*0x03b4*/ unsigned int             MasterID;
-	/*0x03b8*/ EQC_INFO*                spawneqc_info;
+	/*0x03b8*/ CharacterZoneClient*     pCharacter;
 	/*0x03bc*/ bool                     Mercenary;
 	/*0x03bd*/ char                     Title[0x80];
 	/*0x043d*/ uint8_t                  StandState;
