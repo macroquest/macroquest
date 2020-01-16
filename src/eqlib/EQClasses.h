@@ -2942,6 +2942,8 @@ enum eSkillCombatType
 	SCT_Special
 };
 
+constexpr int MAX_SKILL_CLASSES = 36; // GM_Berzerker + 1
+
 class [[offsetcomments]] EQ_Skill
 {
 public:
@@ -2958,15 +2960,14 @@ public:
 /*0x01c*/ float             Force;
 /*0x020*/ bool              Activated;
 /*0x021*/ bool              LevelCappedSkill;
-/*0x024*/ DWORD             MinLevel[0x24];      // the level each class gains this skill
-/*0x0b4*/ DWORD             Available[0x24];     // FF=not available for that class (its actually how difficult it is to learn... low num easy, high hard...)
+/*0x024*/ DWORD             MinLevel[MAX_SKILL_CLASSES];      // the level each class gains this skill
+/*0x0b4*/ DWORD             Available[MAX_SKILL_CLASSES];     // FF=not available for that class (its actually how difficult it is to learn... low num easy, high hard...)
 /*0x144*/ bool              bSkillupable;
 /*0x148*/
 };
 using SKILL = EQ_Skill;
 using PSKILL = EQ_Skill*;
 
-constexpr int MAX_SKILL_CLASSES = 36;
 
 // see SkillManager__IsValidSkillIndex_x (5C87C0) in eqgame dated 20140611
 // SkillManager__SkillManager
@@ -2987,6 +2988,8 @@ public:
 /*0x000190*/ int       SkillCaps[MAX_SKILL_CLASSES][NUM_SKILLS][MAX_PC_LEVEL+1];
 /*0x186550*/ float     SkillMods[MAX_SKILL_CLASSES][NUM_SKILLS][MAX_PC_LEVEL+1];
 /*0x30c910*/ char      SkillCapsFilename[MAX_PATH];
+             uint32_t  Unknown0x32FC94[0x4];
+             EQ_Skill* pSkill2[NUM_SKILLS]; // I'm absolutely not sure tha these are skills, but the struct fits here so... -eqmule
 /*0x30ca14*/ UINT      SkillLastUsed[NUM_SKILLS];
 /*0x30cba4*/ UINT      SkillTimerDuration[NUM_SKILLS];
 /*0x30cd34*/ UINT      CombatSkillLastUsed[CONCURRENT_SKILLS];

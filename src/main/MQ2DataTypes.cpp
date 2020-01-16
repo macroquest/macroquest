@@ -15084,25 +15084,37 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, 
 
 	switch (static_cast<EvolvingItemMembers>(pMember->ID))
 	{
-	case ExpPct:
-		Dest.Float = (float)pItem->EvolvingExpPct;
-		Dest.Type = pFloatType;
-		return true;
-
 	case ExpOn:
 		Dest.DWord = true; // its always on after 2019-02-14 test patch
 		Dest.Type = pBoolType;
 		return true;
 
+	case ExpPct:
+		if (pItem->pEvolutionData)
+		{
+			Dest.Float = (float)pItem->pEvolutionData->EvolvingExpPct;
+			Dest.Type = pFloatType;
+			return true;
+		}
+		break;
+
 	case Level:
-		Dest.DWord = pItem->EvolvingCurrentLevel;
-		Dest.Type = pIntType;
-		return true;
+		if (pItem->pEvolutionData)
+		{
+			Dest.Int = pItem->pEvolutionData->EvolvingCurrentLevel;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
 
 	case MaxLevel:
-		Dest.DWord = pItem->EvolvingMaxLevel;
-		Dest.Type = pIntType;
-		return true;
+		if (pItem->pEvolutionData)
+		{
+			Dest.Int = pItem->pEvolutionData->EvolvingMaxLevel;
+			Dest.Type = pIntType;
+			return true;
+		}
+		break;
 
 	default: break;
 	}

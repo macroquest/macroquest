@@ -294,6 +294,9 @@ FUNCTION_AT_ADDRESS(int CEditWnd::ConvertIndexPrintableToTagged(int), CEditWnd__
 #ifdef CEditWnd__ConvertIndexTaggedToPrintable_x
 FUNCTION_AT_ADDRESS(int CEditWnd::ConvertIndexTaggedToPrintable(int), CEditWnd__ConvertIndexTaggedToPrintable);
 #endif
+#ifdef CEditWnd__GetCaretPt_x
+FUNCTION_AT_ADDRESS(CXPoint CEditWnd::GetCaretPt() const, CEditWnd__GetCaretPt);
+#endif
 
 void CEditBaseWnd::SetMaxChars(int maxChars)
 {

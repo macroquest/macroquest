@@ -131,7 +131,8 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 				if (ci_find_substr(ml.Command, "/varset") == 0
 					|| ci_find_substr(ml.Command, "/echo") == 0
 					|| ci_find_substr(ml.Command, "Sub") == 0
-					|| ci_find_substr(ml.Command, "/call") == 0)
+					|| ci_find_substr(ml.Command, "/call") == 0
+					|| ci_find_substr(ml.Command, "/invoke") == 0)
 				{
 					auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
 					if (iter != pCurrentBlock->Line.end())

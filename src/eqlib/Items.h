@@ -17,6 +17,7 @@
 #include "Common.h"
 #include "Containers.h"
 #include "CXStr.h"
+#include "SoeUtil.h"
 
 namespace eqlib {
 
@@ -531,6 +532,16 @@ public:
 /*0x1c*/
 };
 
+struct [[offsetcomments]] ItemEvolutionData
+{
+	/*0x00*/ int    GroupID;
+	/*0x04*/ int    EvolvingCurrentLevel;
+	/*0x08*/ double EvolvingExpPct;
+	/*0x10*/ int    EvolvingMaxLevel;
+	/*0x14*/ int    LastEquipped;
+/*0x18*/ };
+using ItemEvolutionDataPtr = SoeUtil::SharedPtr<ItemEvolutionData>;
+
 //============================================================================
 // ItemBase
 //============================================================================
@@ -547,7 +558,7 @@ public:
 
 #include "ItemBase-Members.h"
 
-/*0x14c*/
+/*0x128*/
 	EQLIB_OBJECT bool IsLore(bool bIncludeSockets = false) const;
 	EQLIB_OBJECT bool IsLoreEquipped(bool bIncludeSockets = false) const;
 };
@@ -559,10 +570,10 @@ class [[offsetcomments]] ItemClient : public ItemBase
 
 public:
 	// Reference counted pointer to ItemDefinition
-/*0x150*/ DWORD        Item2RefCnt;
-/*0x154*/ ITEMINFO*    Item2;
-/*0x158*/ CXStr        ClientString;
-/*0x15c*/
+/*0x128*/ DWORD        Item2RefCnt;
+/*0x12c*/ ITEMINFO*    Item2;
+/*0x130*/ CXStr        ClientString;
+/*0x134*/
 
 	EQLIB_OBJECT ItemClient* GetContent(uint32_t index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
@@ -581,12 +592,12 @@ struct [[offsetcomments]] CONTENTS : public VeBaseReferenceCount,
 #include "ItemBase-Members.h"
 
 	// start of ItemClient
-/*0x14c*/ uint32_t          Unknown0x144;
-/*0x150*/ uint32_t          Item2RefCnt;
-/*0x154*/ ITEMINFO*         Item2;
-/*0x158*/ CXStr             ClientString;
-/*0x15c*/ uint8_t           Filler0x0154[0x4];
-/*0x160*/
+/*0x128*/ uint32_t          Unknown0x144;
+/*0x12c*/ uint32_t          Item2RefCnt;
+/*0x130*/ ITEMINFO*         Item2;
+/*0x134*/ CXStr             ClientString;
+/*0x138*/ uint8_t           Filler0x0154[0x4];
+/*0x13c*/
 
 	// Constructor is technically for ItemClient. Make sure the size
 	// of the class matches.
@@ -607,6 +618,27 @@ struct [[offsetcomments]] CONTENTS : public VeBaseReferenceCount,
 
 	EQLIB_OBJECT CONTENTS* GetContent(unsigned int index);
 	EQLIB_OBJECT ItemGlobalIndex GetGlobalIndex() const;
+
+	// Compatibility properties for ItemEvolutionData
+	[[deprecated("Use pEvolutionData->GroupID instead")]]
+	inline int get_EvolvingGroupID() { return pEvolutionData ? pEvolutionData->GroupID : 0; }
+	__declspec(property(get = get_EvolvingGroupID)) int GroupID;
+
+	[[deprecated("Use pEvolutionData->EvolvingCurrentLevel instead")]]
+	inline int get_EvolvingCurrentLevel() { return pEvolutionData ? pEvolutionData->EvolvingCurrentLevel : 0; }
+	__declspec(property(get = get_EvolvingCurrentLevel)) int EvolvingCurrentLevel;
+
+	[[deprecated("Use pEvolutionData->EvolvingExpPct instead")]]
+	inline double get_EvolvingExpPct() { return pEvolutionData ? pEvolutionData->EvolvingExpPct : 0.0; }
+	__declspec(property(get = get_EvolvingExpPct)) double EvolvingExpPct;
+
+	[[deprecated("Use pEvolutionData->EvolvingMaxLevel instead")]]
+	inline int get_EvolvingMaxLevel() { return pEvolutionData ? pEvolutionData->EvolvingMaxLevel : 0; }
+	__declspec(property(get = get_EvolvingMaxLevel)) int EvolvingMaxLevel;
+
+	[[deprecated("Use pEvolutionData->LastEquipped instead")]]
+	inline int get_LastEquipped() { return pEvolutionData ? pEvolutionData->LastEquipped : 0; }
+	__declspec(property(get = get_LastEquipped)) int LastEquipped;
 };
 using PCONTENTS = CONTENTS*;
 

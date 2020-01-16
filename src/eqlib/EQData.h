@@ -552,7 +552,7 @@ constexpr int nEQMappableCommands = 546;
 // found using __BindList_x
 constexpr int nNormalEQMappableCommands = nEQMappableCommands - 22;
 
-constexpr int MAX_PC_LEVEL = 110;
+constexpr int MAX_PC_LEVEL = 115;
 constexpr int MAX_NPC_LEVEL = 200;
 constexpr int MAX_SPELL_LEVEL = 255;
 constexpr int NUM_SPELL_GEMS = 14;

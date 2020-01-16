@@ -482,6 +482,8 @@ EQLIB_VAR DWORD CDistillerInfo__GetIDFromRecordNum;
 EQLIB_VAR DWORD CDistillerInfo__Instance;
 EQLIB_VAR DWORD CEditBaseWnd__SetSel;
 EQLIB_VAR DWORD CEditWnd__DrawCaret;
+EQLIB_VAR DWORD CEditWnd__EnsureCaretVisible;
+EQLIB_VAR DWORD CEditWnd__GetCaretPt;
 EQLIB_VAR DWORD CEditWnd__GetCharIndexPt;
 EQLIB_VAR DWORD CEditWnd__GetDisplayString;
 EQLIB_VAR DWORD CEditWnd__GetHorzOffset;

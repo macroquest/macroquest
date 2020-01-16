@@ -5009,7 +5009,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (VarPtr.Ptr && ((CONTENTS*)VarPtr.Ptr)->IsEvolvingItem)
+		if (VarPtr.Ptr && IsEvolvingItem((CONTENTS*)VarPtr.Ptr))
 			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");

@@ -626,4 +626,9 @@ inline void AppendCXStr(CXStr* pCXStr, const char* text)
 	}
 }
 
+inline bool IsEvolvingItem(CONTENTS* pContents)
+{
+	return pContents->pEvolutionData != nullptr;
+}
+
 } // namespace mq

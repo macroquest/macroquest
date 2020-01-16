@@ -544,6 +544,66 @@ private:
 	T* m_ptr = nullptr;
 };
 
+template <typename T, typename U>
+bool operator==(const SoeUtil::SharedPtr<T>& lhs, const SoeUtil::SharedPtr<U>& rhs)
+{
+	return lhs.get() == rhs.get();
+}
+
+template <typename T, typename U>
+bool operator!=(const SoeUtil::SharedPtr<T>& lhs, const SoeUtil::SharedPtr<U>& rhs)
+{
+	return lhs.get() != rhs.get();
+}
+
+template <typename T>
+bool operator==(const SoeUtil::SharedPtr<T>& lhs, T* rhs)
+{
+	return lhs.get() == rhs;
+}
+
+template <typename T>
+bool operator==(T* lhs, const SoeUtil::SharedPtr<T>& rhs)
+{
+	return lhs == rhs.get();
+}
+
+template <typename T>
+bool operator!=(const SoeUtil::SharedPtr<T>& lhs, T* rhs)
+{
+	return lhs.get() != rhs;
+}
+
+template <typename T>
+bool operator!=(T* lhs, const SoeUtil::SharedPtr<T>& rhs)
+{
+	return lhs != rhs.get();
+}
+
+template <typename T>
+bool operator==(const SoeUtil::SharedPtr<T>& lhs, nullptr_t)
+{
+	return lhs.get() == nullptr;
+}
+
+template <typename T>
+bool operator==(nullptr_t, const SoeUtil::SharedPtr<T>& rhs)
+{
+	return rhs.get() == nullptr;
+}
+
+template <typename T>
+bool operator!=(const SoeUtil::SharedPtr<T>& lhs, nullptr_t)
+{
+	return lhs.get() != nullptr;
+}
+
+template <typename T>
+bool operator!=(nullptr_t, const SoeUtil::SharedPtr<T>& rhs)
+{
+	return rhs.get() != nullptr;
+}
+
 template <typename T, typename ... Args>
 SharedPtr<T> MakeShared(Args&&... args)
 {
