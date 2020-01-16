@@ -1890,7 +1890,7 @@ void HandleWindows()
 			}
 
 			// click OK button if news window is open
-			if (ci_find_substr(str, "NEWS"))
+			if (ci_find_substr(str, "NEWS") == 0)
 			{
 				if (CXWnd* pButton = pNewsWnd->GetChildItem(pXmlMgr, "NEWS_OKButton"))
 				{
