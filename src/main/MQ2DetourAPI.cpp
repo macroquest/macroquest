@@ -630,11 +630,10 @@ int memcheck0(unsigned char* buffer, size_t count)
 	int origCrc = memcheck0_tramp(buffer, count);
 	unsigned int addr = (int)&buffer[0];
 
+	// If we are not detouring memory that overlaps this region, just let it pass through.
 	DWORD dwGetOrg = IsAddressDetoured(addr, count);
-	if (dwGetOrg >= 2) // pointless to detour check this cause its just getting a hash for the spelldb or a executable we dont care about, and we dont mess with that.
+	if (dwGetOrg >= 2)
 		return origCrc;
-
-	unsigned int eax = 0xffffffff;
 
 	if (!extern_array0)
 	{
@@ -646,34 +645,24 @@ int memcheck0(unsigned char* buffer, size_t count)
 		extern_array0 = reinterpret_cast<uint32_t*>(EQADDR_ENCRYPTPAD0);
 	}
 
+	unsigned int eax = 0xffffffff;
+
 	for (size_t i = 0; i < count; i++)
 	{
-		unsigned char tmp;
+		// Feed in bytes to the hash algorithm using the source bytes of a detour
+		// if the data range overlaps an active detour.
+		unsigned char tmp = 0;
 		if (dwGetOrg == 1)
 		{
-			DWORD eqgamebase = (DWORD)GetModuleHandle(nullptr);
 
-			unsigned int b = (int)&buffer[i];
+			unsigned int startAddr = (int)&buffer[i];
 			DetourRecord* detour = g_detours;
 
 			while (detour)
 			{
-				if (detour->Name[0] != '\0' && !_stricmp(detour->Name, "LoginController__GiveTime"))
+				if (detour->count && (startAddr >= detour->addr) && (startAddr < detour->addr + detour->count))
 				{
-					// its not a valid detour to check at this point
-					detour = detour->pNext;
-					continue;
-				}
-
-				//DWORD newaddr = b + 0x400 + (detour->addr - eqgamebase - 0x1000);
-				//if (newaddr && newaddr <= (addr + count) && *(BYTE*)newaddr == 0xe9 && *(DWORD*)newaddr == *(DWORD*)detour->addr)
-				//{
-				//	Sleep(0);
-				//}
-
-				if (detour->count && (b >= detour->addr) && (b < detour->addr + detour->count))
-				{
-					tmp = detour->array[b - detour->addr];
+					tmp = detour->array[startAddr - detour->addr];
 					break;
 				}
 
@@ -694,17 +683,6 @@ int memcheck0(unsigned char* buffer, size_t count)
 		eax = ((int)eax >> 8) & 0xffffff;
 		x = extern_array0[x];
 		eax ^= x;
-	}
-
-	if (origCrc != eax)
-	{
-		//wtf?
-#ifdef _DEBUG
-		MessageBox(nullptr, "WARNING, this should not happen, contact eqmule", "memchecker0 mismatch", MB_OK | MB_SYSTEMMODAL);
-		__debugbreak();
-
-		return origCrc;
-#endif
 	}
 
 	return eax;
@@ -1218,25 +1196,6 @@ MQLIB_API void MQ2CrashCallBack(char* DumpFile)
 	// you can delete the file, copy/move it or just upload to your own dump server etc...
 }
 
-#ifndef TESTMEM
-DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
-int LoadFrontEnd_Detour()
-{
-	gGameState = GetGameState();
-
-	DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
-
-	int ret = LoadFrontEnd_Trampoline();
-	if (ret)
-	{
-		// means it was loaded properly
-		InitializeLoginPulse();
-		PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
-	}
-	return ret;
-}
-#endif // !TESTMEM
-
 // MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
 DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
 void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
@@ -1297,7 +1256,6 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	return nullptr;
 }
 
-
 void InitializeMQ2Detours()
 {
 	HookMemChecker(true);
@@ -1305,17 +1263,11 @@ void InitializeMQ2Detours()
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 
-#ifndef TESTMEM
-	EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
-#endif // !TESTMEM
+
 }
 
 void ShutdownMQ2Detours()
 {
-#ifndef TESTMEM
-	RemoveDetour(__LoadFrontEnd);
-#endif // !TESTMEM
-
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	RemoveDetour(GetProcAddress_Addr);
 

@@ -655,7 +655,6 @@ constexpr int LIGHT_COUNT = 13;
 
 MQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
-MQLIB_API void InitializeLoginPulse();
 MQLIB_API void RemoveAutoBankMenu();
 MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);

@@ -1009,12 +1009,13 @@ EQLIB_VAR char*                                      EQADDR_TARGETAGGROHOLDER;
 EQLIB_VAR BYTE*                                      EQADDR_ZONETYPE;
 EQLIB_VAR char**                                     EQMappableCommandList;
 EQLIB_VAR BYTE*                                      EQbCommandStates;
+EQLIB_VAR HINSTANCE*                                 ghEQMainInstance;
+EQLIB_VAR BYTE*                                      gpAutoFire;
+EQLIB_VAR AUTOSKILL*                                 gpAutoSkill;
 EQLIB_VAR DWORD*                                     gpbCommandEvent;
 EQLIB_VAR char*                                      gpbRangedAttackReady;
 EQLIB_VAR char*                                      gpbShowNetStatus;
 EQLIB_VAR bool*                                      gpbUseTellWindows;
-EQLIB_VAR BYTE*                                      gpAutoFire;
-EQLIB_VAR AUTOSKILL*                                 gpAutoSkill;
 EQLIB_VAR DWORD*                                     gpMouseEventTime;
 EQLIB_VAR DWORD*                                     gpPCNames;
 EQLIB_VAR BYTE*                                      gpShiftKeyDown;
@@ -1115,6 +1116,7 @@ EQLIB_VAR ForeignPointer<CBuffWindow>                pSongWnd;
 EQLIB_VAR ForeignPointer<CBugReportWnd>              pBugReportWnd;
 EQLIB_VAR ForeignPointer<CCastingWnd>                pCastingWnd;
 EQLIB_VAR ForeignPointer<CCastSpellWnd>              pCastSpellWnd;
+EQLIB_VAR ForeignPointer<CCharacterListWnd>          pCharacterListWnd;
 EQLIB_VAR ForeignPointer<CColorPickerWnd>            pColorPickerWnd;
 EQLIB_VAR ForeignPointer<CCombatAbilityWnd>          pCombatAbilityWnd;
 EQLIB_VAR ForeignPointer<CCombatSkillsSelectWnd>     pCombatSkillsSelectWnd;
@@ -1226,9 +1228,17 @@ EQLIB_VAR DWORD CParticleSystem__Render;
 // eqmain.dll Offsets
 //============================================================================
 
+EQLIB_VAR DWORD EQMain__WndProc;
+EQLIB_VAR DWORD EQMain__CXWndManager;
+EQLIB_VAR DWORD EQMain__CXWndManager__GetCursorToDisplay;
+EQLIB_VAR DWORD EQMain__CSidlManager;
+EQLIB_VAR DWORD LoginController__FlushDxKeyboard;
 EQLIB_VAR DWORD LoginController__GiveTime;
+EQLIB_VAR DWORD LoginController__ProcessKeyboardEvents;
+EQLIB_VAR DWORD LoginController__ProcessMouseEvents;
+EQLIB_VAR DWORD pinstLoginController;
 
-//----------------------------------------------------------------------------
+EQLIB_VAR ForeignPointer<LoginController> g_pLoginController;
 
 //----------------------------------------------------------------------------
 // Global Functions
@@ -1262,6 +1272,9 @@ EQLIB_API bool EQExecuteCmd(unsigned int command, bool keyDown, void* data, cons
 //----------------------------------------------------------------------------
 
 void InitializeGlobals();
+
+EQLIB_API bool InitializeEQMainOffsets();
+EQLIB_API void CleanupEQMainOffsets();
 
 EQLIB_API void InitializeEQLib();
 EQLIB_API void ShutdownEQLib();

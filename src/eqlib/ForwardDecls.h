@@ -390,6 +390,11 @@ class CMathInterface;
 class CThickLineSystemInterface;
 class CDebugDrawInterface;
 class CTerrainSystemInterface;
+
+
+// Login frontend types
+class LoginController;
+
 // End forward class declarations
 
 } // namespace eqlib

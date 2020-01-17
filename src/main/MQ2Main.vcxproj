@@ -109,6 +109,7 @@
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
+    <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />

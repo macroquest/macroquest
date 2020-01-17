@@ -96,6 +96,9 @@
     <ClInclude Include="OffsetUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LoginFrontend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GraphicsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -595,6 +595,14 @@ static HeartbeatState Heartbeat()
 	return HeartbeatNormal;
 }
 
+void DoLoginPulse()
+{
+	std::scoped_lock lock(s_pulseMutex);
+
+	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
+	DebugTry(PulseMQ2Overlay());
+}
+
 template <unsigned int _Size>
 static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)[_Size])
 //void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
@@ -811,10 +819,13 @@ bool Trampoline_ProcessGameEvents();
 bool Detour_ProcessGameEvents()
 {
 	DebugTryBeginRet();
+	HeartbeatState hbState;
 
-	std::scoped_lock lock(s_pulseMutex);
+	{
+		std::scoped_lock lock(s_pulseMutex);
+		hbState = Heartbeat();
+	}
 
-	HeartbeatState hbState = Heartbeat();
 	int pgeResult = Trampoline_ProcessGameEvents();
 	SetMainThreadId();
 
@@ -854,28 +865,15 @@ bool Detour_ProcessGameEvents()
 }
 DETOUR_TRAMPOLINE_EMPTY(bool Trampoline_ProcessGameEvents());
 
-void RemoveLoginPulse();
-
 class CEverQuestHook
 {
 public:
-	void EnterZone_Trampoline(void* pVoid);
-	void EnterZone_Detour(void* pVoid)
-	{
-		EnterZone_Trampoline(pVoid);
-	}
-
 	void SetGameState_Trampoline(DWORD GameState);
 	void SetGameState_Detour(DWORD GameState)
 	{
 		SetGameState_Trampoline(GameState);
 
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
-
-		if (GameState == GAMESTATE_LOGGINGIN)
-		{
-			RemoveLoginPulse();
-		}
 	}
 
 	void CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
@@ -957,79 +955,8 @@ public:
 
 		gTargetbuffs = true;
 	}
-
-	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN
-	// gameloop pulse is not active but login is.
-	// that will allow plugins to work and execute commands all the way back pre login and server select etc.
-	void LoginController__GiveTime_Tramp();
-	void LoginController__GiveTime_Detour()
-	{
-		std::scoped_lock lock(s_pulseMutex);
-
-		PulsePlugins();
-		LoginController__GiveTime_Tramp();
-	}
 };
 
-bool isNotOKToReadMemory(void* ptr, DWORD size)
-{
-	MEMORY_BASIC_INFORMATION mbi;
-	size_t dw = VirtualQuery(ptr, &mbi, sizeof(mbi));
-
-	if ((mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) != 0)
-		return true;
-
-	DWORD flags = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
-
-	return (mbi.Protect & flags) == 0;
-}
-
-void RemoveLoginPulse()
-{
-	if (LoginController__GiveTime)
-	{
-		if (!isNotOKToReadMemory((void*)LoginController__GiveTime, 4))
-		{
-			RemoveDetour(LoginController__GiveTime);
-		}
-		else
-		{
-			DeleteDetour(LoginController__GiveTime);
-		}
-
-		LoginController__GiveTime = 0;
-	}
-}
-
-// patterns
-// LoginController__GiveTime_x
-// 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01
-// Feb 16 2018 Test
-// IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
-static BYTE* lpPattern = (BYTE*)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
-static char lpMask[] = "xxxx????xx";
-
-void InitializeLoginPulse()
-{
-	if (*(DWORD*)__heqmain && !LoginController__GiveTime)
-	{
-		if (!(LoginController__GiveTime = FindPattern(*(DWORD*)__heqmain, 0x200000, lpPattern, lpMask)))
-		{
-			MessageBox(nullptr, "MQ2 needs an update.", "Couldn't find LoginController__GiveTime", MB_SYSTEMMODAL | MB_OK);
-			return;
-		}
-
-		if (LoginController__GiveTime)
-		{
-			if (*(BYTE*)LoginController__GiveTime != 0xe9)
-			{
-				EzDetour(LoginController__GiveTime, &CEverQuestHook::LoginController__GiveTime_Detour, &CEverQuestHook::LoginController__GiveTime_Tramp);
-			}
-		}
-	}
-}
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::LoginController__GiveTime_Tramp());
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::EnterZone_Trampoline(void*));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(BYTE*));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
@@ -1042,12 +969,9 @@ void InitializeMQ2Pulse()
 
 	//EzDetour(__GameLoop, GameLoop_Detour, GameLoop_Tramp);
 	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
-	//EzDetour(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline);
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
 	EzDetour(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
-
-	InitializeLoginPulse();
 
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
 	{
@@ -1060,8 +984,6 @@ void ShutdownMQ2Pulse()
 	std::scoped_lock lock(s_pulseMutex);
 
 	RemoveDetour((DWORD)ProcessGameEvents);
-	RemoveLoginPulse();
-	//RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 	RemoveDetour(CTargetWnd__RefreshTargetBuffs);

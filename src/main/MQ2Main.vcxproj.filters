@@ -131,6 +131,9 @@
     <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp">
       <Filter>Source Files\Contrib\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2LoginFrontend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">

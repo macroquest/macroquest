@@ -34,6 +34,9 @@ static std::recursive_mutex s_pluginsMutex;
 // Defined in MQ2Utilities.cpp
 DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
 
+// Defined in MQ2LoginFrontend.cpp
+void RemoveLoginFrontendHooks();
+
 static uint32_t checkme(char* module)
 {
 	PIMAGE_DOS_HEADER pd = (PIMAGE_DOS_HEADER)module;

@@ -978,12 +978,13 @@ char*                  EQADDR_TARGETAGGROHOLDER  = nullptr;
 BYTE*                  EQADDR_ZONETYPE           = nullptr;
 char**                 EQMappableCommandList     = nullptr;
 BYTE*                  EQbCommandStates          = nullptr;
+HINSTANCE*             ghEQMainInstance          = nullptr;
+BYTE*                  gpAutoFire                = nullptr;
+AUTOSKILL*             gpAutoSkill               = nullptr;
 DWORD*                 gpbCommandEvent           = nullptr;
 char*                  gpbRangedAttackReady      = nullptr;
 char*                  gpbShowNetStatus          = nullptr;
 bool*                  gpbUseTellWindows         = nullptr;
-BYTE*                  gpAutoFire                = nullptr;
-AUTOSKILL*             gpAutoSkill               = nullptr;
 DWORD*                 gpMouseEventTime          = nullptr;
 DWORD*                 gpPCNames                 = nullptr;
 BYTE*                  gpShiftKeyDown            = nullptr; // addr+1=ctrl, addr+2=alt
@@ -1077,6 +1078,7 @@ ForeignPointer<CBuffWindow>                      pSongWnd;
 ForeignPointer<CBugReportWnd>                    pBugReportWnd;
 ForeignPointer<CCastingWnd>                      pCastingWnd;
 ForeignPointer<CCastSpellWnd>                    pCastSpellWnd;
+ForeignPointer<CCharacterListWnd>                pCharacterListWnd;
 ForeignPointer<CColorPickerWnd>                  pColorPickerWnd;
 ForeignPointer<CCombatAbilityWnd>                pCombatAbilityWnd;
 ForeignPointer<CCombatSkillsSelectWnd>           pCombatSkillsSelectWnd;
@@ -1192,6 +1194,7 @@ void InitializeEQGameOffsets()
 	EQADDR_ZONETYPE                 = (BYTE*)__ZoneType;
 	EQbCommandStates                = (BYTE*)g_eqCommandStates;
 	EQMappableCommandList           = (char**)__BindList;
+	ghEQMainInstance                = (HINSTANCE*)__heqmain;
 	gpAutoFire                      = (BYTE*)__Autofire;
 	gpAutoSkill                     = (AUTOSKILL*)__AutoSkillArray;
 	gpbCommandEvent                 = (DWORD*)__gpbCommandEvent;
@@ -1285,6 +1288,7 @@ void InitializeEQGameOffsets()
 	pBugReportWnd                   = pinstCBugReportWnd;
 	pCastingWnd                     = pinstCCastingWnd;
 	pCastSpellWnd                   = pinstCCastSpellWnd;
+	pCharacterListWnd               = pinstCCharacterListWnd;
 	pColorPickerWnd                 = pinstCColorPickerWnd;
 	pCombatAbilityWnd               = pinstCCombatAbilityWnd;
 	pCombatSkillsSelectWnd          = pinstCCombatSkillsSelectWnd;
@@ -1382,15 +1386,154 @@ void InitializeEQGraphicsOffsets()
 
 //============================================================================
 //
-// EQMain.dll Offsets
-DWORD LoginController__GiveTime = 0;
+// EQMain.dll
 
-void InitializeEQMainOffsets()
+//----------------------------------------------------------------------------
+// offsets / patterns
+
+// LoginController__GiveTime
+// IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE 5E E9
+static uint8_t* LoginController_GiveTime_pattern = (uint8_t*)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE\x5E\xE9";
+static char     LoginController_GiveTime_mask[] = "xxxx????xxxx";
+DWORD           LoginController__GiveTime = 0;
+
+// WndProc
+// 55 8B EC 83 EC 54 A1 ? ? ? ? 33 C5 89 45 FC 8B 0D ? ? ? ? 53 8B 5D 08 56 8B 75 10 57 8B 7D 14 85 C9
+static uint8_t* EQMain__WndProc_pattern = (uint8_t*)"\x55\x8B\xEC\x83\xEC\x54\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xFC\x8B\x0D\x00\x00\x00\x00\x53\x8B\x5D\x08\x56\x8B\x75\x10\x57\x8B\x7D\x14\x85\xC9";
+static char     EQMain__WndProc_mask[] = "xxxxxxx????xxxxxxx????xxxxxxxxxxxxxx";
+DWORD           EQMain__WndProc = 0;
+
+// CXWndManager
+// A1 ? ? ? ? 89 88 ? ? ? ?
+// .text:10009400 A1 7C 7F 36 10                       mov     eax, CXWndManager* wndmgr
+static uint8_t* EQMain__CXWndManager_pattern = (uint8_t*)"\xA1\x00\x00\x00\x00\x89\x88\x00\x00\x00\x00";
+static char     EQMain__CXWndManager_mask[] = "x????xx????";
+DWORD           EQMain__CXWndManager = 0;
+
+// CSidlManager
+// 8B 35 ? ? ? ? C6 45 FC 08
+// .text:1000A098 8B 35 00 CA 37 10                    mov     esi, dword_1037CA00
+static uint8_t* EQMain__CSidlManager_pattern = (uint8_t*)"\x8B\x35\x00\x00\x00\x00\xC6\x45\xFC\x08";
+static char     EQMain__CSidlManager_mask[] = "xx????xxxx";
+DWORD           EQMain__CSidlManager = 0;
+
+// CXWndManager::GetCursorToDisplay
+// 51 53 56 8B F1 C7 44 24 ? ? ? ? ? 57 8D 44 24 0C 50 8D 9E ? ? ? ? 53 E8 ? ? ? ?
+static uint8_t* EQMain__CXWndManager__GetCursorToDisplay_pattern = (uint8_t*)"\x51\x53\x56\x8B\xF1\xC7\x44\x24\x00\x00\x00\x00\x00\x57\x8D\x44\x24\x0C\x50\x8D\x9E\x00\x00\x00\x00\x53\xE8\x00\x00\x00\x00";
+static char     EQMain__CXWndManager__GetCursorToDisplay_mask[] = "xxxxxxxx?????xxxxxxxx????xx????";
+DWORD           EQMain__CXWndManager__GetCursorToDisplay;
+
+// LoginController::ProcessKeyboardEvents
+// 55 8B EC 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 FC 57 8B F9 C7 85 ? ? ? ? ? ? ? ? FF 15 ? ? ? ?
+DWORD LoginController__ProcessKeyboardEvents = 0;
+
+// LoginController::ProcessMouseEvents
+// 55 8B EC 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 FC 56 57 8B 3D ? ? ? ? 8B F1 C7 85 ? ? ? ? ? ?
+DWORD LoginController__ProcessMouseEvents = 0;
+
+// LoginController::FlushDXKeyboard
+// 55 8B EC 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 FC 8B 41 04 8D 95 ? ? ? ? 6A 00 52 8D 95 ? ? ?
+static uint8_t* LoginController__FlushDXKeyboard_pattern = (uint8_t*)"\x55\x8B\xEC\x81\xEC\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xFC\x8B\x41\x04\x8D\x95\x00\x00\x00\x00\x6A\x00\x52\x8D\x95\x00\x00\x00\x00\xC7\x85\x00\x00\x00\x00\x00\x00\x00\x00";
+static char     LoginController__FlushDxKeyboard_mask[] = "xxxxx????x????xxxxxxxxxx????xxxxx????xx????????";
+DWORD           LoginController__FlushDxKeyboard = 0;
+
+// LoginController::SwapScreenMode
+// 56 8B 35 ? ? ? ? 8B 4E 08 85 C9 74 1C 8B 01 51 FF 50 20 8B 46 08 50 8B 10
+static uint8_t* LoginController__SwapScreenMode_pattern = (uint8_t*)"\x56\x8B\x35\x00\x00\x00\x00\x8B\x4E\x08\x85\xC9\x74\x1C\x8B\x01\x51\xFF\x50\x20\x8B\x46\x08\x50\x8B\x10\xFF\x52\x08\xC7\x46\x00\x00\x00\x00\x00\x8B\x35\x00\x00\x00\x00";
+static char     LoginController__SwapScreenMode_mask[] = "xxx????xxxxxxxxxxxxxxxxxxxxxxxx?????xx????";
+DWORD           LoginController__SwapScreenMode = 0;
+
+// We use SwapScreenMode to find the LoginController instance
+DWORD           pinstLoginController = 0;
+ForeignPointer<LoginController> g_pLoginController;
+
+
+bool InitializeEQMainOffsets()
 {
-	if (!EQMainBaseAddress)
+	if (*ghEQMainInstance)
 	{
+		EQMainBaseAddress = (uintptr_t)*ghEQMainInstance;
 
+		LoginController__GiveTime = FindPattern(EQMainBaseAddress, 0x100000,
+			LoginController_GiveTime_pattern, LoginController_GiveTime_mask);
+
+		EQMain__WndProc = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__WndProc_pattern, EQMain__WndProc_mask);
+
+		if (uint32_t addr = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__CXWndManager_pattern, EQMain__CXWndManager_mask))
+		{
+			EQMain__CXWndManager = GetDWordAt(addr, 1);
+			pWndMgr = EQMain__CXWndManager;
+		}
+		else
+		{
+			pWndMgr.reset();
+		}
+
+		if (uint32_t addr = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__CSidlManager_pattern, EQMain__CSidlManager_mask))
+		{
+			EQMain__CSidlManager = GetDWordAt(addr, 2);
+			pSidlMgr = EQMain__CSidlManager;
+		}
+		else
+		{
+			pSidlMgr.reset();
+		}
+
+		EQMain__CXWndManager__GetCursorToDisplay = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__CXWndManager__GetCursorToDisplay_pattern, EQMain__CXWndManager__GetCursorToDisplay_mask);
+
+		if (LoginController__GiveTime)
+		{
+			//.text:10014B00                      public: void __thiscall LoginController::GiveTime(void) proc near
+			//.text:10014B00 56                                   push    esi
+			//.text:10014B01 8B F1                                mov     esi, this
+			//.text:10014B03 E8 D8 06 00 00                       call    LoginController::ProcessKeyboardEvents(void)
+			LoginController__ProcessKeyboardEvents = GetFunctionAddressAt(LoginController__GiveTime + 3, 1, 4);
+			//.text:10014B08 8B CE                                mov     this, esi       ; this
+			//.text:10014B0A 5E                                   pop     esi
+			//.text:10014B0B E9 A0 08 00 00                       jmp     LoginController::ProcessMouseEvents(void)
+			LoginController__ProcessMouseEvents = GetFunctionAddressAt(LoginController__GiveTime + 11, 1, 4);
+		}
+
+		LoginController__FlushDxKeyboard = FindPattern(EQMainBaseAddress, 0x100000,
+			LoginController__FlushDXKeyboard_pattern, LoginController__FlushDxKeyboard_mask);
+
+		LoginController__SwapScreenMode = FindPattern(EQMainBaseAddress, 0x100000,
+			LoginController__SwapScreenMode_pattern, LoginController__SwapScreenMode_mask);
+
+		if (LoginController__SwapScreenMode)
+		{
+			pinstLoginController = GetDWordAt(LoginController__SwapScreenMode, 3);
+			g_pLoginController = pinstLoginController;
+		}
+
+		return true;
 	}
+
+	return false;
+}
+
+void CleanupEQMainOffsets()
+{
+	EQMainBaseAddress = 0;
+	LoginController__GiveTime = 0;
+	EQMain__WndProc = 0;
+	EQMain__CXWndManager = 0;
+	EQMain__CSidlManager = 0;
+	EQMain__CXWndManager__GetCursorToDisplay = 0;
+	LoginController__ProcessKeyboardEvents = 0;
+	LoginController__ProcessMouseEvents = 0;
+	LoginController__FlushDxKeyboard = 0;
+	LoginController__SwapScreenMode = 0;
+	pinstLoginController = 0;
+	g_pLoginController.reset();
+
+	// re-initialize offsets that were overwritten by eqmain
+	pWndMgr = pinstCXWndManager;
+	pSidlMgr = pinstCSidlManager;
 }
 
 #pragma endregion

@@ -55,7 +55,7 @@ inline uint32_t GetFunctionAddressAt(uint32_t address, uint32_t addressOffset, u
 	if (address)
 	{
 		uint32_t displacement = *reinterpret_cast<uint32_t*>(address + addressOffset);
-		return address + displacement + numBytes;
+		return address + numBytes + displacement;
 	}
 
 	return 0;

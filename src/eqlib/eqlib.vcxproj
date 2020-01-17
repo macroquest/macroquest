@@ -92,6 +92,7 @@
     <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="ItemBase-Members.h" />
     <ClInclude Include="Items.h" />
+    <ClInclude Include="LoginFrontend.h" />
     <ClInclude Include="Mutex.h" />
     <ClInclude Include="OffsetUtils.h" />
     <ClInclude Include="PcClient.h" />

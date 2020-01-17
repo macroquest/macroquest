@@ -37,6 +37,10 @@ namespace mq {
 
 //============================================================================
 
+// From MQ2LoginFrontend.cpp
+void InitializeLoginFrontend();
+void ShutdownLoginFrontend();
+
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
@@ -690,6 +694,7 @@ bool MQ2Initialize()
 	InitializeChatHook();
 	InitializeMQ2Spawns();
 	InitializeMQ2Pulse();
+	InitializeLoginFrontend();
 
 	// if we are precharselect we init here otherwise we init in HeartBeat
 	DWORD gs = GetGameState();
@@ -723,6 +728,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2DInput());
 	DebugTry(ShutdownChatHook());
 	DebugTry(ShutdownMQ2Pulse());
+	DebugTry(ShutdownLoginFrontend());
 	DebugTry(ShutdownMQ2Windows());
 	DebugTry(ShutdownMQ2AutoInventory());
 	DebugTry(MQ2MouseHooks(false));
