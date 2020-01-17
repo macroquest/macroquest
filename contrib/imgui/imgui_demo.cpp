@@ -59,6 +59,7 @@ Index of this file:
 #endif
 
 #include "imgui.h"
+#include "../src/main/MQ2Main.h"
 #include <ctype.h>          // toupper
 #include <limits.h>         // INT_MIN, INT_MAX
 #include <math.h>           // sqrtf, powf, cosf, sinf, floorf, ceilf
@@ -4977,6 +4978,10 @@ struct ExampleAppConsole
             int first = History.Size - 10;
             for (int i = first > 0 ? first : 0; i < History.Size; i++)
                 AddLog("%3d: %s\n", i, History[i]);
+        }
+        else if (strlen(command_line) > 1 && command_line[0] == '/')
+        {
+            mq::EzCommand(command_line);
         }
         else
         {
