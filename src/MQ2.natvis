@@ -39,6 +39,14 @@
 		</Expand>
 	</Type>
 
+	<Type Name="eqlib::ForeignPointer&lt;*&gt;">
+		<DisplayString Condition="m_ptr == 0">empty</DisplayString>
+		<DisplayString Condition="m_ptr != 0">{*m_ptr,na}</DisplayString>
+		<Expand>
+			<Item Name="[ptr]" Condition="m_ptr != 0">*m_ptr</Item>
+		</Expand>
+	</Type>
+
 	<Type Name="eqlib::CXWnd">
 	</Type>
 
