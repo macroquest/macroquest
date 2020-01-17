@@ -1,0 +1,3 @@
+[submodule "data/macros/TestSuite"]
+	path = data/macros/TestSuite
+	url = https://gitlab.com/mq2/testsuite

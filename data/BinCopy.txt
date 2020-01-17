@@ -1,5 +1,8 @@
 config/MacroQuest_default.ini
 macros/*.mac
+macros/TestSuite/*.mac
+macros/TestSuite/*.inc
+macros/TestSuite/README.md
 resources/CHANGELOG.md
 resources/GPL.txt
 resources/ItemDB.txt
