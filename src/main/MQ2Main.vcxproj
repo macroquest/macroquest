@@ -94,6 +94,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
@@ -146,6 +150,7 @@
     <ClInclude Include="..\..\contrib\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />

@@ -134,6 +134,9 @@
     <ClCompile Include="MQ2LoginFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>Source Files\Contrib\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -234,6 +237,9 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\Blech\Blech.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h">
+      <Filter>Header Files\contrib\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
