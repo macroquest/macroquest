@@ -138,6 +138,7 @@
 #define pinstEQSpellStrings_x                                      0xCC59B8
 #define instExpeditionLeader_x                                     0xEBBC9A
 #define instExpeditionName_x                                       0xEBBCDA
+#define pinstSGraphicsEngine_x                                     0x15FC0E4
 #define pinstGroup_x                                               0xEB581E
 #define pinstImeManager_x                                          0x15FB2B0
 #define pinstLocalPlayer_x                                         0xEB5A28

@@ -187,6 +187,7 @@ class CPlayerNotesWnd;
 class CPlayerPointManager;
 class CPlayerWnd;
 class CPotionBeltWnd;
+class CPropertySet;
 class CQuantityWnd;
 class CRadioGroup;
 class CRaid;
@@ -377,6 +378,18 @@ using CHARINFO = CHARINFOOLD;
 using PCHARINFO /*[[deprecated]]*/ = CHARINFOOLD*;
 #endif
 
+// Graphics types
+struct SGraphicsEngine;
+class CFastFileInterface;
+class CResourceManagerInterface;
+class CRenderInterface;
+class CSceneGraphInterface;
+class CParticleSystemInterface;
+class CCollisionInterface;
+class CMathInterface;
+class CThickLineSystemInterface;
+class CDebugDrawInterface;
+class CTerrainSystemInterface;
 // End forward class declarations
 
 } // namespace eqlib

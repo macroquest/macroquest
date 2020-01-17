@@ -50,7 +50,6 @@ bool gbDeviceHooksInstalled = false;
 //----------------------------------------------------------------------------
 // statics
 
-static HMODULE ghD3D9Module = nullptr;
 static DWORD gResetDeviceAddress = 0;
 static POINT gMouseLocation;
 static bool gbMouseBlocked = false;
@@ -58,6 +57,9 @@ static char ImGuiSettingsFile[MAX_PATH] = { 0 };
 static bool gbFlushNextMouse = false;
 static bool gbRetryHooks = false;
 static bool gbInitializationFailed = false;
+static bool gbInitializedImGui = false;
+static int gLastGameState = GAMESTATE_PRECHARSELECT;
+
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -77,7 +79,7 @@ using D3D9CREATEEXPROC = HRESULT(WINAPI*)(UINT, IDirect3D9Ex**);
 static void UpdateGraphicsScene();
 static void InvalidateDeviceObjects();
 static bool CreateDeviceObjects();
-static void RenderImGui();
+static bool RenderImGui();
 
 // Some of our hooks are determined dynamically. Rather than have a variable
 // for each one, we store them in a collection of these HookInfo objects.
@@ -102,6 +104,7 @@ static void InstallHook(HookInfo hi)
 
 	if (iter != std::end(gHooks))
 	{
+#if 0
 		// hook already installed. Remove it.
 		if (iter->address != 0)
 		{
@@ -109,6 +112,10 @@ static void InstallHook(HookInfo hi)
 		}
 
 		gHooks.erase(iter);
+#else
+		// hook already installed. just skip.
+		return;
+#endif
 	}
 
 	hi.patch(hi);
@@ -412,6 +419,9 @@ static bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 
 static void ImGui_ImplDX9_Shutdown()
 {
+	if (!ImGui::GetCurrentContext())
+		return;
+
 	ImGui_ImplDX9_ShutdownPlatformInterface();
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 
@@ -1415,10 +1425,13 @@ static void ImGui_ImplWin32_ShutdownPlatformInterface()
 
 void InitializeImGui(IDirect3DDevice9* device)
 {
+	if (gbInitializedImGui)
+		return;
+
 	ImGui::CreateContext();
 
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
@@ -1442,15 +1455,37 @@ void InitializeImGui(IDirect3DDevice9* device)
 		style.WindowRounding = 0.0f;
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 	}
+
+	gbInitializedImGui = true;
 }
 
 void ShutdownImGui()
 {
+	if (!gbInitializedImGui)
+		return;
+
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 
 	ImGui::DestroyContext();
+
+	g_pImguiDevice = nullptr;
+	g_pVB = nullptr;
+	g_pIB = nullptr;
+	g_FontTexture = nullptr;
+	g_VertexBufferSize = 5000;
+	g_IndexBufferSize = 10000;
+	g_bImGuiReady = false;
+
+	g_hWnd = nullptr;
+	g_Time = 0;
+	g_TicksPerSecond = 0;
+	g_LastMouseCursor = ImGuiMouseCursor_COUNT;
+	g_WantUpdateMonitors = true;
+	gbInitializedImGui = false;
 }
+
+#pragma endregion
 
 //============================================================================
 
@@ -1507,7 +1542,6 @@ public:
 		}
 
 		gbDeviceAcquired = false;
-
 		DebugTryEx(InvalidateDeviceObjects());
 
 		return Reset_Trampoline(pPresentationParameters);
@@ -1534,12 +1568,13 @@ public:
 		// When TestCooperativeLevel returns all good, then we can reinitialize.
 		// This will let the renderer control our flow instead of having to
 		// poll for the state ourselves.
-		if (!gbDeviceAcquired && imgui::g_pImguiDevice)
+		if (!gbDeviceAcquired)
 		{
 			HRESULT result = GetThisDevice()->TestCooperativeLevel();
 
 			if (result == D3D_OK)
 			{
+				imgui::InitializeImGui(gpD3D9Device);
 				gbDeviceAcquired = true;
 
 				if (DetectResetDeviceHook())
@@ -1555,16 +1590,12 @@ public:
 		// rest of the rendering pipeline
 		if (gbDeviceAcquired)
 		{
-			IDirect3DStateBlock9* stateBlock = nullptr;
-			gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
 			DebugTryEx(RenderImGui());
-
-			stateBlock->Apply();
-			stateBlock->Release();
 		}
 
-		return EndScene_Trampoline();
+		HRESULT result = EndScene_Trampoline();
+
+		return result;
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::Reset_Trampoline(D3DPRESENT_PARAMETERS* pPresentationParameters));
@@ -1579,17 +1610,9 @@ public:
 	void Render_Trampoline();
 	void Render_Detour()
 	{
-		// Perform the render within a stateblock so we don't upset the rest
-		// of the rendering pipeline
 		if (gbDeviceAcquired)
 		{
-			IDirect3DStateBlock9* stateBlock = nullptr;
-			gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
 			DebugTryEx(UpdateGraphicsScene());
-
-			stateBlock->Apply();
-			stateBlock->Release();
 		}
 
 		Render_Trampoline();
@@ -1603,11 +1626,13 @@ DETOUR_TRAMPOLINE_EMPTY(void ProcessMouseEvents_Trampoline());
 void ProcessMouseEvents_Detour()
 {
 	// Only process the mouse events if we are the foreground window.
+#if 0
 	if (!gbInForeground)
 	{
 		ProcessMouseEvents_Trampoline();
 		return;
 	}
+#endif
 
 	if (ImGui::GetCurrentContext() != nullptr)
 	{
@@ -1619,6 +1644,7 @@ void ProcessMouseEvents_Detour()
 
 		HRESULT hr = (*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num,
 			io.WantCaptureMouse ? 0 : DIGDD_PEEK);
+
 		if (SUCCEEDED(hr))
 		{
 			for (DWORD i = 0; i < num; i++)
@@ -1745,18 +1771,32 @@ LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return WndProc_Trampoline(hWnd, msg, wParam, lParam);
 }
 
+static IDirect3DDevice9* AcquireDevice()
+{
+	IDirect3DDevice9* pDevice = nullptr;
+
+	if (pGraphicsEngine && pGraphicsEngine->pRender && pGraphicsEngine->pRender->pD3DDevice)
+	{
+		return pGraphicsEngine->pRender->pD3DDevice;
+	}
+
+	return nullptr;
+}
+
 static bool InstallD3D9Hooks()
 {
 	bool success = false;
+	HMODULE hD3D9Module = nullptr;
 
-	WCHAR lpD3D9Path[MAX_PATH];
-	SHGetFolderPathW(nullptr, CSIDL_SYSTEM, nullptr, SHGFP_TYPE_CURRENT, lpD3D9Path);
-	wcscat_s(lpD3D9Path, MAX_PATH, L"\\d3d9.dll");
+	if (!hD3D9Module)
+	{
+		hD3D9Module = GetModuleHandle("d3d9.dll");
+	}
 
 	// Acquire the address of the virtual function table by creating an instance of IDirect3DDevice9Ex.
-	if (ghD3D9Module = LoadLibraryW(lpD3D9Path))
+	if (hD3D9Module)
 	{
-		D3D9CREATEEXPROC d3d9CreateEx = (D3D9CREATEEXPROC)GetProcAddress(ghD3D9Module, "Direct3DCreate9Ex");
+		D3D9CREATEEXPROC d3d9CreateEx = (D3D9CREATEEXPROC)GetProcAddress(hD3D9Module, "Direct3DCreate9Ex");
 		if (!d3d9CreateEx)
 		{
 			DebugSpewAlways("InstallD3D9Hooks: Failed to get address of Direct3DCreate9Ex");
@@ -1784,38 +1824,44 @@ static bool InstallD3D9Hooks()
 		// For some reason, CreateDeviceEx seems to tamper with it.
 		int round = fegetround();
 
-		IDirect3DDevice9Ex* deviceEx;
+		IDirect3DDevice9* device = nullptr;
 		hResult = d3d9ex->CreateDeviceEx(
 			D3DADAPTER_DEFAULT,
 			D3DDEVTYPE_NULLREF,
 			nullptr,
 			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_NOWINDOWCHANGES,
-			&pp, nullptr, &deviceEx);
+			&pp, nullptr, (IDirect3DDevice9Ex**)&device);
 
-		if (SUCCEEDED(hResult))
+		if (!SUCCEEDED(hResult))
+		{
+			DebugSpewAlways("InstallD3D9Hooks: failed to CreateDeviceEx. Result: %x", hResult);
+
+			device = AcquireDevice();
+		}
+
+		if (device)
 		{
 			success = true;
 
 			// IDirect3DDevice9 virtual function hooks
-			DWORD* d3dDevice_vftable = *(DWORD**)deviceEx;
+			DWORD* d3dDevice_vftable = *(DWORD**)device;
 
 			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour,
 				&RenderHooks::BeginScene_Trampoline, "d3dDevice_BeginScene");
 			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour,
 				&RenderHooks::EndScene_Trampoline, "d3dDevice_EndScene");
 
-			deviceEx->Release();
-		}
-		else
-		{
-			DebugSpewAlways("InstallD3D9Hooks: failed to CreateDeviceEx. Result: %x", hResult);
+			device->Release();
 		}
 
 		// restore floating point rounding state
 		fesetround(round);
 
-			d3d9ex->Release();
-		}
+		if (d3d9ex)
+		{
+		d3d9ex->Release();
+	}
+	}
 
 	return success;
 }
@@ -1837,6 +1883,11 @@ static eOverlayHookStatus InitializeOverlayHooks()
 		}
 
 		return eOverlayHookStatus::Success;
+	}
+
+	if (!pGraphicsEngine || !pGraphicsEngine->pRender || !pGraphicsEngine->pRender->pD3DDevice)
+	{
+		return eOverlayHookStatus::MissingDevice;
 	}
 
 	if (!InstallD3D9Hooks())
@@ -1861,6 +1912,8 @@ static eOverlayHookStatus InitializeOverlayHooks()
 	InstallDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline, "CParticleSystem__Render");
 
 	gbDeviceHooksInstalled = true;
+	gLastGameState = gGameState;
+
 	return !gpD3D9Device ? eOverlayHookStatus::MissingDevice : eOverlayHookStatus::Success;
 }
 #pragma endregion
@@ -1960,18 +2013,19 @@ static void UpdateOverlayUI()
 	}
 }
 
-static void RenderImGui()
+static bool RenderImGui()
 {
 	using namespace imgui;
 
 	if (!g_bImGuiReady)
-		return;
+		return false;
+
 	if (!g_bRenderImGui)
-		return;
+		return false;
 
 	// This is loading/transitioning screen
 	if (gGameState == GAMESTATE_LOGGINGIN)
-		return;
+		return false;
 
 	// Begin a new frame
 	ImGui_ImplDX9_NewFrame();
@@ -1989,6 +2043,9 @@ static void RenderImGui()
 		}
 	}
 
+	IDirect3DStateBlock9* stateBlock = nullptr;
+	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
+
 	// Render the ui
 	ImGui::Render();
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
@@ -2001,10 +2058,20 @@ static void RenderImGui()
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
 	}
+
+	stateBlock->Apply();
+	stateBlock->Release();
+
+	return true;
 }
 
 static void UpdateGraphicsScene()
 {
+	// Perform the render within a stateblock so we don't upset the rest
+	// of the rendering pipeline
+	IDirect3DStateBlock9* stateBlock = nullptr;
+	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
+
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
 		if (pCallbacks && pCallbacks->GraphicsSceneRender)
@@ -2012,6 +2079,9 @@ static void UpdateGraphicsScene()
 			pCallbacks->GraphicsSceneRender();
 		}
 	}
+
+	stateBlock->Apply();
+	stateBlock->Release();
 }
 
 static void InvalidateDeviceObjects()
@@ -2064,7 +2134,6 @@ void InitializeMQ2Overlay()
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
 	}
 
-	imgui::InitializeImGui(gpD3D9Device);
 	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
 
 	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
@@ -2082,27 +2151,59 @@ void ShutdownMQ2Overlay()
 	gHooks.clear();
 
 	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
+
 	imgui::ShutdownImGui();
 
 	if (gpD3D9Device)
 	{
-		gpD3D9Device->Release();
 		gpD3D9Device = nullptr;
 	}
 
-	if (ghD3D9Module)
+	gResetDeviceAddress = 0;
+	gMouseLocation = POINT{};
+	gbMouseBlocked = false;
+	gbFlushNextMouse = false;
+	gbRetryHooks = false;
+	gbInitializationFailed = false;
+	gbDeviceAcquired = false;
+}
+
+void ResetOverlay()
 {
-		FreeLibrary(ghD3D9Module);
-		ghD3D9Module = nullptr;
+	if (!gbDeviceHooksInstalled)
+		return;
+
+	if (gbDeviceAcquired)
+	{
+		InvalidateDeviceObjects();
+		gbDeviceAcquired = false;
 	}
+
+	imgui::ShutdownImGui();
+
+	if (gpD3D9Device)
+	{
+		gpD3D9Device = nullptr;
+	}
+
+	gResetDeviceAddress = 0;
 }
 
 void PulseMQ2Overlay()
 {
+	// Reset the device hooks between game states. Some of them may alter
+	// the device and we might need to start over.
+	if (gGameState != gLastGameState)
+	{
+		DebugSpewAlways("Game State Changed: %d, resetting device", gGameState);
+
+		gLastGameState = gGameState;
+		ResetOverlay();
+	}
+
 	if (gbRetryHooks)
 	{
 		gbRetryHooks = false;
-
 		InitializeMQ2Overlay();
 	}
 }

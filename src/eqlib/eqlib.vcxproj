@@ -89,6 +89,7 @@
     <ClInclude Include="EQUIStructs.h" />
     <ClInclude Include="ForwardDecls.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="ItemBase-Members.h" />
     <ClInclude Include="Items.h" />
     <ClInclude Include="Mutex.h" />

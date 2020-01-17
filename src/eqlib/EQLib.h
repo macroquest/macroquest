@@ -57,3 +57,6 @@
 #include "PlayerClient.h"
 #include "PcClient.h"
 #include "Spells.h"
+
+// misc components
+#include "GraphicsEngine.h"
