@@ -509,11 +509,15 @@ void DeInitializeMQ2IcExports()
 	IC_ClassLvl = nullptr;
 }
 
-void DoInitialization()
+void SetMainThreadId()
 {
 	// initialize main thread id
-	dwMainThreadId = ::GetCurrentThreadId();
+	if (dwMainThreadId == 0)
+		dwMainThreadId = ::GetCurrentThreadId();
+}
 
+void DoInitialization()
+{
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2AutoInventory();
@@ -1021,7 +1025,7 @@ bool IsMainThread()
 	if (dwMainThreadId == 0)
 		return false;
 
-	return dwMainThreadId == ::GetCurrentProcessId();
+	return dwMainThreadId == ::GetCurrentThreadId();
 }
 
 //============================================================================

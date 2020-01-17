@@ -804,6 +804,7 @@ DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
 // Description: Our ProcessGameEvents Hook
 // ***************************************************************************
 
+void SetMainThreadId();
 void DoInitialization();
 
 bool Trampoline_ProcessGameEvents();
@@ -815,6 +816,7 @@ bool Detour_ProcessGameEvents()
 
 	HeartbeatState hbState = Heartbeat();
 	int pgeResult = Trampoline_ProcessGameEvents();
+	SetMainThreadId();
 
 	if (hbState == HeartbeatLoad && !IsPluginsInitialized())
 	{
