@@ -388,6 +388,7 @@ struct MQPlugin
 	fMQGroundItem        RemoveGroundItem = 0;
 	fMQBeginZone         BeginZone = 0;
 	fMQEndZone           EndZone = 0;
+	fMQUpdateImGui       UpdateImGui = 0;
 
 	MQPlugin* pLast = nullptr;
 	MQPlugin* pNext = nullptr;

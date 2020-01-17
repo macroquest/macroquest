@@ -39,6 +39,7 @@ using fMQSpawn               = void   (*)(SPAWNINFO*);
 using fMQGroundItem          = void   (*)(GROUNDITEM*);
 using fMQBeginZone           = void   (*)();
 using fMQEndZone             = void   (*)();
+using fMQUpdateImGui         = void   (*)();
 
 // MQ2Ic Function Types
 using fICGetHashData         = int64_t(*)(void*, int);

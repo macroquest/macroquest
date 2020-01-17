@@ -2043,6 +2043,8 @@ static bool RenderImGui()
 		}
 	}
 
+	Benchmark(bmPluginsUpdateImGui, DebugTryEx(PluginsUpdateImGui()));
+
 	IDirect3DStateBlock9* stateBlock = nullptr;
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 

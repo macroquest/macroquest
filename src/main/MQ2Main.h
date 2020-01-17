@@ -209,6 +209,7 @@ MQLIB_API void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
 MQLIB_API void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
 MQLIB_API void PluginsBeginZone();
 MQLIB_API void PluginsEndZone();
+MQLIB_API void PluginsUpdateImGui();
 MQLIB_API bool IsPluginsInitialized();
 MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
 

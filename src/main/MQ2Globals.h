@@ -55,6 +55,7 @@ MQLIB_API DWORD bmUpdateSpawnCaptions;
 MQLIB_API DWORD bmCalculate;
 MQLIB_API DWORD bmBeginZone;
 MQLIB_API DWORD bmEndZone;
+MQLIB_API DWORD bmPluginsUpdateImGui;
 
 /* OTHER */
 

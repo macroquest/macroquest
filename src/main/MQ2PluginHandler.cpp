@@ -31,6 +31,9 @@ static std::atomic_bool s_pluginsInitialized = false;
 static uint32_t s_mq2mainstamp = 0;
 static std::recursive_mutex s_pluginsMutex;
 
+// Defined in MQ2Utilities.cpp
+DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
+
 static uint32_t checkme(char* module)
 {
 	PIMAGE_DOS_HEADER pd = (PIMAGE_DOS_HEADER)module;
@@ -135,6 +138,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	pPlugin->RemoveGroundItem  = (fMQGroundItem)GetProcAddress(hmod, "OnRemoveGroundItem");
 	pPlugin->BeginZone         = (fMQBeginZone)GetProcAddress(hmod, "OnBeginZone");
 	pPlugin->EndZone           = (fMQEndZone)GetProcAddress(hmod, "OnEndZone");
+	pPlugin->UpdateImGui       = (fMQUpdateImGui)GetProcAddress(hmod, "OnUpdateImGui");
 
 	float* ftmp = (float*)GetProcAddress(hmod, "?MQ2Version@@3MA");
 	if (ftmp)
@@ -240,7 +244,6 @@ void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad)
 	WritePrivateProfileBool("Plugins", Name, bLoad, mq::internal_paths::MQini);
 }
 
-// FIXME: Uses too much stack space
 void InitializeMQ2Plugins()
 {
 	DebugSpew("Initializing plugins");
@@ -253,29 +256,22 @@ void InitializeMQ2Plugins()
 	bmPluginsReloadUI = AddMQ2Benchmark("PluginsReloadUI");
 	bmPluginsDrawHUD = AddMQ2Benchmark("PluginsDrawHUD");
 	bmPluginsSetGameState = AddMQ2Benchmark("PluginsSetGameState");
+	bmPluginsUpdateImGui = AddMQ2Benchmark("PluginsUpdateImGui");
 	bmCalculate = AddMQ2Benchmark("Calculate");
 	bmBeginZone = AddMQ2Benchmark("BeginZone");
 	bmEndZone = AddMQ2Benchmark("EndZone");
-
-	// Until we clean this up -- longest plugin name last time someone looked at this is 17 characters.  Assume 30 chars * 250 plugins = 7500.
-	char PluginList[MAX_STRING * 4] = { 0 };
-	char* pPluginList = nullptr;
 
 	// lock plugin list before manipulating it
 	std::scoped_lock lock(s_pluginsMutex);
 	s_pluginsInitialized = true;
 
-	GetPrivateProfileString("Plugins", "", "", PluginList, MAX_STRING * 4, mq::internal_paths::MQini);
-	pPluginList = PluginList;
-
-	while (pPluginList[0] != 0)
+	auto plugins = GetPrivateProfileKeys("Plugins", mq::internal_paths::MQini);
+	for (const std::string& pluginName : plugins)
 	{
-		if (GetPrivateProfileBool("Plugins", pPluginList, false, mq::internal_paths::MQini))
+		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
 		{
-			LoadMQ2Plugin(pPluginList);
+			LoadMQ2Plugin(pluginName.c_str());
 		}
-
-		pPluginList += strlen(pPluginList) + 1;
 	}
 }
 
@@ -468,9 +464,6 @@ void PluginsReloadUI()
 		pPlugin = pPlugin->pNext;
 	}
 }
-
-// Defined in MQ2Utilities.cpp
-DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
 
 void PluginsSetGameState(DWORD GameState)
 {
@@ -731,6 +724,26 @@ void PluginsEndZone()
 	if (PZONEINFO pthezone = (PZONEINFO)pZoneInfo)
 	{
 		LoadCfgFile(pthezone->ShortName, false);
+	}
+}
+
+void PluginsUpdateImGui()
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	std::scoped_lock lock(s_pluginsMutex);
+	PluginDebug("PluginsUpdateImGui");
+
+	MQPlugin* pPlugin = pPlugins;
+	while (pPlugin)
+	{
+		if (pPlugin->UpdateImGui)
+		{
+			pPlugin->UpdateImGui();
+		}
+
+		pPlugin = pPlugin->pNext;
 	}
 }
 
