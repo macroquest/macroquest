@@ -1650,7 +1650,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 	{
 		// user didnt specify "in" so it should be outside a container
 		// OR it's an item, either way we can "click" it -eqmule
-		int Slot = GetIntFromString(szArg1, -1);
+		int Slot = GetIntFromString(szArg1, 0);
 		if (Slot == 0)
 		{
 			_strlwr_s(szArg1);
