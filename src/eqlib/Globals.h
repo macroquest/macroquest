@@ -1009,7 +1009,7 @@ EQLIB_VAR char*                                      EQADDR_TARGETAGGROHOLDER;
 EQLIB_VAR BYTE*                                      EQADDR_ZONETYPE;
 EQLIB_VAR char**                                     EQMappableCommandList;
 EQLIB_VAR BYTE*                                      EQbCommandStates;
-EQLIB_VAR HINSTANCE*                                 ghEQMainInstance;
+EQLIB_VAR HMODULE*                                   ghEQMainInstance;
 EQLIB_VAR BYTE*                                      gpAutoFire;
 EQLIB_VAR AUTOSKILL*                                 gpAutoSkill;
 EQLIB_VAR DWORD*                                     gpbCommandEvent;

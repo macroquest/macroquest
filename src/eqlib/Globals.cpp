@@ -978,7 +978,7 @@ char*                  EQADDR_TARGETAGGROHOLDER  = nullptr;
 BYTE*                  EQADDR_ZONETYPE           = nullptr;
 char**                 EQMappableCommandList     = nullptr;
 BYTE*                  EQbCommandStates          = nullptr;
-HINSTANCE*             ghEQMainInstance          = nullptr;
+HMODULE*               ghEQMainInstance          = nullptr;
 BYTE*                  gpAutoFire                = nullptr;
 AUTOSKILL*             gpAutoSkill               = nullptr;
 DWORD*                 gpbCommandEvent           = nullptr;
@@ -1464,22 +1464,12 @@ bool InitializeEQMainOffsets()
 			EQMain__CXWndManager_pattern, EQMain__CXWndManager_mask))
 		{
 			EQMain__CXWndManager = GetDWordAt(addr, 1);
-			pWndMgr = EQMain__CXWndManager;
-		}
-		else
-		{
-			pWndMgr.reset();
 		}
 
 		if (uint32_t addr = FindPattern(EQMainBaseAddress, 0x100000,
 			EQMain__CSidlManager_pattern, EQMain__CSidlManager_mask))
 		{
 			EQMain__CSidlManager = GetDWordAt(addr, 2);
-			pSidlMgr = EQMain__CSidlManager;
-		}
-		else
-		{
-			pSidlMgr.reset();
 		}
 
 		EQMain__CXWndManager__GetCursorToDisplay = FindPattern(EQMainBaseAddress, 0x100000,
@@ -1551,7 +1541,6 @@ void InitializeGlobals()
 
 	InitializeEQGameOffsets();
 	InitializeEQGraphicsOffsets();
-	InitializeEQMainOffsets();
 }
 
 } // namespace eqlib

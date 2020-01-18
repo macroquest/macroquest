@@ -31,8 +31,12 @@ void DoLoginPulse();
 // From MQ2Overlay.cpp
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin);
 
+void InitializeLoginDetours();
+
 static uintptr_t __FreeLibrary = 0;
 static bool gbDetoursInstalled = false;
+static bool gbWaitingForFrontend = false;
+static bool gbInFrontend = false;
 
 class LoginController_Hook
 {
@@ -43,6 +47,24 @@ public:
 	void GiveTime_Trampoline();
 	void GiveTime_Detour()
 	{
+		gbInFrontend = true;
+
+		if (gbWaitingForFrontend)
+		{
+			// Only do this on the first pass through the login main loop.
+			gbWaitingForFrontend = false;
+
+			// Redirect CXWndManager and CSidlManager to the login instances now that we know that the
+			// frontend is actually running now.
+			pWndMgr = EQMain__CXWndManager;
+			pSidlMgr = EQMain__CSidlManager;
+
+			// Signal to others that we are loaded properly.
+			// Note: this is not really the proper way to do this since this isn't a game state, but autologin
+			// is the only one listening for it.
+			PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
+		}
+
 		DoLoginPulse();
 
 		if (g_pLoginController)
@@ -53,11 +75,6 @@ public:
 
 				g_pLoginController->bIsKeyboardActive = !io.WantCaptureKeyboard;
 				g_pLoginController->bIsMouseActive = !io.WantCaptureMouse;
-			}
-			else
-			{
-				//g_pLoginController->bIsKeyboardActive = true;
-				//g_pLoginController->bIsMouseActive = true;
 			}
 		}
 
@@ -99,6 +116,8 @@ void InitializeLoginDetours()
 	if (gbDetoursInstalled)
 		return;
 
+	DebugSpewAlways("Initializing Login Detours");
+
 	EzDetour(LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline);
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
@@ -116,11 +135,23 @@ void RemoveLoginDetours()
 	if (!gbDetoursInstalled)
 		return;
 
-	RemoveDetour(LoginController__GiveTime);
-	RemoveDetour(EQMain__WndProc);
-	if (EQMain__CXWndManager__GetCursorToDisplay)
+	DebugSpewAlways("Removing Login Detours");
+
+	DWORD detours[] = {
+		LoginController__GiveTime,
+		EQMain__WndProc,
+		EQMain__CXWndManager__GetCursorToDisplay
+	};
+
+	if (::GetModuleHandleA("eqmain.dll") != nullptr)
 	{
-		RemoveDetour(EQMain__CXWndManager__GetCursorToDisplay);
+		for (DWORD detour : detours)
+			RemoveDetour(detour);
+	}
+	else
+	{
+		for (DWORD detour : detours)
+			DeleteDetour(detour);
 	}
 
 	gbDetoursInstalled = false;
@@ -141,22 +172,37 @@ void TryInitializeLoginDetours()
 
 		if (pulseSuccess)
 		{
-			// means it was loaded properly
 			InitializeLoginDetours();
-
-			PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
 		}
 
 		bool overlaySuccess = EQMain__WndProc != 0
 			&& LoginController__ProcessKeyboardEvents
 			&& LoginController__ProcessMouseEvents
 			&& LoginController__FlushDxKeyboard;
+
+		// We'll continue in the first iteration of LoginPulse. This is important
+		// because it means the frontend is actually running.
 	}
 	else
 	{
 		MessageBox(nullptr, "MQ2 needs an update.", "Failed to locate offsets required by MQ2LoginFrontend", MB_SYSTEMMODAL | MB_OK);
 	}
 }
+
+void TryRemoveLoginDetours()
+{
+	if (gbInFrontend)
+	{
+		gbInFrontend = false;
+		gbWaitingForFrontend = true;
+
+		DebugSpewAlways("Cleaning up EQMain Offsets");
+
+		RemoveLoginDetours();
+		CleanupEQMainOffsets();
+	}
+}
+
 
 // Purpose of this hook is to detect when we are loading the frontend. This is only necessary if MQ2 is
 // injected before eqmain.dll is loaded.
@@ -176,32 +222,31 @@ int LoadFrontEnd_Detour()
 	return ret;
 }
 
-DETOUR_TRAMPOLINE_EMPTY(BOOL WINAPI FreeLibrary_Trampoline(HMODULE));
-BOOL WINAPI FreeLibrary_Detour(HMODULE hModule)
+// Right after leaving the frontend, we get a call to FlushDxKeyboard in ExecuteEverQuest(). We
+// hook this function and use it to determine that we've exited the frontend.
+DETOUR_TRAMPOLINE_EMPTY(int FlushDxKeyboard_Trampoline());
+int FlushDxKeyboard_Detour()
 {
-	if (hModule == (HMODULE)*ghEQMainInstance)
-	{
-		RemoveLoginDetours();
-		CleanupEQMainOffsets();
-	}
-
-	return FreeLibrary_Trampoline(hModule);
+	TryRemoveLoginDetours();
+	return FlushDxKeyboard_Trampoline();
 }
 
 void InitializeLoginFrontend()
 {
 	EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
+	EzDetour(__FlushDxKeyboard, FlushDxKeyboard_Detour, FlushDxKeyboard_Trampoline);
 
-	__FreeLibrary = (uintptr_t)&::FreeLibrary;
-	EzDetour(__FreeLibrary, FreeLibrary_Detour, FreeLibrary_Trampoline);
+	gbWaitingForFrontend = true;
 
+	// Try to initialize login detours. This will succeed is eqmain.dll is already loaded. If it isn't,
+	// well try again in LoadFrontend_Detour(), which is called when eqmain.dll is actually loaded.
 	TryInitializeLoginDetours();
 }
 
 void ShutdownLoginFrontend()
 {
 	RemoveDetour(__LoadFrontEnd);
-	RemoveDetour(__FreeLibrary);
+	RemoveDetour(__FlushDxKeyboard);
 	RemoveLoginDetours();
 }
 
