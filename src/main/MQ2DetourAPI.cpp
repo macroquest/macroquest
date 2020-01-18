@@ -157,17 +157,9 @@ void RemoveDetour(DWORD address)
 	std::scoped_lock lock(g_detourMutex);
 
 	DetourRecord* detour = g_detours;
-	HMODULE hModule = nullptr;
 	char szFilename[MAX_STRING] = { 0 };
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)address, &hModule);
-	DWORD myaddress = (DWORD)hModule;
-	GetModuleFileName(hModule, szFilename, MAX_STRING);
-
-	if (char* pDest = strrchr(szFilename, '\\'))
-	{
-		pDest[0] = '\0';
-		strcpy_s(szFilename, &pDest[1]);
-	}
+	HMODULE hModule = nullptr;
+	DWORD myaddress = 0;
 
 	_strlwr_s(szFilename);
 	while (detour)
@@ -176,6 +168,19 @@ void RemoveDetour(DWORD address)
 		{
 			if (detour->pfDetour)
 			{
+				if (hModule == nullptr)
+				{
+					GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)address, &hModule);
+					myaddress = (DWORD)hModule;
+					GetModuleFileName(hModule, szFilename, MAX_STRING);
+
+					if (char* pDest = strrchr(szFilename, '\\'))
+					{
+						pDest[0] = '\0';
+						strcpy_s(szFilename, &pDest[1]);
+					}
+				}
+
 				if (strstr(szFilename, "eqgame"))
 					DebugSpewAlways("DetourRemove %s (%s [0x%08X])", detour->Name, szFilename, address - myaddress + 0x400000);
 				else
