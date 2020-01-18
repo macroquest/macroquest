@@ -3961,77 +3961,77 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case PlatinumShared:
 		Dest.DWord = pChar->BankSharedPlat;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case Cash:
-		Dest.DWord = pProfile->Plat * 1000 + pProfile->Gold * 100 + pProfile->Silver * 10 + pProfile->Copper;
+		Dest.Int64 = pProfile->Plat * 1000 + pProfile->Gold * 100 + pProfile->Silver * 10 + pProfile->Copper;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case Platinum:
 		Dest.DWord = pProfile->Plat;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case CursorPlatinum:
 		Dest.DWord = pProfile->CursorPlat;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case Gold:
 		Dest.DWord = pProfile->Gold;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case CursorGold:
 		Dest.DWord = pProfile->CursorGold;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case Silver:
 		Dest.DWord = pProfile->Silver;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case CursorSilver:
 		Dest.DWord = pProfile->CursorSilver;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case Copper:
 		Dest.DWord = pProfile->Copper;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case CursorCopper:
 		Dest.DWord = pProfile->CursorCopper;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case CashBank:
-		Dest.DWord = pChar->BankPlat * 1000 + pChar->BankGold * 100 + pChar->BankSilver * 10 + pChar->BankCopper;
+		Dest.Int64 = pChar->BankPlat * 1000 + pChar->BankGold * 100 + pChar->BankSilver * 10 + pChar->BankCopper;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case PlatinumBank:
 		Dest.DWord = pChar->BankPlat;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case GoldBank:
 		Dest.DWord = pChar->BankGold;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case SilverBank:
 		Dest.DWord = pChar->BankSilver;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case CopperBank:
 		Dest.DWord = pChar->BankCopper;
-		Dest.Type = pInt64Type;
+		Dest.Type = pIntType;
 		return true;
 
 	case AAExp:
