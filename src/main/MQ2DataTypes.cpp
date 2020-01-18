@@ -7360,42 +7360,23 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case Stacks:
 	case NewStacks: // stacks on self
 	{
-		int buffduration;
-		int duration = 99999;
-		duration = GetIntFromString(Index, duration);
-
-		SPELL* thespell = pSpell;
-		Dest.DWord = 0;
+		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
-		if (pLocalPlayer)
-		{
-			SPAWNINFO* pPlayer = (SPAWNINFO*)pLocalPlayer;
-			PcClient* pPc = pPlayer->GetPcClient();
-			if (pPc)
-			{
-				int SlotIndex = -1;
-				EQ_Affect* ret = pPc->FindAffectSlot(thespell->ID, pPlayer, &SlotIndex, true, pPlayer->Level);
+		if (!pLocalPlayer)
+			return false;
 
-				if (!ret || SlotIndex == -1)
-				{
-					Dest.DWord = false;
-				}
-				else
-				{
-					Dest.DWord = true;
-					buffduration = ret->DurationTick;
+		SPAWNINFO* pPlayer = pLocalPlayer;
+		auto pPc = pPlayer->GetPcClient();
 
-					if (GetSpellDuration(thespell, pPlayer) >= -2)
-					{
-						buffduration = 99999 + 1;
-					}
+		int SlotIndex = -1;
+		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pPlayer, &SlotIndex, true, pPlayer->Level);
 
-					if (buffduration > duration)
-						Dest.DWord = false;
-				}
-			}
-		}
+		Dest.DWord = ret &&
+			SlotIndex != -1 &&
+			GetSpellDuration(pSpell, pPlayer) >= -1 &&
+			ret->DurationTick <= GetIntFromString(Index, 0);
+
 		return true;
 	}
 
