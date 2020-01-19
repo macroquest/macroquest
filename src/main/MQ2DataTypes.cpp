@@ -7366,15 +7366,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (!pLocalPlayer)
 			return false;
 
-		SPAWNINFO* pPlayer = pLocalPlayer;
-		auto pPc = pPlayer->GetPcClient();
+		auto pPc = pLocalPlayer->GetPcClient();
 
 		int SlotIndex = -1;
-		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pPlayer, &SlotIndex, true, pPlayer->Level);
+		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level);
 
 		Dest.DWord = ret &&
 			SlotIndex != -1 &&
-			GetSpellDuration(pSpell, pPlayer) >= -1 &&
+			GetSpellDuration(pSpell, pLocalPlayer) >= -1 &&
 			ret->Duration <= GetIntFromString(Index, 0);
 
 		return true;
@@ -7386,42 +7385,31 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
-		if (!Index[0])
-			return true;
-		SPELL* tmpSpell = nullptr;
+		if (!Index[0] || !pLocalPlayer)
+			return false;
 
-		if (IsNumber(Index))
-			tmpSpell = GetSpellByID(GetIntFromString(Index, 0));
-		else
-			tmpSpell = GetSpellByName(Index);
+		SPELL* tmpSpell = IsNumber(Index) ?
+			GetSpellByID(GetIntFromString(Index, 0)) :
+			GetSpellByName(Index);
+
 		if (!tmpSpell)
-			return true;
+			return false;
 
-		SPELL* thespell = pSpell;
-		if (pLocalPlayer)
-		{
-			SPAWNINFO* pPlayer = (SPAWNINFO*)pLocalPlayer;
-			PcClient* pPc = pPlayer->GetPcClient();
-			if (pPc)
-			{
-				EQ_Affect eff;
-				eff.SpellID = tmpSpell->ID;
-				eff.Level = pPlayer->Level;
-				eff.Type = 2;
-				eff.Modifier = 1.0;
-				int SlotIndex = -1;
+		auto pPc = pLocalPlayer->GetPcClient();
 
-				EQ_Affect* ret = pPc->FindAffectSlot(thespell->ID, pPlayer, &SlotIndex, true, pPlayer->Level, &eff, 1, false);
+		EQ_Affect buff;
+		buff.SpellID = tmpSpell->ID;
+		buff.Level = pLocalPlayer->Level;
+		buff.Type = 2;
+		buff.Modifier = 1.f;
+		buff.CasterGuid = pPc->Guid;
+		buff.Duration = tmpSpell->DurationCap;
+		buff.InitialDuration = tmpSpell->DurationCap;
 
-				// call below is correct but it always seem to return false so i don't
-				// think its useful to clientside... also call above calls it...
-				// Dest.DWord = pCZC->IsStackBlocked((EQ_Spell*)thespell, (SPAWNINFO*)pLocalPlayer, &eff, 1);
-				if (!ret || SlotIndex == -1)
-					Dest.DWord = false;
-				else
-					Dest.DWord = true;
-			}
-		}
+		int SlotIndex = -1;
+		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1, false);
+		Dest.DWord = ret && SlotIndex != -1;
+
 		return true;
 	}
 
@@ -7579,16 +7567,13 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (!Index[0])
 			return true;
 
-		SPELL* tmpSpell = nullptr;
-		if (IsNumber(Index))
-			tmpSpell = GetSpellByID(GetIntFromString(Index, 0));
-		else
-			tmpSpell = GetSpellByName(Index);
+		SPELL* tmpSpell = IsNumber(Index) ?
+			GetSpellByID(GetIntFromString(Index, 0)) :
+			GetSpellByName(Index);
 
-		if (!tmpSpell)
-			return true;
+		if (tmpSpell)
+			Dest.DWord = BuffStackTest(pSpell, tmpSpell, true);
 
-		Dest.DWord = BuffStackTest(pSpell, tmpSpell, true);
 		return true;
 	}
 
