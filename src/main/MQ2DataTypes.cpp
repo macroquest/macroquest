@@ -7193,6 +7193,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		switch (pSpell->TargetType)
 		{
 		case 50: strcpy_s(DataTypeTemp, "Target_AE_No_Players_Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+		case 52: strcpy_s(DataTypeTemp, "Single Friendly (or Target's Target"); break; // Introduced in Torment of Velious. Spell affects target if friendly, or target's target if the target is an unfriendly.
 		case 47: strcpy_s(DataTypeTemp, "Pet Owner"); break;
 		case 46: strcpy_s(DataTypeTemp, "Target of Target"); break;
 		case 45: strcpy_s(DataTypeTemp, "Free Target"); break;

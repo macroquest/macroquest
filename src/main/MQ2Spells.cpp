@@ -634,6 +634,7 @@ static char* GetTargetTypeLimitsName(int TargetLimitsType, char(&szBuffer)[Size]
 	switch (abs(TargetLimitsType))
 	{
 	case 50: strcat_s(szBuffer, "Target AE No Players Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+	case 52: strcpy_s(szBuffer, "Single Friendly (or Target's Target"); break; // Introduced in Torment of Velious. Spell affects target if friendly, or target's target if the target is an unfriendly.
 	case 47: strcat_s(szBuffer, "Pet Owner"); break;
 	case 46: strcat_s(szBuffer, "Target of Target"); break;
 	case 45: strcat_s(szBuffer, "Free Target"); break;
