@@ -1413,41 +1413,6 @@ public:
 	EQLIB_OBJECT void SendTextRequestMsg();
 };
 
-class EQ_Spell
-{
-public:
-	EQLIB_OBJECT ~EQ_Spell();
-	EQLIB_OBJECT EQ_Spell(char*);
-	EQLIB_OBJECT bool IsStackableDot() const;
-	EQLIB_OBJECT bool IsStackable() const;
-	EQLIB_OBJECT int IsPermIllusionSpell() const;
-	EQLIB_OBJECT int SpellUsesDragonBreathEffect();
-	EQLIB_OBJECT unsigned char SpellAffects(int) const;              // this one takes an attrib(soe calls it affect) and returns the index for it...
-	EQLIB_OBJECT unsigned char GetSpellLevelNeeded(int) const;       // takes a Class, druid for example is 6
-	EQLIB_OBJECT int SpellAffectBase(int) const;                     // takes a SPA, returns the first matching base it finds for it
-	EQLIB_OBJECT const SpellAffectData* GetSpellAffectBySlot(int Slot) const;
-	EQLIB_OBJECT const SpellAffectData* GetSpellAffectByIndex(int Index) const;
-	EQLIB_OBJECT bool IsNoRemove() const;
-	EQLIB_OBJECT static bool IsDegeneratingLevelMod(int);
-
-	EQLIB_OBJECT static bool IsSPAStacking(int Spa);
-	EQLIB_OBJECT static bool IsSPAIgnoredByStacking(int Spa);
-
-	EQLIB_OBJECT bool IsNoDispell() const { return Data.NoDisspell; }
-	EQLIB_OBJECT bool IsStackableOnAnyone() const { return SpellAffects(424) != 0; }
-	EQLIB_OBJECT int GetNoOverwrite() const { return Data.NoOverwrite; }
-	EQLIB_OBJECT bool IsBeneficialSpell() const { return Data.SpellType >= 1; }
-	EQLIB_OBJECT bool IsDetrimentalSpell() const { return Data.SpellType == 0; }
-	EQLIB_OBJECT bool IsShortEffectDuration() const { return Data.DurationWindow; }
-	EQLIB_OBJECT bool GetIsSkillSpell() const { return Data.IsSkill; }
-	EQLIB_OBJECT bool IsDoTSpell() const
-	{
-		return SpellAffects(0) || SpellAffects(20) || SpellAffects(69) || SpellAffects(114) || SpellAffects(125);
-	}
-
-	SPELL Data;
-};
-
 class EQAnimation
 {
 public:

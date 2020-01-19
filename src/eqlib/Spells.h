@@ -637,154 +637,221 @@ enum eSpellValueRangeCalc
 	SpellValueRangeCalc_Random = 123,
 };
 
-// actual size: 0x22e Feb 16 2018 test see 5F68F6 - eqmule
-// actual size: 0x22d Apr 10 2018 test see 557362 - eqmule
-// actual size: 0x229 May 07 2018 test see 6628CA  - eqmule
-// actual size: 0x231 Oct 07 2019 test see 565BE2  - eqmule
-// This is EQ_Spell
-struct [[offsetcomments]] SPELL
+enum eSpellNoOverwrite : int
 {
-/*0x000*/ float   Range;
-/*0x004*/ float   AERange;
-/*0x008*/ float   PushBack;
-/*0x00c*/ float   PushUp;
-/*0x010*/ DWORD   CastTime;
-/*0x014*/ DWORD   RecoveryTime;
-/*0x018*/ DWORD   RecastTime;
-/*0x01c*/ DWORD   DurationType;                  // DurationFormula on Lucy
-/*0x020*/ DWORD   DurationCap;
-/*0x024*/ DWORD   AEDuration;
-/*0x028*/ DWORD   ManaCost;
-/*0x02c*/ float   Unknown0x02C;                  // See 565CB5 in eqgame oct 07 2019
-/*0x030*/ DWORD   ReagentID[0x4];                // ReagentId1-ReagentId4d
-/*0x040*/ DWORD   ReagentCount[0x4];             // ReagentCount1-ReagentCount4
-/*0x050*/ DWORD   NoExpendReagent[0x4];
-/*0x060*/ LONG    CalcIndex;
-/*0x064*/ int     NumEffects;
-/*0x068*/ DWORD   BookIcon;
-/*0x06c*/ DWORD   GemIcon;
-/*0x070*/ DWORD   DescriptionIndex;
-/*0x074*/ DWORD   ResistAdj;
-/*0x078*/ DWORD   Diety;
-/*0x07c*/ DWORD   spaindex;
-/*0x080*/ DWORD   SpellAnim;
-/*0x084*/ DWORD   SpellIcon;
-/*0x088*/ DWORD   DurationParticleEffect;
-/*0x08c*/ DWORD   NPCUsefulness;
-/*0x090*/ DWORD   ID;
-/*0x094*/ DWORD   Autocast;                      // SpellID of spell to instacast on caster when current spell lands on target
-/*0x098*/ DWORD   Category;                      // Unknown144 from lucy
-/*0x09c*/ DWORD   Subcategory;                   // Subcat to Category. Unknown145 from lucy
-/*0x0a0*/ DWORD   Subcategory2;
-/*0x0a4*/ DWORD   HateMod;                       // Additional hate
-/*0x0a8*/ DWORD   ResistPerLevel;
-/*0x0ac*/ DWORD   ResistCap;
-/*0x0b0*/ DWORD   EnduranceCost;                 // CA Endurance Cost
-/*0x0b4*/ DWORD   EnduranceValue;                // Unsure
-/*0x0b8*/ DWORD   ReuseTimerIndex;               // ID of combat timer, i think.
-/*0x0bc*/ DWORD   EndurUpkeep;
-/*0x0c0*/ DWORD   HateGenerated;                 // Hate override
-/*0x0c4*/ DWORD   HitCountType;
-/*0x0c8*/ DWORD   HitCount;
-/*0x0cc*/ DWORD   ConeStartAngle;
-/*0x0d0*/ DWORD   ConeEndAngle;
-/*0x0d4*/ DWORD   PvPResistBase;
-/*0x0d8*/ DWORD   PvPCalc;
-/*0x0dc*/ DWORD   PvPResistCap;
-/*0x0e0*/ DWORD   PvPDuration;                   // DurationType for PVP
-/*0x0e4*/ DWORD   PvPDurationValue1;             // DurationValue1 for PVP
+	NoOverwrite_Default,     // Spell can be overwritten normally
+	NoOverwrite_OtherSpells, // Spell cannot be overwritten by other spells, except itself
+	NoOverwrite_AllSpells,   // Spell cannot be overwritten by any spell
+};
 
-//*0x0e0*/   DWORD   GlobalGroup; this is gone now, this was only used to check for group type 46 before... uh, hp and mana regen effect spells i think
-//see apr 10 test 2018 for reference:
-//.text:004DA714 GlobalGroup:
-//.text:004DA714                 cmp     dword ptr [eax+0E0h], 46
+enum eSpellRecourseType : int
+{
+	SpellRecourseType_AlwaysHit,            // Recourse for every target that it could hit
+	SpellRecourseType_AlwaysHitNoResist,    // Recourse for every target
+	SpellRecourseType_OnceNoResist,         // Recourse once, if target exists
+	SpellRecourseType_Once,                 // Recourse once, if spell hits
+};
 
-/*0x0e8*/ DWORD   PCNPCOnlyFlag;                 // no idea
-/*0x0ec*/ DWORD   NPCMemCategory;
-/*0x0f0*/ DWORD   SpellGroup;
-/*0x0f4*/ DWORD   SpellSubGroup;                 // unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
-/*0x0f8*/ int     SpellRank;                     // Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on
-/*0x0fc*/ DWORD   SpellClass;                    // Unknown222 from Lucy
-/*0x100*/ DWORD   SpellSubClass;                 // Unknown223 from Lucy
-/*0x104*/ DWORD   SpellReqAssociationID;
-/*0x108*/ DWORD   CasterRequirementID;
-/*0x10c*/ DWORD   MaxResist;
-/*0x110*/ DWORD   MinResist;
-/*0x114*/ DWORD   MinSpreadTime;
-/*0x118*/ DWORD   MaxSpreadTime;
-/*0x11c*/ DWORD   SpreadRadius;
-/*0x120*/ DWORD   BaseEffectsFocusCap;           // song cap, maybe other things?
-/*0x124*/ DWORD   CritChanceOverride;
-/*0x128*/ DWORD   MaxTargets;                    // how many targets a spell will affect
-/*0x12c*/ DWORD   AIValidTargets;
-/*0x130*/ DWORD   BaseEffectsFocusOffset;
-/*0x134*/ float   BaseEffectsFocusSlope;
-/*0x138*/ CVector2 DistanceModStart;
-/*0x140*/ CVector2 DistanceModEnd;
-/*0x148*/ float   MinRange;
-/*0x14c*/ BYTE    NoNPCLOS;                      // NPC skips LOS checks
-/*0x14d*/ BYTE    Feedbackable;                  // nothing uses this
-/*0x14e*/ BYTE    Reflectable;
-/*0x14f*/ BYTE    NoPartialSave;
-/*0x150*/ BYTE    NoResist;
-/*0x151*/ BYTE    UsesPersistentParticles;
-/*0x152*/ BYTE    SmallTargetsOnly;
-/*0x153*/ bool    DurationWindow;                // 0=Long, 1=Short
-/*0x154*/ BYTE    Uninterruptable;
-/*0x155*/ BYTE    NotStackableDot;
-/*0x156*/ BYTE    Deletable;
-/*0x157*/ BYTE    BypassRegenCheck;
-/*0x158*/ BYTE    CanCastInCombat;
-/*0x159*/ BYTE    CanCastOutOfCombat;
-/*0x15a*/ BYTE    NoHealDamageItemMod;           // disable worn focus bonuses
-/*0x15b*/ BYTE    OnlyDuringFastRegen;
-/*0x15c*/ BYTE    CastNotStanding;
-/*0x15d*/ BYTE    CanMGB;
-/*0x15e*/ bool    NoDisspell;
-/*0x15f*/ BYTE    AffectInanimate;               // ldon trap spells etc
-/*0x160*/ bool    IsSkill;
-/*0x161*/ bool    bStacksWithDiscs;              // this was first seen in may 8 2017 test client, its checked if it's false at 0x451790. Ex: The Monk ability 'Drunken Monkey Style' or 'Breather'. see patch notes for that patch...
-/*0x162*/ bool    ShowDoTMessage;
-/*0x163*/ BYTE    ClassLevel[0x24];              // per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014
-/*0x187*/ BYTE    LightType;
-/*0x188*/ eSpellType SpellType;                  // 0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
-/*0x189*/ BYTE    Resist;                        // see   4B0493 in apr 16 2018 exe        //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
-/*0x18a*/ BYTE    TargetType;                    // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
-/*0x18b*/ BYTE    CastDifficulty;
-/*0x18c*/ BYTE    Skill;
-/*0x18d*/ BYTE    ZoneType;                      // 01=Outdoors, 02=dungeons, ff=Any
-/*0x18e*/ BYTE    Environment;
-/*0x18f*/ BYTE    TimeOfDay;                     // 0=any, 1=day only, 2=night only
-/*0x190*/ BYTE    CastingAnim;
-/*0x191*/ BYTE    AnimVariation;
-/*0x192*/ BYTE    TargetAnim;
-/*0x193*/ BYTE    TravelType;
-/*0x194*/ BYTE    CancelOnSit;
-/*0x195*/ bool    CountdownHeld;
-/*0x196*/ char    Name[0x40];                    // for sure see 557AAA
-/*0x1d6*/ char    Target[0x20];
-/*0x1f6*/ char    Extra[0x20];                   // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
-/*0x216*/ BYTE    ShowWearOffMessage;
-/*0x217*/ BYTE    NPCChanceofKnowingSpell;       // if this is 0 there is no way an npc can cast this spell...
-/*0x218*/ BYTE    SneakAttack;
-/*0x219*/ BYTE    NotFocusable;                  // ignores all(?) focus effects
-/*0x21a*/ BYTE    NoHate;
-/*0x21b*/ BYTE    StacksWithSelf;
-/*0x21c*/ BYTE    CannotBeScribed;               // this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
-/*0x21d*/ BYTE    NoBuffBlock;
-/*0x21e*/ bool    Scribable;                     // int?
-/*0x21f*/ BYTE    NoStripOnDeath;
-/*0x220*/ BYTE    NoRemove;                      // spell can't be clicked off?
-/*0x224*/ int     NoOverwrite;                   // an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
-/*0x228*/ DWORD   SpellRecourseType;
-/*0x22c*/ BYTE    CRC32Marker[4];
-/*0x230*/ float   DistanceMod;                   // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
+constexpr int MAX_SPELL_REAGENTS = 4;
+
+#pragma pack(push)
+#pragma pack(1)
+
+struct SpellAffectData;
+
+// actual size: 0x231 Oct 07 2019 test see 565BE2  - eqmule
+class [[offsetcomments]] EQ_Spell
+{
+public:
+	EQLIB_OBJECT EQ_Spell(char*);
+	EQLIB_OBJECT bool IsStackableDot() const;
+	EQLIB_OBJECT bool IsStackable() const;
+	EQLIB_OBJECT int IsPermIllusionSpell() const;
+	EQLIB_OBJECT int SpellUsesDragonBreathEffect();
+	EQLIB_OBJECT unsigned char SpellAffects(int) const;              // this one takes an attrib(soe calls it affect) and returns the index for it...
+	EQLIB_OBJECT unsigned char GetSpellLevelNeeded(int) const;       // takes a Class, druid for example is 6
+	EQLIB_OBJECT int SpellAffectBase(int) const;                     // takes a SPA, returns the first matching base it finds for it
+	EQLIB_OBJECT const SpellAffectData* GetSpellAffectBySlot(int Slot) const;
+	EQLIB_OBJECT const SpellAffectData* GetSpellAffectByIndex(int Index) const;
+	EQLIB_OBJECT bool IsNoRemove() const;
+	EQLIB_OBJECT static bool IsDegeneratingLevelMod(int);
+
+	EQLIB_OBJECT static bool IsSPAStacking(int Spa);
+	EQLIB_OBJECT static bool IsSPAIgnoredByStacking(int Spa);
+
+	EQLIB_OBJECT bool IsNoDispell() const { return NoDisspell; }
+	EQLIB_OBJECT bool IsStackableOnAnyone() const { return SpellAffects(424) != 0; }
+	EQLIB_OBJECT int GetNoOverwrite() const { return NoOverwrite; }
+	EQLIB_OBJECT bool IsBeneficialSpell() const { return SpellType >= 1; }
+	EQLIB_OBJECT bool IsDetrimentalSpell() const { return SpellType == 0; }
+	EQLIB_OBJECT bool IsShortEffectDuration() const { return DurationWindow; }
+	EQLIB_OBJECT bool GetIsSkillSpell() const { return IsSkill; }
+	EQLIB_OBJECT bool IsDoTSpell() const
+	{
+		return SpellAffects(0) || SpellAffects(20) || SpellAffects(69) || SpellAffects(114) || SpellAffects(125);
+	}
+
+/*0x000*/ float      Range = 0.0f;
+/*0x004*/ float      AERange = 0.0f;
+/*0x008*/ float      PushBack = 0.0f;
+/*0x00c*/ float      PushUp = 0.0f;
+/*0x010*/ uint32_t   CastTime = 0;
+/*0x014*/ uint32_t   RecoveryTime = 0;
+/*0x018*/ uint32_t   RecastTime = 0;
+/*0x01c*/ uint32_t   DurationType = 0;              // DurationFormula on Lucy
+/*0x020*/ uint32_t   DurationCap = 0;
+/*0x024*/ uint32_t   AEDuration = 0;
+/*0x028*/ int        ManaCost = 0;
+/*0x02c*/ float      Unknown0x02C = 0;              // See 565CB5 in eqgame oct 07 2019
+/*0x030*/ int        ReagentID[MAX_SPELL_REAGENTS]; // ReagentId1-ReagentId4d
+/*0x040*/ int        ReagentCount[MAX_SPELL_REAGENTS]; // ReagentCount1-ReagentCount4
+/*0x050*/ int        NoExpendReagent[MAX_SPELL_REAGENTS];
+/*0x060*/ int        CalcIndex = 0;
+/*0x064*/ int        NumEffects = 0;
+/*0x068*/ int        BookIcon = 0;
+/*0x06c*/ int        GemIcon = 0;
+/*0x070*/ int        DescriptionIndex = 0;
+/*0x074*/ int        ResistAdj = 0;
+/*0x078*/ int        Diety = 0;
+/*0x07c*/ int        spaindex = 0;
+/*0x080*/ int        SpellAnim = 0;
+/*0x084*/ int        SpellIcon = 0;
+/*0x088*/ int        DurationParticleEffect = 0;
+/*0x08c*/ int        NPCUsefulness = 0;
+/*0x090*/ int        ID = 0;
+/*0x094*/ int        Autocast = 0;                  // SpellID of spell to instacast on caster when current spell lands on target
+/*0x098*/ int        Category = 0;                  // Unknown144 from lucy
+/*0x09c*/ int        Subcategory = 0;               // Subcat to Category. Unknown145 from lucy
+/*0x0a0*/ int        Subcategory2 = 0;
+/*0x0a4*/ int        HateMod = 0;                   // Additional hate
+/*0x0a8*/ int        ResistPerLevel = 0;
+/*0x0ac*/ int        ResistCap = 0;
+/*0x0b0*/ int        EnduranceCost = 0;             // CA Endurance Cost
+/*0x0b4*/ int        EnduranceValue = 0;            // Unsure
+/*0x0b8*/ int        ReuseTimerIndex = 0;           // ID of combat timer, i think.
+/*0x0bc*/ int        EndurUpkeep = 0;
+/*0x0c0*/ int        HateGenerated = 0;             // Hate override
+/*0x0c4*/ int        HitCountType = 0;
+/*0x0c8*/ int        HitCount = 0;
+/*0x0cc*/ int        ConeStartAngle = 0;
+/*0x0d0*/ int        ConeEndAngle = 0;
+/*0x0d4*/ int        PvPResistBase = 0;
+/*0x0d8*/ int        PvPCalc = 0;
+/*0x0dc*/ int        PvPResistCap = 0;
+/*0x0e0*/ uint32_t   PvPDuration = 0;               // DurationType for PVP
+/*0x0e4*/ uint32_t   PvPDurationValue1 = 0;         // DurationValue1 for PVP
+/*0x0e8*/ int        PCNPCOnlyFlag = 0;             // no idea
+/*0x0ec*/ int        NPCMemCategory = 0;
+/*0x0f0*/ int        SpellGroup = 0;
+/*0x0f4*/ int        SpellSubGroup = 0;             // unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
+/*0x0f8*/ int        SpellRank = 0;                 // Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on
+/*0x0fc*/ int        SpellClass = 0;                // Unknown222 from Lucy
+/*0x100*/ int        SpellSubClass = 0;             // Unknown223 from Lucy
+/*0x104*/ int        SpellReqAssociationID = 0;
+/*0x108*/ int        CasterRequirementID = 0;
+/*0x10c*/ int        MaxResist = 0;
+/*0x110*/ int        MinResist = 0;
+/*0x114*/ int        MinSpreadTime = 0;
+/*0x118*/ int        MaxSpreadTime = 0;
+/*0x11c*/ int        SpreadRadius = 0;
+/*0x120*/ int        BaseEffectsFocusCap = 0;       // song cap, maybe other things?
+/*0x124*/ int        CritChanceOverride = 0;
+/*0x128*/ int        MaxTargets = 0;                // how many targets a spell will affect
+/*0x12c*/ uint32_t   AIValidTargets = 0;
+/*0x130*/ int        BaseEffectsFocusOffset = 0;
+/*0x134*/ float      BaseEffectsFocusSlope = 1.0f;
+/*0x138*/ CVector2   DistanceModStart = { 0, 0 };
+/*0x140*/ CVector2   DistanceModEnd = { 0, 0 };
+/*0x148*/ float      MinRange = 0.0f;
+/*0x14c*/ bool       NoNPCLOS = false;              // NPC skips LOS checks
+/*0x14d*/ bool       Feedbackable = false;          // nothing uses this
+/*0x14e*/ bool       Reflectable = false;
+/*0x14f*/ bool       NoPartialSave = false;
+/*0x150*/ bool       NoResist = false;
+/*0x151*/ bool       UsesPersistentParticles = false;
+/*0x152*/ bool       SmallTargetsOnly = false;
+/*0x153*/ bool       DurationWindow = false;        // 0=Long, 1=Short
+/*0x154*/ bool       Uninterruptable = false;
+/*0x155*/ bool       NotStackableDot = false;
+/*0x156*/ bool       Deletable = false;
+/*0x157*/ bool       BypassRegenCheck = false;
+/*0x158*/ bool       CanCastInCombat = false;
+/*0x159*/ bool       CanCastOutOfCombat = false;
+/*0x15a*/ bool       NoHealDamageItemMod = false;   // disable worn focus bonuses
+/*0x15b*/ bool       OnlyDuringFastRegen = false;
+/*0x15c*/ bool       CastNotStanding = false;
+/*0x15d*/ bool       CanMGB = false;
+/*0x15e*/ bool       NoDisspell = false;
+/*0x15f*/ bool       AffectInanimate = false;       // ldon trap spells etc
+/*0x160*/ bool       IsSkill = false;
+/*0x161*/ bool       bStacksWithDiscs = false;      // this was first seen in may 8 2017 test client, its checked if it's false at 0x451790. Ex: The Monk ability 'Drunken Monkey Style' or 'Breather'. see patch notes for that patch...
+/*0x162*/ bool       ShowDoTMessagfalse;
+/*0x163*/ uint8_t    ClassLevel[MAX_CLASSES];
+/*0x187*/ uint8_t    LightType = 0;
+/*0x188*/ eSpellType SpellType = SpellType_Detrimental; // 0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
+/*0x189*/ uint8_t    Resist = 0;                    // see   4B0493 in apr 16 2018 exe        //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
+/*0x18a*/ uint8_t    TargetType = 0;                // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
+/*0x18b*/ uint8_t    CastDifficulty = 0;
+/*0x18c*/ uint8_t    Skill = 0;
+/*0x18d*/ uint8_t    ZoneType = 0;                  // 01=Outdoors, 02=dungeons, ff=Any
+/*0x18e*/ uint8_t    Environment = 0;
+/*0x18f*/ uint8_t    TimeOfDay = 0;                 // 0=any, 1=day only, 2=night only
+/*0x190*/ uint8_t    CastingAnim = 0;
+/*0x191*/ uint8_t    AnimVariation = 0;
+/*0x192*/ uint8_t    TargetAnim = 0;
+/*0x193*/ uint8_t    TravelType = 0;
+/*0x194*/ uint8_t    CancelOnSit = 0;
+/*0x195*/ bool       CountdownHeld = false;
+/*0x196*/ char       Name[64];                      // for sure see 557AAA
+/*0x1d6*/ char       Target[32];
+/*0x1f6*/ char       Extra[32];                     // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
+/*0x216*/ bool       ShowWearOffMessage = false;
+/*0x217*/ uint8_t    NPCChanceofKnowingSpell = 0;   // if this is 0 there is no way an npc can cast this spell...
+/*0x218*/ bool       SneakAttack = 0;
+/*0x219*/ bool       NotFocusable = 0;              // ignores all(?) focus effects
+/*0x21a*/ bool       NoHate = 0;
+/*0x21b*/ bool       StacksWithSelf = 0;
+/*0x21c*/ bool       CannotBeScribed = 0;           // this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
+/*0x21d*/ bool       NoBuffBlock = 0;
+/*0x21e*/ bool       Scribable = 0;                 // int?
+/*0x21f*/ bool       NoStripOnDeath = 0;
+/*0x220*/ bool       NoRemove = 0;                  // spell can't be clicked off?
+/*0x224*/ eSpellNoOverwrite NoOverwrite = NoOverwrite_Default;
+/*0x228*/ eSpellRecourseType SpellRecourseType = SpellRecourseType_AlwaysHit;
+/*0x22c*/ uint8_t    CRC32Marker[4] = { 0 };
+/*0x230*/ float      DistanceMod = 0.0f;            // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
 /*0x234*/
 
 	// Currently necessary because of MQ2DataTypes
-	SPELL() { ZeroMemory(this, sizeof(SPELL)); }
+	EQLIB_OBJECT EQ_Spell()
+	{
+		for (int i = 0; i < MAX_SPELL_REAGENTS; ++i)
+		{
+			ReagentID[i] = 0;
+			ReagentCount[i] = 0;
+			NoExpendReagent[i] = 0;
+		}
+
+		for (int i = 0; i < MAX_CLASSES; ++i)
+		{
+			ClassLevel[i] = 0;
+		}
+
+		memset(Name, 0, sizeof(Name));
+		memset(Target, 0, sizeof(Target));
+		memset(Extra, 0, sizeof(Extra));
+	}
+
+	EQLIB_OBJECT ~EQ_Spell() = default;
+
+	DEPRECATE("Data property is not needed, use Spell directly.")
+	EQLIB_OBJECT EQ_Spell& get_Data() { return *this; }
+	__declspec(property(get = get_Data)) EQ_Spell& Data;
 };
-using PSPELL = SPELL*;
+using SPELL = EQ_Spell;
+using PSPELL = EQ_Spell*;
+
+#pragma pack(pop) // EQ_Spell
 
 struct [[offsetcomments]] SpellAffectData
 {
