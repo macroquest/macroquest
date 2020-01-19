@@ -7379,7 +7379,37 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 	}
 
+	case StacksPet: {
+		int duration = 99999;
+		duration = GetIntFromString(Index, duration);
+
+		Dest.DWord = true;
+		Dest.Type = pBoolType;
+
+		if (!pPetInfoWnd || !pLocalPlayer)
+			return false;
+
+		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+		{
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			if (!pBuffSpell)
+				continue;
+
+			// if we have less duration than the duration argument, then this "will stack" so we need to keep checking
+			if (!WillStackWith(pSpell, pBuffSpell) && (
+				GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 ||
+				ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > GetIntFromString(Index, 0)))
+			{
+				Dest.DWord = false;
+				return true;
+			}
+		}
+
+		return true;
+	}
+
 	case WillStack:
+	case StacksWith:
 	case NewStacksWith: // if a spell stack with another spell
 	{
 		Dest.DWord = false;
@@ -7395,21 +7425,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (!tmpSpell)
 			return false;
 
-		auto pPc = pLocalPlayer->GetPcClient();
-
-		EQ_Affect buff;
-		buff.SpellID = tmpSpell->ID;
-		buff.Level = pLocalPlayer->Level;
-		buff.Type = 2;
-		buff.Modifier = 1.f;
-		buff.CasterGuid = pPc->Guid;
-		buff.Duration = tmpSpell->DurationCap;
-		buff.InitialDuration = tmpSpell->DurationCap;
-
-		int SlotIndex = -1;
-		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1, false);
-		Dest.DWord = ret && SlotIndex != -1;
-
+		Dest.DWord = WillStackWith(pSpell, tmpSpell);
 		return true;
 	}
 
@@ -7527,53 +7543,6 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				}
 			}
 		}
-		return true;
-	}
-
-	case StacksPet: {
-		int duration = 99999;
-		duration = GetIntFromString(Index, duration);
-
-		Dest.DWord = true;
-		Dest.Type = pBoolType;
-
-		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
-		{
-			if (pPetInfoWnd->Buff[nBuff] > 0 && !(pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0))
-			{
-				if (SPELL* buffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
-				{
-					int petBuffDuration = ((pPetInfoWnd->PetBuffTimer[nBuff] + 5999) / 1000) / 6;
-					if (GetSpellDuration(buffSpell, (SPAWNINFO*)pLocalPlayer) >= -2)
-					{
-						petBuffDuration = 99999 + 1;
-					}
-
-					if (!BuffStackTest(pSpell, buffSpell, true) || ((buffSpell == pSpell) && (petBuffDuration > duration)))
-					{
-						Dest.DWord = false;
-						return true;
-					}
-				}
-			}
-		}
-		return true;
-	}
-
-	case StacksWith: {
-		Dest.DWord = false;
-		Dest.Type = pBoolType;
-
-		if (!Index[0])
-			return true;
-
-		SPELL* tmpSpell = IsNumber(Index) ?
-			GetSpellByID(GetIntFromString(Index, 0)) :
-			GetSpellByName(Index);
-
-		if (tmpSpell)
-			Dest.DWord = BuffStackTest(pSpell, tmpSpell, true);
-
 		return true;
 	}
 

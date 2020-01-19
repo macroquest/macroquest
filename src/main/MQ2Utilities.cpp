@@ -5132,6 +5132,42 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 	return true;
 }
 
+/**
+ * @fn WillStackWith
+ *
+ * @brief tests if testSpell will stack with existingSpell
+ *
+ * Takes two spells in order to test if they will stack. Any null checking should be
+ * done before this function is called, assumes all values are non-null.
+ *
+ * @param testSpell The spell that would hypothetically be cast (non-null)
+ * @param existingSpell The spell that would hypothetically already exist (non-null)
+ *
+ * @return bool A boolean that is true if the spell would hypothetically land if cast
+ **/
+bool WillStackWith(const SPELL* testSpell, const SPELL* existingSpell)
+{
+	// if there is no local player, then the hypothetical situation fails anyway
+	if (!pLocalPlayer)
+		return false;
+
+	auto pPc = pLocalPlayer->GetPcClient();
+
+	EQ_Affect buff;
+	buff.SpellID = existingSpell->ID;
+	buff.Level = pLocalPlayer->Level;
+	buff.Type = 2;
+	buff.Modifier = 1.f;
+	buff.CasterGuid = pPc->Guid;
+	buff.Duration = existingSpell->DurationCap;
+	buff.InitialDuration = existingSpell->DurationCap;
+
+	int SlotIndex = -1;
+	EQ_Affect* ret = pPc->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1, false);
+
+	return ret && SlotIndex != -1;
+}
+
 float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 {
 	if (pSpawn1 && pSpawn2)
