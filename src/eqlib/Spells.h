@@ -905,10 +905,12 @@ public:
 /*0x58*/
 };
 
+constexpr int NUM_SLOTDATA = 6;
+
 struct [[offsetcomments]] SlotData
 {
-/*0x00*/ LONG Slot;
-/*0x04*/ DWORD Value;
+/*0x00*/ int Slot;
+/*0x04*/ int Value;
 /*0x08*/
 };
 

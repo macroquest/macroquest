@@ -745,6 +745,7 @@ HMODULE GetCurrentModule()
 {
 	HMODULE hModule = nullptr;
 
+	// Retrieve our current module handle by using the address of this function as a search param.
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
 		| GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetCurrentModule, &hModule);
 

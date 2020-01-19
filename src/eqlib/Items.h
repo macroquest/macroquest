@@ -21,8 +21,6 @@
 
 namespace eqlib {
 
-constexpr int NUM_SLOTDATA = 6;
-
 constexpr int ITEM_NAME_LEN = 64;
 constexpr int LORE_NAME_LEN = 80;
 
