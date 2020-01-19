@@ -912,34 +912,52 @@ struct [[offsetcomments]] SlotData
 /*0x08*/
 };
 
-// Size 0x58 20110810 - dkaa
-// Size 0x58 20150326 - demonstar55
-// Size 0x68 Apr 10 2018 test see 8B2FD5 - eqmule
-// Size 0x68 Oct 07 2019 test see 8C9BAD - eqmule
-// this is EQ_Affect todo: check the new stuff in it
-struct [[offsetcomments]] SPELLBUFF
+class [[offsetcomments]] EQ_Affect
 {
+public:
+	EQLIB_OBJECT void Reset();
+	EQLIB_OBJECT int GetAffectData(int) const;
+
 /*0x00*/ EqGuid    CasterGuid;
 /*0x08*/ SlotData  SlotData[NUM_SLOTDATA];       // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
-/*0x38*/ DWORD     Flags;
-/*0x3c*/ LONG      SpellID;                      // -1 or 0 for no spell..
-/*0x40*/ DWORD     Duration;
-/*0x44*/ DWORD     InitialDuration;
-/*0x48*/ DWORD     HitCount;
-/*0x4c*/ UINT      ViralTimer;                   // not 100% sure this is correct
-/*0x50*/ FLOAT     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
-/*0x54*/ FLOAT     Y;                            // Referenced by SPA 441 (distance removal)
-/*0x58*/ FLOAT     X;
-/*0x5c*/ FLOAT     Z;
-/*0x60*/ BYTE      Type;
-/*0x61*/ BYTE      Level;                        // casterlevel
-/*0x62*/ BYTE      ChargesRemaining;             // dont think this is used anymore.
-/*0x63*/ BYTE      Activatable;                  // dont think this is used anymore. We used to think this was DamageShield
-/*0x64*/ DWORD     Unknown0x64;                  // not 100% sure this is correct it could be ViralTimer
+/*0x38*/ uint32_t  Flags;
+/*0x3c*/ int       SpellID;                      // -1 or 0 for no spell..
+/*0x40*/ int       Duration;
+/*0x44*/ int       InitialDuration;
+/*0x48*/ int       HitCount;
+/*0x4c*/ int       ViralTimer;                   // not 100% sure this is correct
+/*0x50*/ float     Modifier;                     // Bard song modifier, 1.0 is default BaseDmgMod
+/*0x54*/ float     Y;                            // Referenced by SPA 441 (distance removal)
+/*0x58*/ float     X;
+/*0x5c*/ float     Z;
+/*0x60*/ uint8_t   Type;
+/*0x61*/ uint8_t   Level;                        // casterlevel
+/*0x62*/ uint8_t   ChargesRemaining;             // dont think this is used anymore.
+/*0x63*/ uint8_t   Activatable;                  // dont think this is used anymore. We used to think this was DamageShield
+/*0x64*/ uint32_t  Unknown0x64;                  // not 100% sure this is correct it could be ViralTimer
 /*0x68*/
-	// Currently necessary because of MQ2DataTypes
-	SPELLBUFF() { ZeroMemory(this, sizeof(SPELLBUFF)); }
+
+	EQ_Affect()
+	{
+		memset(&this->SlotData, 0, sizeof(SlotData));
+		Flags = 0;
+		SpellID = 0;
+		Duration = 0;
+		InitialDuration = 0;
+		HitCount = 0;
+		ViralTimer = 0;
+		Modifier = 1.0f;
+		Y = 0;
+		X = 0;
+		Z = 0;
+		Type = 0;
+		Level = 0;
+		ChargesRemaining = 0;
+		Activatable = 0;
+		Unknown0x64 = 0;
+	}
 };
-using PSPELLBUFF [[deprecated]] = SPELLBUFF*;
+using PSPELLBUFF DEPRECATE("Use EQ_Affect* instead") = EQ_Affect*;
+using SPELLBUFF  = EQ_Affect;
 
 } // namespace eqlib

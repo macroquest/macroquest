@@ -1298,32 +1298,6 @@ public:
 	EQLIB_OBJECT void SetVolumeLevel(float);
 };
 
-class [[offsetcomments]] EQ_Affect
-{
-public:
-	EQLIB_OBJECT void Reset();
-	EQLIB_OBJECT int GetAffectData(int) const;
-
-/*0x00*/ BYTE          Type;
-/*0x01*/ BYTE          CasterLevel;
-/*0x02*/ BYTE          ChargesRemaining;
-/*0x03*/ BYTE          Activatable;
-/*0x04*/ float         BaseDmgMod;
-/*0x08*/ int           ID;
-/*0x0c*/ int           DurationTick;
-/*0x10*/ int           MaxDuration;
-/*0x14*/ int           Duration3;
-/*0x18*/ EqGuid        CasterGuid;
-/*0x20*/ int           HitCounter;
-/*0x24*/ float         HitLocationY;
-/*0x28*/ float         HitLocationX;
-/*0x2c*/ float         HitLocationZ;
-/*0x30*/ UINT          Flags;                    // twincast
-/*0x34*/ SlotData      Data[NUM_SLOTDATA];
-/*0x64*/ DWORD         Unknown0x64;
-/*0x68*/
-};
-
 class EQ_AltAbility
 {
 public:

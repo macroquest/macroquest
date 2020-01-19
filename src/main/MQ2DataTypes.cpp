@@ -7375,7 +7375,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = ret &&
 			SlotIndex != -1 &&
 			GetSpellDuration(pSpell, pPlayer) >= -1 &&
-			ret->DurationTick <= GetIntFromString(Index, 0);
+			ret->Duration <= GetIntFromString(Index, 0);
 
 		return true;
 	}
@@ -7404,11 +7404,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			PcClient* pPc = pPlayer->GetPcClient();
 			if (pPc)
 			{
-				EQ_Affect eff = { 0 };
-				eff.ID = tmpSpell->ID;
-				eff.CasterLevel = pPlayer->Level;
+				EQ_Affect eff;
+				eff.SpellID = tmpSpell->ID;
+				eff.Level = pPlayer->Level;
 				eff.Type = 2;
-				eff.BaseDmgMod = 1.0;
+				eff.Modifier = 1.0;
 				int SlotIndex = -1;
 
 				EQ_Affect* ret = pPc->FindAffectSlot(thespell->ID, pPlayer, &SlotIndex, true, pPlayer->Level, &eff, 1, false);
@@ -7443,7 +7443,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			PcClient* pPc = pSpawn->GetPcClient();
 			if (pPc)
 			{
-				EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+				EQ_Affect pAffects[NUM_BUFF_SLOTS];
 				int j = 0;
 
 				auto i = CachedBuffsMap.find(pSpawn->SpawnID);
@@ -7454,10 +7454,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 						if (SPELL* pBuff = GetSpellByID(k->first))
 						{
 							pAffects[j].Type = 2;
-							pAffects[j].ID = pBuff->ID;
+							pAffects[j].SpellID = pBuff->ID;
 							pAffects[j].Activatable = 0; // pBuff->Activated;
-							pAffects[j].CasterLevel = pPlayer->Level;
-							pAffects[j].BaseDmgMod = 1.0;
+							pAffects[j].Level = pPlayer->Level;
+							pAffects[j].Modifier = 1.0;
 							j++;
 						}
 					}
@@ -7489,7 +7489,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				{
 					if (CHARINFO* pMe = GetCharInfo())
 					{
-						EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+						EQ_Affect pAffects[NUM_BUFF_SLOTS];
 						int j = 0;
 
 						auto i = CachedBuffsMap.find(pTarget->SpawnID);
@@ -7501,11 +7501,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 								if (SPELL* pBuff = GetSpellByID(k.first))
 								{
 									pAffects[j].Type = 2;
-									pAffects[j].ID = pBuff->ID;
-									pAffects[j].Activatable = 0;// pBuff->Activated;
+									pAffects[j].SpellID = pBuff->ID;
 									pAffects[j].CasterGuid = pMe->Guid;
-									pAffects[j].CasterLevel = ((SPAWNINFO*)pLocalPlayer)->Level;
-									pAffects[j].BaseDmgMod = 1.0;
+									pAffects[j].Level = ((SPAWNINFO*)pLocalPlayer)->Level;
+									pAffects[j].Modifier = 1.0;
 									j++;
 								}
 							}
@@ -7520,11 +7519,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 									if (SPELL* pBuff = GetSpellByID((DWORD)buffID))
 									{
 										pAffects[j].Type = 2;
-										pAffects[j].ID = pBuff->ID;
-										pAffects[j].Activatable = 0 ;// pBuff->Activated;
+										pAffects[j].SpellID = pBuff->ID;
 										pAffects[j].CasterGuid = pMe->Guid;
-										pAffects[j].CasterLevel = ((SPAWNINFO*)pLocalPlayer)->Level;
-										pAffects[j].BaseDmgMod = 1.0;
+										pAffects[j].Level = ((SPAWNINFO*)pLocalPlayer)->Level;
+										pAffects[j].Modifier = 1.0;
 										j++;
 									}
 								}

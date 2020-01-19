@@ -658,6 +658,8 @@ union EqGuid
 		uint16_t Reserved;
 	} fields;
 	uint64_t GUID;
+
+	EqGuid() : GUID(0) {}
 };
 
 // 20101012 - ieatacid
