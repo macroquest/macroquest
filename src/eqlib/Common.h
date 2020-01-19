@@ -488,6 +488,73 @@ enum EQExpansionOwned
 // TODO: Find a common place to put constants
 constexpr int MAX_BANDOLIER_SLOTS = 4;
 
+
+enum PlayerClass
+{
+	Unknown = 0,
+	Warrior = 1,
+	Cleric = 2,
+	Paladin = 3,
+	Ranger = 4,
+	Shadowknight = 5,
+	Druid = 6,
+	Monk = 7,
+	Bard = 8,
+	Rogue = 9,
+	Shaman = 10,
+	Necromancer = 11,
+	Wizard = 12,
+	Mage = 13,
+	Enchanter = 14,
+	Beastlord = 15,
+	Berserker = 16,
+
+
+	Mercenary = 17,
+
+	GM_Warrior = 20,
+	GM_Cleric = 21,
+	GM_Paladin = 22,
+	GM_Ranger = 23,
+	GM_Shadowknight = 24,
+	GM_Druid = 25,
+	GM_Monk = 26,
+	GM_Bard = 27,
+	GM_Rogue = 28,
+	GM_Shaman = 29,
+	GM_Necromancer = 30,
+	GM_Wizard = 31,
+	GM_Magician = 32,
+	GM_Enchanter = 33,
+	GM_Beastlord = 34,
+	GM_Berserker = 35,
+
+	Class_Banker = 40,
+	Class_Merchant = 41,
+	Class_TaskMerchant = 58,
+	Class_PvPMerchant = 59,
+	Class_Adventure = 60,
+	Class_AdventureMerchant = 61,
+	Class_Object = 62,
+	Class_TributeMaster = 63,
+	Class_GuildTributeMaster = 64,
+
+	Class_GuildBanker = 66,
+	Class_GoodPointMerchant = 67,
+	Class_EvilPointMerchant = 68,
+	Class_FellowshipMaster = 69,
+	Class_PointMerchant = 70,
+	Class_MercenaryMerchant = 71,
+	Class_RealEstateMrchant = 72,
+	Class_LoyaltyMerchant = 73,
+
+	TotalPlayerClasses = Berserker,
+	TotalClasses = TotalPlayerClasses + 1,
+};
+
+constexpr int MAX_PLAYER_CLASSES = Berserker;
+constexpr int MAX_CLASSES = GM_Berserker;
+
 #if defined (_DEBUG)
 #define FORCE_SYMBOLS __declspec(dllexport) const void* __force_symbol_generation__() const { return this; }
 #else

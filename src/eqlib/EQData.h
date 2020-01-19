@@ -15,6 +15,7 @@
 #pragma once
 
 #include "../common/Common.h"
+#include "Common.h"
 #include "Containers.h"
 #include "Items.h"
 #include "PlayerClient.h"
@@ -35,38 +36,6 @@ namespace eqlib {
 #define RogueMASK                                0x0100
 #define WizardMASK                               0x0400
 
-enum PlayerClass
-{
-	Unknown                                    = 0,
-	Warrior                                    = 1,
-	Cleric                                     = 2,
-	Paladin                                    = 3,
-	Ranger                                     = 4,
-	Shadowknight                               = 5,
-	Druid                                      = 6,
-	Monk                                       = 7,
-	Bard                                       = 8,
-	Rogue                                      = 9,
-	Shaman                                     = 10,
-	Necromancer                                = 11,
-	Wizard                                     = 12,
-	Mage                                       = 13,
-	Enchanter                                  = 14,
-	Beastlord                                  = 15,
-	Berserker                                  = 16,
-	TotalPlayerClasses                         = Berserker,
-
-	Mercenary                                  = 17,
-	TotalClasses                               = Mercenary,
-};
-
-// class 20 through 35 are the NPC GMs (same class order as above)
-// class 41   Merchant
-// class 60   LDoN Recruiter
-// class 61   LDoN Merchant
-// class 63   Tribute Master
-// class 67   DoN Merchant (Norrath's Keepers)
-// class 68   DoN Merchant (Dark Reign)
 
 struct SClassInfo
 {
