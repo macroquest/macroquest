@@ -1445,6 +1445,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSpellBookWnd__MemorizeSet;
 
 	EQLIB_VAR DWORD CStmlWnd__AppendSTML;
+	EQLIB_VAR DWORD CStmlWnd__ParseSTML;
 	EQLIB_VAR DWORD CStmlWnd__CalculateHSBRange;
 	EQLIB_VAR DWORD CStmlWnd__CalculateVSBRange;
 	EQLIB_VAR DWORD CStmlWnd__CanBreakAtCharacter;

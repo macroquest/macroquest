@@ -6544,7 +6544,7 @@ EQLIB_OBJECT void CStmlWnd::ActivateLink(SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ForceParseNow(void);
 EQLIB_OBJECT void CStmlWnd::GoToBackHistoryLink(void);
 //EQLIB_OBJECT void CStmlWnd::LoadPage(class CXStr,enum ESTMLTargetValue,bool);
-EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr,bool,SLinkInfo *);
+EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr,bool,SLinkInfo * = nullptr);
 EQLIB_OBJECT void CStmlWnd::SetSTMLTextWithoutHistory(class CXStr);
 // virtual
 EQLIB_OBJECT CStmlWnd::~CStmlWnd(void);
@@ -6590,6 +6590,8 @@ EQLIB_OBJECT void CStmlWnd::InitializeTempVariables(class SParseVariables *,clas
 EQLIB_OBJECT void CStmlWnd::InitializeTextLine(class SParseVariables *,int);
 EQLIB_OBJECT void CStmlWnd::InitializeWindowVariables(void);
 //EQLIB_OBJECT void CStmlWnd::ParseLinkTarget(class CXStr,enum ESTMLTargetValue *)const;
+//ParseSTML valid Flags: STML_STYLE_WIDTH = 0x00010000 and then WindowStyle from CXWnd
+EQLIB_OBJECT CXSize CStmlWnd::ParseSTML(CXStr StmlStr, CircularArrayClass2<STextLine>*TextLines, const CXRect& Rect, unsigned __int32 Flags);
 EQLIB_OBJECT void CStmlWnd::ParseSTMLHead(class CXStr&);
 EQLIB_OBJECT void CStmlWnd::ParseSTMLTable(class CXStr&,int *,class CXStr,class SParseVariables *);
 EQLIB_OBJECT void CStmlWnd::ParseSTMLTableAttributes(class CXStr&,class STable *);

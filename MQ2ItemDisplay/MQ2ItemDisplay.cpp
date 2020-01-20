@@ -48,7 +48,7 @@ std::map<CButtonWnd *, ButtonInfo>ButtonMap;
 void Comment(PSPAWNINFO pChar, PCHAR szLine);
 #ifndef ISXEQ // TODO If we want GearScore under IS, this needs ported to ISXEQItemDisplay 
 void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine);
-template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem, CHAR(&out)[_Size],char *br);
+template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO* pItem, CHAR(&out)[_Size],char* br);
 #endif
 typedef struct _DISPLAYITEMSTRINGS
 {
@@ -426,7 +426,9 @@ int CanIUseThisItem(PITEMINFO pItem)
 	}
 	return -1;
 }
-template <unsigned int _Size>char* GetSlots(PITEMINFO pItem,char(&_Buffer)[_Size])
+
+template <unsigned int _Size>
+char* GetSlots(PITEMINFO pItem,char(&_Buffer)[_Size])
 {
 	DWORD cmp = pItem->EquipSlots;
 	for (int N = 0; N < 32; N++)
@@ -439,6 +441,7 @@ template <unsigned int _Size>char* GetSlots(PITEMINFO pItem,char(&_Buffer)[_Size
 	}
 	return _Buffer;
 }
+
 PCONTENTS GetEquippedSlot(PCONTENTS pCont)
 {
 	if (PITEMINFO pItem = GetItemFromContents(pCont))
@@ -460,6 +463,9 @@ PCONTENTS GetEquippedSlot(PCONTENTS pCont)
 	}
 	return NULL;
 }
+
+static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped);
+
 class ItemDisplayHook
 {
     typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Mount, Illusion, Familiar} SEffectType;
@@ -1742,44 +1748,7 @@ public:
 		}
 		return AboutToShow_Trampoline();
 	}
-	
-	static void PrintItem(PCONTENTS pCont,PCONTENTS pEquipped)
-	{
-		if (PITEMINFO pItem = GetItemFromContents(pCont))
-		{
-			if (CanIUseThisItem(pItem))
-			{
-				if (PITEMINFO pItem2 = GetItemFromContents(pEquipped))
-				{
-					CXPoint pt;
-					pt.X = EQADDR_MOUSE->X + 5;
-					pt.Y = EQADDR_MOUSE->Y + 5;
-					((CXWnd *)pCompareTipWnd)->Move(pt);
-					pCompareTipWnd->SetZLayer(0);
 
-					((CStmlWnd*)pCompareTipWnd->Display)->SetSTMLText("", 1, 0);
-					((CStmlWnd*)pCompareTipWnd->Display)->ForceParseNow();
-					CHAR szTemp[MAX_STRING] = { 0 };
-					CHAR szTemp2[MAX_STRING] = { 0 };
-					DWORD realcolor = 0xFF00FF00;// ConColorToARGB(argbcolor) & 0x00FFFFFF;
-					sprintf_s(szTemp, "<c \"#FFFF00\">%s<br></c><c \"#FFFFFF\">%s %s </c><br>", pItem->Name, pItem->Lore ? "[Lore]" : "", pItem->NoDrop ? "" : "[No Drop]");
-					((CStmlWnd*)pCompareTipWnd->Display)->SetSTMLText(szTemp, 1, 0);
-					
-					sprintf_s(szTemp, "<c \"#FFFF00\">%s<br></c>", GetSlots(pItem, szTemp2));
-					((CStmlWnd*)pCompareTipWnd->Display)->AppendSTML(szTemp);
-					DWORD color = 0xFF0000;
-					int ACStat = pItem->AC - pItem2->AC;
-					if (ACStat > 0)
-						color = 0x00FF00;
-					sprintf_s(szTemp, "<c \"#FFFFFF\">Rec Level: </c><c \"#00FF00\">%d</c><c \"#FFFFFF\">&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;&NBSP;AC: </c><c \"#%06X\">%d</c><br>", pItem->RequiredLevel,color, ACStat);
-					((CStmlWnd*)pCompareTipWnd->Display)->AppendSTML(szTemp);
-
-					((CStmlWnd*)pCompareTipWnd->Display)->ForceParseNow();
-					pCompareTipWnd->SetVisible(true);
-				}
-			}
-		}
-	}
 	int CInvSlotWnd_DrawTooltipTramp(const CXWnd *pwnd) const;
 	int CInvSlotWnd_DrawTooltipDetour(const CXWnd *pwnd) const
 	{
@@ -1788,21 +1757,28 @@ public:
 			if (CInvSlotWnd*wnd = (CInvSlotWnd*)this)
 			{
 				PCONTENTS pCont = 0;
-				if (wnd->pEQInvSlot) {
+
+				if (wnd->pEQInvSlot)
+				{
 					wnd->pEQInvSlot->GetItemBase(&pCont);
 				}
-				if (pCont && pCont != pOldCont) {
+
+				if (pCont && pCont != pOldCont)
+				{
 					pOldCont = pCont;
+
 					if (PITEMINFO pItem = GetItemFromContents(pCont))
 					{
 						if (pCompareTipWnd && pCompareTipWnd->Display)
 						{
 							if (PCONTENTS pEquipped = GetEquippedSlot(pCont))
 							{
-								PrintItem(pCont, pEquipped);
+								if (pCont != pEquipped)
+								{
+									UpdateCompareWindow(pCont, pEquipped);
+								}
 							}
 						}
-						//WriteChatf("CInvSlotWnd_DrawTooltipDetour called for %s", pItem->Name);
 					}
 				}
 			}
@@ -1942,6 +1918,426 @@ void ItemDisplayCmd(PSPAWNINFO pChar, PCHAR szLine)
 		_itoa_s(gCompareTip, szArg1, 10);
 		WritePrivateProfileString("Settings","CompareTip",szArg1,INIFileName);
 	}
+}
+
+static void AddCompareTableData(char* buffer, size_t length, const char* statname, unsigned long statcolor, float statvalue)
+{
+	char szBuffer[256] = { 0 };
+	if (statvalue != 0.00f)
+	{
+		sprintf_s(szBuffer, "<TD><c \"#FFFFFF\">%s</c></TD><TD><c \"#%06X\">%+2.3f</c></TD>", statname, statcolor, statvalue);
+		strcat_s(buffer, length, szBuffer);
+	}
+	else
+	{
+		strcat_s(buffer, length, "<TD></TD><TD></TD>");
+	}
+}
+
+static void AddCompareTableData(char* buffer, size_t length, const char* statname, unsigned long statcolor, int statvalue)
+{
+	char szBuffer[256] = { 0 };
+	if (statvalue != 0)
+	{
+		sprintf_s(szBuffer, "<TD><c \"#FFFFFF\">%s</c></TD><TD><c \"#%06X\">%+d</c></TD>", statname, statcolor, statvalue);
+		strcat_s(buffer, length, szBuffer);
+	}
+	else
+	{
+		strcat_s(buffer, length, "<TD></TD><TD></TD>");
+	}
+}
+
+static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
+{
+	PITEMINFO pItem = GetItemFromContents(pCont);
+	PITEMINFO pItem2 = GetItemFromContents(pEquipped);
+	if (!pItem || !pItem2 || !CanIUseThisItem(pItem))
+		return;
+
+	PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer;
+	if (!pSpawn)
+		return;
+
+	// Set the location for the window to the mouse cursor
+	CXPoint pt;
+	pt.X = EQADDR_MOUSE->X + 5;
+	pt.Y = EQADDR_MOUSE->Y + 5;
+	((CXWnd*)pCompareTipWnd)->Move(pt);
+
+	// Set the layer of the window to display
+	pCompareTipWnd->SetZLayer(105);        // Bags are z-index 100
+	pCompareTipWnd->SetBringToTopWhenClicked(true);
+	pCompareTipWnd->SetEscapable(true);
+
+	pCompareTipWnd->Display->SetSTMLText("", false);
+	pCompareTipWnd->Display->ForceParseNow();
+
+	char szTemp[MAX_STRING] = { 0 };
+	char szTable[MAX_STRING] = { 0 };
+	char szTemp2[256] = { 0 };
+	unsigned int color_red = 0xFF0000;
+	unsigned int color_green = 0x00FF00;
+	unsigned int color_yellow = 0xFFFF00;
+
+	// Display Name/Lore/NoDrop tags.
+	sprintf_s(szTemp, "<c \"#ffff00\">%s</c><c \"#FFFFFF\">&NBSP;&NBSP;Vs</c>&NBSP;&NBSP;<c \"#00FF00\">%s(equipped)</c><br>", pItem->Name, pItem2->Name);
+	pCompareTipWnd->Display->SetSTMLText(szTemp, false);
+
+	if (pItem->Lore)
+		strcpy_s(szTemp2, "[Lore]");
+	if (pItem->NoDrop)
+	{
+		if (pItem->Lore)
+			strcat_s(szTemp2, " ");
+		strcat_s(szTemp2, "[No Drop]");
+	}
+	if (pItem->NoDrop || pItem->Lore)
+		strcat_s(szTemp2, "<br>");
+	pCompareTipWnd->Display->AppendSTML(szTemp2);
+
+	// Display all the slots - No table, need it to word wrap
+	szTemp2[0] = 0;
+	sprintf_s(szTemp, "<c \"#ffff00\">%s<br></c>", GetSlots(pItem, szTemp2));
+	pCompareTipWnd->Display->AppendSTML(szTemp);
+
+	// Begin table
+	strcat_s(szTable, "<TABLE>");
+
+	// Row -- Size          AC
+	{
+		int ACStat = pItem->AC - pItem2->AC;
+		unsigned int ACcolor = (ACStat >= 0) ? color_green : color_red;
+
+		int dmgStat = pItem->Damage - pItem2->Damage;
+		unsigned int dmgColor = (dmgStat >= 0) ? color_green : color_red;
+
+		sprintf_s(szTemp, "<TR><TD><c \"#FFFFFF\">Size: </c></TD><TD><c \"#00FF00\">%s</c></TD>", szSize[pItem->Size]);
+		AddCompareTableData(szTemp, MAX_STRING, "AC:", ACcolor, ACStat);
+		AddCompareTableData(szTemp, MAX_STRING, "Damage:", dmgColor, dmgStat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Weight         HP:          Elemental:
+	{
+		float weightstat = (float)((int)pItem->Weight - (int)pItem2->Weight) / 10.f;
+
+		// If item weighs more, make it red.
+		unsigned int weightcolor = (weightstat > 0) ? color_red : color_green;
+
+		// compute HP and color
+		int HPStat = pItem->HP - pItem2->HP;
+		unsigned int hpcolor = (HPStat >= 0) ? color_green : color_red;
+
+		// FIXME: this is not working for all weapons (Fabled Rune Etched Bamboo Bo for example has
+		// 4 fire damage, but it is no showing up here)
+		// compute ele dmg and color
+		int eleDmgStat = pItem->ElementalDamage - pItem2->ElementalDamage;
+		unsigned int eleDmgColor = (eleDmgStat >= 0) ? color_green : color_red;
+
+		// FIXME: Also missing, is damage bonus
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Weight:", weightcolor, weightstat);
+		AddCompareTableData(szTemp, MAX_STRING, "HP:", hpcolor, HPStat);
+		AddCompareTableData(szTemp, MAX_STRING, "Elemental:", eleDmgColor, eleDmgStat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- RecLevel       Mana:
+	{
+		// We're just going to display the rec level, but let's choose a color.
+		// Yellow if we can use it, but not greater than or equal to the rec level.
+		unsigned int recLevelColor = color_red;
+		if (pItem->RecommendedLevel < pSpawn->Level)
+			recLevelColor = color_green;     // My level is higher than recommended level, so it's green.
+		else if (pItem->RecommendedLevel > pSpawn->Level)
+			recLevelColor = color_yellow;    // recommended level is higher than mine, so it's yellow.
+
+		int manastat = pItem->Mana - pItem2->Mana;
+		unsigned int manaColor = (manastat >= 0) ? color_green : color_red;
+
+		int bsstat = pItem->BackstabDamage - pItem2->BackstabDamage;
+		unsigned int bscolor = (bsstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Recommended:", recLevelColor, pItem->RecommendedLevel);
+		AddCompareTableData(szTemp, MAX_STRING, "Mana:", manaColor, manastat);
+		AddCompareTableData(szTemp, MAX_STRING, "Backstab:", bscolor, bsstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- ReqLevel       Endurance:
+	{
+		unsigned int reqLevelColor = color_red;
+		if (pItem->RequiredLevel < pSpawn->Level)
+			reqLevelColor = color_green;      // My level is higher than recommended level, so it's green.
+
+		int endstat = pItem->Endurance - pItem2->Endurance;
+		unsigned int endColor = (endstat >= 0) ? color_green : color_red;
+
+		int delaystat = (int)pItem->Delay - pItem2->Delay;
+		unsigned int delaycolor = (delaystat >= 0) ? color_red : color_green;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Required:", reqLevelColor, pItem->RequiredLevel);
+		AddCompareTableData(szTemp, MAX_STRING, "Endurance:", endColor, endstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Delay:", delaycolor, delaystat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Skill          (Blank)        Haste:
+	{
+		int hastestat = pItem->Haste - pItem2->Haste;
+		unsigned int hasteColor = (hastestat >= 0) ? color_green : color_red;
+
+		// FIXME: Skill does no make much sense for all items. Probably only needs to be displayed for weapons.
+
+		sprintf_s(szTemp, "<TR><TD>Skill:</TD><TD><c \"#%06X\">%s</c></TD>", color_green, szItemTypes[pItem->ItemType]);
+		AddCompareTableData(szTemp, MAX_STRING, "Haste:", hasteColor, hastestat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Efficiency       OffhandEff          Ratio
+	{
+		// Avoid division by zero
+		float item1ratio = (pItem->Damage != 0) ? ((float)pItem->Delay / (float)pItem->Damage) : 0.0f;
+		float item2ratio = (pItem2->Damage != 0) ? ((float)pItem2->Delay / (float)pItem2->Damage) : 0.0f;
+		float ratiostat = item1ratio - item2ratio;
+		unsigned int ratiocolor = (ratiostat >= 0) ? color_red : color_green;
+
+		float effstat = (pItem->Delay != 0) ? (((((float)pItem->Damage * 2) + pItem->DmgBonusValue) / (float)pItem->Delay) * 50) : 0.0f;
+		float eff2stat = (pItem2->Delay != 0) ? (((((float)pItem2->Damage * 2) + pItem2->DmgBonusValue) / (float)pItem2->Delay) * 50) : 0.0f;
+		effstat -= eff2stat;
+		unsigned int effcolor = (effstat >= 0) ? color_green : color_red;
+
+		float offeffstat = (pItem->Delay != 0) ? (((((float)pItem->Damage * 2) / (float)pItem->Delay) * 50.0f) * 0.62f) : 0.0f;
+		float offeff2stat = (pItem2->Delay != 0) ? (((((float)pItem2->Damage * 2) / (float)pItem2->Delay) * 50.0f) * 0.62f) : 0.0f;
+		offeffstat -= offeff2stat;
+		unsigned int offeffcolor = (offeffstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Efficiency:", effcolor, (int)effstat);
+		if (pItem->EquipSlots & 16384 || pItem2->EquipSlots & 16384)
+			AddCompareTableData(szTemp, MAX_STRING, "Offhand Eff:", offeffcolor, (int)offeffstat);
+		else
+			strcat_s(szTemp, "<TD></TD><TD></TD>");
+		AddCompareTableData(szTemp, MAX_STRING, "Ratio:", ratiocolor, ratiostat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Luck
+	{
+		int luckstat = pCont->Luck - pEquipped->Luck;
+		unsigned int luckcolor = (luckstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR><TD></TD><TD></TD><TD></TD><TD></TD>");
+		AddCompareTableData(szTemp, MAX_STRING, "Luck:", luckcolor, luckstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Finish this table and start a new one
+	strcat_s(szTable, "</TABLE><br>");
+	pCompareTipWnd->Display->AppendSTML(szTable);
+
+	strcpy_s(szTable, "<TABLE>");
+
+	// Row -- Strength:        Magic:        Attack:
+	{
+		int strstat = pItem->STR - pItem2->STR;
+		unsigned int strcolor = (strstat >= 0) ? color_green : color_red;
+
+		int hstrstat = pItem->HeroicSTR - pItem2->HeroicSTR;
+		unsigned int hstrcolor = (hstrstat >= 0) ? color_green : color_red;
+
+		int MRstat = pItem->SvMagic - pItem2->SvMagic;
+		unsigned int mrcolor = (MRstat >= 0) ? color_green : color_red;
+
+		int atkstat = pItem->Attack - pItem2->Attack;
+		unsigned int atkcolor = (atkstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Strength:", strcolor, strstat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HStr:</c>", hstrcolor, hstrstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Magic:", mrcolor, MRstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Attack:", atkcolor, atkstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Stamina:              Fire:            HP Regen:
+	{
+		int stastat = pItem->STA - pItem2->STA;
+		unsigned int stacolor = (stastat >= 0) ? color_green : color_red;
+
+		int hstastat = pItem->HeroicSTA - pItem2->HeroicSTA;
+		unsigned int hstacolor = (hstastat >= 0) ? color_green : color_red;
+
+		int frstat = pItem->SvFire - pItem2->SvFire;
+		unsigned int frcolor = (frstat >= 0) ? color_green : color_red;
+
+		int hpregenstat = pItem->HPRegen - pItem2->HPRegen;
+		unsigned int hpregencolor = (hpregenstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Stamina:", stacolor, stastat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HSta:</c>", hstacolor, hstastat);
+		AddCompareTableData(szTemp, MAX_STRING, "Fire:", frcolor, frstat);
+		AddCompareTableData(szTemp, MAX_STRING, "HP Regen:", hpregencolor, hpregenstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Intelligence:          Cold:            Mana Regen:
+	{
+		int intstat = pItem->INT - pItem2->INT;
+		unsigned int intcolor = (intstat >= 0) ? color_green : color_red;
+
+		int hintstat = pItem->HeroicINT - pItem2->HeroicINT;
+		unsigned int hintcolor = (hintstat >= 0) ? color_green : color_red;
+
+		int crstat = pItem->SvCold - pItem2->SvCold;
+		unsigned int crcolor = (crstat >= 0) ? color_green : color_red;
+
+		int manaregenstat = pItem->ManaRegen - pItem2->ManaRegen;
+		unsigned int manaregencolor = (manaregenstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Intelligence:", intcolor, intstat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HInt:</c>", hintcolor, hintstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Cold:", crcolor, crstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Mana Regen:", manaregencolor, manaregenstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Wisdom:               Disease:           Heal Amount:
+	{
+		int wisstat = pItem->WIS - pItem2->WIS;
+		unsigned int wiscolor = (wisstat >= 0) ? color_green : color_red;
+
+		int hwisstat = pItem->HeroicWIS - pItem2->HeroicWIS;
+		unsigned int hwiscolor = (hwisstat >= 0) ? color_green : color_red;
+
+		int drstat = pItem->SvDisease - pItem2->SvDisease;
+		unsigned int drcolor = (drstat >= 0) ? color_green : color_red;
+
+		int healstat = pItem->HealAmount - pItem2->HealAmount;
+		unsigned int healcolor = (healstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Wisdom:", wiscolor, wisstat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HWis:</c>", hwiscolor, hwisstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Disease:", drcolor, drstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Heal Amt:", healcolor, healstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Agility:              Poison:             Spell Dmg:
+	{
+		int agistat = pItem->AGI - pItem2->AGI;
+		unsigned int agicolor = (agistat >= 0) ? color_green : color_red;
+
+		int hagistat = pItem->HeroicAGI - pItem2->HeroicAGI;
+		unsigned int hagicolor = (hagistat >= 0) ? color_green : color_red;
+
+		int prstat = pItem->SvPoison - pItem2->SvPoison;
+		unsigned int prcolor = (prstat >= 0) ? color_green : color_red;
+
+		int spelldmgstat = pItem->SpellDamage - pItem2->SpellDamage;
+		unsigned int spelldmgcolor = (spelldmgstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Agility:", agicolor, agistat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HAgi:</c>", hagicolor, hagistat);
+		AddCompareTableData(szTemp, MAX_STRING, "Poison:", prcolor, prstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Spell Dmg:", spelldmgcolor, spelldmgstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Dexterity:               Corrupt:           Clairvoyance:
+	{
+		int dexstat = pItem->DEX - pItem2->DEX;
+		unsigned int dexcolor = (dexstat >= 0) ? color_green : color_red;
+
+		int hdexstat = pItem->HeroicDEX - pItem2->HeroicDEX;
+		unsigned int hdexcolor = (hdexstat >= 0) ? color_green : color_red;
+
+		int corstat = pItem->SvCorruption - pItem2->SvCorruption;
+		unsigned int corcolor = (corstat >= 0) ? color_green : color_red;
+
+		int clairstat = pItem->Clairvoyance - pItem2->Clairvoyance;
+		unsigned int claircolor = (clairstat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Dexterity:", dexcolor, dexstat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HDex:</c>", hdexcolor, hdexstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Corruption:", corcolor, corstat);
+		AddCompareTableData(szTemp, MAX_STRING, "Clairvoyance:", claircolor, clairstat);
+		strcat_s(szTemp, "</TR>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// Row -- Charisma:               (blank)                 FlyingKick (or any other dmgbonus skill)
+	{
+		int chastat = pItem->CHA - pItem2->CHA;
+		unsigned int chacolor = (chastat >= 0) ? color_green : color_red;
+
+		int hchastat = pItem->HeroicCHA - pItem2->HeroicCHA;
+		unsigned int hchacolor = (hchastat >= 0) ? color_green : color_red;
+
+		strcpy_s(szTemp, "<TR>");
+		AddCompareTableData(szTemp, MAX_STRING, "Charisma:", chacolor, chastat);
+		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HCha:</c>", hchacolor, hchastat);
+		strcat_s(szTemp, "<TD></TD><TD></TD>");
+
+		if ((pItem->DmgBonusValue || pItem2->DmgBonusValue) && pItem->DmgBonusSkill == pItem2->DmgBonusSkill)
+		{
+			// If both have skills and the skills match.
+			int dmgstat = pItem->DmgBonusValue - pItem2->DmgBonusValue;
+			unsigned int dmgstatcolor = (dmgstat >= 0) ? color_green : color_red;
+
+			AddCompareTableData(szTemp, MAX_STRING, szSkills[pItem->DmgBonusSkill], dmgstatcolor, dmgstat);
+		}
+		else if (pItem->DmgBonusSkill != pItem2->DmgBonusSkill)
+		{
+			// If both have skills, but they don't match.
+			if (pItem->DmgBonusValue)
+			{
+				sprintf_s(szTemp2, "<TD>%s:</c></TD><TD><c \"#%06X\">%+d</c></TD>", szSkills[pItem->DmgBonusSkill], color_green, pItem->DmgBonusValue);
+				strcat_s(szTemp, szTemp2);
+			}
+
+			if (pItem2->DmgBonusValue)
+			{
+				if (pItem->DmgBonusValue)
+				{
+					// If there's a second skill, end the row, move over 6 columns.
+					strcat_s(szTemp, "</TR><TR> <TD></TD> <TD></TD> <TD></TD> <TD></TD> <TD></TD> <TD></TD>");
+				}
+
+				sprintf_s(szTemp2, "<TD>%s:</c></TD><TD><c \"#%06X\">%+d</c></TD>", szSkills[pItem2->DmgBonusSkill], color_red, -(int)pItem2->DmgBonusValue);
+				strcat_s(szTemp, szTemp2);
+			}
+		}
+
+		strcat_s(szTemp, "</TR></TABLE>");
+		strcat_s(szTable, szTemp);
+	}
+
+	// We're done generating the STML so we can force an update now.
+	pCompareTipWnd->Display->AppendSTML(szTable);
+	pCompareTipWnd->Display->ForceParseNow();
+	pCompareTipWnd->SetVisible(true);
 }
 
 void RequestConvertItem(PSPAWNINFO pSpawn, PCHAR szLine)
@@ -2642,14 +3038,38 @@ void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(Key,szLine,1); 
     GetArg(Val,szLine,2); 
 
-	if (_stricmp(Key,"save"		)==0)	{	WriteProfile(pName,TRUE);	return; }
-	if (_stricmp(Key,"load"		)==0)	{	ReadProfile(pName,TRUE);	return; }
-	if (_stricmp(Key,"report"	)==0)   {	SetReportChannel(pName,Val);return;	}
-	if (_stricmp(Key,"click"		)==0)	{	SetClickMode(pName,Val);	return;	}
-	if (_stricmp(Key,"cursor"	)==0)   {	DoScoreForCursor();			return;	}
-	if (_stricmp(Key,"clear"		)==0)	{	ClearProfile(TRUE);			return;	}
-	if (_stricmp(Key,"help"		)==0)	{	EchoHelp(TRUE);				return;	}
-	if (Key[0] == 0					)	{	EchoCommands(TRUE);			return;	}
+	if (_stricmp(Key,"save") == 0) {
+		WriteProfile(pName,TRUE);
+		return;
+	}
+	if (_stricmp(Key,"load") == 0) {
+		ReadProfile(pName,TRUE);
+		return;
+	}
+	if (_stricmp(Key,"report") == 0) {
+		SetReportChannel(pName,Val);
+		return;
+	}
+	if (_stricmp(Key,"click") == 0) {
+		SetClickMode(pName,Val);
+		return;
+	}
+	if (_stricmp(Key,"cursor") == 0) {
+		DoScoreForCursor();
+		return;
+	}
+	if (_stricmp(Key,"clear") == 0) {
+		ClearProfile(TRUE);
+		return;
+	}
+	if (_stricmp(Key,"help") == 0) {
+		EchoHelp(TRUE);
+		return;
+	}
+	if (Key[0] == 0) {
+		EchoCommands(TRUE);
+		return;
+	}
 	SetAttribListWeight(Key,Val);
 }
 
@@ -3059,7 +3479,7 @@ template <unsigned int _Size> void AddGearScores_CheckItems(PCONTENTS pSlot,ITEM
 	}
 }
 
-template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,PITEMINFO pItem, CHAR(&out)[_Size],char *br)
+template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO* pItem, CHAR(&out)[_Size],char* br)
 {
 	static ULONGLONG lastTick = 0;
 	ReportBestStr[0] = 0;

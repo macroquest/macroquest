@@ -1,3 +1,6 @@
+Jan 20 2020
+- Misc Fixes to triggers etc - braniac
+- 
 Jan 15 2020
 - Added /invoke to the list of commands that can trigger a bind.
 - Updated for LIVE

@@ -27,8 +27,8 @@
 			<Y>100</Y> 
 		</Location> 
 		<Size> 
-			<CX>220</CX> 
-			<CY>120</CY> 
+			<CX>390</CX> 
+			<CY>325</CY> 
 		</Size> 
 		<Text>CompareTip</Text> 
 		<Style_VScroll>false</Style_VScroll> 

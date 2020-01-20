@@ -1139,6 +1139,32 @@ PSPELL GetSpellBySpellGroupID(LONG dwSpellGroupID)
 	return NULL;
 }
 
+SPELL* GetHighestLearnedSpellByGroupID(DWORD dwSpellGroupID)
+{
+	if (!pSpellMgr) return nullptr;
+	CHARINFO2* pProfile = GetCharInfo2();
+	if (!pProfile) return nullptr;
+
+	SPELL* pBestSpell = nullptr;
+
+	for (DWORD index = 0; index < NUM_BOOK_SLOTS; ++index)
+	{
+		int dwSpellID = pProfile->SpellBook[index];
+		if (dwSpellID == -1)
+			continue;
+
+		SPELL* pFoundSpell = GetSpellByID(dwSpellID);
+		if (!pFoundSpell || pFoundSpell->SpellGroup != dwSpellGroupID)
+			continue;
+
+		// find the highest rank of the spell that matches this spell group.
+		if (!pBestSpell || pBestSpell->SpellRank < pFoundSpell->SpellRank)
+			pBestSpell = pFoundSpell;
+	}
+
+	return pBestSpell;
+}
+
 PCHAR GetSpellNameBySpellGroupID(LONG dwSpellID)
 {
 	PSPELL pSpell = GetSpellBySpellGroupID(abs(dwSpellID));
@@ -2479,6 +2505,7 @@ TS PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 	switch (abs(TargetLimitsType))
 	{
 	case 50: strcat_s(szBuffer, "Target AE No Players Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+	case 52: strcpy_s(szBuffer, "Single Friendly (or Target's Target"); break; // Introduced in Torment of Velious. Spell affects target if friendly, or target's target if the target is an unfriendly.
 	case 47: strcat_s(szBuffer, "Pet Owner"); break;
 	case 46: strcat_s(szBuffer, "Target of Target"); break;
 	case 45: strcat_s(szBuffer, "Free Target"); break;
@@ -2514,7 +2541,7 @@ TS PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 	case 3: strcat_s(szBuffer, "Group v1"); break;
 	case 2: strcat_s(szBuffer, "AE PC v1"); break;
 	case 1: strcat_s(szBuffer, "Line of Sight"); break;
-	default: 
+	default:
 		sprintf_s(szTemp, "Unknown[%d]", abs(TargetLimitsType));
 		strcat_s(szBuffer, szTemp); break;
 	}
@@ -6606,6 +6633,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			if (GuildID != -1 && GuildID != 0) {
 				pSearchSpawn->GuildID = GuildID;
 				szRest = GetNextArg(szRest, 1);
+			}
+			else if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer) {
+					GuildID = pSpawn->GuildID;
 			}
 		}
 		else if (!_stricmp(szArg, "alert")) {
@@ -12107,7 +12137,10 @@ long GetMeleeSpeedFromTriggers(PSPELL pSpell, bool bIncrease) {
 			PSPELL pTrigger = 0;
 			if (int groupid = GetSpellBase2(pSpell, index)) {
 				if (spafound == 470L) {
-					pTrigger = (PSPELL)pSpellMgr->GetSpellByGroupAndRank(groupid, pSpell->SpellSubGroup, pSpell->SpellRank, true);
+					pTrigger = GetHighestLearnedSpellByGroupID(groupid);
+					if (!pTrigger) {
+						pTrigger = GetSpellBySpellGroupID(groupid);
+					}
 				}
 				else if (spafound == 374L) {
 					pTrigger = (PSPELL)pSpellMgr->GetSpellByID(groupid);

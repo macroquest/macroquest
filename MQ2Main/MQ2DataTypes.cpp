@@ -5027,6 +5027,23 @@ bool MQ2CharacterType::GETMEMBER()
 					}
 				}
 			}
+			for (unsigned long k = 0; k < NUM_SHORT_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->ShortBuff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 35 /*Disease Counter*/ || attrib == 36 /*Poison*/ || attrib == 116 /*Curse*/ || attrib == 369/*Corruption*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->ShortBuff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->ShortBuff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		return true;
 	case CountersDisease://this case adds all resist Counters and returns that, why is this useful?
@@ -5043,6 +5060,23 @@ bool MQ2CharacterType::GETMEMBER()
 								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
 									if (pChar2->Buff[k].SlotData[j].Slot == i) {
 										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			for (unsigned long k = 0; k < NUM_SHORT_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->ShortBuff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 35 /*Disease Counter*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->ShortBuff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->ShortBuff[k].SlotData[j].Value;
 									}
 								}
 							}
@@ -5073,6 +5107,23 @@ bool MQ2CharacterType::GETMEMBER()
 					}
 				}
 			}
+			for (unsigned long k = 0; k < NUM_SHORT_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->ShortBuff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 36 /*Poison*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->ShortBuff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->ShortBuff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		return true;
 	case CountersCurse://this case adds all resist Counters and returns that, why is this useful?
@@ -5096,6 +5147,23 @@ bool MQ2CharacterType::GETMEMBER()
 					}
 				}
 			}
+			for (unsigned long k = 0; k < NUM_SHORT_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->ShortBuff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 116 /*Curse*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->ShortBuff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->ShortBuff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		return true;
 	case CountersCorruption://this case adds all resist Counters and returns that, why is this useful?
@@ -5112,6 +5180,23 @@ bool MQ2CharacterType::GETMEMBER()
 								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
 									if (pChar2->Buff[k].SlotData[j].Slot == i) {
 										Dest.DWord += pChar2->Buff[k].SlotData[j].Value;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			for (unsigned long k = 0; k < NUM_SHORT_BUFFS; k++) {
+				if (PSPELL pSpell = GetSpellByID(pChar2->ShortBuff[k].SpellID)) {
+					if (pSpell->SpellType == 0) {
+						LONG slots = GetSpellNumEffects(pSpell);
+						for (LONG i = 0; i < slots; i++) {
+							LONG attrib = GetSpellAttrib(pSpell, i);
+							if (attrib == 369/*Corruption*/) {
+								for (LONG j = 0; j < NUM_SLOTDATA; j++) {
+									if (pChar2->ShortBuff[k].SlotData[j].Slot == i) {
+										Dest.DWord += pChar2->ShortBuff[k].SlotData[j].Value;
 									}
 								}
 							}
@@ -5741,6 +5826,11 @@ bool MQ2CharacterType::GETMEMBER()
 				Dest.Ptr = &pChar2->Buff[nBuff];
 				return true;
 			}
+			if ((nBuff = GetSelfShortBuffBySPA(35, 0)) != -1)//Disease Counter
+			{
+				Dest.Ptr = &pChar2->ShortBuff[nBuff];
+				return true;
+			}
 		}
 		return false;
 	case Poisoned:
@@ -5750,6 +5840,11 @@ bool MQ2CharacterType::GETMEMBER()
 			if ((nBuff = GetSelfBuffBySPA(36, 0)) != -1)//Poison Counter
 			{
 				Dest.Ptr = &pChar2->Buff[nBuff];
+				return true;
+			}
+			if ((nBuff = GetSelfShortBuffBySPA(36, 0)) != -1)//Poison Counter
+			{
+				Dest.Ptr = &pChar2->ShortBuff[nBuff];
 				return true;
 			}
 		}
@@ -5763,6 +5858,11 @@ bool MQ2CharacterType::GETMEMBER()
 				Dest.Ptr = &pChar2->Buff[nBuff];
 				return true;
 			}
+			if ((nBuff = GetSelfShortBuffBySPA(116, 0)) != -1)//Curse Counter
+			{
+				Dest.Ptr = &pChar2->ShortBuff[nBuff];
+				return true;
+			}
 		}
 		return false;
 	case Corrupted:
@@ -5772,6 +5872,11 @@ bool MQ2CharacterType::GETMEMBER()
 			if ((nBuff = GetSelfBuffBySPA(369, 0)) != -1)//Corruption Counter
 			{
 				Dest.Ptr = &pChar2->Buff[nBuff];
+				return true;
+			}
+			if ((nBuff = GetSelfShortBuffBySPA(369, 0)) != -1)//Corruption Counter
+			{
+				Dest.Ptr = &pChar2->ShortBuff[nBuff];
 				return true;
 			}
 		}
@@ -6550,6 +6655,7 @@ bool MQ2SpellType::GETMEMBER()
 		switch (pSpell->TargetType)
 		{
 		case 50: strcpy_s(DataTypeTemp, "Target_AE_No_Players_Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+		case 52: strcpy_s(DataTypeTemp, "Single Friendly (or Target's Target"); break; // Introduced in Torment of Velious. Spell affects target if friendly, or target's target if the target is an unfriendly.
 		case 47: strcpy_s(DataTypeTemp, "Pet Owner"); break;
 		case 46: strcpy_s(DataTypeTemp, "Target of Target"); break;
 		case 45: strcpy_s(DataTypeTemp, "Free Target"); break;
@@ -6585,7 +6691,7 @@ bool MQ2SpellType::GETMEMBER()
 		case  3: strcpy_s(DataTypeTemp, "Group v1"); break;
 		case  2: strcpy_s(DataTypeTemp, "AE PC v1"); break;
 		case  1: strcpy_s(DataTypeTemp, "Line of Sight"); break;
-		default: strcpy_s(DataTypeTemp, "Unknown"); break;
+		default: sprintf_s(DataTypeTemp, "Unknown(%d)", pSpell->TargetType); break;
 		}
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -7497,7 +7603,7 @@ bool MQ2SpellType::GETMEMBER()
 				PSPELL pTrigger = 0;
 				if (int groupid = GetSpellBase2(pmyspell, index)) {
 					if (spafound == SPA_TRIGGER_BEST_SPELL_GROUP)
-						pTrigger = (PSPELL)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
+						pTrigger = GetHighestLearnedSpellByGroupID(groupid);
 					else if (spafound == 374)
 						pTrigger = (PSPELL)pSpellMgr->GetSpellByID(groupid);
 					Dest.Ptr = pTrigger;

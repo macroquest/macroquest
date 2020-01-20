@@ -8475,6 +8475,9 @@ FUNCTION_AT_ADDRESS( SFormattedText::~SFormattedText(void),SFormattedText__dSFor
 #ifdef CStmlWnd__ParseSTMLHead_x
 FUNCTION_AT_ADDRESS(void  CStmlWnd::ParseSTMLHead(class CXStr&),CStmlWnd__ParseSTMLHead);
 #endif
+#ifdef CStmlWnd__ParseSTML_x
+FUNCTION_AT_ADDRESS(CXSize CStmlWnd::ParseSTML(CXStr StmlStr, CircularArrayClass2<STextLine>*TextLines, const CXRect& Rect, unsigned __int32 Flags),CStmlWnd__ParseSTML);
+#endif
 #ifdef CStmlWnd__ParseSTMLTable_x
 FUNCTION_AT_ADDRESS(void  CStmlWnd::ParseSTMLTable(class CXStr&,int *,class CXStr&,class SParseVariables *),CStmlWnd__ParseSTMLTable);
 #endif

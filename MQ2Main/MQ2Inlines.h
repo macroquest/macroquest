@@ -590,14 +590,18 @@ static inline BOOL IsGroupMember(char * SpawnName)
 	}
 	return 0;
 }
-static inline BOOL IsFellowshipMember(char * SpawnName)
+inline int IsFellowshipMember(const char* SpawnName)
 {
-	if (PCHARINFO pChar = GetCharInfo()) {
-		if (!pChar->pFellowship)
-			return 0;
-		for (DWORD i = 0; i < pChar->pFellowship->Members; i++)
+	PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer;
+	if (!pSpawn)
+		return 0;
+
+	if (PFELLOWSHIPINFO pFellowship = &pSpawn->Fellowship)
+	{
+
+		for (DWORD i = 0; i < pFellowship->Members; i++)
 		{
-			if (!_stricmp(SpawnName, pChar->pFellowship->FellowshipMember[i].Name))
+			if (!_stricmp(SpawnName, pFellowship->FellowshipMember[i].Name))
 				return 1;
 		}
 	}
@@ -731,6 +735,8 @@ static inline BOOL IsNumberToComma(PCHAR String)
 
 static inline BOOL LineOfSight(PSPAWNINFO Origin, PSPAWNINFO CanISeeThis)
 {
+	if (!Origin || !CanISeeThis)
+		return 0;
 	return ((EQPlayer*)Origin)->CanSee((EQPlayer*)CanISeeThis);
 }
 

@@ -735,6 +735,7 @@ GNU General Public License for more details.
 
 // CStmlWnd
 #define CStmlWnd__AppendSTML_x                                     0x95BFB0
+#define CStmlWnd__ParseSTML_x                                      0x95D2E0
 #define CStmlWnd__CalculateHSBRange_x                              0x95D0B0
 #define CStmlWnd__CalculateVSBRange_x                              0x95D030
 #define CStmlWnd__CanBreakAtCharacter_x                            0x9613F0

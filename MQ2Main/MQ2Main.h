@@ -577,7 +577,6 @@ EQLIB_API DWORD __stdcall BeepOnTellThread(PVOID pData);
 EQLIB_API DWORD __stdcall FlashOnTellThread(PVOID pData);
 EQLIB_API CMQ2Alerts CAlerts;
 EQLIB_VAR BOOL bPluginCS;
-EQLIB_API long GetMeleeSpeedPctFromSpell(PSPELL pSpell, bool bIncrease);
 typedef struct _krdata
 {
 	CHAR ItemName[256];
@@ -811,6 +810,8 @@ EQLIB_API int         GetSpellCategory(PSPELL pSpell);
 EQLIB_API int         GetSpellSubcategory(PSPELL pSpell);
 EQLIB_API void		  PopulateSpellMap();
 EQLIB_API PSPELL      GetSpellParent(int id);
+EQLIB_API long        GetMeleeSpeedPctFromSpell(PSPELL pSpell, bool bIncrease);
+EQLIB_API SPELL*      GetHighestLearnedSpellByGroupID(DWORD dwSpellGroupID);
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(PVOID pData);
 EQLIB_API HMODULE GetCurrentModule();
 EQLIB_API DWORD WINAPI MQ2End(LPVOID lpParameter);
