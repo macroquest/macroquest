@@ -786,7 +786,7 @@ public:
 /*0x160*/ bool       IsSkill = false;
 /*0x161*/ bool       bStacksWithDiscs = false;      // this was first seen in may 8 2017 test client, its checked if it's false at 0x451790. Ex: The Monk ability 'Drunken Monkey Style' or 'Breather'. see patch notes for that patch...
 /*0x162*/ bool       ShowDoTMessagfalse;
-/*0x163*/ uint8_t    ClassLevel[MAX_CLASSES];
+/*0x163*/ uint8_t    ClassLevel[MAX_CLASSES + 1];
 /*0x187*/ uint8_t    LightType = 0;
 /*0x188*/ eSpellType SpellType = SpellType_Detrimental; // 0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
 /*0x189*/ uint8_t    Resist = 0;                    // see   4B0493 in apr 16 2018 exe        //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
@@ -807,19 +807,19 @@ public:
 /*0x1f6*/ char       Extra[32];                     // This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
 /*0x216*/ bool       ShowWearOffMessage = false;
 /*0x217*/ uint8_t    NPCChanceofKnowingSpell = 0;   // if this is 0 there is no way an npc can cast this spell...
-/*0x218*/ bool       SneakAttack = 0;
-/*0x219*/ bool       NotFocusable = 0;              // ignores all(?) focus effects
-/*0x21a*/ bool       NoHate = 0;
-/*0x21b*/ bool       StacksWithSelf = 0;
-/*0x21c*/ bool       CannotBeScribed = 0;           // this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
-/*0x21d*/ bool       NoBuffBlock = 0;
-/*0x21e*/ bool       Scribable = 0;                 // int?
-/*0x21f*/ bool       NoStripOnDeath = 0;
-/*0x220*/ bool       NoRemove = 0;                  // spell can't be clicked off?
+/*0x218*/ bool       SneakAttack = false;
+/*0x219*/ bool       NotFocusable = false;          // ignores all(?) focus effects
+/*0x21a*/ bool       NoHate = false;
+/*0x21b*/ bool       StacksWithSelf = false;
+/*0x21c*/ bool       CannotBeScribed = false;       // this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
+/*0x21d*/ bool       NoBuffBlock = false;
+/*0x21e*/ int        Scribable = 1;                 // int?
+/*0x222*/ bool       NoStripOnDeath = false;
+/*0x223*/ bool       NoRemove = false;              // spell can't be clicked off?
 /*0x224*/ eSpellNoOverwrite NoOverwrite = NoOverwrite_Default;
 /*0x228*/ eSpellRecourseType SpellRecourseType = SpellRecourseType_AlwaysHit;
-/*0x22c*/ uint8_t    CRC32Marker[4] = { 0 };
-/*0x230*/ float      DistanceMod = 0.0f;            // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
+/*0x22c*/ uint8_t    CRC32Marker = 0;
+/*0x22d*/ float      DistanceMod = 0.0f;            // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
 /*0x234*/
 
 	// Currently necessary because of MQ2DataTypes

@@ -555,15 +555,13 @@ enum PlayerClass
 constexpr int MAX_PLAYER_CLASSES = Berserker;
 constexpr int MAX_CLASSES = GM_Berserker;
 
-
 enum KeyRingType
 {
 	eMount = 0,
 	eIllusion = 1,
 	eFamiliar = 2,
-	eHerosForge = 3,
+	//eHerosForge = 3, // Not yet supported
 };
-
 
 #if defined (_DEBUG)
 #define FORCE_SYMBOLS __declspec(dllexport) const void* __force_symbol_generation__() const { return this; }
