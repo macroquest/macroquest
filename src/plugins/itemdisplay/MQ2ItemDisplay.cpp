@@ -31,6 +31,8 @@
 #include <mutex>
 #include <string_view>
 
+using namespace mq::datatypes;
+
 PreSetup("MQ2ItemDisplay");
 
 // starting position of link text found in MQ2Web__ParseItemLink_x

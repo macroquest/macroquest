@@ -47,7 +47,7 @@ static bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
 {
 	if (Ret.Ptr = pNamingSpawn)
 	{
-		Ret.Type = pSpawnType;
+		Ret.Type = datatypes::pSpawnType;
 		return true;
 	}
 	return false;

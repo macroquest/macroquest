@@ -51,6 +51,7 @@
       <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\main;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -65,6 +66,7 @@
       <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\main;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -98,6 +100,79 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="datatypes\MQ2AdvLootItemType.cpp" />
+    <ClCompile Include="datatypes\MQ2AdvLootType.cpp" />
+    <ClCompile Include="datatypes\MQ2AlertListType.cpp" />
+    <ClCompile Include="datatypes\MQ2AlertType.cpp" />
+    <ClCompile Include="datatypes\MQ2AltAbilityType.cpp" />
+    <ClCompile Include="datatypes\MQ2ArgbType.cpp" />
+    <ClCompile Include="datatypes\MQ2ArrayType.cpp" />
+    <ClCompile Include="datatypes\MQ2AugType.cpp" />
+    <ClCompile Include="datatypes\MQ2AuraType.cpp" />
+    <ClCompile Include="datatypes\MQ2BandolierItemType.cpp" />
+    <ClCompile Include="datatypes\MQ2BandolierType.cpp" />
+    <ClCompile Include="datatypes\MQ2BodyType.cpp" />
+    <ClCompile Include="datatypes\MQ2BuffType.cpp" />
+    <ClCompile Include="datatypes\MQ2CachedBuffType.cpp" />
+    <ClCompile Include="datatypes\MQ2CharacterType.cpp" />
+    <ClCompile Include="datatypes\MQ2CharSelectListType.cpp" />
+    <ClCompile Include="datatypes\MQ2ClassType.cpp" />
+    <ClCompile Include="datatypes\MQ2CorpseType.cpp" />
+    <ClCompile Include="datatypes\MQ2CurrentZoneType.cpp" />
+    <ClCompile Include="datatypes\MQ2DataTypes.cpp" />
+    <ClCompile Include="datatypes\MQ2DeityType.cpp" />
+    <ClCompile Include="datatypes\MQ2DoubleType.cpp" />
+    <ClCompile Include="datatypes\MQ2DynamicZoneType.cpp" />
+    <ClCompile Include="datatypes\MQ2DZMemberType.cpp" />
+    <ClCompile Include="datatypes\MQ2EverQuestType.cpp" />
+    <ClCompile Include="datatypes\MQ2EvolvingItemType.cpp" />
+    <ClCompile Include="datatypes\MQ2FellowshipMemberType.cpp" />
+    <ClCompile Include="datatypes\MQ2FellowshipType.cpp" />
+    <ClCompile Include="datatypes\MQ2FloatType.cpp" />
+    <ClCompile Include="datatypes\MQ2FriendsType.cpp" />
+    <ClCompile Include="datatypes\MQ2GroundType.cpp" />
+    <ClCompile Include="datatypes\MQ2GroupMemberType.cpp" />
+    <ClCompile Include="datatypes\MQ2GroupType.cpp" />
+    <ClCompile Include="datatypes\MQ2HeadingType.cpp" />
+    <ClCompile Include="datatypes\MQ2Int64Type.cpp" />
+    <ClCompile Include="datatypes\MQ2IntType.cpp" />
+    <ClCompile Include="datatypes\MQ2InvSlotType.cpp" />
+    <ClCompile Include="datatypes\MQ2ItemFilterDataType.cpp" />
+    <ClCompile Include="datatypes\MQ2ItemSpellType.cpp" />
+    <ClCompile Include="datatypes\MQ2ItemType.cpp" />
+    <ClCompile Include="datatypes\MQ2KeyRingType.cpp" />
+    <ClCompile Include="datatypes\MQ2MacroQuestType.cpp" />
+    <ClCompile Include="datatypes\MQ2MacroType.cpp" />
+    <ClCompile Include="datatypes\MQ2MathType.cpp" />
+    <ClCompile Include="datatypes\MQ2MenuType.cpp" />
+    <ClCompile Include="datatypes\MQ2MercenaryType.cpp" />
+    <ClCompile Include="datatypes\MQ2MerchantType.cpp" />
+    <ClCompile Include="datatypes\MQ2PetType.cpp" />
+    <ClCompile Include="datatypes\MQ2PluginType.cpp" />
+    <ClCompile Include="datatypes\MQ2PointMerchantItemType.cpp" />
+    <ClCompile Include="datatypes\MQ2PointMerchantType.cpp" />
+    <ClCompile Include="datatypes\MQ2RaceType.cpp" />
+    <ClCompile Include="datatypes\MQ2RangeType.cpp" />
+    <ClCompile Include="datatypes\MQ2SkillType.cpp" />
+    <ClCompile Include="datatypes\MQ2SolventType.cpp" />
+    <ClCompile Include="datatypes\MQ2SpawnType.cpp" />
+    <ClCompile Include="datatypes\MQ2SpellType.cpp" />
+    <ClCompile Include="datatypes\MQ2StringType.cpp" />
+    <ClCompile Include="datatypes\MQ2SwitchType.cpp" />
+    <ClCompile Include="datatypes\MQ2TargetBuffType.cpp" />
+    <ClCompile Include="datatypes\MQ2TargetType.cpp" />
+    <ClCompile Include="datatypes\MQ2TaskMemberType.cpp" />
+    <ClCompile Include="datatypes\MQ2TaskObjectiveType.cpp" />
+    <ClCompile Include="datatypes\MQ2TaskType.cpp" />
+    <ClCompile Include="datatypes\MQ2TicksType.cpp" />
+    <ClCompile Include="datatypes\MQ2TimerType.cpp" />
+    <ClCompile Include="datatypes\MQ2TimeType.cpp" />
+    <ClCompile Include="datatypes\MQ2Type.cpp" />
+    <ClCompile Include="datatypes\MQ2TypeType.cpp" />
+    <ClCompile Include="datatypes\MQ2WindowType.cpp" />
+    <ClCompile Include="datatypes\MQ2WorldLocationType.cpp" />
+    <ClCompile Include="datatypes\MQ2XTargetType.cpp" />
+    <ClCompile Include="datatypes\MQ2ZoneType.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
@@ -108,7 +183,6 @@
     <ClCompile Include="MQ2DInput.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
     <ClCompile Include="MQ2DataAPI.cpp" />
-    <ClCompile Include="MQ2DataTypes.cpp" />
     <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
@@ -154,9 +228,9 @@
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
-    <ClInclude Include="DataTypeList.h" />
+    <ClInclude Include="datatypes\DataTypeList.h" />
+    <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="MQ2Commands.h" />
-    <ClInclude Include="MQ2DataTypes.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />
     <ClInclude Include="MQ2Internal.h" />

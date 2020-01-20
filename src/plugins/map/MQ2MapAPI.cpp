@@ -1450,7 +1450,7 @@ bool dataMapSpawn(const char* szIndex, MQTypeVar& Ret)
 	if (MAPSPAWN * pMapSpawn = LabelMap[pCurrentMapLabel])
 	{
 		Ret.Ptr = pMapSpawn->pSpawn;
-		Ret.Type = pSpawnType;
+		Ret.Type = datatypes::pSpawnType;
 		return true;
 	}
 	return false;

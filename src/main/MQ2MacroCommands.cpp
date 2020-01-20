@@ -443,7 +443,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 							// default it to the same name as the key...
 							// cant set it to "" cause then it triggers on every single line of
 							// chat before they /varset it to something... (if they ever)
-							AddMQ2DataVariable(szVar, "", pStringType, &pMacroVariables, "NULL");
+							AddMQ2DataVariable(szVar, "", datatypes::pStringType, &pMacroVariables, "NULL");
 						}
 					}
 				}
@@ -1335,7 +1335,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 
 			MQ2Type* pType = FindMQ2DataType(szParamType);
 			if (!pType)
-				pType = pStringType;
+				pType = datatypes::pStringType;
 
 			AddMQ2DataVariable(szParamName, "", pType, &gMacroStack->Parameters, szNewValue);
 			SubParam = GetNextArg(SubParam);
@@ -1787,7 +1787,7 @@ void For(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	if (pVar->Var.Type != pIntType)
+	if (pVar->Var.Type != datatypes::pIntType)
 	{
 		FatalError("/for loops must use an int variable");
 		return;
@@ -1838,7 +1838,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	if (pVar->Var.Type != pIntType)
+	if (pVar->Var.Type != datatypes::pIntType)
 	{
 		FatalError("/for loops must use an int variable");
 		return;

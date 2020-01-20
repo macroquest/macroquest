@@ -306,9 +306,9 @@ bool EvaluateDataExpression(MQTypeVar& Result, char* pStart, char* pIndex, bool 
 		{
 			if (pIndex[0])
 			{
-				if (DataVar->Var.Type == pArrayType)
+				if (DataVar->Var.Type == datatypes::pArrayType)
 				{
-					CDataArray* dataArray = static_cast<CDataArray*>(DataVar->Var.Ptr);
+					datatypes::CDataArray* dataArray = static_cast<datatypes::CDataArray*>(DataVar->Var.Ptr);
 
 					if (!dataArray->GetElement(pIndex, Result))
 						return false;
@@ -326,7 +326,7 @@ bool EvaluateDataExpression(MQTypeVar& Result, char* pStart, char* pIndex, bool 
 
 			strcpy_s(DataTypeTemp, gMacroStack->Return.c_str());
 			Result.Ptr = &DataTypeTemp[0];
-			Result.Type = pStringType;
+			Result.Type = datatypes::pStringType;
 		}
 		else
 		{
@@ -363,7 +363,7 @@ bool dataType(const char* szIndex, MQTypeVar& Ret)
 	if (MQ2Type* pType = FindMQ2DataType(szIndex))
 	{
 		Ret.Ptr = pType;
-		Ret.Type = pTypeType;
+		Ret.Type = datatypes::pTypeType;
 		return true;
 	}
 
@@ -527,10 +527,10 @@ bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result)
 				return false;
 			}
 
-			if (pNewType == pTypeType)
+			if (pNewType == datatypes::pTypeType)
 			{
 				Result.Ptr = Result.Type;
-				Result.Type = pTypeType;
+				Result.Type = datatypes::pTypeType;
 			}
 			else
 			{
