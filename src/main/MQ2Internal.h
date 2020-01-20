@@ -763,4 +763,8 @@ struct MQGroundObject
 	MQGroundObject() { ZeroMemory(this, sizeof(MQGroundObject)); }
 };
 
+//----------------------------------------------------------------------------
+
+int GetTriggerSPA(SPELL* pSpell);
+
 } // namespace mq

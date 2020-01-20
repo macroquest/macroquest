@@ -8088,46 +8088,38 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case Trigger:
 	{
 		Dest.Type = pSpellType;
-		SPELL* pmyspell = pSpell;
-		int spafound = 0;
 
-		if (IsSPAEffect(pSpell, SPA_TRIGGER_BEST_IN_SPELL_GROUP))
+		int spaFound = GetTriggerSPA(pSpell);
+		if (pSpellMgr && spaFound)
 		{
-			spafound = SPA_TRIGGER_BEST_IN_SPELL_GROUP;
-		}
-		else if (IsSPAEffect(pSpell, 374))
-		{
-			spafound = 374;
-		}
+			int index = std::max(0, GetIntFromString(Index, 0) - 1);
+			int numEffects = GetSpellNumEffects(pSpell);
+			if (index >= numEffects)
+				return false;
 
-		if (pSpellMgr && spafound)
-		{
-			int index = 0;
-			if (Index[0])
+			int spellOrGroupId = GetSpellBase2(pSpell, index);
+			if (!spellOrGroupId)
+				return false;
+
+			SPELL* pTrigger = nullptr;
+
+			switch (spaFound)
 			{
-				if (IsNumber(Index))
-				{
-					index = GetIntFromString(Index, index);
-					if (index > 0)
-						index--;
-					else
-						index = 0;
-				}
+			case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
+				pTrigger = GetHighestLearnedSpellByGroupID(spellOrGroupId);
+				break;
+
+			case SPA_TRIGGER_SPELL:
+				pTrigger = pSpellMgr->GetSpellByID(spellOrGroupId);
+				break;
+
+			default: break; // should not be reachable if we handled everything GetTriggerSPA returns
 			}
 
-			int numeffects = GetSpellNumEffects(pSpell);
-			if (numeffects > index)
+			if (pTrigger)
 			{
-				SPELL* pTrigger = nullptr;
-				if (int groupid = GetSpellBase2(pmyspell, index))
-				{
-					if (spafound == SPA_TRIGGER_BEST_IN_SPELL_GROUP)
-						pTrigger = (SPELL*)pSpellMgr->GetSpellByGroupAndRank(groupid, pmyspell->SpellSubGroup, pmyspell->SpellRank, true);
-					else if (spafound == SPA_TRIGGER_SPELL)
-						pTrigger = (SPELL*)pSpellMgr->GetSpellByID(groupid);
-					Dest.Ptr = pTrigger;
-					return true;
-				}
+				Dest.Ptr = pTrigger;
+				return true;
 			}
 		}
 		return false;

@@ -35,6 +35,31 @@ static SPELL* GetSpellBySpellGroupID(int dwSpellGroupID)
 	return nullptr;
 }
 
+EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
+{
+	if (!pSpellMgr) return nullptr;
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return nullptr;
+
+	EQ_Spell* result = nullptr;
+
+	for (int nSpell : pProfile->SpellBook)
+	{
+		if (nSpell == -1)
+			continue;
+
+		EQ_Spell* pFoundSpell = GetSpellByID(nSpell);
+		if (!pFoundSpell || pFoundSpell->SpellGroup != dwSpellGroupID)
+			continue;
+
+		// Find the highest rank of the spell that matches this spell group
+		if (!result || result->SpellRank < pFoundSpell->SpellRank)
+			result = pFoundSpell;
+	}
+
+	return result;
+}
+
 static const char* GetSpellNameBySpellGroupID(int dwSpellID)
 {
 	SPELL* pSpell = GetSpellBySpellGroupID(abs(dwSpellID));
@@ -3006,7 +3031,7 @@ int GetMyTotalSpellCounters()
 	return total;
 }
 
-static int GetTriggerSPA(SPELL* pSpell)
+int GetTriggerSPA(SPELL* pSpell)
 {
 	eEQSPA SPAtoCheck[] = {
 		SPA_TRIGGER_BEST_IN_SPELL_GROUP,
@@ -3040,7 +3065,7 @@ int GetMeleeSpeedFromTriggers(SPELL* pSpell, bool bIncrease)
 			switch (triggerSPA)
 			{
 			case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
-				pTrigger = (SPELL*)pSpellMgr->GetSpellByGroupAndRank(groupId, pSpell->SpellSubGroup, pSpell->SpellRank, true);
+				pTrigger = GetHighestLearnedSpellByGroupID(groupId);
 				break;
 
 			case SPA_TRIGGER_SPELL:

@@ -588,6 +588,7 @@ MQLIB_API int         GetMySpellCounters(eEQSPA spa);                      // Ge
 MQLIB_API int         GetTotalSpellCounters(const SPELLBUFF* buff);        // Get total count of spell counters for the given buff.
 MQLIB_API int         GetMyTotalSpellCounters();                           // Get total count of spell counters for my character.
 MQLIB_API int         GetMeleeSpeedPctFromSpell(SPELL* pSpell, bool increase);
+MQLIB_API EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID);
 
 MQLIB_API HMODULE GetCurrentModule();
 MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
