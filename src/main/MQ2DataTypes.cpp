@@ -4839,7 +4839,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 							if (PSPELL pFoundSpell = GetSpellByID(nSpell))
 							{
 								if (pFoundSpell->SpellGroup == pSpell->SpellGroup
-									&& ci_find_substr(pSpell->Name, pFoundSpell->Name) == 0)
+									&& ci_find_substr(pFoundSpell->Name, pSpell->Name) == 0)
 								{
 									Dest.Ptr = pFoundSpell;
 									Dest.Type = pSpellType;
