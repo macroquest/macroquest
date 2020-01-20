@@ -17,7 +17,7 @@
 
 namespace mq {
 
-static SPELL* GetSpellBySpellGroupID(int dwSpellGroupID)
+SPELL* GetSpellBySpellGroupID(int dwSpellGroupID)
 {
 	if (!pSpellMgr) return nullptr;
 
@@ -2979,6 +2979,11 @@ int GetMySpellCounters(eEQSPA spellAffect)
 		count += GetSpellCounters(spellAffect, &buff);
 	}
 
+	for (const auto& buff : pProfile->ShortBuff)
+	{
+		count += GetSpellCounters(spellAffect, &buff);
+	}
+
 	return count;
 }
 
@@ -3028,6 +3033,11 @@ int GetMyTotalSpellCounters()
 		total += GetTotalSpellCounters(&buff);
 	}
 
+	for (const auto& buff : pProfile->ShortBuff)
+	{
+		total += GetTotalSpellCounters(&buff);
+	}
+
 	return total;
 }
 
@@ -3066,6 +3076,10 @@ int GetMeleeSpeedFromTriggers(SPELL* pSpell, bool bIncrease)
 			{
 			case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
 				pTrigger = GetHighestLearnedSpellByGroupID(groupId);
+				if (!pTrigger)
+				{
+					pTrigger = GetSpellBySpellGroupID(groupId);
+				}
 				break;
 
 			case SPA_TRIGGER_SPELL:

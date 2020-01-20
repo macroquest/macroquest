@@ -6445,52 +6445,34 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case Diseased:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_DISEASE, false)) != -1) // Disease Counter
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
-
 	case Poisoned:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_POISON, false)) != -1) // Poison Counter
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
-
 	case Cursed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_CURSE, false)) != -1) // Curse Counter
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
-
 	case Corrupted:
 		{
+			int spa = 0;
+			switch (static_cast<CharacterMembers>(pMember->ID))
+			{
+			case Diseased: spa = SPA_DISEASE; break;
+			case Poisoned: spa = SPA_POISON; break;
+			case Cursed: spa = SPA_CURSE; break;
+			case Corrupted: spa = SPA_CORRUPTION; break;
+			}
+
 			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_CORRUPTION, false)) != -1)//Corruption Counter
+			if ((nBuff = GetSelfBuffBySPA(spa, false)) != -1)
 			{
 				Dest.Type = pBuffType;
 				Dest.Ptr = &pProfile->Buff[nBuff];
 				return true;
 			}
+			if ((nBuff = GetSelfShortBuffBySPA(spa, false)) != -1)
+			{
+				Dest.Type = pBuffType;
+				Dest.Ptr = &pProfile->ShortBuff[nBuff];
+				return true;
+			}
+			return false;
 		}
-		return false;
 
 	case Symbol:
 		{
