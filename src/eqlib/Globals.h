@@ -379,7 +379,6 @@ EQLIB_VAR DWORD __ProcessKeyboardEvents;
 EQLIB_VAR DWORD __ProcessMouseEvents;
 EQLIB_VAR DWORD __SaveColors;
 EQLIB_VAR DWORD __STMLToText;
-EQLIB_VAR DWORD __ToggleKeyRingItem;
 EQLIB_VAR DWORD __WndProc;
 
 EQLIB_VAR DWORD ActorClient__GetPosition;
@@ -613,6 +612,7 @@ EQLIB_VAR DWORD CItemDisplayWnd__SetItem;
 EQLIB_VAR DWORD CItemDisplayWnd__SetSpell;
 EQLIB_VAR DWORD CItemDisplayWnd__UpdateStrings;
 EQLIB_VAR DWORD CItemDisplayWnd__WndNotification;
+EQLIB_VAR DWORD CKeyRingWnd__ExecuteRightClick;
 EQLIB_VAR DWORD CLabel__Draw;
 EQLIB_VAR DWORD CLargeDialogWnd__Open;
 EQLIB_VAR DWORD ClientSOIManager__GetSingleton;
@@ -1209,12 +1209,10 @@ EQLIB_VAR ForeignPointer<DWORD>                      g_pDrawHandler;
 // TODO: These should just be turned into regular functions like the rest
 using fEQNewUIINI            = char* (*)();
 using fEQProcGameEvts        = int    (*)();
-using fEQToggleKeyRingItem   = int    (*)(int, CONTENTS**, int);
 using fGetLabelFromEQ        = bool   (*)(int, CXStr*, bool*, COLORREF*);
 
 EQLIB_VAR fEQNewUIINI          NewUIINI;
 EQLIB_VAR fEQProcGameEvts      ProcessGameEvents;
-EQLIB_VAR fEQToggleKeyRingItem cmdToggleKeyRingItem;
 EQLIB_VAR fGetLabelFromEQ      GetLabelFromEQ;
 
 //============================================================================

@@ -356,7 +356,6 @@ INITIALIZE_EQGAME_OFFSET(__ProcessKeyboardEvents);
 INITIALIZE_EQGAME_OFFSET(__ProcessMouseEvents);
 INITIALIZE_EQGAME_OFFSET(__SaveColors);
 INITIALIZE_EQGAME_OFFSET(__STMLToText);
-INITIALIZE_EQGAME_OFFSET(__ToggleKeyRingItem);
 INITIALIZE_EQGAME_OFFSET(__WndProc);
 
 INITIALIZE_EQGAME_OFFSET(AggroMeterManagerClient__Instance);
@@ -587,6 +586,7 @@ INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetItem);
 INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetSpell);
 INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__UpdateStrings);
 INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__WndNotification);
+INITIALIZE_EQGAME_OFFSET(CKeyRingWnd__ExecuteRightClick);
 INITIALIZE_EQGAME_OFFSET(CLabel__Draw);
 INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
 INITIALIZE_EQGAME_OFFSET(ClientSOIManager__GetSingleton);
@@ -1150,7 +1150,6 @@ ForeignPointer<DWORD>                            g_pDrawHandler;
 fEQNewUIINI            NewUIINI                  = nullptr;
 fEQProcGameEvts        ProcessGameEvents         = nullptr;
 fGetLabelFromEQ        GetLabelFromEQ            = nullptr;
-fEQToggleKeyRingItem   cmdToggleKeyRingItem      = nullptr;
 
 void InitializeEQGameOffsets()
 {

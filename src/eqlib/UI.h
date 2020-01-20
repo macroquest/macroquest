@@ -3717,6 +3717,21 @@ public:
 };
 
 //============================================================================
+// CKeyRingWnd
+//============================================================================
+
+// size 0x2E0 see 0x550DE3 in 2020-01-19 live
+class [[offsetcomments]] CKeyRingWnd : public CSidlScreenWnd,
+	public WndEventHandler
+{
+public:
+	EQLIB_OBJECT CKeyRingWnd(CXWnd* parent);
+	EQLIB_OBJECT virtual ~CKeyRingWnd();
+
+	EQLIB_OBJECT static int ExecuteRightClick(KeyRingType keyRingType, const VePointer<CONTENTS>& pItem, int index);
+};
+
+//============================================================================
 // CLargeDialogWnd
 //============================================================================
 

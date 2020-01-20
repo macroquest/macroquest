@@ -1333,13 +1333,6 @@ public:
 	EQLIB_OBJECT void SendTextRequestMsg();
 };
 
-enum KeyRingType
-{
-	eMount = 0,
-	eIllusion = 1,
-	eFamiliar = 2,
-};
-
 enum eAugFitRet
 {
 	AF_FITS,

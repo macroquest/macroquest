@@ -375,7 +375,6 @@
 #define __ProcessMouseEvents_x                                     0x611760
 #define __SaveColors_x                                             0x5535B0
 #define __STMLToText_x                                             0x9413B0
-#define __ToggleKeyRingItem_x                                      0x516310
 #define __WndProc_x                                                0x6BD2C0
 #define CMemoryMappedFile__SetFile_x                               0xA8D130
 #define CrashDetected_x                                            0x6BCDC0
@@ -611,6 +610,9 @@
 
 // CItemDisplayManager
 #define CItemDisplayManager__CreateWindowInstance_x                0x76A3F0
+
+// CKeyRingWnd
+#define CKeyRingWnd__ExecuteRightClick_x                           0x516310
 
 // CLabel
 #define CLabel__Draw_x                                             0x76FE30

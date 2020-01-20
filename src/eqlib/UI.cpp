@@ -1951,6 +1951,14 @@ FUNCTION_AT_ADDRESS(void CItemDisplayWnd::SetSpell(int SpellID, bool HasSpellDes
 #endif
 
 //============================================================================
+// CKeyRingWnd
+//============================================================================
+
+#ifdef CKeyRingWnd__ExecuteRightClick_x
+FUNCTION_AT_ADDRESS(int CKeyRingWnd::ExecuteRightClick(KeyRingType keyRingType, const VePointer<CONTENTS>& pItem, int index), CKeyRingWnd__ExecuteRightClick);
+#endif
+
+//============================================================================
 // CLootWnd
 //============================================================================
 

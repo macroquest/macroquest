@@ -4014,7 +4014,8 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 									SendListSelect(KeyRingWindowParent, windowList, index - 1);
 									int listData = static_cast<int>(pListWnd->GetItemData(index - 1));
 
-									cmdToggleKeyRingItem(keyringType, &pItem, listData);
+									VePointer<CONTENTS> pContents{ pItem };
+									CKeyRingWnd::ExecuteRightClick(keyringType, pContents, listData);
 								}
 							}
 						}
