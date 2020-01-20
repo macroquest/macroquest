@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "MQ2Main.h"
+#include "../MQ2Main.h"
 
-namespace mq {
+namespace mq::datatypes {
 
 // non-mq2data TODO
 // command to clear macro return value

@@ -12,7 +12,12 @@
  * GNU General Public License for more details.
  */
 
-// The format of this file is:
+// This file is a trick so we can define a datatype once and use this list multiple times to do
+// setup and teardown of individual data types. The basis of this trick is to define the
+// DATATYPE macro to do the specific thing we need it to do (declare, setup, teardown, etc)
+// and it will expand into the correct code at compile time through macro magic.
+
+// The format of the macro is:
 // DATATYPE(CLASSNAME, VARNAME, Pointer to inherited class or nullptr, PersistentClass or 0)
 
 #ifndef DATATYPE

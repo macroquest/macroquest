@@ -85,9 +85,10 @@ using namespace eqlib;
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
 #include "MQ2Inlines.h"
-#include "MQ2DataTypes.h"
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
+
+#include "datatypes/MQ2DataTypes.h"
 
 #include <imgui/imgui.h>
 
@@ -256,8 +257,11 @@ MQLIB_API void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, b
 MQLIB_API void InitializeParser();
 MQLIB_API void ShutdownParser();
 
+namespace datatypes {
 MQLIB_API void InitializeMQ2DataTypes();
 MQLIB_API void ShutdownMQ2DataTypes();
+}
+
 MQLIB_API void InitializeMQ2Data();
 MQLIB_API void ShutdownMQ2Data();
 MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
