@@ -20,7 +20,7 @@ namespace mq::datatypes {
 // Datatype Definitions
 
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
-			Class* Var = nullptr;
+	Class* Var = nullptr;
 #include "DataTypeList.h"
 #undef DATATYPE
 
@@ -29,10 +29,10 @@ namespace mq::datatypes {
 void InitializeMQ2DataTypes()
 {
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
-			Var = new Class();                                               \
-			if (Inherits != nullptr) {                                       \
-				Var->SetInheritance(Inherits);                               \
-			}
+	Var = new Class();                                               \
+	if (Inherits != nullptr) {                                       \
+		Var->SetInheritance(Inherits);                               \
+	}
 #include "DataTypeList.h"
 #undef DATATYPE
 }
@@ -42,8 +42,81 @@ void InitializeMQ2DataTypes()
 void ShutdownMQ2DataTypes()
 {
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
-			delete Var;
+	delete Var;
 #include "DataTypeList.h"
 #undef DATATYPE
 }
 }
+
+#include "MQ2AdvLootItemType.cpp"
+#include "MQ2AdvLootType.cpp"
+#include "MQ2AlertListType.cpp"
+#include "MQ2AlertType.cpp"
+#include "MQ2AltAbilityType.cpp"
+#include "MQ2ArgbType.cpp"
+#include "MQ2ArrayType.cpp"
+#include "MQ2AugType.cpp"
+#include "MQ2AuraType.cpp"
+#include "MQ2BandolierItemType.cpp"
+#include "MQ2BandolierType.cpp"
+#include "MQ2BodyType.cpp"
+#include "MQ2BuffType.cpp"
+#include "MQ2CachedBuffType.cpp"
+#include "MQ2CharacterType.cpp"
+#include "MQ2CharSelectListType.cpp"
+#include "MQ2ClassType.cpp"
+#include "MQ2CorpseType.cpp"
+#include "MQ2CurrentZoneType.cpp"
+#include "MQ2DeityType.cpp"
+#include "MQ2DoubleType.cpp"
+#include "MQ2DynamicZoneType.cpp"
+#include "MQ2DZMemberType.cpp"
+#include "MQ2EverQuestType.cpp"
+#include "MQ2EvolvingItemType.cpp"
+#include "MQ2FellowshipMemberType.cpp"
+#include "MQ2FellowshipType.cpp"
+#include "MQ2FloatType.cpp"
+#include "MQ2FriendsType.cpp"
+#include "MQ2GroundType.cpp"
+#include "MQ2GroupMemberType.cpp"
+#include "MQ2GroupType.cpp"
+#include "MQ2HeadingType.cpp"
+#include "MQ2Int64Type.cpp"
+#include "MQ2IntType.cpp"
+#include "MQ2InvSlotType.cpp"
+#include "MQ2ItemFilterDataType.cpp"
+#include "MQ2ItemSpellType.cpp"
+#include "MQ2ItemType.cpp"
+#include "MQ2KeyRingType.cpp"
+#include "MQ2MacroQuestType.cpp"
+#include "MQ2MacroType.cpp"
+#include "MQ2MathType.cpp"
+#include "MQ2MenuType.cpp"
+#include "MQ2MercenaryType.cpp"
+#include "MQ2MerchantType.cpp"
+#include "MQ2PetType.cpp"
+#include "MQ2PluginType.cpp"
+#include "MQ2PointMerchantItemType.cpp"
+#include "MQ2PointMerchantType.cpp"
+#include "MQ2RaceType.cpp"
+#include "MQ2RangeType.cpp"
+#include "MQ2SkillType.cpp"
+#include "MQ2SolventType.cpp"
+#include "MQ2SpawnType.cpp"
+#include "MQ2SpellType.cpp"
+#include "MQ2StringType.cpp"
+#include "MQ2SwitchType.cpp"
+#include "MQ2TargetBuffType.cpp"
+#include "MQ2TargetType.cpp"
+#include "MQ2TaskMemberType.cpp"
+#include "MQ2TaskObjectiveType.cpp"
+#include "MQ2TaskType.cpp"
+#include "MQ2TicksType.cpp"
+#include "MQ2TimerType.cpp"
+#include "MQ2TimeType.cpp"
+#include "MQ2Type.cpp"
+#include "MQ2TypeType.cpp"
+#include "MQ2WindowType.cpp"
+#include "MQ2WorldLocationType.cpp"
+#include "MQ2XTargetType.cpp"
+#include "MQ2ZoneType.cpp"

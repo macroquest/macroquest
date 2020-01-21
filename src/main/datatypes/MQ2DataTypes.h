@@ -45,9 +45,7 @@ namespace mq::datatypes {
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
 	class Class;                                                     \
 	MQLIB_VAR Class* Var;
-
 #include "DataTypeList.h"
-
 #undef DATATYPE
 
 //============================================================================
