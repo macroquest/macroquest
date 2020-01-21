@@ -26,6 +26,8 @@
 
 #include <mutex>
 
+using namespace mq::datatypes;
+
 PLUGIN_VERSION(2.0);
 PreSetup("MQ2Bzsrch");
 

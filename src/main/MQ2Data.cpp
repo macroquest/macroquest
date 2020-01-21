@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+using namespace mq::datatypes;
 namespace mq {
 
 bool dataSpawn(const char* szIndex, MQTypeVar& Ret)

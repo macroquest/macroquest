@@ -21,7 +21,11 @@
 
 namespace mq {
 
+namespace datatypes {
 class MQ2Type;
+}
+
+using datatypes::MQ2Type;
 
 enum eAdventureTheme
 {
