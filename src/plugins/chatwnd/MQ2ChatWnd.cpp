@@ -785,7 +785,7 @@ public:
 				strcpy_s(DataTypeTemp, MQChatWnd->GetWindowText().c_str());
 
 				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
+				Dest.Type = datatypes::pStringType;
 				return true;
 			}
 			break;

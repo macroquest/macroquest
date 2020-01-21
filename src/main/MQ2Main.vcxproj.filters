@@ -33,6 +33,12 @@
     <Filter Include="Header Files\common">
       <UniqueIdentifier>{e98c76df-4e31-446f-a6ab-5ea6d565f09c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\datatypes">
+      <UniqueIdentifier>{4082d230-146c-4090-ba35-9c9784d918c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\datatypes">
+      <UniqueIdentifier>{7c8bf5c2-6364-450f-9606-96eacfab025d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -63,9 +69,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2DataAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2DataTypes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2DataVars.cpp">
@@ -137,12 +140,228 @@
     <ClCompile Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.cpp">
       <Filter>Source Files\Contrib\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQ2Type.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2DataTypes.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TypeType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2PluginType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2FloatType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2DoubleType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2IntType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2Int64Type.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2StringType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2BandolierType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2BandolierItemType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AuraType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2RangeType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AugType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2SolventType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2WorldLocationType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AlertListType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AlertType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AdvLootType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AdvLootItemType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ItemFilterDataType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2KeyRingType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2XTargetType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TaskType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TaskMemberType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TaskObjectiveType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TargetType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2FriendsType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2FellowshipMemberType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2FellowshipType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2DZMemberType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2DynamicZoneType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2EvolvingItemType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2GroupMemberType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2GroupType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2AltAbilityType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2SkillType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TimerType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2InvSlotType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2PetType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2MercenaryType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2PointMerchantType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2PointMerchantItemType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2MerchantType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2CorpseType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2HeadingType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TimeType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2EverQuestType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2CharSelectListType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2MacroQuestType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2GroundType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2SwitchType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2RaceType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ClassType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2DeityType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ZoneType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2BodyType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2CurrentZoneType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2MenuType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2WindowType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ItemType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ItemSpellType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2SpellType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2CharacterType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2CachedBuffType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TargetBuffType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2BuffType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2SpawnType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ArgbType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TicksType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2MacroType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2MathType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2ArrayType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MQ2DataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Globals.h">
@@ -161,9 +380,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2TopLevelObjects.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataTypeList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -240,6 +456,12 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h">
       <Filter>Header Files\contrib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="datatypes\DataTypeList.h">
+      <Filter>Header Files\datatypes</Filter>
+    </ClInclude>
+    <ClInclude Include="datatypes\MQ2DataTypes.h">
+      <Filter>Header Files\datatypes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

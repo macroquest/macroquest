@@ -413,7 +413,7 @@ void ZoneHUD(SPAWNINFO* pChar, char* szLine)
 bool dataHUD(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Ptr = HUDNames;
-	Ret.Type = pStringType;
+	Ret.Type = datatypes::pStringType;
 	return true;
 }
 

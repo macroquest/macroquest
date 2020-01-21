@@ -922,21 +922,21 @@ public:
 		case Server:
 			strcpy_s(DataTypeTemp, IrcServer);
 			Dest.Ptr = &DataTypeTemp[0];
-			Dest.Type = pStringType;
+			Dest.Type = datatypes::pStringType;
 			return true;
 		case Port:
 			Dest.Int = IrcPort;
-			Dest.Type = pIntType;
+			Dest.Type = datatypes::pIntType;
 			return true;
 		case Channel:
 			strcpy_s(DataTypeTemp, IrcChan);
 			Dest.Ptr = &DataTypeTemp[0];
-			Dest.Type = pStringType;
+			Dest.Type = datatypes::pStringType;
 			return true;
 		case Nick:
 			strcpy_s(DataTypeTemp, IrcNick);
 			Dest.Ptr = &DataTypeTemp[0];
-			Dest.Type = pStringType;
+			Dest.Type = datatypes::pStringType;
 			return true;
 		}
 
