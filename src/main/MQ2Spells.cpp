@@ -145,6 +145,7 @@ void PopulateSpellMap()
 	std::scoped_lock lock(s_initializeSpellsMutex);
 
 	gbSpelldbLoaded = false;
+
 	s_triggeredSpells.clear();
 	s_spellNameMap.clear();
 
@@ -158,7 +159,7 @@ void PopulateSpellMap()
 		std::string lowname = pSpell->Name;
 		MakeLower(lowname);
 
-		s_spellNameMap.insert(std::make_pair(lowname, pSpell));
+		s_spellNameMap.emplace(lowname, pSpell);
 	}
 
 	gbSpelldbLoaded = true;
