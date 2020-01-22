@@ -109,7 +109,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 		pTaskManager->GetElementDescription(pTaskObjective, DataTypeTemp);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
-		break;
+		return true;
 
 	case TaskObjectiveTypeMembers::Status:
 	{
