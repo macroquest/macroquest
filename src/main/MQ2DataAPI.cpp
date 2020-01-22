@@ -423,7 +423,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("ItemTarget", dataItemTarget);
 	AddMQ2Data("DynamicZone", dataDynamicZone);
 	AddMQ2Data("Friends", dataFriends);
-	AddMQ2Data("Task", dataTask);
+	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
 	AddMQ2Data("Mount", dataMount);
 	AddMQ2Data("Illusion", dataIllusion);
 	AddMQ2Data("Familiar", dataFamiliar);

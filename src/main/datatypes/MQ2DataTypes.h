@@ -35,7 +35,9 @@ namespace mq::datatypes {
 // spawn count
 
 #define TypeMember(name) AddMember(static_cast<int>(name), #name)
+#define ScopedTypeMember(scope, name) AddMember(static_cast<int>(scope::name), #name)
 #define TypeMethod(name) AddMethod(static_cast<int>(name), #name)
+#define ScopedTypeMethod(scope, name) AddMethod(static_cast<int>(scope::name), #name)
 
 //----------------------------------------------------------------------------
 // Datatype Declarations
@@ -5371,40 +5373,8 @@ public:
 class MQ2TaskObjectiveType : public MQ2Type
 {
 public:
-	enum TaskObjectiveTypeMembers
-	{
-		Instruction = 1,
-		Status = 2,
-		Zone = 3,
-		xIndex = 4,
-		Type = 5,
-		RequiredCount = 6,
-		Optional = 7,
-		RequiredItem = 8,
-		RequiredSkill = 9,
-		RequiredSpell = 10,
-		DZSwitchID = 11,
-		CurrentCount = 12,
-	};
-
-	MQ2TaskObjectiveType() : MQ2Type("taskobjectivemember")
-	{
-		TypeMember(Instruction);
-		TypeMember(Status);
-		TypeMember(Zone);
-		AddMember(xIndex, "Index");
-		TypeMember(Type);
-		TypeMember(RequiredCount);
-		TypeMember(Optional);
-		TypeMember(RequiredItem);
-		TypeMember(RequiredSkill);
-		TypeMember(RequiredSpell);
-		TypeMember(DZSwitchID);
-		TypeMember(CurrentCount);
-	}
-
+	MQ2TaskObjectiveType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
@@ -5414,27 +5384,9 @@ public:
 class MQ2TaskMemberType : public MQ2Type
 {
 public:
-	enum TaskMemberTypeMembers
-	{
-		Name = 1,
-		Leader = 2,
-		xIndex = 3,
-	};
-
-	MQ2TaskMemberType() : MQ2Type("taskmember")
-	{
-		TypeMember(Name);
-		TypeMember(Leader);
-		AddMember(xIndex, "Index");
-	}
-
+	MQ2TaskMemberType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		strcpy_s(Destination, MAX_STRING, static_cast<TASKMEMBER*>(VarPtr.Ptr)->Name);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -5443,50 +5395,10 @@ public:
 class MQ2TaskType : public MQ2Type
 {
 public:
-	enum TaskTypeMembers
-	{
-		Address = 1,
-		xIndex = 2,
-		Title = 3,
-		Timer = 4,
-		xMember = 5,
-		Members = 6,
-		Leader = 7,
-		Step = 8,
-		Objective = 9,
-		Type = 10,
-		MemberList = 11,
-		ID = 12,
-		WindowIndex = 13,
-	};
-
-	enum TaskMethods
-	{
-		Select = 1,
-	};
-
-	MQ2TaskType() : MQ2Type("task")
-	{
-		TypeMember(Address);
-		AddMember(xIndex, "Index");
-		TypeMember(Title);
-		TypeMember(Timer);
-		AddMember(xMember, "Member");
-		TypeMember(Members);
-		TypeMember(Leader);
-		TypeMember(Step);
-		TypeMember(Objective);
-		TypeMember(Type);
-		TypeMember(MemberList);
-		TypeMember(ID);
-		TypeMember(WindowIndex);
-
-		TypeMethod(Select);
-	}
-
+	MQ2TaskType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	static bool dataTask(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

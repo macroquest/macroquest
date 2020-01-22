@@ -18,77 +18,116 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class TaskTypeMembers
+{
+	Index = 1,
+	Title,
+	Timer,
+	Member,
+	Members,
+	Leader,
+	Step,
+	Objective,
+	Type,
+	MemberList,
+	ID,
+	WindowIndex
+};
+
+enum class TaskTypeMethods
+{
+	Select = 1,
+};
+
+int FindTaskIndex(CTaskEntry* task)
+{
+	if (!task || !pTaskManager)
+		return -1;
+	
+	switch (task->TaskSystem)
+	{
+	case TaskSystemType::cTaskSystemTypeSharedQuest:
+		for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
+		{
+			if (&pTaskManager->SharedTaskEntries[i] == task)
+				return i;
+		}
+		break;
+		
+	case TaskSystemType::cTaskSystemTypeSoloQuest:
+		for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
+		{
+			if (&pTaskManager->QuestEntries[i] == task)
+				return i;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	return -1;
+}
+
+MQ2TaskType::MQ2TaskType() : MQ2Type("task")
+{
+	ScopedTypeMember(TaskTypeMembers, Index);
+	ScopedTypeMember(TaskTypeMembers, Title);
+	ScopedTypeMember(TaskTypeMembers, Timer);
+	ScopedTypeMember(TaskTypeMembers, Member);
+	ScopedTypeMember(TaskTypeMembers, Members);
+	ScopedTypeMember(TaskTypeMembers, Leader);
+	ScopedTypeMember(TaskTypeMembers, Step);
+	ScopedTypeMember(TaskTypeMembers, Objective);
+	ScopedTypeMember(TaskTypeMembers, Type);
+	ScopedTypeMember(TaskTypeMembers, MemberList);
+	ScopedTypeMember(TaskTypeMembers, ID);
+	ScopedTypeMember(TaskTypeMembers, WindowIndex);
+
+	ScopedTypeMethod(TaskTypeMethods, Select);
+}
+
+
 bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pTaskManager)
+	auto pTask = static_cast<CTaskEntry*>(VarPtr.Ptr);
+	if (!pTask)
 		return false;
-	if (!pTaskWnd)
-		return false;
-
-	int index = VarPtr.HighPart;
-	if (index == -1)
-		return false;
-
-	int type = VarPtr.LowPart;
 
 	//----------------------------------------------------------------------------
 	// methods
 
-	MQTypeMember* pMethod = MQ2TaskType::FindMethod(Member);
-	if (pMethod)
+	if (MQTypeMember* pMethod = MQ2TaskType::FindMethod(Member))
 	{
-		switch (static_cast<TaskMethods>(pMethod->ID))
+		switch (static_cast<TaskTypeMethods>(pMethod->ID))
 		{
-		case Select: {
-			Dest.DWord = 0;
+		case TaskTypeMethods::Select:
+		{
 			Dest.Type = pBoolType;
+			Dest.DWord = false;
 
-			char szTask[MAX_STRING] = { 0 };
+			if (!pTaskWnd || !pTask->TaskTitle[0])
+				return false;
 
-			switch (type)
+			auto clist = static_cast<CListWnd*>(pTaskWnd->GetChildItem("TASK_TaskList"));
+			if (!clist)
+				return false;
+
+			for (int i = 0; i < clist->ItemsArray.Count; ++i)
 			{
-			case cTaskSystemTypeSoloQuest:
-				if (CTaskEntry* entry = &pTaskManager->QuestEntries[index])
+				if (ci_equals(pTask->TaskTitle, clist->GetItemText(i, 2)))
 				{
-					strcpy_s(szTask, entry->TaskTitle);
+					Dest.DWord = SendListSelect2(clist, i);
+					return true;
 				}
-				break;
-			case cTaskSystemTypeSharedQuest:
-				if (CTaskEntry* entry = &pTaskManager->SharedTaskEntries[0])
-				{
-					strcpy_s(szTask, entry->TaskTitle);
-				}
-				break;
-			};
-
-			if (szTask[0])
-			{
-				char szOut[MAX_STRING] = { 0 };
-
-				if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
-				{
-					CXStr str;
-					for (int i = 0; i < clist->ItemsArray.Count; i++)
-					{
-						CXStr str = clist->GetItemText(i, 2);
-
-						if (ci_equals(szTask, str))
-						{
-							if (SendListSelect2(clist, i))
-							{
-								Dest.DWord = 1;
-							}
-						}
-					}
-				}
-				return true;
 			}
+
+			return false;
 		}
 
-		default: break;
+		default:
+			return false;
 		}
-
-		return false;
 	}
 
 	//----------------------------------------------------------------------------
@@ -98,16 +137,10 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	if (!pMember)
 		return false;
 
-	TASKMEMBER* pTaskmember = (TASKMEMBER*)pTaskMember;
 	switch (static_cast<TaskTypeMembers>(pMember->ID))
 	{
-	case Address:
-		Dest.DWord = (DWORD)pTaskmember;
-		Dest.Type = pIntType;
-		return true;
-
-	case Type: {
-		switch (type)
+	case TaskTypeMembers::Type: {
+		switch (pTask->TaskSystem)
 		{
 		case cTaskSystemTypeSoloQuest:
 			strcpy_s(DataTypeTemp, "Quest");
@@ -125,94 +158,78 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 	}
 
-	case xIndex:
-		Dest.Int = VarPtr.Int + 1;
+	case TaskTypeMembers::Index:
+	{
+		if (!pTaskManager)
+			return false;
+
 		Dest.Type = pIntType;
-		return true;
 
-	case Leader:
-		strcpy_s(DataTypeTemp, "NULL");
-
-		for (int i = 1; pTaskmember && i <= MAX_GROUP_SIZE; pTaskmember = pTaskmember->pNext, i++)
+		unsigned int offset = 0;
+		for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
 		{
-			if (pTaskmember->IsLeader)
+			const auto sharedTask = &pTaskManager->SharedTaskEntries[i];
+			if (sharedTask && sharedTask->TaskID && sharedTask == pTask)
 			{
-				strcpy_s(DataTypeTemp, pTaskmember->Name);
-				break;
+				Dest.Int = i + 1;
+				return true;
 			}
+
+			if (sharedTask && sharedTask->TaskID)
+				++offset;
 		}
 
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-
-	case Title:
-		strcpy_s(DataTypeTemp, "NULL");
-
-		switch (type)
+		for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
 		{
-		case cTaskSystemTypeSoloQuest:
-			if (CTaskEntry* entry = &pTaskManager->QuestEntries[index])
+			if (&pTaskManager->QuestEntries[i] == pTask)
 			{
-				strcpy_s(DataTypeTemp, entry->TaskTitle);
+				Dest.Int = i + offset + 1;
+				return true;
 			}
-			break;
-
-		case cTaskSystemTypeSharedQuest:
-			if (CTaskEntry* entry = &pTaskManager->SharedTaskEntries[0])
-			{
-				strcpy_s(DataTypeTemp, entry->TaskTitle);
-			}
-			break;
-
-		default:
-			break;
-		}
-
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-
-	case Timer: {
-		Dest.UInt64 = 0;
-		Dest.Type = pTimeStampType;
-
-		PCTaskStatus* ts = nullptr;
-		CTaskEntry* entry = nullptr;
-
-		switch (type)
-		{
-		case cTaskSystemTypeSoloQuest:
-			ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-			entry = &pTaskManager->QuestEntries[index];
-			break;
-
-		case cTaskSystemTypeSharedQuest:
-			ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-			entry = &pTaskManager->SharedTaskEntries[0];
-			break;
-
-		default:
-			break;
-		}
-
-		if (ts && entry)
-		{
-			const int ft = static_cast<int>(GetFastTime());
-			int timer = 0;
-			if (ts->MovingStartTime + entry->DurationSeconds > ft)
-			{
-				timer = (ts->MovingStartTime + entry->DurationSeconds) - ft;
-			}
-
-			Dest.UInt64 = static_cast<uint64_t>(timer) * 1000;
-			return true;
 		}
 
 		return false;
 	}
 
-	case xMember:
+	case TaskTypeMembers::Leader:
+		for (auto taskMember = pTaskMember; taskMember; taskMember = taskMember->pNext)
+		{
+			if (taskMember->IsLeader) {
+				Dest.Type = pTaskMemberType;
+				Dest.Ptr = taskMember;
+				return true;
+			}
+		}
+
+		return false;
+
+	case TaskTypeMembers::Title:
+		strcpy_s(DataTypeTemp, pTask->TaskTitle);
+
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+
+	case TaskTypeMembers::Timer:
+	{
+		if (!pTaskManager)
+			return false;
+
+		int idx = FindTaskIndex(pTask);
+		if (idx < 0)
+			return false;
+
+		auto taskStatus = pTaskManager->GetTaskStatus(pPCData, idx, pTask->TaskSystem);
+
+		if (!taskStatus)
+			return false;
+
+		Dest.UInt64 = std::max(0UL, taskStatus->MovingStartTime + pTask->DurationSeconds - GetFastTime());
+		Dest.Type = pTimeStampType;
+		return true;
+	}
+
+	case TaskTypeMembers::Member:
 		Dest.Type = pTaskMemberType;
 		if (!Index[0])
 			return false;
@@ -220,224 +237,203 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		if (IsNumber(Index))
 		{
 			int pos = GetIntFromString(Index, 0);
-			for (int i = 1; pTaskmember && i <= MAX_GROUP_SIZE; pTaskmember = pTaskmember->pNext, i++)
+			int i = 1;
+			for (SharedTaskPlayerInfo* taskMember = pTaskMember;
+				 taskMember;
+				 taskMember = taskMember->pNext, ++i)
 			{
 				if (i == pos)
 				{
-					Dest.Ptr = pTaskmember;
+					Dest.Ptr = taskMember;
 					return true;
 				}
 			}
+
+			return false;
 		}
-		else
+
+		for (auto taskMember = pTaskMember; pTaskMember; pTaskMember = pTaskMember->pNext)
 		{
-			for (; pTaskmember; pTaskmember = pTaskmember->pNext)
+			if (!_stricmp(taskMember->Name, Index))
 			{
-				if (!_stricmp(pTaskmember->Name, Index))
-				{
-					Dest.Ptr = pTaskmember;
-					return true;
-				}
+				Dest.Ptr = taskMember;
+				return true;
 			}
 		}
+
 		return false;
 
-	case Members:
+	case TaskTypeMembers::Members:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		for (; pTaskmember && Dest.DWord < MAX_GROUP_SIZE; pTaskmember = pTaskmember->pNext, Dest.DWord++)
-		{
-		}
+		for (auto taskMember = pTaskMember; taskMember; taskMember = taskMember->pNext, ++Dest.DWord);
 		return true;
 
-	case ID: {
-		Dest.Int = 0;
+	case TaskTypeMembers::ID:
+		Dest.Int = pTask->TaskID;
 		Dest.Type = pIntType;
-
-		CTaskEntry* entry = nullptr;
-		switch (type)
-		{
-		case cTaskSystemTypeSoloQuest:
-			entry = &pTaskManager->QuestEntries[index];
-			break;
-
-		case cTaskSystemTypeSharedQuest:
-			entry = &pTaskManager->SharedTaskEntries[0];
-			break;
-
-		default:
-			break;
-		}
-
-		if (entry)
-		{
-			Dest.Int = entry->TaskID;
-		}
 		return true;
-	}
 
-	case Objective: {
-		Dest.Int = 0;
+	case TaskTypeMembers::Objective:
+	{
+		if (!Index[0] || !pTaskManager)
+			return false;
+
 		Dest.Type = pTaskObjectiveType;
 
-		PCTaskStatus* ts = nullptr;
-		CTaskEntry* entry = nullptr;
-
-		switch (type)
+		if (IsNumber(Index))
 		{
-		case cTaskSystemTypeSoloQuest:
-			ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-			entry = &pTaskManager->QuestEntries[index];
-			break;
+			int index = GetIntFromString(Index, 0) - 1;
+			if (index < 0 || index >= MAX_TASK_ELEMENTS) // avoid array out of bounds
+				return false;
 
-		case cTaskSystemTypeSharedQuest:
-			ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-			entry = &pTaskManager->SharedTaskEntries[0];
-			break;
-
-		default: break;
-		}
-
-		if (ts && entry)
-		{
-			int stepIndex = -1;
-
-			if (IsNumber(Index))
-			{
-				stepIndex = std::clamp(GetIntFromString(Index, stepIndex) - 1, 0, MAX_TASK_ELEMENTS - 1);
-			}
-			else
-			{
-				char szOut[MAX_STRING] = { 0 };
-
-				for (int i = 0; i < MAX_TASK_ELEMENTS; i++)
-				{
-					pTaskManager->GetElementDescription(&entry->Elements[i], szOut);
-
-					if (ci_find_substr(szOut, Index))
-					{
-						stepIndex = i;
-						break;
-					}
-				}
-			}
-
-			// FIXME: Search Dword = (int)MAKELPARAM and fix through this whole commit.
-			Dest.DWord = (int)MAKELPARAM(type, index);
-			Dest.HighPart = stepIndex;
+			Dest.Ptr = &pTask->Elements[index];
 			return true;
 		}
 
+		char szOut[MAX_STRING] = { 0 };
+		for (int i = 0; i < MAX_TASK_ELEMENTS; ++i)
+		{
+			pTaskManager->GetElementDescription(&pTask->Elements[i], szOut);
+			if (ci_find_substr(szOut, Index))
+			{
+				Dest.Ptr = &pTask->Elements[i];
+				return true;
+			}
+		}
+
 		return false;
 	}
 
-	case Step: { // gets the first step that's not Done in the task objective.
-		Dest.Int = 0;
+	case TaskTypeMembers::Step: // gets the first step that's not Done in the task objective.
+	{
+		if (!pTaskManager)
+			return false;
+
 		Dest.Type = pTaskObjectiveType;
 
-		PCTaskStatus* ts = nullptr;
-		CTaskEntry* entry = nullptr;
+		int idx = FindTaskIndex(pTask);
+		if (idx < 0)
+			return false;
 
-		switch (type)
+		auto taskStatus = pTaskManager->GetTaskStatus(pPCData, idx, pTask->TaskSystem);
+
+		for (int i = 0; i < MAX_TASK_ELEMENTS; ++i)
 		{
-		case cTaskSystemTypeSoloQuest:
-			ts = pTaskManager->GetTaskStatus(pPCData, index, cTaskSystemTypeSoloQuest);
-			entry = &pTaskManager->QuestEntries[index];
-			break;
-		case cTaskSystemTypeSharedQuest:
-			ts = pTaskManager->GetTaskStatus(pPCData, 0, cTaskSystemTypeSharedQuest);
-			entry = &pTaskManager->SharedTaskEntries[0];
-			break;
-		}
-
-		if (ts && entry)
-		{
-			int reqCount = 0;
-			int curCount = 0;
-
-			for (int i = 0; i < MAX_TASK_ELEMENTS; i++)
+			if (taskStatus->CurrentCounts[i] < pTask->Elements[i].RequiredCount && !pTask->Elements[i].bOptional)
 			{
-				reqCount = entry->Elements[i].RequiredCount;
-				curCount = ts->CurrentCounts[i];
-
-				if (curCount < reqCount && !entry->Elements[i].bOptional)
-				{
-					Dest.DWord = (int)MAKELPARAM(type, index);
-					Dest.HighPart = i;
-					return true;
-				}
+				Dest.Ptr = &pTask->Elements[i];
+				return true;
 			}
 		}
+
 		return false;
 	}
 
-	case WindowIndex: {
-		char szTask[MAX_STRING] = { 0 };
-		switch (type)
+	case TaskTypeMembers::WindowIndex:
+	{
+		if (!pTaskWnd)
+			return false;
+
+		auto clist = static_cast<CListWnd*>(pTaskWnd->GetChildItem("TASK_TaskList"));
+		if (!clist)
+			return false;
+
+		Dest.Type = pIntType;
+
+		for (int i = 0; i < clist->ItemsArray.Count; ++i)
 		{
-		case cTaskSystemTypeSoloQuest:
-			if (CTaskEntry* entry = &pTaskManager->QuestEntries[index])
+			if (ci_equals(pTask->TaskTitle, clist->GetItemText(i, 2)))
 			{
-				strcpy_s(szTask, entry->TaskTitle);
-			}
-			break;
-
-		case cTaskSystemTypeSharedQuest:
-			if (CTaskEntry* entry = &pTaskManager->SharedTaskEntries[0])
-			{
-				strcpy_s(szTask, entry->TaskTitle);
-			}
-			break;
-		};
-
-		if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
-		{
-			for (int i = 0; i < clist->ItemsArray.Count; i++)
-			{
-				CXStr str = clist->GetItemText(i, 2);
-
-				if (ci_equals(szTask, str))
-				{
-					Dest.DWord = i + 1;
-					Dest.Type = pIntType;
-					return true;
-				}
+				Dest.DWord = i + 1;
+				return true;
 			}
 		}
+
 		return false;
 	}
 
-	default: break;
+	default:
+		return false;
 	}
-
-	return false;
 }
 
 bool MQ2TaskType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	strcpy_s(Destination, MAX_STRING, "NULL");
+	auto pTask = static_cast<CTaskEntry*>(VarPtr.Ptr);
+	if (!pTask)
+		return false;
 
-	int index = HIWORD(VarPtr.DWord);
-	int type = LOWORD(VarPtr.DWord);
-
-	if (pTaskManager)
-	{
-		CTaskEntry* entry = nullptr;
-
-		switch (type)
-		{
-		case cTaskSystemTypeSoloQuest:
-			entry = &pTaskManager->QuestEntries[index];
-			break;
-
-		case cTaskSystemTypeSharedQuest:
-			entry = &pTaskManager->SharedTaskEntries[0];
-			break;
-		};
-
-		strcpy_s(Destination, MAX_STRING, entry->TaskTitle);
-	}
+	strcpy_s(Destination, MAX_STRING, pTask->TaskTitle);
 
 	return true;
+}
+
+bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Type = pTaskType;
+
+	if (!pTaskManager || !szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex)) {
+		unsigned char offset = 0;
+		unsigned int taskIndex = GetIntFromString(szIndex, 1) - 1; // this is 1-indexed in the TLO
+
+		// let's bail early if we have a bad index, no need to log because this argument is unconstrained
+		if (taskIndex >= MAX_SHARED_TASK_ENTRIES + MAX_QUEST_ENTRIES)
+			return false;
+
+		for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
+		{
+			auto sharedEntry = &pTaskManager->SharedTaskEntries[i];
+			if (taskIndex == i && sharedEntry && sharedEntry->TaskID)
+			{
+				Ret.Ptr = sharedEntry;
+				return true;
+			}
+
+			// shared entry exists, but we don't want it by index
+			if (sharedEntry && sharedEntry->TaskID)
+				++offset;
+		}
+
+		// offset the index by the number of shared tasks that existed before looking for solo tasks
+		// this should never be less than 0 because offset only increases if we didn't find a
+		// shared task by index and there was a shared task, but just in case let's make sure we
+		// don't get an array out of bounds
+		if (taskIndex < offset || taskIndex - offset >= MAX_QUEST_ENTRIES)
+		{
+			DebugSpewAlways("Index %d (passed %s) out of bounds for quest entries", taskIndex - offset, szIndex);
+			return false;
+		}
+
+		Ret.Ptr = &pTaskManager->QuestEntries[taskIndex - offset];
+		return true;
+	}
+
+	// look up the task by name -- we loop by index here because it's the easiest way to 
+	// loop by address of the task arrays
+	for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
+	{
+		auto sharedEntry = &pTaskManager->SharedTaskEntries[i];
+		if (sharedEntry && sharedEntry->TaskID && MaybeExactCompare(sharedEntry->TaskTitle, szIndex))
+		{
+			Ret.Ptr = sharedEntry;
+			return true;
+		}
+	}
+
+	for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
+	{
+		auto questEntry = &pTaskManager->QuestEntries[i];
+		if (questEntry && questEntry->TaskID && MaybeExactCompare(questEntry->TaskTitle, szIndex))
+		{
+			Ret.Ptr = questEntry;
+			return true;
+		}
+	}
+
+	return false;
 }
 

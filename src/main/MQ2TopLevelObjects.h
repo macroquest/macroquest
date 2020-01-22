@@ -67,7 +67,6 @@ MQLIB_API bool dataSelect(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataDoorTarget(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataItemTarget(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataDynamicZone(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataTask(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataFriends(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMount(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataIllusion(const char* szIndex, MQTypeVar& Ret);

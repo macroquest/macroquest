@@ -18,42 +18,55 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class TaskMemberTypeMembers
+{
+	Name = 1,
+	Leader,
+	Index
+};
+
+MQ2TaskMemberType::MQ2TaskMemberType() : MQ2Type("taskmember")
+{
+	ScopedTypeMember(TaskMemberTypeMembers, Name);
+	ScopedTypeMember(TaskMemberTypeMembers, Leader);
+	ScopedTypeMember(TaskMemberTypeMembers, Index);
+}
+
 bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	TASKMEMBER* pTaskMemberData = static_cast<TASKMEMBER*>(VarPtr.Ptr);
+	auto pTaskMemberData = static_cast<SharedTaskPlayerInfo*>(VarPtr.Ptr);
 	if (!pTaskMemberData)
 		return false;
 
 	MQTypeMember* pMember = MQ2TaskMemberType::FindMember(Member);
 	if (!pMember)
-	{
 		return false;
-	}
-
-	DataTypeTemp[0] = 0;
 
 	switch (static_cast<TaskMemberTypeMembers>(pMember->ID))
 	{
-	case Name:
+	case TaskMemberTypeMembers::Name:
 		strcpy_s(DataTypeTemp, pTaskMemberData->Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Leader:
+	case TaskMemberTypeMembers::Leader:
+		Dest.DWord = pTaskMemberData->IsLeader;
 		Dest.Type = pBoolType;
-		if (pTaskMemberData->IsLeader)
-			return true;
+		return true;
 
-		return false;
+	case TaskMemberTypeMembers::Index:
+	{
+		if (!pTaskMember)
+			return false;
 
-	case xIndex: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		TASKMEMBER* pTaskmember = pTaskMember;
-		for (int i = 1; pTaskmember; pTaskmember = pTaskmember->pNext, i++)
+
+		auto taskMember = pTaskMember;
+		for (int i = 1; taskMember; taskMember = taskMember->pNext, i++)
 		{
-			if (ci_equals(pTaskmember->Name, pTaskMemberData->Name))
+			if (taskMember == pTaskMemberData)
 			{
 				Dest.DWord = i;
 				return true;
@@ -62,9 +75,18 @@ bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return false;
 	}
 
-	default: break;
+	default:
+		return false;
 	}
+}
 
-	return false;
+bool MQ2TaskMemberType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	auto taskMember = static_cast<SharedTaskPlayerInfo*>(VarPtr.Ptr);
+	if (!taskMember)
+		return false;
+
+	strcpy_s(Destination, MAX_STRING, taskMember->Name);
+	return true;
 }
 

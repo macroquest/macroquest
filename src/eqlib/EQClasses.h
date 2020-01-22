@@ -978,7 +978,7 @@ struct [[offsetcomments]] CTaskElement
 /*0x084*/ char               TargetZoneID[0x40];
 /*0x0c4*/ int                RequiredCount;
 /*0x0c8*/ bool               bOptional;
-/*0x0cc*/ int                ElementGroup;
+/*0x0cc*/ TaskGroupType      ElementGroup;
 /*0x0d0*/ int                DZSwitchID;
 /*0x0d4*/ char               ElementDescriptionOverride[0x80];
 /*0x154*/ CXStr              ItemNameList;
@@ -1005,7 +1005,7 @@ struct [[offsetcomments]] CTaskEntry
 /*0x1000*/ int               RewardFactionAmount;
 /*0x1004*/ CXStr             RewardItemTag;
 /*0x1008*/ CTaskElement      Elements[MAX_TASK_ELEMENTS];
-/*0x2bd8*/ int               TaskSystem;
+/*0x2bd8*/ TaskSystemType    TaskSystem;
 /*0x2bdc*/ int               PointType;
 /*0x2be0*/ bool              StartTextCompiled;
 /*0x2be1*/ char              RawStartText[0xFa0];

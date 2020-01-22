@@ -1519,67 +1519,6 @@ bool dataFriends(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
-bool dataTask(const char* szIndex, MQTypeVar& Ret)
-{
-	Ret.Type = pTaskType;
-	Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, 0xFFFFFFFF);
-
-	if (CTaskManager* tm = pTaskManager)
-	{
-		if (szIndex[0])
-		{
-			CTaskEntry* sharedEntry = (CTaskEntry*)&tm->SharedTaskEntries[0];
-			if (IsNumber(szIndex))
-			{
-				int n = std::clamp(GetIntFromString(szIndex, 0) - 1, 0, MAX_QUEST_ENTRIES - 1);
-
-				// If it is 0, and we have a shared quest, then we need to return that
-				if (n == 0 && sharedEntry && sharedEntry->TaskID)
-				{
-					Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
-					return true;
-				}
-				else
-				{
-					if (CTaskEntry* entry = &tm->QuestEntries[n])
-					{
-						if (entry->TaskID)
-						{
-							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, n);
-							return true;
-						}
-					}
-				}
-			}
-			else
-			{
-				if (sharedEntry && sharedEntry->TaskID)
-				{
-					if (MaybeExactCompare(sharedEntry->TaskTitle, szIndex))
-					{
-						Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSharedQuest, 0);
-						return true;
-					}
-				}
-
-				for (int i = 0; i < MAX_QUEST_ENTRIES; i++)
-				{
-					if (CTaskEntry* entry = &tm->QuestEntries[i])
-					{
-						if (MaybeExactCompare(entry->TaskTitle, szIndex))
-						{
-							Ret.DWord = (int)MAKELPARAM(cTaskSystemTypeSoloQuest, 0);
-							return true;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
 bool dataMount(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
