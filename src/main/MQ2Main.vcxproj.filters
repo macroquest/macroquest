@@ -463,6 +463,9 @@
     <ClInclude Include="datatypes\MQ2DataTypes.h">
       <Filter>Header Files\datatypes</Filter>
     </ClInclude>
+    <ClInclude Include="DebugHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

@@ -16,6 +16,7 @@
 #include "MQ2Main.h"
 #include <fstream>
 
+#include <dbghelp.h>
 #include <Psapi.h>
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "Psapi.lib")
@@ -810,21 +811,95 @@ void ForceUnload()
 	ScreenMode = 2;
 }
 
-LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
-{
-	MQ2ExceptionFilter(0, ex, "OurCrashHandler");
-	int mbret = MessageBox(nullptr,
-		"MQ2Start caught a crash.\n"
-		"This does NOT mean it was a MQ2 crash, it could also be a eqgame crash.\n\n"
-		"You can click retry and hope for the best, or just click cancel to kill the process right now.",
-		"Crash Detected", MB_RETRYCANCEL | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+LPTOP_LEVEL_EXCEPTION_FILTER lpOldTopLevelExceptionFilter = nullptr;
 
-	if (mbret == IDCANCEL)
+int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
+{
+	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+	HANDLE hProcess = GetCurrentProcess();
+
+	SymInitialize(hProcess, nullptr, true);
+
+	// Set the symbols search path
+	char szSymSearchPath[MAX_STRING] = { 0 };
+	GetPrivateProfileString("Debug", "SymbolsPath", "", szSymSearchPath, MAX_STRING, mq::internal_paths::MQini);
+	if (szSymSearchPath[0])
+		SymSetSearchPath(hProcess, szSymSearchPath);
+	SymGetSearchPath(hProcess, szSymSearchPath, MAX_STRING);
+
+	DWORD64 dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
+	HMODULE hModule = nullptr;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
+	GetModuleFileName(hModule, szSymSearchPath, MAX_STRING);
+
+	// Get buffer for symbol data
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+
+	IMAGEHLP_LINE64 line = { sizeof(IMAGEHLP_LINE64) };
+	DWORD64 dwDisplacement64 = 0;
+
+	char szTemp[MAX_STRING] = { 0 };
+	// TODO: FormatMEssage call to turn the exception code into a string.
+
+	if (SymFromAddr(hProcess, dwAddress, &dwDisplacement64, pSymbol))
+	{
+		DWORD dwDisplacement = 0;
+		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
+		{
+			sprintf_s(szTemp,
+				"MacroQuest caught a crash:\n"
+				"Location: %s+%d @ %s:%d (%s+%p)\n",
+				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
+		}
+		else
+		{
+			sprintf_s(szTemp,
+				"MacroQuest caught a crash:\n"
+				"Location: %s+%d (%s+%p)\n",
+				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
+		}
+	}
+	else
+	{
+		sprintf_s(szTemp,
+			"MacroQuest caught a crash:\n"
+			"Location: %s+%p\n",
+			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
+	}
+
+	SymCleanup(hProcess);
+
+	char szMessage[MAX_STRING] = { 0 };
+	sprintf_s(szMessage,
+		"%s"
+		"\n"
+		"You can either:\n"
+		" * [ABORT] Terminate EverQuest immediately.\n"
+		" * [RETRY] Automatically send a crash report to the MacroQuest developers.\n"
+		" * [IGNORE] Continue execution and hope for the best.\n"
+		"\n"
+		"NOTE: Crash reports may include information including character and server name.\n", szTemp);
+
+	int mbret = MessageBox(nullptr, szMessage, "Crash Detected", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
+	if (mbret == IDABORT)
 	{
 		exit(0);
 	}
 
-	return EXCEPTION_CONTINUE_EXECUTION;
+	if (mbret == IDIGNORE)
+	{
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+
+	return lpOldTopLevelExceptionFilter(ex);
+}
+
+LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
+{
+	return MQ2ExceptionFilter(ex->ExceptionRecord->ExceptionCode, ex, "Unhandled Exception");
 }
 
 // ***************************************************************************
@@ -833,7 +908,7 @@ LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
 // ***************************************************************************
 DWORD WINAPI MQ2Start(void* lpParameter)
 {
-	SetUnhandledExceptionFilter(OurCrashHandler);
+	lpOldTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
 
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 	hLoadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
@@ -868,6 +943,9 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	}
 
 getout:
+	// Restore the old unhandled exception filter
+	SetUnhandledExceptionFilter(lpOldTopLevelExceptionFilter);
+
 	if (hLoadComplete)
 	{
 		CloseHandle(hLoadComplete);

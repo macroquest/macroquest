@@ -299,6 +299,7 @@ INITIALIZE_EQGAME_OFFSET(pinstTrackTarget);
 INITIALIZE_EQGAME_OFFSET(pinstTradeTarget);
 INITIALIZE_EQGAME_OFFSET(pinstViewActor);
 INITIALIZE_EQGAME_OFFSET(pinstWorldData);
+INITIALIZE_EQGAME_OFFSET(instExceptionSubmissionEndpoint);
 
 INITIALIZE_EQGAME_OFFSET(__MemChecker0);
 INITIALIZE_EQGAME_OFFSET(__MemChecker1);
@@ -1008,6 +1009,7 @@ SpellLoadout*          pSpellSets                = nullptr;
 CTaskManager*          pTaskManager              = nullptr;
 BYTE*                  pTributeActive            = nullptr;
 EQZoneInfo*            pZoneInfo                 = nullptr;
+SoeUtil::String*       pExceptionSubmissionEndpoint = nullptr;
 
 ForeignPointer<PcClient, CHARINFO>               pCharData;
 ForeignPointer<PcClient, CHARINFO>               pPCData;
@@ -1223,6 +1225,7 @@ void InitializeEQGameOffsets()
 	pTaskManager                    = (CTaskManager*)pinstCTaskManager;
 	pTributeActive                  = (BYTE*)instTributeActive;
 	pZoneInfo                       = (EQZoneInfo*)instEQZoneInfo;
+	pExceptionSubmissionEndpoint    = (SoeUtil::String*)instExceptionSubmissionEndpoint;
 
 	// Spawn/Char pointers
 	pCharData                       = pinstCharData;

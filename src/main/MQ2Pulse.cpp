@@ -16,8 +16,6 @@
 #include "MQ2Main.h"
 #include "DebugHandler.h"
 
-#include <dbghelp.h>
-
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
 namespace mq {
@@ -599,6 +597,9 @@ void DoLoginPulse()
 {
 	std::scoped_lock lock(s_pulseMutex);
 
+	// handle queued events.
+	ProcessQueuedEvents();
+
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
 	DebugTry(PulseMQ2Overlay());
 }
@@ -657,155 +658,6 @@ bool DirectoryExists(LPCTSTR lpszPath)
 	DWORD dw = ::GetFileAttributes(lpszPath);
 	return (dw != INVALID_FILE_ATTRIBUTES && (dw & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
-
-int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
-{
-	char szOut[MAX_STRING] = { 0 };
-	char szTemp[MAX_STRING] = { 0 };
-	char szDumpPath[MAX_STRING] = { 0 };
-
-	HANDLE hProcess;
-	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-
-	hProcess = GetCurrentProcess();
-
-	SymInitialize(hProcess, nullptr, true);
-
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, mq::internal_paths::MQini);
-	if (szTemp[0])
-		SymSetSearchPath(hProcess, szTemp);
-	SymGetSearchPath(hProcess, szOut, MAX_STRING);
-
-	DWORD64  dwAddress;
-	DWORD  dwDisplacement;
-	IMAGEHLP_LINE64 line;
-
-	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-	dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = nullptr;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
-	GetModuleFileName(hModule, szOut, MAX_STRING);
-
-	make_minidump(szOut, ex, szDumpPath);
-	DWORD64  dwDisplacement2 = 0;
-	DWORD64  dwAddress2 = (DWORD64)ex->ExceptionRecord->ExceptionAddress;
-
-	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-
-	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	pSymbol->MaxNameLen = MAX_SYM_NAME;
-
-	if (SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol))
-	{
-		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
-		{
-			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber, line.Address - (DWORD)hModule, szDumpPath);
-		}
-		else
-		{
-			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, pSymbol->Address - (DWORD)hModule, szDumpPath);
-		}
-	}
-	else
-	{
-		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nSend it to eqmule@hotmail.com\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
-	}
-
-	SymCleanup(hProcess);
-
-	int mbret = MessageBox(nullptr, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
-	if (mbret == IDCANCEL)
-	{
-		exit(0);
-	}
-
-	return EXCEPTION_EXECUTE_HANDLER;
-}
-
-int MQ2ExceptionFilter2(PEXCEPTION_POINTERS ex)
-{
-	char szOut[MAX_STRING] = { 0 };
-	char szTemp[MAX_STRING] = { 0 };
-	char szDumpPath[MAX_STRING] = { 0 };
-
-	HANDLE hProcess;
-
-	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-
-	hProcess = GetCurrentProcess();
-
-	SymInitialize(hProcess, nullptr, true);
-
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szTemp, MAX_STRING, mq::internal_paths::MQini);
-	if (szTemp[0])
-		SymSetSearchPath(hProcess, szTemp);
-	SymGetSearchPath(hProcess, szOut, MAX_STRING);
-
-	DWORD64  dwAddress;
-	DWORD  dwDisplacement;
-	IMAGEHLP_LINE64 line;
-
-	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-	dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = nullptr;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
-	GetModuleFileName(hModule, szOut, MAX_STRING);
-
-	make_minidump(szOut, ex, szDumpPath);
-	DWORD64  dwDisplacement2 = 0;
-	DWORD64  dwAddress2 = (DWORD64)ex->ExceptionRecord->ExceptionAddress;
-
-	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-
-	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	pSymbol->MaxNameLen = MAX_SYM_NAME;
-
-	if (SymFromAddr(hProcess, dwAddress2, &dwDisplacement2, pSymbol))
-	{
-		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
-		{
-			sprintf_s(szTemp, "%s crashed in %s Line: %d (address 0x%llX)\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, line.FileName, line.LineNumber, line.Address - (DWORD)hModule, szDumpPath);
-		}
-		else
-		{
-			sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", pSymbol->Name, pSymbol->Address - (DWORD)hModule, szDumpPath);
-		}
-	}
-	else
-	{
-		sprintf_s(szTemp, "%s crashed at address 0x%llX\nDump saved to %s\n\nYou can click retry and hope for the best, or just click cancel to kill the process right now.", szOut, dwAddress - (DWORD)hModule, szDumpPath);
-	}
-
-	SymCleanup(hProcess);
-
-	int mbret = MessageBox(nullptr, szTemp, szOut, MB_ICONERROR | MB_SYSTEMMODAL | MB_RETRYCANCEL | MB_DEFBUTTON1);
-	if (mbret == IDCANCEL)
-	{
-		exit(0);
-	}
-
-	return EXCEPTION_EXECUTE_HANDLER;
-}
-
-void GameLoop_Tramp();
-void GameLoop_Detour()
-{
-	__try
-	{
-		//MessageBox(nullptr, "Starting EQ", "", MB_SYSTEMMODAL | MB_OK);
-		GameLoop_Tramp();
-	}
-	//__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), "GameLoop_Detour %d",1))
-	__except (MQ2ExceptionFilter2(GetExceptionInformation()))
-	{
-		//RemoveDetour(__GameLoop);
-		MessageBox(nullptr, "Exception caught in GameLoop", "", MB_SYSTEMMODAL | MB_OK);
-		exit(0);
-	}
-}
-DETOUR_TRAMPOLINE_EMPTY(void GameLoop_Tramp());
 
 // ***************************************************************************
 // Function:    ProcessGameEvents

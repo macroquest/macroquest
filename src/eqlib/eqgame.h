@@ -339,11 +339,11 @@
 #define pinstCWebManager_x                                         0xF69C74
 #define pinstCZoneGuideWnd_x                                       0xE03254
 #define pinstCZonePathWnd_x                                        0xE0326C
-
 #define pinstEQSuiteTextureLoader_x                                0xCA2128
 #define pinstItemIconCache_x                                       0xF79188
 #define pinstLootFiltersManager_x                                  0xCD43E8
 #define pinstRewardSelectionWnd_x                                  0xF7E218
+#define instExceptionSubmissionEndpoint_x                          0xC52868
 
 ////
 // Section 3: Miscellaneous Offsets

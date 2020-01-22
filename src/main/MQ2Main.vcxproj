@@ -446,6 +446,7 @@
     <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
+    <ClInclude Include="DebugHandler.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />

@@ -1201,6 +1201,15 @@ MQLIB_API void MQ2CrashCallBack(char* DumpFile)
 	// you can delete the file, copy/move it or just upload to your own dump server etc...
 }
 
+// MQ2Ic hooks CrashDetected so it can intercept the crash handler. We'll create our own fake crash handler, and send that
+// to MQ2Ic instead.
+void FakeCrashDetected()
+{
+	DebugSpewAlways("FakeCrashDetected");
+}
+
+DWORD AddressOfFakeCrashDetected = (DWORD)&FakeCrashDetected;
+
 // MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
 DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
 void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
@@ -1210,13 +1219,20 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		return result;
 	}
 
-#if DEBUG_GETPROCADDRESS
 	static HMODULE eqlibModule = GetModuleHandle("eqlib.dll");
 
 	// If this is our module...
 	if (hModule == ghModule)
 	{
-		void* pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
+		void* pRet = nullptr;
+		if (ci_equals("CrashDetected", lpProcName))
+		{
+			pRet = &AddressOfFakeCrashDetected;
+		}
+		else
+		{
+			pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
+		}
 
 		if (!pRet)
 		{
@@ -1238,6 +1254,7 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 			}
 		}
 
+#if DEBUG_GETPROCADDRESS
 		char szModuleName[MAX_PATH] = { 0 };
 		char* pModuleName = szModuleName;
 
@@ -1254,11 +1271,18 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		}
 
 		DebugSpewAlways("GetProcAddressHook: %s -> %p (from %s)", lpProcName, pRet, pModuleName);
-		return pRet;
-	}
 #endif
 
+		return pRet;
+	}
+
 	return nullptr;
+}
+
+void DoCrash(SPAWNINFO* pChar, char* szLine)
+{
+	int* p = 0;
+	*p = 12;
 }
 
 void InitializeMQ2Detours()
@@ -1268,7 +1292,14 @@ void InitializeMQ2Detours()
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 
+	// Set the exception reporting Url to our own.
+	if (pExceptionSubmissionEndpoint)
+	{
+		*pExceptionSubmissionEndpoint =
+			"https://submit.backtrace.io/mq2/7d4625da4231505c0a7b8adc4a55d55fb50e2d2ce0cc8526693b5d07740e038a/minidump";
+	}
 
+	AddCommand("/crash", DoCrash);
 }
 
 void ShutdownMQ2Detours()

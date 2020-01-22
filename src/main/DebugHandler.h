@@ -61,8 +61,6 @@ void Debug_TryExecute(const char* func_name, int line, const T& func)
 }
 
 
-
-
 // construct a lambda to wrap the exception filter call, this allows us to invoke the __try/__except block
 // with a function scope in between, which will prevent error C2712: Cannot use __try in functions that require
 // object unwinding.

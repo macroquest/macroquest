@@ -322,6 +322,7 @@ EQLIB_VAR DWORD pinstTrackTarget;
 EQLIB_VAR DWORD pinstTradeTarget;
 EQLIB_VAR DWORD pinstViewActor;
 EQLIB_VAR DWORD pinstWorldData;
+EQLIB_VAR DWORD instExceptionSubmissionEndpoint;
 
 EQLIB_VAR DWORD __MemChecker0;
 EQLIB_VAR DWORD __MemChecker1;
@@ -1039,6 +1040,7 @@ EQLIB_VAR SpellLoadout*                              pSpellSets;
 EQLIB_VAR CTaskManager*                              pTaskManager;
 EQLIB_VAR BYTE*                                      pTributeActive;
 EQLIB_VAR EQZoneInfo*                                pZoneInfo;
+EQLIB_VAR SoeUtil::String*                          pExceptionSubmissionEndpoint;
 
 // Spawn/Char related
 EQLIB_VAR ForeignPointer<PcClient, CHARINFO>         pCharData;
