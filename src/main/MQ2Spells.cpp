@@ -89,12 +89,7 @@ const char* GetSpellNameByID(int dwSpellID)
 	return "Unknown Spell";
 }
 
-struct SpellCompare
-{
-	std::map<int, SPELL*> Duplicates;
-};
-
-std::map<std::string, std::map<std::string, SpellCompare>> s_spellNameMap;
+std::unordered_multimap<std::string, EQ_Spell*> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
 std::recursive_mutex s_initializeSpellsMutex;
 
@@ -153,23 +148,17 @@ void PopulateSpellMap()
 	s_triggeredSpells.clear();
 	s_spellNameMap.clear();
 
-	for (int dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++)
+	for (auto pSpell : pSpellMgr->Spells)
 	{
-		if (SPELL* pSpell = pSpellMgr->Spells[dwSpellID])
-		{
-			if (pSpell->Name[0] != '\0')
-			{
-				PopulateTriggeredmap(pSpell);
+		if (!pSpell || !pSpell->Name[0])
+			continue;
 
-				std::string lowname = pSpell->Name;
-				MakeLower(lowname);
+		PopulateTriggeredmap(pSpell);
 
-				std::string threelow = lowname;
-				threelow.erase(3);
+		std::string lowname = pSpell->Name;
+		MakeLower(lowname);
 
-				s_spellNameMap[threelow][lowname].Duplicates[dwSpellID] = pSpell;
-			}
-		}
+		s_spellNameMap.insert(std::make_pair(lowname, pSpell));
 	}
 
 	gbSpelldbLoaded = true;
@@ -234,7 +223,12 @@ SPELL* GetSpellByName(const char* szName)
 
 	if (!pSpellMgr) // no spellMgr?
 		return nullptr;
-	if (!szName)    // no spell name?
+
+	if (!szName[0])    // no spell name?
+		return nullptr;
+
+	auto profile = GetPcProfile();
+	if (!profile)
 		return nullptr;
 
 	if (gbSpelldbLoaded == false)
@@ -248,85 +242,41 @@ SPELL* GetSpellByName(const char* szName)
 	}
 
 	std::scoped_lock lock(s_initializeSpellsMutex);
-
-	if (szName[0] >= '0' && szName[0] <= '9')
-	{
-		return GetSpellByID(abs(GetIntFromString(szName, 0)));
-	}
-
-	// is this even necessary?
-	PcProfile* profile = GetPcProfile();
-	if (!profile)
+	if (s_spellNameMap.empty())
 		return nullptr;
+
+	if (IsNumber(szName))
+		return GetSpellByID(GetIntFromString(szName, -1));
 
 	std::string lowname = szName;
-	if (lowname.size() < 3 || s_spellNameMap.empty())
-		return nullptr;
-
 	MakeLower(lowname);
 
-	std::string threelow = lowname;
-	threelow.erase(3);
+	auto range = s_spellNameMap.equal_range(lowname);
 
-	// look up threelow
-	auto iter = s_spellNameMap.find(threelow);
-	if (iter == s_spellNameMap.end())
-		return nullptr;
-
-	// look up lowname
-	std::map<std::string, SpellCompare>& spellLookup = iter->second;
-	auto iter2 = spellLookup.find(lowname);
-	if (iter2 == spellLookup.end())
-		return nullptr;
-
-	SpellCompare& comp = iter2->second;
-	if (comp.Duplicates.empty())
-		return nullptr;
-
-	SPELL* pSpell = comp.Duplicates.begin()->second;
-	if (comp.Duplicates.size() == 1)
+	if (IsPlayerClass(profile->Class))
 	{
-		return pSpell;
+		auto compare = [profile](int level, std::pair<std::string, EQ_Spell*> spell) -> bool {
+			return level < spell.second->ClassLevel[profile->Class];
+		};
+
+		auto it = std::upper_bound(range.first, range.second, profile->Level, compare);
+		if (it != range.first)
+			return (--it)->second;
+
+		// otherwise, I can't have this spell
 	}
 
-	int highestclasslevel = 0;
-	int classlevel = 0;
-	int playerclass = profile->Class;
-	int currlevel = profile->Level;
+	// if we got here, the spell the user is after isnt one his character can cast, so
+	// we will have to roll through it again and see if its usable by any other class
+	auto is_usable = [](std::pair<std::string, EQ_Spell*> spell) -> bool {
+		return IsSpellClassUsable(spell.second);
+	};
 
-	if (playerclass && playerclass >= Warrior && playerclass <= Berserker)
-	{
-		for (auto& duplicate : iter2->second.Duplicates)
-		{
-			if (SPELL* dupeSpell = duplicate.second)
-			{
-				classlevel = dupeSpell->ClassLevel[playerclass];
+	auto it = std::find_if(range.first, range.second, is_usable);
+	if (it != range.second)
+		return it->second;
 
-				if (classlevel <= currlevel && highestclasslevel < classlevel)
-				{
-					highestclasslevel = classlevel;
-					pSpell = dupeSpell;
-				}
-			}
-		}
-	}
-
-	if (highestclasslevel == 0)
-	{
-		// if we got here, the spell the user is after isnt one his character can cast, so
-		// we will have to roll through it again and see if its usable by any other class
-
-		for (auto& duplicate : iter2->second.Duplicates)
-		{
-			SPELL* dupeSpell = duplicate.second;
-			if (dupeSpell && IsSpellClassUsable(dupeSpell))
-			{
-				pSpell = dupeSpell;
-			}
-		}
-	}
-
-	return pSpell;
+	return nullptr;
 }
 
 int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)

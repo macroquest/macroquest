@@ -544,6 +544,11 @@ inline int GetSpellNumEffects(SPELL* pSpell)
 	return 0;
 }
 
+inline bool IsPlayerClass(int Class)
+{
+	return Class >= Warrior && Class <= Berserker;
+}
+
 inline bool CanTank(int Class)
 {
 	switch (Class)
