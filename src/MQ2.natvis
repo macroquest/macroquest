@@ -39,6 +39,17 @@
 		</Expand>
 	</Type>
 
+	<Type Name="eqlib::SoeUtil::IString&lt;*&gt;">
+		<DisplayString Condition="m_length == 0">empty</DisplayString>
+		<DisplayString Condition="m_length != 0">{m_data}</DisplayString>
+		<StringView Condition="m_length != 0">m_data</StringView>
+		<Expand>
+			<Item Name="[size]">m_length</Item>
+			<Item Name="[capacity]">m_space</Item>
+			<Item Name="[refCount]">*(int*)(((char*)m_data) - 4)</Item>
+		</Expand>
+	</Type>
+
 	<Type Name="eqlib::ForeignPointer&lt;*&gt;">
 		<DisplayString Condition="m_ptr == 0">empty</DisplayString>
 		<DisplayString Condition="m_ptr != 0">{*m_ptr,na}</DisplayString>

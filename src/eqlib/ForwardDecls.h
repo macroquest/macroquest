@@ -391,6 +391,13 @@ class CThickLineSystemInterface;
 class CDebugDrawInterface;
 class CTerrainSystemInterface;
 
+namespace SoeUtil
+{
+	template <typename T>
+	class IString;
+
+	using String = IString<char>;
+}
 
 // Login frontend types
 class LoginController;

@@ -17,8 +17,8 @@
 namespace eqlib {
 namespace SoeUtil {
 
-EQLIB_OBJECT void* Alloc(int bytes, int align);
-EQLIB_OBJECT void Free(void* p, int align);
+EQLIB_OBJECT void* Alloc(int bytes, int align = 0);
+EQLIB_OBJECT void Free(void* p, int align = 0);
 
 template <typename T>
 T* Align(T* p, int align)
@@ -295,23 +295,207 @@ bool swap(Array<T>& a, Array<T>& b)
 #pragma region IString
 
 template <typename T = char>
-class IStringTemplate
+class IString
 {
 public:
+	IString()
+	{
+	}
+
+	IString(const IString& other)
+	{
+		copy(other);
+	}
+
+	IString(const char* other)
+	{
+		copy(other);
+	}
+
+	virtual ~IString()
+	{
+		decrement_ref_count();
+	}
+
+	IString& operator=(const T* other)
+	{
+		copy(other);
+		return *this;
+	}
+
+	IString& operator=(const IString& other)
+	{
+		copy(other);
+		return *this;
+	}
+
+	IString& operator=(const std::string_view& other)
+	{
+		copy(other.data(), other.length());
+		return *this;
+	}
+
+	virtual void* Alloc(size_t count, size_t* actual, bool* shareable)
+	{
+		int size = count;
+		if (m_space > 0)
+		{
+			size += size / 4;
+			size = ((size + 15) / 16) * 16;
+		}
+
+		*shareable = true;
+		*actual = size;
+
+		return (char*)SoeUtil::Alloc(size);
+	}
+
+	virtual void Free(void* data)
+	{
+		SoeUtil::Free(data);
+	}
+
 	EQLIB_OBJECT void Append(char* c);
 
-	/*0x00*/ void* vfTable;
-	/*0x04*/ T* String;
-	/*0x08*/ int Len;
-	/*0x0c*/ int Space;
-	/*0x10*/ //0x14? not sure.
+	void clear()
+	{
+		decrement_ref_count();
+
+		m_data = "";
+		m_space = 0;
+		m_length = 0;
+	}
+
+	bool empty() const { return m_length == 0; }
+	const char* data() const { return m_data; }
+	const char* c_str() const { return m_data; }
+	size_t size() const { return m_length; }
+
+	operator std::string_view() const noexcept
+	{
+		return std::string_view(data(), size());
+	}
+
+	int ref_count() const
+	{
+		if (m_space <= 0)
+			return 0;
+
+		return get_ref_count_ptr()->load();
+	}
+
+private:
+	void copy(const T* other)
+	{
+		if (other == nullptr || *other == 0)
+			clear();
+		else if (other != m_data || m_space <= 0)
+		{
+			size_t len = strlen(other);
+			ensure_writable(len + 1);
+
+			std::memcpy(m_data, other, len + 1);
+			m_length = len;
+		}
+	}
+
+	void copy(const T* other, size_t length)
+	{
+		if (len == 0)
+			clear();
+		else
+		{
+			ensure_writable(length + 1);
+			std::memcpy(m_data, other, length);
+			m_data[length] = 0;
+			m_length = length;
+		}
+	}
+
+	void copy(const IString& other)
+	{
+		if (this == &other)
+			return;
+
+		// I could implement ref counting here but i'm just going to always copy.
+		copy(other.c_str());
+	}
+
+	void ensure_writable(size_t length)
+	{
+		if ((int)length > m_space || ref_count() > 1)
+		{
+			if (length < m_length + 1)
+				length = m_length + 1;
+
+			// data we need includes the std::atomic_int
+			size_t spaceNeeded = length + sizeof(std::atomic_int);
+			size_t allocated = 0;
+			bool shared = false;
+			uint8_t* data = (uint8_t*)Alloc(spaceNeeded, &allocated, &shared);
+			new (data) std::atomic_int(shared ? 1 : 0);
+
+			T* newData = reinterpret_cast<T*>(data + sizeof(std::atomic_int));
+			int newSpace = allocated - sizeof(std::atomic_int);
+			int newLength = m_length;
+			std::memcpy(newData, c_str(), m_length + 1);
+
+			decrement_ref_count();
+
+			m_data = newData;
+			m_space = newSpace;
+			m_length = newLength;
+		}
+	}
+
+	void increment_ref_count()
+	{
+		int oldRefcount = std::atomic_fetch_add(get_ref_count_ptr(), 1);
+		assert(oldRefCount != 0);
+	}
+
+	void decrement_ref_count()
+	{
+		if (m_space > 0)
+		{
+			auto refCount = get_ref_count_ptr();
+			if (std::atomic_fetch_sub(refCount, 1) == 1)
+			{
+				std::destroy_at(refCount);
+				Free(refCount);
+			}
+		}
+	}
+
+	std::atomic_int* get_ref_count_ptr()
+	{
+		assert(m_space > 0);
+
+		// ref count is stored before the data.
+		uint8_t* refCount = reinterpret_cast<uint8_t*>(m_data) - sizeof(std::atomic_int);
+		return reinterpret_cast<std::atomic_int*>(refCount);
+	}
+
+	const std::atomic_int* get_ref_count_ptr() const
+	{
+		assert(m_space > 0);
+
+		// ref count is stored before the data.
+		uint8_t* refCount = reinterpret_cast<uint8_t*>(m_data) - sizeof(std::atomic_int);
+		return reinterpret_cast<std::atomic_int*>(refCount);
+	}
+
+private:
+/*0x04*/ T* m_data = "";
+/*0x08*/ size_t m_length = 0;
+/*0x0c*/ int m_space = 0;
 };
 
-using IString = IStringTemplate<char>;
+using String = IString<char>;
 
 
 template <typename T, int T_SIZE>
-class IStringFixed : public IStringTemplate<T>
+class IStringFixed : public IString<T>
 {
 public:
 	BYTE FixedData[(T_SIZE * sizeof(T)) + sizeof(AtomicInt)];

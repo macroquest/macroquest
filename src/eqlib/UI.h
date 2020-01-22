@@ -2681,8 +2681,8 @@ public:
 /*0x240*/ int              Unknown0x230;
 /*0x244*/ int              Unknown0x234;
 /*0x248*/ int              Unknown0x238;
-/*0x24c*/ SoeUtil::IString Unknown0x23c;
-/*0x25c*/ SoeUtil::IString Unknown0x24c;
+/*0x24c*/ SoeUtil::String  Unknown0x23c;
+/*0x25c*/ SoeUtil::String  Unknown0x24c;
 /*0x26c*/ CGaugeWnd*       StandingGaugeTemplate;
 /*0x270*/ CTreeView*       Categories;
 /*0x274*/ CEditWnd*        SearchNameInput;
@@ -4754,8 +4754,8 @@ public:
 /*0x240*/ CStmlWnd*          pDescription;
 /*0x244*/ CStmlWnd*          pName;
 /*0x248*/ CButtonWnd*        pIcon;
-/*0x24c*/ SoeUtil::IString   DescriptionText;
-/*0x25c*/ SoeUtil::IString   TitleText;
+/*0x24c*/ SoeUtil::String    DescriptionText;
+/*0x25c*/ SoeUtil::String    TitleText;
 /*0x26c*/ bool               bActiveItem;
 /*0x270*/ CTextureAnimation* ptaBuffIcons;
 /*0x274*/ CTextureAnimation* ptaDragIcons;
