@@ -326,7 +326,7 @@ SPELL* GetSpellByName(const char* szName)
 		}
 	}
 
-	return nullptr;
+	return pSpell;
 }
 
 int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
