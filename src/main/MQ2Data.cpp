@@ -102,36 +102,6 @@ bool dataCharacter(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataSpell(const char* szIndex, MQTypeVar& Ret)
-{
-	if (szIndex[0])
-	{
-		if (IsNumber(szIndex))
-		{
-			if ((Ret.Ptr = GetSpellByID(GetIntFromString(szIndex, 0))))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-		}
-		else
-		{
-			if (Ret.Ptr = GetSpellByName(szIndex))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-			//is it an AA?
-			if (Ret.Ptr = GetSpellByAAName(szIndex))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 bool dataSwitch(const char* szIndex, MQTypeVar& Ret)
 {
 	if (pDoorTarget)

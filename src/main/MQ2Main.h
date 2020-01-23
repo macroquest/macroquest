@@ -482,7 +482,7 @@ MQLIB_API bool GetBuffID(SPELLBUFF* pBuff, int& nID);
 MQLIB_API const char* GetLDoNTheme(int LDTheme);
 MQLIB_API bool TriggeringEffectSpell(SPELL* aSpell, int i);
 MQLIB_API bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects = false, bool bTriggeredEffectCheck = false);
-MQLIB_API bool WillStackWith(const SPELL* testSpell, const SPELL* existingSpell);
+MQLIB_API bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell);
 MQLIB_API uint32_t GetItemTimer(CONTENTS* pItem);
 MQLIB_API CONTENTS* GetItemContentsBySlotID(int dwSlotID);
 MQLIB_API CONTENTS* GetItemContentsByName(const char* ItemName);

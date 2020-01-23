@@ -20,7 +20,6 @@ namespace mq {
 MQLIB_API bool dataSpawn(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataTarget(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSwitch(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);

@@ -375,7 +375,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Spawn", dataSpawn);
 	AddMQ2Data("Target", dataTarget);
 	AddMQ2Data("Me", dataCharacter);
-	AddMQ2Data("Spell", dataSpell);
+	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
 	AddMQ2Data("Switch", dataSwitch);
 	AddMQ2Data("Ground", dataGroundItem);
 	AddMQ2Data("GroundItemCount", dataGroundItemCount);

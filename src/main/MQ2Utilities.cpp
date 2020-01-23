@@ -5145,7 +5145,7 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
  *
  * @return bool A boolean that is true if the spell would hypothetically land if cast
  **/
-bool WillStackWith(const SPELL* testSpell, const SPELL* existingSpell)
+bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 {
 	// if there is no local player, then the hypothetical situation fails anyway
 	if (!pLocalPlayer)
