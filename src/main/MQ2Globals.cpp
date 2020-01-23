@@ -45,6 +45,8 @@ DWORD bmUpdateSpawnCaptions = 0;
 DWORD bmCalculate = 0;
 DWORD bmBeginZone = 0;
 DWORD bmEndZone = 0;
+DWORD bmSpellLoad = 0;
+DWORD bmSpellAccess = 0;
 
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;

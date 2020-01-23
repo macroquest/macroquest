@@ -17,27 +17,35 @@
 
 namespace mq {
 
-SPELL* GetSpellBySpellGroupID(int dwSpellGroupID)
+struct case_insensitive_comparer
 {
-	if (!pSpellMgr) return nullptr;
-
-	for (int dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++)
+	bool operator () (std::string_view a, std::string_view b) const
 	{
-		if (SPELL* pSpell = GetSpellByID(dwSpellID))
-		{
-			if (pSpell->ID > 0 && pSpell->SpellGroup == dwSpellGroupID)
-			{
-				return pSpell;
-			}
-		}
+		return ci_equals(a, b);
 	}
+};
 
-	return nullptr;
-}
+struct case_insensitive_hasher
+{
+	unsigned long operator () (std::string_view a) const
+	{
+		// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
+		unsigned long hash = 2166136261U;
+		for (unsigned char c : a)
+		{
+			hash ^= static_cast<unsigned long>(::tolower(c));
+			hash *= 16777619U;
+		}
+		return hash;
+	}
+};
+
+std::unordered_multimap<std::string_view, EQ_Spell*, case_insensitive_hasher, case_insensitive_comparer> s_spellNameMap;
+std::map<int, int> s_triggeredSpells;
+std::recursive_mutex s_initializeSpellsMutex;
 
 EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
 {
-	if (!pSpellMgr) return nullptr;
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return nullptr;
 
@@ -45,10 +53,7 @@ EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
 
 	for (int nSpell : pProfile->SpellBook)
 	{
-		if (nSpell == -1)
-			continue;
-
-		EQ_Spell* pFoundSpell = GetSpellByID(nSpell);
+		auto pFoundSpell = GetSpellByID(nSpell);
 		if (!pFoundSpell || pFoundSpell->SpellGroup != dwSpellGroupID)
 			continue;
 
@@ -60,38 +65,25 @@ EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
 	return result;
 }
 
-static const char* GetSpellNameBySpellGroupID(int dwSpellID)
+const char* GetSpellNameBySpellGroupID(int dwSpellID)
 {
-	SPELL* pSpell = GetSpellBySpellGroupID(abs(dwSpellID));
+	auto pSpell = GetHighestLearnedSpellByGroupID(dwSpellID);
 
 	if (pSpell && pSpell->Name && pSpell->Name[0] != 0)
-	{
 		return pSpell->Name;
-	}
 
 	return "Unknown Spell";
 }
 
 const char* GetSpellNameByID(int dwSpellID)
 {
-	int absedspellid = abs(dwSpellID);
+	auto pSpell = GetSpellByID(dwSpellID);
 
-	if (pSpellMgr && absedspellid != 0 && absedspellid != -1 && absedspellid < TOTAL_SPELL_COUNT)
-	{
-		SPELL* pSpell = GetSpellByID(absedspellid);
-
-		if (pSpell && pSpell->Name && pSpell->Name[0] != 0)
-		{
-			return pSpell->Name;
-		}
-	}
+	if (pSpell && pSpell->Name && pSpell->Name[0] != 0)
+		return pSpell->Name;
 
 	return "Unknown Spell";
 }
-
-std::unordered_multimap<std::string, EQ_Spell*> s_spellNameMap;
-std::map<int, int> s_triggeredSpells;
-std::recursive_mutex s_initializeSpellsMutex;
 
 static bool IsRecursiveEffect(int spa)
 {
@@ -108,34 +100,27 @@ static bool IsRecursiveEffect(int spa)
 	return false;
 }
 
-static void PopulateTriggeredmap(SPELL* pSpell)
+static void PopulateTriggeredmap(EQ_Spell* pSpell)
 {
-	if (pSpell->CannotBeScribed == 1)
+	if (!pSpell || pSpell->CannotBeScribed)
 		return;
 
-	int slots = GetSpellNumEffects(pSpell);
-
-	for (int i = 0; i < slots; i++)
+	for (int i = 0; i < pSpell->NumEffects; i++)
 	{
-		int attrib = GetSpellAttrib(pSpell, i);
-
-		if (IsRecursiveEffect(attrib))
-		{
-			if (int triggeredSpellId = GetSpellBase2(pSpell, i))
-			{
-				s_triggeredSpells[triggeredSpellId] = pSpell->ID;
-			}
-		}
+		if (!IsRecursiveEffect(GetSpellAttrib(pSpell, i)))
+			continue;
+		
+		int triggeredSpellID = GetSpellBase2(pSpell, i);
+		if (i > 0)
+			s_triggeredSpells[triggeredSpellID] = pSpell->ID;
 	}
 }
 
-SPELL* GetSpellParent(int id)
+EQ_Spell* GetSpellParent(int id)
 {
 	auto iter = s_triggeredSpells.find(id);
 	if (iter != s_triggeredSpells.end())
-	{
 		return GetSpellByID(iter->second);
-	}
 
 	return nullptr;
 }
@@ -156,10 +141,7 @@ void PopulateSpellMap()
 
 		PopulateTriggeredmap(pSpell);
 
-		std::string lowname = pSpell->Name;
-		MakeLower(lowname);
-
-		s_spellNameMap.emplace(lowname, pSpell);
+		s_spellNameMap.emplace(pSpell->Name, pSpell);
 	}
 
 	gbSpelldbLoaded = true;
@@ -168,6 +150,9 @@ void PopulateSpellMap()
 DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 {
 	int state = reinterpret_cast<int>(pData);
+
+	bmSpellLoad = AddMQ2Benchmark("SpellLoad");
+	bmSpellAccess = AddMQ2Benchmark("SpellAccess");
 
 	switch (state)
 	{
@@ -187,7 +172,7 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 	}
 
 	// ok everything checks out lets fill our own map with spells
-	PopulateSpellMap();
+	Benchmark(bmSpellLoad, PopulateSpellMap());
 
 	switch (state)
 	{
@@ -215,6 +200,40 @@ bool IsSpellClassUsable(SPELL* pSpell)
 	return false;
 }
 
+EQ_Spell* GetSpellFromMap(const char* szName)
+{
+	auto profile = GetPcProfile();
+	if (!profile)
+		return nullptr;
+
+	auto range = s_spellNameMap.equal_range(szName);
+
+	if (IsPlayerClass(profile->Class))
+	{
+		auto compare = [profile](int level, std::pair<std::string_view, EQ_Spell*> spell) -> bool {
+			return level < spell.second->ClassLevel[profile->Class];
+		};
+
+		auto it = std::upper_bound(range.first, range.second, profile->Level, compare);
+		if (it != range.first)
+			return (--it)->second;
+
+		// otherwise, I can't have this spell
+	}
+
+	// if we got here, the spell the user is after isnt one his character can cast, so
+	// we will have to roll through it again and see if its usable by any other class
+	auto is_usable = [](std::pair<std::string_view, EQ_Spell*> spell) -> bool {
+		return IsSpellClassUsable(spell.second);
+	};
+
+	auto it = std::find_if(range.first, range.second, is_usable);
+	if (it != range.second)
+		return it->second;
+
+	return nullptr;
+}
+
 SPELL* GetSpellByName(const char* szName)
 {
 	// SPELL* GetSpellByName(char* NameOrID)
@@ -226,10 +245,6 @@ SPELL* GetSpellByName(const char* szName)
 		return nullptr;
 
 	if (!szName[0])    // no spell name?
-		return nullptr;
-
-	auto profile = GetPcProfile();
-	if (!profile)
 		return nullptr;
 
 	if (gbSpelldbLoaded == false)
@@ -249,35 +264,11 @@ SPELL* GetSpellByName(const char* szName)
 	if (IsNumber(szName))
 		return GetSpellByID(GetIntFromString(szName, -1));
 
-	std::string lowname = szName;
-	MakeLower(lowname);
+	EnterMQ2Benchmark(bmSpellAccess);
+	auto pSpell = GetSpellFromMap(szName);
+	ExitMQ2Benchmark(bmSpellAccess);
 
-	auto range = s_spellNameMap.equal_range(lowname);
-
-	if (IsPlayerClass(profile->Class))
-	{
-		auto compare = [profile](int level, std::pair<std::string, EQ_Spell*> spell) -> bool {
-			return level < spell.second->ClassLevel[profile->Class];
-		};
-
-		auto it = std::upper_bound(range.first, range.second, profile->Level, compare);
-		if (it != range.first)
-			return (--it)->second;
-
-		// otherwise, I can't have this spell
-	}
-
-	// if we got here, the spell the user is after isnt one his character can cast, so
-	// we will have to roll through it again and see if its usable by any other class
-	auto is_usable = [](std::pair<std::string, EQ_Spell*> spell) -> bool {
-		return IsSpellClassUsable(spell.second);
-	};
-
-	auto it = std::find_if(range.first, range.second, is_usable);
-	if (it != range.second)
-		return it->second;
-
-	return nullptr;
+	return pSpell;
 }
 
 int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn)
@@ -3029,7 +3020,7 @@ int GetMeleeSpeedFromTriggers(SPELL* pSpell, bool bIncrease)
 				pTrigger = GetHighestLearnedSpellByGroupID(groupId);
 				if (!pTrigger)
 				{
-					pTrigger = GetSpellBySpellGroupID(groupId);
+					pTrigger = GetHighestLearnedSpellByGroupID(groupId);
 				}
 				break;
 
