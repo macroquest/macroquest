@@ -156,4 +156,9 @@ inline bool WritePrivateProfileFloat(char* Section, char* Key, float Value, char
 	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
 }
 
+inline bool DeletePrivateProfileKey(const std::string& Section, const std::string& Key, const std::string& iniFileName)
+{
+	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), nullptr, iniFileName.c_str());
+}
+
 } // namespace mq

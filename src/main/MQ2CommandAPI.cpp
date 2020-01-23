@@ -596,7 +596,7 @@ bool RemoveAlias(const char* ShortCommand)
 	std::string sName = ShortCommand;
 	MakeLower(sName);
 
-	WritePrivateProfileString("Aliases", sName, "", mq::internal_paths::MQini);
+	DeletePrivateProfileKey("Aliases", sName, mq::internal_paths::MQini);
 
 	auto iter = mAliases.find(sName);
 	if (iter != mAliases.end())
