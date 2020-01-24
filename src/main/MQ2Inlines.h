@@ -75,16 +75,12 @@ inline PlayerClient* GetSpawnByPartialName(char const* spawnName, PlayerBase* ex
 	return pSpawnManager->GetPlayerFromPartialName(spawnName, exclusion);
 }
 
-inline SPELL* GetSpellByID(int dwSpellID)
+inline EQ_Spell* GetSpellByID(int spellID)
 {
-	if (dwSpellID == 0 || dwSpellID == -1)
+	if (!pSpellMgr || spellID <= 0 || spellID >= TOTAL_SPELL_COUNT)
 		return nullptr;
 
-	int spellId = abs(dwSpellID);
-	if (spellId >= TOTAL_SPELL_COUNT)
-		return nullptr;
-
-	return ((SPELLMGR*)pSpellMgr)->Spells[spellId];
+	return pSpellMgr->GetSpellByID(spellID);
 }
 
 inline const char* GetBodyTypeDesc(uint32_t BodyTypeID)
@@ -424,23 +420,15 @@ inline uint32_t ConColorToARGB(int ConColor)
 	}
 }
 
-inline bool IsNumber(const char* String)
+inline bool IsNumber(std::string_view String)
 {
-	if (*String == 0)
+	if (String.empty())
 		return false;
 
-	if (*String == '-')
-		String++;
+	int test_int;
+	auto result = std::from_chars(String.data(), String.data() + String.size(), test_int);
 
-	while (*String)
-	{
-		if (!((*String >= '0' && *String <= '9') || *String == '.'))
-			return false;
-
-		++String;
-	}
-
-	return true;
+	return result.ec != std::errc::invalid_argument;
 }
 
 inline bool IsNumberToComma(const char* String)
