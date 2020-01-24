@@ -21,6 +21,7 @@
 #include <string_view>
 #include <sstream>
 #include <vector>
+#include <numeric>
 
 constexpr int MAX_STRING = 2048;
 
@@ -92,6 +93,15 @@ inline std::vector<std::string> split(const std::string& s, char delim)
 	}
 
 	return elems;
+}
+
+inline std::string join(const std::vector<std::string>& vec, const std::string& delim)
+{
+	return std::accumulate(
+		std::next(vec.cbegin()), vec.cend(), vec.front(),
+		[&delim](std::string& a, const std::string& b) {
+			return a + delim + b;
+		});
 }
 
 struct ci_less
