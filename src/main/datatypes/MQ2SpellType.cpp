@@ -757,14 +757,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (!Index[0] || !IsNumber(Index))
 			return false;
 
-		strcpy_s(DataTypeTemp, "Unknown");
 		int nIndex = GetIntFromString(Index, 0) - 1;
 		if (nIndex < 0)
 			return false;
 
+		memset(DataTypeTemp, 0, sizeof(DataTypeTemp));
 		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, sizeof(DataTypeTemp));
-		if (ptr)
-			strcpy_s(DataTypeTemp, ptr);
+		if (!ptr)
+			strcpy_s(DataTypeTemp, "Unknown");
 
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;

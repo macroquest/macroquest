@@ -588,7 +588,7 @@ public:
 		sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID);
 		strcat_s(out, temp);
 
-		DWORD Tics = GetSpellDuration(pSpell, (SPAWNINFO*)pLocalPlayer);
+		DWORD Tics = GetSpellDuration(pSpell, pLocalPlayer);
 		if (Tics == 0xFFFFFFFF)
 			strcat_s(out, "Duration: Permanent<br>");
 		else if (Tics == 0xFFFFFFFE)
@@ -785,7 +785,7 @@ public:
 		sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID);
 		strcat_s(out, temp);
 
-		DWORD Tics = GetSpellDuration(pSpell, (SPAWNINFO*)pLocalPlayer);
+		DWORD Tics = GetSpellDuration(pSpell, pLocalPlayer);
 		if (Tics == 0xFFFFFFFF)
 			strcat_s(out, "Duration: Permanent<br>");
 		else if (Tics == 0xFFFFFFFE)

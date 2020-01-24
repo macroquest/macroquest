@@ -352,8 +352,8 @@ MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
 MQLIB_API int GetLanguageIDByName(const char* szName);
 MQLIB_API int GetCurrencyIDByName(char* szName);
 MQLIB_API const char* GetSpellNameByID(int dwSpellID);
-MQLIB_API SPELL* GetSpellByName(const char* szName);
-MQLIB_API SPELL* GetSpellByAAName(const char* szName);
+MQLIB_API EQ_Spell* GetSpellByName(std::string_view name);
+MQLIB_API EQ_Spell* GetSpellByAAName(const char* szName);
 MQLIB_API ALTABILITY* GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 MQLIB_API int GetSpellRankByName(const char* SpellName);
 MQLIB_API void TruncateSpellRankName(char* SpellName);
@@ -412,7 +412,7 @@ MQLIB_API ITEMINFO* GetItemFromContents(CONTENTS* c);
 MQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
 MQLIB_API const char* GetLightForSpawn(SPAWNINFO* pSpawn);
-MQLIB_API int GetSpellDuration(SPELL* pSpell, SPAWNINFO* pSpawn);
+MQLIB_API int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn);
 MQLIB_API int GetDeityTeamByID(int DeityID);
 MQLIB_API int ConColor(SPAWNINFO* pSpawn);
 
@@ -453,16 +453,16 @@ inline bool ItemHasStat(CONTENTS* pCont, int* num, const char* buffer)
 MQLIB_API const char* GetLoginName();
 MQLIB_API float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc);
 MQLIB_API float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, float zLoc);
-MQLIB_API char* ShowSpellSlotInfo(SPELL* pSpell, char* szBuffer, size_t BufferSize);
-MQLIB_API char* ParseSpellEffect(SPELL* pSpell, int i, char* szBuffer, size_t BufferSize, int level = 100);
+MQLIB_API char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize);
+MQLIB_API char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSize, int level = 100);
 
-MQLIB_API int GetSpellAttrib(SPELL* pSpell, int index);
-MQLIB_API int GetSpellBase(SPELL* pSpell, int index);
-MQLIB_API int GetSpellBase2(SPELL* pSpell, int index);
-MQLIB_API int GetSpellMax(SPELL* pSpell, int index);
-MQLIB_API int GetSpellCalc(SPELL* pSpell, int index);
+MQLIB_API int GetSpellAttrib(EQ_Spell* pSpell, int index);
+MQLIB_API int GetSpellBase(EQ_Spell* pSpell, int index);
+MQLIB_API int GetSpellBase2(EQ_Spell* pSpell, int index);
+MQLIB_API int GetSpellMax(EQ_Spell* pSpell, int index);
+MQLIB_API int GetSpellCalc(EQ_Spell* pSpell, int index);
 
-MQLIB_API void SlotValueCalculate(char* szBuff, SPELL* pSpell, int i, double mp = 1.0);
+MQLIB_API void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp = 1.0);
 MQLIB_API int CalcValue(int calc, int base, int max, int tick, int minlevel = MAX_PC_LEVEL, int level = MAX_PC_LEVEL);
 MQLIB_API char* GetSpellEffectName(int EffectID, char* szBuffer, size_t BufferSize);
 MQLIB_API void GetGameDate(int* Month, int* Day, int* Year);
@@ -470,13 +470,13 @@ MQLIB_API void GetGameTime(int* Hour, int* Minute, int* Night);
 MQLIB_API void SyntaxError(const char* szFormat, ...);
 MQLIB_API void MacroError(const char* szFormat, ...);
 MQLIB_API void FatalError(const char* szFormat, ...);
-MQLIB_API char* GetSpellRestrictions(SPELL* pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize);
+MQLIB_API char* GetSpellRestrictions(EQ_Spell* pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize);
 MQLIB_API void MQ2DataError(char* szFormat, ...);
 MQLIB_API void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency, uint32_t msFadeIn, uint32_t msFadeOut, uint32_t msHold);
 MQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
-MQLIB_API bool IsBardSong(SPELL* pSpell);
-MQLIB_API bool IsSPAEffect(SPELL* pSpell, int EffectID);
+MQLIB_API bool IsBardSong(EQ_Spell* pSpell);
+MQLIB_API bool IsSPAEffect(EQ_Spell* pSpell, int EffectID);
 MQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, int& nID);
 MQLIB_API bool GetBuffID(SPELLBUFF* pBuff, int& nID);
 MQLIB_API const char* GetLDoNTheme(int LDTheme);
@@ -591,7 +591,7 @@ MQLIB_API int         GetSpellCounters(eEQSPA spa, const SPELLBUFF* buff); // Ge
 MQLIB_API int         GetMySpellCounters(eEQSPA spa);                      // Get spell counters of given spa on my character.
 MQLIB_API int         GetTotalSpellCounters(const SPELLBUFF* buff);        // Get total count of spell counters for the given buff.
 MQLIB_API int         GetMyTotalSpellCounters();                           // Get total count of spell counters for my character.
-MQLIB_API int         GetMeleeSpeedPctFromSpell(SPELL* pSpell, bool increase);
+MQLIB_API int         GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool increase);
 MQLIB_API EQ_Spell*   GetHighestLearnedSpellByGroupID(int dwSpellGroupID);
 
 MQLIB_API HMODULE GetCurrentModule();

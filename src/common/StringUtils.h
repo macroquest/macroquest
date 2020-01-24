@@ -95,13 +95,10 @@ inline std::vector<std::string> split(const std::string& s, char delim)
 	return elems;
 }
 
-inline std::string join(const std::vector<std::string>& vec, const std::string& delim)
+template<typename T>
+inline std::string join(const std::vector<T>& vec, std::string_view delim)
 {
-	return std::accumulate(
-		std::next(vec.cbegin()), vec.cend(), vec.front(),
-		[&delim](std::string& a, const std::string& b) {
-			return a + delim + b;
-		});
+	return fmt::format("{}", fmt::join(vec, delim));
 }
 
 struct ci_less
