@@ -632,14 +632,15 @@ constexpr int LIGHT_COUNT = 13;
 //#define MAX_ITEMTYPES		71
 //#define MAX_SPELLEFFECTS	487
 
-#define GAMESTATE_CHARSELECT    1
-#define GAMESTATE_CHARCREATE    2
-#define GAMESTATE_SOMETHING     4
-#define GAMESTATE_INGAME        5
-#define GAMESTATE_PRECHARSELECT -1
-#define GAMESTATE_POSTFRONTLOAD 500
-#define GAMESTATE_LOGGINGIN     253
-#define GAMESTATE_UNLOADING     255
+constexpr int GAMESTATE_PRECHARSELECT  = -1;
+constexpr int GAMESTATE_CHARSELECT     = 1;
+constexpr int GAMESTATE_CHARCREATE     = 2;
+constexpr int GAMESTATE_POSTCHARSELECT = 3;
+constexpr int GAMESTATE_SOMETHING      = 4;
+constexpr int GAMESTATE_INGAME         = 5;
+constexpr int GAMESTATE_LOGGINGIN      = 253;
+constexpr int GAMESTATE_UNLOADING      = 255;
+constexpr int GAMESTATE_POSTFRONTLOAD  = 500;
 
 #define XKF_SHIFT               1
 #define XKF_CTRL                2

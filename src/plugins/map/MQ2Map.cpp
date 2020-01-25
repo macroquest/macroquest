@@ -486,7 +486,7 @@ PLUGIN_API void OnRemoveSpawn(SPAWNINFO* pSpawn)
 
 PLUGIN_API void SetGameState(DWORD GameState)
 {
-	if (GameState == 3)
+	if (GameState == GAMESTATE_POSTCHARSELECT)
 	{
 		MapClear();
 	}
