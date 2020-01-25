@@ -225,9 +225,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			Dest.DWord = pSpell->ClassLevel[GetCharInfo()->pSpawn->mActorClient.Class];
 			return true;
 		}
-		else if (IsNumber(Index))
+
+		int classIdx = GetIntFromString(Index, -1);
+		if (classIdx >= 0)
 		{
-			Dest.DWord = pSpell->ClassLevel[GetIntFromString(Index, 0)];
+			Dest.DWord = pSpell->ClassLevel[classIdx];
 			return true;
 		}
 
@@ -632,9 +634,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (!Index[0] || !pLocalPlayer)
 			return false;
 
-		SPELL* tmpSpell = IsNumber(Index) ?
-			GetSpellByID(GetIntFromString(Index, 0)) :
-			GetSpellByName(Index);
+		SPELL* tmpSpell = GetSpellByName(Index);
 
 		if (!tmpSpell)
 			return false;
@@ -651,9 +651,8 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (!Index[0] || !pLocalPlayer || CachedBuffsMap.empty())
 			return false;
 
-		PlayerClient* pSpawn = IsNumber(Index) ?
-			GetSpawnByID(GetIntFromString(Index, 0)) :
-			GetSpawnByName(Index);
+		int spawnID = GetIntFromString(Index, -1);
+		PlayerClient* pSpawn = spawnID >= 0 ? GetSpawnByID(spawnID) : GetSpawnByName(Index);
 
 		if (!pSpawn)
 			return false;
@@ -754,7 +753,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case SpellMembers::Restrictions:
 	{
 		Dest.Type = pStringType;
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -774,7 +773,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -790,7 +789,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -806,7 +805,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -822,7 +821,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -838,7 +837,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -885,7 +884,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -901,7 +900,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -917,7 +916,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
@@ -1199,11 +1198,15 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	}
 
 	case SpellMembers::HasSPA:
-		if (!Index[0] || !IsNumber(Index))
+		if (!Index[0])
+			return false;
+
+		int effectIndex = GetIntFromString(Index, -1);
+		if (effectIndex < 0)
 			return false;
 
 		Dest.Type = pBoolType;
-		Dest.DWord = IsSPAEffect(pSpell, GetIntFromString(Index, 0));
+		Dest.DWord = IsSPAEffect(pSpell, effectIndex);
 
 		return true;
 
@@ -1212,7 +1215,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pSpellType;
 
 		int spaFound = GetTriggerSPA(pSpell);
-		if (!Index[0] || !IsNumber(Index) || spaFound == 0)
+		if (!Index[0] || spaFound == 0)
 			return false;
 
 		int index = GetIntFromString(Index, 0) - 1;
@@ -1287,9 +1290,10 @@ bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 {
 	if (szIndex[0])
 	{
-		if (IsNumber(szIndex))
+		int spellID = GetIntFromString(szIndex, -1);
+		if (spellID >= 0)
 		{
-			if ((Ret.Ptr = GetSpellByID(GetIntFromString(szIndex, 0))))
+			if ((Ret.Ptr = GetSpellByID(spellID)))
 			{
 				Ret.Type = pSpellType;
 				return true;
@@ -1302,6 +1306,7 @@ bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 				Ret.Type = pSpellType;
 				return true;
 			}
+
 			//is it an AA?
 			if (Ret.Ptr = GetSpellByAAName(szIndex))
 			{
@@ -1310,6 +1315,7 @@ bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 			}
 		}
 	}
+
 	return false;
 }
 

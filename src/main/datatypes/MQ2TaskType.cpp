@@ -234,9 +234,9 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		if (!Index[0])
 			return false;
 
-		if (IsNumber(Index))
+		int pos = GetIntFromString(Index, 0);
+		if (pos >= 0)
 		{
-			int pos = GetIntFromString(Index, 0);
 			int i = 1;
 			for (SharedTaskPlayerInfo* taskMember = pTaskMember;
 				 taskMember;
@@ -281,10 +281,10 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 		Dest.Type = pTaskObjectiveType;
 
-		if (IsNumber(Index))
+		int index = GetIntFromString(Index, 1) - 1;
+		if (index >= 0)
 		{
-			int index = GetIntFromString(Index, 0) - 1;
-			if (index < 0 || index >= MAX_TASK_ELEMENTS) // avoid array out of bounds
+			if (index >= MAX_TASK_ELEMENTS) // avoid array out of bounds, but a number was passed
 				return false;
 
 			Dest.Ptr = &pTask->Elements[index];
@@ -376,9 +376,9 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 	if (!pTaskManager || !szIndex[0])
 		return false;
 
-	if (IsNumber(szIndex)) {
+	int taskIndex = GetIntFromString(szIndex, 1) - 1; // this is 1-indexed in the TLO
+	if (taskIndex >= 0) {
 		unsigned char offset = 0;
-		unsigned int taskIndex = GetIntFromString(szIndex, 1) - 1; // this is 1-indexed in the TLO
 
 		// let's bail early if we have a bad index, no need to log because this argument is unconstrained
 		if (taskIndex >= MAX_SHARED_TASK_ENTRIES + MAX_QUEST_ENTRIES)
