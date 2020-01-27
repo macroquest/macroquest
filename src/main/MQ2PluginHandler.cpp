@@ -217,6 +217,8 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 	{
 		if (!_stricmp(Filename, pPlugin->szFilename))
 		{
+			PluginsUnloadPlugin(Filename);
+
 			// unlink from list
 			if (pPlugin->pLast)
 				pPlugin->pLast->pNext = pPlugin->pNext;
@@ -236,8 +238,6 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 			FreeLibrary(pPlugin->hModule);
 
 			delete pPlugin;
-			PluginsUnloadPlugin(Filename);
-
 			return true;
 		}
 
