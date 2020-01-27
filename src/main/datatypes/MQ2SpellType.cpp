@@ -227,7 +227,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		}
 
 		int classIdx = GetIntFromString(Index, -1);
-		if (classIdx >= 0)
+		if (classIdx >= 0 && classIdx <= MAX_CLASSES) // array defined with size of MAX_CLASSES + 1
 		{
 			Dest.DWord = pSpell->ClassLevel[classIdx];
 			return true;
