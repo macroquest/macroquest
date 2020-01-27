@@ -218,6 +218,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 
 	case SpellMembers::Level:
+	{
 		Dest.Type = pIntType;
 
 		if (!Index[0] && GetCharInfo()->pSpawn)
@@ -234,6 +235,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		}
 
 		return false;
+	}
 
 	case SpellMembers::Mana:
 		Dest.DWord = pSpell->ManaCost;
@@ -1198,6 +1200,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	}
 
 	case SpellMembers::HasSPA:
+	{
 		if (!Index[0])
 			return false;
 
@@ -1209,6 +1212,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = IsSPAEffect(pSpell, effectIndex);
 
 		return true;
+	}
 
 	case SpellMembers::Trigger:
 	{

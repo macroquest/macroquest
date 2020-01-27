@@ -46,23 +46,23 @@ bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 	switch (static_cast<Int64Members>(pMember->ID))
 	{
-	case Float:
+	case Int64Members::Float:
 		Dest.Float = (float)1.0f * (VarPtr.Int64);
 		Dest.Type = pFloatType;
 		return true;
 
-	case Double:
+	case Int64Members::Double:
 		Dest.Double = (double)1.0f * (VarPtr.Int64);
 		Dest.Type = pDoubleType;
 		return true;
 
-	case Hex:
+	case Int64Members::Hex:
 		sprintf_s(DataTypeTemp, "0x%llX", VarPtr.Int64);
 		Dest.Ptr = &DataTypeTemp[0],
 			Dest.Type = pStringType;
 		return true;
 
-	case Reverse:
+	case Int64Members::Reverse:
 		Dest.FullArray[0] = VarPtr.FullArray[7];
 		Dest.FullArray[1] = VarPtr.FullArray[6];
 		Dest.FullArray[2] = VarPtr.FullArray[5];
@@ -74,20 +74,19 @@ bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pInt64Type;
 		return true;
 
-	case LowPart:
+	case Int64Members::LowPart:
 		Dest.DWord = LODWORD(VarPtr.UInt64);
 		Dest.Type = pIntType;
 		return true;
 
-	case HighPart:
+	case Int64Members::HighPart:
 		Dest.DWord = HIDWORD(VarPtr.UInt64);
 		Dest.Type = pIntType;
 		return true;
 
-	default: break;
+	default:
+		return false;
 	}
-
-	return false;
 }
 
 bool MQ2Int64Type::ToString(MQVarPtr VarPtr, char* Destination)

@@ -47,7 +47,7 @@ void ShutdownMQ2DataTypes()
 #undef DATATYPE
 }
 
-CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = false)
+CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData)
 {
 	m_nExtents = 1;
 	m_totalElements = 1;

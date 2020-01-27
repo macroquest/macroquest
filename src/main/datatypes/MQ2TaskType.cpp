@@ -230,6 +230,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	}
 
 	case TaskTypeMembers::Member:
+	{
 		Dest.Type = pTaskMemberType;
 		if (!Index[0])
 			return false;
@@ -239,8 +240,8 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		{
 			int i = 1;
 			for (SharedTaskPlayerInfo* taskMember = pTaskMember;
-				 taskMember;
-				 taskMember = taskMember->pNext, ++i)
+				taskMember;
+				taskMember = taskMember->pNext, ++i)
 			{
 				if (i == pos)
 				{
@@ -262,6 +263,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 
 		return false;
+	}
 
 	case TaskTypeMembers::Members:
 		Dest.DWord = 0;
