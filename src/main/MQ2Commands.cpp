@@ -423,11 +423,11 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 	if (szName[0] == 0)
 	{
-		SyntaxError("Usage: /plugin name [unload] [noauto], or /Plugin list");
+		SyntaxError("Usage: /plugin name [load/unload/toggle] [noauto], or /plugin list");
 		return;
 	}
 
-	if (!_strnicmp(szCommand, "unload", 6))
+	if (!_strnicmp(szCommand, "unload", 6) || ci_find_substr(szCommand, "toggle") != -1 && IsPluginLoaded(szName))
 	{
 		// TODO: Remove mq2ic from plugin list
 		if (!ci_equals(szName, "mq2ic") && UnloadMQ2Plugin(szName))

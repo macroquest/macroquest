@@ -213,6 +213,8 @@ MQLIB_API void PluginsEndZone();
 MQLIB_API void PluginsUpdateImGui();
 MQLIB_API bool IsPluginsInitialized();
 MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
+MQLIB_API MQPlugin* GetPlugin(std::string_view PluginName);
+MQLIB_API bool IsPluginLoaded(std::string_view PluginName);
 
 /* DIRECT INPUT */
 MQLIB_API void InitializeMQ2DInput();
