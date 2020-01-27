@@ -196,6 +196,7 @@ inline bool string_equals(std::string_view sv1, std::string_view sv2)
  *
  * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
  *
+ * @see GetLongFromString
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
@@ -212,6 +213,33 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
 }
 
 /**
+ * @fn GetLongFromString
+ *
+ * @brief Gets the long value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a long and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atol (removing the undefined behavior) and faster than strtol.
+ *
+ * @see GetIntFromString
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
+ * @param svString The string to convert to a long
+ * @param iReturnOnFail The long that should be returned if conversion fails
+ *
+ * @return long The converted long or the "failure" value
+ **/
+inline long GetLongFromString(const std::string_view svString, long lReturnOnFail)
+{
+	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), lReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return lReturnOnFail;
+}
+
+/**
  * @fn GetFloatFromString
  *
  * @brief Gets the float value from a well formatted string
@@ -224,6 +252,7 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  *
  * @see GetDoubleFromString
  * @see GetIntFromString
+ * @see GetLongFromString
  *
  * @param svString The string to convert to a float
  * @param fReturnOnFail The float that should be returned if conversion fails
@@ -250,6 +279,7 @@ inline float GetFloatFromString(const std::string_view svString, float fReturnOn
  *
  * @see GetFloatFromString
  * @see GetIntFromString
+ * @see GetLongFromString
  *
  * @param svString The string to convert to a double
  * @param dReturnOnFail The double that should be returned if conversion fails

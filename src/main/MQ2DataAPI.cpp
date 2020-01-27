@@ -391,8 +391,8 @@ void InitializeMQ2Data()
 	AddMQ2Data("Math", dataMath);
 	AddMQ2Data("Zone", dataZone);
 	AddMQ2Data("Group", dataGroup);
-	AddMQ2Data("Int", dataInt);
-	AddMQ2Data("Bool", dataBool);
+	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
+	AddMQ2Data("Bool", datatypes::MQ2BoolType::dataBool);
 	AddMQ2Data("Float", dataFloat);
 	AddMQ2Data("Corpse", dataCorpse);
 	AddMQ2Data("If", dataIf);

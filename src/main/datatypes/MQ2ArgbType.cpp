@@ -18,6 +18,24 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class ArgbMembers
+{
+	A = 0,
+	R = 1,
+	G = 2,
+	B = 3,
+	Int = 4,
+};
+
+MQ2ArgbType::MQ2ArgbType() : MQ2Type("argb")
+{
+	ScopedTypeMember(ArgbMembers, A);
+	ScopedTypeMember(ArgbMembers, R);
+	ScopedTypeMember(ArgbMembers, G);
+	ScopedTypeMember(ArgbMembers, B);
+	ScopedTypeMember(ArgbMembers, Int);
+}
+
 bool MQ2ArgbType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = FindMember(Member);
@@ -26,32 +44,49 @@ bool MQ2ArgbType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<ArgbMembers>(pMember->ID))
 	{
-	case A:
+	case ArgbMembers::A:
 		Dest.DWord = VarPtr.Argb.A;
 		Dest.Type = pIntType;
 		return true;
 
-	case R:
+	case ArgbMembers::R:
 		Dest.DWord = VarPtr.Argb.R;
 		Dest.Type = pIntType;
 		return true;
 
-	case G:
+	case ArgbMembers::G:
 		Dest.DWord = VarPtr.Argb.G;
 		Dest.Type = pIntType;
 		return true;
 
-	case B:
+	case ArgbMembers::B:
 		Dest.DWord = VarPtr.Argb.B;
 		Dest.Type = pIntType;
 		return true;
 
-	case Int:
+	case ArgbMembers::Int:
 		Dest.DWord = VarPtr.DWord;
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	return false;
+}
+
+bool MQ2ArgbType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	sprintf_s(Destination, MAX_STRING, "%x", VarPtr.Int);
+	return true;
+}
+
+bool MQ2ArgbType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+
+bool MQ2ArgbType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	return sscanf_s(Source, "%x", &VarPtr.Int);
 }
 

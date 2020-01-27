@@ -568,16 +568,6 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataInt(const char* szIndex, MQTypeVar& Ret)
-{
-	if (!szIndex[0])
-		return false;
-
-	Ret.DWord = GetIntFromString(szIndex, 0);
-	Ret.Type = pIntType;
-	return true;
-}
-
 bool dataFloat(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
@@ -615,28 +605,6 @@ bool dataHeading(const char* szIndex, MQTypeVar& Ret)
 
 	Ret.Float = GetFloatFromString(szIndex, 0);
 	Ret.Type = pHeadingType;
-	return true;
-}
-
-bool dataBool(const char* szIndex, MQTypeVar& Ret)
-{
-	if (!szIndex[0])
-		return false;
-
-	Ret.Type = pBoolType;
-	Ret.DWord = 1;
-	if (IsNumber(szIndex))
-	{
-		Ret.DWord = GetFloatFromString(szIndex, 0.0) == 0.0 ? 0 : 1;
-	}
-	else
-	{
-		if (_stricmp(szIndex, "NULL") == 0 || _stricmp(szIndex, "FALSE") == 0)
-		{
-			Ret.DWord = 0;
-		}
-	}
-
 	return true;
 }
 

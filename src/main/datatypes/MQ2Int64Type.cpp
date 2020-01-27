@@ -17,8 +17,26 @@
 
 using namespace mq;
 using namespace mq::datatypes;
-//----------------------------------------------------------------------------
-// MQ2Int64Type
+
+enum class Int64Members
+{
+	Float = 1,
+	Double,
+	Hex,
+	Reverse,
+	LowPart,
+	HighPart,
+};
+
+MQ2Int64Type::MQ2Int64Type() : MQ2Type("int64")
+{
+	ScopedTypeMember(Int64Members, Float);
+	ScopedTypeMember(Int64Members, Double);
+	ScopedTypeMember(Int64Members, Hex);
+	ScopedTypeMember(Int64Members, Reverse);
+	ScopedTypeMember(Int64Members, LowPart);
+	ScopedTypeMember(Int64Members, HighPart);
+}
 
 bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -70,5 +88,23 @@ bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	}
 
 	return false;
+}
+
+bool MQ2Int64Type::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, std::to_string(VarPtr.Int64).c_str());
+	return true;
+}
+
+bool MQ2Int64Type::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.Int64 = Source.Int64;
+	return true;
+}
+
+bool MQ2Int64Type::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	VarPtr.Int64 = GetLongFromString(Source, -1);
+	return true;
 }
 

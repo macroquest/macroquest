@@ -46,6 +46,208 @@ void ShutdownMQ2DataTypes()
 #include "DataTypeList.h"
 #undef DATATYPE
 }
+
+CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = false)
+{
+	m_nExtents = 1;
+	m_totalElements = 1;
+
+	// count number of , 's
+	if (const char* pComma = strchr(Index, ','))
+	{
+		m_nExtents++;
+		while (pComma = strchr(&pComma[1], ','))
+		{
+			m_nExtents++;
+		}
+	}
+
+	// allocate extents
+	m_pExtents = new int[m_nExtents];
+
+	// read extents
+	char* pStart = Index;
+	for (int index = 0; index < m_nExtents; index++)
+	{
+		char* pComma = strchr(pStart, ',');
+		if (pComma)
+			*pComma = 0;
+
+		m_pExtents[index] = GetIntFromString(pStart, 0);
+		m_totalElements *= m_pExtents[index];
+
+		if (pComma)
+		{
+			*pComma = ',';
+			pStart = &pComma[1];
+		}
+	}
+
+	m_pData = new MQVarPtr[m_totalElements];
+	m_pType = Type;
+	if (m_pType != nullptr)
+	{
+		for (int index = 0; index < m_totalElements; index++)
+		{
+			m_pType->InitVariable(m_pData[index]);
+
+			if (ByData)
+				m_pType->FromData(m_pData[index], *(MQTypeVar*)Default);
+			else
+				m_pType->FromString(m_pData[index], (char*)Default);
+		}
+	}
+}
+
+CDataArray::~CDataArray()
+{
+	if (m_pType && m_pData)
+	{
+		for (int index = 0; index < m_totalElements; index++)
+		{
+			m_pType->FreeVariable(m_pData[index]);
+		}
+	}
+
+	delete[] m_pExtents;
+	delete[] m_pData;
+}
+
+void CDataArray::Delete()
+{
+	if (m_pType && m_pData)
+	{
+		for (int index = 0; index < m_totalElements; index++)
+		{
+			m_pType->FreeVariable(m_pData[index]);
+		}
+	}
+
+	delete[] m_pExtents;
+	delete[] m_pData;
+
+	m_pExtents = nullptr;
+	m_pType = nullptr;
+	m_pData = nullptr;
+	m_nExtents = 0;
+	m_totalElements = 0;
+}
+
+int CDataArray::GetElement(char* Index)
+{
+	int Element = 0;
+	if (m_nExtents == 1)
+	{
+		if (strchr(Index, ','))
+			return -1;
+
+		Element = GetIntFromString(Index, Element) - 1;
+		if (Element >= m_totalElements)
+			return -1;
+
+		return Element;
+	}
+
+	int nGetExtents = 1;
+
+	if (char* pComma = strchr(Index, ','))
+	{
+		nGetExtents++;
+		while (pComma = strchr(&pComma[1], ','))
+		{
+			nGetExtents++;
+		}
+	}
+
+	if (nGetExtents != m_nExtents)
+		return -1;
+
+	// read extents
+	char* pStart = Index;
+	for (int index = 0; index < m_nExtents; index++)
+	{
+		char* pComma = strchr(pStart, ',');
+		if (pComma)
+			*pComma = 0;
+
+		int Temp = GetIntFromString(pStart, 0) - 1;
+		if (Temp >= m_pExtents[index] || Temp < 0)
+			return -1;
+
+		for (int i = index + 1; i < m_nExtents; i++)
+			Temp *= m_pExtents[i];
+		Element += Temp;
+
+		if (pComma)
+		{
+			*pComma = ',';
+			pStart = &pComma[1];
+		}
+	}
+
+	return Element;
+}
+
+bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
+{
+	if (m_nExtents == 1)
+	{
+		if (strchr(Index, ','))
+			return false;
+
+		int Element = GetIntFromString(Index, 0) - 1;
+		if (Element >= m_totalElements || Element < 0)
+			return false;
+
+		Dest.Type = m_pType;
+		Dest.VarPtr = m_pData[Element];
+
+		return true;
+	}
+
+	int nGetExtents = 1;
+
+	if (char* pComma = strchr(Index, ','))
+	{
+		nGetExtents++;
+		while (pComma = strchr(&pComma[1], ','))
+		{
+			nGetExtents++;
+		}
+	}
+
+	if (nGetExtents != m_nExtents)
+		return false;
+
+	// read extents
+	char* pStart = Index;
+	int Element = 0;
+
+	for (int index = 0; index < m_nExtents; index++)
+	{
+		char* pComma = strchr(pStart, ',');
+		if (pComma)
+			*pComma = 0;
+
+		int Temp = GetIntFromString(pStart, 0) - 1;
+		if (Temp >= m_pExtents[index] || Temp < 0)
+			return false;
+
+		for (int i = index + 1; i < m_nExtents; i++)
+			Temp *= m_pExtents[i];
+
+		Element += Temp;
+		if (pComma)
+		{
+			*pComma = ',';
+			pStart = &pComma[1];
+		}
+	}
+
+	Dest.Type = m_pType;
+	Dest.VarPtr = m_pData[Element];
+	return true;
+}
 }
 
 #include "MQ2AdvLootItemType.cpp"
@@ -60,6 +262,7 @@ void ShutdownMQ2DataTypes()
 #include "MQ2BandolierItemType.cpp"
 #include "MQ2BandolierType.cpp"
 #include "MQ2BodyType.cpp"
+#include "MQ2BoolType.cpp"
 #include "MQ2BuffType.cpp"
 #include "MQ2CachedBuffType.cpp"
 #include "MQ2CharacterType.cpp"

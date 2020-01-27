@@ -42,8 +42,6 @@ namespace mq::datatypes {
 //----------------------------------------------------------------------------
 // Datatype Declarations
 
-// class MQBoolType;
-// MQ2BoolType* pBoolType
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
 	class Class;                                                     \
 	MQLIB_VAR Class* Var;
@@ -90,10 +88,7 @@ public:
 
 	bool InheritedMember(const char* Name)
 	{
-		if (!pInherits || !pInherits->FindMember(Name))
-			return false;
-
-		return true;
+		return pInherits && pInherits->FindMember(Name);
 	}
 
 	void SetInheritance(MQ2Type* pNewInherit)
@@ -126,207 +121,11 @@ class CDataArray
 {
 public:
 	CDataArray() = default;
-	CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = false)
-	{
-		m_nExtents = 1;
-		m_totalElements = 1;
-
-		// count number of , 's
-		if (const char* pComma = strchr(Index, ','))
-		{
-			m_nExtents++;
-			while (pComma = strchr(&pComma[1], ','))
-			{
-				m_nExtents++;
-			}
-		}
-
-		// allocate extents
-		m_pExtents = new int[m_nExtents];
-
-		// read extents
-		char* pStart = Index;
-		for (int index = 0; index < m_nExtents; index++)
-		{
-			char* pComma = strchr(pStart, ',');
-			if (pComma)
-				*pComma = 0;
-
-			m_pExtents[index] = GetIntFromString(pStart, 0);
-			m_totalElements *= m_pExtents[index];
-
-			if (pComma)
-			{
-				*pComma = ',';
-				pStart = &pComma[1];
-			}
-		}
-
-		m_pData = new MQVarPtr[m_totalElements];
-		m_pType = Type;
-		if (m_pType != nullptr)
-		{
-			for (int index = 0; index < m_totalElements; index++)
-			{
-				m_pType->InitVariable(m_pData[index]);
-
-				if (ByData)
-					m_pType->FromData(m_pData[index], *(MQTypeVar*)Default);
-				else
-					m_pType->FromString(m_pData[index], (char*)Default);
-			}
-		}
-	}
-
-	~CDataArray()
-	{
-		if (m_pType && m_pData)
-		{
-			for (int index = 0; index < m_totalElements; index++)
-			{
-				m_pType->FreeVariable(m_pData[index]);
-			}
-		}
-
-		delete[] m_pExtents;
-		delete[] m_pData;
-	}
-
-	void Delete()
-	{
-		if (m_pType && m_pData)
-		{
-			for (int index = 0; index < m_totalElements; index++)
-			{
-				m_pType->FreeVariable(m_pData[index]);
-			}
-		}
-
-		delete[] m_pExtents;
-		delete[] m_pData;
-
-		m_pExtents = nullptr;
-		m_pType = nullptr;
-		m_pData = nullptr;
-		m_nExtents = 0;
-		m_totalElements = 0;
-	}
-
-	int GetElement(char* Index)
-	{
-		int Element = 0;
-		if (m_nExtents == 1)
-		{
-			if (strchr(Index, ','))
-				return -1;
-
-			Element = GetIntFromString(Index, Element) - 1;
-			if (Element >= m_totalElements)
-				return -1;
-
-			return Element;
-		}
-
-		int nGetExtents = 1;
-
-		if (char* pComma = strchr(Index, ','))
-		{
-			nGetExtents++;
-			while (pComma = strchr(&pComma[1], ','))
-			{
-				nGetExtents++;
-			}
-		}
-
-		if (nGetExtents != m_nExtents)
-			return -1;
-
-		// read extents
-		char* pStart = Index;
-		for (int index = 0; index < m_nExtents; index++)
-		{
-			char* pComma = strchr(pStart, ',');
-			if (pComma)
-				*pComma = 0;
-
-			int Temp = GetIntFromString(pStart, 0) - 1;
-			if (Temp >= m_pExtents[index] || Temp < 0)
-				return -1;
-
-			for (int i = index + 1; i < m_nExtents; i++)
-				Temp *= m_pExtents[i];
-			Element += Temp;
-
-			if (pComma)
-			{
-				*pComma = ',';
-				pStart = &pComma[1];
-			}
-		}
-
-		return Element;
-	}
-
-	bool GetElement(char* Index, MQTypeVar& Dest)
-	{
-		if (m_nExtents == 1)
-		{
-			if (strchr(Index, ','))
-				return false;
-
-			int Element = GetIntFromString(Index, 0) - 1;
-			if (Element >= m_totalElements || Element < 0)
-				return false;
-
-			Dest.Type = m_pType;
-			Dest.VarPtr = m_pData[Element];
-
-			return true;
-		}
-
-		int nGetExtents = 1;
-
-		if (char* pComma = strchr(Index, ','))
-		{
-			nGetExtents++;
-			while (pComma = strchr(&pComma[1], ','))
-			{
-				nGetExtents++;
-			}
-		}
-
-		if (nGetExtents != m_nExtents)
-			return false;
-
-		// read extents
-		char* pStart = Index;
-		int Element = 0;
-
-		for (int index = 0; index < m_nExtents; index++)
-		{
-			char* pComma = strchr(pStart, ',');
-			if (pComma)
-				*pComma = 0;
-
-			int Temp = GetIntFromString(pStart, 0) - 1;
-			if (Temp >= m_pExtents[index] || Temp < 0)
-				return false;
-
-			for (int i = index + 1; i < m_nExtents; i++)
-				Temp *= m_pExtents[i];
-
-			Element += Temp;
-			if (pComma)
-			{
-				*pComma = ',';
-				pStart = &pComma[1];
-			}
-		}
-
-		Dest.Type = m_pType;
-		Dest.VarPtr = m_pData[Element];
-		return true;
-	}
+	CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = false);
+	~CDataArray();
+	void Delete();
+	int GetElement(char* Index);
+	bool GetElement(char* Index, MQTypeVar& Dest);
 
 	MQ2Type* GetType() { return m_pType; }
 	MQVarPtr& GetData(int index) { return m_pData[index]; }
@@ -342,48 +141,18 @@ private:
 	int m_totalElements = 0;
 };
 
-
-
 //============================================================================
 // MQ2BoolType
 
 class MQ2BoolType : public MQ2Type
 {
 public:
-	MQ2BoolType() : MQ2Type("bool")
-	{
-	}
-
-	// pure type, no members
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
-	{
-		return false;
-	}
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (VarPtr.DWord)
-			strcpy_s(Destination, MAX_STRING, "TRUE");
-		else
-			strcpy_s(Destination, MAX_STRING, "FALSE");
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		VarPtr.DWord = Source.DWord;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		VarPtr.DWord = 0;
-		if (!_stricmp(Source, "TRUE"))
-			VarPtr.DWord = 1;
-		else if (GetFloatFromString(Source, 0) != 0)
-			VarPtr.DWord = 1;
-		return true;
-	}
+	MQ2BoolType() : MQ2Type("bool") {}
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
+	static bool dataBool(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -392,45 +161,12 @@ public:
 class MQ2IntType : public MQ2Type
 {
 public:
-	enum IntMembers
-	{
-		Float = 1,
-		Double = 2,
-		Hex = 3,
-		Reverse = 4,
-		LowPart = 5,
-		HighPart = 6,
-	};
-
-	MQ2IntType() : MQ2Type("int")
-	{
-		TypeMember(Float);
-		TypeMember(Double);
-		TypeMember(Hex);
-		TypeMember(Reverse);
-		TypeMember(LowPart);
-		TypeMember(HighPart);
-	}
-
+	MQ2IntType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		VarPtr.Int = Source.Int;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		VarPtr.Int = GetIntFromString(Source, -1);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
+	static bool dataInt(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -439,45 +175,11 @@ public:
 class MQ2Int64Type : public MQ2Type
 {
 public:
-	enum Int64Members
-	{
-		Float = 1,
-		Double = 2,
-		Hex = 3,
-		Reverse = 4,
-		LowPart = 5,
-		HighPart = 6,
-	};
-
-	MQ2Int64Type() : MQ2Type("int64")
-	{
-		TypeMember(Float);
-		TypeMember(Double);
-		TypeMember(Hex);
-		TypeMember(Reverse);
-		TypeMember(LowPart);
-		TypeMember(HighPart);
-	}
-
+	MQ2Int64Type();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		_i64toa_s(VarPtr.Int64, Destination, MAX_STRING, 10);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		VarPtr.Int64 = Source.Int64;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		VarPtr.Int64 = _atoi64(Source);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -486,50 +188,11 @@ public:
 class MQ2ArgbType : public MQ2Type
 {
 public:
-	enum ArgbMembers
-	{
-		A = 0,
-		R = 1,
-		G = 2,
-		B = 3,
-		Int = 4,
-	};
-
-	MQ2ArgbType() : MQ2Type("argb")
-	{
-		TypeMember(A);
-		TypeMember(R);
-		TypeMember(G);
-		TypeMember(B);
-		TypeMember(Int);
-	}
-
-	~MQ2ArgbType()
-	{
-	}
-
+	MQ2ArgbType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		sprintf_s(Destination, MAX_STRING, "%x", VarPtr.Int);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		VarPtr.DWord = Source.DWord;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		if (sscanf_s(Source, "%x", &VarPtr.Int))
-		{
-			return true;
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
