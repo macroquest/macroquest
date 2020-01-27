@@ -769,4 +769,16 @@ void* GetPluginProc(const char* plugin, const char* proc)
 	return nullptr;
 }
 
+MQPlugin* GetPlugin(std::string_view PluginName)
+{
+	auto pLook = pPlugins;
+	while (pLook && !ci_equals(PluginName, pLook->szFilename)) pLook = pLook->pNext;
+	return pLook;
+}
+
+bool IsPluginLoaded(std::string_view PluginName)
+{
+	return GetPlugin(PluginName) != nullptr;
+}
+
 } // namespace mq
