@@ -844,6 +844,8 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		strcat_s(szTemp, Params);
 	}
 
+	PluginsMacroStart(szLine);
+
 	DebugSpew("Macro - Starting macro with '/call %s'", szTemp);
 	Call(pChar, szTemp);
 
@@ -1235,6 +1237,8 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	}
 
 	ClearMQ2DataVariables(&pMacroVariables);
+
+	PluginsMacroStop(szLine);
 
 	DebugSpewNoFile("EndMacro - Ended");
 	if (gFilterMacro != FILTERMACRO_NONE && gFilterMacro != FILTERMACRO_MACROENDED)

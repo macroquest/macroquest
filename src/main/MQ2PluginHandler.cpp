@@ -142,6 +142,10 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	pPlugin->BeginZone         = (fMQBeginZone)GetProcAddress(hmod, "OnBeginZone");
 	pPlugin->EndZone           = (fMQEndZone)GetProcAddress(hmod, "OnEndZone");
 	pPlugin->UpdateImGui       = (fMQUpdateImGui)GetProcAddress(hmod, "OnUpdateImGui");
+	pPlugin->MacroStart        = (fMQMacroStart)GetProcAddress(hmod, "OnMacroStart");
+	pPlugin->MacroStop         = (fMQMacroStop)GetProcAddress(hmod, "OnMacroStop");
+	pPlugin->LoadPlugin        = (fMQLoadPlugin)GetProcAddress(hmod, "OnLoadPlugin");
+	pPlugin->UnloadPlugin      = (fMQUnloadPlugin)GetProcAddress(hmod, "OnUnloadPlugin");
 
 	float* ftmp = (float*)GetProcAddress(hmod, "?MQ2Version@@3MA");
 	if (ftmp)
@@ -189,6 +193,8 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	// load cfg file if exists
 	LoadCfgFile((strFileName + "-AutoExec").c_str(), false);
 
+	PluginsLoadPlugin(strFileName.c_str());
+
 	return 1;
 }
 
@@ -230,6 +236,8 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 			FreeLibrary(pPlugin->hModule);
 
 			delete pPlugin;
+			PluginsUnloadPlugin(Filename);
+
 			return true;
 		}
 
@@ -749,6 +757,79 @@ void PluginsUpdateImGui()
 		pPlugin = pPlugin->pNext;
 	}
 }
+
+void PluginsMacroStart(const char* Name)
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	std::scoped_lock lock(s_pluginsMutex);
+	PluginDebug("PluginsMacroStart");
+
+	MQPlugin* pPlugin = pPlugins;
+	while (pPlugin)
+	{
+		if (pPlugin->MacroStart)
+			pPlugin->MacroStart(Name);
+
+		pPlugin = pPlugin->pNext;
+	}
+}
+
+void PluginsMacroStop(const char* Name)
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	std::scoped_lock lock(s_pluginsMutex);
+	PluginDebug("PluginsMacroStop");
+
+	MQPlugin* pPlugin = pPlugins;
+	while (pPlugin)
+	{
+		if (pPlugin->MacroStop)
+			pPlugin->MacroStop(Name);
+
+		pPlugin = pPlugin->pNext;
+	}
+}
+
+void PluginsLoadPlugin(const char* Name)
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	std::scoped_lock lock(s_pluginsMutex);
+	PluginDebug("PluginsLoadPlugin");
+
+	MQPlugin* pPlugin = pPlugins;
+	while (pPlugin)
+	{
+		if (pPlugin->LoadPlugin)
+			pPlugin->LoadPlugin(Name);
+
+		pPlugin = pPlugin->pNext;
+	}
+}
+
+void PluginsUnloadPlugin(const char* Name)
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	std::scoped_lock lock(s_pluginsMutex);
+	PluginDebug("PluginsUnloadPlugin");
+
+	MQPlugin* pPlugin = pPlugins;
+	while (pPlugin)
+	{
+		if (pPlugin->UnloadPlugin)
+			pPlugin->UnloadPlugin(Name);
+
+		pPlugin = pPlugin->pNext;
+	}
+}
+
 
 bool IsPluginsInitialized()
 {
