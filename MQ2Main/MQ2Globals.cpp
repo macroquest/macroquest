@@ -272,6 +272,17 @@ namespace MQ2Globals
 		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
 		ppEqSoundManager = (EqSoundManager**)pinstEQSoundManager;
 
+		if (unsigned long eqgdx9 = (unsigned long)GetModuleHandle("EQGraphicsDX9.dll")) {
+			//MessageBox(NULL, "__eqgraphics_fopen", "Attach", MB_SYSTEMMODAL | MB_OK);
+			unsigned long addr = FindPattern(eqgdx9, 0x200000, efPattern, efMask);
+			if (addr) {
+				DWORD add = GetDWordAt(addr, 1);
+				__eqgraphics_fopen = addr + add + 5;
+			}
+			else {
+				MessageBox(NULL, "MQ2 needs an update.", "Couldn't find __eqgraphics_fopen", MB_SYSTEMMODAL | MB_OK);
+			}
+		}
 		return true;
 	}
 	DWORD LoginController__GiveTime = 0;
@@ -491,6 +502,7 @@ namespace MQ2Globals
 	fEQCommand        cmdDoAbility = NULL;
 	fEQCommand        cmdCast = NULL;
 	fEQCommand        cmdUseItem = NULL;
+	fEQCommand        cmdHotbutton = NULL;
 	fEQCommand        cmdPet = NULL;
 	fEQCommand        cmdMercSwitch = NULL;
 	fEQCommand        cmdAdvLoot = NULL;
@@ -1918,6 +1930,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__RemoveLine);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColors);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColumnJustification);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColumnLabel);	
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetColumnWidth);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetCurSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__SetItemColor);
@@ -2336,7 +2349,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CColorPickerWnd__Open);
 	INITIALIZE_EQGAME_OFFSET(CGroupWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CGroupWnd__UpdateDisplay);
-	
+	DWORD __eqgraphics_fopen = 0;
+
 #ifdef __IsResEffectSpell_x
 FUNCTION_AT_ADDRESS(bool IsResEffectSpell(int) ,__IsResEffectSpell);
 #endif

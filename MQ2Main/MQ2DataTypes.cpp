@@ -9339,6 +9339,11 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.DWord = pWnd->GetLocation().top;
 		Dest.Type = pIntType;
 		return true;
+	case Size:
+		sprintf_s(DataTypeTemp, "%d,%d", pWnd->GetLocation().bottom - pWnd->GetLocation().top, pWnd->GetLocation().right - pWnd->GetLocation().left);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	case Width:
 		Dest.DWord = pWnd->GetLocation().right - pWnd->GetLocation().left;
 		Dest.Type = pIntType;

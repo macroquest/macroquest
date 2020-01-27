@@ -653,6 +653,7 @@ GNU General Public License for more details.
 #define CListWnd__RemoveLine_x                                     0x92CA50
 #define CListWnd__SetColors_x                                      0x92BCC0
 #define CListWnd__SetColumnJustification_x                         0x92B9F0
+#define CListWnd__SetColumnLabel_x                                 0x92C2B0
 #define CListWnd__SetColumnWidth_x                                 0x92B910
 #define CListWnd__SetCurSel_x                                      0x92CB60
 #define CListWnd__SetItemColor_x                                   0x92D340
@@ -1237,3 +1238,10 @@ GNU General Public License for more details.
 //IDA Style Sig: 56 8B F1 E8 ? ? ? ? 8B CE
 static PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xCE";
 static char lpMask[] = "xxxx????xx";
+
+//__eqgraphics_fopen
+//Jan 09 2020 EQGraphicsDX9.dll
+//IDA Style Sig: E8 ? ? ? ? 83 C4 08 89 45 A0
+//#define __eqgraphics_fopen_x                                       0x101473C8
+static PBYTE efPattern = (PBYTE)"\xE8\x00\x00\x00\x00\x83\xC4\x08\x89\x45\xA0";
+static char efMask[] = "x????xxxxxx";

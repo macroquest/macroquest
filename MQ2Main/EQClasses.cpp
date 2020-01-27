@@ -7683,6 +7683,12 @@ FUNCTION_AT_ADDRESS(class CXRect  CSidlScreenWnd::GetSidlPieceRect(class CScreen
 #ifdef CSidlScreenWnd__AddButtonToRadioGroup_x
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *),CSidlScreenWnd__AddButtonToRadioGroup);
 #endif
+#ifdef CSidlScreenWnd__StoreIniInfo_x
+FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniInfo(void),CSidlScreenWnd__StoreIniInfo);
+#endif
+#ifdef CSidlScreenWnd__LoadIniInfo_x
+FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniInfo(void),CSidlScreenWnd__LoadIniInfo);
+#endif
 #ifdef CRadioGroup__CRadioGroup_x
 FUNCTION_AT_ADDRESS( CRadioGroup::CRadioGroup(class CXStr),CRadioGroup__CRadioGroup);
 #endif
@@ -8245,7 +8251,7 @@ FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr& Label, CTextureAnimatio
 FUNCTION_AT_ADDRESS( SListWndCellEditUpdate::~SListWndCellEditUpdate(void),SListWndCellEditUpdate__dSListWndCellEditUpdate);
 #endif
 #ifdef CListWnd__SetColumnLabel_x
-FUNCTION_AT_ADDRESS(void  CListWnd::SetColumnLabel(int,class CXStr),CListWnd__SetColumnLabel);
+FUNCTION_AT_ADDRESS(void CListWnd::SetColumnLabel(int Column, const CXStr &LabelStr),CListWnd__SetColumnLabel);
 #endif
 #ifdef CXRect__CXRect1_x
 FUNCTION_AT_ADDRESS( CXRect::CXRect(void),CXRect__CXRect1);

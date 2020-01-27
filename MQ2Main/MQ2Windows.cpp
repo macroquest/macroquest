@@ -1169,6 +1169,21 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(bool CMemoryMappedFile::SetFile_Trampoline(const char*, bool, unsigned int));
 
+// Hook for fopen in eqgraphics.dll
+DETOUR_TRAMPOLINE_EMPTY(FILE* fopen_eqgraphics_trampoline(const char* filename, const char* mode));
+FILE* fopen_eqgraphics_detour(const char* filename, const char* mode)
+{
+	// Only intercept reads
+	if (strstr(mode, "r"))
+	{
+		char localfile[MAX_PATH];
+		sprintf_s(localfile, "%s\\%s", gszINIPath, filename);
+		if (_FileExists(localfile))
+			return fopen_eqgraphics_trampoline(localfile, mode);
+	}
+	return fopen_eqgraphics_trampoline(filename, mode);
+}
+
 #ifndef ISXEQ
 void ListWindows(PSPAWNINFO pChar, PCHAR szLine);
 void WndNotify(PSPAWNINFO pChar, PCHAR szLine);
@@ -1497,6 +1512,7 @@ void InitializeMQ2Windows()
 	EzDetourwName(CXWndManager__RemoveWnd, &CXWndManagerHook::RemoveWnd_Detour, &CXWndManagerHook::RemoveWnd_Trampoline, "CXWndManager__RemoveWnd");
 	EzDetourwName(CMemoryMappedFile__SetFile, &CMemoryMappedFile::SetFile_Detour, &CMemoryMappedFile::SetFile_Trampoline, "CMemoryMappedFile__SetFile");
 	EzDetourwName(__DoesFileExist, &DoesFileExist, &DoesFileExist_Trampoline, "__DoesFileExist");
+	EzDetourwName(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline,"__eqgraphics_fopen");
 	// debugging
 	// just remember this might be detoured in other plugins as well
 	//EzDetourwName(CChatWindow__WndNotification,&CSidlInitHook::CSidlScreenWnd__WndNotification_Detour,&CSidlInitHook::CSidlScreenWnd__WndNotification_Tramp,"linktest");
@@ -1580,7 +1596,7 @@ void ShutdownMQ2Windows()
     RemoveDetour(CXWndManager__RemoveWnd);
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
-	
+	RemoveDetour(__eqgraphics_fopen);
 	// for testing notifications, only for debugging
 	// dont leave active for release
 	//RemoveDetour(CChatWindow__WndNotification);

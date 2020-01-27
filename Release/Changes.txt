@@ -1,3 +1,26 @@
+Jan 25 2020
+-// ***************************************************************************
+-// Function:    DoHotbutton
+-// Description: our '/hotbutton' command
+-//              Extends the built in /hotbutton command with multiple lines support
+-// Usage:       /hotbutton [Name] <color> <Line:><Cursor:>[Text]
+-//				<Line can be 1-5
+-//				<Cursor can ONLY be 0 which means DO NOT put the hotbutton on the cursor.
+-//				Usage:
+-//				/hotbutton TheName 14 1:0:/echo hi	(Where 14 1:0: in this case means use color 14, then place /echo hi on LINE 1 and NO Cursor Attachment.)
+-//				/hotbutton TheName 14 1:/echo hi	(Where 14 1: in this case means use color 14, then place /echo hi on LINE 1.)
+-//				/hotbutton TheName 1:0:/echo hi		(Where 1:0: in this case means place /echo hi on LINE 1 and NO Cursor Attachment.)
+-//				/hotbutton TheName 1:/echo hi		(Where 1: in this case means place /echo hi on LINE 1.)
+-//				/hotbutton TheName 0:/echo hi		(Where 0: in this case means NO Cursor Attachment.)
+-//				Finally, just doing /hotbutton TheName 14 /echo hi OR /hotbutton TheName /echo hi just calls the eq function like before.
+-// ***************************************************************************
+-
+Jan 21 2020
+- Added .Size to the Window TLO, it returns a string x,y
+  Usage: /echo ${EverQuest.LastMouseOver.Size}
+  Output: 100,200
+- Added feature to be able to load tga files (animations) from local uifiles directory. -brainiac
+-
 Jan 20 2020
 - Misc Fixes to triggers etc - braniac
 - 
@@ -7,7 +30,7 @@ Jan 15 2020
 -
 Jan 14 2020 by Sic
 - Updated MQ2Melee
-- If you use builder dont forget to recheck it.
+- If you use builder don't forget to recheck it.
 -
 Jan 13 2020
 - Updated max level to 115

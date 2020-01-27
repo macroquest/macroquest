@@ -97,6 +97,7 @@ LEGACY_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PopupTextCustom                     (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PopupTextEcho                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID UseItemCmd                          (PSPAWNINFO,PCHAR);
+LEGACY_API VOID DoHotbutton                          (PSPAWNINFO,PCHAR);
 
 LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SetWinTitle							(PSPAWNINFO,PCHAR);

@@ -605,6 +605,8 @@ void InitializeMQ2Commands()
             cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/cast")) {
             cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/hotbutton")) {
+            cmdHotbutton = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/useitem")) {
             cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/pet")) {
@@ -697,6 +699,7 @@ void InitializeMQ2Commands()
         {"/hud",        HudCmd,1,0},
         {"/caption",    CaptionCmd,0,0},
         {"/captioncolor",CaptionColorCmd,1,0},
+        {"/hotbutton",    DoHotbutton,1,1},
         {"/useitem",    UseItemCmd,1,1},
 		{"/spellslotinfo",SpellSlotInfo,1,1},
 		{"/getwintitle",GetWinTitle,1,0},

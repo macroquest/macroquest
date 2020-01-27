@@ -4305,7 +4305,7 @@ EQLIB_OBJECT void CListWnd::RemoveLine(int);
 EQLIB_OBJECT void CListWnd::RemoveString(int);
 EQLIB_OBJECT void CListWnd::SetColors(unsigned long,unsigned long,unsigned long);
 EQLIB_OBJECT void CListWnd::SetColumnJustification(int,int);
-EQLIB_OBJECT void CListWnd::SetColumnLabel(int,class CXStr);
+EQLIB_OBJECT void CListWnd::SetColumnLabel(int Column, const CXStr &LabelStr);
 EQLIB_OBJECT void CListWnd::SetColumnWidth(int,int);
 EQLIB_OBJECT void CListWnd::SetCurSel(int);
 EQLIB_OBJECT void CListWnd::SetItemColor(int,int,unsigned long);

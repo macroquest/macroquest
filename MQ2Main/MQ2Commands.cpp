@@ -3891,7 +3891,132 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
+// ***************************************************************************
+// Function:    DoHotbutton
+// Description: our '/hotbutton' command
+//              Extends the built in /hotbutton command with multiple lines support
+// Usage:       /hotbutton [Name] <color> <Line:><Cursor:>[Text]
+//				<Line can be 1-5
+//				<Cursor can ONLY be 0 which means DO NOT put the hotbutton on the cursor.
+//				Usage:
+//				/hotbutton TheName 14 1:0:/echo hi	(Where 14 1:0: in this case means use color 14, then place /echo hi on LINE 1 and NO Cursor Attachment.)
+//				/hotbutton TheName 14 1:/echo hi	(Where 14 1: in this case means use color 14, then place /echo hi on LINE 1.)
+//				/hotbutton TheName 1:0:/echo hi		(Where 1:0: in this case means place /echo hi on LINE 1 and NO Cursor Attachment.)
+//				/hotbutton TheName 1:/echo hi		(Where 1: in this case means place /echo hi on LINE 1.)
+//				/hotbutton TheName 0:/echo hi		(Where 0: in this case means NO Cursor Attachment.)
+//				Finally, just doing /hotbutton TheName 14 /echo hi OR /hotbutton TheName /echo hi just calls the eq function like before.
+// ***************************************************************************
+VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
+{
+	if (!pSocialList) return;
 
+	DWORD SocialIndex = -1, LineIndex;
+	DWORD SocialPage = 0, SocialNum = 0;
+	int iColor = -1;
+	int iLine = -1;
+	int iCursor = 1;
+	bool bUseEqFunction = true;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	CHAR szName[MAX_STRING] = { 0 };
+	CHAR szNext[MAX_STRING] = { 0 };
+	CHAR szText[MAX_STRING] = { 0 };
+
+	GetArg(szName, pBuffer, 1);
+	GetArg(szNext, pBuffer, 2);
+
+	if (IsNumber(szNext))
+	{
+		//well we have a color...
+		iColor = atoi(szNext);
+		//that means the rest of the buffer IS Text
+		int len = strlen(szName) + 1 + strlen(szNext) + 1;
+		strcpy_s(szText, &pBuffer[len]);
+	}
+	else
+	{
+		//no color detected, that means the rest of the buffer IS Text
+		int len = strlen(szName) + 1;
+		strcpy_s(szText, &pBuffer[len]);
+	}
+	//we have to check Text for line and cursor now...
+	if (szText[0] == '0' && szText[1] == ':')
+	{
+		bUseEqFunction = false;
+		//ok it's a <cursor> then cause line cant be 0;
+		iCursor = 0;
+		strcpy_s(szTemp, &szText[2]);
+		strcpy_s(szText, szTemp);
+		if (szText[1] == ':')
+		{
+			//we have a problem now, the user is not using the command properly
+			WriteChatf("/hotbutton ERROR: Line can only be a number between 1-5, you specified 0.");
+			WriteChatf("Correct Usage Example1: \"/hotbutton %s 14 1:0:/echo hi\" (Where 14 1:0: in this case means use color 14, then place /echo hi on LINE 1 and NO Cursor Attachment.)",szName);
+			WriteChatf("Correct Usage Example2: \"/hotbutton %s 14 1:/echo hi\" (Where 14 1: in this case means use color 14, then place /echo hi on LINE 1.)",szName);
+			WriteChatf("Correct Usage Example3: \"/hotbutton %s 1:0:/echo hi\" (Where 1:0: in this case means place /echo hi on LINE 1 and NO Cursor Attachment.)",szName);
+			WriteChatf("Correct Usage Example4: \"/hotbutton %s 1:/echo hi\" (Where 1: in this case means place /echo hi on LINE 1.)",szName);
+			WriteChatf("Correct Usage Example5: \"/hotbutton %s 0:/echo hi\" (Where 0: in this case means NO Cursor Attachment.)",szName);
+			return;
+		}
+	}
+	else if (szText[0] == '1' || szText[0] == '2' || szText[0] == '3' || szText[0] == '4' || szText[0] == '5' && szText[1] == ':')
+	{
+		bUseEqFunction = false;
+		//well this is a line number
+		szText[1] = '\0';
+		iLine = atoi(szText);
+		iLine--;
+		strcpy_s(szTemp, &szText[2]);
+		strcpy_s(szText, szTemp);
+		if (szText[0] == '0' && szText[1] == ':')
+		{
+			iCursor = 0;
+			strcpy_s(szTemp, &szText[2]);
+			strcpy_s(szText, szTemp);
+		}
+	}
+	
+	if (!bUseEqFunction)
+	{
+		if (iLine == -1)
+		{
+			iLine = 0;
+		}
+		LineIndex = iLine;
+		//it's a hotbutton command with a line number specified so we jump in, otherwise, lets jut eq handle it...
+		for (SocialIndex = 0; SocialIndex < 120; SocialIndex++)
+		{
+			SocialPage = SocialIndex / 12;
+			SocialNum = SocialIndex - (SocialPage * 12);
+			if (pSocialList[SocialIndex].Name[0] == '\0' || !_stricmp(pSocialList[SocialIndex].Name, szName))
+			{
+				//found one we can use...
+				strcpy_s(pSocialList[SocialIndex].Name, szName);
+				if (iColor != -1)
+				{
+					pSocialList[SocialIndex].Color = (BYTE)iColor;
+				}
+				strcpy_s(pSocialList[SocialIndex].Line[LineIndex], szText);
+				if (iCursor)
+				{
+					pCursorAttachment->AttachToCursor(NULL, NULL, 4 /*SOCIAL ATTACHMENT*/, SocialIndex, szName, szText);
+				}
+				break;
+			}
+		}
+		return;
+	}
+	if (pBuffer[0] == '\0')
+	{
+		WriteChatf("Usage: /hotbutton [Name] <color> <Line:><Cursor:>[Text]\n<Line can be 1-5\n<Cursor can ONLY be 0 which means DO NOT put the hotbutton on the cursor.");
+		WriteChatf("Example1: \"/hotbutton TheName 14 1:0:/echo hi\" (Where 14 1:0: in this case means use color 14, then place /echo hi on LINE 1 and NO Cursor Attachment.)");
+		WriteChatf("Example2: \"/hotbutton TheName 14 1:/echo hi\" (Where 14 1: in this case means use color 14, then place /echo hi on LINE 1.)");
+		WriteChatf("Example3: \"/hotbutton TheName 1:0:/echo hi\" (Where 1:0: in this case means place /echo hi on LINE 1 and NO Cursor Attachment.)");
+		WriteChatf("Example4: \"/hotbutton TheName 1:/echo hi\" (Where 1: in this case means place /echo hi on LINE 1.)");
+		WriteChatf("Example5: \"/hotbutton TheName 0:/echo hi\" (Where 0: in this case means NO Cursor Attachment.)");
+	}
+	cmdHotbutton(pChar, pBuffer);
+	return;
+}
 // /timed
 VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 {

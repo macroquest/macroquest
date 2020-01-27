@@ -369,6 +369,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand			cmdDoAbility;
 	EQLIB_VAR fEQCommand			cmdCast;
 	EQLIB_VAR fEQCommand			cmdUseItem;
+	EQLIB_VAR fEQCommand			cmdHotbutton;
 	EQLIB_VAR fEQCommand			cmdPet;
 	EQLIB_VAR fEQCommand			cmdMercSwitch;
 	EQLIB_VAR fEQCommand			cmdAdvLoot;
@@ -1374,6 +1375,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__RemoveLine;
 	EQLIB_VAR DWORD CListWnd__SetColors;
 	EQLIB_VAR DWORD CListWnd__SetColumnJustification;
+	EQLIB_VAR DWORD CListWnd__SetColumnLabel;
 	EQLIB_VAR DWORD CListWnd__SetColumnWidth;
 	EQLIB_VAR DWORD CListWnd__SetCurSel;
 	EQLIB_VAR DWORD CListWnd__SetItemColor;
@@ -1790,6 +1792,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEQSuiteTextureLoader__GetTexture;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate;
 	EQLIB_VAR DWORD CSidlManagerBase__FindButtonDrawTemplate1;
+	EQLIB_VAR DWORD __eqgraphics_fopen;
 
 	const std::string PARSE_PARAM_BEG = "${Parse[";
 	const std::string PARSE_PARAM_END = "]}";
