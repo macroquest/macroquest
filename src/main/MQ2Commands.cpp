@@ -423,7 +423,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 	if (szName[0] == 0)
 	{
-		SyntaxError("Usage: /plugin name [load/unload/toggle] [noauto], or /Plugin list");
+		SyntaxError("Usage: /plugin name [load/unload/toggle] [noauto], or /plugin list");
 		return;
 	}
 
