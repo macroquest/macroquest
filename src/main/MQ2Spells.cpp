@@ -17,30 +17,7 @@
 
 namespace mq {
 
-struct case_insensitive_comparer
-{
-	bool operator () (std::string_view a, std::string_view b) const
-	{
-		return ci_equals(a, b);
-	}
-};
-
-struct case_insensitive_hasher
-{
-	unsigned long operator () (std::string_view a) const
-	{
-		// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
-		unsigned long hash = 2166136261U;
-		for (unsigned char c : a)
-		{
-			hash ^= static_cast<unsigned long>(::tolower(c));
-			hash *= 16777619U;
-		}
-		return hash;
-	}
-};
-
-std::unordered_multimap<std::string_view, EQ_Spell*, case_insensitive_hasher, case_insensitive_comparer> s_spellNameMap;
+ci_unordered::multimap<EQ_Spell*> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
 std::recursive_mutex s_initializeSpellsMutex;
 

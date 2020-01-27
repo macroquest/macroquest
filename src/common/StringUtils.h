@@ -22,6 +22,7 @@
 #include <sstream>
 #include <vector>
 #include <numeric>
+#include <unordered_map>
 
 constexpr int MAX_STRING = 2048;
 
@@ -184,6 +185,40 @@ inline bool string_equals(std::string_view sv1, std::string_view sv2)
 	return sv1.size() == sv2.size()
 		&& std::equal(sv1.begin(), sv1.end(), sv2.begin());
 }
+
+struct ci_unordered
+{
+private:
+	struct ci_comparer
+	{
+		bool operator () (std::string_view a, std::string_view b) const
+		{
+			return ci_equals(a, b);
+		}
+	};
+
+	struct ci_hasher
+	{
+		unsigned long operator () (std::string_view a) const
+		{
+			// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
+			unsigned long hash = 2166136261U;
+			for (unsigned char c : a)
+			{
+				hash ^= static_cast<unsigned long>(::tolower(c));
+				hash *= 16777619U;
+			}
+			return hash;
+		}
+	};
+
+public:
+	template <typename T>
+	using map = std::unordered_map<std::string_view, T, ci_hasher, ci_comparer>;
+
+	template <typename T>
+	using multimap = std::unordered_multimap<std::string_view, T, ci_hasher, ci_comparer>;
+};
 
 /**
  * @fn GetIntFromString
