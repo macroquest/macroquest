@@ -1159,17 +1159,14 @@ template <typename ET>
 class CircularArrayClass2 : public CDynamicArrayBase
 {
 public:
-	int HeadIndex;
-	int WrapIndex;
-	int ArraySize;
-	int ChunkSize;
-	int ChunkMask;
-	int ChunkShift;
-	ET** Chunks;
-	int ChunkAlloc;
-#if !defined(TEST) && !defined(LIVE)
-	bool bValid;
-#endif
+/*0x00*/ int HeadIndex;
+/*0x04*/ int WrapIndex;
+/*0x08*/ int ArraySize;
+/*0x0C*/ int ChunkSize;
+/*0x10*/ int ChunkMask;
+/*0x14*/ int ChunkShift;
+/*0x18*/ ET** Chunks;
+/*0x1C*/ int ChunkAlloc;
 };
 
 template <typename TNumBitsType, typename TElementType>

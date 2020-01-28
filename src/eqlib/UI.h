@@ -1240,33 +1240,33 @@ public:
 	// todo: verify
 /*0x1f0*/ CXStr                        STMLText;
 /*0x1f4*/ CircularArrayClass2<STextLine> TextLines;
-/*0x21c*/ int32_t                      TextTotalHeight;
-/*0x220*/ int32_t                      TextTotalWidth;
-/*0x224*/ int32_t                      Unknown0x224;
-/*0x228*/ ArrayClass2<SLinkInfo>       Links;                        // size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test
-/*0x240*/ ArrayClass<STable>           Tables;
-/*0x250*/ bool                         bReparseNow;
-/*0x251*/ bool                         bResized;
-/*0x252*/ bool                         bAlignCenter;
-/*0x254*/ int                          LineSpacingAdjust;
-/*0x258*/ int32_t                      CapturedLinkID;
-/*0x25c*/ int32_t                      MousedOverLinkID;
-/*0x260*/ COLORREF                     BackGroundColor;
-/*0x264*/ COLORREF                     TextColor;
-/*0x268*/ COLORREF                     LinkColor;
-/*0x26c*/ COLORREF                     VLinkColor;
-/*0x270*/ COLORREF                     ALinkColor;
-/*0x274*/ COLORREF                     MLinkColor;
-/*0x278*/ ESTMLParseState              CurrentParseState;
-/*0x27c*/ ArrayClass2<SHistoryElement> HistoryArray;
-/*0x294*/ int32_t                      HistoryIndex;
-/*0x298*/ CStmlReport* pStmlReport;
-/*0x29c*/ int                          MaxLines;
-/*0x2a0*/ int                          PlayerContextMenuIndex;
-/*0x2a4*/ int                          Unknown0x2ac;
-/*0x2a8*/ int                          Unknown0x2b0;
-/*0x2ac*/ int                          Unknown0x2b4;
-/*0x2b0*/
+/*0x218*/ int32_t                      TextTotalHeight;
+/*0x21c*/ int32_t                      TextTotalWidth;
+/*0x220*/ int32_t                      Unknown0x224;
+/*0x224*/ ArrayClass2<SLinkInfo>       Links;                        // size 0x1c at 0x228 for sure see 8F4487 in Sep 11 2017 test
+/*0x23c*/ ArrayClass<STable>           Tables;
+/*0x24c*/ bool                         bReparseNow;
+/*0x24d*/ bool                         bResized;
+/*0x24e*/ bool                         bAlignCenter;
+/*0x250*/ int                          LineSpacingAdjust;
+/*0x254*/ int32_t                      CapturedLinkID;
+/*0x258*/ int32_t                      MousedOverLinkID;
+/*0x25c*/ COLORREF                     BackGroundColor;
+/*0x260*/ COLORREF                     TextColor;
+/*0x264*/ COLORREF                     LinkColor;
+/*0x268*/ COLORREF                     VLinkColor;
+/*0x26c*/ COLORREF                     ALinkColor;
+/*0x270*/ COLORREF                     MLinkColor;
+/*0x274*/ ESTMLParseState              CurrentParseState;
+/*0x278*/ ArrayClass2<SHistoryElement> HistoryArray;
+/*0x290*/ int32_t                      HistoryIndex;
+/*0x294*/ CStmlReport* pStmlReport;
+/*0x298*/ int                          MaxLines;
+/*0x29c*/ int                          PlayerContextMenuIndex;
+/*0x2a0*/ int                          Unknown0x2ac;
+/*0x2a4*/ int                          Unknown0x2b0;
+/*0x2a8*/ int                          Unknown0x2b4;
+/*0x2ac*/
 };
 
 //============================================================================
