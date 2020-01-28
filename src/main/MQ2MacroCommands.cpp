@@ -844,9 +844,8 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		strcat_s(szTemp, Params);
 	}
 
-	PluginsMacroStart(szLine);
-
 	DebugSpew("Macro - Starting macro with '/call %s'", szTemp);
+	PluginsMacroStart(szLine);
 	Call(pChar, szTemp);
 
 	if (!gMacroBlock)
@@ -1238,11 +1237,11 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 
 	ClearMQ2DataVariables(&pMacroVariables);
 
-	PluginsMacroStop(szLine);
-
 	DebugSpewNoFile("EndMacro - Ended");
 	if (gFilterMacro != FILTERMACRO_NONE && gFilterMacro != FILTERMACRO_MACROENDED)
 		WriteChatColor("The current macro has ended.", USERCOLOR_DEFAULT);
+		
+	PluginsMacroStop(szLine);
 }
 
 static int GetNumArgsFromSub(const std::string& Sub)
