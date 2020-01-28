@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "DebugHandler.h"
 
 #include "common/NamedPipes.h"
 
@@ -841,7 +842,8 @@ void ForceUnload()
 	ScreenMode = 2;
 }
 
-LPTOP_LEVEL_EXCEPTION_FILTER lpOldTopLevelExceptionFilter = nullptr;
+LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
+LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
 
 int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
 {
@@ -924,7 +926,7 @@ int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const 
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
-	return lpOldTopLevelExceptionFilter(ex);
+	return lpCrashpadTopLevelExceptionFilter(ex);
 }
 
 LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
@@ -938,7 +940,11 @@ LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
 // ***************************************************************************
 DWORD WINAPI MQ2Start(void* lpParameter)
 {
-	lpOldTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
+	lpOrigTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
+
+	bool result = backtrace::InitializeCrashpad();
+
+	lpCrashpadTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
 
 	g_hLoadComplete.create(wil::EventOptions::ManualReset);
 
@@ -975,7 +981,7 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 getout:
 	// Restore the old unhandled exception filter
-	SetUnhandledExceptionFilter(lpOldTopLevelExceptionFilter);
+	SetUnhandledExceptionFilter(lpOrigTopLevelExceptionFilter);
 
 	if (hUnloadComplete)
 	{

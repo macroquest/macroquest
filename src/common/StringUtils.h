@@ -27,6 +27,7 @@
 
 #include <fmt/format.h>
 
+
 constexpr int MAX_STRING = 2048;
 
 template <typename T, size_t N>

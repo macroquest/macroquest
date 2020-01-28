@@ -90,4 +90,9 @@ void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const
 #define DebugTryEx(x) \
 	Debug_TryExecuteEx(__FUNCTION__, __LINE__, #x, [&]() { x; });
 
+namespace backtrace
+{
+	bool InitializeCrashpad();
+}
+
 } // namespace mq

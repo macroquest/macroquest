@@ -15,6 +15,10 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "client/crashpad_client.h"
+#include "client/crashpad_info.h"
+
+
 #define DEBUG_GETPROCADDRESS 1
 
 namespace mq {
@@ -1279,10 +1283,24 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	return nullptr;
 }
 
+crashpad::Annotation annotationTest(crashpad::Annotation::Type::kString, "test", "123");
+
+char szTest[256] = { 0 };
+crashpad::Annotation annotationTest2(crashpad::Annotation::Type::kString, "test2", szTest);
+
 void DoCrash(SPAWNINFO* pChar, char* szLine)
 {
-	int* p = 0;
-	*p = 12;
+	//auto cpi = crashpad::CrashpadInfo::GetCrashpadInfo();
+	//auto annos = cpi->annotations_list();
+
+	annotationTest.SetSize(4);
+
+	strcpy_s(szTest, "{ \"test\": 3 }");
+	annotationTest2.SetSize(strlen(szTest));
+
+	auto cpi = crashpad::CrashpadInfo::GetCrashpadInfo();
+
+	crashpad::CrashpadClient::DumpWithoutCrash()
 }
 
 void InitializeMQ2Detours()
@@ -1300,6 +1318,8 @@ void InitializeMQ2Detours()
 	}
 
 	AddCommand("/crash", DoCrash);
+
+	//DoCrash(0, 0);
 }
 
 void ShutdownMQ2Detours()
