@@ -40,6 +40,10 @@ using fMQGroundItem          = void   (*)(GROUNDITEM*);
 using fMQBeginZone           = void   (*)();
 using fMQEndZone             = void   (*)();
 using fMQUpdateImGui         = void   (*)();
+using fMQMacroStart          = void   (*)(const char*);
+using fMQMacroStop           = void   (*)(const char*);
+using fMQLoadPlugin          = void   (*)(const char*);
+using fMQUnloadPlugin        = void   (*)(const char*);
 
 // MQ2Ic Function Types
 using fICGetHashData         = int64_t(*)(void*, int);

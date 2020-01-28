@@ -393,6 +393,10 @@ struct MQPlugin
 	fMQBeginZone         BeginZone = 0;
 	fMQEndZone           EndZone = 0;
 	fMQUpdateImGui       UpdateImGui = 0;
+	fMQMacroStart        MacroStart = 0;
+	fMQMacroStop         MacroStop = 0;
+	fMQLoadPlugin        LoadPlugin = 0;
+	fMQUnloadPlugin      UnloadPlugin = 0;
 
 	MQPlugin* pLast = nullptr;
 	MQPlugin* pNext = nullptr;
