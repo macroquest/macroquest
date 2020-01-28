@@ -26,6 +26,7 @@
     </ClCompile>
     <!-- Release only compiler settings -->
     <ClCompile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -33,7 +34,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\fmt\include;$(MQ2Root)contrib\wil\include;$(MQ2Root)contrib\spdlog\include;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\date\include;$(MQ2Root)contrib\fmt\include;$(MQ2Root)contrib\wil\include;$(MQ2Root)contrib\spdlog\include;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
