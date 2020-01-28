@@ -235,7 +235,6 @@ public:
 		}
 	}
 
-	int OutBoxLines = 0;
 	int FontSize = 4;
 	CEditWnd* InputBox;
 	CStmlWnd* OutputBox;
@@ -717,15 +716,6 @@ PLUGIN_API void OnPulse()
 				ThisPulse = LINES_PER_FRAME;
 			}
 
-			MQChatWnd->OutBoxLines += ThisPulse;
-
-			if (MQChatWnd->OutBoxLines > MAX_CHAT_SIZE)
-			{
-				DWORD Diff = (MQChatWnd->OutBoxLines - MAX_CHAT_SIZE) + LINES_PER_FRAME;
-				MQChatWnd->OutBoxLines -= Diff;
-				Benchmark(bmStripFirstStmlLines, MQChatWnd->OutputBox->StripFirstSTMLLines(Diff));
-			}
-
 			for (size_t N = 0; N < ThisPulse; N++)
 			{
 				if (!sPendingChat.empty())
@@ -749,6 +739,7 @@ PLUGIN_API void OnPulse()
 			}
 		}
 
+		// this lets the window draw when we are dead and "hovering"
 		if (InHoverState())
 		{
 			MQChatWnd->DoAllDrawing();
