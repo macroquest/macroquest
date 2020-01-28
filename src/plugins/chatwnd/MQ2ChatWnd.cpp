@@ -22,10 +22,9 @@
 
 PreSetup("MQ2ChatWnd");
 
-static constexpr auto MAX_CHAT_SIZE = 700;
 static constexpr auto LINES_PER_FRAME = 3;
 static constexpr auto CMD_HIST_MAX = 50;
-static constexpr auto MAX_LINES_OUTBOX = 400;
+static constexpr auto MAX_LINES_OUTBOX = 700;
 
 std::list<CXStr> sPendingChat;
 DWORD ulOldVScrollPos = 0;
