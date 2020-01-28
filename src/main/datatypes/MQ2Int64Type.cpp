@@ -103,7 +103,7 @@ bool MQ2Int64Type::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2Int64Type::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	VarPtr.Int64 = GetLongFromString(Source, -1);
+	VarPtr.Int64 = GetInt64FromString(Source, -1);
 	return true;
 }
 

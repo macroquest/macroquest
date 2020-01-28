@@ -231,7 +231,7 @@ public:
  *
  * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
  *
- * @see GetLongFromString
+ * @see GetInt64FromString
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
@@ -248,7 +248,7 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
 }
 
 /**
- * @fn GetLongFromString
+ * @fn GetInt64FromString
  *
  * @brief Gets the long value from a well formatted string
  *
@@ -267,7 +267,7 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  *
  * @return long The converted long or the "failure" value
  **/
-inline long GetLongFromString(const std::string_view svString, long lReturnOnFail)
+inline int64_t GetInt64FromString(const std::string_view svString, int64_t lReturnOnFail)
 {
 	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), lReturnOnFail);
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
@@ -287,7 +287,7 @@ inline long GetLongFromString(const std::string_view svString, long lReturnOnFai
  *
  * @see GetDoubleFromString
  * @see GetIntFromString
- * @see GetLongFromString
+ * @see GetInt64FromString
  *
  * @param svString The string to convert to a float
  * @param fReturnOnFail The float that should be returned if conversion fails
@@ -314,7 +314,7 @@ inline float GetFloatFromString(const std::string_view svString, float fReturnOn
  *
  * @see GetFloatFromString
  * @see GetIntFromString
- * @see GetLongFromString
+ * @see GetInt64FromString
  *
  * @param svString The string to convert to a double
  * @param dReturnOnFail The double that should be returned if conversion fails
