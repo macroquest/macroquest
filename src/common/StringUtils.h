@@ -23,6 +23,7 @@
 #include <vector>
 #include <numeric>
 #include <unordered_map>
+#include <unordered_set>
 
 constexpr int MAX_STRING = 2048;
 
@@ -218,6 +219,10 @@ public:
 
 	template <typename T>
 	using multimap = std::unordered_multimap<std::string_view, T, ci_hasher, ci_comparer>;
+
+	using set = std::unordered_set<std::string_view, ci_hasher, ci_comparer>;
+
+	using multiset = std::unordered_multiset<std::string_view, ci_hasher, ci_comparer>;
 };
 
 /**
