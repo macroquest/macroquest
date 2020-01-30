@@ -426,6 +426,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h" />
     <ClInclude Include="..\..\contrib\Blech\Blech.h" />
     <ClInclude Include="..\..\contrib\fmt\include\fmt\chrono.h" />
     <ClInclude Include="..\..\contrib\fmt\include\fmt\color.h" />

@@ -39,6 +39,9 @@
     <Filter Include="Source Files\datatypes">
       <UniqueIdentifier>{7c8bf5c2-6364-450f-9606-96eacfab025d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\contrib\argparse">
+      <UniqueIdentifier>{b01b30cd-e9fe-474d-8263-4814e664cc28}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -471,6 +474,9 @@
     </ClInclude>
     <ClInclude Include="DebugHandler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h">
+      <Filter>Header Files\contrib\argparse</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
