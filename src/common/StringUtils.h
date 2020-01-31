@@ -116,86 +116,75 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
 	auto d = b; // progress this iterator as we consume words
 	std::string_view::size_type s = 0; // this will be the distance to the found character
 
-	if (*d == '"')
-	{
-		s = line.find('"', std::distance(b, d) + 1);
-		if (s > 0)
-			args.emplace_back(std::string_view(&d[1], s - 1));
-	}
-	else
-	{
-		s = line.find_first_of(" \t", std::distance(b, d) + 1);
-		if (s > 0)
-			args.emplace_back(std::string_view(&d[0], s));
-	}
-
+    // fast-forward past any whitespace
 	s = line.find_first_not_of(" \t", std::distance(b, d) + s);
 	if (s == std::string_view::npos)
 		return args;
 
 	d += s;
 
-	int i = 0;
-	while (s != std::string_view::npos && ++i < 80)
+	while (s != std::string_view::npos)
 	{
-		s = line.find_first_of(" \t\"'", s);
+		s = line.find_first_of(" \t\"'$", s);
 		auto c = *(b + s);
-		if (s == std::string_view::npos && std::distance(d, std::end(line)) > 0)
+		if (s == std::string_view::npos)
 		{
 			// hit the end of the string, assume this finishes off any current token
-			args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
+			// we explicitly only want to tokenize if we have an argument and then
+            // have the loop exit normally
+			if (std::distance(d, std::end(line)) > 0)
+				args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
 		}
-		else if (c == ' ' || c == '\t')
+		else if ((c == ' ' || c == '\t') && *(b + s - 1) != '\\')
 		{
 			// hit a boundary, let's put it in the vector
 			args.emplace_back(std::string_view(&d[0], std::distance(d, b + s)));
 			s = line.find_first_not_of(" \t", s);
 			d = b + s;
 		}
-		else if ((c == '"' || c == '\'') && *(b + s - 1) != '\\')
+		else if (((c == '"' || c == '\'') && *(b + s - 1) != '\\'))
 		{
-			int qcount = 1;
+            if (c == '$')
+            {
+                ++s;
+                c = '}';
+            }
 
-			while (*(b + (++s)) == c && qcount <= 3 && s != std::string_view::npos)
+			do
 			{
-				++qcount;
-			}
+				s = line.find(c, s + 1);
+			} while (*(b + s - 1) == '\\' && s != std::string_view::npos);
 
-			if (qcount == 3)
-			{
-				do
-				{
-					const char three[] = { c, c, c, '\0' };
-					s = line.find(three, s);
-				} while (*(b + s - 1) == '\\' && s != std::string_view::npos);
-			}
-			else if (qcount == 2)
-			{
-				--qcount;
-				--s;
-			}
-			else if (qcount == 1)
-			{
-				do
-				{
-					s = line.find(c, s);
-				} while (*(b + s - 1) == '\\' && s != std::string_view::npos);
-			}
-			if (s != std::string_view::npos)
-			{
-				args.emplace_back(std::string_view(&d[qcount], std::distance(d, b + s - qcount)));
-				s = line.find_first_not_of(" \t", s + qcount);
-			}
-			else
-			{
-				args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
-				s = std::string_view::npos;
-			}
-			d = b + s;
+            if (s != std::string_view::npos)
+                ++s;
+            else
+                --s;
 		}
-		else if (c == '"' || c == '\'')
+        else if (c == '$' && *(b + s + 1) == '{')
+        {
+            // This is MQ2 specific handling, we want to allow passing of ${} arguments without needing quotes
+            int b_count = 1, s_count = 0;
+            do
+            {
+                s = line.find_first_of("$}[]", s + 1);
+                if (*(b + s) == '$' && *(b + s + 1) == '{' && s_count == 0)
+                    ++b_count;
+                else if (*(b + s) == '}' && s_count == 0)
+                    --b_count;
+                else if (*(b + s) == '[')
+                    ++s_count;
+                else if (*(b + s) == ']')
+                    --s_count;
+            } while(b_count != 0 && s != std::string_view::npos);
+
+            if (s != std::string_view::npos)
+                ++s;
+            else
+                --s;
+        }
+		else
 		{
-			// we had a backslash before this quote, so advance one
+			// we had a backslash before this delimiter, so advance one
 			++s;
 		}
 	}
@@ -224,7 +213,26 @@ inline std::string replace(std::string_view str, std::vector<std::pair<std::stri
 // helper function that calls replace with the normal command line argument
 // escape sequences
 inline std::string unescape_args(std::string_view str) {
-	return replace(str, { {R"(\\)", R"(\)"}, {R"(\")", R"(")"} });
+	return replace(str, { {R"(\\)", R"(\)"}, {R"(\")", R"(")"}, {R"(\')", R"(')"} });
+}
+
+template<char escape = '\\'>
+inline std::string unescape(std::string_view str, std::string_view quotes)
+{
+    if (str.empty())
+        return std::string();
+
+    static std::vector<std::pair<std::string_view, std::string_view>> to_replace = {
+        {std::string({escape, escape}), std::string({escape})},
+        {std::string({escape, ' '}), std::string({' '})}
+    };
+
+    if (str.back() != str.front() || str.find_first_of(quotes) != 0)
+        return replace(str, to_replace);
+
+    auto augmented_replace = to_replace;
+    augmented_replace.emplace_back(std::make_pair(std::string({escape, str[0]}), std::string({str[0]})));
+    return replace(std::string_view(&str[1], str.length() - 2), augmented_replace);
 }
 
 struct ci_less
