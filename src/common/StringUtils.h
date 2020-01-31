@@ -103,6 +103,130 @@ inline std::string join(const std::vector<T>& vec, std::string_view delim)
 	return fmt::format("{}", fmt::join(vec, delim));
 }
 
+// returns a vector of arguments as string_views. This has the advantage
+// of not allocating any strings, but the result of this function will
+// only be valid inside the lifetime of the original line passed as an
+// argument to this function. Be sure to allocate any values as strings
+// that you care about _before_ the original line goes out of scope 
+// (or is otherwise destroyed)!
+inline std::vector<std::string_view> tokenize_args(std::string_view line)
+{
+	std::vector<std::string_view> args;
+	auto b = std::begin(line); // "beginning" iterator
+	auto d = b; // progress this iterator as we consume words
+	std::string_view::size_type s = 0; // this will be the distance to the found character
+
+	if (*d == '"')
+	{
+		s = line.find('"', std::distance(b, d) + 1);
+		if (s > 0)
+			args.emplace_back(std::string_view(&d[1], s - 1));
+	}
+	else
+	{
+		s = line.find_first_of(" \t", std::distance(b, d) + 1);
+		if (s > 0)
+			args.emplace_back(std::string_view(&d[0], s));
+	}
+
+	s = line.find_first_not_of(" \t", std::distance(b, d) + s);
+	if (s == std::string_view::npos)
+		return args;
+
+	d += s;
+
+	int i = 0;
+	while (s != std::string_view::npos && ++i < 80)
+	{
+		s = line.find_first_of(" \t\"'", s);
+		auto c = *(b + s);
+		if (s == std::string_view::npos && std::distance(d, std::end(line)) > 0)
+		{
+			// hit the end of the string, assume this finishes off any current token
+			args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
+		}
+		else if (c == ' ' || c == '\t')
+		{
+			// hit a boundary, let's put it in the vector
+			args.emplace_back(std::string_view(&d[0], std::distance(d, b + s)));
+			s = line.find_first_not_of(" \t", s);
+			d = b + s;
+		}
+		else if ((c == '"' || c == '\'') && *(b + s - 1) != '\\')
+		{
+			int qcount = 1;
+
+			while (*(b + (++s)) == c && qcount <= 3 && s != std::string_view::npos)
+			{
+				++qcount;
+			}
+
+			if (qcount == 3)
+			{
+				do
+				{
+					const char three[] = { c, c, c, '\0' };
+					s = line.find(three, s);
+				} while (*(b + s - 1) == '\\' && s != std::string_view::npos);
+			}
+			else if (qcount == 2)
+			{
+				--qcount;
+				--s;
+			}
+			else if (qcount == 1)
+			{
+				do
+				{
+					s = line.find(c, s);
+				} while (*(b + s - 1) == '\\' && s != std::string_view::npos);
+			}
+			if (s != std::string_view::npos)
+			{
+				args.emplace_back(std::string_view(&d[qcount], std::distance(d, b + s - qcount)));
+				s = line.find_first_not_of(" \t", s + qcount);
+			}
+			else
+			{
+				args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
+				s = std::string_view::npos;
+			}
+			d = b + s;
+		}
+		else if (c == '"' || c == '\'')
+		{
+			// we had a backslash before this quote, so advance one
+			++s;
+		}
+	}
+
+	return args;
+}
+
+// allocates a string from a string_view, replaces all occurrences of each
+// entry in `to_replace` and returns this string
+inline std::string replace(std::string_view str, std::vector<std::pair<std::string_view, std::string_view>> to_replace)
+{
+	std::string s(str);
+	for (auto r : to_replace)
+	{
+		std::string::size_type p = 0;
+		while ((p = s.find(r.first, p)) != std::string::npos)
+		{
+			s.replace(p, r.first.length(), r.second);
+			p += r.second.length();
+		}
+	}
+
+	return s;
+}
+
+// helper function that calls replace with the normal command line argument
+// escape sequences
+inline std::string unescape_args(std::string_view str) {
+	return replace(str, { {R"(\\)", R"(\)"}, {R"(\")", R"(")"} });
+}
+
 struct ci_less
 {
 	struct nocase_compare
