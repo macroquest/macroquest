@@ -15,8 +15,10 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <locale>
+#include <codecvt>
 #include <regex>
-#include <utility>
+#include <argparse/argparse.h>
 
 namespace mq {
 
@@ -116,8 +118,73 @@ void DropAlternate(std::string_view Name, std::string_view Alternate)
 std::string Anonymize(std::string_view Text)
 {
 	return std::accumulate(filter_map.cbegin(), filter_map.cend(), std::string(Text),
-		[](std::string _text, std::pair<std::string_view, anon_replacer> _pair) -> std::string {
-			return _pair.second.replace_text(std::move(_text));
+		[](std::string text, std::pair<std::string_view, anon_replacer> pair) -> std::string {
+			return pair.second.replace_text(std::move(text));
 		});
+}
+
+class anon_args {
+public:
+	enum class sub_commands {
+		none,
+		add,
+		drop,
+		alias,
+		unalias,
+		unknown
+	};
+
+	argparse::ArgumentParser main;
+	argparse::ArgumentParser unknown;
+	ci_unordered::map<argparse::ArgumentParser> subcommands;
+
+	anon_args() {
+		main = argparse::ArgumentParser("main parser");
+		main.add_argument("category")
+			.default_value("none")
+			.help("the action you want to take with argument parser")
+			.action([this](std::string_view value)
+				{
+					auto it = subcommands.find(value);
+					if (it != subcommands.end())
+						return it->second;
+					else
+						return unknown;
+				});
+
+
+		main.add_argument("remaining")
+			.remaining();
+
+		unknown = argparse::ArgumentParser("unknown command");
+		unknown.help("unknown parameter value");
+	}
+};
+
+void AddAnonymization(SPAWNINFO* pChar, std::string_view args)
+{
+
+}
+
+// ***************************************************************************
+// Function:    MQAnon
+// Description: Our '/mqanon' command
+//              Controls the anonymization filtering of text
+// Usage:       /mqanon [add|drop|alias|unalias]
+// ***************************************************************************
+
+// TODO: Make sure to add this command with `Parse = false`!
+void MQAnon(SPAWNINFO* pChar, char* szLine)
+{
+	if (!pChar)
+		return;
+
+	char szBuff[MAX_STRING] = { 0 };
+	GetArg(szBuff, szLine, 1);
+
+	using CommandFunc = void(*)(SPAWNINFO*, std::string_view);
+	ci_unordered::map<CommandFunc> arg_map;
+
+	arg_map.emplace("add", [](SPAWNINFO* pChar, std::string_view args) {});
 }
 }
