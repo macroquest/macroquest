@@ -115,79 +115,64 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
 	auto b = std::begin(line); // "beginning" iterator
 	auto d = b; // progress this iterator as we consume words
 	std::string_view::size_type s = 0; // this will be the distance to the found character
+    char quote = '\0';
 
     // fast-forward past any whitespace
-	s = line.find_first_not_of(" \t", std::distance(b, d) + s);
+    for (; *(b + s) == ' ' || *(b + s) == '\t'; ++s);
 	if (s == std::string_view::npos)
 		return args;
 
 	d += s;
 
-	while (s != std::string_view::npos)
+    while (s < line.length())
 	{
-		s = line.find_first_of(" \t\"'$", s);
-		auto c = *(b + s);
-		if (s == std::string_view::npos)
-		{
-			// hit the end of the string, assume this finishes off any current token
-			// we explicitly only want to tokenize if we have an argument and then
-            // have the loop exit normally
-			if (std::distance(d, std::end(line)) > 0)
-				args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
-		}
-		else if ((c == ' ' || c == '\t') && *(b + s - 1) != '\\')
+		auto c = b + s;
+		if ((*c == ' ' || *c == '\t') && quote == '\0' && *(c - 1) != '\\')
 		{
 			// hit a boundary, let's put it in the vector
-			args.emplace_back(std::string_view(&d[0], std::distance(d, b + s)));
-			s = line.find_first_not_of(" \t", s);
+			args.emplace_back(std::string_view(&d[0], std::distance(d, c)));
+            for (; *(b + s) == ' ' || *(b + s) == '\t'; ++s);
 			d = b + s;
 		}
-		else if (((c == '"' || c == '\'') && *(b + s - 1) != '\\'))
+		else if (((*c == '"' || *c == '\'') && (quote == *c || quote == '\0') && *(c - 1) != '\\'))
 		{
-            if (c == '$')
-            {
-                ++s;
-                c = '}';
-            }
-
-			do
-			{
-				s = line.find(c, s + 1);
-			} while (*(b + s - 1) == '\\' && s != std::string_view::npos);
-
-            if (s != std::string_view::npos)
-                ++s;
+            if (quote == '\0')
+                quote = *c;
             else
-                --s;
+                quote = '\0';
+            ++s;
 		}
-        else if (c == '$' && *(b + s + 1) == '{')
+        else if (*c == '{' && *(c - 1) == '$')
         {
             // This is MQ2 specific handling, we want to allow passing of ${} arguments without needing quotes
-            int b_count = 1, s_count = 0;
-            do
+            int b_count = 1;
+            bool b_quote = false;
+            ++s;
+            for (; b_count > 0 && s < line.length(); ++s)
             {
-                s = line.find_first_of("$}[]", s + 1);
-                if (*(b + s) == '$' && *(b + s + 1) == '{' && s_count == 0)
-                    ++b_count;
-                else if (*(b + s) == '}' && s_count == 0)
+                if (b_quote)
+                {
+                    if (*(b + s) == '"' && s + 1 < line.length() &&
+                        (*(b + s + 1) == ']' || *(b + s + 1) == ','))
+                        b_quote = false;
+                }
+                else if (*(b + s) == '}')
                     --b_count;
-                else if (*(b + s) == '[')
-                    ++s_count;
-                else if (*(b + s) == ']')
-                    --s_count;
-            } while(b_count != 0 && s != std::string_view::npos);
-
-            if (s != std::string_view::npos)
-                ++s;
-            else
-                --s;
+                else if (*(b + s) == '{')
+                    ++b_count;
+                else if (s + 1 < line.length() && *(b + s + 1) == '"' &&
+                    (*(b + s) == '[' || *(b + s) == ','))
+                    b_quote = true;
+            }
         }
 		else
-		{
-			// we had a backslash before this delimiter, so advance one
 			++s;
-		}
 	}
+
+	// hit the end of the string, assume this finishes off any current token
+	// we explicitly only want to tokenize if we have an argument
+	if (std::distance(d, std::end(line)) > 0)
+		args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
 
 	return args;
 }
