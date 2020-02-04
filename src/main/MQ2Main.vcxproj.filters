@@ -39,8 +39,14 @@
     <Filter Include="Source Files\datatypes">
       <UniqueIdentifier>{7c8bf5c2-6364-450f-9606-96eacfab025d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\contrib\argparse">
-      <UniqueIdentifier>{b01b30cd-e9fe-474d-8263-4814e664cc28}</UniqueIdentifier>
+    <Filter Include="Header Files\contrib\mini-yaml">
+      <UniqueIdentifier>{55505fe6-974c-45d0-8042-6cd5a917d07c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contrib\mini-yaml">
+      <UniqueIdentifier>{143e675e-d8ba-4d83-800a-40269d7928eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contrib\args">
+      <UniqueIdentifier>{d68e9c62-1513-44e2-a8ad-d03140a4c900}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -368,6 +374,9 @@
     <ClCompile Include="MQ2Anonymize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
+      <Filter>Source Files\Contrib\mini-yaml</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -475,8 +484,11 @@
     <ClInclude Include="DebugHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h">
-      <Filter>Header Files\contrib\argparse</Filter>
+    <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp">
+      <Filter>Header Files\contrib\mini-yaml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\args\args.hxx">
+      <Filter>Header Files\contrib\args</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

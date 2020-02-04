@@ -902,6 +902,7 @@ void InitializeMQ2Commands()
 		{ "/quit",              QuitCmd,                    true,  false },
 		{ "/removelev",         RemoveLevCmd,               true,  false },
 		{ "/engine",            EngineCommand,              true,  false },
+		{ "/mqanon",            MQAnon,                     false, false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};
