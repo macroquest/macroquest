@@ -100,6 +100,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="datatypes\MQ2AdvLootItemType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -426,7 +430,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h" />
+    <ClInclude Include="..\..\contrib\args\args.hxx" />
     <ClInclude Include="..\..\contrib\Blech\Blech.h" />
     <ClInclude Include="..\..\contrib\fmt\include\fmt\chrono.h" />
     <ClInclude Include="..\..\contrib\fmt\include\fmt\color.h" />
@@ -447,6 +451,7 @@
     <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h" />
     <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />

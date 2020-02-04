@@ -18,7 +18,7 @@
 #include <locale>
 #include <codecvt>
 #include <regex>
-#include <argparse/argparse.h>
+#include <args/args.hxx>
 
 namespace mq {
 
@@ -123,49 +123,6 @@ std::string Anonymize(std::string_view Text)
 		});
 }
 
-class anon_args {
-public:
-	enum class sub_commands {
-		none,
-		add,
-		drop,
-		alias,
-		unalias,
-		unknown
-	};
-
-	argparse::ArgumentParser main;
-	argparse::ArgumentParser unknown;
-	ci_unordered::map<argparse::ArgumentParser> subcommands;
-
-	anon_args() {
-		main = argparse::ArgumentParser("main parser");
-		main.add_argument("category")
-			.default_value("none")
-			.help("the action you want to take with argument parser")
-			.action([this](std::string_view value)
-				{
-					auto it = subcommands.find(value);
-					if (it != subcommands.end())
-						return it->second;
-					else
-						return unknown;
-				});
-
-
-		main.add_argument("remaining")
-			.remaining();
-
-		unknown = argparse::ArgumentParser("unknown command");
-		unknown.help("unknown parameter value");
-	}
-};
-
-void AddAnonymization(SPAWNINFO* pChar, std::string_view args)
-{
-
-}
-
 // ***************************************************************************
 // Function:    MQAnon
 // Description: Our '/mqanon' command
@@ -179,12 +136,78 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	if (!pChar)
 		return;
 
-	char szBuff[MAX_STRING] = { 0 };
-	GetArg(szBuff, szLine, 1);
+	args::ArgumentParser arg_parser("mqanon parser");
+	arg_parser.Prog("/mqanon");
+	args::Group commands(arg_parser, "commands");
 
-	using CommandFunc = void(*)(SPAWNINFO*, std::string_view);
-	ci_unordered::map<CommandFunc> arg_map;
+	args::Command add(commands, "add", "adds anonymization name and replacement text", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
 
-	arg_map.emplace("add", [](SPAWNINFO* pChar, std::string_view args) {});
+		args::Group arguments(command, "arguments", args::Group::Validators::All);
+		args::Positional<std::string> name(arguments, "name", "the name to anonymize");
+		args::Positional<std::string> replace(arguments, "replace", "the text to replace the name with");
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		AddAnonymization(name.Get(), replace.Get());
+	});
+
+	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+		args::Group arguments(command, "arguments", args::Group::Validators::All);
+		args::Positional<std::string> name(arguments, "name", "the name to de-anonymize");
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		DropAnonymization(name.Get());
+	});
+
+	args::Command alias(commands, "alias", "adds an alias for a name in the list of filtered names", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+		args::Group arguments(command, "arguments", args::Group::Validators::All);
+		args::Positional<std::string> name(arguments, "name", "the name entry to alias");
+		args::Positional<std::string> alias(arguments, "alias", "the alias to also search for when replacing the name");
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		AddAlternate(name.Get(), alias.Get());
+	});
+
+	args::Command unalias(commands, "unalias", "drops an alias for a name in the list of filtered names", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+		args::Group arguments(command, "arguments", args::Group::Validators::All);
+		args::Positional<std::string> name(arguments, "name", "the name entry to unalias");
+		args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		DropAlternate(name.Get(), alias.Get());
+	});
+
+	args::HelpFlag h(commands, "help", "help", { 'h', "help" });
+
+	try
+	{
+		arg_parser.ParseArgs(allocate_args(szLine));
+	}
+	catch (args::Help)
+	{
+		WriteChatColor(arg_parser.Help().c_str());
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
 }
 }
