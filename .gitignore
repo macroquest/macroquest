@@ -176,3 +176,5 @@ MQ2Main/Logs
 /MQ2Mule
 /MQ2Twist
 /WinTest
+/libzyre.lib
+/libczmq.lib

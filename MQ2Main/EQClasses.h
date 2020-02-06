@@ -2262,7 +2262,11 @@ EQLIB_OBJECT void CDisplay::ProcessSky(void);
 EQLIB_OBJECT void CDisplay::ProcessSwitches(void);
 EQLIB_OBJECT void CDisplay::ProcessWeather(void);
 EQLIB_OBJECT void CDisplay::RealRender_World(void);
+#if defined(TEST)
+EQLIB_OBJECT void CDisplay::ReloadUI(bool,bool);
+#else
 EQLIB_OBJECT void CDisplay::ReloadUI(bool);
+#endif
 EQLIB_OBJECT void CDisplay::Render_MinWorld(void);
 EQLIB_OBJECT void CDisplay::Render_World(void);
 EQLIB_OBJECT void CDisplay::ResetRenderWindow(void);

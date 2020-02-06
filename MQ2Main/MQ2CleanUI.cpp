@@ -32,13 +32,21 @@ public:
         Benchmark(bmPluginsCleanUI,DebugTry(PluginsCleanUI()));
         DebugTry(CleanUI_Trampoline());
     } 
-
-    VOID ReloadUI_Trampoline(BOOL);
-    VOID ReloadUI_Detour(BOOL UseINI)
+	#if defined(TEST)
+    VOID ReloadUI_Trampoline(bool, bool);
+    VOID ReloadUI_Detour(bool UseINI, bool bUnknown)
+    {
+        DebugTry(ReloadUI_Trampoline(UseINI, bUnknown));
+        Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
+    }
+	#else
+    VOID ReloadUI_Trampoline(bool);
+    VOID ReloadUI_Detour(bool UseINI)
     {
         DebugTry(ReloadUI_Trampoline(UseINI));
         Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
     }
+	#endif
 
     /* This function is still in the client; however, it was phased out as of 
     the Omens of War Expansion
@@ -172,7 +180,11 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
 DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PVOID,unsigned int)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
+#if defined(TEST)
+DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(bool, bool)); 
+#else
+DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(bool)); 
+#endif
 std::list<std::string>oldstrings;
 
 #ifdef ISXEQ
@@ -238,8 +250,8 @@ VOID InitializeDisplayHook()
     DebugSpew("Initializing Display Hooks");
 
     EzDetourwName(CDisplay__CleanGameUI,&CDisplayHook::CleanUI_Detour,&CDisplayHook::CleanUI_Trampoline,"CDisplay__CleanGameUI");
-    EzDetourwName(CDisplay__ReloadUI,&CDisplayHook::ReloadUI_Detour,&CDisplayHook::ReloadUI_Trampoline,"CDisplay__ReloadUI");
-    //EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
+	EzDetourwName(CDisplay__ReloadUI,&CDisplayHook::ReloadUI_Detour,&CDisplayHook::ReloadUI_Trampoline,"CDisplay__ReloadUI");
+	//EzDetourwName(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline,"CDisplay__GetWorldFilePath");
 #ifndef ISXEQ
     EzDetourwName(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline,"DrawNetStatus");
 #endif
