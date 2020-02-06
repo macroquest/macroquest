@@ -97,7 +97,7 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, EQBETA, ROF2EMU or UFEMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-#define LIVE
+#define TEST
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
@@ -865,38 +865,65 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define GAMESTATE_LOGGINGIN     253
 #define GAMESTATE_UNLOADING     255
 
-#define XWM_LCLICK              1
-#define XWM_LMOUSEUP            2
-#define XWM_RCLICK              3
-#define XWM_LDBLCLICK           4
-#define XWM_HITENTER            6
-#define XWM_CLOSE               10
-#define XWN_TOOLTIP             12
-#define XWM_NEWVALUE            14
-#define XWM_COLUMNCLICK         15
-#define XWM_SORTREQUEST         16
-#define XWM_IS_LINK_ACTIVE      19
-#define XWM_MENUSELECT          20
-#define XWM_MOUSEOVER           21
-#define XWM_HISTORY             22
-#define XWM_LCLICKHOLD          23
-#define XWM_RCLICKHOLD          24
-#define XWM_LINK                27
-#define XWM_MAXIMIZEBOX         29
-#define XWM_ACHIEVEMENTLINK     31
-//not sure what 32 is now, they inserted a new message smack in the middle instead of adding it to the end
-//i think its achievement related. -eqmule
+#define XWM_LCLICK					1
+#define XWM_LMOUSEUP				2
+#define XWM_RCLICK					3
+#define XWM_LDBLCLICK				4
+#define XWM_RDBLCLICK				5
+#define XWM_HITENTER				6
+#define XWN_TAB						7
+#define XWN_SHIFTTAB				8
+#define XWN_QMARKBOX				9
+#define XWM_CLOSE					10
+#define XWN_CHILDCLOSED				11
+#define XWN_TOOLTIP					12
+#define XWN_REQUESTINFO				13
+#define XWM_NEWVALUE				14
+#define XWM_COLUMNCLICK				15
+#define XWM_SORTREQUEST				16
+#define XWN_LISTBOX_EDIT_UPDATE		17
+#define XWN_CLICKSTICKSTART			18
+#define XWM_IS_LINK_ACTIVE			19
+#define XWM_MENUSELECT				20
+#define XWM_MOUSEOVER				21
+#define XWM_HISTORY					22
+#define XWM_LCLICKHOLD				23
+#define XWM_RCLICKHOLD				24
+#define XWN_LBUTTONUPAFTERHELD		25
+#define XWN_RBUTTONUPAFTERHELD		26
+#define XWM_LINK					27 //see 7147C8 in jan 09 2020 exe -eqmule
+#define XWN_FINDERITEMOPEN			28
+#define XWM_MAXIMIZEBOX				29
+#define XWN_TITLEBAR				30
+#define XWM_ACHIEVEMENTLINK			31 //see 714959 in jan 09 2020 exe -eqmule
+//not sure what 32 and 34 are now, they inserted new messages smack in the middle instead of adding to the end
+//achievement related? -eqmule
 #if !defined(ROF2EMU) && !defined(UFEMU)
-#define XWN_DIALOGRESPONSELINK  33
-#define XWM_FOCUS               34
-#define XWM_LOSTFOCUS           35
-#define XWM_TEXTENTRY_COMPLETE  41
-#define XWM_RSELITEM_DOWN       47
-#define XWN_OUTPUT_TEXT         49
-#define XWN_COMMANDLINK         50
+#define XWN_NOTSURE32				32
+#define XWN_DIALOGRESPONSELINK		33 //see 714B5A in jan 09 2020 exe -eqmule
+#define XWM_SPELL_LINK				34 //see 7148F9 in jan 09 2020 exe -eqmule
+#define XWM_FOCUS					35
+#define XWM_LOSTFOCUS				36
+#define	XWN_RELOAD_FROM_SIDL		37
+#define XWN_ACTIVATE				38
+#define XWN_SLIDER_COMPLETE			39
+#define XWN_SLIDER_COMPLETE_EX		40
+#define XWN_COLORPICKER_COMPLETE	41
+#define XWM_TEXTENTRY_COMPLETE		42 //see 714712 in jan 09 2020 exe -eqmule
+#define XWN_FILESELECTION_COMPLETE	43
+#define XWN_ICONSELECTION_COMPLETE	44
+#define XWN_RELOAD_INI				45
+#define XWN_THUMBTRACK				46
+#define XWN_SELITEM_DOWN			47
+#define XWN_FIRST_USER				48 //see 6FF040 in jan 09 2020 exe -eqmule
+#define XWM_RSELITEM_DOWN			49
+#define XWN_OUTPUT_TEXT				50 //see 714C1A in jan 09 2020 exe -eqmule
+#define XWN_COMMANDLINK				51 //see 714BD1 in jan 09 2020 exe -eqmule
+#define XWM_RAIDINVITE_LINK			52 //a guess, see 714CBC in jan 09 2020 exe -eqmule
+#define XWM_FACTION_LINK			53 //a guess, see 7150B5 in jan 09 2020 exe -eqmule
 //ok so here we have 2 new messages 51 and 52 see https://forums.daybreakgames.com/eq/index.php?threads/game-update-notes-july-19-2017.242705/
 //I think they where added in that patch
-//they are dynamiczone/raid related or something
+//they are dynamiczone/raid/faction related
 //need to investigate further to know for sure -eqmule
 #else
 #define XWN_DIALOGRESPONSELINK  32

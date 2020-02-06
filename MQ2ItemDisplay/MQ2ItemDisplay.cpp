@@ -1608,8 +1608,15 @@ public:
 						bi.ItemDisplayWnd = pWnd;	
 						if (CXWnd*orgbutton = pWnd->GetChildItem("IDW_ModButtonLabel")) {
 							int spacing = 22;
+							int rewardspacing = 32;
 							//header
 							int pheader_top = orgbutton->GetLocation().top + 12;
+							//if (Item->CharmFile[0]) {
+							//if (CXWnd*rewardbutton = pWnd->GetChildItem("IDW_RewardButtonLabel")) {
+								//if (rewardbutton->IsVisible()) {
+									//pheader_top += rewardspacing;
+								//}
+							//}
 							int pheader_bottom = pheader_top + 12;
 							int pheader_left = orgbutton->GetLocation().left;
 							if (CXWnd*fusebutton = pWnd->GetChildItem("IDW_FuseButtonLabel")) {
@@ -1635,6 +1642,12 @@ public:
 							//int pAlwaysNeedBtn_Location_right = pAlwaysNeedBtn_Location_left + 14;
 							//vs chat change:
 							int pAlwaysNeedBtn_Location_top = orgbutton->GetLocation().top + 28;
+							//if (Item->CharmFile[0]) {
+								//if (CXWnd*rewardbutton = pWnd->GetChildItem("IDW_RewardButtonLabel")) {
+								//if (rewardbutton->IsVisible()) {
+									//pAlwaysNeedBtn_Location_top += rewardspacing;
+								//}
+							//}
 							int pAlwaysNeedBtn_Location_bottom = pAlwaysNeedBtn_Location_top + 14;
 							///int pAlwaysNeedBtn_Location_left = orgbutton->GetLocation().left;
 							int pAlwaysNeedBtn_Location_left = pheader->GetLocation().left;
@@ -3268,7 +3281,7 @@ int DoIHave(PITEMINFO Item)
 				}
 			}
 			// Bags
-			for (nPack = 0; nPack < 10; nPack++)
+			for (nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
 			{
 				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 				{

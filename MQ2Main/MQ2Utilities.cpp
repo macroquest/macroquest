@@ -2179,7 +2179,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 			{
 				unsigned long nPack;
 				// iterate through inventory slots before in-pack slots
-				for (nPack = 0; nPack < 10; nPack++)
+				for (nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
 				{
 					if (PCONTENTS pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
 					{
@@ -2187,7 +2187,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 							Result(pContents, nPack + 21);
 					}
 				}
-				for (nPack = 0; nPack < 10; nPack++)
+				for (nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
 				{
 					if (PCONTENTS pContents = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->Contents.ContainedItems.Capacity)
@@ -7441,7 +7441,7 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
 					}
 				}
 			}
-			for (unsigned long nPack = 0; nPack < 10; nPack++) {
+			for (unsigned long nPack = 0; nPack < NUM_BAG_SLOTS; nPack++) {
 				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
@@ -8121,7 +8121,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 		}
 		//not found? ok check inside bags
 		if (pChar2 && pChar2->pInventoryArray) {
-			for (unsigned long nPack = 0; nPack < 10; nPack++) {
+			for (unsigned long nPack = 0; nPack < NUM_BAG_SLOTS; nPack++) {
 				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
@@ -8355,7 +8355,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+		for (unsigned long nPack = 0; nPack < NUM_BAG_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
@@ -8549,7 +8549,7 @@ PCONTENTS FindItemByID(int ItemID)
 
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+		for (unsigned long nPack = 0; nPack < NUM_BAG_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
@@ -8792,7 +8792,7 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+		for (unsigned long nPack = 0; nPack < NUM_BAG_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
@@ -9052,7 +9052,7 @@ DWORD FindItemCountByID(int ItemID)
 
 	//check the bags
 	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++) {
+		for (unsigned long nPack = 0; nPack < NUM_BAG_SLOTS; nPack++) {
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {

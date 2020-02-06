@@ -514,6 +514,7 @@ enum MOUSE_DATA_TYPES {
 #define NUM_RACES                       17
 #define NUM_SLOTDATA                    0x6
 #define NUM_BLOCKED_BUFFS               40
+#define NUM_BAG_SLOTS					10
 
 #define EQ_EXPANSION(x)                 (1 << (x - 1))
 #define EXPANSION_RoK                   EQ_EXPANSION(1)
@@ -1105,7 +1106,7 @@ typedef struct _INVENTORY {
 /*0x50*/  struct    _CONTENTS* Waist;
 /*0x54*/  struct    _CONTENTS* PowerSource;
 /*0x58*/  struct    _CONTENTS* Ammo;
-/*0x5c*/  struct    _CONTENTS* Pack[0xa];
+/*0x5c*/  struct    _CONTENTS* Pack[NUM_BAG_SLOTS];
 /*0x84*/  struct    _CONTENTS* Cursor;
 } INVENTORY, *PINVENTORY;
 

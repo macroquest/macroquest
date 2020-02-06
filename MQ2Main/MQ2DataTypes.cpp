@@ -6721,7 +6721,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pTicksType;
 		return true;
 	case EQSpellDuration:
-		Dest.DWord = EQGetSpellDuration(pSpell, NULL, false);
+		Dest.DWord = EQGetSpellDuration(pSpell, ((PSPAWNINFO)pLocalPlayer)->Level, true);
 		Dest.Type = pTicksType;
 		return true;
 	case CastByMe:

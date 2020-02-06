@@ -814,7 +814,7 @@ inline LONG GetMemorizedSpell(LONG index)
 	}
 	return -1;
 }
-inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
+inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char casterlevel, bool isitemeffect)
 {
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 #ifdef NEWCHARINFO
@@ -823,7 +823,7 @@ inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 		if (pCharInfo->vtable2) {
 #endif
 			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
-				return (LONG)cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
+				return (LONG)cb->SpellDuration((EQ_Spell*)pSpell, casterlevel, isitemeffect);
 			}
 		}
 	}

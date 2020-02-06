@@ -426,7 +426,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 	if (!_strnicmp(szCommand, "unload", 6)) {
 		UnloadPlugin(szName, szCommand);
 	}
-	else if (!_strnicmp(szCommand, "load", 5)) {
+	else if (!_strnicmp(szCommand, "load", 4)) {
 		//load it
 		if (GetModuleHandle(szName))
 		{

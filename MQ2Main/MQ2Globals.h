@@ -1533,6 +1533,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXWnd__GetClientClipRect;
 	EQLIB_VAR DWORD CXWnd__GetScreenClipRect;
 	EQLIB_VAR DWORD CXWnd__GetScreenRect;
+	EQLIB_VAR DWORD CXWnd__GetRelativeRect;
 	EQLIB_VAR DWORD CXWnd__GetTooltipRect;
 	EQLIB_VAR DWORD CXWnd__GetWindowTextA;
 	EQLIB_VAR DWORD CXWnd__IsActive;

@@ -7893,10 +7893,10 @@ FUNCTION_AT_ADDRESS(class CButtonDrawTemplate const *  CXWnd::GetMinimizeBoxTemp
 FUNCTION_AT_ADDRESS(class CButtonDrawTemplate const *  CXWnd::GetTileBoxTemplate(void)const ,CXWnd__GetTileBoxTemplate);
 #endif
 #ifdef CXWnd__GetRelativeRect_x
-FUNCTION_AT_ADDRESS(class CXRect  CXWnd::GetRelativeRect(void)const ,CXWnd__GetRelativeRect);
+FUNCTION_AT_ADDRESS(class CXRect CXWnd::GetRelativeRect(void)const ,CXWnd__GetRelativeRect);
 #endif
 #ifdef CXWnd__GetScreenRect_x
-FUNCTION_AT_ADDRESS(class CXRect  CXWnd::GetScreenRect(void)const ,CXWnd__GetScreenRect);
+FUNCTION_AT_ADDRESS(class CXRect CXWnd::GetScreenRect(void)const ,CXWnd__GetScreenRect);
 #endif
 #ifdef CXWnd__Resize_x
 FUNCTION_AT_ADDRESS(int  CXWnd::Resize(int, int, bool, bool, bool),CXWnd__Resize);
