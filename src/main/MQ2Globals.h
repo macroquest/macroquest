@@ -83,14 +83,6 @@ MQLIB_VAR DWORD ThreadID;
 MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
-enum EAnonFlags
-{
-	EAF_None,
-	EAF_Class,
-};
-MQLIB_VAR EAnonFlags gAnonymizeFlag;
-MQLIB_VAR bool gAnonymize;
-
 MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;
 MQLIB_VAR HWND ghInjectorWnd;

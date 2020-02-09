@@ -35,26 +35,6 @@ public:
 		DebugTry(ReloadUI_Trampoline(UseINI, bUnknown));
 		Benchmark(bmPluginsReloadUI, DebugTry(PluginsReloadUI()));
 	}
-
-	/* This function is still in the client; however, it was phased out as of
-	the Omens of War Expansion
-
-	bool GetWorldFilePath_Trampoline(char *, char *);
-	bool GetWorldFilePath_Detour(char *Filename, char *FullPath)
-	{
-		if (!_stricmp(FullPath,"bmpwad8.s3d"))
-		{
-			sprintf_s(Filename,"%s\\bmpwad8.s3d",gszINIPath);
-			if (_access(Filename,0)!=-1)
-			{
-				return 1;
-			}
-		}
-
-		bool Ret=GetWorldFilePath_Trampoline(Filename,FullPath);
-		return Ret;
-	}
-	*/
 };
 
 void DrawNetStatus_Trampoline(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps);
@@ -115,77 +95,8 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 	int sX = pWndMgr->ScreenExtentX;
 	int sY = pWndMgr->ScreenExtentY;
 
-	// Add Anonymize logic here.
-	if (gAnonymize)
-	{
-		if (CHARINFO* pChar = GetCharInfo())
-		{
-			SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
-
-			char word[MAX_STRING] = { 0 };
-			char szText[MAX_STRING] = { 0 };
-
-			strcpy_s(szText, Text);
-
-			while (pSpawn)
-			{
-				if (pSpawn->Type != SPAWN_NPC
-					|| (pSpawn->Type == SPAWN_NPC && pSpawn->MasterID))
-				{
-					// FIXME: Deduplicate this code
-
-					while (strstr(szText, pSpawn->DisplayedName))
-					{
-						int EntEnd = (int)(strstr(szText, pSpawn->DisplayedName) - szText + strlen(pSpawn->DisplayedName));
-						int EntStart = (int)(strstr(szText, pSpawn->DisplayedName) - szText);
-						int namelen = EntEnd - EntStart;
-
-						strncpy_s(word, &szText[EntStart], EntEnd - EntStart);
-
-						if (!Anonymize(word, MAX_STRING, 2))
-						{
-							// try to anonymize word, if I fail, then replace the word with asterisk.
-							for (int i = EntStart + 1; i < EntEnd - 1; i++)
-							{
-								szText[i] = '*';
-							}
-						}
-						else
-						{
-							// if the word gets anonymized, lets build the new output string, nessesary for Anonymize where AnonymizeFlag=1
-							char* firsthalf = new char[MAX_STRING];
-
-							// copy the first half of the string and store it here.
-							strncpy_s(firsthalf, MAX_STRING, &szText[0], EntStart);
-
-							char* secondhalf = new char[MAX_STRING];
-
-							// copy the part after the word and store it here.
-							strncpy_s(secondhalf, MAX_STRING, &szText[EntEnd], strlen(szText));
-
-							//concatinate the word to the first half
-							strcat_s(firsthalf, MAX_STRING, word);
-
-							// concatenate the second half to the end of the firsthalf+word.
-							strcat_s(firsthalf, MAX_STRING, secondhalf);
-
-							// store the newly built string as the szText to output.
-							strcpy_s(szText, MAX_STRING, firsthalf);
-
-							delete[] firsthalf;
-							delete[] secondhalf;
-						}
-					}
-				}
-				pSpawn = pSpawn->pNext;
-			}
-
-			pFont->DrawWrappedText(szText, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
-			return;
-		}
-	}
-
-	pFont->DrawWrappedText(Text, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
+	CXStr LineOut = Text;
+	pFont->DrawWrappedText(Anonymize(LineOut), X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
 }
 
 class EQ_LoadingSHook
@@ -201,11 +112,10 @@ public:
 	}
 };
 
-//DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *));
-DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
-DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool, bool));
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool));
+DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
+DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
 
 static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {
@@ -254,9 +164,7 @@ void InitializeDisplayHook()
 
 	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
-	//EzDetour(CDisplay__GetWorldFilePath, &CDisplayHook::GetWorldFilePath_Detour, &CDisplayHook::GetWorldFilePath_Trampoline);
 	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
-	//EzDetour(EQ_LoadingS__SetProgressBar, &EQ_LoadingSHook::SetProgressBar_Detour, &EQ_LoadingSHook::SetProgressBar_Trampoline);
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
@@ -288,8 +196,6 @@ void ShutdownDisplayHook()
 	RemoveDetour(CDisplay__CleanGameUI);
 	RemoveDetour(CDisplay__ReloadUI);
 	RemoveDetour(DrawNetStatus);
-	//RemoveDetour(EQ_LoadingS__SetProgressBar);
-	//RemoveDetour(CDisplay__GetWorldFilePath);
 }
 
 } // namespace mq
