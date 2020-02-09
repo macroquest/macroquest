@@ -79,12 +79,8 @@ struct {
 	{-1,     nullptr}
 };
 
-// CSidlManager::CreateLabel 0x5F2470
-
 // the tool tip is already copied out of the in class CControlTemplate. Use this struct
 // to mock up the class, so we don't have to worry about class instatiation and crap
-CComboWnd* Advlootcombo = nullptr;
-bool gAnonMasterLooterName = true;
 
 class CSidlManagerHook
 {
@@ -99,120 +95,9 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(CLabel* CSidlManagerHook::CreateLabel_Trampoline(CXWnd*, CControlTemplate*));
 
-int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
-int GetGaugeValueFromEQ_Detour(int EQType, CXStr& out, bool* arg3, unsigned long* colorout)
-{
-	int ret = GetGaugeValueFromEQ_Trampoline(EQType, out, arg3, colorout);
-	if (gAnonymize)
-		Anonymize2(out);
-	return ret;
-}
-
-int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
-int GetLabelFromEQ_Detour(int EQType, CXStr& out, bool* arg3, unsigned long* colorout)
-{
-	int ret = GetLabelFromEQ_Trampoline(EQType, out, arg3, colorout);
-	if (gAnonymize)
-		Anonymize2(out);
-	return ret;
-}
-
-bool bTrimnames = false;
-
-// Anonymized -> Normal
-std::map<CXStr, CXStr> lootcombo;
-
-bool gweareaddingpeople = false;
-
-// CLabelHook::Draw_Detour
-void CleanupLootCombo(bool bupdatemasterlooter);
 class CLabelHook
 {
 public:
-	int CListWnd__AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr);
-	int CListWnd__AddString_Detour(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
-	{
-		if (gAnonymize)
-		{
-			CXStr anonymized = Str;
-			Anonymize2(anonymized, 2);
-			return CListWnd__AddString_Trampoline(anonymized, Color, Data, pTa, TooltipStr);
-		}
-		return CListWnd__AddString_Trampoline(Str, Color, Data, pTa, TooltipStr);
-	}
-
-	void CAdvancedLootWnd__UpdateMasterLooter_Trampoline(const CXStr& Name, bool bChanged);
-	void CAdvancedLootWnd__UpdateMasterLooter_Detour(const CXStr& Name, bool bChanged)
-	{
-		CAdvancedLootWnd__UpdateMasterLooter_Trampoline(Name, bChanged);
-		if (gAnonymize && gAnonMasterLooterName)
-		{
-			UpdatedMasterLooterLabel();
-		}
-	}
-
-	CXStr CComboWnd__GetChoiceText_Trampoline(int index) const;
-	CXStr CComboWnd__GetChoiceText_Detour(int index) const
-	{
-		CXStr ret = CComboWnd__GetChoiceText_Trampoline(index);
-		if (gAnonymize && lootcombo.find(ret) != lootcombo.end())
-			ret = lootcombo[ret];
-		return ret;
-	}
-
-	void CListWnd__SetItemText_Trampoline(int ID, int SubItem, const CXStr& Str);
-	void CListWnd__SetItemText_Detour(int ID, int SubItem, const CXStr& Str)
-	{
-		CListWnd__SetItemText_Trampoline(ID, SubItem, Str);
-	}
-
-	int CComboWnd__InsertChoiceAtIndex_Trampoline(const CXStr& Str, uint32_t index);
-	int CComboWnd__InsertChoiceAtIndex_Detour(const CXStr& Str, uint32_t index)
-	{
-		if (gAnonymize)
-		{
-			Advlootcombo = (CComboWnd*)this;
-
-			// If we've already anonymized this string, use the cached version
-			for (const auto& [key, val] : lootcombo)
-				if (val == Str)
-					return CComboWnd__InsertChoiceAtIndex_Trampoline(key, index);
-
-			// Otherwise, anonymize & cache it
-			CXStr anonymized = Str;
-			Anonymize2(anonymized, 2);
-			lootcombo[anonymized] = Str;
-
-			return CComboWnd__InsertChoiceAtIndex_Trampoline(anonymized, index);
-		}
-		return CComboWnd__InsertChoiceAtIndex_Trampoline(Str, index);
-	}
-
-	void CAdvancedLootWnd__AddPlayerToList_Trampoline(CGroupMemberBase*);
-	void CAdvancedLootWnd__AddPlayerToList_Detour(CGroupMemberBase* base)
-	{
-		gweareaddingpeople = true;
-		CAdvancedLootWnd__AddPlayerToList_Trampoline(base);
-		gweareaddingpeople = false;
-	}
-
-	int CComboWnd__InsertChoice_Trampoline(const CXStr& Str, uint32_t index);
-	int CComboWnd__InsertChoice_Detour(const CXStr& Str, uint32_t index)
-	{
-		return CComboWnd__InsertChoice_Trampoline(Str, index);
-	}
-
-	char* CEverQuest__trimName_Trampoline(char*);
-	char* CEverQuest__trimName_Detour(char* arg1)
-	{
-		char* ret = CEverQuest__trimName_Trampoline(arg1);
-		if (gAnonymize)
-		{
-			Anonymize(ret, strlen(ret));
-		}
-		return ret;
-	}
-
 	void Draw_Trampoline();
 	void Draw_Detour()
 	{
@@ -221,49 +106,6 @@ public:
 		DWORD index;
 
 		CXStr buffer;
-
-		if (gAnonymize)
-		{
-			if (!bTrimnames)
-			{
-				EzDetour(CAdvancedLootWnd__UpdateMasterLooter, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Detour, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Trampoline);
-				EzDetour(CComboWnd__GetChoiceText, &CLabelHook::CComboWnd__GetChoiceText_Detour, &CLabelHook::CComboWnd__GetChoiceText_Trampoline);
-				EzDetour(CComboWnd__InsertChoiceAtIndex, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Detour, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Trampoline);
-				EzDetour(CAdvancedLootWnd__AddPlayerToList, &CLabelHook::CAdvancedLootWnd__AddPlayerToList_Detour, &CLabelHook::CAdvancedLootWnd__AddPlayerToList_Trampoline);
-				EzDetour(CListWnd__AddString, &CLabelHook::CListWnd__AddString_Detour, &CLabelHook::CListWnd__AddString_Trampoline);
-				EzDetour(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline);
-				EzDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline);
-				EzDetour(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline);
-
-				if (pAdvancedLootWnd && GetGameState() == GAMESTATE_INGAME)
-				{
-					CleanupLootCombo(true);
-				}
-				bTrimnames = true;
-			}
-
-			if (pThisLabel)
-			{
-				buffer = pThisLabel->GetWindowText();
-				Anonymize2(buffer, 2);
-			}
-		}
-		else
-		{
-			if (bTrimnames)
-			{
-				bTrimnames = false;
-				RemoveDetour(CComboWnd__GetChoiceText);
-				RemoveDetour(CComboWnd__InsertChoiceAtIndex);
-				RemoveDetour(CAdvancedLootWnd__AddPlayerToList);
-				RemoveDetour(CListWnd__AddString);
-				RemoveDetour(CEverQuest__trimName);
-				RemoveDetour(__GetGaugeValueFromEQ);
-				RemoveDetour(__GetLabelFromEQ);
-				CleanupLootCombo(false);
-				RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
-			}
-		}
 
 		Draw_Trampoline();
 
@@ -308,18 +150,7 @@ public:
 			pThisLabel->SetWindowText(buffer);
 	}
 };
-
-DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CListWnd__AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr));
-DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Trampoline(const CXStr& Name, bool bChanged));
-DETOUR_TRAMPOLINE_EMPTY(CXStr CLabelHook::CComboWnd__GetChoiceText_Trampoline(int index) const);
-DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CListWnd__SetItemText_Trampoline(int ID, int SubItem, const CXStr& Str));
-DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CComboWnd__InsertChoiceAtIndex_Trampoline(const CXStr& Str, uint32_t index));
-DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CAdvancedLootWnd__AddPlayerToList_Trampoline(CGroupMemberBase*));
-DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CComboWnd__InsertChoice_Trampoline(const CXStr& Str, uint32_t Data));
 DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::Draw_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(char* CLabelHook::CEverQuest__trimName_Trampoline(char*));
-DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
-DETOUR_TRAMPOLINE_EMPTY(int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
 
 bool StealNextGauge = false;
 DWORD NextGauge = 0;
@@ -330,74 +161,12 @@ PLUGIN_API void InitializePlugin()
 	// Add commands, macro parameters, hooks, etc.
 	EzDetourwName(CLabel__Draw, &CLabelHook::Draw_Detour, &CLabelHook::Draw_Trampoline, "CLabel__Draw");
 	EzDetourwName(CSidlManagerBase__CreateLabel, &CSidlManagerHook::CreateLabel_Detour, &CSidlManagerHook::CreateLabel_Trampoline, "CSidlManager__CreateLabel");
-
-	if (gAnonymize)
-	{
-		// advloot anonymizing
-		EzDetourwName(CAdvancedLootWnd__UpdateMasterLooter, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Detour, &CLabelHook::CAdvancedLootWnd__UpdateMasterLooter_Trampoline, "CAdvancedLootWnd__UpdateMasterLooter");
-		EzDetourwName(CComboWnd__GetChoiceText, &CLabelHook::CComboWnd__GetChoiceText_Detour, &CLabelHook::CComboWnd__GetChoiceText_Trampoline, "CComboWnd__GetChoiceText");
-		EzDetourwName(CComboWnd__InsertChoiceAtIndex, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Detour, &CLabelHook::CComboWnd__InsertChoiceAtIndex_Trampoline, "CComboWnd__InsertChoiceAtIndex");
-		EzDetourwName(CAdvancedLootWnd__AddPlayerToList, &CLabelHook::CAdvancedLootWnd__AddPlayerToList_Detour, &CLabelHook::CAdvancedLootWnd__AddPlayerToList_Trampoline, "CAdvancedLootWnd__AddPlayerToList");
-		if (pAdvancedLootWnd && GetGameState() == GAMESTATE_INGAME)
-		{
-			CleanupLootCombo(true);
-		}
-
-		EzDetourwName(CListWnd__AddString, &CLabelHook::CListWnd__AddString_Detour, &CLabelHook::CListWnd__AddString_Trampoline, "CListWnd__AddString");
-		EzDetourwName(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline, "CEverQuest__trimName");
-		EzDetourwName(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline, "__GetGaugeValueFromEQ");
-		EzDetourwName(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline, "__GetLabelFromEQ");
-		bTrimnames = true;
-	}
-}
-
-void CleanupLootCombo(bool bupdatemasterlooter)
-{
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (pChar->pGroupInfo)
-		{
-			for (auto& i : pChar->pGroupInfo->pMember)
-			{
-				if (i && i->MasterLooter)
-				{
-					gAnonMasterLooterName = bupdatemasterlooter;
-					pAdvancedLootWnd.get_as<CLabelHook>()->CAdvancedLootWnd__UpdateMasterLooter_Detour(i->Name, true);
-					gAnonMasterLooterName = true;
-					break;
-				}
-			}
-		}
-	}
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
 	// Remove commands, macro parameters, hooks, etc.
-	if (bTrimnames)
-	{
-		bTrimnames = false;
-		RemoveDetour(CComboWnd__GetChoiceText);
-		RemoveDetour(CComboWnd__InsertChoiceAtIndex);
-		RemoveDetour(CAdvancedLootWnd__AddPlayerToList);
-		RemoveDetour(CListWnd__AddString);
-		RemoveDetour(CEverQuest__trimName);
-		RemoveDetour(__GetGaugeValueFromEQ);
-		RemoveDetour(__GetLabelFromEQ);
-		CleanupLootCombo(false);
-		RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
-	}
-
 	RemoveDetour(CSidlManagerBase__CreateLabel);
 	RemoveDetour(CLabel__Draw);
-}
-
-PLUGIN_API void OnCleanUI()
-{
-	if (Advlootcombo)
-	{
-		Advlootcombo = nullptr;
-		lootcombo.clear();
-	}
 }

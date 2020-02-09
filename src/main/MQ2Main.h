@@ -671,9 +671,11 @@ MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void RemoveAutoBankMenu();
 MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
-MQLIB_API bool Anonymize(char* name, int maxlen, int NameFlag = 0);
-MQLIB_API bool Anonymize2(CXStr& name, int NameFlag = 0);
-MQLIB_API void UpdatedMasterLooterLabel();
+
+/* MQ2ANONYMIZE */
+MQLIB_API void InitializeAnonymizer();
+MQLIB_API void ShutdownAnonymizer();
+MQLIB_API const char* Anonymize(CXStr& Text);
 
 MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 

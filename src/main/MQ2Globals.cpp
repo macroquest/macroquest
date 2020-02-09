@@ -63,8 +63,6 @@ int gBuild = 1;               // LIVE
 
 bool g_bDoingModuleChecks = false;
 DWORD gGameState = 0;
-bool gAnonymize = false;
-EAnonFlags gAnonymizeFlag = EAF_None;
 DWORD ThreadID = 0;
 bool g_Loaded = false;
 bool gbWriteAllConfig = false;

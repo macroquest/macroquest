@@ -19,109 +19,248 @@
 #include <codecvt>
 #include <regex>
 #include <args/args.hxx>
+#include <memory>
 
 namespace mq {
 
 class anon_replacer {
 public:
+	const std::string name;
+
+private:
 	std::string target;
-	ci_unordered::set alternates;
+	std::set<std::string> alternates;
 	std::regex search_string;
 
 private:
-	std::regex build_regex(std::string_view name)
+	void build_regex()
 	{
-		return std::regex(
-			fmt::format("\b({}{})\b", name, std::accumulate(alternates.cbegin(), alternates.cend(), std::string(),
+		search_string = std::regex(
+			fmt::format("\\b({}{})\\b", name, std::accumulate(alternates.cbegin(), alternates.cend(), std::string(),
 				[](const std::string& text, std::string_view alt) -> std::string {
 					return fmt::format("{}|{}", text, alt);
 				})),
 			std::regex_constants::icase);
 	}
 
-	static ci_unordered::set add_alternate(std::string_view alternate, ci_unordered::set&& alternates)
-	{
-		alternates.emplace(alternate);
-		return alternates;
-	}
-
-	static ci_unordered::set drop_alternate(std::string_view alternate, ci_unordered::set&& alternates)
-	{
-		alternates.erase(alternate);
-		return alternates;
-	}
-
 public:
-	anon_replacer(std::string_view name, std::string_view target, ci_unordered::set&& alternates)
-		: target(target), alternates(std::move(alternates))
+	anon_replacer(std::string_view name, std::string_view target)
+		: name(name), target(target)
 	{
-		search_string = build_regex(name);
+		build_regex();
 	}
 
-	static anon_replacer with_alternate(std::string_view name, std::string_view alternate, anon_replacer&& replacer)
+	void add_alternate(std::string_view alternate)
 	{
-		return anon_replacer(name, replacer.target, add_alternate(alternate, std::move(replacer.alternates)));
+		alternates.emplace(std::string(alternate));
+		build_regex();
 	}
 
-	static anon_replacer without_alternate(std::string_view name, std::string_view alternate, anon_replacer&& replacer)
+	void drop_alternate(std::string_view alternate)
 	{
-		return anon_replacer(name, replacer.target, drop_alternate(alternate, std::move(replacer.alternates)));
+		alternates.erase(std::string(alternate));
+		build_regex();
+	}
+
+	void update_target(std::string_view target)
+	{
+		this->target = target;
+	}
+
+	std::string_view get_target()
+	{
+		return target;
 	}
 
 	// this is designed to be used with an accumulate that returns a string, so move the old text in
-	std::string replace_text(std::string&& text)
+	std::string replace_text(std::string&& text) const
 	{
 		return std::regex_replace(std::move(text), search_string, ModifyMacroString(target));
 	}
 };
 
+// TODO List:
+//  - add adders/removers/replacers for guild/group/raid
+//    - needs to be dynamic
+//    - include the guild name in the guild replacer
+//  - add helper for the "Class" replacer and the "Asterisk" replacer
+
 // the source string_view is checked _after_ string parsing
 // the target string is parsed before replacement
-ci_unordered::map<anon_replacer> filter_map;
+static std::vector<std::unique_ptr<anon_replacer> > replacers;
 
 // the source string_view here will be used to index
 // creating a regex that looks like `(source|all|the|alternates)`
 
+// helper function to find a replacer by name
+static std::vector<std::unique_ptr<anon_replacer> >::iterator FindReplacer(std::string_view Name)
+{
+	return std::find_if(std::begin(replacers), std::end(replacers),
+		[&Name](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Name, r->name); });
+}
+
+// helper function to find a name by replacer
+static std::vector<std::unique_ptr<anon_replacer> >::iterator ReverseFind(std::string_view Target)
+{
+	return std::find_if(std::begin(replacers), std::end(replacers),
+		[&Target](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Target, r->get_target()); });
+}
+
 // add an anonymization rule to the map -- if the rule already exists, assume we want to update the target
-void AddAnonymization(std::string_view Name, std::string_view Replace)
+static void AddAnonymization(std::string_view Name, std::string_view Replace)
 {
-	auto [it, result] = filter_map.try_emplace(Name, anon_replacer(Name, Replace, {}));
+	auto replacer_it = FindReplacer(Name);
 
-	if (!result) // this is automatically an assign since result is false
-		filter_map.insert_or_assign(Name, anon_replacer(Name, Replace, std::move(it->second.alternates)));
+	if (replacer_it != std::end(replacers))
+		(*replacer_it)->update_target(Replace); // just change the replace text
+	else
+		replacers.emplace_back(std::make_unique<anon_replacer>(Name, Replace));
 }
 
-void DropAnonymization(std::string_view Name)
+static void DropAnonymization(std::string_view Name)
 {
-	filter_map.erase(Name);
-}
+	auto replacer_it = FindReplacer(Name);
 
-// will not add an entry if there is nothing available
-void AddAlternate(std::string_view Name, std::string_view Alternate)
-{
-	auto result = filter_map.find(Name);
-	// automatically an assign, but we want to make sure not to add an element without a target
-	if (result != filter_map.end())
-		filter_map.insert_or_assign(Name, anon_replacer::with_alternate(Name, Alternate, std::move(result->second)));
+	if (replacer_it != std::end(replacers))
+		replacers.erase(replacer_it);
 }
 
 // will not add an entry if there is nothing available
-void DropAlternate(std::string_view Name, std::string_view Alternate)
+static void AddAlternate(std::string_view Name, std::string_view Alternate)
 {
-	auto result = filter_map.find(Name);
-	// automatically an assign, but we want to make sure not to add an element without a target
-	if (result != filter_map.end())
-		filter_map.insert_or_assign(Name, anon_replacer::without_alternate(Name, Alternate, std::move(result->second)));
+	auto replacer_it = FindReplacer(Name);
+
+	if (replacer_it != std::end(replacers))
+		(*replacer_it)->add_alternate(Alternate);
+
+	// don't do anything if we can't find the name
+}
+
+// will not add an entry if there is nothing available
+static void DropAlternate(std::string_view Name, std::string_view Alternate)
+{
+	auto replacer_it = FindReplacer(Name);
+
+	if (replacer_it != std::end(replacers))
+		(*replacer_it)->drop_alternate(Alternate);
+}
+
+// let the user pass without a name
+static void DropAlternate(std::string_view Alternate)
+{
+	std::for_each(std::begin(replacers), std::end(replacers),
+		[&Alternate](const std::unique_ptr<anon_replacer>& r) { if (r) r->drop_alternate(Alternate); });
 }
 
 // process string to anonymize
-std::string Anonymize(std::string_view Text)
+const char* Anonymize(CXStr& Text)
 {
-	return std::accumulate(filter_map.cbegin(), filter_map.cend(), std::string(Text),
-		[](std::string text, std::pair<std::string_view, anon_replacer> pair) -> std::string {
-			return pair.second.replace_text(std::move(text));
-		});
+	Text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
+		[](std::string text, const std::unique_ptr<anon_replacer>& r) -> std::string {
+			return  r ? r->replace_text(std::move(text)) : text;
+		}).c_str();
+
+	return Text.c_str();
 }
+
+int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
+int GetGaugeValueFromEQ_Detour(int EQType, CXStr& out, bool* arg3, unsigned long* colorout)
+{
+	int ret = GetGaugeValueFromEQ_Trampoline(EQType, out, arg3, colorout);
+	Anonymize(out);
+	return ret;
+}
+
+int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
+int GetLabelFromEQ_Detour(int EQType, CXStr& out, bool* arg3, unsigned long* colorout)
+{
+	int ret = GetLabelFromEQ_Trampoline(EQType, out, arg3, colorout);
+	Anonymize(out);
+	return ret;
+}
+
+class CListWndHook
+{
+public:
+	int AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr);
+	int AddString_Detour(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
+	{
+		CXStr LineOut = Str;
+		return AddString_Trampoline(Anonymize(LineOut), Color, Data, pTa, TooltipStr);
+	}
+};
+
+class CAdvancedLootWndHook
+{
+public:
+	void UpdateMasterLooter_Trampoline(const CXStr& Name, bool bChanged);
+	void UpdateMasterLooter_Detour(const CXStr& Name, bool bChanged) // TODO: do we need to call this when we turn anon on and off/update the anon list?
+	{
+		UpdateMasterLooter_Trampoline(Name, bChanged);
+		if (!pAdvancedLootWnd)
+			return;
+
+		CHARINFO* pChar = GetCharInfo();
+		if (!pChar || !pChar->pGroupInfo)
+			return;
+
+		CLabelWnd* MasterLooterLabel = (CLabelWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter");
+		if (!MasterLooterLabel)
+			return;
+
+		CXStr LabelOut = MasterLooterLabel->Text;
+		MasterLooterLabel->SetWindowText(Anonymize(LabelOut));
+	}
+};
+
+class CComboWndHook
+{
+private:
+public:
+	CXStr GetChoiceText_Trampoline(int index) const;
+	CXStr GetChoiceText_Detour(int index) const
+	{
+		CXStr ret = GetChoiceText_Trampoline(index);
+
+		auto r_it = ReverseFind(ret);
+		if (r_it != std::end(replacers))
+			ret = (*r_it)->name;
+
+		return ret;
+	}
+
+	int InsertChoiceAtIndex_Trampoline(const CXStr& Str, uint32_t index);
+	int InsertChoiceAtIndex_Detour(const CXStr& Str, uint32_t index)
+	{
+		CXStr LineOut = Str;
+		return InsertChoiceAtIndex_Trampoline(Anonymize(LineOut), index);
+	}
+};
+
+class CEverQuestHook
+{
+public:
+	char* TrimName_Trampoline(const char*);
+	char* TrimName_Detour(const char* arg1)
+	{
+		char* ret = TrimName_Trampoline(arg1);
+
+		CXStr LineOut = ret;
+		LineOut = Anonymize(LineOut);
+
+		// ret has been allocated 2112 (2048 + 64, I guess?) bytes, so we gotta limit to that
+		strncpy_s(ret, LineOut.length() + 1, LineOut.c_str(), 2112U);
+		return ret;
+	}
+};
+
+DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
+DETOUR_TRAMPOLINE_EMPTY(int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
+DETOUR_TRAMPOLINE_EMPTY(int CListWndHook::AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr));
+DETOUR_TRAMPOLINE_EMPTY(void CAdvancedLootWndHook::UpdateMasterLooter_Trampoline(const CXStr& Name, bool bChanged));
+DETOUR_TRAMPOLINE_EMPTY(CXStr CComboWndHook::GetChoiceText_Trampoline(int index) const);
+DETOUR_TRAMPOLINE_EMPTY(int CComboWndHook::InsertChoiceAtIndex_Trampoline(const CXStr& Str, uint32_t index));
+DETOUR_TRAMPOLINE_EMPTY(char* CEverQuestHook::TrimName_Trampoline(const char*));
 
 // ***************************************************************************
 // Function:    MQAnon
@@ -184,15 +323,18 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command unalias(commands, "unalias", "drops an alias for a name in the list of filtered names", [](args::Subparser& parser) {
 		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
 
-		args::Group arguments(command, "arguments", args::Group::Validators::All);
-		args::Positional<std::string> name(arguments, "name", "the name entry to unalias");
+		args::Group arguments(command, "arguments", args::Group::Validators::AtLeastOne);
+		args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
 		args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
 
 		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
 		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 		parser.Parse();
 
-		DropAlternate(name.Get(), alias.Get());
+		if (alias)
+			DropAlternate(name.Get(), alias.Get());
+		else
+			DropAlternate(name.Get());
 	});
 
 	args::HelpFlag h(commands, "help", "help", { 'h', "help" });
@@ -209,5 +351,31 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	{
 		WriteChatColor(e.what());
 	}
+}
+
+void InitializeAnonymizer()
+{
+	EzDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline);
+	EzDetour(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline);
+	EzDetour(CListWnd__AddString, &CListWndHook::AddString_Detour, &CListWndHook::AddString_Trampoline);
+	EzDetour(CAdvancedLootWnd__UpdateMasterLooter, &CAdvancedLootWndHook::UpdateMasterLooter_Detour, &CAdvancedLootWndHook::UpdateMasterLooter_Trampoline);
+	EzDetour(CComboWnd__GetChoiceText, &CComboWndHook::GetChoiceText_Detour, &CComboWndHook::GetChoiceText_Trampoline);
+	EzDetour(CComboWnd__InsertChoiceAtIndex, &CComboWndHook::InsertChoiceAtIndex_Detour, &CComboWndHook::InsertChoiceAtIndex_Trampoline);
+	EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
+
+	AddCommand("/mqanon", MQAnon, false, false, false);
+}
+
+void ShutdownAnonymizer()
+{
+	RemoveDetour(__GetGaugeValueFromEQ);
+	RemoveDetour(__GetLabelFromEQ);
+	RemoveDetour(CListWnd__AddString);
+	RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
+	RemoveDetour(CComboWnd__GetChoiceText);
+	RemoveDetour(CComboWnd__InsertChoiceAtIndex);
+	RemoveDetour(CEverQuest__trimName);
+
+	RemoveCommand("/mqanon");
 }
 }

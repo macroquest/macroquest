@@ -29,8 +29,6 @@ float CampX = 0.0f;
 float CampY = 0.0f;
 float PullX = 0.0f;
 float PullY = 0.0f;
-bool wasAnon = false;
-bool needAnon = false;
 bool Update = true;
 uint16_t currentZoneId = 0;
 bool repeatMaphide = false;
@@ -273,7 +271,6 @@ PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("Initializing MQ2Map");
 
-	wasAnon = gAnonymize;
 	bmMapRefresh = AddMQ2Benchmark("Map Refresh");
 
 	char szBuffer[MAX_STRING] = { 0 };
@@ -396,12 +393,6 @@ PLUGIN_API void OnPulse()
 
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
 		}
-	}
-
-	if (gAnonymize != wasAnon)
-	{
-		wasAnon = gAnonymize;
-		needAnon = true;
 	}
 
 	char szBuffer[MAX_STRING] = { 0 };

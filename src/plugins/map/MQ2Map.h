@@ -118,9 +118,6 @@ extern float CampY;
 extern float PullX;
 extern float PullY;
 
-extern bool wasAnon;
-extern bool needAnon;
-
 extern std::map<std::string, MAPLOC*> LocationMap;
 extern MAPLOC* DefaultMapLoc;
 
