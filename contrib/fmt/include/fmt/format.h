@@ -3587,7 +3587,7 @@ FMT_END_NAMESPACE
     std::string s = format(fmt("{:d}"), "foo");
   \endrst
  */
-#  define fmt(s) FMT_STRING(s)
+//#  define fmt(s) FMT_STRING(s)
 #endif
 
 #ifdef FMT_HEADER_ONLY
