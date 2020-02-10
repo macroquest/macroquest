@@ -27,6 +27,7 @@ namespace mq {
 // Variables (most of it is wrapped up in the yaml node)
 std::string anon_config_path;
 Yaml::Node anon_config;
+bool anon_enabled;
 
 class anon_replacer {
 public:
@@ -52,6 +53,18 @@ public:
 	anon_replacer(std::string_view name, std::string_view target)
 		: name(name), target(target)
 	{
+		build_regex();
+	}
+
+	anon_replacer(Yaml::Node& node)
+		: name(node["name"].As<std::string>()), target(node["target"].As<std::string>())
+	{
+		if (node["alternates"].IsSequence())
+		{
+			for (auto alt = node["alternates"].Begin(); alt != node["alternates"].End(); alt++)
+				alternates.emplace((*alt).second.As<std::string>());
+		}
+
 		build_regex();
 	}
 
@@ -82,9 +95,22 @@ public:
 	{
 		return std::regex_replace(std::move(text), search_string, ModifyMacroString(target));
 	}
+
+	Yaml::Node Serialize()
+	{
+		Yaml::Node node;
+
+        node["name"] = name;
+        node["target"] = target;
+        for (auto alt : alternates)
+            node["alternates"].PushBack() = alt;
+        
+        return node;
+	}
 };
 
 // TODO List:
+//  - add save and load commands
 //  - add adders/removers/replacers for guild/group/raid
 //    - needs to be dynamic
 //    - include the guild name in the guild replacer
@@ -157,10 +183,48 @@ static void DropAlternate(std::string_view Alternate)
 		[&Alternate](const std::unique_ptr<anon_replacer>& r) { if (r) r->drop_alternate(Alternate); });
 }
 
+static void Serialize()
+{
+	anon_config["enabled"] = anon_enabled ? "true" : "false";
+	anon_config["replacers"].Clear();
+	if (!replacers.empty())
+	{
+		for (auto replacer = std::cbegin(replacers); replacer != std::cend(replacers); ++replacer)
+			anon_config["replacers"].PushBack() = (*replacer)->Serialize();
+	}
+	else
+		anon_config.Erase("replacers");
+
+	Yaml::Serialize(anon_config, anon_config_path.c_str());
+}
+
+static void Deserialize()
+{
+	try
+	{
+		Yaml::Parse(anon_config, anon_config_path.c_str());
+	}
+	catch (const Yaml::OperationException&)
+	{
+		// if we can't read the file, then try to write it with an empty config
+		Yaml::Serialize(anon_config, anon_config_path.c_str());
+	}
+
+	anon_enabled = anon_config["enabled"].As<bool>(false);
+
+	if (anon_config["replacers"].IsSequence())
+	{
+		for (auto replacer = anon_config["replacers"].Begin(); replacer != anon_config["replacers"].End(); replacer++)
+			replacers.emplace_back(std::make_unique<anon_replacer>((*replacer).second));
+
+		anon_config["replacers"].Clear();
+	}
+}
+
 // process string to anonymize
 CXStr& Anonymize(CXStr& Text)
 {
-	if (anon_config["enabled"].As<bool>(false))
+	if (anon_enabled)
 	{
 		Text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
 			[](std::string text, const std::unique_ptr<anon_replacer>& r) -> std::string {
@@ -364,7 +428,8 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	}
 
 	if (args.empty())
-		anon_config["enabled"] = anon_config["enabled"].As<bool>(false) ? "false" : "true";
+		anon_enabled = !anon_enabled;
+		//anon_config["enabled"] = anon_config["enabled"].As<bool>(false) ? "false" : "true";
 }
 
 void InitializeAnonymizer()
@@ -378,14 +443,7 @@ void InitializeAnonymizer()
 	EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
 
 	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
-	try
-	{
-		Yaml::Parse(anon_config, anon_config_path.c_str());
-	}
-	catch (const Yaml::OperationException&)
-	{
-		Yaml::Serialize(anon_config, anon_config_path.c_str());
-	}
+	Deserialize();
 
 	AddCommand("/mqanon", MQAnon, false, false, false);
 }
@@ -394,7 +452,7 @@ void ShutdownAnonymizer()
 {
 	RemoveCommand("/mqanon");
 
-	Yaml::Serialize(anon_config, anon_config_path.c_str());
+	Serialize();
 
 	RemoveDetour(__GetGaugeValueFromEQ);
 	RemoveDetour(__GetLabelFromEQ);
