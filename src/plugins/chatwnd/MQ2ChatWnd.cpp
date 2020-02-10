@@ -536,7 +536,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	char* szProcessed = new char[MAX_STRING];
 
 	CXStr LineOut = Line;
-	int pos = MQToSTML(Anonymize(LineOut), szProcessed, MAX_STRING - 4, Color);
+	int pos = MQToSTML(Anonymize(LineOut).c_str(), szProcessed, MAX_STRING - 4, Color);
 
 	CXStr text = szProcessed;
 	text.append("<br>");

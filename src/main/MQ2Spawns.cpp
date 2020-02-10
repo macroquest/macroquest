@@ -507,8 +507,8 @@ static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
 {
 	if (CaptionString[0])
 	{
-		CXStr CaptionOut = ModifyMacroString(CaptionString).c_str();
-		reinterpret_cast<PlayerClient*>(pSpawn)->ChangeBoneStringSprite(0, Anonymize(CaptionOut));
+		CXStr CaptionOut(ModifyMacroString(CaptionString));
+		reinterpret_cast<PlayerClient*>(pSpawn)->ChangeBoneStringSprite(0, Anonymize(CaptionOut).c_str());
 		return true;
 	}
 

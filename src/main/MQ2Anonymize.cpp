@@ -20,8 +20,13 @@
 #include <regex>
 #include <args/args.hxx>
 #include <memory>
+#include <Yaml.hpp>
 
 namespace mq {
+
+// Variables (most of it is wrapped up in the yaml node)
+std::string anon_config_path;
+Yaml::Node anon_config;
 
 class anon_replacer {
 public:
@@ -153,14 +158,17 @@ static void DropAlternate(std::string_view Alternate)
 }
 
 // process string to anonymize
-const char* Anonymize(CXStr& Text)
+CXStr& Anonymize(CXStr& Text)
 {
-	Text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
-		[](std::string text, const std::unique_ptr<anon_replacer>& r) -> std::string {
-			return  r ? r->replace_text(std::move(text)) : text;
-		}).c_str();
+	if (anon_config["enabled"].As<bool>(false))
+	{
+		Text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
+			[](std::string text, const std::unique_ptr<anon_replacer>& r) -> std::string {
+				return  r ? r->replace_text(std::move(text)) : text;
+			}).c_str();
+	}
 
-	return Text.c_str();
+	return Text;
 }
 
 int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
@@ -249,7 +257,7 @@ public:
 		LineOut = Anonymize(LineOut);
 
 		// ret has been allocated 2112 (2048 + 64, I guess?) bytes, so we gotta limit to that
-		strncpy_s(ret, LineOut.length() + 1, LineOut.c_str(), 2112U);
+		strncpy_s(ret, 2112U, LineOut.c_str(), LineOut.length() + 1);
 		return ret;
 	}
 };
@@ -277,7 +285,8 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::ArgumentParser arg_parser("mqanon parser");
 	arg_parser.Prog("/mqanon");
-	args::Group commands(arg_parser, "commands");
+	arg_parser.RequireCommand(false);
+	args::Group commands(arg_parser, "commands", args::Group::Validators::AtMostOne);
 
 	args::Command add(commands, "add", "adds anonymization name and replacement text", [](args::Subparser& parser) {
 		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
@@ -339,11 +348,13 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::HelpFlag h(commands, "help", "help", { 'h', "help" });
 
+	auto args = allocate_args(szLine);
+
 	try
 	{
-		arg_parser.ParseArgs(allocate_args(szLine));
+		arg_parser.ParseArgs(args);
 	}
-	catch (args::Help)
+	catch (const args::Help&)
 	{
 		WriteChatColor(arg_parser.Help().c_str());
 	}
@@ -351,6 +362,9 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	{
 		WriteChatColor(e.what());
 	}
+
+	if (args.empty())
+		anon_config["enabled"] = anon_config["enabled"].As<bool>(false) ? "false" : "true";
 }
 
 void InitializeAnonymizer()
@@ -363,11 +377,25 @@ void InitializeAnonymizer()
 	EzDetour(CComboWnd__InsertChoiceAtIndex, &CComboWndHook::InsertChoiceAtIndex_Detour, &CComboWndHook::InsertChoiceAtIndex_Trampoline);
 	EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
 
+	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
+	try
+	{
+		Yaml::Parse(anon_config, anon_config_path.c_str());
+	}
+	catch (const Yaml::OperationException&)
+	{
+		Yaml::Serialize(anon_config, anon_config_path.c_str());
+	}
+
 	AddCommand("/mqanon", MQAnon, false, false, false);
 }
 
 void ShutdownAnonymizer()
 {
+	RemoveCommand("/mqanon");
+
+	Yaml::Serialize(anon_config, anon_config_path.c_str());
+
 	RemoveDetour(__GetGaugeValueFromEQ);
 	RemoveDetour(__GetLabelFromEQ);
 	RemoveDetour(CListWnd__AddString);
@@ -375,7 +403,5 @@ void ShutdownAnonymizer()
 	RemoveDetour(CComboWnd__GetChoiceText);
 	RemoveDetour(CComboWnd__InsertChoiceAtIndex);
 	RemoveDetour(CEverQuest__trimName);
-
-	RemoveCommand("/mqanon");
 }
 }
