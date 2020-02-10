@@ -675,7 +675,7 @@ MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 /* MQ2ANONYMIZE */
 MQLIB_API void InitializeAnonymizer();
 MQLIB_API void ShutdownAnonymizer();
-MQLIB_API const char* Anonymize(CXStr& Text);
+MQLIB_API CXStr& Anonymize(CXStr& Text);
 
 MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 
