@@ -1,5 +1,5 @@
 Feb 09 2020
-- Fixed a bug where our version of /hotbutton would not save the button to the ini. - reported by drWhomPhd
+- Fixed a bug where our version of /hotbutton would not save the button to the ini. - reported by DrWhomPhd
 -
 Feb 06 2020
 - Updated for TEST

@@ -4493,6 +4493,11 @@ typedef struct _CMDLIST {
     DWORD Flags;
 } CMDLIST, *PCMDLIST;
 
+typedef struct _EQSOCIALCHANGED
+{
+	bool bChanged[10][12];
+} EQSOCIALCHANGED, *PEQSOCIALCHANGED;
+
 typedef struct _EQSOCIAL {
 /*0x0000*/	CHAR	Name[0x10];
 /*0x0010*/	CHAR	Line[0x5][0x100];
