@@ -102,6 +102,7 @@ namespace MQ2Globals
 
 
 		pGuildList = (PGUILDS)__Guilds;
+		pbSocialChangedList = (PEQSOCIALCHANGED)EverQuestInfo__bSocialChanged;
 		pSocialList = (PEQSOCIAL)__Socials;
 #if defined(ROF2EMU) || defined(UFEMU)
 		pgHotkeyPage = (PBYTE)__HotkeyPage;
@@ -1165,6 +1166,7 @@ namespace MQ2Globals
 
 
 	PGUILDS pGuildList = 0;
+	PEQSOCIALCHANGED   pbSocialChangedList = 0;
 	PEQSOCIAL   pSocialList = 0;
 	PBYTE pgHotkeyPage = 0;
 	PINT pgCurrentSocial = 0;
@@ -1424,6 +1426,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__ServerName);
 	INITIALIZE_EQGAME_OFFSET(__ShiftKeyDown);
 	INITIALIZE_EQGAME_OFFSET(__ShowNames);
+	INITIALIZE_EQGAME_OFFSET(EverQuestInfo__bSocialChanged);
 	INITIALIZE_EQGAME_OFFSET(__Socials);
 	INITIALIZE_EQGAME_OFFSET(__SubscriptionType);
 	INITIALIZE_EQGAME_OFFSET(__TargetAggroHolder);

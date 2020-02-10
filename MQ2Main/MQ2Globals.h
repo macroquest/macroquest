@@ -484,6 +484,7 @@ namespace MQ2Globals
 #define pSwitchMgr (*ppSwitchMgr)
 	EQLIB_VAR EQZoneInfo *pZoneInfo;
 	EQLIB_VAR PGUILDS pGuildList;
+	EQLIB_VAR PEQSOCIALCHANGED   pbSocialChangedList;
 	EQLIB_VAR PEQSOCIAL   pSocialList;
 
 	EQLIB_VAR PBYTE pgHotkeyPage;
@@ -872,6 +873,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __ServerName;
 	EQLIB_VAR DWORD __ShiftKeyDown;
 	EQLIB_VAR DWORD __ShowNames;
+	EQLIB_VAR DWORD EverQuestInfo__bSocialChanged;
 	EQLIB_VAR DWORD __Socials;
 	EQLIB_VAR DWORD __TargetAggroHolder;
 	EQLIB_VAR DWORD __ZoneType;

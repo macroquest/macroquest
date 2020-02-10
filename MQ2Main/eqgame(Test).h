@@ -94,6 +94,7 @@ GNU General Public License for more details.
 #define __ServerName_x                                             0xEFF6E4
 #define __ShiftKeyDown_x                                           0xEC953C
 #define __ShowNames_x                                              0xECA27C
+#define EverQuestInfo__bSocialChanged_x                            0xEFF76C
 #define __Socials_x                                                0xEFF7E4
 #define __SubscriptionType_x                                       0xFC4BD8
 #define __TargetAggroHolder_x                                      0xF83080

@@ -3908,7 +3908,8 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
 {
-	if (!pSocialList) return;
+	if (!pSocialList || !pbSocialChangedList)
+		return;
 
 	DWORD SocialIndex = -1, LineIndex;
 	DWORD SocialPage = 0, SocialNum = 0;
@@ -3987,6 +3988,7 @@ VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
 		{
 			SocialPage = SocialIndex / 12;
 			SocialNum = SocialIndex - (SocialPage * 12);
+			//int fjfjf = 0x051C / SocialIndex;
 			if (pSocialList[SocialIndex].Name[0] == '\0' || !_stricmp(pSocialList[SocialIndex].Name, szName))
 			{
 				//found one we can use...
@@ -3996,6 +3998,7 @@ VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
 					pSocialList[SocialIndex].Color = (BYTE)iColor;
 				}
 				strcpy_s(pSocialList[SocialIndex].Line[LineIndex], szText);
+				pbSocialChangedList->bChanged[SocialPage][SocialNum] = true;
 				if (iCursor)
 				{
 					pCursorAttachment->AttachToCursor(NULL, NULL, 4 /*SOCIAL ATTACHMENT*/, SocialIndex, szName, szText);
