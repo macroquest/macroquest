@@ -25,9 +25,9 @@
 namespace mq {
 
 // Variables (most of it is wrapped up in the yaml node)
-std::string anon_config_path;
-Yaml::Node anon_config;
-bool anon_enabled;
+static std::string anon_config_path;
+static Yaml::Node anon_config;
+static bool anon_enabled;
 
 class anon_replacer {
 public:
@@ -110,7 +110,6 @@ public:
 };
 
 // TODO List:
-//  - add save and load commands
 //  - add adders/removers/replacers for guild/group/raid
 //    - needs to be dynamic
 //    - include the guild name in the guild replacer
@@ -410,6 +409,11 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			DropAlternate(name.Get());
 	});
 
+	args::Command save(commands, "save", "saves the configuration to file, completely rewriting data",
+		[](args::Subparser&) { Serialize(); });
+	args::Command load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
+		[](args::Subparser&) { Deserialize(); });
+
 	args::HelpFlag h(commands, "help", "help", { 'h', "help" });
 
 	auto args = allocate_args(szLine);
@@ -443,7 +447,7 @@ void InitializeAnonymizer()
 	EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
 
 	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
-	Deserialize();
+	Deserialize(); // always load on initialization
 
 	AddCommand("/mqanon", MQAnon, false, false, false);
 }
@@ -451,8 +455,6 @@ void InitializeAnonymizer()
 void ShutdownAnonymizer()
 {
 	RemoveCommand("/mqanon");
-
-	Serialize();
 
 	RemoveDetour(__GetGaugeValueFromEQ);
 	RemoveDetour(__GetLabelFromEQ);
