@@ -113,7 +113,7 @@ public:
 //  - add adders/removers/replacers for guild/group/raid
 //    - needs to be dynamic
 //    - include the guild name in the guild replacer
-//  - add helper for the "Class" replacer and the "Asterisk" replacer
+//  - add benchmark
 
 // the source string_view is checked _after_ string parsing
 // the target string is parsed before replacement
@@ -145,6 +145,25 @@ static void AddAnonymization(std::string_view Name, std::string_view Replace)
 		(*replacer_it)->update_target(Replace); // just change the replace text
 	else
 		replacers.emplace_back(std::make_unique<anon_replacer>(Name, Replace));
+}
+
+static void AddClassAnonymization(std::string_view Name)
+{
+	AddAnonymization(Name, fmt::format("[${{Spawn[pc {0}].Level}}] ${{Spawn[pc {0}].Race}} ${{Spawn[pc {0}].Class}} ${{Spawn[pc {0}].Type}}", Name));
+}
+
+static void AddMeAnonymization(std::string_view Name)
+{
+	AddAnonymization(Name, "[${Me.Level}] ${Me.Race} ${Me.Class} ${Me.Type}");
+}
+
+static void AddAsteriskAnonymization(std::string_view Name)
+{
+	std::string asterisk_name(Name);
+	for (size_t i = 1; i < asterisk_name.length() - 1; ++i)
+		asterisk_name[i] = '*';
+
+	AddAnonymization(Name, asterisk_name);
 }
 
 static void DropAnonymization(std::string_view Name)
@@ -356,13 +375,25 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 		args::Group arguments(command, "arguments", args::Group::Validators::All);
 		args::Positional<std::string> name(arguments, "name", "the name to anonymize");
-		args::Positional<std::string> replace(arguments, "replace", "the text to replace the name with");
+		args::Group replacer(arguments, "replacer", args::Group::Validators::AtMostOne);
+		
+		args::Command none(replacer, "none", "anonymize with asterisks",
+			[&name](args::Subparser&) { AddAsteriskAnonymization(name.Get()); });
+		args::Command clas(replacer, "class", "anonymize by class attributes",
+			[&name](args::Subparser&) { AddClassAnonymization(name.Get()); });
+		args::Command me(replacer, "me", "anonymize with my class attributes",
+			[&name](args::Subparser&) { AddMeAnonymization(name.Get()); });
+		args::Command with(replacer, "with", "anonymize with specific macro string",
+			[&name](args::Subparser& parser) {
+				args::Group with(parser, "with", args::Group::Validators::AtLeastOne);
+				args::Positional<std::string> replace(with, "replace", "the text to replace the name with");
+				parser.Parse();
+				AddAnonymization(name.Get(), replace.Get());
+			});
 
 		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
 		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 		parser.Parse();
-
-		AddAnonymization(name.Get(), replace.Get());
 	});
 
 	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names", [](args::Subparser& parser) {
