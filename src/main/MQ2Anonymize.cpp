@@ -244,10 +244,12 @@ CXStr& Anonymize(CXStr& Text)
 {
 	if (anon_enabled)
 	{
+		EnterMQ2Benchmark(bmAnonymizer);
 		Text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
 			[](std::string text, const std::unique_ptr<anon_replacer>& r) -> std::string {
 				return  r ? r->replace_text(std::move(text)) : text;
 			}).c_str();
+		ExitMQ2Benchmark(bmAnonymizer);
 	}
 
 	return Text;
@@ -477,6 +479,8 @@ void InitializeAnonymizer()
 	EzDetour(CComboWnd__InsertChoiceAtIndex, &CComboWndHook::InsertChoiceAtIndex_Detour, &CComboWndHook::InsertChoiceAtIndex_Trampoline);
 	EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
 
+	bmAnonymizer = AddMQ2Benchmark("Anonymizer");
+
 	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
 	Deserialize(); // always load on initialization
 
@@ -486,6 +490,8 @@ void InitializeAnonymizer()
 void ShutdownAnonymizer()
 {
 	RemoveCommand("/mqanon");
+
+	RemoveMQ2Benchmark(bmAnonymizer);
 
 	RemoveDetour(__GetGaugeValueFromEQ);
 	RemoveDetour(__GetLabelFromEQ);
