@@ -47,6 +47,7 @@ DWORD bmBeginZone = 0;
 DWORD bmEndZone = 0;
 DWORD bmSpellLoad = 0;
 DWORD bmSpellAccess = 0;
+DWORD bmAnonymizer = 0;
 
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
