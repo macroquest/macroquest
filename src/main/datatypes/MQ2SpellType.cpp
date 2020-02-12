@@ -490,7 +490,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 
 	case SpellMembers::EQSpellDuration:
-		Dest.DWord = EQGetSpellDuration(pSpell, NULL, false);
+		Dest.DWord = EQGetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
 		Dest.Type = pTicksType;
 		return true;
 

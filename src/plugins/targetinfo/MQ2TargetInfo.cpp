@@ -1632,7 +1632,7 @@ public:
 	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t Message, void* pData)
 	{
-		if (Message == XWN_OUTPUT_TEXT)
+		if (Message == XWM_OUTPUT_TEXT)
 		{
 			if (pWnd && (
 				pWnd->GetParentWindow() == GroupHotButton[0]

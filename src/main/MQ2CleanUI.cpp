@@ -29,10 +29,10 @@ public:
 		DebugTry(CleanUI_Trampoline());
 	}
 
-	void ReloadUI_Trampoline(bool);
-	void ReloadUI_Detour(bool UseINI)
+	void ReloadUI_Trampoline(bool, bool);
+	void ReloadUI_Detour(bool UseINI, bool bUnknown)
 	{
-		DebugTry(ReloadUI_Trampoline(UseINI));
+		DebugTry(ReloadUI_Trampoline(UseINI, bUnknown));
 		Benchmark(bmPluginsReloadUI, DebugTry(PluginsReloadUI()));
 	}
 
@@ -205,7 +205,7 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
 DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool));
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool, bool));
 
 static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {

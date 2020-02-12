@@ -517,7 +517,7 @@ FUNCTION_AT_ADDRESS(int CListWnd::AddColumn(const CXStr&, int, uint32_t, uint32_
 // CListWnd::AddColumn implemented in ExceptionsDisabled.cpp
 #endif
 #ifdef CListWnd__SetColumnLabel_x
-FUNCTION_AT_ADDRESS(void CListWnd::SetColumnLabel(int, CXStr), CListWnd__SetColumnLabel);
+FUNCTION_AT_ADDRESS(void CListWnd::SetColumnLabel(int, const CXStr&), CListWnd__SetColumnLabel);
 #endif
 #ifdef CListWnd__GetItemHeight_x
 FUNCTION_AT_ADDRESS(int CListWnd::GetItemHeight(int) const, CListWnd__GetItemHeight);

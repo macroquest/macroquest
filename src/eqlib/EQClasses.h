@@ -334,7 +334,7 @@ public:
 	EQLIB_OBJECT void ProcessSwitches();
 	EQLIB_OBJECT void ProcessWeather();
 	EQLIB_OBJECT void RealRender_World();
-	EQLIB_OBJECT void ReloadUI(bool);
+	EQLIB_OBJECT void ReloadUI(bool, bool);
 	EQLIB_OBJECT void Render_MinWorld();
 	EQLIB_OBJECT void Render_World();
 	EQLIB_OBJECT void ResetRenderWindow();

@@ -209,6 +209,7 @@ fEQCommand cmdFilter = nullptr;
 fEQCommand cmdDoAbility = nullptr;
 fEQCommand cmdCast = nullptr;
 fEQCommand cmdUseItem = nullptr;
+fEQCommand cmdHotbutton = nullptr;
 fEQCommand cmdPet = nullptr;
 fEQCommand cmdMercSwitch = nullptr;
 fEQCommand cmdAdvLoot = nullptr;

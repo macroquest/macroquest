@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "MQ2Main.h"
+#include "../MQ2Main.h"
 
 namespace mq::datatypes {
 
@@ -2888,6 +2888,7 @@ public:
 		MyTradeReady = 33,
 		GetCurSel = 34,
 		Address = 35,
+		Size = 36,
 	};
 
 	enum WindowMethods
@@ -2942,6 +2943,7 @@ public:
 		TypeMember(MyTradeReady);
 		TypeMember(GetCurSel);
 		TypeMember(Address);
+		TypeMember(Size);
 
 		TypeMethod(LeftMouseDown);
 		TypeMethod(LeftMouseUp);

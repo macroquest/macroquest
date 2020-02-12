@@ -1691,7 +1691,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 			if (MaskSet(Inventory) && Flag(Inventory))
 			{
 				// iterate through inventory slots before in-pack slots
-				for (int nPack = 0; nPack < NUM_INV_BAG_SLOTS; nPack++)
+				for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
 				{
 					if (CONTENTS* pContents = pProfile->pInventoryArray->Inventory.Pack[nPack])
 					{
@@ -1700,7 +1700,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 					}
 				}
 
-				for (int nPack = 0; nPack < NUM_INV_BAG_SLOTS; nPack++)
+				for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
 				{
 					if (CONTENTS* pContents = pProfile->pInventoryArray->Inventory.Pack[nPack])
 					{
@@ -3929,6 +3929,10 @@ char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpaw
 				pSearchSpawn->GuildID = GuildID;
 				szRest = GetNextArg(szRest, 1);
 			}
+			else if (SPAWNINFO* pSpawn = pLocalPlayer)
+			{
+				GuildID = pSpawn->GuildID;
+			}
 		}
 		else if (!_stricmp(szArg, "alert"))
 		{
@@ -5671,7 +5675,7 @@ CONTENTS* FindItem(T&& callback)
 	// check the bags
 	if (pProfile->pInventoryArray)
 	{
-		for (int nPack = 0; nPack < NUM_INV_BAG_SLOTS; nPack++)
+		for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
 		{
 			if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Pack[nPack])
 			{
@@ -8961,16 +8965,14 @@ bool IsGroupMember(SPAWNINFO* pSpawn)
 
 bool IsFellowshipMember(const char* SpawnName)
 {
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (!pChar->pFellowship)
-			return false;
+	SPAWNINFO* pSpawn = pLocalPlayer;
+	if (!pSpawn)
+		return false;
 
-		for (int index = 0; index < pChar->pFellowship->Members; index++)
-		{
-			if (!_stricmp(SpawnName, pChar->pFellowship->FellowshipMember[index].Name))
-				return true;
-		}
+	for (int i = 0; i < pSpawn->Fellowship.Members; ++i)
+	{
+		if (ci_equals(SpawnName, pSpawn->Fellowship.FellowshipMember[i].Name))
+			return true;
 	}
 
 	return false;

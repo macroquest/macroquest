@@ -453,6 +453,9 @@ inline bool IsNumberToComma(const char* String)
 
 inline bool LineOfSight(SPAWNINFO* Origin, SPAWNINFO* CanISeeThis)
 {
+	if (!Origin || !CanISeeThis)
+		return false;
+
 	return ((PlayerClient*)Origin)->CanSee(*(PlayerClient*)CanISeeThis);
 }
 
@@ -512,11 +515,11 @@ inline int GetMemorizedSpell(int index)
 	return -1;
 }
 
-inline int EQGetSpellDuration(SPELL* pSpell, unsigned char arg2, bool arg3)
+inline int EQGetSpellDuration(SPELL* pSpell, unsigned char casterLevel, bool isItemEffect)
 {
 	if (pCharData)
 	{
-		return pCharData->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
+		return pCharData->SpellDuration((EQ_Spell*)pSpell, casterLevel, isItemEffect);
 	}
 
 	return 0;

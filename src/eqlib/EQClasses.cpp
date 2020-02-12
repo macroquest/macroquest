@@ -199,7 +199,7 @@ FUNCTION_AT_ADDRESS(int CDisplay::ReplaceMaterial(char*, char*, T3D_HIERARCHICAL
 FUNCTION_AT_ADDRESS(int CDisplay::ReplaceCloakMaterials(int, T3D_HIERARCHICALSPRITEINSTANCE*, T3D_RGB*), CDisplay__ReplaceCloakMaterials);
 #endif
 #ifdef CDisplay__ReloadUI_x
-FUNCTION_AT_ADDRESS(void CDisplay::ReloadUI(bool), CDisplay__ReloadUI);
+FUNCTION_AT_ADDRESS(void CDisplay::ReloadUI(bool, bool), CDisplay__ReloadUI);
 #endif
 #ifdef CDisplay__HandleMaterial_x
 FUNCTION_AT_ADDRESS(void CDisplay::HandleMaterial(EQ_PC*, int, EQ_Item*, EQ_Item*), CDisplay__HandleMaterial);

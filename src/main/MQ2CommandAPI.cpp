@@ -778,6 +778,10 @@ void InitializeMQ2Commands()
 		{
 			cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/hotbutton"))
+		{
+			cmdHotbutton = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
 		else if (!strcmp(pCmdListOrig[i].szName, "/useitem"))
 		{
 			cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
@@ -877,6 +881,7 @@ void InitializeMQ2Commands()
 		{ "/drop",              DropCmd,                    true,  false },
 		{ "/delay",             Delay,                      false, false }, // do not parse
 		{ "/hud",               HudCmd,                     true,  false },
+		{ "/caption",           DoHotButton,                true,  true  },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
 		{ "/getwintitle",       GetWinTitle,                true,  false },

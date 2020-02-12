@@ -348,6 +348,7 @@ struct EQMERCALTABILITIES;
 struct EQMissileHitinfo;
 struct EQRAID;
 struct EQSOCIAL;
+struct EQSOCIALCHANGED;
 struct EQSTRINGTABLE;
 struct EVERQUEST;
 struct EVERQUESTINFO;

@@ -363,17 +363,17 @@ FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniVis(), CSidlScreenWnd__StoreIni
 #ifdef CSidlScreenWnd__EnableIniStorage_x
 FUNCTION_AT_ADDRESS(void CSidlScreenWnd::EnableIniStorage(int, char*), CSidlScreenWnd__EnableIniStorage);
 #endif
+//#ifdef CSidlScreenWnd__StoreIniInfo_x
+//FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniInfo(void), CSidlScreenWnd__StoreIniInfo);
+//#endif
+//#ifdef CSidlScreenWnd__LoadIniInfo_x
+//FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniInfo(void), CSidlScreenWnd__LoadIniInfo);
+//#endif
 #ifdef CSidlScreenWnd__ConvertToRes_x
 FUNCTION_AT_ADDRESS(int CSidlScreenWnd::ConvertToRes(int, int, int, int), CSidlScreenWnd__ConvertToRes);
 #endif
 #ifdef CSidlScreenWnd__GetChildItem_x
 //FUNCTION_AT_ADDRESS(CXWnd* CSidlScreenWnd::GetChildItem(const CXStr&, bool bDebug), CSidlScreenWnd__GetChildItem);
-#endif
-#ifdef CSidlScreenWnd__LoadIniListWnd_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::LoadIniListWnd(CListWnd*, char*), CSidlScreenWnd__LoadIniListWnd);
-#endif
-#ifdef CSidlScreenWnd__StoreIniListWnd_x
-FUNCTION_AT_ADDRESS(void CSidlScreenWnd::StoreIniListWnd(CListWnd const*, char*), CSidlScreenWnd__StoreIniListWnd);
 #endif
 
 //============================================================================

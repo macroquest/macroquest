@@ -25,33 +25,59 @@ class CSidlManagerBase;
 class CTextureFont;
 
 // Message types for WndNotifications
-#define XWM_LCLICK              1
-#define XWM_LMOUSEUP            2
-#define XWM_RCLICK              3
-#define XWM_LDBLCLICK           4
-#define XWM_HITENTER            6
-#define XWM_CLOSE               10
-#define XWN_TOOLTIP             12
-#define XWM_NEWVALUE            14
-#define XWM_COLUMNCLICK         15
-#define XWM_SORTREQUEST         16
-#define XWM_IS_LINK_ACTIVE      19
-#define XWM_MENUSELECT          20
-#define XWM_MOUSEOVER           21
-#define XWM_HISTORY             22
-#define XWM_LCLICKHOLD          23
-#define XWM_RCLICKHOLD          24
-#define XWM_LINK                27
-#define XWM_MAXIMIZEBOX         29
-#define XWM_ACHIEVEMENTLINK     31
-// unknown message exists here at 32, might be achievement related.
-#define XWN_DIALOGRESPONSELINK  33 // needs verification
-#define XWM_FOCUS               35
-#define XWM_LOSTFOCUS           36
-#define XWM_TEXTENTRY_COMPLETE  41
-#define XWM_RSELITEM_DOWN       47
-#define XWN_OUTPUT_TEXT         49
-#define XWN_COMMANDLINK         50
+#define XWM_LCLICK                       1
+#define XWM_LMOUSEUP                     2
+#define XWM_RCLICK                       3
+#define XWM_LDBLCLICK                    4
+#define XWM_RDBLCLICK                    5
+#define XWM_HITENTER                     6
+#define XWM_TAB                          7
+#define XWM_SHIFTTAB                     8
+#define XWM_QMARKBOX                     9
+#define XWM_CLOSE                        10
+#define XWM_CHILDCLOSED                  11
+#define XWN_TOOLTIP                      12
+#define XWM_REQUESTINFO                  13
+#define XWM_NEWVALUE                     14
+#define XWM_COLUMNCLICK                  15
+#define XWM_SORTREQUEST                  16
+#define XWM_LISTBOX_EDIT_UPDATE          17
+#define XWM_CLICKSTICKSTART              18
+#define XWM_IS_LINK_ACTIVE               19
+#define XWM_MENUSELECT                   20
+#define XWM_MOUSEOVER                    21
+#define XWM_HISTORY                      22
+#define XWM_LCLICKHOLD                   23
+#define XWM_RCLICKHOLD                   24
+#define XWM_LBUTTONUPAFTERHELD           25
+#define XWM_RBUTTONUPAFTERHELD           26
+#define XWM_LINK                         27 // see 7147C8 in jan 09 2020 exe -eqmule
+#define XWM_FINDERITEMOPEN               28
+#define XWM_MAXIMIZEBOX                  29
+#define XWM_TITLEBAR                     30
+#define XWM_ACHIEVEMENTLINK              31 // see 714959 in jan 09 2020 exe -eqmule
+#define XWM_NOTSURE32                    32
+#define XWN_DIALOGRESPONSELINK           33 // see 714B5A in jan 09 2020 exe -eqmule
+#define XWM_SPELL_LINK                   34 // see 7148F9 in jan 09 2020 exe -eqmule
+#define XWM_FOCUS                        35
+#define XWM_LOSTFOCUS                    36
+#define XWM_RELOAD_FROM_SIDL             37
+#define XWM_ACTIVATE                     38
+#define XWM_SLIDER_COMPLETE              39
+#define XWM_SLIDER_COMPLEX_EX            40
+#define XWM_COLORPICKER_COMPLETE         41
+#define XWM_TEXTENTRY_COMPLETE           42 // see 714712 in jan 09 2020 exe -eqmule
+#define XWM_FILESELECTION_COMPLETE       43
+#define XWM_ICONSELECTION_COMPLETE       44
+#define XWM_RELOAD_INI                   45
+#define XWM_THUMBTRACK                   46
+#define XWM_SELITEM_DOWN                 47
+#define XWM_FIRST_USER                   48 // see 6FF040 in jan 09 2020 exe -eqmule
+#define XWM_RSELITEM_DOWN                49
+#define XWM_OUTPUT_TEXT                  50 // see 714C1A in jan 09 2020 exe -eqmule
+#define XWM_COMMANDLINK                  51 // see 714BD1 in jan 09 2020 exe -eqmule
+#define XWM_RAIDINVITE_LINK              52 // a guess, see 714CBC in jan 09 2020 exe -eqmule
+#define XWM_FACTION_LINK                 53 // a guess, see 7150B5 in jan 09 2020 exe -eqmule
 
 // Defines for CXWnd WindowStyle
 #define CWS_VSCROLL                              0x00000001
@@ -268,7 +294,7 @@ public:
 // CXWnd
 //============================================================================
 
-// actual size 0x1E0 in Dec 19 2019 Live (see 0x953C0D)
+// actual size 0x1F0 in Feb 10 2020 Live (see 0x95C5DD)
 class [[offsetcomments]] CXWnd
 	: public TListNode<CXWnd>   // node in list of siblings
 	, public TList<CXWnd>       // list of children
@@ -565,6 +591,8 @@ public:
 
 	EQLIB_OBJECT void SetBringToTopWhenClicked(bool bValue) { bBringToTopWhenClicked = bValue; }
 
+	EQLIB_OBJECT bool GetNeedsSaving() const { return bNeedsSaving; }
+
 	struct [[offsetcomments]] VirtualFunctionTable
 	{
 	/*0x000*/ void* IsValid;
@@ -671,9 +699,115 @@ public:
 	// points to the eq instance of the virtual function table for this class
 	static VirtualFunctionTable* sm_vftable;
 
-#include "CXWnd-Members.h"
-
-/*0x1ec*/ };
+// @start: CXWnd Members
+/*0x01c*/ bool        bClickThroughMenuItemStatus;         // on/off
+/*0x020*/ mutable CXRect ClientRect;
+/*0x030*/ uint32_t    BlinkFadeFreq;
+/*0x034*/ bool        bAction;
+/*0x038*/ int         managerArrayIndex;
+/*0x03c*/ int         TopOffset;
+/*0x040*/ bool        bClickThrough;                       // if true you can click through the window, well it doesnt work for our chatwindow (yet) so more work is needed to figure out why
+/*0x041*/ bool        bCaptureTitle;
+/*0x044*/ uint32_t    BlinkFadeDuration;
+/*0x048*/ bool        bActive;
+/*0x04c*/ int         BlinkState;
+/*0x050*/ CXWnd*      FocusProxy;
+/*0x054*/ int         Transition;
+/*0x058*/ bool        bMarkedForDelete;
+/*0x05c*/ mutable CXRect ClipRectScreen;
+/*0x06c*/ uint32_t    BackgroundDrawType;
+/*0x070*/ int         HScrollPos;
+/*0x074*/ mutable bool bScreenClipRectChanged;
+/*0x078*/ int         DeleteCount;
+/*0x07c*/ uint32_t    TransitionStartTick;
+/*0x080*/ ArrayClass2_RO<unsigned int> RuntimeTypes;       // Size 0x1c
+/*0x098*/ bool        bKeepOnScreen;
+/*0x09c*/ int         BlinkDuration;
+/*0x0a0*/ bool        bMaximizable;
+/*0x0a1*/ bool        Locked;                              // found in CSidlScreenWnd__LoadIniInfo_x
+/*0x0a2*/ bool        bHCenterTooltip;
+/*0x0a4*/ CXStr       DataStr;
+/*0x0a8*/ bool        Faded;
+/*0x0ac*/ CXWnd*      ParentWindow;                        // CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute...
+/*0x0b0*/ uint32_t    FadeDuration;
+/*0x0b4*/ void*       pTextObject;
+/*0x0b8*/ bool        Enabled;
+/*0x0c0*/ int64_t     Data;
+/*0x0c8*/ CXRect      Location;
+/*0x0d8*/ bool        bTiled;
+/*0x0dc*/ uint32_t    TransitionDuration;
+/*0x0e0*/ int         BottomOffset;
+/*0x0e4*/ CXSize      MaxClientSize;
+/*0x0ec*/ int         ParentAndContextMenuArrayIndex;
+/*0x0f0*/ bool        bBorder;
+/*0x0f4*/ CXSize      MinClientSize;
+/*0x0fc*/ void*       IconTextureAnim;
+/*0x100*/ uint8_t     FadeToAlpha;                         // found in CSidlScreenWnd__StoreIniInfo_x
+/*0x104*/ void*       pFont;
+/*0x108*/ CLayoutStrategy* pLayoutStrategy;
+/*0x10c*/ bool        CloseOnESC;                          // found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed
+/*0x10d*/ bool        bMaximized;
+/*0x10e*/ bool        Unlockable;                          // found in CSidlScreenWnd__LoadIniInfo_x related to Locked
+/*0x110*/ COLORREF    CRNormal;                            // found in OnProcessFrame
+/*0x114*/ bool        bUseInLayoutVertical;
+/*0x118*/ int         BlinkStartTimer;
+/*0x11c*/ mutable bool bClientRectChanged;
+/*0x120*/ int         ZLayer;                              // found in CXWndManager__DrawWindows_x
+/*0x124*/ int         HScrollMax;
+/*0x128*/ void*       pTipTextObject;
+/*0x12c*/ COLORREF    DisabledBackground;
+/*0x130*/ CXRect      IconRect;
+/*0x140*/ bool        bEscapableLocked;
+/*0x141*/ uint8_t     Alpha;
+/*0x142*/ bool        bLeftAnchoredToLeft;
+/*0x143*/ uint8_t     StartAlpha;
+/*0x144*/ bool        bBringToTopWhenClicked;
+/*0x145*/ bool        Fades;
+/*0x146*/ bool        bTopAnchoredToTop;
+/*0x148*/ int         VScrollMax;
+/*0x14c*/ bool        bClipToParent;
+/*0x14d*/ bool        bIsTransitioning;
+/*0x150*/ CXStr       Tooltip;                             // found in CSidlManager__CreateLabel_x
+/*0x154*/ CXStr       WindowText;                          // CXWnd__GetWindowTextA_x has this one
+/*0x158*/ uint32_t    WindowStyle;                         // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x15c*/ uint32_t    FadeDelay;
+/*0x160*/ int         VScrollPos;
+/*0x164*/ bool        bRightAnchoredToLeft;
+/*0x168*/ uint32_t    BGType;                              // found in CSidlScreenWnd__StoreIniInfo_x
+/*0x16c*/ uint32_t    LastTimeMouseOver;
+/*0x170*/ bool        Clickable;                           // found in CChatWindow__CChatWindow_x and the button handlers
+/*0x174*/ CXWndDrawTemplate* DrawTemplate;
+/*0x178*/ int         LeftOffset;
+/*0x17c*/ bool        bFullyScreenClipped;
+/*0x180*/ uint32_t    LastBlinkFadeRefreshTime;
+/*0x184*/ CXStr       XMLToolTip;                          // found in CSidlManager__CreateLabel_x
+/*0x188*/ bool        MouseOver;                           // found in CXWnd__SetMouseOver_x
+/*0x189*/ bool        bIsParentOrContextMenuWindow;
+/*0x18c*/ void*       TitlePiece2;
+/*0x190*/ uint32_t    XMLIndex;
+/*0x194*/ mutable bool bClientClipRectChanged;
+/*0x198*/ int         RightOffset;
+/*0x19c*/ bool        bBorder2;
+/*0x1a0*/ CXRect      TransitionRect;
+/*0x1b0*/ CXRect      OldLocation;
+/*0x1c0*/ COLORREF    BGColor;                             // DO NOT CHNAGE THIS TO AN ARGBCOLOR, it will break the padding since its a union that has bytes in it.
+/*0x1c4*/ bool        Minimized;
+/*0x1c5*/ bool        bUseInLayoutHorizontal;
+/*0x1c6*/ uint8_t     TargetAlpha;
+/*0x1c7*/ bool        bBottomAnchoredToTop;
+/*0x1c8*/ mutable CXRect ClipRectClient;
+/*0x1d8*/ ControllerBase* pController;
+/*0x1dc*/ bool        dShow;
+/*0x1dd*/ bool        ValidCXWnd;                          // IsValid has this one
+/*0x1e0*/ void*       TitlePiece;
+/*0x1e4*/ bool        bNeedsSaving;                        // will be true if you move or resize the window
+/*0x1e5*/ uint8_t     FadeAlpha;
+/*0x1e6*/ bool        bShowClickThroughMenuItem;           // shows/hides the click through option on the window menu
+/*0x1e8*/ uint32_t    BlinkFadeStartTime;
+/*0x1ec*/ uint8_t     bResizableMask;
+/*0x1f0*/
+// @end: CXWnd Members
+};
 
 using CXWND [[deprecated]] = CXWnd;
 using PCXWND [[deprecated]] = CXWnd*;

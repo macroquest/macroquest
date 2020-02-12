@@ -33,9 +33,6 @@
     <ClInclude Include="CXWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CXWnd-Members.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DynamicArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,9 +54,6 @@
     <ClInclude Include="Globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ItemBase-Members.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Items.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -70,9 +64,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PlayerClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerZoneClient-Members.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SidlParams.h">

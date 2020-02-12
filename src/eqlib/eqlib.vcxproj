@@ -79,7 +79,6 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Containers.h" />
     <ClInclude Include="CXStr.h" />
-    <ClInclude Include="CXWnd-Members.h" />
     <ClInclude Include="CXWnd.h" />
     <ClInclude Include="DynamicArray.h" />
     <ClInclude Include="EQClasses.h" />
@@ -90,7 +89,6 @@
     <ClInclude Include="ForwardDecls.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="GraphicsEngine.h" />
-    <ClInclude Include="ItemBase-Members.h" />
     <ClInclude Include="Items.h" />
     <ClInclude Include="LoginFrontend.h" />
     <ClInclude Include="Mutex.h" />
@@ -98,7 +96,6 @@
     <ClInclude Include="PcClient.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerClient.h" />
-    <ClInclude Include="PlayerZoneClient-Members.h" />
     <ClInclude Include="SidlParams.h" />
     <ClInclude Include="SidlTemplates.h" />
     <ClInclude Include="SoeUtil.h" />
