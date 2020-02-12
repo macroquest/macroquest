@@ -3709,7 +3709,7 @@ FUNCTION_AT_ADDRESS(int  CDisplay::ReplaceCloakMaterials(int,struct T3D_HIERARCH
 //FUNCTION_AT_ADDRESS(void  CDisplay::InitEverQuestLocale(enum EQLocalize::languages),CDisplay__InitEverQuestLocale);
 #endif
 #ifdef CDisplay__ReloadUI_x
-#if defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(void  CDisplay::ReloadUI(bool, bool),CDisplay__ReloadUI);
 #else
 FUNCTION_AT_ADDRESS(void  CDisplay::ReloadUI(bool),CDisplay__ReloadUI);

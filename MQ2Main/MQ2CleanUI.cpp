@@ -32,7 +32,7 @@ public:
         Benchmark(bmPluginsCleanUI,DebugTry(PluginsCleanUI()));
         DebugTry(CleanUI_Trampoline());
     } 
-	#if defined(TEST)
+	#if !defined(ROF2EMU) && !defined(UFEMU)
     VOID ReloadUI_Trampoline(bool, bool);
     VOID ReloadUI_Detour(bool UseINI, bool bUnknown)
     {
@@ -180,7 +180,7 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
 DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PVOID,unsigned int)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
-#if defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(bool, bool)); 
 #else
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(bool)); 

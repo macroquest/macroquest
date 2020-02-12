@@ -2262,7 +2262,7 @@ EQLIB_OBJECT void CDisplay::ProcessSky(void);
 EQLIB_OBJECT void CDisplay::ProcessSwitches(void);
 EQLIB_OBJECT void CDisplay::ProcessWeather(void);
 EQLIB_OBJECT void CDisplay::RealRender_World(void);
-#if defined(TEST)
+#if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CDisplay::ReloadUI(bool,bool);
 #else
 EQLIB_OBJECT void CDisplay::ReloadUI(bool);
