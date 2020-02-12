@@ -14,8 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-#include <fstream>
 
+#include "common/NamedPipes.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -23,6 +23,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
+#include <wil/resource.h>
+#include <fstream>
 
 #include <dbghelp.h>
 #include <Psapi.h>
@@ -55,6 +57,10 @@ void ShutdownLoginFrontend();
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
+
+wil::unique_event g_hLoadComplete;
+HANDLE hUnloadComplete = nullptr;
+NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
 
 void InitializeLogging()
 {
@@ -556,8 +562,11 @@ void SetMainThreadId()
 		dwMainThreadId = ::GetCurrentThreadId();
 }
 
+// Perform first time initialization on the main thread.
 void DoInitialization()
 {
+	gPipeClient.Start();
+
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2AutoInventory();
@@ -570,6 +579,7 @@ void DoInitialization()
 	InitializeMQ2Plugins();
 }
 
+// Perform injection-time initialization. This occurs on the injection thread.
 bool MQ2Initialize()
 {
 	MODULEINFO EQGameModuleInfo;
@@ -734,28 +744,12 @@ bool MQ2Initialize()
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
 
-	// if we are precharselect we init here otherwise we init in HeartBeat
-	DWORD gs = GetGameState();
-	if (gs == GAMESTATE_PRECHARSELECT && !IsPluginsInitialized() && gbLoad)
-	{
-		OutputDebugString("I am loading in MQ2Initialize");
-
-		DoInitialization();
-		gbLoad = false;
-	}
-	else
-	{
-		// game isn't read. Wait for pulse to init instead.
-		if (hLoadComplete)
-		{
-			WaitForSingleObject(hLoadComplete, 60000);
-			Sleep(0);
-		}
-	}
-
+	// We will wait for pulse from the game to init on main thread.
+	g_hLoadComplete.wait();
 	return true;
 }
 
+// Do shutdown time stuff on the main thread.
 void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
@@ -777,6 +771,8 @@ void MQ2Shutdown()
 	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());
+
+	gPipeClient.Stop();
 }
 
 HMODULE GetCurrentModule()
@@ -789,9 +785,6 @@ HMODULE GetCurrentModule()
 
 	return hModule;
 }
-
-HANDLE hUnloadComplete = nullptr;
-HANDLE hLoadComplete = nullptr;
 
 // ***************************************************************************
 // Function:    MQ2End Thread
@@ -947,14 +940,15 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 {
 	lpOldTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
 
+	g_hLoadComplete.create(wil::EventOptions::ManualReset);
+
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-	hLoadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
 	char szBuffer[MAX_STRING] = { 0 };
 
 	if (!MQ2Initialize())
 	{
-		MessageBox(nullptr, "Failed to Initialize MQ2 will free lib and exit", "MQ2 Error", MB_OK);
+		MessageBox(nullptr, "Failed to Initialize MQ2.", "MQ2 Error", MB_OK);
 
 		if (HMODULE h = GetCurrentModule())
 			FreeLibraryAndExitThread(h, 0);
@@ -982,12 +976,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 getout:
 	// Restore the old unhandled exception filter
 	SetUnhandledExceptionFilter(lpOldTopLevelExceptionFilter);
-
-	if (hLoadComplete)
-	{
-		CloseHandle(hLoadComplete);
-		hLoadComplete = 0;
-	}
 
 	if (hUnloadComplete)
 	{

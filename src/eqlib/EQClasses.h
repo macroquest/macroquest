@@ -1010,7 +1010,7 @@ struct [[offsetcomments]] CTaskEntry
 /*0x2be0*/ bool              StartTextCompiled;
 /*0x2be1*/ char              RawStartText[0xFa0];
 /*0x3b81*/ bool              bElementsReceived;
-/*0x3b84*/ time_t            TimeCompleted;
+/*0x3b84*/ __time32_t        TimeCompleted;
 /*0x3b88*/ ArrayClass<MonsterMissionTemplate> MonsterTemplates;
 /*0x3b98*/ bool              bTemplateSelectionLocked;
 /*0x3b99*/ bool              bHasRewardSet;

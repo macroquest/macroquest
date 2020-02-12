@@ -158,7 +158,7 @@ FORWARD_FUNCTION_TO_VTABLE(int CButtonWnd::DrawCooldown(), CButtonWnd, DrawCoold
 FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCheck(bool, bool), CButtonWnd, SetCheck);
 FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCoolDownCompletionTimeDelta(uint32_t, uint32_t), CButtonWnd, SetCoolDownCompletionTimeDelta);
 FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCoolDownCompletionTime(uint32_t, uint32_t), CButtonWnd, SetCoolDownCompletionTime);
-FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCoolDownCompletionTime(time_t, uint32_t), CButtonWnd, SetCoolDownCompletionTime2);
+FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCoolDownCompletionTime(__time32_t, uint32_t), CButtonWnd, SetCoolDownCompletionTime2);
 FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCoolDownBeginTime(uint32_t, uint32_t), CButtonWnd, SetCoolDownBeginTime);
 FORWARD_FUNCTION_TO_VTABLE(void CButtonWnd::SetCoolDownUpdatedBeginTime(uint32_t, uint32_t), CButtonWnd, SetCoolDownUpdatedBeginTime);
 FORWARD_FUNCTION_TO_VTABLE(uint32_t CButtonWnd::GetCoolDownBeginTime() const, CButtonWnd, SetCoolDownUpdatedBeginTime);

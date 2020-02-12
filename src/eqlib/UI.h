@@ -261,7 +261,7 @@ public:
 	EQLIB_OBJECT virtual void SetCheck(bool check, bool bNoSound = true);
 	EQLIB_OBJECT virtual void SetCoolDownCompletionTimeDelta(uint32_t delta, uint32_t total);
 	EQLIB_OBJECT virtual void SetCoolDownCompletionTime(uint32_t time, uint32_t total);
-	EQLIB_OBJECT virtual void SetCoolDownCompletionTime(time_t time, uint32_t total);
+	EQLIB_OBJECT virtual void SetCoolDownCompletionTime(__time32_t time, uint32_t total);
 	EQLIB_OBJECT virtual void SetCoolDownBeginTime(uint32_t time, uint32_t total);
 	EQLIB_OBJECT virtual void SetCoolDownUpdatedBeginTime(uint32_t time, uint32_t total);
 	EQLIB_OBJECT virtual uint32_t GetCoolDownBeginTime() const;
@@ -989,7 +989,7 @@ public:
 /*0x26c*/ bool                bHasItemTooltips;
 /*0x270*/ CXRect              PrevInsideRect;
 /*0x280*/ uint32_t            ListWndStyle;
-/*0x284*/ time_t              LastVisibleTime;
+/*0x284*/ __time32_t          LastVisibleTime;
 /*0x28c*/
 
 	struct [[offsetcomments]] VirtualFunctionTable : public CXWnd::VirtualFunctionTable
@@ -4172,7 +4172,7 @@ public:
 /*0x248*/ ItemGlobalIndex ItemLocation;
 /*0x254*/ BYTE         Unknown0x254[0x8];
 /*0x25c*/ VePointer<CONTENTS> pSelectedItem;
-/*0x260*/ time_t       MailExpireTime;
+/*0x260*/ __time32_t   MailExpireTime;
 /*0x264*/ bool         bAutoRetrieveingMail;
 /*0x265*/ BYTE         Unknown0x268[0x10];
 /*0x278*/ char*        Labels[0xc];

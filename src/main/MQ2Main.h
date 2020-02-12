@@ -605,7 +605,6 @@ MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
 MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
 MQLIB_API void MQ2Shutdown();
 MQLIB_API HANDLE hUnloadComplete;
-MQLIB_API HANDLE hLoadComplete;
 
 MQLIB_API void InitializeMQ2AutoInventory();
 MQLIB_API void ShutdownMQ2AutoInventory();

@@ -42,6 +42,9 @@
     <Filter Include="Header Files\contrib\argparse">
       <UniqueIdentifier>{b01b30cd-e9fe-474d-8263-4814e664cc28}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{351861e7-0a7f-486b-92a6-b3b61008ef7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -365,6 +368,9 @@
     <ClCompile Include="datatypes\MQ2BoolType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\NamedPipes.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -474,6 +480,9 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h">
       <Filter>Header Files\contrib\argparse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\NamedPipes.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

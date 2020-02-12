@@ -16,6 +16,8 @@
 #include "MQ2Main.h"
 #include "DebugHandler.h"
 
+#include <wil/resource.h>
+
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
 namespace mq {
@@ -30,6 +32,7 @@ std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
 std::vector<std::function<void()>> s_queuedEvents;
 std::recursive_mutex s_queuedEventMutex;
+extern wil::unique_event g_hLoadComplete;
 
 void PostToMainThread(std::function<void()>&& callback)
 {
@@ -530,10 +533,6 @@ static HeartbeatState Heartbeat()
 			PluginsEndZone();
 		}
 	}
-	else
-	{
-		return HeartbeatNormal;
-	}
 
 	DebugTry(PulseMQ2Spawns());
 	DebugTry(DrawHUD());
@@ -568,6 +567,11 @@ static HeartbeatState Heartbeat()
 
 	DebugTry(PulseMQ2Overlay());
 
+	if (gGameState == -1)
+	{
+		return HeartbeatNormal;
+	}
+
 	int CurTurbo = 0;
 
 	MQMacroBlockPtr pBlock = GetNextMacroBlock();
@@ -591,17 +595,6 @@ static HeartbeatState Heartbeat()
 	PulseCommands();
 
 	return HeartbeatNormal;
-}
-
-void DoLoginPulse()
-{
-	std::scoped_lock lock(s_pulseMutex);
-
-	// handle queued events.
-	ProcessQueuedEvents();
-
-	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
-	DebugTry(PulseMQ2Overlay());
 }
 
 template <unsigned int _Size>
@@ -667,10 +660,9 @@ bool DirectoryExists(LPCTSTR lpszPath)
 void SetMainThreadId();
 void DoInitialization();
 
-bool Trampoline_ProcessGameEvents();
-bool Detour_ProcessGameEvents()
+bool DoGameEventsPulse(int (*pEventFunc)())
 {
-	DebugTryBeginRet();
+	SetMainThreadId();
 	HeartbeatState hbState;
 
 	{
@@ -678,19 +670,19 @@ bool Detour_ProcessGameEvents()
 		hbState = Heartbeat();
 	}
 
-	int pgeResult = Trampoline_ProcessGameEvents();
-	SetMainThreadId();
+	int processGameEventsResult = 0;
+	if (pEventFunc)
+		processGameEventsResult = pEventFunc();
 
 	if (hbState == HeartbeatLoad && !IsPluginsInitialized())
 	{
 		OutputDebugString("I am loading in ProcessGameEvents");
 
 		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-
 		DoInitialization();
-
 		ScreenMode = oldscreenmode;
-		SetEvent(hLoadComplete);
+
+		g_hLoadComplete.SetEvent();
 	}
 	else if (hbState == HeartbeatUnload && g_Loaded)
 	{
@@ -712,10 +704,28 @@ bool Detour_ProcessGameEvents()
 		SetEvent(hUnloadComplete);
 	}
 
-	return pgeResult;
+	return processGameEventsResult;
+}
+
+int Trampoline_ProcessGameEvents();
+int Detour_ProcessGameEvents()
+{
+	DebugTryBeginRet();
+
+	return DoGameEventsPulse(Trampoline_ProcessGameEvents);
+
 	DebugTryEndRet();
 }
-DETOUR_TRAMPOLINE_EMPTY(bool Trampoline_ProcessGameEvents());
+DETOUR_TRAMPOLINE_EMPTY(int Trampoline_ProcessGameEvents());
+
+void DoLoginPulse()
+{
+	DebugTryBegin();
+
+	return DoGameEventsPulse(nullptr);
+
+	DebugTryEnd()
+}
 
 class CEverQuestHook
 {

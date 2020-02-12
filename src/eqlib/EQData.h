@@ -1356,7 +1356,7 @@ struct [[offsetcomments]] DynamicZoneData
 struct [[offsetcomments]] DynamicZoneTimerData
 {
 /*0x00*/ int                   DataSetID;
-/*0x04*/ time_t                TimerExpiration;
+/*0x04*/ __time32_t            TimerExpiration;
 /*0x08*/ int                   EventID;
 /*0x0c*/ int                   DynamicZoneID;
 /*0x10*/ DynamicZoneTimerData* pNext;
@@ -1367,7 +1367,7 @@ struct [[offsetcomments]] DynamicZoneClientTimerData
 {
 /*0x000*/ char         ExpeditionName[0x80];
 /*0x080*/ char         EventName[0x100];
-/*0x180*/ time_t       TimeStamp;                      // TimeStamp - Util__FastTime = time left
+/*0x180*/ __time32_t   TimeStamp;                      // TimeStamp - Util__FastTime = time left
 /*0x184*/ int          TimerID;
 /*0x188*/ DynamicZoneClientTimerData* pNext;
 /*0x18c*/
