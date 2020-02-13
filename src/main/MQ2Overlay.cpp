@@ -1421,7 +1421,7 @@ static void ImGui_ImplWin32_InitPlatformInterface()
 	wcex.lpfnWndProc = ImGui_ImplWin32_WndProcHandler_PlatformWindow;
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
-	wcex.hInstance = ::GetModuleHandle(nullptr);
+	wcex.hInstance = ghInstance;
 	wcex.hIcon = nullptr;
 	wcex.hCursor = nullptr;
 	wcex.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);
