@@ -3402,8 +3402,10 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		// if the search type is not npc or the mob type is UNT, continue?
 		// stupid /who
 
-		if (pSearchSpawn->SpawnType != NPC || SpawnType != UNTARGETABLE)
+		else if (pSearchSpawn->SpawnType != NPC || SpawnType != UNTARGETABLE)
+		{
 			return false;
+		}
 	}
 
 	if (pSearchSpawn->MinLevel && pSpawn->Level < pSearchSpawn->MinLevel)
