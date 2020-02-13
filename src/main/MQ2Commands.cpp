@@ -5506,7 +5506,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 
 	if (GetKeyboardState((LPBYTE)& keyState))
 	{
-		if (!(keyState[VK_MENU] & 0x80))
+		if (keyState[VK_MENU] & 0x80)
 		{
 			keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 		}
