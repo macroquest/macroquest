@@ -374,7 +374,7 @@ bool PluginsIncomingChat(const char* Line, DWORD Color)
 	{
 		if (pPlugin->IncomingChat)
 		{
-			Ret |= pPlugin->IncomingChat(Line, Color);
+			Ret = Ret || pPlugin->IncomingChat(Line, Color);
 		}
 
 		pPlugin = pPlugin->pNext;
