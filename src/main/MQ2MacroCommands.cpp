@@ -599,8 +599,8 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 
 static MQMacroBlockPtr AddMacroBlock(std::string Name)
 {
-	auto macroBlock = std::make_shared<MQMacroBlock>(std::move(Name));
-	MacroBlockMap.insert_or_assign(Name, macroBlock);
+	auto macroBlock = std::make_shared<MQMacroBlock>(Name);
+	MacroBlockMap.insert_or_assign(std::move(Name), macroBlock);
 
 	return macroBlock;
 }
