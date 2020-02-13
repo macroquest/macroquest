@@ -460,7 +460,7 @@ inline double GetDoubleFromString(const std::string_view svString, double dRetur
  * or the failure value on fail.
  *
  * @see GetIntFromString
- * @see CaseInsCompare
+ * @see ci_equals
  *
  * @param svString The string to convert to an integer
  * @param bReturnOnFail The bool that should be returned if conversion fails
