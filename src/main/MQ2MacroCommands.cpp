@@ -643,8 +643,7 @@ static MQMacroBlockPtr GetMacroBlock(const char* Name)
 		return iter->second;
 	}
 
-	// FIXME: This comment does not match the implementation
-	// we return the first one if they didnt specify a name.
+	// If there was no match, but there is a macro block, return that.
 	if (!MacroBlockMap.empty())
 	{
 		return MacroBlockMap.begin()->second;
@@ -1057,16 +1056,10 @@ void DumpStack(PSPAWNINFO pChar, char* szLine)
 void EndMacro(PSPAWNINFO pChar, char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-	char szArg3[MAX_STRING] = { 0 };
 	char MacroName[MAX_STRING] = { 0 };
-	bool bKeepKeys = gKeepKeys;
 
-	if (strstr(szLine, "keep keys"))
-	{
-		bKeepKeys = true;
-	}
-
+	// FIXME:  Assuming this is for multiple macros, it wouldn't work for a macro
+	// named "keep" -- see "keep keys" below for that argument information.
 	GetArg(szArg1, szLine, 1);
 	if (szArg1[0] != '\0')
 	{
@@ -1088,6 +1081,10 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 		MacroError("Cannot end a macro when one isn't running.");
 		return;
 	}
+
+	// Regardless of the passed name, the MacroName we're ending is whatever
+	// was returned from the GetMacroBlock
+	strcpy_s(MacroName, pBlock->Name.c_str());
 
 	// Code allowing for a routine for "OnExit"
 	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
@@ -1225,7 +1222,8 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	gszMacroName[0] = 0;
 	gRunning = 0;
 
-	if (!bKeepKeys)
+	// Remove the keypresses unless the user specified to keep them
+	if (!(gKeepKeys || ci_find_substr(szLine, "keep keys") != -1))
 	{
 		KeyCombo TempCombo;
 		for (int i = 0; gDiKeyID[i].szName[0]; i++)
@@ -1241,7 +1239,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	if (gFilterMacro != FILTERMACRO_NONE && gFilterMacro != FILTERMACRO_MACROENDED)
 		WriteChatColor("The current macro has ended.", USERCOLOR_DEFAULT);
 		
-	PluginsMacroStop(szLine);
+	PluginsMacroStop(MacroName);
 }
 
 static int GetNumArgsFromSub(const std::string& Sub)

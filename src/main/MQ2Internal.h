@@ -372,7 +372,7 @@ struct MQGroundPending
 
 struct MQPlugin
 {
-	char                 szFilename[MAX_PATH];
+	char                 szFilename[MAX_PATH] = { 0 };
 	HMODULE              hModule = nullptr;
 	float                fpVersion = 1.0;
 	bool                 bCustom = false;
