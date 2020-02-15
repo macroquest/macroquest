@@ -19,7 +19,7 @@
 	</STMLbox>
 
 	<Screen item = "CompareTipWnd">
-    <ScreenID>CompareTipWnd</ScreenID>
+	<ScreenID>CompareTipWnd</ScreenID>
 		<DrawTemplate>WDT_Def</DrawTemplate>
 		<RelativePosition>false</RelativePosition>
 		<Location>
