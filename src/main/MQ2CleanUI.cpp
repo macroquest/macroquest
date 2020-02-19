@@ -113,7 +113,7 @@ public:
 };
 
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool));
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool, bool));
 DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
 DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
 

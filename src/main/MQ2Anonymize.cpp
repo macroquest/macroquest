@@ -29,6 +29,46 @@ static std::string anon_config_path;
 static Yaml::Node anon_config;
 static bool anon_enabled;
 
+enum class anonymization
+{
+	None,
+	Asterisk,
+	Class,
+	Me
+};
+
+static std::unordered_map<std::string_view, anonymization> anonymization_map = {
+	{"none", anonymization::None},
+	{"asterisk", anonymization::Asterisk},
+	{"class", anonymization::Class},
+	{"me", anonymization::Me}
+};
+
+// put this near the anon types to keep maintenance easy
+static std::string Anonymize(std::string_view Name, anonymization How)
+{
+	switch (How)
+	{
+	case anonymization::Asterisk:
+	{
+		std::string asterisk_name(Name);
+		for (size_t i = 1; i < asterisk_name.length() - 1; ++i)
+			asterisk_name[i] = '*';
+		return asterisk_name;
+	}
+	case anonymization::Class:
+		return fmt::format("[${{Spawn[pc {0}].Level}}] ${{Spawn[pc {0}].Race}} ${{Spawn[pc {0}].Class}} ${{Spawn[pc {0}].Type}}", Name);
+	case anonymization::Me:
+		return "[${Me.Level}] ${Me.Race} ${Me.Class} ${Me.Type}";
+	default:
+		return std::string(Name);
+	};
+}
+
+static anonymization anon_group;
+static anonymization anon_guild;
+static anonymization anon_raid;
+
 class anon_replacer {
 public:
 	const std::string name;
@@ -90,10 +130,11 @@ public:
 		return target;
 	}
 
-	// this is designed to be used with an accumulate that returns a string, so move the old text in
-	std::string replace_text(std::string&& text) const
+	std::string replace_text(std::string_view text) const
 	{
-		return std::regex_replace(std::move(text), search_string, ModifyMacroString(target));
+		std::string result;
+		std::regex_replace(std::back_inserter(result), std::cbegin(text), std::cend(text), search_string, ModifyMacroString(target));
+		return result;
 	}
 
 	Yaml::Node Serialize()
@@ -109,15 +150,12 @@ public:
 	}
 };
 
-// TODO List:
-//  - add adders/removers/replacers for guild/group/raid
-//    - needs to be dynamic
-//    - include the guild name in the guild replacer
-//  - add benchmark
-
 // the source string_view is checked _after_ string parsing
 // the target string is parsed before replacement
 static std::vector<std::unique_ptr<anon_replacer> > replacers;
+static ci_unordered::map<std::unique_ptr<anon_replacer> > group_memoization;
+static ci_unordered::map<std::unique_ptr<anon_replacer> > guild_memoization;
+static ci_unordered::map<std::unique_ptr<anon_replacer> > raid_memoization;
 
 // the source string_view here will be used to index
 // creating a regex that looks like `(source|all|the|alternates)`
@@ -136,6 +174,27 @@ static std::vector<std::unique_ptr<anon_replacer> >::iterator ReverseFind(std::s
 		[&Target](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Target, r->get_target()); });
 }
 
+// helper functions for serializing anonymization type
+static anonymization GetAnonymizationFromString(std::string_view anon)
+{
+	auto it = anonymization_map.find(anon);
+	if (it != anonymization_map.end())
+		return it->second;
+
+	return anonymization::None;
+}
+
+static std::string_view GetStringFromAnonymization(anonymization anon)
+{
+	for (auto anon_type : anonymization_map)
+	{
+		if (anon_type.second == anon)
+			return anon_type.first;
+	}
+
+	return "none";
+}
+
 // add an anonymization rule to the map -- if the rule already exists, assume we want to update the target
 static void AddAnonymization(std::string_view Name, std::string_view Replace)
 {
@@ -145,25 +204,6 @@ static void AddAnonymization(std::string_view Name, std::string_view Replace)
 		(*replacer_it)->update_target(Replace); // just change the replace text
 	else
 		replacers.emplace_back(std::make_unique<anon_replacer>(Name, Replace));
-}
-
-static void AddClassAnonymization(std::string_view Name)
-{
-	AddAnonymization(Name, fmt::format("[${{Spawn[pc {0}].Level}}] ${{Spawn[pc {0}].Race}} ${{Spawn[pc {0}].Class}} ${{Spawn[pc {0}].Type}}", Name));
-}
-
-static void AddMeAnonymization(std::string_view Name)
-{
-	AddAnonymization(Name, "[${Me.Level}] ${Me.Race} ${Me.Class} ${Me.Type}");
-}
-
-static void AddAsteriskAnonymization(std::string_view Name)
-{
-	std::string asterisk_name(Name);
-	for (size_t i = 1; i < asterisk_name.length() - 1; ++i)
-		asterisk_name[i] = '*';
-
-	AddAnonymization(Name, asterisk_name);
 }
 
 static void DropAnonymization(std::string_view Name)
@@ -204,6 +244,7 @@ static void DropAlternate(std::string_view Alternate)
 static void Serialize()
 {
 	anon_config["enabled"] = anon_enabled ? "true" : "false";
+
 	anon_config["replacers"].Clear();
 	if (!replacers.empty())
 	{
@@ -212,6 +253,10 @@ static void Serialize()
 	}
 	else
 		anon_config.Erase("replacers");
+
+	anon_config["group"] = std::string(GetStringFromAnonymization(anon_group));
+	anon_config["guild"] = std::string(GetStringFromAnonymization(anon_guild));
+	anon_config["raid"] = std::string(GetStringFromAnonymization(anon_raid));
 
 	Yaml::Serialize(anon_config, anon_config_path.c_str());
 }
@@ -237,7 +282,20 @@ static void Deserialize()
 
 		anon_config["replacers"].Clear();
 	}
+
+	anon_group = GetAnonymizationFromString(anon_config["group"].As<std::string>());
+	anon_guild = GetAnonymizationFromString(anon_config["guild"].As<std::string>());
+	anon_raid = GetAnonymizationFromString(anon_config["raid"].As<std::string>());
 }
+
+// this is primarily a helper for one-liner memoization try_emplaces
+template <class F>
+struct lazy_ctor
+{
+	constexpr lazy_ctor(F&& f) : f(std::move(f)) {}
+	constexpr operator std::invoke_result_t<const F&>() const noexcept(std::is_nothrow_invocable_v<const F&>) { return f(); }
+	F f;
+};
 
 // process string to anonymize
 CXStr& Anonymize(CXStr& Text)
@@ -245,10 +303,85 @@ CXStr& Anonymize(CXStr& Text)
 	if (anon_enabled)
 	{
 		EnterMQ2Benchmark(bmAnonymizer);
-		Text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
-			[](std::string text, const std::unique_ptr<anon_replacer>& r) -> std::string {
-				return  r ? r->replace_text(std::move(text)) : text;
-			}).c_str();
+
+		auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
+			[](std::string& text, const std::unique_ptr<anon_replacer>& r) -> std::string {
+				return r ? r->replace_text(text) : text;
+			});
+
+		auto pChar = GetCharInfo();
+		if (anon_group != anonymization::None && pChar && pChar->pGroupInfo)
+		{
+			new_text = std::accumulate(
+				std::cbegin(pChar->pGroupInfo->pMember),
+				std::cend(pChar->pGroupInfo->pMember),
+				new_text,
+				[](std::string& text, const GROUPMEMBER* g) -> std::string
+				{
+					if (g)
+					{
+						auto [it, result] = group_memoization.try_emplace(
+							g->Name,
+							lazy_ctor([&g] {
+								return std::make_unique<anon_replacer>(g->Name, Anonymize(g->Name, anon_group));
+							})
+						);
+
+						return it->second->replace_text(g->Name);
+					}
+
+					return text;
+				}
+			);
+		}
+
+		if (anon_guild != anonymization::None && pGuildList)
+		{
+			if (pGuild && pChar)
+			{
+				auto guild_name = pGuild->GetGuildName(pChar->GuildID);
+				auto [it, result] = guild_memoization.try_emplace(
+					guild_name,
+					lazy_ctor([&guild_name] {
+						return std::make_unique<anon_replacer>(guild_name, Anonymize(guild_name, anon_guild));
+					})
+				);
+			}
+
+			// pGuildList is just "current guild"
+			for (auto pMember = pGuildList->pMember; pMember; pMember = pMember->pNext)
+			{
+				auto [it, result] = guild_memoization.try_emplace(
+					pMember->Name,
+					lazy_ctor([&pMember] {
+						return std::make_unique<anon_replacer>(pMember->Name, Anonymize(pMember->Name, anon_guild));
+					})
+				);
+
+				new_text = it->second->replace_text(pMember->Name);
+			}
+		}
+
+		if (anon_raid != anonymization::None && pChar && pRaid)
+		{
+			for (auto pMember : pRaid->RaidMember)
+			{
+				if (pMember.Name[0] != '\0')
+				{
+					auto [it, result] = raid_memoization.try_emplace(
+						pMember.Name,
+						lazy_ctor([&pMember] {
+							return std::make_unique<anon_replacer>(pMember.Name, Anonymize(pMember.Name, anon_raid));
+						})
+					);
+
+					new_text = it->second->replace_text(pMember.Name);
+				}
+			}
+		}
+
+		Text = new_text;
+
 		ExitMQ2Benchmark(bmAnonymizer);
 	}
 
@@ -379,12 +512,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 		args::Group replacer(arguments, "replacer", args::Group::Validators::AtMostOne);
 		
-		args::Command none(replacer, "none", "anonymize with asterisks",
-			[&name](args::Subparser&) { AddAsteriskAnonymization(name.Get()); });
+		args::Command asterisk(replacer, "asterisk", "anonymize with asterisks",
+			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), anonymization::Asterisk)); });
 		args::Command clas(replacer, "class", "anonymize by class attributes",
-			[&name](args::Subparser&) { AddClassAnonymization(name.Get()); });
+			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), anonymization::Class)); });
 		args::Command me(replacer, "me", "anonymize with my class attributes",
-			[&name](args::Subparser&) { AddMeAnonymization(name.Get()); });
+			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), anonymization::Me)); });
 		args::Command with(replacer, "with", "anonymize with specific macro string",
 			[&name](args::Subparser& parser) {
 				args::Group with(parser, "with", args::Group::Validators::AtLeastOne);
@@ -442,6 +575,51 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			DropAlternate(name.Get());
 	});
 
+	args::Command group(commands, "group", "sets group anonymization", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+		args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+		args::MapPositional<std::string_view, anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		anon_group = anon_type.Get();
+	});
+
+	group.RequireCommand(false);
+
+	args::Command guild(commands, "guild", "sets guild anonymization", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+		args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+		args::MapPositional<std::string_view, anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		anon_guild = anon_type.Get();
+	});
+
+	guild.RequireCommand(false);
+
+	args::Command raid(commands, "raid", "sets raid anonymization", [](args::Subparser& parser) {
+		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+		args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+		args::MapPositional<std::string_view, anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+
+		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+		parser.Parse();
+
+		anon_raid = anon_type.Get();
+	});
+
+	raid.RequireCommand(false);
+
 	args::Command save(commands, "save", "saves the configuration to file, completely rewriting data",
 		[](args::Subparser&) { Serialize(); });
 	args::Command load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
@@ -466,7 +644,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	if (args.empty())
 		anon_enabled = !anon_enabled;
-		//anon_config["enabled"] = anon_config["enabled"].As<bool>(false) ? "false" : "true";
 }
 
 void InitializeAnonymizer()
