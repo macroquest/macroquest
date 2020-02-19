@@ -16,6 +16,14 @@
 #include "MQ2Main.h"
 #include <fstream>
 
+
+#include <date/date.h>
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/msvc_sink.h>
+
 #include <dbghelp.h>
 #include <Psapi.h>
 #pragma comment(lib, "dbghelp.lib")
@@ -34,6 +42,8 @@
 #define MacroQuestWinName "MacroQuest2(Test)"
 #endif
 
+namespace fs = std::filesystem;
+
 namespace mq {
 
 //============================================================================
@@ -45,6 +55,31 @@ void ShutdownLoginFrontend();
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
+
+void InitializeLogging()
+{
+	fs::path loggingPath = mq::internal_paths::Logs;
+	std::string filename = (loggingPath / fmt::format("MacroQuest-{}.log",
+		date::format("%Y%m%dT%H%M%SZ", date::floor<std::chrono::microseconds>(
+			std::chrono::system_clock::now())))).string();
+
+	// create color multi threaded logger
+	auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("MQ2", filename, true);
+	if (IsDebuggerPresent())
+		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
+	logger->sinks().push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+
+	spdlog::set_default_logger(logger);
+#if LOG_FILENAMES
+	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v (%@)");
+#else
+	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v");
+#endif
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+
+	SPDLOG_DEBUG("Logging Initialized");
+}
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
@@ -638,6 +673,8 @@ bool MQ2Initialize()
 		g_Loaded = false;
 		return false;
 	}
+
+	InitializeLogging();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
 
