@@ -29,7 +29,7 @@ static std::string anon_config_path;
 static Yaml::Node anon_config;
 static bool anon_enabled;
 
-enum class anonymization
+enum class Anonymization
 {
 	None,
 	Asterisk,
@@ -37,37 +37,37 @@ enum class anonymization
 	Me
 };
 
-static std::unordered_map<std::string_view, anonymization> anonymization_map = {
-	{"none", anonymization::None},
-	{"asterisk", anonymization::Asterisk},
-	{"class", anonymization::Class},
-	{"me", anonymization::Me}
+static std::unordered_map<std::string_view, Anonymization> anonymization_map = {
+	{"none", Anonymization::None},
+	{"asterisk", Anonymization::Asterisk},
+	{"class", Anonymization::Class},
+	{"me", Anonymization::Me}
 };
 
 // put this near the anon types to keep maintenance easy
-static std::string Anonymize(std::string_view Name, anonymization How)
+static std::string Anonymize(std::string_view Name, Anonymization How)
 {
 	switch (How)
 	{
-	case anonymization::Asterisk:
+	case Anonymization::Asterisk:
 	{
 		std::string asterisk_name(Name);
 		for (size_t i = 1; i < asterisk_name.length() - 1; ++i)
 			asterisk_name[i] = '*';
 		return asterisk_name;
 	}
-	case anonymization::Class:
+	case Anonymization::Class:
 		return fmt::format("[${{Spawn[pc {0}].Level}}] ${{Spawn[pc {0}].Race}} ${{Spawn[pc {0}].Class}} ${{Spawn[pc {0}].Type}}", Name);
-	case anonymization::Me:
+	case Anonymization::Me:
 		return "[${Me.Level}] ${Me.Race} ${Me.Class} ${Me.Type}";
 	default:
 		return std::string(Name);
 	};
 }
 
-static anonymization anon_group;
-static anonymization anon_guild;
-static anonymization anon_raid;
+static Anonymization anon_group;
+static Anonymization anon_guild;
+static Anonymization anon_raid;
 
 class anon_replacer {
 public:
@@ -175,16 +175,16 @@ static std::vector<std::unique_ptr<anon_replacer> >::iterator ReverseFind(std::s
 }
 
 // helper functions for serializing anonymization type
-static anonymization GetAnonymizationFromString(std::string_view anon)
+static Anonymization GetAnonymizationFromString(std::string_view anon)
 {
 	auto it = anonymization_map.find(anon);
 	if (it != anonymization_map.end())
 		return it->second;
 
-	return anonymization::None;
+	return Anonymization::None;
 }
 
-static std::string_view GetStringFromAnonymization(anonymization anon)
+static std::string_view GetStringFromAnonymization(Anonymization anon)
 {
 	for (auto anon_type : anonymization_map)
 	{
@@ -310,7 +310,7 @@ CXStr& Anonymize(CXStr& Text)
 			});
 
 		auto pChar = GetCharInfo();
-		if (anon_group != anonymization::None && pChar && pChar->pGroupInfo)
+		if (anon_group != Anonymization::None && pChar && pChar->pGroupInfo)
 		{
 			new_text = std::accumulate(
 				std::cbegin(pChar->pGroupInfo->pMember),
@@ -335,7 +335,7 @@ CXStr& Anonymize(CXStr& Text)
 			);
 		}
 
-		if (anon_guild != anonymization::None && pGuildList)
+		if (anon_guild != Anonymization::None && pGuildList)
 		{
 			if (pGuild && pChar)
 			{
@@ -362,7 +362,7 @@ CXStr& Anonymize(CXStr& Text)
 			}
 		}
 
-		if (anon_raid != anonymization::None && pChar && pRaid)
+		if (anon_raid != Anonymization::None && pChar && pRaid)
 		{
 			for (auto pMember : pRaid->RaidMember)
 			{
@@ -513,11 +513,11 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		args::Group replacer(arguments, "replacer", args::Group::Validators::AtMostOne);
 		
 		args::Command asterisk(replacer, "asterisk", "anonymize with asterisks",
-			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), anonymization::Asterisk)); });
+			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), Anonymization::Asterisk)); });
 		args::Command clas(replacer, "class", "anonymize by class attributes",
-			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), anonymization::Class)); });
+			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), Anonymization::Class)); });
 		args::Command me(replacer, "me", "anonymize with my class attributes",
-			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), anonymization::Me)); });
+			[&name](args::Subparser&) { AddAnonymization(name.Get(), Anonymize(name.Get(), Anonymization::Me)); });
 		args::Command with(replacer, "with", "anonymize with specific macro string",
 			[&name](args::Subparser& parser) {
 				args::Group with(parser, "with", args::Group::Validators::AtLeastOne);
@@ -579,7 +579,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
 
 		args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
-		args::MapPositional<std::string_view, anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+		args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
 		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
 		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
@@ -594,7 +594,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
 
 		args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
-		args::MapPositional<std::string_view, anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+		args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
 		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
 		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
@@ -609,7 +609,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		args::Group command(parser, "command", args::Group::Validators::AtMostOne);
 
 		args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
-		args::MapPositional<std::string_view, anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+		args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
 		args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
 		args::HelpFlag h(flags, "help", "help", { 'h', "help" });
