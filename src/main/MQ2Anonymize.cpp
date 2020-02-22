@@ -23,6 +23,7 @@
 #include <Yaml.hpp>
 
 // TODO: add toggles for various commands
+// TODO: add self toggle
 
 namespace mq {
 
@@ -320,16 +321,16 @@ CXStr& Anonymize(CXStr& Text)
 				new_text,
 				[](std::string& text, const GROUPMEMBER* g) -> std::string
 				{
-					if (g)
+					if (g && g->Name[0] != '\0' && ci_equals(text, g->Name, false))
 					{
-						auto [it, result] = group_memoization.try_emplace(
-							g->Name,
-							lazy_ctor([&g] {
-								return std::make_unique<anon_replacer>(g->Name, Anonymize(g->Name, anon_group));
-							})
-						);
+						auto memoized = group_memoization.find(g->Name);
+						if (memoized == group_memoization.end())
+							memoized = group_memoization.emplace(
+								g->Name,
+								std::make_unique<anon_replacer>(g->Name, Anonymize(g->Name, anon_group))
+							).first;
 
-						return it->second->replace_text(text);
+						return memoized->second->replace_text(text);
 					}
 
 					return text;
@@ -342,27 +343,33 @@ CXStr& Anonymize(CXStr& Text)
 			if (pGuild && pChar)
 			{
 				auto guild_name = pGuild->GetGuildName(pChar->GuildID);
-				auto [it, result] = guild_memoization.try_emplace(
-					guild_name,
-					lazy_ctor([&guild_name] {
-						return std::make_unique<anon_replacer>(guild_name, Anonymize(guild_name, anon_guild));
-					})
-				);
+				if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
+				{
+					auto memoized = guild_memoization.find(guild_name);
+					if (memoized == guild_memoization.end())
+						memoized = guild_memoization.emplace(
+							guild_name,
+							std::make_unique<anon_replacer>(guild_name, Anonymize(guild_name, anon_guild))
+						).first;
 
-				new_text = it->second->replace_text(new_text);
+					new_text = memoized->second->replace_text(new_text);
+				}
 			}
 
 			// pGuildList is just "current guild"
 			for (auto pMember = pGuildList->pMember; pMember; pMember = pMember->pNext)
 			{
-				auto [it, result] = guild_memoization.try_emplace(
-					pMember->Name,
-					lazy_ctor([&pMember] {
-						return std::make_unique<anon_replacer>(pMember->Name, Anonymize(pMember->Name, anon_guild));
-					})
-				);
+				if (pMember->Name[0] != '\0' && ci_equals(new_text, pMember->Name, false))
+				{
+					auto memoized = guild_memoization.find(pMember->Name);
+					if (memoized == guild_memoization.end())
+						memoized = guild_memoization.emplace(
+							pMember->Name,
+							std::make_unique<anon_replacer>(pMember->Name, Anonymize(pMember->Name, anon_guild))
+						).first;
 
-				new_text = it->second->replace_text(new_text);
+					new_text = memoized->second->replace_text(new_text);
+				}
 			}
 		}
 
@@ -370,16 +377,16 @@ CXStr& Anonymize(CXStr& Text)
 		{
 			for (auto pMember : pRaid->RaidMember)
 			{
-				if (pMember.Name[0] != '\0')
+				if (pMember.Name[0] != '\0' && ci_equals(new_text, pMember.Name, false))
 				{
-					auto [it, result] = raid_memoization.try_emplace(
-						pMember.Name,
-						lazy_ctor([&pMember] {
-							return std::make_unique<anon_replacer>(pMember.Name, Anonymize(pMember.Name, anon_raid));
-						})
-					);
+					auto memoized = raid_memoization.find(pMember.Name);
+					if (memoized == raid_memoization.end())
+						memoized = raid_memoization.emplace(
+							pMember.Name,
+							std::make_unique<anon_replacer>(pMember.Name, Anonymize(pMember.Name, anon_raid))
+						).first;
 
-					new_text = it->second->replace_text(new_text);
+					new_text = memoized->second->replace_text(new_text);
 				}
 			}
 		}
