@@ -507,8 +507,10 @@ static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
 {
 	if (CaptionString[0])
 	{
+		pNamingSpawn = pSpawn;
 		CXStr CaptionOut(ModifyMacroString(CaptionString));
 		reinterpret_cast<PlayerClient*>(pSpawn)->ChangeBoneStringSprite(0, Anonymize(CaptionOut).c_str());
+		pNamingSpawn = nullptr;
 		return true;
 	}
 

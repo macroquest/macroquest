@@ -22,6 +22,8 @@
 #include <memory>
 #include <Yaml.hpp>
 
+// TODO: add toggles for various commands
+
 namespace mq {
 
 // Variables (most of it is wrapped up in the yaml node)
@@ -327,7 +329,7 @@ CXStr& Anonymize(CXStr& Text)
 							})
 						);
 
-						return it->second->replace_text(g->Name);
+						return it->second->replace_text(text);
 					}
 
 					return text;
@@ -346,6 +348,8 @@ CXStr& Anonymize(CXStr& Text)
 						return std::make_unique<anon_replacer>(guild_name, Anonymize(guild_name, anon_guild));
 					})
 				);
+
+				new_text = it->second->replace_text(new_text);
 			}
 
 			// pGuildList is just "current guild"
@@ -358,7 +362,7 @@ CXStr& Anonymize(CXStr& Text)
 					})
 				);
 
-				new_text = it->second->replace_text(pMember->Name);
+				new_text = it->second->replace_text(new_text);
 			}
 		}
 
@@ -375,7 +379,7 @@ CXStr& Anonymize(CXStr& Text)
 						})
 					);
 
-					new_text = it->second->replace_text(pMember.Name);
+					new_text = it->second->replace_text(new_text);
 				}
 			}
 		}
@@ -479,6 +483,26 @@ public:
 	}
 };
 
+class CTextureFontHook
+{
+public:
+	int DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const;
+	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int Width, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	{
+		CXStr StrOut = Str;
+		return DrawWrappedText_Trampoline(Anonymize(StrOut), x, y, Width, BoundRect, Color, Flags, StartX);
+	}
+
+	//int DrawWrappedText_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
+	//int DrawWrappedText_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	//{
+	//	CXStr StrOut = Str;
+	//	return DrawWrappedText_Trampoline(Anonymize(StrOut), Rect, BoundRect, Color, Flags, StartX);
+	//}
+};
+
+DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
+//DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
 DETOUR_TRAMPOLINE_EMPTY(int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
 DETOUR_TRAMPOLINE_EMPTY(int CListWndHook::AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr));
@@ -648,13 +672,14 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 void InitializeAnonymizer()
 {
-	EzDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline);
-	EzDetour(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline);
-	EzDetour(CListWnd__AddString, &CListWndHook::AddString_Detour, &CListWndHook::AddString_Trampoline);
-	EzDetour(CAdvancedLootWnd__UpdateMasterLooter, &CAdvancedLootWndHook::UpdateMasterLooter_Detour, &CAdvancedLootWndHook::UpdateMasterLooter_Trampoline);
-	EzDetour(CComboWnd__GetChoiceText, &CComboWndHook::GetChoiceText_Detour, &CComboWndHook::GetChoiceText_Trampoline);
-	EzDetour(CComboWnd__InsertChoiceAtIndex, &CComboWndHook::InsertChoiceAtIndex_Detour, &CComboWndHook::InsertChoiceAtIndex_Trampoline);
-	EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
+	EzDetour(CTextureFont__DrawWrappedText, &CTextureFontHook::DrawWrappedText_Detour, &CTextureFontHook::DrawWrappedText_Trampoline);
+	//EzDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline);
+	//EzDetour(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline);
+	//EzDetour(CListWnd__AddString, &CListWndHook::AddString_Detour, &CListWndHook::AddString_Trampoline);
+	//EzDetour(CAdvancedLootWnd__UpdateMasterLooter, &CAdvancedLootWndHook::UpdateMasterLooter_Detour, &CAdvancedLootWndHook::UpdateMasterLooter_Trampoline);
+	//EzDetour(CComboWnd__GetChoiceText, &CComboWndHook::GetChoiceText_Detour, &CComboWndHook::GetChoiceText_Trampoline);
+	//EzDetour(CComboWnd__InsertChoiceAtIndex, &CComboWndHook::InsertChoiceAtIndex_Detour, &CComboWndHook::InsertChoiceAtIndex_Trampoline);
+	//EzDetour(CEverQuest__trimName, &CEverQuestHook::TrimName_Detour, &CEverQuestHook::TrimName_Trampoline);
 
 	bmAnonymizer = AddMQ2Benchmark("Anonymizer");
 
@@ -670,12 +695,13 @@ void ShutdownAnonymizer()
 
 	RemoveMQ2Benchmark(bmAnonymizer);
 
-	RemoveDetour(__GetGaugeValueFromEQ);
-	RemoveDetour(__GetLabelFromEQ);
-	RemoveDetour(CListWnd__AddString);
-	RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
-	RemoveDetour(CComboWnd__GetChoiceText);
-	RemoveDetour(CComboWnd__InsertChoiceAtIndex);
-	RemoveDetour(CEverQuest__trimName);
+	RemoveDetour(CTextureFont__DrawWrappedText);
+	//RemoveDetour(__GetGaugeValueFromEQ);
+	//RemoveDetour(__GetLabelFromEQ);
+	//RemoveDetour(CListWnd__AddString);
+	//RemoveDetour(CAdvancedLootWnd__UpdateMasterLooter);
+	//RemoveDetour(CComboWnd__GetChoiceText);
+	//RemoveDetour(CComboWnd__InsertChoiceAtIndex);
+	//RemoveDetour(CEverQuest__trimName);
 }
 }
