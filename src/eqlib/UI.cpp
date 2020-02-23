@@ -75,6 +75,9 @@ FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, in
 #ifdef CTextureFont__DrawWrappedText1_x
 FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const, CTextureFont__DrawWrappedText1);
 #endif
+#ifdef CTextureFont__DrawWrappedText2_x
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const, CTextureFont__DrawWrappedText);
+#endif
 
 //============================================================================
 // CXMLDataManager
