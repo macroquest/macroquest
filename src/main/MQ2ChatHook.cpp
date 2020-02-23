@@ -58,13 +58,7 @@ public:
 
 			if (!SkipTrampoline)
 			{
-				// TODO: can we anonymize system messages?
-				if (dwColor == 269)
-					Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
-				else
-				{
-					Trampoline(Anonymize(szMsg).c_str(), dwColor, EqLog, dopercentsubst, SomeStr);
-				}
+				Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 			}
 		}
 
@@ -92,7 +86,7 @@ public:
 		if (!SkipTrampoline)
 		{
 			// TODO: do we need to filter `text`?
-			TellWnd_Trampoline(Anonymize(message).c_str(), Anonymize(from).c_str(), Anonymize(windowtitle).c_str(), Anonymize(text).c_str(), color, bLogOk);
+			TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
 		}
 
 		gbInChat = false;

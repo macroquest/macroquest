@@ -95,7 +95,7 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 	int sX = pWndMgr->ScreenExtentX;
 	int sY = pWndMgr->ScreenExtentY;
 
-	pFont->DrawWrappedText(Anonymize(Text), X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
+	pFont->DrawWrappedText(Text, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
 }
 
 class EQ_LoadingSHook

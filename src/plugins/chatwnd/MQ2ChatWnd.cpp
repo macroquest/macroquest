@@ -535,7 +535,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	Color = pChatManager->GetRGBAFromIndex(Color);
 	char* szProcessed = new char[MAX_STRING];
 
-	int pos = MQToSTML(Anonymize(Line).c_str(), szProcessed, MAX_STRING - 4, Color);
+	int pos = MQToSTML(Line, szProcessed, MAX_STRING - 4, Color);
 
 	CXStr text = szProcessed;
 	text.append("<br>");
