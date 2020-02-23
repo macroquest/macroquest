@@ -1082,8 +1082,7 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 			switch (NameString[N])
 			{
 			case 'N': // cleaned up name
-				NameOut = pSpawn->DisplayedName;
-				AddString(Anonymize(NameOut));
+				AddString(Anonymize(pSpawn->DisplayedName));
 
 				if (pSpawn->Type == SPAWN_CORPSE)
 					sOutput.append("'s Corpse");
@@ -1091,8 +1090,7 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 				break;
 
 			case 'n': // original name
-				NameOut = pSpawn->Name;
-				AddString(Anonymize(NameOut));
+				AddString(Anonymize(pSpawn->Name));
 				break;
 
 			case 'h': // current health %

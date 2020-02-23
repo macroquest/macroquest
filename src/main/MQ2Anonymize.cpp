@@ -299,9 +299,17 @@ static void Deserialize()
 }
 
 // process string to anonymize
-CXStr& Anonymize(CXStr& Text)
+CXStr& PluginAnonymize(CXStr& Text)
 {
-	if (anon_enabled)
+	if (anon_enabled && !Text.empty())
+		Text = Anonymize(Text);
+
+	return Text;
+}
+
+CXStr Anonymize(const CXStr& Text)
+{
+	if (anon_enabled && !Text.empty())
 	{
 		EnterMQ2Benchmark(bmAnonymizer);
 
@@ -397,7 +405,7 @@ CXStr& Anonymize(CXStr& Text)
 			new_text = self_replacer->replace_text(new_text);
 		}
 
-		Text = new_text;
+		return CXStr(new_text);
 
 		ExitMQ2Benchmark(bmAnonymizer);
 	}
@@ -409,7 +417,7 @@ int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
 int GetGaugeValueFromEQ_Detour(int EQType, CXStr& out, bool* arg3, unsigned long* colorout)
 {
 	int ret = GetGaugeValueFromEQ_Trampoline(EQType, out, arg3, colorout);
-	Anonymize(out);
+	out = Anonymize(out);
 	return ret;
 }
 
@@ -417,7 +425,7 @@ int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
 int GetLabelFromEQ_Detour(int EQType, CXStr& out, bool* arg3, unsigned long* colorout)
 {
 	int ret = GetLabelFromEQ_Trampoline(EQType, out, arg3, colorout);
-	Anonymize(out);
+	out = Anonymize(out);
 	return ret;
 }
 
@@ -427,8 +435,7 @@ public:
 	int AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr);
 	int AddString_Detour(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr)
 	{
-		CXStr LineOut = Str;
-		return AddString_Trampoline(Anonymize(LineOut), Color, Data, pTa, TooltipStr);
+		return AddString_Trampoline(Anonymize(Str), Color, Data, pTa, TooltipStr);
 	}
 };
 
@@ -450,8 +457,7 @@ public:
 		if (!MasterLooterLabel)
 			return;
 
-		CXStr LabelOut = MasterLooterLabel->Text;
-		MasterLooterLabel->SetWindowText(Anonymize(LabelOut));
+		MasterLooterLabel->SetWindowText(Anonymize(MasterLooterLabel->Text));
 	}
 };
 
@@ -474,8 +480,7 @@ public:
 	int InsertChoiceAtIndex_Trampoline(const CXStr& Str, uint32_t index);
 	int InsertChoiceAtIndex_Detour(const CXStr& Str, uint32_t index)
 	{
-		CXStr LineOut = Str;
-		return InsertChoiceAtIndex_Trampoline(Anonymize(LineOut), index);
+		return InsertChoiceAtIndex_Trampoline(Anonymize(Str), index);
 	}
 };
 
@@ -487,8 +492,7 @@ public:
 	{
 		char* ret = TrimName_Trampoline(arg1);
 
-		CXStr LineOut = ret;
-		LineOut = Anonymize(LineOut);
+		CXStr LineOut = Anonymize(ret);
 
 		// ret has been allocated 2112 (2048 + 64, I guess?) bytes, so we gotta limit to that
 		strncpy_s(ret, 2112U, LineOut.c_str(), LineOut.length() + 1);
@@ -502,20 +506,11 @@ public:
 	int DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const;
 	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int Width, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
 	{
-		CXStr StrOut = Str;
-		return DrawWrappedText_Trampoline(Anonymize(StrOut), x, y, Width, BoundRect, Color, Flags, StartX);
+		return DrawWrappedText_Trampoline(Anonymize(Str), x, y, Width, BoundRect, Color, Flags, StartX);
 	}
-
-	//int DrawWrappedText_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
-	//int DrawWrappedText_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
-	//{
-	//	CXStr StrOut = Str;
-	//	return DrawWrappedText_Trampoline(Anonymize(StrOut), Rect, BoundRect, Color, Flags, StartX);
-	//}
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
-//DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
 DETOUR_TRAMPOLINE_EMPTY(int GetLabelFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
 DETOUR_TRAMPOLINE_EMPTY(int CListWndHook::AddString_Trampoline(const CXStr& Str, COLORREF Color, uint64_t Data, const CTextureAnimation* pTa, const char* TooltipStr));
@@ -814,6 +809,16 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		anon_enabled = !anon_enabled;
 		WriteChatf("MQ2Anonymize is now %s\ax.", anon_enabled ? "\agOn" : "\arOff");
 	}
+
+	// This is very much incorrect; I need to get the name from the actual master looter
+	//if (pAdvancedLootWnd)
+	//{
+	//	auto label = static_cast<CLabelWnd*>(pAdvancedLootWnd->GetChildItem("ADLW_CalculatedMasterLooter"));
+	//	if (label)
+	//	{
+	//		pAdvancedLootWnd->UpdateMasterLooter(Anonymize(label->Text), true);
+	//	}
+	//}
 }
 
 void InitializeAnonymizer()

@@ -63,8 +63,7 @@ public:
 					Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 				else
 				{
-					CXStr LineOut = szMsg;
-					Trampoline(Anonymize(LineOut).c_str(), dwColor, EqLog, dopercentsubst, SomeStr);
+					Trampoline(Anonymize(szMsg).c_str(), dwColor, EqLog, dopercentsubst, SomeStr);
 				}
 			}
 		}
@@ -92,13 +91,8 @@ public:
 
 		if (!SkipTrampoline)
 		{
-			CXStr MessageOut = message;
-			CXStr FromOut = from;
-			CXStr TitleOut = windowtitle;
-			CXStr LineOut = text;
-
 			// TODO: do we need to filter `text`?
-			TellWnd_Trampoline(Anonymize(MessageOut).c_str(), Anonymize(FromOut).c_str(), Anonymize(TitleOut).c_str(), Anonymize(LineOut).c_str(), color, bLogOk);
+			TellWnd_Trampoline(Anonymize(message).c_str(), Anonymize(from).c_str(), Anonymize(windowtitle).c_str(), Anonymize(text).c_str(), color, bLogOk);
 		}
 
 		gbInChat = false;

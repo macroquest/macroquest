@@ -673,9 +673,11 @@ MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 
 /* MQ2ANONYMIZE */
-MQLIB_API void InitializeAnonymizer();
-MQLIB_API void ShutdownAnonymizer();
-MQLIB_API CXStr& Anonymize(CXStr& Text);
+void InitializeAnonymizer();
+void ShutdownAnonymizer();
+MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
+// this is only made available for things that need c-linkage (are grabbing this function out of a DLL)
+MQLIB_API CXStr& PluginAnonymize(CXStr& Text);
 
 MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 
