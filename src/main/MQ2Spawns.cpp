@@ -39,8 +39,8 @@ static char gszSpawnPlayerName[8][MAX_STRING] = {
 
 static char gszSpawnNPCName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
 static char gszSpawnPetName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
+static char gszSpawnMercName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Owner.Type.Equal[PC]},\n(${NamingSpawn.Owner}),]}";
 static char gszSpawnCorpseName[MAX_STRING] = "${NamingSpawn.DisplayName}'s corpse";
-static char gszAnonCaption[MAX_STRING] = "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}";
 
 // TLO used for controlling what we are currently naming.
 static bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
@@ -135,6 +135,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 
 		WriteChatf("\ayNPC\ax: \ag%s\ax", gszSpawnNPCName);
 		WriteChatf("\ayPet\ax: \ag%s\ax", gszSpawnPetName);
+		WriteChatf("\ayMerc\ax: \ag%s\ax", gszSpawnMercName);
 		WriteChatf("\ayCorpse\ax: \ag%s\ax", gszSpawnCorpseName);
 		return;
 	}
@@ -168,6 +169,10 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	else if (!_stricmp(Arg1, "Pet"))
 	{
 		pCaption = gszSpawnPetName;
+	}
+	else if (!_stricmp(Arg1, "Merc"))
+	{
+		pCaption = gszSpawnMercName;
 	}
 	else if (!_stricmp(Arg1, "NPC"))
 	{
@@ -204,7 +209,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 		GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, mq::internal_paths::MQini);
 		GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, mq::internal_paths::MQini);
 		GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, mq::internal_paths::MQini);
-		GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Merc", gszSpawnMercName, gszSpawnMercName, MAX_STRING, mq::internal_paths::MQini);
 
 		ConvertCR(gszSpawnNPCName, MAX_STRING);
 		ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
@@ -215,7 +220,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 		ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
 		ConvertCR(gszSpawnCorpseName, MAX_STRING);
 		ConvertCR(gszSpawnPetName, MAX_STRING);
-		ConvertCR(gszAnonCaption, MAX_STRING);
+		ConvertCR(gszSpawnMercName, MAX_STRING);
 
 		WriteChatf("Updated Captions from INI.");
 		return;
@@ -531,11 +536,6 @@ static bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 
 	switch (GetSpawnType(pSpawn))
 	{
-	case MERCENARY:
-		if (SetCaption(pSpawn, pSpawn->Name))
-			return true;
-		break;
-
 	case NPC:
 		if (SetCaption(pSpawn, gszSpawnNPCName))
 			return true;
@@ -565,6 +565,11 @@ static bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 
 	case PET:
 		if (SetCaption(pSpawn, gszSpawnPetName))
+			return true;
+		break;
+
+	case MERCENARY:
+		if (SetCaption(pSpawn, gszSpawnMercName))
 			return true;
 		break;
 	}
@@ -613,7 +618,7 @@ static void LoadCaptionSettings()
 	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Pet", gszSpawnMercName, gszSpawnMercName, MAX_STRING, iniFile);
 
 	gMaxSpawnCaptions = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 	gMQCaptions = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
@@ -629,7 +634,7 @@ static void LoadCaptionSettings()
 		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
 		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
 		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
-		WritePrivateProfileString("Captions", "AnonCaption", gszAnonCaption, iniFile);
+		WritePrivateProfileString("Captions", "Pet", gszSpawnMercName, iniFile);
 
 		WritePrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 		WritePrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
@@ -644,7 +649,7 @@ static void LoadCaptionSettings()
 	ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
 	ConvertCR(gszSpawnCorpseName, MAX_STRING);
 	ConvertCR(gszSpawnPetName, MAX_STRING);
-	ConvertCR(gszAnonCaption, MAX_STRING);
+	ConvertCR(gszSpawnMercName, MAX_STRING);
 }
 
 #pragma endregion
