@@ -618,7 +618,7 @@ static void LoadCaptionSettings()
 	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "Pet", gszSpawnMercName, gszSpawnMercName, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Merc", gszSpawnMercName, gszSpawnMercName, MAX_STRING, iniFile);
 
 	gMaxSpawnCaptions = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 	gMQCaptions = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
@@ -634,7 +634,7 @@ static void LoadCaptionSettings()
 		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
 		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
 		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
-		WritePrivateProfileString("Captions", "Pet", gszSpawnMercName, iniFile);
+		WritePrivateProfileString("Captions", "Merc", gszSpawnMercName, iniFile);
 
 		WritePrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 		WritePrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
