@@ -721,6 +721,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	if (args.empty())
 	{
 		anon_enabled = !anon_enabled;
+		WriteChatf("Toggling anonymization state, use \ay/mqanon -h\ax for a list of commands.");
 		WriteChatf("MQ2Anonymize is now %s\ax.", anon_enabled ? "\agOn" : "\arOff");
 	}
 }

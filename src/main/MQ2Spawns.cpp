@@ -120,7 +120,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (!Arg1[0])
 	{
-		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anon <on|off>>");
+		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>>");
 		return;
 	}
 
@@ -223,6 +223,11 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 		ConvertCR(gszSpawnMercName, MAX_STRING);
 
 		WriteChatf("Updated Captions from INI.");
+		return;
+	}
+	else if (ci_equals(Arg1, "anon"))
+	{
+		MacroError("Anon is no longer accessed through /caption, please use /mqanon");
 		return;
 	}
 	else
