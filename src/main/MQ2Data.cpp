@@ -18,36 +18,6 @@
 using namespace mq::datatypes;
 namespace mq {
 
-bool dataSpawn(const char* szIndex, MQTypeVar& Ret)
-{
-	if (szIndex[0])
-	{
-		if (IsNumber(szIndex))
-		{
-			if ((Ret.Ptr = GetSpawnByID(GetIntFromString(szIndex, 0))))
-			{
-				Ret.Type = pSpawnType;
-				return true;
-			}
-		}
-		else
-		{
-			// set up search spawn
-			MQSpawnSearch ssSpawn;
-			ClearSearchSpawn(&ssSpawn);
-			ParseSearchSpawn(szIndex, &ssSpawn);
-			if (Ret.Ptr = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn))
-			{
-				Ret.Type = pSpawnType;
-				return true;
-			}
-		}
-	}
-	// No spawn
-
-	return false;
-}
-
 bool dataSelect(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
@@ -78,28 +48,6 @@ bool dataSelect(const char* szIndex, MQTypeVar& Ret)
 			return true;
 		}
 	}
-}
-
-bool dataTarget(const char* szIndex, MQTypeVar& Ret)
-{
-	if (pTarget)
-	{
-		Ret.Ptr = pTarget;
-		Ret.Type = pTargetType;
-		return true;
-	}
-	return false;
-}
-
-bool dataCharacter(const char* szIndex, MQTypeVar& Ret)
-{
-	if (pCharData)
-	{
-		Ret.Ptr = pCharData;
-		Ret.Type = pCharacterType;
-		return true;
-	}
-	return false;
 }
 
 bool dataSwitch(const char* szIndex, MQTypeVar& Ret)
@@ -714,124 +662,6 @@ bool dataCursor(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
-{
-	if (szIndex[0])
-	{
-		if (IsNumber(szIndex))
-		{
-			bool bPosIndex = true;
-			int index = GetIntFromString(szIndex, 0);
-			if (index < 0)
-			{
-				bPosIndex = false;
-				index *= -1;
-			}
-			else if (index == 0)
-			{
-				index = 1;
-			}
-			index--;
-
-			if (SPAWNINFO* pSpawn = bPosIndex ? pSpawnManager->FirstSpawn : pLocalPlayer)
-			{
-				while (index)
-				{
-					pSpawn = bPosIndex ? pSpawn->pNext : pSpawn->pPrev;
-					if (!pSpawn)
-						return false;
-					index--;
-				}
-				Ret.Ptr = pSpawn;
-				Ret.Type = pSpawnType;
-				return true;
-			}
-		}
-	}
-	else
-	{
-		Ret.Ptr = pSpawnList;
-		Ret.Type = pSpawnType;
-		return true;
-	}
-	return false;
-}
-
-bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
-{
-	if (szIndex[0])
-	{
-		MQSpawnSearch ssSpawn;
-		ClearSearchSpawn(&ssSpawn);
-		ssSpawn.FRadius = 999999.0f;
-
-		int nth = 0;
-
-		if (strchr(szIndex, ',') != nullptr)
-		{
-			char szTemp[MAX_STRING];
-			strcpy_s(szTemp, szIndex);
-
-			char* pSearch = strchr(szTemp, ',');
-			*pSearch = 0;
-			++pSearch;
-
-			ParseSearchSpawn(pSearch, &ssSpawn);
-			nth = GetIntFromString(szIndex, nth);
-		}
-		else
-		{
-			if (IsNumberToComma(szIndex))
-			{
-				nth = GetIntFromString(szIndex, nth);
-			}
-			else
-			{
-				nth = 1;
-				ParseSearchSpawn(szIndex, &ssSpawn);
-			}
-		}
-
-		for (int index = 0; index < gSpawnCount; index++)
-		{
-			if (EQP_DistArray[index].Value.Float > ssSpawn.FRadius && !ssSpawn.bKnownLocation)
-				return false;
-
-			if (SpawnMatchesSearch(&ssSpawn, (SPAWNINFO*)pCharSpawn, (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr))
-			{
-				if (--nth == 0)
-				{
-					Ret.Ptr = EQP_DistArray[index].VarPtr.Ptr;
-					Ret.Type = pSpawnType;
-					return true;
-				}
-			}
-		}
-	}
-
-	// No spawn
-	return false;
-}
-
-bool dataSpawnCount(const char* szIndex, MQTypeVar& Ret)
-{
-	if (szIndex[0])
-	{
-		MQSpawnSearch ssSpawn;
-		ClearSearchSpawn(&ssSpawn);
-		ParseSearchSpawn(szIndex, &ssSpawn);
-		Ret.DWord = CountMatchingSpawns(&ssSpawn, GetCharInfo()->pSpawn, TRUE);
-		Ret.Type = pIntType;
-		return true;
-	}
-	else
-	{
-		Ret.DWord = gSpawnCount;
-		Ret.Type = pIntType;
-		return true;
-	}
-}
-
 bool dataTime(const char* szIndex, MQTypeVar& Ret)
 {
 	time_t CurTime = { 0 };
@@ -1420,26 +1250,6 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 		return true;
 	}
 
-	return false;
-}
-
-bool dataDoorTarget(const char* szIndex, MQTypeVar& Ret)
-{
-	if (Ret.Ptr = &DoorEnviroTarget)
-	{
-		Ret.Type = pSpawnType;
-		return true;
-	}
-	return false;
-}
-
-bool dataItemTarget(const char* szIndex, MQTypeVar& Ret)
-{
-	if (Ret.Ptr = &EnviroTarget)
-	{
-		Ret.Type = pSpawnType;
-		return true;
-	}
 	return false;
 }
 

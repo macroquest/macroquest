@@ -484,7 +484,6 @@ enum EQExpansionOwned
 // TODO: Find a common place to put constants
 constexpr int MAX_BANDOLIER_SLOTS = 4;
 
-
 enum PlayerClass
 {
 	Unknown = 0,

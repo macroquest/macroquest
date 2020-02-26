@@ -2838,14 +2838,11 @@ void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp)
 		CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 }
 
-int GetSpellCounters(eEQSPA spellAffect, const SPELLBUFF* buff)
+int GetSpellCounters(eEQSPA spellAffect, const SPELLBUFF& buff)
 {
-	if (!buff)
-		return 0;
-
 	int count = 0;
 
-	EQ_Spell* pSpell = GetSpellByID(buff->SpellID);
+	EQ_Spell* pSpell = GetSpellByID(buff.SpellID);
 	if (!pSpell || pSpell->SpellType != SpellType_Detrimental)
 		return 0;
 
@@ -2857,7 +2854,7 @@ int GetSpellCounters(eEQSPA spellAffect, const SPELLBUFF* buff)
 
 		if (attrib == spellAffect)
 		{
-			for (auto& slotData : buff->SlotData)
+			for (auto& slotData : buff.SlotData)
 			{
 				if (slotData.Slot == i)
 				{
@@ -2880,25 +2877,22 @@ int GetMySpellCounters(eEQSPA spellAffect)
 
 	for (const auto& buff : pProfile->Buff)
 	{
-		count += GetSpellCounters(spellAffect, &buff);
+		count += GetSpellCounters(spellAffect, buff);
 	}
 
 	for (const auto& buff : pProfile->ShortBuff)
 	{
-		count += GetSpellCounters(spellAffect, &buff);
+		count += GetSpellCounters(spellAffect, buff);
 	}
 
 	return count;
 }
 
-int GetTotalSpellCounters(const SPELLBUFF* buff)
+int GetTotalSpellCounters(const SPELLBUFF& buff)
 {
-	if (!buff)
-		return 0;
-
 	int count = 0;
 
-	EQ_Spell* pSpell = GetSpellByID(buff->SpellID);
+	EQ_Spell* pSpell = GetSpellByID(buff.SpellID);
 	if (!pSpell || pSpell->SpellType != SpellType_Detrimental)
 		return 0;
 
@@ -2910,7 +2904,7 @@ int GetTotalSpellCounters(const SPELLBUFF* buff)
 
 		if (IsSpellCountersSPA(attrib))
 		{
-			for (auto& slotData : buff->SlotData)
+			for (auto& slotData : buff.SlotData)
 			{
 				if (slotData.Slot == i)
 				{
@@ -2934,12 +2928,12 @@ int GetMyTotalSpellCounters()
 
 	for (const auto& buff : pProfile->Buff)
 	{
-		total += GetTotalSpellCounters(&buff);
+		total += GetTotalSpellCounters(buff);
 	}
 
 	for (const auto& buff : pProfile->ShortBuff)
 	{
-		total += GetTotalSpellCounters(&buff);
+		total += GetTotalSpellCounters(buff);
 	}
 
 	return total;

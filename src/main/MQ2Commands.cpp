@@ -3301,17 +3301,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 		}
 		else if (!strcmp(szArg, "ccb"))
 		{
-			if (pTarget)
-			{
-				int id = pTarget->SpawnID;
-
-				if (CachedBuffsMap.find(id) != CachedBuffsMap.end())
-				{
-					pTarget = nullptr;
-					CachedBuffsMap.erase(id);
-				}
-			}
-
+			ClearCachedBuffsSpawn(pTarget);
 			WriteChatColor("Cached Buffs for Target cleared.", USERCOLOR_WHO);
 			return;
 		}
@@ -3320,7 +3310,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 			pTarget = nullptr;
 
 			WriteChatColor("Cached Buffs for ALL Targets cleared.", USERCOLOR_WHO);
-			CachedBuffsMap.clear();
+			ClearCachedBuffs();
 			return;
 		}
 		else

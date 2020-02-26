@@ -68,7 +68,6 @@ MQLIB_VAR bool bAllErrorsFatal;
 MQLIB_VAR bool bAllErrorsDumpStack;
 MQLIB_VAR bool bAllErrorsLog;
 MQLIB_API char DataTypeTemp[MAX_STRING];
-MQLIB_API TargetBuff TargetBuffTemp;
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
 MQLIB_API int gBuild;
@@ -327,9 +326,6 @@ MQLIB_VAR bool gbIgnoreAlertRecursion;
 
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
-
-extern std::map<int, std::string> targetBuffSlotToCasterMap;
-extern std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
 MQLIB_VAR int gParserVersion;
 

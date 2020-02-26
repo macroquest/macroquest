@@ -38,9 +38,6 @@ struct TargetBuff
 	int duration;            // in ticks...
 	int count;
 	char casterName[64];
-
-	// not actually part of this packet but we need it for cachedbuffs map
-	DWORD timeStamp;         // when the buffpacket arrived.
 };
 using PTargetBuff [[deprecated("Use TargetBuff* Instead")]] = TargetBuff*;
 

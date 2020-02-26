@@ -18,6 +18,106 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class TargetMembers
+{
+	Buff,
+	BuffCount,
+	BuffDuration,
+	PctAggro,
+	SecondaryPctAggro,
+	SecondaryAggroPlayer,
+	AggroHolder,
+	Slowed,
+	Rooted,
+	Mezzed,
+	Crippled,
+	Maloed,
+	Tashed,
+	Snared,
+	Hasted,
+	Aego,
+	Skin,
+	Focus,
+	Regen,
+	Symbol,
+	Clarity,
+	Pred,
+	Strength,
+	Brells,
+	SV,
+	SE,
+	HybridHP,
+	Growth,
+	Shining,
+	Beneficial,
+	DSed,
+	RevDSed,
+	Charmed,
+	Diseased,
+	Poisoned,
+	Cursed,
+	Corrupted,
+	BuffsPopulated,
+	MyBuff,
+	MyBuffCount,
+	MyBuffDuration,
+	Feared,
+	Silenced,
+	Invulnerable,
+	Dotted,
+	MaxMeleeTo,
+};
+
+MQ2TargetType::MQ2TargetType() : MQ2Type("target")
+{
+	ScopedTypeMember(TargetMembers, Buff);
+	ScopedTypeMember(TargetMembers, BuffCount);
+	ScopedTypeMember(TargetMembers, BuffDuration);
+	ScopedTypeMember(TargetMembers, PctAggro);
+	ScopedTypeMember(TargetMembers, SecondaryPctAggro);
+	ScopedTypeMember(TargetMembers, SecondaryAggroPlayer);
+	ScopedTypeMember(TargetMembers, AggroHolder);
+	ScopedTypeMember(TargetMembers, Slowed);
+	ScopedTypeMember(TargetMembers, Rooted);
+	ScopedTypeMember(TargetMembers, Mezzed);
+	ScopedTypeMember(TargetMembers, Crippled);
+	ScopedTypeMember(TargetMembers, Maloed);
+	ScopedTypeMember(TargetMembers, Tashed);
+	ScopedTypeMember(TargetMembers, Snared);
+	ScopedTypeMember(TargetMembers, Hasted);
+	ScopedTypeMember(TargetMembers, Aego);
+	ScopedTypeMember(TargetMembers, Skin);
+	ScopedTypeMember(TargetMembers, Focus);
+	ScopedTypeMember(TargetMembers, Regen);
+	ScopedTypeMember(TargetMembers, Symbol);
+	ScopedTypeMember(TargetMembers, Clarity);
+	ScopedTypeMember(TargetMembers, Pred);
+	ScopedTypeMember(TargetMembers, Strength);
+	ScopedTypeMember(TargetMembers, Brells);
+	ScopedTypeMember(TargetMembers, SV);
+	ScopedTypeMember(TargetMembers, SE);
+	ScopedTypeMember(TargetMembers, HybridHP);
+	ScopedTypeMember(TargetMembers, Growth);
+	ScopedTypeMember(TargetMembers, Shining);
+	ScopedTypeMember(TargetMembers, Beneficial);
+	ScopedTypeMember(TargetMembers, DSed);
+	ScopedTypeMember(TargetMembers, RevDSed);
+	ScopedTypeMember(TargetMembers, Charmed);
+	ScopedTypeMember(TargetMembers, Diseased);
+	ScopedTypeMember(TargetMembers, Poisoned);
+	ScopedTypeMember(TargetMembers, Cursed);
+	ScopedTypeMember(TargetMembers, Corrupted);
+	ScopedTypeMember(TargetMembers, BuffsPopulated);
+	ScopedTypeMember(TargetMembers, MyBuff);
+	ScopedTypeMember(TargetMembers, MyBuffCount);
+	ScopedTypeMember(TargetMembers, MyBuffDuration);
+	ScopedTypeMember(TargetMembers, Feared);
+	ScopedTypeMember(TargetMembers, Silenced);
+	ScopedTypeMember(TargetMembers, Invulnerable);
+	ScopedTypeMember(TargetMembers, Dotted);
+	ScopedTypeMember(TargetMembers, MaxMeleeTo);
+}
+
 bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!VarPtr.Ptr)
@@ -34,303 +134,132 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<TargetMembers>(pMember->ID))
 	{
-	case BuffsPopulated:
+	case TargetMembers::BuffsPopulated:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (gTargetbuffs && pTarget)
 			Dest.DWord = gTargetbuffs;
 		return true;
 
-	case Buff:
-		Dest.Type = pSpellType;
-		if (pTargetWnd->Type <= 0)
-			return false;
-
-		if (Index[0])
-		{
-			if (IsNumber(Index))
+	case TargetMembers::Buff:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			[&Index](CachedBuff buff)
 			{
-				int nBuff = GetIntFromString(Index, NUM_BUFF_SLOTS + 1);
-				if (nBuff > NUM_BUFF_SLOTS)
-					return false;
-				if (nBuff >= 1)
-					nBuff--;
+				if (Index[0])
+				{
+					if (IsNumber(Index))
+						return buff.slot == GetIntFromString(Index, 0) - 1;
+					
+					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+				}
 
-				int buffID = pTargetWnd->BuffSpellID[nBuff];
-				if (buffID && buffID != -1)
-				{
-					if (Dest.Ptr = GetSpellByID(buffID))
-					{
-						Dest.HighPart = nBuff;
-						Dest.Type = pSpellType;
-						return true;
-					}
-				}
-			}
-			else
-			{
-				for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-				{
-					int buffID = pTargetWnd->BuffSpellID[i];
-					if (buffID && ci_starts_with(GetSpellNameByID(buffID), Index))
-					{
-						if (Dest.Ptr = GetSpellByID(buffID))
-						{
-							Dest.HighPart = i;
-							Dest.Type = pSpellType;
-							return true;
-						}
-					}
-				}
-			}
-		}
-		else
-		{
-			// return first buff
-			for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-			{
-				if (int buffID = pTargetWnd->BuffSpellID[i])
-				{
-					if (SPELL* pSpell = GetSpellByID(buffID))
-					{
-						strcpy_s(DataTypeTemp, pSpell->Name);
-						Dest.Ptr = &DataTypeTemp[0];
-						Dest.Type = pStringType;
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+				return true;
+			}));
+		return Dest.HighPart >= 0;
 
-	case MyBuff:
-		Dest.Type = pSpellType;
-		if (pTargetWnd->Type <= 0)
-			return false;
-		if (Index[0])
-		{
-			if (IsNumber(Index))
+	case TargetMembers::MyBuff:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			[&Index](CachedBuff buff)
 			{
-				int nBuff = GetIntFromString(Index, NUM_BUFF_SLOTS + 1);
-				if (nBuff > NUM_BUFF_SLOTS)
-					return false;
-				if (nBuff >= 1)
-					nBuff--;
-
-				int buffID = pTargetWnd->BuffSpellID[nBuff];
-				if (buffID > 0)
+				auto myname = GetCharInfo()->Name;
+				if (Index[0])
 				{
-					if (!targetBuffSlotToCasterMap.empty() && targetBuffSlotToCasterMap.find(nBuff) != targetBuffSlotToCasterMap.end())
-					{
-						if (string_equals(GetCharInfo()->Name, targetBuffSlotToCasterMap[nBuff]))
-						{
-							if (Dest.Ptr = GetSpellByID(buffID))
-							{
-								Dest.HighPart = nBuff;
-								Dest.Type = pSpellType;
-								return true;
-							}
-						}
-					}
+					if (IsNumber(Index))
+						return buff.slot == GetIntFromString(Index, 0) - 1 && ci_equals(myname, buff.casterName);
+					
+					return ci_equals(myname, buff.casterName) && ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+				}
 
-				}
-			}
-			else
-			{
-				if (!targetBuffSlotToCasterMap.empty())
-				{
-					for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-					{
-						if (targetBuffSlotToCasterMap.find(i) != targetBuffSlotToCasterMap.end()
-							&& string_equals(GetCharInfo()->Name, targetBuffSlotToCasterMap[i]))
-						{
-							int buffID = pTargetWnd->BuffSpellID[i];
-							if (buffID && ci_starts_with(GetSpellNameByID(buffID), Index))
-							{
-								if (Dest.Ptr = GetSpellByID(buffID))
-								{
-									Dest.HighPart = i;
-									Dest.Type = pSpellType;
-									return true;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		else
-		{
-			// return first buff
-			if (!targetBuffSlotToCasterMap.empty())
-			{
-				for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-				{
-					if (targetBuffSlotToCasterMap.find(i) != targetBuffSlotToCasterMap.end()
-						&& string_equals(GetCharInfo()->Name, targetBuffSlotToCasterMap[i]))
-					{
-						int buffID = pTargetWnd->BuffSpellID[i];
-						if (buffID)
-						{
-							if (SPELL* pSpell = GetSpellByID(buffID))
-							{
-								strcpy_s(DataTypeTemp, pSpell->Name);
-								Dest.Ptr = &DataTypeTemp[0];
-								Dest.Type = pStringType;
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-		return false;
+				return ci_equals(myname, buff.casterName);
+			}));
+		return Dest.HighPart >= 0;
 
-	case BuffCount:
-		Dest.DWord = 0;
+	case TargetMembers::BuffCount:
 		Dest.Type = pIntType;
-		if (pTargetWnd->Type <= 0)
-			return false;
-
-		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-		{
-			if (pTargetWnd->BuffSpellID[i])
-				Dest.DWord++;
-		}
+		Dest.DWord = GetCachedBuffCount(pTarget);
 		return true;
 
-	case MyBuffCount:
-		Dest.DWord = 0;
+	case TargetMembers::MyBuffCount:
 		Dest.Type = pIntType;
-		if (pTargetWnd->Type <= 0)
-			return false;
-
-		if (!targetBuffSlotToCasterMap.empty())
-		{
-			for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+		Dest.DWord = GetCachedBuffCountPredicate(pTarget, [](CachedBuff buff)
 			{
-				if (targetBuffSlotToCasterMap.find(i) != targetBuffSlotToCasterMap.end()
-					&& string_equals(GetCharInfo()->Name, targetBuffSlotToCasterMap[i]))
-				{
-					int buffID = pTargetWnd->BuffSpellID[i];
-					if (buffID)
-					{
-						Dest.DWord++;
-					}
-				}
-			}
-		}
+				return string_equals(GetCharInfo()->Name, buff.casterName);
+			});
 		return true;
 
-	case MyBuffDuration:
-		Dest.UInt64 = 0;
+	case TargetMembers::MyBuffDuration:
+	{
 		Dest.Type = pTimeStampType;
-		if (pTargetWnd->Type <= 0)
-			return false;
-
-		if (Index[0])
-		{
-			if (IsNumber(Index))
+		DWORD duration = 0;
+		auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
+			[&Index, &duration](CachedBuff buff)
 			{
-				int nBuff = GetIntFromString(Index, NUM_BUFF_SLOTS + 1);
-				if (nBuff > NUM_BUFF_SLOTS)
+				if (duration > buff.Duration() || !ci_equals(GetCharInfo()->Name, buff.casterName))
 					return false;
-				if (nBuff >= 1)
-					nBuff--;
 
-				int buffID = pTargetWnd->BuffSpellID[nBuff];
-				if (buffID > 0)
+				if (Index[0] && IsNumber(Index) && buff.slot == GetIntFromString(Index, 0) - 1)
 				{
-					if (!targetBuffSlotToCasterMap.empty()
-						&& targetBuffSlotToCasterMap.find(nBuff) != targetBuffSlotToCasterMap.end())
-					{
-						if (string_equals(GetCharInfo()->Name, targetBuffSlotToCasterMap[nBuff]))
-						{
-							Dest.UInt64 = pTargetWnd->BuffTimer[nBuff];
-							return true;
-						}
-					}
-
-				}
-			}
-			else
-			{
-				if (!targetBuffSlotToCasterMap.empty() && GetCharInfo())
-				{
-					for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-					{
-						if (targetBuffSlotToCasterMap.find(i) != targetBuffSlotToCasterMap.end()
-							&& !strcmp(GetCharInfo()->Name, targetBuffSlotToCasterMap[i].c_str()))
-						{
-							int buffID = pTargetWnd->BuffSpellID[i];
-							if (buffID && ci_starts_with(GetSpellNameByID(buffID), Index))
-							{
-								Dest.UInt64 = pTargetWnd->BuffTimer[i];
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-		return false;
-
-	case BuffDuration:
-		Dest.UInt64 = 0;
-		Dest.Type = pTimeStampType;
-		if (pTargetWnd->Type <= 0)
-			return false;
-
-		if (Index[0])
-		{
-			if (IsNumber(Index))
-			{
-				int nBuff = GetIntFromString(Index, NUM_BUFF_SLOTS + 1);
-				if (nBuff > NUM_BUFF_SLOTS)
-					return false;
-				if (nBuff >= 1)
-					nBuff--;
-
-				int buffID = pTargetWnd->BuffSpellID[nBuff];
-				if (buffID > 0)
-				{
-					Dest.UInt64 = pTargetWnd->BuffTimer[nBuff];
+					duration = buff.Duration();
 					return true;
 				}
-			}
-			else
-			{
-				int duration = 0;
-				for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+				else if (Index[0] && ci_starts_with(GetSpellNameByID(buff.spellId), Index))
 				{
-					int buffID = pTargetWnd->BuffSpellID[i];
-
-					// I strncmp them to take ranked buffs into account
-					// so if the user specifies ${Target.BuffDuration[Pyromancy]} for example
-					// its still gonna work if it finds Pyromancy XV
-					if (buffID > 0 && ci_starts_with(GetSpellNameByID(buffID), Index))
-					{
-						if (pTargetWnd->BuffTimer[i] > duration)
-						{
-							duration = pTargetWnd->BuffTimer[i];
-							// we always want to return the buff with the longest duration
-							// cause thats the one that landed last on the mob
-							// otherwize we could just break; out of here at this point
-							// but anyway thats the reason we keep rolling through all them... -eqmule
-						}
-					}
-
-					if (duration > 0)
-					{
-						Dest.UInt64 = duration;
-						return true;
-					}
+					duration = buff.Duration();
+					return true;
 				}
-			}
-		}
-		return false;
 
-	case PctAggro:
+				return true;
+			}));
+		
+		auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs), [](CachedBuff a, CachedBuff b) { return a.Duration() < b.Duration(); });
+		if (buff_it != std::cend(buffs))
+		{
+			Dest.UInt64 = buff_it->Duration();
+			return true;
+		}
+
+		return false;
+	}
+
+	case TargetMembers::BuffDuration:
+	{
+		Dest.Type = pTimeStampType;
+		DWORD duration = 0;
+		auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
+			[&Index, &duration](CachedBuff buff)
+			{
+				if (duration > buff.Duration())
+					return false;
+
+				if (Index[0] && IsNumber(Index) && buff.slot == GetIntFromString(Index, 0) - 1)
+				{
+					duration = buff.Duration();
+					return true;
+				}
+				else if (Index[0] && ci_starts_with(GetSpellNameByID(buff.spellId), Index))
+				{
+					duration = buff.Duration();
+					return true;
+				}
+
+				return false;
+			}));
+		
+		auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs), [](CachedBuff a, CachedBuff b) { return a.Duration() < b.Duration(); });
+		if (buff_it != std::cend(buffs))
+		{
+			Dest.UInt64 = buff_it->Duration();
+			return true;
+		}
+
+		return false;
+	}
+
+	case TargetMembers::PctAggro:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -341,7 +270,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case SecondaryPctAggro:
+	case TargetMembers::SecondaryPctAggro:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -352,7 +281,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case SecondaryAggroPlayer:
+	case TargetMembers::SecondaryAggroPlayer:
 		Dest.Type = pSpawnType;
 
 		if (pAggroInfo && pAggroInfo->AggroSecondaryID)
@@ -362,7 +291,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case AggroHolder: {
+	case TargetMembers::AggroHolder: {
 		Dest.Type = pSpawnType;
 		// who the Target has the MOST aggro on
 		char* pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
@@ -407,613 +336,332 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return false;
 	}
 
-	case Slowed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Slowed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_HASTE, false)));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_HASTE, 0)) != -1)
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Rooted:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_ROOT, false)));
+		return Dest.HighPart >= 0;
 
-	case Rooted:
-		Dest.Int = 0;
+	case TargetMembers::Mezzed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_ENTHRALL, false)));
+		return Dest.HighPart >= 0;
 
-		Dest.Type = pTargetBuffType;
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_ROOT, 0)) != -1) // Root
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Crippled:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellSubCat(SPELLCAT_DISEMPOWERING)));
+		return Dest.HighPart >= 0;
 
-	case Mezzed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Maloed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Shaman, Mage)));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_ENTHRALL, 0)) != -1) // Entrall
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Tashed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Enchanter)));
+		return Dest.HighPart >= 0;
 
-	case Crippled:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Snared:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySubCat("Disempowering")) != -1)
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Hasted:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_HASTE, true)));
+		return Dest.HighPart >= 0;
 
-	case Maloed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Beneficial:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs( [](CachedBuff buff) {
+			auto spell = GetSpellByID(buff.spellId);
+			return spell && spell->SpellType != 0;}));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage))) != -1)
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::DSed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_DAMAGE_SHIELD, true)));
+		return Dest.HighPart >= 0;
 
-	case Tashed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::RevDSed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_IRONMAIDEN, true)));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySubCat("Resist Debuffs", 1 << Enchanter)) != -1)
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Charmed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_CHARM, false)));
+		return Dest.HighPart >= 0;
 
-	case Snared:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Aego:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellAffect(SPA_AC, true),
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			AnyBuffs(SpellSubCat(SPELLCAT_AEGOLISM), SpellSubCat(SPELLCAT_SYMBOL)),
+			SpellClassMask(Cleric)));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_MOVEMENT_RATE, 0)) != -1) // Movement Rate
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Skin:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
+			SpellClassMask(Druid)));
+		return Dest.HighPart >= 0;
 
-	case Hasted:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Focus:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_SHIELDING),
+			SpellClassMask(Shaman)));
+		return Dest.HighPart >= 0;
 
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_HASTE, 1)) != -1)
-		{
-			return true;
-		}
-		return false;
+	case TargetMembers::Regen:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellAffect(SPA_HP, true),
+			!SpellClassMask(Beastlord)));
+		return Dest.HighPart >= 0;
 
-	case Beneficial:
-	{
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
+	case TargetMembers::Diseased:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_DISEASE, false)));
+		return Dest.HighPart >= 0;
 
-		if (pTargetWnd->Type <= 0)
-			return false;
+	case TargetMembers::Poisoned:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_POISON, false)));
+		return Dest.HighPart >= 0;
 
-		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-		{
-			if (pTargetWnd->BuffSpellID[i] == -1 || pTargetWnd->BuffSpellID[i] == 0)
-				continue;
+	case TargetMembers::Cursed:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_CURSE, false)));
+		return Dest.HighPart >= 0;
 
-			if (SPELL * pSpell = GetSpellByID(pTargetWnd->BuffSpellID[i]))
+	case TargetMembers::Corrupted:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_CORRUPTION, false)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Symbol:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_SYMBOL),
+			SpellClassMask(Cleric)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Clarity:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellAffect(SPA_MANA, true),
+			SpellClassMask(Enchanter)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Pred:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_STATISTIC_BUFFS),
+			SpellSubCat(SPELLCAT_ATTACK),
+			SpellClassMask(Ranger)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Strength:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
+			SpellClassMask(Ranger)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Brells:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
+			SpellClassMask(Paladin)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::SV:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_REGEN),
+			SpellSubCat(SPELLCAT_MANA),
+			SpellClassMask(Beastlord)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::SE:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_REGEN),
+			SpellSubCat(SPELLCAT_HEALTH_MANA),
+			SpellClassMask(Beastlord)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::HybridHP:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
+			SpellClassMask(Ranger)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Growth:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_TEMPORARY),
+			SpellClassMask(Druid)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Shining:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			SpellCategory(SPELLCAT_UTILITY_BENEFICIAL),
+			SpellSubCat(SPELLCAT_MELEE_GUARD),
+			SpellClassMask(Cleric)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Feared:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_FEAR, false)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Silenced:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_SILENCE, false)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Invulnerable:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(SpellAffect(SPA_INVULNERABILITY, false)));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::Dotted:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+		Dest.HighPart = GetCachedBuff(pTarget, AllBuffs( SpellAffect(SPA_HP, false),
+			[](CachedBuff buff)
 			{
-				if (pSpell->SpellType != 0)
-				{
-					//targetwindow has a leak in it player buffs shows up in it
-					//so we need to make sure its not a "leaked buff"
-					if (CXStr* str = pTargetWnd->GetBuffCaster(pSpell->ID))
-					{
-						if (SPAWNINFO* pPlayer = (SPAWNINFO*)GetSpawnByName(str->c_str()))
-						{
-							if (pPlayer->Type == SPAWN_PLAYER)
-							{
-								continue;
-							}
-						}
-					}
-					Dest.Int = i;
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	case DSed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_DAMAGE_SHIELD, 1)) != -1) // Damage Shield
-		{
-			return true;
-		}
-		return false;
-
-	case RevDSed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_IRONMAIDEN, 1)) != -1) // Reverse Damage Shield
-		{
-			return true;
-		}
-		return false;
-
-	case Charmed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_CHARM, 0)) != -1) // Charm
-		{
-			return true;
-		}
-		return false;
-
-	case Aego:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric)) != -1) // Aegolism Line
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if ((GetSpellSubcategory(pSpell) == 1) || (GetSpellSubcategory(pSpell) == 112))
-					{
-						if (((EQ_Spell*)pSpell)->SpellAffectBase(SPA_AC))
-						{
-							return true;
-						}
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Skin:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid)) != -1) //
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 46)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Focus:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Shaman)) != -1)//
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 87)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Shaman, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Regen:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 1)) != -1) // HP Regen
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_HP) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 1, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Diseased:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_DISEASE, 0)) != -1) // Disease Counter
-		{
-			return true;
-		}
-		return false;
-
-	case Poisoned:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_POISON, 0)) != -1) // Poison Counter
-		{
-			return true;
-		}
-		return false;
-
-	case Cursed:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_CURSE, 0)) != -1) // Curse Counter
-		{
-			return true;
-		}
-		return false;
-
-	case Corrupted:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_CORRUPTION, 0)) != -1) // Corruption Counter
-		{
-			return true;
-		}
-		return false;
-
-	case Symbol:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric)) != -1) //
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 112)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Clarity:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_MANA, 1)) != -1) // Mana Regen
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MANA) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffBySPA(SPA_MANA, 1, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Pred:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(95, 1 << Ranger)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 7)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(95, 1 << Ranger, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-
-		return false;
-	case Strength:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 47)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Brells:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Paladin)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 47)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Paladin, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case SV:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 59)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case SE:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 44)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case HybridHP:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 46)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Growth:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 141)
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Shining:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffByCategory(125, 1 << Cleric)) != -1)
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (GetSpellSubcategory(pSpell) == 62)
-					{
-						if (((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MELEE_GUARD))
-						{
-							return true;
-						}
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffByCategory(125, 1 << Cleric, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case Feared:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_FEAR, 0)) != -1) // Feared
-		{
-			return true;
-		}
-		return false;
-
-	case Silenced:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_SILENCE, 0)) != -1) // Silenced
-		{
-			return true;
-		}
-		return false;
-
-	case Invulnerable:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_INVULNERABILITY, 0)) != -1) // Invulnerable
-		{
-			return true;
-		}
-		return false;
-
-	case Dotted:
-		Dest.Int = 0;
-		Dest.Type = pTargetBuffType;
-
-		if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 0)) != -1) // HP Mod
-		{
-			int slotnum = Dest.Int;
-			while (slotnum < NUM_BUFF_SLOTS)
-			{
-				if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[Dest.Int]))
-				{
-					if (((EQ_Spell*)pSpell)->IsDetrimentalSpell() && ((EQ_Spell*)pSpell)->IsDoTSpell())
-					{
-						return true;
-					}
-				}
-
-				if ((Dest.Int = GetTargetBuffBySPA(SPA_HP, 0, ++slotnum)) == -1)
-				{
-					break;
-				}
-			}
-		}
-		return false;
-
-	case MaxMeleeTo: {
+				auto spell = GetSpellByID(buff.spellId);
+				return spell && spell->IsDetrimentalSpell() && spell->IsDoTSpell();
+			}));
+		return Dest.HighPart >= 0;
+
+	case TargetMembers::MaxMeleeTo: {
 		Dest.Float = get_melee_range(pCharSpawn, pTarget);
 		Dest.Type = pFloatType;
 		return true;
 	}
 
-	default: break;
+	default:
+		return false;
 	}
+}
 
+bool MQ2TargetType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
+	return true;
+}
+
+void MQ2TargetType::InitVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a SPAWNINFO
+	VarPtr.Ptr = new SPAWNINFO();
+	VarPtr.HighPart = 0;
+
+	// FIXME: Do not ZeroMemory a SPAWNINFO
+	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
+}
+
+void MQ2TargetType::FreeVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a SPAWNINFO
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	delete pSpawn;
+}
+
+bool MQ2TargetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type == pSpawnType)
+	{
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
+		return true;
+	}
+	else
+	{
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
+		{
+			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+			return true;
+		}
+	}
+	return false;
+}
+
+bool MQ2TargetType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
+	{
+		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+		return true;
+	}
+	return false;
+}
+
+bool MQ2TargetType::dataTarget(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pTarget)
+	{
+		Ret.Ptr = pTarget;
+		Ret.Type = pTargetType;
+		return true;
+	}
 	return false;
 }
 

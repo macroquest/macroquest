@@ -17,9 +17,6 @@
 namespace mq {
 
 /* DATA ITEMS */
-MQLIB_API bool dataSpawn(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataTarget(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSwitch(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);
@@ -39,14 +36,12 @@ MQLIB_API bool dataFloat(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataCorpse(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataIf(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataCursor(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataTime(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataIni(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataHeading(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataDefined(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSubDefined(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataInvSlot(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataFindItem(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSelectedItem(const char* szIndex, MQTypeVar& Ret);
@@ -57,12 +52,9 @@ MQLIB_API bool dataSkill(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAltAbility(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataRaid(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataSpawnCount(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataPlugin(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSelect(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataDoorTarget(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataItemTarget(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataDynamicZone(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataFriends(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMount(const char* szIndex, MQTypeVar& Ret);
