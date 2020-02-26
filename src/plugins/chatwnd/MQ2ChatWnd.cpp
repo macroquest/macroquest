@@ -168,23 +168,6 @@ public:
 				//DebugSpew("Unhandled InputBox message 0x%04x, value: 0x%04x", Message, data);
 			}
 		}
-		else if (Message == XWM_LINK)
-		{
-			CChatWindow* p = (CChatWindow*)this;
-			if (OutputBox != pWnd)
-			{
-				//DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,data); 
-				//DebugSpew("MQ2ChatWnd: pWnd 0x%x != OutputBox 0x%x\n",pWnd,OutputBox); 
-
-				// FIXME: wtf is this doing?
-				CStmlWnd* tmp = OutputBox;
-				OutputBox = (CStmlWnd*)pWnd;
-				int ret = p->WndNotification(pWnd, Message, data);
-				OutputBox = tmp;
-				return ret;
-			}
-			return p->WndNotification(pWnd, Message, data);
-		}
 		else
 		{
 			//DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,data); 

@@ -18,6 +18,348 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class ItemMembers
+{
+	ID = 1,
+	Name,
+	Lore,
+	NoDrop,
+	NoRent,
+	Magic,
+	Value,
+	Size,
+	Weight,
+	Stack,
+	Type,
+	Charges,
+	LDoNTheme,
+	DMGBonusType,
+	BuyPrice,
+	Haste,
+	Endurance,
+	Attack,
+	HPRegen,
+	ManaRegen,
+	DamShield,
+	WeightReduction,
+	SizeCapacity,
+	Combinable,
+	Skill,
+	Avoidance,
+	SpellShield,
+	StrikeThrough,
+	StunResist,
+	Shielding,
+	FocusID,
+	ProcRate,
+	Quality,
+	LDoNCost,
+	AugRestrictions,
+	AugType,
+	AugSlot1,
+	AugSlot2,
+	AugSlot3,
+	AugSlot4,
+	AugSlot5,
+	AugSlot6,
+	Damage,
+	Range,
+	DMGBonus,
+	RecommendedLevel,
+	RecommendedSkill,
+	Delay,
+	Light,
+	Level,
+	BaneDMG,
+	SkillModValue,
+	InstrumentType,
+	InstrumentMod,
+	RequiredLevel,
+	BaneDMGType,
+	AC,
+	HP,
+	Mana,
+	STR,
+	STA,
+	AGI,
+	DEX,
+	CHA,
+	INT,
+	WIS,
+	svCold,
+	svFire,
+	svMagic,
+	svDisease,
+	svPoison,
+	Summoned,
+	Artifact,
+	PendingLore,
+	LoreText,
+	Items,
+	Item,
+	Container,
+	Stackable,
+	InvSlot,
+	SellPrice,
+	WornSlot,
+	WornSlots,
+	CastTime,
+	Spell,
+	EffectType,
+	Tribute,
+	Attuneable,
+	Timer,
+	ItemDelay,
+	TimerReady,
+	StackSize,
+	Stacks,
+	StackCount,
+	FreeStack,
+	MerchQuantity,
+	Classes,
+	Class,
+	Races,
+	Race,
+	Deities,
+	Deity,
+	Evolving,
+	svCorruption,
+	Power,
+	MaxPower,
+	Purity,
+	Accuracy,
+	CombatEffects,
+	DoTShielding,
+	HeroicSTR,
+	HeroicINT,
+	HeroicWIS,
+	HeroicAGI,
+	HeroicDEX,
+	HeroicSTA,
+	HeroicCHA,
+	HeroicSvMagic,
+	HeroicSvFire,
+	HeroicSvCold,
+	HeroicSvDisease,
+	HeroicSvPoison,
+	HeroicSvCorruption,
+	EnduranceRegen,
+	HealAmount,
+	Clairvoyance,
+	DamageShieldMitigation,
+	SpellDamage,
+	Augs,
+	Tradeskills,
+	ItemSlot,
+	ItemSlot2,
+	Address,
+	PctPower,
+	Prestige,
+	FirstFreeSlot,
+	SlotsUsedByItem,
+	Heirloom,
+	Collectible,
+	NoDestroy,
+	Quest,
+	Expendable,
+	ContAddress,
+	ItemLink,
+	Icon,
+	SkillModMax,
+	OrnamentationIcon,
+	ContentSize,
+	Open,
+	NoTrade,
+	AugSlot,
+	Clicky,
+	Proc,
+	Worn,
+	Focus,
+	Scroll,
+	Focus2,
+	Mount,
+	Illusion,
+	Familiar,
+	CanUse,
+	LoreEquipped,
+	Luck,
+	MinLuck,
+	MaxLuck
+};
+
+enum class ItemMethods
+{
+};
+
+MQ2ItemType::MQ2ItemType() : MQ2Type("item")
+{
+	ScopedTypeMember(ItemMembers, ID);
+	ScopedTypeMember(ItemMembers, Name);
+	ScopedTypeMember(ItemMembers, Lore);
+	ScopedTypeMember(ItemMembers, NoDrop);
+	ScopedTypeMember(ItemMembers, NoRent);
+	ScopedTypeMember(ItemMembers, Magic);
+	ScopedTypeMember(ItemMembers, Value);
+	ScopedTypeMember(ItemMembers, Size);
+	ScopedTypeMember(ItemMembers, Weight);
+	ScopedTypeMember(ItemMembers, Stack);
+	ScopedTypeMember(ItemMembers, Type);
+	ScopedTypeMember(ItemMembers, Charges);
+	ScopedTypeMember(ItemMembers, LDoNTheme);
+	ScopedTypeMember(ItemMembers, DMGBonusType);
+	ScopedTypeMember(ItemMembers, BuyPrice);
+	ScopedTypeMember(ItemMembers, Haste);
+	ScopedTypeMember(ItemMembers, Endurance);
+	ScopedTypeMember(ItemMembers, Attack);
+	ScopedTypeMember(ItemMembers, HPRegen);
+	ScopedTypeMember(ItemMembers, ManaRegen);
+	ScopedTypeMember(ItemMembers, DamShield);
+	ScopedTypeMember(ItemMembers, WeightReduction);
+	ScopedTypeMember(ItemMembers, SizeCapacity);
+	ScopedTypeMember(ItemMembers, Combinable);
+	ScopedTypeMember(ItemMembers, Skill);
+	ScopedTypeMember(ItemMembers, Avoidance);
+	ScopedTypeMember(ItemMembers, SpellShield);
+	ScopedTypeMember(ItemMembers, StrikeThrough);
+	ScopedTypeMember(ItemMembers, StunResist);
+	ScopedTypeMember(ItemMembers, Shielding);
+	ScopedTypeMember(ItemMembers, FocusID);
+	ScopedTypeMember(ItemMembers, ProcRate);
+	ScopedTypeMember(ItemMembers, Quality);
+	ScopedTypeMember(ItemMembers, LDoNCost);
+	ScopedTypeMember(ItemMembers, AugRestrictions);
+	ScopedTypeMember(ItemMembers, AugType);
+	ScopedTypeMember(ItemMembers, AugSlot1);
+	ScopedTypeMember(ItemMembers, AugSlot2);
+	ScopedTypeMember(ItemMembers, AugSlot3);
+	ScopedTypeMember(ItemMembers, AugSlot4);
+	ScopedTypeMember(ItemMembers, AugSlot5);
+	ScopedTypeMember(ItemMembers, AugSlot6);
+	ScopedTypeMember(ItemMembers, Damage);
+	ScopedTypeMember(ItemMembers, Range);
+	ScopedTypeMember(ItemMembers, DMGBonus);
+	ScopedTypeMember(ItemMembers, RecommendedLevel);
+	ScopedTypeMember(ItemMembers, RecommendedSkill);
+	ScopedTypeMember(ItemMembers, Delay);
+	ScopedTypeMember(ItemMembers, Light);
+	ScopedTypeMember(ItemMembers, Level);
+	ScopedTypeMember(ItemMembers, BaneDMG);
+	ScopedTypeMember(ItemMembers, SkillModValue);
+	ScopedTypeMember(ItemMembers, InstrumentType);
+	ScopedTypeMember(ItemMembers, InstrumentMod);
+	ScopedTypeMember(ItemMembers, RequiredLevel);
+	ScopedTypeMember(ItemMembers, BaneDMGType);
+	ScopedTypeMember(ItemMembers, AC);
+	ScopedTypeMember(ItemMembers, HP);
+	ScopedTypeMember(ItemMembers, Mana);
+	ScopedTypeMember(ItemMembers, STR);
+	ScopedTypeMember(ItemMembers, STA);
+	ScopedTypeMember(ItemMembers, AGI);
+	ScopedTypeMember(ItemMembers, DEX);
+	ScopedTypeMember(ItemMembers, CHA);
+	ScopedTypeMember(ItemMembers, INT);
+	ScopedTypeMember(ItemMembers, WIS);
+	ScopedTypeMember(ItemMembers, svCold);
+	ScopedTypeMember(ItemMembers, svFire);
+	ScopedTypeMember(ItemMembers, svMagic);
+	ScopedTypeMember(ItemMembers, svDisease);
+	ScopedTypeMember(ItemMembers, svPoison);
+	ScopedTypeMember(ItemMembers, Summoned);
+	ScopedTypeMember(ItemMembers, Artifact);
+	ScopedTypeMember(ItemMembers, PendingLore);
+	ScopedTypeMember(ItemMembers, LoreText);
+	ScopedTypeMember(ItemMembers, Items);
+	ScopedTypeMember(ItemMembers, Item);
+	ScopedTypeMember(ItemMembers, Container);
+	ScopedTypeMember(ItemMembers, Stackable);
+	ScopedTypeMember(ItemMembers, InvSlot);
+	ScopedTypeMember(ItemMembers, SellPrice);
+	ScopedTypeMember(ItemMembers, WornSlot);
+	ScopedTypeMember(ItemMembers, WornSlots);
+	ScopedTypeMember(ItemMembers, CastTime);
+	ScopedTypeMember(ItemMembers, Spell);
+	ScopedTypeMember(ItemMembers, EffectType);
+	ScopedTypeMember(ItemMembers, Tribute);
+	ScopedTypeMember(ItemMembers, Attuneable);
+	ScopedTypeMember(ItemMembers, Timer);
+	ScopedTypeMember(ItemMembers, ItemDelay);
+	ScopedTypeMember(ItemMembers, TimerReady);
+	ScopedTypeMember(ItemMembers, StackSize);
+	ScopedTypeMember(ItemMembers, Stacks);
+	ScopedTypeMember(ItemMembers, StackCount);
+	ScopedTypeMember(ItemMembers, FreeStack);
+	ScopedTypeMember(ItemMembers, MerchQuantity);
+	ScopedTypeMember(ItemMembers, Classes);
+	ScopedTypeMember(ItemMembers, Class);
+	ScopedTypeMember(ItemMembers, Races);
+	ScopedTypeMember(ItemMembers, Race);
+	ScopedTypeMember(ItemMembers, Deities);
+	ScopedTypeMember(ItemMembers, Deity);
+	ScopedTypeMember(ItemMembers, Evolving);
+	ScopedTypeMember(ItemMembers, svCorruption);
+	ScopedTypeMember(ItemMembers, Power);
+	ScopedTypeMember(ItemMembers, MaxPower);
+	ScopedTypeMember(ItemMembers, Purity);
+	ScopedTypeMember(ItemMembers, Accuracy);
+	ScopedTypeMember(ItemMembers, CombatEffects);
+	ScopedTypeMember(ItemMembers, DoTShielding);
+	ScopedTypeMember(ItemMembers, HeroicSTR);
+	ScopedTypeMember(ItemMembers, HeroicINT);
+	ScopedTypeMember(ItemMembers, HeroicWIS);
+	ScopedTypeMember(ItemMembers, HeroicAGI);
+	ScopedTypeMember(ItemMembers, HeroicDEX);
+	ScopedTypeMember(ItemMembers, HeroicSTA);
+	ScopedTypeMember(ItemMembers, HeroicCHA);
+	ScopedTypeMember(ItemMembers, HeroicSvMagic);
+	ScopedTypeMember(ItemMembers, HeroicSvFire);
+	ScopedTypeMember(ItemMembers, HeroicSvCold);
+	ScopedTypeMember(ItemMembers, HeroicSvDisease);
+	ScopedTypeMember(ItemMembers, HeroicSvPoison);
+	ScopedTypeMember(ItemMembers, HeroicSvCorruption);
+	ScopedTypeMember(ItemMembers, EnduranceRegen);
+	ScopedTypeMember(ItemMembers, HealAmount);
+	ScopedTypeMember(ItemMembers, Clairvoyance);
+	ScopedTypeMember(ItemMembers, DamageShieldMitigation);
+	ScopedTypeMember(ItemMembers, SpellDamage);
+	ScopedTypeMember(ItemMembers, Augs);
+	ScopedTypeMember(ItemMembers, Tradeskills);
+	ScopedTypeMember(ItemMembers, ItemSlot);
+	ScopedTypeMember(ItemMembers, ItemSlot2);
+	ScopedTypeMember(ItemMembers, Address);
+	ScopedTypeMember(ItemMembers, PctPower);
+	ScopedTypeMember(ItemMembers, Prestige);
+	ScopedTypeMember(ItemMembers, FirstFreeSlot);
+	ScopedTypeMember(ItemMembers, SlotsUsedByItem);
+	ScopedTypeMember(ItemMembers, Heirloom);
+	ScopedTypeMember(ItemMembers, Collectible);
+	ScopedTypeMember(ItemMembers, NoDestroy);
+	ScopedTypeMember(ItemMembers, Quest);
+	ScopedTypeMember(ItemMembers, Expendable);
+	ScopedTypeMember(ItemMembers, ContAddress);
+	ScopedTypeMember(ItemMembers, ItemLink);
+	ScopedTypeMember(ItemMembers, Icon);
+	ScopedTypeMember(ItemMembers, SkillModMax);
+	ScopedTypeMember(ItemMembers, OrnamentationIcon);
+	ScopedTypeMember(ItemMembers, ContentSize);
+	ScopedTypeMember(ItemMembers, Open);
+	ScopedTypeMember(ItemMembers, NoTrade);
+	ScopedTypeMember(ItemMembers, AugSlot);
+	ScopedTypeMember(ItemMembers, Clicky);
+	ScopedTypeMember(ItemMembers, Proc);
+	ScopedTypeMember(ItemMembers, Worn);
+	ScopedTypeMember(ItemMembers, Focus);
+	ScopedTypeMember(ItemMembers, Scroll);
+	ScopedTypeMember(ItemMembers, Focus2);
+	ScopedTypeMember(ItemMembers, Mount);
+	ScopedTypeMember(ItemMembers, Illusion);
+	ScopedTypeMember(ItemMembers, Familiar);
+	ScopedTypeMember(ItemMembers, CanUse);
+	ScopedTypeMember(ItemMembers, LoreEquipped);
+	ScopedTypeMember(ItemMembers, Luck);
+	ScopedTypeMember(ItemMembers, MinLuck);
+	ScopedTypeMember(ItemMembers, MaxLuck);
+}
+
 bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	CONTENTS* pItem = static_cast<CONTENTS*>(VarPtr.Ptr);
@@ -34,63 +376,63 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<ItemMembers>(pMember->ID))
 	{
-	case ID:
+	case ItemMembers::ID:
 		Dest.DWord = GetItemFromContents(pItem)->ItemNumber;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case ItemMembers::Name:
 		strcpy_s(DataTypeTemp, GetItemFromContents(pItem)->Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Lore:
+	case ItemMembers::Lore:
 		Dest.DWord = ((ItemBase*)pItem)->IsLore(false);
 		Dest.Type = pBoolType;
 		return true;
-	case LoreEquipped:
+	case ItemMembers::LoreEquipped:
 		Dest.DWord = ((ItemBase*)pItem)->IsLoreEquipped(false);
 		Dest.Type = pBoolType;
 		return true;
 
-	case NoDrop:
-	case NoTrade:
+	case ItemMembers::NoDrop:
+	case ItemMembers::NoTrade:
 		Dest.DWord = !((EQ_Item*)pItem)->CanDrop(0, 1);
 		Dest.Type = pBoolType;
 		return true;
 
-	case NoRent:
+	case ItemMembers::NoRent:
 		Dest.DWord = !GetItemFromContents(pItem)->NoRent;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Magic:
+	case ItemMembers::Magic:
 		Dest.DWord = ((GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) && (GetItemFromContents(pItem)->Magic));
 		Dest.Type = pBoolType;
 		return true;
 
-	case Value:
+	case ItemMembers::Value:
 		Dest.DWord = GetItemFromContents(pItem)->Cost;
 		Dest.Type = pIntType;
 		return true;
 
-	case Size:
+	case ItemMembers::Size:
 		Dest.DWord = GetItemFromContents(pItem)->Size;
 		Dest.Type = pIntType;
 		return true;
 
-	case SizeCapacity:
+	case ItemMembers::SizeCapacity:
 		Dest.DWord = GetItemFromContents(pItem)->SizeCapacity;
 		Dest.Type = pIntType;
 		return true;
 
-	case Weight:
+	case ItemMembers::Weight:
 		Dest.DWord = GetItemFromContents(pItem)->Weight;
 		Dest.Type = pIntType;
 		return true;
 
-	case Stack:
+	case ItemMembers::Stack:
 		if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1))
 			Dest.DWord = 1;
 		else
@@ -98,7 +440,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Type:
+	case ItemMembers::Type:
 		DataTypeTemp[0] = '\0';
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
 		{
@@ -131,7 +473,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pStringType;
 		return true;
 
-	case Charges:
+	case ItemMembers::Charges:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -139,21 +481,21 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case LDoNTheme:
+	case ItemMembers::LDoNTheme:
 		strcpy_s(DataTypeTemp, GetLDoNTheme(GetItemFromContents(pItem)->LDTheme));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 		// we go to keep this for backward compatibility
-		// but really it should be called case ElementalFlag:
-	case DMGBonusType:
+		// but really it should be called case ItemMembers::ElementalFlag:
+	case ItemMembers::DMGBonusType:
 		strcpy_s(DataTypeTemp, szDmgBonusType[GetItemFromContents(pItem)->ElementalFlag]);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Container:
+	case ItemMembers::Container:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
@@ -162,7 +504,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return true;
 
-	case Open:
+	case ItemMembers::Open:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
@@ -171,7 +513,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return true;
 
-	case Items:
+	case ItemMembers::Items:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
@@ -186,52 +528,52 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Clicky:
+	case ItemMembers::Clicky:
 		Dest.Ptr = &GetItemFromContents(pItem)->Clicky;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Proc:
+	case ItemMembers::Proc:
 		Dest.Ptr = &GetItemFromContents(pItem)->Proc;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Worn:
+	case ItemMembers::Worn:
 		Dest.Ptr = &GetItemFromContents(pItem)->Worn;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Focus:
+	case ItemMembers::Focus:
 		Dest.Ptr = &GetItemFromContents(pItem)->Focus;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Scroll:
+	case ItemMembers::Scroll:
 		Dest.Ptr = &GetItemFromContents(pItem)->Scroll;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Focus2:
+	case ItemMembers::Focus2:
 		Dest.Ptr = &GetItemFromContents(pItem)->Focus2;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Mount:
+	case ItemMembers::Mount:
 		Dest.Ptr = &GetItemFromContents(pItem)->Mount;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Illusion:
+	case ItemMembers::Illusion:
 		Dest.Ptr = &GetItemFromContents(pItem)->Illusion;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Familiar:
+	case ItemMembers::Familiar:
 		Dest.Ptr = &GetItemFromContents(pItem)->Familiar;
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case Item: {
+	case ItemMembers::Item: {
 		Dest.Type = pItemType;
 		CONTENTS* pCont = (CONTENTS*)pItem;
 
@@ -267,12 +609,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 	}
-	case Stackable:
+	case ItemMembers::Stackable:
 		Dest.DWord = ((EQ_Item*)pItem)->IsStackable();
 		Dest.Type = pBoolType;
 		return true;
 
-	case InvSlot:
+	case ItemMembers::InvSlot:
 		Dest.Int = FindInvSlotForContents(pItem);
 		if (Dest.Int >= 0)
 		{
@@ -281,17 +623,17 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case ItemSlot:
+	case ItemMembers::ItemSlot:
 		Dest.Int = pItem->GetGlobalIndex().GetIndex().GetSlot(0);
 		Dest.Type = pIntType;
 		return true;
 
-	case ItemSlot2:
+	case ItemMembers::ItemSlot2:
 		Dest.Int = pItem->GetGlobalIndex().GetIndex().GetSlot(1);
 		Dest.Type = pIntType;
 		return true;
 
-	case BuyPrice:
+	case ItemMembers::BuyPrice:
 		Dest.Int64 = 0;
 		Dest.Type = pInt64Type;
 		if (pActiveMerchant && pItem->MerchantSlot)
@@ -301,18 +643,18 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case SellPrice:
+	case ItemMembers::SellPrice:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pActiveMerchant)
 		{
 			Dest.DWord = static_cast<int>(
-				static_cast<float>(GetItemFromContents(pItem)->Cost) * (1.0f / pMerchantWnd->MerchantGreed));
+				static_cast<float>(GetItemFromContents(pItem)->Cost)* (1.0f / pMerchantWnd->MerchantGreed));
 			return true;
 		}
 		return false;
 
-	case WornSlot:
+	case ItemMembers::WornSlot:
 		Dest.DWord = 0;
 		Dest.Type = pInvSlotType;
 		if (Index[0])
@@ -352,7 +694,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case WornSlots: {
+	case ItemMembers::WornSlots: {
 		Dest.DWord = 0;
 
 		// count bits
@@ -366,12 +708,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 	}
 
-	case CastTime:
+	case ItemMembers::CastTime:
 		Dest.UInt64 = GetItemFromContents(pItem)->Clicky.CastTime;
 		Dest.Type = pTimeStampType;
 		return true;
 
-	case Spell:
+	case ItemMembers::Spell:
 		Dest.Type = pSpellType;
 		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Clicky.SpellID))
 			return true;
@@ -385,7 +727,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 			return true;
 		return false;
 
-	case EffectType:
+	case ItemMembers::EffectType:
 		Dest.Type = pStringType;
 		// 0 Proc
 		// 1 Clickable from inventory (any class)
@@ -439,22 +781,22 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case InstrumentMod:
+	case ItemMembers::InstrumentMod:
 		Dest.Float = ((float)GetItemFromContents(pItem)->InstrumentMod) / 10.0f;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Tribute:
+	case ItemMembers::Tribute:
 		Dest.DWord = GetItemFromContents(pItem)->Favor;
 		Dest.Type = pIntType;
 		return true;
 
-	case Attuneable:
+	case ItemMembers::Attuneable:
 		Dest.DWord = GetItemFromContents(pItem)->Attuneable;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Timer:
+	case ItemMembers::Timer:
 		Dest.DWord = 0;
 		Dest.Type = pTicksType;
 		if (GetItemFromContents(pItem)->Clicky.TimerID != -1)
@@ -469,17 +811,17 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Damage:
+	case ItemMembers::Damage:
 		Dest.DWord = GetItemFromContents(pItem)->Damage;
 		Dest.Type = pIntType;
 		return true;
 
-	case ItemDelay:
+	case ItemMembers::ItemDelay:
 		Dest.DWord = GetItemFromContents(pItem)->Delay;
 		Dest.Type = pIntType;
 		return true;
 
-	case TimerReady:
+	case ItemMembers::TimerReady:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (GetItemFromContents(pItem)->Clicky.TimerID != -1)
@@ -494,7 +836,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case StackSize:
+	case ItemMembers::StackSize:
 		// This returns the MAX size of a stack for the item
 		// If this was properly named it should be called MaxStack.
 		Dest.DWord = 1; //we know its at least 1
@@ -509,7 +851,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return true;
 
-	case Stacks:
+	case ItemMembers::Stacks:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -553,7 +895,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return true;
 
-	case StackCount:
+	case ItemMembers::StackCount:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -597,12 +939,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return true;
 
-	case FreeStack:
+	case ItemMembers::FreeStack:
 		Dest.DWord = GetFreeStack(pItem);
 		Dest.Type = pIntType;
 		return true;
 
-	case MerchQuantity:
+	case ItemMembers::MerchQuantity:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pActiveMerchant && pItem->MerchantSlot)
@@ -612,7 +954,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Classes: {
+	case ItemMembers::Classes: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -626,7 +968,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 	}
 
-	case Class:
+	case ItemMembers::Class:
 		Dest.DWord = 0;
 		Dest.Type = pClassType;
 		if (Index[0])
@@ -672,7 +1014,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Races: {
+	case ItemMembers::Races: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -686,7 +1028,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 	}
 
-	case Race:
+	case ItemMembers::Race:
 		Dest.DWord = 0;
 		Dest.Type = pRaceType;
 		if (Index[0])
@@ -763,7 +1105,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Deities: {
+	case ItemMembers::Deities: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -777,7 +1119,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 	}
 
-	case Deity:
+	case ItemMembers::Deity:
 		Dest.DWord = 0;
 		Dest.Type = pDeityType;
 		if (Index[0])
@@ -821,27 +1163,27 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case RequiredLevel:
+	case ItemMembers::RequiredLevel:
 		Dest.DWord = GetItemFromContents(pItem)->RequiredLevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case SkillModValue:
+	case ItemMembers::SkillModValue:
 		Dest.DWord = GetItemFromContents(pItem)->SkillModValue;
 		Dest.Type = pIntType;
 		return true;
 
-	case SkillModMax:
+	case ItemMembers::SkillModMax:
 		Dest.DWord = GetItemFromContents(pItem)->SkillModMax;
 		Dest.Type = pIntType;
 		return true;
 
-	case Evolving:
+	case ItemMembers::Evolving:
 		Dest.Ptr = pItem;
 		Dest.Type = pEvolvingItemType;
 		return true;
 
-	case AC:
+	case ItemMembers::AC:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -849,7 +1191,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HP:
+	case ItemMembers::HP:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -857,7 +1199,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case STR:
+	case ItemMembers::STR:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -865,7 +1207,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case STA:
+	case ItemMembers::STA:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -873,7 +1215,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AGI:
+	case ItemMembers::AGI:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -881,7 +1223,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case DEX:
+	case ItemMembers::DEX:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -889,7 +1231,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case CHA:
+	case ItemMembers::CHA:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -897,7 +1239,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case INT:
+	case ItemMembers::INT:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -905,7 +1247,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case WIS:
+	case ItemMembers::WIS:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -913,7 +1255,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Mana:
+	case ItemMembers::Mana:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -921,7 +1263,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case ManaRegen:
+	case ItemMembers::ManaRegen:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -929,7 +1271,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HPRegen:
+	case ItemMembers::HPRegen:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -937,7 +1279,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Endurance:
+	case ItemMembers::Endurance:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -945,7 +1287,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Attack:
+	case ItemMembers::Attack:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -953,7 +1295,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case svCold:
+	case ItemMembers::svCold:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -961,7 +1303,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case svFire:
+	case ItemMembers::svFire:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -969,7 +1311,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case svMagic:
+	case ItemMembers::svMagic:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -977,7 +1319,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case svDisease:
+	case ItemMembers::svDisease:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -985,7 +1327,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case svPoison:
+	case ItemMembers::svPoison:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -993,7 +1335,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case svCorruption:
+	case ItemMembers::svCorruption:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1001,7 +1343,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Haste:
+	case ItemMembers::Haste:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1009,7 +1351,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case DamShield:
+	case ItemMembers::DamShield:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1022,7 +1364,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugType:
+	case ItemMembers::AugType:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1030,7 +1372,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugRestrictions:
+	case ItemMembers::AugRestrictions:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1038,7 +1380,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugSlot:
+	case ItemMembers::AugSlot:
 		Dest.DWord = 0;
 		Dest.Type = pAugType;
 		if (IsNumber(Index))
@@ -1057,7 +1399,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case AugSlot1:
+	case ItemMembers::AugSlot1:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1065,7 +1407,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugSlot2:
+	case ItemMembers::AugSlot2:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1073,7 +1415,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugSlot3:
+	case ItemMembers::AugSlot3:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1081,7 +1423,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugSlot4:
+	case ItemMembers::AugSlot4:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1089,7 +1431,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugSlot5:
+	case ItemMembers::AugSlot5:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1097,7 +1439,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case AugSlot6:
+	case ItemMembers::AugSlot6:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1105,7 +1447,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Power:
+	case ItemMembers::Power:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1113,7 +1455,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case PctPower:
+	case ItemMembers::PctPower:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 		{
 			Dest.Float = 0;
@@ -1132,7 +1474,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pFloatType;
 		return true;
 
-	case MaxPower:
+	case ItemMembers::MaxPower:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) {
 			Dest.DWord = 0;
 		}
@@ -1142,7 +1484,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Purity:
+	case ItemMembers::Purity:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1150,7 +1492,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Range:
+	case ItemMembers::Range:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1158,7 +1500,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Avoidance:
+	case ItemMembers::Avoidance:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1171,7 +1513,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case SpellShield:
+	case ItemMembers::SpellShield:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1184,7 +1526,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case StrikeThrough:
+	case ItemMembers::StrikeThrough:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1197,7 +1539,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case StunResist:
+	case ItemMembers::StunResist:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1210,7 +1552,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Shielding:
+	case ItemMembers::Shielding:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1223,7 +1565,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Accuracy:
+	case ItemMembers::Accuracy:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1236,7 +1578,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case CombatEffects:
+	case ItemMembers::CombatEffects:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1249,7 +1591,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case DoTShielding:
+	case ItemMembers::DoTShielding:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1262,7 +1604,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicSTR:
+	case ItemMembers::HeroicSTR:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1270,7 +1612,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicINT:
+	case ItemMembers::HeroicINT:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1278,7 +1620,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicWIS:
+	case ItemMembers::HeroicWIS:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1286,7 +1628,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicAGI:
+	case ItemMembers::HeroicAGI:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1294,7 +1636,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicDEX:
+	case ItemMembers::HeroicDEX:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1302,7 +1644,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicSTA:
+	case ItemMembers::HeroicSTA:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1310,7 +1652,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicCHA:
+	case ItemMembers::HeroicCHA:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1318,7 +1660,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case EnduranceRegen:
+	case ItemMembers::EnduranceRegen:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1326,7 +1668,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case HealAmount:
+	case ItemMembers::HealAmount:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1334,7 +1676,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Clairvoyance:
+	case ItemMembers::Clairvoyance:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
@@ -1342,7 +1684,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case DamageShieldMitigation:
+	case ItemMembers::DamageShieldMitigation:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1355,7 +1697,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case SpellDamage:
+	case ItemMembers::SpellDamage:
 		Dest.DWord = 0;
 		if (ITEMINFO* pII = GetItemFromContents(pItem))
 		{
@@ -1367,7 +1709,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pIntType;
 		return true;
 
-	case Augs:
+	case ItemMembers::Augs:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (ITEMINFO* pitem = GetItemFromContents(pItem))
@@ -1385,27 +1727,27 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return true;
 
-	case Tradeskills:
+	case ItemMembers::Tradeskills:
 		Dest.DWord = GetItemFromContents(pItem)->TradeSkills;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Address:
+	case ItemMembers::Address:
 		Dest.DWord = (DWORD)GetItemFromContents(pItem);
 		Dest.Type = pIntType;
 		return true;
 
-	case ContAddress:
+	case ItemMembers::ContAddress:
 		Dest.DWord = (DWORD)pItem;
 		Dest.Type = pIntType;
 		return true;
 
-	case Prestige:
+	case ItemMembers::Prestige:
 		Dest.DWord = GetItemFromContents(pItem)->Prestige;
 		Dest.Type = pBoolType;
 		return true;
 
-	case FirstFreeSlot: {
+	case ItemMembers::FirstFreeSlot: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -1432,7 +1774,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return false;
 	}
 
-	case SlotsUsedByItem:
+	case ItemMembers::SlotsUsedByItem:
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -1482,32 +1824,32 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return false;
 	}
 
-	case Heirloom:
+	case ItemMembers::Heirloom:
 		Dest.DWord = GetItemFromContents(pItem)->Heirloom;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Collectible:
+	case ItemMembers::Collectible:
 		Dest.DWord = GetItemFromContents(pItem)->Collectible;
 		Dest.Type = pBoolType;
 		return true;
 
-	case NoDestroy:
+	case ItemMembers::NoDestroy:
 		Dest.DWord = GetItemFromContents(pItem)->NoDestroy;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Quest:
+	case ItemMembers::Quest:
 		Dest.DWord = GetItemFromContents(pItem)->QuestItem;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Expendable:
+	case ItemMembers::Expendable:
 		Dest.DWord = GetItemFromContents(pItem)->Expendable;
 		Dest.Type = pBoolType;
 		return true;
 
-	case ItemLink:
+	case ItemMembers::ItemLink:
 		Dest.Type = pStringType;
 		if (GetItemLink(pItem, DataTypeTemp, false))
 		{
@@ -1516,22 +1858,22 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Icon:
+	case ItemMembers::Icon:
 		Dest.DWord = GetItemFromContents(pItem)->IconNumber;
 		Dest.Type = pIntType;
 		return true;
 
-	case OrnamentationIcon:
+	case ItemMembers::OrnamentationIcon:
 		Dest.DWord = pItem->OrnamentationIcon;
 		Dest.Type = pIntType;
 		return true;
 
-	case ContentSize:
+	case ItemMembers::ContentSize:
 		Dest.DWord = pItem->Contents.ContentSize;
 		Dest.Type = pIntType;
 		return true;
 
-	case CanUse:
+	case ItemMembers::CanUse:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (CONTENTS* pCont = pItem)
@@ -1541,17 +1883,17 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Luck:
+	case ItemMembers::Luck:
 		Dest.DWord = pItem->Luck;
 		Dest.Type = pIntType;
 		return true;
 
-	case MinLuck:
+	case ItemMembers::MinLuck:
 		Dest.DWord = GetItemFromContents(pItem)->MinLuck;
 		Dest.Type = pIntType;
 		return true;
 
-	case MaxLuck:
+	case ItemMembers::MaxLuck:
 		Dest.DWord = GetItemFromContents(pItem)->MaxLuck;
 		Dest.Type = pIntType;
 		return true;
@@ -1569,6 +1911,38 @@ bool MQ2ItemType::ToString(MQVarPtr VarPtr, char* Destination)
 
 	CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
 	strcpy_s(Destination, MAX_STRING, GetItemFromContents(pContents)->Name);
+	return true;
+}
+
+void MQ2ItemType::InitVariable(MQVarPtr& VarPtr)
+{
+	CONTENTS* pContents = eqNew<CONTENTS>();
+	pContents->IncrementRefCount();
+
+	VarPtr.Ptr = pContents;
+	VarPtr.HighPart = 0;
+}
+
+void MQ2ItemType::FreeVariable(MQVarPtr& VarPtr)
+{
+	CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
+	pContents->DecrementRefCount();
+}
+
+bool MQ2ItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pItemType)
+		return false;
+
+	CONTENTS* pNewContents = static_cast<CONTENTS*>(Source.Ptr);
+	if (pNewContents)
+		pNewContents->IncrementRefCount();
+
+	CONTENTS* pOldContents = static_cast<CONTENTS*>(VarPtr.Ptr);
+	if (pOldContents)
+		pOldContents->DecrementRefCount();
+
+	VarPtr.Ptr = pNewContents;
 	return true;
 }
 
