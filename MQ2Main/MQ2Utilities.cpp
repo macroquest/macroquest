@@ -1254,7 +1254,7 @@ BOOL IsSpellClassUsable(PSPELL pSpell)
 {
 	for (int N = Warrior; N <= Berserker; N++)
 	{
-		if (pSpell->ClassLevel[N] == 255 || pSpell->ClassLevel[N] == 127) {
+		if (pSpell->ClassLevel[N] == 255 || pSpell->ClassLevel[N] == 254 || pSpell->ClassLevel[N] == 127) {
 			continue;
 		}
 		else {
@@ -1306,7 +1306,12 @@ PSPELL GetSpellByName(PCHAR szName)
 								for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
 									if (k->second) {
 										classlevel = k->second->ClassLevel[playerclass];
-										if (classlevel <= currlevel && highestclasslevel < classlevel) {
+										if (classlevel == 0 || classlevel >= 254)
+										{
+											//well, we CANT use it so just move on...
+											continue;
+										}
+										if (highestclasslevel < classlevel) {
 											highestclasslevel = classlevel;
 											pSpell = k->second;
 										}
@@ -1314,7 +1319,7 @@ PSPELL GetSpellByName(PCHAR szName)
 								}
 							}
 							if (highestclasslevel == 0) {
-								//well if we got here, the spell the user is after isnt one his character can cast, so
+								//well if we got here, the spell the user is after isn't one his character can cast, so
 								//we will have to roll through it again and see if its usable by any other class
 								for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
 									if (k->second && IsSpellClassUsable(k->second)) {

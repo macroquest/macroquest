@@ -618,7 +618,7 @@ EQLIB_OBJECT class CXRect CXWnd::GetScreenRect(void)const;
 EQLIB_OBJECT class CXStr CXWnd::GetWindowTextA(void)const;
 EQLIB_OBJECT class CXStr CXWnd::GetXMLTooltip(void)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(CXStr const &);
-EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(class CXPoint *,int,int)const;
+EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(const CXPoint& pt, bool bNoHitTest = false, bool bCheckChildren = true) const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetFirstChildWnd(void)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetNextChildWnd(class CXWnd *)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetNextSib(void)const;
@@ -935,7 +935,11 @@ EQLIB_OBJECT void CAAWnd::Activate(void);
 EQLIB_OBJECT void CAAWnd::CancelAASpend(void);
 EQLIB_OBJECT void CAAWnd::ConfirmAASpend(void);
 EQLIB_OBJECT void CAAWnd::SendNewPercent(void);
+#if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_OBJECT void CAAWnd::ShowAbility(int);
+#else
+EQLIB_OBJECT bool CAAWnd::ShowAbility(int);
+#endif
 EQLIB_OBJECT void CAAWnd::Update(void);
 EQLIB_OBJECT void CAAWnd::UpdateTimer(void);
 // virtual
@@ -2037,11 +2041,32 @@ public:
 /*0x220*/ UINT Timer;
 /*0x224*/ int Type;
 /*0x228*/ int Index;
-/*0x22c*/	EqItemGuid ItemGuid;
+/*0x22c*/ EqItemGuid ItemGuid;
 /*0x240*/ int ItemID;
 /*0x244*/ int Qty;
-/*0x248*/ CXStr *ButtonText;
-	//and more
+#if defined(ROF2EMU) || defined(UFEMU)
+/*0x248*/ PCXSTR ButtonText;
+/*0x24C*/ CStaticAnimationTemplate* pBGStaticAnim;
+/*0x250*/ CStaticAnimationTemplate*	pOverlayStaticAnim;
+/*0x254*/ CSpellGemWnd* pSpellGem;
+/*0x258*/ void* pTextObjectInterface;//CTextObjectInterface
+/*0x25C*/ void* pButtonTextObjectInterface;//CTextObjectInterface
+/*0x260*/ int TextFontStyle;
+#else
+	/*0x250*/ int IconID;
+	/*0x254*/ IString<char> AssignedName;
+	/*0x264*/ int Unknown0x264;
+	/*0x268*/ CHAR AssignedNameCopy[0x40];
+	/*0x2A8*/ PCXSTR ButtonText;
+	/*0x2AC*/ CStaticAnimationTemplate* pBGStaticAnim;
+	/*0x2B0*/ CStaticAnimationTemplate*	pOverlayStaticAnim;
+	/*0x2B4*/ CSpellGemWnd* pSpellGem;
+	/*0x2B8*/ void* pTextObjectInterface;//CTextObjectInterface
+	/*0x2BC*/ void* pButtonTextObjectInterface;//CTextObjectInterface
+	/*0x2C0*/ int TextFontStyle;
+	/*0x2C4*/ int Unknown0x2C4;
+	/*0x2C8*/
+#endif
 EQLIB_OBJECT CCursorAttachment::CCursorAttachment(class CXWnd *);
 EQLIB_OBJECT bool CCursorAttachment::IsOkToActivate(int);
 EQLIB_OBJECT bool CCursorAttachment::RemoveAttachment(void);
@@ -4996,6 +5021,12 @@ EQLIB_OBJECT CPageTemplate::~CPageTemplate(void);
 class CPageWnd : public CSidlScreenWnd
 {
 public:
+	PCXSTR TabText;
+	PCXSTR OrgTabText;
+	COLORREF CRTabText;
+	COLORREF CRTabTextActive;
+	CTextureAnimation *pTATabIcon;
+	CTextureAnimation *pTAActiveTabIcon;
 EQLIB_OBJECT CPageWnd::CPageWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr,class CPageTemplate *);
 EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const;
 EQLIB_OBJECT void CPageWnd::SetTabText(CXStr &)const;

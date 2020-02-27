@@ -12903,9 +12903,16 @@ bool MQ2AltAbilityType::GETMEMBER()
 		return true;
 	case Rank://th current rank...
 	case AARankRequired://kept this for legacy reasons...
-		Dest.DWord = pAbility->CurrentRank;
+	{
+		int CurrentRank = pAbility->CurrentRank - 1;
+		if (((PcZoneClient*)pPCData)->HasAlternateAbility(pAbility->Index,NULL,false,false))
+		{
+			CurrentRank++;
+		}
+		Dest.DWord = CurrentRank;
 		Dest.Type = pIntType;
 		return true;
+	}
 	case Type:
 		Dest.DWord = pAbility->Type;
 		Dest.Type = pIntType;

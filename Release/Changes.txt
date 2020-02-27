@@ -1,3 +1,11 @@
+Feb 27 2020
+- Updated for TEST
+- Fixed a bug where /hotbutton would not accept "Button Name" in quotes.
+-
+Feb 22 2020
+- Fixed the CursorAttachment Struct
+- Fixed ${Me.AltAbility[blah].Rank} it now properly returns 0 if you don't have any points spent in a AA.
+-
 Feb 18 2020
 -Updated for TEST
 -Updated for LIVE

@@ -1601,6 +1601,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CBroadcast__Get;
 	EQLIB_VAR DWORD EQGroundItemListManager__Instance;
 	EQLIB_VAR DWORD EverQuestinfo__IsItemPending;
+	EQLIB_VAR DWORD CAAWnd__ShowAbility;
 	
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 

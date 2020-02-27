@@ -3930,13 +3930,23 @@ VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
 		//well we have a color...
 		iColor = atoi(szNext);
 		//that means the rest of the buffer IS Text
-		int len = strlen(szName) + 1 + strlen(szNext) + 1;
+		int offset = 1;
+		if (strchr(szName, ' '))//well the only way this can have a space in it, is if the user used quotes
+		{
+			 offset = 3;
+		}
+		int len = strlen(szName) + offset + strlen(szNext) + 1;
 		strcpy_s(szText, &pBuffer[len]);
 	}
 	else
 	{
 		//no color detected, that means the rest of the buffer IS Text
-		int len = strlen(szName) + 1;
+		int offset = 1;
+		if (strchr(szName, ' '))//well the only way this can have a space in it, is if the user used quotes
+		{
+			 offset = 3;
+		}
+		int len = strlen(szName) + offset;
 		strcpy_s(szText, &pBuffer[len]);
 	}
 	//we have to check Text for line and cursor now...

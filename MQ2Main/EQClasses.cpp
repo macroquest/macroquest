@@ -269,7 +269,11 @@ FUNCTION_AT_ADDRESS(void  CAAWnd::Init(void),CAAWnd__Init);
 FUNCTION_AT_ADDRESS(void  CAAWnd::Activate(void),CAAWnd__Activate);
 #endif
 #ifdef CAAWnd__ShowAbility_x
-FUNCTION_AT_ADDRESS(void  CAAWnd::ShowAbility(int),CAAWnd__ShowAbility);
+#if defined(ROF2EMU) || defined(UFEMU)
+FUNCTION_AT_ADDRESS(void CAAWnd::ShowAbility(int),CAAWnd__ShowAbility);
+#else
+FUNCTION_AT_ADDRESS(bool CAAWnd::ShowAbility(int),CAAWnd__ShowAbility);
+#endif
 #endif
 #ifdef CAAWnd__SendNewPercent_x
 FUNCTION_AT_ADDRESS(void  CAAWnd::SendNewPercent(void),CAAWnd__SendNewPercent);
@@ -7822,7 +7826,7 @@ FUNCTION_AT_ADDRESS(bool  CXWnd::IsReallyVisible(void)const ,CXWnd__IsReallyVisi
 FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetNextChildWnd(class CXWnd *)const ,CXWnd__GetNextChildWnd);
 #endif
 #ifdef CXWnd__GetChildWndAt_x
-FUNCTION_AT_ADDRESS(class CXWnd * CXWnd::GetChildWndAt(class CXPoint *,int,int)const ,CXWnd__GetChildWndAt);
+FUNCTION_AT_ADDRESS(class CXWnd * CXWnd::GetChildWndAt(const CXPoint&, bool, bool) const ,CXWnd__GetChildWndAt);
 #endif
 #ifdef CXWnd__GetFirstChildWnd_x
 FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetFirstChildWnd(void)const ,CXWnd__GetFirstChildWnd);
