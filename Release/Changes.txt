@@ -1,10 +1,14 @@
 Feb 27 2020
 - Updated for TEST
-- Fixed a bug where /hotbutton would not accept "Button Name" in quotes.
--
-Feb 22 2020
+- Updated for LIVE
+- Added support for spaces in /hotbutton Name. Use /hotbutton "Button Name With Spaces" in quotes.
+- Fixed GetChildWndAt
+- Updated CAAWnd::ShowAbility
+- Filled in CPageWnd members
+- Updated CHARINFO struct etc.
+- Previously Updated:
 - Fixed the CursorAttachment Struct
-- Fixed ${Me.AltAbility[blah].Rank} it now properly returns 0 if you don't have any points spent in a AA.
+- Macro Authors, take notice: Fixed ${Me.AltAbility[blah].Rank} it now properly returns 0 if you don't have any points spent in a AA.
 -
 Feb 18 2020
 -Updated for TEST
