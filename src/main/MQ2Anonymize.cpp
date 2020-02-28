@@ -249,7 +249,7 @@ static void SetAnon(bool anon_state)
 	WriteChatf("MQ2Anonymize is now %s\ax.", anon_enabled ? "\agOn" : "\arOff");
 	if (anon_enabled && !AreNameSpritesCustomized())
 	{
-		WriteChatf("\ayCustom sprites are not turned on, set '/caption MQCaptions on' if you want to anonymize name sprites!\ax");
+		WriteChatf("\ayCustom name sprites are not turned on, set '/caption MQCaptions on' if you want to anonymize name sprites!\ax");
 	}
 }
 
