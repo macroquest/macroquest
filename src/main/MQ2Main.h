@@ -121,6 +121,7 @@ MQLIB_API void ShutdownMQ2Spawns();
 MQLIB_API void PulseMQ2Spawns();
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
+MQLIB_API bool AreNameSpritesCustomized();
 
 /* OVERLAY */
 MQLIB_API void InitializeMQ2Overlay();

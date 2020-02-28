@@ -243,6 +243,21 @@ static void DropAlternate(std::string_view Alternate)
 		[&Alternate](const std::unique_ptr<anon_replacer>& r) { if (r) r->drop_alternate(Alternate); });
 }
 
+static void SetAnon(bool anon_state)
+{
+	anon_enabled = anon_state;
+	WriteChatf("MQ2Anonymize is now %s\ax.", anon_enabled ? "\agOn" : "\arOff");
+	if (anon_enabled && !AreNameSpritesCustomized())
+	{
+		WriteChatf("\ayCustom sprites are not turned on, set '/caption MQCaptions on' if you want to anonymize name sprites!\ax");
+	}
+}
+
+static void ToggleAnon()
+{
+	SetAnon(!anon_enabled);
+}
+
 static void Serialize()
 {
 	anon_config["enabled"] = anon_enabled ? "true" : "false";
@@ -690,15 +705,13 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command on(commands, "on", "turns anonymization on",
 		[](args::Subparser& parser) {
 			parser.Parse();
-			anon_enabled = true;
-			WriteChatf("MQ2Anonymize is now \agOn\ax.");
+			SetAnon(true);
 		});
 
 	args::Command off(commands, "off", "turns anonymization off",
 		[](args::Subparser& parser) {
 			parser.Parse();
-			anon_enabled = false;
-			WriteChatf("MQ2Anonymize is now \arOff\ax.");
+			SetAnon(false);
 		});
 
 	args::HelpFlag h(commands, "help", "help", { 'h', "help" });
@@ -720,9 +733,8 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	if (args.empty())
 	{
-		anon_enabled = !anon_enabled;
 		WriteChatf("Toggling anonymization state, use \ay/mqanon -h\ax for a list of commands.");
-		WriteChatf("MQ2Anonymize is now %s\ax.", anon_enabled ? "\agOn" : "\arOff");
+		ToggleAnon();
 	}
 }
 

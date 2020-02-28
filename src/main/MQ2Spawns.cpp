@@ -526,7 +526,7 @@ static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
 	return false;
 }
 
-static bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
+bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 {
 	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
 	if (!Show || !gMQCaptions)
@@ -945,6 +945,11 @@ void PulseMQ2Spawns()
 bool IsTargetable(SPAWNINFO* pSpawn)
 {
 	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
+}
+
+bool AreNameSpritesCustomized()
+{
+	return gMQCaptions;
 }
 
 } // namespace mq
