@@ -84,6 +84,8 @@ MQLIB_VAR DWORD ThreadID;
 MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
+MQLIB_VAR bool gAnonymize DEPRECATE("Anonymize is now handled at display, see MQ2Anonymize wiki for more information.");
+
 MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;
 MQLIB_VAR HWND ghInjectorWnd;
