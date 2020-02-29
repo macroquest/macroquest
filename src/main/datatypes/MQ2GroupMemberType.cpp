@@ -211,11 +211,10 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		return false;
 
 	case Mercenary:
-	case Type:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.DWord = pGroupMemberData->Type;
+			Dest.DWord = pGroupMemberData->Type == SPAWN_NPC;
 			return true;
 		}
 		return false;
