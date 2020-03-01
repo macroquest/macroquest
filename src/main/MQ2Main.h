@@ -175,7 +175,7 @@ MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true
 MQLIB_API void InitializeMQ2Detours();
 MQLIB_API void ShutdownMQ2Detours();
 
-MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, char* Name = 0);
+MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, const char* Name = nullptr);
 MQLIB_API void AddDetourf(DWORD address, ...);
 MQLIB_API void RemoveDetour(DWORD address);
 MQLIB_API void DeleteDetour(DWORD address);
@@ -673,7 +673,5 @@ MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 MQLIB_API bool Anonymize(char* name, int maxlen, int NameFlag = 0);
 MQLIB_API bool Anonymize2(CXStr& name, int NameFlag = 0);
 MQLIB_API void UpdatedMasterLooterLabel();
-
-MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 
 } // namespace mq

@@ -575,6 +575,7 @@ NamedPipeEndpointBase::NamedPipeEndpointBase(std::string threadName, std::string
 
 NamedPipeEndpointBase::~NamedPipeEndpointBase()
 {
+	Stop();
 }
 
 void NamedPipeEndpointBase::Process()

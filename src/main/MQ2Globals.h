@@ -125,12 +125,13 @@ namespace internal_paths
 {
 	extern std::string MQRoot;
 	extern std::string Config;
-	extern std::string MQini;
+	extern std::string MQini;         // Config/MacroQuest.ini
 	extern std::string Macros;
 	extern std::string Logs;
 	extern std::string CrashDumps;
 	extern std::string Plugins;
 	extern std::string Resources;
+	extern std::string MQconfig;      // /MacroQuestConfig.ini
 }; // namespace internal_paths
 MQLIB_VAR char gPathMQRoot[MAX_PATH];
 MQLIB_VAR char gPathConfig[MAX_PATH];

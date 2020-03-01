@@ -2039,7 +2039,7 @@ void SetOverlayVisible(bool visible)
 static void ShowDebugWindow(bool* show);
 static bool gbShowSettingsWindow = false;
 static bool gbShowDebugWindow = false;
-static bool gbShowDemoWindow = false;
+static bool gbShowDemoWindow = true;
 
 static void UpdateOverlayUI()
 {

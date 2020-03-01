@@ -15,10 +15,6 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#include "client/crashpad_client.h"
-#include "client/crashpad_info.h"
-
-
 #define DEBUG_GETPROCADDRESS 1
 
 namespace mq {
@@ -53,7 +49,7 @@ DetourRecord* FindDetour(DWORD address)
 	return nullptr;
 }
 
-bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, char* Name)
+bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, const char* Name)
 {
 	std::scoped_lock lock(g_detourMutex);
 
@@ -1186,34 +1182,6 @@ int memcheck4(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
-// you can customize the crash dialog message here if this doesn't suit you.
-// these args needs to be allocated properly if u call this func, but you shouldnt...
-// just know that you can customize it for now as long as u keep the string lenghts < MAX_STRING
-MQLIB_API void GetCrashDialogMessage(char* Title, char* Message1, char* Message2, char* Message3, char* Message4)
-{
-	strcpy_s(Title, MAX_STRING, "MQ2 Crash Notification");
-	strcpy_s(Message1, MAX_STRING, "MQ2 has detected that your client may have crashed.");
-	strcpy_s(Message2, MAX_STRING, "It is often possible to determine where and why the crash occurred.");
-	strcpy_s(Message3, MAX_STRING, "Click OK to send this data back to EqMule in an effort to help improve the stability of MQ2.");
-	strcpy_s(Message4, MAX_STRING, "Also, if you have a moment, please enter details about what you were doing when you crashed:");
-}
-
-// this function is called after a crashdump has been generated and it points to that file
-MQLIB_API void MQ2CrashCallBack(char* DumpFile)
-{
-	// add your own handling here if you dont want like the default one or have other ideas on how to handle crashes yourself
-	// you can delete the file, copy/move it or just upload to your own dump server etc...
-}
-
-// MQ2Ic hooks CrashDetected so it can intercept the crash handler. We'll create our own fake crash handler, and send that
-// to MQ2Ic instead.
-void FakeCrashDetected()
-{
-	DebugSpewAlways("FakeCrashDetected");
-}
-
-DWORD AddressOfFakeCrashDetected = (DWORD)&FakeCrashDetected;
-
 // MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
 DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
 void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
@@ -1228,15 +1196,7 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	// If this is our module...
 	if (hModule == ghModule)
 	{
-		void* pRet = nullptr;
-		if (ci_equals("CrashDetected", lpProcName))
-		{
-			pRet = &AddressOfFakeCrashDetected;
-		}
-		else
-		{
-			pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
-		}
+		void* pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
 
 		if (!pRet)
 		{
@@ -1283,46 +1243,12 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	return nullptr;
 }
 
-crashpad::Annotation annotationTest(crashpad::Annotation::Type::kString, "test", "123");
-
-char szTest[256] = { 0 };
-crashpad::Annotation annotationTest2(crashpad::Annotation::Type::kString, "test2", szTest);
-
-void DoCrash(SPAWNINFO* pChar, char* szLine)
-{
-	//auto cpi = crashpad::CrashpadInfo::GetCrashpadInfo();
-	//auto annos = cpi->annotations_list();
-
-	annotationTest.SetSize(4);
-
-	strcpy_s(szTest, "{ \"test\": 3 }");
-	annotationTest2.SetSize(strlen(szTest));
-
-	auto cpi = crashpad::CrashpadInfo::GetCrashpadInfo();
-
-	CONTEXT context;
-	crashpad::CaptureContext(&context);
-
-	crashpad::CrashpadClient::DumpWithoutCrash(context);
-}
-
 void InitializeMQ2Detours()
 {
 	HookMemChecker(true);
 
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
-
-	// Set the exception reporting Url to our own.
-	if (pExceptionSubmissionEndpoint)
-	{
-		*pExceptionSubmissionEndpoint =
-			"https://submit.backtrace.io/mq2/7d4625da4231505c0a7b8adc4a55d55fb50e2d2ce0cc8526693b5d07740e038a/minidump";
-	}
-
-	AddCommand("/crash", DoCrash);
-
-	//DoCrash(0, 0);
 }
 
 void ShutdownMQ2Detours()

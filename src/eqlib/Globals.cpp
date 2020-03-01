@@ -300,7 +300,6 @@ INITIALIZE_EQGAME_OFFSET(pinstTrackTarget);
 INITIALIZE_EQGAME_OFFSET(pinstTradeTarget);
 INITIALIZE_EQGAME_OFFSET(pinstViewActor);
 INITIALIZE_EQGAME_OFFSET(pinstWorldData);
-INITIALIZE_EQGAME_OFFSET(instExceptionSubmissionEndpoint);
 
 INITIALIZE_EQGAME_OFFSET(__MemChecker0);
 INITIALIZE_EQGAME_OFFSET(__MemChecker1);
@@ -661,7 +660,6 @@ INITIALIZE_EQGAME_OFFSET(CPacketScrambler__ntoh);
 INITIALIZE_EQGAME_OFFSET(CPageWnd__GetTabText);
 INITIALIZE_EQGAME_OFFSET(CPageWnd__SetTabText);
 INITIALIZE_EQGAME_OFFSET(CQuantityWnd__Open);
-INITIALIZE_EQGAME_OFFSET(CrashDetected);
 INITIALIZE_EQGAME_OFFSET(CResolutionHandler__GetWindowedStyle);
 INITIALIZE_EQGAME_OFFSET(CResolutionHandler__UpdateResolution);
 INITIALIZE_EQGAME_OFFSET(CScreenPieceTemplate__IsType);
@@ -1230,7 +1228,6 @@ void InitializeEQGameOffsets()
 	pTaskManager                    = (CTaskManager*)pinstCTaskManager;
 	pTributeActive                  = (BYTE*)instTributeActive;
 	pZoneInfo                       = (EQZoneInfo*)instEQZoneInfo;
-	pExceptionSubmissionEndpoint    = (SoeUtil::String*)instExceptionSubmissionEndpoint;
 
 	// Spawn/Char pointers
 	pCharData                       = pinstCharData;

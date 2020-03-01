@@ -29,9 +29,7 @@
 
 #include "client/crashpad_client.h"
 
-#include <dbghelp.h>
 #include <Psapi.h>
-#pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "version.lib")
 
@@ -64,10 +62,6 @@ DWORD dwMainThreadId = 0;
 wil::unique_event g_hLoadComplete;
 HANDLE hUnloadComplete = nullptr;
 NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
-
-static crashpad::CrashpadClient* gCrashpadClient = nullptr;
-static LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
-static LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
 
 void InitializeLogging()
 {
@@ -569,100 +563,6 @@ void SetMainThreadId()
 		dwMainThreadId = ::GetCurrentThreadId();
 }
 
-int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
-{
-	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-	HANDLE hProcess = GetCurrentProcess();
-
-	SymInitialize(hProcess, nullptr, true);
-
-	// Set the symbols search path
-	char szSymSearchPath[MAX_STRING] = { 0 };
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szSymSearchPath, MAX_STRING, mq::internal_paths::MQini);
-	if (szSymSearchPath[0])
-		SymSetSearchPath(hProcess, szSymSearchPath);
-	SymGetSearchPath(hProcess, szSymSearchPath, MAX_STRING);
-
-	DWORD64 dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = nullptr;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
-	GetModuleFileName(hModule, szSymSearchPath, MAX_STRING);
-
-	// Get buffer for symbol data
-	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	pSymbol->MaxNameLen = MAX_SYM_NAME;
-
-	IMAGEHLP_LINE64 line = { sizeof(IMAGEHLP_LINE64) };
-	DWORD64 dwDisplacement64 = 0;
-
-	char szTemp[MAX_STRING] = { 0 };
-	// TODO: FormatMEssage call to turn the exception code into a string.
-
-	if (SymFromAddr(hProcess, dwAddress, &dwDisplacement64, pSymbol))
-	{
-		DWORD dwDisplacement = 0;
-		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
-		{
-			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
-				"Location: %s+%d @ %s:%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
-		}
-		else
-		{
-			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
-				"Location: %s+%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
-		}
-	}
-	else
-	{
-		sprintf_s(szTemp,
-			"MacroQuest caught a crash:\n"
-			"Location: %s+%p\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
-	}
-
-	SymCleanup(hProcess);
-
-	char szMessage[MAX_STRING] = { 0 };
-	sprintf_s(szMessage,
-		"%s"
-		"\n"
-		"You can either:\n"
-		" * [ABORT] Terminate EverQuest immediately.\n"
-		" * [RETRY] Automatically send a crash report to the MacroQuest developers.\n"
-		" * [IGNORE] Continue execution and hope for the best.\n"
-		"\n"
-		"NOTE: Crash reports may include information including character and server name.\n", szTemp);
-
-	int mbret = MessageBox(nullptr, szMessage, "Crash Detected", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
-	if (mbret == IDABORT)
-	{
-		exit(0);
-	}
-
-	if (mbret == IDIGNORE)
-	{
-		return EXCEPTION_CONTINUE_EXECUTION;
-	}
-
-	if (lpCrashpadTopLevelExceptionFilter)
-	{
-		return lpCrashpadTopLevelExceptionFilter(ex);
-	}
-
-	exit(-1);
-}
-
-LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
-{
-	return MQ2ExceptionFilter(ex->ExceptionRecord->ExceptionCode, ex, "Unhandled Exception");
-}
-
 class PipeEventsHandler : public NamedPipeEvents
 {
 public:
@@ -670,28 +570,7 @@ public:
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_PIPENAME)
 		{
-			std::string pipeName = message->get<const char>();
-			if (!pipeName.empty())
-			{
-				SPDLOG_INFO("Received named pipe: {0}", pipeName);
-				std::wstring wPipeName = mq::utf8_to_wstring(pipeName);
-
-				// We can't initialize crashpad twice, so if we have a new crash reporter, then
-				// we need to reinitialize crashpad
-				if (gCrashpadClient)
-				{
-					delete gCrashpadClient;
-				}
-				gCrashpadClient = new crashpad::CrashpadClient();
-
-				if (gCrashpadClient->SetHandlerIPCPipe(wPipeName))
-				{
-					// Crashpad handler will install its own unhandled exception filter. We want to go first
-					// and issue a prompt first, so reinstall our handler and save the crashpad handler
-					// so we can invoke it after our own handler.
-					lpCrashpadTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
-				}
-			}
+			InitializeCrashpadPipe(message->get<const char>());
 		}
 	}
 };
@@ -701,10 +580,12 @@ void DoInitialization()
 {
 	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
 	gPipeClient.Start();
+	::atexit([]() { gPipeClient.Stop(); });
 
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2AutoInventory();
+	InitializeMQ2CrashHandler();
 
 	MQ2MouseHooks(true);
 	Sleep(100);
@@ -820,6 +701,7 @@ bool MQ2Initialize()
 	}
 
 	InitializeLogging();
+	InitializeCrashHandler();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
 
@@ -899,6 +781,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2Windows());
 	DebugTry(ShutdownMQ2AutoInventory());
 	DebugTry(MQ2MouseHooks(false));
+	DebugTry(ShutdownMQ2CrashHandler());
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());
 	DebugTry(ShutdownMQ2Plugins());
@@ -982,7 +865,7 @@ void ForceUnload()
 // ***************************************************************************
 DWORD WINAPI MQ2Start(void* lpParameter)
 {
-	lpOrigTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
+	InstallUnhandledExceptionFilter();
 
 	g_hLoadComplete.create(wil::EventOptions::ManualReset);
 
@@ -1018,15 +901,12 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	}
 
 getout:
-	// Restore the old unhandled exception filter
-	SetUnhandledExceptionFilter(lpOrigTopLevelExceptionFilter);
-
 	if (hUnloadComplete)
 	{
 		DWORD dwtime = WaitForSingleObject(hUnloadComplete, 1800000); // 30 mins so i can debug stuff
 		if (dwtime == WAIT_TIMEOUT)
 		{
-			OutputDebugString("I am unloading in MQ2Start due to TIMEOUT");
+			SPDLOG_WARN("I am unloading in MQ2Start due to TIMEOUT");
 			ForceUnload();
 		}
 
@@ -1035,12 +915,14 @@ getout:
 	}
 	else
 	{
-		OutputDebugString("I am unloading in MQ2Start this will probably crash");
+		SPDLOG_WARN("I am unloading in MQ2Start this will probably crash");
 		ForceUnload();
 	}
 
 	if (ScreenMode)
 		ScreenMode = 2;
+
+	UninstallUnhandledExceptionFilter();
 
 	if (HMODULE h = GetCurrentModule())
 		FreeLibraryAndExitThread(h, 0);
