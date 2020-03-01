@@ -14,7 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-#include "DebugHandler.h"
+#include "CrashHandler.h"
 
 #include "common/NamedPipes.h"
 
@@ -26,6 +26,8 @@
 #include <spdlog/sinks/msvc_sink.h>
 #include <wil/resource.h>
 #include <fstream>
+
+#include "client/crashpad_client.h"
 
 #include <dbghelp.h>
 #include <Psapi.h>
@@ -62,6 +64,10 @@ DWORD dwMainThreadId = 0;
 wil::unique_event g_hLoadComplete;
 HANDLE hUnloadComplete = nullptr;
 NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
+
+static crashpad::CrashpadClient* gCrashpadClient = nullptr;
+static LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
+static LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
 
 void InitializeLogging()
 {
@@ -563,9 +569,137 @@ void SetMainThreadId()
 		dwMainThreadId = ::GetCurrentThreadId();
 }
 
+int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
+{
+	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+	HANDLE hProcess = GetCurrentProcess();
+
+	SymInitialize(hProcess, nullptr, true);
+
+	// Set the symbols search path
+	char szSymSearchPath[MAX_STRING] = { 0 };
+	GetPrivateProfileString("Debug", "SymbolsPath", "", szSymSearchPath, MAX_STRING, mq::internal_paths::MQini);
+	if (szSymSearchPath[0])
+		SymSetSearchPath(hProcess, szSymSearchPath);
+	SymGetSearchPath(hProcess, szSymSearchPath, MAX_STRING);
+
+	DWORD64 dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
+	HMODULE hModule = nullptr;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
+	GetModuleFileName(hModule, szSymSearchPath, MAX_STRING);
+
+	// Get buffer for symbol data
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+
+	IMAGEHLP_LINE64 line = { sizeof(IMAGEHLP_LINE64) };
+	DWORD64 dwDisplacement64 = 0;
+
+	char szTemp[MAX_STRING] = { 0 };
+	// TODO: FormatMEssage call to turn the exception code into a string.
+
+	if (SymFromAddr(hProcess, dwAddress, &dwDisplacement64, pSymbol))
+	{
+		DWORD dwDisplacement = 0;
+		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
+		{
+			sprintf_s(szTemp,
+				"MacroQuest caught a crash:\n"
+				"Location: %s+%d @ %s:%d (%s+%p)\n",
+				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
+		}
+		else
+		{
+			sprintf_s(szTemp,
+				"MacroQuest caught a crash:\n"
+				"Location: %s+%d (%s+%p)\n",
+				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
+		}
+	}
+	else
+	{
+		sprintf_s(szTemp,
+			"MacroQuest caught a crash:\n"
+			"Location: %s+%p\n",
+			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
+	}
+
+	SymCleanup(hProcess);
+
+	char szMessage[MAX_STRING] = { 0 };
+	sprintf_s(szMessage,
+		"%s"
+		"\n"
+		"You can either:\n"
+		" * [ABORT] Terminate EverQuest immediately.\n"
+		" * [RETRY] Automatically send a crash report to the MacroQuest developers.\n"
+		" * [IGNORE] Continue execution and hope for the best.\n"
+		"\n"
+		"NOTE: Crash reports may include information including character and server name.\n", szTemp);
+
+	int mbret = MessageBox(nullptr, szMessage, "Crash Detected", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
+	if (mbret == IDABORT)
+	{
+		exit(0);
+	}
+
+	if (mbret == IDIGNORE)
+	{
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+
+	if (lpCrashpadTopLevelExceptionFilter)
+	{
+		return lpCrashpadTopLevelExceptionFilter(ex);
+	}
+
+	exit(-1);
+}
+
+LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
+{
+	return MQ2ExceptionFilter(ex->ExceptionRecord->ExceptionCode, ex, "Unhandled Exception");
+}
+
+class PipeEventsHandler : public NamedPipeEvents
+{
+public:
+	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
+	{
+		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_PIPENAME)
+		{
+			std::string pipeName = message->get<const char>();
+			if (!pipeName.empty())
+			{
+				SPDLOG_INFO("Received named pipe: {0}", pipeName);
+				std::wstring wPipeName = mq::utf8_to_wstring(pipeName);
+
+				// We can't initialize crashpad twice, so if we have a new crash reporter, then
+				// we need to reinitialize crashpad
+				if (gCrashpadClient)
+				{
+					delete gCrashpadClient;
+				}
+				gCrashpadClient = new crashpad::CrashpadClient();
+
+				if (gCrashpadClient->SetHandlerIPCPipe(wPipeName))
+				{
+					// Crashpad handler will install its own unhandled exception filter. We want to go first
+					// and issue a prompt first, so reinstall our handler and save the crashpad handler
+					// so we can invoke it after our own handler.
+					lpCrashpadTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
+				}
+			}
+		}
+	}
+};
+
 // Perform first time initialization on the main thread.
 void DoInitialization()
 {
+	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
 	gPipeClient.Start();
 
 	InitializeMQ2Commands();
@@ -842,98 +976,6 @@ void ForceUnload()
 	ScreenMode = 2;
 }
 
-LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
-LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
-
-int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
-{
-	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-	HANDLE hProcess = GetCurrentProcess();
-
-	SymInitialize(hProcess, nullptr, true);
-
-	// Set the symbols search path
-	char szSymSearchPath[MAX_STRING] = { 0 };
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szSymSearchPath, MAX_STRING, mq::internal_paths::MQini);
-	if (szSymSearchPath[0])
-		SymSetSearchPath(hProcess, szSymSearchPath);
-	SymGetSearchPath(hProcess, szSymSearchPath, MAX_STRING);
-
-	DWORD64 dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = nullptr;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
-	GetModuleFileName(hModule, szSymSearchPath, MAX_STRING);
-
-	// Get buffer for symbol data
-	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	pSymbol->MaxNameLen = MAX_SYM_NAME;
-
-	IMAGEHLP_LINE64 line = { sizeof(IMAGEHLP_LINE64) };
-	DWORD64 dwDisplacement64 = 0;
-
-	char szTemp[MAX_STRING] = { 0 };
-	// TODO: FormatMEssage call to turn the exception code into a string.
-
-	if (SymFromAddr(hProcess, dwAddress, &dwDisplacement64, pSymbol))
-	{
-		DWORD dwDisplacement = 0;
-		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
-		{
-			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
-				"Location: %s+%d @ %s:%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
-		}
-		else
-		{
-			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
-				"Location: %s+%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
-		}
-	}
-	else
-	{
-		sprintf_s(szTemp,
-			"MacroQuest caught a crash:\n"
-			"Location: %s+%p\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
-	}
-
-	SymCleanup(hProcess);
-
-	char szMessage[MAX_STRING] = { 0 };
-	sprintf_s(szMessage,
-		"%s"
-		"\n"
-		"You can either:\n"
-		" * [ABORT] Terminate EverQuest immediately.\n"
-		" * [RETRY] Automatically send a crash report to the MacroQuest developers.\n"
-		" * [IGNORE] Continue execution and hope for the best.\n"
-		"\n"
-		"NOTE: Crash reports may include information including character and server name.\n", szTemp);
-
-	int mbret = MessageBox(nullptr, szMessage, "Crash Detected", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
-	if (mbret == IDABORT)
-	{
-		exit(0);
-	}
-
-	if (mbret == IDIGNORE)
-	{
-		return EXCEPTION_CONTINUE_EXECUTION;
-	}
-
-	return lpCrashpadTopLevelExceptionFilter(ex);
-}
-
-LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
-{
-	return MQ2ExceptionFilter(ex->ExceptionRecord->ExceptionCode, ex, "Unhandled Exception");
-}
-
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
@@ -941,10 +983,6 @@ LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
 DWORD WINAPI MQ2Start(void* lpParameter)
 {
 	lpOrigTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
-
-	bool result = backtrace::InitializeCrashpad();
-
-	lpCrashpadTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
 
 	g_hLoadComplete.create(wil::EventOptions::ManualReset);
 

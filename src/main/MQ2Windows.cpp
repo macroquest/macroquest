@@ -14,7 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-#include "DebugHandler.h"
+#include "CrashHandler.h"
 
 #include <algorithm>
 #include <string>

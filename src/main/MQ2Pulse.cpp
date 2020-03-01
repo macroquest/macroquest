@@ -16,6 +16,8 @@
 #include "MQ2Main.h"
 #include "DebugHandler.h"
 
+#include "common/NamedPipes.h"
+
 #include <wil/resource.h>
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
@@ -27,6 +29,8 @@ static std::recursive_mutex s_pulseMutex;
 
 std::map<int, std::string> targetBuffSlotToCasterMap;
 std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
+
+extern NamedPipeClient gPipeClient;
 
 //----------------------------------------------------------------------------
 
@@ -533,6 +537,8 @@ static HeartbeatState Heartbeat()
 			PluginsEndZone();
 		}
 	}
+
+	gPipeClient.Process();
 
 	DebugTry(PulseMQ2Spawns());
 	DebugTry(DrawHUD());

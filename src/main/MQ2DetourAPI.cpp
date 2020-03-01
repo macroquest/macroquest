@@ -1300,7 +1300,10 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 
 	auto cpi = crashpad::CrashpadInfo::GetCrashpadInfo();
 
-	crashpad::CrashpadClient::DumpWithoutCrash()
+	CONTEXT context;
+	crashpad::CaptureContext(&context);
+
+	crashpad::CrashpadClient::DumpWithoutCrash(context);
 }
 
 void InitializeMQ2Detours()

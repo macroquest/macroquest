@@ -14,7 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-#include "DebugHandler.h"
+#include "CrashHandler.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>

@@ -222,6 +222,9 @@ public:
 	// (optional) Handle a request to process events immediately. Called from the
 	// named pipe thread.
 	virtual void OnRequestProcessEvents() {}
+
+	// (optional) For NamedPipeserver, notification of an incoming connection.
+	virtual void OnIncomingConnection(int connectionId, int processid) {}
 };
 
 //============================================================================

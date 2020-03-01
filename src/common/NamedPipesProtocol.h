@@ -77,4 +77,9 @@ struct MQMessageHeader
 
 #pragma pack(pop)
 
+//----------------------------------------------------------------------------
+
+// MSG_MAIN_CRASHPAD_PIPENAME
+// message is just a variable length string.
+
 } // namespace mq

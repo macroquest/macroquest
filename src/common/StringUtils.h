@@ -27,6 +27,8 @@
 
 #include <fmt/format.h>
 
+#include <Windows.h>
+
 
 constexpr int MAX_STRING = 2048;
 
@@ -485,6 +487,34 @@ inline bool GetBoolFromString(const std::string_view svString, bool bReturnOnFai
 		bReturnOnFail = static_cast<bool>(GetIntFromString(svString, static_cast<int>(bReturnOnFail)));
 	}
 	return bReturnOnFail;
+}
+
+
+// convert UTF-8 string to wstring
+inline std::wstring utf8_to_wstring(const std::string& s)
+{
+	if (s.empty())
+		return {};
+
+	int slength = (int)s.length() + 1;
+	int len = ::MultiByteToWideChar(CP_UTF8, 0, s.c_str(), slength, nullptr, 0);
+	std::wstring r;
+	r.resize(len);
+	::MultiByteToWideChar(CP_UTF8, 0, s.c_str(), slength, &r[0], len);
+	return r;
+}
+
+// convert UTF16 wstring to string
+inline std::string wstring_to_utf8(const std::wstring& s)
+{
+	if (s.empty())
+		return {};
+
+	int sizeNeeded = ::WideCharToMultiByte(CP_UTF8, 0, &s[0], (int)s.size(), nullptr, 0, nullptr, nullptr);
+	std::string r;
+	r.resize(sizeNeeded);
+	::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), (int)s.size(), &r[0], sizeNeeded, nullptr, nullptr);
+	return r;
 }
 
 } // namespace mq

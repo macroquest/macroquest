@@ -779,6 +779,16 @@ void NamedPipeServer::NamedPipeThread()
 
 				std::scoped_lock<std::mutex> lock(m_mutex);
 				m_connections.push_back(connection);
+
+				PostToMainThread(
+					[connectionId = connection->GetConnectionId(),
+					processId = connection->GetProcessId(), this]()
+				{
+					if (m_handler)
+					{
+						m_handler->OnIncomingConnection(connectionId, processId);
+					}
+				});
 			}
 
 			// Start listening again.
@@ -961,7 +971,6 @@ NamedPipeClient::NamedPipeClient(const char* pipeName)
 
 NamedPipeClient::~NamedPipeClient()
 {
-	Stop();
 }
 
 void NamedPipeClient::NamedPipeThread()
