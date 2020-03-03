@@ -568,9 +568,22 @@ class PipeEventsHandler : public NamedPipeEvents
 public:
 	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
 	{
-		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_PIPENAME)
+		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_CONFIG)
 		{
-			InitializeCrashpadPipe(message->get<const char>());
+			// Message needs to at least have some substance...
+			if (message->size() > 0)
+			{
+				std::string pipeName{ message->get<const char>() };
+
+				if (pipeName.empty())
+				{
+					InitializeCrashpad();
+				}
+				else
+				{
+					InitializeCrashpadPipe(message->get<const char>());
+				}
+			}
 		}
 	}
 };

@@ -29,7 +29,18 @@
 #include <dbghelp.h>
 #pragma comment(lib, "dbghelp.lib")
 
-#include <Shlobj.h>
+#if __has_include("config/crashpad.h")
+#include "config/crashpad.h"
+#endif
+#if !defined(CRASHPAD_SUBMISSIONS_ENABLED)
+#define CRASHPAD_SUBMISSIONS_ENABLED false
+#endif
+#if !defined(CRASHPAD_SUBMISSIONS_URL)
+#define CRASHPAD_SUBMISSIONS_URL ""
+#endif
+#if !defined(CRASHPAD_SUBMISSIONS_RATELIMITED)
+#define CRASHPAD_SUBMISSIONS_RATELIMITED true
+#endif
 
 namespace fs = std::filesystem;
 
@@ -38,20 +49,18 @@ namespace mq {
 // CrashHandler TODO:
 // - Provide a means to retrieve the client UUID so that a user can inform developers of which
 //   crash reports are theirs.
-// - Extract default crashpad submission url to a separate (non-user) configuration so that distros
-//   can specify their own submission urls.
 // - Improved crash notification to include information about what kind of unhandled exception occurred.
+// - Stretch: Create a way to notify the user that a process has crashed from the launcher.
 
 // Some of these settings are mirrored in MacroQuest2.exe
 
-static bool gEnableCrashpad = true;                   // Indicates if we we want to be using crashpad.
-static bool gUseSharedCrashpad = true;                // If using crashpad, use the shared crashpad process.
-static bool gSilentCrashpad = false;                  // If using crashpad, crash & report silently.
-static bool gCrashSubmissionEnabled = true;           // If using crashpad, we will submit them.
-static bool gEnableRateLimit = false;                 // If using crashpad, upload rate limiting.
+static bool gEnableCrashpad = true;                                  // Indicates if we we want to be using crashpad.
+static bool gEnableSharedCrashpad = true;                            // If using crashpad, use the shared crashpad process.
+static bool gEnableSilentCrashpad = false;                           // If using crashpad, crash & report silently.
+static bool gEnableCrashSubmissions = CRASHPAD_SUBMISSIONS_ENABLED;  // If using crashpad, we will submit them.
+static bool gEnableRateLimit = false;                                // If using crashpad, upload rate limiting.
 
-static std::string gCrashpadSubmissionURL =
-	"https://submit.backtrace.io/mq2/7d4625da4231505c0a7b8adc4a55d55fb50e2d2ce0cc8526693b5d07740e038a/minidump";
+static std::string gCrashpadSubmissionURL = CRASHPAD_SUBMISSIONS_URL;
 
 // The actual crashpad client. If this is null, then crashpad wasn't successfully enabled.
 static crashpad::CrashpadClient* gCrashpadClient = nullptr;
@@ -65,7 +74,7 @@ static LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
 static LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex);
 static void ReplaceCrashpadUnhandledExceptionFilter()
 {
-	if (!gSilentCrashpad)
+	if (!gEnableSilentCrashpad)
 	{
 		// Crashpad handler will install its own unhandled exception filter. We want to go first
 		// and issue a prompt first, so reinstall our handler and save the crashpad handler
@@ -77,6 +86,10 @@ static void ReplaceCrashpadUnhandledExceptionFilter()
 // Use this function to start crashpad with a new crashpad process.
 bool InitializeCrashpad()
 {
+	// Don't replace another crashpad instance if it exists.
+	if (gCrashpadClient != nullptr)
+		return true;
+
 	std::map<std::string, std::string> annotations;
 	std::vector<std::string> arguments;
 
@@ -86,7 +99,7 @@ bool InitializeCrashpad()
 	// Crashpad has the ability to support crashes both in-process and out-of-process.
 	// The out-of-process handler is significantly more robust than traditional in-process
 	// crash handlers. This path may be relative.
-	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "/crashpad_handler.exe"));
+	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\MacroQuest2_Crashpad.exe"));
 
 	// This should point to your server dump submission port (labeled as "http/writer"
 	// in the listener configuration pane. Preferrably, the SSL enabled port should
@@ -103,18 +116,20 @@ bool InitializeCrashpad()
 
 	if (database == nullptr || database->GetSettings() == nullptr)
 	{
+		SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
 		return false;
 	}
 
-	if (gCrashSubmissionEnabled)
+	if (gEnableCrashSubmissions && !gCrashpadSubmissionURL.empty())
 	{
 		database->GetSettings()->SetUploadsEnabled(true);
+		SPDLOG_INFO("Crash report submission is: enabled");
+
+		crashpad::UUID uuid;
+		database->GetSettings()->GetClientID(&uuid);
+		SPDLOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
 
-	if (gCrashpadClient)
-	{
-		delete gCrashpadClient;
-	}
 	gCrashpadClient = new crashpad::CrashpadClient();
 
 	SPDLOG_INFO("Initializing crashpad handler with path: {}", mq::wstring_to_utf8(handlerPath));
@@ -156,23 +171,38 @@ bool InitializeCrashpad()
 // Use this function to start crashpad using an existing crashpad instance.
 void InitializeCrashpadPipe(const std::string& pipeName)
 {
-	// Only continue if using a shared crashpad instance.
-	if (gEnableCrashpad && gUseSharedCrashpad && !pipeName.empty())
+	// Can't initialize without a name
+	if (pipeName.empty())
+		return;
+
+	// Only continue if using a shared crashpad instance and we haven't already initialized
+	if (gEnableCrashpad && !gCrashpadClient && gEnableSharedCrashpad)
 	{
 		SPDLOG_INFO("Received crashpad pipe name: {0}", pipeName);
 		std::wstring wPipeName = mq::utf8_to_wstring(pipeName);
 
-		// We can't initialize crashpad twice, so if we have a new crash reporter, then
-		// we need to reinitialize crashpad
-		if (gCrashpadClient)
+		// Open database and read the guid.
+		std::wstring dbPath(utf8_to_wstring(mq::internal_paths::CrashDumps));
+		std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(base::FilePath(dbPath));
+		if (!database || !database->GetSettings())
 		{
-			delete gCrashpadClient;
+			SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
+			return;
 		}
+
+		crashpad::UUID uuid;
+		database->GetSettings()->GetClientID(&uuid);
+		SPDLOG_INFO("Enabling shared crash reporter. Crash report guid: {}", uuid.ToString());
+
 		gCrashpadClient = new crashpad::CrashpadClient();
 
 		if (gCrashpadClient->SetHandlerIPCPipe(wPipeName))
 		{
 			ReplaceCrashpadUnhandledExceptionFilter();
+		}
+		else
+		{
+			SPDLOG_ERROR("Failed to initialize shared crash reporter!");
 		}
 	}
 }
@@ -189,12 +219,9 @@ static std::string MakeMiniDump(const std::string& filename, EXCEPTION_POINTERS*
 	std::string dumpFilename = fmt::format(R"({}\reports\{}_{:04}{:02}{:02}_{:02}{:02}{:02}.dmp)",
 		mq::internal_paths::CrashDumps, file.string(), t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
+	// Try to create the CrashDumps directory if it doesn't exist.
 	std::error_code ec;
-	if (!fs::is_directory(mq::internal_paths::CrashDumps, ec))
-	{
-		// Create directories
-		SHCreateDirectoryEx(nullptr, mq::internal_paths::CrashDumps.c_str(), nullptr);
-	}
+	fs::create_directories(mq::internal_paths::CrashDumps, ec);
 
 	wil::unique_hfile hFile(::CreateFileA(dumpFilename.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr));
@@ -403,25 +430,16 @@ static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
 
 void InitializeCrashHandler()
 {
-	// Load preferences. Decide if we want to enable the crash reporting system.
-	gEnableCrashpad = GetPrivateProfileBool("Crash Handler", "EnableCrashpad", gEnableCrashpad, mq::internal_paths::MQini);
-	gUseSharedCrashpad = GetPrivateProfileBool("Crash Handler", "UseSharedCrashpad", gUseSharedCrashpad, mq::internal_paths::MQini);
-	gSilentCrashpad = GetPrivateProfileBool("Crash Handler", "CrashSilently", gSilentCrashpad, mq::internal_paths::MQini);
-	gCrashSubmissionEnabled = GetPrivateProfileBool("Crash Handler", "SubmitCrashReports", gCrashSubmissionEnabled, mq::internal_paths::MQini);
-	gCrashpadSubmissionURL = GetPrivateProfileString("Crash Handler", "CrashpadSubmissionURL", gCrashpadSubmissionURL.c_str(), mq::internal_paths::MQini);
-
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("Crash Handler", "EnableCrashpad", gEnableCrashpad, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Crash Handler", "UseSharedCrashpad", gUseSharedCrashpad, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Crash Handler", "CrashSilently", gSilentCrashpad, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Crash Handler", "SubmitCrashReports", gCrashSubmissionEnabled, mq::internal_paths::MQini);
-		WritePrivateProfileString("Crash Handler", "CrashpadSubmissionURL", gCrashpadSubmissionURL, mq::internal_paths::MQini);
-	}
+	// Load preferences. Decide if we want to enable the crash reporting system. These are primarily aimed at developers.
+	gEnableCrashpad = GetPrivateProfileBool("Crash Handler", "EnableCrashpad", gEnableCrashpad, internal_paths::MQini);
+	gEnableSharedCrashpad = GetPrivateProfileBool("Crash Handler", "EnableSharedCrashpad", gEnableSharedCrashpad, internal_paths::MQini);
+	gEnableSilentCrashpad = GetPrivateProfileBool("Crash Handler", "EnableSilentCrashpad", gEnableSilentCrashpad, internal_paths::MQini);
+	gEnableCrashSubmissions = GetPrivateProfileBool("Crash Handler", "EnableCrashSubmissions", gEnableCrashSubmissions, internal_paths::MQini);
+	gCrashpadSubmissionURL = GetPrivateProfileString("Crash Handler", "CrashpadSubmissionURL", gCrashpadSubmissionURL.c_str(), internal_paths::MQini);
 
 	// Configure / initialize crashpad
 
-	if (gEnableCrashpad && !gUseSharedCrashpad)
+	if (gEnableCrashpad && !gEnableSharedCrashpad)
 	{
 		// If we're not using the shared crashpad instance then we need to initialize crashpad here.
 		InitializeCrashpad();

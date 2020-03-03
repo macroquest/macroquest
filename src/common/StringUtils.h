@@ -511,7 +511,8 @@ inline std::string wstring_to_utf8(const std::wstring& s)
 		return {};
 
 	int sizeNeeded = ::WideCharToMultiByte(CP_UTF8, 0, &s[0], (int)s.size(), nullptr, 0, nullptr, nullptr);
-	std::string r(sizeNeeded - 1, 0);
+	std::string r;
+	r.resize(sizeNeeded, 0);
 	::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), (int)s.size(), &r[0], sizeNeeded, nullptr, nullptr);
 	return r;
 }
