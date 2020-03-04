@@ -75,7 +75,7 @@ try {
 	}
 	
 	# Copy crash reporter
-	Copy-LatestFile "$Src\..\contrib\crashpad\bin\crashpad_handler.exe" "$Dst\MacroQuest2_Crashpad.exe" "MacroQuest2_Crashpad.exe"
+	Copy-LatestFile "$Src\..\contrib\crashpad\bin\crashpad_handler.exe" "$Dst\mq_crash_handler.exe" "mq_crash_handler.exe"
 }
 catch {
 	Write-Output $_

@@ -99,12 +99,13 @@ bool InitializeCrashpad()
 	// Crashpad has the ability to support crashes both in-process and out-of-process.
 	// The out-of-process handler is significantly more robust than traditional in-process
 	// crash handlers. This path may be relative.
-	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\MacroQuest2_Crashpad.exe"));
+	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\mq_crash_handler.exe"));
 
 	// This should point to your server dump submission port (labeled as "http/writer"
 	// in the listener configuration pane. Preferrably, the SSL enabled port should
 	// be used. If Backtrace is hosting your instance, the default port is 6098.
-	std::string url(gCrashpadSubmissionURL);
+	std::string url(gCrashpadSubmissionURL);
+
 	if (!gEnableRateLimit)
 	{
 		arguments.emplace_back("--no-rate-limit");
