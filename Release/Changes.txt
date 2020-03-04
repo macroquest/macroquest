@@ -1,6 +1,7 @@
 Mar 03 2020
 - Updated for TEST
 - Updated for LIVE
+- Added CPageWnd::FlashTab
 -
 Feb 27 2020
 - Updated for TEST
