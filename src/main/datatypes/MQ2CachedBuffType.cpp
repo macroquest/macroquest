@@ -69,7 +69,7 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 
 	case CachedBuffMembers::Slot:
-		Dest.Int = buff->slot;
+		Dest.Int = buff->slot + 1;
 		Dest.Type = pIntType;
 		return true;
 
@@ -84,7 +84,10 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 
 	case CachedBuffMembers::Staleness:
-		Dest.Int = buff->Staleness();
+		if (pSpawn == pTarget)
+			Dest.Int = 0;
+		else
+			Dest.Int = buff->Staleness();
 		Dest.Type = pTimeStampType;
 		return true;
 

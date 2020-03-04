@@ -606,6 +606,7 @@ void DoInitialization()
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Overlay();
 	InitializeMQ2Plugins();
+	InitializeCachedBuffs();
 }
 
 // Perform injection-time initialization. This occurs on the injection thread.
@@ -784,6 +785,7 @@ void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
 
+	DebugTry(ShutdownCachedBuffs());
 	DebugTry(ShutdownMQ2KeyBinds());
 	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());
