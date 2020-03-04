@@ -27,6 +27,12 @@ public:
 
 	void Clear() noexcept { cachedBuffs.clear(); }
 
+	void Audit()
+	{
+		cachedBuffs.erase(std::remove_if(std::begin(cachedBuffs), std::end(cachedBuffs),
+			[](const CachedBuff& buff) { return buff.duration != -1 && buff.Duration() == 0U; }), std::end(cachedBuffs));
+	}
+
 	void Emplace(const CachedBuff& buff)
 	{
 		// by virtue of how we add to this vector, we won't have duplicates since we always clear before
@@ -46,6 +52,7 @@ public:
 
 	std::optional<CachedBuff> Get(const std::function<bool(CachedBuff)>& predicate)
 	{
+		Audit();
 		auto buff_it = std::find_if(std::begin(cachedBuffs), std::end(cachedBuffs),
 			[&predicate](CachedBuff buff) { return predicate(buff); });
 
@@ -57,6 +64,7 @@ public:
 
 	std::optional<CachedBuff> Get(size_t index)
 	{
+		Audit();
 		if (index >= 0 && index < cachedBuffs.size())
 			return cachedBuffs.at(index);
 
@@ -65,6 +73,7 @@ public:
 
 	std::vector<CachedBuff> Filter(const std::function<bool(CachedBuff)>& predicate)
 	{
+		Audit();
 		std::vector<CachedBuff> ret;
 		for (auto b : cachedBuffs)
 		{
@@ -73,12 +82,6 @@ public:
 		}
 
 		return ret;
-	}
-
-	auto Audit()
-	{
-		return std::remove_if(std::begin(cachedBuffs), std::end(cachedBuffs),
-			[](const CachedBuff& buff) { return buff.Duration() == 0U; });
 	}
 };
 
@@ -223,6 +226,7 @@ DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedB
 		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
 		if (buffs != std::end(cachedBuffMap))
 		{
+			buffs->second->Audit();
 			return std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate);
 		}
 	}
@@ -236,7 +240,10 @@ DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn)
 	{
 		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
 		if (buffs != std::end(cachedBuffMap))
+		{
+			buffs->second->Audit();
 			return buffs->second->cachedBuffs.size();
+		}
 	}
 
 	return 0UL;

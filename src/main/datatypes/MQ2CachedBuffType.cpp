@@ -24,6 +24,7 @@ enum class CachedBuffMembers
 	Count,
 	Slot,
 	SpellID,
+	OriginalDuration,
 	Duration,
 	Staleness
 };
@@ -34,6 +35,7 @@ MQ2CachedBuffType::MQ2CachedBuffType() : MQ2Type("cachedbuff")
 	ScopedTypeMember(CachedBuffMembers, Count);
 	ScopedTypeMember(CachedBuffMembers, Slot);
 	ScopedTypeMember(CachedBuffMembers, SpellID);
+	ScopedTypeMember(CachedBuffMembers, OriginalDuration);
 	ScopedTypeMember(CachedBuffMembers, Duration);
 	ScopedTypeMember(CachedBuffMembers, Staleness);
 }
@@ -78,8 +80,13 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		return true;
 
+	case CachedBuffMembers::OriginalDuration:
+		Dest.UInt64 = buff->duration;
+		Dest.Type = pTimeStampType;
+		return true;
+
 	case CachedBuffMembers::Duration:
-		Dest.Int = buff->Duration();
+		Dest.UInt64 = buff->Duration();
 		Dest.Type = pTimeStampType;
 		return true;
 
