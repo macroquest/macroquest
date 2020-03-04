@@ -74,6 +74,8 @@ try {
 		}
 	}
 	
+	# Copy crash reporter
+	Copy-LatestFile "$Src\..\contrib\crashpad\bin\crashpad_handler.exe" "$Dst\mq_crash_handler.exe" "mq_crash_handler.exe"
 }
 catch {
 	Write-Output $_

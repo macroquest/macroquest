@@ -14,7 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-#include "DebugHandler.h"
+#include "CrashHandler.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -2039,7 +2039,7 @@ void SetOverlayVisible(bool visible)
 static void ShowDebugWindow(bool* show);
 static bool gbShowSettingsWindow = false;
 static bool gbShowDebugWindow = false;
-static bool gbShowDemoWindow = false;
+static bool gbShowDemoWindow = true;
 
 static void UpdateOverlayUI()
 {

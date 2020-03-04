@@ -45,5 +45,8 @@ ipch/
 # ignore user plugins
 /plugins/
 
+# ignore files created from templates
+/include/config/crashpad.h
+
 # ignore tools repo
 src/tools

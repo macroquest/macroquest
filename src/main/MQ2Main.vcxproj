@@ -41,20 +41,27 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
+    <IncludePath>$(MQ2Root)contrib\crashpad\include;$(MQ2Root)contrib\crashpad\include\mini_chromium;$(IncludePath)</IncludePath>
+    <LibraryPath>$(MQ2Root)contrib\crashpad\lib_debug_mt;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
+    <IncludePath>$(MQ2Root)contrib\crashpad\include;$(MQ2Root)contrib\crashpad\include\mini_chromium;$(IncludePath)</IncludePath>
+    <LibraryPath>$(MQ2Root)contrib\crashpad\lib_debug_mt;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\main;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(MQ2Root)contrib\crashpad\lib_$(Configuration)_mt;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
@@ -63,13 +70,15 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\main;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MQ2Root)contrib\crashpad\lib_$(Configuration)_mt;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
@@ -103,6 +112,9 @@
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\common\NamedPipes.cpp">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2AdvLootItemType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -428,6 +440,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CrashHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\contrib\args\args.hxx" />
@@ -454,10 +467,11 @@
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
+    <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
-    <ClInclude Include="DebugHandler.h" />
+    <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />

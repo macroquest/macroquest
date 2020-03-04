@@ -48,6 +48,9 @@
     <Filter Include="Header Files\contrib\args">
       <UniqueIdentifier>{d68e9c62-1513-44e2-a8ad-d03140a4c900}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{351861e7-0a7f-486b-92a6-b3b61008ef7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -376,6 +379,11 @@
     </ClCompile>
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <Filter>Source Files\Contrib\mini-yaml</Filter>
+    <ClCompile Include="..\common\NamedPipes.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="CrashHandler.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -489,6 +497,14 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\args\args.hxx">
       <Filter>Header Files\contrib\args</Filter>
+    <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h">
+      <Filter>Header Files\contrib\argparse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\NamedPipes.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashHandler.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

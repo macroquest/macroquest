@@ -344,7 +344,6 @@
 #define pinstItemIconCache_x                                       0xF7CAD8
 #define pinstLootFiltersManager_x                                  0xCE0450
 #define pinstRewardSelectionWnd_x                                  0xF81B68
-#define instExceptionSubmissionEndpoint_x                          0xC5E870
 
 ////
 // Section 3: Miscellaneous Offsets

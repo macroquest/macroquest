@@ -19,17 +19,18 @@
 
 #pragma warning (disable : 4509)
 
+#define DEBUG_TRY_ENABLED 1
+
 namespace mq {
 
-//extern "C" { __declspec(dllexport) int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ep, const char * description, ...); }
+MQLIB_API int MQ2DebugTryFilter(EXCEPTION_POINTERS* ex, const char* description, ...);
 
-#define MQ2Except() __except(MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(), __FUNCTION__))
+#if DEBUG_TRY_ENABLED
 
-namespace internal
-{
-	template <typename T>
-	using IsVoid = std::is_same<std::invoke_result_t<T()>, void>;
-}
+namespace internal {
+
+template <typename T>
+using IsVoid = std::is_same<std::invoke_result_t<T()>, void>;
 
 // overload for expressions that return a type
 template <typename T,
@@ -40,7 +41,7 @@ auto Debug_TryExecute(const char* func_name, int line, const T& func) -> decltyp
 	{
 		return func();
 	}
-	__except(MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(),"%s: Line %i", func_name, line))
+	__except(MQ2DebugTryFilter(GetExceptionInformation(), "%s: Line %i", func_name, line))
 	{
 		decltype(func()) v{};
 		return v;
@@ -52,42 +53,72 @@ template <typename T,
 	typename std::enable_if<internal::IsVoid<T>::value, void>::type* = nullptr>
 void Debug_TryExecute(const char* func_name, int line, const T& func)
 {
-	__try {
+	__try
+	{
 		func();
 	}
-	__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(),
-		"%s: Line %i", func_name, line)) {
+	__except (MQ2DebugTryFilter(GetExceptionInformation(), "%s: Line %i", func_name, line))
+	{
 	}
 }
 
+template <typename T>
+void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const T& func)
+{
+	__try
+	{
+		func();
+	}
+	__except (MQ2DebugTryFilter(GetExceptionInformation(), "%s@%i: %s", func_name, line, stmt))
+	{
+	}
+}
+
+} // namespace internal
 
 // construct a lambda to wrap the exception filter call, this allows us to invoke the __try/__except block
 // with a function scope in between, which will prevent error C2712: Cannot use __try in functions that require
 // object unwinding.
 #define DebugTryBegin() \
-	Debug_TryExecute(__FUNCTION__, __LINE__, [&]() {
+	mq::internal::Debug_TryExecute(__FUNCTION__, __LINE__, [&]() {
 #define DebugTryEnd() \
 	});
 
 // use this pair of macros in combination with a block that returns, to forward that return value
 // out of the function.
 #define DebugTryBeginRet() \
-	{ int result = Debug_TryExecute(__FUNCTION__, __LINE__, [&]() {
+	{ int result = mq::internal::Debug_TryExecute(__FUNCTION__, __LINE__, [&]() {
 #define DebugTryEndRet() \
 	}); return result; }
 
-
-template <typename T>
-void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const T& func)
-{
-	__try {
-		func();
-	}
-	__except (MQ2ExceptionFilter(GetExceptionCode(), GetExceptionInformation(),	"%s@%i: %s", func_name, line, stmt)) {
-	}
-}
-
 #define DebugTryEx(x) \
-	Debug_TryExecuteEx(__FUNCTION__, __LINE__, #x, [&]() { x; });
+	mq::internal::Debug_TryExecuteEx(__FUNCTION__, __LINE__, #x, [&]() { x; });
+
+#else // DEBUG_TRY_ENABLED
+
+#define DebugTryBegin()
+#define DebugTryEnd()
+
+#define DebugTryBeginRet()
+#define DebugTryEndRet()
+
+#define DegugTryEx(x) x
+
+#endif
+
+//============================================================================
+
+// Install/Remove the actual crash handler.
+void InstallUnhandledExceptionFilter();
+void UninstallUnhandledExceptionFilter();
+
+void InitializeCrashHandler();
+
+bool InitializeCrashpad();
+void InitializeCrashpadPipe(const std::string& pipeName);
+
+// Init/Shutdown CrashHandler extra modules
+void InitializeMQ2CrashHandler();
+void ShutdownMQ2CrashHandler();
 
 } // namespace mq

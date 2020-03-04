@@ -1,0 +1,15 @@
+//
+// To enable automatic submissions, remove the .example extension from
+// this header and set the submissions url to your crashpad submission endpoint.
+//
+
+#pragma once
+
+// Enables crashpad submissions
+#define CRASHPAD_SUBMISSIONS_ENABLED true
+
+// The submission URL used for submitting crash reports
+#define CRASHPAD_SUBMISSIONS_URL ""
+
+// Enables the rate limit for crash submissions (1/hour)
+#define CRASHPAD_SUBMISSIONS_RATELIMITED true

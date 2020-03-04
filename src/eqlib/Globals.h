@@ -323,7 +323,6 @@ EQLIB_VAR DWORD pinstTrackTarget;
 EQLIB_VAR DWORD pinstTradeTarget;
 EQLIB_VAR DWORD pinstViewActor;
 EQLIB_VAR DWORD pinstWorldData;
-EQLIB_VAR DWORD instExceptionSubmissionEndpoint;
 
 EQLIB_VAR DWORD __MemChecker0;
 EQLIB_VAR DWORD __MemChecker1;
@@ -687,7 +686,6 @@ EQLIB_VAR DWORD CPacketScrambler__ntoh;
 EQLIB_VAR DWORD CPageWnd__GetTabText;
 EQLIB_VAR DWORD CPageWnd__SetTabText;
 EQLIB_VAR DWORD CQuantityWnd__Open;
-EQLIB_VAR DWORD CrashDetected;
 EQLIB_VAR DWORD CResolutionHandler__GetWindowedStyle;
 EQLIB_VAR DWORD CResolutionHandler__UpdateResolution;
 EQLIB_VAR DWORD CScreenPieceTemplate__IsType;

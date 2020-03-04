@@ -14,11 +14,22 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "CrashHandler.h"
+
+#include "common/NamedPipes.h"
+
+#include <date/date.h>
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/msvc_sink.h>
+#include <wil/resource.h>
 #include <fstream>
 
-#include <dbghelp.h>
+#include "client/crashpad_client.h"
+
 #include <Psapi.h>
-#pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "version.lib")
 
@@ -34,6 +45,8 @@
 #define MacroQuestWinName "MacroQuest2(Test)"
 #endif
 
+namespace fs = std::filesystem;
+
 namespace mq {
 
 //============================================================================
@@ -45,6 +58,35 @@ void ShutdownLoginFrontend();
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
+
+wil::unique_event g_hLoadComplete;
+HANDLE hUnloadComplete = nullptr;
+NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
+
+void InitializeLogging()
+{
+	fs::path loggingPath = mq::internal_paths::Logs;
+	std::string filename = (loggingPath / fmt::format("MacroQuest-{}.log",
+		date::format("%Y%m%dT%H%M%SZ", date::floor<std::chrono::microseconds>(
+			std::chrono::system_clock::now())))).string();
+
+	// create color multi threaded logger
+	auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("MQ2", filename, true);
+	if (IsDebuggerPresent())
+		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
+	logger->sinks().push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+
+	spdlog::set_default_logger(logger);
+#if LOG_FILENAMES
+	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v (%@)");
+#else
+	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v");
+#endif
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+
+	SPDLOG_DEBUG("Logging Initialized");
+}
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
@@ -512,13 +554,43 @@ void SetMainThreadId()
 		dwMainThreadId = ::GetCurrentThreadId();
 }
 
+class PipeEventsHandler : public NamedPipeEvents
+{
+public:
+	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
+	{
+		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_CONFIG)
+		{
+			// Message needs to at least have some substance...
+			if (message->size() > 0)
+			{
+				std::string pipeName{ message->get<const char>() };
+
+				if (pipeName.empty())
+				{
+					InitializeCrashpad();
+				}
+				else
+				{
+					InitializeCrashpadPipe(message->get<const char>());
+				}
+			}
+		}
+	}
+};
+
+// Perform first time initialization on the main thread.
 void DoInitialization()
 {
 	InitializeAnonymizer();
+	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
+	gPipeClient.Start();
+	::atexit([]() { gPipeClient.Stop(); });
 
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2AutoInventory();
+	InitializeMQ2CrashHandler();
 
 	MQ2MouseHooks(true);
 	Sleep(100);
@@ -528,6 +600,7 @@ void DoInitialization()
 	InitializeMQ2Plugins();
 }
 
+// Perform injection-time initialization. This occurs on the injection thread.
 bool MQ2Initialize()
 {
 	MODULEINFO EQGameModuleInfo;
@@ -632,6 +705,9 @@ bool MQ2Initialize()
 		return false;
 	}
 
+	InitializeLogging();
+	InitializeCrashHandler();
+
 	srand(static_cast<uint32_t>(time(nullptr)));
 
 	ZeroMemory(szEQMappableCommands, sizeof(szEQMappableCommands));
@@ -690,28 +766,12 @@ bool MQ2Initialize()
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
 
-	// if we are precharselect we init here otherwise we init in HeartBeat
-	DWORD gs = GetGameState();
-	if (gs == GAMESTATE_PRECHARSELECT && !IsPluginsInitialized() && gbLoad)
-	{
-		OutputDebugString("I am loading in MQ2Initialize");
-
-		DoInitialization();
-		gbLoad = false;
-	}
-	else
-	{
-		// game isn't read. Wait for pulse to init instead.
-		if (hLoadComplete)
-		{
-			WaitForSingleObject(hLoadComplete, 60000);
-			Sleep(0);
-		}
-	}
-
+	// We will wait for pulse from the game to init on main thread.
+	g_hLoadComplete.wait();
 	return true;
 }
 
+// Do shutdown time stuff on the main thread.
 void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
@@ -726,6 +786,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2Windows());
 	DebugTry(ShutdownMQ2AutoInventory());
 	DebugTry(MQ2MouseHooks(false));
+	DebugTry(ShutdownMQ2CrashHandler());
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());
 	DebugTry(ShutdownAnonymizer());
@@ -734,6 +795,8 @@ void MQ2Shutdown()
 	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());
+
+	gPipeClient.Stop();
 }
 
 HMODULE GetCurrentModule()
@@ -746,9 +809,6 @@ HMODULE GetCurrentModule()
 
 	return hModule;
 }
-
-HANDLE hUnloadComplete = nullptr;
-HANDLE hLoadComplete = nullptr;
 
 // ***************************************************************************
 // Function:    MQ2End Thread
@@ -805,113 +865,23 @@ void ForceUnload()
 	ScreenMode = 2;
 }
 
-LPTOP_LEVEL_EXCEPTION_FILTER lpOldTopLevelExceptionFilter = nullptr;
-
-int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char* description, ...)
-{
-	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-	HANDLE hProcess = GetCurrentProcess();
-
-	SymInitialize(hProcess, nullptr, true);
-
-	// Set the symbols search path
-	char szSymSearchPath[MAX_STRING] = { 0 };
-	GetPrivateProfileString("Debug", "SymbolsPath", "", szSymSearchPath, MAX_STRING, mq::internal_paths::MQini);
-	if (szSymSearchPath[0])
-		SymSetSearchPath(hProcess, szSymSearchPath);
-	SymGetSearchPath(hProcess, szSymSearchPath, MAX_STRING);
-
-	DWORD64 dwAddress = (DWORD64)ex->ExceptionRecord->ExceptionAddress; // Address you want to check on.
-	HMODULE hModule = nullptr;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)dwAddress, &hModule);
-	GetModuleFileName(hModule, szSymSearchPath, MAX_STRING);
-
-	// Get buffer for symbol data
-	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	pSymbol->MaxNameLen = MAX_SYM_NAME;
-
-	IMAGEHLP_LINE64 line = { sizeof(IMAGEHLP_LINE64) };
-	DWORD64 dwDisplacement64 = 0;
-
-	char szTemp[MAX_STRING] = { 0 };
-	// TODO: FormatMEssage call to turn the exception code into a string.
-
-	if (SymFromAddr(hProcess, dwAddress, &dwDisplacement64, pSymbol))
-	{
-		DWORD dwDisplacement = 0;
-		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
-		{
-			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
-				"Location: %s+%d @ %s:%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
-		}
-		else
-		{
-			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
-				"Location: %s+%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
-		}
-	}
-	else
-	{
-		sprintf_s(szTemp,
-			"MacroQuest caught a crash:\n"
-			"Location: %s+%p\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
-	}
-
-	SymCleanup(hProcess);
-
-	char szMessage[MAX_STRING] = { 0 };
-	sprintf_s(szMessage,
-		"%s"
-		"\n"
-		"You can either:\n"
-		" * [ABORT] Terminate EverQuest immediately.\n"
-		" * [RETRY] Automatically send a crash report to the MacroQuest developers.\n"
-		" * [IGNORE] Continue execution and hope for the best.\n"
-		"\n"
-		"NOTE: Crash reports may include information including character and server name.\n", szTemp);
-
-	int mbret = MessageBox(nullptr, szMessage, "Crash Detected", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
-	if (mbret == IDABORT)
-	{
-		exit(0);
-	}
-
-	if (mbret == IDIGNORE)
-	{
-		return EXCEPTION_CONTINUE_EXECUTION;
-	}
-
-	return lpOldTopLevelExceptionFilter(ex);
-}
-
-LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
-{
-	return MQ2ExceptionFilter(ex->ExceptionRecord->ExceptionCode, ex, "Unhandled Exception");
-}
-
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
 // ***************************************************************************
 DWORD WINAPI MQ2Start(void* lpParameter)
 {
-	lpOldTopLevelExceptionFilter = SetUnhandledExceptionFilter(OurCrashHandler);
+	InstallUnhandledExceptionFilter();
+
+	g_hLoadComplete.create(wil::EventOptions::ManualReset);
 
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-	hLoadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
 	char szBuffer[MAX_STRING] = { 0 };
 
 	if (!MQ2Initialize())
 	{
-		MessageBox(nullptr, "Failed to Initialize MQ2 will free lib and exit", "MQ2 Error", MB_OK);
+		MessageBox(nullptr, "Failed to Initialize MQ2.", "MQ2 Error", MB_OK);
 
 		if (HMODULE h = GetCurrentModule())
 			FreeLibraryAndExitThread(h, 0);
@@ -937,21 +907,12 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	}
 
 getout:
-	// Restore the old unhandled exception filter
-	SetUnhandledExceptionFilter(lpOldTopLevelExceptionFilter);
-
-	if (hLoadComplete)
-	{
-		CloseHandle(hLoadComplete);
-		hLoadComplete = 0;
-	}
-
 	if (hUnloadComplete)
 	{
 		DWORD dwtime = WaitForSingleObject(hUnloadComplete, 1800000); // 30 mins so i can debug stuff
 		if (dwtime == WAIT_TIMEOUT)
 		{
-			OutputDebugString("I am unloading in MQ2Start due to TIMEOUT");
+			SPDLOG_WARN("I am unloading in MQ2Start due to TIMEOUT");
 			ForceUnload();
 		}
 
@@ -960,12 +921,14 @@ getout:
 	}
 	else
 	{
-		OutputDebugString("I am unloading in MQ2Start this will probably crash");
+		SPDLOG_WARN("I am unloading in MQ2Start this will probably crash");
 		ForceUnload();
 	}
 
 	if (ScreenMode)
 		ScreenMode = 2;
+
+	UninstallUnhandledExceptionFilter();
 
 	if (HMODULE h = GetCurrentModule())
 		FreeLibraryAndExitThread(h, 0);

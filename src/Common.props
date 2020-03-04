@@ -22,7 +22,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PreprocessorDefinitions>_USE_32BIT_TIME_T;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <!-- Release only compiler settings -->
     <ClCompile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -30,7 +29,6 @@
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PreprocessorDefinitions>_USE_32BIT_TIME_T;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
@@ -40,6 +38,7 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <!-- Debug only linker settings -->
     <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

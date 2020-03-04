@@ -176,7 +176,7 @@ MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true
 MQLIB_API void InitializeMQ2Detours();
 MQLIB_API void ShutdownMQ2Detours();
 
-MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, char* Name = 0);
+MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, const char* Name = nullptr);
 MQLIB_API void AddDetourf(DWORD address, ...);
 MQLIB_API void RemoveDetour(DWORD address);
 MQLIB_API void DeleteDetour(DWORD address);
@@ -606,7 +606,6 @@ MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
 MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
 MQLIB_API void MQ2Shutdown();
 MQLIB_API HANDLE hUnloadComplete;
-MQLIB_API HANDLE hLoadComplete;
 
 MQLIB_API void InitializeMQ2AutoInventory();
 MQLIB_API void ShutdownMQ2AutoInventory();
@@ -679,7 +678,5 @@ void ShutdownAnonymizer();
 MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
 // this is only made available for things that need c-linkage (are grabbing this function out of a DLL)
 MQLIB_API CXStr& PluginAnonymize(CXStr& Text);
-
-MQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 
 } // namespace mq
