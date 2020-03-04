@@ -2037,7 +2037,9 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CPageWnd__GetTabText);
 	INITIALIZE_EQGAME_OFFSET(CPageWnd__SetTabText);
-	
+#if !defined(ROF2EMU) && !defined(UFEMU)
+	INITIALIZE_EQGAME_OFFSET(CPageWnd__FlashTab);
+#endif
 	INITIALIZE_EQGAME_OFFSET(CTargetRing__Cast);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__RefreshTargetBuffs);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__HandleBuffRemoveRequest);

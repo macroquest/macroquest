@@ -12905,7 +12905,11 @@ bool MQ2AltAbilityType::GETMEMBER()
 	case AARankRequired://kept this for legacy reasons...
 	{
 		int CurrentRank = pAbility->CurrentRank - 1;
+		#if !defined(ROF2EMU) && !defined(UFEMU)
 		if (((PcZoneClient*)pPCData)->HasAlternateAbility(pAbility->Index,NULL,false,false))
+		#else
+		if (((PcZoneClient*)pPCData)->HasAlternateAbility(pAbility->Index,NULL,false))
+		#endif
 		{
 			CurrentRank++;
 		}

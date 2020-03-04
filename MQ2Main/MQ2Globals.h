@@ -1479,9 +1479,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTabWnd__GetPageFromTabIndex;
 	EQLIB_VAR DWORD CTabWnd__GetCurrentTabIndex;
 	EQLIB_VAR DWORD CPageWnd__GetTabText;
-	
 	EQLIB_VAR DWORD CPageWnd__SetTabText;
-	
+#if !defined(ROF2EMU) && !defined(UFEMU)
+	EQLIB_VAR DWORD CPageWnd__FlashTab;
+#endif
 	EQLIB_VAR DWORD CTargetRing__Cast;
 	EQLIB_VAR DWORD CTargetWnd__RefreshTargetBuffs;
 	EQLIB_VAR DWORD CTargetWnd__HandleBuffRemoveRequest;

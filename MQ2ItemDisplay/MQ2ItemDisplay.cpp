@@ -2145,6 +2145,7 @@ static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
 		strcat_s(szTable, szTemp);
 	}
 
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	// Row -- Luck
 	{
 		int luckstat = pCont->Luck - pEquipped->Luck;
@@ -2155,7 +2156,7 @@ static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
 		strcat_s(szTemp, "</TR>");
 		strcat_s(szTable, szTemp);
 	}
-
+	#endif
 	// Finish this table and start a new one
 	strcat_s(szTable, "</TABLE><br>");
 	pCompareTipWnd->Display->AppendSTML(szTable);

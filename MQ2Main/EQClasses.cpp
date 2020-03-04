@@ -8685,6 +8685,11 @@ FUNCTION_AT_ADDRESS(int  CTabWnd::DrawCurrentPage(void)const ,CTabWnd__DrawCurre
 #ifdef CPageWnd__SetTabText_x
 FUNCTION_AT_ADDRESS(void CPageWnd::SetTabText(CXStr &)const,CPageWnd__SetTabText);
 #endif
+#if !defined(ROF2EMU) && !defined(UFEMU)
+#ifdef CPageWnd__FlashTab_x
+FUNCTION_AT_ADDRESS(void CPageWnd::FlashTab(bool, int) const,CPageWnd__FlashTab);
+#endif
+#endif
 #ifdef CWebManager__CreateHtmlWnd_x
 FUNCTION_AT_ADDRESS(CHtmlWnd* CWebManager::CreateHtmlWnd(const char*, const char*, const char*, bool, const char*),CWebManager__CreateHtmlWnd);
 #endif

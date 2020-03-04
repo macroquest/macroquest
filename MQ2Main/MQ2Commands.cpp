@@ -4011,7 +4011,11 @@ VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
 				pbSocialChangedList->bChanged[SocialPage][SocialNum] = true;
 				if (iCursor)
 				{
+					#if !defined(ROF2EMU) && !defined(UFEMU)
 					pCursorAttachment->AttachToCursor(NULL, NULL, 4 /*SOCIAL ATTACHMENT*/, SocialIndex, szName, szText);
+					#else
+					pCursorAttachment->AttachToCursor(NULL, NULL, 4 /*SOCIAL ATTACHMENT*/, SocialIndex, szName);
+					#endif
 				}
 				break;
 			}

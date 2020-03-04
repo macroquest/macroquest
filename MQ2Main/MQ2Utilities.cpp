@@ -12170,7 +12170,7 @@ long GetMeleeSpeedPctFromSpell(PSPELL pSpell, bool bIncrease) {
 			}
 			return 0;
 		}
-		if (long effects = pSpell->NumEffects) {
+		if (long effects = GetSpellNumEffects(pSpell)) {
 			for (int j = 0; j < effects; j++) {
 				long spa = GetSpellAttrib(pSpell, j);
 				if (spa == 11) {

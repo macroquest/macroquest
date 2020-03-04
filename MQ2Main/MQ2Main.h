@@ -930,6 +930,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_FOCUS               33
 #define XWM_LOSTFOCUS           34
 #define XWM_TEXTENTRY_COMPLETE  40
+#define XWN_FILESELECTION_COMPLETE	41
 #define XWM_RSELITEM_DOWN       46
 #define XWN_OUTPUT_TEXT         48
 #define XWN_COMMANDLINK         49

@@ -5017,19 +5017,29 @@ EQLIB_OBJECT CPageTemplate::~CPageTemplate(void);
 //EQLIB_OBJECT void * CPageTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CPageTemplate::`vector deleting destructor'(unsigned int);
 };
-
+//Actual Size: 0x258 see 95615B in Feb 25 2020 test -eqmule
 class CPageWnd : public CSidlScreenWnd
 {
 public:
-	PCXSTR TabText;
-	PCXSTR OrgTabText;
-	COLORREF CRTabText;
-	COLORREF CRTabTextActive;
-	CTextureAnimation *pTATabIcon;
-	CTextureAnimation *pTAActiveTabIcon;
+/*0x230*/ PCXSTR TabText;
+/*0x234*/ PCXSTR OrgTabText;
+/*0x238*/ COLORREF CRTabText;
+/*0x23c*/ COLORREF CRTabTextActive;
+/*0x240*/ CTextureAnimation *pTATabIcon;
+/*0x244*/ CTextureAnimation *pTAActiveTabIcon;
+#if !defined(ROF2EMU) && !defined(UFEMU)
+/*0x248*/ __int64 LastFlashTime;
+/*0x250*/ COLORREF CRHighlightFlashColor;
+/*0x254*/ bool bHighlightOnNewMessages;//default true
+/*0x255*/ bool bFlashing;//true when tab is flashing
+/*0x258*/
+#endif
 EQLIB_OBJECT CPageWnd::CPageWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr,class CPageTemplate *);
 EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const;
 EQLIB_OBJECT void CPageWnd::SetTabText(CXStr &)const;
+#if !defined(ROF2EMU) && !defined(UFEMU)
+EQLIB_OBJECT void CPageWnd::FlashTab(bool bFlash, int mstime) const;
+#endif
 // virtual
 EQLIB_OBJECT CPageWnd::~CPageWnd(void);
 //EQLIB_OBJECT void * CPageWnd::`scalar deleting destructor'(unsigned int);
