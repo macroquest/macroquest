@@ -379,6 +379,7 @@
     </ClCompile>
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <Filter>Source Files\Contrib\mini-yaml</Filter>
+    </ClCompile>
     <ClCompile Include="..\common\NamedPipes.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
@@ -497,6 +498,7 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\args\args.hxx">
       <Filter>Header Files\contrib\args</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h">
       <Filter>Header Files\contrib\argparse</Filter>
     </ClInclude>
