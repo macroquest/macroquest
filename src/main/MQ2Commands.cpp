@@ -3585,25 +3585,26 @@ void WindowState(SPAWNINFO* pChar, char* szLine)
 	{
 		bool show = pWnd->IsVisible();
 
-		if (!_stricmp(Arg2, "open")) show = true;
-		if (!_stricmp(Arg2, "close")) show = false;
+		if (ci_equals(Arg2, "open")) show = false;
+		if (ci_equals(Arg2, "close")) show = true;
+		show = !show;
 
 		if (show)
 		{
-			pWnd->Show(false);
+			pWnd->Activate();
 		}
 		else
 		{
-			pWnd->Show(true);
+			pWnd->Deactivate();
 		}
 
 		if (!pWnd->GetWindowText().empty())
 		{
-			WriteChatf("Window '%s' is now %s.", show ? "open" : "closed", pWnd->GetWindowText().c_str());
+			WriteChatf("Window '%s' is now %s.", pWnd->GetWindowText().c_str(), show ? "open" : "closed");
 		}
 		else
 		{
-			WriteChatf("Window '%s' is now %s.", show ? "open" : "closed", Arg1);
+			WriteChatf("Window '%s' is now %s.", Arg1, show ? "open" : "closed");
 		}
 
 		pWnd->StoreIniVis();

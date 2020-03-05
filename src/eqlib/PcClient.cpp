@@ -32,7 +32,7 @@ FUNCTION_AT_ADDRESS(VePointer<CONTENTS> BaseProfile::GetItemPossession(const Ite
 //============================================================================
 
 #ifdef CharacterBase__GetMemorizedSpell_x
-FUNCTION_AT_ADDRESS(LONG CharacterBase::GetMemorizedSpell(int), CharacterBase__GetMemorizedSpell);
+FUNCTION_AT_ADDRESS(int CharacterBase::GetMemorizedSpell(int), CharacterBase__GetMemorizedSpell);
 #endif
 #ifdef CharacterBase__CreateItemGlobalIndex_x
 FUNCTION_AT_ADDRESS(ItemGlobalIndex CharacterBase::CreateItemGlobalIndex(int, int, int), CharacterBase__CreateItemGlobalIndex);
@@ -51,6 +51,9 @@ FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemPossession(const I
 #endif
 #ifdef CharacterBase__GetEffectId_x
 FUNCTION_AT_ADDRESS(unsigned int CharacterBase::GetEffectId(int), CharacterBase__GetEffectId);
+#endif
+#ifdef CharacterBase__IsExpansionFlag_x
+FUNCTION_AT_ADDRESS(int CharacterBase::IsExpansionFlag(int), CharacterBase__IsExpansionFlag);
 #endif
 
 //============================================================================
@@ -128,9 +131,6 @@ FUNCTION_AT_ADDRESS(int CharacterZoneClient::Max_Mana(bool), CharacterZoneClient
 #endif
 #ifdef CharacterZoneClient__Max_HP_x
 FUNCTION_AT_ADDRESS(int CharacterZoneClient::Max_HP(int, bool), CharacterZoneClient__Max_HP);
-#endif
-#ifdef CharacterZoneClient__doCombatAbility_x
-FUNCTION_AT_ADDRESS(bool CharacterZoneClient::DoCombatAbility(int spellID, int dummy), CharacterZoneClient__doCombatAbility);
 #endif
 #ifdef CharacterZoneClient__dCharacterZoneClient_x
 FUNCTION_AT_ADDRESS(CharacterZoneClient::~CharacterZoneClient(), CharacterZoneClient__dCharacterZoneClient);
@@ -483,9 +483,6 @@ FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusCastingTimeModifier(c
 #ifdef CharacterZoneClient__GetFocusRangeModifier_x
 FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut), CharacterZoneClient__GetFocusRangeModifier);
 #endif
-#ifdef CharacterZoneClient__IsExpansionFlag_x
-FUNCTION_AT_ADDRESS(int CharacterZoneClient::IsExpansionFlag(int), CharacterZoneClient__IsExpansionFlag);
-#endif
 #ifdef CharacterZoneClient__GetFocusItem_x
 FUNCTION_AT_ADDRESS(EQ_Equipment* CharacterZoneClient::GetFocusItem(EQ_Spell const*, int), CharacterZoneClient__GetFocusItem);
 #endif
@@ -559,7 +556,7 @@ FUNCTION_AT_ADDRESS(void CharacterZoneClient::HitBySpell(struct _EQMissileHitinf
 FUNCTION_AT_ADDRESS(void CharacterZoneClient::EQSPA_Feign_Death(int), CharacterZoneClient__EQSPA_Feign_Death);
 #endif
 #ifdef CharacterZoneClient__SpellDuration_x
-FUNCTION_AT_ADDRESS(int CharacterZoneClient::SpellDuration(EQ_Spell const*, unsigned char, unsigned char), CharacterZoneClient__SpellDuration);
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::SpellDuration(EQ_Spell const*, uint8_t, uint8_t), CharacterZoneClient__SpellDuration);
 #endif
 #ifdef CharacterZoneClient__eqspa_change_form_x
 FUNCTION_AT_ADDRESS(int CharacterZoneClient::eqspa_change_form(EQ_Spell*, int, int, EQ_Affect*), CharacterZoneClient__eqspa_change_form);
@@ -612,6 +609,12 @@ FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetAdjustedSkill(int), CharacterZon
 #ifdef CharacterZoneClient__GetBaseSkill_x
 FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetBaseSkill(int), CharacterZoneClient__GetBaseSkill);
 #endif
+#ifdef CharacterZoneClient__GetCurrentMod_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetCurrentMod(int index), CharacterZoneClient__GetCurrentMod);
+#endif
+#ifdef CharacterZoneClient__GetModCap_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetModCap(int index, bool bToggle), CharacterZoneClient__GetModCap);
+#endif
 
 //============================================================================
 // EQ_CharacterData
@@ -634,7 +637,7 @@ FUNCTION_AT_ADDRESS(void EQ_CharacterData::EQ_CharacterDataResetAllMembers(), EQ
 //============================================================================
 
 #ifdef PcZoneClient__GetPcSkillLimit_x
-FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);
+FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int, bool), PcZoneClient__GetPcSkillLimit);
 #endif
 #ifdef PcZoneClient__HasCombatAbility_x
 FUNCTION_AT_ADDRESS(bool PcZoneClient::HasCombatAbility(int), PcZoneClient__HasCombatAbility);
@@ -654,12 +657,6 @@ FUNCTION_AT_ADDRESS(CONTENTS** PcZoneClient::GetItemByItemClass(CONTENTS** contO
 #ifdef PcZoneClient__CanEquipItem_x
 FUNCTION_AT_ADDRESS(bool PcZoneClient::CanEquipItem(CONTENTS** pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel), PcZoneClient__CanEquipItem);
 #endif
-#ifdef PcZoneClient__GetCurrentMod_x
-FUNCTION_AT_ADDRESS(int PcZoneClient::GetCurrentMod(int index), PcZoneClient__GetCurrentMod);
-#endif
-#ifdef PcZoneClient__GetModCap_x
-FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index, bool bToggle), PcZoneClient__GetModCap);
-#endif
 #ifdef PcZoneClient__RemoveBuffEffect_x
 FUNCTION_AT_ADDRESS(void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID), PcZoneClient__RemoveBuffEffect);
 #endif
@@ -667,8 +664,15 @@ FUNCTION_AT_ADDRESS(void PcZoneClient::RemoveBuffEffect(int Index, int SpawnID),
 FUNCTION_AT_ADDRESS(void PcZoneClient::BandolierSwap(int index), PcZoneClient__BandolierSwap);
 #endif
 #ifdef PcZoneClient__GetLinkedSpellReuseTimer_x
-FUNCTION_AT_ADDRESS(UINT PcZoneClient::GetLinkedSpellReuseTimer(int index), PcZoneClient__GetLinkedSpellReuseTimer);
+FUNCTION_AT_ADDRESS(uint32_t PcZoneClient::GetLinkedSpellReuseTimer(int index), PcZoneClient__GetLinkedSpellReuseTimer);
 #endif
+#ifdef PcZoneClient__doCombatAbility_x
+FUNCTION_AT_ADDRESS(bool PcZoneClient::DoCombatAbility(int spellID, bool allowLowerRank), PcZoneClient__doCombatAbility);
+#endif
+#ifdef PcZoneClient__DestroyHeldItemOrMoney_x
+FUNCTION_AT_ADDRESS(void PcZoneClient::DestroyHeldItemOrMoney(), PcZoneClient__DestroyHeldItemOrMoney);
+#endif
+
 
 // TODO: Rename defines
 #ifdef EQ_PC__EQ_PC_x
@@ -800,10 +804,6 @@ FUNCTION_AT_ADDRESS(void PcClient::SetArmorType(int, int), EQ_PC__SetArmorType);
 #ifdef EQ_PC__InitializeNewPCVariables_x
 FUNCTION_AT_ADDRESS(void PcClient::InitializeNewPCVariables(int), EQ_PC__InitializeNewPCVariables);
 #endif
-#ifdef EQ_PC__DestroyHeldItemOrMoney_x
-FUNCTION_AT_ADDRESS(void PcClient::DestroyHeldItemOrMoney(), EQ_PC__DestroyHeldItemOrMoney);
-#endif
-
 
 //============================================================================
 // ProfileManager

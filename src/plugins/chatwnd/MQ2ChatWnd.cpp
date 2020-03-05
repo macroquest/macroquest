@@ -168,6 +168,19 @@ public:
 				//DebugSpew("Unhandled InputBox message 0x%04x, value: 0x%04x", Message, data);
 			}
 		}
+		else if (Message == XWM_LINK)
+		{
+			//DebugSpewAlways("Link clicked: 0x%X, 0x%X, %Xh", pWnd, Message, data);
+			for (auto wnd : pChatManager->ChannelMap)
+			{
+				if (wnd)
+				{
+					//DebugSpewAlways("Found wnd %Xh : %s", wnd, wnd->GetWindowName()->c_str());
+					wnd->WndNotification(wnd->OutputWnd, Message, data);
+					break;
+				}
+			}
+		}
 		else
 		{
 			//DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,data); 
