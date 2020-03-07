@@ -1,3 +1,7 @@
+Mar 06 2020
+- Added CTabWnd::RemovePage
+- Fixed CXWnd::DrawColoredRect crash
+-
 Mar 03 2020
 - Updated for TEST
 - Updated for LIVE

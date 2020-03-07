@@ -762,6 +762,7 @@ GNU General Public License for more details.
 #define CTabWnd__GetTabInnerRect_x                                 0x965920
 #define CTabWnd__GetTabRect_x                                      0x9657D0
 #define CTabWnd__InsertPage_x                                      0x965BF0
+#define CTabWnd__RemovePage_x                                      0x965D60
 #define CTabWnd__SetPage_x                                         0x965A60
 #define CTabWnd__SetPageRect_x                                     0x965EE0
 #define CTabWnd__UpdatePage_x                                      0x9662B0

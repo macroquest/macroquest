@@ -647,7 +647,7 @@ EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,cla
 //it looks like CXWnd::GetTooltipRect has 2 parameters in IDA but it only has 1. Note thats its a __cdecl so not a class member func... - eqmule apr 29 2016
 EQLIB_OBJECT static class CXRect *__cdecl CXWnd::GetTooltipRect(class CXRect *);
 EQLIB_OBJECT static class CXWndDrawTemplate CXWnd::sm_wdtDefaults;
-EQLIB_OBJECT static int __cdecl CXWnd::DrawColoredRect(class CXRect,unsigned long,class CXRect);
+EQLIB_OBJECT static int __cdecl CXWnd::DrawColoredRect(const CXRect& rc, COLORREF Color, const CXRect& ClipRect);
 EQLIB_OBJECT static int __cdecl CXWnd::DrawLasso(class CXRect,unsigned long,class CXRect);
 EQLIB_OBJECT static int __cdecl CXWnd::DrawRaisedRect(class CXRect,class CXRect);
 EQLIB_OBJECT static int __cdecl CXWnd::DrawSunkenRect(class CXRect,class CXRect);
@@ -6691,8 +6691,9 @@ EQLIB_OBJECT class CXRect CTabWnd::GetTabInnerRect(int)const;
 EQLIB_OBJECT class CXRect CTabWnd::GetTabRect(int)const;
 EQLIB_OBJECT int CTabWnd::GetCurrentTabIndex(void)const;
 EQLIB_OBJECT int CTabWnd::GetNumTabs(void)const;
-EQLIB_OBJECT void CTabWnd::InsertPage(class CPageWnd *,int);
-EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool bNotifyParent = true, bool bBringToTop = true);
+EQLIB_OBJECT void CTabWnd::InsertPage(CPageWnd *pWnd,int Pos = -1);//default to last tab
+EQLIB_OBJECT void CTabWnd::RemovePage(CPageWnd *pWnd);
+EQLIB_OBJECT void CTabWnd::SetPage(CPageWnd *,bool bNotifyParent = true, bool bBringToTop = true);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_OBJECT void CTabWnd::SetPage(int index, bool bNotifyParent = true, bool bBringToTop = true, bool bSomething = false);
 #else
@@ -6997,11 +6998,7 @@ EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CX
 EQLIB_OBJECT int CTextureFont::DrawWrappedText(CXStr *Str, int x, int y, int Width, CXRect *BoundRect, COLORREF Color, WORD Flags = 0, int StartX = 0)const;
 EQLIB_OBJECT int CTextureFont::GetHeight(void)const;
 EQLIB_OBJECT int CTextureFont::GetKerning(unsigned short,unsigned short)const;
-#if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT int CTextureFont::GetTextExtent(CXStr *);
-#else
-EQLIB_OBJECT int CTextureFont::GetTextExtent(void);
-#endif
+EQLIB_OBJECT int CTextureFont::GetTextExtent(const CXStr& str);
 EQLIB_OBJECT int CTextureFont::GetWidth(unsigned short)const;
 // virtual
 EQLIB_OBJECT CTextureFont::~CTextureFont(void);

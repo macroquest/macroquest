@@ -7847,7 +7847,7 @@ FUNCTION_AT_ADDRESS(int  CXWnd::DrawChildren(void)const ,CXWnd__DrawChildren);
 FUNCTION_AT_ADDRESS(void  CXWnd::BringChildWndToTop(class CXWnd *),CXWnd__BringChildWndToTop);
 #endif
 #ifdef CXWnd__DrawColoredRect_x
-FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawColoredRect(class CXRect,unsigned long,class CXRect),CXWnd__DrawColoredRect);
+FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawColoredRect(const CXRect& rc, COLORREF Color, const CXRect& ClipRect),CXWnd__DrawColoredRect);
 #endif
 #ifdef CXWnd__GetTooltipRect_x
 FUNCTION_AT_ADDRESS(class CXRect *__cdecl CXWnd::GetTooltipRect(class CXRect *),CXWnd__GetTooltipRect);
@@ -8650,7 +8650,10 @@ FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageInnerRect(void)const ,CTabWnd_
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(class CPageWnd *, bool, bool),CTabWnd__SetPage1);
 #endif
 #ifdef CTabWnd__InsertPage_x
-FUNCTION_AT_ADDRESS(void  CTabWnd::InsertPage(class CPageWnd *,int),CTabWnd__InsertPage);
+FUNCTION_AT_ADDRESS(void CTabWnd::InsertPage(CPageWnd *,int),CTabWnd__InsertPage);
+#endif
+#ifdef CTabWnd__RemovePage_x
+FUNCTION_AT_ADDRESS(void CTabWnd::RemovePage(CPageWnd *),CTabWnd__RemovePage);
 #endif
 #ifdef CTabWnd__SetPageRect_x
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPageRect(class CXRect),CTabWnd__SetPageRect);
@@ -9268,14 +9271,10 @@ FUNCTION_AT_ADDRESS(int  CTextureFont::GetWidth(unsigned short)const ,CTextureFo
 FUNCTION_AT_ADDRESS(int  CTextureFont::GetKerning(unsigned short,unsigned short)const ,CTextureFont__GetKerning);
 #endif
 #ifdef CTextureFont__GetTextExtent_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
-FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(CXStr *),CTextureFont__GetTextExtent);
-#else
-FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(void),CTextureFont__GetTextExtent);
-#endif
+FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(const CXStr& str),CTextureFont__GetTextExtent);
 #endif
 #ifdef CTextureFont__GetHeight_x
-FUNCTION_AT_ADDRESS(int  CTextureFont::GetHeight(void)const ,CTextureFont__GetHeight);
+//FUNCTION_AT_ADDRESS(int CTextureFont::GetHeight(void)const ,CTextureFont__GetHeight);
 #endif
 #ifdef CTextureFont__GetName_x
 FUNCTION_AT_ADDRESS(class CXStr  CTextureFont::GetName(void)const ,CTextureFont__GetName);

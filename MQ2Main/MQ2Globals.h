@@ -1473,6 +1473,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTabWnd__GetTabInnerRect;
 	EQLIB_VAR DWORD CTabWnd__GetTabRect;
 	EQLIB_VAR DWORD CTabWnd__InsertPage;
+	EQLIB_VAR DWORD CTabWnd__RemovePage;
 	EQLIB_VAR DWORD CTabWnd__SetPage;
 	EQLIB_VAR DWORD CTabWnd__SetPageRect;
 	EQLIB_VAR DWORD CTabWnd__UpdatePage;
