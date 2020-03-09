@@ -6827,13 +6827,14 @@ bool MQ2SpellType::GETMEMBER()
 				else
 				{
 					Dest.DWord = true;
-					buffduration = ret->DurationTick;
-					if (GetSpellDuration(thespell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
+					/*buffduration = ret->DurationTick;
+					DWORD spelldur = GetSpellDuration(thespell, (PSPAWNINFO)pLocalPlayer);
+					if ( spelldur >= 0xFFFFFFFE) {
 						buffduration = 99999 + 1;
 					}
 					//WriteChatf("Spell.NewStacks(%d:%d,%d)",thespell->ID,duration,buffduration);
 					if (buffduration > duration)
-						Dest.DWord = false;
+						Dest.DWord = false;*/
 				}
 			}
 		}

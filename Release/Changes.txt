@@ -1,3 +1,8 @@
+Mar 08 2020
+- Updated for TEST
+- Updated for LIVE
+- Fixed ${Spell[permanent spell here].Stack} so it actually returns true when they DO stack.
+-
 Mar 06 2020
 - Added CTabWnd::RemovePage
 - Fixed CXWnd::DrawColoredRect crash
