@@ -34,35 +34,37 @@ enum class Anonymization
 	None,
 	Asterisk,
 	Class,
-	Me
+	Me,
+	Custom
 };
 
 static std::unordered_map<std::string_view, Anonymization> anonymization_map = {
 	{"none", Anonymization::None},
 	{"asterisk", Anonymization::Asterisk},
 	{"class", Anonymization::Class},
-	{"me", Anonymization::Me}
+	{"me", Anonymization::Me},
+	{"custom", Anonymization::Custom}
 };
 
-// put this near the anon types to keep maintenance easy
-static std::string Anonymize(std::string_view Name, Anonymization How)
+// helper functions for serializing anonymization type
+static Anonymization GetAnonymizationFromString(std::string_view anon)
 {
-	switch (How)
+	auto it = anonymization_map.find(anon);
+	if (it != anonymization_map.end())
+		return it->second;
+
+	return Anonymization::None;
+}
+
+static std::string_view GetStringFromAnonymization(Anonymization anon)
+{
+	for (auto anon_type : anonymization_map)
 	{
-	case Anonymization::Asterisk:
-	{
-		std::string asterisk_name(Name);
-		for (size_t i = 1; i < asterisk_name.length() - 1; ++i)
-			asterisk_name[i] = '*';
-		return asterisk_name;
+		if (anon_type.second == anon)
+			return anon_type.first;
 	}
-	case Anonymization::Class:
-		return fmt::format("[${{Spawn[pc {0}].Level}}] ${{Spawn[pc {0}].Race}} ${{Spawn[pc {0}].Class}} ${{Spawn[pc {0}].Type}}", Name);
-	case Anonymization::Me:
-		return "[${Me.Level}] ${Me.Race} ${Me.Class} ${Me.Type}";
-	default:
-		return std::string(Name);
-	};
+
+	return "none";
 }
 
 static Anonymization anon_group;
@@ -75,6 +77,7 @@ public:
 	const std::string name;
 
 private:
+	Anonymization strategy;
 	std::string target;
 	std::set<std::string> alternates;
 	std::regex search_string;
@@ -91,14 +94,16 @@ private:
 	}
 
 public:
-	anon_replacer(std::string_view name, std::string_view target)
-		: name(name), target(target)
+	anon_replacer(std::string_view name, Anonymization strategy, std::string_view target = "")
+		: name(name), strategy(strategy), target(target)
 	{
 		build_regex();
 	}
 
 	anon_replacer(Yaml::Node& node)
-		: name(node["name"].As<std::string>()), target(node["target"].As<std::string>())
+		: name(node["name"].As<std::string>()),
+		  strategy(GetAnonymizationFromString(node["strategy"].As<std::string>())),
+		  target(node["target"].As<std::string>())
 	{
 		if (node["alternates"].IsSequence())
 		{
@@ -109,13 +114,13 @@ public:
 		build_regex();
 	}
 
-	anon_replacer(SPAWNINFO* pSpawn, std::string_view target)
-		: name(pSpawn->Lastname[0] ? fmt::format("{}\\s{}", pSpawn->Name, pSpawn->Lastname) : pSpawn->Name), target(target)
+	anon_replacer(SPAWNINFO* pSpawn, Anonymization strategy, std::string_view target = "")
+		: name(pSpawn->Lastname[0] ? fmt::format("{}\\s{}", pSpawn->Name, pSpawn->Lastname) : pSpawn->Name),
+		  strategy(strategy),
+		  target(target)
 	{
 		if (pSpawn->Lastname[0])
-		{
 			add_alternate(pSpawn->Name);
-		}
 
 		build_regex();
 	}
@@ -132,6 +137,16 @@ public:
 		build_regex();
 	}
 
+	void update_strategy(Anonymization strategy)
+	{
+		this->strategy = strategy;
+	}
+
+	Anonymization get_strategy()
+	{
+		return strategy;
+	}
+
 	void update_target(std::string_view target)
 	{
 		this->target = target;
@@ -142,10 +157,58 @@ public:
 		return target;
 	}
 
+	std::string anonymize() const
+	{
+		auto asterisk_name = [](std::string_view name)
+		{
+			std::string asterisk_name(name);
+			for (size_t i = 1; i < asterisk_name.length() - 1; ++i)
+				asterisk_name[i] = '*';
+			return asterisk_name;
+		};
+
+		switch (strategy)
+		{
+		case Anonymization::Asterisk:
+			return asterisk_name(name);
+
+		case Anonymization::Class:
+		{
+			auto spawn = reinterpret_cast<SPAWNINFO*>(GetSpawnByName(name.c_str()));
+			if (spawn)
+				return fmt::format("[{}] {} {} {}",
+					spawn->Level,
+					pEverQuest->GetRaceDesc(spawn->mActorClient.Race),
+					GetClassDesc(spawn->GetClass()),
+					GetTypeDesc(GetSpawnType(spawn)));
+			else
+				return asterisk_name(name);
+		}
+
+		case Anonymization::Me:
+		{
+			auto profile = GetPcProfile();
+			if (profile)
+				return fmt::format("[{}] {} {} PC",
+					profile->Level,
+					pEverQuest->GetRaceDesc(profile->Race),
+					GetClassDesc(profile->Class));
+			else
+				return asterisk_name(name);
+		}
+
+		case Anonymization::Custom:
+			return ModifyMacroString(target);
+
+		default:
+			return std::string(name);
+		};
+	}
+
 	std::string replace_text(std::string_view text) const
 	{
 		std::string result;
-		std::regex_replace(std::back_inserter(result), std::cbegin(text), std::cend(text), search_string, ModifyMacroString(target));
+		std::regex_replace(std::back_inserter(result), std::cbegin(text), std::cend(text), search_string, anonymize());
 		return result;
 	}
 
@@ -154,7 +217,9 @@ public:
 		Yaml::Node node;
 
         node["name"] = name;
-        node["target"] = target;
+		node["strategy"] = GetStringFromAnonymization(strategy).data();
+		if (strategy == Anonymization::Custom)
+			node["target"] = target;
         for (auto alt : alternates)
             node["alternates"].PushBack() = alt;
         
@@ -180,43 +245,19 @@ static std::vector<std::unique_ptr<anon_replacer> >::iterator FindReplacer(std::
 		[&Name](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Name, r->name); });
 }
 
-// helper function to find a name by replacer
-static std::vector<std::unique_ptr<anon_replacer> >::iterator ReverseFind(std::string_view Target)
-{
-	return std::find_if(std::begin(replacers), std::end(replacers),
-		[&Target](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Target, r->get_target()); });
-}
-
-// helper functions for serializing anonymization type
-static Anonymization GetAnonymizationFromString(std::string_view anon)
-{
-	auto it = anonymization_map.find(anon);
-	if (it != anonymization_map.end())
-		return it->second;
-
-	return Anonymization::None;
-}
-
-static std::string_view GetStringFromAnonymization(Anonymization anon)
-{
-	for (auto anon_type : anonymization_map)
-	{
-		if (anon_type.second == anon)
-			return anon_type.first;
-	}
-
-	return "none";
-}
-
 // add an anonymization rule to the map -- if the rule already exists, assume we want to update the target
-static void AddAnonymization(std::string_view Name, std::string_view Replace)
+static void AddAnonymization(std::string_view Name, Anonymization Strategy, std::string_view Replace = "")
 {
 	auto replacer_it = FindReplacer(Name);
 
 	if (replacer_it != std::end(replacers))
-		(*replacer_it)->update_target(Replace); // just change the replace text
+	{
+		// just update things
+		(*replacer_it)->update_strategy(Strategy);
+		(*replacer_it)->update_target(Replace); 
+	}
 	else
-		replacers.emplace_back(std::make_unique<anon_replacer>(Name, Replace));
+		replacers.emplace_back(std::make_unique<anon_replacer>(Name, Strategy, Replace));
 }
 
 static void DropAnonymization(std::string_view Name)
@@ -359,7 +400,7 @@ CXStr Anonymize(const CXStr& Text)
 		if (anon_self != Anonymization::None && pLocalPlayer)
 		{
 			if (!self_replacer || ci_find_substr(self_replacer->name, pLocalPlayer->Name) != 0)
-				self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, Anonymize(pLocalPlayer->Name, anon_self));
+				self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, anon_self);
 
 			new_text = self_replacer->replace_text(new_text);
 		}
@@ -378,7 +419,7 @@ CXStr Anonymize(const CXStr& Text)
 						if (memoized == group_memoization.end())
 							memoized = group_memoization.emplace(
 								g->Name,
-								std::make_unique<anon_replacer>(g->Name, Anonymize(g->Name, anon_group))
+								std::make_unique<anon_replacer>(g->Name, anon_group)
 							).first;
 
 						return memoized->second->replace_text(text);
@@ -400,7 +441,7 @@ CXStr Anonymize(const CXStr& Text)
 					if (memoized == guild_memoization.end())
 						memoized = guild_memoization.emplace(
 							guild_name,
-							std::make_unique<anon_replacer>(guild_name, Anonymize(guild_name, Anonymization::Asterisk))
+							std::make_unique<anon_replacer>(guild_name, Anonymization::Asterisk)
 						).first;
 
 					new_text = memoized->second->replace_text(new_text);
@@ -416,7 +457,7 @@ CXStr Anonymize(const CXStr& Text)
 					if (memoized == guild_memoization.end())
 						memoized = guild_memoization.emplace(
 							pMember->Name,
-							std::make_unique<anon_replacer>(pMember->Name, Anonymize(pMember->Name, anon_guild))
+							std::make_unique<anon_replacer>(pMember->Name, anon_guild)
 						).first;
 
 					new_text = memoized->second->replace_text(new_text);
@@ -434,7 +475,7 @@ CXStr Anonymize(const CXStr& Text)
 					if (memoized == raid_memoization.end())
 						memoized = raid_memoization.emplace(
 							pMember.Name,
-							std::make_unique<anon_replacer>(pMember.Name, Anonymize(pMember.Name, anon_raid))
+							std::make_unique<anon_replacer>(pMember.Name, anon_raid)
 						).first;
 
 					new_text = memoized->second->replace_text(new_text);
@@ -514,9 +555,8 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 			if (name)
 			{
-				auto anonymization = Anonymize(name.Get(), Anonymization::Asterisk);
-				AddAnonymization(name.Get(), anonymization);
-				WriteChatf("Anonymized \at%s\ax with \at%s\ax.", name.Get().c_str(), anonymization.c_str());
+				AddAnonymization(name.Get(), Anonymization::Asterisk);
+				WriteChatf("Anonymized \at%s\ax with \atasterisk\ax strategy.", name.Get().c_str());
 			}
 		});
 
@@ -533,9 +573,8 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 			if (name)
 			{
-				auto anonymization = Anonymize(name.Get(), Anonymization::Class);
-				AddAnonymization(name.Get(), anonymization);
-				WriteChatf("Anonymized \at%s\ax with \at%s\ax.", name.Get().c_str(), anonymization.c_str());
+				AddAnonymization(name.Get(), Anonymization::Class);
+				WriteChatf("Anonymized \at%s\ax with \atclass\ax strategy.", name.Get().c_str());
 			}
 		});
 
@@ -554,7 +593,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			if (name && replacers)
 			{
 				auto anonymization = join(replacers.Get(), " ");
-				AddAnonymization(name.Get(), anonymization);
+				AddAnonymization(name.Get(), Anonymization::Custom, anonymization);
 				WriteChatf("Anonymized \at%s\ax with \at%s\ax.", name.Get().c_str(), anonymization.c_str());
 			}
 		});
