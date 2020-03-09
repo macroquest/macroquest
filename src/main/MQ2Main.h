@@ -675,6 +675,7 @@ MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 /* MQ2ANONYMIZE */
 void InitializeAnonymizer();
 void ShutdownAnonymizer();
+MQLIB_API bool IsAnonymized();
 MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
 // this is only made available for things that need c-linkage (are grabbing this function out of a DLL)
 MQLIB_API CXStr& PluginAnonymize(CXStr& Text);

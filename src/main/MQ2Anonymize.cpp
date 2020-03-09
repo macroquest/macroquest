@@ -329,10 +329,15 @@ static void Deserialize()
 	self_replacer.reset();
 }
 
+bool IsAnonymized()
+{
+	return anon_enabled;
+}
+
 // process string to anonymize
 CXStr& PluginAnonymize(CXStr& Text)
 {
-	if (anon_enabled && GetGameState() == GAMESTATE_INGAME && !Text.empty())
+	if (IsAnonymized() && GetGameState() == GAMESTATE_INGAME && !Text.empty())
 		Text = Anonymize(Text);
 
 	return Text;
@@ -340,7 +345,7 @@ CXStr& PluginAnonymize(CXStr& Text)
 
 CXStr Anonymize(const CXStr& Text)
 {
-	if (anon_enabled && GetGameState() == GAMESTATE_INGAME && !Text.empty())
+	if (IsAnonymized() && GetGameState() == GAMESTATE_INGAME && !Text.empty())
 	{
 		EnterMQ2Benchmark(bmAnonymizer);
 
@@ -479,13 +484,6 @@ DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, u
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
-
-bool dataAnon(const char* szName, MQTypeVar& Ret)
-{
-	Ret.DWord = anon_enabled;
-	Ret.Type = datatypes::pBoolType;
-	return true;
-}
 
 // ***************************************************************************
 // Function:    MQAnon
@@ -789,14 +787,12 @@ void InitializeAnonymizer()
 	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
 	Deserialize(); // always load on initialization
 
-	AddMQ2Data("MQAnon", dataAnon);
 	AddCommand("/mqanon", MQAnon, false, false, false);
 }
 
 void ShutdownAnonymizer()
 {
 	RemoveCommand("/mqanon");
-	RemoveMQ2Data("MQAnon");
 
 	RemoveMQ2Benchmark(bmAnonymizer);
 
