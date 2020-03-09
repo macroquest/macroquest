@@ -251,6 +251,11 @@ static void SetAnon(bool anon_state)
 	{
 		WriteChatf("\ayCustom name sprites are not turned on, set '/caption MQCaptions on' if you want to anonymize name sprites!\ax");
 	}
+
+	if (anon_enabled)
+	{
+		WriteChatf("\ayBe aware that Anonymization will only anonymize IN GAME! The character select screen will not be anonymized!\ax");
+	}
 }
 
 static void ToggleAnon()
@@ -316,7 +321,7 @@ static void Deserialize()
 // process string to anonymize
 CXStr& PluginAnonymize(CXStr& Text)
 {
-	if (anon_enabled && !Text.empty())
+	if (anon_enabled && GetGameState() == GAMESTATE_INGAME && !Text.empty())
 		Text = Anonymize(Text);
 
 	return Text;
@@ -324,7 +329,7 @@ CXStr& PluginAnonymize(CXStr& Text)
 
 CXStr Anonymize(const CXStr& Text)
 {
-	if (anon_enabled && !Text.empty())
+	if (anon_enabled && GetGameState() == GAMESTATE_INGAME && !Text.empty())
 	{
 		EnterMQ2Benchmark(bmAnonymizer);
 
@@ -475,7 +480,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	if (!pChar)
 		return;
 
-	args::ArgumentParser arg_parser("mqanon parser");
+	args::ArgumentParser arg_parser("Anonymization tool: filters specific text from display output.");
 	arg_parser.Prog("/mqanon");
 	arg_parser.RequireCommand(false);
 	args::Group commands(arg_parser, "commands", args::Group::Validators::AtMostOne);
