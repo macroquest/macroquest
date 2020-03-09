@@ -68,6 +68,7 @@ static std::string_view GetStringFromAnonymization(Anonymization anon)
 }
 
 static Anonymization anon_group;
+static Anonymization anon_fellowship;
 static Anonymization anon_guild;
 static Anonymization anon_raid;
 static Anonymization anon_self;
@@ -231,6 +232,7 @@ public:
 // the target string is parsed before replacement
 static std::vector<std::unique_ptr<anon_replacer> > replacers;
 static ci_unordered::map<std::unique_ptr<anon_replacer> > group_memoization;
+static ci_unordered::map<std::unique_ptr<anon_replacer> > fellowship_memoization;
 static ci_unordered::map<std::unique_ptr<anon_replacer> > guild_memoization;
 static ci_unordered::map<std::unique_ptr<anon_replacer> > raid_memoization;
 static std::unique_ptr<anon_replacer> self_replacer;
@@ -329,6 +331,7 @@ static void Serialize()
 		anon_config.Erase("replacers");
 
 	anon_config["group"] = std::string(GetStringFromAnonymization(anon_group));
+	anon_config["fellowship"] = std::string(GetStringFromAnonymization(anon_fellowship));
 	anon_config["guild"] = std::string(GetStringFromAnonymization(anon_guild));
 	anon_config["raid"] = std::string(GetStringFromAnonymization(anon_raid));
 	anon_config["self"] = std::string(GetStringFromAnonymization(anon_self));
@@ -359,12 +362,14 @@ static void Deserialize()
 	}
 
 	anon_group = GetAnonymizationFromString(anon_config["group"].As<std::string>());
+	anon_fellowship = GetAnonymizationFromString(anon_config["fellowship"].As<std::string>());
 	anon_guild = GetAnonymizationFromString(anon_config["guild"].As<std::string>());
 	anon_raid = GetAnonymizationFromString(anon_config["raid"].As<std::string>());
 	anon_self = GetAnonymizationFromString(anon_config["self"].As<std::string>());
 
 	// a load should reset all the temporary memoization (as a failsafe)
 	group_memoization.clear();
+	fellowship_memoization.clear();
 	guild_memoization.clear();
 	raid_memoization.clear();
 	self_replacer.reset();
@@ -420,6 +425,32 @@ CXStr Anonymize(const CXStr& Text)
 							memoized = group_memoization.emplace(
 								g->Name,
 								std::make_unique<anon_replacer>(g->Name, anon_group)
+							).first;
+
+						return memoized->second->replace_text(text);
+					}
+
+					return text;
+				}
+			);
+		}
+
+		if (anon_fellowship != Anonymization::None && pChar && pChar->pSpawn)
+		{
+			auto fellowship = pChar->pSpawn->Fellowship;
+			new_text = std::accumulate(
+				std::cbegin(fellowship.FellowshipMember),
+				std::cend(fellowship.FellowshipMember),
+				new_text,
+				[](std::string& text, const FELLOWSHIPMEMBER& f) -> std::string
+				{
+					if (f.Name[0] != '\0' && ci_equals(text, f.Name, false))
+					{
+						auto memoized = fellowship_memoization.find(f.Name);
+						if (memoized == fellowship_memoization.end())
+							memoized = fellowship_memoization.emplace(
+								f.Name,
+								std::make_unique<anon_replacer>(f.Name, anon_fellowship)
 							).first;
 
 						return memoized->second->replace_text(text);
@@ -680,6 +711,30 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 				}
 
 				WriteChatf("Group Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_group));
+			}
+		});
+
+	args::Command fellowship(commands, "fellowship", "sets fellowship anonymization",
+		[](args::Subparser& parser) {
+			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+
+			args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+
+			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
+			parser.Parse();
+
+			if (anon_type)
+			{
+				auto a = anon_type.Get();
+				if (a != anon_fellowship)
+				{
+					anon_fellowship = a;
+					fellowship_memoization.clear();
+				}
+
+				WriteChatf("Fellowship Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_fellowship));
 			}
 		});
 
