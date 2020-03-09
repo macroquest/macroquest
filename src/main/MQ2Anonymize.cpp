@@ -429,6 +429,14 @@ CXStr Anonymize(const CXStr& Text)
 	return Text;
 }
 
+int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
+int GetGaugeValueFromEQ_Detour(int EQType, CXStr& Str, bool* arg3, unsigned long* Color)
+{
+	int ret = GetGaugeValueFromEQ_Trampoline(EQType, Str, arg3, Color);
+	Str = Anonymize(Str);
+	return ret;
+}
+
 class CTextureFontHook
 {
 public:
@@ -438,6 +446,12 @@ public:
 		return DrawWrappedText_Trampoline(Anonymize(Str), x, y, Width, BoundRect, Color, Flags, StartX);
 	}
 
+	int DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
+	int DrawWrappedText1_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	{
+		return DrawWrappedText1_Trampoline(Anonymize(Str), Rect, BoundRect, Color, Flags, StartX);
+	}
+
 	int DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
 	int DrawWrappedText2_Detour(CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
 	{
@@ -445,7 +459,9 @@ public:
 	}
 };
 
+DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
+DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 
 // ***************************************************************************
@@ -740,7 +756,9 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 void InitializeAnonymizer()
 {
+	EzDetour(__GetGaugeValueFromEQ, &GetGaugeValueFromEQ_Detour, &GetGaugeValueFromEQ_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText, &CTextureFontHook::DrawWrappedText_Detour, &CTextureFontHook::DrawWrappedText_Trampoline);
+	EzDetour(CTextureFont__DrawWrappedText1, &CTextureFontHook::DrawWrappedText1_Detour, &CTextureFontHook::DrawWrappedText1_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText2, &CTextureFontHook::DrawWrappedText2_Detour, &CTextureFontHook::DrawWrappedText2_Trampoline);
 
 	bmAnonymizer = AddMQ2Benchmark("Anonymizer");
@@ -757,7 +775,9 @@ void ShutdownAnonymizer()
 
 	RemoveMQ2Benchmark(bmAnonymizer);
 
+	RemoveDetour(__GetGaugeValueFromEQ);
 	RemoveDetour(CTextureFont__DrawWrappedText);
+	RemoveDetour(CTextureFont__DrawWrappedText1);
 	RemoveDetour(CTextureFont__DrawWrappedText2);
 }
 }

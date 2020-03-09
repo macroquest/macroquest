@@ -796,6 +796,7 @@
 
 // CTextureFont
 #define CTextureFont__DrawWrappedText_x                            0x93A5B0
+#define CTextureFont__DrawWrappedText1_x                           0x93A4E0
 #define CTextureFont__DrawWrappedText2_x                           0x93A600
 #define CTextureFont__GetTextExtent_x                              0x93A770
 
