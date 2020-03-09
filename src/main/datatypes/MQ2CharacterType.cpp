@@ -161,11 +161,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case PctHPs: {
-		Dest.Int = 0;
 		Dest.Type = pIntType;
-		LONG maxhp = GetMaxHPS();
-		if (maxhp != 0)
-			Dest.Int = GetCurHPS() * 100 / maxhp;
+		Dest.Int = GetMaxHPS() == 0 ? 0 : GetCurHPS() * 100 / GetMaxHPS();
 		return true;
 	}
 
