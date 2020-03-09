@@ -109,6 +109,17 @@ public:
 		build_regex();
 	}
 
+	anon_replacer(SPAWNINFO* pSpawn, std::string_view target)
+		: name(pSpawn->Lastname[0] ? fmt::format("{}\\s{}", pSpawn->Name, pSpawn->Lastname) : pSpawn->Name), target(target)
+	{
+		if (pSpawn->Lastname[0])
+		{
+			add_alternate(pSpawn->Name);
+		}
+
+		build_regex();
+	}
+
 	void add_alternate(std::string_view alternate)
 	{
 		alternates.emplace(std::string(alternate));
@@ -340,10 +351,10 @@ CXStr Anonymize(const CXStr& Text)
 
 		auto pChar = GetCharInfo();
 
-		if (anon_self != Anonymization::None && pChar)
+		if (anon_self != Anonymization::None && pLocalPlayer)
 		{
-			if (!self_replacer || !ci_equals(self_replacer->name, pChar->Name))
-				self_replacer = std::make_unique<anon_replacer>(pChar->Name, Anonymize(pChar->Name, anon_self));
+			if (!self_replacer || ci_find_substr(self_replacer->name, pLocalPlayer->Name) != 0)
+				self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, Anonymize(pLocalPlayer->Name, anon_self));
 
 			new_text = self_replacer->replace_text(new_text);
 		}
