@@ -140,11 +140,17 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		return true;
 
-	case Rank: // th current rank...
-	case AARankRequired: // kept this for legacy reasons...
-		Dest.DWord = pAbility->CurrentRank;
+	case Rank: // the current rank
+	case AARankRequired: { // kept this for legacy reasons
+		int CurrentRank = pAbility->CurrentRank - 1;
+		if (pPCData->HasAlternateAbility(pAbility->Index))
+		{
+			CurrentRank++;
+		}
+		Dest.DWord = CurrentRank;
 		Dest.Type = pIntType;
 		return true;
+	}
 
 	case Type:
 		Dest.DWord = pAbility->Type;

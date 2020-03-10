@@ -389,6 +389,10 @@
 ////
 // Section 4: Function Offsets
 ////
+
+// CAAwnd
+#define CAAWnd__ShowAbility_x                                      0x6D5690
+
 // CAdvancedLootWnd
 #define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x4904C0
 #define CAdvancedLootWnd__DoAdvLootAction_x                        0x4993D0

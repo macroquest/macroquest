@@ -367,6 +367,7 @@ INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetCalculatedTimer);
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__IsAbilityReady);
 INITIALIZE_EQGAME_OFFSET(ArrayClass__DeleteElement);
 INITIALIZE_EQGAME_OFFSET(BaseProfile__GetItemPossession);
+INITIALIZE_EQGAME_OFFSET(CAAWnd__ShowAbility);
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__AddPlayerToList);
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);

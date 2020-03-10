@@ -821,6 +821,14 @@ FUNCTION_AT_ADDRESS(int CTabWnd::DrawCurrentPage() const, CTabWnd__DrawCurrentPa
 #endif
 
 //============================================================================
+// CAAWnd
+//============================================================================
+
+#ifdef CAAWnd__ShowAbility_x
+FUNCTION_AT_ADDRESS(bool CAAWnd::ShowAbility(int), CAAWnd__ShowAbility);
+#endif
+
+//============================================================================
 // CActionsWnd
 //============================================================================
 

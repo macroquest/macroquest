@@ -990,7 +990,7 @@ public:
 /*0x270*/ CXRect              PrevInsideRect;
 /*0x280*/ uint32_t            ListWndStyle;
 /*0x284*/ __time32_t          LastVisibleTime;
-/*0x28c*/
+/*0x288*/
 
 	struct [[offsetcomments]] VirtualFunctionTable : public CXWnd::VirtualFunctionTable
 	{
@@ -1022,6 +1022,14 @@ public:
 
 	EQLIB_OBJECT CXStr GetTabText(bool bSomething = false) const;
 	EQLIB_OBJECT void SetTabText(CXStr&) const;
+
+/*0x228*/ CXStr TabText;
+/*0x22c*/ CXStr OrigTabText;
+/*0x230*/ COLORREF CRTabText;
+/*0x234*/ COLORREF CRTabTextActive;
+/*0x238*/ CTextureAnimation* pTATabIcon;
+/*0x23c*/ CTextureAnimation* pTATabIconActive;
+/*0x240*/
 };
 
 //============================================================================
@@ -1335,7 +1343,7 @@ public:
 	EQLIB_OBJECT void CancelAASpend();
 	EQLIB_OBJECT void ConfirmAASpend();
 	EQLIB_OBJECT void SendNewPercent();
-	EQLIB_OBJECT void ShowAbility(int);
+	EQLIB_OBJECT bool ShowAbility(int);
 	EQLIB_OBJECT void Update();
 	EQLIB_OBJECT void UpdateTimer();
 
@@ -2642,13 +2650,24 @@ public:
 	//----------------------------------------------------------------------------
 	// data members
 
-/*0x22c*/ int          Type;
-/*0x230*/ int          Index;
-/*0x234*/ EqItemGuid   ItemGuid;
-/*0x248*/ int          ItemID;
-/*0x24c*/ int          Qty;
-/*0x250*/ CXStr        ButtonText;
-	/*0x254*/ // and more...
+/*0x22c*/ int                       Type;
+/*0x230*/ int                       Index;
+/*0x234*/ EqItemGuid                ItemGuid;
+/*0x248*/ int                       ItemID;
+/*0x24c*/ int                       Qty;
+/*0x250*/ int                       IconID;
+/*0x254*/ SoeUtil::String           AssignedName;
+/*0x264*/ int                       Unknown0x264;
+/*0x268*/ char                      AssignedNameCopy[0x40];
+/*0x2a8*/ CXStr                     ButtonText;
+/*0x2ac*/ CStaticAnimationTemplate* pBGStaticAnim;
+/*0x2b0*/ CStaticAnimationTemplate* pOverlayStaticAnim;
+/*0x2b4*/ CSpellGemWnd*             pSpellGem;
+/*0x2b8*/ CTextObjectInterface*     pTextObjectInterface;
+/*0x2bc*/ CTextObjectInterface*     pButtonTextObjectInterface;
+/*0x2c0*/ int                       TextfontStyle;
+/*0x2c4*/ int                       Unknown0x2C4;
+/*0x2c8*/
 };
 
 //============================================================================

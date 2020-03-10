@@ -392,6 +392,7 @@ EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
 EQLIB_VAR DWORD ArrayClass__DeleteElement;
 EQLIB_VAR DWORD BaseProfile__GetItemPossession;
+EQLIB_VAR DWORD CAAWnd__ShowAbility;
 EQLIB_VAR DWORD CAdvancedLootWnd__AddPlayerToList;
 EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;

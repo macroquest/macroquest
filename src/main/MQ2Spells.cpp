@@ -166,7 +166,7 @@ bool IsSpellClassUsable(EQ_Spell* pSpell)
 {
 	for (int index = Warrior; index <= Berserker; index++)
 	{
-		if (pSpell->ClassLevel[index] == 255 || pSpell->ClassLevel[index] == 127)
+		if (pSpell->ClassLevel[index] == 255 || pSpell->ClassLevel[index] == 254 || pSpell->ClassLevel[index] == 127)
 		{
 			continue;
 		}
