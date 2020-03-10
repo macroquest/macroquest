@@ -781,15 +781,16 @@
 #define CTabWnd__DrawCurrentPage_x                                 0x9640E0
 #define CTabWnd__DrawTab_x                                         0x963E00
 #define CTabWnd__GetCurrentPage_x                                  0x9631B0
+#define CTabWnd__GetCurrentTabIndex_x                              0x9631A0
+#define CTabWnd__GetPageFromTabIndex_x                             0x963D40
 #define CTabWnd__GetPageInnerRect_x                                0x9633F0
 #define CTabWnd__GetTabInnerRect_x                                 0x963330
 #define CTabWnd__GetTabRect_x                                      0x9631E0
 #define CTabWnd__InsertPage_x                                      0x963600
+#define CTabWnd__RemovePage_x                                      0x963770
 #define CTabWnd__SetPage_x                                         0x963470
 #define CTabWnd__SetPageRect_x                                     0x9638F0
 #define CTabWnd__UpdatePage_x                                      0x963CC0
-#define CTabWnd__GetPageFromTabIndex_x                             0x963D40
-#define CTabWnd__GetCurrentTabIndex_x                              0x9631A0
 
 // CPageWnd
 #define CPageWnd__FlashTab_x                                       0x962D50

@@ -1292,23 +1292,27 @@ public:
 	CTabWnd(CXWnd* pParent, uint32_t uId, const CXRect& rect, CTabBoxTemplate* pTabContents);
 	virtual ~CTabWnd();
 
+	// functions we have offsets for
+	EQLIB_OBJECT int DrawCurrentPage() const;
+	EQLIB_OBJECT int DrawTab(int) const;
 	EQLIB_OBJECT CPageWnd* GetCurrentPage() const;
-	EQLIB_OBJECT CXRect GetPageClientRect() const;
+	EQLIB_OBJECT int GetCurrentTabIndex() const;
+	EQLIB_OBJECT CPageWnd* GetPageFromTabIndex(int) const;
 	EQLIB_OBJECT CXRect GetPageInnerRect() const;
 	EQLIB_OBJECT CXRect GetTabInnerRect(int) const;
 	EQLIB_OBJECT CXRect GetTabRect(int) const;
-	EQLIB_OBJECT int GetCurrentTabIndex() const;
-	EQLIB_OBJECT int GetNumTabs() const;
-	EQLIB_OBJECT void InsertPage(CPageWnd*, int);
-	EQLIB_OBJECT bool SetPage(CPageWnd*, bool bNotifyParent = true, bool bBringToTop = true);
+	EQLIB_OBJECT void InsertPage(CPageWnd* pTabWnd, int position = -1); // defaults to the last tab
+	EQLIB_OBJECT void RemovePage(CPageWnd* pTabWnd);
 	EQLIB_OBJECT void SetPage(int index, bool bNotifyParent = true, bool bBringToTop = true, bool bSomething = true);
 	EQLIB_OBJECT void SetPageRect(const CXRect&);
 	EQLIB_OBJECT void UpdatePage();
+
+	// functions we don't have offsets for.
+	EQLIB_OBJECT CXRect GetPageClientRect() const;
+	EQLIB_OBJECT int GetNumTabs() const;
+	EQLIB_OBJECT bool SetPage(CPageWnd*, bool bNotifyParent = true, bool bBringToTop = true);
 	EQLIB_OBJECT bool IndexInBounds(int) const;
-	EQLIB_OBJECT CPageWnd* GetPageFromTabIndex(int) const;
 	EQLIB_OBJECT CPageWnd* GetPageFromTabPoint(CXPoint) const;
-	EQLIB_OBJECT int DrawCurrentPage() const;
-	EQLIB_OBJECT int DrawTab(int) const;
 
 	//----------------------------------------------------------------------------
 	// data members

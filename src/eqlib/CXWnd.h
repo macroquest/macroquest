@@ -434,6 +434,8 @@ public:
 	EQLIB_OBJECT void SetKeyTooltip(int, int);
 	EQLIB_OBJECT int SetFont(CTextureFont*);
 
+	EQLIB_OBJECT static void DrawColoredRect(const CXRect& rect, COLORREF color, const CXRect& clipRect);
+
 	//EQLIB_OBJECT bool HasFocus() const;
 	//EQLIB_OBJECT const CButtonDrawTemplate* GetCloseBoxTemplate() const;
 	//EQLIB_OBJECT const CButtonDrawTemplate* GetMinimizeBoxTemplate() const;
