@@ -792,8 +792,10 @@
 #define CTabWnd__GetCurrentTabIndex_x                              0x9631A0
 
 // CPageWnd
+#define CPageWnd__FlashTab_x                                       0x962D50
 #define CPageWnd__GetTabText_x                                     0x774ED0
 #define CPageWnd__SetTabText_x                                     0x962CF0
+
 
 // CTextOverlay
 #define CTextOverlay__DisplayText_x                                0x4A90A0

@@ -3017,7 +3017,7 @@ int GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool bIncrease)
 		return 0;
 	SPAWNINFO* pSpawn = pLocalPlayer;
 
-	int numEffects = pSpell->NumEffects;
+	int numEffects = GetSpellNumEffects(pSpell);
 	for (int index = 0; index < numEffects; index++)
 	{
 		int spa = GetSpellAttrib(pSpell, index);

@@ -685,6 +685,7 @@ EQLIB_VAR DWORD CMerchantWnd__SelectBuySellSlot;
 EQLIB_VAR DWORD COptionsWnd__FillChatFilterList;
 EQLIB_VAR DWORD CPacketScrambler__hton;
 EQLIB_VAR DWORD CPacketScrambler__ntoh;
+EQLIB_VAR DWORD CPageWnd__FlashTab;
 EQLIB_VAR DWORD CPageWnd__GetTabText;
 EQLIB_VAR DWORD CPageWnd__SetTabText;
 EQLIB_VAR DWORD CQuantityWnd__Open;

@@ -36,7 +36,7 @@ class CTextureFont;
 #define XWM_QMARKBOX                     9
 #define XWM_CLOSE                        10
 #define XWM_CHILDCLOSED                  11
-#define XWN_TOOLTIP                      12
+#define XWM_TOOLTIP                      12
 #define XWM_REQUESTINFO                  13
 #define XWM_NEWVALUE                     14
 #define XWM_COLUMNCLICK                  15
