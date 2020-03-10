@@ -1,3 +1,157 @@
+Mar 09 2020
+- Updated for TEST
+- Updated for LIVE
+- Fixed ${Spell[permanent spell here].Stack} so it actually returns true when they DO stack.
+
+Mar 06 2020
+- Added CTabWnd::RemovePage
+- Fixed CXWnd::DrawColoredRect crash
+
+Mar 03 2020
+- Updated for TEST
+- Updated for LIVE
+- Added CPageWnd::FlashTab
+
+Feb 27 2020
+- Updated for TEST
+- Updated for LIVE
+- Added support for spaces in /hotbutton Name. Use /hotbutton "Button Name With Spaces" in quotes.
+- Fixed GetChildWndAt
+- Updated CAAWnd::ShowAbility
+- Filled in CPageWnd members
+- Updated CHARINFO struct etc.
+- Previously Updated:
+- Fixed the CursorAttachment Struct
+- Macro Authors, take notice: Fixed ${Me.AltAbility[blah].Rank} it now properly returns 0 if you don't have any points spent in a AA.
+
+Feb 18 2020
+-Updated for TEST
+-Updated for LIVE
+
+Feb 14 2020
+-Updated for LIVE
+
+Feb 11 2020
+-Updated for LIVE
+
+Feb 09 2020
+- Fixed a bug where our version of /hotbutton would not save the button to the ini. - reported by DrWhomPhd
+
+Feb 06 2020
+- Updated for TEST
+
+Feb 05 2020
+- Updated for TEST
+
+Jan 25 2020
+-// ***************************************************************************
+-// Function:    DoHotbutton
+-// Description: our '/hotbutton' command
+-//              Extends the built in /hotbutton command with multiple lines support
+-// Usage:       /hotbutton [Name] <color> <Line:><Cursor:>[Text]
+-//				<Line can be 1-5
+-//				<Cursor can ONLY be 0 which means DO NOT put the hotbutton on the cursor.
+-//				Usage:
+-//				/hotbutton TheName 14 1:0:/echo hi	(Where 14 1:0: in this case means use color 14, then place /echo hi on LINE 1 and NO Cursor Attachment.)
+-//				/hotbutton TheName 14 1:/echo hi	(Where 14 1: in this case means use color 14, then place /echo hi on LINE 1.)
+-//				/hotbutton TheName 1:0:/echo hi		(Where 1:0: in this case means place /echo hi on LINE 1 and NO Cursor Attachment.)
+-//				/hotbutton TheName 1:/echo hi		(Where 1: in this case means place /echo hi on LINE 1.)
+-//				/hotbutton TheName 0:/echo hi		(Where 0: in this case means NO Cursor Attachment.)
+-//				Finally, just doing /hotbutton TheName 14 /echo hi OR /hotbutton TheName /echo hi just calls the eq function like before.
+-// ***************************************************************************
+
+Jan 21 2020
+- Added .Size to the Window TLO, it returns a string x,y
+  Usage: /echo ${EverQuest.LastMouseOver.Size}
+  Output: 100,200
+- Added feature to be able to load tga files (animations) from local uifiles directory. -brainiac
+
+Jan 20 2020
+- Misc Fixes to triggers etc - braniac
+- Me.CountersXXX now also count ShortBuffs (${Me.Cursed} now returns Restless Ice, for example.)
+
+Jan 15 2020
+- Added /invoke to the list of commands that can trigger a bind.
+- Updated for LIVE
+
+Jan 14 2020 by Sic
+- Updated MQ2Melee
+- If you use builder don't forget to recheck it.
+
+Jan 13 2020
+- Updated max level to 115
+- Updated the skillmanager for all builds.
+
+Jan 13 2020 by Chatwiththisname
+- Added MQ2SpellType Members: HastePct, SlowPct.
+- Added GetMeleeSpeedPctFromSpell(PSPELL, bool) (Exported in Main)
+- Added GetMeleeSpeedFromTriggers(PSPELL, bool) (not exported)
+- Added HasTrigger(PSPELL) (not exported)
+		GetMeleeSpeedPctFromSpell is used in HastePct and SlowPct.
+		If the pSpell has a trigger it will automatically check the triggers for the modification speed. 
+		Examples: 
+			${Target.Slowed.SlowPct}
+			${Me.Hasted.HastePct}
+			${Spell[Slowing Helix].SlowPct}
+			etc etc.
+- Fixed GetSelfBuffBySPA(int, bool, int);
+- Fixed GetTargetBuffBySPA(int, bool, int);
+- Fixed GetSelfShortBuffBySPA(int, bool, int);
+- Fixed HasCachedTargetBuffSPA(int, bool, PSPAWNINFO, PcTargetBuff);
+
+	In all the above SPA buff checks if the SPA matched, but wasn't the increase or decrease
+	desired, it would stop checking anymore buffs. 
+	Example: ${Target.Slowed} should return a pSpellType of a slow debuff on the target. But
+		if the target had a haste buff before the slow buff it would find SPA 11 and since it was
+		an increase instead of a decrease it would return -1, or NULL. Changing it to break; for those
+		SPA's allows it to continue checking the buffs and find any subsequent SPA 11's correctly.
+
+Jan 12 2020
+- Fixed the ZoneGuideManagerClient class for LIVE build.
+- Updated for TEST
+
+Jan 11 2020
+- Fixed the ZoneGuideManagerClient class for TEST build.
+
+Jan 10 2020
+- ${Me.Spell[blah]} now searches for rank spells as well - brainiac
+  Example:  You have Demand For Power Rk. II in your spellbook.
+  Usage:    /echo ${Me.Spell[Demand for Power]}
+  Output:   Demand For Power Rk. II
+- MQ2Melee has been updated for ToV - Sic
+- (If you use builder don't forget to recheck it.)
+
+Jan 09 2020
+- Added Me.Spell it return a SpellType selecting spells only from YOUR SpellBook. - brainiac
+  Usage: /echo ${Me.Spell[Spirit of Wolf].ID}
+  Output: 278
+  Usage: /echo ${Me.Spell[278].Name}
+  Output: Spirit of Wolf
+- Fixed a wrong offset for pinstCBlockedBuffWnd_x for TEST build - SwiftyMuse
+- Book Icon and Gem Icon IDs will no longer be shown in ItemDisplay when they are 0 - SwiftyMuse
+
+Jan 08 2020
+- Updated for TEST
+- CONTENTS changed by dbg. The evolving stuff is now in its own struct, plugins that use it need to be edited.
+  Example: PrePatch: pCont->EvolvingCurrentLevel
+  Now: pCont->pEvolutionData->EvolvingCurrentLevel
+  The Following are members of pEvolutionData: GroupID, EvolvingCurrentLevel, EvolvingExpPct, EvolvingMaxLevel, LastEquipped;
+- ItemColor is now gone from CONTENTS.
+
+Dec 21 2019
+- Fixed a crash in mq2chatwnd.cpp on /camp desktop
+- Fixed the chatwindow disappearing act.
+- Fixed mq2eqbc window disappearing act.
+  Don't forget to recheck it in builder.
+
+Dec 20 2019
+- Updated for LIVE
+- If your chatwindow does not show up type /mqchat reset
+
+Dec 19 2019
+- Updated for TEST
+- /plugin without specifying unload now acts like a toggle, if plugin is loaded it unloads it.
+
 Dec 18 2019 Torment of Velious Build
 - Updated for LIVE
 
