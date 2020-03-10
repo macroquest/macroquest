@@ -55,6 +55,12 @@ namespace mq {
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
 
+// From MQ2PluginHandler.cpp
+void ShutdownInternalModules();
+
+// From MQ2Spells.cpp
+MQModule* GetSpellsModule();
+
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
@@ -773,6 +779,7 @@ bool MQ2Initialize()
 	InitializeMQ2Spawns();
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
+	AddInternalModule(GetSpellsModule());
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();
@@ -784,6 +791,7 @@ void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
 
+	DebugTry(ShutdownInternalModules());
 	DebugTry(ShutdownMQ2KeyBinds());
 	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());

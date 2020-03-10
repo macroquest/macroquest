@@ -35,6 +35,8 @@
 
 namespace mq {
 
+#pragma region MQ2Overlay Integration Internals
+
 //----------------------------------------------------------------------------
 // globals
 
@@ -2036,36 +2038,7 @@ void SetOverlayVisible(bool visible)
 	imgui::g_bRenderImGui = visible;
 }
 
-static void ShowDebugWindow(bool* show);
-static bool gbShowSettingsWindow = false;
-static bool gbShowDebugWindow = false;
-static bool gbShowDemoWindow = false;
-
-static void UpdateOverlayUI()
-{
-	if (gbShowDemoWindow)
-	{
-		ImGui::ShowDemoWindow(&gbShowDemoWindow);
-	}
-
-	if (gGameState == GAMESTATE_INGAME)
-	{
-		if (gbShowSettingsWindow)
-		{
-			if (ImGui::Begin("MacroQuest Settings", &gbShowSettingsWindow))
-			{
-				// Should be two columns, with the left column being a tree organizing settings
-				// pages, and the right side being the page that is being rendered for settings
-			}
-			ImGui::End();
-		}
-
-		if (gbShowDebugWindow)
-		{
-			ShowDebugWindow(&gbShowDebugWindow);
-		}
-	}
-}
+static void UpdateOverlayUI();
 
 static bool RenderImGui()
 {
@@ -2169,7 +2142,351 @@ static bool CreateDeviceObjects()
 	return imgui::g_bImGuiReady;
 }
 
+#pragma endregion
+
 //============================================================================
+
+#pragma region ImGuiTreePanelWindow
+void DrawSplitter(bool split_vertically, float thickness, float* size0, float* size1, float min_size0, float min_size1)
+{
+	ImVec2 backup_pos = ImGui::GetCursorPos();
+	if (split_vertically)
+		ImGui::SetCursorPosY(backup_pos.y + *size0);
+	else
+		ImGui::SetCursorPosX(backup_pos.x + *size0);
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));          // We don't draw while active/pressed because as we move the panes the splitter button will be 1 frame late
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.6f, 0.10f));
+	ImGui::Button("##Splitter", ImVec2(!split_vertically ? thickness : -1.0f, split_vertically ? thickness : -1.0f));
+	ImGui::PopStyleColor(3);
+
+	ImGui::SetItemAllowOverlap(); // This is to allow having other buttons OVER our splitter.
+
+	if (ImGui::IsItemActive())
+	{
+		float mouse_delta = split_vertically ? ImGui::GetIO().MouseDelta.y : ImGui::GetIO().MouseDelta.x;
+
+		// Minimum pane size
+		if (mouse_delta < min_size0 - *size0)
+			mouse_delta = min_size0 - *size0;
+		if (mouse_delta > * size1 - min_size1)
+			mouse_delta = *size1 - min_size1;
+
+		// Apply resize
+		*size0 += mouse_delta;
+		*size1 -= mouse_delta;
+	}
+	ImGui::SetCursorPos(backup_pos);
+}
+
+class ImGuiTreePanelWindow
+{
+public:
+	ImGuiTreePanelWindow(const char* title);
+	~ImGuiTreePanelWindow();
+
+	struct PanelDef
+	{
+		std::string name;
+
+		using Function = void(*)();
+		Function func = nullptr;
+	};
+
+	void Clear();
+
+	void Draw(bool* pOpen);
+
+	void AddPanel(std::string_view id, PanelDef::Function func);
+	void RemovePanel(std::string_view id);
+
+private:
+	void RegenerateTree();
+
+	struct PanelTreeNode
+	{
+		std::string_view displayName;
+		PanelDef* def = nullptr;
+
+		std::vector<std::unique_ptr<PanelTreeNode>> children;
+	};
+
+	static PanelTreeNode* GetNode(PanelTreeNode* node, std::string_view name);
+
+	void DrawTreeNode(PanelTreeNode* node);
+	void SortNodes(PanelTreeNode* node);
+
+private:
+	std::string m_title;
+	float m_leftPaneSize = 150.0f; // initial size of left column
+	float m_rightPaneSize = 0.0f;  // size of right column. Initial value calculated from left.
+	bool m_dirtyTree = false;
+	std::unique_ptr<PanelTreeNode> m_treeRoot;
+	std::vector<std::unique_ptr<PanelDef>> m_panels;
+	PanelDef* m_selectedPanel = nullptr;
+};
+
+ImGuiTreePanelWindow::ImGuiTreePanelWindow(const char* title)
+	: m_title(title)
+{
+}
+
+ImGuiTreePanelWindow::~ImGuiTreePanelWindow()
+{
+	Clear();
+}
+
+void ImGuiTreePanelWindow::Clear()
+{
+	m_treeRoot.reset();
+	m_panels.clear();
+	m_selectedPanel = nullptr;
+}
+
+ImGuiTreePanelWindow::PanelTreeNode* ImGuiTreePanelWindow::GetNode(
+	ImGuiTreePanelWindow::PanelTreeNode* node, std::string_view name)
+{
+	std::string_view tail, head;
+
+	// get the name of the next node.
+	size_t pos = name.find_first_of("/");
+	if (pos == std::string::npos)
+	{
+		// we're at the leaf.
+		head = name;
+	}
+	else
+	{
+		head = name.substr(0, pos);
+		tail = name.substr(pos + 1);
+	}
+
+	// find head.
+	auto iter = std::find_if(std::begin(node->children), std::end(node->children),
+		[&](const std::unique_ptr<PanelTreeNode>& node) { return ci_equals(node->displayName, head); });
+
+	PanelTreeNode* childNode = nullptr;
+
+	if (iter != std::end(node->children))
+	{
+		// already exists, return it.
+		childNode = iter->get();
+	}
+	else
+	{
+		// node doesn't exist. create it.
+		auto nodePtr = std::make_unique<PanelTreeNode>();
+		nodePtr->def = nullptr;
+		nodePtr->displayName = head;
+		childNode = nodePtr.get();
+
+		node->children.push_back(std::move(nodePtr));
+	}
+
+	if (!tail.empty())
+	{
+		return GetNode(childNode, tail);
+	}
+
+	return childNode;
+}
+
+void ImGuiTreePanelWindow::SortNodes(PanelTreeNode* node)
+{
+	// Sort our children
+	std::sort(std::begin(node->children), std::end(node->children),
+		[](const auto& ptrA, const auto& ptrB) { return ci_less()(ptrA->displayName, ptrB->displayName); });
+
+	for (const auto& ptr : node->children)
+	{
+		SortNodes(ptr.get());
+	}
+}
+
+void ImGuiTreePanelWindow::RegenerateTree()
+{
+	m_treeRoot.reset();
+
+	m_treeRoot = std::make_unique<PanelTreeNode>();
+	m_treeRoot->displayName = "";
+	m_treeRoot->def = nullptr;
+
+	for (const auto& def : m_panels)
+	{
+		std::string_view name = def->name;
+		PanelTreeNode* node = GetNode(m_treeRoot.get(), name);
+		node->def = def.get();
+	}
+
+	// Sort everything
+	SortNodes(m_treeRoot.get());
+}
+
+void ImGuiTreePanelWindow::AddPanel(std::string_view id, PanelDef::Function func)
+{
+	auto panelDef = std::make_unique<PanelDef>();
+	panelDef->func = func;
+	panelDef->name = id;
+
+	m_panels.push_back(std::move(panelDef));
+	m_dirtyTree = true;
+}
+
+void ImGuiTreePanelWindow::RemovePanel(std::string_view id)
+{
+	auto iter = std::find_if(std::begin(m_panels), std::end(m_panels),
+		[&id](const auto& panelDef) { return panelDef->name == id; });
+	if (iter == std::end(m_panels))
+		return;
+
+	PanelDef* panel = iter->get();
+	if (panel == m_selectedPanel)
+		m_selectedPanel = nullptr;
+	m_panels.erase(iter);
+	m_dirtyTree = true;
+}
+
+void ImGuiTreePanelWindow::Draw(bool* pOpen)
+{
+	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin(m_title.c_str(), pOpen))
+	{
+		ImGui::End();
+		return;
+	}
+
+	if (m_dirtyTree)
+	{
+		m_dirtyTree = false;
+		RegenerateTree();
+	}
+
+	ImVec2 availSize = ImGui::GetContentRegionAvail();
+	if (m_rightPaneSize == 0.0f)
+		m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
+
+	DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
+
+	// Left Pane
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+		ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+		ImGui::PopStyleVar();
+
+		for (const auto& node : m_treeRoot->children)
+		{
+			DrawTreeNode(node.get());
+		}
+
+		ImGui::EndChild();
+	}
+
+	ImGui::SameLine();
+
+	// Right Pane
+	{
+		ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+		ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+
+		if (!m_selectedPanel)
+		{
+			ImGui::Text("Select a section on the left.");
+		}
+		else
+		{
+			if (m_selectedPanel->func)
+			{
+				m_selectedPanel->func();
+			}
+		}
+
+		ImGui::EndChild();
+	}
+
+	ImGui::End();
+}
+
+void ImGuiTreePanelWindow::DrawTreeNode(PanelTreeNode* node)
+{
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+	bool isLeaf = node->children.empty();
+
+	if (m_selectedPanel == nullptr && node->def != nullptr)
+		m_selectedPanel = node->def;
+
+	if (isLeaf)
+		flags |= ImGuiTreeNodeFlags_Leaf;
+	if (node->def == m_selectedPanel)
+		flags |= ImGuiTreeNodeFlags_Selected;
+
+	bool nodeOpen = ImGui::TreeNodeEx((void*)node, flags, "%.*s", node->displayName.length(), node->displayName.data());
+
+	if (ImGui::IsItemClicked() && node->def != nullptr)
+		m_selectedPanel = node->def;
+
+	if (nodeOpen)
+	{
+		for (const auto& child : node->children)
+		{
+			DrawTreeNode(child.get());
+		}
+
+		ImGui::TreePop();
+	}
+}
+#pragma endregion
+
+ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
+static bool gbShowSettingsWindow = false;
+ImGuiTreePanelWindow gDebugWindow("MacroQuest Debug Tools");
+static bool gbShowDebugWindow = false;
+
+#pragma region Panel APIs
+
+void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction)
+{
+	gSettingsWindow.AddPanel(name, drawFunction);
+}
+
+void RemoveSettingsPanel(const char* name)
+{
+	gSettingsWindow.RemovePanel(name);
+}
+
+void AddDebugPanel(const char* name, fPanelDrawFunction drawFunction)
+{
+	gDebugWindow.AddPanel(name, drawFunction);
+}
+
+void RemoveDebugPanel(const char* name)
+{
+	gDebugWindow.RemovePanel(name);
+}
+
+#pragma endregion
+
+//============================================================================
+
+static bool gbShowDemoWindow = false;
+
+static void UpdateOverlayUI()
+{
+	if (gbShowDemoWindow)
+	{
+		ImGui::ShowDemoWindow(&gbShowDemoWindow);
+	}
+
+	if (gbShowSettingsWindow)
+	{
+		gSettingsWindow.Draw(&gbShowSettingsWindow);
+	}
+
+	if (gbShowDebugWindow)
+	{
+		gDebugWindow.Draw(&gbShowDebugWindow);
+	}
+}
 
 void InitializeMQ2Overlay()
 {
@@ -2280,305 +2597,6 @@ void PulseMQ2Overlay()
 		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
 		bShowDemoWindowLast = gbShowDemoWindow;
 	}
-}
-
-//============================================================================
-
-static void DoSpellBuffTableHeaders()
-{
-	ImGui::TableSetupColumn("Index");
-	ImGui::TableSetupColumn("Name");
-	ImGui::TableSetupColumn("ID");
-	ImGui::TableSetupColumn("Level");
-	ImGui::TableSetupColumn("Duration");
-	ImGui::TableSetupColumn("InitialDuration");
-	ImGui::TableSetupColumn("HitCount");
-	ImGui::TableSetupColumn("Type");
-	ImGui::TableSetupColumn("ChargesRemaining");
-	ImGui::TableSetupColumn("ViralTimer");
-	ImGui::TableSetupColumn("Flags");
-	ImGui::TableSetupColumn("Modifier");
-	ImGui::TableSetupColumn("Activatable");
-
-	for (int i = 0; i < NUM_SLOTDATA; ++i)
-	{
-		char temp[20];
-		sprintf_s(temp, "Slot%d", i);
-		ImGui::TableSetupColumn(temp, ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-	}
-
-	ImGui::TableSetupColumn("Y");
-	ImGui::TableSetupColumn("X");
-	ImGui::TableSetupColumn("Z");
-
-	ImGui::TableAutoHeaders();
-}
-
-static void DoSpellBuffTableRow(int index, SPELLBUFF& buff)
-{
-	SPELL* spell = GetSpellByID(buff.SpellID);
-
-	ImGui::TableNextRow();
-
-	// Index
-	ImGui::Text("%d", index);
-
-	// Name
-	ImGui::TableNextCell();
-	if (spell)
-	{
-		ImGui::Text("%s", spell->Name);
-	}
-	else
-	{
-		ImGui::Text("null");
-	}
-
-	// ID
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.SpellID);
-
-	// Level
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.Level);
-
-	// Duration
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.Duration);
-
-	// InitialDuration
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.InitialDuration);
-
-	// HitCount
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.HitCount);
-
-	// Type
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.Type);
-
-	// ChargesRemaining
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.ChargesRemaining);
-
-	// ViralTimer
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.ViralTimer);
-
-	// Flags
-	ImGui::TableNextCell();
-	ImGui::Text("%x", buff.Flags);
-
-	// Modifier
-	ImGui::TableNextCell();
-	ImGui::Text("%.2f", buff.Modifier);
-
-	// Activatable
-	ImGui::TableNextCell();
-	ImGui::Text("%d", buff.Activatable);
-
-	// SlotData[0]
-	for (int i = 0; i < NUM_SLOTDATA; ++i)
-	{
-		ImGui::TableNextCell();
-
-		int Slot = buff.SlotData[i].Slot;
-		int Value = buff.SlotData[i].Value;
-
-		if (Slot != -1)
-			ImGui::Text("%d: %d", Slot, Value);
-	}
-
-	// Y
-	ImGui::TableNextCell();
-	ImGui::Text("%.2f", buff.Y);
-
-	// X
-	ImGui::TableNextCell();
-	ImGui::Text("%.2f", buff.X);
-
-	// Z
-	ImGui::TableNextCell();
-	ImGui::Text("%.2f", buff.Z);
-}
-
-int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
-{
-	ImGuiTableFlags tableFlags = 0
-		| ImGuiTableFlags_SizingPolicyFixedX
-		| ImGuiTableFlags_Scroll
-		| ImGuiTableFlags_ScrollFreezeTopRow
-		| ImGuiTableFlags_ScrollFreeze2Columns
-		| ImGuiTableFlags_NoHostExtendY
-		| ImGuiTableFlags_RowBg
-		| ImGuiTableFlags_Borders
-		| ImGuiTableFlags_Resizable
-		| ImGuiTableFlags_Reorderable;
-
-	int count = 2; // start with space for header and possible scroll bar
-
-	// calculate the size
-	for (int i = 0; i < numAffects; ++i)
-	{
-		EQ_Affect& buff = affect[i];
-		if (buff.SpellID == 0 && !showEmpty)
-			continue;
-
-		count++;
-	}
-	ImVec2 size = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * count);
-	count = 0;
-
-	if (ImGui::BeginTable(name, 16 + NUM_SLOTDATA, tableFlags, size))
-	{
-		DoSpellBuffTableHeaders();
-
-		for (int i = 0; i < numAffects; ++i)
-		{
-			EQ_Affect& buff = affect[i];
-
-			if (buff.SpellID == 0 && !showEmpty)
-				continue;
-
-			DoSpellBuffTableRow(count + 1, buff);
-			count++;
-		}
-
-		ImGui::EndTable();
-	}
-	return count;
-}
-
-
-void ShowDebugWindow(bool* show)
-{
-	if (!ImGui::Begin("Test", show))
-	{
-		ImGui::End();
-		return;
-	}
-
-	PcProfile* pcProfile = GetPcProfile();
-	if (!pcProfile)
-	{
-		ImGui::TextColored(ImColor(255, 0, 0), "You must be in game to use this");
-		ImGui::End();
-		return;
-	}
-
-	if (ImGui::CollapsingHeader("Spell Buffs"))
-	{
-		int count = DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buff, lengthof(pcProfile->Buff));
-		ImGui::Text("%d Buff(s)", count);
-	}
-
-	if (ImGui::CollapsingHeader("Short Buffs"))
-	{
-		int count = DoSpellAffectTable("SpellAffectShortBuffsTable", pcProfile->ShortBuff, lengthof(pcProfile->ShortBuff));
-		ImGui::Text("%d Short Buff(s)", count);
-	}
-
-	if (ImGui::CollapsingHeader("Stacks Test"))
-	{
-		static bool bCheckSpellBuffs = true;
-		ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
-
-		if (bCheckSpellBuffs)
-		{
-			ImGui::Text("Enter the name of a spell to test buff stacking:");
-		}
-		else
-		{
-			ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
-		}
-
-		static char searchText[256] = { 0 };
-		static char searchText2[256] = { 0 };
-
-		if (bCheckSpellBuffs)
-		{
-			ImGui::InputText("Spell Name", searchText2, 256);
-		}
-		else
-		{
-			ImGui::InputText("Spell 1", searchText, 256);
-			ImGui::InputText("Spell 2", searchText2, 256);
-		}
-
-		SPELL* pSpell = nullptr;
-		SPELL* pSpell2 = nullptr;
-
-		if (searchText[0])
-		{
-			pSpell = GetSpellByName(searchText);
-			if (!pSpell)
-			{
-				ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
-			}
-		}
-
-		if (searchText2[0])
-		{
-			pSpell2 = GetSpellByName(searchText2);
-			if (!pSpell2)
-			{
-				ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
-			}
-		}
-
-		if (!bCheckSpellBuffs && ImGui::Button("Swap"))
-		{
-			char temp[256];
-			strcpy_s(temp, searchText);
-			strcpy_s(searchText, searchText2);
-			strcpy_s(searchText2, temp);
-		}
-
-		if (pSpell2)
-		{
-			SPAWNINFO* pPlayer = pLocalPlayer;
-			PcClient* pPcClient = pPlayer->GetPcClient();
-
-			EQ_Affect affect;
-			affect.Type = 2;
-			EQ_Affect* affectToPass = nullptr;
-			if (pSpell)
-			{
-				affect.SpellID = pSpell->ID;
-				affectToPass = &affect;
-			}
-			int slotIndex = -1;
-
-			EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
-				true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0, false);
-
-			if (ret)
-			{
-				if (pSpell)
-				{
-					ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
-				}
-				else
-				{
-					ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
-				}
-			}
-			else
-			{
-				if (pSpell)
-				{
-					ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
-				}
-				else
-				{
-					ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
-				}
-			}
-		}
-	}
-
-	ImGui::End();
 }
 
 } // namespace mq

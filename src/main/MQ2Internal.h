@@ -402,6 +402,24 @@ struct MQPlugin
 	MQPlugin* pNext = nullptr;
 };
 
+// Like lightweight plugins, but these are internal to mq2main
+struct MQModule
+{
+	char                 name[64] = { 0 };
+	bool                 canUnload = false;
+	fMQInitializePlugin  Initialize = 0;
+	fMQShutdownPlugin    Shutdown = 0;
+	fMQPulse             Pulse = 0;
+	fMQSetGameState      SetGameState = 0;
+	fMQUpdateImGui       UpdateImGui = 0;
+	fMQZoned             Zoned = 0;
+	fMQWriteChatColor    WriteChatColor = 0;
+
+	bool                 loaded = false;
+};
+void AddInternalModule(MQModule* module);
+void RemoveInternalModule(MQModule* module);
+
 //============================================================================
 
 class CMQ2Alerts
