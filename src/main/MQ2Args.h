@@ -31,12 +31,7 @@ public:
 	const char* arg_description_color = "\a-y";
 	const char* epilog_color = "\at";
 
-	MQ2Args(const std::string& description_, const std::string& epilog_ = std::string()) : ArgumentParser(description_, epilog_)
-	{
-		helpParams.width = 60;
-		helpParams.progindent = 5;
-		helpParams.progtailindent = 10;
-	}
+	MQ2Args(const std::string& description_, const std::string& epilog_ = std::string()) : ArgumentParser(description_, epilog_) {}
 
 	virtual void Help() const
 	{
@@ -53,21 +48,19 @@ public:
 			auto flags = std::get<0>(desc);
 			auto info = std::get<1>(desc);
 
-			auto lines = args::Wrap(fmt::format("{}{}{} -- {}{}{}", arg_color, flags, reset_color, arg_description_color, info, reset_color),
-				helpParams.width - helpParams.progtailindent,
-				helpParams.width - helpParams.progindent);
-
-			auto line = std::cbegin(lines);
-			if (line != std::cend(lines))
-			{
-				writer("%s%s", std::string(helpParams.progindent, ' ').c_str(), line->c_str());
-				for (++line; line != std::cend(lines); ++line)
-					writer("%s%s%s%s", std::string(helpParams.progtailindent, ' ').c_str(), arg_description_color, line->c_str(), reset_color);
-			}
+			writer("%s%s%s -- %s%s%s", arg_color, flags.c_str(), reset_color, arg_description_color, info.c_str(), reset_color);
 		}
 
 		if (!command.Epilog().empty())
 			writer("%s%s%s", epilog_color, command.Epilog().c_str(), reset_color);
 	}
+};
+
+class MQ2Help : public args::Command
+{
+public:
+	MQ2Help() = delete;
+	MQ2Help(Group& base_, std::string name_, std::string help_) :
+		Command(base_, name_, help_, [this](args::Subparser&) { throw args::Help(Name()); }) {}
 };
 }
