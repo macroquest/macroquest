@@ -87,6 +87,7 @@ using namespace eqlib;
 #include "MQ2Inlines.h"
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
+#include "MQ2Args.h"
 
 #include "datatypes/MQ2DataTypes.h"
 

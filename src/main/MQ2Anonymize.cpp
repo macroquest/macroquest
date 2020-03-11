@@ -18,7 +18,6 @@
 #include <locale>
 #include <codecvt>
 #include <regex>
-#include <args/args.hxx>
 #include <memory>
 #include <Yaml.hpp>
 
@@ -568,19 +567,19 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	if (!pChar)
 		return;
 
-	args::ArgumentParser arg_parser("Anonymization tool: filters specific text from display output.");
+	MQ2Args arg_parser("Anonymization tool: filters specific text from display output.");
 	arg_parser.Prog("/mqanon");
 	arg_parser.RequireCommand(false);
-	args::Group commands(arg_parser, "commands", args::Group::Validators::AtMostOne);
+	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
 	args::Command asterisk(commands, "asterisk", "anonymize with asterisks",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::All);
+			args::Group arguments(command, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -593,12 +592,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command clas(commands, "class", "anonymize by class attributes",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::All);
+			args::Group arguments(command, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -611,13 +610,13 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command custom(commands, "custom", "anonymize with custom string",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::All);
+			args::Group arguments(command, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -631,12 +630,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::All);
+			args::Group arguments(command, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to de-anonymize");
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -649,13 +648,13 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command alias(commands, "alias", "adds an alias for a name in the list of filtered names",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::All);
+			args::Group arguments(command, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name entry to alias");
 			args::Positional<std::string> alias(arguments, "alias", "the alias to also search for when replacing the name");
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -668,13 +667,13 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command unalias(commands, "unalias", "drops an alias for a name in the list of filtered names",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::AtLeastOne);
+			args::Group arguments(command, "", args::Group::Validators::AtLeastOne);
 			args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
 			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -692,12 +691,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command group(commands, "group", "sets group anonymization",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -716,12 +715,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command fellowship(commands, "fellowship", "sets fellowship anonymization",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -740,12 +739,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command guild(commands, "guild", "sets guild anonymization",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -764,12 +763,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command raid(commands, "raid", "sets raid anonymization",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -788,12 +787,12 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command me(commands, "me", "sets me anonymization",
 		[](args::Subparser& parser) {
-			args::Group command(parser, "command", args::Group::Validators::AtMostOne);
+			args::Group command(parser, "", args::Group::Validators::AtMostOne);
 
-			args::Group arguments(command, "arguments", args::Group::Validators::AtMostOne);
+			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 
-			args::Group flags(command, "flags", args::Group::Validators::AtLeastOne);
+			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
 			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
 			parser.Parse();
 
@@ -855,7 +854,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	}
 	catch (const args::Help&)
 	{
-		WriteChatColor(arg_parser.Help().c_str());
+		arg_parser.Help();
 	}
 	catch (const args::Error& e)
 	{
