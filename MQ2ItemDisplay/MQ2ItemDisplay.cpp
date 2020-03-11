@@ -1440,7 +1440,16 @@ public:
 					case 6://open in lucy
 					{
 						if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
-							std::string url = "http://lucy.allakhazam.com/item.html?id=";
+							//break it
+							//std::string url = "http://webproxy.to/browse.php?b=4&u=http://lucy.allakhazam.com/item.html?id=";
+							//std::string url = "https://lucy.allakhazam.com/item.html?id=";
+							//std::string url = "https://www.raidloot.com/Item.aspx?id=";
+							//std::string url = "https://eq.magelo.com/item/";
+							//these works
+							//std::string url = "https://items.sodeq.org/item.php?id=";
+							//std::string url = "https://googleweblight.com/?lite_url=https://lucy.allakhazam.com/item.html?id=";
+							
+							std::string url = "http://mwn12.com/proxy/browse.php?u=https://lucy.allakhazam.com/item.html?id=";
 							CHAR szID[64] = { 0 };
 							_itoa_s(pItem->ItemNumber, szID, 10);
 							url.append(szID);

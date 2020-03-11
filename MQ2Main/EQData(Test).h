@@ -1902,23 +1902,29 @@ struct RaidData
 /*0xdc*/
 };
 
-// 10-14-07 - ieatacid
+// Mar 09 2020 -eqmule
 typedef struct _FELLOWSHIPMEMBER {
-/*0x00*/  DWORD   WorldID;
-/*0x04*/  CHAR    Name[0x40];
-/*0x44*/  DWORD   ZoneID;
-/*0x48*/  DWORD   Level;
-/*0x4c*/  DWORD   Class;
-/*0x50*/  DWORD   LastOn;    // FastTime() timestamp
-/*0x54*/
+/*0x00*/  DWORD   LastOn;    // FastTime() timestamp
+/*0x04*/  DWORD   Unknown0x04;
+/*0x08*/  DWORD   Unknown0x08;
+/*0x0c*/  DWORD   Unknown0x0c;//yes i know this is a eqguid, todo: fix
+/*0x10*/  DWORD   WorldID;
+/*0x14*/  CHAR    Name[0x40];
+/*0x54*/  DWORD   ZoneID;
+/*0x58*/  DWORD   Level;
+/*0x5c*/  DWORD   Class;
+/*0x60*/
 } FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
+
 struct FSDATA
 {
 	CHAR Strings[0x20];//need to check what these are...
 };
 // 20121128 - ieatacid  0x9e4
 // Dec 13 2016 - eqmule  0x9e8 see 5C3F9F
+
 typedef struct _FELLOWSHIPINFO {
+	
 /*0x000*/  DWORD  Version;
 /*0x004*/  DWORD  Version2;//just place holders for now, ill fix these later
 /*0x008*/  DWORD  Version3;
@@ -1928,12 +1934,14 @@ typedef struct _FELLOWSHIPINFO {
 /*0x018*/  CHAR   Leader[0x40];
 /*0x058*/  CHAR   MotD[0x400];
 /*0x458*/  DWORD  Members;
-/*0x45c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];//size 0xc * 0x54 = 0x3f0
-/*0x84c*/  DWORD  Sync;
-/*0x850*/  FSDATA Somedata[0xc];//size 0x180
-/*0x9d0*/  bool bExpSharingEnabled[0xc];
-/*0x9dc*/  bool bSharedExpCapped[0xc];
-/*0x9e8*/
+/*0x45c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];//size 0xc * 0x60 = 0x480
+/*0x8dc*/  DWORD  Unknown0x8dc;
+/*0x8e0*/  DWORD  Sync;
+/*0x8E4*/  FSDATA Somedata[0xc];//size 0x180
+/*0xa64*/  bool bExpSharingEnabled[0xc];
+/*0xa70*/  bool bSharedExpCapped[0xc];
+/*0xa7c*/  int Unknown0xa7c;
+/*0xa80*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 enum ItemSpellTypes

@@ -1,4 +1,8 @@
-Mar 08 2020
+Mar 11 2020
+- Updated for LIVE
+- Fixed the Lucy Button on itemdisplay for the internal browser. (you can still right click to launch externally)
+-
+Mar 09 2020
 - Updated for TEST
 - Updated for LIVE
 - Fixed ${Spell[permanent spell here].Stack} so it actually returns true when they DO stack.
