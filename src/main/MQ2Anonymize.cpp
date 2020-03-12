@@ -66,6 +66,45 @@ static std::string_view GetStringFromAnonymization(Anonymization anon)
 	return "none";
 }
 
+enum class AnonymizationClasses
+{
+	None,
+	Group,
+	Fellowship,
+	Guild,
+	Raid,
+	Self
+};
+
+std::unordered_map<std::string_view, AnonymizationClasses> anonymization_classes_map = {
+	{"none", AnonymizationClasses::None},
+	{"group", AnonymizationClasses::Group},
+	{"fellowship", AnonymizationClasses::Fellowship},
+	{"guild", AnonymizationClasses::Guild},
+	{"raid", AnonymizationClasses::Raid},
+	{"self", AnonymizationClasses::Self}
+};
+
+static AnonymizationClasses GetAnonClassFromString(std::string_view anon_class)
+{
+	auto it = anonymization_classes_map.find(anon_class);
+	if (it != anonymization_classes_map.end())
+		return it->second;
+
+	return AnonymizationClasses::None;
+}
+
+static std::string_view GetStringFromAnonClass(AnonymizationClasses anon_class)
+{
+	for (auto anon_type : anonymization_classes_map)
+	{
+		if (anon_type.second == anon_class)
+			return anon_type.first;
+	}
+
+	return "none";
+}
+
 static Anonymization anon_group;
 static Anonymization anon_fellowship;
 static Anonymization anon_guild;
@@ -246,6 +285,58 @@ static std::vector<std::unique_ptr<anon_replacer> >::iterator FindReplacer(std::
 		[&Name](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Name, r->name); });
 }
 
+static void SetAnonymization(AnonymizationClasses AnonClass, Anonymization Strategy)
+{
+	switch (AnonClass)
+	{
+	case AnonymizationClasses::Group:
+		if (Strategy != anon_group)
+		{
+			anon_group = Strategy;
+			group_memoization.clear();
+		}
+		break;
+
+	case AnonymizationClasses::Fellowship:
+		if (Strategy != anon_fellowship)
+		{
+			anon_fellowship = Strategy;
+			fellowship_memoization.clear();
+		}
+		break;
+
+	case AnonymizationClasses::Guild:
+		if (Strategy != anon_guild)
+		{
+			anon_guild = Strategy;
+			guild_memoization.clear();
+		}
+		break;
+
+	case AnonymizationClasses::Raid:
+		if (Strategy != anon_raid)
+		{
+			anon_raid = Strategy;
+			raid_memoization.clear();
+		}
+		break;
+
+	case AnonymizationClasses::Self:
+		if (Strategy != anon_self)
+		{
+			anon_self = Strategy;
+			self_replacer->update_strategy(Strategy);
+		}
+		break;
+
+	default:
+		WriteChatf("Could not find class \ag%s\ax, no anonymization change.", GetStringFromAnonClass(AnonClass));
+		return;
+	}
+
+	WriteChatf("Updated \ag%s\ax anonymization to \ao%s\ax.", GetStringFromAnonClass(AnonClass), GetStringFromAnonymization(Strategy));
+}
+
 // add an anonymization rule to the map -- if the rule already exists, assume we want to update the target
 static void AddAnonymization(std::string_view Name, Anonymization Strategy, std::string_view Replace = "")
 {
@@ -256,9 +347,19 @@ static void AddAnonymization(std::string_view Name, Anonymization Strategy, std:
 		// just update things
 		(*replacer_it)->update_strategy(Strategy);
 		(*replacer_it)->update_target(Replace); 
+		WriteChatf("Updated anonymization \at%s\ax with \at%s\ax%s",
+			Name.data(),
+			GetStringFromAnonymization(Strategy).data(),
+			Replace.empty() ? "." : fmt::format(" ({}).", Replace).c_str());
 	}
 	else
+	{
 		replacers.emplace_back(std::make_unique<anon_replacer>(Name, Strategy, Replace));
+		WriteChatf("Added anonymization \at%s\ax with \at%s\ax%s",
+			Name.data(),
+			GetStringFromAnonymization(Strategy).data(),
+			Replace.empty() ? "." : fmt::format(" ({}).", Replace).c_str());
+	}
 }
 
 static void DropAnonymization(std::string_view Name)
@@ -266,7 +367,14 @@ static void DropAnonymization(std::string_view Name)
 	auto replacer_it = FindReplacer(Name);
 
 	if (replacer_it != std::end(replacers))
+	{
 		replacers.erase(replacer_it);
+		WriteChatf("Un-Anonymized \at%s\ax.", Name.data());
+	}
+	else
+	{
+		WriteChatf("Could not find \at%s\ax in anonymization filters, no name was removed.", Name.data());
+	}
 }
 
 // will not add an entry if there is nothing available
@@ -275,9 +383,14 @@ static void AddAlternate(std::string_view Name, std::string_view Alternate)
 	auto replacer_it = FindReplacer(Name);
 
 	if (replacer_it != std::end(replacers))
+	{
 		(*replacer_it)->add_alternate(Alternate);
-
-	// don't do anything if we can't find the name
+		WriteChatf("Added Alias \ay%s\ax to \at%s\ax.", Alternate.data(), Name.data());
+	}
+	else
+	{
+		WriteChatf("Could not find filter for \ay%s\ax, no alias added!", Name.data());
+	}
 }
 
 // will not add an entry if there is nothing available
@@ -286,14 +399,33 @@ static void DropAlternate(std::string_view Name, std::string_view Alternate)
 	auto replacer_it = FindReplacer(Name);
 
 	if (replacer_it != std::end(replacers))
+	{
 		(*replacer_it)->drop_alternate(Alternate);
+		WriteChatf("Dropped Alias \ay%s\ax from \at%s\ax.", Alternate.data(), Name.data());
+	}
+	else
+	{
+		WriteChatf("Could not find filter for \ay%s\ax, no alias removed!", Name.data());
+	}
 }
 
 // let the user pass without a name
 static void DropAlternate(std::string_view Alternate)
 {
+	bool changed = false;
 	std::for_each(std::begin(replacers), std::end(replacers),
-		[&Alternate](const std::unique_ptr<anon_replacer>& r) { if (r) r->drop_alternate(Alternate); });
+		[&Alternate, &changed](const std::unique_ptr<anon_replacer>& r)
+		{
+			if (r)
+			{
+				r->drop_alternate(Alternate);
+				changed = true;
+				WriteChatf("Dropped Alias \ay%s\ax from \at%s\ax.", Alternate.data(), r->name.c_str());
+			}
+		});
+
+	if (!changed)
+		WriteChatf("Could not find a filter that contains \ay%s\ax, no alias removed!", Alternate.data());
 }
 
 static void SetAnon(bool anon_state)
@@ -318,6 +450,7 @@ static void ToggleAnon()
 
 static void Serialize()
 {
+	WriteChatf("Saving MQ2Anonymize to config.");
 	anon_config["enabled"] = anon_enabled ? "true" : "false";
 
 	anon_config["replacers"].Clear();
@@ -336,10 +469,12 @@ static void Serialize()
 	anon_config["self"] = std::string(GetStringFromAnonymization(anon_self));
 
 	Yaml::Serialize(anon_config, anon_config_path.c_str());
+	WriteChatf("Done.");
 }
 
 static void Deserialize()
 {
+	WriteChatf("Loading MQ2Anonymize from config.");
 	try
 	{
 		Yaml::Parse(anon_config, anon_config_path.c_str());
@@ -372,6 +507,7 @@ static void Deserialize()
 	guild_memoization.clear();
 	raid_memoization.clear();
 	self_replacer.reset();
+	WriteChatf("Done.");
 }
 
 bool IsAnonymized()
@@ -572,279 +708,67 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	arg_parser.RequireCommand(false);
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
-	args::Command asterisk(commands, "asterisk", "anonymize with asterisks",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
+	MQ2Argument asterisk(commands, "asterisk", "anonymize with asterisks",
+		[](auto name) { if (name) AddAnonymization(name.Get(), Anonymization::Asterisk); },
+		MQ2AddArg<args::Positional<std::string>>("name", "the name to anonymize"));
 
-			args::Group arguments(command, "", args::Group::Validators::All);
-			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
+	MQ2Argument clas(commands, "class", "anonymize by class attributes",
+		[](auto name) { if (name) AddAnonymization(name.Get(), Anonymization::Class); },
+		MQ2AddArg<args::Positional<std::string>>("name", "the name to anonymize"));
 
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
+	MQ2Argument custom(commands, "custom", "anonymize with custom string",
+		[](auto name, auto replacers) { if (name && replacers) AddAnonymization(name.Get(), Anonymization::Custom, join(replacers.Get(), " "));  },
+		MQ2AddArg<args::Positional<std::string>>("name", "the name to anonymize"),
+		MQ2AddArg<args::PositionalList<std::string>>("replacers", "the text to anonymize with"));
 
-			if (name)
-			{
-				AddAnonymization(name.Get(), Anonymization::Asterisk);
-				WriteChatf("Anonymized \at%s\ax with \atasterisk\ax strategy.", name.Get().c_str());
-			}
-		});
+	MQ2Argument drop(commands, "drop", "drops anonymization name from list of filtered names",
+		[](auto name) { if (name) DropAnonymization(name.Get()); },
+		MQ2AddArg<args::Positional<std::string>>("name", "the name to de-anonymize"));
 
-	args::Command clas(commands, "class", "anonymize by class attributes",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
+	MQ2Argument alias(commands, "alias", "adds an alias for a name in the list of filtered names",
+		[](auto name, auto alias) { if (name && alias) AddAlternate(name.Get(), alias.Get()); },
+		MQ2AddArg<args::Positional<std::string>>("[name]", "the name entry to unalias"),
+		MQ2AddArg<args::Positional<std::string>>("alias", "the alias to also stop searching for when replacing the name"));
 
-			args::Group arguments(command, "", args::Group::Validators::All);
-			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
+	MQ2Argument unalias(commands, "unalias", "drops an alias for a name in the list of filtered names",
+		[](auto name, auto alias) { if (name && alias) DropAlternate(name.Get(), alias.Get()); else if (name) DropAlternate(name.Get()); },
+		MQ2AddArg<args::Positional<std::string>>("[name]", "the name entry to unalias"),
+		MQ2AddArg<args::Positional<std::string>>("alias", "the alias to also stop searching for when replacing the name"));
 
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
+	MQ2Argument group(commands, "group", "sets group anonymization",
+		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Group, anon_type.Get()); },
+		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
 
-			if (name)
-			{
-				AddAnonymization(name.Get(), Anonymization::Class);
-				WriteChatf("Anonymized \at%s\ax with \atclass\ax strategy.", name.Get().c_str());
-			}
-		});
+	MQ2Argument fellowship(commands, "fellowship", "sets fellowship anonymization",
+		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Fellowship, anon_type.Get()); },
+		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
 
-	args::Command custom(commands, "custom", "anonymize with custom string",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
+	MQ2Argument guild(commands, "guild", "sets guild anonymization",
+		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Guild, anon_type.Get()); },
+		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
 
-			args::Group arguments(command, "", args::Group::Validators::All);
-			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
-			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
+	MQ2Argument raid(commands, "raid", "sets raid anonymization",
+		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Raid, anon_type.Get()); },
+		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
 
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (name && replacers)
-			{
-				auto anonymization = join(replacers.Get(), " ");
-				AddAnonymization(name.Get(), Anonymization::Custom, anonymization);
-				WriteChatf("Anonymized \at%s\ax with \at%s\ax.", name.Get().c_str(), anonymization.c_str());
-			}
-		});
-
-	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::All);
-			args::Positional<std::string> name(arguments, "name", "the name to de-anonymize");
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (name)
-			{
-				DropAnonymization(name.Get());
-				WriteChatf("Un-Anonymized \at%s\ax.", name.Get().c_str());
-			}
-		});
-
-	args::Command alias(commands, "alias", "adds an alias for a name in the list of filtered names",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::All);
-			args::Positional<std::string> name(arguments, "name", "the name entry to alias");
-			args::Positional<std::string> alias(arguments, "alias", "the alias to also search for when replacing the name");
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (name && alias)
-			{
-				AddAlternate(name.Get(), alias.Get());
-				WriteChatf("Added Alias \ay%s\ax to \at%s\ax.", alias.Get().c_str(), name.Get().c_str());
-			}
-		});
-
-	args::Command unalias(commands, "unalias", "drops an alias for a name in the list of filtered names",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::AtLeastOne);
-			args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
-			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (name && alias)
-			{
-				DropAlternate(name.Get(), alias.Get());
-				WriteChatf("Dropped Alias \ay%s\ax from \at%s\ax.", alias.Get().c_str(), name.Get().c_str());
-			}
-			else if (name)
-			{
-				DropAlternate(name.Get());
-				WriteChatf("Dropped Alias \ay%s\ax.", name.Get().c_str());
-			}
-		});
-
-	args::Command group(commands, "group", "sets group anonymization",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
-			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (anon_type)
-			{
-				auto a = anon_type.Get();
-				if (a != anon_group)
-				{
-					anon_group = a;
-					group_memoization.clear();
-				}
-
-				WriteChatf("Group Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_group));
-			}
-		});
-
-	args::Command fellowship(commands, "fellowship", "sets fellowship anonymization",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
-			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (anon_type)
-			{
-				auto a = anon_type.Get();
-				if (a != anon_fellowship)
-				{
-					anon_fellowship = a;
-					fellowship_memoization.clear();
-				}
-
-				WriteChatf("Fellowship Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_fellowship));
-			}
-		});
-
-	args::Command guild(commands, "guild", "sets guild anonymization",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
-			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (anon_type)
-			{
-				auto a = anon_type.Get();
-				if (a != anon_guild)
-				{
-					anon_guild = a;
-					guild_memoization.clear();
-				}
-
-				WriteChatf("Guild Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_guild));
-			}
-		});
-
-	args::Command raid(commands, "raid", "sets raid anonymization",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
-			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (anon_type)
-			{
-				auto a = anon_type.Get();
-				if (a != anon_raid)
-				{
-					anon_raid = a;
-					raid_memoization.clear();
-				}
-
-				WriteChatf("Raid Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_raid));
-			}
-		});
-
-	args::Command me(commands, "me", "sets me anonymization",
-		[](args::Subparser& parser) {
-			args::Group command(parser, "", args::Group::Validators::AtMostOne);
-
-			args::Group arguments(command, "", args::Group::Validators::AtMostOne);
-			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-
-			args::Group flags(command, "", args::Group::Validators::AtLeastOne);
-			args::HelpFlag h(flags, "help", "help", { 'h', "help" });
-			parser.Parse();
-
-			if (anon_type)
-			{
-				auto a = anon_type.Get();
-				if (a != anon_self)
-				{
-					anon_self = a;
-					self_replacer.reset();
-				}
-			}
-			else if (anon_self != Anonymization::Me)
-			{
-				anon_self = Anonymization::Me;
-				self_replacer.reset();
-			}
-
-			WriteChatf("Self Anonymization is now \ao%s\ax.", GetStringFromAnonymization(anon_self));
-		});
-
+	MQ2Argument me(commands, "me", "sets me anonymization",
+		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Self, anon_type.Get()); else SetAnonymization(AnonymizationClasses::Self, Anonymization::Me); },
+		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
 	me.RequireCommand(false);
 
-	args::Command save(commands, "save", "saves the configuration to file, completely rewriting data",
-		[](args::Subparser& parser) {
-			parser.Parse();
-			WriteChatf("Saving MQ2Anonymize to config.");
-			Serialize();
-			WriteChatf("Done.");
-		});
+	MQ2Argument save(commands, "save", "saves the configuration to file, completely rewriting data",
+		[]() { Serialize(); });
 
-	args::Command load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
-		[](args::Subparser& parser) {
-			parser.Parse();
-			WriteChatf("Loading MQ2Anonymize from config.");
-			Deserialize();
-			WriteChatf("Done.");
-		});
+	MQ2Argument load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
+		[]() { Deserialize(); });
 
-	args::Command on(commands, "on", "turns anonymization on",
-		[](args::Subparser& parser) {
-			parser.Parse();
-			SetAnon(true);
-		});
+	MQ2Argument on(commands, "on", "turns anonymization on",
+		[]() { SetAnon(true); });
 
-	args::Command off(commands, "off", "turns anonymization off",
-		[](args::Subparser& parser) {
-			parser.Parse();
-			SetAnon(false);
-		});
+	MQ2Argument off(commands, "off", "turns anonymization off",
+		[]() { SetAnon(false); });
 
-	args::HelpFlag h(commands, "help", "help", { 'h', "help" });
+	MQ2HelpArgument h(commands);
 
 	auto args = allocate_args(szLine);
 

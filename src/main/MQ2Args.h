@@ -56,11 +56,57 @@ public:
 	}
 };
 
-class MQ2Help : public args::Command
+template <typename Ret, typename... Args>
+auto MQ2AddArg(Args... help_args)
 {
+	return[help_args = std::make_tuple(std::forward<Args>(help_args)...)](args::Group& arguments)
+	{
+		return std::make_from_tuple<Ret>(std::tuple_cat(std::tie(arguments), help_args));
+	};
+}
+
+class MQ2Argument : public args::Command
+{
+private:
+	template <typename... Funcs, size_t... Indexes>
+	static auto TransformSubargsHelper(std::tuple<Funcs...> const& funcs, Group& arguments, std::index_sequence<Indexes...>)
+	{
+		return std::make_tuple([&arguments](auto func) { return func(arguments); }(std::get<Indexes>(funcs))...);
+	}
+
+	template <typename... Funcs>
+	static auto TransformSubargs(std::tuple<Funcs...> const& funcs, Group& arguments)
+	{
+		return TransformSubargsHelper(funcs, arguments, std::make_index_sequence<sizeof...(Funcs)> {});
+	}
+
 public:
-	MQ2Help() = delete;
-	MQ2Help(Group& base_, std::string name_, std::string help_) :
-		Command(base_, name_, help_, [this](args::Subparser&) { throw args::Help(Name()); }) {}
+	MQ2Argument() = delete;
+	template <typename F, typename... SubArguments>
+	MQ2Argument(Group& base, std::string name, std::string help, F parse, SubArguments... subargs) :
+		Command(base, name, help,
+			[parse = std::forward<F>(parse), subargs = std::make_tuple(std::forward<SubArguments>(subargs)...)](args::Subparser& parser)
+			{
+				args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+				auto command_args = TransformSubargs(subargs, arguments);
+				MQ2HelpArgument help(parser);
+				parser.Parse();
+				std::apply(parse, command_args);
+			}) {}
+};
+
+class MQ2HelpArgument : public args::Command
+{
+private:
+	Group base;
+
+public:
+	MQ2HelpArgument() = delete;
+	MQ2HelpArgument(Group& base_) : base(base_), Command(base_, "help", "show command/argument help",
+		[this](args::Subparser&)
+		{
+			SelectCommand(nullptr); // de-select the help command
+			throw args::Help(Name());
+		}) {}
 };
 }
