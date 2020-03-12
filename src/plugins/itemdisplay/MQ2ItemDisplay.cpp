@@ -1224,7 +1224,7 @@ public:
 					if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 					{
 						std::string url = fmt::format(
-							"http://lucy.allakhazam.com/item.html?id={}", pItem->ItemNumber);
+							"http://mwn12.com/proxy/browse.php?u=https://lucy.allakhazam.com/item.html?id={}", pItem->ItemNumber);
 						ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 					}
 
